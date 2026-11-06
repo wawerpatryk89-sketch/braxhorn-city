@@ -77,7 +77,7 @@ class Build18Regression(unittest.TestCase):
     def test_all_geometry_and_walk_quality_reports_are_nonblocking(self):
         wf = read(".github/workflows/mistrzowie-apk.yml")
         preparation = wf[wf.index("      - name: Geometry and source preparation"):
-                         wf.index("      # Geometry, pathing and source regressions")]
+                         wf.index("      - name: Prepare durable Addressables content baseline mode")]
         self.assertIn("prepare_casino_textures_2k.py", preparation)
         self.assertIn("build_infrastructure.py", preparation)
         self.assertIn("build_exteriors.py", preparation)
@@ -86,7 +86,9 @@ class Build18Regression(unittest.TestCase):
                       "unittest discover"):
             self.assertNotIn(check, preparation)
         advisory = wf[wf.index("      - name: Advisory geometry and code reports"):
-                      wf.index("      - name: Prepare durable Addressables content baseline mode")]
+                      wf.index("      - name: Archive immutable generated Champions scene")]
+        self.assertLess(wf.index("      - name: Confirm at least one real APK delivery"),
+                        wf.index("      - name: Advisory geometry and code reports"))
         self.assertIn("continue-on-error: true", advisory)
         self.assertIn("'blocksApk':False", advisory)
         for check in ("audit_metro.py", "audit_metro_network.py",
@@ -95,6 +97,12 @@ class Build18Regression(unittest.TestCase):
                       "'validation-tests'"):
             self.assertIn(check, advisory)
         self.assertIn("status='PASS' if code==0 else 'WARNING'", advisory)
+
+    def test_owner_sign_dimensions_cannot_block_test_apk(self):
+        casino = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11.cs")
+        self.assertIn("if(width!=2048||height!=512)", casino)
+        self.assertIn("BraxBuildQuality.Warn(\"Original owner sign source dimensions differ:", casino)
+        self.assertNotIn("throw new InvalidOperationException(\"Original owner sign source dimensions changed:", casino)
 
     def test_source_only_never_starts_unity_or_signing(self):
         wf = read(".github/workflows/mistrzowie-cheap-code-audit-20261106.yml")
