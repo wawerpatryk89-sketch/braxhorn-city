@@ -181,128 +181,131 @@ public static partial class BraxClaudeOsiedle
             " oryginalnych FBX (Legacy, bezp. kości jak Monika); bez Humanoid i sztucznych klipów");
     }
 
+    // Uwaga: 22 oryginalne FBX mają dokładnie 65 nazw kości Mixamo, ale dwie
+    // odmienne pozy bazowe. Ostatnia grupa (sport / pływanie) ma także inne
+    // długości kości. Samo kopiowanie quaternionów 1:1 wykręca stawy.
+    // Przenosimy WYŁĄCZNIE dostarczony klip właściciela na oryginalny model:
+    // różnica lokalnej rotacji względem pozy bazowej DAWCY -> poza bazowa
+    // PATRYKA. Pozycje kończyn i bindposes modelu Patryka pozostają bez zmian.
     static AnimationClip PatrykWlasnyFBX(GameObject hero, List<Transform> kosci,
         List<PatrykStan> spoczynek, PatrykKlip spec, out string opis)
     {
-        string rel = spec.zrodla.FirstOrDefault(s => s.StartsWith("patryk_owner/", StringComparison.Ordinal));
-        if (rel == null)
-            throw new InvalidOperationException("Nie zdefiniowano animacji wlasciciela dla " + spec.nazwa);
+        string rel = spec.zrodla.FirstOrDefault(z => z.StartsWith("patryk_owner/", StringComparison.Ordinal));
+        if (rel == null) throw new InvalidOperationException("Brak oryginalnego źródła Patryka: " + spec.nazwa);
         string path = PatrykBezRetargetu + "/" + System.IO.Path.GetFileName(rel);
-        // Legacy zachowuje lokalne krzywe kosci. Zrodlo ma nazwy mixamorig
-        // zgodne 1:1 z modelem (65 kosci); podmieniamy tylko sciezki transformow.
-        var sources = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>()
-            .Where(c => c && !c.name.StartsWith("__preview__", StringComparison.Ordinal) && c.length > 0f)
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        var sourceClip = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>()
+            .Where(c => c && !c.name.StartsWith("__preview__", StringComparison.Ordinal) && c.length > .01f)
             .OrderByDescending(c => AnimationUtility.GetCurveBindings(c).Count(b => b.type == typeof(Transform)))
-            .ThenByDescending(c => c.length).ToArray();
-        var source = sources.FirstOrDefault();
-        if (!source)
-            throw new InvalidOperationException("Brak animacji Legacy FBX po imporcie: " + path);
-
-        var targets = kosci.GroupBy(t => PatrykKosc(t.name), StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-        var rest = spoczynek.ToDictionary(s => s.t, s => s.p);
-        var bindings = AnimationUtility.GetCurveBindings(source);
-        var clip = new AnimationClip { name = spec.nazwa, legacy = true,
-            frameRate = source.frameRate > 0f ? source.frameRate : 30f,
-            wrapMode = spec.petla ? WrapMode.Loop : WrapMode.Once };
-        var mapped = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        int curves = 0;
+            .ThenByDescending(c => c.length).FirstOrDefault();
+        if (!prefab || !sourceClip)
+            throw new InvalidOperationException("Nie zaimportowano oryginalnego FBX Legacy: " + path);
+        var sourceInstance = Object.Instantiate(prefab);
+        AnimationClip output = null;
         try
         {
-            foreach (var binding in bindings)
+            sourceInstance.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            sourceInstance.transform.localScale = Vector3.one;
+            var sourceBones = sourceInstance.GetComponentsInChildren<Transform>(true)
+                .Where(t => !string.IsNullOrEmpty(t.name))
+                .GroupBy(t => PatrykKosc(t.name), StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+            var targetBones = kosci
+                .GroupBy(t => PatrykKosc(t.name), StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+            var rest = spoczynek.ToDictionary(x => x.t, x => x);
+            foreach (string name in new[] { "Hips", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg" })
+                if (!sourceBones.ContainsKey(name) || !targetBones.ContainsKey(name))
+                    throw new InvalidOperationException("Patryk: kość " + name + " nie występuje w obu szkieletach");
+            var names = kosci.Select(t => PatrykKosc(t.name))
+                .Where(sourceBones.ContainsKey).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            if (names.Length < 60)
+                throw new InvalidOperationException("Patryk: mniej niż 60 kości dopasowanych: " + names.Length);
+            var bindings = AnimationUtility.GetCurveBindings(sourceClip);
+            int animated = bindings.Where(b => b.type == typeof(Transform) &&
+                (b.propertyName.IndexOf("Rotation", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                 b.propertyName.IndexOf("Euler", StringComparison.OrdinalIgnoreCase) >= 0))
+                .Select(b => PatrykKosc(b.path.Split('/').LastOrDefault() ?? "Hips"))
+                .Distinct(StringComparer.OrdinalIgnoreCase).Count();
+            if (animated < 25)
+                throw new InvalidOperationException("Patryk: oryginalny klip nie animuje dość kości: " + animated);
+
+            var sourceRest = names.ToDictionary(n => n, n => sourceBones[n].localRotation, StringComparer.OrdinalIgnoreCase);
+            var srcHips = sourceBones["Hips"];
+            var hipsRest = srcHips.localPosition;
+            // Obie długości mierzymy w jednostkach importu z prefabów, nie z
+            // rozmiaru FBX ani mnożnika skali sceny. Zmiana rozmiaru postaci
+            // na ekranie nie zmienia proporcji / geometrii kości.
+            float LegLength(System.Collections.Generic.Dictionary<string, Transform> dict)
             {
-                if (binding.type != typeof(Transform)) continue;
-                string field = binding.propertyName;
-                bool rotation = field.IndexOf("Rotation", StringComparison.OrdinalIgnoreCase) >= 0
-                    || field.IndexOf("Euler", StringComparison.OrdinalIgnoreCase) >= 0;
-                bool position = field.IndexOf("Position", StringComparison.OrdinalIgnoreCase) >= 0;
-                if (!rotation && !position) continue;
-                string[] fragments = (binding.path ?? "").Split('/');
-                string rawBone = fragments.Length == 0 || string.IsNullOrEmpty(fragments[fragments.Length - 1])
-                    ? "Hips" : fragments[fragments.Length - 1];
-                string bone = PatrykKosc(rawBone);
-                if (!targets.TryGetValue(bone, out Transform target))
-                    throw new InvalidOperationException("Nieznana kosc animacji FBX " + rawBone +
-                        ", klip=" + spec.nazwa + ", path=" + binding.path);
-                // Zrodlo w ruchu ma tylko oryginalna poze; inne materialy
-                // i skale nie sa kopiowane ani modyfikowane.
-                if (position && !bone.Equals("Hips", StringComparison.OrdinalIgnoreCase))
-                    continue;
-                var curve = AnimationUtility.GetEditorCurve(source, binding);
-                if (curve == null) continue;
-                if (position)
+                var up = dict["LeftUpLeg"]; var knee = dict["LeftLeg"]; var foot = dict["LeftFoot"];
+                return Vector3.Distance(up.position, knee.position) + Vector3.Distance(knee.position, foot.position);
+            }
+            float sourceLeg = LegLength(sourceBones);
+            float targetLeg = LegLength(targetBones);
+            if (sourceLeg < 1e-5f || targetLeg < 1e-5f)
+                throw new InvalidOperationException("Patryk: nie można obliczyć proporcji długości nóg");
+            float motionScale = targetLeg / sourceLeg;
+            if (float.IsNaN(motionScale) || float.IsInfinity(motionScale) || motionScale <= 0)
+                throw new InvalidOperationException("Patryk: błędna skala ruchu bioder");
+
+            int count = Mathf.Max(2, Mathf.CeilToInt(sourceClip.length * 30f) + 1);
+            var times = new float[count]; var hipsPos = new Vector3[count];
+            var rotations = names.ToDictionary(n => n, n => new Quaternion[count], StringComparer.OrdinalIgnoreCase);
+            int sourcePoseDifferences = names.Count(n => Quaternion.Angle(sourceRest[n], rest[targetBones[n]].r) > 2f);
+            for (int i = 0; i < count; i++)
+            {
+                float t = Mathf.Min(sourceClip.length, i / 30f); times[i] = t;
+                sourceClip.SampleAnimation(sourceInstance, t);
+                foreach (string name in names)
                 {
-                    int dot = field.LastIndexOf('.');
-                    char axis = dot >= 0 && dot + 1 < field.Length ? char.ToLowerInvariant(field[dot + 1]) : ' ';
-                    int channel = axis == 'x' ? 0 : axis == 'y' ? 1 : axis == 'z' ? 2 : -1;
-                    if (channel < 0) continue;
-                    float original = rest[target][channel];
-                    if (spec.wMiejscu && axis != 'y')
-                    {
-                        // Gracza przesuwa CharacterController, nie transport bioder w pliku FBX.
-                        curve = AnimationCurve.Constant(0f, Mathf.Max(.01f, source.length), original);
-                    }
-                    else
-                    {
-                        float startValue = curve.Evaluate(0f);
-                        var keyframes = curve.keys;
-                        for (int i = 0; i < keyframes.Length; i++)
-                        {
-                            var key = keyframes[i];
-                            key.value += original - startValue;
-                            keyframes[i] = key;
-                        }
-                        curve = new AnimationCurve(keyframes) {
-                            preWrapMode = curve.preWrapMode, postWrapMode = curve.postWrapMode
-                        };
-                    }
+                    var srcRot = sourceBones[name].localRotation;
+                    var q = rest[targetBones[name]].r * Quaternion.Inverse(sourceRest[name]) * srcRot;
+                    var arr = rotations[name];
+                    if (i > 0 && Quaternion.Dot(q, arr[i - 1]) < 0f)
+                        q = new Quaternion(-q.x, -q.y, -q.z, -q.w);
+                    arr[i] = q;
                 }
-                var mappedBinding = binding;
-                mappedBinding.path = AnimationUtility.CalculateTransformPath(target, hero.transform);
-                AnimationUtility.SetEditorCurve(clip, mappedBinding, curve);
-                mapped.Add(bone);
-                curves++;
+                // Tylko Hips ma animowaną translację; pozostałe kości zachowują
+                // oryginalne położenia i długości modelu. Bez root-motion X/Z
+                // kiedy gracza przesuwa CharacterController.
+                Vector3 delta = (srcHips.localPosition - hipsRest) * motionScale;
+                var original = rest[targetBones["Hips"]].p;
+                hipsPos[i] = original + new Vector3(
+                    spec.wMiejscu ? 0f : delta.x, delta.y,
+                    spec.wMiejscu ? 0f : delta.z);
             }
-            // Pliki Mixamo mogą przekazywać ruch korzenia bez osobnej krzywej
-            // Transform Hips. Nie odrzucaj z tego powodu oryginalnych ruchów nóg:
-            // brakujące Hips pozostają w oryginalnej pozie szkieletu Patryka.
-            if (!mapped.Contains("Hips"))
+            output = new AnimationClip
             {
-                var hips = kosci.FirstOrDefault(t => PatrykKosc(t.name) == "Hips");
-                if (!hips) throw new InvalidOperationException("Patryk: brak Hips w oryginalnym szkielecie");
-                var pose = spoczynek.First(t => t.t == hips);
-                string hipsPath = AnimationUtility.CalculateTransformPath(hips, hero.transform);
-                float duration = Mathf.Max(.01f, source.length);
+                name = spec.nazwa, legacy = true, frameRate = 30f,
+                wrapMode = spec.petla ? WrapMode.Loop : WrapMode.Once
+            };
+            foreach (string name in names)
+            {
+                var bonePath = AnimationUtility.CalculateTransformPath(targetBones[name], hero.transform);
+                var arr = rotations[name];
                 for (int axis = 0; axis < 4; axis++)
-                    AnimationUtility.SetEditorCurve(clip,
-                        EditorCurveBinding.FloatCurve(hipsPath, typeof(Transform), "localRotation." + "xyzw"[axis]),
-                        AnimationCurve.Constant(0f, duration, pose.r[axis]));
-                for (int axis = 0; axis < 3; axis++)
-                    AnimationUtility.SetEditorCurve(clip,
-                        EditorCurveBinding.FloatCurve(hipsPath, typeof(Transform), "localPosition." + "xyz"[axis]),
-                        AnimationCurve.Constant(0f, duration, pose.p[axis]));
-                mapped.Add("Hips");
-                Debug.LogWarning("BRAXHORN_PATRYK_OWNER: Hips bez krzywych w FBX " + spec.nazwa +
-                    ", zachowana oryginalna pozycja Hips modelu; animację sprawdzić w Unity");
+                    output.SetCurve(bonePath, typeof(Transform), "localRotation." + "xyzw"[axis],
+                        PatrykKrzywaZ(times, arr.Select(q => q[axis]).ToArray(), false));
             }
-            foreach (string required in new[] { "Hips", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg" })
-                if (!mapped.Contains(required))
-                    throw new InvalidOperationException("FBX " + spec.nazwa +
-                        " nie ma wymaganych krzywych kosci " + required);
-            if (mapped.Count < 25)
-                throw new InvalidOperationException("FBX " + spec.nazwa +
-                    " ma za malo zgodnych kosci: " + mapped.Count);
-            clip.EnsureQuaternionContinuity();
-            ZapiszKlipPatryka(clip);
-            clip = null;
-            opis = spec.nazwa + "←" + rel + " BEZ RETARGETINGU; kosci=" +
-                mapped.Count + " krzywe=" + curves;
-            Debug.Log("BRAXHORN_PATRYK_OWNER_DIRECT " + opis);
+            string hipsPath = AnimationUtility.CalculateTransformPath(targetBones["Hips"], hero.transform);
+            for (int axis = 0; axis < 3; axis++)
+                output.SetCurve(hipsPath, typeof(Transform), "localPosition." + "xyz"[axis],
+                    PatrykKrzywaZ(times, hipsPos.Select(v => v[axis]).ToArray(), false));
+            output.EnsureQuaternionContinuity();
+            ZapiszKlipPatryka(output);
+            output = null;
+            opis = spec.nazwa + "←" + rel + " własny FBX, 65 kości; różnice pozy bazowej=" +
+                sourcePoseDifferences + ", długość_nóg_ratio=" + motionScale.ToString("F4") +
+                ", klatki=" + count + ", animowane_kości=" + animated +
+                "; ORYGINALNY SZKIELET I SIATKA BEZ ZMIAN";
+            Debug.Log("BRAXHORN_PATRYK_OWNER_22_RIG " + opis);
             return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + spec.nazwa + ".anim");
         }
         finally
         {
-            if (clip) Object.DestroyImmediate(clip);
+            if (output) Object.DestroyImmediate(output);
+            Object.DestroyImmediate(sourceInstance);
             PatrykSpoczynek(spoczynek);
         }
     }
