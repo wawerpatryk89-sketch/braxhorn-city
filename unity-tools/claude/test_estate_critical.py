@@ -83,6 +83,15 @@ class EstateCriticalContracts(unittest.TestCase):
         self.assertIn("if (!DopasujKabine(m, f))", people)
         self.assertIn("if (!DopasujKabine(m, seat))", passengers)
 
+    def test_owner_exits_car_with_owner_sit_to_stand(self):
+        motion = src(RUNTIME, "BraxAutoGracza.cs")
+        importer = src(EDITOR, "BraxClaudeOsiedlePatryk.cs")
+        self.assertIn('PK("SitToStand", false, true, "patryk_owner/Sit To Stand.fbx")', importer)
+        self.assertIn('p.clips.GetClip("SitToStand")', motion)
+        self.assertIn('p.clips.CrossFade("SitToStand", .15f)', motion)
+        self.assertIn('Mathf.Clamp(wstawanie.length', motion)
+        self.assertIn('Odlacz(point)', motion)
+
     def test_horn_is_not_looped_forever(self):
         s = src(RUNTIME, "BraxRuchAutSym.cs")
         self.assertIn("klaksonUzytyPrzyBlokadzie", s)
