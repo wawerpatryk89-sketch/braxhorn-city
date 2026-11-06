@@ -1,0 +1,53 @@
+name: BRAXHORN - seal owner Patryk 22 FBX (quick, no Unity build)
+on:
+  push:
+    branches:
+      - codex/osiedle-audyt-naprawa-20261106
+    paths:
+      - .github/workflows/patryk-owner22-seal.yml
+      - unity-tools/claude/seal_patryk_owner22.py
+      - unity-city/Prywatne/Patryk_22_oryginalne_ruchy.zip
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: patryk-owner22-seal-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  encrypt-verify-and-commit:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+
+      - name: Verify exact owner 22-FBX source and encrypt without exposing private key
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          set -euo pipefail
+          test -n "$KLUCZ" || { echo '::error::Missing key, no insecure fallback'; exit 1; }
+          python3 unity-tools/claude/seal_patryk_owner22.py
+          python3 unity-tools/claude/import_patryk_owner_22.py \
+            --destination "$RUNNER_TEMP/patryk-22-owner-only" \
+            --transfer "unity-city/Prywatne/import-patryk-animations-20261106"
+          test "$(find "$RUNNER_TEMP/patryk-22-owner-only/patryk_owner" -name '*.fbx' | wc -l)" -eq 22
+          echo 'PASS: encrypted 22 owner FBX import; no Unity APK build'
+
+      - name: Remove exposed original from current branch and publish encrypted-only transfer
+        run: |
+          set -euo pipefail
+          test -f unity-city/Prywatne/import-patryk-animations-20261106/manifest.json
+          git rm -f -- unity-city/Prywatne/Patryk_22_oryginalne_ruchy.zip
+          git add unity-city/Prywatne/import-patryk-animations-20261106/
+          git diff --cached --quiet && exit 0
+          git config user.name "BRAXHORN CI"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "security(estate): keep Patryk 22 original FBX encrypted in current branch"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
