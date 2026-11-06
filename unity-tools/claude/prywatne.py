@@ -354,6 +354,24 @@ def patryk_i_ruchy():
         install_club(CEL / "Klub20261104")
         from import_patryk_animations import install
         install(CEL / "ruchy")
+        # Wymagane jest dokładnie 22/22 oryginalnych FBX z najnowszego
+        # Patryk anima(6).zip. Pierwsze 6 ma identyczne sumy SHA-256; następne
+        # 16 pochodzi wyłącznie z dodatkowego prywatnego transferu.
+        from import_patryk_extra16 import install as install_extra16
+        install_extra16(CEL / "ruchy")
+        import json
+        katalog = json.loads((ROOT / "unity-tools/claude/patryk-owner-22-manifest.json").read_text(encoding="utf-8"))
+        clips = katalog["clips"]
+        if len(clips) != 22:
+            raise RuntimeError("Patryk: katalog ma nieprawidłową liczbę animacji")
+        for clip in clips:
+            filepath = CEL / "ruchy" / "patryk_owner" / clip["file"]
+            if not filepath.is_file():
+                raise FileNotFoundError("Patryk: brakuje oryginalnej animacji " + clip["file"])
+            digest = hashlib.sha256(filepath.read_bytes()).hexdigest()
+            if digest != clip["sha256"]:
+                raise RuntimeError("Patryk: animacja różni się od pliku właściciela: " + clip["file"])
+        print("BRAXHORN_PATRYK_OWNER_22: 22/22 oryginalnych FBX o dokładnych SHA-256, żadnych animacji zastępczych")
     staging = pathlib.Path(tempfile.mkdtemp(prefix="braxhorn-prywatne-", dir=os.environ.get("RUNNER_TEMP") or None))
     ok = []
     try:
