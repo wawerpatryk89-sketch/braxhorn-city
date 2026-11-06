@@ -43,7 +43,12 @@ public static class BraxObozValidation
             if(sanitary.Length!=1) errors.Add("W obozie brakuje osobnych sanitariatów");
             var toilets=scene.GetComponentsInChildren<BraxSeat>(true).Count(s=>s.label=="TOALETA");
             if(toilets!=2) errors.Add("Wymagane dwie fizyczne kabiny WC");
-            var sanitaryControls=scene.GetComponentsInChildren<BraxObozFacility>(true);
+            // Four cabin field sinks are separate functional fixtures.
+            // Count ONLY the two sinks/toilets/showers inside the actual
+            // WC/LAZNIA block; otherwise healthy cabins trigger false FAIL.
+            var sanitaryControls=sanitary.Length==1
+                ? sanitary[0].GetComponentsInChildren<BraxObozFacility>(true)
+                : Array.Empty<BraxObozFacility>();
             var showerControls=sanitaryControls.Count(f=>f.kind==BraxObozFacility.Kind.Shower && f.effect);
             if(showerControls<2) errors.Add("Brakuje dwóch działających pryszniców w łaźni");
             if(sanitaryControls.Count(f=>f.kind==BraxObozFacility.Kind.Toilet)!=2)
