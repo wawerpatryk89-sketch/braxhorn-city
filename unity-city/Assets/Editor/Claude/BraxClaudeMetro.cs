@@ -264,102 +264,87 @@ public static class BraxClaudeMetro
     // terenem, dół schodów, antresola, peron — WYŁĄCZONE (log z nazwą i miejscem); 2) przejście kapsułą gracza (r 0.33, 2.25 m,
     // stopień 0.4) co 0.5 m po trasie chodnik → schody → dół szybu → antresola → bramki → schody na peron → peron, dla OBU
     // wejść; podłoga promieniem w dół. Log BRAXHORN_METRO_PRZEJSCIE wejscie=płn ok|zablokowane:<kolizja @ miejsce> (cel: oba ok).
+    // R1 po filmie właściciela 6.11: weryfikujemy ciągły chodnik w STARYM miejscu
+    // oraz rzeczywistą trasę z portu do hali. ZERO automatycznego wyłączania obcych kolizji.
     public static void KontrolaPrzejscia()
     {
-        if (!zewnatrz || !podziemie) { Debug.LogWarning("BRAXHORN_METRO_PRZEJSCIE brak stacji (krok metra nie zbudował korzeni)"); return; }
-        Physics.SyncTransforms();
-        float xEnd = EX0 + (12 - 1 + 11 - 1) * .30f * K + 1.5f * K;
-        bool Wlasna(Collider c) => c.transform.IsChildOf(zewnatrz) || c.transform.IsChildOf(podziemie);
-        const int maska = ~((1 << 8) | (1 << 2) | (1 << 29) | (1 << 31));
-        // 1) obce kolizje w przejściach
-        var obj = new List<Bounds> { Bryla(xEnd + .1f, MX1 - .1f, yM + .05f, yMc - .05f, MZ0 + .1f, MZ1 - .1f), Bryla(MX0 + .1f, MX1 - .1f, yM + .05f, yMc - .05f, MZ0 + .1f, MZ1 - .1f), Bryla(PX0, PX1, yP + .05f, yHc - .1f, zPS, zPN) };
-        foreach (float z0 in WEJSCIA) obj.Add(Bryla(EX0 + .1f, xEnd + .1f, yM + .05f, -.25f, z0 + .2f, z0 + EW - .2f));
-        var obce = new List<string>();
-        foreach (var b in obj)
-            foreach (var c in Physics.OverlapBox(b.center, b.extents, Quaternion.identity, maska, QueryTriggerInteraction.Ignore))
-            {
-                // pudełko dodane przez kontrolę kolizji (BraxKontrolaKolizji) jest dzieckiem elementu stacji, ale stacja ma własne
-                // kolizje — w przejściu to obca przeszkoda (build 57c1767: „próg/ściana BRAXHORN kolizja (kontrola)” po 8 m schodów)
-                bool zKontroli = c && c.name == "BRAXHORN kolizja (kontrola)";
-                if (!c || !c.enabled || (Wlasna(c) && !zKontroli) || c.GetComponentInParent<BraxGymPlayer>()) continue;
-                obce.Add(c.name + " (" + (c.transform.parent ? c.transform.parent.name : "-") + ") " + c.bounds.center.ToString("F1") + " " + c.bounds.size.ToString("F1"));
-                c.enabled = false;
-            }
-        Physics.SyncTransforms();
-        // 2) przejście kapsułą
-        string Kapsula(Vector3 stopa)
+        if (!zewnatrz || !podziemie || !portoweWejscie)
         {
-            var hits = Physics.OverlapCapsule(stopa + Vector3.up * (.33f + .4f), stopa + Vector3.up * (2.25f - .33f), .33f, maska, QueryTriggerInteraction.Ignore);
-            foreach (var c in hits)
+            Debug.LogWarning("BRAXHORN_METRO_PORT_QA NIEGOTOWE: brak jednego z korzeni stacji");
+            return;
+        }
+        Physics.SyncTransforms();
+        const int maska = ~((1 << 8) | (1 << 2) | (1 << 29) | (1 << 31));
+
+        bool JestPodloga(Vector3 stopa)
+        {
+            var hits = Physics.RaycastAll(stopa + Vector3.up * 1.15f, Vector3.down, 2.5f,
+                maska, QueryTriggerInteraction.Ignore);
+            return hits.Any(h => h.collider && h.normal.y > .65f &&
+                Mathf.Abs(h.point.y - stopa.y) <= .22f);
+        }
+
+        string Przeszkoda(Vector3 stopa)
+        {
+            foreach (var c in Physics.OverlapCapsule(stopa + Vector3.up * .39f,
+                stopa + Vector3.up * 2.01f, .32f, maska, QueryTriggerInteraction.Ignore))
             {
-                if (!c || c.name.Contains("blokada przejścia") || c.GetComponentInParent<BraxDrzwiPrzesuwne>() || c.GetComponentInParent<BraxCityDoor>() || c.GetComponentInParent<BraxGymPlayer>()) continue;
-                return c.name + " (" + (c.transform.parent ? c.transform.parent.name : "-") + ")";
+                if (!c || !c.enabled || c.isTrigger ||
+                    c.GetComponentInParent<BraxGymPlayer>() ||
+                    c.GetComponentInParent<BraxCityDoor>() ||
+                    c.GetComponentInParent<BraxDrzwiPrzesuwne>())
+                    continue;
+                return c.name + " @ " + c.bounds.center.ToString("F1");
             }
             return null;
         }
-        float Wolny(float x, float y, float za, float zb, float pref)
+
+        string Odcinki(string nazwa, params Vector3[] punkty)
         {
-            float best = float.NaN, bd = 1e9f;
-            for (float z = za; z <= zb; z += .1f) if (Kapsula(new Vector3(x, y, z)) == null && Mathf.Abs(z - pref) < bd) { bd = Mathf.Abs(z - pref); best = z; }
-            return best;
-        }
-        string Idz(List<Vector3> pkt, out float metry)
-        {
-            metry = 0; float y = pkt[0].y;
-            for (int i = 0; i + 1 < pkt.Count; i++)
+            int n = 0;
+            for (int i = 0; i + 1 < punkty.Length; i++)
             {
-                var a = pkt[i]; var b = pkt[i + 1]; var d = b - a; d.y = 0; float L = d.magnitude; if (L < .01f) continue;
-                for (float s = 0; s <= L; s += .5f)
+                var start = punkty[i]; var koniec = punkty[i + 1];
+                var odcinek = Vector3.Distance(start, koniec);
+                int kroki = Mathf.Max(1, Mathf.CeilToInt(odcinek / .45f));
+                for (int j = 0; j <= kroki; j++)
                 {
-                    var q = a + d / L * s;
-                    if (!Physics.Raycast(new Vector3(q.x, y + 1.0f, q.z), Vector3.down, out var hit, 4.5f, maska, QueryTriggerInteraction.Ignore))
-                        return "brak podłogi @" + new Vector3(q.x, y, q.z).ToString("F1");
-                    if (hit.point.y > y + .45f) return "próg/ściana " + hit.collider.name + " @" + hit.point.ToString("F1");
-                    y = hit.point.y;
-                    var k = Kapsula(new Vector3(q.x, y, q.z));
-                    if (k != null) return k + " @" + new Vector3(q.x, y, q.z).ToString("F1");
-                    metry += .5f;
+                    var p = Vector3.Lerp(start, koniec, j / (float)kroki);
+                    if (!JestPodloga(p))
+                        return nazwa + " BRAK PODŁOGI @ " + p.ToString("F2");
+                    var c = Przeszkoda(p);
+                    if (c != null)
+                        return nazwa + " ZABLOKOWANE: " + c;
+                    n++;
                 }
             }
-            return null;
+            return nazwa + " OK " + n + " próbek";
         }
-        var wyniki = new List<string>(); int ok = 0;
-        foreach (float z0 in WEJSCIA)
-        {
-            bool pln = z0 > 28f; float zc = ZcSchodow(z0), zIn = pln ? EZ[1] - 1.0f : EZ[0] + EW + 1.0f;
-            float zBr = Wolny(GX, yM, MZ0 + .5f, MZ1 - .5f, 28.45f);
-            float zSt = Wolny(WX1 + .6f, yM, WZ0 + .4f, WZ1 - .4f, 27.15f);
-            string wynik;
-            if (float.IsNaN(zBr)) wynik = "zablokowane: bramki — brak wolnego przejścia na linii x " + GX;
-            else if (float.IsNaN(zSt)) wynik = "zablokowane: wejście na schody na peron (x " + (WX1 + .6f).ToString("F1") + ")";
-            else
-            {
-                var trasa = new List<Vector3> { new Vector3(EX0 - 4f, yS, zc), new Vector3(EX0 - .3f, yS, zc), new Vector3(xEnd + 1.0f, yM, zc), new Vector3(xEnd + 1.0f, yM, zIn),
-                    new Vector3(GX + 3f, yM, zIn), new Vector3(GX + 1.5f, yM, zBr), new Vector3(GX - 1.5f, yM, zBr), new Vector3(WX1 + 1.0f, yM, zSt), new Vector3(WX0 - 1.5f, yP, zSt), new Vector3(20f, yP, 28.5f) };
-                var r = Idz(trasa, out float m);
-                wynik = r == null ? "ok (" + m.ToString("F0") + " m)" : "zablokowane:" + r + " po " + m.ToString("F0") + " m";
-                // Odbiór metra wymaga DRÓŻNOŚCI obu przejść, nie tylko schodów stałych.
-                // schody ruchome obok (jadą w dół; test idzie po ich rampie): chodnik → głowica → bieg → antresola → bramki
-                float ze = ER_Os(z0);
-                var trasaR = new List<Vector3> { new Vector3(EX0 - 3.5f, yS, ze), new Vector3(EX0 + .4f, yS, ze), new Vector3(xEnd - .3f, yM, ze), new Vector3(xEnd + 1.0f, yM, ze),
-                    new Vector3(xEnd + 1.0f, yM, zIn), new Vector3(GX + 3f, yM, zIn), new Vector3(GX + 1.5f, yM, zBr), new Vector3(GX - 1.5f, yM, zBr) };
-                var rr = Idz(trasaR, out float mR);
-                if (r == null && rr == null) ok++;
-                wyniki.Add("schody_ruchome=" + (rr == null ? "ok (" + mR.ToString("F0") + " m)" : "zablokowane:" + rr + " po " + mR.ToString("F0") + " m"));
-            }
-            wyniki.Add("wejscie=" + (pln ? "płn" : "płd") + " " + wynik);
-            // wolny chodnik obok wejścia (cel ≥ 2.5 m·k z jednej strony): promień poziomy 1 m nad chodnikiem w obie strony od pasa
-            try
-            {
-                float xm = (EX0 + 76.6f) * .5f, cel = 2.5f * K;
-                float Wolne(float z, float kier) => Physics.Raycast(new Vector3(xm, yS + 1f, z), new Vector3(0f, 0f, kier), out var h, 15f, ~0, QueryTriggerInteraction.Ignore) ? h.distance : 15f;
-                float wPln = Wolne(z0 + EW + .05f, 1f), wPld = Wolne(z0 - .05f, -1f);
-                wyniki.Add("chodnik_obok płn=" + wPln.ToString("F1") + " m płd=" + wPld.ToString("F1") + " m (cel ≥ " + cel.ToString("F2") + ") " + (Mathf.Max(wPln, wPld) >= cel ? "ok" : "ZA WĄSKI"));
-            }
-            catch (Exception e) { wyniki.Add("chodnik_obok DO POPRAWKI " + e.Message); }
-        }
-        string linia = "BRAXHORN_METRO_PRZEJSCIE " + string.Join(" | ", wyniki) + " (cel: jedno wejście ok) obce_kolizje_wylaczone=" + obce.Count + (obce.Count > 0 ? " [" + string.Join("; ", obce.Take(20)) + "]" : "");
-        if (ok == WEJSCIA.Length) Debug.Log(linia); else Debug.LogWarning(linia);
+
+        // Stary chodnik ma być całkowicie wolny; dwie linie w obrębie dawnych 3.4 m.
+        string staryChodnik = Odcinki("STARY_CHODNIK_NABRZEZE",
+            new Vector3(67.3f, yS, 34.0f), new Vector3(80.3f, yS, 34.0f));
+        string drugaLinia = Odcinki("STARY_CHODNIK_DRUGI_PAS",
+            new Vector3(67.3f, yS, 35.35f), new Vector3(80.3f, yS, 35.35f));
+
+        // Dojście przez plac, z publicznego chodnika do nowego portalu.
+        string dojscie = Odcinki("NOWE_DOJSCIE_PORT",
+            new Vector3(70.3f, yS, 20.2f), new Vector3(70.3f, yS, 18.2f),
+            new Vector3(PortX, yS, PortZ + .75f));
+
+        // Stopy po zejściu po schodach; odtąd korytarz idzie pod portem,
+        // a nie pod powierzchnią chodnika. Sam bieg schodów wymaga testu na telefonie.
+        string podziemny = Odcinki("PODZIEMNY_LACZNIK_PORT",
+            new Vector3(PortX, yM, 6.0f), new Vector3(PortX, yM, 5.55f),
+            new Vector3((TunX0 + TunX1) * .5f, yM, 5.55f),
+            new Vector3((TunX0 + TunX1) * .5f, yM, 24.65f));
+
+        bool ok = staryChodnik.Contains(" OK ") && drugaLinia.Contains(" OK ") &&
+            dojscie.Contains(" OK ") && podziemny.Contains(" OK ");
+        var log = "BRAXHORN_METRO_PORT_QA " + (ok ? "KOD_PRZEJSC_OK " : "NIEGOTOWE ") +
+            staryChodnik + " | " + drugaLinia + " | " + dojscie + " | " + podziemny +
+            " | SCHODY / WEJSCIE / BRAMKI / PERON nadal odbiera właściciel w APK";
+        if (ok) Debug.Log(log); else Debug.LogWarning(log);
     }
 
     static Bounds Bryla(float x0, float x1, float y0, float y1, float z0, float z1)
