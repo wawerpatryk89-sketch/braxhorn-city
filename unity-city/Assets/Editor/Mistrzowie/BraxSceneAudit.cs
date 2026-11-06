@@ -53,6 +53,7 @@ public static class BraxSceneAudit
         public string objectName, path, creatorCs, texture, texturePath;
         public int textureWidth, textureHeight;
         public float widthMeters, heightMeters, pixelsPerMeter;
+        public float uvSpanU, uvSpanV, effectivePixelsX, effectivePixelsY;
         public bool below100, textureUnavailable;
     }
     [Serializable] public sealed class Presence
@@ -455,21 +456,37 @@ public static class BraxSceneAudit
                 .OrderByDescending(x => x).ToArray();
             float width = Mathf.Max(.001f, dims[0]), height = Mathf.Max(.001f, dims[1]);
             int pxW = displayed ? displayed.width : 0, pxH = displayed ? displayed.height : 0;
-            var pixelDims = new[] { (float)pxW, (float)pxH }.OrderByDescending(x => x).ToArray();
+            // Measure atlas SUB-RECT, not the whole source PNG. K1-K12 each use
+            // one cell of a shared 3x4 atlas; full PNG dimensions overstate
+            // actual print resolution of a single kiosk sign.
+            float uSpan = 1f, vSpan = 1f;
+            if (mesh && mesh.uv != null && mesh.uv.Length > 0)
+            {
+                var uv = mesh.uv;
+                float minU = uv.Min(p => p.x), maxU = uv.Max(p => p.x);
+                float minV = uv.Min(p => p.y), maxV = uv.Max(p => p.y);
+                uSpan = Mathf.Max(.00001f, maxU - minU);
+                vSpan = Mathf.Max(.00001f, maxV - minV);
+            }
+            float effectiveW = pxW * uSpan, effectiveH = pxH * vSpan;
+            var pixelDims = new[] { effectiveW, effectiveH }.OrderByDescending(x => x).ToArray();
             float ppm = displayed ? Mathf.Min(pixelDims[0] / width, pixelDims[1] / height) : 0f;
             var g = new GraphicInfo {
                 objectName = item.info.name, path = item.info.path, creatorCs = item.info.creatorCs,
                 texture = displayed ? displayed.name : "NIEUSTALONA",
                 texturePath = displayed ? AssetDatabase.GetAssetPath(displayed) : "",
                 textureWidth = pxW, textureHeight = pxH, widthMeters = width,
-                heightMeters = height, pixelsPerMeter = ppm,
+                heightMeters = height, pixelsPerMeter = ppm, uvSpanU = uSpan, uvSpanV = vSpan,
+                effectivePixelsX = effectiveW, effectivePixelsY = effectiveH,
                 below100 = displayed && ppm < 100f, textureUnavailable = !displayed
             };
             output.graphics.Add(g);
             if (g.below100)
                 output.lowPpm.Add(Make("MURAL/SZYLD <100 px/m", item, ppm, 100f,
-                    g.texture + " " + pxW + "x" + pxH + " px, " +
-                    F(width) + "x" + F(height) + " m, " + F(ppm) + " px/m",
+                    g.texture + " " + pxW + "x" + pxH + " px; UV " +
+                    F(uSpan) + "x" + F(vSpan) + " = " +
+                    F(effectiveW) + "x" + F(effectiveH) + " px; powierzchnia " +
+                    F(width) + "x" + F(height) + " m; " + F(ppm) + " px/m",
                     1000f / Mathf.Max(1f, ppm), "szacunek AABB, nie analiza UV"));
             if (!displayed && output.warnings.Count < 30)
                 output.warnings.Add("Nieznana tekstura muralu/szyldu: " + item.info.path);
