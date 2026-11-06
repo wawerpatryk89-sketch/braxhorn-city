@@ -188,6 +188,8 @@ jobs:
               if len(fields)>=2 and fields[-1].lstrip("*").split("/")[-1]==filename and re.fullmatch("[0-9a-fA-F]{64}",fields[0]):
                   matches.append(fields[0].lower())
           if len(matches)!=1:raise ValueError("Brak dokładnie jednej oficjalnej sumy SHA256 archiwum "+filename)
+          if matches[0].lower()!="0d2b8bb2efe97e6c8eb57de6b7322f8800e1984e3125b60decca5f6771e4773e":
+              raise ValueError("Oficjalny Blender 4.5.15 SHA256 niezgodny ze sprawdzoną wersją; stop przed Unity")
           Path("blender-linux.sha256").write_text(matches[0]+"  "+filename+"\n")
           print("BRAXHORN_OBOZ_OFFICIAL_BLENDER_HASH_METADATA=PASS")
           PY_SHA
