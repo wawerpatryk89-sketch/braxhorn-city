@@ -115,7 +115,9 @@ public static partial class BraxClaudeOsiedle
         float ah = BraxRegionMiastoB.AH, kr = BraxRegionMiastoB.Kr;
         // ulice (cw = połowa jezdni, half = połowa ulicy z chodnikiem)
         var G = new BraxTrasyAut.Ulica { id = "MIASTO Główna i ul. Zachodnia", wzdluzX = true, c = rz, a0 = BraxRegionMiastoB.PetlaZX, a1 = wx + 30f, cw = 4.5f, half = 4.5f + kr + 3.1f };
-        var A = new BraxTrasyAut.Ulica { id = "MIASTO Aleje", wzdluzX = false, c = ax, a0 = sz - 30f, a1 = pz, cw = ah, half = ah + kr + BraxRegionMiastoB.Ziel + BraxRegionMiastoB.Chod };
+        var A = new BraxTrasyAut.Ulica { id = "MIASTO Aleje", wzdluzX = false, c = ax, a0 = sz - 30f,
+            a1 = pz - BraxRegionMiastoB.PetlaPlac, cw = ah,
+            half = ah + kr + BraxRegionMiastoB.Ziel + BraxRegionMiastoB.Chod };
         var Wd = new BraxTrasyAut.Ulica { id = "MIASTO Wiaduktowa", wzdluzX = false, c = wx, a0 = sz, a1 = rz, cw = BraxRegionMiastoB.WH, half = BraxRegionMiastoB.WH + kr + 1.55f };
         var Ws = new BraxTrasyAut.Ulica { id = "MIASTO Warsztatowa", wzdluzX = true, c = sz, a0 = ax, a1 = BraxRegionMiastoB.SX1, cw = BraxRegionMiastoB.SH, half = BraxRegionMiastoB.SH + kr + 2.5f };
         // Pętla PÓŁNOC zamieniona na parking supermarketu, brak sztucznej osi ronda.
