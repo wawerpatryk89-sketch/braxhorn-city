@@ -14,6 +14,8 @@ on:
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaMural.cs
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaSideMurals.cs
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaMuralTextureImport.cs
+      - unity-tools/mistrzowie/build_exteriors.py
+      - unity-tools/mistrzowie/plan_inventory.json
       - unity-tools/mistrzowie/test_owner_car_showcase_integration.py
       - unity-tools/mistrzowie/test_a1_premium_exterior_20261107.py
       - unity-tools/mistrzowie/test_premium_reference_regression_20261107.py
@@ -44,6 +46,8 @@ jobs:
             unity-tools/mistrzowie/prepare_champion_car.py
             unity-tools/mistrzowie/import_brax_car_animations.py
             unity-tools/mistrzowie/verify_previous_apk.py
+            unity-tools/mistrzowie/build_exteriors.py
+            unity-tools/mistrzowie/plan_inventory.json
             unity-tools/mistrzowie/test_a1_premium_exterior_20261107.py
             unity-tools/mistrzowie/test_premium_reference_regression_20261107.py
             unity-tools/mistrzowie/test_arena_side_murals.py
