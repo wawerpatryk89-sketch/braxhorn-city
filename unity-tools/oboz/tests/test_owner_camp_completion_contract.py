@@ -102,7 +102,10 @@ class OwnerCampCompletionContract(unittest.TestCase):
     def test_original_murals_and_bathroom(self):
         self.assertIn('OriginalMural(pavilion,"WOJOWNIKOW"',self.environment)
         self.assertIn('OriginalMural(pavilion,"FIGHT_ZONE"',self.environment)
-        self.assertIn('OriginalMural(cabin3,"DROGA_MISTRZA"',self.environment)
+        self.assertIn('CabinMural(cabin3,"DROGA_MISTRZA_DOMEK_3"',self.environment)
+        for key in ("TRAINING_CAMP_DOMEK_1","WOJOWNIKOW_DOMEK_2",
+                    "DROGA_MISTRZA_DOMEK_3","FIGHT_ZONE_DOMEK_4"):
+            self.assertIn(key,self.environment)
         self.assertIn('OriginalMural(gym,"TRAINING_CAMP"',self.environment)
         for model in ('close-coupled-toilet.glb','wall-urinal.glb',
                       'trough-washbasin.glb','shower-tray-square.glb'):

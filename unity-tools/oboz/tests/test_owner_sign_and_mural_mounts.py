@@ -49,7 +49,10 @@ class GateAndMuralsTest(unittest.TestCase):
         self.assertIn("Drewniana ściana budynku — mural", ENV)
         self.assertIn("MURAL_NO_WALL", ENV)
         self.assertIn("Physics.RaycastAll(origin,towardWall", ENV)
-        self.assertIn('OriginalMural(cabin3,"DROGA_MISTRZA"', ENV)
+        self.assertIn('CabinMural(cabin3,"DROGA_MISTRZA_DOMEK_3"', ENV)
+        for key in ("TRAINING_CAMP_DOMEK_1","WOJOWNIKOW_DOMEK_2",
+                    "DROGA_MISTRZA_DOMEK_3","FIGHT_ZONE_DOMEK_4"):
+            self.assertIn(key,ENV)
         self.assertIn('OriginalMural(gym,"TRAINING_CAMP"', ENV)
         self.assertNotIn('OriginalMural(root,"WOJOWNIKOW"', ENV)
         self.assertNotIn('OriginalMural(root,"FIGHT_ZONE"', ENV)
