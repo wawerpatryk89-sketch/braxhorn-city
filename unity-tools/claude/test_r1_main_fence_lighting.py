@@ -81,7 +81,7 @@ class R1StreetSafety(unittest.TestCase):
         self.assertIn("foreach(var root in roots)",LAMPS)
         self.assertIn("root.GetComponentsInChildren<Transform>(true)",LAMPS)
         for s in ('n=="Latarnia uliczna"','n=="Latarnia parkowa"',
-                  'n.IndexOf("streetlight"','n.IndexOf("lamp post"'):
+                  'names.IndexOf("streetlight"','names.IndexOf("lamp post"'):
             self.assertIn(s,LAMPS)
         self.assertIn("lampsFound=lamps.Count",LAMPS)
 
