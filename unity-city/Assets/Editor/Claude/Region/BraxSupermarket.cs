@@ -43,11 +43,122 @@ public static class BraxSupermarket
             var t = new GameObject("SUPERMARKET BRAXHORN " + (i + 1)).transform; t.SetParent(root.transform, false);
             t.position = c; t.rotation = Quaternion.Euler(0f, yaw, 0f);
             bool lustro = i % 2 == 1;
+            // Odbiór po zbudowaniu faktycznej bryły. Tylko drzewo/płot,
+            // którego siatka przecina wnętrze lub światło wejścia.
             int towar = Zbuduj(t, lustro, i + 1);
+            OczyscWejscie(scena, root.transform, t, lustro, i + 1);
             Physics.SyncTransforms();
             Debug.Log("BRAXHORN_SUPERMARKET kopia " + (i + 1) + ": front (środek) " + c.ToString("F1") + ", obrót " + yaw + "°, hala " + W.ToString("F1") + " × " + D.ToString("F1") + " × " + H.ToString("F1") + " m"
                       + (lustro ? ", odbicie lustrzane (wejście i kasy po drugiej stronie)" : "") + ", towar modeli " + towar + ", szukanie " + stoper.ElapsedMilliseconds + " ms");
         }
+    }
+
+    // Utrzymanie istniejącego sklepu i zatwierdzonych produktów.
+    // Źródło problemu na zdjęciu: drzewo i odcinki płotu spoza modułu
+    // supermarketu potrafią wizualnie przechodzić przez wejście.
+    static void OczyscWejscie(Scene scene, Transform shopRoot, Transform store,
+                             bool mirror, int nr)
+    {
+        float half = W * .5f, entryX = mirror ? -(half - 5f*K) : half - 5f*K;
+        float doorWidth = 2.4f*K, bodyHeight = 2.6f*K;
+        Vector3 door = store.TransformPoint(new Vector3(entryX, 0f, 0f));
+        var opening = new Bounds(store.TransformPoint(new Vector3(entryX,
+            bodyHeight*.5f, -.9f)), new Vector3(doorWidth+1.25f,
+            bodyHeight+.4f, 9.8f));
+        // Oś sklepu może być obrócona o 90°, zatem weryfikacja terenu
+        // i wejścia używa współrzędnych LOKALNYCH sklepu.
+        bool Inside(Vector3 p, bool hall)
+        {
+            var q = store.InverseTransformPoint(p);
+            return hall
+                ? Mathf.Abs(q.x) < half-.15f && q.z > 0f && q.z < D-.1f
+                : Mathf.Abs(q.x-entryX) < doorWidth*.5f+.8f && q.z > -5.3f && q.z < 2f;
+        }
+        bool Named(string x, params string[] parts) =>
+            parts.Any(p => x.IndexOf(p, StringComparison.OrdinalIgnoreCase) >= 0);
+        bool IsTree(string x) => Named(x,"drzewo","tree","palm","palma");
+        bool IsFence(string x) => Named(x,"płot","plot","fence","ogrodzen");
+        int trees=0, trunks=0, fenceParts=0, unidentified=0;
+        var generated = new List<GameObject>();
+        foreach (var go in scene.GetRootGameObjects())
+        {
+            if (!go || go.transform == shopRoot || go.transform.IsChildOf(shopRoot)) continue;
+            foreach (var r in go.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                if (!r || !r.gameObject.activeInHierarchy || !r.enabled) continue;
+                var candidate=r.transform;
+                Transform tree=null,fence=null;
+                for (var p=candidate; p && p!=go.transform.parent; p=p.parent)
+                {
+                    if (IsTree(p.name) && tree==null) tree=p;
+                    if (IsFence(p.name) && fence==null) fence=p;
+                }
+                if (tree && !generated.Contains(tree.gameObject) &&
+                    (Inside(tree.position,true) || Inside(tree.position,false)))
+                {
+                    if (tree.childCount > 128 || tree==go.transform)
+                    { unidentified++; continue; }  // nie kasuj całego lasu/budynku
+                    generated.Add(tree.gameObject);
+                    trees++;
+                    continue;
+                }
+                if (!fence || !r.bounds.Intersects(opening)) continue;
+                // Wytnij 2.4m przejścia z SIATKI PŁOTU, a nie cały płot wokół działki.
+                try
+                {
+                    fenceParts += BraxCityMeshCut.Subtract(candidate, opening,
+                        BraxRegion.Out + "/Cuts","supermarket_przejscie_"+nr);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning("DO POPRAWKI: SUPERMARKET "+nr+
+                        " płot "+r.name+" "+e.Message); unidentified++;
+                }
+            }
+        }
+        foreach (var tr in generated) if (tr) UnityEngine.Object.DestroyImmediate(tr);
+
+        // Usunięte drzewa nie mogą pozostawić niewidzialnego pnia kolizji.
+        foreach (var go in scene.GetRootGameObjects())
+        {
+            if (!go || go.transform==shopRoot) continue;
+            foreach(var c in go.GetComponentsInChildren<CapsuleCollider>(true))
+            {
+                if (!c || !c.enabled || !IsTree(c.name)) continue;
+                if (Inside(c.transform.position,true) || Inside(c.transform.position,false))
+                { UnityEngine.Object.DestroyImmediate(c.gameObject); trunks++; }
+            }
+        }
+        Physics.SyncTransforms();
+
+        // 12 próbek wejście → wnętrze, capsule Braxa; drzwi ruchome
+        // mają własne skrzydła/collider i mogą być zamknięte w edit mode.
+        // Takich drzwi nie traktujemy jako niewidzialnej przeszkody.
+        int samples=0;var obstacles=new HashSet<string>();
+        float radius=.32f, h=2.2f*K;
+        for(int i=0;i<=11;i++)
+        {
+            float z=Mathf.Lerp(-4.0f,3.5f,i/11f);
+            Vector3 foot=store.TransformPoint(new Vector3(entryX,.12f,z));
+            foreach(var c in Physics.OverlapCapsule(foot+Vector3.up*(radius+.06f),
+                foot+Vector3.up*(h-radius),radius,
+                ~((1<<8)|(1<<29)),QueryTriggerInteraction.Ignore))
+            {
+                if(!c || !c.enabled || c.isTrigger)continue;
+                if(c.transform.IsChildOf(store))
+                {
+                    if(c.GetComponentInParent<BraxDrzwiPrzesuwne>())continue;
+                    // podłoga leży poniżej kapsuły, kas i regałów nie usuwamy
+                }
+                if (obstacles.Count < 28) obstacles.Add(c.name);
+            }
+            samples++;
+        }
+        Debug.Log("BRAXHORN_SUPERMARKET_WEJSCIE sklep="+nr+
+            " usuniete_drzewa="+trees+" pnie="+trunks+" wyciete_ploty="+fenceParts+
+            " brak_rozpoznania="+unidentified+" probki="+samples+
+            " potencjalne_przeszkody="+obstacles.Count+
+            (obstacles.Count>0?" ["+string.Join("; ",obstacles)+"]":""));
     }
 
     // ---------------- miejsce ----------------
