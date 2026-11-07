@@ -1,4 +1,5 @@
 name: Obóz — owner authorized APK dispatch 20261107
+# retry after APK sparse-checkout repair
 
 on:
   push:
