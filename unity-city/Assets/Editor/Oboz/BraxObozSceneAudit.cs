@@ -15,6 +15,7 @@ public static class BraxObozSceneAudit
 {
     const float K=1.294f;
     const float Tolerance=.03f*K;
+    const float NumericalToleranceMetres=.0005f;
     [Serializable] sealed class LogEntry { public string level,message,stackTrace; }
     [Serializable] sealed class Diagnostics
     {
@@ -157,8 +158,8 @@ public static class BraxObozSceneAudit
             .OrderByDescending(h=>h.point.y).ToArray();
         if(hits.Length==0){item.status="brak powierzchni w raycast";return item;}
         item.gapMetres=(b.min.y-hits[0].point.y)/K;
-        if(item.gapMetres>.03f)item.status="LEWITUJE > 3 cm";
-        else if(item.gapMetres<-.03f)item.status="ZAPADNIĘTE > 3 cm";
+        if(item.gapMetres>.03f+NumericalToleranceMetres)item.status="LEWITUJE > 3 cm";
+        else if(item.gapMetres<-.03f-NumericalToleranceMetres)item.status="ZAPADNIĘTE > 3 cm";
         else item.status="kontakt w tolerancji 3 cm";
         return item;
     }
@@ -169,6 +170,29 @@ public static class BraxObozSceneAudit
     {
         var item=InspectRaw(renderer);
         item.rawStatus=item.status;item.rawGapMetres=item.gapMetres;
+        var fluid=renderer.GetComponent<BraxObozFluidSurface>();
+        if(fluid && fluid.surface==renderer && fluid.bed && fluid.bed.enabled &&
+            fluid.bed.gameObject.scene==renderer.gameObject.scene)
+        {
+            var b=renderer.bounds;
+            var ray=new Ray(new Vector3(b.center.x,b.max.y+K,b.center.z),Vector3.down);
+            if(fluid.bed.Raycast(ray,out var hit,4f*K) && hit.normal.y>.65f)
+            {
+                float depth=(b.min.y-hit.point.y)/K;
+                bool ok=depth>=fluid.minimumDepthMetres-NumericalToleranceMetres &&
+                    depth<=fluid.maximumDepthMetres+NumericalToleranceMetres;
+                item.classification="jawna tafla cieczy";
+                item.status=ok?"zmierzona głębokość nad terenem":"TAFLA CIECZY POZA ZAKRESEM";
+                item.verified=ok;
+                item.gapMetres=depth;
+                item.resolution="głębokość="+depth.ToString("F3")+" m; zakres="+
+                    fluid.minimumDepthMetres.ToString("F2")+"–"+fluid.maximumDepthMetres.ToString("F2")+" m";
+                return item;
+            }
+            item.classification="jawna tafla cieczy";item.status="brak zmierzonego dna cieczy";
+            item.verified=false;item.resolution="jawny MeshCollider terenu nie został trafiony";
+            return item;
+        }
         if(IsNaturalTerrain(renderer))
         {item.verified=true;item.resolution="zgodna siatka widocznego gruntu i collidera";return item;}
         if(renderer is ParticleSystemRenderer)
@@ -302,8 +326,8 @@ public static class BraxObozSceneAudit
             item.supportTrianglesTested=supportMeasurement.trianglesTested;
         }
         else {item.status="brak zadeklarowanego podparcia — wymaga pomiaru";return item;}
-        item.status=item.gapMetres>.03f?"LEWITUJE > 3 cm":
-            item.gapMetres<-.03f?"ZAPADNIĘTE > 3 cm":"kontakt w tolerancji 3 cm";
+        item.status=item.gapMetres>.03f+NumericalToleranceMetres?"LEWITUJE > 3 cm":
+            item.gapMetres<-.03f-NumericalToleranceMetres?"ZAPADNIĘTE > 3 cm":"kontakt w tolerancji 3 cm";
         return item;
     }
 
