@@ -593,11 +593,13 @@ public static partial class BraxObozEnvironment
         bool Has(int x, int y) =>
             x >= 0 && x < columns && y >= 0 && y < rows && filled[x, y];
 
-        // Trwała siatka statyczna: front, tył i boki każdego pola konturu.
-        // Nie jest to płaski billboard ani prostokąt zakrywający ornamenty.
-        var vertices = new List<Vector3>(filledCount * 8);
-        var uv = new List<Vector2>(filledCount * 8);
-        var triangles = new List<int>(filledCount * 16);
+        // Dokładny 256-polowy obrys NIE może oznaczać ciężkiej siatki z pełnym
+        // frontem/tyłem dla każdego piksela. Oryginalna okleina tworzy obie twarze,
+        // a metalowa bryła zawiera tylko boczne ścianki konturu. To zachowuje
+        // trójwymiarową grubość i mocno ogranicza liczbę wierzchołków/rozmiar assetu.
+        var vertices = new List<Vector3>(Mathf.Max(256,filledCount/2));
+        var uv = new List<Vector2>(Mathf.Max(256,filledCount/2));
+        var triangles = new List<int>(Mathf.Max(384,filledCount));
         void Face(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
         {
             int index = vertices.Count;
@@ -617,10 +619,8 @@ public static partial class BraxObozEnvironment
             float x1 = signWidth * ((x + 1) / (float)columns - .5f);
             float y0 = centreY + signHeight * (y / (float)rows - .5f);
             float y1 = centreY + signHeight * ((y + 1) / (float)rows - .5f);
-            Face(new Vector3(x0,y0,faceZ),new Vector3(x0,y1,faceZ),
-                 new Vector3(x1,y1,faceZ),new Vector3(x1,y0,faceZ));
-            Face(new Vector3(x0,y0,backZ),new Vector3(x1,y0,backZ),
-                 new Vector3(x1,y1,backZ),new Vector3(x0,y1,backZ));
+            // Front i tył rysują dwa alfa-masked quady z oryginalnym JPEG.
+            // Tutaj generujemy WYŁĄCZNIE ścianki na granicy sylwetki.
             if (!Has(x-1,y))
                 Face(new Vector3(x0,y0,faceZ),new Vector3(x0,y0,backZ),
                      new Vector3(x0,y1,backZ),new Vector3(x0,y1,faceZ));
