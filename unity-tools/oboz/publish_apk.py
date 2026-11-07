@@ -15,8 +15,9 @@ from recover_apk import CERTIFICATE
 TAG = 'oboz-review-latest'
 
 
-def publish(folder, dialogue, world, repo, source_sha):
+def publish(folder, dialogue, world, repo, source_sha, content_base=None):
     folder, dialogue, world = Path(folder), Path(dialogue), Path(world)
+    content_base = Path(content_base) if content_base else None
     receipt = folder / 'release-identity.json'
     data = json.loads(receipt.read_text())
     if (data.get('applicationId') != PACKAGE or data.get('sourceCommit') != source_sha
@@ -37,8 +38,14 @@ def publish(folder, dialogue, world, repo, source_sha):
     data.update(releaseTag=TAG, apkAssetName='braxhorn-oboz-' + suffix + '.apk',
                 dialogueAssetName='camp-dialogue-' + suffix + '.zip',
                 dialogueSha256=digest(dialogue), dialogueEngine='piper-tts==1.3.0',
-                contentUpdatesReady=False, phoneTested=False, voiceQualityApproved=False)
+                contentUpdatesReady=bool(content_base and content_base.is_file()),
+                phoneTested=False, voiceQualityApproved=False)
     payload = [(apk, data['apkAssetName']), (dialogue, data['dialogueAssetName'])]
+    if content_base and content_base.is_file():
+        data.update(basePackageAssetName='oboz-base-' + suffix + '.braxbase.zip',
+                    basePackageSha256=digest(content_base),
+                    basePackageBytes=content_base.stat().st_size)
+        payload.append((content_base, data['basePackageAssetName']))
     if world.is_file():
         data.update(worldAssetName='oboz-world-' + suffix + '.tar.gz.enc', worldSha256=digest(world))
         payload.append((world, data['worldAssetName']))
@@ -101,10 +108,11 @@ if __name__ == '__main__':
     parser.add_argument('--folder', required=True)
     parser.add_argument('--dialogue', required=True)
     parser.add_argument('--world', required=True)
+    parser.add_argument('--content-base')
     parser.add_argument('--checkpoint-only', action='store_true')
     args = parser.parse_args()
     if args.checkpoint_only:
         result = publish_checkpoint(args.folder, args.world, os.environ['GITHUB_REPOSITORY'], os.environ['GITHUB_SHA'])
     else:
-        result = publish(args.folder, args.dialogue, args.world, os.environ['GITHUB_REPOSITORY'], os.environ['GITHUB_SHA'])
+        result = publish(args.folder, args.dialogue, args.world, os.environ['GITHUB_REPOSITORY'], os.environ['GITHUB_SHA'], args.content_base)
     print('BRAXHORN_OBOZ_DELIVERY asset=' + result['apkAssetName'] + ' phone_tested=false')

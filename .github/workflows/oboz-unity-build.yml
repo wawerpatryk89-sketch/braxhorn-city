@@ -471,6 +471,41 @@ jobs:
           assert not Path('build/ObozAndroid/braxhorn-oboz.apk').exists()
           print('OBOZ_SCENE_ONLY_READY: separate Unity process finished, no APK')
           PY_STAGE
+      - name: Obóz — skompiluj systemowy wybór paczki danych do lekkiego APK
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: |
+          docker run --rm --entrypoint bash -v "$PWD:/project"             unityci/editor:ubuntu-6000.0.58f2-android-3             /project/unity-tools/oboz/build_content_picker.sh
+          test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar
+      - name: Obóz — zbuduj zewnętrzną bazę Addressables z gotowej sceny, BEZ APK
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxObozContentBase.ExportPreparedExternalInCI
+          manualExit: true
+          versioning: None
+          allowDirtyBuild: true
+      - name: Obóz — potwierdź brak ciężkich bundle w APK
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: |
+          python3 - <<'PY_EXTERNAL'
+          import json
+          from pathlib import Path
+          root=Path('unity-city')
+          config=json.loads((root/'Assets/Resources/BraxContentBase.json').read_text(encoding='utf-8'))
+          assert config['zone']=='oboz' and config['externalBase'] is True
+          package=root/'BraxContentBuild/oboz-base.braxbase.zip'
+          assert package.is_file() and package.stat().st_size>0
+          streaming=root/'Assets/StreamingAssets/BraxContent'
+          assert not list(streaming.glob('*.bundle')), 'heavy bundle leaked back into APK'
+          print('OBOZ_EXTERNAL_BASE_READY bytes='+str(package.stat().st_size))
+          PY_EXTERNAL
       - name: Generowanie sceny i kompilacja tylko obozu
         id: unity
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
@@ -502,8 +537,15 @@ jobs:
           from pathlib import Path
           receipt=Path('build/ObozAndroid/release-identity.json')
           data=json.loads(receipt.read_text())
+          base=Path('unity-city/BraxContentBuild/oboz-base.braxbase.zip')
           data.update(sourceCommit=os.environ['GITHUB_SHA'], sourceRun=int(os.environ['GITHUB_RUN_ID']),
-                      phoneTested=False, contentUpdatesReady=False)
+                      phoneTested=False, contentUpdatesReady=base.is_file())
+          if base.is_file():
+              import hashlib
+              h=hashlib.sha256()
+              with base.open('rb') as stream:
+                  for block in iter(lambda:stream.read(1024*1024),b''): h.update(block)
+              data.update(basePackageBytes=base.stat().st_size,basePackageSha256=h.hexdigest())
           receipt.write_text(json.dumps(data,indent=2)+'\n')
           PY
       - name: Zachowaj zweryfikowany APK przed zapisem wydania
@@ -518,6 +560,8 @@ jobs:
             build/ObozAndroid/build-receipt.json
             build/ObozAndroid/scene-validation.json
             build/ObozAndroid/collider-review.json
+            unity-city/BraxContentBuild/oboz-base.braxbase.zip
+            unity-city/BraxContentBuild/base/manifest.json
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
@@ -591,6 +635,7 @@ jobs:
           python3 unity-tools/oboz/publish_apk.py \
             --folder build/ObozAndroid \
             --dialogue build/ObozAudio/camp-dialogue.zip \
+            --content-base unity-city/BraxContentBuild/oboz-base.braxbase.zip \
             --world "$RUNNER_TEMP/oboz-world.tar.gz.enc"
       - name: Zaszyfrowany zapis scen obozu
         id: world

@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import sys
+from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parents[2]
 PROJECT = ROOT / "unity-city"
@@ -41,7 +42,8 @@ def verify(project: Path = PROJECT) -> dict:
         raise ValueError("Missing exact runtime fingerprint")
     if m.get("firstScene") != "BraxhornObozReview" or m.get("scenes") != ["BraxhornObozReview"]:
         raise ValueError("Wrong camp scene set — no other zone may enter this baseline")
-    content = project / "Assets/StreamingAssets/BraxContent"
+    external = bool(m.get("externalBase", False))
+    content = project / ("BraxContentBuild/output" if external else "Assets/StreamingAssets/BraxContent")
     records = m.get("files")
     if not isinstance(records, list) or not records:
         raise ValueError("Missing catalog and bundle inventory")
@@ -60,6 +62,17 @@ def verify(project: Path = PROJECT) -> dict:
         raise ValueError("No actual Addressables bundles generated")
     if m.get("catalog") not in seen:
         raise ValueError("No catalog referenced by the baseline")
+    if external:
+        streaming = project / "Assets/StreamingAssets/BraxContent"
+        if streaming.exists() and any(streaming.glob("*.bundle")):
+            raise ValueError("External baseline bundle leaked into APK StreamingAssets")
+        package = project / "BraxContentBuild" / (zone + "-base.braxbase.zip")
+        if not package.is_file() or package.stat().st_size == 0:
+            raise ValueError("Missing external base package")
+        with ZipFile(package) as archive:
+            names = {entry.filename for entry in archive.infolist()}
+            if "manifest.json" not in names or not seen.issubset(names):
+                raise ValueError("External base package is incomplete")
     state = base / "addressables_content_state.bin"
     if not state.is_file() or state.stat().st_size < 16:
         raise ValueError("Missing original addressables_content_state.bin")
@@ -87,7 +100,8 @@ def verify(project: Path = PROJECT) -> dict:
         "apkBuilt": False,
         "phoneTested": False,
         "baseApkIntegrated": False,
-        "status": "ADDRESSABLES_BASE_CANDIDATE_ONLY",
+        "externalBase": external,
+        "status": "ADDRESSABLES_EXTERNAL_BASE_CANDIDATE" if external else "ADDRESSABLES_BASE_CANDIDATE_ONLY",
     }
 
 
