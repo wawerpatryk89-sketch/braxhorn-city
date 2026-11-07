@@ -37,7 +37,7 @@ def decode_payload(data):
 
 def copy_zip_parts(apk, destination, name):
     parts = []
-    pattern = re.compile(r'assets/bin/Data/' + re.escape(name) + r'(?:\\.split(\\d+))?')
+    pattern = re.compile(r'assets/bin/Data/' + re.escape(name) + r'(?:\.split(\d+))?')
     for item in apk.infolist():
         match = pattern.fullmatch(item.filename)
         if match:
