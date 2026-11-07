@@ -222,6 +222,30 @@ class NovaSourceContracts(unittest.TestCase):
         self.assertIn('foreach (var p in created)', SOURCE)
         self.assertIn('EditorUtility.CopySerialized(c, p)', SOURCE)
 
+    def test_old_sign_cleanup_scans_entire_scene_and_protects_owner(self):
+        self.assertIn("club.gameObject.scene.GetRootGameObjects()", SOURCE)
+        self.assertIn('text.Contains("CLUB NOVA")', SOURCE)
+        self.assertNotIn('text.Contains("NOVA CLUB")', SOURCE)
+        self.assertIn('n.StartsWith("nova szyld oryginalny właściciela")', SOURCE)
+        self.assertIn('n == "mural club_nova"', SOURCE)
+        self.assertIn("ApprovedNovaSign(r.transform)", SOURCE)
+
+    def test_unlabelled_old_sign_is_clipped_only_under_new_panel(self):
+        match = re.search(r"var stripe = Box\(([^)]*)\);", SOURCE)
+        self.assertIsNotNone(match)
+        x0, x1, y0, y1, z0, z1 = [
+            float(item.strip().rstrip("f")) for item in match.group(1).split(",")
+        ]
+        self.assertGreaterEqual(x0, 38.4)
+        self.assertLessEqual(x1, 45.6)
+        self.assertGreaterEqual(y0, 3.62)
+        self.assertLessEqual(y1, 4.86)
+        self.assertGreater(y0, 2.98)  # above club doorway and player collision
+        self.assertIn('BraxCityMeshCut.Subtract(temp.transform, stripe', SOURCE)
+        self.assertIn('r.transform.IsChildOf(club)', SOURCE)
+        self.assertIn('club.IsChildOf(r.transform)', SOURCE)
+        self.assertIn('finally { Object.DestroyImmediate(temp); }', SOURCE)
+
     def test_csharp_lexical_delimiters_balanced(self):
         for code in (SOURCE, HOOK):
             stack = []
