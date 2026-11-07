@@ -5,7 +5,8 @@ using UnityEngine;
 
 // Uses the EXACT same source model "car_rev.glb" as the estate's Auto Patryka
 // candidate list, without touching the estate scene/assets or creating a fake car.
-// A1 parking and game scale are preserved. This creates one usable player car.
+// A1 parking is preserved. The raw GLB is calibrated to REAL Unity metres; map coordinates alone use K.
+// This prevents the 4.95 m source car from being enlarged a second time by the city migration scale.
 public static class BraxChampionsCarBuilder
 {
     public const string OwnerCar = "Assets/Source/Mistrzowie/Vehicles/car_rev.glb";
@@ -108,7 +109,7 @@ public static class BraxChampionsCarBuilder
         root.transform.SetParent(parent, false);
         // Real marked western car-park bay; x local -37.55, z local -89.
         // Centre entrance aisle x=-8..8 remains fully clear. Not on a road.
-        root.transform.position = new Vector3(562.45f, .16f, 711f) * K;
+        root.transform.position = new Vector3(637.55f, .16f, 711f) * K;
         root.transform.rotation = Quaternion.identity;
         var copy = UnityEngine.Object.Instantiate(source, root.transform, false);
         copy.name = "ORIGINAL car_rev GLB from estate, unchanged mesh + PBR";
@@ -119,14 +120,16 @@ public static class BraxChampionsCarBuilder
         Bounds bounds=BoundsLocal(root.transform);
         if (bounds.size.z <= .01f || bounds.size.x <= .01f)
             throw new InvalidOperationException("Original car length/width is invalid");
-        float uniform = LengthMetres * K / bounds.size.z;
+        // Physical vehicle dimensions are already metres; applying K here made the car ~6.4 m long.
+        float uniform = LengthMetres / bounds.size.z;
         copy.transform.localScale *= uniform;
         Physics.SyncTransforms();
         bounds = BoundsLocal(root.transform);
         // Parking asphalt top is at ~.239*K, whereas the preserved source
         // car anchor is .16*K. Set real wheel contact to the road surface.
+        float groundLocalY = (.239f - .16f) * K;
         copy.transform.localPosition -= new Vector3(bounds.center.x,
-            bounds.min.y-.08f*K, bounds.center.z);
+            bounds.min.y-groundLocalY, bounds.center.z);
         Physics.SyncTransforms();
         bounds = BoundsLocal(root.transform);
 
@@ -145,13 +148,13 @@ public static class BraxChampionsCarBuilder
         var seat = new GameObject("Original cabin | LEFT driver seat for Brax").transform;
         seat.SetParent(root.transform, false);
         seat.localPosition = new Vector3(-bounds.extents.x * .39f,
-            Mathf.Max(.26f * K, bounds.size.y * .28f), bounds.extents.z * .14f);
+            Mathf.Clamp(bounds.size.y * .28f, .26f, .85f), bounds.extents.z * .14f);
         seat.localRotation = Quaternion.identity;
 
         var enter = new GameObject("Actual left driver-door approach").transform;
         enter.SetParent(root.transform, false);
         enter.localPosition = new Vector3(
-            bounds.min.x - .78f * K, .10f * K, seat.localPosition.z - .15f * K);
+            bounds.min.x - .78f, .10f, seat.localPosition.z - .15f);
 
         // Try the REAL separate door assembly. If the source has no reliable
         // split, do not invent a duplicate door or move a body mesh incorrectly.
@@ -185,7 +188,8 @@ public static class BraxChampionsCarBuilder
         var car = root.AddComponent<BraxChampionsCar>();
         car.bodyCollider = box; car.driverSeat = seat; car.doorApproach = enter;
         car.doorHinge = doorPivot;
-        car.wheelbase = 2.7f * K; car.maxSpeed = 12f * K;
+        car.wheelbase = 2.7f; car.maxSpeed = 12f;
+        car.interactionRadius = 3.8f;
         // If wheels are individual GLB nodes, the runtime animates their
         // existing transforms; no substitute wheel meshes are created.
         var wheelRoots = copy.GetComponentsInChildren<Transform>(true)
@@ -193,10 +197,12 @@ public static class BraxChampionsCarBuilder
             .Where(t => t.GetComponentsInChildren<Renderer>(true).Length > 0).ToArray();
         car.rollingWheels = wheelRoots;
         car.steeringWheels = new Transform[0]; // no arbitrary steering bone rotations
+        if (Mathf.Abs(bounds.size.z - LengthMetres) > .08f)
+            BraxBuildQuality.Warn("A1_OWNER_CAR_SCALE_ADVISORY: expected 4.95m, got " + bounds.size.z.ToString("F2") + "m");
         Debug.Log("A1_OWNER_CAR_INSTALLED original=car_rev length=" +
             bounds.size.z.ToString("F2") + " bodyCollider=REAL_BOUNDS" +
-            " start=(562.45,711) entrance=FREE originalDoor=" + (doorPivot != null) +
+            " start=(637.55,711) side=RIGHT driverDoorFacesWalkway=true originalDoor=" + (doorPivot != null) +
             " ownerAnimations=EnteringCar,Driving,ExitingCar" +
-            " no_fake_collision=true manual_phone_review_required=true");
+            " physicalScale=REAL_METRES noExtraK=true no_fake_collision=true manual_phone_review_required=true");
     }
 }
