@@ -10,8 +10,8 @@ from prepare_casino_textures_2k import MAPS, SLUGS, check, select
 ROOT=Path(__file__).resolve().parents[2]
 
 class CasinoTexture2KTests(unittest.TestCase):
-    def test_seven_approved_polyhaven_materials_three_native_2k_channels(self):
-        self.assertEqual(len(SLUGS),7)
+    def test_eight_approved_polyhaven_materials_three_native_2k_channels(self):
+        self.assertEqual(len(SLUGS),8)
         self.assertEqual(MAPS,(("diff","jpg"),("nor_gl","png"),("arm","png")))
         self.assertIn("clean_asphalt",SLUGS)
         self.assertIn("concrete_pavement_02",SLUGS)
@@ -42,7 +42,7 @@ class CasinoTexture2KTests(unittest.TestCase):
         src=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11.cs").read_text()
         helper=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoPbr2K.cs").read_text()
         self.assertNotIn('BraxChampionsFoundation.SourceMaterial("t11_',src)
-        self.assertEqual(src.count("BraxChampionsCasinoPbr2K.Create(output,"),8)
+        self.assertEqual(src.count("BraxChampionsCasinoPbr2K.Create(output,"),9)
         self.assertIn('"clean_asphalt",2.1f,new Color(.40f,.40f,.41f)',src)
         self.assertIn('+"_2k."+extension',helper)
         self.assertIn("ASTC_4x4",helper)
