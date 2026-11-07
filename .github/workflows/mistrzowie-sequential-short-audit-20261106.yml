@@ -12,6 +12,15 @@ on:
       - unity-tools/mistrzowie/test_champions_unused_glb_scope.py
       # Small static regressions only (no editor or APK on push):
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarClips.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs
+      - unity-city/Assets/Mistrzowie/BraxChampionsCar.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaArrival.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsBeltShowcase.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaMuralTextureImport.cs
+      - unity-tools/mistrzowie/test_owner_car_showcase_integration.py
+      - unity-tools/mistrzowie/test_a1_premium_exterior_20261107.py
+      - unity-tools/mistrzowie/test_premium_reference_regression_20261107.py
+      - unity-tools/mistrzowie/test_arena_side_murals.py
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsSourceReadiness.cs
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1.cs
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsBeachFurnishings.cs
