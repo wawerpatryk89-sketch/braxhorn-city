@@ -246,7 +246,8 @@ public static partial class BraxClaudeOsiedle
                         float best = float.MaxValue, bestS = -1f;
                         for (int i = 0; i + 1 < route.ile; i++)
                         {
-                            var p = wy.punkty[route.start+i], next = wy.punkty[route.start+i+1];
+                            var p = wy.punkty[route.start+i];
+                            var next = wy.punkty[route.start+i+1];
                             if (next.x < p.x + .01f) continue;
                             float dd = (p-target).sqrMagnitude;
                             if (dd < best) {best=dd;bestS=i*route.krok;}

@@ -64,7 +64,8 @@ public static class BraxSupermarket
         Vector3 door = store.TransformPoint(new Vector3(entryX, 0f, 0f));
         // Objętość wycięcia w WORLD AABB musi uwzględnić obrót sklepu
         // 0/90/180/270; inaczej w sklepie obróconym o 90° tnie obok drzwi.
-        var xaxis = store.right, zaxis = store.forward;
+        var xaxis = store.right;
+        var zaxis = store.forward;
         var bbWidth = doorWidth+1.25f;
         var bbDepth = 9.8f;
         var cutSize = new Vector3(

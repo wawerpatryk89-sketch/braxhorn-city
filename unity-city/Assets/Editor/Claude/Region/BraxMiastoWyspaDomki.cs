@@ -124,8 +124,10 @@ internal static partial class BraxMiastoWyspa
         for (int i = 0; i < pts.Count - 1; i++)
         {
             var a = pts[i]; var b = pts[i + 1];
-            var A = a - bokI[i] * polSzer, B = b - bokI[i + 1] * polSzer;
-            var C = b + bokI[i + 1] * polSzer, Dd = a + bokI[i] * polSzer;
+            var A = a - bokI[i] * polSzer;
+            var B = b - bokI[i + 1] * polSzer;
+            var C = b + bokI[i + 1] * polSzer;
+            var Dd = a + bokI[i] * polSzer;
             Q(z[deski], A, B, C, Dd, Vector3.up);
             float odc = RzutXZ(a, b); if (odc < .03f) continue;
             var rot = Quaternion.LookRotation((b - a).normalized, Vector3.up);
