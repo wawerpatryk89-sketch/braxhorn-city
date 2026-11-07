@@ -60,7 +60,7 @@ class R1UnitySceneOnlySourceContract(unittest.TestCase):
     def test_apk_disabled_in_manual_scene_only_dispatch(self):
         self.assertIn("scene_only:", YML)
         self.assertIn("default: false",YML)
-        self.assertIn("github.event.inputs.scene_only != 'true'", YML)
+        self.assertIn("github.event.inputs.scene_only == 'false'", YML)
         self.assertIn("github.event.inputs.scene_only == 'true'", YML)
         self.assertIn("buildMethod: BraxGymBuild.SceneOnlyCityR1",YML)
         self.assertIn("targetPlatform: WebGL",YML)

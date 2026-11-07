@@ -405,7 +405,7 @@ jobs:
       contents: write
       actions: read
     # Właściciel: scena bez APK. Twarde wyłączenie Androida po wybraniu scene_only.
-    if: github.event.inputs.scene_only != 'true' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    if: github.event.inputs.scene_only == 'false' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
