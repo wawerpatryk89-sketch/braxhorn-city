@@ -493,7 +493,7 @@ public static partial class BraxRegionMiastoB
             var windowsAlt = new BraxRegionMeble.Bud();
             var spandrels = new BraxRegionMeble.Bud();
             var frames = new BraxRegionMeble.Bud();
-            float ymin = original.min.y + 3.5f * K; // nie zasłaniać wejść, sklepów i parteru
+            float ymin = Mathf.Max(original.min.y, bud.position.y) + 3.5f * K; // parteru i wejść NIE pokrywamy
             float ymax = original.max.y - .4f;
             if (ymax <= ymin + 2f) { UnityEngine.Object.DestroyImmediate(group.gameObject); return null; }
             float x0 = b.x - b.w/2f, x1 = b.x + b.w/2f;
@@ -586,7 +586,11 @@ public static partial class BraxRegionMiastoB
                         names.IndexOf("metal",StringComparison.OrdinalIgnoreCase)>=0 ||
                         names.IndexOf("szkło",StringComparison.OrdinalIgnoreCase)>=0;
             if (!modern) { unverified++; continue; }
-            renderer.enabled=false;
+            // LODGroup potrafi ponownie włączyć renderer.enabled, dlatego
+            // wyłączamy tylko pojedynczy liść GameObject (nie cały model).
+            if (renderer.transform.childCount != 0)
+            { unverified++; continue; }
+            renderer.gameObject.SetActive(false);
             foreach(var col in renderer.GetComponents<Collider>()) col.enabled=false;
             removed++;
             NdLog("NADWIESZENIE_ZDJETE "+other.name+"/"+renderer.name+
