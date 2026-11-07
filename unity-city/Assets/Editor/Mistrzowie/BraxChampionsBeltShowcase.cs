@@ -111,11 +111,11 @@ public static class BraxChampionsBeltShowcase
                 element.AddComponent<MeshCollider>().sharedMesh = mesh;
             }
         }
-        Layer("A1_RealRhombus_GraniteStone", granite, 2.05f, 1.70f,
+        Layer("A1_RealRhombus_GraniteStone", granite, 1.48f, 1.20f,
             .055f, .325f, true);
-        Layer("A1_Rhombus_GoldInlayEdge", gold, 2.01f, 1.66f,
+        Layer("A1_Rhombus_GoldInlayEdge", gold, 1.44f, 1.16f,
             .326f, .372f, false);
-        Layer("A1_Rhombus_GraniteInsetTop", granite, 1.88f, 1.53f,
+        Layer("A1_Rhombus_GraniteInsetTop", granite, 1.33f, 1.05f,
             .374f, .428f, false);
     }
 
@@ -172,12 +172,12 @@ public static class BraxChampionsBeltShowcase
         instance.transform.localRotation=Quaternion.Euler(0,180f,0)*
             instance.transform.localRotation;
         b = VisualBounds(display, instance.transform);
-        float factor = Mathf.Min(1.58f / Mathf.Max(b.size.y, .0001f),
-            1.45f / Mathf.Max(b.size.x, .0001f));
+        float factor = Mathf.Min(1.38f / Mathf.Max(b.size.y, .0001f),
+            1.28f / Mathf.Max(b.size.x, .0001f));
         instance.transform.localScale *= factor;
         b = VisualBounds(display, instance.transform);
         // Suspend belt above the gold plaque, clear of the glass and wood.
-        instance.transform.localPosition += new Vector3(0, 2.38f, .055f) - b.center;
+        instance.transform.localPosition += new Vector3(0, 2.26f, .055f) - b.center;
         Debug.Log("CHAMPIONS_A1_BELT_FACES_FRONT turned180=true"+
             " width="+b.size.x.ToString("F2")+" height="+b.size.y.ToString("F2")+
             " sourceMeshUnchanged=true visualReviewPending=true");
@@ -259,11 +259,11 @@ public static class BraxChampionsBeltShowcase
         // Front and right-hand SIDE are two distinct surfaces, not one atlas
         // stretched over the front. Both are inside the crystal glass case.
         Cube(display,"BRAXHORN | narrower bronze plate outline",bronze,
-            new Vector3(0,1.075f,-.239f),new Vector3(1.88f,.88f,.12f));
+            new Vector3(0,1.075f,-.239f),new Vector3(1.48f,.76f,.11f));
         Cube(display,"SOLID GOLD RECTANGLE for owner BRAXHORN ARENA sticker",gold,
-            new Vector3(0,1.075f,-.321f),new Vector3(1.78f,.80f,.135f));
+            new Vector3(0,1.075f,-.321f),new Vector3(1.38f,.68f,.125f));
         Cube(display,"SOLID GOLD SIDE RECTANGLE for owner B emblem",gold,
-            new Vector3(.920f,1.075f,-.235f),new Vector3(.075f,.78f,.65f));
+            new Vector3(.760f,1.075f,-.235f),new Vector3(.065f,.66f,.56f));
 
         var image=AssetDatabase.LoadAssetAtPath<Texture2D>(OriginalPlaque);
         if(!image)
@@ -302,12 +302,12 @@ public static class BraxChampionsBeltShowcase
         // UV masks select only existing artwork; no image is regenerated.
         // The front print faces towards the front glass at local -Z.
         AtlasLabel(display,material,"FRONT_BRAXHORN_ARENA",
-            new Vector3(0,1.075f,-.403f),Quaternion.Euler(0,180f,0),
-            new Vector2(1.59f,.73f),.397f,.777f,.12f,.90f);
+            new Vector3(0,1.075f,-.397f),Quaternion.Euler(0,180f,0),
+            new Vector2(1.22f,.61f),.397f,.777f,.12f,.90f);
         // The B emblem belongs exclusively on the RIGHT SIDE (+X).
         AtlasLabel(display,material,"RIGHT_SIDE_B_CRESt",
-            new Vector3(.970f,1.075f,-.235f),Quaternion.Euler(0,90f,0),
-            new Vector2(.52f,.70f),.791f,.938f,.12f,.90f);
+            new Vector3(.805f,1.075f,-.235f),Quaternion.Euler(0,90f,0),
+            new Vector2(.42f,.58f),.791f,.938f,.12f,.90f);
         Debug.Log("CHAMPIONS_A1_PLAQUE_ATLAS_OWNER_ORIGINAL front=BRAXHORN_ARENA"+
             " side=B frontPanels=1 sidePanels=1 ownerPixelsUnchanged=true"+
             " narrowedGoldRectangle=true source="+sourceWidth+"x"+sourceHeight);
@@ -319,7 +319,7 @@ public static class BraxChampionsBeltShowcase
         // Visible podium stands beside it at x=-73.9: NOT the 6 m centre
         // entrance aisle, NOT the octagon, NOT the VIP chairs at z=70/72.
         var display = Group(arenaInterior, "A1 PREMIUM museum showcase | JUDGES | one 3D belt");
-        display.localPosition = new Vector3(-73.9f, 0, 63.3f);
+        display.localPosition = new Vector3(-73.9f, 0, 63.3f); // preserved approved exhibit location
         display.localRotation = Quaternion.Euler(0, 90, 0); // front faces cage/judges
         var gold = BraxChampionsFoundation.LibraryMetal("A1_belt_showcase_gold",
             new Color(.96f, .72f, .24f));
@@ -373,65 +373,70 @@ public static class BraxChampionsBeltShowcase
         EditorUtility.SetDirty(wood);
         // Narrowed owner belt showcase: no oversized white wall of glass.
         // Keep original Poly Haven wood and the single physical base collider.
+        // Full rebuild to the owner's reference: rhombus stone podium, narrow wood base,
+        // tall black-marble spine and a slim clear-glass case.
+        Podium(display, marble, gold);
         Cube(display, "Wood veneer showcase plinth", wood,
-            new Vector3(0, .30f, .05f), new Vector3(2.18f, .60f, 1.22f));
+            new Vector3(0, .56f, .05f), new Vector3(1.82f, .26f, 1.08f));
         var plinthCollider = new GameObject("Wood veneer showcase plinth collision").AddComponent<BoxCollider>();
         plinthCollider.transform.SetParent(display, false);
-        plinthCollider.center = new Vector3(0, .30f, .05f);
-        plinthCollider.size = new Vector3(2.18f, .60f, 1.22f);
+        plinthCollider.center = new Vector3(0, .56f, .05f);
+        plinthCollider.size = new Vector3(1.82f, .26f, 1.08f);
         Cube(display, "Black marble pillar behind the showcase", marble,
-            new Vector3(0, 2.45f, .72f), new Vector3(2.30f, 4.90f, .32f));
+            new Vector3(0, 2.48f, .66f), new Vector3(1.94f, 4.48f, .30f));
         Cube(display, "Black leather back panel", backing,
-            new Vector3(0, 2.0f, .510f), new Vector3(1.87f, 2.74f, .06f));
+            new Vector3(0, 2.05f, .475f), new Vector3(1.54f, 2.64f, .055f));
         Cube(display, "Wood veneer case base", wood,
-            new Vector3(0, .63f, 0), new Vector3(1.98f, .06f, 1.12f));
+            new Vector3(0, .69f, 0), new Vector3(1.72f, .055f, 1.00f));
         // Szkło z pięciu stron (front, boki, góra), bez kolizji.
         Cube(display, "Museum GLASS FRONT no invisible collider",
-            glass, new Vector3(0, 2.0f, -.593f), new Vector3(1.98f, 2.79f, .03f));
-        foreach (float x in new[] { -1.009f, 1.009f })
+            glass, new Vector3(0, 2.06f, -.535f), new Vector3(1.70f, 2.70f, .026f));
+        foreach (float x in new[] { -.865f, .865f })
             Cube(display, "Museum GLASS SIDE no invisible collider",
-                glass, new Vector3(x, 2.0f, 0), new Vector3(.03f, 2.79f, 1.16f));
+                glass, new Vector3(x, 2.06f, 0), new Vector3(.026f, 2.70f, 1.04f));
         Cube(display, "Museum GLASS TOP", glass,
-            new Vector3(0, 3.41f, 0), new Vector3(2.02f, .03f, 1.19f));
+            new Vector3(0, 3.42f, 0), new Vector3(1.73f, .026f, 1.06f));
         // Złota rama LED u góry (prostokąt) i świecący pas u dołu.
-        foreach (float z in new[] { -.50f, .45f })
+        foreach (float z in new[] { -.45f, .40f })
             Cube(display, "Gold LED top frame long", gold,
-                new Vector3(0, 3.30f, z), new Vector3(1.78f, .06f, .07f));
-        foreach (float x in new[] { -.85f, .85f })
+                new Vector3(0, 3.31f, z), new Vector3(1.54f, .055f, .065f));
+        foreach (float x in new[] { -.735f, .735f })
             Cube(display, "Gold LED top frame short", gold,
-                new Vector3(x, 3.30f, -.025f), new Vector3(.07f, .06f, 1.02f));
+                new Vector3(x, 3.31f, -.025f), new Vector3(.065f, .055f, .90f));
         // Gold corner posts WITH a centred narrow red inset stripe,
         // matching the owner's case reference. Do not tint the glass red.
         var redEnamel=BraxChampionsFoundation.LibraryMetal(
             "A1_case_gold_posts_red_inset",new Color(.70f,.035f,.045f));
-        foreach(float x in new[] { -.985f, .985f })
+        foreach(float x in new[] { -.845f, .845f })
         {
             Cube(display,"GOLD museum glass vertical post",gold,
-                new Vector3(x,2.0f,-.594f),new Vector3(.085f,2.72f,.086f));
+                new Vector3(x,2.06f,-.536f),new Vector3(.078f,2.62f,.080f));
             Cube(display,"RED narrow centred inset in GOLD post",redEnamel,
-                new Vector3(x,2.0f,-.648f),new Vector3(.026f,2.55f,.015f));
-            foreach(float y in new[] { .70f,3.36f })
+                new Vector3(x,2.06f,-.586f),new Vector3(.023f,2.47f,.014f));
+            foreach(float y in new[] { .76f,3.35f })
                 Cube(display,"Gold glass corner bracket",gold,
-                    new Vector3(x,y,-.59f),new Vector3(.12f,.12f,.12f));
+                    new Vector3(x,y,-.535f),new Vector3(.105f,.105f,.105f));
         }
         // Restrained bronze finishing trim stays beside, not ON, the glass.
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
             Cube(display,"Bronze vertical slat " + (i + 1),bronze,
-                new Vector3(1.19f+i*.095f,2.45f,.82f),
-                new Vector3(.044f,4.90f,.095f));
+                new Vector3(1.03f+i*.082f,2.48f,.75f),
+                new Vector3(.040f,4.48f,.082f));
         // Pas i tabliczka z grafiką właściciela na ciemnym skórzanym tle.
         OriginalRectangleArtwork(display, gold, bronze);
         OriginalBelt(display);
         // Four warm diffuser strips under the existing gold rectangle, as in
         // the reference. They are emission geometry, not extra real-time lights.
-        foreach (float z in new[] { -.50f, .45f })
+        foreach (float z in new[] { -.45f, .40f })
             Cube(display, "Warm LED rectangle long diffuser", warm,
-                new Vector3(0, 3.262f, z), new Vector3(1.70f, .012f, .045f));
-        foreach (float x in new[] { -.85f, .85f })
+                new Vector3(0, 3.274f, z), new Vector3(1.46f, .011f, .040f));
+        foreach (float x in new[] { -.735f, .735f })
             Cube(display, "Warm LED rectangle short diffuser", warm,
-                new Vector3(x, 3.262f, -.025f), new Vector3(.045f, .012f, .94f));
+                new Vector3(x, 3.274f, -.025f), new Vector3(.040f, .011f, .82f));
         Cube(display,"Visible gold LED base diffuser",warm,
-            new Vector3(0,.67f,-.27f),new Vector3(1.58f,.043f,.085f));
+            new Vector3(0,.73f,-.24f),new Vector3(1.36f,.040f,.075f));
+        Cube(display,"REFERENCE lower solid gold case rail",gold,
+            new Vector3(0,.76f,-.53f),new Vector3(1.50f,.055f,.065f));
         var lamp = new GameObject("Museum case warm mobile vertex light").AddComponent<Light>();
         lamp.transform.SetParent(display, false);
         lamp.transform.localPosition = new Vector3(0, 3.16f, -.12f);
