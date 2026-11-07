@@ -108,7 +108,7 @@ public static class BraxChampionsCarBuilder
         root.transform.SetParent(parent, false);
         // Real marked western car-park bay; x local -37.55, z local -89.
         // Centre entrance aisle x=-8..8 remains fully clear. Not on a road.
-        root.transform.position = new Vector3(562.45f, .16f, 711f) * K;
+        root.transform.position = new Vector3(562.45f, .239f, 711f) * K;
         root.transform.rotation = Quaternion.identity;
         var copy = UnityEngine.Object.Instantiate(source, root.transform, false);
         copy.name = "ORIGINAL car_rev GLB from estate, unchanged mesh + PBR";
@@ -126,7 +126,9 @@ public static class BraxChampionsCarBuilder
         // Parking asphalt top is at ~.239*K, whereas the preserved source
         // car anchor is .16*K. Set real wheel contact to the road surface.
         copy.transform.localPosition -= new Vector3(bounds.center.x,
-            bounds.min.y-.08f*K, bounds.center.z);
+            bounds.min.y, bounds.center.z);
+        // The car root sits at the actual parking surface. Keep the mesh feet
+        // at local y=0 rather than floating above the asphalt.
         Physics.SyncTransforms();
         bounds = BoundsLocal(root.transform);
 
@@ -135,7 +137,10 @@ public static class BraxChampionsCarBuilder
             UnityEngine.Object.DestroyImmediate(collider);
         var box = root.AddComponent<BoxCollider>();
         box.center = bounds.center;
-        box.size = bounds.size;
+        // Leave wheel/road clearance; do not collide the chassis with asphalt.
+        box.center += Vector3.up * .12f * K;
+        box.size = new Vector3(bounds.size.x * .94f,
+            Mathf.Max(.10f*K, bounds.size.y-.24f*K), bounds.size.z*.94f);
         var rb = root.AddComponent<Rigidbody>();
         rb.isKinematic = true; rb.useGravity = false;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
@@ -151,7 +156,10 @@ public static class BraxChampionsCarBuilder
         var enter = new GameObject("Actual left driver-door approach").transform;
         enter.SetParent(root.transform, false);
         enter.localPosition = new Vector3(
-            bounds.min.x - .78f * K, .10f * K, seat.localPosition.z - .15f * K);
+            bounds.min.x - 1.15f * K, .10f * K, seat.localPosition.z - .15f * K);
+        // Source car is 4.95 nominal metres long. Validate scale in city units.
+        if (Mathf.Abs(bounds.size.z - LengthMetres*K) > .05f*K)
+            throw new InvalidOperationException("A1 car is not at its approved 4.95m scale");
 
         // Try the REAL separate door assembly. If the source has no reliable
         // split, do not invent a duplicate door or move a body mesh incorrectly.
