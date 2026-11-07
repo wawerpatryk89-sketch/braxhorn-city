@@ -63,6 +63,13 @@ class R1StreetSafety(unittest.TestCase):
         self.assertIn("BRAXHORN_GLOWNA_PLOT DO POPRAWKI",B)
         self.assertIn("kolizji=",B)
 
+    def test_original_city_mesh_names_are_verified_from_source_manifest(self):
+        self.assertIn('Assets/Source/City/city-manifest.json', B)
+        self.assertIn('JsonUtility.FromJson<BraxCityBuild.Manifest>', B)
+        self.assertIn('ObcaPrzeszkoda(originalName)', B)
+        self.assertIn('sourceLabels[mesh.name]=mesh.originalName', LAMPS)
+        self.assertIn('IsCandidate(tr,originalName,out bool street', LAMPS)
+
     def test_lamp_arm_is_aimed_toward_actual_road(self):
         self.assertIn("NaJezdni(probeA)",B)
         self.assertIn("NaJezdni(probeB)",B)
