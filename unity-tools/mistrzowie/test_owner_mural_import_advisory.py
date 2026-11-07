@@ -28,7 +28,8 @@ class MuralsReviewNotBuildGates(unittest.TestCase):
         self.assertIn("DoorLeft",original)
         self.assertIn("LeftFighters",side)
         self.assertIn("RightBelt",side)
-        self.assertNotIn("AddComponent<MeshCollider>",side)\n        self.assertNotIn("AddComponent<BoxCollider>",side)
+        self.assertNotIn("AddComponent<MeshCollider>",side)
+        self.assertNotIn("AddComponent<BoxCollider>",side)
 
 
     def test_original_belt_case_plaque_survives_android_import_resize(self):
