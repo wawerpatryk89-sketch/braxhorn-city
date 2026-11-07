@@ -10,16 +10,22 @@ ROOT=Path(__file__).resolve().parents[2]
 
 class MuralsReviewNotBuildGates(unittest.TestCase):
     def test_original_source_dimensions_not_imported_android_size(self):
-        for name in ("BraxChampionsArenaMural.cs","BraxChampionsArenaSideMurals.cs"):
-            src=(ROOT/"unity-city/Assets/Editor/Mistrzowie"/name).read_text()
+        original=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaMural.cs").read_text()
+        side=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaSideMurals.cs").read_text()
+        importer=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaMuralTextureImport.cs").read_text()
+        for src in (original,side):
             self.assertIn("GetSourceTextureWidthAndHeight",src)
             self.assertIn("BraxBuildQuality.Warn(",src)
-            self.assertIn("1536",src)
-            self.assertIn("512",src)
-        original=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaMural.cs").read_text()
+        self.assertIn("const int SourceWidth=1536",original)
+        self.assertIn("const int SourceHeight=512",original)
+        self.assertIn("6144x2048",side)
+        self.assertIn("sourceWidth != sourceHeight * 3",side)
+        self.assertIn("BRAXHORN_A1_FIGHTERS_LEFT_ORIGINAL.jpg",side)
+        self.assertIn("BRAXHORN_A1_BELT_RIGHT_ORIGINAL.jpg",side)
+        self.assertIn("settings.maxTextureSize=2048",importer)
+        self.assertIn("hd.maxTextureSize=8192",importer)
         self.assertIn("AddSegment(walls,m",original)
         self.assertIn("DoorLeft",original)
-        side=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaSideMurals.cs").read_text()
         self.assertIn("LeftFighters",side)
         self.assertIn("RightBelt",side)
         self.assertIn("no collider",side)

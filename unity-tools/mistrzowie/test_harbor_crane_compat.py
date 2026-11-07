@@ -29,7 +29,7 @@ class CraneImportSafetyTests(unittest.TestCase):
             self.assertFalse(result["sourceImportCompatible"])
             self.assertFalse(result["unityImporterTested"])
             self.assertFalse(result["appliedToRunnerWorkspace"])
-            self.assertIn("TEXCOORD_2+",result["reason"])
+            self.assertIn("change appearance",result["reason"])\n            self.assertIn("UV",result["reason"])
             self.assertEqual(source.read_bytes(),original)
             self.assertFalse(backup.exists())
             saved=json.loads(report_path.read_text())
