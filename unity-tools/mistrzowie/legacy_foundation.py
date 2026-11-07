@@ -19,8 +19,16 @@ plots=[(b['x']-b['w']/2,b['z']-b['d']/2,b['w'],b['d']) for b in buildings]
 plots += [(135,-108,70,18),(285,-108,70,18),(565,-108,70,18),(890,-108,70,18)]
 # T11 casino underground garage: a true hole in the existing terrain's
 # plot_base collider, not a visual ramp hidden beneath an unbroken ground mesh.
-# Nominal local x=40.5..48.5, z=-22..24 for the (495,465) approved plot.
-T11_GARAGE_RAMP=(535.5,443.0,8.0,46.0)
+# 7 Nov: widen the actual SUBTERRANEAN ramp cut to local X39.15..49.30.
+# It must match the full roadway + protective walls, not only the old 8m hole.
+# Casino plot centre=(495,465), so the precise world cut is:
+# x=534.15..544.30, z=443..489. The east fire lane starts at local x49.5.
+T11_GARAGE_RAMP=(534.15,443.0,10.15,46.0)
+# Left STREET approach: remove only the 7m sidewalk strip at the old
+# X400 city road edge. The casino generator bridges this exact opening with
+# a single graded drivable mesh (city road y=.16 -> casino apron y=.2485).
+# Preserve the city road itself and all sidewalk outside z=417..428.
+T11_STREET_ENTRANCE=(410.0,417.0,7.0,11.0)
 # P1 genuine physical pool excavations (water is separately rendered, never a solid floor).
 P1_LAYOUT=json.loads((ROOT/'unity-city/Assets/Source/Mistrzowie/PoolP1/plot.json').read_text())
 assert P1_LAYOUT['lot']['id']=='P1' and P1_LAYOUT['lot']['x']==520 and P1_LAYOUT['lot']['z']==180
@@ -46,6 +54,7 @@ def inside(p,r):
 
 def zone(x,z):
  if inside((x,z),T11_GARAGE_RAMP):return None
+ if inside((x,z),T11_STREET_ENTRANCE):return None
  if any(inside((x,z),r) for r in POOL_HOLES):return None
  if any(inside((x,z),r) for r in ENTRANCE_HOLES):return None
  if any(inside((x,z),r) for r in ENTRANCE_PATHS+BUILDING_ACCESS):return 'paving'
@@ -102,7 +111,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP]+POOL_HOLES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
+rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE]+POOL_HOLES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
 for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
