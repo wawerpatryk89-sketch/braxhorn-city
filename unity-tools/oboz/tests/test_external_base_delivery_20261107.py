@@ -1,39 +1,33 @@
-"""7 Nov: lightweight APK + external Obóz content package; static, no Unity."""
+"""7 Nov rollback: owner requires one normal Obóz APK, no mandatory external base package."""
 from pathlib import Path
 import unittest
+
 ROOT=Path(__file__).resolve().parents[3]
 ASSETS=ROOT/"unity-city/Assets"
-BUILD=(ASSETS/"Editor/Updates/BraxContentBuild.cs").read_text("utf-8")
-RUNTIME=(ASSETS/"Updates/BraxContent.cs").read_text("utf-8")
-MANIFEST=(ASSETS/"Updates/BraxContentManifest.cs").read_text("utf-8")
 START=(ASSETS/"Claude/BraxStart.cs").read_text("utf-8")
-OBOZ=(ASSETS/"Editor/Oboz/BraxObozBuild.cs").read_text("utf-8")
+RUNTIME=(ASSETS/"Updates/BraxContent.cs").read_text("utf-8")
+BUILD=(ASSETS/"Editor/Oboz/BraxObozBuild.cs").read_text("utf-8")
 WORKFLOW=(ROOT/".github/workflows/oboz-unity-build.yml").read_text("utf-8")
-class ExternalBaseDelivery(unittest.TestCase):
-    def test_player_omits_full_camp_scene_when_external_base_exists(self):
-        self.assertIn("return new[] { StartScene };",OBOZ)
-        self.assertIn("scenes = playerScenes",OBOZ)
-        self.assertIn("contentUpdatesReady = !sceneOnly && playerScenes.Length == 1",OBOZ)
-    def test_baseline_bundles_are_not_copied_back_into_apk(self):
-        self.assertIn('!f.name.EndsWith(".bundle"',BUILD)
-        self.assertIn("PackageBase(m, BasePackagePath(zone))",BUILD)
-        self.assertIn("ExtractBase(zip, check, basis)",BUILD)
-        self.assertIn("public bool externalBase;",MANIFEST)
-    def test_runtime_requires_verified_base_before_loading_scene(self):
-        self.assertIn("RequiresBaseInstall",RUNTIME)
-        self.assertIn("ChooseBasePackage",RUNTIME)
-        self.assertIn("ExtractBase(path, staging, basis)",RUNTIME)
-        self.assertIn("Wybierz paczkę danych obozu",START)
-    def test_workflow_uses_java_source_once_and_external_base_before_apk(self):
+
+class SingleApkDelivery(unittest.TestCase):
+    def test_start_has_no_required_external_base_picker(self):
+        self.assertNotIn("RequiresBaseInstall",START)
+        self.assertNotIn("ChooseBasePackage",START)
+        self.assertNotIn(".braxbase.zip",START)
+        self.assertNotIn("RequiresBaseInstall",RUNTIME)
+
+    def test_full_camp_scenes_are_in_normal_player(self):
+        self.assertIn("static readonly string[] Scenes = { StartScene, BraxObozActors.ScenePath };",BUILD)
+        self.assertIn("scenes = Scenes",BUILD)
+        self.assertIn("BRAXHORN_REUSE_PREPARED_SCENE",BUILD)
+
+    def test_normal_apk_lane_has_no_external_base_and_no_long_scene_only(self):
         android=WORKFLOW.split("  android-oboz:",1)[1].split("  oboz-scene-only:",1)[0]
-        self.assertIn("Assets/Updates/Android/BraxContentPicker.java",android)
-        self.assertIn("rm -f unity-city/Assets/Plugins/Android/BraxContentPicker.jar",android)
-        self.assertNotIn("/project/unity-tools/oboz/build_content_picker.sh",android)
-        self.assertNotIn("BraxObozBuild.PrepareAndroidReviewScene",android)
-        self.assertNotIn("OBOZ_SCENE_ONLY_READY",android)
-        self.assertLess(android.index("BraxObozContentBase.ExportPreparedExternalInCI"),android.index("BraxObozBuild.BuildAndroidReview"))
-        self.assertIn("heavy bundle leaked back into APK",android)
-        self.assertIn("oboz-base.braxbase.zip",android)
-        self.assertIn("generujemy RAZ", (ASSETS/"Editor/Oboz/BraxObozContentBase.cs").read_text("utf-8"))
+        self.assertNotIn("ExportPreparedExternalInCI",android)
+        self.assertNotIn("oboz-base.braxbase.zip",android)
+        self.assertNotIn("--content-base",android)
+        self.assertNotIn("PrepareAndroidReviewScene",android)
+        self.assertIn('BRAXHORN_REUSE_PREPARED_SCENE: "1"',android)
+
 if __name__=="__main__":
     unittest.main()
