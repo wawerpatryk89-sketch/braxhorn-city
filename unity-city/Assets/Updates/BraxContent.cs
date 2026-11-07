@@ -20,15 +20,12 @@ public sealed class BraxContent : MonoBehaviour
     static BraxContent instance;
     static BraxContentManifest basis, active;
     static IResourceLocator locator;
-    static string root, current, baseDirectory;
-    static bool initialized, initializing, failed, baseInstalled;
-    static int importMode;
+    static string root, current;
+    static bool initialized, initializing, failed;
     static readonly Dictionary<string, AsyncOperationHandle<SceneInstance>> handles = new Dictionary<string, AsyncOperationHandle<SceneInstance>>();
     public static string Message { get; private set; }
     public static bool Importing { get; private set; }
-    public static bool Picking { get; private set; }
     public static bool Enabled => basis != null;
-    public static bool RequiresBaseInstall { get { Ensure(); return basis != null && basis.externalBase && !baseInstalled; } }
     public static string FirstScene => active != null ? active.firstScene : (SceneManager.sceneCountInBuildSettings > 1 ? Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(1)) : "");
 
     static void Ensure()
@@ -44,40 +41,12 @@ public sealed class BraxContent : MonoBehaviour
         BraxContentPackage.Validate(basis); active = basis;
         Directory.CreateDirectory(root);
         Directory.CreateDirectory(Path.Combine(root, "inbox"));
-        baseDirectory = Path.Combine(root, "base");
-        baseInstalled = !basis.externalBase || BaseReady();
-    }
-
-    static bool BaseReady()
-    {
-        if (!basis.externalBase) return true;
-        try
-        {
-            string manifestPath = Path.Combine(baseDirectory, "manifest.json");
-            if (!File.Exists(manifestPath)) return false;
-            var installed = JsonUtility.FromJson<BraxContentManifest>(File.ReadAllText(manifestPath));
-            BraxContentPackage.Compatible(basis, installed);
-            if (installed.version != "base") return false;
-            foreach (var f in basis.files)
-            {
-                string path = Path.Combine(baseDirectory, f.name);
-                if (!File.Exists(path) || new FileInfo(path).Length != f.bytes) return false;
-            }
-            return true;
-        }
-        catch { return false; }
     }
 
     public static IEnumerator Initialize()
     {
         Ensure();
-        if (!Enabled) yield break;
-        if (basis.externalBase && !baseInstalled)
-        {
-            Message = "Wybierz paczkę danych obozu (.braxbase.zip).";
-            yield break;
-        }
-        if (initialized) yield break;
+        if (initialized || !Enabled) yield break;
         if (initializing) { while (initializing) yield return null; yield break; }
         initializing = true;
         try
@@ -192,19 +161,10 @@ public sealed class BraxContent : MonoBehaviour
             if (File.Exists(installed)) return new Uri(installed).AbsoluteUri;
         }
         if (!basis.files.Any(f => f.name == name)) throw new FileNotFoundException("Zasób spoza bazy i aktualizacji", name);
-        if (basis.externalBase)
-        {
-            string installedBase = Path.Combine(baseDirectory, name);
-            if (File.Exists(installedBase)) return new Uri(installedBase).AbsoluteUri;
-            if (name.EndsWith(".bundle", StringComparison.Ordinal))
-                throw new FileNotFoundException("Brak zewnętrznej paczki bazowej", name);
-        }
         return Application.streamingAssetsPath + "/BraxContent/" + name;
     }
 
-    public static bool Available(string name) => Enabled
-        ? !failed && (!basis.externalBase || baseInstalled) && active.scenes.Contains(name)
-        : Application.CanStreamedLevelBeLoaded(name);
+    public static bool Available(string name) => Enabled ? !failed && active.scenes.Contains(name) : Application.CanStreamedLevelBeLoaded(name);
 
     public sealed class SceneLoad
     {
@@ -274,85 +234,29 @@ public sealed class BraxContent : MonoBehaviour
         }
     }
 
-    static void OpenPicker(int mode, string desktopName)
+    public static void ChooseUpdate()
     {
-        if (!Enabled || Importing || Picking) return;
-        importMode = mode; Picking = true;
+        Ensure(); if (!Enabled || Importing) return;
 #if UNITY_ANDROID && !UNITY_EDITOR
         using (var picker = new AndroidJavaClass("com.braxhorn.content.BraxContentPicker"))
             picker.CallStatic("open", instance.gameObject.name, Path.Combine(root, "inbox"));
 #else
-        string path = Path.Combine(root, "inbox", desktopName);
+        Message = "Umieść plik update.zip w " + Path.Combine(root, "inbox") + ", a następnie wybierz aktualizację ponownie.";
+        string path = Path.Combine(root, "inbox", "update.zip");
         if (File.Exists(path)) instance.OnUpdatePicked(path);
-        else { Picking = false; Message = "Umieść " + desktopName + " w " + Path.Combine(root, "inbox") + "."; }
 #endif
     }
-
-    public static void ChooseBasePackage()
-    {
-        Ensure();
-        if (!Enabled || !basis.externalBase || baseInstalled || Importing) return;
-        OpenPicker(1, "base.braxbase.zip");
-    }
-
-    public static void ChooseUpdate()
-    {
-        Ensure();
-        if (!Enabled || Importing) return;
-        if (RequiresBaseInstall) { Message = "Najpierw wczytaj bazową paczkę danych obozu."; return; }
-        OpenPicker(2, "update.zip");
-    }
-
     public void OnUpdatePicked(string value)
     {
         if (Importing || !Enabled) return;
-        int mode = importMode; importMode = 0; Picking = false;
         if (value.StartsWith("ERROR:", StringComparison.Ordinal)) { Message = value.Substring(6); return; }
         if (string.IsNullOrEmpty(value)) return;
         string full = Path.GetFullPath(value), inbox = Path.GetFullPath(Path.Combine(root, "inbox")) + Path.DirectorySeparatorChar;
-        if (!full.StartsWith(inbox, StringComparison.Ordinal)) { Message = "Nieprawidłowy plik zawartości."; return; }
-        if (mode == 1) StartCoroutine(ImportBase(full));
-        else if (mode == 2) StartCoroutine(Import(full));
-        else Message = "Nieoczekiwany tryb importu.";
+        if (!full.StartsWith(inbox, StringComparison.Ordinal)) { Message = "Nieprawidłowy plik aktualizacji."; return; }
+        StartCoroutine(Import(full));
     }
-
-    IEnumerator ImportBase(string path)
+    IEnumerator Import(string path)
     {
-        Importing = true; Message = "Sprawdzanie bazowej paczki obozu…";
-        var work = Task.Run(() =>
-        {
-            var m = BraxContentPackage.ReadZipManifest(path);
-            BraxContentPackage.Compatible(basis, m);
-            if (!m.externalBase || m.version != "base") throw new InvalidDataException("To nie jest bazowa paczka obozu.");
-            string staging = Path.Combine(root, "staging-base-" + Guid.NewGuid().ToString("N"));
-            BraxContentPackage.ExtractBase(path, staging, basis);
-            string previous = baseDirectory + "-previous";
-            if (Directory.Exists(previous)) Directory.Delete(previous, true);
-            if (Directory.Exists(baseDirectory)) Directory.Move(baseDirectory, previous);
-            try { Directory.Move(staging, baseDirectory); }
-            catch
-            {
-                if (Directory.Exists(baseDirectory)) Directory.Delete(baseDirectory, true);
-                if (Directory.Exists(previous)) Directory.Move(previous, baseDirectory);
-                throw;
-            }
-            if (Directory.Exists(previous)) Directory.Delete(previous, true);
-        });
-        while (!work.IsCompleted) yield return null;
-        try
-        {
-            if (work.IsFaulted) Message = "Paczka obozu odrzucona: " + work.Exception.GetBaseException().Message;
-            else
-            {
-                baseInstalled = true; initialized = false; failed = false;
-                Message = "Paczka danych obozu gotowa.";
-            }
-            File.Delete(path);
-        }
-        finally { Importing = false; }
-    }
-
-    IEnumerator Import(string path)    {
         Importing = true; Message = "Sprawdzanie aktualizacji…";
         var work = Task.Run(() =>
         {
