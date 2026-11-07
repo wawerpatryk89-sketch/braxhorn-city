@@ -355,6 +355,11 @@ public static class BraxGymBuild
         // umieszczenie, kolizje, MIGOTANIE (rozsunięcie płaskich warstw), listy pomieszczeń, robot kolizji. Przed BezSwiecenia/Siatki (siatki do odczytu).
         // 3.11 (właściciel 13:39–13:46): SUPERMARKET BRAXHORN — jeden moduł, 2 kopie w mieście (druga lustrzana), przed kontrolami jakości
         if(fullCity&&!osiedle)try{BraxSupermarket.Wykonaj(scene,2);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_SUPERMARKET: "+e);}
+        // Po wszystkich generatorach, przed zapisem scen i audytem jakości:
+        // jedna kontrola miejskich latarni, słupów i płotu x=-104.5.
+        // Wyspa, port i osiedle pozostają poza zakresem.
+        if(fullCity&&!osiedle)try{BraxR1StreetLightingAudit.Run(scene);}
+        catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_R1_PLOT_LATARNIE "+e);}
         if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrole jakości (miasto): "+e);}
         // Głęboki audyt obiektów i przejść na REALNEJ scenie przed jej podziałem
         // na sektory; raport ostrzega, nie przerywa kosztownego generowania.
