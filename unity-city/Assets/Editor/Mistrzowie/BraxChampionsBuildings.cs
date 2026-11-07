@@ -138,7 +138,9 @@ public static class BraxChampionsBuildings
         // The shader preserves alpha only with _Transparent=1 and SrcAlpha blending.
         // The old facade_glass was OPAQUE: its dark RGB looked like black plastic from outside.
         // Use transparent dielectrics (metallic 0) with modest tint: no fake black mirror panels.
-        var glass=Surface("facade_glass",new Color(.69f,.81f,.88f,.34f),.075f,0f);
+        // Wariant A1 nr 3: lekkie grafitowe przyciemnienie szkła,
+        // zachowana przezierność i widoczność lóż VIP za fasadą.
+        var glass=Surface("facade_glass",new Color(.49f,.56f,.63f,.36f),.075f,0f);
         ConfigureGlass(glass);
         var clear=Surface("clear_glass",new Color(.78f,.88f,.93f,.19f),.065f,0f);
         ConfigureGlass(clear);
