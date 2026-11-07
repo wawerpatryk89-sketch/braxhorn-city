@@ -57,8 +57,8 @@ class PremiumReferenceRegressions(unittest.TestCase):
         for marker in (
             '"REFERENCE black marble wall column"',
             '"REFERENCE black leather back panel"',
-            '"REFERENCE optical clear glass FRONT"',
-            '"REFERENCE small gold glass bracket"',
+            '"REFERENCE optically clear FRONT glass"',
+            '"REFERENCE small GOLD glass bracket"',
             '"REFERENCE bronze vertical slat "',
             '"REFERENCE warm vertical side LED"',
         ):
@@ -68,6 +68,15 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertNotIn('Wood veneer case base', text)
         self.assertNotIn('RED narrow centred inset', text)
         self.assertIn('rhombus=false woodPlinth=false', text)
+        # Real transparency uses ONE quad per wall, not the former
+        # six-sided semi-opaque primitives seen as milky glass on Android.
+        self.assertIn('CrystalGlassPanel(display,"REFERENCE optically clear FRONT glass"', text)
+        self.assertIn('glass.SetFloat("_ZWrite",0f);', text)
+        self.assertIn('glass.SetFloat("_Transparent",1f);', text)
+        self.assertIn('new Color(.99f,.995f,1f,.014f)', text)
+        self.assertIn('reference', text.lower())
+        self.assertIn('24 rigid', text)
+        self.assertIn('A1_BELT_OWNER_3D_FRONT_PRESENTATION', text)
 
     def test_case_plaque_faces_front_and_clears_glass(self):
         text = source('BraxChampionsBeltShowcase.cs')
