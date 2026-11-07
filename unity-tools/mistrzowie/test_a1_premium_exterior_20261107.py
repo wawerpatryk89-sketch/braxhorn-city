@@ -52,6 +52,9 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertGreaterEqual(.72, .70)
         self.assertIn("REFERENCE_continuous_warm_roof_crown_LED", self.arrival)
         self.assertIn("REFERENCE_three_warm_upper_glass_bands", self.arrival)
+        self.assertIn("REFERENCE_upper_interior_elliptical_halo", self.arrival)
+        self.assertIn("REFERENCE red neon vertical sign frame", self.arrival)
+        self.assertIn("PUBLIC reference canopy underside LED strip", self.arrival)
 
     def test_real_pbr_and_transparent_canopy_no_door_colliders(self):
         for key in ('original_PolyHaven_granite_plinth', 'PBR_curtain_wall_aluminium',
@@ -87,6 +90,8 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("ReferenceEntranceLandscaping(root, exterior);", self.arrival)
         self.assertIn("A1 reference entrance | black-stone planter", self.arrival)
         self.assertIn("A1 reference entrance | gold planter cap", self.arrival)
+        self.assertIn("A1 reference entrance | black bollard", self.arrival)
+        self.assertIn("A1 reference entrance | warm bollard head", self.arrival)
 
     def test_perimeter_bays_skip_both_entries(self):
         skipped = 0
