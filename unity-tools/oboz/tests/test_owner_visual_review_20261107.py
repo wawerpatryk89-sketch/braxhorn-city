@@ -17,7 +17,13 @@ class OwnerVisualReview20261107(unittest.TestCase):
         self.assertIn("alphaScale=Mathf.Lerp(.42f,.86f,insideCoverage)",C)
         self.assertIn("importer.maxTextureSize = 4096",C)
         self.assertIn("importer.streamingMipmaps = true",C)
-        self.assertNotIn("Face(new Vector3(x0,y0,faceZ)",C)
+        # Sidewall boundary faces legitimately start at faceZ. Reject only the old
+        # full front quad that pixelated the whole sign face.
+        self.assertNotIn(
+            "Face(new Vector3(x0,y0,faceZ),new Vector3(x0,y1,faceZ),\\n"
+            "                 new Vector3(x1,y1,faceZ),new Vector3(x1,y0,faceZ));",
+            C
+        )
 
     def test_all_four_cabins_receive_owner_murals(self):
         for key in (
