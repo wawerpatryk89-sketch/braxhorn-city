@@ -3,13 +3,35 @@
 Safeguards for preserving original T11 art and delivering the signed APK
 before OPTIONAL content-baseline/cache publication.
 """
+import os
+import subprocess
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
 def read(path):
-    return (ROOT / path).read_text(encoding="utf-8")
+    """Read the worktree first, or the same local HEAD when sparse checkout omits it."""
+    relative = Path(path)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise ValueError("Regression source must be relative to the repository")
+    try:
+        return (ROOT / relative).read_text(encoding="utf-8")
+    except FileNotFoundError as missing:
+        # The APK's sparse checkout omits the cheap-audit workflow, although
+        # that tracked file exists in the selected commit. Keep the assertion,
+        # read that exact local Git object, and never fetch another branch.
+        env = dict(os.environ, GIT_NO_LAZY_FETCH="1", GIT_TERMINAL_PROMPT="0")
+        result = subprocess.run(
+            ["git", "-c", "protocol.allow=never", "show", "HEAD:" + relative.as_posix()],
+            cwd=ROOT, capture_output=True, text=True, encoding="utf-8",
+            timeout=5, check=False, env=env,
+        )
+        if result.returncode:
+            raise FileNotFoundError(
+                "Regression source missing from both worktree and local HEAD: " + path
+            ) from missing
+        return result.stdout
 
 
 class Build18Regression(unittest.TestCase):
