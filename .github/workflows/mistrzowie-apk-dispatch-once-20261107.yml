@@ -1,0 +1,33 @@
+name: Miasto Mistrzów — dispatch APK exact tested SHA
+
+on:
+  push:
+    branches: [run/mistrzowie-apk-dispatch-20261107]
+    paths: [.github/workflows/mistrzowie-apk-dispatch-once-20261107.yml]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Verify target branch still equals tested SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: gpt/miasto-mistrzow-kasyno-t11-20261105
+          TESTED_SHA: 7ede87344b5219141b490d59b795da54d06ffc41
+        run: |
+          set -euo pipefail
+          current="$(gh api "repos/$GITHUB_REPOSITORY/branches/$TARGET_BRANCH" --jq '.commit.sha')"
+          echo "TARGET_SHA=$current"
+          test "$current" = "$TESTED_SHA"
+
+      - name: Dispatch exactly one Miasto Mistrzów APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run mistrzowie-apk.yml             --repo "$GITHUB_REPOSITORY"             --ref gpt/miasto-mistrzow-kasyno-t11-20261105             -f commit=7ede87344b5219141b490d59b795da54d06ffc41             -f etap=apk             -f kontrola_tras=false             -f zdjecia=false             -f recovery_run=             -f base_id=             -f arena_assets_tag=champions-a1-20261105             -f p1_assets_tag=p1-basen-spa-20261106             -f zapisz_audyt=false
+          echo "MISTRZOWIE_APK_DISPATCHED=1"
