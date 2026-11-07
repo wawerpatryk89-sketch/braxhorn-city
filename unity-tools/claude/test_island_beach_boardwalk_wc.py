@@ -36,7 +36,7 @@ class IslandBeachWcPremium(unittest.TestCase):
         self.assertIn("internal static partial class BraxMiastoWyspa", SOURCE)
 
     def test_deck_shared_edges_no_separate_rotated_plank_overlaps(self):
-        self.assertIn("static void DeptakSpojny(", SOURCE)
+        self.assertIn("static List<Vector3> DeptakSpojny(", SOURCE)
         self.assertIn("Q(z[deski], A, B, C, Dd, Vector3.up)", SOURCE)
         self.assertNotIn("if (len < .1f || len > 6f) continue", SOURCE)
         self.assertNotIn("for (float s = 0; s < len - .05f;", SOURCE)
