@@ -44,12 +44,11 @@ class CasinoOwnerApproval0711(unittest.TestCase):
         self.assertNotIn('BRAXHORN CITY CASINO',CASINO)
 
     def test_wide_continuous_left_entrance_and_three_front_bays(self):
-        self.assertIn('T11 WIDE LEFT vehicle approach from X400 road',CASINO)
-        self.assertIn('-65.25f,.224f,-42.5f,25.5f,.054f,11f',CASINO)
-        # City road east sidewalk ends at world X=417.
-        self.assertAlmostEqual(495-65.25-25.5/2,417)
-        # Casino drive begins at local -52.5 => global X442.5.
-        self.assertAlmostEqual(495-65.25+25.5/2,442.5)
+        self.assertIn('GradedDrive(shell,"left_street_road_connection",asphalt,',CASINO)
+        self.assertIn('-85f,-49.5f,-48f,-37f,0f,roadTop,true',CASINO)
+        # City road edge is world X=410; connector reaches front-road edge X=445.5.
+        self.assertAlmostEqual(495-85,410)
+        self.assertAlmostEqual(495-49.5,445.5)
         self.assertIn('if(side<0)',CASINO)
         self.assertIn('for(int i=0;i<=3;i++)',CASINO)
         self.assertIn('T11 3 VIP bays | common head line',CASINO)
