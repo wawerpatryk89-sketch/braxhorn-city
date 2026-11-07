@@ -38,6 +38,63 @@ public static class BraxChampionsCarBuilder
         return result;
     }
 
+    // Some original estate GLBs have Y as the model's longitudinal axis.
+    // Merely turning around world Y leaves their chassis standing on end.
+    // Evaluate right-angle axis conversions from REAL renderer bounds, without
+    // changing source meshes, wheel geometry, materials or the authored car.
+    static void PlaceWheelsDown(GameObject copy,Transform root)
+    {
+        var original=copy.transform.localRotation;
+        var candidates=new[]{
+            Quaternion.identity,
+            Quaternion.Euler(0,90,0),Quaternion.Euler(0,-90,0),
+            Quaternion.Euler(90,0,0),Quaternion.Euler(-90,0,0),
+            Quaternion.Euler(0,0,90),Quaternion.Euler(0,0,-90),
+            Quaternion.Euler(90,90,0),Quaternion.Euler(-90,90,0),
+            Quaternion.Euler(0,90,90),Quaternion.Euler(0,-90,90)
+        };
+        var wheels=copy.GetComponentsInChildren<Transform>(true)
+            .Where(t=>t&&t!=copy.transform&&
+                t.name.IndexOf("wheel",StringComparison.OrdinalIgnoreCase)>=0)
+            .ToArray();
+        float bestScore=float.PositiveInfinity;
+        Quaternion best=Quaternion.identity;
+        Vector3 bestSize=Vector3.zero;
+        foreach(var candidate in candidates)
+        {
+            copy.transform.localRotation=candidate*original;
+            Physics.SyncTransforms();
+            var b=BoundsLocal(root);
+            if(b.size.x<.02f||b.size.y<.02f||b.size.z<.02f)continue;
+            float width=b.size.x/b.size.z;
+            float height=b.size.y/b.size.z;
+            // Car proportions: 4.95m long, roughly 1.9m wide, 1.5m high.
+            // Orientation MUST have the long axis on the horizontal Z plane.
+            float score=4f*Mathf.Abs(width-.40f)+
+                3f*Mathf.Abs(height-.32f);
+            if(width>.85f)score+=8f;
+            if(height>.70f)score+=12f;
+            if(wheels.Length>=2)
+            {
+                float wheelY=wheels.Average(w=>root.InverseTransformPoint(w.position).y);
+                // The wheels belong in the lower portion, never on the roof.
+                score+=3f*Mathf.Clamp01((wheelY-b.min.y)/b.size.y);
+            }
+            if(score<bestScore)
+            {
+                bestScore=score;best=candidate;bestSize=b.size;
+            }
+        }
+        copy.transform.localRotation=best*original;
+        Physics.SyncTransforms();
+        if(bestSize.y>bestSize.z*.75f || bestSize.x>bestSize.z*.85f)
+            Debug.LogWarning("A1_OWNER_CAR_AXES_UNCERTAIN: original model does not have a stable road-car proportion; verify on device");
+        Debug.Log("A1_OWNER_CAR_ORIENTATION candidate="+best.eulerAngles+
+            " longitudinal_z="+bestSize.z.ToString("F2")+
+            " vertical_y="+bestSize.y.ToString("F2")+
+            " sourceMeshUnchanged=true");
+    }
+
     public static void Generate(Transform parent)
     {
         if (UnityEngine.Object.FindObjectsByType<BraxChampionsCar>(
@@ -58,23 +115,18 @@ public static class BraxChampionsCarBuilder
         copy.transform.localPosition = Vector3.zero;
         copy.transform.localRotation = Quaternion.identity;
         Physics.SyncTransforms();
-        Bounds bounds = BoundsLocal(root.transform);
-        // Normalize only the model coordinate system (the estate generator
-        // measures and orients the identical car in the same way).
-        if (bounds.size.x > bounds.size.z * 1.15f)
-        {
-            copy.transform.localRotation = Quaternion.Euler(0, 90f, 0);
-            Physics.SyncTransforms();
-            bounds = BoundsLocal(root.transform);
-        }
+        PlaceWheelsDown(copy,root.transform);
+        Bounds bounds=BoundsLocal(root.transform);
         if (bounds.size.z <= .01f || bounds.size.x <= .01f)
             throw new InvalidOperationException("Original car length/width is invalid");
         float uniform = LengthMetres * K / bounds.size.z;
         copy.transform.localScale *= uniform;
         Physics.SyncTransforms();
         bounds = BoundsLocal(root.transform);
-        // Bring REAL imported wheels/body down to floor. No phantom skids.
-        copy.transform.localPosition -= new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);
+        // Parking asphalt top is at ~.239*K, whereas the preserved source
+        // car anchor is .16*K. Set real wheel contact to the road surface.
+        copy.transform.localPosition -= new Vector3(bounds.center.x,
+            bounds.min.y-.08f*K, bounds.center.z);
         Physics.SyncTransforms();
         bounds = BoundsLocal(root.transform);
 
