@@ -44,12 +44,14 @@ class A1PremiumExteriorRegression(unittest.TestCase):
 
     def test_glass_bay_columns_are_wide_premium_not_thin_strips(self):
         # Nominal estate dimensions; K is applied once in the mesh builder.
-        self.assertIn("new Vector3(.30f,9.30f,.52f),rotation);", self.arrival)
-        self.assertIn("new Vector3(.30f,7.35f,.52f),rotation);", self.arrival)
-        self.assertIn("new Vector3(.048f,9.30f,.19f),rotation);", self.arrival)
-        self.assertIn("new Vector3(.048f,7.35f,.19f),rotation);", self.arrival)
-        self.assertGreaterEqual(.52, .50)
-        self.assertGreaterEqual(.30, .28)
+        self.assertIn("new Vector3(.72f,9.30f,2.10f),rotation);", self.arrival)
+        self.assertIn("new Vector3(.72f,7.35f,2.10f),rotation);", self.arrival)
+        self.assertIn("new Vector3(.032f,9.14f,.095f),rotation);", self.arrival)
+        self.assertIn("new Vector3(.032f,7.19f,.095f),rotation);", self.arrival)
+        self.assertGreaterEqual(2.10, 2.0)
+        self.assertGreaterEqual(.72, .70)
+        self.assertIn("REFERENCE_continuous_warm_roof_crown_LED", self.arrival)
+        self.assertIn("REFERENCE_three_warm_upper_glass_bands", self.arrival)
 
     def test_real_pbr_and_transparent_canopy_no_door_colliders(self):
         for key in ('original_PolyHaven_granite_plinth', 'PBR_curtain_wall_aluminium',
@@ -75,6 +77,16 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('Assets/Source/Mistrzowie/Vehicles/car_rev.glb', self.car)
         self.assertNotIn("GameObject.CreatePrimitive(PrimitiveType.Cube)", self.car)
         self.assertIn("sourceMeshUnchanged=true", self.car)
+        self.assertIn("float uniform = LengthMetres / bounds.size.z;", self.car)
+        self.assertNotIn("LengthMetres * K / bounds.size.z", self.car)
+        self.assertIn("637.55f, .16f, 711f", self.car)
+        self.assertIn("interactionRadius = 3.8f", self.car)
+
+    def test_reference_entrance_landscaping_uses_real_project_asset(self):
+        self.assertIn('PremiumShrubSource = "Assets/Source/CityRebuild/landscape/park_shrub.glb"', self.arrival)
+        self.assertIn("ReferenceEntranceLandscaping(root, exterior);", self.arrival)
+        self.assertIn("A1 reference entrance | black-stone planter", self.arrival)
+        self.assertIn("A1 reference entrance | gold planter cap", self.arrival)
 
     def test_perimeter_bays_skip_both_entries(self):
         skipped = 0
