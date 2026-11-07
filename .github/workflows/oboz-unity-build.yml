@@ -60,7 +60,7 @@ jobs:
           sparse-checkout: |
             .gitignore
             .github/workflows/
-            tools/build_oboz_service_models.py
+            tools/
             unity-tools/claude/prywatne.py
             unity-city/Assets/
             unity-city/Packages/
