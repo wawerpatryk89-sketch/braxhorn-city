@@ -76,6 +76,7 @@ public static class BraxRegion
         // Po zieleni (jej resztki na terenie rozbudowy są wycinane), przed siedziskami, horyzontem i trawnikiem miasta.
         // (Dzielnica zachodnia z WIP — ETAP 2, po dopasowaniu do ronda i alej; do tego czasu krok wyłączony.)
         Step("miasto B: rondo, aleje, ul. Wiaduktowa i Warsztatowa, pierzeje, warsztaty", () => BraxRegionMiastoB.Apply(world, root));
+        Step("R1: odbiór latarni, starszych duplikatów i ławek źródłowych przy jezdni", () => BraxRegionMiastoB.OdbiorWyposazeniaUlic(root));
         // Lampy wnętrz: CityStaticPBR liczy światła punktowe tylko ze slotów „vertex light” (ForceVertex).
         Step("siedziska: sofy, ławki, hokery, leżaki → BraxSeat", () => BraxRegionSeats.Apply(root));
         Step("horyzont: niebo bez lustra, teren za granicą, granica", () => BraxRegionHoryzont.Apply(world, root));
