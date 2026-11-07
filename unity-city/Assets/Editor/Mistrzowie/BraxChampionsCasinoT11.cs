@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -390,8 +391,25 @@ public static class BraxChampionsCasinoT11
     static void RoofDollar()
     {
         // Full GLB is imported as the ORIGINAL model (textures and mesh
-        // unchanged). Source not present: report a missing owner asset;
-        // never silently replace it with a procedural $ or a 2D board.
+        // unchanged). Pin the owner's uploaded bytes, not a merely
+        // similar-looking model downloaded from the same stock website.
+        const string ownerSha256=
+            "49e4fa9149aa69637db6231d2e98e611b3a41806b13a185daf7ad18e1a078640";
+        if(File.Exists(DollarPath))
+        {
+            using(var stream=File.OpenRead(DollarPath))
+            using(var sha=SHA256.Create())
+            {
+                string actual=BitConverter.ToString(sha.ComputeHash(stream))
+                    .Replace("-","").ToLowerInvariant();
+                if(actual!=ownerSha256)
+                {
+                    BraxBuildQuality.Warn("T11_ROOF_DOLLAR_SOURCE_CHANGED: "+DollarPath+
+                        " does not match owner's submitted GLB; do not substitute");
+                    return;
+                }
+            }
+        }
         var source=AssetDatabase.LoadAssetAtPath<GameObject>(DollarPath) ??
             AssetDatabase.LoadAllAssetsAtPath(DollarPath).OfType<GameObject>().FirstOrDefault();
         if(!source)
