@@ -2,6 +2,7 @@ name: "Miasto Mistrzów — jednorazowy start APK na wyraźne polecenie"
 run-name: "Miasto Mistrzów — ONE APK request — latest A1 T11 P1"
 
 # User explicitly requested one full Android APK following short tests.
+# Owner reconfirmed 2026-11-07: parallel OBOZ run is isolated; dispatch ONE Champions APK now.
 # This one-shot launcher is inert on later changes outside this exact file.
 on:
   push:
