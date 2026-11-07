@@ -52,16 +52,31 @@ public sealed class BraxTramT1 : MonoBehaviour
             // Na peronie południowym drzwi mają otwierać się w stronę -Z.
             if(b.center.z > modelBounds.center.z-.25f)continue;
             if(r.transform==transform)continue;
-            var side=(r.transform.position.x < modelBounds.center.x)?-1f:1f;
             doors.Add(new Door{t=r.transform,home=r.transform.localPosition,
-                delta=r.transform.parent.InverseTransformVector(Vector3.right*side*.52f),
-                colliders=r.GetComponents<Collider>()});
+                delta=Vector3.zero,colliders=r.GetComponents<Collider>()});
         }
-        if(doors.Count==0 || doors.Count>24)
+        // Każdy otwór ma własną PARĘ skrzydeł. Nie wolno przesuwać
+        // wszystkich drzwi w stronę głowicy wagonu — to właśnie wyglądało
+        // jak otwieranie w nieodpowiednią stronę.
+        doors.Sort((a,b)=>a.t.position.x.CompareTo(b.t.position.x));
+        bool valid = doors.Count >= 2 && doors.Count <= 24 && doors.Count%2==0;
+        if(valid)
+        {
+            for(int i=0;i<doors.Count;i+=2)
+            {
+                var a=doors[i]; var b=doors[i+1];
+                float distance=Mathf.Abs(a.t.position.x-b.t.position.x);
+                if(distance>.85f*1.294f+1.5f) {valid=false;break;}
+                a.delta=a.t.parent.InverseTransformVector(Vector3.left*.52f);
+                b.delta=b.t.parent.InverseTransformVector(Vector3.right*.52f);
+                doors[i]=a;doors[i+1]=b;
+            }
+        }
+        if(!valid)
         {
             doors.Clear();
-            Debug.LogWarning("BRAXHORN_TRAM_T1 DO POPRAWKI: model CAF nie ma jednoznacznych drzwi po stronie peronu. " +
-                "Nie przesuwam losowych brył: należy sprawdzić węzły modelu w Unity.");
+            Debug.LogWarning("BRAXHORN_TRAM_T1 DO POPRAWKI: model CAF nie ma rozpoznanych PAR drzwi od strony peronu. " +
+                "Nie przesuwam losowych brył: potrzebny krótki audyt siatek w Unity.");
         }
     }
 
@@ -104,6 +119,10 @@ public sealed class BraxTramT1 : MonoBehaviour
     void UpdateDoors(float target,float dt)
     {
         doorState=Mathf.MoveTowards(doorState,target,dt/.95f);
+        // Całobryłowy collider nie może blokować wejścia, gdy rzeczywiste
+        // skrzydła są otwarte. Bez rozpoznanych drzwi pozostaje włączony.
+        var hull=GetComponent<BoxCollider>();
+        if(hull) hull.enabled=doors.Count==0 || doorState<.85f;
         float sm=doorState*doorState*(3f-2f*doorState);
         foreach(var d in doors)
         {
