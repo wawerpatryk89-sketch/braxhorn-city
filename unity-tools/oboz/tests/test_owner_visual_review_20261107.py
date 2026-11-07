@@ -12,9 +12,12 @@ class OwnerVisualReview20261107(unittest.TestCase):
         self.assertIn("BRAXHORN_OBOZ_PANORAMA_ROAD_BLEND",C)
 
     def test_gate_sign_edge_is_finer_and_feathered(self):
-        self.assertIn("const int columns = 256;",C)
+        self.assertIn("const int columns = 512;",C)
         self.assertIn("outsideNeighbours",C)
         self.assertIn("alphaScale=Mathf.Lerp(.42f,.86f,insideCoverage)",C)
+        self.assertIn("importer.maxTextureSize = 4096",C)
+        self.assertIn("importer.streamingMipmaps = true",C)
+        self.assertNotIn("Face(new Vector3(x0,y0,faceZ)",C)
 
     def test_all_four_cabins_receive_owner_murals(self):
         for key in (

@@ -520,12 +520,14 @@ public static partial class BraxObozEnvironment
         var importer = AssetImporter.GetAtPath(alphaPath) as TextureImporter;
         if (!importer) throw new InvalidOperationException("Nie można zaimportować okleiny szyldu");
         bool adjust = !importer.alphaIsTransparency ||
-            importer.maxTextureSize != 2048 ||
+            importer.maxTextureSize != 4096 ||
             importer.textureType != TextureImporterType.Default ||
             importer.textureShape != TextureImporterShape.Texture2D ||
             importer.npotScale != TextureImporterNPOTScale.None ||
             importer.filterMode != FilterMode.Trilinear ||
-            !importer.mipmapEnabled;
+            importer.anisoLevel < 4 ||
+            !importer.mipmapEnabled ||
+            !importer.streamingMipmaps;
         if (adjust)
         {
             importer.textureType = TextureImporterType.Default;
@@ -534,9 +536,12 @@ public static partial class BraxObozEnvironment
             importer.alphaIsTransparency = true;
             importer.alphaSource = TextureImporterAlphaSource.FromInput;
             importer.sRGBTexture = true;
-            importer.maxTextureSize = 2048;
+            // "Do 4K": Unity nie robi upscale źródła 2K, ale nie ścina źródła 4K.
+            importer.maxTextureSize = 4096;
             importer.mipmapEnabled = true;
+            importer.streamingMipmaps = true;
             importer.filterMode = FilterMode.Trilinear;
+            importer.anisoLevel = 4;
             importer.wrapMode = TextureWrapMode.Clamp;
             importer.SaveAndReimport();
         }
@@ -566,7 +571,7 @@ public static partial class BraxObozEnvironment
         const float faceZ = -0.14f;
         const float backZ = 0.12f; // fizyczna grubość blachy = 26 cm
         float signHeight = signWidth * height / (float)width;
-        const int columns = 256;
+        const int columns = 512;
         int rows = Mathf.Max(32, Mathf.RoundToInt(columns * height / (float)width));
         var filled = new bool[columns, rows];
         int filledCount = 0, firstVisibleRow=rows;
@@ -593,13 +598,13 @@ public static partial class BraxObozEnvironment
         bool Has(int x, int y) =>
             x >= 0 && x < columns && y >= 0 && y < rows && filled[x, y];
 
-        // Dokładny 256-polowy obrys NIE może oznaczać ciężkiej siatki z pełnym
+        // Dokładny 512-polowy obrys NIE może oznaczać ciężkiej siatki z pełnym
         // frontem/tyłem dla każdego piksela. Oryginalna okleina tworzy obie twarze,
         // a metalowa bryła zawiera tylko boczne ścianki konturu. To zachowuje
         // trójwymiarową grubość i mocno ogranicza liczbę wierzchołków/rozmiar assetu.
-        var vertices = new List<Vector3>(Mathf.Max(256,filledCount/2));
-        var uv = new List<Vector2>(Mathf.Max(256,filledCount/2));
-        var triangles = new List<int>(Mathf.Max(384,filledCount));
+        var vertices = new List<Vector3>(Mathf.Max(512,filledCount/2));
+        var uv = new List<Vector2>(Mathf.Max(512,filledCount/2));
+        var triangles = new List<int>(Mathf.Max(768,filledCount));
         void Face(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
         {
             int index = vertices.Count;
