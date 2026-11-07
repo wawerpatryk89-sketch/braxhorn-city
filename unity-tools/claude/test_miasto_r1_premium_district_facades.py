@@ -99,6 +99,10 @@ class R1PremiumDistrictFacades(unittest.TestCase):
         self.assertIn("x && x!=monument", SOURCE)
         self.assertNotIn('DestroyImmediate(monument', SOURCE)
 
+    def test_new_glazing_is_not_a_static_occluder(self):
+        self.assertIn("StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic", SOURCE)
+        self.assertIn("group.GetComponentsInChildren<Renderer>(true)", SOURCE)
+
     def test_no_guess_if_original_overhang_is_not_identifiable(self):
         self.assertIn("brak osobnej siatki nowoczesnego nadwieszenia", SOURCE)
         self.assertIn("kamienica_zachowana=tak", SOURCE)
