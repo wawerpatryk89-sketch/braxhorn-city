@@ -57,32 +57,33 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertRegex(text, r'var wood = BraxChampionsPoolP1Pbr2K\.Create\([\s\S]*?"teak_veneer", 1\.5f, Color\.white\);')
         self.assertIn('"Wood veneer showcase plinth", wood,', text)
         self.assertIn('"Wood veneer case base", wood,', text)
-        self.assertIn('plinthCollider.size = new Vector3(2.90f, .60f, 1.30f);', text)
+        self.assertIn('plinthCollider.size = new Vector3(1.82f, .26f, 1.08f);', text)
+        self.assertIn('Podium(display, marble, gold);', text)
         self.assertIn('"Black marble pillar behind the showcase", marble,', text)
         self.assertIn('"Black leather back panel", backing,', text)
 
     def test_case_plaque_faces_front_and_clears_glass(self):
         text = source('BraxChampionsBeltShowcase.cs')
-        self.assertIn('sticker.transform.localRotation = Quaternion.identity;', text)
-        self.assertIn('new Vector3(0, 1.075f, -.390f)', text)
-        self.assertIn('new Vector3(0, 2.0f, -.593f)', text)
-        # Front pane spans z=-.608..-.578; plaque z=-.390 is behind it.
-        self.assertGreater(-.390, -.593 + .03/2)
-        self.assertGreater(-.390, -.319 - .135/2 - .01)
-        self.assertAlmostEqual(2.13 / .71, 3)
+        self.assertIn('Quaternion.Euler(0,180f,0)', text)
+        self.assertIn('new Vector3(0,1.075f,-.397f)', text)
+        self.assertIn('new Vector3(0, 2.06f, -.535f)', text)
+        # Front pane spans z≈-.548..-.522; plaque stays safely behind the glass.
+        self.assertGreater(-.397, -.535 + .026/2)
+        self.assertGreater(-.397, -.321 - .125/2 - .01)
+        self.assertAlmostEqual(1.22 / .61, 2.0, places=2)
 
     def test_case_rectangular_emission_does_not_add_realtime_lights(self):
         text = source('BraxChampionsBeltShowcase.cs')
-        self.assertIn('foreach (float z in new[] { -.50f, .45f })', text)
+        self.assertIn('foreach (float z in new[] { -.45f, .40f })', text)
         self.assertIn('"Warm LED rectangle long diffuser", warm,', text)
         self.assertIn('"Warm LED rectangle short diffuser", warm,', text)
-        self.assertIn('new Vector3(0, 3.262f, z)', text)
+        self.assertIn('new Vector3(0, 3.274f, z)', text)
+        self.assertIn('"REFERENCE lower solid gold case rail"', text)
         self.assertEqual(text.count('AddComponent<Light>()'), 1)
         self.assertIn('lamp.shadows = LightShadows.None;', text)
-        # Diffuser top is under gold frame bottom, not coplanar or intersecting.
-        self.assertLess(3.262 + .012/2, 3.30 - .06/2)
-        # Frame stays below the top glass inner surface.
-        self.assertLess(3.30 + .06/2, 3.41 - .03/2)
+        # Diffuser remains under the gold top frame and below the glass top.
+        self.assertLess(3.274 + .011/2, 3.31 - .055/2)
+        self.assertLess(3.31 + .055/2, 3.42 - .026/2)
 
     def test_optional_buildings_count_only_after_success(self):
         text = source('BraxChampionsBuildings.cs')
