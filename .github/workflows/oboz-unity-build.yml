@@ -41,7 +41,7 @@ permissions:
 
 concurrency:
   group: oboz-android-review
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   android-oboz:
