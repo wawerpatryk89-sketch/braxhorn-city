@@ -283,8 +283,17 @@ internal static partial class BraxMiastoWyspa
         var prof = new List<Vector2>();
         var groundRequired = new List<float>();
         float Lbridge = Mathf.Max(1f, xa - x1);
-        for (float x = x1; x <= xa + .01f; x += 1f)
+        // Always include the actual platform edge. The old 1 m float loop
+        // could stop up to 0.99 m before xa, leaving a visible/physical gap.
+        int sections = Mathf.CeilToInt(Mathf.Max(0f, xa - x1));
+        if (sections < 1)
         {
+            Debug.LogWarning("BRAXHORN_WYSPA_DEPTAK brak dodatniej długości dojścia do placu");
+            return x0;
+        }
+        for (int step = 0; step <= sections; step++)
+        {
+            float x = step == sections ? xa : x1 + step;
             float ground = W;
             for (float dz = -hw; dz <= hw + .01f; dz += .4f)
                 ground = Mathf.Max(ground, Y(x, pz + dz));
@@ -325,10 +334,17 @@ internal static partial class BraxMiastoWyspa
         for (int i = 0; i < prof.Count - 1; i++)
         {
             var a = prof[i]; var b = prof[i + 1];
-            for (float t = 0; t < 1f; t += .15f)
+            // Exact final segment can be shorter than one metre. Keep the
+            // authored 14 cm boards and 1 cm gaps, without protruding past b.x
+            // into the neighbouring segment (source of overlapping geometry).
+            float segment = b.x - a.x;
+            if (segment <= .001f) continue;
+            for (float t = 0f; t < segment - .001f; t += .15f)
             {
-                float x = Mathf.Lerp(a.x, b.x, t + .07f), y = Mathf.Lerp(a.y, b.y, t + .07f);
-                z[deski].Box(new Vector3(x, y - .03f, pz), new Vector3(.14f, .06f, hw * 2f));
+                float boardWidth = Mathf.Min(.14f, segment - t);
+                float middle = (t + boardWidth * .5f) / segment;
+                float x = Mathf.Lerp(a.x, b.x, middle), y = Mathf.Lerp(a.y, b.y, middle);
+                z[deski].Box(new Vector3(x, y - .03f, pz), new Vector3(boardWidth, .06f, hw * 2f));
             }
             if (i % 3 == 0) foreach (float sz in new[] { -1f, 1f }) z[pal].Rura(new Vector3(a.x, Y(a.x, pz + sz * (hw - .15f)) - .4f, pz + sz * (hw - .15f)), new Vector3(a.x, a.y - .06f, pz + sz * (hw - .15f)), .1f, 8);
             var kc = new GameObject("kolizja: deptak"); kc.transform.SetParent(kol, false);
