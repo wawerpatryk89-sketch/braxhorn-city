@@ -23,7 +23,7 @@ internal static class BraxNovaEntranceFinish
     {
         public string status = "NOT_VALIDATED";
         public bool phoneValidated = false, doorConfigured;
-        public int removedLetterTriangles, remainingLetterTriangles, cutColliders, pathSamples, groundGaps;
+        public int removedLetterTriangles, remainingLetterTriangles, remainingSourceTriangles, unreadableSourceMeshes, cutColliders, pathSamples, groundGaps;
         public float playerRadius, playerHeight;
         public List<string> changed = new List<string>(), blockers = new List<string>(), warnings = new List<string>();
     }
@@ -81,7 +81,8 @@ internal static class BraxNovaEntranceFinish
         try { Probe(scene, door, rep); }
         catch (Exception e) { Warn(rep, "Test drożności: " + e); }
         rep.status = rep.doorConfigured && rep.pathSamples > 0 && rep.remainingLetterTriangles == 0 &&
-            rep.blockers.Count == 0 && rep.groundGaps == 0 && rep.warnings.Count == 0 ? "PASS_SCENE_GEOMETRY" : "REQUIRES_REVIEW";
+            rep.blockers.Count == 0 && rep.groundGaps == 0 && rep.remainingSourceTriangles == 0 &&
+            rep.unreadableSourceMeshes == 0 && rep.warnings.Count == 0 ? "PASS_SCENE_GEOMETRY" : "REQUIRES_REVIEW";
         Save(rep);
     }
 
@@ -246,8 +247,37 @@ internal static class BraxNovaEntranceFinish
             }
             finally { Object.DestroyImmediate(temp); }
         }
+        // Drugi odczyt: pozytywny status tylko gdy po cięciu brak starej geometrii
+        // wewnątrz obrysu. Sama liczba wykonanych cięć NIE dowodzi usunięcia napisu.
+        foreach (var r in scene.GetRootGameObjects()
+                     .SelectMany(g => g.GetComponentsInChildren<MeshRenderer>(true)))
+        {
+            if (!r || !r.enabled || !r.gameObject.activeInHierarchy ||
+                !r.bounds.Intersects(stripe) || r.transform.IsChildOf(club) ||
+                club.IsChildOf(r.transform) || ApprovedNovaSign(r.transform)) continue;
+            var f = r.GetComponent<MeshFilter>(); var mesh = f ? f.sharedMesh : null;
+            if (!mesh) continue;
+            if (!mesh.isReadable) { rep.unreadableSourceMeshes++; continue; }
+            var vertices = mesh.vertices;
+            for (int sub = 0; sub < mesh.subMeshCount; sub++)
+            {
+                var triangles = mesh.GetTriangles(sub);
+                for (int i = 0; i + 2 < triangles.Length; i += 3)
+                {
+                    var centroid = f.transform.TransformPoint(
+                        (vertices[triangles[i]] + vertices[triangles[i + 1]] +
+                         vertices[triangles[i + 2]]) / 3f);
+                    if (stripe.Contains(centroid)) rep.remainingSourceTriangles++;
+                }
+            }
+        }
         Debug.Log("BRAXHORN_NOVA_NIENAZWANY_SZYLD usuniete_fragmenty_starych_siatek=" +
-            altered + " przy_zachowaniu_oryginalnego_NOVA_CLUB=true");
+            altered + " pozostalosc_trojkaty=" + rep.remainingSourceTriangles +
+            " nieczytelne_siatki=" + rep.unreadableSourceMeshes +
+            " chroniony_oryginalny_NOVA_CLUB=true");
+        if (rep.remainingSourceTriangles != 0 || rep.unreadableSourceMeshes != 0)
+            Warn(rep, "Niezamkniety audyt starego napisu: trojkaty=" +
+                rep.remainingSourceTriangles + " nieczytelne_siatki=" + rep.unreadableSourceMeshes);
     }
 
     static void ConfigureDoor(BraxDrzwiPrzesuwne d, Receipt rep)
