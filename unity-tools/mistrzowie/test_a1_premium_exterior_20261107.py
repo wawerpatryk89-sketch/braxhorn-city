@@ -28,7 +28,10 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('BraxChampionsArenaSigns.Generate(root);', self.buildings)
         self.assertIn('BraxChampionsArenaArrival.Generate(root, materials);', self.buildings)
         self.assertIn('const float rx=96f,rz=59f;', self.arrival)
-        self.assertIn("const int bays=120;", self.arrival)
+        self.assertIn("const int bays=360;", self.arrival)
+        self.assertIn("m=Meshes();n=360;path=ellipse(96,59,n)",self.exterior_source)
+        self.assertIn("bool featurePillar=i%9==0;",self.arrival)
+        self.assertEqual(360//9,40)
         self.assertIn("mesh.SetVertices(positions)", self.arrival)
         self.assertNotIn("visualAccepted=true", self.arrival)
 
@@ -105,16 +108,26 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("A1 reference entrance | black bollard", self.arrival)
         self.assertIn("A1 reference entrance | warm bollard head", self.arrival)
 
+    def test_red_carpet_is_seamless_across_public_door_without_overlap(self):
+        # Existing outside red carpet ends at -67 + 15.4/2 = -59.3.
+        # Indoor begins at -47.3 - 24.0/2 = -59.3; zero gap,
+        # and no coplanar texture overlap to generate Z-fighting.
+        self.assertAlmostEqual(-67+15.4/2,-47.3-24.0/2,places=6)
+        self.assertIn('new Vector3(3.9f, .018f, 24.0f)',self.arrival)
+        self.assertIn('Main lobby RED carpet | continuous flush gold edge',self.arrival)
+        self.assertIn('Public RED velvet carpet | VIP arrival',self.arrival)
+        self.assertIn('arena_vip_black_velvet_rope',self.arrival)
+
     def test_perimeter_bays_skip_both_entries(self):
         skipped = 0
-        for i in range(120):
-            a = 2 * math.pi * i / 120
-            b = 2 * math.pi * (i + 1) / 120
+        for i in range(360):
+            a = 2 * math.pi * i / 360
+            b = 2 * math.pi * (i + 1) / 360
             x = 96 * (math.cos(a) + math.cos(b)) / 2
             z = 59 * (math.sin(a) + math.sin(b)) / 2
             if abs(x) < 8.4 and abs(z) > 57:
                 skipped += 1
-        self.assertEqual(skipped, 8)
+        self.assertEqual(skipped, 20)
 
 
     def test_all_four_signs_face_viewer_left_to_right_without_repainting(self):
