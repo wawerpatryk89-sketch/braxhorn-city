@@ -422,8 +422,9 @@ public static partial class BraxObozEnvironment
         var mesh = new Mesh { name = "Teren kompaktowy 280 x 280 m; strumien zewnetrzny" }; mesh.vertices = vertices; mesh.uv = uv; mesh.colors = colors; mesh.triangles = tris; mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
         mesh = SaveMesh(mesh);
         var g = Group("Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia", root, Vector3.zero).gameObject;
-        g.AddComponent<MeshFilter>().sharedMesh = mesh; g.AddComponent<MeshRenderer>().sharedMaterial = BraxObozMaterials.CampGround(ground,gravel); g.AddComponent<MeshCollider>().sharedMesh = mesh;
-        BraxObozStructureAuthoring.RegisterGround(g.GetComponent<MeshCollider>());
+        g.AddComponent<MeshFilter>().sharedMesh = mesh; g.AddComponent<MeshRenderer>().sharedMaterial = BraxObozMaterials.CampGround(ground,gravel);
+        var terrainCollider=g.AddComponent<MeshCollider>();terrainCollider.sharedMesh=mesh;
+        BraxObozStructureAuthoring.RegisterGround(terrainCollider);
         // Short sections allow transparent sorting/culling along the stream.
         var water=BraxObozMaterials.Stream();
         for(int section=0;section<14;section++)
@@ -437,6 +438,8 @@ public static partial class BraxObozEnvironment
             stream.AddComponent<MeshFilter>().sharedMesh=SaveMesh(surface);
             var renderer=stream.AddComponent<MeshRenderer>();renderer.sharedMaterial=water;
             renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
+            var fluid=stream.AddComponent<BraxObozFluidSurface>();
+            fluid.surface=renderer;fluid.bed=terrainCollider;fluid.minimumDepthMetres=.05f;fluid.maximumDepthMetres=1.25f;
         }
         // The visible perimeter supplies its own collision. No invisible wall
         // is allowed to seal the new vehicle entrance at the south boundary.
@@ -573,15 +576,35 @@ public static partial class BraxObozEnvironment
         }
         // Nie zostawiaj pionowej szpary na nadprozu ani pod skrzydlem.
         Door(t,name+" — drzwi",new Vector3(-.45f,.17f,-4.05f),.90f,2.10f);
-        Box(t,"Próg szczelny pod skrzydłem",new Vector3(0,.105f,-4.06f),new Vector3(1.10f,.14f,.26f),metal,false);
-        Box(t,"Stopień wejścia",new Vector3(0,.05f,-4.5f),new Vector3(1.6f,.1f,.8f),wood);
+        // Floor top is .16 m. Put the threshold ON that surface instead of
+        // embedding its lower 12.5 cm in the cabin/terrain.
+        Box(t,"Próg szczelny pod skrzydłem",new Vector3(0,.23f,-4.06f),new Vector3(1.10f,.14f,.26f),metal,false);
+        var entranceStep=Box(t,"Stopień wejścia",new Vector3(0,.05f,-4.5f),new Vector3(1.6f,.1f,.8f),wood);
+        BraxObozPlacement.OnGround(entranceStep.transform,
+            entranceStep.GetComponentsInChildren<Renderer>(true),
+            t.TransformPoint(P(0,0,-4.5f)),name+" — stopień wejścia");
     }
     static void ColliderBox(Transform parent,Vector3 pos,Vector3 size){var g=Group("Kolizja zgodna z otworem",parent,pos*K).gameObject;g.AddComponent<BoxCollider>().size=size*K;}
     static void Door(Transform parent,string name,Vector3 hinge,float width,float height)
     {
-        var pivot=Group(name,parent,hinge*K);Box(pivot,"Skrzydło drewniane",new Vector3(width*.5f,height*.5f,0),new Vector3(width,height,.065f),wood);
-        Cylinder(pivot,"Klamka",new Vector3(width-.14f,1.02f,-.06f),new Vector3(width-.28f,1.02f,-.06f),.018f,metal);
-        var d=pivot.gameObject.AddComponent<BraxCityDoor>();d.id=name;d.label=name;d.leaves=new[]{pivot};d.sides=new[]{1f};doors.Add(d);
+        var pivot=Group(name,parent,hinge*K);
+        var leaf=Box(pivot,"Skrzydło drewniane",new Vector3(width*.5f,height*.5f,0),
+            new Vector3(width,height,.065f),wood);
+        Cylinder(pivot,"Klamka",new Vector3(width-.14f,1.02f,-.06f),
+            new Vector3(width-.28f,1.02f,-.06f),.018f,metal);
+        var d=pivot.gameObject.AddComponent<BraxCityDoor>();d.id=name;d.label=name;
+        d.leaves=new[]{pivot};d.sides=new[]{1f};doors.Add(d);
+        var leafVisible=leaf.GetComponentsInChildren<Renderer>(true);
+        if(BraxObozDoorGeometry.TryHinge(pivot,leafVisible,parent,out var measured,out var problem))
+        {
+            var record=BraxObozPlacementRecord.For(pivot);
+            record.SetMembers(pivot.GetComponentsInChildren<Renderer>(true));
+            record.support=BraxObozPlacementRecord.SupportKind.Suspended;
+            record.suspensionSupport=measured.support;record.label=name+" — zawias w ościeżu";
+            record.suspensionPoint=Group("Zmierzona krawędź zawiasu",pivot,
+                pivot.InverseTransformPoint(measured.vertexWorld));
+        }
+        else BraxBuildQuality.Warn("OBÓZ DRZWI DOMKU: "+name+" — "+problem);
     }
     static void Ring(string name,float x,float z)
     {
