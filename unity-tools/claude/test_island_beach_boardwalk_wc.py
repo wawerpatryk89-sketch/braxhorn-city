@@ -47,6 +47,9 @@ class IslandBeachWcPremium(unittest.TestCase):
         self.assertIn("pts[i - 1].y - .10f", SOURCE)
         self.assertIn("pts[i + 1].y - .10f", SOURCE)
         self.assertIn("BraxNabrzeze.KolRot(kol, nazwa", SOURCE)
+        self.assertIn("static List<Vector3> DeptakSpojny(", SOURCE)
+        self.assertIn("var glowny = DeptakSpojny(", SOURCE)
+        self.assertIn("return pts;  // rzeczywista wysokość", SOURCE)
 
     def test_palm_and_tree_placements_keep_walkways_clear(self):
         self.assertIn("Zajmij(pts[i], polSzer + 1.45f)", SOURCE)
@@ -55,6 +58,8 @@ class IslandBeachWcPremium(unittest.TestCase):
 
     def test_lifeguard_paths_join_main_deck_at_edge(self):
         self.assertIn("var pocz = naj + wd * hw; pocz.y = naj.y;", SOURCE)
+        self.assertIn("var naj = glowny.OrderBy(", SOURCE)
+        self.assertIn("BRAXHORN_WYSPA_DEPTAK DO POPRAWKI: połączenie ratownika", SOURCE)
         self.assertIn('DeptakSpojny(z, deski, legar, branch, .90f * K', SOURCE)
         self.assertIn('Kladka do ratownika plazy wyspy', SOURCE)
         self.assertNotIn("p.y = Y(p.x, p.z) + .1f;", SOURCE)
@@ -88,6 +93,7 @@ class IslandBeachWcPremium(unittest.TestCase):
         self.assertIn('DeptakSpojny(z,deski,legar,dojscie,1.05f*K', SOURCE)
         self.assertIn("var pocz=naj-fw*hw;pocz.y=naj.y;", SOURCE)
         self.assertIn('"Dojscie boczne do WC premium "+id', SOURCE)
+        self.assertIn("BRAXHORN_WYSPA_WC_PREMIUM DO POPRAWKI", SOURCE)
         self.assertGreater(1.85*1.294, 2.25)
         self.assertGreater(2.20*1.294, 2.25)  # Brax controller height
 
@@ -100,7 +106,7 @@ class IslandBeachWcPremium(unittest.TestCase):
         self.assertIn("internal static void Toczenie(UlSiatka", ARENA)
         self.assertIn('Piece(posadzka,"posadzka"', SOURCE)
         self.assertIn('Piece(sciana,"sufit"', SOURCE)
-        self.assertIn('"WC premium 2, wypożyczalnia 1', SOURCE)
+        self.assertIn("WC premium 2, wypożyczalnia 1", SOURCE)
 
 
 if __name__ == "__main__":

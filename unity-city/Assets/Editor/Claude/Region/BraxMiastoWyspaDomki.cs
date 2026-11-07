@@ -67,10 +67,10 @@ internal static partial class BraxMiastoWyspa
     static float RzutXZ(Vector3 a, Vector3 b) =>
         Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
 
-    static void DeptakSpojny(BraxNabrzeze.Zbior z, Material deski, Material legary,
+    static List<Vector3> DeptakSpojny(BraxNabrzeze.Zbior z, Material deski, Material legary,
                             IList<Vector3> os, float polSzer, string nazwa)
     {
-        if (os == null || os.Count < 2) return;
+        if (os == null || os.Count < 2) return new List<Vector3>();
         var pts = new List<Vector3> { os[0] };
         for (int i = 1; i < os.Count; i++)
         {
@@ -92,7 +92,7 @@ internal static partial class BraxMiastoWyspa
                 pts.Add(p);
             }
         }
-        if (pts.Count < 2) return;
+        if (pts.Count < 2) return pts;
         // Profil 1:10 — obie strony podnoszone nad nierównościami, bez stopni.
         for (int pass = 0; pass < 2; pass++)
         {
@@ -152,6 +152,7 @@ internal static partial class BraxMiastoWyspa
         Debug.Log("BRAXHORN_WYSPA_DEPTAK " + nazwa + " dlugosc=" +
             dl.ToString("F1") + " m probki=" + pts.Count + " skok_max=" +
             maxStopien.ToString("F3") + " m (wspolne krawedzie, bez pustych szczelin)");
+        return pts;  // rzeczywista wysokość po wyrównaniu: punkty dołączanych kładek
     }
 
     static void PlazaPremium(BraxNabrzeze.Zbior z, BraxNabrzezeMebel.Mat m)
@@ -181,14 +182,14 @@ internal static partial class BraxMiastoWyspa
             p.y = y + .22f;
             pts.Add(p);
         }
-        DeptakSpojny(z, deski, legar, pts, hw, "Deptak glowny plazy wyspy");
+        var glowny = DeptakSpojny(z, deski, legar, pts, hw, "Deptak glowny plazy wyspy");
 
         // Meble stoją obok pasa: w odległości umożliwiającej przejście
         // postaci i ominięcie pnia palmy. Nie stawiamy ich na deskach.
-        for (int i = 1; i + 1 < pts.Count; i++)
+        for (int i = 1; i + 1 < glowny.Count; i++)
         {
-            var a = pts[i];
-            var d = (pts[i + 1] - pts[i - 1]); d.y = 0f;
+            var a = glowny[i];
+            var d = (glowny[i + 1] - glowny[i - 1]); d.y = 0f;
             if (d.sqrMagnitude < .1f) continue;
             var bok = Vector3.Cross(Vector3.up, d.normalized).normalized;
             var rot = Quaternion.LookRotation(d.normalized, Vector3.up);
@@ -221,11 +222,11 @@ internal static partial class BraxMiastoWyspa
         // wpychanych pojedynczo w piasek bez kolizji.
         foreach (var (wp, wd) in wiezyczki)
         {
-            if (pts.Count < 2) break;
+            if (glowny.Count < 2) break;
             float kat = Mathf.Atan2(wd.z, wd.x) * Mathf.Rad2Deg;
             float rs = LiniaWody(kat);
             var target = new Vector3(CX, 0f, CZ) + wd * (rs - 38f);
-            var naj = pts.OrderBy(p => RzutXZ(p, target)).First();
+            var naj = glowny.OrderBy(p => RzutXZ(p, target)).First();
             var pocz = naj + wd * hw; pocz.y = naj.y;
             var koniec = new Vector3(CX, 0f, CZ) + wd * (rs - 16.5f);
             koniec.y = Y(koniec.x, koniec.z) + .14f;
@@ -238,12 +239,15 @@ internal static partial class BraxMiastoWyspa
                 p.y = Mathf.Max(p.y, Y(p.x, p.z) + .14f);
                 branch.Add(p);
             }
-            DeptakSpojny(z, deski, legar, branch, .90f * K,
+            var sprawdzona = DeptakSpojny(z, deski, legar, branch, .90f * K,
                 "Kladka do ratownika plazy wyspy");
+            if (sprawdzona.Count > 0 && Mathf.Abs(sprawdzona[0].y - pocz.y) > .10f)
+                Debug.LogWarning("BRAXHORN_WYSPA_DEPTAK DO POPRAWKI: połączenie ratownika " +
+                    kat.ToString("F0") + " ma uskok " +
+                    Mathf.Abs(sprawdzona[0].y - pocz.y).ToString("F2") + "m");
         }
         // 3) ZAPLECZE PLAŻY za deptakiem: przebieralnie, WC, wypożyczalnia, bar na plaży
         var drewno = BraxMiastoA.Tex("Wyspa: deskowanie budek plażowych", 1.2f, new Color(.95f, .93f, .88f), new Color(.85f, .82f, .76f), .8f, "wood_plank_wall", "wood_planks_grey");
-        var tynk = BraxMiastoA.Tex("Wyspa: tynk biały (WC)", 2f, new Color(.95f, .95f, .93f), new Color(.92f, .92f, .9f), .85f, "white_plaster_02", "concrete_wall_008");
         var dach = BraxMiastoA.Mat("Wyspa: dach budek (grafit)", new Color(.2f, .21f, .22f), .7f);
         var drzwi = BraxMiastoA.Mat("Wyspa: drzwi budek (błękit morski)", new Color(.16f, .42f, .55f), .55f);
         Vector3 Zaplecze(float ang, float odWody) { float rs = LiniaWody(ang); var d = new Vector3(Mathf.Cos(ang * Mathf.Deg2Rad), 0, Mathf.Sin(ang * Mathf.Deg2Rad)); var p = new Vector3(CX, 0, CZ) + d * (rs - odWody); p.y = Y(p.x, p.z); return p; }
@@ -384,7 +388,7 @@ internal static partial class BraxMiastoWyspa
                 Zajmij(baseWC,Mathf.Max(w,d)*.7f+.9f);
                 // Boczny deptak dochodzi do wejścia. WC nie znajduje się NA nim.
                 var cel=new Vector3(CX,0f,CZ)+fw*(LiniaWody(kat)-38f);
-                var naj=pts.OrderBy(p=>RzutXZ(p,cel)).First();
+                var naj=glowny.OrderBy(p=>RzutXZ(p,cel)).First();
                 var pocz=naj-fw*hw;pocz.y=naj.y;
                 var dojscie=new List<Vector3>{pocz};
                 float dl=RzutXZ(pocz,wej);
@@ -396,8 +400,17 @@ internal static partial class BraxMiastoWyspa
                     p.y=Mathf.Max(p.y,Y(p.x,p.z)+.11f);
                     dojscie.Add(p);
                 }
-                DeptakSpojny(z,deski,legar,dojscie,1.05f*K,
+                var sprawdzoneDojscie = DeptakSpojny(z,deski,legar,dojscie,1.05f*K,
                     "Dojscie boczne do WC premium "+id);
+                if (sprawdzoneDojscie.Count > 0)
+                {
+                    float uskokStart = Mathf.Abs(sprawdzoneDojscie[0].y - pocz.y);
+                    float uskokWej = Mathf.Abs(sprawdzoneDojscie[sprawdzoneDojscie.Count-1].y - wej.y);
+                    if (uskokStart > .10f || uskokWej > .10f)
+                        Debug.LogWarning("BRAXHORN_WYSPA_WC_PREMIUM DO POPRAWKI " +
+                            id + " uskok_do_glownego=" + uskokStart.ToString("F2") +
+                            " uskok_przed_wejsciem=" + uskokWej.ToString("F2"));
+                }
                 ileWC++;
                 Debug.Log("BRAXHORN_WYSPA_WC_PREMIUM "+id+
                     " od_wody="+odWodyWC+"m swiatlo_wejscia="+drzW.ToString("F2")+
