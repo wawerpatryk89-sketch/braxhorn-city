@@ -61,6 +61,34 @@ public static class BraxChampionsArenaArrival
         return o;
     }
 
+    static GameObject GradedSurface(Transform parent,string name,Material material,
+        float x0,float x1,float z0,float z1,float y0,float y1,bool solid=true)
+    {
+        if(x1<=x0||z1<=z0)throw new ArgumentException("Invalid graded A1 surface "+name);
+        var mesh=new Mesh{name=name+" | exact edge-to-edge graded mesh"};
+        mesh.vertices=new[]{
+            new Vector3(x0,y0,z0)*K,
+            new Vector3(x0,y1,z1)*K,
+            new Vector3(x1,y1,z1)*K,
+            new Vector3(x1,y0,z0)*K
+        };
+        mesh.uv=new[]{
+            new Vector2(x0,z0),new Vector2(x0,z1),
+            new Vector2(x1,z1),new Vector2(x1,z0)
+        };
+        mesh.triangles=new[]{0,1,2,0,2,3};
+        mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
+        string asset="Assets/PlayableGenerated/Mistrzowie/Buildings/Meshes/A1_Graded_"
+            +(tiledMeshSerial++)+".asset";
+        AssetDatabase.CreateAsset(mesh,asset);
+        var o=new GameObject(name);
+        o.transform.SetParent(parent,false);
+        o.AddComponent<MeshFilter>().sharedMesh=mesh;
+        o.AddComponent<MeshRenderer>().sharedMaterial=material;
+        if(solid)o.AddComponent<MeshCollider>().sharedMesh=mesh;
+        return o;
+    }
+
     static Transform Group(Transform parent, string name, Vector3 at)
     {
         var t = new GameObject(name).transform;
@@ -145,16 +173,21 @@ public static class BraxChampionsArenaArrival
         }
     }
 
-    static void Parking(Transform parent, Material asphalt, Material paint, Material curb, Material dark)
+    static void Parking(Transform parent, Material asphalt, Material paint, Material curb, Material dark, Material metal)
     {
-        // Two independent courts, west/east of the preserved 30m central walking axis.
-        // Entry lanes connect the z=650 road boundary to the internal two-way parking aisles.
+        // Two independent courts, west/east of the preserved central walking axis.
+        // City road Z650 ends at local z=-140; its north sidewalk occupies
+        // z=-140..-133. The foundation now has two exact 6.4m cuts there.
+        // Each cut is replaced by a gentle asphalt ramp: road y=0 -> parking y=.238.
         foreach (float x in new[] { -65f, 65f })
         {
+            const float parkingTop=.238f;
             Box(parent, "Car park - asphalt, real ground collider", asphalt,
                 new Vector3(x, .199f, -97f), new Vector3(70f, .078f, 24f));
             Box(parent, "Parking vehicle access lane", asphalt,
-                new Vector3(x, .195f, -121f), new Vector3(6.4f, .07f, 24f));
+                new Vector3(x, .199f, -121f), new Vector3(6.4f, .078f, 24f));
+            GradedSurface(parent,"Parking road-to-city gentle asphalt entry",asphalt,
+                x-3.2f,x+3.2f,-140f,-133f,0f,parkingTop,true);
             // 5.2m marked bays, two opposed rows, 6.4m minimum centre manoeuvring zone.
             for (int row = 0; row < 2; row++)
             {
@@ -165,7 +198,7 @@ public static class BraxChampionsArenaArrival
                     float stallX = x + i * 3.05f;
                     if (Mathf.Abs(stallX - x) < 3.6f) continue; // driveway gap, no painted phantom bays
                     Box(parent, "Parking stall division - durable white marking", paint,
-                        new Vector3(stallX, .243f, (a + b) / 2f),
+                        new Vector3(stallX, .242f, (a + b) / 2f),
                         new Vector3(.09f, .008f, b - a), false);
                     if (i < 10)
                         Box(parent, "Parking bay wheel stop", curb,
@@ -173,19 +206,37 @@ public static class BraxChampionsArenaArrival
                             new Vector3(1.28f, .15f, .19f));
                 }
                 Box(parent, "Parking stall head line", paint,
-                    new Vector3(x, .244f, row == 0 ? a : b), new Vector3(63f, .008f, .08f), false);
+                    new Vector3(x, .242f, row == 0 ? a : b), new Vector3(63f, .008f, .08f), false);
             }
             foreach (float side in new[] { -1f, 1f })
             {
                 Box(parent, "Parking outer curb", curb,
-                    new Vector3(x + side * 35.15f, .31f, -97f), new Vector3(.25f, .22f, 24f));
+                    new Vector3(x + side * 35.125f, .31f, -97f), new Vector3(.25f, .22f, 24f));
             }
+            // North edge has an 8m pedestrian opening; south edge has only
+            // the exact 6.4m vehicle opening. Curbs touch the asphalt edge,
+            // never overlap the driving surface.
+            foreach(float side in new[]{-1f,1f})
+            {
+                Box(parent,"Parking north end concrete curb",curb,
+                    new Vector3(x+side*19.5f,.31f,-84.875f),
+                    new Vector3(31f,.22f,.25f));
+                Box(parent,"Parking south end concrete curb",curb,
+                    new Vector3(x+side*19.1f,.31f,-109.125f),
+                    new Vector3(31.8f,.22f,.25f));
+            }
+            Box(parent,"Parking entrance flush trench drain",metal,
+                new Vector3(x,.239f,-109.02f),new Vector3(5.9f,.002f,.12f),false);
             // Accessible wider spaces nearest the pedestrian route, with an unblocked transfer strip.
             float accessibleX = x < 0 ? x + 30.2f : x - 30.2f;
             Box(parent, "Wide accessible bay dividing line", paint,
-                new Vector3(accessibleX, .244f, -87.9f), new Vector3(.11f, .008f, 5.2f), false);
+                new Vector3(accessibleX, .242f, -87.9f), new Vector3(.11f, .008f, 5.2f), false);
+            // Real curb ramp from asphalt to the pedestrian level, then a flat
+            // path. This replaces the old abrupt raised slab at the accessible exit.
+            GradedSurface(parent,"Accessible parking curb ramp",curb,
+                x-4f,x+4f,-85f,-83.4f,parkingTop,.20f,true);
             Box(parent, "Pedestrian path out of parking", curb,
-                new Vector3(x, .192f, -80f), new Vector3(8f, .03f, 10f));
+                new Vector3(x, .18f, -79.2f), new Vector3(8f, .04f, 8.4f));
             // Small solid raised islands guard pedestrians without obstructing the driveway.
             Box(parent, "Parking planting island / protective curb", dark,
                 new Vector3(x - 25f, .27f, -111.4f), new Vector3(4f, .15f, 1.0f));
@@ -193,15 +244,17 @@ public static class BraxChampionsArenaArrival
         // Wheelchair-friendly pedestrian connections from both side car parks
         // to the central public promenade, wholly behind the existing z=650 road.
         // The 5m cross-link is flat, unblocked and separate from vehicle aisles.
-        foreach (float sx in new[] { -36.5f, 36.5f })
+        foreach (float sx in new[] { -34.5f, 34.5f })
             Box(parent, "Accessible parking-to-arena paved connector", curb,
-                new Vector3(sx, .190f, -79f), new Vector3(57f, .032f, 5f));
+                new Vector3(sx, .18f, -79f), new Vector3(53f, .04f, 5f));
         // Main spectator route stays permanently clear between parking and entrance.
+        // Connectors meet x=+-8 and the parking exit paths at x=+-61 exactly:
+        // no coplanar overlap rectangles.
         Box(parent, "Arena public promenade", curb,
-            new Vector3(0, .183f, -104f), new Vector3(16f, .04f, 58f));
+            new Vector3(0, .18f, -104f), new Vector3(16f, .04f, 58f));
         for (float x = -7f; x <= 7f; x += 14f)
             Box(parent, "Public path edge line", paint,
-                new Vector3(x, .211f, -105.5f), new Vector3(.12f, .008f, 54f), false);
+                new Vector3(x, .204f, -105.5f), new Vector3(.12f, .008f, 54f), false);
     }
 
     static void ParkingLights(Transform parent, Material frame, Material led)
@@ -833,7 +886,7 @@ public static class BraxChampionsArenaArrival
         var athleteWoodWall = BraxChampionsFoundation.SourceMaterial(
             "arena_athlete_walls_wooden_panels_owner", "wooden_panels", 2.1f, Color.white);
         var paint = Paint("arena_parking_markings", new Color(.93f, .92f, .85f));
-        Parking(root, asphalt, paint, sidewalk, exterior["dark_stone"]);
+        Parking(root, asphalt, paint, sidewalk, exterior["dark_stone"], exterior["steel"]);
         ParkingLights(root, exterior["steel"], exterior["light"]);
         // Architectural PBR finish is generated independently of source signs,
         // without shifting the approved ellipse, doors or visitor routes.
