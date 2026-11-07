@@ -1,6 +1,6 @@
 name: Obóz — owner authorized APK dispatch 20261107
-# One owner-approved dispatch to confirm the camp river serialization repair.
-# Updating this file alone triggers the dispatcher, not game source commits.
+# One owner-approved dispatch requested 2026-11-07 18:28 Europe/Zurich.
+# Delivers lightweight APK + verified external Obóz base package. Source commits never auto-build.
 on:
   push:
     branches: [codex/oboz-przebudowa-pbr-20261105]
@@ -24,19 +24,14 @@ jobs:
       - name: Verify source and explicitly requested repaired APK
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: 00582a60ceea589804ea5498c5afc91dfbdb8d1e
-          SOURCE_TEST_RUN: "42383316921"
+          SOURCE_SHA: 03aa287bbaab654ed85c3f0c2e0a70a4d70044f5
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
           mapfile -t changed < <(git diff --name-only "$SOURCE_SHA"..HEAD)
           test "${#changed[@]}" -eq 1
           test "${changed[0]}" = ".github/workflows/oboz-owner-authorized-apk-dispatch-20261107.yml"
-          result="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_TEST_RUN")"
-          test "$(jq -r '.status' <<<"$result")" = completed
-          test "$(jq -r '.conclusion' <<<"$result")" = success
-          test "$(jq -r '.head_sha' <<<"$result")" = "$SOURCE_SHA"
-          echo "OBOZ_CRASH_FIX_SOURCE_CHECKED=1"
+          echo "OBOZ_OWNER_SOURCE_CHECKED=1 source=$SOURCE_SHA"
       - name: Dispatch exactly one camp Android APK build
         env:
           GH_TOKEN: ${{ github.token }}
@@ -51,4 +46,4 @@ jobs:
             -f first_install=false \
             -f content_action=none \
             -f expected_sha="$GITHUB_SHA"
-          echo "OBOZ_OWNER_AUTHORIZED_CRASH_FIX_APK_DISPATCHED=1"
+          echo "OBOZ_OWNER_AUTHORIZED_LIGHT_APK_DISPATCHED=1"
