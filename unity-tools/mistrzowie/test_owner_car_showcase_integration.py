@@ -28,6 +28,8 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         self.assertIn('float uniform = LengthMetres / bounds.size.z;', builder)
         self.assertNotIn('LengthMetres * K / bounds.size.z', builder)
         self.assertIn('car.interactionRadius = 3.8f;', builder)
+        self.assertIn('car.maxSpeed = 65f / 3.6f;', builder)
+        self.assertIn('public float maxSpeed = 65f / 3.6f', read("unity-city/Assets/Mistrzowie/BraxChampionsCar.cs"))
         # Exact regular-bay centre: between x lines 43.65/46.70 and
         # centered in row z[-90.6,-85.4]. Never on paint or accessible bay.
         x, z = 645.175 - 600, 712 - 800
