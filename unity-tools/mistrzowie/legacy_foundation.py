@@ -7,7 +7,7 @@ from shapely.geometry import box,Point,LineString,Polygon
 from shapely.ops import unary_union
 ROOT=Path(__file__).resolve().parents[2]
 REPORT=ROOT/'mistrzowie-evidence';REPORT.mkdir(exist_ok=True)
-from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO
+from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,A1_PARKING_ENTRANCES,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO
 from port_layout import PIERS,BERTHS,SHORE_BACK,SEA_LEVEL,shoreline,beach_height,validate as validate_port
 from promenade_layout import PAVILIONS,PAVILION_PADS,PAVILION_FOOTPRINTS,CYCLE_Z0,CYCLE_Z1,CYCLE_WIDTH,X0 as PROM_X0,X1 as PROM_X1,validate as validate_promenade
 SRC=ROOT/'unity-city/Assets/Source/Mistrzowie'
@@ -57,6 +57,7 @@ def inside(p,r):
 def zone(x,z):
  if inside((x,z),T11_GARAGE_RAMP):return None
  if inside((x,z),T11_STREET_ENTRANCE):return None
+ if any(inside((x,z),r) for r in A1_PARKING_ENTRANCES):return None
  if any(inside((x,z),r) for r in POOL_HOLES):return None
  if any(inside((x,z),r) for r in ENTRANCE_HOLES):return None
  if any(inside((x,z),r) for r in ENTRANCE_PATHS+BUILDING_ACCESS):return 'paving'
@@ -113,7 +114,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE]+POOL_HOLES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
+rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE]+A1_PARKING_ENTRANCES+POOL_HOLES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
 for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
