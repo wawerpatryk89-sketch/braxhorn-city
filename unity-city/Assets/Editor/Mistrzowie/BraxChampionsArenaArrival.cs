@@ -518,9 +518,12 @@ public static class BraxChampionsArenaArrival
             string entry=side<0?"PUBLIC":"ATHLETES";
             float z=side*62.6f;
             var portico=Group(group,"A1 "+entry+" | premium PBR glass portico",Vector3.zero);
-            Box(portico,entry+" original Poly Haven stone glass canopy soffit",
-                exterior["stone"],new Vector3(0,5.24f,z),
-                new Vector3(21.8f,.14f,7.15f),false);
+            // Real glass stays transparent; no opaque stone slab under it.
+            // Thin PBR granite edge beams give the canopy its finished profile.
+            foreach(float frameX in new[]{-10.45f,10.45f})
+                Box(portico,entry+" Poly Haven granite canopy side edge",
+                    exterior["stone"],new Vector3(frameX,5.23f,z),
+                    new Vector3(.36f,.20f,7.20f),false);
             Box(portico,entry+" safety-glass canopy visible upper skin",
                 exterior["clear_glass"],new Vector3(0,5.34f,z),
                 new Vector3(21.0f,.07f,6.8f),false);
