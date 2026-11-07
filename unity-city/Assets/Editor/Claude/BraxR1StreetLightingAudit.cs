@@ -63,7 +63,9 @@ public static class BraxR1StreetLightingAudit
         legacy=names.IndexOf("street lamp",StringComparison.OrdinalIgnoreCase)>=0 ||
                names.IndexOf("streetlight",StringComparison.OrdinalIgnoreCase)>=0 ||
                names.IndexOf("lamp post",StringComparison.OrdinalIgnoreCase)>=0 ||
-               names.IndexOf("lamppost",StringComparison.OrdinalIgnoreCase)>=0;
+               names.IndexOf("lamppost",StringComparison.OrdinalIgnoreCase)>=0 ||
+               (!string.IsNullOrEmpty(originalName) &&
+                HasWord(originalName,"latarnia","lampa uliczna","light pole","lightpole"));
         // NIGDY nie rozpoznawaj po samym "lamp" / "light" — sygnalizator
         // i oprawa budynku to inny obiekt, nie wolno ich kasować.
         if(HasWord(names,"traffic light","traffic signal","sygnaliz","road sign"))
