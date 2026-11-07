@@ -96,10 +96,11 @@ public static class BraxChampionsCasinoPbr2K
     }
     public static void VerifyOriginalSourceMaps()
     {
-        // Check ALL 21 source maps in one Unity pass; never change source image bytes.
+        // Check ALL 24 native 2K source maps in one Unity pass; never change source image bytes.
         var failures=new List<string>();
         foreach(var slug in new[]{
-            "concrete_brick_wall_001","rectangular_facade_tiles","granite_tile",
+            "concrete_brick_wall_001","sandstone_blocks_05",
+            "rectangular_facade_tiles","granite_tile",
             "clean_asphalt","concrete_pavement_02","concrete_floor_02","fabric_pattern_05"})
         {
             foreach(var kind in new[]{"diff","nor_gl","arm"})
@@ -117,7 +118,7 @@ public static class BraxChampionsCasinoPbr2K
         if(failures.Count>0)
             throw new InvalidOperationException("T11 source textures invalid ("
                 +failures.Count+"/21): "+string.Join(" | ",failures));
-        Debug.Log("CHAMPIONS_T11_NATIVE_2K_SOURCE_PREFLIGHT_PASS maps=21 shape=Texture2D");
+        Debug.Log("CHAMPIONS_T11_NATIVE_2K_SOURCE_PREFLIGHT_PASS maps=24 shape=Texture2D");
     }
 
     public static Material Create(string output,string id,string slug,float metres,Color tint)
