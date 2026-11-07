@@ -242,6 +242,29 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     {
         var exact = Bx(-106.25f, -102.95f, -.20f, 5.0f, 18.9f, 38.1f);
         var road = Bx(-107.0f, -102.5f, .10f, 5.1f, GZ - GH, GZ + GH);
+        // Oryginał Unity importuje nazwy 724 siatek jako CityMesh_N,
+        // więc sama nazwa Renderera NIE identyfikuje siatki płotu.
+        // Manifest source GLTF zachowuje ich opisowe originalName.
+        var labels = new Dictionary<string,string>(StringComparer.Ordinal);
+        const string manifestPath = "Assets/Source/City/city-manifest.json";
+        try
+        {
+            if(File.Exists(manifestPath))
+            {
+                var manifest=JsonUtility.FromJson<BraxCityBuild.Manifest>(
+                    File.ReadAllText(manifestPath));
+                if(manifest!=null && manifest.meshes!=null)
+                    foreach(var item in manifest.meshes)
+                        if(item!=null && !string.IsNullOrEmpty(item.name) &&
+                           !string.IsNullOrEmpty(item.originalName))
+                            labels[item.name]=item.originalName;
+            }
+            else usuniete.Add("PŁOT GŁÓWNA: brak manifestu oryginalnych nazw siatek");
+        }
+        catch(Exception e)
+        {
+            usuniete.Add("PŁOT GŁÓWNA: nie można odczytać manifestu: "+e.Message);
+        }
         bool ObcaPrzeszkoda(string nazwa)
         {
             string n = (nazwa ?? "").ToLowerInvariant();
@@ -269,7 +292,9 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
                 if (!r || !r.enabled || Chroniony(r.transform)) continue;
                 Bounds q = r.bounds;
                 if (!q.Intersects(exact) || q.max.y < .5f) continue;
-                bool named = ObcaPrzeszkoda(r.name);
+                bool named = ObcaPrzeszkoda(r.name) ||
+                    (labels.TryGetValue(r.name,out var originalName) &&
+                     ObcaPrzeszkoda(originalName));
                 for(var t = r.transform.parent; t && !named && t != g.transform.parent; t = t.parent)
                     named = ObcaPrzeszkoda(t.name);
                 // Nienazwana siatka musi wyglądać geometrycznie jak płot
