@@ -49,6 +49,26 @@ public static class BraxChampionsBeltShowcase
         }
     }
 
+    // Single plane per glass wall rather than six faces of a Unity cube.
+    // The old six-face transparent cubes layered alpha, producing a white
+    // veil in front of the owner's belt on mobile. Glass must read as almost
+    // invisible while edges and the real belt remain visible.
+    static void CrystalGlassPanel(Transform parent,string name,Material material,
+        Vector3 centre,Vector2 dimensions,Quaternion facing)
+    {
+        var panel=GameObject.CreatePrimitive(PrimitiveType.Quad);
+        panel.name=name;
+        panel.transform.SetParent(parent,false);
+        panel.transform.localPosition=centre;
+        panel.transform.localRotation=facing;
+        panel.transform.localScale=new Vector3(dimensions.x,dimensions.y,1f);
+        var renderer=panel.GetComponent<MeshRenderer>();
+        renderer.sharedMaterial=material;
+        renderer.shadowCastingMode=ShadowCastingMode.Off;
+        renderer.receiveShadows=false;
+        UnityEngine.Object.DestroyImmediate(panel.GetComponent<Collider>());
+    }
+
     static Bounds VisualBounds(Transform display, Transform objectRoot)
     {
         var renderers = objectRoot.GetComponentsInChildren<Renderer>(true);
@@ -307,7 +327,7 @@ public static class BraxChampionsBeltShowcase
             name="A1 reference showcase | optical-clear glass",
             enableInstancing=true
         };
-        glass.SetColor("_Color",new Color(.97f,.99f,1f,.032f));
+        glass.SetColor("_Color",new Color(.99f,.995f,1f,.014f));
         glass.SetFloat("_Roughness",.012f);
         glass.SetFloat("_Metallic",0f);
         glass.SetFloat("_VertexTint",0f);
@@ -316,7 +336,9 @@ public static class BraxChampionsBeltShowcase
         glass.SetFloat("_SrcBlend",(float)BlendMode.SrcAlpha);
         glass.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);
         glass.SetFloat("_ZWrite",0f);
-        glass.SetFloat("_Cull",2f);
+        // No cutout or opaque backfaces; single mesh surface stays readable
+        // from every accessible visitor angle and does not hide the 3D belt.
+        glass.SetFloat("_Cull",0f);
         glass.renderQueue=3001;
         glass.SetOverrideTag("RenderType","Transparent");
         AssetDatabase.CreateAsset(glass,Materials+"A1_case_clear_slightly_smoked_glass.mat");
@@ -332,16 +354,21 @@ public static class BraxChampionsBeltShowcase
         Cube(display,"REFERENCE black leather back panel",backing,
             new Vector3(0,2.27f,.405f),new Vector3(1.58f,3.20f,.055f));
 
-        // Slim crystal-clear case: front + sides + top + bottom. Decorative only.
-        Cube(display,"REFERENCE optical clear glass FRONT",glass,
-            new Vector3(0,2.28f,-.505f),new Vector3(1.86f,3.72f,.020f));
-        foreach(float x in new[]{-.94f,.94f})
-            Cube(display,"REFERENCE optical clear glass SIDE",glass,
-                new Vector3(x,2.28f,-.055f),new Vector3(.020f,3.72f,.92f));
-        Cube(display,"REFERENCE optical clear glass TOP",glass,
-            new Vector3(0,4.15f,-.055f),new Vector3(1.90f,.020f,.94f));
-        Cube(display,"REFERENCE optical clear glass BOTTOM",glass,
-            new Vector3(0,.41f,-.055f),new Vector3(1.90f,.020f,.94f));
+        // One thin glass plane per surface, with REAL optical blending.
+        // Invisible colliders are forbidden. No foggy primitive cube faces.
+        CrystalGlassPanel(display,"REFERENCE optically clear FRONT glass",glass,
+            new Vector3(0,2.28f,-.505f),new Vector2(1.86f,3.72f),
+            Quaternion.Euler(0,180f,0));
+        foreach(float side in new[]{-1f,1f})
+            CrystalGlassPanel(display,"REFERENCE optically clear SIDE glass "+side,glass,
+                new Vector3(side*.94f,2.28f,-.055f),new Vector2(.92f,3.72f),
+                Quaternion.Euler(0,side*90f,0));
+        CrystalGlassPanel(display,"REFERENCE optically clear TOP glass",glass,
+            new Vector3(0,4.15f,-.055f),new Vector2(1.90f,.94f),
+            Quaternion.Euler(90f,0,0));
+        CrystalGlassPanel(display,"REFERENCE optically clear BOTTOM glass",glass,
+            new Vector3(0,.41f,-.055f),new Vector2(1.90f,.94f),
+            Quaternion.Euler(90f,0,0));
 
         // Warm rectangular ceiling light and vertical edge glow visible in the reference.
         foreach(float z in new[]{-.34f,.19f})
@@ -356,11 +383,16 @@ public static class BraxChampionsBeltShowcase
         Cube(display,"REFERENCE warm lower case LED",warm,
             new Vector3(0,.48f,-.31f),new Vector3(1.46f,.030f,.045f));
 
-        // Small gold clamps only. No thick gold posts and NO red stripe.
+        // Reference photo: slim polished GOLD continuous edge support,
+        // discreet corner clamps and no wide opaque vertical posts.
         foreach(float x in new[]{-.93f,.93f})
-        foreach(float y in new[]{.53f,2.28f,4.02f})
-            Cube(display,"REFERENCE small gold glass bracket",gold,
-                new Vector3(x,y,-.515f),new Vector3(.12f,.12f,.10f));
+        {
+            Cube(display,"REFERENCE slender polished GOLD case edge",gold,
+                new Vector3(x,2.28f,-.513f),new Vector3(.040f,3.72f,.028f));
+            foreach(float y in new[]{.53f,2.28f,4.02f})
+                Cube(display,"REFERENCE small GOLD glass bracket",gold,
+                    new Vector3(x,y,-.527f),new Vector3(.12f,.12f,.10f));
+        }
 
         // Bronze vertical slats stay next to the cabinet, never across the glass.
         for(int i=0;i<5;i++)
@@ -382,7 +414,9 @@ public static class BraxChampionsBeltShowcase
         lamp.renderMode=LightRenderMode.ForceVertex;
 
         Debug.Log("CHAMPIONS_A1_SHOWCASE_REFERENCE wallMounted=true rhombus=false woodPlinth=false"+
-            " redInset=false clearGlass=true smallGoldBrackets=true ownerBeltUnchanged=true ownerPlaqueUnchanged=true");
+            " redInset=false crystalSinglePaneAlpha=.014 slimGoldSupports=true"+
+            " originalOwnerBelt3D=true ownerPlaqueAtlasUnmodified=true"+
+            " UnitySceneAndPhoneProofPending=true");
     }
 
 }
