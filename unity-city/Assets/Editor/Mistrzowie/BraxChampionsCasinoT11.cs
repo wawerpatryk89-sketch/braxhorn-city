@@ -11,12 +11,15 @@ using UnityEngine.Rendering;
 public static class BraxChampionsCasinoT11
 {
     public const string SignPath="Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png";
+    // EXACT owner-supplied Pixabay / DEZYNE_3D ID 140 GLB, no fabricated stand-in.
+    public const string DollarPath=
+        "Assets/Source/Mistrzowie/CasinoT11/OwnerDollar/dezyne_3d-dollar-sign-140.glb";
     const float LotX=495f, LotZ=465f;
     static float K=>BraxClaudeOsiedle.K;
     static string output;
     static int serial;
     static Transform root,shell,trim,signRoot;
-    static Material cream,facadeSandstone,graphite,granite,asphalt,paving,gold,pillarGold,steel,glass,frontGlass,towerGlass,skylightGlass,led,roof,redCarpet,parkingPaint;
+    static Material cream,facadeSandstone,graphite,granite,asphalt,paving,gold,pillarGold,steel,glass,frontGlass,skylightGlass,led,roof,redCarpet,parkingPaint;
     // White finishes are GARAGE-ONLY. Do not repaint the owner-approved casino exterior.
     static Material garageWhite,garageWhiteBeam,garageBlackAsphalt,garageParkingPaint;
 
@@ -68,10 +71,7 @@ public static class BraxChampionsCasinoT11
         // Front: SLIGHTLY darkened but legible transparent glass, warm gold
         // frame divisions and visible interior. Does not tint side masonry.
         frontGlass=Surface("front_smoke_glass",new Color(.55f,.63f,.71f,.22f),true,false);
-        // Office tower must look like a COMPLETED blue-glass building,
-        // not transparent bare framework against the sky.
-        towerGlass=Surface("office_tower_blue_glass",new Color(.28f,.40f,.53f,.76f),true,false);
-        // The reference drawing has a blue-violet translucent glazed roof lantern.
+         // The reference drawing has a blue-violet translucent glazed roof lantern.
         skylightGlass=Surface("roof_skylight_glass",new Color(.48f,.56f,.76f,.38f),true,false);
         led=Surface("warm_led",new Color(.92f,.78f,.57f),false,true);
     }
@@ -374,6 +374,63 @@ public static class BraxChampionsCasinoT11
     // The owner's 7 Nov instruction removes the office skyscraper COMPLETELY.
     // No tower silhouette, glass cage, crown or tower prefabs are generated.
     // The remaining approved building is the low two-storey casino only.
+
+    static Bounds DollarBounds(GameObject model)
+    {
+        var renderers=model.GetComponentsInChildren<Renderer>(true);
+        if(renderers.Length==0)
+            throw new InvalidOperationException("Owner DEZYNE_3D dollar GLB contains no geometry: "+DollarPath);
+        Bounds result=renderers[0].bounds;
+        foreach(var renderer in renderers.Skip(1))result.Encapsulate(renderer.bounds);
+        if(result.size.y<.00001f || result.size.x<.00001f)
+            throw new InvalidOperationException("Owner dollar model dimensions are invalid: "+DollarPath);
+        return result;
+    }
+
+    static void RoofDollar()
+    {
+        // Full GLB is imported as the ORIGINAL model (textures and mesh
+        // unchanged). Source not present: report a missing owner asset;
+        // never silently replace it with a procedural $ or a 2D board.
+        var source=AssetDatabase.LoadAssetAtPath<GameObject>(DollarPath) ??
+            AssetDatabase.LoadAllAssetsAtPath(DollarPath).OfType<GameObject>().FirstOrDefault();
+        if(!source)
+        {
+            BraxBuildQuality.Warn("T11_ROOF_DOLLAR_OWNER_GLB_NOT_STAGED: "+
+                DollarPath+"; keep original source, never make a substitute");
+            return;
+        }
+        // The WEST roof wing is solid (x=-38..-12). Stay away from the
+        // central atrium, front glass, main sign and roof skylight x=-12..12.
+        const float x=-24f,z=-15f,roofY=14.40f,nominalHeight=15.0f;
+        B(shell,"T11 OWNER DOLLAR rooftop structural steel support",steel,
+            x,14.25f,z,5.0f,.30f,2.5f,true);
+        var holder=Group(root,"T11 | OWNER ORIGINAL DEZYNE_3D GOLD DOLLAR | roof");
+        holder.localPosition=new Vector3(x,roofY,z)*K;
+        var dollar=PrefabUtility.InstantiatePrefab(source) as GameObject;
+        if(!dollar)throw new InvalidOperationException("Could not instantiate original roof dollar GLB");
+        dollar.name="ORIGINAL dezyne_3d-dollar-sign-140.glb | tall rooftop dollar";
+        dollar.transform.SetParent(holder,false);
+        dollar.transform.localPosition=Vector3.zero;
+        dollar.transform.localRotation=Quaternion.Euler(0f,180f,0f);
+        var original=DollarBounds(dollar);
+        dollar.transform.localScale*=nominalHeight*K/original.size.y;
+        var scaled=DollarBounds(dollar);
+        // Anchor the actual mesh's bottom to the real structural roof mount:
+        // imported GLBs often have off-centre pivots, so do not assume pivot=foot.
+        dollar.transform.position+=new Vector3(
+            holder.position.x-scaled.center.x,
+            holder.position.y-scaled.min.y,
+            holder.position.z-scaled.center.z);
+        foreach(var collider in dollar.GetComponentsInChildren<Collider>(true))
+            UnityEngine.Object.DestroyImmediate(collider);
+        var finalBounds=DollarBounds(dollar);
+        Debug.Log("CHAMPIONS_T11_ROOF_DOLLAR_OWNER_ORIGINAL visible_height="+
+            (finalBounds.size.y/K).ToString("F2")+
+            "m roofY="+roofY+" x="+x+" z="+z+
+            " model_source=dezyne_3d-dollar-sign-140.glb sourceMaterialsUnchanged=true"+
+            " phoneVisualReviewRequired=true");
+    }
 
     static void UndergroundGarage()
     {
@@ -787,7 +844,8 @@ public static class BraxChampionsCasinoT11
         signRoot=Group(root,"T11 original owner sign (always visible)");
         Site();ThreeMatchingFacades();RoofAndSkylight();CurvedFoyer();
         // 7 Nov owner's final approval: NO OFFICE TOWER whatsoever.
-        // Do not instantiate or reserve a wireframe/skyscraper shell.
+        // The original owner GLB $ is the ONLY new rooftop silhouette.
+        RoofDollar();
         MainSign();RoadsideSigns();PremiumExteriorLighting();
         // Remove tiny gold detail in distance, keep WAWER sign always visible.
         var renderers=trim.GetComponentsInChildren<Renderer>(true);
