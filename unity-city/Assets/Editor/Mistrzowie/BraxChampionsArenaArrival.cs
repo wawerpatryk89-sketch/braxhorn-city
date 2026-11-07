@@ -444,6 +444,8 @@ public static class BraxChampionsArenaArrival
         var bronze=new FacadeBatch();
         var roof=new FacadeBatch();
         var signBacker=new FacadeBatch();
+        var crownLight=new FacadeBatch();
+        var interiorWarmBands=new FacadeBatch();
         // Właściciel 7.11: wariant premium nr 3. Szerokie CZARNE filary
         // na odskoki: wysunięte przed lico przyciemnionej tafli szkła.
         // Co trzeci segment jest reprezentacyjnym filarem 2.10 m, a
@@ -502,6 +504,13 @@ public static class BraxChampionsArenaArrival
                 new Vector3(.56f,.34f,length),rotation);
             bronze.Beam(mid+outward*.32f+Vector3.up*27.09f,
                 new Vector3(.045f,.075f,length),rotation);
+            // Reference exterior: continuous warm crown under the dark roof cap
+            // plus three warm horizontal bands visible behind the upper glass.
+            crownLight.Beam(mid+outward*.58f+Vector3.up*27.50f,
+                new Vector3(.035f,.085f,length),rotation);
+            foreach(float warmY in new[]{20.55f,22.65f,24.75f})
+                interiorWarmBands.Beam(mid-outward*.13f+Vector3.up*warmY,
+                    new Vector3(.025f,.055f,length),rotation);
         }
 
         // Slim dark PBR sign plinths behind, never on top of, the owner's
@@ -549,6 +558,8 @@ public static class BraxChampionsArenaArrival
         roof.Emit(group,"PBR_roof_coping",exterior["roof"]);
         signBacker.Emit(group,"PBR_sign_backing_beneath_original_6_to_1_signs",
             exterior["dark_stone"]);
+        crownLight.Emit(group,"REFERENCE_continuous_warm_roof_crown_LED",exterior["light"]);
+        interiorWarmBands.Emit(group,"REFERENCE_three_warm_upper_glass_bands",exterior["light"]);
 
         // Glass canopies and granite/bronze pilasters on BOTH doors.
         // Side supports are 10m from the centre: no obstacle in the 6.4m aisle.
@@ -588,8 +599,68 @@ public static class BraxChampionsArenaArrival
         Debug.Log("CHAMPIONS_A1_POLYHAVEN_EXTERIOR_PREMIUM facade_bays="+bays+
             " omitted_lower_facade_door_segments="+skippedDoor+
             " wide_black_columns=2.10m pitch=3bays stepped_out=.79m center_gold=.095m"+
+            " roof_crown_LED=continuous upper_warm_bands=3 entrance_planters=2"+
             " authentic_PBR=true opaque_glass_overlays=0 original_signs_preserved=true"+
             " doors_and_vehicle_lanes_preserved=true device_visual_review_required=true");
+    }
+
+    const string PremiumShrubSource = "Assets/Source/CityRebuild/landscape/park_shrub.glb";
+
+    static Bounds RendererBounds(GameObject go)
+    {
+        var renderers=go.GetComponentsInChildren<Renderer>(true);
+        if(renderers.Length==0)return new Bounds(go.transform.position,Vector3.zero);
+        var b=renderers[0].bounds;
+        for(int i=1;i<renderers.Length;i++)b.Encapsulate(renderers[i].bounds);
+        return b;
+    }
+
+    static void PlacePremiumShrub(Transform parent,Vector3 nominal,float yaw,float nominalHeight)
+    {
+        var source=AssetDatabase.LoadAssetAtPath<GameObject>(PremiumShrubSource);
+        if(!source)
+        {
+            BraxBuildQuality.Warn("A1_PREMIUM_SHRUB_SOURCE_MISSING: "+PremiumShrubSource);
+            return;
+        }
+        var go=PrefabUtility.InstantiatePrefab(source) as GameObject;
+        if(!go){BraxBuildQuality.Warn("A1_PREMIUM_SHRUB_INSTANTIATE_FAILED");return;}
+        go.name="A1 premium entrance shrub | original project GLB";
+        go.transform.SetParent(parent,false);
+        go.transform.localPosition=nominal*K;
+        go.transform.localRotation=Quaternion.Euler(0,yaw,0);
+        Physics.SyncTransforms();
+        var b=RendererBounds(go);
+        if(b.size.y>.001f)
+            go.transform.localScale*=nominalHeight*K/b.size.y;
+        Physics.SyncTransforms();
+        b=RendererBounds(go);
+        // Put the visible bottom on the same arrival paving plane.
+        go.transform.position+=Vector3.up*(.245f*K-b.min.y);
+        foreach(var col in go.GetComponentsInChildren<Collider>(true))
+            UnityEngine.Object.DestroyImmediate(col);
+        foreach(var r in go.GetComponentsInChildren<Renderer>(true))
+        {
+            r.shadowCastingMode=ShadowCastingMode.On;
+            r.receiveShadows=true;
+        }
+    }
+
+    static void ReferenceEntranceLandscaping(Transform parent,Dictionary<string,Material> exterior)
+    {
+        // Reference photo: symmetrical low dark-stone planters and clipped greenery
+        // framing the red-carpet approach, never blocking the 6.4m public aisle.
+        foreach(float side in new[]{-1f,1f})
+        {
+            float x=side*17.2f;
+            Box(parent,"A1 reference entrance | black-stone planter",exterior["dark_stone"],
+                new Vector3(x,.46f,-61.7f),new Vector3(10.6f,.48f,2.55f),true);
+            Box(parent,"A1 reference entrance | gold planter cap",exterior["gold"],
+                new Vector3(x,.715f,-61.7f),new Vector3(10.72f,.035f,2.67f),false);
+            for(int i=-2;i<=2;i++)
+                PlacePremiumShrub(parent,new Vector3(x+i*1.85f,.25f,-61.7f),
+                    side<0?12f:-12f,1.22f);
+        }
     }
 
     public static bool Generate(Transform arenaRoot, Dictionary<string, Material> exterior)
@@ -613,6 +684,7 @@ public static class BraxChampionsArenaArrival
         // Architectural PBR finish is generated independently of source signs,
         // without shifting the approved ellipse, doors or visitor routes.
         PremiumExterior(root, exterior);
+        ReferenceEntranceLandscaping(root, exterior);
         Stanchions(root, exterior["gold"], blackRope, redCarpet);
         Door(root, "CHAMPIONS_A1_PUBLIC", "Main public entrance", -59.04f, exterior["clear_glass"], exterior["steel"]);
         Door(root, "CHAMPIONS_A1_ATHLETES", "Separate athlete rear entrance", 59.04f, exterior["clear_glass"], exterior["steel"]);
