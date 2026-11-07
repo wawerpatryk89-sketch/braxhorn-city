@@ -682,7 +682,7 @@ public static class BraxChampionsArenaArrival
             UnityEngine.Object.DestroyImmediate(col);
         foreach(var r in go.GetComponentsInChildren<Renderer>(true))
         {
-            r.shadowCastingMode=ShadowCastingMode.On;
+            r.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.On;
             r.receiveShadows=true;
         }
     }
