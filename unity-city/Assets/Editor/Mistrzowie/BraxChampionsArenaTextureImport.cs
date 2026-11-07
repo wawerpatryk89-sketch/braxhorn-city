@@ -18,10 +18,18 @@ public sealed class BraxChampionsArenaTextureImport : AssetPostprocessor
         importer.textureShape=TextureImporterShape.Texture2D;
         importer.sRGBTexture=colour;
         importer.mipmapEnabled=true;
-        importer.streamingMipmaps=true;
+        // A1 four approved sign textures must remain full-resolution on Android.
+        // Streaming could temporarily choose a lower mip, blurring lettering.
+        // Keep every SOURCE pixel and the exact original 6:1 artwork.
+        importer.streamingMipmaps=!signs;
         importer.isReadable=false;
         importer.npotScale=TextureImporterNPOTScale.None;
-        importer.anisoLevel=4;
+        importer.anisoLevel=signs?16:4;
+        if(signs)
+        {
+            importer.filterMode=FilterMode.Trilinear;
+            importer.wrapMode=TextureWrapMode.Clamp;
+        }
         importer.alphaSource=signs?TextureImporterAlphaSource.FromInput:TextureImporterAlphaSource.None;
         importer.alphaIsTransparency=signs;
         importer.textureCompression=TextureImporterCompression.CompressedHQ;
