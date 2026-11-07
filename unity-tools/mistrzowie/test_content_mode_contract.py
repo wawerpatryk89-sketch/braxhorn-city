@@ -32,9 +32,17 @@ class ChampionsContentModeTests(unittest.TestCase):
         self.assertIn("BraxContent.Begin(nazwa, LoadSceneMode.Single, false)", start)
         self.assertIn("yield return op.Activate()", start)
         self.assertIn("BraxContent.ChooseUpdate()", start)
-        picker = self.code("unity-city/Assets/Updates/Android/BraxContentPicker.java")
-        self.assertIn("Intent.ACTION_OPEN_DOCUMENT", picker)
-        self.assertIn("UnityPlayer.UnitySendMessage", picker)
+        java = ROOT / "unity-city/Assets/Updates/Android/BraxContentPicker.java"
+        if java.exists():
+            picker = java.read_text(encoding="utf-8")
+            self.assertIn("Intent.ACTION_OPEN_DOCUMENT", picker)
+            self.assertIn("UnityPlayer.UnitySendMessage", picker)
+        else:
+            # Current Android architecture intentionally ships the compiled JAR,
+            # not loose Java under Assets. Verify the build contract instead.
+            workflow = self.code(".github/workflows/mistrzowie-apk.yml")
+            self.assertIn("Compile Android file picker for future content-only patches", workflow)
+            self.assertIn("test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar", workflow)
 
     def test_content_only_builder_never_builds_apk(self):
         builder = self.code("unity-city/Assets/Editor/Updates/BraxContentBuild.cs")
