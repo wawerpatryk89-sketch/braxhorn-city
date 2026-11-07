@@ -42,6 +42,15 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertGreater(10.8 - .22 / 2, 4.7)
         self.assertIn('foreach(float side in new[]{-1f,1f})', self.arrival)
 
+    def test_glass_bay_columns_are_wide_premium_not_thin_strips(self):
+        # Nominal estate dimensions; K is applied once in the mesh builder.
+        self.assertIn("new Vector3(.30f,9.30f,.52f),rotation);", self.arrival)
+        self.assertIn("new Vector3(.30f,7.35f,.52f),rotation);", self.arrival)
+        self.assertIn("new Vector3(.048f,9.30f,.19f),rotation);", self.arrival)
+        self.assertIn("new Vector3(.048f,7.35f,.19f),rotation);", self.arrival)
+        self.assertGreaterEqual(.52, .50)
+        self.assertGreaterEqual(.30, .28)
+
     def test_real_pbr_and_transparent_canopy_no_door_colliders(self):
         for key in ('original_PolyHaven_granite_plinth', 'PBR_curtain_wall_aluminium',
                     'PBR_bronze_architectural_detail', 'PBR_roof_coping'):
