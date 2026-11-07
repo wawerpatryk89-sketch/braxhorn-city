@@ -130,10 +130,13 @@ public static class BraxGymBuild
         return ok;
     }
 
-    // Tekstury elewacji/placów/billboardów → 1K dla danej platformy (platform override, format bez zmian, kompresja normalna).
+    // Owner 7.11: facade/paving textures have 2K maximum on Android at close
+    // range; distant mip levels are selected at runtime. Never force 1K on
+    // import, which also prevents the closest mip from being available.
     static void CapFacadeTextures(BuildTarget target)
     {
         string platform=target==BuildTarget.Android?"Android":"WebGL";
+        int maxClosePixels=target==BuildTarget.Android?2048:1024; // WebGL preview remains legacy only
         string[] folders={"Assets/Source/City/Images","Assets/PlayableGenerated/CityRebuild/Textures","Assets/Source/CityRebuild/textures","Assets/Source/Claude/PolyHaven/textures","Assets/Source/HarborBeach/Textures","Assets/CityRebuild/Brand"};
         folders=folders.Where(AssetDatabase.IsValidFolder).ToArray();
         if(folders.Length==0)return;
@@ -148,13 +151,15 @@ public static class BraxGymBuild
             if(lower.Contains("sand")||lower.Contains("tatami")||lower.Contains("leather")||lower.Contains("mural")||lower.Contains("terry")||lower.Contains("linen")||lower.Contains("gingham")){kept++;continue;}
             var imp=AssetImporter.GetAtPath(path) as TextureImporter;if(!imp)continue;
             var ps=imp.GetPlatformTextureSettings(platform);
-            if(ps.overridden&&ps.maxTextureSize<=1024)continue;
-            ps.name=platform;ps.overridden=true;ps.maxTextureSize=1024;
+            if(ps.overridden&&ps.maxTextureSize==maxClosePixels)continue;
+            ps.name=platform;ps.overridden=true;ps.maxTextureSize=maxClosePixels;
             if(ps.compressionQuality>50)ps.compressionQuality=50;
             imp.SetPlatformTextureSettings(ps);imp.SaveAndReimport();changed++;
         }
         }finally{AssetDatabase.StopAssetEditing();}
-        Debug.Log("BRAXHORN_TEXTURE_CAP "+platform+": elewacje do 1K zmienione="+changed+", zostawione 2K (z bliska)="+kept);
+        Debug.Log("BRAXHORN_TEXTURE_CAP "+platform+": importowany limit blisko="+maxClosePixels+
+            " px, zmienione="+changed+", pozostawione wyjątkowe tekstury="+kept+
+            ", zdalne AssetBundles nadal wymagają osobnego wdrożenia");
     }
 
     // Raport rozmiaru danych (Android: AAR > 4 GB, WebGL: webgl.data > 2 GB). Co i ile waży, po typie i po pliku.

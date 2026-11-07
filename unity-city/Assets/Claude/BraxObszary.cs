@@ -21,7 +21,7 @@ public sealed class BraxObszary : MonoBehaviour
         public string scena;
         public Bounds granice;
         public float wczytaj = 45f, zwolnij = 110f;
-        [NonSerialized] public bool wczytany, w_toku;
+        [NonSerialized] public bool wczytany, w_toku, bladLadowania;
     }
     public Obszar[] obszary = Array.Empty<Obszar>();
     public static int Laduje { get; private set; }
@@ -32,7 +32,9 @@ public sealed class BraxObszary : MonoBehaviour
     void Start()
     {
         Application.backgroundLoadingPriority = ThreadPriority.Low;
-        foreach (var o in obszary) o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
+        foreach (var o in obszary)
+            if (o != null && !string.IsNullOrEmpty(o.scena))
+                o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
         if (BraxStartTest.Wylaczony("obszary")) return;
         // obszary „od startu”: wczytywanie zaczyna się w pierwszej klatce sceny, jeden po drugim (bez czekania na gracza)
         StartCoroutine(OdStartuWszystkie());
@@ -42,7 +44,7 @@ public sealed class BraxObszary : MonoBehaviour
     {
         foreach (var o in obszary)
         {
-            if (o == null || o.wczytaj < OdStartu || o.wczytany || string.IsNullOrEmpty(o.scena)) continue;
+            if (o == null || o.wczytaj < OdStartu || o.wczytany || o.bladLadowania || string.IsNullOrEmpty(o.scena)) continue;
             if (!Application.CanStreamedLevelBeLoaded(o.scena)) { Debug.Log("BRAXHORN_OBSZAR od startu: brak sceny " + o.scena + " w paczce"); continue; }
             while (zajety) yield return null;
             if (o.wczytany) continue;
@@ -68,7 +70,9 @@ public sealed class BraxObszary : MonoBehaviour
         // zatrzymany w miejscu, żeby nie spadł przez brak podłoża; puszczony zaraz po wczytaniu.
         bool wSrodku = false;
         foreach (var o in obszary)
-            if (o != null && !o.wczytany && Application.CanStreamedLevelBeLoaded(o.scena) && o.granice.Contains(player.transform.position)) wSrodku = true;
+            if (o != null && !o.wczytany && !o.bladLadowania &&
+                !string.IsNullOrEmpty(o.scena) && Application.CanStreamedLevelBeLoaded(o.scena) &&
+                o.granice.Contains(player.transform.position)) wSrodku = true;
         if (wSrodku && !zamrozony && !player.vessel && player.body && player.body.enabled) { player.body.enabled = false; zamrozony = true; next = 0; }
         if (!wSrodku && zamrozony) { if (player.body) player.body.enabled = true; zamrozony = false; }
         if (Time.unscaledTime < next || zajety) return;
@@ -78,7 +82,8 @@ public sealed class BraxObszary : MonoBehaviour
         var cam = Camera.main;
         foreach (var o in obszary)
         {
-            if (o == null || string.IsNullOrEmpty(o.scena) || !Application.CanStreamedLevelBeLoaded(o.scena)) continue;
+            if (o == null || o.bladLadowania || string.IsNullOrEmpty(o.scena) ||
+                !Application.CanStreamedLevelBeLoaded(o.scena)) continue;
             float d = Mathf.Sqrt(o.granice.SqrDistance(p));
             if (cam) d = Mathf.Min(d, Mathf.Sqrt(o.granice.SqrDistance(cam.transform.position)));
             if (!o.wczytany && d < o.wczytaj) { StartCoroutine(Wczytaj(o)); return; }
@@ -86,15 +91,38 @@ public sealed class BraxObszary : MonoBehaviour
         }
     }
 
+    // A failed scene request must never leave the loader locked or the player
+    // permanently frozen. No retries inside Update on the same broken scene.
     IEnumerator Wczytaj(Obszar o)
     {
         zajety = true; o.w_toku = true; Laduje++;
-        BraxStartLog.Etap("obszar: wczytywanie " + o.scena);
-        var op = SceneManager.LoadSceneAsync(o.scena, LoadSceneMode.Additive);
-        if (op != null) { op.priority = 0; yield return op; }
-        o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
-        BraxStartLog.Etap("obszar wczytany " + o.scena);
-        Laduje--; o.w_toku = false; zajety = false;
+        try
+        {
+            BraxStartLog.Etap("obszar: wczytywanie " + o.scena);
+            AsyncOperation op = null;
+            try { op = SceneManager.LoadSceneAsync(o.scena, LoadSceneMode.Additive); }
+            catch (Exception e) { Debug.LogError("BRAXHORN_OBSZAR_SCENA_LOAD_FAILED "+o.scena+": "+e); }
+            if (op == null)
+            {
+                o.bladLadowania = true;
+                BraxStartLog.Etap("obszar: błąd wczytywania " + o.scena);
+                yield break;
+            }
+            op.priority = 0;
+            yield return op;
+            o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
+            if (!o.wczytany)
+            {
+                o.bladLadowania = true;
+                Debug.LogError("BRAXHORN_OBSZAR_SCENA_LOAD_FAILED brak aktywnej sceny "+o.scena);
+            }
+            else BraxStartLog.Etap("obszar wczytany " + o.scena);
+        }
+        finally
+        {
+            Laduje = Mathf.Max(0, Laduje - 1);
+            o.w_toku = false; zajety = false;
+        }
     }
 
     IEnumerator Zwolnij(Obszar o)
@@ -102,16 +130,34 @@ public sealed class BraxObszary : MonoBehaviour
         var sc = SceneManager.GetSceneByName(o.scena);
         if (!sc.isLoaded) { o.wczytany = false; yield break; }
         zajety = true; Laduje++;
-        // gracz (np. po zejściu z łodzi) nie może zostać w zwalnianej scenie
-        if (player && player.gameObject.scene == sc && !player.transform.parent)
-            SceneManager.MoveGameObjectToScene(player.gameObject, gameObject.scene);
-        var op = SceneManager.UnloadSceneAsync(sc);
-        if (op != null) yield return op;
-        yield return Resources.UnloadUnusedAssets();
-        o.wczytany = false;
-        Laduje--; zajety = false;
+        try
+        {
+            // Keep the player independent of the scene being unloaded.
+            if (player && player.gameObject.scene == sc && !player.transform.parent)
+                SceneManager.MoveGameObjectToScene(player.gameObject, gameObject.scene);
+            AsyncOperation op = null;
+            try { op = SceneManager.UnloadSceneAsync(sc); }
+            catch (Exception e) { Debug.LogError("BRAXHORN_OBSZAR_UNLOAD_FAILED "+o.scena+": "+e); }
+            if (op == null)
+            {
+                o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
+                yield break;
+            }
+            yield return op;
+            o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
+            if (!o.wczytany) yield return Resources.UnloadUnusedAssets();
+        }
+        finally
+        {
+            Laduje = Mathf.Max(0, Laduje - 1);
+            zajety = false;
+        }
     }
 
     // Przejście tunelem: wszystkie doczytane obszary idą razem ze sceną rejonu (BraxSceneTransit zwalnia wszystkie sceny).
-    void OnDestroy() { if (zajety) Laduje = Mathf.Max(0, Laduje - 1); }
+    void OnDestroy()
+    {
+        if (zamrozony && player && player.body) player.body.enabled = true;
+        if (zajety) Laduje = Mathf.Max(0, Laduje - 1);
+    }
 }

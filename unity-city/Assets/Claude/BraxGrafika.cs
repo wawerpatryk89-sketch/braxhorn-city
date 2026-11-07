@@ -39,12 +39,31 @@ public sealed class BraxGrafika : MonoBehaviour
     {
         natW = Display.main.systemWidth > 0 ? Display.main.systemWidth : Screen.width;
         natH = Display.main.systemHeight > 0 ? Display.main.systemHeight : Screen.height;
-        // Telefon: domyślnie NISKA (audyt 31.10: 1.1 GB tekstur, część z .glb nieskompresowana — limit mip ½ przed pierwszą
-        // sceną = ¼ pamięci tekstur; bez cieni w czasie rzeczywistym). ŚREDNIA / WYSOKA do wybrania w MENU i zapamiętane,
-        // ale na telefonie żaden tryb nie zdejmuje limitu tekstur (Mip) — zapamiętany wybór nie może już zamknąć gry na starcie.
+        // Owner rule (7.11): nearby non-character surfaces may use their full
+        // 2K Android mip; far away Unity streams smaller mip levels by camera
+        // distance. Never force every Android texture permanently to mip 1.
+        // This is a budget, not a guarantee for non-streaming imported textures.
+        if (Application.isMobilePlatform)
+        {
+            if (SystemInfo.supportsMipStreaming)
+            {
+                QualitySettings.streamingMipmapsActive = true;
+                QualitySettings.streamingMipmapsAddAllCameras = true;
+                QualitySettings.streamingMipmapsMaxLevelReduction = 3;
+                QualitySettings.streamingMipmapsMemoryBudget =
+                    SystemInfo.systemMemorySize >= 6144 ? 512f : 384f;
+                Debug.Log("BRAXHORN_R1_MIP distance_based=true near=full_imported_2K"
+                    + " max_reduction=" + QualitySettings.streamingMipmapsMaxLevelReduction
+                    + " budget_mb=" + QualitySettings.streamingMipmapsMemoryBudget);
+            }
+            else Debug.LogWarning("BRAXHORN_R1_MIP unsupported=true; "
+                + "2K near must be checked against measured Android memory");
+        }
+        // Telefon: poprzednio wymuszano mip 1 (audyt 31.10: 1.1 GB tekstur, część z .glb nieskompresowana — limit mip ½ przed pierwszą
+        // sceną = ¼ pamięci tekstur). Nowa polityka: 2K blisko, mipy z odległością, bez cieni w trybie NISKA.
+        // ŚREDNIA / WYSOKA dostępne w MENU i zapamiętane; brak globalnego obcięcia tekstur do 1K.
         // build 14 (właściciel 21:42–21:46): domyślnie wg telefonu — Edge 60 Pro / mocna grafika = WYSOKA, moto g86 = ŚREDNIA,
-        // < 5 GB RAM = NISKA (BraxProfilTelefonu). Tekstury na telefonie i tak zawsze z limitem mip (Mip), więc wyższy tryb
-        // nie zwiększa pamięci tekstur przy starcie.
+        // < 5 GB RAM = NISKA (BraxProfilTelefonu). Streaming mipmap zależy od kamery i importera.
         int domyslny = BraxProfilTelefonu.Domyslny();
         int t = -1;
         try { t = PlayerPrefs.GetInt(Klucz, -1); } catch { }
@@ -137,12 +156,12 @@ public sealed class BraxGrafika : MonoBehaviour
     // (właściciel 31.10, 21:33: „wypierdala z aplikacji” po APK d260250). Na telefonie MSAA zostaje takie, jak w buildzie.
     // Limit mip tekstur tylko przy zmianie wartości: każde przypisanie przeładowuje wszystkie tekstury sceny z dysku
     // (na telefonie z 4 GB to skok pamięci i zamknięcie aplikacji). Na start ustawiany przed pierwszą sceną (BeforeSceneLoad).
-    // Telefon: tekstury zawsze w połowie rozdzielczości, w każdym trybie (audyt miasta 31.10: zapisany wybór ŚREDNIA dawał przy
-    // kolejnym starcie pełne tekstury = znowu zamykanie gry; zmiana limitu w menu przeładowywała wszystkie tekstury naraz).
-    // Limit ustawiony raz przed pierwszą sceną i nigdy nie zmieniany na telefonie. Pełne tekstury wrócą po podziale miasta na paczki.
+    // Mobile: no permanent half-resolution clamp. Keep the highest imported
+    // mip available for near surfaces; stream lower mips at distance where the
+    // importer and renderer support it. Avoid changing this value per frame.
     static void Mip(int n)
     {
-        if (Application.isMobilePlatform) n = Mathf.Max(n, 1);
+        if (Application.isMobilePlatform) n = 0;
         if (QualitySettings.globalTextureMipmapLimit != n) QualitySettings.globalTextureMipmapLimit = n;
     }
     static void Msaa(int n)
