@@ -191,7 +191,7 @@ public static class BraxChampionsCarBuilder
         var car = root.AddComponent<BraxChampionsCar>();
         car.bodyCollider = box; car.driverSeat = seat; car.doorApproach = enter;
         car.doorHinge = doorPivot;
-        car.wheelbase = 2.7f; car.maxSpeed = 12f;
+        car.wheelbase = 2.7f; car.maxSpeed = 65f / 3.6f;
         car.interactionRadius = 3.8f;
         // If wheels are individual GLB nodes, the runtime animates their
         // existing transforms; no substitute wheel meshes are created.
