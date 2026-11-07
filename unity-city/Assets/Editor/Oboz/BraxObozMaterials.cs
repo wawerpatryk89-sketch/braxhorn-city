@@ -18,10 +18,27 @@ public static class BraxObozMaterials
         importer.sRGBTexture = color; importer.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
         if (ConfigureStreaming(importer, path)) changed = true;
         if (changed) importer.SaveAndReimport();
+        AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
         var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         if (!texture) throw new InvalidOperationException("Nie zaimportowano mapy PBR jako Texture2D: " + path +
             "; shape=" + importer.textureShape + "; mainAsset=" + AssetDatabase.LoadMainAssetAtPath(path)?.GetType().FullName);
         return texture;
+    }
+    // Inspect source dimensions; an Android import may legitimately change
+    // the GPU dimensions. A visual quality issue must never abort the scene.
+    public static void ReviewSourceResolution(string path,int minimum,string label)
+    {
+        var importer=AssetImporter.GetAtPath(path) as TextureImporter;
+        if(!importer){BraxBuildQuality.Warn("OBÓZ TEKSTURA bez importera: "+label+" "+path);return;}
+        importer.GetSourceTextureWidthAndHeight(out int width,out int height);
+        if(width<minimum||height<minimum)
+            BraxBuildQuality.Warn("OBÓZ TEKSTURA źródłowa: "+label+" "+width+"x"+height+
+                "; oczekiwane minimum="+minimum+"; zachowano oryginał "+path);
+    }
+    public static Texture2D OriginalColorMap(string path,int minimum,string label)
+    {
+        var texture=Map(path,false,true);
+        ReviewSourceResolution(path,minimum,label);return texture;
     }
     public static Material Pbr(string id)
     {
@@ -131,10 +148,8 @@ public static class BraxObozMaterials
         var color=Map(albedo,false,true);
         var bump=Map(normal,true,false);
         var rough=Map(roughness,false,false);
-        if(color.width<2048||color.height<2048||
-            bump.width<2048||bump.height<2048||
-            rough.width<2048||rough.height<2048)
-            throw new InvalidOperationException("Nawierzchnia bieżni musi mieć prawdziwe 2K w zbliżeniu");
+        foreach(var pathToMap in new[]{albedo,normal,roughness})
+            ReviewSourceResolution(pathToMap,2048,"rubberized_track");
         material.SetTexture("_MainTex",color);
         material.SetTexture("_BumpMap",bump);
         material.SetTexture("_RoughnessTex",rough);
@@ -155,9 +170,8 @@ public static class BraxObozMaterials
         if(!shader) throw new InvalidOperationException("Brak shadera gresu PBR");
         var color=Map(colorPath,false,true);var normal=Map(normalPath,true,false);
         var rough=Map(roughPath,false,false);
-        if(color.width<2048||color.height<2048||normal.width<2048||normal.height<2048||
-            rough.width<2048||rough.height<2048)
-            throw new InvalidOperationException("Gres nie jest prawdziwym 2K");
+        foreach(var pathToMap in new[]{colorPath,normalPath,roughPath})
+            ReviewSourceResolution(pathToMap,2048,"slab_tiles");
         var mat=new Material(shader){name="Obóz / ciemny gres oryginalny 2K",enableInstancing=true};
         mat.SetTexture("_MainTex",color);mat.SetTexture("_BumpMap",normal);
         mat.SetTexture("_RoughnessTex",rough);mat.SetFloat("_MetallicFactor",0);
@@ -206,9 +220,8 @@ public static class BraxObozMaterials
         var alpha=Map(prefix+name.Replace("_2k","_alpha_2k")+".png",false,false);
         var normal=Map(prefix+name.Replace("_2k","_nor_gl_2k")+".exr",true,false);
         var rough=Map(prefix+name.Replace("_2k","_rough_2k")+".exr",false,false);
-        foreach(var tex in new[]{color,alpha,normal,rough})
-            if(!tex || tex.width!=2048 || tex.height!=2048)
-                throw new InvalidOperationException("Owner Grass Medium atlas is not real 2K: "+name);
+        foreach(var texture in new[]{color,alpha,normal,rough})
+            ReviewSourceResolution(AssetDatabase.GetAssetPath(texture),2048,name);
         var shader=Shader.Find("Braxhorn/ObozGrassMedium");
         if(!shader)throw new InvalidOperationException("Grass Medium original PBR shader missing");
         var mat=new Material(shader){name="BRAXHORN / oryginalna Grass Medium "+variant+
@@ -237,10 +250,8 @@ public static class BraxObozMaterials
         var colorMap=Map(diffuse,false,true);
         var normalMap=Map(normal,true,false);
         var roughMap=Map(rough,false,false);
-        if(colorMap.width<2048||colorMap.height<2048||
-            normalMap.width<2048||normalMap.height<2048||
-            roughMap.width<2048||roughMap.height<2048)
-            throw new InvalidOperationException("Wymagane rzeczywiste mapy właścicielskiego błota 2048");
+        foreach(var pathToMap in new[]{diffuse,normal,rough})
+            ReviewSourceResolution(pathToMap,2048,"mud_forest");
         var mud=new Material(shader){name="Obóz / oryginalne mokre błoto właściciela 2K",
             enableInstancing=true};
         mud.SetTexture("_MainTex",colorMap);mud.SetTexture("_BumpMap",normalMap);

@@ -3,15 +3,15 @@
 These are derived vegetation textures, never screenshots of a Unity scene.
 Near/mid models retain their authored meshes. Source GLBs are read-only.
 """
-import argparse,hashlib,json,math
+import argparse,hashlib,json,math,sys
 from pathlib import Path
 import bpy
 from mathutils import Vector
 from PIL import Image
 
-def render(root,output,report):
+def render(root,output,report,pattern='*_LOD2.glb'):
     output.mkdir(parents=True,exist_ok=True);records=[]
-    for path in sorted(root.glob('*_LOD2.glb')):
+    for path in sorted(root.glob(pattern)):
         if path.name.endswith('__unity.glb'):continue
         digest=hashlib.sha256(path.read_bytes()).hexdigest()
         bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -37,7 +37,11 @@ def render(root,output,report):
         points=[o.matrix_world@Vector(v) for o in meshes for v in o.bound_box]
         lo=Vector([min(p[i] for p in points) for i in range(3)]);hi=Vector([max(p[i] for p in points) for i in range(3)])
         # Square frames avoid clipping wide crowns in the atlas.
-        span=max(hi.x-lo.x,hi.y-lo.y,hi.z-lo.z)*1.04;center=Vector((0,0,(hi.z+lo.z)/2))
+        # The quad stays centred on the trunk. An asymmetric crown therefore
+        # needs twice its maximum radius, not merely its bounding-box width.
+        # Using width alone clipped the actual small-tree side views.
+        span=max(2*max(abs(lo.x),abs(hi.x),abs(lo.y),abs(hi.y)),hi.z-lo.z)*1.04
+        center=Vector((0,0,(hi.z+lo.z)/2))
         scene.render.engine='CYCLES';scene.cycles.device='CPU';scene.cycles.samples=12;scene.cycles.use_denoising=True
         scene.render.resolution_x=512;scene.render.resolution_y=512;scene.render.resolution_percentage=100
         scene.render.film_transparent=True;scene.render.image_settings.file_format='PNG';scene.render.image_settings.color_mode='RGBA'
@@ -55,20 +59,31 @@ def render(root,output,report):
             camera.rotation_euler=(center-camera.location).to_track_quat('-Z','Y').to_euler()
             frame=output/(path.stem+'_'+str(index)+'.png');scene.render.filepath=str(frame.resolve());bpy.ops.render.render(write_still=True)
             frames.append(frame)
-        atlas=Image.new('RGBA',(2048,512))
+        atlas=Image.new('RGBA',(2048,512));alpha_bounds=[]
         for i,frame in enumerate(frames):
-            with Image.open(frame) as im:atlas.paste(im,(512*i,0))
-        dest=output/(path.stem.replace('_LOD2','')+'_Billboard_Color.png');temp=dest.with_suffix('.tmp.png');atlas.save(temp)
+            with Image.open(frame) as im:
+                atlas.paste(im,(512*i,0))
+                visible=im.getchannel('A').point(lambda a:255 if a>=90 else 0).getbbox()
+                if visible is None:raise ValueError('Empty source-tree billboard view '+str(frame))
+                if min(visible[0],visible[1])<=1 or max(visible[2],visible[3])>=511:
+                    raise ValueError('Source-tree silhouette touches the atlas edge '+str(frame))
+                alpha_bounds.append({'view':i,'alphaCutoff':.35,'pixels':list(visible)})
+        dest=output/(path.stem.rsplit('_LOD',1)[0]+'_Billboard_Color.png');temp=dest.with_suffix('.tmp.png');atlas.save(temp)
         with Image.open(temp) as check:check.load()
         temp.replace(dest)
         for frame in frames:frame.unlink()
         if hashlib.sha256(path.read_bytes()).hexdigest()!=digest:raise ValueError('Source changed')
         records.append({'model':path.name,'sourceSha256':digest,'file':dest.name,'sha256':hashlib.sha256(dest.read_bytes()).hexdigest(),
-          'span':span,'centerY':center.z,'views':4,'size':[2048,512],'capture':'source albedo plus alpha; lighting applied in Unity shader','unityRendered':False,'sourceUnchanged':True})
+          'span':span,'centerY':center.z,'sourceBoundsMeasured':True,'trunkCenteredSpan':True,
+          'sourceBottomY':lo.z,'sourceTopY':hi.z,'sourceBoundsMin':list(lo),'sourceBoundsMax':list(hi),
+          'viewAlphaBoundsPixels':alpha_bounds,'canvasBottomY':center.z-span*.5,
+          'canvasMetric':'transparent camera frame; sourceBottomY is the tree foundation',
+          'views':4,'size':[2048,512],'capture':'source albedo plus alpha; lighting applied in Unity shader','unityRendered':False,'sourceUnchanged':True})
         report.write_text(json.dumps({'billboards':records,'complete':False},indent=2)+'\n')
         print(json.dumps(records[-1]),flush=True)
     report.write_text(json.dumps({'billboards':records,'complete':True},indent=2)+'\n')
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--sources',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--report',type=Path,required=True)
-    a=p.parse_args();render(a.sources,a.output,a.report)
+    p.add_argument('--model-pattern',default='*_LOD2.glb',help='Exact authored source filename or pattern, e.g. tree_small_02_LOD1.glb; never a fabricated LOD')
+    a=p.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else sys.argv[1:]);render(a.sources,a.output,a.report,a.model_pattern)

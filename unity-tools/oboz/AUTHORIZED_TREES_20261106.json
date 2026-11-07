@@ -1,0 +1,345 @@
+{
+  "schema": 1,
+  "title": "OBÓZ TRENINGOWY — dokładne drzewa wskazane przez właściciela",
+  "verifiedDate": "2026-11-06",
+  "ownerInstruction": "Las gęsty przy płocie (fir_tree_01, pine_tree_01, tree_small_02 z Poly Haven)",
+  "requiredBlenderVersion": "4.5.15",
+  "downloadOutsideUnityAssets": true,
+  "noNewAssetChoice": true,
+  "noLod0Import": true,
+  "modelsDownloadedHere": false,
+  "modelsImportedHere": false,
+  "checksumMeaning": "Official Poly Haven files API MD5 plus byte size; downloader records SHA256 after verified transfer",
+  "assets": [
+    {
+      "id": "pine_tree_01",
+      "displayName": "Pine Tree 01",
+      "authors": {
+        "Rob Tuytel": "photography",
+        "Rico Cilliers": "modeling"
+      },
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/pine_tree_01",
+      "apiInfo": "https://api.polyhaven.com/info/pine_tree_01",
+      "apiFiles": "https://api.polyhaven.com/files/pine_tree_01",
+      "apiFilesHash": "98997b7406016d998742bd962473c5d63e14da21",
+      "officialLodsFlag": true,
+      "sourcePolycount": 17427094,
+      "sourceSubdirectory": "pine_tree_01_2k",
+      "blendFile": "pine_tree_01_2k.blend",
+      "sourceBytes": 777444806,
+      "files": [
+        {
+          "relativePath": "pine_tree_01_2k.blend",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/blend/2k/pine_tree_01/pine_tree_01_2k.blend",
+          "bytes": 570739671,
+          "md5": "ec743e4c7605318bf17c8f13820c2321",
+          "kind": "blend"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_bark_diff_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_bark_diff_2k.png",
+          "bytes": 21914708,
+          "md5": "431f3c4e40e4349527cf1c2fe2ebe6fc",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_bark_disp_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_bark_disp_2k.png",
+          "bytes": 6162156,
+          "md5": "97db9324b179d11c271c1bcc57ae7dfa",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_bark_nor_gl_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_bark_nor_gl_2k.png",
+          "bytes": 21747048,
+          "md5": "d658980d981ea8df2da1d005d5dea805",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_bark_rough_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_bark_rough_2k.png",
+          "bytes": 9821164,
+          "md5": "f6ed4cd584b4bf2fda17d221d529b369",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_trunk_a_diff_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_trunk_a_diff_2k.png",
+          "bytes": 18529439,
+          "md5": "e04069ce3a3c73b059e46a101b3263f0",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_trunk_a_nor_gl_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_trunk_a_nor_gl_2k.png",
+          "bytes": 16308667,
+          "md5": "2dcf41e05b6fd7ddfe2a77e024fb2844",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_trunk_a_rough_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_trunk_a_rough_2k.png",
+          "bytes": 5959672,
+          "md5": "d59b461fbdc8400d261358d4d6941b02",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_trunk_b_diff_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_trunk_b_diff_2k.png",
+          "bytes": 17855979,
+          "md5": "6b3dcce9e9c71a058b06f48426c017b5",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_trunk_b_nor_gl_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_trunk_b_nor_gl_2k.png",
+          "bytes": 15603340,
+          "md5": "0c89b51bf9b04c9ebb1ff103b6740012",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_trunk_b_rough_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_trunk_b_rough_2k.png",
+          "bytes": 5739927,
+          "md5": "05e46fc259929f61fcdb297c06025dd4",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_trunk_c_diff_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_trunk_c_diff_2k.png",
+          "bytes": 19043152,
+          "md5": "0be4ada975b943e2c537f199509f685b",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_trunk_c_nor_gl_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_trunk_c_nor_gl_2k.png",
+          "bytes": 16876318,
+          "md5": "3e5406f9b6f3d4018ace7c1b0d8958f1",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_trunk_c_rough_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_trunk_c_rough_2k.png",
+          "bytes": 6224900,
+          "md5": "e8f71b60c5f81a8382cd6c06153307e5",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_twig_alpha_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_twig_alpha_2k.png",
+          "bytes": 814656,
+          "md5": "85f9f62d98dc35cce642895d75f79fa6",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_twig_diff_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_twig_diff_2k.png",
+          "bytes": 10070495,
+          "md5": "7e331929a726605fc99af8b82253d100",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_twig_mask_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_twig_mask_2k.png",
+          "bytes": 496869,
+          "md5": "82a76608dc673c96048f3e7d52246f19",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_twig_nor_gl_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_twig_nor_gl_2k.png",
+          "bytes": 9430327,
+          "md5": "3ebdf235873ec43c44528a0efcbd8892",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/pine_tree_01_twig_rough_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/pine_tree_01/pine_tree_01_twig_rough_2k.png",
+          "bytes": 4106318,
+          "md5": "6f2b474081a4196ce90cc71ceb01bb96",
+          "kind": "texture"
+        }
+      ],
+      "allowedLodLevels": [
+        1,
+        2
+      ],
+      "maxTrianglesPerAuthoredLod": 1000000,
+      "directGltfIsNotMobileLod": true,
+      "directGltfNodes": [
+        {
+          "nodeName": "pine_tree_01_a_LOD0",
+          "triangles": 6951524
+        },
+        {
+          "nodeName": "pine_tree_01_b_LOD0",
+          "triangles": 4234432
+        },
+        {
+          "nodeName": "pine_tree_01_c_LOD0",
+          "triangles": 5996296
+        }
+      ],
+      "directGltfTotalSourceBytes": 982149009,
+      "exactBlendLodNamesVerified": true,
+      "foliageDiffuse": "textures/pine_tree_01_twig_diff_2k.png",
+      "foliageAlpha": "textures/pine_tree_01_twig_alpha_2k.png",
+      "selectedPrototypes": [
+        "pine_tree_01_b"
+      ],
+      "requiredLodLevels": [
+        1,
+        2
+      ],
+      "verifiedAuthoredLodTriangles": {
+        "pine_tree_01_b_LOD1": 514980,
+        "pine_tree_01_b_LOD2": 267343
+      },
+      "maxSceneInstances": 12,
+      "geometryDistanceMetres": [
+        20,
+        35
+      ]
+    },
+    {
+      "id": "tree_small_02",
+      "displayName": "Tree Small 02",
+      "authors": {
+        "Rico Cilliers": "All"
+      },
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceUrl": "https://polyhaven.com/a/tree_small_02",
+      "apiInfo": "https://api.polyhaven.com/info/tree_small_02",
+      "apiFiles": "https://api.polyhaven.com/files/tree_small_02",
+      "apiFilesHash": "5fe4637be7454be81ee92fc68a7938b56d20c613",
+      "officialLodsFlag": true,
+      "sourcePolycount": 4652585,
+      "sourceSubdirectory": "tree_small_02_2k",
+      "blendFile": "tree_small_02_2k.blend",
+      "sourceBytes": 129052477,
+      "files": [
+        {
+          "relativePath": "tree_small_02_2k.blend",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/blend/2k/tree_small_02/tree_small_02_2k.blend",
+          "bytes": 63805237,
+          "md5": "275e188d4703c819877e803317b592c1",
+          "kind": "blend"
+        },
+        {
+          "relativePath": "textures/tree_small_02_branch_diff_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/tree_small_02/tree_small_02_branch_diff_2k.png",
+          "bytes": 2714537,
+          "md5": "d2ef708e997a1c7fe0cb200f071f12dc",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/tree_small_02_branch_nor_gl_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/tree_small_02/tree_small_02_branch_nor_gl_2k.png",
+          "bytes": 15596069,
+          "md5": "6f35092dfd9b83419cd5e315b6715e87",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/tree_small_02_branch_rough_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/tree_small_02/tree_small_02_branch_rough_2k.png",
+          "bytes": 835917,
+          "md5": "9850c2d4ac13de854135e854dbd89b75",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/tree_small_02_diff_2k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/tree_small_02/tree_small_02_diff_2k.jpg",
+          "bytes": 3170612,
+          "md5": "ff4d82640b7e0daaec0b71bfc1cef76c",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/tree_small_02_leaves_alpha_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/tree_small_02/tree_small_02_leaves_alpha_2k.png",
+          "bytes": 636661,
+          "md5": "4d94de8e4677e92ce6d812871f9cf541",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/tree_small_02_leaves_diff_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/tree_small_02/tree_small_02_leaves_diff_2k.png",
+          "bytes": 7729923,
+          "md5": "02180efde7be35883f91d5b1dccd42a8",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/tree_small_02_leaves_nor_gl_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/tree_small_02/tree_small_02_leaves_nor_gl_2k.png",
+          "bytes": 18978122,
+          "md5": "a885502e1381a3aee02fdaebf71d71f1",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/tree_small_02_leaves_rough_2k.png",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/2k/tree_small_02/tree_small_02_leaves_rough_2k.png",
+          "bytes": 2953248,
+          "md5": "1b06e94155066c11a720f339e1934173",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/tree_small_02_nor_gl_2k.exr",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/exr/2k/tree_small_02/tree_small_02_nor_gl_2k.exr",
+          "bytes": 9058409,
+          "md5": "fe8712ad5e02029d09c17c32daff6a03",
+          "kind": "texture"
+        },
+        {
+          "relativePath": "textures/tree_small_02_rough_2k.exr",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/exr/2k/tree_small_02/tree_small_02_rough_2k.exr",
+          "bytes": 3573742,
+          "md5": "904fcc1121dcccf4fac98687c5fe6d3d",
+          "kind": "texture"
+        }
+      ],
+      "allowedLodLevels": [
+        1,
+        2
+      ],
+      "maxTrianglesPerAuthoredLod": 1000000,
+      "directGltfIsNotMobileLod": true,
+      "directGltfNodes": [
+        {
+          "nodeName": "tree_small_02_LOD0",
+          "triangles": 2062487
+        }
+      ],
+      "directGltfTotalSourceBytes": 115328490,
+      "exactBlendLodNamesVerified": true,
+      "foliageDiffuse": "textures/tree_small_02_leaves_diff_2k.png",
+      "foliageAlpha": "textures/tree_small_02_leaves_alpha_2k.png",
+      "selectedPrototypes": [
+        "tree_small_02"
+      ],
+      "requiredLodLevels": [
+        1
+      ],
+      "verifiedAuthoredLodTriangles": {
+        "tree_small_02_LOD1": 495533
+      },
+      "maxSceneInstances": 12,
+      "geometryDistanceMetres": [
+        20
+      ],
+      "knownLimitations": [
+        "tree_small_02 has no whole-tree authored LOD2 in the verified official .blend. Use original LOD1 plus a source-rendered billboard; never LOD0 or a substitute mesh."
+      ]
+    }
+  ],
+  "onlyMetadataAndGltfDescriptorsDownloadedHere": false,
+  "actualBlenderVerification": {
+    "version": "4.5.15 LTS",
+    "binaryArchiveSha256": "0d2b8bb2efe97e6c8eb57de6b7322f8800e1984e3125b60decca5f6771e4773e",
+    "sourceBytesVerified": 906497283,
+    "unityImported": false
+  }
+}

@@ -1,37 +1,97 @@
-# OBÓZ TRENINGOWY — propozycje H do akceptacji właściciela (6.11.2026)
+# OBÓZ TRENINGOWY — H: propozycje do akceptacji właściciela (6.11.2026)
 
-**Status:** LISTA, NIC NIE POBRANO i NIC NIE ZAIMPORTOWANO. Nie ma zgody na zastępstwa.
-Źródła: oficjalne strony autorów / Poly Haven / Sketchfab. Liczba trójkątów = ze strony
-modelu, a nie wynik importu w Unity. Rozmiar z Poly Haven oznacza WARIANT WYŚWIETLONY
-na stronie; po wybraniu Android 2K i konkretnego formatu może się zmienić.
-Brak opublikowanego rozmiaru = **nieznany**, nie zaokrąglać ani nie zgadywać.
+**Status: sprawdzona lista. Nie pobrano i nie zaimportowano nowych modeli.** Obejrzano podglądy kandydatów do kubka, pryczy, szafy, lustra, lampy, namiotu, beczek i gongu. Wersję z poprzedniej listy poprawiono po sprawdzeniu licencji i rzeczywistego wyglądu.
 
-| Zasób | Propozycja i link | Licencja | Trójkąty | Rozmiar opcji strony | Ocena/przeszkoda |
+Każda nowa pozycja czeka na akceptację właściciela. Brak akceptacji nie upoważnia do tworzenia zastępstwa z kostek. Byk 4× oraz dostarczone modele właściciela nie podlegają zamianie.
+
+## Jak czytać liczby
+
+Trójkąty pochodzą z oficjalnych metadanych: `polycount` Poly Haven i `faceCount` Sketchfab. Nie są pomiarem po imporcie do Unity. Dla pakietów podano liczbę dla całego pakietu. Dokładne metadane, wybrane warianty plików i źródła licencji zapisano w [H_VERIFIED_SOURCES_20261106.json](H_VERIFIED_SOURCES_20261106.json).
+
+Rozmiar Poly Haven oznacza sumę pliku glTF 2K, BIN i wszystkich zależności wymienionych w oficjalnym `include`; HDRI ma rozmiar pojedynczego pliku HDR 2K. To **nie** jest wielkość ZIP, APK ani pamięci GPU. Dla Sketchfab rozmiar archiwum jest **nieznany**: publiczne metadane nie podają bajtów, a API pobrania wymaga zalogowania. Nie wpisano zgadywanych MB.
+
+## Pozycje H
+
+| Zasób | Propozycja i autor | Licencja | Trójkąty źródła | Rozmiar źródeł | Ocena i warunek |
 |---|---|---|---:|---|---|
-| Talerze | [Carved Wooden Plate](https://polyhaven.com/a/carved_wooden_plate) | CC0 | ~2 000 | 25,24 MB | Realistyczne drewno; wymaga potwierdzenia stylu |
-| Miski | [Wooden Bowl 02](https://polyhaven.com/a/wooden_bowl_02) | CC0 | ~5 000 | 42,98 MB | Realistyczne, dla telefonu wybrać 2K |
-| Kubki | [Tea Set 01](https://polyhaven.com/a/tea_set_01) | CC0 | ~40 000 **cały zestaw** | 22,17 MB | Wiktoriańskie, **nie rekomenduję bez akceptacji**; zwykły obozowy kubek nadal nieznaleziony |
-| Krzesła stołówki | [Painted Wooden Chair 01](https://polyhaven.com/a/painted_wooden_chair_01) | CC0 | 724 | 17,52 MB | Styl używanego drewna; ekonomiczne GPU |
-| Prycze piętrowe | [Military Bunk Bed](https://sketchfab.com/3d-models/military-bunk-bed-03fa59009cb344ee9241128bad9bba13) | CC-BY | 708 | nieopublikowany | Podaj autora/licencję przy zatwierdzeniu |
-| Szafy ubraniowe | [Modern Wooden Cabinet](https://polyhaven.com/a/modern_wooden_cabinet) | CC0 | ~25 000 | 49,99 MB | **Styl współczesny nie pasuje do camp** — nie zatwierdzać automatycznie; sprawdzić najpierw istniejące metal_cabinet_low_poly.glb |
-| Lustra | [Ornate Mirror 01](https://polyhaven.com/a/ornate_mirror_01) | CC0 | ~14 000 | 6,8 MB | **Ozdobne, nie nadaje się wprost do łaźni**; tylko opcja, nie zamiennik |
-| Lampy | [Lightbulb 01](https://polyhaven.com/a/lightbulb_01) | CC0 | ~4 000 | 20,01 MB | Sama żarówka bez oprawy, do czasu wyboru gotowej lampy |
-| Drugi worek Vintage | [Vintage Old Punching Bag](https://sketchfab.com/3d-models/vintage-old-punching-bag-487e01cd3eea41c8a49062956c79eb66) | CC-BY | ~44 500 | nieopublikowany | Wymaga zatwierdzenia, nie był dodany |
-| Hantle / kettlebells / sztangi / ławki | [Game Ready Gym Environment Asset Pack](https://sketchfab.com/3d-models/game-ready-gym-environment-asset-pack-8aef4a478bbe49d483280968aff59064) | CC-BY | ~19 800 **cały pakiet** | nieopublikowany | **Najpierw sprawdzić** dostarczony gym_environment.fbx — kod importuje już te elementy, nie pobierać duplikatu |
-| Namioty | [Military Tent](https://sketchfab.com/3d-models/military-tent-016f79c835e7427a83c434a9d5e8165e) | CC-BY | ~13 200 | nieopublikowany | Kolor khaki/oliwkowy i rozmiary wymagają akceptacji |
-| Flagi | [Animated Flag](https://sketchfab.com/3d-models/animated-flag-ee4ef66dbeb54b379dca355a20073ea0) | CC-BY | 768 | nieopublikowany | Szablon **bez** grafiki. Logo BRAXHORN tylko z własnego zatwierdzonego źródła |
-| Beczki | [Wine Barrel 01](https://polyhaven.com/a/wine_barrel_01) | CC0 | ~11 000 | 25,42 MB | Wymaga zaakceptowania rustykalnej wersji |
-| Gong | BRAK zweryfikowanego, odpowiedniego do fight camp modelu w Poly Haven lub Sketchfab | — | nieznane | nieznany | Bez atrap |
-| Druga panorama | [Schachen Forest HDRI](https://polyhaven.com/a/schachen_forest) | CC0 | nie dotyczy HDRI | 28,97 MB wariantu widocznego na stronie | Las, światło miękkie, **inna pora niż późne popołudnie**; wybrać świadomie lub zachować montorfano_4k |
-| Byk 4X | **Istnieje nazwa oczekiwanego modelu w generatorze:** `BRAXHORN_BULL_RONDO_4X_ORYGINALNE_TEKSTURY.glb` (prywatne OwnerAssets) | oryginał właściciela, licencja z przekazania | niezweryfikowane | niezweryfikowany w aktualnym imporcie | Nie szukać innego byka; sprawdzić prywatny Release i import 1:1 do Unity |
+| Talerze | [Carved Wooden Plate](https://polyhaven.com/a/carved_wooden_plate) — Jan Martens | [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/) | 2 112 | 5 267 490 B (5.267 MB) | Talerz jest już w dostarczonym kitchen_-_assets.glb jako Plate_Regular.001_12, a etap D używa jego oryginalnej geometrii. Ten drewniany model CC0 jest wyłącznie opcjonalną dodatkową propozycją do zatwierdzenia, nie brakującym wyposażeniem ani powodem pobrania zamiennika. |
+| Miski | [Wooden Bowl 02](https://polyhaven.com/a/wooden_bowl_02) — Kuutti Siitonen | [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/) | 4 666 | 8 462 032 B (8.462 MB) | Drewniana miska. Nie skalować jej przez rozciąganie osi; ustalić rzeczywistą średnicę przy zatwierdzeniu. |
+| Kubki | [Soviet Enamel Mug](https://sketchfab.com/3d-models/soviet-enamel-mug-15418a900807467495ea46f574effd20) — Rusty-exe | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 3 824 | **Nieznany — wymaga zalogowanego pobrania** | Zwykły używany kubek emaliowany w żółto-ochrowym kolorze, z czarną krawędzią. Lepsze dopasowanie do obozu niż wcześniejszy wiktoriański Tea Set. |
+| Krzesła stołówki | [Painted Wooden Chair 01](https://polyhaven.com/a/painted_wooden_chair_01) — Kuutti Siitonen | [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/) | 724 | 1 532 106 B (1.532 MB) | Używane drewniane krzesło z jasną farbą; 724 trójkąty. Wysokość w scenie według zlecenia: 0,9 m × K. |
+| Prycze piętrowe | [bunk bed](https://sketchfab.com/3d-models/bunk-bed-ea60847abaaf4662b5f7c75b44f3ce9d) — filthycent | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 2 328 | **Nieznany — wymaga zalogowanego pobrania** | Dwa poziomy, dwa materace i drabinka, ciemna metalowa rama. Podgląd sprawdzony; wysokość docelowa 1,7 m × K. Nie zastępuje obecnych IDANAS bez decyzji właściciela. |
+| Szafy ubraniowe | [Metal Cabinet (Low Poly)](https://sketchfab.com/3d-models/metal-cabinet-low-poly-1053729ad9d24d71a578622251f76deb) — Berk Gedik | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 484 | **Nieznany — wymaga zalogowanego pobrania** | Wąska metalowa szafa ubraniowa. Najpierw zachować dostarczony metal_cabinet_low_poly.glb; ten link jest kandydatem do potwierdzenia pochodzenia, nie dowodem identyczności plików. |
+| Lustra | [Wall Mirror](https://sketchfab.com/3d-models/wall-mirror-6177cc5abd5746a4b5ff6986b8b81edc) — rickmaolly | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 1 626 | **Nieznany — wymaga zalogowanego pobrania** | Proste pionowe lustro z sosnową ramą, PBR 2K według autora. Przy umywalce można użyć kilku sztuk bez rozciągania; rzeczywiste odbicie zapewnia reflection probe. |
+| Lampy | [Camping Lantern](https://sketchfab.com/3d-models/camping-lantern-de640c71b7034669b723c167b0189c9a) — CKModels | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 1 596 | **Nieznany — wymaga zalogowanego pobrania** | Niewielka zielona lampa obozowa z uchwytem i szkłem. Oświetlenie bez cieni z lamp; model nadaje się do wnętrz i przy ognisku. |
+| Drugi worek vintage | [Vintage / Old punching bag](https://sketchfab.com/3d-models/vintage-old-punching-bag-487e01cd3eea41c8a49062956c79eb66) — maxsbond.work | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 44 472 | **Nieznany — wymaga zalogowanego pobrania** | Dokładnie Vintage / Old punching bag. API nie potwierdza trybu PBR; komplet map wymaga sprawdzenia po zatwierdzeniu. Nie zastępować nim obecnego leather_punching_bag. |
+| Hantle | [Pakiet wyposażenia gym](https://sketchfab.com/3d-models/game-ready-gym-environment-asset-pack-8aef4a478bbe49d483280968aff59064) — Oxygen3D | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 19 756 | **Nieznany — wymaga zalogowanego pobrania** | Potwierdzono 8 hantli w dostarczonym FBX. Są dostępne; użyć oryginalnej geometrii. Link zewnętrzny to udokumentowany kandydat, nie ponowne pobieranie; 19 756 tris dotyczy całego pakietu. |
+| Kettle | [Pakiet wyposażenia gym](https://sketchfab.com/3d-models/game-ready-gym-environment-asset-pack-8aef4a478bbe49d483280968aff59064) — Oxygen3D | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 19 756 | **Nieznany — wymaga zalogowanego pobrania** | Potwierdzono 6 kettle w dostarczonym FBX. Są dostępne; użyć oryginalnych części. Link zewnętrzny to udokumentowany kandydat; 19 756 tris dotyczy całego pakietu. |
+| Sztangi | [Pakiet wyposażenia gym](https://sketchfab.com/3d-models/game-ready-gym-environment-asset-pack-8aef4a478bbe49d483280968aff59064) — Oxygen3D | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 19 756 | **Nieznany — wymaga zalogowanego pobrania** | Dostarczony FBX został odczytany: istnieją barbell_bar i weight_plate_1..15. Sztanga oraz obciążenia są dostępne; nie pobierać zastępstwa. Link zewnętrzny to tylko udokumentowany kandydat, a nie brak do uzupełnienia. |
+| Ławki treningowe | [Pakiet wyposażenia gym](https://sketchfab.com/3d-models/game-ready-gym-environment-asset-pack-8aef4a478bbe49d483280968aff59064) — Oxygen3D | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 19 756 | **Nieznany — wymaga zalogowanego pobrania** | Potwierdzono weight_bench, abdominal_bench i bench w dostarczonym FBX. Ławki są dostępne; użyć oryginalnych części. 19 756 tris dotyczy całego kandydata. |
+| Namioty | [Large militery tent](https://sketchfab.com/3d-models/large-militery-tent-bd3d3d8afa3c4a5097d3d22911d6a921) — challe3d | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 6 961 | **Nieznany — wymaga zalogowanego pobrania** | Duży namiot z otwartym wejściem, odciągami i stelażem; płótno szaro-khaki na podglądzie. Kolor oraz wielkość zatwierdza właściciel. API wykazuje 23 tekstury, więc przed importem sprawdzić wariant 2K i materiały. |
+| Flagi | [Animated Flag](https://sketchfab.com/3d-models/animated-flag-ee4ef66dbeb54b379dca355a20073ea0) — Space Explorers Academy | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 768 | **Nieznany — wymaga zalogowanego pobrania** | Animowany pusty szablon. Po akceptacji: bordowy #7A1E1E i wyłącznie zatwierdzona grafika BRAXHORN. Bez pobierania obcego logo. |
+| Beczki | [Burn Barrels](https://sketchfab.com/3d-models/burn-barrels-bd66fe8403d147ceac9d02d8aa18afdc) — Caboose3d | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 1 760 | **Nieznany — wymaga zalogowanego pobrania** | Dwie otwarte stalowe beczki do palenia, z rdzą i śladami sadzy; 1760 trójkątów obejmuje parę. Odpowiedni typ do beczek z ogniem przy oktagonie. |
+| Gong | [Gong](https://sketchfab.com/3d-models/gong-30641a548633462187e889682361484b) — Twilby | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 6 308 | **Nieznany — wymaga zalogowanego pobrania** | Metalowy gong na drewnianym stelażu, model PBR. Podgląd pokazuje wschodni kształt belki; właściciel zatwierdza ten wygląd. |
+| Druga panorama | [Sunset Forest](https://polyhaven.com/a/sunset_forest) — Andreas Mischok | [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/) | nie dotyczy HDRI | 7 301 510 B (7.302 MB) | Sosnowy las i miękkie ciepłe światło przy zachodzie, bliższe celowi obozu niż Schachen Forest. Wariant źródłowy 2K; dotychczasowego montorfano_4k nie podmieniać bez decyzji właściciela. |
+| Balia z zimną wodą (d.4) | [Medieval Balia](https://sketchfab.com/3d-models/medieval-balia-8a41d7f323724d1a8462976c6c91ec08) — blazejjura95 | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 11 424 | **Nieznany — wymaga zalogowanego pobrania** | Rzeczywista otwarta owalna drewniana balia, z widocznym wnętrzem i metalowymi obręczami. Podgląd sprawdzony. Autor podaje PBR 1K — to jawne ograniczenie szczegółowości; nie przedstawiać powiększenia obrazów jako nowej jakości 2K. Wymiary źródła nieznane; właściciel zatwierdza wielkość i wygląd. |
+| Piec sauny (d.4) | [Huum CLIFF sauna heater | CLIFF](https://sketchfab.com/3d-models/huum-cliff-sauna-heater-cliff-0106a539fd614d029c451af4f8be3552) — Polywerk3d | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 1 119 160 | **Nieznany — wymaga zalogowanego pobrania** | Właściwy piec saunowy z koszem kamieni, projekt HUUM, model Polywerk3d. 1 119 160 trójkątów: za ciężki do bezpośredniego importu mobilnego. Kandydat warunkowy, wymaga zaakceptowanego pochodnego LOD i sprawdzenia pełnych map; API nie potwierdza PBR. Nie zastępować pieca zwykłą kuchenką ani kostką. |
+| Apteczka / walizka medyczna | [Medical Box](https://polyhaven.com/a/medical_box) — Ulan Cabanilla | [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/) | 3 718 | 7 022 999 B (7.023 MB) | Otwarta zielona metalowa walizka medyczna z zawiasem, zatrzaskami i uchwytem. Obejrzano oficjalny podgląd; bez dodatkowych leków i przyborów w środku. Strona źródła podaje około 0,5 m szerokości; pozostałe wymiary w metrach wymagają weryfikacji po akceptacji. CC0, PBR 2K; nie jest proceduralną kostką. |
+| Drewniane skrzynie magazynowe | [Wooden Crate 01](https://polyhaven.com/a/wooden_crate_01) — James Ray Cock | [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/) | 6 576 | 8 285 970 B (8.286 MB) | Prawdziwa skrzynia z desek, wiekiem, metalowym zamknięciem i uchwytami z liny. Obejrzano oficjalny podgląd. Strona źródła podaje około 0,8 m szerokości; pozostałe wymiary w metrach wymagają weryfikacji po akceptacji. Jedna współdzielona siatka i materiały dla powtórzeń. |
+| Armatura / słupek prysznicowy (d.3) | [Shower (middlepoly)](https://sketchfab.com/3d-models/shower-middlepoly-c1278c38a0d345219ad3e04ad2fe0007) — Zuckergelee | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | 26 586 | **Nieznany — wymaga zalogowanego pobrania** | Samodzielny metalowy słupek z baterią, deszczownicą, ręczną słuchawką, wężem i uchwytami ściennymi; sprawdzony oficjalny podgląd. Autor podaje PBR 2K. Oryginalny brodzik właściciela pozostaje; to propozycja brakującej armatury nad nim. Rzeczywiste gabaryty i rozmiar archiwum nieznane; nie podano rozmiaru miniatury jako modelu. Nie pobrano ani nie importowano. |
+| Byk 4× | `BRAXHORN_BULL_RONDO_4X_ORYGINALNE_TEKSTURY.glb` — oryginał właściciela | Pochodzenie właściciela; brak podstaw do dopisania CC0/CC-BY | 7 114 | 2 232 460 B | **Już istnieje. Zachować powiększenie 4×. Nie szukać nowego modelu i nie zmniejszać.** |
 
-**Priorytet przed pobieraniem:** dla każdego modelu najpierw zobaczyć, czy
-znajduje się już w OwnerAssets, paczce Private Release lub w istniejącej
-bibliotece. Pliki źródłowe z prywatnych Release są pobierane dopiero w
-autoryzowanym przebiegu Unity. Dla Sketchfab CC-BY zachować tytuł, autora i
-link do licencji do atrybucji. W przypadku nieznanych rozmiarów nie wolno
-wymyślać MB.
+## Dostarczone rzeczy mają pierwszeństwo
 
-**Wydajność:** każdorazowo 2K ASTC na Android (4K tylko postacie),
-współdzielone modele i materiały. Wygląd oryginału bez ingerencji.
-Nie przekazywać tych wartości jako wielkości APK.
+- `metal_cabinet_low_poly.glb` jest w manifeście dostawy: 27 179 460 B, SHA-256 `0f19fbf70278e68b0e1250f062163c26c854dd3c6993a1282acf7764e4e8559c`. Link Berk Gedik w tabeli wskazuje model o odpowiadającym tytule; zgodność tytułu nie jest dowodem identyczności plików. Zachować dostarczony oryginał i dopiero sprawdzić, czy spełnia funkcję szafy ubraniowej.
+- `gym_environment.fbx` i atlas 2048×2048 są dostarczone; `OwnerStrengthEquipment` wskazuje węzły `weight_bench`, `weight_rack`, `dumbbell_1`, `kettlebell_1`, `pull_up_rack`, `treadmill`, `exercise_bike`. Odczyt FBX w Blenderze potwierdził 57 obiektów i 19 756 trójkątów, w tym `barbell_bar`, `weight_plate_1..15`, `horizontal_bar_1..4`, `parallel_bars_1..2`, `weight_bench`, `abdominal_bench`, 6 kettle i 8 hantli. Hantle, kettle, sztanga, obciążenia, ławki i drążki są dostępne z dostarczonego oryginału. Nie znaleziono młota ani sań. Dowód: raport `gym-geometry-blender.json` etapu E; SHA FBX `e28306bd6ffbb1f59b72fe9b1a659f912dfd2ec2ba9c34d36057f1a6d5b046ec`. Nie sprowadzać zewnętrznego pakietu ponownie.
+- Oryginał byka 4× ma SHA-256 `425788876b8fe2dfaba90157d74c6631d231184f96659759cdafade794a5352f`. Potwierdzono 7 114 trójkątów i identyczny blok geometrii/tekstur jak w oryginale 1×; powiększenie jest zapisane w węźle GLB. Nie jest to brakujący model do zastąpienia.
+- Dostępność powyższego pliku referencyjnego nie oznacza, że wczytał go CI. Rzeczywiste sceny nr 25–27 korzystały ze źródła 1× z dokładnym powiększeniem 4×; audyt każdorazowo potwierdził docelowy obrys świata 2,434245 × 3,904765 × 6,201168. Nie zmieniono skali ani geometrii byka.
+
+## Sauna: dwa rzeczywiste braki D.4
+
+W dotychczasowym generatorze sauny piec był imitacją z prostopadłościanu .7×.92×.7 m i dziewięciu kamieni; to nie model właściciela. Balia nie występowała. Właścicielski `sauna_product_model.glb` (9 551 680 B, 9 032 tris) przedstawia kabinę z częściami Glass/Metal/Stand/Lights/Base/Display, bez oddzielnego pieca i balii. Jego jednostki i licencja nie są ustalone; nie wolno przypisać im wymyślonych wartości. Nowe propozycje w tabeli nie zmieniają zatwierdzonego budynku.
+
+Medieval Balia ma PBR 1K, a Huum CLIFF 1 119 160 trójkątów. Są to konkretne ograniczenia do decyzji właściciela. Nie oznaczono ich jako modeli spełniających wszystkie wymagania mobilne bez dodatkowej pracy. Bajty obu archiwów są nieznane; rozmiar miniatury nie jest rozmiarem modelu.
+
+**Lżejszego, samodzielnego pieca saunowego z potwierdzoną licencją CC0/CC BY i pobraniem nie znaleziono.** Sprawdzono także [Баня «Алтай»](https://sketchfab.com/3d-models/13c9a9f0daba4e1984facd51948fb0c7), 9 684 tris, CC BY 4.0, oraz [Sauna](https://sketchfab.com/3d-models/e9d671f8cc67469a9c7b8ee6e632741e), 5 672 tris, CC BY 4.0. To całe kabiny; podglądy nie potwierdzają wydzielonej, użytecznej geometrii pieca. Nie zgadywano tego na podstawie opisu i nie podmieniono budynku sauny.
+
+## Punkt medyczny i magazyn
+
+Nowe konkretne propozycje to Medical Box (3 718 tris, glTF 2K z zależnościami 7 022 999 B, CC0) oraz Wooden Crate 01 (6 576 tris, 8 285 970 B, CC0). Oficjalne strony podają zaokrągloną szerokość odpowiednio 0,5 m i 0,8 m. Nie pobrano ich geometrii, więc nie podano fikcyjnych dokładnych wysokości/głębokości. Lampą pozostaje Camping Lantern w tabeli. Łóżko i szafka w medycznym pochodzą z już dostarczonych IDANAS i metal_cabinet; nie potrzebują nowego zastępstwa.
+
+Źródłowy IDANAS został dodatkowo zmierzony bez zmiany pliku (SHA-256 `26efbc9f32157c909d1cd9bde9b1692e4734728a0dcde7466739fe2ce5ff449a`, 5 374 568 B, 95 646 trójkątów, 29 siatek). Szerokość całego źródła 1,262567 m obejmuje zwisający koc; materac Mesh21_Color_M03_0 ma 0,927123×2,030000 m. To nie uzasadnia zwężania modelu. Metadane GLB wskazują autora ditovirnantio, [źródło](https://sketchfab.com/3d-models/ikea-idanas-single-bed-0ec37e3bb1b940c88ca2f73d274dcefb) i CC BY 4.0.
+
+## Łaźnia: oryginalne odpływy i brak armatury (dopisek 7.11)
+
+Dostarczony `shower-tray-square.glb` ma 231 076 B i 5 888 trójkątów. Zawiera ruszt, `Waste | open nickel flange` i `Waste | open outlet tube`; nie ma słupka ani armatury nad brodzikiem. Propozycja Shower (middlepoly) w tabeli ma 26 586 trójkątów, CC BY 4.0 i PBR 2K według autora. Podgląd potwierdza baterię, rurę, deszczownicę, słuchawkę i wąż. Publiczny endpoint pobrania zwrócił 401; rozmiar archiwum pozostaje nieznany. Nie pobrano nowego modelu.
+
+Oryginał `trough-washbasin.glb` ma dwie kompletne baterie, wspólną misę, tylny blat i siedem elementów rusztu. Nie zawiera oddzielnej geometrii syfonu/rury odpływowej pod misą. **Syfon pozostaje rzeczywistym brakiem do wskazania przez właściciela; nie ma zweryfikowanego kandydata ani zgadywanych trójkątów/bajtów.** Nie utożsamiać go z istniejącym odpływem brodzika.
+
+`close-coupled-toilet.glb` ma 214 560 B i dwa oryginalne przyciski `WC | dual-flush button` / `.001`, po 316 trójkątów. Dodatkowa kostka przycisku nie jest potrzebna. Pełny źródłowy inwentarz, hashe i obrysy wierzchołków zapisano jako `OWNER_BATH_FIXTURE_INVENTORY_20261107.json`; istniejące pliki tylko odczytano.
+
+## Młot wymagany w E.2
+
+[Sledgehammer 01](https://polyhaven.com/a/sledgehammer_01) — Dylan Guzman, CC0-1.0, **2 596 trójkątów**, wariant glTF 2K **6 492 651 B**. Propozycja wyłącznie na wypadek braku modelu w dostawie właściciela; nie pobrano jej.
+
+## Kandydaci odrzuceni podczas weryfikacji
+
+| Sprawdzony kandydat | Wynik weryfikacji | Decyzja w tej liście |
+|---|---|---|
+| Military Bunk Bed, KurtSteiner, 708 trójkątów | Oficjalny podgląd przedstawia pojedyncze łóżko, bez drugiego poziomu. | Prycza `bunk bed` autora filthycent ma dwa materace i drabinkę. |
+| Tea Set 01 | Ozdobny zestaw do herbaty nie odpowiada zwykłym naczyniom obozowym. | Kubek emaliowany Rusty-exe. |
+| Ornate Mirror 01 / lustro KIFIR | Pierwsze ozdobne; drugie z silnym zużyciem i śladem dłoni, klimat opuszczonego pomieszczenia. | Proste sosnowe Wall Mirror, rickmaolly. |
+| Lightbulb 01 | Sama żarówka, bez lampy. | Kompletna Camping Lantern, CKModels. Żarówki do sznurów wymagają osobnej akceptacji, jeśli nie ma ich w dostawie. |
+| Wine Barrel 01 | Drewniana zamknięta beczka nie jest metalową beczką do ognia. | Dwie otwarte Burn Barrels, Caboose3d. |
+| Framed Gong / Arched Gong, tewlwolow | CC BY-NC, a opisy wskazują niepełne tekstury korzystające z zasobów Bethesda. | Odrzucone; wybrano Gong, Twilby, CC BY 4.0. |
+| Japanese Gong, ramiinjafarii | Model w stylu voxel, 89 760 trójkątów; nie odpowiada realistycznemu obozowi. | Odrzucony. |
+| Military Tent, dark-minaz / Military Tent Desert, Mehdi Shahsavan | Podglądy pokazują kamuflaż; pierwszy ma dodatkowo tabliczkę autora. | Propozycja płóciennego namiotu challe3d z otwartym wejściem; kolor nadal wymaga akceptacji. |
+| Schachen Forest | Poprzednia lista sama wskazywała inny charakter oświetlenia. | Sunset Forest jako opcja pasująca do ciepłego wieczoru; bez podmiany montorfano. |
+
+## Warunki po akceptacji konkretnej pozycji
+
+1. Pobrać oryginał z wymienionego źródła, zapisać rzeczywisty rozmiar archiwum i SHA-256. W publicznym API Sketchfab `isDownloadable=true` potwierdza dostępność, ale nie ujawnia bajtów archiwum.
+2. Dla CC BY 4.0 zachować tytuł, autora, URL źródła, URL licencji i informację o dokonanych zmianach. Oficjalne zasady: [Sketchfab Download API](https://sketchfab.com/developers/download-api/guidelines), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Dla Poly Haven: [oficjalna licencja CC0](https://polyhaven.com/license).
+3. Sprawdzić pełny zestaw materiałów PBR, pierwotne proporcje oraz realne wymiary. Dla Vintage i pakietu gym API nie deklaruje trybu PBR — nie traktować tego jako potwierdzenia kompletu map.
+4. Zastosować reguły projektu: tekstury 2K ASTC, współdzielona geometria i materiały, bez obniżania jakości małych modeli właściciela; montaż i wysokości według zlecenia oraz raycastów.
+5. Nowe modele pozostają poza projektem do decyzji właściciela. W tym etapie pobrano tylko publiczne metadane i podglądy potrzebne do oceny listy.
+
+**Nierozstrzygnięte:** akceptacja konkretnych nowych modeli, rozmiary archiwów Sketchfab po zalogowanym pobraniu, komplet map Vintage, wybór odpowiedniego pieca i balii D.4 oraz brakujący syfon. Etap E ustawia potwierdzone części dostarczonego wyposażenia gym oddzielnie, z autorskimi zespołami sztangi/ławki i stojaka; rzeczywisty pomiar tej sceny jeszcze oczekuje. Nie oznaczono tych punktów jako zakończonych.

@@ -1,0 +1,1565 @@
+{
+  "title": "OBÓZ TRENINGOWY — H: zweryfikowane propozycje do akceptacji właściciela",
+  "verified_date_utc": "2026-11-06",
+  "updated_date_utc": "2026-11-07",
+  "scope": "H, brakujący młot E.2, piec i balia D.4, apteczka i skrzynie oraz armatura prysznicowa D.3; wyłącznie lista i metadane, bez nowych modeli w projekcie",
+  "models_downloaded": false,
+  "models_imported": false,
+  "owner_approval": "PENDING_FOR_NEW_ASSETS",
+  "size_note": "Źródła do pobrania lub suma źródeł; nie rozmiar APK ani pamięci Android.",
+  "sketchfab_archive_size_check": {
+    "url": "https://api.sketchfab.com/v3/models/15418a900807467495ea46f574effd20/download",
+    "http_status": 401,
+    "official_authentication_documentation": "https://sketchfab.com/developers/download-api/guidelines"
+  },
+  "candidates": [
+    {
+      "id": "carved_wooden_plate",
+      "categories": [
+        "talerze"
+      ],
+      "title": "Carved Wooden Plate",
+      "author": "Jan Martens",
+      "source_url": "https://polyhaven.com/a/carved_wooden_plate",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_evidence_url": "https://polyhaven.com/license",
+      "triangles": 2112,
+      "triangles_basis": "oficjalne API Poly Haven: polycount (na stronie: tris)",
+      "source_bytes": 5267490,
+      "source_bytes_basis": "glTF 2K + BIN + wszystkie pliki include; suma plików, bez ZIP",
+      "selected_source_files": [
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/carved_wooden_plate/carved_wooden_plate_2k.gltf",
+          "size": 2836,
+          "md5": "cad726680f59f1e6f368a1ae594d5cfa"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/carved_wooden_plate/carved_wooden_plate_nor_gl_2k.jpg",
+          "size": 1859515,
+          "md5": "45a39e088c4ae126349e78669b06d0ab"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/carved_wooden_plate/carved_wooden_plate_diff_2k.jpg",
+          "size": 1766314,
+          "md5": "eadec5f52689f3382bc71da670fc2b8f"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/carved_wooden_plate/carved_wooden_plate_arm_2k.jpg",
+          "size": 1586665,
+          "md5": "3f34954ee9955ee7df165bf38432c075"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/carved_wooden_plate/carved_wooden_plate.bin",
+          "size": 52160,
+          "md5": "70499c8019359d859577d9f7eef46091"
+        }
+      ],
+      "evidence_urls": [
+        "https://api.polyhaven.com/info/carved_wooden_plate",
+        "https://api.polyhaven.com/files/carved_wooden_plate"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Talerz jest już w dostarczonym kitchen_-_assets.glb jako Plate_Regular.001_12, a etap D używa jego oryginalnej geometrii. Ten drewniany model CC0 jest wyłącznie opcjonalną dodatkową propozycją do zatwierdzenia, nie brakującym wyposażeniem ani powodem pobrania zamiennika.",
+      "category_status": "DELIVERED_ORIGINAL_PLATE_AVAILABLE; optional new wooden alternative still requires approval",
+      "new_download_required": false
+    },
+    {
+      "id": "wooden_bowl_02",
+      "categories": [
+        "miski"
+      ],
+      "title": "Wooden Bowl 02",
+      "author": "Kuutti Siitonen",
+      "source_url": "https://polyhaven.com/a/wooden_bowl_02",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_evidence_url": "https://polyhaven.com/license",
+      "triangles": 4666,
+      "triangles_basis": "oficjalne API Poly Haven: polycount (na stronie: tris)",
+      "source_bytes": 8462032,
+      "source_bytes_basis": "glTF 2K + BIN + wszystkie pliki include; suma plików, bez ZIP",
+      "selected_source_files": [
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/wooden_bowl_02/wooden_bowl_02_2k.gltf",
+          "size": 2800,
+          "md5": "dd7fc5724ee8691e05edff0e73d11b72"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_bowl_02/wooden_bowl_02_nor_gl_2k.jpg",
+          "size": 2828507,
+          "md5": "49edb4402571affbee105ee2f8707cdc"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_bowl_02/wooden_bowl_02_arm_2k.jpg",
+          "size": 2660467,
+          "md5": "59a8910db4e34a013d2e2c6111325150"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/wooden_bowl_02/wooden_bowl_02.bin",
+          "size": 116156,
+          "md5": "92850bb8ba7e6dfd53f4b157276a8536"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_bowl_02/wooden_bowl_02_diff_2k.jpg",
+          "size": 2854102,
+          "md5": "1723a07c9892ec9f16c0cc4479972d07"
+        }
+      ],
+      "evidence_urls": [
+        "https://api.polyhaven.com/info/wooden_bowl_02",
+        "https://api.polyhaven.com/files/wooden_bowl_02"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Drewniana miska. Nie skalować jej przez rozciąganie osi; ustalić rzeczywistą średnicę przy zatwierdzeniu."
+    },
+    {
+      "id": "15418a900807467495ea46f574effd20",
+      "categories": [
+        "kubki"
+      ],
+      "title": "Soviet Enamel Mug",
+      "author": "Rusty-exe",
+      "author_url": "https://sketchfab.com/dustyrusty",
+      "source_url": "https://sketchfab.com/3d-models/soviet-enamel-mug-15418a900807467495ea46f574effd20",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 3824,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": "metalness",
+      "texture_count_in_api": 4,
+      "preview_inspected": true,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/15418a900807467495ea46f574effd20"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Zwykły używany kubek emaliowany w żółto-ochrowym kolorze, z czarną krawędzią. Lepsze dopasowanie do obozu niż wcześniejszy wiktoriański Tea Set."
+    },
+    {
+      "id": "painted_wooden_chair_01",
+      "categories": [
+        "krzesła stołówki"
+      ],
+      "title": "Painted Wooden Chair 01",
+      "author": "Kuutti Siitonen",
+      "source_url": "https://polyhaven.com/a/painted_wooden_chair_01",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_evidence_url": "https://polyhaven.com/license",
+      "triangles": 724,
+      "triangles_basis": "oficjalne API Poly Haven: polycount (na stronie: tris)",
+      "source_bytes": 1532106,
+      "source_bytes_basis": "glTF 2K + BIN + wszystkie pliki include; suma plików, bez ZIP",
+      "selected_source_files": [
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/painted_wooden_chair_01/painted_wooden_chair_01_2k.gltf",
+          "size": 2785,
+          "md5": "3ec4f92b791b4de1bc0d82a52b4a65ae"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_chair_01/painted_wooden_chair_01_nor_gl_2k.jpg",
+          "size": 499193,
+          "md5": "6fd3dc868e8c9ae838f3eaaaa09cc8c2"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_chair_01/painted_wooden_chair_01_diff_2k.jpg",
+          "size": 540489,
+          "md5": "bc227634cd2b6584f3f18bac808e25cf"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/painted_wooden_chair_01/painted_wooden_chair_01_arm_2k.jpg",
+          "size": 452527,
+          "md5": "b1fad7186a62205394bd1bc5dd30b62d"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/painted_wooden_chair_01/painted_wooden_chair_01.bin",
+          "size": 37112,
+          "md5": "7fd011acaef4730770108a7932191768"
+        }
+      ],
+      "evidence_urls": [
+        "https://api.polyhaven.com/info/painted_wooden_chair_01",
+        "https://api.polyhaven.com/files/painted_wooden_chair_01"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Używane drewniane krzesło z jasną farbą; 724 trójkąty. Wysokość w scenie według zlecenia: 0,9 m × K."
+    },
+    {
+      "id": "ea60847abaaf4662b5f7c75b44f3ce9d",
+      "categories": [
+        "prycze piętrowe"
+      ],
+      "title": "bunk bed",
+      "author": "filthycent",
+      "author_url": "https://sketchfab.com/filthycent",
+      "source_url": "https://sketchfab.com/3d-models/bunk-bed-ea60847abaaf4662b5f7c75b44f3ce9d",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 2328,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": "metalness",
+      "texture_count_in_api": 4,
+      "preview_inspected": true,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/ea60847abaaf4662b5f7c75b44f3ce9d"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Dwa poziomy, dwa materace i drabinka, ciemna metalowa rama. Podgląd sprawdzony; wysokość docelowa 1,7 m × K. Nie zastępuje obecnych IDANAS bez decyzji właściciela."
+    },
+    {
+      "id": "1053729ad9d24d71a578622251f76deb",
+      "categories": [
+        "szafy ubraniowe"
+      ],
+      "title": "Metal Cabinet (Low Poly)",
+      "author": "Berk Gedik",
+      "author_url": "https://sketchfab.com/berkgedik",
+      "source_url": "https://sketchfab.com/3d-models/metal-cabinet-low-poly-1053729ad9d24d71a578622251f76deb",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 484,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": "metalness",
+      "texture_count_in_api": 15,
+      "preview_inspected": true,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/1053729ad9d24d71a578622251f76deb"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Wąska metalowa szafa ubraniowa. Najpierw zachować dostarczony metal_cabinet_low_poly.glb; ten link jest kandydatem do potwierdzenia pochodzenia, nie dowodem identyczności plików."
+    },
+    {
+      "id": "6177cc5abd5746a4b5ff6986b8b81edc",
+      "categories": [
+        "lustra"
+      ],
+      "title": "Wall Mirror",
+      "author": "rickmaolly",
+      "author_url": "https://sketchfab.com/rickmaolly",
+      "source_url": "https://sketchfab.com/3d-models/wall-mirror-6177cc5abd5746a4b5ff6986b8b81edc",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 1626,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": "metalness",
+      "texture_count_in_api": 5,
+      "preview_inspected": true,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/6177cc5abd5746a4b5ff6986b8b81edc"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Proste pionowe lustro z sosnową ramą, PBR 2K według autora. Przy umywalce można użyć kilku sztuk bez rozciągania; rzeczywiste odbicie zapewnia reflection probe."
+    },
+    {
+      "id": "de640c71b7034669b723c167b0189c9a",
+      "categories": [
+        "lampy"
+      ],
+      "title": "Camping Lantern",
+      "author": "CKModels",
+      "author_url": "https://sketchfab.com/CKOgames",
+      "source_url": "https://sketchfab.com/3d-models/camping-lantern-de640c71b7034669b723c167b0189c9a",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 1596,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": "metalness",
+      "texture_count_in_api": 5,
+      "preview_inspected": true,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/de640c71b7034669b723c167b0189c9a"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Niewielka zielona lampa obozowa z uchwytem i szkłem. Oświetlenie bez cieni z lamp; model nadaje się do wnętrz i przy ognisku."
+    },
+    {
+      "id": "487e01cd3eea41c8a49062956c79eb66",
+      "categories": [
+        "drugi worek Vintage"
+      ],
+      "title": "Vintage / Old punching bag",
+      "author": "maxsbond.work",
+      "author_url": "https://sketchfab.com/maxsbond.work",
+      "source_url": "https://sketchfab.com/3d-models/vintage-old-punching-bag-487e01cd3eea41c8a49062956c79eb66",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 44472,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": null,
+      "texture_count_in_api": 3,
+      "preview_inspected": false,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/487e01cd3eea41c8a49062956c79eb66"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Dokładnie Vintage / Old punching bag. API nie potwierdza trybu PBR; komplet map wymaga sprawdzenia po zatwierdzeniu. Nie zastępować nim obecnego leather_punching_bag."
+    },
+    {
+      "id": "8aef4a478bbe49d483280968aff59064",
+      "categories": [
+        "hantle",
+        "kettle",
+        "sztangi",
+        "ławki treningowe"
+      ],
+      "title": "GAME READY GYM ENVIRONMENT ASSET PACK",
+      "author": "Oxygen3D",
+      "author_url": "https://sketchfab.com/oxygen3d",
+      "source_url": "https://sketchfab.com/3d-models/game-ready-gym-environment-asset-pack-8aef4a478bbe49d483280968aff59064",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 19756,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": null,
+      "texture_count_in_api": 1,
+      "preview_inspected": false,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/8aef4a478bbe49d483280968aff59064"
+      ],
+      "owner_approval": "NOT_REQUIRED_FOR_ALREADY_DELIVERED_ORIGINAL_PARTS",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Dostarczony gym_environment.fbx został zmierzony: 19756 tris, 57 obiektów; potwierdzono hantle, kettle, sztangę, obciążenia i ławki. Użyć istniejących oryginalnych części, nie pobierać duplikatu z linku. Liczba 19756 dotyczy całego pakietu.",
+      "new_download_required": false
+    },
+    {
+      "id": "bd3d3d8afa3c4a5097d3d22911d6a921",
+      "categories": [
+        "namioty"
+      ],
+      "title": "Large militery tent",
+      "author": "challe3d",
+      "author_url": "https://sketchfab.com/challe3d",
+      "source_url": "https://sketchfab.com/3d-models/large-militery-tent-bd3d3d8afa3c4a5097d3d22911d6a921",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 6961,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": "metalness",
+      "texture_count_in_api": 23,
+      "preview_inspected": true,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/bd3d3d8afa3c4a5097d3d22911d6a921"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Duży namiot z otwartym wejściem, odciągami i stelażem; płótno szaro-khaki na podglądzie. Kolor oraz wielkość zatwierdza właściciel. API wykazuje 23 tekstury, więc przed importem sprawdzić wariant 2K i materiały."
+    },
+    {
+      "id": "ee4ef66dbeb54b379dca355a20073ea0",
+      "categories": [
+        "flagi"
+      ],
+      "title": "Animated Flag",
+      "author": "Space Explorers Academy",
+      "author_url": "https://sketchfab.com/Spaceexplorersacademy",
+      "source_url": "https://sketchfab.com/3d-models/animated-flag-ee4ef66dbeb54b379dca355a20073ea0",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 768,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": "metalness",
+      "texture_count_in_api": 4,
+      "preview_inspected": false,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/ee4ef66dbeb54b379dca355a20073ea0"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Animowany pusty szablon. Po akceptacji: bordowy #7A1E1E i wyłącznie zatwierdzona grafika BRAXHORN. Bez pobierania obcego logo."
+    },
+    {
+      "id": "bd66fe8403d147ceac9d02d8aa18afdc",
+      "categories": [
+        "beczki"
+      ],
+      "title": "Burn Barrels",
+      "author": "Caboose3d",
+      "author_url": "https://sketchfab.com/caboose3d",
+      "source_url": "https://sketchfab.com/3d-models/burn-barrels-bd66fe8403d147ceac9d02d8aa18afdc",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 1760,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": "metalness",
+      "texture_count_in_api": 5,
+      "preview_inspected": true,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/bd66fe8403d147ceac9d02d8aa18afdc"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Dwie otwarte stalowe beczki do palenia, z rdzą i śladami sadzy; 1760 trójkątów obejmuje parę. Odpowiedni typ do beczek z ogniem przy oktagonie."
+    },
+    {
+      "id": "30641a548633462187e889682361484b",
+      "categories": [
+        "gong"
+      ],
+      "title": "Gong",
+      "author": "Twilby",
+      "author_url": "https://sketchfab.com/Twilby",
+      "source_url": "https://sketchfab.com/3d-models/gong-30641a548633462187e889682361484b",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 6308,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": "metalness",
+      "texture_count_in_api": 4,
+      "preview_inspected": true,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/30641a548633462187e889682361484b"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Metalowy gong na drewnianym stelażu, model PBR. Podgląd pokazuje wschodni kształt belki; właściciel zatwierdza ten wygląd."
+    },
+    {
+      "id": "sunset_forest",
+      "categories": [
+        "druga panorama"
+      ],
+      "title": "Sunset Forest",
+      "author": "Andreas Mischok",
+      "source_url": "https://polyhaven.com/a/sunset_forest",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_evidence_url": "https://polyhaven.com/license",
+      "triangles": null,
+      "triangles_basis": "oficjalne API Poly Haven: polycount (na stronie: tris)",
+      "source_bytes": 7301510,
+      "source_bytes_basis": "pojedynczy plik HDR 2K",
+      "selected_source_files": [
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/sunset_forest_2k.hdr",
+          "size": 7301510,
+          "md5": "e64eb5db0b0ed8b6cb63ac1025f31af6"
+        }
+      ],
+      "evidence_urls": [
+        "https://api.polyhaven.com/info/sunset_forest",
+        "https://api.polyhaven.com/files/sunset_forest"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Sosnowy las i miękkie ciepłe światło przy zachodzie, bliższe celowi obozu niż Schachen Forest. Wariant źródłowy 2K; dotychczasowego montorfano_4k nie podmieniać bez decyzji właściciela."
+    },
+    {
+      "id": "8a41d7f323724d1a8462976c6c91ec08",
+      "categories": [
+        "balia z zimną wodą (D.4)"
+      ],
+      "title": "Medieval Balia",
+      "author": "blazejjura95",
+      "author_url": "https://sketchfab.com/blazejjura95",
+      "source_url": "https://sketchfab.com/3d-models/medieval-balia-8a41d7f323724d1a8462976c6c91ec08",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 11424,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": "metalness",
+      "texture_count_in_api": 5,
+      "preview_inspected": true,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/8a41d7f323724d1a8462976c6c91ec08"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Rzeczywista otwarta owalna drewniana balia, z widocznym wnętrzem i metalowymi obręczami. Podgląd sprawdzony. Autor podaje PBR 1K — to jawne ograniczenie szczegółowości; nie przedstawiać powiększenia obrazów jako nowej jakości 2K. Wymiary źródła nieznane; właściciel zatwierdza wielkość i wygląd."
+    },
+    {
+      "id": "0106a539fd614d029c451af4f8be3552",
+      "categories": [
+        "piec sauny (D.4)"
+      ],
+      "title": "Huum CLIFF sauna heater | CLIFF",
+      "author": "Polywerk3d",
+      "author_url": "https://sketchfab.com/polywerk3d",
+      "source_url": "https://sketchfab.com/3d-models/huum-cliff-sauna-heater-cliff-0106a539fd614d029c451af4f8be3552",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 1119160,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": null,
+      "texture_count_in_api": 7,
+      "preview_inspected": true,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/0106a539fd614d029c451af4f8be3552"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Właściwy piec saunowy z koszem kamieni, projekt HUUM, model Polywerk3d. 1 119 160 trójkątów: za ciężki do bezpośredniego importu mobilnego. Kandydat warunkowy, wymaga zaakceptowanego pochodnego LOD i sprawdzenia pełnych map; API nie potwierdza PBR. Nie zastępować pieca zwykłą kuchenką ani kostką."
+    },
+    {
+      "id": "medical_box",
+      "categories": [
+        "apteczka / walizka medyczna"
+      ],
+      "title": "Medical Box",
+      "author": "Ulan Cabanilla",
+      "source_url": "https://polyhaven.com/a/medical_box",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_evidence_url": "https://polyhaven.com/license",
+      "triangles": 3718,
+      "triangles_basis": "oficjalne API Poly Haven: polycount (na stronie: tris)",
+      "source_bytes": 7022999,
+      "source_bytes_basis": "glTF 2K + BIN + wszystkie pliki include; suma plików, bez ZIP",
+      "selected_source_files": [
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/medical_box/medical_box_2k.gltf",
+          "size": 8820,
+          "md5": "8fd7e39fb292b12609086ceb225d4e1b"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/medical_box/medical_box_nor_gl_2k.jpg",
+          "size": 1368602,
+          "md5": "c71f1e5581bbd4ffca91f7f3924e0470"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/medical_box/medical_box_diff_2k.jpg",
+          "size": 2536442,
+          "md5": "00935657710a6bea894aefc4fd0d5880"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/medical_box/medical_box_arm_2k.jpg",
+          "size": 2981163,
+          "md5": "0ef56767c433c7b58961d2f9d05f2a13"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/medical_box/medical_box.bin",
+          "size": 127972,
+          "md5": "22d04371779d87a0e65ee97c4ad7389c"
+        }
+      ],
+      "evidence_urls": [
+        "https://api.polyhaven.com/info/medical_box",
+        "https://api.polyhaven.com/files/medical_box"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Otwarta zielona metalowa walizka medyczna z zawiasem, zatrzaskami i uchwytem. Obejrzano oficjalny podgląd; bez dodatkowych leków i przyborów w środku. Strona źródła podaje około 0,5 m szerokości; pozostałe wymiary w metrach wymagają weryfikacji po akceptacji. CC0, PBR 2K; nie jest proceduralną kostką.",
+      "preview_inspected": true,
+      "source_width_metres_rounded": 0.5,
+      "source_dimensions_metres_exact": null,
+      "dimensions_basis": "rounded width shown on official asset page; full exact dimensions not measured because the H model has not been downloaded"
+    },
+    {
+      "id": "wooden_crate_01",
+      "categories": [
+        "drewniane skrzynie magazynowe"
+      ],
+      "title": "Wooden Crate 01",
+      "author": "James Ray Cock",
+      "source_url": "https://polyhaven.com/a/wooden_crate_01",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_evidence_url": "https://polyhaven.com/license",
+      "triangles": 6576,
+      "triangles_basis": "oficjalne API Poly Haven: polycount (na stronie: tris)",
+      "source_bytes": 8285970,
+      "source_bytes_basis": "glTF 2K + BIN + wszystkie pliki include; suma plików, bez ZIP",
+      "selected_source_files": [
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/wooden_crate_01/wooden_crate_01_2k.gltf",
+          "size": 5612,
+          "md5": "0fcc2eefac2c31d293152daf68667afe"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/wooden_crate_01/wooden_crate_01.bin",
+          "size": 189408,
+          "md5": "8318f76b0c24b5538ce23051dbcb79a0"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_crate_01/wooden_crate_01_arm_2k.jpg",
+          "size": 2808807,
+          "md5": "cab0dc371ff6d90a091737d4b6f92d0f"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_crate_01/wooden_crate_01_nor_gl_2k.jpg",
+          "size": 2553649,
+          "md5": "2d693bd47dd55fc02c2ff8b6195a9181"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/wooden_crate_01/wooden_crate_01_diff_2k.jpg",
+          "size": 2728494,
+          "md5": "d4e0552359a0e8fddcb15827f9781cef"
+        }
+      ],
+      "evidence_urls": [
+        "https://api.polyhaven.com/info/wooden_crate_01",
+        "https://api.polyhaven.com/files/wooden_crate_01"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Prawdziwa skrzynia z desek, wiekiem, metalowym zamknięciem i uchwytami z liny. Obejrzano oficjalny podgląd. Strona źródła podaje około 0,8 m szerokości; pozostałe wymiary w metrach wymagają weryfikacji po akceptacji. Jedna współdzielona siatka i materiały dla powtórzeń.",
+      "preview_inspected": true,
+      "source_width_metres_rounded": 0.8,
+      "source_dimensions_metres_exact": null,
+      "dimensions_basis": "rounded width shown on official asset page; full exact dimensions not measured because the H model has not been downloaded"
+    },
+    {
+      "id": "c1278c38a0d345219ad3e04ad2fe0007",
+      "categories": [
+        "armatura / słupek prysznicowy (D.3)"
+      ],
+      "title": "Shower (middlepoly)",
+      "author": "Zuckergelee",
+      "author_url": "https://sketchfab.com/knorke",
+      "source_url": "https://sketchfab.com/3d-models/shower-middlepoly-c1278c38a0d345219ad3e04ad2fe0007",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "triangles": 26586,
+      "triangles_basis": "oficjalne API Sketchfab: faceCount (na stronie: Triangles)",
+      "source_bytes": null,
+      "source_bytes_basis": "publiczne v3/models nie publikuje rozmiaru; v3/models/.../download wymaga uwierzytelnienia (sprawdzono HTTP 401)",
+      "downloadable": true,
+      "pbr_type_in_api": "metalness",
+      "texture_count_in_api": 5,
+      "preview_inspected": true,
+      "evidence_urls": [
+        "https://api.sketchfab.com/v3/models/c1278c38a0d345219ad3e04ad2fe0007"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Samodzielny metalowy słupek z baterią, deszczownicą, ręczną słuchawką, wężem i uchwytami ściennymi; sprawdzony oficjalny podgląd. Autor podaje PBR 2K. Oryginalny brodzik właściciela pozostaje; to propozycja brakującej armatury nad nim. Rzeczywiste gabaryty i rozmiar archiwum nieznane; nie podano rozmiaru miniatury jako modelu. Nie pobrano ani nie importowano."
+    },
+    {
+      "id": "sledgehammer_01",
+      "categories": [
+        "młot z punktu E.2"
+      ],
+      "title": "Sledgehammer 01",
+      "author": "Dylan Guzman",
+      "source_url": "https://polyhaven.com/a/sledgehammer_01",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "license_evidence_url": "https://polyhaven.com/license",
+      "triangles": 2596,
+      "triangles_basis": "oficjalne API Poly Haven: polycount (na stronie: tris)",
+      "source_bytes": 6492651,
+      "source_bytes_basis": "glTF 2K + BIN + wszystkie pliki include; suma plików, bez ZIP",
+      "selected_source_files": [
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/sledgehammer_01/sledgehammer_01_2k.gltf",
+          "size": 2796,
+          "md5": "573187e3fe9c62d39bb8c4b68939fef9"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/sledgehammer_01/sledgehammer_01_diff_2k.jpg",
+          "size": 2331381,
+          "md5": "6903b83388923f00a5c31ab33b5b58ba"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/sledgehammer_01/sledgehammer_01_nor_gl_2k.jpg",
+          "size": 1735568,
+          "md5": "768309031148e04a1d1f3a73a2514c4e"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/sledgehammer_01/sledgehammer_01.bin",
+          "size": 66872,
+          "md5": "2194707d7c8362e9b212684204241e8f"
+        },
+        {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/sledgehammer_01/sledgehammer_01_arm_2k.jpg",
+          "size": 2356034,
+          "md5": "e10063c73be2e86bd1785f5f10823c59"
+        }
+      ],
+      "evidence_urls": [
+        "https://api.polyhaven.com/info/sledgehammer_01",
+        "https://api.polyhaven.com/files/sledgehammer_01"
+      ],
+      "owner_approval": "PENDING",
+      "model_downloaded": false,
+      "model_imported": false,
+      "recommendation": "Dodatkowa pozycja wynikająca z E.2: prawdziwy ciężki młot, żółty trzonek i metalowy obuch. Tylko jeśli nie ma go w dostawie właściciela."
+    }
+  ],
+  "owner_bull": {
+    "filename": "BRAXHORN_BULL_RONDO_4X_ORYGINALNE_TEKSTURY.glb",
+    "status": "OWNER_ORIGINAL_EXISTS_PRESERVE_SCALE",
+    "source_bytes": 2232460,
+    "sha256": "425788876b8fe2dfaba90157d74c6631d231184f96659759cdafade794a5352f",
+    "triangles": 7114,
+    "mesh_geometry_and_textures_same_as_owner_1x": true,
+    "scale_action": "NONE — zachować aktualne powiększenie 4×; nie dobierać zamiennika",
+    "license": "oryginał dostarczony przez właściciela, nie przypisywać CC0/CC-BY bez dokumentu"
+  },
+  "existing_owner_plates": {
+    "source": "kitchen_-_assets.glb",
+    "source_sha256": "ce541b4319e04763d1eca1a5e10b07919ed8e4e481668f76557a54496147ca8b",
+    "node": "Plate_Regular.001_12",
+    "status": "Original plate available; D canteen uses original source parts",
+    "new_download_required": false
+  },
+  "existing_owner_bath_fixtures": {
+    "title": "OBÓZ TRENINGOWY — oryginalne elementy armatury i odpływów",
+    "sourceFilesChanged": false,
+    "newCandidateModelsDownloaded": false,
+    "models": [
+      {
+        "file": "trough-washbasin.glb",
+        "bytes": 749964,
+        "sha256": "01736920b3eb5b4662dd66dad1c6f917b3e6322e116a5d69bac8fb6f5690a582",
+        "triangles": 6528,
+        "copyright": "Authored by Innerscene Corp (innerscene.com). Public domain: dedicated under CC0 1.0 Universal, https://creativecommons.org/publicdomain/zero/1.0/. Free to use, modify and redistribute for any purpose, with no credit required.",
+        "nodes": [
+          {
+            "nodeIndex": 0,
+            "nodeName": "Mixer | aerator outlet",
+            "meshIndex": 0,
+            "meshName": "Mixer | aerator outlet",
+            "triangles": 192,
+            "worldMinSourceUnits": [
+              -0.33799999207258224,
+              0.29416000843048096,
+              -0.08100000023841858
+            ],
+            "worldMaxSourceUnits": [
+              -0.31599999219179153,
+              0.30316000804305077,
+              -0.05900000035762787
+            ]
+          },
+          {
+            "nodeIndex": 1,
+            "nodeName": "Mixer | aerator outlet.001",
+            "meshIndex": 1,
+            "meshName": "Mixer | aerator outlet.001",
+            "triangles": 192,
+            "worldMinSourceUnits": [
+              0.31599999219179153,
+              0.29416000843048096,
+              -0.08100000023841858
+            ],
+            "worldMaxSourceUnits": [
+              0.33799999207258224,
+              0.30316000804305077,
+              -0.05900000035762787
+            ]
+          },
+          {
+            "nodeIndex": 2,
+            "nodeName": "Mixer | cartridge body",
+            "meshIndex": 2,
+            "meshName": "Cylinder.001",
+            "triangles": 444,
+            "worldMinSourceUnits": [
+              -0.35099999234080315,
+              0.1899999976158142,
+              -0.21899999305605888
+            ],
+            "worldMaxSourceUnits": [
+              -0.30299999192357063,
+              0.34299999475479126,
+              -0.17099999263882637
+            ]
+          },
+          {
+            "nodeIndex": 3,
+            "nodeName": "Mixer | cartridge body.001",
+            "meshIndex": 3,
+            "meshName": "Cylinder.004",
+            "triangles": 444,
+            "worldMinSourceUnits": [
+              0.30299999192357063,
+              0.1899999976158142,
+              -0.21899999305605888
+            ],
+            "worldMaxSourceUnits": [
+              0.35099999234080315,
+              0.34299999475479126,
+              -0.17099999263882637
+            ]
+          },
+          {
+            "nodeIndex": 4,
+            "nodeName": "Mixer | curved spout",
+            "meshIndex": 4,
+            "meshName": "Mixer | curved spout",
+            "triangles": 60,
+            "worldMinSourceUnits": [
+              -0.3409999907016754,
+              0.2872753441333771,
+              -0.2015167772769928
+            ],
+            "worldMaxSourceUnits": [
+              -0.31299999356269836,
+              0.34001439809799194,
+              -0.06452403217554092
+            ]
+          },
+          {
+            "nodeIndex": 5,
+            "nodeName": "Mixer | curved spout.001",
+            "meshIndex": 5,
+            "meshName": "Mixer | curved spout.001",
+            "triangles": 60,
+            "worldMinSourceUnits": [
+              0.31299999356269836,
+              0.2872753441333771,
+              -0.2015167772769928
+            ],
+            "worldMaxSourceUnits": [
+              0.3409999907016754,
+              0.34001439809799194,
+              -0.06452403217554092
+            ]
+          },
+          {
+            "nodeIndex": 6,
+            "nodeName": "Mixer | lever pivot",
+            "meshIndex": 6,
+            "meshName": "Cylinder.002",
+            "triangles": 316,
+            "worldMinSourceUnits": [
+              -0.33799999207258224,
+              0.3379999902099371,
+              -0.20599999278783798
+            ],
+            "worldMaxSourceUnits": [
+              -0.31599999219179153,
+              0.35799998976290226,
+              -0.18399999290704727
+            ]
+          },
+          {
+            "nodeIndex": 7,
+            "nodeName": "Mixer | lever pivot.001",
+            "meshIndex": 7,
+            "meshName": "Cylinder.005",
+            "triangles": 316,
+            "worldMinSourceUnits": [
+              0.31599999219179153,
+              0.3379999902099371,
+              -0.20599999278783798
+            ],
+            "worldMaxSourceUnits": [
+              0.33799999207258224,
+              0.35799998976290226,
+              -0.18399999290704727
+            ]
+          },
+          {
+            "nodeIndex": 8,
+            "nodeName": "Mixer | lifting lever",
+            "meshIndex": 8,
+            "meshName": "Cube.001",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              -0.3339999923482537,
+              0.3514999933540821,
+              -0.21849999204277992
+            ],
+            "worldMaxSourceUnits": [
+              -0.31999999191612005,
+              0.36249999329447746,
+              -0.1274999938905239
+            ]
+          },
+          {
+            "nodeIndex": 9,
+            "nodeName": "Mixer | lifting lever.001",
+            "meshIndex": 9,
+            "meshName": "Cube.002",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              0.31999999191612005,
+              0.3514999933540821,
+              -0.21849999204277992
+            ],
+            "worldMaxSourceUnits": [
+              0.3339999923482537,
+              0.36249999329447746,
+              -0.1274999938905239
+            ]
+          },
+          {
+            "nodeIndex": 10,
+            "nodeName": "Mixer | mounting flange",
+            "meshIndex": 10,
+            "meshName": "Cylinder",
+            "triangles": 444,
+            "worldMinSourceUnits": [
+              -0.3579999916255474,
+              0.18999999295920134,
+              -0.22599999234080315
+            ],
+            "worldMaxSourceUnits": [
+              -0.29599999263882637,
+              0.19999999273568392,
+              -0.1639999933540821
+            ]
+          },
+          {
+            "nodeIndex": 11,
+            "nodeName": "Mixer | mounting flange.001",
+            "meshIndex": 11,
+            "meshName": "Cylinder.003",
+            "triangles": 444,
+            "worldMinSourceUnits": [
+              0.29599999263882637,
+              0.18999999295920134,
+              -0.22599999234080315
+            ],
+            "worldMaxSourceUnits": [
+              0.3579999916255474,
+              0.19999999273568392,
+              -0.1639999933540821
+            ]
+          },
+          {
+            "nodeIndex": 12,
+            "nodeName": "Trough | rear tap deck",
+            "meshIndex": 12,
+            "meshName": "Cube",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              -0.5295000076293945,
+              0.15100000239908695,
+              -0.22449999302625656
+            ],
+            "worldMaxSourceUnits": [
+              0.5295000076293945,
+              0.18900000117719173,
+              -0.13749999552965164
+            ]
+          },
+          {
+            "nodeIndex": 13,
+            "nodeName": "Trough | shared stone basin",
+            "meshIndex": 13,
+            "meshName": "Trough | shared stone basin",
+            "triangles": 616,
+            "worldMinSourceUnits": [
+              -0.5634999871253967,
+              0.0,
+              -0.20550000667572021
+            ],
+            "worldMaxSourceUnits": [
+              0.5634999871253967,
+              0.17299999296665192,
+              0.20550000667572021
+            ]
+          },
+          {
+            "nodeIndex": 14,
+            "nodeName": "Trough | waste-grate slot",
+            "meshIndex": 14,
+            "meshName": "Cube.003",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              -0.05800000159069896,
+              0.0274999993853271,
+              -0.029999999329447746
+            ],
+            "worldMaxSourceUnits": [
+              -0.05000000121071935,
+              0.03249999927356839,
+              0.029999999329447746
+            ]
+          },
+          {
+            "nodeIndex": 15,
+            "nodeName": "Trough | waste-grate slot.001",
+            "meshIndex": 15,
+            "meshName": "Cube.004",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              -0.03999999864026904,
+              0.0274999993853271,
+              -0.029999999329447746
+            ],
+            "worldMaxSourceUnits": [
+              -0.03199999826028943,
+              0.03249999927356839,
+              0.029999999329447746
+            ]
+          },
+          {
+            "nodeIndex": 16,
+            "nodeName": "Trough | waste-grate slot.002",
+            "meshIndex": 16,
+            "meshName": "Cube.005",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              -0.021999999415129423,
+              0.0274999993853271,
+              -0.029999999329447746
+            ],
+            "worldMaxSourceUnits": [
+              -0.013999999035149813,
+              0.03249999927356839,
+              0.029999999329447746
+            ]
+          },
+          {
+            "nodeIndex": 17,
+            "nodeName": "Trough | waste-grate slot.003",
+            "meshIndex": 17,
+            "meshName": "Cube.006",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              -0.004000000189989805,
+              0.0274999993853271,
+              -0.029999999329447746
+            ],
+            "worldMaxSourceUnits": [
+              0.004000000189989805,
+              0.03249999927356839,
+              0.029999999329447746
+            ]
+          },
+          {
+            "nodeIndex": 18,
+            "nodeName": "Trough | waste-grate slot.004",
+            "meshIndex": 18,
+            "meshName": "Cube.007",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              0.013999999035149813,
+              0.0274999993853271,
+              -0.029999999329447746
+            ],
+            "worldMaxSourceUnits": [
+              0.021999999415129423,
+              0.03249999927356839,
+              0.029999999329447746
+            ]
+          },
+          {
+            "nodeIndex": 19,
+            "nodeName": "Trough | waste-grate slot.005",
+            "meshIndex": 19,
+            "meshName": "Cube.008",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              0.03199999826028943,
+              0.0274999993853271,
+              -0.029999999329447746
+            ],
+            "worldMaxSourceUnits": [
+              0.03999999864026904,
+              0.03249999927356839,
+              0.029999999329447746
+            ]
+          },
+          {
+            "nodeIndex": 20,
+            "nodeName": "Trough | waste-grate slot.006",
+            "meshIndex": 20,
+            "meshName": "Cube.009",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              0.05000000121071935,
+              0.0274999993853271,
+              -0.029999999329447746
+            ],
+            "worldMaxSourceUnits": [
+              0.05800000159069896,
+              0.03249999927356839,
+              0.029999999329447746
+            ]
+          }
+        ]
+      },
+      {
+        "file": "shower-tray-square.glb",
+        "bytes": 231076,
+        "sha256": "6411db6c3d3727227b1642adeb7d692af6d29c0a44658bde3e965ca4db234f73",
+        "triangles": 5888,
+        "copyright": "Authored by Innerscene Corp (innerscene.com). Public domain: dedicated under CC0 1.0 Universal, https://creativecommons.org/publicdomain/zero/1.0/. Free to use, modify and redistribute for any purpose, with no credit required.",
+        "nodes": [
+          {
+            "nodeIndex": 0,
+            "nodeName": "Tray | sloping shower pan",
+            "meshIndex": 0,
+            "meshName": "Tray | sloping shower pan",
+            "triangles": 616,
+            "worldMinSourceUnits": [
+              -0.44200000166893005,
+              0.013000000268220901,
+              -0.44200000166893005
+            ],
+            "worldMaxSourceUnits": [
+              0.44200000166893005,
+              0.0729999989271164,
+              0.44200000166893005
+            ]
+          },
+          {
+            "nodeIndex": 1,
+            "nodeName": "Tray | waste grate bar",
+            "meshIndex": 1,
+            "meshName": "Cube",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              -0.025000000139698386,
+              0.04400000208988786,
+              -0.02449999935925007
+            ],
+            "worldMaxSourceUnits": [
+              -0.02099999994970858,
+              0.05000000214204192,
+              0.02449999935925007
+            ]
+          },
+          {
+            "nodeIndex": 2,
+            "nodeName": "Tray | waste grate bar.001",
+            "meshIndex": 2,
+            "meshName": "Cube.001",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              -0.013500000117346644,
+              0.04400000208988786,
+              -0.02449999935925007
+            ],
+            "worldMaxSourceUnits": [
+              -0.00949999992735684,
+              0.05000000214204192,
+              0.02449999935925007
+            ]
+          },
+          {
+            "nodeIndex": 3,
+            "nodeName": "Tray | waste grate bar.002",
+            "meshIndex": 3,
+            "meshName": "Cube.002",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              -0.0020000000949949026,
+              0.04400000208988786,
+              -0.02449999935925007
+            ],
+            "worldMaxSourceUnits": [
+              0.0020000000949949026,
+              0.05000000214204192,
+              0.02449999935925007
+            ]
+          },
+          {
+            "nodeIndex": 4,
+            "nodeName": "Tray | waste grate bar.003",
+            "meshIndex": 4,
+            "meshName": "Cube.003",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              0.00949999992735684,
+              0.04400000208988786,
+              -0.02449999935925007
+            ],
+            "worldMaxSourceUnits": [
+              0.013500000117346644,
+              0.05000000214204192,
+              0.02449999935925007
+            ]
+          },
+          {
+            "nodeIndex": 5,
+            "nodeName": "Tray | waste grate bar.004",
+            "meshIndex": 5,
+            "meshName": "Cube.004",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              0.02099999994970858,
+              0.04400000208988786,
+              -0.02449999935925007
+            ],
+            "worldMaxSourceUnits": [
+              0.025000000139698386,
+              0.05000000214204192,
+              0.02449999935925007
+            ]
+          },
+          {
+            "nodeIndex": 6,
+            "nodeName": "Waste | grille crossbar",
+            "meshIndex": 6,
+            "meshName": "Cylinder",
+            "triangles": 508,
+            "worldMinSourceUnits": [
+              -0.01875000074505806,
+              0.03520000050775707,
+              -0.0017999999690800905
+            ],
+            "worldMaxSourceUnits": [
+              0.01875000074505806,
+              0.03880000044591725,
+              0.0017999999690800905
+            ]
+          },
+          {
+            "nodeIndex": 7,
+            "nodeName": "Waste | open nickel flange",
+            "meshIndex": 7,
+            "meshName": "Waste | open nickel flange",
+            "triangles": 3072,
+            "worldMinSourceUnits": [
+              -0.03099999949336052,
+              0.03399999998509884,
+              -0.03099999949336052
+            ],
+            "worldMaxSourceUnits": [
+              0.03099999949336052,
+              0.04000000096857548,
+              0.03099999949336052
+            ]
+          },
+          {
+            "nodeIndex": 8,
+            "nodeName": "Waste | open outlet tube",
+            "meshIndex": 8,
+            "meshName": "Waste | open outlet tube",
+            "triangles": 192,
+            "worldMinSourceUnits": [
+              -0.02500000037252903,
+              0.0,
+              -0.02500000037252903
+            ],
+            "worldMaxSourceUnits": [
+              0.02500000037252903,
+              0.04000000096857548,
+              0.02500000037252903
+            ]
+          }
+        ]
+      },
+      {
+        "file": "close-coupled-toilet.glb",
+        "bytes": 214560,
+        "sha256": "7630c2bde25d7bca493447243bff7a1f32f024bfdf76623461b4530bd179cd0a",
+        "triangles": 4560,
+        "copyright": "Authored by Innerscene Corp (innerscene.com). Public domain: dedicated under CC0 1.0 Universal, https://creativecommons.org/publicdomain/zero/1.0/. Free to use, modify and redistribute for any purpose, with no credit required.",
+        "nodes": [
+          {
+            "nodeIndex": 0,
+            "nodeName": "WC | ceramic pedestal",
+            "meshIndex": 0,
+            "meshName": "WC | ceramic pedestal",
+            "triangles": 508,
+            "worldMinSourceUnits": [
+              -0.1550000011920929,
+              0.0,
+              -0.20615000823736196
+            ],
+            "worldMaxSourceUnits": [
+              0.1550000011920929,
+              0.1350000025704503,
+              0.20615000823736196
+            ]
+          },
+          {
+            "nodeIndex": 1,
+            "nodeName": "WC | cistern cover",
+            "meshIndex": 1,
+            "meshName": "Cube.001",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              -0.19200000166893005,
+              0.7989999717101455,
+              -0.4560000002384186
+            ],
+            "worldMaxSourceUnits": [
+              0.19200000166893005,
+              0.8229999719187617,
+              -0.25200000405311584
+            ]
+          },
+          {
+            "nodeIndex": 2,
+            "nodeName": "WC | dual-flush button",
+            "meshIndex": 2,
+            "meshName": "Cylinder.002",
+            "triangles": 316,
+            "worldMinSourceUnits": [
+              -0.033999999053776264,
+              0.8224999704398215,
+              -0.3690000018104911
+            ],
+            "worldMaxSourceUnits": [
+              -0.003999999724328518,
+              0.8274999703280628,
+              -0.33900000248104334
+            ]
+          },
+          {
+            "nodeIndex": 3,
+            "nodeName": "WC | dual-flush button.001",
+            "meshIndex": 3,
+            "meshName": "Cylinder.003",
+            "triangles": 316,
+            "worldMinSourceUnits": [
+              0.003999999724328518,
+              0.8224999704398215,
+              -0.3690000018104911
+            ],
+            "worldMaxSourceUnits": [
+              0.033999999053776264,
+              0.8274999703280628,
+              -0.33900000248104334
+            ]
+          },
+          {
+            "nodeIndex": 4,
+            "nodeName": "WC | open sanitary bowl",
+            "meshIndex": 4,
+            "meshName": "WC | open sanitary bowl",
+            "triangles": 1232,
+            "worldMinSourceUnits": [
+              -0.19300000369548798,
+              0.13100000377744436,
+              -0.2730000003397155
+            ],
+            "worldMaxSourceUnits": [
+              0.19300000369548798,
+              0.4030000092461705,
+              0.2730000003397155
+            ]
+          },
+          {
+            "nodeIndex": 5,
+            "nodeName": "WC | raised lid",
+            "meshIndex": 5,
+            "meshName": "WC | raised lid",
+            "triangles": 508,
+            "worldMinSourceUnits": [
+              -0.21299999952316284,
+              0.36983995432102945,
+              -0.2620000428843369
+            ],
+            "worldMaxSourceUnits": [
+              0.21299999952316284,
+              0.932160052303032,
+              -0.24599996659475934
+            ]
+          },
+          {
+            "nodeIndex": 6,
+            "nodeName": "WC | rear cistern",
+            "meshIndex": 6,
+            "meshName": "Cube",
+            "triangles": 300,
+            "worldMinSourceUnits": [
+              -0.18299999833106995,
+              0.3785000117495656,
+              -0.44700000435113907
+            ],
+            "worldMaxSourceUnits": [
+              0.18299999833106995,
+              0.8015000196173787,
+              -0.26099999994039536
+            ]
+          },
+          {
+            "nodeIndex": 7,
+            "nodeName": "WC | seat hinge",
+            "meshIndex": 7,
+            "meshName": "Cylinder",
+            "triangles": 316,
+            "worldMinSourceUnits": [
+              -0.11899999715387821,
+              0.4050000114366412,
+              -0.2600000072270632
+            ],
+            "worldMaxSourceUnits": [
+              -0.06899999640882015,
+              0.43300001230090857,
+              -0.23200000636279583
+            ]
+          },
+          {
+            "nodeIndex": 8,
+            "nodeName": "WC | seat hinge.001",
+            "meshIndex": 8,
+            "meshName": "Cylinder.001",
+            "triangles": 316,
+            "worldMinSourceUnits": [
+              0.06899999640882015,
+              0.4050000114366412,
+              -0.2600000072270632
+            ],
+            "worldMaxSourceUnits": [
+              0.11899999715387821,
+              0.43300001230090857,
+              -0.23200000636279583
+            ]
+          },
+          {
+            "nodeIndex": 9,
+            "nodeName": "WC | separate seat ring",
+            "meshIndex": 9,
+            "meshName": "WC | separate seat ring",
+            "triangles": 448,
+            "worldMinSourceUnits": [
+              -0.2160000056028366,
+              0.4190000118687749,
+              -0.2851200187253955
+            ],
+            "worldMaxSourceUnits": [
+              0.2160000056028366,
+              0.43500001449137926,
+              0.2851200187253955
+            ]
+          }
+        ]
+      }
+    ],
+    "findings": {
+      "trough-washbasin.glb": "Two complete mixers, shared bowl, rear deck, seven grate bars; no separate trap/drain pipe below bowl in the source geometry inventory.",
+      "shower-tray-square.glb": "Original grate, open nickel flange and open outlet tube present; no overhead shower/column/mixer.",
+      "close-coupled-toilet.glb": "Two original WC | dual-flush button nodes present, 316 triangles each."
+    }
+  },
+  "unresolved_missing_bath_part": {
+    "category": "syfon / rura odpływowa umywalki korytowej",
+    "status": "No separate trap/drain pipe in exact delivered trough-washbasin.glb; not replaced by a procedural box",
+    "candidate": null,
+    "candidate_triangles": null,
+    "candidate_bytes": null,
+    "note": "No verified exact candidate in this addition; owner selection remains required. Do not confuse the existing shower tray outlet with a washbasin trap."
+  },
+  "existing_owner_gym": {
+    "source_path": "Assets/Source/Prywatne/Oboz/OwnerAssets/OwnerExtras/Gym/gym_environment.fbx",
+    "atlas_pixels": [
+      2048,
+      2048
+    ],
+    "nodes_referenced_by_current_code": [
+      "weight_bench",
+      "weight_rack",
+      "dumbbell_1",
+      "kettlebell_1",
+      "pull_up_rack",
+      "treadmill",
+      "exercise_bike"
+    ],
+    "evidence": "BraxObozCampus.OwnerStrengthEquipment and owner_extra_assets.py; root read-only verification 2026-11-06",
+    "status": "DELIVERED_OWNER_SOURCE; these categories are not confirmed missing",
+    "individual_node_geometry_measured_here": true,
+    "geometry_evidence_path": "e-training-stage/reports/gym-geometry-blender.json",
+    "fbx_sha256": "e28306bd6ffbb1f59b72fe9b1a659f912dfd2ec2ba9c34d36057f1a6d5b046ec",
+    "verified_source_objects": 57,
+    "verified_triangles": 19756,
+    "verified_equipment": [
+      "barbell_bar",
+      "weight_plate_1..15",
+      "horizontal_bar_1..4",
+      "pull_up_rack",
+      "parallel_bars_1..2",
+      "weight_bench",
+      "abdominal_bench",
+      "bench",
+      "6 kettlebells",
+      "8 dumbbells",
+      "step_platform",
+      "treadmill",
+      "exercise_bike"
+    ],
+    "new_download_required": false
+  },
+  "existing_owner_sauna": {
+    "filename": "sauna_product_model.glb",
+    "library_file_id": "libfile_0ba79866c104819194486d9c88297eec",
+    "bytes": 9551680,
+    "triangles": 9032,
+    "status": "Existing owner cabin; not a separate heater or plunge tub",
+    "source_unit": "unknown; measured extent 132 x 196.875 x 122 source units",
+    "evidence": "placement agent inspection of owner original 2026-11-06",
+    "source_license": "not recorded; do not invent CC0 or CC-BY"
+  },
+  "lighter_sauna_heater_search": {
+    "status": "NO_VERIFIED_LIGHTER_DOWNLOADABLE_CC0_OR_CC_BY_STANDALONE_SAUNA_HEATER_FOUND",
+    "searched_terms": [
+      "sauna heater",
+      "sauna stove",
+      "sauna oven",
+      "Harvia",
+      "kamenka"
+    ],
+    "lighter_complete_cabin_candidates_not_substitutes": [
+      {
+        "id": "13c9a9f0daba4e1984facd51948fb0c7",
+        "triangles": 9684,
+        "license": "CC-BY-4.0",
+        "reason": "whole bathhouse, exterior preview; a separate usable Harvia stove mesh not verified"
+      },
+      {
+        "id": "e9d671f8cc67469a9c7b8ee6e632741e",
+        "triangles": 5672,
+        "license": "CC-BY-4.0",
+        "reason": "whole sauna cabin, exterior preview; independent heater geometry not verified"
+      }
+    ],
+    "models_downloaded": false,
+    "decision": "retain explicit heater gap; HUUM is only a conditional high-poly candidate, never direct mobile import"
+  }
+}

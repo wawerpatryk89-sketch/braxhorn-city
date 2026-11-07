@@ -2,10 +2,11 @@
 
 Run with the matching bpy Python. Original .blend archives are never written.
 """
-import argparse, hashlib, json
+import argparse, hashlib, json, sys
 from pathlib import Path
 import bpy
 from mathutils import Vector
+sys.path.insert(0,str(Path(__file__).resolve().parent))
 
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 def export(source_root, output, report_path):
@@ -50,4 +51,11 @@ def export(source_root, output, report_path):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--sources',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--report',type=Path,required=True)
-    a=p.parse_args();export(a.sources,a.output,a.report)
+    p.add_argument('--authorized-manifest',type=Path,help='Only exact owner-named trees and their authored LOD1/LOD2; sources/output outside Assets')
+    argv=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else sys.argv[1:]
+    a=p.parse_args(argv)
+    if a.authorized_manifest:
+        from oboz_authorized_tree_export import export_authorized
+        export_authorized(a.sources,a.output,a.report,a.authorized_manifest)
+    else:
+        export(a.sources,a.output,a.report)

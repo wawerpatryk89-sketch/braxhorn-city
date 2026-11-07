@@ -1,0 +1,719 @@
+{
+  "title": "OBÓZ TRENINGOWY — oryginalne elementy armatury i odpływów",
+  "sourceFilesChanged": false,
+  "newCandidateModelsDownloaded": false,
+  "models": [
+    {
+      "file": "trough-washbasin.glb",
+      "bytes": 749964,
+      "sha256": "01736920b3eb5b4662dd66dad1c6f917b3e6322e116a5d69bac8fb6f5690a582",
+      "triangles": 6528,
+      "copyright": "Authored by Innerscene Corp (innerscene.com). Public domain: dedicated under CC0 1.0 Universal, https://creativecommons.org/publicdomain/zero/1.0/. Free to use, modify and redistribute for any purpose, with no credit required.",
+      "nodes": [
+        {
+          "nodeIndex": 0,
+          "nodeName": "Mixer | aerator outlet",
+          "meshIndex": 0,
+          "meshName": "Mixer | aerator outlet",
+          "triangles": 192,
+          "worldMinSourceUnits": [
+            -0.33799999207258224,
+            0.29416000843048096,
+            -0.08100000023841858
+          ],
+          "worldMaxSourceUnits": [
+            -0.31599999219179153,
+            0.30316000804305077,
+            -0.05900000035762787
+          ]
+        },
+        {
+          "nodeIndex": 1,
+          "nodeName": "Mixer | aerator outlet.001",
+          "meshIndex": 1,
+          "meshName": "Mixer | aerator outlet.001",
+          "triangles": 192,
+          "worldMinSourceUnits": [
+            0.31599999219179153,
+            0.29416000843048096,
+            -0.08100000023841858
+          ],
+          "worldMaxSourceUnits": [
+            0.33799999207258224,
+            0.30316000804305077,
+            -0.05900000035762787
+          ]
+        },
+        {
+          "nodeIndex": 2,
+          "nodeName": "Mixer | cartridge body",
+          "meshIndex": 2,
+          "meshName": "Cylinder.001",
+          "triangles": 444,
+          "worldMinSourceUnits": [
+            -0.35099999234080315,
+            0.1899999976158142,
+            -0.21899999305605888
+          ],
+          "worldMaxSourceUnits": [
+            -0.30299999192357063,
+            0.34299999475479126,
+            -0.17099999263882637
+          ]
+        },
+        {
+          "nodeIndex": 3,
+          "nodeName": "Mixer | cartridge body.001",
+          "meshIndex": 3,
+          "meshName": "Cylinder.004",
+          "triangles": 444,
+          "worldMinSourceUnits": [
+            0.30299999192357063,
+            0.1899999976158142,
+            -0.21899999305605888
+          ],
+          "worldMaxSourceUnits": [
+            0.35099999234080315,
+            0.34299999475479126,
+            -0.17099999263882637
+          ]
+        },
+        {
+          "nodeIndex": 4,
+          "nodeName": "Mixer | curved spout",
+          "meshIndex": 4,
+          "meshName": "Mixer | curved spout",
+          "triangles": 60,
+          "worldMinSourceUnits": [
+            -0.3409999907016754,
+            0.2872753441333771,
+            -0.2015167772769928
+          ],
+          "worldMaxSourceUnits": [
+            -0.31299999356269836,
+            0.34001439809799194,
+            -0.06452403217554092
+          ]
+        },
+        {
+          "nodeIndex": 5,
+          "nodeName": "Mixer | curved spout.001",
+          "meshIndex": 5,
+          "meshName": "Mixer | curved spout.001",
+          "triangles": 60,
+          "worldMinSourceUnits": [
+            0.31299999356269836,
+            0.2872753441333771,
+            -0.2015167772769928
+          ],
+          "worldMaxSourceUnits": [
+            0.3409999907016754,
+            0.34001439809799194,
+            -0.06452403217554092
+          ]
+        },
+        {
+          "nodeIndex": 6,
+          "nodeName": "Mixer | lever pivot",
+          "meshIndex": 6,
+          "meshName": "Cylinder.002",
+          "triangles": 316,
+          "worldMinSourceUnits": [
+            -0.33799999207258224,
+            0.3379999902099371,
+            -0.20599999278783798
+          ],
+          "worldMaxSourceUnits": [
+            -0.31599999219179153,
+            0.35799998976290226,
+            -0.18399999290704727
+          ]
+        },
+        {
+          "nodeIndex": 7,
+          "nodeName": "Mixer | lever pivot.001",
+          "meshIndex": 7,
+          "meshName": "Cylinder.005",
+          "triangles": 316,
+          "worldMinSourceUnits": [
+            0.31599999219179153,
+            0.3379999902099371,
+            -0.20599999278783798
+          ],
+          "worldMaxSourceUnits": [
+            0.33799999207258224,
+            0.35799998976290226,
+            -0.18399999290704727
+          ]
+        },
+        {
+          "nodeIndex": 8,
+          "nodeName": "Mixer | lifting lever",
+          "meshIndex": 8,
+          "meshName": "Cube.001",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            -0.3339999923482537,
+            0.3514999933540821,
+            -0.21849999204277992
+          ],
+          "worldMaxSourceUnits": [
+            -0.31999999191612005,
+            0.36249999329447746,
+            -0.1274999938905239
+          ]
+        },
+        {
+          "nodeIndex": 9,
+          "nodeName": "Mixer | lifting lever.001",
+          "meshIndex": 9,
+          "meshName": "Cube.002",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            0.31999999191612005,
+            0.3514999933540821,
+            -0.21849999204277992
+          ],
+          "worldMaxSourceUnits": [
+            0.3339999923482537,
+            0.36249999329447746,
+            -0.1274999938905239
+          ]
+        },
+        {
+          "nodeIndex": 10,
+          "nodeName": "Mixer | mounting flange",
+          "meshIndex": 10,
+          "meshName": "Cylinder",
+          "triangles": 444,
+          "worldMinSourceUnits": [
+            -0.3579999916255474,
+            0.18999999295920134,
+            -0.22599999234080315
+          ],
+          "worldMaxSourceUnits": [
+            -0.29599999263882637,
+            0.19999999273568392,
+            -0.1639999933540821
+          ]
+        },
+        {
+          "nodeIndex": 11,
+          "nodeName": "Mixer | mounting flange.001",
+          "meshIndex": 11,
+          "meshName": "Cylinder.003",
+          "triangles": 444,
+          "worldMinSourceUnits": [
+            0.29599999263882637,
+            0.18999999295920134,
+            -0.22599999234080315
+          ],
+          "worldMaxSourceUnits": [
+            0.3579999916255474,
+            0.19999999273568392,
+            -0.1639999933540821
+          ]
+        },
+        {
+          "nodeIndex": 12,
+          "nodeName": "Trough | rear tap deck",
+          "meshIndex": 12,
+          "meshName": "Cube",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            -0.5295000076293945,
+            0.15100000239908695,
+            -0.22449999302625656
+          ],
+          "worldMaxSourceUnits": [
+            0.5295000076293945,
+            0.18900000117719173,
+            -0.13749999552965164
+          ]
+        },
+        {
+          "nodeIndex": 13,
+          "nodeName": "Trough | shared stone basin",
+          "meshIndex": 13,
+          "meshName": "Trough | shared stone basin",
+          "triangles": 616,
+          "worldMinSourceUnits": [
+            -0.5634999871253967,
+            0.0,
+            -0.20550000667572021
+          ],
+          "worldMaxSourceUnits": [
+            0.5634999871253967,
+            0.17299999296665192,
+            0.20550000667572021
+          ]
+        },
+        {
+          "nodeIndex": 14,
+          "nodeName": "Trough | waste-grate slot",
+          "meshIndex": 14,
+          "meshName": "Cube.003",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            -0.05800000159069896,
+            0.0274999993853271,
+            -0.029999999329447746
+          ],
+          "worldMaxSourceUnits": [
+            -0.05000000121071935,
+            0.03249999927356839,
+            0.029999999329447746
+          ]
+        },
+        {
+          "nodeIndex": 15,
+          "nodeName": "Trough | waste-grate slot.001",
+          "meshIndex": 15,
+          "meshName": "Cube.004",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            -0.03999999864026904,
+            0.0274999993853271,
+            -0.029999999329447746
+          ],
+          "worldMaxSourceUnits": [
+            -0.03199999826028943,
+            0.03249999927356839,
+            0.029999999329447746
+          ]
+        },
+        {
+          "nodeIndex": 16,
+          "nodeName": "Trough | waste-grate slot.002",
+          "meshIndex": 16,
+          "meshName": "Cube.005",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            -0.021999999415129423,
+            0.0274999993853271,
+            -0.029999999329447746
+          ],
+          "worldMaxSourceUnits": [
+            -0.013999999035149813,
+            0.03249999927356839,
+            0.029999999329447746
+          ]
+        },
+        {
+          "nodeIndex": 17,
+          "nodeName": "Trough | waste-grate slot.003",
+          "meshIndex": 17,
+          "meshName": "Cube.006",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            -0.004000000189989805,
+            0.0274999993853271,
+            -0.029999999329447746
+          ],
+          "worldMaxSourceUnits": [
+            0.004000000189989805,
+            0.03249999927356839,
+            0.029999999329447746
+          ]
+        },
+        {
+          "nodeIndex": 18,
+          "nodeName": "Trough | waste-grate slot.004",
+          "meshIndex": 18,
+          "meshName": "Cube.007",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            0.013999999035149813,
+            0.0274999993853271,
+            -0.029999999329447746
+          ],
+          "worldMaxSourceUnits": [
+            0.021999999415129423,
+            0.03249999927356839,
+            0.029999999329447746
+          ]
+        },
+        {
+          "nodeIndex": 19,
+          "nodeName": "Trough | waste-grate slot.005",
+          "meshIndex": 19,
+          "meshName": "Cube.008",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            0.03199999826028943,
+            0.0274999993853271,
+            -0.029999999329447746
+          ],
+          "worldMaxSourceUnits": [
+            0.03999999864026904,
+            0.03249999927356839,
+            0.029999999329447746
+          ]
+        },
+        {
+          "nodeIndex": 20,
+          "nodeName": "Trough | waste-grate slot.006",
+          "meshIndex": 20,
+          "meshName": "Cube.009",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            0.05000000121071935,
+            0.0274999993853271,
+            -0.029999999329447746
+          ],
+          "worldMaxSourceUnits": [
+            0.05800000159069896,
+            0.03249999927356839,
+            0.029999999329447746
+          ]
+        }
+      ]
+    },
+    {
+      "file": "shower-tray-square.glb",
+      "bytes": 231076,
+      "sha256": "6411db6c3d3727227b1642adeb7d692af6d29c0a44658bde3e965ca4db234f73",
+      "triangles": 5888,
+      "copyright": "Authored by Innerscene Corp (innerscene.com). Public domain: dedicated under CC0 1.0 Universal, https://creativecommons.org/publicdomain/zero/1.0/. Free to use, modify and redistribute for any purpose, with no credit required.",
+      "nodes": [
+        {
+          "nodeIndex": 0,
+          "nodeName": "Tray | sloping shower pan",
+          "meshIndex": 0,
+          "meshName": "Tray | sloping shower pan",
+          "triangles": 616,
+          "worldMinSourceUnits": [
+            -0.44200000166893005,
+            0.013000000268220901,
+            -0.44200000166893005
+          ],
+          "worldMaxSourceUnits": [
+            0.44200000166893005,
+            0.0729999989271164,
+            0.44200000166893005
+          ]
+        },
+        {
+          "nodeIndex": 1,
+          "nodeName": "Tray | waste grate bar",
+          "meshIndex": 1,
+          "meshName": "Cube",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            -0.025000000139698386,
+            0.04400000208988786,
+            -0.02449999935925007
+          ],
+          "worldMaxSourceUnits": [
+            -0.02099999994970858,
+            0.05000000214204192,
+            0.02449999935925007
+          ]
+        },
+        {
+          "nodeIndex": 2,
+          "nodeName": "Tray | waste grate bar.001",
+          "meshIndex": 2,
+          "meshName": "Cube.001",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            -0.013500000117346644,
+            0.04400000208988786,
+            -0.02449999935925007
+          ],
+          "worldMaxSourceUnits": [
+            -0.00949999992735684,
+            0.05000000214204192,
+            0.02449999935925007
+          ]
+        },
+        {
+          "nodeIndex": 3,
+          "nodeName": "Tray | waste grate bar.002",
+          "meshIndex": 3,
+          "meshName": "Cube.002",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            -0.0020000000949949026,
+            0.04400000208988786,
+            -0.02449999935925007
+          ],
+          "worldMaxSourceUnits": [
+            0.0020000000949949026,
+            0.05000000214204192,
+            0.02449999935925007
+          ]
+        },
+        {
+          "nodeIndex": 4,
+          "nodeName": "Tray | waste grate bar.003",
+          "meshIndex": 4,
+          "meshName": "Cube.003",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            0.00949999992735684,
+            0.04400000208988786,
+            -0.02449999935925007
+          ],
+          "worldMaxSourceUnits": [
+            0.013500000117346644,
+            0.05000000214204192,
+            0.02449999935925007
+          ]
+        },
+        {
+          "nodeIndex": 5,
+          "nodeName": "Tray | waste grate bar.004",
+          "meshIndex": 5,
+          "meshName": "Cube.004",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            0.02099999994970858,
+            0.04400000208988786,
+            -0.02449999935925007
+          ],
+          "worldMaxSourceUnits": [
+            0.025000000139698386,
+            0.05000000214204192,
+            0.02449999935925007
+          ]
+        },
+        {
+          "nodeIndex": 6,
+          "nodeName": "Waste | grille crossbar",
+          "meshIndex": 6,
+          "meshName": "Cylinder",
+          "triangles": 508,
+          "worldMinSourceUnits": [
+            -0.01875000074505806,
+            0.03520000050775707,
+            -0.0017999999690800905
+          ],
+          "worldMaxSourceUnits": [
+            0.01875000074505806,
+            0.03880000044591725,
+            0.0017999999690800905
+          ]
+        },
+        {
+          "nodeIndex": 7,
+          "nodeName": "Waste | open nickel flange",
+          "meshIndex": 7,
+          "meshName": "Waste | open nickel flange",
+          "triangles": 3072,
+          "worldMinSourceUnits": [
+            -0.03099999949336052,
+            0.03399999998509884,
+            -0.03099999949336052
+          ],
+          "worldMaxSourceUnits": [
+            0.03099999949336052,
+            0.04000000096857548,
+            0.03099999949336052
+          ]
+        },
+        {
+          "nodeIndex": 8,
+          "nodeName": "Waste | open outlet tube",
+          "meshIndex": 8,
+          "meshName": "Waste | open outlet tube",
+          "triangles": 192,
+          "worldMinSourceUnits": [
+            -0.02500000037252903,
+            0.0,
+            -0.02500000037252903
+          ],
+          "worldMaxSourceUnits": [
+            0.02500000037252903,
+            0.04000000096857548,
+            0.02500000037252903
+          ]
+        }
+      ]
+    },
+    {
+      "file": "close-coupled-toilet.glb",
+      "bytes": 214560,
+      "sha256": "7630c2bde25d7bca493447243bff7a1f32f024bfdf76623461b4530bd179cd0a",
+      "triangles": 4560,
+      "copyright": "Authored by Innerscene Corp (innerscene.com). Public domain: dedicated under CC0 1.0 Universal, https://creativecommons.org/publicdomain/zero/1.0/. Free to use, modify and redistribute for any purpose, with no credit required.",
+      "nodes": [
+        {
+          "nodeIndex": 0,
+          "nodeName": "WC | ceramic pedestal",
+          "meshIndex": 0,
+          "meshName": "WC | ceramic pedestal",
+          "triangles": 508,
+          "worldMinSourceUnits": [
+            -0.1550000011920929,
+            0.0,
+            -0.20615000823736196
+          ],
+          "worldMaxSourceUnits": [
+            0.1550000011920929,
+            0.1350000025704503,
+            0.20615000823736196
+          ]
+        },
+        {
+          "nodeIndex": 1,
+          "nodeName": "WC | cistern cover",
+          "meshIndex": 1,
+          "meshName": "Cube.001",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            -0.19200000166893005,
+            0.7989999717101455,
+            -0.4560000002384186
+          ],
+          "worldMaxSourceUnits": [
+            0.19200000166893005,
+            0.8229999719187617,
+            -0.25200000405311584
+          ]
+        },
+        {
+          "nodeIndex": 2,
+          "nodeName": "WC | dual-flush button",
+          "meshIndex": 2,
+          "meshName": "Cylinder.002",
+          "triangles": 316,
+          "worldMinSourceUnits": [
+            -0.033999999053776264,
+            0.8224999704398215,
+            -0.3690000018104911
+          ],
+          "worldMaxSourceUnits": [
+            -0.003999999724328518,
+            0.8274999703280628,
+            -0.33900000248104334
+          ]
+        },
+        {
+          "nodeIndex": 3,
+          "nodeName": "WC | dual-flush button.001",
+          "meshIndex": 3,
+          "meshName": "Cylinder.003",
+          "triangles": 316,
+          "worldMinSourceUnits": [
+            0.003999999724328518,
+            0.8224999704398215,
+            -0.3690000018104911
+          ],
+          "worldMaxSourceUnits": [
+            0.033999999053776264,
+            0.8274999703280628,
+            -0.33900000248104334
+          ]
+        },
+        {
+          "nodeIndex": 4,
+          "nodeName": "WC | open sanitary bowl",
+          "meshIndex": 4,
+          "meshName": "WC | open sanitary bowl",
+          "triangles": 1232,
+          "worldMinSourceUnits": [
+            -0.19300000369548798,
+            0.13100000377744436,
+            -0.2730000003397155
+          ],
+          "worldMaxSourceUnits": [
+            0.19300000369548798,
+            0.4030000092461705,
+            0.2730000003397155
+          ]
+        },
+        {
+          "nodeIndex": 5,
+          "nodeName": "WC | raised lid",
+          "meshIndex": 5,
+          "meshName": "WC | raised lid",
+          "triangles": 508,
+          "worldMinSourceUnits": [
+            -0.21299999952316284,
+            0.36983995432102945,
+            -0.2620000428843369
+          ],
+          "worldMaxSourceUnits": [
+            0.21299999952316284,
+            0.932160052303032,
+            -0.24599996659475934
+          ]
+        },
+        {
+          "nodeIndex": 6,
+          "nodeName": "WC | rear cistern",
+          "meshIndex": 6,
+          "meshName": "Cube",
+          "triangles": 300,
+          "worldMinSourceUnits": [
+            -0.18299999833106995,
+            0.3785000117495656,
+            -0.44700000435113907
+          ],
+          "worldMaxSourceUnits": [
+            0.18299999833106995,
+            0.8015000196173787,
+            -0.26099999994039536
+          ]
+        },
+        {
+          "nodeIndex": 7,
+          "nodeName": "WC | seat hinge",
+          "meshIndex": 7,
+          "meshName": "Cylinder",
+          "triangles": 316,
+          "worldMinSourceUnits": [
+            -0.11899999715387821,
+            0.4050000114366412,
+            -0.2600000072270632
+          ],
+          "worldMaxSourceUnits": [
+            -0.06899999640882015,
+            0.43300001230090857,
+            -0.23200000636279583
+          ]
+        },
+        {
+          "nodeIndex": 8,
+          "nodeName": "WC | seat hinge.001",
+          "meshIndex": 8,
+          "meshName": "Cylinder.001",
+          "triangles": 316,
+          "worldMinSourceUnits": [
+            0.06899999640882015,
+            0.4050000114366412,
+            -0.2600000072270632
+          ],
+          "worldMaxSourceUnits": [
+            0.11899999715387821,
+            0.43300001230090857,
+            -0.23200000636279583
+          ]
+        },
+        {
+          "nodeIndex": 9,
+          "nodeName": "WC | separate seat ring",
+          "meshIndex": 9,
+          "meshName": "WC | separate seat ring",
+          "triangles": 448,
+          "worldMinSourceUnits": [
+            -0.2160000056028366,
+            0.4190000118687749,
+            -0.2851200187253955
+          ],
+          "worldMaxSourceUnits": [
+            0.2160000056028366,
+            0.43500001449137926,
+            0.2851200187253955
+          ]
+        }
+      ]
+    }
+  ],
+  "findings": {
+    "trough-washbasin.glb": "Two complete mixers, shared bowl, rear deck, seven grate bars; no separate trap/drain pipe below bowl in the source geometry inventory.",
+    "shower-tray-square.glb": "Original grate, open nickel flange and open outlet tube present; no overhead shower/column/mixer.",
+    "close-coupled-toilet.glb": "Two original WC | dual-flush button nodes present, 316 triangles each."
+  }
+}

@@ -1,0 +1,465 @@
+{
+  "title": "OBÓZ TRENINGOWY — zweryfikowany katalog sosny b i małego drzewa",
+  "schema": 1,
+  "assetRoot": "Assets/Source/Prywatne/Oboz/environment/vegetation/",
+  "unityImported": false,
+  "unitySceneVerified": false,
+  "phoneMemoryMeasured": false,
+  "apkBuilt": false,
+  "originalSourcesOutsideAssets": true,
+  "lod0Imported": false,
+  "geometryDecimated": false,
+  "requiresPreservingOldSixPrototypeIndices": true,
+  "prototypes": [
+    {
+      "name": "pine_tree_01_b",
+      "sourceAsset": "pine_tree_01",
+      "sourceUrl": "https://polyhaven.com/a/pine_tree_01",
+      "license": "CC0-1.0",
+      "sourceBlendSha256": "788d5839aa1d256c20e50adc53ae830b35511d8bb2bc7c16d110dcfc0037651e",
+      "maxSceneInstances": 12,
+      "geometryDistanceMetres": [
+        20,
+        35
+      ],
+      "billboardCullDistanceMetres": 300,
+      "referenceVerticalFov": 60,
+      "referenceLodBias": 1,
+      "lods": [
+        {
+          "level": 1,
+          "file": "pine_tree_01_b_LOD1__unity.glb",
+          "bytes": 135900248,
+          "sha256": "23a4ae4e68d85b1e0ca18eca323b65b3a3e76ee55e148e69a297f9cf30cfcea2",
+          "sourceObject": "pine_tree_01_b_LOD1",
+          "sourceTriangles": 514980,
+          "triangles": 514980,
+          "vertices": 324499,
+          "gltfGeometryBufferViewBytes": 20165276,
+          "meshCount": 1,
+          "sourceAlphaCoverageRestored": [
+            "pine_tree_01_twig"
+          ]
+        },
+        {
+          "level": 2,
+          "file": "pine_tree_01_b_LOD2__unity.glb",
+          "bytes": 127497352,
+          "sha256": "6117d717814049e95b7fc22e69923af8576f85433216777d013c4fe4e299c10f",
+          "sourceObject": "pine_tree_01_b_LOD2",
+          "sourceTriangles": 267343,
+          "triangles": 267343,
+          "vertices": 202337,
+          "gltfGeometryBufferViewBytes": 11762386,
+          "meshCount": 1,
+          "sourceAlphaCoverageRestored": [
+            "pine_tree_01_twig"
+          ]
+        }
+      ],
+      "missingAuthoredLod2": false,
+      "knownLimitations": [],
+      "nearFile": "pine_tree_01_b_LOD1__unity.glb",
+      "midFile": "pine_tree_01_b_LOD2__unity.glb",
+      "billboard": {
+        "model": "pine_tree_01_b_LOD2.glb",
+        "sourceSha256": "a9e9a34189bf1cc3a4c9b687082a54ecfcde7021eb4b25fab688eed61984c5da",
+        "file": "pine_tree_01_b_Billboard_Color.png",
+        "sha256": "30a0f6c3f84c89de0ffe84b6b692d7138de90d38fac34cf9e24ddc44173cd052",
+        "span": 15.475318145751954,
+        "centerY": 7.440056800842285,
+        "sourceBoundsMeasured": true,
+        "sourceBottomY": 0.0,
+        "sourceTopY": 14.88011360168457,
+        "sourceBoundsMin": [
+          -3.534287452697754,
+          -4.0840911865234375,
+          0.0
+        ],
+        "sourceBoundsMax": [
+          3.690574884414673,
+          3.53114652633667,
+          14.88011360168457
+        ],
+        "viewAlphaBoundsPixels": [
+          {
+            "view": 0,
+            "alphaCutoff": 0.35,
+            "pixels": [
+              141,
+              11,
+              377,
+              502
+            ]
+          },
+          {
+            "view": 1,
+            "alphaCutoff": 0.35,
+            "pixels": [
+              142,
+              10,
+              390,
+              502
+            ]
+          },
+          {
+            "view": 2,
+            "alphaCutoff": 0.35,
+            "pixels": [
+              136,
+              10,
+              371,
+              502
+            ]
+          },
+          {
+            "view": 3,
+            "alphaCutoff": 0.35,
+            "pixels": [
+              122,
+              11,
+              372,
+              502
+            ]
+          }
+        ],
+        "canvasBottomY": -0.29760227203369194,
+        "canvasMetric": "transparent camera frame; sourceBottomY is the tree foundation",
+        "views": 4,
+        "size": [
+          2048,
+          512
+        ],
+        "capture": "source albedo plus alpha; lighting applied in Unity shader",
+        "unityRendered": false,
+        "sourceUnchanged": true,
+        "trunkCenteredSpan": true,
+        "relativeFile": "billboards/pine_tree_01_b_Billboard_Color.png",
+        "bytes": 649223
+      }
+    },
+    {
+      "name": "tree_small_02",
+      "sourceAsset": "tree_small_02",
+      "sourceUrl": "https://polyhaven.com/a/tree_small_02",
+      "license": "CC0-1.0",
+      "sourceBlendSha256": "3c28e4ebded582d6539afeac7e5ccce6cb950830a94f1fe38135a45264145de5",
+      "maxSceneInstances": 12,
+      "geometryDistanceMetres": [
+        20
+      ],
+      "billboardCullDistanceMetres": 300,
+      "referenceVerticalFov": 60,
+      "referenceLodBias": 1,
+      "lods": [
+        {
+          "level": 1,
+          "file": "tree_small_02_LOD1__unity.glb",
+          "bytes": 108087548,
+          "sha256": "bfc0cba22aef880c836c873453d9e0a0f081247748557ac226117095b189a991",
+          "sourceObject": "tree_small_02_LOD1",
+          "sourceTriangles": 495533,
+          "triangles": 495533,
+          "vertices": 680067,
+          "gltfGeometryBufferViewBytes": 32495322,
+          "meshCount": 1,
+          "sourceAlphaCoverageRestored": []
+        }
+      ],
+      "missingAuthoredLod2": true,
+      "knownLimitations": [
+        "tree_small_02 has no whole-tree authored LOD2 in the verified official .blend. Use original LOD1 plus a source-rendered billboard; never LOD0 or a substitute mesh."
+      ],
+      "nearFile": "tree_small_02_LOD1__unity.glb",
+      "midFile": null,
+      "billboard": {
+        "model": "tree_small_02_LOD1.glb",
+        "sourceSha256": "13b17243dcd2e30b39f37c5f4afa8e401509b21737c6ec1e95fa765fd9193d60",
+        "file": "tree_small_02_Billboard_Color.png",
+        "sha256": "60cf24b6380cbc5e8ae666726408aa3956e1a9158eb2cc621ca66658f579f47b",
+        "span": 6.052062759399414,
+        "centerY": 2.2820186614990234,
+        "sourceBoundsMeasured": true,
+        "sourceBottomY": 0.0,
+        "sourceTopY": 4.564037322998047,
+        "sourceBoundsMin": [
+          -1.310724139213562,
+          -2.9096455574035645,
+          0.0
+        ],
+        "sourceBoundsMax": [
+          1.610710859298706,
+          1.3830231428146362,
+          4.564037322998047
+        ],
+        "viewAlphaBoundsPixels": [
+          {
+            "view": 0,
+            "alphaCutoff": 0.35,
+            "pixels": [
+              146,
+              63,
+              391,
+              449
+            ]
+          },
+          {
+            "view": 1,
+            "alphaCutoff": 0.35,
+            "pixels": [
+              140,
+              64,
+              499,
+              449
+            ]
+          },
+          {
+            "view": 2,
+            "alphaCutoff": 0.35,
+            "pixels": [
+              121,
+              64,
+              366,
+              449
+            ]
+          },
+          {
+            "view": 3,
+            "alphaCutoff": 0.35,
+            "pixels": [
+              12,
+              63,
+              371,
+              449
+            ]
+          }
+        ],
+        "canvasBottomY": -0.7440127182006835,
+        "canvasMetric": "transparent camera frame; sourceBottomY is the tree foundation",
+        "views": 4,
+        "size": [
+          2048,
+          512
+        ],
+        "capture": "source albedo plus alpha; lighting applied in Unity shader",
+        "unityRendered": false,
+        "sourceUnchanged": true,
+        "trunkCenteredSpan": true,
+        "relativeFile": "billboards/tree_small_02_Billboard_Color.png",
+        "bytes": 676779
+      }
+    }
+  ],
+  "textures": [
+    {
+      "file": "authorized_forest_textures/c0ea7c6c7624661f4b7fee87c8275999504d9a1f42d5b666a7a84e0c8902ce38_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 21747048,
+      "sha256": "c0ea7c6c7624661f4b7fee87c8275999504d9a1f42d5b666a7a84e0c8902ce38",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/334e2775d30fd9085ee67dc93c135de577f4213f5aa2a4e4ca5c992246338f3a_Color.png",
+      "color": true,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 21914708,
+      "sha256": "334e2775d30fd9085ee67dc93c135de577f4213f5aa2a4e4ca5c992246338f3a",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/b58e2f0194b01bf6492bd6c7f677e1f5aeab24d13a9e2186d6877154df96bb38_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 3835680,
+      "sha256": "b58e2f0194b01bf6492bd6c7f677e1f5aeab24d13a9e2186d6877154df96bb38",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/483384cf2a79f0818a2d7da02b2c03609d485df8f709a6b7960f0b5604f53403_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 15603340,
+      "sha256": "483384cf2a79f0818a2d7da02b2c03609d485df8f709a6b7960f0b5604f53403",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/c075d3be47279820f3b56ec905eaa6dc064006930fd1a9a0db0aa246305a739c_Color.png",
+      "color": true,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 17855979,
+      "sha256": "c075d3be47279820f3b56ec905eaa6dc064006930fd1a9a0db0aa246305a739c",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/29a59405e7d5034c399d5ae0ade5739a519b2ad633bfcee6a5f1830ea7c63a73_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 3540696,
+      "sha256": "29a59405e7d5034c399d5ae0ade5739a519b2ad633bfcee6a5f1830ea7c63a73",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/546a19689795dd28a48f041ae5a4ff4c6273648b2e0d32d40df6b48cdc122b99_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 9430327,
+      "sha256": "546a19689795dd28a48f041ae5a4ff4c6273648b2e0d32d40df6b48cdc122b99",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/a9092920343dcd7d21596d29efc7301270a275fb2e6c7cf8cf5cea643762eca4_Color.png",
+      "color": true,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 9593176,
+      "sha256": "a9092920343dcd7d21596d29efc7301270a275fb2e6c7cf8cf5cea643762eca4",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/51d82db87a1588ce2a79c6be3194e04b50a3a4bde14af23ae30c426f224df7bb_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 2134457,
+      "sha256": "51d82db87a1588ce2a79c6be3194e04b50a3a4bde14af23ae30c426f224df7bb",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "billboards/pine_tree_01_b_Billboard_Color.png",
+      "color": true,
+      "width": 2048,
+      "height": 512,
+      "bytes": 649223,
+      "sha256": "30a0f6c3f84c89de0ffe84b6b692d7138de90d38fac34cf9e24ddc44173cd052",
+      "astc4x4FullMipPayloadBytes": 1398160,
+      "astc6x6FullMipPayloadBytes": 629040
+    },
+    {
+      "file": "authorized_forest_textures/a8aa5f945a5977d82111f1f397a525acb8103d108d86bf09087be4d7d1f976d6_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 15596069,
+      "sha256": "a8aa5f945a5977d82111f1f397a525acb8103d108d86bf09087be4d7d1f976d6",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/553d0cdbc12b63be3bd85756713f95bec5cdf8cc57dae74d3f19d8df13ac126c_Color.png",
+      "color": true,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 2714537,
+      "sha256": "553d0cdbc12b63be3bd85756713f95bec5cdf8cc57dae74d3f19d8df13ac126c",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/1c9282083717c7630b6c8c212b444ef3627ab09406b33af13d1b9ef837a9ad41_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 1140322,
+      "sha256": "1c9282083717c7630b6c8c212b444ef3627ab09406b33af13d1b9ef837a9ad41",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/01c79158aa9287cc5db2d1c660a578de9d0a1a522877f9ca40c5be6b36bdc7bf_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 18978122,
+      "sha256": "01c79158aa9287cc5db2d1c660a578de9d0a1a522877f9ca40c5be6b36bdc7bf",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/0708c69986655185e1a4d77ff79b03afe75e378a843ebcbaea201e095bbdbad1_Color.png",
+      "color": true,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 7875255,
+      "sha256": "0708c69986655185e1a4d77ff79b03afe75e378a843ebcbaea201e095bbdbad1",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/7d0ef2e1043bf9b36f619ea9ae7b858d6a123293d9395c9761ae1331c8f526af_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 1763964,
+      "sha256": "7d0ef2e1043bf9b36f619ea9ae7b858d6a123293d9395c9761ae1331c8f526af",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/a8ef519fb684e99c57e4dddfc2e0845a7b260a269b4e4135a9d50c513f68a5cb_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 18978545,
+      "sha256": "a8ef519fb684e99c57e4dddfc2e0845a7b260a269b4e4135a9d50c513f68a5cb",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/4ab3210b6ec6bb1181145500bca71d1c1f81ead6baaa8600f5979c2cec50c6a4_Color.jpg",
+      "color": true,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 3170612,
+      "sha256": "4ab3210b6ec6bb1181145500bca71d1c1f81ead6baaa8600f5979c2cec50c6a4",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "authorized_forest_textures/a6631f2419b7300b073ef41464d2c6fdd170d4a607d9175aa7766ae84dffc3b0_data__lin.png",
+      "color": false,
+      "width": 2048,
+      "height": 2048,
+      "bytes": 3249778,
+      "sha256": "a6631f2419b7300b073ef41464d2c6fdd170d4a607d9175aa7766ae84dffc3b0",
+      "astc4x4FullMipPayloadBytes": 5592432,
+      "astc6x6FullMipPayloadBytes": 2497712
+    },
+    {
+      "file": "billboards/tree_small_02_Billboard_Color.png",
+      "color": true,
+      "width": 2048,
+      "height": 512,
+      "bytes": 676779,
+      "sha256": "60cf24b6380cbc5e8ae666726408aa3956e1a9158eb2cc621ca66658f579f47b",
+      "astc4x4FullMipPayloadBytes": 1398160,
+      "astc6x6FullMipPayloadBytes": 629040
+    }
+  ],
+  "knownLimitations": [
+    "tree_small_02 has no whole-tree authored LOD2 in the verified official .blend. Use original LOD1 plus a source-rendered billboard; never LOD0 or a substitute mesh."
+  ],
+  "warnings": [],
+  "sourceInstallFileBytes": 551933765,
+  "gltfGeometryBufferViewBytes": 64422984,
+  "textureAstc6x6FullMipPayloadBytesEstimate": 46216896,
+  "textureAstc4x4FullMipPayloadBytesEstimate": 103460096,
+  "memoryMetricNote": "GLB source files contain retained source image BIN regions. Geometry view bytes and computed ASTC mip payload are separate source-derived measurements. Unity vertex layouts, native overhead, streaming residency, APK compressed contribution and phone FPS remain unmeasured.",
+  "complete": true
+}

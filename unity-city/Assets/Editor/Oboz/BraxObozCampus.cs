@@ -288,9 +288,7 @@ public static partial class BraxObozEnvironment
         model.transform.SetParent(parent,false);
         const string texturePath=
             "Assets/Source/Prywatne/Oboz/OwnerAssets/Przystanek/Meshy_AI_The_object_is_a_recta_1104160815_texture.png";
-        var ownerAtlas=AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
-        if(!ownerAtlas || ownerAtlas.width!=2048 || ownerAtlas.height!=2048)
-            throw new InvalidOperationException("Brak oryginalnej kolorowej tekstury 2048x2048 wiaty: "+texturePath);
+        var ownerAtlas=BraxObozMaterials.OriginalColorMap(texturePath,2048,"oryginalny atlas wiaty właściciela");
         var ownerShader=Shader.Find("Standard");
         if(!ownerShader)throw new InvalidOperationException("Brak shadera PBR dla oryginalnej wiaty");
         var newMaterial=new Material(ownerShader){
@@ -787,11 +785,25 @@ public static partial class BraxObozEnvironment
     }
     static void Lamp(Transform parent,Vector3 p)
     {
-        Cylinder(parent,"Słup lampy",p,p+Vector3.up*3.5f,.055f,campusSteel,true);
-        Box(parent,"Oprawa",p+Vector3.up*3.5f,new Vector3(.5f,.14f,.5f),campusSteel,false);
-        var fixture=Group("Światło dojścia",parent,(p+Vector3.up*3.35f)*K).gameObject;
-        var light=fixture.AddComponent<Light>();light.type=LightType.Point;light.color=new Color(1,.84f,.65f);light.intensity=1.5f;light.range=8*K;light.shadows=LightShadows.None;
-        fixture.AddComponent<BraxObozLocalLight>().source=light;
+        var post=Group("Drewniany słup światła dojścia",parent,p*K);
+        try
+        {
+            var pole=Cylinder(post,"Podparty słup z drewna",Vector3.zero,Vector3.up*3.5f,.12f,bark,true);
+            var renderers=new[]{pole.GetComponent<Renderer>()};
+            BraxObozPlacement.RealDimension(post,renderers,3.5f,BraxObozPlacement.Axis.Y,"drewniany słup dojścia");
+            if(!BraxObozPlacement.OnGround(post,renderers,parent.TransformPoint(p*K),"drewniany słup dojścia"))
+                throw new InvalidOperationException("brak rzeczywistej podpory drewnianego słupa dojścia");
+            var record=BraxObozPlacementRecord.For(post);record.contactPoint=post;record.contactRenderers=renderers;
+            // Fixture geometry is an explicit H gap. Do not pretend a box is
+            // the owner's lamp. The existing local light follows the real post.
+            BraxBuildQuality.Warn("BRAXHORN_OBOZ_OWNER_ASSETS_PENDING: oryginalna oprawa lampy dojścia; bez kostki zastępczej");
+            var fixture=Group("Światło dojścia — oprawa oczekuje na model H",post,Vector3.up*(3.35f*K)).gameObject;
+            var light=fixture.AddComponent<Light>();light.type=LightType.Point;
+            light.useColorTemperature=true;light.colorTemperature=4000f;light.color=Color.white;
+            light.intensity=1.5f;light.range=8*K;light.shadows=LightShadows.None;light.renderMode=LightRenderMode.ForceVertex;
+            fixture.AddComponent<BraxObozLocalLight>().source=light;
+        }
+        catch(Exception ex){Object.DestroyImmediate(post.gameObject);BraxBuildQuality.Warn("OBÓZ słup dojścia pominięty: "+ex);}
     }
     static void Bench(Transform parent,Vector3 p)
     {

@@ -231,6 +231,22 @@ jobs:
         run: |
           set -euo pipefail
           python3 unity-tools/oboz/owner_geometry_preflight.py
+      - name: Wskazane sosny i małe drzewa — autorskie LOD, bez LOD0 i APK
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/prepare_authorized_forest.py --invalidate-only
+          ASSET_PYTHON="$(dirname "$(command -v blender)")/4.5/python/bin/python3.11"
+          "$ASSET_PYTHON" -m ensurepip --upgrade
+          # Exact existing tools/requirements-assets.txt versions; Blender
+          # already supplies bpy. Source .blend files remain outside Assets.
+          "$ASSET_PYTHON" -m pip install --disable-pip-version-check --no-deps \
+            numpy==1.26.4 Pillow==13.0.0 pypng==0.20220715.0
+          "$ASSET_PYTHON" unity-tools/oboz/prepare_authorized_forest.py \
+            --blender "$(command -v blender)" \
+            --work "$RUNNER_TEMP/oboz-authorized-forest" \
+            --reports build/CampLifeReview
       - name: Spakuj PBR postaci (Monika 4K, pozostali 2K) — oryginały bez zmian
         if: github.ref != 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         # Packing is an optimization, not a compilation dependency. If this
@@ -477,7 +493,13 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: quality-review-${{ github.job }}-${{ strategy.job-index }}-${{ github.run_attempt }}-272
-          path: build/QualityReview/
+          path: |
+            build/QualityReview/
+            build/CampLifeReview/forest-*.json
+            build/CampLifeReview/forest-*.log
+            build/CampLifeReview/tree-lod-grounding.json
+            build/CampLifeReview/authorized-tree-scene.json
+            build/CampLifeReview/grass-grounding.json
           if-no-files-found: warn
       - name: Przygotuj istniejący APK także po błędzie kompilacji lub weryfikacji
         id: apk_rescue
@@ -695,6 +717,21 @@ jobs:
           python3 unity-tools/oboz/shared_bus.py
           python3 unity-tools/oboz/restore_dialogue.py
           python3 unity-tools/oboz/owner_geometry_preflight.py
+      - name: Wskazane sosny i małe drzewa — autorskie LOD, bez LOD0 i APK
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/prepare_authorized_forest.py --invalidate-only
+          ASSET_PYTHON="$(dirname "$(command -v blender)")/4.5/python/bin/python3.11"
+          "$ASSET_PYTHON" -m ensurepip --upgrade
+          # Exact existing tools/requirements-assets.txt versions; Blender
+          # already supplies bpy. Source .blend files remain outside Assets.
+          "$ASSET_PYTHON" -m pip install --disable-pip-version-check --no-deps \
+            numpy==1.26.4 Pillow==13.0.0 pypng==0.20220715.0
+          "$ASSET_PYTHON" unity-tools/oboz/prepare_authorized_forest.py \
+            --blender "$(command -v blender)" \
+            --work "$RUNNER_TEMP/oboz-authorized-forest" \
+            --reports build/CampLifeReview
       - name: Zweryfikuj C# przed Unity
         run: |
           set -euo pipefail
@@ -800,6 +837,11 @@ jobs:
             build/QualityReview/*.json
             unity-city/Logs/
             build/CampLifeReview/navigation-review.json
+            build/CampLifeReview/forest-*.json
+            build/CampLifeReview/forest-*.log
+            build/CampLifeReview/tree-lod-grounding.json
+            build/CampLifeReview/authorized-tree-scene.json
+            build/CampLifeReview/grass-grounding.json
           if-no-files-found: warn
           retention-days: 14
 

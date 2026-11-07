@@ -153,11 +153,7 @@ public static partial class BraxObozEnvironment
             foreach (var a in new[] { ("Fort 3 na 3",83f,25f), ("Chata leśniczego i sklep",-105f,-103f), ("Tartak",76f,-105f), ("Kojce",39f,-94f) })
                 Group(a.Item1, anchors, P(a.Item2, 0, a.Item3));
             var light = new GameObject("Popołudniowe słońce").AddComponent<Light>(); light.type = LightType.Directional;
-            light.transform.rotation = Quaternion.Euler(34, -35, 0);
-            light.color = new Color(1f, .975f, .94f); light.intensity = .93f; // neutralna skora Moniki, bez zoltego plastiku
-            light.shadows = LightShadows.Soft; RenderSettings.sun = light;
-            RenderSettings.fog = true; RenderSettings.fogMode = FogMode.ExponentialSquared; RenderSettings.fogDensity = .003f;
-            RenderSettings.fogColor = new Color(.34f, .46f, .43f);
+            BraxObozAtmosphere.Apply(root,light);
             Optional("wypalenie odbić luster łaźni",()=>{
                 BraxObozServices.BakeBathroomReflections(root);
             });

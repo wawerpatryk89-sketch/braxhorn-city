@@ -16,7 +16,12 @@ public static class BraxObozVegetation
     const string Output = "Assets/PlayableGenerated/Oboz/Vegetation/";
     [Serializable] public sealed class Item { public float x, z, yaw, scale; public int prototype; public bool solid; }
     [Serializable] public sealed class Layout { public int schema; public float worldScale; public string[] prototypes; public Item[] trees, grass; }
-    [Serializable] public sealed class Atlas { public string model, file; public float span, centerY; }
+    [Serializable] public sealed class Atlas
+    {
+        public string model, file;
+        public float span, centerY, sourceBottomY, sourceTopY;
+        public bool sourceBoundsMeasured, trunkCenteredSpan;
+    }
     [Serializable] public sealed class Atlases { public bool complete; public Atlas[] billboards; }
     static readonly Dictionary<Material, Material> materials = new Dictionary<Material, Material>();
 
@@ -25,24 +30,34 @@ public static class BraxObozVegetation
         BraxObozCampusLayout.Reload();
         var layout = JsonUtility.FromJson<Layout>(File.ReadAllText("Assets/Editor/Oboz/VegetationLayout.json"));
         var atlas = JsonUtility.FromJson<Atlases>(File.ReadAllText(Source + "billboards/metadata.json"));
-        if (layout.schema != 1 || Mathf.Abs(layout.worldScale-K)>.00001f || !atlas.complete || atlas.billboards.Length != 6)
+        if (layout.schema != 1 || Mathf.Abs(layout.worldScale-K)>.00001f || !atlas.complete ||
+            layout.prototypes.Length!=BraxObozAuthorizedTrees.LegacyCount || atlas.billboards.Length != BraxObozAuthorizedTrees.LegacyCount)
             throw new InvalidOperationException("Niepełne dane roślinności obozu");
         Directory.CreateDirectory(Output); AssetDatabase.Refresh(); materials.Clear();
+        BraxObozTreePlacement.Begin(parent);
         var forest = new GameObject("Las — źródłowe LOD, układ do odbioru").transform; forest.SetParent(parent,false);
-        var prototypes = new GameObject[layout.prototypes.Length];
+        var namedTrees=BraxObozAuthorizedTrees.Load();
+        var prototypes = new GameObject[BraxObozAuthorizedTrees.LegacyCount+namedTrees.Length];
         try
         {
-            for (int i=0;i<prototypes.Length;i++)
+            for (int i=0;i<layout.prototypes.Length;i++)
                 prototypes[i]=Prototype(layout.prototypes[i],atlas.billboards.Single(a=>a.model==layout.prototypes[i]+"_LOD2.glb"));
+            for(int i=0;i<namedTrees.Length;i++)
+            {
+                var definition=namedTrees[i];
+                try { prototypes[BraxObozAuthorizedTrees.LegacyCount+i]=Prototype(definition.name,definition.billboard,definition.missingAuthoredLod2); }
+                catch(Exception ex){BraxBuildQuality.Warn("OBÓZ wskazany gatunek pominięty: "+definition.name+" — "+ex);}
+            }
             int placedTrees=0;
             foreach (var point in layout.trees)
             {
                 if (Mathf.Abs(point.x)>138f || Mathf.Abs(point.z)>138f) continue; // poza terenem 280x280
                 if(BraxObozCampusLayout.Reserved(point.x,point.z,3))continue;
-                if (point.prototype<0 || point.prototype>=prototypes.Length) throw new InvalidOperationException("Błędny wariant drzewa");
+                if (point.prototype<0 || point.prototype>=BraxObozAuthorizedTrees.LegacyCount) throw new InvalidOperationException("Błędny oryginalny wariant drzewa");
                 var tree=Object.Instantiate(prototypes[point.prototype],forest);
                 tree.name=layout.prototypes[point.prototype]; tree.transform.localPosition=new Vector3(point.x,0,point.z)*K;
                 tree.transform.localRotation=Quaternion.Euler(0,point.yaw,0);tree.transform.localScale=Vector3.one*(point.scale*K);
+                BraxObozTreePlacement.Place(tree.transform);
                 placedTrees++;
                 if (point.solid)
                 {
@@ -54,6 +69,7 @@ public static class BraxObozVegetation
             // Nie zmienia gotowych postaci i nie zasłania drogi/dojazdu.
             int fenceTrees=AddFenceWoodland(forest,prototypes);
             placedTrees+=fenceTrees;
+            placedTrees+=BraxObozAuthorizedTrees.Plant(forest,prototypes,namedTrees);
             var pathRects=BraxObozEnvironment.PathRectangles();
             bool OnWalkway(Item p)
             {
@@ -77,7 +93,11 @@ public static class BraxObozVegetation
                 " oryginalna_trawa=Grass_Medium_01_02_2K kępy="+grass.Count+
                 " nowe_kepy_trawnika="+(grass.Count-originalGrass)+"; test telefonu nadal wymagany");
         }
-        finally { foreach(var p in prototypes)if(p)Object.DestroyImmediate(p); }
+        finally
+        {
+            foreach(var p in prototypes)if(p)Object.DestroyImmediate(p);
+            BraxObozTreePlacement.Write();
+        }
     }
     // Istniejący layout lasu pochodził ze starego prostokąta. Po redukcji
     // działki tylko część oryginalnych pozycji leży blisko nowego płotu.
@@ -85,7 +105,7 @@ public static class BraxObozVegetation
     // bez atrap billboardów w zbliżeniu i bez importowania nowych modeli.
     static int AddFenceWoodland(Transform forest,GameObject[] prototypes)
     {
-        if(prototypes == null || prototypes.Length != 6)
+        if(prototypes == null || prototypes.Length < BraxObozAuthorizedTrees.LegacyCount)
             throw new InvalidOperationException("Brak sześciu źródłowych wariantów drzew obozu");
         const int ringSamples=160;
         int placed=0;
@@ -102,12 +122,15 @@ public static class BraxObozVegetation
             if(Mathf.Abs(x)>135f||Mathf.Abs(z)>135f)continue;
             if(z < -105f && Mathf.Abs(x)<23f)continue;
             if(BraxObozCampusLayout.Reserved(x,z,2f))continue;
-            int prototypeIndex=(int)((seed>>16)%(uint)prototypes.Length);
+            // Named pine/small trees have their own explicit twelve-per-species
+            // budget. The original 160-sample fir belt never selects them.
+            int prototypeIndex=(int)((seed>>16)%(uint)BraxObozAuthorizedTrees.LegacyCount);
             var tree=Object.Instantiate(prototypes[prototypeIndex],forest);
             tree.name=prototypes[prototypeIndex].name+" — przy ogrodzeniu";
             tree.transform.localPosition=new Vector3(x,0,z)*K;
             tree.transform.localRotation=Quaternion.Euler(0,(seed%359u),0);
             tree.transform.localScale=Vector3.one*((.74f+(seed%37u)*.012f)*K);
+            BraxObozTreePlacement.Place(tree.transform);
             // Za płotem nie dodajemy zbędnych colliderów co kilka metrów.
             // Minimalna liczba pni zachowuje podstawową fizykę dla dostępnego pasa.
             if(i%7==0)
@@ -121,13 +144,25 @@ public static class BraxObozVegetation
         return placed;
     }
 
-    static GameObject Prototype(string name,Atlas atlas)
+    static GameObject Prototype(string name,Atlas atlas,bool singleAuthoredLod=false)
     {
         var root=new GameObject(name);
         try
         {
             var near=Model(Source+name+"_LOD1__unity.glb",root.transform);
-            var mid=Model(Source+name+"_LOD2__unity.glb",root.transform);
+            var mid=singleAuthoredLod?null:Model(Source+name+"_LOD2__unity.glb",root.transform);
+            var reference=mid?mid:near;
+            var midBounds=BraxObozPlacement.Bounds(reference.GetComponentsInChildren<Renderer>());
+            float sourceSpan=Mathf.Max(midBounds.size.x,midBounds.size.y,midBounds.size.z)*1.04f;
+            if(atlas.trunkCenteredSpan)
+                sourceSpan=Mathf.Max(midBounds.size.y,2*Mathf.Max(Mathf.Abs(midBounds.min.x),Mathf.Abs(midBounds.max.x),
+                    Mathf.Abs(midBounds.min.z),Mathf.Abs(midBounds.max.z)))*1.04f;
+            if(Mathf.Abs(midBounds.center.y-atlas.centerY)>.01f || Mathf.Abs(sourceSpan-atlas.span)>.01f)
+                BraxBuildQuality.Warn("OBÓZ TRENINGOWY — atlas niezgodny z obrysem rzeczywistego źródłowego LOD: "+name);
+            if(atlas.sourceBoundsMeasured &&
+                (Mathf.Abs(midBounds.min.y-atlas.sourceBottomY)>.01f ||
+                 Mathf.Abs(midBounds.max.y-atlas.sourceTopY)>.01f))
+                BraxBuildQuality.Warn("OBÓZ TRENINGOWY — atlas ma inną podstawę niż rzeczywisty źródłowy LOD: "+name);
             var far=new GameObject("Daleki widok oryginalnego drzewa");far.transform.SetParent(root.transform,false);
             float h=atlas.span*.5f;var mesh=new Mesh{name=name+" — billboard"};
             mesh.vertices=new[]{new Vector3(-h,atlas.centerY-h,0),new Vector3(h,atlas.centerY-h,0),new Vector3(-h,atlas.centerY+h,0),new Vector3(h,atlas.centerY+h,0)};
@@ -143,7 +178,8 @@ public static class BraxObozVegetation
             // silhouettes without drawing the heavy source canopy everywhere.
             // Keep real canopy geometry through the middle distance. The old
             // .38 threshold replaced even large nearby trees with flat cards.
-            lod.SetLODs(new[]{new LOD(.40f,near.GetComponentsInChildren<Renderer>()),new LOD(.075f,mid.GetComponentsInChildren<Renderer>()),new LOD(.012f,new Renderer[]{renderer})});
+            if(mid)lod.SetLODs(new[]{new LOD(.40f,near.GetComponentsInChildren<Renderer>()),new LOD(.075f,mid.GetComponentsInChildren<Renderer>()),new LOD(.012f,new Renderer[]{renderer})});
+            else lod.SetLODs(new[]{new LOD(.40f,near.GetComponentsInChildren<Renderer>()),new LOD(.012f,new Renderer[]{renderer})});
             lod.fadeMode=LODFadeMode.None;lod.RecalculateBounds();return root;
         }
         catch { Object.DestroyImmediate(root);throw; }
@@ -303,6 +339,51 @@ public static class BraxObozVegetation
         if(old){EditorUtility.CopySerialized(obj,old);Object.DestroyImmediate(obj);return old;}
         AssetDatabase.CreateAsset(obj,path);return obj;
     }
+    [Serializable] sealed class GrassGroundReport
+    {
+        public string title="OBÓZ TRENINGOWY — rzeczywiste podłoże Grass Medium";
+        public int requested,placed,missingSupport;
+        public float rayStartMetres=.31f,maximumSurfaceMetres=.30f,minimumNormalY=.65f,clearanceMetres=.005f;
+        public bool runtimeRaycasts=false,sourceGeometryChanged=false,apkBuilt=false;
+        public Vector3[] missingExamples;
+    }
+    static (Item point,float y)[] MeasureGrassGround(Transform parent,Item[] points)
+    {
+        // One editor pass. Low floors, ground and the actual raised island may
+        // support grass; equipment and roofs are outside this short ray band.
+        Physics.SyncTransforms();
+        float baseY=parent.position.y;
+        var supports=parent.GetComponentsInChildren<Collider>(true).Where(c=>c&&c.enabled&&
+            c.gameObject.activeInHierarchy&&!c.isTrigger&&c.bounds.max.y<=baseY+.30f*K).ToArray();
+        var placed=new List<(Item point,float y)>();var missing=new List<Vector3>();int missingCount=0;
+        foreach(var point in points)
+        {
+            var position=parent.TransformPoint(new Vector3(point.x,0,point.z)*K);
+            var from=new Vector3(position.x,baseY+.31f*K,position.z);
+            var ray=new Ray(from,Vector3.down);float highest=float.NegativeInfinity;
+            foreach(var support in supports)
+            {
+                var bounds=support.bounds;
+                if(position.x<bounds.min.x||position.x>bounds.max.x||position.z<bounds.min.z||position.z>bounds.max.z)continue;
+                if(support.Raycast(ray,out var hit,.62f*K)&&hit.normal.y>.65f&&
+                    hit.point.y<=baseY+.30f*K&&hit.point.y>highest)highest=hit.point.y;
+            }
+            if(float.IsNegativeInfinity(highest))
+            {
+                missingCount++;if(missing.Count<24)missing.Add(position);continue;
+            }
+            placed.Add((point,highest+.005f*K));
+        }
+        var report=new GrassGroundReport{requested=points.Length,placed=placed.Count,
+            missingSupport=missingCount,missingExamples=missing.ToArray()};
+        string directory=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/CampLifeReview"));
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(Path.Combine(directory,"grass-grounding.json"),JsonUtility.ToJson(report,true));
+        if(missingCount>0)BraxBuildQuality.Warn("OBÓZ TRENINGOWY — pominięto "+missingCount+
+            " kęp Grass Medium bez niskiej rzeczywistej podpory; szczegóły grass-grounding.json");
+        Debug.Log("BRAXHORN_OBOZ_GRASS_GROUND measured="+placed.Count+" missing="+missingCount+" runtime_raycast=false");
+        return placed.ToArray();
+    }
     static void Grass(Transform parent,Item[] points)
     {
         // Mandatory original owner geometry. No Bermuda seedlings, no impostor
@@ -313,6 +394,7 @@ public static class BraxObozVegetation
         const string privateRoot="Assets/Source/Prywatne/Oboz/OwnerAssets/";
         if(points==null || points.Length<100)
             throw new InvalidOperationException("Za mało prawdziwej trawy na terenie obozu");
+        var grounded=MeasureGrassGround(parent,points);
         var holder=new GameObject("Oryginalna murawa 3D — Grass Medium 01 + 02");
         holder.transform.SetParent(parent,false);
         for(int variant=1;variant<=2;variant++)
@@ -361,19 +443,16 @@ public static class BraxObozVegetation
                 if(mesh.vertexCount==0 || mesh.bounds.size.y<.001f)
                     throw new InvalidOperationException("Nie można zbudować wspólnej siatki Grass Medium "+id);
                 // Split deterministic grass placements into original 01 and 02.
-                var selected=points.Where((p,i)=>(i&1)==(variant-1)).ToArray();
+                var selected=grounded.Where((p,i)=>(i&1)==(variant-1)).ToArray();
                 var data=ScriptableObject.CreateInstance<BraxClaudeTrawaDane>();
                 float targetHeight=.33f*K;
                 data.wysokosc=targetHeight/mesh.bounds.size.y;
                 data.granicaLaki=.17f*K;
-                data.kepy=selected.Select(p=>new Vector4(p.x*K,p.z*K,p.yaw,p.scale)).ToArray();
-                // The circular island sits 0.16 source metres above
-                // ordinary terrain. Grass grows FROM the disk, not under it.
-                data.y=selected.Select(p=>{
-                    float dx=p.x,dz=p.z+94f;
-                    bool island=dx*dx+dz*dz<5.8f*5.8f;
-                    return (island?.171f:.005f)*K;
+                data.kepy=selected.Select(p=>{
+                    var world=parent.TransformPoint(new Vector3(p.point.x,0,p.point.z)*K);
+                    return new Vector4(world.x,world.z,p.point.yaw,p.point.scale);
                 }).ToArray();
+                data.y=selected.Select(p=>p.y).ToArray();
                 var node=new GameObject("Grass Medium "+variant+" — tylko oryginalny GLB");
                 node.transform.SetParent(holder.transform,false);
                 var grass=node.AddComponent<BraxClaudeTrawa>();

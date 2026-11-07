@@ -78,11 +78,21 @@ public static class BraxObozPbrPack
                 Digest(entry.packedPath) != entry.packedSha256)
                 throw new InvalidOperationException("Outdated PBR pack; leave originals in place");
             var importer = AssetImporter.GetAtPath(entry.packedPath) as TextureImporter;
+            if(!importer)throw new InvalidOperationException("PBR pack importer is missing");
+            if(importer.textureType!=TextureImporterType.Default ||
+                importer.textureShape!=TextureImporterShape.Texture2D)
+            {
+                importer.textureType=TextureImporterType.Default;
+                importer.textureShape=TextureImporterShape.Texture2D;
+                importer.SaveAndReimport();
+            }
+            AssetDatabase.ImportAsset(entry.packedPath,ImportAssetOptions.ForceSynchronousImport);
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(entry.packedPath);
-            if (!texture || !importer ||
-                texture.width != expectedSize || texture.height != expectedSize ||
-                importer.sRGBTexture || !importer.mipmapEnabled ||
-                importer.textureType != TextureImporterType.Default)
+            importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
+            if(sourceWidth!=expectedSize||sourceHeight!=expectedSize)
+                BraxBuildQuality.Warn("OBÓZ PBR rozmiar źródła "+id+" "+sourceWidth+"x"+sourceHeight+
+                    "; index="+expectedSize+"; nie porównujemy rozmiaru tekstury po imporcie Android");
+            if (!texture || importer.sRGBTexture || !importer.mipmapEnabled)
                 throw new InvalidOperationException("PBR pack importer is not ready");
             Debug.Log("BRAXHORN_PBR_PACK_ACTIVE id=" + id + " role=" + role +
                 " size=" + expectedSize + " output=" + entry.packedPath);

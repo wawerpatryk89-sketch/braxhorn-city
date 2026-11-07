@@ -270,7 +270,8 @@ public sealed class BraxObozImport : AssetPostprocessor
             assetPath.StartsWith(Root + "environment/materials/wood/", StringComparison.Ordinal) ||
             assetPath.StartsWith(Root + "environment/materials/metal/", StringComparison.Ordinal) ||
             assetPath.StartsWith(Root + "environment/materials/towel/", StringComparison.Ordinal);
-        bool vegetationMap = assetPath.StartsWith(Root + "environment/vegetation/vegetation_textures/", StringComparison.Ordinal);
+        bool vegetationMap = assetPath.StartsWith(Root + "environment/vegetation/vegetation_textures/", StringComparison.Ordinal) ||
+            assetPath.StartsWith(Root + "environment/vegetation/authorized_forest_textures/", StringComparison.Ordinal);
         // Pozostałe historyczne zasoby obozu zachowują dotychczasowy profil importu.
         int editorMax = billboard ? 8192 : otherCharacter ? 2048 : 4096;
         // Tiled materials retain a sharp 2K near the camera; ordinary mipmaps
