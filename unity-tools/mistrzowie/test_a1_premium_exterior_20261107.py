@@ -40,7 +40,7 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertGreater(19.05 - .15 / 2, 18.22)
         self.assertIn('Mathf.Abs(mid.x)<8.4f&&Mathf.Abs(mid.z)>57f', self.arrival)
         self.assertGreater(10.8 - .22 / 2, 4.7)
-        self.assertIn('for(float side in new[]{-1f,1f})', self.arrival)
+        self.assertIn('foreach(float side in new[]{-1f,1f})', self.arrival)
 
     def test_real_pbr_and_transparent_canopy_no_door_colliders(self):
         for key in ('original_PolyHaven_granite_plinth', 'PBR_curtain_wall_aluminium',
