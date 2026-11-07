@@ -84,7 +84,7 @@ public static class BraxSupermarket
         }
         bool Named(string x, params string[] parts) =>
             parts.Any(p => x.IndexOf(p, StringComparison.OrdinalIgnoreCase) >= 0);
-        bool IsTree(string x) => Named(x,"drzewo","tree","palm","palma");
+        bool IsTree(string x) => Named(x,"drzewo","tree_","_tree","tree ","palm_","palma","palm tree"); // "street" zawiera "tree": NIE usuwaj ulicy
         bool IsFence(string x) => Named(x,"płot","plot","fence","ogrodzen");
         int trees=0, trunks=0, fenceParts=0, unidentified=0;
         var generated = new List<GameObject>();
