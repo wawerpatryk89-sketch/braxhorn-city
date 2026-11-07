@@ -106,6 +106,14 @@ class PremiumReferenceRegressions(unittest.TestCase):
                 self.assertNotIn('workflow_dispatch', text)
                 self.assertNotIn('visualAccepted=true', text)
 
+    def test_android_picker_java_source_is_disabled_when_apk_uses_compiled_jar(self):
+        meta = (ROOT / 'unity-city/Assets/Updates/Android/BraxContentPicker.java.meta').read_text(encoding='utf-8')
+        self.assertRegex(meta, r'Android:\\s+Android[\\s\\S]{0,120}?enabled:\\s+0')
+        workflow = (ROOT / '.github/workflows/mistrzowie-apk.yml').read_text(encoding='utf-8')
+        self.assertIn('Compile Android file picker for future content-only patches', workflow)
+        self.assertIn('test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar', workflow)
+        self.assertIn("if: ${{ inputs.etap != 'sceny' }}", workflow)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

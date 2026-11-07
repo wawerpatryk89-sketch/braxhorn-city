@@ -37,9 +37,12 @@ class ChampionSideMuralsTests(unittest.TestCase):
         self.assertLess(x_left,-26)      # left wall material toward centre
         self.assertGreater(x_right,-146) # right wall material toward centre
         self.assertIn('const float ImageHeight = WallSpan / 3f',self.m)
-        self.assertIn('const int ImageWidthPx = 1536',self.m)
-        self.assertIn('const int ImageHeightPx = 512',self.m)
-        self.assertIn('new[] { 0,1,2, 0,2,3 }',self.m)
+        self.assertIn('const float WallBottomY = .055f',self.m)
+        self.assertIn('const float WallTopY = 28f',self.m)
+        self.assertIn('float[] y = { WallBottomY, BottomY, BottomY + ImageHeight, WallTopY };',self.m)
+        self.assertIn('float[] v = { 0f, 0f, 1f, 1f };',self.m)
+        self.assertIn('var triangles = new int[18];',self.m)
+        self.assertIn('var mesh = FullWall(x, start, end, side);',self.m)
         self.assertIn('float start = left ? WallNearZ : WallFarZ;',self.m)
         self.assertIn('float end = left ? WallFarZ : WallNearZ;',self.m)
         self.assertIn('if (!photo)',self.m)
