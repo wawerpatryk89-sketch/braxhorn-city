@@ -243,17 +243,10 @@ public static partial class BraxObozEnvironment
         TrackAnnulus(rondo,"Pełny biały obrys ronda",17.82f,17.82f,17.98f,17.98f,.104f,whiteRondo,false);
         BraxObozStructureAuthoring.Capture(rondo,rondo.GetComponentsInChildren<MeshFilter>(),
             rondo.GetComponentsInChildren<Collider>());
+        // WŁAŚCICIEL 7.11: BYK/POMNIK ZAMROŻONY. Nie zmieniaj pozycji,
+        // rotacji, skali, materiałów ani colliderów zestawu byka/cokołu.
+        // Ewentualne korekty ronda wykonuj wyłącznie na nawierzchni wokół niego.
         RondoBull(rondo);
-        var monument=rondo.Find("Pomnik byka BRAXHORN — model wlasciciela");
-        var pedestal=monument?monument.Find("Cokol kamienny PBR"):null;
-        if(pedestal)
-        {
-            var pedestalVisible=pedestal.GetComponentsInChildren<Renderer>();
-            // Move the whole assembly vertically, preserving its X/Z, every
-            // original scale and the existing bull-to-pedestal contact.
-            GroundBuiltStructure(monument,pedestalVisible,
-                BraxObozPlacement.Bounds(pedestalVisible).min.y,"cokół pomnika — na powierzchni wyspy");
-        }
         Box(t,"Zatoka autobusu",new Vector3(21,.055f,-92),new Vector3(4,.11f,20),campusAsphalt);
         Box(t,"Połączenie zatoki",new Vector3(14,.05f,-94),new Vector3(12,.10f,24),campusAsphalt);
         // Four arrival walkways are now authored by PavedPaths/PathRectangles.
