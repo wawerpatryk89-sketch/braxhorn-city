@@ -710,9 +710,10 @@ jobs:
             case "$tag" in
               miasto|miastogl|calosc)
                 [ ! -f "$RUNNER_TEMP/wyslane/$tag.invalid" ] || continue
-                if ! python3 unity-tools/claude/check_city_sea_payload.py "$f" > "build/Android/$tag-validation.json"; then
+                if ! python3 unity-tools/claude/check_city_sea_payload.py "$f" > "$RUNNER_TEMP/wyslane/$tag-validation.json"; then
                   touch "$RUNNER_TEMP/wyslane/$tag.invalid"
-                  echo "Odrzucono APK $tag: brak poprawnych danych komponentu morza" >> "$RUNNER_TEMP/straznik.log"
+                  echo "Odrzucono APK $tag: kontrola integralności danych morza nie przeszła (treść raportu poniżej)" >> "$RUNNER_TEMP/straznik.log"
+                  cat "$RUNNER_TEMP/wyslane/$tag-validation.json" >> "$RUNNER_TEMP/straznik.log" || true
                   continue
                 fi
                 ;;
@@ -757,6 +758,7 @@ jobs:
           unity-city/Logs/
           build/Android/*.log
           build/Android/*-validation.json
+          ${{ runner.temp }}/wyslane/*-validation.json
           unity-city/Assets/PlayableGenerated/build-size*.txt
           unity-city/Assets/PlayableGenerated/pamiec-rejonu.json
         retention-days: 7
@@ -798,10 +800,22 @@ jobs:
         for f in build/Android/braxhorn-*.apk; do
           [ -f "$f" ] || continue
           tag=$(basename "$f" .apk); tag=${tag#braxhorn-}
-          case "$tag" in
-            miasto|miastogl|calosc) python3 unity-tools/claude/check_city_sea_payload.py "$f" > "build/Android/$tag-validation.json" ;;
-          esac
+          # If the watcher already validated and uploaded this exact variant,
+          # avoid a second 700 MB+ parse and do not overwrite its receipt.
           [ -f "$RUNNER_TEMP/wyslane/$tag" ] && { echo "$tag juz wyslany przez straznika"; continue; }
+          case "$tag" in
+            miasto|miastogl|calosc)
+              # Unity writes build/Android as root inside Docker. Runner cannot
+              # write its report there; the former redirect caused exit 1 and
+              # falsely suggested an invalid sea component after a good build.
+              report="$RUNNER_TEMP/wyslane/$tag-validation.json"
+              if ! python3 unity-tools/claude/check_city_sea_payload.py "$f" > "$report"; then
+                echo "::error::R1: kontrola serializacji morza nie powiodła się (nie jest to test telefonu)."
+                cat "$report" || true
+                exit 1
+              fi
+              ;;
+          esac
           cp "$f" braxhorn-${tag}-${GITHUB_SHA::7}.apk; FILES="$FILES braxhorn-${tag}-${GITHUB_SHA::7}.apk"
           src=unity-city/Assets/PlayableGenerated/build-size-${tag}.txt; [ -f "$src" ] || src=unity-city/Assets/PlayableGenerated/build-size.txt
           cp "$src" build-size-android-${tag}-${GITHUB_SHA::7}.txt 2>/dev/null || echo 'brak raportu rozmiaru' > build-size-android-${tag}-${GITHUB_SHA::7}.txt
