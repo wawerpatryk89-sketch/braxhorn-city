@@ -59,8 +59,7 @@ internal static class BraxMiastoUlica
             {
                 if (!Wolne(x, polnoc)) continue;
                 if (Drzewo(cityRoot, new Vector3(x, Grunt(x, zl), zl))) drzew++;
-                float xb = x + 2.6f;
-                if (Wolne(xb, polnoc) && Wolne(xb + 1.2f, polnoc)) { Lawka(new Vector3(xb + .6f, Grunt(xb + .6f, zl), zl), polnoc); lawek++; }
+                // Odbiór R1 (7.11): brak ławek wzdłuż ulicy i przy witrynach.
                 float xk = x - 2.1f;
                 if (Wolne(xk, polnoc)) { Kosz(new Vector3(xk, Grunt(xk, zl), zl)); koszy++; }
             }
