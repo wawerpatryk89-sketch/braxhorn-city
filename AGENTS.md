@@ -55,6 +55,84 @@
 - Android PAD: https://developer.android.com/guide/playcore/asset-delivery
 - Activision COD Mobile, osobne pakiety: https://activision.helpshift.com/hc/en/3-cod-mobile/faq/518-details-about-the-latest-updates-for-call-of-duty-mobile-1765413684/
 
+
+## 0B. GLOBALNY KONTRAKT ARCHITEKTURY CONTENT DELIVERY (UNITY 6 / ANDROID, 7.11.2026)
+
+**To jest obowiązująca architektura docelowa całego BRAXHORN CITY. Nie wolno nazywać rejonu „wdrożonym według 0B”, dopóki rzeczywisty Player, katalogi, paczki i test na Androidzie tego nie potwierdzają. Zasada nadrzędna: optymalizacja infrastruktury NIE może zmieniać zatwierdzonego wyglądu, geometrii, materiałów, skali ani jakości źródeł właściciela.**
+
+### 0B.1. Jeden Core Player, nie osobne wielkie gry
+1. Docelowy Android Player BRAXHORN ma zawierać wyłącznie minimum potrzebne do startu: bootstrap, UI, ustawienia, save/profile, sterowanie wejściem, Content Manager/Download Manager, obsługę błędów/rollbacku, minimalne wspólne shadery i zasoby niezbędne przed pobraniem treści.
+2. Duże sceny świata, budynki, wnętrza, 2K/HD tekstury regionów, ciężkie audio, roślinność i dekoracje NIE należą do Core Playera tylko dlatego, że istnieją w projekcie Unity.
+3. Folder `Resources` nie może być magazynem dużego contentu regionów. Każdy plik umieszczony w `Resources` ma być uzasadniony jako mały bootstrap/runtime config; ciężki asset w `Resources` = błąd architektury do raportu.
+4. Osobne gałęzie Git są organizacją pracy, a nie podziałem runtime. „Gałąź rejonu” nie oznacza jeszcze „paczka rejonu”.
+
+### 0B.2. Obowiązkowy podział treści
+5. Używamy jednego modelu nazewnictwa logicznego:
+   - `core-local` — wyłącznie bootstrap wymagany do uruchomienia;
+   - `shared-runtime` — assety rzeczywiście używane przez >=2 rejony;
+   - `region-miasto-r1`;
+   - `region-osiedle`;
+   - `region-oboz`;
+   - `region-miasto-mistrzow`;
+   - późniejsze rejony analogicznie (`region-port`, `region-wyspa`, itd.);
+   - opcjonalny ciężki detal/HD tylko jako jawnie oddzielona paczka, nie ukryty w Core.
+6. W obrębie dużego regionu dziel content według stabilnych zależności i częstotliwości zmian (np. scena, environment/buildings, interiors, vegetation, audio/optional-HD), tak aby zmiana jednego małego elementu nie wymuszała ponownego pobrania całego regionu.
+7. **Budżet projektu, nie limit Unity:** typowy bundle ma cel 32–96 MB; >128 MB wymaga raportu uzasadniającego zależności i koszt aktualizacji. Nie dziel sztucznie assetów, jeśli powoduje to duplikację lub więcej kosztu runtime; decyzję opieraj na Build Layout/Analyze.
+8. Asset używany przez >=2 grupy ma trafić do jawnej grupy współdzielonej, jeśli analiza zależności pokazuje duplikację. Nie kopiuj tej samej tekstury/siatki/animacji do wielu bundle. Addressables Analyze/Build Layout służy jako dowód.
+
+### 0B.3. Addressables jako standard danych
+9. Dla Unity 6 używamy Addressables jako standardowej warstwy ładowania i aktualizacji treści regionów. Nie twórz drugiego równoległego własnego systemu AssetBundle, jeżeli Addressables już obsługuje ten przypadek.
+10. Każda baza wydania zapisuje co najmniej: wersję Unity, wersję Addressables, GUID-y scen, katalog, `addressables_content_state.bin`, manifest plików, rozmiary, SHA-256, identyfikator runtime/code compatibility oraz źródłowy commit.
+11. Content update używa poprzedniego zatwierdzonego state. Zmiana C#/IL2CPP/PlayerSettings/pakietów Unity wymagająca nowego runtime = nowy Core Player/baseline, nie „delta danych”.
+12. Remote catalog i bundle mają nazwy/hash uniemożliwiające ciche nadpisanie aktywnej wersji. Publikacja nowej zawartości nigdy nie usuwa ostatniej działającej wersji przed potwierdzonym startem.
+
+### 0B.4. Automatyczny Download Manager — bez ZIP-ów dla gracza
+13. Produkcyjny UX: uruchomienie -> odczyt lokalnego manifestu -> sprawdzenie dostępnej wersji -> policzenie brakujących bajtów -> pobranie -> staging -> walidacja -> atomowa aktywacja -> asynchroniczne wejście do regionu.
+14. **Zakaz produkcyjnego ręcznego wybierania ZIP/.braxbase/.braxupdate przez użytkownika.** File picker może istnieć wyłącznie jako jawne narzędzie developerskie/awaryjne, wyłączone z normalnego flow gry.
+15. Downloader musi raportować postęp w bajtach, obsługiwać utratę sieci, wznowienie lub bezpieczny restart transferu, timeout, brak miejsca, błędny HTTP/status oraz anulowanie bez uszkodzenia aktywnej wersji.
+16. Każdy pobrany plik jest sprawdzany przed aktywacją: nazwa/path traversal, oczekiwany rozmiar, SHA-256, zgodność zone/base/runtime. Dopiero komplet przechodzi z `staging` na aktywny wskaźnik.
+17. Po pierwszym uruchomieniu nowej wersji zapisujemy potwierdzenie. Crash/błąd inicjalizacji przed potwierdzeniem ma pozwolić wrócić do `previous`. Nie kasuj poprzedniej wersji, dopóki nowa nie przejdzie zdrowego startu.
+18. Brak internetu nie może niszczyć działającej gry: jeżeli lokalna wersja regionu jest zgodna, gracz może użyć ostatniej poprawnej wersji. Region wymagający pierwszego pobrania pokazuje czytelny brak contentu, a nie pustą scenę.
+
+### 0B.5. Hosting i Google Play
+19. Kod runtime nie może mieć wpisanych tokenów GitHuba ani sekretów. Endpoint contentu jest konfiguracją środowiska (`dev/stage/prod`) i może być zmieniony bez ingerencji w wygląd świata.
+20. GitHub Actions Artifact/DRAFT Release służy do CI i kontroli, nie jest automatycznie produkcyjnym CDN.
+21. Dla ręcznie instalowanych buildów developerskich używamy zatwierdzonego hostingu/CDN lub kontrolowanego lokalnego źródła testowego. Dla publikacji Google Play osobno integrujemy AAB + Play Asset Delivery (`install-time`/`fast-follow`/`on-demand`) przez ten sam logiczny katalog regionów.
+22. PAD jest backendem dostawy dla wydania Play, a nie powodem tworzenia innej struktury assetów. Logiczne grupy BRAXHORN pozostają wspólne dla DEV i PROD.
+
+### 0B.6. Ładowanie i pamięć runtime
+23. Regiony i wnętrza ładuj asynchronicznie. Przed aktywacją sprawdź, że wymagane zależności są dostępne; nie teleportuj gracza do niezaładowanego świata.
+24. Po wyjściu ze strefy zwalniaj sceny i Addressables handles zgodnie z ownership/reference count. Nie wywołuj globalnego agresywnego unload podczas aktywnej sceny tylko po to, by sztucznie zmniejszyć pomiar pamięci.
+25. Mip streaming, LOD, occlusion/frustum culling i GPU instancing optymalizują runtime, ale nie zastępują content delivery. Osobno mierzymy: transfer/dysk, RAM/VRAM, CPU/GPU i czas wejścia do strefy.
+
+### 0B.7. Pipeline CI — cztery role
+26. Docelowo każdy rejon ma te same role pipeline:
+   - `source-preflight` — szybki, statyczny, bez długiego Unity;
+   - `content-base` — tworzy zatwierdzony Addressables baseline/state, bez niepotrzebnego nowego APK;
+   - `content-update` — buduje tylko zmienioną treść z zatwierdzonej bazy;
+   - `player-release` — tylko gdy zmienił się Core/runtime albo właściciel jawnie zlecił nowy APK/AAB.
+27. Żaden `push` nie może sam odpalać godzinnego Player builda. Długie buildy tylko po jawnym poleceniu właściciela zgodnie z §5.
+28. CI ma publikować raport: Player bytes, content bytes per group/bundle, największe bundle, duplicate dependencies, zmienione bundle względem bazy, SHA-256, commit, czas build/download/load. Ostrzeżenia jakości nie udają sukcesu ani nie blokują technicznie poprawnej kompilacji bez powodu integralności.
+
+### 0B.8. Kryterium „wdrożone profesjonalnie”
+29. Rejon można oznaczyć jako zgodny z 0B dopiero gdy dowód pokazuje jednocześnie:
+   - Core Player uruchamia się bez ciężkiego regionu wbudowanego przypadkiem;
+   - region ma własny manifest/katalog/bundle;
+   - brak nieuzasadnionej duplikacji Player <-> content i między regionami;
+   - pobranie wykonuje gra automatycznie bez ręcznego ZIP;
+   - SHA/rozmiar/compatibility są weryfikowane przed aktywacją;
+   - przerwany transfer nie niszczy poprzedniej wersji;
+   - content update zmienia tylko potrzebne bundle, gdy runtime jest zgodny;
+   - region ładuje się asynchronicznie i zwalnia poprawnie;
+   - test Android potwierdza start, pobranie, ponowne uruchomienie, tryb offline z cache oraz rollback po celowo uszkodzonej paczce.
+30. Zielony CI, obecność Addressables w `manifest.json` albo samo wygenerowanie katalogu NIE jest dowodem pełnego wdrożenia 0B.
+
+Referencje implementacyjne:
+- Unity 6 Addressables: https://docs.unity3d.com/6000.0/Documentation/Manual/com.unity.addressables.html
+- Unity — unikanie duplikacji i minimalny bootstrap Player: https://docs.unity3d.com/6000.0/Documentation/Manual/assets-avoid-duplication.html
+- Android Play Asset Delivery dla Unity: https://developer.android.com/guide/playcore/asset-delivery/integrate-unity
+
+
 0. GLOBALNY STANDARD DUŻEJ GRY — UNITY 6 / ANDROID (najwyższy priorytet techniczny)
 - Wzorzec: mały uruchamialny Player + osobne, wersjonowane pakiety treści, nie pełna przebudowa 1 GB+ APK przy każdej poprawce. To zasada dla wszystkich rejonów, a NIE twierdzenie, że obecny projekt już tak działa.
 - Samo rozdzielenie scen *wewnątrz tego samego APK* może poprawić obciążenie pamięci podczas ładowania, ale NIE zmniejsza automatycznie pobieranej paczki. Mniejszy instalator wymaga faktycznego wyprowadzenia zasobów do osobnych AssetBundles/Addressables lub pakietów dystrybucyjnych.
