@@ -62,8 +62,8 @@ class A1T11Preflight(unittest.TestCase):
         arena=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs")
         self.assertIn("BraxChampionsBeltShowcase.Generate(root)",arena)
         for text in ("BRAXHORN_ARENA_CASE_PLAQUE.jpg","granite_tile",
-                     "REFERENCE black marble wall column","REFERENCE optical clear glass FRONT",
-                     "REFERENCE small gold glass bracket","REFERENCE bronze vertical slat",
+                     "REFERENCE black marble wall column","REFERENCE optically clear FRONT glass",
+                     "REFERENCE small GOLD glass bracket","REFERENCE bronze vertical slat",
                      "OriginalBelt(display)"):
             self.assertIn(text,exhibit)
         self.assertNotIn("Podium(display",exhibit)
