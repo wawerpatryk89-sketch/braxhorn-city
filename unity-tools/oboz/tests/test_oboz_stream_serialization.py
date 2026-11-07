@@ -27,7 +27,7 @@ class CampRiverMonoScriptSerialization(unittest.TestCase):
     def test_no_second_monobehaviour_in_single_runtime_file(self):
         for file in sorted(RUNTIME.glob("*.cs")):
             source=file.read_text(encoding="utf8")
-            classes=re.findall(r"\\bclass\\s+([A-Za-z_]\\w*)\\s*:\\s*MonoBehaviour\\b",source)
+            classes=re.findall(r"\bclass\s+([A-Za-z_]\w*)\s*:\s*MonoBehaviour\b",source)
             with self.subTest(filename=file.name):
                 self.assertLessEqual(len(classes),1,(file,classes))
                 if len(classes)==1:
