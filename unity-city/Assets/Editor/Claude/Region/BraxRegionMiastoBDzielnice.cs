@@ -812,23 +812,36 @@ public static partial class BraxRegionMiastoB
         }
         var tram = BraxMiastoAssety.Jest("miasto_pojazdy") ? BraxMiastoAssety.Model("miasto_pojazdy", "tramwaj_caf") : null;
         if (!tram) { NdLog("tramwaj: brak modelu (paczka miasto_pojazdy) — torowisko, peron i tablica bez tramwaju"); return; }
-        var o = BraxMiastoAssety.Postaw(root, tram, "Tramwaj T1 na przystanku (model CAF)", new Vector3(-463.5f - 33.9f * K * .5f, YA, zt), 0f, 1f, false, true);
+        var o = BraxMiastoAssety.Postaw(root, tram, "Tramwaj T1 na przystanku (model CAF)",
+            new Vector3(-463.5f - 33.9f*K*.5f, YA, zt), 0f, 1f, false, true);
+        if (!o) { NdLog("DO POPRAWKI: nie udało się utworzyć tramwaju CAF"); return; }
         var b = BraxRegion.Bounds(o);
-        o.transform.position += new Vector3((-463.5f - b.max.x), YA - b.min.y, zt - b.center.z);   // przód 2.3 m przed kozłem oporowym
-        foreach (var tr in o.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(tr.gameObject, 0);
-        // Bez osobnej NIEPORUSZAJĄCEJ SIĘ kolizji po pozostawieniu wagonu:
-        // synchronizowany kinematyczny collider idzie razem z tramwajem.
-        var box = o.AddComponent<BoxCollider>();
-        box.center = o.transform.InverseTransformPoint(b.center);
-        box.size = new Vector3(b.size.x, b.size.y, b.size.z) / Mathf.Max(.0001f, o.transform.lossyScale.x);
-        var rigid = o.AddComponent<Rigidbody>(); rigid.isKinematic = true; rigid.useGravity = false;
-        var svc = o.AddComponent<BraxTramT1>();
-        svc.wschodX = TorRect.xMax - 1.6f - b.size.x * .5f;
-        svc.zachodX = TorRect.xMin + 1.6f + b.size.x * .5f;
-        svc.torZ = zt;
+        float west = TorRect.xMin + 1.6f + b.size.x*.5f;
+        float east = TorRect.xMax - 1.6f - b.size.x*.5f;
+        if (east - west < 4f)
+        { NdLog("DO POPRAWKI: CAF jest za długi dla istniejącego toru"); UnityEngine.Object.DestroyImmediate(o); return; }
+        // Ruch na osobnym korzeniu w skali 1: przesunięcie ma dotyczyć
+        // środkowej osi wagonu, a nie pivota źródłowego GLB.
+        var vehicle = new GameObject("BRAXHORN TRAMWAJ T1 (ruch i kolizje)").transform;
+        vehicle.SetParent(root, false);
+        vehicle.position = new Vector3(east, 0f, zt);
+        o.transform.SetParent(vehicle, true);
+        var before = BraxRegion.Bounds(o);
+        o.transform.position += new Vector3(east-before.center.x, YA-before.min.y,
+            zt-before.center.z);
+        b = BraxRegion.Bounds(o);
+        foreach (var tr in vehicle.GetComponentsInChildren<Transform>(true))
+            GameObjectUtility.SetStaticEditorFlags(tr.gameObject, 0);
+        // Kolizja przesuwa się razem z tramwajem, nie pozostaje na peronie.
+        var box = vehicle.gameObject.AddComponent<BoxCollider>();
+        box.center = b.center - vehicle.position;
+        box.size = b.size;
+        var rb = vehicle.gameObject.AddComponent<Rigidbody>();
+        rb.isKinematic = true; rb.useGravity = false;
+        var svc = vehicle.gameObject.AddComponent<BraxTramT1>();
+        svc.wschodX = east; svc.zachodX = west; svc.torZ = zt;
         svc.peronX0 = PeronTramwaju.xMin; svc.peronX1 = PeronTramwaju.xMax;
         svc.peronZ = PeronTramwaju.center.y;
-        b = BraxRegion.Bounds(o);
         NdLog("tramwaj: CAF model " + b.size.x.ToString("0.0") +
             " m, tor płd. z=" + zt.ToString("F2") +
             ", trasa x=" + svc.zachodX.ToString("F1") + "..." + svc.wschodX.ToString("F1") +
