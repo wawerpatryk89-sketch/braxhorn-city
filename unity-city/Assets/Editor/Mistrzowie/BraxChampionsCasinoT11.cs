@@ -753,14 +753,32 @@ public static class BraxChampionsCasinoT11
 
     static void Site()
     {
-        // Exact 120 x 100 site; no synthetic second road system across city.
-        // Physically cut a 10.15x46m open ramp in BOTH patio and Foundation.
-        // The source foundation reserves local x39.15..49.30, z-22..24.
-        // Four disjoint apron slabs meet that cut edge-to-edge.
-        B(shell,"T11 stone plot apron south",paving,0,.18f,-35.875f,119.6f,.055f,27.75f,true,true);
-        B(shell,"T11 stone plot apron north",paving,0,.18f,36.875f,119.6f,.055f,25.75f,true,true);
-        B(shell,"T11 stone plot apron west of garage",paving,-10.325f,.18f,1f,98.95f,.055f,46f,true,true);
-        B(shell,"T11 stone plot apron east of garage",paving,54.55f,.18f,1f,10.5f,.055f,46f,true,true);
+        // Original 120x100 lot. Below grade T11 ramp starts at Z=-22 and
+        // has a fully horizontal LEFT-TURN floor from Z=17 to Z=29.
+        // All surface slabs are DISJOINT in plan: no artificial upper pavement
+        // over the descending incline, and no old ground collider in the tunnel.
+        // The turning tunnel's WALKABLE ROOF is separate, with top exactly
+        // aligned with existing patio paving at y=.2075, 4.1m B1 headroom.
+        B(shell,"T11 stone plot apron south",paving,
+            0,.18f,-35.875f,119.6f,.055f,27.75f,true,true);
+        B(shell,"T11 stone plot apron north",paving,
+            0,.18f,39.375f,119.6f,.055f,20.75f,true,true);
+        B(shell,"T11 stone plot apron west of garage",paving,
+            -10.325f,.18f,1f,98.95f,.055f,46f,true,true);
+        B(shell,"T11 stone plot apron east of garage",paving,
+            54.55f,.18f,1f,10.5f,.055f,46f,true,true);
+        // Reconnect both pavement wings from Z=24 to Z=29, but never cover
+        // the actual 10.15m roadway void or duplicate an upper slab there.
+        B(shell,"T11 stone plot apron west of bottom left turn",paving,
+            -10.325f,.18f,26.5f,98.95f,.055f,5f,true,true);
+        B(shell,"T11 stone plot apron east of bottom left turn",paving,
+            54.55f,.18f,26.5f,10.5f,.055f,5f,true,true);
+        // Intentional load-bearing roof, NOT another ground collider at B1:
+        // overhead above the 12m x 9.35m level turning chamber.
+        B(shell,"T11 B1 solid WALKABLE roof over left-turn tunnel",paving,
+            44.225f,.0775f,23f,10.15f,.26f,12f,true,true);
+        B(shell,"T11 B1 WHITE ceiling underside under turn roof",garageWhite,
+            44.225f,-.063f,23f,10.15f,.015f,12f,false);
         foreach(float side in new[]{-1f,1f})
         {
             B(shell,"Fire service route",asphalt,side*53f,.215f,0,7.0f,.055f,94f,true,true);
