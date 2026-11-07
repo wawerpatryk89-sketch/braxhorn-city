@@ -27,4 +27,5 @@ jobs:
             unity-city/Assets/Claude/Runtime
             unity-city/Assets/City
             unity-city/Assets/BraxGymPlayer.cs
+            .github/workflows/claude-region-build.yml
       - run: python3 -m unittest discover -s unity-tools/claude -p 'test_*.py' -v
