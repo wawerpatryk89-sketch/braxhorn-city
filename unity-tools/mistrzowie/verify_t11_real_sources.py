@@ -7,7 +7,7 @@ import hashlib
 import json
 import struct
 from PIL import Image
-from prepare_casino_textures_2k import DEST as MAP_DIR
+from prepare_casino_textures_2k import DEST as MAP_DIR, SLUGS as MAP_SLUGS, MAPS as MAP_TYPES
 from prepare_casino_vegetation_2k import DEST as ORIGINAL, UNITY_DEST as MODELS, SLUGS
 
 PROJECT=Path(__file__).resolve().parents[2]/"unity-city"
@@ -21,8 +21,10 @@ def sha(path):
 
 def verify_maps():
     data=json.loads((MAP_DIR.parent/"t11-polyhaven-2k-manifest.json").read_text())
-    assert data["status"]=="2K_SOURCE_VERIFIED" and len(data["rows"])==21
-    assert len({r["file"] for r in data["rows"]})==21
+    expected=len(MAP_SLUGS)*len(MAP_TYPES)
+    assert data["status"]=="2K_SOURCE_VERIFIED" and data.get("maps")==expected
+    assert len(data["rows"])==expected
+    assert len({r["file"] for r in data["rows"]})==expected
     for record in data["rows"]:
         path=MAP_DIR/record["file"]
         assert path.is_file() and sha(path)==record["sha256"],path
@@ -67,7 +69,7 @@ def verify_models():
 if __name__=="__main__":
     verify_maps()
     verify_models()
-    evidence={"status":"LIVE_T11_SOURCE_AUDIT_PASSED","native2048Maps":21,
+    evidence={"status":"LIVE_T11_SOURCE_AUDIT_PASSED","native2048Maps":len(MAP_SLUGS)*len(MAP_TYPES),
               "originalVegetationGLBs":2,"originalBytesPreserved":True,
               "unityRun":False,"apkBuilt":False}
     Path("t11-source-audit.json").write_text(json.dumps(evidence,indent=2)+"\n")
