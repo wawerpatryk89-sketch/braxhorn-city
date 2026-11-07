@@ -332,6 +332,60 @@ public static class BraxObozServices
             }
         });
     }
+    static int OriginalTriangles(Renderer renderer)
+    {
+        var filter=renderer?renderer.GetComponent<MeshFilter>():null;
+        return filter&&filter.sharedMesh?filter.sharedMesh.triangles.Length/3:0;
+    }
+
+    static Renderer[] OriginalLodSubset(Renderer[] source,float triangleFraction)
+    {
+        var ordered=source.Where(r=>r&&OriginalTriangles(r)>0)
+            .OrderByDescending(OriginalTriangles).ToArray();
+        int total=ordered.Sum(OriginalTriangles);
+        if(total<=0)return source;
+        int target=Mathf.Max(1,Mathf.CeilToInt(total*Mathf.Clamp01(triangleFraction)));
+        var chosen=new List<Renderer>();int kept=0;
+        foreach(var renderer in ordered)
+        {
+            chosen.Add(renderer);kept+=OriginalTriangles(renderer);
+            if(kept>=target)break;
+        }
+        return chosen.ToArray();
+    }
+
+    // LOD wyłącznie z oryginalnych siatek właściciela. Nie tworzymy brył
+    // zastępczych i nie zmieniamy źródłowych mesh/UV/materialów.
+    static void ConfigureOriginalMeshLod(GameObject root,string label)
+    {
+        if(!root)return;
+        var all=root.GetComponentsInChildren<MeshRenderer>(true).Cast<Renderer>()
+            .Where(r=>r&&r.GetComponent<MeshFilter>()&&r.GetComponent<MeshFilter>().sharedMesh)
+            .Distinct().ToArray();
+        int full=all.Sum(OriginalTriangles);
+        if(all.Length<2||full<=0)
+        {
+            BraxBuildQuality.Warn("OBÓZ LOD: "+label+" — za mało niezależnych oryginalnych części; zachowano pełny model");
+            return;
+        }
+        var mid=OriginalLodSubset(all,.72f);
+        var far=OriginalLodSubset(all,.38f);
+        var lod=root.GetComponent<LODGroup>()??root.AddComponent<LODGroup>();
+        lod.fadeMode=LODFadeMode.CrossFade;lod.animateCrossFading=true;
+        lod.SetLODs(new[]{
+            new LOD(.16f,all),
+            new LOD(.07f,mid),
+            new LOD(.025f,far)
+        });
+        lod.RecalculateBounds();
+        Debug.Log("BRAXHORN_OBOZ_LOD: "+label+
+            " triangles LOD0="+full+
+            " LOD1="+mid.Sum(OriginalTriangles)+
+            " LOD2="+far.Sum(OriginalTriangles)+
+            " sourceMeshes="+all.Length+
+            " originalGeometryOnly=true");
+    }
+
     static GameObject OwnerPrototype(string filename)
     {
         var asset=AssetDatabase.LoadAssetAtPath<GameObject>(OwnerRoot+filename);
@@ -461,6 +515,7 @@ public static class BraxObozServices
                 new Vector3(3.35f,.16f,3.85f),new Vector3(1.502f,1.3185f,.869f));
             RecordNativeDimension(display,1.502f,BraxObozPlacement.Axis.X,room,"witryna właściciela");
             CheckInsideCanteen(room,display);
+            ConfigureOriginalMeshLod(display,"witryna stołówki");
         });
         var tables=room.GetComponentsInChildren<Transform>(true)
             .Where(t=>t.name.StartsWith("Table_",StringComparison.Ordinal) &&
@@ -584,6 +639,7 @@ public static class BraxObozServices
             RecordNativeDimension(pot,.438f,BraxObozPlacement.Axis.X,room,"garnek właściciela");
             PlaceOrRemove(pot,grate,new Vector3(grateBounds.center.x,grateBounds.max.y,grateBounds.center.z),
                 "garnek na rzeczywistym ruszcie",SourceBody(pot,"Layered pan base"));
+            ConfigureOriginalMeshLod(group.gameObject,"kuchnia stołówki");
         }
         finally { Object.DestroyImmediate(source); }
     }
