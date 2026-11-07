@@ -15,6 +15,8 @@ class A1PremiumExteriorRegression(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.arrival = (EDITOR / "BraxChampionsArenaArrival.cs").read_text(encoding="utf-8")
+        cls.arena = (EDITOR / "BraxChampionsArena.cs").read_text(encoding="utf-8")
+        cls.prepare = (ROOT / "unity-tools/mistrzowie/prepare_assets.py").read_text(encoding="utf-8")
         cls.signs = (EDITOR / "BraxChampionsArenaSigns.cs").read_text(encoding="utf-8")
         cls.importer = (EDITOR / "BraxChampionsArenaTextureImport.cs").read_text(encoding="utf-8")
         cls.buildings = (EDITOR / "BraxChampionsBuildings.cs").read_text(encoding="utf-8")
@@ -116,7 +118,28 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('new Vector3(3.9f, .018f, 24.0f)',self.arrival)
         self.assertIn('Main lobby RED carpet | continuous flush gold edge',self.arrival)
         self.assertIn('Public RED velvet carpet | VIP arrival',self.arrival)
-        self.assertIn('arena_vip_black_velvet_rope',self.arrival)
+        self.assertIn('arena_vip_red_velvet_rope',self.arrival)
+        self.assertIn('RED velvet VIP rope - naturally hanging segment',self.arrival)
+        self.assertIn('const int segments = 10;',self.arrival)
+
+    def test_owner_selected_interior_finishes_are_scoped_without_covering_side_murals(self):
+        # Exact Poly Haven sources selected by owner.
+        for slug in ('stone_tiles','gravel_embedded_concrete_02','wooden_panels'):
+            self.assertIn(repr(slug), self.prepare)
+        # Whole main floor is Stone Tiles.
+        self.assertIn('"arena_floor_stone_tiles_owner", "stone_tiles"', self.arena)
+        self.assertIn('Top(floorStone,', self.arena)
+        # Light concrete only follows alongX (the two Z walls), while the two
+        # X side-mural walls keep their existing base presentation.
+        self.assertIn('Material lower = alongX ? lightWall : panel;', self.arena)
+        self.assertIn('Material upper = alongX ? lightWall : wallUp;', self.arena)
+        self.assertIn('"gravel_embedded_concrete_02"', self.arena)
+        # Athlete/changing floors stay green; only their walls use Wooden Panels.
+        self.assertIn('"arena_athlete_floor_stone_tiles_owner", "stone_tiles"', self.arrival)
+        self.assertIn('"arena_athlete_walls_wooden_panels_owner", "wooden_panels"', self.arrival)
+        self.assertIn('Changing room inner wall 1 | Wooden Panels', self.arrival)
+        self.assertIn('Changing room inner wall 2 | Wooden Panels', self.arrival)
+        self.assertIn('Changing room enclosed ceiling", ceiling', self.arrival)
 
     def test_perimeter_bays_skip_both_entries(self):
         skipped = 0
