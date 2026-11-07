@@ -1,122 +1,77 @@
-<!-- ZASADY BRAXHORN: 06.11.2026; REJON MIASTO MISTRZÓW; AKTUALNA DECYZJA WŁAŚCICIELA -->
-**IDENTYFIKACJA PRACY: MIASTO MISTRZÓW —** każdą odpowiedź wykonawcy na tej gałęzi rozpocznij od tego identyfikatora. Nie zgłaszaj cudzych prac jako własnych.
+# BRAXHORN CITY — JEDYNA GLOBALNA INSTRUKCJA (7.11.2026)
+**NAJPIERW PRZECZYTAJ TEN PLIK.** Obowiązuje we wszystkich czterech gałęziach rejonów. Nowa część 0 doprecyzowuje reguły z 6.11.2026; wcześniejsze, sprzeczne kopie zasad są nieaktualne. Wpisuj aktualizację instrukcji jako osobny commit zawierający wyłącznie `AGENTS.md` na każdej gałęzi; nigdy na `main`.
 
-# BRAXHORN CITY — GLOBALNA INSTRUKCJA PRACY (06.11.2026)
+0. GLOBALNY STANDARD DUŻEJ GRY — UNITY 6 / ANDROID (najwyższy priorytet techniczny)
+- Wzorzec: mały uruchamialny Player + osobne, wersjonowane pakiety treści, nie pełna przebudowa 1 GB+ APK przy każdej poprawce. To zasada dla wszystkich rejonów, a NIE twierdzenie, że obecny projekt już tak działa.
+- Samo rozdzielenie scen *wewnątrz tego samego APK* może poprawić obciążenie pamięci podczas ładowania, ale NIE zmniejsza automatycznie pobieranej paczki. Mniejszy instalator wymaga faktycznego wyprowadzenia zasobów do osobnych AssetBundles/Addressables lub pakietów dystrybucyjnych.
+- Projektuj bootstrap: lekkie menu, sterowanie, profil grafiki, sprawdzanie plików, komunikaty o postępie i błędach. Świat ładowany później na żądanie, z możliwością wejścia do gry, wyjścia i ponownego uruchomienia. Nie wolno pokazać `SUCCESS` zanim świat działa na urządzeniu.
+- Dostarczanie dla APK spoza Google Play: osobne wersjonowane pakiety Addressables/AssetBundles, źródło pobierania zatwierdzone przez właściciela, offline fallback/instalacja lokalna, bez wbudowanych sekretów GitHuba. GitHub Actions artifact i prywatny DRAFT Release nie są automatycznie publicznym CDN-em.
+- Dla przyszłej publikacji w Google Play osobno rozważ Android App Bundle + Play Asset Delivery (`install-time`, `fast-follow`, `on-demand`). PAD nie działa samoczynnie w samodzielnym APK z GitHuba.
+- Rozdziel pakiety: wspólna biblioteka postaci/animacji/materialów, Miasto R1, Osiedle, Obóz, Miasto Mistrzów, opcjonalne wnętrza, roślinność oraz HD. Podział logiczny nie upoważnia do przenoszenia assetów między gałęziami lub do zmiany układu świata bez zgody.
+- Wykorzystuj Addressables Analyze i Build Layout / BuildReport do wykrywania zduplikowanych siatek/tekstur/zależności: wspólne zasoby umieszczaj w wydzielonej grupie, nie powielaj w Player i w pakietach. Każdy pakiet ma stabilne ID, katalog, SHA-256 i raport rzeczywiście pobranych bajtów.
+- Aktualizacja różnicowa WYŁĄCZNIE po zatwierdzeniu działającej bazy: przechowuj katalog bazowy, stabilne `.meta`/GUID i odpowiedni `addressables_content_state.bin`; nową zawartość publikuj bez ponownego instalowania kodu, jeśli to kompatybilne. Zmiana kodu C#/IL2CPP, konfiguracji Playera lub binarium wymaga nowego APK.
+- Bezpieczny klient aktualizacji: pobierz do staging, sprawdź rozmiar/hash/zgodność, dopiero potem atomowo aktywuj. Po błędzie zachowaj ostatni działający pakiet; żadnych automatycznych kasowań cudzych assetów ani cache.
+- Duży świat: addytywne/asynchroniczne ładowanie stref i wnętrz; bezpieczne zwalnianie referencji Addressables przy wyjściu; PBR, oryginalne geometrie/tekstury, zasięg cieni i LOD zależne od odległości. Nie usuwaj/nie odchudzaj assetów lub jakości wizualnej bez porównania ze wzorcem i zgody właściciela.
+- Mipmap streaming ogranicza RAM/VRAM, ale sam NIE pobiera zasobów z serwera. Ustawienia pamięci to budżet, nie gwarancja; tekstury `non-streaming` mogą go przekroczyć. Mierz faktyczne maksymalne zużycie pamięci i ryzyko natywnego crasha Androida.
+- Kompresję AssetBundles (LZ4/LZMA) wybieraj na podstawie pomiaru rozmiaru, czasu wczytania i pamięci telefonu, a nie na oko. LZMA często daje mniejszy transfer, ale rozpakowanie może kosztować więcej RAM; LZ4 pozwala odczytywać fragmenty.
+- Cele: Obóz APK <= 400 MB wg wcześniejszej decyzji, pozostałe paczki bazowe dążyć do <= 500 MB. Nie nazywaj przekroczenia sukcesem, nie obiecuj wielkości bez rzeczywistego BuildReport. Nie blokuj kompilacji ostrzeżeniem o rozmiarze; zamiast tego raport do właściciela i brak deklaracji gotowości wydania.
+- Każdy build: tabela rozmiarów APK, scen (skompresowany/nieskompresowany), tekstur, siatek, animacji, największych źródeł, raport zależności i duplikatów, różnica względem ostatniej wersji, wskaźniki RAM/VRAM/FPS z urządzenia, log awarii. `BuildPipeline.BuildPlayer = Succeeded` oznacza kompilację, NIE sprawny telefon.
+- Jeśli w Androidzie `Loading.Preload`, `SIGTRAP`, `Position out of bounds`, `level1 corrupted`: raportuj dowód, analizuj MonoScript/GUID/serializację i dane sceny; nie zgaduj „brak RAM” ani „winny model X” bez symboli/logcat. Brak obowiązkowego MonoScript to błąd integralności, ostrzeżenie wyglądu pozostaje tylko raportem.
+- TESTY: szybkie statyczne testy kodu mogą działać bez kosztownego Unity; pełne Unity/IL2CPP/generowanie scen/APK tylko po odrębnej zgodzie właściciela. Nie wywołuj `workflow_dispatch` samoczynnie z `push`; brak restartów i równoległych długich testów.
+- Dokumentacja urzędowa i techniczna: Unity `https://docs.unity3d.com/6000.0/Documentation/Manual/assets-avoid-duplication.html` (duplikaty), `https://docs.unity3d.com/6000.0/Documentation/Manual/assetbundles-compression-format.html` (LZ4/LZMA), `https://developer.android.com/guide/playcore/asset-delivery` (PAD). Zasady powyżej są wymaganiami projektu, a nie twierdzeniem, że wykonano wdrożenie.
 
-**WŁAŚCICIEL: instrukcja nadrzędna dla wszystkich wykonawców, obowiązuje w każdej rozmowie i na każdej poniższej gałęzi.** Jeśli starsze fragmenty tego pliku, `CLAUDE.md`, inne dokumenty albo automatyzacje są sprzeczne z tą instrukcją, stosuj niniejszą nowszą decyzję. Starsze informacje poniżej zachowano jako kontekst historyczny; nie stanowią one zgody na build ani odstępstwo. Najpierw odczytaj gałąź, przypisany rejon i aktualny stan repozytorium. Nie wykonuj prac w innym rejonie.  
+1. GAŁĘZIE I SILNIK
+- Repo wawerpatryk89-sketch/braxhorn-city. Unity 6, Android, mobile-first.
+- Miasto R1: claude/miasto-opus-20261031
+- Osiedle: claude/osiedle-42-poprawka
+- Obóz: codex/oboz-przebudowa-pbr-20261105
+- Miasto Mistrzów: gpt/miasto-mistrzow-kasyno-t11-20261105
+- Wersja Unity = ta przypięta w workflow danego rejonu (Mistrzowie 6000.0.85f2). Nie zmieniaj jej.
+- Nigdy main. Nigdy dwa rejony w jednym commicie.
+- JEDNA GAŁĄŹ = JEDEN WYKONAWCA NARAZ. Przed pracą: git fetch, sprawdź ostatnie commity. Przed pushem: fetch + rebase na najnowsze. Jeśli ktoś pushował w ostatnich 30 min, pytasz właściciela.
 
-Repo: `wawerpatryk89-sketch/braxhorn-city`. Silnik: Unity 6, Android APK.
-Jeden rejon = jedna gałąź. Nie mieszaj rejonów, nie pushuj na main.
-- Miasto R1: `claude/miasto-opus-20261031`
-- Osiedle: `claude/osiedle-42-poprawka`
-- Obóz: `codex/oboz-przebudowa-pbr-20261105`
-- Miasto Mistrzów: `gpt/miasto-mistrzow-kasyno-t11-20261105`
+2. JAK PRACOWAĆ (każde zadanie)
+1) Przeczytaj zadanie i kod, którego dotyczy. 2) Ustal przyczynę w kodzie (plik:linia). 3) Napraw WSZYSTKIE podobne miejsca, nie jedno. 4) Uruchom testy statyczne rejonu (python -m unittest w unity-tools/<rejon>, z jego folderu). 5) Commit + push. 6) Raport.
+- Bez nowych funkcji, gdy ostatni build padł.
+- Nie zmieniasz zatwierdzonego wyglądu. Nie dodajesz rzeczy, o których właściciel nie mówił.
+- „Zatwierdzone przez właściciela” piszesz tylko z cytatem jego wiadomości. Wzór/zdjęcie od właściciela jest ważniejsze niż komentarz w kodzie.
 
-## 1. BUILDY
-- APK uruchamiasz tylko na wyraźne słowo właściciela, jeden naraz, przez `workflow_dispatch`. Żadnych restartów w ciemno i żadnych automatycznych wyzwalaczy.
-- Przed każdym APK: przebieg „scena bez APK”, który zbiera WSZYSTKIE błędy naraz (lista na końcu logu), a nie zatrzymuje się na pierwszym.
-- Twardy błąd tylko przy: brakującym pliku, złym typie zasobu, braku modelu lub klipu, błędzie kompilacji. Kontrole kosmetyczne (rozmiar importu, mipmapy, liczba sztuk) = tylko ostrzeżenie.
-- Po padzie: pierwszy wyjątek + stack trace, przyczyna, poprawka WSZYSTKICH podobnych miejsc (np. wszystkich tekstur, nie jednej).
-- Każdy zasób musi być na miejscu ze stałym `.meta` (stały GUID, `textureShape` 2D dla obrazków), zanim Unity wystartuje.
-- Gdy ostatni APK padł, nie dodajesz nowych funkcji, tylko doprowadzasz build do końca.
-- Bez zdjęć w CI. Dowodem jest nagranie właściciela z telefonu, a nie log.
+3. JAK BUDOWAĆ SCENY (kod generatorów)
+- Skala K = 1,294. Każdy model = realny wymiar × K (łóżko 2,0 m, krzesło 0,9 m, drzwi 2,1 m, człowiek 1,8 m). NIGDY nie wciskaj modelu w wymyślone pudełko (min(target/bounds)).
+- Stawianie: raycast w dół → dolna krawędź bounds na podłodze/gruncie. Rzeczy ścienne (lustro, pisuar, półka, szyld, mural) raycast do ściany, tył na ścianie. Nic w powietrzu, w ścianie ani na sobie nawzajem; różne produkty = różne miejsca.
+- Szyld zawsze na belce/ścianie/pasie nad witryną, nie na patykach i nie przed szybą.
+- Materiały: tylko PBR z tekstur już pobieranych w danym rejonie (kolor + normal + ARM). Każda powierzchnia swój materiał (posadzka ≠ ściana ≠ sufit). Lustro = reflection probe.
+- Tekstury: 4K tylko główne postacie, reszta 2K, ASTC. Murale min. 4096 px szerokości, ok. 100 px na metr ściany. Format importu sprawdzaj wg obsługi urządzenia; źródła HD pozostają niezmienione.
+- Brakuje modelu → lista do właściciela. Nie robisz zastępstwa z kostek.
+- Telefon: LOD, instancje GPU, światła vertex/wypalone, bez cieni z lamp. Rozmiar APK w raporcie; obóz maks. 400 MB. Limit przekroczony = nie deklaruj wydania gotowego, pokaż źródło wzrostu; nie zatrzymuj kompilacji kontrolą kosmetyczną.
 
-## 2. WYGLĄD I JAKOŚĆ
-- Skala K = 1,294. Każdy model = realny wymiar × K. Nigdy nie wciskaj modelu w wymyślone pudełko.
-- Każdy przedmiot stoi na podłodze lub gruncie (raycast w dół), a rzeczy ścienne (pisuar, lustro, półka, szyld) przy ścianie. Nic w powietrzu, nic w ścianie, nic na sobie nawzajem.
-- Postacie: stopy na ziemi, bez lewitowania i ślizgania.
-- Szyldy na belce lub ścianie, nie na patykach w powietrzu. Murale min. 4096 px szerokości, na dużych ścianach 8192 px. Nie rozciągaj małych obrazków na całe ściany.
-- Lustro = prawdziwe odbicie (reflection probe), nie kolorowy prostokąt.
-- Tekstury: 4K tylko główne postacie, reszta 2K, ASTC. LOD, instancje GPU, światła wypalone lub vertex. Gra ma chodzić płynnie na średnich ustawieniach.
-- Nie wstawiaj niczego, o czym właściciel nie mówił (np. żadnego dźwigu w Mieście Mistrzów). Nie wymyślaj „zatwierdzeń właściciela”. Gdy brakuje modelu, dajesz właścicielowi listę, a nie zastępstwo z klocków.
+4. JAK PISAĆ KOD, ŻEBY BUILD NIE PADAŁ
+- TWARDY BŁĄD (throw) tylko gdy bez tego nie ma gry: błąd kompilacji, brak sceny głównej/postaci gracza, zapis sceny, podpis APK, brak pliku bez którego nic nie powstanie; nieprawidłowy lub brakujący MonoScript/GUID w wymaganej scenie to błąd integralności, nie kosmetyka.
+- Wszystko inne = BraxBuildQuality.Warn(...) i build idzie dalej: rozmiary tekstur, mipmapy, liczba sztuk, skala, dokładne liczby (32 leżaki, 35 łodzi, 95 miejsc), wygląd.
+- Każdą dekorację i każdy osobny budynek wywołuj przez BraxChampionsFoundation.Optional("nazwa", () => ...) (lub odpowiednik w rejonie): wyjątek → ostrzeżenie z pełnym błędem, reszta świata buduje się dalej. Obiekt pół-ustawiony przy błędzie usuń (DestroyImmediate).
+- NIGDY throw wewnątrz AssetPostprocessor (OnPreprocess*). Tylko Debug.LogWarning + return.
+- Ścieżki: Unity startuje w unity-city/. Plik spoza Assets (np. unity-tools/...) szukaj w obu miejscach: "x" i "../x". Najlepiej użyj gotowego RepoFile().
+- Obrazki: przed wczytaniem wymuś TextureImporter: textureType Default, textureShape Texture2D, potem ImportAsset(ForceSynchronousImport), dopiero potem LoadAssetAtPath<Texture2D>. Nigdy nie sprawdzaj dokładnych pikseli po imporcie (Android je zmienia) — tylko GetSourceTextureWidthAndHeight i to jako ostrzeżenie.
+- Każdy plik pobierany w CI ma stałe .meta w repo (stały GUID, textureShape 2D dla obrazków).
+- Testy statyczne pilnują ZACHOWANIA, nie dokładnego tekstu kodu. Zmieniasz kod → dopasuj test w tym samym commicie.
 
-## 3. PORZĄDKI (najpierw lista do akceptacji właściciela, dopiero potem usuwanie)
-- Releases: cache CI (`unity-ci-cache-*`), zostaje tylko ten używany przez ostatni udany build danego rejonu. Stare APK, zostaje ostatni działający w każdym rejonie.
-- Workflow: usuń jednorazowe i dublujące się (`*-once-*`, `*-smoke-*`, `*-probe-*`, kolejne preflighty). Na rejon zostają: jeden APK, jeden „scena bez APK”, jeden test źródeł.
-- Usuń testy i pliki rzeczy, których ma nie być (np. dźwig w Mistrzach). Gałęzie po scaleniu usuń.
+5. JAK PUSZCZAĆ BUILDY
+- Tylko na wyraźne słowo właściciela w tej rozmowie. Jeden build naraz, workflow_dispatch, z dokładnym SHA. Commit/push NIGDY nie odpala buildu.
+- Najpierw tryb „sceny” (bez APK): ma wypisać WSZYSTKIE błędy i ostrzeżenia. Unity / import dużych zasobów / scena też są kosztowne — wymagają odrębnego polecenia właściciela. Dopiero zero błędów integralności → APK; ostrzeżenia jakości nie blokują kompilacji.
+- Padło: pierwszy wyjątek + stack trace → przyczyna → naprawa wszystkich podobnych miejsc → testy → jeden nowy build. Bez restartów w ciemno, bez zatrzymywania biegnącego buildu bez zgody.
+- Zmiana samych obrazków/tekstur (murale, szyldy) → tryb „aktualizacja”, nie nowy APK, jeśli rejon go ma i działa. Ten sam identyfikator, ten sam certyfikat, versionCode + 1.
+- Bez zdjęć w CI. Dowód działania na Androidzie = nagranie właściciela z telefonu i/lub logcat z konkretnego SHA, nie zielony CI.
 
-## 4. REJONY — KOLEJNOŚĆ PRAC
-- Miasto Mistrzów: najpierw działający APK. Potem arena premium: przeszklona fasada, mural HD na całą ścianę za szkłem po wejściu, trybuny, dwa murale boczne HD, pas 3D w szklano-drewnianej kopule na podeście. Następnie kasyno WAWER, basen P1, metro scalone do 5 stacji, mały port bez dużych statków i bez dźwigu, prom, plaże, promenada z szyldami właściciela (każdy szyld osobnym plikiem, nie atlas).
-- Obóz: wg audytu z 6.11. Kolejno: skala i stawianie modeli (nic w powietrzu), grunt (błoto, ubita ziemia, chodniki z obrzeżami wszędzie, trawa premium, ślady stóp na piasku i błocie, uginająca się mata), murale na ścianach, szyld na belce bramy, łaźnia z poprawną cegłą i lustrem, klimat obozu (domki z bali, 40–60 worków na belkach, ognisko, namioty, bordowe flagi, beczki, żarówki), Monika na ziemi, APK maks. 400 MB.
-- Osiedle: najpierw audyt z nagrań właściciela (lista błędów z miejscem i przyczyną w kodzie), dopiero potem naprawy wg tych zasad. Nie ruszaj tego, co działa.
-- Miasto R1: tak samo jak osiedle. Ładowanie ma być płynne jak na osiedlu. Duże statki później.
+6. PORZĄDKI
+- Usuwanie czegokolwiek (Releases, cache unity-ci-cache-*, stare APK, workflow, gałęzie) tylko po liście zaakceptowanej przez właściciela.
+- Docelowo na rejon: 1 workflow APK (z trybami apk/sceny/aktualizacja), 1 test źródeł. Jednorazowe *-once-*, *-smoke-*, *-probe-* do listy usunięcia.
 
-## 5. KOMUNIKACJA
-- Po każdym kroku commit i push z numerem commita.
-- Raport krótki: co zrobione, co padło (pierwszy błąd), co dalej. Bez „gotowe”, dopóki właściciel nie zobaczy tego na telefonie.
-- Pytasz tylko przy decyzji nieodwracalnej (usuwanie, zmiana układu terenu). Resztę robisz.
+7. RAPORT (zawsze w tej kolejności)
+Pierwsze słowa: OBÓZ TRENINGOWY / MIASTO R1 / OSIEDLE / MIASTO MISTRZÓW.
+Potem: co zrobione (commit), co przetestowane (wynik testów), liczba ostrzeżeń, co nie działa (pierwszy błąd), co dalej. Bez „gotowe”, dopóki właściciel nie zobaczy tego na telefonie.
 
----
-
-## WCZEŚNIEJSZE INSTRUKCJE TEJ GAŁĘZI — KONTEKST HISTORYCZNY
-
-**Zachowane bez usuwania; w przypadku sprzeczności nadrzędna jest globalna instrukcja właściciela z 06.11.2026 zamieszczona wyżej.**
-
----
-
-# BEZWZGLĘDNY ZAKAZ DŁUGICH TESTÓW — DECYZJA WŁAŚCICIELA 6.11.2026 (NAJWYŻSZY PRIORYTET)
-
-**DLA WSZYSTKICH WYKONAWCÓW AI (ChatGPT, Codex, Claude, Work i innych), WSZYSTKICH REJONÓW BRAXHORN.**
-
-1. **Nie uruchamiać żadnych długich, kosztownych ani kilkugodzinnych testów**: Unity Editor/PlayMode, generowania scen, pełnych testów scen, importu wszystkich assetów, Android, WebGL, IL2CPP, Unity CI, buildów lub testów tylko udających krótkie, lecz używających Unity. Nazwa „test”, „smoke”, „scene-only”, „QA”, „bez APK” nie oznacza, że procedura jest szybka.
-2. Bez osobnej, jednoznacznej zgody właściciela na dokładnie określony przebieg dopuszczalne są tylko **krótkie, tanie testy statyczne kodu i geometrii** (docelowo w kilkudziesięciu sekundach, bez uruchamiania edytora Unity, bez drogich pobrań i pełnego generowania świata). Gdy kontrola może być długa — NIE uruchamiać; najpierw przedstawić jej realny zakres i uzyskać zgodę. Nie mylić limitu 355 minut z krótkim testem.
-3. **Zakaz samoczynnych, ponawianych i równoległych długich testów.** Commit, push, PR, merge, zakończenie prac innego wykonawcy, błąd CI i prośba „sprawdź” nie są zgodą na długie testy ani buildy. Nie dodawać workflow uruchamiających Unity na push lub przez automatyczny dispatch. Build APK także tylko po osobnej, wyraźnej autoryzacji.
-4. Gdy właściciel każe anulować przebieg, **niezwłocznie przerwać uruchomioną pracę**, potwierdzić rzeczywisty status w GitHub i nie uruchamiać jej ponownie bez osobnej zgody. Jeśli przebieg już sam się zakończył, podać faktyczny wynik, a nie przedstawiać go jako anulowany.
-5. **Najpierw wynik szybkiej kontroli, potem decyzja właściciela.** Nie obiecywać, że krótki test zastępuje kompilację Unity; raportować jasno, czego faktycznie nie zweryfikowano. Priorytet: brak tracenia wielogodzinnego czasu, kolejki, limitów i zasobów.
-
-Ta decyzja jest późniejsza i nadrzędna wobec wszelkich starszych instrukcji zachęcających do długiego QA. Jej zapisanie nie jest zgodą na uruchomienie czegokolwiek. Bez osobnej zgody nie przepisywać na main.
-
----
-
-# Standard tekstur TYLKO głównych postaci grywalnych (5.11.2026)
-
-Decyzja właściciela: **wyłącznie postacie, którymi użytkownik steruje osobiście** (np. Brax, Nyxa, Patryk, Monika w roli grywalnej). Głowa/twarz do 4K, ciało/ubranie do 2K, buty/akcesoria do 1K; **tylko gdy postać faktycznie ma oddzielne materiały i UV**. Zwykli NPC, przeciwnicy i przechodnie są wyłączeni z tej reguły. Nie zmieniać wyglądu, obecnych tekstur, podziału UV ani materiałów bez przeglądu modelu i osobnej decyzji właściciela. Dotychczasowe postacie nie są przez tę notatkę przerobione. Szczegóły: [Tekstury postaci grywalnych](docs/zasady/TEKSTURY_POSTACI_GRYWALNYCH_20261105.md). Zmiana dokumentacji nie uruchamia buildu.
-
-# Aktualna decyzja właściciela — testowy APK bez blokad jakości
-
-Stosuj [APK do ręcznej oceny](docs/zasady/APK_RECZNA_OCENA_20261105.md).
-Kontrole jakości postaci, kolizji i przejść mają ostrzegać, nie blokować APK.
-Fizyczne kolizje pozostają. Kompilacja, generowanie, podpis i plik APK nadal muszą się udać.
-Ta nowsza decyzja zastępuje sprzeczne starsze bramki jakości. Bez uruchamiania buildów.
-
-## Unity Essentials — obowiązek wszystkich wykonawców (5 listopada 2026, Europe/Zurich)
-
-**Decyzja właściciela: od teraz korzystamy z Unity Essentials przy każdej pracy nad grami Unity, w której jego procedury mają zastosowanie.** Dotyczy Codex, GPT, Work, Claude i innych wykonawców; BRAXHORN CITY, Miasta Mistrzów, osiedla, obozu oraz prac nad BRAXHORN ARENA. Każdy wykonawca ma zapoznać się z tą zasadą przed rozpoczęciem pracy. Zasadę należy przenosić do instrukcji kolejnych gałęzi i projektów w ramach zleconej pracy, bez nadpisywania cudzych zmian i bez samodzielnego zapisu na main.
-
-- Korzystaj z właściwych procedur wtyczki: rozpoznanie projektu, audyt techniczny, diagnoza błędów, implementacja funkcji, kontrola gotowości kompilacji oraz sprawdzanie połączenia Unity MCP. W tej instalacji Unity Essentials ma identyfikator pakietu `unity-workbench`; to ten sam produkt, nie drugie narzędzie.
-- Stosuj je do kodu C#, scen i prefabów, modeli i tekstur, materiałów i shaderów, animacji i retargetingu, fizyki i sterowania, zależności, wydajności oraz konfiguracji Androida, podpisu i dostawy APK — w zakresie faktycznie dostępnych procedur i narzędzi.
-- Przed zmianą zbierz dowody, odczytaj aktualne pliki i SHA, ustal przyczynę, przygotuj najmniejszą uzasadnioną poprawkę i sprawdź regresje. Zachowaj zatwierdzony wygląd, układ, skalę i oryginalne zasoby. Nie wyłączaj kontroli, żeby ukryć błąd.
-- Unity Essentials jest wtyczką procedur pracy dla asystenta. Samo jej użycie nie oznacza dostępu do edytora. Osobno sprawdź dostępność Unity, mostka MCP i aktywnego połączenia. Jeżeli dany wykonawca nie ma wtyczki lub połączenia, ma to uczciwie zgłosić, zastosować zapisane tu zasady i kontynuować możliwą pracę; nie deklarować fikcyjnego użycia wtyczki ani testu.
-- Raportuj oddzielnie: analizę statyczną, testy lokalne, kompilację skryptów w Unity, generowanie i ponowne otwarcie scen, kompilację Androida, weryfikację podpisu, rzeczywiście dostarczony APK oraz test na telefonie. Podaj dowody i ograniczenia.
-- Nie instaluj samodzielnie pakietów MCP ani nie zmieniaj wersji silnika tylko dlatego, że używasz Unity Essentials. Obowiązują wcześniejsze zasady zgody na zmiany zależności, ochrony projektu i ręcznych buildów. Polecenie korzystania z wtyczki **nie jest zgodą na uruchomienie buildu**.
-
-# PILNE — APK FIRST (4.11.2026)
-
-**Polecenie właściciela obowiązuje wszystkich, w tym Miasto Mistrzów:** gotowy APK zabezpiecz i udostępnij PRZED cache, snapshotem i raportami. Późniejsza awaria nie może odebrać pliku. Miasto Mistrzów ma osobny ręczny workflow APK; stan kompilacji i dostawy sprawdzać w aktualnym przekazaniu poniżej. Zobacz [pełną zasadę](docs/zasady/APK_FIRST_DOSTAWA_20261104.md) i [Issue #13](https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13). Nowe buildy tylko po osobnej zgodzie właściciela.
-
----
-
-# BRAXHORN CITY — OBOWIĄZKOWA ZASADA DLA WSZYSTKICH WYKONAWCÓW (4.11.2026)
-
-**Decyzja właściciela: żadnych automatycznych buildów.** Dotyczy Claude, Codex, GPT, Work oraz wszystkich innych wykonawców; miasta, osiedla i obozu.
-
-1. **Commit i push służą do zapisu kodu, nie są zgodą na build.** Zmiana pliku `build-request.json`, `content-update-request.json`, komunikat `CITY BUILD:`, PR, merge, tag, zakończenie innego workflow ani niepowodzenie poprzedniego nie mogą automatycznie uruchamiać kompilacji.
-2. **Unity 6 Android APK/AAB, WebGL, Addressables oraz kosztowne testy Unity uruchamia się WYŁĄCZNIE ręcznie** przez `workflow_dispatch`, po osobnym, jednoznacznym poleceniu właściciela dla konkretnej gałęzi, commita, rejonu i wariantu. Nie używać `push`, `pull_request`, `workflow_run`, `schedule` ani skryptowego dispatch do samoczynnego uruchamiania.
-3. Wykonawcy mogą poprawiać kod, audytować, testować statycznie i zapisywać zmiany w swoich gałęziach bez startowania kompilacji Unity. Nie uruchamiać serii buildów po drobnych zmianach. Przed ręcznym buildem przekazać listę poprawek, ryzyka oraz odczytane statusy.
-4. **Nie uruchamiać samodzielnie ponownie** błędnego, anulowanego ani ukończonego buildu, nie anulować cudzego bieżącego buildu i nie włączać automatycznych wyzwalaczy. Jeżeli ręczne uruchomienie na GitHub nie jest możliwe, zgłosić problem i nie obchodzić zakazu.
-5. Rejony osobno: **miasto / osiedle / obóz**. Bez zgody nie scalać rejonów i nie wysyłać połączonego APK. Nie zmieniać wyglądu, jakości ani zasobów innych wykonawców bez polecenia. Nigdy nie pushować na `main` bez osobnej zgody.
-6. Dla zatwierdzonego APK zachować stały certyfikat, poprawne `applicationId` i `versionCode`, szyfrowanie prywatnych zasobów oraz zgodną pamięć `Library` i checkpointów. Przywrócenie cache **nie jest** dowodem małej aktualizacji na telefonie.
-7. Raportować osobno: kod, preflight, kompilację, opublikowany APK oraz test na Androidzie. Dowód: link runu, SHA i logi. Bez testu nie deklarować, że działa.
-
-**Nadrzędna zasada:** „My decydujemy, kiedy build uruchamiamy i kiedy go naprawiamy”. Bez aktualnej zgody — **ZERO buildów i automatycznych ponowień**.
-
-## Miasto Mistrzów — obowiązkowy punkt startowy
-
-Wymaganie właściciela z 4.11.2026: przed oceną i dalszym wykonaniem przeczytaj [sześć zdjęć odniesienia i wymagania jakości Miasta Mistrzów](docs/zlecenia/mistrzowie-referencje-jakosci/README.md). Jakość ma przewyższać pierwsze miasto właściciela: detal, tekstury, cienie i oświetlenie; luksusowy program obiektów zachować zgodnie z istniejącym projektem. Odbioru wizualnego nie zastępuje udana kompilacja.
-
-Przed pracą w tym regionie przeczytaj [mapę i przekazanie](docs/zlecenia/MIASTO-MISTRZOW-START.md). Tam są pełny plan PDF, dwa podglądy map, aktualny rzut generatora, źródła współrzędnych, standard jakości i status pierwszego buildu. Zachowaj układ, oryginalne zasoby i skalę; dokumentacja odróżnia plan, istniejący kod i wynik sprawdzony w Unity. Powyższe zasady ręcznego uruchamiania buildów pozostają w mocy.
-
-
-## Wspólny standard wykonania i napraw — 4 listopada 2026
-
-Na polecenie właściciela przed kolejną pracą przeczytaj i stosuj [standard Unity 6 dla wszystkich wykonawców](docs/zasady/STANDARD_PRACY_UNITY6_20261104.md). Zawiera przypięte wersje Claude Anthropic, wymagania PBR i 4K blisko / minimum 2K dalej, przygotowanie buildów, udokumentowane awarie i stan napraw. Dodanie instrukcji nie oznacza gotowości istniejących scen. Zachowaj bieżące zasady zlecania buildów, cudze zmiany i osobne rejony; aktualizuj gałąź z kontrolą oczekiwanego HEAD.
+8. AKTUALNE PRIORYTETY I ZASADA DOWODÓW
+- Najpierw przyczyny nieudanych buildów i awarii telefonu, później nowe funkcje. W R1 obowiązuje zlecony audyt mostu/wiaduktu i infrastruktury przejazdu. Zmiany układu i wizualizacji wymagają weryfikacji ze wzorcem od właściciela, nie zgaduj parametrów.
+- Nie zakładaj, że jakakolwiek gałąź ma już mały bootstrap, działające zdalne Addressables lub delta-update. Odczytaj jej prawdziwy `BuildPlayerOptions.scenes`, katalog i `BuildReport`.
+- Przed pracą sprawdź aktualny HEAD gałęzi i aktywność innego wykonawcy. Nie nakładaj commitów na czyjeś aktywne zmiany. Zasady globalne zapisuj osobnym commitem tylko `AGENTS.md`, roboty nad R1 osobnym commitem.
+- Raportuj w kolejności: FAKTY (źródło, run, commit) -> DIAGNOZA (plik:linia) -> DECYZJA -> DZIAŁANIE (dokładny zakres) -> DOWÓD (test, log, telefon) -> BRAKI. Nie deklaruj wykonania ani testów, których faktycznie nie było.
