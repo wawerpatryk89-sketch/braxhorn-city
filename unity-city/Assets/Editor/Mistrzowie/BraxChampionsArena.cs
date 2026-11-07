@@ -48,7 +48,13 @@ public static class BraxChampionsArena
     {
         const float X0=-146f,X1=-26f,Z0=28.3f,Z1=98.3f,yF=.055f,yC=28f,cx=-86f,cz=63.3f,dA=-88.05f,dB=-83.95f,dH=4.2f;
         W.KolizjaMM(X0,X1,yF-.20f,yF,Z0,Z1);
-        var epoxy = Plain("hala walk posadzka żywica grafit", new Color(.12f, .12f, .13f), .6f);
+        // Owner 7.11: the whole arena floor uses the exact greenish Poly Haven Stone Tiles.
+        var floorStone = BraxChampionsFoundation.SourceMaterial(
+            "arena_floor_stone_tiles_owner", "stone_tiles", 3.2f, Color.white);
+        // Only the two NON side-mural walls use the owner's light Gravel Embedded Concrete 02.
+        // The two X walls stay on their existing dark base because owner murals cover them.
+        var lightWall = BraxChampionsFoundation.SourceMaterial(
+            "arena_two_plain_walls_gravel_concrete_owner", "gravel_embedded_concrete_02", 2.0f, Color.white);
         var panel = Plain("hala walk panele akustyczne", new Color(.07f, .07f, .08f), .2f);
         var wallUp = Plain("hala walk ściana grafit", new Color(.19f, .19f, .21f), .2f);
         var red = Plain("hala walk czerwień BRAXHORN", new Color(.60f, .04f, .05f), .45f);
@@ -69,22 +75,27 @@ public static class BraxChampionsArena
         var apron = TexMat("oktagon_fartuch", 1f, .35f);
         var wire = CutoutMat("siatka_oktagonu", .3f);
 
-        // posadzka (płyty 2 m — światło punktowe liczone w wierzchołkach)
+        // Entire main arena floor: owner-selected green Stone Tiles.
         for (float x = X0; x < X1 - .01f; x += 2f)
-            for (float z = Z0; z < Z1 - .01f; z += 2f) Top(epoxy, x, Mathf.Min(x + 2f, X1), z, Mathf.Min(z + 2f, Z1), yF);
+            for (float z = Z0; z < Z1 - .01f; z += 2f) Top(floorStone, x, Mathf.Min(x + 2f, X1), z, Mathf.Min(z + 2f, Z1), yF);
         // ściany i sufit
         void Clad(bool alongX, float f, float s, float a0, float a1)
         {
             float g0 = s > 0 ? f + .005f : f - .045f, g1 = g0 + .04f, r0 = g0 + s * .012f, r1 = g1 + s * .012f;
+            // alongX == Z0/Z1 walls: these are the two remaining hall walls and get
+            // the light owner concrete. X0/X1 are the two side-mural walls and are
+            // deliberately NOT re-finished over/under the mural presentation.
+            Material lower = alongX ? lightWall : panel;
+            Material upper = alongX ? lightWall : wallUp;
             if (alongX)
             {
-                BoxMinMax(panel, a0, a1, yF, 2.4f, g0, g1, false); BoxMinMax(red, a0, a1, 2.4f, 2.56f, Mathf.Min(r0, r1), Mathf.Max(r0, r1), false);
-                BoxMinMax(wallUp, a0, a1, 2.56f, yC, g0, g1, false);
+                BoxMinMax(lower, a0, a1, yF, 2.4f, g0, g1, false); BoxMinMax(red, a0, a1, 2.4f, 2.56f, Mathf.Min(r0, r1), Mathf.Max(r0, r1), false);
+                BoxMinMax(upper, a0, a1, 2.56f, yC, g0, g1, false);
             }
             else
             {
-                BoxMinMax(panel, g0, g1, yF, 2.4f, a0, a1, false); BoxMinMax(red, Mathf.Min(r0, r1), Mathf.Max(r0, r1), 2.4f, 2.56f, a0, a1, false);
-                BoxMinMax(wallUp, g0, g1, 2.56f, yC, a0, a1, false);
+                BoxMinMax(lower, g0, g1, yF, 2.4f, a0, a1, false); BoxMinMax(red, Mathf.Min(r0, r1), Mathf.Max(r0, r1), 2.4f, 2.56f, a0, a1, false);
+                BoxMinMax(upper, g0, g1, 2.56f, yC, a0, a1, false);
             }
         }
         Clad(false, X0, 1f, Z0, Z1); Clad(false, X1, -1f, Z0, Z1);
