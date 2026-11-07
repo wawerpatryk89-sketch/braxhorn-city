@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -57,6 +58,47 @@ public static class BraxChampionsVIPSeats
                 "VIP GLB has no bound PBR texture; visual inspection required. Build continues with original model.");
     }
 
+    // Repair a GLB authored with its long chair axis horizontal. Do not
+    // reorient an already-upright source and never replace the original PBR.
+    static void KeepImportedChairUpright(GameObject chair,Quaternion facing)
+    {
+        var initial=VisualBounds(chair);
+        float maxHorizontal=Mathf.Max(initial.size.x,initial.size.z);
+        if(initial.size.y>=maxHorizontal*.83f)return;
+
+        Quaternion[] corrections={
+            Quaternion.Euler(90f,0,0),Quaternion.Euler(-90f,0,0),
+            Quaternion.Euler(0,0,90f),Quaternion.Euler(0,0,-90f)
+        };
+        var feet=chair.GetComponentsInChildren<Transform>(true)
+            .Where(t=>t&&t!=chair.transform&&
+                (t.name.IndexOf("leg",StringComparison.OrdinalIgnoreCase)>=0||
+                 t.name.IndexOf("foot",StringComparison.OrdinalIgnoreCase)>=0||
+                 t.name.IndexOf("base",StringComparison.OrdinalIgnoreCase)>=0))
+            .ToArray();
+        float bestScore=Mathf.Abs(initial.size.y/maxHorizontal-1.12f);
+        Quaternion best=Quaternion.identity;
+        foreach(var correction in corrections)
+        {
+            chair.transform.localRotation=facing*correction;
+            var b=VisualBounds(chair);
+            float h=b.size.y/Mathf.Max(b.size.x,b.size.z);
+            float score=Mathf.Abs(h-1.12f);
+            if(feet.Length>0)
+            {
+                float footY=feet.Average(t=>t.position.y);
+                score+=Mathf.Clamp01((footY-b.min.y)/Mathf.Max(b.size.y,.001f));
+            }
+            if(score<bestScore-.06f) {bestScore=score;best=correction;}
+        }
+        chair.transform.localRotation=facing*best;
+        if(best!=Quaternion.identity)
+            Debug.Log("CHAMPIONS_VIP_OWNER_GLB_UPRIGHT axisCorrection="+best.eulerAngles+
+                " originalArtUnchanged=true");
+        else
+            BraxBuildQuality.Warn("CHAMPIONS_VIP_UPRIGHT_UNCERTAIN original GLB chair proportions require phone review");
+    }
+
     static void Place(Transform root, GameObject source, float x, float z, float cx, float cz, string label)
     {
         var spot = new GameObject(label).transform;
@@ -70,8 +112,10 @@ public static class BraxChampionsVIPSeats
         chair.transform.localPosition = Vector3.zero;
         // Original front (+Z) points to the octagon; keep the authored mesh and materials.
         var towardCage = new Vector3(cx - x, 0, cz - z);
-        chair.transform.localRotation = Quaternion.LookRotation(towardCage.normalized, Vector3.up);
-        chair.transform.localScale = Vector3.one;
+        var facing=Quaternion.LookRotation(towardCage.normalized,Vector3.up);
+        chair.transform.localRotation=facing;
+        chair.transform.localScale=Vector3.one;
+        KeepImportedChairUpright(chair,facing);
 
         var bounds = VisualBounds(chair);
         // Constrain real footprint and height without changing proportions.
