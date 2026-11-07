@@ -11,7 +11,9 @@ class OwnerCampClimateTest(unittest.TestCase):
         self.assertIn("CampfireLogBenches(camp)",ENV)
         self.assertIn('Cylinder(bench,"Siedzisko ławy z bala"',helper)
         self.assertIn("CampfireFloor",helper)
-        self.assertIn("record.expectedTopMetres=.45f",helper)
+        self.assertIn("float targetTop=centreFloor.point.y+.45f*K",helper)
+        self.assertIn("placement.heightAboveFloorMetres=.45f",helper)
+        self.assertIn("placement.suspensionSupport=supportColliders[0]",helper)
         self.assertIn("ParticleSystem",ENV)
         self.assertNotIn("CreatePrimitive(PrimitiveType.Cube); // rock",ENV)
     def test_assembly_with_real_wood_and_missing_owner_flags_reported(self):
