@@ -89,28 +89,79 @@ public static class BraxChampionsBeltShowcase
         if (!instance) throw new InvalidOperationException("Cannot instantiate original belt FBX");
         instance.name = "ORIGINAL owner championship belt 3D - ONE exhibit";
         instance.transform.SetParent(display, false);
-        var b = VisualBounds(display, instance.transform);
-        // Use its native mesh and 3D detail. Rotate only if the longest axis
-        // is horizontal: the championship belt must HANG vertically.
-        if (b.size.x > b.size.y && b.size.x >= b.size.z)
-            instance.transform.localRotation = Quaternion.Euler(0, 0, 90f);
-        else if (b.size.z > b.size.y && b.size.z > b.size.x)
-            instance.transform.localRotation = Quaternion.Euler(90f, 0, 0);
-        // Phone evidence: the original belt presents its reverse to visitors.
-        // Turn the belt itself 180 degrees towards the -Z front glass; do not
-        // flip the showcase, its owner artwork or other arena meshes.
-        instance.transform.localRotation=Quaternion.Euler(0,180f,0)*
-            instance.transform.localRotation;
-        b = VisualBounds(display, instance.transform);
-        float factor = Mathf.Min(1.70f / Mathf.Max(b.size.y, .0001f),
-            1.30f / Mathf.Max(b.size.x, .0001f));
-        instance.transform.localScale *= factor;
-        b = VisualBounds(display, instance.transform);
-        // Suspend the original belt above the plaque, clear of glass and leather backing.
-        instance.transform.localPosition += new Vector3(0, 2.48f, .045f) - b.center;
-        Debug.Log("CHAMPIONS_A1_BELT_FACES_FRONT turned180=true"+
-            " width="+b.size.x.ToString("F2")+" height="+b.size.y.ToString("F2")+
-            " sourceMeshUnchanged=true visualReviewPending=true");
+        // MODEL-DRIVEN pose correction: the owner's screenshots showed only
+        // the thin EDGE of the belt. A blind 90deg tilt + 180deg yaw does not
+        // prove the embossed face points at the viewer. Inspect all 24 rigid
+        // right-angle orientations of the UNMODIFIED FBX and choose the one
+        // which is tall, widest from FRONT, and thinnest through glass.
+        // This changes ONLY the instance transform, never geometry/materials.
+        var authoredRotation=instance.transform.localRotation;
+        Quaternion bestRotation=authoredRotation;
+        float bestScore=float.PositiveInfinity;
+        Bounds bestBounds=new Bounds();
+        int candidates=0;
+        Vector3[] axes={Vector3.up,Vector3.down,Vector3.right,Vector3.left,
+            Vector3.forward,Vector3.back};
+        foreach(var up in axes)
+        foreach(var forward in axes)
+        {
+            if(Mathf.Abs(Vector3.Dot(up,forward))>.1f)continue;
+            var candidate=Quaternion.LookRotation(forward,up)*authoredRotation;
+            instance.transform.localRotation=candidate;
+            var pose=VisualBounds(display,instance.transform);
+            float h=pose.size.y,w=pose.size.x,d=pose.size.z;
+            if(h<.0001f||w<.0001f||d<.0001f)continue;
+            // A real belt is a vertical portrait, BROAD when seen through
+            // front glass and shallow in depth. Side-on poses score badly.
+            float portrait=h/w,edge=d/w;
+            float score=Mathf.Abs(Mathf.Log(portrait/2.35f))*2.8f+
+                edge*6f;
+            if(h<=w*1.30f)score+=20f;
+            if(d>=w)score+=20f;
+            // When a meaningful centre-gold-plate renderer exists, prefer
+            // the embossed plate closer to the viewer (front is local -Z).
+            var renderers=instance.GetComponentsInChildren<Renderer>(true);
+            foreach(var renderer in renderers)
+            {
+                string name=renderer.gameObject.name.ToLowerInvariant();
+                if(!(name.Contains("plate")||name.Contains("buckle")||
+                     name.Contains("medallion")||name.Contains("emblem")))continue;
+                Vector3 plate=display.InverseTransformPoint(renderer.bounds.center);
+                float frontOffset=(plate.z-pose.center.z)/Mathf.Max(d,.001f);
+                score+=Mathf.Clamp(frontOffset,-.5f,.5f)*.35f;
+                break;
+            }
+            candidates++;
+            if(score<bestScore-.0001f)
+            {
+                bestScore=score;
+                bestRotation=candidate;
+                bestBounds=pose;
+            }
+        }
+        if(candidates!=24)
+            throw new InvalidOperationException("A1 belt orthogonal pose search incomplete");
+        instance.transform.localRotation=bestRotation;
+        var b=VisualBounds(display,instance.transform);
+        if(b.size.y<=b.size.x*1.30f||b.size.z>=b.size.x)
+            BraxBuildQuality.Warn("A1_BELT_GEOMETRY_UNCERTAIN: source FBX must be inspected in Unity");
+        // Clearance within case: 1.86m width; interior glass front at
+        // z=-.495, leather backing at z=.377. Gold nameplate is below y=1.02.
+        float factor=Mathf.Min(2.62f/Mathf.Max(b.size.y,.0001f),
+            Mathf.Min(1.43f/Mathf.Max(b.size.x,.0001f),
+                .64f/Mathf.Max(b.size.z,.0001f)));
+        instance.transform.localScale*=factor;
+        b=VisualBounds(display,instance.transform);
+        instance.transform.localPosition+=new Vector3(0,2.48f,-.055f)-b.center;
+        b=VisualBounds(display,instance.transform);
+        if(b.min.y<1.06f||b.max.y>3.95f||
+           b.min.z<-.43f||b.max.z>.36f||b.size.x>1.50f)
+            BraxBuildQuality.Warn("A1_BELT_CASE_CLEARANCE: inspect exact imported FBX against the real cabinet");
+        Debug.Log("A1_BELT_OWNER_3D_FRONT_PRESENTATION candidateSearch="+candidates+
+            " score="+bestScore.ToString("F3")+
+            " dimensions="+b.size.ToString("F3")+
+            " rotation="+bestRotation.eulerAngles.ToString("F1")+
+            " originalSourceMeshUnchanged=true visualReviewPending=true");
 
         var albedo = AssetDatabase.LoadAssetAtPath<Texture2D>(BeltMaps + "Color.png");
         var normal = AssetDatabase.LoadAssetAtPath<Texture2D>(BeltMaps + "Normal.png");
