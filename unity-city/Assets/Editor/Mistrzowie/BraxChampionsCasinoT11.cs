@@ -450,6 +450,46 @@ public static class BraxChampionsCasinoT11
             " phoneVisualReviewRequired=true");
     }
 
+    // Single, exact-height drivable plane. Unlike a tilted BoxCollider slab
+    // it produces NO artificial lip at the garage turn or the street crossing.
+    // For ramps, y changes with Z; the road approach slopes gently along X.
+    static GameObject GradedDrive(Transform parent,string id,Material finish,
+        float x0,float x1,float z0,float z1,float y0,float y1,bool slopeAlongX)
+    {
+        if(x1<=x0||z1<=z0 || Mathf.Abs(y0-y1)>5f)
+            throw new InvalidOperationException("T11 invalid graded vehicle road: "+id);
+        float y01=slopeAlongX?y0:y1;
+        float y10=slopeAlongX?y1:y0;
+        var mesh=new Mesh{name="T11 drivable no-step surface | "+id};
+        mesh.vertices=new[]{
+            new Vector3(x0,y0,z0)*K,
+            new Vector3(x0,y01,z1)*K,
+            new Vector3(x1,y1,z1)*K,
+            new Vector3(x1,y10,z0)*K
+        };
+        // PBR tiling is in NOMINAL metres, exactly like the original
+        // Poly Haven source materials; the game K appears only on vertices.
+        mesh.uv=new[]{
+            new Vector2(x0,z0),new Vector2(x0,z1),
+            new Vector2(x1,z1),new Vector2(x1,z0)
+        };
+        mesh.triangles=new[]{0,1,2,0,2,3};
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        AssetDatabase.CreateAsset(mesh,output+"/Meshes/T11_"+id+".asset");
+        var obj=new GameObject("T11 driveable graded "+id);
+        obj.transform.SetParent(parent,false);
+        obj.AddComponent<MeshFilter>().sharedMesh=mesh;
+        var renderer=obj.AddComponent<MeshRenderer>();
+        renderer.sharedMaterial=finish;
+        renderer.receiveShadows=true;
+        var collision=obj.AddComponent<MeshCollider>();
+        collision.sharedMesh=mesh;
+        GameObjectUtility.SetStaticEditorFlags(obj,
+            StaticEditorFlags.OccludeeStatic|StaticEditorFlags.BatchingStatic);
+        return obj;
+    }
+
     static void UndergroundGarage()
     {
         // REAL accessible subterranean car park. No interior games, decoration,
@@ -458,23 +498,30 @@ public static class BraxChampionsCasinoT11
         // World nominal coordinates: plot centre (495,465), K applied once.
         // 46m run / 4.39m descent -> 9.5% gradient (before Unity test).
         var basement=Group(root,"T11 | UNDERGROUND CAR PARK - real ramp and bays");
+        // The garage floor ends exactly at the western edge of the turn
+        // landing (x=39.55). Both asphalt finishes meet EDGE-TO-EDGE at
+        // y=-4.098: no coplanar duplicate surfaces, no car-wheel bump.
         var floor=B(basement,"Garage structural floor - real collider",granite,
-            4.5f,-4.20f,2.5f,73f,.16f,53f,true,true);
-        // Continuous black ASPHALT wearing course across the full 73x53 m
-        // garage; under it remains a separate structural, colliding concrete slab.
+            3.775f,-4.20f,2.5f,71.55f,.16f,53f,true,true);
         B(basement,"Garage floor BLACK Poly Haven asphalt",garageBlackAsphalt,
-            4.5f,-4.108f,2.5f,73f,.02f,53f,true,true);
+            3.775f,-4.109f,2.5f,71.55f,.022f,53f,true,true);
         B(basement,"Garage solid west retaining wall WHITE",garageWhite,
             -32.05f,-2.2f,2.5f,.32f,4.2f,53f,true,true);
+        // Keep the hall's north boundary up to the LEFT turn corner x=39.15.
+        // A separate return and an END wall enclose the ramp opposite the driver.
         B(basement,"Garage north wall WHITE",garageWhite,
-            4.5f,-2.2f,29.0f,73.3f,4.2f,.32f,true,true);
+            3.50f,-2.2f,29.0f,71.30f,4.2f,.32f,true,true);
         B(basement,"Garage south wall WHITE (no exit through front)",garageWhite,
             4.5f,-2.2f,-24.0f,73.3f,4.2f,.32f,true,true);
-        // East retaining wall is broken at z=19..27 to let vehicles enter.
-        B(basement,"Garage east solid wall WHITE before entry",garageWhite,
-            41.15f,-2.2f,-2.5f,.28f,4.2f,43f,true,true);
-        B(basement,"Garage east short wall WHITE after entry",garageWhite,
-            41.15f,-2.2f,28f,.28f,4.2f,2f,true,true);
+        // A REAL 14m-wide LEFT-TURN aperture in the garage's EAST wall:
+        // z=15..29. The original gap was only 8m and squeezed the vehicle.
+        // This wall is ALSO the ramp's west retaining wall, not a duplicate.
+        B(basement,"Garage east solid wall WHITE before LEFT TURN opening",garageWhite,
+            39.30f,-1.75f,-4.5f,.30f,5.10f,39f,true,true);
+        // Concrete return connects the northern garage wall to the terminal
+        // wall across the ramp: no missing wall facing the arriving driver.
+        B(basement,"Garage short north return after LEFT TURN",garageWhite,
+            39.30f,-2.20f,31f,.30f,4.20f,4f,true,true);
         // Real covered underground ceiling, below the existing plot grade.
         B(basement,"Garage WHITE reinforced ceiling",garageWhite,4.5f,-.58f,2.5f,
             73f,.20f,53f,true,true);
@@ -487,29 +534,39 @@ public static class BraxChampionsCasinoT11
         foreach(float xx in new[]{-29.0f,-12.5f,4.0f,20.5f,37.0f})
             B(basement,"B1 WHITE longitudinal roof beam",garageWhiteBeam,
                 xx,-.875f,2.5f,.48f,.40f,51f,true,true);
-        // Full-width turning area at the bottom of the descent: physically
-        // joins the underground hall to the ramp, no void under vehicle wheels.
+        // Exact width 9.35m (x39.55..48.90), with 14m clear left-turn exit
+        // into the hall (z15..29). Ramp and landing both meet y=-4.098.
+        const float rampX0=39.55f,rampX1=48.90f;
+        const float roadY=.2485f,garageY=-4.098f;
         B(basement,"Garage bottom structural landing",granite,
-            44.5f,-4.20f,26f,7.7f,.16f,8f,true,true);
+            44.225f,-4.20f,28.5f,9.35f,.16f,9f,true,true);
         B(basement,"Garage bottom BLACK asphalt landing",garageBlackAsphalt,
-            44.5f,-4.112f,26f,7.7f,.015f,8f,true,true);
-        // The OPEN surface ramp remains free of that ceiling.
-        var ramp=B(basement,"Underground garage driveable BLACK asphalt ramp 9.5 percent",garageBlackAsphalt,
-            44.5f,-1.985f,1f,7.65f,.12f,46.208f,true,true);
-        ramp.transform.localRotation=Quaternion.Euler(
-            Mathf.Atan2(4.39f,46f)*Mathf.Rad2Deg,0,0);
-        B(basement,"Ramp west retaining wall WHITE",garageWhite,40.45f,-1.88f,1f,.30f,4.84f,46f,true,true);
-        B(basement,"Ramp east retaining wall WHITE",garageWhite,48.55f,-1.88f,1f,.30f,4.84f,46f,true,true);
+            44.225f,-4.109f,28.5f,9.35f,.022f,9f,true,true);
+        GradedDrive(basement,"garage_descent_flat_join",garageBlackAsphalt,
+            rampX0,rampX1,-22f,24f,roadY,garageY,false);
+        // West side shares the main garage east wall above; no duplicate.
+        B(basement,"Ramp east retaining wall WHITE",garageWhite,
+            49.12f,-1.88f,5.5f,.20f,4.84f,55f,true,true);
+        // This wall was genuinely MISSING straight ahead in the old build.
+        // It closes the end of the ramp but preserves a wide turn to the LEFT.
+        B(basement,"T11 SOLID END WALL straight ahead at ramp bottom",garageWhite,
+            44.225f,-2.05f,33.0f,9.85f,4.10f,.30f,true,true);
+        // Top approach joins the front forecourt at z=-37.5 exactly, with
+        // identical surface elevation. It ends where the ramp begins (z=-22).
         B(basement,"Garage entrance from VIP/TAXI circulation",asphalt,
-            44.5f,.236f,-30f,7.6f,.055f,16f,true,true);
+            44.225f,.221f,-29.75f,9.35f,.055f,15.5f,true,true);
         B(basement,"Garage gate LEFT graphite pier",graphite,
-            40.40f,2.52f,-22f,.65f,4.65f,.76f,true,true);
+            39.20f,2.52f,-22f,.45f,4.65f,.76f,true,true);
         B(basement,"Garage gate RIGHT graphite pier",graphite,
-            48.60f,2.52f,-22f,.65f,4.65f,.76f,true,true);
+            49.18f,2.52f,-22f,.45f,4.65f,.76f,true,true);
         B(basement,"Garage main entrance champagne beam",gold,
-            44.5f,4.95f,-22f,8.9f,.40f,.75f,true);
+            44.19f,4.95f,-22f,10.65f,.40f,.75f,true);
         B(basement,"Garage upper portal warm LED",led,
-            44.5f,4.71f,-22.44f,8.6f,.10f,.12f,false);
+            44.19f,4.71f,-22.44f,10.35f,.10f,.12f,false);
+        Debug.Log("T11_B1_GARAGE_LEFT_TURN_GEOMETRY rampClear=9.35m"+
+            " westExitZ=15..29 width=14m bottomLanding=9.35x9m"+
+            " roadTop=.2485 garageTop=-4.098 rampNoLip=true"+
+            " solidEndWall=true deviceDriveTestPending=true");
         // 32 actual marked bays: two rows x sixteen, 3.10m wide x 5.25m
         // long. Seventeen lines are necessary to enclose sixteen stalls.
         // The broad middle lane and northern turning area remain unmarked.
@@ -629,17 +686,17 @@ public static class BraxChampionsCasinoT11
     static void Site()
     {
         // Exact 120 x 100 site; no synthetic second road system across city.
-        // Physically cut a 8 x 46m open ramp in BOTH patio and Foundation plot_base.
-        // The matching terrain cut lives in legacy_foundation.py, local x=40.5..48.5,
-        // z=-22..24. Four disjoint slabs preserve the rest of the approved plot.
+        // Physically cut a 10.15x46m open ramp in BOTH patio and Foundation.
+        // The source foundation reserves local x39.15..49.30, z-22..24.
+        // Four disjoint apron slabs meet that cut edge-to-edge.
         B(shell,"T11 stone plot apron south",paving,0,.18f,-35.875f,119.6f,.055f,27.75f,true,true);
         B(shell,"T11 stone plot apron north",paving,0,.18f,36.875f,119.6f,.055f,25.75f,true,true);
-        B(shell,"T11 stone plot apron west of garage",paving,-9.65f,.18f,1f,100.3f,.055f,46f,true,true);
-        B(shell,"T11 stone plot apron east of garage",paving,54.15f,.18f,1f,11.3f,.055f,46f,true,true);
+        B(shell,"T11 stone plot apron west of garage",paving,-10.325f,.18f,1f,98.95f,.055f,46f,true,true);
+        B(shell,"T11 stone plot apron east of garage",paving,54.55f,.18f,1f,10.5f,.055f,46f,true,true);
         foreach(float side in new[]{-1f,1f})
         {
             B(shell,"Fire service route",asphalt,side*53f,.215f,0,7.0f,.055f,94f,true,true);
-            B(shell,side<0?"VIP arrival":"TAXI arrival",asphalt,side*27f,.235f,-41.9f,24f,.055f,9.7f,true,true);
+            B(shell,side<0?"VIP arrival":"TAXI arrival",asphalt,side*27f,.221f,-41.9f,24f,.055f,9.7f,true,true);
             B(trim,"VIP or taxi champagne curb",gold,side*27f,.34f,-36.4f,24f,.11f,.14f,false);
             // Three VIP parking bays TOTAL, solely on the LEFT.
             // Right-hand TAXI drop-off remains clear of parking stripes.
@@ -667,12 +724,14 @@ public static class BraxChampionsCasinoT11
         foreach(float x in new[]{-8.4f,-7.0f,-5.6f,5.6f,7.0f,8.4f})
             B(trim,"White zebra marking on asphalt",parkingPaint,x,.287f,-41.5f,
                 .60f,.012f,5.5f,false);
-        // Widen approved LEFT road entrance. The former connector stopped at
-        // world x=436, while the forecourt lane started at x=442.5: a real
-        // 6.5m GAP! New one spans world X417..442.5 with 11m breadth,
-        // joining the existing city-road sidewalk exactly at its outer edge.
-        B(shell,"T11 WIDE LEFT vehicle approach from X400 road",asphalt,
-            -65.25f,.224f,-42.5f,25.5f,.054f,11f,true,true);
+        // CITY ROAD -> FRONT LOT: full 11m connector, including the old
+        // 7m SIDEWALK. X400 roadway ends at world x410; casino circulation
+        // begins at x442.5, z=417..428. The foundation removes the exact
+        // x410..417 sidewalk strip so this single drivable slope is seamless:
+        // from original street y=.1600 up to casino asphalt y=.2485.
+        // Rise .0885m / 32.5m = 0.272% (not a curb or raised flat box).
+        GradedDrive(shell,"left_street_road_connection",asphalt,
+            -85f,-52.5f,-48f,-37f,.16f,.2485f,true);
         B(shell,"Casino pedestrian main axis",granite,0,.22f,-43.7f,8.1f,.08f,11.7f,true,true);
         B(trim,"Red carpet leading to the curved casino entrance",redCarpet,
             0,.279f,-41.45f,5.8f,.016f,10.35f,false,true);
