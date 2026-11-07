@@ -22,6 +22,8 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         cls.car = (EDITOR / "BraxChampionsCarBuilder.cs").read_text(encoding="utf-8")
         cls.exterior_source = (ROOT / "unity-tools/mistrzowie/build_exteriors.py").read_text(encoding="utf-8")
         cls.inventory = (ROOT / "unity-tools/mistrzowie/plan_inventory.json").read_text(encoding="utf-8")
+        cls.layout = (ROOT / "unity-tools/mistrzowie/layout.py").read_text(encoding="utf-8")
+        cls.foundation = (ROOT / "unity-tools/mistrzowie/legacy_foundation.py").read_text(encoding="utf-8")
 
     def test_exterior_generator_connected_and_original_bowl_retained(self):
         self.assertIn("PremiumExterior(root, exterior);", self.arrival)
@@ -98,8 +100,39 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("sourceMeshUnchanged=true", self.car)
         self.assertIn("float uniform = LengthMetres / bounds.size.z;", self.car)
         self.assertNotIn("LengthMetres * K / bounds.size.z", self.car)
-        self.assertIn("637.55f, .16f, 711f", self.car)
+        self.assertIn("645.175f, .16f, 712f", self.car)
         self.assertIn("interactionRadius = 3.8f", self.car)
+
+    def test_ellipse_is_round_enough_for_walking_range_without_faceting(self):
+        # Maximum radial sagitta of a 1-degree chord on the 96m major radius.
+        sagitta=96*(1-math.cos(math.pi/360))
+        self.assertLess(sagitta,.004)
+        self.assertIn("const int bays=360;",self.arrival)
+        self.assertIn("n=360;path=ellipse(96,59,n)",self.exterior_source)
+
+    def test_parking_driveways_reach_city_road_without_sidewalk_step(self):
+        self.assertIn("A1_PARKING_ENTRANCES=[(531.8,660.0,6.4,7.0),(661.8,660.0,6.4,7.0)]",self.layout)
+        self.assertIn("A1_PARKING_ENTRANCES",self.foundation)
+        self.assertIn("if any(inside((x,z),r) for r in A1_PARKING_ENTRANCES):return None",self.foundation)
+        self.assertIn('"Parking road-to-city gentle asphalt entry"',self.arrival)
+        self.assertIn("x-3.2f,x+3.2f,-140f,-133f,0f,parkingTop,true",self.arrival)
+        self.assertIn("new Vector3(x, .199f, -121f), new Vector3(6.4f, .078f, 24f)",self.arrival)
+        self.assertAlmostEqual(.238/7,.034,places=3)
+
+    def test_parking_edges_paths_and_markings_do_not_float_or_overlap(self):
+        self.assertIn('"Parking north end concrete curb"',self.arrival)
+        self.assertIn('"Parking south end concrete curb"',self.arrival)
+        self.assertIn('"Parking entrance flush trench drain"',self.arrival)
+        self.assertIn('"Accessible parking curb ramp"',self.arrival)
+        self.assertIn('new Vector3(sx, .18f, -79f), new Vector3(53f, .04f, 5f)',self.arrival)
+        self.assertIn('new Vector3(0, .18f, -104f), new Vector3(16f, .04f, 58f)',self.arrival)
+        self.assertIn('new Vector3(stallX, .242f, (a + b) / 2f)',self.arrival)
+        # Connector x ranges: left -61..-8, right 8..61. Parking paths begin
+        # exactly at +-61 and promenade edges are exactly +-8.
+        self.assertAlmostEqual(-34.5-53/2,-61)
+        self.assertAlmostEqual(-34.5+53/2,-8)
+        self.assertAlmostEqual(34.5-53/2,8)
+        self.assertAlmostEqual(34.5+53/2,61)
 
     def test_reference_entrance_landscaping_uses_real_project_asset(self):
         self.assertIn('PremiumShrubSource = "Assets/Source/CityRebuild/landscape/park_shrub.glb"', self.arrival)
