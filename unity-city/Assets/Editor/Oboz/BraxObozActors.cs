@@ -22,6 +22,9 @@ public static class BraxObozActors
         try
         {
             var info = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<BraxObozSceneInfo>(true)).Single();
+            // Early Awake marker belongs to the real camp scene, not the boot screen.
+            if (!info.GetComponent<BraxStartZnacznik>())
+                info.gameObject.AddComponent<BraxStartZnacznik>();
             if (info.player || info.npcs.Length != 0) throw new InvalidOperationException("Scena zawiera już obsadę; odtwórz bazową zabudowę, zamiast dublować postacie");
             var world = info.gameObject.AddComponent<BraxCityWorld>(); world.area = "oboz"; world.doors = info.cabinDoors;
             var progress = info.gameObject.AddComponent<BraxObozProgress>();

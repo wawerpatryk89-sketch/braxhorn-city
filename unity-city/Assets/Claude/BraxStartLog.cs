@@ -17,13 +17,77 @@ using UnityEngine.SceneManagement;
 public sealed class BraxStartLog : MonoBehaviour
 {
     const string KEtap = "braxhorn_start_etap", KPamiec = "braxhorn_start_pamiec";
-    const string StartScene = "BraxhornStart";
+    // An isolated camp APK uses a different boot scene from the city.
+    // Neither loading-screen camera is evidence of the GAME'S first render.
+    static bool IsLoadingScene(string sceneName) =>
+        sceneName == "BraxhornStart" || sceneName == "BraxhornObozStart";
     static BraxStartLog inst;
     static string poprzedni, sciezka;
+    static bool androidExitChecked;
     static readonly System.Collections.Generic.List<string> wiersze = new System.Collections.Generic.List<string>();
     static int maxMb;
     static bool render0, render1;
-    public static string Poprzedni => poprzedni;   // pokazywane też na ekranie startowym (BraxStart)
+    public static string Poprzedni
+    {
+        get
+        {
+            // Query after Unity's Android Activity exists, only on a failed start.
+            // This reports an OS reason; it does not claim to identify a native
+            // asset or a specific faulty scene object without Android logcat.
+            if (!androidExitChecked && !string.IsNullOrEmpty(poprzedni))
+            {
+                androidExitChecked = true;
+                string last = LastAndroidProcessExit();
+                if (!string.IsNullOrEmpty(last)) poprzedni += "\n" + last;
+            }
+            return poprzedni;
+        }
+    }
+
+    static string LastAndroidProcessExit()
+    {
+#if UNITY_ANDROID && !UNITY_EDITOR
+        try
+        {
+            using (var unity = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+            using (var activity = unity.GetStatic<AndroidJavaObject>("currentActivity"))
+            {
+                if (activity == null) return "";
+                using (var manager = activity.Call<AndroidJavaObject>("getSystemService", "activity"))
+                {
+                    if (manager == null) return "";
+                    // Android 11+ ApplicationExitInfo. Only the app's own recent
+                    // process is requested; there are no new permissions.
+                    using (var exits = manager.Call<AndroidJavaObject>(
+                        "getHistoricalProcessExitReasons",
+                        activity.Call<string>("getPackageName"), 0, 1))
+                    {
+                        if (exits == null || exits.Call<int>("size") == 0) return "";
+                        using (var entry = exits.Call<AndroidJavaObject>("get", 0))
+                        {
+                            long ageMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() -
+                                entry.Call<long>("getTimestamp");
+                            if (ageMs < 0 || ageMs > 172800000L) return "";
+                            int reason = entry.Call<int>("getReason");
+                            string description = entry.Call<string>("getDescription") ?? "";
+                            description = description.Replace('\n', ' ').Replace('\r', ' ');
+                            if (description.Length > 160) description = description.Substring(0, 160);
+                            return "OSTATNIE ZAMKNIĘCIE WG ANDROIDA: " +
+                                BraxStart.PowodZamkniecia(reason) + " (kod " + reason + ")" +
+                                (description.Length > 0 ? " — " + description : "");
+                        }
+                    }
+                }
+            }
+        }
+        catch (System.Exception ex)
+        {
+            // A missing API or device-specific permission is diagnostic-only.
+            Debug.LogWarning("BRAXHORN_ANDROID_EXIT_INFO_UNAVAILABLE " + ex.GetType().Name);
+        }
+#endif
+        return "";
+    }
     float pokazDo;
     GUIStyle st;
 
@@ -62,7 +126,8 @@ public sealed class BraxStartLog : MonoBehaviour
         Etap("1 start aplikacji · RAM telefonu " + SystemInfo.systemMemorySize + " MB · " + SystemInfo.graphicsDeviceType);
     }
 
-    static bool Ready() => SceneManager.GetActiveScene().name != StartScene && SceneManager.GetActiveScene().name != "";
+    static bool Ready() => !IsLoadingScene(SceneManager.GetActiveScene().name) &&
+                           SceneManager.GetActiveScene().name != "";
 
     public static void Etap(string etap)
     {
@@ -89,7 +154,11 @@ public sealed class BraxStartLog : MonoBehaviour
         SceneManager.sceneLoaded += (s, m) =>
         {
             Etap("2 włączona scena " + s.name + (m == LoadSceneMode.Additive ? " (obszar w tle)" : ""));
-            if (s.name != StartScene && m == LoadSceneMode.Single) { render0 = render1 = false; StartCoroutine(PoKlatce(s.name)); }
+            if (!IsLoadingScene(s.name) && m == LoadSceneMode.Single)
+            {
+                render0 = render1 = false;
+                StartCoroutine(PoKlatce(s.name));
+            }
         };
         if (poprzedni != null) pokazDo = Time.realtimeSinceStartup + 25f;
     }
