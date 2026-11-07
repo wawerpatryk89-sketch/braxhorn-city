@@ -57,6 +57,11 @@ internal static class BraxMiastoNova
         raport.Add(BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(SX1 + .05f, HX1, .05f, 4.70f, 36.18f, 41.62f), "nova_przedsionek_wc", flat));
         raport.Add(BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(SX1 + .02f, 52.0f, .16f, 5.05f, 34.6f, 36.55f), "nova_front_klub", flat));
         raport.Add(BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(32.0f, SX1 + .02f, .16f, 5.05f, 34.6f, 36.2f), "nova_front_klatka", flat));
+        // R1: usuń wyłącznie stary nośnik szyldu NOVA nad wejściem,
+        // zachowując mieszkanie powyżej i nową fasadę CLUB NOVA.
+        raport.Add(BraxMiastoA.Wyczysc(cityRoot,
+            BraxMiastoA.Obj(36.3f, 47.7f, 5.04f, 7.85f, 34.0f, 36.03f),
+            "nova_stary_szyld_nad_wejsciem", flat));
         int stare = 0; foreach (var t in stareKlub) if (t) { BraxUliceKit.Usun(t.gameObject, "stare wyposażenie NOVA"); stare++; }
         // 3.11 (właściciel: „dyskoteka… nie można wejść”): STARE wejście źródła (BraxCityVenueDoors „NOVA_SOURCE_ENTRY” + czarne
         // stalowe skrzydło z BraxClaudeVenues) stało na zawiasie z kolizją 2.1 × 2.7 m w osi nowych drzwi automatycznych (z 36.08
