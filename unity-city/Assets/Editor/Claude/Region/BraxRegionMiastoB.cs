@@ -1595,7 +1595,29 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     static void Latarnia(Vector3 p, Vector3 dir, float wysieg) => Pozniej("latarnia", () => LatarniaTeraz(NaPodlozu(p), dir, wysieg));
     static void LatarniaTeraz(Vector3 p, Vector3 dir, float wysieg)
     {
-        dir.y = 0; dir.Normalize();
+        dir.y = 0f;
+        if (dir.sqrMagnitude < .1f)
+        {
+            Debug.LogWarning("BRAXHORN_LATARNIE DO POPRAWKI: brak kierunku oprawy @" + p);
+            return;
+        }
+        dir.Normalize();
+        // R1: wysięgnik ma być skierowany nad JEZDNIĘ, a nie w okna
+        // kamienicy / na chodnik. Sprawdzamy oba kierunki na gotowym
+        // asfalcie przed wygenerowaniem całej siatki i kolizji.
+        float reach = Mathf.Min(Mathf.Max(2.6f, wysieg), 2.2f * K);
+        var probeA = p + dir * reach;
+        var probeB = p - dir * reach;
+        bool frontRoad = NaJezdni(probeA), backRoad = NaJezdni(probeB);
+        if (!frontRoad && backRoad)
+        {
+            dir = -dir;
+            Debug.Log("BRAXHORN_LATARNIE odwrocony wysiegnik na JEZDNIE @" +
+                      p.ToString("F1"));
+        }
+        else if (!frontRoad && !backRoad)
+            Debug.LogWarning("BRAXHORN_LATARNIE DO WERYFIKACJI: nie znaleziono jezdni " +
+                "po stronie wysiegnika @" + p.ToString("F1"));
         var g = new GameObject("Latarnia uliczna"); g.transform.SetParent(root, false);
         var b = new BraxRegionMeble.Bud(); float h = 8f * K;
         b.Cyl(p, p + Vector3.up * .6f * K, .14f * K, 14, .11f * K);
