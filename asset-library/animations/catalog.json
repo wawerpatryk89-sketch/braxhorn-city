@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "project": "BRAXHORN CITY",
+  "repository": "wawerpatryk89-sketch/braxhorn-city",
+  "branch": "codex/global-animation-library-20261107",
+  "date": "2026-11-07",
+  "status": "source_archive_unassigned",
+  "purpose": "Wspólna baza materiałów źródłowych dla wykonawców wszystkich rejonów do późniejszego tworzenia animacji zawodników.",
+  "pose_labels_basis": "Oznaczenia A/T pochodzą z nazw dostarczonych paczek; zgodność z konkretnym szkieletem nie była testowana.",
+  "release": {
+    "tag": "global-animation-library-at-20261107",
+    "draft": true,
+    "release_id": 437199071,
+    "html_url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/tag/untagged-40a1b1110d8e5e5d03da",
+    "api_url": "https://api.github.com/repos/wawerpatryk89-sketch/braxhorn-city/releases/437199071"
+  },
+  "verification": {
+    "scope": "local_original_archives_and_github_release_metadata",
+    "zip_crc": "passed",
+    "sha256": "computed",
+    "file_counts": "counted_from_zip_entries",
+    "archives_extracted": false,
+    "unity_imported": false,
+    "animations_tested": false,
+    "github_asset_sizes_match": true,
+    "github_asset_sha256_match": true
+  },
+  "packages": [
+    {
+      "id": "pose-a",
+      "pose_label": "A",
+      "original_filename": "animacje pozycja A.zip",
+      "size_bytes": 93704733,
+      "sha256": "bea2c8fdd7f2fec7241593f1cc923eaeef3041c63caa97d6afd04934f69cb31e",
+      "fbx_file_count": 118,
+      "status": "source_archive_unassigned",
+      "release_asset_id": 719031450,
+      "release_asset_url": "https://api.github.com/repos/wawerpatryk89-sketch/braxhorn-city/releases/assets/719031450",
+      "github_asset_filename": "animacje.pozycja.A.zip",
+      "browser_download_url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-40a1b1110d8e5e5d03da/animacje.pozycja.A.zip",
+      "github_asset_state": "uploaded"
+    },
+    {
+      "id": "pose-t",
+      "pose_label": "T",
+      "original_filename": "pozycja T animacje.zip",
+      "size_bytes": 140632399,
+      "sha256": "3c3e1520844067b80d37466bbaebb3e513bbc4f6b7757ac49db657a28a28be91",
+      "fbx_file_count": 119,
+      "status": "source_archive_unassigned",
+      "release_asset_id": 719031603,
+      "release_asset_url": "https://api.github.com/repos/wawerpatryk89-sketch/braxhorn-city/releases/assets/719031603",
+      "github_asset_filename": "pozycja.T.animacje.zip",
+      "browser_download_url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-40a1b1110d8e5e5d03da/pozycja.T.animacje.zip",
+      "github_asset_state": "uploaded"
+    }
+  ]
+}
