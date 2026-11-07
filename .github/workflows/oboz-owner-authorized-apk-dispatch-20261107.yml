@@ -1,6 +1,7 @@
 name: Obóz — owner authorized APK dispatch 20261107
-# retry after APK sparse-checkout repair
-
+# ONE owner-approved dispatch for the request made on 2026-11-07.
+# Only a modification to THIS workflow path on the existing camp branch
+# can trigger the dispatcher; it is not an automatic APK trigger on game commits.
 on:
   push:
     branches: [codex/oboz-przebudowa-pbr-20261105]
@@ -10,6 +11,10 @@ permissions:
   actions: write
   contents: read
 
+concurrency:
+  group: oboz-explicit-owner-request-dispatch
+  cancel-in-progress: false
+
 jobs:
   dispatch:
     runs-on: ubuntu-24.04
@@ -17,27 +22,36 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
-      - name: Verify tested scene and unchanged game files
+      - name: One-shot owner authorization and tested source
         env:
           GH_TOKEN: ${{ github.token }}
-          TESTED_SHA: c6fba5234fae65d9bd21d9a79499778fd159084e
-          SCENE_RUN: "42330616645"
+          SOURCE_SHA: d39d328d5c52d8d2a84e02c8496828a472cb2615
+          SOURCE_TEST_RUN: "42370752860"
         run: |
           set -euo pipefail
-          payload="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SCENE_RUN")"
-          test "$(jq -r '.status' <<<"$payload")" = completed
-          test "$(jq -r '.conclusion' <<<"$payload")" = success
-          mapfile -t changed < <(git diff --name-only "$TESTED_SHA"..HEAD)
-          for f in "${changed[@]}"; do
-            case "$f" in
-              .github/workflows/*) ;;
-              *) echo "::error::Game/source changed after tested SHA: $f"; exit 1 ;;
-            esac
-          done
-      - name: Dispatch exactly one full camp APK on rebuild branch
+          test "$(git rev-parse HEAD^)" = "$SOURCE_SHA" || {
+            echo "::error::Source branch moved; do not build an unverified version"; exit 1;
+          }
+          mapfile -t changed < <(git diff --name-only "$SOURCE_SHA"..HEAD)
+          test "${#changed[@]}" -eq 1
+          test "${changed[0]}" = ".github/workflows/oboz-owner-authorized-apk-dispatch-20261107.yml"
+          run="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_TEST_RUN")"
+          test "$(jq -r '.status' <<<"$run")" = completed
+          test "$(jq -r '.conclusion' <<<"$run")" = success
+          test "$(jq -r '.head_sha' <<<"$run")" = "$SOURCE_SHA"
+          printf 'OBOZ_OWNER_REQUEST=2026-11-07 build once from %s\n' "$GITHUB_SHA"
+      - name: Dispatch exactly one camp APK workflow_dispatch
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh workflow run oboz-unity-build.yml             --repo "$GITHUB_REPOSITORY"             --ref codex/oboz-przebudowa-pbr-20261105             -f quality_review=false             -f first_install=false             -f content_action=none             -f expected_sha=
-          echo "OBOZ_OWNER_AUTHORIZED_APK_DISPATCHED=1"
+          active="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow oboz-unity-build.yml --branch codex/oboz-przebudowa-pbr-20261105 --limit 15 --json status | jq '[.[] | select(.status != "completed")] | length')"
+          test "$active" -eq 0 || { echo "::error::Camp APK already queued or running"; exit 1; }
+          gh workflow run oboz-unity-build.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref codex/oboz-przebudowa-pbr-20261105 \
+            -f quality_review=false \
+            -f first_install=false \
+            -f content_action=none \
+            -f expected_sha="$GITHUB_SHA"
+          echo "OBOZ_OWNER_AUTHORIZED_SINGLE_APK_DISPATCHED=1"
