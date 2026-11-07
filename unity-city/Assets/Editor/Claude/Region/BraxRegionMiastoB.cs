@@ -1694,6 +1694,114 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         latarnie++;
     }
 
+    // Odbiór ulic R1: usuwa wyłącznie rozpoznane starsze latarnie stojące
+    // przy nowych latarniach ulicznych i importowane ławki tuż przy jezdni.
+    // Nie dotyka sygnalizatorów, lamp wnętrz, stadionów ani innych rejonów.
+    public static void OdbiorWyposazeniaUlic(Transform cityRoot)
+    {
+        if (!cityRoot || !root) return;
+        var nowoczesne = root.GetComponentsInChildren<Transform>(true)
+            .Where(t => t && t.name == "Latarnia uliczna").ToArray();
+        var pozycje = new List<Vector2>();
+        int nadmiarNowych = 0, stareParkowe = 0, stareZrodla = 0;
+        int lawkiZrodla = 0, pozostaleNiepewne = 0;
+        foreach (var t in nowoczesne)
+        {
+            var kolS = t.GetComponentsInChildren<Collider>(true)
+                .FirstOrDefault(z => z && z.name == "Latarnia kolizja");
+            if (!kolS) { pozostaleNiepewne++; continue; }
+            Vector2 p = new Vector2(kolS.bounds.center.x, kolS.bounds.center.z);
+            if (pozycje.Any(z => Vector2.Distance(p, z) < 2.4f))
+            {
+                UnityEngine.Object.DestroyImmediate(t.gameObject);
+                nadmiarNowych++;
+            }
+            else pozycje.Add(p);
+        }
+        bool BliskoNowej(Bounds b) => pozycje.Any(p =>
+            Vector2.Distance(p, new Vector2(b.center.x, b.center.z)) < 3.4f);
+        foreach (var t in cityRoot.GetComponentsInChildren<Transform>(true)
+                     .Where(t => t && t.name == "Latarnia parkowa").ToArray())
+        {
+            var rs = t.GetComponentsInChildren<Renderer>(true);
+            if (rs.Length == 0 || rs.Length > 12) continue;
+            Bounds b = rs[0].bounds;
+            foreach (var rr in rs.Skip(1)) b.Encapsulate(rr.bounds);
+            if (b.size.y < 2.8f || b.size.y > 15f ||
+                b.size.x > 8f || b.size.z > 8f || !BliskoNowej(b)) continue;
+            UnityEngine.Object.DestroyImmediate(t.gameObject);
+            stareParkowe++;
+        }
+
+        // Nazwy oryginalnych CityMesh_N są rozwiązywane przez manifest.
+        // Jedynie pojedyncze małe siatki rozpoznane jako ławka/latarnia.
+        var labels = new Dictionary<string, string>(StringComparer.Ordinal);
+        try
+        {
+            const string p = "Assets/Source/City/city-manifest.json";
+            if (File.Exists(p))
+            {
+                var manifest = JsonUtility.FromJson<BraxCityBuild.Manifest>(File.ReadAllText(p));
+                if (manifest != null && manifest.meshes != null)
+                    foreach (var m in manifest.meshes)
+                        if (m != null && !string.IsNullOrEmpty(m.name) &&
+                            !string.IsNullOrEmpty(m.originalName)) labels[m.name] = m.originalName;
+            }
+        }
+        catch (Exception e) { BraxRegion.Note("ULICE R1 DO POPRAWKI manifest latarni/ławek: " + e.Message); }
+        bool LatarniaZrodla(string n)
+        {
+            n = (n ?? "").ToLowerInvariant().Replace('_', ' ').Replace('-', ' ');
+            return n.Contains("street lamp") || n.Contains("streetlight") ||
+                n.Contains("street light") || n.Contains("lamp post") ||
+                n.Contains("road lamp") || n.Contains("latarnia uliczna");
+        }
+        bool LawkaZrodla(string n)
+        {
+            n = (n ?? "").ToLowerInvariant().Replace('_', ' ').Replace('-', ' ');
+            return n.Contains("street bench") || n.Contains("bench") ||
+                n.Contains("ławka") || n.Contains("lawka") ||
+                n.Contains("street seating");
+        }
+        bool PrzyJezdni(Vector3 p)
+        {
+            for (float d = 0f; d <= 5f; d += 1f)
+                foreach (var v in new[] { Vector3.right, Vector3.left, Vector3.forward, Vector3.back })
+                    if (NaJezdni(p + v * d)) return true;
+            return false;
+        }
+        var source = BraxClaudeGround.SourceCity;
+        if (source)
+            foreach (var r in source.GetComponentsInChildren<MeshRenderer>(true).ToArray())
+            {
+                if (!r || !r.enabled || !r.gameObject.activeInHierarchy) continue;
+                var b = r.bounds;
+                string name = labels.TryGetValue(r.name, out var original) ? original : r.name;
+                bool oldLamp = LatarniaZrodla(name);
+                bool oldBench = LawkaZrodla(name);
+                if (!oldLamp && !oldBench) continue;
+                bool safeSize = oldLamp
+                    ? b.size.y <= 15f && b.size.x <= 8f && b.size.z <= 8f && b.max.y > 2f
+                    : b.size.y <= 2.5f && b.size.x <= 4.5f && b.size.z <= 4.5f && b.center.y < 3f;
+                bool location = oldLamp ? BliskoNowej(b) : PrzyJezdni(b.center);
+                if (!safeSize || !location) { pozostaleNiepewne++; continue; }
+                foreach (var col in r.GetComponents<Collider>()) col.enabled = false;
+                if (r.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(r.gameObject);
+                else r.enabled = false;
+                if (oldLamp) stareZrodla++; else lawkiZrodla++;
+            }
+
+        string raport = "ULICE_R1_ODBIOR latarnie_nowoczesne=" + pozycje.Count +
+            " nadmiar_nowych=" + nadmiarNowych + " starsze_parkowe=" + stareParkowe +
+            " stare_zrodlo=" + stareZrodla + " lawki_zrodlo=" + lawkiZrodla +
+            " do_sprawdzenia=" + pozostaleNiepewne;
+        BraxRegion.Note(raport);
+        Debug.Log("BRAXHORN_" + raport);
+        if (pozostaleNiepewne > 0)
+            Debug.LogWarning("BRAXHORN_ULICE_R1 DO POPRAWKI: nierozpoznane obiekty " +
+                pozostaleNiepewne + "; nie usuwano ich w ciemno.");
+    }
+
     // =====================================================================================================================
     // 10) rejestracja jezdni dla kroku ruchu (RUCH_API.md) — osie równoległe do osi świata
     static void RejestracjaRuchu()
