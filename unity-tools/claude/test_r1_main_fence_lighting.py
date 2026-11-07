@@ -68,6 +68,7 @@ class R1StreetSafety(unittest.TestCase):
         self.assertIn('JsonUtility.FromJson<BraxCityBuild.Manifest>', B)
         self.assertIn('ObcaPrzeszkoda(originalName)', B)
         self.assertIn('sourceLabels[mesh.name]=mesh.originalName', LAMPS)
+        self.assertIn('HasWord(originalName,"latarnia","lampa uliczna","light pole","lightpole")', LAMPS)
         self.assertIn('IsCandidate(tr,originalName,out bool street', LAMPS)
 
     def test_lamp_arm_is_aimed_toward_actual_road(self):
