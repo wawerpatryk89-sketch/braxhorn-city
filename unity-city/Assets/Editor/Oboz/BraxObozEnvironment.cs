@@ -255,7 +255,9 @@ public static partial class BraxObozEnvironment
         // Artwork size may be chosen for the available wall, but it is never
         // stretched: one physical width and the original source proportion.
         float aspect=sourceWidth/(float)sourceHeight;
-        width=Mathf.Min(width,(woodenBacking?3.8f:2.35f)*aspect);
+        bool cabinWall=parent.name.StartsWith("Domek ",StringComparison.Ordinal);
+        float maxHeight=cabinWall?2.72f:(woodenBacking?3.8f:2.35f);
+        width=Mathf.Min(width,maxHeight*aspect);
         float height=width/aspect;
         var board=Group("Oryginalny mural BRAXHORN — "+key,parent,P(at.x,at.y,at.z));
         board.localRotation=facing;
@@ -337,16 +339,29 @@ public static partial class BraxObozEnvironment
     static void MuralBoards()
     {
         var buildings = root.GetComponentsInChildren<Transform>(true);
+        var cabin1 = buildings.FirstOrDefault(t => t.name == "Domek 1");
+        var cabin2 = buildings.FirstOrDefault(t => t.name == "Domek 2");
         var cabin3 = buildings.FirstOrDefault(t => t.name == "Domek 3");
+        var cabin4 = buildings.FirstOrDefault(t => t.name == "Domek 4");
         var pavilion = buildings.FirstOrDefault(t =>
             t.name == "Pawilon treningowy — otwarty, bez starej siłowni");
         var gym=buildings.FirstOrDefault(t=>t.name=="BRAXHORN · SIŁOWNIA 3D WŁAŚCICIELA");
-        // Each mural is independent; a missing optional building does not
-        // erase murals successfully installed on the other buildings.
-        if(cabin3)Optional("mural DROGA MISTRZA",()=>OriginalMural(cabin3,"DROGA_MISTRZA",
-            "6C3045DC-051D-4B53-8F6E-FEA579A0DE21.jpeg",
-            new Vector3(0,1.5f,4.14f),Quaternion.identity,4.1f,false));
-        else BraxBuildQuality.Warn("OBÓZ MURAL DROGA MISTRZA — brak Domku 3");
+        void CabinMural(Transform cabin,string key,string file)
+        {
+            if(!cabin){BraxBuildQuality.Warn("OBÓZ MURAL "+key+" — brak domku");return;}
+            Optional("mural "+key+" na całej ścianie "+cabin.name,()=>OriginalMural(cabin,key,file,
+                new Vector3(0,1.48f,4.14f),Quaternion.identity,5.85f,false));
+        }
+        // WŁAŚCICIEL 7.11: KAŻDY z 4 domków ma duży mural właściciela na całej
+        // dostępnej ścianie. Oryginalne JPEG-i i proporcje obrazu pozostają bez zmian.
+        CabinMural(cabin1,"TRAINING_CAMP_DOMEK_1",
+            "6B6E1CA3-605A-47FB-BF0E-F23B1D2C3301(1).jpeg");
+        CabinMural(cabin2,"WOJOWNIKOW_DOMEK_2",
+            "87405F34-A95B-4AD6-8637-A19599AADA61.jpeg");
+        CabinMural(cabin3,"DROGA_MISTRZA_DOMEK_3",
+            "6C3045DC-051D-4B53-8F6E-FEA579A0DE21.jpeg");
+        CabinMural(cabin4,"FIGHT_ZONE_DOMEK_4",
+            "35502A48-F7AB-4650-9874-3266881B2DF6.jpeg");
         // Fizyczna ściana na południowej krawędzi pawilonu: skierowana
         // do Ring 2, bez zasłaniania schodów i wejść.
         if(pavilion)
@@ -575,10 +590,11 @@ public static partial class BraxObozEnvironment
             bedSpot.hipsAboveRoot=.9f*K;
         }
         // Nie zostawiaj pionowej szpary na nadprozu ani pod skrzydlem.
-        Door(t,name+" — drzwi",new Vector3(-.45f,.17f,-4.05f),.90f,2.10f);
+        CabinEntranceTrim(t);
+        Door(t,name+" — drzwi",new Vector3(-.45f,.17f,-4.18f),.90f,2.10f);
         // Floor top is .16 m. Put the threshold ON that surface instead of
         // embedding its lower 12.5 cm in the cabin/terrain.
-        Box(t,"Próg szczelny pod skrzydłem",new Vector3(0,.23f,-4.06f),new Vector3(1.10f,.14f,.26f),metal,false);
+        Box(t,"Próg szczelny pod skrzydłem",new Vector3(0,.23f,-4.18f),new Vector3(1.10f,.14f,.26f),metal,false);
         var entranceStep=Box(t,"Stopień wejścia",new Vector3(0,.05f,-4.5f),new Vector3(1.6f,.1f,.8f),wood);
         BraxObozPlacement.OnGround(entranceStep.transform,
             entranceStep.GetComponentsInChildren<Renderer>(true),

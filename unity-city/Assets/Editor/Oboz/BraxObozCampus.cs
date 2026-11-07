@@ -227,6 +227,7 @@ public static partial class BraxObozEnvironment
     {
         var t=Group("Dojazd i plac autobusowy",root,Vector3.zero);
         TrackClippedRoad(t);
+        PerspectiveRoadToPanorama(t);
         // Turning forecourt: outer radius 18 m, island radius 6 m; the design
         // envelope is a 12 x 2.6 m coach, not a claim of a tested driving model.
         Disc(t,"Plac zawracania",new Vector3(0,.095f,-94),18,campusAsphalt,true);
@@ -276,6 +277,39 @@ public static partial class BraxObozEnvironment
             Group("Łuk "+i,route,P(Mathf.Sin(a)*12,0,-94+Mathf.Cos(a)*12));
         }
     }
+    static void PerspectiveRoadToPanorama(Transform parent)
+    {
+        // WŁAŚCICIEL 7.11: panorama Montorfano zostaje, ale granica terenu nie może
+        // wyglądać jak koniec mapy. To wyłącznie dekoracyjna perspektywa ZA fizyczną
+        // drogą: bez collidera i bez otwierania graczowi przejścia poza obóz.
+        GameObject Strip(string label,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Material material)
+        {
+            var mesh=new Mesh{name=label};
+            mesh.vertices=new[]{P(a.x,a.y,a.z),P(b.x,b.y,b.z),P(c.x,c.y,c.z),P(d.x,d.y,d.z)};
+            float length=Mathf.Abs(d.z-a.z)*K;
+            mesh.uv=new[]{Vector2.zero,Vector2.right,new Vector2(1,length/7f),new Vector2(0,length/7f)};
+            mesh.triangles=new[]{0,1,2,0,2,3};
+            mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
+            var go=Group(label,parent,Vector3.zero).gameObject;
+            go.AddComponent<MeshFilter>().sharedMesh=SaveMesh(mesh);
+            var renderer=go.AddComponent<MeshRenderer>();renderer.sharedMaterial=material;
+            renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=true;
+            return go;
+        }
+        const float nearZ=-139f,farZ=-218f;
+        const float nearY=TrackSurfaceY+.0015f,farY=-1.55f;
+        Strip("Perspektywa drogi -> panorama — bez collidera",
+            new Vector3(-3.5f,nearY,nearZ),new Vector3(3.5f,nearY,nearZ),
+            new Vector3(.72f,farY,farZ),new Vector3(-.72f,farY,farZ),campusAsphalt);
+        Strip("Lewe pobocze maskujące granicę panoramy",
+            new Vector3(-8.2f,nearY-.003f,nearZ),new Vector3(-3.5f,nearY-.003f,nearZ),
+            new Vector3(-.72f,farY-.03f,farZ),new Vector3(-2.25f,farY-.03f,farZ),gravel);
+        Strip("Prawe pobocze maskujące granicę panoramy",
+            new Vector3(3.5f,nearY-.003f,nearZ),new Vector3(8.2f,nearY-.003f,nearZ),
+            new Vector3(2.25f,farY-.03f,farZ),new Vector3(.72f,farY-.03f,farZ),gravel);
+        Debug.Log("BRAXHORN_OBOZ_PANORAMA_ROAD_BLEND: fizyczna droga kończy się normalnie; dekoracyjny zwężany odcinek maskuje styk ze skyboxem");
+    }
+
     static void OwnerShelter(Transform parent)
     {
         const string sourcePath=
@@ -319,16 +353,18 @@ public static partial class BraxObozEnvironment
         model.transform.localRotation=Quaternion.Euler(0,180,0)*model.transform.localRotation;
         b=renderers[0].bounds;
         foreach(var renderer in renderers.Skip(1))b.Encapsulate(renderer.bounds);
-        // Wiata: oryginalne realne metry z FBX * K, bez wpychania w pudełko.
-        // Nie znamy zatwierdzonego wymiaru konkretnej wiaty.
-        BraxObozPlacement.NativeMetres(model.transform,renderers,
-            "wiata FBX właściciela");
-        BraxObozPlacement.OnGround(model.transform,renderers,
-            parent.position,"wiata FBX właściciela");
+        // WŁAŚCICIEL 7.11: wersja "native metres" zmniejszyła wcześniej dobrą wiatę.
+        // Przywracamy DOKŁADNIE poprzednią jednorodną kopertę: bez rozciągania UV,
+        // siedzeń ani proporcji modelu. Najmniejszy limit wyznacza jeden wspólny scale.
+        const float targetWidth=3.4f,targetHeight=3.2f,targetDepth=8.6f;
+        float scale=Mathf.Min(targetWidth*K/b.size.x,
+            Mathf.Min(targetHeight*K/b.size.y,targetDepth*K/b.size.z));
+        model.transform.localScale*=scale;
+        b=renderers[0].bounds;
+        foreach(var renderer in renderers.Skip(1))b.Encapsulate(renderer.bounds);
+        model.transform.position+=new Vector3(parent.position.x-b.center.x,
+            parent.position.y-b.min.y,parent.position.z-b.center.z);
         b=BraxObozPlacement.Bounds(renderers);
-        if(b.size.x>8.6f*K || b.size.z>8.6f*K)
-            Debug.LogWarning("BRAXHORN_OBOZ_SHELTER_FOOTPRINT_REVIEW: "+
-                b.size+" — wiata może nachodzić na zatokę lub przejście");
         Debug.Log("BRAXHORN_OBOZ_WIATA_3D: zrodlo=FBX 2K + oryginalny PNG 2048, wymiary="+b.size+
             ", correctedYaw=180 względem APK22; wejście i ławki wymagają oględzin w Unity");
     }
@@ -445,6 +481,27 @@ public static partial class BraxObozEnvironment
             if (y + 1 < height) Visit(i + width);
         }
         for (int i = 0; i < pixels.Length; i++) if (outside[i]) pixels[i].a = 0;
+        // Zmiękczamy wyłącznie JEDEN piksel krawędzi połączonej z tłem.
+        // Białe litery i jasne detale wewnątrz grafiki nie są ruszane.
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            if (outside[i]) continue;
+            int px=i%width,py=i/width,outsideNeighbours=0,totalNeighbours=0;
+            for(int oy=-1;oy<=1;oy++)for(int ox=-1;ox<=1;ox++)
+            {
+                if(ox==0&&oy==0)continue;
+                int nx=px+ox,ny=py+oy;
+                if(nx<0||nx>=width||ny<0||ny>=height)continue;
+                totalNeighbours++;
+                if(outside[ny*width+nx])outsideNeighbours++;
+            }
+            if(outsideNeighbours>0&&totalNeighbours>0)
+            {
+                float insideCoverage=1f-outsideNeighbours/(float)totalNeighbours;
+                float alphaScale=Mathf.Lerp(.42f,.86f,insideCoverage);
+                pixels[i].a=(byte)Mathf.RoundToInt(pixels[i].a*alphaScale);
+            }
+        }
 
         // Zapisujemy tylko wygenerowaną okleinę PNG; oryginalny JPEG pozostaje nietknięty.
         var alpha = new Texture2D(width, height, TextureFormat.RGBA32, false);
@@ -509,7 +566,7 @@ public static partial class BraxObozEnvironment
         const float faceZ = -0.14f;
         const float backZ = 0.12f; // fizyczna grubość blachy = 26 cm
         float signHeight = signWidth * height / (float)width;
-        const int columns = 128;
+        const int columns = 256;
         int rows = Mathf.Max(32, Mathf.RoundToInt(columns * height / (float)width));
         var filled = new bool[columns, rows];
         int filledCount = 0, firstVisibleRow=rows;
@@ -984,14 +1041,22 @@ public static partial class BraxObozEnvironment
             Box(trim,"Szyba",new Vector3(side*3.07f,1.55f,0),new Vector3(.015f,.96f,2.14f),glass,false);
             Box(trim,"Parapet",new Vector3(side*3.12f,1.0f,0),new Vector3(.36f,.055f,2.4f),metal,false);
         }
+        CombineDecoration(trim);
+    }
+    static void CabinEntranceTrim(Transform cabin)
+    {
+        // Osobny komplet wejścia wykonywany PO zbatchowaniu bryły domku.
+        // Dzięki temu wszystkie 4 domki mają identycznie widoczną futrynę,
+        // ciemną uszczelkę i górną opaskę; nic nie znika w CombinedMesh.
+        var trim=Group("Futryna drzwi — komplet zewnętrzny",cabin,Vector3.zero);
         foreach(float x in new[]{-.55f,.55f})
         {
-            Box(trim,"Futryna zewnetrzna",new Vector3(x,1.295f,-4.17f),
+            Box(trim,"Futryna zewnetrzna",new Vector3(x,1.295f,-4.20f),
                 new Vector3(.16f,2.27f,.16f),wood,false);
-            Box(trim,"Ciemna uszczelka futryny",new Vector3(Mathf.Sign(x)*.4625f,1.22f,-4.18f),
+            Box(trim,"Ciemna uszczelka futryny",new Vector3(Mathf.Sign(x)*.4625f,1.22f,-4.215f),
                 new Vector3(.025f,2.10f,.025f),dark,false);
         }
-        Box(trim,"Opaska gorna drzwi",new Vector3(0,2.35f,-4.17f),
+        Box(trim,"Opaska gorna drzwi",new Vector3(0,2.35f,-4.20f),
             new Vector3(1.26f,.16f,.16f),wood,false);
         CombineDecoration(trim);
     }
