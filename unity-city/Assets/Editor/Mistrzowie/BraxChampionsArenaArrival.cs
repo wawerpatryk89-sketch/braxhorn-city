@@ -429,6 +429,9 @@ public static class BraxChampionsArenaArrival
         var bronze=new FacadeBatch();
         var roof=new FacadeBatch();
         var signBacker=new FacadeBatch();
+        // Nominal glass-bay columns: 0.52 m visible width x 0.30 m depth.
+        // Previously 0.16 m x 0.19 m: too thin for the owner's premium facade.
+        // No extra pillars across entrance apertures or the four sign panels.
         int skippedDoor=0;
         for(int i=0;i<bays;i++)
         {
@@ -447,16 +450,16 @@ public static class BraxChampionsArenaArrival
             {
                 plinth.Beam(mid+outward*.23f+Vector3.up*.50f,
                     new Vector3(.38f,.78f,length),rotation);
-                fins.Beam(mid+outward*.19f+Vector3.up*5.68f,
-                    new Vector3(.19f,9.30f,.16f),rotation);
-                fins.Beam(mid+outward*.19f+Vector3.up*22.87f,
-                    new Vector3(.19f,7.35f,.16f),rotation);
+                fins.Beam(mid+outward*.27f+Vector3.up*5.68f,
+                    new Vector3(.30f,9.30f,.52f),rotation);
+                fins.Beam(mid+outward*.27f+Vector3.up*22.87f,
+                    new Vector3(.30f,7.35f,.52f),rotation);
                 if(i%6==0)
                 {
-                    bronze.Beam(mid+outward*.34f+Vector3.up*5.68f,
-                        new Vector3(.045f,9.30f,.10f),rotation);
-                    bronze.Beam(mid+outward*.34f+Vector3.up*22.87f,
-                        new Vector3(.045f,7.35f,.10f),rotation);
+                    bronze.Beam(mid+outward*.44f+Vector3.up*5.68f,
+                        new Vector3(.048f,9.30f,.19f),rotation);
+                    bronze.Beam(mid+outward*.44f+Vector3.up*22.87f,
+                        new Vector3(.048f,7.35f,.19f),rotation);
                 }
             }
             else skippedDoor++;
