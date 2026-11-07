@@ -90,14 +90,16 @@ class R1PremiumDistrictFacades(unittest.TestCase):
         self.assertIn("new LOD(.006f, bryla)", SOURCE)
 
     def test_historic_cleanup_only_removes_isolated_modern_overhang(self):
-        self.assertRegex(SOURCE, r'FirstOrDefault\(x=>x\s*&&\s*x\.name=="Budynek KINNAIRD"')
-        self.assertIn("overlapX<10f", SOURCE)
-        self.assertIn("bounds.size.y>16f", SOURCE)
-        self.assertIn('if (!modern) { unverified++; continue; }', SOURCE)
-        self.assertIn('if (renderer.transform.childCount != 0)', SOURCE)
-        self.assertIn("renderer.gameObject.SetActive(false)", SOURCE)
-        self.assertIn("x && x!=monument", SOURCE)
-        self.assertNotIn('DestroyImmediate(monument', SOURCE)
+        self.assertIn('p.id == "KINNAIRD" || p.plik == "miasto_kamienice_c3"', SOURCE)
+        self.assertIn('x.name == "Budynek " + old.id', SOURCE)
+        self.assertIn("areaX < 10f || areaZ < 5f", SOURCE)
+        self.assertIn("owner == monument ? 31f : 25f", SOURCE)
+        self.assertIn("bound.size.y > 16f", SOURCE)
+        self.assertIn("if (!modern || rend.transform.childCount != 0)", SOURCE)
+        self.assertIn("rend.gameObject.SetActive(false)", SOURCE)
+        self.assertIn("owner in ndBudynki.Where(x => x)", SOURCE)
+        self.assertNotIn("DestroyImmediate(monument", SOURCE)
+        self.assertNotIn("DestroyImmediate(owner", SOURCE)
 
     def test_new_glazing_is_not_a_static_occluder(self):
         self.assertIn("StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic", SOURCE)
@@ -105,7 +107,7 @@ class R1PremiumDistrictFacades(unittest.TestCase):
 
     def test_no_guess_if_original_overhang_is_not_identifiable(self):
         self.assertIn("brak osobnej siatki nowoczesnego nadwieszenia", SOURCE)
-        self.assertIn("kamienica_zachowana=tak", SOURCE)
+        self.assertIn("historyczna_bryla_zachowana=tak", SOURCE)
         self.assertIn("DO POPRAWKI: brak gotowej tekstury Poly Haven PBR", SOURCE)
 
 
