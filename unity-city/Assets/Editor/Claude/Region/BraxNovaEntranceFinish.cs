@@ -216,18 +216,35 @@ internal static class BraxNovaEntranceFinish
                      .SelectMany(g => g.GetComponentsInChildren<MeshRenderer>(true)).ToArray())
         {
             if (!r || !r.enabled || !r.gameObject.activeInHierarchy ||
-                !r.bounds.Intersects(stripe) || r.transform.IsChildOf(club) ||
+                !r.bounds.Intersects(stripe) || (r.transform.IsChildOf(club) || club.IsChildOf(r.transform)) ||
                 ApprovedNovaSign(r.transform)) continue;
             if (r.GetComponentInParent<BraxGymPlayer>() ||
                 r.GetComponentInParent<Animator>() || r.GetComponentInParent<Animation>()) continue;
             var f = r.GetComponent<MeshFilter>();
             if (!f || !f.sharedMesh || !f.sharedMesh.isReadable) continue;
-            // Tnie tylko geometrię starszej sceny w obrysie nowego szyldu.
-            // Szerokość bramy klubu oraz wszystkie collidery na poziomie gracza zostają.
-            int n = BraxCityMeshCut.Subtract(f.transform, stripe, Out, "nova_legacy_white_text");
-            if (n <= 0) continue;
-            altered += n;
-            rep.changed.Add("Stary nienazwany fragment szyldu: " + PathOf(f.transform));
+            // Izolowana kopia JEDNEGO renderera: nie wolno ciąć dzieci oryginalnego
+            // CityMesh ani żadnej geometrii nowego klubu przez operację na rodzicu.
+            var temp = new GameObject("NOVA: tymczasowa siatka starego napisu");
+            try
+            {
+                temp.transform.SetParent(f.transform, false);
+                var testFilter = temp.AddComponent<MeshFilter>();
+                testFilter.sharedMesh = f.sharedMesh;
+                var testRenderer = temp.AddComponent<MeshRenderer>();
+                testRenderer.sharedMaterials = r.sharedMaterials;
+                // Tylko wąski obszar starego napisu, wysoko ponad światłem drzwi.
+                int n = BraxCityMeshCut.Subtract(temp.transform, stripe, Out, "nova_legacy_white_text");
+                if (n <= 0) continue;
+                var prior = f.sharedMesh;
+                if (testRenderer.enabled) f.sharedMesh = testFilter.sharedMesh;
+                else r.enabled = false;
+                foreach (var mc in f.GetComponents<MeshCollider>())
+                    if (mc && mc.sharedMesh == prior)
+                    { if (testRenderer.enabled) mc.sharedMesh = testFilter.sharedMesh; else mc.enabled = false; }
+                altered += n;
+                rep.changed.Add("Stary nienazwany fragment szyldu: " + PathOf(f.transform));
+            }
+            finally { Object.DestroyImmediate(temp); }
         }
         Debug.Log("BRAXHORN_NOVA_NIENAZWANY_SZYLD usuniete_fragmenty_starych_siatek=" +
             altered + " przy_zachowaniu_oryginalnego_NOVA_CLUB=true");
