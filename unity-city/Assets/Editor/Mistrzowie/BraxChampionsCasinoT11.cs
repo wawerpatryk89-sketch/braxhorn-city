@@ -126,7 +126,7 @@ public static class BraxChampionsCasinoT11
         o.transform.localScale=new Vector3(w,h,d)*K;
         var renderer=o.GetComponent<MeshRenderer>();
         renderer.sharedMaterial=mat;
-        bool transparent=mat==glass||mat==frontGlass||mat==towerGlass||mat==skylightGlass;
+        bool transparent=mat==glass||mat==frontGlass||mat==skylightGlass;
         if(transparent){renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;}
         if(tiled || ((mat==cream || mat==graphite || mat==granite || mat==roof || mat==paving || mat==asphalt || mat==pillarGold) && Mathf.Max(w,Mathf.Max(h,d))>3f))
             Tile(o,new Vector3(w,h,d));
