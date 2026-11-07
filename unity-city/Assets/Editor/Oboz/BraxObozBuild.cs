@@ -207,6 +207,30 @@ public static class BraxObozBuild
                 roots.SelectMany(r => r.GetComponentsInChildren<Camera>(true)).Count() != 1)
                 BraxBuildQuality.Warn("Obóz wymaga jednego gracza i jednej kamery — raport tylko do odbioru");
             var campInfo=roots.SelectMany(r => r.GetComponentsInChildren<BraxObozSceneInfo>(true)).Single();
+            // Serialization safety: Unity previously emitted 14 missing-script
+            // warnings for the river and the Android player crashed while
+            // deserializing level1 (SIGTRAP, Position out of bounds).
+            // This is NOT a collider/appearance QA gate: do not ship a scene
+            // with unresolved native MonoScript references.
+            var streamNodes=campInfo.GetComponentsInChildren<Transform>(true)
+                .Where(t=>t.name=="Strumień — płynąca tafla").ToArray();
+            if(streamNodes.Length!=14)
+                throw new InvalidOperationException(
+                    "OBOZ_SCENE_SERIALIZATION: wymagane 14 komponentow strumienia, znaleziono "+
+                    streamNodes.Length);
+            var fluidScript=AssetDatabase.LoadAssetAtPath<MonoScript>(
+                "Assets/Oboz/BraxObozFluidSurface.cs");
+            if(!fluidScript || fluidScript.GetClass()!=typeof(BraxObozFluidSurface))
+                throw new InvalidOperationException(
+                    "OBOZ_SCENE_SERIALIZATION: brak osobnego poprawnego MonoScript BraxObozFluidSurface");
+            foreach(var node in streamNodes)
+            {
+                if(GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(node.gameObject)!=0 ||
+                    !node.GetComponent<BraxObozFluidSurface>())
+                    throw new InvalidOperationException(
+                        "OBOZ_SCENE_SERIALIZATION: zniszczone odniesienie do skryptu na "+node.name);
+            }
+            Debug.Log("OBOZ_SCENE_SERIALIZATION_RIVER_OK=14 missing_scripts=0");
             // Save a compact collision inventory before the time-consuming APK
             // build. Diagnostic failure is itself a warning, not a build gate.
             try
