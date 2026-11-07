@@ -88,49 +88,29 @@ def services(m,x,z,y,w,d,detail):
    for zz in np.linspace(z-.6,z+.6,6):m.box('spandrel',(xx,y+2.61,zz),(1.3,.04,.07))
 
 def arena(detail):
- # Keep the same facade segmentation in both LODs: otherwise a far-LOD entrance
- # becomes twice as wide and leaves an unsealed hole above the public door.
+ # Owner reference 7.11: low two-storey premium glass arena, NOT the old 48m tower.
+ # The detailed black stepped pillars, gold insets, warm crown and sign frames are
+ # added by BraxChampionsArenaArrival.PremiumExterior on the same 28m shell.
  m=Meshes();n=128;path=ellipse(96,59,n);foot=Polygon(path)
- # Plot apron ends flush with the shared sidewalk level; real slab thickness below it.
  m.slab('stone',box(-110,-75,110,75),.16,.41)
  m.slab('dark_stone',foot,.18,.6)
- # Exact entrance geometry is shared by both LOD0 and collider LOD1.
+ # Lower curtain wall. Only the two real door apertures start at 4.5m.
  for p,q,entry in arena_entry_panels(path):
-  glazing(m,np.array([p,q]),4.5 if entry else .18,10.8,detail)
- # Continuous pale stone belt carries the main signage, with bronze reveals.
- wall(m,'stone',path,10.8,18.2)
- for yy in [10.8,11.1,17.9,18.2]:ribbon(m,'bronze',path,0,.22,yy,.14)
- for yy in [18.2,25.4,32.6,39.8]:glazing(m,path,yy,yy+7.2,detail)
- # Tall fins, alternating depth, are part of the curved facade, not flat texture lines.
- if detail:
-  for i,(x,z) in enumerate(path[:-1]):
-   a=math.atan2(z/59,x/96);out=np.array([math.cos(a)/96,math.sin(a)/59]);out/=np.linalg.norm(out)
-   p=np.array([x,z])+out*.35
-   m.bar('bronze',(p[0],18.2,p[1]),(p[0],46.7,p[1]),.18 if i%4 else .27,6)
- m.slab('roof',foot.buffer(.55),47.2,.30)
+  wall(m,'facade_glass',np.array([p,q]),4.5 if entry else .18,10.75)
+ # Upper curtain wall remains glass; no pale stone belt across the owner's signs.
+ wall(m,'facade_glass',path,10.75,27.15)
+ for yy in [10.75,18.20,27.15]:
+  ribbon(m,'steel',path,0,.16,yy,.10)
+ # Dark roof cap and parapet match the reference silhouette.
+ m.slab('roof',foot.buffer(.55),27.35,.30)
  rim=np.asarray(foot.buffer(.65).exterior.coords)
- # Shapely buffer is clockwise; reverse to preserve outward face/rail convention.
  if not Polygon(rim).exterior.is_ccw:rim=rim[::-1]
- ribbon(m,'stone',rim,0,.45,48,.8)
- if detail:
-  for x in np.arange(-88,89,4):
-   segment=foot.intersection(LineString([(x,-70),(x,70)]))
-   if segment.geom_type=='LineString':ribbon(m,'steel',np.array(segment.coords),0,.035,47.23,.025)
-  for x,z in path[::16]:m.bar('bronze',(x*1.008,.25,z*1.008),(x*1.008,46.8,z*1.008),.055,8)
- # A single real front opening; eliminate fake, closed doors in glazed wall bays.
+ ribbon(m,'dark_stone',rim,0,.42,27.72,.18)
+ # Exactly two real entrances; premium canopies are generated once in Unity by
+ # BraxChampionsArenaArrival, so the obsolete 8.7m duplicate canopy is removed.
  door(m,0,-59.04,180,detail,open_entry=True)
- # Cantilevered arrival canopy, front columns outside the walking line.
- m.slab('clear_glass',box(-23,-68,23,-56),8.7,.10)
- for x in [-22,22]:
-  m.bar('bronze',(x,.16,-66),(x,8.9,-66),.16,12)
-  m.bar('bronze',(x,8.88,-68),(x,8.88,-56),.12,8)
- for x in np.arange(-20,21,5):m.bar('bronze',(x,8.88,-68),(x,8.88,-56),.09,8)
- for x in [-30,-24,24,30]:m.bar('bronze',(x,.16,-70),(x,1.2,-70),.12,12)
- # Remove side fake doors (the structure has no openings there).
- # Athlete rear door has its own distinct approach and operable Unity leaves.
  door(m,0,59.04,0,detail,open_entry=True)
- # Maintenance enclosure stays below the overall 48m height, on a recessed north terrace.
- # External service kiosk at ground level, separate from the roof profile.
+ # Rear service kiosk remains low and outside the public reference facade.
  services(m,35,64,.16,12,5,detail)
  return m
 

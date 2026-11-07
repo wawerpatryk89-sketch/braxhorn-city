@@ -19,6 +19,8 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         cls.importer = (EDITOR / "BraxChampionsArenaTextureImport.cs").read_text(encoding="utf-8")
         cls.buildings = (EDITOR / "BraxChampionsBuildings.cs").read_text(encoding="utf-8")
         cls.car = (EDITOR / "BraxChampionsCarBuilder.cs").read_text(encoding="utf-8")
+        cls.exterior_source = (ROOT / "unity-tools/mistrzowie/build_exteriors.py").read_text(encoding="utf-8")
+        cls.inventory = (ROOT / "unity-tools/mistrzowie/plan_inventory.json").read_text(encoding="utf-8")
 
     def test_exterior_generator_connected_and_original_bowl_retained(self):
         self.assertIn("PremiumExterior(root, exterior);", self.arrival)
@@ -29,6 +31,16 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("const int bays=120;", self.arrival)
         self.assertIn("mesh.SetVertices(positions)", self.arrival)
         self.assertNotIn("visualAccepted=true", self.arrival)
+
+    def test_reference_shell_replaces_old_48m_stone_belt(self):
+        self.assertIn("low two-storey premium glass arena", self.exterior_source)
+        self.assertIn("wall(m,'facade_glass',path,10.75,27.15)", self.exterior_source)
+        self.assertIn("m.slab('roof',foot.buffer(.55),27.35,.30)", self.exterior_source)
+        self.assertIn("ribbon(m,'dark_stone',rim,0,.42,27.72,.18)", self.exterior_source)
+        self.assertNotIn("wall(m,'stone',path,10.8,18.2)", self.exterior_source)
+        self.assertNotIn("m.slab('roof',foot.buffer(.55),47.2,.30)", self.exterior_source)
+        self.assertNotIn("m.slab('clear_glass',box(-23,-68,23,-56),8.7,.10)", self.exterior_source)
+        self.assertRegex(self.inventory, r'"id":\s*"A1"[\s\S]{0,180}?"height":\s*28')
 
     def test_owner_sign_band_and_both_doorways_are_clear(self):
         # Physical door top is 4.5m above the exterior floor.

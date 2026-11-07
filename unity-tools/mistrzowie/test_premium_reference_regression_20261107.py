@@ -52,38 +52,40 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertNotIn('EncodeToPNG', text)
         self.assertNotIn('SetPixels', text)
 
-    def test_case_wood_is_real_existing_pbr_not_flat_colour(self):
+    def test_case_is_wall_mounted_reference_not_old_podium(self):
         text = source('BraxChampionsBeltShowcase.cs')
-        self.assertRegex(text, r'var wood = BraxChampionsPoolP1Pbr2K\.Create\([\s\S]*?"teak_veneer", 1\.5f, Color\.white\);')
-        self.assertIn('"Wood veneer showcase plinth", wood,', text)
-        self.assertIn('"Wood veneer case base", wood,', text)
-        self.assertIn('plinthCollider.size = new Vector3(1.82f, .26f, 1.08f);', text)
-        self.assertIn('Podium(display, marble, gold);', text)
-        self.assertIn('"Black marble pillar behind the showcase", marble,', text)
-        self.assertIn('"Black leather back panel", backing,', text)
+        for marker in (
+            '"REFERENCE black marble wall column"',
+            '"REFERENCE black leather back panel"',
+            '"REFERENCE optical clear glass FRONT"',
+            '"REFERENCE small gold glass bracket"',
+            '"REFERENCE bronze vertical slat "',
+            '"REFERENCE warm vertical side LED"',
+        ):
+            self.assertIn(marker, text)
+        self.assertNotIn('Podium(display', text)
+        self.assertNotIn('Wood veneer showcase plinth', text)
+        self.assertNotIn('Wood veneer case base', text)
+        self.assertNotIn('RED narrow centred inset', text)
+        self.assertIn('rhombus=false woodPlinth=false', text)
 
     def test_case_plaque_faces_front_and_clears_glass(self):
         text = source('BraxChampionsBeltShowcase.cs')
         self.assertIn('Quaternion.Euler(0,180f,0)', text)
-        self.assertIn('new Vector3(0,1.075f,-.397f)', text)
-        self.assertIn('new Vector3(0, 2.06f, -.535f)', text)
-        # Front pane spans z≈-.548..-.522; plaque stays safely behind the glass.
-        self.assertGreater(-.397, -.535 + .026/2)
-        self.assertLess(-.397, -.321 - .125/2 - .01)
-        self.assertAlmostEqual(1.22 / .61, 2.0, places=2)
+        self.assertIn('new Vector3(0,.78f,-.421f)', text)
+        self.assertIn('new Vector3(0,2.28f,-.505f)', text)
+        self.assertIn('"REFERENCE solid gold plaque face"', text)
+        self.assertAlmostEqual(1.24 / .48, 2.5833333333, places=2)
 
-    def test_case_rectangular_emission_does_not_add_realtime_lights(self):
+    def test_case_reference_lighting_uses_one_realtime_light(self):
         text = source('BraxChampionsBeltShowcase.cs')
-        self.assertIn('foreach (float z in new[] { -.45f, .40f })', text)
-        self.assertIn('"Warm LED rectangle long diffuser", warm,', text)
-        self.assertIn('"Warm LED rectangle short diffuser", warm,', text)
-        self.assertIn('new Vector3(0, 3.274f, z)', text)
-        self.assertIn('"REFERENCE lower solid gold case rail"', text)
+        self.assertIn('"REFERENCE warm top LED long diffuser"', text)
+        self.assertIn('"REFERENCE warm top LED short diffuser"', text)
+        self.assertIn('"REFERENCE warm vertical side LED"', text)
+        self.assertIn('"REFERENCE warm lower case LED"', text)
         self.assertEqual(text.count('AddComponent<Light>()'), 1)
-        self.assertIn('lamp.shadows = LightShadows.None;', text)
-        # Diffuser remains under the gold top frame and below the glass top.
-        self.assertLess(3.274 + .011/2, 3.31 - .055/2)
-        self.assertLess(3.31 + .055/2, 3.42 - .026/2)
+        self.assertIn('lamp.shadows=LightShadows.None;', text)
+        self.assertIn('lamp.renderMode=LightRenderMode.ForceVertex;', text)
 
     def test_optional_buildings_count_only_after_success(self):
         text = source('BraxChampionsBuildings.cs')
