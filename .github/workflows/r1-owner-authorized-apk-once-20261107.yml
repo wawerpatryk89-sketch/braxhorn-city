@@ -1,0 +1,61 @@
+name: Miasto R1 — jednorazowe zlecenie APK 07.11.2026
+# Only the owner-requested build. This workflow never runs from game source commits.
+on:
+  push:
+    branches:
+      - claude/miasto-opus-20261031
+    paths:
+      - .github/workflows/r1-owner-authorized-apk-once-20261107.yml
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: r1-owner-apk-once-20261107
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Odczytaj tylko historie i plik zlecenia
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 2
+          sparse-checkout: |
+            .github/workflows/
+      - name: Potwierdz zgode, wersje R1 i zielone szybkie testy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TESTED_SHA: 7b37f8d068d3fb82b44ebbd6cc468d4b9e5aa3aa
+          SOURCE_TEST_RUN: "42373834641"
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$TESTED_SHA" || {
+            echo "::error::Gałąź R1 zmieniona przed zleceniem APK"; exit 1;
+          }
+          mapfile -t changed < <(git diff --name-only HEAD^ HEAD)
+          test "${#changed[@]}" -eq 1
+          test "${changed[0]}" = ".github/workflows/r1-owner-authorized-apk-once-20261107.yml"
+          passed="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_TEST_RUN")"
+          test "$(jq -r '.head_sha' <<<"$passed")" = "$TESTED_SHA"
+          test "$(jq -r '.status' <<<"$passed")" = completed
+          test "$(jq -r '.conclusion' <<<"$passed")" = success
+          echo "MIASTO_R1_SRC_TESTED=1"
+      - name: Wyslij dokladnie jedno zlecenie Unity 6 Android R1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          active="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow claude-region-build.yml --branch claude/miasto-opus-20261031 --limit 30 --json status | jq '[.[] | select(.status != "completed")] | length')"
+          test "$active" -eq 0 || { echo "::error::Inny build R1 juz uruchomiony"; exit 1; }
+          gh workflow run claude-region-build.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref claude/miasto-opus-20261031 \
+            -f rejon=miasto \
+            -f pamiec=true \
+            -f scene_only=false
+          echo "MIASTO_R1_OWNER_AUTHORIZED_APK_DISPATCHED=1"
