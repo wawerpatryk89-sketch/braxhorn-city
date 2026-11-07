@@ -437,6 +437,9 @@ public static class BraxChampionsArenaArrival
         const float rx=96f,rz=59f;
         const int bays=120;
         var group=Group(arenaRoot,"A1 PREMIUM | Poly Haven PBR exterior detailing",Vector3.zero);
+        var redNeon=Paint("arena_reference_red_neon",new Color(.68f,.018f,.025f));
+        redNeon.SetColor("_EmissionColor",new Color(.70f,.018f,.020f));
+        EditorUtility.SetDirty(redNeon);
         var plinth=new FacadeBatch();
         var fins=new FacadeBatch();
         var blackColumns=new FacadeBatch();
@@ -446,6 +449,7 @@ public static class BraxChampionsArenaArrival
         var signBacker=new FacadeBatch();
         var crownLight=new FacadeBatch();
         var interiorWarmBands=new FacadeBatch();
+        var upperCeilingHalo=new FacadeBatch();
         // Właściciel 7.11: wariant premium nr 3. Szerokie CZARNE filary
         // na odskoki: wysunięte przed lico przyciemnionej tafli szkła.
         // Co trzeci segment jest reprezentacyjnym filarem 2.10 m, a
@@ -513,6 +517,21 @@ public static class BraxChampionsArenaArrival
                     new Vector3(.025f,.055f,length),rotation);
         }
 
+        // Interior elliptical halo visible through the upper curtain wall,
+        // matching the illuminated ring in the owner's exterior reference.
+        const int haloParts=96;
+        for(int i=0;i<haloParts;i++)
+        {
+            float a=2f*Mathf.PI*i/haloParts;
+            float b=2f*Mathf.PI*(i+1)/haloParts;
+            var p=new Vector3(57f*Mathf.Cos(a),0,34f*Mathf.Sin(a));
+            var q=new Vector3(57f*Mathf.Cos(b),0,34f*Mathf.Sin(b));
+            var mid=(p+q)*.5f;
+            var rot=Quaternion.LookRotation((q-p).normalized,Vector3.up);
+            upperCeilingHalo.Beam(mid+Vector3.up*23.25f,
+                new Vector3(.22f,.045f,Vector3.Distance(p,q)+.025f),rot);
+        }
+
         // Slim dark PBR sign plinths behind, never on top of, the owner's
         // original curved 6:1 graphics. No logo, characters or words altered.
         if(BraxChampionsArenaSigns.HasSources())
@@ -560,6 +579,19 @@ public static class BraxChampionsArenaArrival
             exterior["dark_stone"]);
         crownLight.Emit(group,"REFERENCE_continuous_warm_roof_crown_LED",exterior["light"]);
         interiorWarmBands.Emit(group,"REFERENCE_three_warm_upper_glass_bands",exterior["light"]);
+        upperCeilingHalo.Emit(group,"REFERENCE_upper_interior_elliptical_halo",exterior["light"]);
+
+        // Physical red neon framing around the public main sign, as in the reference.
+        foreach(float x in new[]{-22.2f,22.2f})
+            Box(group,"REFERENCE red neon vertical sign frame",redNeon,
+                new Vector3(x,14.55f,-57.25f),new Vector3(.24f,5.8f,.18f),false);
+        foreach(float x in new[]{-16.8f,16.8f})
+        {
+            Box(group,"REFERENCE red neon sign top accent",redNeon,
+                new Vector3(x,17.10f,-57.38f),new Vector3(8.2f,.11f,.15f),false);
+            Box(group,"REFERENCE red neon sign lower accent",redNeon,
+                new Vector3(x,12.05f,-57.38f),new Vector3(8.2f,.09f,.15f),false);
+        }
 
         // Glass canopies and granite/bronze pilasters on BOTH doors.
         // Side supports are 10m from the centre: no obstacle in the 6.4m aisle.
@@ -595,11 +627,20 @@ public static class BraxChampionsArenaArrival
             Box(portico,entry+" warm facade light diffuser (no shadow lamp)",
                 exterior["light"],new Vector3(0,5.14f,z+side*3.52f),
                 new Vector3(20f,.035f,.07f),false);
+            if(side<0)
+            {
+                // Reference canopy underside: repeated warm linear strips running outward.
+                for(int strip=-4;strip<=4;strip++)
+                    Box(portico,"PUBLIC reference canopy underside LED strip",exterior["light"],
+                        new Vector3(strip*2.05f,5.235f,z-.10f),
+                        new Vector3(.055f,.026f,5.95f),false);
+            }
         }
         Debug.Log("CHAMPIONS_A1_POLYHAVEN_EXTERIOR_PREMIUM facade_bays="+bays+
             " omitted_lower_facade_door_segments="+skippedDoor+
             " wide_black_columns=2.10m pitch=3bays stepped_out=.79m center_gold=.095m"+
-            " roof_crown_LED=continuous upper_warm_bands=3 entrance_planters=2"+
+            " roof_crown_LED=continuous upper_warm_bands=3 upper_halo=ellipse"+
+            " red_sign_frame=physical canopy_LED_strips=9 entrance_planters=2 bollards=8"+
             " authentic_PBR=true opaque_glass_overlays=0 original_signs_preserved=true"+
             " doors_and_vehicle_lanes_preserved=true device_visual_review_required=true");
     }
@@ -660,6 +701,15 @@ public static class BraxChampionsArenaArrival
             for(int i=-2;i<=2;i++)
                 PlacePremiumShrub(parent,new Vector3(x+i*1.85f,.25f,-61.7f),
                     side<0?12f:-12f,1.22f);
+        }
+        // Low architectural path lights outside the rope line; no obstruction in the carpet aisle.
+        foreach(float x in new[]{-8.6f,8.6f})
+        foreach(float z in new[]{-73.0f,-68.8f,-64.6f,-60.8f})
+        {
+            Box(parent,"A1 reference entrance | black bollard",exterior["dark_stone"],
+                new Vector3(x,.66f,z),new Vector3(.16f,.92f,.16f),true);
+            Box(parent,"A1 reference entrance | warm bollard head",exterior["light"],
+                new Vector3(x,1.13f,z),new Vector3(.25f,.12f,.25f),false);
         }
     }
 
