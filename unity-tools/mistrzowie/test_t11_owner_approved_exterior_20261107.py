@@ -57,6 +57,10 @@ class CasinoOwnerApproval0711(unittest.TestCase):
         self.assertIn('UndergroundGarage();',CASINO)
         self.assertIn('const int baysPerRow=16;',CASINO)
 
+    def test_garage_approach_has_no_freestanding_parking_sign(self):
+        self.assertIn('RoadsideOriginalSign("TAXI"',CASINO)
+        self.assertNotIn('RoadsideOriginalSign("PARKING"',CASINO)
+
     def test_owner_roof_dollar_original_not_proxy(self):
         self.assertIn(ORIGINAL,CASINO)
         self.assertIn(ORIGINAL_SHA,CASINO)
