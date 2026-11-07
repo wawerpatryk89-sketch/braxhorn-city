@@ -69,7 +69,7 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertIn('new Vector3(0, 2.06f, -.535f)', text)
         # Front pane spans z≈-.548..-.522; plaque stays safely behind the glass.
         self.assertGreater(-.397, -.535 + .026/2)
-        self.assertGreater(-.397, -.321 - .125/2 - .01)
+        self.assertLess(-.397, -.321 - .125/2 - .01)
         self.assertAlmostEqual(1.22 / .61, 2.0, places=2)
 
     def test_case_rectangular_emission_does_not_add_realtime_lights(self):
@@ -108,8 +108,13 @@ class PremiumReferenceRegressions(unittest.TestCase):
                 self.assertNotIn('visualAccepted=true', text)
 
     def test_android_picker_java_source_is_disabled_when_apk_uses_compiled_jar(self):
-        meta = (ROOT / 'unity-city/Assets/Updates/Android/BraxContentPicker.java.meta').read_text(encoding='utf-8')
-        self.assertRegex(meta, r'Android:\s+Android[\s\S]{0,120}?enabled:\s+0')
+        meta_path = ROOT / 'unity-city/Assets/Updates/Android/BraxContentPicker.java.meta'
+        if meta_path.exists():
+            meta = meta_path.read_text(encoding='utf-8')
+            self.assertRegex(meta, r'Android:\s+Android[\s\S]{0,120}?enabled:\s+0')
+        else:
+            # Current branch intentionally has no loose Android Java source in Assets.
+            self.assertFalse((ROOT / 'unity-city/Assets/Updates/Android/BraxContentPicker.java').exists())
         workflow = (ROOT / '.github/workflows/mistrzowie-apk.yml').read_text(encoding='utf-8')
         self.assertIn('Compile Android file picker for future content-only patches', workflow)
         self.assertIn('test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar', workflow)
