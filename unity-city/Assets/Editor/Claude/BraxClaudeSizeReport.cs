@@ -45,7 +45,10 @@ public class BraxClaudeSizeReport : IPostprocessBuildWithReport
             var files = new List<(string f, long b)>();
             string outDir = report.summary.outputPath;
             if (Directory.Exists(outDir))
-                foreach (var f in Directory.GetFiles(outDir, "*", SearchOption.AllDirectories)) files.Add((f.Substring(outDir.Length).TrimStart('/', '\\'), new FileInfo(f).Length));
+                foreach (var f in Directory.GetFiles(outDir, "*", SearchOption.AllDirectories))
+                    files.Add((f.Substring(outDir.Length).TrimStart('/', '\\'), new FileInfo(f).Length));
+            else if (File.Exists(outDir))
+                files.Add((Path.GetFileName(outDir), new FileInfo(outDir).Length));
             ulong packed = rows.Aggregate(0UL, (a, r) => a + r.size);
             long outBytes = files.Sum(f => f.b);
             var sb = new StringBuilder();
@@ -56,7 +59,13 @@ public class BraxClaudeSizeReport : IPostprocessBuildWithReport
             sb.Append("  \"kategorie\": [\n").Append(string.Join(",\n", byCat.Select(c => "    {\"kategoria\": \"" + Esc(c.cat) + "\", \"MB\": " + (c.size / 1048576.0).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + ", \"obiekty\": " + c.n + "}"))).Append("\n  ],\n");
             sb.Append("  \"najwieksze\": [\n").Append(string.Join(",\n", byPath.Select(c => "    {\"zasob\": \"" + Esc(c.path) + "\", \"typ\": \"" + Esc(c.type) + "\", \"MB\": " + (c.size / 1048576.0).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + "}"))).Append("\n  ]\n}\n");
             Directory.CreateDirectory("city-review");
-            File.WriteAllText("city-review/osiedle-rozmiary.json", sb.ToString());
+            string fileName = Path.GetFileName(report.summary.outputPath ?? "").ToLowerInvariant();
+            string reportName = (fileName.Contains("miasto") || fileName.Contains("calosc"))
+                ? "miasto-r1-rozmiary.json" : "osiedle-rozmiary.json";
+            var root = Path.GetFullPath(Path.Combine(Application.dataPath, "../../city-review"));
+            Directory.CreateDirectory(root);
+            File.WriteAllText(Path.Combine(root, reportName), sb.ToString());
+            Debug.Log("BRAXHORN_R1_SIZE_REPORT_RECEIPT name="+reportName+" real_output_bytes="+outBytes);
             Debug.Log("BRAXHORN_SIZE pliki wyjściowe " + (outBytes / 1048576.0).ToString("0.0") + " MB, zasoby spakowane " + (packed / 1048576.0).ToString("0.0") + " MB, kategorii " + byCat.Count
                       + (rows.Count == 0 ? " (raport bez listy zasobów)" : ""));
         }

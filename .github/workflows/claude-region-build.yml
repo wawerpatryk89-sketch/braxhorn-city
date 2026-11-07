@@ -586,6 +586,11 @@ jobs:
         cat unity-city/rejon-ci.txt
         echo "BRAXHORN_CZAS etap=klucz_rejonu s=$(( $(date +%s) - t ))"
         echo "T_PAMIEC=$(date +%s)" >> "$GITHUB_ENV"
+    - name: Miasto R1 — audyt rzeczywistych źródeł tekstur 2K (tylko raport, bez zmian assetów)
+      if: github.event.inputs.rejon == 'miasto'
+      run: |
+        python3 unity-tools/claude/r1_texture_source_audit.py --assets-root unity-city/Assets --output city-review/r1-source-textures.json
+        test -s city-review/r1-source-textures.json
     # City generation is an encrypted exact-input checkpoint, separate from shared Library.
     - name: Miejsce na dysku dla obrazu Unity i pliku wymiany (runner ma ~14 GB wolne)
       run: |
@@ -761,6 +766,8 @@ jobs:
           ${{ runner.temp }}/wyslane/*-validation.json
           unity-city/Assets/PlayableGenerated/build-size*.txt
           unity-city/Assets/PlayableGenerated/pamiec-rejonu.json
+          city-review/r1-source-textures.json
+          city-review/miasto-r1-rozmiary.json
         retention-days: 7
         if-no-files-found: warn
     - name: Rozmiar Library i swiata rejonu (do decyzji o pamieci podrecznej; limit 10 GB na repo)
