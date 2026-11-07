@@ -590,14 +590,17 @@ public static partial class BraxObozEnvironment
         solidMesh.RecalculateBounds();
         var sign = Group("BRAXHORN TRAINING CAMP — oryginalny szyld 3D", gate, Vector3.zero);
         var shell = Group("Metalowa bryła 26 cm — wytłoczona po kształcie grafiki", sign, Vector3.zero).gameObject;
-        shell.AddComponent<MeshFilter>().sharedMesh = SaveMesh(solidMesh);
+        // SaveMesh may destroy the transient input when the persistent asset already exists.
+        // Use only the returned live mesh for the renderer AND physical collider.
+        var savedSolidMesh = SaveMesh(solidMesh);
+        shell.AddComponent<MeshFilter>().sharedMesh = savedSolidMesh;
         var shellRenderer=shell.AddComponent<MeshRenderer>();
         shellRenderer.sharedMaterial = campusSteel;
         // Jeden uproszczony collider nad przejazdem, bez tysięcy kosztownych
         // trójkątów fizyki odpowiadających konturowi liter.
         var casingCollision = shell.AddComponent<BoxCollider>();
-        casingCollision.center = solidMesh.bounds.center;
-        casingCollision.size = solidMesh.bounds.size;
+        casingCollision.center = savedSolidMesh.bounds.center;
+        casingCollision.size = savedSolidMesh.bounds.size;
 
         // Okleina 1:1 ma swoje UV, dzięki czemu NIGDY nie odwraca liter.
         // Przyklejona 1 cm przed metalową powierzchnią, bez z-fightingu.

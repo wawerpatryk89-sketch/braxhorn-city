@@ -466,7 +466,7 @@ public static class BraxObozVegetation
                 grass.zasiegLaki=25f;
                 grass.zwolnijPo=45f*K;
                 Debug.Log("BRAXHORN_OBOZ_OWNER_GRASS_MESH variant="+variant+
-                    " source="+id+" vertices="+mesh.vertexCount+
+                    " source="+id+" vertices="+grass.siatka.vertexCount+
                     " instances="+selected.Length+" sourceTextures=2048x2048"+
                     " ownerGeometryDecimation=false phoneFPSUnverified=true");
             }

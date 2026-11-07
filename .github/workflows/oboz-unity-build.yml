@@ -437,6 +437,40 @@ jobs:
           umask 077
           printf '%s' "$KS" | base64 -d > unity-city/braxhorn.keystore
           printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
+      # This branch's generator performs frequent asset imports. A single
+      # -executeMethod session can leave an assembly/domain reload pending and
+      # BuildPipeline immediately rejects the APK (build #36). Force a clean
+      # Unity editor process boundary instead of disabling compiler safety.
+      - name: Obóz — przygotuj sceny osobno, bez APK i bez blokowania raportami
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxObozBuild.PrepareAndroidReviewScene
+          manualExit: true
+          versioning: None
+          allowDirtyBuild: true
+      - name: Obóz — potwierdź zapis scen, bez uruchamiania APK
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: |
+          python3 - <<'PY_STAGE'
+          import json
+          from pathlib import Path
+          receipt=json.loads(Path('build/ObozAndroid/build-receipt.json').read_text(encoding='utf-8'))
+          assert receipt['kind']=='scene-only-preflight'
+          assert receipt['apkBuilt'] is False
+          assert Path('unity-city/Assets/PlayableGenerated/Oboz/build-state.json').is_file()
+          for name in ('BraxhornObozStart.unity','BraxhornObozReview.unity'):
+              assert Path('unity-city/Assets/PlayableGenerated/Oboz',name).is_file(), name
+          assert not Path('build/ObozAndroid/braxhorn-oboz.apk').exists()
+          print('OBOZ_SCENE_ONLY_READY: separate Unity process finished, no APK')
+          PY_STAGE
       - name: Generowanie sceny i kompilacja tylko obozu
         id: unity
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
