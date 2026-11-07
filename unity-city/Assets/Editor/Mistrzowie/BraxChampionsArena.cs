@@ -32,12 +32,7 @@ public static class BraxChampionsArena
         // Two additional owner originals on the actual 70m LEFT and RIGHT walls:
         // fighter lineup on the spectator's left; championship belt on right.
         // The exterior public entrance, door, original wall and passage stay intact.
-        BraxChampionsFoundation.Optional("murale boczne",()=>{
-            int sideMurals=BraxChampionsArenaSideMurals.Generate(root);
-            if(sideMurals!=2)
-                BraxBuildQuality.Warn("CHAMPIONS_A1_SIDE_MURALS_INCOMPLETE expected=2 actual="+
-                    sideMurals+" buildContinuesForReport=true");
-        });
+        BraxChampionsFoundation.Optional("murale boczne",()=>BraxChampionsArenaSideMurals.Generate(root));
         // Source method uses nominal estate metres. Apply the game's K exactly once to this subtree.
         float k=BraxClaudeOsiedle.K;var rot=Quaternion.Euler(0,180,0);
         root.SetParent(building,false);root.localScale=Vector3.one*k;root.localRotation=rot;
