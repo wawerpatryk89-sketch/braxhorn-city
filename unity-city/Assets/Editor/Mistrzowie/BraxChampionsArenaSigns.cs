@@ -65,12 +65,12 @@ public static class BraxChampionsArenaSigns
             }
             verts[2*i]=new Vector3(x,bottom,z)*k;
             verts[2*i+1]=new Vector3(x,bottom+height,z)*k;
-            // Text must read LEFT-to-RIGHT from OUTSIDE the ellipse.
-            // The previous t->+X mapping mirrored the south/front
-            // CHAMPION ARENA logo when the camera faced north (+Z).
-            // South (-Z) and east (+X) need reversed U; north/west don't.
-            // Do not touch the owner's PNG pixels, fonts or approved colours.
-            bool reverseU=alongX?!positive:positive;
+            // Screen-right for an outward-facing Unity camera is UP x
+            // LOOK-DIRECTION (not the opposite cross product). From SOUTH
+            // the +X mesh parameter reads normally; from EAST +Z also reads
+            // normally. Only NORTH and WEST need U reversal. Preserve the
+            // owner's approved original sign pixels and lettering.
+            bool reverseU=alongX?positive:!positive;
             float outwardFacingU=reverseU?1f-t:t;
             uvs[2*i]=new Vector2(outwardFacingU,0);
             uvs[2*i+1]=new Vector2(outwardFacingU,1);
