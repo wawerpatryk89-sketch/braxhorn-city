@@ -560,51 +560,68 @@ public static partial class BraxRegionMiastoB
         }
     }
 
-    // Zdjęcie użytkownika: kamienica zabytkowa z obcym nowoczesnym nadwieszeniem.
-    // Usuwamy TYLKO osobną rozpoznaną siatkę ze źródła obok, jeśli rzeczywiście
-    // wisi nad kamienicą. Nie wycinamy na ślepo historycznego dachu i elewacji.
+    // Prześwietlenie pięciu zabytkowych budynków nowej ulicy. Nadwieszenie
+    // może być z innego modelu ALBO osobnym współczesnym elementem w samym
+    // starym GLB. Usuwamy wyłącznie odrębny liść siatki spełniający WSZYSTKIE
+    // warunki geometryczne, materiałowe i wysokościowe.
     static void NdZdejmijNadwieszenieZabytku()
     {
-        var monument=ndBudynki.FirstOrDefault(x=>x && x.name=="Budynek KINNAIRD");
-        var place=NoweBudynki.FirstOrDefault(x=>x.id=="KINNAIRD");
-        if (!monument || place==null)
+        int allRemoved = 0, allUnverified = 0, historicFound = 0;
+        foreach (var old in NoweBudynki.Where(p =>
+                 p.id == "KINNAIRD" || p.plik == "miasto_kamienice_c3"))
         {
-            NdLog("DO POPRAWKI: nie odnaleziono starej kamienicy KINNAIRD");
-            return;
+            var monument = ndBudynki.FirstOrDefault(x =>
+                x && x.name == "Budynek " + old.id);
+            if (!monument) continue;
+            historicFound++;
+            var footprint = Rect.MinMaxRect(old.x - old.w * .49f,
+                old.z - old.d * .49f, old.x + old.w * .49f,
+                old.z + old.d * .49f);
+            int removed = 0, unverified = 0;
+            foreach (var owner in ndBudynki.Where(x => x))
+            foreach (var rend in owner.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!rend || !rend.enabled || !rend.gameObject.activeInHierarchy) continue;
+                Bounds bound = rend.bounds;
+                float areaX = Mathf.Min(bound.max.x, footprint.xMax) -
+                              Mathf.Max(bound.min.x, footprint.xMin);
+                float areaZ = Mathf.Min(bound.max.z, footprint.yMax) -
+                              Mathf.Max(bound.min.z, footprint.yMin);
+                // Dla części samej kamienicy jeszcze ostrzejszy limit y:
+                // nie wolno usuwać zwykłych dachów ani gzymsów zabytku.
+                float above = monument.transform.position.y +
+                              (owner == monument ? 31f : 25f) * K;
+                if (areaX < 10f || areaZ < 5f ||
+                    bound.min.y < above || bound.size.y > 16f ||
+                    bound.size.x * bound.size.z < 160f) continue;
+                string mats = string.Join("|", rend.sharedMaterials.Where(m => m)
+                    .Select(m => m.name));
+                bool modern = mats.IndexOf("glass", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                              mats.IndexOf("black", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                              mats.IndexOf("metal", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                              mats.IndexOf("szkło", StringComparison.OrdinalIgnoreCase) >= 0;
+                // Bez jednoznacznego sygnału: nie ryzykuj zabytkowej fasady.
+                if (!modern || rend.transform.childCount != 0)
+                { unverified++; continue; }
+                // Renderer.enabled może włączyć LODGroup. Dezaktywacja
+                // pojedynczego liścia jest trwała, nie usuwa rodzica.
+                rend.gameObject.SetActive(false);
+                foreach (var c in rend.GetComponents<Collider>()) c.enabled = false;
+                removed++;
+                NdLog("NADWIESZENIE_ZDJETE " + old.id + " / " + owner.name +
+                    " / " + rend.name + " " + bound.center.ToString("F1"));
+            }
+            allRemoved += removed;
+            allUnverified += unverified;
+            NdLog("ZABYTEK " + old.id + " odrebne_nadwieszenia=" + removed +
+                  " niepotwierdzone=" + unverified + " historyczna_bryla_zachowana=tak");
         }
-        var rect=Rect.MinMaxRect(place.x-place.w*.49f,place.z-place.d*.49f,
-                                 place.x+place.w*.49f,place.z+place.d*.49f);
-        float above=monument.transform.position.y+25f*K;
-        int removed=0,unverified=0;
-        foreach(var other in ndBudynki.Where(x=>x && x!=monument))
-        foreach(var renderer in other.GetComponentsInChildren<Renderer>(true))
-        {
-            if (!renderer || !renderer.enabled) continue;
-            var bounds=renderer.bounds;
-            float overlapX=Mathf.Min(bounds.max.x,rect.xMax)-Mathf.Max(bounds.min.x,rect.xMin);
-            float overlapZ=Mathf.Min(bounds.max.z,rect.yMax)-Mathf.Max(bounds.min.z,rect.yMin);
-            if (overlapX<10f || overlapZ<5f || bounds.min.y<above ||
-                bounds.size.y>16f || bounds.size.x*bounds.size.z<160f) continue;
-            string names=string.Join("|",renderer.sharedMaterials.Where(m=>m).Select(m=>m.name));
-            bool modern=names.IndexOf("glass",StringComparison.OrdinalIgnoreCase)>=0 ||
-                        names.IndexOf("black",StringComparison.OrdinalIgnoreCase)>=0 ||
-                        names.IndexOf("metal",StringComparison.OrdinalIgnoreCase)>=0 ||
-                        names.IndexOf("szkło",StringComparison.OrdinalIgnoreCase)>=0;
-            if (!modern) { unverified++; continue; }
-            // LODGroup potrafi ponownie włączyć renderer.enabled, dlatego
-            // wyłączamy tylko pojedynczy liść GameObject (nie cały model).
-            if (renderer.transform.childCount != 0)
-            { unverified++; continue; }
-            renderer.gameObject.SetActive(false);
-            foreach(var col in renderer.GetComponents<Collider>()) col.enabled=false;
-            removed++;
-            NdLog("NADWIESZENIE_ZDJETE "+other.name+"/"+renderer.name+
-                  " "+bounds.center.ToString("F1"));
-        }
-        NdLog("KAMIENICA_HISTORYCZNA osobne_nadwieszenia_usuniete="+removed+
-              " nierozpoznane="+unverified+" kamienica_zachowana=tak");
-        if (removed==0)
-            NdLog("DO POPRAWKI: brak osobnej siatki nowoczesnego nadwieszenia nad KINNAIRD; bez wycinania oryginału");
+        NdLog("ZABYTKI_UKŁADU stare=" + historicFound +
+              " nadwieszenia_zdjęte=" + allRemoved +
+              " nierozpoznane=" + allUnverified);
+        if (allRemoved == 0)
+            NdLog("DO POPRAWKI: brak osobnej siatki nowoczesnego nadwieszenia; " +
+                  "bez wycinania historycznych dachów — wymaga audytu sceny");
     }
 
     // WŁAŚCICIEL 3.11 10:12–10:19 (nagrania): „czarne budynki, gdzie są okna”. W modelach Sketchfaba szkło fasad było
