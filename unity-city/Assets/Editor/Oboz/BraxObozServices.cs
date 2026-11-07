@@ -370,7 +370,9 @@ public static class BraxObozServices
         }
         var mid=OriginalLodSubset(all,.72f);
         var far=OriginalLodSubset(all,.38f);
-        var lod=root.GetComponent<LODGroup>()??root.AddComponent<LODGroup>();
+        var lod=root.GetComponent<LODGroup>();
+        if(!lod)lod=root.AddComponent<LODGroup>();
+        if(!lod)throw new MissingComponentException("Nie można dodać LODGroup do "+root.name);
         lod.fadeMode=LODFadeMode.CrossFade;lod.animateCrossFading=true;
         lod.SetLODs(new[]{
             new LOD(.16f,all),
