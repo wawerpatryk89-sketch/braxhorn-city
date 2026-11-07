@@ -19,18 +19,21 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         self.assertIn('Original estate car_rev GLB has no visible geometry', builder)
         self.assertNotIn("GameObject.CreatePrimitive(PrimitiveType.Cube)", builder)
 
-    def test_single_car_stands_in_estate_parking_bay_with_open_aisle(self):
+    def test_single_car_stands_right_of_entrance_at_real_metre_scale(self):
         builder = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs")
         explore = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsExplorer.cs")
         self.assertIn('BraxChampionsCarBuilder.Generate(rig.transform)', explore)
         self.assertIn('FindObjectsByType<BraxChampionsCar>', builder)
-        self.assertIn('562.45f, .16f, 711f', builder)
-        # Check car's 4.95m x ~2m footprint against west parking x[-100,-30]
-        # z[-109,-85] relative to (600,800). No invented physical barriers.
-        x, z = 562.45 - 600, 711 - 800
+        self.assertIn('637.55f, .16f, 711f', builder)
+        self.assertIn('float uniform = LengthMetres / bounds.size.z;', builder)
+        self.assertNotIn('LengthMetres * K / bounds.size.z', builder)
+        self.assertIn('car.interactionRadius = 3.8f;', builder)
+        # Check car's 4.95m x ~2m footprint against east parking x[30,100]
+        # z[-109,-85] relative to (600,800). Driver side faces the public connector.
+        x, z = 637.55 - 600, 711 - 800
         car_half_length = 4.95/2
-        self.assertGreater(x - 1.3, -100)
-        self.assertLess(x + 1.3, -30)
+        self.assertGreater(x - 1.3, 30)
+        self.assertLess(x + 1.3, 100)
         self.assertGreater(z - car_half_length, -109)
         self.assertLess(z + car_half_length, -85)
         self.assertNotIn('new GameObject("Invisible', builder)
@@ -74,7 +77,7 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         self.assertIn("BraxChampionsBeltShowcase.Generate(root)", arena)
         self.assertNotIn('return Trophy(root,', arrival)
         for value in ("granite_tile", "Black marble pillar behind the showcase", "Gold LED top frame long", "Bronze vertical slat ", "BRAXHORN_ARENA_CASE_PLAQUE.jpg",
-                      "A1_RealRhombus_GraniteStone", "MeshCollider",
+                      "A1_RealRhombus_GraniteStone", "Podium(display, marble, gold)", "MeshCollider",
                       "OriginalBelt(display)", "OriginalRectangleArtwork(display"):
             self.assertIn(value, box)
         self.assertIn("UnityEngine.Object.DestroyImmediate(cube.GetComponent<Collider>())", box)
