@@ -90,8 +90,8 @@ class R1PremiumDistrictFacades(unittest.TestCase):
         self.assertIn("new LOD(.006f, bryla)", SOURCE)
 
     def test_historic_cleanup_only_removes_isolated_modern_overhang(self):
-        self.assertIn('b.name=="Budynek KINNAIRD"', SOURCE)
-        self.assertIn("width < 10f", SOURCE)
+        self.assertRegex(SOURCE, r'FirstOrDefault\(x=>x\s*&&\s*x\.name=="Budynek KINNAIRD"')
+        self.assertIn("overlapX<10f", SOURCE)
         self.assertIn("bounds.size.y>16f", SOURCE)
         self.assertIn('if (!modern) { unverified++; continue; }', SOURCE)
         self.assertIn('if (renderer.transform.childCount != 0)', SOURCE)
