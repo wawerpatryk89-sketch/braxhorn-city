@@ -268,24 +268,142 @@ internal static partial class BraxMiastoWyspa
             // prysznic obok przebieralni
             var pr = c + rg * 3.6f * K; pr.y = Y(pr.x, pr.z); BraxNabrzezeMebel.Prysznic(z, str, m, pr, rot.eulerAngles.y); Zajmij(pr, 1f);
         }
-        // WC (budynek murowany z dwojgiem drzwi)
+        // DWA WC PREMIUM ZA deptakiem; stare WC (270°, 48m od morza)
+        // miało pełną bryłę ściany przez środek drzwi i kolizję całego budynku.
+        // Nowe pawilony są odrębne, z otwartym wejściem i dojściem bocznym.
         {
-            float ang = 270f; var c = Zaplecze(ang, 48f); var rot = KuMorzu(ang); var fw = rot * Vector3.forward; var rg = rot * Vector3.right;
-            float w = 5f * K, d = 3.5f * K, h = 2.8f * K;
-            float y0 = W; for (float a = -1; a <= 1; a += 1) for (float b = -1; b <= 1; b += 1) { var q = c + rg * a * w * .5f + fw * b * d * .5f; y0 = Mathf.Max(y0, Y(q.x, q.z)); }
-            y0 += .15f; float yMin = Mathf.Min(Y(c.x - w, c.z - d), Y(c.x + w, c.z + d), Y(c.x, c.z)) - .3f;
-            z[BraxNabrzeze.Kolor("Wyspa: cokół WC (beton)", new Color(.6f, .6f, .58f), .9f)].Box(new Vector3(c.x, (yMin + y0) * .5f, c.z), new Vector3(w + .1f, y0 - yMin, d + .1f), rot);
-            z[tynk].Box(new Vector3(c.x, y0 + h * .5f, c.z), new Vector3(w, h, d), rot);
-            z[dach].Box(new Vector3(c.x, y0 + h + .08f, c.z), new Vector3(w + .6f, .16f, d + .6f), rot);
-            foreach (float o in new[] { -1f, 1f })
+            var fasada = BraxMiastoA.Tex("Wyspa WC premium: tynk PBR", 2f,
+                new Color(.96f,.95f,.93f), new Color(.91f,.91f,.89f), .7f,
+                "white_plaster_02", "rectangular_facade_tiles");
+            var sciana = BraxMiastoA.Tex("Wyspa WC premium: płytki ścian PBR", 1.1f,
+                new Color(.95f,.96f,.95f), new Color(.91f,.92f,.91f), .4f,
+                "rectangular_facade_tiles", "square_tiles");
+            var posadzka = BraxMiastoA.Tex("Wyspa WC premium: granit posadzki", 1f,
+                new Color(.85f,.85f,.84f), new Color(.75f,.75f,.73f), .58f,
+                "granite_tile_02", "granite_tile");
+            var cokol = BraxMiastoA.Tex("Wyspa WC premium: cokół kamienny", 1.3f,
+                new Color(.68f,.67f,.65f), new Color(.55f,.54f,.52f), .68f,
+                "granite_tile_02", "concrete_wall_008");
+            var dachP = BraxMiastoA.Tex("Wyspa WC premium: dach grafit PBR", 2f,
+                new Color(.35f,.36f,.37f), new Color(.28f,.29f,.30f), .65f,
+                "concrete_wall_008", "granite_tile_02");
+            var ceramika = BraxMiastoA.Tex("Wyspa WC premium: ceramika sanitarna", .55f,
+                new Color(.98f,.98f,.97f), new Color(.96f,.96f,.95f), .18f,
+                "marble_01", "granite_tile");
+            var chrom = BraxNabrzeze.Kolor("Wyspa WC premium: chrom", new Color(.75f,.78f,.8f), .25f, .88f);
+            var rama = BraxNabrzeze.Kolor("Wyspa WC premium: aluminium grafit", new Color(.12f,.13f,.14f), .4f, .65f);
+            var napis = BraxNabrzeze.Kolor("Wyspa WC premium: litery", new Color(.94f,.95f,.92f), .45f);
+            var bokLit = BraxNabrzeze.Kolor("Wyspa WC premium: boki liter", new Color(.08f,.09f,.1f), .55f);
+            int ileWC = 0;
+            foreach (var (kat, tytul, id) in new[] {
+                (222f, "WC DAMSKIE", "wyspa_wc_damskie"),
+                (320f, "WC MĘSKIE", "wyspa_wc_meskie") })
             {
-                var dp = new Vector3(c.x, y0, c.z) + rg * o * w * .25f + fw * (d * .5f + .025f);
-                z[drzwi].Box(dp + Vector3.up * 1.05f * K, new Vector3(.9f * K, 2.1f * K, .05f), rot);
-                BraxUliceKit.Napis3D(o < 0 ? "WC DAMSKI" : "WC MĘSKI", dp + Vector3.up * (2.1f * K + .25f) + fw * .02f, fw, .16f, .015f, BraxMiastoA.Mat("Wyspa: litery granat", new Color(.1f, .16f, .3f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
+                const float odWodyWC = 70f; // deptak w odległości 38m, WC za nim
+                var c = Zaplecze(kat, odWodyWC);
+                var rot = KuMorzu(kat); var fw = rot * Vector3.forward;
+                float w = 6.2f*K, d = 4.6f*K, h = 3f*K, wallT = .15f*K;
+                float drzW = 1.85f*K, drzH = 2.20f*K;
+                float lo = float.PositiveInfinity, hi = float.NegativeInfinity;
+                foreach (float xx in new[] { -w*.5f, 0f, w*.5f })
+                foreach (float zz in new[] { -d*.5f, 0f, d*.5f })
+                {
+                    var p = c + rot * new Vector3(xx,0f,zz);
+                    lo = Mathf.Min(lo,Y(p.x,p.z)); hi = Mathf.Max(hi,Y(p.x,p.z));
+                }
+                float y0 = hi + .13f;
+                var baseWC = new Vector3(c.x,y0,c.z);
+                Vector3 P(float x,float y,float zz) => baseWC + rot * new Vector3(x,y,zz);
+                void Piece(Material mat,string tag,float x,float y,float zz,
+                           float ww,float hh,float dd,bool solid)
+                {
+                    var p = P(x,y,zz);
+                    z[mat].Box(p,new Vector3(ww,hh,dd),rot);
+                    if (solid) BraxNabrzeze.Kol(kol,tag+" "+id,p,new Vector3(ww,hh,dd),rot.eulerAngles.y);
+                }
+                float sub=.15f, below=lo-.25f;
+                Piece(cokol,"cokół",0f,(below+y0-sub)*.5f-y0,0f,w+.12f,
+                    y0-sub-below,d+.12f,true);
+                Piece(posadzka,"posadzka",0f,-sub*.5f,0f,w,sub,d,true);
+                // Ściany są wyłącznie dookoła; otwór >2.3m ma wolne collider.
+                Piece(fasada,"tylna ściana",0f,h*.5f,-d*.5f+wallT*.5f,w,h,wallT,true);
+                Piece(fasada,"lewa ściana",-w*.5f+wallT*.5f,h*.5f,0f,
+                    wallT,h,d-2*wallT,true);
+                Piece(fasada,"prawa ściana",w*.5f-wallT*.5f,h*.5f,0f,
+                    wallT,h,d-2*wallT,true);
+                float side=(w-2*wallT-drzW)*.5f;
+                Piece(fasada,"front lewy",-(drzW+side)*.5f,h*.5f,d*.5f-wallT*.5f,
+                    side,h,wallT,true);
+                Piece(fasada,"front prawy",(drzW+side)*.5f,h*.5f,d*.5f-wallT*.5f,
+                    side,h,wallT,true);
+                Piece(fasada,"nadproże",0f,drzH+(h-drzH)*.5f,d*.5f-wallT*.5f,
+                    drzW,h-drzH,wallT,true);
+                Piece(rama,"ościeżnica L",-(drzW*.5f+.055f),drzH*.5f,d*.5f+.012f,
+                    .05f,drzH,.06f,false);
+                Piece(rama,"ościeżnica P",drzW*.5f+.055f,drzH*.5f,d*.5f+.012f,
+                    .05f,drzH,.06f,false);
+                Piece(rama,"nadproże rama",0f,drzH+.033f,d*.5f+.012f,
+                    drzW+.12f,.066f,.06f,false);
+                Piece(dachP,"dach",0f,h+.11f,0f,w+.65f,.22f,d+.65f,false);
+                Piece(sciana,"sufit",0f,h-.045f,0f,w-2*wallT,.035f,d-2*wallT,false);
+                // Dwie kabiny, wejścia dostępne od głównej części pomieszczenia.
+                Piece(sciana,"przegroda kabin",0f,h*.40f,-d*.26f,
+                    .12f,h*.80f,d*.43f,true);
+                for (float sideWC=-1f;sideWC<=1f;sideWC+=2f)
+                {
+                    // Profilowane misy i umywalki zamiast betonowych atrap.
+                    var tp = P(sideWC*w*.25f,.04f,-d*.24f);
+                    var muszla = new UlSiatka();
+                    Toczenie(muszla,new[] {
+                        new Vector2(.12f,0),new Vector2(.24f,.03f),
+                        new Vector2(.27f,.19f),new Vector2(.34f,.35f),
+                        new Vector2(.33f,.43f),new Vector2(.24f,.46f),
+                        new Vector2(.18f,.44f)
+                    },tp,24,1.05f,1.3f,fw);
+                    BraxMiastoA.Obiekt(str,"WC PREMIUM muszla "+id, muszla,ceramika,false);
+                    z[ceramika].Box(P(sideWC*w*.25f,.52f,-d*.43f),
+                        new Vector3(.58f,.77f,.20f),rot);
+                    BraxNabrzeze.Kol(kol,"WC premium misa "+id,tp+Vector3.up*.35f,
+                        new Vector3(.70f,.7f,.88f),rot.eulerAngles.y);
+                    var um=P(sideWC*(w*.5f-.58f),1f,d*.08f);
+                    var zlew=new UlSiatka();
+                    Toczenie(zlew,new[] {
+                        new Vector2(.04f,0f),new Vector2(.18f,.02f),
+                        new Vector2(.28f,.055f),new Vector2(.32f,.12f),
+                        new Vector2(.28f,.16f),new Vector2(.18f,.14f)
+                    },um,22,1f,.82f,fw);
+                    BraxMiastoA.Obiekt(str,"WC PREMIUM umywalka "+id,zlew,ceramika,false);
+                    z[chrom].Rura(um+Vector3.up*.15f-fw*.12f,um+Vector3.up*.36f-fw*.12f,.018f,10);
+                    z[chrom].Rura(um+Vector3.up*.36f-fw*.12f,um+Vector3.up*.36f+fw*.02f,.018f,10);
+                }
+                BraxUliceKit.Napis3D(tytul,P(0f,drzH+.36f,d*.5f+.16f),
+                    fw,.18f,.022f,napis,bokLit);
+                var wej=P(0f,.03f,d*.5f+1f);
+                Miejsca[id]=wej;
+                if (ileWC==0) Miejsca["wyspa_wc"]=wej; // zgodność starych punktów misji
+                Zajmij(baseWC,Mathf.Max(w,d)*.7f+.9f);
+                // Boczny deptak dochodzi do wejścia. WC nie znajduje się NA nim.
+                var cel=new Vector3(CX,0f,CZ)+fw*(LiniaWody(kat)-38f);
+                var naj=pts.OrderBy(p=>RzutXZ(p,cel)).First();
+                var pocz=naj-fw*hw;pocz.y=naj.y;
+                var dojscie=new List<Vector3>{pocz};
+                float dl=RzutXZ(pocz,wej);
+                int n=Mathf.Max(1,Mathf.CeilToInt(dl/1f));
+                for(int k=1;k<=n;k++)
+                {
+                    float q=k/(float)n;
+                    var p=Vector3.Lerp(pocz,wej,q);
+                    p.y=Mathf.Max(p.y,Y(p.x,p.z)+.11f);
+                    dojscie.Add(p);
+                }
+                DeptakSpojny(z,deski,legar,dojscie,1.05f*K,
+                    "Dojscie boczne do WC premium "+id);
+                ileWC++;
+                Debug.Log("BRAXHORN_WYSPA_WC_PREMIUM "+id+
+                    " od_wody="+odWodyWC+"m swiatlo_wejscia="+drzW.ToString("F2")+
+                    "m dojscie="+dl.ToString("F1")+"m");
             }
-            BraxNabrzeze.Kol(kol, "WC plaży", new Vector3(c.x, y0 + h * .5f, c.z), new Vector3(w, h, d), rot.eulerAngles.y);
-            Zajmij(c, Mathf.Max(w, d) * .7f);
-            Miejsca["wyspa_wc"] = c + fw * (d * .5f + 1.2f);
+            if (ileWC!=2) Debug.LogWarning("BRAXHORN_WYSPA_WC_PREMIUM DO POPRAWKI: wymagane dwa pawilony");
         }
         // WYPOŻYCZALNIA: kiosk z ladą, stojak z deskami SUP, rowerki wodne przy wodzie
         {
@@ -363,7 +481,7 @@ internal static partial class BraxMiastoWyspa
                 if (Mathf.Sqrt(x * x + zz * zz) < LiniaWody(ang) - 44f) continue;
                 plazaM2 += 4f;
             }
-        BraxMiastoA.Log("WYSPA plaża premium: deptak z desek " + mDeptakuPlazy.ToString("F0") + " m, kładek do ratowników " + wiezyczki.Count + ", przebieralni " + nPrzebieralnie + ", WC 1, wypożyczalnia 1 (deski SUP " + nDeski + ", rowerki wodne " + nRowerki + "), bar na plaży 1, latarni " + nLatarnie + ", ławek " + nLawki + ", koszy " + nKosze + ", kąpiących się " + nKapiacy + ", plaża " + plazaM2.ToString("F0") + " m²");
+        BraxMiastoA.Log("WYSPA plaża premium: deptak z desek " + mDeptakuPlazy.ToString("F0") + " m, kładek do ratowników " + wiezyczki.Count + ", przebieralni " + nPrzebieralnie + ", WC premium 2, wypożyczalnia 1 (deski SUP " + nDeski + ", rowerki wodne " + nRowerki + "), bar na plaży 1, latarni " + nLatarnie + ", ławek " + nLawki + ", koszy " + nKosze + ", kąpiących się " + nKapiacy + ", plaża " + plazaM2.ToString("F0") + " m²");
     }
     static float plazaM2;
 
