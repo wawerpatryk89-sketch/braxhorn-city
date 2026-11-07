@@ -17,7 +17,7 @@ using UnityEngine.SceneManagement;
 // woda i słońce. Drzwi działają przez rejestr BraxCityDoor.All. Doczytywanie: BraxObszary (runtime).
 public static class BraxClaudeObszary
 {
-    static readonly Type[] Zostaja = { typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(Camera), typeof(BraxObszary), typeof(BraxCityElevator), typeof(BraxVessel), typeof(BraxNutritionCounter) };
+    static readonly Type[] Zostaja = { typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(Camera), typeof(BraxObszary), typeof(BraxCityElevator), typeof(BraxVessel), typeof(BraxNutritionCounter), typeof(BraxMetro3StopRide) };
 
     static bool MaZostajace(Transform t) => Zostaja.Any(z => t.GetComponentInChildren(z, true));
 

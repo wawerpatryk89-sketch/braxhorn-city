@@ -33,18 +33,10 @@ public static class BraxCitySystemsValidation
                 if(float.IsNaN(v.x)||float.IsNaN(v.y)||float.IsNaN(v.z)||float.IsInfinity(v.x)||float.IsInfinity(v.y)||float.IsInfinity(v.z))
                     throw new InvalidOperationException("Non finite detail geometry "+filter.name);
         }
-        Physics.SyncTransforms();
-        // These raycasts specifically catch an uncut original sidewalk/virtual
-        // floor covering the newly built stairwell. They are not a playtest.
-        for(int i=0;i<20;i++)
-        {
-            float z=35f+(i+.5f)*.44f, expected=.15f-(i+1)*.17f;
-            if(!Physics.Raycast(new Vector3(78.9f,2.5f,z),Vector3.down,out var hit,8f,~(1<<8),QueryTriggerInteraction.Ignore) || Mathf.Abs(hit.point.y-expected)>.025f)
-                throw new InvalidOperationException("Metro stair "+i+" obstructed or missing: old pavement/virtual floor must be cut");
-        }
-        var vestibule=new Vector3(78f,BraxCitySystemsBuild.MetroFloorY+.08f,46.5f);
-        if(Physics.Raycast(vestibule,Vector3.up,out var ceiling,2.9f,~(1<<8),QueryTriggerInteraction.Ignore))
-            throw new InvalidOperationException("Metro vestibule headroom blocked by "+ceiling.collider.name);
-        Debug.Log("BRAX_CITY_SYSTEMS_SOURCE_CHECKS signalRules="+signalChecks+" reserves=11 stairRays=20; not a physical phone or visual acceptance");
+        // Stara stacja G5 nie jest już wytwarzana: dawne sondy schodów
+        // nie mogą odrzucić nowej linii. Kontrola 3 stacji i ciągłości torów
+        // jest w BraxMetroLine3Build.KontrolaPrzejscia() po budowie miasta.
+        Debug.Log("BRAX_CITY_SYSTEMS_SOURCE_CHECKS signalRules="+signalChecks+
+            " reserves=11 metro=M1_3_stacje_oddzielny_audyt; nie jest to test Androida");
     }
 }

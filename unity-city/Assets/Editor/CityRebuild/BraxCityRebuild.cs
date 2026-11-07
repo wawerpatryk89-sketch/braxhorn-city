@@ -173,17 +173,9 @@ public static class BraxCityRebuild
         Cut(original,physics,Box(19.60f,21.80f,.12f,2.90f,20.30f,21.45f),
             "nutrition_real_source_entrance");
         BraxCityVenueDoors.Apply(world,root);
-        var metro=BraxCitySystemsBuild.MetroExcavation;
-        Cut(original,physics,Box(metro.xMin,metro.xMax,-4,.5f,metro.yMin,metro.yMax),"metro_excavation");
-        // The station is an actual underground volume, not an overlay below
-        // the source's solid virtual y=0 ground. Remove only the exact
-        // corridor and platform air volumes, leaving all other city geometry.
-        // The station builder replaces the ground cover with a load-bearing
-        // roof and the lower floor with source-library stone.
-        Cut(original,physics,Box(74.9f,80.8f,-3.52f,.12f,49.7f,54.05f),
-            "G5_access_corridor_void");
-        Cut(original,physics,Box(69.7f,85.6f,-3.55f,.12f,54.0f,72.2f),
-            "G5_station_platform_and_tracks_void");
+        // Stare wycięcia G5/ślepa stacja M1 usunięte z przebiegu budowy.
+        // Nowe otwory wszystkich 3 stacji są wycinane dopiero po pełnym
+        // wygenerowaniu ulic i budynków, wyłącznie przez BraxMetroLine3Build.
         var stone=BraxCityMaterials.Surface("Metro limestone",new Color(.55f,.55f,.51f),.93f);
         var concrete=BraxCityMaterials.Surface("Metro fair-faced concrete",new Color(.5f,.51f,.49f),.95f);
         var metal=BraxCityMaterials.Surface("City brushed steel",new Color(.2f,.22f,.23f),.48f,.55f);
@@ -237,13 +229,16 @@ public static class BraxCityRebuild
         BraxClaudeGround.ReplaceGrass(root);
         BraxClaudeTrees.Apply(root);
         BraxClaudeCourts.Apply(root);
-        BraxClaudeMetro.Apply(root);
+        // Stary pojedynczy peron Claude M1 nie jest już wywoływany.
         BraxNutritionShopBuild.Apply(world,original,physics,root);
         // Wyposażenie klubu NOVA (tylko testowy build Claude, ENABLE_TEST_BUILD.txt).
         BraxClaudeNovaClub.Apply();
         BraxClaudeVenues.Apply();
         // Region R1 na gotowo (Claude, gałąź claude/region-20261030): pawilon, taras, wnętrza, zieleń, anty-migotanie.
         BraxRegion.Apply(world,root);
+        // Wprowadź NOWĄ linię po wszystkich chodnikach, również dzielnicach B.
+        // Stare wejście i 2 stare stacje nie mogą nałożyć się na 3 nowe stacje.
+        BraxMetroLine3Build.Apply(root);
         BraxClaudeGround.Save();
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
             Debug.LogWarning("DO POPRAWKI: Gym doorway integration boundary changed unexpectedly");

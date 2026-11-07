@@ -38,12 +38,12 @@ public static class BraxCitySystemsBuild
         var catalogue = PrepareReservations(world,root);
         var controller = BuildSignals(world,root,concrete);
         BuildCrossing(root,stone,concrete);
-        BuildMetro(root,stone,concrete,metal);
+        // G5 całkowicie wyłączona. Nowa linia M1 3 stacje budowana na końcu renowacji R1.
         var telemetry = root.gameObject.AddComponent<BraxCitySystemsTelemetry>();
         telemetry.world=world; telemetry.traffic=controller; telemetry.catalogue=catalogue;
         BraxCitySystemsValidation.Validate(world,catalogue,controller,root);
         AssetDatabase.SaveAssets();
-        Debug.Log("BRAX_CITY_SYSTEMS_PREPARED reserves="+catalogue.reservations.Length+" metroFootprint="+MetroExcavation+"; runtime/visual validation still required");
+        Debug.Log("BRAX_CITY_SYSTEMS_PREPARED reserves="+catalogue.reservations.Length+" metro=stara_G5_wylaczona_nowa_M1_po_zabudowie; runtime/visual validation still required");
     }
 
     private static Material Copy(Material source, string name, Color color)

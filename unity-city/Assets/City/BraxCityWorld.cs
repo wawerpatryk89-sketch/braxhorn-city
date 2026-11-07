@@ -44,6 +44,7 @@ public sealed class BraxCityWorld : MonoBehaviour
         {
             if(loading)return "WCZYTYWANIE DZIELNICY…";
             var p=player.transform.position;
+            if(player.metroRide)return player.metroRide.PassengerContext;
             if(player.vessel)return "WYSIĄDŹ · "+player.vessel.label;   // 2.11: „wsiądź” / „wysiądź” (łódź)
             if(player.seat)return "WSTAŃ";
             var vessel=BraxVessel.Nearest(p,3.2f);
@@ -101,6 +102,7 @@ public sealed class BraxCityWorld : MonoBehaviour
     {
         if(loading)return true;
         var p=player.transform.position;
+        if(player.metroRide){player.metroRide.TryAlight();return true;}
         if(player.vessel){player.vessel.Dismount();return true;}
         if(player.seat){player.seat.Leave();return true;}
         var vessel=BraxVessel.Nearest(p,3.2f);
