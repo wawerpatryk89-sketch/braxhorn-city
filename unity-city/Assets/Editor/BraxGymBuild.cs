@@ -112,7 +112,7 @@ public static class BraxGymBuild
             else{PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,useDefault);if(!useDefault)PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,apis);}
             AssetDatabase.SaveAssets();
             var tApk=DateTime.UtcNow;
-            var r=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=v.scenes,target=BuildTarget.Android,locationPathName=Path.Combine(output,"braxhorn-"+v.tag+".apk"),options=BuildOptions.None});
+            var r=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=v.scenes,target=BuildTarget.Android,locationPathName=Path.Combine(output,"braxhorn-"+v.tag+".apk"),options=BuildOptions.CompressWithLz4});
             BraxRejonBuildu.Czas("apk_"+v.tag,tApk);
             SizeReport(r);
             try{File.Copy(Path.Combine(Generated,"build-size.txt"),Path.Combine(Generated,"build-size-"+v.tag+".txt"),true);}catch{}
@@ -151,7 +151,24 @@ public static class BraxGymBuild
             if(lower.Contains("sand")||lower.Contains("tatami")||lower.Contains("leather")||lower.Contains("mural")||lower.Contains("terry")||lower.Contains("linen")||lower.Contains("gingham")){kept++;continue;}
             var imp=AssetImporter.GetAtPath(path) as TextureImporter;if(!imp)continue;
             var ps=imp.GetPlatformTextureSettings(platform);
-            if(ps.overridden&&ps.maxTextureSize==maxClosePixels)continue;
+            // Streaming works only with generated mipmaps AND importer opt-in.
+            // Apply it to ordinary static PBR surfaces, not sprites, water,
+            // procedural/blended terrain, reflection maps or 3D art signage.
+            bool staticPbr = target==BuildTarget.Android &&
+                (imp.textureType==TextureImporterType.Default ||
+                 imp.textureType==TextureImporterType.NormalMap) &&
+                imp.textureShape==TextureImporterShape.Texture2D &&
+                !new[]{"/brand/","billboard","atlas","logo","sign","sky","water","ocean",
+                    "foam","grass","terrain","foliage","leaf","tree","reflection"}.Any(lower.Contains);
+            bool streamingChanged = staticPbr &&
+                (!imp.mipmapEnabled || !imp.streamingMipmaps);
+            if(staticPbr)
+            {
+                imp.mipmapEnabled=true;
+                imp.streamingMipmaps=true;
+            }
+            bool platformChanged=!ps.overridden || ps.maxTextureSize!=maxClosePixels;
+            if(!platformChanged&&!streamingChanged)continue;
             ps.name=platform;ps.overridden=true;ps.maxTextureSize=maxClosePixels;
             if(ps.compressionQuality>50)ps.compressionQuality=50;
             imp.SetPlatformTextureSettings(ps);imp.SaveAndReimport();changed++;
@@ -542,7 +559,7 @@ public static class BraxGymBuild
         else
         {
             var tb=DateTime.UtcNow;
-            result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=target,locationPathName=location,options=BuildOptions.None});
+            result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=target,locationPathName=location,options=target==BuildTarget.Android?BuildOptions.CompressWithLz4:BuildOptions.None});
             BraxRejonBuildu.Czas(target==BuildTarget.Android?"apk":"webgl",tb);
             SizeReport(result);
         }

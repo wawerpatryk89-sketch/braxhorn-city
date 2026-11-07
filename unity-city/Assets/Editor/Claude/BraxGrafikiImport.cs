@@ -24,10 +24,11 @@ public sealed class BraxGrafikiImport : AssetPostprocessor
         ti.wrapMode = TextureWrapMode.Clamp;
         ti.filterMode = FilterMode.Bilinear;
         ti.anisoLevel = ekran ? 0 : 4;
-        // Billboardy 1024, mural wewnętrzny 02 do 2048, pełnościenny mural 19 do 4096 (bez interpolowania źródła).
+        // 2K z bliska dla billboardów; pełnościenny zatwierdzony mural 19
+        // pozostaje 4K. Graficzny ekran menu nie używa streamingu.
         string plik = System.IO.Path.GetFileNameWithoutExtension(assetPath);
-        bool zBliska = ekran || plik == "02" || plik == "19";
-        ti.maxTextureSize = plik == "19" ? 4096 : zBliska ? 2048 : 1024;
+        ti.maxTextureSize = plik == "19" ? 4096 : 2048;
+        ti.streamingMipmaps = !ekran && plik != "19";
         ti.isReadable = false;
         ti.textureCompression = TextureImporterCompression.CompressedHQ;
         var a = ti.GetPlatformTextureSettings("Android");

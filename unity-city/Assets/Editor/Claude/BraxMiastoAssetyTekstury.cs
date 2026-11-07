@@ -14,7 +14,8 @@ public sealed class BraxMiastoAssetyTekstury : AssetPostprocessor
         var t = (TextureImporter)assetImporter;
         t.textureType = TextureImporterType.Default;
         t.sRGBTexture = !System.IO.Path.GetFileNameWithoutExtension(assetPath).EndsWith("__lin");
-        t.mipmapEnabled = true; t.isReadable = false; t.anisoLevel = 4;
+        t.mipmapEnabled = true; t.streamingMipmaps = true;
+        t.isReadable = false; t.anisoLevel = 4;
         t.alphaSource = TextureImporterAlphaSource.FromInput; t.alphaIsTransparency = false;
         // 3.11 (właściciel: „kontenerowiec… jest 4K”): statki HD (paczki miasto_statki*) — kolory 4096, dane 2048, wyższa jakość kompresji
         bool hd = assetPath.Contains("/Miasto/miasto_statki"), dane = System.IO.Path.GetFileNameWithoutExtension(assetPath).EndsWith("__lin");
