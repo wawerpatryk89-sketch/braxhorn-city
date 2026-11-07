@@ -72,11 +72,14 @@ class R1StreetSafety(unittest.TestCase):
         self.assertIn('IsCandidate(tr,originalName,out bool street', LAMPS)
 
     def test_lamp_arm_is_aimed_toward_actual_road(self):
-        self.assertIn("NaJezdni(probeA)",B)
-        self.assertIn("NaJezdni(probeB)",B)
+        # Probe incrementally across the green strip, not just two stale points.
+        self.assertIn("float maxProbe = Mathf.Max(9f, wysieg + 4f);",B)
+        self.assertIn("bool JezdniaPoStronie(Vector3 strona)",B)
+        self.assertIn("if (NaJezdni(p + strona * d)) return true;",B)
+        self.assertIn("bool frontRoad = JezdniaPoStronie(dir), backRoad = JezdniaPoStronie(-dir);",B)
         self.assertIn("if (!frontRoad && backRoad)",B)
         self.assertIn("dir = -dir;",B)
-        self.assertIn("DO WERYFIKACJI: nie znaleziono jezdni",B)
+        self.assertIn("DO WERYFIKACJI: brak jezdni w promieniu",B)
 
     def test_all_city_lamps_are_discovered_and_scanned(self):
         self.assertIn("foreach(var root in roots)",LAMPS)
