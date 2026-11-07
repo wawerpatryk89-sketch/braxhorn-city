@@ -15,7 +15,7 @@ spec.loader.exec_module(source)
 
 class NativeCasino2KTests(unittest.TestCase):
     def test_all_casino_textures_are_native_2k(self):
-        self.assertEqual(len(source.SLUGS),7)
+        self.assertEqual(len(source.SLUGS),8)
         self.assertIn("concrete_brick_wall_001",source.SLUGS)
         self.assertNotIn("rectangular_facade_tiles_02",source.SLUGS)
         self.assertEqual(source.MAPS,(("diff","jpg"),("nor_gl","png"),("arm","png")))
@@ -35,7 +35,7 @@ class NativeCasino2KTests(unittest.TestCase):
         code=GENERATOR.read_text(encoding="utf-8")
         pbr=MATERIAL.read_text(encoding="utf-8")
         importer=IMPORTER.read_text(encoding="utf-8")
-        self.assertEqual(code.count("BraxChampionsCasinoPbr2K.Create("),8)
+        self.assertEqual(code.count("BraxChampionsCasinoPbr2K.Create("),9)
         self.assertIn('"t11_B1_black_asphalt"',code)
         self.assertIn('"clean_asphalt",2.1f,new Color(.40f,.40f,.41f)',code)
         self.assertNotIn("BraxChampionsFoundation.SourceMaterial(",code)
