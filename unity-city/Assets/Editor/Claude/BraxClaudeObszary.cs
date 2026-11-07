@@ -46,6 +46,9 @@ public static class BraxClaudeObszary
         var res = new List<Transform>();
         void Zbierz(Transform t)
         {
+            // Pociąg porusza się przez granice sektorów. Nie wolno wydzielać
+            // jego podmodelu osobno: wagon musiałby zniknąć po unload sektora.
+            if (t.GetComponent<BraxMetro3StopRide>()) return;
             if (!Granice(t, out var b)) return;
             if (obszar.Contains(b.min) && obszar.Contains(b.max) && !MaZostajace(t) && !(t.GetComponent<Light>() && t.GetComponent<Light>().type == LightType.Directional))
             { res.Add(t); return; }

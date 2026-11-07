@@ -56,8 +56,14 @@ public static class BraxMetroLine3Build
             W.Wyczysc();
             Materials();
             line = Group(cityRoot, "BRAXHORN M1 — TRZY STACJE");
-            // Wycięcia poniżej ulicy oraz TRZY rzeczywiste otwory w nawierzchni.
-            // Pociągi i przepisy materiałowe są współdzielone: bez kopii pełnego miasta.
+            W.Start(line); W.Komorka = 18f; W.Wnetrze = true;
+            TrackAndTunnel();
+            for (int i = 0; i < Stops.Length; i++) Station(i);
+            meshes = W.Zapisz("M1_3_stacje_tory_i_tunele");
+            AddTrains();
+            // Dopiero po zbudowaniu i zapisaniu kompletnych siatek wycinamy
+            // teren/kolizje oryginalnego miasta. Jeśli materiały lub model zawiodą
+            // wcześniej, nie pozostawimy pod miastem niezabudowanej dziury.
             // W.Otwor tnie również kolizje oryginalnego podłoża i późniejszych rejonów.
             opened += W.Otwor(cityRoot,
                 B(RouteMinX, RouteMaxX, -13.9f, -4.8f, 19.5f, 37.2f),
@@ -77,11 +83,6 @@ public static class BraxMetroLine3Build
                     "M1_3_wejscie_" + i, line);
             }
 
-            W.Start(line); W.Komorka = 18f; W.Wnetrze = true;
-            TrackAndTunnel();
-            for (int i = 0; i < Stops.Length; i++) Station(i);
-            meshes = W.Zapisz("M1_3_stacje_tory_i_tunele");
-            AddTrains();
             var visible = line.gameObject.AddComponent<BraxWidocznoscWnetrza>();
             visible.nazwa = "metro M1 TRZY STACJE";
             visible.strefy = new[] {
@@ -212,12 +213,15 @@ public static class BraxMetroLine3Build
         // Korytarz biegnący od dolnego podestu schodów ulicznych do schodów na peron.
         // Jeden ciągły korytarz łączy dolną krawędź pierwszego biegu (z=43)
         // z górą drugiego biegu na peron (z=28) — bez urwanego pomostu.
-        W.MM(platform, x - 9.5f, x - 6.0f, ConcourseY - .25f, ConcourseY,
-            26.50f, 44.50f, true);
-        W.MM(wall, x - 9.8f, x - 9.55f, ConcourseY, -1.97f,
-            29.65f, 41.1f, true);
-        W.MM(wall, x - 5.55f, x - 5.30f, ConcourseY, -1.97f,
-            30.0f, 41.1f, true);
+        // Jedyna posadzka holu: graniczy ze schodami x-6, nie nachodzi
+        // na ich stopnie. Zawiera ciągły odcinek od z43 do z28.
+        W.MM(platform, x - 8.5f, x - 6.0f, ConcourseY - .25f, ConcourseY,
+            26.88f, 44.35f, true);
+        W.MM(wall, x - 8.80f, x - 8.55f, ConcourseY, -1.97f,
+            26.88f, 44.35f, true);
+        // Otwory do obu schodów pozostają wolne przy z28 i z43.
+        W.MM(wall, x - 6.0f, x - 5.75f, ConcourseY, -1.97f,
+            30.0f, 41.60f, true);
         // Portal wejścia od ulicy: linia czołowa schodów przy x+6, z=43.
         W.MM(steel, x + 7.2f, x + 7.38f, StreetY, 3.4f, 41.25f, 41.42f, true);
         W.MM(steel, x + 7.2f, x + 7.38f, StreetY, 3.4f, 44.58f, 44.75f, true);
@@ -238,8 +242,7 @@ public static class BraxMetroLine3Build
         // Koniec płyty dokładnie w granicy wycięcia w chodniku (bez Z-fightingu).
         W.MM(tiles, x + 6f, x + 7.05f, StreetY - .14f, StreetY,
             41.65f, 44.35f, true);
-        W.MM(tiles, x - 8.4f, x - 6f, ConcourseY - .14f, ConcourseY,
-            41.65f, 44.35f, true);
+        // Spocznik jest częścią pojedynczej posadzki powyżej — nie nakładamy płytki.
 
         // Poręcze obu klatek schodowych, poza światłem ruchu Braxa.
         RailsForStairs(x + 6f, x - 6f, StreetY, ConcourseY, 41.58f, 44.42f);

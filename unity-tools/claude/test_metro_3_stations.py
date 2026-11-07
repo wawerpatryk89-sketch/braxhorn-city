@@ -59,12 +59,35 @@ class MetroM1ThreeStations(unittest.TestCase):
         self.assertIn('"M1_3_wejscie_" + i', BUILDER)
         self.assertIn('"M1_3_hala_" + i', BUILDER)
         self.assertIn('"M1_3_tunel_caly"', BUILDER)
-        self.assertIn("26.50f, 44.50f, true", BUILDER)
+        self.assertIn("26.88f, 44.35f, true", BUILDER)
         self.assertIn("41.20f, 44.80f, true", BUILDER)
         self.assertIn("Stair(x + 6f, x - 6f, StreetY, ConcourseY", BUILDER)
         self.assertIn("Stair(x - 6f, x + 11f, ConcourseY, PlatformY", BUILDER)
         self.assertIn("W.Rampa(", BUILDER)
         self.assertIn("podstopnicy", BUILDER)
+    def test_mezzanine_has_no_duplicate_landing_or_ceiling_across_stairwell(self):
+        # The street stair runs x+6 -> x-6 at z=43. Corridor starts exactly
+        # at x-6 and turns at z=28 to the platform stair; no duplicate slab.
+        self.assertIn("x - 8.5f, x - 6.0f, ConcourseY - .25f", BUILDER)
+        self.assertIn("26.88f, 44.35f, true", BUILDER)
+        self.assertNotIn("W.MM(tiles, x - 8.4f, x - 6f", BUILDER)
+        self.assertIn("41.20f, 44.80f, true", BUILDER)
+        self.assertIn("x + 7.2f, x + 11f, -1.95f", BUILDER)
+
+    def test_source_pits_cut_after_station_meshes_are_authored(self):
+        self.assertLess(
+            BUILDER.index('meshes = W.Zapisz("M1_3_stacje_tory_i_tunele")'),
+            BUILDER.index('opened += W.Otwor(cityRoot'))
+        )
+        self.assertLess(
+            BUILDER.index("AddTrains();"),
+            BUILDER.index('opened += W.Otwor(cityRoot')
+        )
+
+    def test_moving_train_cannot_be_split_from_its_mesh(self):
+        self.assertIn("typeof(BraxMetro3StopRide)", SECTORS)
+        self.assertIn("if (t.GetComponent<BraxMetro3StopRide>()) return;", SECTORS)
+
     def test_player_rides_train_without_character_controller(self):
         self.assertIn("public BraxMetro3StopRide metroRide;", PLAYER)
         self.assertIn("if(metroRide){speed=0f;vertical=0f;return;}", PLAYER)
