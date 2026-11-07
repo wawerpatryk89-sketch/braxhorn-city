@@ -182,16 +182,10 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             { usuniete.Add("wiadukt: " + Sciezka(t) + " (" + t.GetComponentsInChildren<Renderer>(true).Length + " rendererów)"); UnityEngine.Object.DestroyImmediate(t.gameObject); }
         }
         // b) kolizje oryginału w korytarzu wiaduktu (stare filary w fizyce źródła) — już wycięte w BraxCityRebuild (x −71.3…−61.1)
-        // c) płot końca ulicy (x −104.4…−104, z 19.6…37.1)
-        var plot = Bx(-105.2f, -103.85f, -1f, 4.5f, 19f, 38f);
-        foreach (var g in korzenie)
-            foreach (var r in g.GetComponentsInChildren<MeshRenderer>(true).ToList())
-            {
-                if (!r || Chroniony(r.transform)) continue;
-                var b = r.bounds;
-                if (plot.Contains(b.min) && plot.Contains(b.max) && b.size.x < 1.2f)
-                { usuniete.Add("płot końca ulicy: " + Sciezka(r.transform)); UnityEngine.Object.DestroyImmediate(r.gameObject); }
-            }
+        // c) PŁOT + SZLABAN PRZED PIERWSZYM RONDEM na głównej:
+        // Stary test plot.Contains(b.min/max) pomijał dłuższe ogrodzenie
+        // i osobne podpory. Chronimy asfalt, sklepy, oświetlenie i zebry.
+        UsunPlotPrzedPierwszymRondem(korzenie);
         // d) kreski osi ulicy głównej w obrębie nowego skrzyżowania (malowane od nowa: linia ciągła przed skrzyżowaniem)
         foreach (var t in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None).ToList())
             if (t && t.name == "Centre line dash" && t.position.x > -104.5f && t.position.x < WX + 26f)
@@ -239,6 +233,94 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
                 }
             }
         usuniete.Add("teren rozbudowy: obiekty " + obiekty + ", siatki wycięte " + siatki + ", kolizje " + kolizje);
+    }
+
+    // Ulica główna z = 28.5, źródłowy płot przecinający ją przy x≈−104.
+    // Zdjęcie właściciela 7.11: siatka, szlaban czerwono-biały i betonowe
+    // zapory na zebrze; usunąć ZARÓWNO geometrię, JAK I kolizje.
+    static void UsunPlotPrzedPierwszymRondem(List<GameObject> korzenie)
+    {
+        var exact = Bx(-106.25f, -102.95f, -.20f, 5.0f, 18.9f, 38.1f);
+        var road = Bx(-107.0f, -102.5f, .10f, 5.1f, GZ - GH, GZ + GH);
+        bool ObcaPrzeszkoda(string nazwa)
+        {
+            string n = (nazwa ?? "").ToLowerInvariant();
+            return n.Contains("fence") || n.Contains("chain link") ||
+                   n.Contains("chainlink") || n.Contains("ogrodzen") ||
+                   n.Contains("płot") || n.Contains("plot ") ||
+                   n.Contains("szlaban") || n.Contains("barrier") ||
+                   n.Contains("barricade") || n.Contains("roadblock") ||
+                   n.Contains("zapora") || n.Contains("kozioł") ||
+                   n.Contains("kozlo") || n.Contains("pachoł") ||
+                   n.Contains("pachol");
+        }
+        bool Poprzeczna(Bounds b) =>
+            b.Intersects(road) && Mathf.Abs(b.center.x + 104.5f) < 2.7f &&
+            b.size.x < 3.5f && b.size.z > 6.5f &&
+            b.size.y > .45f && b.size.y < 6.0f &&
+            b.min.z < GZ-1f && b.max.z > GZ+1f;
+        var removed = 0; var disabled = 0; var colliders = 0; var unresolved = 0;
+        var descriptions = new List<string>();
+        foreach (var g in korzenie)
+        {
+            if (!g || Chroniony(g.transform)) continue;
+            foreach (var r in g.GetComponentsInChildren<MeshRenderer>(true).ToArray())
+            {
+                if (!r || !r.enabled || Chroniony(r.transform)) continue;
+                Bounds q = r.bounds;
+                if (!q.Intersects(exact) || q.max.y < .5f) continue;
+                bool named = ObcaPrzeszkoda(r.name);
+                for(var t = r.transform.parent; t && !named && t != g.transform.parent; t = t.parent)
+                    named = ObcaPrzeszkoda(t.name);
+                // Nienazwana siatka musi wyglądać geometrycznie jak płot
+                // w POPRZEK jezdni. Sam fakt położenia obok nie wystarcza.
+                bool shape = Poprzeczna(q);
+                if (!named && !shape) continue;
+                if (!q.Intersects(road)) continue;
+                // Nie wyłączamy całego budynku ani płaszczyzny chodnika.
+                if (q.size.y > 6.0f || q.size.x > 21.0f ||
+                    q.size.z > 24.0f) { unresolved++; continue; }
+                string id = Sciezka(r.transform);
+                if(r.transform.childCount==0)
+                {
+                    UnityEngine.Object.DestroyImmediate(r.gameObject);
+                    removed++;
+                }
+                else
+                {
+                    // Inny renderer może mieć wspólnego rodzica z budynkiem;
+                    // znikają wyłącznie trójkąty pojedynczej przeszkody.
+                    r.enabled = false;
+                    foreach(var c in r.GetComponents<Collider>()) c.enabled=false;
+                    disabled++;
+                }
+                if (descriptions.Count < 25) descriptions.Add(id + " [" +
+                    (shape?"geometria_poprzeczna":"nazwa_zapory") + "]");
+            }
+            // Stare collidery często były na osobnym pustym obiekcie:
+            // nie zależą od tego, czy usunięto renderer.
+            foreach(var c in g.GetComponentsInChildren<Collider>(true).ToArray())
+            {
+                if(!c || !c.enabled || c.isTrigger || Chroniony(c.transform) ||
+                    !c.bounds.Intersects(exact) || !c.bounds.Intersects(road))continue;
+                var q=c.bounds;
+                bool shape=Poprzeczna(q);
+                bool named=ObcaPrzeszkoda(c.name);
+                for(var t=c.transform.parent;t && !named && t!=g.transform.parent;t=t.parent)
+                    named=ObcaPrzeszkoda(t.name);
+                if(!(shape||named) || q.size.y>6f || q.size.z>24f ||
+                   q.size.x>21f)continue;
+                c.enabled=false;
+                colliders++;
+            }
+        }
+        usuniete.Add("PŁOT GŁÓWNA PRZED RONDEM: rendererów usuniętych=" +
+            removed+" wyłączonych="+disabled+" kolizji="+colliders+
+            " nierozpoznanych="+unresolved+
+            (descriptions.Count>0?" ["+string.Join("; ",descriptions)+"]":""));
+        if (removed+disabled==0)
+            Debug.LogWarning("BRAXHORN_GLOWNA_PLOT DO POPRAWKI: brak rozpoznanej " +
+                "siatki płotu x=-104.5 z=28.5; nie usuwano elementów na ślepo");
     }
 
     static string Sciezka(Transform t) { var s = t.name; for (var p = t.parent; p && s.Length < 160; p = p.parent) s = p.name + "/" + s; return s; }
