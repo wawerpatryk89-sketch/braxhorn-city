@@ -35,27 +35,8 @@ public sealed class BraxStart : MonoBehaviour
         problem = !string.IsNullOrEmpty(BraxStartLog.Poprzedni);
         BraxStartLog.Etap("1b ekran startowy");
         // Base APKs without a content manifest retain their original scene loading.
-        // External camp content keeps the APK small without lowering texture/model quality.
+        // A compatible BRAXHORN content baseline enables verified patch import.
         yield return BraxContent.Initialize();
-        if (BraxContent.RequiresBaseInstall)
-        {
-            status = "Wybierz paczkę danych obozu";
-            BraxStartLog.Etap("1c wymagana zewnętrzna paczka danych obozu");
-            BraxContent.ChooseBasePackage();
-            while (BraxContent.Picking || BraxContent.Importing)
-            {
-                if (!string.IsNullOrEmpty(BraxContent.Message)) status = BraxContent.Message;
-                yield return null;
-            }
-            if (BraxContent.RequiresBaseInstall)
-            {
-                status = string.IsNullOrEmpty(BraxContent.Message)
-                    ? "Brak paczki danych obozu. Uruchom ponownie i wskaż plik .braxbase.zip."
-                    : BraxContent.Message;
-                yield break;
-            }
-            yield return BraxContent.Initialize();
-        }
         string nazwa = BraxContent.FirstScene;
         podtytul = !string.IsNullOrEmpty(regionTitle) ? regionTitle : nazwa.StartsWith("BraxhornEstate") ? BraxTeksty.T("start.osiedle") : nazwa.StartsWith("BraxhornCity") ? BraxTeksty.T("start.miasto") : "";
         Debug.Log("BRAXHORN_UI ekran wczytywania: scena " + nazwa + (problem ? " · poprzedni start NIEUDANY — diagnostyka widoczna, czeka na dotyk" : " · diagnostyka ukryta (przytrzymanie 3 s)") +
