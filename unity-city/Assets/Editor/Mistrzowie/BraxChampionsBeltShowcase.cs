@@ -168,14 +168,14 @@ public static class BraxChampionsBeltShowcase
         // Clearance within case: 1.86m width; interior glass front at
         // z=-.495, leather backing at z=.377. Gold nameplate is below y=1.02.
         float factor=Mathf.Min(2.62f/Mathf.Max(b.size.y,.0001f),
-            Mathf.Min(1.43f/Mathf.Max(b.size.x,.0001f),
+            Mathf.Min(1.20f/Mathf.Max(b.size.x,.0001f),
                 .64f/Mathf.Max(b.size.z,.0001f)));
         instance.transform.localScale*=factor;
         b=VisualBounds(display,instance.transform);
         instance.transform.localPosition+=new Vector3(0,2.48f,-.055f)-b.center;
         b=VisualBounds(display,instance.transform);
         if(b.min.y<1.06f||b.max.y>3.95f||
-           b.min.z<-.43f||b.max.z>.36f||b.size.x>1.50f)
+           b.min.z<-.43f||b.max.z>.36f||b.size.x>1.24f)
             BraxBuildQuality.Warn("A1_BELT_CASE_CLEARANCE: inspect exact imported FBX against the real cabinet");
         Debug.Log("A1_BELT_OWNER_3D_FRONT_PRESENTATION candidateSearch="+candidates+
             " score="+bestScore.ToString("F3")+
@@ -259,9 +259,9 @@ public static class BraxChampionsBeltShowcase
         // Owner reference 7.11: ONE narrow brushed-gold plaque under the belt.
         // No oversized plinth, no rhombus and no atlas stretched across the front.
         Cube(display,"REFERENCE narrow bronze plaque outline",bronze,
-            new Vector3(0,.78f,-.375f),new Vector3(1.50f,.56f,.050f));
+            new Vector3(0,.78f,-.375f),new Vector3(1.30f,.56f,.050f));
         Cube(display,"REFERENCE solid gold plaque face",gold,
-            new Vector3(0,.78f,-.408f),new Vector3(1.40f,.48f,.018f));
+            new Vector3(0,.78f,-.408f),new Vector3(1.22f,.48f,.018f));
 
         var image=AssetDatabase.LoadAssetAtPath<Texture2D>(OriginalPlaque);
         if(!image)
@@ -303,10 +303,10 @@ public static class BraxChampionsBeltShowcase
         // 1536x512 source pixels, logo, text, colour or the physical plaques.
         AtlasLabel(display,material,"FRONT_BRAXHORN_ARENA",
             new Vector3(0,.78f,-.421f),Quaternion.Euler(0,180f,0),
-            new Vector2(1.24f,.48f),.777f,.397f,.12f,.90f);
+            new Vector2(1.08f,.48f),.777f,.397f,.12f,.90f);
         // Original owner's separate B emblem belongs on the RIGHT SIDE.
         AtlasLabel(display,material,"RIGHT_SIDE_B_CREST",
-            new Vector3(.765f,.78f,-.215f),Quaternion.Euler(0,90f,0),
+            new Vector3(.675f,.78f,-.215f),Quaternion.Euler(0,90f,0),
             new Vector2(.26f,.36f),.938f,.791f,.12f,.90f);
         Debug.Log("CHAMPIONS_A1_PLAQUE_REFERENCE ownerPixelsUnchanged=true"+
             " narrowGoldRectangle=true frontPanels=1 sideCrest=1 source="+sourceWidth+"x"+sourceHeight);
@@ -357,40 +357,40 @@ public static class BraxChampionsBeltShowcase
         Cube(display,"REFERENCE black marble wall column",marble,
             new Vector3(0,2.30f,.63f),new Vector3(2.34f,4.55f,.30f));
         Cube(display,"REFERENCE black leather back panel",backing,
-            new Vector3(0,2.27f,.405f),new Vector3(1.58f,3.20f,.055f));
+            new Vector3(0,2.27f,.405f),new Vector3(1.38f,3.38f,.055f));
 
         // One thin glass plane per surface, with REAL optical blending.
         // Invisible colliders are forbidden. No foggy primitive cube faces.
         CrystalGlassPanel(display,"REFERENCE optically clear FRONT glass",glass,
-            new Vector3(0,2.28f,-.505f),new Vector2(1.86f,3.72f),
+            new Vector3(0,2.28f,-.505f),new Vector2(1.60f,3.72f),
             Quaternion.Euler(0,180f,0));
         foreach(float side in new[]{-1f,1f})
             CrystalGlassPanel(display,"REFERENCE optically clear SIDE glass "+side,glass,
-                new Vector3(side*.94f,2.28f,-.055f),new Vector2(.92f,3.72f),
+                new Vector3(side*.81f,2.28f,-.055f),new Vector2(.92f,3.72f),
                 Quaternion.Euler(0,side*90f,0));
         CrystalGlassPanel(display,"REFERENCE optically clear TOP glass",glass,
-            new Vector3(0,4.15f,-.055f),new Vector2(1.90f,.94f),
+            new Vector3(0,4.15f,-.055f),new Vector2(1.64f,.94f),
             Quaternion.Euler(90f,0,0));
         CrystalGlassPanel(display,"REFERENCE optically clear BOTTOM glass",glass,
-            new Vector3(0,.41f,-.055f),new Vector2(1.90f,.94f),
+            new Vector3(0,.41f,-.055f),new Vector2(1.64f,.94f),
             Quaternion.Euler(90f,0,0));
 
         // Warm rectangular ceiling light and vertical edge glow visible in the reference.
         foreach(float z in new[]{-.34f,.19f})
             Cube(display,"REFERENCE warm top LED long diffuser",warm,
-                new Vector3(0,3.94f,z),new Vector3(1.42f,.030f,.040f));
-        foreach(float x in new[]{-.69f,.69f})
+                new Vector3(0,3.94f,z),new Vector3(1.24f,.030f,.040f));
+        foreach(float x in new[]{-.60f,.60f})
             Cube(display,"REFERENCE warm top LED short diffuser",warm,
                 new Vector3(x,3.94f,-.075f),new Vector3(.040f,.030f,.57f));
-        foreach(float x in new[]{-.77f,.77f})
+        foreach(float x in new[]{-.68f,.68f})
             Cube(display,"REFERENCE warm vertical side LED",warm,
                 new Vector3(x,2.26f,.345f),new Vector3(.025f,3.05f,.030f));
         Cube(display,"REFERENCE warm lower case LED",warm,
-            new Vector3(0,.48f,-.31f),new Vector3(1.46f,.030f,.045f));
+            new Vector3(0,.48f,-.31f),new Vector3(1.26f,.030f,.045f));
 
         // Reference photo: slim polished GOLD continuous edge support,
         // discreet corner clamps and no wide opaque vertical posts.
-        foreach(float x in new[]{-.93f,.93f})
+        foreach(float x in new[]{-.80f,.80f})
         {
             Cube(display,"REFERENCE slender polished GOLD case edge",gold,
                 new Vector3(x,2.28f,-.513f),new Vector3(.040f,3.72f,.028f));
@@ -402,7 +402,7 @@ public static class BraxChampionsBeltShowcase
         // Bronze vertical slats stay next to the cabinet, never across the glass.
         for(int i=0;i<5;i++)
             Cube(display,"REFERENCE bronze vertical slat "+(i+1),bronze,
-                new Vector3(1.28f+i*.11f,2.30f,.66f),
+                new Vector3(1.18f+i*.10f,2.30f,.66f),
                 new Vector3(.040f,4.55f,.080f));
 
         OriginalRectangleArtwork(display, gold, bronze);
