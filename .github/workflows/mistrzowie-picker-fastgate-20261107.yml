@@ -1,0 +1,87 @@
+name: Miasto Mistrzów — quick picker gate then APK
+
+on:
+  push:
+    branches: [run/mistrzowie-picker-fix-20261107-1009]
+    paths: [.github/workflows/mistrzowie-picker-fastgate-20261107.yml]
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: mistrzowie-picker-fastgate-20261107
+  cancel-in-progress: false
+
+jobs:
+  quick-gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Verify target branch is exact fixed SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: gpt/miasto-mistrzow-kasyno-t11-20261105
+          TARGET_SHA: d69848ab22c9974084bc60f94ea849915628c38a
+        run: |
+          set -euo pipefail
+          current="$(gh api "repos/$GITHUB_REPOSITORY/branches/$TARGET_BRANCH" --jq '.commit.sha')"
+          echo "TARGET=$current"
+          test "$current" = "$TARGET_SHA"
+
+      - name: Checkout exact fixed source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: d69848ab22c9974084bc60f94ea849915628c38a
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/mistrzowie/android/BraxContentPicker.java
+            unity-tools/mistrzowie/build_content_picker.sh
+            unity-tools/mistrzowie/check_content_picker_single_copy.py
+            unity-city/Assets/Plugins/Android
+
+      - name: Prove no picker Java remains inside Unity Assets
+        run: |
+          set -euo pipefail
+          if git grep -n "class BraxContentPicker" d69848ab22c9974084bc60f94ea849915628c38a -- 'unity-city/Assets/**' ; then
+            echo "::error::BraxContentPicker Java source still exists inside Unity Assets"
+            exit 1
+          fi
+          test -s unity-tools/mistrzowie/android/BraxContentPicker.java
+          echo "PICKER_SOURCE_OUTSIDE_ASSETS=PASS"
+
+      - name: Compile the one Android picker JAR with the same Unity Android image
+        run: |
+          set -euo pipefail
+          docker run --rm --entrypoint bash -v "$PWD:/project" \
+            unityci/editor:ubuntu-6000.0.85f2-android-3.2.2 \
+            /project/unity-tools/mistrzowie/build_content_picker.sh
+          sudo chown -R "$(id -u):$(id -g)" unity-city/Assets/Plugins/Android
+          python3 unity-tools/mistrzowie/check_content_picker_single_copy.py --require-jar
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          p='unity-city/Assets/Plugins/Android/BraxContentPicker.jar'
+          with ZipFile(p) as z:
+              names=z.namelist()
+          assert names.count('com/braxhorn/content/BraxContentPicker.class')==1, names
+          print('PICKER_JAR_CLASS_COUNT=1 PASS')
+          PY
+
+      - name: Dispatch one full Miasto Mistrzów APK, no scene retest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run mistrzowie-apk.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref gpt/miasto-mistrzow-kasyno-t11-20261105 \
+            -f commit=d69848ab22c9974084bc60f94ea849915628c38a \
+            -f etap=apk \
+            -f kontrola_tras=false \
+            -f zdjecia=false \
+            -f recovery_run= \
+            -f base_id= \
+            -f arena_assets_tag=champions-a1-20261105 \
+            -f p1_assets_tag=p1-basen-spa-20261106 \
+            -f zapisz_audyt=false
+          echo "MISTRZOWIE_APK_DISPATCHED_AFTER_PICKER_GATE=1"
