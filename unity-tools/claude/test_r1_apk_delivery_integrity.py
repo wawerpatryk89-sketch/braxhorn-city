@@ -40,8 +40,8 @@ class R1AndroidReceiptSafety(unittest.TestCase):
         self.assertIn("0534036123353a2b69a93e7da9658f319e4056d9cb6ec45926d5449ab65bf22f", WORKFLOW)
 
     def test_zip_split_pattern_matches_real_unity_paths(self):
-        self.assertIn("r'(?:\\\\.split(\\\\d+))?'", VALIDATOR)
-        self.assertNotIn("r'(?:\\\\\\\\.split(\\\\\\\\d+))?'", VALIDATOR)
+        self.assertIn("r'(?:\\.split(\\d+))?'", VALIDATOR)
+        self.assertNotIn("r'(?:\\\\.split(\\\\d+))?'", VALIDATOR)
 
     def test_receipts_are_kept_as_job_artifacts(self):
         self.assertIn('${{ runner.temp }}/wyslane/*-validation.json', WORKFLOW)
