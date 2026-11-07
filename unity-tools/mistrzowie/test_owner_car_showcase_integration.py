@@ -24,18 +24,20 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         explore = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsExplorer.cs")
         self.assertIn('BraxChampionsCarBuilder.Generate(rig.transform)', explore)
         self.assertIn('FindObjectsByType<BraxChampionsCar>', builder)
-        self.assertIn('637.55f, .16f, 711f', builder)
+        self.assertIn('645.175f, .16f, 712f', builder)
         self.assertIn('float uniform = LengthMetres / bounds.size.z;', builder)
         self.assertNotIn('LengthMetres * K / bounds.size.z', builder)
         self.assertIn('car.interactionRadius = 3.8f;', builder)
-        # Check car's 4.95m x ~2m footprint against east parking x[30,100]
-        # z[-109,-85] relative to (600,800). Driver side faces the public connector.
-        x, z = 637.55 - 600, 711 - 800
+        # Exact regular-bay centre: between x lines 43.65/46.70 and
+        # centered in row z[-90.6,-85.4]. Never on paint or accessible bay.
+        x, z = 645.175 - 600, 712 - 800
         car_half_length = 4.95/2
-        self.assertGreater(x - 1.3, 30)
-        self.assertLess(x + 1.3, 100)
-        self.assertGreater(z - car_half_length, -109)
-        self.assertLess(z + car_half_length, -85)
+        self.assertAlmostEqual(x,(43.65+46.70)/2,places=6)
+        self.assertAlmostEqual(z,(-90.6-85.4)/2,places=6)
+        self.assertGreater(x-43.65,1.4)
+        self.assertGreater(46.70-x,1.4)
+        self.assertGreater(z - car_half_length, -90.6)
+        self.assertLess(z + car_half_length, -85.4)
         self.assertNotIn('new GameObject("Invisible', builder)
 
     def test_existing_mobile_controls_are_connected_to_driving(self):
