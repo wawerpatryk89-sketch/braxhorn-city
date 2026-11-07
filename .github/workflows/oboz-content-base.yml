@@ -81,12 +81,12 @@ jobs:
         run: |
           sudo rm -rf /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
           df -h /
-      - name: Compile actual Android file picker in the pinned Unity 6 environment
+      - name: Verify Android file picker source without duplicate JAR
         run: |
-          docker run --rm --entrypoint bash -v "$PWD:/project" \
-            unityci/editor:ubuntu-6000.0.58f2-android-3 \
-            /project/unity-tools/oboz/build_content_picker.sh
-          test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar
+          set -euo pipefail
+          test -s unity-city/Assets/Updates/Android/BraxContentPicker.java
+          rm -f unity-city/Assets/Plugins/Android/BraxContentPicker.jar
+          test ! -e unity-city/Assets/Plugins/Android/BraxContentPicker.jar
       - name: Build immutable Obóz Addressables baseline only - no BuildPlayer
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
