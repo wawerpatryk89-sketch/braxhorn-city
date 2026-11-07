@@ -1,0 +1,78 @@
+name: Miasto Mistrzow A1 - arena reference static check NO UNITY NO APK
+run-name: A1 premium exterior + showcase + car + murals - static only
+
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-arena-reference-static-20261107.yml
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaArrival.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsBeltShowcase.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs
+      - unity-city/Assets/Mistrzowie/BraxChampionsCar.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaMural.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaSideMurals.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaMuralTextureImport.cs
+      - unity-tools/mistrzowie/test_owner_car_showcase_integration.py
+      - unity-tools/mistrzowie/test_a1_premium_exterior_20261107.py
+      - unity-tools/mistrzowie/test_premium_reference_regression_20261107.py
+      - unity-tools/mistrzowie/test_arena_side_murals.py
+      - unity-tools/mistrzowie/test_owner_mural_import_advisory.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mistrzowie-a1-arena-reference-static
+  cancel-in-progress: true
+
+jobs:
+  arena-reference-static:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout only source needed for A1 reference checks
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/workflows/mistrzowie-apk.yml
+            unity-tools/mistrzowie/test_owner_car_showcase_integration.py
+            unity-tools/mistrzowie/test_a1_premium_exterior_20261107.py
+            unity-tools/mistrzowie/test_premium_reference_regression_20261107.py
+            unity-tools/mistrzowie/test_arena_side_murals.py
+            unity-tools/mistrzowie/test_owner_mural_import_advisory.py
+            unity-tools/validation
+            unity-city/Assets/Editor/Mistrzowie
+            unity-city/Assets/Mistrzowie
+            unity-city/Assets/Editor/Claude
+            unity-city/Assets/Editor/BraxBuildQuality.cs
+            unity-city/Assets/BraxGymPlayer.cs
+            unity-city/Assets/City
+            unity-city/Assets/CityRebuild/Systems
+            unity-city/Assets/Claude
+      - name: Python syntax
+        run: |
+          python3 -m py_compile \
+            unity-tools/mistrzowie/test_owner_car_showcase_integration.py \
+            unity-tools/mistrzowie/test_a1_premium_exterior_20261107.py \
+            unity-tools/mistrzowie/test_premium_reference_regression_20261107.py \
+            unity-tools/mistrzowie/test_arena_side_murals.py \
+            unity-tools/mistrzowie/test_owner_mural_import_advisory.py
+      - name: CSharp source scopes - no Unity compilation
+        run: |
+          python3 -m pip install -q --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+      - name: A1 owner-reference regressions only
+        run: |
+          python3 unity-tools/mistrzowie/test_owner_car_showcase_integration.py -v
+          python3 unity-tools/mistrzowie/test_a1_premium_exterior_20261107.py -v
+          python3 unity-tools/mistrzowie/test_premium_reference_regression_20261107.py -v
+          python3 unity-tools/mistrzowie/test_arena_side_murals.py -v
+          python3 unity-tools/mistrzowie/test_owner_mural_import_advisory.py -v
+      - name: Scope proof
+        if: always()
+        run: echo 'A1 arena source-only validation. UNITY_NOT_STARTED; APK_NOT_BUILT.' >> "$GITHUB_STEP_SUMMARY"
