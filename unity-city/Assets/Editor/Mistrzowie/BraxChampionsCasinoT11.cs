@@ -475,6 +475,7 @@ public static class BraxChampionsCasinoT11
         };
         mesh.triangles=new[]{0,1,2,0,2,3};
         mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
         mesh.RecalculateBounds();
         AssetDatabase.CreateAsset(mesh,output+"/Meshes/T11_"+id+".asset");
         var obj=new GameObject("T11 driveable graded "+id);
@@ -728,10 +729,10 @@ public static class BraxChampionsCasinoT11
         // 7m SIDEWALK. X400 roadway ends at world x410; casino circulation
         // begins at x442.5, z=417..428. The foundation removes the exact
         // x410..417 sidewalk strip so this single drivable slope is seamless:
-        // from original street y=.1600 up to casino asphalt y=.2485.
-        // Rise .0885m / 32.5m = 0.272% (not a curb or raised flat box).
+        // Real source street ASPHALT is y=0 (paving is y=.16).
+        // Rise .2485m / 32.5m = 0.765%; no curb or vertical step.
         GradedDrive(shell,"left_street_road_connection",asphalt,
-            -85f,-52.5f,-48f,-37f,.16f,.2485f,true);
+            -85f,-52.5f,-48f,-37f,0f,.2485f,true);
         B(shell,"Casino pedestrian main axis",granite,0,.22f,-43.7f,8.1f,.08f,11.7f,true,true);
         B(trim,"Red carpet leading to the curved casino entrance",redCarpet,
             0,.279f,-41.45f,5.8f,.016f,10.35f,false,true);
