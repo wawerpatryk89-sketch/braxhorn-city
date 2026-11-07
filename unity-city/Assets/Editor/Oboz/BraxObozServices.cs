@@ -368,24 +368,42 @@ public static class BraxObozServices
             BraxBuildQuality.Warn("OBÓZ LOD: "+label+" — za mało niezależnych oryginalnych części; zachowano pełny model");
             return;
         }
-        var mid=OriginalLodSubset(all,.72f);
-        var far=OriginalLodSubset(all,.38f);
-        var lod=root.GetComponent<LODGroup>();
-        if(!lod)lod=root.AddComponent<LODGroup>();
-        if(!lod)throw new MissingComponentException("Nie można dodać LODGroup do "+root.name);
-        lod.fadeMode=LODFadeMode.CrossFade;lod.animateCrossFading=true;
-        lod.SetLODs(new[]{
-            new LOD(.16f,all),
-            new LOD(.07f,mid),
-            new LOD(.025f,far)
-        });
-        lod.RecalculateBounds();
-        Debug.Log("BRAXHORN_OBOZ_LOD: "+label+
-            " triangles LOD0="+full+
-            " LOD1="+mid.Sum(OriginalTriangles)+
-            " LOD2="+far.Sum(OriginalTriangles)+
-            " sourceMeshes="+all.Length+
-            " originalGeometryOnly=true");
+        try
+        {
+            var mid=OriginalLodSubset(all,.72f);
+            var far=OriginalLodSubset(all,.38f);
+            var lod=root.GetComponent<LODGroup>();
+            if(!lod)lod=root.AddComponent<LODGroup>();
+            if(!lod)
+            {
+                BraxBuildQuality.Warn("OBÓZ LOD: "+label+
+                    " — Unity nie utworzyło LODGroup; zachowano pełny oryginalny model");
+                return;
+            }
+            lod.fadeMode=LODFadeMode.CrossFade;lod.animateCrossFading=true;
+            lod.SetLODs(new[]{
+                new LOD(.16f,all),
+                new LOD(.07f,mid),
+                new LOD(.025f,far)
+            });
+            lod.RecalculateBounds();
+            Debug.Log("BRAXHORN_OBOZ_LOD: "+label+
+                " triangles LOD0="+full+
+                " LOD1="+mid.Sum(OriginalTriangles)+
+                " LOD2="+far.Sum(OriginalTriangles)+
+                " sourceMeshes="+all.Length+
+                " originalGeometryOnly=true");
+        }
+        catch(Exception ex)
+        {
+            // Optymalizacja nigdy nie może usuwać oryginalnej kuchni lub
+            // witryny. Przy problemie Unity zachowujemy pełny model i jakość.
+            var broken=root.GetComponent<LODGroup>();
+            if(broken)Object.DestroyImmediate(broken);
+            foreach(var renderer in all)if(renderer)renderer.enabled=true;
+            BraxBuildQuality.Warn("OBÓZ LOD FALLBACK: "+label+
+                " — zachowano pełny oryginalny model; "+ex.GetType().Name+": "+ex.Message);
+        }
     }
 
     static GameObject OwnerPrototype(string filename)
