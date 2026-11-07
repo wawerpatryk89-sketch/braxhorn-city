@@ -81,29 +81,60 @@ public static partial class BraxObozEnvironment
                 var tangent=new Vector3(-radial.z,0,radial.x);var centre=radial*5f;
                 var supports=new[]{centre-tangent*.7f,centre+tangent*.7f};
                 if(!CampfireFloor(camp,supports[0],out var first) ||
-                    !CampfireFloor(camp,supports[1],out var second))return;
+                    !CampfireFloor(camp,supports[1],out var second) ||
+                    !CampfireFloor(camp,centre,out var centreFloor))return;
                 var groundHits=new[]{first,second};
-                float floorY=Mathf.Max(first.point.y,second.point.y);
                 var bench=Group("Ława ogniska "+number+" — siedzisko 0,45 m",camp,Vector3.zero);
-                float centreY=(floorY-bench.position.y)/K+.29f;
+                float targetTop=centreFloor.point.y+.45f*K;
+                float centreY=(centreFloor.point.y-bench.position.y)/K+.29f;
                 var seat=Cylinder(bench,"Siedzisko ławy z bala",
                     centre-tangent*1.05f+Vector3.up*centreY,
                     centre+tangent*1.05f+Vector3.up*centreY,.16f,wood);
-                seat.transform.position+=Vector3.up*(floorY+.45f*K-seat.GetComponent<Renderer>().bounds.max.y);
+                Physics.SyncTransforms();
+                // Renderer bounds can lag one transform update in batch mode.
+                // Correct twice against the measured terrain point and verify
+                // the real rendered top, never an assumed primitive height.
+                for(int pass=0;pass<2;pass++)
+                {
+                    var seatBounds=seat.GetComponent<Renderer>().bounds;
+                    seat.transform.position+=Vector3.up*(targetTop-seatBounds.max.y);
+                    Physics.SyncTransforms();
+                }
+                var seatRenderer=seat.GetComponent<Renderer>();
+                var finalSeatBounds=seatRenderer.bounds;
                 CampfireSolidLog(seat);
-                float bottom=seat.GetComponent<Renderer>().bounds.min.y;
+                var supportColliders=new List<MeshCollider>();
                 for(int end=0;end<supports.Length;end++)
                 {
                     var basePoint=supports[end];
                     float startY=(groundHits[end].point.y-bench.position.y)/K;
-                    float topY=(bottom-bench.position.y)/K;
+                    // Two centimetres of real timber overlap joins the vertical
+                    // support to the round seat without a visible/floating gap.
+                    float topY=(finalSeatBounds.min.y-bench.position.y)/K+.02f;
                     var support=Cylinder(bench,"Pień pod ławą — od gruntu do siedziska",
                         basePoint+Vector3.up*startY,basePoint+Vector3.up*topY,.16f,wood);
-                    CampfireSolidLog(support);
+                    supportColliders.Add(CampfireSolidLog(support));
                 }
-                var record=BraxObozStructureAuthoring.Capture(bench,bench.GetComponentsInChildren<MeshFilter>(),
-                    bench.GetComponentsInChildren<Collider>());
-                record.expectedTopMetres=.45f;record.heightMembers=new[]{seat.GetComponent<Renderer>()};
+                var structure=BraxObozStructureAuthoring.Capture(bench,
+                    bench.GetComponentsInChildren<MeshFilter>(),bench.GetComponentsInChildren<Collider>());
+                // Height is measured from the actual terrain below the seat
+                // centre. Structural support is independently proven by mesh contact.
+                var placement=BraxObozPlacementRecord.For(seat.transform);
+                placement.SetMembers(new[]{seatRenderer});
+                placement.support=BraxObozPlacementRecord.SupportKind.Suspended;
+                placement.label="ława ogniska — siedzisko 0,45 m";
+                placement.heightAboveFloorMetres=.45f;
+                placement.heightReference=(int)BraxObozPlacement.HeightReference.Top;
+                placement.heightRenderers=new[]{seatRenderer};
+                placement.verticalSupport=centreFloor.collider;
+                var centreWorld=new Vector3(finalSeatBounds.center.x,targetTop,finalSeatBounds.center.z);
+                placement.contactPoint=Group("Pomiar wysokości siedziska",seat.transform,
+                    seat.transform.InverseTransformPoint(centreWorld));
+                var supportWorld=bench.TransformPoint(supports[0]*K);
+                var suspensionWorld=new Vector3(supportWorld.x,finalSeatBounds.min.y+.005f*K,supportWorld.z);
+                placement.suspensionPoint=Group("Zmierzony styk siedziska z podporą",seat.transform,
+                    seat.transform.InverseTransformPoint(suspensionWorld));
+                placement.suspensionSupport=supportColliders[0];
             });
         }
     }
