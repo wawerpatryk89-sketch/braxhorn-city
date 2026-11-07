@@ -1133,18 +1133,24 @@ internal static partial class BraxMiastoWyspa
         foreach (float sz in new[] { -1f, 1f })
             for (int k = 0; k < 3; k++)
             {
-                var p = new Vector3(xw - 4.5f - k * 4.2f, y, apC.z + sz * 7f);
+                // Meble ustawione ZA zewnętrzną krawędzią okrągłego chodnika
+                // (promień kostki 26..31.5 m). Żadna ławka, latarnia ani donica
+                // nie przecina przejścia dookoła areny ani osi dojścia od pomostu.
+                float kat = sz * (.25f + k * .35f);
+                var promien = new Vector3(-Mathf.Cos(kat), 0f, Mathf.Sin(kat));
+                var styczna = new Vector3(-promien.z, 0f, promien.x);
+                var p = new Vector3(apC.x + promien.x * 34.5f, y, apC.z + promien.z * 34.5f);
                 // roślina w donicy: PRAWDZIWY model Poly Haven (przegląd 3.11: krzew toczony z jednolitej zieleni = „kulka” — zdjęty);
                 // bez modelu nie stawiamy nic (żadnych zastępczych brył)
                 var rosl = BraxRegion.Model("potted_plant_04", "potted_plant_02");
                 if (rosl && BraxRegion.Put(root, rosl, "Arena premium: plac — roślina w donicy", p, k * 47f + (sz > 0 ? 20f : 200f), 1f, true, 1.6f * K)) n++;
                 // ławka: siedzisko z listew na wspornikach stalowych, przodem do osi
-                var b = p + Vector3.right * 2.6f; var fw = new Vector3(0, 0, -sz); float hb = .45f * K;
+                var b = p + styczna * 2.6f; var fw = new Vector3(0, 0, -sz); float hb = .45f * K;
                 for (int s = 0; s < 4; s++) Wyciag(dab, PZ(.09f, .04f, .012f, new Vector2(0, hb - .02f)), b + Vector3.left * .9f + fw * (s - 1.5f) * .11f, Vector3.right, Vector3.up, Vector3.forward, 1.8f);
                 foreach (float e in new[] { -.7f, .7f }) Wyciag(stal, new[] { new Vector2(-.24f, 0), new Vector2(.24f, 0), new Vector2(.2f, hb - .04f), new Vector2(-.2f, hb - .04f) }, b + Vector3.right * (e - .03f), Vector3.right, Vector3.up, fw, .06f);
                 KolAA("ławka placu", b + new Vector3(-.9f, 0, -.25f), b + new Vector3(.9f, hb, .25f));
                 // latarnia (słup stożkowy, oprawa, świeci)
-                var l = p + Vector3.left * 2.6f;
+                var l = p - styczna * 2.6f;
                 Toczenie(stal, new[] { new Vector2(0, 0), new Vector2(.12f, 0), new Vector2(.12f, .05f), new Vector2(.07f, .1f), new Vector2(.05f, 4.6f), new Vector2(0, 4.6f) }, l, 10);
                 Toczenie(D(BraxMiastoA.Swieci("Arena premium: klosz latarni", new Color(1f, .95f, .85f), new Color(1.8f, 1.6f, 1.3f))), new[] { new Vector2(0, 4.45f), new Vector2(.22f, 4.5f), new Vector2(.24f, 4.62f), new Vector2(0, 4.66f) }, l, 14);
                 KolA("latarnia placu", l + Vector3.up * 2.3f, Vector3.forward, new Vector3(.25f, 4.6f, .25f));
