@@ -17,7 +17,6 @@ using UnityEngine;
 {
     public int format = 1;
     public string zone, baseId, runtimeId, version, catalog, firstScene;
-    public bool externalBase;
     public string[] scenes;
     public BraxContentFile[] files;
 }
@@ -66,8 +65,7 @@ public static class BraxContentPackage
     public static void Compatible(BraxContentManifest basis, BraxContentManifest update)
     {
         Validate(basis); Validate(update);
-        if (basis.zone != update.zone || basis.baseId != update.baseId || basis.runtimeId != update.runtimeId ||
-            basis.firstScene != update.firstScene || basis.externalBase != update.externalBase)
+        if (basis.zone != update.zone || basis.baseId != update.baseId || basis.runtimeId != update.runtimeId || basis.firstScene != update.firstScene)
             throw new InvalidDataException("Ta aktualizacja wymaga innej bazy APK lub należy do innej strefy.");
     }
 
@@ -83,51 +81,6 @@ public static class BraxContentPackage
                 Validate(m); return m;
             }
         }
-    }
-
-    public static void ExtractBase(string zip, string staging, BraxContentManifest basis)
-    {
-        Validate(basis);
-        var m = ReadZipManifest(zip);
-        Compatible(basis, m);
-        if (!basis.externalBase || m.version != "base")
-            throw new InvalidDataException("To nie jest zewnętrzna bazowa paczka BRAXHORN.");
-        if (Directory.Exists(staging)) throw new IOException("Katalog docelowy już istnieje.");
-        var expected = m.files.ToDictionary(f => f.name);
-        Directory.CreateDirectory(staging);
-        try
-        {
-            using (var archive = ZipFile.OpenRead(zip))
-            {
-                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var entry in archive.Entries)
-                {
-                    if (!Safe(entry.FullName) || !seen.Add(entry.FullName))
-                        throw new InvalidDataException("Niedozwolona ścieżka lub duplikat w bazowej paczce.");
-                    if (entry.FullName == "manifest.json") continue;
-                    if (!expected.TryGetValue(entry.FullName, out var f) || entry.Length != f.bytes)
-                        throw new InvalidDataException("Plik bazowy spoza manifestu lub niezgodny rozmiar.");
-                    string path = Path.Combine(staging, f.name);
-                    using (var input = entry.Open())
-                    using (var output = new FileStream(path, FileMode.CreateNew))
-                    {
-                        var buffer = new byte[131072]; long count = 0; int read;
-                        while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                        {
-                            count += read;
-                            if (count > f.bytes) throw new InvalidDataException("Nieprawidłowy rozmiar pliku bazowego.");
-                            output.Write(buffer, 0, read);
-                        }
-                        if (count != f.bytes) throw new InvalidDataException("Przerwany plik bazowy.");
-                    }
-                    if (Sha(path) != f.sha256) throw new InvalidDataException("Błędna suma SHA-256 bazy: " + f.name);
-                }
-                foreach (var f in m.files)
-                    if (!seen.Contains(f.name)) throw new InvalidDataException("Brakuje pliku bazowego: " + f.name);
-            }
-            File.WriteAllText(Path.Combine(staging, "manifest.json"), JsonUtility.ToJson(m, true));
-        }
-        catch { Directory.Delete(staging, true); throw; }
     }
 
     // The caller uses a new staging directory. Nothing in the active version is
