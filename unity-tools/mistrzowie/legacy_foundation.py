@@ -19,11 +19,13 @@ plots=[(b['x']-b['w']/2,b['z']-b['d']/2,b['w'],b['d']) for b in buildings]
 plots += [(135,-108,70,18),(285,-108,70,18),(565,-108,70,18),(890,-108,70,18)]
 # T11 casino underground garage: a true hole in the existing terrain's
 # plot_base collider, not a visual ramp hidden beneath an unbroken ground mesh.
-# 7 Nov: widen the actual SUBTERRANEAN ramp cut to local X39.15..49.30.
-# It must match the full roadway + protective walls, not only the old 8m hole.
-# Casino plot centre=(495,465), so the precise world cut is:
-# x=534.15..544.30, z=443..489. The east fire lane starts at local x49.5.
-T11_GARAGE_RAMP=(534.15,443.0,10.15,46.0)
+# Actual subterranean ramp AND LEVEL left-turn chamber: local X39.15..49.30,
+# Z=-22..29. The former 46m opening stopped at Z24 and left the next
+# 5m of turning space covered by the foundation's solid plot_base collider.
+# New 51m opening matches the casino prefab and does not reach the fire lane
+# (the lane starts at local X49.5); the roof is a separate deliberate slab.
+# World x=534.15..544.30, z=443..494, on the existing T11 plot (495,465).
+T11_GARAGE_RAMP=(534.15,443.0,10.15,51.0)
 # Left STREET approach: remove only the 7m sidewalk strip at the old
 # X400 city road edge. The casino generator bridges this exact opening with
 # a single graded drivable mesh (city road y=.16 -> casino apron y=.2485).
