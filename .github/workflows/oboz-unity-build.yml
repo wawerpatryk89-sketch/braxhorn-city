@@ -1,7 +1,7 @@
 name: Obóz — Unity 6 APK do testu
 
 on:
-  # Owner-requested start only; normal source commits do not build an APK.
+  # Owner-requested start only; final camp verification uses scene-only; normal source commits do not build an APK.
   push:
     branches: [gpt/oboz, run/oboz-apk-20261105-0650, codex/oboz-przebudowa-pbr-20261105]
     paths: [unity-tools/oboz/build-request.json, .github/workflows/oboz-unity-build.yml]
