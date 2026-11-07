@@ -63,7 +63,7 @@ public static class BraxObozContentBase
 
         // Shared content implementation builds the immutable Addressables
         // baseline and content state. It DOES NOT call BuildPipeline.BuildPlayer.
-        BraxContentBuild.Baseline(Zone, new[] { BraxObozActors.ScenePath }, true);
+        BraxContentBuild.Baseline(Zone, new[] { BraxObozActors.ScenePath });
         BraxObozUpdateRegistry.Export();
         string manifest = Path.Combine(BraxContentBuild.Base, "manifest.json");
         string state = Path.Combine(BraxContentBuild.Base, "addressables_content_state.bin");
@@ -81,42 +81,6 @@ public static class BraxObozContentBase
         {
             Export();
             AssetDatabase.SaveAssets();
-            EditorApplication.Exit(0);
-        }
-        catch (Exception error)
-        {
-            Debug.LogException(error);
-            EditorApplication.Exit(1);
-        }
-    }
-
-    public static void ExportPreparedExternalInCI()
-    {
-        try
-        {
-            if (Application.unityVersion != EditorVersion ||
-                EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
-                throw new InvalidOperationException("Nieprawidłowy profil Unity Android dla zewnętrznej bazy obozu");
-            if (Directory.Exists(BraxContentBuild.Base) || File.Exists(BraxContentBuild.Config))
-                throw new InvalidOperationException("Zewnętrzna baza obozu już istnieje w tym workspace");
-            // WŁAŚCICIEL 7.11: żadnego długiego scene-only przed APK.
-            // Scenę generujemy RAZ jako część właściwej paczki danych.
-            SaveUntitledSessions();
-            BraxObozEnvironment.Prepare();
-            BraxObozActors.Assemble();
-            BraxObozBuild.EnsureStartScene();
-            if (!File.Exists(BraxObozActors.ScenePath) || !File.Exists(BraxObozActors.ScenePath + ".meta"))
-                throw new FileNotFoundException("Nie wygenerowano sceny obozu", BraxObozActors.ScenePath);
-            BraxContentBuild.Baseline(Zone, new[] { BraxObozActors.ScenePath }, true);
-            string package = BraxContentBuild.BasePackagePath(Zone);
-            if (!File.Exists(package) || new FileInfo(package).Length == 0)
-                throw new IOException("Nie powstała bazowa paczka danych obozu");
-            if (Directory.Exists("Assets/StreamingAssets/BraxContent") &&
-                Directory.GetFiles("Assets/StreamingAssets/BraxContent", "*.bundle").Length != 0)
-                throw new IOException("Bundle obozu nadal trafił do StreamingAssets/APK");
-            AssetDatabase.SaveAssets();
-            Debug.Log("BRAXHORN_OBOZ_EXTERNAL_BASE_READY package=" + package +
-                      " bytes=" + new FileInfo(package).Length + " APK_BUILT=NO");
             EditorApplication.Exit(0);
         }
         catch (Exception error)
