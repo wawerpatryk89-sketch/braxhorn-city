@@ -426,12 +426,17 @@ public static class BraxChampionsArenaArrival
         var group=Group(arenaRoot,"A1 PREMIUM | Poly Haven PBR exterior detailing",Vector3.zero);
         var plinth=new FacadeBatch();
         var fins=new FacadeBatch();
+        var blackColumns=new FacadeBatch();
+        var goldInset=new FacadeBatch();
         var bronze=new FacadeBatch();
         var roof=new FacadeBatch();
         var signBacker=new FacadeBatch();
-        // Nominal glass-bay columns: 0.52 m visible width x 0.30 m depth.
-        // Previously 0.16 m x 0.19 m: too thin for the owner's premium facade.
-        // No extra pillars across entrance apertures or the four sign panels.
+        // Właściciel 7.11: wariant premium nr 3. Szerokie CZARNE filary
+        // na odskoki: wysunięte przed lico przyciemnionej tafli szkła.
+        // Co trzeci segment jest reprezentacyjnym filarem 2.10 m, a
+        // pomiędzy nimi pozostaje delikatny podział szyb 0.17 m.
+        // Złoty pionowy detal jest dokładnie na środku czarnego filara.
+        // Pas oznakowania areny i obie bramy pozostają całkowicie wolne.
         int skippedDoor=0;
         for(int i=0;i<bays;i++)
         {
@@ -450,16 +455,28 @@ public static class BraxChampionsArenaArrival
             {
                 plinth.Beam(mid+outward*.23f+Vector3.up*.50f,
                     new Vector3(.38f,.78f,length),rotation);
-                fins.Beam(mid+outward*.27f+Vector3.up*5.68f,
-                    new Vector3(.30f,9.30f,.52f),rotation);
-                fins.Beam(mid+outward*.27f+Vector3.up*22.87f,
-                    new Vector3(.30f,7.35f,.52f),rotation);
-                if(i%6==0)
+                bool featurePillar=i%3==0;
+                if(featurePillar)
                 {
-                    bronze.Beam(mid+outward*.44f+Vector3.up*5.68f,
-                        new Vector3(.048f,9.30f,.19f),rotation);
-                    bronze.Beam(mid+outward*.44f+Vector3.up*22.87f,
-                        new Vector3(.048f,7.35f,.19f),rotation);
+                    // Słup jest fizycznie wysunięty ~0.8 m przed
+                    // linię fasady; nie jest płaską naklejką na szybie.
+                    blackColumns.Beam(mid+outward*.43f+Vector3.up*5.68f,
+                        new Vector3(.72f,9.30f,2.10f),rotation);
+                    blackColumns.Beam(mid+outward*.43f+Vector3.up*22.87f,
+                        new Vector3(.72f,7.35f,2.10f),rotation);
+                    // Wąski złoty metal, centralnie w czarnym filarze.
+                    goldInset.Beam(mid+outward*.806f+Vector3.up*5.68f,
+                        new Vector3(.032f,9.14f,.095f),rotation);
+                    goldInset.Beam(mid+outward*.806f+Vector3.up*22.87f,
+                        new Vector3(.032f,7.19f,.095f),rotation);
+                }
+                else
+                {
+                    // Drugorzędny profil pomiędzy szerokimi filarami.
+                    fins.Beam(mid+outward*.19f+Vector3.up*5.68f,
+                        new Vector3(.19f,9.30f,.17f),rotation);
+                    fins.Beam(mid+outward*.19f+Vector3.up*22.87f,
+                        new Vector3(.19f,7.35f,.17f),rotation);
                 }
             }
             else skippedDoor++;
@@ -509,6 +526,12 @@ public static class BraxChampionsArenaArrival
 
         plinth.Emit(group,"original_PolyHaven_granite_plinth",exterior["dark_stone"]);
         fins.Emit(group,"PBR_curtain_wall_aluminium",exterior["steel"]);
+        var graphite=BraxChampionsFoundation.SourceMaterial(
+            "A1_premium_black_stepped_columns","granite_tile_02",1.2f,
+            new Color(.095f,.10f,.115f));
+        blackColumns.Emit(group,"PBR_black_stepped_out_pillars_2p10m",graphite);
+        goldInset.Emit(group,"PBR_centered_gold_inset_on_black_pillars",
+            exterior["gold"]);
         bronze.Emit(group,"PBR_bronze_architectural_detail",exterior["bronze"]);
         roof.Emit(group,"PBR_roof_coping",exterior["roof"]);
         signBacker.Emit(group,"PBR_sign_backing_beneath_original_6_to_1_signs",
@@ -551,6 +574,7 @@ public static class BraxChampionsArenaArrival
         }
         Debug.Log("CHAMPIONS_A1_POLYHAVEN_EXTERIOR_PREMIUM facade_bays="+bays+
             " omitted_lower_facade_door_segments="+skippedDoor+
+            " wide_black_columns=2.10m pitch=3bays stepped_out=.79m center_gold=.095m"+
             " authentic_PBR=true opaque_glass_overlays=0 original_signs_preserved=true"+
             " doors_and_vehicle_lanes_preserved=true device_visual_review_required=true");
     }
