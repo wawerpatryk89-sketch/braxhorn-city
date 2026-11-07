@@ -435,7 +435,9 @@ public static class BraxChampionsArenaArrival
         // Approved elliptical building exterior: 192 x 118 nominal metres,
         // 28m high. X/Z are local to A1; game-scale K is applied once.
         const float rx=96f,rz=59f;
-        const int bays=120;
+        // Finer segments align precisely with build_exteriors.py n=360.
+        // Keep the same 40 wide pillars by spacing them every nine sectors.
+        const int bays=360;
         var group=Group(arenaRoot,"A1 PREMIUM | Poly Haven PBR exterior detailing",Vector3.zero);
         var redNeon=Paint("arena_reference_red_neon",new Color(.68f,.018f,.025f));
         redNeon.SetColor("_EmissionColor",new Color(.70f,.018f,.020f));
@@ -453,7 +455,7 @@ public static class BraxChampionsArenaArrival
         var upperCeilingHalo=new FacadeBatch();
         // Właściciel 7.11: wariant premium nr 3. Szerokie CZARNE filary
         // na odskoki: wysunięte przed lico przyciemnionej tafli szkła.
-        // Co trzeci segment jest reprezentacyjnym filarem 2.10 m, a
+        // Co dziewiaty segment jest reprezentacyjnym filarem 2.10 m, a
         // pomiędzy nimi pozostaje delikatny podział szyb 0.17 m.
         // Złoty pionowy detal jest dokładnie na środku czarnego filara.
         // Pas oznakowania areny i obie bramy pozostają całkowicie wolne.
@@ -475,7 +477,7 @@ public static class BraxChampionsArenaArrival
             {
                 plinth.Beam(mid+outward*.23f+Vector3.up*.50f,
                     new Vector3(.38f,.78f,length),rotation);
-                bool featurePillar=i%3==0;
+                bool featurePillar=i%9==0;
                 if(featurePillar)
                 {
                     // Słup jest fizycznie wysunięty ~0.8 m przed
@@ -647,7 +649,7 @@ public static class BraxChampionsArenaArrival
         }
         Debug.Log("CHAMPIONS_A1_POLYHAVEN_EXTERIOR_PREMIUM facade_bays="+bays+
             " omitted_lower_facade_door_segments="+skippedDoor+
-            " wide_black_columns=2.10m pitch=3bays stepped_out=.79m center_gold=.095m"+
+            " wide_black_columns=2.10m pitch=9bays stepped_out=.79m center_gold=.095m"+
             " roof_crown_LED=continuous upper_warm_bands=3 upper_halo=ellipse"+
             " red_sign_frame=in_front_of_original_sign 2K_LED_pillar_insets=true"+
             " canopy_LED_strips=9 entrance_planters=2 bollards=8"+
@@ -836,7 +838,14 @@ public static class BraxChampionsArenaArrival
         Door(root, "CHAMPIONS_A1_ATHLETES", "Separate athlete rear entrance", 59.04f, exterior["clear_glass"], exterior["steel"]);
         DressingRooms(root, sidewalk, exterior["dark_stone"], exterior["steel"]);
         Box(root, "Main lobby continuous RED carpet", redCarpet,
-            new Vector3(0, .239f, -47.3f), new Vector3(3.9f, .018f, 22.0f), false);
+            // Join exterior carpet exactly at z=-59.3; previously the
+            // interior runner started at -58.3 leaving a 1m bare threshold.
+            // Adjacent ends, not overlapping coplanar panels (no Z-fighting).
+            new Vector3(0, .239f, -47.3f), new Vector3(3.9f, .018f, 24.0f), false);
+        foreach(float edge in new[]{-1.98f,1.98f})
+            Box(root,"Main lobby RED carpet | continuous flush gold edge",
+                exterior["gold"],new Vector3(edge,.251f,-47.3f),
+                new Vector3(.045f,.010f,24.0f),false);
         Box(root, "Separate red athlete walkway to cage", redCarpet,
             new Vector3(0, .239f, 47.2f), new Vector3(3.9f, .018f, 22.0f), false);
         // Warm lobby lighting keeps the interior visible through the glazed curtain wall.
