@@ -694,17 +694,39 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         float z0 = RZ + RPlac;                // 50.5
         float z1 = PetlaZ - PetlaPlac;        // 95
         PrzekrojZ("Aleja Północna", AX, AH, Ziel, Chod, z0, z1, true, (z0, z0 + 6f), (z1 - 6f, z1));
-        // pętla na końcu (zawrotka / pętla autobusowa PÓŁNOC): kwadrat ±15, pierścień R 11, wyspa R 4.5 z drzewem
-        var c = new Vector2(AX, PetlaZ);
-        Asfalt("pętla PÓŁNOC", AX - PetlaPlac, AX + PetlaPlac, PetlaZ - PetlaPlac, PetlaZ + PetlaPlac);
-        PlacZPierscieniem("pętla PÓŁNOC", c, PetlaR, PetlaPlac, new[] { 270f }, AH);
-        var kraw = new BraxRegionMeble.Bud(); Pierscien(kraw, c, PetlaWyspa - Kr, PetlaWyspa, YC, 48); kraw.Obiekt("Pętla: krawężnik wyspy", root, krawMat, false, false);
-        var tr = Dysk("Pętla: trawnik wyspy", c, PetlaWyspa - Kr, YC - .03f, 48); Nawierzchnia(tr); BraxRegionTrawa.Teren(tr.GetComponent<MeshRenderer>(), true, false);
-        Plyta("Pętla: podłoże wyspy", beton, AX - PetlaWyspa, AX + PetlaWyspa, PetlaZ - PetlaWyspa, PetlaZ + PetlaWyspa, YC - .06f, .3f, false);
-        Drzewo(new Vector3(AX, YC - .03f, PetlaZ));
-        // chodniki wzdłuż pierzei poza przekrojem między placem a pętlą: pierzeje stoją od lica
-        Chodnik("przed pierzeją zach. (pętla)", AX - PetlaPlac - 3f, AX - PetlaPlac, PetlaZ - PetlaPlac, PetlaZ + PetlaPlac);
-        Chodnik("przed pierzeją wsch. (pętla)", AX + PetlaPlac, AX + PetlaPlac + 3f, PetlaZ - PetlaPlac, PetlaZ + PetlaPlac);
+        // WŁAŚCICIEL 7.11: zamiast ronda PÓŁNOC przy SUPERMARKET
+        // BRAXHORN (sklep #1 x=-120,z=132) — prawdziwy parking.
+        // Rondo z drzewem i jego kolizjami NIE powstaje.
+        // Jedyny poziom asfaltu; pasy malowane później przez Wstawki, nie nałożone.
+        Asfalt("PARKING SUPERMARKET BRAXHORN (dawna pętla PÓŁNOC)",
+            AX - PetlaPlac, AX + PetlaPlac,
+            PetlaZ - PetlaPlac, PetlaZ + PetlaPlac);
+        // Główna aleja manewrowa po osi x=-126 (szer. 12m), od jezdni
+        // do pasa pieszego przy witrynie. Samochody nie wjeżdżają na chodnik.
+        float szer = 2.5f * K, dl = 5f * K;
+        for (int i = 0; i < 9; i++)
+        {
+            float z = PetlaZ - 16f + i * 3.5f;
+            MiejscaParkingu.Add((new Vector3(AX - 10.0f, YC, z),
+                Vector3.right, new Vector2(szer, dl)));
+            MiejscaParkingu.Add((new Vector3(AX + 10.0f, YC, z),
+                Vector3.left, new Vector2(szer, dl)));
+        }
+        // Prosty, szeroki chodnik z kostki od parkingu pod wejście sklepu.
+        // Styk krawędzią z północnym końcem asfaltu, bez nowej powierzchni na starej.
+        Chodnik("SUPERMARKET BRAXHORN: dojście od parkingu",
+            AX - PetlaPlac, AX + PetlaPlac + 2f,
+            PetlaZ + PetlaPlac, PetlaZ + PetlaPlac + 5.5f);
+        // Obie boczne krawędzie parkingu: chodnik dla pieszych.
+        Chodnik("SUPERMARKET BRAXHORN: chodnik parkingu W",
+            AX - PetlaPlac - 3f, AX - PetlaPlac,
+            PetlaZ - PetlaPlac, PetlaZ + PetlaPlac);
+        Chodnik("SUPERMARKET BRAXHORN: chodnik parkingu E",
+            AX + PetlaPlac, AX + PetlaPlac + 3f,
+            PetlaZ - PetlaPlac, PetlaZ + PetlaPlac);
+        Debug.Log("BRAXHORN_SUPERMARKET_PARKING RONDO_POLNOC_USUNIETE=tak" +
+            " centrum=" + AX + "," + PetlaZ + " miejsca=" + 18 +
+            " alejka_12m=tak dojscie_sklep=tak glówne_rondo_miasta_zostaje=tak");
     }
 
     static void AlejaPoludniowa()
@@ -1217,7 +1239,8 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             var c = new Vector3(RX, YA, RZ) + dir * (RPlac + 3f);
             Zebra(farbaB, c, dir, hj);
         }
-        Zebra(farbaB, new Vector3(AX, YA, PetlaZ - PetlaPlac - 3f), Vector3.forward, AH);   // wlot pętli (rondo PÓŁNOC)
+        // Przejście do parkingu: stare przejście „wlot ronda” usunięte.
+        Zebra(farbaB, new Vector3(AX, YA, PetlaZ - PetlaPlac - 3f), Vector3.forward, AH);   // wejście na parking
         Zebra(farbaB, new Vector3(PetlaZX + PetlaPlac + 3f, YA, RZ), Vector3.right, AH);     // wlot pętli ZACHÓD
         // oś ul. Zachodniej: przerywana (bez odcinków przy zebrach)
         for (float x = ZachX1 - 10f; x - 3f > ZachX0 + 9f; x -= 7f) farbaB.MinMax(new Vector3(x - 3f, YA + .02f, RZ - .06f), new Vector3(x, YA + .021f, RZ + .06f));
@@ -1229,6 +1252,16 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         for (float z = RZ + RPlac + 10f; z + 3f < PetlaZ - PetlaPlac - 7f; z += 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z), new Vector3(AX + .06f, YA + .021f, z + 3f));
         for (float z = RZ - RPlac - 10f; z > SZ + SH + 18f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
         for (float z = SZ - SH - 18f; z > AS1 + 16f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
+        // Linie stanowisk wierzchnią farbą W WYCIĘCIACH asfaltu, bez z-fightingu.
+        // Parkowanie prostopadłe do osi alei, po obydwu bokach. Brak znaków ronda.
+        for (int i = 0; i <= 9; i++)
+        {
+            float z = PetlaZ - 17.75f + i * 3.5f;
+            farbaB.MinMax(new Vector3(AX - 17f, YA, z - .06f),
+                          new Vector3(AX - 6f, YA, z + .06f));
+            farbaB.MinMax(new Vector3(AX + 6f, YA, z - .06f),
+                          new Vector3(AX + 17f, YA, z + .06f));
+        }
         try { NoweDzielniceOznakowanie(farbaB); } catch (Exception e) { Debug.LogError("BRAXHORN_MIASTO_ASSETY oznakowanie nowych dzielnic DO POPRAWKI: " + e); }
         BudujAsfalt(farbaB);
     }
@@ -1265,7 +1298,9 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         }
         var cR = new Vector3(RX, YA, RZ); var cP = new Vector3(AX, YA, PetlaZ);
         foreach (var (dir, hj) in RamionaRonda) { ZebraBezSwiatel(cR + dir * (RPlac + 3f), dir, hj); Wlot(cR, dir, hj); }
-        ZebraBezSwiatel(cP + Vector3.back * (PetlaPlac + 3f), Vector3.back, AH); Wlot(cP, Vector3.back, AH);
+        // Dawna pętla PÓŁNOC jest parkingiem; bez niewidzialnej bramki
+        // ronda, która zatrzymywałaby auta na pasie parkingowym.
+        ZebraBezSwiatel(cP + Vector3.back * (PetlaPlac + 3f), Vector3.back, AH);
         var cWz = new Vector3(PetlaZX, YA, RZ);
         ZebraBezSwiatel(cWz + Vector3.right * (PetlaPlac + 3f), Vector3.right, AH); Wlot(cWz, Vector3.right, AH);
         var gz = new GameObject("Strefy zatrzymania: przejścia bez świateł i wloty ronda/pętli"); gz.transform.SetParent(root, false);
@@ -1280,7 +1315,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         }
         // 3.11 (właściciel: „znaki normalne prawdziwe na drogach”): wloty obu pętli też jak rondo (A-7 + C-12), a przy każdym
         // przejściu bez świateł D-6 po prawej stronie jadących w obu kierunkach (lico do nadjeżdżających), tuż przed pasami
-        foreach (var (cc, dir, hj) in new[] { (cP + Vector3.back * (PetlaPlac + 3f), Vector3.back, AH), (cWz + Vector3.right * (PetlaPlac + 3f), Vector3.right, AH) })
+        foreach (var (cc, dir, hj) in new[] { (cWz + Vector3.right * (PetlaPlac + 3f), Vector3.right, AH) })
             ZnakRonda(NaPodlozu(cc - Vector3.Cross(Vector3.up, dir) * (hj + Kr + .5f) + dir * 4f + Vector3.up * YC), dir);
         int nD6 = 0;
         for (int i = 0; i < zs.Count; i++)
@@ -1505,7 +1540,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         J("MIASTO Wiaduktowa; chodniki 1.55 1.55", new Vector3(WX, YA, GZ), new Vector3(WX, YA, SZ), WH);
         J("MIASTO Warsztatowa; chodniki 2.5 2.5", new Vector3(AX, YA, SZ), new Vector3(SX1, YA, SZ), SH);
         BraxClaudeOsiedle.SkrzyzowaniaInfo.Add(new BraxClaudeOsiedle.SkrzyzowanieInfo { srodek = new Vector3(RX, YA, RZ), promien = RJezdnia, rodzaj = BraxClaudeOsiedle.RodzajSkrzyzowania.Rondo });
-        BraxClaudeOsiedle.SkrzyzowaniaInfo.Add(new BraxClaudeOsiedle.SkrzyzowanieInfo { srodek = new Vector3(AX, YA, PetlaZ), promien = PetlaR, rodzaj = BraxClaudeOsiedle.RodzajSkrzyzowania.Rondo });
+        // Pętla PÓŁNOC skasowana: parking nie jest węzłem ronda w sieci ruchu.
         J("MIASTO Zachodnia; chodniki " + Chod + " " + Chod, new Vector3(RX - RJezdnia, YA, RZ), new Vector3(PetlaZX + PetlaR, YA, RZ), AH);
         BraxClaudeOsiedle.SkrzyzowaniaInfo.Add(new BraxClaudeOsiedle.SkrzyzowanieInfo { srodek = new Vector3(PetlaZX, YA, RZ), promien = PetlaR, rodzaj = BraxClaudeOsiedle.RodzajSkrzyzowania.Rondo });
     }
