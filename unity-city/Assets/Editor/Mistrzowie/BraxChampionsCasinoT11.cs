@@ -779,10 +779,19 @@ public static class BraxChampionsCasinoT11
             44.225f,.0775f,23f,10.15f,.26f,12f,true,true);
         B(shell,"T11 B1 WHITE ceiling underside under turn roof",garageWhite,
             44.225f,-.063f,23f,10.15f,.015f,12f,false);
+        // All exterior asphalt around T11 shares one exact finish elevation:
+        // top y=.2485. Junctions meet EDGE-TO-EDGE; no duplicated road slabs.
+        const float roadY=.221f, roadH=.055f, roadTop=.2485f;
+        void ConcreteCurb(string id,float x,float z,float w,float d)
+            => B(trim,id,paving,x,roadTop+.070f,z,w,.14f,d,true,true);
+        void Drain(string id,float x,float z,float w,float d)
+            => B(trim,id,steel,x,roadTop+.006f,z,w,.012f,d,false,true);
+
         foreach(float side in new[]{-1f,1f})
         {
-            B(shell,"Fire service route",asphalt,side*53f,.215f,0,7.0f,.055f,94f,true,true);
-            B(shell,side<0?"VIP arrival":"TAXI arrival",asphalt,side*27f,.221f,-41.9f,24f,.055f,9.7f,true,true);
+            // Side fire lanes occupy x=+-49.5..+-56.5. Front/rear roads stop
+            // exactly at x=+-49.5 so there is no asphalt-on-asphalt overlap.
+            B(shell,"Fire service route",asphalt,side*53f,roadY,3.25f,7.0f,roadH,81.5f,true,true);
             B(trim,"VIP or taxi champagne curb",gold,side*27f,.34f,-36.4f,24f,.11f,.14f,false);
             // Three VIP parking bays TOTAL, solely on the LEFT.
             // Right-hand TAXI drop-off remains clear of parking stripes.
@@ -799,7 +808,18 @@ public static class BraxChampionsCasinoT11
                 B(shell,"Champagne black granite planter",granite,
                     side>0&&z<0?38f:side*43f,.48f,z,3.4f,.6f,3.3f,true);
         }
-        B(shell,"Front VIP/TAXI circulating driveway",asphalt,0,.221f,-42.5f,105f,.055f,10f,true,true);
+        // Front road fills only the clear span between both fire lanes.
+        B(shell,"Front VIP/TAXI circulating driveway",asphalt,0,roadY,-42.5f,99f,roadH,10f,true,true);
+
+        // Proper concrete kerbs: low enough to read as road construction,
+        // segmented at the central red-carpet/pedestrian axis and all road junctions.
+        foreach(float side in new[]{-1f,1f})
+        {
+            ConcreteCurb("Front driveway NORTH concrete curb",side*26.85f,-37.41f,45.3f,.18f);
+            ConcreteCurb("Front driveway SOUTH concrete curb",side*26.85f,-47.59f,45.3f,.18f);
+            ConcreteCurb("Fire lane INNER concrete curb",side*49.41f,3.25f,.18f,81.5f);
+            ConcreteCurb("Fire lane OUTER concrete curb",side*56.59f,3.25f,.18f,81.5f);
+        }
         // The 120x100 plan specifies UNDERGROUND parking, not two large surface
         // parking lots. The east court is reserved for its real accessible ramp.
         // Keep a pedestrian walkway on the WEST facade; east side remains a
@@ -817,16 +837,29 @@ public static class BraxChampionsCasinoT11
         // Real source street ASPHALT is y=0 (paving is y=.16).
         // Rise .2485m / 32.5m = 0.765%; no curb or vertical step.
         GradedDrive(shell,"left_street_road_connection",asphalt,
-            -85f,-52.5f,-48f,-37f,0f,.2485f,true);
+            -85f,-49.5f,-48f,-37f,0f,roadTop,true);
         B(shell,"Casino pedestrian main axis",granite,0,.22f,-43.7f,8.1f,.08f,11.7f,true,true);
         B(trim,"Red carpet leading to the curved casino entrance",redCarpet,
             0,.279f,-41.45f,5.8f,.016f,10.35f,false,true);
         foreach(float side in new[]{-1f,1f})
             B(trim,"Champagne bronze relief along red carpet",gold,
                 side*2.96f,.290f,-41.45f,.075f,.045f,10.35f,false);
-        B(shell,"Rear service and deliveries",asphalt,0,.23f,46.7f,105f,.07f,5.4f,true,true);
-        B(shell,"Delivery corridor to rear loading door",asphalt,-20f,.248f,36.6f,6.4f,.052f,17.5f,true,true);
-        B(trim,"Rear loading bay white line",paving,-20f,.284f,46.7f,12f,.012f,.11f,false);
+        // Rear service road also stops at the fire-lane edges and uses the
+        // same asphalt top elevation as every other surface road.
+        B(shell,"Rear service and deliveries",asphalt,0,roadY,46.7f,99f,roadH,5.4f,true,true);
+        // Loading connector runs from rear wall z=28 to road edge z=44 exactly:
+        // no 1.35m coplanar overlap with the rear service road.
+        B(shell,"Delivery corridor to rear loading door",asphalt,-20f,roadY,36f,6.4f,roadH,16f,true,true);
+        B(trim,"Rear loading bay white line",parkingPaint,-20f,roadTop+.006f,46.7f,12f,.012f,.11f,false);
+        // Rear-road kerbs, with a 7m opening kept for the loading connector.
+        ConcreteCurb("Rear service SOUTH concrete curb left",-36.5f,43.91f,26f,.18f);
+        ConcreteCurb("Rear service SOUTH concrete curb right",16.5f,43.91f,66f,.18f);
+        ConcreteCurb("Rear service NORTH concrete curb",0f,49.49f,99f,.18f);
+        ConcreteCurb("Delivery corridor WEST concrete curb",-23.29f,35.9f,.18f,15.8f);
+        ConcreteCurb("Delivery corridor EAST concrete curb",-16.71f,35.9f,.18f,15.8f);
+        // Flush drainage details: visual only, never a wheel obstacle.
+        Drain("Garage approach flush trench drain",44.225f,-22.18f,9.0f,.14f);
+        Drain("Rear loading flush trench drain",-20f,28.16f,6.0f,.14f);
         // Real underground garage is generated separately from the empty casino
         // shell. Approach starts off the approved VIP/TAXI loop on the east side.
         UndergroundGarage();
