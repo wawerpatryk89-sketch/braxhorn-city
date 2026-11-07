@@ -112,7 +112,9 @@
 
 5. JAK PUSZCZAĆ BUILDY
 - Tylko na wyraźne słowo właściciela w tej rozmowie. Jeden build naraz, workflow_dispatch, z dokładnym SHA. Commit/push NIGDY nie odpala buildu.
-- Najpierw tryb „sceny” (bez APK): ma wypisać WSZYSTKIE błędy i ostrzeżenia. Unity / import dużych zasobów / scena też są kosztowne — wymagają odrębnego polecenia właściciela. Dopiero zero błędów integralności → APK; ostrzeżenia jakości nie blokują kompilacji.
+- **ZASADA GLOBALNA 7.11.2026 — NIE POWTARZAJ DŁUGIEGO TESTU PRZED APK:** jeśli właściciel mówi „puść build/APK”, a scena dla aktualnego SHA jest już przygotowana/zwalidowana albo można bezpiecznie użyć zgodnej zapisanej sceny/cache, NIE uruchamiaj ponownie pełnego scene-only, długiego audytu, ponownego importu całego świata ani wielogodzinnej walidacji tylko jako rytuału przed buildem. Zrób krótki preflight integralności potrzebny do kompilacji (kod/statyczne testy, wymagane pliki i MonoScript/GUID, podpis, tożsamość wersji), po czym od razu build.
+- Pełny/długi test sceny uruchamiaj tylko gdy: właściciel jawnie go zleci; nie ma aktualnej przygotowanej sceny zgodnej z SHA; zmiana dotyka serializacji/geometrii tak, że bez regeneracji nie da się zbudować poprawnego Playera; albo poprzednia awaria daje dowód na problem integralności sceny. Nie wolno dodawać długiego testu „na wszelki wypadek”.
+- Ostrzeżenia jakości, kolizji, skali, LOD, wyglądu i rozmiaru mają trafić do raportu i nie blokują builda, o ile nie są błędem integralności/kompilacji. Jeśli build może bezpiecznie iść, priorytetem jest zbudować go i sprawdzić wynik na urządzeniu zamiast zużywać czas na ponowny długi audyt.
 - Padło: pierwszy wyjątek + stack trace → przyczyna → naprawa wszystkich podobnych miejsc → testy → jeden nowy build. Bez restartów w ciemno, bez zatrzymywania biegnącego buildu bez zgody.
 - Zmiana samych obrazków/tekstur (murale, szyldy) → tryb „aktualizacja”, nie nowy APK, jeśli rejon go ma i działa. Ten sam identyfikator, ten sam certyfikat, versionCode + 1.
 - Bez zdjęć w CI. Dowód działania na Androidzie = nagranie właściciela z telefonu i/lub logcat z konkretnego SHA, nie zielony CI.
