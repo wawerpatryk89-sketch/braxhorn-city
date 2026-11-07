@@ -33,6 +33,14 @@ public sealed class BraxTramT1 : MonoBehaviour
             " peron_z="+peronZ.ToString("F1")+" znalezione_skrzydla="+doors.Count);
     }
 
+    // Scena Editor: raport rzeczywistych węzłów drzwi źródłowego modelu,
+    // bez startowania animacji i bez udawania, że są obecne w paczce.
+    public int AuditDoorNodes()
+    {
+        IdentifyDoors();
+        return doors.Count;
+    }
+
     void IdentifyDoors()
     {
         doors.Clear();

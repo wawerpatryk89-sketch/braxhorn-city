@@ -35,6 +35,10 @@ public static class BraxGymBuild
     // Aplikacja Android (APK) z tej samej sceny: przeglądarka na telefonie nie dźwiga 750 MB danych.
     // Sterowanie dotykowe w Unity (BraxTouchControls) zamiast warstwy HTML.
     public static void BuildRenovationAndroid(){BuildInternal(true,true,true,BuildTarget.Android);}
+    // Tylko scena Unity 6, ŻADNE APK i ŻADEN WebGL player.
+    // Działa na oryginalnych modelach, atlasach, kolizjach i prawdziwym
+    // generatorze R1, tak samo jak normalne wydanie.
+    public static void SceneOnlyCityR1(){BuildInternal(true,true,true,BuildTarget.WebGL,true);}
     // Drugie obszary rejonów (BraxClaudeObszary) dopisane na końcu listy scen paczki.
     static string[] WithAreas(string[] scenes)
     {
@@ -193,7 +197,7 @@ public static class BraxGymBuild
         catch(Exception e){Debug.LogWarning("BRAXHORN_BUILD_SIZE raport nieudany: "+e.Message);}
     }
 
-    private static void BuildInternal(bool fullCity,bool integrated,bool renovation=false,BuildTarget target=BuildTarget.WebGL)
+    private static void BuildInternal(bool fullCity,bool integrated,bool renovation=false,BuildTarget target=BuildTarget.WebGL,bool sceneOnly=false)
     {
         var t0=DateTime.UtcNow;
         BraxBrakujaceSkrypty.SprawdzTypy(); // przed kosztownym generowaniem i użyciem cache scen
@@ -202,7 +206,7 @@ public static class BraxGymBuild
         // (BuildRenovation / BuildRenovationAndroid); Build / BuildCity / BuildIntegrated bez zmian.
         // osiedle = siłownia tylko jako baza postaci (materiały, animacje Braxa) + osiedle, BEZ miasta i remontu siłowni;
         // miasto = siłownia + miasto, BEZ osiedla (istniejąca ścieżka BRAX_DISTRICTS=city).
-        string rejon=renovation&&fullCity?BraxRejonBuildu.Rejon:"oba";
+        string rejon=sceneOnly?"miasto":renovation&&fullCity?BraxRejonBuildu.Rejon:"oba";
         bool osiedle=rejon=="osiedle",miasto=rejon=="miasto";
         if(miasto)Environment.SetEnvironmentVariable("BRAX_DISTRICTS","city");
         Debug.Log("BRAXHORN_REJON "+rejon+" ("+target+")");
@@ -211,7 +215,7 @@ public static class BraxGymBuild
         Directory.CreateDirectory(Generated);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         try{BraxClaudeGlbTekstury.Sprawdz();}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrola tekstur .glb: "+e);}
         // PAMIĘĆ PODRĘCZNA REJONU: trafienie = sceny i zasoby rejonu z buildu o tym samym kluczu → bez generowania.
-        if(rejon!="oba"&&BraxRejonBuildu.ZPamieci(target,out var zPamieci)){BuildZPamieci(rejon,target,zPamieci,t0);return;}
+        if(!sceneOnly&&rejon!="oba"&&BraxRejonBuildu.ZPamieci(target,out var zPamieci)){BuildZPamieci(rejon,target,zPamieci,t0);return;}
         if(renovation&&!osiedle)BraxNutritionShopBuild.ValidateSources();
         var tGym=DateTime.UtcNow;
         var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
@@ -352,6 +356,10 @@ public static class BraxGymBuild
         // 3.11 (właściciel 13:39–13:46): SUPERMARKET BRAXHORN — jeden moduł, 2 kopie w mieście (druga lustrzana), przed kontrolami jakości
         if(fullCity&&!osiedle)try{BraxSupermarket.Wykonaj(scene,2);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_SUPERMARKET: "+e);}
         if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrole jakości (miasto): "+e);}
+        // Głęboki audyt obiektów i przejść na REALNEJ scenie przed jej podziałem
+        // na sektory; raport ostrzega, nie przerywa kosztownego generowania.
+        if(fullCity&&!osiedle)try{BraxR1SceneAcceptance.Run(scene);}
+        catch(Exception e){Debug.LogWarning("DO POPRAWKI: R1_SCENA_TRANSPORT_SKLEP: "+e);}
         // P0.1 (2.11 23:05, „metro nie do wejścia”): obce kolizje w przejściach stacji wyłączone + test przejścia obu wejść
         if(fullCity&&!osiedle)try{BraxMetroLine3Build.KontrolaPrzejscia();}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_METRO_M1_3_PRZEJSCIE: "+e);}
         // 3.11 (właściciel 10:53): trawnik w wycięciu nawierzchni przy każdym drzewie i palmie na chodniku / placu / asfalcie
@@ -428,6 +436,22 @@ public static class BraxGymBuild
                     : new[]{estate})
             : new[]{scenePath};
         var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
+        if(sceneOnly)
+        {
+            EditorBuildSettings.scenes=scenePaths.Where(p=>!string.IsNullOrEmpty(p)&&File.Exists(p))
+                .Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();
+            AssetDatabase.SaveAssets();
+            BraxBrakujaceSkrypty.Sprawdz(scenePaths);
+            var output=Path.Combine(Generated,"R1SceneAcceptance");
+            Directory.CreateDirectory(output);
+            File.WriteAllText(Path.Combine(output,"scene-only.txt"),
+                "BRAXHORN_SCENA_BEZ_APK unity="+Application.unityVersion+
+                " commit="+sourceCommit+" sceny="+string.Join(" | ",scenePaths)+
+                "\nBrak BuildPipeline.BuildPlayer oraz BuildAndroidSeparately w tym przebiegu.\n");
+            Debug.Log("BRAXHORN_SCENA_BEZ_APK zapisano="+scenePaths.Length+
+                " Unity6="+Application.unityVersion+" bez_APK=true bez_WebGL=true");
+            return;
+        }
         Paczka(rejon,fullCity,integrated,renovation,target,scenePath,scenePaths,sourceCommit,report,t0,false);
     }
 
