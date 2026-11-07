@@ -771,15 +771,10 @@ public static partial class BraxRegionMiastoB
             }
             UnityEngine.Object.DestroyImmediate(kopia);
         }
-        var bus = BraxMiastoAssety.Model("miasto_pojazdy", "autobus");
-        if (bus)
-        {
-            float dl = 12f * K, szer = 2.55f * K;
-            var o = BraxMiastoAssety.Postaw(root, bus, "Autobus na przystanku ALEJA CENTRALNA (model)", new Vector3(PrzystBusX - dl * .5f, YA, RZ - AH + szer * .5f + .35f), 90f, 1f, false, true);
-            foreach (var t in o.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
-            BraxMiastoAssety.Kolizja(root, o, "Autobus kolizja", .1f);
-            NdLog("przystanek ALEJA CENTRALNA: autobus " + dl.ToString("0.0") + " m (12 m × K) stoi przodem przy znaczniku x " + PrzystBusX + " (5 m przed linią zatrzymania C0), wiata na promenadzie");
-        }
+        // Autobus NIE stoi już w scenie jako oddzielny statyczny collider.
+        // Zostanie dołączony do BraxRuchAutSym (te same hamowanie/kolizje
+        // co wszystkie auta) w BraxRegionRuchMiasta.AutaMiastaB.
+        NdLog("przystanek ALEJA CENTRALNA: wiata i znacznik gotowe; pojazd kursowy z jednej symulacji ruchu");
     }
 
     // tramwaj: przystanek przy krawężniku ul. Tramwajowej (pas płd., jazda na wschód), peron z płyt za chodnikiem, wiata (model),
@@ -820,9 +815,23 @@ public static partial class BraxRegionMiastoB
         var b = BraxRegion.Bounds(o);
         o.transform.position += new Vector3((-463.5f - b.max.x), YA - b.min.y, zt - b.center.z);   // przód 2.3 m przed kozłem oporowym
         foreach (var tr in o.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(tr.gameObject, 0);
-        BraxMiastoAssety.Kolizja(root, o, "Tramwaj kolizja", .15f);
+        // Bez osobnej NIEPORUSZAJĄCEJ SIĘ kolizji po pozostawieniu wagonu:
+        // synchronizowany kinematyczny collider idzie razem z tramwajem.
+        var box = o.AddComponent<BoxCollider>();
+        box.center = o.transform.InverseTransformPoint(b.center);
+        box.size = new Vector3(b.size.x, b.size.y, b.size.z) / Mathf.Max(.0001f, o.transform.lossyScale.x);
+        var rigid = o.AddComponent<Rigidbody>(); rigid.isKinematic = true; rigid.useGravity = false;
+        var svc = o.AddComponent<BraxTramT1>();
+        svc.wschodX = TorRect.xMax - 1.6f - b.size.x * .5f;
+        svc.zachodX = TorRect.xMin + 1.6f + b.size.x * .5f;
+        svc.torZ = zt;
+        svc.peronX0 = PeronTramwaju.xMin; svc.peronX1 = PeronTramwaju.xMax;
+        svc.peronZ = PeronTramwaju.center.y;
         b = BraxRegion.Bounds(o);
-        NdLog("tramwaj: CAF " + b.size.x.ToString("0.0") + " m (33.9 × K) na torze płd. z " + zt.ToString("0.00") + ", x " + b.min.x.ToString("0.0") + "…" + b.max.x.ToString("0.0") + ", koła y " + b.min.y.ToString("0.000") + " (asfalt/szyny " + YA + ")");
+        NdLog("tramwaj: CAF model " + b.size.x.ToString("0.0") +
+            " m, tor płd. z=" + zt.ToString("F2") +
+            ", trasa x=" + svc.zachodX.ToString("F1") + "..." + svc.wschodX.ToString("F1") +
+            " (na końcach jazda rewersyjna, bez fizycznego skręcania poza szyny)");
     }
 
     // drobne: hydranty przy narożnikach ulic C, skrzynki pocztowe na promenadzie i przy ul. Nowojorskiej, bankomat przy banku

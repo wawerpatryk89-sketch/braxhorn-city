@@ -156,8 +156,12 @@ public static partial class BraxClaudeOsiedle
             }
             defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla C0–C1 północ", petla = true, y = YA, punkty = new[] { P(nA[0]), P(nN[0]), P(nN[1]), P(nA[1]) } });
             defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla C2–C3 północ", petla = true, y = YA, punkty = new[] { P(nA[2]), P(nN[2]), P(nN[3]), P(nA[3]) } });
-            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla C1–C2 południe", petla = true, y = YA, punkty = new[] { P(nA[2]), P(nT[2]), P(nT[1]), P(nA[1]) } });
-            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla duża (Aleja, C3, Tramwajowa, C0)", petla = true, y = YA, punkty = new[] { P(nA[0]), P(nA[1]), P(nA[2]), P(nA[3]), P(nT[3]), P(nT[2]), P(nT[1]), P(nT[0]) } });
+            // Torowisko C1–C2 jest TYLKO dla tramwaju. Samochody nie jadą
+            // po jego osi i nie przecinają wagonu stojącego na przystanku.
+            // Kurs autobusu okrąża kwartał C0–C1: na Alei Centralnej wraca
+            // w kierunku +X, przy właściwej krawędzi zatoki (-Z).
+            defs.Add(new BraxTrasyAut.Definicja { nazwa = "AUTOBUS Aleja Centralna C0-C1 kurs", petla = true, y = YA,
+                punkty = new[] { P(nA[0]), P(nT[0]), P(nT[1]), P(nA[1]) } });
         }
         // rondo miasta: tor jazdy w osi pierścienia (7.5…14.5 m → 11 m), krawędź zewnętrzna 14.5 m (obie pętle ronda tej samej wielkości)
         BraxTrasyAut.RondoPromien = (BraxRegionMiastoB.RWyspa + BraxRegionMiastoB.RJezdnia) * .5f; BraxTrasyAut.RondoJezdnia = BraxRegionMiastoB.RJezdnia;
@@ -168,12 +172,13 @@ public static partial class BraxClaudeOsiedle
                   string.Join("; ", wy.trasy.Select(t => t.nazwa + " " + t.dl.ToString("F0") + " m")));
         var mg = new GameObject("BRAXHORN ruch aut miasta (trasy, pierwszeństwo, auta)"); mg.transform.SetParent(root, false);
         var ra = mg.AddComponent<BraxRuchAut>();
+        int busRoute = wy.trasy.FindIndex(q => q.nazwa.Contains("AUTOBUS Aleja Centralna C0-C1 kurs"));
         ra.punkty = wy.punkty.ToArray(); ra.trasy = wy.trasy.ToArray(); ra.zdarzenia = wy.zdarzenia.ToArray(); ra.wezly = wy.wezly.ToArray(); ra.ziarno = 2111;
         var rnd = new System.Random(2111); var pula = PulaAut(szablony); var klakson = Klakson();
         var auta = new List<BraxAuto>(); int taksowki = 0;
-        int[] ile = { 5, 5, 4, 4, 2, 2, 2, 3 };   // + 4 pętle nowych dzielnic; właściciel 3.11 10:15: „gdzie ruch na ulicy, samochody zniknęły” — było 2 na trasę (8 aut w całym mieście B)
+        int[] ile = { 5, 5, 4, 4, 2, 2 }; // po zablokowaniu torowiska C1-C2 nie ma tam samochodów   // + 4 pętle nowych dzielnic; właściciel 3.11 10:15: „gdzie ruch na ulicy, samochody zniknęły” — było 2 na trasę (8 aut w całym mieście B)
         for (int r = 0; r < wy.trasy.Count; r++)
-            for (int k = 0; k < (r < ile.Length ? ile[r] : 1); k++)
+            for (int k = 0; k < (r == busRoute ? 0 : r < ile.Length ? ile[r] : 1); k++)
             {
                 var sz2 = pula[rnd.Next(pula.Count)];
                 var o = AutoInstancja(sz2, root, "Auto w ruchu (miasto) · " + sz2.id + (AutaNC.Contains(sz2.id) ? " (DO WYMIANY PRZED SPRZEDAŻĄ)" : ""), rnd, out var kolor);
@@ -198,6 +203,72 @@ public static partial class BraxClaudeOsiedle
                 LodAuta(o, .015f);
                 auta.Add(a);
             }
+        // REALNY autobus z istniejącego modelu. Wspólny indeks w ra.auta
+        // oznacza, że BraxRuchAutSym widzi jego gabaryty i wszystkie auta
+        // hamują przed nim; brak oddzielnej nieruchomej kopii/collidera.
+        if (busRoute >= 0 && BraxMiastoAssety.Jest("miasto_pojazdy"))
+        {
+            var source = BraxMiastoAssety.Model("miasto_pojazdy", "autobus");
+            if (source)
+            {
+                var bus = BraxMiastoAssety.Postaw(root, source,
+                    "Autobus KURSOWY ALEJA CENTRALNA (wspólna symulacja)",
+                    new Vector3(-345f, YA, rz - ah*.5f), 0f, 1f, false, true);
+                if (bus)
+                {
+                    var bb = BraxRegion.Bounds(bus);
+                    float busLength = Mathf.Max(bb.size.x, bb.size.z);
+                    float busWidth = Mathf.Min(bb.size.x, bb.size.z);
+                    if (busLength < 10f || busLength > 22f || busWidth < 2f || busWidth > 5f)
+                        Debug.LogWarning("BRAXHORN_BUS DO POPRAWKI: oryginalny model ma nieprawidłowy obrys " + bb.size);
+                    else
+                    {
+                        var a = bus.AddComponent<BraxAuto>();
+                        a.trasaNr = busRoute; a.trasa = PunktyTrasy(wy,busRoute);
+                        a.vmax = 8f; a.dl = busLength; a.szer = busWidth;
+                        a.rozstaw = Mathf.Min(9.2f, busLength*.63f);
+                        a.osTyl = -busLength*.40f; a.promienKola = .5f;
+                        a.nadwozie = null; // nie nadpisuj rotacji części modelu
+                        var bounds = BraxRegion.Bounds(bus);
+                        var col = bus.AddComponent<BoxCollider>();
+                        col.center = bus.transform.InverseTransformPoint(bounds.center);
+                        col.size = bounds.size / Mathf.Max(.0001f, bus.transform.lossyScale.x);
+                        var rigid = bus.AddComponent<Rigidbody>(); rigid.isKinematic = true; rigid.useGravity = false;
+                        foreach (var tr in bus.GetComponentsInChildren<Transform>(true))
+                            GameObjectUtility.SetStaticEditorFlags(tr.gameObject, 0);
+                        // Szukamy punktu postoju na prawym pasie +X z przystankiem po prawej (-Z).
+                        var route = wy.trasy[busRoute];
+                        var target = new Vector3(BraxRegionMiastoB.PrzystanekAutobusuCentralnaX -
+                            busLength*.5f, YA, rz - ah*.5f);
+                        float best = float.MaxValue, bestS = -1f;
+                        for (int i = 0; i + 1 < route.ile; i++)
+                        {
+                            var p = wy.punkty[route.start+i], next = wy.punkty[route.start+i+1];
+                            if (next.x < p.x + .01f) continue;
+                            float dd = (p-target).sqrMagnitude;
+                            if (dd < best) {best=dd;bestS=i*route.krok;}
+                        }
+                        if (bestS < 0 || best > 60f)
+                            Debug.LogWarning("BRAXHORN_BUS DO POPRAWKI: nie znaleziono postoju na pasie +X (odległość2 " + best.ToString("F1") + ")");
+                        else
+                        {
+                            a.sStart = Mathf.Max(2f,bestS-35f);
+                            ra.autobusIndex = auta.Count;
+                            ra.autobusTrasa = busRoute;
+                            ra.autobusStopS = bestS;
+                            ra.autobusStopCzas = 8f;
+                            auta.Add(a);
+                            Debug.Log("BRAXHORN_BUS włączony_w_ruch=1 trasa=" + busRoute +
+                                " długość=" + busLength.ToString("F1") +
+                                "m postój_s=" + bestS.ToString("F1") +
+                                " wszystkie_auta_widzą_autobus=tak");
+                        }
+                    }
+                    if (!auta.Contains(bus.GetComponent<BraxAuto>()))
+                        UnityEngine.Object.DestroyImmediate(bus);
+                }
+            }
+        }
         ra.auta = auta.ToArray();
         float szerMax = auta.Max(a => a.szer), dlMax = auta.Max(a => a.dl);
         var s0 = new BraxRuchAutSym(ra.punkty, ra.trasy, ra.zdarzenia, ra.wezly, ra.ziarno, szerMax, dlMax);
