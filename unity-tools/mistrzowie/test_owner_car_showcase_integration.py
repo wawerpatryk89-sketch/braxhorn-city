@@ -77,7 +77,7 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         self.assertIn("BraxChampionsBeltShowcase.Generate(root)", arena)
         self.assertNotIn('return Trophy(root,', arrival)
         for value in ("granite_tile", "REFERENCE black marble wall column",
-                      "REFERENCE optical clear glass FRONT", "REFERENCE small gold glass bracket",
+                      "REFERENCE optically clear FRONT glass", "REFERENCE small GOLD glass bracket",
                       "REFERENCE bronze vertical slat ", "BRAXHORN_ARENA_CASE_PLAQUE.jpg",
                       "OriginalBelt(display)", "OriginalRectangleArtwork(display"):
             self.assertIn(value, box)
@@ -86,6 +86,11 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
             self.assertNotIn(removed, box)
         self.assertIn("UnityEngine.Object.DestroyImmediate(cube.GetComponent<Collider>())", box)
         self.assertIn("new Vector3(-73.9f, 0, 63.3f)", box)
+        # Face-on 3D belt, true single-pane clear glass and untouched artwork.
+        self.assertIn("A1_BELT_OWNER_3D_FRONT_PRESENTATION", box)
+        self.assertIn("CrystalGlassPanel(display", box)
+        self.assertIn('new Color(.99f,.995f,1f,.014f)', box)
+        self.assertIn("SOURCE_REQUIRED", read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuildings.cs"))
 
     def test_signed_update_compatibility_gate_precedes_unity(self):
         wf = read(".github/workflows/mistrzowie-apk.yml")
