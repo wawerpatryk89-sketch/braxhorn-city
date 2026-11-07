@@ -198,10 +198,12 @@ public static partial class BraxObozEnvironment
 
     static void TrackClippedRoad(Transform parent)
     {
-        // Retain the approach road's exact footprint and .09 m top. Tartan
-        // owns the crossing, so two coplanar materials never flicker there.
+        // Same footprint, but a thin physical skin above the terrain.
+        // The former 9 cm-deep slab placed its bottom below the terrain plane.
+        // The track owns the clipped crossing, so there is no road/tartan overlap.
         foreach(var piece in OutsideRunningTracks(RectanglePolygon(-3.5f,3.5f,-139f,-109f)))
-            PolygonVolume(parent,"Droga dojazdowa — ciągły styk z tartanem",piece,0,p=>TrackSurfaceY,campusAsphalt,true);
+            PolygonVolume(parent,"Droga dojazdowa — ciągły styk z tartanem",piece,
+                TrackSurfaceY+.0005f,p=>TrackSurfaceY+.0015f,campusAsphalt,true);
     }
 
     static void SolidTrackBand(Transform parent,string label,float ax0,float az0,float ax1,float az1,
