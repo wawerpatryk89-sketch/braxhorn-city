@@ -10,7 +10,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
-import urllib.request
+import subprocess
 from urllib.parse import urlsplit
 
 ALLOWED = {"pine_tree_01", "tree_small_02"}
@@ -72,17 +72,26 @@ def fetch(manifest_path: Path, root: Path, report_path: Path) -> dict:
                     partial = target.with_name(target.name + ".partial")
                     if partial.exists():
                         raise ValueError("Previous partial transfer retained; no blind overwrite: " + str(partial))
-                    request = urllib.request.Request(entry["url"], headers={"User-Agent": "BraxhornUnity6-OwnerForest/1"})
-                    with urllib.request.urlopen(request, timeout=90) as response, partial.open("xb") as output:
-                        final = urlsplit(response.geturl())
-                        if final.scheme != "https" or final.netloc != "dl.polyhaven.org":
-                            raise ValueError("Download redirected outside official source")
-                        transferred = 0
-                        for block in iter(lambda: response.read(1024 * 1024), b""):
-                            transferred += len(block)
-                            if transferred > entry["bytes"]:
-                                raise ValueError("Response exceeds pinned source size")
-                            output.write(block)
+                    # Use the runner's system CA store through curl. Python's
+                    # embedded certificate bundle intermittently rejected the
+                    # official Poly Haven certificate in Actions even though
+                    # curl on the same runner validated it correctly.
+                    completed = subprocess.run([
+                        "curl","--fail","--location","--silent","--show-error",
+                        "--retry","3","--retry-all-errors","--connect-timeout","30",
+                        "--max-time","240","--proto","=https","--proto-redir","=https",
+                        "--user-agent","BraxhornUnity6-OwnerForest/1",
+                        "--output",str(partial),"--write-out","%{url_effective}",entry["url"]
+                    ],capture_output=True,text=True)
+                    if completed.returncode:
+                        raise RuntimeError("Official download failed: "+completed.stderr.strip())
+                    final = urlsplit(completed.stdout.strip())
+                    if final.scheme != "https" or final.netloc != "dl.polyhaven.org":
+                        raise ValueError("Download redirected outside official source")
+                    if not partial.is_file():
+                        raise ValueError("Official download produced no file")
+                    if partial.stat().st_size > entry["bytes"]:
+                        raise ValueError("Response exceeds pinned source size")
                     size, md5, sha = hashes(partial)
                     if (size, md5) != (entry["bytes"], entry["md5"]):
                         raise ValueError("Official size/MD5 mismatch; partial retained outside Assets")
