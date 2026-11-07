@@ -49,7 +49,10 @@ class PhysicalConstructionSupport(unittest.TestCase):
         self.assertIn('ground.surface.sharedMesh==ground.geometry.sharedMesh',audit)
         self.assertIn('ground.surface.Raycast',audit)
         self.assertIn('ground.surface.transform==ground.geometry.transform',audit)
-        self.assertIn('RegisterGround(g.GetComponent<MeshCollider>())',self.read('BraxObozEnvironment.cs'))
+        environment=self.read('BraxObozEnvironment.cs')
+        self.assertIn('var terrainCollider=g.AddComponent<MeshCollider>()',environment)
+        self.assertIn('terrainCollider.sharedMesh=mesh',environment)
+        self.assertIn('RegisterGround(terrainCollider)',environment)
 
     def test_unknowns_and_disconnected_parts_are_retained(self):
         audit=self.read('BraxObozStructureAudit.cs')
@@ -73,11 +76,14 @@ class PhysicalConstructionSupport(unittest.TestCase):
 
     def test_bench_height_and_supports_use_measured_geometry(self):
         source=self.read('BraxObozCampfireSupport.cs')
-        self.assertIn('floorY+.45f*K-seat.GetComponent<Renderer>().bounds.max.y',source)
-        self.assertIn('bottom=seat.GetComponent<Renderer>().bounds.min.y',source)
+        self.assertIn('CampfireFloor(camp,centre,out var centreFloor)',source)
+        self.assertIn('float targetTop=centreFloor.point.y+.45f*K',source)
+        self.assertIn('targetTop-seatBounds.max.y',source)
         self.assertIn('groundHits[end].point.y',source)
-        self.assertIn('record.expectedTopMetres=.45f',source)
-        self.assertIn('record.heightMembers=new[]{seat.GetComponent<Renderer>()}',source)
+        self.assertIn('finalSeatBounds.min.y-bench.position.y',source)
+        self.assertIn('placement.heightAboveFloorMetres=.45f',source)
+        self.assertIn('placement.heightRenderers=new[]{seatRenderer}',source)
+        self.assertIn('placement.suspensionSupport=supportColliders[0]',source)
         env=self.read('BraxObozEnvironment.cs')
         self.assertIn('CampfireWoodStack(camp)',env)
         self.assertIn('CampfireLogBenches(camp)',env)
