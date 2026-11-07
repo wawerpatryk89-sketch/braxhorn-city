@@ -491,13 +491,80 @@ public static class BraxChampionsCasinoT11
         return obj;
     }
 
+    // Smooth, SINGLE surface for the down-ramp. Vehicle wheels receive
+    // continuous height at BOTH junctions; 2m quadratic easing at the ends
+    // removes the abrupt hinge at z=-22 and the LEFT TURN floor at z=17.
+    // Physically shared mesh vertices + one collider; mobile-friendly (<200 verts).
+    static GameObject SmoothGarageRamp(Transform parent,Material material,
+        float x0,float x1,float z0,float z1,float y0,float y1)
+    {
+        if(x1<=x0||z1<=z0||y0<=y1)
+            throw new InvalidOperationException("T11 bad ramp dimensions or descent");
+        float length=z1-z0;
+        const float ease=2f;
+        if(length<=ease*2.5f)
+            throw new InvalidOperationException("T11 ramp too short for eased joins");
+        float grade=(y0-y1)/(length-ease);
+        if(grade>.12f)
+            throw new InvalidOperationException("T11 maximum ramp grade exceeds 12 percent");
+        const int segments=78; // 0.5m over the approved 39m run
+        var points=new System.Collections.Generic.List<Vector3>((segments+1)*2);
+        var uv=new System.Collections.Generic.List<Vector2>((segments+1)*2);
+        var tris=new System.Collections.Generic.List<int>(segments*6);
+        for(int i=0;i<=segments;i++)
+        {
+            float distance=length*i/segments;
+            float drop;
+            if(distance<=ease)
+                drop=grade*distance*distance/(2f*ease);
+            else if(distance>=length-ease)
+            {
+                float t=distance-(length-ease);
+                drop=grade*(length-1.5f*ease+t-t*t/(2f*ease));
+            }
+            else
+                drop=grade*(distance-ease*.5f);
+            float z=z0+distance;
+            float y=y0-drop;
+            points.Add(new Vector3(x0,y,z)*K);
+            points.Add(new Vector3(x1,y,z)*K);
+            uv.Add(new Vector2(x0,z));
+            uv.Add(new Vector2(x1,z));
+            if(i<segments)
+            {
+                int n=i*2;
+                tris.Add(n);tris.Add(n+2);tris.Add(n+3);
+                tris.Add(n);tris.Add(n+3);tris.Add(n+1);
+            }
+        }
+        var mesh=new Mesh{name="T11 B1 continuous eased left-turn ramp"};
+        mesh.SetVertices(points);mesh.SetUVs(0,uv);
+        mesh.SetTriangles(tris,0);
+        mesh.RecalculateNormals();mesh.RecalculateBounds();
+        AssetDatabase.CreateAsset(mesh,output+"/Meshes/T11_B1_EasedRamp.asset");
+        var obj=new GameObject("T11 B1 eased real COLLISION ramp | 39m descent");
+        obj.transform.SetParent(parent,false);
+        obj.AddComponent<MeshFilter>().sharedMesh=mesh;
+        var renderer=obj.AddComponent<MeshRenderer>();
+        renderer.sharedMaterial=material;renderer.receiveShadows=true;
+        obj.AddComponent<MeshCollider>().sharedMesh=mesh;
+        GameObjectUtility.SetStaticEditorFlags(obj,
+            StaticEditorFlags.OccludeeStatic|StaticEditorFlags.BatchingStatic);
+        Debug.Log("T11_B1_RAMP_SMOOTH mean_grade="+
+            ((y0-y1)/length*100f).ToString("F2")+
+            " max_grade="+(grade*100f).ToString("F2")+
+            " percent up/down joins level and continuous; no step or duplicate paint");
+        return obj;
+    }
+
     static void UndergroundGarage()
     {
         // REAL accessible subterranean car park. No interior games, decoration,
         // casino floors or casino partitions. Route: east side of T11, from
-        // z=-22 at pavement y=.27 down to the level y=-4.12 at z=+24.
-        // World nominal coordinates: plot centre (495,465), K applied once.
-        // 46m run / 4.39m descent -> 9.5% gradient (before Unity test).
+        // z=-22 at road y=.2485 to flat B1 at z=17, y=-4.098.
+        // Local turn pocket z=17..29 is a full 12m deep, level 90-degree
+        // LEFT turn, not a narrow 5m gap behind the old 46m ramp.
+        // World plot centre (495,465); Unity scale K is applied ONCE.
         var basement=Group(root,"T11 | UNDERGROUND CAR PARK - real ramp and bays");
         // The garage floor ends exactly at the western edge of the turn
         // landing (x=39.55). Both asphalt finishes meet EDGE-TO-EDGE at
@@ -508,50 +575,50 @@ public static class BraxChampionsCasinoT11
             3.775f,-4.109f,2.5f,71.55f,.022f,53f,true,true);
         B(basement,"Garage solid west retaining wall WHITE",garageWhite,
             -32.05f,-2.2f,2.5f,.32f,4.2f,53f,true,true);
-        // Keep the hall's north boundary up to the LEFT turn corner x=39.15.
-        // A separate return and an END wall enclose the ramp opposite the driver.
+        // Hall and ramp terminal walls meet on a SINGLE north line z=29:
+        // no exposed 4m void directly in the driver's forward direction.
         B(basement,"Garage north wall WHITE",garageWhite,
             3.50f,-2.2f,29.0f,71.30f,4.2f,.32f,true,true);
         B(basement,"Garage south wall WHITE (no exit through front)",garageWhite,
             4.5f,-2.2f,-24.0f,73.3f,4.2f,.32f,true,true);
-        // A REAL 14m-wide LEFT-TURN aperture in the garage's EAST wall:
-        // z=15..29. The original gap was only 8m and squeezed the vehicle.
-        // This wall is ALSO the ramp's west retaining wall, not a duplicate.
+        // Full 12m-wide LEFT-TURN aperture z17..29. The separating wall
+        // ends only at the real level-bottom point so the turning wheels never
+        // drop 20-90cm onto the already-flat underground garage floor.
         B(basement,"Garage east solid wall WHITE before LEFT TURN opening",garageWhite,
-            39.30f,-1.75f,-4.5f,.30f,5.10f,39f,true,true);
-        // Concrete return connects the northern garage wall to the terminal
-        // wall across the ramp: no missing wall facing the arriving driver.
-        B(basement,"Garage short north return after LEFT TURN",garageWhite,
-            39.30f,-2.20f,31f,.30f,4.20f,4f,true,true);
+            39.30f,-1.75f,-3.5f,.30f,5.10f,41f,true,true);
+        // No old short return at z29..33: it pinched the turn and left
+        // an uncovered cavity behind the garage north wall.
         // Real covered underground ceiling, below the existing plot grade.
-        B(basement,"Garage WHITE reinforced ceiling",garageWhite,4.5f,-.58f,2.5f,
-            73f,.20f,53f,true,true);
+        B(basement,"Garage WHITE reinforced ceiling",garageWhite,
+            3.575f,-.58f,2.5f,71.15f,.20f,53f,true,true);
         // The white ceiling has visible STRUCTURAL transverse/longitudinal
         // beams, not a bare floating rectangle. Beam undersides are at -1.08 m;
         // clear height above the asphalt is over 3.0 m (nominal).
         foreach(float zz in new[]{-18f,-6f,6f,18f,27f})
             B(basement,"B1 WHITE transverse roof beam",garageWhiteBeam,
-                4.5f,-.875f,zz,72f,.40f,.48f,true,true);
+                3.3f,-.875f,zz,70.6f,.40f,.48f,true,true);
         foreach(float xx in new[]{-29.0f,-12.5f,4.0f,20.5f,37.0f})
             B(basement,"B1 WHITE longitudinal roof beam",garageWhiteBeam,
                 xx,-.875f,2.5f,.48f,.40f,51f,true,true);
-        // Exact width 9.35m (x39.55..48.90), with 14m clear left-turn exit
-        // into the hall (z15..29). Ramp and landing both meet y=-4.098.
+        // The 9.35m road is fully flat by z=17, matching the B1 asphalt
+        // surface at y=-4.098 without a vertical seam. Parking-hall asphalt
+        // ENDS at x39.55, and the separate 12m-long landing STARTS there:
+        // no overlapping co-planar surfaces and no inverted road wedge.
         const float rampX0=39.55f,rampX1=48.90f;
         const float roadY=.2485f,garageY=-4.098f;
         B(basement,"Garage bottom structural landing",granite,
-            44.225f,-4.20f,28.5f,9.35f,.16f,9f,true,true);
+            44.225f,-4.20f,23f,9.35f,.16f,12f,true,true);
         B(basement,"Garage bottom BLACK asphalt landing",garageBlackAsphalt,
-            44.225f,-4.109f,28.5f,9.35f,.022f,9f,true,true);
-        GradedDrive(basement,"garage_descent_flat_join",garageBlackAsphalt,
-            rampX0,rampX1,-22f,24f,roadY,garageY,false);
+            44.225f,-4.109f,23f,9.35f,.022f,12f,true,true);
+        SmoothGarageRamp(basement,garageBlackAsphalt,
+            rampX0,rampX1,-22f,17f,roadY,garageY);
         // West side shares the main garage east wall above; no duplicate.
         B(basement,"Ramp east retaining wall WHITE",garageWhite,
-            49.12f,-1.88f,5.5f,.20f,4.84f,55f,true,true);
+            49.12f,-1.88f,3.5f,.20f,4.84f,51f,true,true);
         // This wall was genuinely MISSING straight ahead in the old build.
         // It closes the end of the ramp but preserves a wide turn to the LEFT.
         B(basement,"T11 SOLID END WALL straight ahead at ramp bottom",garageWhite,
-            44.225f,-2.05f,33.0f,9.85f,4.10f,.30f,true,true);
+            44.225f,-2.05f,29.0f,9.85f,4.10f,.30f,true,true);
         // Top approach joins the front forecourt at z=-37.5 exactly, with
         // identical surface elevation. It ends where the ramp begins (z=-22).
         B(basement,"Garage entrance from VIP/TAXI circulation",asphalt,
@@ -565,9 +632,9 @@ public static class BraxChampionsCasinoT11
         B(basement,"Garage upper portal warm LED",led,
             44.19f,4.71f,-22.44f,10.35f,.10f,.12f,false);
         Debug.Log("T11_B1_GARAGE_LEFT_TURN_GEOMETRY rampClear=9.35m"+
-            " westExitZ=15..29 width=14m bottomLanding=9.35x9m"+
-            " roadTop=.2485 garageTop=-4.098 rampNoLip=true"+
-            " solidEndWall=true deviceDriveTestPending=true");
+            " westExitZ=17..29 width=12m bottomLanding=9.35x12m"+
+            " roadTop=.2485 garageTop=-4.098 smoothRampNoLip=true"+
+            " solidEndWallAtZ29=true protectedRoof=true deviceDriveTestPending=true");
         // 32 actual marked bays: two rows x sixteen, 3.10m wide x 5.25m
         // long. Seventeen lines are necessary to enclose sixteen stalls.
         // The broad middle lane and northern turning area remain unmarked.
