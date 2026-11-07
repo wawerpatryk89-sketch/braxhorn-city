@@ -6,6 +6,21 @@ using UnityEngine;
 // Native Poly Haven maps are 2048x2048, never downscaled from 4K.
 public sealed class BraxChampionsPoolP1TextureImport : AssetPostprocessor
 {
+    void OnPreprocessModel()
+    {
+        // Preserve the owner's FBX bytes and authored material definitions.
+        // Import its own material descriptions as prefab sub-assets; do not
+        // remap to project-wide substitutes and do not alter geometry.
+        const string lounger =
+            "Assets/Source/Mistrzowie/PoolP1/OwnerEquipment/Sun-lounger_FBX.fbx";
+        if(assetPath!=lounger)return;
+        var importer=(ModelImporter)assetImporter;
+        importer.materialImportMode=ModelImporterMaterialImportMode.ImportStandard;
+        importer.materialLocation=ModelImporterMaterialLocation.InPrefab;
+        importer.materialName=ModelImporterMaterialName.BasedOnMaterialName;
+        importer.materialSearch=ModelImporterMaterialSearch.Local;
+    }
+
     void OnPreprocessTexture()
     {
         bool pool=assetPath.StartsWith("Assets/Source/Mistrzowie/PoolP1/Textures2K/",StringComparison.Ordinal);

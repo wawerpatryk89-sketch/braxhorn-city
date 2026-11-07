@@ -109,6 +109,15 @@ class OwnerFurnishingTests(unittest.TestCase):
         self.assertIn('asset_id',workflow)
         self.assertIn('import_pool_p1_owner_assets.py',workflow)
 
+    def test_owner_lounger_imports_its_authored_materials_without_substitution(self):
+        importer=(ROOT/'unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1TextureImport.cs').read_text(encoding='utf-8')
+        self.assertIn('Sun-lounger_FBX.fbx',importer)
+        self.assertIn('ModelImporterMaterialImportMode.ImportStandard',importer)
+        self.assertIn('ModelImporterMaterialLocation.InPrefab',importer)
+        self.assertIn('ModelImporterMaterialName.BasedOnMaterialName',importer)
+        self.assertIn('ModelImporterMaterialSearch.Local',importer)
+        self.assertNotIn('SearchAndRemapMaterials(',importer)
+
 
 if __name__=="__main__":
     unittest.main()
