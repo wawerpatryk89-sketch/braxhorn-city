@@ -30,6 +30,15 @@ class R1AndroidReceiptSafety(unittest.TestCase):
         self.assertIn("Expected one city sea component", VALIDATOR)
         self.assertIn("sys.exit(1)", VALIDATOR)
 
+    def test_lz4_player_archive_is_inspected_not_skipped(self):
+        self.assertIn("data.unity3d", VALIDATOR)
+        self.assertIn("UnityDataTool", VALIDATOR)
+        self.assertIn("'archive', 'extract'", VALIDATOR)
+        self.assertIn("--filter", VALIDATOR)
+        self.assertIn("UNITY_DATA_TOOL=", WORKFLOW)
+        self.assertIn("v2.4.0/UnityDataTool-linux-x64.zip", WORKFLOW)
+        self.assertIn("0534036123353a2b69a93e7da9658f319e4056d9cb6ec45926d5449ab65bf22f", WORKFLOW)
+
     def test_receipts_are_kept_as_job_artifacts(self):
         self.assertIn('${{ runner.temp }}/wyslane/*-validation.json', WORKFLOW)
 

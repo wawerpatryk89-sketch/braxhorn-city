@@ -695,7 +695,20 @@ jobs:
         sudo fallocate -l 12G /swapfile-unity && sudo chmod 600 /swapfile-unity && sudo mkswap /swapfile-unity && sudo swapon /swapfile-unity || echo 'brak miejsca na swap'
         free -g
     - name: Narzedzie kontroli serializacji gotowego APK miasta
-      run: python3 -m pip install --disable-pip-version-check UnityPy==1.25.4
+      run: |
+        python3 -m pip install --disable-pip-version-check UnityPy==1.25.4
+        UDT_ZIP="$RUNNER_TEMP/UnityDataTool-linux-x64.zip"
+        UDT_DIR="$RUNNER_TEMP/unity-data-tool-v2.4.0"
+        curl --fail --location --retry 3 \
+          --output "$UDT_ZIP" \
+          https://github.com/Unity-Technologies/UnityDataTools/releases/download/v2.4.0/UnityDataTool-linux-x64.zip
+        printf '%s  %s\n' '0534036123353a2b69a93e7da9658f319e4056d9cb6ec45926d5449ab65bf22f' "$UDT_ZIP" | sha256sum --check --strict
+        rm -rf "$UDT_DIR"
+        mkdir -p "$UDT_DIR"
+        unzip -q "$UDT_ZIP" -d "$UDT_DIR"
+        chmod +x "$UDT_DIR/UnityDataTool"
+        echo "UNITY_DATA_TOOL=$UDT_DIR/UnityDataTool" >> "$GITHUB_ENV"
+        "$UDT_DIR/UnityDataTool" --version
     - name: Straznik w tle - kazdy APK do wydania od razu po zbudowaniu (nie czeka na reszte wariantow)
       env:
         GH_TOKEN: ${{ github.token }}
