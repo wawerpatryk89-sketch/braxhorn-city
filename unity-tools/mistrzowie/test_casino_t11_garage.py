@@ -13,23 +13,29 @@ class CasinoT11UndergroundTests(unittest.TestCase):
         cls.casino=T11.read_text(encoding="utf-8")
 
     def test_real_8_by_46_opening_on_approved_plot(self):
-        self.assertIn("T11_GARAGE_RAMP=(535.5,443.0,8.0,46.0)",self.ground)
+        self.assertIn("T11_GARAGE_RAMP=(534.15,443.0,10.15,46.0)",self.ground)
+        self.assertIn("T11_STREET_ENTRANCE=(410.0,417.0,7.0,11.0)",self.ground)
+        self.assertIn("if inside((x,z),T11_STREET_ENTRANCE):return None",self.ground)
         self.assertIn("if inside((x,z),T11_GARAGE_RAMP):return None",self.ground)
         # Keep the original T11 garage cutout even as port/promenade rectangles
         # are added to the same subdivision; exact old list order is irrelevant.
-        self.assertTrue(any(line.startswith("rects=") and "+[T11_GARAGE_RAMP]" in line for line in self.ground.splitlines()),"Integrated geometry omitted the T11 8x46m garage ramp cutout")
-        self.assertGreaterEqual(535.5,495-60)
-        self.assertLessEqual(543.5,495+60)
+        self.assertTrue(any(line.startswith("rects=") and "+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE]" in line for line in self.ground.splitlines()),"Integrated geometry omitted the T11 ramp and exact street-entrance cutouts")
+        self.assertGreaterEqual(534.15,495-60)
+        self.assertLessEqual(544.30,495+60)
         self.assertGreaterEqual(443,465-50)
         self.assertLessEqual(489,465+50)
 
     def test_grade_and_fire_route_clearance(self):
-        grade=4.39/46.0
+        grade=(.2485+4.098)/46.0
         self.assertGreater(grade,.07)
         self.assertLess(grade,.12)
-        # Ramp ends x=48.5; first east-side fire lane begins x=49.5.
-        self.assertGreaterEqual(49.5-48.5,1.0)
-        self.assertIn("Mathf.Atan2(4.39f,46f)",self.casino)
+        # Ramp + side walls end before the fire lane's west edge x=49.5.
+        self.assertGreaterEqual(49.5-49.30,.19)
+        self.assertIn('GradedDrive(basement,"garage_descent_flat_join"',self.casino)
+        self.assertIn('GradedDrive(shell,"left_street_road_connection"',self.casino)
+        self.assertIn('9.35f',self.casino)
+        self.assertIn('z=15..29',self.casino)
+        self.assertIn("T11 SOLID END WALL straight ahead at ramp bottom",self.casino)
         self.assertIn("UndergroundGarage();",self.casino)
         self.assertIn("Garage bottom structural landing",self.casino)
         self.assertNotIn("Garage interior and descending ramp intentionally deferred",self.casino)
@@ -43,7 +49,7 @@ class CasinoT11UndergroundTests(unittest.TestCase):
         self.assertIn("B1 WHITE dashed driving-aisle centre line",self.casino)
         self.assertIn("for(int n=0;n<8;n++)",self.casino)
         # Actual black wearing course has a working physics collider, not just paint.
-        self.assertIn("73f,.02f,53f,true,true",self.casino)
+        self.assertIn("71.55f,.022f,53f,true,true",self.casino)
         self.assertIn("B1 structural reinforced WHITE support column",self.casino)
         self.assertIn("new[]{-30.25f,29.35f}",self.casino)
         self.assertIn("new[]{-18f,0f,13.5f}",self.casino)
@@ -67,8 +73,10 @@ class CasinoT11UndergroundTests(unittest.TestCase):
         self.assertIn("Garage structural floor - real collider",self.casino)
         self.assertIn("Garage main entrance champagne beam",self.casino)
         self.assertIn("Garage bottom BLACK asphalt landing",self.casino)
-        self.assertIn("Ramp west retaining wall",self.casino)
+        self.assertIn("Garage east solid wall WHITE before LEFT TURN opening",self.casino)
         self.assertIn("Ramp east retaining wall",self.casino)
+        self.assertIn("Garage short north return after LEFT TURN",self.casino)
+        self.assertIn("T11 SOLID END WALL straight ahead at ramp bottom",self.casino)
         self.assertIn('"B1_clean_white_wall_and_columns"',self.casino)
         self.assertIn('"B1_white_structural_roof_beams"',self.casino)
         self.assertIn("Garage floor BLACK Poly Haven asphalt",self.casino)
