@@ -16,7 +16,7 @@ public static class BraxChampionsCasinoT11
     static string output;
     static int serial;
     static Transform root,shell,trim,signRoot;
-    static Material cream,graphite,granite,asphalt,paving,gold,pillarGold,steel,glass,frontGlass,towerGlass,skylightGlass,led,roof,redCarpet,parkingPaint;
+    static Material cream,facadeSandstone,graphite,granite,asphalt,paving,gold,pillarGold,steel,glass,frontGlass,towerGlass,skylightGlass,led,roof,redCarpet,parkingPaint;
     // White finishes are GARAGE-ONLY. Do not repaint the owner-approved casino exterior.
     static Material garageWhite,garageWhiteBeam,garageBlackAsphalt,garageParkingPaint;
 
@@ -27,6 +27,11 @@ public static class BraxChampionsCasinoT11
         // Tiles (jasny krem), duże płyty — NIE cegła. Te same pobrane mapy co grafit,
         // kremowy odcień jak pas kamienny areny.
         cream=BraxChampionsCasinoPbr2K.Create(output,"t11_cream_facade","rectangular_facade_tiles",2.0f,new Color(.93f,.89f,.80f));
+        // 7 Nov: owner's screenshot from OFFICIAL Poly Haven, unmodified native
+        // 2K Sandstone Blocks 05 PBR. No side or rear window placeholders.
+        facadeSandstone=BraxChampionsCasinoPbr2K.Create(output,
+            "t11_owner_sandstone_blocks_05_masonry","sandstone_blocks_05",2.3f,
+            new Color(.96f,.94f,.88f));
         graphite=BraxChampionsCasinoPbr2K.Create(output,"t11_graphite_facade","rectangular_facade_tiles",2.0f,new Color(.22f,.23f,.25f));
         granite=BraxChampionsCasinoPbr2K.Create(output,"t11_dark_granite","granite_tile",1.2f,new Color(.26f,.28f,.30f));
         paving=BraxChampionsCasinoPbr2K.Create(output,"t11_walkways","concrete_pavement_02",1.8f,new Color(.94f,.93f,.89f));
@@ -148,29 +153,11 @@ public static class BraxChampionsCasinoT11
     }
     static void SidePanel(float x,float z,float w,float bottom,float height)
     {
-        // Owner's facade contract: after the principal glazed front,
-        // SIDE wings are mostly MASONRY. Keep one narrow, real window per
-        // 6.5m bay instead of the previous full-length glass curtain wall.
-        // Current original cream Poly Haven finish is retained temporarily;
-        // user selects the final masonry material separately.
-        const float slot=1.40f;
-        float stoneWidth=(w-slot)*.5f;
-        float y=bottom+height*.5f;
-        float offset=(slot+stoneWidth)*.5f;
-        B(shell,"T11 real solid Poly Haven MASONRY side left",cream,
-            x,y,z-offset,.35f,height,stoneWidth,true,true);
-        B(shell,"T11 real solid Poly Haven MASONRY side right",cream,
-            x,y,z+offset,.35f,height,stoneWidth,true,true);
-        B(shell,"T11 slim lightly tinted side window",frontGlass,
-            x,y,z,.13f,height,slot,false);
-        float outerX=x+Mathf.Sign(x)*.22f;
-        foreach(float zz in new[]{z-slot*.5f,z+slot*.5f})
-            B(trim,"T11 polished gold vertical side reveal",pillarGold,
-                outerX,y,zz,.15f,height,.14f,false);
-        B(trim,"T11 masonry window gold top frame",gold,
-            outerX,bottom+height-.05f,z,.12f,.1f,slot,false);
-        B(trim,"T11 masonry window gold sill",gold,
-            outerX,bottom+.05f,z,.12f,.1f,slot,false);
+        // Explicit owner decision: NOT ONE GLASS PANEL on side elevations.
+        // Each interval between the existing polished gold columns is a
+        // physically solid wall with Sandstone Blocks 05 native Poly Haven PBR.
+        B(shell,"T11 SOLID SANDSTONE 05 side wall between gold columns",
+            facadeSandstone,x,bottom+height*.5f,z,.35f,height,w,true,true);
     }
 
     static void ThreeMatchingFacades()
@@ -203,6 +190,10 @@ public static class BraxChampionsCasinoT11
                     SidePanel(side*38.08f,zz+3.7f,6.5f,7.1f,5.8f);
                 }
             }
+            // Slim BLACK corner reveal on polished gold facade fins.
+            foreach(float cornerZ in new[]{-27.15f,27.15f})
+                B(trim,"T11 delicate black corner inlay beside gold column",
+                    graphite,side*38.59f,7.1f,cornerZ,.08f,13.60f,.11f,false);
             B(trim,"Side champagne floor belt",gold,side*38.48f,7.04f,0,.13f,.17f,56f,false);
             B(trim,"Side graphite lower base",graphite,side*38.4f,.50f,0,.14f,.64f,56f,false);
             B(trim,"Side continuous gold cornice",gold,side*38.45f,13.66f,0,.19f,.25f,56f,false);
@@ -223,9 +214,12 @@ public static class BraxChampionsCasinoT11
         }
         // Rear service wall in exactly the same ivory + graphite + gold palette.
         // Keep a real six-metre-wide DELIVERY OPENING at x=-23..-17.
-        B(shell,"Rear cream stone wing left",cream,-30.5f,7.0f,28f,15f,13.8f,.7f);
-        B(shell,"Rear cream stone wing right",cream,10.5f,7.0f,28f,55f,13.8f,.7f);
-        B(shell,"Service entry over-door stone",cream,-20f,9.7f,28f,6f,8.3f,.7f);
+        B(shell,"Rear Sandstone 05 wall left of delivery opening",
+            facadeSandstone,-30.5f,7.0f,28f,15f,13.8f,.7f);
+        B(shell,"Rear Sandstone 05 wall right of delivery opening",
+            facadeSandstone,10.5f,7.0f,28f,55f,13.8f,.7f);
+        B(shell,"Rear Sandstone 05 over-door lintel",
+            facadeSandstone,-20f,9.7f,28f,6f,8.3f,.7f);
         B(trim,"Rear graphite base",graphite,8f,.58f,28.45f,60f,.8f,.15f,false);
         B(trim,"Rear champagne cornice",gold,0,13.72f,28.45f,75f,.20f,.14f,false);
         B(trim,"Rear warm gold LED line",led,0,13.86f,28.52f,74.4f,.085f,.10f,false);
@@ -590,8 +584,17 @@ public static class BraxChampionsCasinoT11
             B(shell,"Fire service route",asphalt,side*53f,.215f,0,7.0f,.055f,94f,true,true);
             B(shell,side<0?"VIP arrival":"TAXI arrival",asphalt,side*27f,.235f,-41.9f,24f,.055f,9.7f,true,true);
             B(trim,"VIP or taxi champagne curb",gold,side*27f,.34f,-36.4f,24f,.11f,.14f,false);
-            for(int i=0;i<5;i++)
-                B(trim,"Actual white painted asphalt parking bay line",parkingPaint,side*(22f+i*4.2f),.285f,-44.5f,.11f,.014f,5.6f,false);
+            // Three VIP parking bays TOTAL, solely on the LEFT.
+            // Right-hand TAXI drop-off remains clear of parking stripes.
+            if(side<0)
+            {
+                for(int i=0;i<=3;i++)
+                    B(trim,"T11 3 VIP marked front parking bays | delimiter "+i,
+                        parkingPaint,-38.1f+i*3.9f,.285f,-43.8f,
+                        .10f,.014f,5.6f,false);
+                B(trim,"T11 3 VIP bays | common head line",parkingPaint,
+                    -32.25f,.285f,-46.55f,11.7f,.014f,.10f,false);
+            }
             foreach(float z in new[]{-32f,33f})
                 B(shell,"Champagne black granite planter",granite,
                     side>0&&z<0?38f:side*43f,.48f,z,3.4f,.6f,3.3f,true);
@@ -607,9 +610,12 @@ public static class BraxChampionsCasinoT11
         foreach(float x in new[]{-8.4f,-7.0f,-5.6f,5.6f,7.0f,8.4f})
             B(trim,"White zebra marking on asphalt",parkingPaint,x,.287f,-41.5f,
                 .60f,.012f,5.5f,false);
-        // The approved road grid is on X=400. Its eastern sidewalk edge X=417,
-        // exactly 18m west of the T11 plot edge X=435: connect without moving T11.
-        B(shell,"T11 physical access from existing city road X400",asphalt,-69f,.224f,-42.5f,20f,.054f,7.4f,true,true);
+        // Widen approved LEFT road entrance. The former connector stopped at
+        // world x=436, while the forecourt lane started at x=442.5: a real
+        // 6.5m GAP! New one spans world X417..442.5 with 11m breadth,
+        // joining the existing city-road sidewalk exactly at its outer edge.
+        B(shell,"T11 WIDE LEFT vehicle approach from X400 road",asphalt,
+            -65.25f,.224f,-42.5f,25.5f,.054f,11f,true,true);
         B(shell,"Casino pedestrian main axis",granite,0,.22f,-43.7f,8.1f,.08f,11.7f,true,true);
         B(trim,"Red carpet leading to the curved casino entrance",redCarpet,
             0,.279f,-41.45f,5.8f,.016f,10.35f,false,true);
@@ -797,7 +803,10 @@ public static class BraxChampionsCasinoT11
         shell=Group(root,"T11 exterior shell, real entrances and site collisions");
         trim=Group(root,"Exterior gold and bronze details (distance LOD)");
         signRoot=Group(root,"T11 original owner sign (always visible)");
-        Site();ThreeMatchingFacades();RoofAndSkylight();CurvedFoyer();Tower();MainSign();RoadsideSigns();PremiumExteriorLighting();
+        Site();ThreeMatchingFacades();RoofAndSkylight();CurvedFoyer();
+        // 7 Nov owner's final approval: NO OFFICE TOWER whatsoever.
+        // Do not instantiate or reserve a wireframe/skyscraper shell.
+        MainSign();RoadsideSigns();PremiumExteriorLighting();
         // Remove tiny gold detail in distance, keep WAWER sign always visible.
         var renderers=trim.GetComponentsInChildren<Renderer>(true);
         var lod=trim.gameObject.AddComponent<LODGroup>();
