@@ -11,7 +11,11 @@ LIVE_VERIFIED_OWNER_SLUGS={"stone_tiles","gravel_embedded_concrete_02","wooden_p
 
 class PolyHavenSourceTests(unittest.TestCase):
     def entry(self, name="original"):
-        return {"4k": {"exr": {"url": name}, "jpg": {"url": name}}}
+        return {"4k": {
+            "exr": {"url": name},
+            "jpg": {"url": name},
+            "png": {"url": name},
+        }}
 
     def test_all_actual_provider_responses_resolve_every_required_4k_map(self):
         fixtures=json.loads(Path(__file__).with_name('pbr-provider-preflight.json').read_text())
