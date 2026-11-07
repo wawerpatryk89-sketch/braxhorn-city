@@ -1626,22 +1626,26 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             return;
         }
         dir.Normalize();
-        // R1: wysięgnik ma być skierowany nad JEZDNIĘ, a nie w okna
-        // kamienicy / na chodnik. Sprawdzamy oba kierunki na gotowym
-        // asfalcie przed wygenerowaniem całej siatki i kolizji.
-        float reach = Mathf.Min(Mathf.Max(2.6f, wysieg), 2.2f * K);
-        var probeA = p + dir * reach;
-        var probeB = p - dir * reach;
-        bool frontRoad = NaJezdni(probeA), backRoad = NaJezdni(probeB);
+        // Odbiór R1: wysięgnik musi wskazywać jezdnię, nie elewację.
+        // Wcześniej test był ograniczony do 2.2*K (~2.85 m) i nie dochodził
+        // do jezdni za pasem zieleni; obie strony wychodziły jako "brak".
+        float maxProbe = Mathf.Max(9f, wysieg + 4f);
+        bool JezdniaPoStronie(Vector3 strona)
+        {
+            for (float d = .8f; d <= maxProbe; d += .8f)
+                if (NaJezdni(p + strona * d)) return true;
+            return false;
+        }
+        bool frontRoad = JezdniaPoStronie(dir), backRoad = JezdniaPoStronie(-dir);
         if (!frontRoad && backRoad)
         {
             dir = -dir;
             Debug.Log("BRAXHORN_LATARNIE odwrocony wysiegnik na JEZDNIE @" +
-                      p.ToString("F1"));
+                p.ToString("F1"));
         }
         else if (!frontRoad && !backRoad)
-            Debug.LogWarning("BRAXHORN_LATARNIE DO WERYFIKACJI: nie znaleziono jezdni " +
-                "po stronie wysiegnika @" + p.ToString("F1"));
+            Debug.LogWarning("BRAXHORN_LATARNIE DO WERYFIKACJI: brak jezdni w promieniu " +
+                maxProbe.ToString("F1") + " m przy " + p.ToString("F1"));
         var g = new GameObject("Latarnia uliczna"); g.transform.SetParent(root, false);
         var b = new BraxRegionMeble.Bud(); float h = 8f * K;
         b.Cyl(p, p + Vector3.up * .6f * K, .14f * K, 14, .11f * K);
