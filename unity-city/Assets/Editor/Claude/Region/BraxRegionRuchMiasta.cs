@@ -122,7 +122,9 @@ public static partial class BraxClaudeOsiedle
         var Pw = new BraxTrasyAut.Ulica { id = "MIASTO pętla ZACHÓD (umowna oś z)", wzdluzX = false, c = BraxRegionMiastoB.PetlaZX, a0 = rz - 1f, a1 = rz + 1f, cw = ah, half = ah };
         var ul = new List<BraxTrasyAut.Ulica> { G, A, Wd, Ws, Pd, Pw };
         var RONDO = new BraxTrasyAut.Wezel { x = rx, z = rz, rondo = true, ux = G, uz = A };
-        var PETLA = new BraxTrasyAut.Wezel { x = ax, z = pz, rondo = true, ux = Pd, uz = A };
+        // Pętla północna przy sklepie to teraz parking, NIE rondo. Zachowujemy
+        // węzeł tylko jako punkt orientacyjny, bez bramek kołowych.
+        var PETLA = new BraxTrasyAut.Wezel { x = ax, z = pz, rondo = false, ux = Pd, uz = A };
         var J1 = new BraxTrasyAut.Wezel { x = wx, z = rz, ux = G, uz = Wd, rodzaj = 2 };
         var J2 = new BraxTrasyAut.Wezel { x = ax, z = sz, ux = Ws, uz = A, rodzaj = 2 };
         var W = new BraxTrasyAut.Wezel { x = wx, z = sz, ux = Ws, uz = Wd };
@@ -133,7 +135,8 @@ public static partial class BraxClaudeOsiedle
         {
             new BraxTrasyAut.Definicja { nazwa = "M pętla Wiaduktowa–Warsztatowa (w lewo)", petla = true, y = YA, punkty = new[] { P(RONDO), P(J2), P(W), P(J1) } },
             new BraxTrasyAut.Definicja { nazwa = "M pętla Wiaduktowa–Warsztatowa (w prawo)", petla = true, y = YA, punkty = new[] { P(RONDO), P(J1), P(W), P(J2) } },
-            new BraxTrasyAut.Definicja { nazwa = "M pętla przez Aleję Północną (zawracanie na rondzie PÓŁNOC)", petla = true, y = YA, punkty = new[] { P(RONDO), P(PETLA), P(RONDO), P(J1), P(W), P(J2) } },
+            // Zjazd na parking północny pozostaje dostępny od alei, ale nie
+            // wysyłamy ruchu miejskiego na tor dawnej pętli i stanowiska.
             new BraxTrasyAut.Definicja { nazwa = "M pętla przez ul. Zachodnią (zawracanie na pętli ZACHÓD)", petla = true, y = YA, punkty = new[] { P(RONDO), P(PETLA_W), P(RONDO), P(J2), P(W), P(J1) } },
         };
         // WŁAŚCICIEL 3.11 10:15 („gdzie ruch na ulicy?”) — NOWE DZIELNICE: siatka ulic z buildu (log „nawierzchnie: aleja 4 odcinki,
