@@ -296,13 +296,18 @@ public static class BraxChampionsBeltShowcase
         material.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
         AssetDatabase.CreateAsset(material,Materials+"A1_owner_case_plaque.mat");
 
+        // Both label quads face outwards: FRONT yaw=180 and RIGHT yaw=90.
+        // For those two outward-facing views mesh +U points to the viewer's
+        // LEFT (Unity Right=Cross(Up,LookDirection)). The original artwork
+        // looked mirror-reversed. Swap UV ENDPOINTS only, never the owner's
+        // 1536x512 source pixels, logo, text, colour or the physical plaques.
         AtlasLabel(display,material,"FRONT_BRAXHORN_ARENA",
             new Vector3(0,.78f,-.421f),Quaternion.Euler(0,180f,0),
-            new Vector2(1.24f,.48f),.397f,.777f,.12f,.90f);
-        // Preserve the owner's B crest from the same atlas as a small right-side detail.
+            new Vector2(1.24f,.48f),.777f,.397f,.12f,.90f);
+        // Original owner's separate B emblem belongs on the RIGHT SIDE.
         AtlasLabel(display,material,"RIGHT_SIDE_B_CREST",
             new Vector3(.765f,.78f,-.215f),Quaternion.Euler(0,90f,0),
-            new Vector2(.26f,.36f),.791f,.938f,.12f,.90f);
+            new Vector2(.26f,.36f),.938f,.791f,.12f,.90f);
         Debug.Log("CHAMPIONS_A1_PLAQUE_REFERENCE ownerPixelsUnchanged=true"+
             " narrowGoldRectangle=true frontPanels=1 sideCrest=1 source="+sourceWidth+"x"+sourceHeight);
     }
