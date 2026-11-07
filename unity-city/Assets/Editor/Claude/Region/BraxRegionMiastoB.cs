@@ -282,7 +282,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             b.size.x < 3.5f && b.size.z > 6.5f &&
             b.size.y > .45f && b.size.y < 6.0f &&
             b.min.z < GZ-1f && b.max.z > GZ+1f;
-        var removed = 0; var disabled = 0; var colliders = 0; var unresolved = 0;
+        var removed = 0; var disabled = 0; var clipped = 0; var colliders = 0; var splitColliders = 0; var unresolved = 0;
         var descriptions = new List<string>();
         foreach (var g in korzenie)
         {
@@ -302,9 +302,27 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
                 bool shape = Poprzeczna(q);
                 if (!named && !shape) continue;
                 if (!q.Intersects(road)) continue;
-                // Nie wyłączamy całego budynku ani płaszczyzny chodnika.
-                if (q.size.y > 6.0f || q.size.x > 21.0f ||
-                    q.size.z > 24.0f) { unresolved++; continue; }
+                // Nie niszczymy długiego ogrodzenia (może ciągnąć się
+                // za jezdnią) ani połączonego mesha. Wycinamy jedynie pas
+                // blokujący przejście; pozostałe trójkąty źródła zostają.
+                if (q.size.y > 6.0f || q.size.x > 21.0f || q.size.z > 24.0f)
+                {
+                    if (named && q.size.y <= 8f)
+                    {
+                        try
+                        {
+                            int cut = BraxCityMeshCut.Subtract(r.transform, exact,
+                                BraxRegion.Out + "/Cuts", "plot_poprzeczny_glowna");
+                            if (cut > 0) { clipped += cut; continue; }
+                        }
+                        catch (Exception e)
+                        {
+                            usuniete.Add("PŁOT GŁÓWNA DO POPRAWKI cięcie siatki: " + e.Message);
+                        }
+                    }
+                    unresolved++;
+                    continue;
+                }
                 string id = Sciezka(r.transform);
                 if(r.transform.childCount==0)
                 {
@@ -333,17 +351,32 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
                 bool named=ObcaPrzeszkoda(c.name);
                 for(var t=c.transform.parent;t && !named && t!=g.transform.parent;t=t.parent)
                     named=ObcaPrzeszkoda(t.name);
-                if(!(shape||named) || q.size.y>6f || q.size.z>24f ||
-                   q.size.x>21f)continue;
+                if(!(shape||named) || q.size.y>8f || q.size.x>21f)continue;
+                if (q.size.z>24f && c is BoxCollider)
+                {
+                    try
+                    {
+                        int cut = BraxCityMeshCut.SubtractBoxColliders(c.transform, exact);
+                        if (cut>0) { splitColliders+=cut; continue; }
+                    }
+                    catch(Exception e)
+                    {
+                        usuniete.Add("PŁOT GŁÓWNA DO POPRAWKI cięcie kolizji: "+e.Message);
+                    }
+                    unresolved++;
+                    continue;
+                }
+                if(q.size.z>24f) { unresolved++; continue; }
                 c.enabled=false;
                 colliders++;
             }
         }
         usuniete.Add("PŁOT GŁÓWNA PRZED RONDEM: rendererów usuniętych=" +
-            removed+" wyłączonych="+disabled+" kolizji="+colliders+
+            removed+" wyłączonych="+disabled+" cięć_siatek="+clipped+
+            " kolizji="+colliders+" cięć_kolizji="+splitColliders+
             " nierozpoznanych="+unresolved+
             (descriptions.Count>0?" ["+string.Join("; ",descriptions)+"]":""));
-        if (removed+disabled==0)
+        if (removed+disabled+clipped==0)
             Debug.LogWarning("BRAXHORN_GLOWNA_PLOT DO POPRAWKI: brak rozpoznanej " +
                 "siatki płotu x=-104.5 z=28.5; nie usuwano elementów na ślepo");
     }
