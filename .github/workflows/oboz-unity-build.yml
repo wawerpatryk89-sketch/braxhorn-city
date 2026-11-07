@@ -3,7 +3,7 @@ name: Obóz — Unity 6 APK do testu
 on:
   # Owner-requested start only; normal source commits do not build an APK.
   push:
-    branches: [gpt/oboz, run/oboz-apk-20261105-0650]
+    branches: [gpt/oboz, run/oboz-apk-20261105-0650, codex/oboz-przebudowa-pbr-20261105]
     paths: [unity-tools/oboz/build-request.json, .github/workflows/oboz-unity-build.yml]
   workflow_dispatch:
     inputs:
@@ -612,7 +612,7 @@ jobs:
 
   oboz-scene-only:
     name: "OBÓZ TRENINGOWY — pełna scena Unity 6 bez APK"
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105' && inputs.quality_review == true && (inputs.content_action == 'none' || inputs.content_action == '')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105' && inputs.quality_review == true && (inputs.content_action == 'none' || inputs.content_action == ''))
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     env:
@@ -639,7 +639,7 @@ jobs:
       - name: Sprawdź oryginalne zasoby, bez kompilacji APK
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
-          EXPECTED_SHA: ${{ inputs.expected_sha }}
+          EXPECTED_SHA: ${{ inputs.expected_sha || github.sha }}
         run: |
           set -euo pipefail
           test "$GITHUB_REF" = "refs/heads/codex/oboz-przebudowa-pbr-20261105"
