@@ -928,7 +928,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
                 float xx = x, za = zA;
                 Pozniej("drzewo w kracie (CENTRUM)", () => { var p = NaPodlozu(new Vector3(xx, YC, za)); BraxRegionMeble.KrataDrzewa(root, p); DrzewoTeraz(p); });
                 Pozniej("latarnia (CENTRUM)", () => { BraxRegionMeble.Latarnia(root, NaPodlozu(new Vector3(xx + 6f, YC, za))); latarnie++; });
-                if (za < 100f) Pozniej("ławka (CENTRUM)", () => BraxRegionMeble.Lawka(root, NaPodlozu(new Vector3(xx + 3f, YC, za - .6f * K)), 180f));
+                // R1: ławki na ciągu ulicznym CENTRUM usunięte.
             }
         Trawa("L3 na wschód od pętli", AX + PetlaPlac + 3f, LicoE + 16f, PetlaZ - PetlaPlac, 126f, true);
         Trawa("L4 na północ od pętli", AX - PetlaPlac - 3f, AX + PetlaPlac + 3f, PetlaZ + PetlaPlac, 126f, true);
@@ -955,8 +955,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         for (float z = 60f; z < 118f; z += 24f)
         {
             float zz = z;
-            Pozniej("ławka", () => BraxRegionMeble.Lawka(root, NaPodlozu(new Vector3(-70.95f - .45f * K, YC - .03f, zz)), 90f));
-            Pozniej("ławka", () => BraxRegionMeble.Lawka(root, NaPodlozu(new Vector3(-61.45f + .45f * K, YC - .03f, zz + 12f)), -90f));
+            // Ławki wzdłuż ulicy usunięte. Kosze zachowane.
             Pozniej("kosz", () => BraxRegionMeble.Kosz(root, NaPodlozu(new Vector3(-70.95f - .3f * K, YC - .03f, zz + 2.2f * K)), 90f));
         }
         for (float z = 66f; z < 118f; z += 26f) { float zz = z; Pozniej("latarnia parkowa", () => { BraxRegionMeble.Latarnia(root, NaPodlozu(new Vector3(-61.45f - .5f, YC, zz))); latarnie++; }); }
@@ -1212,7 +1211,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         dach.Obiekt("Przystanek: dach", g, stal, false, true);
         sz.Obiekt("Przystanek: szyby", g, BraxCityMaterials.Surface("Przystanek: szkło hartowane", new Color(.74f, .82f, .84f, .28f), .08f, .05f), false, false);
         BraxRegionMeble.Kolizja(g, "Przystanek: kolizja szyby tył", new Vector3(x + D, YC + H * .5f, z), new Vector3(.08f, H, L));
-        BraxRegionMeble.Lawka(g, new Vector3(x + D - .45f * K, YC, z), -90f, "Ławka przystanku");
+        // R1: ławka przy ulicznym przystanku usunięta, wiata i pozostałe wyposażenie zostają.
         // słupek D-15 z nazwą i rozkładem
         var sl = new BraxRegionMeble.Bud(); var p0 = new Vector3(x - .3f, YC, z + L * .5f + 1.2f);
         sl.Cyl(p0, p0 + Vector3.up * 2.9f * K, .035f * K, 10);
