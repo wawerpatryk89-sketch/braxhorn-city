@@ -70,16 +70,20 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         self.assertFalse(orphan.is_file(), "old copied estate driver references missing Patryk API")
         self.assertTrue((ROOT/"unity-city/Assets/Mistrzowie/BraxChampionsCar.cs").is_file())
 
-    def test_real_rhombus_polyhaven_teak_glass_and_owner_photo(self):
+    def test_reference_wall_showcase_preserves_owner_belt_and_photo(self):
         box = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBeltShowcase.cs")
         arena = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs")
         arrival = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaArrival.cs")
         self.assertIn("BraxChampionsBeltShowcase.Generate(root)", arena)
         self.assertNotIn('return Trophy(root,', arrival)
-        for value in ("granite_tile", "Black marble pillar behind the showcase", "Gold LED top frame long", "Bronze vertical slat ", "BRAXHORN_ARENA_CASE_PLAQUE.jpg",
-                      "A1_RealRhombus_GraniteStone", "Podium(display, marble, gold)", "MeshCollider",
+        for value in ("granite_tile", "REFERENCE black marble wall column",
+                      "REFERENCE optical clear glass FRONT", "REFERENCE small gold glass bracket",
+                      "REFERENCE bronze vertical slat ", "BRAXHORN_ARENA_CASE_PLAQUE.jpg",
                       "OriginalBelt(display)", "OriginalRectangleArtwork(display"):
             self.assertIn(value, box)
+        for removed in ("A1_RealRhombus_GraniteStone", "Podium(display, marble, gold)",
+                        "Wood veneer showcase plinth", "RED narrow centred inset"):
+            self.assertNotIn(removed, box)
         self.assertIn("UnityEngine.Object.DestroyImmediate(cube.GetComponent<Collider>())", box)
         self.assertIn("new Vector3(-73.9f, 0, 63.3f)", box)
 
