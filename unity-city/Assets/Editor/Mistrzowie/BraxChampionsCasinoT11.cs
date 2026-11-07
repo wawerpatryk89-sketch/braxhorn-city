@@ -959,11 +959,11 @@ public static class BraxChampionsCasinoT11
 
     static void RoadsideSigns()
     {
-        // Real supplier signage: TAXI at the front-right drop-off, PARKING at
-        // the garage approach. Do NOT use the arena-only "ARENA VIP" sign here.
+        // Keep only TAXI at the front-right drop-off.
+        // Owner 7.11: remove the freestanding PARKING sign from the garage approach;
+        // the driveway itself stays completely unobstructed.
         const string origin="Assets/Source/Mistrzowie/CitySigns/03_TRANSPORT_KURORT/";
         RoadsideOriginalSign("TAXI",origin+"TAXI_TAXI.png",42f,-36.8f,0f);
-        RoadsideOriginalSign("PARKING",origin+"PARKING_PARKING.png",58f,17f,270f);
     }
 
     static void MainSign()
