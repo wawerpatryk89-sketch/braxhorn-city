@@ -44,6 +44,16 @@ public static class BraxObozBuild
         RunAndroidReview(false);
     }
 
+    static string[] PlayerScenes()
+    {
+        if (!File.Exists(BraxContentBuild.Config)) return Scenes;
+        var manifest = JsonUtility.FromJson<BraxContentManifest>(File.ReadAllText(BraxContentBuild.Config));
+        BraxContentPackage.Validate(manifest);
+        if (manifest.zone == "oboz" && manifest.externalBase)
+            return new[] { StartScene };
+        return Scenes;
+    }
+
     static void RunAndroidReview(bool sceneOnly)
     {
         if (Application.unityVersion != "6000.0.58f2" || EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
@@ -61,8 +71,11 @@ public static class BraxObozBuild
         Directory.CreateDirectory(output);
         string apk = Path.Combine(output, "braxhorn-oboz.apk");
         if (File.Exists(apk)) throw new IOException("W katalogu wyjściowym już jest APK; nie nadpisano wydania");
+        var playerScenes = sceneOnly ? Scenes : PlayerScenes();
         var receipt = new Receipt { kind = sceneOnly ? "scene-only-preflight" : "first-device-review",
-            unity = Application.unityVersion, sourceCommit = Environment.GetEnvironmentVariable("GITHUB_SHA") ?? "local", versionCode = version };
+            unity = Application.unityVersion, sourceCommit = Environment.GetEnvironmentVariable("GITHUB_SHA") ?? "local",
+            versionCode = version, scenes = playerScenes,
+            contentUpdatesReady = !sceneOnly && playerScenes.Length == 1 };
         try
         {
             SaveUntitledBatchScenes();
@@ -97,7 +110,7 @@ public static class BraxObozBuild
             // Explicit scene list; build never falls back to a city or estate scene.
             started = DateTime.UtcNow;
             var built = BuildPipeline.BuildPlayer(new BuildPlayerOptions {
-                scenes = Scenes, target = BuildTarget.Android, locationPathName = apk, options = BuildOptions.CompressWithLz4 });
+                scenes = playerScenes, target = BuildTarget.Android, locationPathName = apk, options = BuildOptions.CompressWithLz4 });
             receipt.buildSeconds = (DateTime.UtcNow - started).TotalSeconds;
             if (built.summary.result != BuildResult.Succeeded || !File.Exists(apk))
                 throw new InvalidOperationException("Build obozu nieudany: " + built.summary.result);
@@ -105,7 +118,8 @@ public static class BraxObozBuild
             // The camp rebuild branch already persisted its prepared scene in stage one.
             // Other legacy branches can persist their cache AFTER BuildPlayer succeeds.
             if (!requiresSeparateSceneProcess) SaveState();
-            Debug.Log("BRAXHORN_OBOZ_APK gotowe_do_testu=true sprawdzone_na_telefonie=false content_update=false");
+            Debug.Log("BRAXHORN_OBOZ_APK gotowe_do_testu=true sprawdzone_na_telefonie=false external_content=" +
+                      (playerScenes.Length == 1));
         }
         finally
         {

@@ -19,7 +19,9 @@ public static class BraxContentBuild
     public const string Config = "Assets/Resources/BraxContentBase.json";
     public static bool Requested => File.Exists("content-mode.txt") && File.ReadAllText("content-mode.txt").Trim() == "baseline";
 
-    public static void Baseline(string zone, string[] scenes)
+    public static string BasePackagePath(string zone) => Work + "/" + zone + "-base.braxbase.zip";
+
+    public static void Baseline(string zone, string[] scenes, bool externalBase = false)
     {
         if (Directory.Exists(Base)) throw new InvalidOperationException("Baza już istnieje. Nie nadpisuj content state wydanego APK.");
         if (!BraxContentPackage.Safe(zone) || scenes.Length == 0 || scenes.Any(p => !File.Exists(p))) throw new ArgumentException("Nieprawidłowa strefa lub sceny.");
@@ -58,6 +60,7 @@ public static class BraxContentBuild
         AddressableAssetSettings.BuildPlayerContent(out AddressablesPlayerBuildResult result);
         Check(result);
         var m = Inventory(zone, id, "base", scenes, RuntimeId());
+        m.externalBase = externalBase;
         Directory.CreateDirectory(Base);
         File.WriteAllText(Base + "/applied-patch.json", File.Exists("content-patch.json") ? File.ReadAllText("content-patch.json") : "{\"edits\":[]}");
         File.WriteAllText(Base + "/manifest.json", JsonUtility.ToJson(m, true));
@@ -68,10 +71,15 @@ public static class BraxContentBuild
         File.WriteAllLines(Base + "/scene-guids.txt", guids);
         string bundled = "Assets/StreamingAssets/BraxContent";
         Directory.CreateDirectory(bundled); Directory.CreateDirectory(Path.GetDirectoryName(Config));
-        foreach (var f in m.files) File.Copy(Output + "/" + f.name, bundled + "/" + f.name, true);
+        foreach (var old in Directory.GetFiles(bundled)) File.Delete(old);
+        foreach (var f in m.files)
+            if (!externalBase || !f.name.EndsWith(".bundle", StringComparison.Ordinal))
+                File.Copy(Output + "/" + f.name, bundled + "/" + f.name, true);
         File.WriteAllText(Config, JsonUtility.ToJson(m, true));
+        if (externalBase) PackageBase(m, BasePackagePath(zone));
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-        Debug.Log("BRAX_CONTENT_BASE " + id + " files=" + m.files.Length + " bytes=" + m.files.Sum(f => f.bytes));
+        Debug.Log("BRAX_CONTENT_BASE " + id + " files=" + m.files.Length + " bytes=" + m.files.Sum(f => f.bytes) +
+                  " external=" + externalBase + " playerBundles=" + Directory.GetFiles(bundled, "*.bundle").Length);
     }
 
     static AddressableAssetGroup Group(AddressableAssetSettings settings, string name)
@@ -127,8 +135,27 @@ public static class BraxContentBuild
         foreach (string path in Directory.GetFiles(Output).Where(p => p.EndsWith(".bundle") || p == catalogs[0] || p == Path.ChangeExtension(catalogs[0], ".hash")))
             files[Path.GetFileName(path)] = new BraxContentFile { name = Path.GetFileName(path), bytes = new FileInfo(path).Length, sha256 = BraxContentPackage.Sha(path) };
         var m = new BraxContentManifest { zone = zone, baseId = id, runtimeId = runtime, version = version, catalog = catalog,
+            externalBase = basis != null && basis.externalBase,
             firstScene = Path.GetFileNameWithoutExtension(scenes[0]), scenes = scenes.Select(Path.GetFileNameWithoutExtension).ToArray(), files = files.Values.OrderBy(f => f.name, StringComparer.Ordinal).ToArray() };
         BraxContentPackage.Validate(m); return m;
+    }
+
+    public static void PackageBase(BraxContentManifest basis, string zip)
+    {
+        BraxContentPackage.Validate(basis);
+        if (!basis.externalBase || basis.version != "base")
+            throw new InvalidOperationException("Bazowa paczka zewnętrzna wymaga externalBase=true.");
+        if (File.Exists(zip)) File.Delete(zip);
+        using (var archive = ZipFile.Open(zip, ZipArchiveMode.Create))
+        {
+            var manifest = archive.CreateEntry("manifest.json");
+            using (var writer = new StreamWriter(manifest.Open())) writer.Write(JsonUtility.ToJson(basis, true));
+            foreach (var f in basis.files)
+                archive.CreateEntryFromFile(Output + "/" + f.name, f.name, System.IO.Compression.CompressionLevel.NoCompression);
+        }
+        string check = Work + "/verify-base-" + Guid.NewGuid().ToString("N");
+        BraxContentPackage.ExtractBase(zip, check, basis);
+        Directory.Delete(check, true);
     }
 
     public static void Package(BraxContentManifest basis, BraxContentManifest update, string zip)
@@ -152,7 +179,7 @@ public static class BraxContentBuild
     {
         var paths = Directory.GetFiles("Assets", "*", SearchOption.AllDirectories)
             .Where(p => !p.Replace('\\', '/').Contains("/Editor/"))
-            .Where(p => new[] { ".cs", ".asmdef", ".asmref", ".dll", ".so", ".aar", ".java", ".shader", ".compute" }.Contains(Path.GetExtension(p)) ||
+            .Where(p => new[] { ".cs", ".asmdef", ".asmref", ".dll", ".so", ".aar", ".jar", ".java", ".shader", ".compute" }.Contains(Path.GetExtension(p)) ||
                 (p.Replace('\\', '/').Contains("/Resources/") && p != Config && p != Config + ".meta" && !p.EndsWith(".meta") &&
                  !p.EndsWith("/PerformanceTestRunSettings.json") && !p.EndsWith("/PerformanceTestRunInfo.json")))
             .Concat(new[] { "Packages/manifest.json", "Packages/packages-lock.json" }.Where(File.Exists))
