@@ -50,6 +50,8 @@ internal static class BraxNovaEntranceFinish
         var club = clubs[0];
         try { RemoveOldLetters(club, rep); }
         catch (Exception e) { Warn(rep, "Napis: " + e); }
+        try { RemoveUnlabelledSourceSign(scene, club, rep); }
+        catch (Exception e) { Warn(rep, "Stare napisy źródłowe: " + e); }
         var doors = club.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true)
             .Where(d => d.etykieta == DoorLabel).ToArray();
         if (doors.Length != 1) { Warn(rep, "Brak pojedynczych drzwi automatycznych NOVA; bez zgadywania wejścia."); Save(rep); return; }
@@ -198,6 +200,37 @@ internal static class BraxNovaEntranceFinish
             " pozostale=" + rep.remainingLetterTriangles);
         if (rep.remainingLetterTriangles > 0)
             Warn(rep, "Stary napis wciąż ma " + rep.remainingLetterTriangles + " trójkątów/tekstów");
+    }
+
+    // Stary napis w APK #108 pozostawał widoczny, mimo "stare_nazwane=0":
+    // część oryginalnego miasta jest złączona w CityMesh_### i NIE ma nazwy napisu.
+    // Wycinamy TYLKO wąski fragment ZAKRYTY zatwierdzonym panelem NOVA CLUB.
+    // Nie dotykamy nowego klubu, źródła jego grafiki, drzwi ani dolnych ścian.
+    static void RemoveUnlabelledSourceSign(Scene scene, Transform club, Receipt rep)
+    {
+        // Wnętrze zatwierdzonego panelu: x 38.4..45.6, y 3.62..4.86;
+        // cięcie z marginesem *wewnątrz* panelu, poza przejściem na y<3.
+        var stripe = Box(38.74f, 45.26f, 3.66f, 4.72f, 35.48f, 36.40f);
+        int altered = 0;
+        foreach (var r in scene.GetRootGameObjects()
+                     .SelectMany(g => g.GetComponentsInChildren<MeshRenderer>(true)).ToArray())
+        {
+            if (!r || !r.enabled || !r.gameObject.activeInHierarchy ||
+                !r.bounds.Intersects(stripe) || r.transform.IsChildOf(club) ||
+                ApprovedNovaSign(r.transform)) continue;
+            if (r.GetComponentInParent<BraxGymPlayer>() ||
+                r.GetComponentInParent<Animator>() || r.GetComponentInParent<Animation>()) continue;
+            var f = r.GetComponent<MeshFilter>();
+            if (!f || !f.sharedMesh || !f.sharedMesh.isReadable) continue;
+            // Tnie tylko geometrię starszej sceny w obrysie nowego szyldu.
+            // Szerokość bramy klubu oraz wszystkie collidery na poziomie gracza zostają.
+            int n = BraxCityMeshCut.Subtract(f.transform, stripe, Out, "nova_legacy_white_text");
+            if (n <= 0) continue;
+            altered += n;
+            rep.changed.Add("Stary nienazwany fragment szyldu: " + PathOf(f.transform));
+        }
+        Debug.Log("BRAXHORN_NOVA_NIENAZWANY_SZYLD usuniete_fragmenty_starych_siatek=" +
+            altered + " przy_zachowaniu_oryginalnego_NOVA_CLUB=true");
     }
 
     static void ConfigureDoor(BraxDrzwiPrzesuwne d, Receipt rep)
