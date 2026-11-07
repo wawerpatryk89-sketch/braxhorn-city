@@ -127,14 +127,39 @@ internal static partial class BraxMiastoWyspa
     }
 
     // ---------------- materiały ----------------
+    // Poly Haven: tylko istniejące albedo, normal i ARM. W razie braku zachowujemy
+    // oryginalną powierzchnię i raportujemy, zamiast zmieniać ją na zamiennik.
+    static Material ApPolyFinish(string nazwa, float metry, Color kolor,
+                                 Material bazowy, params string[] slugi)
+    {
+        foreach (var slug in slugi)
+        {
+            if (!BraxRegion.HasTexture(slug)) continue;
+            try { return BraxRegion.Pbr(nazwa, metry, kolor, slug); }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("BRAXHORN_ARENA_POLYHAVEN " + nazwa + " " + slug + ": " + e.Message);
+            }
+        }
+        Debug.LogWarning("BRAXHORN_ARENA_POLYHAVEN BRAK_PBR " + nazwa +
+                         " — pozostawiono oryginalny materiał");
+        return bazowy;
+    }
+
     static void ApMaterialy()
     {
         apSzklo = BraxMiastoA.Mat("Arena premium: szyba fasady (przezroczysta)", new Color(.70f, .80f, .84f, .22f), .06f, .1f);
         apAlu = BraxMiastoA.Mat("Arena premium: aluminium lizen (anodowane)", new Color(.56f, .58f, .60f), .35f, .8f);
         apGranit = BraxMiastoA.Tex("Arena premium: granit cokołu", 1.2f, new Color(.55f, .55f, .54f), new Color(.45f, .45f, .45f), .7f, "granite_tile_02", "rough_block_wall");
         apPanel = BraxMiastoA.Mat("Arena premium: szkło emaliowane grafit (pas, attyka)", new Color(.16f, .19f, .22f), .3f, .3f);
-        apAkust = BraxMiastoA.Mat("Arena premium: panele akustyczne ścian (grafit)", new Color(.12f, .125f, .13f), .9f);
-        apStrop = BraxMiastoA.Mat("Arena premium: strop hali (czarny akustyczny)", new Color(.035f, .035f, .04f), .95f);
+        apAkust = ApPolyFinish("Arena premium: panele akustyczne ścian (grafit PBR)", 2.1f,
+            new Color(.30f, .31f, .32f),
+            BraxMiastoA.Mat("Arena premium: panele akustyczne ścian (grafit)", new Color(.12f, .125f, .13f), .9f),
+            "concrete_wall_008", "granite_tile_02");
+        apStrop = ApPolyFinish("Arena premium: strop hali (grafit PBR)", 2.2f,
+            new Color(.26f, .265f, .28f),
+            BraxMiastoA.Mat("Arena premium: strop hali (czarny akustyczny)", new Color(.035f, .035f, .04f), .95f),
+            "concrete_wall_008", "concrete_floor_02");
         apBeton = BraxMiastoA.Tex("Arena premium: beton prefabrykatów trybun", 2.4f, new Color(.80f, .80f, .78f), new Color(.55f, .55f, .54f), .85f, "concrete_wall_008", "concrete_floor_02");
         apPosadzka = BraxMiastoA.Mat("Arena premium: posadzka hali (żywica grafit)", new Color(.15f, .15f, .16f), .5f);
         apKamien = BraxMiastoA.Tex("Arena premium: posadzka holu (kamień)", 1.0f, new Color(.86f, .85f, .83f), new Color(.75f, .74f, .72f), .5f, "marble_01", "large_grey_tiles", "granite_tile_02");
@@ -145,12 +170,18 @@ internal static partial class BraxMiastoWyspa
         apLit = BraxMiastoA.Swieci("Arena: litery szyldu (podświetlane)", Color.white, new Color(2f, 2f, 2f));
         apBoki = BraxMiastoA.Mat("Arena: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f);
         apZnak = BraxMiastoA.Swieci("Arena premium: znak wyjścia (zielony)", new Color(.05f, .7f, .25f), new Color(.1f, 1.4f, .45f));
-        apTynk = BraxMiastoA.Mat("Arena premium: ściany wnętrz (farba biała)", new Color(.9f, .9f, .88f), .9f);
+        apTynk = ApPolyFinish("Arena premium: ściany wnętrz (tynk PBR)", 2.2f,
+            new Color(.90f, .90f, .88f),
+            BraxMiastoA.Mat("Arena premium: ściany wnętrz (farba biała)", new Color(.9f, .9f, .88f), .9f),
+            "white_plaster_02", "rectangular_facade_tiles");
         apPlytki = BraxMiastoA.Tex("Arena WC: płytki ścian", .6f, new Color(.96f, .96f, .95f), new Color(.92f, .92f, .9f), .3f, "square_tiles", "rectangular_facade_tiles", "granite_tile");
         apCeram = BraxMiastoA.Mat("Arena premium: ceramika sanitarna", new Color(.96f, .96f, .95f), .15f);
         apChrom = BraxMiastoA.Mat("Arena premium: chrom", new Color(.84f, .85f, .87f), .12f, .95f);
         apHpl = BraxMiastoA.Mat("Arena premium: płyty HPL kabin (grafit)", new Color(.16f, .17f, .18f), .5f, .1f);
-        apSufitM = BraxMiastoA.Mat("Arena premium: sufit podwieszany (biały)", new Color(.92f, .92f, .9f), .9f);
+        apSufitM = ApPolyFinish("Arena premium: sufit podwieszany (PBR)", 2.0f,
+            new Color(.92f, .92f, .90f),
+            BraxMiastoA.Mat("Arena premium: sufit podwieszany (biały)", new Color(.92f, .92f, .9f), .9f),
+            "rectangular_facade_tiles", "white_plaster_02");
         apLedSufit = BraxMiastoA.Swieci("Arena premium: panel LED sufitowy", new Color(.95f, .95f, .92f), new Color(1.6f, 1.6f, 1.5f));
         apGuma = BraxMiastoA.Mat("Arena premium: posadzka sportowa (guma grafit)", new Color(.12f, .12f, .13f), .9f);
         apDab = BraxMiastoA.Mat("Arena premium: dąb olejowany (ławki, blaty)", new Color(.62f, .48f, .32f), .55f);
@@ -824,7 +855,13 @@ internal static partial class BraxMiastoWyspa
                     var A = Vector3.Lerp(pas[p0], pas2[p0], t0); var B = Vector3.Lerp(pas[p1], pas2[p1], (t0 + t1) * .5f);
                     st.Rura(A, B, .011f, 4, false); st.Rura(B, Vector3.Lerp(pas[p0], pas2[p0], t1), .011f, 4, false);
                 }
-            st.Rura(Kw(i, rT) + Vector3.up * (yR + a), Kw(i, rT) + Vector3.up * yC, .008f, 4);
+            // Zamiast wiszących kabli: solidne mocowanie stalowe co drugi narożnik.
+            if (i % 2 == 0)
+            {
+                var p = Kw(i, rT);
+                st.Box(new Vector3(p.x - .11f, yR + a, p.z - .11f),
+                       new Vector3(p.x + .11f, yC, p.z + .11f));
+            }
             for (int q = 0; q < 2; q++)
             {
                 var m = Vector3.Lerp(pas[0], pas2[0], (q + 1) / 3f) + Vector3.down * .02f; var dir = (cel - m).normalized;
@@ -848,7 +885,9 @@ internal static partial class BraxMiastoWyspa
             cz.OBox(tc + n * (hw - .1f) + Vector3.up * (hh + .1f), r, Vector3.up, n, 2f * hw - .2f, .2f, .2f, false, false);
             cz.OBox(tc + n * (hw - .1f) - Vector3.up * (hh + .1f), r, Vector3.up, n, 2f * hw - .2f, .2f, .2f, false, false);
         }
-        foreach (var ox in new[] { -1f, 1f }) foreach (var oz in new[] { -1f, 1f }) st.Rura(new Vector3(tc.x + ox * (hw - .3f), tc.y + hh + .2f, tc.z + oz * (hw - .3f)), new Vector3(tc.x + ox * (hw - .3f), yC, tc.z + oz * (hw - .3f)), .01f, 4);
+        // Cztery wiszące linki telebimu usunięte: centralny sztywny wspornik.
+        st.Box(new Vector3(tc.x - .16f, tc.y + hh + .20f, tc.z - .16f),
+               new Vector3(tc.x + .16f, yC, tc.z + .16f));
         BraxMiastoA.Log("WYSPA arena premium: rampa ośmiokątna (kratownica skrzynkowa " + a + " m), reflektorów " + nRefl + ", telebim 4 ekrany");
         apElem += 2 + nRefl;
     }
@@ -918,7 +957,11 @@ internal static partial class BraxMiastoWyspa
             var tp = start + Vector3.right * 1.0f + Vector3.up * 3.2f + ws * -.3f;
             D(apAlu).OBox(tp, Vector3.forward, Vector3.up, Vector3.left, 1.6f, .45f, .05f);
             BraxUliceKit.Napis3D("KASY", tp + Vector3.left * .025f + Vector3.down * .12f, Vector3.left, .24f, .02f, apLit, apBoki);
-            foreach (float zz in new[] { -.6f, .6f }) D(apChrom).Rura(tp + Vector3.forward * zz + Vector3.up * .225f, new Vector3(tp.x, apY0 + ApSufit, tp.z + zz), .006f, 4);
+            // Cienkie, wielometrowe cięgna tablicy KASY zastąpione sztywnym stelażem.
+            foreach (float zz in new[] { -.6f, .6f })
+                D(apAlu).OBox(tp + Vector3.forward * zz + Vector3.down * .43f,
+                    Vector3.forward, Vector3.up, Vector3.left,
+                    .065f, .62f, .065f);
         }
         Miejsca["arena_hol"] = ApHolP(18.5f, 0f, 0f); Miejsca["arena_bramki"] = ApHolP(vB + 1.5f, 0f, 0f); apMiejsc += 2;
         BraxMiastoA.Log("WYSPA arena premium: hol — bramki " + (model ? "z modelu metro_bramka" : "z kodu") + ", 2 kasy, przegrody szklane");
