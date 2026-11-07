@@ -331,23 +331,30 @@ public static class BraxChampionsBeltShowcase
             Materials + "light.mat");
         if (!originalGlass || originalGlass.renderQueue < 3000 || !warm)
             throw new InvalidOperationException("A1 showroom requires the existing TRUE transparent glass and warm light materials");
-        // The previous tall glass case looked milky opaque on Android. Keep
-        // the glass real but reduce its visual opacity so the belt is visible.
-        // Duplicate only this material: exterior clear glass remains unchanged.
+        // OWNER 7.11: display must be real CLEAR glass, not cloudy/white.
+        // Keep the centre belt fully visible from the public front and sides.
+        // Clone only the cabinet glass; the arena's tinted exterior is untouched.
         var glass=new Material(originalGlass){
-            name="A1 premium showcase | crystal-clear subtle smoked glass",
+            name="A1 belt showcase | nearly invisible optical-clear glass",
             enableInstancing=true
         };
-        glass.SetColor("_Color",new Color(.60f,.65f,.70f,.06f));
-        glass.SetFloat("_Roughness",.06f);
+        // Almost colourless, 3.5% neutral alpha: visual edge and gold uprights
+        // remain readable, but the championship belt is not masked by a pane.
+        glass.SetColor("_Color",new Color(.96f,.98f,1f,.035f));
+        glass.SetFloat("_Roughness",.015f);
         glass.SetFloat("_Metallic",0f);
+        glass.SetFloat("_VertexTint",0f);
         glass.SetFloat("_Transparent",1f);
+        glass.SetFloat("_AlphaClip",0f);
         glass.SetFloat("_SrcBlend",(float)BlendMode.SrcAlpha);
         glass.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);
         glass.SetFloat("_ZWrite",0f);
+        glass.SetFloat("_Cull",2f);
         glass.renderQueue=3001;
         glass.SetOverrideTag("RenderType","Transparent");
         AssetDatabase.CreateAsset(glass,Materials+"A1_case_clear_slightly_smoked_glass.mat");
+        Debug.Log("CHAMPIONS_A1_CASE_GLASS_CLEAR alpha=.035 blend=SrcAlpha"+
+            " zwrite=0 metallic=0 original_belt_visible=true phone_review_pending=true");
 
         // WZÓR WŁAŚCICIELA 6.11: pionowa gablota ze szkła przed filarem z czarnego
         // marmuru, ciemne skórzane tło, złote ramy LED u góry i u dołu, złote uchwyty
