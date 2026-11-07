@@ -4,36 +4,38 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-// Two ORIGINAL, unmodified panoramic owner images on the A1 hall's OPPOSITE
-// SIDE walls. Camera viewpoint: public glass entry, looking toward the cage.
-// LEFT = full fighter lineup; RIGHT = gold BRAXHORN CHAMPION belt.
-// This is a printed non-colliding surface, never a wall across a walkway.
+// Two owner originals on the opposite walls beside the cage. The third mural
+// belongs to the entrance lobby and is generated separately, exactly once.
 public static class BraxChampionsArenaSideMurals
 {
     const string Output = "Assets/PlayableGenerated/Mistrzowie/Arena/Mural";
     const string Source = "Assets/Source/Mistrzowie/ArenaMurals/";
     public const string LeftFighters = Source + "BRAXHORN_A1_FIGHTERS_LEFT_ORIGINAL.jpg";
     public const string RightBelt = Source + "BRAXHORN_A1_BELT_RIGHT_ORIGINAL.jpg";
-    // HD 6144x2048 (oryginały właściciela powiększone 4x, 6.11) — używane, gdy są.
     const string HdSource = "Assets/Source/Mistrzowie/ArenaMuralsHD/";
     public const string LeftFightersHd = HdSource + "MURAL_LEWA_ZAWODNICY_6144x2048.png";
     public const string RightBeltHd = HdSource + "MURAL_PRAWA_PAS_6144x2048.png";
+
+    const float HallLeftX = -26f;
+    const float HallRightX = -146f;
+    const float WallNearZ = 98.3f;
+    const float WallFarZ = 28.3f;
+    const float WallBottomY = .055f;
+    const float WallTopY = 28f;
+    const float BottomY = 2.65f;
+    const float WallSpan = WallNearZ - WallFarZ;
+    const float ImageHeight = WallSpan / 3f;
+
     static string Pick(string hd, string original)
     {
-        if (!File.Exists(hd)) return original;
-        AssetDatabase.ImportAsset(hd, ImportAssetOptions.ForceSynchronousImport);
-        return AssetDatabase.LoadAssetAtPath<Texture2D>(hd) ? hd : original;
+        if (File.Exists(hd))
+        {
+            AssetDatabase.ImportAsset(hd, ImportAssetOptions.ForceSynchronousImport);
+            if (AssetDatabase.LoadAssetAtPath<Texture2D>(hd)) return hd;
+        }
+        BraxBuildQuality.Warn("A1 HD mural unavailable: " + hd + "; fallback is NOT HD acceptance");
+        return original;
     }
-
-    const float HallLeftX = -26f;    // after the original 180-degree bowl rotation
-    const float HallRightX = -146f;  // this is the spectator's right side
-    const float WallNearZ = 98.3f;  // nearest the public entrance
-    const float WallFarZ = 28.3f;   // toward the athletes' rear entrance
-    const float BottomY = 2.65f;    // safely above the original red 2.4-2.56m stripe
-    const float WallSpan = WallNearZ - WallFarZ; // 70 nominal metres
-    const float ImageHeight = WallSpan / 3f;     // exact 1536:512 aspect
-    const int ImageWidthPx = 1536;
-    const int ImageHeightPx = 512;
 
     static Material CreateOriginalMaterial(Texture2D texture, string side)
     {
@@ -46,7 +48,7 @@ public static class BraxChampionsArenaSideMurals
         };
         material.SetTexture("_MainTex", texture);
         material.SetTexture("_EmissionMap", texture);
-        material.SetColor("_Color", Color.white); // no recolouring or blending
+        material.SetColor("_Color", Color.white);
         material.SetColor("_EmissionColor", new Color(.18f, .18f, .18f));
         material.SetFloat("_Metallic", 0f);
         material.SetFloat("_Roughness", .88f);
@@ -56,59 +58,76 @@ public static class BraxChampionsArenaSideMurals
         return material;
     }
 
+    static Mesh FullWall(float x, float start, float end, string side)
+    {
+        // The physical wall is 70 x 27.945 m, not 3:1. Preserve the entire
+        // 70 x 23.333 m composition. Continue ONLY its edge background above
+        // and below; do not crop/duplicate/stretch faces, belt or lettering.
+        float[] y = { WallBottomY, BottomY, BottomY + ImageHeight, WallTopY };
+        float[] v = { 0f, 0f, 1f, 1f };
+        var vertices = new Vector3[8];
+        var uv = new Vector2[8];
+        var triangles = new int[18];
+        for (int row = 0; row < 4; row++)
+        {
+            vertices[2 * row] = new Vector3(x, y[row], start);
+            vertices[2 * row + 1] = new Vector3(x, y[row], end);
+            uv[2 * row] = new Vector2(0f, v[row]);
+            uv[2 * row + 1] = new Vector2(1f, v[row]);
+        }
+        for (int band = 0; band < 3; band++)
+        {
+            int a = 2 * band, t = 6 * band;
+            triangles[t] = a; triangles[t + 1] = a + 2; triangles[t + 2] = a + 3;
+            triangles[t + 3] = a; triangles[t + 4] = a + 3; triangles[t + 5] = a + 1;
+        }
+        var mesh = new Mesh { name = "A1 " + side + " full wall | unchanged 3:1 artwork" };
+        mesh.vertices = vertices; mesh.uv = uv; mesh.triangles = triangles;
+        mesh.RecalculateNormals(); mesh.RecalculateBounds();
+        return mesh;
+    }
+
     static bool Side(Transform bowl, string sourcePath, string side, bool left)
     {
         var photo = AssetDatabase.LoadAssetAtPath<Texture2D>(sourcePath);
         if (!photo)
         {
-            Debug.LogWarning("CHAMPIONS_A1_SIDE_MURAL_MISSING: " + sourcePath +
-                             " (no substitute image or AI-generated replacement)");
+            BraxBuildQuality.Warn("CHAMPIONS_A1_SIDE_MURAL_MISSING: " + sourcePath + "; no substitute image");
             return false;
         }
         var importer = AssetImporter.GetAtPath(sourcePath) as TextureImporter;
-        if (!importer) throw new InvalidOperationException("A1 original side mural has no image importer: " + sourcePath);
+        if (!importer) throw new InvalidOperationException("A1 mural importer missing: " + sourcePath);
         importer.GetSourceTextureWidthAndHeight(out int sourceWidth, out int sourceHeight);
-        bool hd = sourcePath.StartsWith(HdSource, StringComparison.Ordinal);
         if (sourceWidth != sourceHeight * 3)
-            BraxBuildQuality.Warn("A1 side mural is not 3:1: " + sourcePath + " " + sourceWidth + "x" + sourceHeight);
-        if (!hd && (photo.width != ImageWidthPx || photo.height != ImageHeightPx))
-            BraxBuildQuality.Warn("A1 mural source is unchanged 1536x512; Android import size differs: " +
-                sourcePath + " imported=" + photo.width + "x" + photo.height);
-        if (!importer.mipmapEnabled)
-            BraxBuildQuality.Warn("A1 mural mobile import should be reviewed, but is not an APK blocker: " + sourcePath);
-
+            BraxBuildQuality.Warn("A1 mural aspect is not 3:1: " + sourcePath);
+        if (!importer.mipmapEnabled || importer.wrapMode != TextureWrapMode.Clamp)
+        {
+            // Edge continuation must sample the edge, not repeat the opposite side.
+            // Importer-only change; retain file bytes, GUID, and resolution settings.
+            importer.mipmapEnabled = true;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.SaveAndReimport();
+            photo = AssetDatabase.LoadAssetAtPath<Texture2D>(sourcePath);
+            if (!photo) throw new InvalidOperationException("A1 mural reimport failed: " + sourcePath);
+        }
         Directory.CreateDirectory(Output);
         var material = CreateOriginalMaterial(photo, side);
-        // Old bowl coordinates before K and 180-degree rotation:
-        // left spectator wall (original X1) normal -X, right (original X0) normal +X.
         float x = left ? HallLeftX - .11f : HallRightX + .10f;
         float start = left ? WallNearZ : WallFarZ;
         float end = left ? WallFarZ : WallNearZ;
-        var mesh = new Mesh { name = "A1 full original " + side + " wall panoramic 3:1" };
-        mesh.vertices = new[]
-        {
-            new Vector3(x, BottomY, start),
-            new Vector3(x, BottomY + ImageHeight, start),
-            new Vector3(x, BottomY + ImageHeight, end),
-            new Vector3(x, BottomY, end)
-        };
-        mesh.uv = new[] { new Vector2(0f,0f), new Vector2(0f,1f),
-                          new Vector2(1f,1f), new Vector2(1f,0f) };
-        mesh.triangles = new[] { 0,1,2, 0,2,3 };
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
+        var mesh = FullWall(x, start, end, side);
         AssetDatabase.CreateAsset(mesh, Output + "/Side_" + side + "_OriginalMesh.asset");
-
-        var surface = new GameObject("A1 MURAL " + side + " | OWNER ORIGINAL | 70m side wall");
+        var surface = new GameObject("A1 MURAL " + side + " | OWNER ORIGINAL | whole cage-side wall");
         surface.transform.SetParent(bowl, false);
         surface.AddComponent<MeshFilter>().sharedMesh = mesh;
         var renderer = surface.AddComponent<MeshRenderer>();
         renderer.sharedMaterial = material;
         renderer.shadowCastingMode = ShadowCastingMode.Off;
         renderer.receiveShadows = false;
-        // Intentional: no collider, no blocking the viewer/aisle, no replacement of
-        // the original hall's load-bearing side wall and its existing structural collider.
         GameObjectUtility.SetStaticEditorFlags(surface, StaticEditorFlags.OccludeeStatic);
+        // Printed surface only: do not create a collider or change structural walls.
+        Debug.Log("CHAMPIONS_A1_SIDE_MURAL_APPLIED " + side + " source=" + sourcePath +
+            " sourcePixels=" + sourceWidth + "x" + sourceHeight + " wall=70x27.945 originalArt=70x23.333");
         return true;
     }
 
@@ -119,7 +138,7 @@ public static class BraxChampionsArenaSideMurals
         if (Side(originalBowl, Pick(LeftFightersHd, LeftFighters), "LEFT_FIGHTERS", true)) applied++;
         if (Side(originalBowl, Pick(RightBeltHd, RightBelt), "RIGHT_BELT", false)) applied++;
         Debug.Log("CHAMPIONS_A1_SIDE_MURALS originals=" + applied +
-                  "/2 each 1536x512, wall=70x23.333m, doorway/entry untouched, source pixels unchanged");
+                  "/2 whole side walls; entrance mural separate; source pixels unchanged");
         return applied;
     }
 }
