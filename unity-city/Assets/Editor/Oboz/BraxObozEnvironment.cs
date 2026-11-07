@@ -616,7 +616,7 @@ public static partial class BraxObozEnvironment
         var prototype=BraxObozBagAssembly.Prepare(OwnerBagPrototype(0));
         float halfBeam=(columns-1)*1.1f+1.8f;
         var supports=new RaycastHit[2,columns];
-        var beams=new Collider[2];float roofBase=float.NegativeInfinity;
+        var beams=new Collider[2,columns];float roofBase=float.NegativeInfinity;
         for(int row=0;row<2;row++)
         {
             float rz=row==0?-2f:2f,maxMount=float.NegativeInfinity;
@@ -636,9 +636,9 @@ public static partial class BraxObozEnvironment
             // Whole original suspension is retained. Its top enters the lower
             // 12 mm of a thick timber beam; the body never grows to an old hook.
             float beamY=maxMount+.18f-.012f;
-            var beam=ExactTimber(t,"Belka nośna z bali — mocowanie oryginalnego zawiesia",
+            var beam=ExactTimber(t,"Belka nośna z bali — główna rama worków",
                 new Vector3(-halfBeam,beamY,rz),new Vector3(halfBeam,beamY,rz),.18f,wood);
-            beams[row]=beam.GetComponent<Collider>();
+            var mainBeam=beam.GetComponent<Collider>();
             foreach(float end in new[]{-halfBeam,halfBeam})
             {
                 if(!BraxObozBagAssembly.TryFloor(t.TransformPoint(P(end,0,rz)),t,out var footing))
@@ -646,6 +646,31 @@ public static partial class BraxObozEnvironment
                 float bottom=(footing.point.y-t.position.y)/K;
                 ExactTimber(t,"Gruby drewniany słup — od rzeczywistej posadzki",
                     new Vector3(end,bottom,rz),new Vector3(end,beamY+.18f,rz),.22f,wood);
+            }
+            // Local terrain varies across a row. Keep every leather body at
+            // 0.60 m above ITS OWN floor and make the original suspension touch
+            // real timber. A short cross-beam is physically tied to the main
+            // beam; no invisible hook/proxy is used.
+            for(int col=0;col<columns;col++)
+            {
+                if(!supports[row,col].collider)continue;
+                float cx=-(columns-1)*1.1f+col*2.2f;
+                float floor=(supports[row,col].point.y-t.position.y)/K;
+                float mount=floor+prototype.MountAboveFloorMetres;
+                float localBeamY=mount+.18f-.012f;
+                if(Mathf.Abs(localBeamY-beamY)<=.015f)
+                {
+                    beams[row,col]=mainBeam;
+                    continue;
+                }
+                var cross=ExactTimber(t,"Poprzeczka zawieszenia worka — lokalny poziom gruntu",
+                    new Vector3(cx,localBeamY,rz-.48f),
+                    new Vector3(cx,localBeamY,rz+.48f),.18f,wood);
+                beams[row,col]=cross.GetComponent<Collider>();
+                float lower=localBeamY+.18f,upper=beamY-.18f;
+                if(upper>lower+.02f)
+                    ExactTimber(t,"Drewniany wieszak poprzeczki do belki głównej",
+                        new Vector3(cx,lower,rz),new Vector3(cx,upper,rz),.10f,wood);
             }
             // The actual purlin underside lands on the log's upper surface.
             // No floating roof is justified merely by being in this group.
@@ -661,11 +686,11 @@ public static partial class BraxObozEnvironment
             t.GetComponentsInChildren<Collider>());
         for(int row=0;row<2;row++)for(int col=0;col<columns;col++)
         {
-            if(!supports[row,col].collider || !beams[row])continue;
+            if(!supports[row,col].collider || !beams[row,col])continue;
             int r=row,c=col;
             Optional("oryginalny worek "+(bags.Count+1),()=>{
                 var bag=BraxObozBagAssembly.Create(t,"Worek "+(bags.Count+1),
-                    prototype,supports[r,c],beams[r]);
+                    prototype,supports[r,c],beams[r,c]);
                 bags.Add(bag);if(roof)covered.Add(bag.transform);
             });
         }
