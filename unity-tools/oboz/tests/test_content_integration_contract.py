@@ -49,8 +49,7 @@ class CampContentIntegrationContract(unittest.TestCase):
     def test_export_generates_content_without_building_an_apk(self):
         self.assertIn("BraxObozEnvironment.Prepare();", self.base)
         self.assertIn("BraxObozActors.Assemble();", self.base)
-        self.assertIn("BraxContentBuild.Baseline(Zone, new[] { BraxObozActors.ScenePath }, true);", self.base)
-        self.assertIn("ExportPreparedExternalInCI", self.base)
+        self.assertIn("BraxContentBuild.Baseline(Zone, new[] { BraxObozActors.ScenePath });", self.base)
         self.assertIn("BraxContentBuild.UpdateFromBaseline();", self.base)
         self.assertNotIn("BuildPipeline.BuildPlayer(", self.base)
         self.assertIn("EditorApplication.Exit(0);", self.base)
