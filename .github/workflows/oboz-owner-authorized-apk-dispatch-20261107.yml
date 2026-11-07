@@ -1,5 +1,5 @@
 name: Obóz — owner authorized APK dispatch 20261107
-# One owner-approved dispatch requested after green source tests, 2026-11-07.
+# One owner-approved final retry after duplicate-DEX fix and green source tests, 2026-11-07.
 # Delivers lightweight APK + verified external Obóz base package. Source commits never auto-build.
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
       - name: Verify source and explicitly requested repaired APK
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ed2b1f1ffc0550a5254b31b5b53f5388098e0286
+          SOURCE_SHA: a47fa85702de5bb43963df124417c8df9d0e9b4e
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
