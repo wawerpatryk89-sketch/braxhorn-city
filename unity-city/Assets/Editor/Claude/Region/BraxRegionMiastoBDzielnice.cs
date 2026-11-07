@@ -191,7 +191,8 @@ public static partial class BraxRegionMiastoB
     }
 
     static readonly Rect PeronTramwaju = Rect.MinMaxRect(-512f, NS1 - NPR - 6f, -458f, NS1 - NPR);   // płyty przystanku za chodnikiem
-    const float PrzystBusX = -318f;                                                                 // przód autobusu na przystanku ALEJA CENTRALNA
+    public const float PrzystanekAutobusuCentralnaX = -318f;
+    const float PrzystBusX = PrzystanekAutobusuCentralnaX;                                                                 // przód autobusu na przystanku ALEJA CENTRALNA
 
     // skrzyżowania: (x, z, ramiona N/E/S/W, połowa ulicy wzdłuż x z chodnikiem (dla narożników w z), nazwa)
     static IEnumerable<(float c, float c2, bool[] ramiona, float prZ, string nazwa)> NdSkrzyzowania()
