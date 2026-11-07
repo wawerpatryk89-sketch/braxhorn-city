@@ -540,6 +540,11 @@ public static partial class BraxRegionMiastoB
             windowsAlt.Obiekt("PREMIUM okna naprzemienne",group,glazedAlt,false,false);
             spandrels.Obiekt("PREMIUM ceramiczne pasy z PBR",group,stone,false,false);
             frames.Obiekt("PREMIUM lizeny i rygle aluminium",group,aluminum,false,false);
+            // Szkło nie może być statycznym okluderem, który znikałby wraz
+            // z wnętrzami/innymi budynkami za przezroczystą powierzchnią.
+            foreach (var rr in group.GetComponentsInChildren<Renderer>(true))
+                GameObjectUtility.SetStaticEditorFlags(rr.gameObject,
+                    StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic);
             // Siatki są liczone w metrach świata: reparent zachowuje światowy
             // transform mimo skali K i 90° orientacji modelu Sketchfab.
             group.SetParent(bud,true);
