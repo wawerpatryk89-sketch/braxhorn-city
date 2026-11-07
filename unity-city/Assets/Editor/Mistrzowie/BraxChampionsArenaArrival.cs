@@ -85,16 +85,16 @@ public static class BraxChampionsArenaArrival
 
     static void Cord(Transform parent, Material rope, Vector3 a, Vector3 b)
     {
-        // Six short, naturally drooping rope sections; no rigid horizontal bars.
-        const int segments = 6;
+        // Smooth, naturally sagging velvet rope; never render it as a rigid bar.
+        const int segments = 10;
         for (int i = 0; i < segments; i++)
         {
             float t0 = i / (float)segments, t1 = (i + 1) / (float)segments;
-            Vector3 P(float t) => Vector3.Lerp(a, b, t) - Vector3.up * (.21f * 4f * t * (1f - t));
+            Vector3 P(float t) => Vector3.Lerp(a, b, t) - Vector3.up * (.30f * 4f * t * (1f - t));
             var p = P(t0) * K; var q = P(t1) * K;
             var d = q - p;
             var cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            cylinder.name = "BLACK velvet VIP rope - hanging segment";
+            cylinder.name = "RED velvet VIP rope - naturally hanging segment";
             cylinder.transform.SetParent(parent, false);
             cylinder.transform.localPosition = (p + q) * .5f;
             cylinder.transform.localRotation = Quaternion.FromToRotation(Vector3.up, d.normalized);
@@ -107,7 +107,7 @@ public static class BraxChampionsArenaArrival
     static void Stanchions(Transform parent, Material metal, Material rope, Material carpet)
     {
         // Entrance is at the south (-Z) curtain wall. Keep an unobstructed 6.4m centre aisle.
-        // Owner-approved entrance: deep RED carpet, GOLD posts and BLACK ropes.
+        // Owner-approved entrance: deep RED carpet, GOLD posts and naturally sagging RED ropes.
         Box(parent, "Public RED velvet carpet | VIP arrival", carpet,
             new Vector3(0, .239f, -67.0f), new Vector3(5.8f, .018f, 15.4f), false);
         // Flush gold piping along the red carpet; avoid obstructing the walkway.
@@ -669,8 +669,7 @@ public static class BraxChampionsArenaArrival
             "A1 UPPER GLASS | reference furnished VIP lounge silhouette",Vector3.zero);
         var leather=BraxChampionsFoundation.LibraryLeather(
             "A1_upper_facade_charcoal_leather_2k",new Color(.23f,.225f,.22f));
-        var cushion=BraxChampionsFoundation.LibraryLeather(
-            "A1_upper_facade_warm_leather_2k",new Color(.39f,.365f,.33f));
+        // All visible upholstery stays black leather; no brown/warm cushions.
         var teak=exterior["teak"];
         var gold=exterior["gold"];
         var dark=exterior["dark_stone"];
@@ -684,38 +683,41 @@ public static class BraxChampionsArenaArrival
         Box(root,"UPPER lounge | fine champagne fascia at floor edge",gold,
             new Vector3(0,18.13f,-51.56f),new Vector3(83.5f,.11f,.12f),false);
 
-        // Six proportional three-seat leather sofas face the glazed frontage.
-        // Seats, backrests, armrests and cushions are separate genuine PBR
-        // surfaces, not one blank box. Their sizes are real-world metres.
+        // Six correctly scaled upright black-leather sofas face the glazed frontage.
+        // Backrest is on +Z and the open seat faces SOUTH glazing (-Z), so the
+        // furniture cannot read as lying on its back or facing away from glass.
+        // Visible upholstery is black PBR leather throughout.
         foreach(float x in new[]{-35f,-22f,-9f,9f,22f,35f})
         {
             float z=-45.9f;
-            var sofa=Group(root,"UPPER lounge | luxury sofa x="+x,
+            var sofa=Group(root,"UPPER lounge | upright black leather sofa x="+x,
                 new Vector3(x,0,z));
+            // Realistic ~2.4 m three-seat sofa footprint, seated directly above
+            // the mezzanine floor instead of the previous oversized silhouette.
             Box(sofa,"Original PBR oak underframe",teak,
-                new Vector3(0,18.53f,0),new Vector3(3.57f,.25f,1.19f),false);
+                new Vector3(0,18.51f,0),new Vector3(2.42f,.18f,.92f),false);
             Box(sofa,"Textured black leather sofa seat",leather,
-                new Vector3(0,18.80f,-.18f),new Vector3(3.46f,.31f,1.06f),false);
-            Box(sofa,"Tall premium backrest",leather,
-                new Vector3(0,19.25f,.43f),new Vector3(3.52f,.93f,.39f),false);
+                new Vector3(0,18.74f,-.08f),new Vector3(2.30f,.28f,.88f),false);
+            Box(sofa,"Upright black leather backrest",leather,
+                new Vector3(0,19.10f,.37f),new Vector3(2.36f,.78f,.24f),false);
             foreach(float side in new[]{-1f,1f})
             {
-                Box(sofa,"Rounded-profile arm support",leather,
-                    new Vector3(side*1.72f,19.04f,-.05f),
-                    new Vector3(.27f,.58f,1.18f),false);
-                foreach(float legZ in new[]{-.46f,.45f})
+                Box(sofa,"Black leather arm support",leather,
+                    new Vector3(side*1.10f,18.92f,-.02f),
+                    new Vector3(.20f,.54f,.92f),false);
+                foreach(float legZ in new[]{-.35f,.35f})
                     Box(sofa,"Champagne metal furniture foot",gold,
-                        new Vector3(side*1.51f,18.38f,legZ),
-                        new Vector3(.07f,.19f,.07f),false);
+                        new Vector3(side*.98f,18.33f,legZ),
+                        new Vector3(.06f,.18f,.06f),false);
             }
-            foreach(float offset in new[]{-1.07f,0f,1.07f})
+            foreach(float offset in new[]{-.72f,0f,.72f})
             {
-                Box(sofa,"Three individual PBR upholstered cushions",cushion,
-                    new Vector3(offset,19.01f,-.21f),
-                    new Vector3(.98f,.13f,.86f),false);
-                Box(sofa,"Three fine leather back cushions",cushion,
-                    new Vector3(offset,19.21f,.20f),
-                    new Vector3(.94f,.56f,.16f),false);
+                Box(sofa,"Three black leather seat cushions",leather,
+                    new Vector3(offset,18.93f,-.10f),
+                    new Vector3(.68f,.10f,.72f),false);
+                Box(sofa,"Three black leather back cushions",leather,
+                    new Vector3(offset,19.08f,.22f),
+                    new Vector3(.66f,.46f,.13f),false);
             }
             var table=Group(root,"UPPER lounge | oak coffee table x="+x,
                 new Vector3(x,0,-48.2f));
@@ -735,7 +737,7 @@ public static class BraxChampionsArenaArrival
             Box(root,"UPPER lounge | lamp champagne foot",gold,
                 new Vector3(x,18.83f,-47.0f),new Vector3(.13f,.23f,.13f),false);
         }
-        Debug.Log("A1_REFERENCE_UPPER_GLASS_LOUNGE furnishings=6_originalPBR_leather_sofas"+
+        Debug.Log("A1_REFERENCE_UPPER_GLASS_LOUNGE furnishings=6_upright_blackPBR_leather_sofas"+
             " 6_oak_tables warm_lamps=4 upper_floor_inside_ellipse=true"+
             " no_collision=true originalArenaVIPSeatsUnchanged=true"+
             " playerVisualProofPending=true");
@@ -817,13 +819,13 @@ public static class BraxChampionsArenaArrival
             new Color(.89f, .89f, .89f));
         var sidewalk = BraxChampionsFoundation.SourceMaterial("arena_arrival_paving", "concrete_pavement_02", 1.1f,
             new Color(.94f, .94f, .93f));
-        // Separate original PBR textiles: red stays red, rope must be BLACK.
+        // Separate original PBR textiles: deep red carpet and red velvet ropes.
         var redCarpet = BraxChampionsFoundation.SourceMaterial(
             "arena_vip_red_carpet", "fabric_pattern_05", .6f,
             new Color(.62f, .025f, .045f));
-        var blackRope = BraxChampionsFoundation.SourceMaterial(
-            "arena_vip_black_velvet_rope", "fabric_pattern_05", .6f,
-            new Color(.055f, .055f, .060f));
+        var redRope = BraxChampionsFoundation.SourceMaterial(
+            "arena_vip_red_velvet_rope", "fabric_pattern_05", .6f,
+            new Color(.48f, .012f, .022f));
         var paint = Paint("arena_parking_markings", new Color(.93f, .92f, .85f));
         Parking(root, asphalt, paint, sidewalk, exterior["dark_stone"]);
         ParkingLights(root, exterior["steel"], exterior["light"]);
@@ -833,7 +835,7 @@ public static class BraxChampionsArenaArrival
         // Reference glass must reveal the finished VIP level, not empty black air.
         ReferenceUpperFacadeLounge(root, exterior);
         ReferenceEntranceLandscaping(root, exterior);
-        Stanchions(root, exterior["gold"], blackRope, redCarpet);
+        Stanchions(root, exterior["gold"], redRope, redCarpet);
         Door(root, "CHAMPIONS_A1_PUBLIC", "Main public entrance", -59.04f, exterior["clear_glass"], exterior["steel"]);
         Door(root, "CHAMPIONS_A1_ATHLETES", "Separate athlete rear entrance", 59.04f, exterior["clear_glass"], exterior["steel"]);
         DressingRooms(root, sidewalk, exterior["dark_stone"], exterior["steel"]);
