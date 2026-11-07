@@ -444,6 +444,7 @@ public static class BraxChampionsArenaArrival
         var fins=new FacadeBatch();
         var blackColumns=new FacadeBatch();
         var goldInset=new FacadeBatch();
+        var goldAccentGlow=new FacadeBatch();
         var bronze=new FacadeBatch();
         var roof=new FacadeBatch();
         var signBacker=new FacadeBatch();
@@ -488,6 +489,12 @@ public static class BraxChampionsArenaArrival
                         new Vector3(.032f,9.14f,.095f),rotation);
                     goldInset.Beam(mid+outward*.806f+Vector3.up*22.87f,
                         new Vector3(.032f,7.19f,.095f),rotation);
+                    // Recessed GOLD LED inside each actual 2.10m black pillar.
+                    // Not a painted flat strip: visible at dusk at long range.
+                    goldAccentGlow.Beam(mid+outward*.836f+Vector3.up*5.68f,
+                        new Vector3(.022f,9.05f,.042f),rotation);
+                    goldAccentGlow.Beam(mid+outward*.836f+Vector3.up*22.87f,
+                        new Vector3(.022f,7.11f,.042f),rotation);
                 }
                 else
                 {
@@ -573,6 +580,8 @@ public static class BraxChampionsArenaArrival
         blackColumns.Emit(group,"PBR_black_stepped_out_pillars_2p10m",graphite);
         goldInset.Emit(group,"PBR_centered_gold_inset_on_black_pillars",
             exterior["gold"]);
+        goldAccentGlow.Emit(group,"REFERENCE_recessed_gold_pillar_light",
+            exterior["light"]);
         bronze.Emit(group,"PBR_bronze_architectural_detail",exterior["bronze"]);
         roof.Emit(group,"PBR_roof_coping",exterior["roof"]);
         signBacker.Emit(group,"PBR_sign_backing_beneath_original_6_to_1_signs",
@@ -584,13 +593,13 @@ public static class BraxChampionsArenaArrival
         // Physical red neon framing around the public main sign, as in the reference.
         foreach(float x in new[]{-22.2f,22.2f})
             Box(group,"REFERENCE red neon vertical sign frame",redNeon,
-                new Vector3(x,14.55f,-57.25f),new Vector3(.24f,5.8f,.18f),false);
+                new Vector3(x,14.55f,-58.18f),new Vector3(.24f,5.8f,.18f),false);
         foreach(float x in new[]{-16.8f,16.8f})
         {
             Box(group,"REFERENCE red neon sign top accent",redNeon,
-                new Vector3(x,17.10f,-57.38f),new Vector3(8.2f,.11f,.15f),false);
+                new Vector3(x,17.10f,-59.02f),new Vector3(8.2f,.11f,.15f),false);
             Box(group,"REFERENCE red neon sign lower accent",redNeon,
-                new Vector3(x,12.05f,-57.38f),new Vector3(8.2f,.09f,.15f),false);
+                new Vector3(x,12.05f,-59.02f),new Vector3(8.2f,.09f,.15f),false);
         }
 
         // Glass canopies and granite/bronze pilasters on BOTH doors.
@@ -640,7 +649,8 @@ public static class BraxChampionsArenaArrival
             " omitted_lower_facade_door_segments="+skippedDoor+
             " wide_black_columns=2.10m pitch=3bays stepped_out=.79m center_gold=.095m"+
             " roof_crown_LED=continuous upper_warm_bands=3 upper_halo=ellipse"+
-            " red_sign_frame=physical canopy_LED_strips=9 entrance_planters=2 bollards=8"+
+            " red_sign_frame=in_front_of_original_sign 2K_LED_pillar_insets=true"+
+            " canopy_LED_strips=9 entrance_planters=2 bollards=8"+
             " authentic_PBR=true opaque_glass_overlays=0 original_signs_preserved=true"+
             " doors_and_vehicle_lanes_preserved=true device_visual_review_required=true");
     }
