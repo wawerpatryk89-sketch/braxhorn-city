@@ -66,6 +66,8 @@ class ChampionSideMuralsTests(unittest.TestCase):
             self.assertIn(name,self.i)
         self.assertIn('settings.maxTextureSize=2048',self.i)
         self.assertIn('settings.streamingMipmaps=true',self.i)
+        self.assertIn('a.maxTextureSize=2048',self.i)
+        self.assertNotIn('a.maxTextureSize=8192',self.i)
         self.assertIn('TextureImporterFormat.ASTC_4x4',self.i)
 
 if __name__=="__main__":
