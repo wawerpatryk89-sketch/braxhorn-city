@@ -248,7 +248,8 @@ public static partial class BraxObozEnvironment
         // Ewentualne korekty ronda wykonuj wyłącznie na nawierzchni wokół niego.
         RondoBull(rondo);
         Box(t,"Zatoka autobusu",new Vector3(21,.055f,-92),new Vector3(4,.11f,20),campusAsphalt);
-        Box(t,"Połączenie zatoki",new Vector3(14,.05f,-94),new Vector3(12,.10f,24),campusAsphalt);
+        // Thin surface just above the measured terrain: no 9.5 cm buried slab.
+        Box(t,"Połączenie zatoki",new Vector3(14,.0985f,-94),new Vector3(12,.005f,24),campusAsphalt);
         // Four arrival walkways are now authored by PavedPaths/PathRectangles.
         // Their mesh and curbs are cut against BOTH tracks instead of being
         // rendered as unbroken cubes through the red running surface.
@@ -257,7 +258,13 @@ public static partial class BraxObozEnvironment
         Sign(t,"BRAXHORN · PRZYJAZDY",new Vector3(26,2.1f,-84),5);
         foreach(float z in new[]{-110f,-100f,-90f,-80f})Lamp(t,new Vector3(28,0,z));
         // Footpath protection, leaving boarding openings at both coach doors.
-        foreach(float z in new[]{-99f,-93f,-86f})Cylinder(t,"Słupek ochronny",new Vector3(24,.08f,z),new Vector3(24,1.05f,z),.075f,campusSteel,true);
+        foreach(float z in new[]{-99f,-93f,-86f})
+        {
+            var post=Cylinder(t,"Słupek ochronny",new Vector3(24,0,z),
+                new Vector3(24,.97f,z),.075f,campusSteel,true);
+            BraxObozPlacement.OnGround(post.transform,post.GetComponentsInChildren<Renderer>(true),
+                t.TransformPoint(P(24,0,z)),"słupek ochronny przy zatoce");
+        }
         // The owner's FBX contains its own seating. Never duplicate fake standalone benches outside its shelter.
         // Nowy FBX Meshy od właściciela zastępuje starą wiatę, bez atrap.
         var shelter=Group("Wlascicielska wiata 3D — przystanek obozowy",t,P(27,0,-92));
