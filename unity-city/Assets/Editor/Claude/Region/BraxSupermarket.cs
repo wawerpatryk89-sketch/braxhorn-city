@@ -201,8 +201,15 @@ public static class BraxSupermarket
             for (float z = -4f; z <= D + 4.01f; z += 4f) if (BraxRegionMiastoB.NaJezdni(P(x, z))) return false;
         // 4) nic nad gruntem (budynki, drzewa, latarnie, auta, ławki, płoty)
         float yProbe = BraxRegion.Ground(q.x, q.y, -20f, 80f, out var h0) ? h0.point.y : 0f;
-        var srodek = P(0f, D * .5f) + Vector3.up * (yProbe + .45f + H * .5f);
-        if (Physics.OverlapBox(srodek, new Vector3(W * .5f + 1.5f, H * .5f, D * .5f + 1.5f), rot, ~0, QueryTriggerInteraction.Ignore).Length > 0) return false;
+        // Nowy chodnik parkingu dochodzi pod same drzwi od strony z<0.
+        // Nie odrzucaj sklepu z powodu WŁASNEGO dojścia tuż przed frontem.
+        // Obejmuje całą halę i pas za nią; wnętrze nadal bez kolizji.
+        var depth = D + 1.5f;
+        var srodek = P(0f, (D - .03f + 1.5f) * .5f) +
+            Vector3.up * (yProbe + .45f + H * .5f);
+        if (Physics.OverlapBox(srodek,
+            new Vector3(W * .5f + 1.0f, H * .5f, depth * .5f - .03f),
+            rot, ~0, QueryTriggerInteraction.Ignore).Length > 0) return false;
         // 5) grunt płaski (rozrzut ≤ 0.6 m) — hala stoi na najwyższym punkcie
         float lo = float.MaxValue, hi = float.MinValue;
         for (int i = 0; i <= 6; i++)
