@@ -118,19 +118,19 @@ class A1PremiumExteriorRegression(unittest.TestCase):
 
 
     def test_all_four_signs_face_viewer_left_to_right_without_repainting(self):
-        # Outside the ellipse, the front camera looks north (+Z) and the
-        # east-side camera looks west (-X). Both invert the screen X direction
-        # of the original parametric mesh. North and west don't.
-        self.assertIn('bool reverseU=alongX?!positive:positive;', self.signs)
+        # Correct Unity camera basis is Right = Cross(Up, LookDirection).
+        # At SOUTH the parametric +X is screen-right; at EAST +Z is also
+        # screen-right. Only NORTH and WEST need UV reversal.
+        self.assertIn('bool reverseU=alongX?positive:!positive;', self.signs)
         self.assertIn('float outwardFacingU=reverseU?1f-t:t;', self.signs)
         for front, positive, expected_flip in (
-            (True, False, True),  # public front south of oval
-            (True, True, False),  # rear/north
-            (False, True, True),  # east side
-            (False, False, False),  # west side
+            (True, False, False),  # public front south of oval
+            (True, True, True),   # rear/north
+            (False, True, False), # east side
+            (False, False, True), # west side
         ):
             with self.subTest(front=front,positive=positive):
-                self.assertEqual((not positive) if front else positive,
+                self.assertEqual(positive if front else (not positive),
                                  expected_flip)
         self.assertIn('owner', self.signs.lower())
         self.assertNotIn('SetPixels',self.signs)
