@@ -58,4 +58,9 @@ TRAM_TRACK_OFFSET=3.0
 GAUGE=1.435
 # Ground-level approaches to the first two finished exterior plots. No paving in tree beds.
 BUILDING_ACCESS=[(585,667,30,58),(817,805,8,20),(710,790,73,12)]
+# A1 side car parks are centred at world X535/X665. Their 6.4m vehicle lanes
+# must cross ONLY the north sidewalk of Z650 (world z660..667). These two
+# rectangles are cut out of foundation paving and replaced by graded asphalt
+# meshes from the city-road surface to the arena parking level.
+A1_PARKING_ENTRANCES=[(531.8,660.0,6.4,7.0),(661.8,660.0,6.4,7.0)]
 EXTRA_CROSSINGS=[(800,815,'z')]
