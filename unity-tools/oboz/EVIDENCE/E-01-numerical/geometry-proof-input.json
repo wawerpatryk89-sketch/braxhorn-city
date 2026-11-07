@@ -1,0 +1,126 @@
+{
+  "verification": "Independent SciPy convex halfspace intersections versus float32 mathematical model; Unity C#, physics and NavMesh NOT executed.",
+  "fixtures": [
+    {
+      "name": "road",
+      "bounds": [
+        -3.5,
+        3.5,
+        -139,
+        -109
+      ],
+      "areaOutsideTracks": 176.39731284128493
+    },
+    {
+      "name": "bus_path",
+      "bounds": [
+        24.6,
+        27.4,
+        -122,
+        -73
+      ],
+      "areaOutsideTracks": 122.83899774816423
+    },
+    {
+      "name": "straight_crossing",
+      "bounds": [
+        60,
+        76,
+        -5,
+        -3
+      ],
+      "areaOutsideTracks": 20.0
+    },
+    {
+      "name": "inner",
+      "bounds": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "areaOutsideTracks": 1.0
+    },
+    {
+      "name": "outside",
+      "bounds": [
+        100,
+        101,
+        100,
+        101
+      ],
+      "areaOutsideTracks": 1.0
+    },
+    {
+      "name": "oval_east",
+      "bounds": [
+        80,
+        87,
+        -23,
+        -21
+      ],
+      "areaOutsideTracks": 4.40016425765292
+    },
+    {
+      "name": "oval_north",
+      "bounds": [
+        -1,
+        1,
+        70,
+        79
+      ],
+      "areaOutsideTracks": 8.399780640104858
+    },
+    {
+      "name": "partial_corner",
+      "bounds": [
+        25,
+        25.25,
+        -115,
+        -114.75
+      ],
+      "areaOutsideTracks": 0.0
+    },
+    {
+      "name": "whole_loop",
+      "bounds": [
+        -90,
+        90,
+        -125,
+        81
+      ],
+      "areaOutsideTracks": 33775.26185217232
+    },
+    {
+      "name": "shared_start_corner",
+      "bounds": [
+        68,
+        71,
+        -74,
+        -70
+      ],
+      "areaOutsideTracks": -2.6201263381153694e-14
+    }
+  ],
+  "ovalSector": {
+    "vertices": [
+      [
+        67.51533251896667,
+        -52.33471595044653
+      ],
+      [
+        68.51309605372973,
+        -53.001400230070054
+      ],
+      [
+        70.67683746402241,
+        -49.04540179603337
+      ],
+      [
+        69.64756313202209,
+        -48.4284785030015
+      ]
+    ],
+    "areaAfterSprintSubtraction": 0.9102291707488765
+  }
+}

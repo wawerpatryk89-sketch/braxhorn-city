@@ -32,6 +32,6 @@ class FightCampGroundTest(unittest.TestCase):
 
     def test_owner_path_material_and_wooden_edge(self):
         self.assertIn("OwnerSlabTilesPbr()",self.campus)
-        self.assertIn("Drewniane obrzeże ścieżki",self.campus)
+        self.assertIn("Drewniane obrzeże ścieżki",(EDITOR/"BraxObozTrackGeometry.cs").read_text("utf8"))
         self.assertIn("IntersectsRunningTrack",self.campus)
         self.assertNotIn('Box(t,"Krawężnik poza bieżnią"',self.campus)

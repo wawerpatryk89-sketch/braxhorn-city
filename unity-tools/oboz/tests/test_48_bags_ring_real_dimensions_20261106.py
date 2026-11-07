@@ -1,4 +1,5 @@
 """Obóz etap E: 48 prawdziwych worków, ring 6x6m, podest 1m."""
+import json
 import unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[3]
@@ -15,12 +16,21 @@ class ArenaRequirements(unittest.TestCase):
         self.assertIn("halfBeam=(columns-1)*1.1f+1.8f",ENV)
 
     def test_ring_six_metres_rope_and_one_metre_stage(self):
-        self.assertIn("new Vector3(8.0f,1.0f,8.0f)",ENV)
-        self.assertIn("new Vector3(-3,0,-3)",ENV)
-        self.assertIn("new Vector3(3,0,3)",ENV)
-        self.assertIn("new[]{1.35f*K,1.70f*K,2.05f*K,2.40f*K}",ENV)
+        arena=(ROOT/"unity-city/Assets/Editor/Oboz/BraxObozArenaConstruction.cs").read_text("utf8")
+        # The numerical clear-width/step checks are in test_arena_construction_dimensions.
+        # Do not require the old solid 8x1x8 box that the owner rejected.
+        self.assertIn("RingPlatformHeight=1f",arena)
+        self.assertIn("RingRopeAxis=3f+RingRopeRadius",arena)
+        self.assertIn("new[]{1.35f,1.70f,2.05f,2.40f}",arena)
+        self.assertIn("ring.position.y+y*K",arena)
+        self.assertIn("Deska podestu",arena)
 
     def test_bag_bottom_and_body_length(self):
-        self.assertIn("float targetHeight=2.65f*K",ENV)
-        self.assertIn("collider.height=1.2f*K",ENV)
-        self.assertIn("bag.dol=2.65f*K",ENV)
+        measured=json.loads((ROOT/"unity-tools/oboz/OWNER_ASSETS/TRAINING_GEOMETRY_MEASUREMENTS_20261106.json").read_text("utf8"))["bag"]
+        factor=1.2/measured["sourceBodyHeightMetres"]
+        self.assertAlmostEqual(measured["sourceBodyHeightMetres"]*factor,1.2,places=6)
+        self.assertAlmostEqual(measured["sourceAssemblyHeightMetres"]*factor+.6,measured["targetMountMetres"],places=6)
+        self.assertNotRegex(ENV,r"targetHeight\s*=\s*2\.65")
+        component=(ROOT/"unity-city/Assets/Oboz/BraxObozBagGeometry.cs").read_text("utf8")
+        self.assertIn("TryMeasureBodyBounds",component)
+        self.assertIn("mesh.vertices",component)

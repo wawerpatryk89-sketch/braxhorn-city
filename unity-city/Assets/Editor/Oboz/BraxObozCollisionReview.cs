@@ -14,6 +14,8 @@ public static class BraxObozCollisionReview
         public string name, position;
         public int possibleBlockers;
         public string[] colliderCandidates;
+        // Independent geometric proof; historical pivot/bounds candidates above remain unchanged.
+        public BraxObozDoorPassageReview.Result geometryPassage;
     }
 
     [Serializable] public sealed class Report
@@ -23,6 +25,7 @@ public static class BraxObozCollisionReview
         public string sourceCommit, generatedUtc;
         public int enabledColliders, boxColliders, capsuleColliders, meshColliders, doorways;
         public int possibleDoorwayBlockers;
+        public int geometryMeasuredDoorways,geometryClearDoorways,geometryBlockedDoorways,geometryUnmeasuredDoorways;
         public string[] warnings;
         public DoorwayReview[] doors;
     }
@@ -44,7 +47,8 @@ public static class BraxObozCollisionReview
         };
         var warnings = new List<string> {
             "Kolizje nie zostały wyłączone. Raport nie zatrzymuje kompilacji APK.",
-            "Bounds to tylko wskazówki: przejścia, drzwi, bieżnia, autokar i NavMesh wymagają testu Play Mode/Android."
+            "Bounds to tylko wskazówki: przejścia, drzwi, bieżnia, autokar i NavMesh wymagają testu Play Mode/Android.",
+            "geometryPassage mierzy pełną kapsułę gracza i powierzchnie otworu z pominięciem wyłącznie jawnych ruchomych skrzydeł; nie sprawdza otwierania drzwi w Play Mode."
         };
         var doors = scene.GetComponentsInChildren<BraxCityDoor>(true);
         report.doorways = doors.Length;
@@ -67,15 +71,30 @@ public static class BraxObozCollisionReview
                 c.bounds.Intersects(access))
                 .Select(c=>c.name+" ["+c.GetType().Name+"]")
                 .Distinct().Take(12).ToArray();
+            BraxObozDoorPassageReview.Result passage;
+            try { passage=BraxObozDoorPassageReview.Inspect(door,scene.player?scene.player.body:null); }
+            catch(Exception ex)
+            {
+                passage=new BraxObozDoorPassageReview.Result {status="UNMEASURED: "+ex};
+                warnings.Add("Nie zmierzono przejścia "+door.name+": "+ex);
+            }
             results.Add(new DoorwayReview {
                 name=door.name,
                 position=pivot.position.ToString("F2"),
                 possibleBlockers=candidates.Length,
-                colliderCandidates=candidates
+                colliderCandidates=candidates,
+                geometryPassage=passage
             });
         }
         report.doors = results.ToArray();
         report.possibleDoorwayBlockers = results.Sum(x=>x.possibleBlockers);
+        report.geometryMeasuredDoorways=results.Count(x=>x.geometryPassage.measured);
+        report.geometryClearDoorways=results.Count(x=>x.geometryPassage.clearWithMovingLeavesOmitted);
+        report.geometryBlockedDoorways=results.Count(x=>x.geometryPassage.measured&&!x.geometryPassage.clearWithMovingLeavesOmitted);
+        report.geometryUnmeasuredDoorways=results.Count(x=>!x.geometryPassage.measured);
+        if(report.geometryBlockedDoorways>0||report.geometryUnmeasuredDoorways>0)
+            warnings.Add("Pomiar geometrii przejść: z przeszkodą="+report.geometryBlockedDoorways+
+                ", niezmierzone="+report.geometryUnmeasuredDoorways+"; szczegóły geometryPassage każdego wejścia.");
         if (results.Any(x=>x.possibleBlockers>0))
             warnings.Add("Możliwe przeszkody przy drzwiach: "+
                 string.Join("; ",results.Where(x=>x.possibleBlockers>0)
@@ -88,6 +107,8 @@ public static class BraxObozCollisionReview
         File.WriteAllText(destination,JsonUtility.ToJson(report,true));
         Debug.Log("BRAXHORN_OBOZ_COLLIDER_REVIEW: colliders="+report.enabledColliders+
             " doors="+report.doorways+" possibleDoorwayBlockers="+report.possibleDoorwayBlockers+
+            " geometryClear="+report.geometryClearDoorways+" geometryBlocked="+report.geometryBlockedDoorways+
+            " geometryUnmeasured="+report.geometryUnmeasuredDoorways+
             " report="+destination+" APK_BUILD_UNBLOCKED=true phoneTested=false");
     }
 }

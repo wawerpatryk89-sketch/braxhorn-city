@@ -72,6 +72,12 @@ public static class BraxObozPlacementRegression
                 Check(finding.StartsWith("PASS ",StringComparison.Ordinal),finding.Substring(5));
             foreach(var finding in BraxObozRuntimeRegression.Run())
                 Check(finding.StartsWith("PASS ",StringComparison.Ordinal),finding.Substring(5));
+            foreach(var finding in BraxObozTrainingRegression.Run())
+                Check(finding.StartsWith("PASS ",StringComparison.Ordinal),finding.Substring(5));
+            foreach(var finding in BraxObozConstructionRegression.Run())
+                Check(finding.StartsWith("PASS ",StringComparison.Ordinal),finding.Substring(5));
+            foreach(var finding in BraxObozStructureRegression.Run())
+                Check(finding.StartsWith("PASS ",StringComparison.Ordinal),finding.Substring(5));
             foreach(var finding in BraxObozDiningRegression.Run())
                 Check(finding.StartsWith("PASS ",StringComparison.Ordinal),finding.Substring(5));
         }

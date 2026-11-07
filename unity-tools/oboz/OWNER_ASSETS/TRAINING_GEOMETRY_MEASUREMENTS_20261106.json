@@ -1,0 +1,545 @@
+{
+  "schema": 1,
+  "measurementTool": "Blender 4.3.2",
+  "unityVerified": false,
+  "phoneVerified": false,
+  "bag": {
+    "sourceFile": "leather_punching_bag.glb",
+    "sha256": "09aa34aea1d750f5931a07def5bd6547fa29afac4cf4e921783c093fa9190f61",
+    "sourceBodyNode": "Low_Poly_lambert1_0",
+    "sourceBodyHeightMetres": 0.39737681951373816,
+    "sourceAssemblyHeightMetres": 0.5545045575127006,
+    "sourceBodyWidthMetres": 0.14872369915246964,
+    "sourceBodyDepthMetres": 0.1511809304356575,
+    "sourceBodyVertices": 739,
+    "sourceVertices": 16130,
+    "sourceTriangles": 26950,
+    "sourceMeshCount": 57,
+    "sourceMaterialCount": 1,
+    "targetBodyMetres": 1.2,
+    "targetClearanceMetres": 0.6,
+    "targetMountMetres": 2.27449492859066,
+    "oldBodyMetresWhenWholeAssemblyWas2_65": 1.8990801021275403
+  },
+  "gym": {
+    "sourceFile": "OwnerExtras/Gym/gym_environment.fbx",
+    "sha256": "e28306bd6ffbb1f59b72fe9b1a659f912dfd2ec2ba9c34d36057f1a6d5b046ec",
+    "sourceVertices": 11002,
+    "sourceTriangles": 19756,
+    "parts": [
+      {
+        "name": "abdominal_bench",
+        "vertices": 276,
+        "triangles": 528,
+        "widthMetres": 1.3919999599456787,
+        "depthMetres": 0.5,
+        "heightMetres": 0.713500066762478,
+        "sourceBottomMetres": -4.387429441976565e-08
+      },
+      {
+        "name": "barbell_bar",
+        "vertices": 144,
+        "triangles": 284,
+        "widthMetres": 0.04999995231628418,
+        "depthMetres": 1.6999998092651367,
+        "heightMetres": 0.05000019073486328,
+        "sourceBottomMetres": 0.9333750605583191
+      },
+      {
+        "name": "bench",
+        "vertices": 40,
+        "triangles": 60,
+        "widthMetres": 0.5,
+        "depthMetres": 2.0,
+        "heightMetres": 0.3900002772620894,
+        "sourceBottomMetres": -1.4255559221965086e-07
+      },
+      {
+        "name": "boxing_ring_1",
+        "vertices": 869,
+        "triangles": 1236,
+        "widthMetres": 9.233335494995117,
+        "depthMetres": 8.220000267028809,
+        "heightMetres": 2.6500014802269902,
+        "sourceBottomMetres": -6.69603821279452e-07
+      },
+      {
+        "name": "boxing_ring_2",
+        "vertices": 965,
+        "triangles": 1428,
+        "widthMetres": 10.933334350585938,
+        "depthMetres": 8.446422576904297,
+        "heightMetres": 2.650001494890205,
+        "sourceBottomMetres": -6.842670359219483e-07
+      },
+      {
+        "name": "boxing_ring_3",
+        "vertices": 597,
+        "triangles": 908,
+        "widthMetres": 9.233334064483643,
+        "depthMetres": 6.700002670288086,
+        "heightMetres": 2.500001022621575,
+        "sourceBottomMetres": -5.457844167722214e-07
+      },
+      {
+        "name": "dumbbell_1",
+        "vertices": 268,
+        "triangles": 544,
+        "widthMetres": 0.12226521968841553,
+        "depthMetres": 0.40000009536743164,
+        "heightMetres": 0.12226524389556914,
+        "sourceBottomMetres": -1.7321876555342897e-07
+      },
+      {
+        "name": "dumbbell_2",
+        "vertices": 268,
+        "triangles": 544,
+        "widthMetres": 0.15283149480819702,
+        "depthMetres": 0.4999999701976776,
+        "heightMetres": 0.15283150271531554,
+        "sourceBottomMetres": -2.165233752293716e-07
+      },
+      {
+        "name": "dumbbell_3",
+        "vertices": 268,
+        "triangles": 544,
+        "widthMetres": 0.18339787423610687,
+        "depthMetres": 0.6000001281499863,
+        "heightMetres": 0.1833978658433466,
+        "sourceBottomMetres": -2.598281412247161e-07
+      },
+      {
+        "name": "dumbbell_4",
+        "vertices": 240,
+        "triangles": 476,
+        "widthMetres": 0.2845073342323303,
+        "depthMetres": 0.095550537109375,
+        "heightMetres": 0.14637744426727295,
+        "sourceBottomMetres": 1.1700098514556885
+      },
+      {
+        "name": "dumbbell_5",
+        "vertices": 240,
+        "triangles": 476,
+        "widthMetres": 0.2845073342323303,
+        "depthMetres": 0.095550537109375,
+        "heightMetres": 0.14637744426727295,
+        "sourceBottomMetres": 1.1700098514556885
+      },
+      {
+        "name": "dumbbell_6",
+        "vertices": 240,
+        "triangles": 476,
+        "widthMetres": 0.2845073342323303,
+        "depthMetres": 0.095550537109375,
+        "heightMetres": 0.14637744426727295,
+        "sourceBottomMetres": 1.1700098514556885
+      },
+      {
+        "name": "dumbbell_7",
+        "vertices": 240,
+        "triangles": 476,
+        "widthMetres": 0.2845073342323303,
+        "depthMetres": 0.095550537109375,
+        "heightMetres": 0.14637744426727295,
+        "sourceBottomMetres": 1.1700098514556885
+      },
+      {
+        "name": "dumbbell_8",
+        "vertices": 240,
+        "triangles": 476,
+        "widthMetres": 0.2845073342323303,
+        "depthMetres": 0.095550537109375,
+        "heightMetres": 0.14637744426727295,
+        "sourceBottomMetres": 1.1700098514556885
+      },
+      {
+        "name": "exercise_bike",
+        "vertices": 498,
+        "triangles": 924,
+        "widthMetres": 1.5102144479751587,
+        "depthMetres": 1.1558518409729004,
+        "heightMetres": 1.1805498665632532,
+        "sourceBottomMetres": -6.562642873575442e-09
+      },
+      {
+        "name": "horizontal_bar_1",
+        "vertices": 48,
+        "triangles": 60,
+        "widthMetres": 0.06499999761581421,
+        "depthMetres": 0.9650001525878906,
+        "heightMetres": 1.1000002216603662,
+        "sourceBottomMetres": -7.860921868996229e-08
+      },
+      {
+        "name": "horizontal_bar_2",
+        "vertices": 48,
+        "triangles": 60,
+        "widthMetres": 0.0650000274181366,
+        "depthMetres": 1.0650005340576172,
+        "heightMetres": 1.6000002298064118,
+        "sourceBottomMetres": -8.675526430579339e-08
+      },
+      {
+        "name": "horizontal_bar_3",
+        "vertices": 48,
+        "triangles": 60,
+        "widthMetres": 0.06500005722045898,
+        "depthMetres": 1.1650009155273438,
+        "heightMetres": 2.0000000949012886,
+        "sourceBottomMetres": -9.490128860534242e-08
+      },
+      {
+        "name": "horizontal_bar_4",
+        "vertices": 112,
+        "triangles": 136,
+        "widthMetres": 0.0650000274181366,
+        "depthMetres": 3.065000534057617,
+        "heightMetres": 2.0000002578219664,
+        "sourceBottomMetres": -2.578219664428616e-07
+      },
+      {
+        "name": "kettlebell_1",
+        "vertices": 194,
+        "triangles": 368,
+        "widthMetres": 0.15999901294708252,
+        "depthMetres": 0.1656491756439209,
+        "heightMetres": 0.23261463070658905,
+        "sourceBottomMetres": -2.4087707828357452e-08
+      },
+      {
+        "name": "kettlebell_2",
+        "vertices": 194,
+        "triangles": 368,
+        "widthMetres": 0.2000003457069397,
+        "depthMetres": 0.20706310868263245,
+        "heightMetres": 0.2907706204152021,
+        "sourceBottomMetres": -3.0109873705441714e-08
+      },
+      {
+        "name": "kettlebell_3",
+        "vertices": 194,
+        "triangles": 368,
+        "widthMetres": 0.2399984747171402,
+        "depthMetres": 0.24847370386123657,
+        "heightMetres": 0.34892193115872416,
+        "sourceBottomMetres": -3.613156351889302e-08
+      },
+      {
+        "name": "kettlebell_4",
+        "vertices": 194,
+        "triangles": 368,
+        "widthMetres": 0.15999901294708252,
+        "depthMetres": 0.16564911603927612,
+        "heightMetres": 0.23261463070658905,
+        "sourceBottomMetres": -2.4087707828357452e-08
+      },
+      {
+        "name": "kettlebell_5",
+        "vertices": 194,
+        "triangles": 368,
+        "widthMetres": 0.2000003457069397,
+        "depthMetres": 0.20706301927566528,
+        "heightMetres": 0.2907706204152021,
+        "sourceBottomMetres": -3.0109873705441714e-08
+      },
+      {
+        "name": "kettlebell_6",
+        "vertices": 194,
+        "triangles": 368,
+        "widthMetres": 0.2399984747171402,
+        "depthMetres": 0.2484736442565918,
+        "heightMetres": 0.34892193115872416,
+        "sourceBottomMetres": -3.613156351889302e-08
+      },
+      {
+        "name": "parallel_bars_1",
+        "vertices": 160,
+        "triangles": 248,
+        "widthMetres": 3.0,
+        "depthMetres": 1.1140003204345703,
+        "heightMetres": 1.340000243334714,
+        "sourceBottomMetres": -9.074682338905404e-08
+      },
+      {
+        "name": "parallel_bars_2",
+        "vertices": 160,
+        "triangles": 248,
+        "widthMetres": 3.0,
+        "depthMetres": 1.1140003204345703,
+        "heightMetres": 1.340000243334714,
+        "sourceBottomMetres": -9.074682338905404e-08
+      },
+      {
+        "name": "pull_up_rack",
+        "vertices": 288,
+        "triangles": 448,
+        "widthMetres": 0.9444444179534912,
+        "depthMetres": 1.9644122123718262,
+        "heightMetres": 2.500000099562712,
+        "sourceBottomMetres": -9.95627118527409e-08
+      },
+      {
+        "name": "punching_bag_1",
+        "vertices": 253,
+        "triangles": 492,
+        "widthMetres": 0.4985623359680176,
+        "depthMetres": 0.49856245517730713,
+        "heightMetres": 1.8999988246783097,
+        "sourceBottomMetres": -4.061306313474233e-08
+      },
+      {
+        "name": "punching_bag_2",
+        "vertices": 325,
+        "triangles": 636,
+        "widthMetres": 0.4985623359680176,
+        "depthMetres": 0.49856245517730713,
+        "heightMetres": 1.8999988246783097,
+        "sourceBottomMetres": -4.061306313474233e-08
+      },
+      {
+        "name": "punching_bag_3",
+        "vertices": 129,
+        "triangles": 228,
+        "widthMetres": 0.47980809211730957,
+        "depthMetres": 0.47980833053588867,
+        "heightMetres": 2.200003683567047,
+        "sourceBottomMetres": 0.4999999403953552
+      },
+      {
+        "name": "punching_bag_4",
+        "vertices": 165,
+        "triangles": 318,
+        "widthMetres": 0.5762534141540527,
+        "depthMetres": 0.5762535333633423,
+        "heightMetres": 1.7000000476837158,
+        "sourceBottomMetres": 1.0
+      },
+      {
+        "name": "punching_bag_5",
+        "vertices": 165,
+        "triangles": 318,
+        "widthMetres": 0.5762534141540527,
+        "depthMetres": 0.5762534141540527,
+        "heightMetres": 1.7000000476837158,
+        "sourceBottomMetres": 1.0
+      },
+      {
+        "name": "punching_bag_stand_1",
+        "vertices": 24,
+        "triangles": 40,
+        "widthMetres": 1.0199999809265137,
+        "depthMetres": 0.12000036239624023,
+        "heightMetres": 2.699999819040377,
+        "sourceBottomMetres": -9.775240172871236e-09
+      },
+      {
+        "name": "punching_bag_stand_2",
+        "vertices": 20,
+        "triangles": 36,
+        "widthMetres": 1.020000398159027,
+        "depthMetres": 0.11999988555908203,
+        "heightMetres": 0.6386246778965781,
+        "sourceBottomMetres": -9.775240172871236e-09
+      },
+      {
+        "name": "step_platform",
+        "vertices": 36,
+        "triangles": 64,
+        "widthMetres": 0.3500000089406967,
+        "depthMetres": 0.9000000953674316,
+        "heightMetres": 0.20000012099801268,
+        "sourceBottomMetres": -7.331429685564217e-08
+      },
+      {
+        "name": "treadmill",
+        "vertices": 274,
+        "triangles": 528,
+        "widthMetres": 1.9999995231628418,
+        "depthMetres": 1.0835769176483154,
+        "heightMetres": 1.1700633374615421,
+        "sourceBottomMetres": -8.024413489238214e-08
+      },
+      {
+        "name": "weight_bench",
+        "vertices": 352,
+        "triangles": 654,
+        "widthMetres": 1.676487922668457,
+        "depthMetres": 1.724250078201294,
+        "heightMetres": 1.0010003063973159,
+        "sourceBottomMetres": -1.4045798479855875e-07
+      },
+      {
+        "name": "weight_plate_1",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.1700000762939453,
+        "depthMetres": 0.019999980926513672,
+        "heightMetres": 0.16999995708465576,
+        "sourceBottomMetres": 0.8733749389648438
+      },
+      {
+        "name": "weight_plate_10",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.4499986171722412,
+        "depthMetres": 0.05000019073486328,
+        "heightMetres": 0.44999945163726807,
+        "sourceBottomMetres": 0.7333754301071167
+      },
+      {
+        "name": "weight_plate_11",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.13435029983520508,
+        "depthMetres": 0.1700000762939453,
+        "heightMetres": 0.13435029983520508,
+        "sourceBottomMetres": 0.7269026637077332
+      },
+      {
+        "name": "weight_plate_12",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.17324143648147583,
+        "depthMetres": 0.2200002670288086,
+        "heightMetres": 0.17324143648147583,
+        "sourceBottomMetres": 0.7074571251869202
+      },
+      {
+        "name": "weight_plate_13",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.19798964262008667,
+        "depthMetres": 0.2499990463256836,
+        "heightMetres": 0.1979895830154419,
+        "sourceBottomMetres": 0.6950830817222595
+      },
+      {
+        "name": "weight_plate_14",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.2404160499572754,
+        "depthMetres": 0.2999992370605469,
+        "heightMetres": 0.24041596055030823,
+        "sourceBottomMetres": 0.2823698818683624
+      },
+      {
+        "name": "weight_plate_15",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.35355299711227417,
+        "depthMetres": 0.4499988555908203,
+        "heightMetres": 0.35355281829833984,
+        "sourceBottomMetres": 0.22580140829086304
+      },
+      {
+        "name": "weight_plate_2",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.2200000286102295,
+        "depthMetres": 0.02500009536743164,
+        "heightMetres": 0.22000038623809814,
+        "sourceBottomMetres": 0.8483750820159912
+      },
+      {
+        "name": "weight_plate_3",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.2499992847442627,
+        "depthMetres": 0.03000020980834961,
+        "heightMetres": 0.24999964237213135,
+        "sourceBottomMetres": 0.8333754539489746
+      },
+      {
+        "name": "weight_plate_4",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.2999989986419678,
+        "depthMetres": 0.039999961853027344,
+        "heightMetres": 0.2999996542930603,
+        "sourceBottomMetres": 0.8083754181861877
+      },
+      {
+        "name": "weight_plate_5",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.4499986171722412,
+        "depthMetres": 0.05000019073486328,
+        "heightMetres": 0.44999945163726807,
+        "sourceBottomMetres": 0.7333754301071167
+      },
+      {
+        "name": "weight_plate_6",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.1700000762939453,
+        "depthMetres": 0.020000457763671875,
+        "heightMetres": 0.17000001668930054,
+        "sourceBottomMetres": 0.8733752369880676
+      },
+      {
+        "name": "weight_plate_7",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.2200000286102295,
+        "depthMetres": 0.024999618530273438,
+        "heightMetres": 0.22000038623809814,
+        "sourceBottomMetres": 0.8483750820159912
+      },
+      {
+        "name": "weight_plate_8",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.2499992847442627,
+        "depthMetres": 0.029999732971191406,
+        "heightMetres": 0.24999964237213135,
+        "sourceBottomMetres": 0.8333754539489746
+      },
+      {
+        "name": "weight_plate_9",
+        "vertices": 96,
+        "triangles": 192,
+        "widthMetres": 0.2999989986419678,
+        "depthMetres": 0.039999961853027344,
+        "heightMetres": 0.2999996542930603,
+        "sourceBottomMetres": 0.8083754181861877
+      },
+      {
+        "name": "weight_rack",
+        "vertices": 374,
+        "triangles": 684,
+        "widthMetres": 1.0,
+        "depthMetres": 1.7242498397827148,
+        "heightMetres": 1.2660001728829116,
+        "sourceBottomMetres": -1.4045798479855875e-07
+      },
+      {
+        "name": "yoga_mat_1",
+        "vertices": 8,
+        "triangles": 10,
+        "widthMetres": 1.8499999046325684,
+        "depthMetres": 0.7999992370605469,
+        "heightMetres": 0.020000159740447998,
+        "sourceBottomMetres": -1.0000001192092896
+      },
+      {
+        "name": "yoga_mat_2",
+        "vertices": 8,
+        "triangles": 10,
+        "widthMetres": 1.8499999046325684,
+        "depthMetres": 0.7999992370605469,
+        "heightMetres": 0.020000159740447998,
+        "sourceBottomMetres": -1.0000001192092896
+      },
+      {
+        "name": "yoga_mat_3",
+        "vertices": 8,
+        "triangles": 10,
+        "widthMetres": 1.8499999046325684,
+        "depthMetres": 0.7999992370605469,
+        "heightMetres": 0.020000159740447998,
+        "sourceBottomMetres": -1.0000001192092896
+      }
+    ]
+  }
+}

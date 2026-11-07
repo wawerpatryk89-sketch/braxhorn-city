@@ -64,6 +64,33 @@ public static class BraxObozServices
         collider.center=local.center;
         collider.size=local.size;
     }
+    static void CaptureConstruction(Transform building)
+    {
+        // Exact snapshot of the built shell and partitions. Original furniture
+        // and wall-mounted objects retain their independent placement records.
+        var parts=building.GetComponentsInChildren<MeshFilter>(true)
+            .Where(f=>f.sharedMesh&&f.GetComponent<Renderer>()&&
+                !f.GetComponentsInParent<BraxObozPlacementRecord>(true)
+                    .Any(r=>r.Contains(f.GetComponent<Renderer>()))).ToArray();
+        BraxObozStructureAuthoring.Capture(building,parts,building.GetComponentsInChildren<Collider>(true));
+    }
+    static void MeasureDoorJamb(Transform leaf,Renderer[] visible,Transform building)
+    {
+        var record=BraxObozPlacementRecord.For(leaf);
+        record.SetMembers(visible);
+        record.suspensionPoint=null;record.suspensionSupport=null;
+        if(!BraxObozDoorGeometry.TryHinge(leaf,visible,building,out var hinge,out var problem))
+        {
+            BraxBuildQuality.Warn("OBÓZ DRZWI: "+leaf.name+" — "+problem);
+            return;
+        }
+        record.suspensionPoint=Node("Zmierzony wierzchołek przy ościeżu",leaf,
+            leaf.InverseTransformPoint(hinge.vertexWorld));
+        record.suspensionSupport=hinge.support;
+        if(hinge.gapWorld>.03f*K)
+            BraxBuildQuality.Warn("OBÓZ DRZWI: "+leaf.name+" — "+hinge.status+
+                "; szczelina="+(hinge.gapWorld/K).ToString("F4")+" m");
+    }
     static Renderer[] SourceBody(GameObject model,string prefix)
     {
         var part=model.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>
@@ -154,11 +181,13 @@ public static class BraxObozServices
             BraxObozPlacement.VerifyDimension(leaf,2.10f,BraxObozPlacement.Axis.Y,
                 "drzwi "+label+" wysokość",.01f,group);
             var record=BraxObozPlacementRecord.For(pivot);
+            record.SetMembers(leaf);
             record.label="drzwi "+label+" — skrzydło na zawiasie";
             record.support=BraxObozPlacementRecord.SupportKind.Suspended;
             record.expectedDimensionMetres=2.10f;
             record.dimensionAxis=(int)BraxObozPlacement.Axis.Y;
             record.dimensionFrame=group;
+            MeasureDoorJamb(pivot,leaf,group);
         }
         // Furniture is a separate original board assembly in revision 2.
         // Calibrate and place it before adding its own collider or any dishes.
@@ -171,6 +200,7 @@ public static class BraxObozServices
             BraxObozPlacement.OnGround(part,visible,group.TransformPoint(V(item.position)),item.label);
             ContactBox(part.gameObject,visible);
         }
+        CaptureConstruction(group);
         foreach(var s in data.seats)
         {
             var t=Node(s.name,group,V(s.position));t.localRotation=Quaternion.Euler(0,s.yaw,0);
@@ -334,6 +364,7 @@ public static class BraxObozServices
     {
         // Measurements of the delivered meshes, not a request to resize them.
         var record=BraxObozPlacementRecord.For(item.transform);
+        record.SetMembers(item.GetComponentsInChildren<Renderer>(true));
         record.expectedDimensionMetres=metres;record.dimensionAxis=(int)axis;
         record.dimensionFrame=frame;record.label=label;
     }
@@ -382,6 +413,7 @@ public static class BraxObozServices
                    (!highest.HasValue || hit.point.y>highest.Value.point.y))highest=hit;
         }
         var record=BraxObozPlacementRecord.For(item.transform);
+        record.SetMembers(visible);
         record.support=BraxObozPlacementRecord.SupportKind.Ground;record.label=label;
         if(!highest.HasValue)
         {
@@ -390,6 +422,8 @@ public static class BraxObozServices
         }
         record.verticalSupport=highest.Value.collider;
         item.transform.position+=Vector3.up*(highest.Value.point.y-full.min.y);
+        record.contactPoint=Node("Zmierzony punkt styku z oryginalną powierzchnią",item.transform,
+            item.transform.InverseTransformPoint(highest.Value.point));
         Physics.SyncTransforms();
         return true;
     }
@@ -880,6 +914,11 @@ public static class BraxObozServices
         // urinal inlet). Face those backs toward their actual bathroom walls.
         if(filename=="wall-urinal.glb")model.transform.localRotation=Quaternion.Euler(0,90,0)*model.transform.localRotation;
         if(filename=="trough-washbasin.glb")model.transform.localRotation=Quaternion.Euler(0,180,0)*model.transform.localRotation;
+        // The supplied tractor tire is authored upright, its axle along X.
+        // Lay the original tire on its side for the flipping station; keep
+        // its real two-metre diameter and all source geometry/materials.
+        if(filename=="OwnerExtras/tractor_tire.glb")
+            model.transform.localRotation=Quaternion.Euler(0,0,90)*model.transform.localRotation;
         var renderers=model.GetComponentsInChildren<Renderer>(true);
         if(renderers.Length==0)throw new InvalidOperationException("Brak renderera "+filename);
         Bounds bounds=renderers[0].bounds;
@@ -1001,11 +1040,10 @@ public static class BraxObozServices
         {
             OptionalBuilding("wyposażenie kabiny WC "+x,building,()=>{
             var cubicle=Node("Kabina WC — "+x,building,new Vector3(x,0,-2.95f));
-            OwnerFixture(cubicle,"close-coupled-toilet.glb",
+            var toilet=OwnerFixture(cubicle,"close-coupled-toilet.glb",
                 new Vector3(0,.24f,0),new Vector3(.70f,1.10f,1.02f));
-            FixtureBox(cubicle,"Przycisk spłukiwania",new Vector3(0,1.34f,-.24f),
-                new Vector3(.17f,.025f,.085f),metal,false);
-            var flush=Node("SPŁUCZ TOALETĘ",cubicle,new Vector3(0,1.32f,-.15f))
+            var flushButton=BraxObozPlacement.Bounds(SourceBody(toilet,"WC | dual-flush button"));
+            var flush=Node("SPŁUCZ TOALETĘ",cubicle,cubicle.InverseTransformPoint(flushButton.center))
                 .gameObject.AddComponent<BraxObozFacility>();
             flush.kind=BraxObozFacility.Kind.Toilet;
             // The 0.90 x 2.10 m door starts at the actual 0.24 m bathroom
@@ -1040,18 +1078,14 @@ public static class BraxObozServices
             var shower=Node("Kabina prysznicowa — "+x,building,new Vector3(x,0,-2.95f));
             OwnerFixture(shower,"shower-tray-square.glb",
                 new Vector3(0,.24f,0),new Vector3(1.65f,.14f,1.65f));
-            FixtureCylinder(shower,"Odpływ prysznicowy",new Vector3(0,.29f,0),
-                .10f,.015f,metal);
-            FixtureBox(shower,"Panel baterii",new Vector3(0,1.15f,-1.55f),
-                new Vector3(.27f,.48f,.10f),metal,false);
-            FixtureCylinder(shower,"Deszczownica",new Vector3(0,2.46f,-1.30f),.16f,.07f,metal);
-            var control=Node("Odkręć prysznic",shower,new Vector3(0,1.15f,-1.1f)).gameObject.AddComponent<BraxObozFacility>();
-            control.kind=BraxObozFacility.Kind.Shower;
-            control.effect=Effect(shower,new Vector3(0,2.37f,-1.28f),false);
+            // The supplied tray keeps its own drain geometry. No authored
+            // shower column/head was supplied: list that asset in H rather
+            // than inventing fixtures or emitting water from an empty point.
+            BraxBuildQuality.Warn("OBÓZ BRAK MODELU — H: shower-column; bez zastępczego panelu i deszczownicy");
             // Ścianka przeciwbryzgowa, otwarte przejście 1.2 m.
-            FixtureBox(shower,"Szkło przy wejściu do prysznica",new Vector3(1.02f,1.23f,1.43f),
+            FixtureBox(shower,"Szkło przy wejściu do prysznica",new Vector3(1.02f,1.28f,1.43f),
                 new Vector3(.72f,2.08f,.04f),mats["glass"],false);
-            FixtureBox(shower,"Profil szyby",new Vector3(.66f,1.23f,1.43f),
+            FixtureBox(shower,"Profil szyby",new Vector3(.66f,1.29f,1.43f),
                 new Vector3(.055f,2.10f,.07f),metal,false);
             });
         }
@@ -1064,9 +1098,7 @@ public static class BraxObozServices
             var basin=OwnerFixture(sink,"trough-washbasin.glb",new Vector3(0,.70f,0),new Vector3(1.20f,.35f,.55f));
             var basinBounds=BraxObozPlacement.BoundsInFrame(sink,
                 SourceBody(basin,"Trough | shared stone basin"));
-            float pipeHeight=basinBounds.min.y-.24f;
-            FixtureBox(sink,"Syfon",new Vector3(0,.24f+pipeHeight*.5f,basinBounds.center.z),
-                new Vector3(.10f,pipeHeight,.10f),metal);
+            BraxBuildQuality.Warn("OBÓZ BRAK MODELU — H: basin-waste-trap; oryginalna umywalka bez osobnej rury/syfonu");
             // Two real faucets are already part of the supplied GLB.
             var mirrorSurface=FixtureBox(sink,"Lustro na ścianie — ReflectionProbe",
                 new Vector3(0,1.89f,.275f),new Vector3(1.25f,1.25f,.035f),mirror,false);
@@ -1123,6 +1155,7 @@ public static class BraxObozServices
         foreach(var visible in building.GetComponentsInChildren<MeshRenderer>(true))
             GameObjectUtility.SetStaticEditorFlags(visible.gameObject,
                 GameObjectUtility.GetStaticEditorFlags(visible.gameObject)|StaticEditorFlags.ReflectionProbeStatic);
+        CaptureConstruction(building);
         Debug.Log("BRAXHORN_OBOZ_SANITARIATY dwa WC, dwie kabiny z prysznicem, umywalki; wymagany test przejścia i pozycji gracza");
     }
 

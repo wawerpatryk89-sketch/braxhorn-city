@@ -10,10 +10,14 @@ class AuditMaterialsAndBags(unittest.TestCase):
         self.assertIn("material.GetTexturePropertyNames()",S)
         self.assertIn("AssetDatabase.GetAssetPath(material.GetTexture(key))",S)
     def test_48_bags_1_2m_body_and_0_6m_bottom_over_real_floor(self):
-        self.assertIn("ReviewRealBagClearance(scene)",S)
+        self.assertIn("ReviewRealBagClearance(scene,out var bagMeasurements)",S)
         self.assertIn("bags.Length!=48",S)
-        self.assertIn("Mathf.Abs(body-1.2f)>.03f",S)
-        self.assertIn("Mathf.Abs(clearance-.6f)>.03f",S)
+        self.assertIn("TryMeasureBodyBounds(out var body)",S)
+        self.assertIn("Mathf.Abs(item.bodyMetres-1.2f)>.03f",S)
+        self.assertIn("Mathf.Abs(item.clearanceMetres-.6f)>.03f",S)
+        self.assertIn("ground.Raycast(new Ray(",S)
+        self.assertIn("TryMeasureAttachment(out var attachment)",S)
+        self.assertNotIn("(bag.dol-bag.gora)/K",S)
         self.assertIn("bagWarnings",S)
     def test_entrance_collider_inventory_and_full_dependency_bytes(self):
         self.assertIn("oboz-wejscia-kolizje.json",S)

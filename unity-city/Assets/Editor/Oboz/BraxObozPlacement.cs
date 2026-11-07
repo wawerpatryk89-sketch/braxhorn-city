@@ -73,6 +73,7 @@ public static class BraxObozPlacement
         float factor = metres * K / measured; // jedna OS rzeczywista, NIE min(trzech osi)
         model.localScale *= factor;
         var record = BraxObozPlacementRecord.For(model);
+        record.SetMembers(renderers);
         record.expectedDimensionMetres = metres;
         record.dimensionAxis = (int)axis;
         record.dimensionFrame = axisFrame;
@@ -112,6 +113,7 @@ public static class BraxObozPlacement
         if (measured < .0001f) throw new InvalidOperationException("Brak wysokości powierzchni: " + label);
         model.localScale *= metres*K/measured;
         var record = BraxObozPlacementRecord.For(model);
+        record.SetMembers(renderers);
         record.label = label;
         record.heightAboveFloorMetres = metres;
         record.heightReference = (int)HeightReference.Top;
@@ -131,6 +133,7 @@ public static class BraxObozPlacement
         Vector3 approximateBottomWorld, string label)
     {
         var record = BraxObozPlacementRecord.For(model);
+        record.SetMembers(renderers);
         record.support = BraxObozPlacementRecord.SupportKind.Ground;
         record.label = label;
         AtBottom(model, renderers, approximateBottomWorld);
@@ -170,6 +173,7 @@ public static class BraxObozPlacement
                      reference == HeightReference.Centre ? referenceBounds.center.y : referenceBounds.min.y;
         model.position += Vector3.up*(bounds.min.y + metres*K - edge);
         var record = BraxObozPlacementRecord.For(model);
+        record.SetMembers(renderers);
         record.heightAboveFloorMetres = metres;
         record.heightReference = (int)reference;
         record.heightRenderers = referenceRenderers ?? Array.Empty<Renderer>();
@@ -182,6 +186,7 @@ public static class BraxObozPlacement
         Transform support, Vector3 approximateBottomWorld, string label)
     {
         var record = BraxObozPlacementRecord.For(model);
+        record.SetMembers(renderers);
         record.support = BraxObozPlacementRecord.SupportKind.Ground;
         record.label = label;
         AtBottom(model, renderers, approximateBottomWorld);
@@ -209,6 +214,7 @@ public static class BraxObozPlacement
     {
         var d = towardWall.normalized;
         var record = BraxObozPlacementRecord.For(model);
+        record.SetMembers(renderers);
         record.support = BraxObozPlacementRecord.SupportKind.Wall;
         record.wallDirection = d;
         record.label = label;

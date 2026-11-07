@@ -327,6 +327,7 @@ public static partial class BraxObozEnvironment
             Debug.LogWarning("BRAXHORN_OBOZ_MURAL_NO_WALL "+key+
                 " — geometria wymaga kontroli montażu, nie oznaczaj jako gotowe");
         var placement=BraxObozPlacementRecord.For(board);
+        placement.SetMembers(quad.GetComponentsInChildren<Renderer>(true));
         placement.support=BraxObozPlacementRecord.SupportKind.Wall;
         placement.wallDirection=towardWall;placement.label="mural "+key;
         placement.expectedDimensionMetres=width;
@@ -426,6 +427,7 @@ public static partial class BraxObozEnvironment
         mesh = SaveMesh(mesh);
         var g = Group("Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia", root, Vector3.zero).gameObject;
         g.AddComponent<MeshFilter>().sharedMesh = mesh; g.AddComponent<MeshRenderer>().sharedMaterial = BraxObozMaterials.CampGround(ground,gravel); g.AddComponent<MeshCollider>().sharedMesh = mesh;
+        BraxObozStructureAuthoring.RegisterGround(g.GetComponent<MeshCollider>());
         // Short sections allow transparent sorting/culling along the stream.
         var water=BraxObozMaterials.Stream();
         for(int section=0;section<14;section++)
@@ -587,93 +589,14 @@ public static partial class BraxObozEnvironment
     }
     static void Ring(string name,float x,float z)
     {
-        var t=Group(name,root,P(x,0,z));
-        // Ring nie stoi na chodniku: osobna elastyczna posadzka i krawedz sportowa.
-        Box(t,"Odrębna strefa bezpieczeństwa z ubitej ziemi",
-            new Vector3(0,.012f,0),new Vector3(12,.024f,12),ground,false);
-        foreach(float borderZ in new[]{-6.3f,6.3f})
-            Box(t,"Granica strefy ringu",new Vector3(0,.147f,borderZ),new Vector3(13,.015f,.11f),burgundy,false);
-        // Podest rzeczywisty 1 m, liny otaczają wewnętrzny kwadrat 6x6 m.
-        var platform=Box(t,"Podest drewniany",new Vector3(0,.50f,0),
-            new Vector3(8.0f,1.0f,8.0f),wood);
-        var ringMat=Box(t,"Mata bez cudzych logo",new Vector3(0,1.02f,0),
-            new Vector3(7.8f,.04f,7.8f),burgundy);
-        ringMat.AddComponent<BraxObozDeformableMat>().Configure(7.8f,7.8f);
-        foreach(float dx in new[]{-3f,3f})foreach(float dz in new[]{-3f,3f}) {
-            Cylinder(t,"Słupek ringu",new Vector3(dx,1.0f,dz),new Vector3(dx,2.55f,dz),.09f,metal,true);
-            Cylinder(t,"Ochraniacz narożnika",
-                new Vector3(dx*.98f,1.23f,dz*.98f),
-                new Vector3(dx*.98f,2.50f,dz*.98f),.16f,burgundy);
-        }
-        foreach(float side in new[]{-1f,1f}) {
-            Box(t,"Fartuch ringu",new Vector3(side*4.01f,.50f,0),
-                new Vector3(.025f,1.0f,8f),burgundy,false);
-            Box(t,"Fartuch ringu",new Vector3(0,.50f,side*4.01f),
-                new Vector3(8f,1f,.025f),burgundy,false);
-        }
-        // A physical entrance gap stays open; the other sides use shared rope physics.
-        DynamicRopes(x,z,new Vector3(-3,0,-3),new Vector3(-3,0,3),Vector3.left);
-        DynamicRopes(x,z,new Vector3(3,0,-3),new Vector3(3,0,3),Vector3.right);
-        DynamicRopes(x,z,new Vector3(-3,0,3),new Vector3(3,0,3),Vector3.forward);
-        DynamicRopes(x,z,new Vector3(-3,0,-3),new Vector3(-.7f,0,-3),Vector3.back);
-        DynamicRopes(x,z,new Vector3(.7f,0,-3),new Vector3(3,0,-3),Vector3.back);
-        ColliderBox(t,new Vector3(-3,1.75f,0),new Vector3(.1f,1.45f,6));
-        ColliderBox(t,new Vector3(3,1.75f,0),new Vector3(.1f,1.45f,6));
-        ColliderBox(t,new Vector3(0,1.75f,3),new Vector3(6,1.45f,.1f));
-        ColliderBox(t,new Vector3(-1.85f,1.75f,-3),new Vector3(2.3f,1.45f,.1f));
-        ColliderBox(t,new Vector3(1.85f,1.75f,-3),new Vector3(2.3f,1.45f,.1f));
-        // Keep the first two treads and the front edge of the top tread unchanged.
-        // The old top tread ended at -4.425, leaving a 0.125*K gap before
-        // the platform edge (-4.3). Extend its back into the platform so
-        // navigation cannot see a drop to the pavilion floor between them.
-        // Cztery stopnie 25cm do podestu 1m, z boku i poza ciągami komunikacji.
-        for(int i=0;i<4;i++)Box(t,"Schodek z desek",
-            new Vector3(-3.1f,.125f*(i+1),-5.4f+i*.38f),
-            new Vector3(1.15f,.25f*(i+1),.48f),wood);
-        var aComp=t.gameObject.AddComponent<BraxObozArena>();aComp.label=name;
-        aComp.halfSize=new Vector2(2.95f,2.95f)*K;arenas.Add(aComp);
-    }
-    static void DynamicRopes(float x,float z,Vector3 a,Vector3 b,Vector3 outward)
-    {
-        var g=Group("Liny ringu — wspólna fizyka",root,Vector3.zero).gameObject;
-        g.AddComponent<MeshRenderer>().sharedMaterial=rope;
-        var line=g.AddComponent<BraxLina>();line.a=(a+new Vector3(x,0,z))*K;line.b=(b+new Vector3(x,0,z))*K;
-        line.wysokosci=new[]{1.35f*K,1.70f*K,2.05f*K,2.40f*K};line.promien=.025f*K;line.naZewnatrz=outward;
-        line.Zbuduj();var mf=g.GetComponent<MeshFilter>();mf.sharedMesh=SaveMesh(UnityEngine.Object.Instantiate(mf.sharedMesh));
+        BuildTrainingRing(name,x,z);
     }
     static void Octagon(float x,float z)
     {
-        var t=Group("Oktagon",root,P(x,0,z));const float radius=5.3f;
-        Box(t,"Odrębna czarna mata bezpieczeństwa",new Vector3(0,.07f,0),new Vector3(13,.14f,13),dark,false);
-        var mesh=new Mesh();var v=new Vector3[9];var uv=new Vector2[9];var tris=new int[24];v[0]=P(0,.35f,0);
-        for(int i=0;i<8;i++){float a=i*Mathf.PI/4;v[i+1]=P(Mathf.Sin(a)*radius,.35f,Mathf.Cos(a)*radius);uv[i+1]=new Vector2(v[i+1].x,v[i+1].z);tris[i*3]=0;tris[i*3+1]=i+1;tris[i*3+2]=(i+1)%8+1;}
-        mesh.vertices=v;mesh.uv=uv;mesh.triangles=tris;mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
-        mesh=SaveMesh(mesh);
-        t.gameObject.AddComponent<MeshFilter>().sharedMesh=mesh;t.gameObject.AddComponent<MeshRenderer>().sharedMaterial=burgundy;t.gameObject.AddComponent<MeshCollider>().sharedMesh=mesh;
-        for(int i=0;i<8;i++)
-        {
-            float a=i*Mathf.PI/4,b=(i+1)*Mathf.PI/4;var p=new Vector3(Mathf.Sin(a)*radius,0,Mathf.Cos(a)*radius);var q=new Vector3(Mathf.Sin(b)*radius,0,Mathf.Cos(b)*radius);
-            var fascia=Box(t,"Zamknięta krawędź podestu",(p+q)*.5f+Vector3.up*.175f,new Vector3(.08f,.35f,Vector3.Distance(p,q)),dark,false);
-            fascia.transform.localRotation=Quaternion.LookRotation(q-p);
-            Cylinder(t,"Słupek klatki",p+Vector3.up*.35f,p+Vector3.up*2.4f,.065f,dark,true);
-            if(i==3)continue; // entrance panel remains open in the reconstruction
-            Cylinder(t,"Górny profil klatki",p+Vector3.up*2.35f,q+Vector3.up*2.35f,.04f,dark);
-            Cylinder(t,"Dolny profil klatki",p+Vector3.up*.4f,q+Vector3.up*.4f,.04f,dark);
-            CagePanel(t,p,q);
-            Cylinder(t,"Miękka osłona słupka",p+Vector3.up*.52f,p+Vector3.up*2.3f,.105f,burgundy);
-            var mid=(p+q)*.5f;var col=Group("Kolizja klatki",t,(mid+Vector3.up*1.3f)*K);col.localRotation=Quaternion.LookRotation(q-p);col.gameObject.AddComponent<BoxCollider>().size=new Vector3(.08f,2.1f,Vector3.Distance(p,q))*K;
-        }
-        // Approach the existing open panel; the top tread overlaps the mat edge.
-        float entryAngle=3.5f*Mathf.PI/4;
-        var entry=Group("Schody wejścia do oktagonu",t,Vector3.zero);
-        entry.localRotation=Quaternion.Euler(0,entryAngle*Mathf.Rad2Deg,0);
-        float edge=radius*Mathf.Cos(Mathf.PI/8);
-        for(int i=0;i<3;i++)Box(entry,"Stopień antypoślizgowy",new Vector3(0,(i+1)*.35f/6,edge+.7f-i*.3f),new Vector3(1.4f,(i+1)*.35f/3,.42f),dark);
-        CombineDecoration(t);
-        var arena=t.gameObject.AddComponent<BraxObozArena>();arena.label="OKTAGON";arena.halfSize=new Vector2(4.8f,4.8f)*K;arenas.Add(arena);
+        BuildTrainingOctagon(x,z);
     }
     // Oryginalny model 2K od właściciela (57 części, zawieszenie w GLB).
-    // Wszystkie 24 instancje współdzielą GLB, mesh, materiały i tekstury.
+    // Wszystkie 48 instancji współdzieli jedną pochodną siatkę i oryginalny PBR.
     // Brak prywatnego źródła jest błędem, nie usprawiedliwia atrap.
     static GameObject OwnerBagPrototype(int index)
     {
@@ -691,61 +614,68 @@ public static partial class BraxObozEnvironment
         return first;
     }
 
-    static void OwnerBagMesh(Transform pivot,GameObject original)
-    {
-        var model=PrefabUtility.InstantiatePrefab(original) as GameObject;
-        if(!model)throw new InvalidOperationException("Nie udało się utworzyć skórzanego worka GLB");
-        model.name="Oryginalny worek skórzany — mesh/UV/PBR bez zmian";
-        model.transform.SetParent(pivot,false);
-        model.transform.localPosition=Vector3.zero;
-        var renderers=model.GetComponentsInChildren<Renderer>(true);
-        if(renderers.Length==0)throw new InvalidOperationException("Worek 3D nie zawiera renderera");
-        if(renderers.Any(x=>x.sharedMaterials.Any(m=>!m)))
-            throw new InvalidOperationException("Worek 3D ma brakujące materiały");
-        Bounds bound=renderers[0].bounds;
-        foreach(var renderer in renderers.Skip(1))bound.Encapsulate(renderer.bounds);
-        if(bound.size.y<=.001f)throw new InvalidOperationException("Worek ma niepoprawną wysokość");
-        // Cały oryginalny zespół: łańcuch plus korpus.
-        // Hak 3,25 m, dół worka 0,6 m nad ziemią; zachowujemy proporcje siatki.
-        float targetHeight=2.65f*K;
-        model.transform.localScale*=targetHeight/bound.size.y;
-        bound=renderers[0].bounds;
-        foreach(var renderer in renderers.Skip(1))bound.Encapsulate(renderer.bounds);
-        model.transform.position+=new Vector3(pivot.position.x-bound.center.x,
-            pivot.position.y-2.65f*K-bound.min.y,
-            pivot.position.z-bound.center.z);
-        // Nie wolno wymieniać materiałów ani zmniejszać tekstur.
-    }
-
     static void Bags(float x,float z,bool roof,int columns)
     {
         var t=Group((columns*2)+(roof?" worków zadaszonych":" worków otwartych"),root,P(x,0,z));
-        // 40-60 worków bez przycinania belki po zwiększeniu liczby rzędów.
+        var prototype=BraxObozBagAssembly.Prepare(OwnerBagPrototype(0));
         float halfBeam=(columns-1)*1.1f+1.8f;
-        foreach(float side in new[]{-1f,1f})
+        var supports=new RaycastHit[2,columns];
+        var beams=new Collider[2];float roofBase=float.NegativeInfinity;
+        for(int row=0;row<2;row++)
         {
-            Cylinder(t,"Belka nośna z bali",
-                new Vector3(-halfBeam,3.4f,side*2),
-                new Vector3(halfBeam,3.4f,side*2),.18f,wood);
+            float rz=row==0?-2f:2f,maxMount=float.NegativeInfinity;
+            for(int col=0;col<columns;col++)
+            {
+                float cx=-(columns-1)*1.1f+col*2.2f;
+                var at=t.TransformPoint(P(cx,0,rz));
+                if(!BraxObozBagAssembly.TryFloor(at,t,out supports[row,col]))
+                {
+                    BraxBuildQuality.Warn("OBÓZ WOREK: brak rzeczywistego podłoża dla "+row+"/"+col);
+                    continue;
+                }
+                float floor=(supports[row,col].point.y-t.position.y)/K;
+                maxMount=Mathf.Max(maxMount,floor+prototype.MountAboveFloorMetres);
+            }
+            if(float.IsNegativeInfinity(maxMount))continue;
+            // Whole original suspension is retained. Its top enters the lower
+            // 12 mm of a thick timber beam; the body never grows to an old hook.
+            float beamY=maxMount+.18f-.012f;
+            var beam=ExactTimber(t,"Belka nośna z bali — mocowanie oryginalnego zawiesia",
+                new Vector3(-halfBeam,beamY,rz),new Vector3(halfBeam,beamY,rz),.18f,wood);
+            beams[row]=beam.GetComponent<Collider>();
             foreach(float end in new[]{-halfBeam,halfBeam})
-                Cylinder(t,"Gruby drewniany słup",
-                    new Vector3(end,0,side*2),new Vector3(end,3.4f,side*2),
-                    .22f,wood,true);
+            {
+                if(!BraxObozBagAssembly.TryFloor(t.TransformPoint(P(end,0,rz)),t,out var footing))
+                    throw new InvalidOperationException("Brak podłoża pod słupem konstrukcji worków");
+                float bottom=(footing.point.y-t.position.y)/K;
+                ExactTimber(t,"Gruby drewniany słup — od rzeczywistej posadzki",
+                    new Vector3(end,bottom,rz),new Vector3(end,beamY+.18f,rz),.22f,wood);
+            }
+            // The actual purlin underside lands on the log's upper surface.
+            // No floating roof is justified merely by being in this group.
+            float eave=beamY+.18f-.65f*.5f+RoofPurlinOffset+RoofPurlinHeight*.5f;
+            roofBase=Mathf.Max(roofBase,eave);
         }
-        if(roof)MetalRoof(t,halfBeam*2+1.2f,6,3.63f,.65f);
+        if(roof && !float.IsNegativeInfinity(roofBase))
+            Optional("dach placu worków",()=>MetalRoof(t,halfBeam*2+1.2f,6,roofBase,.65f));
+        // Explicit construction membership is captured before the original
+        // bags are attached, so neither bags nor later children can certify
+        // the support of an otherwise floating beam or roof.
+        BraxObozStructureAuthoring.Capture(t,t.GetComponentsInChildren<MeshFilter>(),
+            t.GetComponentsInChildren<Collider>());
         for(int row=0;row<2;row++)for(int col=0;col<columns;col++)
         {
-            var pivot=Group("Worek "+(bags.Count+1),t,P(-(columns-1)*1.1f+col*2.2f,3.25f,row==0?-2:2));
-            // Wyłącznie oryginalny model; GLB już zawiera skórę i łańcuchy.
-            // Nie dubluj elementów proceduralnymi cylindrami ani UV.
-            OwnerBagMesh(pivot,OwnerBagPrototype(bags.Count));
-            var collider=pivot.gameObject.AddComponent<CapsuleCollider>();
-            collider.center=P(0,-2.05f,0);collider.height=1.2f*K;collider.radius=.28f*K;
-            var bag=pivot.gameObject.AddComponent<BraxWorek>();
-            bag.gora=1.45f*K;bag.dol=2.65f*K;bag.dlugosc=2.05f*K;
-            bag.promien=.28f*K;bags.Add(bag);if(roof)covered.Add(pivot);
+            if(!supports[row,col].collider || !beams[row])continue;
+            int r=row,c=col;
+            Optional("oryginalny worek "+(bags.Count+1),()=>{
+                var bag=BraxObozBagAssembly.Create(t,"Worek "+(bags.Count+1),
+                    prototype,supports[r,c],beams[r]);
+                bags.Add(bag);if(roof)covered.Add(bag.transform);
+            });
         }
     }
+
+
     // One mesh per panel/suspension, rather than a GameObject per wire/link.
     sealed class DetailTubes
     {
@@ -851,28 +781,8 @@ public static partial class BraxObozEnvironment
         }
         else Debug.LogWarning("BRAXHORN_OBOZ_FIRE_ROCK_MISSING "+rockPath+
             " — nie twórz zastępczych kostek");
-        for(int i=0;i<5;i++)
-        {
-            float angle=i*Mathf.PI/5f;
-            Cylinder(camp,"Prawdziwy bal drewna opałowego",
-                new Vector3(-.65f*Mathf.Cos(angle),.18f,-.65f*Mathf.Sin(angle)),
-                new Vector3(.65f*Mathf.Cos(angle),.18f,.65f*Mathf.Sin(angle)),
-                .11f,wood,false);
-        }
-        for(int i=0;i<8;i++)
-        {
-            float a=i*Mathf.PI/4f;
-            Vector3 radial=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));
-            Vector3 tangent=new Vector3(-radial.z,0,radial.x);
-            var seat=radial*5f;
-            Cylinder(camp,"Ława wokół ogniska — okrągły bal",
-                seat-tangent*1.05f+Vector3.up*.45f,
-                seat+tangent*1.05f+Vector3.up*.45f,.20f,wood,true);
-            foreach(float end in new[]{-0.7f,0.7f})
-                Cylinder(camp,"Pień pod ławą",
-                    seat+tangent*end+Vector3.up*.04f,
-                    seat+tangent*end+Vector3.up*.35f,.16f,wood,true);
-        }
+        CampfireWoodStack(camp);
+        CampfireLogBenches(camp);
         var flameObject=Group("Żywy ogień — drobne cząsteczki, bez ciężkich cieni",
             camp,P(0,.27f,0)).gameObject;
         var particles=flameObject.AddComponent<ParticleSystem>();
@@ -921,17 +831,28 @@ public static partial class BraxObozEnvironment
             Cylinder(board,"Drewniany słup tablicy",
                 new Vector3(x,0,0),new Vector3(x,2.7f,0),.19f,wood,true);
         Box(board,"Drewniany panel tablicy",
-            new Vector3(0,1.86f,0),new Vector3(4.0f,1.55f,.18f),wood,false);
+            new Vector3(0,1.86f,0),new Vector3(4.0f,1.55f,.18f),wood);
+        BraxObozStructureAuthoring.Capture(board,board.GetComponentsInChildren<MeshFilter>(),
+            board.GetComponentsInChildren<Collider>());
         var notice=Group("Plan dnia — informacja dla obozowiczów",
             board,P(0,1.86f,-.11f)).gameObject.AddComponent<TextMesh>();
         notice.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        notice.text="BRAXHORN — PLAN DNIA\nROZGRZEWKA\nTRENING\nSTOŁÓWKA\nSPARING\nGODZINY DO ZATWIERDZENIA";
-        notice.fontSize=54;notice.characterSize=.095f*K;
+        notice.text="BRAXHORN — PLAN DNIA\nROZGRZEWKA\nTRENING\nSTOŁÓWKA\nSPARING";
+        // The former lettering measured 7.847 x 3.523 m on a 4 x 1.55 m
+        // board in scene C. This size leaves a real margin on every side.
+        notice.fontSize=54;notice.characterSize=.036f*K;
         notice.anchor=TextAnchor.MiddleCenter;notice.alignment=TextAlignment.Center;
         notice.color=new Color(.98f,.93f,.83f);
-        notice.GetComponent<MeshRenderer>().sharedMaterial=BraxObozMaterials.SignText(notice.font);
-        Cylinder(plaza,"Maszt flagowy — czeka na zatwierdzoną flagę 3D",
+        notice.font.RequestCharactersInTexture(notice.text,notice.fontSize,notice.fontStyle);
+        var textRenderer=notice.GetComponent<MeshRenderer>();
+        textRenderer.sharedMaterial=BraxObozMaterials.SignText(notice.font);
+        notice.gameObject.AddComponent<BraxCitySignText>();
+        BraxObozPlacement.ToWall(notice.transform,new Renderer[]{textRenderer},
+            board.TransformPoint(P(0,1.86f,-.3f)),board.forward,"napis planu dnia");
+        var mast=Cylinder(plaza,"Maszt flagowy — czeka na zatwierdzoną flagę 3D",
             new Vector3(5f,0,0),new Vector3(5f,8f,0),.13f,wood,true);
+        GroundBuiltStructure(mast.transform,mast.GetComponentsInChildren<Renderer>(),
+            plaza.position.y,"maszt placu apelowego");
         Debug.LogWarning("BRAXHORN_OBOZ_OWNER_ASSETS_PENDING: flaga bordowa BRAXHORN "+
             "oraz namioty wojskowe wymagają zatwierdzonych modeli; bez atrap");
     }

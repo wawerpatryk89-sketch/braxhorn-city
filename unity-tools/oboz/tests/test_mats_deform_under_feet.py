@@ -5,7 +5,7 @@ import unittest
 
 R=Path(__file__).resolve().parents[3]
 MAT=(R/"unity-city/Assets/Oboz/BraxObozDeformableMat.cs").read_text("utf-8")
-ENV=(R/"unity-city/Assets/Editor/Oboz/BraxObozEnvironment.cs").read_text("utf-8")
+ENV=(R/"unity-city/Assets/Editor/Oboz/BraxObozArenaConstruction.cs").read_text("utf-8")
 CAMP=(R/"unity-city/Assets/Editor/Oboz/BraxObozCampus.cs").read_text("utf-8")
 CONTACT=(R/"unity-city/Assets/Oboz/BraxObozIdleFootContact.cs").read_text("utf-8")
 

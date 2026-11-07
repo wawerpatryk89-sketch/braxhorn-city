@@ -1,0 +1,519 @@
+{
+  "title": "OBÓZ TRENINGOWY — rzeczywisty wynik sceny D nr27, bez APK",
+  "revision": "6d1e98be492b925205f1201f8b999bfafa90dd41",
+  "run": 42314590358,
+  "job": 128224000092,
+  "workflow": "https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42314590358",
+  "workflowConclusion": "success",
+  "apkBuilt": false,
+  "phoneVerified": false,
+  "artifact": {
+    "id": 13551287781,
+    "bytes": 564052,
+    "sha256": "ffddce2ee4c170cbc68a7e776a495135482dcfeb616b93e277cbd36d6f363f5e"
+  },
+  "generation": {
+    "generationCompleted": true,
+    "firstFatalException": "",
+    "warningCount": 59,
+    "errorCount": 0
+  },
+  "importErrorsBeforeGenerator": {
+    "count": 2,
+    "message": "Rig Error: Invalid Avatar Rig Configuration. Required human bone 'Hips' not found",
+    "sources": [
+      "OwnerAssets/Przystanek/Meshy_AI_The_object_is_a_recta_1104160815_texture.fbx",
+      "OwnerAssets/OwnerExtras/Gym/gym_environment.fbx"
+    ],
+    "cause": "Shared private importer defaults non-character FBX to Human; camp importer did not override static owner FBX. Fixed in E only for camp OwnerAssets; character import unchanged."
+  },
+  "regressions": {
+    "passed": 67,
+    "failed": 0
+  },
+  "scene": {
+    "scene": "Assets/PlayableGenerated/Oboz/BraxhornObozReview.unity",
+    "revision": "6d1e98be492b925205f1201f8b999bfafa90dd41",
+    "unitySceneInspected": true,
+    "apkBuilt": false,
+    "phoneVerified": false,
+    "renderers": 6201,
+    "unclassified": 0,
+    "levitating": 3093,
+    "embedded": 490,
+    "missingGroundRay": 65,
+    "expectedMounted": 718,
+    "expectedMurals": 4,
+    "presentMurals": 4,
+    "muralWarnings": 4,
+    "scaleWarnings": 8,
+    "overlapCandidates": 0,
+    "checkedBags": 48,
+    "bagWarnings": 7,
+    "checkedGroundObjects": 150,
+    "checkedWallObjects": 35,
+    "unmeasuredObjects": 4,
+    "wallWarnings": 0,
+    "checkedCharacters": 7,
+    "characterWarnings": 0,
+    "allPlacementsVerified": false,
+    "dependentSourceBytes": 1808110320
+  },
+  "bull": {
+    "present": true,
+    "scalePreserved": true,
+    "source": "Assets/Source/Prywatne/Oboz/OwnerAssets/A_charging_bull_statu_0725030443_refine.glb",
+    "measuredWorldSize": {
+      "x": 2.4342453479766846,
+      "y": 3.9047646522521973,
+      "z": 6.201168060302734
+    },
+    "expectedWorldSize": {
+      "x": 2.4342448711395264,
+      "y": 3.9047648906707764,
+      "z": 6.201168060302734
+    }
+  },
+  "ground": {
+    "sceneGeometryMeasured": true,
+    "phoneVerified": false,
+    "warnings": 0,
+    "terrainVertices": 12769,
+    "muddyVertices": 2022,
+    "grassVertices": 2782,
+    "originalMudColor": true,
+    "originalMudNormal": true,
+    "originalMudRoughness": true,
+    "approaches": [
+      {
+        "name": "Domek 1",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.5095542355302314e-07,
+        "continuous": true
+      },
+      {
+        "name": "Domek 2",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.4654391950207355e-07,
+        "continuous": true
+      },
+      {
+        "name": "Domek 3",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 3.0853331622893165e-07,
+        "continuous": true
+      },
+      {
+        "name": "Domek 4",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 3.200488833954296e-07,
+        "continuous": true
+      },
+      {
+        "name": "Stołówka",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.0545789425341354e-07,
+        "continuous": true
+      },
+      {
+        "name": "Sauna",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.1697346141991147e-07,
+        "continuous": true
+      },
+      {
+        "name": "Punkt medyczny",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.1697346141991147e-07,
+        "continuous": true
+      },
+      {
+        "name": "Magazyn",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.1697346141991147e-07,
+        "continuous": true
+      },
+      {
+        "name": "WC / ŁAŹNIA",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.8608369007088186e-07,
+        "continuous": true
+      },
+      {
+        "name": "Siłownia pod dachem",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 1.312599664515801e-07,
+        "continuous": true
+      }
+    ],
+    "mats": [
+      {
+        "name": "Mata bez cudzych logo",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.00999996718019247
+      },
+      {
+        "name": "Mata bez cudzych logo",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.00999996718019247
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Podłoga z kolizją",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.2199999988079071,
+        "clearanceAfterDepressionMetres": 0.1899999976158142
+      }
+    ],
+    "findings": []
+  },
+  "measuredPlacementProblems": [
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/canteen/DoorPivot",
+      "label": "drzwi Stołówka — skrzydło na zawiasie",
+      "kind": "Suspended",
+      "status": "brak geometrii zaczepu lub podpory",
+      "supportPath": "",
+      "measured": false,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Sauna/sauna/DoorPivot",
+      "label": "drzwi Sauna — skrzydło na zawiasie",
+      "kind": "Suspended",
+      "status": "brak geometrii zaczepu lub podpory",
+      "supportPath": "",
+      "measured": false,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Punkt medyczny/medical/DoorPivot",
+      "label": "drzwi Punkt medyczny — skrzydło na zawiasie",
+      "kind": "Suspended",
+      "status": "brak geometrii zaczepu lub podpory",
+      "supportPath": "",
+      "measured": false,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Magazyn/storage/DoorPivot",
+      "label": "drzwi Magazyn — skrzydło na zawiasie",
+      "kind": "Suspended",
+      "status": "brak geometrii zaczepu lub podpory",
+      "supportPath": "",
+      "measured": false,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    }
+  ],
+  "keyContacts": [
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Oryginalny mural BRAXHORN — DROGA_MISTRZA",
+      "label": "mural DROGA_MISTRZA",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.004999788478016853,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Pawilon treningowy — otwarty, bez starej siłowni/Oryginalny mural BRAXHORN — FIGHT_ZONE",
+      "label": "mural FIGHT_ZONE",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Pawilon treningowy — otwarty, bez starej siłowni/Drewniana ściana budynku — mural FIGHT_ZONE/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.004998314660042524,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Pawilon treningowy — otwarty, bez starej siłowni/Oryginalny mural BRAXHORN — WOJOWNIKOW",
+      "label": "mural WOJOWNIKOW",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Pawilon treningowy — otwarty, bez starej siłowni/Drewniana ściana budynku — mural WOJOWNIKOW/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.004998314660042524,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN · SIŁOWNIA 3D WŁAŚCICIELA/Oryginalny mural BRAXHORN — TRAINING_CAMP",
+      "label": "mural TRAINING_CAMP",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN · SIŁOWNIA 3D WŁAŚCICIELA/Drewniana ściana budynku — mural TRAINING_CAMP/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.005002736579626799,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Brama przesuwna · 8,4 m światła/BRAXHORN TRAINING CAMP — oryginalny szyld 3D",
+      "label": "oryginalny szyld na belce bramy",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Brama przesuwna · 8,4 m światła/Jednolity bal ponad bramą — 9,4 m",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    }
+  ],
+  "tablewareMeasured": 36,
+  "muralFindings": [
+    "Mural za mały (<4096px szer.): JPEG 1:1 — DROGA_MISTRZA 1536x864",
+    "Mural za mały (<4096px szer.): JPEG 1:1 — FIGHT_ZONE 1536x864",
+    "Mural za mały (<4096px szer.): JPEG 1:1 — WOJOWNIKOW 1536x864",
+    "Mural za mały (<4096px szer.): JPEG 1:1 — TRAINING_CAMP 1536x864"
+  ],
+  "scaleFindings": [
+    "Oryginalny IDANAS: powierzchnia materaca 0.4831 m, tabela 0.45 m; zachowano proporcje oryginału: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A",
+    "Oryginalny IDANAS: powierzchnia materaca 0.4831 m, tabela 0.45 m; zachowano proporcje oryginału: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B",
+    "Oryginalny IDANAS: powierzchnia materaca 0.4831 m, tabela 0.45 m; zachowano proporcje oryginału: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A",
+    "Oryginalny IDANAS: powierzchnia materaca 0.4831 m, tabela 0.45 m; zachowano proporcje oryginału: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B",
+    "Oryginalny IDANAS: powierzchnia materaca 0.4831 m, tabela 0.45 m; zachowano proporcje oryginału: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A",
+    "Oryginalny IDANAS: powierzchnia materaca 0.4831 m, tabela 0.45 m; zachowano proporcje oryginału: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B",
+    "Oryginalny IDANAS: powierzchnia materaca 0.4831 m, tabela 0.45 m; zachowano proporcje oryginału: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A",
+    "Oryginalny IDANAS: powierzchnia materaca 0.4831 m, tabela 0.45 m; zachowano proporcje oryginału: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B"
+  ],
+  "bagFindings": [
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/4 worków otwartych/Worek 1 gap=0.490",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/4 worków otwartych/Worek 2 gap=0.490",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/4 worków otwartych/Worek 3 gap=0.490",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/4 worków otwartych/Worek 4 gap=0.490",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/24 worków otwartych/Worek 34 gap=0.520",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/24 worków otwartych/Worek 35 gap=0.520",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/24 worków otwartych/Worek 36 gap=0.520"
+  ],
+  "navigation": {
+    "PathComplete": 58,
+    "PathPartial": 32
+  },
+  "rawDoorCandidates": {
+    "status": "ADVISORY_ONLY__DEVICE_REVIEW_REQUIRED",
+    "approved": false,
+    "playModeTested": false,
+    "phoneTested": false,
+    "sourceCommit": "6d1e98be492b925205f1201f8b999bfafa90dd41",
+    "generatedUtc": "2026-11-07T00:17:44.8691310Z",
+    "enabledColliders": 1127,
+    "boxColliders": 546,
+    "capsuleColliders": 547,
+    "meshColliders": 34,
+    "doorways": 10,
+    "possibleDoorwayBlockers": 10,
+    "warnings": [
+      "Kolizje nie zostały wyłączone. Raport nie zatrzymuje kompilacji APK.",
+      "Bounds to tylko wskazówki: przejścia, drzwi, bieżnia, autokar i NavMesh wymagają testu Play Mode/Android.",
+      "Możliwe przeszkody przy drzwiach: Domek 1 — drzwi=1; Domek 2 — drzwi=1; Domek 3 — drzwi=1; Domek 4 — drzwi=1; Drzwi — Stołówka=1; Drzwi — Sauna=1; Drzwi — Punkt medyczny=1; Drzwi — Magazyn=1; Zawias drzwi kabiny=1; Zawias drzwi kabiny=1"
+    ],
+    "doors": [
+      {
+        "name": "Domek 1 — drzwi",
+        "position": "(-72.40, 0.22, -23.87)",
+        "possibleBlockers": 1,
+        "colliderCandidates": [
+          "Kolizja zgodna z otworem [BoxCollider]"
+        ]
+      },
+      {
+        "name": "Domek 2 — drzwi",
+        "position": "(-72.40, 0.22, -47.17)",
+        "possibleBlockers": 1,
+        "colliderCandidates": [
+          "Kolizja zgodna z otworem [BoxCollider]"
+        ]
+      },
+      {
+        "name": "Domek 3 — drzwi",
+        "position": "(-59.59, 0.22, -22.71)",
+        "possibleBlockers": 1,
+        "colliderCandidates": [
+          "Kolizja zgodna z otworem [BoxCollider]"
+        ]
+      },
+      {
+        "name": "Domek 4 — drzwi",
+        "position": "(-59.59, 0.22, -46.00)",
+        "possibleBlockers": 1,
+        "colliderCandidates": [
+          "Kolizja zgodna z otworem [BoxCollider]"
+        ]
+      },
+      {
+        "name": "Drzwi — Stołówka",
+        "position": "(-51.76, 0.21, -96.40)",
+        "possibleBlockers": 1,
+        "colliderCandidates": [
+          "DoorPivot [BoxCollider]"
+        ]
+      },
+      {
+        "name": "Drzwi — Sauna",
+        "position": "(-60.82, 0.21, -113.87)",
+        "possibleBlockers": 1,
+        "colliderCandidates": [
+          "DoorPivot [BoxCollider]"
+        ]
+      },
+      {
+        "name": "Drzwi — Punkt medyczny",
+        "position": "(-32.35, 0.21, -113.87)",
+        "possibleBlockers": 1,
+        "colliderCandidates": [
+          "DoorPivot [BoxCollider]"
+        ]
+      },
+      {
+        "name": "Drzwi — Magazyn",
+        "position": "(-32.35, 0.21, -90.58)",
+        "possibleBlockers": 1,
+        "colliderCandidates": [
+          "DoorPivot [BoxCollider]"
+        ]
+      },
+      {
+        "name": "Zawias drzwi kabiny",
+        "position": "(-91.81, 0.31, -69.19)",
+        "possibleBlockers": 1,
+        "colliderCandidates": [
+          "Lewa ościeżnica WC [BoxCollider]"
+        ]
+      },
+      {
+        "name": "Zawias drzwi kabiny",
+        "position": "(-88.03, 0.31, -69.19)",
+        "possibleBlockers": 1,
+        "colliderCandidates": [
+          "Lewa ościeżnica WC [BoxCollider]"
+        ]
+      }
+    ]
+  },
+  "logProof": [
+    "2026-11-07T00:10:38.7421551Z Rig Error:  Invalid Avatar Rig Configuration. Missing or invalid transform:",
+    "2026-11-07T00:10:38.7422582Z \tRequired human bone 'Hips' not found",
+    "2026-11-07T00:10:38.8216432Z Start importing Assets/Source/Prywatne/Oboz/OwnerAssets/OwnerExtras/Gym/gym_environment.fbx using Guid(a6800a83a36813e40d1434e13a9e0e78) (FBXImporter)Rig Error:  Invalid Avatar Rig Configuration. Missing or invalid transform:",
+    "2026-11-07T00:10:38.8218666Z \tRequired human bone 'Hips' not found",
+    "2026-11-07T00:11:36.2564295Z BRAXHORN_OBOZ_PLACEMENT_REGRESSION passed=67 failed=0",
+    "2026-11-07T00:16:41.9308418Z BRAXHORN_OBOZ_REFLECTION_BAKE path=Assets/PlayableGenerated/Oboz/Environment/Reflections/bathroom-mirror-01.exr resolution=256 bytes=569922 bakedTextureAssigned=true",
+    "2026-11-07T00:17:18.5823642Z BRAXHORN_OBOZ_REFLECTION_BAKE path=Assets/PlayableGenerated/Oboz/Environment/Reflections/bathroom-mirror-02.exr resolution=256 bytes=548110 bakedTextureAssigned=true"
+  ],
+  "fullTextReports": {
+    "audit/oboz-wejscia-kolizje.json": "ce99ba2b77a259f94c6373fe50c695fb6bb66d015c06cb096d0f6bd4ec79ce5b",
+    "audit/oboz-regresje-jednostek.json": "94b74928531fc2bb61ac46e142d92a88c3beeabdd957117501c26ba3ee8401c9",
+    "audit/oboz-scena.json": "6a7d0c5c7efe54017742459ee44648d634a89aef7c2389afa2687ac78a60bb27",
+    "audit/oboz-diagnostyka.json": "252c2a9e5bc6c86e66f74a5bc59ce530b645da8aad421402ab89084531b72e20",
+    "audit/oboz-krok-postaci.json": "9386f827205b0f7c33f096a1a97ab7258c36280b7ee5d405c39f6a0f52ad889f",
+    "build/CampLifeReview/navigation-review.json": "00a717c12d4b7cbbef9abaf9a03b970508dec6f0e7c7f83aec9ffd207c628608",
+    "build/QualityReview/quality-review.json": "980d48c777afeba2a80a7e4aa4b5cae9f7f986da31d6f3c94c6da08922c2ebbc"
+  },
+  "limitations": [
+    "Legacy raw renderer counters are not counts of misplaced whole objects; all candidates retained in original artifact. E adds independent measurements of exact assemblies.",
+    "IDANAS mattress remains0.483092m because source proportions are preserved; owner requested0.45m.",
+    "Four murals are mounted correctly but originals1536x864 do not meet4096px source requirement.",
+    "No Android build, phone video or FPS measurement."
+  ]
+}

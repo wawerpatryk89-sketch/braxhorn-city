@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 public static partial class BraxObozEnvironment
 {
     static Material campusAsphalt, campusPaving, campusSteel, campusRubber, campusMark;
+    const float RoofPurlinOffset=.3025f, RoofPurlinHeight=.22f;
     static void CampusMaterials()
     {
         campusAsphalt = BraxObozMaterials.PublicPbr("clean_asphalt", 2.1f);
@@ -23,63 +24,12 @@ public static partial class BraxObozEnvironment
     // oryginalna skala metrow. Geometryczne pasy na nawierzchni, nie billboard.
     static void RunningTracks()
     {
-        var red=BraxObozMaterials.OwnerTrackPbr();
-        var white=BraxObozMaterials.Plain("bieznia-biale-linie",new Color(.95f,.95f,.91f),.18f);
-        var oval=Group("BIEZNIA · pelna czerwona petla przy nowym plocie",root,
-            P(0,0,BraxObozCampusLayout.PlotCenterZ));
-        // Obrys bieżni wewnątrz eliptycznego ogrodzenia. Pas bezpieczeństwa
-        // 4 jednostki źródłowe między ostatnim torem i ogrodzeniem.
-        const float laneWidth=1.2f;
-        float innerX=BraxObozCampusLayout.PlotRadiusX-8.8f;
-        float innerZ=BraxObozCampusLayout.PlotRadiusZ-8.8f;
-        for(int lane=0;lane<4;lane++)
-        {
-            float lx=innerX+lane*laneWidth,lz=innerZ+lane*laneWidth;
-            TrackAnnulus(oval,"Pelna petla — czerwony tor "+(lane+1),
-                lx,lz,lx+laneWidth,lz+laneWidth,.135f,red,true);
-        }
-        for(int lane=0;lane<=4;lane++)
-        {
-            float lx=innerX+lane*laneWidth,lz=innerZ+lane*laneWidth;
-            TrackAnnulus(oval,"Biala linia petli "+lane,
-                lx-.025f,lz-.025f,lx+.025f,lz+.025f,
-                .146f,white,false);
-        }
-        // Przy południowym wjeździe pełna pętla przecina drogę do bramy.
-        // Skrzyżowanie biegaczy z autobusem wymaga osobnego odbioru bezpieczeństwa.
-        Debug.LogWarning("BRAXHORN_OBOZ_TRACK_ENTRANCE_CHECK: ciagla petla przecina wjazd; " +
-            "sprawdz oznaczenie przejscia i ruch autobusu przed odbiorem.");
-
-        var straight=Group("BIEZNIA · 100 metrow · cztery tory",root,P(68,0,-24));
-        // Box() skaluje geometrię przez K=1.294. 100 jednostek źródłowych dałoby
-        // 129.4 m po imporcie; dlatego cały tor i znaczniki liczymy przez 1/K.
-        const float actualLengthMetres=100f;
-        const float actualLaneWidthMetres=1.5f;
-        float sourceLength=actualLengthMetres/K;
-        float sourceHalf=sourceLength*.5f;
-        float sourceLane=actualLaneWidthMetres/K;
-        float sourceWidth=4f*sourceLane;
-        Box(straight,"Tartan — dokladnie 100 m po skali K",new Vector3(0,.106f,0),
-            new Vector3(sourceWidth,.21f,sourceLength),red);
-        for(int lane=0;lane<=4;lane++)
-            Box(straight,"Linia oddzielajaca tor "+lane,
-                new Vector3(-sourceWidth*.5f+sourceLane*lane,.218f,0),
-                new Vector3(.055f/K,.009f,sourceLength),white,false);
-        foreach(float z in new[]{-sourceHalf,sourceHalf})
-            Box(straight,z<0?"START 100 m":"META 100 m",new Vector3(0,.22f,z),
-                new Vector3(sourceWidth,.009f,.12f/K),white,false);
-        for(int m=10;m<100;m+=10)
-            Box(straight,"Znacznik "+m+" m",new Vector3(sourceWidth*.5f+.08f,.218f,
-                -sourceHalf+m/K),new Vector3(.23f/K,.009f,.08f/K),white,false);
-        Sign(straight,"BRAXHORN · 100 M",new Vector3(0,2f,-sourceHalf-4f/K),sourceWidth);
-        if(Mathf.Abs(sourceLength*K-actualLengthMetres)>.0001f)
-            throw new InvalidOperationException("Bledna skala bieżni 100 m");
-        Debug.Log("BRAXHORN_OBOZ_BIEZNIE owal=4-tory 100m=4-tory nawierzchnia=tartan z kolizja");
+        BuildRunningTracks();
     }
     static void TrackAnnulus(Transform parent,string name,float ax0,float az0,float ax1,float az1,
         float y,Material material,bool solid)
     {
-        const int steps=128;
+        const int steps=TrackSegments;
         var vertices=new Vector3[(steps+1)*2];
         var uv=new Vector2[vertices.Length];
         var triangles=new int[steps*6];
@@ -114,221 +64,112 @@ public static partial class BraxObozEnvironment
         var gym=Group("BRAXHORN · SIŁOWNIA 3D WŁAŚCICIELA",root,P(-40,0,34));
         var rubberFloor=BraxObozMaterials.Plain("silownia-gumowa-podloga",
             new Color(.065f,.073f,.075f),.12f);
-        var gymMat=Box(gym,"Podłoga z kolizją",new Vector3(0,.11f,0),
-            new Vector3(27f,.22f,19.5f),rubberFloor);
-        gymMat.AddComponent<BraxObozDeformableMat>().Configure(27f,19.5f);
+        Box(gym,"Drewniana podbudowa maty — rzeczywista grubość",new Vector3(0,.09f,0),
+            new Vector3(27f,.18f,19.5f),wood);
+        var gymMat=Box(gym,"Podłoga z kolizją",new Vector3(0,.20f,0),
+            new Vector3(26.7f,.04f,19.2f),rubberFloor);
+        gymMat.AddComponent<BraxObozDeformableMat>().Configure(26.7f,19.2f);
+        MatTimberEdges(gym,27f,19.5f,.18f);
         foreach(float z in new[]{-7.9f,7.9f})
         foreach(float x in new[]{-12.4f,-6.2f,0f,6.2f,12.4f})
         {
-            Box(gym,"Słup konstrukcji dachu",new Vector3(x,2.55f,z),
-                new Vector3(.17f,5.1f,.17f),campusSteel);
-            Box(gym,"Kotwa słupa",new Vector3(x,.20f,z),
-                new Vector3(.4f,.16f,.4f),metal);
+            var post=Cylinder(gym,"Drewniany słup z bala pod dachem siłowni",
+                new Vector3(x,.22f,z),new Vector3(x,5.13f,z),.20f,wood,true);
+            BraxObozPlacement.OnGround(post.transform,post.GetComponentsInChildren<Renderer>(),
+                gym.TransformPoint(P(x,.22f,z)),"słup siłowni "+x+"/"+z);
         }
         foreach(float z in new[]{-7.9f,7.9f})
-            Box(gym,"Belka nośna",new Vector3(0,5.13f,z),
-                new Vector3(27f,.3f,.22f),campusSteel);
+            Cylinder(gym,"Belka nośna z grubego drewna",
+                new Vector3(-13.5f,5.13f,z),new Vector3(13.5f,5.13f,z),.23f,wood,true);
+        // Longitudinal purlins cross the existing beam rows, while the roof's
+        // repeated trusses do not. Four real timber bearings close that gap.
+        float beamTop=5.13f+.23f;
+        float purlinBottom=5.4f+1.25f*.5f-RoofPurlinOffset-RoofPurlinHeight*.5f;
+        foreach(float x in new[]{-27.7f*.25f,27.7f*.25f})
+        foreach(float z in new[]{-7.9f,7.9f})
+            Box(gym,"Drewniane oparcie płatwi na belce",
+                new Vector3(x,(beamTop+purlinBottom)*.5f,z),
+                new Vector3(.18f,purlinBottom-beamTop,.24f),wood);
         MetalRoof(gym,27.7f,20.2f,5.4f,1.25f);
         Sign(gym,"BRAXHORN GYM · OBÓZ",new Vector3(0,4.7f,-8.15f),19f);
+        BraxObozStructureAuthoring.Capture(gym,gym.GetComponentsInChildren<MeshFilter>(),
+            gym.GetComponentsInChildren<Collider>());
         OwnerStrengthEquipment(gym);
     }
 
     static void OwnerStrengthEquipment(Transform gym)
     {
-        const string sourcePath="Assets/Source/Prywatne/Oboz/OwnerAssets/OwnerExtras/Gym/gym_environment.fbx";
-        const string atlasPath="Assets/Source/Prywatne/Oboz/OwnerAssets/OwnerExtras/Gym/gym_environment.png";
-        var source=AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
-        var atlas=AssetDatabase.LoadAssetAtPath<Texture2D>(atlasPath);
-        if(!source || !atlas || atlas.width!=2048 || atlas.height!=2048)
-            throw new InvalidOperationException(
-                "Nie dostarczono oryginalnego gym_environment.fbx i atlasu 2K z prywatnej biblioteki. "+
-                "Nie wolno budować siłowni z zastępczych brył. Wymagane OwnerExtras/Gym.");
-        var shader=Shader.Find("Standard");
-        if(!shader)throw new InvalidOperationException("Brak shadera PBR dla siłowni właściciela");
-        var temp=new Material(shader){name="Siłownia właściciela / gym_environment atlas 2K",
-            mainTexture=atlas,enableInstancing=true};
-        temp.SetFloat("_Glossiness",.28f);
-        var materialPath=Folder+"/OwnerGymAtlas2K.mat";
-        var material=AssetDatabase.LoadAssetAtPath<Material>(materialPath);
-        if(material){EditorUtility.CopySerialized(temp,material);Object.DestroyImmediate(temp);}
-        else{material=temp;AssetDatabase.CreateAsset(material,materialPath);}
-        var model=PrefabUtility.InstantiatePrefab(source) as GameObject;
-        if(!model)throw new InvalidOperationException("Import oryginalnej siłowni FBX nieudany");
-        model.name="57 oryginalnych obiektów siłowni FBX — bez ringów i worków zdublowanych";
-        model.transform.SetParent(gym,false);
-        bool Duplicate(Transform node)
-        {
-            for(var t=node;t && t!=model.transform;t=t.parent)
-            {
-                string n=t.name.ToLowerInvariant();
-                if(n.StartsWith("boxing_ring_") || n.StartsWith("punching_bag_") ||
-                    n.StartsWith("punching_bag_stand_"))return true;
-            }
-            return false;
-        }
-        var renderers=model.GetComponentsInChildren<MeshRenderer>(true);
-        if(renderers.Length<20)
-            throw new InvalidOperationException("Niepełny import oryginalnego FBX siłowni: "+renderers.Length);
-        foreach(var renderer in renderers)
-        {
-            renderer.enabled=!Duplicate(renderer.transform);
-            if(renderer.enabled)
-                renderer.sharedMaterials=renderer.sharedMaterials.Select(_=>material).ToArray();
-        }
-        var visible=renderers.Where(r=>r.enabled).ToArray();
-        string[] essential={"treadmill","weight_bench","weight_rack","exercise_bike",
-            "dumbbell_1","kettlebell_1","pull_up_rack"};
-        var modelNames=model.GetComponentsInChildren<Transform>(true)
-            .Select(t=>t.name.ToLowerInvariant()).ToArray();
-        foreach(string name in essential)
-            if(!modelNames.Any(n=>n.StartsWith(name)))
-                throw new InvalidOperationException("Siłownia właściciela nie zawiera modelu: "+name);
-        Bounds Bounds()
-        {
-            var b=visible[0].bounds;
-            foreach(var renderer in visible.Skip(1))b.Encapsulate(renderer.bounds);
-            return b;
-        }
-        var bounds=Bounds();
-        if(bounds.size.x<.05f||bounds.size.y<.05f||bounds.size.z<.05f)
-            throw new InvalidOperationException("Nieprawidłowe wymiary oryginalnej siłowni");
-        // Zestaw FBX to zbior oryginalnych urzadzen, nie jedna skrzynia 26x4x18m.
-        // Zostaw proporcje i jednostki metrowe; kolizje i wyjscia raportuj.
-        BraxObozPlacement.NativeMetres(model.transform,visible,
-            "gym_environment.fbx zestaw urządzeń");
-        bounds=Bounds();
-        BraxObozPlacement.OnGround(model.transform,visible,
-            gym.TransformPoint(P(0,.24f,0)),"gym_environment.fbx");
-        if(bounds.size.x>26f*K || bounds.size.z>18.5f*K)
-            Debug.LogWarning("BRAXHORN_OBOZ_GYM_FOOTPRINT_REVIEW source="+bounds.size+
-                " trainingZone=26x18.5m; nie zmieniono siatek właściciela");
-        // Local equipment hitboxes only. Never add a collider across the
-        // whole room; that would block the player and NavMesh.
-        foreach(var renderer in visible)
-        {
-            var ancestors=renderer.GetComponentsInParent<Transform>(true)
-                .Select(t=>t.name.ToLowerInvariant()).ToArray();
-            bool bulky=ancestors.Any(n=>n.Contains("treadmill")||
-                n.Contains("exercise_bike")||n.Contains("weight_bench")||
-                n.Contains("weight_rack")||n.Contains("pull_up_rack")||
-                n.Contains("parallel_bars")||n.Contains("abdominal_bench"));
-            if(!bulky||renderer.GetComponent<Collider>())continue;
-            var b=renderer.bounds;
-            var collider=renderer.gameObject.AddComponent<BoxCollider>();
-            collider.center=renderer.transform.InverseTransformPoint(b.center);
-            Vector3 loss=renderer.transform.lossyScale;
-            collider.size=new Vector3(b.size.x/Mathf.Max(.001f,Mathf.Abs(loss.x)),
-                b.size.y/Mathf.Max(.001f,Mathf.Abs(loss.y)),
-                b.size.z/Mathf.Max(.001f,Mathf.Abs(loss.z)));
-        }
-        // Original owner's boxing headgear must not remain an unused file:
-        // position it on a physically measured 3D bench surface.
-        var bench=visible.FirstOrDefault(r=>
-            r.GetComponentsInParent<Transform>(true).Any(t=>t.name.StartsWith(
-                "weight_bench",StringComparison.OrdinalIgnoreCase)));
-        if(!bench)throw new InvalidOperationException(
-            "Brak oryginalnej ławki do ustawienia kasku bokserskiego");
-        Bounds benchBounds=bench.bounds;
-        var helmetWorld=new Vector3(benchBounds.center.x,benchBounds.max.y+.013f*K,
-            benchBounds.center.z);
-        BraxObozServices.OwnerFixture(gym,"boxing_headgear_helmet_low_poly.glb",
-            gym.InverseTransformPoint(helmetWorld),new Vector3(.38f,.34f,.39f));
-        Debug.Log("BRAXHORN_OBOZ_GYM_REAL_FB_X atlas=2048x2048 source="+sourcePath+
-            " renderers="+visible.Length+" bounds="+Bounds().size+
-            " ownerOriginal=unchanged duplicatedRingsAndBags=hidden phoneVisualReview=required");
+        OwnerStrengthInteriors(gym);
     }
 
     static void TrainingCampus()
     {
         var pavilion=Group("Pawilon treningowy — otwarty, bez starej siłowni",root,P(0,0,51));
-        Box(pavilion,"Podest z kostki",new Vector3(0,.055f,0),new Vector3(42,.11f,16),campusPaving);
+        Box(pavilion,"Podbudowa ziemna pawilonu",new Vector3(0,.035f,0),new Vector3(42,.07f,16),gravel);
+        // Individual twenty-centimetre boards keep real plank spacing. They
+        // are construction, not a box standing in for missing equipment.
+        var decking=Group("Deski pawilonu",pavilion,Vector3.zero);
+        for(int board=0;board<210;board++)
+            Box(decking,"Deska podestu 20 cm",new Vector3(-20.9f+board*.2f,.09f,0),
+                new Vector3(.197f,.04f,16),wood,false);
+        ColliderBox(decking,new Vector3(0,.09f,0),new Vector3(42,.04f,16));
+        CombineDecoration(decking);
         foreach(float x in new[]{-20f,-10f,0f,10f,20f})
         foreach(float z in new[]{-7.5f,7.5f})
         {
-            Box(pavilion,"Stopa słupa",new Vector3(x,.10f,z),new Vector3(.65f,.2f,.65f),campusSteel);
-            Box(pavilion,"Słup stalowy",new Vector3(x,2.8f,z),new Vector3(.22f,5.6f,.22f),campusSteel);
+            var post=Cylinder(pavilion,"Słup pawilonu z grubego bala",
+                new Vector3(x,.11f,z),new Vector3(x,5.45f,z),.24f,wood,true);
+            BraxObozPlacement.OnGround(post.transform,post.GetComponentsInChildren<Renderer>(),
+                pavilion.TransformPoint(P(x,.11f,z)),"słup pawilonu "+x+"/"+z);
         }
         foreach(float z in new[]{-7.5f,7.5f})
-            Box(pavilion,"Belka oczepowa",new Vector3(0,5.45f,z),new Vector3(42,.3f,.22f),wood);
+            Cylinder(pavilion,"Oczep pawilonu z bali",
+                new Vector3(-21f,5.45f,z),new Vector3(21f,5.45f,z),.22f,wood,true);
         var roofing=Group("Dach dwuspadowy i wiązary",pavilion,Vector3.zero);
         roofing.localRotation=Quaternion.Euler(0,90,0);
         MetalRoof(roofing,17,43,5.6f,2.2f);
-        Ring("Ring 2",-12,51);
-        int first=bags.Count; Bags(12,51,false,2);
-        foreach(var bag in bags.Skip(first)) covered.Add(bag.transform);
+        BraxObozStructureAuthoring.Capture(pavilion,pavilion.GetComponentsInChildren<MeshFilter>(),
+            pavilion.GetComponentsInChildren<Collider>());
+        Optional("Ring 2",()=>Ring("Ring 2",-12,51));
+        Optional("cztery oryginalne worki w pawilonie",()=>{
+            int first=bags.Count; Bags(12,51,false,2);
+            foreach(var bag in bags.Skip(first)) covered.Add(bag.transform);
+        });
         Sign(pavilion,"BRAXHORN · OBÓZ TRENINGOWY",new Vector3(0,4.85f,-7.7f),12);
-        Station("Rozgrzewka i mobilność",-12,30,14,8,t=>{
-            for(int i=0;i<6;i++)Box(t,"Mata treningowa",new Vector3(-5+i*2,.10f,0),new Vector3(1.4f,.04f,2.2f),burgundy);
-            // model(1).glb was verified to be the owner's medicine-ball rack,
-            // not a boxing bag. Restore the actual 3D model to the training zone.
-            BraxObozServices.OwnerFixtureSourceMetres(t,"model(1).glb",
-                new Vector3(5.35f,.10f,2.05f),new Vector3(1.55f,1.60f,1.50f));
-        });
-        Station("Drążki",35,34,12,10,t=>{
-            for(int i=0;i<3;i++){
-                float x=-3.8f+i*3.8f,h=2.25f+i*.15f;
-                foreach(float side in new[]{-1f,1f})Cylinder(t,"Słupek drążka",new Vector3(x+side*1.35f,.08f,0),new Vector3(x+side*1.35f,h,0),.065f,campusSteel,true);
-                Cylinder(t,"Drążek chwytowy",new Vector3(x-1.35f,h,0),new Vector3(x+1.35f,h,0),.018f,metal,true);
-            }
-        });
-        Station("Poręcze",35,19,12,10,t=>{
-            foreach(float lane in new[]{-3f,3f})foreach(float side in new[]{-.32f,.32f}){
-                Cylinder(t,"Poręcz chwytowa",new Vector3(lane+side,1.25f,-1.5f),new Vector3(lane+side,1.25f,1.5f),.026f,metal,true);
-                foreach(float z in new[]{-1.3f,1.3f})Cylinder(t,"Podpora poręczy",new Vector3(lane+side,.05f,z),new Vector3(lane+side,1.25f,z),.05f,campusSteel,true);
-            }
-        });
-        Station("Wskoki — trzy wysokości",35,4,12,10,t=>{
-            for(int i=0;i<3;i++){
-                float h=.3f+i*.15f,x=-3.2f+i*3.2f;
-                Box(t,"Skrzynia plyometryczna",new Vector3(x,.08f+h*.5f,0),new Vector3(.9f,h,.8f),wood);
-                Box(t,"Powierzchnia antypoślizgowa",new Vector3(x,.09f+h,0),new Vector3(.9f,.025f,.8f),campusRubber);
-            }
-        });
-        Station("Pchanie sań — dwa tory",35,-18,12,26,t=>{
-            for(int i=0;i<3;i++)Box(t,"Linia toru",new Vector3(-5+i*5,.086f,0),new Vector3(.06f,.004f,23),campusMark,false);
-            for(int i=0;i<5;i++)Box(t,"Oznaczenie odległości",new Vector3(0,.088f,-10+i*5),new Vector3(10,.004f,.05f),campusMark,false);
-            foreach(float x in new[]{-2.5f,2.5f}){
-                Box(t,"Sanie — płozy",new Vector3(x,.16f,-9),new Vector3(1.2f,.14f,1.7f),campusSteel);
-                foreach(float side in new[]{-.45f,.45f})Cylinder(t,"Uchwyt sań",new Vector3(x+side,.2f,-9.5f),new Vector3(x+side,1.2f,-9.5f),.03f,metal,true);
-                for(int j=0;j<3;j++)Cylinder(t,"Obciążenie sań",new Vector3(x,.3f+j*.09f,-8.8f),new Vector3(x,.37f+j*.09f,-8.8f),.28f,campusRubber);
-            }
-        });
-        Station("Opony do przewracania — ORYGINALNY MODEL 3D",35,-45,12,10,t=>{
-            // Both meshes refer to the SAME original tractor_tire.glb from
-            // the owner's Library. Never use a generated torus or fake tyre.
-            foreach(float x in new[]{-2.5f,2.5f})
-                BraxObozServices.OwnerFixtureSourceMetres(t,"OwnerExtras/tractor_tire.glb",
-                    new Vector3(x,.105f,0),new Vector3(1.90f,.95f,1.90f));
-            Debug.LogWarning("BRAXHORN_OBOZ_TIRE_TRAINING: oryginalne opony GLB są na placu; interakcja przewracania i pozycja obrotu do testu Play Mode");
-        });
-        Station("Liny treningowe",12,28,12,10,t=>{
-            // Remove the artificial cylindrical rope strokes rejected by the owner.
-            // The delivered rope-coil GLB is REAL coiled rope, not an animated
-            // battle-rope mesh: use it as stored equipment, never fake its function.
-            foreach(float x in new[]{-3f,3f}){
-                BraxObozServices.OwnerFixtureSourceMetres(t,"rope-coil.glb",
-                    new Vector3(x,.10f,.3f),new Vector3(2.15f,.85f,2.15f));
-                Box(t,"Kotwa i miejsce rozwinięcia liny",
-                    new Vector3(x,.25f,3.5f),new Vector3(.18f,.5f,.18f),campusSteel);
-            }
-            Debug.LogWarning("BRAXHORN_OBOZ_BATTLE_ROPE_NEEDS_REAL_LONG_MODEL: oryginalne zwoje GLB wstawione, animowanych długich lin NIE deklarować jako gotowych");
-        });
+        OwnerTrainingStations();
     }
     static void Station(string label,float x,float z,float width,float depth,Action<Transform> build)
     {
-        var t=Group("Stanowisko · "+label,root,P(x,0,z));
-        // The visible top stays at .08 m. A 3 cm depression must remain
-        // above the base, not disappear into its old .07 m top surface.
-        Box(t,"Podkład",new Vector3(0,.02f,0),new Vector3(width,.04f,depth),campusPaving);
-        var mat=Box(t,"Nawierzchnia gumowa",new Vector3(0,.06f,0),
-            new Vector3(width-.3f,.04f,depth-.3f),campusRubber,true);
-        mat.AddComponent<BraxObozDeformableMat>().Configure(width-.3f,depth-.3f);
-        build(t);
-        float signWidth=Mathf.Min(width-1,8);
-        Sign(t,label,new Vector3(0,1.6f,depth*.5f),signWidth);
-        // This marker records geometry only. Exercise animations are not implemented.
-        var station=t.gameObject.AddComponent<BraxObozTrainingStation>();station.label=label;
-        station.footprint=new Vector2(width,depth)*K;
+        Optional("stanowisko "+label,()=>{
+            var t=Group("Stanowisko · "+label,root,P(x,0,z));
+            // The visible top stays at .08 m. A 3 cm depression must remain
+            // above the base, not disappear into its old .07 m top surface.
+            Box(t,"Podkład",new Vector3(0,.02f,0),new Vector3(width,.04f,depth),campusPaving);
+            var mat=Box(t,"Nawierzchnia gumowa",new Vector3(0,.06f,0),
+                new Vector3(width-.3f,.04f,depth-.3f),campusRubber,true);
+            mat.AddComponent<BraxObozDeformableMat>().Configure(width-.3f,depth-.3f);
+            MatTimberEdges(t,width,depth,.04f);
+            BraxObozStructureAuthoring.Capture(t,t.GetComponentsInChildren<MeshFilter>(),
+                t.GetComponentsInChildren<Collider>());
+            build(t);
+            float signWidth=Mathf.Min(width-1,8);
+            Sign(t,label,new Vector3(0,1.6f,depth*.5f),signWidth);
+            // This marker records geometry only. Exercise animations are not implemented.
+            var station=t.gameObject.AddComponent<BraxObozTrainingStation>();station.label=label;
+            station.footprint=new Vector2(width,depth)*K;
+        });
+    }
+    static void MatTimberEdges(Transform parent,float width,float depth,float baseHeight)
+    {
+        // Flush with the rubber surface; edges do not make a new trip step.
+        float centre=baseHeight+.02f;
+        foreach(float side in new[]{-1f,1f})
+        {
+            Box(parent,"Drewniane obrzeże maty",new Vector3(side*(width*.5f-.075f),centre,0),
+                new Vector3(.15f,.04f,depth),wood);
+            Box(parent,"Drewniane obrzeże maty",new Vector3(0,centre,side*(depth*.5f-.075f)),
+                new Vector3(width-.3f,.04f,.15f),wood);
+        }
     }
     static void Sign(Transform parent,string label,Vector3 p,float width)
     {
@@ -339,6 +180,8 @@ public static partial class BraxObozEnvironment
             Box(board,"Deska tablicy",new Vector3(0,-.24375f+row*.1625f,0),
                 new Vector3(width,.1595f,.12f),wood,false);
         ColliderBox(board,Vector3.zero,new Vector3(width,.65f,.12f));
+        var signParts=new List<MeshFilter>(board.GetComponentsInChildren<MeshFilter>());
+        var signColliders=new List<Collider>(board.GetComponentsInChildren<Collider>());
         Physics.SyncTransforms();
         foreach(float side in new[]{-1f,1f})
         {
@@ -353,13 +196,17 @@ public static partial class BraxObozEnvironment
             if(!hit.collider)BraxBuildQuality.Warn("OBÓZ TABLICA — brak podłoża: "+label);
             var post=Cylinder(parent,"Słup z bali pod tablicą · "+label,
                 new Vector3(px,baseY,pz),new Vector3(px,p.y+.26f,pz),.12f,wood,true);
+            signParts.AddRange(post.GetComponentsInChildren<MeshFilter>());
+            signColliders.AddRange(post.GetComponentsInChildren<Collider>());
             if(hit.collider)
             {
                 var record=BraxObozPlacementRecord.For(post.transform);
+                record.SetMembers(post.GetComponentsInChildren<Renderer>(true));
                 record.support=BraxObozPlacementRecord.SupportKind.Ground;
                 record.verticalSupport=hit.collider;record.label="słup tablicy "+label;
             }
         }
+        BraxObozStructureAuthoring.Capture(board,signParts.ToArray(),signColliders.ToArray());
         var text=Group("Napis · "+label,board,P(0,0,-.065f)).gameObject.AddComponent<TextMesh>();
         text.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         text.text=label;text.anchor=TextAnchor.MiddleCenter;text.alignment=TextAlignment.Center;text.fontSize=72;
@@ -379,20 +226,34 @@ public static partial class BraxObozEnvironment
     static void CampusArrival()
     {
         var t=Group("Dojazd i plac autobusowy",root,Vector3.zero);
-        Box(t,"Droga dojazdowa",new Vector3(0,.045f,-124),new Vector3(7,.09f,30),campusAsphalt);
+        TrackClippedRoad(t);
         // Turning forecourt: outer radius 18 m, island radius 6 m; the design
         // envelope is a 12 x 2.6 m coach, not a claim of a tested driving model.
         Disc(t,"Plac zawracania",new Vector3(0,.095f,-94),18,campusAsphalt,true);
         // The owner specified a GREEN central island, not a paved disk.
-        // Keep the road asphalt and original bull pedestal unchanged.
+        // Keep the asphalt footprint and original bull/pedestal geometry.
         var islandGrass=BraxObozMaterials.PublicPbr("Grass001",1.4f);
         Disc(t,"Zielona wyspa centralna z oryginalną murawą 3D",
             new Vector3(0,.16f,-94),6f,islandGrass,true);
         // Biała obwodnica i pomnik pozostają wewnątrz wyspy, bez zmiany bramy.
         var rondo = Group("Rondo BRAXHORN — biały obwód i wyspa",t,P(0,0,-94));
         var whiteRondo = BraxObozMaterials.Plain("rondo-linia-biala",new Color(.96f,.96f,.94f),.06f);
-        TrackAnnulus(rondo,"Pełny biały obrys ronda",17.82f,17.82f,17.98f,17.98f,.149f,whiteRondo,false);
+        // The bay connector reaches .100 m. Paint at .104 m clears both
+        // surfaces; the former .149 m floated 5.4 cm above the forecourt.
+        TrackAnnulus(rondo,"Pełny biały obrys ronda",17.82f,17.82f,17.98f,17.98f,.104f,whiteRondo,false);
+        BraxObozStructureAuthoring.Capture(rondo,rondo.GetComponentsInChildren<MeshFilter>(),
+            rondo.GetComponentsInChildren<Collider>());
         RondoBull(rondo);
+        var monument=rondo.Find("Pomnik byka BRAXHORN — model wlasciciela");
+        var pedestal=monument?monument.Find("Cokol kamienny PBR"):null;
+        if(pedestal)
+        {
+            var pedestalVisible=pedestal.GetComponentsInChildren<Renderer>();
+            // Move the whole assembly vertically, preserving its X/Z, every
+            // original scale and the existing bull-to-pedestal contact.
+            GroundBuiltStructure(monument,pedestalVisible,
+                BraxObozPlacement.Bounds(pedestalVisible).min.y,"cokół pomnika — na powierzchni wyspy");
+        }
         Box(t,"Zatoka autobusu",new Vector3(21,.055f,-92),new Vector3(4,.11f,20),campusAsphalt);
         Box(t,"Połączenie zatoki",new Vector3(14,.05f,-94),new Vector3(12,.10f,24),campusAsphalt);
         // Four arrival walkways are now authored by PavedPaths/PathRectangles.
@@ -535,15 +396,14 @@ public static partial class BraxObozEnvironment
 
     static void Disc(Transform parent,string name,Vector3 center,float radius,Material mat,bool solid)
     {
-        const int n=96;var vertices=new Vector3[n+1];var uv=new Vector2[n+1];var triangles=new int[n*3];
-        vertices[0]=center*K;uv[0]=new Vector2(center.x,center.z)*K;
-        for(int i=0;i<n;i++){
-            float a=i*Mathf.PI*2/n;Vector3 p=center+new Vector3(Mathf.Sin(a)*radius,0,Mathf.Cos(a)*radius);
-            vertices[i+1]=p*K;uv[i+1]=new Vector2(p.x,p.z)*K;triangles[i*3]=0;triangles[i*3+1]=i+1;triangles[i*3+2]=(i+1)%n+1;
-        }
-        var mesh=new Mesh{name=name};mesh.vertices=vertices;mesh.uv=uv;mesh.triangles=triangles;mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
-        var g=Group(name,parent,Vector3.zero).gameObject;mesh=SaveMesh(mesh);g.AddComponent<MeshFilter>().sharedMesh=mesh;g.AddComponent<MeshRenderer>().sharedMaterial=mat;
-        if(solid)g.AddComponent<MeshCollider>().sharedMesh=mesh;
+        // Preserve the exact footprint/top of the roundabout. Its previous
+        // single face was suspended 9.5/16 cm above the real ground.
+        var polygon=Enumerable.Range(0,96).Select(i=>new Vector2(
+            center.x+Mathf.Cos(i*Mathf.PI*2/96)*radius,
+            center.z+Mathf.Sin(i*Mathf.PI*2/96)*radius)).ToList();
+        var surface=PolygonVolume(parent,name,polygon,0,p=>center.y,mat,solid);
+        BraxObozStructureAuthoring.Capture(surface.transform,
+            surface.GetComponentsInChildren<MeshFilter>(),surface.GetComponentsInChildren<Collider>());
     }
     // Zachowany graficzny szyld właściciela; automatyczna maska usuwa tylko
     // białe tło łączące się z krawędzią JPEG. Źródłowy JPEG nie jest edytowany.
@@ -826,7 +686,12 @@ public static partial class BraxObozEnvironment
             new Vector3(beamBounds.center.x,beamBounds.max.y,beamBounds.center.z),
             "oryginalny szyld na belce bramy");
         var placement=BraxObozPlacementRecord.For(sign);
+        placement.SetMembers(sign.GetComponentsInChildren<Renderer>(true));
         placement.contactRenderers=contactGeometry;
+        var gateParts=gate.GetComponentsInChildren<MeshFilter>()
+            .Where(f=>!f.transform.IsChildOf(sign)).ToArray();
+        BraxObozStructureAuthoring.Capture(gate,gateParts,
+            gate.GetComponentsInChildren<Collider>().Where(c=>!c.transform.IsChildOf(sign)).ToArray());
         float mountedBottom=gate.InverseTransformPoint(shellRenderer.bounds.min).y/K;
         Debug.Log("BRAXHORN_OBOZ_SIGN_3D: originalVisibleBottom="+visibleSignBottom+
             " mountedVisibleBottom="+mountedBottom+" supportRay="+supported+" source=" + width + "x" + height +
@@ -900,14 +765,23 @@ public static partial class BraxObozEnvironment
     static void CombineDecoration(Transform parent)
     {
         var filters=parent.GetComponentsInChildren<MeshFilter>()
-            .Where(f=>f.GetComponent<MeshRenderer>() &&
-                !f.GetComponentInParent<BraxObozPlacementRecord>() &&
-                !f.name.StartsWith("JPEG 1:1 — ",StringComparison.Ordinal)).ToArray();
-        foreach(var group in filters.GroupBy(f=>f.GetComponent<MeshRenderer>().sharedMaterial)){
+            .Where(f=>f.sharedMesh && f.sharedMesh.subMeshCount==1 && f.GetComponent<MeshRenderer>() &&
+                !f.GetComponentsInParent<BraxObozPlacementRecord>(true)
+                    .Any(r=>r.Contains(f.GetComponent<Renderer>()))).ToArray();
+        // Capture the actual construction before furniture is added. Preserve
+        // individual pieces even through nested material batches.
+        var construction=BraxObozStructureAuthoring.Capture(parent,filters,
+            parent.GetComponentsInChildren<Collider>(true));
+        foreach(var group in filters.GroupBy(f=>f.GetComponent<MeshRenderer>().sharedMaterial))
+        {
+            var sources=group.ToArray();
             var mesh=new Mesh{name="Geometria zbiorcza",indexFormat=IndexFormat.UInt32};
-            mesh.CombineMeshes(group.Select(f=>new CombineInstance{mesh=f.sharedMesh,transform=parent.worldToLocalMatrix*f.transform.localToWorldMatrix}).ToArray());
+            mesh.CombineMeshes(sources.Select(f=>new CombineInstance{mesh=f.sharedMesh,
+                transform=parent.worldToLocalMatrix*f.transform.localToWorldMatrix}).ToArray());
             mesh.RecalculateBounds();var target=Group("Geometria · "+group.Key.name,parent,Vector3.zero).gameObject;
-            target.AddComponent<MeshFilter>().sharedMesh=SaveMesh(mesh);target.AddComponent<MeshRenderer>().sharedMaterial=group.Key;
+            var targetFilter=target.AddComponent<MeshFilter>();targetFilter.sharedMesh=SaveMesh(mesh);
+            target.AddComponent<MeshRenderer>().sharedMaterial=group.Key;
+            BraxObozStructureAuthoring.RemapCombined(construction,sources,targetFilter);
         }
         foreach(var f in filters){Object.DestroyImmediate(f.GetComponent<MeshRenderer>());Object.DestroyImmediate(f);}
     }
@@ -947,7 +821,7 @@ public static partial class BraxObozEnvironment
         float outerNear=(closestX*closestX)/((outerX+safety)*(outerX+safety))+
             (closestZ*closestZ)/((outerZ+safety)*(outerZ+safety));
         bool oval=outerNear<=1f && innerFar>=1f;
-        float halfLength=50f/K,halfWidth=3f/K;
+        float halfLength=50f,halfWidth=3f;
         bool straight=x1>=68f-halfWidth-safety&&x0<=68f+halfWidth+safety&&
             z1>=-24f-halfLength-safety&&z0<=-24f+halfLength+safety;
         return oval||straight;
@@ -960,58 +834,14 @@ public static partial class BraxObozEnvironment
         var xs=areas.SelectMany(r=>new[]{r.xMin,r.xMax}).Distinct().OrderBy(v=>v).ToArray();
         var zs=areas.SelectMany(r=>new[]{r.yMin,r.yMax}).Distinct().OrderBy(v=>v).ToArray();
         bool Inside(float x,float z)=>areas.Any(r=>r.Contains(new Vector2(x,z)));
-        int created=0,omitted=0;
-        void Paver(float x0,float x1,float z0,float z1,int depth)
+        int created=0;
+        void Paver(float x0,float x1,float z0,float z1)
         {
-            float w=x1-x0,d=z1-z0;
-            if(w<=.001f||d<=.001f)return;
-            // Adaptive cut around ellipse: split long strips near tracks.
-            // Conservative AABB rejects every tile touching the red surface.
-            if(IntersectsRunningTrack(x0,x1,z0,z1))
-            {
-                if(depth<9 && (w>.36f||d>.36f))
-                {
-                    if(w>=d && w>.36f)
-                    {float m=(x0+x1)*.5f;Paver(x0,m,z0,z1,depth+1);Paver(m,x1,z0,z1,depth+1);}
-                    else if(d>.36f)
-                    {float m=(z0+z1)*.5f;Paver(x0,x1,z0,m,depth+1);Paver(x0,x1,m,z1,depth+1);}
-                    else omitted++;
-                }
-                else omitted++;
-                return;
-            }
-            float x=(x0+x1)*.5f,z=(z0+z1)*.5f;
-            var slab=Box(t,"Oryginalne płyty slab_tiles 2K",new Vector3(x,.008f,z),
-                new Vector3(w,.016f,d),walkwayStone,false);
-            var mf=slab.GetComponent<MeshFilter>();
-            var mesh=Object.Instantiate(mf.sharedMesh);
-            var uv=mesh.uv;
-            for(int v=0;v<uv.Length;v++)uv[v]+=new Vector2(x,z)*K;
-            mesh.uv=uv;mf.sharedMesh=SaveMesh(mesh);
-            created++;
+            created+=TrackAwarePaving(t,x0,x1,z0,z1,walkwayStone,false);
         }
-        void Curb(float x,float z,float w,float d,int depth=0)
+        void Curb(float x,float z,float w,float d)
         {
-            if(IntersectsRunningTrack(x-w*.5f,x+w*.5f,z-d*.5f,z+d*.5f))
-            {
-                // Previously any crossing dropped an ENTIRE long curb.
-                // Recursively subdivide the boundary so only the segment
-                // touching tartan is removed, not its entire remaining edge.
-                if(depth>=9 || Mathf.Max(w,d)<.18f)return;
-                if(w>=d)
-                {
-                    Curb(x-w*.25f,z,w*.5f,d,depth+1);
-                    Curb(x+w*.25f,z,w*.5f,d,depth+1);
-                }
-                else
-                {
-                    Curb(x,z-d*.25f,w,d*.5f,depth+1);
-                    Curb(x,z+d*.25f,w,d*.5f,depth+1);
-                }
-                return;
-            }
-            Box(t,"Drewniane obrzeże ścieżki",new Vector3(x,.028f,z),
-                new Vector3(w,.056f,d),wood,false);
+            TrackAwarePaving(t,x-w*.5f,x+w*.5f,z-d*.5f,z+d*.5f,wood,true);
         }
         for(int i=0;i<xs.Length-1;i++)
         for(int j=0;j<zs.Length-1;j++)
@@ -1019,7 +849,7 @@ public static partial class BraxObozEnvironment
             float x=(xs[i]+xs[i+1])*.5f,z=(zs[j]+zs[j+1])*.5f;
             if(!Inside(x,z))continue;
             float w=xs[i+1]-xs[i],d=zs[j+1]-zs[j];
-            Paver(xs[i],xs[i+1],zs[j],zs[j+1],0);
+            Paver(xs[i],xs[i+1],zs[j],zs[j+1]);
             if(!Inside(xs[i]-.001f,z))Curb(xs[i]-.04f,z,.08f,d);
             if(!Inside(xs[i+1]+.001f,z))Curb(xs[i+1]+.04f,z,.08f,d);
             if(!Inside(x,zs[j]-.001f))Curb(x,zs[j]-.04f,w,.08f);
@@ -1034,7 +864,7 @@ public static partial class BraxObozEnvironment
             if(mf.GetComponent<MeshRenderer>().sharedMaterial==walkwayStone)
                 mf.gameObject.AddComponent<MeshCollider>().sharedMesh=mf.sharedMesh;
         Debug.Log("BRAXHORN_OBOZ_CHODNIKI_TRACK_CLIP created="+created+
-            " rejectedBoundaryTiles="+omitted+" crossingTrack=false pendingUnityVisual=true");
+            " exactTrackBoundary=true approachRise=.074 approachRun=1 pendingUnityVisual=true");
     }
 
     static void MetalRoof(Transform parent,float width,float depth,float eave,float rise)
@@ -1065,13 +895,16 @@ public static partial class BraxObozEnvironment
         Box(t,"Obróbka kalenicy",new Vector3(0,eave+rise+.03f,0),new Vector3(.18f,.08f,depth+.08f),metal,false);
         // Repeated timber trusses and longitudinal purlins visible from below.
         foreach(float side in new[]{-1f,1f})
-            Box(t,"Płatew",new Vector3(side*half*.5f,eave+rise*.5f-.32f,0),new Vector3(.16f,.22f,depth),wood,false);
+            Box(t,"Płatew",new Vector3(side*half*.5f,eave+rise*.5f-RoofPurlinOffset,0),
+                new Vector3(.16f,RoofPurlinHeight,depth),wood,false);
         int bays=Mathf.CeilToInt(depth/3);
         for(int i=0;i<=bays;i++) {
             float z=-depth*.5f+.25f+(depth-.5f)*i/bays;
             Box(t,"Pas dolny wiązara",new Vector3(0,eave-.18f,z),new Vector3(width,.24f,.14f),wood,false);
             foreach(float side in new[]{-1f,1f}) {
-                var beam=Box(t,"Krokiew",new Vector3(side*half*.5f,eave+rise*.5f-.15f,z),new Vector3(slope,.18f,.12f),wood,false);
+                // Its upper surface meets the sheet underside; the old
+                // 15 cm centre offset left over 4 cm of empty air.
+                var beam=Box(t,"Krokiew",new Vector3(side*half*.5f,eave+rise*.5f-.105f,z),new Vector3(slope,.18f,.12f),wood,false);
                 beam.transform.localRotation=Quaternion.Euler(0,0,-side*angle);
             }
             Box(t,"Słupek wiązara",new Vector3(0,eave+rise*.5f-.18f,z),new Vector3(.12f,rise,.12f),wood,false);
@@ -1082,7 +915,14 @@ public static partial class BraxObozEnvironment
     {
         var trim=Group("Wykończenie domku",cabin,Vector3.zero);
         MetalRoof(trim,7.1f,9.1f,2.85f,1.15f);
-        Box(trim,"Cokół fundamentowy",new Vector3(0,-.035f,0),new Vector3(6.3f,.15f,8.3f),gravel,false);
+        var foundation=Box(trim,"Cokół fundamentowy",new Vector3(0,.075f,0),
+            new Vector3(6.3f,.15f,8.3f),gravel,false);
+        var terrain=root.GetComponentsInChildren<BraxObozStructureGround>(true)
+            .FirstOrDefault(g=>g.surface&&g.geometry&&g.surface.sharedMesh==g.geometry.sharedMesh);
+        if(terrain)BraxObozPlacement.OnSupport(foundation.transform,
+            foundation.GetComponentsInChildren<Renderer>(true),terrain.surface.transform,
+            cabin.position,"cokół domku — rzeczywisty grunt");
+        else BraxBuildQuality.Warn("OBÓZ COKÓŁ: brak fizycznego terenu do raycastu; montaż niezweryfikowany");
         // Ganek z deskami i balustradą; skrzydło 0,90 × 2,10 m przed K.
         var ganek=Group("GANek z bali i poręczą",trim,Vector3.zero);
         Box(ganek,"Deski pomostu wejściowego",new Vector3(0,.065f,-5.1f),

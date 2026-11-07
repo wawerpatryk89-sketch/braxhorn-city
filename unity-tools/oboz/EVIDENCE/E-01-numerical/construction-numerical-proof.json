@@ -1,0 +1,118 @@
+{
+  "verification": "Independent SciPy convex halfspace intersections versus float32 mathematical model; Unity C#, physics and NavMesh NOT executed.",
+  "sprint": {
+    "sourceLengthMetres": 100,
+    "worldLength": 129.4,
+    "sourceWidthMetres": 6,
+    "worldWidth": 7.764,
+    "centre": [
+      68,
+      -24
+    ],
+    "corners": [
+      {
+        "x": 65.0,
+        "z": -74.0,
+        "fenceEquation": 0.7764828721013721
+      },
+      {
+        "x": 71.0,
+        "z": -74.0,
+        "fenceEquation": 0.8772236128421128
+      },
+      {
+        "x": 71.0,
+        "z": 26.0,
+        "fenceEquation": 0.8395197764767626
+      },
+      {
+        "x": 65.0,
+        "z": 26.0,
+        "fenceEquation": 0.738779035736022
+      }
+    ],
+    "ovalOverlapRemovedAtAllLayersSquareMetres": 11.522689691886626
+  },
+  "checks": [
+    {
+      "name": "road",
+      "expectedArea": 176.39731284128493,
+      "float32ModelArea": 176.3972811102867,
+      "error": -3.173099821651704e-05,
+      "passed": true
+    },
+    {
+      "name": "bus_path",
+      "expectedArea": 122.83899774816423,
+      "float32ModelArea": 122.83896452188492,
+      "error": -3.322627931368061e-05,
+      "passed": true
+    },
+    {
+      "name": "straight_crossing",
+      "expectedArea": 20.0,
+      "float32ModelArea": 20.0,
+      "error": 0.0,
+      "passed": true
+    },
+    {
+      "name": "inner",
+      "expectedArea": 1.0,
+      "float32ModelArea": 1.0,
+      "error": 0.0,
+      "passed": true
+    },
+    {
+      "name": "outside",
+      "expectedArea": 1.0,
+      "float32ModelArea": 1.0,
+      "error": 0.0,
+      "passed": true
+    },
+    {
+      "name": "oval_east",
+      "expectedArea": 4.40016425765292,
+      "float32ModelArea": 4.400154113769531,
+      "error": -1.0143883388380459e-05,
+      "passed": true
+    },
+    {
+      "name": "oval_north",
+      "expectedArea": 8.399780640104858,
+      "float32ModelArea": 8.39977259002626,
+      "error": -8.050078598387245e-06,
+      "passed": true
+    },
+    {
+      "name": "partial_corner",
+      "expectedArea": 0.0,
+      "float32ModelArea": 0,
+      "error": 0.0,
+      "passed": true
+    },
+    {
+      "name": "whole_loop",
+      "expectedArea": 33775.26185217232,
+      "float32ModelArea": 33775.25737998821,
+      "error": -0.004472184111364186,
+      "passed": true
+    },
+    {
+      "name": "shared_start_corner",
+      "expectedArea": -2.6201263381153694e-14,
+      "float32ModelArea": 0,
+      "error": 2.6201263381153694e-14,
+      "passed": true
+    },
+    {
+      "name": "oval_sector_116_lane_0_minus_sprint",
+      "originalArea": 5.362848017568611,
+      "expectedArea": 0.9102291707488765,
+      "float32ModelArea": 0.9102276563644409,
+      "error": -1.5143844356302338e-06,
+      "passed": true
+    }
+  ],
+  "passed": 11,
+  "failed": 0
+}

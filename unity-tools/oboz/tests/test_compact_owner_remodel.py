@@ -27,6 +27,7 @@ class CompactOwnerRemodelTest(unittest.TestCase):
         cls.layout=(EDITOR/"BraxObozCampusLayout.cs").read_text("utf8")
         cls.env=(EDITOR/"BraxObozEnvironment.cs").read_text("utf8")
         cls.campus=(EDITOR/"BraxObozCampus.cs").read_text("utf8")
+        cls.tracks=(EDITOR/"BraxObozTrackGeometry.cs").read_text("utf8")
         cls.services=(EDITOR/"BraxObozServices.cs").read_text("utf8")
         cls.pbr=(EDITOR/"BraxObozMaterials.cs").read_text("utf8")
         cls.importer=(EDITOR/"BraxObozImport.cs").read_text("utf8")
@@ -37,8 +38,9 @@ class CompactOwnerRemodelTest(unittest.TestCase):
         self.assertEqual(get_float(self.env,"K"),1.294)
         self.assertEqual(get_float(self.layout,"GateZ"),-125)
         self.assertIn('P(0,0,-125)',self.campus)
-        self.assertIn('float sourceLength=actualLengthMetres/K;',self.campus)
-        self.assertIn('const float actualLengthMetres=100f;',self.campus)
+        self.assertIn('length=actualLengthMetres,',self.tracks)
+        self.assertNotIn('actualLengthMetres/K',self.tracks)
+        self.assertEqual(get_float(self.tracks,'actualLengthMetres'),100)
 
     def test_plot_is_at_least_half_smaller(self):
         rx=get_float(self.layout,"PlotRadiusX")
@@ -71,7 +73,7 @@ class CompactOwnerRemodelTest(unittest.TestCase):
     def test_owner_import_fail_closed_without_assets(self):
         self.assertIn("OwnerBagPrototype",self.env)
         self.assertNotIn('Cylinder(pivot,"Korpus worka"',self.env)
-        self.assertIn('OwnerTrackPbr()',self.campus)
+        self.assertIn('OwnerTrackPbr()',self.tracks)
         self.assertNotIn('TartanGrain()',self.campus)
         self.assertIn('OwnerShelter(shelter)',self.campus)
         self.assertIn('OwnerPanorama()',self.env)

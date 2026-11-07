@@ -7,7 +7,11 @@ class OwnerCampClimateTest(unittest.TestCase):
     def test_original_rocks_and_log_benches(self):
         self.assertIn("CampfireFromOriginalRocks();",ENV)
         self.assertIn("Assets/Source/Claude/Library/park_rock.glb",ENV)
-        self.assertIn("Ława wokół ogniska — okrągły bal",ENV)
+        helper=(ROOT/"unity-city/Assets/Editor/Oboz/BraxObozCampfireSupport.cs").read_text("utf-8")
+        self.assertIn("CampfireLogBenches(camp)",ENV)
+        self.assertIn('Cylinder(bench,"Siedzisko ławy z bala"',helper)
+        self.assertIn("CampfireFloor",helper)
+        self.assertIn("record.expectedTopMetres=.45f",helper)
         self.assertIn("ParticleSystem",ENV)
         self.assertNotIn("CreatePrimitive(PrimitiveType.Cube); // rock",ENV)
     def test_assembly_with_real_wood_and_missing_owner_flags_reported(self):

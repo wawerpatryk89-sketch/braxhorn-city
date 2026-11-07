@@ -118,9 +118,14 @@ public static class BraxObozValidation
                     if (!model.GetComponentsInChildren<Renderer>(true).Any(r => r && r.enabled))
                         sourceIssues.Add(cabinName + ": oryginalne łóżko nie ma aktywnej geometrii");
             }
-            int gyms = nodes.Count(t => t.name.StartsWith("57 oryginalnych obiektów siłowni FBX", StringComparison.Ordinal));
+            int gyms = nodes.Count(t => t.name == "BRAXHORN · SIŁOWNIA 3D WŁAŚCICIELA");
             int tyres = nodes.Count(t => t.name == "Właściciel / oryginalny OwnerExtras/tractor_tire.glb");
-            if (gyms != 1) sourceIssues.Add("Siłownia: wymagany jeden oryginalny gym_environment FBX, znaleziono " + gyms);
+            if (gyms != 1) sourceIssues.Add("Siłownia: wymagany jeden obszar gym_environment FBX, znaleziono " + gyms);
+            var originalEquipment=nodes.Select(t=>t.GetComponent<BraxObozEquipmentGeometry>()).Where(e=>e).ToArray();
+            var originalParts=originalEquipment.SelectMany(e=>e.sourceParts??Array.Empty<string>()).ToArray();
+            foreach(string part in new[]{"treadmill","exercise_bike","weight_bench","barbell_bar",
+                "weight_rack","dumbbell_1","kettlebell_1","pull_up_rack","parallel_bars_1","yoga_mat_1"})
+                if(!originalParts.Contains(part))sourceIssues.Add("Siłownia: brak oryginalnej części gym_environment FBX / "+part);
             if (tyres != 2) sourceIssues.Add("Trening opon: wymagane dwa oryginalne tractor_tire GLB, znaleziono " + tyres);
         }
         var manifest = BraxObozCharacters.ReadManifest();

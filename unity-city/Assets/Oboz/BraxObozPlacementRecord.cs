@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // Persisted evidence about the complete placed object. The scene audit must
@@ -27,6 +28,24 @@ public sealed class BraxObozPlacementRecord : MonoBehaviour
     public Transform suspensionPoint;
     public Collider suspensionSupport;
     public string label;
+    // Frozen ownership of the supplied original. A later child is not a
+    // member just because it was parented beneath this object.
+    public Renderer[] members = new Renderer[0];
+    public void SetMembers(Renderer[] renderers)
+    {
+        var unique = new HashSet<Renderer>();
+        var collected = new List<Renderer>();
+        if (renderers != null)
+            foreach (var renderer in renderers)
+                if (renderer && unique.Add(renderer)) collected.Add(renderer);
+        members = collected.ToArray();
+    }
+    public bool Contains(Renderer renderer)
+    {
+        if (!renderer) return false;
+        foreach (var member in members) if (member == renderer) return true;
+        return false;
+    }
 
     public static BraxObozPlacementRecord For(Transform model)
     {

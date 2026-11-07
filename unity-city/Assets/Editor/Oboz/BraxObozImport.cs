@@ -6,7 +6,7 @@ public sealed class BraxObozImport : AssetPostprocessor
 {
     const string Root = "Assets/Source/Prywatne/Oboz/";
     public override int GetPostprocessOrder() => 100;
-    public override uint GetVersion() => 7;
+    public override uint GetVersion() => 9;
     void OnPreprocessModel()
     {
         try { ApplyCampModelSettings(); }
@@ -20,6 +20,19 @@ public sealed class BraxObozImport : AssetPostprocessor
     {
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
         if (!(assetImporter is ModelImporter m)) return;
+        if(assetPath.StartsWith(Root+"OwnerAssets/",StringComparison.Ordinal))
+        {
+            // The shared private importer treats every other FBX as human.
+            // The owner's shelter and equipment are static props, so Unity
+            // must not look for Hips or manufacture an Avatar for them.
+            m.animationType=ModelImporterAnimationType.None;
+            m.avatarSetup=ModelImporterAvatarSetup.NoAvatar;
+            m.sourceAvatar=null;m.importAnimation=false;
+            m.optimizeGameObjects=false;m.isReadable=true;
+            m.useFileScale=true;m.globalScale=1f;
+            m.importCameras=false;m.importLights=false;
+            return;
+        }
         if (!assetPath.StartsWith(Root + "characters/", StringComparison.Ordinal) &&
             !assetPath.StartsWith(Root + "animations/", StringComparison.Ordinal)) return;
         m.animationType = ModelImporterAnimationType.Human;
@@ -132,6 +145,20 @@ public sealed class BraxObozImport : AssetPostprocessor
         // Właścicielskie murale, szyld i tekstura FBX to grafiki COLOR,
         // nawet jeśli nazwa JPEG nie zawiera słowa 'Color'. Żadnej zmiany
         // pliku źródłowego; poprawne sRGB jest konieczne, by nie zmienić barw.
+        // The supplied FBX atlas is COLOR even though its filename contains
+        // neither "color" nor "diff". Preserve source bytes; correct import only.
+        if(assetPath==Root+"OwnerAssets/OwnerExtras/Gym/gym_environment.png")
+        {
+            t.textureType=TextureImporterType.Default;
+            t.textureShape=TextureImporterShape.Texture2D;
+            t.sRGBTexture=true;t.mipmapEnabled=true;t.streamingMipmaps=true;
+            t.maxTextureSize=2048;t.textureCompression=TextureImporterCompression.CompressedHQ;
+            t.compressionQuality=90;t.filterMode=UnityEngine.FilterMode.Trilinear;t.anisoLevel=4;
+            var gymAtlas=t.GetPlatformTextureSettings("Android");
+            gymAtlas.name="Android";gymAtlas.overridden=true;gymAtlas.maxTextureSize=2048;
+            gymAtlas.format=TextureImporterFormat.ASTC_4x4;gymAtlas.compressionQuality=90;
+            t.SetPlatformTextureSettings(gymAtlas);return;
+        }
         bool ownerArtwork = assetPath.StartsWith(Root+"OwnerAssets/Murale/",StringComparison.Ordinal);
         bool ownerShelterMap = assetPath.StartsWith(Root+"OwnerAssets/Przystanek/",StringComparison.Ordinal);
         if(ownerArtwork||ownerShelterMap)

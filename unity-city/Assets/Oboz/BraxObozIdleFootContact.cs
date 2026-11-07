@@ -12,6 +12,7 @@ public sealed class BraxObozIdleFootContact : MonoBehaviour
     public CharacterController body;
     public Transform visual;
     public Animation clips;
+    [SerializeField] SkinnedMeshRenderer[] sourceSkins=new SkinnedMeshRenderer[0];
     [SerializeField] Vector3 baselineLocalPosition;
     [SerializeField] bool hasBaseline;
 
@@ -44,10 +45,18 @@ public sealed class BraxObozIdleFootContact : MonoBehaviour
     public void Configure(CharacterController capsule,Transform model,Animation motion)
     {
         body=capsule;visual=model;clips=motion;
+        sourceSkins=model?model.GetComponentsInChildren<SkinnedMeshRenderer>(true):new SkinnedMeshRenderer[0];
         if(visual){baselineLocalPosition=visual.localPosition;hasBaseline=true;}
         initialized=false;
         leftFrame=rightFrame=-1;
         leftSole.Clear();rightSole.Clear();
+    }
+
+    // Audit only the original skins captured during authoring. A static prop
+    // attached later to the capsule does not inherit measured foot contact.
+    public bool Contains(Renderer renderer)
+    {
+        return renderer is SkinnedMeshRenderer skin && Array.IndexOf(sourceSkins,skin)>=0;
     }
 
     bool BindReferences()

@@ -113,8 +113,8 @@ class QuickCampWalkways(unittest.TestCase):
 
     def test_paving_still_does_not_cover_running_track(self):
         self.assertNotIn("Malowany znacznik przejścia na tartanie",CAMPUS)
-        self.assertIn("if(IntersectsRunningTrack(x0,x1,z0,z1))",CAMPUS)
-        self.assertIn("if(IntersectsRunningTrack(x-w*.5f,x+w*.5f,z-d*.5f,z+d*.5f))",CAMPUS)
+        self.assertIn("TrackAwarePaving(t,x0,x1,z0,z1,walkwayStone,false)",CAMPUS)
+        self.assertIn("TrackAwarePaving(t,x-w*.5f,x+w*.5f,z-d*.5f,z+d*.5f,wood,true)",CAMPUS)
 
     def test_no_old_second_zebra_or_unclipped_sidewalk(self):
         self.assertNotIn('Box(t,"Pas przejścia",new Vector3(-2.8f+i*.8f,.098f,-115)',CAMPUS)
