@@ -77,7 +77,7 @@
    - późniejsze rejony analogicznie (`region-port`, `region-wyspa`, itd.);
    - opcjonalny ciężki detal/HD tylko jako jawnie oddzielona paczka, nie ukryty w Core.
 6. W obrębie dużego regionu dziel content według stabilnych zależności i częstotliwości zmian (np. scena, environment/buildings, interiors, vegetation, audio/optional-HD), tak aby zmiana jednego małego elementu nie wymuszała ponownego pobrania całego regionu.
-7. **Budżet projektu, nie limit Unity:** typowy bundle ma cel 32–96 MB; >128 MB wymaga raportu uzasadniającego zależności i koszt aktualizacji. Nie dziel sztucznie assetów, jeśli powoduje to duplikację lub więcej kosztu runtime; decyzję opieraj na Build Layout/Analyze.
+7. **Nie ma arbitralnego globalnego limitu rozmiaru pojedynczego bundle.** Grupuj content według cyklu życia, zależności i częstotliwości aktualizacji, a wynik oceniaj przez Addressables Analyze/Build Layout, rzeczywiste bajty transferu, czas ładowania i peak RAM. Duże monolityczne bundle są niedozwolone, jeśli wymuszają ładowanie niepotrzebnych danych albo blokują zwalnianie pamięci; podział ma wynikać z pomiaru, nie z wymyślonej liczby MB.
 8. Asset używany przez >=2 grupy ma trafić do jawnej grupy współdzielonej, jeśli analiza zależności pokazuje duplikację. Nie kopiuj tej samej tekstury/siatki/animacji do wielu bundle. Addressables Analyze/Build Layout służy jako dowód.
 
 ### 0B.3. Addressables jako standard danych
