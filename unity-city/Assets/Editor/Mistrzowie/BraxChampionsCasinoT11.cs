@@ -794,7 +794,10 @@ public static class BraxChampionsCasinoT11
             // Side fire lanes occupy x=+-49.5..+-56.5. Front/rear roads stop
             // exactly at x=+-49.5 so there is no asphalt-on-asphalt overlap.
             B(shell,"Fire service route",asphalt,side*53f,roadY,3.25f,7.0f,roadH,81.5f,true,true);
-            B(trim,"VIP or taxi champagne curb",gold,side*27f,.34f,-36.4f,24f,.11f,.14f,false);
+            // Decorative champagne strip is inlaid into the stone apron;
+            // the actual road kerb is concrete and physically separate.
+            B(trim,"VIP/TAXI champagne paving inlay",gold,
+                side*27f,.2135f,-36.4f,24f,.012f,.14f,false);
             // Three VIP parking bays TOTAL, solely on the LEFT.
             // Right-hand TAXI drop-off remains clear of parking stripes.
             if(side<0)
