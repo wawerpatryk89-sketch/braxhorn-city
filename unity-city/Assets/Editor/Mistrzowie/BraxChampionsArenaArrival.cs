@@ -655,6 +655,90 @@ public static class BraxChampionsArenaArrival
             " doors_and_vehicle_lanes_preserved=true device_visual_review_required=true");
     }
 
+    // Owner's approved exterior photograph shows a genuine furnished upper
+    // VIP lounge through the two-storey smoke glass. Previously the render
+    // had only an LED halo and empty air. Furnish the FRONT glazing recession
+    // with PBR leather and native Poly Haven oak/metal, no new textures,
+    // no duplicate real arena VIP seating, no collider or gameplay change.
+    static void ReferenceUpperFacadeLounge(Transform exteriorRoot,
+        Dictionary<string,Material> exterior)
+    {
+        var root=Group(exteriorRoot,
+            "A1 UPPER GLASS | reference furnished VIP lounge silhouette",Vector3.zero);
+        var leather=BraxChampionsFoundation.LibraryLeather(
+            "A1_upper_facade_charcoal_leather_2k",new Color(.23f,.225f,.22f));
+        var cushion=BraxChampionsFoundation.LibraryLeather(
+            "A1_upper_facade_warm_leather_2k",new Color(.39f,.365f,.33f));
+        var teak=exterior["teak"];
+        var gold=exterior["gold"];
+        var dark=exterior["dark_stone"];
+        var light=exterior["light"];
+
+        // The glazed A1 ellipse is 192x118 nominal metres. At x=+-42,
+        // southern glass is z~-53, so this slab stays inside the envelope
+        // (front edge z=-51.5). Preserve the central ground-level lobby.
+        Box(root,"UPPER lounge | real premium dark-stone mezzanine floor",dark,
+            new Vector3(0,18.12f,-46.2f),new Vector3(84f,.24f,10.6f),false);
+        Box(root,"UPPER lounge | fine champagne fascia at floor edge",gold,
+            new Vector3(0,18.13f,-51.56f),new Vector3(83.5f,.11f,.12f),false);
+
+        // Six proportional three-seat leather sofas face the glazed frontage.
+        // Seats, backrests, armrests and cushions are separate genuine PBR
+        // surfaces, not one blank box. Their sizes are real-world metres.
+        foreach(float x in new[]{-35f,-22f,-9f,9f,22f,35f})
+        {
+            float z=-45.9f;
+            var sofa=Group(root,"UPPER lounge | luxury sofa x="+x,
+                new Vector3(x,0,z)*K);
+            Box(sofa,"Original PBR oak underframe",teak,
+                new Vector3(0,18.53f,0),new Vector3(3.57f,.25f,1.19f),false);
+            Box(sofa,"Textured black leather sofa seat",leather,
+                new Vector3(0,18.80f,-.18f),new Vector3(3.46f,.31f,1.06f),false);
+            Box(sofa,"Tall premium backrest",leather,
+                new Vector3(0,19.25f,.43f),new Vector3(3.52f,.93f,.39f),false);
+            foreach(float side in new[]{-1f,1f})
+            {
+                Box(sofa,"Rounded-profile arm support",leather,
+                    new Vector3(side*1.72f,19.04f,-.05f),
+                    new Vector3(.27f,.58f,1.18f),false);
+                foreach(float legZ in new[]{-.46f,.45f})
+                    Box(sofa,"Champagne metal furniture foot",gold,
+                        new Vector3(side*1.51f,18.38f,legZ),
+                        new Vector3(.07f,.19f,.07f),false);
+            }
+            foreach(float offset in new[]{-1.07f,0f,1.07f})
+            {
+                Box(sofa,"Three individual PBR upholstered cushions",cushion,
+                    new Vector3(offset,19.01f,-.21f),
+                    new Vector3(.98f,.13f,.86f),false);
+                Box(sofa,"Three fine leather back cushions",cushion,
+                    new Vector3(offset,19.21f,.20f),
+                    new Vector3(.94f,.56f,.16f),false);
+            }
+            var table=Group(root,"UPPER lounge | oak coffee table x="+x,
+                new Vector3(x,0,-48.2f)*K);
+            Box(table,"Native Poly Haven teak table surface",teak,
+                new Vector3(0,18.82f,0),new Vector3(1.74f,.09f,.75f),false);
+            foreach(float side in new[]{-1f,1f})
+                Box(table,"Gold table leg",gold,
+                    new Vector3(side*.73f,18.60f,0),
+                    new Vector3(.065f,.44f,.065f),false);
+        }
+        // The reference has warm lamps and refined uplighting behind the
+        // glazing; this uses only existing emissive facade material.
+        foreach(float x in new[]{-40f,-15f,15f,40f})
+        {
+            Box(root,"UPPER lounge | warm table lamp",light,
+                new Vector3(x,19.11f,-47.0f),new Vector3(.44f,.47f,.44f),false);
+            Box(root,"UPPER lounge | lamp champagne foot",gold,
+                new Vector3(x,18.83f,-47.0f),new Vector3(.13f,.23f,.13f),false);
+        }
+        Debug.Log("A1_REFERENCE_UPPER_GLASS_LOUNGE furnishings=6_originalPBR_leather_sofas"+
+            " 6_oak_tables warm_lamps=4 upper_floor_inside_ellipse=true"+
+            " no_collision=true originalArenaVIPSeatsUnchanged=true"+
+            " playerVisualProofPending=true");
+    }
+
     const string PremiumShrubSource = "Assets/Source/CityRebuild/landscape/park_shrub.glb";
 
     static Bounds RendererBounds(GameObject go)
@@ -744,6 +828,8 @@ public static class BraxChampionsArenaArrival
         // Architectural PBR finish is generated independently of source signs,
         // without shifting the approved ellipse, doors or visitor routes.
         PremiumExterior(root, exterior);
+        // Reference glass must reveal the finished VIP level, not empty black air.
+        ReferenceUpperFacadeLounge(root, exterior);
         ReferenceEntranceLandscaping(root, exterior);
         Stanchions(root, exterior["gold"], blackRope, redCarpet);
         Door(root, "CHAMPIONS_A1_PUBLIC", "Main public entrance", -59.04f, exterior["clear_glass"], exterior["steel"]);
