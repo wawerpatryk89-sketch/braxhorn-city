@@ -371,27 +371,9 @@ public static class BraxChampionsCasinoT11
         working.id=id;working.label=label;working.leaves=leaves;working.sides=new[]{1f,-1f};
     }
 
-    static void Tower()
-    {
-        // Separate OFFICE tower silhouette, 120m high, no interior floor plates.
-        const float x=23f,z=34f,w=18f,d=18f;
-        B(shell,"Office tower podium base",granite,x,1.2f,z,w,2.3f,d,true);
-        foreach(float side in new[]{-1f,1f})
-        {
-            B(shell,"Office tower north/south curtain glass",glass,x,60f,z+side*d*.5f,w,116f,.18f,true);
-            B(shell,"Office tower east/west curtain glass",glass,x+side*w*.5f,60f,z,.18f,116f,d,true);
-            for(float y=4f;y<120f;y+=3.7f)
-            {
-                B(trim,"Tower horizontal graphite bar north/south",graphite,x,y,z+side*(d*.5f+.14f),w,.12f,.18f,false);
-                B(trim,"Tower horizontal graphite bar east/west",graphite,x+side*(w*.5f+.14f),y,z,.18f,.12f,d,false);
-            }
-        }
-        foreach(float xx in new[]{x-w*.5f,x,x+w*.5f})
-            foreach(float zz in new[]{z-d*.5f,z+d*.5f})
-                B(trim,"Tower tall champagne mullion",gold,xx,60f,zz,.24f,119f,.24f,false);
-        B(shell,"Tower matte graphite roof",roof,x,119.86f,z,w+.6f,.27f,d+.6f,true);
-        B(trim,"Tower crown amber LED",led,x,119.92f,z+d*.5f,w,.09f,.11f,false);
-    }
+    // The owner's 7 Nov instruction removes the office skyscraper COMPLETELY.
+    // No tower silhouette, glass cage, crown or tower prefabs are generated.
+    // The remaining approved building is the low two-storey casino only.
 
     static void UndergroundGarage()
     {
