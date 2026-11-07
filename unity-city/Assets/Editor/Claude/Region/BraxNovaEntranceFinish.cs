@@ -23,7 +23,7 @@ internal static class BraxNovaEntranceFinish
     {
         public string status = "NOT_VALIDATED";
         public bool phoneValidated = false, doorConfigured;
-        public int removedLetterTriangles, remainingLetterTriangles, cutColliders, pathSamples, groundGaps;
+        public int removedLetterTriangles, remainingLetterTriangles, remainingSourceTriangles, unreadableSourceMeshes, cutColliders, pathSamples, groundGaps;
         public float playerRadius, playerHeight;
         public List<string> changed = new List<string>(), blockers = new List<string>(), warnings = new List<string>();
     }
@@ -50,6 +50,8 @@ internal static class BraxNovaEntranceFinish
         var club = clubs[0];
         try { RemoveOldLetters(club, rep); }
         catch (Exception e) { Warn(rep, "Napis: " + e); }
+        try { RemoveUnlabelledSourceSign(scene, club, rep); }
+        catch (Exception e) { Warn(rep, "Stare napisy źródłowe: " + e); }
         var doors = club.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true)
             .Where(d => d.etykieta == DoorLabel).ToArray();
         if (doors.Length != 1) { Warn(rep, "Brak pojedynczych drzwi automatycznych NOVA; bez zgadywania wejścia."); Save(rep); return; }
@@ -79,7 +81,8 @@ internal static class BraxNovaEntranceFinish
         try { Probe(scene, door, rep); }
         catch (Exception e) { Warn(rep, "Test drożności: " + e); }
         rep.status = rep.doorConfigured && rep.pathSamples > 0 && rep.remainingLetterTriangles == 0 &&
-            rep.blockers.Count == 0 && rep.groundGaps == 0 && rep.warnings.Count == 0 ? "PASS_SCENE_GEOMETRY" : "REQUIRES_REVIEW";
+            rep.blockers.Count == 0 && rep.groundGaps == 0 && rep.remainingSourceTriangles == 0 &&
+            rep.unreadableSourceMeshes == 0 && rep.warnings.Count == 0 ? "PASS_SCENE_GEOMETRY" : "REQUIRES_REVIEW";
         Save(rep);
     }
 
@@ -88,56 +91,193 @@ internal static class BraxNovaEntranceFinish
         // Nowy kolorowy szyld, panel i obwódka nie są tymi materiałami.
         return m && (m.name.Contains("NOVA: litery szyldu (podświetlane)") || m.name.Contains("NOVA: boki liter (grafit)"));
     }
+    // Zatwierdzony szyld: kolorowy NOVA CLUB właściciela; nie ruszamy jego siatek, materiałów ani UV.
+    static bool ApprovedNovaSign(Transform t)
+    {
+        for (var p = t; p; p = p.parent)
+        {
+            string n = p.name.ToLowerInvariant();
+            if (n.StartsWith("nova szyld oryginalny właściciela") ||
+                n == "mural club_nova" || n == "mural nova_club" || n == "mural nova" ||
+                n == "obraz: mural club_nova" || n == "obraz: mural nova_club" ||
+                n == "obraz: mural nova") return true;
+        }
+        return false;
+    }
+
+    static bool LegacyNovaText(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        text = text.ToUpperInvariant().Trim();
+        return text.Contains("CLUB NOVA") || text.Contains("NOVA DYSKOTEKA") ||
+               text.Contains("NOVA DVSKOTEKA");
+    }
+
     static void RemoveOldLetters(Transform club, Receipt rep)
     {
-        foreach (var r in club.GetComponentsInChildren<MeshRenderer>(true))
+        // POPRZEDNI BŁĄD: skanowano wyłącznie nowo utworzony klub. Stary napis
+        // może należeć do oryginalnej sceny lub starej renowacji obok nowego klubu.
+        var all = club.gameObject.scene.GetRootGameObjects()
+            .SelectMany(g => g.GetComponentsInChildren<MeshRenderer>(true)).ToArray();
+        int textObjects = 0, oldNames = 0, skippedOwner = 0;
+        foreach (var r in all)
         {
+            if (!r || !r.enabled || !r.gameObject.activeInHierarchy) continue;
+            if (!r.bounds.Intersects(OldLetters)) continue;
+            if (ApprovedNovaSign(r.transform)) { skippedOwner++; continue; }
+            var txt = r.GetComponent<TextMesh>();
+            if (txt && LegacyNovaText(txt.text))
+            {
+                // Usuwamy tylko samodzielny, stary TextMesh, NIE rodzica/fasadę.
+                Object.DestroyImmediate(txt.gameObject);
+                textObjects++;
+                continue;
+            }
             var f = r.GetComponent<MeshFilter>(); var source = f ? f.sharedMesh : null;
-            if (!r.enabled || !source || !r.bounds.Intersects(OldLetters)) continue;
+            if (!source) continue;
             var mats = r.sharedMaterials;
-            if (!mats.Any(LetterMaterial)) continue;
+            bool named = LegacyNovaText(r.name) ||
+                (r.transform.parent && r.transform.parent != club &&
+                 LegacyNovaText(r.transform.parent.name));
+            bool legacyMaterial = mats.Any(LetterMaterial);
+            if (!named && !legacyMaterial) continue;
+
             var vertices = source.vertices; var parts = new List<int[]>(); int removed = 0;
             for (int sub = 0; sub < source.subMeshCount; sub++)
             {
                 var src = source.GetTriangles(sub); var keep = new List<int>(src.Length);
-                bool letters = sub < mats.Length && LetterMaterial(mats[sub]);
+                bool oldSubmesh = named || sub < mats.Length && LetterMaterial(mats[sub]);
                 for (int i = 0; i < src.Length; i += 3)
                 {
-                    bool target = letters && OldLetters.Contains(f.transform.TransformPoint(vertices[src[i]])) &&
-                        OldLetters.Contains(f.transform.TransformPoint(vertices[src[i + 1]])) &&
-                        OldLetters.Contains(f.transform.TransformPoint(vertices[src[i + 2]]));
-                    if (target) { removed++; continue; }
+                    var center = f.transform.TransformPoint(
+                        (vertices[src[i]] + vertices[src[i + 1]] + vertices[src[i + 2]]) / 3f);
+                    if (oldSubmesh && OldLetters.Contains(center)) { removed++; continue; }
                     keep.Add(src[i]); keep.Add(src[i + 1]); keep.Add(src[i + 2]);
                 }
                 parts.Add(keep.ToArray());
             }
             if (removed == 0) continue;
-            // Kopia instancji siatki; UV, kolory, pozostałe submeshe i źródło zostają.
-            var copy = Object.Instantiate(source); copy.name = source.name + "_without_old_nova_letters";
-            for (int s = 0; s < parts.Count; s++) copy.SetTriangles(parts[s], s);
+            var copy = Object.Instantiate(source);
+            copy.name = source.name + "_without_legacy_nova_sign";
+            for (int sub = 0; sub < parts.Count; sub++) copy.SetTriangles(parts[sub], sub);
             copy.RecalculateBounds();
-            BraxZapisAssetu.Utworz(copy, AssetDatabase.GenerateUniqueAssetPath(Out + "/letters.asset"));
+            BraxZapisAssetu.Utworz(copy, AssetDatabase.GenerateUniqueAssetPath(Out + "/legacy_letters.asset"));
             f.sharedMesh = copy;
-            bool empty = parts.All(a => a.Length == 0);
+            bool empty = parts.All(x => x.Length == 0);
             foreach (var mc in f.GetComponents<MeshCollider>()) if (mc.sharedMesh == source)
             { if (empty) mc.enabled = false; else mc.sharedMesh = copy; }
             if (empty) r.enabled = false;
             rep.removedLetterTriangles += removed;
+            if (named) oldNames++;
         }
-        // Nie uznajemy całej fasady za napis: pozostałe litery np. WC są poza tym prostokątem.
-        foreach (var r in club.GetComponentsInChildren<MeshRenderer>(true))
+
+        // Osobne źródła nie powinny zostać rozpoznane jako zatwierdzony szyld.
+        // Odbiór sprawdza CAŁĄ scenę, nie tylko grupę nowego klubu.
+        foreach (var r in club.gameObject.scene.GetRootGameObjects()
+                     .SelectMany(g => g.GetComponentsInChildren<MeshRenderer>(true)))
         {
-            var f = r.GetComponent<MeshFilter>(); if (!r.enabled || !f || !f.sharedMesh) continue;
-            var m = f.sharedMesh; var v = m.vertices; var mats = r.sharedMaterials;
-            for (int s = 0; s < m.subMeshCount; s++)
+            if (!r || !r.enabled || !r.gameObject.activeInHierarchy ||
+                !r.bounds.Intersects(OldLetters) || ApprovedNovaSign(r.transform)) continue;
+            var txt = r.GetComponent<TextMesh>();
+            if (txt && LegacyNovaText(txt.text)) { rep.remainingLetterTriangles++; continue; }
+            var f = r.GetComponent<MeshFilter>(); if (!f || !f.sharedMesh) continue;
+            var m = f.sharedMesh; var vertices = m.vertices; var mats = r.sharedMaterials;
+            bool named = LegacyNovaText(r.name) ||
+                (r.transform.parent && r.transform.parent != club &&
+                 LegacyNovaText(r.transform.parent.name));
+            for (int sub = 0; sub < m.subMeshCount; sub++)
             {
-                if (s >= mats.Length || !LetterMaterial(mats[s])) continue;
-                var t = m.GetTriangles(s);
-                for (int i = 0; i < t.Length; i += 3)
-                    if (OldLetters.Contains(f.transform.TransformPoint((v[t[i]] + v[t[i + 1]] + v[t[i + 2]]) / 3f))) rep.remainingLetterTriangles++;
+                if (!named && (sub >= mats.Length || !LetterMaterial(mats[sub]))) continue;
+                var triangles = m.GetTriangles(sub);
+                for (int i = 0; i < triangles.Length; i += 3)
+                    if (OldLetters.Contains(f.transform.TransformPoint(
+                        (vertices[triangles[i]] + vertices[triangles[i + 1]] +
+                         vertices[triangles[i + 2]]) / 3f))) rep.remainingLetterTriangles++;
             }
         }
-        if (rep.remainingLetterTriangles > 0) Warn(rep, "Pozostały trójkąty starego napisu: " + rep.remainingLetterTriangles);
+        Debug.Log("BRAXHORN_NOVA_STARY_NAPIS usuniete_obiekty_text=" + textObjects +
+            " usuniete_trojkaty=" + rep.removedLetterTriangles +
+            " stare_nazwane=" + oldNames + " chronione_oryginalne=" + skippedOwner +
+            " pozostale=" + rep.remainingLetterTriangles);
+        if (rep.remainingLetterTriangles > 0)
+            Warn(rep, "Stary napis wciąż ma " + rep.remainingLetterTriangles + " trójkątów/tekstów");
+    }
+
+    // Stary napis w APK #108 pozostawał widoczny, mimo "stare_nazwane=0":
+    // część oryginalnego miasta jest złączona w CityMesh_### i NIE ma nazwy napisu.
+    // Wycinamy TYLKO wąski fragment ZAKRYTY zatwierdzonym panelem NOVA CLUB.
+    // Nie dotykamy nowego klubu, źródła jego grafiki, drzwi ani dolnych ścian.
+    static void RemoveUnlabelledSourceSign(Scene scene, Transform club, Receipt rep)
+    {
+        // Wnętrze zatwierdzonego panelu: x 38.4..45.6, y 3.62..4.86;
+        // cięcie z marginesem *wewnątrz* panelu, poza przejściem na y<3.
+        var stripe = Box(38.74f, 45.26f, 3.66f, 4.72f, 35.48f, 36.40f);
+        int altered = 0;
+        foreach (var r in scene.GetRootGameObjects()
+                     .SelectMany(g => g.GetComponentsInChildren<MeshRenderer>(true)).ToArray())
+        {
+            if (!r || !r.enabled || !r.gameObject.activeInHierarchy ||
+                !r.bounds.Intersects(stripe) || (r.transform.IsChildOf(club) || club.IsChildOf(r.transform)) ||
+                ApprovedNovaSign(r.transform)) continue;
+            if (r.GetComponentInParent<BraxGymPlayer>() ||
+                r.GetComponentInParent<Animator>() || r.GetComponentInParent<Animation>()) continue;
+            var f = r.GetComponent<MeshFilter>();
+            if (!f || !f.sharedMesh || !f.sharedMesh.isReadable) continue;
+            // Izolowana kopia JEDNEGO renderera: nie wolno ciąć dzieci oryginalnego
+            // CityMesh ani żadnej geometrii nowego klubu przez operację na rodzicu.
+            var temp = new GameObject("NOVA: tymczasowa siatka starego napisu");
+            try
+            {
+                temp.transform.SetParent(f.transform, false);
+                var testFilter = temp.AddComponent<MeshFilter>();
+                testFilter.sharedMesh = f.sharedMesh;
+                var testRenderer = temp.AddComponent<MeshRenderer>();
+                testRenderer.sharedMaterials = r.sharedMaterials;
+                // Tylko wąski obszar starego napisu, wysoko ponad światłem drzwi.
+                int n = BraxCityMeshCut.Subtract(temp.transform, stripe, Out, "nova_legacy_white_text");
+                if (n <= 0) continue;
+                var prior = f.sharedMesh;
+                if (testRenderer.enabled) f.sharedMesh = testFilter.sharedMesh;
+                else r.enabled = false;
+                foreach (var mc in f.GetComponents<MeshCollider>())
+                    if (mc && mc.sharedMesh == prior)
+                    { if (testRenderer.enabled) mc.sharedMesh = testFilter.sharedMesh; else mc.enabled = false; }
+                altered += n;
+                rep.changed.Add("Stary nienazwany fragment szyldu: " + PathOf(f.transform));
+            }
+            finally { Object.DestroyImmediate(temp); }
+        }
+        // Drugi odczyt: pozytywny status tylko gdy po cięciu brak starej geometrii
+        // wewnątrz obrysu. Sama liczba wykonanych cięć NIE dowodzi usunięcia napisu.
+        foreach (var r in scene.GetRootGameObjects()
+                     .SelectMany(g => g.GetComponentsInChildren<MeshRenderer>(true)))
+        {
+            if (!r || !r.enabled || !r.gameObject.activeInHierarchy ||
+                !r.bounds.Intersects(stripe) || r.transform.IsChildOf(club) ||
+                club.IsChildOf(r.transform) || ApprovedNovaSign(r.transform)) continue;
+            var f = r.GetComponent<MeshFilter>(); var mesh = f ? f.sharedMesh : null;
+            if (!mesh) continue;
+            if (!mesh.isReadable) { rep.unreadableSourceMeshes++; continue; }
+            var vertices = mesh.vertices;
+            for (int sub = 0; sub < mesh.subMeshCount; sub++)
+            {
+                var triangles = mesh.GetTriangles(sub);
+                for (int i = 0; i + 2 < triangles.Length; i += 3)
+                {
+                    var centroid = f.transform.TransformPoint(
+                        (vertices[triangles[i]] + vertices[triangles[i + 1]] +
+                         vertices[triangles[i + 2]]) / 3f);
+                    if (stripe.Contains(centroid)) rep.remainingSourceTriangles++;
+                }
+            }
+        }
+        Debug.Log("BRAXHORN_NOVA_NIENAZWANY_SZYLD usuniete_fragmenty_starych_siatek=" +
+            altered + " pozostalosc_trojkaty=" + rep.remainingSourceTriangles +
+            " nieczytelne_siatki=" + rep.unreadableSourceMeshes +
+            " chroniony_oryginalny_NOVA_CLUB=true");
+        if (rep.remainingSourceTriangles != 0 || rep.unreadableSourceMeshes != 0)
+            Warn(rep, "Niezamkniety audyt starego napisu: trojkaty=" +
+                rep.remainingSourceTriangles + " nieczytelne_siatki=" + rep.unreadableSourceMeshes);
     }
 
     static void ConfigureDoor(BraxDrzwiPrzesuwne d, Receipt rep)
