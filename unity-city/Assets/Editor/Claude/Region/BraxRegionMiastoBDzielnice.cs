@@ -427,13 +427,17 @@ public static partial class BraxRegionMiastoB
                 }
                 BraxMiastoAssety.Przygotuj(bud.gameObject, true, true);
                 nSzklo += NdSzklo(bud.gameObject);
+                // Obrys źródła przed dołożeniem niekolizyjnej fasady premium.
+                var originalBounds = BraxRegion.Bounds(bud.gameObject);
+                var fasada = NdPremiumFasada(b, bud, g, originalBounds);
+                if (fasada) bryla = bryla.Concat(fasada.GetComponentsInChildren<Renderer>(true)).ToArray();
                 foreach (var r in dach) r.shadowCastingMode = ShadowCastingMode.Off;
                 // LOD: urządzenia dachowe do 12 % wysokości ekranu, bryła do 0.6 %
                 var lod = bud.gameObject.AddComponent<LODGroup>();
                 lod.SetLODs(dach.Length > 0 ? new[] { new LOD(.12f, bryla.Concat(dach).ToArray()), new LOD(.006f, bryla) } : new[] { new LOD(.006f, bryla) });
                 lod.RecalculateBounds();
                 // kolizja bryły: prostokąt lica × wysokość (osie świata — obroty 0/90)
-                var gr = BraxRegion.Bounds(bud.gameObject);
+                var gr = originalBounds; // zabezpieczenie wymiarów źródłowej kolizji
                 var col = new GameObject("Budynek " + b.id + " kolizja").AddComponent<BoxCollider>(); col.transform.SetParent(g, false);
                 col.transform.position = new Vector3(b.x, y + (gr.max.y - y) * .5f, b.z); col.size = new Vector3(b.w - .1f, gr.max.y - y, b.d - .1f);
                 ndBudynki.Add(bud.gameObject); ok++;
@@ -442,10 +446,156 @@ public static partial class BraxRegionMiastoB
             catch (Exception e) { BraxMiastoAssety.Blad("budynek " + b.id, e); }
         }
         foreach (var k in wezly.Values) if (k) UnityEngine.Object.DestroyImmediate(k);   // niewykorzystane jednostki (U14, kliny) nie idą do sceny
+        NdZdejmijNadwieszenieZabytku(); // tylko osobna współczesna siatka; bez zmian kamienicy
         // sylwetki z daleka wyłączone (budynki zostają w scenie głównej — patrz wyżej)
         try { NdMigotanieBudynkow(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola podstaw budynków", e); }
         NdLog("szkło fasad: " + nSzklo + " materiałów na budynkach zamienione na szkło refleksyjne (czarny metal / szyby przed pustą bryłą)");
         NdLog("budynki: postawione " + ok + "/" + NoweBudynki.Length + (brak > 0 ? ", bez modelu " + brak + " (paczka nieodszyfrowana — kwartał zostaje z płytami)" : ""));
+    }
+
+    // Nowoczesna część jednej ulicy. Zatwierdzone historyczne C3/KINNAIRD
+    // nie dostają drugiej fasady; witryny i drzwi parterów pozostają czynne.
+    static bool NdNowoczesny(Bud b) =>
+        b.plik == "miasto_centrum_c5" || b.plik == "wiezowiec_london" ||
+        b.plik == "wiezowiec_atlanta";
+
+    static Transform NdPremiumFasada(Bud b, Transform bud, Transform district, Bounds original)
+    {
+        if (!NdNowoczesny(b)) return null;
+        if (original.size.y < 10f || b.w < 8f || b.d < 8f)
+        {
+            NdLog("DO POPRAWKI: brak poprawnego obrysu fasady " + b.id);
+            return null;
+        }
+        string slug = BraxRegion.HasTexture("concrete_wall_008") ? "concrete_wall_008" :
+                      BraxRegion.HasTexture("granite_tile_02") ? "granite_tile_02" : null;
+        if (slug == null)
+        {
+            NdLog("DO POPRAWKI: brak gotowej tekstury Poly Haven PBR dla fasady " + b.id);
+            return null;
+        }
+        var group = new GameObject("PREMIUM — przeszklona elewacja " + b.id).transform;
+        group.SetParent(district, false); group.position = Vector3.zero;
+        try
+        {
+            var glazed = BraxCityMaterials.Surface("Miasto: premium szkło fasady niebiesko-srebrne",
+                new Color(.46f,.58f,.65f,1f), .10f, .86f);
+            var glazedAlt = BraxCityMaterials.Surface("Miasto: premium szkło fasady stalowo-szare",
+                new Color(.36f,.47f,.54f,1f), .12f, .82f);
+            foreach (var material in new[] { glazed, glazedAlt })
+                if (material && material.HasProperty("_ReflectionStrength"))
+                    material.SetFloat("_ReflectionStrength", .96f);
+            var stone = BraxRegion.Pbr("Miasto: premium pasy stropowe Poly Haven PBR",
+                2.2f, new Color(.76f,.77f,.77f), slug);
+            var aluminum = BraxCityMaterials.Surface("Miasto: premium szczotkowane aluminium",
+                new Color(.54f,.57f,.60f), .38f, .78f);
+            var windows = new BraxRegionMeble.Bud();
+            var windowsAlt = new BraxRegionMeble.Bud();
+            var spandrels = new BraxRegionMeble.Bud();
+            var frames = new BraxRegionMeble.Bud();
+            float ymin = original.min.y + 3.5f * K; // nie zasłaniać wejść, sklepów i parteru
+            float ymax = original.max.y - .4f;
+            if (ymax <= ymin + 2f) { UnityEngine.Object.DestroyImmediate(group.gameObject); return null; }
+            float x0 = b.x - b.w/2f, x1 = b.x + b.w/2f;
+            float z0 = b.z - b.d/2f, z1 = b.z + b.d/2f;
+            const float inset=.08f;
+            void Q(BraxRegionMeble.Bud mesh, Vector3 p0,Vector3 p1,Vector3 p2,Vector3 p3,Vector3 n)
+            {
+                if (Vector3.Dot(Vector3.Cross(p1-p0,p2-p0),n)>=0)
+                    mesh.Quad(p0,p1,p2,p3);
+                else mesh.Quad(p0,p3,p2,p1);
+            }
+            int panes=0;
+            void Face(Vector3 start, Vector3 axis, Vector3 n, float length)
+            {
+                int bays=Mathf.Clamp(Mathf.CeilToInt(length / (3.2f*K)), 3, 36);
+                float span=(length-.64f)/bays;
+                int floors=Mathf.Clamp(Mathf.CeilToInt((ymax-ymin)/(3.25f*K)),1,72);
+                float story=(ymax-ymin)/floors;
+                Vector3 P(float u,float y,float d) => start+axis*u+Vector3.up*y+n*d;
+                void Panel(BraxRegionMeble.Bud mesh,float u0,float u1,float h0,float h1,float d)
+                { Q(mesh,P(u0,h0,d),P(u1,h0,d),P(u1,h1,d),P(u0,h1,d),n); }
+                for(int floor=0; floor<floors; floor++)
+                {
+                    float y=ymin+floor*story;
+                    for(int bay=0;bay<bays;bay++)
+                    {
+                        float left=.32f+bay*span,right=left+span;
+                        float gap=Mathf.Min(.14f,span*.08f);
+                        Panel((floor+bay)%7==0?windowsAlt:windows,
+                              left+gap,right-gap,y+story*.27f,y+story*.88f,inset);
+                        Panel(spandrels,left,right,y,y+story*.24f,inset+.012f);
+                        Panel(frames,left,left+.065f,y,y+story,inset+.028f);
+                        Panel(frames,left,right,y+story*.885f,y+story*.915f,inset+.03f);
+                        panes++;
+                    }
+                    Panel(frames,length-.40f,length-.335f,y,y+story,inset+.028f);
+                }
+            }
+            Face(new Vector3(x0,0,z0),Vector3.right,Vector3.back,b.w);
+            Face(new Vector3(x1,0,z1),Vector3.left,Vector3.forward,b.w);
+            Face(new Vector3(x0,0,z1),Vector3.back,Vector3.left,b.d);
+            Face(new Vector3(x1,0,z0),Vector3.forward,Vector3.right,b.d);
+            windows.Obiekt("PREMIUM szkło refleksyjne",group,glazed,false,false);
+            windowsAlt.Obiekt("PREMIUM okna naprzemienne",group,glazedAlt,false,false);
+            spandrels.Obiekt("PREMIUM ceramiczne pasy z PBR",group,stone,false,false);
+            frames.Obiekt("PREMIUM lizeny i rygle aluminium",group,aluminum,false,false);
+            // Siatki są liczone w metrach świata: reparent zachowuje światowy
+            // transform mimo skali K i 90° orientacji modelu Sketchfab.
+            group.SetParent(bud,true);
+            NdLog("PREMIUM_FASADA "+b.id+" panele="+panes+
+                  " siatki=4 materiały PBR+szkło drzwi zachowane");
+            return group;
+        }
+        catch(Exception e)
+        {
+            if (group) UnityEngine.Object.DestroyImmediate(group.gameObject);
+            NdLog("DO POPRAWKI: wykończenie fasady "+b.id+" "+e.Message);
+            return null;
+        }
+    }
+
+    // Zdjęcie użytkownika: kamienica zabytkowa z obcym nowoczesnym nadwieszeniem.
+    // Usuwamy TYLKO osobną rozpoznaną siatkę ze źródła obok, jeśli rzeczywiście
+    // wisi nad kamienicą. Nie wycinamy na ślepo historycznego dachu i elewacji.
+    static void NdZdejmijNadwieszenieZabytku()
+    {
+        var monument=ndBudynki.FirstOrDefault(x=>x && x.name=="Budynek KINNAIRD");
+        var place=NoweBudynki.FirstOrDefault(x=>x.id=="KINNAIRD");
+        if (!monument || place==null)
+        {
+            NdLog("DO POPRAWKI: nie odnaleziono starej kamienicy KINNAIRD");
+            return;
+        }
+        var rect=Rect.MinMaxRect(place.x-place.w*.49f,place.z-place.d*.49f,
+                                 place.x+place.w*.49f,place.z+place.d*.49f);
+        float above=monument.transform.position.y+25f*K;
+        int removed=0,unverified=0;
+        foreach(var other in ndBudynki.Where(x=>x && x!=monument))
+        foreach(var renderer in other.GetComponentsInChildren<Renderer>(true))
+        {
+            if (!renderer || !renderer.enabled) continue;
+            var bounds=renderer.bounds;
+            float overlapX=Mathf.Min(bounds.max.x,rect.xMax)-Mathf.Max(bounds.min.x,rect.xMin);
+            float overlapZ=Mathf.Min(bounds.max.z,rect.yMax)-Mathf.Max(bounds.min.z,rect.yMin);
+            if (overlapX<10f || overlapZ<5f || bounds.min.y<above ||
+                bounds.size.y>16f || bounds.size.x*bounds.size.z<160f) continue;
+            string names=string.Join("|",renderer.sharedMaterials.Where(m=>m).Select(m=>m.name));
+            bool modern=names.IndexOf("glass",StringComparison.OrdinalIgnoreCase)>=0 ||
+                        names.IndexOf("black",StringComparison.OrdinalIgnoreCase)>=0 ||
+                        names.IndexOf("metal",StringComparison.OrdinalIgnoreCase)>=0 ||
+                        names.IndexOf("szkło",StringComparison.OrdinalIgnoreCase)>=0;
+            if (!modern) { unverified++; continue; }
+            renderer.enabled=false;
+            foreach(var col in renderer.GetComponents<Collider>()) col.enabled=false;
+            removed++;
+            NdLog("NADWIESZENIE_ZDJETE "+other.name+"/"+renderer.name+
+                  " "+bounds.center.ToString("F1"));
+        }
+        NdLog("KAMIENICA_HISTORYCZNA osobne_nadwieszenia_usuniete="+removed+
+              " nierozpoznane="+unverified+" kamienica_zachowana=tak");
+        if (removed==0)
+            NdLog("DO POPRAWKI: brak osobnej siatki nowoczesnego nadwieszenia nad KINNAIRD; bez wycinania oryginału");
     }
 
     // WŁAŚCICIEL 3.11 10:12–10:19 (nagrania): „czarne budynki, gdzie są okna”. W modelach Sketchfaba szkło fasad było
