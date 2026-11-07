@@ -20,6 +20,10 @@ on:
       - unity-tools/mistrzowie/test_owner_car_showcase_integration.py
       - unity-tools/mistrzowie/test_a1_premium_exterior_20261107.py
       - unity-tools/mistrzowie/test_premium_reference_regression_20261107.py
+      - unity-tools/mistrzowie/test_a1_t11_before_apk.py
+      - unity-tools/mistrzowie/test_prepare_assets.py
+      - unity-tools/mistrzowie/test_pool_p1_layout.py
+      - unity-tools/mistrzowie/test_t11_owner_approved_exterior_20261107.py
       - unity-tools/mistrzowie/test_arena_side_murals.py
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsSourceReadiness.cs
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1.cs
