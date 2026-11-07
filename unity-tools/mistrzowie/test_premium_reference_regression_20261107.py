@@ -78,6 +78,19 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertIn('24 rigid', text)
         self.assertIn('A1_BELT_OWNER_3D_FRONT_PRESENTATION', text)
 
+    def test_case_is_slender_like_owner_reference_and_not_wide_box(self):
+        text = source('BraxChampionsBeltShowcase.cs')
+        self.assertIn('new Vector2(1.60f,3.72f)',text)
+        self.assertIn('new Vector3(0,2.27f,.405f),new Vector3(1.38f,3.38f,.055f)',text)
+        self.assertIn('foreach(float x in new[]{-.80f,.80f})',text)
+        self.assertIn('new Vector3(1.30f,.56f,.050f)',text)
+        self.assertIn('new Vector3(1.22f,.48f,.018f)',text)
+        self.assertIn('new Vector2(1.08f,.48f)',text)
+        # Glass width/height is deliberately slim, closer to the portrait reference.
+        self.assertLess(1.60/3.72,.44)
+        # Belt width is constrained independently so the exhibit does not fill the glass edge-to-edge.
+        self.assertIn('1.20f/Mathf.Max(b.size.x,.0001f)',text)
+
     def test_case_plaque_faces_front_and_clears_glass(self):
         text = source('BraxChampionsBeltShowcase.cs')
         self.assertIn('Quaternion.Euler(0,180f,0)', text)
