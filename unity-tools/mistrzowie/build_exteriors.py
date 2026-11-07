@@ -91,7 +91,10 @@ def arena(detail):
  # Owner reference 7.11: low two-storey premium glass arena, NOT the old 48m tower.
  # The detailed black stepped pillars, gold insets, warm crown and sign frames are
  # added by BraxChampionsArenaArrival.PremiumExterior on the same 28m shell.
- m=Meshes();n=128;path=ellipse(96,59,n);foot=Polygon(path)
+ # Match the 360-sector, low-facet premium curtain-wall trims in Unity.
+ # 360 segments (~1.3 m per chord) prevent visible faceting at walking range
+ # without enlarging original 2K textures or changing footprint/plot scale.
+ m=Meshes();n=360;path=ellipse(96,59,n);foot=Polygon(path)
  m.slab('stone',box(-110,-75,110,75),.16,.41)
  m.slab('dark_stone',foot,.18,.6)
  # Lower curtain wall. Only the two real door apertures start at 4.5m.
