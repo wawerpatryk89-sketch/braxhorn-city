@@ -15,7 +15,8 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 DEST = ROOT / "unity-city/Assets/Source/Mistrzowie/CasinoT11/Textures2K"
 SLUGS = (
-    "concrete_brick_wall_001",  # OWNER CHOICE: all pale exterior facade panels, native 2K PBR
+    "concrete_brick_wall_001",  # existing original material, retained for older assets
+    "sandstone_blocks_05",         # OWNER-APPROVED 7 Nov: solid side/rear casino masonry, native Poly Haven 2K
     "rectangular_facade_tiles",     # dark graphite exterior
     "granite_tile",                 # podium, planters and forecourt
     "clean_asphalt",                # real parking / roads
