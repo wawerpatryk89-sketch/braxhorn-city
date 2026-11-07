@@ -54,18 +54,19 @@ public static class BraxR1StreetLightingAudit
         return words.Any(x=>text.IndexOf(x,StringComparison.OrdinalIgnoreCase)>=0);
     }
 
-    static bool IsCandidate(Transform t,out bool street,out bool park,out bool legacy)
+    static bool IsCandidate(Transform t,string originalName,out bool street,out bool park,out bool legacy)
     {
         string n=t.name;
+        string names=n+" "+(originalName ?? ""); // oryginalne CityMesh_N z manifestu GLTF
         street=n=="Latarnia uliczna";
         park=n=="Latarnia parkowa";
-        legacy=n.IndexOf("street lamp",StringComparison.OrdinalIgnoreCase)>=0 ||
-               n.IndexOf("streetlight",StringComparison.OrdinalIgnoreCase)>=0 ||
-               n.IndexOf("lamp post",StringComparison.OrdinalIgnoreCase)>=0 ||
-               n.IndexOf("lamppost",StringComparison.OrdinalIgnoreCase)>=0;
+        legacy=names.IndexOf("street lamp",StringComparison.OrdinalIgnoreCase)>=0 ||
+               names.IndexOf("streetlight",StringComparison.OrdinalIgnoreCase)>=0 ||
+               names.IndexOf("lamp post",StringComparison.OrdinalIgnoreCase)>=0 ||
+               names.IndexOf("lamppost",StringComparison.OrdinalIgnoreCase)>=0;
         // NIGDY nie rozpoznawaj po samym "lamp" / "light" — sygnalizator
         // i oprawa budynku to inny obiekt, nie wolno ich kasować.
-        if(HasWord(n,"traffic light","traffic signal","sygnaliz","road sign"))
+        if(HasWord(names,"traffic light","traffic signal","sygnaliz","road sign"))
             return false;
         return street||park||legacy;
     }
@@ -139,12 +140,35 @@ public static class BraxR1StreetLightingAudit
         var notes=new List<string>();
         var removed=new List<string>();
         var roots=scene.GetRootGameObjects();
+        // GLTF zamienia rozpoznawalne oryginalne nazwy elementów na CityMesh_N.
+        // Korzystamy z manifestu źródła; bez niego źródłowe latarnie są
+        // raportowane jako niezweryfikowane, nie kasowane po zgadywaniu.
+        var sourceLabels=new Dictionary<string,string>(StringComparer.Ordinal);
+        try
+        {
+            const string path="Assets/Source/City/city-manifest.json";
+            if(File.Exists(path))
+            {
+                var source=JsonUtility.FromJson<BraxCityBuild.Manifest>(File.ReadAllText(path));
+                if(source!=null && source.meshes!=null)
+                    foreach(var mesh in source.meshes)
+                        if(mesh!=null && !string.IsNullOrEmpty(mesh.name) &&
+                           !string.IsNullOrEmpty(mesh.originalName))
+                            sourceLabels[mesh.name]=mesh.originalName;
+            }
+        }
+        catch(Exception e)
+        {
+            Debug.LogWarning("BRAXHORN_R1_LATARNIE źródłowe nazwy CityMesh niedostępne: "+e.Message);
+        }
         var lamps=new List<Lamp>();
         int unresolved=0, streetCount=0,parkCount=0,legacyCount=0;
         foreach(var root in roots)
         foreach(var tr in root.GetComponentsInChildren<Transform>(true))
         {
-            if(!tr || !IsCandidate(tr,out bool street,out bool park,out bool legacy))continue;
+            if(!tr)continue;
+            sourceLabels.TryGetValue(tr.name,out var originalName);
+            if(!IsCandidate(tr,originalName,out bool street,out bool park,out bool legacy))continue;
             if(OutsideCity(tr))continue;
             if(!TryLamp(tr,street,park,legacy,out var lamp))
             {
