@@ -11,6 +11,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     public Transform driverSeat, doorApproach, doorHinge;
     public BoxCollider bodyCollider;
     public float maxSpeed = 12f, wheelbase = 2.7f, maxSteer = 34f;
+    public float interactionRadius = 3.8f;
     public float acceleration = 5.5f, braking = 9.5f;
     public Transform[] rollingWheels = new Transform[0];
     public Transform[] steeringWheels = new Transform[0];
@@ -53,7 +54,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
                 : Mathf.Abs(speed) > .25f ? "ZATRZYMAJ AUTO, ABY WYSIĄŚĆ"
                 : "WYSIĄDŹ · AUTO BRAXHORN";
         if (transition || !doorApproach) return "";
-        return (position - doorApproach.position).sqrMagnitude <= 3f * 3f
+        return (position - doorApproach.position).sqrMagnitude <= interactionRadius * interactionRadius
             ? "WSIĄDŹ · AUTO BRAXHORN" : "";
     }
 
@@ -69,7 +70,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
             }
             return true;
         }
-        if (transition || (position - doorApproach.position).sqrMagnitude > 9f)
+        if (transition || (position - doorApproach.position).sqrMagnitude > interactionRadius * interactionRadius)
             return false;
         var player = FindAnyObjectByType<BraxGymPlayer>();
         if (!player || !player.body || !player.clips || !player.cityWorld ||
