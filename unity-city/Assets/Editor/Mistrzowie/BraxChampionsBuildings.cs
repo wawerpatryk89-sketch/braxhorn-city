@@ -91,11 +91,26 @@ public static class BraxChampionsBuildings
         // It must NOT change the existing A1 or T01 meshes, prefabs or positions.
         // Kasyno i basen nigdy nie przeszły pełnego Unity w tej gałęzi: błąd = ostrzeżenie
         // z pełnym wyjątkiem w logu, reszta miasta i APK budują się dalej.
-        BraxChampionsFoundation.Optional("kasyno T11",()=>BraxChampionsCasinoT11.Generate(Out));
+        bool casinoGenerated=false,poolGenerated=false;
+        BraxChampionsFoundation.Optional("kasyno T11",()=>
+        {
+            BraxChampionsCasinoT11.Generate(Out);
+            casinoGenerated=true;
+        });
         // P1 source is a separate modular facade/SPA prefab on its reserved plot.
-        BraxChampionsFoundation.Optional("basen P1",()=>BraxChampionsPoolP1.Generate());
+        BraxChampionsFoundation.Optional("basen P1",()=>
+        {
+            BraxChampionsPoolP1.Generate();
+            poolGenerated=true;
+        });
         AssetDatabase.SaveAssets();
-        return d.buildings.Length+2;
+        // Optional catches failures: count only generators that returned normally.
+        // A partial scene must never be reported as four completed exteriors.
+        int generated=d.buildings.Length+(casinoGenerated?1:0)+(poolGenerated?1:0);
+        Debug.Log("CHAMPIONS_BUILDING_GENERATION base="+d.buildings.Length+
+            " T11="+casinoGenerated+" P1="+poolGenerated+" generated="+generated+
+            " visualAccepted=false");
+        return generated;
     }
     static Renderer MeshObject(Transform parent,string id,BraxChampionsFoundation.MeshData d,Material material,bool collision)
     {
