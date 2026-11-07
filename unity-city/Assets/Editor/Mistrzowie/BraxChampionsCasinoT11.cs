@@ -16,7 +16,7 @@ public static class BraxChampionsCasinoT11
     static string output;
     static int serial;
     static Transform root,shell,trim,signRoot;
-    static Material cream,graphite,granite,asphalt,paving,gold,steel,glass,skylightGlass,led,roof,redCarpet,parkingPaint;
+    static Material cream,graphite,granite,asphalt,paving,gold,pillarGold,steel,glass,frontGlass,towerGlass,skylightGlass,led,roof,redCarpet,parkingPaint;
     // White finishes are GARAGE-ONLY. Do not repaint the owner-approved casino exterior.
     static Material garageWhite,garageWhiteBeam,garageBlackAsphalt,garageParkingPaint;
 
@@ -33,6 +33,14 @@ public static class BraxChampionsCasinoT11
         asphalt=BraxChampionsCasinoPbr2K.Create(output,"t11_asphalt","clean_asphalt",2.1f,new Color(.9f,.9f,.9f));
         gold=Surface("champagne_bronze",new Color(.75f,.57f,.32f),false,false);
         gold.SetFloat("_Metallic",.88f);gold.SetFloat("_Roughness",.25f);
+        // Właściciel: wszystkie widoczne filary ZŁOTE i połyskujące.
+        // Prawdziwe oryginalne 4K PBR Metal048A z przygotowanej biblioteki,
+        // nie jednolity żółty plastik i nie nowy zamiennik tekstur.
+        pillarGold=BraxChampionsFoundation.LibraryMetal(
+            "T11_all_gold_polished_columns",new Color(1f,.76f,.34f));
+        pillarGold.SetFloat("_Metallic",.95f);
+        pillarGold.SetFloat("_Roughness",.18f);
+        EditorUtility.SetDirty(pillarGold);
         steel=Surface("satin_steel",new Color(.32f,.34f,.37f),false,false);
         steel.SetFloat("_Metallic",.83f);steel.SetFloat("_Roughness",.38f);
         roof=BraxChampionsCasinoPbr2K.Create(output,"t11_roof","concrete_floor_02",2.1f,new Color(.27f,.29f,.32f));
@@ -52,6 +60,12 @@ public static class BraxChampionsCasinoT11
         garageBlackAsphalt=BraxChampionsCasinoPbr2K.Create(output,"t11_B1_black_asphalt",
             "clean_asphalt",2.1f,new Color(.40f,.40f,.41f));
         glass=Surface("clear_glass",new Color(.68f,.80f,.88f,.31f),true,false);
+        // Front: SLIGHTLY darkened but legible transparent glass, warm gold
+        // frame divisions and visible interior. Does not tint side masonry.
+        frontGlass=Surface("front_smoke_glass",new Color(.55f,.63f,.71f,.22f),true,false);
+        // Office tower must look like a COMPLETED blue-glass building,
+        // not transparent bare framework against the sky.
+        towerGlass=Surface("office_tower_blue_glass",new Color(.28f,.40f,.53f,.76f),true,false);
         // The reference drawing has a blue-violet translucent glazed roof lantern.
         skylightGlass=Surface("roof_skylight_glass",new Color(.48f,.56f,.76f,.38f),true,false);
         led=Surface("warm_led",new Color(.92f,.78f,.57f),false,true);
@@ -71,6 +85,8 @@ public static class BraxChampionsCasinoT11
             m.SetFloat("_SrcBlend",(float)BlendMode.SrcAlpha);
             m.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);
             m.SetFloat("_ZWrite",0);
+            m.SetFloat("_Cull",2);
+            m.SetFloat("_AlphaClip",0);
             m.SetOverrideTag("RenderType","Transparent");m.renderQueue=3000;
         }
         if(emissive)m.SetColor("_EmissionColor",new Color(1.1f,.70f,.34f));
@@ -104,11 +120,12 @@ public static class BraxChampionsCasinoT11
         o.transform.localScale=new Vector3(w,h,d)*K;
         var renderer=o.GetComponent<MeshRenderer>();
         renderer.sharedMaterial=mat;
-        if(mat==glass){renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;}
-        if(tiled || ((mat==cream || mat==graphite || mat==granite || mat==roof || mat==paving || mat==asphalt) && Mathf.Max(w,Mathf.Max(h,d))>3f))
+        bool transparent=mat==glass||mat==frontGlass||mat==towerGlass||mat==skylightGlass;
+        if(transparent){renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;}
+        if(tiled || ((mat==cream || mat==graphite || mat==granite || mat==roof || mat==paving || mat==asphalt || mat==pillarGold) && Mathf.Max(w,Mathf.Max(h,d))>3f))
             Tile(o,new Vector3(w,h,d));
         if(!solid)UnityEngine.Object.DestroyImmediate(o.GetComponent<Collider>());
-        if(mat!=glass && mat!=led)
+        if(!transparent && mat!=led)
             GameObjectUtility.SetStaticEditorFlags(o,StaticEditorFlags.OccludeeStatic|StaticEditorFlags.BatchingStatic);
         return o;
     }
@@ -118,15 +135,42 @@ public static class BraxChampionsCasinoT11
     }
     static void FrontPanel(float x,float z,float w,float bottom,float height)
     {
-        B(shell,"T11 two-storey front glazing",glass,x,bottom+height*.5f,z,w,height,.11f);
-        foreach(float v in new[]{x-w*.5f,x+w*.5f})
-            B(trim,"Champagne vertical glass mullion",gold,v,bottom+height*.5f,z-.1f,.13f,height,.14f,false);
+        // Approved: two-storey GLAZED frontage; smoky yet transparent panes.
+        B(shell,"T11 premium slightly tinted FRONT glass",frontGlass,
+            x,bottom+height*.5f,z,w,height,.11f,false);
+        foreach(float v in new[]{x-w*.5f,x,x+w*.5f})
+            B(trim,"T11 glossy gold front glass mullion",pillarGold,
+                v,bottom+height*.5f,z-.14f,.18f,height,.18f,false);
+        B(trim,"T11 fine gold framing at window sill",gold,
+            x,bottom+.055f,z-.16f,w,.09f,.11f,false);
+        B(trim,"T11 fine gold framing over window",gold,
+            x,bottom+height-.055f,z-.16f,w,.09f,.11f,false);
     }
     static void SidePanel(float x,float z,float w,float bottom,float height)
     {
-        B(shell,"T11 two-storey side glazing",glass,x,bottom+height*.5f,z,.11f,height,w);
-        foreach(float v in new[]{z-w*.5f,z+w*.5f})
-            B(trim,"Champagne side frame",gold,x-.1f,bottom+height*.5f,v,.14f,height,.13f,false);
+        // Owner's facade contract: after the principal glazed front,
+        // SIDE wings are mostly MASONRY. Keep one narrow, real window per
+        // 6.5m bay instead of the previous full-length glass curtain wall.
+        // Current original cream Poly Haven finish is retained temporarily;
+        // user selects the final masonry material separately.
+        const float slot=1.40f;
+        float stoneWidth=(w-slot)*.5f;
+        float y=bottom+height*.5f;
+        float offset=(slot+stoneWidth)*.5f;
+        B(shell,"T11 real solid Poly Haven MASONRY side left",cream,
+            x,y,z-offset,.35f,height,stoneWidth,true,true);
+        B(shell,"T11 real solid Poly Haven MASONRY side right",cream,
+            x,y,z+offset,.35f,height,stoneWidth,true,true);
+        B(shell,"T11 slim lightly tinted side window",frontGlass,
+            x,y,z,.13f,height,slot,false);
+        float outerX=x+Mathf.Sign(x)*.22f;
+        foreach(float zz in new[]{z-slot*.5f,z+slot*.5f})
+            B(trim,"T11 polished gold vertical side reveal",pillarGold,
+                outerX,y,zz,.15f,height,.14f,false);
+        B(trim,"T11 masonry window gold top frame",gold,
+            outerX,bottom+height-.05f,z,.12f,.1f,slot,false);
+        B(trim,"T11 masonry window gold sill",gold,
+            outerX,bottom+.05f,z,.12f,.1f,slot,false);
     }
 
     static void ThreeMatchingFacades()
@@ -137,7 +181,8 @@ public static class BraxChampionsCasinoT11
             for(int bay=0;bay<3;bay++)
             {
                 float x=side*(19f+bay*7.6f);
-                B(shell,"Front pale facade pilaster",cream,x,7.1f,-27.9f,.82f,13.8f,.85f);
+                B(shell,"T11 GOLD glossy front structural pilaster",pillarGold,
+                    x,7.1f,-27.9f,1.16f,13.8f,1.00f);
                 if(bay<2)
                 {
                     FrontPanel(side*(22.8f+bay*7.6f),-28.02f,6.1f,.28f,5.85f);
@@ -150,7 +195,8 @@ public static class BraxChampionsCasinoT11
             for(int bay=0;bay<7;bay++)
             {
                 float zz=-23.0f+bay*7.55f;
-                B(shell,"Cream stone side pilaster",cream,xx,7.1f,zz,.82f,13.8f,.92f);
+                B(shell,"T11 GOLD glossy side structural pilaster",pillarGold,
+                    xx,7.1f,zz,1.10f,13.8f,1.02f);
                 if(bay<6)
                 {
                     SidePanel(side*38.08f,zz+3.7f,6.5f,.3f,5.8f);
@@ -164,13 +210,12 @@ public static class BraxChampionsCasinoT11
             for(int bay=0;bay<6;bay++)
                 B(trim,"Side warm facade light",led,side*38.55f,5.1f,-19.6f+bay*8.9f,.10f,1.35f,.18f,false);
         }
-        // Reference drawing: two full-height graphite/black marble gateway
-        // pylons between the curved atrium and both ivory facade wings.
-        // These close the unsightly gaps at +/-17m, with real relief and gold LED.
+        // Preserve the two full-height gateway pylons, now GOLD as explicitly
+        // approved by the owner. Modest 0.25m widening retains the doorway.
         foreach(float side in new[]{-1f,1f})
         {
-            B(shell,"Full-height premium black granite entry pylon",graphite,
-                side*18.25f,7.10f,-28f,2.5f,14.1f,2.35f);
+            B(shell,"T11 tall GOLD polished main entrance pylon",pillarGold,
+                side*18.25f,7.10f,-28f,2.75f,14.1f,2.35f);
             B(trim,"T11 champagne vertical entry reveal",gold,
                 side*18.25f,7.02f,-29.27f,.15f,13.8f,.13f,false);
             B(trim,"T11 warm recessed vertical pylon LED",led,
@@ -185,7 +230,8 @@ public static class BraxChampionsCasinoT11
         B(trim,"Rear champagne cornice",gold,0,13.72f,28.45f,75f,.20f,.14f,false);
         B(trim,"Rear warm gold LED line",led,0,13.86f,28.52f,74.4f,.085f,.10f,false);
         foreach(float xx in new[]{-36f,-25f,-14f,-3f,8f,19f,30f,36f})
-            B(trim,"Rear polished graphite pilaster",graphite,xx,7.3f,28.49f,.58f,12.7f,.18f,false);
+            B(shell,"T11 glossy GOLD masonry rear pilaster",pillarGold,
+                xx,7.3f,28.49f,.74f,12.7f,.25f,false);
         foreach(float xx in new[]{-32f,-8f,17f,32f})
             B(trim,"Rear warm architectural light",led,xx,5.6f,28.62f,.08f,2.2f,.14f,false);
         // No fake solid service doors; this is a reserved open loading aperture.
@@ -280,12 +326,13 @@ public static class BraxChampionsCasinoT11
             float length=delta.magnitude;
             Quaternion yaw=Quaternion.Euler(0,Mathf.Atan2(-delta.z,delta.x)*Mathf.Rad2Deg,0);
             float bottom=Mathf.Abs(centre.x)<3.1f?3.9f:.26f;
-            var pane=B(shell,"Curved two-storey original glass frontage",glass,
+            var pane=B(shell,"Curved two-storey original glass frontage",frontGlass,
                 centre.x,(10.8f+bottom)*.5f,centre.z,length+.045f,10.8f-bottom,.115f);
             pane.transform.localRotation=yaw;
-            if(i%4==0)
+            if(i%3==0)
             {
-                var mullion=B(trim,"Curved bronze vertical frame",gold,pa.x,5.55f,pa.z,.13f,10.6f,.14f,false);
+                var mullion=B(trim,"T11 GOLD glossy curved atrium frame",pillarGold,
+                    pa.x,5.55f,pa.z,.19f,10.6f,.19f,false);
                 mullion.transform.localRotation=yaw;
             }
             foreach(float level in new[]{11.05f,14.12f})
@@ -306,7 +353,7 @@ public static class BraxChampionsCasinoT11
         B(shell,"Unobstructed accessible middle ramp",paving,0,.22f,-40f,7.2f,.08f,7.7f,true,true);
         // Seal only the lintel gap above operable door leaves; keep a full
         // unobstructed 5.6m public passage at human height.
-        B(shell,"Real clear fixed door transom glass",glass,0,3.75f,-36.13f,5.7f,.32f,.10f,false);
+        B(shell,"Real clear fixed door transom glass",frontGlass,0,3.75f,-36.13f,5.7f,.32f,.10f,false);
         B(trim,"Gold entry transom horizontal frame",gold,0,3.59f,-36.19f,5.95f,.07f,.12f,false);
         Door("T11_CASINO_WAWER_PUBLIC","Public glass main entry",0,-36.28f,180f,5.6f);
     }
@@ -323,7 +370,7 @@ public static class BraxChampionsCasinoT11
             var hinge=Group(group,"Glass door leaf "+(i+1));
             hinge.localPosition=new Vector3(side*width*.5f,0,0)*K;
             leaves[i]=hinge;
-            B(hinge,"Toughened clear door glass",glass,-side*width*.25f,1.8f,0,width*.5f,3.6f,.09f,true);
+            B(hinge,"Toughened clear door glass",frontGlass,-side*width*.25f,1.8f,0,width*.5f,3.6f,.09f,true);
             B(hinge,"Champagne door pull",gold,-side*.27f,1.35f,.10f,.07f,.68f,.075f,false);
         }
         var working=group.gameObject.AddComponent<BraxCityDoor>();
