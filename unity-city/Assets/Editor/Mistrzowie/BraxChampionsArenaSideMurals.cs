@@ -28,19 +28,12 @@ public static class BraxChampionsArenaSideMurals
 
     static string Pick(string hd, string original)
     {
-        // Unity asset paths are relative to the project, while the CI process
-        // can run from the repository root. File.Exists("Assets/...") therefore
-        // depends on the process working directory and can miss an installed HD
-        // mural. AssetDatabase is the authoritative lookup inside the Unity project.
-        if (AssetDatabase.LoadAssetAtPath<Texture2D>(hd)) return hd;
-        if (AssetDatabase.LoadAssetAtPath<Texture2D>(original))
+        if (File.Exists(hd))
         {
-            BraxBuildQuality.Warn("A1 HD mural unavailable: " + hd +
-                "; using verified owner original for this scene");
-            return original;
+            AssetDatabase.ImportAsset(hd, ImportAssetOptions.ForceSynchronousImport);
+            if (AssetDatabase.LoadAssetAtPath<Texture2D>(hd)) return hd;
         }
-        BraxBuildQuality.Warn("CHAMPIONS_A1_SIDE_MURAL_SOURCE_MISSING hd=" + hd +
-            " original=" + original + " buildContinuesForReport=true");
+        BraxBuildQuality.Warn("A1 HD mural unavailable: " + hd + "; fallback is NOT HD acceptance");
         return original;
     }
 
@@ -60,9 +53,6 @@ public static class BraxChampionsArenaSideMurals
         material.SetFloat("_Metallic", 0f);
         material.SetFloat("_Roughness", .88f);
         material.SetFloat("_VertexTint", 0f);
-        // Keep the printed wall visible even if a future mesh/export changes
-        // triangle winding. This changes no pixels, UVs, scale or wall placement.
-        material.SetFloat("_Cull", 0f);
         material.SetVector("_SunDirection", BraxCityMaterials.SunDirection);
         AssetDatabase.CreateAsset(material, Output + "/Side_" + side + "_Original.mat");
         return material;
@@ -137,8 +127,7 @@ public static class BraxChampionsArenaSideMurals
         GameObjectUtility.SetStaticEditorFlags(surface, StaticEditorFlags.OccludeeStatic);
         // Printed surface only: do not create a collider or change structural walls.
         Debug.Log("CHAMPIONS_A1_SIDE_MURAL_APPLIED " + side + " source=" + sourcePath +
-            " sourcePixels=" + sourceWidth + "x" + sourceHeight +
-            " wall=70x27.945 originalArt=70x23.333 twoSided=true");
+            " sourcePixels=" + sourceWidth + "x" + sourceHeight + " wall=70x27.945 originalArt=70x23.333");
         return true;
     }
 
