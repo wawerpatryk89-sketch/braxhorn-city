@@ -62,9 +62,17 @@ public static class BraxSupermarket
         float half = W * .5f, entryX = mirror ? -(half - 5f*K) : half - 5f*K;
         float doorWidth = 2.4f*K, bodyHeight = 2.6f*K;
         Vector3 door = store.TransformPoint(new Vector3(entryX, 0f, 0f));
-        var opening = new Bounds(store.TransformPoint(new Vector3(entryX,
-            bodyHeight*.5f, -.9f)), new Vector3(doorWidth+1.25f,
-            bodyHeight+.4f, 9.8f));
+        // Objętość wycięcia w WORLD AABB musi uwzględnić obrót sklepu
+        // 0/90/180/270; inaczej w sklepie obróconym o 90° tnie obok drzwi.
+        var xaxis = store.right, zaxis = store.forward;
+        var bbWidth = doorWidth+1.25f;
+        var bbDepth = 9.8f;
+        var cutSize = new Vector3(
+            Mathf.Abs(xaxis.x)*bbWidth+Mathf.Abs(zaxis.x)*bbDepth,
+            bodyHeight+.4f,
+            Mathf.Abs(xaxis.z)*bbWidth+Mathf.Abs(zaxis.z)*bbDepth);
+        var opening = new Bounds(store.TransformPoint(
+            new Vector3(entryX, bodyHeight*.5f, -.9f)), cutSize);
         // Oś sklepu może być obrócona o 90°, zatem weryfikacja terenu
         // i wejścia używa współrzędnych LOKALNYCH sklepu.
         bool Inside(Vector3 p, bool hall)
