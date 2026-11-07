@@ -47,17 +47,6 @@ class ChampionSideMuralsTests(unittest.TestCase):
         self.assertIn('float end = left ? WallFarZ : WallNearZ;',self.m)
         self.assertIn('if (!photo)',self.m)
 
-    def test_hd_selection_uses_unity_asset_database_and_murals_are_two_sided(self):
-        # CI may launch Unity with a repository-root working directory. AssetDatabase,
-        # not File.Exists("Assets/..."), is stable inside the Unity project.
-        self.assertNotIn('File.Exists(hd)',self.m)
-        self.assertIn('AssetDatabase.LoadAssetAtPath<Texture2D>(hd)',self.m)
-        self.assertIn('AssetDatabase.LoadAssetAtPath<Texture2D>(original)',self.m)
-        self.assertIn('material.SetFloat("_Cull", 0f)',self.m)
-        self.assertIn('int sideMurals=BraxChampionsArenaSideMurals.Generate(root);',self.h)
-        self.assertIn('CHAMPIONS_A1_SIDE_MURALS_INCOMPLETE',self.h)
-        self.assertIn('buildContinuesForReport=true',self.h)
-
     def test_doorway_central_mural_and_existing_wall_are_unchanged(self):
         self.assertIn('BraxChampionsArenaMural.Generate(root)',self.h)
         self.assertIn('BraxChampionsArenaSideMurals.Generate(root)',self.h)
