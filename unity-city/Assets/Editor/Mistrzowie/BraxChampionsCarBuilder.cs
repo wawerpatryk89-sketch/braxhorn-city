@@ -107,9 +107,12 @@ public static class BraxChampionsCarBuilder
             throw new InvalidOperationException("Import the EXISTING estate car_rev.glb, not a placeholder: " + OwnerCar);
         var root = new GameObject("A1 | ORIGINAL estate sports car for Brax | WORKING joystick vehicle");
         root.transform.SetParent(parent, false);
-        // Real marked western car-park bay; x local -37.55, z local -89.
-        // Centre entrance aisle x=-8..8 remains fully clear. Not on a road.
-        root.transform.position = new Vector3(637.55f, .16f, 711f) * K;
+        // Exact centre of a regular EAST car-park bay.
+        // Local x=45.175 is midway between stall lines 43.65/46.70;
+        // local z=-88.0 is the centre of the -90.6..-85.4 row.
+        // This keeps the showcase car off paint, away from the accessible bay
+        // and clear of the pedestrian route.
+        root.transform.position = new Vector3(645.175f, .16f, 712f) * K;
         root.transform.rotation = Quaternion.identity;
         var copy = UnityEngine.Object.Instantiate(source, root.transform, false);
         copy.name = "ORIGINAL car_rev GLB from estate, unchanged mesh + PBR";
@@ -201,7 +204,7 @@ public static class BraxChampionsCarBuilder
             BraxBuildQuality.Warn("A1_OWNER_CAR_SCALE_ADVISORY: expected 4.95m, got " + bounds.size.z.ToString("F2") + "m");
         Debug.Log("A1_OWNER_CAR_INSTALLED original=car_rev length=" +
             bounds.size.z.ToString("F2") + " bodyCollider=REAL_BOUNDS" +
-            " start=(637.55,711) side=RIGHT driverDoorFacesWalkway=true originalDoor=" + (doorPivot != null) +
+            " start=(645.175,712) side=RIGHT centredInRegularBay=true driverDoorFacesWalkway=true originalDoor=" + (doorPivot != null) +
             " ownerAnimations=EnteringCar,Driving,ExitingCar" +
             " physicalScale=REAL_METRES noExtraK=true no_fake_collision=true manual_phone_review_required=true");
     }
