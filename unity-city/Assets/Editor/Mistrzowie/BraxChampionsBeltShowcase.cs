@@ -211,59 +211,98 @@ public static class BraxChampionsBeltShowcase
             UnityEngine.Object.DestroyImmediate(c);
     }
 
+    // Render a REGION of the owner's original 3:1 label atlas. Never rewrite,
+    // generate, crop, stretch the source pixels into a new image, or change the
+    // artwork. The atlas has two front emblems and a separate B side emblem.
+    // The old code displayed all of them together on a single FRONT quad.
+    static void AtlasLabel(Transform display, Material material,
+        string id, Vector3 position, Quaternion rotation,
+        Vector2 size, float u0, float u1, float v0, float v1)
+    {
+        var mesh = new Mesh { name = "A1 owner original atlas UV | " + id };
+        mesh.vertices = new[] {
+            new Vector3(-.5f,-.5f,0),new Vector3(.5f,-.5f,0),
+            new Vector3(.5f,.5f,0),new Vector3(-.5f,.5f,0)
+        };
+        mesh.uv = new[] {
+            new Vector2(u0,v0),new Vector2(u1,v0),
+            new Vector2(u1,v1),new Vector2(u0,v1)
+        };
+        mesh.triangles = new[] {0,1,2,0,2,3};
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        AssetDatabase.CreateAsset(mesh,Meshes+"A1_owner_case_"+id+"_UV.asset");
+        var label = new GameObject("OWNER ORIGINAL LABEL | "+id);
+        label.transform.SetParent(display,false);
+        label.transform.localPosition=position;
+        label.transform.localRotation=rotation;
+        label.transform.localScale=new Vector3(size.x,size.y,1f);
+        label.AddComponent<MeshFilter>().sharedMesh=mesh;
+        var renderer=label.AddComponent<MeshRenderer>();
+        renderer.sharedMaterial=material;
+        renderer.shadowCastingMode=ShadowCastingMode.Off;
+        renderer.receiveShadows=false;
+        // Printed image only; no collider or hidden obstructing panel.
+    }
+
     static void OriginalRectangleArtwork(Transform display, Material gold, Material bronze)
     {
-        // Real 3-D gold rectangle located BELOW the suspended 3-D belt.
-        Cube(display, "Raised bronze rim of the 3D rectangular emblem",
-            bronze, new Vector3(0, 1.075f, -.245f),
-            new Vector3(2.31f, .81f, .115f));
-        Cube(display, "SOLID GOLD RECTANGLE for owner BRAXHORN ARENA sticker",
-            gold, new Vector3(0, 1.075f, -.319f),
-            new Vector3(2.22f, .74f, .135f));
+        // Narrow solid GOLD rectangular plate below the championship belt.
+        // Front and right-hand SIDE are two distinct surfaces, not one atlas
+        // stretched over the front. Both are inside the crystal glass case.
+        Cube(display,"BRAXHORN | narrower bronze plate outline",bronze,
+            new Vector3(0,1.075f,-.239f),new Vector3(1.88f,.88f,.12f));
+        Cube(display,"SOLID GOLD RECTANGLE for owner BRAXHORN ARENA sticker",gold,
+            new Vector3(0,1.075f,-.321f),new Vector3(1.78f,.80f,.135f));
+        Cube(display,"SOLID GOLD SIDE RECTANGLE for owner B emblem",gold,
+            new Vector3(.920f,1.075f,-.321f),new Vector3(.075f,.78f,.65f));
 
-        var image = AssetDatabase.LoadAssetAtPath<Texture2D>(OriginalPlaque);
-        if (!image)
+        var image=AssetDatabase.LoadAssetAtPath<Texture2D>(OriginalPlaque);
+        if(!image)
         {
-            BraxBuildQuality.Warn("A1_SHOWCASE_OWNER_IMAGE_PENDING: use exact original photo " + OriginalPlaque);
+            BraxBuildQuality.Warn("A1_SHOWCASE_OWNER_IMAGE_PENDING: original label atlas missing: "+OriginalPlaque);
             return;
         }
-        var importer = AssetImporter.GetAtPath(OriginalPlaque) as TextureImporter;
-        if (!importer)
+        var importer=AssetImporter.GetAtPath(OriginalPlaque) as TextureImporter;
+        if(!importer)
         {
-            BraxBuildQuality.Warn("A1_SHOWCASE_OWNER_IMAGE_IMPORTER_MISSING: " + OriginalPlaque);
+            BraxBuildQuality.Warn("A1_SHOWCASE_OWNER_IMAGE_IMPORTER_MISSING: "+OriginalPlaque);
             return;
         }
-        importer.GetSourceTextureWidthAndHeight(out int sourceWidth, out int sourceHeight);
-        if (sourceWidth != 1536 || sourceHeight != 512)
+        importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
+        if(sourceWidth!=1536||sourceHeight!=512)
         {
             BraxBuildQuality.Warn("A1_SHOWCASE_OWNER_IMAGE_WRONG_SOURCE_SIZE: expected 1536x512, source="+
                 sourceWidth+"x"+sourceHeight+" "+OriginalPlaque);
             return;
         }
-        if (image.width != 1536 || image.height != 512)
-            BraxBuildQuality.Warn("A1_SHOWCASE_OWNER_IMAGE_ANDROID_IMPORT: original image remains 1536x512, "+
-                "imported="+image.width+"x"+image.height+". Keep the owner's original artwork on the plaque.");
-        var shader = Shader.Find(BraxCityMaterials.ShaderName);
-        if (!shader) throw new InvalidOperationException("A1 display plaque PBR shader missing");
-        var material = new Material(shader) {
-            name = "A1 owner's unmodified BRAXHORN ARENA logo", enableInstancing = true
+        var shader=Shader.Find(BraxCityMaterials.ShaderName);
+        if(!shader)throw new InvalidOperationException("A1 original label PBR shader missing");
+        var material=new Material(shader) {
+            name="A1 original BRAXHORN ARENA + B atlas | front and side, unedited",
+            enableInstancing=true
         };
-        material.SetTexture("_MainTex", image);
-        material.SetColor("_Color", Color.white);
-        material.SetFloat("_VertexTint", 0);
-        material.SetFloat("_Roughness", .35f);
-        material.SetFloat("_Metallic", 0);
-        material.SetVector("_SunDirection", BraxCityMaterials.SunDirection);
-        AssetDatabase.CreateAsset(material, Materials + "A1_owner_case_plaque.mat");
-        var sticker = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        sticker.name = "EXACT owner black-and-gold bull BRAXHORN ARENA artwork on gold rectangle";
-        sticker.transform.SetParent(display, false);
-        sticker.transform.localPosition = new Vector3(0, 1.075f, -.390f);
-        // The case front is local -Z; the unrotated Unity quad faces that side.
-        sticker.transform.localRotation = Quaternion.identity;
-        sticker.transform.localScale = new Vector3(2.13f, .71f, 1);
-        sticker.GetComponent<MeshRenderer>().sharedMaterial = material;
-        UnityEngine.Object.DestroyImmediate(sticker.GetComponent<Collider>());
+        material.SetTexture("_MainTex",image);
+        material.SetColor("_Color",Color.white);
+        material.SetFloat("_VertexTint",0f);
+        material.SetFloat("_Roughness",.35f);
+        material.SetFloat("_Metallic",0f);
+        material.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        AssetDatabase.CreateAsset(material,Materials+"A1_owner_case_plaque.mat");
+
+        // Source atlas proportions: second BRAXHORN ARENA emblem, then side B.
+        // UV masks select only existing artwork; no image is regenerated.
+        // The front print faces towards the front glass at local -Z.
+        AtlasLabel(display,material,"FRONT_BRAXHORN_ARENA",
+            new Vector3(0,1.075f,-.403f),Quaternion.Euler(0,180f,0),
+            new Vector2(1.59f,.73f),.397f,.777f,.12f,.90f);
+        // The B emblem belongs exclusively on the RIGHT SIDE (+X).
+        AtlasLabel(display,material,"RIGHT_SIDE_B_CRESt",
+            new Vector3(.970f,1.075f,-.321f),Quaternion.Euler(0,90f,0),
+            new Vector2(.52f,.70f),.791f,.938f,.12f,.90f);
+        Debug.Log("CHAMPIONS_A1_PLAQUE_ATLAS_OWNER_ORIGINAL front=BRAXHORN_ARENA"+
+            " side=B frontPanels=1 sidePanels=1 ownerPixelsUnchanged=true"+
+            " narrowedGoldRectangle=true source="+sourceWidth+"x"+sourceHeight);
     }
 
     public static void Generate(Transform arenaInterior)
