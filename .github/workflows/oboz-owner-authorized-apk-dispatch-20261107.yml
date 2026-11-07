@@ -1,0 +1,42 @@
+name: Obóz — owner authorized APK dispatch 20261107
+
+on:
+  push:
+    branches: [codex/oboz-przebudowa-pbr-20261105]
+    paths: [.github/workflows/oboz-owner-authorized-apk-dispatch-20261107.yml]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Verify tested scene and unchanged game files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TESTED_SHA: c6fba5234fae65d9bd21d9a79499778fd159084e
+          SCENE_RUN: "42330616645"
+        run: |
+          set -euo pipefail
+          payload="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SCENE_RUN")"
+          test "$(jq -r '.status' <<<"$payload")" = completed
+          test "$(jq -r '.conclusion' <<<"$payload")" = success
+          mapfile -t changed < <(git diff --name-only "$TESTED_SHA"..HEAD)
+          for f in "${changed[@]}"; do
+            case "$f" in
+              .github/workflows/*) ;;
+              *) echo "::error::Game/source changed after tested SHA: $f"; exit 1 ;;
+            esac
+          done
+      - name: Dispatch exactly one full camp APK on rebuild branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run oboz-unity-build.yml             --repo "$GITHUB_REPOSITORY"             --ref codex/oboz-przebudowa-pbr-20261105             -f quality_review=false             -f first_install=false             -f content_action=none             -f expected_sha=
+          echo "OBOZ_OWNER_AUTHORIZED_APK_DISPATCHED=1"
