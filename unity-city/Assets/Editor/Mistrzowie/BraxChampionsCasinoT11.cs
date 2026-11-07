@@ -622,7 +622,7 @@ public static class BraxChampionsCasinoT11
         // Top approach joins the front forecourt at z=-37.5 exactly, with
         // identical surface elevation. It ends where the ramp begins (z=-22).
         B(basement,"Garage entrance from VIP/TAXI circulation",asphalt,
-            44.225f,.221f,-29.75f,9.35f,.055f,15.5f,true,true);
+            44.225f,.228f,-29.75f,9.35f,.041f,15.5f,true,true);
         B(basement,"Garage gate LEFT graphite pier",graphite,
             39.20f,2.52f,-22f,.45f,4.65f,.76f,true,true);
         B(basement,"Garage gate RIGHT graphite pier",graphite,
@@ -781,7 +781,9 @@ public static class BraxChampionsCasinoT11
             44.225f,-.063f,23f,10.15f,.015f,12f,false);
         // All exterior asphalt around T11 shares one exact finish elevation:
         // top y=.2485. Junctions meet EDGE-TO-EDGE; no duplicated road slabs.
-        const float roadY=.221f, roadH=.055f, roadTop=.2485f;
+        // The stone plot base finishes at y=.2075, so the wearing course begins
+        // exactly there: physical contact without penetrating the base volume.
+        const float roadY=.228f, roadH=.041f, roadTop=.2485f;
         void ConcreteCurb(string id,float x,float z,float w,float d)
             => B(trim,id,paving,x,roadTop+.070f,z,w,.14f,d,true,true);
         void Drain(string id,float x,float z,float w,float d)
@@ -799,10 +801,10 @@ public static class BraxChampionsCasinoT11
             {
                 for(int i=0;i<=3;i++)
                     B(trim,"T11 3 VIP marked front parking bays | delimiter "+i,
-                        parkingPaint,-38.1f+i*3.9f,.285f,-43.8f,
-                        .10f,.014f,5.6f,false);
+                        parkingPaint,-38.1f+i*3.9f,roadTop+.004f,-43.8f,
+                        .10f,.008f,5.6f,false);
                 B(trim,"T11 3 VIP bays | common head line",parkingPaint,
-                    -32.25f,.285f,-46.55f,11.7f,.014f,.10f,false);
+                    -32.25f,roadTop+.004f,-46.55f,11.7f,.008f,.10f,false);
             }
             foreach(float z in new[]{-32f,33f})
                 B(shell,"Champagne black granite planter",granite,
@@ -828,14 +830,15 @@ public static class BraxChampionsCasinoT11
         // Zebra crossing and separate spectator axis: no vehicle routes across
         // the entrance doors, and no parking painted onto concrete sidewalks.
         foreach(float x in new[]{-8.4f,-7.0f,-5.6f,5.6f,7.0f,8.4f})
-            B(trim,"White zebra marking on asphalt",parkingPaint,x,.287f,-41.5f,
-                .60f,.012f,5.5f,false);
+            B(trim,"White zebra marking on asphalt",parkingPaint,x,roadTop+.004f,-41.5f,
+                .60f,.008f,5.5f,false);
         // CITY ROAD -> FRONT LOT: full 11m connector, including the old
-        // 7m SIDEWALK. X400 roadway ends at world x410; casino circulation
-        // begins at x442.5, z=417..428. The foundation removes the exact
-        // x410..417 sidewalk strip so this single drivable slope is seamless:
-        // Real source street ASPHALT is y=0 (paving is y=.16).
-        // Rise .2485m / 32.5m = 0.765%; no curb or vertical step.
+        // 7m SIDEWALK. X400 roadway ends at world x410; the graded connector
+        // continues to the front-road edge at world x445.5, z=417..428.
+        // The foundation removes the exact x410..417 sidewalk strip; inside
+        // the casino plot the same mesh continues without another road seam.
+        // Real source street ASPHALT is y=0.
+        // Rise .2485m / 35.5m = 0.700%; no curb or vertical step.
         GradedDrive(shell,"left_street_road_connection",asphalt,
             -85f,-49.5f,-48f,-37f,0f,roadTop,true);
         B(shell,"Casino pedestrian main axis",granite,0,.22f,-43.7f,8.1f,.08f,11.7f,true,true);
