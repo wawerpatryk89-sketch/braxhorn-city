@@ -361,6 +361,194 @@ public static class BraxChampionsArenaArrival
         return found;
     }
 
+
+    // Premium A1: physically modelled curtain-wall trims and two real entrance
+    // porticos. All visible solids reuse the VERIFIED original Poly Haven stone
+    // and PBR metal/glass already loaded for this building. The underlying
+    // approved ellipse, windows, doors, murals and signage are NEVER replaced.
+    // Geometry is combined into a handful of meshes for Android performance.
+    sealed class FacadeBatch
+    {
+        readonly List<Vector3> positions = new List<Vector3>();
+        readonly List<Vector2> uvs = new List<Vector2>();
+        readonly List<int> triangles = new List<int>();
+        void Face(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float u, float v)
+        {
+            int n=positions.Count;
+            positions.Add(a*K); positions.Add(b*K);
+            positions.Add(c*K); positions.Add(d*K);
+            uvs.Add(Vector2.zero); uvs.Add(new Vector2(u,0));
+            uvs.Add(new Vector2(u,v)); uvs.Add(new Vector2(0,v));
+            triangles.Add(n); triangles.Add(n+1); triangles.Add(n+2);
+            triangles.Add(n); triangles.Add(n+2); triangles.Add(n+3);
+        }
+        public void Beam(Vector3 center, Vector3 size, Quaternion rotation)
+        {
+            if(size.x<=0 || size.y<=0 || size.z<=0)throw new ArgumentException("Invalid premium facade beam");
+            var h=size*.5f;
+            Vector3 P(float x,float y,float z)=>center+rotation*new Vector3(x,y,z);
+            var a=P(-h.x,-h.y,-h.z);var b=P(h.x,-h.y,-h.z);
+            var c=P(h.x,h.y,-h.z);var d=P(-h.x,h.y,-h.z);
+            var e=P(-h.x,-h.y,h.z);var f=P(h.x,-h.y,h.z);
+            var g=P(h.x,h.y,h.z);var q=P(-h.x,h.y,h.z);
+            Face(e,f,g,q,size.x,size.y);Face(b,a,d,c,size.x,size.y);
+            Face(f,b,c,g,size.z,size.y);Face(a,e,q,d,size.z,size.y);
+            Face(q,g,c,d,size.x,size.z);Face(a,b,f,e,size.x,size.z);
+        }
+        public void Emit(Transform parent,string suffix,Material material)
+        {
+            if(positions.Count==0)return;
+            string asset="Assets/PlayableGenerated/Mistrzowie/Buildings/Meshes/A1_Premium_"
+                +suffix+".asset";
+            var mesh=new Mesh{name="A1 premium "+suffix,
+                indexFormat=positions.Count>65535 ?
+                    UnityEngine.Rendering.IndexFormat.UInt32 :
+                    UnityEngine.Rendering.IndexFormat.UInt16};
+            mesh.SetVertices(positions);mesh.SetUVs(0,uvs);mesh.SetTriangles(triangles,0);
+            mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
+            AssetDatabase.CreateAsset(mesh,asset);
+            var o=new GameObject("A1 PREMIUM facade | "+suffix);
+            o.transform.SetParent(parent,false);
+            o.AddComponent<MeshFilter>().sharedMesh=mesh;
+            var renderer=o.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial=material;
+            renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows=true;
+        }
+    }
+
+    static void PremiumExterior(Transform arenaRoot,Dictionary<string,Material> exterior)
+    {
+        // Approved elliptical building exterior: 192 x 118 nominal metres,
+        // 28m high. X/Z are local to A1; game-scale K is applied once.
+        const float rx=96f,rz=59f;
+        const int bays=120;
+        var group=Group(arenaRoot,"A1 PREMIUM | Poly Haven PBR exterior detailing",Vector3.zero);
+        var plinth=new FacadeBatch();
+        var fins=new FacadeBatch();
+        var bronze=new FacadeBatch();
+        var roof=new FacadeBatch();
+        var signBacker=new FacadeBatch();
+        int skippedDoor=0;
+        for(int i=0;i<bays;i++)
+        {
+            float a=2f*Mathf.PI*i/bays;
+            float b=2f*Mathf.PI*(i+1)/bays;
+            Vector3 p=new Vector3(rx*Mathf.Cos(a),0,rz*Mathf.Sin(a));
+            Vector3 next=new Vector3(rx*Mathf.Cos(b),0,rz*Mathf.Sin(b));
+            var mid=(p+next)*.5f;
+            var outward=new Vector3(mid.x/(rx*rx),0,mid.z/(rz*rz)).normalized;
+            var tangent=(next-p).normalized;
+            var rotation=Quaternion.LookRotation(tangent,Vector3.up);
+            float length=Vector3.Distance(p,next)+.035f;
+            bool entrance=Mathf.Abs(mid.x)<8.4f&&Mathf.Abs(mid.z)>57f;
+            // The public and athlete glass doors must remain fully unobstructed.
+            if(!entrance)
+            {
+                plinth.Beam(mid+outward*.23f+Vector3.up*.50f,
+                    new Vector3(.38f,.78f,length),rotation);
+                fins.Beam(mid+outward*.19f+Vector3.up*5.68f,
+                    new Vector3(.19f,9.30f,.16f),rotation);
+                fins.Beam(mid+outward*.19f+Vector3.up*22.87f,
+                    new Vector3(.19f,7.35f,.16f),rotation);
+                if(i%6==0)
+                {
+                    bronze.Beam(mid+outward*.34f+Vector3.up*5.68f,
+                        new Vector3(.045f,9.30f,.10f),rotation);
+                    bronze.Beam(mid+outward*.34f+Vector3.up*22.87f,
+                        new Vector3(.045f,7.35f,.10f),rotation);
+                }
+            }
+            else skippedDoor++;
+            // Real metal mullion belt lines, not opaque panels over the glass.
+            // A clear gap from y=11 to y=18 protects ALL four owner signs.
+            foreach(float y in new[]{5.18f,10.52f,19.05f,26.62f})
+                fins.Beam(mid+outward*.19f+Vector3.up*y,
+                    new Vector3(.20f,.15f,length),rotation);
+            roof.Beam(mid+outward*.28f+Vector3.up*27.39f,
+                new Vector3(.56f,.34f,length),rotation);
+            bronze.Beam(mid+outward*.32f+Vector3.up*27.09f,
+                new Vector3(.045f,.075f,length),rotation);
+        }
+
+        // Slim dark PBR sign plinths behind, never on top of, the owner's
+        // original curved 6:1 graphics. No logo, characters or words altered.
+        if(BraxChampionsArenaSigns.HasSources())
+        {
+            void Backer(bool front,bool positive,float span,float bottom,float height)
+            {
+                const int parts=36;
+                for(int j=0;j<parts;j++)
+                {
+                    float q0=(j/(float)parts-.5f)*span;
+                    float q1=((j+1)/(float)parts-.5f)*span;
+                    Vector3 Surface(float q)
+                    {
+                        if(front)
+                            return new Vector3(q,0,(positive?1f:-1f)*rz*
+                                Mathf.Sqrt(1f-q*q/(rx*rx)));
+                        return new Vector3((positive?1f:-1f)*rx*
+                            Mathf.Sqrt(1f-q*q/(rz*rz)),0,q);
+                    }
+                    var p0=Surface(q0);var p1=Surface(q1);
+                    var m=(p0+p1)*.5f;
+                    var n=new Vector3(m.x/(rx*rx),0,m.z/(rz*rz)).normalized;
+                    var rotation=Quaternion.LookRotation((p1-p0).normalized,Vector3.up);
+                    signBacker.Beam(m+n*.14f+Vector3.up*(bottom+height*.5f),
+                        new Vector3(.11f,height,Vector3.Distance(p0,p1)+.025f),rotation);
+                }
+            }
+            Backer(true,false,42f,11.02f,7.20f);
+            Backer(true,true,36f,11.32f,6.20f);
+            Backer(false,true,34f,11.60f,5.85f);
+            Backer(false,false,34f,11.60f,5.85f);
+        }
+
+        plinth.Emit(group,"original_PolyHaven_granite_plinth",exterior["dark_stone"]);
+        fins.Emit(group,"PBR_curtain_wall_aluminium",exterior["steel"]);
+        bronze.Emit(group,"PBR_bronze_architectural_detail",exterior["bronze"]);
+        roof.Emit(group,"PBR_roof_coping",exterior["roof"]);
+        signBacker.Emit(group,"PBR_sign_backing_beneath_original_6_to_1_signs",
+            exterior["dark_stone"]);
+
+        // Glass canopies and granite/bronze pilasters on BOTH doors.
+        // Side supports are 10m from the centre: no obstacle in the 6.4m aisle.
+        foreach(float side in new[]{-1f,1f})
+        {
+            string entry=side<0?"PUBLIC":"ATHLETES";
+            float z=side*62.6f;
+            var portico=Group(group,"A1 "+entry+" | premium PBR glass portico",Vector3.zero);
+            Box(portico,entry+" original Poly Haven stone glass canopy soffit",
+                exterior["stone"],new Vector3(0,5.24f,z),
+                new Vector3(21.8f,.14f,7.15f),false);
+            Box(portico,entry+" safety-glass canopy visible upper skin",
+                exterior["clear_glass"],new Vector3(0,5.34f,z),
+                new Vector3(21.0f,.07f,6.8f),false);
+            foreach(float x in new[]{-10.8f,10.8f})
+            {
+                Box(portico,entry+" PBR polished metal support",
+                    exterior["bronze"],new Vector3(x,2.78f,z+side*1.85f),
+                    new Vector3(.22f,5.35f,.22f),true);
+                Box(portico,entry+" PBR polished granite foot",
+                    exterior["dark_stone"],new Vector3(x,.32f,z+side*1.85f),
+                    new Vector3(.62f,.44f,.62f),true);
+                Box(portico,entry+" continuous canopy edge",
+                    exterior["steel"],new Vector3(x,5.42f,z),
+                    new Vector3(.15f,.22f,7.3f),false);
+            }
+            Box(portico,entry+" brushed-metal fascia",
+                exterior["bronze"],new Vector3(0,5.43f,z+side*3.60f),
+                new Vector3(21.8f,.20f,.15f),false);
+            Box(portico,entry+" warm facade light diffuser (no shadow lamp)",
+                exterior["light"],new Vector3(0,5.14f,z+side*3.52f),
+                new Vector3(20f,.035f,.07f),false);
+        }
+        Debug.Log("CHAMPIONS_A1_POLYHAVEN_EXTERIOR_PREMIUM facade_bays="+bays+
+            " omitted_lower_facade_door_segments="+skippedDoor+
+            " authentic_PBR=true opaque_glass_overlays=0 original_signs_preserved=true"+
+            " doors_and_vehicle_lanes_preserved=true device_visual_review_required=true");
+    }
+
     public static bool Generate(Transform arenaRoot, Dictionary<string, Material> exterior)
     {
         tiledMeshSerial = 0;
