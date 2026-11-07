@@ -1,0 +1,70 @@
+name: Miasto Mistrzow — one-shot gate + Unity scene — NO APK
+run-name: Champions current SHA — source gate then Unity scene — NO APK
+
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-scene-gate-once-20261107.yml
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: champions-scene-gate-once-20261107
+  cancel-in-progress: false
+
+jobs:
+  source-gate:
+    name: Current source gate — NO UNITY / NO APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/workflows
+            unity-tools/mistrzowie
+            unity-tools/validation
+            unity-tools/updates
+            unity-tools/claude
+            unity-city/Assets
+            unity-city/Packages
+            unity-city/ProjectSettings
+            public/assets/cars-src/car_rev.glb
+            public/assets/chars/brax.glb.gz
+            public/assets/tex/brax_color.webp
+            public/assets/tex/brax_normal.webp
+            public/assets/tex/brax_orm.webp
+      - name: Install source-test dependencies
+        run: |
+          python3 -m pip install -q --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 -m pip install -q --disable-pip-version-check numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/unity-tools/claude:$GITHUB_WORKSPACE/unity-tools/mistrzowie:$GITHUB_WORKSPACE/unity-tools/updates" >> "$GITHUB_ENV"
+      - name: Current Python and CSharp source gate
+        run: |
+          python3 -m compileall -q unity-tools/mistrzowie unity-tools/validation unity-tools/updates
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
+      - name: Prove this gate never builds APK
+        if: always()
+        run: |
+          echo "SOURCE_SHA=$GITHUB_SHA"
+          echo "SOURCE_GATE_ONLY; APK_NOT_BUILT" >> "$GITHUB_STEP_SUMMARY"
+
+  unity-scene:
+    name: Exact same SHA — Unity scene validation — NO APK
+    needs: source-gate
+    uses: ./.github/workflows/mistrzowie-apk.yml
+    with:
+      etap: sceny
+      kontrola_tras: false
+      zdjecia: false
+      zapisz_audyt: false
+      arena_assets_tag: champions-a1-20261105
+      p1_assets_tag: p1-basen-spa-20261106
+    secrets: inherit
