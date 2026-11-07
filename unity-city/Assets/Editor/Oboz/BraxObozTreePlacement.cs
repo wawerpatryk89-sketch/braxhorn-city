@@ -45,11 +45,16 @@ public static class BraxObozTreePlacement
     {
         Rows.Clear(); Warnings.Clear(); ground = null;
         // Exact generated ground, not a roof, foliage collider or stream water.
-        // A changed ground generator must supply/update this explicit contract.
-        var matches = camp.GetComponentsInChildren<MeshCollider>(true)
-            .Where(c => c && c.enabled && c.sharedMesh && c.sharedMesh.name == GroundMeshName).ToArray();
-        if (matches.Length == 1) ground = matches[0];
-        else Warn("niejednoznaczny lub brak rzeczywistego collidera terenu: " + matches.Length);
+        // Use the explicit ground contract registered by Terrain(). Stable mesh
+        // assets are fingerprint-renamed on save, so mesh.name is not identity.
+        var contracts=camp.GetComponentsInChildren<BraxObozStructureGround>(true)
+            .Where(g=>g && g.surface && g.geometry && g.visibleSurface &&
+                g.surface.enabled && !g.surface.isTrigger &&
+                g.surface.sharedMesh==g.geometry.sharedMesh &&
+                g.surface.transform==g.geometry.transform &&
+                g.visibleSurface.transform==g.geometry.transform).ToArray();
+        if(contracts.Length==1)ground=contracts[0].surface;
+        else Warn("niejednoznaczny lub brak rzeczywistego kontraktu terenu: "+contracts.Length);
         Physics.SyncTransforms();
     }
 
