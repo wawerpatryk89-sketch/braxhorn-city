@@ -61,54 +61,185 @@ internal static partial class BraxMiastoWyspa
         }
     }
 
+    // Każdy styk używa TEJ SAMEJ krawędzi obu sąsiednich odcinków.
+    // Wcześniej przy każdym obrocie 2-metrowej deski otwierał się trójkątny ubytek,
+    // a brakujące segmenty (>6m) były pomijane. Teraz jeden pas bez szpar.
+    static float RzutXZ(Vector3 a, Vector3 b) =>
+        Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
+
+    static void DeptakSpojny(BraxNabrzeze.Zbior z, Material deski, Material legary,
+                            IList<Vector3> os, float polSzer, string nazwa)
+    {
+        if (os == null || os.Count < 2) return;
+        var pts = new List<Vector3> { os[0] };
+        for (int i = 1; i < os.Count; i++)
+        {
+            Vector3 a = pts[pts.Count - 1], b = os[i];
+            float d = RzutXZ(a, b);
+            if (d < .03f) continue;
+            int kroki = Mathf.Max(1, Mathf.CeilToInt(d / 1.20f));
+            for (int k = 1; k <= kroki; k++)
+            {
+                float t = k / (float)kroki;
+                var p = Vector3.Lerp(a, b, t);
+                // pod pełną szerokością pokładu — nie tylko w środku
+                var kier = new Vector3(b.x - a.x, 0f, b.z - a.z).normalized;
+                var bok = Vector3.Cross(Vector3.up, kier).normalized;
+                float grunt = Y(p.x, p.z);
+                foreach (float o in new[] { -polSzer, 0f, polSzer })
+                    grunt = Mathf.Max(grunt, Y(p.x + bok.x * o, p.z + bok.z * o));
+                p.y = Mathf.Max(p.y, grunt + .12f);
+                pts.Add(p);
+            }
+        }
+        if (pts.Count < 2) return;
+        // Profil 1:10 — obie strony podnoszone nad nierównościami, bez stopni.
+        for (int pass = 0; pass < 2; pass++)
+        {
+            for (int i = 1; i < pts.Count; i++)
+            {
+                var p = pts[i];
+                p.y = Mathf.Max(p.y, pts[i - 1].y - .10f * RzutXZ(pts[i - 1], p));
+                pts[i] = p;
+            }
+            for (int i = pts.Count - 2; i >= 0; i--)
+            {
+                var p = pts[i];
+                p.y = Mathf.Max(p.y, pts[i + 1].y - .10f * RzutXZ(p, pts[i + 1]));
+                pts[i] = p;
+            }
+        }
+        var bokI = new Vector3[pts.Count];
+        for (int i = 0; i < pts.Count; i++)
+        {
+            var t = pts[Mathf.Min(pts.Count - 1, i + 1)] -
+                    pts[Mathf.Max(0, i - 1)];
+            t.y = 0f;
+            bokI[i] = Vector3.Cross(Vector3.up, t.normalized).normalized;
+            if (bokI[i].sqrMagnitude < .1f) bokI[i] = Vector3.right;
+            // Palmy, krzewy i późniejsze wyposażenie muszą omijać CAŁY pas.
+            Zajmij(pts[i], polSzer + 1.45f);
+        }
+        float dl = 0f, maxStopien = 0f;
+        for (int i = 0; i < pts.Count - 1; i++)
+        {
+            var a = pts[i]; var b = pts[i + 1];
+            var A = a - bokI[i] * polSzer, B = b - bokI[i + 1] * polSzer;
+            var C = b + bokI[i + 1] * polSzer, Dd = a + bokI[i] * polSzer;
+            Q(z[deski], A, B, C, Dd, Vector3.up);
+            float odc = RzutXZ(a, b); if (odc < .03f) continue;
+            var rot = Quaternion.LookRotation((b - a).normalized, Vector3.up);
+            for (float side = -1f; side <= 1f; side += 2f)
+            {
+                var srodek = (a + b) * .5f + (bokI[i] + bokI[i + 1]).normalized *
+                             (side * (polSzer - .22f)) - Vector3.up * .10f;
+                z[legary].Box(srodek, new Vector3(.12f, .16f, Vector3.Distance(a, b) + .005f), rot);
+                if (i % 5 == 0)
+                {
+                    var p = a + bokI[i] * (side * (polSzer - .28f));
+                    float grunt = Y(p.x, p.z) - .28f;
+                    if (p.y > grunt + .17f)
+                        z[legary].Rura(new Vector3(p.x, grunt, p.z),
+                            p - Vector3.up * .10f, .075f, 7);
+                }
+            }
+            BraxNabrzeze.KolRot(kol, nazwa, (a + b) * .5f - Vector3.up * .095f,
+                new Vector3(polSzer * 2f, .18f, Vector3.Distance(a, b) + .015f), rot);
+            dl += odc;
+            maxStopien = Mathf.Max(maxStopien, Mathf.Abs(b.y - a.y));
+        }
+        mDeptakuPlazy += dl;
+        Debug.Log("BRAXHORN_WYSPA_DEPTAK " + nazwa + " dlugosc=" +
+            dl.ToString("F1") + " m probki=" + pts.Count + " skok_max=" +
+            maxStopien.ToString("F3") + " m (wspolne krawedzie, bez pustych szczelin)");
+    }
+
     static void PlazaPremium(BraxNabrzeze.Zbior z, BraxNabrzezeMebel.Mat m)
     {
         var str = new GameObject("Wyspa: plaża premium (deptak, przebieralnie, WC, wypożyczalnia, bar)").transform; str.SetParent(root, false);
         var deski = BraxNabrzeze.Mat("Wyspa: deski deptaku plażowego", 1.5f, new Color(.86f, .76f, .62f), "wood_planks_grey", "wooden_planks", "wood_planks");
         var legar = BraxNabrzeze.Kolor("Wyspa: legary deptaku (impregnat)", new Color(.32f, .25f, .18f), .9f);
         float hw = 1.5f * K;   // deptak plażowy 3 m × k
-        // 1) DEPTAK Z DESEK wzdłuż plaży, ~38 m od wody (za rzędami leżaków), na legarach 25 cm nad piaskiem
+        // 1) DEPTAK GŁÓWNY: jedna ciągła wstęga wzdłuż plaży.
+        // Nie pomijamy segmentów na zakrętach, nie obracamy desek jako
+        // osobnych nakładających się platform i nie rysujemy drugiego pokładu.
         var pts = new List<Vector3>();
-        for (float a = PlazaOd + 4f; a <= PlazaDo - 4f; a += .9f)
+        for (float ang = PlazaOd + 4f; ang <= PlazaDo - 4f + .001f; ang += .55f)
         {
-            float rs = LiniaWody(a); var d = new Vector3(Mathf.Cos(a * Mathf.Deg2Rad), 0, Mathf.Sin(a * Mathf.Deg2Rad));
-            var p = new Vector3(CX, 0, CZ) + d * (rs - 38f);
-            if (Vector2.Distance(new Vector2(p.x - CX, p.z - CZ), Plac) < PlacR + 6f) continue;
-            float yMax = W; for (float o = -hw; o <= hw; o += hw) { var q = p + Vector3.Cross(Vector3.up, d) * 0 + d * o; yMax = Mathf.Max(yMax, Y(q.x, q.z)); }
-            p.y = yMax + .25f; pts.Add(p);
+            float rs = LiniaWody(ang);
+            var d = new Vector3(Mathf.Cos(ang * Mathf.Deg2Rad), 0f,
+                                Mathf.Sin(ang * Mathf.Deg2Rad));
+            var p = new Vector3(CX, 0f, CZ) + d * (rs - 38f);
+            // Jeżeli plan przechodził przez plac, omijamy jego obrys,
+            // ale NIE zostawiamy wyrwy w deptaku.
+            var odAreny = new Vector3(p.x - (CX + Plac.x), 0f, p.z - (CZ + Plac.y));
+            if (odAreny.magnitude < PlacR + 6f)
+                p += odAreny.normalized * (PlacR + 6f - odAreny.magnitude);
+            float y = Y(p.x, p.z);
+            foreach (float o in new[] { -hw, 0f, hw })
+                y = Mathf.Max(y, Y(p.x + d.x * o, p.z + d.z * o));
+            p.y = y + .22f;
+            pts.Add(p);
         }
-        // wygładzenie wysokości (bez schodków)
-        for (int it = 0; it < 3; it++) for (int i = 1; i < pts.Count - 1; i++) pts[i] = new Vector3(pts[i].x, Mathf.Max(pts[i].y, (pts[i - 1].y + pts[i + 1].y) * .5f), pts[i].z);
-        for (int i = 0; i + 1 < pts.Count; i++)
+        DeptakSpojny(z, deski, legar, pts, hw, "Deptak glowny plazy wyspy");
+
+        // Meble stoją obok pasa: w odległości umożliwiającej przejście
+        // postaci i ominięcie pnia palmy. Nie stawiamy ich na deskach.
+        for (int i = 1; i + 1 < pts.Count; i++)
         {
-            var a = pts[i]; var b = pts[i + 1]; var dir = b - a; float len = dir.magnitude; if (len < .1f || len > 6f) continue;
-            var rot = Quaternion.LookRotation(dir / len, Vector3.up);
-            for (float s = 0; s < len - .05f; s += .16f) z[deski].Box(a + dir / len * (s + .075f) + Vector3.down * .03f, new Vector3(hw * 2f, .05f, .14f), rot);
-            foreach (float o in new[] { -hw + .25f, hw - .25f }) z[legar].Box((a + b) * .5f + rot * new Vector3(o, -.14f, 0), new Vector3(.12f, .16f, len + .02f), rot);
-            foreach (float o in new[] { -hw + .25f, hw - .25f }) { var pp = a + rot * new Vector3(o, 0, 0); z[legar].Rura(new Vector3(pp.x, Y(pp.x, pp.z) - .4f, pp.z), pp + Vector3.down * .2f, .07f, 6); }
-            BraxNabrzeze.KolRot(kol, "Deptak plażowy", (a + b) * .5f + Vector3.down * .1f, new Vector3(hw * 2f, .2f, len + .03f), rot);
-            mDeptakuPlazy += len;
-            if (i % 20 == 5) { var lp = a + rot * new Vector3(-hw - .5f, 0, 0); lp.y = Y(lp.x, lp.z); BraxNabrzezeMebel.Latarnia(z, str, m, lp, rot.eulerAngles.y); nLatarnie++; Zajmij(lp, .6f); }
-            if (i % 26 == 12)
+            var a = pts[i];
+            var d = (pts[i + 1] - pts[i - 1]); d.y = 0f;
+            if (d.sqrMagnitude < .1f) continue;
+            var bok = Vector3.Cross(Vector3.up, d.normalized).normalized;
+            var rot = Quaternion.LookRotation(d.normalized, Vector3.up);
+            if (i % 35 == 6)
             {
-                var lp = a + rot * new Vector3(hw + .9f, 0, 0); lp.y = Y(lp.x, lp.z);
-                float yaw = Quaternion.LookRotation(rot * Vector3.right).eulerAngles.y;      // ławka przodem do morza
-                BraxNabrzezeMebel.Lawka(z, str, m, lp, yaw, "Ławka deptaku plażowego"); nLawki++; Zajmij(lp, 1.4f);
-                var kp = lp + rot * new Vector3(0, 0, 1.6f * K); kp.y = Y(kp.x, kp.z); BraxNabrzezeMebel.Kosz(z, str, m, kp); nKosze++;
+                var p = a - bok * (hw + 2.0f); p.y = Y(p.x, p.z);
+                if (!Zajete(p.x, p.z, .6f))
+                {
+                    BraxNabrzezeMebel.Latarnia(z, str, m, p, rot.eulerAngles.y);
+                    nLatarnie++; Zajmij(p, .7f);
+                }
+            }
+            if (i % 43 == 15)
+            {
+                var p = a + bok * (hw + 3.3f); p.y = Y(p.x, p.z);
+                if (!Zajete(p.x, p.z, 1.4f))
+                {
+                    BraxNabrzezeMebel.Lawka(z, str, m, p,
+                        Quaternion.LookRotation(bok).eulerAngles.y, "Ławka deptaku plażowego");
+                    nLawki++; Zajmij(p, 1.4f);
+                    var kosz = p + d.normalized * 1.65f; kosz.y = Y(kosz.x, kosz.z);
+                    if (!Zajete(kosz.x, kosz.z, .6f))
+                    { BraxNabrzezeMebel.Kosz(z, str, m, kosz); nKosze++; Zajmij(kosz, .6f); }
+                }
             }
         }
-        // 2) KŁADKI z deptaku do każdej wieżyczki ratownika (po piasku, 1.8 m × k)
+
+        // 2) KŁADKI RATOWNIKÓW: zaczynają się na rzeczywistej krawędzi
+        // deptaku głównego i mają wspólny, płynny profil. Żadnych desek
+        // wpychanych pojedynczo w piasek bez kolizji.
         foreach (var (wp, wd) in wiezyczki)
         {
-            float ang = Mathf.Atan2(wd.z, wd.x) * Mathf.Rad2Deg; float rs = LiniaWody(ang);
-            var a = new Vector3(CX, 0, CZ) + wd * (rs - 37f); var b = new Vector3(CX, 0, CZ) + wd * (rs - 16f);
-            var dir = (b - a); float len = dir.magnitude; var rot = Quaternion.LookRotation(dir / len, Vector3.up);
-            for (float s = 0; s < len; s += .16f)
+            if (pts.Count < 2) break;
+            float kat = Mathf.Atan2(wd.z, wd.x) * Mathf.Rad2Deg;
+            float rs = LiniaWody(kat);
+            var target = new Vector3(CX, 0f, CZ) + wd * (rs - 38f);
+            var naj = pts.OrderBy(p => RzutXZ(p, target)).First();
+            var pocz = naj + wd * hw; pocz.y = naj.y;
+            var koniec = new Vector3(CX, 0f, CZ) + wd * (rs - 16.5f);
+            koniec.y = Y(koniec.x, koniec.z) + .14f;
+            var branch = new List<Vector3> { pocz };
+            float L = RzutXZ(pocz, koniec);
+            for (int j = 1, n = Mathf.Max(1, Mathf.CeilToInt(L / 1f)); j <= n; j++)
             {
-                var p = a + dir / len * (s + .075f); p.y = Y(p.x, p.z) + .1f;
-                z[deski].Box(p, new Vector3(.9f * K * 2f, .05f, .14f), rot);
-                if (((int)(s / .16f)) % 6 == 0) foreach (float o in new[] { -.7f * K, .7f * K }) z[legar].Box(p + rot * new Vector3(o, -.16f, 0), new Vector3(.1f, .24f, 1.0f), rot);   // legary w piasku (deski nie wiszą)
+                float t = j / (float)n;
+                var p = Vector3.Lerp(pocz, koniec, t);
+                p.y = Mathf.Max(p.y, Y(p.x, p.z) + .14f);
+                branch.Add(p);
             }
+            DeptakSpojny(z, deski, legar, branch, .90f * K,
+                "Kladka do ratownika plazy wyspy");
         }
         // 3) ZAPLECZE PLAŻY za deptakiem: przebieralnie, WC, wypożyczalnia, bar na plaży
         var drewno = BraxMiastoA.Tex("Wyspa: deskowanie budek plażowych", 1.2f, new Color(.95f, .93f, .88f), new Color(.85f, .82f, .76f), .8f, "wood_plank_wall", "wood_planks_grey");
