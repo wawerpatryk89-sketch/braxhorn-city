@@ -81,7 +81,7 @@ class MetroM1ThreeStations(unittest.TestCase):
     def test_source_pits_cut_after_station_meshes_are_authored(self):
         self.assertLess(
             BUILDER.index('meshes = W.Zapisz("M1_3_stacje_tory_i_tunele")'),
-            BUILDER.index('opened += W.Otwor(cityRoot'))
+            BUILDER.index('opened += W.Otwor(cityRoot')
         )
         self.assertLess(
             BUILDER.index("AddTrains();"),

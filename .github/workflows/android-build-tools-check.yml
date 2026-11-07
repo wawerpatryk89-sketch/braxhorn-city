@@ -19,5 +19,12 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-          sparse-checkout: unity-tools/claude
+          # Testy odczytują rzeczywiste pliki generatorów Unity, nie tylko skrypty Python.
+          # Wyłącznie źródła C#/Shader, bez Asset Library i wielkich modeli/tekstur.
+          sparse-checkout: |
+            unity-tools/claude
+            unity-city/Assets/Editor
+            unity-city/Assets/Claude/Runtime
+            unity-city/Assets/City
+            unity-city/Assets/BraxGymPlayer.cs
       - run: python3 -m unittest discover -s unity-tools/claude -p 'test_*.py' -v
