@@ -94,7 +94,7 @@ public static class BraxChampionsArenaArrival
             var p = P(t0) * K; var q = P(t1) * K;
             var d = q - p;
             var cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            cylinder.name = "Red velvet rope - hanging segment";
+            cylinder.name = "BLACK velvet VIP rope - hanging segment";
             cylinder.transform.SetParent(parent, false);
             cylinder.transform.localPosition = (p + q) * .5f;
             cylinder.transform.localRotation = Quaternion.FromToRotation(Vector3.up, d.normalized);
@@ -107,23 +107,36 @@ public static class BraxChampionsArenaArrival
     static void Stanchions(Transform parent, Material metal, Material rope, Material carpet)
     {
         // Entrance is at the south (-Z) curtain wall. Keep an unobstructed 6.4m centre aisle.
-        Box(parent, "Public red-carpet arrival", carpet,
+        // Owner-approved entrance: deep RED carpet, GOLD posts and BLACK ropes.
+        Box(parent, "Public RED velvet carpet | VIP arrival", carpet,
             new Vector3(0, .239f, -67.0f), new Vector3(5.8f, .018f, 15.4f), false);
+        // Flush gold piping along the red carpet; avoid obstructing the walkway.
+        foreach (float edge in new[] { -2.95f, 2.95f })
+            Box(parent, "Premium carpet edge | polished gold", metal,
+                new Vector3(edge, .251f, -67f),
+                new Vector3(.065f, .012f, 15.4f), false);
         foreach (float x in new[] { -3.5f, 3.5f })
         {
             Vector3 prev = Vector3.zero;
             for (int i = 0; i < 5; i++)
             {
                 float z = -73f + i * 2.65f;
-                Box(parent, "Barrier post base", metal, new Vector3(x, .28f, z), new Vector3(.33f, .11f, .33f));
+                // Real round stanchion base, not a square placeholder.
+                var baseDisc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                baseDisc.name = "Premium GOLD stanchion | round weighted base";
+                baseDisc.transform.SetParent(parent, false);
+                baseDisc.transform.localPosition = new Vector3(x, .285f, z) * K;
+                baseDisc.transform.localScale = new Vector3(.19f, .055f, .19f) * K;
+                baseDisc.GetComponent<Renderer>().sharedMaterial = metal;
+                UnityEngine.Object.DestroyImmediate(baseDisc.GetComponent<Collider>());
                 var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                post.name = "Championship queue post";
+                post.name = "Premium GOLD VIP stanchion | upright";
                 post.transform.SetParent(parent, false);
                 post.transform.localPosition = new Vector3(x, .80f, z) * K;
                 post.transform.localScale = new Vector3(.052f, .46f, .052f) * K;
                 post.GetComponent<Renderer>().sharedMaterial = metal;
                 UnityEngine.Object.DestroyImmediate(post.GetComponent<Collider>());
-                Box(parent, "Queue post polished cap", metal,
+                Box(parent, "Premium GOLD VIP stanchion | polished cap", metal,
                     new Vector3(x, 1.27f, z), new Vector3(.16f, .10f, .16f), false);
                 Vector3 top = new Vector3(x, 1.18f, z);
                 if (i > 0) Cord(parent, rope, prev, top);
@@ -587,21 +600,26 @@ public static class BraxChampionsArenaArrival
             new Color(.89f, .89f, .89f));
         var sidewalk = BraxChampionsFoundation.SourceMaterial("arena_arrival_paving", "concrete_pavement_02", 1.1f,
             new Color(.94f, .94f, .93f));
-        var rope = BraxChampionsFoundation.SourceMaterial("arena_red_velvet", "fabric_pattern_05", .6f,
+        // Separate original PBR textiles: red stays red, rope must be BLACK.
+        var redCarpet = BraxChampionsFoundation.SourceMaterial(
+            "arena_vip_red_carpet", "fabric_pattern_05", .6f,
             new Color(.62f, .025f, .045f));
+        var blackRope = BraxChampionsFoundation.SourceMaterial(
+            "arena_vip_black_velvet_rope", "fabric_pattern_05", .6f,
+            new Color(.055f, .055f, .060f));
         var paint = Paint("arena_parking_markings", new Color(.93f, .92f, .85f));
         Parking(root, asphalt, paint, sidewalk, exterior["dark_stone"]);
         ParkingLights(root, exterior["steel"], exterior["light"]);
         // Architectural PBR finish is generated independently of source signs,
         // without shifting the approved ellipse, doors or visitor routes.
         PremiumExterior(root, exterior);
-        Stanchions(root, exterior["bronze"], rope, rope);
+        Stanchions(root, exterior["gold"], blackRope, redCarpet);
         Door(root, "CHAMPIONS_A1_PUBLIC", "Main public entrance", -59.04f, exterior["clear_glass"], exterior["steel"]);
         Door(root, "CHAMPIONS_A1_ATHLETES", "Separate athlete rear entrance", 59.04f, exterior["clear_glass"], exterior["steel"]);
         DressingRooms(root, sidewalk, exterior["dark_stone"], exterior["steel"]);
-        Box(root, "Main lobby continuous carpet", rope,
+        Box(root, "Main lobby continuous RED carpet", redCarpet,
             new Vector3(0, .239f, -47.3f), new Vector3(3.9f, .018f, 22.0f), false);
-        Box(root, "Separate red athlete walkway to cage", rope,
+        Box(root, "Separate red athlete walkway to cage", redCarpet,
             new Vector3(0, .239f, 47.2f), new Vector3(3.9f, .018f, 22.0f), false);
         // Warm lobby lighting keeps the interior visible through the glazed curtain wall.
         // Vertex lights are used, not shadow-casting dynamic lights per glass bay.
