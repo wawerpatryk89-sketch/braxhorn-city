@@ -29,8 +29,11 @@ class ExternalBaseDelivery(unittest.TestCase):
         self.assertIn("Assets/Updates/Android/BraxContentPicker.java",android)
         self.assertIn("rm -f unity-city/Assets/Plugins/Android/BraxContentPicker.jar",android)
         self.assertNotIn("/project/unity-tools/oboz/build_content_picker.sh",android)
+        self.assertNotIn("BraxObozBuild.PrepareAndroidReviewScene",android)
+        self.assertNotIn("OBOZ_SCENE_ONLY_READY",android)
         self.assertLess(android.index("BraxObozContentBase.ExportPreparedExternalInCI"),android.index("BraxObozBuild.BuildAndroidReview"))
         self.assertIn("heavy bundle leaked back into APK",android)
         self.assertIn("oboz-base.braxbase.zip",android)
+        self.assertIn("generujemy RAZ", (ASSETS/"Editor/Oboz/BraxObozContentBase.cs").read_text("utf-8"))
 if __name__=="__main__":
     unittest.main()

@@ -99,8 +99,14 @@ public static class BraxObozContentBase
                 throw new InvalidOperationException("Nieprawidłowy profil Unity Android dla zewnętrznej bazy obozu");
             if (Directory.Exists(BraxContentBuild.Base) || File.Exists(BraxContentBuild.Config))
                 throw new InvalidOperationException("Zewnętrzna baza obozu już istnieje w tym workspace");
+            // WŁAŚCICIEL 7.11: żadnego długiego scene-only przed APK.
+            // Scenę generujemy RAZ jako część właściwej paczki danych.
+            SaveUntitledSessions();
+            BraxObozEnvironment.Prepare();
+            BraxObozActors.Assemble();
+            BraxObozBuild.EnsureStartScene();
             if (!File.Exists(BraxObozActors.ScenePath) || !File.Exists(BraxObozActors.ScenePath + ".meta"))
-                throw new FileNotFoundException("Brak przygotowanej sceny obozu", BraxObozActors.ScenePath);
+                throw new FileNotFoundException("Nie wygenerowano sceny obozu", BraxObozActors.ScenePath);
             BraxContentBuild.Baseline(Zone, new[] { BraxObozActors.ScenePath }, true);
             string package = BraxContentBuild.BasePackagePath(Zone);
             if (!File.Exists(package) || new FileInfo(package).Length == 0)

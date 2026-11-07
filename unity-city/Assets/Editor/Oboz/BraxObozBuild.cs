@@ -44,6 +44,11 @@ public static class BraxObozBuild
         RunAndroidReview(false);
     }
 
+    public static void EnsureStartScene()
+    {
+        if (!File.Exists(StartScene)) CreateStart();
+    }
+
     static string[] PlayerScenes()
     {
         if (!File.Exists(BraxContentBuild.Config)) return Scenes;
@@ -64,9 +69,6 @@ public static class BraxObozBuild
             throw new InvalidOperationException("Nieprawidłowy versionCode obozu");
         string password = File.ReadAllText("braxhorn.keystore.pass").Trim();
         if (string.IsNullOrEmpty(password)) throw new InvalidOperationException("Brak hasła podpisu obozu");
-        bool requiresSeparateSceneProcess = string.Equals(
-            Environment.GetEnvironmentVariable("GITHUB_REF"),
-            "refs/heads/codex/oboz-przebudowa-pbr-20261105", StringComparison.Ordinal);
         string output = Path.GetFullPath(Path.Combine(Application.dataPath, "../../build/ObozAndroid"));
         Directory.CreateDirectory(output);
         string apk = Path.Combine(output, "braxhorn-oboz.apk");
@@ -81,31 +83,38 @@ public static class BraxObozBuild
             SaveUntitledBatchScenes();
             Configure(version, password);
             var started = DateTime.UtcNow;
-            receipt.generatedSceneReused = TryReuse();
-            if (!receipt.generatedSceneReused)
+            bool externalPlayer = !sceneOnly && playerScenes.Length == 1;
+            if (externalPlayer)
             {
-                if (requiresSeparateSceneProcess && !sceneOnly)
-                    throw new InvalidOperationException(
-                        "Brak zgodnej sceny przygotowanej przez oddzielny proces Unity (bez APK). " +
-                        "Nie wolno generowac zasobow w tej samej sesji co BuildPlayer.");
-                BraxObozEnvironment.Prepare();
-                BraxObozActors.Assemble();
-                CreateStart();
+                // Paczka danych została już zbudowana z pełnej sceny. APK zawiera
+                // tylko bootstrap, więc NIE generujemy i NIE audytujemy sceny drugi raz.
+                EnsureStartScene();
+                receipt.generatedSceneReused = File.Exists(BraxObozActors.ScenePath);
+                receipt.sourceIssues = Array.Empty<string>();
+                receipt.generationSeconds = (DateTime.UtcNow - started).TotalSeconds;
             }
-            receipt.generationSeconds = (DateTime.UtcNow - started).TotalSeconds;
-            var report = InspectReview();
-            receipt.sourceIssues = report.sourceIssues;
-            File.WriteAllText(Path.Combine(output, "scene-validation.json"), JsonUtility.ToJson(report, true));
-            // Owner policy: report scene quality, never reject an otherwise
-            // buildable APK because of a collider, doorway or scene-review warning.
-            if (!report.structuralPassed) BraxBuildQuality.Warn("Nieodebrane elementy sceny obozu: " + string.Join("; ", report.structuralErrors));
-            foreach (string issue in report.sourceIssues) Debug.LogWarning("BRAXHORN_OBOZ_TEST Źródło do oceny na telefonie: " + issue);
-            BraxObozUpdateRegistry.Export();
-            if (sceneOnly)
+            else
             {
-                SaveState(); // may schedule a domain reload; compilation is in the NEXT Unity process
-                Debug.Log("BRAXHORN_OBOZ_SCENA_BRAK_APK ready=true separateUnityProcess=true");
-                return;
+                receipt.generatedSceneReused = TryReuse();
+                if (!receipt.generatedSceneReused)
+                {
+                    BraxObozEnvironment.Prepare();
+                    BraxObozActors.Assemble();
+                    CreateStart();
+                }
+                receipt.generationSeconds = (DateTime.UtcNow - started).TotalSeconds;
+                var report = InspectReview();
+                receipt.sourceIssues = report.sourceIssues;
+                File.WriteAllText(Path.Combine(output, "scene-validation.json"), JsonUtility.ToJson(report, true));
+                if (!report.structuralPassed) BraxBuildQuality.Warn("Nieodebrane elementy sceny obozu: " + string.Join("; ", report.structuralErrors));
+                foreach (string issue in report.sourceIssues) Debug.LogWarning("BRAXHORN_OBOZ_TEST Źródło do oceny na telefonie: " + issue);
+                BraxObozUpdateRegistry.Export();
+                if (sceneOnly)
+                {
+                    SaveState();
+                    Debug.Log("BRAXHORN_OBOZ_SCENA_BRAK_APK ready=true separateUnityProcess=true");
+                    return;
+                }
             }
             // Explicit scene list; build never falls back to a city or estate scene.
             started = DateTime.UtcNow;
@@ -115,9 +124,9 @@ public static class BraxObozBuild
             if (built.summary.result != BuildResult.Succeeded || !File.Exists(apk))
                 throw new InvalidOperationException("Build obozu nieudany: " + built.summary.result);
             receipt.compilationSucceeded = receipt.apkBuilt = true;
-            // The camp rebuild branch already persisted its prepared scene in stage one.
-            // Other legacy branches can persist their cache AFTER BuildPlayer succeeds.
-            if (!requiresSeparateSceneProcess) SaveState();
+            // Pełna scena zewnętrzna została już zapisana przez etap paczki danych.
+            // Legacy/scene-only paths mogą zachować lokalny cache generatora.
+            if (playerScenes.Length != 1) SaveState();
             Debug.Log("BRAXHORN_OBOZ_APK gotowe_do_testu=true sprawdzone_na_telefonie=false external_content=" +
                       (playerScenes.Length == 1));
         }
