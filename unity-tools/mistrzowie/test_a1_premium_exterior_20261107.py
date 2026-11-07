@@ -117,5 +117,50 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertEqual(skipped, 8)
 
 
+    def test_all_four_signs_face_viewer_left_to_right_without_repainting(self):
+        # Outside the ellipse, the front camera looks north (+Z) and the
+        # east-side camera looks west (-X). Both invert the screen X direction
+        # of the original parametric mesh. North and west don't.
+        self.assertIn('bool reverseU=alongX?!positive:positive;', self.signs)
+        self.assertIn('float outwardFacingU=reverseU?1f-t:t;', self.signs)
+        for front, positive, expected_flip in (
+            (True, False, True),  # public front south of oval
+            (True, True, False),  # rear/north
+            (False, True, True),  # east side
+            (False, False, False),  # west side
+        ):
+            with self.subTest(front=front,positive=positive):
+                self.assertEqual((not positive) if front else positive,
+                                 expected_flip)
+        self.assertIn('owner', self.signs.lower())
+        self.assertNotIn('SetPixels',self.signs)
+        self.assertNotIn('EncodeToPNG',self.signs)
+
+    def test_lit_black_pillars_remain_outside_tinted_glass(self):
+        self.assertIn('goldAccentGlow.Emit(group',self.arrival)
+        self.assertIn('REFERENCE_recessed_gold_pillar_light',self.arrival)
+        self.assertIn('PBR_black_stepped_out_pillars_2p10m',self.arrival)
+        # At x=22.2m the elliptical FRONT skin is z=-57.40. Golden/red
+        # front frame must be OUTSIDE that (more negative Z) and not hidden
+        # by an old opaque facade or by the original sign image.
+        facade_z=-59*math.sqrt(1-(22.2/96)**2)
+        self.assertLess(-58.18,facade_z)
+        self.assertIn('new Vector3(x,14.55f,-58.18f)',self.arrival)
+        self.assertIn('new Vector3(x,17.10f,-59.02f)',self.arrival)
+        self.assertIn('new Vector3(x,12.05f,-59.02f)',self.arrival)
+
+    def test_reference_upper_lounge_is_inside_original_oval_without_double_scale(self):
+        self.assertIn('ReferenceUpperFacadeLounge(root, exterior);',self.arrival)
+        self.assertIn('A1 UPPER GLASS | reference furnished VIP lounge silhouette',self.arrival)
+        self.assertIn('A1_upper_facade_charcoal_leather_2k',self.arrival)
+        self.assertIn('new Vector3(0,18.12f,-46.2f)',self.arrival)
+        # Front edge at z=-51.5, outmost x=+-42: inside elliptical glass.
+        self.assertLess((42/96)**2+(51.5/59)**2,1.0)
+        self.assertNotIn('new Vector3(x,0,z)*K)',self.arrival)
+        self.assertNotIn('new Vector3(x,0,-48.2f)*K)',self.arrival)
+        # Furniture is visual-only, no collision blocking the promenade.
+        self.assertIn('originalArenaVIPSeatsUnchanged=true',self.arrival)
+
+
 if __name__ == "__main__":
     unittest.main()
