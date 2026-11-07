@@ -264,7 +264,7 @@ public static partial class BraxRegionMiastoB
                 float xx = x;
                 if (Mathf.Abs(xx - (PrzystBusX - 9f)) < 9f) continue;   // wiata przystanku
                 Pozniej("drzewo w kracie (promenada)", () => { var p = NaPodlozu(new Vector3(xx, YC, 10.5f)); BraxRegionMeble.KrataDrzewa(root, p); DrzewoTeraz(p); });
-                Pozniej("ławka (promenada)", () => BraxRegionMeble.Lawka(root, NaPodlozu(new Vector3(xx + 3.2f, YC, 9.6f)), 180f));
+                // R1: żadnych ławek na miejskiej promenadzie przy ulicy.
                 if (((int)(-xx / 12f)) % 2 == 0) Pozniej("kosz (promenada)", () => BraxRegionMeble.Kosz(root, NaPodlozu(new Vector3(xx + 5.6f, YC, 9.9f)), 180f));
                 else Pozniej("latarnia (promenada)", () => { BraxRegionMeble.Latarnia(root, NaPodlozu(new Vector3(xx + 6f, YC, 4.5f))); latarnie++; });
                 ndDrzewa++;
