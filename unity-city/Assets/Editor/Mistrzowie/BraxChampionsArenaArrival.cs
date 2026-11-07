@@ -562,6 +562,9 @@ public static class BraxChampionsArenaArrival
         var paint = Paint("arena_parking_markings", new Color(.93f, .92f, .85f));
         Parking(root, asphalt, paint, sidewalk, exterior["dark_stone"]);
         ParkingLights(root, exterior["steel"], exterior["light"]);
+        // Architectural PBR finish is generated independently of source signs,
+        // without shifting the approved ellipse, doors or visitor routes.
+        PremiumExterior(root, exterior);
         Stanchions(root, exterior["bronze"], rope, rope);
         Door(root, "CHAMPIONS_A1_PUBLIC", "Main public entrance", -59.04f, exterior["clear_glass"], exterior["steel"]);
         Door(root, "CHAMPIONS_A1_ATHLETES", "Separate athlete rear entrance", 59.04f, exterior["clear_glass"], exterior["steel"]);
