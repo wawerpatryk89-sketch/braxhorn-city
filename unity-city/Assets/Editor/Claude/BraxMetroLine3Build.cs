@@ -13,7 +13,7 @@ public static class BraxMetroLine3Build
 {
     public const float StreetY = .15f, ConcourseY = -4.6f, PlatformY = -11.2f, RailY = -12.6f;
     public const float TrackNorth = 32.3f, TrackSouth = 23.5f;
-    public const float RouteMinX = -251f, RouteMaxX = 96f;
+    public const float RouteMinX = -251f, RouteMaxX = 112f;  // 16 m toru za końcem wschodniego peronu
     public static readonly float[] Stops = { 72f, -76f, -218f };
     public static readonly string[] Names = { "NABRZEZE", "SRODMIESCIE", "ZACHOD" };
 

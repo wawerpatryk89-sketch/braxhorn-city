@@ -49,12 +49,16 @@ class MetroM1ThreeStations(unittest.TestCase):
         self.assertIn("bez sztucznej atrapy", BUILDER)
         self.assertNotIn("PociagZKodu(", BUILDER)
     def test_two_continuous_tracks_and_tunnel(self):
-        self.assertIn("RouteMinX = -251f, RouteMaxX = 96f", BUILDER)
+        self.assertIn("RouteMinX = -251f, RouteMaxX = 112f", BUILDER)
         self.assertIn("TrackNorth = 32.3f, TrackSouth = 23.5f", BUILDER)
         self.assertIn("Mathf.Min(x + 12f, RouteMaxX)", BUILDER)
         self.assertIn("foreach (float tz in new[] { TrackSouth, TrackNorth })", BUILDER)
         self.assertIn("W.MM(rails, x, to", BUILDER)
-        self.assertAlmostEqual(96-(-251),347)
+        self.assertAlmostEqual(112-(-251),363)
+    def test_terminal_has_track_ahead_of_last_platform(self):
+        self.assertGreaterEqual(112-(72+24), 12)
+        self.assertGreaterEqual((-218-24)-(-251), 8)
+
     def test_three_shaft_cuts_and_connected_foot_paths(self):
         self.assertIn('"M1_3_wejscie_" + i', BUILDER)
         self.assertIn('"M1_3_hala_" + i', BUILDER)
