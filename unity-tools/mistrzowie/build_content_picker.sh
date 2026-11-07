@@ -18,10 +18,17 @@ while IFS= read -r candidate; do
   fi
 done < <(find "$android_root/Variations" -name '*.jar' -type f)
 test -n "$unity_jar"
+source=/project/unity-tools/mistrzowie/android/BraxContentPicker.java
 build=/tmp/brax-mistrzowie-picker
+rm -rf "$build"
 mkdir -p "$build/classes"
+test -f "$source"
+if find "$project/Assets" -type f -name "BraxContentPicker.java" -print -quit | grep -q .; then
+  echo "BRAX_MISTRZOWIE_PICKER_DUPLICATE_SOURCE: Java source must stay outside Unity Assets" >&2
+  exit 1
+fi
 "$javac" -source 8 -target 8 -encoding UTF-8 -classpath "$platform:$unity_jar" \
-  -d "$build/classes" "$project/Assets/Updates/Android/BraxContentPicker.java"
+  -d "$build/classes" "$source"
 mkdir -p "$project/Assets/Plugins/Android"
 # Stable ZIP timestamps give a stable JAR hash for immutable runtime fingerprint.
 python3 - "$build/classes" "$project/Assets/Plugins/Android/BraxContentPicker.jar" <<'PY'

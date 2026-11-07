@@ -413,6 +413,7 @@ jobs:
             ${{ steps.preflight.outputs.androidImage }} \
             /project/unity-tools/mistrzowie/build_content_picker.sh
           test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar
+          python3 unity-tools/mistrzowie/check_content_picker_single_copy.py --require-jar
           # Docker creates this directory as root. APK #19 lost its entire
           # reusable Library because cp of a GUID .meta returned EACCES.
           # Ownership only: no changes to JAR bytes, GUIDs or game artwork.
@@ -435,6 +436,15 @@ jobs:
         run: |
           rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
           df -h /
+      - name: Drop stale Android Bee output and recheck single picker provider
+        if: ${{ inputs.etap != 'sceny' }}
+        run: |
+          # The previous failed APK cache can contain Gradle/Bee output that
+          # compiled BraxContentPicker from the old Java-under-Assets layout.
+          # Keep the expensive Unity import cache, but force Android packaging
+          # to regenerate from the single JAR provider.
+          rm -rf unity-city/Library/Bee/Android
+          python3 unity-tools/mistrzowie/check_content_picker_single_copy.py --require-jar
       # Two original GLBs request 3-4 UV channels that glTFast cannot
       # reproduce. Neither is instantiated by the Champions scene. Keep
       # BOTH byte-identical originals outside Assets in THIS TEMPORARY RUNNER

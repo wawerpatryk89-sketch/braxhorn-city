@@ -17,5 +17,5 @@ done < <(find "$android_root/Variations" -name '*.jar' -type f)
 test -n "$javac_path" && test -n "$api_jar" && test -n "$unity_jar"
 mkdir -p /tmp/brax-java-validation
 "$javac_path" -source 8 -target 8 -classpath "$api_jar:$unity_jar" -d /tmp/brax-java-validation \
-  /project/unity-city/Assets/Updates/Android/BraxContentPicker.java
+  /project/unity-tools/mistrzowie/android/BraxContentPicker.java
 echo BRAX_CONTENT_ANDROID_JAVA_PASS
