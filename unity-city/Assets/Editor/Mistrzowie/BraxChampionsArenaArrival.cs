@@ -689,7 +689,7 @@ public static class BraxChampionsArenaArrival
         {
             float z=-45.9f;
             var sofa=Group(root,"UPPER lounge | luxury sofa x="+x,
-                new Vector3(x,0,z)*K);
+                new Vector3(x,0,z));
             Box(sofa,"Original PBR oak underframe",teak,
                 new Vector3(0,18.53f,0),new Vector3(3.57f,.25f,1.19f),false);
             Box(sofa,"Textured black leather sofa seat",leather,
@@ -716,7 +716,7 @@ public static class BraxChampionsArenaArrival
                     new Vector3(.94f,.56f,.16f),false);
             }
             var table=Group(root,"UPPER lounge | oak coffee table x="+x,
-                new Vector3(x,0,-48.2f)*K);
+                new Vector3(x,0,-48.2f));
             Box(table,"Native Poly Haven teak table surface",teak,
                 new Vector3(0,18.82f,0),new Vector3(1.74f,.09f,.75f),false);
             foreach(float side in new[]{-1f,1f})
