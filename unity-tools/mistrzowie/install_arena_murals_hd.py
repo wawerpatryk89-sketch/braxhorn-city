@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
-"""Murale areny A1 w HD (6144x2048): oryginały właściciela powiększone 4x
-(Real-ESRGAN realesr-general-x4v3, bez dorysowywania), 6.11.2026.
+"""Stage the three owner-supplied A1 PNGs, without generating or resizing art.
 
-Pliki leżą jako zasoby wydania GitHub (np. szkic champions-a1-20261105),
-NIE w publicznym repo. Skrypt szuka ich po nazwie we wszystkich wydaniach,
-sprawdza SHA-256 i wymiary PNG, kopiuje do unity-city/Assets/Source/
-Mistrzowie/ArenaMuralsHD/ ze stałymi GUID.
-
-Brak plików / tokenu / sieci = ostrzeżenie i kod 0: arena użyje starych
-murali 1536x512, build idzie dalej.
+GitHub Release 435656828 stores the approved bytes as IMG_0264/0265/0266.png.
+Match SHA-256, not the upload filename. Preserve canonical Unity paths/GUIDs.
+This script never starts Unity, an APK build, or another workflow.
 """
 from pathlib import Path
 import hashlib
 import json
 import os
+import re
 import struct
 import sys
 import urllib.request
@@ -21,6 +17,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 DEST = ROOT / "unity-city/Assets/Source/Mistrzowie/ArenaMuralsHD"
+OWNER_RELEASE_ID = 435656828
 FILES = {
     "MURAL_WEJSCIE_CHAMPION_FIGHTER_6144x2048.png":
         "5d30aa995bb0da043a34c282fb452743f1b04b9f4584abf2be925ea29a461a73",
@@ -31,6 +28,7 @@ FILES = {
 }
 SIZE = (6144, 2048)
 NAMESPACE = uuid.UUID("6f1c2a9e-3b7d-4c55-9a0e-b4a1d2c3e6f7")
+MAX_BYTES = 64 * 1024 * 1024
 
 
 def guid(rel):
@@ -38,78 +36,139 @@ def guid(rel):
 
 
 def png_size(blob):
-    if blob[:8] != b"\x89PNG\r\n\x1a\n" or blob[12:16] != b"IHDR":
-        raise ValueError("to nie jest PNG")
+    if len(blob) < 33 or blob[:8] != b"\x89PNG\r\n\x1a\n" or blob[12:16] != b"IHDR":
+        raise ValueError("Invalid PNG header")
     return struct.unpack(">II", blob[16:24])
+
+
+def verify_blob(name, blob):
+    if len(blob) > MAX_BYTES or hashlib.sha256(blob).hexdigest() != FILES[name]:
+        raise ValueError("Approved PNG SHA-256 mismatch: " + name)
+    if png_size(blob) != SIZE:
+        raise ValueError("Approved PNG dimensions mismatch: " + name)
+
+
+class SafeRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        redirect = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirect is not None:
+            # The signed GitHub storage redirect does not need the API token.
+            redirect.remove_header("Authorization")
+        return redirect
 
 
 def api(url, token, accept="application/vnd.github+json"):
     req = urllib.request.Request(url, headers={
         "Authorization": "Bearer " + token, "Accept": accept,
         "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "BRAXHORN-Champions-MuralsHD/1.0"})
-    with urllib.request.urlopen(req, timeout=300) as r:
-        return r.read()
+        "User-Agent": "BRAXHORN-Champions-MuralsHD/2.0"})
+    with urllib.request.build_opener(SafeRedirect).open(req, timeout=60) as response:
+        raw = response.read(MAX_BYTES + 1)
+    if len(raw) > MAX_BYTES:
+        raise ValueError("Source response exceeds the mural size limit")
+    return raw
 
 
-def find_assets(token, repo):
+def select_assets(assets):
+    """The immutable digest identifies artwork even after iPhone renaming."""
     found = {}
-    for page in range(1, 6):
-        releases = json.loads(api(
-            f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}", token))
-        if not releases:
-            break
-        for rel in releases:
-            for a in rel.get("assets", []):
-                if a["name"] in FILES and a["name"] not in found:
-                    found[a["name"]] = a["id"]
+    for asset in assets:
+        if asset.get("state") != "uploaded":
+            continue
+        digest = str(asset.get("digest", "")).removeprefix("sha256:").lower()
+        for name, expected in FILES.items():
+            if digest == expected and name not in found:
+                found[name] = {"id": int(asset["id"]), "name": asset["name"],
+                               "sha256": expected}
     return found
 
 
+def find_assets(token, repo):
+    release = json.loads(api(
+        f"https://api.github.com/repos/{repo}/releases/{OWNER_RELEASE_ID}", token))
+    if release.get("id") != OWNER_RELEASE_ID:
+        raise ValueError("Wrong owner mural release")
+    return select_assets(release.get("assets", []))
+
+
 def write_meta(path, folder=False):
-    rel = path.relative_to(ROOT / "unity-city").as_posix()
     meta = Path(str(path) + ".meta")
+    if meta.exists():
+        if not re.search(r"^guid:\s*[a-fA-F0-9]{32}\s*$", meta.read_text(encoding="utf-8"), re.M):
+            raise ValueError("Existing Unity GUID is invalid: " + str(meta))
+        return  # Do not erase TextureImporter settings or replace an existing GUID.
+    rel = path.relative_to(ROOT / "unity-city").as_posix()
     body = "fileFormatVersion: 2\nguid: " + guid(rel) + "\n"
     if folder:
         body += "folderAsset: yes\nDefaultImporter:\n  externalObjects: {}\n  userData: \n  assetBundleName: \n  assetBundleVariant: \n"
     meta.write_text(body, encoding="utf-8")
 
 
-def main():
-    token = os.environ.get("GH_TOKEN")
-    repo = os.environ.get("GITHUB_REPOSITORY", "wawerpatryk89-sketch/braxhorn-city")
-    if not token:
-        print("BRAX_MURALE_HD_SKIP brak GH_TOKEN; arena użyje murali 1536x512")
-        return 0
-    try:
-        found = find_assets(token, repo)
-    except Exception as e:  # sieć/API: nie blokujemy buildu
-        print("BRAX_MURALE_HD_SKIP błąd API:", e)
-        return 0
-    missing = [n for n in FILES if n not in found]
-    if missing:
-        print("BRAX_MURALE_HD_SKIP brak w wydaniach:", ", ".join(missing),
-              "; arena użyje murali 1536x512")
-        return 0
+def stage(blobs):
+    # Validate ALL three before changing any asset. Never leave a mixed-size set.
+    if set(blobs) != set(FILES):
+        raise ValueError("Exactly three approved mural images are required")
+    for name, blob in blobs.items():
+        verify_blob(name, blob)
+        target = DEST / name
+        if target.exists() and target.read_bytes() != blob:
+            raise ValueError("Refuse to replace an edited owner source: " + name)
+        meta = Path(str(target) + ".meta")
+        if meta.exists() and not re.search(r"^guid:\s*[a-fA-F0-9]{32}\s*$", meta.read_text(encoding="utf-8"), re.M):
+            raise ValueError("Existing Unity GUID is invalid: " + name)
     DEST.mkdir(parents=True, exist_ok=True)
     write_meta(DEST, folder=True)
-    ok = 0
-    for name, digest in FILES.items():
-        try:
-            blob = api(f"https://api.github.com/repos/{repo}/releases/assets/{found[name]}",
-                       token, accept="application/octet-stream")
-            if hashlib.sha256(blob).hexdigest() != digest:
-                raise ValueError("inna suma SHA-256")
-            if png_size(blob) != SIZE:
-                raise ValueError("wymiary %sx%s zamiast 6144x2048" % png_size(blob))
+    for name, blob in blobs.items():
+        target = DEST / name
+        if not target.exists():
+            temporary = target.with_suffix(target.suffix + ".partial")
+            try:
+                temporary.write_bytes(blob)
+                os.replace(temporary, target)
+            finally:
+                temporary.unlink(missing_ok=True)
+        write_meta(target)
+
+
+def main():
+    report = {"status": "HD_NOT_STAGED", "expected": 3, "staged": 0,
+              "releaseId": OWNER_RELEASE_ID, "unityTested": False, "images": []}
+    try:
+        blobs = {}
+        for name in FILES:
             target = DEST / name
-            target.write_bytes(blob)
-            write_meta(target)
-            ok += 1
-            print("BRAX_MURALE_HD_OK", name, len(blob))
-        except Exception as e:
-            print("BRAX_MURALE_HD_SKIP", name, e)
-    print(f"BRAX_MURALE_HD_RESULT {ok}/3")
+            if target.is_file():
+                raw = target.read_bytes()
+                verify_blob(name, raw)
+                blobs[name] = raw
+        if len(blobs) != len(FILES):
+            token = os.environ.get("GH_TOKEN")
+            if not token:
+                raise ValueError("GH_TOKEN missing and not all three approved PNGs are staged")
+            repo = os.environ.get("GITHUB_REPOSITORY", "wawerpatryk89-sketch/braxhorn-city")
+            if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repo):
+                raise ValueError("Invalid repository name")
+            found = find_assets(token, repo)
+            for name in FILES:
+                if name in blobs:
+                    continue
+                if name not in found:
+                    raise ValueError("Owner SHA-256 not found in release: " + name)
+                asset = found[name]
+                blobs[name] = api(f"https://api.github.com/repos/{repo}/releases/assets/{asset['id']}",
+                                  token, accept="application/octet-stream")
+                report["images"].append({"target": name, **asset})
+        stage(blobs)
+        report.update(status="THREE_OWNER_HD_PNGS_STAGED", staged=3)
+        report["verifiedSha256"] = dict(FILES)
+        print("BRAX_MURALE_HD_RESULT 3/3 bytes_verified=true source_pixels_unchanged=true")
+    except Exception as error:
+        # Advisory remains advisory. The report must not claim HD was delivered.
+        report["error"] = str(error)
+        print("BRAX_MURALE_HD_WARNING", report["error"], "; HD acceptance pending")
+    evidence = ROOT / "mistrzowie-evidence/arena-murals-hd.json"
+    evidence.parent.mkdir(parents=True, exist_ok=True)
+    evidence.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return 0
 
 
