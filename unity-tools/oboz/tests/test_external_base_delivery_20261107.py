@@ -25,11 +25,12 @@ class ExternalBaseDelivery(unittest.TestCase):
         self.assertIn("ExtractBase(path, staging, basis)",RUNTIME)
         self.assertIn("Wybierz paczkę danych obozu",START)
     def test_workflow_uses_java_source_once_and_external_base_before_apk(self):
-        self.assertIn("Assets/Updates/Android/BraxContentPicker.java",WORKFLOW)
-        self.assertIn("rm -f unity-city/Assets/Plugins/Android/BraxContentPicker.jar",WORKFLOW)
-        self.assertNotIn("/project/unity-tools/oboz/build_content_picker.sh",WORKFLOW)
-        self.assertLess(WORKFLOW.index("BraxObozContentBase.ExportPreparedExternalInCI"),WORKFLOW.index("BraxObozBuild.BuildAndroidReview"))
-        self.assertIn("heavy bundle leaked back into APK",WORKFLOW)
-        self.assertIn("oboz-base.braxbase.zip",WORKFLOW)
+        android=WORKFLOW.split("  android-oboz:",1)[1].split("  oboz-scene-only:",1)[0]
+        self.assertIn("Assets/Updates/Android/BraxContentPicker.java",android)
+        self.assertIn("rm -f unity-city/Assets/Plugins/Android/BraxContentPicker.jar",android)
+        self.assertNotIn("/project/unity-tools/oboz/build_content_picker.sh",android)
+        self.assertLess(android.index("BraxObozContentBase.ExportPreparedExternalInCI"),android.index("BraxObozBuild.BuildAndroidReview"))
+        self.assertIn("heavy bundle leaked back into APK",android)
+        self.assertIn("oboz-base.braxbase.zip",android)
 if __name__=="__main__":
     unittest.main()
