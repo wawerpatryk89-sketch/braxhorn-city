@@ -529,6 +529,30 @@ public static class BraxSceneAudit
         Add("Arena: złoty portal muralu wejściowego",
             Find(t=>Contains(t.name,"A1 PREMIUM PORTAL | GOLD top")),
             "BraxChampionsArenaMural.cs","otwór 4.10x4.20; portal zewnętrzny 4.46x4.38");
+        var frontSigns=all.Where(t=>t.name=="A1 facade | original premium sign 0").ToArray();
+        AddExact("Arena: frontowy CHAMPION ARENA dokładnie raz",frontSigns,1,
+            "BraxChampionsArenaSigns.cs","oryginalny owner PNG 1536x256; brak duplikatu");
+        var signGoldFrame=all.Where(t=>Contains(t.name,
+            "ISSUE27_rounded_gold_sign_frames_original_artwork_untouched")).ToArray();
+        AddExact("Arena: jedna premium złota oprawa czterech szyldów",signGoldFrame,1,
+            "BraxChampionsArenaArrival.cs","front graphic gap=0.08m; black belt behind");
+        var externalRedSignGeometry=all.Where(t=>
+            Contains(t.name,"red neon vertical sign frame")||
+            Contains(t.name,"red neon sign top accent")||
+            Contains(t.name,"red neon sign lower accent")).ToArray();
+        AddExact("Arena: zewnętrzne czerwone elementy przy szyldzie = 0",
+            externalRedSignGeometry,0,"BraxChampionsArenaArrival.cs",
+            "czerwień wyłącznie wewnątrz oryginalnej grafiki CHAMPION ARENA");
+        bool UnderA1(Transform t)
+        {
+            for(var p=t;p;p=p.parent)
+                if(p.name.StartsWith("A1 |",StringComparison.Ordinal))return true;
+            return false;
+        }
+        var oldA1Lettering=all.Where(t=>UnderA1(t)&&
+            Contains(t.name,"original generated 3D lettering")).ToArray();
+        AddExact("Arena: stary wygenerowany lettering A1 = 0",oldA1Lettering,0,
+            "BraxChampionsBuildings.cs","owner PNG supersedes legacy 3D lettering");
         Add("Arena: trybuny", Find(t => Contains(t.name, "Champion Arena North")),
             "BraxChampionsArena.cs", "obecność bryły");
         Add("Arena: pas w gablocie", Find(t =>
