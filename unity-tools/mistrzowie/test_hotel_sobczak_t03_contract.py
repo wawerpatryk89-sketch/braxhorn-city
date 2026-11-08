@@ -328,8 +328,15 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("visual.gameObject.SetActive(false)", self.visual_review)
         self.assertNotIn("visual.SetActive(false)", self.visual_review)
 
+    def test_hotel_sign_uses_continuous_extruded_3d_strokes(self):
+        self.assertIn("static void SignStroke", self.generator)
+        self.assertIn("static void ClassicGlyph", self.generator)
+        self.assertIn("const float w=.52f,h=.90f", self.generator)
+        self.assertIn('HOTEL SOBCZAK 3D', self.generator)
+        self.assertNotIn("Dictionary<char,string[]> Font", self.generator)
+
     def test_owner_sign_is_hotel_sobczak(self):
-        self.assertIn('AddBlockSign("HOTEL SOBCZAK"', self.generator)
+        self.assertIn('AddClassicSign("HOTEL SOBCZAK"', self.generator)
         self.assertNotIn("HOTEL WAWER", self.generator)
         self.assertNotIn("BRAXHORN HOTEL", self.generator)
 
