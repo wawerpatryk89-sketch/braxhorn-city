@@ -281,6 +281,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
             "structuralWidthMeters", "structuralDepthMeters", "maxHeightMeters",
             "h.rooms==420", "h.guestFloors==30", "h.elevators==4",
             "h.stairs==2", "h.parkingB1==40", "h.parkingB2==40",
+            "physicalLevelsMeasured", "siteReservePass", "dormersPass",
             "milkGlassCandidates", "doorLeafColliderCount"
         ]:
             self.assertIn(token, self.scene_audit)
