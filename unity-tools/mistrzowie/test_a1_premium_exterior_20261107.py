@@ -195,6 +195,21 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('Changing room inner wall 2 | Wooden Panels', self.arrival)
         self.assertIn('Changing room enclosed ceiling", ceiling', self.arrival)
 
+    def test_issue27_exact_trim_projections_and_interior_finish(self):
+        # Fascia outer face: .121 + .242/2 = .242m.
+        fascia_outer=.121+.242/2
+        upper_outer=.276+.112/2
+        lower_outer=.256+.052/2
+        self.assertAlmostEqual(upper_outer-fascia_outer,.090,places=6)
+        self.assertAlmostEqual(lower_outer-fascia_outer,.040,places=6)
+        # Side rail: centre .024 + half .072 = .060m exposed.
+        self.assertAlmostEqual(.024+.072/2,.060,places=6)
+        self.assertIn('fasciaR=.120 upperGoldR=.055',self.arrival)
+        self.assertIn('sideGoldR=.035',self.arrival)
+        self.assertIn('lowerGoldR=.025',self.arrival)
+        self.assertIn('new Color(.30f,.31f,.33f)',self.arena)
+        self.assertIn('gold_edges_20mm_continuous_tread_and_riser=true',self.arena)
+
     def test_perimeter_bays_skip_both_entries(self):
         skipped = 0
         for i in range(360):
