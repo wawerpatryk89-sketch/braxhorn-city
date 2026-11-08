@@ -29,7 +29,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git hash-object unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs)" = "24ac35fed738791ebe6d6686999ce6e19df8e887"
+          test "$(git hash-object unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs)" = "9b082d3b40a04ff7b5fe8686184d241224741338"
           test "$(git hash-object unity-city/Assets/Mistrzowie/BraxChampionsCar.cs)" = "3d23bd562a7180577f9e8279f91af5fc0a6dd579"
 
       - name: Install audio encoder only
