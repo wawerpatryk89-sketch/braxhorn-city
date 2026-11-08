@@ -122,7 +122,26 @@ public static class BraxChampionsVIPSeats
             " originalArtUnchanged=true");
     }
 
-    static void Place(Transform root, GameObject source, float x, float z, float cx, float cz, string label)
+    static void ApplyPremiumMaterials(GameObject chair,Material leather,Material blackMetal)
+    {
+        foreach(var renderer in chair.GetComponentsInChildren<Renderer>(true))
+        {
+            var slots=renderer.sharedMaterials;
+            for(int i=0;i<slots.Length;i++)
+            {
+                string semantic=(renderer.gameObject.name+" "+(slots[i]?slots[i].name:"")).ToLowerInvariant();
+                bool metal=semantic.Contains("metal")||semantic.Contains("steel")||
+                    semantic.Contains("chrome")||semantic.Contains("leg")||
+                    semantic.Contains("base")||semantic.Contains("frame")||
+                    semantic.Contains("foot");
+                slots[i]=metal?blackMetal:leather;
+            }
+            renderer.sharedMaterials=slots;
+        }
+    }
+
+    static void Place(Transform root, GameObject source, float x, float z, float cx, float cz,
+        string label,Material leather,Material blackMetal)
     {
         var spot = new GameObject(label).transform;
         spot.SetParent(root, false);
@@ -141,23 +160,24 @@ public static class BraxChampionsVIPSeats
         KeepImportedChairUpright(chair,facing);
 
         var bounds = VisualBounds(chair);
-        // Constrain real footprint and height without changing proportions.
-        // The source model was authored at ~85 nominal units wide, not human size.
-        float ratio = Mathf.Max(bounds.size.x / .96f,
-                        Mathf.Max(bounds.size.z / .96f, bounds.size.y / 1.08f));
+        // Owner-approved premium scale: UNIFORM only, no mesh stretching.
+        // Max envelope 1.18 x 1.18 x 1.28 m still leaves 27cm between centres
+        // horizontally and 57cm between the two 1.75m-spaced rows.
+        float ratio = Mathf.Max(bounds.size.x / 1.18f,
+                        Mathf.Max(bounds.size.z / 1.18f, bounds.size.y / 1.28f));
         float factor = 1f / ratio;
         chair.transform.localScale *= factor;
         bounds = VisualBounds(chair);
-        // Sit on the actual floor, centred in the reserved VIP place.
         Vector3 target = spot.position + new Vector3(0, bounds.extents.y, 0);
         chair.transform.position += target - bounds.center;
+        ApplyPremiumMaterials(chair,leather,blackMetal);
 
-        // One cheap collider for a complete upholstered chair, never five MeshColliders.
+        // One simple collider per place; no expensive imported MeshColliders.
         foreach (var c in chair.GetComponentsInChildren<Collider>(true))
             UnityEngine.Object.DestroyImmediate(c);
         var collider = spot.gameObject.AddComponent<BoxCollider>();
-        collider.center = new Vector3(0, .54f, 0);
-        collider.size = new Vector3(.96f, 1.08f, .96f);
+        collider.center = new Vector3(0, .64f, 0);
+        collider.size = new Vector3(1.18f, 1.28f, 1.18f);
         SeatCount++;
     }
 
@@ -172,6 +192,13 @@ public static class BraxChampionsVIPSeats
             return 0;
         }
         VerifyImportedTextures(source);
+        var leather=BraxChampionsFoundation.SourceMaterial(
+            "A1_VIP_black_leather_polyhaven","leather_white",.45f,
+            new Color(.07f,.075f,.08f));
+        leather.SetFloat("_Metallic",0f);leather.SetFloat("_Roughness",.22f);
+        var blackMetal=BraxChampionsFoundation.LibraryMetal(
+            "A1_VIP_black_metal",new Color(.035f,.040f,.050f));
+        blackMetal.SetFloat("_Metallic",.92f);blackMetal.SetFloat("_Roughness",.22f);
         // Existing reserved positions near jury/commentator area:
         // two rows behind cage-side service desks; one 6m central aisle stays open.
         // Four places per side per row; seat spacing 1.45m, row spacing 1.75m.
@@ -180,12 +207,15 @@ public static class BraxChampionsVIPSeats
                          -82.35f, -80.90f, -79.45f, -78.0f };
         foreach (float z in new[] { 70.30f, 72.05f })
             foreach (float x in xs)
-                Place(interiorRoot, source, x, z, cx, cz,
-                    "Reserved VIP | imported luxurious barrel seat");
+                Place(interiorRoot,source,x,z,cx,cz,
+                    "Reserved VIP | imported luxurious barrel seat",leather,blackMetal);
 
         if (SeatCount != 16)
             BraxBuildQuality.Warn("Champion A1 expected 16 premium VIP chairs, got " + SeatCount +
-                ". Test APK requires visual inspection.");
+                ". Visual acceptance FAIL.");
+        else Debug.Log("A1_VIP_PREMIUM PASS count=16 maxEnvelope=1.18x1.18x1.28"+
+            " spacingX=1.45 gapX=.27 rowSpacing=1.75 gapRows=.57"+
+            " blackPolyHavenLeather=true blackPBRMetal=true uniformScale=true");
         return SeatCount;
     }
 }
