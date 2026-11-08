@@ -111,8 +111,13 @@ def find_assets(token, repo):
 def write_meta(path, folder=False):
     meta = Path(str(path) + ".meta")
     if meta.exists():
-        if not re.search(r"^guid:\s*[a-fA-F0-9]{32}\s*$", meta.read_text(encoding="utf-8"), re.M):
+        match=re.search(r"^guid:\s*([a-fA-F0-9]{32})\s*$", meta.read_text(encoding="utf-8"), re.M)
+        if not match:
             raise ValueError("Existing Unity GUID is invalid: " + str(meta))
+        rel = path.relative_to(ROOT / "unity-city").as_posix()
+        expected=guid(rel)
+        if match.group(1).lower()!=expected:
+            raise ValueError("Existing Unity GUID differs from deterministic approved GUID: "+str(meta))
         return  # Do not erase TextureImporter settings or replace an existing GUID.
     rel = path.relative_to(ROOT / "unity-city").as_posix()
     body = "fileFormatVersion: 2\nguid: " + guid(rel) + "\n"
@@ -131,8 +136,11 @@ def stage(blobs):
         if target.exists() and target.read_bytes() != blob:
             raise ValueError("Refuse to replace an edited owner source: " + name)
         meta = Path(str(target) + ".meta")
-        if meta.exists() and not re.search(r"^guid:\s*[a-fA-F0-9]{32}\s*$", meta.read_text(encoding="utf-8"), re.M):
-            raise ValueError("Existing Unity GUID is invalid: " + name)
+        if meta.exists():
+            match=re.search(r"^guid:\s*([a-fA-F0-9]{32})\s*$",meta.read_text(encoding="utf-8"),re.M)
+            expected_guid=guid(target.relative_to(ROOT/"unity-city").as_posix())
+            if not match or match.group(1).lower()!=expected_guid:
+                raise ValueError("Existing Unity GUID mismatch for approved mural: "+name)
     DEST.mkdir(parents=True, exist_ok=True)
     write_meta(DEST, folder=True)
     for name, blob in blobs.items():
@@ -182,9 +190,12 @@ def main():
         print("BRAX_MURALE_HD_RESULT 3/3 bytes_verified=true source_pixels_unchanged=true "
               + " ".join(RELEASE_FILES[target] + "->" + target for target in FILES))
     except Exception as error:
-        # Advisory remains advisory. The report must not claim HD was delivered.
         report["error"] = str(error)
-        print("BRAX_MURALE_HD_WARNING", report["error"], "; HD acceptance pending")
+        print("BRAX_MURALE_HD_ERROR", report["error"], "; exact 3/3 owner HD murals are mandatory")
+        evidence = ROOT / "mistrzowie-evidence/arena-murals-hd.json"
+        evidence.parent.mkdir(parents=True, exist_ok=True)
+        evidence.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return 1
     evidence = ROOT / "mistrzowie-evidence/arena-murals-hd.json"
     evidence.parent.mkdir(parents=True, exist_ok=True)
     evidence.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
