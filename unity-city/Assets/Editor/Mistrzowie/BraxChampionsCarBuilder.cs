@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -12,6 +13,58 @@ public static class BraxChampionsCarBuilder
     public const string OwnerCar = "Assets/Source/Mistrzowie/Vehicles/car_rev.glb";
     const float LengthMetres = 4.95f; // Source estate's DlugoscRealna["car_rev"]
     static float K => BraxClaudeOsiedle.K;
+
+    static void ApplyCarPbr(GameObject copy)
+    {
+        var cache = new Dictionary<Material, Material>();
+        int converted = 0, preserved = 0, slots = 0;
+        foreach (var renderer in copy.GetComponentsInChildren<Renderer>(true))
+        {
+            var materials = renderer.sharedMaterials;
+            for (int i = 0; i < materials.Length; i++)
+            {
+                var source = materials[i];
+                if (!source) continue;
+                if (!cache.TryGetValue(source, out var target))
+                {
+                    if (BraxCityMaterials.IsCityMaterial(source))
+                        target = source;
+                    else if (source.HasProperty("baseColorFactor") &&
+                             source.HasProperty("roughnessFactor") &&
+                             source.HasProperty("metallicFactor"))
+                    {
+                        // Existing project converter preserves glTF base/normal/MR/AO maps and UV transforms.
+                        target = BraxCityMaterials.Imported(source);
+                        converted++;
+                    }
+                    else
+                    {
+                        target = source;
+                        preserved++;
+                        Debug.LogWarning("A1_CAR_PBR_PRESERVED unsupportedShader="
+                            + (source.shader ? source.shader.name : "<none>") + " material=" + source.name);
+                    }
+                    cache[source] = target;
+                }
+                materials[i] = target;
+                slots++;
+            }
+            renderer.sharedMaterials = materials;
+
+            // Per-car instance override only. Keep authored glTF roughness/metallic maps,
+            // reduce the city shader's broad sky reflection so the body is not a mirror.
+            for (int i = 0; i < materials.Length; i++)
+            {
+                if (!materials[i] || !materials[i].HasProperty("_ReflectionStrength")) continue;
+                var block = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(block, i);
+                block.SetFloat("_ReflectionStrength", .28f);
+                renderer.SetPropertyBlock(block, i);
+            }
+        }
+        Debug.Log("A1_CAR_PBR_INSTANCE converted=" + converted + " preserved=" + preserved
+            + " slots=" + slots + " sourceTexturesUnchanged=true reflectionStrength=.28");
+    }
 
     static Bounds BoundsLocal(Transform parent)
     {
@@ -115,9 +168,10 @@ public static class BraxChampionsCarBuilder
         root.transform.position = new Vector3(645.175f, .16f, 712f) * K;
         root.transform.rotation = Quaternion.identity;
         var copy = UnityEngine.Object.Instantiate(source, root.transform, false);
-        copy.name = "ORIGINAL car_rev GLB from estate, unchanged mesh + PBR";
+        copy.name = "ORIGINAL car_rev GLB from estate, unchanged mesh + per-car PBR instance";
         copy.transform.localPosition = Vector3.zero;
         copy.transform.localRotation = Quaternion.identity;
+        ApplyCarPbr(copy);
         Physics.SyncTransforms();
         PlaceWheelsDown(copy,root.transform);
         Bounds bounds=BoundsLocal(root.transform);
@@ -151,13 +205,14 @@ public static class BraxChampionsCarBuilder
         var seat = new GameObject("Original cabin | LEFT driver seat for Brax").transform;
         seat.SetParent(root.transform, false);
         seat.localPosition = new Vector3(-bounds.extents.x * .39f,
-            Mathf.Clamp(bounds.size.y * .28f, .26f, .85f), bounds.extents.z * .14f);
+            bounds.min.y + Mathf.Clamp(bounds.size.y * .28f, .26f, .85f),
+            bounds.extents.z * .14f);
         seat.localRotation = Quaternion.identity;
 
         var enter = new GameObject("Actual left driver-door approach").transform;
         enter.SetParent(root.transform, false);
         enter.localPosition = new Vector3(
-            bounds.min.x - .78f, .10f, seat.localPosition.z - .15f);
+            bounds.min.x - .78f, bounds.min.y + .04f, seat.localPosition.z - .15f);
 
         // Try the REAL separate door assembly. If the source has no reliable
         // split, do not invent a duplicate door or move a body mesh incorrectly.
@@ -191,7 +246,7 @@ public static class BraxChampionsCarBuilder
         var car = root.AddComponent<BraxChampionsCar>();
         car.bodyCollider = box; car.driverSeat = seat; car.doorApproach = enter;
         car.doorHinge = doorPivot;
-        car.wheelbase = 2.7f; car.maxSpeed = 65f / 3.6f;
+        car.wheelbase = 2.7f; car.maxSpeed = 120f / 3.6f; car.reverseMaxSpeed = 30f / 3.6f;
         car.interactionRadius = 3.8f;
         // If wheels are individual GLB nodes, the runtime animates their
         // existing transforms; no substitute wheel meshes are created.
@@ -203,7 +258,10 @@ public static class BraxChampionsCarBuilder
         if (Mathf.Abs(bounds.size.z - LengthMetres) > .08f)
             BraxBuildQuality.Warn("A1_OWNER_CAR_SCALE_ADVISORY: expected 4.95m, got " + bounds.size.z.ToString("F2") + "m");
         Debug.Log("A1_OWNER_CAR_INSTALLED original=car_rev length=" +
-            bounds.size.z.ToString("F2") + " bodyCollider=REAL_BOUNDS" +
+            bounds.size.z.ToString("F2") + " width=" + bounds.size.x.ToString("F2")
+            + " height=" + bounds.size.y.ToString("F2") + " K=" + K.ToString("F4")
+            + " driverHipsTarget=" + seat.localPosition + " maxSpeedKph=120 reverseKph=30"
+            + " bodyCollider=REAL_BOUNDS" +
             " start=(645.175,712) side=RIGHT centredInRegularBay=true driverDoorFacesWalkway=true originalDoor=" + (doorPivot != null) +
             " ownerAnimations=EnteringCar,Driving,ExitingCar" +
             " physicalScale=REAL_METRES noExtraK=true no_fake_collision=true manual_phone_review_required=true");

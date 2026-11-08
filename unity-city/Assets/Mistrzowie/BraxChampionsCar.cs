@@ -10,14 +10,17 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 {
     public Transform driverSeat, doorApproach, doorHinge;
     public BoxCollider bodyCollider;
-    public float maxSpeed = 65f / 3.6f, wheelbase = 2.7f, maxSteer = 34f;
+    public float maxSpeed = 120f / 3.6f, reverseMaxSpeed = 30f / 3.6f;
+    public float wheelbase = 2.7f, maxSteer = 34f, highSpeedSteerFactor = .16f;
     public float interactionRadius = 3.8f;
     public float acceleration = 5.5f, braking = 9.5f;
+    public float groundProbeReach = 2.5f, maxGroundStep = .80f, collisionSkin = .10f;
     public Transform[] rollingWheels = new Transform[0];
     public Transform[] steeringWheels = new Transform[0];
 
     public BraxGymPlayer Driver => driver;
     public float Speed => speed;
+    public float SpeedKph => Mathf.Abs(speed) * 3.6f;
     public bool Transitioning => transition;
     const int PlayerLayer = 8;
     readonly RaycastHit[] groundHits = new RaycastHit[24];
@@ -26,6 +29,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     BraxGymPlayer driver;
     Vector2 control;
     float speed, doorAngle, wheelAngle;
+    float groundPivotOffset, nextBlockDiagnostic;
     bool transition;
     Quaternion doorRest;
 
@@ -37,6 +41,9 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         physicsBody.isKinematic = true;
         physicsBody.useGravity = false;
         physicsBody.interpolation = RigidbodyInterpolation.Interpolate;
+        Physics.SyncTransforms();
+        // Preserve the authored wheel/body clearance: the vehicle root is not necessarily at tyre level.
+        groundPivotOffset = transform.position.y - bodyCollider.bounds.min.y;
         if (doorHinge) doorRest = doorHinge.localRotation;
     }
 
@@ -94,6 +101,30 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     static float TransitionSeconds(AnimationClip clip)
         => clip ? Mathf.Clamp(clip.length, .45f, 3.4f) : 1f;
 
+    static string BoneName(string raw)
+    {
+        string s = raw ?? "";
+        int slash = s.LastIndexOf('/');
+        if (slash >= 0) s = s.Substring(slash + 1);
+        int pipe = s.LastIndexOf('|');
+        if (pipe >= 0) s = s.Substring(pipe + 1);
+        int colon = s.LastIndexOf(':');
+        if (colon >= 0) s = s.Substring(colon + 1);
+        s = s.Trim();
+        if (s.StartsWith("mixamorig", StringComparison.OrdinalIgnoreCase))
+            s = s.Substring("mixamorig".Length).TrimStart(':', '_', '-', '.', ' ');
+        return s;
+    }
+
+    static Transform FindDriverHips(Transform root)
+    {
+        if (!root) return null;
+        foreach (var t in root.GetComponentsInChildren<Transform>(true))
+            if (string.Equals(BoneName(t.name), "Hips", StringComparison.OrdinalIgnoreCase))
+                return t;
+        return null;
+    }
+
     IEnumerator MoveDoor(float target, float seconds)
     {
         if (!doorHinge) yield break; // No new pretend doors when source mesh is merged.
@@ -120,6 +151,12 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         var clip = p.clips.GetClip("EnteringCar");
         Vector3 start = p.transform.position;
         Quaternion startRot = p.transform.rotation;
+        Transform hips = FindDriverHips(p.transform);
+        Vector3 rootToHips = hips ? hips.position - start : Vector3.zero;
+        Quaternion seatDelta = driverSeat.rotation * Quaternion.Inverse(startRot);
+        Vector3 seatedRoot = hips ? driverSeat.position - seatDelta * rootToHips : driverSeat.position;
+        if (!hips)
+            Debug.LogWarning("A1_CAR_DRIVER_HIPS_MISSING: fallback root-to-seat used; verify original Brax skeleton");
         Vector3 door = doorApproach.position;
         p.clips.CrossFade("EnteringCar", .14f, PlayMode.StopAll);
         yield return MoveDoor(-65f, .38f);
@@ -127,18 +164,25 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         for (float time = 0; time < duration; time += Time.deltaTime)
         {
             float t = Mathf.SmoothStep(0, 1, Mathf.Clamp01(time / duration));
-            p.transform.position = Vector3.Lerp(start, Vector3.Lerp(door, driverSeat.position, t), t);
+            p.transform.position = Vector3.Lerp(start, Vector3.Lerp(door, seatedRoot, t), t);
             p.transform.rotation = Quaternion.Slerp(startRot, driverSeat.rotation, t);
             yield return null;
         }
-        p.transform.SetParent(driverSeat, false);
-        p.transform.localPosition = Vector3.zero;
+        // driverSeat is a HIPS target, not Brax's root/feet target.
+        // Parenting the character root directly to the seat put a tall Brax on the roof.
+        p.transform.SetParent(driverSeat, true);
         p.transform.localRotation = Quaternion.identity;
+        if (hips) p.transform.position += driverSeat.position - hips.position;
+        else p.transform.localPosition = Vector3.zero;
         p.clips["Driving"].wrapMode = WrapMode.Loop;
         p.clips.CrossFade("Driving", .18f, PlayMode.StopAll);
+        yield return null;
+        if (hips) p.transform.position += driverSeat.position - hips.position;
         yield return MoveDoor(0f, .35f);
         transition = false;
-        Debug.Log("A1_CAR_BOARDED: original owner car_rev + original Brax Mixamo Driving");
+        float hipError = hips ? Vector3.Distance(hips.position, driverSeat.position) : -1f;
+        Debug.Log("A1_CAR_BOARDED: original owner car_rev + original Brax Mixamo Driving"
+            + " hipsAnchored=" + (hips != null) + " hipSeatError=" + hipError.ToString("F3") + "m");
     }
 
     bool SafeExit(out Vector3 feet)
@@ -220,64 +264,128 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         if (doorHinge) { doorHinge.localRotation = doorRest; doorAngle = 0; }
     }
 
-    bool DriveableGround(Vector3 next, out Vector3 groundPosition)
+    bool ProbeGround(Vector3 probe, float expectedGroundY, ref float bestDelta, ref float bestY)
     {
-        groundPosition = next;
-        int n = Physics.RaycastNonAlloc(next + Vector3.up * 2f,
-            Vector3.down, groundHits, 5f, ~(1 << PlayerLayer), QueryTriggerInteraction.Ignore);
-        bool found = false; float bestY = float.NegativeInfinity;
+        int n = Physics.RaycastNonAlloc(probe + Vector3.up * groundProbeReach,
+            Vector3.down, groundHits, groundProbeReach * 2f,
+            ~(1 << PlayerLayer), QueryTriggerInteraction.Ignore);
         for (int i = 0; i < n; i++)
         {
             var hit = groundHits[i];
             if (!hit.collider || hit.collider.transform.IsChildOf(transform) || hit.normal.y < .55f) continue;
-            if (hit.point.y > bestY) { bestY = hit.point.y; found = true; }
+            float deltaY = Mathf.Abs(hit.point.y - expectedGroundY);
+            if (deltaY > maxGroundStep || deltaY >= bestDelta) continue;
+            bestDelta = deltaY;
+            bestY = hit.point.y;
         }
-        if (found) groundPosition.y = bestY;
-        return found;
+        return bestDelta < float.PositiveInfinity;
     }
 
-    bool ObstacleOnVisibleCarPath(Vector3 advance, Quaternion nextRotation)
+    bool DriveableGround(Vector3 next, Quaternion nextRotation, out Vector3 groundPosition)
     {
+        groundPosition = next;
+        // Compare road height with the current tyre/chassis bottom, not with the vehicle pivot.
+        float expectedGroundY = (physicsBody ? physicsBody.position.y : transform.position.y) - groundPivotOffset;
+        float bestDelta = float.PositiveInfinity, bestY = expectedGroundY;
+        Vector3 scale = transform.lossyScale;
+        float halfX = bodyCollider ? bodyCollider.size.x * .32f * Mathf.Abs(scale.x) : .5f;
+        float halfZ = bodyCollider ? bodyCollider.size.z * .32f * Mathf.Abs(scale.z) : 1f;
+        Vector3 right = nextRotation * Vector3.right * halfX;
+        Vector3 forward = nextRotation * Vector3.forward * halfZ;
+        ProbeGround(next, expectedGroundY, ref bestDelta, ref bestY);
+        ProbeGround(next + right, expectedGroundY, ref bestDelta, ref bestY);
+        ProbeGround(next - right, expectedGroundY, ref bestDelta, ref bestY);
+        ProbeGround(next + forward, expectedGroundY, ref bestDelta, ref bestY);
+        ProbeGround(next - forward, expectedGroundY, ref bestDelta, ref bestY);
+        if (bestDelta == float.PositiveInfinity) return false;
+        groundPosition.y = bestY + groundPivotOffset;
+        return true;
+    }
+
+    bool ObstacleOnVisibleCarPath(Vector3 advance, Quaternion nextRotation, out RaycastHit blocker)
+    {
+        blocker = default;
         if (advance.sqrMagnitude < .000001f || !bodyCollider) return false;
         Vector3 scale = transform.lossyScale;
-        var size = bodyCollider.size;
-        var half = Vector3.Scale(size * .5f,
-            new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z)));
-        // Shrink slightly to avoid treating the legitimate ground as a wall.
-        half.y = Mathf.Max(.12f, half.y - .15f);
-        var center = transform.position + nextRotation * bodyCollider.center + Vector3.up * .15f;
+        Vector3 absScale = new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
+        var half = Vector3.Scale(bodyCollider.size * .5f, absScale);
+        float skin = Mathf.Max(.03f, collisionSkin);
+        half.x = Mathf.Max(.12f, half.x - skin);
+        half.y = Mathf.Max(.12f, half.y - skin);
+        half.z = Mathf.Max(.20f, half.z - skin);
+        Vector3 localCenter = Vector3.Scale(bodyCollider.center, scale);
+        var center = physicsBody.position + nextRotation * localCenter + Vector3.up * skin;
         int count = Physics.BoxCastNonAlloc(center, half,
-            advance.normalized, obstacleHits, nextRotation, advance.magnitude + .08f,
+            advance.normalized, obstacleHits, nextRotation, advance.magnitude + skin,
             ~(1 << PlayerLayer), QueryTriggerInteraction.Ignore);
         for (int i = 0; i < count; i++)
         {
             var hit = obstacleHits[i];
             if (!hit.collider || hit.collider.transform.IsChildOf(transform)) continue;
-            if (hit.normal.y > .70f) continue; // real road/floor, not an obstacle
+            if (hit.normal.y > .70f) continue; // real road/floor, not a wall
+            blocker = hit;
             return true;
         }
         return false;
+    }
+
+    static string V(Vector3 v)
+        => "(" + v.x.ToString("F2") + "," + v.y.ToString("F2") + "," + v.z.ToString("F2") + ")";
+
+    void LogDriveBlock(string reason, Vector3 next, RaycastHit blocker)
+    {
+        if (Time.unscaledTime < nextBlockDiagnostic) return;
+        nextBlockDiagnostic = Time.unscaledTime + .35f;
+        if (blocker.collider)
+        {
+            var c = blocker.collider;
+            var b = c.bounds;
+            string parent = c.transform.parent ? c.transform.parent.name : "<root>";
+            Debug.LogWarning("A1_CAR_DRIVE_BLOCK reason=" + reason
+                + " carPos=" + V(transform.position) + " next=" + V(next)
+                + " speedKph=" + SpeedKph.ToString("F1")
+                + " collider=" + c.name + " instance=" + c.GetInstanceID()
+                + " layer=" + c.gameObject.layer + " parent=" + parent
+                + " point=" + V(blocker.point) + " normal=" + V(blocker.normal)
+                + " distance=" + blocker.distance.ToString("F3")
+                + " boundsCenter=" + V(b.center) + " boundsSize=" + V(b.size));
+        }
+        else
+            Debug.LogWarning("A1_CAR_DRIVE_BLOCK reason=" + reason
+                + " carPos=" + V(transform.position) + " next=" + V(next)
+                + " speedKph=" + SpeedKph.ToString("F1")
+                + " groundProbeReach=" + groundProbeReach.ToString("F2")
+                + " maxGroundStep=" + maxGroundStep.ToString("F2"));
     }
 
     void FixedUpdate()
     {
         if (!driver || transition || !physicsBody || !bodyCollider) return;
         float dt = Time.fixedDeltaTime;
-        float target = Mathf.Abs(control.y) < .08f ? 0f : control.y * maxSpeed;
-        speed = Mathf.MoveTowards(speed, target,
-            (Mathf.Abs(target) < Mathf.Abs(speed) ? braking : acceleration) * dt);
-        float yaw = Mathf.Clamp(control.x, -1f, 1f) *
-            Mathf.Lerp(maxSteer, maxSteer * .48f, Mathf.Clamp01(Mathf.Abs(speed) / maxSpeed));
+        float target = Mathf.Abs(control.y) < .08f ? 0f
+            : control.y >= 0f ? control.y * maxSpeed : control.y * reverseMaxSpeed;
+        bool changingDirection = speed * target < 0f;
+        float rate = changingDirection || Mathf.Abs(target) < Mathf.Abs(speed) ? braking : acceleration;
+        speed = Mathf.MoveTowards(speed, target, rate * dt);
+
+        float speed01 = Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.01f, maxSpeed));
+        float steerFactor = Mathf.Lerp(1f, highSpeedSteerFactor, speed01 * speed01);
+        float yaw = Mathf.Clamp(control.x, -1f, 1f) * maxSteer * steerFactor;
         float turn = speed / Mathf.Max(1f, wheelbase) * Mathf.Tan(yaw * Mathf.Deg2Rad);
         var nextRotation = physicsBody.rotation * Quaternion.Euler(0, turn * Mathf.Rad2Deg * dt, 0);
         Vector3 delta = nextRotation * Vector3.forward * speed * dt;
         var next = physicsBody.position + delta;
-        if (!DriveableGround(next, out Vector3 grounded) ||
-            ObstacleOnVisibleCarPath(delta, nextRotation))
+
+        bool hasGround = DriveableGround(next, nextRotation, out Vector3 grounded);
+        RaycastHit blocker = default;
+        bool blocked = hasGround && ObstacleOnVisibleCarPath(delta, nextRotation, out blocker);
+        if (!hasGround || blocked)
         {
-            speed = 0f; // real terrain/car collision only; NO artificial boundary colliders
+            speed = Mathf.MoveTowards(speed, 0f, braking * dt);
+            LogDriveBlock(hasGround ? "obstacle" : "ground", next, blocker);
             return;
         }
+
         physicsBody.MoveRotation(nextRotation);
         physicsBody.MovePosition(grounded);
         wheelAngle += speed * dt * Mathf.Rad2Deg / .34f;
