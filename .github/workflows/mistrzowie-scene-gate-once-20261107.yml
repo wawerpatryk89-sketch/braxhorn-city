@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - gpt/miasto-mistrzow-kasyno-t11-20261105
+      - gpt/miasto-mistrzow-hotel-sobczak-t03-20261108
     paths:
       - .github/workflows/mistrzowie-scene-gate-once-20261107.yml
 
@@ -58,6 +59,9 @@ jobs:
         run: |
           python3 unity-tools/mistrzowie/test_prepare_assets.py -v
           python3 unity-tools/mistrzowie/test_t11_owner_approved_exterior_20261107.py -v
+      - name: HOTEL SOBCZAK T03 contract - blocking on hotel branch
+        if: github.ref == 'refs/heads/gpt/miasto-mistrzow-hotel-sobczak-t03-20261108'
+        run: python3 unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py -v
       - name: Current A1 arena reference tests - advisory only for isolated T11 validation
         continue-on-error: true
         run: |
