@@ -112,7 +112,8 @@
     ],
     "wall_material": "beige_wall_001",
     "bathroom_wet_wall_material": "marble_01",
-    "corridor_trim_material": "white_stucco_02"
+    "corridor_trim_material": "white_stucco_02",
+    "bathroom_mirror": true
   },
   "cores": {
     "elevators": 4,
@@ -453,7 +454,10 @@
     "bar_stools": [
       6,
       8
-    ]
+    ],
+    "staff_passage_clear_m": 1.5,
+    "technical_risers": 2,
+    "public_wc_mirrors": true
   },
   "floor1_details": {
     "restaurant_table_types": [
@@ -483,13 +487,24 @@
       "cardio",
       "free_weights",
       "benches"
-    ]
+    ],
+    "wall_materials": {
+      "restaurant": "beige_wall_001 + white_stucco_02 trim",
+      "kitchen": "white_stucco_02",
+      "spa": "white_stucco_02 + marble_01 wet wall",
+      "fitness": "beige_wall_001 + white_stucco_02 trim"
+    }
   },
   "material_variants": {
     "wet_marble_floor": {
       "source": "marble_01",
       "roughness": 0.5,
       "shared_textures": true
+    },
+    "mirror": {
+      "type": "CUSTOM_PBR",
+      "metallic": 0.95,
+      "roughness": 0.08
     }
   },
   "acceptance_material_report": [
@@ -506,5 +521,28 @@
   "material_normal_strength": {
     "exterior_white_stucco_02": 0.25,
     "interior_ceiling_white_stucco_02": 0.15
+  },
+  "basements_detail": {
+    "B2": [
+      "parking_40",
+      "technical_room",
+      "electrical_cabinets",
+      "HVAC_pump_bank",
+      "workbench"
+    ],
+    "B1": [
+      "parking_40",
+      "storage",
+      "housekeeping",
+      "racks",
+      "linen_storage",
+      "housekeeping_cart"
+    ]
+  },
+  "site_details": {
+    "classic_warm_lanterns": 2,
+    "topiary_planters": 4,
+    "ornamental_trees": 4,
+    "fountains": 2
   }
 }
