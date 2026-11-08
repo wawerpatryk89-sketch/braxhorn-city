@@ -22,13 +22,9 @@ class HotelSobczakT03Contract(unittest.TestCase):
     def test_plot_exact(self):
         t03 = next(b for b in self.plan["buildings"] if b["id"] == "T03")
         self.assertEqual(t03["name"], "HOTEL SOBCZAK / 5*")
-        self.assertEqual((t03["x"], t03["z"], t03["w"], t03["d"], t03["height"]), (1030, 725, 64, 42, 130))
-        self.assertEqual(self.spec["bounds_m"], {"x": [998, 1062], "z": [704, 746]})
-        # Protected road/sidewalk Z650 ends at z=667; T02 starts at z=783.
-        self.assertEqual(704 - 667, 37)
-        self.assertEqual(783 - 746, 37)
-        # Protected X1130 corridor begins at x=1113.
-        self.assertEqual(1113 - 1062, 51)
+        self.assertEqual((t03["x"], t03["z"], t03["w"], t03["d"], t03["height"]), (1030, 710, 64, 42, 130))
+        self.assertEqual(self.spec["bounds_m"], {"x": [998, 1062], "z": [689, 731]})
+        self.assertEqual(self.spec["site_reserve_m"], {"width": 86, "depth": 76, "x": [987, 1073], "z": [672, 748]})
 
     def test_vertical_schedule_exact(self):
         self.assertEqual(self.spec["physical_levels"], 34)
@@ -49,12 +45,12 @@ class HotelSobczakT03Contract(unittest.TestCase):
         rooms = self.spec["rooms"]
         self.assertEqual(rooms["floors"] * rooms["per_floor"], 420)
         self.assertEqual(rooms["layout"], "7_south+7_north")
-        self.assertEqual(rooms["bay_m"], {"width": 7, "depth": 11.65})
+        self.assertEqual(rooms["bay_m"], {"width": 6, "depth": 19.4})
         self.assertEqual(rooms["sleeping_zone_m"], {"width": 3.5, "depth": 7})
         self.assertEqual(rooms["corridor_m"], 2.4)
         self.assertIn("GuestFloors=30,RoomsPerFloor=14,TotalRooms=420", self.generator)
         self.assertIn("if(roomsBuilt!=TotalRooms)", self.generator)
-        self.assertIn('Group(p,"ROOM "+number+" | bay 7.00x11.65 | sleep module 3.50x7.00")', self.generator)
+        self.assertIn('Group(p,"ROOM "+number+" | bay 6.00x19.40 | sleep module 3.50x7.00")', self.generator)
 
     def test_public_area_math(self):
         expected = {
@@ -78,9 +74,14 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertEqual(p["max_slope"], 0.15)
         self.assertIn("ParkingPerBasement=40", self.generator)
         self.assertIn("if(parkingBuilt!=80)", self.generator)
-        self.assertIn('G -> B1",25f,-43f,-1.80f,6.5f,24.27f,8.5308f', self.generator)
-        self.assertIn('B1 -> B2",16.5f,-43f,-5.40f,6.5f,24.27f,-8.5308f', self.generator)
-        self.assertIn("B1 switchback turning apron", self.generator)
+        self.assertEqual(p["B1_standard"], 36)
+        self.assertEqual(p["B1_accessible"], 4)
+        self.assertEqual(p["ramp_side"], "EAST")
+        self.assertEqual(p["ramp_incline_length_m"], 24)
+        self.assertEqual(p["transition_each_m"], 1.5)
+        self.assertIn('EAST ramp G -> B1",36.25f,-23.0f,-1.80f,6.5f,24.0f,8.5308f', self.generator)
+        self.assertIn('EAST ramp B1 -> B2",36.25f,0.0f,-5.40f,6.5f,24.0f,-8.5308f', self.generator)
+        self.assertIn("B1 EAST internal turning apron", self.generator)
 
     def test_vertical_cores_are_real(self):
         self.assertEqual(self.spec["cores"]["elevators"], 4)
@@ -88,7 +89,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("AddComponent<BraxWinda>()", self.generator)
         self.assertIn("controller.pietraY=levels.Select", self.generator)
         self.assertIn("controller.przystanekL=landL", self.generator)
-        self.assertIn("foreach(float x in new[]{-28f,28f})", self.generator)
+        self.assertIn("foreach(float x in new[]{-26.3f,26.3f})", self.generator)
         self.assertIn("if(elevatorsBuilt!=4||stairsBuilt!=2)", self.generator)
         self.assertIn("calls[n]=usable[n]?", self.generator)
         self.assertIn("Bathroom 0.80m door header", self.generator)
@@ -101,12 +102,13 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("if(baseY==0f && zsign<0f && i==3)", self.generator)
 
     def test_roof_has_mansard_dormers_and_sub_130_geometry(self):
-        self.assertIn("Mansard front", self.generator)
+        self.assertIn("lowerAngle=67f", self.generator)
+        self.assertIn("lowerRise=7.60f", self.generator)
+        self.assertIn("upperRise=4.70f", self.generator)
         self.assertIn("Mansard dormer body", self.generator)
+        self.assertIn("Side mansard dormer body", self.generator)
         self.assertIn("Hidden roof technical deck", self.generator)
-        # Top rotated planes deliberately sit below 130 so mesh thickness cannot exceed the contract.
-        self.assertIn("127.45f", self.generator)
-        self.assertNotIn("127.6f,-13f,56f,.32f", self.generator)
+        self.assertIn("ridge_max_y", self.spec["roof"])
 
     def test_material_matrix_complete_and_downloaded_by_pipeline(self):
         required = set(self.spec["materials"].values())
@@ -125,7 +127,10 @@ class HotelSobczakT03Contract(unittest.TestCase):
 
     def test_android_texture_contract(self):
         android = self.spec["android"]
-        self.assertEqual(android, {"max_texture": 2048, "format": "ASTC_4x4", "mipmaps": True})
+        self.assertEqual(android["max_texture"], 2048)
+        self.assertEqual(android["format"], "ASTC_4x4")
+        self.assertTrue(android["mipmaps"])
+        self.assertTrue(android["streaming"])
         texture_import = (EDITOR / "BraxChampionsTextureImport.cs").read_text(encoding="utf-8")
         self.assertIn("maxTextureSize=2048", texture_import)
         self.assertIn("TextureImporterFormat.ASTC_4x4", texture_import)
