@@ -310,6 +310,18 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('float clearH=h-.30f,y=clearH*.5f', self.generator)
         self.assertIn('Bathroom shower tray 1.20x0.90', self.generator)
 
+    def test_owner_stucco_strength_handrails_and_portal_frame(self):
+        self.assertIn('s.stucco.SetFloat("_BumpScale",.25f)', self.materials)
+        self.assertIn('VariantNormal("soft_interior_stucco",s.stucco,.15f)', self.materials)
+        self.assertIn('Ground clean ceiling",M.stuccoSoft', self.generator)
+        self.assertIn('Level1 ceiling",M.stuccoSoft', self.generator)
+        self.assertIn('Guest ceiling finish F-TEMPLATE",M.stuccoSoft', self.generator)
+        self.assertIn("Stair dark bronze handrail A", self.generator)
+        self.assertIn("Stair dark bronze handrail B", self.generator)
+        self.assertIn("Stair brass landing post A", self.generator)
+        self.assertIn("Main entrance dark bronze frame top", self.generator)
+        self.assertIn("Entrance brass mullion", self.generator)
+
     def test_final_owner_premium_details_are_present(self):
         self.assertIn('Reception marble top",M.marble,0,1.10f', self.generator)
         self.assertIn("Lobby indoor plant", self.generator)
