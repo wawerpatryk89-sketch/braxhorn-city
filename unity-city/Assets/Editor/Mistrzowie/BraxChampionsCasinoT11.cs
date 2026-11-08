@@ -1003,6 +1003,32 @@ public static class BraxChampionsCasinoT11
             BeveledBox(trim,"T11 warm LED luminaire diffuser "+(i+1),led,
                 p.x,p.y-.19f,p.z,.18f,.055f,.16f,.018f,false);
         }
+
+        // Issue #29 explicitly requires convincing metal/glass reflections without realtime lighting.
+        // This is one tiny Editor-baked cubemap: no runtime refresh, no realtime probe rendering.
+        var probeObject=new GameObject("T11 mobile baked reflection probe | 64px");
+        probeObject.transform.SetParent(root,false);
+        probeObject.transform.localPosition=new Vector3(0,7f,-2f)*K;
+        var probe=probeObject.AddComponent<ReflectionProbe>();
+        probe.mode=ReflectionProbeMode.Baked;
+        probe.resolution=64;
+        probe.size=new Vector3(92f,26f,72f)*K;
+        probe.intensity=.90f;
+        probe.boxProjection=true;
+        probe.importance=2;
+        probe.cullingMask=~0;
+        probe.nearClipPlane=.10f*K;
+        probe.farClipPlane=120f*K;
+        string probePath=output+"/Textures/T11_Casino_Baked_Reflection.exr";
+        Directory.CreateDirectory(output+"/Textures");
+        if(!Lightmapping.BakeReflectionProbe(probe,probePath))
+            throw new InvalidOperationException("T11 baked reflection probe failed");
+        AssetDatabase.ImportAsset(probePath,ImportAssetOptions.ForceSynchronousImport);
+        var baked=AssetDatabase.LoadAssetAtPath<Texture>(probePath);
+        if(!baked)
+            throw new InvalidOperationException("T11 baked reflection cubemap asset missing: "+probePath);
+        probe.bakedTexture=baked;
+        Debug.Log("T11_REFLECTION_PROBE_PASS mode=BAKED resolution=64 runtimeRefresh=NO cubemap="+probePath);
     }
 
     static string Sha256File(string path)
