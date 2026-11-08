@@ -5,7 +5,7 @@ run-name: Miasto Mistrzów A1+T11+P1 - szybka kontrola źródeł
 # scene generation, private releases, build or other workflows.
 on:
   push:
-    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105, gpt/miasto-mistrzow-hotel-sobczak-t03-20261108]
+    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
     paths:
       - .github/workflows/mistrzowie-cheap-code-audit-20261106.yml
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoPbr2K.cs
