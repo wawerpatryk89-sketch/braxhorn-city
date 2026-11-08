@@ -12,7 +12,7 @@ public static class BraxChampionsHotelSobczakMaterials
 {
     public sealed class Set
     {
-        public Material facade,sandstone,stucco,roof,marble,oak,parquet,terrazzo,rubber,carpet,tile,
+        public Material facade,sandstone,stucco,roof,marble,marbleWet,oak,parquet,terrazzo,rubber,carpet,tile,
             granite,graniteOutdoor,antiSlip,garage,concrete,leather,leatherWhite,asphalt,
             brass,darkBronze,steel,glass,whitePaint,parkingPaint,warmLight,carpetRed,water,foliage;
     }
@@ -49,6 +49,7 @@ public static class BraxChampionsHotelSobczakMaterials
         s.stucco=P("architectural_stucco","white_stucco_02",1.8f,new Color(1f,.96f,.86f));
         s.roof=P("mansard_slates","roof_slates_03",3.0f,new Color(.42f,.44f,.47f));
         s.marble=P("cream_marble","marble_01",1.5f,new Color(1f,.97f,.89f));
+        s.marbleWet=Variant("wet_marble_floor",s.marble,.50f);
         s.oak=P("varnished_oak","oak_wood_planks",1.2f,new Color(.92f,.78f,.58f));
         s.parquet=P("herringbone_parquet","herringbone_parquet",3.4f,new Color(.91f,.78f,.58f));
         s.terrazzo=P("spa_terrazzo","terrazzo_tiles",2.0f,new Color(.96f,.91f,.82f));
@@ -79,6 +80,16 @@ public static class BraxChampionsHotelSobczakMaterials
 
     static Material P(string id,string slug,float metres,Color tint)
         =>BraxChampionsFoundation.SourceMaterial("sobczak_"+id,slug,metres,tint);
+
+    static Material Variant(string id,Material source,float roughness)
+    {
+        var fresh=new Material(source){name="HOTEL SOBCZAK "+id,enableInstancing=true};
+        if(fresh.HasProperty("_Roughness"))fresh.SetFloat("_Roughness",roughness);
+        string path=Generated+"/Materials/"+id+".mat";
+        var old=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(old){EditorUtility.CopySerialized(fresh,old);UnityEngine.Object.DestroyImmediate(fresh);EditorUtility.SetDirty(old);return old;}
+        AssetDatabase.CreateAsset(fresh,path);return fresh;
+    }
 
     static Material Surface(string id,Color color,float rough,float metal,bool transparent,bool emissive)
     {
