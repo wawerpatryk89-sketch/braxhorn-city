@@ -244,12 +244,13 @@ public static class BraxChampionsHotelSobczakT03
         B(site,"T03 red carpet arrival",M.carpetRed,0,.075f,-27.0f,4.2f,.05f,10f,false);
 
         // Parking access runs ONLY along EAST side of T03, never across the representative entrance.
-        // Each slope is 24.00 m at 15%, with 1.50 m transition zones at both ends.
-        BuildRamp(site,"T03 EAST ramp G -> B1",36.25f,-23.0f,-1.80f,6.5f,24.0f,8.5308f,M.antiSlip);
+        // Each slope is 24.00 m at EXACTLY <=15%, with 1.50 m transition zones at both ends.
+        float parkingRampAngle=Mathf.Atan(.15f)*Mathf.Rad2Deg;
+        BuildRamp(site,"T03 EAST ramp G -> B1",36.25f,-23.0f,-1.80f,6.5f,24.0f,parkingRampAngle,M.antiSlip);
         B(site,"T03 EAST ramp G-B1 top transition",M.antiSlip,36.25f,.02f,-35.75f,6.5f,.08f,1.5f,true,2.5f);
         B(site,"T03 EAST ramp G-B1 bottom transition",M.antiSlip,36.25f,-3.58f,-10.25f,6.5f,.08f,1.5f,true,2.5f);
 
-        BuildRamp(site,"T03 EAST ramp B1 -> B2",36.25f,0.0f,-5.40f,6.5f,24.0f,-8.5308f,M.antiSlip);
+        BuildRamp(site,"T03 EAST ramp B1 -> B2",36.25f,0.0f,-5.40f,6.5f,24.0f,-parkingRampAngle,M.antiSlip);
         B(site,"T03 EAST ramp B1-B2 top transition",M.antiSlip,36.25f,-3.58f,12.75f,6.5f,.08f,1.5f,true,2.5f);
         B(site,"T03 EAST ramp B1-B2 bottom transition",M.antiSlip,36.25f,-7.18f,-12.75f,6.5f,.08f,1.5f,true,2.5f);
 
@@ -1046,7 +1047,7 @@ public static class BraxChampionsHotelSobczakT03
         // Three 0.15m x 0.38m entrance steps and an accessible 1.80m ramp <=5%.
         for(int i=0;i<3;i++)B(root,"Grand entrance step "+(i+1),M.graniteOutdoor,0,.075f+i*.15f,-27.0f+i*.38f,12f,.15f,.38f,true,2f);
         var accessRamp=B(root,"Grand entrance accessible ramp",M.antiSlip,8.8f,.225f,-28.0f,1.8f,.12f,9.0f,true,2.5f);
-        accessRamp.transform.localRotation=Quaternion.Euler(-2.87f,0,0);
+        accessRamp.transform.localRotation=Quaternion.Euler(-Mathf.Atan(.05f)*Mathf.Rad2Deg,0,0);
 
         // Clear 3.6m entrance, no collider on glass leaves.
         B(root,"Main entrance glass left",M.glass,-.95f,1.90f,-21.38f,1.7f,3.80f,.08f,false);
