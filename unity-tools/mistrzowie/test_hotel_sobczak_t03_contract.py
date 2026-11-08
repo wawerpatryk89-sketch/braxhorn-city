@@ -65,6 +65,16 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertNotIn('"Lobby leather sofa",M.leather', self.generator)
         self.assertNotIn('"Cafe brass stool",M.brass', self.generator)
 
+    def test_floor1_kitchen_spa_do_not_overlap(self):
+        layout = self.spec["floor1_layout"]
+        kitchen, spa = layout["kitchen"], layout["spa"]
+        self.assertEqual(kitchen["size"], [20, 9])
+        self.assertEqual(spa["size"], [25, 14])
+        self.assertGreaterEqual(spa["x_range"][0] - kitchen["x_range"][1], 0.5)
+        self.assertIn('Area(g,"KUCHNIA 180m2",M.tile,-12.5f,6.022f,10f,20f,9f)', self.generator)
+        self.assertIn('Area(g,"SPA 350m2",M.terrazzo,10.5f,6.022f,10f,25f,14f)', self.generator)
+        self.assertNotIn('Area(g,"SPA 350m2",M.terrazzo,8.5f', self.generator)
+
     def test_public_area_math(self):
         expected = {
             "reception": 60, "lobby": 350, "bar_cafe": 180, "wc_m": 40, "wc_f": 40,
