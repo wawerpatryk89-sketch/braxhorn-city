@@ -12,7 +12,11 @@ ROOT=Path(__file__).resolve().parents[2]
 DEST=ROOT/'unity-city/Assets/Source/Mistrzowie/Textures'
 LOCK=json.loads(Path(__file__).with_name('verified_textures.json').read_text())
 POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_02','granite_tile_02','granite_tile','rectangular_facade_tiles','concrete_floor_02','concrete_wall_008','concrete_wall_009','fabric_pattern_05','teak_veneer','brown_mud_leaves_01',
-                 'stone_tiles','gravel_embedded_concrete_02','wooden_panels','leather_white','velour_velvet')
+                 'stone_tiles','gravel_embedded_concrete_02','wooden_panels','leather_white','velour_velvet',
+                 # HOTEL SOBCZAK T03 — verified official Poly Haven material slugs.
+                 'beige_wall_001','sandstone_blocks_08','white_stucco_02','roof_slates_03','marble_01','oak_wood_planks',
+                 'herringbone_parquet','terrazzo_tiles','rubber_tiles','poly_wool_herringbone','tiled_floor_001','granite_tile_04',
+                 'anti_slip_concrete','garage_floor','concrete_wall_003','brown_leather')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # The provider's own blend/glTF defaults use col_01 for this fabric. Do not
 # choose an arbitrary colour variation by dictionary order.
