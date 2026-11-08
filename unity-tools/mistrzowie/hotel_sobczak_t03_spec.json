@@ -147,7 +147,8 @@
       "per_flight": 18,
       "riser_m": 0.1667,
       "tread_m": 0.29
-    }
+    },
+    "landing_call_panels": true
   },
   "parking": {
     "B1": 40,
@@ -230,7 +231,9 @@
         6
       ]
     },
-    "sign": "HOTEL SOBCZAK"
+    "sign": "HOTEL SOBCZAK",
+    "balconies_lod0": true,
+    "rustication_real_geometry": true
   },
   "materials": {
     "facade": "beige_wall_001",
@@ -344,7 +347,9 @@
       4000
     ],
     "repeated_rooms": "emissive_only",
-    "realtime_lights": "limited_public_and_exterior"
+    "realtime_lights": "limited_public_and_exterior",
+    "light_probe_group": true,
+    "baked_reflection_probes": 3
   },
   "floor1_layout": {
     "restaurant": {
@@ -412,5 +417,78 @@
       "zone": "RIGHT_FRONT"
     },
     "rear_clear_gap_m": 0.5
-  }
+  },
+  "ground_floor_details": {
+    "vestibule_m": [
+      8,
+      5
+    ],
+    "reception_desk_length_m": [
+      11.5,
+      12
+    ],
+    "reception_desk_depth_m": [
+      0.8,
+      0.9
+    ],
+    "reception_worktop_top_m": [
+      1.1,
+      1.15
+    ],
+    "lobby_sofa_groups_min": 3,
+    "lobby_indoor_plants_min": 3,
+    "bar_length_m": 13,
+    "bar_stools": [
+      6,
+      8
+    ]
+  },
+  "floor1_details": {
+    "restaurant_table_types": [
+      "2_person",
+      "4_person"
+    ],
+    "passage_clearance_min_m": 1.2,
+    "kitchen_functions": [
+      "hot_line",
+      "prep",
+      "dishwash",
+      "cold_room",
+      "storage"
+    ],
+    "spa_functions": [
+      "reception",
+      "relax",
+      "treatment",
+      "wet_zone",
+      "showers",
+      "changing",
+      "loungers"
+    ],
+    "fitness_functions": [
+      "treadmills",
+      "bikes",
+      "cardio",
+      "free_weights",
+      "benches"
+    ]
+  },
+  "material_variants": {
+    "wet_marble_floor": {
+      "source": "marble_01",
+      "roughness": 0.5,
+      "shared_textures": true
+    }
+  },
+  "acceptance_material_report": [
+    "zone",
+    "source_id",
+    "runtime_resolution",
+    "shader",
+    "tiling_m",
+    "normal_strength",
+    "metallic",
+    "roughness",
+    "screenshot"
+  ]
 }
