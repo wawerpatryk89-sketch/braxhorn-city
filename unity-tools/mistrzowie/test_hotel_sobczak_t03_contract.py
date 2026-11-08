@@ -133,7 +133,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertEqual(self.buildings.count("BraxChampionsHotelSobczakT03.Generate();"), 1)
         at = self.buildings.index("BraxChampionsHotelSobczakT03.Generate();")
         near = self.buildings[max(0, at-350):at+250]
-        self.assertNotIn('Optional("hotel', near.lower())
+        self.assertNotIn('optional("hotel', near.lower())
         self.assertIn("hotelGenerated=true", near)
         self.assertIn("BraxChampionsHotelSobczakMaterials.VerifySources();", self.build)
 
