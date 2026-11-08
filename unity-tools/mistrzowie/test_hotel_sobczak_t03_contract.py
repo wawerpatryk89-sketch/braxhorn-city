@@ -202,6 +202,36 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("Bedside warm emissive", self.generator)
         self.assertNotIn("AddComponent<Light>()", self.generator.split("static void BuildGuestRoom")[1].split("// ---------------------------------------------------------------- STAIRS")[0])
 
+    def test_owner_floor_datum_ramp_and_entry_clearance(self):
+        self.assertIn('SlabWithCoreOpenings(g,id+" floor",M.garage,y-.15f,.30f,3f)', self.generator)
+        self.assertNotIn('SlabWithCoreOpenings(g,id+" ceiling",M.concrete', self.generator)
+        self.assertIn('slopeLength=horizontalRun/Mathf.Cos', self.generator)
+        self.assertIn('east wall S1",M.concrete,31.8f,y+1.8f,-17.15f', self.generator)
+        self.assertIn('east wall N1",M.concrete,31.8f,y+1.8f,18.40f', self.generator)
+        self.assertIn('PARK line L",M.parkingPaint,x-w*.5f+.05f,y+.020f,z,.10f', self.generator)
+        self.assertIn('Classical sandstone plinth front WEST', self.generator)
+        self.assertIn('Classical sandstone plinth front EAST', self.generator)
+        self.assertNotIn('Classical sandstone plinth front",M.sandstone,0,.60f,-21.15f,64f', self.generator)
+        self.assertIn('gz=z+outward*.05f', self.generator)
+        self.assertIn('gz=zwall+outward*.05f', self.generator)
+
+    def test_stairs_clear_parking_and_landings_do_not_overlap(self):
+        self.assertIn('const float stairZ=12.70f', self.generator)
+        self.assertIn('stair opening x=-29.00..-23.60, z=8.50..17.00', self.generator)
+        self.assertIn('float lowerLandingZ=centreZ-dir*(run*.5f+.75f)', self.generator)
+        self.assertIn('float midLandingZ=centreZ+dir*(run*.5f+.75f)', self.generator)
+        self.assertIn('Stair floor landing 1.50m', self.generator)
+        self.assertIn('Stair TECH landing 1.50m', self.generator)
+        self.assertNotIn('Stair mid landing 1.50m",M.granite,centreX,y0+rise*.5f,centreZ', self.generator)
+
+    def test_public_cores_are_clear(self):
+        self.assertIn('Area(g,"TOALETA M 40m2",M.marble,-15f,.022f,17.5f,8f,5f)', self.generator)
+        self.assertIn('Area(g,"TOALETA K 40m2",M.marble,15f,.022f,17.5f,8f,5f)', self.generator)
+        self.assertIn('Area(g,"SPA 350m2",M.terrazzo,8.5f,6.022f,9.25f,25f,14f)', self.generator)
+        self.assertIn('float clearH=h-.30f,wallY=baseY+clearH*.5f', self.generator)
+        self.assertIn('float clearH=h-.30f,y=clearH*.5f', self.generator)
+        self.assertIn('Bathroom shower tray 1.20x0.90', self.generator)
+
     def test_decorative_roof_has_no_heavy_colliders(self):
         self.assertIn('Mansard dormer body",M.stucco,x,123.35f,z,3.0f,2.8f,1.35f,false', self.generator)
         self.assertIn('Upper roof front",M.roof', self.generator)
