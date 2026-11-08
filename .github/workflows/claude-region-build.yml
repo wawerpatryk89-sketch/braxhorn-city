@@ -1,4 +1,4 @@
-name: Claude - region R1 na gotowo (TEST, bez publikacji)
+name: Miasto R1 — APK Unity 6 (bez długiego testu wstępnego)
 'on':
   workflow_dispatch:
     inputs:
@@ -14,10 +14,6 @@ name: Claude - region R1 na gotowo (TEST, bez publikacji)
         description: 'Pamiec podreczna wygenerowanego rejonu (odznacz = wymus pelne generowanie)'
         type: boolean
         default: true
-      scene_only:
-        description: 'Tylko test sceny Unity 6 R1; NIE buduj WebGL ani APK'
-        type: boolean
-        default: false
 permissions:
   contents: read
   actions: read
@@ -396,7 +392,7 @@ jobs:
         ls -la player-*.zip
         gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
           gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
-            --title "Podglad regionu R1 (Claude, TEST)" --notes "Skompilowany player Unity 6 do zdjec i nagrania. Nie produkcja."
+            --title "Miasto R1 — APK Unity 6" --notes "Skompilowany player Unity 6 do zdjec i nagrania. Nie produkcja."
         gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber player-${GITHUB_SHA::7}.zip
     needs: [source-imports, cc0-assets]
 
@@ -404,8 +400,9 @@ jobs:
     permissions:
       contents: write
       actions: read
-    # Właściciel: scena bez APK. Twarde wyłączenie Androida po wybraniu scene_only.
-    if: github.event.inputs.scene_only == 'false' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    # Właściciel 08.11.2026: ten workflow służy wyłącznie do właściwego APK R1.
+    # Zakaz osobnego długiego scene-only przed APK; szybki preflight ma być częścią jednego przebiegu buildu.
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -740,7 +737,7 @@ jobs:
             src=unity-city/Assets/PlayableGenerated/build-size-$tag.txt
             cp "$src" "$RUNNER_TEMP/build-size-android-$tag-$S.txt" 2>/dev/null || echo 'brak raportu rozmiaru' > "$RUNNER_TEMP/build-size-android-$tag-$S.txt"
             gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
-              gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" --title "Podglad regionu R1 (Claude, TEST)" --notes "Skompilowany player Unity 6. Nie produkcja."
+              gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" --title "Miasto R1 — APK Unity 6" --notes "APK deweloperskie Miasto R1 — właściwy build, bez osobnego długiego testu wstępnego."
             if gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber "$RUNNER_TEMP/braxhorn-$tag-$S.apk" "$RUNNER_TEMP/build-size-android-$tag-$S.txt"; then
               touch "$RUNNER_TEMP/wyslane/$tag"; echo "straznik: wyslany $tag $(date -u +%H:%M)" >> "$RUNNER_TEMP/straznik.log"
             fi
@@ -844,7 +841,7 @@ jobs:
         if [ -z "$FILES" ]; then ls "$RUNNER_TEMP/wyslane/" 2>/dev/null | grep -q . && { echo 'wszystkie APK wyslane wczesniej'; exit 0; }; echo 'BRAK APK'; exit 1; fi
         gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
           gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
-            --title "Podglad regionu R1 (Claude, TEST)" --notes "Skompilowany player Unity 6 (WebGL + APK) do zdjec i nagrania. Nie produkcja."
+            --title "Miasto R1 — APK Unity 6" --notes "APK deweloperskie Miasto R1 — właściwy build, bez osobnego długiego testu wstępnego."
         # 1.11 (build 9): strażnik w tle mógł jeszcze wysyłać ostatni wariant — 404 przy równoległym wysyłaniu tego samego
         # pliku. Każdy plik osobno, z ponowieniem; na koniec liczy się tylko to, czy plik jest w wydaniu.
         for f in $FILES; do
@@ -940,7 +937,9 @@ jobs:
     needs: [source-imports, cc0-assets]
 
   scene-only-unity6:
-    if: github.event.inputs.scene_only == 'true' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/claude/miasto-opus-20261031'
+    # Właściciel 08.11.2026: długie testy scene-only są zabronione w tym workflow.
+    # Pełny test Unity może wrócić wyłącznie jako osobny, jawnie zlecony tryb diagnostyczny.
+    if: false
     needs:
       - source-imports
       - cc0-assets
