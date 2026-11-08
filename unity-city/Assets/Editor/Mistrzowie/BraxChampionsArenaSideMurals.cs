@@ -56,11 +56,11 @@ public static class BraxChampionsArenaSideMurals
         if(!importer.mipmapEnabled){importer.mipmapEnabled=true;dirty=true;}
         if(importer.wrapMode!=TextureWrapMode.Clamp){importer.wrapMode=TextureWrapMode.Clamp;dirty=true;}
         var android=importer.GetPlatformTextureSettings("Android");
-        if(!android.overridden||android.maxTextureSize!=4096||
+        if(!android.overridden||android.maxTextureSize!=8192||
            android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=100)
         {
             android.overridden=true;
-            android.maxTextureSize=4096;
+            android.maxTextureSize=8192;
             android.format=TextureImporterFormat.ASTC_4x4;
             android.compressionQuality=100;
             importer.SetPlatformTextureSettings(android);
