@@ -103,22 +103,33 @@ public static class BraxChampionsHotelSobczakT03
     }
     static void SlabWithCoreOpenings(Transform p,string name,Material mat,float y,float h,float tile)
     {
-        // 63.20 x 41.20 m internal slab, segmented around two stair wells and the four-lift bank.
-        // WEST/EAST stair wells: 5.40 x 4.50 m. Central lift-bank opening: 11.80 x 3.10 m.
-        const float halfW=31.60f,halfD=20.60f,stairOuter=29.00f,stairInner=23.60f;
-        const float stairZ=2.25f,liftX=5.90f,liftZ=1.55f;
-        float northD=halfD-stairZ,southD=northD;
-        B(p,name+" north strip",mat,0,y,(halfD+stairZ)*.5f,63.20f,h,northD,true,tile);
-        B(p,name+" south strip",mat,0,y,-(halfD+stairZ)*.5f,63.20f,h,southD,true,tile);
+        // Central 42.00m room/corridor zone stays continuous.
+        B(p,name+" central 42m zone",mat,0,y,0,42.00f,h,41.20f,true,tile);
 
-        B(p,name+" far west",mat,-(halfW+stairOuter)*.5f,y,0,halfW-stairOuter,h,stairZ*2f,true,tile);
-        B(p,name+" west-to-lift",mat,( -stairInner-liftX)*.5f,y,0,stairInner-liftX,h,stairZ*2f,true,tile);
-        B(p,name+" lift-to-east",mat,( liftX+stairInner)*.5f,y,0,stairInner-liftX,h,stairZ*2f,true,tile);
-        B(p,name+" far east",mat,(halfW+stairOuter)*.5f,y,0,halfW-stairOuter,h,stairZ*2f,true,tile);
+        // WEST core x=-31.60..-21.00:
+        // service lift opening x=-27.75..-24.85, z=.15..2.85
+        // stair opening x=-29.00..-23.60, z=5.75..10.25
+        B(p,name+" W south",mat,-26.30f,y,-10.225f,10.60f,h,20.75f,true,tile);
+        B(p,name+" W lift band left",mat,-29.675f,y,1.50f,3.85f,h,2.70f,true,tile);
+        B(p,name+" W lift band right",mat,-22.925f,y,1.50f,3.85f,h,2.70f,true,tile);
+        B(p,name+" W between lift stair",mat,-26.30f,y,4.30f,10.60f,h,2.90f,true,tile);
+        B(p,name+" W stair band left",mat,-30.30f,y,8.00f,2.60f,h,4.50f,true,tile);
+        B(p,name+" W stair band right",mat,-22.30f,y,8.00f,2.60f,h,4.50f,true,tile);
+        B(p,name+" W north",mat,-26.30f,y,15.425f,10.60f,h,10.35f,true,tile);
 
-        float liftBand=(stairZ-liftZ);
-        B(p,name+" lift south bridge",mat,0,y,-(stairZ+liftZ)*.5f,liftX*2f,h,liftBand,true,tile);
-        B(p,name+" lift north bridge",mat,0,y,(stairZ+liftZ)*.5f,liftX*2f,h,liftBand,true,tile);
+        // EAST core x=21.00..31.60:
+        // 3 passenger lift openings at z=.25..2.75:
+        // x=21.20..23.70, 24.00..26.50, 26.80..29.30
+        // stair opening x=23.60..29.00, z=5.75..10.25
+        B(p,name+" E south",mat,26.30f,y,-10.175f,10.60f,h,20.85f,true,tile);
+        B(p,name+" E lift edge W",mat,21.10f,y,1.50f,.20f,h,2.50f,true,tile);
+        B(p,name+" E lift bridge 1",mat,23.85f,y,1.50f,.30f,h,2.50f,true,tile);
+        B(p,name+" E lift bridge 2",mat,26.65f,y,1.50f,.30f,h,2.50f,true,tile);
+        B(p,name+" E lift edge E",mat,30.45f,y,1.50f,2.30f,h,2.50f,true,tile);
+        B(p,name+" E between lift stair",mat,26.30f,y,4.25f,10.60f,h,3.00f,true,tile);
+        B(p,name+" E stair band left",mat,22.30f,y,8.00f,2.60f,h,4.50f,true,tile);
+        B(p,name+" E stair band right",mat,30.30f,y,8.00f,2.60f,h,4.50f,true,tile);
+        B(p,name+" E north",mat,26.30f,y,15.425f,10.60f,h,10.35f,true,tile);
     }
 
     static GameObject Cyl(Transform p,string name,Material mat,float x,float y,float z,float diameter,float h,bool solid=true)
@@ -254,8 +265,8 @@ public static class BraxChampionsHotelSobczakT03
         Area(g,"RECEPCJA 60m2",M.marble,0,.17f,-12.30f,12f,5f);
         Area(g,"LOBBY 350m2",M.marble,0,.18f,-1.50f,25f,14f);
         Area(g,"BAR CAFE LOUNGE 180m2",M.parquet,0,.19f,10.0f,30f,6f);
-        Area(g,"TOALETA M 40m2",M.marble,-26f,.19f,17.6f,8f,5f);
-        Area(g,"TOALETA K 40m2",M.marble,26f,.19f,17.6f,8f,5f);
+        Area(g,"TOALETA M 40m2",M.marble,-26f,.19f,17.8f,8f,5f);
+        Area(g,"TOALETA K 40m2",M.marble,26f,.19f,17.8f,8f,5f);
         Area(g,"BAGAZ 50m2",M.oak,-26f,.19f,-12.5f,10f,5f);
         Area(g,"CONCIERGE 40m2",M.marble,26f,.19f,-12.5f,8f,5f);
 
@@ -279,29 +290,29 @@ public static class BraxChampionsHotelSobczakT03
         B(g,"Cafe marble bar top",M.marble,0,1.32f,10.8f,13.4f,.12f,1.08f,true,1.5f);
         for(float x=-5.5f;x<=5.5f;x+=1.8f)Cyl(g,"Cafe brass stool",M.brass,x,.50f,9.3f,.42f,.90f,true);
 
-        BuildServiceRoom(g,"TOALETA M",-26f,17.6f,8f,5f,6f,M.marble);
-        BuildServiceRoom(g,"TOALETA K",26f,17.6f,8f,5f,6f,M.marble);
+        BuildServiceRoom(g,"TOALETA M",-26f,17.8f,8f,5f,6f,M.marble);
+        BuildServiceRoom(g,"TOALETA K",26f,17.8f,8f,5f,6f,M.marble);
         BuildServiceRoom(g,"BAGAZ",-26f,-12.5f,10f,5f,6f,M.oak);
         BuildServiceRoom(g,"CONCIERGE",26f,-12.5f,8f,5f,6f,M.marble);
 
         // BOH functions required by the order.
-        BuildServiceRoom(g,"HOUSEKEEPING",-25f,6f,7f,5f,6f,M.oak);
-        BuildServiceRoom(g,"MAGAZYN",25f,6f,7f,5f,6f,M.oak);
+        BuildServiceRoom(g,"HOUSEKEEPING",-25f,12.75f,7f,5f,6f,M.oak);
+        BuildServiceRoom(g,"MAGAZYN",25f,12.75f,7f,5f,6f,M.oak);
         BuildServiceRoom(g,"ZAPLECZE RECEPCJI",0,-7.2f,10f,3.2f,6f,M.oak);
 
         // Public WC fixtures, luggage storage and concierge equipment.
         foreach(float x in new[]{-28f,-26f,-24f})
         {
-            Cyl(g,"WC M toilet",M.whitePaint,x,.38f,18.2f,.55f,.70f,true);
+            Cyl(g,"WC M toilet",M.whitePaint,x,.38f,18.4f,.55f,.70f,true);
             B(g,"WC M privacy panel",M.stucco,x+.75f,1.10f,18.2f,.08f,2.20f,1.20f,true,1.8f);
         }
         foreach(float x in new[]{24f,26f,28f})
         {
-            Cyl(g,"WC K toilet",M.whitePaint,x,.38f,18.2f,.55f,.70f,true);
+            Cyl(g,"WC K toilet",M.whitePaint,x,.38f,18.4f,.55f,.70f,true);
             B(g,"WC K privacy panel",M.stucco,x-.75f,1.10f,18.2f,.08f,2.20f,1.20f,true,1.8f);
         }
-        B(g,"WC M marble vanity",M.marble,-26f,.78f,16.2f,4.5f,.16f,.62f,true,1.5f);
-        B(g,"WC K marble vanity",M.marble,26f,.78f,16.2f,4.5f,.16f,.62f,true,1.5f);
+        B(g,"WC M marble vanity",M.marble,-26f,.78f,16.0f,4.5f,.16f,.62f,true,1.5f);
+        B(g,"WC K marble vanity",M.marble,26f,.78f,16.0f,4.5f,.16f,.62f,true,1.5f);
         for(float z=-13.8f;z<=-11.2f;z+=1.3f)B(g,"Baggage oak rack",M.oak,-26f,1.1f,z,7.5f,2.0f,.45f,true,1.2f);
         B(g,"Concierge oak desk",M.oak,26f,.65f,-12.5f,5.5f,1.05f,.80f,true,1.2f);
         B(g,"Concierge marble top",M.marble,26f,1.22f,-12.5f,5.7f,.10f,.90f,true,1.5f);
@@ -315,13 +326,13 @@ public static class BraxChampionsHotelSobczakT03
         SlabWithCoreOpenings(g,"Level1 ceiling",M.stucco,9.54f,.12f,1.8f);
         BuildPublicFacade(g,6f,3.6f,1.8f,2.2f);
         Area(g,"RESTAURACJA 250m2",M.parquet,-17f,6.17f,-10f,25f,10f);
-        Area(g,"KUCHNIA 180m2",M.tile,-18f,6.17f,10f,20f,9f);
-        Area(g,"SPA 350m2",M.terrazzo,17f,6.17f,8f,25f,14f);
+        Area(g,"KUCHNIA 180m2",M.tile,-10.5f,6.17f,10f,20f,9f);
+        Area(g,"SPA 350m2",M.terrazzo,10.5f,6.17f,9.25f,25f,14f);
         Area(g,"FITNESS 250m2",M.rubber,17f,6.17f,-10f,25f,10f);
 
         BuildLevelZone(g,"RESTAURACJA",-17f,-10f,25f,10f,6f,3.6f,true,1.8f);
-        BuildLevelZone(g,"KUCHNIA",-18f,10f,20f,9f,6f,3.6f,false,1.4f);
-        BuildLevelZone(g,"SPA",17f,8f,25f,14f,6f,3.6f,false,1.4f);
+        BuildLevelZone(g,"KUCHNIA",-10.5f,10f,20f,9f,6f,3.6f,false,1.4f);
+        BuildLevelZone(g,"SPA",10.5f,9.25f,25f,14f,6f,3.6f,false,1.4f);
         BuildLevelZone(g,"FITNESS",17f,-10f,25f,10f,6f,3.6f,true,1.8f);
 
         // Restaurant tables.
@@ -333,19 +344,19 @@ public static class BraxChampionsHotelSobczakT03
         // Buffet and kitchen: hot line, prep, dishwash, cold store and storage.
         B(g,"Restaurant buffet oak body",M.oak,-17f,6.70f,-6.3f,8.0f,1.0f,.90f,true,1.2f);
         B(g,"Restaurant buffet marble top",M.marble,-17f,7.25f,-6.3f,8.2f,.10f,1.0f,true,1.5f);
-        for(float x=-26f;x<=-10f;x+=4f)B(g,"Kitchen hot stainless bench",M.steel,x,6.65f,8.3f,3.0f,1.0f,.85f,true);
-        B(g,"Kitchen prep island",M.steel,-18f,6.65f,11.0f,5.5f,1.0f,1.2f,true);
-        B(g,"Kitchen dishwash line",M.steel,-24.5f,6.65f,13.0f,4.5f,1.0f,.85f,true);
-        B(g,"Kitchen cold room",M.steel,-12.0f,7.45f,12.4f,4.0f,2.7f,3.0f,true);
-        B(g,"Kitchen dry storage rack",M.oak,-26.0f,7.30f,6.5f,3.0f,2.2f,.55f,true,1.2f);
+        for(float x=-18f;x<=-4f;x+=3.5f)B(g,"Kitchen hot stainless bench",M.steel,x,6.65f,8.3f,3.0f,1.0f,.85f,true);
+        B(g,"Kitchen prep island",M.steel,-10.5f,6.65f,11.0f,5.5f,1.0f,1.2f,true);
+        B(g,"Kitchen dishwash line",M.steel,-17.5f,6.65f,13.0f,4.5f,1.0f,.85f,true);
+        B(g,"Kitchen cold room",M.steel,-3.5f,7.45f,12.4f,4.0f,2.7f,3.0f,true);
+        B(g,"Kitchen dry storage rack",M.oak,-18.0f,7.30f,6.5f,3.0f,2.2f,.55f,true,1.2f);
         // SPA treatment beds and glass screen.
-        for(float x=8f;x<=26f;x+=6f)B(g,"SPA white leather treatment bed",M.leatherWhite,x,6.55f,9f,2.2f,.55f,.85f,true,.3f);
-        B(g,"SPA clear glass relaxation divider",M.glass,17f,7.55f,4f,20f,2.7f,.06f,false);
-        B(g,"SPA reception oak desk",M.oak,8.0f,6.65f,2.7f,4.0f,1.0f,.80f,true,1.2f);
-        B(g,"SPA wet-zone marble floor",M.marble,24f,6.19f,12f,8f,.035f,5f,false,1.5f);
-        for(float x=21f;x<=27f;x+=3f)B(g,"SPA shower glass",M.glass,x,7.45f,13.5f,2.0f,2.4f,.06f,false);
-        for(float x=10f;x<=22f;x+=4f)B(g,"SPA relaxation lounger",M.leatherWhite,x,6.50f,5.2f,2.0f,.45f,.80f,true,.3f);
-        B(g,"SPA changing lockers",M.oak,26.5f,7.25f,3.0f,1.2f,2.4f,5.0f,true,1.2f);
+        for(float x=2f;x<=20f;x+=6f)B(g,"SPA white leather treatment bed",M.leatherWhite,x,6.55f,10f,2.2f,.55f,.85f,true,.3f);
+        B(g,"SPA clear glass relaxation divider",M.glass,10.5f,7.55f,4.5f,20f,2.7f,.06f,false);
+        B(g,"SPA reception oak desk",M.oak,1.0f,6.65f,3.2f,4.0f,1.0f,.80f,true,1.2f);
+        B(g,"SPA wet-zone marble floor",M.marble,18f,6.19f,13f,8f,.035f,5f,false,1.5f);
+        for(float x=15f;x<=21f;x+=3f)B(g,"SPA shower glass",M.glass,x,7.45f,14.0f,2.0f,2.4f,.06f,false);
+        for(float x=2f;x<=14f;x+=4f)B(g,"SPA relaxation lounger",M.leatherWhite,x,6.50f,6.0f,2.0f,.45f,.80f,true,.3f);
+        B(g,"SPA changing lockers",M.oak,21.5f,7.25f,5.0f,1.2f,2.4f,5.0f,true,1.2f);
         // Fitness equipment proxies, realistic dimensions.
         for(float x=8f;x<=26f;x+=4.5f)
         {
@@ -509,9 +520,9 @@ public static class BraxChampionsHotelSobczakT03
             fg.localPosition=Vector3.up*floorY*K;guestFloorRoots.Add(fg.gameObject);
 
             // One central corridor exactly 2.40 m clear, running along X.
-            B(fg,"Central corridor wool runner",M.carpet,0,.16f,0,63.0f,.035f,2.40f,false,.3f);
-            B(fg,"WEST service core floor",M.marble,-26.30f,.16f,0,10.6f,.035f,8.0f,false,1.5f);
-            B(fg,"EAST service core floor",M.marble,26.30f,.16f,0,10.6f,.035f,8.0f,false,1.5f);
+            // The exact 2.40m corridor runs unobstructed only through the 42m room zone.
+            // Side cores continue in structural marble to lifts/stairs.
+            B(fg,"Central corridor wool runner",M.carpet,0,.16f,0,42.0f,.035f,2.40f,false,.3f);
 
             for(int i=0;i<7;i++)
             {
@@ -588,38 +599,40 @@ public static class BraxChampionsHotelSobczakT03
     {
         foreach(float x in new[]{-26.3f,26.3f})
         {
+            const float stairZ=8.0f;
             var s=Group(cores,"STAIR "+(x<0?"WEST":"EAST")+" | B2 TO TECH");
-            BuildStairInterval(s,x,B2,B1,0);BuildStairInterval(s,x,B1,Ground,1);
-            BuildStairInterval(s,x,Ground,First,0);BuildStairInterval(s,x,First,GuestBase,1);
-            for(int f=0;f<GuestFloors-1;f++)BuildStairInterval(s,x,GuestBase+f*3.6f,GuestBase+(f+1)*3.6f,f%2);
-            BuildStairInterval(s,x,GuestBase+(GuestFloors-1)*3.6f,GuestTop,GuestFloors%2);
-            B(s,"Stair fire wall west",M.stucco,x-2.6f,55.2f,0,.22f,124.8f,9f,true,1.8f);
-            B(s,"Stair fire wall east",M.stucco,x+2.6f,55.2f,0,.22f,124.8f,9f,true,1.8f);
+            BuildStairInterval(s,x,stairZ,B2,B1,0);BuildStairInterval(s,x,stairZ,B1,Ground,1);
+            BuildStairInterval(s,x,stairZ,Ground,First,0);BuildStairInterval(s,x,stairZ,First,GuestBase,1);
+            for(int f=0;f<GuestFloors-1;f++)BuildStairInterval(s,x,stairZ,GuestBase+f*3.6f,GuestBase+(f+1)*3.6f,f%2);
+            BuildStairInterval(s,x,stairZ,GuestBase+(GuestFloors-1)*3.6f,GuestTop,GuestFloors%2);
+            B(s,"Stair fire wall west",M.stucco,x-2.6f,55.2f,stairZ,.22f,124.8f,9f,true,1.8f);
+            B(s,"Stair fire wall east",M.stucco,x+2.6f,55.2f,stairZ,.22f,124.8f,9f,true,1.8f);
             stairsBuilt++;
         }
     }
-    static void BuildStairInterval(Transform p,float centreX,float y0,float y1,int reverse)
+    static void BuildStairInterval(Transform p,float centreX,float centreZ,float y0,float y1,int reverse)
     {
         float rise=y1-y0;
-        int perFlight=Mathf.Abs(rise-6.0f)<.05f?18:11; // 36 or 22 risers exactly.
+        int perFlight=Mathf.Abs(rise-6.0f)<.05f?18:11;
         float stepRise=rise/(perFlight*2f);
         float tread=.29f,run=perFlight*tread;
         float startZ=reverse==0?-run*.5f:run*.5f,dir=reverse==0?1f:-1f;
         for(int i=0;i<perFlight;i++)
         {
-            float z=startZ+dir*(i+.5f)*tread;
+            float z=centreZ+startZ+dir*(i+.5f)*tread;
             B(p,"Stair flight A step",M.granite,centreX-.9f,y0+(i+.5f)*stepRise,z,1.5f,stepRise,tread,true,2.0f);
-            float z2=-startZ-dir*(i+.5f)*tread;
+            float z2=centreZ-startZ-dir*(i+.5f)*tread;
             B(p,"Stair flight B step",M.granite,centreX+.9f,y0+rise*.5f+(i+.5f)*stepRise,z2,1.5f,stepRise,tread,true,2.0f);
         }
-        B(p,"Stair mid landing 1.50m",M.granite,centreX,y0+rise*.5f,0,3.8f,.16f,1.5f,true,2.0f);
+        B(p,"Stair mid landing 1.50m",M.granite,centreX,y0+rise*.5f,centreZ,3.8f,.16f,1.5f,true,2.0f);
     }
 
     // ---------------------------------------------------------------- ELEVATORS
     static void BuildElevators()
     {
-        float[] xs={-4.35f,-1.45f,1.45f,4.35f};
-        for(int i=0;i<4;i++)BuildElevator(i,xs[i],0);
+        // Passenger bank in EAST core, service lift in WEST core; central 2.40m corridor stays clear.
+        float[] xs={22.45f,25.25f,28.05f,-26.30f};
+        for(int i=0;i<4;i++)BuildElevator(i,xs[i],1.50f);
     }
     static void BuildElevator(int index,float x,float z)
     {
