@@ -1093,30 +1093,32 @@ public static class BraxChampionsCasinoT11
     // Issue #29 sign carrier contour was derived from the actual alpha silhouette
     // of owner SHA-256 78edc9f51c772d20cb84c43f0850716a63c5a772fa0b326a7aea15ccfe39bf1b.
     // The source is 2048x512 RGBA; alpha bbox is x=34..2013, y=50..460.
-    // This conservative simplification keeps the requested 0.08..0.12m clearance.
+    // Verified against the full alpha convex envelope: clearance 0.085..0.109m; gold ring 0.070m.
     static readonly Vector2[] SignCarrierOuter={
-        new Vector2(8.4060f,.2812f),new Vector2(8.3724f,-.4998f),
-        new Vector2(8.1046f,-1.1151f),new Vector2(7.8786f,-1.3736f),
-        new Vector2(7.5641f,-1.6038f),new Vector2(7.2282f,-1.7465f),
-        new Vector2(6.8615f,-1.8133f),new Vector2(-6.8699f,-1.8133f),
-        new Vector2(-7.4373f,-1.6708f),new Vector2(-7.9091f,-1.3510f),
-        new Vector2(-8.2702f,-.8387f),new Vector2(-8.4142f,-.2621f),
-        new Vector2(-8.3456f,.6568f),new Vector2(-7.9173f,1.5386f),
-        new Vector2(-7.8512f,1.5920f),new Vector2(-6.8699f,1.8301f),
-        new Vector2(6.8615f,1.8301f),new Vector2(7.8898f,1.5730f),
-        new Vector2(8.3033f,.7582f)
+        new Vector2(-6.8699f,-1.8233f),new Vector2(-7.4314f,-1.6857f),
+        new Vector2(-7.7120f,-1.5277f),new Vector2(-7.9723f,-1.3040f),
+        new Vector2(-8.2906f,-.8219f),new Vector2(-8.4245f,-.2687f),
+        new Vector2(-8.4239f,.2965f),new Vector2(-8.3624f,.6398f),
+        new Vector2(-7.9248f,1.5459f),new Vector2(-7.8570f,1.6008f),
+        new Vector2(-7.0283f,1.8222f),new Vector2(6.8725f,1.8395f),
+        new Vector2(7.8970f,1.5801f),new Vector2(8.2822f,.8387f),
+        new Vector2(8.3982f,.4439f),new Vector2(8.3982f,-.4271f),
+        new Vector2(8.3158f,-.7379f),new Vector2(8.1736f,-1.0308f),
+        new Vector2(7.9639f,-1.3040f),new Vector2(7.7036f,-1.5277f),
+        new Vector2(7.4147f,-1.6894f),new Vector2(7.0199f,-1.8054f)
     };
     static readonly Vector2[] SignCarrierInner={
-        new Vector2(8.3356f,.2753f),new Vector2(8.3030f,-.4838f),
-        new Vector2(8.0448f,-1.0772f),new Vector2(7.8310f,-1.3217f),
-        new Vector2(7.5293f,-1.5425f),new Vector2(7.2080f,-1.6791f),
-        new Vector2(6.8552f,-1.7433f),new Vector2(-6.8613f,-1.7433f),
-        new Vector2(-7.4083f,-1.6059f),new Vector2(-7.8592f,-1.3002f),
-        new Vector2(-8.2055f,-.8090f),new Vector2(-8.3436f,-.2561f),
-        new Vector2(-8.2768f,.6382f),new Vector2(-7.8612f,1.4940f),
-        new Vector2(-7.8194f,1.5277f),new Vector2(-6.8616f,1.7601f),
-        new Vector2(6.8529f,1.7601f),new Vector2(7.8419f,1.5128f),
-        new Vector2(8.2368f,.7346f)
+        new Vector2(-6.8615f,-1.7533f),new Vector2(-7.4054f,-1.6200f),
+        new Vector2(-7.6716f,-1.4701f),new Vector2(-7.9193f,-1.2572f),
+        new Vector2(-8.2255f,-.7935f),new Vector2(-8.3544f,-.2604f),
+        new Vector2(-8.3539f,.2902f),new Vector2(-8.2952f,.6180f),
+        new Vector2(-7.8686f,1.5014f),new Vector2(-7.8245f,1.5371f),
+        new Vector2(-7.0190f,1.7522f),new Vector2(6.8638f,1.7695f),
+        new Vector2(7.8493f,1.5199f),new Vector2(8.2170f,.8125f),
+        new Vector2(8.3282f,.4338f),new Vector2(8.3282f,-.4180f),
+        new Vector2(8.2499f,-.7134f),new Vector2(8.1138f,-.9938f),
+        new Vector2(7.9128f,-1.2556f),new Vector2(7.6633f,-1.4700f),
+        new Vector2(7.3874f,-1.6245f),new Vector2(7.0097f,-1.7354f)
     };
 
     static GameObject PolygonPrism(Transform parent,string name,Material mat,
