@@ -573,8 +573,6 @@ public static class BraxSceneAudit
                 creatorCs="BraxChampionsBeltShowcase.cs",
                 note="mesh thickness="+F(thickness)+"m expected=0.012m",count=glassPass?1:0});
         }
-        var canopySupports=all.Where(t=>Contains(t.name,
-            "A1 PUBLIC | ISSUE27 round gold support x=")).ToArray();
         AddExact("Arena: dwa złote słupy zadaszenia osadzone raycastem",
             canopySupports,2,"BraxChampionsArenaArrival.cs",
             "x=+-20.50 z=-68.70; floorY zapisany w nazwie obiektu");
