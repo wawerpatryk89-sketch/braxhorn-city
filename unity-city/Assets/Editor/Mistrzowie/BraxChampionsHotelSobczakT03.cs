@@ -401,13 +401,13 @@ public static class BraxChampionsHotelSobczakT03
         SlabWithCoreOpenings(g,"Level1 ceiling",M.stucco,9.31f,.02f,1.8f);
         BuildPublicFacade(g,6f,3.6f,1.8f,2.2f);
         Area(g,"RESTAURACJA 250m2",M.parquet,-17f,6.022f,-10f,25f,10f);
-        Area(g,"KUCHNIA 180m2",M.tile,-10.5f,6.022f,10f,20f,9f);
-        Area(g,"SPA 350m2",M.terrazzo,8.5f,6.022f,9.25f,25f,14f);
+        Area(g,"KUCHNIA 180m2",M.tile,-12.5f,6.022f,10f,20f,9f);
+        Area(g,"SPA 350m2",M.terrazzo,10.5f,6.022f,10f,25f,14f);
         Area(g,"FITNESS 250m2",M.rubber,17f,6.022f,-10f,25f,10f);
 
         BuildLevelZone(g,"RESTAURACJA",-17f,-10f,25f,10f,6f,3.6f,true,1.8f);
-        BuildLevelZone(g,"KUCHNIA",-10.5f,10f,20f,9f,6f,3.6f,false,1.4f);
-        BuildLevelZone(g,"SPA",8.5f,9.25f,25f,14f,6f,3.6f,false,1.4f);
+        BuildLevelZone(g,"KUCHNIA",-12.5f,10f,20f,9f,6f,3.6f,false,1.4f);
+        BuildLevelZone(g,"SPA",10.5f,10f,25f,14f,6f,3.6f,false,1.4f);
         BuildLevelZone(g,"FITNESS",17f,-10f,25f,10f,6f,3.6f,true,1.8f);
 
         // Restaurant tables.
@@ -423,9 +423,9 @@ public static class BraxChampionsHotelSobczakT03
         B(g,"Restaurant buffet oak body",M.oak,-17f,6.70f,-6.3f,8.0f,1.0f,.90f,true,1.2f);
         B(g,"Restaurant buffet marble top",M.marble,-17f,7.25f,-6.3f,8.2f,.10f,1.0f,true,1.5f);
         for(float x=-18f;x<=-4f;x+=3.5f)B(g,"Kitchen hot stainless bench",M.steel,x,6.65f,8.3f,3.0f,1.0f,.85f,true);
-        B(g,"Kitchen prep island",M.steel,-10.5f,6.65f,11.0f,5.5f,1.0f,1.2f,true);
+        B(g,"Kitchen prep island",M.steel,-12.5f,6.65f,11.0f,5.5f,1.0f,1.2f,true);
         B(g,"Kitchen dishwash line",M.steel,-17.5f,6.65f,13.0f,4.5f,1.0f,.85f,true);
-        B(g,"Kitchen cold room",M.steel,-3.5f,7.45f,12.4f,4.0f,2.7f,3.0f,true);
+        B(g,"Kitchen cold room",M.steel,-4.5f,7.45f,12.4f,4.0f,2.7f,3.0f,true);
         B(g,"Kitchen dry storage rack",M.oak,-18.0f,7.30f,6.5f,3.0f,2.2f,.55f,true,1.2f);
         // SPA treatment beds and glass screen.
         for(float x=2f;x<=20f;x+=6f)
@@ -434,7 +434,7 @@ public static class BraxChampionsHotelSobczakT03
             foreach(float dx in new[]{-.85f,.85f})foreach(float dz in new[]{-.30f,.30f})
                 B(g,"SPA treatment bed leg",M.oak,x+dx,6.28f,10f+dz,.09f,.55f,.09f,true,1.2f);
         }
-        B(g,"SPA clear glass relaxation divider",M.glass,8.5f,7.55f,4.5f,18f,2.7f,.06f,false);
+        B(g,"SPA clear glass relaxation divider",M.glass,10.5f,7.55f,4.5f,20f,2.7f,.06f,false);
         B(g,"SPA reception oak desk",M.oak,1.0f,6.65f,3.2f,4.0f,1.0f,.80f,true,1.2f);
         B(g,"SPA wet-zone marble floor",M.marble,16.5f,6.022f,13f,8f,.035f,5f,false,1.5f);
         for(float x=13.5f;x<=19.5f;x+=3f)B(g,"SPA shower glass",M.glass,x,7.45f,14.0f,2.0f,2.4f,.06f,false);
@@ -1002,8 +1002,8 @@ public static class BraxChampionsHotelSobczakT03
         foreach(float x in new[]{-8f,0f,8f}) PointLight(publicFloors,"Lobby warm light",x,4.6f,-1.5f,3000f,11f,1.8f);
         PointLight(publicFloors,"Reception warm light",0,4.8f,-12.3f,3000f,9f,1.5f);
         PointLight(publicFloors,"Restaurant warm light",-17f,8.7f,-10f,3000f,10f,1.5f);
-        PointLight(publicFloors,"Kitchen neutral light",-10.5f,8.7f,10f,3800f,10f,1.4f);
-        PointLight(publicFloors,"SPA warm light",10.5f,8.7f,9.25f,2700f,10f,1.4f);
+        PointLight(publicFloors,"Kitchen neutral light",-12.5f,8.7f,10f,3800f,10f,1.4f);
+        PointLight(publicFloors,"SPA warm light",10.5f,8.7f,10f,2700f,10f,1.4f);
         PointLight(publicFloors,"Fitness neutral light",17f,8.7f,-10f,3500f,10f,1.4f);
         // Sign gets indirect warm accents instead of yellow emissive letters.
         PointLight(root,"Sign indirect light L",-4.5f,9.2f,-23.0f,2850f,7f,1.1f);
