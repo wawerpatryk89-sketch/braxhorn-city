@@ -1109,13 +1109,13 @@ public static class BraxChampionsArenaArrival
             canopyFrontFascia.RoundedPrism(
                 mid+outward*.121f+Vector3.up*5.89f,
                 new Vector3(.242f,.48f,len),rot,.120f,.120f,4,4);
-            // Upper gold: .11m total with .02m embedded -> exactly .09m exposed, R=.055.
+            // Upper gold: .112m total, outer face .332m; fascia outer face .242m -> exactly .090m exposed, R=.055.
             canopyGoldTrim.RoundedPrism(
-                mid+outward*.274f+Vector3.up*6.42f,
+                mid+outward*.276f+Vector3.up*6.42f,
                 new Vector3(.112f,.16f,len),rot,.055f,.055f,4,4);
-            // Lower gold: .05m total with .01m embedded -> exactly .04m exposed, R=.025.
+            // Lower gold: .052m total, outer face .282m; fascia outer face .242m -> exactly .040m exposed, R=.025.
             canopyGoldTrim.RoundedPrism(
-                mid+outward*.254f+Vector3.up*5.69f,
+                mid+outward*.256f+Vector3.up*5.69f,
                 new Vector3(.052f,.08f,len),rot,.025f,.025f,3,3);
             canopyUnderGold.RoundedPrism(
                 mid-outward*.22f+Vector3.up*5.6725f,
