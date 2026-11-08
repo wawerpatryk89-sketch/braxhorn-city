@@ -91,7 +91,7 @@ public static class BraxChampionsBuildings
         // It must NOT change the existing A1 or T01 meshes, prefabs or positions.
         // Kasyno i basen nigdy nie przeszły pełnego Unity w tej gałęzi: błąd = ostrzeżenie
         // z pełnym wyjątkiem w logu, reszta miasta i APK budują się dalej.
-        bool casinoGenerated=false,poolGenerated=false,hotelGenerated=false;
+        bool casinoGenerated=false,poolGenerated=false;
         BraxChampionsFoundation.Optional("kasyno T11",()=>
         {
             BraxChampionsCasinoT11.Generate(Out);
@@ -103,15 +103,10 @@ public static class BraxChampionsBuildings
             BraxChampionsPoolP1.Generate();
             poolGenerated=true;
         });
-        // HOTEL SOBCZAK T03 is mandatory on this branch: do NOT hide a missing
-        // 64x42x130 hotel behind the optional-quality wrapper.
-        BraxChampionsHotelSobczakT03.Generate();
-        hotelGenerated=true;
         AssetDatabase.SaveAssets();
-        // Optional catches apply only to legacy T11/P1. T03 must return normally.
-        int generated=d.buildings.Length+(casinoGenerated?1:0)+(poolGenerated?1:0)+(hotelGenerated?1:0);
+        int generated=d.buildings.Length+(casinoGenerated?1:0)+(poolGenerated?1:0);
         Debug.Log("CHAMPIONS_BUILDING_GENERATION base="+d.buildings.Length+
-            " T11="+casinoGenerated+" P1="+poolGenerated+" T03_HOTEL_SOBCZAK="+hotelGenerated+
+            " T11="+casinoGenerated+" P1="+poolGenerated+
             " generated="+generated+" visualAccepted=false");
         return generated;
     }
