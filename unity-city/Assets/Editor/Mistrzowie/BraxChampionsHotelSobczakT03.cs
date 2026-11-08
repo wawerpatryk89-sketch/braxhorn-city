@@ -537,21 +537,22 @@ public static class BraxChampionsHotelSobczakT03
     static void BuildLevelZone(Transform g,string name,float x,float z,float w,float d,float baseY,float h,bool doorNorth,float doorW,Material wallMat)
     {
         float clearH=h-.30f,wallY=baseY+clearH*.5f,t=.14f,doorH=2.20f,seg=(w-doorW)*.5f;
-        B(g,name+" west wall",wallMat,x-w*.5f,wallY,z,t,clearH,d,true,wallMat==M.facade?3f:1.8f);
-        B(g,name+" east wall",wallMat,x+w*.5f,wallY,z,t,clearH,d,true,wallMat==M.facade?3f:1.8f);
+        float wallTile=wallMat==M.facade?3f:1.8f;
+        B(g,name+" west wall",wallMat,x-w*.5f,wallY,z,t,clearH,d,true,wallTile);
+        B(g,name+" east wall",wallMat,x+w*.5f,wallY,z,t,clearH,d,true,wallTile);
         if(doorNorth)
         {
-            B(g,name+" south wall",wallMat,x,wallY,z-d*.5f,w,clearH,t,true,1.8f);
-            B(g,name+" north left",wallMat,x-(doorW*.5f+seg*.5f),wallY,z+d*.5f,seg,clearH,t,true,1.8f);
-            B(g,name+" north right",wallMat,x+(doorW*.5f+seg*.5f),wallY,z+d*.5f,seg,clearH,t,true,1.8f);
-            B(g,name+" north door header",wallMat,x,baseY+(doorH+clearH)*.5f,z+d*.5f,doorW,clearH-doorH,t,true,1.8f);
+            B(g,name+" south wall",wallMat,x,wallY,z-d*.5f,w,clearH,t,true,wallTile);
+            B(g,name+" north left",wallMat,x-(doorW*.5f+seg*.5f),wallY,z+d*.5f,seg,clearH,t,true,wallTile);
+            B(g,name+" north right",wallMat,x+(doorW*.5f+seg*.5f),wallY,z+d*.5f,seg,clearH,t,true,wallTile);
+            B(g,name+" north door header",wallMat,x,baseY+(doorH+clearH)*.5f,z+d*.5f,doorW,clearH-doorH,t,true,wallTile);
         }
         else
         {
-            B(g,name+" north wall",wallMat,x,wallY,z+d*.5f,w,clearH,t,true,1.8f);
-            B(g,name+" south left",wallMat,x-(doorW*.5f+seg*.5f),wallY,z-d*.5f,seg,clearH,t,true,1.8f);
-            B(g,name+" south right",wallMat,x+(doorW*.5f+seg*.5f),wallY,z-d*.5f,seg,clearH,t,true,1.8f);
-            B(g,name+" south door header",wallMat,x,baseY+(doorH+clearH)*.5f,z-d*.5f,doorW,clearH-doorH,t,true,1.8f);
+            B(g,name+" north wall",wallMat,x,wallY,z+d*.5f,w,clearH,t,true,wallTile);
+            B(g,name+" south left",wallMat,x-(doorW*.5f+seg*.5f),wallY,z-d*.5f,seg,clearH,t,true,wallTile);
+            B(g,name+" south right",wallMat,x+(doorW*.5f+seg*.5f),wallY,z-d*.5f,seg,clearH,t,true,wallTile);
+            B(g,name+" south door header",wallMat,x,baseY+(doorH+clearH)*.5f,z-d*.5f,doorW,clearH-doorH,t,true,wallTile);
         }
     }
 
@@ -563,9 +564,9 @@ public static class BraxChampionsHotelSobczakT03
         float clearH=h-.30f,y=clearH*.5f,doorW=1.0f,doorH=2.20f,seg=(w-doorW)*.5f;
         B(g,name+" west wall",M.stucco,x-w*.5f,y,z,.14f,clearH,d,true,1.8f);
         B(g,name+" east wall",M.stucco,x+w*.5f,y,z,.14f,clearH,d,true,1.8f);
-        B(g,name+" north wall",wallMat,x,y,z+d*.5f,w,clearH,.14f,true,1.8f);
-        B(g,name+" south left",wallMat,x-(doorW*.5f+seg*.5f),y,z-d*.5f,seg,clearH,.14f,true,1.8f);
-        B(g,name+" south right",wallMat,x+(doorW*.5f+seg*.5f),y,z-d*.5f,seg,clearH,.14f,true,1.8f);
+        B(g,name+" north wall",M.stucco,x,y,z+d*.5f,w,clearH,.14f,true,1.8f);
+        B(g,name+" south left",M.stucco,x-(doorW*.5f+seg*.5f),y,z-d*.5f,seg,clearH,.14f,true,1.8f);
+        B(g,name+" south right",M.stucco,x+(doorW*.5f+seg*.5f),y,z-d*.5f,seg,clearH,.14f,true,1.8f);
         B(g,name+" door header",M.stucco,x,(doorH+clearH)*.5f,z-d*.5f,doorW,clearH-doorH,.14f,true,1.8f);
         B(g,name+" open door leaf",M.oak,x-doorW*.46f,doorH*.5f,z-d*.5f+.48f,.06f,doorH,.94f,false,1.2f);
     }
