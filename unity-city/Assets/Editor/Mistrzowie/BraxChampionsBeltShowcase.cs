@@ -49,6 +49,57 @@ public static class BraxChampionsBeltShowcase
         }
     }
 
+    static void RoundedBase(Transform parent,string name,Material material,
+        Vector3 centre,Vector3 size,float radius)
+    {
+        const int cornerSegments=6;
+        float hx=size.x*.5f,hz=size.z*.5f,hy=size.y*.5f;
+        float r=Mathf.Clamp(radius,.001f,Mathf.Min(hx,hz)-.001f);
+        var outline=new System.Collections.Generic.List<Vector2>();
+        void Arc(float cx,float cz,float a0,float a1)
+        {
+            for(int i=0;i<=cornerSegments;i++)
+            {
+                float a=Mathf.Lerp(a0,a1,i/(float)cornerSegments)*Mathf.Deg2Rad;
+                outline.Add(new Vector2(cx+r*Mathf.Cos(a),cz+r*Mathf.Sin(a)));
+            }
+        }
+        Arc(hx-r,hz-r,0,90);Arc(-hx+r,hz-r,90,180);
+        Arc(-hx+r,-hz+r,180,270);Arc(hx-r,-hz+r,270,360);
+        var verts=new System.Collections.Generic.List<Vector3>();
+        var tris=new System.Collections.Generic.List<int>();
+        for(int i=0;i<outline.Count;i++)
+        {
+            int n=(i+1)%outline.Count,b=verts.Count;
+            verts.Add(centre+new Vector3(outline[i].x,-hy,outline[i].y));
+            verts.Add(centre+new Vector3(outline[n].x,-hy,outline[n].y));
+            verts.Add(centre+new Vector3(outline[n].x,hy,outline[n].y));
+            verts.Add(centre+new Vector3(outline[i].x,hy,outline[i].y));
+            tris.Add(b);tris.Add(b+2);tris.Add(b+1);tris.Add(b);tris.Add(b+3);tris.Add(b+2);
+        }
+        for(int i=0;i<outline.Count;i++)
+        {
+            int n=(i+1)%outline.Count,b=verts.Count;
+            verts.Add(centre+new Vector3(0,hy,0));
+            verts.Add(centre+new Vector3(outline[i].x,hy,outline[i].y));
+            verts.Add(centre+new Vector3(outline[n].x,hy,outline[n].y));
+            tris.Add(b);tris.Add(b+1);tris.Add(b+2);
+            b=verts.Count;
+            verts.Add(centre+new Vector3(0,-hy,0));
+            verts.Add(centre+new Vector3(outline[n].x,-hy,outline[n].y));
+            verts.Add(centre+new Vector3(outline[i].x,-hy,outline[i].y));
+            tris.Add(b);tris.Add(b+1);tris.Add(b+2);
+        }
+        var mesh=new Mesh{name=name+" rounded base R="+radius};
+        mesh.SetVertices(verts);mesh.SetTriangles(tris,0);mesh.RecalculateNormals();mesh.RecalculateBounds();
+        string safe=name.Replace(' ','_').Replace('|','_');
+        AssetDatabase.CreateAsset(mesh,Meshes+safe+".asset");
+        var go=new GameObject(name);go.transform.SetParent(parent,false);
+        go.AddComponent<MeshFilter>().sharedMesh=mesh;
+        go.AddComponent<MeshRenderer>().sharedMaterial=material;
+        // Exhibit base is decorative beside judges: no invisible movement blocker.
+    }
+
     // Single plane per glass wall rather than six faces of a Unity cube.
     // The old six-face transparent cubes layered alpha, producing a white
     // veil in front of the owner's belt on mobile. Glass must read as almost
@@ -164,23 +215,26 @@ public static class BraxChampionsBeltShowcase
         // Phone proof 8.11 showed the embossed face presented backwards after the
         // geometric 24-pose search. Preserve that upright pose, then flip only the
         // local display-facing axis; source mesh/materials remain unchanged.
-        bestRotation=Quaternion.Euler(0,180f,0)*bestRotation;
+        // Owner phone proof: reverse the belt around ITS SELECTED LOCAL UP axis.
+        // Post-multiply; pre-multiplying rotated around the display frame and could
+        // leave the embossed face backwards after an authored FBX axis correction.
+        bestRotation=bestRotation*Quaternion.Euler(0,180f,0);
         instance.transform.localRotation=bestRotation;
         var b=VisualBounds(display,instance.transform);
         if(b.size.y<=b.size.x*1.30f||b.size.z>=b.size.x)
             BraxBuildQuality.Warn("A1_BELT_GEOMETRY_UNCERTAIN: source FBX must be inspected in Unity");
-        // Clearance within case: 1.86m width; interior glass front at
-        // z=-.495, leather backing at z=.377. Gold nameplate is below y=1.02.
-        float factor=Mathf.Min(2.62f/Mathf.Max(b.size.y,.0001f),
-            Mathf.Min(1.20f/Mathf.Max(b.size.x,.0001f),
-                .64f/Mathf.Max(b.size.z,.0001f)));
+        // New lightweight case interior is 1.84 x .72 x 2.95 m above
+        // a .28m base. Keep >=15cm side/top clearance and >=10cm front/back.
+        float factor=Mathf.Min(2.25f/Mathf.Max(b.size.y,.0001f),
+            Mathf.Min(1.54f/Mathf.Max(b.size.x,.0001f),
+                .52f/Mathf.Max(b.size.z,.0001f)));
         instance.transform.localScale*=factor;
         b=VisualBounds(display,instance.transform);
-        instance.transform.localPosition+=new Vector3(0,2.48f,-.055f)-b.center;
+        instance.transform.localPosition+=new Vector3(0,1.80f,.02f)-b.center;
         b=VisualBounds(display,instance.transform);
-        if(b.min.y<1.06f||b.max.y>3.95f||
-           b.min.z<-.43f||b.max.z>.36f||b.size.x>1.24f)
-            BraxBuildQuality.Warn("A1_BELT_CASE_CLEARANCE: inspect exact imported FBX against the real cabinet");
+        if(b.min.y<.43f||b.max.y>3.08f||
+           b.min.z<-.26f||b.max.z>.26f||b.size.x>1.54f)
+            BraxBuildQuality.Warn("A1_BELT_CASE_CLEARANCE: imported FBX exceeds approved lightweight case clearance");
         Debug.Log("A1_BELT_OWNER_3D_FRONT_PRESENTATION candidateSearch="+candidates+
             " score="+bestScore.ToString("F3")+
             " dimensions="+b.size.ToString("F3")+
@@ -260,12 +314,12 @@ public static class BraxChampionsBeltShowcase
 
     static void OriginalRectangleArtwork(Transform display, Material gold, Material bronze)
     {
-        // Owner reference 7.11: ONE narrow brushed-gold plaque under the belt.
-        // No oversized plinth, no rhombus and no atlas stretched across the front.
-        Cube(display,"REFERENCE narrow bronze plaque outline",bronze,
-            new Vector3(0,.78f,-.375f),new Vector3(1.08f,.50f,.045f));
-        Cube(display,"REFERENCE solid gold plaque face",gold,
-            new Vector3(0,.78f,-.408f),new Vector3(1.00f,.42f,.016f));
+        // Original owner artwork lives on the FRONT of the new low base:
+        // 1.20 x .40 m (3:1) with a 35mm polished-gold frame.
+        Cube(display,"A1 SHOWCASE | gold plaque frame",gold,
+            new Vector3(0,.31f,-.462f),new Vector3(1.27f,.47f,.020f));
+        Cube(display,"A1 SHOWCASE | black plaque recess",bronze,
+            new Vector3(0,.31f,-.474f),new Vector3(1.20f,.40f,.010f));
 
         var image=AssetDatabase.LoadAssetAtPath<Texture2D>(OriginalPlaque);
         if(!image)
@@ -306,12 +360,12 @@ public static class BraxChampionsBeltShowcase
         // looked mirror-reversed. Swap UV ENDPOINTS only, never the owner's
         // 1536x512 source pixels, logo, text, colour or the physical plaques.
         AtlasLabel(display,material,"FRONT_BRAXHORN_ARENA",
-            new Vector3(0,.78f,-.421f),Quaternion.Euler(0,180f,0),
-            new Vector2(.90f,.40f),.777f,.397f,.12f,.90f);
-        // Original owner's separate B emblem belongs on the RIGHT SIDE.
+            new Vector3(0,.31f,-.482f),Quaternion.Euler(0,180f,0),
+            new Vector2(1.20f,.40f),.777f,.397f,.12f,.90f);
+        // Original owner's separate B emblem belongs on the RIGHT SIDE of the base.
         AtlasLabel(display,material,"RIGHT_SIDE_B_CREST",
-            new Vector3(.615f,.78f,-.215f),Quaternion.Euler(0,90f,0),
-            new Vector2(.22f,.30f),.938f,.791f,.12f,.90f);
+            new Vector3(1.112f,.30f,.05f),Quaternion.Euler(0,90f,0),
+            new Vector2(.26f,.34f),.938f,.791f,.12f,.90f);
         Debug.Log("CHAMPIONS_A1_PLAQUE_REFERENCE ownerPixelsUnchanged=true"+
             " narrowGoldRectangle=true frontPanels=1 sideCrest=1 source="+sourceWidth+"x"+sourceHeight);
     }
@@ -324,22 +378,25 @@ public static class BraxChampionsBeltShowcase
         display.localRotation = Quaternion.Euler(0, 90, 0);
 
         var gold = BraxChampionsFoundation.LibraryMetal("A1_belt_showcase_gold",
-            new Color(.96f, .72f, .24f));
-        var bronze = BraxChampionsFoundation.LibraryMetal("A1_belt_showcase_bronze",
-            new Color(.54f, .38f, .17f));
-        var redInset = BraxChampionsFoundation.LibraryMetal("A1_belt_showcase_red_inset",
-            new Color(.62f, .025f, .035f));
+            new Color(.835f,.639f,.231f));
+        gold.SetFloat("_Metallic",.98f);gold.SetFloat("_Roughness",.19f);
+        var blackMetal=BraxChampionsFoundation.LibraryMetal(
+            "A1_belt_showcase_black_metal",new Color(.045f,.050f,.060f));
+        blackMetal.SetFloat("_Metallic",.92f);blackMetal.SetFloat("_Roughness",.22f);
+        var plaqueRecess=BraxChampionsFoundation.LibraryMetal(
+            "A1_belt_showcase_plaque_recess",new Color(.035f,.037f,.042f));
+        plaqueRecess.SetFloat("_Metallic",.35f);plaqueRecess.SetFloat("_Roughness",.24f);
         var originalGlass = AssetDatabase.LoadAssetAtPath<Material>(Materials + "clear_glass.mat");
         var warm = AssetDatabase.LoadAssetAtPath<Material>(Materials + "light.mat");
         if (!originalGlass || originalGlass.renderQueue < 3000 || !warm)
             throw new InvalidOperationException("A1 showroom requires existing transparent glass and warm light materials");
 
         var glass=new Material(originalGlass){
-            name="A1 reference showcase | optical-clear glass",
+            name="A1 premium showcase | optical clear slightly smoked glass",
             enableInstancing=true
         };
-        glass.SetColor("_Color",new Color(.99f,.995f,1f,.014f));
-        glass.SetFloat("_Roughness",.012f);
+        glass.SetColor("_Color",new Color(.94f,.96f,.98f,.025f));
+        glass.SetFloat("_Roughness",.035f);
         glass.SetFloat("_Metallic",0f);
         glass.SetFloat("_VertexTint",0f);
         glass.SetFloat("_Transparent",1f);
@@ -347,89 +404,81 @@ public static class BraxChampionsBeltShowcase
         glass.SetFloat("_SrcBlend",(float)BlendMode.SrcAlpha);
         glass.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);
         glass.SetFloat("_ZWrite",0f);
-        // No cutout or opaque backfaces; single mesh surface stays readable
-        // from every accessible visitor angle and does not hide the 3D belt.
         glass.SetFloat("_Cull",0f);
         glass.renderQueue=3001;
         glass.SetOverrideTag("RenderType","Transparent");
         AssetDatabase.CreateAsset(glass,Materials+"A1_case_clear_slightly_smoked_glass.mat");
 
-        var marble = BraxChampionsFoundation.SourceMaterial(
-            "A1_belt_showcase_black_marble", "granite_tile", .82f, new Color(.075f,.075f,.082f));
-        var backing = BraxChampionsFoundation.LibraryLeather(
-            "A1_belt_showcase_black_leather", new Color(.075f,.070f,.068f));
+        var granite=BraxChampionsFoundation.SourceMaterial(
+            "A1_belt_showcase_granite_tile","granite_tile",.82f,
+            new Color(.12f,.125f,.14f));
+        granite.SetFloat("_Roughness",.26f);
 
-        // Reference photo: wall-mounted black-marble column, not a floor podium.
-        Cube(display,"REFERENCE black marble wall column",marble,
-            new Vector3(0,2.30f,.63f),new Vector3(1.86f,4.55f,.30f));
-        Cube(display,"REFERENCE black leather back panel",backing,
-            new Vector3(0,2.27f,.405f),new Vector3(1.22f,3.38f,.055f));
+        // LOW two-layer base only. NO tall black wall, NO leather backing plate.
+        RoundedBase(display,"A1 SHOWCASE | recessed lower granite plinth",granite,
+            new Vector3(0,.04f,0),new Vector3(2.08f,.08f,.78f),.025f);
+        RoundedBase(display,"A1 SHOWCASE | premium granite base",granite,
+            new Vector3(0,.18f,0),new Vector3(2.20f,.20f,.90f),.025f);
 
-        // One thin glass plane per surface, with REAL optical blending.
-        // Invisible colliders are forbidden. No foggy primitive cube faces.
-        CrystalGlassPanel(display,"REFERENCE optically clear FRONT glass",glass,
-            new Vector3(0,2.28f,-.505f),new Vector2(1.48f,3.72f),
+        // Lightweight 1.84 x .72 x 2.95 m glass case above y=.28.
+        const float caseY=.28f+2.95f*.5f;
+        CrystalGlassPanel(display,"A1 SHOWCASE | FRONT optical glass",glass,
+            new Vector3(0,caseY,-.36f),new Vector2(1.84f,2.95f),
             Quaternion.Euler(0,180f,0));
+        CrystalGlassPanel(display,"A1 SHOWCASE | BACK optical glass",glass,
+            new Vector3(0,caseY,.36f),new Vector2(1.84f,2.95f),
+            Quaternion.identity);
         foreach(float side in new[]{-1f,1f})
-            CrystalGlassPanel(display,"REFERENCE optically clear SIDE glass "+side,glass,
-                new Vector3(side*.75f,2.28f,-.055f),new Vector2(.92f,3.72f),
+            CrystalGlassPanel(display,"A1 SHOWCASE | SIDE optical glass "+side,glass,
+                new Vector3(side*.92f,caseY,0),new Vector2(.72f,2.95f),
                 Quaternion.Euler(0,side*90f,0));
-        CrystalGlassPanel(display,"REFERENCE optically clear TOP glass",glass,
-            new Vector3(0,4.15f,-.055f),new Vector2(1.52f,.94f),
-            Quaternion.Euler(90f,0,0));
-        CrystalGlassPanel(display,"REFERENCE optically clear BOTTOM glass",glass,
-            new Vector3(0,.41f,-.055f),new Vector2(1.52f,.94f),
+        CrystalGlassPanel(display,"A1 SHOWCASE | TOP optical glass",glass,
+            new Vector3(0,3.23f,0),new Vector2(1.84f,.72f),
             Quaternion.Euler(90f,0,0));
 
-        // Warm rectangular ceiling light and vertical edge glow visible in the reference.
-        foreach(float z in new[]{-.34f,.19f})
-            Cube(display,"REFERENCE warm top LED long diffuser",warm,
-                new Vector3(0,3.94f,z),new Vector3(1.24f,.030f,.040f));
-        foreach(float x in new[]{-.60f,.60f})
-            Cube(display,"REFERENCE warm top LED short diffuser",warm,
-                new Vector3(x,3.94f,-.075f),new Vector3(.040f,.030f,.57f));
-        foreach(float x in new[]{-.62f,.62f})
-            Cube(display,"REFERENCE warm vertical side LED",warm,
-                new Vector3(x,2.26f,.345f),new Vector3(.025f,3.05f,.030f));
-        Cube(display,"REFERENCE warm lower case LED",warm,
-            new Vector3(0,.48f,-.31f),new Vector3(1.26f,.030f,.045f));
+        // Four 45mm gold corner profiles + 55mm top frame; glass and belt remain dominant.
+        foreach(float x in new[]{-.92f,.92f})
+        foreach(float z in new[]{-.36f,.36f})
+            Cube(display,"A1 SHOWCASE | slender gold corner profile",gold,
+                new Vector3(x,caseY,z),new Vector3(.045f,2.95f,.045f));
+        foreach(float z in new[]{-.36f,.36f})
+            Cube(display,"A1 SHOWCASE | top gold front/back frame",gold,
+                new Vector3(0,3.2025f,z),new Vector3(1.84f,.055f,.045f));
+        foreach(float x in new[]{-.92f,.92f})
+            Cube(display,"A1 SHOWCASE | top gold side frame",gold,
+                new Vector3(x,3.2025f,0),new Vector3(.045f,.055f,.72f));
 
-        // Reference photo: slim polished GOLD continuous edge support,
-        // discreet corner clamps and no wide opaque vertical posts.
-        foreach(float x in new[]{-.74f,.74f})
-        {
-            Cube(display,"REFERENCE slender polished GOLD case edge",gold,
-                new Vector3(x,2.28f,-.513f),new Vector3(.045f,3.72f,.030f));
-            Cube(display,"REFERENCE thin RED inset centered in gold case edge",redInset,
-                new Vector3(x,2.28f,-.532f),new Vector3(.014f,3.48f,.012f));
-            foreach(float y in new[]{.53f,2.28f,4.02f})
-                Cube(display,"REFERENCE small GOLD glass bracket",gold,
-                    new Vector3(x,y,-.527f),new Vector3(.11f,.11f,.09f));
-        }
+        // Two black 30mm supports behind the belt, invisible from a straight-on view.
+        foreach(float x in new[]{-.34f,.34f})
+            Cube(display,"A1 SHOWCASE | hidden black belt support",blackMetal,
+                new Vector3(x,1.22f,.20f),new Vector3(.030f,1.88f,.030f));
 
-        // Bronze vertical slats stay next to the cabinet, never across the glass.
-        for(int i=0;i<5;i++)
-            Cube(display,"REFERENCE bronze vertical slat "+(i+1),bronze,
-                new Vector3(.98f+i*.09f,2.30f,.66f),
-                new Vector3(.036f,4.55f,.075f));
+        // Warm 3000K-style emissive lines: one upper, one lower. No shadow light strips.
+        Cube(display,"A1 SHOWCASE | upper warm LED",warm,
+            new Vector3(0,3.165f,-.31f),new Vector3(1.56f,.028f,.020f));
+        Cube(display,"A1 SHOWCASE | lower warm LED",warm,
+            new Vector3(0,.315f,-.31f),new Vector3(1.50f,.020f,.020f));
 
-        OriginalRectangleArtwork(display, gold, bronze);
+        OriginalRectangleArtwork(display,gold,plaqueRecess);
         OriginalBelt(display);
 
-        var lamp = new GameObject("REFERENCE showcase warm mobile vertex light").AddComponent<Light>();
+        // One cheap mobile light only.
+        var lamp = new GameObject("A1 SHOWCASE | one warm mobile vertex light").AddComponent<Light>();
         lamp.transform.SetParent(display,false);
-        lamp.transform.localPosition=new Vector3(0,3.72f,-.12f);
+        lamp.transform.localPosition=new Vector3(0,2.72f,-.05f);
         lamp.type=LightType.Point;
         lamp.color=new Color(1f,.87f,.63f);
-        lamp.intensity=.72f;
-        lamp.range=3.8f*BraxClaudeOsiedle.K;
+        lamp.intensity=.62f;
+        lamp.range=3.3f*BraxClaudeOsiedle.K;
         lamp.shadows=LightShadows.None;
         lamp.renderMode=LightRenderMode.ForceVertex;
 
-        Debug.Log("CHAMPIONS_A1_SHOWCASE_REFERENCE wallMounted=true rhombus=false woodPlinth=false"+
-            " redInset=true crystalSinglePaneAlpha=.014 slimGoldSupports=true narrowCabinet=true"+
-            " originalOwnerBelt3D=true ownerPlaqueAtlasUnmodified=true"+
-            " UnitySceneAndPhoneProofPending=true");
+        Debug.Log("A1_SHOWCASE_PREMIUM base=2.20x.90x.28 lower=2.08x.78x.08 R=.025"+
+            " case=1.84x.72x2.95 totalHeight=3.23 glass=10to12mm_visual"+
+            " tallBackPlate=false leatherBacking=false goldProfiles=.045 topFrame=.055"+
+            " beltTargetHeight<=2.25 beltCenterY=1.80 localAxisFrontFlip=true"+
+            " frontPlaque=1.20x.40 goldFrame=.035 sideCrest=.26x.34"+
+            " LEDtop=.028 LEDbottom=.020 realtimeLights=1 visualFrontProofRequired=true");
     }
 
 }
