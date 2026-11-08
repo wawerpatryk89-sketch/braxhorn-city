@@ -303,12 +303,36 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertNotIn('Stair mid landing 1.50m",M.granite,centreX,y0+rise*.5f,centreZ', self.generator)
 
     def test_public_cores_are_clear(self):
-        self.assertIn('Area(g,"TOALETA M 40m2",M.marble,-15f,.022f,17.5f,8f,5f)', self.generator)
-        self.assertIn('Area(g,"TOALETA K 40m2",M.marble,15f,.022f,17.5f,8f,5f)', self.generator)
+        self.assertIn('Area(g,"TOALETA M 40m2",M.marbleWet,-15f,.022f,17.5f,8f,5f)', self.generator)
+        self.assertIn('Area(g,"TOALETA K 40m2",M.marbleWet,15f,.022f,17.5f,8f,5f)', self.generator)
         self.assertIn('Area(g,"SPA 350m2",M.terrazzo,10.5f,6.022f,10f,25f,14f)', self.generator)
         self.assertIn('float clearH=h-.30f,wallY=baseY+clearH*.5f', self.generator)
         self.assertIn('float clearH=h-.30f,y=clearH*.5f', self.generator)
         self.assertIn('Bathroom shower tray 1.20x0.90', self.generator)
+
+    def test_final_owner_premium_details_are_present(self):
+        self.assertIn('Reception marble top",M.marble,0,1.10f', self.generator)
+        self.assertIn("Lobby indoor plant", self.generator)
+        self.assertIn("RestaurantTable2(", self.generator)
+        self.assertIn("call panel", self.generator)
+        self.assertIn("Front balcony CENTRAL floor2", self.generator)
+        self.assertIn("Classical corner rustication", self.generator)
+        self.assertIn("BuildProbes();", self.generator)
+        self.assertIn("ReflectionProbeMode.Baked", self.generator)
+        self.assertIn("LightProbeGroup", self.generator)
+
+    def test_wet_marble_reuses_source_maps_with_higher_roughness(self):
+        self.assertIn("marbleWet", self.materials)
+        self.assertIn('Variant("wet_marble_floor",s.marble,.50f)', self.materials)
+        self.assertIn('Bathroom marble floor",M.marbleWet', self.generator)
+        self.assertIn('SPA wet-zone marble floor",M.marbleWet', self.generator)
+        self.assertIn('Bathroom shower tray 1.20x0.90",M.marbleWet', self.generator)
+
+    def test_scene_audit_parking_regex_and_material_matrix_are_real(self):
+        self.assertIn(r'@"^B1 PARK \\d{2}( ACCESSIBLE)? back$"', self.scene_audit)
+        self.assertIn(r'@"^B2 PARK \\d{2}( ACCESSIBLE)? back$"', self.scene_audit)
+        for token in ["normalStrength","tilingMeters","zones","unmappedMaterialCount","materialMappingPass"]:
+            self.assertIn(token,self.scene_audit)
 
     def test_decorative_roof_has_no_heavy_colliders(self):
         self.assertIn('Mansard dormer body",M.stucco,x,123.35f,z,3.0f,2.8f,1.35f,false', self.generator)
