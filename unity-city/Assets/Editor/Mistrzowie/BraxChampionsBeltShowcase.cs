@@ -119,8 +119,12 @@ public static class BraxChampionsBeltShowcase
         go.AddComponent<MeshRenderer>().sharedMaterial=material;
         if(collision)
         {
+            // This flag is used only by the visible 2.20x0.90 showcase base.
+            // One collider matches the COMPLETE 0.28m two-layer base, not only
+            // its 0.20m upper stone skin.
             var box=go.AddComponent<BoxCollider>();
-            box.center=centre;box.size=size;
+            box.center=new Vector3(centre.x,.14f,centre.z);
+            box.size=new Vector3(size.x,.28f,size.z);
         }
     }
 
@@ -521,7 +525,7 @@ public static class BraxChampionsBeltShowcase
         lamp.renderMode=LightRenderMode.ForceVertex;
 
         Debug.Log("A1_SHOWCASE_PREMIUM base=2.20x.90x.28 lower=2.08x.78x.08 R=.025"+
-            " case=1.84x.72x2.95 totalHeight=3.23 glassThickness=.012m baseCollider=2.20x.90x.20"+
+            " case=1.84x.72x2.95 totalHeight=3.23 glassThickness=.012m baseCollider=2.20x.90x.28"+
             " tallBackPlate=false leatherBacking=false goldProfiles=.045 topFrame=.055"+
             " beltTargetHeight<=2.25 beltCenterY=1.80 localAxisFrontFlip=true"+
             " frontPlaque=1.20x.40 goldFrame=.035 sideCrest=.26x.34"+
