@@ -12,10 +12,6 @@ public static class BraxChampionsArenaMural
     // HD 6144x2048 (oryginał właściciela powiększony 4x, 6.11) — używany, gdy jest.
     public const string HdImage =
         "Assets/Source/Mistrzowie/ArenaMuralsHD/MURAL_WEJSCIE_CHAMPION_FIGHTER_6144x2048.png";
-    // Historical lower-resolution source is deliberately NOT used as a fallback.
-    public const string OriginalImage =
-        "Assets/Source/Mistrzowie/ArenaMurals/BRAXHORN_CHAMPION_FIGHTER_ORIGINAL.jpg";
-
     const string Output="Assets/PlayableGenerated/Mistrzowie/Arena/Mural";
 
     // Original arena-bowl LOCAL coordinates, before the unchanged 180-degree
@@ -33,9 +29,6 @@ public static class BraxChampionsArenaMural
     // Public lobby is on local +Z. The existing wall/cladding ends at Z=98.3.
     // Keep the printed surface on its LOBBY side, not hidden behind the cladding.
     const float WallImageZ=98.33f; // 3cm nominal clearance; existing walls/colliders unchanged
-    const int SourceWidth=1536;
-    const int SourceHeight=512;
-
     // World scene image aspect stays 1536:512 (3:1) at 82:27.333 m.
     // The 19m peripheral sections extend the existing artwork's EDGE COLOUR
     // rather than stretching any fighter, emblem or lettering.
