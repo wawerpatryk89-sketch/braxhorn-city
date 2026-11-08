@@ -617,34 +617,74 @@ public static class BraxChampionsHotelSobczakT03
     // ---------------------------------------------------------------- 420 ROOMS
     static void BuildGuestInteriors30()
     {
+        // Owner/mobile contract: build ONE typical 14-room floor prefab, then instantiate it 30 times.
+        // Shared meshes/materials stay identical; only floor transform and room-number labels are overridden.
+        var templateRoot=new GameObject("HOTEL SOBCZAK | GUEST FLOOR TEMPLATE");
+        BuildGuestFloorTemplate(templateRoot.transform);
+        string templatePath=Out+"/GuestFloorTemplate.prefab";
+        var templatePrefab=PrefabUtility.SaveAsPrefabAsset(templateRoot,templatePath);
+        UnityEngine.Object.DestroyImmediate(templateRoot);
+        if(!templatePrefab)throw new InvalidOperationException("HOTEL SOBCZAK failed to save GuestFloorTemplate.prefab");
+
+        // Building the source template creates 14 logical rooms; count only the 30 placed prefab instances.
+        roomsBuilt=0;
         for(int f=0;f<GuestFloors;f++)
         {
             float floorY=GuestBase+f*3.6f;
-            var fg=Group(guestInteriors,"GUEST INTERIOR FLOOR "+(f+2)+" | 14 ROOMS");
-            fg.localPosition=Vector3.up*floorY*K;guestFloorRoots.Add(fg.gameObject);
-
-            // One central corridor exactly 2.40 m clear, running along X.
-            // The exact 2.40m corridor runs unobstructed only through the 42m room zone.
-            // Side cores continue in structural marble to lifts/stairs.
-            B(fg,"Central corridor wool runner",M.carpet,0,.022f,0,42.0f,.035f,2.40f,false,.3f);
-
-            for(int i=0;i<7;i++)
-            {
-                float x=-18f+i*6f;
-                BuildGuestRoom(fg,f+2,i+1,x,-10.90f,-1);
-                BuildGuestRoom(fg,f+2,14-i,x,10.90f,1);
-            }
-            // One 0.20m party wall per actual boundary: no duplicated overlapping walls.
-            foreach(float wallX in new[]{-21f,-15f,-9f,-3f,3f,9f,15f,21f})
-            {
-                B(fg,"SOUTH room party wall",M.stucco,wallX,1.65f,-10.90f,.20f,3.30f,19.40f,true,1.8f);
-                B(fg,"NORTH room party wall",M.stucco,wallX,1.65f,10.90f,.20f,3.30f,19.40f,true,1.8f);
-            }
-            B(fg,"Housekeeping WEST",M.oak,-26.3f,.55f,5.2f,5.0f,1.0f,3.0f,true,1.2f);
-            B(fg,"Linen EAST",M.oak,26.3f,.55f,5.2f,5.0f,1.0f,3.0f,true,1.2f);
-            fg.gameObject.SetActive(false);
+            var instance=PrefabUtility.InstantiatePrefab(templatePrefab,guestInteriors) as GameObject;
+            if(!instance)throw new InvalidOperationException("HOTEL SOBCZAK failed to instantiate guest floor "+(f+2));
+            instance.name="GUEST INTERIOR FLOOR "+(f+2)+" | 14 ROOMS | PREFAB INSTANCE";
+            instance.transform.localPosition=Vector3.up*floorY*K;
+            instance.transform.localRotation=Quaternion.identity;
+            RenumberGuestFloor(instance.transform,f+2);
+            guestFloorRoots.Add(instance);
+            roomsBuilt+=RoomsPerFloor;
+            instance.SetActive(false);
         }
     }
+
+    static void BuildGuestFloorTemplate(Transform fg)
+    {
+        // The exact 2.40m corridor runs unobstructed through the 42m room zone.
+        B(fg,"Central corridor wool runner",M.carpet,0,.022f,0,42.0f,.035f,2.40f,false,.3f);
+        for(int i=0;i<7;i++)
+        {
+            float x=-18f+i*6f;
+            BuildGuestRoom(fg,2,i+1,x,-10.90f,-1);
+            BuildGuestRoom(fg,2,14-i,x,10.90f,1);
+        }
+        // One 0.20m party wall per actual boundary: no duplicated overlapping walls.
+        foreach(float wallX in new[]{-21f,-15f,-9f,-3f,3f,9f,15f,21f})
+        {
+            B(fg,"SOUTH room party wall",M.stucco,wallX,1.65f,-10.90f,.20f,3.30f,19.40f,true,1.8f);
+            B(fg,"NORTH room party wall",M.stucco,wallX,1.65f,10.90f,.20f,3.30f,19.40f,true,1.8f);
+        }
+        B(fg,"Housekeeping WEST",M.oak,-26.3f,.55f,5.2f,5.0f,1.0f,3.0f,true,1.2f);
+        B(fg,"Linen EAST",M.oak,26.3f,.55f,5.2f,5.0f,1.0f,3.0f,true,1.2f);
+    }
+
+    static void RenumberGuestFloor(Transform floor,int floorNumber)
+    {
+        foreach(var room in floor.GetComponentsInChildren<Transform>(true)
+            .Where(x=>x && x.name.StartsWith("ROOM ",StringComparison.Ordinal)).ToArray())
+        {
+            int pipe=room.name.IndexOf(" |",StringComparison.Ordinal);
+            if(pipe<=5)continue;
+            int sourceNumber;
+            if(!int.TryParse(room.name.Substring(5,pipe-5),out sourceNumber))continue;
+            int localNumber=sourceNumber%100,newNumber=floorNumber*100+localNumber;
+            room.name="ROOM "+newNumber+room.name.Substring(pipe);
+            foreach(var text in room.GetComponentsInChildren<TextMesh>(true))
+            {
+                if(text && int.TryParse(text.text,out _))
+                {
+                    text.text=newNumber.ToString();
+                    text.gameObject.name="LABEL | "+newNumber;
+                }
+            }
+        }
+    }
+
     static void BuildGuestRoom(Transform p,int floor,int localNumber,float x,float z,float side)
     {
         string number=(floor*100+localNumber).ToString();
