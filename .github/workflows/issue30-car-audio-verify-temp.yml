@@ -1,3 +1,4 @@
+# retry: one-sample rounding
 name: Issue 30 car audio finalizer - NO UNITY NO APK
 on:
   push:
