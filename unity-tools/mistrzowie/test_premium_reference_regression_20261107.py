@@ -80,14 +80,14 @@ class PremiumReferenceRegressions(unittest.TestCase):
 
     def test_case_is_slender_like_owner_reference_and_not_wide_box(self):
         text = source('BraxChampionsBeltShowcase.cs')
-        self.assertIn('new Vector2(1.60f,3.72f)',text)
-        self.assertIn('new Vector3(0,2.27f,.405f),new Vector3(1.38f,3.38f,.055f)',text)
-        self.assertIn('foreach(float x in new[]{-.80f,.80f})',text)
-        self.assertIn('new Vector3(1.30f,.56f,.050f)',text)
-        self.assertIn('new Vector3(1.22f,.48f,.018f)',text)
-        self.assertIn('new Vector2(1.08f,.48f)',text)
+        self.assertIn('new Vector2(1.48f,3.72f)',text)
+        self.assertIn('new Vector3(0,2.27f,.405f),new Vector3(1.22f,3.38f,.055f)',text)
+        self.assertIn('foreach(float x in new[]{-.74f,.74f})',text)
+        self.assertIn('new Vector3(1.08f,.50f,.045f)',text)
+        self.assertIn('new Vector3(1.00f,.42f,.016f)',text)
+        self.assertIn('new Vector2(.90f,.40f)',text)
         # Glass width/height is deliberately slim, closer to the portrait reference.
-        self.assertLess(1.60/3.72,.44)
+        self.assertLess(1.48/3.72,.44)
         # Belt width is constrained independently so the exhibit does not fill the glass edge-to-edge.
         self.assertIn('1.20f/Mathf.Max(b.size.x,.0001f)',text)
 
