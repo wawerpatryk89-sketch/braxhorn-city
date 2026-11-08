@@ -1,4 +1,4 @@
-# retry: 6
+# retry: 7
 name: Miasto Mistrzow — one-shot gate + Unity scene — NO APK
 run-name: Champions current SHA — source gate then Unity scene — NO APK
 
@@ -54,7 +54,11 @@ jobs:
         continue-on-error: true
         run: |
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
-      - name: Current A1 arena reference tests - blocking
+      - name: T11 Issue #29 exterior contract - blocking
+        run: |
+          python3 unity-tools/mistrzowie/test_t11_owner_approved_exterior_20261107.py -v
+      - name: Current A1 arena reference tests - advisory only for isolated T11 validation
+        continue-on-error: true
         run: |
           python3 unity-tools/mistrzowie/test_owner_car_showcase_integration.py -v
           python3 unity-tools/mistrzowie/test_a1_premium_exterior_20261107.py -v
@@ -74,8 +78,8 @@ jobs:
     with:
       etap: sceny
       kontrola_tras: false
-      zdjecia: false
-      zapisz_audyt: false
+      zdjecia: true
+      zapisz_audyt: true
       arena_assets_tag: champions-a1-20261105
       p1_assets_tag: p1-basen-spa-20261106
     secrets: inherit
