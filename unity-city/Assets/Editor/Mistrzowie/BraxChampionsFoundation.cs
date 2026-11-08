@@ -322,7 +322,11 @@ public static class BraxChampionsFoundation
         // The original provider file must remain genuine 4K. Android's
         // compressed/imported Texture2D dimensions are not source dimensions.
         importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
-        if(sourceWidth!=4096||sourceHeight!=4096)
+        // Poly Haven provider-native 4K maps can preserve a non-square captured
+        // aspect ratio (for example velour_velvet diffuse is 4096x3941).
+        // prepare_assets.py already pins the exact provider bytes/checksums, so
+        // this Unity-side guard verifies the 4K long edge without resampling.
+        if(Mathf.Max(sourceWidth,sourceHeight)!=4096||Mathf.Min(sourceWidth,sourceHeight)<=0)
             throw new InvalidOperationException("Original 4K PBR source changed: "+destination+
                 " source="+sourceWidth+"x"+sourceHeight);
         if(texture.width!=2048||texture.height!=2048)
