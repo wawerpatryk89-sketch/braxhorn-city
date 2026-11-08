@@ -168,7 +168,8 @@ public static class BraxChampionsVIPSeats
         if(leatherSlots==0)
             throw new InvalidOperationException("A1 VIP premium material mapping found no upholstery slots");
         if(metalSlots==0)
-            BraxBuildQuality.Warn("A1_VIP_METAL_SLOT_NOT_IDENTIFIED: source GLB exposes no separate metal/base material slot; visual scene proof required");
+            throw new InvalidOperationException(
+                "A1 VIP 1:1 contract failed: no separate metal/base slot was identified; do not accept an all-leather chair");
         Debug.Log("A1_VIP_MATERIAL_MAPPING leatherSlots="+leatherSlots+
             " metalSlots="+metalSlots+" leather=PolyHaven_leather_white blackMetal=CityStaticPBR");
     }
