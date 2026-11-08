@@ -331,7 +331,11 @@ class HotelSobczakT03Contract(unittest.TestCase):
     def test_scene_audit_parking_regex_and_material_matrix_are_real(self):
         self.assertIn(r'@"^B1 PARK \d{2}( ACCESSIBLE)? back$"', self.scene_audit)
         self.assertIn(r'@"^B2 PARK \d{2}( ACCESSIBLE)? back$"', self.scene_audit)
-        for token in ["normalStrength","tilingMeters","zones","unmappedMaterialCount","materialMappingPass"]:
+        for token in [
+            "normalStrength","tilingMeters","zones","unmappedMaterialCount","materialMappingPass",
+            "normalWidth","normalHeight","armWidth","armHeight",
+            "oversizedRuntimeTextureCount","runtimeTexturePass","CUSTOM_TEXT"
+        ]:
             self.assertIn(token,self.scene_audit)
 
     def test_decorative_roof_has_no_heavy_colliders(self):
