@@ -345,5 +345,72 @@
     ],
     "repeated_rooms": "emissive_only",
     "realtime_lights": "limited_public_and_exterior"
+  },
+  "floor1_layout": {
+    "restaurant": {
+      "center": [
+        -17,
+        -10
+      ],
+      "size": [
+        25,
+        10
+      ],
+      "area_m2": 250,
+      "zone": "LEFT_FRONT"
+    },
+    "kitchen": {
+      "center": [
+        -12.5,
+        10
+      ],
+      "size": [
+        20,
+        9
+      ],
+      "area_m2": 180,
+      "zone": "LEFT_REAR",
+      "x_range": [
+        -22.5,
+        -2.5
+      ],
+      "z_range": [
+        5.5,
+        14.5
+      ]
+    },
+    "spa": {
+      "center": [
+        10.5,
+        10
+      ],
+      "size": [
+        25,
+        14
+      ],
+      "area_m2": 350,
+      "zone": "RIGHT_REAR",
+      "x_range": [
+        -2,
+        23
+      ],
+      "z_range": [
+        3,
+        17
+      ]
+    },
+    "fitness": {
+      "center": [
+        17,
+        -10
+      ],
+      "size": [
+        25,
+        10
+      ],
+      "area_m2": 250,
+      "zone": "RIGHT_FRONT"
+    },
+    "rear_clear_gap_m": 0.5
   }
 }
