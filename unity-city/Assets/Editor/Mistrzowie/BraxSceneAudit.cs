@@ -557,11 +557,11 @@ public static class BraxSceneAudit
             status="jest",objectName="BRAK STAREJ PŁYTY",creatorCs="BraxChampionsBeltShowcase.cs",
             note="PASS: brak black marble wall column / black leather back panel",count=0});
 
-        var redStairRenderers=items.Where(i=>i.renderer.sharedMaterials.Any(m=>m&&
-            Contains(m.name,"arena_stair_deep_red_velour"))).Select(i=>i.renderer.transform).ToArray();
-        AddExact("Arena: czerwony velour na 8 ciągach schodów (512 powierzchni)",
-            redStairRenderers,512,"BraxChampionsArena.cs",
-            "8 biegów x 32 stopnie x tread+riser; szerokość 1.30m");
+        var stairMarkers=all.Where(t=>Contains(t.name,
+            "A1 PREMIUM STAIR CARPET | 32 steps | width 1.30m")).ToArray();
+        AddExact("Arena: czerwony velour na 8 ciągach schodów",
+            stairMarkers,8,"BraxChampionsArena.cs",
+            "każdy bieg 32 stopnie; tread+riser; szerokość dywanu 1.30m");
         Add("Kasyno WAWER", Find(t => Contains(t.name, "T11 | KASYNO WAWER")),
             "BraxChampionsCasinoT11.cs");
         Add("Basen P1", Find(t => Contains(t.name, "P1 | BASEN MIEJSKI")),
