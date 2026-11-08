@@ -1,10 +1,6 @@
 name: Miasto Mistrzów — jednorazowe zlecenie APK 08.11.2026
 on:
-  push:
-    branches:
-      - gpt/miasto-mistrzow-kasyno-t11-20261105
-    paths:
-      - .github/workflows/mistrzowie-owner-authorized-apk-once-20261108.yml
+  workflow_dispatch:
 
 permissions:
   contents: read
