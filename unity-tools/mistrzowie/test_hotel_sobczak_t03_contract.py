@@ -114,6 +114,12 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('EAST ramp B1 -> B2",36.25f,0.0f,-5.40f,6.5f,24.0f,-8.5308f', self.generator)
         self.assertIn("B1 EAST internal turning apron", self.generator)
 
+    def test_moving_elevator_parts_are_never_static_batched(self):
+        self.assertIn("ClearStaticRecursive(cabin)", self.generator)
+        self.assertIn("ClearStaticRecursive(t)", self.generator)
+        self.assertIn("SetStaticEditorFlags(child.gameObject,0)", self.generator)
+        self.assertIn("BraxWinda moves the whole cabin", self.generator)
+
     def test_vertical_cores_are_real(self):
         self.assertEqual(self.spec["cores"]["elevators"], 4)
         self.assertEqual(self.spec["cores"]["stairs"], 2)
