@@ -1012,6 +1012,17 @@ public static class BraxChampionsCasinoT11
         probe.boxProjection=true;
         probe.importance=2;
         probe.cullingMask=~0;
+        probe.nearClipPlane=.10f*K;
+        probe.farClipPlane=120f*K;
+        string probePath=output+"/Textures/T11_Casino_Baked_Reflection.exr";
+        Directory.CreateDirectory(output+"/Textures");
+        if(!Lightmapping.BakeReflectionProbe(probe,probePath))
+            throw new InvalidOperationException("T11 baked reflection probe failed");
+        AssetDatabase.ImportAsset(probePath,ImportAssetOptions.ForceSynchronousImport);
+        var baked=AssetDatabase.LoadAssetAtPath<Texture>(probePath);
+        if(!baked)throw new InvalidOperationException("T11 baked reflection cubemap asset missing: "+probePath);
+        probe.bakedTexture=baked;
+        Debug.Log("T11_REFLECTION_PROBE_PASS mode=BAKED resolution=64 realtimeRefresh=NO cubemap="+probePath);
     }
 
     // A source image's approved 2048x512 dimensions are not necessarily the
