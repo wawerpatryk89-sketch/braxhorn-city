@@ -37,8 +37,9 @@ class OriginalVipModelContract(unittest.TestCase):
         self.assertGreaterEqual(z[1] - z[0], 1.75)
         self.assertGreaterEqual(min(b - a for a,b in zip(x[:4],x[1:4])), 1.45 - .001)
         self.assertGreaterEqual(min(b - a for a,b in zip(x[4:7],x[5:])), 1.45 - .001)
+        self.assertIn("new Vector3(1.18f, 1.28f, 1.18f)",self.vip)
         for xx in x:
-            self.assertTrue(xx + .48 <= -87.55 or xx - .48 >= -84.45)
+            self.assertTrue(xx + .59 <= -87.55 or xx - .59 >= -84.45)
 
     def test_judge_workstations_are_unchanged_and_vip_only_switches_on_import(self):
         self.assertIn("SeatCount += BraxChampionsVIPSeats.Generate(root)", self.arena)
