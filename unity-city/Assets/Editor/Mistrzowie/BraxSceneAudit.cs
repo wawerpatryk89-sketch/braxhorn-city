@@ -69,9 +69,9 @@ public static class BraxSceneAudit
     }
     [Serializable] public sealed class HotelMaterialAudit
     {
-        public string materialName, sourceId, shaderName, albedoName;
+        public string materialName, sourceId, shaderName, albedoName, zones;
         public int albedoWidth, albedoHeight, rendererCount;
-        public float metallic, roughness, sampleScaleU, sampleScaleV;
+        public float metallic, roughness, normalStrength, tilingMeters, sampleScaleU, sampleScaleV;
     }
     [Serializable] public sealed class HotelSobczakAudit
     {
@@ -82,10 +82,10 @@ public static class BraxSceneAudit
         public float siteWidthMeters, siteDepthMeters;
         public int physicalLevelsExpected=34, physicalLevelsMeasured, guestFloors, rooms, elevators, stairs, parkingB1, parkingB2, parkingTotal;
         public int passengerElevators, serviceElevators, frontDormers, rearDormers;
-        public int nullMaterialRenderers, milkGlassCandidates, doorLeafColliderCount;
+        public int nullMaterialRenderers, milkGlassCandidates, doorLeafColliderCount, unmappedMaterialCount;
         public bool centrePass, footprintPass, heightPass, siteReservePass, physicalLevelsPass;
         public bool roomsPass, guestFloorsPass, elevatorsPass, stairsPass, parkingPass, dormersPass;
-        public bool glassPass, doorLeafColliderPass;
+        public bool glassPass, doorLeafColliderPass, materialMappingPass;
         public List<HotelMaterialAudit> materials = new List<HotelMaterialAudit>();
         public List<string> failures = new List<string>();
     }
@@ -743,8 +743,8 @@ public static class BraxSceneAudit
         h.passengerElevators=lifts.Count(x=>Contains(x.name,"PASSENGER"));
         h.serviceElevators=lifts.Count(x=>Contains(x.name,"SERVICE"));
         h.stairs=tr.Count(x=>x.name.StartsWith("STAIR ",StringComparison.Ordinal) && Contains(x.name,"B2 TO TECH"));
-        h.parkingB1=tr.Count(x=>Regex.IsMatch(x.name,@"^B1 PARK d{2}( ACCESSIBLE)? back$"));
-        h.parkingB2=tr.Count(x=>Regex.IsMatch(x.name,@"^B2 PARK d{2}( ACCESSIBLE)? back$"));
+        h.parkingB1=tr.Count(x=>Regex.IsMatch(x.name,@"^B1 PARK \\d{2}( ACCESSIBLE)? back$"));
+        h.parkingB2=tr.Count(x=>Regex.IsMatch(x.name,@"^B2 PARK \\d{2}( ACCESSIBLE)? back$"));
         h.parkingTotal=h.parkingB1+h.parkingB2;
         h.frontDormers=tr.Count(x=>x.name=="Mansard dormer body" && x.localPosition.z<0);
         h.rearDormers=tr.Count(x=>x.name=="Mansard dormer body" && x.localPosition.z>0);
@@ -793,7 +793,7 @@ public static class BraxSceneAudit
             if(Contains(n,"plinth_sandstone"))return "sandstone_blocks_08";
             if(Contains(n,"architectural_stucco"))return "white_stucco_02";
             if(Contains(n,"mansard_slates"))return "roof_slates_03";
-            if(Contains(n,"cream_marble"))return "marble_01";
+            if(Contains(n,"cream_marble")||Contains(n,"wet_marble"))return "marble_01";
             if(Contains(n,"varnished_oak"))return "oak_wood_planks";
             if(Contains(n,"herringbone_parquet"))return "herringbone_parquet";
             if(Contains(n,"spa_terrazzo"))return "terrazzo_tiles";
@@ -813,6 +813,48 @@ public static class BraxSceneAudit
                Contains(n,"entrance_red_carpet")||Contains(n,"fountain_water"))return "CUSTOM_PBR";
             return "UNMAPPED";
         }
+        float TileMeters(string sourceId)
+        {
+            switch(sourceId)
+            {
+                case "beige_wall_001": return 3.0f;
+                case "sandstone_blocks_08": return 3.0f;
+                case "white_stucco_02": return 1.8f;
+                case "roof_slates_03": return 3.0f;
+                case "marble_01": return 1.5f;
+                case "oak_wood_planks": return 1.2f;
+                case "herringbone_parquet": return 3.4f;
+                case "terrazzo_tiles": return 2.0f;
+                case "rubber_tiles": return 2.0f;
+                case "poly_wool_herringbone": return .30f;
+                case "tiled_floor_001": return 1.5f;
+                case "granite_tile_04": return 2.0f;
+                case "anti_slip_concrete": return 2.5f;
+                case "garage_floor": return 3.0f;
+                case "concrete_wall_003": return 3.0f;
+                case "brown_leather": return .30f;
+                case "leather_white": return .30f;
+                case "clean_asphalt": return 2.5f;
+                default:return 0f;
+            }
+        }
+        string HotelZone(Transform t)
+        {
+            for(var p=t;p && p!=root;p=p.parent)
+            {
+                if(p.name.StartsWith("T03 SITE /",StringComparison.Ordinal))return "EXTERIOR_SITE";
+                if(p.name.StartsWith("T03 B2+B1 /",StringComparison.Ordinal))
+                    return Contains(t.name,"B2")?"B2":Contains(t.name,"B1")?"B1":"BASEMENTS";
+                if(p.name.StartsWith("PARTER ",StringComparison.Ordinal))return "PARTER";
+                if(p.name.StartsWith("PIETRO 1 ",StringComparison.Ordinal))return "PIETRO_1";
+                if(p.name.StartsWith("GUEST INTERIOR FLOOR ",StringComparison.Ordinal))return "GUEST_ROOMS";
+                if(p.name.StartsWith("T03 VERTICAL CORES /",StringComparison.Ordinal))return "VERTICAL_CORES";
+                if(p.name.StartsWith("T03 MANSARD /",StringComparison.Ordinal))return "ROOF_TECH";
+                if(p.name.StartsWith("T03 EXTERIOR /",StringComparison.Ordinal))return "FACADE";
+            }
+            return "T03_OTHER";
+        }
+
         foreach(var mat in renderers.SelectMany(r=>r.sharedMaterials??new Material[0]).Where(m=>m)
                                     .GroupBy(m=>m.GetInstanceID()).Select(g=>g.First()).OrderBy(m=>m.name))
         {
@@ -827,15 +869,21 @@ public static class BraxSceneAudit
                 st=new Vector4(scale.x,scale.y,0,0);
             }
             var tex=mat.HasProperty("_MainTex")?mat.GetTexture("_MainTex") as Texture2D:null;
+            string sourceId=SourceId(mat);
             h.materials.Add(new HotelMaterialAudit{
-                materialName=mat.name,sourceId=SourceId(mat),shaderName=mat.shader?mat.shader.name:"MISSING",
+                materialName=mat.name,sourceId=sourceId,shaderName=mat.shader?mat.shader.name:"MISSING",
                 albedoName=tex?tex.name:"NONE",albedoWidth=tex?tex.width:0,albedoHeight=tex?tex.height:0,
                 rendererCount=users.Length,
                 metallic=mat.HasProperty("_Metallic")?mat.GetFloat("_Metallic"):0f,
                 roughness=mat.HasProperty("_Roughness")?mat.GetFloat("_Roughness"):0f,
-                sampleScaleU=st.x,sampleScaleV=st.y
+                normalStrength=mat.HasProperty("_BumpScale")?mat.GetFloat("_BumpScale"):0f,
+                tilingMeters=TileMeters(sourceId),
+                sampleScaleU=st.x,sampleScaleV=st.y,
+                zones=string.Join(",",users.Select(r=>HotelZone(r.transform)).Distinct().OrderBy(z=>z))
             });
         }
+        h.unmappedMaterialCount=h.materials.Count(x=>x.sourceId=="UNMAPPED");
+        h.materialMappingPass=h.unmappedMaterialCount==0;
 
         void Fail(bool pass,string text){ if(!pass)h.failures.Add(text); }
         Fail(h.centrePass,"centre expected 1030/710 measured "+F(h.centreX)+"/"+F(h.centreZ));
@@ -851,6 +899,7 @@ public static class BraxSceneAudit
         Fail(h.dormersPass,"dormers expected front/rear 7/7 found "+h.frontDormers+"/"+h.rearDormers);
         Fail(h.glassPass,"glass/material check failed nullRenderers="+h.nullMaterialRenderers+" milkCandidates="+h.milkGlassCandidates);
         Fail(h.doorLeafColliderPass,"open door/entrance leaf colliders found "+h.doorLeafColliderCount);
+        Fail(h.materialMappingPass,"visible hotel materials without source mapping "+h.unmappedMaterialCount);
         h.status=h.failures.Count==0?"PASS_MEASURED_SCENE_CONTRACT":"FAIL_MEASURED_SCENE_CONTRACT";
     }
 
@@ -918,8 +967,9 @@ public static class BraxSceneAudit
         lines.Add(""); lines.Add("## HOTEL SOBCZAK — materiały zmierzone w scenie");
         foreach(var m in a.hotelSobczak.materials.Take(24))
             lines.Add("- " + Safe(m.sourceId) + " | " + Safe(m.materialName) +
-                " | shader=" + Safe(m.shaderName) +
+                " | zones=" + Safe(m.zones) + " | shader=" + Safe(m.shaderName) +
                 " | albedo=" + Safe(m.albedoName) + " " + m.albedoWidth + "x" + m.albedoHeight +
+                " | tile=" + F(m.tilingMeters) + "m | normal=" + F(m.normalStrength) +
                 " | metallic=" + F(m.metallic) + " roughness=" + F(m.roughness) +
                 " | sample ST=" + F(m.sampleScaleU) + "x" + F(m.sampleScaleV) +
                 " | renderers=" + m.rendererCount);
