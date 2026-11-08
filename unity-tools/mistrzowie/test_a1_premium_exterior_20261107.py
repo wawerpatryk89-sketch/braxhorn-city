@@ -76,7 +76,11 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("warm_roof_crown_LED_preserved", self.arrival)
         self.assertIn("three_warm_upper_glass_bands_preserved", self.arrival)
         self.assertIn("upper_interior_elliptical_halo_preserved", self.arrival)
-        self.assertIn("REFERENCE red neon vertical sign frame", self.arrival)
+        self.assertNotIn("REFERENCE red neon vertical sign frame", self.arrival)
+        self.assertNotIn("REFERENCE red neon sign top accent", self.arrival)
+        self.assertNotIn("REFERENCE red neon sign lower accent", self.arrival)
+        self.assertNotIn('Paint("arena_reference_red_neon"', self.arrival)
+        self.assertIn("front_sign_external_red_geometry=0", self.arrival)
         self.assertIn("PUBLIC ISSUE27 recessed warm LED 3000K", self.arrival)
         self.assertIn("beltTrimR_front=.025 rest=.020 signFrameR=.040", self.arrival)
         self.assertIn("fasciaR=.120 upperGoldR=.055 sideGoldR=.035 lowerGoldR=.025", self.arrival)
@@ -245,14 +249,13 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('goldColumnInserts.Emit(group',self.arrival)
         self.assertIn('ISSUE27_gold_column_capsules_width0p12_projection0p03',self.arrival)
         self.assertIn('ISSUE27_black_columns_38_width2p20_depth0p85_rounded',self.arrival)
-        # At x=22.2m the elliptical FRONT skin is z=-57.40. Golden/red
-        # front frame must be OUTSIDE that (more negative Z) and not hidden
-        # by an old opaque facade or by the original sign image.
-        facade_z=-59*math.sqrt(1-(22.2/96)**2)
-        self.assertLess(-58.18,facade_z)
-        self.assertIn('new Vector3(x,14.55f,-58.18f)',self.arrival)
-        self.assertIn('new Vector3(x,17.10f,-59.02f)',self.arrival)
-        self.assertIn('new Vector3(x,12.05f,-59.02f)',self.arrival)
+        # Owner correction: no separate red neon geometry may sit outside the artwork.
+        # The exterior composition is black belt + physical gold frame only.
+        self.assertNotIn('REFERENCE red neon vertical sign frame',self.arrival)
+        self.assertNotIn('REFERENCE red neon sign top accent',self.arrival)
+        self.assertNotIn('REFERENCE red neon sign lower accent',self.arrival)
+        self.assertIn('ISSUE27_rounded_gold_sign_frames_original_artwork_untouched',self.arrival)
+        self.assertIn('ISSUE27_black_belt_360_y10p85_to18p55',self.arrival)
 
     def test_reference_upper_lounge_is_inside_original_oval_without_double_scale(self):
         self.assertIn('ReferenceUpperFacadeLounge(root, exterior);',self.arrival)
