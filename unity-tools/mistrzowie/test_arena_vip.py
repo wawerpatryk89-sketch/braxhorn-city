@@ -34,17 +34,19 @@ class ChampionVipSeatsTests(unittest.TestCase):
         self.assertEqual(len(self.zs),2)
         self.assertEqual(len(set(self.xs)),8)
         self.assertEqual(len(set(self.zs)),2)
-        # Source loader applies one simple .96m collider per VIP seat.
-        self.assertIn("new Vector3(.96f, 1.08f, .96f)",self.vip)
+        # Approved premium envelope is 1.18 x 1.18 x 1.28m, uniform model scale.
+        self.assertIn("new Vector3(1.18f, 1.28f, 1.18f)",self.vip)
+        self.assertIn('"leather_white"',self.vip)
+        self.assertIn("SolidBlackMetal()",self.vip)
         footprints=[(x,z) for x in self.xs for z in self.zs]
         self.assertEqual(len(footprints),16)
         for (x,z),(xx,zz) in itertools.combinations(footprints,2):
-            self.assertTrue(abs(x-xx)>=.96 or abs(z-zz)>=.96,
+            self.assertTrue(abs(x-xx)>=1.18 or abs(z-zz)>=1.18,
                             "VIP collider footprints overlap")
         for x,z in footprints:
-            self.assertTrue(x+.48 < -87.55 or x-.48 > -84.45,
+            self.assertTrue(x+.59 < -87.55 or x-.59 > -84.45,
                             "Original VIP chair intersects centre carpet")
-            self.assertGreater(z-.48,65.7)
+            self.assertGreater(z-.59,65.7)
         self.assertIn("SeatCount != 16",self.vip)
 
     def test_judges_and_commentators_unchanged(self):
