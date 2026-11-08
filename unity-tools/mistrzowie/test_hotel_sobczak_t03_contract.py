@@ -262,6 +262,8 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("nightFrames[1]=true", self.visual_review)
         self.assertIn("player.transform.position=positions[i]", self.visual_review)
         self.assertIn("labels.Length==21", self.visual_review)
+        self.assertIn("visual.gameObject.SetActive(false)", self.visual_review)
+        self.assertNotIn("visual.SetActive(false)", self.visual_review)
 
     def test_owner_sign_is_hotel_sobczak(self):
         self.assertIn('AddBlockSign("HOTEL SOBCZAK"', self.generator)
