@@ -21,7 +21,7 @@ public static class BraxChampionsHotelSobczakMaterials
     static readonly string[] RequiredSlugs={
         "beige_wall_001","sandstone_blocks_08","white_stucco_02","roof_slates_03","marble_01",
         "oak_wood_planks","herringbone_parquet","terrazzo_tiles","rubber_tiles","poly_wool_herringbone",
-        "tiled_floor_001","granite_tile","granite_tile_04","anti_slip_concrete","garage_floor",
+        "tiled_floor_001","granite_tile_04","anti_slip_concrete","garage_floor",
         "concrete_wall_003","brown_leather","leather_white","clean_asphalt"
     };
 
@@ -55,7 +55,7 @@ public static class BraxChampionsHotelSobczakMaterials
         s.rubber=P("fitness_rubber","rubber_tiles",2.0f,new Color(.30f,.31f,.32f));
         s.carpet=P("corridor_wool","poly_wool_herringbone",.30f,new Color(.44f,.39f,.34f));
         s.tile=P("kitchen_tile","tiled_floor_001",1.5f,new Color(.87f,.81f,.72f));
-        s.granite=P("interior_granite","granite_tile",2.3f,new Color(.86f,.84f,.79f));
+        s.granite=P("interior_granite","granite_tile_04",2.0f,new Color(.86f,.84f,.79f));
         s.graniteOutdoor=P("exterior_granite","granite_tile_04",2.0f,new Color(.78f,.74f,.66f));
         s.antiSlip=P("ramp_antislip","anti_slip_concrete",2.5f,new Color(.66f,.66f,.64f));
         s.garage=P("parking_floor","garage_floor",3.0f,new Color(.82f,.82f,.80f));
@@ -66,7 +66,7 @@ public static class BraxChampionsHotelSobczakMaterials
 
         s.brass=Surface("polished_brass",new Color(.93f,.70f,.30f),.19f,.98f,false,false);
         s.darkBronze=Surface("dark_bronze_frames",new Color(.12f,.095f,.07f),.24f,.90f,false,false);
-        s.steel=Surface("brushed_stainless",new Color(.58f,.60f,.62f),.34f,.92f,false,false);
+        s.steel=Surface("brushed_stainless",new Color(.58f,.60f,.62f),.34f,1.0f,false,false);
         s.glass=Surface("clear_graphite_glass",new Color(.58f,.67f,.72f,.22f),.10f,0f,true,false);
         s.whitePaint=Surface("clean_white_paint",new Color(.96f,.955f,.93f),.72f,0f,false,false);
         s.parkingPaint=Surface("parking_marking",new Color(.97f,.97f,.91f),.72f,0f,false,false);
