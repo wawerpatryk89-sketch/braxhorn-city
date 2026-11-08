@@ -62,6 +62,8 @@ public static class BraxChampionsHotelSobczakT03
         BuildRoof();
         BuildPorticoAndSign();
         BuildFacadePilasters();
+        BuildLighting();
+        BuildExteriorLOD();
 
         if(roomsBuilt!=TotalRooms)throw new InvalidOperationException("HOTEL SOBCZAK room count "+roomsBuilt+" != 420");
         if(parkingBuilt!=80)throw new InvalidOperationException("HOTEL SOBCZAK parking count "+parkingBuilt+" != 80");
@@ -152,6 +154,13 @@ public static class BraxChampionsHotelSobczakT03
         t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");t.fontSize=64;t.characterSize=size*K*10f/64f;
         t.anchor=TextAnchor.MiddleCenter;t.alignment=TextAlignment.Center;t.color=new Color(.93f,.73f,.36f);
         o.GetComponent<MeshRenderer>().sharedMaterial=t.font.material;
+    }
+
+    static void PointLight(Transform p,string name,float x,float y,float z,float kelvin,float range,float intensity)
+    {
+        var o=new GameObject(name);o.transform.SetParent(p,false);o.transform.localPosition=new Vector3(x,y,z)*K;
+        var l=o.AddComponent<Light>();l.type=LightType.Point;l.useColorTemperature=true;l.colorTemperature=kelvin;
+        l.range=range*K;l.intensity=intensity;l.shadows=LightShadows.None;l.renderMode=LightRenderMode.Auto;
     }
 
     // ---------------------------------------------------------------- SITE
@@ -567,6 +576,7 @@ public static class BraxChampionsHotelSobczakT03
         {
             B(g,"Oak nightstand",M.oak,x+dx,.42f,bedZ,.65f,.72f,.55f,true,1.2f);
             B(g,"Brass bedside lamp",M.brass,x+dx,1.08f,bedZ,.10f,.65f,.10f,false);
+            B(g,"Bedside warm emissive",M.warmLight,x+dx,1.42f,bedZ,.16f,.12f,.16f,false);
         }
 
         B(g,"Oak writing desk 1.70m",M.oak,x+1.95f,.60f,innerZ+side*8.0f,1.70f,.12f,.70f,true,1.2f);
@@ -796,6 +806,79 @@ public static class BraxChampionsHotelSobczakT03
                 B(root,"HOTEL SOBCZAK 3D letter "+c,M.brass,cursor+col*(px+gap),cy+(3-r)*(px+gap),z,px,px,.12f,false);
             cursor+=charW+.18f;
         }
+    }
+
+    static void BuildLighting()
+    {
+        // Limited true realtime lights. Repeated rooms use emissive fixtures only.
+        foreach(float x in new[]{-12f,-4f,4f,12f}) PointLight(root,"Exterior warm facade light",x,4.2f,-24.0f,2850f,10f,2.2f);
+        foreach(float x in new[]{-8f,0f,8f}) PointLight(publicFloors,"Lobby warm light",x,4.6f,-1.5f,3000f,11f,1.8f);
+        PointLight(publicFloors,"Reception warm light",0,4.8f,-12.3f,3000f,9f,1.5f);
+        PointLight(publicFloors,"Restaurant warm light",-17f,8.7f,-10f,3000f,10f,1.5f);
+        PointLight(publicFloors,"Kitchen neutral light",-10.5f,8.7f,10f,3800f,10f,1.4f);
+        PointLight(publicFloors,"SPA warm light",10.5f,8.7f,9.25f,2700f,10f,1.4f);
+        PointLight(publicFloors,"Fitness neutral light",17f,8.7f,-10f,3500f,10f,1.4f);
+        // Sign gets indirect warm accents instead of yellow emissive letters.
+        PointLight(root,"Sign indirect light L",-4.5f,9.2f,-23.0f,2850f,7f,1.1f);
+        PointLight(root,"Sign indirect light R",4.5f,9.2f,-23.0f,2850f,7f,1.1f);
+    }
+
+    static bool IsExteriorLod0Renderer(Renderer r)
+    {
+        if(!r)return false;
+        if(r.transform.IsChildOf(guestExterior)||r.transform.IsChildOf(roof))return true;
+        if(r.transform.IsChildOf(publicFloors))
+            return r.gameObject.name.Contains("facade")||r.gameObject.name.StartsWith("Main entrance facade");
+        return r.transform.parent==root;
+    }
+
+    static void BuildExteriorLOD()
+    {
+        // Capture full exterior before creating proxy renderers.
+        var lod0=root.GetComponentsInChildren<Renderer>(true).Where(IsExteriorLod0Renderer).ToArray();
+        var control=Group(root,"T03 EXTERIOR LOD CONTROL");
+        var l1=Group(control,"LOD1 | simplified classical hotel");
+        var l2=Group(control,"LOD2 | silhouette + roof + main divisions");
+
+        // LOD1 — preserve body, mansard, cornices, portico and visible window rhythm.
+        B(l1,"LOD1 body",M.facade,0,58.8f,0,64f,117.6f,42f,false,3f);
+        B(l1,"LOD1 front cornice",M.stucco,0,117.4f,-21.18f,64.8f,.50f,.45f,false,1.8f);
+        B(l1,"LOD1 rear cornice",M.stucco,0,117.4f,21.18f,64.8f,.50f,.45f,false,1.8f);
+        for(int i=0;i<7;i++)foreach(float side in new[]{-1f,1f})
+        {
+            float x=-18f+i*6f;
+            B(l1,"LOD1 window column",M.glass,x,63.6f,side*21.03f,3.7f,103.0f,.05f,false);
+        }
+        B(l1,"LOD1 canopy",M.darkBronze,0,5.15f,-24f,18f,.40f,5.8f,false);
+        foreach(float x in new[]{-6f,-2f,2f,6f})Cyl(l1,"LOD1 portico column",M.stucco,x,2.65f,-25.8f,.90f,5.3f,false);
+        BuildLodRoof(l1,"LOD1");
+
+        // LOD2 — never disappear in normal city exploration; keep silhouette and roof.
+        B(l2,"LOD2 body",M.facade,0,58.8f,0,64f,117.6f,42f,false,6f);
+        B(l2,"LOD2 front central division",M.stucco,0,61f,-21.05f,18f,112f,.12f,false,3f);
+        B(l2,"LOD2 front dark opening band",M.darkBronze,0,62f,-21.12f,42f,101f,.06f,false);
+        BuildLodRoof(l2,"LOD2");
+
+        var group=control.gameObject.AddComponent<LODGroup>();
+        group.fadeMode=LODFadeMode.CrossFade;group.animateCrossFading=true;
+        group.SetLODs(new[]{
+            new LOD(.12f,lod0),
+            new LOD(.04f,l1.GetComponentsInChildren<Renderer>(true)),
+            new LOD(.006f,l2.GetComponentsInChildren<Renderer>(true))
+        });
+        group.RecalculateBounds();
+    }
+
+    static void BuildLodRoof(Transform p,string prefix)
+    {
+        float lowerRise=7.60f,lowerAngle=67f,lowerLen=lowerRise/Mathf.Sin(lowerAngle*Mathf.Deg2Rad);
+        float lowerRun=lowerLen*Mathf.Cos(lowerAngle*Mathf.Deg2Rad),lowerCenterZ=21.0f-lowerRun*.5f;
+        B(p,prefix+" mansard front",M.roof,0,121.40f,-lowerCenterZ,64f,.12f,lowerLen,false,3f).transform.localRotation=Quaternion.Euler(-lowerAngle,0,0);
+        B(p,prefix+" mansard rear",M.roof,0,121.40f,lowerCenterZ,64f,.12f,lowerLen,false,3f).transform.localRotation=Quaternion.Euler(lowerAngle,0,0);
+        float upperStart=21.0f-lowerRun,upperRise=4.70f,upperAngle=Mathf.Atan2(upperRise,upperStart)*Mathf.Rad2Deg;
+        float upperLen=Mathf.Sqrt(upperStart*upperStart+upperRise*upperRise);
+        B(p,prefix+" upper roof front",M.roof,0,127.55f,-upperStart*.5f,56f,.10f,upperLen,false,3f).transform.localRotation=Quaternion.Euler(-upperAngle,0,0);
+        B(p,prefix+" upper roof rear",M.roof,0,127.55f,upperStart*.5f,56f,.10f,upperLen,false,3f).transform.localRotation=Quaternion.Euler(upperAngle,0,0);
     }
 
     static void BuildFacadePilasters()
