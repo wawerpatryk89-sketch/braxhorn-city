@@ -74,6 +74,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          current="$(git ls-remote origin "refs/heads/$GITHUB_REF_NAME" | awk '{print $1}')"
+          test -n "$current" && test "$current" = "$GITHUB_SHA" || {
+            echo "::error::Gałąź zmieniła się po gate: event=$GITHUB_SHA current=$current — APK NIE URUCHOMIONY"
+            exit 1
+          }
           active="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow mistrzowie-apk.yml --branch "$GITHUB_REF_NAME" --limit 30 --json status | jq '[.[] | select(.status != "completed")] | length')"
           test "$active" -eq 0 || { echo "::error::Inny build APK Miasta Mistrzów już działa; nie uruchamiam duplikatu"; exit 1; }
           gh workflow run mistrzowie-apk.yml             --repo "$GITHUB_REPOSITORY"             --ref "$GITHUB_REF_NAME"             -f commit="$GITHUB_SHA"             -f etap=apk             -f kontrola_tras=false             -f zdjecia=false             -f recovery_run=             -f base_id=             -f arena_assets_tag=champions-a1-20261105             -f p1_assets_tag=p1-basen-spa-20261106             -f zapisz_audyt=false
