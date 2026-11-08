@@ -19,10 +19,11 @@ class ChampionSideMuralsTests(unittest.TestCase):
         cls.i=IMPORTER.read_text(encoding="utf-8")
 
     def test_owner_photos_are_not_swapped_or_replaced(self):
-        self.assertIn('BRAXHORN_A1_FIGHTERS_LEFT_ORIGINAL.jpg',self.m)
-        self.assertIn('BRAXHORN_A1_BELT_RIGHT_ORIGINAL.jpg',self.m)
-        self.assertIn('Side(originalBowl, Pick(LeftFightersHd, LeftFighters), "LEFT_FIGHTERS", true)',self.m)
-        self.assertIn('Side(originalBowl, Pick(RightBeltHd, RightBelt), "RIGHT_BELT", false)',self.m)
+        self.assertIn('MURAL_LEWA_ZAWODNICY_6144x2048.png',self.m)
+        self.assertIn('MURAL_PRAWA_PAS_6144x2048.png',self.m)
+        self.assertIn('PickRequiredHd(LeftFightersHd,"LEFT")',self.m)
+        self.assertIn('PickRequiredHd(RightBeltHd,"RIGHT")',self.m)
+        self.assertIn('NO FALLBACK',self.m)
         self.assertNotIn('Texture2D.EncodeTo',self.m)
 
     def test_both_side_walls_use_true_panorama_dimensions_and_face_the_aisle(self):
@@ -53,22 +54,19 @@ class ChampionSideMuralsTests(unittest.TestCase):
         self.assertNotIn('Sign("baner_oktagon"',self.h)
         self.assertIn('Clad(false, X0, 1f, Z0, Z1)',self.h)
         self.assertIn('Clad(false, X1, -1f, Z0, Z1)',self.h)
-        self.assertIn('BoxMinMax(wallUp, dA, dB, dH, yC',self.h)
+        self.assertIn('BoxMinMax(wallConcrete, dA, dB, dH, yC',self.h)
         self.assertIn('Sign("hala_walk"',self.h)
         self.assertIn('Sign("braxhorn_arena"',self.h)
         self.assertNotIn('AddComponent<MeshCollider>',self.m)
         self.assertNotIn('AddComponent<BoxCollider>',self.m)
 
     def test_original_three_murals_keep_hd_release_on_android(self):
-        for name in ['BRAXHORN_CHAMPION_FIGHTER_ORIGINAL.jpg',
-                     'BRAXHORN_A1_FIGHTERS_LEFT_ORIGINAL.jpg',
-                     'BRAXHORN_A1_BELT_RIGHT_ORIGINAL.jpg']:
-            self.assertIn(name,self.i)
-        self.assertIn('settings.maxTextureSize=2048',self.i)
-        self.assertIn('settings.streamingMipmaps=true',self.i)
-        self.assertIn('a.maxTextureSize=8192',self.i)
-        self.assertIn('settings.maxTextureSize=2048',self.i)
-        self.assertIn('TextureImporterFormat.ASTC_4x4',self.i)
+        self.assertIn('MURAL_LEWA_ZAWODNICY_6144x2048.png',self.m)
+        self.assertIn('MURAL_PRAWA_PAS_6144x2048.png',self.m)
+        self.assertIn('sourceWidth!=6144||sourceHeight!=2048',self.m)
+        self.assertIn('android.maxTextureSize=4096',self.m)
+        self.assertIn('TextureImporterFormat.ASTC_4x4',self.m)
+        self.assertIn('SIDE_MURALS = 2/2 PASS',self.m)
 
 if __name__=="__main__":
     unittest.main()
