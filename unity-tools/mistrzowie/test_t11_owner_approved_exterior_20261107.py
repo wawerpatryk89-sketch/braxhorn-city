@@ -23,7 +23,7 @@ SIGN_SHA="78edc9f51c772d20cb84c43f0850716a63c5a772fa0b326a7aea15ccfe39bf1b"
 
 def method_source(name):
     start=CASINO.index(f"    static void {name}(")
-    match=re.search(r"\n    static (?:void|GameObject|Material|Texture2D|Bounds|Transform) ",CASINO[start+1:])
+    match=re.search(r"\n    static (?:void|string|GameObject|Material|Texture2D|Bounds|Transform) ",CASINO[start+1:])
     end=len(CASINO) if not match else start+1+match.start()
     return CASINO[start:end]
 
@@ -103,7 +103,7 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertIn("1.16f,13.8f,1.00f,.10f",facade)
         self.assertIn("for(int bay=0;bay<7;bay++)",facade)
         self.assertIn("1.10f,13.80f,1.02f,.09f",facade)
-        self.assertIn("side*18.25f,7.05f,-28f,2.75f,14.10f,2.35f,.14f",facade)
+        self.assertIn("side*18.25f,7.10f,-28f,2.75f,14.10f,2.35f,.14f",facade)
         self.assertIn("new[]{-36f,-25f,-14f,-3f,8f,19f,30f,36f}",facade)
         self.assertIn(".74f,12.7f,.25f,.05f",facade)
         self.assertIn("_Metallic\",.98f",CASINO)
@@ -194,8 +194,12 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertIn("probe.resolution=64",lighting)
         self.assertIn("Lightmapping.BakeReflectionProbe(probe,probePath)",lighting)
         self.assertIn("T11_Casino_Baked_Reflection.exr",lighting)
+        self.assertIn("AddComponent<ReflectionProbe>",lighting)
+        self.assertNotIn("AddComponent<Light>",lighting)
+        self.assertNotIn("LightType.Point",lighting)
         self.assertNotIn("ReflectionProbeMode.Realtime",lighting)
         self.assertNotIn("ReflectionProbeRefreshMode.EveryFrame",lighting)
+        self.assertIn("runtimeRefresh=NO",lighting)
 
     def test_access_and_garage_contract_unchanged(self):
         self.assertIn('Door("T11_CASINO_WAWER_PUBLIC","Public glass main entry",0,-36.28f,180f,5.6f)',CASINO)
