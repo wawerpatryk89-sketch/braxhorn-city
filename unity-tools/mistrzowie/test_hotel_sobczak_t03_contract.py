@@ -151,6 +151,33 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("SetActive(on)", self.streamer)
         self.assertIn("BraxHotelSobczakFloorStreamer", self.generator)
         self.assertIn("fg.gameObject.SetActive(false)", self.generator)
+        self.assertIn("basementInteriors", self.streamer)
+        self.assertIn("ApplyBasements(false)", self.streamer)
+        self.assertIn("g.gameObject.SetActive(false)", self.generator)
+
+
+    def test_structural_slabs_leave_real_core_openings(self):
+        self.assertIn("SlabWithCoreOpenings", self.generator)
+        self.assertNotIn('B(g,"Ground structural slab",M.marble,0,.15f,0,63.2f,.30f,41.2f', self.generator)
+        self.assertIn('SlabWithCoreOpenings(g,"Ground structural slab"', self.generator)
+        self.assertIn('SlabWithCoreOpenings(g,"Level1 structural slab"', self.generator)
+        self.assertIn('SlabWithCoreOpenings(guestExterior,"Guest slab "', self.generator)
+        self.assertIn('SlabWithCoreOpenings(g,id+" ceiling"', self.generator)
+
+    def test_guest_party_walls_are_not_duplicated(self):
+        self.assertNotIn("Room west party wall", self.generator)
+        self.assertNotIn("Room east party wall", self.generator)
+        self.assertIn('foreach(float wallX in new[]{-21f,-15f,-9f,-3f,3f,9f,15f,21f})', self.generator)
+
+    def test_service_and_room_doors_have_real_clear_openings(self):
+        self.assertIn("doorH=2.20f", self.generator)
+        self.assertIn("Room oak door leaf OPEN", self.generator)
+        self.assertIn("Bathroom oak door leaf OPEN", self.generator)
+
+    def test_decorative_roof_has_no_heavy_colliders(self):
+        self.assertIn('Mansard dormer body",M.stucco,x,123.35f,z,3.0f,2.8f,1.35f,false', self.generator)
+        self.assertIn('Upper roof front",M.roof', self.generator)
+        self.assertNotIn('Upper roof front",M.roof,0,127.55f,-upperStartZ*.5f,56f,.16f,upperLen,true', self.generator)
 
     def test_owner_sign_is_hotel_sobczak(self):
         self.assertIn('AddBlockSign("HOTEL SOBCZAK"', self.generator)
