@@ -916,13 +916,15 @@ public static class BraxSceneAudit
                 F(x.textureRuntimeBytes / 1048576f) + " MiB (" + x.textureCount +
                 "), siatki " + F(x.meshRuntimeBytes / 1048576f) + " MiB (" + x.meshCount + ")");
         lines.Add(""); lines.Add("## HOTEL SOBCZAK — materiały zmierzone w scenie");
-        foreach(var m in a.hotelSobczak.materials)
+        foreach(var m in a.hotelSobczak.materials.Take(24))
             lines.Add("- " + Safe(m.sourceId) + " | " + Safe(m.materialName) +
                 " | shader=" + Safe(m.shaderName) +
                 " | albedo=" + Safe(m.albedoName) + " " + m.albedoWidth + "x" + m.albedoHeight +
                 " | metallic=" + F(m.metallic) + " roughness=" + F(m.roughness) +
                 " | sample ST=" + F(m.sampleScaleU) + "x" + F(m.sampleScaleV) +
                 " | renderers=" + m.rendererCount);
+        if(a.hotelSobczak.materials.Count>24)
+            lines.Add("- pełna macierz " + a.hotelSobczak.materials.Count + " materiałów jest w JSON; Markdown ograniczony dla raportu <=150 linii.");
         if (a.warnings.Count > 0)
         {
             lines.Add(""); lines.Add("## Ograniczenia i ostrzeżenia");
