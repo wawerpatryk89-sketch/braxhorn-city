@@ -78,8 +78,9 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertEqual(p["max_slope"], 0.15)
         self.assertIn("ParkingPerBasement=40", self.generator)
         self.assertIn("if(parkingBuilt!=80)", self.generator)
-        self.assertIn("6.5f,24.27f,-8.5308f", self.generator)
-        self.assertIn("6.5f,24.27f,8.5308f", self.generator)
+        self.assertIn('G -> B1",25f,-43f,-1.80f,6.5f,24.27f,8.5308f', self.generator)
+        self.assertIn('B1 -> B2",16.5f,-43f,-5.40f,6.5f,24.27f,-8.5308f', self.generator)
+        self.assertIn("B1 switchback turning apron", self.generator)
 
     def test_vertical_cores_are_real(self):
         self.assertEqual(self.spec["cores"]["elevators"], 4)
@@ -89,6 +90,8 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("controller.przystanekL=landL", self.generator)
         self.assertIn("foreach(float x in new[]{-28f,28f})", self.generator)
         self.assertIn("if(elevatorsBuilt!=4||stairsBuilt!=2)", self.generator)
+        self.assertIn("calls[n]=usable[n]?", self.generator)
+        self.assertIn("Bathroom 0.80m door header", self.generator)
 
     def test_main_entrance_is_physically_open(self):
         self.assertIn("Real 3.60m-wide main entrance opening", self.generator)
