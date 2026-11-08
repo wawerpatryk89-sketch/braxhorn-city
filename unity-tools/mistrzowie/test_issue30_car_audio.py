@@ -2,15 +2,22 @@
 from pathlib import Path
 import hashlib
 import json
+import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 
-def text(path):
-    return (ROOT/path).read_text("utf-8")
-
 def data(path):
-    return (ROOT/path).read_bytes()
+    local = ROOT/path
+    if local.is_file():
+        return local.read_bytes()
+    # Some source-only GitHub workflows intentionally use sparse-checkout and omit
+    # binary source folders. Verify the exact committed HEAD object instead of
+    # reporting a false missing-file failure.
+    return subprocess.check_output(["git","show","HEAD:"+path], cwd=ROOT)
+
+def text(path):
+    return data(path).decode("utf-8")
 
 class Issue30CarAudio(unittest.TestCase):
     def test_final_audio_binaries_are_real_small_ogg_with_attribution(self):
