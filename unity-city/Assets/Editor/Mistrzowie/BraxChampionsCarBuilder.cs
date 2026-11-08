@@ -11,6 +11,8 @@ using UnityEngine;
 public static class BraxChampionsCarBuilder
 {
     public const string OwnerCar = "Assets/Source/Mistrzowie/Vehicles/car_rev.glb";
+    public const string EngineIdleAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_idle.mp3";
+    public const string EngineRevAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_rev.mp3";
     const float LengthMetres = 4.95f; // Source estate's DlugoscRealna["car_rev"]
     static float K => BraxClaudeOsiedle.K;
 
@@ -248,6 +250,23 @@ public static class BraxChampionsCarBuilder
         car.doorHinge = doorPivot;
         car.wheelbase = 2.7f; car.maxSpeed = 120f / 3.6f; car.reverseMaxSpeed = 30f / 3.6f;
         car.interactionRadius = 3.8f;
+
+        // Real recorded audio only. Missing binaries are advisory until the owner-approved
+        // source files are physically committed; never synthesize a fake engine.
+        var audioAnchor = new GameObject("BRAXHORN engine audio 3D anchor").transform;
+        audioAnchor.SetParent(root.transform, false);
+        audioAnchor.localPosition = new Vector3(0f,
+            bounds.min.y + bounds.size.y * .46f,
+            bounds.max.z - bounds.size.z * .18f);
+        car.engineAudioAnchor = audioAnchor;
+        car.engineIdleClip = AssetDatabase.LoadAssetAtPath<AudioClip>(EngineIdleAudio);
+        car.engineRevClip = AssetDatabase.LoadAssetAtPath<AudioClip>(EngineRevAudio);
+        if (!car.engineIdleClip || !car.engineRevClip)
+            BraxBuildQuality.Warn("A1_CAR_AUDIO_PENDING: Issue #30 audio binaries missing. Expected "
+                + EngineIdleAudio + " and " + EngineRevAudio);
+        else
+            Debug.Log("A1_CAR_AUDIO_ASSIGNED idle=" + car.engineIdleClip.name
+                + " rev=" + car.engineRevClip.name + " realRecordings=true");
         // If wheels are individual GLB nodes, the runtime animates their
         // existing transforms; no substitute wheel meshes are created.
         var wheelRoots = copy.GetComponentsInChildren<Transform>(true)
@@ -265,5 +284,29 @@ public static class BraxChampionsCarBuilder
             " start=(645.175,712) side=RIGHT centredInRegularBay=true driverDoorFacesWalkway=true originalDoor=" + (doorPivot != null) +
             " ownerAnimations=EnteringCar,Driving,ExitingCar" +
             " physicalScale=REAL_METRES noExtraK=true no_fake_collision=true manual_phone_review_required=true");
+    }
+}
+
+// Android/mobile import contract for the two owner-approved car recordings only.
+// Source MP3/OGG bytes remain untouched in the source library; Unity encodes its build representation.
+public sealed class BraxChampionsCarAudioImporter : AssetPostprocessor
+{
+    void OnPreprocessAudio()
+    {
+        if (assetPath != BraxChampionsCarBuilder.EngineIdleAudio &&
+            assetPath != BraxChampionsCarBuilder.EngineRevAudio) return;
+        var importer = assetImporter as AudioImporter;
+        if (importer == null) return;
+        importer.forceToMono = true;
+        importer.loadInBackground = false;
+        importer.preloadAudioData = true;
+
+        var settings = importer.defaultSampleSettings;
+        settings.loadType = AudioClipLoadType.CompressedInMemory;
+        settings.compressionFormat = AudioCompressionFormat.Vorbis;
+        settings.quality = .68f;
+        settings.sampleRateSetting = AudioSampleRateSetting.OptimizeSampleRate;
+        importer.defaultSampleSettings = settings;
+        importer.SetOverrideSampleSettings("Android", settings);
     }
 }

@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "status": "SOURCE_PAGES_VERIFIED__BINARIES_NOT_COMMITTED",
+  "issue": 30,
+  "checked_at": "2026-11-08",
+  "license": {
+    "name": "Pixabay Content License",
+    "summary_url": "https://pixabay.com/service/license-summary/",
+    "note": "Official summary permits free use and modification subject to prohibited uses; standalone redistribution is prohibited. Full license remains controlling."
+  },
+  "files": [
+    {
+      "role": "idle",
+      "title": "muscle car engine idling",
+      "author": "flutie8211",
+      "page_url": "https://pixabay.com/sound-effects/film-special-effects-muscle-car-engine-idling-437781/",
+      "media_type": "MP3",
+      "page_duration_seconds": 7,
+      "published_date": "2025-11-17",
+      "source_path": "asset-library/sources/audio/brax-car/muscle-car-engine-idling-437781.mp3",
+      "unity_path": "unity-city/Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_idle.mp3",
+      "sha256": null,
+      "bytes": null,
+      "binary_present": false
+    },
+    {
+      "role": "rev",
+      "title": "Car Engine Roaring",
+      "author": "DRAGON-STUDIO",
+      "page_url": "https://pixabay.com/sound-effects/film-special-effects-car-engine-roaring-376881/",
+      "media_type": "MP3",
+      "page_duration_seconds": 4,
+      "published_date": "2025-07-21",
+      "source_path": "asset-library/sources/audio/brax-car/car-engine-roaring-376881.mp3",
+      "unity_path": "unity-city/Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_rev.mp3",
+      "sha256": null,
+      "bytes": null,
+      "binary_present": false
+    }
+  ],
+  "audit": {
+    "existing_repo_engine_audio_found": false,
+    "existing_audio_files_seen": [
+      "asset-library/sources/audio/Industrial-Pulse.original.mp3",
+      "unity-city/Assets/Claude/Audio/industrial_pulse_petla.ogg",
+      "unity-city/Assets/Claude/Audio/silownia_muzyka.ogg"
+    ],
+    "decision": "Do not reuse music as engine audio."
+  }
+}

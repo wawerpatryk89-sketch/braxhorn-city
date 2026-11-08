@@ -18,6 +18,11 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     public Transform[] rollingWheels = new Transform[0];
     public Transform[] steeringWheels = new Transform[0];
 
+    // Issue #30 engine audio: real recorded clips only. No procedural fake engine.
+    public Transform engineAudioAnchor;
+    public AudioClip engineIdleClip, engineRevClip;
+    public float engineMinDistance = 2.2f, engineMaxDistance = 36f;
+
     public BraxGymPlayer Driver => driver;
     public float Speed => speed;
     public float SpeedKph => Mathf.Abs(speed) * 3.6f;
@@ -30,8 +35,12 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     Vector2 control;
     float speed, doorAngle, wheelAngle;
     float groundPivotOffset, nextBlockDiagnostic;
+    float engineLoad, idleGain, lastThrottle;
+    float nextRevAllowed;
+    bool revArmed = true;
     bool transition;
     Quaternion doorRest;
+    AudioSource engineIdleSource, engineRevSource;
 
     void Awake()
     {
@@ -45,13 +54,20 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         // Preserve the authored wheel/body clearance: the vehicle root is not necessarily at tyre level.
         groundPivotOffset = transform.position.y - bodyCollider.bounds.min.y;
         if (doorHinge) doorRest = doorHinge.localRotation;
+        SetupEngineAudio();
     }
 
-    void OnEnable() => BraxInterakcje.Dodaj(this);
+    void OnEnable()
+    {
+        BraxInterakcje.Dodaj(this);
+        StartIdleIfReady();
+    }
     void OnDisable()
     {
         BraxInterakcje.Usun(this);
         EmergencyExit();
+        if (engineIdleSource) engineIdleSource.Stop();
+        if (engineRevSource) engineRevSource.Stop();
     }
 
     public string Kontekst(Vector3 position)
@@ -97,6 +113,103 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     {
         control = Vector2.ClampMagnitude(input, 1f);
     }
+
+    AudioSource CreateEngineSource(string name, AudioClip clip, bool loop)
+    {
+        var host = engineAudioAnchor ? engineAudioAnchor.gameObject : gameObject;
+        var source = host.AddComponent<AudioSource>();
+        source.name = name;
+        source.clip = clip;
+        source.playOnAwake = false;
+        source.loop = loop;
+        source.spatialBlend = 1f;
+        source.rolloffMode = AudioRolloffMode.Linear;
+        source.minDistance = engineMinDistance;
+        source.maxDistance = engineMaxDistance;
+        source.dopplerLevel = .18f;
+        source.spread = 35f;
+        source.priority = 96;
+        source.volume = 0f;
+        return source;
+    }
+
+    void SetupEngineAudio()
+    {
+        if (!engineIdleClip || !engineRevClip)
+        {
+            Debug.LogWarning("A1_CAR_AUDIO_PENDING: Issue #30 requires real idle+rev recordings; binary clips are not assigned");
+            return;
+        }
+        if (!engineAudioAnchor) engineAudioAnchor = transform;
+        if (!engineIdleSource) engineIdleSource = CreateEngineSource("BRAXHORN engine | idle 3D", engineIdleClip, true);
+        if (!engineRevSource) engineRevSource = CreateEngineSource("BRAXHORN engine | rev transient 3D", engineRevClip, false);
+        StartIdleIfReady();
+        Debug.Log("A1_CAR_AUDIO_READY idle=" + engineIdleClip.name + " rev=" + engineRevClip.name
+            + " spatial=3D min=" + engineMinDistance.ToString("F1")
+            + " max=" + engineMaxDistance.ToString("F1"));
+    }
+
+    void StartIdleIfReady()
+    {
+        if (!engineIdleSource || !engineIdleClip || engineIdleSource.isPlaying) return;
+        engineIdleSource.pitch = .92f;
+        engineIdleSource.volume = 0f;
+        idleGain = 0f;
+        engineIdleSource.Play();
+    }
+
+    void TriggerRev()
+    {
+        if (!engineRevSource || !engineRevClip || Time.unscaledTime < nextRevAllowed) return;
+        nextRevAllowed = Time.unscaledTime + Mathf.Max(.55f, Mathf.Min(engineRevClip.length * .55f, 1.35f));
+        engineRevSource.Stop();
+        engineRevSource.pitch = Mathf.Lerp(.98f, 1.06f,
+            Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.01f, maxSpeed)));
+        engineRevSource.volume = 0f;
+        engineRevSource.Play();
+        Debug.Log("A1_CAR_ENGINE_REV speedKph=" + SpeedKph.ToString("F1")
+            + " throttle=" + Mathf.Abs(control.y).ToString("F2"));
+    }
+
+    void UpdateEngineAudio()
+    {
+        if (!engineIdleSource || !engineIdleClip) return;
+        if (!engineIdleSource.isPlaying) StartIdleIfReady();
+
+        float dt = Mathf.Max(.001f, Time.unscaledDeltaTime);
+        float throttle = Mathf.Clamp01(Mathf.Abs(control.y));
+        float speed01 = Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.01f, maxSpeed));
+        float targetLoad = Mathf.Clamp01(throttle * .72f + speed01 * .48f);
+        engineLoad = Mathf.MoveTowards(engineLoad, targetLoad,
+            dt * (targetLoad > engineLoad ? 2.8f : 1.8f));
+
+        float targetIdleGain = driver ? Mathf.Lerp(.27f, .48f, engineLoad) : .20f;
+        idleGain = Mathf.MoveTowards(idleGain, targetIdleGain, dt / .20f);
+        engineIdleSource.volume = idleGain;
+        engineIdleSource.pitch = Mathf.MoveTowards(engineIdleSource.pitch,
+            Mathf.Lerp(.92f, 1.24f, engineLoad), dt * 1.6f);
+
+        if (throttle < .18f) revArmed = true;
+        if (driver && !transition && revArmed && throttle > .58f)
+        {
+            revArmed = false;
+            TriggerRev();
+        }
+        lastThrottle = throttle;
+
+        if (engineRevSource && engineRevSource.isPlaying && engineRevClip)
+        {
+            float time = engineRevSource.time;
+            float remaining = Mathf.Max(0f, engineRevClip.length - time);
+            float fadeIn = Mathf.Clamp01(time / .18f);
+            float fadeOut = Mathf.Clamp01(remaining / .28f);
+            float transient = Mathf.Min(fadeIn, fadeOut);
+            engineRevSource.volume = .56f * transient * Mathf.Lerp(.82f, 1f, throttle);
+            engineRevSource.pitch = Mathf.Lerp(.98f, 1.07f, Mathf.Max(engineLoad, speed01));
+        }
+    }
+
+    void Update() => UpdateEngineAudio();
 
     static float TransitionSeconds(AnimationClip clip)
         => clip ? Mathf.Clamp(clip.length, .45f, 3.4f) : 1f;
@@ -261,6 +374,8 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
             if (p.clips && p.clips.GetClip("Idle")) p.clips.Play("Idle");
         }
         driver = null; speed = 0f; control = Vector2.zero; transition = false;
+        revArmed = true; lastThrottle = 0f;
+        if (engineRevSource) engineRevSource.Stop();
         if (doorHinge) { doorHinge.localRotation = doorRest; doorAngle = 0; }
     }
 
