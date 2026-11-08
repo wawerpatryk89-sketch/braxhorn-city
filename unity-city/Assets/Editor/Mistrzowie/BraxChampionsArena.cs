@@ -522,6 +522,9 @@ public static class BraxChampionsArena
                     float x=centre+side*(carpetHalf+goldWidth*.5f);
                     W.MM(gold,x-goldWidth*.5f,x+goldWidth*.5f,
                         top+.003f,top+.003f+overlay,lo+.008f,hi-.008f,false);
+                    // Continuous 20mm gold edge down the vertical riser too.
+                    W.MM(gold,x-goldWidth*.5f,x+goldWidth*.5f,
+                        previous,top,raw0-.004f,raw0+.004f,false);
                 }
             }
             else
@@ -537,10 +540,12 @@ public static class BraxChampionsArena
                     float z=centre+side*(carpetHalf+goldWidth*.5f);
                     W.MM(gold,lo+.008f,hi-.008f,top+.003f,top+.003f+overlay,
                         z-goldWidth*.5f,z+goldWidth*.5f,false);
+                    W.MM(gold,raw0-.004f,raw0+.004f,previous,top,
+                        z-goldWidth*.5f,z+goldWidth*.5f,false);
                 }
             }
         }
         Debug.Log("A1_PREMIUM_TIER_STAIRS width=1.70 carpet=1.30 steps=32 tread=.525 riser=.20"+
-            " red_velour=true gold_edges_20mm=true carpet_surface_per_run=30.16m2");
+            " red_velour=true gold_edges_20mm_continuous_tread_and_riser=true carpet_surface_per_run=30.16m2");
     }
 }
