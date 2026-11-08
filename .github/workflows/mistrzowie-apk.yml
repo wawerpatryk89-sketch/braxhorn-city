@@ -152,6 +152,7 @@ jobs:
             .github/workflows/mistrzowie-apk.yml
             .github/workflows/mistrzowie-unity6-smoke.yml
             .github/workflows/mistrzowie-unity6-apk-update.yml
+            .github/workflows/mistrzowie-cheap-code-audit-20261106.yml
             unity-tools/claude/prywatne.py
             unity-tools/claude/import_patryk_transfer.py
             unity-tools/claude/import_patryk_animations.py
