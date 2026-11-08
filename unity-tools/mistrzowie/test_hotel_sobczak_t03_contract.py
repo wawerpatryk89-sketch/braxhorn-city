@@ -18,6 +18,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         cls.build = (EDITOR / "BraxChampionsBuild.cs").read_text(encoding="utf-8")
         cls.prepare = (TOOLS / "prepare_assets.py").read_text(encoding="utf-8")
         cls.streamer = (ROOT / "unity-city" / "Assets" / "Mistrzowie" / "BraxHotelSobczakFloorStreamer.cs").read_text(encoding="utf-8")
+        cls.visual_review = (ROOT / "unity-city" / "Assets" / "Mistrzowie" / "BraxChampionsVisualReview.cs").read_text(encoding="utf-8")
 
     def test_plot_exact(self):
         t03 = next(b for b in self.plan["buildings"] if b["id"] == "T03")
@@ -248,6 +249,19 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('Mansard dormer body",M.stucco,x,123.35f,z,3.0f,2.8f,1.35f,false', self.generator)
         self.assertIn('Upper roof front",M.roof', self.generator)
         self.assertNotIn('Upper roof front",M.roof,0,127.55f,-upperStartZ*.5f,56f,.16f,upperLen,true', self.generator)
+
+    def test_owner_21_frame_visual_acceptance_plan(self):
+        required = [
+            "01-front-day","02-front-night","03-three-quarter-left","04-three-quarter-right",
+            "05-side","06-rear","07-entrance-portico","08-lobby","09-reception","10-bar",
+            "11-restaurant","12-spa","13-fitness","14-typical-corridor","15-standard-room",
+            "16-bathroom","17-elevators","18-stair","19-b1","20-b2","21-roof-mansard"
+        ]
+        for label in required:
+            self.assertIn(f'"{label}"', self.visual_review)
+        self.assertIn("nightFrames[1]=true", self.visual_review)
+        self.assertIn("player.transform.position=positions[i]", self.visual_review)
+        self.assertIn("labels.Length==21", self.visual_review)
 
     def test_owner_sign_is_hotel_sobczak(self):
         self.assertIn('AddBlockSign("HOTEL SOBCZAK"', self.generator)
