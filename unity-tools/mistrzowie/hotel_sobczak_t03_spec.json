@@ -463,7 +463,18 @@
     ],
     "staff_passage_clear_m": 1.5,
     "technical_risers": 2,
-    "public_wc_mirrors": true
+    "public_wc_mirrors": true,
+    "reception_backoffice": {
+      "center": [
+        14,
+        -12.5
+      ],
+      "size": [
+        8,
+        5
+      ],
+      "outside_lobby_rectangle": true
+    }
   },
   "floor1_details": {
     "restaurant_table_types": [
