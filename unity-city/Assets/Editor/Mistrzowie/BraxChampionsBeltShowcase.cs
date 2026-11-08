@@ -30,6 +30,26 @@ public static class BraxChampionsBeltShowcase
         return t;
     }
 
+    static Material SolidPbr(string id,Color color,float roughness,float metallic)
+    {
+        var shader=Shader.Find(BraxCityMaterials.ShaderName);
+        if(!shader)throw new InvalidOperationException("A1 showcase CityStaticPBR shader missing");
+        string path=Materials+id+".mat";
+        var m=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(!m)
+        {
+            m=new Material(shader){name=id,enableInstancing=true};
+            AssetDatabase.CreateAsset(m,path);
+        }
+        m.SetColor("_Color",color);
+        m.SetFloat("_Roughness",roughness);
+        m.SetFloat("_Metallic",metallic);
+        m.SetFloat("_VertexTint",0f);
+        m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        EditorUtility.SetDirty(m);
+        return m;
+    }
+
     static void Cube(Transform parent, string name, Material material,
         Vector3 position, Vector3 scale)
     {
@@ -377,15 +397,12 @@ public static class BraxChampionsBeltShowcase
         display.localPosition = new Vector3(-73.9f, 0, 63.3f);
         display.localRotation = Quaternion.Euler(0, 90, 0);
 
-        var gold = BraxChampionsFoundation.LibraryMetal("A1_belt_showcase_gold",
-            new Color(.835f,.639f,.231f));
-        gold.SetFloat("_Metallic",.98f);gold.SetFloat("_Roughness",.19f);
-        var blackMetal=BraxChampionsFoundation.LibraryMetal(
-            "A1_belt_showcase_black_metal",new Color(.045f,.050f,.060f));
-        blackMetal.SetFloat("_Metallic",.92f);blackMetal.SetFloat("_Roughness",.22f);
-        var plaqueRecess=BraxChampionsFoundation.LibraryMetal(
-            "A1_belt_showcase_plaque_recess",new Color(.035f,.037f,.042f));
-        plaqueRecess.SetFloat("_Metallic",.35f);plaqueRecess.SetFloat("_Roughness",.24f);
+        var gold=SolidPbr("A1_belt_showcase_clean_gold",
+            new Color(.835f,.639f,.231f),.19f,.98f);
+        var blackMetal=SolidPbr("A1_belt_showcase_clean_black_metal",
+            new Color(.045f,.050f,.060f),.22f,.92f);
+        var plaqueRecess=SolidPbr("A1_belt_showcase_plaque_recess",
+            new Color(.035f,.037f,.042f),.24f,.35f);
         var originalGlass = AssetDatabase.LoadAssetAtPath<Material>(Materials + "clear_glass.mat");
         var warm = AssetDatabase.LoadAssetAtPath<Material>(Materials + "light.mat");
         if (!originalGlass || originalGlass.renderQueue < 3000 || !warm)
