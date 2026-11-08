@@ -1,5 +1,5 @@
 name: HOTEL SOBCZAK T03 — one-shot static contract — NO UNITY NO APK
-run-name: HOTEL SOBCZAK T03 — owner geometry + PBR regression check v5
+run-name: HOTEL SOBCZAK T03 — 21-frame acceptance source check v6
 on:
   push:
     branches:
@@ -9,6 +9,7 @@ on:
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakT03.cs
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakMaterials.cs
       - unity-city/Assets/Mistrzowie/BraxHotelSobczakFloorStreamer.cs
+      - unity-city/Assets/Mistrzowie/BraxChampionsVisualReview.cs
       - unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py
       - unity-tools/mistrzowie/hotel_sobczak_t03_spec.json
       - unity-tools/mistrzowie/prepare_assets.py
@@ -37,6 +38,7 @@ jobs:
             unity-tools/mistrzowie/pbr-provider-preflight.json
             unity-city/Assets/Editor/Mistrzowie
             unity-city/Assets/Mistrzowie/BraxHotelSobczakFloorStreamer.cs
+            unity-city/Assets/Mistrzowie/BraxChampionsVisualReview.cs
       - name: Python syntax
         run: python3 -m py_compile unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py
       - name: CSharp parser
