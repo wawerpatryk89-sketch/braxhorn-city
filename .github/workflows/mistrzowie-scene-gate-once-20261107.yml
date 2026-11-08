@@ -1,4 +1,4 @@
-# retry: 8
+# retry: 9
 name: Miasto Mistrzow — one-shot gate + Unity scene — NO APK
 run-name: Champions current SHA — source gate then Unity scene — NO APK
 
@@ -79,8 +79,8 @@ jobs:
     with:
       etap: sceny
       kontrola_tras: false
-      zdjecia: true
-      zapisz_audyt: true
+      zdjecia: false
+      zapisz_audyt: false
       arena_assets_tag: champions-a1-20261105
       p1_assets_tag: p1-basen-spa-20261106
     secrets: inherit
