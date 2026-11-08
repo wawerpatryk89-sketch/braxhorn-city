@@ -62,6 +62,7 @@ public static class BraxChampionsArena
         var black = Plain("oktagon czarny winyl", new Color(.03f, .03f, .035f), .55f);
         var steel = Plain("oktagon stal ciemna", new Color(.16f, .17f, .18f), .5f, .8f);
         var chrome = Plain("słupki chrom", new Color(.75f, .76f, .78f), .85f, .95f);
+        var vipGold = Plain("słupki VIP złote", new Color(.88f, .64f, .18f), .88f, .96f);
         var carpet = Plain("hala walk chodnik czerwony", new Color(.45f, .03f, .04f), .1f);
         var rope = Plain("lina aksamitna czerwona", new Color(.42f, .03f, .05f), .25f);
         var tier = Plain("trybuny beton grafit", new Color(.15f, .15f, .16f), .3f);
@@ -247,10 +248,25 @@ public static class BraxChampionsArena
         {
             for (float z = 70.0f; z <= 77.5f; z += 1.5f)
             {
-                Cylinder(chrome, new Vector3(x, yF, z), .14f, .04f, 16, true, false); Cylinder(chrome, new Vector3(x, yF + .04f, z), .03f, .86f, 10, true, false);
-                Cylinder(chrome, new Vector3(x, yF + .9f, z), .05f, .06f, 10, true, false);
+                Cylinder(vipGold, new Vector3(x, yF, z), .14f, .04f, 16, true, false);
+                Cylinder(vipGold, new Vector3(x, yF + .04f, z), .03f, .86f, 10, true, false);
+                Cylinder(vipGold, new Vector3(x, yF + .9f, z), .05f, .06f, 10, true, false);
             }
-            BoxMinMax(rope, x - .025f, x + .025f, .82f, .87f, 70.0f, 77.5f, false, true);
+            // Phone proof 8.11: straight rigid bars were wrong. Each 1.5m span
+            // is a real soft red rope with a 13cm natural sag between GOLD posts.
+            for (float z = 70.0f; z < 77.5f - .001f; z += 1.5f)
+            {
+                const int ropeSegments=6;
+                for(int segment=0;segment<ropeSegments;segment++)
+                {
+                    float t0=segment/(float)ropeSegments,t1=(segment+1)/(float)ropeSegments;
+                    float y0=.86f-.13f*4f*t0*(1f-t0);
+                    float y1=.86f-.13f*4f*t1*(1f-t1);
+                    W.Rura(rope,
+                        new Vector3(x,y0,z+1.5f*t0),
+                        new Vector3(x,y1,z+1.5f*t1),.022f,8);
+                }
+            }
         }
         // wejście zawodników: czarna rama z czerwonym pasem
         BoxMinMax(black, dA - .35f, dA, yF, dH + .35f, Z0 + .045f, Z0 + .3f, false); BoxMinMax(black, dB, dB + .35f, yF, dH + .35f, Z0 + .045f, Z0 + .3f, false);
@@ -393,7 +409,9 @@ public static class BraxChampionsArena
     }
     static void Sign(string id,Vector3 at,float width,float height,Vector3 n,bool _)
     {
-        var right=Vector3.Cross(Vector3.up,n)*width*.5f;var up=Vector3.up*height*.5f;
+        // Screen-right for a viewer looking opposite the outward normal is n x Up.
+        // The previous Up x n mirrored every internal BRAXHORN panel on phone.
+        var right=Vector3.Cross(n,Vector3.up)*width*.5f;var up=Vector3.up*height*.5f;
         QuadUV(TexMat(id,1),at-right-up,at+right-up,at+right+up,at-right+up,Vector2.zero,Vector2.right,Vector2.one,Vector2.up,n);
     }
     static void PointLamp(Vector3 p,float range,float intensity,Color color,string name="Arena seating light")

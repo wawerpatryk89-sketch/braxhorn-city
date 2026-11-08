@@ -11,7 +11,7 @@ public sealed class BraxChampionsArenaMuralTextureImport : AssetPostprocessor
         // Three separate owner-original JPEGs. Preserve exact pixels/colour
         // and do not change source import settings for any other image.
         const string root="Assets/Source/Mistrzowie/ArenaMurals/";
-        // Source HD 6144x2048 stays untouched. Android uses the owner-approved close-view 2K budget.
+        // Source HD 6144x2048 stays untouched. Arena murals are the explicit owner-approved HD exception: Android keeps the full source (max 8K cap, no upscale) with mip streaming.
         if(assetPath.StartsWith("Assets/Source/Mistrzowie/ArenaMuralsHD/",StringComparison.Ordinal)
            &&assetPath.EndsWith(".png",StringComparison.OrdinalIgnoreCase))
         {
@@ -25,7 +25,7 @@ public sealed class BraxChampionsArenaMuralTextureImport : AssetPostprocessor
             hd.alphaSource=TextureImporterAlphaSource.None;
             hd.textureCompression=TextureImporterCompression.CompressedHQ;
             var a=hd.GetPlatformTextureSettings("Android");
-            a.name="Android";a.overridden=true;a.maxTextureSize=2048;
+            a.name="Android";a.overridden=true;a.maxTextureSize=8192;
             a.format=TextureImporterFormat.ASTC_4x4;a.compressionQuality=100;
             hd.SetPlatformTextureSettings(a);
             return;

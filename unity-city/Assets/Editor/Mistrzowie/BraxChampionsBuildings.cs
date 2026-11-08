@@ -137,10 +137,10 @@ public static class BraxChampionsBuildings
         var tile=BraxChampionsFoundation.SourceMaterial("pool_tile","granite_tile",.4f,new Color(.75f,.85f,.84f));
         // The shader preserves alpha only with _Transparent=1 and SrcAlpha blending.
         // The old facade_glass was OPAQUE: its dark RGB looked like black plastic from outside.
-        // Use transparent dielectrics (metallic 0) with modest tint: no fake black mirror panels.
-        // Wariant A1 nr 3: lekkie grafitowe przyciemnienie szkła,
-        // zachowana przezierność i widoczność lóż VIP za fasadą.
-        var glass=Surface("facade_glass",new Color(.49f,.56f,.63f,.36f),.075f,0f);
+        // Use transparent dielectrics (metallic 0), never milky/white glass.
+        // Owner reference 7.11 + phone proof 8.11: clearly graphite-smoked glazing,
+        // but transparent enough to keep the lobby/VIP lounge readable through the facade.
+        var glass=Surface("facade_glass",new Color(.24f,.28f,.32f,.28f),.055f,0f);
         ConfigureGlass(glass);
         var clear=Surface("clear_glass",new Color(.78f,.88f,.93f,.19f),.065f,0f);
         ConfigureGlass(clear);

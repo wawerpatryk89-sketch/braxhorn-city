@@ -551,9 +551,11 @@ public static class BraxChampionsArenaArrival
                     goldAccentGlow.Beam(mid+outward*.836f+Vector3.up*22.87f,
                         new Vector3(.022f,7.11f,.042f),rotation);
                 }
-                else
+                else if(i%3==0)
                 {
-                    // Drugorzędny profil pomiędzy szerokimi filarami.
+                    // Owner reference: large glass panes between the wide black feature pillars.
+                    // Keep only two slim secondary mullions inside each 9-sector feature bay;
+                    // do NOT put a vertical bar on almost every 360-segment facade slice.
                     fins.Beam(mid+outward*.19f+Vector3.up*5.68f,
                         new Vector3(.19f,9.30f,.17f),rotation);
                     fins.Beam(mid+outward*.19f+Vector3.up*22.87f,
@@ -702,7 +704,7 @@ public static class BraxChampionsArenaArrival
         }
         Debug.Log("CHAMPIONS_A1_POLYHAVEN_EXTERIOR_PREMIUM facade_bays="+bays+
             " omitted_lower_facade_door_segments="+skippedDoor+
-            " wide_black_columns=2.10m pitch=9bays stepped_out=.79m center_gold=.095m"+
+            " wide_black_columns=2.10m pitch=9bays stepped_out=.79m center_gold=.095m secondary_mullions=2_per_feature_bay"+
             " roof_crown_LED=continuous upper_warm_bands=3 upper_halo=ellipse"+
             " red_sign_frame=in_front_of_original_sign 2K_LED_pillar_insets=true"+
             " canopy_LED_strips=9 entrance_planters=2 bollards=8"+

@@ -58,45 +58,68 @@ public static class BraxChampionsVIPSeats
                 "VIP GLB has no bound PBR texture; visual inspection required. Build continues with original model.");
     }
 
-    // Repair a GLB authored with its long chair axis horizontal. Do not
-    // reorient an already-upright source and never replace the original PBR.
+    // Repair the exact owner GLB when its authored up-axis imports sideways.
+    // Phone proof 8.11 showed the previous feet-name heuristic rejected every
+    // valid correction (16 x UPRIGHT_UNCERTAIN). Score geometry first, then use
+    // a named back/backrest only to resolve the 180-degree facing ambiguity.
     static void KeepImportedChairUpright(GameObject chair,Quaternion facing)
     {
-        var initial=VisualBounds(chair);
-        float maxHorizontal=Mathf.Max(initial.size.x,initial.size.z);
-        if(initial.size.y>=maxHorizontal*.83f)return;
-
         Quaternion[] corrections={
+            Quaternion.identity,
             Quaternion.Euler(90f,0,0),Quaternion.Euler(-90f,0,0),
-            Quaternion.Euler(0,0,90f),Quaternion.Euler(0,0,-90f)
+            Quaternion.Euler(0,0,90f),Quaternion.Euler(0,0,-90f),
+            Quaternion.Euler(180f,0,0),Quaternion.Euler(0,0,180f)
         };
-        var feet=chair.GetComponentsInChildren<Transform>(true)
-            .Where(t=>t&&t!=chair.transform&&
-                (t.name.IndexOf("leg",StringComparison.OrdinalIgnoreCase)>=0||
-                 t.name.IndexOf("foot",StringComparison.OrdinalIgnoreCase)>=0||
-                 t.name.IndexOf("base",StringComparison.OrdinalIgnoreCase)>=0))
-            .ToArray();
-        float bestScore=Mathf.Abs(initial.size.y/maxHorizontal-1.12f);
+        float bestScore=float.PositiveInfinity;
         Quaternion best=Quaternion.identity;
         foreach(var correction in corrections)
         {
             chair.transform.localRotation=facing*correction;
             var b=VisualBounds(chair);
-            float h=b.size.y/Mathf.Max(b.size.x,b.size.z);
-            float score=Mathf.Abs(h-1.12f);
-            if(feet.Length>0)
+            float horizontal=Mathf.Max(b.size.x,b.size.z);
+            float upright=b.size.y/Mathf.Max(horizontal,.001f);
+            // Real barrel lounge chair is roughly human-seat proportions:
+            // upright height close to width/depth; a sideways import is much flatter.
+            float score=Mathf.Abs(upright-1.08f);
+            if(upright<.84f)score+=3f+(.84f-upright)*8f;
+            if(upright>1.48f)score+=(upright-1.48f)*2f;
+            if(score<bestScore)
             {
-                float footY=feet.Average(t=>t.position.y);
-                score+=Mathf.Clamp01((footY-b.min.y)/Mathf.Max(b.size.y,.001f));
+                bestScore=score;
+                best=correction;
             }
-            if(score<bestScore-.06f) {bestScore=score;best=correction;}
         }
         chair.transform.localRotation=facing*best;
-        if(best!=Quaternion.identity)
-            Debug.Log("CHAMPIONS_VIP_OWNER_GLB_UPRIGHT axisCorrection="+best.eulerAngles+
-                " originalArtUnchanged=true");
-        else
-            BraxBuildQuality.Warn("CHAMPIONS_VIP_UPRIGHT_UNCERTAIN original GLB chair proportions require phone review");
+
+        // If the source exposes a semantic back/backrest transform, it belongs
+        // AWAY from the cage. Flip only around the now-upright local Y axis.
+        bool flipped=false;
+        var back=chair.GetComponentsInChildren<Transform>(true)
+            .FirstOrDefault(t=>t&&t!=chair.transform&&
+                (t.name.IndexOf("backrest",StringComparison.OrdinalIgnoreCase)>=0||
+                 t.name.IndexOf("back",StringComparison.OrdinalIgnoreCase)>=0));
+        if(back)
+        {
+            var spot=chair.transform.parent;
+            var bounds=VisualBounds(chair);
+            float centreZ=spot.InverseTransformPoint(bounds.center).z;
+            float backZ=spot.InverseTransformPoint(back.position).z;
+            if(backZ>centreZ)
+            {
+                chair.transform.localRotation=facing*Quaternion.Euler(0,180f,0)*best;
+                flipped=true;
+            }
+        }
+        var finalBounds=VisualBounds(chair);
+        float finalUpright=finalBounds.size.y/
+            Mathf.Max(Mathf.Max(finalBounds.size.x,finalBounds.size.z),.001f);
+        if(finalUpright<.84f)
+            BraxBuildQuality.Warn("CHAMPIONS_VIP_UPRIGHT_FAILED geometry still sideways after deterministic axis repair");
+        Debug.Log("CHAMPIONS_VIP_OWNER_GLB_UPRIGHT axisCorrection="+best.eulerAngles+
+            " backFacingFlip="+flipped+
+            " uprightRatio="+finalUpright.ToString("F3")+
+            " dimensions="+finalBounds.size.ToString("F3")+
+            " originalArtUnchanged=true");
     }
 
     static void Place(Transform root, GameObject source, float x, float z, float cx, float cz, string label)

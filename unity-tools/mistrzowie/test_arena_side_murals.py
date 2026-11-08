@@ -59,15 +59,15 @@ class ChampionSideMuralsTests(unittest.TestCase):
         self.assertNotIn('AddComponent<MeshCollider>',self.m)
         self.assertNotIn('AddComponent<BoxCollider>',self.m)
 
-    def test_only_original_three_mural_2k_mobile_import(self):
+    def test_original_three_murals_keep_hd_release_on_android(self):
         for name in ['BRAXHORN_CHAMPION_FIGHTER_ORIGINAL.jpg',
                      'BRAXHORN_A1_FIGHTERS_LEFT_ORIGINAL.jpg',
                      'BRAXHORN_A1_BELT_RIGHT_ORIGINAL.jpg']:
             self.assertIn(name,self.i)
         self.assertIn('settings.maxTextureSize=2048',self.i)
         self.assertIn('settings.streamingMipmaps=true',self.i)
-        self.assertIn('a.maxTextureSize=2048',self.i)
-        self.assertNotIn('a.maxTextureSize=8192',self.i)
+        self.assertIn('a.maxTextureSize=8192',self.i)
+        self.assertIn('settings.maxTextureSize=2048',self.i)
         self.assertIn('TextureImporterFormat.ASTC_4x4',self.i)
 
 if __name__=="__main__":
