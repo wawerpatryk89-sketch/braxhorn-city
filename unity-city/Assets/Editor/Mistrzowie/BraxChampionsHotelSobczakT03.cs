@@ -163,8 +163,8 @@ public static class BraxChampionsHotelSobczakT03
         B(g,id+" east wall",M.concrete,31.8f,y+1.8f,0,.35f,3.6f,42f,true,3f);
         B(g,id+" west wall",M.concrete,-31.8f,y+1.8f,0,.35f,3.6f,42f,true,3f);
         // Leave two vehicle openings in south wall for the external ramp/tunnel connections.
-        B(g,id+" south wall west",M.concrete,-7.75f,y+1.8f,-20.8f,48.5f,3.6f,.35f,true,3f);
-        B(g,id+" south wall east",M.concrete,29.25f,y+1.8f,-20.8f,5.5f,3.6f,.35f,true,3f);
+        B(g,id+" south wall west",M.concrete,-9.5f,y+1.8f,-20.8f,45f,3.6f,.35f,true,3f);
+        B(g,id+" south wall east",M.concrete,30.75f,y+1.8f,-20.8f,2.5f,3.6f,.35f,true,3f);
         B(g,id+" ceiling",M.concrete,0,y+3.54f,0,64f,.12f,42f,true,3f);
         B(g,id+" central drive aisle",M.garage,1.3f,y+.215f,0,52f,.025f,6f,false,3f);
         for(int row=0;row<2;row++)
@@ -279,7 +279,15 @@ public static class BraxChampionsHotelSobczakT03
             for(int i=0;i<7;i++)
             {
                 float x=-21f+i*7f;
-                WindowBay(p,"Public facade",x,baseY,z,7f,floorH,windowW,windowH,sill,header,zsign);
+                if(baseY==0f && zsign<0f && i==3)
+                {
+                    // Real 3.60m-wide main entrance opening, no sill/glass hidden behind the doors.
+                    float side=(7f-3.6f)*.5f;
+                    B(p,"Main entrance facade jamb L",M.facade,x-(1.8f+side*.5f),baseY+floorH*.5f,z,side,floorH,.36f,true,3f);
+                    B(p,"Main entrance facade jamb R",M.facade,x+(1.8f+side*.5f),baseY+floorH*.5f,z,side,floorH,.36f,true,3f);
+                    B(p,"Main entrance facade header",M.facade,x,baseY+5.1f,z,3.6f,1.8f,.36f,true,3f);
+                }
+                else WindowBay(p,"Public facade",x,baseY,z,7f,floorH,windowW,windowH,sill,header,zsign);
             }
             // stair wings
             B(p,"Public facade west wing",M.facade,-28.25f,baseY+floorH*.5f,z,7.5f,floorH,.36f,true,3f);
