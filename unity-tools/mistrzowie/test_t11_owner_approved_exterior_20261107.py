@@ -35,7 +35,7 @@ def parse_vector2_array(name):
     if not match:
         raise AssertionError(f"Missing {name}")
     return [
-        (float(a),float(b))
+        (float(a.rstrip("f")),float(b.rstrip("f")))
         for a,b in re.findall(
             r"new Vector2\((-?\d+(?:\.\d+)?f?),(-?\.?\d+(?:\.\d+)?f?)\)",
             match.group("body"))
