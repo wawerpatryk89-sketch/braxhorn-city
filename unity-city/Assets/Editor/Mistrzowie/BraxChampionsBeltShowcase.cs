@@ -70,7 +70,7 @@ public static class BraxChampionsBeltShowcase
     }
 
     static void RoundedBase(Transform parent,string name,Material material,
-        Vector3 centre,Vector3 size,float radius)
+        Vector3 centre,Vector3 size,float radius,bool collision=false)
     {
         const int cornerSegments=6;
         float hx=size.x*.5f,hz=size.z*.5f,hy=size.y*.5f;
@@ -117,27 +117,57 @@ public static class BraxChampionsBeltShowcase
         var go=new GameObject(name);go.transform.SetParent(parent,false);
         go.AddComponent<MeshFilter>().sharedMesh=mesh;
         go.AddComponent<MeshRenderer>().sharedMaterial=material;
-        // Exhibit base is decorative beside judges: no invisible movement blocker.
+        if(collision)
+        {
+            var box=go.AddComponent<BoxCollider>();
+            box.center=centre;box.size=size;
+        }
     }
 
-    // Single plane per glass wall rather than six faces of a Unity cube.
+    // True 12mm visual thickness with ONE transparent front face plus four
+    // physical edge faces. No rear transparent face, so mobile alpha is not
+    // doubled into a milky pane when viewed head-on.
     // The old six-face transparent cubes layered alpha, producing a white
     // veil in front of the owner's belt on mobile. Glass must read as almost
     // invisible while edges and the real belt remain visible.
     static void CrystalGlassPanel(Transform parent,string name,Material material,
         Vector3 centre,Vector2 dimensions,Quaternion facing)
     {
-        var panel=GameObject.CreatePrimitive(PrimitiveType.Quad);
-        panel.name=name;
+        const float thickness=.012f; // 12 mm, approved range 10-12 mm
+        float hx=dimensions.x*.5f,hy=dimensions.y*.5f,hz=thickness*.5f;
+        var mesh=new Mesh{name=name+" | 12mm optical glass"};
+        mesh.vertices=new[]{
+            new Vector3(-hx,-hy,hz),new Vector3(hx,-hy,hz),
+            new Vector3(hx,hy,hz),new Vector3(-hx,hy,hz),
+            new Vector3(-hx,-hy,-hz),new Vector3(hx,-hy,-hz),
+            new Vector3(hx,hy,-hz),new Vector3(-hx,hy,-hz)
+        };
+        mesh.uv=new[]{
+            new Vector2(0,0),new Vector2(1,0),new Vector2(1,1),new Vector2(0,1),
+            new Vector2(0,0),new Vector2(1,0),new Vector2(1,1),new Vector2(0,1)
+        };
+        // Front only + four thickness edges. Material is double-sided, therefore
+        // the pane remains readable from inside without a second alpha layer.
+        mesh.triangles=new[]{
+            0,1,2,0,2,3,
+            0,4,5,0,5,1,
+            1,5,6,1,6,2,
+            2,6,7,2,7,3,
+            3,7,4,3,4,0
+        };
+        mesh.RecalculateNormals();mesh.RecalculateBounds();
+        string safe=name.Replace(' ','_').Replace('|','_').Replace('/','_');
+        AssetDatabase.CreateAsset(mesh,Meshes+"A1_glass_"+safe+".asset");
+        var panel=new GameObject(name);
         panel.transform.SetParent(parent,false);
         panel.transform.localPosition=centre;
         panel.transform.localRotation=facing;
-        panel.transform.localScale=new Vector3(dimensions.x,dimensions.y,1f);
-        var renderer=panel.GetComponent<MeshRenderer>();
+        panel.AddComponent<MeshFilter>().sharedMesh=mesh;
+        var renderer=panel.AddComponent<MeshRenderer>();
         renderer.sharedMaterial=material;
         renderer.shadowCastingMode=ShadowCastingMode.Off;
         renderer.receiveShadows=false;
-        UnityEngine.Object.DestroyImmediate(panel.GetComponent<Collider>());
+        // Showcase glass is decorative; the physical low base is the obstacle.
     }
 
     static Bounds VisualBounds(Transform display, Transform objectRoot)
@@ -435,7 +465,7 @@ public static class BraxChampionsBeltShowcase
         RoundedBase(display,"A1 SHOWCASE | recessed lower granite plinth",granite,
             new Vector3(0,.04f,0),new Vector3(2.08f,.08f,.78f),.025f);
         RoundedBase(display,"A1 SHOWCASE | premium granite base",granite,
-            new Vector3(0,.18f,0),new Vector3(2.20f,.20f,.90f),.025f);
+            new Vector3(0,.18f,0),new Vector3(2.20f,.20f,.90f),.025f,true);
 
         // Lightweight 1.84 x .72 x 2.95 m glass case above y=.28.
         const float caseY=.28f+2.95f*.5f;
@@ -491,7 +521,7 @@ public static class BraxChampionsBeltShowcase
         lamp.renderMode=LightRenderMode.ForceVertex;
 
         Debug.Log("A1_SHOWCASE_PREMIUM base=2.20x.90x.28 lower=2.08x.78x.08 R=.025"+
-            " case=1.84x.72x2.95 totalHeight=3.23 glass=10to12mm_visual"+
+            " case=1.84x.72x2.95 totalHeight=3.23 glassThickness=.012m baseCollider=2.20x.90x.20"+
             " tallBackPlate=false leatherBacking=false goldProfiles=.045 topFrame=.055"+
             " beltTargetHeight<=2.25 beltCenterY=1.80 localAxisFrontFlip=true"+
             " frontPlaque=1.20x.40 goldFrame=.035 sideCrest=.26x.34"+
