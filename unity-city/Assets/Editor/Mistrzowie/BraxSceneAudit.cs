@@ -543,8 +543,24 @@ public static class BraxSceneAudit
         AddExact("Arena: nowa niska podstawa gabloty",showcaseBase,1,
             "BraxChampionsBeltShowcase.cs","2.20x0.90x0.28; bez wysokiej tylnej płyty");
         var showcaseFront=all.Where(t=>Contains(t.name,"A1 SHOWCASE | FRONT optical glass")).ToArray();
-        AddExact("Arena: nowa lekka gablota szklana",showcaseFront,1,
-            "BraxChampionsBeltShowcase.cs","1.84x0.72x2.95");
+        AddExact("Arena: front gabloty 12mm",showcaseFront,1,
+            "BraxChampionsBeltShowcase.cs","1.84x2.95; true mesh thickness 0.012m");
+        var showcaseGlass=all.Where(t=>Contains(t.name,"A1 SHOWCASE |")&&
+            Contains(t.name,"optical glass")).ToArray();
+        AddExact("Arena: komplet tafli gabloty 12mm",showcaseGlass,5,
+            "BraxChampionsBeltShowcase.cs","front+back+2 sides+top");
+        var showcaseCorners=all.Where(t=>Contains(t.name,
+            "A1 SHOWCASE | slender gold corner profile")).ToArray();
+        AddExact("Arena: złote narożne profile gabloty",showcaseCorners,4,
+            "BraxChampionsBeltShowcase.cs","4 x 45mm");
+        var beltSupports=all.Where(t=>Contains(t.name,
+            "A1 SHOWCASE | hidden black belt support")).ToArray();
+        AddExact("Arena: ukryte wsporniki pasa",beltSupports,2,
+            "BraxChampionsBeltShowcase.cs","2 x 30mm black metal");
+        var canopySupports=all.Where(t=>Contains(t.name,
+            "A1 PUBLIC | ISSUE27 round gold support x=")).ToArray();
+        AddExact("Arena: dwa złote słupy zadaszenia z raycastem",canopySupports,2,
+            "BraxChampionsArenaArrival.cs","x=+-20.50 z=-68.70; floor measured by raycast");
         if(showcaseFront.Length==1)
         {
             var mf=showcaseFront[0].GetComponent<MeshFilter>();
