@@ -90,6 +90,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("controller.pietraY=levels.Select", self.generator)
         self.assertIn("controller.przystanekL=landL", self.generator)
         self.assertIn("foreach(float x in new[]{-26.3f,26.3f})", self.generator)
+        self.assertIn("const float stairZ=8.0f", self.generator)
         self.assertIn("if(elevatorsBuilt!=4||stairsBuilt!=2)", self.generator)
         self.assertIn("calls[n]=usable[n]?", self.generator)
         self.assertIn("Bathroom 0.80m door header", self.generator)
@@ -158,11 +159,20 @@ class HotelSobczakT03Contract(unittest.TestCase):
 
     def test_structural_slabs_leave_real_core_openings(self):
         self.assertIn("SlabWithCoreOpenings", self.generator)
+        self.assertIn('central 42m zone",mat,0,y,0,42.00f', self.generator)
+        self.assertIn('float[] xs={22.45f,25.25f,28.05f,-26.30f}', self.generator)
+        self.assertIn('BuildElevator(i,xs[i],1.50f)', self.generator)
         self.assertNotIn('B(g,"Ground structural slab",M.marble,0,.15f,0,63.2f,.30f,41.2f', self.generator)
         self.assertIn('SlabWithCoreOpenings(g,"Ground structural slab"', self.generator)
         self.assertIn('SlabWithCoreOpenings(g,"Level1 structural slab"', self.generator)
         self.assertIn('SlabWithCoreOpenings(guestExterior,"Guest slab "', self.generator)
         self.assertIn('SlabWithCoreOpenings(g,id+" ceiling"', self.generator)
+
+
+    def test_central_corridor_is_not_blocked_by_vertical_cores(self):
+        self.assertIn('Central corridor wool runner",M.carpet,0,.16f,0,42.0f,.035f,2.40f', self.generator)
+        self.assertNotIn('float[] xs={-4.35f,-1.45f,1.45f,4.35f}', self.generator)
+        self.assertIn('Passenger bank in EAST core, service lift in WEST core', self.generator)
 
     def test_guest_party_walls_are_not_duplicated(self):
         self.assertNotIn("Room west party wall", self.generator)
