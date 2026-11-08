@@ -110,8 +110,9 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertEqual(p["ramp_side"], "EAST")
         self.assertEqual(p["ramp_incline_length_m"], 24)
         self.assertEqual(p["transition_each_m"], 1.5)
-        self.assertIn('EAST ramp G -> B1",36.25f,-23.0f,-1.80f,6.5f,24.0f,8.5308f', self.generator)
-        self.assertIn('EAST ramp B1 -> B2",36.25f,0.0f,-5.40f,6.5f,24.0f,-8.5308f', self.generator)
+        self.assertIn('float parkingRampAngle=Mathf.Atan(.15f)*Mathf.Rad2Deg', self.generator)
+        self.assertIn('EAST ramp G -> B1",36.25f,-23.0f,-1.80f,6.5f,24.0f,parkingRampAngle', self.generator)
+        self.assertIn('EAST ramp B1 -> B2",36.25f,0.0f,-5.40f,6.5f,24.0f,-parkingRampAngle', self.generator)
         self.assertIn("B1 EAST internal turning apron", self.generator)
 
     def test_moving_elevator_parts_are_never_static_batched(self):
@@ -311,6 +312,12 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('float clearH=h-.30f,wallY=baseY+clearH*.5f', self.generator)
         self.assertIn('float clearH=h-.30f,y=clearH*.5f', self.generator)
         self.assertIn('Bathroom shower tray 1.20x0.90', self.generator)
+
+    def test_ramp_slopes_use_exact_owner_maxima(self):
+        self.assertIn('Mathf.Atan(.15f)*Mathf.Rad2Deg',self.generator)
+        self.assertIn('Mathf.Atan(.05f)*Mathf.Rad2Deg',self.generator)
+        self.assertNotIn('8.5308f',self.generator)
+        self.assertNotIn('-2.87f',self.generator)
 
     def test_close_range_five_star_details(self):
         self.assertIn("PremiumArmchair(",self.generator)
