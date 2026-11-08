@@ -69,8 +69,8 @@ public static class BraxSceneAudit
     }
     [Serializable] public sealed class HotelMaterialAudit
     {
-        public string materialName, sourceId, shaderName, albedoName, zones;
-        public int albedoWidth, albedoHeight, rendererCount;
+        public string materialName, sourceId, shaderName, albedoName, normalName, armName, zones;
+        public int albedoWidth, albedoHeight, normalWidth, normalHeight, armWidth, armHeight, rendererCount;
         public float metallic, roughness, normalStrength, tilingMeters, sampleScaleU, sampleScaleV;
     }
     [Serializable] public sealed class HotelSobczakAudit
@@ -82,10 +82,10 @@ public static class BraxSceneAudit
         public float siteWidthMeters, siteDepthMeters;
         public int physicalLevelsExpected=34, physicalLevelsMeasured, guestFloors, rooms, elevators, stairs, parkingB1, parkingB2, parkingTotal;
         public int passengerElevators, serviceElevators, frontDormers, rearDormers;
-        public int nullMaterialRenderers, milkGlassCandidates, doorLeafColliderCount, unmappedMaterialCount;
+        public int nullMaterialRenderers, milkGlassCandidates, doorLeafColliderCount, unmappedMaterialCount, oversizedRuntimeTextureCount;
         public bool centrePass, footprintPass, heightPass, siteReservePass, physicalLevelsPass;
         public bool roomsPass, guestFloorsPass, elevatorsPass, stairsPass, parkingPass, dormersPass;
-        public bool glassPass, doorLeafColliderPass, materialMappingPass;
+        public bool glassPass, doorLeafColliderPass, materialMappingPass, runtimeTexturePass;
         public List<HotelMaterialAudit> materials = new List<HotelMaterialAudit>();
         public List<string> failures = new List<string>();
     }
@@ -789,6 +789,8 @@ public static class BraxSceneAudit
         string SourceId(Material m)
         {
             string n=m?m.name:"";
+            string shader=m&&m.shader?m.shader.name:"";
+            if(Contains(n,"font")||Contains(n,"LegacyRuntime")||Contains(shader,"GUI/Text"))return "CUSTOM_TEXT";
             if(Contains(n,"facade_beige"))return "beige_wall_001";
             if(Contains(n,"plinth_sandstone"))return "sandstone_blocks_08";
             if(Contains(n,"architectural_stucco"))return "white_stucco_02";
@@ -869,10 +871,14 @@ public static class BraxSceneAudit
                 st=new Vector4(scale.x,scale.y,0,0);
             }
             var tex=mat.HasProperty("_MainTex")?mat.GetTexture("_MainTex") as Texture2D:null;
+            var normal=mat.HasProperty("_BumpMap")?mat.GetTexture("_BumpMap") as Texture2D:null;
+            var arm=mat.HasProperty("_ARM")?mat.GetTexture("_ARM") as Texture2D:null;
             string sourceId=SourceId(mat);
             h.materials.Add(new HotelMaterialAudit{
                 materialName=mat.name,sourceId=sourceId,shaderName=mat.shader?mat.shader.name:"MISSING",
                 albedoName=tex?tex.name:"NONE",albedoWidth=tex?tex.width:0,albedoHeight=tex?tex.height:0,
+                normalName=normal?normal.name:"NONE",normalWidth=normal?normal.width:0,normalHeight=normal?normal.height:0,
+                armName=arm?arm.name:"NONE",armWidth=arm?arm.width:0,armHeight=arm?arm.height:0,
                 rendererCount=users.Length,
                 metallic=mat.HasProperty("_Metallic")?mat.GetFloat("_Metallic"):0f,
                 roughness=mat.HasProperty("_Roughness")?mat.GetFloat("_Roughness"):0f,
@@ -884,6 +890,9 @@ public static class BraxSceneAudit
         }
         h.unmappedMaterialCount=h.materials.Count(x=>x.sourceId=="UNMAPPED");
         h.materialMappingPass=h.unmappedMaterialCount==0;
+        h.oversizedRuntimeTextureCount=h.materials.Count(x=>
+            x.albedoWidth>2048||x.albedoHeight>2048||x.normalWidth>2048||x.normalHeight>2048||x.armWidth>2048||x.armHeight>2048);
+        h.runtimeTexturePass=h.oversizedRuntimeTextureCount==0;
 
         void Fail(bool pass,string text){ if(!pass)h.failures.Add(text); }
         Fail(h.centrePass,"centre expected 1030/710 measured "+F(h.centreX)+"/"+F(h.centreZ));
@@ -900,6 +909,7 @@ public static class BraxSceneAudit
         Fail(h.glassPass,"glass/material check failed nullRenderers="+h.nullMaterialRenderers+" milkCandidates="+h.milkGlassCandidates);
         Fail(h.doorLeafColliderPass,"open door/entrance leaf colliders found "+h.doorLeafColliderCount);
         Fail(h.materialMappingPass,"visible hotel materials without source mapping "+h.unmappedMaterialCount);
+        Fail(h.runtimeTexturePass,"hotel runtime material maps above 2048px "+h.oversizedRuntimeTextureCount);
         h.status=h.failures.Count==0?"PASS_MEASURED_SCENE_CONTRACT":"FAIL_MEASURED_SCENE_CONTRACT";
     }
 
@@ -969,7 +979,9 @@ public static class BraxSceneAudit
             lines.Add("- " + Safe(m.sourceId) + " | " + Safe(m.materialName) +
                 " | zones=" + Safe(m.zones) + " | shader=" + Safe(m.shaderName) +
                 " | albedo=" + Safe(m.albedoName) + " " + m.albedoWidth + "x" + m.albedoHeight +
-                " | tile=" + F(m.tilingMeters) + "m | normal=" + F(m.normalStrength) +
+                " | normalMap=" + Safe(m.normalName) + " " + m.normalWidth + "x" + m.normalHeight +
+                " | ARM=" + Safe(m.armName) + " " + m.armWidth + "x" + m.armHeight +
+                " | tile=" + F(m.tilingMeters) + "m | normalStrength=" + F(m.normalStrength) +
                 " | metallic=" + F(m.metallic) + " roughness=" + F(m.roughness) +
                 " | sample ST=" + F(m.sampleScaleU) + "x" + F(m.sampleScaleV) +
                 " | renderers=" + m.rendererCount);
