@@ -191,6 +191,14 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("hotelGenerated=true", near)
         self.assertIn("BraxChampionsHotelSobczakMaterials.VerifySources();", self.build)
 
+    def test_guest_exterior_shell_is_one_prefab_instanced_30_times(self):
+        self.assertIn('GuestExteriorFloorTemplate.prefab', self.generator)
+        self.assertIn('BuildGuestExteriorFloorTemplate(templateRoot.transform)', self.generator)
+        self.assertIn('PrefabUtility.InstantiatePrefab(templatePrefab,guestExterior)', self.generator)
+        self.assertIn('SHELL PREFAB INSTANCE', self.generator)
+        self.assertIn('Guest facade F-TEMPLATE', self.generator)
+        self.assertIn('Guest side wall F-TEMPLATE', self.generator)
+
     def test_guest_floors_are_30_instances_of_one_base_prefab(self):
         self.assertIn('GuestFloorTemplate.prefab', self.generator)
         self.assertIn('PrefabUtility.SaveAsPrefabAsset(templateRoot,templatePath)', self.generator)
