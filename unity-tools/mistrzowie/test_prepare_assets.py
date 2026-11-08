@@ -4,7 +4,7 @@ from pathlib import Path
 import hashlib
 import unittest
 
-from prepare_assets import matches_source, polyhaven_map, POLYHAVEN_SLUGS, POLYHAVEN_MAPS
+from prepare_assets import matches_source, polyhaven_map, POLYHAVEN_SLUGS, POLYHAVEN_MAPS, A1_POLYHAVEN_PINS
 
 
 LIVE_VERIFIED_OWNER_SLUGS={"stone_tiles","gravel_embedded_concrete_02","wooden_panels",
@@ -45,6 +45,16 @@ class PolyHavenSourceTests(unittest.TestCase):
             for kind,ext in POLYHAVEN_MAPS:
                 with self.subTest(slug=slug,kind=kind):
                     self.assertIn("url",polyhaven_map(metadata,slug,kind,ext))
+
+    def test_a1_materials_are_pinned_to_exact_provider_metadata(self):
+        expected={"leather_white","velour_velvet","concrete_wall_009",
+                  "rectangular_facade_tiles","granite_tile","stone_tiles"}
+        self.assertEqual(set(A1_POLYHAVEN_PINS),expected)
+        for slug in expected:
+            self.assertEqual(set(A1_POLYHAVEN_PINS[slug]),{"diff","nor_gl","rough","arm"})
+            for size,md5 in A1_POLYHAVEN_PINS[slug].values():
+                self.assertGreater(size,0)
+                self.assertEqual(len(md5),32)
 
     def test_provider_capitalized_roughness(self):
         self.assertEqual(polyhaven_map({"Rough": self.entry()}, "coast_sand_02", "rough", "exr")["url"], "original")
