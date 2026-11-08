@@ -85,6 +85,51 @@ jobs:
           assert 'f3829d496e1bf4890ec64af78170c7e8b8696d1e49d4122df2b4fc1c80bd5ffe' in old
           print('A1_T11_SOURCE_PREFLIGHT_PASS WITHOUT UNITY APK OR SIGNING')
           PY
+      - name: Issue 30 - acquire verified Pixabay engine samples as temporary GitHub artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p issue30-car-audio
+          curl --fail --location --retry 3 --retry-all-errors \
+            --user-agent "Mozilla/5.0 BRAXHORN-source-preflight" \
+            --referer "https://pixabay.com/" \
+            "https://cdn.pixabay.com/audio/2025/11/16/14-33-44-393.mp3" \
+            -o issue30-car-audio/brax_engine_idle.mp3
+          curl --fail --location --retry 3 --retry-all-errors \
+            --user-agent "Mozilla/5.0 BRAXHORN-source-preflight" \
+            --referer "https://pixabay.com/" \
+            "https://cdn.pixabay.com/download/audio/2025/07/18/audio_376881_source.mp3" \
+            -o issue30-car-audio/brax_engine_rev.mp3
+          test "$(stat -c%s issue30-car-audio/brax_engine_idle.mp3)" -gt 4096
+          test "$(stat -c%s issue30-car-audio/brax_engine_rev.mp3)" -gt 4096
+          file issue30-car-audio/*.mp3 | tee issue30-car-audio/FILE_TYPES.txt
+          grep -qiE 'audio|mpeg|mp3' issue30-car-audio/FILE_TYPES.txt
+          (cd issue30-car-audio && sha256sum brax_engine_idle.mp3 brax_engine_rev.mp3 > SHA256SUMS.txt)
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path("issue30-car-audio")
+          meta={
+            "issue":30,
+            "source_pages":[
+              "https://pixabay.com/sound-effects/film-special-effects-muscle-car-engine-idling-437781/",
+              "https://pixabay.com/sound-effects/film-special-effects-car-engine-roaring-376881/"
+            ],
+            "license":"Pixabay Content License",
+            "files":{p.name:p.stat().st_size for p in root.glob("*.mp3")}
+          }
+          (root/"SOURCE.json").write_text(json.dumps(meta,indent=2)+"\n")
+          PY
+
+      - name: Issue 30 - upload engine source artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue30-car-audio-${{ github.sha }}
+          path: issue30-car-audio
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
       - name: Only report - no Unity, no APK and no physical collider changes
         if: always()
         run: |
