@@ -943,34 +943,55 @@ public static class BraxChampionsHotelSobczakT03
         // triangular suggestion from two roof beams
         B(root,"Central pediment left slope",M.stucco,-4f,126.5f,-20.55f,9.0f,.48f,.7f,false,1.8f).transform.localRotation=Quaternion.Euler(0,0,19f);
         B(root,"Central pediment right slope",M.stucco,4f,126.5f,-20.55f,9.0f,.48f,.7f,false,1.8f).transform.localRotation=Quaternion.Euler(0,0,-19f);
-        AddBlockSign("HOTEL SOBCZAK",0,8.25f,-21.58f);
+        AddClassicSign("HOTEL SOBCZAK",0,8.25f,-21.58f);
     }
 
-    static readonly Dictionary<char,string[]> Font=new Dictionary<char,string[]>{
-        {'A',new[]{"01110","10001","10001","11111","10001","10001","10001"}},
-        {'B',new[]{"11110","10001","10001","11110","10001","10001","11110"}},
-        {'C',new[]{"01111","10000","10000","10000","10000","10000","01111"}},
-        {'E',new[]{"11111","10000","10000","11110","10000","10000","11111"}},
-        {'H',new[]{"10001","10001","10001","11111","10001","10001","10001"}},
-        {'K',new[]{"10001","10010","10100","11000","10100","10010","10001"}},
-        {'L',new[]{"10000","10000","10000","10000","10000","10000","11111"}},
-        {'O',new[]{"01110","10001","10001","10001","10001","10001","01110"}},
-        {'S',new[]{"01111","10000","10000","01110","00001","00001","11110"}},
-        {'T',new[]{"11111","00100","00100","00100","00100","00100","00100"}},
-        {'Z',new[]{"11111","00001","00010","00100","01000","10000","11111"}}
-    };
-    static void AddBlockSign(string text,float cx,float cy,float z)
+    static void SignStroke(Transform p,string name,float x1,float y1,float x2,float y2,float z)
     {
-        float px=.10f,gap=.030f,charW=5*px+4*gap,space=.34f;
-        float total=text.Sum(c=>c==' '?space:charW+.18f)-.18f,x0=cx-total*.5f;
-        float cursor=x0;
+        const float stroke=.085f,depth=.12f;
+        float dx=x2-x1,dy=y2-y1,len=Mathf.Sqrt(dx*dx+dy*dy);
+        float mx=(x1+x2)*.5f,my=(y1+y2)*.5f;
+        var bar=B(p,name,M.brass,mx,my,z,len+stroke,stroke,depth,false);
+        bar.transform.localRotation=Quaternion.Euler(0,0,Mathf.Atan2(dy,dx)*Mathf.Rad2Deg);
+    }
+    static void ClassicGlyph(char c,float x,float y,float z)
+    {
+        const float w=.52f,h=.90f,m=.45f;
+        void S(string n,float x1,float y1,float x2,float y2)=>SignStroke(root,"HOTEL SOBCZAK 3D "+c+" "+n,x+x1,y+y1,x+x2,y+y2,z);
+        switch(c)
+        {
+            case 'H': S("L",0,0,0,h);S("R",w,0,w,h);S("M",0,m,w,m);break;
+            case 'O': S("T",0,h,w,h);S("B",0,0,w,0);S("L",0,0,0,h);S("R",w,0,w,h);break;
+            case 'T': S("T",0,h,w,h);S("V",w*.5f,0,w*.5f,h);break;
+            case 'E': S("V",0,0,0,h);S("T",0,h,w,h);S("M",0,m,w*.88f,m);S("B",0,0,w,0);break;
+            case 'L': S("V",0,0,0,h);S("B",0,0,w,0);break;
+            case 'S': S("T",0,h,w,h);S("UL",0,m,0,h);S("M",0,m,w,m);S("LR",w,0,w,m);S("B",0,0,w,0);break;
+            case 'B': S("V",0,0,0,h);S("T",0,h,w*.82f,h);S("M",0,m,w*.82f,m);S("B",0,0,w*.82f,0);S("UR",w*.82f,m,w*.82f,h);S("LR",w*.82f,0,w*.82f,m);break;
+            case 'C': S("T",0,h,w,h);S("V",0,0,0,h);S("B",0,0,w,0);break;
+            case 'Z': S("T",0,h,w,h);S("D",w,h,0,0);S("B",0,0,w,0);break;
+            case 'A': S("L",0,0,w*.5f,h);S("R",w*.5f,h,w,0);S("M",w*.19f,m,w*.81f,m);break;
+            case 'K': S("V",0,0,0,h);S("U",0,m,w,h);S("D",0,m,w,0);break;
+            default: S("T",0,h,w,h);S("B",0,0,w,0);break;
+        }
+        // restrained classic serif caps: small brass bars at vertical extrema.
+        if(c=='H'||c=='E'||c=='L'||c=='B'||c=='K'||c=='C')
+        {
+            S("serif top",-0.06f,h,.14f,h);
+            S("serif bottom",-0.06f,0,.14f,0);
+        }
+    }
+    static void AddClassicSign(string text,float cx,float cy,float z)
+    {
+        const float glyph=.52f,spacing=.16f,space=.34f;
+        float total=0;
+        foreach(char c in text)total+=c==' '?space:glyph+spacing;
+        total-=spacing;
+        float cursor=cx-total*.5f;
         foreach(char c in text)
         {
             if(c==' '){cursor+=space;continue;}
-            var rows=Font[c];
-            for(int r=0;r<7;r++)for(int col=0;col<5;col++)if(rows[r][col]=='1')
-                B(root,"HOTEL SOBCZAK 3D letter "+c,M.brass,cursor+col*(px+gap),cy+(3-r)*(px+gap),z,px,px,.12f,false);
-            cursor+=charW+.18f;
+            ClassicGlyph(c,cursor,cy-.45f,z);
+            cursor+=glyph+spacing;
         }
     }
 
