@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: champions-scene-gate-once-20261107
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   source-gate:
