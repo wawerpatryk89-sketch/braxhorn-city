@@ -682,7 +682,16 @@ jobs:
           from pathlib import Path
           from PIL import Image, ImageStat
           files=list(Path('mistrzowie-visual-review').glob('*.png'))
-          assert len(files)==5, 'Five real player frames required'
+          names={p.name for p in files}
+          hotel_required={
+              '01-front-day.png','02-front-night.png','03-three-quarter-left.png','04-three-quarter-right.png',
+              '05-side.png','06-rear.png','07-entrance-portico.png','08-lobby.png','09-reception.png','10-bar.png',
+              '11-restaurant.png','12-spa.png','13-fitness.png','14-typical-corridor.png','15-standard-room.png',
+              '16-bathroom.png','17-elevators.png','18-stair.png','19-b1.png','20-b2.png','21-roof-mansard.png'}
+          if '21-roof-mansard.png' in names:
+              assert names==hotel_required, 'HOTEL SOBCZAK requires exactly the 21 owner acceptance frames'
+          else:
+              assert len(files)==5, 'Generic Champions review requires five real player frames'
           for path in files:
               with Image.open(path) as frame:
                   assert frame.width >= 1000 and frame.height >= 600
