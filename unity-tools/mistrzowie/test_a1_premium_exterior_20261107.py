@@ -68,6 +68,7 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn(".038f,7.88f,.120f,.018f", self.arrival)
         self.assertIn("rings.Add((back,bevel))", self.arrival)
         self.assertIn("bevel*Mathf.Cos(theta)", self.arrival)
+        self.assertIn("(x:front,inset:0f,frontFace:true)", self.arrival)
         self.assertIn("gold_column_front_width=.120 projection=.030 totalDepth=.038 embedded=.008 edge_R=.018 capsule_end_R=.060", self.arrival)
         self.assertGreaterEqual(2.20, 2.0)
         self.assertGreaterEqual(.85, .70)
