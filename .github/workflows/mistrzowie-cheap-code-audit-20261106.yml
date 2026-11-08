@@ -12,6 +12,10 @@ on:
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1Pbr2K.cs
       - unity-tools/mistrzowie/test_build18_recovery_and_delivery.py
       - unity-tools/mistrzowie/test_pool_p1_towels_uv.py
+      - unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakT03.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakMaterials.cs
+      - unity-city/Assets/Mistrzowie/BraxHotelSobczakFloorStreamer.cs
       - unity-tools/mistrzowie/repair_pool_p1_towels.py
       - unity-tools/mistrzowie/import_pool_p1_owner_assets.py
   workflow_dispatch:
