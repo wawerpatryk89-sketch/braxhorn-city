@@ -329,8 +329,8 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('Bathroom shower tray 1.20x0.90",M.marbleWet', self.generator)
 
     def test_scene_audit_parking_regex_and_material_matrix_are_real(self):
-        self.assertIn(r'@"^B1 PARK \\d{2}( ACCESSIBLE)? back$"', self.scene_audit)
-        self.assertIn(r'@"^B2 PARK \\d{2}( ACCESSIBLE)? back$"', self.scene_audit)
+        self.assertIn(r'@"^B1 PARK \d{2}( ACCESSIBLE)? back$"', self.scene_audit)
+        self.assertIn(r'@"^B2 PARK \d{2}( ACCESSIBLE)? back$"', self.scene_audit)
         for token in ["normalStrength","tilingMeters","zones","unmappedMaterialCount","materialMappingPass"]:
             self.assertIn(token,self.scene_audit)
 
