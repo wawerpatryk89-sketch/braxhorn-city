@@ -1,11 +1,7 @@
 name: Miasto R1 — jednorazowe zlecenie APK 08.11.2026
-# Only the owner-requested build. This workflow never runs from game source commits.
+# Owner-requested build only. Manual dispatch only: editing this file must never launch R1.
 on:
-  push:
-    branches:
-      - claude/miasto-opus-20261031
-    paths:
-      - .github/workflows/r1-owner-authorized-apk-once-20261107.yml
+  workflow_dispatch:
 
 permissions:
   contents: read
