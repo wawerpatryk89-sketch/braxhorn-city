@@ -62,7 +62,9 @@ public static class BraxChampionsHotelSobczakT03
         BuildRoof();
         BuildPorticoAndSign();
         BuildFacadePilasters();
+        BuildBalconiesAndRustication();
         BuildLighting();
+        BuildProbes();
         BuildExteriorLOD();
 
         if(roomsBuilt!=TotalRooms)throw new InvalidOperationException("HOTEL SOBCZAK room count "+roomsBuilt+" != 420");
@@ -331,6 +333,20 @@ public static class BraxChampionsHotelSobczakT03
         return g.gameObject;
     }
 
+    static void IndoorPlant(Transform p,string name,float x,float y,float z)
+    {
+        Cyl(p,name+" brass planter",M.brass,x,y+.28f,z,.72f,.56f,true);
+        Cyl(p,name+" trunk",M.oak,x,y+.95f,z,.12f,.85f,false);
+        Sph(p,name+" foliage",M.foliage,x,y+1.45f,z,1.10f,false);
+    }
+    static void RestaurantTable2(Transform p,float x,float y,float z)
+    {
+        Cyl(p,"Restaurant 2-seat brass pedestal",M.brass,x,y+.36f,z,.16f,.72f,true);
+        Cyl(p,"Restaurant 2-seat marble top",M.marble,x,y+.75f,z,.82f,.08f,true);
+        DiningChair(p,x-.78f,y,z,90f);
+        DiningChair(p,x+.78f,y,z,-90f);
+    }
+
     // ---------------------------------------------------------------- PUBLIC GROUND
     static void BuildGroundFloor()
     {
@@ -344,8 +360,8 @@ public static class BraxChampionsHotelSobczakT03
         Area(g,"RECEPCJA 60m2",M.marble,0,.022f,-12.30f,12f,5f);
         Area(g,"LOBBY 350m2",M.marble,0,.022f,-1.50f,25f,14f);
         Area(g,"BAR CAFE LOUNGE 180m2",M.parquet,0,.022f,10.0f,30f,6f);
-        Area(g,"TOALETA M 40m2",M.marble,-15f,.022f,17.5f,8f,5f);
-        Area(g,"TOALETA K 40m2",M.marble,15f,.022f,17.5f,8f,5f);
+        Area(g,"TOALETA M 40m2",M.marbleWet,-15f,.022f,17.5f,8f,5f);
+        Area(g,"TOALETA K 40m2",M.marbleWet,15f,.022f,17.5f,8f,5f);
         Area(g,"BAGAZ 50m2",M.oak,-26f,.022f,-12.5f,10f,5f);
         Area(g,"CONCIERGE 40m2",M.marble,26f,.022f,-12.5f,8f,5f);
 
@@ -355,9 +371,10 @@ public static class BraxChampionsHotelSobczakT03
         B(g,"Vestibule rear glass L",M.glass,-2.9f,2.0f,-15.6f,2.2f,3.8f,.08f,false);
         B(g,"Vestibule rear glass R",M.glass,2.9f,2.0f,-15.6f,2.2f,3.8f,.08f,false);
 
-        B(g,"Reception oak body",M.oak,0,.68f,-12.3f,11.6f,1.10f,.82f,true,1.2f);
-        B(g,"Reception marble top",M.marble,0,1.27f,-12.3f,12.0f,.12f,.90f,true,1.5f);
-        for(float x=-5.2f;x<=5.2f;x+=2.6f)B(g,"Reception brass division",M.brass,x,.72f,-12.73f,.06f,1.0f,.05f,false);
+        // Owner: reception worktop top surface must be 1.10-1.15 m.
+        B(g,"Reception oak body",M.oak,0,.525f,-12.3f,11.6f,1.05f,.82f,true,1.2f);
+        B(g,"Reception marble top",M.marble,0,1.10f,-12.3f,12.0f,.10f,.90f,true,1.5f);
+        for(float x=-5.2f;x<=5.2f;x+=2.6f)B(g,"Reception brass division",M.brass,x,.50f,-12.73f,.06f,.90f,.05f,false);
 
         foreach(float x in new[]{-7.5f,0f,7.5f})
         {
@@ -366,6 +383,7 @@ public static class BraxChampionsHotelSobczakT03
             DiningChair(g,x-2.55f,0f,.5f,90f);
             DiningChair(g,x+2.55f,0f,.5f,-90f);
         }
+        foreach(float x in new[]{-10.5f,0f,10.5f})IndoorPlant(g,"Lobby indoor plant",x,0f,4.8f);
 
         B(g,"Cafe oak bar body",M.oak,0,.70f,10.8f,13f,1.15f,.90f,true,1.2f);
         B(g,"Cafe marble bar top",M.marble,0,1.32f,10.8f,13.4f,.12f,1.08f,true,1.5f);
@@ -425,6 +443,8 @@ public static class BraxChampionsHotelSobczakT03
             DiningChair(g,x,6.0f,z-.95f,0f);
             DiningChair(g,x,6.0f,z+.95f,180f);
         }
+        RestaurantTable2(g,-24.5f,6.0f,-10f);
+        RestaurantTable2(g,-9.5f,6.0f,-10f);
         // Buffet and kitchen: hot line, prep, dishwash, cold store and storage.
         B(g,"Restaurant buffet oak body",M.oak,-17f,6.70f,-6.3f,8.0f,1.0f,.90f,true,1.2f);
         B(g,"Restaurant buffet marble top",M.marble,-17f,7.25f,-6.3f,8.2f,.10f,1.0f,true,1.5f);
@@ -442,7 +462,7 @@ public static class BraxChampionsHotelSobczakT03
         }
         B(g,"SPA clear glass relaxation divider",M.glass,10.5f,7.55f,4.5f,20f,2.7f,.06f,false);
         B(g,"SPA reception oak desk",M.oak,1.0f,6.65f,3.2f,4.0f,1.0f,.80f,true,1.2f);
-        B(g,"SPA wet-zone marble floor",M.marble,16.5f,6.022f,13f,8f,.035f,5f,false,1.5f);
+        B(g,"SPA wet-zone marble floor",M.marbleWet,16.5f,6.022f,13f,8f,.035f,5f,false,1.5f);
         for(float x=13.5f;x<=19.5f;x+=3f)B(g,"SPA shower glass",M.glass,x,7.45f,14.0f,2.0f,2.4f,.06f,false);
         for(float x=2f;x<=14f;x+=4f)
         {
@@ -751,7 +771,7 @@ public static class BraxChampionsHotelSobczakT03
 
         // Bathroom exactly 2.40 x 3.00 m, 0.12 m partitions, 0.80 x 2.10 m door.
         float bathX=x-1.80f,bathZ=innerZ+side*1.50f;
-        B(g,"Bathroom marble floor",M.marble,bathX,.022f,bathZ,2.40f,.035f,3.00f,false,1.5f);
+        B(g,"Bathroom marble floor",M.marbleWet,bathX,.022f,bathZ,2.40f,.035f,3.00f,false,1.5f);
         B(g,"Bathroom privacy wall",M.stucco,x-.60f,1.65f,bathZ,.12f,3.3f,3.00f,true,1.8f);
         float bathDoorZ=innerZ+side*3.00f;
         B(g,"Bathroom bedroom wall left",M.stucco,x-2.60f,1.65f,bathDoorZ,.80f,3.3f,.12f,true,1.8f);
@@ -759,7 +779,7 @@ public static class BraxChampionsHotelSobczakT03
         B(g,"Bathroom 0.80m door header",M.stucco,x-1.80f,2.70f,bathDoorZ,.80f,1.20f,.12f,true,1.8f);
         B(g,"Bathroom brass threshold",M.brass,x-1.80f,.04f,bathDoorZ-side*.08f,.80f,.04f,.14f,false);
         B(g,"Bathroom oak door leaf OPEN",M.oak,x-2.17f,1.05f,bathDoorZ-side*.38f,.06f,2.10f,.74f,false,1.2f);
-        B(g,"Bathroom shower tray 1.20x0.90",M.marble,x-2.20f,.055f,bathZ+side*.80f,1.20f,.06f,.90f,true,1.5f);
+        B(g,"Bathroom shower tray 1.20x0.90",M.marbleWet,x-2.20f,.055f,bathZ+side*.80f,1.20f,.06f,.90f,true,1.5f);
         B(g,"Bathroom glass shower 1.20 front",M.glass,x-2.20f,1.10f,bathZ+side*.35f,1.20f,2.0f,.06f,false);
         B(g,"Bathroom glass shower 0.90 side",M.glass,x-2.80f,1.10f,bathZ+side*.80f,.06f,2.0f,.90f,false);
         B(g,"Bathroom vanity",M.marble,x-1.85f,.58f,bathZ-side*.80f,1.55f,.18f,.55f,true,1.5f);
@@ -838,7 +858,10 @@ public static class BraxChampionsHotelSobczakT03
             landL[n]=DoorLeaf(e,"Landing "+names[n]+" left",x-doorW*.25f,yy,doorZ,M.darkBronze,M.glass,leafW);
             landR[n]=DoorLeaf(e,"Landing "+names[n]+" right",x+doorW*.25f,yy,doorZ,M.darkBronze,M.glass,leafW);
             B(e,"Landing "+names[n]+" brass lintel",M.brass,x,yy+2.30f,doorZ-.03f,shaftW,.12f,.12f,false);
-            calls[n]=usable[n]?root.TransformPoint(new Vector3(x,yy+1.2f,z-2.10f)*K):Vector3.zero;
+            float panelX=x+shaftW*.5f+.18f;
+            B(e,"Landing "+names[n]+" call panel",M.darkBronze,panelX,yy+1.22f,doorZ-.05f,.22f,.52f,.07f,false);
+            B(e,"Landing "+names[n]+" call button",M.warmLight,panelX,yy+1.24f,doorZ-.095f,.08f,.08f,.03f,false);
+            calls[n]=usable[n]?root.TransformPoint(new Vector3(panelX,yy+1.2f,doorZ-.55f)*K):Vector3.zero;
         }
 
         var cabin=Group(e,"Moving premium cabin");
@@ -1003,6 +1026,51 @@ public static class BraxChampionsHotelSobczakT03
             ClassicGlyph(c,cursor,cy-.45f,z);
             cursor+=glyph+spacing;
         }
+    }
+
+    static void Balcony(Transform p,string name,float x,float y)
+    {
+        B(p,name+" slab",M.stucco,x,y,-21.55f,4.6f,.16f,1.10f,false,1.8f);
+        B(p,name+" front rail",M.stucco,x,y+.70f,-22.04f,4.35f,.16f,.14f,false,1.8f);
+        foreach(float px in new[]{-1.9f,-1.25f,-.60f,0f,.60f,1.25f,1.9f})
+            B(p,name+" baluster",M.stucco,x+px,y+.40f,-22.04f,.12f,.72f,.12f,false,1.8f);
+    }
+    static void BuildBalconiesAndRustication()
+    {
+        Balcony(root,"Front balcony LEFT floor2",-18f,9.76f);
+        Balcony(root,"Front balcony CENTRAL floor2",0f,9.76f);
+        Balcony(root,"Front balcony RIGHT floor2",18f,9.76f);
+        Balcony(root,"Front balcony CENTRAL upper",0f,113.15f);
+
+        // Classical corner rustication / boniowanie as real geometry, never a flat decal.
+        foreach(float sx in new[]{-1f,1f})foreach(float sz in new[]{-1f,1f})
+            for(int i=0;i<8;i++)
+                B(root,"Classical corner rustication",M.stucco,sx*31.92f,.42f+i*.72f,sz*20.98f,
+                  .82f,.46f,.56f,false,1.8f);
+    }
+
+    static void BuildProbes()
+    {
+        var pg=Group(root,"T03 LIGHT PROBES");
+        var probes=pg.gameObject.AddComponent<LightProbeGroup>();
+        probes.probePositions=new[]{
+            new Vector3(-10f,1.4f,-4f),new Vector3(0f,1.4f,-4f),new Vector3(10f,1.4f,-4f),
+            new Vector3(-10f,4.6f,2f),new Vector3(0f,4.6f,2f),new Vector3(10f,4.6f,2f),
+            new Vector3(-15f,7.4f,-10f),new Vector3(0f,7.4f,0f),new Vector3(15f,7.4f,-10f),
+            new Vector3(-18f,11.0f,0f),new Vector3(0f,11.0f,0f),new Vector3(18f,11.0f,0f)
+        }.Select(v=>v*K).ToArray();
+
+        void Probe(string name,Vector3 pos,Vector3 size,int importance)
+        {
+            var o=new GameObject(name);o.transform.SetParent(root,false);o.transform.localPosition=pos*K;
+            var p=o.AddComponent<ReflectionProbe>();
+            p.mode=ReflectionProbeMode.Baked;p.refreshMode=ReflectionProbeRefreshMode.ViaScripting;
+            p.timeSlicingMode=ReflectionProbeTimeSlicingMode.NoTimeSlicing;p.resolution=128;
+            p.size=size*K;p.boxProjection=true;p.importance=importance;p.intensity=1f;
+        }
+        Probe("T03 exterior baked reflection probe",new Vector3(0,28,-5),new Vector3(72,58,52),1);
+        Probe("T03 lobby baked reflection probe",new Vector3(0,2.6f,-2),new Vector3(30,5.2f,28),2);
+        Probe("T03 floor1 baked reflection probe",new Vector3(0,7.8f,0),new Vector3(58,3.2f,36),2);
     }
 
     static void BuildLighting()
