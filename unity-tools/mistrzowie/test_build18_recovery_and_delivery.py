@@ -120,11 +120,15 @@ class Build18Regression(unittest.TestCase):
             self.assertIn(check, advisory)
         self.assertIn("status='PASS' if code==0 else 'WARNING'", advisory)
 
-    def test_owner_sign_dimensions_cannot_block_test_apk(self):
+    def test_owner_sign_dimensions_are_verified_early_to_protect_original_artwork(self):
         casino = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11.cs")
+        build = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs")
         self.assertIn("if(width!=2048||height!=512)", casino)
-        self.assertIn("BraxBuildQuality.Warn(\"Original owner sign source dimensions differ:", casino)
-        self.assertNotIn("throw new InvalidOperationException(\"Original owner sign source dimensions changed:", casino)
+        self.assertIn('throw new InvalidOperationException("Original owner sign dimensions changed:', casino)
+        self.assertIn("C1 KASYNO WAWER source SHA-256 differs from owner manifest", casino)
+        self.assertIn("BraxChampionsCasinoT11.VerifyOriginalSigns();", build)
+        self.assertLess(build.index("BraxChampionsCasinoT11.VerifyOriginalSigns();"),
+                        build.index("BraxChampionsFoundation.Generate();"))
 
     def test_source_only_never_starts_unity_or_signing(self):
         wf = read(".github/workflows/mistrzowie-cheap-code-audit-20261106.yml")

@@ -30,7 +30,10 @@ class ArenaPhoneRegressions(unittest.TestCase):
         self.assertNotIn("BoxMinMax(rope, x - .025f",self.arena)
 
     def test_facade_is_smoked_and_not_overgridded(self):
-        self.assertIn('new Color(.22f,.25f,.29f,.30f)',self.buildings)
+        # Approved 8 Nov: darker glossy graphite glazing on BOTH A1 levels.
+        self.assertIn('new Color(.18f,.20f,.23f,.48f)',self.buildings)
+        self.assertIn('glass.SetFloat("_ReflectionStrength",.62f);',self.buildings)
+        self.assertIn('var clear=Surface("clear_glass",new Color(.78f,.88f,.93f,.19f)',self.buildings)
         self.assertIn("else if(i%3==0)",self.arrival)
         self.assertIn("ISSUE27_black_belt_360_y10p85_to18p55",self.arrival)
 
