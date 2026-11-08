@@ -316,5 +316,34 @@
       3
     ],
     "central_pavilion_width_m": 18
+  },
+  "lod": {
+    "lod0": "full cornices frames dormers stucco windows balconies portico",
+    "lod1": "simplified body cornices portico windows mansard",
+    "lod2": "silhouette roof main openings and facade divisions",
+    "screen_relative_transition": [
+      0.12,
+      0.04,
+      0.006
+    ]
+  },
+  "lighting": {
+    "exterior_kelvin": [
+      2700,
+      3000
+    ],
+    "lobby_restaurant_kelvin": 3000,
+    "room_kelvin": [
+      2700,
+      3000
+    ],
+    "spa_kelvin": 2700,
+    "fitness_kelvin": 3500,
+    "kitchen_kelvin": [
+      3500,
+      4000
+    ],
+    "repeated_rooms": "emissive_only",
+    "realtime_lights": "limited_public_and_exterior"
   }
 }
