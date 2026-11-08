@@ -806,18 +806,19 @@ public static class BraxChampionsArenaArrival
 
     static float ActualFloorYNominal(Transform arenaRoot,float x,float z)
     {
-        // BraxChampionsBuildings temporarily moves the reusable A1 root to world
-        // zero before generating/saving the prefab. The FOUNDATION remains at
-        // the approved world plot centre (600,800), therefore the grounding
-        // raycast must be cast at the true plot coordinates, not TransformPoint
-        // through the temporarily-zero prefab root.
-        const float plotX=600f,plotZ=800f;
+        // During prefab generation BraxChampionsBuildings intentionally moves
+        // the reusable A1 root to world zero. The A1 structural slab/colliders
+        // move with that root, so grounding must query THIS A1 geometry before
+        // the prefab is restored to plot (600,800). Querying the separate world
+        // foundation here hit its underside at y=-0.25 instead of the arena
+        // arrival slab (nominal top ~0.16m).
         Physics.SyncTransforms();
-        var start=new Vector3((plotX+x)*K,20f*K,(plotZ+z)*K);
+        var start=arenaRoot.TransformPoint(new Vector3(x,20f,z)*K);
         if(!Physics.Raycast(start,Vector3.down,out var hit,50f*K,~0,QueryTriggerInteraction.Ignore))
-            throw new InvalidOperationException("Issue27 canopy support floor raycast missed at world plot x="+
-                (plotX+x)+" z="+(plotZ+z));
-        return hit.point.y/K;
+            throw new InvalidOperationException("Issue27 canopy support floor raycast missed at A1 local x="+
+                x+" z="+z);
+        float localScaled=arenaRoot.InverseTransformPoint(hit.point).y;
+        return localScaled/K;
     }
 
     static void PremiumExterior(Transform arenaRoot,Dictionary<string,Material> exterior)
