@@ -89,8 +89,16 @@ class PolyHavenSourceTests(unittest.TestCase):
         self.assertEqual(
             validate_4k_dimensions("velour_velvet_diff_4k.jpg",(4096,3941),True),
             (4096,3941))
+        self.assertEqual(
+            validate_4k_dimensions("poly_wool_herringbone_diff_4k.jpg",(4096,4181),True),
+            (4096,4181))
+        self.assertEqual(
+            validate_4k_dimensions("provider_landscape_4k.jpg",(8192,4096),True),
+            (8192,4096))
         with self.assertRaisesRegex(RuntimeError,"provider-native 4K"):
             validate_4k_dimensions("too_small.jpg",(2048,2048),True)
+        with self.assertRaisesRegex(RuntimeError,"provider-native 4K"):
+            validate_4k_dimensions("too_narrow.jpg",(4096,1024),True)
         with self.assertRaisesRegex(RuntimeError,"4096x4096"):
             validate_4k_dimensions("ambientcg_square.jpg",(4096,3941),False)
 
