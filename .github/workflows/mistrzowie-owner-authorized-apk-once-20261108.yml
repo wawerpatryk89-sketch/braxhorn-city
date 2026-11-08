@@ -1,0 +1,52 @@
+name: Miasto Mistrzów — jednorazowe zlecenie APK 08.11.2026
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-owner-authorized-apk-once-20261108.yml
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: mistrzowie-owner-apk-once-20261108
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Odczytaj tylko workflow zlecenia
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 2
+          sparse-checkout: |
+            .github/workflows/
+      - name: Potwierdz poprawke po APK 29 i uruchom dokladnie jeden nowy APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FIXED_PARENT: d53aca4fe8c9abf5c8735180132680b7fdfe8c7f
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "$FIXED_PARENT" || {
+            echo "::error::Gałąź Miasta Mistrzów zmieniła się przed zleceniem APK"; exit 1;
+          }
+          active="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow mistrzowie-apk.yml --branch "$GITHUB_REF_NAME" --limit 30 --json status | jq '[.[] | select(.status != "completed")] | length')"
+          test "$active" -eq 0 || { echo "::error::Inny build Miasta Mistrzów już działa"; exit 1; }
+          gh workflow run mistrzowie-apk.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$GITHUB_REF_NAME" \
+            -f commit="$GITHUB_SHA" \
+            -f etap=apk \
+            -f kontrola_tras=false \
+            -f zdjecia=false \
+            -f recovery_run= \
+            -f base_id= \
+            -f arena_assets_tag=champions-a1-20261105 \
+            -f p1_assets_tag=p1-basen-spa-20261106 \
+            -f zapisz_audyt=false
+          echo "MISTRZOWIE_OWNER_AUTHORIZED_APK_DISPATCHED=1"
