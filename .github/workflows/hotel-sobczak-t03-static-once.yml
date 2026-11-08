@@ -1,0 +1,40 @@
+name: HOTEL SOBCZAK T03 — one-shot static contract — NO UNITY NO APK
+run-name: HOTEL SOBCZAK T03 — owner final contract static check
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-hotel-sobczak-t03-20261108
+    paths:
+      - .github/workflows/hotel-sobczak-t03-static-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  t03-static:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Checkout only T03 contract and validators
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/validation
+            unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py
+            unity-tools/mistrzowie/hotel_sobczak_t03_spec.json
+            unity-tools/mistrzowie/plan_inventory.json
+            unity-tools/mistrzowie/prepare_assets.py
+            unity-city/Assets/Editor/Mistrzowie
+            unity-city/Assets/Mistrzowie/BraxHotelSobczakFloorStreamer.cs
+      - name: Python syntax
+        run: python3 -m py_compile unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py
+      - name: CSharp parser scope check
+        run: |
+          python3 -m pip install -q -r unity-tools/validation/requirements.txt
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Editor/Mistrzowie unity-city/Assets/Mistrzowie/BraxHotelSobczakFloorStreamer.cs
+      - name: T03 authoritative contract
+        run: python3 -m unittest unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py -v
+      - name: Summary
+        run: echo 'HOTEL SOBCZAK T03 static/source contract only. Unity and APK were not executed.' >> "$GITHUB_STEP_SUMMARY"
