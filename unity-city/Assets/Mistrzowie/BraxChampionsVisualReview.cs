@@ -70,7 +70,7 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
 
         player.enabled=false;
         if(player.body)player.body.enabled=false;
-        if(player.visual)player.visual.SetActive(false);
+        if(player.visual)player.visual.gameObject.SetActive(false);
         var follow=view.GetComponent<BraxClaudeKamera>();if(follow)follow.enabled=false;
 
         var sun=RenderSettings.sun;
@@ -81,7 +81,7 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
         for(int i=0;i<positions.Length;i++)
         {
             bool night=nightFrames!=null&&nightFrames.Length==labels.Length&&nightFrames[i];
-            if(sun)sun.intensity=night?.06f:daySun;
+            if(sun)sun.intensity=night ? 0.06f : daySun;
             RenderSettings.ambientSkyColor=night?new Color(.025f,.04f,.09f):daySky;
             RenderSettings.ambientEquatorColor=night?new Color(.035f,.04f,.065f):dayEq;
             RenderSettings.ambientGroundColor=night?new Color(.018f,.02f,.03f):dayGround;
