@@ -51,10 +51,10 @@ class ArenaPhoneRegressions(unittest.TestCase):
         self.assertNotIn("CHAMPIONS_VIP_UPRIGHT_UNCERTAIN",self.vip)
 
     def test_hd_murals_are_not_crushed_to_2k(self):
-        self.assertIn("android.maxTextureSize=4096",self.mural)
+        self.assertIn("android.maxTextureSize=8192",self.mural)
         self.assertIn("TextureImporterFormat.ASTC_4x4",self.mural)
         self.assertIn("MURAL_WEJSCIE_CHAMPION_FIGHTER_6144x2048.png",self.mural)
-        self.assertIn("android.maxTextureSize=4096",self.side)
+        self.assertIn("android.maxTextureSize=8192",self.side)
         self.assertIn("MURAL_LEWA_ZAWODNICY_6144x2048.png",self.side)
         self.assertIn("MURAL_PRAWA_PAS_6144x2048.png",self.side)
         self.assertIn("NO FALLBACK",self.side)
