@@ -1,0 +1,31 @@
+name: Issue 30 car audio — source verification only — NO UNITY NO APK
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/issue30-car-audio-verify-temp.yml
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets/Source/Mistrzowie/Audio/BraxCar
+            unity-city/Assets/Mistrzowie/BraxChampionsCar.cs
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs
+            unity-tools/mistrzowie/champion_car_audio_sources.json
+            unity-tools/mistrzowie/prepare_champion_car_audio.py
+            unity-tools/mistrzowie/test_issue30_car_audio.py
+      - name: Verify committed real-audio hashes and attribution
+        run: python3 unity-tools/mistrzowie/prepare_champion_car_audio.py
+      - name: Run Issue 30 audio regression
+        run: python3 unity-tools/mistrzowie/test_issue30_car_audio.py -v
+      - name: Prove scope
+        run: echo 'ISSUE30_SOURCE_ONLY_PASS; UNITY_NOT_RUN; APK_NOT_BUILT'
