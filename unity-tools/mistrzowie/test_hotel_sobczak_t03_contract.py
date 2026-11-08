@@ -53,6 +53,17 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("if(roomsBuilt!=TotalRooms)", self.generator)
         self.assertIn('Group(p,"ROOM "+number+" | bay 6.00x19.40 | sleep module 3.50x7.00")', self.generator)
 
+    def test_premium_furniture_is_not_single_block_proxy(self):
+        for token in [
+            "PremiumSofa(", "PremiumCoffeeTable(", "DiningChair(", "BarStool(",
+            "PremiumDesk(", "Restaurant brass pedestal", "Dining chair brass leg",
+            "Cafe stool leather back", "Room side table brass pedestal",
+            "SPA treatment bed leg", "SPA lounger brass base"
+        ]:
+            self.assertIn(token, self.generator)
+        self.assertNotIn('"Lobby leather sofa",M.leather', self.generator)
+        self.assertNotIn('"Cafe brass stool",M.brass', self.generator)
+
     def test_public_area_math(self):
         expected = {
             "reception": 60, "lobby": 350, "bar_cafe": 180, "wc_m": 40, "wc_f": 40,
