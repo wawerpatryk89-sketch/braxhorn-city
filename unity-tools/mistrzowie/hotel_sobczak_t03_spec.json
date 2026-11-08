@@ -148,7 +148,8 @@
       "riser_m": 0.1667,
       "tread_m": 0.29
     },
-    "landing_call_panels": true
+    "landing_call_panels": true,
+    "stair_handrails": "dark_bronze_with_brass_landing_detail"
   },
   "parking": {
     "B1": 40,
@@ -233,7 +234,8 @@
     },
     "sign": "HOTEL SOBCZAK",
     "balconies_lod0": true,
-    "rustication_real_geometry": true
+    "rustication_real_geometry": true,
+    "main_entrance_frame": "dark_bronze_with_brass_mullions"
   },
   "materials": {
     "facade": "beige_wall_001",
@@ -490,5 +492,9 @@
     "metallic",
     "roughness",
     "screenshot"
-  ]
+  ],
+  "material_normal_strength": {
+    "exterior_white_stucco_02": 0.25,
+    "interior_ceiling_white_stucco_02": 0.15
+  }
 }
