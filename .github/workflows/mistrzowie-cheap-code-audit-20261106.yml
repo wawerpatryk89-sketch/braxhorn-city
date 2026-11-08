@@ -33,6 +33,10 @@ jobs:
             unity-tools/validation
             unity-tools/mistrzowie/test_build18_recovery_and_delivery.py
             unity-tools/mistrzowie/test_pool_p1_towels_uv.py
+            unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py
+            unity-tools/mistrzowie/hotel_sobczak_t03_spec.json
+            unity-tools/mistrzowie/plan_inventory.json
+            unity-tools/mistrzowie/prepare_assets.py
             unity-tools/mistrzowie/repair_pool_p1_towels.py
             unity-tools/mistrzowie/import_pool_p1_owner_assets.py
             unity-tools/mistrzowie/prepare_casino_textures_2k.py
@@ -63,5 +67,6 @@ jobs:
         run: |
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_build18_recovery_and_delivery.py' -v
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_pool_p1_towels_uv.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_hotel_sobczak_t03_contract.py' -v
       - name: Source-only report
         run: echo 'Szybka kontrola plików C# i .meta; nie wykonywano Unity, buildu APK ani testu telefonu.' >> "$GITHUB_STEP_SUMMARY"
