@@ -191,12 +191,21 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("hotelGenerated=true", near)
         self.assertIn("BraxChampionsHotelSobczakMaterials.VerifySources();", self.build)
 
+    def test_guest_floors_are_30_instances_of_one_base_prefab(self):
+        self.assertIn('GuestFloorTemplate.prefab', self.generator)
+        self.assertIn('PrefabUtility.SaveAsPrefabAsset(templateRoot,templatePath)', self.generator)
+        self.assertIn('PrefabUtility.InstantiatePrefab(templatePrefab,guestInteriors)', self.generator)
+        self.assertIn('PREFAB INSTANCE', self.generator)
+        self.assertIn('roomsBuilt+=RoomsPerFloor', self.generator)
+        self.assertIn('RenumberGuestFloor(instance.transform,f+2)', self.generator)
+        self.assertIn('roomsBuilt=0;', self.generator)
+
     def test_mobile_streaming_exists(self):
         self.assertIn("guestInteriors", self.streamer)
         self.assertIn("neighbourFloors = 1", self.streamer)
         self.assertIn("SetActive(on)", self.streamer)
         self.assertIn("BraxHotelSobczakFloorStreamer", self.generator)
-        self.assertIn("fg.gameObject.SetActive(false)", self.generator)
+        self.assertIn("instance.SetActive(false)", self.generator)
         self.assertIn("basementInteriors", self.streamer)
         self.assertIn("ApplyBasements(false)", self.streamer)
         self.assertIn("g.gameObject.SetActive(false)", self.generator)
