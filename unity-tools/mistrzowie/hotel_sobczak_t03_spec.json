@@ -177,7 +177,8 @@
     "max_slope": 0.15,
     "ramp_incline_length_m": 24,
     "transition_each_m": 1.5,
-    "total_segment_m": 27
+    "total_segment_m": 27,
+    "slope_formula": "atan(0.15) exact maximum"
   },
   "public_areas_m2": {
     "reception": 60,
@@ -245,6 +246,11 @@
     "main_entrance_m": {
       "width": 3.6,
       "height": 3.8
+    },
+    "accessible_ramp": {
+      "width_m": 1.8,
+      "max_slope": 0.05,
+      "slope_formula": "atan(0.05) exact maximum"
     }
   },
   "materials": {
