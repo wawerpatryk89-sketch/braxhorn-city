@@ -299,7 +299,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
     def test_public_cores_are_clear(self):
         self.assertIn('Area(g,"TOALETA M 40m2",M.marble,-15f,.022f,17.5f,8f,5f)', self.generator)
         self.assertIn('Area(g,"TOALETA K 40m2",M.marble,15f,.022f,17.5f,8f,5f)', self.generator)
-        self.assertIn('Area(g,"SPA 350m2",M.terrazzo,8.5f,6.022f,9.25f,25f,14f)', self.generator)
+        self.assertIn('Area(g,"SPA 350m2",M.terrazzo,10.5f,6.022f,10f,25f,14f)', self.generator)
         self.assertIn('float clearH=h-.30f,wallY=baseY+clearH*.5f', self.generator)
         self.assertIn('float clearH=h-.30f,y=clearH*.5f', self.generator)
         self.assertIn('Bathroom shower tray 1.20x0.90', self.generator)
