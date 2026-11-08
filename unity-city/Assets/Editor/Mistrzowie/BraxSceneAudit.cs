@@ -503,23 +503,65 @@ public static class BraxSceneAudit
                 objectName = t ? Hierarchy(t) : "BRAK", creatorCs = creator, note = note, count = count
             });
         }
+        void AddExact(string title,Transform[] found,int expected,string creator,string note="")
+        {
+            bool pass=found!=null&&found.Length==expected;
+            output.inventory.Add(new Presence {
+                requirement=title,status=pass?"jest":"brak",
+                objectName=found!=null&&found.Length>0?Hierarchy(found[0]):"BRAK",
+                creatorCs=creator,count=found==null?0:found.Length,
+                note=(note+" expected="+expected+" found="+(found==null?0:found.Length)).Trim()
+            });
+        }
         Add("Arena A1", Find(t => t.name.StartsWith("A1 |") && Contains(t.name, "exterior")),
             "BraxChampionsBuildings.cs");
         Add("Arena: fasada przeszklona", Find(t =>
             (Contains(t.name, "A1_LOD0") || Contains(t.name, "facade")) &&
             (Contains(t.name, "glass") || Contains(t.name, "glaz") || Contains(t.name, "szkl"))),
             "BraxChampionsBuildings.cs", "sprawdzenie nazwy siatki (nie badano shadera)");
-        Add("Arena: mural wejściowy", Find(t => Contains(t.name, "MURAL CHAMPION FIGHTER")),
-            "BraxChampionsArenaMural.cs");
-        Add("Arena: mural boczny lewy", Find(t => Contains(t.name, "A1 MURAL LEFT_FIGHTERS")),
-            "BraxChampionsArenaSideMurals.cs");
-        Add("Arena: mural boczny prawy", Find(t => Contains(t.name, "A1 MURAL RIGHT_BELT")),
-            "BraxChampionsArenaSideMurals.cs");
+        Add("Arena: mural wejściowy HD", Find(t => Contains(t.name, "MURAL CHAMPION FIGHTER")),
+            "BraxChampionsArenaMural.cs","wymagany owner HD 6144x2048");
+        Add("Arena: mural boczny lewy HD", Find(t => Contains(t.name, "A1 MURAL LEFT_FIGHTERS")),
+            "BraxChampionsArenaSideMurals.cs","wymagany owner HD 6144x2048");
+        Add("Arena: mural boczny prawy HD", Find(t => Contains(t.name, "A1 MURAL RIGHT_BELT")),
+            "BraxChampionsArenaSideMurals.cs","wymagany owner HD 6144x2048");
+        Add("Arena: złoty portal muralu wejściowego",
+            Find(t=>Contains(t.name,"A1 PREMIUM PORTAL | GOLD top")),
+            "BraxChampionsArenaMural.cs","otwór 4.10x4.20; portal zewnętrzny 4.46x4.38");
         Add("Arena: trybuny", Find(t => Contains(t.name, "Champion Arena North")),
-            "BraxChampionsArena.cs", "obecność bryły, bez liczenia foteli");
-        Add("Arena: pas na podeście w kopule", Find(t =>
+            "BraxChampionsArena.cs", "obecność bryły");
+        Add("Arena: pas w gablocie", Find(t =>
             Contains(t.name, "ORIGINAL owner championship belt 3D")),
-            "BraxChampionsBeltShowcase.cs", "obecność modelu, bez sprawdzania położenia");
+            "BraxChampionsBeltShowcase.cs","obecność modelu; kierunek FRONT wymaga zdjęcia z Unity");
+
+        var vip=all.Where(t=>Contains(t.name,"Reserved VIP | imported luxurious barrel seat")).ToArray();
+        AddExact("Arena: VIP premium (dokładnie 16)",vip,16,
+            "BraxChampionsVIPSeats.cs","max 1.18x1.18x1.28; uniform scale");
+
+        var showcaseBase=all.Where(t=>Contains(t.name,"A1 SHOWCASE | premium granite base")).ToArray();
+        AddExact("Arena: nowa niska podstawa gabloty",showcaseBase,1,
+            "BraxChampionsBeltShowcase.cs","2.20x0.90x0.28; bez wysokiej tylnej płyty");
+        var showcaseFront=all.Where(t=>Contains(t.name,"A1 SHOWCASE | FRONT optical glass")).ToArray();
+        AddExact("Arena: nowa lekka gablota szklana",showcaseFront,1,
+            "BraxChampionsBeltShowcase.cs","1.84x0.72x2.95");
+        var forbiddenOldBack=all.Where(t=>Contains(t.name,"black marble wall column")||
+            Contains(t.name,"black leather back panel")).ToArray();
+        if(forbiddenOldBack.Length>0)
+        {
+            output.inventory.Add(new Presence{requirement="Arena: stara tylna płyta gabloty MUSI być usunięta",
+                status="brak",objectName=Hierarchy(forbiddenOldBack[0]),creatorCs="BraxChampionsBeltShowcase.cs",
+                note="NIEDOZWOLONA stara wysoka płyta/kolumna",count=forbiddenOldBack.Length});
+            output.warnings.Add("A1_SHOWCASE_OLD_BACKPLATE_PRESENT count="+forbiddenOldBack.Length);
+        }
+        else output.inventory.Add(new Presence{requirement="Arena: stara tylna płyta gabloty usunięta",
+            status="jest",objectName="BRAK STAREJ PŁYTY",creatorCs="BraxChampionsBeltShowcase.cs",
+            note="PASS: brak black marble wall column / black leather back panel",count=0});
+
+        var redStairRenderers=items.Where(i=>i.renderer.sharedMaterials.Any(m=>m&&
+            Contains(m.name,"arena_stair_deep_red_velour"))).Select(i=>i.renderer.transform).ToArray();
+        AddExact("Arena: czerwony velour na 8 ciągach schodów (512 powierzchni)",
+            redStairRenderers,512,"BraxChampionsArena.cs",
+            "8 biegów x 32 stopnie x tread+riser; szerokość 1.30m");
         Add("Kasyno WAWER", Find(t => Contains(t.name, "T11 | KASYNO WAWER")),
             "BraxChampionsCasinoT11.cs");
         Add("Basen P1", Find(t => Contains(t.name, "P1 | BASEN MIEJSKI")),
