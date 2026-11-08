@@ -53,8 +53,12 @@ public static class BraxChampionsArenaSideMurals
             return false;
         }
         bool dirty=false;
+        if(importer.maxTextureSize!=8192){importer.maxTextureSize=8192;dirty=true;}
         if(!importer.mipmapEnabled){importer.mipmapEnabled=true;dirty=true;}
+        if(!importer.streamingMipmaps){importer.streamingMipmaps=true;dirty=true;}
         if(importer.wrapMode!=TextureWrapMode.Clamp){importer.wrapMode=TextureWrapMode.Clamp;dirty=true;}
+        if(importer.filterMode!=FilterMode.Trilinear){importer.filterMode=FilterMode.Trilinear;dirty=true;}
+        if(importer.anisoLevel!=4){importer.anisoLevel=4;dirty=true;}
         var android=importer.GetPlatformTextureSettings("Android");
         if(!android.overridden||android.maxTextureSize!=8192||
            android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=100)
