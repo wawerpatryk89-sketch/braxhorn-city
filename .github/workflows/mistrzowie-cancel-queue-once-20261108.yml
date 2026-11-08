@@ -1,0 +1,32 @@
+name: Miasto Mistrzów — anuluj kolejkę A1+T11 — 08.11.2026
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-cancel-queue-once-20261108.yml
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  cancel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Anuluj tylko kolejkę A1+T11, nie ruszaj hotelu
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for id in 42512424995 42511750646 42511617058 42511302612; do
+            status="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id" -q .status)"
+            if [ "$status" != "completed" ]; then
+              gh api --method POST "repos/$GITHUB_REPOSITORY/actions/runs/$id/cancel"
+              echo "CANCELLED_REQUESTED=$id"
+            else
+              echo "ALREADY_COMPLETED=$id"
+            fi
+          done
+          echo "HOTEL_BRANCH_UNTOUCHED=gpt/miasto-mistrzow-hotel-sobczak-t03-20261108"
