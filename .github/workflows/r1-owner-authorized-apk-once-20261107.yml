@@ -1,4 +1,4 @@
-name: Miasto R1 — jednorazowe zlecenie APK 07.11.2026
+name: Miasto R1 — jednorazowe zlecenie APK 08.11.2026
 # Only the owner-requested build. This workflow never runs from game source commits.
 on:
   push:
@@ -30,8 +30,8 @@ jobs:
       - name: Potwierdz zgode, wersje R1 i zielone szybkie testy
         env:
           GH_TOKEN: ${{ github.token }}
-          TESTED_SHA: 7b37f8d068d3fb82b44ebbd6cc468d4b9e5aa3aa
-          SOURCE_TEST_RUN: "42373834641"
+          TESTED_SHA: 2da36e7a608b0cbff62751957a180dc66f156f56
+          SOURCE_TEST_RUN: "42418342636"
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD^)" = "$TESTED_SHA" || {
