@@ -421,7 +421,7 @@ public static class BraxChampionsHotelSobczakT03
 
     static void BuildPublicFacade(Transform p,float baseY,float floorH,float windowW,float windowH)
     {
-        float sill=Mathf.Max(.35f,(floorH-windowH)*.45f),header=floorH-sill-windowH;
+        float sill=baseY==0f?1.20f:Mathf.Max(.35f,(floorH-windowH)*.45f),header=floorH-sill-windowH;
         foreach(float zsign in new[]{-1f,1f})
         {
             float z=zsign*20.80f;
