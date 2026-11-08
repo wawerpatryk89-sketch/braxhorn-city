@@ -16,6 +16,24 @@ public static class BraxChampionsVIPSeats
     public static bool HasSource =>
         AssetDatabase.LoadAssetAtPath<GameObject>(SourcePath) != null;
 
+    static Material SolidBlackMetal()
+    {
+        const string path="Assets/PlayableGenerated/Mistrzowie/Arena/A1_VIP_clean_black_metal.mat";
+        var shader=Shader.Find(BraxCityMaterials.ShaderName);
+        if(!shader)throw new InvalidOperationException("A1 VIP CityStaticPBR shader missing");
+        var m=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(!m)
+        {
+            m=new Material(shader){name="A1 VIP clean black metal",enableInstancing=true};
+            AssetDatabase.CreateAsset(m,path);
+        }
+        m.SetColor("_Color",new Color(.035f,.040f,.050f));
+        m.SetFloat("_Metallic",.92f);m.SetFloat("_Roughness",.22f);
+        m.SetFloat("_VertexTint",0f);m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        EditorUtility.SetDirty(m);
+        return m;
+    }
+
     static Bounds VisualBounds(GameObject root)
     {
         var renderers = root.GetComponentsInChildren<Renderer>(true);
@@ -196,9 +214,7 @@ public static class BraxChampionsVIPSeats
             "A1_VIP_black_leather_polyhaven","leather_white",.45f,
             new Color(.07f,.075f,.08f));
         leather.SetFloat("_Metallic",0f);leather.SetFloat("_Roughness",.22f);
-        var blackMetal=BraxChampionsFoundation.LibraryMetal(
-            "A1_VIP_black_metal",new Color(.035f,.040f,.050f));
-        blackMetal.SetFloat("_Metallic",.92f);blackMetal.SetFloat("_Roughness",.22f);
+        var blackMetal=SolidBlackMetal();
         // Existing reserved positions near jury/commentator area:
         // two rows behind cage-side service desks; one 6m central aisle stays open.
         // Four places per side per row; seat spacing 1.45m, row spacing 1.75m.
