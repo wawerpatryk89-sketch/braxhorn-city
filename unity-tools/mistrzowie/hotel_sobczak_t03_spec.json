@@ -1,0 +1,163 @@
+{
+  "id": "T03",
+  "name": "HOTEL SOBCZAK / 5*",
+  "centre": {
+    "x": 1030,
+    "z": 725
+  },
+  "footprint_m": {
+    "width": 64,
+    "depth": 42
+  },
+  "height_m": 130,
+  "bounds_m": {
+    "x": [
+      998,
+      1062
+    ],
+    "z": [
+      704,
+      746
+    ]
+  },
+  "front": "SOUTH_-Z",
+  "floors": [
+    {
+      "id": "B2",
+      "y": [
+        -7.2,
+        -3.6
+      ],
+      "height": 3.6,
+      "use": "parking_40_and_technical"
+    },
+    {
+      "id": "B1",
+      "y": [
+        -3.6,
+        0
+      ],
+      "height": 3.6,
+      "use": "parking_40_and_storage"
+    },
+    {
+      "id": "G",
+      "y": [
+        0,
+        6
+      ],
+      "height": 6,
+      "use": "reception_lobby_bar_wc_baggage_concierge"
+    },
+    {
+      "id": "1",
+      "y": [
+        6,
+        9.6
+      ],
+      "height": 3.6,
+      "use": "restaurant_kitchen_spa_fitness"
+    },
+    {
+      "id": "2-31",
+      "y": [
+        9.6,
+        117.6
+      ],
+      "height_each": 3.6,
+      "count": 30,
+      "use": "14_guestrooms_each"
+    },
+    {
+      "id": "ROOF",
+      "y": [
+        117.6,
+        130
+      ],
+      "height": 12.4,
+      "use": "mansard_and_technical"
+    }
+  ],
+  "physical_levels": 34,
+  "rooms": {
+    "total": 420,
+    "floors": 30,
+    "per_floor": 14,
+    "layout": "7_south+7_north",
+    "bay_m": {
+      "width": 7,
+      "depth": 11.65
+    },
+    "sleeping_zone_m": {
+      "width": 3.5,
+      "depth": 7
+    },
+    "corridor_m": 2.4
+  },
+  "cores": {
+    "elevators": 4,
+    "stairs": 2,
+    "elevator_type": "BraxWinda_multi_floor"
+  },
+  "parking": {
+    "B1": 40,
+    "B2": 40,
+    "total": 80,
+    "space_m": [
+      2.6,
+      5.2
+    ],
+    "aisle_m": 6,
+    "ramp_width_m": 6.5,
+    "max_slope": 0.15
+  },
+  "public_areas_m2": {
+    "reception": 60,
+    "lobby": 350,
+    "bar_cafe": 180,
+    "wc_m": 40,
+    "wc_f": 40,
+    "baggage": 50,
+    "concierge": 40,
+    "restaurant": 250,
+    "kitchen": 180,
+    "spa": 350,
+    "fitness": 250
+  },
+  "facade": {
+    "window_m": [
+      2.2,
+      2.25
+    ],
+    "guest_bays": 7,
+    "portico_columns": 4,
+    "column_diameter_m": 0.9,
+    "sign": "HOTEL SOBCZAK"
+  },
+  "materials": {
+    "facade": "beige_wall_001",
+    "plinth": "sandstone_blocks_08",
+    "trim": "white_stucco_02",
+    "roof": "roof_slates_03",
+    "lobby": "marble_01",
+    "rooms": "oak_wood_planks",
+    "restaurant": "herringbone_parquet",
+    "spa": "terrazzo_tiles",
+    "fitness": "rubber_tiles",
+    "corridor_runner": "poly_wool_herringbone",
+    "kitchen": "tiled_floor_001",
+    "exterior_paving": "granite_tile_04",
+    "stairs": "granite_tile",
+    "ramp": "anti_slip_concrete",
+    "parking": "garage_floor",
+    "technical_walls": "concrete_wall_003",
+    "upholstery": "brown_leather",
+    "spa_upholstery": "leather_white",
+    "driveway": "clean_asphalt"
+  },
+  "android": {
+    "max_texture": 2048,
+    "format": "ASTC_4x4",
+    "mipmaps": true
+  }
+}
