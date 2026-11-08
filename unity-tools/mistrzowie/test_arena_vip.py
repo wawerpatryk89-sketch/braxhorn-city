@@ -40,6 +40,8 @@ class ChampionVipSeatsTests(unittest.TestCase):
         self.assertIn("SolidBlackMetal()",self.vip)
         self.assertIn('source.GetFloat(property)>.25f',self.vip)
         self.assertIn("A1_VIP_MATERIAL_MAPPING",self.vip)
+        self.assertIn("no separate metal/base slot was identified",self.vip)
+        self.assertNotIn("A1_VIP_METAL_SLOT_NOT_IDENTIFIED",self.vip)
         footprints=[(x,z) for x in self.xs for z in self.zs]
         self.assertEqual(len(footprints),16)
         for (x,z),(xx,zz) in itertools.combinations(footprints,2):
