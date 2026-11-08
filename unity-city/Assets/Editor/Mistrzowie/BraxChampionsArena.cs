@@ -51,12 +51,31 @@ public static class BraxChampionsArena
         // Owner 7.11: the whole arena floor uses the exact greenish Poly Haven Stone Tiles.
         var floorStone = BraxChampionsFoundation.SourceMaterial(
             "arena_floor_stone_tiles_owner", "stone_tiles", 3.2f, Color.white);
-        // Only the two NON side-mural walls use the owner's light Gravel Embedded Concrete 02.
-        // The two X walls stay on their existing dark base because owner murals cover them.
-        var lightWall = BraxChampionsFoundation.SourceMaterial(
-            "arena_two_plain_walls_gravel_concrete_owner", "gravel_embedded_concrete_02", 2.0f, Color.white);
-        var panel = Plain("hala walk panele akustyczne", new Color(.07f, .07f, .08f), .2f);
-        var wallUp = Plain("hala walk ściana grafit", new Color(.19f, .19f, .21f), .2f);
+        // A1 PREMIUM INTERIOR: real Poly Haven PBR, Android-imported at 2K by the
+        // shared SourceMaterial pipeline. Murals remain separate owner artwork.
+        var wallConcrete = BraxChampionsFoundation.SourceMaterial(
+            "arena_plain_walls_concrete_wall_009", "concrete_wall_009", 2.4f,
+            new Color(.54f,.55f,.57f));
+        wallConcrete.SetFloat("_Roughness",.54f);
+        var wallGranite = BraxChampionsFoundation.SourceMaterial(
+            "arena_wall_lower_granite_tile", "granite_tile", .82f,
+            new Color(.16f,.17f,.19f));
+        wallGranite.SetFloat("_Roughness",.27f);
+        var facadePanels = BraxChampionsFoundation.SourceMaterial(
+            "arena_premium_rectangular_facade_tiles", "rectangular_facade_tiles", 1.35f,
+            new Color(.20f,.21f,.23f));
+        facadePanels.SetFloat("_Roughness",.34f);
+        var interiorGold = BraxChampionsFoundation.LibraryMetal(
+            "arena_interior_premium_gold", new Color(.835f,.639f,.231f));
+        interiorGold.SetFloat("_Roughness",.19f);
+        interiorGold.SetFloat("_Metallic",.98f);
+        var stairVelour = BraxChampionsFoundation.SourceMaterial(
+            "arena_stair_deep_red_velour", "velour_velvet", 1.30f,
+            new Color(.47f,.035f,.045f));
+        stairVelour.SetFloat("_Roughness",.58f);
+        stairVelour.SetFloat("_Metallic",0f);
+        var panel = facadePanels;
+        var wallUp = facadePanels;
         var red = Plain("hala walk czerwień BRAXHORN", new Color(.60f, .04f, .05f), .45f);
         var ceil = Plain("hala walk sufit czarny mat", new Color(.09f, .09f, .10f), .05f);
         var black = Plain("oktagon czarny winyl", new Color(.03f, .03f, .035f), .55f);
@@ -79,24 +98,32 @@ public static class BraxChampionsArena
         // Entire main arena floor: owner-selected green Stone Tiles.
         for (float x = X0; x < X1 - .01f; x += 2f)
             for (float z = Z0; z < Z1 - .01f; z += 2f) Top(floorStone, x, Mathf.Min(x + 2f, X1), z, Mathf.Min(z + 2f, Z1), yF);
-        // ściany i sufit
+        // PREMIUM wall finish. LEFT/RIGHT mural walls remain visually owned by
+        // the artwork: these materials are behind the printed surface and are
+        // visible only in the lower/upper margins. Gold dividers are never put
+        // on top of a mural.
         void Clad(bool alongX, float f, float s, float a0, float a1)
         {
-            float g0 = s > 0 ? f + .005f : f - .045f, g1 = g0 + .04f, r0 = g0 + s * .012f, r1 = g1 + s * .012f;
-            // alongX == Z0/Z1 walls: these are the two remaining hall walls and get
-            // the light owner concrete. X0/X1 are the two side-mural walls and are
-            // deliberately NOT re-finished over/under the mural presentation.
-            Material lower = alongX ? lightWall : panel;
-            Material upper = alongX ? lightWall : wallUp;
+            float g0 = s > 0 ? f + .005f : f - .045f, g1 = g0 + .04f;
             if (alongX)
             {
-                BoxMinMax(lower, a0, a1, yF, 2.4f, g0, g1, false); BoxMinMax(red, a0, a1, 2.4f, 2.56f, Mathf.Min(r0, r1), Mathf.Max(r0, r1), false);
-                BoxMinMax(upper, a0, a1, 2.56f, yC, g0, g1, false);
+                // Non-mural wall: 1.20m granite plinth + Concrete Wall 009 above.
+                BoxMinMax(wallGranite,a0,a1,yF,1.20f,g0,g1,false);
+                BoxMinMax(wallConcrete,a0,a1,1.20f,yC,g0,g1,false);
+                // 35mm physical gold divisions every ~3.3m, set 15mm proud.
+                for(float a=a0+3.30f;a<a1-.30f;a+=3.30f)
+                {
+                    float z=s>0?g1+.0075f:g0-.0075f;
+                    BoxMinMax(interiorGold,a-.0175f,a+.0175f,1.20f,yC,
+                        z-.0075f,z+.0075f,false);
+                }
             }
             else
             {
-                BoxMinMax(lower, g0, g1, yF, 2.4f, a0, a1, false); BoxMinMax(red, Mathf.Min(r0, r1), Mathf.Max(r0, r1), 2.4f, 2.56f, a0, a1, false);
-                BoxMinMax(upper, g0, g1, 2.56f, yC, a0, a1, false);
+                // Side mural wall: dark premium base behind the original print.
+                // Mural itself is later placed in front and is NEVER covered.
+                BoxMinMax(wallGranite,g0,g1,yF,1.20f,a0,a1,false);
+                BoxMinMax(facadePanels,g0,g1,1.20f,yC,a0,a1,false);
             }
         }
         Clad(false, X0, 1f, Z0, Z1); Clad(false, X1, -1f, Z0, Z1);
@@ -104,7 +131,7 @@ public static class BraxChampionsArena
         {
             Clad(true, f, s, X0, dA); Clad(true, f, s, dB, X1);
             float g0 = s > 0 ? f + .005f : f - .045f;
-            BoxMinMax(wallUp, dA, dB, dH, yC, g0, g0 + .04f, false, true);
+            BoxMinMax(wallConcrete, dA, dB, dH, yC, g0, g0 + .04f, false, true);
         }
         BoxMinMax(ceil, X0, X1, yC, yC + .02f, Z0, Z1, false, true);
 
@@ -221,10 +248,10 @@ public static class BraxChampionsArena
         // not a staircase placed directly across the public entry.
         foreach(float xx in new[]{cx-24,cx+24})
             foreach(float zz in new[]{cz-8,cz+8})
-                TierStairs(false,xx,xx<cx?1:-1,zz);
+                TierStairs(false,xx,xx<cx?1:-1,zz,stairVelour,interiorGold);
         foreach(float zz in new[]{cz-15,cz+15})
             foreach(float side in new[]{-12f,12f})
-                TierStairs(true,zz,zz<cz?1:-1,cx+side);
+                TierStairs(true,zz,zz<cz?1:-1,cx+side,stairVelour,interiorGold);
         // No substitute VIP chairs. The original owner GLB is required by the
         // pre-Unity SHA gate, then instantiated by BraxChampionsVIPSeats.
         // The nearby judges' seating, tables and screens remain unchanged.
@@ -458,14 +485,53 @@ public static class BraxChampionsArena
             W.Quad(m,p-q*Vector3.up*size.y*.5f,rings[0][i],rings[0][j],rings[0][k]);
         }
     }
-    static void TierStairs(bool alongX,float front,float facing,float centre)
+    static void TierStairs(bool alongX,float front,float facing,float centre,
+        Material carpet,Material gold)
     {
         var stone=Plain("schody trybun",new Color(.28f,.27f,.25f));
+        const float stairHalf=.85f;       // 1.70m structural aisle
+        const float carpetHalf=.65f;      // 1.30m red velour
+        const float goldWidth=.020f;
+        const float overlay=.009f;
         for(int i=0;i<32;i++)
         {
-            float lo=front-facing*i*.525f,hi=front-facing*(i+1)*.525f,top=.055f+(i+1)*.2f;
-            if(alongX)W.MM(stone,centre-.85f,centre+.85f,0,top,Mathf.Min(lo,hi),Mathf.Max(lo,hi),true);
-            else W.MM(stone,Mathf.Min(lo,hi),Mathf.Max(lo,hi),0,top,centre-.85f,centre+.85f,true);
+            float raw0=front-facing*i*.525f,raw1=front-facing*(i+1)*.525f;
+            float lo=Mathf.Min(raw0,raw1),hi=Mathf.Max(raw0,raw1);
+            float top=.055f+(i+1)*.2f,previous=.055f+i*.2f;
+            if(alongX)
+            {
+                W.MM(stone,centre-stairHalf,centre+stairHalf,0,top,lo,hi,true);
+                // Tread carpet: physical overlay, never coplanar.
+                W.MM(carpet,centre-carpetHalf,centre+carpetHalf,top+.003f,top+.003f+overlay,
+                    lo+.008f,hi-.008f,false);
+                // Riser carpet at the approach edge of each step.
+                float z=raw0;
+                W.MM(carpet,centre-carpetHalf,centre+carpetHalf,previous,top,
+                    z-.004f,z+.004f,false);
+                foreach(float side in new[]{-1f,1f})
+                {
+                    float x=centre+side*(carpetHalf+goldWidth*.5f);
+                    W.MM(gold,x-goldWidth*.5f,x+goldWidth*.5f,
+                        top+.003f,top+.003f+overlay,lo+.008f,hi-.008f,false);
+                }
+            }
+            else
+            {
+                W.MM(stone,lo,hi,0,top,centre-stairHalf,centre+stairHalf,true);
+                W.MM(carpet,lo+.008f,hi-.008f,top+.003f,top+.003f+overlay,
+                    centre-carpetHalf,centre+carpetHalf,false);
+                float x=raw0;
+                W.MM(carpet,x-.004f,x+.004f,previous,top,
+                    centre-carpetHalf,centre+carpetHalf,false);
+                foreach(float side in new[]{-1f,1f})
+                {
+                    float z=centre+side*(carpetHalf+goldWidth*.5f);
+                    W.MM(gold,lo+.008f,hi-.008f,top+.003f,top+.003f+overlay,
+                        z-goldWidth*.5f,z+goldWidth*.5f,false);
+                }
+            }
         }
+        Debug.Log("A1_PREMIUM_TIER_STAIRS width=1.70 carpet=1.30 steps=32 tread=.525 riser=.20"+
+            " red_velour=true gold_edges_20mm=true carpet_surface_per_run=30.16m2");
     }
 }
