@@ -64,8 +64,9 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         # Nominal estate dimensions; K is applied once in the mesh builder.
         self.assertIn("new Vector3(.85f,9.82f,2.20f)", self.arrival)
         self.assertIn("new Vector3(.85f,8.00f,2.20f)", self.arrival)
-        self.assertIn(".030f,9.70f,.120f", self.arrival)
-        self.assertIn(".030f,7.88f,.120f", self.arrival)
+        self.assertIn(".036f,9.70f,.120f,.018f", self.arrival)
+        self.assertIn(".036f,7.88f,.120f,.018f", self.arrival)
+        self.assertIn("edge_R=0.018 capsule_end_R=0.06", self.arrival)
         self.assertGreaterEqual(2.20, 2.0)
         self.assertGreaterEqual(.85, .70)
         self.assertIn("actualFeatureColumns!=38||skippedFeatureColumns!=2", self.arrival)
@@ -74,6 +75,10 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("upper_interior_elliptical_halo_preserved", self.arrival)
         self.assertIn("REFERENCE red neon vertical sign frame", self.arrival)
         self.assertIn("PUBLIC ISSUE27 recessed warm LED 3000K", self.arrival)
+        self.assertIn("beltTrimR_front=.025 rest=.020 signFrameR=.040", self.arrival)
+        self.assertIn("fasciaR=.120 upperGoldR=.055 sideGoldR=.035 lowerGoldR=.025", self.arrival)
+        self.assertIn("ActualFloorYNominal(arenaRoot,x,-68.70f)", self.arrival)
+        self.assertIn("CylinderCollider", self.arrival)
 
     def test_real_pbr_and_transparent_canopy_no_door_colliders(self):
         for key in ('granite_plinth_preserved', 'curtain_wall_aluminium_preserved',
