@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 2
           sparse-checkout: |
             .github/workflows/
-      - name: Potwierdz zgode, wersje R1 i zielone szybkie testy
+      - name: Potwierdz zgode, wersje R1 i ostatni szybki source gate
         env:
           GH_TOKEN: ${{ github.token }}
           TESTED_SHA: 2da36e7a608b0cbff62751957a180dc66f156f56
@@ -57,5 +57,5 @@ jobs:
             --ref claude/miasto-opus-20261031 \
             -f rejon=miasto \
             -f pamiec=true \
-            -f scene_only=false
           echo "MIASTO_R1_OWNER_AUTHORIZED_APK_DISPATCHED=1"
+          echo "R1_NO_LONG_PREBUILD_UNITY_TEST=1"
