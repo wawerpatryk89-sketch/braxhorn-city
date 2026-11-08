@@ -470,13 +470,14 @@ public static class BraxChampionsArenaArrival
         {
             if(size.x<=0 || size.y<=0 || size.z<=0)throw new ArgumentException("Invalid rounded facade prism");
             float hx=size.x*.5f,hy=size.y*.5f,hz=size.z*.5f;
-            float cap=Mathf.Clamp(capRadius,0,Mathf.Min(hy-.0005f,Mathf.Min(hx,hz)-.0005f));
+            float cap=Mathf.Clamp(capRadius,0,Mathf.Min(hy*.45f,Mathf.Min(hx,hz)*.45f));
             int cs=Mathf.Max(1,cornerSegments),caps=Mathf.Max(1,capSegments);
 
             List<Vector2> Perimeter(float shrink)
             {
                 float sx=hx-shrink,sz=hz-shrink;
-                float rr=Mathf.Clamp(cornerRadius-shrink*.35f,.0005f,Mathf.Min(sx,sz)-.0005f);
+                float maxR=Mathf.Max(.0002f,Mathf.Min(sx,sz)*.95f);
+                float rr=Mathf.Clamp(cornerRadius-shrink*.35f,.0002f,maxR);
                 var pts=new List<Vector2>(4*(cs+1));
                 void Arc(float cx,float cz,float deg0,float deg1)
                 {
