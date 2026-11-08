@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 // The existing 4.10m-wide central doorway remains physically free.
 public static class BraxChampionsArenaMural
 {
-    // HD 6144x2048 (oryginał właściciela powiększony 4x, 6.11) — używany, gdy jest.
+    // REQUIRED exact owner HD 6144x2048 staged from Release IMG_0266.png. No fallback.
     public const string HdImage =
         "Assets/Source/Mistrzowie/ArenaMuralsHD/MURAL_WEJSCIE_CHAMPION_FIGHTER_6144x2048.png";
     const string Output="Assets/PlayableGenerated/Mistrzowie/Arena/Mural";
@@ -195,8 +195,12 @@ public static class BraxChampionsArenaMural
             return false;
         }
         bool importerDirty=false;
+        if(importer.maxTextureSize!=8192){importer.maxTextureSize=8192;importerDirty=true;}
         if(!importer.mipmapEnabled){importer.mipmapEnabled=true;importerDirty=true;}
+        if(!importer.streamingMipmaps){importer.streamingMipmaps=true;importerDirty=true;}
         if(importer.wrapMode!=TextureWrapMode.Clamp){importer.wrapMode=TextureWrapMode.Clamp;importerDirty=true;}
+        if(importer.filterMode!=FilterMode.Trilinear){importer.filterMode=FilterMode.Trilinear;importerDirty=true;}
+        if(importer.anisoLevel!=4){importer.anisoLevel=4;importerDirty=true;}
         var android=importer.GetPlatformTextureSettings("Android");
         if(!android.overridden||android.maxTextureSize!=8192||
            android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=100)
