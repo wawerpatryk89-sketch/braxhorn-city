@@ -9,6 +9,13 @@ from prepare_assets import matches_source, polyhaven_map, validate_4k_dimensions
 
 LIVE_VERIFIED_OWNER_SLUGS={"stone_tiles","gravel_embedded_concrete_02","wooden_panels",
                            "concrete_wall_009","leather_white","velour_velvet"}
+HOTEL_SOBCZAK_VERIFIED_SLUGS={
+    "beige_wall_001","sandstone_blocks_08","white_stucco_02","roof_slates_03","marble_01",
+    "oak_wood_planks","herringbone_parquet","terrazzo_tiles","rubber_tiles","poly_wool_herringbone",
+    "tiled_floor_001","granite_tile_04","anti_slip_concrete","garage_floor","concrete_wall_003",
+    "brown_leather"
+}
+LIVE_VERIFIED_ALL_SLUGS=LIVE_VERIFIED_OWNER_SLUGS|HOTEL_SOBCZAK_VERIFIED_SLUGS
 
 class PolyHavenSourceTests(unittest.TestCase):
     def entry(self, name="original"):
@@ -25,7 +32,7 @@ class PolyHavenSourceTests(unittest.TestCase):
                 # Three owner-selected 7 Nov assets were added after this cached
                 # provider snapshot. Build preparation still fetches and validates
                 # live Poly Haven metadata/checksums before writing any bytes.
-                self.assertIn(slug,LIVE_VERIFIED_OWNER_SLUGS)
+                self.assertIn(slug,LIVE_VERIFIED_ALL_SLUGS)
                 continue
             for kind, ext in POLYHAVEN_MAPS:
                 with self.subTest(slug=slug, kind=kind):
@@ -41,7 +48,7 @@ class PolyHavenSourceTests(unittest.TestCase):
             "Rough":self.entry("rough"),
             "arm":self.entry("arm"),
         }
-        for slug in LIVE_VERIFIED_OWNER_SLUGS:
+        for slug in LIVE_VERIFIED_ALL_SLUGS:
             for kind,ext in POLYHAVEN_MAPS:
                 with self.subTest(slug=slug,kind=kind):
                     self.assertIn("url",polyhaven_map(metadata,slug,kind,ext))
