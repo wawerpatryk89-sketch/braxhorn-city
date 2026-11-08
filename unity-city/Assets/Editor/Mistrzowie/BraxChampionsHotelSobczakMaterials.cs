@@ -12,7 +12,7 @@ public static class BraxChampionsHotelSobczakMaterials
 {
     public sealed class Set
     {
-        public Material facade,sandstone,stucco,roof,marble,marbleWet,oak,parquet,terrazzo,rubber,carpet,tile,
+        public Material facade,sandstone,stucco,stuccoSoft,roof,marble,marbleWet,oak,parquet,terrazzo,rubber,carpet,tile,
             granite,graniteOutdoor,antiSlip,garage,concrete,leather,leatherWhite,asphalt,
             brass,darkBronze,steel,glass,whitePaint,parkingPaint,warmLight,carpetRed,water,foliage;
     }
@@ -47,6 +47,8 @@ public static class BraxChampionsHotelSobczakMaterials
         s.facade=P("facade_beige","beige_wall_001",3.0f,new Color(.97f,.91f,.80f));
         s.sandstone=P("plinth_sandstone","sandstone_blocks_08",3.0f,new Color(.98f,.93f,.82f));
         s.stucco=P("architectural_stucco","white_stucco_02",1.8f,new Color(1f,.96f,.86f));
+        if(s.stucco.HasProperty("_BumpScale"))s.stucco.SetFloat("_BumpScale",.25f);
+        s.stuccoSoft=VariantNormal("soft_interior_stucco",s.stucco,.15f);
         s.roof=P("mansard_slates","roof_slates_03",3.0f,new Color(.42f,.44f,.47f));
         s.marble=P("cream_marble","marble_01",1.5f,new Color(1f,.97f,.89f));
         s.marbleWet=Variant("wet_marble_floor",s.marble,.50f);
@@ -80,6 +82,16 @@ public static class BraxChampionsHotelSobczakMaterials
 
     static Material P(string id,string slug,float metres,Color tint)
         =>BraxChampionsFoundation.SourceMaterial("sobczak_"+id,slug,metres,tint);
+
+    static Material VariantNormal(string id,Material source,float normalStrength)
+    {
+        var fresh=new Material(source){name="HOTEL SOBCZAK "+id,enableInstancing=true};
+        if(fresh.HasProperty("_BumpScale"))fresh.SetFloat("_BumpScale",normalStrength);
+        string path=Generated+"/Materials/"+id+".mat";
+        var old=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(old){EditorUtility.CopySerialized(fresh,old);UnityEngine.Object.DestroyImmediate(fresh);EditorUtility.SetDirty(old);return old;}
+        AssetDatabase.CreateAsset(fresh,path);return fresh;
+    }
 
     static Material Variant(string id,Material source,float roughness)
     {
