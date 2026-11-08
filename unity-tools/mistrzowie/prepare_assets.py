@@ -86,8 +86,11 @@ def validate_4k_dimensions(name,size,provider_native_aspect=False):
  # ratio (for example velour_velvet diffuse is 4096x3941). Provenance is
  # already pinned by provider byte-size/MD5 above, so never rescale or crop it.
  if provider_native_aspect:
-  if max(size)!=4096 or min(size)<=0:
-   raise RuntimeError(f'{name}: source is {size}, expected provider-native 4K with 4096px long edge')
+  # Official Poly Haven "4k" maps keep provider-native aspect. Some files are
+  # 4096x3941, others 4096x4181 etc. Provenance/bytes are already verified
+  # against the provider metadata above; never crop or resample a valid source.
+  if max(size)<4096 or min(size)<2048:
+   raise RuntimeError(f'{name}: source is {size}, expected provider-native 4K (>=4096px long edge, >=2048px short edge)')
  elif size!=(4096,4096):
   raise RuntimeError(f'{name}: source is {size}, expected original 4096x4096')
  return size
