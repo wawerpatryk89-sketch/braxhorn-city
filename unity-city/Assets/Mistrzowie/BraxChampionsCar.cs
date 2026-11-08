@@ -35,7 +35,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     Vector2 control;
     float speed, doorAngle, wheelAngle;
     float groundPivotOffset, nextBlockDiagnostic;
-    float engineLoad, idleGain, lastThrottle;
+    float engineLoad, idleGain;
     float nextRevAllowed;
     bool revArmed = true;
     bool transition;
@@ -183,7 +183,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         engineLoad = Mathf.MoveTowards(engineLoad, targetLoad,
             dt * (targetLoad > engineLoad ? 2.8f : 1.8f));
 
-        float targetIdleGain = driver ? Mathf.Lerp(.27f, .48f, engineLoad) : .20f;
+        float targetIdleGain = driver ? Mathf.Lerp(.27f, .48f, engineLoad) : 0f;
         idleGain = Mathf.MoveTowards(idleGain, targetIdleGain, dt / .20f);
         engineIdleSource.volume = idleGain;
         engineIdleSource.pitch = Mathf.MoveTowards(engineIdleSource.pitch,
@@ -195,7 +195,6 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
             revArmed = false;
             TriggerRev();
         }
-        lastThrottle = throttle;
 
         if (engineRevSource && engineRevSource.isPlaying && engineRevClip)
         {
@@ -374,7 +373,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
             if (p.clips && p.clips.GetClip("Idle")) p.clips.Play("Idle");
         }
         driver = null; speed = 0f; control = Vector2.zero; transition = false;
-        revArmed = true; lastThrottle = 0f;
+        revArmed = true;
         if (engineRevSource) engineRevSource.Stop();
         if (doorHinge) { doorHinge.localRotation = doorRest; doorAngle = 0; }
     }

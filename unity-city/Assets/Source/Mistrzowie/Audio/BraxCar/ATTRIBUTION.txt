@@ -1,0 +1,28 @@
+BRAXHORN CITY — AUTO BRAXHORN / Issue #30 — ENGINE AUDIO ATTRIBUTION
+
+Source work:
+"Starting up Lada 1200L Zhiguli Engine"
+Sounds of Changes; sound/photo/video: Antti Makkonen
+https://commons.wikimedia.org/wiki/File:Starting_up_Lada_1200L_Zhiguli_Engine.webm
+
+License:
+Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+https://creativecommons.org/licenses/by/3.0/
+
+Source integrity:
+SHA-256: 15a9fcf82f53c710f489b7d888557b4937ae3f50d968c22f2be342d29df398b6
+Original downloaded source size: 6,596,358 bytes
+Original duration: 31.029 s
+
+BRAXHORN derivatives:
+1) brax_engine_idle.ogg
+   - source segment: 12.00–17.50 s
+   - changes: mono 22.05 kHz, trim, 0.5 s circular loop crossfade, gain adjustment/soft limiting, Vorbis encode
+   - SHA-256: e44d646c067ce703596160810e2305aa6033b02aa878a16e3b93f5971af1dcfc
+
+2) brax_engine_rev.ogg
+   - source segment: 21.75–24.50 s
+   - changes: mono 22.05 kHz, trim, 0.12 s fade-in, 0.28 s fade-out, gain adjustment/soft limiting, Vorbis encode
+   - SHA-256: 7e332fb8eb96e9773a9d76e60a80c4e905976ed3d6888f1f9191a399ea823834
+
+Both OGG files also contain embedded title, creator, license, source URL and modification metadata.

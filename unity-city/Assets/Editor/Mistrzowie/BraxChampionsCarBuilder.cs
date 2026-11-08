@@ -11,8 +11,8 @@ using UnityEngine;
 public static class BraxChampionsCarBuilder
 {
     public const string OwnerCar = "Assets/Source/Mistrzowie/Vehicles/car_rev.glb";
-    public const string EngineIdleAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_idle.mp3";
-    public const string EngineRevAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_rev.mp3";
+    public const string EngineIdleAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_idle.ogg";
+    public const string EngineRevAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_rev.ogg";
     const float LengthMetres = 4.95f; // Source estate's DlugoscRealna["car_rev"]
     static float K => BraxClaudeOsiedle.K;
 
