@@ -61,7 +61,7 @@ on:
         options: [apk, sceny, aktualizacja]
         default: apk
       zdjecia:
-        description: 'Opcjonalny dodatkowy player Linux i zdjęcia po dostarczeniu APK; wydłuża build'
+        description: 'Opcjonalny dodatkowy player Linux i zdjęcia po udanym teście sceny lub po dostarczeniu APK; wydłuża build'
         type: boolean
         required: false
         default: false
@@ -640,7 +640,7 @@ jobs:
           if-no-files-found: warn
       - name: Optional real player for visual review after APK delivery
         id: visual_player
-        if: success() && inputs.zdjecia && steps.apk_delivery.outcome == 'success'
+        if: success() && inputs.zdjecia && (inputs.etap == 'sceny' || steps.apk_delivery.outcome == 'success')
         continue-on-error: true
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
@@ -686,7 +686,7 @@ jobs:
                   assert max(ImageStat.Stat(frame.convert('RGB')).stddev)>2, 'Flat or blank render: '+str(path)
           PYIMAGES
       - name: Save optional visual review and player log
-        if: always() && !cancelled() && inputs.zdjecia && steps.apk_delivery.outcome == 'success'
+        if: always() && !cancelled() && inputs.zdjecia && (inputs.etap == 'sceny' || steps.apk_delivery.outcome == 'success')
         continue-on-error: true
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
