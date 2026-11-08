@@ -3,7 +3,7 @@
   "name": "HOTEL SOBCZAK / 5*",
   "centre": {
     "x": 1030,
-    "z": 725
+    "z": 710
   },
   "footprint_m": {
     "width": 64,
@@ -16,8 +16,8 @@
       1062
     ],
     "z": [
-      704,
-      746
+      689,
+      731
     ]
   },
   "front": "SOUTH_-Z",
@@ -85,31 +85,93 @@
     "per_floor": 14,
     "layout": "7_south+7_north",
     "bay_m": {
-      "width": 7,
-      "depth": 11.65
+      "width": 6,
+      "depth": 19.4
     },
     "sleeping_zone_m": {
       "width": 3.5,
       "depth": 7
     },
-    "corridor_m": 2.4
+    "bathroom_m": {
+      "width": 2.4,
+      "depth": 3
+    },
+    "corridor_m": 2.4,
+    "room_zone_width_m": 42,
+    "side_core_m": {
+      "west": 10.6,
+      "east": 10.6
+    },
+    "room_door_m": [
+      1,
+      2.2
+    ],
+    "bathroom_door_m": [
+      0.8,
+      2.1
+    ]
   },
   "cores": {
     "elevators": 4,
     "stairs": 2,
-    "elevator_type": "BraxWinda_multi_floor"
+    "passenger_elevators": 3,
+    "service_elevators": 1,
+    "passenger_shaft_m": [
+      2.5,
+      2.5
+    ],
+    "passenger_cabin_min_m": [
+      2,
+      1.7
+    ],
+    "passenger_door_clear_m": 1.1,
+    "service_shaft_m": [
+      2.9,
+      2.7
+    ],
+    "service_cabin_m": [
+      2.2,
+      1.8
+    ],
+    "service_door_clear_m": 1.2,
+    "stair_run_clear_m": 1.5,
+    "landing_min_m": 1.5,
+    "stair_3_6m": {
+      "risers": 22,
+      "per_flight": 11,
+      "riser_m": 0.1636,
+      "tread_m": 0.29
+    },
+    "stair_6_0m": {
+      "risers": 36,
+      "per_flight": 18,
+      "riser_m": 0.1667,
+      "tread_m": 0.29
+    }
   },
   "parking": {
     "B1": 40,
     "B2": 40,
     "total": 80,
+    "B1_standard": 36,
+    "B1_accessible": 4,
+    "B2_standard": 40,
     "space_m": [
       2.6,
       5.2
     ],
+    "accessible_space_m": [
+      3.6,
+      5.2
+    ],
     "aisle_m": 6,
+    "clearance_m": 2.4,
+    "ramp_side": "EAST",
     "ramp_width_m": 6.5,
-    "max_slope": 0.15
+    "max_slope": 0.15,
+    "ramp_incline_length_m": 24,
+    "transition_each_m": 1.5,
+    "total_segment_m": 27
   },
   "public_areas_m2": {
     "reception": 60,
@@ -125,13 +187,49 @@
     "fitness": 250
   },
   "facade": {
-    "window_m": [
-      2.2,
-      2.25
+    "ground_arch_m": [
+      2.4,
+      4.2
     ],
     "guest_bays": 7,
-    "portico_columns": 4,
-    "column_diameter_m": 0.9,
+    "windows_per_room_bay": 2,
+    "guest_window_m": [
+      1.45,
+      2.2
+    ],
+    "window_gap_m": 0.75,
+    "window_frame_visual_m": [
+      0.1,
+      0.12
+    ],
+    "window_recess_m": [
+      0.12,
+      0.18
+    ],
+    "plinth_height_m": 1.2,
+    "cornice_ground_projection_m": [
+      0.35,
+      0.45
+    ],
+    "cornice_roof_projection_m": [
+      0.6,
+      0.65
+    ],
+    "cornice_roof_profile_m": [
+      0.5,
+      0.6
+    ],
+    "portico_m": {
+      "width": 18,
+      "depth": 5.8,
+      "column_diameter": 0.9,
+      "column_x": [
+        -6,
+        -2,
+        2,
+        6
+      ]
+    },
     "sign": "HOTEL SOBCZAK"
   },
   "materials": {
@@ -147,7 +245,7 @@
     "corridor_runner": "poly_wool_herringbone",
     "kitchen": "tiled_floor_001",
     "exterior_paving": "granite_tile_04",
-    "stairs": "granite_tile",
+    "stairs": "granite_tile_04",
     "ramp": "anti_slip_concrete",
     "parking": "garage_floor",
     "technical_walls": "concrete_wall_003",
@@ -158,6 +256,65 @@
   "android": {
     "max_texture": 2048,
     "format": "ASTC_4x4",
-    "mipmaps": true
+    "mipmaps": true,
+    "streaming": true,
+    "albedo_srgb": true,
+    "normal_linear": true,
+    "arm_linear": true,
+    "anisotropic_near": [
+      4,
+      8
+    ]
+  },
+  "revision": "OWNER_2026-11-08_T03_COMPLETE_A_TO_Z",
+  "site_reserve_m": {
+    "width": 86,
+    "depth": 76,
+    "x": [
+      987,
+      1073
+    ],
+    "z": [
+      672,
+      748
+    ]
+  },
+  "structure": {
+    "external_wall_m": 0.4,
+    "internal_clear_m": {
+      "width": 63.2,
+      "depth": 41.2
+    },
+    "slab_typical_m": [
+      0.28,
+      0.3
+    ],
+    "slab_heavy_max_m": 0.35,
+    "room_party_wall_m": 0.2,
+    "corridor_room_wall_m": 0.18,
+    "bathroom_wall_m": [
+      0.12,
+      0.15
+    ],
+    "core_wall_m": [
+      0.2,
+      0.25
+    ]
+  },
+  "roof": {
+    "base_y": 117.6,
+    "lower_angle_deg": 67,
+    "lower_zone_height_m": 7.6,
+    "break_y": 125.2,
+    "upper_angle_deg_approx": 15,
+    "ridge_max_y": 130,
+    "dormers_front": 7,
+    "dormers_rear": 7,
+    "dormer_width_m": 3,
+    "dormer_visible_height_m": [
+      2.6,
+      3
+    ],
+    "central_pavilion_width_m": 18
   }
 }
