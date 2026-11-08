@@ -77,11 +77,22 @@ def get(url):
    if attempt==3:raise
    time.sleep(2*(attempt+1))
 
-def save(name,blob,source):
+def validate_4k_dimensions(name,size,provider_native_aspect=False):
+ # Poly Haven's provider-native 4K downloads may preserve the captured aspect
+ # ratio (for example velour_velvet diffuse is 4096x3941). Provenance is
+ # already pinned by provider byte-size/MD5 above, so never rescale or crop it.
+ if provider_native_aspect:
+  if max(size)!=4096 or min(size)<=0:
+   raise RuntimeError(f'{name}: source is {size}, expected provider-native 4K with 4096px long edge')
+ elif size!=(4096,4096):
+  raise RuntimeError(f'{name}: source is {size}, expected original 4096x4096')
+ return size
+
+def save(name,blob,source,provider_native_aspect=False):
  path=DEST/name
  if not name.endswith('.exr'):
   with Image.open(io.BytesIO(blob)) as image:
-   if image.size!=(4096,4096):raise RuntimeError(f'{name}: source is {image.size}, expected original 4K')
+   validate_4k_dimensions(name,image.size,provider_native_aspect)
  digest=hashlib.sha256(blob).hexdigest()
  if name in LOCK and digest!=LOCK[name]:raise RuntimeError('Owner-library source changed: '+name)
  path.write_bytes(blob)
@@ -104,7 +115,7 @@ def main():
    data=path.read_bytes() if path.exists() else None
    if data is None or not matches_source(data,item) or (name in LOCK and hashlib.sha256(data).hexdigest()!=LOCK[name]):data=get(url)
    if not matches_source(data,item):raise RuntimeError(f'Poly Haven {slug}: invalid download size/checksum for {kind} 4k/{ext}')
-   report.append(save(name,data,url))
+   report.append(save(name,data,url,provider_native_aspect=True))
  # Extract the complete original packs once; retain original maps and pack ARM outside Unity.
  for asset, kinds in [('Grass004',['Color','NormalGL','Roughness','AmbientOcclusion']),
                       ('Metal048A',['Color','NormalGL','Roughness','Metalness']),
