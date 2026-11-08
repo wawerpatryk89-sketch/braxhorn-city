@@ -65,7 +65,7 @@ jobs:
           printf 'Zmiany po SHA sceny:\n%s\n' "${changed[*]}"
           for f in "${changed[@]}"; do
             case "$f" in
-              .github/workflows/mistrzowie-sequential-short-audit-20261106.yml|              .github/workflows/mistrzowie-apk-after-scene-fix31-20261108.yml) ;;
+              .github/workflows/mistrzowie-sequential-short-audit-20261106.yml|.github/workflows/mistrzowie-apk-after-scene-fix31-20261108.yml) ;;
               *) echo "::error::Po teście sceny zmienił się kod/asset: $f — APK NIE URUCHOMIONY"; exit 1 ;;
             esac
           done
