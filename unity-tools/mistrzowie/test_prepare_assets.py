@@ -4,7 +4,7 @@ from pathlib import Path
 import hashlib
 import unittest
 
-from prepare_assets import matches_source, polyhaven_map, POLYHAVEN_SLUGS, POLYHAVEN_MAPS, A1_POLYHAVEN_PINS
+from prepare_assets import matches_source, polyhaven_map, validate_4k_dimensions, POLYHAVEN_SLUGS, POLYHAVEN_MAPS, A1_POLYHAVEN_PINS
 
 
 LIVE_VERIFIED_OWNER_SLUGS={"stone_tiles","gravel_embedded_concrete_02","wooden_panels",
@@ -77,6 +77,15 @@ class PolyHavenSourceTests(unittest.TestCase):
     def test_missing_fabric_default_does_not_choose_another_colour(self):
         with self.assertRaisesRegex(RuntimeError, "fabric_pattern_05: missing diff"):
             polyhaven_map({"col_02": self.entry()}, "fabric_pattern_05", "diff", "jpg")
+
+    def test_provider_native_4k_keeps_original_aspect_ratio_without_resampling(self):
+        self.assertEqual(
+            validate_4k_dimensions("velour_velvet_diff_4k.jpg",(4096,3941),True),
+            (4096,3941))
+        with self.assertRaisesRegex(RuntimeError,"provider-native 4K"):
+            validate_4k_dimensions("too_small.jpg",(2048,2048),True)
+        with self.assertRaisesRegex(RuntimeError,"4096x4096"):
+            validate_4k_dimensions("ambientcg_square.jpg",(4096,3941),False)
 
     def test_truncated_or_changed_cached_bytes_are_rejected(self):
         data = b"original source bytes"
