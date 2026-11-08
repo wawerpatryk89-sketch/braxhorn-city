@@ -102,6 +102,18 @@ class HotelSobczakT03Contract(unittest.TestCase):
         # Door leaves are visual/non-solid; no hidden normal WindowBay in centre.
         self.assertIn("if(baseY==0f && zsign<0f && i==3)", self.generator)
 
+    def test_ground_arches_are_physical_openings_not_flat_texture(self):
+        self.assertIn("Ground arch masonry infill", self.generator)
+        self.assertIn("Mathf.Sqrt(Mathf.Max(0f,r*r-radial*radial))", self.generator)
+        self.assertIn("Ground arch 3D segment", self.generator)
+
+    def test_parking_stair_clearance_and_full_width_ramp_connection(self):
+        self.assertIn("stair opening x=-29.00..-23.60, z=8.50..17.00", self.generator)
+        self.assertIn("const float stairZ=12.70f", self.generator)
+        self.assertIn('B1 EAST ramp connector",M.antiSlip,35.65f', self.generator)
+        self.assertIn('B2 EAST ramp connector",M.antiSlip,35.65f', self.generator)
+        self.assertIn("Full-width connectors span from east wall", self.generator)
+
     def test_roof_has_mansard_dormers_and_sub_130_geometry(self):
         self.assertIn("lowerAngle=67f", self.generator)
         self.assertIn("lowerRise=7.60f", self.generator)
