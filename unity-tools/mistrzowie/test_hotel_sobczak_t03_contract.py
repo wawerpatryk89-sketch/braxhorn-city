@@ -54,7 +54,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertEqual(rooms["corridor_m"], 2.4)
         self.assertIn("GuestFloors=30,RoomsPerFloor=14,TotalRooms=420", self.generator)
         self.assertIn("if(roomsBuilt!=TotalRooms)", self.generator)
-        self.assertIn("ROOM "+number+" | bay 7.00x11.65 | sleep module 3.50x7.00", self.generator)
+        self.assertIn('Group(p,"ROOM "+number+" | bay 7.00x11.65 | sleep module 3.50x7.00")', self.generator)
 
     def test_public_area_math(self):
         expected = {
