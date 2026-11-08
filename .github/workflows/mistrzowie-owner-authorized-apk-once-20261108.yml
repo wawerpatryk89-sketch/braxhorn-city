@@ -26,10 +26,10 @@ jobs:
           fetch-depth: 2
           sparse-checkout: |
             .github/workflows/
-      - name: Potwierdz poprawke po APK 29 i uruchom dokladnie jeden nowy APK
+      - name: Potwierdz poprawki po APK 30 i uruchom dokladnie jeden nowy APK
         env:
           GH_TOKEN: ${{ github.token }}
-          FIXED_PARENT: d53aca4fe8c9abf5c8735180132680b7fdfe8c7f
+          FIXED_PARENT: c88fec1b51246721a639bf449a9ad77f38fb8cc5
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD^)" = "$FIXED_PARENT" || {
