@@ -118,6 +118,7 @@ public static class BraxChampionsBuild
             report.playerClips=BraxChampionsExplorer.Validate(scene);
             CheckAssets(scene);report.explorationSceneReloadPassed=true;
             if(validationOnly)VerifyArenaCasinoAssembly(scene,report,"exploration-serialized");
+            if(validationOnly)VerifyArenaCasinoCarAssembly(scene,report);
             report.checks.Add("Exploration scene reopened; player quality and traversability require manual device review");
             if(validationOnly)
             {
@@ -187,7 +188,48 @@ public static class BraxChampionsBuild
         report.checks.Add("A1_T11_SAME_SCENE_PASS phase="+phase+
             " scene="+scene.name+" arena=1 casino=1 A1_owner_signs=4"+
             " T11_owner_sign=1 original_dollar=1 positions_scaled_once=true"+
-            " car_issue30_not_a_gate=true APK_NOT_BUILT=true");
+            " car_checked_separately_in_exploration=true APK_NOT_BUILT=true");
+    }
+
+    // Three-owner-element integration proof, only for explicitly selected Unity
+    // scene validation (not normal APK/Addressables). This checks the actual
+    // saved-and-reloaded Explore scene; code-only tests cannot prove visuals.
+    static void VerifyArenaCasinoCarAssembly(Scene scene,Report report)
+    {
+        if(!scene.IsValid()||!scene.isLoaded)
+            throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: no loaded exploration scene");
+        var cars=scene.GetRootGameObjects()
+            .SelectMany(g=>g.GetComponentsInChildren<BraxChampionsCar>(true)).ToArray();
+        if(cars.Length!=1)
+            throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: expected one BRAXHORN owner car, found "+cars.Length);
+        var car=cars[0];
+        if(!car.driverSeat||!car.doorApproach||!car.bodyCollider||
+           !car.engineAudioAnchor||!car.GetComponent<Rigidbody>())
+            throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: incomplete driver seat, chassis, entrance or engine audio anchor");
+        if(car.bodyCollider.transform!=car.transform)
+            throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: chassis collider does not belong to source car");
+        if(Mathf.Abs(car.maxSpeed*3.6f-120f)>.05f)
+            throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: car is not limited to owner-approved 120 km/h");
+        if(Mathf.Abs(car.bodyCollider.bounds.size.z-4.95f)>.10f)
+            throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: car body is not 4.95 real Unity metres long");
+        var expectedPos=new Vector3(645.175f,.16f,712f)*BraxClaudeOsiedle.K;
+        if(Vector3.Distance(car.transform.position,expectedPos)>.05f)
+            throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: owner car parking position drifted");
+
+        var idle=car.engineIdleClip;
+        var rev=car.engineRevClip;
+        if(!idle||!rev||
+           AssetDatabase.GetAssetPath(idle)!=BraxChampionsCarBuilder.EngineIdleAudio||
+           AssetDatabase.GetAssetPath(rev)!=BraxChampionsCarBuilder.EngineRevAudio||
+           idle.length<4.5f||rev.length<2.0f)
+            throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: original engine idle/rev OGG recordings missing or shortened");
+
+        report.checks.Add("A1_T11_CAR_SAME_SCENE_PASS scene="+scene.name+
+            " arena=1 casino=1 car=1 lengthMetres=4.95 speedKph=120"+
+            " BraxSeat=HipsTarget originalIdleSeconds="+idle.length.ToString("F2")+
+            " originalRevSeconds="+rev.length.ToString("F2")+
+            " audioFiles=OGG_2 distinctCameras=0 visualReview=PENDING"+
+            " APK_NOT_BUILT=true");
     }
 
     static int RecordSourceImportDiagnostics(string reports)

@@ -97,10 +97,35 @@ class A1T11Preflight(unittest.TestCase):
         self.assertIn("GetRootGameObjects()",build)
         self.assertIn("arenaSigns!=4||casinoSigns!=1||casinoDollars!=1",build)
         self.assertIn("A1_T11_SAME_SCENE_PASS",build)
-        self.assertIn("car_issue30_not_a_gate=true APK_NOT_BUILT=true",build)
+        self.assertIn("car_checked_separately_in_exploration=true APK_NOT_BUILT=true",build)
         gate=build[build.index("static void VerifyArenaCasinoAssembly("):
                    build.index("static int RecordSourceImportDiagnostics(")]
         self.assertNotIn("BuildPlayer",gate)
+        self.assertNotIn("workflow_dispatch",gate)
+
+    def test_exact_car_audio_and_120_kph_are_in_the_same_serialized_explore_scene(self):
+        build=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs")
+        explore=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsExplorer.cs")
+        car=source("unity-city/Assets/Mistrzowie/BraxChampionsCar.cs")
+        builder=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs")
+        self.assertIn("BraxChampionsCarBuilder.Generate(rig.transform);",explore)
+        self.assertIn('if(validationOnly)VerifyArenaCasinoAssembly(scene,report,"exploration-serialized");',build)
+        self.assertIn("if(validationOnly)VerifyArenaCasinoCarAssembly(scene,report);",build)
+        self.assertIn("static void VerifyArenaCasinoCarAssembly(Scene scene,Report report)",build)
+        self.assertIn("GetComponentsInChildren<BraxChampionsCar>(true)",build)
+        self.assertIn("cars.Length!=1",build)
+        self.assertIn("car.bodyCollider.bounds.size.z-4.95f",build)
+        self.assertIn("car.maxSpeed*3.6f-120f",build)
+        self.assertIn("BraxChampionsCarBuilder.EngineIdleAudio",build)
+        self.assertIn("BraxChampionsCarBuilder.EngineRevAudio",build)
+        self.assertIn("A1_T11_CAR_SAME_SCENE_PASS",build)
+        self.assertIn("public float maxSpeed = 120f / 3.6f",car)
+        self.assertIn("const float LengthMetres = 4.95f;",builder)
+        self.assertIn('car.engineIdleClip = AssetDatabase.LoadAssetAtPath<AudioClip>(EngineIdleAudio);',builder)
+        self.assertIn('car.engineRevClip = AssetDatabase.LoadAssetAtPath<AudioClip>(EngineRevAudio);',builder)
+        gate=build[build.index("static void VerifyArenaCasinoCarAssembly("):
+                   build.index("static int RecordSourceImportDiagnostics(")]
+        self.assertNotIn("BuildPipeline.BuildPlayer",gate)
         self.assertNotIn("workflow_dispatch",gate)
 
     def test_no_unsafe_masking_of_compilation_failures(self):
