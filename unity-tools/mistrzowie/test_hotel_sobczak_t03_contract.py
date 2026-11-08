@@ -310,6 +310,27 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('float clearH=h-.30f,y=clearH*.5f', self.generator)
         self.assertIn('Bathroom shower tray 1.20x0.90', self.generator)
 
+    def test_full_detail_basement_staff_mirrors_risers_and_lanterns(self):
+        for token in [
+            "B2 TECHNIKA","B1 MAGAZYN + HOUSEKEEPING","electrical cabinet","HVAC pump bank",
+            "housekeeping cart","linen storage","STAFF PASSAGE rear 1.50m",
+            "Technical riser WEST","Technical riser EAST","WC M mirror","WC K mirror",
+            "Bathroom mirror","classic dark bronze lantern post","classic warm lantern globe"
+        ]:
+            self.assertIn(token,self.generator)
+        self.assertIn("polished_mirror",self.materials)
+        self.assertIn('Contains(n,"soft_interior_stucco")',self.scene_audit)
+        self.assertIn('Contains(n,"mirror")',self.scene_audit)
+
+    def test_first_floor_zone_materials_match_owner_matrix(self):
+        self.assertIn('BuildLevelZone(g,"RESTAURACJA",-17f,-10f,25f,10f,6f,3.6f,true,1.8f,M.facade)',self.generator)
+        self.assertIn('BuildLevelZone(g,"FITNESS",17f,-10f,25f,10f,6f,3.6f,true,1.8f,M.facade)',self.generator)
+        self.assertIn('BuildLevelZone(g,"KUCHNIA",-12.5f,10f,20f,9f,6f,3.6f,false,1.4f,M.stuccoSoft)',self.generator)
+        self.assertIn('SPA wet wall marble',self.generator)
+        self.assertIn('Restaurant ivory wall trim',self.generator)
+        self.assertIn('Fitness ivory wall trim',self.generator)
+        self.assertIn('(mat==M.marble||mat==M.marbleWet)?1.5f',self.generator)
+
     def test_owner_stucco_strength_handrails_and_portal_frame(self):
         self.assertIn('s.stucco.SetFloat("_BumpScale",.25f)', self.materials)
         self.assertIn('VariantNormal("soft_interior_stucco",s.stucco,.15f)', self.materials)
