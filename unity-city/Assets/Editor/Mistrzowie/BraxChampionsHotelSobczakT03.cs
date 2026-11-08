@@ -556,22 +556,25 @@ public static class BraxChampionsHotelSobczakT03
     // ---------------------------------------------------------------- GUEST EXTERIOR
     static void BuildGuestExteriorAndStructure()
     {
+        // Lightweight shell is also one prefab instanced 30x. It stays active at distance,
+        // while the separate interior prefab is streamed only for current floor +/-1.
+        var templateRoot=new GameObject("HOTEL SOBCZAK | GUEST EXTERIOR FLOOR TEMPLATE");
+        BuildGuestExteriorFloorTemplate(templateRoot.transform);
+        string templatePath=Out+"/GuestExteriorFloorTemplate.prefab";
+        var templatePrefab=PrefabUtility.SaveAsPrefabAsset(templateRoot,templatePath);
+        UnityEngine.Object.DestroyImmediate(templateRoot);
+        if(!templatePrefab)throw new InvalidOperationException("HOTEL SOBCZAK failed to save GuestExteriorFloorTemplate.prefab");
+
         for(int f=0;f<GuestFloors;f++)
         {
             float y0=GuestBase+f*3.6f;
-            SlabWithCoreOpenings(guestExterior,"Guest slab "+(f+2),M.marble,y0-.14f,.28f,1.5f);
-            SlabWithCoreOpenings(guestExterior,"Guest ceiling finish "+(f+2),M.stucco,y0+3.31f,.02f,1.8f);
-            foreach(float zsign in new[]{-1f,1f})
-            {
-                float z=zsign*20.80f;
-                for(int i=0;i<7;i++)
-                    DoubleWindowBay(guestExterior,"Guest facade F"+(f+2),-18f+i*6f,y0,z,6f,3.6f,1.45f,2.20f,.85f,zsign);
-                B(guestExterior,"Guest WEST service core facade F"+(f+2),M.facade,-26.30f,y0+1.8f,z,10.6f,3.6f,.40f,true,3f);
-                B(guestExterior,"Guest EAST service core facade F"+(f+2),M.facade,26.30f,y0+1.8f,z,10.6f,3.6f,.40f,true,3f);
-            }
-            foreach(float xsign in new[]{-1f,1f})
-                B(guestExterior,"Guest side wall F"+(f+2),M.facade,xsign*31.80f,y0+1.8f,0,.40f,3.6f,42f,true,3f);
+            var instance=PrefabUtility.InstantiatePrefab(templatePrefab,guestExterior) as GameObject;
+            if(!instance)throw new InvalidOperationException("HOTEL SOBCZAK failed to instantiate exterior floor "+(f+2));
+            instance.name="GUEST EXTERIOR FLOOR "+(f+2)+" | SHELL PREFAB INSTANCE";
+            instance.transform.localPosition=Vector3.up*y0*K;
+            instance.transform.localRotation=Quaternion.identity;
         }
+
         SlabWithCoreOpenings(guestExterior,"Guest roof deck TECH",M.concrete,GuestTop-.15f,.30f,3f);
         foreach(float y in new[]{6f,9.6f})
         {
@@ -579,6 +582,23 @@ public static class BraxChampionsHotelSobczakT03
             B(guestExterior,"Rear classical cornice "+y,M.stucco,0,y,21.18f,64f,.35f,.45f,false,1.8f);
         }
     }
+
+    static void BuildGuestExteriorFloorTemplate(Transform p)
+    {
+        SlabWithCoreOpenings(p,"Guest slab F-TEMPLATE",M.marble,-.14f,.28f,1.5f);
+        SlabWithCoreOpenings(p,"Guest ceiling finish F-TEMPLATE",M.stucco,3.31f,.02f,1.8f);
+        foreach(float zsign in new[]{-1f,1f})
+        {
+            float z=zsign*20.80f;
+            for(int i=0;i<7;i++)
+                DoubleWindowBay(p,"Guest facade F-TEMPLATE",-18f+i*6f,0f,z,6f,3.6f,1.45f,2.20f,.85f,zsign);
+            B(p,"Guest WEST service core facade F-TEMPLATE",M.facade,-26.30f,1.8f,z,10.6f,3.6f,.40f,true,3f);
+            B(p,"Guest EAST service core facade F-TEMPLATE",M.facade,26.30f,1.8f,z,10.6f,3.6f,.40f,true,3f);
+        }
+        foreach(float xsign in new[]{-1f,1f})
+            B(p,"Guest side wall F-TEMPLATE",M.facade,xsign*31.80f,1.8f,0,.40f,3.6f,42f,true,3f);
+    }
+
     static void DoubleWindowBay(Transform p,string prefix,float x,float y0,float z,float bayW,float floorH,float winW,float winH,float sill,float outward)
     {
         float gap=.75f,side=(bayW-(2f*winW+gap))*.5f,header=floorH-sill-winH;
