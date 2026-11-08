@@ -107,18 +107,21 @@ jobs:
         id: selected
         env:
           SOURCE_COMMIT: ${{ inputs.commit }}
+          REQUESTED_STAGE: ${{ inputs.etap }}
         run: |
           python3 - <<'PYREF'
           import os, re
           # ONE production source for a combined Arena A1 + Casino T11 APK.
           # Running this from the older Arena-only/main workflow must stop.
           combined = 'gpt/miasto-mistrzow-kasyno-t11-20261105'
+          hotel_scene = 'gpt/miasto-mistrzow-hotel-sobczak-t03-20261108'
           current = os.environ.get('GITHUB_REF', '').removeprefix('refs/heads/')
-          # P1 has already been merged here; the older integration snapshot
-          # must not be selected for an APK.
-          if current != combined:
-              raise SystemExit('Wybierz Run workflow -> Use workflow from: ' + combined +
-                               '. Nie buduj starszej osobnej areny ani main.')
+          stage = os.environ.get('REQUESTED_STAGE','').strip()
+          # APK remains locked to the approved combined branch. The isolated
+          # HOTEL SOBCZAK branch is allowed ONLY for owner-requested scene validation.
+          if current != combined and not (stage == 'sceny' and current == hotel_scene):
+              raise SystemExit('APK wymaga ' + combined +
+                               '; osobna gałąź Hotel Sobczak jest dozwolona tylko dla etap=sceny.')
           sha = os.environ['GITHUB_SHA'].lower()
           selected = os.environ.get('SOURCE_COMMIT', '').strip()
           if selected and selected not in (current,sha):
