@@ -204,7 +204,7 @@ Both OGG files contain embedded creator, license and source metadata. No endorse
           chmod +x unity-tools/mistrzowie/prepare_champion_car_audio.py
           python3 unity-tools/mistrzowie/prepare_champion_car_audio.py
           python3 unity-tools/mistrzowie/test_issue30_car_audio.py -v
-      - name: Commit final audio only and remove temporary workflows
+      - name: Commit final audio only
         shell: bash
         env:
           BRANCH: gpt/miasto-mistrzow-kasyno-t11-20261105
@@ -212,13 +212,22 @@ Both OGG files contain embedded creator, license and source metadata. No endorse
           set -euo pipefail
           git config user.name "wawerpatryk89-sketch"
           git config user.email "wawerpatryk89@gmail.com"
-          git rm -f .github/workflows/issue30-car-audio-verify-temp.yml .github/workflows/issue30-finalize-car-audio-once.yml || true
-          git add unity-city/Assets/Source/Mistrzowie/Audio.meta unity-city/Assets/Source/Mistrzowie/Audio/BraxCar.meta unity-city/Assets/Source/Mistrzowie/Audio/BraxCar unity-tools/mistrzowie/champion_car_audio_sources.json unity-tools/mistrzowie/prepare_champion_car_audio.py unity-tools/mistrzowie/test_issue30_car_audio.py
-          git diff --cached --name-only
-          if git diff --cached --name-only | grep -E 'BraxChampions(Arena|Casino)'; then echo "foreign scope" >&2; exit 90; fi
+          git add             unity-city/Assets/Source/Mistrzowie/Audio.meta             unity-city/Assets/Source/Mistrzowie/Audio/BraxCar.meta             unity-city/Assets/Source/Mistrzowie/Audio/BraxCar             unity-tools/mistrzowie/champion_car_audio_sources.json             unity-tools/mistrzowie/prepare_champion_car_audio.py             unity-tools/mistrzowie/test_issue30_car_audio.py
+          python3 - <<'PY'
+          import subprocess
+          changed=set(subprocess.check_output(['git','diff','--cached','--name-only'],text=True).split())
+          allowed_prefixes=(
+              'unity-city/Assets/Source/Mistrzowie/Audio',
+              'unity-tools/mistrzowie/champion_car_audio_sources.json',
+              'unity-tools/mistrzowie/prepare_champion_car_audio.py',
+              'unity-tools/mistrzowie/test_issue30_car_audio.py',
+          )
+          foreign=[p for p in changed if not any(p.startswith(prefix) for prefix in allowed_prefixes)]
+          if foreign:
+              raise SystemExit('ISSUE30_SCOPE_FAIL '+repr(sorted(foreign)))
+          print('ISSUE30_SCOPE_PASS',sorted(changed))
+          PY
           git commit -m "Issue 30: replace truncated engine clips with verified full OGG audio"
           git fetch origin "$BRANCH"
           git rebase "origin/$BRANCH"
           git push origin HEAD:"$BRANCH"
-
-# final-run-trigger-20261108-1522
