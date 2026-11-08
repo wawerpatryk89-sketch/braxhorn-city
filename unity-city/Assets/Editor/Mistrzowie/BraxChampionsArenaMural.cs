@@ -12,6 +12,7 @@ public static class BraxChampionsArenaMural
     // HD 6144x2048 (oryginał właściciela powiększony 4x, 6.11) — używany, gdy jest.
     public const string HdImage =
         "Assets/Source/Mistrzowie/ArenaMuralsHD/MURAL_WEJSCIE_CHAMPION_FIGHTER_6144x2048.png";
+    // Historical lower-resolution source is deliberately NOT used as a fallback.
     public const string OriginalImage =
         "Assets/Source/Mistrzowie/ArenaMurals/BRAXHORN_CHAMPION_FIGHTER_ORIGINAL.jpg";
 
@@ -42,6 +43,91 @@ public static class BraxChampionsArenaMural
     // Reverse only the UV direction: the owner image must not read as a mirror.
     static float U(float x) => Mathf.Clamp01((ImageRight-x)/(ImageRight-ImageLeft));
     static float V(float y) => Mathf.Clamp01((y-MuralBase)/(MuralTop-MuralBase));
+
+    static GameObject RoundedPanel(Transform parent,string name,Material material,
+        Vector3 center,Vector2 size,float depth,float radius)
+    {
+        const int cornerSegments=5;
+        float hx=size.x*.5f,hy=size.y*.5f;
+        float r=Mathf.Clamp(radius,.001f,Mathf.Min(hx,hy)-.001f);
+        var outline=new System.Collections.Generic.List<Vector2>();
+        void Arc(float cx,float cy,float a0,float a1)
+        {
+            for(int i=0;i<=cornerSegments;i++)
+            {
+                float a=Mathf.Lerp(a0,a1,i/(float)cornerSegments)*Mathf.Deg2Rad;
+                outline.Add(new Vector2(cx+r*Mathf.Cos(a),cy+r*Mathf.Sin(a)));
+            }
+        }
+        Arc(hx-r,hy-r,0,90);Arc(-hx+r,hy-r,90,180);
+        Arc(-hx+r,-hy+r,180,270);Arc(hx-r,-hy+r,270,360);
+        var verts=new System.Collections.Generic.List<Vector3>();
+        var tris=new System.Collections.Generic.List<int>();
+        float zf=depth*.5f,zb=-zf;
+        for(int i=0;i<outline.Count;i++)
+        {
+            int n=(i+1)%outline.Count;
+            int b=verts.Count;
+            verts.Add(center+new Vector3(outline[i].x,outline[i].y,zb));
+            verts.Add(center+new Vector3(outline[n].x,outline[n].y,zb));
+            verts.Add(center+new Vector3(outline[n].x,outline[n].y,zf));
+            verts.Add(center+new Vector3(outline[i].x,outline[i].y,zf));
+            tris.Add(b);tris.Add(b+2);tris.Add(b+1);
+            tris.Add(b);tris.Add(b+3);tris.Add(b+2);
+        }
+        // front/back caps
+        for(int i=0;i<outline.Count;i++)
+        {
+            int n=(i+1)%outline.Count,b=verts.Count;
+            verts.Add(center+new Vector3(0,0,zf));
+            verts.Add(center+new Vector3(outline[i].x,outline[i].y,zf));
+            verts.Add(center+new Vector3(outline[n].x,outline[n].y,zf));
+            tris.Add(b);tris.Add(b+1);tris.Add(b+2);
+            b=verts.Count;
+            verts.Add(center+new Vector3(0,0,zb));
+            verts.Add(center+new Vector3(outline[n].x,outline[n].y,zb));
+            verts.Add(center+new Vector3(outline[i].x,outline[i].y,zb));
+            tris.Add(b);tris.Add(b+1);tris.Add(b+2);
+        }
+        var mesh=new Mesh{name=name+" rounded R="+radius};
+        mesh.SetVertices(verts);mesh.SetTriangles(tris,0);mesh.RecalculateNormals();mesh.RecalculateBounds();
+        string safe=name.Replace(' ','_').Replace('|','_');
+        AssetDatabase.CreateAsset(mesh,Output+"/"+safe+"_rounded.asset");
+        var go=new GameObject(name);go.transform.SetParent(parent,false);
+        go.AddComponent<MeshFilter>().sharedMesh=mesh;
+        go.AddComponent<MeshRenderer>().sharedMaterial=material;
+        GameObjectUtility.SetStaticEditorFlags(go,StaticEditorFlags.OccludeeStatic);
+        return go;
+    }
+
+    static void PremiumEntrancePortal(Transform parent)
+    {
+        var gold=BraxChampionsFoundation.LibraryMetal(
+            "A1_interior_entrance_portal_gold",new Color(.835f,.639f,.231f));
+        gold.SetFloat("_Metallic",.98f);gold.SetFloat("_Roughness",.19f);
+        var warm=AssetDatabase.LoadAssetAtPath<Material>(
+            "Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/light.mat");
+        if(!warm)throw new InvalidOperationException("A1 portal warm emissive material missing");
+        float cx=(DoorLeft+DoorRight)*.5f;
+        float z=WallImageZ+.055f; // in front of mural, no coplanar overlap
+        RoundedPanel(parent,"A1 PREMIUM PORTAL | GOLD left",gold,
+            new Vector3(DoorLeft-.09f,2.10f,z),new Vector2(.18f,4.20f),.08f,.030f);
+        RoundedPanel(parent,"A1 PREMIUM PORTAL | GOLD right",gold,
+            new Vector3(DoorRight+.09f,2.10f,z),new Vector2(.18f,4.20f),.08f,.030f);
+        RoundedPanel(parent,"A1 PREMIUM PORTAL | GOLD top",gold,
+            new Vector3(cx,4.29f,z),new Vector2(4.46f,.18f),.08f,.030f);
+
+        // 25 mm warm LED sits on the gold face, outside the clear 4.10m doorway.
+        RoundedPanel(parent,"A1 PREMIUM PORTAL | 3000K LED left",warm,
+            new Vector3(DoorLeft-.013f,2.10f,z+.046f),new Vector2(.025f,4.05f),.018f,.010f);
+        RoundedPanel(parent,"A1 PREMIUM PORTAL | 3000K LED right",warm,
+            new Vector3(DoorRight+.013f,2.10f,z+.046f),new Vector2(.025f,4.05f),.018f,.010f);
+        RoundedPanel(parent,"A1 PREMIUM PORTAL | 3000K LED top",warm,
+            new Vector3(cx,4.213f,z+.046f),new Vector2(4.10f,.025f),.018f,.010f);
+        Debug.Log("A1_PREMIUM_ENTRANCE_PORTAL clearOpening=4.10x4.20 outer=4.46x4.38"+
+            " goldProfile=.18x.08 bevelR=.03 LED=.025 noThreshold=true");
+    }
+
 
     static void AddSegment(Transform parent,Material mural,
         string name,float x0,float x1,float y0,float y1,bool extension)
@@ -87,27 +173,43 @@ public static class BraxChampionsArenaMural
     public static bool Generate(Transform originalBowlRoot)
     {
         if(!originalBowlRoot)throw new ArgumentNullException(nameof(originalBowlRoot));
-        bool hd=File.Exists(HdImage);
-        string source=hd?HdImage:OriginalImage;
-        if(hd)AssetDatabase.ImportAsset(HdImage,ImportAssetOptions.ForceSynchronousImport);
+        const bool hd=true;
+        string source=HdImage;
+        if(!File.Exists(source))
+        {
+            BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: required owner HD source missing: "+source+
+                "; NO FALLBACK and NO substitute image permitted");
+            return false;
+        }
+        AssetDatabase.ImportAsset(source,ImportAssetOptions.ForceSynchronousImport);
         var image=AssetDatabase.LoadAssetAtPath<Texture2D>(source);
-        if(!image&&hd){source=OriginalImage;hd=false;image=AssetDatabase.LoadAssetAtPath<Texture2D>(source);}
         if(!image)
         {
-            Debug.LogWarning("CHAMPION_A1_MURAL_SOURCE_PENDING: owner original panoramic image missing: "+
-                             source+"; NEVER substitute generated people");
+            BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: Unity did not import required owner HD source: "+source);
             return false;
         }
         var importer=AssetImporter.GetAtPath(source) as TextureImporter;
         if(!importer)throw new InvalidDataException("A1 original mural image has no texture importer");
         importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
-        if(sourceWidth!=sourceHeight*3)
-            BraxBuildQuality.Warn("A1 mural "+source+" is "+sourceWidth+"x"+sourceHeight+", not 3:1");
-        if(!hd&&(image.width!=SourceWidth||image.height!=SourceHeight))
-            BraxBuildQuality.Warn("A1 mural original remains 1536x512; platform-imported dimensions are "+
-                image.width+"x"+image.height+"; visual device review required");
-        if(!importer.mipmapEnabled)
-            BraxBuildQuality.Warn("A1 original mural imported without mipmaps; test APK can continue");
+        if(sourceWidth!=6144||sourceHeight!=2048||sourceWidth!=sourceHeight*3)
+        {
+            BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: required source must remain exact 6144x2048 3:1, got "+
+                sourceWidth+"x"+sourceHeight);
+            return false;
+        }
+        bool importerDirty=false;
+        if(!importer.mipmapEnabled){importer.mipmapEnabled=true;importerDirty=true;}
+        if(importer.wrapMode!=TextureWrapMode.Clamp){importer.wrapMode=TextureWrapMode.Clamp;importerDirty=true;}
+        var android=importer.GetPlatformTextureSettings("Android");
+        if(!android.overridden||android.maxTextureSize!=4096||
+           android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=100)
+        {
+            android.overridden=true;android.maxTextureSize=4096;
+            android.format=TextureImporterFormat.ASTC_4x4;android.compressionQuality=100;
+            importer.SetPlatformTextureSettings(android);importerDirty=true;
+        }
+        if(importerDirty){importer.SaveAndReimport();image=AssetDatabase.LoadAssetAtPath<Texture2D>(source);}
+        if(!image)return false;
 
         Directory.CreateDirectory(Output);
         var shader=Shader.Find(BraxCityMaterials.ShaderName);
@@ -132,8 +234,12 @@ public static class BraxChampionsArenaMural
         AddSegment(walls,m,"Original mural ABOVE doorway",DoorLeft,DoorRight,DoorTop,MuralTop,false);
         AddSegment(walls,m,"Original mural right of entry",DoorRight,ImageRight,MuralBase,MuralTop,false);
         AddSegment(walls,m,"Far right atmospheric edge",ImageRight,WallNearRight,MuralBase,MuralTop,true);
+        PremiumEntrancePortal(walls);
+        Debug.Log("ENTRANCE_MURAL = PASS");
         Debug.Log("CHAMPION_A1_MURAL_ORIGINAL_APPLIED hd="+hd+" source="+source+
-                  " wall=120m mural=82m door=4.10m x 4.20m open; sourcePixelsUnmodified=true");
+                  " sourcePixels="+sourceWidth+"x"+sourceHeight+
+                  " wall=120m mural=82x27.333m visibleArea=2224.09m2"+
+                  " door=4.10x4.20m open noMirror=true noStretch=true sourcePixelsUnmodified=true");
         return true;
     }
 }
