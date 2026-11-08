@@ -66,6 +66,14 @@ class HotelSobczakT03Contract(unittest.TestCase):
                       "SPA 350m2", "FITNESS 250m2"]:
             self.assertIn(token, self.generator)
 
+    def test_site_has_real_greenery_and_warm_bollards(self):
+        self.assertIn("ornamental_foliage", self.materials)
+        self.assertIn("T03 premium topiary shrub", self.generator)
+        self.assertIn("T03 ornamental tree trunk", self.generator)
+        self.assertIn("T03 ornamental tree crown", self.generator)
+        self.assertIn("T03 warm entrance bollard emissive cap", self.generator)
+        self.assertNotIn('premium shrub",M.stucco', self.generator)
+
     def test_parking_exact(self):
         p = self.spec["parking"]
         self.assertEqual((p["B1"], p["B2"], p["total"]), (40, 40, 80))
