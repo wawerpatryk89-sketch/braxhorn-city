@@ -133,6 +133,13 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("Mathf.Sqrt(Mathf.Max(0f,r*r-radial*radial))", self.generator)
         self.assertIn("Ground arch 3D segment", self.generator)
 
+    def test_parking_east_wall_openings_are_full_650m(self):
+        self.assertIn('east wall S1",M.concrete,31.8f,y+1.8f,-17.15f,.40f,3.6f,7.30f', self.generator)
+        self.assertIn('east wall MID",M.concrete,31.8f,y+1.8f,1.25f,.40f,3.6f,16.50f', self.generator)
+        self.assertIn('east wall N1",M.concrete,31.8f,y+1.8f,18.40f,.40f,3.6f,4.80f', self.generator)
+        self.assertIn('east wall S1",M.concrete,31.8f,y+1.8f,-18.40f,.40f,3.6f,4.80f', self.generator)
+        self.assertIn('east wall N1",M.concrete,31.8f,y+1.8f,5.65f,.40f,3.6f,30.30f', self.generator)
+
     def test_parking_stair_clearance_and_full_width_ramp_connection(self):
         self.assertIn("stair opening x=-29.00..-23.60, z=8.50..17.00", self.generator)
         self.assertIn("const float stairZ=12.70f", self.generator)
