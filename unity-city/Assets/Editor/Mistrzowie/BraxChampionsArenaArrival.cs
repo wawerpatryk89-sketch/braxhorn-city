@@ -824,9 +824,6 @@ public static class BraxChampionsArenaArrival
         var group=Group(arenaRoot,"A1 PREMIUM | ISSUE 27 approved external rebuild",Vector3.zero);
         var black=exterior["arena_black"];
         var gold=exterior["arena_gold"];
-        var redNeon=Paint("arena_reference_red_neon",new Color(.68f,.018f,.025f));
-        redNeon.SetColor("_EmissionColor",new Color(.70f,.018f,.020f));
-        EditorUtility.SetDirty(redNeon);
 
         var plinth=new FacadeBatch();
         var fins=new FacadeBatch();
@@ -1040,16 +1037,9 @@ public static class BraxChampionsArenaArrival
         interiorWarmBands.Emit(group,"three_warm_upper_glass_bands_preserved",exterior["light"]);
         upperCeilingHalo.Emit(group,"upper_interior_elliptical_halo_preserved",exterior["light"]);
 
-        // Owner correction 8.11: remove the two detached/protruding vertical
-        // red side bars. Keep only the red accents that belong visually to the
-        // sign composition itself; central owner artwork remains untouched.
-        foreach(float x in new[]{-16.8f,16.8f})
-        {
-            Box(group,"REFERENCE red neon sign top accent",redNeon,
-                new Vector3(x,17.10f,-59.02f),new Vector3(8.2f,.11f,.15f),false);
-            Box(group,"REFERENCE red neon sign lower accent",redNeon,
-                new Vector3(x,12.05f,-59.02f),new Vector3(8.2f,.09f,.15f),false);
-        }
+        // FINAL OWNER CORRECTION 8.11:
+        // zero separate red geometry outside the original CHAMPION ARENA artwork.
+        // Red remains ONLY in the owner PNG itself. Exterior framing is black + gold.
 
         // ISSUE #27 NEW PUBLIC SOUTH CANOPY. The old 21x6.8x0.07 public glass
         // canopy is deliberately NOT generated, preventing double geometry.
@@ -1208,7 +1198,8 @@ public static class BraxChampionsArenaArrival
             string.Join(",",supportFloors.Select(v=>v.ToString("F3")))+
             " nominalVolumeAtFloor0p24_each=4.479m3 total=8.959m3"+
             " canopy_LED=9 recessed_cassettes=10 beltTrimR_front=.025 rest=.020 signFrameR=.040"+
-            " fasciaR=.120 upperGoldR=.055 sideGoldR=.035 lowerGoldR=.025 original_sign_artwork_untouched=true"+
+            " fasciaR=.120 upperGoldR=.055 sideGoldR=.035 lowerGoldR=.025"+
+            " front_sign_external_red_geometry=0 sign_frame=BLACK_PLUS_GOLD original_sign_artwork_untouched=true"+
             " APK_NOT_STARTED=true scene_visual_review_required=true");
     }
 
