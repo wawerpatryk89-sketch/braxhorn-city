@@ -313,6 +313,11 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('float clearH=h-.30f,y=clearH*.5f', self.generator)
         self.assertIn('Bathroom shower tray 1.20x0.90', self.generator)
 
+    def test_reception_backoffice_does_not_reduce_350m2_lobby(self):
+        self.assertIn('Area(g,"LOBBY 350m2",M.marble,0,.022f,-1.50f,25f,14f)',self.generator)
+        self.assertIn('BuildServiceRoom(g,"ZAPLECZE RECEPCJI",14f,-12.5f,8f,5f,6f,M.oak)',self.generator)
+        self.assertNotIn('BuildServiceRoom(g,"ZAPLECZE RECEPCJI",0,-7.2f',self.generator)
+
     def test_ramp_slopes_use_exact_owner_maxima(self):
         self.assertIn('Mathf.Atan(.15f)*Mathf.Rad2Deg',self.generator)
         self.assertIn('Mathf.Atan(.05f)*Mathf.Rad2Deg',self.generator)
