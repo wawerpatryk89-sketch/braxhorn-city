@@ -6,6 +6,11 @@ on:
       - gpt/miasto-mistrzow-hotel-sobczak-t03-20261108
     paths:
       - .github/workflows/hotel-sobczak-t03-static-once.yml
+      - unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py
+      - unity-tools/mistrzowie/hotel_sobczak_t03_spec.json
+      - unity-tools/mistrzowie/plan_inventory.json
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakT03.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakMaterials.cs
 
 permissions:
   contents: read
