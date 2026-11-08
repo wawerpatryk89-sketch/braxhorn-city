@@ -18,6 +18,42 @@ POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # choose an arbitrary colour variation by dictionary order.
 COLOR_KEYS={'fabric_pattern_05':'col_01'}
 
+# A1 premium interior/exterior materials are pinned to exact official Poly Haven
+# 4K transfer metadata. A provider-side replacement must stop the build instead
+# of silently changing the approved arena appearance.
+A1_POLYHAVEN_PINS={
+ 'leather_white':{
+  'diff':(14972596,'26a2ffa8618206fbf99b63ab3bcbfd92'),
+  'nor_gl':(22858362,'8d76daff53867c2a9a61e7863d8f0c9b'),
+  'rough':(17528098,'f7789ac03a96ac824567b63203dd4c1d'),
+  'arm':(30368496,'92af92f9eda6dce284c3c1776445b6d4')},
+ 'velour_velvet':{
+  'diff':(13005232,'4844889b69b15257ef8ea01872204b4c'),
+  'nor_gl':(18289019,'3b3a810277d1eb512accbecec14ed230'),
+  'rough':(13517063,'203b4996c9370cd22488467714d47ea4'),
+  'arm':(98740229,'14fb289945a2d563cc40bca9eb1ca363')},
+ 'concrete_wall_009':{
+  'diff':(10298378,'2a944d5049ecd10dd99e5e1c91a689f1'),
+  'nor_gl':(18753294,'47265d9313e33a299f1bab50b0f6dbf0'),
+  'rough':(12147728,'1276d582286789cfb18dc22be879ee06'),
+  'arm':(64211166,'1207237846c52444bf50637b77602ba6')},
+ 'rectangular_facade_tiles':{
+  'diff':(9493498,'1c830bd24d9b8fdb5a650ca7bed81a06'),
+  'nor_gl':(34519560,'0cab17a4f40cd20d65392f3a5f192175'),
+  'rough':(2722620,'921dd1847d7ed0fab5eae4f9bbb8ac91'),
+  'arm':(55167369,'a41476654dd0a2adac86fcad927eca2b')},
+ 'granite_tile':{
+  'diff':(12787977,'2a0253486ea71ce26a3a3cd5f913edce'),
+  'nor_gl':(20323894,'eae5c37634f1e5e3a43b3100f59d7db1'),
+  'rough':(10924242,'b05e89ed64b900ce0dd37893fbcaec15'),
+  'arm':(61977889,'e49988af78b78971ede10d674ce52f84')},
+ 'stone_tiles':{
+  'diff':(15659623,'6b36cd2a4f8ae14cb3195eb849d71dd3'),
+  'nor_gl':(35270413,'a72ea01a3fd58aabd5973d8ab6827a96'),
+  'rough':(21521018,'ed084290fac358013139fffaed0bedfe'),
+  'arm':(70814871,'0c3f7e50b4ce85c9e6f543857f9464da')}
+}
+
 def polyhaven_map(metadata,slug,kind,ext):
  aliases={'diff':('Diffuse','diff'),'nor_gl':('nor_gl',),'rough':('Rough','rough'),'arm':('arm',)}
  keys=(COLOR_KEYS[slug],) if kind=='diff' and slug in COLOR_KEYS else aliases[kind]
@@ -59,6 +95,10 @@ def main():
   metadata=json.loads(get('https://api.polyhaven.com/files/'+slug))
   selected=[(kind,ext,polyhaven_map(metadata,slug,kind,ext)) for kind,ext in POLYHAVEN_MAPS]
   for kind,ext,item in selected:
+   if slug in A1_POLYHAVEN_PINS:
+    expected_size,expected_md5=A1_POLYHAVEN_PINS[slug][kind]
+    if item.get('size')!=expected_size or str(item.get('md5','')).lower()!=expected_md5:
+     raise RuntimeError(f'Poly Haven {slug} {kind}: provider metadata changed from approved A1 pin')
    url=item['url'];name=slug+'_'+kind+'_4k.'+ext
    path=DEST/name
    data=path.read_bytes() if path.exists() else None
