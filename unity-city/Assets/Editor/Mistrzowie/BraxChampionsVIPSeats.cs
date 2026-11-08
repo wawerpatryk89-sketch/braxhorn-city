@@ -142,20 +142,35 @@ public static class BraxChampionsVIPSeats
 
     static void ApplyPremiumMaterials(GameObject chair,Material leather,Material blackMetal)
     {
+        int leatherSlots=0,metalSlots=0;
         foreach(var renderer in chair.GetComponentsInChildren<Renderer>(true))
         {
             var slots=renderer.sharedMaterials;
             for(int i=0;i<slots.Length;i++)
             {
-                string semantic=(renderer.gameObject.name+" "+(slots[i]?slots[i].name:"")).ToLowerInvariant();
+                var source=slots[i];
+                string semantic=(renderer.gameObject.name+" "+(source?source.name:"")).ToLowerInvariant();
                 bool metal=semantic.Contains("metal")||semantic.Contains("steel")||
                     semantic.Contains("chrome")||semantic.Contains("leg")||
                     semantic.Contains("base")||semantic.Contains("frame")||
-                    semantic.Contains("foot");
+                    semantic.Contains("foot")||semantic.Contains("stand")||
+                    semantic.Contains("pedestal");
+                if(source)
+                {
+                    foreach(string property in new[]{"_Metallic","metallicFactor","_MetallicFactor"})
+                        if(source.HasProperty(property)&&source.GetFloat(property)>.25f)metal=true;
+                }
                 slots[i]=metal?blackMetal:leather;
+                if(metal)metalSlots++;else leatherSlots++;
             }
             renderer.sharedMaterials=slots;
         }
+        if(leatherSlots==0)
+            throw new InvalidOperationException("A1 VIP premium material mapping found no upholstery slots");
+        if(metalSlots==0)
+            BraxBuildQuality.Warn("A1_VIP_METAL_SLOT_NOT_IDENTIFIED: source GLB exposes no separate metal/base material slot; visual scene proof required");
+        Debug.Log("A1_VIP_MATERIAL_MAPPING leatherSlots="+leatherSlots+
+            " metalSlots="+metalSlots+" leather=PolyHaven_leather_white blackMetal=CityStaticPBR");
     }
 
     static void Place(Transform root, GameObject source, float x, float z, float cx, float cz,
