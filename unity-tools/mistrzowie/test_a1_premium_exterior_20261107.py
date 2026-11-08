@@ -84,6 +84,9 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("PUBLIC ISSUE27 recessed warm LED 3000K", self.arrival)
         self.assertIn("beltTrimR_front=.025 rest=.020 signFrameR=.040", self.arrival)
         self.assertIn("fasciaR=.120 upperGoldR=.055 sideGoldR=.035 lowerGoldR=.025", self.arrival)
+        self.assertIn("const float graphicDepth=.36f", self.arrival)
+        self.assertIn("const float graphicGap=.08f", self.arrival)
+        self.assertIn("float frameOffset=graphicDepth+graphicGap+frameDepth*.5f", self.arrival)
         self.assertIn("const float frameDepth=.082f", self.arrival)
         self.assertIn("new Vector3(.242f,.48f,len)", self.arrival)
         self.assertIn("new Vector3(.112f,.16f,len)", self.arrival)
@@ -244,6 +247,8 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('owner', self.signs.lower())
         self.assertNotIn('SetPixels',self.signs)
         self.assertNotIn('EncodeToPNG',self.signs)
+        self.assertIn('bool originalArenaGraphics=b.id=="A1"&&BraxChampionsArenaSigns.HasSources();',self.buildings)
+        self.assertIn('if(!originalArenaGraphics)',self.buildings)
 
     def test_lit_black_pillars_remain_outside_tinted_glass(self):
         self.assertIn('goldColumnInserts.Emit(group',self.arrival)
