@@ -1,5 +1,5 @@
 name: HOTEL SOBCZAK T03 — one-shot static contract — NO UNITY NO APK
-run-name: HOTEL SOBCZAK T03 — owner geometry regression check v4
+run-name: HOTEL SOBCZAK T03 — owner geometry + PBR regression check v5
 on:
   push:
     branches:
@@ -11,6 +11,8 @@ on:
       - unity-city/Assets/Mistrzowie/BraxHotelSobczakFloorStreamer.cs
       - unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py
       - unity-tools/mistrzowie/hotel_sobczak_t03_spec.json
+      - unity-tools/mistrzowie/prepare_assets.py
+      - unity-tools/mistrzowie/test_prepare_assets.py
 permissions:
   contents: read
 jobs:
@@ -28,6 +30,11 @@ jobs:
             unity-tools/mistrzowie/hotel_sobczak_t03_spec.json
             unity-tools/mistrzowie/plan_inventory.json
             unity-tools/mistrzowie/prepare_assets.py
+            unity-tools/mistrzowie/test_prepare_assets.py
+            unity-tools/mistrzowie/pack_materials.py
+            unity-tools/mistrzowie/pipeline.py
+            unity-tools/mistrzowie/verified_textures.json
+            unity-tools/mistrzowie/pbr-provider-preflight.json
             unity-city/Assets/Editor/Mistrzowie
             unity-city/Assets/Mistrzowie/BraxHotelSobczakFloorStreamer.cs
       - name: Python syntax
@@ -35,7 +42,12 @@ jobs:
       - name: CSharp parser
         run: |
           python3 -m pip install -q -r unity-tools/validation/requirements.txt
+          python3 -m pip install -q pillow numpy
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+      - name: Poly Haven source aspect regression
+        env:
+          PYTHONPATH: unity-tools/mistrzowie
+        run: python3 unity-tools/mistrzowie/test_prepare_assets.py -v
       - name: T03 contract
         run: python3 -m unittest unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py -v
       - name: Summary
