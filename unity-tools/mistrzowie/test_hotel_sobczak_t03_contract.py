@@ -199,12 +199,14 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("mipmapEnabled=true", texture_import)
         self.assertIn("streamingMipmaps=true", texture_import)
 
-    def test_t03_is_mandatory_in_building_generation(self):
-        self.assertEqual(self.buildings.count("BraxChampionsHotelSobczakT03.Generate();"), 1)
-        at = self.buildings.index("BraxChampionsHotelSobczakT03.Generate();")
-        near = self.buildings[max(0, at-350):at+250]
+    def test_t03_is_mandatory_but_isolated_from_a1_t11_p1_building_count(self):
+        self.assertNotIn("BraxChampionsHotelSobczakT03.Generate();", self.buildings)
+        self.assertNotIn("hotelGenerated", self.buildings)
+        self.assertEqual(self.build.count("BraxChampionsHotelSobczakT03.Generate();"), 1)
+        at = self.build.index("BraxChampionsHotelSobczakT03.Generate();")
+        near = self.build[max(0, at-450):at+400]
         self.assertNotIn('optional("hotel', near.lower())
-        self.assertIn("hotelGenerated=true", near)
+        self.assertIn("report.buildingExteriors++", near)
         self.assertIn("BraxChampionsHotelSobczakMaterials.VerifySources();", self.build)
 
     def test_guest_exterior_shell_is_one_prefab_instanced_30_times(self):
