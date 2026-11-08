@@ -9,9 +9,6 @@ using UnityEngine.Rendering;
 public static class BraxChampionsArenaSideMurals
 {
     const string Output = "Assets/PlayableGenerated/Mistrzowie/Arena/Mural";
-    const string Source = "Assets/Source/Mistrzowie/ArenaMurals/";
-    public const string LeftFighters = Source + "BRAXHORN_A1_FIGHTERS_LEFT_ORIGINAL.jpg";
-    public const string RightBelt = Source + "BRAXHORN_A1_BELT_RIGHT_ORIGINAL.jpg";
     const string HdSource = "Assets/Source/Mistrzowie/ArenaMuralsHD/";
     public const string LeftFightersHd = HdSource + "MURAL_LEWA_ZAWODNICY_6144x2048.png";
     public const string RightBeltHd = HdSource + "MURAL_PRAWA_PAS_6144x2048.png";
