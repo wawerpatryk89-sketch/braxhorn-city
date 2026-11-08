@@ -73,10 +73,12 @@ public static class BraxSceneAudit
         public string rootPath;
         public float centreX, centreZ;
         public float structuralWidthMeters, structuralDepthMeters, maxHeightMeters;
-        public int physicalLevelsExpected=34, guestFloors, rooms, elevators, stairs, parkingB1, parkingB2, parkingTotal;
+        public float siteWidthMeters, siteDepthMeters;
+        public int physicalLevelsExpected=34, physicalLevelsMeasured, guestFloors, rooms, elevators, stairs, parkingB1, parkingB2, parkingTotal;
         public int passengerElevators, serviceElevators, frontDormers, rearDormers;
         public int nullMaterialRenderers, milkGlassCandidates, doorLeafColliderCount;
-        public bool centrePass, footprintPass, heightPass, roomsPass, guestFloorsPass, elevatorsPass, stairsPass, parkingPass;
+        public bool centrePass, footprintPass, heightPass, siteReservePass, physicalLevelsPass;
+        public bool roomsPass, guestFloorsPass, elevatorsPass, stairsPass, parkingPass, dormersPass;
         public bool glassPass, doorLeafColliderPass;
         public List<string> failures = new List<string>();
     }
@@ -740,11 +742,27 @@ public static class BraxSceneAudit
         h.frontDormers=tr.Count(x=>x.name=="Mansard dormer body" && x.localPosition.z<0);
         h.rearDormers=tr.Count(x=>x.name=="Mansard dormer body" && x.localPosition.z>0);
 
+        h.physicalLevelsMeasured=h.guestFloors+4; // B2+B1+Parter+1+30 guest floors
+        h.physicalLevelsPass=h.physicalLevelsMeasured==34;
         h.guestFloorsPass=h.guestFloors==30;
         h.roomsPass=h.rooms==420;
         h.elevatorsPass=h.elevators==4 && h.passengerElevators==3 && h.serviceElevators==1;
         h.stairsPass=h.stairs==2;
         h.parkingPass=h.parkingB1==40 && h.parkingB2==40 && h.parkingTotal==80;
+        h.dormersPass=h.frontDormers==7 && h.rearDormers==7;
+
+        // Entire T03 site decoration/ramp must stay inside the owner's 86x76 m reserve.
+        if(site)
+        {
+            var siteRenderers=site.GetComponentsInChildren<Renderer>(true).Where(r=>r).ToArray();
+            if(siteRenderers.Length>0)
+            {
+                var sb=siteRenderers[0].bounds;
+                foreach(var r in siteRenderers.Skip(1))sb.Encapsulate(r.bounds);
+                h.siteWidthMeters=sb.size.x/hk; h.siteDepthMeters=sb.size.z/hk;
+            }
+        }
+        h.siteReservePass=h.siteWidthMeters<=86.02f && h.siteDepthMeters<=76.02f;
 
         var renderers=root.GetComponentsInChildren<Renderer>(true);
         h.nullMaterialRenderers=renderers.Count(r=>r && (r.sharedMaterials==null || r.sharedMaterials.Any(m=>!m)));
@@ -765,11 +783,14 @@ public static class BraxSceneAudit
         Fail(h.centrePass,"centre expected 1030/710 measured "+F(h.centreX)+"/"+F(h.centreZ));
         Fail(h.footprintPass,"structural footprint expected 64x42 measured "+F(h.structuralWidthMeters)+"x"+F(h.structuralDepthMeters));
         Fail(h.heightPass,"height expected <=130 and near roof top; measured "+F(h.maxHeightMeters));
+        Fail(h.siteReservePass,"site reserve expected <=86x76 measured "+F(h.siteWidthMeters)+"x"+F(h.siteDepthMeters));
+        Fail(h.physicalLevelsPass,"physical levels expected 34 found "+h.physicalLevelsMeasured);
         Fail(h.guestFloorsPass,"guest floors expected 30 found "+h.guestFloors);
         Fail(h.roomsPass,"rooms expected 420 found "+h.rooms);
         Fail(h.elevatorsPass,"lifts expected 3 passenger + 1 service; found "+h.passengerElevators+"+"+h.serviceElevators);
         Fail(h.stairsPass,"stairs expected 2 found "+h.stairs);
         Fail(h.parkingPass,"parking expected B1=40 B2=40 found "+h.parkingB1+"/"+h.parkingB2);
+        Fail(h.dormersPass,"dormers expected front/rear 7/7 found "+h.frontDormers+"/"+h.rearDormers);
         Fail(h.glassPass,"glass/material check failed nullRenderers="+h.nullMaterialRenderers+" milkCandidates="+h.milkGlassCandidates);
         Fail(h.doorLeafColliderPass,"open door/entrance leaf colliders found "+h.doorLeafColliderCount);
         h.status=h.failures.Count==0?"PASS_MEASURED_SCENE_CONTRACT":"FAIL_MEASURED_SCENE_CONTRACT";
@@ -796,10 +817,14 @@ public static class BraxSceneAudit
             "- środek X/Z: " + F(a.hotelSobczak.centreX) + " / " + F(a.hotelSobczak.centreZ) +
               "; obrys strukturalny: " + F(a.hotelSobczak.structuralWidthMeters) + " × " +
               F(a.hotelSobczak.structuralDepthMeters) + " m; max H: " + F(a.hotelSobczak.maxHeightMeters) + " m",
-            "- pokoje: " + a.hotelSobczak.rooms + "; piętra pokojowe: " + a.hotelSobczak.guestFloors +
+            "- poziomy fizyczne: " + a.hotelSobczak.physicalLevelsMeasured +
+              "; pokoje: " + a.hotelSobczak.rooms + "; piętra pokojowe: " + a.hotelSobczak.guestFloors +
               "; windy: " + a.hotelSobczak.passengerElevators + "+1 service=" + a.hotelSobczak.elevators +
               "; klatki: " + a.hotelSobczak.stairs + "; parking B1/B2: " +
               a.hotelSobczak.parkingB1 + "/" + a.hotelSobczak.parkingB2,
+            "- rezerwa wykorzystana: " + F(a.hotelSobczak.siteWidthMeters) + " × " +
+              F(a.hotelSobczak.siteDepthMeters) + " m; lukarny front/tył: " +
+              a.hotelSobczak.frontDormers + "/" + a.hotelSobczak.rearDormers,
             "- szkło: " + (a.hotelSobczak.glassPass?"PASS":"FAIL") +
               "; collidery na otwartych drzwiach: " + a.hotelSobczak.doorLeafColliderCount,
             "", "## 30 najgorszych przypadków"
