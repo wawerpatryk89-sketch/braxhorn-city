@@ -837,6 +837,39 @@ public static partial class BraxClaudeOsiedle
         w.points = (w.points ?? new BraxCityPoint[0]).Concat(new[] { new BraxCityPoint { id = "salon_samochodowy", label = "Salon samochodowy (B1 / Wiśniowa)", position = new Vector3(-42.4f, .2f, -29.2f) } }).ToArray();
     }
 
+    // Audyt rzeczywistej kolizji wejścia do salonu, nie samej geometrii drzwi.
+    // Zgłoszenie 4.11: schody i szklana fasada są widoczne, ale wejście
+    // mogło zostać zablokowane przez starą kolizję bądź nieprzecięte szkło.
+    public static void SalonPrzejscieKontrola()
+    {
+        if (!SalonWlaczony) return;
+        Physics.SyncTransforms();
+        float x = (SDX0 + SDX1) * .5f;
+        float r = .31f, y = SYF;
+        var przeszkody = new List<string>();
+        foreach (float z in new[] { SBZ1 + .7f, SBZ1 + .22f, SBZ1 - .2f, SBZ1 - .7f, SBZ1 - 1.4f })
+        {
+            var low = new Vector3(x, y + .48f, z);
+            var high = new Vector3(x, y + 1.85f, z);
+            var trafienia = Physics.OverlapCapsule(low, high, r, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore);
+            foreach (var c in trafienia)
+            {
+                if (!c || c.bounds.max.y < y + .4f) continue; // posadzki i próg poniżej stóp
+                string n = c.transform.name;
+                string info = n + " (" + c.bounds.center.ToString("F2") + ") z=" + z.ToString("F2");
+                if (!przeszkody.Contains(info)) przeszkody.Add(info);
+            }
+        }
+        float rise = (SF1 - SYF) / 24f;
+        float szer = SSX1 - SSX0 - .16f;
+        if (rise > .36f || szer < .95f)
+            throw new InvalidOperationException("Salon: schody za strome / za wąskie dla kapsuły Patryka: stopień=" + rise.ToString("F2") + " szer=" + szer.ToString("F2"));
+        if (przeszkody.Count > 0)
+            throw new InvalidOperationException("Salon: fizycznie zablokowany korytarz od wejścia! " + string.Join("; ", przeszkody.Take(12)));
+        Debug.Log("BRAXHORN_SALON_WEJSCIE_OK kapsuła gracza r=0.31 m, 5 próbek dojścia, stopień=" +
+                  rise.ToString("F2") + " m, szerokość schodów=" + szer.ToString("F2") + " m");
+    }
+
     // ---------------- auta (z etapu ruchu, Auta()) ----------------
     static void SalonAuta(List<AutoSzablon> szablony)
     {
