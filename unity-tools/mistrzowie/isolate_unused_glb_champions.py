@@ -65,11 +65,15 @@ def audit():
                 raise RuntimeError("Harbor port source usage changed; human review required")
         raw=source.read_bytes()
         analysis=parse_glb(raw,str(source.relative_to(ROOT)))
-        if analysis["errors"] or not analysis["extraUVs"]:
-            raise RuntimeError("Expected incompatible UV source not confirmed: "
-                               +str(analysis["errors"]))
-        if not any(x>=2 for x in analysis["materialUVs"]):
-            raise RuntimeError("Unsupported UV2 material usage no longer confirmed")
+        if analysis["errors"]:
+            raise RuntimeError("Owner GLB parse failed: "+str(analysis["errors"]))
+        # Isolation is needed only while the source actually requires UV2/UV3
+        # material channels that this Unity/glTFast path cannot reproduce.
+        # If a restored/import-prepared copy no longer has those channels, that
+        # is not an error: keep the exact source inside Assets and let Unity
+        # import it normally instead of emitting a false red advisory.
+        needs_isolation=bool(analysis["extraUVs"] and
+                             any(x>=2 for x in analysis["materialUVs"]))
         if dest.is_file() and sha(dest.read_bytes())!=sha(raw):
             raise RuntimeError("Owner original archive differs; refuse to replace")
         result.append({
@@ -82,6 +86,7 @@ def audit():
             "notReferencedByCurrentChampionsScene":True,
             "originalSourcePreserved":True,
             "ownerVisualsChanged":False,
+            "compatibilityIsolationNeeded":needs_isolation,
             "quarantinedFromTemporaryUnityImport":False,
         })
     return result
@@ -94,6 +99,8 @@ def run(apply=False):
     if apply:
         # Both sources have already been verified, and output is outside Assets.
         for row in items:
+            if not row["compatibilityIsolationNeeded"]:
+                continue
             src=ROOT/row["workingPath"]
             dst=ROOT/row["preservedPath"]
             dst.parent.mkdir(parents=True,exist_ok=True)
@@ -111,8 +118,10 @@ def run(apply=False):
                 if not owner_meta.exists():shutil.copy2(meta,owner_meta)
                 meta.unlink()
             row["quarantinedFromTemporaryUnityImport"]=True
-    status=("UNUSED_UV_SOURCES_ISOLATED_IN_RUNNER" if apply
-            else "RUNNER_ISOLATION_DRY_RUN_PASS")
+    isolated=any(row["quarantinedFromTemporaryUnityImport"] for row in items)
+    status=("UNUSED_UV_SOURCES_ISOLATED_IN_RUNNER" if isolated else
+            "UNUSED_UV_SOURCES_COMPATIBLE_NO_ISOLATION" if apply else
+            "RUNNER_ISOLATION_DRY_RUN_PASS")
     payload={
         "status":status,
         "scope":"Champions APK runner only; no tracked source asset modified",
