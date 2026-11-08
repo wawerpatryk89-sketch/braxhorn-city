@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Stage the three owner-supplied A1 PNGs, without generating or resizing art.
 
-GitHub Release 435656828 stores the approved bytes as IMG_0264/0265/0266.png.
-Match SHA-256, not the upload filename. Preserve canonical Unity paths/GUIDs.
+GitHub Release 435656828 contains the EXACT owner upload names
+IMG_0266.png (entrance), IMG_0265.png (right belt), IMG_0264.png (left).
+Require BOTH the exact release filename and its approved SHA-256; preserve
+canonical Unity paths/GUIDs so scene references never need renaming.
 This script never starts Unity, an APK build, or another workflow.
 """
 from pathlib import Path
@@ -18,6 +20,13 @@ import uuid
 ROOT = Path(__file__).resolve().parents[2]
 DEST = ROOT / "unity-city/Assets/Source/Mistrzowie/ArenaMuralsHD"
 OWNER_RELEASE_ID = 435656828
+# Filename is the contract with the owner-uploaded GitHub Release, NOT a guess
+# made from asset ordering. Canonical Unity names stay unchanged internally.
+RELEASE_FILES = {
+    "MURAL_WEJSCIE_CHAMPION_FIGHTER_6144x2048.png": "IMG_0266.png",
+    "MURAL_LEWA_ZAWODNICY_6144x2048.png": "IMG_0264.png",
+    "MURAL_PRAWA_PAS_6144x2048.png": "IMG_0265.png",
+}
 FILES = {
     "MURAL_WEJSCIE_CHAMPION_FIGHTER_6144x2048.png":
         "5d30aa995bb0da043a34c282fb452743f1b04b9f4584abf2be925ea29a461a73",
@@ -70,16 +79,24 @@ def api(url, token, accept="application/vnd.github+json"):
 
 
 def select_assets(assets):
-    """The immutable digest identifies artwork even after iPhone renaming."""
+    """Find owner uploads by EXACT name, then confirm the expected art SHA-256."""
+    if set(RELEASE_FILES) != set(FILES):
+        raise ValueError("Owner mural filename mapping does not match Unity targets")
     found = {}
-    for asset in assets:
-        if asset.get("state") != "uploaded":
+    for target, upload_name in RELEASE_FILES.items():
+        matches = [asset for asset in assets
+                   if asset.get("name") == upload_name
+                   and asset.get("state") == "uploaded"]
+        if len(matches) > 1:
+            raise ValueError("Duplicate owner mural upload: " + upload_name)
+        if not matches:
             continue
+        asset = matches[0]
         digest = str(asset.get("digest", "")).removeprefix("sha256:").lower()
-        for name, expected in FILES.items():
-            if digest == expected and name not in found:
-                found[name] = {"id": int(asset["id"]), "name": asset["name"],
-                               "sha256": expected}
+        if digest != FILES[target]:
+            raise ValueError("Owner mural filename has wrong SHA-256: " + upload_name)
+        found[target] = {"id": int(asset["id"]), "name": upload_name,
+                         "sha256": FILES[target]}
     return found
 
 
@@ -132,7 +149,8 @@ def stage(blobs):
 
 def main():
     report = {"status": "HD_NOT_STAGED", "expected": 3, "staged": 0,
-              "releaseId": OWNER_RELEASE_ID, "unityTested": False, "images": []}
+              "releaseId": OWNER_RELEASE_ID, "releaseNames": dict(RELEASE_FILES),
+              "unityTested": False, "images": []}
     try:
         blobs = {}
         for name in FILES:
@@ -153,7 +171,7 @@ def main():
                 if name in blobs:
                     continue
                 if name not in found:
-                    raise ValueError("Owner SHA-256 not found in release: " + name)
+                    raise ValueError("Owner mural not found under exact release filename: " + RELEASE_FILES[name])
                 asset = found[name]
                 blobs[name] = api(f"https://api.github.com/repos/{repo}/releases/assets/{asset['id']}",
                                   token, accept="application/octet-stream")
@@ -161,7 +179,8 @@ def main():
         stage(blobs)
         report.update(status="THREE_OWNER_HD_PNGS_STAGED", staged=3)
         report["verifiedSha256"] = dict(FILES)
-        print("BRAX_MURALE_HD_RESULT 3/3 bytes_verified=true source_pixels_unchanged=true")
+        print("BRAX_MURALE_HD_RESULT 3/3 bytes_verified=true source_pixels_unchanged=true "
+              + " ".join(RELEASE_FILES[target] + "->" + target for target in FILES))
     except Exception as error:
         # Advisory remains advisory. The report must not claim HD was delivered.
         report["error"] = str(error)
