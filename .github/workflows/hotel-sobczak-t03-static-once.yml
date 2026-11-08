@@ -1,5 +1,5 @@
 name: HOTEL SOBCZAK T03 — one-shot static contract — NO UNITY NO APK
-run-name: HOTEL SOBCZAK T03 — structural source check
+run-name: HOTEL SOBCZAK T03 — side-core structural check v2
 on:
   push:
     branches:
