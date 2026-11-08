@@ -27,12 +27,19 @@ public static class BraxChampionsArena
         // One premium belt exhibit beside the actual judges, not at the public entrance.
         // This uses the owner's original 3D FBX and original framed logo artwork.
         BraxChampionsFoundation.Optional("gablota pasa",()=>BraxChampionsBeltShowcase.Generate(root));
-        // Original full entrance wall mural with real central doorway cutout.
-        BraxChampionsFoundation.Optional("mural wejściowy",()=>BraxChampionsArenaMural.Generate(root));
-        // Two additional owner originals on the actual 70m LEFT and RIGHT walls:
-        // fighter lineup on the spectator's left; championship belt on right.
-        // The exterior public entrance, door, original wall and passage stay intact.
-        BraxChampionsFoundation.Optional("murale boczne",()=>BraxChampionsArenaSideMurals.Generate(root));
+        // Owner HD murals are a hard visual acceptance requirement. Optional()
+        // still prevents an unrelated asset issue from destroying the whole city
+        // scene, but the arena itself is explicitly reported FAIL unless 3/3 exist.
+        bool entranceMural=false;int sideMurals=0;
+        BraxChampionsFoundation.Optional("mural wejściowy",
+            ()=>entranceMural=BraxChampionsArenaMural.Generate(root));
+        BraxChampionsFoundation.Optional("murale boczne",
+            ()=>sideMurals=BraxChampionsArenaSideMurals.Generate(root));
+        if(!entranceMural||sideMurals!=2)
+            BraxBuildQuality.Warn("A1_MURALS_ACCEPTANCE FAIL entrance="+entranceMural+
+                " side="+sideMurals+"/2 required=3/3 ownerHD");
+        else
+            Debug.Log("A1_MURALS_ACCEPTANCE PASS 3/3 ownerHD left=true right=true entrance=true");
         // Source method uses nominal estate metres. Apply the game's K exactly once to this subtree.
         float k=BraxClaudeOsiedle.K;var rot=Quaternion.Euler(0,180,0);
         root.SetParent(building,false);root.localScale=Vector3.one*k;root.localRotation=rot;
