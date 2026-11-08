@@ -72,10 +72,9 @@ public static class BraxChampionsArena
             "arena_premium_rectangular_facade_tiles", "rectangular_facade_tiles", 1.35f,
             new Color(.20f,.21f,.23f));
         facadePanels.SetFloat("_Roughness",.34f);
-        var interiorGold = BraxChampionsFoundation.LibraryMetal(
-            "arena_interior_premium_gold", new Color(.835f,.639f,.231f));
-        interiorGold.SetFloat("_Roughness",.19f);
-        interiorGold.SetFloat("_Metallic",.98f);
+        // Clean premium gold: no photographed/scratched metal texture.
+        var interiorGold = Plain("arena interior premium gold",
+            new Color(.835f,.639f,.231f),.19f,.98f);
         var stairVelour = BraxChampionsFoundation.SourceMaterial(
             "arena_stair_deep_red_velour", "velour_velvet", 1.30f,
             new Color(.47f,.035f,.045f));
@@ -495,6 +494,9 @@ public static class BraxChampionsArena
     static void TierStairs(bool alongX,float front,float facing,float centre,
         Material carpet,Material gold)
     {
+        var marker=new GameObject("A1 PREMIUM STAIR CARPET | 32 steps | width 1.30m");
+        marker.transform.SetParent(colliders.parent,false);
+        marker.transform.localPosition=Vector3.zero;
         var stone=Plain("schody trybun",new Color(.28f,.27f,.25f));
         const float stairHalf=.85f;       // 1.70m structural aisle
         const float carpetHalf=.65f;      // 1.30m red velour
