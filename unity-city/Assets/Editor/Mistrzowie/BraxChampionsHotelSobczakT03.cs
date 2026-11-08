@@ -91,6 +91,12 @@ public static class BraxChampionsHotelSobczakT03
     {
         GameObjectUtility.SetStaticEditorFlags(o,StaticEditorFlags.OccludeeStatic|StaticEditorFlags.BatchingStatic);
     }
+    static void ClearStaticRecursive(Transform t)
+    {
+        if(!t)return;
+        foreach(var child in t.GetComponentsInChildren<Transform>(true))
+            if(child)GameObjectUtility.SetStaticEditorFlags(child.gameObject,0);
+    }
     static GameObject B(Transform p,string name,Material mat,float x,float y,float z,float w,float h,float d,bool solid=true,float tile=0)
     {
         if(w<=0||h<=0||d<=0)throw new InvalidOperationException("HOTEL SOBCZAK invalid box "+name);
@@ -845,6 +851,8 @@ public static class BraxChampionsHotelSobczakT03
         float leaf=doorW*.5f,frontZ=-cabD*.5f-.04f;
         var cabL=DoorLeaf(cabin,"Cabin left",-doorW*.25f,0,frontZ,M.darkBronze,M.glass,leaf);
         var cabR=DoorLeaf(cabin,"Cabin right",doorW*.25f,0,frontZ,M.darkBronze,M.glass,leaf);
+        // BraxWinda moves the whole cabin every frame; none of its renderers may be static-batched.
+        ClearStaticRecursive(cabin);
 
         var controller=e.gameObject.AddComponent<BraxWinda>();
         controller.nazwa="HOTEL SOBCZAK · WINDA "+(index+1);
@@ -862,6 +870,8 @@ public static class BraxChampionsHotelSobczakT03
         B(t,name+" glass",glass,0,1.10f,0,leafWidth,2.20f,.07f,true);
         B(t,name+" frame top",frame,0,2.20f,0,leafWidth+.06f,.08f,.09f,false);
         B(t,name+" frame edge",frame,x<0?-leafWidth*.45f:leafWidth*.45f,1.10f,0,.08f,2.20f,.09f,false);
+        // BraxWinda slides both landing and cabin door-leaf transforms.
+        ClearStaticRecursive(t);
         return t;
     }
 
