@@ -99,6 +99,22 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("var cc=go.AddComponent<MeshCollider>();", self.arrival)
         self.assertIn("cc.sharedMesh=mesh;", self.arrival)
         self.assertNotIn("CylinderCollider", self.arrival)
+        scene_audit=(EDITOR / "BraxSceneAudit.cs").read_text(encoding="utf-8")
+        self.assertIn('t.GetComponent<MeshCollider>()', scene_audit)
+        self.assertNotIn('GetComponent<CylinderCollider>()', scene_audit)
+
+    def test_both_a1_glass_levels_smoked_glossy_but_doors_clear(self):
+        self.assertIn("wall(m,'facade_glass',np.array([p,q]),4.5 if entry else .18,10.75)",self.exterior_source)
+        self.assertIn("wall(m,'facade_glass',path,10.75,27.15)",self.exterior_source)
+        self.assertIn('var glass=Surface("facade_glass",new Color(.18f,.20f,.23f,.48f),.075f,0f);',self.buildings)
+        self.assertIn('glass.SetFloat("_ReflectionStrength",.62f);',self.buildings)
+        self.assertIn('var clear=Surface("clear_glass",new Color(.78f,.88f,.93f,.19f),.10f,0f);',self.buildings)
+        self.assertIn('ConfigureGlass(glass);',self.buildings)
+        self.assertIn('ConfigureGlass(clear);',self.buildings)
+        self.assertIn('m.SetFloat("_Transparent",1);',self.buildings)
+        self.assertIn('m.SetFloat("_ZWrite",0);',self.buildings)
+        self.assertIn('Door(root, "CHAMPIONS_A1_PUBLIC", "Main public entrance", -59.04f, exterior["clear_glass"]',self.arrival)
+        self.assertIn('Door(root, "CHAMPIONS_A1_ATHLETES", "Separate athlete rear entrance", 59.04f, exterior["clear_glass"]',self.arrival)
 
     def test_real_pbr_and_transparent_canopy_no_door_colliders(self):
         for key in ('granite_plinth_preserved', 'curtain_wall_aluminium_preserved',

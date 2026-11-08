@@ -70,6 +70,12 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         self.assertIn("mappedBones.Count < 35", clips)
         self.assertNotIn("DestroyImmediate(originalBrax)", clips)
 
+    def test_audio_importer_uses_unity6_platform_sample_settings(self):
+        builder=read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs")
+        self.assertIn("settings.preloadAudioData = true;",builder)
+        self.assertNotIn("importer.preloadAudioData =",builder)
+        self.assertIn('importer.SetOverrideSampleSettings("Android", settings);',builder)
+
     def test_old_orphan_osiedle_driver_cannot_break_champions_compile(self):
         orphan = ROOT/"unity-city/Assets/Claude/Runtime/BraxAutoGracza.cs"
         self.assertFalse(orphan.is_file(), "old copied estate driver references missing Patryk API")

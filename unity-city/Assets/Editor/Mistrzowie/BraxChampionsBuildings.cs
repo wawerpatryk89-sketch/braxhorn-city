@@ -143,7 +143,12 @@ public static class BraxChampionsBuildings
         // Use transparent dielectrics (metallic 0), never milky/white glass.
         // Owner reference 7.11 + phone proof 8.11: clearly graphite-smoked glazing,
         // but transparent enough to keep the lobby/VIP lounge readable through the facade.
-        var glass=Surface("facade_glass",new Color(.22f,.25f,.29f,.30f),.11f,0f);
+        // Both A1 levels: lower .18..10.75 and upper 10.75..27.15 m
+        // share graphite-smoked glossy dielectric glass. The hotel T01 may
+        // share this finish as explicitly permitted by the owner 8 Nov.
+        // Public and athlete door leaves use separate clear_glass below.
+        var glass=Surface("facade_glass",new Color(.18f,.20f,.23f,.48f),.075f,0f);
+        glass.SetFloat("_ReflectionStrength",.62f);
         ConfigureGlass(glass);
         var clear=Surface("clear_glass",new Color(.78f,.88f,.93f,.19f),.10f,0f);
         ConfigureGlass(clear);

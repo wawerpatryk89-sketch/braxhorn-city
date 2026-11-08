@@ -299,9 +299,10 @@ public sealed class BraxChampionsCarAudioImporter : AssetPostprocessor
         if (importer == null) return;
         importer.forceToMono = true;
         importer.loadInBackground = false;
-        importer.preloadAudioData = true;
-
+        // Unity 6 stores preloadAudioData per AudioImporterSampleSettings.
+        // The old AudioImporter.preloadAudioData field raises CS0619.
         var settings = importer.defaultSampleSettings;
+        settings.preloadAudioData = true;
         settings.loadType = AudioClipLoadType.CompressedInMemory;
         settings.compressionFormat = AudioCompressionFormat.Vorbis;
         settings.quality = .68f;
