@@ -446,7 +446,7 @@ public static class BraxChampionsHotelSobczakT03
         // BOH functions required by the order.
         BuildServiceRoom(g,"HOUSEKEEPING",-25f,6.0f,7f,5f,6f,M.oak);
         BuildServiceRoom(g,"MAGAZYN",25f,6.0f,7f,5f,6f,M.oak);
-        BuildServiceRoom(g,"ZAPLECZE RECEPCJI",0,-7.2f,10f,3.2f,6f,M.oak);
+        BuildServiceRoom(g,"ZAPLECZE RECEPCJI",14f,-12.5f,8f,5f,6f,M.oak);
 
         // Public WC fixtures, luggage storage and concierge equipment.
         foreach(float x in new[]{-17f,-15f,-13f})
