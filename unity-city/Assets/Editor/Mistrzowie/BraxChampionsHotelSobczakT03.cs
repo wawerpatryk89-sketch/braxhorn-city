@@ -352,7 +352,7 @@ public static class BraxChampionsHotelSobczakT03
     {
         var g=Group(publicFloors,"PARTER 0.00-6.00 | lobby reception cafe");
         SlabWithCoreOpenings(g,"Ground structural slab",M.marble,-.175f,.35f,1.5f);
-        SlabWithCoreOpenings(g,"Ground clean ceiling",M.stucco,5.69f,.02f,1.8f);
+        SlabWithCoreOpenings(g,"Ground clean ceiling",M.stuccoSoft,5.69f,.02f,1.8f);
         BuildPublicFacade(g,0f,6f,2.4f,4.2f);
 
         // Owner-approved exact local zones.
@@ -422,7 +422,7 @@ public static class BraxChampionsHotelSobczakT03
     {
         var g=Group(publicFloors,"PIETRO 1 6.00-9.60 | restaurant kitchen spa fitness");
         SlabWithCoreOpenings(g,"Level1 structural slab",M.marble,5.85f,.30f,1.5f);
-        SlabWithCoreOpenings(g,"Level1 ceiling",M.stucco,9.31f,.02f,1.8f);
+        SlabWithCoreOpenings(g,"Level1 ceiling",M.stuccoSoft,9.31f,.02f,1.8f);
         BuildPublicFacade(g,6f,3.6f,1.8f,2.2f);
         Area(g,"RESTAURACJA 250m2",M.parquet,-17f,6.022f,-10f,25f,10f);
         Area(g,"KUCHNIA 180m2",M.tile,-12.5f,6.022f,10f,20f,9f);
@@ -612,7 +612,7 @@ public static class BraxChampionsHotelSobczakT03
     static void BuildGuestExteriorFloorTemplate(Transform p)
     {
         SlabWithCoreOpenings(p,"Guest slab F-TEMPLATE",M.marble,-.14f,.28f,1.5f);
-        SlabWithCoreOpenings(p,"Guest ceiling finish F-TEMPLATE",M.stucco,3.31f,.02f,1.8f);
+        SlabWithCoreOpenings(p,"Guest ceiling finish F-TEMPLATE",M.stuccoSoft,3.31f,.02f,1.8f);
         foreach(float zsign in new[]{-1f,1f})
         {
             float z=zsign*20.80f;
@@ -821,6 +821,19 @@ public static class BraxChampionsHotelSobczakT03
             B(p,"Stair flight B step",M.granite,centreX+.9f,y0+rise*.5f+(i+.5f)*stepRise,z2,1.5f,stepRise,tread,true,2.0f);
         }
         B(p,"Stair mid landing 1.50m",M.granite,centreX,y0+rise*.5f-.08f,midLandingZ,3.8f,.16f,1.5f,true,2.0f);
+
+        // Dark-bronze handrails with restrained brass landing detail.
+        float halfRise=rise*.5f,railAngle=Mathf.Atan2(halfRise,run)*Mathf.Rad2Deg;
+        float railLength=Mathf.Sqrt(run*run+halfRise*halfRise);
+        var railA=B(p,"Stair dark bronze handrail A",M.darkBronze,centreX-1.68f,y0+halfRise*.5f+1.0f,centreZ,
+            .08f,.08f,railLength,false);
+        railA.transform.localRotation=Quaternion.Euler(-dir*railAngle,0,0);
+        var railB=B(p,"Stair dark bronze handrail B",M.darkBronze,centreX+1.68f,y0+halfRise+halfRise*.5f+1.0f,centreZ,
+            .08f,.08f,railLength,false);
+        railB.transform.localRotation=Quaternion.Euler(dir*railAngle,0,0);
+        Cyl(p,"Stair brass landing post A",M.brass,centreX-1.68f,y0+1.0f,lowerLandingZ,.07f,2.0f,false);
+        Cyl(p,"Stair brass landing post B",M.brass,centreX+1.68f,y0+halfRise+1.0f,midLandingZ,.07f,2.0f,false);
+
         if(Mathf.Abs(y1-GuestTop)<.01f)
             B(p,"Stair TECH landing 1.50m",M.granite,centreX,y1-.08f,lowerLandingZ,3.8f,.16f,1.5f,true,2.0f);
     }
@@ -966,7 +979,10 @@ public static class BraxChampionsHotelSobczakT03
         // Clear 3.6m entrance, no collider on glass leaves.
         B(root,"Main entrance glass left",M.glass,-.95f,2.0f,-21.38f,1.7f,3.6f,.08f,false);
         B(root,"Main entrance glass right",M.glass,.95f,2.0f,-21.38f,1.7f,3.6f,.08f,false);
-        foreach(float x in new[]{-1.85f,0f,1.85f})B(root,"Entrance brass mullion",M.brass,x,2.0f,-21.45f,.08f,3.8f,.10f,false);
+        B(root,"Main entrance dark bronze frame top",M.darkBronze,0,3.86f,-21.47f,3.82f,.12f,.10f,false);
+        B(root,"Main entrance dark bronze frame left",M.darkBronze,-1.86f,2.0f,-21.47f,.12f,3.84f,.10f,false);
+        B(root,"Main entrance dark bronze frame right",M.darkBronze,1.86f,2.0f,-21.47f,.12f,3.84f,.10f,false);
+        foreach(float x in new[]{-1.85f,0f,1.85f})B(root,"Entrance brass mullion",M.brass,x,2.0f,-21.50f,.08f,3.8f,.08f,false);
 
         // Central classical risalit and roof pavilion.
         // Central risalit is expressed by edge pilasters only; never create a hidden wall across guest glazing.
