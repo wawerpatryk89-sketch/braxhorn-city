@@ -190,6 +190,17 @@ public static class BraxChampionsHotelSobczakT03
         foreach(float lx in new[]{-width*.5f+.30f,width*.5f-.30f})foreach(float lz in new[]{-.38f,.38f})
             Cyl(s,name+" brass leg",M.brass,lx,.15f,lz,.07f,.30f,false);
     }
+    static void PremiumArmchair(Transform p,string name,float x,float y,float z,float yaw)
+    {
+        var c=Group(p,name);c.localPosition=new Vector3(x,y,z)*K;c.localRotation=Quaternion.Euler(0,yaw,0);
+        B(c,name+" seat",M.leather,0,.47f,0,.78f,.22f,.78f,true,.3f);
+        B(c,name+" back",M.leather,0,.93f,.32f,.78f,.70f,.18f,true,.3f);
+        B(c,name+" arm L",M.leather,-.39f,.67f,0,.14f,.40f,.78f,true,.3f);
+        B(c,name+" arm R",M.leather,.39f,.67f,0,.14f,.40f,.78f,true,.3f);
+        foreach(float dx in new[]{-.29f,.29f})foreach(float dz in new[]{-.27f,.27f})
+            Cyl(c,name+" brass leg",M.brass,dx,.22f,dz,.05f,.44f,false);
+    }
+
     static void PremiumCoffeeTable(Transform p,string name,float x,float y,float z,float width,float depth)
     {
         B(p,name+" marble top",M.marble,x,y+.48f,z,width,.10f,depth,true,1.5f);
@@ -417,8 +428,8 @@ public static class BraxChampionsHotelSobczakT03
         {
             PremiumSofa(g,"Lobby premium leather sofa",x,0f,-2.0f,4.6f,0f);
             PremiumCoffeeTable(g,"Lobby premium coffee table",x,0f,.5f,2.2f,1.2f);
-            DiningChair(g,x-2.55f,0f,.5f,90f);
-            DiningChair(g,x+2.55f,0f,.5f,-90f);
+            PremiumArmchair(g,"Lobby premium armchair L",x-2.55f,0f,.5f,90f);
+            PremiumArmchair(g,"Lobby premium armchair R",x+2.55f,0f,.5f,-90f);
         }
         foreach(float x in new[]{-10.5f,0f,10.5f})IndoorPlant(g,"Lobby indoor plant",x,0f,4.8f);
 
@@ -451,8 +462,8 @@ public static class BraxChampionsHotelSobczakT03
         B(g,"WC K marble vanity",M.marble,15f,.78f,16.0f,4.5f,.16f,.62f,true,1.5f);
         B(g,"WC M wet wall marble",M.marble,-15f,1.45f,15.08f,6.5f,2.6f,.05f,false,1.5f);
         B(g,"WC K wet wall marble",M.marble,15f,1.45f,15.08f,6.5f,2.6f,.05f,false,1.5f);
-        B(g,"WC M mirror",M.mirror,-15f,1.62f,15.045f,3.8f,.90f,.035f,false);
-        B(g,"WC K mirror",M.mirror,15f,1.62f,15.045f,3.8f,.90f,.035f,false);
+        B(g,"WC M mirror",M.mirror,-15f,1.62f,15.13f,3.8f,.90f,.035f,false);
+        B(g,"WC K mirror",M.mirror,15f,1.62f,15.13f,3.8f,.90f,.035f,false);
         for(float z=-13.8f;z<=-11.2f;z+=1.3f)B(g,"Baggage oak rack",M.oak,-26f,1.1f,z,7.5f,2.0f,.45f,true,1.2f);
         PremiumDesk(g,"Concierge premium desk",26f,0f,-12.5f,5.5f,.80f);
         B(g,"Concierge marble top",M.marble,26f,.82f,-12.5f,5.70f,.10f,.90f,true,1.5f);
@@ -506,7 +517,12 @@ public static class BraxChampionsHotelSobczakT03
         B(g,"SPA clear glass relaxation divider",M.glass,10.5f,7.55f,4.5f,20f,2.7f,.06f,false);
         B(g,"SPA reception oak desk",M.oak,1.0f,6.65f,3.2f,4.0f,1.0f,.80f,true,1.2f);
         B(g,"SPA wet-zone marble floor",M.marbleWet,16.5f,6.022f,13f,8f,.035f,5f,false,1.5f);
-        for(float x=13.5f;x<=19.5f;x+=3f)B(g,"SPA shower glass",M.glass,x,7.45f,14.0f,2.0f,2.4f,.06f,false);
+        for(float x=13.5f;x<=19.5f;x+=3f)
+        {
+            B(g,"SPA shower glass",M.glass,x,7.45f,14.0f,2.0f,2.4f,.06f,false);
+            B(g,"SPA shower head",M.steel,x,8.35f,16.72f,.24f,.10f,.24f,false);
+            B(g,"SPA shower controls",M.brass,x,7.45f,16.72f,.18f,.32f,.08f,false);
+        }
         for(float x=2f;x<=14f;x+=4f)
         {
             B(g,"SPA relaxation lounger",M.leatherWhite,x,6.45f,6.0f,2.0f,.28f,.80f,true,.3f);
@@ -835,6 +851,8 @@ public static class BraxChampionsHotelSobczakT03
         B(g,"Bathroom shower tray 1.20x0.90",M.marbleWet,x-2.20f,.055f,bathZ+side*.80f,1.20f,.06f,.90f,true,1.5f);
         B(g,"Bathroom glass shower 1.20 front",M.glass,x-2.20f,1.10f,bathZ+side*.35f,1.20f,2.0f,.06f,false);
         B(g,"Bathroom glass shower 0.90 side",M.glass,x-2.80f,1.10f,bathZ+side*.80f,.06f,2.0f,.90f,false);
+        B(g,"Bathroom shower head",M.steel,x-2.20f,2.18f,bathZ+side*1.22f,.22f,.08f,.22f,false);
+        B(g,"Bathroom shower controls",M.brass,x-2.20f,1.25f,bathZ+side*1.22f,.16f,.30f,.08f,false);
         B(g,"Bathroom vanity",M.marble,x-1.85f,.58f,bathZ-side*.80f,1.55f,.18f,.55f,true,1.5f);
         B(g,"Bathroom mirror",M.mirror,x-1.80f,1.55f,innerZ+side*.11f,1.30f,.80f,.035f,false);
         Cyl(g,"Bathroom basin",M.whitePaint,x-1.85f,.73f,bathZ-side*.80f,.52f,.15f,true);
