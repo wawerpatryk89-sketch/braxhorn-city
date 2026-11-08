@@ -1,11 +1,16 @@
 name: HOTEL SOBCZAK T03 — one-shot static contract — NO UNITY NO APK
-run-name: HOTEL SOBCZAK T03 — side-core structural check v3
+run-name: HOTEL SOBCZAK T03 — owner geometry regression check v4
 on:
   push:
     branches:
       - gpt/miasto-mistrzow-hotel-sobczak-t03-20261108
     paths:
       - .github/workflows/hotel-sobczak-t03-static-once.yml
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakT03.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakMaterials.cs
+      - unity-city/Assets/Mistrzowie/BraxHotelSobczakFloorStreamer.cs
+      - unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py
+      - unity-tools/mistrzowie/hotel_sobczak_t03_spec.json
 permissions:
   contents: read
 jobs:
