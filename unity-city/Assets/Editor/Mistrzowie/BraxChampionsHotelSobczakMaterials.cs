@@ -14,7 +14,7 @@ public static class BraxChampionsHotelSobczakMaterials
     {
         public Material facade,sandstone,stucco,stuccoSoft,roof,marble,marbleWet,oak,parquet,terrazzo,rubber,carpet,tile,
             granite,graniteOutdoor,antiSlip,garage,concrete,leather,leatherWhite,asphalt,
-            brass,darkBronze,steel,glass,whitePaint,parkingPaint,warmLight,carpetRed,water,foliage;
+            brass,darkBronze,steel,glass,mirror,whitePaint,parkingPaint,warmLight,carpetRed,water,foliage;
     }
 
     const string Generated="Assets/PlayableGenerated/Mistrzowie/HotelSobczakT03";
@@ -71,6 +71,7 @@ public static class BraxChampionsHotelSobczakMaterials
         s.darkBronze=Surface("dark_bronze_frames",new Color(.12f,.095f,.07f),.24f,.90f,false,false);
         s.steel=Surface("brushed_stainless",new Color(.58f,.60f,.62f),.34f,1.0f,false,false);
         s.glass=Surface("clear_graphite_glass",new Color(.58f,.67f,.72f,.22f),.10f,0f,true,false);
+        s.mirror=Surface("polished_mirror",new Color(.76f,.80f,.82f),.08f,.95f,false,false);
         s.whitePaint=Surface("clean_white_paint",new Color(.96f,.955f,.93f),.72f,0f,false,false);
         s.parkingPaint=Surface("parking_marking",new Color(.97f,.97f,.91f),.72f,0f,false,false);
         s.warmLight=Surface("warm_architectural_light",new Color(.96f,.84f,.64f),.36f,0f,false,true);
