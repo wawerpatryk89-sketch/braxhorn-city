@@ -172,6 +172,50 @@ public static class BraxChampionsHotelSobczakT03
         l.range=range*K;l.intensity=intensity;l.shadows=LightShadows.None;l.renderMode=LightRenderMode.Auto;
     }
 
+    static void PremiumSofa(Transform p,string name,float x,float y,float z,float width,float yaw=0)
+    {
+        var s=Group(p,name);s.localPosition=new Vector3(x,y,z)*K;s.localRotation=Quaternion.Euler(0,yaw,0);
+        B(s,name+" seat",M.leather,0,.46f,0,width,.28f,1.05f,true,.3f);
+        B(s,name+" back",M.leather,0,.93f,.46f,width,.72f,.20f,true,.3f);
+        B(s,name+" arm L",M.leather,-width*.5f+.14f,.66f,0,.28f,.62f,1.05f,true,.3f);
+        B(s,name+" arm R",M.leather,width*.5f-.14f,.66f,0,.28f,.62f,1.05f,true,.3f);
+        foreach(float lx in new[]{-width*.5f+.30f,width*.5f-.30f})foreach(float lz in new[]{-.38f,.38f})
+            Cyl(s,name+" brass leg",M.brass,lx,.15f,lz,.07f,.30f,false);
+    }
+    static void PremiumCoffeeTable(Transform p,string name,float x,float y,float z,float width,float depth)
+    {
+        B(p,name+" marble top",M.marble,x,y+.48f,z,width,.10f,depth,true,1.5f);
+        foreach(float dx in new[]{-width*.5f+.14f,width*.5f-.14f})foreach(float dz in new[]{-depth*.5f+.14f,depth*.5f-.14f})
+            Cyl(p,name+" brass leg",M.brass,x+dx,y+.24f,z+dz,.06f,.48f,false);
+    }
+    static void RestaurantTable(Transform p,float x,float y,float z)
+    {
+        Cyl(p,"Restaurant brass pedestal",M.brass,x,y+.36f,z,.18f,.72f,true);
+        Cyl(p,"Restaurant marble table top",M.marble,x,y+.76f,z,1.30f,.10f,true);
+    }
+    static void DiningChair(Transform p,float x,float y,float z,float yaw)
+    {
+        var c=Group(p,"Restaurant premium leather chair");c.localPosition=new Vector3(x,y,z)*K;c.localRotation=Quaternion.Euler(0,yaw,0);
+        B(c,"Dining chair seat",M.leather,0,.48f,0,.62f,.16f,.62f,true,.3f);
+        B(c,"Dining chair back",M.leather,0,.91f,.27f,.62f,.70f,.14f,true,.3f);
+        foreach(float dx in new[]{-.24f,.24f})foreach(float dz in new[]{-.23f,.23f})
+            Cyl(c,"Dining chair brass leg",M.brass,dx,.24f,dz,.045f,.48f,false);
+    }
+    static void BarStool(Transform p,float x,float y,float z)
+    {
+        Cyl(p,"Cafe stool brass pedestal",M.brass,x,y+.38f,z,.12f,.76f,true);
+        Cyl(p,"Cafe stool brass foot ring",M.brass,x,y+.22f,z,.48f,.035f,false);
+        Cyl(p,"Cafe stool leather seat",M.leather,x,y+.82f,z,.46f,.14f,true);
+        B(p,"Cafe stool leather back",M.leather,x,y+1.12f,z+.19f,.46f,.50f,.10f,true,.3f);
+    }
+    static void PremiumDesk(Transform p,string name,float x,float y,float z,float width,float depth)
+    {
+        B(p,name+" oak top",M.oak,x,y+.74f,z,width,.10f,depth,true,1.2f);
+        foreach(float dx in new[]{-width*.5f+.12f,width*.5f-.12f})foreach(float dz in new[]{-depth*.5f+.10f,depth*.5f-.10f})
+            B(p,name+" oak leg",M.oak,x+dx,y+.36f,z+dz,.10f,.72f,.10f,true,1.2f);
+        B(p,name+" brass modesty trim",M.brass,x,y+.70f,z+depth*.5f-.03f,width-.15f,.05f,.05f,false);
+    }
+
     // ---------------------------------------------------------------- SITE
     static void BuildSite()
     {
@@ -311,13 +355,15 @@ public static class BraxChampionsHotelSobczakT03
 
         foreach(float x in new[]{-7.5f,0f,7.5f})
         {
-            B(g,"Lobby leather sofa",M.leather,x,.55f,-2.0f,4.6f,1.0f,1.45f,true,.3f);
-            B(g,"Lobby marble coffee table",M.marble,x,.46f,.5f,2.2f,.18f,1.2f,true,1.5f);
+            PremiumSofa(g,"Lobby premium leather sofa",x,0f,-2.0f,4.6f,0f);
+            PremiumCoffeeTable(g,"Lobby premium coffee table",x,0f,.5f,2.2f,1.2f);
+            DiningChair(g,x-2.55f,0f,.5f,90f);
+            DiningChair(g,x+2.55f,0f,.5f,-90f);
         }
 
         B(g,"Cafe oak bar body",M.oak,0,.70f,10.8f,13f,1.15f,.90f,true,1.2f);
         B(g,"Cafe marble bar top",M.marble,0,1.32f,10.8f,13.4f,.12f,1.08f,true,1.5f);
-        for(float x=-5.5f;x<=5.5f;x+=1.8f)Cyl(g,"Cafe brass stool",M.brass,x,.50f,9.3f,.42f,.90f,true);
+        for(float x=-5.5f;x<=5.5f;x+=1.8f)BarStool(g,x,0f,9.3f);
 
         BuildServiceRoom(g,"TOALETA M",-15f,17.5f,8f,5f,6f,M.marble);
         BuildServiceRoom(g,"TOALETA K",15f,17.5f,8f,5f,6f,M.marble);
@@ -343,8 +389,8 @@ public static class BraxChampionsHotelSobczakT03
         B(g,"WC M marble vanity",M.marble,-15f,.78f,16.0f,4.5f,.16f,.62f,true,1.5f);
         B(g,"WC K marble vanity",M.marble,15f,.78f,16.0f,4.5f,.16f,.62f,true,1.5f);
         for(float z=-13.8f;z<=-11.2f;z+=1.3f)B(g,"Baggage oak rack",M.oak,-26f,1.1f,z,7.5f,2.0f,.45f,true,1.2f);
-        B(g,"Concierge oak desk",M.oak,26f,.65f,-12.5f,5.5f,1.05f,.80f,true,1.2f);
-        B(g,"Concierge marble top",M.marble,26f,1.22f,-12.5f,5.7f,.10f,.90f,true,1.5f);
+        PremiumDesk(g,"Concierge premium desk",26f,0f,-12.5f,5.5f,.80f);
+        B(g,"Concierge marble top",M.marble,26f,.82f,-12.5f,5.70f,.10f,.90f,true,1.5f);
         Label(g,"HOTEL SOBCZAK",0,4.4f,-20.4f,.34f,0);
     }
 
@@ -367,8 +413,11 @@ public static class BraxChampionsHotelSobczakT03
         // Restaurant tables.
         for(float x=-27f;x<=-7f;x+=5f)for(float z=-12.5f;z<=-7.5f;z+=5f)
         {
-            Cyl(g,"Restaurant marble table",M.marble,x,6.75f,z,1.25f,.12f,true);
-            for(float dx=-1;dx<=1;dx+=2)B(g,"Restaurant leather chair",M.leather,x+dx,6.55f,z,.65f,.90f,.65f,true,.3f);
+            RestaurantTable(g,x,6.0f,z);
+            DiningChair(g,x-1.05f,6.0f,z,90f);
+            DiningChair(g,x+1.05f,6.0f,z,-90f);
+            DiningChair(g,x,6.0f,z-.95f,0f);
+            DiningChair(g,x,6.0f,z+.95f,180f);
         }
         // Buffet and kitchen: hot line, prep, dishwash, cold store and storage.
         B(g,"Restaurant buffet oak body",M.oak,-17f,6.70f,-6.3f,8.0f,1.0f,.90f,true,1.2f);
@@ -379,12 +428,21 @@ public static class BraxChampionsHotelSobczakT03
         B(g,"Kitchen cold room",M.steel,-3.5f,7.45f,12.4f,4.0f,2.7f,3.0f,true);
         B(g,"Kitchen dry storage rack",M.oak,-18.0f,7.30f,6.5f,3.0f,2.2f,.55f,true,1.2f);
         // SPA treatment beds and glass screen.
-        for(float x=2f;x<=20f;x+=6f)B(g,"SPA white leather treatment bed",M.leatherWhite,x,6.55f,10f,2.2f,.55f,.85f,true,.3f);
+        for(float x=2f;x<=20f;x+=6f)
+        {
+            B(g,"SPA white leather treatment bed",M.leatherWhite,x,6.62f,10f,2.2f,.32f,.85f,true,.3f);
+            foreach(float dx in new[]{-.85f,.85f})foreach(float dz in new[]{-.30f,.30f})
+                B(g,"SPA treatment bed leg",M.oak,x+dx,6.28f,10f+dz,.09f,.55f,.09f,true,1.2f);
+        }
         B(g,"SPA clear glass relaxation divider",M.glass,8.5f,7.55f,4.5f,18f,2.7f,.06f,false);
         B(g,"SPA reception oak desk",M.oak,1.0f,6.65f,3.2f,4.0f,1.0f,.80f,true,1.2f);
         B(g,"SPA wet-zone marble floor",M.marble,16.5f,6.022f,13f,8f,.035f,5f,false,1.5f);
         for(float x=13.5f;x<=19.5f;x+=3f)B(g,"SPA shower glass",M.glass,x,7.45f,14.0f,2.0f,2.4f,.06f,false);
-        for(float x=2f;x<=14f;x+=4f)B(g,"SPA relaxation lounger",M.leatherWhite,x,6.50f,6.0f,2.0f,.45f,.80f,true,.3f);
+        for(float x=2f;x<=14f;x+=4f)
+        {
+            B(g,"SPA relaxation lounger",M.leatherWhite,x,6.45f,6.0f,2.0f,.28f,.80f,true,.3f);
+            B(g,"SPA lounger brass base",M.brass,x,6.20f,6.0f,1.45f,.12f,.55f,true);
+        }
         B(g,"SPA changing lockers",M.oak,20.0f,7.25f,5.0f,1.2f,2.4f,5.0f,true,1.2f);
         // Fitness equipment proxies, realistic dimensions.
         for(float x=8f;x<=26f;x+=4.5f)
@@ -616,12 +674,13 @@ public static class BraxChampionsHotelSobczakT03
             B(g,"Bedside warm emissive",M.warmLight,x+dx,1.42f,bedZ,.16f,.12f,.16f,false);
         }
 
-        B(g,"Oak writing desk 1.70m",M.oak,x+1.95f,.60f,innerZ+side*8.0f,1.70f,.12f,.70f,true,1.2f);
+        PremiumDesk(g,"Oak writing desk 1.70m",x+1.95f,0f,innerZ+side*8.0f,1.70f,.70f);
         B(g,"Leather desk chair",M.leather,x+1.95f,.48f,innerZ+side*7.0f,.68f,.85f,.68f,true,.3f);
         B(g,"Oak wardrobe 1.60m",M.oak,x-1.90f,1.25f,innerZ+side*5.0f,1.60f,2.50f,.65f,true,1.2f);
         B(g,"TV panel",M.darkBronze,x+2.75f,1.55f,innerZ+side*10.0f,.08f,1.10f,1.70f,false);
         B(g,"Luggage rack",M.oak,x-1.9f,.42f,innerZ+side*8.2f,1.40f,.55f,.60f,true,1.2f);
-        Cyl(g,"Room side table",M.marble,x+1.8f,.45f,innerZ+side*11.2f,.75f,.10f,true);
+        Cyl(g,"Room side table brass pedestal",M.brass,x+1.8f,.25f,innerZ+side*11.2f,.12f,.50f,true);
+        Cyl(g,"Room side table marble top",M.marble,x+1.8f,.55f,innerZ+side*11.2f,.75f,.10f,true);
         B(g,"Room lounge chair",M.leather,x+2.3f,.50f,innerZ+side*12.0f,.80f,.90f,.80f,true,.3f);
 
         // Bathroom exactly 2.40 x 3.00 m, 0.12 m partitions, 0.80 x 2.10 m door.
