@@ -140,6 +140,15 @@ public static class BraxChampionsHotelSobczakT03
         o.transform.localPosition=new Vector3(x,y,z)*K;o.transform.localScale=new Vector3(diameter,h*.5f,diameter)*K;
         o.GetComponent<MeshRenderer>().sharedMaterial=mat;if(!solid)UnityEngine.Object.DestroyImmediate(o.GetComponent<Collider>());else Static(o);return o;
     }
+    static GameObject Sph(Transform p,string name,Material mat,float x,float y,float z,float diameter,bool solid=false)
+    {
+        var o=GameObject.CreatePrimitive(PrimitiveType.Sphere);o.name=name;o.transform.SetParent(p,false);
+        o.transform.localPosition=new Vector3(x,y,z)*K;o.transform.localScale=Vector3.one*diameter*K;
+        o.GetComponent<MeshRenderer>().sharedMaterial=mat;
+        if(!solid)UnityEngine.Object.DestroyImmediate(o.GetComponent<Collider>());else Static(o);
+        return o;
+    }
+
     static void SetTile(Renderer r,float w,float h,float d,float metres)
     {
         var b=new MaterialPropertyBlock();r.GetPropertyBlock(b);
@@ -190,10 +199,20 @@ public static class BraxChampionsHotelSobczakT03
         foreach(float x in new[]{-25f,-19f,19f,25f})
         {
             Cyl(site,"T03 premium planter",M.sandstone,x,.45f,-27.5f,1.7f,.9f,true);
-            Cyl(site,"T03 premium shrub",M.stucco,x,1.25f,-27.5f,1.15f,1.0f,false);
+            Sph(site,"T03 premium topiary shrub",M.foliage,x,1.45f,-27.5f,1.65f,false);
+        }
+        // Four restrained ornamental trees at the flanks: greenery without hiding the hotel frontage.
+        foreach(float x in new[]{-29f,29f})foreach(float z in new[]{-34f,-25f})
+        {
+            Cyl(site,"T03 ornamental tree trunk",M.oak,x,1.8f,z,.32f,3.6f,false);
+            Sph(site,"T03 ornamental tree crown",M.foliage,x,4.25f,z,3.2f,false);
+            Sph(site,"T03 ornamental tree crown upper",M.foliage,x,5.25f,z,2.25f,false);
         }
         foreach(float x in new[]{-24f,-12f,12f,24f})
+        {
             B(site,"T03 warm entrance bollard",M.brass,x,.50f,-34f,.16f,1f,.16f,true);
+            B(site,"T03 warm entrance bollard emissive cap",M.warmLight,x,1.04f,-34f,.24f,.08f,.24f,false);
+        }
     }
     static void BuildRamp(Transform p,string name,float x,float z,float y,float width,float horizontalRun,float angle,Material mat)
     {
