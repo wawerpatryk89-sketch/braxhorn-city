@@ -326,7 +326,10 @@ public static class BraxChampionsFoundation
         // aspect ratio (for example velour_velvet diffuse is 4096x3941).
         // prepare_assets.py already pins the exact provider bytes/checksums, so
         // this Unity-side guard verifies the 4K long edge without resampling.
-        if(Mathf.Max(sourceWidth,sourceHeight)!=4096||Mathf.Min(sourceWidth,sourceHeight)<=0)
+        // Official provider-native "4K" maps may preserve non-square capture
+        // dimensions, including a long edge slightly above 4096 (e.g. 4096x4181).
+        // prepare_assets.py verifies the downloaded provider bytes/metadata first.
+        if(Mathf.Max(sourceWidth,sourceHeight)<4096||Mathf.Min(sourceWidth,sourceHeight)<2048)
             throw new InvalidOperationException("Original 4K PBR source changed: "+destination+
                 " source="+sourceWidth+"x"+sourceHeight);
         if(texture.width!=2048||texture.height!=2048)
