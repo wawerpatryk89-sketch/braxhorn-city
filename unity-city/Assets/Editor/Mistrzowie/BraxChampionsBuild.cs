@@ -107,6 +107,9 @@ public static class BraxChampionsBuild
             if(stations.Length!=5)BraxBuildQuality.Issue(new InvalidOperationException("Five saved metro stations required"));
             CheckStations(stations,report);
             if(!skipWalkChecks)CheckExteriorAccess();report.rendererCount=CheckAssets(scene);report.sceneReloadPassed=true;
+            // Scene-only integration gate: Arena A1 and Casino T11 MUST both
+            // survive serialization before the user can approve a combined city.
+            if(validationOnly)VerifyArenaCasinoAssembly(scene,report,"foundation-serialized");
             report.checks.Add("Serialized scene reopened; consult quality-review.json for inspection warnings");
             BraxChampionsExplorer.Generate(report.sourceCommit);
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
@@ -114,6 +117,7 @@ public static class BraxChampionsBuild
             Physics.SyncTransforms();
             report.playerClips=BraxChampionsExplorer.Validate(scene);
             CheckAssets(scene);report.explorationSceneReloadPassed=true;
+            if(validationOnly)VerifyArenaCasinoAssembly(scene,report,"exploration-serialized");
             report.checks.Add("Exploration scene reopened; player quality and traversability require manual device review");
             if(validationOnly)
             {
@@ -143,6 +147,47 @@ public static class BraxChampionsBuild
         }
         catch(Exception e){report.status="FAILED: "+e.Message;Debug.LogException(e);throw;}
         finally {if(BraxBuildQuality.Advisory)report.status+="_QUALITY_ADVISORY_MANUAL_REVIEW_REQUIRED";if(skipWalkChecks)report.status+="_WALK_CHECKS_SKIPPED";File.WriteAllText(reports+"/unity-validation.json",JsonUtility.ToJson(report,true));Debug.Log("BRAX_MISTRZOWIE_UNITY "+JsonUtility.ToJson(report));}
+    }
+
+    // Only the explicitly requested Unity scene test calls this routine.
+    // The normal APK and Addressables paths retain their existing quality policy.
+    // This verifies the actual serialized scene, NOT just the code generator.
+    static void VerifyArenaCasinoAssembly(Scene scene,Report report,string phase)
+    {
+        if(!scene.IsValid()||!scene.isLoaded)
+            throw new InvalidOperationException("A1_T11_INTEGRATION_FAIL invalid loaded scene at "+phase);
+        var roots=scene.GetRootGameObjects();
+        var arena=roots.Where(g=>g.name.StartsWith("A1 | ",StringComparison.Ordinal)).ToArray();
+        var casino=roots.Where(g=>g.name.StartsWith("T11 | KASYNO WAWER |",StringComparison.Ordinal)).ToArray();
+        if(arena.Length!=1||casino.Length!=1)
+            throw new InvalidOperationException("A1_T11_INTEGRATION_FAIL "+phase+
+                " arena="+arena.Length+" casino="+casino.Length+
+                "; optional T11 generation must not silently pass combined scene review");
+
+        float k=BraxClaudeOsiedle.K;
+        var expectedArena=new Vector3(600f,0f,800f)*k;
+        var expectedCasino=new Vector3(495f,0f,465f)*k;
+        if(Vector3.Distance(arena[0].transform.position,expectedArena)>.10f*k||
+           Vector3.Distance(casino[0].transform.position,expectedCasino)>.10f*k)
+            throw new InvalidOperationException("A1_T11_INTEGRATION_FAIL "+phase+
+                " building world-position drift or incorrect K scale");
+
+        int arenaSigns=arena[0].GetComponentsInChildren<Transform>(true)
+            .Count(t=>t.name.StartsWith("A1 facade | original premium sign ",StringComparison.Ordinal));
+        var casinoParts=casino[0].GetComponentsInChildren<Transform>(true);
+        int casinoSigns=casinoParts.Count(t=>t.name.StartsWith(
+            "T11 | ORIGINAL C1 KASYNO WAWER |",StringComparison.Ordinal));
+        int casinoDollars=casinoParts.Count(t=>t.name.StartsWith(
+            "T11 | OWNER ORIGINAL DEZYNE_3D GOLD DOLLAR |",StringComparison.Ordinal));
+        if(arenaSigns!=4||casinoSigns!=1||casinoDollars!=1)
+            throw new InvalidOperationException("A1_T11_INTEGRATION_FAIL "+phase+
+                " A1 owner signs="+arenaSigns+" T11 owner sign="+casinoSigns+
+                " original dollar="+casinoDollars+"; original artworks must be present exactly once");
+
+        report.checks.Add("A1_T11_SAME_SCENE_PASS phase="+phase+
+            " scene="+scene.name+" arena=1 casino=1 A1_owner_signs=4"+
+            " T11_owner_sign=1 original_dollar=1 positions_scaled_once=true"+
+            " car_issue30_not_a_gate=true APK_NOT_BUILT=true");
     }
 
     static int RecordSourceImportDiagnostics(string reports)

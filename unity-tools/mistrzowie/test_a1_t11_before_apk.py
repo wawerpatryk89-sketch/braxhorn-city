@@ -81,6 +81,28 @@ class A1T11Preflight(unittest.TestCase):
         self.assertIn("com.braxhorn.mistrzowie",check)
         self.assertIn("316045507",check)
         self.assertIn("f3829d496e1bf4890ec64af78170c7e8b8696d1e49d4122df2b4fc1c80bd5ffe",check)
+    def test_arena_and_casino_share_one_serialized_unity_scene_without_apk(self):
+        buildings=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuildings.cs")
+        build=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs")
+        casino=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11.cs")
+        self.assertIn("BraxChampionsArena.Generate(root);",buildings)
+        self.assertIn("BraxChampionsArenaArrival.Generate(root, materials);",buildings)
+        self.assertIn("BraxChampionsArenaSigns.Generate(root);",buildings)
+        self.assertIn("BraxChampionsCasinoT11.Generate(Out);",buildings)
+        self.assertIn("outFolder+\"/Prefabs/T11_Casino_Exterior.prefab\"",casino)
+        self.assertIn("report.buildingExteriors=BraxChampionsBuildings.Generate();",build)
+        self.assertIn('if(validationOnly)VerifyArenaCasinoAssembly(scene,report,"foundation-serialized");',build)
+        self.assertIn('if(validationOnly)VerifyArenaCasinoAssembly(scene,report,"exploration-serialized");',build)
+        self.assertIn("BraxChampionsExplorer.Generate(report.sourceCommit);",build)
+        self.assertIn("GetRootGameObjects()",build)
+        self.assertIn("arenaSigns!=4||casinoSigns!=1||casinoDollars!=1",build)
+        self.assertIn("A1_T11_SAME_SCENE_PASS",build)
+        self.assertIn("car_issue30_not_a_gate=true APK_NOT_BUILT=true",build)
+        gate=build[build.index("static void VerifyArenaCasinoAssembly("):
+                   build.index("static int RecordSourceImportDiagnostics(")]
+        self.assertNotIn("BuildPlayer",gate)
+        self.assertNotIn("workflow_dispatch",gate)
+
     def test_no_unsafe_masking_of_compilation_failures(self):
         w=source(".github/workflows/mistrzowie-apk.yml")
         self.assertIn("apk_delivery.py preflight",w)
