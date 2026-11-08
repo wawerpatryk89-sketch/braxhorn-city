@@ -116,6 +116,7 @@ public static class BraxSceneAudit
     }
     static readonly Range[] ScaleRanges =
     {
+        new Range("fotele VIP A1", "(Premium barrel chair|Reserved VIP)", .90f, 1.30f),
         new Range("łóżka", "(bed|łóżk|lozk|mattress)", .35f, 1.30f),
         new Range("krzesła", "(chair|krzesł|krzesl|fotel)", .75f, 1.10f),
         new Range("stoły", "(table|stół|stol|biurko)", .65f, 1.10f),
@@ -544,6 +545,27 @@ public static class BraxSceneAudit
         var showcaseFront=all.Where(t=>Contains(t.name,"A1 SHOWCASE | FRONT optical glass")).ToArray();
         AddExact("Arena: nowa lekka gablota szklana",showcaseFront,1,
             "BraxChampionsBeltShowcase.cs","1.84x0.72x2.95");
+        if(showcaseFront.Length==1)
+        {
+            var mf=showcaseFront[0].GetComponent<MeshFilter>();
+            float thickness=mf&&mf.sharedMesh?new[]{mf.sharedMesh.bounds.size.x,
+                mf.sharedMesh.bounds.size.y,mf.sharedMesh.bounds.size.z}.Min():0f;
+            bool glassPass=Mathf.Abs(thickness-.012f)<=.0005f;
+            output.inventory.Add(new Presence{
+                requirement="Arena: szkło gabloty dokładnie 12 mm",
+                status=glassPass?"jest":"brak",objectName=Hierarchy(showcaseFront[0]),
+                creatorCs="BraxChampionsBeltShowcase.cs",
+                note="mesh thickness="+F(thickness)+"m expected=0.012m",count=glassPass?1:0});
+        }
+        var canopySupports=all.Where(t=>Contains(t.name,
+            "A1 PUBLIC | ISSUE27 round gold support x=")).ToArray();
+        AddExact("Arena: dwa złote słupy zadaszenia osadzone raycastem",
+            canopySupports,2,"BraxChampionsArenaArrival.cs",
+            "x=+-20.50 z=-68.70; floorY zapisany w nazwie obiektu");
+        var supportCylinders=all.Where(t=>(Contains(t.name,"Gold support base")||
+            Contains(t.name,"Gold support stem"))&&t.GetComponent<CylinderCollider>()).ToArray();
+        AddExact("Arena: uproszczone collidery dwóch słupów (base+stem)",
+            supportCylinders,4,"BraxChampionsArenaArrival.cs","CylinderCollider, bez ciężkich MeshCollider");
         var forbiddenOldBack=all.Where(t=>Contains(t.name,"black marble wall column")||
             Contains(t.name,"black leather back panel")).ToArray();
         if(forbiddenOldBack.Length>0)
