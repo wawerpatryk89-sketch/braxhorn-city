@@ -19,6 +19,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         cls.prepare = (TOOLS / "prepare_assets.py").read_text(encoding="utf-8")
         cls.streamer = (ROOT / "unity-city" / "Assets" / "Mistrzowie" / "BraxHotelSobczakFloorStreamer.cs").read_text(encoding="utf-8")
         cls.visual_review = (ROOT / "unity-city" / "Assets" / "Mistrzowie" / "BraxChampionsVisualReview.cs").read_text(encoding="utf-8")
+        cls.scene_audit = (EDITOR / "BraxSceneAudit.cs").read_text(encoding="utf-8")
 
     def test_plot_exact(self):
         t03 = next(b for b in self.plan["buildings"] if b["id"] == "T03")
@@ -273,6 +274,18 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('Mansard dormer body",M.stucco,x,123.35f,z,3.0f,2.8f,1.35f,false', self.generator)
         self.assertIn('Upper roof front",M.roof', self.generator)
         self.assertNotIn('Upper roof front",M.roof,0,127.55f,-upperStartZ*.5f,56f,.16f,upperLen,true', self.generator)
+
+    def test_unity_scene_audit_measures_hotel_not_just_spec(self):
+        for token in [
+            "HotelSobczakAudit", "PASS_MEASURED_SCENE_CONTRACT",
+            "structuralWidthMeters", "structuralDepthMeters", "maxHeightMeters",
+            "h.rooms==420", "h.guestFloors==30", "h.elevators==4",
+            "h.stairs==2", "h.parkingB1==40", "h.parkingB2==40",
+            "milkGlassCandidates", "doorLeafColliderCount"
+        ]:
+            self.assertIn(token, self.scene_audit)
+        self.assertIn('Hotel Sobczak T03', self.scene_audit)
+        self.assertIn('BraxChampionsHotelSobczakT03.cs', self.scene_audit)
 
     def test_owner_21_frame_visual_acceptance_plan(self):
         required = [
