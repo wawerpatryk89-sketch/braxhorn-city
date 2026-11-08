@@ -103,6 +103,11 @@ class HotelSobczakT03Contract(unittest.TestCase):
         # Door leaves are visual/non-solid; no hidden normal WindowBay in centre.
         self.assertIn("if(baseY==0f && zsign<0f && i==3)", self.generator)
 
+    def test_ground_plinth_and_arch_sill_align(self):
+        self.assertEqual(self.spec["facade"]["plinth_height_m"], 1.2)
+        self.assertIn("baseY==0f?1.20f", self.generator)
+        self.assertIn("ground_arch_m", self.spec["facade"])
+
     def test_ground_arches_are_physical_openings_not_flat_texture(self):
         self.assertIn("Ground arch masonry infill", self.generator)
         self.assertIn("Mathf.Sqrt(Mathf.Max(0f,r*r-radial*radial))", self.generator)
