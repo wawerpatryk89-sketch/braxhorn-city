@@ -1,6 +1,6 @@
 # retry: 16
-name: Miasto Mistrzow — one-shot gate + Unity scene — NO APK
-run-name: Champions current SHA — source gate then Unity scene — NO APK
+name: Miasto Mistrzow — QUICK SOURCE GATE — NO UNITY / NO APK
+run-name: Champions current SHA — QUICK source gate — NO UNITY / NO APK
 
 on:
   push:
@@ -19,6 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # OWNER RULE: this workflow MUST NEVER start Unity, BuildPlayer, APK, bundles,
+  # standalone visual review, or any multi-hour test. Source checks only.
   source-gate:
     name: Current source gate — NO UNITY / NO APK
     runs-on: ubuntu-24.04
@@ -75,16 +77,3 @@ jobs:
         run: |
           echo "SOURCE_SHA=$GITHUB_SHA"
           echo "SOURCE_GATE_ONLY; APK_NOT_BUILT" >> "$GITHUB_STEP_SUMMARY"
-
-  unity-scene:
-    name: Exact same SHA — Unity scene validation — NO APK
-    needs: source-gate
-    uses: ./.github/workflows/mistrzowie-apk.yml
-    with:
-      etap: sceny
-      kontrola_tras: false
-      zdjecia: true
-      zapisz_audyt: true
-      arena_assets_tag: champions-a1-20261105
-      p1_assets_tag: p1-basen-spa-20261106
-    secrets: inherit
