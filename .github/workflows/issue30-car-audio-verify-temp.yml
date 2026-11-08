@@ -1,4 +1,4 @@
-name: Issue 30 car audio — source verification only — NO UNITY NO APK
+name: Issue 30 car audio — FINALIZE SOURCE ONLY — NO UNITY NO APK
 on:
   push:
     branches:
@@ -6,26 +6,221 @@ on:
     paths:
       - .github/workflows/issue30-car-audio-verify-temp.yml
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: issue30-car-audio-finalize
+  cancel-in-progress: false
 jobs:
-  verify:
+  finalize:
     runs-on: ubuntu-24.04
-    timeout-minutes: 2
+    timeout-minutes: 8
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Checkout exact shared branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          persist-credentials: false
-          sparse-checkout-cone-mode: false
-          sparse-checkout: |
-            unity-city/Assets/Source/Mistrzowie/Audio/BraxCar
-            unity-city/Assets/Mistrzowie/BraxChampionsCar.cs
-            unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs
-            unity-tools/mistrzowie/champion_car_audio_sources.json
-            unity-tools/mistrzowie/prepare_champion_car_audio.py
-            unity-tools/mistrzowie/test_issue30_car_audio.py
-      - name: Verify committed real-audio hashes and attribution
-        run: python3 unity-tools/mistrzowie/prepare_champion_car_audio.py
-      - name: Run Issue 30 audio regression
-        run: python3 unity-tools/mistrzowie/test_issue30_car_audio.py -v
-      - name: Prove scope
-        run: echo 'ISSUE30_SOURCE_ONLY_PASS; UNITY_NOT_RUN; APK_NOT_BUILT'
+          ref: gpt/miasto-mistrzow-kasyno-t11-20261105
+          fetch-depth: 0
+
+      - name: Guard Issue 30 code against concurrent edits
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs)" = "24ac35fed738791ebe6d6686999ce6e19df8e887"
+          test "$(git hash-object unity-city/Assets/Mistrzowie/BraxChampionsCar.cs)" = "3d23bd562a7180577f9e8279f91af5fc0a6dd579"
+
+      - name: Install audio encoder only
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Download audited source and derive full idle + rev OGG
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/issue30
+          SOURCE_URL="https://upload.wikimedia.org/wikipedia/commons/3/33/Starting_up_Lada_1200L_Zhiguli_Engine.webm"
+          curl --fail --location --retry 3 --retry-all-errors             --user-agent "BRAXHORN-CITY/Issue30 licensed audio preparation"             "$SOURCE_URL" -o /tmp/issue30/source.webm
+          echo "15a9fcf82f53c710f489b7d888557b4937ae3f50d968c22f2be342d29df398b6  /tmp/issue30/source.webm" | sha256sum -c -
+          ffmpeg -hide_banner -loglevel error -y -i /tmp/issue30/source.webm             -vn -ac 1 -ar 22050 -c:a pcm_s16le /tmp/issue30/source.wav
+          python3 - <<'PY'
+          from array import array
+          from pathlib import Path
+          import wave, sys
+          root=Path('/tmp/issue30')
+          with wave.open(str(root/'source.wav'),'rb') as w:
+              assert w.getnchannels()==1 and w.getsampwidth()==2 and w.getframerate()==22050
+              rate=w.getframerate()
+              pcm=array('h'); pcm.frombytes(w.readframes(w.getnframes()))
+              if sys.byteorder!='little': pcm.byteswap()
+          x=[v/32768.0 for v in pcm]
+          def write(path,samples):
+              out=array('h',(max(-32767,min(32767,round(v*32767))) for v in samples))
+              if sys.byteorder!='little': out.byteswap()
+              with wave.open(str(path),'wb') as w:
+                  w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate); w.writeframes(out.tobytes())
+          def normalize(samples,target_peak):
+              peak=max(max(abs(v) for v in samples),1e-9)
+              gain=target_peak/peak
+              return [max(-.98,min(.98,v*gain)) for v in samples]
+          a,b=int(12.0*rate),int(17.5*rate)
+          idle=x[a:b]
+          f=int(.5*rate)
+          seam=[idle[-f+i]*(1-i/max(1,f-1))+idle[i]*(i/max(1,f-1)) for i in range(f)]
+          idle=normalize(seam+idle[f:-f],.63)
+          write(root/'idle.wav',idle)
+          a,b=int(21.75*rate),int(24.50*rate)
+          rev=normalize(x[a:b],.79)
+          fi,fo=int(.12*rate),int(.28*rate)
+          for i in range(fi): rev[i]*=i/max(1,fi-1)
+          for i in range(fo): rev[-fo+i]*=(fo-1-i)/max(1,fo-1)
+          write(root/'rev.wav',rev)
+          print("ISSUE30_DERIVED idle_seconds=%.3f rev_seconds=%.3f"%(len(idle)/rate,len(rev)/rate))
+          PY
+          AUDIO="unity-city/Assets/Source/Mistrzowie/Audio/BraxCar"
+          mkdir -p "$AUDIO"
+          ffmpeg -hide_banner -loglevel error -y -i /tmp/issue30/idle.wav             -c:a libvorbis -q:a 4             -metadata title="BRAXHORN engine idle - derivative"             -metadata artist="Sounds of Changes / Antti Makkonen"             -metadata license="CC BY 3.0 Unported"             -metadata source="https://commons.wikimedia.org/wiki/File:Starting_up_Lada_1200L_Zhiguli_Engine.webm"             "$AUDIO/brax_engine_idle.ogg"
+          ffmpeg -hide_banner -loglevel error -y -i /tmp/issue30/rev.wav             -c:a libvorbis -q:a 4             -metadata title="BRAXHORN engine rev - derivative"             -metadata artist="Sounds of Changes / Antti Makkonen"             -metadata license="CC BY 3.0 Unported"             -metadata source="https://commons.wikimedia.org/wiki/File:Starting_up_Lada_1200L_Zhiguli_Engine.webm"             "$AUDIO/brax_engine_rev.ogg"
+          test "$(stat -c%s "$AUDIO/brax_engine_idle.ogg")" -gt 15000
+          test "$(stat -c%s "$AUDIO/brax_engine_rev.ogg")" -gt 10000
+          ffprobe -v error -show_entries stream=codec_name,sample_rate,channels -show_entries format=duration,size             -of default=nw=1 "$AUDIO/brax_engine_idle.ogg"
+          ffprobe -v error -show_entries stream=codec_name,sample_rate,channels -show_entries format=duration,size             -of default=nw=1 "$AUDIO/brax_engine_rev.ogg"
+
+      - name: Write final hashes, attribution and offline verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, json
+          root=Path('.')
+          audio=root/'unity-city/Assets/Source/Mistrzowie/Audio/BraxCar'
+          def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
+          idle=audio/'brax_engine_idle.ogg'; rev=audio/'brax_engine_rev.ogg'
+          manifest={
+            "schema":3,
+            "status":"FINAL_LICENSED_AUDIO_COMMITTED",
+            "issue":30,
+            "source":{
+              "title":"Starting up Lada 1200L Zhiguli Engine",
+              "creator":"Sounds of Changes; sound/photo/video: Antti Makkonen",
+              "page_url":"https://commons.wikimedia.org/wiki/File:Starting_up_Lada_1200L_Zhiguli_Engine.webm",
+              "direct_url":"https://upload.wikimedia.org/wikipedia/commons/3/33/Starting_up_Lada_1200L_Zhiguli_Engine.webm",
+              "license":"CC BY 3.0 Unported",
+              "license_url":"https://creativecommons.org/licenses/by/3.0/",
+              "source_sha256":"15a9fcf82f53c710f489b7d888557b4937ae3f50d968c22f2be342d29df398b6",
+              "source_bytes":6596358
+            },
+            "clips":[
+              {"role":"idle","unity_path":idle.as_posix(),"sha256":sha(idle),"bytes":idle.stat().st_size,
+               "duration_seconds":5.0,"sample_rate_hz":22050,"channels":1,"source_segment_seconds":[12.0,17.5],
+               "processing":"mono; 22.05 kHz; 0.5 s circular seam crossfade; peak normalization; Vorbis"},
+              {"role":"rev","unity_path":rev.as_posix(),"sha256":sha(rev),"bytes":rev.stat().st_size,
+               "duration_seconds":2.75,"sample_rate_hz":22050,"channels":1,"source_segment_seconds":[21.75,24.5],
+               "processing":"mono; 22.05 kHz; 0.12 s fade-in; 0.28 s fade-out; peak normalization; Vorbis"}
+            ],
+            "note":"Issue #30 allowed another single coherent licensed recording when documented. Pixabay candidates were verified but their CDN blocked automated binary retrieval with HTTP 403; no mirrored/unverified Pixabay bytes were used."
+          }
+          (root/'unity-tools/mistrzowie/champion_car_audio_sources.json').write_text(
+              json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          notice='''BRAXHORN CITY — AUTO BRAXHORN / Issue #30 — ENGINE AUDIO ATTRIBUTION
+
+Source work: "Starting up Lada 1200L Zhiguli Engine"
+Creator / attribution: Sounds of Changes; sound/photo/video: Antti Makkonen
+Source: https://commons.wikimedia.org/wiki/File:Starting_up_Lada_1200L_Zhiguli_Engine.webm
+License: Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+License: https://creativecommons.org/licenses/by/3.0/
+Original source SHA-256: 15a9fcf82f53c710f489b7d888557b4937ae3f50d968c22f2be342d29df398b6
+
+Modifications for BRAXHORN CITY:
+- downmixed to mono and resampled to 22.05 kHz;
+- idle: 12.00–17.50 s, circular seam crossfade, level adjustment, Vorbis;
+- rev: 21.75–24.50 s, fade-in/out, level adjustment, Vorbis.
+No endorsement by the creator is implied.
+'''
+          (audio/'ATTRIBUTION.txt').write_text(notice,encoding='utf-8')
+          PY
+          cat > unity-tools/mistrzowie/prepare_champion_car_audio.py <<'PY'
+          #!/usr/bin/env python3
+          """Verify final BRAXHORN Issue #30 engine audio. No network, no Unity, no APK."""
+          from pathlib import Path
+          import hashlib, json
+          ROOT=Path(__file__).resolve().parents[2]
+          DOC=json.loads((ROOT/'unity-tools/mistrzowie/champion_car_audio_sources.json').read_text('utf-8'))
+          def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
+          if DOC.get('status')!='FINAL_LICENSED_AUDIO_COMMITTED': raise ValueError('audio manifest not final')
+          if DOC['source']['source_sha256']!='15a9fcf82f53c710f489b7d888557b4937ae3f50d968c22f2be342d29df398b6':
+              raise ValueError('source hash mismatch')
+          for rec in DOC['clips']:
+              p=ROOT/rec['unity_path']; data=p.read_bytes()
+              if not data.startswith(b'OggS'): raise ValueError('not OGG: '+str(p))
+              if len(data)!=rec['bytes'] or sha(p)!=rec['sha256']: raise ValueError('hash/size mismatch: '+rec['role'])
+              if rec['sample_rate_hz']!=22050 or rec['channels']!=1: raise ValueError('mobile audio contract mismatch')
+              print('A1_CAR_AUDIO_VERIFIED',rec['role'],rec['bytes'],rec['sha256'])
+          print('A1_CAR_AUDIO_FINAL_PASS clips=2 source=CC_BY_3_0 apk=false unity=false')
+          PY
+          chmod +x unity-tools/mistrzowie/prepare_champion_car_audio.py
+          cat > unity-tools/mistrzowie/test_issue30_car_audio.py <<'PY'
+          from pathlib import Path
+          import hashlib, json, unittest
+          ROOT=Path(__file__).resolve().parents[2]
+          def txt(p): return (ROOT/p).read_text('utf-8')
+          class Issue30Audio(unittest.TestCase):
+              def test_real_hashed_audio_and_attribution(self):
+                  doc=json.loads(txt('unity-tools/mistrzowie/champion_car_audio_sources.json'))
+                  self.assertEqual(doc['status'],'FINAL_LICENSED_AUDIO_COMMITTED')
+                  self.assertEqual(doc['source']['license'],'CC BY 3.0 Unported')
+                  self.assertIn('Antti Makkonen',doc['source']['creator'])
+                  for rec in doc['clips']:
+                      p=ROOT/rec['unity_path']; data=p.read_bytes()
+                      self.assertTrue(data.startswith(b'OggS'))
+                      self.assertGreater(len(data),10000)
+                      self.assertEqual(len(data),rec['bytes'])
+                      self.assertEqual(hashlib.sha256(data).hexdigest(),rec['sha256'])
+                  notice=txt('unity-city/Assets/Source/Mistrzowie/Audio/BraxCar/ATTRIBUTION.txt')
+                  self.assertIn('CC BY 3.0',notice); self.assertIn('Antti Makkonen',notice)
+              def test_runtime_and_mobile_contract(self):
+                  b=txt('unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs')
+                  r=txt('unity-city/Assets/Mistrzowie/BraxChampionsCar.cs')
+                  self.assertIn('brax_engine_idle.ogg',b); self.assertIn('brax_engine_rev.ogg',b)
+                  self.assertIn('AudioCompressionFormat.Vorbis',b); self.assertIn('forceToMono = true',b)
+                  self.assertIn('AudioRolloffMode.Linear',r); self.assertIn('spatialBlend = 1f',r)
+                  self.assertIn('A1_CAR_ENGINE_REV',r); self.assertNotIn('AudioClip.Create("BRAXHORN',r)
+                  self.assertIn('LengthMetres = 4.95f',b); self.assertIn('car.maxSpeed = 120f / 3.6f',b)
+                  self.assertIn('maxSpeed = 120f / 3.6f',r)
+          if __name__=='__main__': unittest.main()
+          PY
+          python3 unity-tools/mistrzowie/prepare_champion_car_audio.py
+          python3 unity-tools/mistrzowie/test_issue30_car_audio.py -v
+
+      - name: Commit ONLY Issue 30 audio output and self-delete
+        shell: bash
+        env:
+          BRANCH: gpt/miasto-mistrzow-kasyno-t11-20261105
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/issue30-car-audio-verify-temp.yml
+          git config user.name "wawerpatryk89-sketch"
+          git config user.email "wawerpatryk89@gmail.com"
+          git add             unity-city/Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_idle.ogg             unity-city/Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_rev.ogg             unity-city/Assets/Source/Mistrzowie/Audio/BraxCar/ATTRIBUTION.txt             unity-tools/mistrzowie/champion_car_audio_sources.json             unity-tools/mistrzowie/prepare_champion_car_audio.py             unity-tools/mistrzowie/test_issue30_car_audio.py             .github/workflows/issue30-car-audio-verify-temp.yml
+          python3 - <<'PY'
+          import subprocess
+          allowed={
+            '.github/workflows/issue30-car-audio-verify-temp.yml',
+            'unity-city/Assets/Source/Mistrzowie/Audio/BraxCar/ATTRIBUTION.txt',
+            'unity-city/Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_idle.ogg',
+            'unity-city/Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_rev.ogg',
+            'unity-tools/mistrzowie/champion_car_audio_sources.json',
+            'unity-tools/mistrzowie/prepare_champion_car_audio.py',
+            'unity-tools/mistrzowie/test_issue30_car_audio.py'
+          }
+          changed=set(subprocess.check_output(['git','diff','--cached','--name-only'],text=True).split())
+          if changed != allowed:
+              raise SystemExit('ISSUE30_SCOPE_FAIL changed='+repr(sorted(changed)))
+          print('ISSUE30_SCOPE_PASS',sorted(changed))
+          PY
+          git commit -m "Issue 30: finalize full licensed BRAXHORN engine audio"
+          git fetch origin "$BRANCH"
+          git rebase "origin/$BRANCH"
+          git push origin HEAD:"$BRANCH"
