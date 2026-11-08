@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.IO.Compression;
+using System.Net;
 using System.Linq;
 using System.Security.Cryptography;
 using UnityEditor;
@@ -12,6 +14,14 @@ using UnityEngine.Rendering;
 public static class BraxChampionsCasinoT11
 {
     public const string SignPath="Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png";
+    const string TaxiSignPath="Assets/Source/Mistrzowie/CitySigns/03_TRANSPORT_KURORT/TAXI_TAXI.png";
+    const string ParkingSignPath="Assets/Source/Mistrzowie/CitySigns/03_TRANSPORT_KURORT/PARKING_PARKING.png";
+    const string SignSha256="78edc9f51c772d20cb84c43f0850716a63c5a772fa0b326a7aea15ccfe39bf1b";
+    const string TaxiSignSha256="ebf5e0ca3fa789cd709e0e621af399c0c10f31e96bb29cb44e4e5e66aa0adada";
+    const string ParkingSignSha256="6e756f193e3c764f63960f049524ea265017f95b58d95991885951ed1fbe9247";
+    const string OwnerOriginalsReleaseUrl=
+        "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/champions-a1-20261105/BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip";
+    const string OwnerOriginalsZipSha256="43ea47f02a1f2e9e4f707bb75d16ec0a3fe79ec02762929ca591e317defa1088";
     // EXACT owner-supplied Pixabay / DEZYNE_3D ID 140 GLB, no fabricated stand-in.
     public const string DollarPath=
         "Assets/Source/Mistrzowie/CasinoT11/OwnerDollar/dezyne_3d-dollar-sign-140.glb";
@@ -42,8 +52,11 @@ public static class BraxChampionsCasinoT11
         granite=BraxChampionsCasinoPbr2K.Create(output,"t11_dark_granite","granite_tile",1.2f,new Color(.26f,.28f,.30f));
         paving=BraxChampionsCasinoPbr2K.Create(output,"t11_walkways","concrete_pavement_02",1.8f,new Color(.94f,.93f,.89f));
         asphalt=BraxChampionsCasinoPbr2K.Create(output,"t11_asphalt","clean_asphalt",2.1f,new Color(.9f,.9f,.9f));
-        gold=Surface("champagne_bronze",new Color(.75f,.57f,.32f),false,false);
+        // Issue #29: all visible champagne-gold trim uses the existing Metal048A PBR maps.
+        gold=BraxChampionsFoundation.LibraryMetal(
+            "T11_champagne_gold_trim",new Color(.93f,.73f,.39f));
         gold.SetFloat("_Metallic",.97f);gold.SetFloat("_Roughness",.17f);
+        EditorUtility.SetDirty(gold);
         // Właściciel: wszystkie widoczne filary ZŁOTE i połyskujące.
         // Prawdziwe oryginalne 4K PBR Metal048A z przygotowanej biblioteki,
         // nie jednolity żółty plastik i nie nowy zamiennik tekstur.
@@ -77,6 +90,8 @@ public static class BraxChampionsCasinoT11
          // The reference drawing has a blue-violet translucent glazed roof lantern.
         skylightGlass=Surface("roof_skylight_glass",new Color(.48f,.56f,.76f,.38f),true,false);
         led=Surface("warm_led",new Color(.92f,.78f,.57f),false,true);
+        led.SetColor("_EmissionColor",new Color(.34f,.22f,.095f));
+        EditorUtility.SetDirty(led);
         signBacking=Surface("sign_backplate_graphite_metal",new Color(.055f,.065f,.080f),false,false);
         signBacking.SetFloat("_Metallic",.68f);
         signBacking.SetFloat("_Roughness",.24f);
@@ -133,7 +148,7 @@ public static class BraxChampionsCasinoT11
         renderer.sharedMaterial=mat;
         bool transparent=mat==glass||mat==frontGlass||mat==skylightGlass;
         if(transparent){renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;}
-        if(tiled || ((mat==cream || mat==facadeSandstone || mat==graphite || mat==granite || mat==roof || mat==paving || mat==asphalt || mat==pillarGold) && Mathf.Max(w,Mathf.Max(h,d))>3f))
+        if(tiled || ((mat==cream || mat==facadeSandstone || mat==graphite || mat==granite || mat==roof || mat==paving || mat==asphalt || mat==gold || mat==pillarGold) && Mathf.Max(w,Mathf.Max(h,d))>3f))
             Tile(o,new Vector3(w,h,d));
         if(!solid)UnityEngine.Object.DestroyImmediate(o.GetComponent<Collider>());
         if(!transparent && mat!=led)
@@ -246,7 +261,7 @@ public static class BraxChampionsCasinoT11
             {
                 float x=side*(19f+bay*7.6f);
                 BeveledBox(shell,"T11 GOLD beveled front structural pilaster",pillarGold,
-                    x,6.9f,-27.9f,1.16f,13.8f,1.00f,.10f,true);
+                    x,7.1f,-27.9f,1.16f,13.8f,1.00f,.10f,true);
             }
             BeveledBox(trim,"T11 front champagne floor belt",gold,
                 side*27.5f,7.04f,-28.00f,21f,.17f,.11f,.035f,false);
@@ -262,7 +277,7 @@ public static class BraxChampionsCasinoT11
             {
                 float zz=-23.0f+bay*7.55f;
                 BeveledBox(shell,"T11 GOLD beveled side structural pilaster",pillarGold,
-                    side*38f,6.9f,zz,1.10f,13.80f,1.02f,.09f,true);
+                    side*38f,7.1f,zz,1.10f,13.80f,1.02f,.09f,true);
             }
             B(trim,"T11 side graphite plinth 0.80m",graphite,
                 side*38f,.40f,0,.30f,.80f,56f,false,true);
@@ -278,7 +293,7 @@ public static class BraxChampionsCasinoT11
         foreach(float side in new[]{-1f,1f})
         {
             BeveledBox(shell,"T11 tall GOLD polished beveled main entrance pylon",pillarGold,
-                side*18.25f,7.05f,-28f,2.75f,14.10f,2.35f,.14f,true);
+                side*18.25f,7.10f,-28f,2.75f,14.10f,2.35f,.14f,true);
             BeveledBox(trim,"T11 champagne vertical entry reveal",gold,
                 side*18.25f,7.02f,-29.27f,.15f,13.8f,.13f,.045f,false);
             B(trim,"T11 warm recessed vertical pylon LED",led,
@@ -318,26 +333,30 @@ public static class BraxChampionsCasinoT11
         B(shell,"Skylight roof north",roof,0,14.05f,19f,24f,.22f,18f,true,true);
         B(shell,"Actual transparent blue-violet rooftop skylight",skylightGlass,0,14.14f,0,24f,.11f,20f,false);
         for(float x=-12f;x<=12f;x+=4f)
-            B(trim,"Skylight champagne metal longitudinal rib",gold,x,14.24f,0,.12f,.13f,20f,false);
+            BeveledBox(trim,"Skylight rounded champagne longitudinal rib",gold,
+                x,14.24f,0,.12f,.13f,20f,.040f,false);
         for(float z=-10f;z<=10f;z+=5f)
-            B(trim,"Skylight champagne metal crossbar",gold,0,14.24f,z,24f,.13f,.12f,false);
+            BeveledBox(trim,"Skylight rounded champagne crossbar",gold,
+                0,14.24f,z,24f,.13f,.12f,.040f,false);
         foreach(float side in new[]{-1f,1f})
         {
             B(trim,"Parapet front stone",facadeSandstone,side*19f,14.9f,-27.8f,37f,1.4f,.65f);
             B(trim,"Parapet rear stone",facadeSandstone,side*19f,14.9f,27.8f,37f,1.4f,.65f);
             B(trim,"Parapet side stone",facadeSandstone,side*37.7f,14.9f,0,.60f,1.4f,55.4f);
-            B(trim,"Roof perimeter gold",gold,side*37.86f,15.58f,0,.14f,.16f,55.2f,false);
+            BeveledBox(trim,"Roof rounded perimeter gold",gold,
+                side*37.86f,15.58f,0,.14f,.16f,55.2f,.045f,false);
         }
         B(shell,"Enclosed roof technology enclosure",graphite,-29f,14.78f,16f,8f,1.25f,5f);
         for(float x=-32f;x<-25f;x+=.6f)
-            B(trim,"Ventilation louvre gold",gold,x,15.5f,13.42f,.11f,1.35f,.13f,false);
+            BeveledBox(trim,"Ventilation rounded gold louvre",gold,
+                x,15.5f,13.42f,.11f,1.35f,.13f,.035f,false);
         foreach(float z in new[]{16f,-15f})
             B(shell,"Exterior roof ventilation case",steel,21f,14.72f,z,3.5f,1.05f,3f);
     }
 
     static void RotundaRoofCap()
     {
-        // Real semicircular roof over the curved glass rotunda. The approved
+        // Real half-elliptical roof over the curved glass rotunda. The approved
         // image shows a rounded canopy, not a rectangular box.
         const int sides=48;
         const float yTop=14.24f,yBottom=14.03f;
@@ -372,7 +391,7 @@ public static class BraxChampionsCasinoT11
         mesh.SetVertices(verts);mesh.SetUVs(0,uv);mesh.SetTriangles(tris,0);
         mesh.RecalculateNormals();mesh.RecalculateBounds();
         AssetDatabase.CreateAsset(mesh,output+"/Meshes/T11_Curved_Rotunda_Roof.asset");
-        var o=new GameObject("Real semicircular rotunda roof cap");
+        var o=new GameObject("Real half-elliptical rotunda roof cap");
         o.transform.SetParent(shell,false);
         o.AddComponent<MeshFilter>().sharedMesh=mesh;
         o.AddComponent<MeshRenderer>().sharedMaterial=roof;
@@ -968,61 +987,97 @@ public static class BraxChampionsCasinoT11
 
     static void PremiumExteriorLighting()
     {
-        // Warm facade wash as on the owner's evening architectural reference.
-        // The existing CityStaticPBR mobile shader supports four ForceVertex
-        // local lights per rendered object. Keep them sparse, shadowless and
-        // outside the empty interior; LED trim remains material-emissive.
+        // Mobile-first Issue #29: emissive fixtures only; T11 adds zero realtime facade Point Lights.
+        // Underground B1 lighting is outside this exterior-only task and remains unchanged.
         var fixtures=new[]
         {
-            new Vector3(-14f,4.6f,-30.5f),
-            new Vector3(0f,5.4f,-34.3f),
-            new Vector3(14f,4.6f,-30.5f),
-            new Vector3(-37.2f,5.3f,0f),
-            new Vector3(37.2f,5.3f,0f),
-            new Vector3(0f,5.1f,28.7f)
+            new Vector3(-14f,4.6f,-30.5f),new Vector3(0f,5.4f,-34.3f),
+            new Vector3(14f,4.6f,-30.5f),new Vector3(-37.2f,5.3f,0f),
+            new Vector3(37.2f,5.3f,0f),new Vector3(0f,5.1f,28.7f)
         };
         for(int i=0;i<fixtures.Length;i++)
         {
             var p=fixtures[i];
-            B(trim,"Champagne facade sconce "+(i+1),gold,p.x,p.y,p.z,
-                .26f,.45f,.24f,false);
-            B(trim,"Warm LED luminaire diffuser "+(i+1),led,
-                p.x,p.y-.19f,p.z,.20f,.08f,.19f,false);
-            var lamp=new GameObject("T11 warm architectural facade light "+(i+1));
-            lamp.transform.SetParent(root,false);
-            lamp.transform.localPosition=(p+new Vector3(0,-.2f,0))*K;
-            var l=lamp.AddComponent<Light>();
-            l.type=LightType.Point;
-            l.range=14f*K;
-            l.intensity=1.45f;
-            l.color=new Color(1f,.87f,.70f);
-            l.shadows=LightShadows.None;
-            l.renderMode=LightRenderMode.ForceVertex;
+            BeveledBox(trim,"T11 champagne facade sconce "+(i+1),gold,
+                p.x,p.y,p.z,.26f,.45f,.24f,.060f,false);
+            BeveledBox(trim,"T11 warm LED luminaire diffuser "+(i+1),led,
+                p.x,p.y-.19f,p.z,.18f,.055f,.16f,.018f,false);
         }
-        // One tiny baked probe for polished gold/glass response. No realtime refresh,
-        // no per-frame cubemap capture and no dynamic shadows on Android.
-        var probeObject=new GameObject("T11 mobile baked reflection probe | 64px");
-        probeObject.transform.SetParent(root,false);
-        probeObject.transform.localPosition=new Vector3(0,7f,-2f)*K;
-        var probe=probeObject.AddComponent<ReflectionProbe>();
-        probe.mode=ReflectionProbeMode.Baked;
-        probe.resolution=64;
-        probe.size=new Vector3(92f,26f,72f)*K;
-        probe.intensity=.90f;
-        probe.boxProjection=true;
-        probe.importance=2;
-        probe.cullingMask=~0;
-        probe.nearClipPlane=.10f*K;
-        probe.farClipPlane=120f*K;
-        string probePath=output+"/Textures/T11_Casino_Baked_Reflection.exr";
-        Directory.CreateDirectory(output+"/Textures");
-        if(!Lightmapping.BakeReflectionProbe(probe,probePath))
-            throw new InvalidOperationException("T11 baked reflection probe failed");
-        AssetDatabase.ImportAsset(probePath,ImportAssetOptions.ForceSynchronousImport);
-        var baked=AssetDatabase.LoadAssetAtPath<Texture>(probePath);
-        if(!baked)throw new InvalidOperationException("T11 baked reflection cubemap asset missing: "+probePath);
-        probe.bakedTexture=baked;
-        Debug.Log("T11_REFLECTION_PROBE_PASS mode=BAKED resolution=64 realtimeRefresh=NO cubemap="+probePath);
+    }
+
+    static string Sha256File(string path)
+    {
+        using(var stream=File.OpenRead(path))
+        using(var sha=SHA256.Create())
+            return BitConverter.ToString(sha.ComputeHash(stream)).Replace("-","").ToLowerInvariant();
+    }
+
+    static void ExtractReleaseEntry(ZipArchive archive,string basename,string destination,string expectedSha)
+    {
+        var matches=archive.Entries.Where(e=>
+            string.Equals(Path.GetFileName(e.FullName),basename,StringComparison.OrdinalIgnoreCase)).ToArray();
+        if(matches.Length!=1)
+            throw new InvalidOperationException("Pinned T11 originals release must contain exactly one "+basename+
+                "; found="+matches.Length);
+        Directory.CreateDirectory(Path.GetDirectoryName(destination));
+        using(var input=matches[0].Open())
+        using(var outputFile=new FileStream(destination,FileMode.Create,FileAccess.Write,FileShare.None))
+            input.CopyTo(outputFile);
+        if(Sha256File(destination)!=expectedSha)
+        {
+            File.Delete(destination);
+            throw new InvalidOperationException("Restored owner sign SHA-256 mismatch: "+basename);
+        }
+        var meta=archive.Entries.FirstOrDefault(e=>
+            string.Equals(e.FullName,matches[0].FullName+".meta",StringComparison.OrdinalIgnoreCase));
+        if(meta!=null&&!File.Exists(destination+".meta"))
+        {
+            using(var input=meta.Open())
+            using(var outputFile=new FileStream(destination+".meta",FileMode.Create,FileAccess.Write,FileShare.None))
+                input.CopyTo(outputFile);
+        }
+    }
+
+    static void EnsureT11OwnerSigns()
+    {
+        var required=new[]{
+            new[]{SignPath,"C1_KASYNO_KASYNO_WAWER.png",SignSha256},
+            new[]{TaxiSignPath,"TAXI_TAXI.png",TaxiSignSha256},
+            new[]{ParkingSignPath,"PARKING_PARKING.png",ParkingSignSha256}
+        };
+        var missing=new System.Collections.Generic.List<string[]>();
+        foreach(var item in required)
+        {
+            if(File.Exists(item[0]))
+            {
+                if(Sha256File(item[0])!=item[2])
+                    throw new InvalidOperationException("Existing owner sign differs from approved manifest: "+item[0]);
+            }
+            else missing.Add(item);
+        }
+        if(missing.Count==0)return;
+
+        string zip=Path.Combine(Path.GetTempPath(),"BRAXHORN_T11_ORIGINALY_43ea47f0.zip");
+        try
+        {
+            if(File.Exists(zip))File.Delete(zip);
+            using(var client=new WebClient())
+            {
+                client.Headers[HttpRequestHeader.UserAgent]="BRAXHORN-Unity6-T11-SourceRestore/1.0";
+                client.DownloadFile(OwnerOriginalsReleaseUrl,zip);
+            }
+            if(Sha256File(zip)!=OwnerOriginalsZipSha256)
+                throw new InvalidOperationException("Pinned A1/T11 originals Release ZIP SHA-256 mismatch");
+            using(var archive=ZipFile.OpenRead(zip))
+                foreach(var item in missing)ExtractReleaseEntry(archive,item[1],item[0],item[2]);
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            Debug.Log("BRAX_T11_OWNER_SIGNS_RESTORED release=champions-a1-20261105 files="+missing.Count+
+                " zip_sha256="+OwnerOriginalsZipSha256);
+        }
+        finally
+        {
+            if(File.Exists(zip))File.Delete(zip);
+        }
     }
 
     // A source image's approved 2048x512 dimensions are not necessarily the
@@ -1039,7 +1094,7 @@ public static class BraxChampionsCasinoT11
                 " source="+width+"x"+height+" expected=2048x512");
         if(path==SignPath)
         {
-            const string expected="78edc9f51c772d20cb84c43f0850716a63c5a772fa0b326a7aea15ccfe39bf1b";
+            const string expected=SignSha256;
             using(var stream=File.OpenRead(path))
             using(var sha=SHA256.Create())
             {
@@ -1061,10 +1116,10 @@ public static class BraxChampionsCasinoT11
 
     public static void VerifyOriginalSigns()
     {
+        EnsureT11OwnerSigns();
         LoadOwnerSign(SignPath);
-        const string city="Assets/Source/Mistrzowie/CitySigns/03_TRANSPORT_KURORT/";
-        LoadOwnerSign(city+"TAXI_TAXI.png");
-        LoadOwnerSign(city+"PARKING_PARKING.png");
+        LoadOwnerSign(TaxiSignPath);
+        LoadOwnerSign(ParkingSignPath);
         Debug.Log("CHAMPIONS_T11_OWNER_SIGNS_PASS originals=3 untouched=YES source_size=2048x512");
     }
 
@@ -1110,8 +1165,7 @@ public static class BraxChampionsCasinoT11
         // Keep only TAXI at the front-right drop-off.
         // Owner 7.11: remove the freestanding PARKING sign from the garage approach;
         // the driveway itself stays completely unobstructed.
-        const string origin="Assets/Source/Mistrzowie/CitySigns/03_TRANSPORT_KURORT/";
-        RoadsideOriginalSign("TAXI",origin+"TAXI_TAXI.png",42f,-36.8f,0f);
+        RoadsideOriginalSign("TAXI",TaxiSignPath,42f,-36.8f,0f);
     }
 
     // Issue #29 sign carrier contour was derived from the actual alpha silhouette
@@ -1151,10 +1205,11 @@ public static class BraxChampionsCasinoT11
         int n=loop.Length;
         if(n<3)throw new InvalidOperationException("T11 sign carrier needs >=3 contour points");
         var verts=new System.Collections.Generic.List<Vector3>(n*2);
+        var uv=new System.Collections.Generic.List<Vector2>(n*2);
         for(int layer=0;layer<2;layer++)
         {
             float z=(layer==0?-depth*.5f:depth*.5f)*K;
-            foreach(var p in loop)verts.Add(new Vector3(p.x,p.y,0)*K+Vector3.forward*z);
+            foreach(var p in loop){verts.Add(new Vector3(p.x,p.y,0)*K+Vector3.forward*z);uv.Add(p);}
         }
         var tris=new System.Collections.Generic.List<int>();
         void AddTriOriented(int a,int b,int d,Vector3 desired)
@@ -1176,8 +1231,8 @@ public static class BraxChampionsCasinoT11
             AddTriOriented(i,n+j,n+i,radial);
         }
         var mesh=new Mesh{name=name+" mesh"};
-        mesh.SetVertices(verts);mesh.SetTriangles(tris,0);
-        mesh.RecalculateNormals();mesh.RecalculateBounds();
+        mesh.SetVertices(verts);mesh.SetUVs(0,uv);mesh.SetTriangles(tris,0);
+        mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
         AssetDatabase.CreateAsset(mesh,output+"/Meshes/T11_sign_body_"+(serial++)+".asset");
         var o=new GameObject(name);o.transform.SetParent(parent,false);
         o.transform.localPosition=new Vector3(0,centreY,centreZ)*K;
@@ -1196,10 +1251,11 @@ public static class BraxChampionsCasinoT11
             throw new InvalidOperationException("T11 sign gold ring contour mismatch");
         int n=outer.Length;
         var verts=new System.Collections.Generic.List<Vector3>(n*4);
+        var uv=new System.Collections.Generic.List<Vector2>(n*4);
         foreach(float z in new[]{-depth*.5f,depth*.5f})
         {
-            foreach(var p in outer)verts.Add(new Vector3(p.x,p.y,z)*K);
-            foreach(var p in inner)verts.Add(new Vector3(p.x,p.y,z)*K);
+            foreach(var p in outer){verts.Add(new Vector3(p.x,p.y,z)*K);uv.Add(p);}
+            foreach(var p in inner){verts.Add(new Vector3(p.x,p.y,z)*K);uv.Add(p);}
         }
         var tris=new System.Collections.Generic.List<int>();
         void Quad(int a,int b,int d,int e,Vector3 desired)
@@ -1221,8 +1277,8 @@ public static class BraxChampionsCasinoT11
             Quad(fi+i,fi+j,bi+j,bi+i,inRadial);
         }
         var mesh=new Mesh{name=name+" mesh"};
-        mesh.SetVertices(verts);mesh.SetTriangles(tris,0);
-        mesh.RecalculateNormals();mesh.RecalculateBounds();
+        mesh.SetVertices(verts);mesh.SetUVs(0,uv);mesh.SetTriangles(tris,0);
+        mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
         AssetDatabase.CreateAsset(mesh,output+"/Meshes/T11_sign_gold_ring_"+(serial++)+".asset");
         var o=new GameObject(name);o.transform.SetParent(parent,false);
         o.transform.localPosition=new Vector3(0,centreY,centreZ)*K;
@@ -1264,7 +1320,7 @@ public static class BraxChampionsCasinoT11
 
         Debug.Log("T11_ISSUE29_SIGN ORIGINAL_SIGN_PRESENT=SOURCE_CHECK_PASS LABEL_ASPECT_4_TO_1=SOURCE_GEOMETRY_PASS "+
             "BACKPLATE_FOLLOWS_REAL_LABEL_OUTLINE=SOURCE_GEOMETRY_PASS GOLD_BEVEL_ROUNDED=SOURCE_GEOMETRY_PASS "+
-            "NO_OCCLUSION_OR_Z_FIGHT=SOURCE_GEOMETRY_PASS UNITY_SCREENSHOTS_ATTACHED=PENDING_REAL_UNITY_RENDER");
+            "NO_OCCLUSION_OR_Z_FIGHT=SOURCE_GEOMETRY_PASS_VISUAL_PENDING UNITY_SCREENSHOTS_ATTACHED=PENDING_REAL_UNITY_RENDER");
     }
 
     public static void Generate(string outFolder)
@@ -1293,6 +1349,7 @@ public static class BraxChampionsCasinoT11
             outFolder+"/Prefabs/T11_Casino_Exterior.prefab",InteractionMode.AutomatedAction);
         root.position=at;
         if(!prefab)throw new IOException("T11 exterior prefab save failed");
+        Debug.Log("CHAMPIONS_T11_ISSUE29_SOURCE_GEOMETRY sidePilasters=14 frontPilasters=6 entryPylons=2 rearPilasters=8 rotundaGlass=48 rotundaFascia=48 deliveryOpening=6x5.55 skylight=24x20 exteriorPointLights=0 visualReview=PENDING");
         Debug.Log("CHAMPIONS_T11_CASINO_EXTERIOR_ONLY position=(495,465) lot=120x100 podium=76x56x14 tower=NONE PBR=PolyHaven originalSign=C1_WAWER issue29=true glassOnlyRotunda=true masonrySidesRearFrontWings=true");
     }
 }
