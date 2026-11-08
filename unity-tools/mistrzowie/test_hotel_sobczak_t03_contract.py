@@ -227,7 +227,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertNotIn('B(g,"Ground structural slab",M.marble,0,.15f,0,63.2f,.30f,41.2f', self.generator)
         self.assertIn('SlabWithCoreOpenings(g,"Ground structural slab"', self.generator)
         self.assertIn('SlabWithCoreOpenings(g,"Level1 structural slab"', self.generator)
-        self.assertIn('SlabWithCoreOpenings(guestExterior,"Guest slab "', self.generator)
+        self.assertIn('SlabWithCoreOpenings(p,"Guest slab F-TEMPLATE"', self.generator)
         self.assertNotIn('SlabWithCoreOpenings(g,id+" ceiling"', self.generator)
 
 
