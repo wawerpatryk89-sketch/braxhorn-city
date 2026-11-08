@@ -1,0 +1,80 @@
+name: Miasto Mistrzów — po scenie uruchom jeden APK — 08.11.2026
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-apk-after-scene-fix31-20261108.yml
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: mistrzowie-fix31-owner-once
+  cancel-in-progress: false
+
+jobs:
+  gate-and-dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            .github/workflows/
+      - name: Potwierdź zielony pełny audyt źródłowy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: "42511355884"
+        run: |
+          set -euo pipefail
+          data="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN")"
+          test "$(jq -r '.status' <<<"$data")" = completed
+          test "$(jq -r '.conclusion' <<<"$data")" = success
+          echo "SOURCE_AUDIT_PASS=$SOURCE_RUN"
+      - name: Poczekaj na już uruchomiony test sceny i wymagaj PASS
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SCENE_RUN: "42511302612"
+          TESTED_SHA: "82ef7a6ed1572eea0d1d40443a2550647958a18d"
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 650); do
+            data="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SCENE_RUN")"
+            status="$(jq -r '.status' <<<"$data")"
+            conclusion="$(jq -r '.conclusion // ""' <<<"$data")"
+            head="$(jq -r '.head_sha' <<<"$data")"
+            test "$head" = "$TESTED_SHA" || { echo "::error::Scene gate bada inny SHA: $head"; exit 1; }
+            if [ "$status" = completed ]; then
+              test "$conclusion" = success || { echo "::error::SCENA NIE PRZESZŁA: $conclusion — APK NIE URUCHOMIONY"; exit 1; }
+              echo "SCENE_GATE_PASS=$SCENE_RUN"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error::Scene gate nie zakończył się w limicie; APK NIE URUCHOMIONY"
+          exit 1
+      - name: Potwierdź że od testowanego SHA zmieniły się tylko workflowy audytu/orchestracji
+        env:
+          TESTED_SHA: "82ef7a6ed1572eea0d1d40443a2550647958a18d"
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git diff --name-only "$TESTED_SHA" "$GITHUB_SHA")
+          printf 'Zmiany po SHA sceny:\n%s\n' "${changed[*]}"
+          for f in "${changed[@]}"; do
+            case "$f" in
+              .github/workflows/mistrzowie-sequential-short-audit-20261106.yml|              .github/workflows/mistrzowie-apk-after-scene-fix31-20261108.yml) ;;
+              *) echo "::error::Po teście sceny zmienił się kod/asset: $f — APK NIE URUCHOMIONY"; exit 1 ;;
+            esac
+          done
+      - name: Uruchom dokładnie jeden APK z poprawionego bieżącego SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          active="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow mistrzowie-apk.yml --branch "$GITHUB_REF_NAME" --limit 30 --json status | jq '[.[] | select(.status != "completed")] | length')"
+          test "$active" -eq 0 || { echo "::error::Inny build APK Miasta Mistrzów już działa; nie uruchamiam duplikatu"; exit 1; }
+          gh workflow run mistrzowie-apk.yml             --repo "$GITHUB_REPOSITORY"             --ref "$GITHUB_REF_NAME"             -f commit="$GITHUB_SHA"             -f etap=apk             -f kontrola_tras=false             -f zdjecia=false             -f recovery_run=             -f base_id=             -f arena_assets_tag=champions-a1-20261105             -f p1_assets_tag=p1-basen-spa-20261106             -f zapisz_audyt=false
+          echo "MISTRZOWIE_FIX31_APK_DISPATCHED=1"
