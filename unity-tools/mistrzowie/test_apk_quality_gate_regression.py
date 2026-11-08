@@ -32,7 +32,7 @@ class ChampionsTestApkQualityGates(unittest.TestCase):
         self.assertIn('free_luxurious_barrel_seat_2k.glb', self.vip)
         self.assertIn("PrefabUtility.InstantiatePrefab(source)", self.vip)
         self.assertIn("BraxChampionsVIPSeats.Generate(root)", self.arena)
-        self.assertIn("new Vector3(.96f, 1.08f, .96f)", self.vip)
+        self.assertIn("new Vector3(1.18f, 1.28f, 1.18f)", self.vip)
         self.assertIn("AddComponent<BoxCollider>()", self.vip)
         self.assertIn('throw new InvalidOperationException("Cannot instantiate original VIP seat GLB")', self.vip)
         self.assertIn("if(!skipWalkChecks)CheckExteriorAccess()", self.build)

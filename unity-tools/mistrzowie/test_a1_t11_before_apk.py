@@ -62,12 +62,13 @@ class A1T11Preflight(unittest.TestCase):
         arena=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs")
         self.assertIn("BraxChampionsBeltShowcase.Generate(root)",arena)
         for text in ("BRAXHORN_ARENA_CASE_PLAQUE.jpg","granite_tile",
-                     "REFERENCE black marble wall column","REFERENCE optically clear FRONT glass",
-                     "REFERENCE small GOLD glass bracket","REFERENCE bronze vertical slat",
+                     "A1 SHOWCASE | premium granite base","A1 SHOWCASE | FRONT optical glass",
+                     "A1 SHOWCASE | slender gold corner profile","A1 SHOWCASE | hidden black belt support",
                      "OriginalBelt(display)"):
             self.assertIn(text,exhibit)
+        self.assertNotIn("REFERENCE black marble wall column",exhibit)
+        self.assertNotIn("REFERENCE black leather back panel",exhibit)
         self.assertNotIn("Podium(display",exhibit)
-        self.assertNotIn("RED narrow centred inset",exhibit)
         self.assertIn("DestroyImmediate(cube.GetComponent<Collider>())",exhibit)
     def test_approval_only_quality_gates(self):
         build=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs")

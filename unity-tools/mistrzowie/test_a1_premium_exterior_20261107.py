@@ -51,38 +51,40 @@ class A1PremiumExteriorRegression(unittest.TestCase):
     def test_owner_sign_band_and_both_doorways_are_clear(self):
         # Physical door top is 4.5m above the exterior floor.
         self.assertGreater(5.18 - .15 / 2, 4.5)
-        # Four owner signs occupy vertical y=11.02..18.22.
-        self.assertLess(5.68 + 9.30 / 2, 11.02)
-        self.assertLess(10.52 + .15 / 2, 11.02)
-        self.assertGreater(22.87 - 7.35 / 2, 18.22)
-        self.assertGreater(19.05 - .15 / 2, 18.22)
+        # Issue #27 columns stop below and restart above the owner's sign band.
+        self.assertLessEqual(1.03 + 9.82, 10.85)
+        self.assertLess(10.85, 11.12)
+        self.assertGreater(18.55, 11.12 + 7.0)
+        self.assertGreater(19.05 - .15 / 2, 18.12)
         self.assertIn('Mathf.Abs(mid.x)<8.4f&&Mathf.Abs(mid.z)>57f', self.arrival)
         self.assertGreater(10.8 - .22 / 2, 4.7)
         self.assertIn('foreach(float side in new[]{-1f,1f})', self.arrival)
 
     def test_glass_bay_columns_are_wide_premium_not_thin_strips(self):
         # Nominal estate dimensions; K is applied once in the mesh builder.
-        self.assertIn("new Vector3(.72f,9.30f,2.10f),rotation);", self.arrival)
-        self.assertIn("new Vector3(.72f,7.35f,2.10f),rotation);", self.arrival)
-        self.assertIn("new Vector3(.032f,9.14f,.095f),rotation);", self.arrival)
-        self.assertIn("new Vector3(.032f,7.19f,.095f),rotation);", self.arrival)
-        self.assertGreaterEqual(2.10, 2.0)
-        self.assertGreaterEqual(.72, .70)
-        self.assertIn("REFERENCE_continuous_warm_roof_crown_LED", self.arrival)
-        self.assertIn("REFERENCE_three_warm_upper_glass_bands", self.arrival)
-        self.assertIn("REFERENCE_upper_interior_elliptical_halo", self.arrival)
+        self.assertIn("new Vector3(.85f,9.82f,2.20f)", self.arrival)
+        self.assertIn("new Vector3(.85f,8.00f,2.20f)", self.arrival)
+        self.assertIn(".030f,9.70f,.120f", self.arrival)
+        self.assertIn(".030f,7.88f,.120f", self.arrival)
+        self.assertGreaterEqual(2.20, 2.0)
+        self.assertGreaterEqual(.85, .70)
+        self.assertIn("actualFeatureColumns!=38||skippedFeatureColumns!=2", self.arrival)
+        self.assertIn("warm_roof_crown_LED_preserved", self.arrival)
+        self.assertIn("three_warm_upper_glass_bands_preserved", self.arrival)
+        self.assertIn("upper_interior_elliptical_halo_preserved", self.arrival)
         self.assertIn("REFERENCE red neon vertical sign frame", self.arrival)
-        self.assertIn("PUBLIC reference canopy underside LED strip", self.arrival)
+        self.assertIn("PUBLIC ISSUE27 recessed warm LED 3000K", self.arrival)
 
     def test_real_pbr_and_transparent_canopy_no_door_colliders(self):
-        for key in ('original_PolyHaven_granite_plinth', 'PBR_curtain_wall_aluminium',
-                    'PBR_bronze_architectural_detail', 'PBR_roof_coping'):
+        for key in ('granite_plinth_preserved', 'curtain_wall_aluminium_preserved',
+                    'PBR_roof_coping_preserved', 'ISSUE27_public_canopy_gold_outline'):
             self.assertIn(key, self.arrival)
         self.assertIn('exterior["dark_stone"]', self.arrival)
         self.assertIn('exterior["clear_glass"]', self.arrival)
-        self.assertIn('entry+" safety-glass canopy visible upper skin"', self.arrival)
-        self.assertIn('new Vector3(21.0f,.07f,6.8f),false', self.arrival)
-        self.assertIn("original_signs_preserved=true", self.arrival)
+        # Old thin glass canopy remains ONLY at the athlete/NORTH entrance.
+        self.assertEqual(self.arrival.count('new Vector3(21.0f,.07f,6.8f),false'),1)
+        self.assertIn('ISSUE27 curved black canopy 48.00x13.00x0.85', self.arrival)
+        self.assertIn('legacy_public_canopy=21x6.8x0.07_removed=true', self.arrival)
         self.assertNotIn('OriginalImage =', self.arrival)
 
     def test_curved_original_artwork_keeps_six_to_one_ratio_and_quality(self):
@@ -158,16 +160,18 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         # Exact Poly Haven source slugs selected by owner are wired into
         # the arena and athlete-area generators checked by this sparse workflow.
         self.assertIn('"stone_tiles"', self.arena)
-        self.assertIn('"gravel_embedded_concrete_02"', self.arena)
+        self.assertIn('"concrete_wall_009"', self.arena)
+        self.assertIn('"granite_tile"', self.arena)
+        self.assertIn('"rectangular_facade_tiles"', self.arena)
+        self.assertIn('"velour_velvet"', self.arena)
         self.assertIn('"wooden_panels"', self.arrival)
-        # Whole main floor is Stone Tiles.
+        # Whole main floor remains Stone Tiles; premium wall materials do not cover murals.
         self.assertIn('"arena_floor_stone_tiles_owner", "stone_tiles"', self.arena)
         self.assertIn('Top(floorStone,', self.arena)
-        # Light concrete only follows alongX (the two Z walls), while the two
-        # X side-mural walls keep their existing base presentation.
-        self.assertIn('Material lower = alongX ? lightWall : panel;', self.arena)
-        self.assertIn('Material upper = alongX ? lightWall : wallUp;', self.arena)
-        self.assertIn('"gravel_embedded_concrete_02"', self.arena)
+        self.assertIn('if (alongX)', self.arena)
+        self.assertIn('BoxMinMax(wallGranite', self.arena)
+        self.assertIn('BoxMinMax(wallConcrete', self.arena)
+        self.assertIn('BoxMinMax(facadePanels', self.arena)
         # Athlete/changing floors stay green; only their walls use Wooden Panels.
         self.assertIn('"arena_athlete_floor_stone_tiles_owner", "stone_tiles"', self.arrival)
         self.assertIn('"arena_athlete_walls_wooden_panels_owner", "wooden_panels"', self.arrival)
@@ -207,9 +211,9 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertNotIn('EncodeToPNG',self.signs)
 
     def test_lit_black_pillars_remain_outside_tinted_glass(self):
-        self.assertIn('goldAccentGlow.Emit(group',self.arrival)
-        self.assertIn('REFERENCE_recessed_gold_pillar_light',self.arrival)
-        self.assertIn('PBR_black_stepped_out_pillars_2p10m',self.arrival)
+        self.assertIn('goldColumnInserts.Emit(group',self.arrival)
+        self.assertIn('ISSUE27_gold_column_capsules_width0p12_projection0p03',self.arrival)
+        self.assertIn('ISSUE27_black_columns_38_width2p20_depth0p85_rounded',self.arrival)
         # At x=22.2m the elliptical FRONT skin is z=-57.40. Golden/red
         # front frame must be OUTSIDE that (more negative Z) and not hidden
         # by an old opaque facade or by the original sign image.

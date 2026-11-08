@@ -48,63 +48,55 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertIn('tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbx', text)
         self.assertIn('BRAXHORN_ARENA_CASE_PLAQUE.jpg', text)
         self.assertEqual(text.count('OriginalBelt(display);'), 1)
-        self.assertEqual(text.count('OriginalRectangleArtwork(display, gold, bronze);'), 1)
+        self.assertEqual(text.count('OriginalRectangleArtwork(display,gold,plaqueRecess);'), 1)
         self.assertNotIn('EncodeToPNG', text)
         self.assertNotIn('SetPixels', text)
 
-    def test_case_is_wall_mounted_reference_not_old_podium(self):
+    def test_case_is_lightweight_premium_and_has_no_old_backplate(self):
         text = source('BraxChampionsBeltShowcase.cs')
         for marker in (
-            '"REFERENCE black marble wall column"',
-            '"REFERENCE black leather back panel"',
-            '"REFERENCE optically clear FRONT glass"',
-            '"REFERENCE small GOLD glass bracket"',
-            '"REFERENCE bronze vertical slat "',
-            '"REFERENCE warm vertical side LED"',
+            '"A1 SHOWCASE | premium granite base"',
+            '"A1 SHOWCASE | FRONT optical glass"',
+            '"A1 SHOWCASE | slender gold corner profile"',
+            '"A1 SHOWCASE | hidden black belt support"',
+            '"A1 SHOWCASE | upper warm LED"',
         ):
             self.assertIn(marker, text)
+        self.assertNotIn('REFERENCE black marble wall column', text)
+        self.assertNotIn('REFERENCE black leather back panel', text)
         self.assertNotIn('Podium(display', text)
         self.assertNotIn('Wood veneer showcase plinth', text)
-        self.assertNotIn('Wood veneer case base', text)
-        self.assertNotIn('RED narrow centred inset', text)
-        self.assertIn('rhombus=false woodPlinth=false', text)
-        # Real transparency uses ONE quad per wall, not the former
-        # six-sided semi-opaque primitives seen as milky glass on Android.
-        self.assertIn('CrystalGlassPanel(display,"REFERENCE optically clear FRONT glass"', text)
+        self.assertIn('CrystalGlassPanel(display,"A1 SHOWCASE | FRONT optical glass"', text)
         self.assertIn('glass.SetFloat("_ZWrite",0f);', text)
         self.assertIn('glass.SetFloat("_Transparent",1f);', text)
-        self.assertIn('new Color(.99f,.995f,1f,.014f)', text)
-        self.assertIn('reference', text.lower())
+        self.assertIn('new Color(.94f,.96f,.98f,.025f)', text)
         self.assertIn('24 rigid', text)
         self.assertIn('A1_BELT_OWNER_3D_FRONT_PRESENTATION', text)
 
-    def test_case_is_slender_like_owner_reference_and_not_wide_box(self):
+    def test_case_matches_approved_low_base_and_clearances(self):
         text = source('BraxChampionsBeltShowcase.cs')
-        self.assertIn('new Vector2(1.48f,3.72f)',text)
-        self.assertIn('new Vector3(0,2.27f,.405f),new Vector3(1.22f,3.38f,.055f)',text)
-        self.assertIn('foreach(float x in new[]{-.74f,.74f})',text)
-        self.assertIn('new Vector3(1.08f,.50f,.045f)',text)
-        self.assertIn('new Vector3(1.00f,.42f,.016f)',text)
-        self.assertIn('new Vector2(.90f,.40f)',text)
-        # Glass width/height is deliberately slim, closer to the portrait reference.
-        self.assertLess(1.48/3.72,.44)
-        # Belt width is constrained independently so the exhibit does not fill the glass edge-to-edge.
-        self.assertIn('1.20f/Mathf.Max(b.size.x,.0001f)',text)
+        self.assertIn('new Vector3(2.20f,.20f,.90f)',text)
+        self.assertIn('new Vector2(1.84f,2.95f)',text)
+        self.assertIn('new Vector2(.72f,2.95f)',text)
+        self.assertIn('new Vector3(.045f,2.95f,.045f)',text)
+        self.assertIn('new Vector2(1.20f,.40f)',text)
+        self.assertAlmostEqual(1.84/2.95,.624,places=3)
+        self.assertIn('1.54f/Mathf.Max(b.size.x,.0001f)',text)
+        self.assertIn('.52f/Mathf.Max(b.size.z,.0001f)',text)
+        self.assertIn('new Vector3(0,1.80f,.02f)-b.center',text)
 
     def test_case_plaque_faces_front_and_clears_glass(self):
         text = source('BraxChampionsBeltShowcase.cs')
         self.assertIn('Quaternion.Euler(0,180f,0)', text)
-        self.assertIn('new Vector3(0,.78f,-.421f)', text)
-        self.assertIn('new Vector3(0,2.28f,-.505f)', text)
-        self.assertIn('"REFERENCE solid gold plaque face"', text)
-        self.assertAlmostEqual(1.24 / .48, 2.5833333333, places=2)
+        self.assertIn('new Vector3(0,.31f,-.482f)', text)
+        self.assertIn('new Vector3(0,caseY,-.36f)', text)
+        self.assertIn('"A1 SHOWCASE | gold plaque frame"', text)
+        self.assertAlmostEqual(1.20 / .40, 3.0, places=6)
 
     def test_case_reference_lighting_uses_one_realtime_light(self):
         text = source('BraxChampionsBeltShowcase.cs')
-        self.assertIn('"REFERENCE warm top LED long diffuser"', text)
-        self.assertIn('"REFERENCE warm top LED short diffuser"', text)
-        self.assertIn('"REFERENCE warm vertical side LED"', text)
-        self.assertIn('"REFERENCE warm lower case LED"', text)
+        self.assertIn('"A1 SHOWCASE | upper warm LED"', text)
+        self.assertIn('"A1 SHOWCASE | lower warm LED"', text)
         self.assertEqual(text.count('AddComponent<Light>()'), 1)
         self.assertIn('lamp.shadows=LightShadows.None;', text)
         self.assertIn('lamp.renderMode=LightRenderMode.ForceVertex;', text)

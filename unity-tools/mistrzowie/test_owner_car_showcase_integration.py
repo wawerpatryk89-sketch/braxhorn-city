@@ -80,20 +80,21 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         arrival = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaArrival.cs")
         self.assertIn("BraxChampionsBeltShowcase.Generate(root)", arena)
         self.assertNotIn('return Trophy(root,', arrival)
-        for value in ("granite_tile", "REFERENCE black marble wall column",
-                      "REFERENCE optically clear FRONT glass", "REFERENCE small GOLD glass bracket",
-                      "REFERENCE bronze vertical slat ", "BRAXHORN_ARENA_CASE_PLAQUE.jpg",
+        for value in ("granite_tile", "A1 SHOWCASE | premium granite base",
+                      "A1 SHOWCASE | FRONT optical glass", "A1 SHOWCASE | slender gold corner profile",
+                      "A1 SHOWCASE | hidden black belt support", "BRAXHORN_ARENA_CASE_PLAQUE.jpg",
                       "OriginalBelt(display)", "OriginalRectangleArtwork(display"):
             self.assertIn(value, box)
         for removed in ("A1_RealRhombus_GraniteStone", "Podium(display, marble, gold)",
-                        "Wood veneer showcase plinth", "RED narrow centred inset"):
+                        "Wood veneer showcase plinth", "RED narrow centred inset",
+                        "REFERENCE black marble wall column","REFERENCE black leather back panel"):
             self.assertNotIn(removed, box)
         self.assertIn("UnityEngine.Object.DestroyImmediate(cube.GetComponent<Collider>())", box)
         self.assertIn("new Vector3(-73.9f, 0, 63.3f)", box)
         # Face-on 3D belt, true single-pane clear glass and untouched artwork.
         self.assertIn("A1_BELT_OWNER_3D_FRONT_PRESENTATION", box)
         self.assertIn("CrystalGlassPanel(display", box)
-        self.assertIn('new Color(.99f,.995f,1f,.014f)', box)
+        self.assertIn('new Color(.94f,.96f,.98f,.025f)', box)
         self.assertIn("SOURCE_REQUIRED", read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuildings.cs"))
 
     def test_signed_update_compatibility_gate_precedes_unity(self):

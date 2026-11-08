@@ -16,7 +16,8 @@ class ArenaPhoneRegressions(unittest.TestCase):
         cls.buildings=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuildings.cs").read_text(encoding="utf-8")
         cls.showcase=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsBeltShowcase.cs").read_text(encoding="utf-8")
         cls.vip=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsVIPSeats.cs").read_text(encoding="utf-8")
-        cls.mural=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaMuralTextureImport.cs").read_text(encoding="utf-8")
+        cls.mural=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaMural.cs").read_text(encoding="utf-8")
+        cls.side=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaSideMurals.cs").read_text(encoding="utf-8")
 
     def test_internal_signs_are_not_mirrored(self):
         self.assertIn("Vector3.Cross(n,Vector3.up)*width*.5f",self.arena)
@@ -29,16 +30,17 @@ class ArenaPhoneRegressions(unittest.TestCase):
         self.assertNotIn("BoxMinMax(rope, x - .025f",self.arena)
 
     def test_facade_is_smoked_and_not_overgridded(self):
-        self.assertIn('new Color(.24f,.28f,.32f,.28f)',self.buildings)
+        self.assertIn('new Color(.22f,.25f,.29f,.30f)',self.buildings)
         self.assertIn("else if(i%3==0)",self.arrival)
-        self.assertIn("secondary_mullions=2_per_feature_bay",self.arrival)
+        self.assertIn("ISSUE27_black_belt_360_y10p85_to18p55",self.arrival)
 
     def test_showcase_matches_owner_corrections(self):
         self.assertIn("phoneProofFrontFlip=true",self.showcase)
-        self.assertIn("narrowCabinet=true",self.showcase)
-        self.assertIn("REFERENCE thin RED inset centered in gold case edge",self.showcase)
-        self.assertIn('new Vector3(1.86f,4.55f,.30f)',self.showcase)
-        self.assertIn('new Vector2(.90f,.40f)',self.showcase)
+        self.assertIn("bestRotation=bestRotation*Quaternion.Euler(0,180f,0)",self.showcase)
+        self.assertIn("A1_SHOWCASE_PREMIUM",self.showcase)
+        self.assertIn("tallBackPlate=false",self.showcase)
+        self.assertIn('new Vector3(2.20f,.20f,.90f)',self.showcase)
+        self.assertIn('new Vector2(1.20f,.40f)',self.showcase)
         self.assertIn("RIGHT_SIDE_B_CREST",self.showcase)
 
     def test_vip_sideways_failure_path_is_replaced(self):
@@ -49,9 +51,13 @@ class ArenaPhoneRegressions(unittest.TestCase):
         self.assertNotIn("CHAMPIONS_VIP_UPRIGHT_UNCERTAIN",self.vip)
 
     def test_hd_murals_are_not_crushed_to_2k(self):
-        self.assertIn("a.maxTextureSize=8192",self.mural)
-        self.assertIn("streamingMipmaps=true",self.mural)
+        self.assertIn("android.maxTextureSize=4096",self.mural)
         self.assertIn("TextureImporterFormat.ASTC_4x4",self.mural)
+        self.assertIn("MURAL_WEJSCIE_CHAMPION_FIGHTER_6144x2048.png",self.mural)
+        self.assertIn("android.maxTextureSize=4096",self.side)
+        self.assertIn("MURAL_LEWA_ZAWODNICY_6144x2048.png",self.side)
+        self.assertIn("MURAL_PRAWA_PAS_6144x2048.png",self.side)
+        self.assertIn("NO FALLBACK",self.side)
 
 if __name__=="__main__":
     unittest.main()
