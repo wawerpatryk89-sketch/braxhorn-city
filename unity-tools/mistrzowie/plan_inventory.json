@@ -155,10 +155,10 @@
       "name": "HOTEL SOBCZAK / 5*",
       "x": 1030,
       "z": 710,
-      "w": 60,
-      "d": 60,
+      "w": 64,
+      "d": 42,
       "kind": "hotel",
-      "height": 110
+      "height": 130
     },
     {
       "id": "T04",

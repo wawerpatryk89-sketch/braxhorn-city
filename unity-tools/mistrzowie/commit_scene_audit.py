@@ -11,7 +11,10 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 REPO = "wawerpatryk89-sketch/braxhorn-city"
-BRANCH = "gpt/miasto-mistrzow-kasyno-t11-20261105"
+ALLOWED_BRANCHES = {
+    "gpt/miasto-mistrzow-kasyno-t11-20261105",
+    "gpt/miasto-mistrzow-hotel-sobczak-t03-20261108",
+}
 NAMES = ("audit/mistrzowie-scena.json", "audit/mistrzowie-scena.md")
 BASE = "https://api.github.com/repos/" + REPO
 ROOT = Path(__file__).resolve().parents[2]
@@ -47,8 +50,13 @@ def main():
         raise SystemExit("Token and exact source SHA are required")
     if os.environ.get("GITHUB_REPOSITORY") != REPO:
         raise SystemExit("Wrong repository; no write permitted")
-    if os.environ.get("GITHUB_REF") != "refs/heads/" + BRANCH:
-        raise SystemExit("Wrong branch; refusing to write")
+    ref_name = os.environ.get("GITHUB_REF", "")
+    prefix = "refs/heads/"
+    if not ref_name.startswith(prefix):
+        raise SystemExit("Not a branch ref; refusing to write")
+    branch = ref_name[len(prefix):]
+    if branch not in ALLOWED_BRANCHES:
+        raise SystemExit("Wrong branch; refusing to write: " + branch)
     content = {}
     for name in NAMES:
         file = ROOT / name
@@ -62,8 +70,15 @@ def main():
         raise SystemExit("Summary must be no longer than 150 lines")
 
     # Never force push; a concurrent author may advance this same branch.
-    ref = "/git/ref/heads/" + quote(BRANCH, safe="/")
+    ref = "/git/ref/heads/" + quote(branch, safe="/")
     old = request("GET", ref)["object"]["sha"]
+    # Never attach a stale scene audit to newer code. If anyone advanced the
+    # branch while Unity was running, the scene must be regenerated.
+    if old != SOURCE:
+        raise SystemExit(
+            "Branch advanced during Unity scene validation; stale audit refused. "
+            + "source=" + SOURCE + " current=" + old
+        )
     parent = request("GET", "/git/commits/" + old)
     entries = []
     for name, text in content.items():
@@ -76,7 +91,7 @@ def main():
         "tree": tree["sha"],
         "parents": [old],
     })
-    request("PATCH", "/git/refs/heads/" + quote(BRANCH, safe="/"),
+    request("PATCH", "/git/refs/heads/" + quote(branch, safe="/"),
             {"sha": commit["sha"], "force": False})
     print(commit["sha"])
 

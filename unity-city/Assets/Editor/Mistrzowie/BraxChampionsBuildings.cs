@@ -104,12 +104,10 @@ public static class BraxChampionsBuildings
             poolGenerated=true;
         });
         AssetDatabase.SaveAssets();
-        // Optional catches failures: count only generators that returned normally.
-        // A partial scene must never be reported as four completed exteriors.
         int generated=d.buildings.Length+(casinoGenerated?1:0)+(poolGenerated?1:0);
         Debug.Log("CHAMPIONS_BUILDING_GENERATION base="+d.buildings.Length+
-            " T11="+casinoGenerated+" P1="+poolGenerated+" generated="+generated+
-            " visualAccepted=false");
+            " T11="+casinoGenerated+" P1="+poolGenerated+
+            " generated="+generated+" visualAccepted=false");
         return generated;
     }
     static Renderer MeshObject(Transform parent,string id,BraxChampionsFoundation.MeshData d,Material material,bool collision)

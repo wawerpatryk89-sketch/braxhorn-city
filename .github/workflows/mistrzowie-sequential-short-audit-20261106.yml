@@ -1,6 +1,6 @@
 # audit retry: 1
 name: Miasto Mistrzów — krótkie testy, po kolei (BEZ APK)
-run-name: Champions A1/T11/P1 — all independent short source checks — no Unity
+run-name: Champions A1/T11/P1/T03 — all independent short source checks — no Unity
 
 on:
   push:
@@ -30,6 +30,11 @@ on:
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1.cs
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsBeachFurnishings.cs
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakT03.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakMaterials.cs
+      - unity-city/Assets/Mistrzowie/BraxHotelSobczakFloorStreamer.cs
+      - unity-tools/mistrzowie/hotel_sobczak_t03_spec.json
+      - unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py
       - unity-tools/mistrzowie/test_brax_source_readiness.py
       - unity-tools/mistrzowie/test_build23_quality_diagnostics.py
       - unity-tools/mistrzowie/test_prepare_brax.py

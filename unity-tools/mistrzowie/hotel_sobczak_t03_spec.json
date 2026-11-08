@@ -1,0 +1,565 @@
+{
+  "id": "T03",
+  "name": "HOTEL SOBCZAK / 5*",
+  "centre": {
+    "x": 1030,
+    "z": 710
+  },
+  "footprint_m": {
+    "width": 64,
+    "depth": 42
+  },
+  "height_m": 130,
+  "bounds_m": {
+    "x": [
+      998,
+      1062
+    ],
+    "z": [
+      689,
+      731
+    ]
+  },
+  "front": "SOUTH_-Z",
+  "floors": [
+    {
+      "id": "B2",
+      "y": [
+        -7.2,
+        -3.6
+      ],
+      "height": 3.6,
+      "use": "parking_40_and_technical"
+    },
+    {
+      "id": "B1",
+      "y": [
+        -3.6,
+        0
+      ],
+      "height": 3.6,
+      "use": "parking_40_and_storage"
+    },
+    {
+      "id": "G",
+      "y": [
+        0,
+        6
+      ],
+      "height": 6,
+      "use": "reception_lobby_bar_wc_baggage_concierge"
+    },
+    {
+      "id": "1",
+      "y": [
+        6,
+        9.6
+      ],
+      "height": 3.6,
+      "use": "restaurant_kitchen_spa_fitness"
+    },
+    {
+      "id": "2-31",
+      "y": [
+        9.6,
+        117.6
+      ],
+      "height_each": 3.6,
+      "count": 30,
+      "use": "14_guestrooms_each"
+    },
+    {
+      "id": "ROOF",
+      "y": [
+        117.6,
+        130
+      ],
+      "height": 12.4,
+      "use": "mansard_and_technical"
+    }
+  ],
+  "physical_levels": 34,
+  "rooms": {
+    "total": 420,
+    "floors": 30,
+    "per_floor": 14,
+    "layout": "7_south+7_north",
+    "bay_m": {
+      "width": 6,
+      "depth": 19.4
+    },
+    "sleeping_zone_m": {
+      "width": 3.5,
+      "depth": 7
+    },
+    "bathroom_m": {
+      "width": 2.4,
+      "depth": 3
+    },
+    "corridor_m": 2.4,
+    "room_zone_width_m": 42,
+    "side_core_m": {
+      "west": 10.6,
+      "east": 10.6
+    },
+    "room_door_m": [
+      1,
+      2.2
+    ],
+    "bathroom_door_m": [
+      0.8,
+      2.1
+    ],
+    "wall_material": "beige_wall_001",
+    "bathroom_wet_wall_material": "marble_01",
+    "corridor_trim_material": "white_stucco_02",
+    "bathroom_mirror": true
+  },
+  "cores": {
+    "elevators": 4,
+    "stairs": 2,
+    "passenger_elevators": 3,
+    "service_elevators": 1,
+    "passenger_shaft_m": [
+      2.5,
+      2.5
+    ],
+    "passenger_cabin_min_m": [
+      2,
+      1.7
+    ],
+    "passenger_door_clear_m": 1.1,
+    "service_shaft_m": [
+      2.9,
+      2.7
+    ],
+    "service_cabin_m": [
+      2.2,
+      1.8
+    ],
+    "service_door_clear_m": 1.2,
+    "stair_run_clear_m": 1.5,
+    "landing_min_m": 1.5,
+    "stair_3_6m": {
+      "risers": 22,
+      "per_flight": 11,
+      "riser_m": 0.1636,
+      "tread_m": 0.29
+    },
+    "stair_6_0m": {
+      "risers": 36,
+      "per_flight": 18,
+      "riser_m": 0.1667,
+      "tread_m": 0.29
+    },
+    "landing_call_panels": true,
+    "stair_handrails": "dark_bronze_with_brass_landing_detail"
+  },
+  "parking": {
+    "B1": 40,
+    "B2": 40,
+    "total": 80,
+    "B1_standard": 36,
+    "B1_accessible": 4,
+    "B2_standard": 40,
+    "space_m": [
+      2.6,
+      5.2
+    ],
+    "accessible_space_m": [
+      3.6,
+      5.2
+    ],
+    "aisle_m": 6,
+    "clearance_m": 2.4,
+    "ramp_side": "EAST",
+    "ramp_width_m": 6.5,
+    "max_slope": 0.15,
+    "ramp_incline_length_m": 24,
+    "transition_each_m": 1.5,
+    "total_segment_m": 27,
+    "slope_formula": "atan(0.15) exact maximum"
+  },
+  "public_areas_m2": {
+    "reception": 60,
+    "lobby": 350,
+    "bar_cafe": 180,
+    "wc_m": 40,
+    "wc_f": 40,
+    "baggage": 50,
+    "concierge": 40,
+    "restaurant": 250,
+    "kitchen": 180,
+    "spa": 350,
+    "fitness": 250
+  },
+  "facade": {
+    "ground_arch_m": [
+      2.4,
+      4.2
+    ],
+    "guest_bays": 7,
+    "windows_per_room_bay": 2,
+    "guest_window_m": [
+      1.45,
+      2.2
+    ],
+    "window_gap_m": 0.75,
+    "window_frame_visual_m": [
+      0.1,
+      0.12
+    ],
+    "window_recess_m": [
+      0.12,
+      0.18
+    ],
+    "plinth_height_m": 1.2,
+    "cornice_ground_projection_m": [
+      0.35,
+      0.45
+    ],
+    "cornice_roof_projection_m": [
+      0.6,
+      0.65
+    ],
+    "cornice_roof_profile_m": [
+      0.5,
+      0.6
+    ],
+    "portico_m": {
+      "width": 18,
+      "depth": 5.8,
+      "column_diameter": 0.9,
+      "column_x": [
+        -6,
+        -2,
+        2,
+        6
+      ],
+      "column_base_diameter": 1.15,
+      "column_base_height": 0.25
+    },
+    "sign": "HOTEL SOBCZAK",
+    "balconies_lod0": true,
+    "rustication_real_geometry": true,
+    "main_entrance_frame": "dark_bronze_with_brass_mullions",
+    "main_entrance_m": {
+      "width": 3.6,
+      "height": 3.8
+    },
+    "accessible_ramp": {
+      "width_m": 1.8,
+      "max_slope": 0.05,
+      "slope_formula": "atan(0.05) exact maximum"
+    }
+  },
+  "materials": {
+    "facade": "beige_wall_001",
+    "plinth": "sandstone_blocks_08",
+    "trim": "white_stucco_02",
+    "roof": "roof_slates_03",
+    "lobby": "marble_01",
+    "rooms": "oak_wood_planks",
+    "restaurant": "herringbone_parquet",
+    "spa": "terrazzo_tiles",
+    "fitness": "rubber_tiles",
+    "corridor_runner": "poly_wool_herringbone",
+    "kitchen": "tiled_floor_001",
+    "exterior_paving": "granite_tile_04",
+    "stairs": "granite_tile_04",
+    "ramp": "anti_slip_concrete",
+    "parking": "garage_floor",
+    "technical_walls": "concrete_wall_003",
+    "upholstery": "brown_leather",
+    "spa_upholstery": "leather_white",
+    "driveway": "clean_asphalt"
+  },
+  "android": {
+    "max_texture": 2048,
+    "format": "ASTC_4x4",
+    "mipmaps": true,
+    "streaming": true,
+    "albedo_srgb": true,
+    "normal_linear": true,
+    "arm_linear": true,
+    "anisotropic_near": [
+      4,
+      8
+    ]
+  },
+  "revision": "OWNER_2026-11-08_T03_COMPLETE_A_TO_Z",
+  "site_reserve_m": {
+    "width": 86,
+    "depth": 76,
+    "x": [
+      987,
+      1073
+    ],
+    "z": [
+      672,
+      748
+    ]
+  },
+  "structure": {
+    "external_wall_m": 0.4,
+    "internal_clear_m": {
+      "width": 63.2,
+      "depth": 41.2
+    },
+    "slab_typical_m": [
+      0.28,
+      0.3
+    ],
+    "slab_heavy_max_m": 0.35,
+    "room_party_wall_m": 0.2,
+    "corridor_room_wall_m": 0.18,
+    "bathroom_wall_m": [
+      0.12,
+      0.15
+    ],
+    "core_wall_m": [
+      0.2,
+      0.25
+    ]
+  },
+  "roof": {
+    "base_y": 117.6,
+    "lower_angle_deg": 67,
+    "lower_zone_height_m": 7.6,
+    "break_y": 125.2,
+    "upper_angle_deg_approx": 15,
+    "ridge_max_y": 130,
+    "dormers_front": 7,
+    "dormers_rear": 7,
+    "dormer_width_m": 3,
+    "dormer_visible_height_m": [
+      2.6,
+      3
+    ],
+    "central_pavilion_width_m": 18
+  },
+  "lod": {
+    "lod0": "full cornices frames dormers stucco windows balconies portico",
+    "lod1": "simplified body cornices portico windows mansard",
+    "lod2": "silhouette roof main openings and facade divisions",
+    "screen_relative_transition": [
+      0.12,
+      0.04,
+      0.006
+    ],
+    "full_roof_sides": true
+  },
+  "lighting": {
+    "exterior_kelvin": [
+      2700,
+      3000
+    ],
+    "lobby_restaurant_kelvin": 3000,
+    "room_kelvin": [
+      2700,
+      3000
+    ],
+    "spa_kelvin": 2700,
+    "fitness_kelvin": 3500,
+    "kitchen_kelvin": [
+      3500,
+      4000
+    ],
+    "repeated_rooms": "emissive_only",
+    "realtime_lights": "limited_public_and_exterior",
+    "light_probe_group": true,
+    "baked_reflection_probes": 3
+  },
+  "floor1_layout": {
+    "restaurant": {
+      "center": [
+        -17,
+        -10
+      ],
+      "size": [
+        25,
+        10
+      ],
+      "area_m2": 250,
+      "zone": "LEFT_FRONT"
+    },
+    "kitchen": {
+      "center": [
+        -12.5,
+        10
+      ],
+      "size": [
+        20,
+        9
+      ],
+      "area_m2": 180,
+      "zone": "LEFT_REAR",
+      "x_range": [
+        -22.5,
+        -2.5
+      ],
+      "z_range": [
+        5.5,
+        14.5
+      ]
+    },
+    "spa": {
+      "center": [
+        10.5,
+        10
+      ],
+      "size": [
+        25,
+        14
+      ],
+      "area_m2": 350,
+      "zone": "RIGHT_REAR",
+      "x_range": [
+        -2,
+        23
+      ],
+      "z_range": [
+        3,
+        17
+      ]
+    },
+    "fitness": {
+      "center": [
+        17,
+        -10
+      ],
+      "size": [
+        25,
+        10
+      ],
+      "area_m2": 250,
+      "zone": "RIGHT_FRONT"
+    },
+    "rear_clear_gap_m": 0.5
+  },
+  "ground_floor_details": {
+    "vestibule_m": [
+      8,
+      5
+    ],
+    "reception_desk_length_m": [
+      11.5,
+      12
+    ],
+    "reception_desk_depth_m": [
+      0.8,
+      0.9
+    ],
+    "reception_worktop_top_m": [
+      1.1,
+      1.15
+    ],
+    "lobby_sofa_groups_min": 3,
+    "lobby_indoor_plants_min": 3,
+    "bar_length_m": 13,
+    "bar_stools": [
+      6,
+      8
+    ],
+    "staff_passage_clear_m": 1.5,
+    "technical_risers": 2,
+    "public_wc_mirrors": true,
+    "reception_backoffice": {
+      "center": [
+        14,
+        -12.5
+      ],
+      "size": [
+        8,
+        5
+      ],
+      "outside_lobby_rectangle": true
+    }
+  },
+  "floor1_details": {
+    "restaurant_table_types": [
+      "2_person",
+      "4_person"
+    ],
+    "passage_clearance_min_m": 1.2,
+    "kitchen_functions": [
+      "hot_line",
+      "prep",
+      "dishwash",
+      "cold_room",
+      "storage"
+    ],
+    "spa_functions": [
+      "reception",
+      "relax",
+      "treatment",
+      "wet_zone",
+      "showers",
+      "changing",
+      "loungers"
+    ],
+    "fitness_functions": [
+      "treadmills",
+      "bikes",
+      "cardio",
+      "free_weights",
+      "benches"
+    ],
+    "wall_materials": {
+      "restaurant": "beige_wall_001 + white_stucco_02 trim",
+      "kitchen": "white_stucco_02",
+      "spa": "white_stucco_02 + marble_01 wet wall",
+      "fitness": "beige_wall_001 + white_stucco_02 trim"
+    }
+  },
+  "material_variants": {
+    "wet_marble_floor": {
+      "source": "marble_01",
+      "roughness": 0.5,
+      "shared_textures": true
+    },
+    "mirror": {
+      "type": "CUSTOM_PBR",
+      "metallic": 0.95,
+      "roughness": 0.08
+    }
+  },
+  "acceptance_material_report": [
+    "zone",
+    "source_id",
+    "runtime_resolution",
+    "shader",
+    "tiling_m",
+    "normal_strength",
+    "metallic",
+    "roughness",
+    "screenshot"
+  ],
+  "material_normal_strength": {
+    "exterior_white_stucco_02": 0.25,
+    "interior_ceiling_white_stucco_02": 0.15
+  },
+  "basements_detail": {
+    "B2": [
+      "parking_40",
+      "technical_room",
+      "electrical_cabinets",
+      "HVAC_pump_bank",
+      "workbench"
+    ],
+    "B1": [
+      "parking_40",
+      "storage",
+      "housekeeping",
+      "racks",
+      "linen_storage",
+      "housekeeping_cart"
+    ]
+  },
+  "site_details": {
+    "classic_warm_lanterns": 2,
+    "topiary_planters": 4,
+    "ornamental_trees": 4,
+    "fountains": 2
+  }
+}

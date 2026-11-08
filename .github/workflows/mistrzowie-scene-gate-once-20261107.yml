@@ -1,11 +1,13 @@
-# retry: 10
-name: Miasto Mistrzow — one-shot gate + Unity scene — NO APK
-run-name: Champions current SHA — source gate then Unity scene — NO APK
+# takeover quick gate: 1
+# retry: 16
+name: Miasto Mistrzow — QUICK SOURCE GATE — NO UNITY / NO APK
+run-name: Champions current SHA — QUICK source gate — NO UNITY / NO APK
 
 on:
   push:
     branches:
       - gpt/miasto-mistrzow-kasyno-t11-20261105
+      - gpt/miasto-mistrzow-hotel-sobczak-t03-20261108
     paths:
       - .github/workflows/mistrzowie-scene-gate-once-20261107.yml
 
@@ -15,9 +17,11 @@ permissions:
 
 concurrency:
   group: champions-scene-gate-once-20261107
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
+  # OWNER RULE: this workflow MUST NEVER start Unity, BuildPlayer, APK, bundles,
+  # standalone visual review, or any multi-hour test. Source checks only.
   source-gate:
     name: Current source gate — NO UNITY / NO APK
     runs-on: ubuntu-24.04
@@ -58,6 +62,8 @@ jobs:
         run: |
           python3 unity-tools/mistrzowie/test_prepare_assets.py -v
           python3 unity-tools/mistrzowie/test_t11_owner_approved_exterior_20261107.py -v
+      - name: HOTEL SOBCZAK T03 contract - blocking
+        run: python3 unity-tools/mistrzowie/test_hotel_sobczak_t03_contract.py -v
       - name: Current A1 arena reference tests - advisory only for isolated T11 validation
         continue-on-error: true
         run: |
@@ -71,16 +77,3 @@ jobs:
         run: |
           echo "SOURCE_SHA=$GITHUB_SHA"
           echo "SOURCE_GATE_ONLY; APK_NOT_BUILT" >> "$GITHUB_STEP_SUMMARY"
-
-  unity-scene:
-    name: Exact same SHA — Unity scene validation — NO APK
-    needs: source-gate
-    uses: ./.github/workflows/mistrzowie-apk.yml
-    with:
-      etap: sceny
-      kontrola_tras: false
-      zdjecia: false
-      zapisz_audyt: false
-      arena_assets_tag: champions-a1-20261105
-      p1_assets_tag: p1-basen-spa-20261106
-    secrets: inherit

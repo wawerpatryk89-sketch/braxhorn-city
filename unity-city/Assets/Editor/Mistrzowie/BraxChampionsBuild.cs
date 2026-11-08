@@ -76,10 +76,11 @@ public static class BraxChampionsBuild
             // Fail fast on 21 original casino maps before generating the world.
             BraxChampionsCasinoPbr2K.VerifyOriginalSourceMaps();
             BraxChampionsPoolP1Pbr2K.VerifyOriginalSourceMaps();
+            BraxChampionsHotelSobczakMaterials.VerifySources();
             BraxChampionsCasinoT11.VerifyOriginalSigns();
             BraxChampionsSourceReadiness.VerifyBeforeScene();
             report.checks.Add("Original car, 2 vegetation GLBs, Brax rig, 6 clips, 3 Mixamo FBXs and owner signage verified");
-            report.checks.Add("All 51 T11/P1 Poly Haven 2K source images verified as Texture2D before expensive scene generation");
+            report.checks.Add("T11/P1 source images + HOTEL SOBCZAK official Poly Haven source set verified before scene generation");
             // Same linear lighting as the main game's Android build.
             PlayerSettings.colorSpace=ColorSpace.Linear;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
@@ -90,7 +91,13 @@ public static class BraxChampionsBuild
             CheckStations(BraxChampionsInfrastructure.Stations,report);
             report.foundationPassedBeforeBuildings=CheckAssets(scene)>=0;
             report.checks.Add("Foundation and metro structure checked; walking validation status is recorded separately");
-            report.buildingExteriors=BraxChampionsBuildings.Generate();Physics.SyncTransforms();
+            report.buildingExteriors=BraxChampionsBuildings.Generate();
+            // T03 stays isolated from Arena/Casino/P1 building-count contracts.
+            // It is mandatory for this Hotel Sobczak branch and must fail loudly.
+            BraxChampionsHotelSobczakT03.Generate();
+            report.buildingExteriors++;
+            report.checks.Add("HOTEL SOBCZAK T03 generated independently: 64x42x130, 420 rooms, 4 lifts, 2 stairs, 80 parking");
+            Physics.SyncTransforms();
             report.arenaSeats=BraxChampionsArena.SeatCount;
             report.arenaVipSeats=BraxChampionsVIPSeats.SeatCount;
             report.ownerVip2kSourcePresent=BraxChampionsVIPSeats.HasSource;
