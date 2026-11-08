@@ -42,6 +42,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: mistrzowie-sequential-short-audit
@@ -116,3 +117,31 @@ jobs:
         if: always()
         run: |
           echo 'Every independent source test has a short timeout; no Unity, no APK, no release, no scene replacement.' >> "$GITHUB_STEP_SUMMARY"
+
+
+  owner-apk-dispatch:
+    name: Owner authorized combined A1 T11 T03 APK dispatch
+    if: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'ci(mistrzowie): dispatch combined A1 T11 T03 APK now') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Dispatch exactly one combined APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          active="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow mistrzowie-apk.yml --branch "$GITHUB_REF_NAME" --limit 30 --json status | jq '[.[] | select(.status != "completed")] | length')"
+          test "$active" -eq 0 || { echo "::error::Combined Miasto Mistrzow APK already active"; exit 1; }
+          gh workflow run mistrzowie-apk.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$GITHUB_REF_NAME" \
+            -f commit="$GITHUB_SHA" \
+            -f etap=apk \
+            -f kontrola_tras=false \
+            -f zdjecia=false \
+            -f recovery_run= \
+            -f base_id= \
+            -f arena_assets_tag=champions-a1-20261105 \
+            -f p1_assets_tag=p1-basen-spa-20261106 \
+            -f zapisz_audyt=false
+          echo "OWNER_COMBINED_APK_DISPATCHED=1"
