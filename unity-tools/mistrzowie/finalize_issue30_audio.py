@@ -71,8 +71,8 @@ def main():
             rev[i] *= i / (fi - 1)
         for i in range(fo):
             rev[-fo + i] *= (fo - 1 - i) / (fo - 1)
-        if len(rev) != int(2.75 * RATE):
-            raise ValueError('Rev sample length is not exactly 2.75 s')
+        if abs(len(rev) / RATE - 2.75) > (1.0 / RATE):
+            raise ValueError('Rev sample length differs from 2.75 s by more than one sample')
 
         idle_wav, rev_wav = td / 'idle.wav', td / 'rev.wav'
         write_wav(idle_wav, idle)
