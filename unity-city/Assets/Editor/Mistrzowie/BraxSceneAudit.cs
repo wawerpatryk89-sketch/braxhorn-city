@@ -793,7 +793,7 @@ public static class BraxSceneAudit
             if(Contains(n,"font")||Contains(n,"LegacyRuntime")||Contains(shader,"GUI/Text"))return "CUSTOM_TEXT";
             if(Contains(n,"facade_beige"))return "beige_wall_001";
             if(Contains(n,"plinth_sandstone"))return "sandstone_blocks_08";
-            if(Contains(n,"architectural_stucco"))return "white_stucco_02";
+            if(Contains(n,"architectural_stucco")||Contains(n,"soft_interior_stucco"))return "white_stucco_02";
             if(Contains(n,"mansard_slates"))return "roof_slates_03";
             if(Contains(n,"cream_marble")||Contains(n,"wet_marble"))return "marble_01";
             if(Contains(n,"varnished_oak"))return "oak_wood_planks";
@@ -810,7 +810,7 @@ public static class BraxSceneAudit
             if(Contains(n,"spa_white_leather"))return "leather_white";
             if(Contains(n,"driveway_asphalt"))return "clean_asphalt";
             if(Contains(n,"brass")||Contains(n,"bronze")||Contains(n,"stainless")||
-               Contains(n,"glass")||Contains(n,"foliage")||Contains(n,"white_paint")||
+               Contains(n,"glass")||Contains(n,"mirror")||Contains(n,"foliage")||Contains(n,"white_paint")||
                Contains(n,"parking_marking")||Contains(n,"warm_architectural_light")||
                Contains(n,"entrance_red_carpet")||Contains(n,"fountain_water"))return "CUSTOM_PBR";
             return "UNMAPPED";
