@@ -68,7 +68,7 @@ public sealed class BraxRuchySport : MonoBehaviour
         if (!p) p = GetComponent<BraxGymPlayer>();
         if (!p) return;
         if (!szukane) Szukaj();
-        bool zajety = p.seat || p.vessel;
+        bool zajety = p.seat || p.vessel || p.autoGracza; // no sport retarget while inside a vehicle
         if (!rArm || !rFore || !rHand || !lArm || !lFore || !lHand || zajety)
         {
             BraxSport.RzutFaza = 0f; ruch = BraxRuch.Brak;
