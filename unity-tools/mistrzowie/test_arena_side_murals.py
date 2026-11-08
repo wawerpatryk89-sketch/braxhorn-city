@@ -64,7 +64,7 @@ class ChampionSideMuralsTests(unittest.TestCase):
         self.assertIn('MURAL_LEWA_ZAWODNICY_6144x2048.png',self.m)
         self.assertIn('MURAL_PRAWA_PAS_6144x2048.png',self.m)
         self.assertIn('sourceWidth!=6144||sourceHeight!=2048',self.m)
-        self.assertIn('android.maxTextureSize=4096',self.m)
+        self.assertIn('android.maxTextureSize=8192',self.m)
         self.assertIn('TextureImporterFormat.ASTC_4x4',self.m)
         self.assertIn('SIDE_MURALS = 2/2 PASS',self.m)
 
