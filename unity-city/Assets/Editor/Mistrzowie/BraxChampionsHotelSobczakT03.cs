@@ -128,8 +128,8 @@ public static class BraxChampionsHotelSobczakT03
         B(site,"T03 main asphalt hotel driveway",M.asphalt,0,.025f,-43f,9f,.05f,30f,true,2.5f);
         B(site,"T03 red carpet arrival",M.carpetRed,0,.075f,-27f,4.2f,.05f,12f,false);
         // External switchback parking access stays entirely in the 37m front setback.
-        BuildRamp(site,"T03 external ramp G -> B1",25f,-43f,-1.80f,6.5f,24.27f,-8.5308f,M.antiSlip);
-        BuildRamp(site,"T03 external ramp B1 -> B2",16.5f,-43f,-5.40f,6.5f,24.27f,8.5308f,M.antiSlip);
+        BuildRamp(site,"T03 external ramp G -> B1",25f,-43f,-1.80f,6.5f,24.27f,8.5308f,M.antiSlip);
+        BuildRamp(site,"T03 external ramp B1 -> B2",16.5f,-43f,-5.40f,6.5f,24.27f,-8.5308f,M.antiSlip);
         foreach(float x in new[]{-16f,16f})
         {
             Cyl(site,"T03 fountain stone basin",M.graniteOutdoor,x,.20f,-31f,5.6f,.38f,true);
@@ -152,7 +152,7 @@ public static class BraxChampionsHotelSobczakT03
         BuildParkingLevel("B2",B2,basements);
         BuildParkingLevel("B1",B1,basements);
         // Horizontal access tunnels from external ramps.
-        B(basements,"B1 access tunnel floor",M.antiSlip,25f,-3.48f,-26f,6.5f,.20f,10f,true,2.5f);
+        B(basements,"B1 switchback turning apron",M.antiSlip,21.25f,-3.48f,-26f,16.5f,.20f,10f,true,2.5f);
         B(basements,"B2 access tunnel floor",M.antiSlip,16.5f,-7.08f,-38f,6.5f,.20f,34f,true,2.5f);
     }
     static void BuildParkingLevel(string id,float y,Transform p)
@@ -398,6 +398,11 @@ public static class BraxChampionsHotelSobczakT03
         float bathX=x-2.10f,bathZ=innerZ+side*1.70f;
         B(g,"Bathroom marble floor",M.marble,bathX,.145f,bathZ,2.5f,.035f,3.2f,false,1.5f);
         B(g,"Bathroom privacy wall",M.stucco,x-.85f,1.65f,bathZ,.12f,3.3f,3.2f,true,1.8f);
+        float bathDoorZ=bathZ+side*1.60f;
+        B(g,"Bathroom bedroom wall left",M.stucco,x-2.95f,1.65f,bathDoorZ,.80f,3.3f,.12f,true,1.8f);
+        B(g,"Bathroom bedroom wall right",M.stucco,x-1.25f,1.65f,bathDoorZ,.80f,3.3f,.12f,true,1.8f);
+        B(g,"Bathroom 0.80m door header",M.stucco,x-2.10f,3.00f,bathDoorZ,.80f,.60f,.12f,true,1.8f);
+        B(g,"Bathroom brass threshold",M.brass,x-2.10f,.035f,bathDoorZ-side*.08f,.80f,.04f,.14f,false);
         B(g,"Bathroom glass shower",M.glass,x-2.55f,1.10f,bathZ+side*.85f,1.15f,2.0f,.06f,false);
         B(g,"Bathroom vanity",M.marble,x-2.2f,.58f,bathZ-side*.85f,1.6f,.18f,.55f,true,1.5f);
         Cyl(g,"Bathroom basin",M.whitePaint,x-2.2f,.73f,bathZ-side*.85f,.52f,.15f,true);
@@ -465,7 +470,7 @@ public static class BraxChampionsHotelSobczakT03
             landL[n]=DoorLeaf(e,"Landing "+names[n]+" left",x-.68f,yy,z-1.52f,M.darkBronze,M.glass);
             landR[n]=DoorLeaf(e,"Landing "+names[n]+" right",x+.68f,yy,z-1.52f,M.darkBronze,M.glass);
             B(e,"Landing "+names[n]+" brass lintel",M.brass,x,yy+2.35f,z-1.55f,2.8f,.12f,.12f,false);
-            calls[n]=root.TransformPoint(new Vector3(x,yy+1.2f,z-2.35f)*K);
+            calls[n]=usable[n]?root.TransformPoint(new Vector3(x,yy+1.2f,z-2.35f)*K):Vector3.zero;
         }
         var cabin=Group(e,"Moving premium cabin");
         cabin.localPosition=new Vector3(x,B2,z)*K;
@@ -540,9 +545,7 @@ public static class BraxChampionsHotelSobczakT03
         foreach(float x in new[]{-1.85f,0f,1.85f})B(root,"Entrance brass mullion",M.brass,x,2.0f,-21.45f,.08f,3.8f,.10f,false);
 
         // Central classical risalit and roof pavilion.
-        B(root,"Central facade risalit",M.stucco,0,63f,-21.35f,16f,108f,.70f,false,1.8f);
-        // Do not cover windows: risalit is represented by edge pilasters rather than a solid wall over guest windows.
-        var ris=GameObject.Find("Central facade risalit");if(ris)UnityEngine.Object.DestroyImmediate(ris);
+        // Central risalit is expressed by edge pilasters only; never create a hidden wall across guest glazing.
         foreach(float x in new[]{-8f,8f})B(root,"Central tall pilaster",M.stucco,x,63f,-21.32f,.72f,108f,.72f,false,1.8f);
         B(root,"Central pavilion body",M.stucco,0,122.2f,-17.3f,16f,7.0f,6.0f,true,1.8f);
         B(root,"Central pavilion glass",M.glass,0,123.0f,-20.35f,6.0f,3.5f,.08f,false);
