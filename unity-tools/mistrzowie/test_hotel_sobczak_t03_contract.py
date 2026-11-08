@@ -39,7 +39,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("Height=130f", self.generator)
         self.assertIn("GuestTop=117.6f", self.generator)
         self.assertIn("RoofTop=130f", self.generator)
-        self.assertIn("BuildStairInterval(s,x,GuestBase+(GuestFloors-1)*3.6f,GuestTop", self.generator)
+        self.assertIn("BuildStairInterval(s,x,stairZ,GuestBase+(GuestFloors-1)*3.6f,GuestTop", self.generator)
 
     def test_room_math_and_layout(self):
         rooms = self.spec["rooms"]
