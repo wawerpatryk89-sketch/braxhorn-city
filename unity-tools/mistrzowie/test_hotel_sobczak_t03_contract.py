@@ -39,7 +39,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("Height=130f", self.generator)
         self.assertIn("GuestTop=117.6f", self.generator)
         self.assertIn("RoofTop=130f", self.generator)
-        self.assertIn("final flight to TECH y=117.6", self.generator)
+        self.assertIn("BuildStairInterval(s,x,GuestBase+(GuestFloors-1)*3.6f,GuestTop", self.generator)
 
     def test_room_math_and_layout(self):
         rooms = self.spec["rooms"]
@@ -95,7 +95,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("Bathroom 0.80m door header", self.generator)
 
     def test_main_entrance_is_physically_open(self):
-        self.assertIn("Real 3.60m-wide main entrance opening", self.generator)
+        self.assertIn("float side=(6f-3.6f)*.5f", self.generator)
         self.assertIn('B(root,"Main entrance glass left"', self.generator)
         self.assertIn('B(root,"Main entrance glass right"', self.generator)
         # Door leaves are visual/non-solid; no hidden normal WindowBay in centre.
