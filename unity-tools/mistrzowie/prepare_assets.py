@@ -11,8 +11,8 @@ from pipeline import check_launcher
 ROOT=Path(__file__).resolve().parents[2]
 DEST=ROOT/'unity-city/Assets/Source/Mistrzowie/Textures'
 LOCK=json.loads(Path(__file__).with_name('verified_textures.json').read_text())
-POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_02','granite_tile_02','granite_tile','rectangular_facade_tiles','concrete_floor_02','concrete_wall_008','fabric_pattern_05','teak_veneer','brown_mud_leaves_01',
-                 'stone_tiles','gravel_embedded_concrete_02','wooden_panels')
+POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_02','granite_tile_02','granite_tile','rectangular_facade_tiles','concrete_floor_02','concrete_wall_008','concrete_wall_009','fabric_pattern_05','teak_veneer','brown_mud_leaves_01',
+                 'stone_tiles','gravel_embedded_concrete_02','wooden_panels','leather_white','velour_velvet')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # The provider's own blend/glTF defaults use col_01 for this fabric. Do not
 # choose an arbitrary colour variation by dictionary order.
