@@ -82,9 +82,11 @@ class PoolP1LayoutTests(unittest.TestCase):
         build=INTEGRATION.read_text(encoding="utf-8")
         self.assertEqual(build.count("BraxChampionsPoolP1.Generate()"),1)
         self.assertIn("BraxChampionsCasinoT11.Generate(Out)",build)
-        self.assertIn("bool casinoGenerated=false,poolGenerated=false;",build)
-        self.assertIn("d.buildings.Length+(casinoGenerated?1:0)+(poolGenerated?1:0)",build)
-        self.assertIn('T11="+casinoGenerated+" P1="+poolGenerated',build)
+        self.assertIn("bool casinoGenerated=false,poolGenerated=false,hotelGenerated=false;",build)
+        self.assertIn("d.buildings.Length+(casinoGenerated?1:0)+(poolGenerated?1:0)+(hotelGenerated?1:0)",build)
+        self.assertIn('T11="+casinoGenerated+" P1="+poolGenerated+" T03_HOTEL_SOBCZAK="+hotelGenerated',build)
+        self.assertIn("BraxChampionsHotelSobczakT03.Generate();",build)
+        self.assertIn("hotelGenerated=true;",build)
         self.assertNotIn("return d.buildings.Length+2;",build)
 
     def test_polyhaven_real_2k_and_import(self):
