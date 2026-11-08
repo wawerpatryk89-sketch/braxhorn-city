@@ -26,15 +26,51 @@ public static class BraxChampionsArenaSideMurals
     const float WallSpan = WallNearZ - WallFarZ;
     const float ImageHeight = WallSpan / 3f;
 
-    static string Pick(string hd, string original)
+    static string PickRequiredHd(string hd, string label)
     {
-        if (File.Exists(hd))
+        if (!File.Exists(hd))
         {
-            AssetDatabase.ImportAsset(hd, ImportAssetOptions.ForceSynchronousImport);
-            if (AssetDatabase.LoadAssetAtPath<Texture2D>(hd)) return hd;
+            BraxBuildQuality.Warn("A1_"+label+"_MURAL_FAIL: required owner HD source missing: "+hd+
+                "; NO FALLBACK and NO substitute image permitted");
+            return null;
         }
-        BraxBuildQuality.Warn("A1 HD mural unavailable: " + hd + "; fallback is NOT HD acceptance");
-        return original;
+        AssetDatabase.ImportAsset(hd, ImportAssetOptions.ForceSynchronousImport);
+        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(hd);
+        if(!texture)
+        {
+            BraxBuildQuality.Warn("A1_"+label+"_MURAL_FAIL: Unity did not import required owner HD source: "+hd);
+            return null;
+        }
+        return hd;
+    }
+
+    static bool ConfigureOwnerHdImporter(string sourcePath,string label)
+    {
+        var importer=AssetImporter.GetAtPath(sourcePath) as TextureImporter;
+        if(!importer)return false;
+        importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
+        if(sourceWidth!=6144||sourceHeight!=2048)
+        {
+            BraxBuildQuality.Warn("A1_"+label+"_MURAL_FAIL: required owner source must remain 6144x2048, got "+
+                sourceWidth+"x"+sourceHeight);
+            return false;
+        }
+        bool dirty=false;
+        if(!importer.mipmapEnabled){importer.mipmapEnabled=true;dirty=true;}
+        if(importer.wrapMode!=TextureWrapMode.Clamp){importer.wrapMode=TextureWrapMode.Clamp;dirty=true;}
+        var android=importer.GetPlatformTextureSettings("Android");
+        if(!android.overridden||android.maxTextureSize!=4096||
+           android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=100)
+        {
+            android.overridden=true;
+            android.maxTextureSize=4096;
+            android.format=TextureImporterFormat.ASTC_4x4;
+            android.compressionQuality=100;
+            importer.SetPlatformTextureSettings(android);
+            dirty=true;
+        }
+        if(dirty)importer.SaveAndReimport();
+        return true;
     }
 
     static Material CreateOriginalMaterial(Texture2D texture, string side)
@@ -89,6 +125,8 @@ public static class BraxChampionsArenaSideMurals
 
     static bool Side(Transform bowl, string sourcePath, string side, bool left)
     {
+        if(string.IsNullOrEmpty(sourcePath))return false;
+        if(!ConfigureOwnerHdImporter(sourcePath,side))return false;
         var photo = AssetDatabase.LoadAssetAtPath<Texture2D>(sourcePath);
         if (!photo)
         {
@@ -98,17 +136,11 @@ public static class BraxChampionsArenaSideMurals
         var importer = AssetImporter.GetAtPath(sourcePath) as TextureImporter;
         if (!importer) throw new InvalidOperationException("A1 mural importer missing: " + sourcePath);
         importer.GetSourceTextureWidthAndHeight(out int sourceWidth, out int sourceHeight);
-        if (sourceWidth != sourceHeight * 3)
-            BraxBuildQuality.Warn("A1 mural aspect is not 3:1: " + sourcePath);
-        if (!importer.mipmapEnabled || importer.wrapMode != TextureWrapMode.Clamp)
+        if(sourceWidth!=6144||sourceHeight!=2048||sourceWidth!=sourceHeight*3)
         {
-            // Edge continuation must sample the edge, not repeat the opposite side.
-            // Importer-only change; retain file bytes, GUID, and resolution settings.
-            importer.mipmapEnabled = true;
-            importer.wrapMode = TextureWrapMode.Clamp;
-            importer.SaveAndReimport();
-            photo = AssetDatabase.LoadAssetAtPath<Texture2D>(sourcePath);
-            if (!photo) throw new InvalidOperationException("A1 mural reimport failed: " + sourcePath);
+            BraxBuildQuality.Warn("A1_"+side+"_MURAL_FAIL: source is not exact approved 6144x2048 3:1: "+
+                sourceWidth+"x"+sourceHeight);
+            return false;
         }
         Directory.CreateDirectory(Output);
         var material = CreateOriginalMaterial(photo, side);
@@ -135,10 +167,17 @@ public static class BraxChampionsArenaSideMurals
     {
         if (!originalBowl) throw new ArgumentNullException(nameof(originalBowl));
         int applied = 0;
-        if (Side(originalBowl, Pick(LeftFightersHd, LeftFighters), "LEFT_FIGHTERS", true)) applied++;
-        if (Side(originalBowl, Pick(RightBeltHd, RightBelt), "RIGHT_BELT", false)) applied++;
-        Debug.Log("CHAMPIONS_A1_SIDE_MURALS originals=" + applied +
-                  "/2 whole side walls; entrance mural separate; source pixels unchanged");
+        bool left=Side(originalBowl,PickRequiredHd(LeftFightersHd,"LEFT"),"LEFT_FIGHTERS",true);
+        bool right=Side(originalBowl,PickRequiredHd(RightBeltHd,"RIGHT"),"RIGHT_BELT",false);
+        if(left)applied++; if(right)applied++;
+        if(!left)BraxBuildQuality.Warn("LEFT_MURAL = FAIL");
+        else Debug.Log("LEFT_MURAL = PASS");
+        if(!right)BraxBuildQuality.Warn("RIGHT_MURAL = FAIL");
+        else Debug.Log("RIGHT_MURAL = PASS");
+        if(applied!=2)BraxBuildQuality.Warn("SIDE_MURALS = "+applied+"/2 FAIL");
+        else Debug.Log("SIDE_MURALS = 2/2 PASS");
+        Debug.Log("CHAMPIONS_A1_SIDE_MURALS ownerHD="+applied+
+                  "/2 wall=70x27.945 art=70x23.333 y=2.65..25.983 source=6144x2048 noFallback=true");
         return applied;
     }
 }
