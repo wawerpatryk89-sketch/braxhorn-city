@@ -96,7 +96,9 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("new Vector3(.072f,.100f,back-front)", self.arrival)
         self.assertIn("float totalDepth=protrusion+.002f", self.arrival)
         self.assertIn("ActualFloorYNominal(arenaRoot,x,-68.70f)", self.arrival)
-        self.assertIn("CylinderCollider", self.arrival)
+        self.assertIn("var cc=go.AddComponent<MeshCollider>();", self.arrival)
+        self.assertIn("cc.sharedMesh=mesh;", self.arrival)
+        self.assertNotIn("CylinderCollider", self.arrival)
 
     def test_real_pbr_and_transparent_canopy_no_door_colliders(self):
         for key in ('granite_plinth_preserved', 'curtain_wall_aluminium_preserved',

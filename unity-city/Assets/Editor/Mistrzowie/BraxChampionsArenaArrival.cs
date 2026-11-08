@@ -745,8 +745,11 @@ public static class BraxChampionsArenaArrival
         go.AddComponent<MeshRenderer>().sharedMaterial=material;
         if(solid)
         {
-            var cc=go.AddComponent<CylinderCollider>();
-            cc.center=center*K;cc.radius=radius*K;cc.height=height*K;cc.direction=1;
+            // Fixed architectural support: use the exact authored rounded mesh.
+            // The generated mesh already contains nominal dimensions times K;
+            // no primitive approximation, extra scaling or dynamic Rigidbody.
+            var cc=go.AddComponent<MeshCollider>();
+            cc.sharedMesh=mesh;
         }
         GameObjectUtility.SetStaticEditorFlags(go,StaticEditorFlags.OccludeeStatic);
         return go;
