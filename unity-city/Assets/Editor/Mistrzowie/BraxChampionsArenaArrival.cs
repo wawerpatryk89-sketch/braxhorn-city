@@ -470,7 +470,8 @@ public static class BraxChampionsArenaArrival
         {
             if(size.x<=0 || size.y<=0 || size.z<=0)throw new ArgumentException("Invalid rounded facade prism");
             float hx=size.x*.5f,hy=size.y*.5f,hz=size.z*.5f;
-            float cap=Mathf.Clamp(capRadius,0,Mathf.Min(hy*.45f,Mathf.Min(hx,hz)*.45f));
+            float cap=Mathf.Clamp(capRadius,0,
+                Mathf.Max(0,Mathf.Min(hy-.0002f,Mathf.Min(hx,hz)-.0002f)));
             int cs=Mathf.Max(1,cornerSegments),caps=Mathf.Max(1,capSegments);
 
             List<Vector2> Perimeter(float shrink)
@@ -563,61 +564,90 @@ public static class BraxChampionsArenaArrival
 
         // 30 mm deep vertical gold plaque with a true 120 mm capsule face.
         // The 60 mm end radius is exact in the visible Y/Z face.
-        public void CapsulePlaque(Vector3 center,float radialDepth,float height,float width,
-            Quaternion rotation,int arcSegments=6)
+        public void CapsulePlaque(Vector3 center,float totalDepth,float height,float width,
+            float edgeRadius,Quaternion rotation,int arcSegments=8,int bevelSegments=4)
         {
-            if(radialDepth<=0||height<=width||width<=0)throw new ArgumentException("Invalid capsule plaque");
-            int arcs=Mathf.Max(3,arcSegments);
-            float radius=width*.5f,straight=height*.5f-radius;
-            var profile=new List<Vector2>(); // x = local Z, y = local Y
-            for(int j=0;j<=arcs;j++)
+            if(totalDepth<=0||height<=width||width<=0||edgeRadius<=0)
+                throw new ArgumentException("Invalid capsule plaque");
+            int arcs=Mathf.Max(4,arcSegments),bevels=Mathf.Max(2,bevelSegments);
+            float maxInset=width*.5f-.0005f;
+            float bevel=Mathf.Min(edgeRadius,Mathf.Min(totalDepth*.5f-.0002f,maxInset));
+            if(Mathf.Abs(edgeRadius-.018f)<.0001f&&Mathf.Abs(bevel-.018f)>.0005f)
+                throw new InvalidOperationException("Issue27 capsule R18 bevel cannot be represented by supplied depth");
+
+            List<Vector2> Profile(float inset)
             {
-                float a=Mathf.PI*j/arcs;
-                profile.Add(new Vector2(radius*Mathf.Cos(a),straight+radius*Mathf.Sin(a)));
+                float radius=width*.5f-inset;
+                float straight=height*.5f-width*.5f;
+                var p=new List<Vector2>();
+                for(int j=0;j<=arcs;j++)
+                {
+                    float a=Mathf.PI*j/arcs;
+                    p.Add(new Vector2(radius*Mathf.Cos(a),straight+radius*Mathf.Sin(a)));
+                }
+                for(int j=0;j<=arcs;j++)
+                {
+                    float a=Mathf.PI+Mathf.PI*j/arcs;
+                    p.Add(new Vector2(radius*Mathf.Cos(a),-straight+radius*Mathf.Sin(a)));
+                }
+                return p;
             }
-            for(int j=0;j<=arcs;j++)
+
+            float front=totalDepth*.5f,back=-front;
+            var rings=new List<(float x,float inset)>();
+            rings.Add((back,0f));
+            if(front-back>bevel+.0002f)rings.Add((front-bevel,0f));
+            for(int j=1;j<=bevels;j++)
             {
-                float a=Mathf.PI+Mathf.PI*j/arcs;
-                profile.Add(new Vector2(radius*Mathf.Cos(a),-straight+radius*Mathf.Sin(a)));
+                float theta=.5f*Mathf.PI*j/bevels;
+                rings.Add((front-bevel+bevel*Mathf.Sin(theta),
+                    bevel*(1f-Mathf.Cos(theta))));
             }
-            float front=radialDepth*.5f,back=-front;
+
             void Add(Vector3 local)
             {
                 positions.Add((center+rotation*local)*K);
                 uvs.Add(Vector2.zero);
             }
-            int pc=profile.Count;
-            // Front cap (+local X).
-            for(int i=0;i<pc;i++)
+
+            for(int r=0;r<rings.Count-1;r++)
             {
-                int n=positions.Count,next=(i+1)%pc;
-                Add(new Vector3(front,0,0));
-                Add(new Vector3(front,profile[next].y,profile[next].x));
-                Add(new Vector3(front,profile[i].y,profile[i].x));
-                triangles.Add(n);triangles.Add(n+1);triangles.Add(n+2);
+                var a=Profile(rings[r].inset);
+                var b=Profile(rings[r+1].inset);
+                int pc=a.Count;
+                for(int i=0;i<pc;i++)
+                {
+                    int next=(i+1)%pc,n=positions.Count;
+                    Add(new Vector3(rings[r].x,a[i].y,a[i].x));
+                    Add(new Vector3(rings[r].x,a[next].y,a[next].x));
+                    Add(new Vector3(rings[r+1].x,b[next].y,b[next].x));
+                    Add(new Vector3(rings[r+1].x,b[i].y,b[i].x));
+                    triangles.Add(n);triangles.Add(n+2);triangles.Add(n+1);
+                    triangles.Add(n);triangles.Add(n+3);triangles.Add(n+2);
+                }
             }
-            // Back cap (-local X).
-            for(int i=0;i<pc;i++)
+
+            // Back cap uses full 120mm envelope; front cap sits behind true R18 edge fillet.
+            foreach(var cap in new[]{(x:back,inset:0f,frontFace:false),
+                                     (x:front,inset:bevel,frontFace:true)})
             {
-                int n=positions.Count,next=(i+1)%pc;
-                Add(new Vector3(back,0,0));
-                Add(new Vector3(back,profile[i].y,profile[i].x));
-                Add(new Vector3(back,profile[next].y,profile[next].x));
-                triangles.Add(n);triangles.Add(n+1);triangles.Add(n+2);
-            }
-            // Edge extrusion. Double winding keeps the narrow 30 mm edge stable
-            // on all mobile culling configurations without a second material.
-            for(int i=0;i<pc;i++)
-            {
-                int n=positions.Count,next=(i+1)%pc;
-                Add(new Vector3(back,profile[i].y,profile[i].x));
-                Add(new Vector3(back,profile[next].y,profile[next].x));
-                Add(new Vector3(front,profile[next].y,profile[next].x));
-                Add(new Vector3(front,profile[i].y,profile[i].x));
-                triangles.Add(n);triangles.Add(n+2);triangles.Add(n+1);
-                triangles.Add(n);triangles.Add(n+3);triangles.Add(n+2);
-                triangles.Add(n);triangles.Add(n+1);triangles.Add(n+2);
-                triangles.Add(n);triangles.Add(n+2);triangles.Add(n+3);
+                var p=Profile(cap.inset);int pc=p.Count;
+                for(int i=0;i<pc;i++)
+                {
+                    int next=(i+1)%pc,n=positions.Count;
+                    Add(new Vector3(cap.x,0,0));
+                    if(cap.frontFace)
+                    {
+                        Add(new Vector3(cap.x,p[next].y,p[next].x));
+                        Add(new Vector3(cap.x,p[i].y,p[i].x));
+                    }
+                    else
+                    {
+                        Add(new Vector3(cap.x,p[i].y,p[i].x));
+                        Add(new Vector3(cap.x,p[next].y,p[next].x));
+                    }
+                    triangles.Add(n);triangles.Add(n+1);triangles.Add(n+2);
+                }
             }
         }
 
@@ -710,7 +740,11 @@ public static class BraxChampionsArenaArrival
         var go=new GameObject(name);go.transform.SetParent(parent,false);
         go.AddComponent<MeshFilter>().sharedMesh=mesh;
         go.AddComponent<MeshRenderer>().sharedMaterial=material;
-        if(solid)go.AddComponent<MeshCollider>().sharedMesh=mesh;
+        if(solid)
+        {
+            var cc=go.AddComponent<CylinderCollider>();
+            cc.center=center*K;cc.radius=radius*K;cc.height=height*K;cc.direction=1;
+        }
         GameObjectUtility.SetStaticEditorFlags(go,StaticEditorFlags.OccludeeStatic);
         return go;
     }
@@ -762,6 +796,16 @@ public static class BraxChampionsArenaArrival
         go.AddComponent<MeshRenderer>().sharedMaterial=material;
         GameObjectUtility.SetStaticEditorFlags(go,StaticEditorFlags.OccludeeStatic);
         return go;
+    }
+
+    static float ActualFloorYNominal(Transform arenaRoot,float x,float z)
+    {
+        Physics.SyncTransforms();
+        var start=arenaRoot.TransformPoint(new Vector3(x,20f,z)*K);
+        if(!Physics.Raycast(start,Vector3.down,out var hit,50f*K,~0,QueryTriggerInteraction.Ignore))
+            throw new InvalidOperationException("Issue27 canopy support floor raycast missed at x="+x+" z="+z);
+        float localScaled=arenaRoot.InverseTransformPoint(hit.point).y;
+        return localScaled/K;
     }
 
     static void PremiumExterior(Transform arenaRoot,Dictionary<string,Material> exterior)
@@ -824,11 +868,11 @@ public static class BraxChampionsArenaArrival
                     // Gold is physically attached to the outer black face:
                     // 120 mm face width, 30 mm projection, 60 mm rounded ends.
                     goldColumnInserts.CapsulePlaque(
-                        mid+outward*.865f+Vector3.up*5.94f,
-                        .030f,9.70f,.120f,rotation,7);
+                        mid+outward*.862f+Vector3.up*5.94f,
+                        .036f,9.70f,.120f,.018f,rotation,8,4);
                     goldColumnInserts.CapsulePlaque(
-                        mid+outward*.865f+Vector3.up*22.55f,
-                        .030f,7.88f,.120f,rotation,7);
+                        mid+outward*.862f+Vector3.up*22.55f,
+                        .036f,7.88f,.120f,.018f,rotation,8,4);
                 }
                 else if(i%3==0)
                 {
@@ -886,16 +930,15 @@ public static class BraxChampionsArenaArrival
                 frontFactor=1f-Mathf.Clamp01((Mathf.Abs(mid.x)-24f)/.80f);
             float h=Mathf.Lerp(.08f,.12f,frontFactor);
             float protrusion=Mathf.Lerp(.04f,.05f,frontFactor);
+            float radius=Mathf.Lerp(.020f,.025f,frontFactor);
             float len=Vector3.Distance(p,q)+.025f;
             float radialCenter=.23f+protrusion*.5f;
             beltGold.RoundedPrism(mid+outward*radialCenter+
                     Vector3.up*(10.85f+h*.5f),
-                new Vector3(protrusion,h,len),rotation,
-                Mathf.Min(.020f,protrusion*.45f),Mathf.Min(.020f,h*.22f),2,1);
+                new Vector3(protrusion,h,len),rotation,radius,radius,3,3);
             beltGold.RoundedPrism(mid+outward*radialCenter+
                     Vector3.up*(18.55f-h*.5f),
-                new Vector3(protrusion,h,len),rotation,
-                Mathf.Min(.020f,protrusion*.45f),Mathf.Min(.020f,h*.22f),2,1);
+                new Vector3(protrusion,h,len),rotation,radius,radius,3,3);
         }
 
         // Interior elliptical halo remains visible through the upper smoked glass.
@@ -920,7 +963,7 @@ public static class BraxChampionsArenaArrival
                 const int parts=48;
                 const float graphicDepth=.36f;
                 const float graphicGap=.08f;
-                const float frameDepth=.07f;
+                const float frameDepth=.08f;
                 float frameOffset=graphicDepth+graphicGap+frameDepth*.5f;
                 Vector3 Surface(float q)
                 {
@@ -940,10 +983,10 @@ public static class BraxChampionsArenaArrival
                     float len=Vector3.Distance(p0,p1)+.018f;
                     signGoldFrames.RoundedPrism(
                         m+n*frameOffset+Vector3.up*(bottom-graphicGap-profile*.5f),
-                        new Vector3(frameDepth,profile,len),rotation,.025f,.020f,2,1);
+                        new Vector3(frameDepth,profile,len),rotation,.040f,.040f,4,3);
                     signGoldFrames.RoundedPrism(
                         m+n*frameOffset+Vector3.up*(bottom+height+graphicGap+profile*.5f),
-                        new Vector3(frameDepth,profile,len),rotation,.025f,.020f,2,1);
+                        new Vector3(frameDepth,profile,len),rotation,.040f,.040f,4,3);
                     // Additional 60 mm gold line below the sign, 25 mm proud.
                     underSignGold.RoundedPrism(
                         m+n*(graphicDepth+graphicGap+.0125f)+Vector3.up*(bottom-.11f),
@@ -960,7 +1003,7 @@ public static class BraxChampionsArenaArrival
                     signGoldFrames.RoundedPrism(
                         p+n*frameOffset+Vector3.up*(bottom+height*.5f),
                         new Vector3(frameDepth,height+2f*(graphicGap+profile),profile),
-                        rot,.030f,.035f,3,2);
+                        rot,.040f,.040f,4,3);
                 }
             }
             FrameSign(true,false,42f,11.12f,7f,.16f);
@@ -1052,15 +1095,18 @@ public static class BraxChampionsArenaArrival
             var outward=Vector3.Cross(Vector3.up,tangent).normalized;
             var rot=Quaternion.LookRotation(tangent,Vector3.up);
             float len=Vector3.Distance(p0,p1)+.018f;
+            // Fascia total depth .24m gives exact visible R=.12m.
             canopyFrontFascia.RoundedPrism(
-                mid+outward*.10f+Vector3.up*5.89f,
-                new Vector3(.20f,.48f,len),rot,.10f,.08f,3,2);
+                mid+outward*.12f+Vector3.up*5.89f,
+                new Vector3(.24f,.48f,len),rot,.10f,.12f,4,4);
+            // Upper gold: .11m total with .02m embedded -> exactly .09m exposed, R=.055.
             canopyGoldTrim.RoundedPrism(
-                mid+outward*.245f+Vector3.up*6.42f,
-                new Vector3(.09f,.16f,len),rot,.035f,.055f,3,2);
+                mid+outward*.275f+Vector3.up*6.42f,
+                new Vector3(.11f,.16f,len),rot,.040f,.055f,4,4);
+            // Lower gold: .05m total with .01m embedded -> exactly .04m exposed, R=.025.
             canopyGoldTrim.RoundedPrism(
-                mid+outward*.220f+Vector3.up*5.69f,
-                new Vector3(.04f,.08f,len),rot,.018f,.025f,2,2);
+                mid+outward*.255f+Vector3.up*5.69f,
+                new Vector3(.05f,.08f,len),rot,.020f,.025f,3,3);
             canopyUnderGold.RoundedPrism(
                 mid-outward*.22f+Vector3.up*5.6725f,
                 new Vector3(.035f,.035f,len),rot,.015f,.015f,2,1);
@@ -1071,9 +1117,9 @@ public static class BraxChampionsArenaArrival
             float back=CanopyBackZ(x),front=back-CanopyDepthAt(x);
             float side=Mathf.Sign(x);
             canopyGoldTrim.RoundedPrism(
-                new Vector3(x+side*.030f,6.45f,(back+front)*.5f),
-                new Vector3(.060f,.100f,back-front),
-                Quaternion.identity,.025f,.030f,3,2);
+                new Vector3(x+side*.025f,6.45f,(back+front)*.5f),
+                new Vector3(.070f,.100f,back-front),
+                Quaternion.identity,.030f,.035f,4,3);
         }
 
         canopyPanels.Emit(publicCanopy,"ISSUE27_public_canopy_recessed_black_cassettes",black);
@@ -1081,20 +1127,31 @@ public static class BraxChampionsArenaArrival
         canopyGoldTrim.Emit(publicCanopy,"ISSUE27_public_canopy_gold_outline",gold);
         canopyUnderGold.Emit(publicCanopy,"ISSUE27_public_canopy_thin_under_gold_line",gold);
 
-        // Two exact round gold supports at the owner-approved nominal coordinates.
+        // Two exact round gold supports. Raycast the REAL floor separately for
+        // each support, then preserve the .20m base + .18m capital and touch the
+        // canopy underside at y=5.65 exactly.
+        var supportFloors=new List<float>();
         foreach(float x in new[]{-20.50f,20.50f})
         {
-            var support=Group(publicCanopy,"A1 PUBLIC | ISSUE27 round gold support x="+x,Vector3.zero);
+            float floorY=ActualFloorYNominal(arenaRoot,x,-68.70f);
+            supportFloors.Add(floorY);
+            float shaftH=5.65f-floorY-.20f-.18f;
+            if(shaftH<4.8f||shaftH>5.2f)
+                throw new InvalidOperationException("Issue27 support floor out of expected range: y="+floorY);
+            float baseTop=floorY+.20f;
+            float shaftTop=baseTop+shaftH;
+            var support=Group(publicCanopy,"A1 PUBLIC | ISSUE27 round gold support x="+x+
+                " floorY="+floorY.ToString("F3"),Vector3.zero);
             RoundedCylinder(support,"Gold support base Ø1.40 h0.20 R0.055",gold,
-                new Vector3(x,.34f,-68.70f),.70f,.20f,.055f,true);
-            RoundedCylinder(support,"Gold support stem Ø1.00 h5.03",gold,
-                new Vector3(x,2.955f,-68.70f),.50f,5.03f,.060f,true);
+                new Vector3(x,floorY+.10f,-68.70f),.70f,.20f,.055f,true);
+            RoundedCylinder(support,"Gold support stem Ø1.00 raycast-fit",gold,
+                new Vector3(x,baseTop+shaftH*.5f,-68.70f),.50f,shaftH,.060f,true);
             RoundedCylinder(support,"Gold support head Ø1.25 h0.18 R0.045",gold,
                 new Vector3(x,5.56f,-68.70f),.625f,.18f,.045f,false);
             RoundedCylinder(support,"Gold support transition collar R0.10",gold,
-                new Vector3(x,5.42f,-68.70f),.56f,.20f,.090f,false);
+                new Vector3(x,shaftTop-.05f,-68.70f),.56f,.20f,.10f,false);
             RoundedCylinder(support,"Gold base decorative ring h0.065",gold,
-                new Vector3(x,.4725f,-68.70f),.73f,.065f,.020f,false);
+                new Vector3(x,baseTop+.0325f,-68.70f),.73f,.065f,.020f,false);
         }
 
         // ATHLETES NORTH portico is intentionally preserved unchanged.
@@ -1136,11 +1193,14 @@ public static class BraxChampionsArenaArrival
             " owner_signs=4 sign_front=42x7 sign_rear=36x6 sign_sides=34x5.667"+
             " legacy_public_canopy=21x6.8x0.07_removed=true athlete_canopy_preserved=true");
         Debug.Log("ISSUE27_A1_EXECUTION black_columns=38 width=2.20 depth=0.85 lower_y=1.03..10.85 upper_y=18.55..26.55"+
-            " gold_column_face=0.12 projection=0.03 capsule_end_R=0.06"+
+            " gold_column_face=0.12 projection=0.03 edge_R=0.018 capsule_end_R=0.06"+
             " belt_360_y=10.85..18.55 depth=0.22 outer_face=0.23"+
             " public_canopy=48x13x0.85 y=5.65..6.50 rounded_plan_R=0.80"+
-            " canopy_round_gold_supports=2 support_full_external_volume_each=4.479m3 total=8.959m3"+
-            " canopy_LED=9 recessed_cassettes=10 original_sign_artwork_untouched=true"+
+            " canopy_round_gold_supports=2 supportFloorRaycast=true supportFloors="+
+            string.Join(",",supportFloors.Select(v=>v.ToString("F3")))+
+            " nominalVolumeAtFloor0p24_each=4.479m3 total=8.959m3"+
+            " canopy_LED=9 recessed_cassettes=10 beltTrimR_front=.025 rest=.020 signFrameR=.040"+
+            " fasciaR=.120 upperGoldR=.055 sideGoldR=.035 lowerGoldR=.025 original_sign_artwork_untouched=true"+
             " APK_NOT_STARTED=true scene_visual_review_required=true");
     }
 
