@@ -184,6 +184,24 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("Room oak door leaf OPEN", self.generator)
         self.assertIn("Bathroom oak door leaf OPEN", self.generator)
 
+
+    def test_real_three_level_exterior_lod_exists(self):
+        self.assertIn("BuildExteriorLOD();", self.generator)
+        self.assertIn("new LOD(.12f,lod0)", self.generator)
+        self.assertIn("new LOD(.04f,l1.GetComponentsInChildren<Renderer>(true))", self.generator)
+        self.assertIn("new LOD(.006f,l2.GetComponentsInChildren<Renderer>(true))", self.generator)
+        self.assertIn("LOD2 | silhouette + roof + main divisions", self.generator)
+
+    def test_lighting_is_limited_and_temperature_controlled(self):
+        self.assertIn("useColorTemperature=true", self.generator)
+        self.assertIn("2850f", self.generator)
+        self.assertIn("3000f", self.generator)
+        self.assertIn("2700f", self.generator)
+        self.assertIn("3500f", self.generator)
+        self.assertIn("3800f", self.generator)
+        self.assertIn("Bedside warm emissive", self.generator)
+        self.assertNotIn("AddComponent<Light>()", self.generator.split("static void BuildGuestRoom")[1].split("// ---------------------------------------------------------------- STAIRS")[0])
+
     def test_decorative_roof_has_no_heavy_colliders(self):
         self.assertIn('Mansard dormer body",M.stucco,x,123.35f,z,3.0f,2.8f,1.35f,false', self.generator)
         self.assertIn('Upper roof front",M.roof', self.generator)
