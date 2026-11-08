@@ -312,6 +312,15 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('float clearH=h-.30f,y=clearH*.5f', self.generator)
         self.assertIn('Bathroom shower tray 1.20x0.90', self.generator)
 
+    def test_close_range_five_star_details(self):
+        self.assertIn("PremiumArmchair(",self.generator)
+        self.assertIn("Lobby premium armchair L",self.generator)
+        self.assertIn('WC M mirror",M.mirror,-15f,1.62f,15.13f',self.generator)
+        self.assertIn("SPA shower head",self.generator)
+        self.assertIn("SPA shower controls",self.generator)
+        self.assertIn("Bathroom shower head",self.generator)
+        self.assertIn("Bathroom shower controls",self.generator)
+
     def test_full_detail_basement_staff_mirrors_risers_and_lanterns(self):
         for token in [
             "B2 TECHNIKA","B1 MAGAZYN + HOUSEKEEPING","electrical cabinet","HVAC pump bank",
