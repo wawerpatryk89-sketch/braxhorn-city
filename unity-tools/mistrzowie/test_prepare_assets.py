@@ -7,7 +7,8 @@ import unittest
 from prepare_assets import matches_source, polyhaven_map, POLYHAVEN_SLUGS, POLYHAVEN_MAPS
 
 
-LIVE_VERIFIED_OWNER_SLUGS={"stone_tiles","gravel_embedded_concrete_02","wooden_panels"}
+LIVE_VERIFIED_OWNER_SLUGS={"stone_tiles","gravel_embedded_concrete_02","wooden_panels",
+                           "concrete_wall_009","leather_white","velour_velvet"}
 
 class PolyHavenSourceTests(unittest.TestCase):
     def entry(self, name="original"):
