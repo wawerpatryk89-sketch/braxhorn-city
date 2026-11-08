@@ -1040,11 +1040,9 @@ public static class BraxChampionsArenaArrival
         interiorWarmBands.Emit(group,"three_warm_upper_glass_bands_preserved",exterior["light"]);
         upperCeilingHalo.Emit(group,"upper_interior_elliptical_halo_preserved",exterior["light"]);
 
-        // Existing red reference neon remains clear of the new gold frame and
-        // does not alter any sign pixels.
-        foreach(float x in new[]{-22.2f,22.2f})
-            Box(group,"REFERENCE red neon vertical sign frame",redNeon,
-                new Vector3(x,14.55f,-58.18f),new Vector3(.24f,5.8f,.18f),false);
+        // Owner correction 8.11: remove the two detached/protruding vertical
+        // red side bars. Keep only the red accents that belong visually to the
+        // sign composition itself; central owner artwork remains untouched.
         foreach(float x in new[]{-16.8f,16.8f})
         {
             Box(group,"REFERENCE red neon sign top accent",redNeon,
