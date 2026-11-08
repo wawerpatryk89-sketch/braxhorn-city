@@ -75,7 +75,8 @@ class RealOriginalAssetReadiness(unittest.TestCase):
         code=read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs")
         source_check=code[code.index("static Texture2D CopyMap("):code.index("static readonly Dictionary<string,Material> textureSets")]
         self.assertIn("importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight)",source_check)
-        self.assertIn("if(sourceWidth!=4096||sourceHeight!=4096)",source_check)
+        self.assertIn("Mathf.Max(sourceWidth,sourceHeight)!=4096",source_check)
+        self.assertIn("Mathf.Min(sourceWidth,sourceHeight)<=0",source_check)
         self.assertIn("BraxBuildQuality.Warn(",source_check)
         self.assertNotIn("!texture||texture.width!=2048",source_check)
         self.assertIn("android.maxTextureSize!=2048",source_check)
