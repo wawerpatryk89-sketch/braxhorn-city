@@ -1,5 +1,5 @@
 {
-  "schema": 2,
+  "schema": 3,
   "status": "BINARIES_COMMITTED_AND_HASHED",
   "issue": 30,
   "checked_at": "2026-11-08",
@@ -12,46 +12,37 @@
     "license_url": "https://creativecommons.org/licenses/by/3.0/",
     "source_sha256": "15a9fcf82f53c710f489b7d888557b4937ae3f50d968c22f2be342d29df398b6",
     "source_bytes": 6596358,
-    "source_duration_seconds": 31.029,
-    "note": "One coherent real engine recording is used for both derivatives. Attribution and modification notice are embedded in each OGG and retained in ATTRIBUTION.txt."
+    "source_duration_seconds": 31.029
   },
   "clips": [
     {
       "role": "idle",
       "unity_path": "unity-city/Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_idle.ogg",
-      "sha256": "e44d646c067ce703596160810e2305aa6033b02aa878a16e3b93f5971af1dcfc",
-      "bytes": 32307,
-      "duration_seconds": 5,
+      "sha256": "204f33733dcf428626ce414950396507aef845ff06c29355c2c9c25a63c346f9",
+      "bytes": 32318,
+      "duration_seconds": 5.0,
       "sample_rate_hz": 22050,
       "channels": 1,
       "source_segment_seconds": [
-        12,
+        12.0,
         17.5
-      ],
-      "processing": "mono; 0.5 s circular loop crossfade; +18 dB gain with soft limiting; Vorbis; embedded CC BY attribution metadata"
+      ]
     },
     {
       "role": "rev",
       "unity_path": "unity-city/Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_rev.ogg",
-      "sha256": "7e332fb8eb96e9773a9d76e60a80c4e905976ed3d6888f1f9191a399ea823834",
-      "bytes": 20200,
-      "duration_seconds": 2.749977,
+      "sha256": "f407133577198677a98fea51083e320dcd5450ee21bd7f039047de8d4ea94840",
+      "bytes": 20203,
+      "duration_seconds": 2.75,
       "sample_rate_hz": 22050,
       "channels": 1,
       "source_segment_seconds": [
         21.75,
         24.5
-      ],
-      "processing": "mono; 0.12 s fade-in; 0.28 s fade-out; +18 dB gain with soft limiting; Vorbis; embedded CC BY attribution metadata"
+      ]
     }
   ],
   "audit": {
-    "existing_repo_engine_audio_found": false,
-    "existing_audio_files_seen": [
-      "asset-library/sources/audio/Industrial-Pulse.original.mp3",
-      "unity-city/Assets/Claude/Audio/industrial_pulse_petla.ogg",
-      "unity-city/Assets/Claude/Audio/silownia_muzyka.ogg"
-    ],
-    "decision": "Music was not reused as engine audio. Pixabay candidates in Issue #30 were verified but their CDN blocked automated source acquisition with HTTP 403, so the issue-authorized alternative single coherent licensed recording was used."
+    "decision": "One coherent real CC-BY engine recording. Music was not reused. Pixabay candidates were verified but automated binary acquisition returned HTTP 403, so no unverifiable mirror was used."
   }
 }

@@ -15,14 +15,11 @@ Original downloaded source size: 6,596,358 bytes
 Original duration: 31.029 s
 
 BRAXHORN derivatives:
-1) brax_engine_idle.ogg
-   - source segment: 12.00–17.50 s
-   - changes: mono 22.05 kHz, trim, 0.5 s circular loop crossfade, gain adjustment/soft limiting, Vorbis encode
-   - SHA-256: e44d646c067ce703596160810e2305aa6033b02aa878a16e3b93f5971af1dcfc
+1) brax_engine_idle.ogg — 5.000 s
+   source 12.00–17.50 s; mono 22.05 kHz; 0.5 s circular loop crossfade; +18 dB soft limiting; Vorbis
+   SHA-256: 204f33733dcf428626ce414950396507aef845ff06c29355c2c9c25a63c346f9
+2) brax_engine_rev.ogg — 2.750 s
+   source 21.75–24.50 s; mono 22.05 kHz; 0.12 s fade-in; 0.28 s fade-out; +18 dB soft limiting; Vorbis
+   SHA-256: f407133577198677a98fea51083e320dcd5450ee21bd7f039047de8d4ea94840
 
-2) brax_engine_rev.ogg
-   - source segment: 21.75–24.50 s
-   - changes: mono 22.05 kHz, trim, 0.12 s fade-in, 0.28 s fade-out, gain adjustment/soft limiting, Vorbis encode
-   - SHA-256: 7e332fb8eb96e9773a9d76e60a80c4e905976ed3d6888f1f9191a399ea823834
-
-Both OGG files also contain embedded title, creator, license, source URL and modification metadata.
+Both OGG files contain embedded creator, license and source metadata. No endorsement is implied.
