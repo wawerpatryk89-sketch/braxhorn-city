@@ -414,6 +414,8 @@ public static class BraxChampionsHotelSobczakT03
             BuildStairInterval(s,x,B2,B1,0);BuildStairInterval(s,x,B1,Ground,1);
             BuildStairInterval(s,x,Ground,First,0);BuildStairInterval(s,x,First,GuestBase,1);
             for(int f=0;f<GuestFloors-1;f++)BuildStairInterval(s,x,GuestBase+f*3.6f,GuestBase+(f+1)*3.6f,f%2);
+            // Floor 31 (base y=114.0) must have a real final flight to TECH y=117.6.
+            BuildStairInterval(s,x,GuestBase+(GuestFloors-1)*3.6f,GuestTop,GuestFloors%2);
             B(s,"Stair fire wall west",M.stucco,x-2.6f,55f,0,.16f,124f,9f,true,1.8f);
             B(s,"Stair fire wall east",M.stucco,x+2.6f,55f,0,.16f,124f,9f,true,1.8f);
             stairsBuilt++;
@@ -496,15 +498,15 @@ public static class BraxChampionsHotelSobczakT03
     // ---------------------------------------------------------------- ROOF
     static void BuildRoof()
     {
-        B(roof,"Mansard front",M.roof,0,121.4f,-19f,64f,.35f,8.59f,true,3f).transform.localRotation=Quaternion.Euler(-62.24f,0,0);
-        B(roof,"Mansard rear",M.roof,0,121.4f,19f,64f,.35f,8.59f,true,3f).transform.localRotation=Quaternion.Euler(62.24f,0,0);
-        B(roof,"Mansard west",M.roof,-30f,121.4f,0,8.59f,.35f,34f,true,3f).transform.localRotation=Quaternion.Euler(0,0,62.24f);
-        B(roof,"Mansard east",M.roof,30f,121.4f,0,8.59f,.35f,34f,true,3f).transform.localRotation=Quaternion.Euler(0,0,-62.24f);
+        B(roof,"Mansard front",M.roof,0,121.32f,-19f,64f,.20f,8.59f,true,3f).transform.localRotation=Quaternion.Euler(-62.24f,0,0);
+        B(roof,"Mansard rear",M.roof,0,121.32f,19f,64f,.20f,8.59f,true,3f).transform.localRotation=Quaternion.Euler(62.24f,0,0);
+        B(roof,"Mansard west",M.roof,-30f,121.32f,0,8.59f,.20f,34f,true,3f).transform.localRotation=Quaternion.Euler(0,0,62.24f);
+        B(roof,"Mansard east",M.roof,30f,121.32f,0,8.59f,.20f,34f,true,3f).transform.localRotation=Quaternion.Euler(0,0,-62.24f);
         float upperAngle=Mathf.Atan2(4.8f,8f)*Mathf.Rad2Deg,upperLen=Mathf.Sqrt(8f*8f+4.8f*4.8f);
-        B(roof,"Upper roof front",M.roof,0,127.6f,-13f,56f,.32f,upperLen,true,3f).transform.localRotation=Quaternion.Euler(-upperAngle,0,0);
-        B(roof,"Upper roof rear",M.roof,0,127.6f,13f,56f,.32f,upperLen,true,3f).transform.localRotation=Quaternion.Euler(upperAngle,0,0);
-        B(roof,"Upper roof west",M.roof,-24f,127.6f,0,upperLen,.32f,18f,true,3f).transform.localRotation=Quaternion.Euler(0,0,upperAngle);
-        B(roof,"Upper roof east",M.roof,24f,127.6f,0,upperLen,.32f,18f,true,3f).transform.localRotation=Quaternion.Euler(0,0,-upperAngle);
+        B(roof,"Upper roof front",M.roof,0,127.45f,-13f,56f,.20f,upperLen,true,3f).transform.localRotation=Quaternion.Euler(-upperAngle,0,0);
+        B(roof,"Upper roof rear",M.roof,0,127.45f,13f,56f,.20f,upperLen,true,3f).transform.localRotation=Quaternion.Euler(upperAngle,0,0);
+        B(roof,"Upper roof west",M.roof,-24f,127.45f,0,upperLen,.20f,18f,true,3f).transform.localRotation=Quaternion.Euler(0,0,upperAngle);
+        B(roof,"Upper roof east",M.roof,24f,127.45f,0,upperLen,.20f,18f,true,3f).transform.localRotation=Quaternion.Euler(0,0,-upperAngle);
         B(roof,"Hidden roof technical deck",M.antiSlip,0,125.0f,0,40f,.16f,18f,true,2.5f);
         // Dormers aligned with 7 room bays on front and rear.
         for(int i=0;i<7;i++)foreach(float s in new[]{-1f,1f})
@@ -580,8 +582,8 @@ public static class BraxChampionsHotelSobczakT03
 
     static void BuildFacadePilasters()
     {
-        // 16 x 4m rhythm from reference; actual room zones keep seven 7m bays above.
-        for(float x=-30f;x<=30f;x+=4f)
+        // Pilasters sit on the seven 7m guest-bay boundaries. They must NEVER cross glazing.
+        foreach(float x in new[]{-31.5f,-24.5f,-17.5f,-10.5f,-3.5f,3.5f,10.5f,17.5f,24.5f,31.5f})
         {
             B(root,"Front classical facade pilaster",M.stucco,x,58.8f,-21.30f,.26f,117.6f,.34f,false,1.8f);
             B(root,"Rear classical facade pilaster",M.stucco,x,58.8f,21.30f,.26f,117.6f,.34f,false,1.8f);
