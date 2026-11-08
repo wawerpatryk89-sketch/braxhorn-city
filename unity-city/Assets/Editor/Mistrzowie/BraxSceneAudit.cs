@@ -743,8 +743,8 @@ public static class BraxSceneAudit
         h.passengerElevators=lifts.Count(x=>Contains(x.name,"PASSENGER"));
         h.serviceElevators=lifts.Count(x=>Contains(x.name,"SERVICE"));
         h.stairs=tr.Count(x=>x.name.StartsWith("STAIR ",StringComparison.Ordinal) && Contains(x.name,"B2 TO TECH"));
-        h.parkingB1=tr.Count(x=>Regex.IsMatch(x.name,@"^B1 PARK \\d{2}( ACCESSIBLE)? back$"));
-        h.parkingB2=tr.Count(x=>Regex.IsMatch(x.name,@"^B2 PARK \\d{2}( ACCESSIBLE)? back$"));
+        h.parkingB1=tr.Count(x=>Regex.IsMatch(x.name,@"^B1 PARK \d{2}( ACCESSIBLE)? back$"));
+        h.parkingB2=tr.Count(x=>Regex.IsMatch(x.name,@"^B2 PARK \d{2}( ACCESSIBLE)? back$"));
         h.parkingTotal=h.parkingB1+h.parkingB2;
         h.frontDormers=tr.Count(x=>x.name=="Mansard dormer body" && x.localPosition.z<0);
         h.rearDormers=tr.Count(x=>x.name=="Mansard dormer body" && x.localPosition.z>0);
