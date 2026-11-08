@@ -209,10 +209,11 @@ public static class BraxChampionsHotelSobczakT03
         basementFloorRoots.Add(BuildParkingLevel("B2",B2,basements));
         basementFloorRoots.Add(BuildParkingLevel("B1",B1,basements));
         // Short horizontal connectors from EAST-side ramps into real garage openings.
-        B(basements,"B1 EAST ramp connector",M.antiSlip,34.025f,-3.59f,-10.25f,4.45f,.02f,6.5f,true,2.5f);
-        B(basements,"B1 EAST internal turning apron",M.antiSlip,25.0f,-3.59f,1.0f,12.0f,.02f,10.0f,true,2.5f);
-        B(basements,"B1 EAST second-ramp connector",M.antiSlip,34.025f,-3.59f,12.75f,4.45f,.02f,6.5f,true,2.5f);
-        B(basements,"B2 EAST ramp connector",M.antiSlip,34.025f,-7.19f,-12.75f,4.45f,.02f,6.5f,true,2.5f);
+        // Full-width connectors span from east wall x=31.80 to ramp outer edge x=39.50.
+        B(basements,"B1 EAST ramp connector",M.antiSlip,35.65f,-3.59f,-10.25f,7.70f,.02f,6.5f,true,2.5f);
+        B(basements,"B1 EAST internal turning apron",M.antiSlip,25.40f,-3.59f,1.0f,12.80f,.02f,10.0f,true,2.5f);
+        B(basements,"B1 EAST second-ramp connector",M.antiSlip,35.65f,-3.59f,12.75f,7.70f,.02f,6.5f,true,2.5f);
+        B(basements,"B2 EAST ramp connector",M.antiSlip,35.65f,-7.19f,-12.75f,7.70f,.02f,6.5f,true,2.5f);
     }
     static GameObject BuildParkingLevel(string id,float y,Transform p)
     {
@@ -448,13 +449,29 @@ public static class BraxChampionsHotelSobczakT03
     }
     static void BuildArchTrim(Transform p,float x,float y0,float z,float winW,float winH,float sill,float outward)
     {
-        // Real 3D arch surround: 9 stone segments following a semicircle, not a flat texture.
-        float r=winW*.5f,cy=y0+sill+winH-r;
-        for(int i=0;i<9;i++)
+        // The aperture itself is arched geometry: masonry fills the rectangular upper corners.
+        // Glass stays behind this physical opening; the arch is not painted on a flat wall.
+        float r=winW*.5f,cy=y0+sill+winH-r,top=y0+sill+winH;
+        const int strips=6;
+        float stripW=r/strips;
+        foreach(float sign in new[]{-1f,1f})
         {
-            float a=Mathf.Lerp(0f,180f,i/8f)*Mathf.Deg2Rad;
+            for(int i=0;i<strips;i++)
+            {
+                float radial=(i+.5f)*stripW;
+                float curveY=cy+Mathf.Sqrt(Mathf.Max(0f,r*r-radial*radial));
+                float fillH=top-curveY;
+                float px=x+sign*radial;
+                if(fillH>.015f)
+                    B(p,"Ground arch masonry infill",M.facade,px,curveY+fillH*.5f,z,stripW+.02f,fillH,.40f,true,3f);
+            }
+        }
+        // Real 3D stone surround follows the same semicircle.
+        for(int i=0;i<13;i++)
+        {
+            float a=Mathf.Lerp(0f,180f,i/12f)*Mathf.Deg2Rad;
             float px=x+Mathf.Cos(a)*r,py=cy+Mathf.Sin(a)*r;
-            var seg=B(p,"Ground arch 3D segment",M.stucco,px,py,z+outward*.24f,.34f,.20f,.24f,false,1.8f);
+            var seg=B(p,"Ground arch 3D segment",M.stucco,px,py,z+outward*.24f,.28f,.18f,.24f,false,1.8f);
             seg.transform.localRotation=Quaternion.Euler(0,0,-Mathf.Cos(a)*58f);
         }
     }
