@@ -102,9 +102,13 @@ public static class BraxChampionsArenaMural
 
     static void PremiumEntrancePortal(Transform parent)
     {
-        var gold=BraxChampionsFoundation.LibraryMetal(
-            "A1_interior_entrance_portal_gold",new Color(.835f,.639f,.231f));
+        var shader=Shader.Find(BraxCityMaterials.ShaderName);
+        if(!shader)throw new InvalidOperationException("A1 portal CityStaticPBR shader missing");
+        var gold=new Material(shader){name="A1 entrance portal clean premium gold",enableInstancing=true};
+        gold.SetColor("_Color",new Color(.835f,.639f,.231f));
         gold.SetFloat("_Metallic",.98f);gold.SetFloat("_Roughness",.19f);
+        gold.SetFloat("_VertexTint",0f);gold.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        AssetDatabase.CreateAsset(gold,Output+"/A1_entrance_portal_clean_gold.mat");
         var warm=AssetDatabase.LoadAssetAtPath<Material>(
             "Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/light.mat");
         if(!warm)throw new InvalidOperationException("A1 portal warm emissive material missing");
