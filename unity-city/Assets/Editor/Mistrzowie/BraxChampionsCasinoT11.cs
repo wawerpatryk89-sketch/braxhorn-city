@@ -999,6 +999,19 @@ public static class BraxChampionsCasinoT11
             l.shadows=LightShadows.None;
             l.renderMode=LightRenderMode.ForceVertex;
         }
+        // One tiny baked probe for polished gold/glass response. No realtime refresh,
+        // no per-frame cubemap capture and no dynamic shadows on Android.
+        var probeObject=new GameObject("T11 mobile baked reflection probe | 64px");
+        probeObject.transform.SetParent(root,false);
+        probeObject.transform.localPosition=new Vector3(0,7f,-2f)*K;
+        var probe=probeObject.AddComponent<ReflectionProbe>();
+        probe.mode=ReflectionProbeMode.Baked;
+        probe.resolution=64;
+        probe.size=new Vector3(92f,26f,72f)*K;
+        probe.intensity=.90f;
+        probe.boxProjection=true;
+        probe.importance=2;
+        probe.cullingMask=~0;
     }
 
     // A source image's approved 2048x512 dimensions are not necessarily the
@@ -1238,8 +1251,8 @@ public static class BraxChampionsCasinoT11
         image.GetComponent<MeshRenderer>().sharedMaterial=material;
         UnityEngine.Object.DestroyImmediate(image.GetComponent<Collider>());
 
-        Debug.Log("T11_ISSUE29_SIGN ORIGINAL_SIGN_PRESENT=PASS LABEL_ASPECT_4_TO_1=PASS "+
-            "BACKPLATE_FOLLOWS_REAL_LABEL_OUTLINE=PASS GOLD_BEVEL_ROUNDED=PASS "+
+        Debug.Log("T11_ISSUE29_SIGN ORIGINAL_SIGN_PRESENT=SOURCE_CHECK_PASS LABEL_ASPECT_4_TO_1=SOURCE_GEOMETRY_PASS "+
+            "BACKPLATE_FOLLOWS_REAL_LABEL_OUTLINE=SOURCE_GEOMETRY_PASS GOLD_BEVEL_ROUNDED=SOURCE_GEOMETRY_PASS "+
             "NO_OCCLUSION_OR_Z_FIGHT=SOURCE_GEOMETRY_PASS UNITY_SCREENSHOTS_ATTACHED=PENDING_REAL_UNITY_RENDER");
     }
 
