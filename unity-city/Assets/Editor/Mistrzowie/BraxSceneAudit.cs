@@ -67,6 +67,12 @@ public static class BraxSceneAudit
         public int textureCount, meshCount;
         public long textureRuntimeBytes, meshRuntimeBytes;
     }
+    [Serializable] public sealed class HotelMaterialAudit
+    {
+        public string materialName, sourceId, shaderName, albedoName;
+        public int albedoWidth, albedoHeight, rendererCount;
+        public float metallic, roughness, sampleScaleU, sampleScaleV;
+    }
     [Serializable] public sealed class HotelSobczakAudit
     {
         public string status = "NOT_FOUND";
@@ -80,6 +86,7 @@ public static class BraxSceneAudit
         public bool centrePass, footprintPass, heightPass, siteReservePass, physicalLevelsPass;
         public bool roomsPass, guestFloorsPass, elevatorsPass, stairsPass, parkingPass, dormersPass;
         public bool glassPass, doorLeafColliderPass;
+        public List<HotelMaterialAudit> materials = new List<HotelMaterialAudit>();
         public List<string> failures = new List<string>();
     }
     [Serializable] public sealed class Audit
@@ -779,6 +786,57 @@ public static class BraxSceneAudit
                                               x.GetComponent<Collider>());
         h.doorLeafColliderPass=h.doorLeafColliderCount==0;
 
+        string SourceId(Material m)
+        {
+            string n=m?m.name:"";
+            if(Contains(n,"facade_beige"))return "beige_wall_001";
+            if(Contains(n,"plinth_sandstone"))return "sandstone_blocks_08";
+            if(Contains(n,"architectural_stucco"))return "white_stucco_02";
+            if(Contains(n,"mansard_slates"))return "roof_slates_03";
+            if(Contains(n,"cream_marble"))return "marble_01";
+            if(Contains(n,"varnished_oak"))return "oak_wood_planks";
+            if(Contains(n,"herringbone_parquet"))return "herringbone_parquet";
+            if(Contains(n,"spa_terrazzo"))return "terrazzo_tiles";
+            if(Contains(n,"fitness_rubber"))return "rubber_tiles";
+            if(Contains(n,"corridor_wool"))return "poly_wool_herringbone";
+            if(Contains(n,"kitchen_tile"))return "tiled_floor_001";
+            if(Contains(n,"exterior_granite")||Contains(n,"interior_granite"))return "granite_tile_04";
+            if(Contains(n,"ramp_antislip"))return "anti_slip_concrete";
+            if(Contains(n,"parking_floor"))return "garage_floor";
+            if(Contains(n,"technical_concrete"))return "concrete_wall_003";
+            if(Contains(n,"brown_leather"))return "brown_leather";
+            if(Contains(n,"spa_white_leather"))return "leather_white";
+            if(Contains(n,"driveway_asphalt"))return "clean_asphalt";
+            if(Contains(n,"brass")||Contains(n,"bronze")||Contains(n,"stainless")||
+               Contains(n,"glass")||Contains(n,"foliage")||Contains(n,"white_paint")||
+               Contains(n,"parking_marking")||Contains(n,"warm_architectural_light")||
+               Contains(n,"entrance_red_carpet")||Contains(n,"fountain_water"))return "CUSTOM_PBR";
+            return "UNMAPPED";
+        }
+        foreach(var mat in renderers.SelectMany(r=>r.sharedMaterials??new Material[0]).Where(m=>m)
+                                    .GroupBy(m=>m.GetInstanceID()).Select(g=>g.First()).OrderBy(m=>m.name))
+        {
+            var users=renderers.Where(r=>r && (r.sharedMaterials??new Material[0]).Any(x=>x==mat)).ToArray();
+            var sample=users.FirstOrDefault();
+            var block=new MaterialPropertyBlock();
+            if(sample)sample.GetPropertyBlock(block);
+            Vector4 st=block.GetVector("_MainTex_ST");
+            if(Mathf.Abs(st.x)<.00001f||Mathf.Abs(st.y)<.00001f)
+            {
+                var scale=mat.HasProperty("_MainTex")?mat.GetTextureScale("_MainTex"):Vector2.one;
+                st=new Vector4(scale.x,scale.y,0,0);
+            }
+            var tex=mat.HasProperty("_MainTex")?mat.GetTexture("_MainTex") as Texture2D:null;
+            h.materials.Add(new HotelMaterialAudit{
+                materialName=mat.name,sourceId=SourceId(mat),shaderName=mat.shader?mat.shader.name:"MISSING",
+                albedoName=tex?tex.name:"NONE",albedoWidth=tex?tex.width:0,albedoHeight=tex?tex.height:0,
+                rendererCount=users.Length,
+                metallic=mat.HasProperty("_Metallic")?mat.GetFloat("_Metallic"):0f,
+                roughness=mat.HasProperty("_Roughness")?mat.GetFloat("_Roughness"):0f,
+                sampleScaleU=st.x,sampleScaleV=st.y
+            });
+        }
+
         void Fail(bool pass,string text){ if(!pass)h.failures.Add(text); }
         Fail(h.centrePass,"centre expected 1030/710 measured "+F(h.centreX)+"/"+F(h.centreZ));
         Fail(h.footprintPass,"structural footprint expected 64x42 measured "+F(h.structuralWidthMeters)+"x"+F(h.structuralDepthMeters));
@@ -857,6 +915,14 @@ public static class BraxSceneAudit
             lines.Add("- " + Safe(x.region) + ": tekstury " +
                 F(x.textureRuntimeBytes / 1048576f) + " MiB (" + x.textureCount +
                 "), siatki " + F(x.meshRuntimeBytes / 1048576f) + " MiB (" + x.meshCount + ")");
+        lines.Add(""); lines.Add("## HOTEL SOBCZAK — materiały zmierzone w scenie");
+        foreach(var m in a.hotelSobczak.materials)
+            lines.Add("- " + Safe(m.sourceId) + " | " + Safe(m.materialName) +
+                " | shader=" + Safe(m.shaderName) +
+                " | albedo=" + Safe(m.albedoName) + " " + m.albedoWidth + "x" + m.albedoHeight +
+                " | metallic=" + F(m.metallic) + " roughness=" + F(m.roughness) +
+                " | sample ST=" + F(m.sampleScaleU) + "x" + F(m.sampleScaleV) +
+                " | renderers=" + m.rendererCount);
         if (a.warnings.Count > 0)
         {
             lines.Add(""); lines.Add("## Ograniczenia i ostrzeżenia");
