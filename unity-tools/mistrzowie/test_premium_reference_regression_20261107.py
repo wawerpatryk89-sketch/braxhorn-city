@@ -70,6 +70,9 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertIn('glass.SetFloat("_ZWrite",0f);', text)
         self.assertIn('glass.SetFloat("_Transparent",1f);', text)
         self.assertIn('new Color(.94f,.96f,.98f,.025f)', text)
+        self.assertIn('const float thickness=.012f', text)
+        self.assertIn('A1_glass_', text)
+        self.assertIn('new Vector3(2.20f,.20f,.90f),.025f,true', text)
         self.assertIn('24 rigid', text)
         self.assertIn('A1_BELT_OWNER_3D_FRONT_PRESENTATION', text)
 
