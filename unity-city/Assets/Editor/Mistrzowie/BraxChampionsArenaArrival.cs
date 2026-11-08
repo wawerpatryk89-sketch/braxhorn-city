@@ -595,13 +595,15 @@ public static class BraxChampionsArenaArrival
 
             float front=totalDepth*.5f,back=-front;
             var rings=new List<(float x,float inset)>();
-            rings.Add((back,0f));
-            if(front-back>bevel+.0002f)rings.Add((front-bevel,0f));
+            // Convex profile: the embedded/back section is narrower by R18,
+            // then the fillet opens OUTWARD to the exact 120mm front face.
+            rings.Add((back,bevel));
+            if(front-back>bevel+.0002f)rings.Add((front-bevel,bevel));
             for(int j=1;j<=bevels;j++)
             {
                 float theta=.5f*Mathf.PI*j/bevels;
                 rings.Add((front-bevel+bevel*Mathf.Sin(theta),
-                    bevel*(1f-Mathf.Cos(theta))));
+                    bevel*Mathf.Cos(theta)));
             }
 
             void Add(Vector3 local)
@@ -627,9 +629,10 @@ public static class BraxChampionsArenaArrival
                 }
             }
 
-            // Back cap uses full 120mm envelope; front cap sits behind true R18 edge fillet.
-            foreach(var cap in new[]{(x:back,inset:0f,frontFace:false),
-                                     (x:front,inset:bevel,frontFace:true)})
+            // Front cap is the exact approved 120mm visible face with R60 ends.
+            // Back cap is inset by R18 and disappears into the black column.
+            foreach(var cap in new[]{(x:back,inset:bevel,frontFace:false),
+                                     (x:front,inset:0f,frontFace:true)})
             {
                 var p=Profile(cap.inset);int pc=p.Count;
                 for(int i=0;i<pc;i++)
@@ -874,11 +877,11 @@ public static class BraxChampionsArenaArrival
                     // Gold is physically attached to the outer black face:
                     // 120 mm face width, 30 mm projection, 60 mm rounded ends.
                     goldColumnInserts.CapsulePlaque(
-                        mid+outward*.862f+Vector3.up*5.94f,
-                        .036f,9.70f,.120f,.018f,rotation,8,4);
+                        mid+outward*.861f+Vector3.up*5.94f,
+                        .038f,9.70f,.120f,.018f,rotation,8,4);
                     goldColumnInserts.CapsulePlaque(
-                        mid+outward*.862f+Vector3.up*22.55f,
-                        .036f,7.88f,.120f,.018f,rotation,8,4);
+                        mid+outward*.861f+Vector3.up*22.55f,
+                        .038f,7.88f,.120f,.018f,rotation,8,4);
                 }
                 else if(i%3==0)
                 {
@@ -938,13 +941,14 @@ public static class BraxChampionsArenaArrival
             float protrusion=Mathf.Lerp(.04f,.05f,frontFactor);
             float radius=Mathf.Lerp(.020f,.025f,frontFactor);
             float len=Vector3.Distance(p,q)+.025f;
-            float radialCenter=.23f+protrusion*.5f;
+            float totalDepth=protrusion+.002f; // 2mm hidden in black belt
+            float radialCenter=.229f+protrusion*.5f; // visible outer face unchanged
             beltGold.RoundedPrism(mid+outward*radialCenter+
                     Vector3.up*(10.85f+h*.5f),
-                new Vector3(protrusion,h,len),rotation,radius,radius,3,3);
+                new Vector3(totalDepth,h,len),rotation,radius,radius,3,3);
             beltGold.RoundedPrism(mid+outward*radialCenter+
                     Vector3.up*(18.55f-h*.5f),
-                new Vector3(protrusion,h,len),rotation,radius,radius,3,3);
+                new Vector3(totalDepth,h,len),rotation,radius,radius,3,3);
         }
 
         // Interior elliptical halo remains visible through the upper smoked glass.
@@ -969,7 +973,7 @@ public static class BraxChampionsArenaArrival
                 const int parts=48;
                 const float graphicDepth=.36f;
                 const float graphicGap=.08f;
-                const float frameDepth=.08f;
+                const float frameDepth=.082f;
                 float frameOffset=graphicDepth+graphicGap+frameDepth*.5f;
                 Vector3 Surface(float q)
                 {
@@ -1103,16 +1107,16 @@ public static class BraxChampionsArenaArrival
             float len=Vector3.Distance(p0,p1)+.018f;
             // Fascia total depth .24m gives exact visible R=.12m.
             canopyFrontFascia.RoundedPrism(
-                mid+outward*.12f+Vector3.up*5.89f,
-                new Vector3(.24f,.48f,len),rot,.10f,.12f,4,4);
+                mid+outward*.121f+Vector3.up*5.89f,
+                new Vector3(.242f,.48f,len),rot,.120f,.120f,4,4);
             // Upper gold: .11m total with .02m embedded -> exactly .09m exposed, R=.055.
             canopyGoldTrim.RoundedPrism(
-                mid+outward*.275f+Vector3.up*6.42f,
-                new Vector3(.11f,.16f,len),rot,.040f,.055f,4,4);
+                mid+outward*.274f+Vector3.up*6.42f,
+                new Vector3(.112f,.16f,len),rot,.055f,.055f,4,4);
             // Lower gold: .05m total with .01m embedded -> exactly .04m exposed, R=.025.
             canopyGoldTrim.RoundedPrism(
-                mid+outward*.255f+Vector3.up*5.69f,
-                new Vector3(.05f,.08f,len),rot,.020f,.025f,3,3);
+                mid+outward*.254f+Vector3.up*5.69f,
+                new Vector3(.052f,.08f,len),rot,.025f,.025f,3,3);
             canopyUnderGold.RoundedPrism(
                 mid-outward*.22f+Vector3.up*5.6725f,
                 new Vector3(.035f,.035f,len),rot,.015f,.015f,2,1);
@@ -1123,9 +1127,9 @@ public static class BraxChampionsArenaArrival
             float back=CanopyBackZ(x),front=back-CanopyDepthAt(x);
             float side=Mathf.Sign(x);
             canopyGoldTrim.RoundedPrism(
-                new Vector3(x+side*.025f,6.45f,(back+front)*.5f),
-                new Vector3(.070f,.100f,back-front),
-                Quaternion.identity,.030f,.035f,4,3);
+                new Vector3(x+side*.024f,6.45f,(back+front)*.5f),
+                new Vector3(.072f,.100f,back-front),
+                Quaternion.identity,.035f,.035f,4,3);
         }
 
         canopyPanels.Emit(publicCanopy,"ISSUE27_public_canopy_recessed_black_cassettes",black);
@@ -1199,7 +1203,7 @@ public static class BraxChampionsArenaArrival
             " owner_signs=4 sign_front=42x7 sign_rear=36x6 sign_sides=34x5.667"+
             " legacy_public_canopy=21x6.8x0.07_removed=true athlete_canopy_preserved=true");
         Debug.Log("ISSUE27_A1_EXECUTION black_columns=38 width=2.20 depth=0.85 lower_y=1.03..10.85 upper_y=18.55..26.55"+
-            " gold_column_face=0.12 projection=0.03 edge_R=0.018 capsule_end_R=0.06"+
+            " gold_column_front_width=.120 projection=.030 totalDepth=.038 embedded=.008 edge_R=.018 capsule_end_R=.060"+
             " belt_360_y=10.85..18.55 depth=0.22 outer_face=0.23"+
             " public_canopy=48x13x0.85 y=5.65..6.50 rounded_plan_R=0.80"+
             " canopy_round_gold_supports=2 supportFloorRaycast=true supportFloors="+
