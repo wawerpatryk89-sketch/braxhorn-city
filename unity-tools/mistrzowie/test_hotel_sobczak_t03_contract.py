@@ -350,6 +350,23 @@ class HotelSobczakT03Contract(unittest.TestCase):
         ]:
             self.assertIn(token,self.scene_audit)
 
+    def test_owner_interior_material_matrix_and_exact_portal_dimensions(self):
+        self.assertIn('SOUTH room party wall",M.facade', self.generator)
+        self.assertIn('NORTH room party wall",M.facade', self.generator)
+        self.assertIn('Room corridor wall left",M.facade', self.generator)
+        self.assertIn('Room corridor wall right",M.facade', self.generator)
+        self.assertIn('Bathroom privacy wall",M.marble', self.generator)
+        self.assertIn('Bathroom bedroom wall left",M.marble', self.generator)
+        self.assertIn('SOUTH corridor ivory skirting",M.stuccoSoft', self.generator)
+        self.assertIn('Grand portico brass base",M.brass,x,.125f,-25.8f,1.15f,.25f', self.generator)
+        self.assertIn('Main entrance glass left",M.glass,-.95f,1.90f,-21.38f,1.7f,3.80f', self.generator)
+
+    def test_lod1_lod2_keep_full_four_sided_roof(self):
+        self.assertIn('prefix+" mansard west"', self.generator)
+        self.assertIn('prefix+" mansard east"', self.generator)
+        self.assertIn('prefix+" upper roof west"', self.generator)
+        self.assertIn('prefix+" upper roof east"', self.generator)
+
     def test_decorative_roof_has_no_heavy_colliders(self):
         self.assertIn('Mansard dormer body",M.stucco,x,123.35f,z,3.0f,2.8f,1.35f,false', self.generator)
         self.assertIn('Upper roof front",M.roof', self.generator)
