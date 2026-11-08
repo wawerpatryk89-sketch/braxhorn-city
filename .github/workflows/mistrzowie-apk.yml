@@ -271,7 +271,6 @@ jobs:
             python3 unity-tools/mistrzowie/prepare_champion_car.py
           fi
           python3 unity-tools/mistrzowie/verify_champion_assets.py
-          python3 unity-tools/mistrzowie/verify_arena_three_murals.py
           test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png
           test -s unity-city/Assets/Source/Mistrzowie/Trophies/BRAXHORN_ARENA_CASE_PLAQUE.jpg
           test -s unity-city/Assets/Source/Mistrzowie/Vehicles/car_rev.glb
@@ -279,11 +278,12 @@ jobs:
           test -s unity-city/Assets/Source/Mistrzowie/Brax/CarAnimations/Driving.fbx
           test -s unity-city/Assets/Source/Mistrzowie/Brax/CarAnimations/Exiting\ Car.fbx
           echo "MISTRZOWIE_A1_T11_ASSET_GATE PASS; owner original belt/VIP/3 murals/3 signs/cabinet plaque/estate car/3 Mixamo clips"
-      - name: Murale areny HD 6144x2048 z wydania (brak = stare murale, bez przerywania)
+      - name: A1 — stage EXACT owner HD murals IMG_0264/0265/0266 from pinned release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           python3 unity-tools/mistrzowie/install_arena_murals_hd.py
+          python3 unity-tools/mistrzowie/verify_arena_three_murals.py
 
       - name: Verify and stage owner's unchanged K1-K12 signage atlas before Unity
         env:
