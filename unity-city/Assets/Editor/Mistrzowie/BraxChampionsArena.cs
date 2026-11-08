@@ -62,7 +62,7 @@ public static class BraxChampionsArena
         // shared SourceMaterial pipeline. Murals remain separate owner artwork.
         var wallConcrete = BraxChampionsFoundation.SourceMaterial(
             "arena_plain_walls_concrete_wall_009", "concrete_wall_009", 2.4f,
-            new Color(.54f,.55f,.57f));
+            new Color(.30f,.31f,.33f));
         wallConcrete.SetFloat("_Roughness",.54f);
         var wallGranite = BraxChampionsFoundation.SourceMaterial(
             "arena_wall_lower_granite_tile", "granite_tile", .82f,
