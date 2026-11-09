@@ -18,3 +18,4 @@ unity-city/Assets/Source/Prywatne.meta
 
 # rejon buildu CI (pisze unity-tools/claude/rejon_buildu.py przed Unity)
 unity-city/rejon-ci.txt
+unity-tools/mistrzowie/__pycache__/
