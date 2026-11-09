@@ -9,9 +9,22 @@ using UnityEditor;
 public sealed class BraxChampionsArenaLobbyTextureImport : AssetPostprocessor
 {
     public const string Folder="/Source/Mistrzowie/ArenaLobby/";
-    public override uint GetVersion()=>1;
+    public const string TrophyFolder="/Source/Mistrzowie/ArenaTrophies/";
+    public override uint GetVersion()=>2;
     void OnPreprocessTexture()
     {
+        if(assetPath.Contains(TrophyFolder))
+        {
+            // Engraved trophy plates: crisp lettering -> ASTC 4x4, never streamed.
+            var p=(TextureImporter)assetImporter;
+            p.textureType=TextureImporterType.Default;p.sRGBTexture=true;p.mipmapEnabled=true;
+            p.isReadable=false;p.anisoLevel=8;p.streamingMipmaps=false;p.wrapMode=UnityEngine.TextureWrapMode.Clamp;
+            p.maxTextureSize=2048;p.textureCompression=TextureImporterCompression.Compressed;
+            var a=p.GetPlatformTextureSettings("Android");
+            a.name="Android";a.overridden=true;a.maxTextureSize=2048;a.format=TextureImporterFormat.ASTC_4x4;a.compressionQuality=100;
+            p.SetPlatformTextureSettings(a);
+            return;
+        }
         if(!assetPath.Contains(Folder))return;
         var t=(TextureImporter)assetImporter;
         string name=System.IO.Path.GetFileNameWithoutExtension(assetPath);

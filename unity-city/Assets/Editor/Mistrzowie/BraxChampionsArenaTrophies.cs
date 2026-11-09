@@ -44,7 +44,45 @@ public static partial class BraxChampionsArenaArrival
         new Vector2(.128f,.604f),new Vector2(.118f,.580f),new Vector2(.108f,.500f),new Vector2(0f,.430f)};
     static readonly Dictionary<string,Mesh> latheCache=new Dictionary<string,Mesh>();
     static Mesh handleMesh;
-    static Material trophyGold;
+    static Material trophyGold, plaqueMat;
+    static readonly Dictionary<int,Mesh> plaqueMeshes=new Dictionary<int,Mesh>();
+    const string PlaqueAtlas="Assets/Source/Mistrzowie/ArenaTrophies/trophy_plaques_atlas.png";
+
+    // Owner 9.11 "napis grawer na tym co stoi puchar, piękny napis": engraved
+    // gold plates (make_trophy_plaques.py, Cinzel OFL), 8 inscriptions in an
+    // atlas 4 x 2 cells of 512 x 224 px on a 2048 x 512 texture.
+    static Material PlaqueMaterial()
+    {
+        if(plaqueMat)return plaqueMat;
+        var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(PlaqueAtlas);
+        if(!tex){BraxBuildQuality.Warn("A1_TROPHY_PLAQUE_ATLAS_MISSING: "+PlaqueAtlas);return null;}
+        plaqueMat=new Material(Shader.Find(BraxCityMaterials.ShaderName)){name="A1 trophy | engraved gold plates",enableInstancing=true};
+        plaqueMat.SetTexture("_MainTex",tex);plaqueMat.SetTexture("_EmissionMap",tex);
+        plaqueMat.SetColor("_Color",Color.white);plaqueMat.SetColor("_EmissionColor",new Color(.14f,.14f,.14f));
+        plaqueMat.SetFloat("_Metallic",.80f);plaqueMat.SetFloat("_Roughness",.22f);plaqueMat.SetFloat("_ReflectionStrength",.8f);
+        plaqueMat.SetFloat("_VertexTint",0f);plaqueMat.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        AssetDatabase.CreateAsset(plaqueMat,"Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/A1_trophy_plaques.mat");
+        return plaqueMat;
+    }
+    // Plate .16 x .07 m on BOTH plinth faces (cases are glazed all round).
+    static Mesh PlaqueMesh(int cell)
+    {
+        if(plaqueMeshes.TryGetValue(cell,out var m)&&m)return m;
+        const float w=.16f,h=.07f,z=.1035f,y=.06f; // in front of the .205 gold band
+        float u0=(cell%4)*.25f,u1=u0+.25f,vTop=1f-(cell/4)*(224f/512f),vBot=vTop-224f/512f;
+        var v=new List<Vector3>{
+            new Vector3(-w*.5f,y-h*.5f,-z),new Vector3(-w*.5f,y+h*.5f,-z),new Vector3(w*.5f,y+h*.5f,-z),new Vector3(w*.5f,y-h*.5f,-z),
+            new Vector3(w*.5f,y-h*.5f,z),new Vector3(w*.5f,y+h*.5f,z),new Vector3(-w*.5f,y+h*.5f,z),new Vector3(-w*.5f,y-h*.5f,z)};
+        var uv=new List<Vector2>{new Vector2(u0,vBot),new Vector2(u0,vTop),new Vector2(u1,vTop),new Vector2(u1,vBot),
+                                 new Vector2(u0,vBot),new Vector2(u0,vTop),new Vector2(u1,vTop),new Vector2(u1,vBot)};
+        // front faces -Z (viewer's right = +X), back faces +Z (viewer's right = -X)
+        m=new Mesh{name="A1 trophy plate "+cell};
+        m.SetVertices(v);m.SetUVs(0,uv);m.SetTriangles(new[]{0,1,2,0,2,3,4,5,6,4,6,7},0);
+        m.RecalculateNormals();m.RecalculateBounds();m.RecalculateTangents();
+        AssetDatabase.CreateAsset(m,"Assets/PlayableGenerated/Mistrzowie/Buildings/Meshes/A1_trophy_plate_"+cell+".asset");
+        plaqueMeshes[cell]=m;
+        return m;
+    }
 
     // Owner 9.11 "złoty połysk puchar": the facade gold (rough .16, metal .96)
     // reads dull on a small curved cup. Dedicated mirror-polished gold: full
@@ -151,7 +189,7 @@ public static partial class BraxChampionsArenaArrival
         return w;
     }
 
-    static void Trophy(Transform parent,Vector3 nominalBase,float scale,float yaw,Material gold,Material plinth,string label,int design=0)
+    static void Trophy(Transform parent,Vector3 nominalBase,float scale,float yaw,Material gold,Material plinth,string label,int design=0,int plate=-1)
     {
         var g=new GameObject("A1 TROPHY | "+label).transform;g.SetParent(parent,false);
         g.localPosition=nominalBase*K;g.localRotation=Quaternion.Euler(0,yaw,0);g.localScale=Vector3.one*(K*scale);
@@ -164,6 +202,12 @@ public static partial class BraxChampionsArenaArrival
         band.transform.SetParent(g,false);band.transform.localPosition=new Vector3(0,CupPlinth*.5f,0);
         band.transform.localScale=new Vector3(.205f,.022f,.205f);band.GetComponent<Renderer>().sharedMaterial=gold;
         Object.DestroyImmediate(band.GetComponent<Collider>());
+        var plaque=plate>=0?PlaqueMaterial():null;
+        if(plaque)
+        {
+            var po=new GameObject("trophy engraved gold plate "+plate);po.transform.SetParent(g,false);
+            po.AddComponent<MeshFilter>().sharedMesh=PlaqueMesh(plate%8);po.AddComponent<MeshRenderer>().sharedMaterial=plaque;
+        }
         var parts=new List<(Mesh,string)>();
         switch(design%5)
         {
@@ -215,9 +259,9 @@ public static partial class BraxChampionsArenaArrival
             int[] small=s<0?new[]{3,4,4,3}:new[]{4,3,3,4};
             float[] lx={-.78f,0f,.78f},sx={-.87f,-.29f,.29f,.87f};
             for(int i=0;i<3;i++)
-            {Trophy(root,new Vector3(x+lx[i],f+baseTop,z),1f,lx[i]*40f,gold,black,"large trophy design "+large[i],large[i]);cups++;}
+            {Trophy(root,new Vector3(x+lx[i],f+baseTop,z),1f,lx[i]*40f,gold,black,"large trophy design "+large[i],large[i],cups%8);cups++;}
             for(int i=0;i<4;i++)
-            {Trophy(root,new Vector3(x+sx[i],f+shelf+.006f,z),.54f,sx[i]*60f,gold,black,"small trophy design "+small[i],small[i]);cups++;}
+            {Trophy(root,new Vector3(x+sx[i],f+shelf+.006f,z),.54f,sx[i]*60f,gold,black,"small trophy design "+small[i],small[i],cups%8);cups++;}
         }
         Debug.Log("A1_TROPHY_CASES cases=2 cups="+cups+" designs=5(loving_cup,lidded_urn,globe,champions_bowl,goblet) large=0.74m small=0.40m lathe=48 handles=swept material=mirror_polished_gold rough=.09 metal=1 reflection=1");
     }

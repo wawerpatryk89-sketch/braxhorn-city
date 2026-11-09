@@ -58,6 +58,12 @@ class ArenaOwnerFixes20261109(unittest.TestCase):
             self.assertIn("static readonly Vector2[] " + profile + "={", trophies)
         self.assertIn("switch(design%5)", trophies)
         self.assertIn("A1_trophy_polished_gold.mat", trophies)
+        # Engraved plates on both plinth faces, atlas committed with its generator.
+        atlas = ROOT / "unity-city/Assets/Source/Mistrzowie/ArenaTrophies/trophy_plaques_atlas.png"
+        self.assertTrue(atlas.is_file())
+        self.assertEqual(atlas.read_bytes()[16:24], (2048).to_bytes(4, "big") + (512).to_bytes(4, "big"))
+        self.assertIn("PlaqueMesh(plate%8)", trophies)
+        self.assertIn('TrophyFolder="/Source/Mistrzowie/ArenaTrophies/"', source("BraxChampionsArenaLobbyTextureImport.cs"))
 
 
 if __name__ == "__main__":
