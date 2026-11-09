@@ -126,8 +126,13 @@ class Plan(unittest.TestCase):
         self.assertIn('"SALA KICKBOXINGU"', DOMY)            # bez nazwy rywala — właściciel nada
 
     def test_signs_are_3d_bodies(self):
-        self.assertIn("BoxF(W(cx, cz, metal, new Color(.16f, .16f, .17f)), F, sx0, sx1, sy0, sy1, -.3f, 0f);", DOMY)
-        self.assertIn("BraxRegionMeble.Napis(rd, rodzaj,", DOMY)
+        # tablica-bryła 0.30 m od nad markizą do stropu, litery przestrzenne (krój miasta), nigdy płaski napis nad paskiem
+        self.assertIn("BoxF(W(cx, cz, metal, new Color(.30f, .30f, .32f)), F, sx0, sx1, sy0, sy1, -.3f, 0f);", DOMY)
+        self.assertIn("float sy0 = yo + .2f, sy1 = yF + hf + .05f", DOMY)
+        self.assertIn("BraxUliceKit.Napis3D(rodzaj, F.P((sx0 + sx1) * .5f, sy0 + .03f + (hTab - cap) * .5f, -.305f), F.N, cap, .04f, LiteryFarba(kolLit), metal);", DOMY)
+        self.assertNotIn("BraxRegionMeble.Napis(rd, rodzaj,", DOMY)
+        self.assertIn("internal static float WysWitryny => 2.1f * K;", DOMY)
+        self.assertIn('BraxUliceKit.Zapisz(Grupa("Fawela: litery szyldów (przestrzenne)"), "fawela_szyldy")', FAW)
 
     def test_clerks_stand_on_given_floor(self):
         self.assertIn("foreach (var (pf, yawF, gdzieF) in BraxRegionFawela.Sprzedawcy)", RUCH)
@@ -190,7 +195,7 @@ class BibliotekaIRealizm(unittest.TestCase):
     def test_equipment_from_library(self):
         for model in ('"miasto_sklepy", "lodowka"', '"miasto_sklepy", "menu_4"', '"miasto_sklepy", "plakat_0"', '"miasto_jedzenie", "wozek_jedzenie"', '"miasto_silownia_metro", "silownia_atlas"'):
             self.assertIn(model, DOMY, model)
-        for pomocnik in ("BraxMiastoAssety.Klatka(tr,", "BraxMiastoAssety.Lawka(tr,", "BraxMiastoAssety.Bieznia(tr,", '"odz_dol", "odz_polka", "odz_gora"', '"metal_trash_can"', '"wooden_picnic_table"'):
+        for pomocnik in ("BraxMiastoAssety.Klatka(tr,", "BraxMiastoAssety.Lawka(tr,", '"odz_dol", "odz_polka", "odz_gora"', '"trashbag"', '"wooden_picnic_table"'):
             self.assertIn(pomocnik, DOMY, pomocnik)
 
     def test_no_white_lettering(self):
@@ -220,6 +225,85 @@ class BibliotekaIRealizm(unittest.TestCase):
     def test_sidewalk_and_frame_depth(self):
         self.assertIn("BoxF(ch, fF, -.12f, L + .12f, dz.yFront - .7f, dz.yFront + .05f, -(doDrogi - .32f), 0f, false, false);", DOMY)
         self.assertIn("void Rama(float s0, float s1, float y0, float y1) => BoxF(br, F, s0, s1, y0, y1, g - .045f, g, false, false);", DOMY)
+
+
+ZIELEN = src(R / "BraxRegionFawelaZielen.cs")
+SUPERMARKET = src(R / "BraxSupermarket.cs")
+LIB = ROOT / "unity-city/Assets/Source/Claude/Library"
+
+
+class SalaIBiblioteka(unittest.TestCase):
+    """Właściciel 9.11 23:18–23:50: stara sala bokserska realnie, worki z biblioteki, wszystko co się przydaje z biblioteki."""
+
+    def test_owner_library_models_in_repo(self):
+        for plik in ("leather_punching_bag.glb", "rope_coil.glb", "medicine_ball_rack.glb", "boxing_headgear.glb"):
+            self.assertTrue((LIB / plik).exists(), plik)
+            self.assertIn(plik[:-4], DOMY, plik)
+        self.assertIn("oboz-owner-remodel-20261105", (LIB / "CREDITS.md").read_text(encoding="utf-8"))
+        self.assertNotIn("tractor_tire", DOMY)   # prywatny asset obozu — poza Unity
+
+    def test_hall_is_old_boxing_gym(self):
+        for czesc in ('new[] { "leather_punching_bag" }', "podlogaSali", "matySali", "void Lamperia(Fr F, float len", "for (float x = s.xMin + 2.25f; x < s.xMax - 1f; x += 4.5f)",
+                      '"ceiling_fan"', '"hanging_industrial_lamp"', '"standing_chalkboard_01"', '"wall_clock"', "PlakatWewn(F, s0,", "static Material Plakaty()"):
+            self.assertIn(czesc, DOMY, czesc)
+        self.assertNotIn("Bieznia(", DOMY)   # stara sala bokserska nie ma bieżni
+
+    def test_hall_roof_open_and_windows_glazed_both_sides(self):
+        # 9.11 23:40 (podgląd): pełna płyta wieńca zasłaniała kratownice, a szyby okien widać było tylko z zewnątrz
+        self.assertIn("wn.Box(new Vector3(s.xMin - .05f, y + hs, s.yMin - .05f), new Vector3(s.xMax + .05f, y + hs + .3f, s.yMin + G + .02f), true);", DOMY)
+        self.assertNotIn("W(cx, cz, betonZbr, Color.white).Box(new Vector3(s.xMin - .05f, y + hs, s.yMin - .05f), new Vector3(s.xMax + .05f, y + hs + .3f, s.yMax + .05f), true);", DOMY)
+        self.assertIn("sz.Quad2(F.P(o.xMin, o.yMin, gs), F.P(o.xMax, o.yMin, gs), F.P(o.xMax, o.yMax, gs), F.P(o.xMin, o.yMax, gs));", DOMY)
+
+    def test_exact_scale_and_variant_for_library_models(self):
+        self.assertIn("bool dokladnie = false, string czesc = null)", DOMY)
+        self.assertIn("o.transform.localScale *= maxH * K / b0.size.y;", DOMY)
+        self.assertIn('r.Next(3) == 0 ? "!rusted" : "rusted"', DOMY)   # klimatyzator: jeden wariant z zestawu, nie dwa obok siebie
+
+    def test_fetch_lists_cover_library_models(self):
+        for m in ("exterior_aircon_unit", "plastic_monobloc_chair_01", "CashRegister_01", "BarberShopChair_01", "ceiling_fan", "hanging_industrial_lamp",
+                  "shrub_02", "shrub_03", "boulder_01", "wall_clock", "korean_fire_extinguisher_01", "multi_cleaner_bottle", "bleach_bottle"):
+            self.assertIn('"' + m + '"', FETCH_R, m)
+        for t in ("wood_floor_worn", "rubberized_track"):
+            self.assertIn('"' + t + '"', FETCH_R, t); self.assertIn('"' + t + '"', FAW, t)
+
+
+class RealizmPoPodgladzie(unittest.TestCase):
+    """Poprawki po przeglądzie 25 podglądów (9.11 23:40)."""
+
+    def test_raw_side_walls(self):
+        self.assertIn("bool bokiSurowe = tynkowany && r.NextDouble() < (dz.pas == 1 ? .45 : .7)", DOMY)
+        self.assertIn("b = bokiSurowe ? BS(i) : BW(i); Sciana(b, fb,", DOMY)
+
+    def test_shop_interior_light_and_fittings(self):
+        self.assertIn('BraxRegion.Warm(rd, "Fawela: światło lokalu " + rodzaj', DOMY)
+        self.assertIn('new[] { "BarberShopChair_01" }, F.P(G + 1.25f, yF, d + .3f), F.Yaw - 90f', DOMY)   # fotel przodem do lustra
+        self.assertNotIn("BoxF(bl, F, L - G - 1.9f, L - G - .2f, yF + .42f * k, yF + .47f * k, .6f, 1.0f, true);", DOMY)   # wisząca deska „ławki”
+
+    def test_wild_greenery_on_slope(self):
+        self.assertIn('Krok("zieleń dzika stoku: drzewa, krzewy, kamienie", Zielen);', FAW)
+        self.assertIn("const int MaxDrzew = 80, MaxKrzewow = 260, MaxKamieni = 52;", ZIELEN)
+        for m in ('"drzewo_verdant"', '"park_shrub"', '"park_rock"'):
+            self.assertIn(m, ZIELEN, m)
+        self.assertIn("DoDzialek(px, pz) - 1.8f, DoDrog(px, pz, 10f) - 3.2f", ZIELEN)
+
+    def test_terrain_material_line_not_commented_out(self):
+        linia = next(l for l in (R / "BraxRegionFawelaDrogi.cs").read_text(encoding="utf-8").splitlines() if '"_KTrawa"' in l)
+        self.assertIn('m.SetColor("_KSkala"', linia.split("//")[0])
+
+
+class SupermarketNaZiemi(unittest.TestCase):
+    """Właściciel 9.11 23:47: „nadal to wisi nad historycznym budynkiem” — supermarket nr 2 stał na dachu zabytku (y = 43.6 m)."""
+
+    def test_shop_only_at_street_level(self):
+        self.assertIn("const float MaksGrunt = 4f;", SUPERMARKET)
+        self.assertIn("BraxRegion.Ground(q.x, q.y, -20f, MaksGrunt, out var h0)", SUPERMARKET)
+        self.assertIn("if (!BraxRegion.Ground(p.x, p.z, -20f, MaksGrunt, out var h)) return false;", SUPERMARKET)
+        self.assertIn("if (BraxRegion.Ground(p.x, p.z, MaksGrunt, 400f, out _)) return false;", SUPERMARKET)
+        pasuje = SUPERMARKET[SUPERMARKET.index("static bool Pasuje("):SUPERMARKET.index("static float WejscieX(")]
+        self.assertNotIn("-20f, 80f", pasuje)
+
+    def test_shop_not_on_favela_or_outside_city(self):
+        self.assertIn("!BraxMiastoGranice.Grywalny(p.x, p.z) || BraxMiastoGranice.WFaweli(p.x, p.z)", SUPERMARKET)
 
 
 if __name__ == "__main__":

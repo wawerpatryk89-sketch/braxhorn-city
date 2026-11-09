@@ -27,7 +27,7 @@ public static partial class BraxRegionFawela
         var t = Mapa("diffuse.jpg", trawaSl); if (t) { m.SetTexture("_Trawa", t); var tn = Mapa("normal.jpg", trawaSl); if (tn) m.SetTexture("_TrawaN", tn); }
         var s = Mapa("diffuse.jpg", skalaSl); if (s) { m.SetTexture("_Skala", s); var sn = Mapa("normal.jpg", skalaSl); if (sn) m.SetTexture("_SkalaN", sn); }
         m.SetColor("_KPiasek", new Color(.93f, .88f, .80f)); m.SetColor("_KMokry", new Color(.72f, .67f, .6f));
-        m.SetColor("_KTrawa", t ? new Color(.80f, .84f, .66f) : new Color(.33f, .42f, .22f)); m.SetColor("_KSkala", s ? new Color(.9f, .88f, .84f) : new Color(.48f, .46f, .43f));
+        m.SetColor("_KTrawa", t ? new Color(.76f, .77f, .58f) : new Color(.33f, .42f, .22f)); m.SetColor("_KSkala", s ? new Color(.9f, .88f, .84f) : new Color(.48f, .46f, .43f));
         m.SetFloat("_TPiasek", 2.6f * K); m.SetFloat("_TTrawa", 2.2f * K); m.SetFloat("_TSkala", 4f * K); m.SetFloat("_Makro", 37f); m.SetFloat("_MakroMix", .28f);
         m.enableInstancing = false;
         Directory.CreateDirectory(BraxRegion.Out + "/Fawela");
@@ -61,7 +61,7 @@ public static partial class BraxRegionFawela
                     float przy = Mathf.Min(Mathf.Min(DoDzialek(x, z) - 3.5f, DoDrog(x, z, 8f) - 1.5f), Mathf.Min(DoSchodow(x, z) - 1.2f, Mathf.Min(DoProst(Plac, x, z), DoProst(Sala, x, z)) - 2f));
                     float ziemia = 1f - S01(0f, 5f, przy);
                     float plama = Szum(x / 9f + 3.1f, z / 9f + 8.7f) * .7f + Szum(x / 2.7f, z / 2.7f) * .3f;
-                    ziemia = Mathf.Max(ziemia, Glebokosc(x, z) < Pas2 ? S01(.36f, .58f, plama) : S01(.55f, .75f, plama) * .5f);
+                    ziemia = Mathf.Max(ziemia, Glebokosc(x, z) < Pas2 ? S01(.36f, .58f, plama) : S01(.5f, .7f, plama) * .8f);   // wyżej wydeptane łaty i ścieżki
                     float skala = S01(.62f, .95f, stromo) * (przy > 2f ? 1f : 0f);
                     if (mieszany) c.Add(new Color(ziemia * (1f - skala), 0f, (1f - ziemia) * (1f - skala), skala));
                     else c.Add(Color.Lerp(new Color(.8f, .86f, .7f), Color.white, ziemia));

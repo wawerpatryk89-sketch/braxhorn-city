@@ -315,14 +315,21 @@ public static class BraxSupermarket
         return false;
     }
 
+    /// <summary>Najwyższy poziom gruntu, na którym wolno postawić sklep (ulice miasta leżą na 0…0.3 m; dachy i tarasy wyżej).</summary>
+    const float MaksGrunt = 4f;
+
     static bool Pasuje(Vector2 q, float yaw, out float y)
     {
         y = 0f;
         var rot = Quaternion.Euler(0f, yaw, 0f); Vector3 R = rot * Vector3.right, F = rot * Vector3.forward;
         Vector3 P(float x, float z) => new Vector3(q.x, 0f, q.y) + R * x + F * z;
-        // 1) ląd pod całą halą z marginesem 4 m (najpierw najtańszy test)
+        // 1) ląd pod całą halą z marginesem 4 m (najpierw najtańszy test); w granicach miasta, nie na stoku faweli
         for (float x = -W * .5f - 4f; x <= W * .5f + 4.01f; x += 4f)
-            for (float z = -4f; z <= D + 4.01f; z += 4f) { var p = P(x, z); if (!BraxMiastoGranice.Lad(p.x, p.z)) return false; }
+            for (float z = -4f; z <= D + 4.01f; z += 4f)
+            {
+                var p = P(x, z);
+                if (!BraxMiastoGranice.Lad(p.x, p.z) || !BraxMiastoGranice.Grywalny(p.x, p.z) || BraxMiastoGranice.WFaweli(p.x, p.z)) return false;
+            }
         // 2) jezdnia przed frontem (6–16 m od witryny, na osi wejścia) — wejście od ulicy
         bool droga = false;
         for (float z = -6f; z >= -16f && !droga; z -= 2f) droga = BraxRegionMiastoB.NaJezdni(P(0f, z));
@@ -331,7 +338,11 @@ public static class BraxSupermarket
         for (float x = -W * .5f - 4f; x <= W * .5f + 4.01f; x += 4f)
             for (float z = -4f; z <= D + 4.01f; z += 4f) if (BraxRegionMiastoB.NaJezdni(P(x, z))) return false;
         // 4) nic nad gruntem (budynki, drzewa, latarnie, auta, ławki, płoty)
-        float yProbe = BraxRegion.Ground(q.x, q.y, -20f, 80f, out var h0) ? h0.point.y : 0f;
+        // 9.11 23:47 (właściciel: „nadal to wisi nad historycznym budynkiem”; log APK 18:14: „kopia 2: front (-312, 43.6, -24)”):
+        // Ground(−20…80) brał za grunt DACH zabytku KINNAIRD (kolizja bryły 43 m) i hala stanęła 43.6 m nad ulicą. Sklep stoi
+        // WYŁĄCZNIE na poziomie ulicy: grunt szukany do MaksGrunt (4 m) — dach jest pomijany, a bryła budynku nad gruntem odrzuca
+        // działkę w teście kolizji niżej.
+        float yProbe = BraxRegion.Ground(q.x, q.y, -20f, MaksGrunt, out var h0) ? h0.point.y : 0f;
         // Nowy chodnik parkingu dochodzi pod same drzwi od strony z<0.
         // Nie odrzucaj sklepu z powodu WŁASNEGO dojścia tuż przed frontem.
         // Obejmuje całą halę i pas za nią; wnętrze nadal bez kolizji.
@@ -347,7 +358,8 @@ public static class BraxSupermarket
             for (int j = 0; j <= 5; j++)
             {
                 var p = P(-W * .5f + W * i / 6f, D * j / 5f);
-                if (!BraxRegion.Ground(p.x, p.z, -20f, 80f, out var h)) return false;
+                if (!BraxRegion.Ground(p.x, p.z, -20f, MaksGrunt, out var h)) return false;
+                if (BraxRegion.Ground(p.x, p.z, MaksGrunt, 400f, out _)) return false;   // coś z płaskim wierzchem nad działką (dach, wiadukt, taras) — nie tutaj
                 lo = Mathf.Min(lo, h.point.y); hi = Mathf.Max(hi, h.point.y);
             }
         if (hi - lo > .6f) return false;

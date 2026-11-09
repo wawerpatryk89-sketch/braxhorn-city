@@ -46,6 +46,7 @@ TEXTURES_FAWELA_1K = [
     "rusty_metal_shutter", "rusted_shutter", "wooden_garage_door", "wood_shutter", "metal_plate_02", "asphalt_03",
     "asphalt_04", "concrete_floor_worn_001", "damaged_concrete_floor", "wood_table_worn", "cotton_jersey", "brown_leather",
     "fabric_leather_02", "fabric_leather_01",
+    "wood_floor_worn", "rubberized_track",
 ]
 MODELS_2K = [  # drzewa i krzewy: pełna jakość (2K); reszta roślin w 1K, bo edytor Unity na GitHubie ma 16 GB
     "shrub_01", "shrub_02", "shrub_03",
@@ -84,6 +85,13 @@ MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     # 3.11 13:27 towar w sklepach ulicy (BraxSklepyTowar; lista z katalogu Poly Haven 3.11): piekarnia, cukiernia, warzywniak, delikatesy, kawiarnia, bary
     "bananas", "carrot_cake", "strawberry_chocolate_cake", "long_life_food", "wine_bottles_01", "CheeseBox_01", "multi_cleaner_bottle",
     "bleach_bottle", "wicker_basket_01", "wicker_basket_02", "tea_set_01", "jug_01", "wooden_bowl_01", "ceramic_vase_01",
+    # FAWELA (9.11, właściciel: „wszystko, co się przydaje, z biblioteki — żeby wyglądało jak najbardziej realnie”): klimatyzatory,
+    # krzesła z tworzywa, worki ze śmieciami, butle gazowe, baniaki, skrzynki, worki cementu, drabiny, kasa sklepowa, fotel
+    # fryzjerski, pompka, tarcza do rzutek; stara sala bokserska: wentylatory, lampy przemysłowe, ławki, zegar, gaśnica, młot, lampa
+    "exterior_aircon_unit", "plastic_monobloc_chair_01", "trashbag", "propane_tank", "small_lpg_tank", "plastic_crate_02",
+    "plastic_jerrycan", "plastic_bottle_gallon", "metal_jerrycan", "cement_bag", "wooden_ladder", "folding_wooden_stool",
+    "CashRegister_01", "BarberShopChair_01", "tire_pump", "medical_box", "ceiling_fan", "hanging_industrial_lamp", "security_light",
+    "sledgehammer_01",
 ]
 
 
