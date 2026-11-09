@@ -1000,106 +1000,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     }
 
     // =====================================================================================================================
-    // 6) warsztaty (przeniesione spod łuków) — pierzeja płd. ul. Warsztatowej; jeden OTWARTY (AUTO NAPRAWA); plac ustawek
-    static void Warsztaty()
-    {
-        float zf = SZ - SH - Kr - 2.5f;   // lico (−24.75)
-        float zb = zf - 13.5f;            // tył
-        string[] nazwy = { "WULKANIZACJA", "AUTO NAPRAWA", "GARAŻ 12", "MAGAZYN" };
-        var w = new GameObject("Warsztaty ul. Warsztatowej").transform; w.SetParent(root, false);
-        var sc = new BraxRegionMeble.Bud(); var bet = new BraxRegionMeble.Bud(); var met = new BraxRegionMeble.Bud(); var bramy = new BraxRegionMeble.Bud(); var szk = new BraxRegionMeble.Bud(); var pos = new BraxRegionMeble.Bud();
-        float h = 5.2f * K, x0 = -112f;
-        var szyba = BraxCityMaterials.Surface("Warsztat: szyba (jasna, z odbiciem)", new Color(.45f, .53f, .57f), .15f, .1f);
-        for (int i = 0; i < 4; i++)
-        {
-            float a = x0 + i * 10f, b = a + 10f, m = (a + b) * .5f;
-            bool otwarty = i == 1;
-            // ściany: tył, boki (wspólne — jedna na granicy), front z bramą 3.6 × 3.6 m × k
-            sc.MinMax(new Vector3(a, YC, zb), new Vector3(b, YC + h, zb + .35f));
-            if (i == 0) sc.MinMax(new Vector3(a, YC, zb), new Vector3(a + .35f, YC + h, zf));
-            sc.MinMax(new Vector3(b - .35f, YC, zb), new Vector3(b, YC + h, zf));
-            float bw = 3.6f * K, bh = 3.6f * K;
-            sc.MinMax(new Vector3(a + (i == 0 ? .35f : 0f), YC, zf - .35f), new Vector3(m - bw * .5f, YC + h, zf));
-            sc.MinMax(new Vector3(m + bw * .5f, YC, zf - .35f), new Vector3(b - .35f, YC + h, zf));
-            sc.MinMax(new Vector3(m - bw * .5f, YC + bh, zf - .35f), new Vector3(m + bw * .5f, YC + h, zf));
-            // okno obok bramy (szyba w głębi 0.2)
-            // dach + attyka
-            bet.MinMax(new Vector3(a, YC + h, zb), new Vector3(b, YC + h + .3f, zf + .3f));
-            BraxRegionMeble.Kolizja(w, "Warsztat kolizja tył", new Vector3(m, YC + h * .5f, zb + .17f), new Vector3(10f, h, .35f));
-            BraxRegionMeble.Kolizja(w, "Warsztat kolizja front L", new Vector3((a + m - bw * .5f) * .5f, YC + h * .5f, zf - .17f), new Vector3(m - bw * .5f - a, h, .35f));
-            BraxRegionMeble.Kolizja(w, "Warsztat kolizja front P", new Vector3((m + bw * .5f + b) * .5f, YC + h * .5f, zf - .17f), new Vector3(b - m - bw * .5f, h, .35f));
-            BraxRegionMeble.Kolizja(w, "Warsztat kolizja bok", new Vector3(b - .17f, YC + h * .5f, (zb + zf) * .5f), new Vector3(.35f, h, zf - zb));
-            if (i == 0) BraxRegionMeble.Kolizja(w, "Warsztat kolizja bok", new Vector3(a + .17f, YC + h * .5f, (zb + zf) * .5f), new Vector3(.35f, h, zf - zb));
-            // posadzka (beton gładki, 5 cm nad chodnikiem — próg skośny niepotrzebny: 5 cm)
-            pos.MinMax(new Vector3(a + (i == 0 ? .35f : 0f), YC - .25f, zb + .35f), new Vector3(b - .35f, YC + .05f, zf - .35f));
-            BraxRegionMeble.Kolizja(w, "Warsztat posadzka", new Vector3(m, YC - .1f, (zb + zf) * .5f), new Vector3(10f, .3f, zf - zb));
-            // szyld (kaseton nad bramą) — litery 3D
-            met.MinMax(new Vector3(m - 3.2f * K, YC + bh + .35f * K, zf), new Vector3(m + 3.2f * K, YC + bh + 1.15f * K, zf + .18f));
-            BraxRegionMeble.Napis(w, nazwy[i], new Vector3(m, YC + bh + .75f * K, zf + .2f), Vector3.forward, .5f * K, new Color(.95f, .93f, .86f));
-            BraxRegionMeble.Napis(w, "ul. Warsztatowa " + (2 * i + 2), new Vector3(b - 1.0f * K, YC + 2.6f * K, zf + .05f), Vector3.forward, .12f * K, Color.white);
-            if (!otwarty)
-            {
-                // brama rolowana zamknięta (lamele co 10 cm × k), skrzynka rolety
-                for (float y = YC + .05f; y < YC + bh - .05f; y += .1f * K) bramy.MinMax(new Vector3(m - bw * .5f, y, zf - .3f), new Vector3(m + bw * .5f, y + .085f * K, zf - .24f));
-                met.MinMax(new Vector3(m - bw * .5f - .1f, YC + bh - .02f, zf - .34f), new Vector3(m + bw * .5f + .1f, YC + bh + .3f * K, zf - .05f));
-                BraxRegionMeble.Kolizja(w, "Brama zamknięta", new Vector3(m, YC + bh * .5f, zf - .27f), new Vector3(bw, bh, .1f));
-            }
-            else
-            {
-                // OTWARTY: brama podniesiona (skrzynka), wnętrze: ściany tynk, oprawy, podnośnik 2-kolumnowy, stół warsztatowy,
-                // szafka narzędziowa, regał z oponami, kompresor, plamy oleju? (nie — czysto)
-                met.MinMax(new Vector3(m - bw * .5f - .1f, YC + bh - .02f, zf - .34f), new Vector3(m + bw * .5f + .1f, YC + bh + .3f * K, zf - .05f));
-                var tynk = BraxRegionMeble.Tex("Warsztat: tynk wnętrza", 1.5f, new Color(.86f, .86f, .84f), .9f, "white_plaster_02", "white_stucco_02");
-                var wn = new BraxRegionMeble.Bud();
-                wn.MinMax(new Vector3(a + .37f, YC + .05f, zb + .37f), new Vector3(b - .37f, YC + h - .05f, zb + .39f));
-                wn.MinMax(new Vector3(a + .02f, YC + .05f, zb + .37f), new Vector3(a + .04f, YC + h - .05f, zf - .37f));
-                wn.MinMax(new Vector3(b - .39f, YC + .05f, zb + .37f), new Vector3(b - .37f, YC + h - .05f, zf - .37f));
-                wn.MinMax(new Vector3(a + .04f, YC + h - .07f, zb + .37f), new Vector3(b - .39f, YC + h - .05f, zf - .37f));
-                wn.Obiekt("Warsztat otwarty: tynk wnętrza", w, tynk, false, false);
-                Podnosnik(w, new Vector3(m, YC + .05f, (zb + zf) * .5f - .5f));
-                var stol = new BraxRegionMeble.Bud();
-                stol.MinMax(new Vector3(a + .5f, YC + .05f + .9f * K, zb + .45f), new Vector3(a + .5f + 2.2f * K, YC + .05f + .95f * K, zb + .45f + .75f * K));
-                foreach (float dx in new[] { .05f, 2.1f }) foreach (float dz in new[] { .05f, .68f }) stol.MinMax(new Vector3(a + .5f + dx * K, YC + .05f, zb + .45f + dz * K), new Vector3(a + .5f + (dx + .06f) * K, YC + .05f + .9f * K, zb + .45f + (dz + .06f) * K));
-                stol.Obiekt("Warsztat: stół warsztatowy", w, BraxCityMaterials.Surface("Warsztat: blat stal ocynk", new Color(.55f, .57f, .58f), .45f, .7f), false, true);
-                BraxRegionMeble.Kolizja(w, "Stół kolizja", new Vector3(a + .5f + 1.1f * K, YC + .5f * K, zb + .45f + .38f * K), new Vector3(2.2f * K, .95f * K, .75f * K));
-                var szafa = new BraxRegionMeble.Bud();
-                szafa.MinMax(new Vector3(b - .45f - .7f * K, YC + .05f, zb + .45f), new Vector3(b - .45f, YC + .05f + 1.8f * K, zb + .45f + .5f * K));
-                szafa.Obiekt("Warsztat: szafa narzędziowa (czerwona)", w, BraxCityMaterials.Surface("Warsztat: lakier czerwony", new Color(.62f, .08f, .06f), .4f, .3f), false, true);
-                BraxRegionMeble.Kolizja(w, "Szafa kolizja", new Vector3(b - .45f - .35f * K, YC + .9f * K, zb + .45f + .25f * K), new Vector3(.7f * K, 1.8f * K, .5f * K));
-                // regał z oponami
-                var opony = new BraxRegionMeble.Bud(); var regal = new BraxRegionMeble.Bud();
-                for (int r = 0; r < 3; r++)
-                {
-                    float y = YC + .05f + (.1f + r * .62f) * K;
-                    regal.MinMax(new Vector3(b - .45f - 1.9f * K, y - .04f, zf - 1.2f * K), new Vector3(b - .45f, y, zf - .5f));
-                    for (int q = 0; q < 3; q++) { var c = new Vector3(b - .45f - (.35f + q * .6f) * K, y + .33f * K, zf - .9f * K); opony.Cyl(c - Vector3.forward * .11f * K, c + Vector3.forward * .11f * K, .32f * K, 18); }
-                }
-                regal.Obiekt("Warsztat: regał", w, BraxCityMaterials.Surface("Warsztat: regał stal niebieska", new Color(.12f, .22f, .45f), .45f, .5f), false, true);
-                opony.Obiekt("Warsztat: opony", w, BraxCityMaterials.Surface("Warsztat: guma opon", new Color(.05f, .05f, .05f), .85f), false, true);
-                BraxRegionMeble.Kolizja(w, "Regał kolizja", new Vector3(b - .45f - .95f * K, YC + 1f * K, zf - .9f * K), new Vector3(1.9f * K, 2f * K, .8f * K));
-                foreach (float dx in new[] { -2.5f, 2.5f }) { BraxRegion.Warm(w, "Warsztat: oprawa", new Vector3(m + dx, YC + h - .4f, (zb + zf) * .5f), 1.6f, 9f); }
-                var opr = new BraxRegionMeble.Bud(); foreach (float dx in new[] { -2.5f, 2.5f }) opr.MinMax(new Vector3(m + dx - .7f * K, YC + h - .2f, (zb + zf) * .5f - .1f * K), new Vector3(m + dx + .7f * K, YC + h - .12f, (zb + zf) * .5f + .1f * K));
-                opr.Obiekt("Warsztat: oprawy LED", w, BraxRegionMeble.Swiecacy("Warsztat: oprawa LED", new Color(.95f, .95f, .9f), .6f), false, false);
-                world_point("R1_WARSZTAT_AUTO_NAPRAWA", "AUTO NAPRAWA (otwarty warsztat)", new Vector3(m, YC + .05f, zf - 2f));
-            }
-        }
-        sc.Obiekt("Warsztaty: cegła", w, cegla, false, true);
-        bet.Obiekt("Warsztaty: dach i attyka", w, beton, false, true);
-        met.Obiekt("Warsztaty: stal (szyldy, skrzynki rolet)", w, BraxCityMaterials.Surface("Warsztat: stal grafit", new Color(.12f, .13f, .14f), .5f, .6f), false, true);
-        bramy.Obiekt("Warsztaty: bramy rolowane", w, BraxCityMaterials.Surface("Warsztat: brama rolowana (ocynk lakier)", new Color(.62f, .64f, .66f), .45f, .6f), false, true);
-        pos.Obiekt("Warsztaty: posadzka", w, beton, false, false);
-        // PLAC USTAWEK 3 na 3: x −104…−78, z −13.25…2.5 (≥ 20 × 12 × k = 25.9 × 15.5), asfalt z liniami boiska, ławki kibiców dookoła
-        float px0 = -104f, px1 = -78f, pz0 = SZ + SH + Kr + 2.5f, pz1 = 2.5f;
-        // nawierzchnia asfaltowa placu z liniami obwiedni W WYCIĘCIACH (bez farby na asfalcie)
-        var linie = new List<Rect> { Rect.MinMaxRect(px0 + 1f, pz0 + 1f, px1 - 1f, pz0 + 1.08f), Rect.MinMaxRect(px0 + 1f, pz1 - 1.08f, px1 - 1f, pz1 - 1f),
-                                     Rect.MinMaxRect(px0 + 1f, pz0 + 1f, px0 + 1.08f, pz1 - 1f), Rect.MinMaxRect(px1 - 1.08f, pz0 + 1f, px1 - 1f, pz1 - 1f) };
-        var pt = new BraxRegionMeble.Bud(); var pl = new BraxRegionMeble.Bud();
-        Wstawki("Plac ustawek", Rect.MinMaxRect(px0, pz0, px1, pz1), YC, linie, asfalt, farba, pt, pl, .3f - YA);   // nawierzchnia przed ławkami (ławki: etap 3)
-        pt.Obiekt("Plac ustawek: nawierzchnia (asfalt)", root, asfalt, false, false);
-        pl.Obiekt("Plac ustawek: linie (farba w wycięciach)", root, farba, false, false);
-        for (float x = px0 + 3f; x < px1 - 2f; x += 6.5f) { float xx = x; Pozniej("ławka kibiców", () => BraxRegionMeble.Lawka(root, NaPodlozu(new Vector3(xx, YC, pz1 + .1f + .3f * K)), 180f, "Ławka kibiców")); }
-        world_point("R1_PLAC_USTAWEK", "plac ustawek 3 na 3", new Vector3((px0 + px1) * .5f, YC, (pz0 + pz1) * .5f));
-    }
+    // 6) warsztaty ul. Warsztatowej i plac ustawek — od 9.11 w BraxRegionMiastoBWarsztaty.cs (premium: elewacja, dach, wnętrza, koła)
 
     static BraxCityWorld swiat;
     static void world_point(string id, string label, Vector3 p)
@@ -1107,23 +1008,6 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         if (!swiat) swiat = UnityEngine.Object.FindFirstObjectByType<BraxCityWorld>();
         if (!swiat) return;
         swiat.points = swiat.points.Where(q => q.id != id).Concat(new[] { new BraxCityPoint { id = id, label = label, position = p } }).ToArray();
-    }
-
-    // podnośnik dwukolumnowy 4 t (kolumny 3.0 m × k, ramiona), z kolizją kolumn
-    static void Podnosnik(Transform w, Vector3 p)
-    {
-        var b = new BraxRegionMeble.Bud(); var r = new BraxRegionMeble.Bud();
-        foreach (float s in new[] { -1f, 1f })
-        {
-            var c = p + new Vector3(s * 1.55f * K, 0, 0);
-            b.MinMax(c + new Vector3(-.2f * K, 0, -.25f * K), c + new Vector3(.2f * K, 3.0f * K, .25f * K));
-            b.MinMax(c + new Vector3(-.3f * K, 0, -.35f * K), c + new Vector3(.3f * K, .05f, .35f * K));
-            foreach (float dz in new[] { -1f, 1f }) r.Box(c + new Vector3(-s * .55f * K, .25f * K, dz * .45f * K), new Vector3(1.0f * K, .08f * K, .12f * K), Quaternion.Euler(0, dz * s * 20f, 0));
-            BraxRegionMeble.Kolizja(w, "Podnośnik kolumna", c + Vector3.up * 1.5f * K, new Vector3(.4f * K, 3f * K, .5f * K));
-        }
-        b.MinMax(p + new Vector3(-1.75f * K, 3.0f * K, -.12f * K), p + new Vector3(1.75f * K, 3.12f * K, .12f * K));
-        b.Obiekt("Podnośnik: kolumny (niebieski lakier)", w, BraxCityMaterials.Surface("Podnośnik: lakier niebieski", new Color(.1f, .25f, .55f), .4f, .4f), false, true);
-        r.Obiekt("Podnośnik: ramiona", w, BraxCityMaterials.Surface("Podnośnik: ramiona stal", new Color(.25f, .26f, .27f), .45f, .6f), false, true);
     }
 
     // =====================================================================================================================

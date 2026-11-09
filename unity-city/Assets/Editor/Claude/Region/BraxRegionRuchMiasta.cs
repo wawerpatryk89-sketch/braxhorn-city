@@ -44,6 +44,7 @@ public static partial class BraxClaudeOsiedle
             }
             if (szablony.Count > 0) AutaMiastaB(szablony);
             if (szablony.Count > 0) ParkingMiastaB(szablony);
+            if (szablony.Count > 0) { try { WarsztatyMiastaB(szablony); } catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_WARSZTATY auta i koła: " + e); } }
             UnityEngine.Object.DestroyImmediate(tmp.gameObject);
             foreach (var n in rep.notes) Debug.Log("BRAXHORN_RUCH_MIASTO_B " + n);
         }
@@ -72,6 +73,81 @@ public static partial class BraxClaudeOsiedle
             AutaZaparkowane(szablony);
         }
         finally { MiejscaParkingowe.Clear(); MiejscaParkingowe.AddRange(zapas); group = g; }
+    }
+
+    // WARSZTATY UL. WARSZTATOWEJ (9.11, właściciel: „opony… koła”): auta w lokalach (AUTO NAPRAWA — na podniesionym podnośniku,
+    // WULKANIZACJA — auto klienta na stanowisku) i KOŁA (opona + felga) z tych samych modeli aut co w ruchu: regały, stosy opon,
+    // montażownica, wyważarka, stosy przed wulkanizacją. Koło = siatka „koło …/obrót” szablonu (środek w osi, oś = x szablonu),
+    // najlżejsza z kół o promieniu 0.28…0.42 m; stoją bez skryptów, z LOD (znikają przy ~3 % ekranu), cienie włączone.
+    static void WarsztatyMiastaB(List<AutoSzablon> szablony)
+    {
+        // pod korzeniem miasta (nie pod niepodzielnym korzeniem ruchu): auta i koła warsztatów doczytują się z kwadratem 150 m
+        var stary = root.parent ? root.parent.Find("CLAUDE miasto B: warsztaty — auta i koła") : null; if (stary) UnityEngine.Object.DestroyImmediate(stary.gameObject);
+        var g = new GameObject("CLAUDE miasto B: warsztaty — auta i koła").transform; g.SetParent(root.parent ? root.parent : root, false); g.position = Vector3.zero;
+        var rnd = new System.Random(911);
+        // auta
+        int aut = 0;
+        foreach (var (c, przod, podnies, nazwa) in BraxRegionMiastoB.AutaWarsztatow)
+        {
+            var kand = szablony.Where(s => s.dl <= 4.75f && s.szerNadw <= 1.95f && s.wys <= 1.6f).ToList();
+            if (kand.Count == 0) kand = szablony.ToList();
+            var sz = kand[rnd.Next(kand.Count)];
+            var o = AutoInstancja(sz, g, "Auto w warsztacie · " + nazwa + " · " + sz.id, rnd, out var kolor);
+            o.transform.SetPositionAndRotation(c, Quaternion.LookRotation(przod));
+            var nad = o.transform.Find("nadwozie");
+            if (nad)
+                foreach (var t in nad.Cast<Transform>().Where(t => t.name == "spaliny" || t.name.StartsWith("światło") || t.name.StartsWith("kierunkowskaz")).ToList())
+                    UnityEngine.Object.DestroyImmediate(t.gameObject);
+            if (podnies <= 0f) { var bc = o.AddComponent<BoxCollider>(); bc.center = sz.obrys.center; bc.size = sz.obrys.size; }
+            LodAuta(o, .02f);
+            aut++;
+        }
+        // koła: siatki kół z szablonów (opona + felga)
+        var kola = new List<(Mesh m, Material[] mats, Vector3 skala, Quaternion obrot, float r, float szer, int tri)>();
+        foreach (var sz in szablony)
+            foreach (var t in sz.go.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name != "obrót" || !t.parent || !t.parent.name.StartsWith("koło", StringComparison.Ordinal)) continue;
+                var mf = t.GetComponent<MeshFilter>(); var mr = t.GetComponent<MeshRenderer>(); if (!mf || !mf.sharedMesh || !mr) continue;
+                var lok = Quaternion.Inverse(sz.go.transform.rotation) * t.rotation;
+                var sk = t.lossyScale; var b = mf.sharedMesh.bounds;
+                float r = Mathf.Max(b.extents.y * Mathf.Abs(sk.y), b.extents.z * Mathf.Abs(sk.z)), szer = b.size.x * Mathf.Abs(sk.x);
+                if (r < .28f || r > .42f || szer < .12f) continue;
+                kola.Add((mf.sharedMesh, mr.sharedMaterials, sk, lok, r, szer, (int)(mf.sharedMesh.triangles.Length / 3)));
+                break;   // jedno koło z modelu
+            }
+        if (kola.Count == 0) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_WARSZTATY brak kół w szablonach aut — regały i stosy bez kół"); return; }
+        kola = kola.OrderBy(k => k.tri).Take(3).ToList();   // najlżejsze trzy (różne felgi), telefon
+        int n = 0;
+        foreach (var (podparcie, os, ile, nazwa) in BraxRegionMiastoB.KolaWarsztatow)
+        {
+            var k = kola[rnd.Next(kola.Count)];
+            bool lezy = Mathf.Abs(os.y) > .7f;
+            var e = new GameObject("Koła · " + nazwa).transform; e.SetParent(g, false); e.position = podparcie;
+            var erend = new List<Renderer>();
+            var rot = Quaternion.FromToRotation(Vector3.right, os.normalized) * k.obrot;
+            for (int q = 0; q < Mathf.Max(1, ile); q++)
+            {
+                var p = lezy ? podparcie + Vector3.up * (k.szer * .5f + q * (k.szer + .006f)) : podparcie + Vector3.up * k.r;
+                var go = new GameObject("Koło (opona + felga) · " + nazwa);
+                go.transform.SetParent(e, false);
+                go.transform.SetPositionAndRotation(p, lezy ? Quaternion.AngleAxis(rnd.Next(0, 360), Vector3.up) * rot : rot);
+                go.transform.localScale = k.skala;
+                go.AddComponent<MeshFilter>().sharedMesh = k.m;
+                var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterials = k.mats; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; mr.receiveShadows = true;
+                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+                erend.Add(mr); n++;
+            }
+            var lodE = e.gameObject.AddComponent<LODGroup>(); lodE.SetLODs(new[] { new LOD(.012f, erend.ToArray()) }); lodE.RecalculateBounds();
+            // stos / koło: jedna kolizja (bez fizyki pojedynczych kół)
+            float hS = lezy ? Mathf.Max(1, ile) * (k.szer + .006f) : 2f * k.r;
+            var cc = new GameObject("Koła kolizja · " + nazwa); cc.transform.SetParent(e, false);
+            cc.transform.position = podparcie + Vector3.up * hS * .5f;
+            var bx = cc.AddComponent<BoxCollider>(); bx.size = lezy ? new Vector3(2f * k.r, hS, 2f * k.r) : new Vector3(Mathf.Abs(os.x) > .5f ? k.szer : 2f * k.r, hS, Mathf.Abs(os.z) > .5f ? k.szer : 2f * k.r);
+        }
+        string opis = "BRAXHORN_WARSZTATY auta " + aut + " (" + string.Join(", ", BraxRegionMiastoB.AutaWarsztatow.Select(a => a.nazwa)) + "), kół " + n + " z modeli " + kola.Count +
+                      " (promień " + string.Join("/", kola.Select(k => k.r.ToString("F2"))) + " m, trójkątów " + string.Join("/", kola.Select(k => k.tri)) + ")";
+        Debug.Log(opis); rep.notes.Add(opis.Replace("BRAXHORN_WARSZTATY ", "warsztaty: "));
     }
 
     // TAKSÓWKA (właściciel: „taksówki” w ruchu miasta): lakier żółty zamiast wylosowanego, kogut TAXI na dachu (świecący, napis
@@ -514,7 +590,8 @@ public static partial class BraxClaudeOsiedle
             O("BRAXHORN OFFICE — recepcja", RolaRecepcja, "recepcja", new Vector3(48.3f, YC, -40.35f), 0f);              // lada z −39.6…−38.7, wejście od +z
             O("PARK TOWER — recepcja", RolaRecepcja, "recepcja", new Vector3(-26.8f, YC, -42.35f), 0f);
             O("PARK TOWER — kawiarnia", RolaObsluga, "barista", new Vector3(-51.2f, YC, -40.35f), 90f);                  // bar x −50.5…−49.5
-            O("Warsztat AUTO NAPRAWA — mechanik", RolaObsluga, "mechanik", new Vector3(-100.1f, YC + .05f, -36.3f), 180f); // przy stole warsztatowym
+            O("Warsztat AUTO NAPRAWA — mechanik", RolaObsluga, "mechanik", BraxRegionMiastoB.MechanikAutoNaprawa, 180f);     // przy stole warsztatowym (9.11: wnętrze od nowa)
+            O("WULKANIZACJA — wulkanizator", RolaObsluga, "mechanik", BraxRegionMiastoB.MechanikWulkanizacja, 270f);        // przy montażownicy
             // ul. Zachodnia (ETAP 2): dyżurny komisariatu i rejestracja szpitala za ladą holu, policjant przed wejściem, lekarz w holu szpitala
             var lk = BraxRegionTylyB.LadaHolu(BraxRegionMiastoB.Komisariat); var ls = BraxRegionTylyB.LadaHolu(BraxRegionMiastoB.Szpital);
             O("KOMISARIAT — dyżurny", RolaPolicja, "policja", new Vector3(lk.x + 1.0f * k, YC, lk.z - .95f * k), 0f);

@@ -80,7 +80,13 @@ public static class BraxHarborBeachBuild
 
     static int BraxVesselCount(Transform root) => root.GetComponentsInChildren<BraxVessel>(true).Length;
 
-    // ---------------- dźwig portowy (bez zmian względem 31.10: stoi na nabrzeżu przy placu kontenerowym) ----------------
+    // ---------------- dźwig portowy: stoi kołami na nabrzeżu przy placu kontenerowym ----------------
+    // 9.11 (właściciel, zdjęcie z portu: „ten dźwig stoi w powietrzu… ma na ziemi leżeć… stać na ziemi normalnie”): wysokość
+    // liczona była z Renderer.bounds — to pudło siatki w jej układzie obrócone do świata; wysięgnik (Crane_Mast) jest w modelu
+    // pochylony, więc jego pudło sięgało ~2.5 m POD ziemię i cały dźwig podnosiło o tyle w górę (koła wisiały nad placem).
+    // Teraz: najniższy prawdziwy wierzchołek PODWOZIA (Base_*: platforma i zestawy kół) stawiany na nawierzchni portu
+    // zmierzonej promieniem w dół pod każdym narożnikiem podwozia (bez zgadywania poziomu), kolizja z dokładnego obrysu podwozia
+    // i wieży. Log BRAXHORN_DZWIG: prześwit pod kołami przed i po (ma być 0 cm).
     static void Dzwig(Transform root)
     {
         const float CraneZ = -25f;
@@ -96,8 +102,53 @@ public static class BraxHarborBeachBuild
         if (wsum > 0) mass /= wsum;
         if (mass.x > cb.center.x) { crane.transform.RotateAround(cb.center, Vector3.up, 180f); cb = BraxRegion.Bounds(crane); mass = 2 * cb.center - mass; mass.y = cb.center.y; }
         crane.transform.position += new Vector3(76f - mass.x, 0, 0);
-        var cp = crane.transform.position; cp.y += .17f - BraxRegion.Bounds(crane).min.y; crane.transform.position = cp;
-        BraxNabrzeze.Kol(root, "Dźwig: podstawa", new Vector3(76f, 1.2f, CraneZ), new Vector3(8f, 2.4f, 8f));
+        // podwozie = węzły „Base…” (platforma, zestawy kół); gdyby model ich nie nazwał — cały dźwig (dokładne wierzchołki)
+        bool Podwozie(Transform t) { for (var p = t; p && p != crane.transform; p = p.parent) if (p.name.StartsWith("Base", StringComparison.OrdinalIgnoreCase) || p.name.IndexOf("Wheel", StringComparison.OrdinalIgnoreCase) >= 0) return true; return false; }
+        var podw = Dokladnie(crane, Podwozie);
+        if (podw.size == Vector3.zero) podw = Dokladnie(crane, null);
+        var calosc = Dokladnie(crane, null);
+        float przedYmin = podw.min.y;
+        // nawierzchnia pod podwoziem: promienie w dół w narożnikach i środku (dźwig nie ma jeszcze kolizji — nie trafi sam w siebie)
+        Physics.SyncTransforms();
+        float grunt = float.MinValue; int trafien = 0;
+        foreach (var (px, pz) in new[] { (podw.min.x + .3f, podw.min.z + .3f), (podw.max.x - .3f, podw.min.z + .3f), (podw.min.x + .3f, podw.max.z - .3f), (podw.max.x - .3f, podw.max.z - .3f), (podw.center.x, podw.center.z) })
+            if (Physics.Raycast(new Vector3(px, 6f, pz), Vector3.down, out var hit, 9f, ~0, QueryTriggerInteraction.Ignore) && hit.point.y > -1f && hit.point.y < 1.5f) { grunt = Mathf.Max(grunt, hit.point.y); trafien++; }
+        if (trafien == 0) grunt = .15f;   // poziom placu portu (BraxMiastoPort.Y)
+        crane.transform.position += Vector3.up * (grunt - przedYmin);
+        podw = Dokladnie(crane, Podwozie); if (podw.size == Vector3.zero) podw = Dokladnie(crane, null);
+        calosc = Dokladnie(crane, null);
+        // kolizja: podwozie (pełna wysokość podwozia, min. 2.4 m) + wieża nad nim (pudło dokładnego obrysu bez wysięgnika)
+        float hp = Mathf.Max(2.4f, podw.size.y);
+        BraxNabrzeze.Kol(root, "Dźwig: podwozie", new Vector3(podw.center.x, grunt + hp * .5f, podw.center.z), new Vector3(podw.size.x, hp, podw.size.z));
+        var wieza = Dokladnie(crane, t => { for (var p = t; p && p != crane.transform; p = p.parent) if (p.name.IndexOf("Tower", StringComparison.OrdinalIgnoreCase) >= 0 || p.name.IndexOf("Platform_Body", StringComparison.OrdinalIgnoreCase) >= 0) return true; return false; });
+        if (wieza.size != Vector3.zero && wieza.max.y > grunt + hp)
+        {
+            float y0 = grunt + hp;
+            BraxNabrzeze.Kol(root, "Dźwig: wieża", new Vector3(wieza.center.x, (y0 + wieza.max.y) * .5f, wieza.center.z), new Vector3(wieza.size.x, wieza.max.y - y0, wieza.size.z));
+        }
+        BraxNabrzeze.Log("BRAXHORN_DZWIG na nabrzeżu: nawierzchnia y " + grunt.ToString("F3") + " (" + (trafien > 0 ? "zmierzona, promieni " + trafien : "BRAK trafień — poziom placu 0.15") + ")" +
+                         ", koła przed: y " + przedYmin.ToString("F3") + " (dawny prześwit " + ((przedYmin - grunt) * 100f).ToString("F0") + " cm)" +
+                         " → po: y " + podw.min.y.ToString("F3") + " (prześwit " + ((podw.min.y - grunt) * 100f).ToString("F0") + " cm)" +
+                         ", obrys dźwigu " + calosc.size.x.ToString("F1") + " × " + calosc.size.y.ToString("F1") + " × " + calosc.size.z.ToString("F1") + " m, pudło Renderer.bounds sięgało y " + BraxRegion.Bounds(crane).min.y.ToString("F2"));
+    }
+
+    /// <summary>Dokładny obrys (świat) z wierzchołków siatek — nie z Renderer.bounds (pudło siatki obrócone do świata
+    /// jest większe od bryły, przy pochylonych częściach o metry). filtr: które węzły liczyć (null = wszystkie).</summary>
+    static Bounds Dokladnie(GameObject go, Func<Transform, bool> filtr)
+    {
+        bool jest = false; var b = new Bounds();
+        foreach (var f in go.GetComponentsInChildren<MeshFilter>(true))
+        {
+            var m = f.sharedMesh; if (!m || (filtr != null && !filtr(f.transform))) continue;
+            Vector3[] vs; try { vs = m.vertices; } catch (Exception) { continue; }
+            var M = f.transform.localToWorldMatrix;
+            foreach (var v in vs)
+            {
+                var w = M.MultiplyPoint3x4(v);
+                if (!jest) { b = new Bounds(w, Vector3.zero); jest = true; } else b.Encapsulate(w);
+            }
+        }
+        return b;
     }
 
     // ---------------- punkty pod misje (zleceniodawcy, cele) → BraxCityWorld.points ----------------

@@ -77,6 +77,12 @@ public static class BraxRegion
         // (Dzielnica zachodnia z WIP — ETAP 2, po dopasowaniu do ronda i alej; do tego czasu krok wyłączony.)
         Step("miasto B: rondo, aleje, ul. Wiaduktowa i Warsztatowa, pierzeje, warsztaty", () => BraxRegionMiastoB.Apply(world, root));
         Step("R1: odbiór latarni, starszych duplikatów i ławek źródłowych przy jezdni", () => BraxRegionMiastoB.OdbiorWyposazeniaUlic(root));
+        // 9.11 (właściciel: „te niebieskie… ma poznikać”, teren za siłownią → port → wulkanizacja): po WSZYSTKICH krokach, które
+        // kładą nawierzchnie — zmierzone dziury w gruncie (pod nimi woda y −1.7) zamknięte płytą, trawniki z obrzeżem.
+        // 9.11 (właściciel: „z siłowni w lewo, potem w lewo — za budynkiem woda… cały budynek prześwietl”): siłownia od zewnątrz
+        // (elewacje, dach nad stropem) i podwórze za kamienicami — wnętrze sali bez zmian.
+        Step("siłownia z zewnątrz: elewacje, dach, podwórze za kamienicami", () => BraxSilowniaZewnatrz.Apply(root));
+        Step("grunt: dziury z wodą pod miastem (teren za siłownią, warsztaty, port) i obrzeża trawników", () => BraxRegionDziury.Apply(root));
         // Lampy wnętrz: CityStaticPBR liczy światła punktowe tylko ze slotów „vertex light” (ForceVertex).
         Step("siedziska: sofy, ławki, hokery, leżaki → BraxSeat", () => BraxRegionSeats.Apply(root));
         Step("horyzont: niebo bez lustra, teren za granicą, granica", () => BraxRegionHoryzont.Apply(world, root));
