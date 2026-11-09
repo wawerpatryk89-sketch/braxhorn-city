@@ -48,8 +48,11 @@ public sealed class BraxGrafika : MonoBehaviour
         {
             QualitySettings.streamingMipmapsActive = true;
             QualitySettings.streamingMipmapsAddAllCameras = true;
-            QualitySettings.streamingMipmapsMaxLevelReduction = 3;
-            QualitySettings.streamingMipmapsMemoryBudget = SystemInfo.systemMemorySize >= 6144 ? 512f : 384f;
+            // 9.11 (właściciel 17:42: „zobacz jak to się rysuje… tak samo wyspa jak do niej płynę — globalnie poprawnie”): budżet
+            // 384/512 MB przy redukcji do 3 poziomów zrzucał fasady 1K do 128 px („klocki”, „malowanie”). Tekstury Androida są od 9.11
+            // 1K (4× mniej niż 2K z 7.11), więc budżet większy, a redukcja najwyżej o 2 poziomy (1K → 256 px w skrajnym przypadku).
+            QualitySettings.streamingMipmapsMaxLevelReduction = 2;
+            QualitySettings.streamingMipmapsMemoryBudget = SystemInfo.systemMemorySize >= 6144 ? 1024f : 640f;
         }
         // build 14 (właściciel 21:42–21:46): domyślnie wg telefonu — Edge 60 Pro / mocna grafika = WYSOKA, moto g86 = ŚREDNIA,
         // < 5 GB RAM = NISKA (BraxProfilTelefonu). Tekstury na telefonie i tak zawsze z limitem mip (Mip), więc wyższy tryb
@@ -93,40 +96,44 @@ public sealed class BraxGrafika : MonoBehaviour
         switch (Aktualny)
         {
             case Tryb.Niska:
-                QualitySettings.shadows = ShadowQuality.Disable; QualitySettings.shadowDistance = 0f;
-                Msaa(0); QualitySettings.lodBias = .45f; Mip(1);
-                QualitySettings.pixelLightCount = 3; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Disable;
+                // ZASADA 1 (9.11): cienie ze słońca ZAWSZE — Niski: twarde, 1 kaskada, 40 m
+                QualitySettings.shadows = ShadowQuality.HardOnly; QualitySettings.shadowResolution = ShadowResolution.Medium;
+                QualitySettings.shadowDistance = 40f; QualitySettings.shadowCascades = 1; QualitySettings.shadowProjection = ShadowProjection.StableFit;
+                Msaa(0); QualitySettings.lodBias = .7f; Mip(1);
+                QualitySettings.pixelLightCount = 3; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
                 QualitySettings.realtimeReflectionProbes = false; QualitySettings.softParticles = false; QualitySettings.skinWeights = SkinWeights.TwoBones;
-                Rozdzielczosc(tel ? .65f : .8f); Klatki(30); Zasieg(220f); Trawa(12f, 18f);
+                Rozdzielczosc(tel ? .65f : .8f); Klatki(30); Zasieg(1100f); Trawa(12f, 18f);
                 break;
             case Tryb.Srednia:
-                QualitySettings.shadows = ShadowQuality.HardOnly; QualitySettings.shadowResolution = ShadowResolution.Medium;
-                QualitySettings.shadowDistance = 35f; QualitySettings.shadowCascades = 1; QualitySettings.shadowProjection = ShadowProjection.StableFit;
-                Msaa(0); QualitySettings.lodBias = .8f; Mip(0);
-                QualitySettings.pixelLightCount = 4; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
+                // ZASADA 1: Średni — cienie miękkie, 2 kaskady, 80 m (właściciel 9.11: „na średnim cieni nie ma”);
+                // zasięg kamery 1600 m: wyspa (~1 km od portu) i całe miasto widoczne bez „dorysowywania” w trakcie rejsu
+                QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.High;
+                QualitySettings.shadowDistance = 80f; QualitySettings.shadowCascades = 2; QualitySettings.shadowProjection = ShadowProjection.StableFit;
+                Msaa(0); QualitySettings.lodBias = 1.25f; Mip(0);
+                QualitySettings.pixelLightCount = 4; QualitySettings.anisotropicFiltering = AnisotropicFiltering.ForceEnable;
                 QualitySettings.realtimeReflectionProbes = false; QualitySettings.softParticles = false; QualitySettings.skinWeights = SkinWeights.TwoBones;
-                Rozdzielczosc(tel ? .85f : 1f); Klatki(tel ? 30 : 60); Zasieg(420f); Trawa(22f, 30f);
+                Rozdzielczosc(tel ? .85f : 1f); Klatki(tel ? 30 : 60); Zasieg(1600f); Trawa(22f, 30f);
                 break;
             default:
                 if (tel)
                 {
-                    // build 14: WYSOKA na telefonie flagowym (Edge 60 Pro, cel 60 kl./s): miękkie cienie 2048 do 70 m w 2 kaskadach,
-                    // LOD ×1.5, dalszy zasięg, bez odbić w czasie rzeczywistym (Dimensity 8350 szybko się grzeje — test Beebom 32 %
-                    // stabilności); przy spadku klatek BraxTouchControls sam schodzi z 60 do 45 / 30 kl./s.
+                    // WYSOKA na telefonie flagowym (Edge 60 Pro, cel 60 kl./s): ZASADA 1 — miękkie cienie 150 m w 4 kaskadach (9.11;
+                    // wcześniej 70 m / 2), LOD ×2, zasięg 2200 m, bez odbić w czasie rzeczywistym (Dimensity 8350 szybko się grzeje);
+                    // przy spadku klatek BraxTouchControls sam schodzi z 60 do 45 / 30 kl./s.
                     QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.High;
-                    QualitySettings.shadowDistance = 70f; QualitySettings.shadowCascades = 2; QualitySettings.shadowProjection = ShadowProjection.StableFit;
-                    QualitySettings.lodBias = 1.5f; Mip(0);
-                    QualitySettings.pixelLightCount = 5; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
+                    QualitySettings.shadowDistance = 150f; QualitySettings.shadowCascades = 4; QualitySettings.shadowProjection = ShadowProjection.StableFit;
+                    QualitySettings.lodBias = 2.0f; Mip(0);
+                    QualitySettings.pixelLightCount = 5; QualitySettings.anisotropicFiltering = AnisotropicFiltering.ForceEnable;
                     QualitySettings.realtimeReflectionProbes = false; QualitySettings.softParticles = false; QualitySettings.skinWeights = SkinWeights.FourBones;
-                    Klatki(60); Zasieg(700f); Trawa(32f, 42f);
+                    Klatki(60); Zasieg(2200f); Trawa(32f, 42f);
                     break;
                 }
                 QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.VeryHigh;
-                QualitySettings.shadowDistance = 120f; QualitySettings.shadowCascades = 4; QualitySettings.shadowProjection = ShadowProjection.StableFit;
+                QualitySettings.shadowDistance = 150f; QualitySettings.shadowCascades = 4; QualitySettings.shadowProjection = ShadowProjection.StableFit;
                 Msaa(4); QualitySettings.lodBias = 2.2f; Mip(0);
                 QualitySettings.pixelLightCount = 6; QualitySettings.anisotropicFiltering = AnisotropicFiltering.ForceEnable;
                 QualitySettings.realtimeReflectionProbes = true; QualitySettings.softParticles = true; QualitySettings.skinWeights = SkinWeights.FourBones;
-                Rozdzielczosc(1f); Klatki(60); Zasieg(1200f); Trawa(40f, 50f);
+                Rozdzielczosc(1f); Klatki(60); Zasieg(2500f); Trawa(40f, 50f);
                 break;
         }
     }
@@ -150,9 +157,11 @@ public sealed class BraxGrafika : MonoBehaviour
     // kolejnym starcie pełne tekstury = znowu zamykanie gry; zmiana limitu w menu przeładowywała wszystkie tekstury naraz).
     // Limit ustawiony raz przed pierwszą sceną i nigdy nie zmieniany na telefonie. Pełne tekstury wrócą po podziale miasta na paczki.
     // 9.11: przywrócone po zmianie 7.11 (mip 0) bez pomiaru pamięci.
+    // 9.11 17:42 (właściciel: „zobacz jak to się rysuje”, „ma być jak najlepsza jakość”): wymuszona połowa tekstur na telefonie
+    // ZDJĘTA — od 9.11 tekstury Androida mają 1K (zasada 1), czyli pełna rozdzielczość 1K zajmuje tyle co połowa dawnych 2K, przy
+    // których gra działała (APK 8.11). Połowa zostaje tylko w trybie NISKA. Pamięć pilnuje budżet streamingu mipmap.
     static void Mip(int n)
     {
-        if (Application.isMobilePlatform) n = Mathf.Max(n, 1);
         if (QualitySettings.globalTextureMipmapLimit != n) QualitySettings.globalTextureMipmapLimit = n;
     }
     static void Msaa(int n)

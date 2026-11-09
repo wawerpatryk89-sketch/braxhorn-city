@@ -42,13 +42,18 @@ class CityR1MobileTextureBudget(unittest.TestCase):
         self.assertNotIn("CompressWithLz4",code,"LZ4 pogarsza kompresję APK (55 % → 76 %); zdjęte 9.11")
         self.assertNotIn("CompressWithLz4HC",code)
 
-    def test_mobile_keeps_half_resolution_mip_clamp(self):
+    def test_mobile_texture_memory_guarded_without_halving_quality(self):
+        # 9.11 17:42 (właściciel: „zobacz jak to się rysuje”, „ma być jak najlepsza jakość”): wymuszona połowa tekstur na
+        # telefonie zdjęta — zamykanie gry 31.10 było przy 2K + mip 0; od 9.11 import Androida = 1K, więc pełne 1K zajmuje
+        # tyle co dawne 2K/2. Połowa tylko w trybie NISKA; pamięć pilnuje budżet streamingu mipmap.
         code=strip_comments(GRAPHICS)
         m=re.search(r'static\s+void\s+Mip\s*\(\s*int\s+n\s*\)\s*\{([^}]*)\}',code)
         self.assertIsNotNone(m)
-        body=m.group(1)
-        self.assertIn("Mathf.Max(n, 1)",body,"telefon: limit mip ≥ 1 (zabezpieczenie po zamykaniu gry 31.10)")
-        self.assertNotRegex(body,r'n\s*=\s*0\s*;')
+        self.assertNotIn("Mathf.Max(n, 1)",m.group(1))
+        self.assertIn("Mip(1);",code.split("case Tryb.Srednia")[0] if "case Tryb.Srednia" in code else code)
+        self.assertIn("QualitySettings.streamingMipmapsActive = true;",code)
+        self.assertRegex(code,r'streamingMipmapsMaxLevelReduction\s*=\s*2\s*;')
+        self.assertRegex(code,r'streamingMipmapsMemoryBudget\s*=\s*SystemInfo\.systemMemorySize\s*>=\s*6144\s*\?\s*1024f\s*:\s*640f')
 
     def test_no_unused_addressables_package(self):
         self.assertNotIn("com.unity.addressables",MANIFEST,"pakiet bez użycia w C# — wydłuża import i zmienia klucz pamięci Library")

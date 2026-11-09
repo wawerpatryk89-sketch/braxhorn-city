@@ -17,7 +17,7 @@ using UnityEngine.SceneManagement;
 // woda i słońce. Drzwi działają przez rejestr BraxCityDoor.All. Doczytywanie: BraxObszary (runtime).
 public static class BraxClaudeObszary
 {
-    static readonly Type[] Zostaja = { typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(Camera), typeof(BraxObszary), typeof(BraxCityElevator), typeof(BraxVessel), typeof(BraxNutritionCounter) };
+    static readonly Type[] Zostaja = { typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(Camera), typeof(BraxObszary), typeof(BraxCityElevator), typeof(BraxVessel), typeof(BraxNutritionCounter), typeof(BraxObszarZDaleka) };
 
     static bool MaZostajace(Transform t) => Zostaja.Any(z => t.GetComponentInChildren(z, true));
 
@@ -65,7 +65,9 @@ public static class BraxClaudeObszary
     }
 
     /// <summary>Przenosi węzły do nowej sceny (dodatkowej), zapisuje ją i dopisuje obszar do BraxObszary. Zwraca ścieżkę sceny albo null.</summary>
-    public static string Wydziel(Scene main, string nazwaSceny, List<Transform> wezly, float wczytaj, float zwolnij, string folder)
+    /// 9.11: zDalekaKomorka > 0 — przed przeniesieniem powstaje kopia z daleka (BraxClaudeZDaleka) w scenie głównej, widoczna, dopóki
+    /// obszar nie jest wczytany (domyślnie 0 = bez kopii; osiedle bez zmian).
+    public static string Wydziel(Scene main, string nazwaSceny, List<Transform> wezly, float wczytaj, float zwolnij, string folder, float zDalekaKomorka = 0f, int zDalekaMaxTris = 100000)
     {
         wezly = wezly.Where(t => t).ToList();
         if (wezly.Count == 0) { Debug.LogWarning("DO POPRAWKI: obszar " + nazwaSceny + " — nic do przeniesienia"); return null; }
@@ -84,6 +86,12 @@ public static class BraxClaudeObszary
         // 2) drzwi z przenoszonych poddrzew znikają z tablicy świata (działają przez rejestr BraxCityDoor.All)
         foreach (var world in main.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<BraxCityWorld>(true)))
             world.doors = world.doors.Where(d => d && !wezly.Any(w => d.transform.IsChildOf(w))).ToArray();
+        // 2b) kopia z daleka z tych samych węzłów (zanim odejdą do sceny obszaru); błąd kopii nie blokuje podziału
+        if (zDalekaKomorka > 0f)
+        {
+            try { BraxClaudeZDaleka.Utworz(main, nazwaSceny, wezly, zDalekaKomorka, zDalekaMaxTris, folder); }
+            catch (Exception e) { Debug.LogWarning("DO POPRAWKI: kopia z daleka " + nazwaSceny + ": " + e); }
+        }
         // 3) granice obszaru i statystyka
         Bounds gr = default; bool any = false; int rend = 0; long tris = 0;
         foreach (var w in wezly)

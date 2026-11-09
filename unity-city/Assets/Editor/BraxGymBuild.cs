@@ -408,9 +408,11 @@ public static class BraxGymBuild
         // siatki wyspy z dnem (±150 m od środka 400, 60), brzeg lądu ~60 m dalej → 200 m od obrysu ≈ 260 m od brzegu; zwolnienie 280.
         if(fullCity&&renovation&&!osiedle)
         {
-            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Wyspa",BraxClaudeObszary.PoNazwach(scene,"CLAUDE wyspa*"),200f,280f,Generated);}
+            // 9.11 (właściciel 17:42 „tak samo wyspa jak do niej płynę”): wczytanie 450 m przed obrysem (rejs ~30 s), nie 200 m;
+            // z daleka zamiast samego terenu z ośmiokątem — uproszczona kopia całej wyspy (domki, drzewa, arena, teren) w materiałach oryginału
+            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Wyspa",BraxClaudeObszary.PoNazwach(scene,"CLAUDE wyspa*"),450f,600f,Generated,1.5f,150000);}
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: wyspa jako osobny obszar: "+e);}
-            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE"),45f,110f,Generated);}
+            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE"),45f,110f,Generated,.5f,120000);}
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: podział miasta na obszary: "+e);}
             // MIASTO W KWADRATACH (1.11, 19:00; decyzja właściciela „świat w kwadratach”): telefon padał w trakcie wczytywania
             // głównej sceny (828 MB, 68 tys. obiektów — dziennik startu: koniec na „2a wczytywanie”). Kwadraty 150 × 150 m poza
@@ -429,9 +431,25 @@ public static class BraxGymBuild
                         var w=BraxClaudeObszary.WObszarze(scene,cell);if(w.Count==0)continue;
                         // The sector identity depends on its coordinates, never on which other sectors are non-empty.
                         string sectorName=BraxCityZoneRegistry.SectorSceneName(Mathf.RoundToInt(x/K),Mathf.RoundToInt(z/K));
-                        if(BraxClaudeObszary.Wydziel(scene,sectorName,w,120f,250f,Generated)!=null)nk++;
+                        // 9.11: każdy kwadrat zostawia w scenie głównej swoją kopię z daleka (BraxClaudeZDaleka) — ulica i budynki widoczne
+                        // aż po zasięg kamery, bez pustki i bez „wyskakiwania” przy doczytaniu 120 m przed krawędzią
+                        if(BraxClaudeObszary.Wydziel(scene,sectorName,w,120f,250f,Generated,.5f,100000)!=null)nk++;
                     }
                 Debug.Log("BRAXHORN_KWADRATY miasto: "+nk+" kwadratów, granice miasta "+all.min.ToString("F0")+" … "+all.max.ToString("F0"));
+                // stare sylwetki z daleka (pudła wieżowców CENTRUM i nowych dzielnic, teren wyspy z ośmiokątem) zastąpione kopiami
+                // obszarów — wyłączone, żeby nie stały w kopii (właściciel 9.11: „zobacz jak to się rysuje” — klockowate wieżowce)
+                if(BraxClaudeZDaleka.Obszary>0)
+                {
+                    int swZD=0;
+                    bool wyspaZD=scene.GetRootGameObjects().Any(kZD=>kZD.name=="CLAUDE z daleka (obszary)"&&kZD.transform.Find("Z daleka: BraxhornCity_Wyspa"));
+                    foreach(var korzenZD in scene.GetRootGameObjects())
+                    {
+                        foreach(var sylZD in korzenZD.GetComponentsInChildren<BraxSylwetkiZDaleka>(true)){if(sylZD.sylwetka)sylZD.sylwetka.gameObject.SetActive(false);sylZD.enabled=false;swZD++;}
+                        if(wyspaZD)foreach(var wdZD in korzenZD.GetComponentsInChildren<BraxWyspaDaleko>(true)){foreach(var rdZD in wdZD.renderery)if(rdZD)rdZD.gameObject.SetActive(false);wdZD.enabled=false;swZD++;}
+                    }
+                    EditorSceneManager.SaveScene(scene);
+                    Debug.Log("BRAXHORN_Z_DALEKA podsumowanie: "+BraxClaudeZDaleka.Podsumowanie()+"; stare sylwetki wyłączone: "+swZD);
+                }
             }
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: kwadraty miasta: "+e);}
         }
