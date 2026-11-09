@@ -17,9 +17,8 @@ using UnityEngine;
 // pokład, zrębnice, kontenery w 2 sekcjach × 3 rzędy × 2–3 warstwy, nadbudówka z mostkiem i skrzydłami, komin, maszt
 // z radarem, nazwa na dziobie), cumy dziobowe, rufowe i szpringi do polerów, TRAP z poręczami (wejście na pokład);
 // stosy kontenerów 20' i 40' (2–4 warstwy, różne kolory, numery, przetłoczenia i drzwi z ryglami); ciągniki terminalowe
-// z naczepami; biuro firmy BRAXHORN LOGISTYKA (2 kondygnacje, okna z pokojem za szybą, recepcja za szklanymi drzwiami
-// automatycznymi, szyld, klimatyzatory); brama z budką strażnika i szlabanem, ogrodzenie panelowe, maszty oświetleniowe.
-// Punkty akcji pod misje: biuro (zleceniodawca), trap statku, strażnik bramy, magazyn.
+// (9.11 usunięte z biurem — wejście metra S1); brama z budką strażnika i szlabanem, ogrodzenie panelowe, maszty oświetleniowe.
+// Punkty akcji pod misje: trap statku, strażnik bramy, magazyn.
 internal static class BraxMiastoPort
 {
     const float Y = .15f, QX = 84f, X0 = 66.05f, Z0 = -30.5f, Z1 = 17.4f;   // poziom placu, lico nabrzeża, obrys placu
@@ -45,7 +44,10 @@ internal static class BraxMiastoPort
         // wygląda”; zasada: źle i nie da się porządnie → usunąć. Nabrzeże zostaje wolne (dźwig, polery), statek tylko z modelu.
         BraxMiastoA.Log("PORT: statek z kodu WYŁĄCZONY (właściciel 3.11 — klocki)");
         BraxUliceKit.UstawGrupe("Port: biuro, brama, ogrodzenie, maszty", 140f);
-        Biuro(); Brama(); Maszty(); Ciagniki();
+        // 9.11 17:54 (właściciel, zdjęcie spod bramy): „usunąć te auta i ten domek, bo tu będzie stacja — wejście do metra”
+        // (plan metra M1 zaakceptowany: S1 PORT, wejście x 66–74, z 6–17). Biuro BRAXHORN LOGISTYKA i oba żółte ciągniki
+        // z naczepami USUNIĘTE z kodu; plac w tym miejscu pełną płytą (bez dziury po posadzce biura).
+        Brama(); Maszty();
         int siatek = BraxUliceKit.Zapisz(root, "port");
         BraxMiastoA.Log("PORT: plac " + (QX - X0).ToString("F0") + "×" + (Z1 - Z0).ToString("F0") + " m, kontenerów " + kont + ", kontenerowiec 46×12 m przy nabrzeżu, biuro, brama, siatek " + siatek + "; zdjęte: " + usun);
     }
@@ -77,8 +79,7 @@ internal static class BraxMiastoPort
         // pola stosów (obrys białą linią 12 cm)
         foreach (var b in Bloki()) { biale.Add(Rect.MinMaxRect(b.xMin - .25f, b.yMin - .25f, b.xMax + .25f, b.yMin - .13f)); biale.Add(Rect.MinMaxRect(b.xMin - .25f, b.yMax + .13f, b.xMax + .25f, b.yMax + .25f)); biale.Add(Rect.MinMaxRect(b.xMin - .25f, b.yMin - .13f, b.xMin - .13f, b.yMax + .13f)); biale.Add(Rect.MinMaxRect(b.xMax + .13f, b.yMin - .13f, b.xMax + .25f, b.yMax + .13f)); }
         var wszystkie = linie.Concat(biale).ToList();
-        var zDziurami = wszystkie.Concat(new[] { Rect.MinMaxRect(66.3f, 6.5f, 74.3f, 16.5f) }).ToList();   // pod biurem posadzka biura (nie płyta na płycie)
-        Plaszczyzna(BraxUliceKit.S(beton), X0, 83.3f, Z0, Z1, Y, zDziurami);
+        Plaszczyzna(BraxUliceKit.S(beton), X0, 83.3f, Z0, Z1, Y, wszystkie);   // 9.11: bez dziury po biurze (biuro usunięte — miejsce wejścia metra S1)
         foreach (var r in linie) BraxUliceKit.S(zolty).Quad(new Vector3(r.xMin, Y, r.yMin), new Vector3(r.xMax, Y, r.yMin), new Vector3(r.xMax, Y, r.yMax), new Vector3(r.xMin, Y, r.yMax), Vector3.up);
         foreach (var r in biale) BraxUliceKit.S(bialy).Quad(new Vector3(r.xMin, Y, r.yMin), new Vector3(r.xMax, Y, r.yMin), new Vector3(r.xMax, Y, r.yMax), new Vector3(r.xMin, Y, r.yMax), Vector3.up);
         BraxMiastoA.Kol(kol, "nawierzchnia placu portu", new Vector3(X0, Y - .4f, Z0), new Vector3(83.3f, Y, Z1));
@@ -310,71 +311,6 @@ internal static class BraxMiastoPort
         BraxUliceKit.Punkt("port_statek_poklad", "pokład kontenerowca (cel misji)", new Vector3(cx, Deck, -10f));
     }
 
-    // ---------------- biuro BRAXHORN LOGISTYKA ----------------
-    static void Biuro()
-    {
-        float x0 = 66.3f, x1 = 74.3f, z0 = 6.5f, z1 = 16.5f, h1 = 3.8f, h2 = 3.4f, H = h1 + h2 + .9f;
-        var tynk = BraxMiastoA.Tex("Port: biuro tynk jasnoszary", 2.4f, new Color(.86f, .87f, .88f), new Color(.72f, .73f, .74f), .9f, "white_plaster_02");
-        var okl = BraxMiastoA.Tex("Port: biuro okładzina grafit", 1.6f, new Color(.32f, .33f, .35f), new Color(.15f, .16f, .17f), .6f, "exterior_wall_cladding_02", "exterior_wall_cladding");
-        var alu = BraxMiastoA.Mat("Port: aluminium okien grafit", new Color(.1f, .11f, .12f), .4f, .55f);
-        var szklo = BraxUliceKit.SzkloPrzezroczyste;
-        var okno = BraxUliceKit.OknoPokoj(2.5f, h2, Y + h1, 2, 4, 4f, 0f);
-        var lit = BraxMiastoA.Swieci("Port: litery szyldu biura (podświetlane)", Color.white, new Color(1.8f, 1.8f, 1.8f));
-        var boki = BraxMiastoA.Mat("Port: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f);
-        // ściany zewnętrzne: wschód (od drogi) z wejściem i witrynami recepcji, północ (od bramy) z oknami, zachód i południe pełne z oknami
-        var sc = BraxUliceKit.S(tynk); var so = BraxUliceKit.S(okl);
-        // wschód: parter przeszklony (recepcja), piętro z oknami
-        var otwPartE = new List<Rect> { Rect.MinMaxRect(1.0f, Y, 3.4f, Y + 2.85f), Rect.MinMaxRect(4.0f, Y + .6f, 9.0f, Y + 3.2f) };   // s od z0 (oś +z)
-        var otwPietro = new List<Rect>(); for (float s = 1.0f; s < 9.2f; s += 2.5f) otwPietro.Add(Rect.MinMaxRect(s, Y + h1 + .9f, s + 1.5f, Y + h1 + 2.75f));
-        BraxMiastoA.Sciana(so, new Vector3(x1, 0, z0), Vector3.forward, Vector3.right, z1 - z0, Y, Y + h1, otwPartE, .25f, so);
-        BraxMiastoA.Sciana(sc, new Vector3(x1, 0, z0), Vector3.forward, Vector3.right, z1 - z0, Y + h1, Y + H, otwPietro, .25f, sc);
-        foreach (var o in otwPietro) BraxUliceKit.S(okno).Quad(new Vector3(x1 - .2f, o.yMin, z0 + o.xMin), new Vector3(x1 - .2f, o.yMin, z0 + o.xMax), new Vector3(x1 - .2f, o.yMax, z0 + o.xMax), new Vector3(x1 - .2f, o.yMax, z0 + o.xMin), Vector3.right);
-        // witryna recepcji (szkło przezroczyste w ramie) i drzwi automatyczne
-        var w = otwPartE[1];
-        BraxUliceKit.S(szklo).Quad(new Vector3(x1 - .12f, w.yMin, z0 + w.xMin), new Vector3(x1 - .12f, w.yMin, z0 + w.xMax), new Vector3(x1 - .12f, w.yMax, z0 + w.xMax), new Vector3(x1 - .12f, w.yMax, z0 + w.xMin), Vector3.right);
-        BraxUliceKit.S(alu).Box(new Vector3(x1 - .16f, w.yMin, z0 + w.xMin), new Vector3(x1 - .08f, w.yMin + .08f, z0 + w.xMax)); BraxUliceKit.S(alu).Box(new Vector3(x1 - .16f, w.yMax - .08f, z0 + w.xMin), new Vector3(x1 - .08f, w.yMax, z0 + w.xMax));
-        BraxMiastoA.DrzwiPrzesuwne(root, "BRAXHORN LOGISTYKA — wejście", new Vector3(x1 - .12f, Y, z0 + 2.2f), Vector3.forward, 2.4f, 2.85f, szklo, alu);
-        // pozostałe ściany (lico na zewnątrz) z oknami piętra i parteru
-        void Pelna(Vector3 A, Vector3 R, Vector3 N, float dl)
-        {
-            var op = new List<Rect>(); var oparter = new List<Rect>();
-            for (float s = 1.0f; s < dl - 1.6f; s += 2.5f) { op.Add(Rect.MinMaxRect(s, Y + h1 + .9f, s + 1.5f, Y + h1 + 2.75f)); oparter.Add(Rect.MinMaxRect(s, Y + 1.0f, s + 1.5f, Y + 2.9f)); }
-            BraxMiastoA.Sciana(so, A, R, N, dl, Y, Y + h1, oparter, .25f, so);
-            BraxMiastoA.Sciana(sc, A, R, N, dl, Y + h1, Y + H, op, .25f, sc);
-            foreach (var o in op.Concat(oparter)) BraxUliceKit.S(okno).Quad(A + R * o.xMin + Vector3.up * o.yMin - N * .2f, A + R * o.xMax + Vector3.up * o.yMin - N * .2f, A + R * o.xMax + Vector3.up * o.yMax - N * .2f, A + R * o.xMin + Vector3.up * o.yMax - N * .2f, N);
-        }
-        Pelna(new Vector3(x1, 0, z1), Vector3.left, Vector3.forward, x1 - x0);
-        Pelna(new Vector3(x0, 0, z0), Vector3.right, Vector3.back, x1 - x0);
-        Pelna(new Vector3(x0, 0, z1), Vector3.back, Vector3.left, z1 - z0);
-        // gzyms między kondygnacjami, attyka z obróbką, dach
-        // gzyms międzykondygnacyjny: pierścień PRZED ścianami (nie przez wnętrze — strop recepcji zostaje sam)
-        var gz = BraxUliceKit.S(okl); float g0 = Y + h1 - .1f, g1 = Y + h1 + .1f;
-        gz.Box(new Vector3(x0 - .12f, g0, z0 - .12f), new Vector3(x1 + .12f, g1, z0), 32); gz.Box(new Vector3(x0 - .12f, g0, z1), new Vector3(x1 + .12f, g1, z1 + .12f), 16);
-        gz.Box(new Vector3(x0 - .12f, g0, z0), new Vector3(x0, g1, z1), 2); gz.Box(new Vector3(x1, g0, z0), new Vector3(x1 + .12f, g1, z1), 1);
-        BraxUliceKit.S(BraxMiastoA.Mat("Port: dach biura (papa)", new Color(.2f, .2f, .21f), .95f)).Quad(new Vector3(x0 + .25f, Y + H - .3f, z0 + .25f), new Vector3(x1 - .25f, Y + H - .3f, z0 + .25f), new Vector3(x1 - .25f, Y + H - .3f, z1 - .25f), new Vector3(x0 + .25f, Y + H - .3f, z1 - .25f), Vector3.up);
-        BraxUliceKit.S(BraxMiastoA.Mat("Port: obróbka attyki (blacha)", new Color(.4f, .42f, .44f), .5f, .7f)).Box(new Vector3(x0 - .05f, Y + H, z0 - .05f), new Vector3(x1 + .05f, Y + H + .08f, z1 + .05f), 4);
-        // szyld z liter na wschodniej ścianie nad wejściem, klimatyzatory na dachu
-        BraxUliceKit.Napis3D("BRAXHORN LOGISTYKA", new Vector3(x1 + .25f, Y + h1 + .2f + 2.95f, (z0 + z1) * .5f), Vector3.right, .42f, .08f, lit, boki);
-        for (int i = 0; i < 2; i++) { var p = new Vector3(x0 + 1.5f + i * 2.2f, Y + H, z0 + 1.5f); BraxUliceKit.S(BraxMiastoA.Mat("Port: klimatyzator", new Color(.85f, .86f, .85f), .5f)).Box(p, p + new Vector3(1.4f, .9f, .6f)); }
-        // wnętrze recepcji (parter): podłoga, ściany, sufit, lada, krzesła, tablica
-        float ix0 = x0 + .25f, ix1 = x1 - .25f, iz0 = z0 + .25f, iz1 = z1 - .25f;
-        BraxMiastoA.Pokoj(BraxMiastoA.Tex("Port: biuro posadzka", 1.0f, new Color(.7f, .7f, .7f), new Color(.5f, .5f, .5f), .6f, "floor_tiles_06", "square_tiles"), tynk, BraxMiastoA.Mat("Port: sufit biura", new Color(.93f, .93f, .92f), .9f), ix0, ix1, iz0, iz1, Y, Y + h1 - .1f,
-            new[] { oparterRects(ix1 - ix0, x1 - x0, true), Odwr(otwPartE, z1 - z0, iz0 - z0, iz1 - iz0), oparterRects(ix1 - ix0, x1 - x0, false), Odwr2(z1 - z0, iz1 - iz0) });
-        var lada = BraxMiastoA.Mat("Port: lada recepcji (dąb)", new Color(.55f, .42f, .28f), .55f);
-        BraxUliceKit.S(lada).Box(new Vector3(68.2f, Y, 9.5f), new Vector3(69.0f, Y + 1.05f * K, 13.5f));
-        BraxMiastoA.Kol(kol, "lada recepcji portu", new Vector3(68.2f, Y, 9.5f), new Vector3(69.0f, Y + 1.05f * K, 13.5f));
-        BraxMiastoA.Kol(kol, "biuro ściany", new Vector3(x0, Y, z0), new Vector3(x0 + .25f, Y + H, z1)); BraxMiastoA.Kol(kol, "biuro ściany", new Vector3(x0, Y, z1 - .25f), new Vector3(x1, Y + H, z1));
-        BraxMiastoA.Kol(kol, "biuro ściany", new Vector3(x0, Y, z0), new Vector3(x1, Y + H, z0 + .25f));
-        BraxMiastoA.Kol(kol, "biuro ściana wsch.", new Vector3(x1 - .25f, Y, z0), new Vector3(x1, Y + H, z0 + 1.0f)); BraxMiastoA.Kol(kol, "biuro ściana wsch.", new Vector3(x1 - .25f, Y, z0 + 3.4f), new Vector3(x1, Y + H, z1));
-        BraxMiastoA.Kol(kol, "biuro nadproże", new Vector3(x1 - .25f, Y + 2.85f, z0 + 1.0f), new Vector3(x1, Y + H, z0 + 3.4f));
-        BraxMiastoA.Kol(kol, "biuro strop", new Vector3(x0, Y + h1 - .1f, z0), new Vector3(x1, Y + h1 + .1f, z1));
-        BraxRegion.Warm(root, "Port: światło recepcji", new Vector3(70.3f, Y + 3.2f, 11.5f), 1.2f, 8f);
-        BraxMiastoA.Akcja(root, "port_biuro", "ZLECENIE", "Spedytor: Mam kontener do odebrania ze statku — przepustka na trap, odbiór przy dźwigu.", new Vector3(69.6f, Y, 11.5f), 1.8f);
-    }
-    static Rect[] oparterRects(float dlIn, float dl, bool poludnie) => new Rect[0];
-    static Rect[] Odwr(List<Rect> otw, float dl, float off, float dlIn) => otw.Select(o => Rect.MinMaxRect(dlIn - (o.xMax - off), o.yMin, dlIn - (o.xMin - off), o.yMax)).ToArray();
-    static Rect[] Odwr2(float dl, float dlIn) => new Rect[0];
-
     // ---------------- brama z budką strażnika i szlabanem, ogrodzenie panelowe ----------------
     static void Brama()
     {
@@ -411,7 +347,7 @@ internal static class BraxMiastoPort
         for (int i = 0; i < 6; i++) { ramie.kolor = i % 2 == 0 ? BraxUliceKit.C(.8f, .1f, .08f) : BraxUliceKit.C(.95f, .95f, .93f); var a = sl + Vector3.up * (1.0f + i * .9f); ramie.Rura(a, a + Vector3.up * .9f, .045f, 8); }
         ramie.kolor = BraxUliceKit.Bialy;
         BraxUliceKit.Napis3D("PORT BRAXHORN · BRAMA 1", new Vector3((bx0 + bx1) * .5f, Y + bh + .15f, bz1 + .3f), Vector3.forward, .16f, .03f, BraxMiastoA.Mat("Port: litery białe", new Color(.95f, .95f, .93f), .5f), BraxMiastoA.Mat("Port: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f));
-        BraxMiastoA.Akcja(root, "port_brama", "POROZMAWIAJ", "Strażnik: Wjazd tylko z przepustką. Biuro spedycji po lewej.", new Vector3(76.0f, Y, zf + .8f), 1.8f);
+        BraxMiastoA.Akcja(root, "port_brama", "POROZMAWIAJ", "Strażnik: Wjazd tylko z przepustką.", new Vector3(76.0f, Y, zf + .8f), 1.8f);
     }
 
     static void Maszty()
@@ -424,26 +360,6 @@ internal static class BraxMiastoPort
             BraxUliceKit.S(stal).Box(p + new Vector3(-1.4f, 21.6f, -1.4f), p + new Vector3(1.4f, 21.8f, 1.4f));
             foreach (var d in new[] { new Vector3(1, 0, 0), new Vector3(-1, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 0, -1) }) BraxUliceKit.S(lampa).OBox(p + Vector3.up * 21.4f + d * 1.0f, Vector3.Cross(Vector3.up, d), Vector3.up, d, .7f, .4f, .2f);
             var g = new GameObject("kolizja: maszt oświetleniowy"); g.transform.SetParent(kol, false); g.transform.position = p + Vector3.up * 2f; var cc = g.AddComponent<CapsuleCollider>(); cc.radius = .5f; cc.height = 4f;
-        }
-    }
-
-    static void Ciagniki()
-    {
-        var zolty = BraxMiastoA.Mat("Port: ciągnik terminalowy (żółty)", new Color(.92f, .7f, .1f), .5f, .2f);
-        var czarny = BraxMiastoA.Mat("Port: opony i rama", new Color(.05f, .05f, .055f), .8f);
-        var szyby = BraxMiastoA.Mat("Statek: szyby mostka", new Color(.08f, .12f, .15f), .1f, .6f);
-        int n = 0;
-        foreach (var (p, zKont) in new[] { (new Vector3(80.6f, Y, -11f), true), (new Vector3(80.6f, Y, 4.5f), false) })
-        {
-            // kabina (z przodu, na północ), rama naczepy, koła, kontener na naczepie (pod dźwigiem)
-            var c = BraxUliceKit.S(zolty); var r = BraxUliceKit.S(czarny);
-            c.Box(p + new Vector3(-1.25f, .9f, 5.5f), p + new Vector3(1.25f, 3.4f, 7.6f));
-            BraxUliceKit.S(szyby).Box(p + new Vector3(-1.1f, 2.2f, 7.6f), p + new Vector3(1.1f, 3.2f, 7.65f));
-            r.Box(p + new Vector3(-1.1f, .6f, -7.6f), p + new Vector3(1.1f, .9f, 7.0f));
-            foreach (float z in new[] { 6.6f, 4.6f, -4.8f, -6.4f }) foreach (float sg in new[] { -1f, 1f }) r.Rura(p + new Vector3(sg * 1.05f, .55f, z), p + new Vector3(sg * 1.45f, .55f, z), .55f, 14);
-            if (zKont) Kontener(p + new Vector3(0, .9f, -.6f), true, true, 777 + n, KolKont[1]);
-            BraxMiastoA.Kol(kol, "ciągnik terminalowy", p + new Vector3(-1.5f, 0, -7.6f), p + new Vector3(1.5f, zKont ? 4.3f : 3.4f, 7.6f));
-            n++;
         }
     }
 }

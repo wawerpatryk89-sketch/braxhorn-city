@@ -1,4 +1,4 @@
-"""Source and UV-math regressions for R1 Nutrition. These do not run Unity."""
+"""Source regressions for R1 Nutrition (9.11: ciemny mały klinkier, jedna lada, mural bez nakładek). These do not run Unity."""
 from dataclasses import dataclass
 from pathlib import Path
 import re
@@ -127,46 +127,34 @@ class NutritionWallFinishTests(unittest.TestCase):
 
     def test_other_fixtures_remain(self):
         ts = method('Wnetrze')
-        for label in ('"lodówka"','"lada"','"blat shake baru"','"podest ekspozycyjny"'):
+        for label in ('"lodówka"','"blat shake baru"','"podest ekspozycyjny"'):
             self.assertEqual(sum(label in arg for call in calls(ts, 'Kol') for arg in call), 1)
         self.assertIn('"Nutrition: menu SHAKE BAR"', ts)
         self.assertIn('"Nutrition: kubeł whey na podeście"', ts)
         self.assertEqual(len(calls(ts, 'Akcja')), 2)
 
-    def test_missing_reference_cannot_destroy_shop(self):
+    def test_single_counter_owner_9_11(self):
+        # 9.11 17:57: „i tą ladę usunąć, bo są dwie” — wolnostojąca lada zdjęta, kasa na ladzie shake baru
+        ts = method('Wnetrze')
+        self.assertEqual(sum('"lada"' in arg for call in calls(ts, 'Kol') for arg in call), 0)
+        self.assertNotIn('lx0', ts)
+        self.assertIn('ekranKasy', ts)
+
+    def test_dark_small_clinker_on_all_walls_owner_9_11(self):
+        # 9.11 17:55: „cały w tej małej cegiełce ciemnej, ta czerwona do wywalenia”
         ts = method('Apply')
-        capture = ts.index('PlytkaZIstniejacejSciany')
-        erase = ts.index('Wyczysc')
-        self.assertLess(capture, erase)
-        self.assertIn('return', ts[capture:erase])
-        self.assertIn('!', ts[capture:erase])
-        self.assertIn('Debug', method('BrakPlytki'))
-        self.assertIn('LogWarning', method('BrakPlytki'))
-        self.assertNotIn('throw', method('PlytkaZIstniejacejSciany'))
+        tex, = calls(ts, 'Tex')
+        flat = [x for arg in tex for x in arg]
+        self.assertIn('"brick_wall_001"', flat)
+        self.assertNotIn('"red_brick_03"', flat)
+        self.assertNotIn('PlytkaZIstniejacejSciany', TEXT)
 
-    def test_reuses_maps_without_recolour_or_download(self):
-        ts = method('PlytkaZIstniejacejSciany')
-        self.assertIn([['original']], calls(ts, 'Material'))
-        self.assertEqual(calls(ts, 'SetColor'), [])
-        self.assertEqual(calls(ts, 'SetTexture'), [])
-        self.assertEqual(calls(ts, 'Texture2D'), [])
-        for forbidden in ('UnityWebRequest','DownloadHandler','WebClient','HttpClient'):
-            self.assertNotIn(forbidden, ts)
-
-    def test_uv_scale_and_offset_are_preserved(self):
-        a,b,c = YZ(.5,12), YZ(.5,14), YZ(2.5,14)
-        for sx, sy, ox, oy in [(1/3,1/3,0,0),(-1/3,1/3,2,.25),(.25,.5,.1,-.2)]:
-            with self.subTest(scale=(sx,sy), offset=(ox,oy)):
-                uv = [V2(sx*p.z+ox,sy*p.y+oy) for p in (a,b,c)]
-                along,up,origin = source_uv_solver(a,b,c,uv)
-                self.assertAlmostEqual(along.x,sx)
-                self.assertAlmostEqual(along.y,0)
-                self.assertAlmostEqual(up.x,0)
-                self.assertAlmostEqual(up.y,sy)
-                for p,t in zip((a,b,c),uv):
-                    recovered = along*p.z + up*p.y + origin
-                    self.assertAlmostEqual(recovered.x,t.x)
-                    self.assertAlmostEqual(recovered.y,t.y)
+    def test_codex_labels_off_mural_and_readout_on_till(self):
+        ts = method('Pozostalosci')
+        self.assertIn('DestroyImmediate', ts)
+        self.assertIn('servicePoint', ts)
+        self.assertIn('ekranKasy', ts)
+        self.assertIn('Pozostalosci', method('Apply'))
 
     def test_mural_and_front_openings_do_not_overlap_wall_cells(self):
         # Same rectangular cell partition used by the existing BraxMiastoA.Sciana.
