@@ -25,16 +25,17 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         self.assertIn('BraxChampionsCarBuilder.Generate(rig.transform)', explore)
         self.assertIn('FindObjectsByType<BraxChampionsCar>', builder)
         self.assertIn('645.175f, .16f, 712f', builder)
-        self.assertIn('float uniform = LengthMetres / bounds.size.z;', builder)
+        self.assertIn('float uniform = WorldLengthMetres / bounds.size.z;', builder)
         self.assertNotIn('LengthMetres * K / bounds.size.z', builder)
-        self.assertIn('car.interactionRadius = 3.8f;', builder)
+        self.assertIn('car.interactionRadius = 3.8f * CarScale;', builder)
         # Issue #30 owner contract: approved 120 km/h replaces obsolete 65 km/h.
-        self.assertIn('car.maxSpeed = 120f / 3.6f;', builder)
+        self.assertIn('car.maxSpeed = 120f / 3.6f * K;', builder)
+        self.assertIn('car.worldScale = K;', builder)
         self.assertIn('public float maxSpeed = 120f / 3.6f', read("unity-city/Assets/Mistrzowie/BraxChampionsCar.cs"))
         # Exact regular-bay centre: between x lines 43.65/46.70 and
         # centered in row z[-90.6,-85.4]. Never on paint or accessible bay.
         x, z = 645.175 - 600, 712 - 800
-        car_half_length = 4.95/2
+        car_half_length = (6.0/1.2944)/2  # 6.0 m world car in nominal bay units
         self.assertAlmostEqual(x,(43.65+46.70)/2,places=6)
         self.assertAlmostEqual(z,(-90.6-85.4)/2,places=6)
         self.assertGreater(x-43.65,1.4)
@@ -85,19 +86,23 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         box = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBeltShowcase.cs")
         arena = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs")
         arrival = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaArrival.cs")
-        self.assertIn("BraxChampionsBeltShowcase.Generate(root)", arena)
+        # 9.11 owner photo: the belt hangs in a wall vitrine on a BLACK MARBLE
+        # pillar in the public lobby (supersedes the judges-side low-base case
+        # and its "no marble column" rule). Still exactly one belt.
+        self.assertNotIn("BraxChampionsBeltShowcase.Generate(", arena)
+        self.assertEqual(arrival.count("BraxChampionsBeltShowcase.GenerateLobby(root)"), 1)
         self.assertNotIn('return Trophy(root,', arrival)
-        for value in ("granite_tile", "A1 SHOWCASE | premium granite base",
-                      "A1 SHOWCASE | FRONT optical glass", "A1 SHOWCASE | slender gold corner profile",
-                      "A1 SHOWCASE | hidden black belt support", "BRAXHORN_ARENA_CASE_PLAQUE.jpg",
-                      "OriginalBelt(display)", "OriginalRectangleArtwork(display"):
+        for value in ("A1 VITRINE | black marble pillar", "A1 VITRINE | FRONT glass",
+                      "A1 VITRINE | brass side bracket", "A1 VITRINE | gold belt pin",
+                      "BRAXHORN_ARENA_CASE_PLAQUE.jpg", "var belt=OriginalBelt(display,BeltLength,",
+                      "VITRINE_B_CREST"):
             self.assertIn(value, box)
         for removed in ("A1_RealRhombus_GraniteStone", "Podium(display, marble, gold)",
                         "Wood veneer showcase plinth", "RED narrow centred inset",
-                        "REFERENCE black marble wall column","REFERENCE black leather back panel"):
+                        "REFERENCE black leather back panel"):
             self.assertNotIn(removed, box)
         self.assertIn("UnityEngine.Object.DestroyImmediate(cube.GetComponent<Collider>())", box)
-        self.assertIn("new Vector3(-73.9f, 0, 63.3f)", box)
+        self.assertIn("public const float LobbyX=6.6f, LobbyZ=-45.5f;", box)
         # Face-on 3D belt, true single-pane clear glass and untouched artwork.
         self.assertIn("A1_BELT_OWNER_3D_FRONT_PRESENTATION", box)
         self.assertIn("CrystalGlassPanel(display", box)

@@ -126,7 +126,11 @@ def main():
  # Extract the complete original packs once; retain original maps and pack ARM outside Unity.
  for asset, kinds in [('Grass004',['Color','NormalGL','Roughness','AmbientOcclusion']),
                       ('Metal048A',['Color','NormalGL','Roughness','Metalness']),
-                      ('Leather037',['Color','NormalGL','Roughness'])]:
+                      ('Leather037',['Color','NormalGL','Roughness']),
+                      # 9.11 owner vitrine photo: polished BLACK marble with thin
+                      # WHITE veins. Poly Haven has no such material (marble_01 is
+                      # beige tiles); ambientCG Marble016 is CC0 like Leather037.
+                      ('Marble016',['Color','NormalGL','Roughness'])]:
   prefix=asset+'_4K-JPG_'
   names=[prefix+k+'.jpg' for k in kinds]
   # New maps have no historical lock: verify against the archive on every preparation.

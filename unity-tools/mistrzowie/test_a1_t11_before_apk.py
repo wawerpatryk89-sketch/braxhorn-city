@@ -60,16 +60,20 @@ class A1T11Preflight(unittest.TestCase):
     def test_showcase_and_no_invisible_walls(self):
         exhibit=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBeltShowcase.cs")
         arena=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs")
-        self.assertIn("BraxChampionsBeltShowcase.Generate(root)",arena)
-        for text in ("BRAXHORN_ARENA_CASE_PLAQUE.jpg","granite_tile",
-                     "A1 SHOWCASE | premium granite base","A1 SHOWCASE | FRONT optical glass",
-                     "A1 SHOWCASE | slender gold corner profile","A1 SHOWCASE | hidden black belt support",
-                     "OriginalBelt(display)"):
+        arrival=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaArrival.cs")
+        self.assertNotIn("BraxChampionsBeltShowcase.Generate(",arena)
+        self.assertIn('Optional("gablota pasa w lobby",()=>BraxChampionsBeltShowcase.GenerateLobby(root));',arrival)
+        for text in ("BRAXHORN_ARENA_CASE_PLAQUE.jpg","LibraryMarble",
+                     "A1 VITRINE | black marble pillar","A1 VITRINE | FRONT glass",
+                     "A1 VITRINE | brass side bracket","A1 VITRINE | gold belt pin",
+                     "var belt=OriginalBelt(display,BeltLength,"):
             self.assertIn(text,exhibit)
-        self.assertNotIn("REFERENCE black marble wall column",exhibit)
         self.assertNotIn("REFERENCE black leather back panel",exhibit)
         self.assertNotIn("Podium(display",exhibit)
+        # Decorative parts never collide; the only solids are the marble
+        # pillar and the slat-wall backing (both visible).
         self.assertIn("DestroyImmediate(cube.GetComponent<Collider>())",exhibit)
+        self.assertEqual(exhibit.count(",true);"),2)
     def test_approval_only_quality_gates(self):
         build=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs")
         gate=source("unity-city/Assets/Editor/BraxBuildQuality.cs")
@@ -114,13 +118,15 @@ class A1T11Preflight(unittest.TestCase):
         self.assertIn("static void VerifyArenaCasinoCarAssembly(Scene scene,Report report)",build)
         self.assertIn("GetComponentsInChildren<BraxChampionsCar>(true)",build)
         self.assertIn("cars.Length!=1",build)
-        self.assertIn("car.bodyCollider.bounds.size.z-4.95f",build)
-        self.assertIn("car.maxSpeed*3.6f-120f",build)
+        self.assertIn("car.bodyCollider.bounds.size.z-BraxChampionsCarBuilder.WorldLengthMetres",build)
+        self.assertIn("car.maxSpeed*3.6f/Mathf.Max(.01f,car.worldScale)-120f",build)
         self.assertIn("BraxChampionsCarBuilder.EngineIdleAudio",build)
         self.assertIn("BraxChampionsCarBuilder.EngineRevAudio",build)
         self.assertIn("A1_T11_CAR_SAME_SCENE_PASS",build)
         self.assertIn("public float maxSpeed = 120f / 3.6f",car)
         self.assertIn("const float LengthMetres = 4.95f;",builder)
+        # Owner 8.11 cap 6 m + 9.11 "too small": world length 6.0 m.
+        self.assertIn("public const float WorldLengthMetres = 6.0f;",builder)
         self.assertIn('car.engineIdleClip = AssetDatabase.LoadAssetAtPath<AudioClip>(EngineIdleAudio);',builder)
         self.assertIn('car.engineRevClip = AssetDatabase.LoadAssetAtPath<AudioClip>(EngineRevAudio);',builder)
         gate=build[build.index("static void VerifyArenaCasinoCarAssembly("):

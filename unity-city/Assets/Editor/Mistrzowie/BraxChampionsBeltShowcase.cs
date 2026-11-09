@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-// A1: ONE owner-supplied championship belt, next to the JUDGES (not the lobby).
+// A1: ONE owner-supplied championship belt in the owner-photo vitrine (lobby, 9.11).
 // The parent arena uses nominal metres and applies the shared city scale K once.
 // This generator changes no fighters, seats, public doors, neighbouring buildings
 // or physics layers. The reference showcase is decorative; existing arena structure
@@ -204,11 +204,19 @@ public static class BraxChampionsBeltShowcase
 
     static void OriginalBelt(Transform display)
     {
+        OriginalBelt(display,2.25f,1.54f,.52f,new Vector3(0,1.80f,.02f),.43f,3.08f,-.26f,.26f);
+    }
+
+    // Fit the owner's FBX (uniform scale only) into a target box in display-
+    // local nominal metres; returns the final belt bounds for brackets.
+    static Bounds OriginalBelt(Transform display,float maxH,float maxW,float maxD,Vector3 centre,
+        float minY,float maxY,float minZ,float maxZ)
+    {
         var original = AssetDatabase.LoadAssetAtPath<GameObject>(SourceBelt);
         if (!original)
         {
             BraxBuildQuality.Warn("A1_SHOWCASE_BELT_MISSING: original owner's FBX was not imported: " + SourceBelt);
-            return;
+            return new Bounds(centre,Vector3.zero);
         }
         var instance = PrefabUtility.InstantiatePrefab(original) as GameObject;
         if (!instance) throw new InvalidOperationException("Cannot instantiate original belt FBX");
@@ -279,15 +287,15 @@ public static class BraxChampionsBeltShowcase
             BraxBuildQuality.Warn("A1_BELT_GEOMETRY_UNCERTAIN: source FBX must be inspected in Unity");
         // New lightweight case interior is 1.84 x .72 x 2.95 m above
         // a .28m base. Keep >=15cm side/top clearance and >=10cm front/back.
-        float factor=Mathf.Min(2.25f/Mathf.Max(b.size.y,.0001f),
-            Mathf.Min(1.54f/Mathf.Max(b.size.x,.0001f),
-                .52f/Mathf.Max(b.size.z,.0001f)));
+        float factor=Mathf.Min(maxH/Mathf.Max(b.size.y,.0001f),
+            Mathf.Min(maxW/Mathf.Max(b.size.x,.0001f),
+                maxD/Mathf.Max(b.size.z,.0001f)));
         instance.transform.localScale*=factor;
         b=VisualBounds(display,instance.transform);
-        instance.transform.localPosition+=new Vector3(0,1.80f,.02f)-b.center;
+        instance.transform.localPosition+=centre-b.center;
         b=VisualBounds(display,instance.transform);
-        if(b.min.y<.43f||b.max.y>3.08f||
-           b.min.z<-.26f||b.max.z>.26f||b.size.x>1.54f)
+        if(b.min.y<minY||b.max.y>maxY||
+           b.min.z<minZ||b.max.z>maxZ||b.size.x>maxW+.001f)
             BraxBuildQuality.Warn("A1_BELT_CASE_CLEARANCE: imported FBX exceeds approved lightweight case clearance");
         Debug.Log("A1_BELT_OWNER_3D_FRONT_PRESENTATION candidateSearch="+candidates+
             " score="+bestScore.ToString("F3")+
@@ -330,6 +338,7 @@ public static class BraxChampionsBeltShowcase
         // The decorative exhibit is not a second cage or a physics obstacle.
         foreach (var c in instance.GetComponentsInChildren<Collider>(true))
             UnityEngine.Object.DestroyImmediate(c);
+        return VisualBounds(display,instance.transform);
     }
 
     // Render a REGION of the owner's original 3:1 label atlas. Never rewrite,
@@ -424,112 +433,256 @@ public static class BraxChampionsBeltShowcase
             " narrowGoldRectangle=true frontPanels=1 sideCrest=1 source="+sourceWidth+"x"+sourceHeight);
     }
 
-    public static void Generate(Transform arenaInterior)
+    // OWNER PHOTO 9.11 (attachment d014d6e6-image.png, 1024x1536): "pas ma być
+    // w tej kopule co na zdjęciu", placed where it works best -> the public
+    // LOBBY, right of the red carpet, front (-Z) facing the entrance doors.
+    // Sizes are MEASURED on the photo, not guessed. Ruler = the belt itself:
+    // UFC Legacy championship belt, length 50 in = 1.27 m (ufc.com), which is
+    // 962 px on the photo -> 1.32 mm per pixel. A frontal photo cannot show
+    // depth: case depth = belt depth + LED tray clearance. The photo crops the
+    // pillar top: its 3.00 m height is a choice (marble 1.2 m above the case).
+    // The display is scaled by K ONCE, so every number below is real metres.
+    public const float LobbyX=6.6f, LobbyZ=-45.5f;
+    public const float BeltLength=1.27f;                        // ufc.com: 50 in
+    public const float CaseW=.63f, CaseH=1.79f, CaseD=.28f;     // 478 x 1358 px
+    public const float CaseBottom=.185f;                        // 140 px above floor
+    public const float ShelfAbove=.28f;                         // glass shelf, 213 px
+    public const float PylonW=1.06f, PylonD=.45f, PylonH=3.00f; // 801 px wide
+    public const float PlaqueW=.46f, PlaqueH=.18f;              // 347 x 135 px
+    public const float SlatW=.03f, SlatPitch=.05f, SlatDepth=.05f;
+    public const int Slats=12;
+    // Photo ratios relative to the hung belt length (pins and strap brackets).
+    const float PinOffsetX=.0697f, TopPinBelowTop=.132f, BottomPinAboveBottom=.10f;
+
+    static string Safe(string name)=>name.Replace(' ','_').Replace('|','_').Replace('/','_').Replace('.','_');
+
+    // Unity's primitive cube has 0..1 UV on every face: a 4K marble would be
+    // stretched differently on each side. Metric UV = texture repeat in metres.
+    static GameObject MetricCube(Transform parent,string name,Material material,
+        Vector3 position,Vector3 size,bool solid)
     {
-        // Keep the approved judges-side location. Rebuild ONLY the exhibit.
-        var display = Group(arenaInterior, "A1 REFERENCE wall-mounted museum showcase | JUDGES | one 3D belt");
-        display.localPosition = new Vector3(-73.9f, 0, 63.3f);
-        display.localRotation = Quaternion.Euler(0, 90, 0);
+        var go=GameObject.CreatePrimitive(PrimitiveType.Cube);
+        go.name=name;go.transform.SetParent(parent,false);
+        go.transform.localPosition=position;go.transform.localScale=size;
+        var filter=go.GetComponent<MeshFilter>();
+        var mesh=UnityEngine.Object.Instantiate(filter.sharedMesh);
+        var v=mesh.vertices;var n=mesh.normals;var uv=mesh.uv;
+        for(int i=0;i<uv.Length;i++)
+        {
+            var p=v[i];
+            if(Mathf.Abs(n[i].y)>.7f)uv[i]=new Vector2((p.x+.5f)*size.x,(p.z+.5f)*size.z);
+            else if(Mathf.Abs(n[i].x)>.7f)uv[i]=new Vector2((p.z+.5f)*size.z,(p.y+.5f)*size.y);
+            else uv[i]=new Vector2((p.x+.5f)*size.x,(p.y+.5f)*size.y);
+        }
+        mesh.uv=uv;mesh.name=name+" | metric UV";mesh.RecalculateTangents();
+        AssetDatabase.CreateAsset(mesh,Meshes+"A1_vitrine_"+Safe(name)+".asset");
+        filter.sharedMesh=mesh;
+        go.GetComponent<MeshRenderer>().sharedMaterial=material;
+        if(!solid)UnityEngine.Object.DestroyImmediate(go.GetComponent<Collider>());
+        return go;
+    }
 
-        var gold=SolidPbr("A1_belt_showcase_clean_gold",
-            new Color(.835f,.639f,.231f),.19f,.98f);
-        var blackMetal=SolidPbr("A1_belt_showcase_clean_black_metal",
-            new Color(.045f,.050f,.060f),.22f,.92f);
-        var plaqueRecess=SolidPbr("A1_belt_showcase_plaque_recess",
-            new Color(.035f,.037f,.042f),.24f,.35f);
-        var originalGlass = AssetDatabase.LoadAssetAtPath<Material>(Materials + "clear_glass.mat");
-        var warm = AssetDatabase.LoadAssetAtPath<Material>(Materials + "light.mat");
-        if (!originalGlass || originalGlass.renderQueue < 3000 || !warm)
-            throw new InvalidOperationException("A1 showroom requires existing transparent glass and warm light materials");
+    static void EngravedText(Transform parent,string text,Vector3 at,float lineHeight,Color color)
+    {
+        var o=new GameObject("A1 VITRINE | engraved text | "+text);
+        o.transform.SetParent(parent,false);o.transform.localPosition=at;
+        // TextMesh reads correctly from -Z with identity rotation (case front).
+        var t=o.AddComponent<TextMesh>();t.text=text;
+        t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        t.fontSize=64;t.characterSize=lineHeight*10f/64f;
+        t.anchor=TextAnchor.MiddleCenter;t.alignment=TextAlignment.Center;t.color=color;
+        var r=o.GetComponent<MeshRenderer>();r.sharedMaterial=t.font.material;
+        r.shadowCastingMode=ShadowCastingMode.Off;r.receiveShadows=false;
+    }
 
-        var glass=new Material(originalGlass){
-            name="A1 premium showcase | optical clear slightly smoked glass",
-            enableInstancing=true
-        };
+    public static void GenerateLobby(Transform arrivalRoot)
+    {
+        float k=BraxClaudeOsiedle.K;
+        var display=Group(arrivalRoot,"A1 LOBBY | owner-photo belt vitrine | black marble pillar | ONE 3D belt");
+        display.localPosition=new Vector3(LobbyX,0,LobbyZ)*k;
+        display.localRotation=Quaternion.identity; // front (-Z) faces the entrance doors
+        display.localScale=Vector3.one*k;
+        // Stand on the real lobby floor (global rule §3: raycast down).
+        Physics.SyncTransforms();
+        var probe=display.position+Vector3.up*6f*k;
+        float floorY=.245f*k,expected=.245f*k,best=float.PositiveInfinity;
+        bool onFloor=false;
+        foreach(var hit in Physics.RaycastAll(probe,Vector3.down,12f*k,~0,QueryTriggerInteraction.Ignore))
+        {
+            if(hit.normal.y<=.7f)continue;
+            float y=arrivalRoot.InverseTransformPoint(hit.point).y;
+            // Lobby floor = the walkable surface nearest the paving height,
+            // never the upper lounge slab (18 m) above.
+            if(Mathf.Abs(y-expected)<best&&Mathf.Abs(y-expected)<1.2f*k){best=Mathf.Abs(y-expected);floorY=y;onFloor=true;}
+        }
+        display.localPosition=new Vector3(LobbyX*k,onFloor?floorY:.245f*k,LobbyZ*k);
+        if(!onFloor)BraxBuildQuality.Warn("A1_VITRINE_FLOOR_RAYCAST_MISS: lobby floor not found, using paving height .245");
+
+        // ---- materials (photo colours sampled from the reference) ----
+        var gold=SolidPbr("A1_belt_showcase_clean_gold",new Color(.835f,.639f,.231f),.19f,.98f);
+        var brass=SolidPbr("A1_vitrine_brushed_brass",new Color(.78f,.62f,.30f),.34f,.95f);
+        var dark=SolidPbr("A1_belt_showcase_plaque_recess",new Color(.035f,.037f,.042f),.24f,.35f);
+        // Slats: lit bronze, photo ratio R:G:B = 1 : .70 : .40. Pot: dark bronze (53,35,25).
+        var bronzeSlat=BraxChampionsFoundation.LibraryMetal("A1_vitrine_bronze_slats",new Color(.70f,.49f,.28f));
+        var bronzePot=BraxChampionsFoundation.LibraryMetal("A1_vitrine_dark_bronze_pot",new Color(.30f,.20f,.13f));
+        Material marble;
+        bool veinedMarble=true;
+        try
+        {
+            // Black marble with thin white veins, 3 m texture repeat -> sparse
+            // veins like the photo. Albedo nudged warm/dark to the photo (49,40,38).
+            marble=BraxChampionsFoundation.LibraryMarble("A1_vitrine_black_marble_veined",new Color(.86f,.80f,.78f),3.0f);
+        }
+        catch(Exception e)
+        {
+            veinedMarble=false;
+            BraxBuildQuality.Warn("A1_VITRINE_MARBLE016_MISSING: "+e.Message+
+                " -> dark granite_tile until prepare_assets.py restores ambientCG Marble016");
+            marble=BraxChampionsFoundation.SourceMaterial("A1_vitrine_dark_stone_fallback","granite_tile",.82f,new Color(.12f,.12f,.13f));
+        }
+        var originalGlass=AssetDatabase.LoadAssetAtPath<Material>(Materials+"clear_glass.mat");
+        var warm=AssetDatabase.LoadAssetAtPath<Material>(Materials+"light.mat");
+        if(!originalGlass||originalGlass.renderQueue<3000||!warm)
+            throw new InvalidOperationException("A1 vitrine requires existing transparent glass and warm light materials");
+        var glass=new Material(originalGlass){name="A1 vitrine | optical clear glass",enableInstancing=true};
         glass.SetColor("_Color",new Color(.94f,.96f,.98f,.025f));
-        glass.SetFloat("_Roughness",.035f);
-        glass.SetFloat("_Metallic",0f);
-        glass.SetFloat("_VertexTint",0f);
-        glass.SetFloat("_Transparent",1f);
-        glass.SetFloat("_AlphaClip",0f);
-        glass.SetFloat("_SrcBlend",(float)BlendMode.SrcAlpha);
-        glass.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);
-        glass.SetFloat("_ZWrite",0f);
-        glass.SetFloat("_Cull",0f);
-        glass.renderQueue=3001;
-        glass.SetOverrideTag("RenderType","Transparent");
-        AssetDatabase.CreateAsset(glass,Materials+"A1_case_clear_slightly_smoked_glass.mat");
+        glass.SetFloat("_Roughness",.035f);glass.SetFloat("_Metallic",0f);glass.SetFloat("_VertexTint",0f);
+        glass.SetFloat("_Transparent",1f);glass.SetFloat("_AlphaClip",0f);
+        glass.SetFloat("_SrcBlend",(float)BlendMode.SrcAlpha);glass.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);
+        glass.SetFloat("_ZWrite",0f);glass.SetFloat("_Cull",0f);
+        glass.renderQueue=3001;glass.SetOverrideTag("RenderType","Transparent");
+        AssetDatabase.CreateAsset(glass,Materials+"A1_vitrine_clear_glass.mat");
 
-        var granite=BraxChampionsFoundation.SourceMaterial(
-            "A1_belt_showcase_granite_tile","granite_tile",.82f,
-            new Color(.12f,.125f,.14f));
-        granite.SetFloat("_Roughness",.26f);
+        // 1) Black marble pillar straight to the floor (photo: no plinth),
+        //    front face at z=0. Its collider is the one real obstacle.
+        MetricCube(display,"A1 VITRINE | black marble pillar",marble,
+            new Vector3(0,PylonH*.5f,PylonD*.5f),new Vector3(PylonW,PylonH,PylonD),true);
 
-        // LOW two-layer base only. NO tall black wall, NO leather backing plate.
-        RoundedBase(display,"A1 SHOWCASE | recessed lower granite plinth",granite,
-            new Vector3(0,.04f,0),new Vector3(2.08f,.08f,.78f),.025f);
-        RoundedBase(display,"A1 SHOWCASE | premium granite base",granite,
-            new Vector3(0,.18f,0),new Vector3(2.20f,.20f,.90f),.025f,true);
-
-        // Lightweight 1.84 x .72 x 2.95 m glass case above y=.28.
-        const float caseY=.28f+2.95f*.5f;
-        CrystalGlassPanel(display,"A1 SHOWCASE | FRONT optical glass",glass,
-            new Vector3(0,caseY,-.36f),new Vector2(1.84f,2.95f),
-            Quaternion.Euler(0,180f,0));
-        CrystalGlassPanel(display,"A1 SHOWCASE | BACK optical glass",glass,
-            new Vector3(0,caseY,.36f),new Vector2(1.84f,2.95f),
-            Quaternion.identity);
+        // 2) Frameless 12 mm glass case on the marble face.
+        float top=CaseBottom+CaseH,yc=CaseBottom+CaseH*.5f,front=-CaseD;
+        CrystalGlassPanel(display,"A1 VITRINE | FRONT glass",glass,new Vector3(0,yc,front),new Vector2(CaseW,CaseH),Quaternion.Euler(0,180f,0));
         foreach(float side in new[]{-1f,1f})
-            CrystalGlassPanel(display,"A1 SHOWCASE | SIDE optical glass "+side,glass,
-                new Vector3(side*.92f,caseY,0),new Vector2(.72f,2.95f),
-                Quaternion.Euler(0,side*90f,0));
-        CrystalGlassPanel(display,"A1 SHOWCASE | TOP optical glass",glass,
-            new Vector3(0,3.23f,0),new Vector2(1.84f,.72f),
-            Quaternion.Euler(90f,0,0));
+            CrystalGlassPanel(display,"A1 VITRINE | SIDE glass "+side,glass,new Vector3(side*CaseW*.5f,yc,front*.5f),new Vector2(CaseD,CaseH),Quaternion.Euler(0,side*90f,0));
+        CrystalGlassPanel(display,"A1 VITRINE | TOP glass",glass,new Vector3(0,top,front*.5f),new Vector2(CaseW,CaseD),Quaternion.Euler(90f,0,0));
+        CrystalGlassPanel(display,"A1 VITRINE | BOTTOM glass",glass,new Vector3(0,CaseBottom,front*.5f),new Vector2(CaseW,CaseD),Quaternion.Euler(-90f,0,0));
+        // Glass shelf separating the belt from the plaque compartment.
+        CrystalGlassPanel(display,"A1 VITRINE | plaque shelf glass",glass,new Vector3(0,CaseBottom+ShelfAbove,front*.5f),new Vector2(CaseW-.02f,CaseD-.01f),Quaternion.Euler(-90f,0,0));
 
-        // Four 45mm gold corner profiles + 55mm top frame; glass and belt remain dominant.
-        foreach(float x in new[]{-.92f,.92f})
-        foreach(float z in new[]{-.36f,.36f})
-            Cube(display,"A1 SHOWCASE | slender gold corner profile",gold,
-                new Vector3(x,caseY,z),new Vector3(.045f,2.95f,.045f));
-        foreach(float z in new[]{-.36f,.36f})
-            Cube(display,"A1 SHOWCASE | top gold front/back frame",gold,
-                new Vector3(0,3.2025f,z),new Vector3(1.84f,.055f,.045f));
-        foreach(float x in new[]{-.92f,.92f})
-            Cube(display,"A1 SHOWCASE | top gold side frame",gold,
-                new Vector3(x,3.2025f,0),new Vector3(.045f,.055f,.72f));
+        // 3) Four brass side brackets holding the side glass to the marble:
+        //    .20 m under the top and .14 m over the bottom (photo).
+        foreach(float side in new[]{-1f,1f})
+        foreach(float y in new[]{top-.20f,CaseBottom+.14f})
+            Cube(display,"A1 VITRINE | brass side bracket",gold,new Vector3(side*(CaseW*.5f+.0125f),y,front*.5f),new Vector3(.025f,.046f,CaseD));
 
-        // Two black 30mm supports behind the belt, invisible from a straight-on view.
-        foreach(float x in new[]{-.34f,.34f})
-            Cube(display,"A1 SHOWCASE | hidden black belt support",blackMetal,
-                new Vector3(x,1.22f,.20f),new Vector3(.030f,1.88f,.030f));
+        // 4) Warm LED (emissive, no shadows): recessed tray with a glowing
+        //    frame under the top, two vertical lines at the back corners and
+        //    one line along the bottom front edge.
+        float trayW=CaseW-.14f,trayD=CaseD-.08f,trayZ=front*.5f;
+        Cube(display,"A1 VITRINE | LED tray",dark,new Vector3(0,top-.02f,trayZ),new Vector3(trayW,.02f,trayD));
+        foreach(float s in new[]{-1f,1f})
+        {
+            Cube(display,"A1 VITRINE | LED tray frame long",warm,new Vector3(0,top-.035f,trayZ+s*trayD*.5f),new Vector3(trayW,.012f,.012f));
+            Cube(display,"A1 VITRINE | LED tray frame short",warm,new Vector3(s*trayW*.5f,top-.035f,trayZ),new Vector3(.012f,.012f,trayD));
+            Cube(display,"A1 VITRINE | LED vertical back corner",warm,new Vector3(s*(CaseW*.5f-.02f),yc,-.02f),new Vector3(.012f,CaseH-.10f,.012f));
+        }
+        Cube(display,"A1 VITRINE | LED bottom front line",warm,new Vector3(0,CaseBottom+.012f,front+.03f),new Vector3(CaseW-.06f,.012f,.012f));
 
-        // Warm 3000K-style emissive lines: one upper, one lower. No shadow light strips.
-        Cube(display,"A1 SHOWCASE | upper warm LED",warm,
-            new Vector3(0,3.165f,-.31f),new Vector3(1.56f,.028f,.020f));
-        Cube(display,"A1 SHOWCASE | lower warm LED",warm,
-            new Vector3(0,.315f,-.31f),new Vector3(1.50f,.020f,.020f));
+        // 5) The owner's ONE 3D belt, hung vertically: 1.27 m (real length),
+        //    bottom .32 m over the case bottom (photo), 3 cm off the marble.
+        float beltCentreY=CaseBottom+.32f+BeltLength*.5f;
+        var belt=OriginalBelt(display,BeltLength,.40f,.10f,new Vector3(0,beltCentreY,-.08f),
+            CaseBottom+ShelfAbove,top-.08f,front+.03f,-.01f);
+        int pins=0;
+        if(belt.size.y>.01f)
+        {
+            // Gold pins either side of the strap, top and bottom (photo ratios).
+            float L=belt.size.y,px=PinOffsetX*L;
+            foreach(float y in new[]{belt.max.y-TopPinBelowTop*L,belt.min.y+BottomPinAboveBottom*L})
+            foreach(float x in new[]{-px,px})
+            {
+                Cube(display,"A1 VITRINE | gold belt pin",gold,new Vector3(x,y,belt.min.z*.5f),new Vector3(.05f,.035f,Mathf.Max(.04f,-belt.min.z)));
+                pins++;
+            }
+        }
 
-        OriginalRectangleArtwork(display,gold,plaqueRecess);
-        OriginalBelt(display);
+        // 6) Brushed brass plaque on the marble in the lower compartment:
+        //    owner's B crest (original atlas region, pixels unedited) +
+        //    engraved BRAXHORN ARENA / CHAMPION'S BELT as on the photo.
+        float plaqueY=CaseBottom+.17f;
+        Cube(display,"A1 VITRINE | brushed brass plaque",brass,new Vector3(0,plaqueY,-.006f),new Vector3(PlaqueW,PlaqueH,.008f));
+        var image=AssetDatabase.LoadAssetAtPath<Texture2D>(OriginalPlaque);
+        if(!image)BraxBuildQuality.Warn("A1_VITRINE_PLAQUE_PENDING: "+OriginalPlaque);
+        else
+        {
+            var shader=Shader.Find(BraxCityMaterials.ShaderName);
+            var label=new Material(shader){name="A1 vitrine | original B crest, unedited",enableInstancing=true};
+            label.SetTexture("_MainTex",image);label.SetColor("_Color",Color.white);
+            label.SetFloat("_VertexTint",0f);label.SetFloat("_Roughness",.35f);label.SetFloat("_Metallic",0f);
+            label.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+            AssetDatabase.CreateAsset(label,Materials+"A1_vitrine_plaque.mat");
+            // Atlas 1536x512: B crest = x 1298..1519, y 85..477 (measured).
+            // Yaw 180 => swap U endpoints so the crest is not mirrored.
+            AtlasLabel(display,label,"VITRINE_B_CREST",new Vector3(0,plaqueY+.052f,-.012f),
+                Quaternion.Euler(0,180f,0),new Vector2(.031f,.055f),.9889f,.8451f,.0684f,.8340f);
+        }
+        var engraving=new Color(.16f,.11f,.06f);
+        EngravedText(display,"BRAXHORN ARENA",new Vector3(0,plaqueY-.005f,-.012f),.034f,engraving);
+        EngravedText(display,"CHAMPION'S BELT",new Vector3(0,plaqueY-.047f,-.012f),.018f,engraving);
+        foreach(float s in new[]{-1f,1f})
+            Cube(display,"A1 VITRINE | engraved rule",dark,new Vector3(s*.135f,plaqueY-.047f,-.0115f),new Vector3(.07f,.002f,.001f));
 
-        // One cheap mobile light only.
-        var lamp = new GameObject("A1 SHOWCASE | one warm mobile vertex light").AddComponent<Light>();
+        // 7) Bronze slat wall to the right of the pillar on a dark backing
+        //    (photo: dark gaps), slat faces 5 cm behind the marble face.
+        float slatX0=PylonW*.5f,unitW=Slats*SlatPitch;
+        MetricCube(display,"A1 VITRINE | slat wall dark backing",dark,
+            new Vector3(slatX0+unitW*.5f,PylonH*.5f,.12f),new Vector3(unitW,PylonH,.04f),true);
+        for(int i=0;i<Slats;i++)
+            Cube(display,"A1 VITRINE | bronze slat "+i,bronzeSlat,
+                new Vector3(slatX0+SlatPitch*(i+.5f),PylonH*.5f,.05f+SlatDepth*.5f),new Vector3(SlatW,PylonH,SlatDepth));
+
+        // 8) Tall dark-bronze cylinder planter in front of the slats + plant.
+        const float potD=.30f,potH=.60f;
+        float potX=slatX0+.30f,potZ=-.22f;
+        var pot=GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        pot.name="A1 VITRINE | dark bronze cylinder planter";
+        pot.transform.SetParent(display,false);
+        pot.transform.localPosition=new Vector3(potX,potH*.5f,potZ);
+        pot.transform.localScale=new Vector3(potD,potH*.5f,potD);
+        pot.GetComponent<MeshRenderer>().sharedMaterial=bronzePot;
+        var shrubSource=AssetDatabase.LoadAssetAtPath<GameObject>(BraxChampionsArenaArrival.PremiumShrubSourcePath);
+        bool plantPlaced=false;
+        if(shrubSource)
+        {
+            var plant=PrefabUtility.InstantiatePrefab(shrubSource) as GameObject;
+            if(plant)
+            {
+                plant.name="A1 VITRINE | plant | original project GLB";
+                plant.transform.SetParent(display,false);
+                plant.transform.localPosition=new Vector3(potX,potH,potZ);
+                Physics.SyncTransforms();
+                var pb=VisualBounds(display,plant.transform);
+                if(pb.size.y>.001f)plant.transform.localScale*=.55f/pb.size.y;
+                Physics.SyncTransforms();
+                pb=VisualBounds(display,plant.transform);
+                plant.transform.localPosition+=new Vector3(potX-pb.center.x,potH-.02f-pb.min.y,potZ-pb.center.z);
+                foreach(var c in plant.GetComponentsInChildren<Collider>(true))UnityEngine.Object.DestroyImmediate(c);
+                plantPlaced=true;
+            }
+        }
+        if(!plantPlaced)BraxBuildQuality.Warn("A1_VITRINE_PLANT_MISSING: "+BraxChampionsArenaArrival.PremiumShrubSourcePath);
+
+        // One warm vertex light in front of the case (no realtime shadows).
+        var lamp=new GameObject("A1 VITRINE | warm vertex light").AddComponent<Light>();
         lamp.transform.SetParent(display,false);
-        lamp.transform.localPosition=new Vector3(0,2.72f,-.05f);
-        lamp.type=LightType.Point;
-        lamp.color=new Color(1f,.87f,.63f);
-        lamp.intensity=.62f;
-        lamp.range=3.3f*BraxClaudeOsiedle.K;
-        lamp.shadows=LightShadows.None;
-        lamp.renderMode=LightRenderMode.ForceVertex;
+        lamp.transform.localPosition=new Vector3(0,top-.25f,-.6f);
+        lamp.type=LightType.Point;lamp.color=new Color(1f,.86f,.62f);lamp.intensity=.85f;
+        lamp.range=4.2f*k;lamp.shadows=LightShadows.None;lamp.renderMode=LightRenderMode.ForceVertex;
 
-        Debug.Log("A1_SHOWCASE_PREMIUM base=2.20x.90x.28 lower=2.08x.78x.08 R=.025"+
-            " case=1.84x.72x2.95 totalHeight=3.23 glassThickness=.012m baseCollider=2.20x.90x.28"+
-            " tallBackPlate=false leatherBacking=false goldProfiles=.045 topFrame=.055"+
-            " beltTargetHeight<=2.25 beltCenterY=1.80 localAxisFrontFlip=true"+
-            " frontPlaque=1.20x.40 goldFrame=.035 sideCrest=.26x.34"+
-            " LEDtop=.028 LEDbottom=.020 realtimeLights=1 visualFrontProofRequired=true");
+        Debug.Log("A1_VITRINE_OWNER_PHOTO location=lobby x="+LobbyX+" z="+LobbyZ+" facing=entrance"+
+            " ruler=UFC_belt_1.27m=962px case="+CaseW+"x"+CaseH+"x"+CaseD+" bottom="+CaseBottom+
+            " pillar="+PylonW+"x"+PylonH+"x"+PylonD+" marble="+(veinedMarble?"ambientCG_Marble016":"granite_tile_FALLBACK")+
+            " belt="+belt.size.ToString("F2")+" pins="+pins+" brackets=4 LED=tray+2vertical+bottom"+
+            " plaque="+PlaqueW+"x"+PlaqueH+" slats="+Slats+" plant="+plantPlaced+" onFloor="+onFloor+" scale=K_once");
     }
 
 }

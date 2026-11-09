@@ -11,6 +11,11 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     public Transform driverSeat, doorApproach, doorHinge;
     public BoxCollider bodyCollider;
     public float maxSpeed = 120f / 3.6f, reverseMaxSpeed = 30f / 3.6f;
+    // World units per real metre (K). Speeds are stored in world units; the
+    // builder sets maxSpeed = 120/3.6 x K so a real 120 km/h is reached.
+    public float worldScale = 1f;
+    // Acceleration fades toward top speed: 7.2 m/s2 launch, 0-120 km/h in ~6.7 s.
+    public float topEndAccelerationFactor = .45f;
     public float wheelbase = 2.7f, maxSteer = 34f, highSpeedSteerFactor = .16f;
     public float interactionRadius = 3.8f;
     public float acceleration = 5.5f, braking = 9.5f;
@@ -29,7 +34,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 
     public BraxGymPlayer Driver => driver;
     public float Speed => speed;
-    public float SpeedKph => Mathf.Abs(speed) * 3.6f;
+    public float SpeedKph => Mathf.Abs(speed) * 3.6f / Mathf.Max(.01f, worldScale);
     public bool Transitioning => transition;
     const int PlayerLayer = 8;
     readonly RaycastHit[] groundHits = new RaycastHit[24];
@@ -506,7 +511,9 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         float target = Mathf.Abs(control.y) < .08f ? 0f
             : control.y >= 0f ? control.y * maxSpeed : control.y * reverseMaxSpeed;
         bool changingDirection = speed * target < 0f;
-        float rate = changingDirection || Mathf.Abs(target) < Mathf.Abs(speed) ? braking : acceleration;
+        float launch = Mathf.Lerp(1f, topEndAccelerationFactor,
+            Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.01f, maxSpeed)));
+        float rate = changingDirection || Mathf.Abs(target) < Mathf.Abs(speed) ? braking : acceleration * launch;
         speed = Mathf.MoveTowards(speed, target, rate * dt);
 
         float speed01 = Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.01f, maxSpeed));

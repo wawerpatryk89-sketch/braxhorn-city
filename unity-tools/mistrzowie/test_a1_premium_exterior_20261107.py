@@ -144,10 +144,10 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('Assets/Source/Mistrzowie/Vehicles/car_rev.glb', self.car)
         self.assertNotIn("GameObject.CreatePrimitive(PrimitiveType.Cube)", self.car)
         self.assertIn("sourceMeshUnchanged=true", self.car)
-        self.assertIn("float uniform = LengthMetres / bounds.size.z;", self.car)
+        self.assertIn("float uniform = WorldLengthMetres / bounds.size.z;", self.car)
         self.assertNotIn("LengthMetres * K / bounds.size.z", self.car)
         self.assertIn("645.175f, .16f, 712f", self.car)
-        self.assertIn("interactionRadius = 3.8f", self.car)
+        self.assertIn("interactionRadius = 3.8f * CarScale", self.car)
 
     def test_ellipse_is_round_enough_for_walking_range_without_faceting(self):
         # Maximum radial sagitta of a 1-degree chord on the 96m major radius.

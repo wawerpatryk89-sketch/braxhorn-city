@@ -38,13 +38,14 @@ class ArenaPhoneRegressions(unittest.TestCase):
         self.assertIn("ISSUE27_black_belt_360_y10p85_to18p55",self.arrival)
 
     def test_showcase_matches_owner_corrections(self):
+        # 8.11 phone proof: embossed face was backwards -> flip about local up.
         self.assertIn("phoneProofFrontFlip=true",self.showcase)
         self.assertIn("bestRotation=bestRotation*Quaternion.Euler(0,180f,0)",self.showcase)
-        self.assertIn("A1_SHOWCASE_PREMIUM",self.showcase)
-        self.assertIn("tallBackPlate=false",self.showcase)
-        self.assertIn('new Vector3(2.20f,.20f,.90f)',self.showcase)
-        self.assertIn('new Vector2(1.20f,.40f)',self.showcase)
-        self.assertIn("RIGHT_SIDE_B_CREST",self.showcase)
+        # 9.11 owner photo replaces the low base: tall wall vitrine, B crest
+        # from the owner's atlas on the brass plaque, belt real-size.
+        self.assertIn("A1_VITRINE_OWNER_PHOTO",self.showcase)
+        self.assertIn("VITRINE_B_CREST",self.showcase)
+        self.assertIn("public const float BeltLength=1.27f;",self.showcase)
 
     def test_vip_sideways_failure_path_is_replaced(self):
         self.assertIn("CHAMPIONS_VIP_OWNER_GLB_UPRIGHT",self.vip)

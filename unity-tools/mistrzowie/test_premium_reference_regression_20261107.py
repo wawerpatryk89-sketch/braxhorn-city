@@ -19,6 +19,14 @@ def constant(text, name):
     return float(m.group(1))
 
 
+def field(text, name):
+    # Also matches comma-separated declarations: const float A=1f, B=2f;
+    m = re.search(r'[\s,]' + re.escape(name) + r'\s*=\s*([\d.]+)f?\s*[;,]', text)
+    if not m:
+        raise AssertionError('Missing numeric field: ' + name)
+    return float(m.group(1))
+
+
 class PremiumReferenceRegressions(unittest.TestCase):
     def test_entrance_print_is_in_front_of_lobby_wall(self):
         text = source('BraxChampionsArenaMural.cs')
@@ -49,63 +57,92 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertNotIn('AddComponent<BoxCollider>', text)
         self.assertNotIn('AddComponent<MeshCollider>', text)
 
+    # 9.11 owner photo (wall vitrine on black marble) supersedes the 7.11/8.11
+    # low-base case. Belt pose rules from the phone proofs stay in force.
     def test_case_preserves_owner_belt_and_plaque(self):
         text = source('BraxChampionsBeltShowcase.cs')
         self.assertIn('tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbx', text)
         self.assertIn('BRAXHORN_ARENA_CASE_PLAQUE.jpg', text)
-        self.assertEqual(text.count('OriginalBelt(display);'), 1)
-        self.assertEqual(text.count('OriginalRectangleArtwork(display,gold,plaqueRecess);'), 1)
+        # ONE belt in the whole arena: only the lobby vitrine hangs it.
+        self.assertEqual(text.count('var belt=OriginalBelt(display,BeltLength,'), 1)
+        self.assertIn('"VITRINE_B_CREST"', text)
+        self.assertIn('.9889f,.8451f,.0684f,.8340f', text)  # measured crest region, U swapped for yaw 180
         self.assertNotIn('EncodeToPNG', text)
         self.assertNotIn('SetPixels', text)
+        arena = source('BraxChampionsArena.cs')
+        self.assertNotIn('BraxChampionsBeltShowcase.Generate(', arena)
+        arrival = source('BraxChampionsArenaArrival.cs')
+        self.assertEqual(arrival.count('BraxChampionsBeltShowcase.GenerateLobby(root)'), 1)
 
-    def test_case_is_lightweight_premium_and_has_no_old_backplate(self):
+    def test_case_is_owner_photo_vitrine_and_has_no_old_backplate(self):
         text = source('BraxChampionsBeltShowcase.cs')
         for marker in (
-            '"A1 SHOWCASE | premium granite base"',
-            '"A1 SHOWCASE | FRONT optical glass"',
-            '"A1 SHOWCASE | slender gold corner profile"',
-            '"A1 SHOWCASE | hidden black belt support"',
-            '"A1 SHOWCASE | upper warm LED"',
+            '"A1 VITRINE | black marble pillar"',
+            '"A1 VITRINE | FRONT glass"',
+            '"A1 VITRINE | plaque shelf glass"',
+            '"A1 VITRINE | brass side bracket"',
+            '"A1 VITRINE | LED tray frame long"',
+            '"A1 VITRINE | LED vertical back corner"',
+            '"A1 VITRINE | LED bottom front line"',
+            '"A1 VITRINE | gold belt pin"',
+            '"A1 VITRINE | brushed brass plaque"',
+            '"BRAXHORN ARENA"', '"CHAMPION\'S BELT"',
+            '"A1 VITRINE | slat wall dark backing"',
+            '"A1 VITRINE | dark bronze cylinder planter"',
         ):
             self.assertIn(marker, text)
-        self.assertNotIn('REFERENCE black marble wall column', text)
         self.assertNotIn('REFERENCE black leather back panel', text)
         self.assertNotIn('Podium(display', text)
         self.assertNotIn('Wood veneer showcase plinth', text)
-        self.assertIn('CrystalGlassPanel(display,"A1 SHOWCASE | FRONT optical glass"', text)
+        self.assertNotIn('inner back inset', text)
+        # Black marble with white veins (photo); Poly Haven has none.
+        self.assertIn('BraxChampionsFoundation.LibraryMarble("A1_vitrine_black_marble_veined"', text)
+        self.assertIn('A1_VITRINE_MARBLE016_MISSING', text)
+        prep = (ROOT / 'unity-tools/mistrzowie/prepare_assets.py').read_text(encoding='utf-8')
+        self.assertIn("('Marble016',['Color','NormalGL','Roughness'])", prep)
+        foundation = source('BraxChampionsFoundation.cs')
+        self.assertIn('prefix="Marble016_4K-JPG_"', foundation)
+        self.assertIn('"Marble016_ARM_4k.png"', foundation)
+        # Glass contract unchanged: 12 mm, single alpha layer, no Z write.
         self.assertIn('glass.SetFloat("_ZWrite",0f);', text)
         self.assertIn('glass.SetFloat("_Transparent",1f);', text)
         self.assertIn('new Color(.94f,.96f,.98f,.025f)', text)
         self.assertIn('const float thickness=.012f', text)
         self.assertIn('A1_glass_', text)
-        self.assertIn('new Vector3(2.20f,.20f,.90f),.025f,true', text)
         self.assertIn('24 rigid', text)
         self.assertIn('A1_BELT_OWNER_3D_FRONT_PRESENTATION', text)
+        # Marble gets metric UV, never 0..1 per primitive face.
+        self.assertIn('static GameObject MetricCube(', text)
 
-    def test_case_matches_approved_low_base_and_clearances(self):
+    def test_case_dimensions_are_measured_on_owner_photo(self):
         text = source('BraxChampionsBeltShowcase.cs')
-        self.assertIn('new Vector3(2.20f,.20f,.90f)',text)
-        self.assertIn('new Vector2(1.84f,2.95f)',text)
-        self.assertIn('new Vector2(.72f,2.95f)',text)
-        self.assertIn('new Vector3(.045f,2.95f,.045f)',text)
-        self.assertIn('new Vector2(1.20f,.40f)',text)
-        self.assertAlmostEqual(1.84/2.95,.624,places=3)
-        self.assertIn('1.54f/Mathf.Max(b.size.x,.0001f)',text)
-        self.assertIn('.52f/Mathf.Max(b.size.z,.0001f)',text)
-        self.assertIn('new Vector3(0,1.80f,.02f)-b.center',text)
+        belt = field(text, 'BeltLength')
+        self.assertAlmostEqual(belt, 1.27, places=2)  # UFC Legacy belt, 50 in
+        mm_per_px = belt / 962
+        for name, px in (('CaseW', 478), ('CaseH', 1358), ('CaseBottom', 140),
+                         ('ShelfAbove', 213), ('PylonW', 801), ('PlaqueW', 347), ('PlaqueH', 135)):
+            with self.subTest(name=name):
+                self.assertAlmostEqual(field(text, name), px * mm_per_px, delta=.01)
+        # The hung belt fits inside the case above the shelf.
+        bottom, h = field(text, 'CaseBottom'), field(text, 'CaseH')
+        shelf = field(text, 'ShelfAbove')
+        self.assertIn('float beltCentreY=CaseBottom+.32f+BeltLength*.5f;', text)
+        self.assertGreater(bottom + .32, bottom + shelf)
+        self.assertLess(bottom + .32 + belt, bottom + h - .08)
+        self.assertLess(field(text, 'CaseD'), field(text, 'PylonD') + .01)
+        # Everything is real metres scaled by K exactly once.
+        self.assertIn('display.localScale=Vector3.one*k;', text)
 
     def test_case_plaque_faces_front_and_clears_glass(self):
         text = source('BraxChampionsBeltShowcase.cs')
-        self.assertIn('Quaternion.Euler(0,180f,0)', text)
-        self.assertIn('new Vector3(0,.31f,-.482f)', text)
-        self.assertIn('new Vector3(0,caseY,-.36f)', text)
-        self.assertIn('"A1 SHOWCASE | gold plaque frame"', text)
-        self.assertAlmostEqual(1.20 / .40, 3.0, places=6)
+        self.assertIn('Quaternion.Euler(0,180f,0),new Vector2(.031f,.055f)', text)
+        # Plaque and lettering sit on the marble, behind the front glass.
+        self.assertIn('new Vector3(0,plaqueY,-.006f)', text)
+        self.assertIn('new Vector3(0,plaqueY-.005f,-.012f)', text)
+        self.assertLess(.012, field(text, 'CaseD'))
 
     def test_case_reference_lighting_uses_one_realtime_light(self):
         text = source('BraxChampionsBeltShowcase.cs')
-        self.assertIn('"A1 SHOWCASE | upper warm LED"', text)
-        self.assertIn('"A1 SHOWCASE | lower warm LED"', text)
         self.assertEqual(text.count('AddComponent<Light>()'), 1)
         self.assertIn('lamp.shadows=LightShadows.None;', text)
         self.assertIn('lamp.renderMode=LightRenderMode.ForceVertex;', text)

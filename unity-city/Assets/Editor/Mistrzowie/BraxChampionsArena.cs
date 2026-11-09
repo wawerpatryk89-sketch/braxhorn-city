@@ -30,7 +30,7 @@ public static class BraxChampionsArena
         BraxChampionsFoundation.Optional("fotele VIP",()=>SeatCount += BraxChampionsVIPSeats.Generate(root));
         // One premium belt exhibit beside the actual judges, not at the public entrance.
         // This uses the owner's original 3D FBX and original framed logo artwork.
-        BraxChampionsFoundation.Optional("gablota pasa",()=>BraxChampionsBeltShowcase.Generate(root));
+        // 9.11: the belt vitrine moved to the lobby (BraxChampionsArenaArrival).
         // Owner HD murals are a hard visual acceptance requirement. Optional()
         // still prevents an unrelated asset issue from destroying the whole city
         // scene, but the arena itself is explicitly reported FAIL unless 3/3 exist.
@@ -440,7 +440,13 @@ public static class BraxChampionsArena
     {
         if(materials.TryGetValue(name,out var m))return m;
         string id="arena_"+materials.Count;
-        if(name.Contains("krzesełko")||name.Contains("skóra")||name.Contains("winyl"))m=BraxChampionsFoundation.LibraryLeather(id,color);
+        // Owner 9.11: "obicia siedzisk powinny być ze skóry". Every spectator and
+        // VIP upholstery uses the Poly Haven grained leather (same source as the
+        // VIP chairs and the hotel), tiled at 30 cm so the grain and creases
+        // read on a 0.5 m cushion; tint gives red / black leather.
+        if(name.Contains("krzesełko")||name.Contains("skóra"))
+            m=BraxChampionsFoundation.SourceMaterial(id,"leather_white",.30f,color);
+        else if(name.Contains("winyl"))m=BraxChampionsFoundation.LibraryLeather(id,color);
         else if(metal>.1f||name.Contains("aluminium"))m=BraxChampionsFoundation.LibraryMetal(id,color);
         else if(name.Contains("chodnik")||name.Contains("aksamit")||name.Contains("akustyczne"))m=BraxChampionsFoundation.SourceMaterial(id,"fabric_pattern_05",.55f,color);
         // Premium: każda powierzchnia ma własny materiał zamiast jednego granitu.

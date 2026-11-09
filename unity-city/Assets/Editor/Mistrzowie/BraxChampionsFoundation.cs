@@ -156,10 +156,26 @@ public static class BraxChampionsFoundation
     }
     public static void Optional(string what,Action build)
     {
+        // Global rule 6.11 §4: a decoration/building that throws must not leave a
+        // half-built object behind (build 32 left one VIP chair lying on its side
+        // and shipped its whole 2K GLB). Snapshot the scene, and on failure remove
+        // every NEW subtree root created by this step.
+        var before=new HashSet<int>();
+        foreach(var t in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+            before.Add(t.gameObject.GetInstanceID());
         try{build();}
         catch(Exception e)
         {
-            BraxBuildQuality.Warn("Miasto Mistrzów: pominięto "+what+": "+e.GetType().Name+": "+e.Message);
+            int removed=0;
+            foreach(var t in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+            {
+                if(!t||before.Contains(t.gameObject.GetInstanceID()))continue;
+                // Only the top of each new subtree: its parent existed before.
+                if(t.parent&&!before.Contains(t.parent.gameObject.GetInstanceID()))continue;
+                UnityEngine.Object.DestroyImmediate(t.gameObject);removed++;
+            }
+            BraxBuildQuality.Warn("Miasto Mistrzów: pominięto "+what+": "+e.GetType().Name+": "+e.Message+
+                " | usunięto pół-ustawione obiekty: "+removed);
             Debug.LogException(e);
         }
     }
@@ -368,6 +384,15 @@ public static class BraxChampionsFoundation
         string tex=Source+"/Textures",prefix="Metal048A_4K-JPG_";
         var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
             arm=FileIn(tex,"Metal048A_ARM_4k.png"),tile=.65f});
+        m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
+    }
+    // Polished black marble with thin white veins (owner vitrine photo 9.11).
+    // ambientCG Marble016 4K (CC0), prepared by prepare_assets.py like Leather037.
+    public static Material LibraryMarble(string id,Color tint,float metres)
+    {
+        string tex=Source+"/Textures",prefix="Marble016_4K-JPG_";
+        var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
+            arm=FileIn(tex,"Marble016_ARM_4k.png"),tile=metres});
         m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
     }
     public static Material LibraryLeather(string id,Color tint)

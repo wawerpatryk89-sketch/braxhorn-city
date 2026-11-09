@@ -355,6 +355,10 @@ jobs:
         with:
           path: unity-city/Assets/Source/Mistrzowie/Textures
           key: mistrzowie-pbr-4k-${{ hashFiles('unity-tools/mistrzowie/prepare_assets.py', 'unity-tools/mistrzowie/verified_textures.json') }}
+          # prepare_assets.py re-verifies every cached map (size/MD5/SHA) and
+          # downloads only what is missing, so an older cache is a safe start.
+          restore-keys: |
+            mistrzowie-pbr-4k-
       - name: Cache T11 provider-native Poly Haven 2K source maps
         if: ${{ hashFiles('unity-tools/mistrzowie/prepare_casino_textures_2k.py') != '' }}
         continue-on-error: true

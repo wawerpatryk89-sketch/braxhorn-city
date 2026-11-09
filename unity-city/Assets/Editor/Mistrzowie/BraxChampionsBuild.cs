@@ -215,10 +215,12 @@ public static class BraxChampionsBuild
             throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: incomplete driver seat, chassis, entrance or engine audio anchor");
         if(car.bodyCollider.transform!=car.transform)
             throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: chassis collider does not belong to source car");
-        if(Mathf.Abs(car.maxSpeed*3.6f-120f)>.05f)
-            throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: car is not limited to owner-approved 120 km/h");
-        if(Mathf.Abs(car.bodyCollider.bounds.size.z-4.95f)>.10f)
-            throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: car body is not 4.95 real Unity metres long");
+        // Global rule 6.11 §4: speed/size are quality warnings, never build stoppers.
+        if(Mathf.Abs(car.maxSpeed*3.6f/Mathf.Max(.01f,car.worldScale)-120f)>.05f)
+            BraxBuildQuality.Warn("A1_T11_CAR_INTEGRATION_REVIEW: car top speed is not owner-approved real 120 km/h");
+        if(Mathf.Abs(car.bodyCollider.bounds.size.z-BraxChampionsCarBuilder.WorldLengthMetres)>.10f)
+            BraxBuildQuality.Warn("A1_T11_CAR_INTEGRATION_REVIEW: car body is not "+
+                BraxChampionsCarBuilder.WorldLengthMetres.ToString("F2")+" m long (owner cap 6 m)");
         var expectedPos=new Vector3(645.175f,.16f,712f)*BraxClaudeOsiedle.K;
         if(Vector3.Distance(car.transform.position,expectedPos)>.05f)
             throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: owner car parking position drifted");

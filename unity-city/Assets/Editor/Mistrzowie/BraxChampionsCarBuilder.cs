@@ -14,6 +14,13 @@ public static class BraxChampionsCarBuilder
     public const string EngineIdleAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_idle.ogg";
     public const string EngineRevAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_rev.ogg";
     const float LengthMetres = 4.95f; // Source estate's DlugoscRealna["car_rev"]
+    // Owner 8.11 (Issue #30): "NIE ROBIMY FIZYCZNIE SAMOCHODU DŁUŻSZEGO NIŻ 6 m".
+    // Owner 9.11: "Auto miało też złą skalę bo małe jakieś było". In this
+    // K-scaled world Brax is 2.33 m, so a 4.95-unit car read like a 3.8 m
+    // city car next to him. 6.0 m is the owner's own upper limit: the car is
+    // 1.21x bigger, still shorter than 4.95 x K (6.41 m).
+    public const float WorldLengthMetres = 6.0f;
+    static float CarScale => WorldLengthMetres / LengthMetres;
     static float K => BraxClaudeOsiedle.K;
 
     static void ApplyCarPbr(GameObject copy)
@@ -179,8 +186,8 @@ public static class BraxChampionsCarBuilder
         Bounds bounds=BoundsLocal(root.transform);
         if (bounds.size.z <= .01f || bounds.size.x <= .01f)
             throw new InvalidOperationException("Original car length/width is invalid");
-        // Physical vehicle dimensions are already metres; applying K here made the car ~6.4 m long.
-        float uniform = LengthMetres / bounds.size.z;
+        // World length = owner's 6.0 m cap (see WorldLengthMetres), not 4.95 x K.
+        float uniform = WorldLengthMetres / bounds.size.z;
         copy.transform.localScale *= uniform;
         Physics.SyncTransforms();
         bounds = BoundsLocal(root.transform);
@@ -214,7 +221,7 @@ public static class BraxChampionsCarBuilder
         var enter = new GameObject("Actual left driver-door approach").transform;
         enter.SetParent(root.transform, false);
         enter.localPosition = new Vector3(
-            bounds.min.x - .78f, bounds.min.y + .04f, seat.localPosition.z - .15f);
+            bounds.min.x - .78f * CarScale, bounds.min.y + .04f, seat.localPosition.z - .15f * CarScale);
 
         // Try the REAL separate door assembly. If the source has no reliable
         // split, do not invent a duplicate door or move a body mesh incorrectly.
@@ -248,8 +255,15 @@ public static class BraxChampionsCarBuilder
         var car = root.AddComponent<BraxChampionsCar>();
         car.bodyCollider = box; car.driverSeat = seat; car.doorApproach = enter;
         car.doorHinge = doorPivot;
-        car.wheelbase = 2.7f; car.maxSpeed = 120f / 3.6f; car.reverseMaxSpeed = 30f / 3.6f;
-        car.interactionRadius = 3.8f;
+        // Same proportions as the 4.95 m source, enlarged with the body.
+        car.wheelbase = 2.7f * CarScale;
+        // Owner 9.11: "ma się rozpędzać do 120 km". The world is K-scaled, so a
+        // real 120 km/h is 120/3.6 x K world units per second; SpeedKph divides
+        // K back out. Same for reverse and the acceleration/braking feel.
+        car.worldScale = K;
+        car.maxSpeed = 120f / 3.6f * K; car.reverseMaxSpeed = 30f / 3.6f * K;
+        car.acceleration = 7.2f * K; car.braking = 11f * K;
+        car.interactionRadius = 3.8f * CarScale;
 
         // Real recorded audio only. Missing binaries are advisory until the owner-approved
         // source files are physically committed; never synthesize a fake engine.
@@ -274,16 +288,16 @@ public static class BraxChampionsCarBuilder
             .Where(t => t.GetComponentsInChildren<Renderer>(true).Length > 0).ToArray();
         car.rollingWheels = wheelRoots;
         car.steeringWheels = new Transform[0]; // no arbitrary steering bone rotations
-        if (Mathf.Abs(bounds.size.z - LengthMetres) > .08f)
-            BraxBuildQuality.Warn("A1_OWNER_CAR_SCALE_ADVISORY: expected 4.95m, got " + bounds.size.z.ToString("F2") + "m");
+        if (Mathf.Abs(bounds.size.z - WorldLengthMetres) > .08f)
+            BraxBuildQuality.Warn("A1_OWNER_CAR_SCALE_ADVISORY: expected " + WorldLengthMetres.ToString("F2") + "m, got " + bounds.size.z.ToString("F2") + "m");
         Debug.Log("A1_OWNER_CAR_INSTALLED original=car_rev length=" +
             bounds.size.z.ToString("F2") + " width=" + bounds.size.x.ToString("F2")
             + " height=" + bounds.size.y.ToString("F2") + " K=" + K.ToString("F4")
-            + " driverHipsTarget=" + seat.localPosition + " maxSpeedKph=120 reverseKph=30"
+            + " driverHipsTarget=" + seat.localPosition + " maxSpeedKph=120real(xK) reverseKph=30 worldLength=" + WorldLengthMetres.ToString("F2")
             + " bodyCollider=REAL_BOUNDS" +
             " start=(645.175,712) side=RIGHT centredInRegularBay=true driverDoorFacesWalkway=true originalDoor=" + (doorPivot != null) +
             " ownerAnimations=EnteringCar,Driving,ExitingCar" +
-            " physicalScale=REAL_METRES noExtraK=true no_fake_collision=true manual_phone_review_required=true");
+            " physicalScale=OWNER_CAP_6M sourceLength=4.95 no_fake_collision=true manual_phone_review_required=true");
     }
 }
 
