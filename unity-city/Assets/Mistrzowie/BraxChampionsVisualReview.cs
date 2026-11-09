@@ -22,35 +22,37 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
         var hotel=FindFirstObjectByType<BraxHotelSobczakFloorStreamer>();
         if(!hotel)return;
 
+        // Rebuilt hotel 9.11: root carries K once (metreScale 1); points in nominal metres from the plot centre,
+        // ground floor +0.30, floor 1 +6.30, guest floor n at 11.30 + 3.5 (n-2), roof terrace +102.30.
         labels=new[]{
             "01-front-day","02-front-night","03-three-quarter-left","04-three-quarter-right",
-            "05-side","06-rear","07-entrance-portico","08-lobby","09-reception","10-bar",
-            "11-restaurant","12-spa","13-fitness","14-typical-corridor","15-standard-room",
-            "16-bathroom","17-elevators","18-stair","19-b1","20-b2","21-roof-mansard"
+            "05-side","06-rear","07-entrance-canopy","08-lobby","09-reception","10-bar",
+            "11-restaurant","12-spa","13-kitchen","14-typical-corridor","15-standard-room",
+            "16-bathroom","17-elevators","18-stair","19-podium-terrace","20-top-floor-view","21-roof-terrace"
         };
         positions=new[]{
-            HotelWorld(hotel,0,42,-95),HotelWorld(hotel,0,42,-95),
-            HotelWorld(hotel,-80,36,-82),HotelWorld(hotel,80,36,-82),
-            HotelWorld(hotel,-95,34,0),HotelWorld(hotel,0,34,95),
-            HotelWorld(hotel,0,2.4f,-36),
-            HotelWorld(hotel,-8,1.65f,-8),HotelWorld(hotel,0,1.65f,-18.5f),HotelWorld(hotel,-8,1.6f,5),
-            HotelWorld(hotel,-26,7.4f,-14),HotelWorld(hotel,0,7.4f,4),HotelWorld(hotel,8,7.4f,-14),
-            HotelWorld(hotel,-18,10.9f,0),HotelWorld(hotel,1.5f,10.8f,-4.5f),HotelWorld(hotel,-2.5f,10.8f,-1.6f),
-            HotelWorld(hotel,25.25f,10.8f,-4),HotelWorld(hotel,-26.3f,10.9f,7.8f),
-            HotelWorld(hotel,0,-2.0f,-2),HotelWorld(hotel,0,-5.6f,2),
-            HotelWorld(hotel,0,134,-55)
+            HotelWorld(hotel,0,40,-110),HotelWorld(hotel,0,40,-110),
+            HotelWorld(hotel,-85,36,-95),HotelWorld(hotel,85,36,-95),
+            HotelWorld(hotel,-100,34,0),HotelWorld(hotel,0,34,100),
+            HotelWorld(hotel,0,2.0f,-40),
+            HotelWorld(hotel,-1.5f,1.95f,-14),HotelWorld(hotel,-2,1.9f,-11),HotelWorld(hotel,-10,1.9f,-11),
+            HotelWorld(hotel,-19,8.0f,-17.5f),HotelWorld(hotel,6,8.0f,16.5f),HotelWorld(hotel,-6,8.0f,15),
+            HotelWorld(hotel,-15.8f,12.95f,-3.8f),HotelWorld(hotel,2.4f,12.9f,-9),HotelWorld(hotel,-1.4f,12.9f,-7.9f),
+            HotelWorld(hotel,0,12.95f,-4.7f),HotelWorld(hotel,11.9f,13.0f,-4.5f),
+            HotelWorld(hotel,-19.5f,13.0f,-17.5f),HotelWorld(hotel,0,100.4f,-14.8f),
+            HotelWorld(hotel,-12,106.3f,-14)
         };
         targets=new[]{
-            HotelWorld(hotel,0,60,0),HotelWorld(hotel,0,60,0),
-            HotelWorld(hotel,0,58,0),HotelWorld(hotel,0,58,0),
-            HotelWorld(hotel,0,55,0),HotelWorld(hotel,0,55,0),
-            HotelWorld(hotel,0,3.3f,-21),
-            HotelWorld(hotel,0,1.6f,-1.5f),HotelWorld(hotel,0,1.4f,-12.3f),HotelWorld(hotel,0,1.2f,10.8f),
-            HotelWorld(hotel,-17,6.8f,-10),HotelWorld(hotel,10,6.8f,10),HotelWorld(hotel,17,6.8f,-10),
-            HotelWorld(hotel,18,10.9f,0),HotelWorld(hotel,0,10.6f,-16.6f),HotelWorld(hotel,-2.0f,10.5f,-3.4f),
-            HotelWorld(hotel,25.25f,10.8f,.2f),HotelWorld(hotel,-26.3f,12.5f,12.7f),
-            HotelWorld(hotel,25,-2.0f,-5.6f),HotelWorld(hotel,-25,-5.6f,5.6f),
-            HotelWorld(hotel,0,123,0)
+            HotelWorld(hotel,0,50,0),HotelWorld(hotel,0,50,0),
+            HotelWorld(hotel,0,50,0),HotelWorld(hotel,0,50,0),
+            HotelWorld(hotel,0,52,0),HotelWorld(hotel,0,52,0),
+            HotelWorld(hotel,0,4.5f,-19),
+            HotelWorld(hotel,2,1.8f,-4),HotelWorld(hotel,11,2.4f,-8.5f),HotelWorld(hotel,-17,1.6f,-11),
+            HotelWorld(hotel,0,7.5f,-6),HotelWorld(hotel,12.5f,6.8f,9.5f),HotelWorld(hotel,-15,7.0f,10),
+            HotelWorld(hotel,10,12.7f,-3.8f),HotelWorld(hotel,-2.2f,12.3f,-13.5f),HotelWorld(hotel,1,12.2f,-5.4f),
+            HotelWorld(hotel,0,12.7f,-2.4f),HotelWorld(hotel,14,11.8f,0),
+            HotelWorld(hotel,5,12,-16),HotelWorld(hotel,0,99,-60),
+            HotelWorld(hotel,2,104.3f,0)
         };
         nightFrames=new bool[labels.Length];nightFrames[1]=true;
     }
@@ -103,7 +105,7 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
 
         if(sun)sun.intensity=daySun;
         RenderSettings.ambientSkyColor=daySky;RenderSettings.ambientEquatorColor=dayEq;RenderSettings.ambientGroundColor=dayGround;
-        bool hotelReview=labels.Length==21&&labels[0]=="01-front-day"&&labels[20]=="21-roof-mansard";
+        bool hotelReview=labels.Length==21&&labels[0]=="01-front-day"&&labels[20]=="21-roof-terrace";
         File.WriteAllText(Path.Combine(output,"complete.txt"),
             hotelReview
             ?"HOTEL SOBCZAK: 21 real standalone-player acceptance screenshots captured; owner visual PASS still pending. APK NOT BUILT.\n"

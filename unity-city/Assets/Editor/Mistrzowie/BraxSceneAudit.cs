@@ -77,15 +77,16 @@ public static class BraxSceneAudit
     {
         public string status = "NOT_FOUND";
         public string rootPath;
-        public float centreX, centreZ;
-        public float structuralWidthMeters, structuralDepthMeters, maxHeightMeters;
+        public string design = "rebuild 9.11: podium 42x38 granite + brick tower 34x32, 110 m, 26 guest floors x 10 rooms";
+        public float centreX, centreZ, rootScale;
+        public float podiumWidthMeters, podiumDepthMeters, towerWidthMeters, towerDepthMeters, maxHeightMeters;
         public float siteWidthMeters, siteDepthMeters;
-        public int physicalLevelsExpected=34, physicalLevelsMeasured, guestFloors, rooms, elevators, stairs, parkingB1, parkingB2, parkingTotal;
-        public int passengerElevators, serviceElevators, frontDormers, rearDormers;
-        public int nullMaterialRenderers, milkGlassCandidates, doorLeafColliderCount, unmappedMaterialCount, oversizedRuntimeTextureCount;
-        public bool centrePass, footprintPass, heightPass, siteReservePass, physicalLevelsPass;
-        public bool roomsPass, guestFloorsPass, elevatorsPass, stairsPass, parkingPass, dormersPass;
-        public bool glassPass, doorLeafColliderPass, materialMappingPass, runtimeTexturePass;
+        public int guestFloors, streamedFloors, rooms, roomNumbersDistinct, elevators, liftStops, liftLandingDoors, stairs;
+        public int automaticDoors, automaticDoorLeavesWithCollision, signBodies, treesInPlot, parkingPlanned;
+        public int nullMaterialRenderers, milkGlassCandidates, unmappedMaterialCount, oversizedRuntimeTextureCount;
+        public bool centrePass, scaleOncePass, footprintPass, heightPass, siteReservePass;
+        public bool roomsPass, guestFloorsPass, elevatorsPass, stairsPass, entrancePass, signPass, noTreesPass;
+        public bool glassPass, materialMappingPass, runtimeTexturePass;
         public List<HotelMaterialAudit> materials = new List<HotelMaterialAudit>();
         public List<string> failures = new List<string>();
     }
@@ -678,6 +679,8 @@ public static class BraxSceneAudit
                 output.forbidden.Add(Make("NIEDOZWOLONY", item, 1f, 0,
                     "Widoczny dźwig lub duży statek", 200f, "weryfikacja nazwy renderera"));
     }
+    // HOTEL SOBCZAK T03 rebuilt 9.11 (owner board "MUROWANY MODERN BRICK"): every value below is measured
+    // from the reopened scene, never copied from the generator constants.
     static void AuditHotelSobczak(Transform[] all, Audit output)
     {
         var h = output.hotelSobczak = new HotelSobczakAudit();
@@ -693,68 +696,67 @@ public static class BraxSceneAudit
         Vector3 nominalCentre = root.position / hk;
         h.centreX = nominalCentre.x; h.centreZ = nominalCentre.z;
         h.centrePass = Mathf.Abs(h.centreX-1030f)<=.01f && Mathf.Abs(h.centreZ-710f)<=.01f;
+        h.rootScale = root.lossyScale.x;
+        h.scaleOncePass = Mathf.Abs(h.rootScale-hk)<=.0005f;
 
-        // Structural facade outer planes, measured from the actual renderer bounds.
-        var sideWalls = root.GetComponentsInChildren<Renderer>(true)
-            .Where(r=>r && Contains(r.name,"Guest side wall F")).ToArray();
-        var frontRear = root.GetComponentsInChildren<Renderer>(true)
-            .Where(r=>r && (Contains(r.name,"Guest stair wing west F") || Contains(r.name,"Guest stair wing east F") ||
-                            Contains(r.name,"Guest facade F"))).ToArray();
-        if(sideWalls.Length>0)
+        Transform Group(string prefix)=>root.GetComponentsInChildren<Transform>(true)
+            .FirstOrDefault(x=>x && x.name.StartsWith(prefix,StringComparison.Ordinal));
+        Bounds? Extent(Transform g,Func<Renderer,bool> keep)
         {
-            float minX=sideWalls.Min(r=>r.bounds.min.x),maxX=sideWalls.Max(r=>r.bounds.max.x);
-            h.structuralWidthMeters=(maxX-minX)/hk;
+            if(!g)return null;
+            var rs=g.GetComponentsInChildren<Renderer>(true).Where(r=>r && keep(r)).ToArray();
+            if(rs.Length==0)return null;
+            var b=rs[0].bounds;foreach(var r in rs.Skip(1))b.Encapsulate(r.bounds);return b;
         }
-        if(frontRear.Length>0)
-        {
-            float minZ=frontRear.Min(r=>r.bounds.min.z),maxZ=frontRear.Max(r=>r.bounds.max.z);
-            h.structuralDepthMeters=(maxZ-minZ)/hk;
-        }
-        h.footprintPass=Mathf.Abs(h.structuralWidthMeters-64f)<=.03f &&
-                        Mathf.Abs(h.structuralDepthMeters-42f)<=.03f;
+        // Structural masses only (granite of the podium, brick of the tower); stone relief may add <=0.35 m per side.
+        var podium=Extent(Group("T03 PODIUM /"),r=>Contains(r.name,"podium_granite"));
+        var tower=Extent(Group("T03 TOWER /"),r=>Contains(r.name,"brick_facade"));
+        if(podium.HasValue){h.podiumWidthMeters=podium.Value.size.x/hk;h.podiumDepthMeters=podium.Value.size.z/hk;}
+        if(tower.HasValue){h.towerWidthMeters=tower.Value.size.x/hk;h.towerDepthMeters=tower.Value.size.z/hk;}
+        h.footprintPass=h.podiumWidthMeters>=42f && h.podiumWidthMeters<=42.7f && h.podiumDepthMeters>=38f && h.podiumDepthMeters<=38.7f &&
+                        h.towerWidthMeters>=34f && h.towerWidthMeters<=34.7f && h.towerDepthMeters>=32f && h.towerDepthMeters<=32.7f;
 
-        // Height uses every T03 renderer except site/landscape and lower LOD proxies.
-        var lodProxy = root.GetComponentsInChildren<Transform>(true)
-            .FirstOrDefault(x=>x && x.name=="T03 EXTERIOR LOD CONTROL");
+        // Height above the ground floor (+0.30) to the top of the crown, site excluded.
         bool Under(Transform child,Transform ancestor)
         {
             if(!ancestor)return false;
             for(var p=child;p;p=p.parent)if(p==ancestor)return true;
             return false;
         }
-        var site = root.GetComponentsInChildren<Transform>(true)
-            .FirstOrDefault(x=>x && x.name.StartsWith("T03 SITE /",StringComparison.Ordinal));
-        var heightRenderers=root.GetComponentsInChildren<Renderer>(true)
-            .Where(r=>r && !Under(r.transform,site) && !Under(r.transform,lodProxy)).ToArray();
+        var site=Group("T03 SITE /");
+        var heightRenderers=root.GetComponentsInChildren<Renderer>(true).Where(r=>r && !Under(r.transform,site)).ToArray();
         if(heightRenderers.Length>0)
-            h.maxHeightMeters=(heightRenderers.Max(r=>r.bounds.max.y)-root.position.y)/hk;
-        h.heightPass=h.maxHeightMeters<=130.02f && h.maxHeightMeters>=129.0f;
+            h.maxHeightMeters=(heightRenderers.Max(r=>r.bounds.max.y)-root.position.y)/hk-.30f;
+        h.heightPass=h.maxHeightMeters>=109.9f && h.maxHeightMeters<=110.6f;
 
         var tr=root.GetComponentsInChildren<Transform>(true);
-        h.guestFloors=tr.Count(x=>x.name.StartsWith("GUEST INTERIOR FLOOR ",StringComparison.Ordinal) &&
-                                    Contains(x.name,"14 ROOMS"));
-        h.rooms=tr.Count(x=>x.name.StartsWith("ROOM ",StringComparison.Ordinal) && Contains(x.name,"bay 6.00x19.40"));
-        var lifts=tr.Where(x=>x.name.StartsWith("ELEVATOR ",StringComparison.Ordinal)).ToArray();
+        h.guestFloors=tr.Count(x=>x.name.StartsWith("GUEST INTERIOR FLOOR ",StringComparison.Ordinal) && Contains(x.name,"10 ROOMS"));
+        h.rooms=tr.Count(x=>x.name.StartsWith("ROOM ",StringComparison.Ordinal) && Contains(x.name,"6.80x10.50"));
+        h.roomNumbersDistinct=tr.Where(x=>x.name.StartsWith("ROOM ",StringComparison.Ordinal)).Select(x=>x.name.Split('|')[0].Trim()).Distinct().Count();
+        var lifts=root.GetComponentsInChildren<BraxWinda>(true);
         h.elevators=lifts.Length;
-        h.passengerElevators=lifts.Count(x=>Contains(x.name,"PASSENGER"));
-        h.serviceElevators=lifts.Count(x=>Contains(x.name,"SERVICE"));
-        h.stairs=tr.Count(x=>x.name.StartsWith("STAIR ",StringComparison.Ordinal) && Contains(x.name,"B2 TO TECH"));
-        h.parkingB1=tr.Count(x=>Regex.IsMatch(x.name,@"^B1 PARK \d{2}( ACCESSIBLE)? back$"));
-        h.parkingB2=tr.Count(x=>Regex.IsMatch(x.name,@"^B2 PARK \d{2}( ACCESSIBLE)? back$"));
-        h.parkingTotal=h.parkingB1+h.parkingB2;
-        h.frontDormers=tr.Count(x=>x.name=="Mansard dormer body" && x.localPosition.z<0);
-        h.rearDormers=tr.Count(x=>x.name=="Mansard dormer body" && x.localPosition.z>0);
+        h.liftStops=lifts.Length>0?lifts.Min(w=>w.pietraY.Length):0;
+        h.liftLandingDoors=lifts.Sum(w=>w.przystanekL.Count(x=>x)+w.przystanekP.Count(x=>x));
+        h.stairs=tr.Count(x=>x.name.StartsWith("STAIR ",StringComparison.Ordinal) && Contains(x.name,"PARTER TO TARAS"));
+        var doors=root.GetComponentsInChildren<BraxDrzwiAutomatyczne>(true);
+        h.automaticDoors=doors.Length;
+        h.automaticDoorLeavesWithCollision=doors.Sum(d=>(d.skrzydloL&&d.skrzydloL.GetComponentInChildren<Collider>(true)?1:0)+
+                                                        (d.skrzydloP&&d.skrzydloP.GetComponentInChildren<Collider>(true)?1:0));
+        h.signBodies=tr.Count(x=>x.name.StartsWith("SOBCZAK HOTEL 3D sign",StringComparison.Ordinal) && x.GetComponentsInChildren<MeshRenderer>(true).Length>=3);
+        h.treesInPlot=root.GetComponentsInChildren<Renderer>(true).Count(r=>r && (Contains(r.name,"tree")||Contains(r.name,"palm")||Contains(r.name,"foliage")));
+        var streamer=root.GetComponent<BraxHotelSobczakFloorStreamer>();
+        h.streamedFloors=streamer?streamer.guestInteriors.Count(x=>x):0;
+        h.parkingPlanned=60;   // owner board: B1+B2 "docelowo 60 miejsc" — built after the floors (not in this rebuild)
 
-        h.physicalLevelsMeasured=h.guestFloors+4; // B2+B1+Parter+1+30 guest floors
-        h.physicalLevelsPass=h.physicalLevelsMeasured==34;
-        h.guestFloorsPass=h.guestFloors==30;
-        h.roomsPass=h.rooms==420;
-        h.elevatorsPass=h.elevators==4 && h.passengerElevators==3 && h.serviceElevators==1;
+        h.guestFloorsPass=h.guestFloors==26 && h.streamedFloors==26;
+        h.roomsPass=h.rooms==260 && h.roomNumbersDistinct==260;
+        h.elevatorsPass=h.elevators==3 && h.liftStops==29 && h.liftLandingDoors==3*29*2;
         h.stairsPass=h.stairs==2;
-        h.parkingPass=h.parkingB1==40 && h.parkingB2==40 && h.parkingTotal==80;
-        h.dormersPass=h.frontDormers==7 && h.rearDormers==7;
+        h.entrancePass=h.automaticDoors==2 && h.automaticDoorLeavesWithCollision==4;
+        h.signPass=h.signBodies==2;
+        h.noTreesPass=h.treesInPlot==0;
 
-        // Entire T03 site decoration/ramp must stay inside the owner's 86x76 m reserve.
+        // Whole site (plaza, drop-off, island) stays inside the plot + frontage to the road sidewalk.
         if(site)
         {
             var siteRenderers=site.GetComponentsInChildren<Renderer>(true).Where(r=>r).ToArray();
@@ -765,7 +767,7 @@ public static class BraxSceneAudit
                 h.siteWidthMeters=sb.size.x/hk; h.siteDepthMeters=sb.size.z/hk;
             }
         }
-        h.siteReservePass=h.siteWidthMeters<=86.02f && h.siteDepthMeters<=76.02f;
+        h.siteReservePass=h.siteWidthMeters<=60.02f && h.siteDepthMeters<=73.3f;
 
         var renderers=root.GetComponentsInChildren<Renderer>(true);
         h.nullMaterialRenderers=renderers.Count(r=>r && (r.sharedMaterials==null || r.sharedMaterials.Any(m=>!m)));
@@ -778,61 +780,59 @@ public static class BraxSceneAudit
         });
         h.glassPass=h.nullMaterialRenderers==0 && h.milkGlassCandidates==0;
 
-        h.doorLeafColliderCount=tr.Count(x=>(Contains(x.name,"door leaf OPEN")||Contains(x.name,"Main entrance glass")) &&
-                                              x.GetComponent<Collider>());
-        h.doorLeafColliderPass=h.doorLeafColliderCount==0;
-
-        string SourceId(Material m)
+        string SourceId(Material m,Renderer user)
         {
             string n=m?m.name:"";
             string shader=m&&m.shader?m.shader.name:"";
-            if(Contains(n,"font")||Contains(n,"LegacyRuntime")||Contains(shader,"GUI/Text"))return "CUSTOM_TEXT";
-            if(Contains(n,"facade_beige"))return "beige_wall_001";
-            if(Contains(n,"plinth_sandstone"))return "sandstone_blocks_08";
-            if(Contains(n,"architectural_stucco")||Contains(n,"soft_interior_stucco"))return "white_stucco_02";
-            if(Contains(n,"mansard_slates"))return "roof_slates_03";
-            if(Contains(n,"cream_marble")||Contains(n,"wet_marble"))return "marble_01";
-            if(Contains(n,"varnished_oak"))return "oak_wood_planks";
-            if(Contains(n,"herringbone_parquet"))return "herringbone_parquet";
+            if(Contains(n,"font")||Contains(n,"LegacyRuntime")||Contains(n,"napisy")||Contains(shader,"GUI/Text")||Contains(shader,"CitySignText"))return "CUSTOM_TEXT";
+            if(user&&user.transform.GetComponentsInParent<Transform>(true).Any(p=>p.name.StartsWith("T03 LOBBY |",StringComparison.Ordinal)))return "POLYHAVEN_MODEL";
+            if(Contains(n,"brick_facade"))return "exterior_wall_cladding_02";
+            if(Contains(n,"podium_granite"))return "granite_tile_03";
+            if(Contains(n,"dark_granite")||Contains(n,"granite_kerb"))return "granite_tile";
+            if(Contains(n,"sidewalk_paving"))return "concrete_pavement_02";
+            if(Contains(n,"drive_asphalt"))return "clean_asphalt";
+            if(Contains(n,"teak_veneer")||Contains(n,"teak_dark"))return "teak_veneer";
+            if(Contains(n,"cream_marble")||Contains(n,"bath_marble_floor"))return "marble_01";
+            if(Contains(n,"black_marble"))return "Marble016";
+            if(Contains(n,"room_oak_floor"))return "oak_wood_planks";
+            if(Contains(n,"corridor_carpet")||Contains(n,"room_rug"))return "poly_wool_herringbone";
             if(Contains(n,"spa_terrazzo"))return "terrazzo_tiles";
-            if(Contains(n,"fitness_rubber"))return "rubber_tiles";
-            if(Contains(n,"corridor_wool"))return "poly_wool_herringbone";
             if(Contains(n,"kitchen_tile"))return "tiled_floor_001";
-            if(Contains(n,"exterior_granite")||Contains(n,"interior_granite"))return "granite_tile_04";
-            if(Contains(n,"ramp_antislip"))return "anti_slip_concrete";
-            if(Contains(n,"parking_floor"))return "garage_floor";
+            if(Contains(n,"wall_paint"))return "beige_wall_001";
+            if(Contains(n,"ceiling_stucco"))return "white_stucco_02";
             if(Contains(n,"technical_concrete"))return "concrete_wall_003";
             if(Contains(n,"brown_leather"))return "brown_leather";
-            if(Contains(n,"spa_white_leather"))return "leather_white";
-            if(Contains(n,"driveway_asphalt"))return "clean_asphalt";
-            if(Contains(n,"brass")||Contains(n,"bronze")||Contains(n,"stainless")||
-               Contains(n,"glass")||Contains(n,"mirror")||Contains(n,"foliage")||Contains(n,"white_paint")||
-               Contains(n,"parking_marking")||Contains(n,"warm_architectural_light")||
-               Contains(n,"entrance_red_carpet")||Contains(n,"fountain_water"))return "CUSTOM_PBR";
+            if(Contains(n,"white_leather"))return "leather_white";
+            if(Contains(n,"bed_linen")||Contains(n,"sheer_curtain"))return "fabric_pattern_05";
+            if(Contains(n,"fitness_rubber"))return "rubber_tiles";
+            if(Contains(n,"grass")||Contains(n,"planter_lawn"))return "REGION_GRASS";
+            if(Contains(n,"brass")||Contains(n,"bronze")||Contains(n,"stainless")||Contains(n,"glass")||Contains(n,"mirror")||
+               Contains(n,"porcelain")||Contains(n,"warm_architectural_light")||Contains(n,"led_strip")||Contains(n,"pool_water"))return "CUSTOM_PBR";
             return "UNMAPPED";
         }
         float TileMeters(string sourceId)
         {
             switch(sourceId)
             {
-                case "beige_wall_001": return 3.0f;
-                case "sandstone_blocks_08": return 3.0f;
-                case "white_stucco_02": return 1.8f;
-                case "roof_slates_03": return 3.0f;
-                case "marble_01": return 1.5f;
-                case "oak_wood_planks": return 1.2f;
-                case "herringbone_parquet": return 3.4f;
-                case "terrazzo_tiles": return 2.0f;
-                case "rubber_tiles": return 2.0f;
-                case "poly_wool_herringbone": return .30f;
-                case "tiled_floor_001": return 1.5f;
-                case "granite_tile_04": return 2.0f;
-                case "anti_slip_concrete": return 2.5f;
-                case "garage_floor": return 3.0f;
-                case "concrete_wall_003": return 3.0f;
-                case "brown_leather": return .30f;
-                case "leather_white": return .30f;
+                case "exterior_wall_cladding_02": return 2.0f;
+                case "granite_tile_03": return 1.8f;
+                case "granite_tile": return 1.2f;
+                case "concrete_pavement_02": return 1.8f;
                 case "clean_asphalt": return 2.5f;
+                case "teak_veneer": return 1.2f;
+                case "marble_01": return 1.5f;
+                case "Marble016": return 2.5f;
+                case "oak_wood_planks": return 1.6f;
+                case "poly_wool_herringbone": return .40f;
+                case "terrazzo_tiles": return 1.6f;
+                case "tiled_floor_001": return .8f;
+                case "beige_wall_001": return 2.2f;
+                case "white_stucco_02": return 2.0f;
+                case "concrete_wall_003": return 3.0f;
+                case "brown_leather": return .35f;
+                case "leather_white": return .35f;
+                case "fabric_pattern_05": return .6f;
+                case "rubber_tiles": return 2.0f;
                 default:return 0f;
             }
         }
@@ -841,14 +841,14 @@ public static class BraxSceneAudit
             for(var p=t;p && p!=root;p=p.parent)
             {
                 if(p.name.StartsWith("T03 SITE /",StringComparison.Ordinal))return "EXTERIOR_SITE";
-                if(p.name.StartsWith("T03 B2+B1 /",StringComparison.Ordinal))
-                    return Contains(t.name,"B2")?"B2":Contains(t.name,"B1")?"B1":"BASEMENTS";
-                if(p.name.StartsWith("PARTER ",StringComparison.Ordinal))return "PARTER";
-                if(p.name.StartsWith("PIETRO 1 ",StringComparison.Ordinal))return "PIETRO_1";
-                if(p.name.StartsWith("GUEST INTERIOR FLOOR ",StringComparison.Ordinal))return "GUEST_ROOMS";
+                if(p.name.StartsWith("GUEST INTERIOR FLOOR ",StringComparison.Ordinal))return "GUEST_FLOORS";
+                if(p.name.StartsWith("T03 PUBLIC FLOORS /",StringComparison.Ordinal))return "PARTER_PIETRO_1";
                 if(p.name.StartsWith("T03 VERTICAL CORES /",StringComparison.Ordinal))return "VERTICAL_CORES";
-                if(p.name.StartsWith("T03 MANSARD /",StringComparison.Ordinal))return "ROOF_TECH";
-                if(p.name.StartsWith("T03 EXTERIOR /",StringComparison.Ordinal))return "FACADE";
+                if(p.name.StartsWith("T03 ROOF /",StringComparison.Ordinal))return "ROOF";
+                if(p.name.StartsWith("T03 SIGN /",StringComparison.Ordinal))return "SIGN";
+                if(p.name.StartsWith("T03 PODIUM /",StringComparison.Ordinal))return "PODIUM";
+                if(p.name.StartsWith("T03 TOWER /",StringComparison.Ordinal))return "TOWER";
+                if(p.name.StartsWith("T03 DETAILS /",StringComparison.Ordinal))return "FACADE_DETAILS";
             }
             return "T03_OTHER";
         }
@@ -869,7 +869,7 @@ public static class BraxSceneAudit
             var tex=mat.HasProperty("_MainTex")?mat.GetTexture("_MainTex") as Texture2D:null;
             var normal=mat.HasProperty("_BumpMap")?mat.GetTexture("_BumpMap") as Texture2D:null;
             var arm=mat.HasProperty("_ARM")?mat.GetTexture("_ARM") as Texture2D:null;
-            string sourceId=SourceId(mat);
+            string sourceId=SourceId(mat,sample);
             h.materials.Add(new HotelMaterialAudit{
                 materialName=mat.name,sourceId=sourceId,shaderName=mat.shader?mat.shader.name:"MISSING",
                 albedoName=tex?tex.name:"NONE",albedoWidth=tex?tex.width:0,albedoHeight=tex?tex.height:0,
@@ -892,18 +892,19 @@ public static class BraxSceneAudit
 
         void Fail(bool pass,string text){ if(!pass)h.failures.Add(text); }
         Fail(h.centrePass,"centre expected 1030/710 measured "+F(h.centreX)+"/"+F(h.centreZ));
-        Fail(h.footprintPass,"structural footprint expected 64x42 measured "+F(h.structuralWidthMeters)+"x"+F(h.structuralDepthMeters));
-        Fail(h.heightPass,"height expected <=130 and near roof top; measured "+F(h.maxHeightMeters));
-        Fail(h.siteReservePass,"site reserve expected <=86x76 measured "+F(h.siteWidthMeters)+"x"+F(h.siteDepthMeters));
-        Fail(h.physicalLevelsPass,"physical levels expected 34 found "+h.physicalLevelsMeasured);
-        Fail(h.guestFloorsPass,"guest floors expected 30 found "+h.guestFloors);
-        Fail(h.roomsPass,"rooms expected 420 found "+h.rooms);
-        Fail(h.elevatorsPass,"lifts expected 3 passenger + 1 service; found "+h.passengerElevators+"+"+h.serviceElevators);
+        Fail(h.scaleOncePass,"root scale expected K once ("+F(hk)+") measured "+F(h.rootScale));
+        Fail(h.footprintPass,"podium expected 42x38 measured "+F(h.podiumWidthMeters)+"x"+F(h.podiumDepthMeters)+
+                             "; tower expected 34x32 measured "+F(h.towerWidthMeters)+"x"+F(h.towerDepthMeters));
+        Fail(h.heightPass,"height above the ground floor expected 110 m measured "+F(h.maxHeightMeters));
+        Fail(h.siteReservePass,"site expected inside plot + frontage 60x73.2 measured "+F(h.siteWidthMeters)+"x"+F(h.siteDepthMeters));
+        Fail(h.guestFloorsPass,"guest floors expected 26 (streamed 26) found "+h.guestFloors+" (streamed "+h.streamedFloors+")");
+        Fail(h.roomsPass,"rooms expected 260 distinct found "+h.rooms+" ("+h.roomNumbersDistinct+" distinct)");
+        Fail(h.elevatorsPass,"lifts expected 3 x 29 stops with 174 landing door leaves; found "+h.elevators+" x "+h.liftStops+", "+h.liftLandingDoors);
         Fail(h.stairsPass,"stairs expected 2 found "+h.stairs);
-        Fail(h.parkingPass,"parking expected B1=40 B2=40 found "+h.parkingB1+"/"+h.parkingB2);
-        Fail(h.dormersPass,"dormers expected front/rear 7/7 found "+h.frontDormers+"/"+h.rearDormers);
+        Fail(h.entrancePass,"entrance expected 2 automatic door pairs, 4 leaves with collision; found "+h.automaticDoors+"/"+h.automaticDoorLeavesWithCollision);
+        Fail(h.signPass,"3D SOBCZAK HOTEL sign bodies expected 2 (facade + reception) found "+h.signBodies);
+        Fail(h.noTreesPass,"owner 9.11: no trees in front of the hotel; tree/foliage renderers found "+h.treesInPlot);
         Fail(h.glassPass,"glass/material check failed nullRenderers="+h.nullMaterialRenderers+" milkCandidates="+h.milkGlassCandidates);
-        Fail(h.doorLeafColliderPass,"open door/entrance leaf colliders found "+h.doorLeafColliderCount);
         Fail(h.materialMappingPass,"visible hotel materials without source mapping "+h.unmappedMaterialCount);
         Fail(h.runtimeTexturePass,"hotel runtime material maps above 2048px "+h.oversizedRuntimeTextureCount);
         h.status=h.failures.Count==0?"PASS_MEASURED_SCENE_CONTRACT":"FAIL_MEASURED_SCENE_CONTRACT";
@@ -928,18 +929,18 @@ public static class BraxSceneAudit
             "", "## HOTEL SOBCZAK T03 — pomiar z prawdziwej sceny",
             "- Status: **" + Safe(a.hotelSobczak.status) + "**",
             "- środek X/Z: " + F(a.hotelSobczak.centreX) + " / " + F(a.hotelSobczak.centreZ) +
-              "; obrys strukturalny: " + F(a.hotelSobczak.structuralWidthMeters) + " × " +
-              F(a.hotelSobczak.structuralDepthMeters) + " m; max H: " + F(a.hotelSobczak.maxHeightMeters) + " m",
-            "- poziomy fizyczne: " + a.hotelSobczak.physicalLevelsMeasured +
-              "; pokoje: " + a.hotelSobczak.rooms + "; piętra pokojowe: " + a.hotelSobczak.guestFloors +
-              "; windy: " + a.hotelSobczak.passengerElevators + "+1 service=" + a.hotelSobczak.elevators +
-              "; klatki: " + a.hotelSobczak.stairs + "; parking B1/B2: " +
-              a.hotelSobczak.parkingB1 + "/" + a.hotelSobczak.parkingB2,
-            "- rezerwa wykorzystana: " + F(a.hotelSobczak.siteWidthMeters) + " × " +
-              F(a.hotelSobczak.siteDepthMeters) + " m; lukarny front/tył: " +
-              a.hotelSobczak.frontDormers + "/" + a.hotelSobczak.rearDormers,
-            "- szkło: " + (a.hotelSobczak.glassPass?"PASS":"FAIL") +
-              "; collidery na otwartych drzwiach: " + a.hotelSobczak.doorLeafColliderCount,
+              "; podium: " + F(a.hotelSobczak.podiumWidthMeters) + " × " + F(a.hotelSobczak.podiumDepthMeters) +
+              " m; wieża: " + F(a.hotelSobczak.towerWidthMeters) + " × " + F(a.hotelSobczak.towerDepthMeters) +
+              " m; wysokość od parteru: " + F(a.hotelSobczak.maxHeightMeters) + " m",
+            "- pokoje: " + a.hotelSobczak.rooms + " (różnych numerów " + a.hotelSobczak.roomNumbersDistinct +
+              "); piętra pokojowe: " + a.hotelSobczak.guestFloors + "; windy: " + a.hotelSobczak.elevators +
+              " × " + a.hotelSobczak.liftStops + " przystanków; klatki: " + a.hotelSobczak.stairs +
+              "; parking B1+B2: planowany " + a.hotelSobczak.parkingPlanned + " (jeszcze nie zbudowany)",
+            "- wejście: drzwi automatyczne " + a.hotelSobczak.automaticDoors + " pary, skrzydła z kolizją " +
+              a.hotelSobczak.automaticDoorLeavesWithCollision + "; szyld 3D: " + a.hotelSobczak.signBodies +
+              "; drzewa na działce: " + a.hotelSobczak.treesInPlot,
+            "- teren: " + F(a.hotelSobczak.siteWidthMeters) + " × " + F(a.hotelSobczak.siteDepthMeters) +
+              " m; szkło: " + (a.hotelSobczak.glassPass?"PASS":"FAIL"),
             "", "## 30 najgorszych przypadków"
         };
         foreach(var f in a.hotelSobczak.failures)

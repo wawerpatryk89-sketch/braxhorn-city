@@ -95,7 +95,7 @@ public static class BraxChampionsBuild
             // It is mandatory for this Hotel Sobczak branch and must fail loudly.
             BraxChampionsHotelSobczakT03.Generate();
             report.buildingExteriors++;
-            report.checks.Add("HOTEL SOBCZAK T03 generated independently: 64x42x130, 420 rooms, 4 lifts, 2 stairs, 80 parking");
+            report.checks.Add("HOTEL SOBCZAK T03 rebuilt 9.11 (owner board): podium 42x38 + brick tower 34x32, 110 m, 26 guest floors, 260 finished rooms, 3 lifts / 29 stops, 2 stairs, automatic entrance doors, 3D SOBCZAK HOTEL sign");
             Physics.SyncTransforms();
             report.arenaSeats=BraxChampionsArena.SeatCount;
             report.arenaVipSeats=BraxChampionsVIPSeats.SeatCount;

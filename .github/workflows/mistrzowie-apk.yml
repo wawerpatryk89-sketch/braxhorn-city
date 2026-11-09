@@ -373,6 +373,8 @@ jobs:
           python3 unity-tools/mistrzowie/prepare_landscape.py
           python3 unity-tools/mistrzowie/build_exteriors.py
           python3 unity-tools/mistrzowie/build_signs.py
+          # Owner 9.11: Hotel Sobczak T03 rebuilt; its SOBCZAK HOTEL sign is a solid 3D body (HotelSobczakSign.bytes).
+          python3 unity-tools/mistrzowie/build_sobczak_sign.py
           python3 unity-tools/mistrzowie/prepare_arena.py
       - name: Prepare durable Addressables content baseline mode
         if: ${{ inputs.etap != 'sceny' }}

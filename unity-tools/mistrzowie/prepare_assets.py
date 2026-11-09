@@ -16,7 +16,9 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  # HOTEL SOBCZAK T03 — verified official Poly Haven material slugs.
                  'beige_wall_001','sandstone_blocks_08','white_stucco_02','roof_slates_03','marble_01','oak_wood_planks',
                  'herringbone_parquet','terrazzo_tiles','rubber_tiles','poly_wool_herringbone','tiled_floor_001','granite_tile_04',
-                 'anti_slip_concrete','garage_floor','concrete_wall_003','brown_leather')
+                 'anti_slip_concrete','garage_floor','concrete_wall_003','brown_leather',
+                 # HOTEL SOBCZAK T03 rebuild 9.11 (owner board): brick cladding + podium granite.
+                 'exterior_wall_cladding_02','granite_tile_03')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # The provider's own blend/glTF defaults use col_01 for this fabric. Do not
 # choose an arbitrary colour variation by dictionary order.
