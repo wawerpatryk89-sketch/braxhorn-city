@@ -46,7 +46,7 @@ window.setup=async function(w,h){
     const c=m.colour, n=m.name.toLowerCase();
     const p={color:S2L([Math.min(c[0],1.6),Math.min(c[1],1.6),Math.min(c[2],1.6)]),side:THREE.FrontSide,roughness:.75,metalness:0};
     if(m.slug){p.map=await tex('http://preview.local/tex/'+m.slug+'_diff_1k.jpg',true);p.normalMap=await tex('http://preview.local/tex/'+m.slug+'_nor_gl_1k.jpg',false);
-      if(/ceiling/.test(n))p.normalScale=new THREE.Vector2(.15,.15);}   // same _BumpScale as the Unity ceiling material
+      if(/ceiling|wall_white/.test(n))p.normalScale=new THREE.Vector2(.18,.18);}   // same _BumpScale as the Unity ceiling / white wall materials
     if(/brass|chrome|stainless|bronze|mirror/.test(n)){p.metalness=.9;p.roughness=/mirror|chrome/.test(n)?.08:.3;}
     if(/light|led|frosted/.test(n)){p.emissive=p.color.clone();p.emissiveIntensity=1.0;}
     const transparent=c[3]<.99;

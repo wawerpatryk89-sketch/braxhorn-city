@@ -22,9 +22,10 @@ def views(bid):
         ("lobby", [.8, 1.75, zin + .5], [-.4, 1.55, -1.0], 82),
         ("mailboxes", [1.8, 1.65, -6.2], [-3.0, 1.45, -3.4], 72),
         ("corridor", [-hw + .9, l1 + 1.65, .2], [hw, l1 + 1.45, .2], 72),
-        ("stair", [1.2, l1 + 1.7, 3.0], [-2.4, l1 + .6, 6.0], 84),
+        ("street", [-9, 1.7, -hd - 26], [1, 5.5, -hd], 62),
+        ("stair", [-.75, l1 + 1.7, 1.7], [-2.2, l1 + 1.9, 7.5], 80),
         ("living", [-hw + 4.5, l1 + 1.6, -1.4], [-hw + 2.5, l1 + 1.25, -hd], 84),
-        ("bedroom", [-7.2, l1 + 1.6, -3.4], [-8.0, l1 + 1.2, -hd], 84),
+        ("bedroom", [-6.3, l1 + 1.6, -3.9], [-7.6, l1 + 1.2, -hd], 84),
     ]
     # bathroom of the front-left apartment: x from uHall to the inner end (inner end -3.2 with a lobby/core lounge, else -.1)
     x1 = -3.2 if bid == "T06" else -.1

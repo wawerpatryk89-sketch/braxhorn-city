@@ -29,6 +29,7 @@ namespace UnityEngine
         public static float Dot(Vector3 a, Vector3 b) => a.x * b.x + a.y * b.y + a.z * b.z;
         public static Vector3 Cross(Vector3 a, Vector3 b) => new Vector3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
         public static Vector3 Scale(Vector3 a, Vector3 b) => new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
+        public float sqrMagnitude => x * x + y * y + z * z;
         public float magnitude => (float)Math.Sqrt(x * x + y * y + z * z); public Vector3 normalized => this * (1f / magnitude);
         public override string ToString() => "(" + x.ToString("F2") + ", " + y.ToString("F2") + ", " + z.ToString("F2") + ")"; }
     public struct Vector4 { public float x, y, z, w; public Vector4(float x, float y, float z, float w) { this.x = x; this.y = y; this.z = z; this.w = w; }
@@ -65,6 +66,7 @@ namespace UnityEngine
         public static float Min(float a, float b) => Math.Min(a, b); public static float Max(float a, float b) => Math.Max(a, b);
         public static int Min(int a, int b) => Math.Min(a, b); public static int Max(int a, int b) => Math.Max(a, b); public static int Clamp(int v, int a, int b) => v < a ? a : v > b ? b : v;
         public static float Abs(float a) => Math.Abs(a); public static float Sign(float a) => a >= 0 ? 1 : -1;
+        public static float Pow(float a, float b) => (float)Math.Pow(a, b);
         public static float Round(float a) => (float)Math.Round(a, MidpointRounding.ToEven); public static int RoundToInt(float a) => (int)Math.Round(a, MidpointRounding.ToEven);
         public static int CeilToInt(float a) => (int)Math.Ceiling(a); public static int FloorToInt(float a) => (int)Math.Floor(a);
         public static float Clamp(float v, float a, float b) => v < a ? a : v > b ? b : v;

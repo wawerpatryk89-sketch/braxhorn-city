@@ -213,6 +213,26 @@ public static class BraxChampionsHotelSobczakT03
         =>Face(M.ceiling,new Vector3(x0,y,z0),new Vector3(x1,y,z0),new Vector3(x1,y,z1),new Vector3(x0,y,z1),Vector3.down);
     static void Downlight(float x,float z,float y)=>Box(M.warmLight,x-.08f,x+.08f,y-.012f,y+.004f,z-.08f,z+.08f);
     static void Rod(Material m,Vector3 a,Vector3 b,float r)=>W.Rura(m,a,b,r,8);
+    // Soft filled shape (superquadric) for pillows, mattresses, duvets and cushions: owner 9.11 23:02
+    // "poduszki mogą być zaokrąglone, nie muszą być kwadratowe". size = (x, thickness y, z) before the rotation;
+    // edge rounds the profile through the thickness (1 = fully round), corner the outline (small = square
+    // outline with rounded corners). Drawn as W quads, so the fabric maps keep their real scale.
+    static void Soft(Material m,Vector3 c,Vector3 size,Quaternion q,float edge,float corner,int nu=16,int nv=6)
+    {
+        float C(float w,float e)=>Mathf.Sign(Mathf.Cos(w))*Mathf.Pow(Mathf.Abs(Mathf.Cos(w)),e);
+        float S(float w,float e)=>Mathf.Sign(Mathf.Sin(w))*Mathf.Pow(Mathf.Abs(Mathf.Sin(w)),e);
+        Vector3 P(int i,int j)
+        {
+            float u=-Mathf.PI+2f*Mathf.PI*i/nu,v=-Mathf.PI*.5f+Mathf.PI*j/nv,r=Mathf.Max(0f,C(v,edge));
+            return c+q*new Vector3(size.x*.5f*r*C(u,corner),size.y*.5f*S(v,edge),size.z*.5f*r*S(u,corner));
+        }
+        for(int i=0;i<nu;i++)for(int j=0;j<nv;j++)
+        {
+            Vector3 a=P(i,j),b=P(i+1,j),d=P(i,j+1),e=P(i+1,j+1);
+            if((a-e).sqrMagnitude<1e-10f&&(b-d).sqrMagnitude<1e-10f)continue;
+            Face(m,a,b,e,d,(a+b+d+e)*.25f-c);
+        }
+    }
     // Circle as a closed polygon (fountains, planters, chandelier).
     static List<Vector2> Circle(float cx,float cz,float r,int seg=24)
     {
@@ -717,22 +737,39 @@ public static class BraxChampionsHotelSobczakT03
             W.Lampa("stair penthouse light "+(sx<0?"W":"E"),new Vector3(sx*14f,ph-.4f,0),.7f,7f);
             In(roof,false);
         }
-        // terrace: white leather loungers and planters
-        foreach(float x in new[]{-13f,-8f,8f,13f})Lounger(roof,x,y,-11f);
-        foreach(float x in new[]{-3.2f,3.2f})
-        {
-            Model(H+"outdoor_table_chair_set_01/outdoor_table_chair_set_01_1k.gltf",roof,"roof terrace cafe set",new Vector3(x,y+.02f,-12.8f),90f,true);
-            Rod(M.darkBronze,new Vector3(x,y+.02f,-12.8f),new Vector3(x,y+2.55f,-12.8f),.025f);
-            W.Walec(M.linen,new Vector3(x,y+2.45f,-12.8f),1.45f,.05f,8);                           // parasol canopy
-            W.Walec(M.darkBronze,new Vector3(x,y+.02f,-12.8f),.22f,.06f,12,true);
-        }
+        // terrace (owner 9.11 23:01: an empty slab): teak decks, six cafe sets under parasols, a marble bar by the
+        // lift lobby, loungers with soft cushions, planters and potted plants along the parapet
+        Box(M.teakDark,-15.2f,15.2f,y+.02f,y+.045f,-15.0f,-9.4f);
+        Box(M.teakDark,-15.2f,15.2f,y+.02f,y+.045f,9.0f,15.0f);
+        foreach(float x in new[]{-13.5f,-11.2f,11.2f,13.5f})Lounger(roof,x,y+.045f,-7.6f);
+        foreach(float z in new[]{-12.6f,12.0f})
+            foreach(float x in z<0?new[]{-9.6f,-3.2f,3.2f,9.6f}:new[]{-6.4f,6.4f})
+            {
+                Model(H+"outdoor_table_chair_set_01/outdoor_table_chair_set_01_1k.gltf",roof,"roof terrace cafe set",new Vector3(x,y+.045f,z),90f,true);
+                Rod(M.darkBronze,new Vector3(x,y+.045f,z),new Vector3(x,y+2.55f,z),.025f);
+                W.Walec(M.linen,new Vector3(x,y+2.45f,z),1.45f,.05f,8);                            // parasol canopy
+                W.Walec(M.darkBronze,new Vector3(x,y+.045f,z),.22f,.06f,12,true);
+            }
+        // bar against the technical box, east of the lift lobby
+        float bz=TechZ0-.75f;
+        Fluted(true,bz,-1f,3.2f,8.8f,y+.10f,y+1.05f,M.walnut);
+        Box(M.walnutDark,3.2f,8.8f,y+.02f,y+1.05f,bz,bz+.55f,true);
+        Box(M.marble,3.1f,8.9f,y+1.05f,y+1.11f,bz-.18f,bz+.60f,true);
+        for(float x=4.0f;x<=8.01f;x+=1.0f)
+            if(!Model(H+"bar_chair_round_01/bar_chair_round_01_1k.gltf",roof,"roof bar stool, leather",new Vector3(x,y+.02f,bz-.62f),0f,true))Stool(x,y,bz-.62f);
         foreach(float x in new[]{-12f,12f})RoofPlanter(x,10f,2.5f,1.0f,y+.02f);
+        foreach(float x in new[]{-6f,6f})RoofPlanter(x,-15.3f,2.2f,.45f,y+.02f);
+        foreach(var pt in new[]{new Vector2(-15.2f,-15.2f),new Vector2(15.2f,-15.2f),new Vector2(-15.2f,-9.2f),new Vector2(15.2f,-9.2f),
+                                 new Vector2(-15.2f,15.2f),new Vector2(15.2f,15.2f),new Vector2(0f,15.2f),new Vector2(-10.8f,-6.4f)})
+            Model(A+"potted_plant_01/potted_plant_01_1k.gltf",roof,"roof terrace plant",new Vector3(pt.x,y+.02f,pt.y),pt.x*17f+pt.y*5f,false);
     }
     static void Lounger(Transform g,float x,float y,float z)
     {
-        Box(M.leatherWhite,x-.35f,x+.35f,y+.25f,y+.40f,z-1.0f,z+.6f,true);
-        W.OBox(M.leatherWhite,new Vector3(x,y+.62f,z+.9f),new Vector3(.7f,.08f,.8f),Quaternion.Euler(-35f,0,0));
-        Box(M.teakDark,x-.30f,x+.30f,y,y+.25f,z-.9f,z+.8f,true);
+        Box(M.teakDark,x-.33f,x+.33f,y+.18f,y+.24f,z-1.0f,z+.95f,true);                               // slatted frame
+        foreach(float dz in new[]{-.85f,.8f})foreach(float dx in new[]{-.28f,.28f})Box(M.teakDark,x+dx-.03f,x+dx+.03f,y,y+.18f,z+dz-.03f,z+dz+.03f);
+        Soft(M.leatherWhite,new Vector3(x,y+.31f,z-.25f),new Vector3(.64f,.14f,1.45f),Quaternion.identity,.6f,.2f);
+        Soft(M.leatherWhite,new Vector3(x,y+.55f,z+.70f),new Vector3(.64f,.13f,.80f),Quaternion.Euler(-48f,0,0),.6f,.2f);
+        Soft(M.linen,new Vector3(x,y+.42f,z+.42f),new Vector3(.40f,.11f,.26f),Quaternion.Euler(-30f,0,0),.9f,.4f);   // head cushion
     }
 
     // ================================================================ LIFT SHAFTS (continuous) + per-stop fronts
@@ -937,6 +974,21 @@ public static class BraxChampionsHotelSobczakT03
         Model(H+"hanging_picture_frame_02/hanging_picture_frame_02_1k.gltf",podiumInside,"lobby art west",new Vector3(-11.16f,y0+2.4f,-16.2f),90f,false,Snap.Centre);
         Model(H+"hanging_picture_frame_02/hanging_picture_frame_02_1k.gltf",podiumInside,"lobby art west 2",new Vector3(-11.16f,y0+2.4f,-4.6f),90f,false,Snap.Centre);
         W.Lampa("lobby light",new Vector3(0,ys-1.2f,-9f),1.1f,13f);
+        // centre of the lobby (was an empty floor): round black marble table on a brass drum with a tall plant,
+        // black marble floor medallion ring; two more leather lounges by the front windows
+        W.Walec(M.brass,new Vector3(0,y0+Fin,-9.2f),.42f,.70f,24,true);
+        W.Walec(M.blackMarble,new Vector3(0,y0+Fin+.70f,-9.2f),.85f,.05f,32);
+        Model(A+"potted_plant_01/potted_plant_01_1k.gltf",podiumInside,"lobby centre plant",new Vector3(0,y0+Fin+.75f,-9.2f),20f,false);
+        Ring(Circle(0,-9.2f,1.9f,40),y0+Fin,y0+Fin+.003f,.14f,M.blackMarble,false);
+        foreach(float sx in new[]{-1f,1f})
+        {
+            float gx=sx*7.6f,gz=-16.9f;
+            Rug(M.rugRoom,M.cognac,gx-2.0f,gx+2.0f,y0+Fin,gz-1.5f,gz+1.5f);
+            LobbySeat(A+"modern_arm_chair_01/modern_arm_chair_01_2k.gltf","window lounge armchair",gx-1.15f,y0,gz,90f,.85f);
+            LobbySeat(A+"modern_arm_chair_01/modern_arm_chair_01_2k.gltf","window lounge armchair",gx+1.15f,y0,gz,-90f,.85f);
+            Model(H+"coffee_table_round_01/coffee_table_round_01_2k.gltf",podiumInside,"window lounge table",new Vector3(gx,y0+Fin+.014f,gz),0f,true);
+            Model(A+"potted_plant_02/potted_plant_02_1k.gltf",podiumInside,"window lounge plant",new Vector3(sx*10.4f,y0+Fin,-18.0f),sx*40f,false);
+        }
         // lobby bar (west wing): fluted walnut front, marble top, brass foot rail, mirrored backlit back bar, leather stools
         Fluted(false,-14.8f,1f,-16.5f,-6f,y0+.08f,y0+1.05f,M.walnut);
         Box(M.walnutDark,-15.6f,-14.8f,y0,y0+1.05f,-16.5f,-6f,true);
@@ -1327,6 +1379,8 @@ public static class BraxChampionsHotelSobczakT03
         {
             float a=sz*(CoreWallZ+.1f),b=sz*(RoomWallZ-.1f);
             Box(M.carpet,-xw,xw,0,Fin,Lo(a,b),Hi(a,b));
+            // woven border of the damask carpet along both walls (velvet band, 2 mm proud)
+            Box(M.velvet,-xw,xw,Fin,Fin+.002f,Lo(a,b)+.10f,Lo(a,b)+.22f);Box(M.velvet,-xw,xw,Fin,Fin+.002f,Hi(a,b)-.22f,Hi(a,b)-.10f);
             Ceil(-xw,xw,Lo(a,b),Hi(a,b),yk);
             Box(M.ledCool,-xw+.4f,xw-.4f,yk-.012f,yk,sz*(CoreWallZ+.18f)-.02f,sz*(CoreWallZ+.18f)+.02f);
             W.Lampa("corridor light "+(sz<0?"front":"back"),new Vector3(0,yk-.3f,sz*3.8f),.8f,18f);
@@ -1450,19 +1504,26 @@ public static class BraxChampionsHotelSobczakT03
         Box(M.walnutDark,a,a+.03f,0,2.8f,zb-2.0f,zb+2.0f);
         for(int i=0;i<5;i++)Box(M.boucle,a+.03f,a+.14f,.45f,1.55f,zb-1.2f+i*.48f+.012f,zb-1.2f+(i+1)*.48f-.012f,i==2);
         Box(M.brass,a+.03f,a+.15f,1.55f,1.575f,zb-1.21f,zb+1.21f);
-        // king bed: upholstered divan on a recessed walnut plinth, mattress, duvet with drops, satin runner, pillows
+        // king bed (owner 9.11 23:02: no boxes, round pillows): upholstered divan on a recessed walnut plinth,
+        // mattress with rounded edges, duvet draped over the sides with a rolled turn-down, satin runner,
+        // two euro pillows, two sleeping pillows, two velvet cushions and a satin bolster - all soft shapes
         Box(M.walnutDark,a+.22f,a+2.15f,0,.10f,zb-.9f,zb+.9f);
-        Box(M.jersey,a+.14f,a+2.25f,.10f,.34f,zb-1.0f,zb+1.0f,true);
-        Box(M.linenWhite,a+.15f,a+2.23f,.34f,.55f,zb-.97f,zb+.97f,true);
-        Box(M.linenWhite,a+.95f,a+2.27f,.55f,.60f,zb-1.02f,zb+1.02f);
-        foreach(float sd in new[]{-1f,1f})Box(M.linenWhite,a+.95f,a+2.27f,.30f,.60f,zb+sd*1.0f,zb+sd*1.03f);
-        Box(M.linenWhite,a+2.24f,a+2.28f,.30f,.60f,zb-1.03f,zb+1.03f);
-        Box(M.linenWhite,a+.86f,a+1.0f,.55f,.64f,zb-1.0f,zb+1.0f);                      // folded turn-down
-        Box(M.satin,a+1.72f,a+2.10f,.60f,.615f,zb-1.04f,zb+1.04f);
-        foreach(float sd in new[]{-1f,1f})Box(M.satin,a+1.72f,a+2.10f,.36f,.615f,zb+sd*1.03f,zb+sd*1.045f);
-        foreach(float dz in new[]{-.5f,.5f})W.OBox(M.linenWhite,new Vector3(a+.42f,.70f,zb+dz),new Vector3(.17f,.46f,.74f),Quaternion.Euler(0,0,22f));
-        foreach(float dz in new[]{-.42f,.42f})W.OBox(M.velvet,new Vector3(a+.64f,.72f,zb+dz),new Vector3(.13f,.40f,.40f),Quaternion.Euler(0,0,18f));
-        W.OBox(M.satin,new Vector3(a+.78f,.68f,zb),new Vector3(.12f,.26f,.58f),Quaternion.Euler(0,0,14f));
+        var flat=Quaternion.identity;
+        Soft(M.jersey,new Vector3(a+1.195f,.22f,zb),new Vector3(2.11f,.25f,2.0f),flat,.30f,.10f,24);
+        W.KolizjaMM(a+.14f,a+2.25f,.10f,.58f,zb-1.0f,zb+1.0f);
+        Soft(M.linenWhite,new Vector3(a+1.19f,.45f,zb),new Vector3(2.08f,.24f,1.94f),flat,.35f,.10f,24);
+        Soft(M.linenWhite,new Vector3(a+1.61f,.47f,zb),new Vector3(1.40f,.30f,2.08f),flat,.28f,.08f,24);   // duvet with drops
+        Rod(M.linenWhite,new Vector3(a+.93f,.585f,zb-1.02f),new Vector3(a+.93f,.585f,zb+1.02f),.045f);       // rolled turn-down
+        Soft(M.satin,new Vector3(a+1.93f,.475f,zb),new Vector3(.42f,.31f,2.12f),flat,.28f,.08f,24);          // runner over the foot
+        var lean=Quaternion.Euler(0,0,-72f);
+        foreach(float dz in new[]{-.50f,.50f})
+        {
+            Soft(M.linenWhite,new Vector3(a+.31f,.86f,zb+dz),new Vector3(.62f,.18f,.64f),lean,.9f,.35f);                          // euro pillow
+            Soft(M.linenWhite,new Vector3(a+.50f,.77f,zb+dz),new Vector3(.46f,.16f,.72f),Quaternion.Euler(0,0,-64f),.9f,.35f);    // sleeping pillow
+        }
+        foreach(float dz in new[]{-.36f,.36f})
+            Soft(M.velvet,new Vector3(a+.67f,.73f,zb+dz),new Vector3(.40f,.14f,.40f),Quaternion.Euler(0,dz*30f,-58f),.9f,.4f);    // velvet cushion
+        Rod(M.satin,new Vector3(a+.86f,.665f,zb-.42f),new Vector3(a+.86f,.665f,zb+.42f),.09f);                // bolster
         // nightstands (Poly Haven side table), pendants on cables, vase and plant
         foreach(float sd in new[]{-1f,1f})
         {

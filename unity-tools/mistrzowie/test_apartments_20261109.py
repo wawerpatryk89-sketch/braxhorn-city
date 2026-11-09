@@ -100,7 +100,7 @@ class Apartments20261109(unittest.TestCase):
             self.assertGreaterEqual(level(f + 1) - level(f) - .20, 2.0)
 
     def test_finished_and_empty_interiors(self):
-        for finish in ('"oak_wood_planks"', '"marble_01"', '"hessian_230"', '"smoked_walnut_veneer"', '"beige_wall_001"'):
+        for finish in ('"laminate_floor_02"', '"marble_01"', '"terlenka"', '"smoked_walnut_veneer"', '"white_stucco_02"', "LibraryMarbleWhite("):
             self.assertIn(finish, SRC)
         for part in ("static float Apartment(", "static void Stair(", "WallX(grasscloth,LiftZ", "Leaf(true,zs",
                      "Leaf(false,X(uHall)", "Ceiling(Lo(X(lu),X(w)),Hi(X(lu),X(w)),az0,az1,cy)", "W.Lampa(\"corridor light floor \""):
@@ -135,7 +135,10 @@ class Apartments20261109(unittest.TestCase):
         self.assertIn("interiorLod.SetLODs(new[]{new LOD(.06f,interiorRenderers)", SRC)
         self.assertIn('var vis=lamps.gameObject.AddComponent<BraxWidocznoscWnetrza>();', SRC)
         self.assertIn("static void Lobby(float y0,float zFrontIn)", SRC)
-        self.assertIn('stoneFloor=M("apt_marble_floor","marble_01"', SRC)
+        self.assertIn('stoneFloor=BraxChampionsFoundation.LibraryMarbleWhite("apt_white_marble_floor"', SRC)
+        self.assertIn('paint=M("apt_wall_white","white_stucco_02"', SRC)          # owner 23:01: same beige everywhere
+        self.assertNotIn('"beige_wall_001"', SRC)
+        self.assertNotIn('"oak_wood_planks"', SRC)
         self.assertNotIn('"terrazzo_tiles"', SRC)
         self.assertTrue((ROOT / "unity-tools/mistrzowie/apartments_preview/zfight.py").exists())
 

@@ -793,10 +793,13 @@ public static class BraxSceneAudit
             if(Contains(n,"sidewalk_paving"))return "concrete_pavement_02";
             if(Contains(n,"drive_asphalt"))return "clean_asphalt";
             if(Contains(n,"teak_veneer")||Contains(n,"teak_dark"))return "teak_veneer";
-            if(Contains(n,"cream_marble")||Contains(n,"bath_marble_floor"))return "marble_01";
+            if(Contains(n,"white_marble")||Contains(n,"bath_marble_floor"))return "Marble021";
+            if(Contains(n,"cream_marble"))return "marble_01";
             if(Contains(n,"black_marble"))return "Marble016";
-            if(Contains(n,"room_oak_floor"))return "oak_wood_planks";
-            if(Contains(n,"corridor_carpet")||Contains(n,"room_rug"))return "poly_wool_herringbone";
+            if(Contains(n,"room_oak_floor"))return "laminate_floor_02";
+            if(Contains(n,"corridor_carpet")||Contains(n,"room_rug_jacquard")||Contains(n,"lobby_rug_jacquard"))return "floral_jacquard";
+            if(Contains(n,"room_rug"))return "poly_wool_herringbone";
+            if(Contains(n,"brushed_stainless"))return "Metal048A";
             if(Contains(n,"spa_terrazzo"))return "terrazzo_tiles";
             if(Contains(n,"kitchen_tile"))return "tiled_floor_001";
             if(Contains(n,"wall_paint"))return "beige_wall_001";
@@ -806,7 +809,7 @@ public static class BraxSceneAudit
             if(Contains(n,"white_leather"))return "leather_white";
             if(Contains(n,"bed_linen")||Contains(n,"sheer_curtain"))return "fabric_pattern_05";
             if(Contains(n,"fitness_rubber"))return "rubber_tiles";
-            if(Contains(n,"grasscloth_wallcovering"))return "hessian_230";
+            if(Contains(n,"linen_wallcovering"))return "terlenka";
             if(Contains(n,"boucle_upholstery"))return "curly_teddy_natural";
             if(Contains(n,"taupe_upholstery"))return "cotton_jersey";
             if(Contains(n,"linen_drapes")||Contains(n,"white_bed_linen"))return "terlenka";
@@ -837,6 +840,9 @@ public static class BraxSceneAudit
                 case "teak_veneer": return 1.2f;
                 case "marble_01": return 1.5f;
                 case "Marble016": return 2.5f;
+                case "Marble021": return 2.4f;
+                case "Metal048A": return .65f;
+                case "laminate_floor_02": return 1.8f;
                 case "oak_wood_planks": return 1.6f;
                 case "poly_wool_herringbone": return .40f;
                 case "terrazzo_tiles": return 1.6f;

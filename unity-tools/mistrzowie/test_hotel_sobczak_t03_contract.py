@@ -227,7 +227,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn("FinishChairs();", self.gen)
 
     def test_every_surface_uses_poly_haven_maps(self):
-        for slug in ("hessian_230", "curly_teddy_natural", "cotton_jersey", "terlenka", "crepe_satin", "floral_jacquard",
+        for slug in ("laminate_floor_02", "curly_teddy_natural", "cotton_jersey", "terlenka", "crepe_satin", "floral_jacquard",
                      "smoked_walnut_veneer", "fabric_leather_02", "herringbone_parquet",
                      "long_white_tiles", "anti_skid_tiles"):
             self.assertIn('"%s"' % slug, self.materials)
@@ -258,9 +258,27 @@ class HotelSobczakT03Contract(unittest.TestCase):
 
     def test_rugs_are_real_rugs_with_a_bound_edge(self):
         self.assertIn("static void Rug(Material field,Material edge", self.gen)
-        self.assertEqual(self.gen.count("Rug(M.rug"), 3)
+        self.assertEqual(self.gen.count("Rug(M.rug"), 4)                     # lobby, 2 window lounges (loop), waiting, rooms
         self.assertNotIn("Box(M.rugRoom", self.gen)
         self.assertNotIn("Box(M.rugLobby,-10f", self.gen)
+
+    def test_owner_review_9_11_night_soft_bed_white_marble_and_palette(self):
+        # owner 23:00-23:02: marble read as beige bathroom tiles, flat brown carpet, tan corridor, box bed, square pillows
+        self.assertIn("static void Soft(Material m,Vector3 c,Vector3 size,Quaternion q,float edge,float corner", self.gen)
+        room = self.gen[self.gen.index("static void Room(Transform t"):self.gen.index("static void Renumber(")]
+        self.assertGreaterEqual(room.count("Soft(M."), 7)                    # divan, mattress, duvet, runner, pillows, cushions
+        self.assertNotIn("W.OBox(M.linenWhite", room)                        # no box pillows
+        self.assertNotIn("W.OBox(M.velvet", room)
+        self.assertIn('LibraryMarbleWhite("t03_white_marble"', self.materials)
+        self.assertIn('s.grasscloth=P("linen_wallcovering","terlenka"', self.materials)
+        self.assertIn('s.carpet=P("corridor_carpet","floral_jacquard"', self.materials)
+        self.assertIn('LibraryMetal("t03_brushed_stainless"', self.materials)
+        self.assertIn("('Marble021',['Color','NormalGL','Roughness'])", self.prepare)
+        self.assertIn("'laminate_floor_02'", self.prepare)
+        foundation = (EDITOR / "BraxChampionsFoundation.cs").read_text(encoding="utf-8")
+        self.assertIn('prefix="Marble021_4K-JPG_"', foundation)
+        self.assertIn('"lobby centre plant"', self.gen)
+        self.assertIn('"roof bar stool, leather"', self.gen)
 
 
 if __name__ == "__main__":

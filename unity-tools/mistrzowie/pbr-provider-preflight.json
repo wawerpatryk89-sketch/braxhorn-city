@@ -1870,5 +1870,83 @@
         }
       }
     }
+  },
+  "laminate_floor_02": {
+    "Diffuse": {
+      "4k": {
+        "exr": {
+          "size": 22784923,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/laminate_floor_02/laminate_floor_02_diff_4k.exr",
+          "md5": "69e80df83afda1093e023892d69f5240"
+        },
+        "jpg": {
+          "size": 14438275,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/laminate_floor_02/laminate_floor_02_diff_4k.jpg",
+          "md5": "5e930566d63e1c4d479b3ea89ac551d4"
+        },
+        "png": {
+          "size": 91255815,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/laminate_floor_02/laminate_floor_02_diff_4k.png",
+          "md5": "2a9ec44dd801bfbbbb9623671688ff9b"
+        }
+      }
+    },
+    "nor_gl": {
+      "4k": {
+        "exr": {
+          "size": 23884360,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/laminate_floor_02/laminate_floor_02_nor_gl_4k.exr",
+          "md5": "28e07f6f08c1dc959126c5b67b33e9de"
+        },
+        "jpg": {
+          "size": 10582397,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/laminate_floor_02/laminate_floor_02_nor_gl_4k.jpg",
+          "md5": "2580bd761691742c6df486d8404c420f"
+        },
+        "png": {
+          "size": 82250849,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/laminate_floor_02/laminate_floor_02_nor_gl_4k.png",
+          "md5": "83447da71c7bb9d75403f49577393075"
+        }
+      }
+    },
+    "Rough": {
+      "4k": {
+        "exr": {
+          "size": 12359366,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/laminate_floor_02/laminate_floor_02_rough_4k.exr",
+          "md5": "0769e0e0442d67ddf75eabb20409eb17"
+        },
+        "jpg": {
+          "size": 10969212,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/laminate_floor_02/laminate_floor_02_rough_4k.jpg",
+          "md5": "34db7e95b1d8887abaa008538f5e8851"
+        },
+        "png": {
+          "size": 40066278,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/laminate_floor_02/laminate_floor_02_rough_4k.png",
+          "md5": "fcf57ee988111bc4acbff268c8474f5b"
+        }
+      }
+    },
+    "arm": {
+      "4k": {
+        "exr": {
+          "size": 29302501,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/laminate_floor_02/laminate_floor_02_arm_4k.exr",
+          "md5": "694e59b4e083bd240fee282b38d21f35"
+        },
+        "jpg": {
+          "size": 12430658,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/laminate_floor_02/laminate_floor_02_arm_4k.jpg",
+          "md5": "3272931f153738114ec1585ef4890be9"
+        },
+        "png": {
+          "size": 67131097,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/laminate_floor_02/laminate_floor_02_arm_4k.png",
+          "md5": "9ac85d26e7c2426169b94b7a228585be"
+        }
+      }
+    }
   }
 }

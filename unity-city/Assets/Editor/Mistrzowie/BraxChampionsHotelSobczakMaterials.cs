@@ -25,10 +25,10 @@ public static class BraxChampionsHotelSobczakMaterials
     const string Generated="Assets/PlayableGenerated/Mistrzowie/HotelSobczakT03";
     public static readonly string[] RequiredSlugs={
         "exterior_wall_cladding_02","granite_tile_03","concrete_pavement_02","clean_asphalt","teak_veneer",
-        "marble_01","oak_wood_planks","poly_wool_herringbone","terrazzo_tiles","tiled_floor_001",
+        "marble_01","laminate_floor_02","poly_wool_herringbone","terrazzo_tiles","tiled_floor_001",
         "beige_wall_001","white_stucco_02","concrete_wall_003","brown_leather","leather_white",
         "fabric_pattern_05","granite_tile","rubber_tiles",
-        "hessian_230","curly_teddy_natural","cotton_jersey","terlenka","crepe_satin","velour_velvet","floral_jacquard",
+        "curly_teddy_natural","cotton_jersey","terlenka","crepe_satin","velour_velvet","floral_jacquard",
         "smoked_walnut_veneer","fabric_leather_02","herringbone_parquet","long_white_tiles","anti_skid_tiles"
     };
 
@@ -59,12 +59,24 @@ public static class BraxChampionsHotelSobczakMaterials
         s.teak=P("teak_veneer","teak_veneer",1.2f,new Color(.95f,.72f,.50f),.45f);
         s.teakDark=P("teak_dark","teak_veneer",1.2f,new Color(.50f,.34f,.23f),.45f);
         // interior
-        s.marble=P("cream_marble","marble_01",1.5f,new Color(1f,.98f,.94f),.30f);
-        s.marbleWet=P("bath_marble_floor","marble_01",1.0f,new Color(.92f,.90f,.86f),.45f);
+        // owner 9.11 23:00: marble_01 read as beige bathroom tiles and every colour was the same beige.
+        // Lobby, counters and bathrooms: polished white marble slabs (ambientCG Marble021), grey-white bath floor.
+        try
+        {
+            s.marble=BraxChampionsFoundation.LibraryMarbleWhite("t03_white_marble",new Color(.88f,.88f,.87f),2.4f);
+            s.marbleWet=BraxChampionsFoundation.LibraryMarbleWhite("t03_bath_marble_floor",new Color(.74f,.75f,.77f),1.6f);
+            s.marble.SetFloat("_Roughness",.28f);s.marbleWet.SetFloat("_Roughness",.40f);
+        }
+        catch(Exception e)
+        {
+            BraxBuildQuality.Warn("DO POPRAWKI T03_WHITE_MARBLE_MISSING "+e.Message);
+            s.marble=P("cream_marble","marble_01",1.5f,new Color(1f,.98f,.94f),.30f);
+            s.marbleWet=P("bath_marble_floor_fallback","marble_01",1.0f,new Color(.92f,.90f,.86f),.45f);
+        }
         try{s.blackMarble=BraxChampionsFoundation.LibraryMarble("t03_black_marble",new Color(.86f,.80f,.78f),2.5f);}
         catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI T03_BLACK_MARBLE_MISSING "+e.Message);s.blackMarble=s.stoneDark;}
-        s.oak=P("room_oak_floor","oak_wood_planks",1.6f,new Color(.96f,.90f,.82f),.60f);
-        s.carpet=P("corridor_carpet","poly_wool_herringbone",.40f,new Color(.40f,.34f,.30f),1f);
+        s.oak=P("room_oak_floor","laminate_floor_02",1.8f,new Color(1f,.98f,.95f),.55f);            // pale natural oak (was orange)
+        s.carpet=P("corridor_carpet","floral_jacquard",.90f,new Color(1.20f,1.10f,1.06f),1f);        // charcoal damask (was flat brown)
         s.carpetRoom=P("room_rug","poly_wool_herringbone",.40f,new Color(.78f,.74f,.68f),1f);
         s.terrazzo=P("spa_terrazzo","terrazzo_tiles",1.6f,new Color(.97f,.96f,.94f),.40f);
         s.tile=P("kitchen_tile","tiled_floor_001",.8f,new Color(.90f,.90f,.90f),.45f);
@@ -79,7 +91,8 @@ public static class BraxChampionsHotelSobczakMaterials
         s.rubber=P("fitness_rubber","rubber_tiles",2.0f,new Color(.30f,.31f,.32f),1f);
         s.lawn=Region("grass.mat")??P("planter_lawn","granite_tile",1f,new Color(.3f,.5f,.2f),1f);
         // premium finish: natural-colour Poly Haven scans (fabric colour is the scan's own, tints stay near 1)
-        s.grasscloth=P("grasscloth_wallcovering","hessian_230",.55f,new Color(1.16f,1.12f,1.06f),1f);
+        // wallcovering: pale natural linen (the hessian read orange and made corridors a tan tunnel)
+        s.grasscloth=P("linen_wallcovering","terlenka",.55f,new Color(1.10f,1.20f,1.33f),1f);       // greige linen, not tan
         s.boucle=P("boucle_upholstery","curly_teddy_natural",.45f,new Color(1f,.99f,.97f),1f);
         s.jersey=P("taupe_upholstery","cotton_jersey",.55f,new Color(1f,1f,1f),1f);
         s.linen=P("linen_drapes","terlenka",.70f,new Color(1f,.99f,.97f),1f);
@@ -95,7 +108,7 @@ public static class BraxChampionsHotelSobczakMaterials
         s.whiteTiles=P("kitchen_wall_tiles","long_white_tiles",1.0f,new Color(1f,1f,1f),.6f);
         s.antiSkid=P("kitchen_floor_tiles","anti_skid_tiles",1.0f,new Color(.95f,.95f,.95f),1f);
         // Interior irradiance (BraxChampionsInteriorLight): warm interior sky/ground instead of the city's.
-        foreach(var m in new[]{s.ceiling,s.grasscloth,s.paint,s.carpet,s.carpetRoom,s.oak,s.marbleWet,s.parquet,s.terrazzo,s.tile,
+        foreach(var m in new[]{s.ceiling,s.marble,s.grasscloth,s.paint,s.carpet,s.carpetRoom,s.oak,s.marbleWet,s.parquet,s.terrazzo,s.tile,
                                s.whiteTiles,s.antiSkid,s.boucle,s.jersey,s.linen,s.linenWhite,s.satin,s.velvet,s.rugRoom,s.rugLobby,
                                s.walnut,s.walnutDark,s.cognac})
             BraxChampionsInteriorLight.Apply(m,m==s.ceiling?BraxChampionsInteriorLight.Ceilings:BraxChampionsInteriorLight.Walls);
@@ -104,7 +117,10 @@ public static class BraxChampionsHotelSobczakMaterials
         // surfaces
         s.brass=Surface("polished_brass",new Color(.93f,.70f,.30f),.19f,.98f,false,false);
         s.darkBronze=Surface("dark_bronze_frames",new Color(.10f,.09f,.08f),.30f,.85f,false,false);
-        s.steel=Surface("brushed_stainless",new Color(.62f,.64f,.66f),.30f,1.0f,false,false);
+        // lift doors, frames, kitchen: real brushed metal maps of the region (was a flat dark colour)
+        // neutral steel: the Metal048A colour map is warm (254,227,156), the tint cancels it
+        try{s.steel=BraxChampionsFoundation.LibraryMetal("t03_brushed_stainless",new Color(.74f,.84f,1.22f));}
+        catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI T03_BRUSHED_METAL_MISSING "+e.Message);s.steel=Surface("brushed_stainless",new Color(.62f,.64f,.66f),.30f,1.0f,false,false);}
         s.glass=Surface("tower_glass",new Color(.36f,.42f,.47f,.45f),.05f,0f,true,false);
         if(s.glass.HasProperty("_ReflectionStrength"))s.glass.SetFloat("_ReflectionStrength",.72f);
         s.clearGlass=Surface("clear_glass",new Color(.80f,.88f,.92f,.20f),.08f,0f,true,false);

@@ -395,6 +395,15 @@ public static class BraxChampionsFoundation
             arm=FileIn(tex,"Marble016_ARM_4k.png"),tile=metres});
         m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
     }
+    // Polished WHITE Carrara-type marble in seamless slabs (owner 9.11 23:00: marble_01 read as beige bathroom
+    // tiles). Poly Haven has no white marble; ambientCG Marble021 4K (CC0), prepared like Marble016.
+    public static Material LibraryMarbleWhite(string id,Color tint,float metres)
+    {
+        string tex=Source+"/Textures",prefix="Marble021_4K-JPG_";
+        var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
+            arm=FileIn(tex,"Marble021_ARM_4k.png"),tile=metres});
+        m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
+    }
     public static Material LibraryLeather(string id,Color tint)
     {
         string tex=Source+"/Textures",prefix="Leather037_4K-JPG_";

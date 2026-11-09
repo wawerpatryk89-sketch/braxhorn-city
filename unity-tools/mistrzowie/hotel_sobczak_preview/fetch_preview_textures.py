@@ -19,14 +19,14 @@ def get(url):
 scene, dest = Path(sys.argv[1]), Path(sys.argv[2])
 dest.mkdir(parents=True, exist_ok=True)
 for slug in sorted({m["slug"] for m in json.load(open(scene))["materials"] if m["slug"]}):
-    if slug == "Marble016":
-        if not (dest / "Marble016_diff_1k.jpg").exists():
-            z = zipfile.ZipFile(io.BytesIO(get("https://ambientcg.com/get?file=Marble016_1K-JPG.zip")))
+    if slug[0].isupper():                      # ambientCG asset id (Marble016, Marble021, Metal048A)
+        if not (dest / f"{slug}_diff_1k.jpg").exists():
+            z = zipfile.ZipFile(io.BytesIO(get(f"https://ambientcg.com/get?file={slug}_1K-JPG.zip")))
             for n in z.namelist():
                 if n.endswith("_Color.jpg"):
-                    (dest / "Marble016_diff_1k.jpg").write_bytes(z.read(n))
+                    (dest / f"{slug}_diff_1k.jpg").write_bytes(z.read(n))
                 if n.endswith("_NormalGL.jpg"):
-                    (dest / "Marble016_nor_gl_1k.jpg").write_bytes(z.read(n))
+                    (dest / f"{slug}_nor_gl_1k.jpg").write_bytes(z.read(n))
         print("tex", slug, flush=True)
         continue
     files = None

@@ -22,7 +22,8 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  # HOTEL SOBCZAK premium finish 9.11 (owner: "wszedzie wykonczenie Poly Haven"):
                  # natural-colour fabrics, grasscloth, walnut, rugs, service tiles.
                  'terlenka','cotton_jersey','curly_teddy_natural','crepe_satin','hessian_230','floral_jacquard',
-                 'smoked_walnut_veneer','long_white_tiles','anti_skid_tiles','fabric_leather_02')
+                 'smoked_walnut_veneer','long_white_tiles','anti_skid_tiles','fabric_leather_02',
+                 'laminate_floor_02')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # The provider's own blend/glTF defaults use col_01 for this fabric. Do not
 # choose an arbitrary colour variation by dictionary order.
@@ -136,7 +137,10 @@ def main():
                       # 9.11 owner vitrine photo: polished BLACK marble with thin
                       # WHITE veins. Poly Haven has no such material (marble_01 is
                       # beige tiles); ambientCG Marble016 is CC0 like Leather037.
-                      ('Marble016',['Color','NormalGL','Roughness'])]:
+                      ('Marble016',['Color','NormalGL','Roughness']),
+                      # 9.11 owner review of the hotel/apartment previews: polished WHITE marble in
+                      # seamless slabs for lobbies, corridors and bathrooms (marble_01 = beige tiles).
+                      ('Marble021',['Color','NormalGL','Roughness'])]:
   prefix=asset+'_4K-JPG_'
   names=[prefix+k+'.jpg' for k in kinds]
   # New maps have no historical lock: verify against the archive on every preparation.

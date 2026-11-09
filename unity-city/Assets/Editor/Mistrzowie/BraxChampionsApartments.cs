@@ -86,21 +86,36 @@ public static class BraxChampionsApartments
     // skin = solid façade parts and slab edges; pier = ground-floor piers; edge = balcony fascia
     static Material skin,pier,edge,gold;
     static Material render,panel,granite,timber,walnut,black,facadeGlass,clearGlass,led,steel,
-        oak,paint,ceiling,bathFloor,bathWall,stoneFloor,marbleBlack,deck,grass,paving,grasscloth,brass,lamp,veneer;
+        oak,paint,ceiling,bathFloor,bathWall,stoneFloor,marbleBlack,deck,grass,paving,grasscloth,brass,lamp,veneer,runner;
 
     static void Materials(Dictionary<string,Material> ext,string outFolder)
     {
-        render=M("apt_white_render","white_stucco_02",2.0f,new Color(.97f,.96f,.94f),.90f);
+        render=M("apt_white_render","white_stucco_02",2.0f,new Color(1.12f,1.12f,1.10f),.90f);      // clean white (read grey)
         panel=M("apt_grey_panel","rectangular_facade_tiles",2.0f,new Color(.56f,.57f,.59f),.85f);
         granite=M("apt_dark_granite","granite_tile",1.2f,new Color(.30f,.31f,.33f),.55f);
         timber=M("apt_timber","teak_veneer",1.0f,new Color(.96f,.70f,.47f),.60f);
         walnut=M("apt_door_walnut","teak_veneer",1.0f,new Color(.44f,.30f,.21f),.50f);
-        oak=M("apt_floor_oak","oak_wood_planks",1.6f,new Color(.98f,.93f,.86f),.60f);
-        paint=M("apt_wall_paint","beige_wall_001",2.2f,new Color(1f,.99f,.97f),.95f);
-        bathFloor=M("apt_bath_floor","marble_01",.9f,new Color(.86f,.84f,.80f),.35f);              // honed marble, matches the walls
-        bathWall=M("apt_bath_marble","marble_01",1.4f,Color.white,.30f);
-        // lobby, corridors and stairs: polished marble (terrazzo_tiles read as a brown carpet, owner 9.11)
-        stoneFloor=M("apt_marble_floor","marble_01",1.2f,new Color(.96f,.95f,.92f),.32f);
+        // owner 9.11 23:01: "kolory takie same praktycznie wszędzie" (beige walls, orange oak, beige marble,
+        // tan corridors). Palette now: white walls, pale oak, walnut, white and black marble, linen, charcoal.
+        oak=M("apt_floor_pale_oak","laminate_floor_02",1.8f,new Color(1f,.98f,.95f),.55f);
+        paint=M("apt_wall_white","white_stucco_02",2.0f,new Color(1.10f,1.10f,1.09f),.95f);
+        if(paint.HasProperty("_BumpScale"))paint.SetFloat("_BumpScale",.20f);
+        try
+        {
+            bathWall=BraxChampionsFoundation.LibraryMarbleWhite("apt_bath_white_marble",new Color(.98f,.98f,.97f),2.0f);
+            stoneFloor=BraxChampionsFoundation.LibraryMarbleWhite("apt_white_marble_floor",new Color(.86f,.86f,.85f),2.4f);
+            bathWall.SetFloat("_Roughness",.30f);stoneFloor.SetFloat("_Roughness",.28f);
+        }
+        catch(Exception e)
+        {
+            BraxBuildQuality.Warn("DO POPRAWKI APT_WHITE_MARBLE_MISSING "+e.Message);
+            bathWall=M("apt_bath_marble","marble_01",1.4f,Color.white,.30f);
+            stoneFloor=M("apt_marble_floor","marble_01",1.2f,new Color(.96f,.95f,.92f),.32f);
+        }
+        try{bathFloor=BraxChampionsFoundation.LibraryMarble("apt_bath_black_marble",new Color(.92f,.90f,.90f),1.6f);}
+        catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI APT_BATH_BLACK_MARBLE_MISSING "+e.Message);bathFloor=granite;}
+        runner=M("apt_corridor_runner","floral_jacquard",.90f,new Color(1.20f,1.10f,1.06f),1f);
+        // lobby, corridors and stairs: polished white marble slabs (set above with the bathrooms)
         veneer=M("apt_walnut_veneer","smoked_walnut_veneer",1.2f,new Color(.92f,.86f,.80f),.55f);
         deck=M("apt_balcony_stone","granite_tile_04",1.0f,new Color(.90f,.90f,.88f),.60f);
         // owner 9.11 21:03: every surface finished with Poly Haven maps (was a plain white colour)
@@ -109,9 +124,9 @@ public static class BraxChampionsApartments
         try{marbleBlack=BraxChampionsFoundation.LibraryMarble("apt_black_marble",new Color(.86f,.80f,.78f),2.5f);BraxChampionsInteriorLight.Facade(marbleBlack);}
         catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI APT_BLACK_MARBLE_MISSING "+e.Message);marbleBlack=granite;}
         // owner 9.11 22:15 ("rewelacji nie ma"): corridors and lobby in grasscloth like the hotel, brass details
-        grasscloth=M("apt_grasscloth","hessian_230",.55f,new Color(1.16f,1.12f,1.06f),1f);
+        grasscloth=M("apt_linen_wall","terlenka",.55f,new Color(1.10f,1.20f,1.33f),1f);             // pale linen (hessian read orange)
         // Interior irradiance (owner photos 9.11: mauve walls, dark ceilings): warm interior sky/ground.
-        foreach(var m in new[]{paint,oak,bathFloor,bathWall,stoneFloor,walnut,grasscloth,veneer})BraxChampionsInteriorLight.Apply(m,BraxChampionsInteriorLight.Walls);
+        foreach(var m in new[]{paint,oak,bathFloor,bathWall,stoneFloor,walnut,grasscloth,veneer,runner})BraxChampionsInteriorLight.Apply(m,BraxChampionsInteriorLight.Walls);
         BraxChampionsInteriorLight.Apply(ceiling,BraxChampionsInteriorLight.Ceilings);
         // shaded façades: ambient ground = sunlit lawn and paving (BraxChampionsInteriorLight.Facade)
         foreach(var m in new[]{render,panel,granite,timber,deck})BraxChampionsInteriorLight.Facade(m);
@@ -538,6 +553,15 @@ public static class BraxChampionsApartments
         Box(deck,-HalfW,HalfW,SiteY,Ffl0,-HalfD-2.6f,-HalfD,true);                        // front terrace
         Wedge(deck,-2.0f,2.0f,-HalfD-5.5f,SiteY+.03f,-HalfD-2.6f,Ffl0,SiteY);             // 3.8 % ramp, no step
         Box(paving,-2.5f,2.5f,SiteY,SiteY+.03f,Walk,-HalfD-3.4f,true);                     // to the road sidewalk
+        // planting (owner 9.11 23:01: "z zewnątrz strasznie wyglądają"): light granite planters with lawn along the
+        // terrace and both sides of the walk, large potted plants at the entrance and the terrace corners
+        foreach(float sx in new[]{-1f,1f})
+        {
+            Planter(sx*(HalfW-5.2f),-HalfD-3.0f,4.6f,.45f);
+            Planter(sx*4.6f,-HalfD-8.2f,.45f,2.4f);
+            foreach(var pt in new[]{new Vector2(sx*2.6f,-HalfD-2.2f),new Vector2(sx*(HalfW-.6f),-HalfD-2.2f),new Vector2(sx*4.6f,-HalfD-11.4f)})
+                Model("ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf",outside,"garden plant",new Vector3(pt.x,pt.y>-HalfD-2.6f?Ffl0:SiteY+.03f,pt.y),pt.x*23f);
+        }
         W.Grupa=details;
         for(float z=-16f;z>Walk+2f;z-=6f)
             foreach(float sx in new[]{-1f,1f})
@@ -817,6 +841,9 @@ public static class BraxChampionsApartments
             // corridor: marble, linear light, windows at both ends
             W.Grupa=inside;W.Wnetrze=true;
             Box(stoneFloor,-HalfW+.3f,HalfW-.3f,y0,y0+Finish,CorridorZ0,CorridorZ1);
+            // charcoal damask runner with a walnut-coloured bound edge on the marble
+            Box(runner,-HalfW+1.3f,HalfW-1.3f,y0+Finish,y0+Finish+.008f,-.22f,.62f);
+            foreach(float ez in new[]{-.28f,.62f})Box(walnut,-HalfW+1.3f,HalfW-1.3f,y0+Finish,y0+Finish+.009f,ez,ez+.06f);
             Ceiling(-HalfW+.3f,HalfW-.3f,CorridorZ0,CorridorZ1,cy);
             Box(led,-HalfW+1.2f,HalfW-1.2f,cy-.012f,cy+.004f,.13f,.27f);
             lights.Add(W.Lampa("corridor light floor "+f,new Vector3(0,y1-.3f,.2f),.8f,14f));
@@ -888,6 +915,11 @@ public static class BraxChampionsApartments
 
     }
 
+    static void Planter(float x,float z,float hw,float hd)
+    {
+        Box(deck,x-hw,x+hw,SiteY,SiteY+.50f,z-hd,z+hd,true);
+        Box(grass,x-hw+.08f,x+hw-.08f,SiteY+.50f,SiteY+.53f,z-hd+.08f,z+hd-.08f);
+    }
     // Wall sconce beside each apartment door: brass back plate, warm opal glass (emission only, no extra lamp).
     static void Sconce(float x,float y0,float face,float into)
     {
