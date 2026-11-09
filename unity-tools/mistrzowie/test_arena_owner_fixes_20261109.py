@@ -43,6 +43,18 @@ class ArenaOwnerFixes20261109(unittest.TestCase):
         bottom = float(re.search(r"HallBannerBottom=([\d.]+)f", signs).group(1))
         self.assertGreater(bottom, 6.4 + .165 + 5)
 
+    def test_trophy_cases_use_real_lathe_cups(self):
+        trophies = source("BraxChampionsArenaTrophies.cs")
+        arrival = source("BraxChampionsArenaArrival.cs")
+        self.assertIn("EntranceTrophyCases(arenaRoot, exterior)", arrival)
+        # Closed profile: starts and ends on the axis, cup 0.598 m on 0.12 m plinth.
+        pts = re.findall(r"new Vector2\(([\d.]+)f,([\d.]+)f\)", trophies.split("CupProfile={")[1].split("};")[0])
+        self.assertEqual(float(pts[0][0]), 0.0)
+        self.assertEqual(float(pts[-1][0]), 0.0)
+        self.assertAlmostEqual(max(float(y) for _, y in pts), 0.598, places=3)
+        self.assertIn("const float CupMetalHeight=.598f, CupPlinth=.12f;", trophies)
+        self.assertIn('Trophy(root,new Vector3(x+dx,f+baseTop,z),1f', trophies)
+
 
 if __name__ == "__main__":
     unittest.main()
