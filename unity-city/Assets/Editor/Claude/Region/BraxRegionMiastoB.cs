@@ -250,6 +250,12 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         if (!src) { Debug.LogWarning("BRAXHORN_GLOWNA_PLOT DO POPRAWKI: brak źródła miasta (SourceCity) — płot przy x −104 nietknięty"); return; }
         try { siatki = BraxCityMeshCut.Subtract(src, brama, BraxRegion.Out + "/Cuts", "koniec_starego_miasta_plot_szlaban"); }
         catch (Exception e) { usuniete.Add("PŁOT GŁÓWNA: cięcie źródła: " + e.Message); }
+        // Pomiar oryginału (GLB, 9.11 17:38): siatka ogrodzenia = CityMesh_232 (materiał z maską alfa) x −104.03…−103.97,
+        // y 0.28…3.00, z 20.60…36.10; słupki CityMesh_233 x −104, z 20.55…33.65; szlaban CityMesh_254/258 x −103.2…−102.8.
+        // Paski przy samych narożnikach budynków (z 20.55…20.75 i 35.95…36.11) — wąskie cięcie tylko w osi płotu.
+        foreach (var pas in new[] { Bx(-104.2f, -103.8f, .22f, 6.0f, 20.5f, 20.8f), Bx(-104.2f, -103.8f, .22f, 6.0f, 35.9f, 36.11f) })
+            try { siatki += BraxCityMeshCut.Subtract(src, pas, BraxRegion.Out + "/Cuts", "koniec_starego_miasta_plot_naroza"); }
+            catch (Exception e) { usuniete.Add("PŁOT GŁÓWNA: cięcie narożnika: " + e.Message); }
         var fiz = BraxClaudeGround.SourcePhysics;
         if (fiz)
         {
