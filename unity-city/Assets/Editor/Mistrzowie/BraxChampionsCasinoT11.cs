@@ -9,9 +9,10 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 // T11 original plan: centre (495,465), property 120 x 100 nominal metres.
-// All geometry uses BraxClaudeOsiedle.K exactly once. EXTERIOR ONLY:
-// no casino games, partitions, furniture, interior floors or office interiors.
-public static class BraxChampionsCasinoT11
+// All geometry uses BraxClaudeOsiedle.K exactly once. Exterior per the owner
+// board 9.11 + the rotunda lobby seen through the glass (chandelier, gallery,
+// violet glow). No casino games, tables or office interiors yet.
+public static partial class BraxChampionsCasinoT11
 {
     public const string SignPath="Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png";
     const string TaxiSignPath="Assets/Source/Mistrzowie/CitySigns/03_TRANSPORT_KURORT/TAXI_TAXI.png";
@@ -30,7 +31,7 @@ public static class BraxChampionsCasinoT11
     static string output;
     static int serial;
     static Transform root,shell,trim,signRoot;
-    static Material cream,facadeSandstone,graphite,granite,asphalt,paving,gold,pillarGold,steel,glass,frontGlass,skylightGlass,led,roof,redCarpet,parkingPaint,signBacking;
+    static Material cream,graphite,windowFrame,interiorBack,violet,granite,asphalt,paving,gold,pillarGold,steel,glass,frontGlass,skylightGlass,led,roof,redCarpet,parkingPaint,signBacking;
     static readonly System.Collections.Generic.Dictionary<string,Mesh> bevelMeshes=
         new System.Collections.Generic.Dictionary<string,Mesh>();
     // White finishes are GARAGE-ONLY. Do not repaint the owner-approved casino exterior.
@@ -42,12 +43,16 @@ public static class BraxChampionsCasinoT11
         // Plansza właściciela „KASYNO (T11)”, 6.11: jasna elewacja = Rectangular Facade
         // Tiles (jasny krem), duże płyty — NIE cegła. Te same pobrane mapy co grafit,
         // kremowy odcień jak pas kamienny areny.
-        cream=BraxChampionsCasinoPbr2K.Create(output,"t11_cream_facade","rectangular_facade_tiles",2.0f,new Color(.93f,.89f,.80f));
-        // 7 Nov: owner's screenshot from OFFICIAL Poly Haven, unmodified native
-        // 2K Sandstone Blocks 05 PBR. No side or rear window placeholders.
-        facadeSandstone=BraxChampionsCasinoPbr2K.Create(output,
-            "t11_owner_sandstone_blocks_05_masonry","sandstone_blocks_05",2.3f,
-            new Color(.96f,.94f,.88f));
+        // Plansza 9.11 (jasny krem, duże bloki na mijankę): Poly Haven floor_tiles_04
+        // (kremowe bloki kamienne, gładkie) — najbliższy oryginał do próbki z planszy.
+        // rectangular_facade_tiles_02 z Poly Haven jest brązowy w pasy, nie kremowy.
+        cream=BraxChampionsCasinoPbr2K.Create(output,"t11_cream_limestone_blocks","floor_tiles_04",4.0f,new Color(1f,.97f,.90f));
+        windowFrame=Surface("black_window_frames",new Color(.045f,.05f,.055f),false,false);
+        windowFrame.SetFloat("_Metallic",.70f);windowFrame.SetFloat("_Roughness",.30f);
+        interiorBack=Surface("interior_warm_backdrop",new Color(.20f,.15f,.11f),false,false);
+        interiorBack.SetFloat("_Roughness",.80f);
+        violet=Surface("casino_violet_glow",new Color(.62f,.30f,1f),false,true);
+        violet.SetColor("_EmissionColor",new Color(.50f,.16f,.92f));
         graphite=BraxChampionsCasinoPbr2K.Create(output,"t11_graphite_facade","rectangular_facade_tiles",2.0f,new Color(.22f,.23f,.25f));
         granite=BraxChampionsCasinoPbr2K.Create(output,"t11_dark_granite","granite_tile",1.2f,new Color(.26f,.28f,.30f));
         paving=BraxChampionsCasinoPbr2K.Create(output,"t11_walkways","concrete_pavement_02",1.8f,new Color(.94f,.93f,.89f));
@@ -148,7 +153,7 @@ public static class BraxChampionsCasinoT11
         renderer.sharedMaterial=mat;
         bool transparent=mat==glass||mat==frontGlass||mat==skylightGlass;
         if(transparent){renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;}
-        if(tiled || ((mat==cream || mat==facadeSandstone || mat==graphite || mat==granite || mat==roof || mat==paving || mat==asphalt || mat==gold || mat==pillarGold) && Mathf.Max(w,Mathf.Max(h,d))>3f))
+        if(tiled || ((mat==cream || mat==graphite || mat==granite || mat==roof || mat==paving || mat==asphalt || mat==gold || mat==pillarGold) && Mathf.Max(w,Mathf.Max(h,d))>3f))
             Tile(o,new Vector3(w,h,d));
         if(!solid)UnityEngine.Object.DestroyImmediate(o.GetComponent<Collider>());
         if(!transparent && mat!=led)
@@ -242,87 +247,6 @@ public static class BraxChampionsCasinoT11
         return o;
     }
 
-    static void FullSandstoneWall(string name,float x,float y,float z,float w,float h,float d)
-    {
-        B(shell,name,facadeSandstone,x,y,z,w,h,d,true,true);
-    }
-
-    static void ThreeMatchingFacades()
-    {
-        // Issue #29: ONLY the curved central rotunda remains glazed.
-        // Each front wing is one continuous sandstone background behind the existing gold structure.
-        foreach(float side in new[]{-1f,1f})
-        {
-            FullSandstoneWall("T11 FULL SANDSTONE 05 front wing | NO GLASS",
-                side*27.5f,6.9f,-27.84f,21f,13.8f,.32f);
-            B(trim,"T11 front graphite plinth",graphite,
-                side*27.5f,.40f,-28.03f,21f,.80f,.30f,false,true);
-            for(int bay=0;bay<3;bay++)
-            {
-                float x=side*(19f+bay*7.6f);
-                BeveledBox(shell,"T11 GOLD beveled front structural pilaster",pillarGold,
-                    x,7.1f,-27.9f,1.16f,13.8f,1.00f,.10f,true);
-            }
-            BeveledBox(trim,"T11 front champagne floor belt",gold,
-                side*27.5f,7.04f,-28.00f,21f,.17f,.11f,.035f,false);
-            BeveledBox(trim,"T11 front continuous rounded gold cornice",gold,
-                side*27.5f,13.66f,-28.00f,21f,.25f,.16f,.055f,false);
-            B(trim,"T11 front fine warm contour LED",led,
-                side*27.5f,13.82f,-28.095f,20.8f,.045f,.045f,false);
-
-            // One real closed side wall per elevation: no stacked fake panels and no hidden glass.
-            FullSandstoneWall("T11 FULL SANDSTONE 05 side wall | 56x13.8m | NO GLASS",
-                side*37.84f,6.9f,0,.32f,13.8f,56f);
-            for(int bay=0;bay<7;bay++)
-            {
-                float zz=-23.0f+bay*7.55f;
-                BeveledBox(shell,"T11 GOLD beveled side structural pilaster",pillarGold,
-                    side*38f,7.1f,zz,1.10f,13.80f,1.02f,.09f,true);
-            }
-            B(trim,"T11 side graphite plinth 0.80m",graphite,
-                side*38f,.40f,0,.30f,.80f,56f,false,true);
-            BeveledBox(trim,"T11 side rounded champagne floor belt",gold,
-                side*38f,7.04f,0,.11f,.17f,56f,.035f,false);
-            BeveledBox(trim,"T11 side rounded continuous gold cornice",gold,
-                side*38f,13.66f,0,.16f,.25f,56f,.055f,false);
-            B(trim,"T11 side fine warm contour LED",led,
-                side*38.11f,13.82f,0,.045f,.045f,55.7f,false);
-        }
-
-        // Two main entrance pylons remain at their exact centres, now visibly chamfered.
-        foreach(float side in new[]{-1f,1f})
-        {
-            BeveledBox(shell,"T11 tall GOLD polished beveled main entrance pylon",pillarGold,
-                side*18.25f,7.10f,-28f,2.75f,14.10f,2.35f,.14f,true);
-            BeveledBox(trim,"T11 champagne vertical entry reveal",gold,
-                side*18.25f,7.02f,-29.27f,.15f,13.8f,.13f,.045f,false);
-            B(trim,"T11 warm recessed vertical pylon LED",led,
-                side*18.25f,7.01f,-29.39f,.055f,13.6f,.045f,false);
-        }
-
-        // Rear is a true masonry wall. The x=-23..-17 delivery opening stays completely free.
-        FullSandstoneWall("T11 rear sandstone wall LEFT of 6m delivery opening",
-            -30.5f,6.9f,27.84f,15f,13.8f,.32f);
-        FullSandstoneWall("T11 rear sandstone wall RIGHT of 6m delivery opening",
-            10.5f,6.9f,27.84f,55f,13.8f,.32f);
-        FullSandstoneWall("T11 rear sandstone structural lintel above 6m delivery opening",
-            -20f,9.675f,27.84f,6f,8.25f,.32f);
-        B(trim,"T11 rear graphite plinth LEFT",graphite,
-            -30.5f,.40f,28.0f,15f,.80f,.30f,false,true);
-        B(trim,"T11 rear graphite plinth RIGHT",graphite,
-            10.5f,.40f,28.0f,55f,.80f,.30f,false,true);
-        BeveledBox(trim,"T11 rear rounded champagne cornice",gold,
-            0,13.72f,28.0f,75f,.20f,.14f,.04f,false);
-        B(trim,"T11 rear fine warm LED profile",led,
-            0,13.86f,28.09f,74.4f,.045f,.045f,false);
-        foreach(float xx in new[]{-36f,-25f,-14f,-3f,8f,19f,30f,36f})
-            BeveledBox(shell,"T11 GOLD beveled rear masonry pilaster",pillarGold,
-                xx,7.3f,28.0f,.74f,12.7f,.25f,.05f,false);
-        foreach(float xx in new[]{-32f,-8f,17f,32f})
-            B(trim,"T11 rear warm architectural light",led,
-                xx,5.6f,28.18f,.045f,2.2f,.045f,false);
-    }
-
     static void RoofAndSkylight()
     {
         // Technical flat roof with genuine transparent top skylight.
@@ -340,9 +264,9 @@ public static class BraxChampionsCasinoT11
                 0,14.24f,z,24f,.13f,.12f,.040f,false);
         foreach(float side in new[]{-1f,1f})
         {
-            B(trim,"Parapet front stone",facadeSandstone,side*19f,14.9f,-27.8f,37f,1.4f,.65f);
-            B(trim,"Parapet rear stone",facadeSandstone,side*19f,14.9f,27.8f,37f,1.4f,.65f);
-            B(trim,"Parapet side stone",facadeSandstone,side*37.7f,14.9f,0,.60f,1.4f,55.4f);
+            B(trim,"Parapet front cream limestone",cream,side*19f,14.9f,-27.8f,37f,1.4f,.65f);
+            B(trim,"Parapet rear cream limestone",cream,side*19f,14.9f,27.8f,37f,1.4f,.65f);
+            B(trim,"Parapet side cream limestone",cream,side*37.7f,14.9f,0,.60f,1.4f,55.4f);
             BeveledBox(trim,"Roof rounded perimeter gold",gold,
                 side*37.86f,15.58f,0,.14f,.16f,55.2f,.045f,false);
         }
@@ -417,7 +341,7 @@ public static class BraxChampionsCasinoT11
 
             if(i%3==0)
             {
-                var mullion=BeveledBox(trim,"T11 GOLD rounded curved rotunda frame",pillarGold,
+                var mullion=BeveledBox(trim,"T11 champagne rounded curved rotunda frame",gold,
                     pa.x,5.55f,pa.z,.19f,10.6f,.19f,.045f,false);
                 mullion.transform.localRotation=yaw;
             }
@@ -971,7 +895,9 @@ public static class BraxChampionsCasinoT11
         if(!palm)throw new FileNotFoundException("T11 original city palms missing");
         foreach(var at in new[]{
             new Vector2(-43,-32),new Vector2(35,-32),new Vector2(-45,33),
-            new Vector2(45,33),new Vector2(-41,-26),new Vector2(34,-26)
+            // 9.11: (34,-26) stood INSIDE the podium (front wall z=-28.3); the board
+            // shows a palm either side of the entrance in front of the wings.
+            new Vector2(45,33),new Vector2(-26,-33),new Vector2(26,-33)
         })
         {
             var location=shell.TransformPoint(new Vector3(at.x,.22f,at.y)*K);
@@ -1355,15 +1281,16 @@ public static class BraxChampionsCasinoT11
         Directory.CreateDirectory(outFolder+"/Materials");
         Directory.CreateDirectory(outFolder+"/Prefabs");
         Setup(outFolder);
-        root=Group(null,"T11 | KASYNO WAWER | 120x100 approved plot | EMPTY interior");
+        root=Group(null,"T11 | KASYNO WAWER | 120x100 owner board plot | rotunda lobby, no gaming floor yet");
         root.position=new Vector3(LotX,0,LotZ)*K;
         shell=Group(root,"T11 exterior shell, real entrances and site collisions");
         trim=Group(root,"Exterior gold and bronze details (distance LOD)");
         signRoot=Group(root,"T11 original owner sign (always visible)");
-        Site();ThreeMatchingFacades();RoofAndSkylight();CurvedFoyer();
-        // 7 Nov owner's final approval: NO OFFICE TOWER whatsoever.
-        // The original owner GLB $ is the ONLY new rooftop silhouette.
-        RoofDollar();
+        Site();ReferenceFacades();RoofAndSkylight();CurvedFoyer();
+        BraxChampionsFoundation.Optional("kasyno T11: lobby rotundy z żyrandolem",RotundaLobby);
+        // Owner board 9.11 shows no rooftop $: kept in code, off until the owner decides.
+        // The 120 m office tower on the board is "docelowo" (later, separate building).
+        if(RoofDollarOnOwnerBoard)RoofDollar();
         MainSign();RoadsideSigns();PremiumExteriorLighting();
         // Remove tiny gold detail in distance, keep WAWER sign always visible.
         var renderers=trim.GetComponentsInChildren<Renderer>(true);
@@ -1375,7 +1302,9 @@ public static class BraxChampionsCasinoT11
             outFolder+"/Prefabs/T11_Casino_Exterior.prefab",InteractionMode.AutomatedAction);
         root.position=at;
         if(!prefab)throw new IOException("T11 exterior prefab save failed");
-        Debug.Log("CHAMPIONS_T11_ISSUE29_SOURCE_GEOMETRY sidePilasters=14 frontPilasters=6 entryPylons=2 rearPilasters=8 rotundaGlass=48 rotundaFascia=48 deliveryOpening=6x5.55 skylight=24x20 exteriorPointLights=0 visualReview=PENDING");
-        Debug.Log("CHAMPIONS_T11_CASINO_EXTERIOR_ONLY position=(495,465) lot=120x100 podium=76x56x14 tower=NONE PBR=PolyHaven originalSign=C1_WAWER issue29=true glassOnlyRotunda=true masonrySidesRearFrontWings=true");
+        Debug.Log("CHAMPIONS_T11_OWNER_BOARD_9_11 position=(495,465) lot=120x100 podium=76x56x14"+
+            " facade=cream_floor_tiles_04+graphite_rectangular_facade_tiles+granite_tile windows=front6+side16"+
+            " pylons=graphite_goldLED rotunda=glass48+lobby_chandelier rooftopDollar="+RoofDollarOnOwnerBoard+
+            " tower=LATER originalSign=C1_WAWER exteriorPointLights=0 lobbyVertexLights=2 visualReview=PENDING");
     }
 }

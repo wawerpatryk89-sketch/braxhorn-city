@@ -17,6 +17,7 @@ DEST = ROOT / "unity-city/Assets/Source/Mistrzowie/CasinoT11/Textures2K"
 SLUGS = (
     "concrete_brick_wall_001",  # existing original material, retained for older assets
     "sandstone_blocks_05",         # OWNER-APPROVED 7 Nov: solid side/rear casino masonry, native Poly Haven 2K
+    "floor_tiles_04",              # 9.11 owner board T11: cream limestone blocks (main facade, attics, piers)
     "rectangular_facade_tiles",     # dark graphite exterior
     "granite_tile",                 # podium, planters and forecourt
     "clean_asphalt",                # real parking / roads

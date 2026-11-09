@@ -67,7 +67,8 @@ class CasinoT11UndergroundTests(unittest.TestCase):
         self.assertIn('"B1_white_structural_roof_beams"',self.casino)
         self.assertIn("new Color(.99f,.99f,.99f)",self.casino)
         self.assertIn("C1_KASYNO_KASYNO_WAWER.png",self.casino)
-        self.assertIn("EMPTY interior",self.casino)
+        # 9.11: rotunda lobby exists (owner board); still no gaming floor.
+        self.assertIn("no gaming floor yet",self.casino)
 
 
 if __name__=="__main__":

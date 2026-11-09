@@ -14,6 +14,8 @@ CASINO_PATH=ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11.cs"
 CASINO=CASINO_PATH.read_text(encoding="utf-8")
 SOURCE=(ROOT/"unity-tools/mistrzowie/prepare_casino_textures_2k.py").read_text(encoding="utf-8")
 PBR=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoPbr2K.cs").read_text(encoding="utf-8")
+# 9.11 owner board T11 replaces the Issue #29 "masonry, no windows, gold pillars" facade.
+FACADE=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11Facade.cs").read_text(encoding="utf-8")
 
 DOLLAR="Assets/Source/Mistrzowie/CasinoT11/OwnerDollar/dezyne_3d-dollar-sign-140.glb"
 DOLLAR_SHA="49e4fa9149aa69637db6231d2e98e611b3a41806b13a185daf7ad18e1a078640"
@@ -70,55 +72,46 @@ def polygon_area(loop):
 
 class CasinoIssue29Acceptance(unittest.TestCase):
     def test_scope_remains_exterior_only_without_tower(self):
-        self.assertIn("EXTERIOR ONLY",CASINO)
-        self.assertIn("EMPTY interior",CASINO)
+        # Board: tower 120 m is "docelowo" (later, separate building); lobby only.
+        self.assertIn("No casino games, tables or office interiors yet.",CASINO)
         self.assertNotIn("static void Tower()",CASINO)
         self.assertNotIn("Office tower north/south curtain glass",CASINO)
-        self.assertNotIn("SlotMachine",CASINO)
-        self.assertNotIn("AddCasinoTables",CASINO)
-        self.assertIn("tower=NONE",CASINO)
-
+        self.assertNotIn("SlotMachine",CASINO+FACADE)
+        self.assertNotIn("AddCasinoTables",CASINO+FACADE)
+        self.assertIn("tower=LATER",CASINO)
     def test_issue29_only_rotunda_is_glazed(self):
-        facade=method_source("ThreeMatchingFacades")
-        self.assertIn("T11 FULL SANDSTONE 05 front wing | NO GLASS",facade)
-        self.assertIn("T11 FULL SANDSTONE 05 side wall | 56x13.8m | NO GLASS",facade)
-        self.assertNotIn("FrontPanel(",CASINO)
-        self.assertNotIn("premium slightly tinted FRONT glass",CASINO)
-        self.assertNotIn("T11 slim lightly tinted side window",CASINO)
-        self.assertNotIn("T11 two-storey side glazing",CASINO)
+        # Owner board: two-storey glazing in every wing bay + glass rotunda.
+        self.assertIn("for (int i = 0; i < 3; i++)",FACADE)   # 3 bays per front wing
+        self.assertIn("for (int j = 0; j < 8; j++)",FACADE)   # 8 bays per side
+        self.assertIn('" tall window glass lower"',FACADE)
+        self.assertIn('" interior warm backdrop"',FACADE)
+        self.assertNotIn("NO GLASS",CASINO+FACADE)
         curved=method_source("CurvedFoyer")
         self.assertIn("T11 curved graphite-smoke glass | rotunda only",curved)
         self.assertIn("const int segments=48;",curved)
-
     def test_sandstone_05_is_real_metre_tiled_on_full_walls(self):
-        self.assertIn('"sandstone_blocks_05"',PBR)
-        self.assertIn('"sandstone_blocks_05"',SOURCE)
-        self.assertIn("mat==facadeSandstone",CASINO)
-        self.assertIn("B(shell,name,facadeSandstone,x,y,z,w,h,d,true,true);",CASINO)
-        self.assertNotIn("one giant block on 6.5m",CASINO)
-
+        # Cream blocks from the board = Poly Haven floor_tiles_04 (native 2K),
+        # metre-tiled by B(); sandstone stays downloaded but unused.
+        self.assertIn('"floor_tiles_04"',PBR)
+        self.assertIn('"floor_tiles_04"',SOURCE)
+        self.assertIn('"t11_cream_limestone_blocks","floor_tiles_04",4.0f',CASINO)
+        self.assertIn("mat==cream || mat==graphite",CASINO)
+        self.assertNotIn("facadeSandstone",CASINO)
     def test_front_side_and_rear_gold_structure_contract(self):
-        facade=method_source("ThreeMatchingFacades")
-        self.assertIn("for(int bay=0;bay<3;bay++)",facade)
-        self.assertIn("1.16f,13.8f,1.00f,.10f",facade)
-        self.assertIn("for(int bay=0;bay<7;bay++)",facade)
-        self.assertIn("1.10f,13.80f,1.02f,.09f",facade)
-        self.assertIn("side*18.25f,7.10f,-28f,2.75f,14.10f,2.35f,.14f",facade)
-        self.assertIn("new[]{-36f,-25f,-14f,-3f,8f,19f,30f,36f}",facade)
-        self.assertIn(".74f,12.7f,.25f,.05f",facade)
+        # Cream piers (no gold pillars), graphite pylons with gold LED and cap.
+        self.assertIn("const float PierW = 1.4f, CornerPierW = 2.0f, PierDepth = .62f, GlassRecess = .44f;",FACADE)
+        self.assertIn('"T11 graphite entrance pylon " + wing, graphite, s * 18.25f, 7.90f, -28f, 2.75f, 15.80f, 2.35f',FACADE)
+        self.assertIn("new[] { -36f, -25f, -14f, -3f, 8f, 19f, 30f, 36f }",FACADE)
+        self.assertNotIn("GOLD beveled",FACADE)
         self.assertIn("_Metallic\",.98f",CASINO)
-        self.assertIn("_Roughness\",.16f",CASINO)
-
     def test_rear_delivery_opening_remains_six_metres_clear(self):
-        facade=method_source("ThreeMatchingFacades")
-        self.assertIn("rear sandstone wall LEFT of 6m delivery opening",facade)
-        self.assertIn("-30.5f,6.9f,27.84f,15f,13.8f,.32f",facade)
-        self.assertIn("rear sandstone wall RIGHT of 6m delivery opening",facade)
-        self.assertIn("10.5f,6.9f,27.84f,55f,13.8f,.32f",facade)
-        self.assertIn("rear sandstone structural lintel above 6m delivery opening",facade)
-        self.assertIn("-20f,9.675f,27.84f,6f,8.25f,.32f",facade)
+        self.assertIn("rear cream limestone wall LEFT of 6m delivery opening",FACADE)
+        self.assertIn("-30.5f, YAttic * .5f, 27.84f, 15f, YAttic, .32f",FACADE)
+        self.assertIn("rear cream limestone wall RIGHT of 6m delivery opening",FACADE)
+        self.assertIn("10.5f, YAttic * .5f, 27.84f, 55f, YAttic, .32f",FACADE)
+        # Left wall ends at x=-23, right wall starts at x=-17: 6 m clear.
+        self.assertAlmostEqual((-30.5+7.5)-(10.5-27.5),-6.0)
         self.assertIn('Delivery corridor to rear loading door',CASINO)
-
     def test_rotunda_keeps_34_by_8_plan_and_48_fascia_segments(self):
         curved=method_source("CurvedFoyer")
         self.assertIn("17f*Mathf.Sin(t)",curved)
@@ -142,7 +135,9 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertIn(DOLLAR,CASINO)
         self.assertIn(DOLLAR_SHA,CASINO)
         self.assertIn("const float x=-24f,z=-15f,roofY=14.40f,nominalHeight=15.0f;",CASINO)
+        # Not on the owner board 9.11: code kept, off until the owner decides.
         self.assertEqual(CASINO.count("RoofDollar();"),1)
+        self.assertIn("if(RoofDollarOnOwnerBoard)RoofDollar();",CASINO)
         self.assertIn("PrefabUtility.InstantiatePrefab(source)",CASINO)
         file=ROOT/"unity-city"/DOLLAR
         if file.exists():

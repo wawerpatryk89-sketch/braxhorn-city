@@ -3,6 +3,8 @@ import unittest
 
 ROOT=Path(__file__).resolve().parents[2]
 SOURCE=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11.cs").read_text(encoding="utf-8")
+# 9.11 owner board T11 supersedes the Issue #29 "masonry, no windows" variant.
+FACADE=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11Facade.cs").read_text(encoding="utf-8")
 
 def method(name,next_marker):
     start=SOURCE.index("static void "+name+"()")
@@ -11,12 +13,19 @@ def method(name,next_marker):
 
 class CasinoIssue29Contract(unittest.TestCase):
     def test_masonry_and_rotunda_contract(self):
-        self.assertIn("FULL SANDSTONE 05 front wing | NO GLASS",SOURCE)
-        self.assertIn("FULL SANDSTONE 05 side wall | 56x13.8m | NO GLASS",SOURCE)
+        # Owner board: cream blocks + tall two-storey glazing, graphite pylons
+        # with gold LED, glass rotunda with chandelier lobby.
+        self.assertIn("ReferenceFacades();",SOURCE)
+        self.assertNotIn("NO GLASS",SOURCE+FACADE)
+        self.assertNotIn("facadeSandstone",SOURCE)
+        self.assertIn('"floor_tiles_04"',SOURCE)
+        self.assertIn("static void GlazedBay(",FACADE)
+        self.assertIn('"T11 graphite entrance pylon "',FACADE)
+        self.assertIn('"T11 pylon warm gold vertical LED "',FACADE)
         self.assertIn("premium fascia 48_OF_48",SOURCE)
         self.assertNotIn("static void FrontPanel",SOURCE)
         self.assertNotIn("static void SidePanel",SOURCE)
-        self.assertIn("sidePilasters=14 frontPilasters=6 entryPylons=2 rearPilasters=8",SOURCE)
+        self.assertIn("T11_ROTUNDA_LOBBY_OWNER_BOARD",FACADE)
 
     def test_mobile_exterior_gold_and_lighting(self):
         self.assertIn('gold=BraxChampionsFoundation.LibraryMetal(',SOURCE)
@@ -26,6 +35,8 @@ class CasinoIssue29Contract(unittest.TestCase):
         self.assertNotIn("LightType.Point",exterior)
         self.assertIn("B1 real warm-white parking light",SOURCE)
         self.assertIn("exteriorPointLights=0",SOURCE)
+        # Only the enclosed lobby gets two cheap vertex lights.
+        self.assertEqual(FACADE.count("W.Lampa("),2)
 
     def test_owner_sign_sources_are_pinned(self):
         for digest in (
@@ -42,10 +53,12 @@ class CasinoIssue29Contract(unittest.TestCase):
 
     def test_protected_geometry_is_retained(self):
         self.assertIn("24f,.11f,20f",SOURCE)
-        self.assertIn("RoofDollar();",SOURCE)
+        # $ is not on the owner board: kept, switched off until the owner decides.
+        self.assertIn("if(RoofDollarOnOwnerBoard)RoofDollar();",SOURCE)
+        self.assertIn("const bool RoofDollarOnOwnerBoard = false;",FACADE)
         self.assertIn('Door("T11_CASINO_WAWER_PUBLIC","Public glass main entry",0,-36.28f,180f,5.6f)',SOURCE)
-        self.assertIn("x=-23..-17 delivery opening",SOURCE)
-        self.assertIn("tower=NONE",SOURCE)
+        self.assertIn("6 m delivery opening at x -23..-17",FACADE)
+        self.assertIn("tower=LATER",SOURCE)
 
 if __name__=="__main__":
     unittest.main()
