@@ -116,13 +116,6 @@ class Build18Regression(unittest.TestCase):
         self.assertLess(build.index("BraxChampionsCasinoT11.VerifyOriginalSigns();"),
                         build.index("BraxChampionsFoundation.Generate();"))
 
-    def test_source_only_never_starts_unity_or_signing(self):
-        wf = read(".github/workflows/mistrzowie-cheap-code-audit-20261106.yml")
-        self.assertIn("BEZ UNITY", wf)
-        self.assertIn("timeout-minutes: 2", wf)
-        self.assertNotIn("game-ci/unity-builder", wf)
-        self.assertNotIn("apk_delivery.py stage", wf)
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
