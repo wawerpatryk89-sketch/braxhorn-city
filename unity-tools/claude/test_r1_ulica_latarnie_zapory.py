@@ -55,25 +55,44 @@ if __name__ == "__main__":
 
 
 class R1Mural19OnGymWall(unittest.TestCase):
-    """Właściciel 9.11: „mural na szarej ścianie siłowni musi być, a jest przed”. Mural tylko na potwierdzonym licu;
-    bez ściany — nie stawiamy (zasada 3: tył na ścianie, nic w powietrzu)."""
+    """Właściciel 6.11: „cała szara ściana, grafika 19, otwór na drzwi”; 9.11: „mural przed siłownią — to ma być na ścianie”.
+    Pomiar modelu siłowni: szara elewacja Gym_Mesh_37 ma lico z = 11.6 (drzwi i szyld w tej samej płaszczyźnie), a z = 20.6 to
+    otwarty wylot dziedzińca — stary mural wisiał tam 9 m PRZED ścianą. Mural ma powstawać z pomiaru geometrii (promienie od
+    ulicy na tymczasowe kolizje siatek), nie ze stałych współrzędnych planu."""
     SRC = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxMiastoBillboardy.cs").read_text(encoding="utf-8")
 
-    def test_mural_requires_confirmed_wall_face(self):
-        body = self.SRC[self.SRC.index("static void MuralSilowni"):]
-        self.assertIn("licoPotwierdzone", body)
-        self.assertIn("mural NIE postawiony", body)
-        self.assertNotIn("lico planowe z=20.60, sprawdzić w scenie", body)
+    def body(self):
+        code = re.sub(r'//[^\n]*', "", self.SRC)
+        return code[code.index("static void MuralSilowni"):]
 
-    def test_wall_face_fallback_uses_renderers_not_guess(self):
-        body = self.SRC[self.SRC.index("static void MuralSilowni"):]
-        self.assertIn("FindObjectsByType<MeshRenderer>", body)
-        self.assertIn("kandydaci.Add(b.max.z)", body)
+    def test_no_planned_street_line_coordinates(self):
+        b = self.body()
+        self.assertNotIn("planZ", b)
+        self.assertNotIn("20.60f", b)
+        self.assertNotIn("x0 = -.80f", b)
 
-    def test_mural_wall_gets_collision_beside_door(self):
-        body = self.SRC[self.SRC.index("static void MuralSilowni"):]
-        self.assertIn("mural 19: kolizja ściany", body)
-        self.assertIn("AddComponent<BoxCollider>()", body)
+    def test_wall_measured_from_real_geometry(self):
+        b = self.body()
+        self.assertIn("AddComponent<MeshCollider>()", b)          # tymczasowe kolizje siatek (ściana siłowni nie ma kolizji siatki)
+        self.assertIn("Physics.RaycastAll(", b)                    # promienie od ulicy
+        self.assertIn('StartsWith("Gym_Mesh_"', b)                # ściana = siatka siłowni
+        self.assertIn("DestroyImmediate(s)", b)                    # sondy usunięte po pomiarze
+
+    def test_door_and_sign_in_wall_plane_stay_open(self):
+        b = self.body()
+        self.assertIn("dz >= -.05f && dz < .30f", b)              # drzwi / szyld w płaszczyźnie ściany → otwór
+        self.assertIn("otwory++", b)
+
+    def test_only_wall_sized_objects_hide_the_mural(self):
+        b = self.body()
+        self.assertIn("SzerokiMur(", b)
+        self.assertIn("(x - .75f, y), (x + .75f, y), (x, y + 1f)", b)
+
+    def test_no_fake_wall_colliders(self):
+        self.assertNotIn("AddComponent<BoxCollider>()", self.body())
+
+    def test_not_placed_without_wall(self):
+        self.assertIn("mural NIE postawiony", self.body())
 
 
 class R1SupermarketAtParking(unittest.TestCase):

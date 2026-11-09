@@ -379,10 +379,21 @@ internal static class BraxMiastoBillboardy
         return usuniete;
     }
 
-    // ---------------- mural 19 NA ELEWACJI BRAXHORN GYM: bez tablicy, ramy i słupków ----------------
-    // Zgłoszenie właściciela 6.11: cała szara ściana, grafika 19 z jego paczki, otwór na drzwi.
-    // UV są liczone od JEDNEJ powierzchni: trzy części wokół wejścia nie rozciągają
-    // trzykrotnie zdjęcia. Nie stawiamy obrazu na billboardzie ani przed przejściem.
+    // ---------------- mural 19 NA SZAREJ ŚCIANIE BRAXHORN GYM (pigment na murze, bez tablicy, ramy i słupków) ----------------
+    // Właściciel 6.11: „cała szara ściana, grafika 19, otwór na drzwi”; 9.11: „mural na szarej ścianie siłowni musi być, a jest
+    // przed”; „mural przed siłownią — to ma być na ścianie”. PRZYCZYNA (pomiar oryginalnego modelu siłowni, 9.11): szara elewacja
+    // siłowni to Gym_Mesh_37 — lico z = 11.6, x −18.6…18.6, wysokość 8.5 m (drzwi Gym_Mesh_24 x 5.2…6.8 do 3.0 m, szyld nad
+    // drzwiami Gym_Mesh_48/34 — wszystko w tej samej płaszczyźnie). Przed nią jest otwarty dziedziniec do ulicy (z 11.6…20.6),
+    // ograniczony ceglanymi ścianami bocznymi Gym_Mesh_38. Stary kod stawiał mural na z = 20.6 (linia ulicy) — czyli w powietrzu,
+    // 9 m PRZED ścianą; „lico z rendererów” brało max.z bryły ścian bocznych dziedzińca. Teraz: NIC z planu. Ścianę i jej kształt
+    // mierzymy z prawdziwej geometrii: tymczasowe kolizje siatek w pasie przed siłownią, siatka promieni od ulicy co 10 cm.
+    // Mural powstaje tylko tam, gdzie promień trafia lico szarej ściany, widoczne z ulicy; drzwi, szyld i wszystko, co jest
+    // w płaszczyźnie ściany (±30 cm), zostaje otworem; mury przed ścianą (boki dziedzińca, budynki) zasłaniają. Kadr grafiki
+    // = prostokąt widocznej szarej ściany. Ściana siłowni ma własną kolizję (gym-collisions z 11…11.6) — bez dodatkowych pudeł.
+    const float MuralKrok = .10f, MuralOdstep = .012f;
+    static readonly string[] MuralPomijaj = { "mural", "drzewo", "tree", "verdant", "palm", "liść", "lisc", "leaf", "krzew", "bush",
+                                              "latarn", "lamp", "człowiek", "czlowiek", "npc", "ludzie", "przechod" };
+
     static void MuralSilowni(Transform cityRoot, Transform rodzic)
     {
         int usuniete = UsunBilbord19PrzySzarejScianie(cityRoot);
@@ -393,144 +404,192 @@ internal static class BraxMiastoBillboardy
             Debug.LogWarning(msg); opis.Add(msg);
             return;
         }
-
-        // Odcinek pełnej szarej elewacji między sąsiadującymi lokalami.
-        // Ściana w planie: z=20.6, x=-0.8..9.5; stara tablica stała na sąsiednim
-        // ceglanym odcinku x=9.8..14.4. Nie nanosimy muralu na tę ceglaną fasadę.
-        // Korygujemy lico z pomiarów kolizji; pojedynczy brak trafienia nie usuwa muralu.
-        const float x0 = -.80f, x1 = 9.50f, y0 = .15f, y1 = 6.85f, planZ = 20.60f;
-        var samples = new List<float>();
-        foreach (float x in new[] { -.20f, 1.0f, 2.1f, 4.2f, 8.9f })
-            foreach (float y in new[] { 1.1f, 2.35f, 3.5f, 5.0f })
-                foreach (var h in Physics.RaycastAll(new Vector3(x, y, 23.2f), Vector3.back, 4.2f,
-                             ~0, QueryTriggerInteraction.Ignore))
+        var pas = new Bounds(); pas.SetMinMax(new Vector3(-22f, -.5f, 8f), new Vector3(22f, 12f, 26f));   // siłownia + dziedziniec + chodnik
+        var sondy = new List<GameObject>();
+        var zrodlo = new Dictionary<Collider, Renderer>();
+        try
+        {
+            foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (!r || !r.enabled || !r.gameObject.activeInHierarchy || r.transform.IsChildOf(rodzic)) continue;
+                var rb = r.bounds;
+                if (!rb.Intersects(pas) || rb.size.y < .25f) continue;
+                var mf = r.GetComponent<MeshFilter>();
+                if (!mf || !mf.sharedMesh) continue;
+                string nr = (r.name + " " + (r.transform.parent ? r.transform.parent.name : "")).ToLowerInvariant();
+                if (MuralPomijaj.Any(nr.Contains)) continue;
+                try
                 {
-                    if (h.normal.z < .90f || Mathf.Abs(h.point.z - planZ) > .40f) continue;
-                    string n = (h.collider.name + " " + (h.collider.transform.parent ? h.collider.transform.parent.name : "")).ToLowerInvariant();
-                    if (n.Contains("door") || n.Contains("drzwi") || n.Contains("glass") ||
-                        n.Contains("szkl") || n.Contains("witryn") || n.Contains("szyld") ||
-                        n.Contains("billboard") || n.Contains("plakat")) continue;
-                    samples.Add(h.point.z);
+                    var sonda = new GameObject("mural 19: sonda"); sonda.transform.SetParent(r.transform, false);
+                    sondy.Add(sonda);
+                    var mc = sonda.AddComponent<MeshCollider>(); mc.sharedMesh = mf.sharedMesh;
+                    zrodlo[mc] = r;
                 }
-        float z = planZ; bool licoPotwierdzone = false;
-        if (samples.Count >= 3)
-        {
-            // Wybieramy najliczniejszą płaską powierzchnię, a nie wysuniętą tablicę.
-            float best = planZ; int hits = 0;
-            foreach (var p in samples)
-            {
-                int n = samples.Count(q => Mathf.Abs(p - q) < .045f);
-                if (n > hits || n == hits && Mathf.Abs(p - planZ) < Mathf.Abs(best - planZ))
-                { hits = n; best = p; }
+                catch (Exception e) { Debug.LogWarning("BRAXHORN_MURAL_19 sonda " + r.name + ": " + e.Message); }
             }
-            if (hits >= 3) { z = best; licoPotwierdzone = true; }
+            Physics.SyncTransforms();
+            PostawMural19(rodzic, mat, proporcja, pas, zrodlo, usuniete);
         }
-        // 9.11 (właściciel: „mural na szarej ścianie siłowni musi być, a jest przed”). Log APK 8.11: „brak potwierdzenia lica
-        // z colliderów; lico planowe z=20.60” — przybudówka siłowni od ulicy (Gym_Mesh_38 z oryginalnego gymu, x −1.6…15.1 w Unity,
-        // lico z 20.60) NIE MA kolizji (gym-collisions ma tylko bok x −14.85), więc raycast nic nie trafiał, a 6.11 zmieniono mój kod
-        // z 3.11 („brak ślepego muru → mural nie postawiony”) na „stawiaj na zgadniętym z”. Zasada 3: tył na ścianie. Szukamy lica
-        // po RENDERERACH siatki ściany (najbliższa płaska powierzchnia z normalną +z w pasie muralu), a bez potwierdzenia — nie stawiamy.
-        if (!licoPotwierdzone)
+        finally
         {
-            var kandydaci = new List<float>();
-            foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            foreach (var s in sondy) if (s) UnityEngine.Object.DestroyImmediate(s);
+            Physics.SyncTransforms();
+        }
+    }
+
+    static void PostawMural19(Transform rodzic, Material mat, float proporcja, Bounds pas, Dictionary<Collider, Renderer> zrodlo, int usuniete)
+    {
+        float startZ = pas.max.z, dlug = pas.size.z;
+        RaycastHit[] Trafienia(float x, float y)
+        {
+            var h = Physics.RaycastAll(new Vector3(x, y, startZ), Vector3.back, dlug, ~0, QueryTriggerInteraction.Ignore)
+                .Where(t => zrodlo.ContainsKey(t.collider)).ToArray();
+            Array.Sort(h, (p, q) => p.distance.CompareTo(q.distance));
+            return h;
+        }
+
+        // 1) która siatka jest szarą ścianą: największe lico zwrócone do ulicy wśród siatek siłowni (Gym_Mesh_*), zgrubnie co 0.5 m
+        var liczba = new Dictionary<Renderer, int>(); var sumaZ = new Dictionary<Renderer, float>();
+        for (float x = pas.min.x; x <= pas.max.x; x += .5f)
+            for (float y = .25f; y <= pas.max.y; y += .5f)
             {
-                if (!r || !r.enabled || !r.gameObject.activeInHierarchy) continue;
-                var b = r.bounds;
-                if (b.min.x > x0 + 1f || b.max.x < x1 - 1f) continue;          // ściana obejmuje (prawie) cały pas muralu
-                if (b.min.y > y0 + 1f || b.max.y < y1 - 1.5f) continue;        // i jego wysokość
-                if (Mathf.Abs(b.max.z - planZ) > .6f || b.size.z > 10.5f) continue;  // lico przy linii pierzei; bryła przybudówki ≤ 9.6 m głęboka
-                string n = (r.name + " " + (r.transform.parent ? r.transform.parent.name : "")).ToLowerInvariant();
-                if (n.Contains("mural") || n.Contains("billboard") || n.Contains("szyld") || n.Contains("nośnik")) continue;
-                kandydaci.Add(b.max.z);
+                // na promień liczy się PIERWSZE lico do ulicy: siatki siłowni osobno (szara Gym_Mesh_37 z = 11.6 zasłania białą
+                // warstwę wewnętrzną Gym_Mesh_36 z = 11.3 — obie mają ten sam obrys), dowolnej siatki osobno (zapas)
+                bool gymJuz = false, dowolnaJuz = false;
+                foreach (var t in Trafienia(x, y))
+                {
+                    if (t.normal.z < .85f) continue;
+                    var r = zrodlo[t.collider];
+                    bool gym = r.name.StartsWith("Gym_Mesh_", StringComparison.Ordinal);
+                    if ((gym && gymJuz) || (!gym && dowolnaJuz)) continue;
+                    if (gym) gymJuz = true; else dowolnaJuz = true;
+                    liczba[r] = (liczba.TryGetValue(r, out int c) ? c : 0) + 1;
+                    sumaZ[r] = (sumaZ.TryGetValue(r, out float sz) ? sz : 0f) + t.point.z;
+                    if (gymJuz && dowolnaJuz) break;
+                }
             }
-            if (kandydaci.Count > 0) { z = kandydaci.OrderBy(q => Mathf.Abs(q - planZ)).First(); licoPotwierdzone = true;
-                Debug.Log("BRAXHORN_MURAL_19 lico z rendererów ściany (bez kolizji): z=" + z.ToString("F3") + " kandydatów=" + kandydaci.Count); }
-        }
-        if (!licoPotwierdzone)
+        var silownia = liczba.Where(kv => kv.Key.name.StartsWith("Gym_Mesh_", StringComparison.Ordinal)).OrderByDescending(kv => kv.Value).ToList();
+        var dowolna = liczba.OrderByDescending(kv => kv.Value).ToList();
+        Renderer sciana = null;
+        if (silownia.Count > 0 && silownia[0].Value >= 12) sciana = silownia[0].Key;
+        else if (dowolna.Count > 0 && dowolna[0].Value >= 12)
         {
-            string msg = "BRAXHORN_MURAL_19 DO POPRAWKI: brak ściany pod mural (x " + x0 + "…" + x1 + ", z≈" + planZ + ") ani w kolizjach, ani w rendererach — mural NIE postawiony (nie wieszamy w powietrzu)";
+            sciana = dowolna[0].Key;
+            Debug.LogWarning("BRAXHORN_MURAL_19 DO POPRAWKI: nie rozpoznano siatki siłowni (Gym_Mesh_*) — największe lico od ulicy: " + sciana.name);
+        }
+        if (!sciana)
+        {
+            string msg = "BRAXHORN_MURAL_19 DO POPRAWKI: w pasie przed siłownią brak lica ściany zwróconego do ulicy — mural NIE postawiony";
             Debug.LogWarning(msg); opis.Add(msg); return;
         }
-        z += .012f; // 12 mm od powierzchni, bez osobnej płyty; szyld pozostaje przed pigmentem.
+        float lico = sumaZ[sciana] / liczba[sciana];
 
-        // Preferujemy rzeczywisty obrys drzwi w tym fragmencie elewacji.
-        // Gdy siatki drzwi są scalone w źródle, używamy położenia wejścia z planu.
-        float doorX0 = 5.82f, doorX1 = 7.78f, doorTop = 3.05f;
-        var door = UnityEngine.Object.FindObjectsByType<MeshRenderer>(
-                FindObjectsInactive.Include, FindObjectsSortMode.None)
-            .Where(r => r && r.enabled && r.gameObject.activeInHierarchy)
-            .Where(r =>
+        // 2) siatka co 10 cm na obrysie tej ściany: komórka = mural tylko, gdy promień trafia lico ściany, a przed nim nie ma
+        //    (a) niczego w płaszczyźnie ściany (drzwi, szyld, plakat, okno) ani (b) muru/budynku, który ją zasłania od ulicy.
+        var sb = sciana.bounds;
+        float gx0 = Mathf.Max(sb.min.x, pas.min.x), gx1 = Mathf.Min(sb.max.x, pas.max.x);
+        float gy0 = Mathf.Max(sb.min.y, 0f), gy1 = Mathf.Min(sb.max.y, pas.max.y);
+        int nx = Mathf.Max(1, Mathf.FloorToInt((gx1 - gx0) / MuralKrok)), ny = Mathf.Max(1, Mathf.FloorToInt((gy1 - gy0) / MuralKrok));
+        var komorka = new bool[nx, ny];
+        int otwory = 0, zaslonione = 0, trafione = 0;
+        bool SzerokiMur(Collider c, float y, float x)
+        {
+            // Zasłania tylko MUR: ta sama bryła trafiona także 0.75 m w lewo i w prawo oraz 1 m wyżej i 1 m niżej (przy ziemi: 1 i 2 m
+            // wyżej) — budynek przed siłownią, ściana boczna dziedzińca. Słup latarni, znak, pień, ławka, donica, skrzynki — nie
+            // (mural idzie za nimi, jak farba na murze). Wymiary z GEOMETRII trafień, nie z obrysu scalonej siatki (scalone siatki
+            // miasta mają obrys na pół ulicy).
+            float yb = y >= 1.1f ? y - 1f : y + 2f;
+            foreach (var (px, py) in new[] { (x - .75f, y), (x + .75f, y), (x, y + 1f), (x, yb) })
+                if (!Trafienia(px, py).Any(t => t.collider == c)) return false;
+            return true;
+        }
+        for (int i = 0; i < nx; i++)
+            for (int j = 0; j < ny; j++)
             {
-                string n = r.name.ToLowerInvariant();
-                if (!(n.Contains("door") || n.Contains("drzwi") || n.Contains("wejście") ||
-                      n.Contains("entrance"))) return false;
-                var b = r.bounds;
-                return b.center.x > 1.5f && b.center.x < 9.2f &&
-                       Mathf.Abs(b.center.z - (z - .012f)) < .65f &&
-                       b.min.y < .75f && b.max.y > 1.9f && b.max.y < 4.3f &&
-                       b.size.x > .65f && b.size.x < 3.4f;
-            })
-            .OrderBy(r => Mathf.Abs(r.bounds.center.x - 6.8f))
-            .FirstOrDefault();
-        if (door)
-        {
-            doorX0 = Mathf.Clamp(door.bounds.min.x - .10f, x0 + .2f, x1 - .5f);
-            doorX1 = Mathf.Clamp(door.bounds.max.x + .10f, doorX0 + .5f, x1 - .2f);
-            doorTop = Mathf.Clamp(door.bounds.max.y + .10f, y0 + 2.0f, y1 - .2f);
-        }
-        else Debug.LogWarning("BRAXHORN_MURAL_19: obrys drzwi z planu (x=5.82..7.78); sprawdzić otwór w scenie");
+                float x = gx0 + (i + .5f) * MuralKrok, y = gy0 + (j + .5f) * MuralKrok;
+                var h = Trafienia(x, y);
+                int w = Array.FindIndex(h, t => zrodlo[t.collider] == sciana && t.normal.z > .85f && Mathf.Abs(t.point.z - lico) < .08f);
+                if (w < 0) continue;                                    // otwór w samej ścianie
+                bool ok = true;
+                for (int k = 0; k < h.Length && ok; k++)
+                {
+                    if (k == w) continue;
+                    var rk = zrodlo[h[k].collider];
+                    if (rk == sciana) continue;
+                    float dz = h[k].point.z - lico;
+                    // drzwi Gym_Mesh_24 i szyld Gym_Mesh_48/34 leżą W TEJ SAMEJ płaszczyźnie co ściana (z = 11.6) — kolejność trafień
+                    // bywa dowolna, więc otwór niezależnie od kolejności. Duże nakładki (> 25 m²) to warstwa elewacji, nie otwór.
+                    if (dz >= -.05f && dz < .30f) { if (rk.bounds.size.x * rk.bounds.size.y <= 25f) { ok = false; otwory++; } }
+                    else if (k < w && dz >= .30f && SzerokiMur(h[k].collider, y, x)) { ok = false; zaslonione++; }
+                }
+                if (ok) { komorka[i, j] = true; trafione++; }
+            }
 
-        var v = new List<Vector3>();
-        var uv = new List<Vector2>();
-        var tr = new List<int>();
-        // Zachowujemy oryginalną proporcję obrazu. Kadr jest wspólny dla
-        // całej ściany, bez odbicia lustrzanego i bez deformacji sylwetek.
-        float wallAspect = (x1 - x0) / (y1 - y0);
-        float uMin = 0f, uMax = 1f, vMin = 0f, vMax = 1f;
-        if (proporcja > wallAspect)
+        // 3) największy spójny fragment widocznej szarej ściany (bez pojedynczych prześwitów przez szczeliny)
+        var etykieta = new int[nx, ny]; int najw = 0, najwRozm = 0, nastepna = 0;
+        var kolejka = new Queue<Vector2Int>();
+        for (int i = 0; i < nx; i++)
+            for (int j = 0; j < ny; j++)
+            {
+                if (!komorka[i, j] || etykieta[i, j] != 0) continue;
+                int id = ++nastepna, rozm = 0; etykieta[i, j] = id; kolejka.Enqueue(new Vector2Int(i, j));
+                while (kolejka.Count > 0)
+                {
+                    var c = kolejka.Dequeue(); rozm++;
+                    foreach (var d in new[] { Vector2Int.left, Vector2Int.right, Vector2Int.up, Vector2Int.down })
+                    {
+                        var q = c + d;
+                        if (q.x < 0 || q.y < 0 || q.x >= nx || q.y >= ny || !komorka[q.x, q.y] || etykieta[q.x, q.y] != 0) continue;
+                        etykieta[q.x, q.y] = id; kolejka.Enqueue(q);
+                    }
+                }
+                if (rozm > najwRozm) { najwRozm = rozm; najw = id; }
+            }
+        float pole = najwRozm * MuralKrok * MuralKrok;
+        if (pole < 6f)
         {
-            float visible = wallAspect / proporcja;
-            uMin = (1f - visible) * .5f; uMax = 1f - uMin;
+            string msg = "BRAXHORN_MURAL_19 DO POPRAWKI: widoczna część szarej ściany " + sciana.name + " (lico z=" + lico.ToString("F2") +
+                         ") ma tylko " + pole.ToString("F1") + " m² — mural NIE postawiony; trafień " + trafione + ", otworów " + otwory + ", zasłoniętych " + zaslonione;
+            Debug.LogWarning(msg); opis.Add(msg); return;
         }
-        else
+        int i0 = nx, i1 = -1, j0 = ny, j1 = -1;
+        for (int i = 0; i < nx; i++)
+            for (int j = 0; j < ny; j++)
+                if (etykieta[i, j] == najw) { i0 = Mathf.Min(i0, i); i1 = Mathf.Max(i1, i); j0 = Mathf.Min(j0, j); j1 = Mathf.Max(j1, j); }
+        float x0 = gx0 + i0 * MuralKrok, x1 = gx0 + (i1 + 1) * MuralKrok, y0 = gy0 + j0 * MuralKrok, y1 = gy0 + (j1 + 1) * MuralKrok;
+
+        // 4) kadr grafiki = prostokąt widocznej ściany; proporcja obrazu zachowana (wypełnienie), w pionie zostaje GÓRA obrazu
+        float wallAspect = (x1 - x0) / (y1 - y0), uMin = 0f, uMax = 1f, vMin = 0f, vMax = 1f;
+        if (proporcja > wallAspect) { float widac = wallAspect / proporcja; uMin = (1f - widac) * .5f; uMax = 1f - uMin; }
+        else { float widac = proporcja / wallAspect; vMin = 1f - widac; }
+        float z = lico + MuralOdstep;
+        var v = new List<Vector3>(); var uv = new List<Vector2>(); var tr = new List<int>();
+        for (int j = j0; j <= j1; j++)
         {
-            float visible = proporcja / wallAspect;
-            vMin = (1f - visible) * .5f; vMax = 1f - vMin;
+            int i = i0;
+            while (i <= i1)
+            {
+                if (etykieta[i, j] != najw) { i++; continue; }
+                int a = i; while (i <= i1 && etykieta[i, j] == najw) i++;
+                float xa = gx0 + a * MuralKrok, xb = gx0 + i * MuralKrok, ya = gy0 + j * MuralKrok, yb = ya + MuralKrok;
+                int n0 = v.Count;
+                v.Add(new Vector3(xa, ya, z)); v.Add(new Vector3(xb, ya, z)); v.Add(new Vector3(xb, yb, z)); v.Add(new Vector3(xa, yb, z));
+                foreach (var p in v.Skip(n0).Take(4))   // widz patrzy w −z: +x jest po jego LEWEJ — u rośnie w stronę −x (bez lustra)
+                    uv.Add(new Vector2(Mathf.Lerp(uMin, uMax, (x1 - p.x) / (x1 - x0)), Mathf.Lerp(vMin, vMax, (p.y - y0) / (y1 - y0))));
+                tr.AddRange(new[] { n0, n0 + 1, n0 + 2, n0, n0 + 2, n0 + 3 });   // front +z — do ulicy
+            }
         }
-        void Rect(float a, float b, float low, float high)
-        {
-            if (b - a < .001f || high - low < .001f) return;
-            int i = v.Count;
-            v.Add(new Vector3(a, low, z)); v.Add(new Vector3(b, low, z));
-            v.Add(new Vector3(b, high, z)); v.Add(new Vector3(a, high, z));
-            foreach (var p in v.Skip(i).Take(4))
-                uv.Add(new Vector2(Mathf.Lerp(uMin, uMax, (x1 - p.x) / (x1 - x0)),
-                                   Mathf.Lerp(vMin, vMax, (p.y - y0) / (y1 - y0))));
-            // +Z: front muralu zwrócony ku ulicy.
-            tr.AddRange(new[] { i, i + 1, i + 2, i, i + 2, i + 3 });
-        }
-        Rect(x0, doorX0, y0, y1);
-        Rect(doorX1, x1, y0, y1);
-        Rect(doorX0, doorX1, doorTop, y1);
-        var mesh = new Mesh { name = "BRAXHORN mural 19 — pigment na elewacji z otworem drzwi" };
+        var mesh = new Mesh { name = "BRAXHORN mural 19 — pigment na szarej ścianie siłowni" };
+        if (v.Count > 65000) mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         mesh.SetVertices(v); mesh.SetUVs(0, uv); mesh.SetTriangles(tr, 0);
         mesh.RecalculateNormals(); mesh.RecalculateBounds();
-        var mural = new GameObject("BRAXHORN GYM — mural 19 na CAŁEJ szarej ścianie (bez billboardu)").transform;
-        mural.SetParent(rodzic, false);
-        BraxMiastoA.Obiekt(mural, "mural_19_sciana_z_wycieciem_drzwi", mesh, mat);
-        // 9.11: ściana przybudówki siłowni nie ma kolizji w oryginale (stąd brak trafień raycastu) — kolizja lica po obu stronach
-        // drzwi, cienka (12 cm w głąb ściany), żeby Brax nie wchodził w mural; otwór drzwi wolny.
-        foreach (var (a, b) in new[] { (x0, doorX0), (doorX1, x1) })
-        {
-            var k = new GameObject("mural 19: kolizja ściany x " + a.ToString("F1") + "…" + b.ToString("F1")); k.transform.SetParent(mural, false);
-            var bc = k.AddComponent<BoxCollider>(); bc.center = new Vector3((a + b) * .5f, (y0 + y1) * .5f, z - .072f); bc.size = new Vector3(b - a, y1 - y0, .12f);
-        }
+        var mural = new GameObject("BRAXHORN GYM — mural 19 na szarej ścianie (" + sciana.name + ")").transform;
+        mural.SetParent(rodzic, false); mural.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+        BraxMiastoA.Obiekt(mural, "mural_19_szara_sciana_silowni", mesh, mat);
         postawione++;
-        string opis19 = "19: oryginał 19.jpg na ścianie x=" + x0.ToString("F2") + ".." + x1.ToString("F2") +
-            ", y=" + y0.ToString("F2") + ".." + y1.ToString("F2") + ", z=" + z.ToString("F3") +
-            ", otwór drzwi x=" + doorX0.ToString("F2") + ".." + doorX1.ToString("F2") +
-            ", góra=" + doorTop.ToString("F2") + ", bez ramy/płyty/słupów";
+        string opis19 = "19: oryginał 19.jpg na " + sciana.name + " (lico z=" + lico.ToString("F2") + "), widoczna ściana x=" + x0.ToString("F1") + ".." + x1.ToString("F1") +
+            ", y=" + y0.ToString("F1") + ".." + y1.ToString("F1") + ", " + pole.ToString("F1") + " m², otwory (drzwi/szyld) " + (otwory * MuralKrok * MuralKrok).ToString("F1") +
+            " m², zasłonięte murami " + (zaslonione * MuralKrok * MuralKrok).ToString("F1") + " m², pasów " + (tr.Count / 6) + ", usunięte stare tablice " + usuniete;
         opis.Add(opis19);
         Debug.Log("BRAXHORN_MURAL_19 " + opis19);
     }
