@@ -57,8 +57,12 @@ class ArenaPhoneRegressions(unittest.TestCase):
         self.assertNotIn("CHAMPIONS_VIP_UPRIGHT_UNCERTAIN",self.vip)
 
     def test_hd_murals_are_not_crushed_to_2k(self):
-        self.assertIn("android.maxTextureSize=8192",self.mural)
-        self.assertIn("TextureImporterFormat.ASTC_4x4",self.mural)
+        # 9.11 23:43: all three murals are hung by BraxChampionsArenaMuralPrint; the import contract
+        # (8192 cap, ASTC 4x4, no mip streaming) lives in the texture postprocessor for the whole folder.
+        importer=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaMuralTextureImport.cs").read_text(encoding="utf-8")
+        self.assertIn("android.maxTextureSize=8192",importer)
+        self.assertIn("TextureImporterFormat.ASTC_4x4",importer)
+        self.assertIn("BraxChampionsArenaMuralPrint.Hang(",self.mural)
         self.assertIn("MURAL_WEJSCIE_CHAMPION_FIGHTER_6144x2048.png",self.mural)
         self.assertIn("android.maxTextureSize=8192",self.side)
         self.assertIn("MURAL_LEWA_ZAWODNICY_6144x2048.png",self.side)

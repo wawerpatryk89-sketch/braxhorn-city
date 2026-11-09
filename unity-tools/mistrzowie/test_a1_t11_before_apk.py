@@ -64,7 +64,7 @@ class A1T11Preflight(unittest.TestCase):
         self.assertNotIn("BraxChampionsBeltShowcase.Generate(",arena)
         self.assertIn('Optional("gablota pasa w lobby",()=>BraxChampionsBeltShowcase.GenerateLobby(root));',arrival)
         for text in ("BRAXHORN_ARENA_CASE_PLAQUE.jpg","LibraryMarble",
-                     "A1 VITRINE | black marble pillar","A1 VITRINE | FRONT glass",
+                     "A1 VITRINE | wall back panel","A1 VITRINE | FRONT glass",
                      "A1 VITRINE | brass side bracket","A1 VITRINE | gold belt pin",
                      "var belt=OriginalBelt(display,BeltLength,"):
             self.assertIn(text,exhibit)
@@ -73,7 +73,9 @@ class A1T11Preflight(unittest.TestCase):
         # Decorative parts never collide; the only solid is the visible
         # marble pillar (slat wall removed by the owner 9.11).
         self.assertIn("DestroyImmediate(cube.GetComponent<Collider>())",exhibit)
-        self.assertEqual(exhibit.count(",true);"),1)
+        # 9.11 23:43: the pillar is gone (the case hangs on the wall); one invisible box keeps the player out of the glass.
+        self.assertEqual(exhibit.count(",true);"),0)
+        self.assertIn('new GameObject("A1 VITRINE | collision (case to floor)")',exhibit)
     def test_approval_only_quality_gates(self):
         build=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs")
         gate=source("unity-city/Assets/Editor/BraxBuildQuality.cs")

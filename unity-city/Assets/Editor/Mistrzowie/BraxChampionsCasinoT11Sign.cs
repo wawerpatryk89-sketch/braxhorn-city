@@ -27,9 +27,11 @@ public static partial class BraxChampionsCasinoT11
         signGold=BraxChampionsFoundation.LibraryMetal("T11_3D_sign_bright_gold",new Color(1f,.80f,.42f));
         signGold.SetFloat("_Metallic",.62f);signGold.SetFloat("_Roughness",.24f);
         signGold.SetColor("_EmissionColor",new Color(.22f,.15f,.05f));EditorUtility.SetDirty(signGold);
+        BraxChampionsGold.Apply(signGold);
         signGoldDeep=BraxChampionsFoundation.LibraryMetal("T11_3D_sign_deep_gold_returns",new Color(.88f,.64f,.30f));
         signGoldDeep.SetFloat("_Metallic",.72f);signGoldDeep.SetFloat("_Roughness",.20f);
         signGoldDeep.SetColor("_EmissionColor",new Color(.10f,.065f,.02f));EditorUtility.SetDirty(signGoldDeep);
+        BraxChampionsGold.Apply(signGoldDeep,true);
     }
 
     // position in nominal metres (x K here), the sign's own vertices already carry K; front toward -Z with yaw 180
@@ -66,6 +68,29 @@ public static partial class BraxChampionsCasinoT11
             sign3DParts++;
         }
         return true;
+    }
+
+    // Casino marquee: warm bulbs every 42 cm on the carrier's gold ring (owner 10.11 00:22: the sign was "not premium").
+    // One shared bevelled mesh, emissive only: no realtime light.
+    static void SignMarquee()
+    {
+        var bulb=Surface("sign_marquee_warm_bulb",new Color(1f,.93f,.72f),false,true);
+        bulb.SetColor("_EmissionColor",new Color(1.25f,.96f,.52f));
+        EditorUtility.SetDirty(bulb);
+        int n=SignCarrierOuter.Length,count=0;float carry=0f;const float step=.42f;
+        for(int i=0;i<n;i++)
+        {
+            Vector2 a=(SignCarrierOuter[i]+SignCarrierInner[i])*.5f,b=(SignCarrierOuter[(i+1)%n]+SignCarrierInner[(i+1)%n])*.5f;
+            float len=(b-a).magnitude,d=carry;
+            for(;d<len;d+=step)
+            {
+                var p=Vector2.Lerp(a,b,d/len);
+                BeveledBox(signRoot,"T11 sign marquee warm bulb",bulb,p.x,12.0f+p.y,-36.31f,.115f,.115f,.06f,.04f,false);
+                count++;
+            }
+            carry=d-len;
+        }
+        Debug.Log("T11_SIGN_MARQUEE bulbs="+count+" spacing=.42 onGoldRing=true emissiveOnly=true");
     }
 
     // Garage entrance (owner 23:36 "na wjeździe do garażu zobacz, co jest"): graphite fascia on the champagne beam

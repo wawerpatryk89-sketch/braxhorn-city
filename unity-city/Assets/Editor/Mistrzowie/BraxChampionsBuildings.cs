@@ -130,9 +130,9 @@ public static class BraxChampionsBuildings
     static Dictionary<string,Material> Materials()
     {
         var bronze=BraxChampionsFoundation.LibraryMetal("exterior_bronze",new Color(.58f,.42f,.22f));
-        var gold=BraxChampionsFoundation.LibraryMetal("sign_gold",new Color(.95f,.72f,.30f));
+        var gold=BraxChampionsGold.Apply(BraxChampionsFoundation.LibraryMetal("sign_gold",new Color(.95f,.72f,.30f)));
         // ISSUE #27 dedicated arena finish materials: do not reuse glass/stone as fake metal.
-        var arenaGold=Surface("arena_premium_gold",new Color(.95f,.70f,.26f),.16f,.96f);
+        var arenaGold=BraxChampionsGold.Apply(Surface("arena_premium_gold",new Color(.95f,.70f,.26f),.16f,.96f));
         var arenaBlack=Surface("arena_premium_black_metal",new Color(.045f,.050f,.060f),.23f,.92f);
         var steel=BraxChampionsFoundation.LibraryMetal("exterior_steel",new Color(.72f,.74f,.76f));
         var stone=BraxChampionsFoundation.SourceMaterial("exterior_stone","rectangular_facade_tiles",2.4f,new Color(.91f,.87f,.79f));

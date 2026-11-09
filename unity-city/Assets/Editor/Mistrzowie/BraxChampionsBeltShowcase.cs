@@ -449,13 +449,17 @@ public static class BraxChampionsBeltShowcase
     // red carpet in, back face 5 mm in front of the mural print. Door half
     // width 2.05 + gold portal .18 + 1.24 clear + half pillar .53 = x 4.0.
     // Mural print face in building space: 63.3-(lobby wall face+.03) = -35.435.
-    public const float WallMuralFaceZ=63.3f-(BraxChampionsArena.FrontWallLobbyFaceZ+.03f);
+    public const float WallMuralFaceZ=63.3f-(BraxChampionsArena.FrontWallLobbyFaceZ+BraxChampionsArena.LobbyMarbleDepth);
     public const float LobbyX=4.0f, LobbyZ=WallMuralFaceZ-PylonD-.005f;
     public const float BeltLength=1.27f;                        // ufc.com: 50 in
     public const float CaseW=.63f, CaseH=1.79f, CaseD=.28f;     // 478 x 1358 px
-    public const float CaseBottom=.185f;                        // 140 px above floor
+    // Owner 9.11 23:43: "Ten pas niech wisi na ścianie lepiej, bo jak to wygląda." The black pillar standing in
+    // front of the mural is gone: the glass case hangs ON the marble wall right of the doorway, belt at eye level,
+    // on a thin dark back panel in a gold frame.
+    public const float CaseBottom=.95f;                         // wall-hung: belt centre at about 1.9 m
     public const float ShelfAbove=.28f;                         // glass shelf, 213 px
-    public const float PylonW=1.06f, PylonD=.45f, PylonH=3.00f; // 801 px wide
+    public const float PylonW=.99f, PylonD=.05f, PylonH=CaseH+.60f; // back panel on the wall (was a 1.06 x .45 x 3 m pillar)
+    public const float FrameBar=.045f;
     public const float PlaqueW=.46f, PlaqueH=.18f;              // 347 x 135 px
     // Photo ratios relative to the hung belt length (pins and strap brackets).
     const float PinOffsetX=.0697f, TopPinBelowTop=.132f, BottomPinAboveBottom=.10f;
@@ -506,7 +510,7 @@ public static class BraxChampionsBeltShowcase
     public static void GenerateLobby(Transform arrivalRoot)
     {
         float k=BraxClaudeOsiedle.K;
-        var display=Group(arrivalRoot,"A1 LOBBY | owner-photo belt vitrine | black marble pillar | ONE 3D belt");
+        var display=Group(arrivalRoot,"A1 LOBBY | owner-photo belt vitrine | hung on the marble wall | ONE 3D belt");
         display.localPosition=new Vector3(LobbyX,0,LobbyZ)*k;
         display.localRotation=Quaternion.identity; // front (-Z) faces the lobby / entrance doors
         display.localScale=Vector3.one*k;
@@ -527,7 +531,7 @@ public static class BraxChampionsBeltShowcase
         if(!onFloor)BraxBuildQuality.Warn("A1_VITRINE_FLOOR_RAYCAST_MISS: lobby floor not found, using paving height .245");
 
         // ---- materials (photo colours sampled from the reference) ----
-        var gold=SolidPbr("A1_belt_showcase_clean_gold",new Color(.835f,.639f,.231f),.19f,.98f);
+        var gold=BraxChampionsGold.Apply(SolidPbr("A1_belt_showcase_clean_gold",new Color(.835f,.639f,.231f),.19f,.98f));
         var brass=SolidPbr("A1_vitrine_brushed_brass",new Color(.78f,.62f,.30f),.34f,.95f);
         var dark=SolidPbr("A1_belt_showcase_plaque_recess",new Color(.035f,.037f,.042f),.24f,.35f);
         Material marble;
@@ -558,10 +562,19 @@ public static class BraxChampionsBeltShowcase
         glass.renderQueue=3001;glass.SetOverrideTag("RenderType","Transparent");
         AssetDatabase.CreateAsset(glass,Materials+"A1_vitrine_clear_glass.mat");
 
-        // 1) Black marble pillar straight to the floor (photo: no plinth),
-        //    front face at z=0. Its collider is the one real obstacle.
-        MetricCube(display,"A1 VITRINE | black marble pillar",marble,
-            new Vector3(0,PylonH*.5f,PylonD*.5f),new Vector3(PylonW,PylonH,PylonD),true);
+        // 1) Wall-hung: a thin dark back panel in a gold frame on the marble wall, front face at z=0.
+        //    One invisible box from the floor up keeps the player out of the glass.
+        float panelY=CaseBottom+CaseH*.5f;
+        Cube(display,"A1 VITRINE | wall back panel",dark,new Vector3(0,panelY,PylonD*.5f),new Vector3(PylonW,PylonH,PylonD));
+        foreach(float s in new[]{-1f,1f})
+        {
+            Cube(display,"A1 VITRINE | gold wall frame side",gold,new Vector3(s*(PylonW*.5f+FrameBar*.5f),panelY,PylonD*.5f-.012f),new Vector3(FrameBar,PylonH+2f*FrameBar,PylonD+.024f));
+            Cube(display,"A1 VITRINE | gold wall frame rail",gold,new Vector3(0,panelY+s*(PylonH*.5f+FrameBar*.5f),PylonD*.5f-.012f),new Vector3(PylonW,FrameBar,PylonD+.024f));
+        }
+        var guard=new GameObject("A1 VITRINE | collision (case to floor)");
+        guard.transform.SetParent(display,false);
+        guard.transform.localPosition=new Vector3(0,(CaseBottom+CaseH)*.5f,(PylonD-CaseD)*.5f);
+        guard.AddComponent<BoxCollider>().size=new Vector3(PylonW+.10f,CaseBottom+CaseH,CaseD+PylonD);
 
         // 2) Frameless 12 mm glass case on the marble face.
         float top=CaseBottom+CaseH,yc=CaseBottom+CaseH*.5f,front=-CaseD;
@@ -652,7 +665,7 @@ public static class BraxChampionsBeltShowcase
 
         Debug.Log("A1_VITRINE_OWNER_PHOTO location=hall_front_wall x="+LobbyX+" z="+LobbyZ+" facing=entrance"+
             " ruler=UFC_belt_1.27m=962px case="+CaseW+"x"+CaseH+"x"+CaseD+" bottom="+CaseBottom+
-            " pillar="+PylonW+"x"+PylonH+"x"+PylonD+" marble="+(veinedMarble?"ambientCG_Marble016":"granite_tile_FALLBACK")+
+            " wallPanel="+PylonW+"x"+PylonH+"x"+PylonD+" pillar=REMOVED_hung_on_wall marble="+(veinedMarble?"ambientCG_Marble016":"granite_tile_FALLBACK")+
             " belt="+belt.size.ToString("F2")+" pins="+pins+" brackets=4 LED=tray+2vertical+bottom"+
             " plaque="+PlaqueW+"x"+PlaqueH+" mount=hall_wall_right_of_door slats=REMOVED plant=REMOVED onFloor="+onFloor+" scale=K_once");
     }

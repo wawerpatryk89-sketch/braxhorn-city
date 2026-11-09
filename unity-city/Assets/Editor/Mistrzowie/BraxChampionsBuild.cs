@@ -182,8 +182,10 @@ public static class BraxChampionsBuild
         int arenaSigns=arena[0].GetComponentsInChildren<Transform>(true)
             .Count(t=>t.name.StartsWith("A1 facade | original premium sign ",StringComparison.Ordinal));
         var casinoParts=casino[0].GetComponentsInChildren<Transform>(true);
+        // 9.11: the casino carries the 3D gold sign (the owner PNG is only its fallback).
         int casinoSigns=casinoParts.Count(t=>t.name.StartsWith(
-            "T11 | ORIGINAL C1 KASYNO WAWER |",StringComparison.Ordinal));
+            "T11 | ORIGINAL C1 KASYNO WAWER |",StringComparison.Ordinal)||
+            t.name=="T11 3D gold KASYNO WAWER sign | rotunda");
         int casinoDollars=casinoParts.Count(t=>t.name.StartsWith(
             "T11 | OWNER ORIGINAL DEZYNE_3D GOLD DOLLAR |",StringComparison.Ordinal));
         if(arenaSigns!=4||casinoSigns!=1||casinoDollars!=1)

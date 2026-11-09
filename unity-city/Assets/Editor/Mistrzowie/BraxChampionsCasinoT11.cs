@@ -31,7 +31,7 @@ public static partial class BraxChampionsCasinoT11
     static string output;
     static int serial;
     static Transform root,shell,trim,signRoot;
-    static Material cream,graphite,windowFrame,interiorBack,violet,granite,asphalt,paving,gold,pillarGold,steel,glass,frontGlass,skylightGlass,led,roof,redCarpet,parkingPaint,signBacking;
+    static Material cream,graphite,windowFrame,interiorBack,violet,granite,asphalt,paving,gold,pillarGold,steel,glass,frontGlass,skylightGlass,led,roof,redCarpet,parkingPaint,signBacking,curtain;
     static readonly System.Collections.Generic.Dictionary<string,Mesh> bevelMeshes=
         new System.Collections.Generic.Dictionary<string,Mesh>();
     // White finishes are GARAGE-ONLY. Do not repaint the owner-approved casino exterior.
@@ -49,8 +49,15 @@ public static partial class BraxChampionsCasinoT11
         cream=BraxChampionsCasinoPbr2K.Create(output,"t11_cream_limestone_blocks","floor_tiles_04",4.0f,new Color(1f,.97f,.90f));
         windowFrame=Surface("black_window_frames",new Color(.045f,.05f,.055f),false,false);
         windowFrame.SetFloat("_Metallic",.70f);windowFrame.SetFloat("_Roughness",.30f);
+        // Owner 10.11 00:23 on the render: "W takim kasynie mogą być szyby jasne, jakieś zajebiste, bo jak będą
+        // wyglądać tak jak tutaj, to chujowe są." The windows were a dark brown board behind smoked glass.
+        // The glass is clear and bright, and (10.11 00:30) there is no board behind it: the windows show the real
+        // casino hall with its columns, chandeliers and carpet; ivory curtains hang at both sides of every window.
         interiorBack=Surface("interior_warm_backdrop",new Color(.20f,.15f,.11f),false,false);
         interiorBack.SetFloat("_Roughness",.80f);
+        curtain=Surface("window_ivory_curtain",new Color(.97f,.94f,.87f),false,true);
+        curtain.SetColor("_EmissionColor",new Color(.16f,.14f,.11f));
+        curtain.SetFloat("_Roughness",.85f);
         violet=Surface("casino_violet_glow",new Color(.62f,.30f,1f),false,true);
         violet.SetColor("_EmissionColor",new Color(.50f,.16f,.92f));
         graphite=BraxChampionsCasinoPbr2K.Create(output,"t11_graphite_facade","rectangular_facade_tiles",2.0f,new Color(.22f,.23f,.25f));
@@ -62,6 +69,8 @@ public static partial class BraxChampionsCasinoT11
             "T11_champagne_gold_trim",new Color(.93f,.73f,.39f));
         gold.SetFloat("_Metallic",.97f);gold.SetFloat("_Roughness",.17f);
         EditorUtility.SetDirty(gold);
+        // Owner 10.11 00:37 (photo of fine-gold bars): "Wszystko, co złote, ma być złote." Real yellow gold.
+        BraxChampionsGold.Apply(gold);
         // Właściciel: wszystkie widoczne filary ZŁOTE i połyskujące.
         // Prawdziwe oryginalne 4K PBR Metal048A z przygotowanej biblioteki,
         // nie jednolity żółty plastik i nie nowy zamiennik tekstur.
@@ -70,6 +79,7 @@ public static partial class BraxChampionsCasinoT11
         pillarGold.SetFloat("_Metallic",.98f);
         pillarGold.SetFloat("_Roughness",.16f);
         EditorUtility.SetDirty(pillarGold);
+        BraxChampionsGold.Apply(pillarGold);
         steel=Surface("satin_steel",new Color(.32f,.34f,.37f),false,false);
         steel.SetFloat("_Metallic",.83f);steel.SetFloat("_Roughness",.38f);
         roof=BraxChampionsCasinoPbr2K.Create(output,"t11_roof","concrete_floor_02",2.1f,new Color(.27f,.29f,.32f));
@@ -91,7 +101,8 @@ public static partial class BraxChampionsCasinoT11
         glass=Surface("clear_glass",new Color(.68f,.80f,.88f,.31f),true,false);
         // Front: SLIGHTLY darkened but legible transparent glass, warm gold
         // frame divisions and visible interior. Does not tint side masonry.
-        frontGlass=Surface("front_smoke_glass",new Color(.55f,.63f,.71f,.22f),true,false);
+        frontGlass=Surface("front_smoke_glass",new Color(.82f,.91f,.97f,.15f),true,false);
+        frontGlass.SetFloat("_ReflectionStrength",.85f);
          // The reference drawing has a blue-violet translucent glazed roof lantern.
         skylightGlass=Surface("roof_skylight_glass",new Color(.48f,.56f,.76f,.38f),true,false);
         led=Surface("warm_led",new Color(.92f,.78f,.57f),false,true);
@@ -372,6 +383,35 @@ public static partial class BraxChampionsCasinoT11
         BeveledBox(trim,"Gold entry transom horizontal frame",gold,
             0,3.59f,-36.19f,5.95f,.07f,.12f,.025f,false);
         Door("T11_CASINO_WAWER_PUBLIC","Public glass main entry",0,-36.28f,180f,5.6f);
+        EntrancePortal();
+    }
+
+    // Owner 10.11 00:37 on the render: "Te wejście to zlane z tą szybą, w ogóle tam nie wiadomo o co chodzi."
+    // The doors were two bare panes in a wall of glass. Now a portal marks them from the street: two solid gold
+    // jambs and a gold lintel around the doors, a black canopy with a gold edge and light lines over the red
+    // carpet, two gold lanterns either side.
+    static void EntrancePortal()
+    {
+        const float half=2.95f,zFace=-36.62f,top=4.02f;
+        foreach(float s in new[]{-1f,1f})
+        {
+            BeveledBox(shell,"T11 entrance portal solid gold jamb",gold,s*(half+.24f),(.21f+top)*.5f,zFace,.48f,top-.21f,.62f,.05f,true);
+            B(trim,"T11 entrance portal jamb light reveal",led,s*(half+.24f),2.1f,zFace-.315f,.07f,3.4f,.02f,false);
+            // lantern on a gold post beside the carpet
+            BeveledBox(trim,"T11 entrance lantern gold post",gold,s*4.35f,1.21f,-38.9f,.14f,2.0f,.14f,.03f,false);
+            BeveledBox(trim,"T11 entrance lantern warm glass",led,s*4.35f,2.42f,-38.9f,.34f,.46f,.34f,.05f,false);
+            BeveledBox(trim,"T11 entrance lantern gold cap",gold,s*4.35f,2.70f,-38.9f,.42f,.08f,.42f,.03f,false);
+        }
+        BeveledBox(shell,"T11 entrance portal solid gold lintel",gold,0,top+.27f,zFace,2f*half+1.44f,.54f,.62f,.05f,false);
+        // canopy: black body, gold edge all round, three light lines underneath
+        const float cy=4.74f,cz=-38.05f,cw=8.6f,cd=3.3f;
+        B(shell,"T11 entrance canopy black body",signBacking,0,cy,cz,cw,.26f,cd,false);
+        B(trim,"T11 entrance canopy gold front edge",gold,0,cy,cz-cd*.5f-.03f,cw+.12f,.30f,.06f,false);
+        foreach(float s in new[]{-1f,1f})
+            B(trim,"T11 entrance canopy gold side edge",gold,s*(cw*.5f+.03f),cy,cz,.06f,.30f,cd,false);
+        foreach(float lz in new[]{-39.2f,-38.1f,-37.0f})
+            B(trim,"T11 entrance canopy warm light line",led,0,cy-.138f,lz,cw-1.0f,.016f,.08f,false);
+        Debug.Log("T11_ENTRANCE_PORTAL jambs=2_solid_gold lintel=gold canopy=8.6x3.3_black_gold_edge lightLines=3 lanterns=2 framedGoldLeaves=2 clearOpening=5.6x3.6");
     }
 
     static void Door(string id,string label,float x,float z,float yaw,float width)
@@ -387,7 +427,15 @@ public static partial class BraxChampionsCasinoT11
             hinge.localPosition=new Vector3(side*width*.5f,0,0)*K;
             leaves[i]=hinge;
             B(hinge,"Toughened clear door glass",frontGlass,-side*width*.25f,1.8f,0,width*.5f,3.6f,.09f,true);
-            B(hinge,"Champagne door pull",gold,-side*.27f,1.35f,.10f,.07f,.68f,.075f,false);
+            // 10.11 00:37 "wejście zlane z szybą": every leaf is a framed gold door, not a bare pane in a glass wall.
+            float lw=width*.5f,lc=-side*width*.25f;
+            B(hinge,"Gold door leaf top rail",gold,lc,3.51f,0,lw,.18f,.12f,false);
+            B(hinge,"Gold door leaf bottom rail",gold,lc,.14f,0,lw,.28f,.12f,false);
+            B(hinge,"Gold door leaf hinge stile",gold,-side*.07f,1.8f,0,.14f,3.6f,.12f,false);
+            B(hinge,"Gold door leaf meeting stile",gold,-side*(lw-.07f),1.8f,0,.14f,3.6f,.12f,false);
+            B(hinge,"Gold door leaf middle rail",gold,lc,1.02f,0,lw-.28f,.07f,.11f,false);
+            foreach(float face in new[]{-1f,1f})
+                B(hinge,"Champagne door pull",gold,-side*(lw-.36f),1.55f,face*.11f,.07f,1.30f,.075f,false);
         }
         var working=group.gameObject.AddComponent<BraxCityDoor>();
         working.id=id;working.label=label;working.leaves=leaves;working.sides=new[]{1f,-1f};
@@ -441,7 +489,9 @@ public static partial class BraxChampionsCasinoT11
         }
         // The WEST roof wing is solid (x=-38..-12). Stay away from the
         // central atrium, front glass, main sign and roof skylight x=-12..12.
-        const float x=-24f,z=-15f,roofY=14.40f,nominalHeight=15.0f;
+        // Owner 10.11 00:35: "tego dolara to bym dał na środku". Centre axis of the building, on the solid roof
+        // between the rotunda and the roof lantern (lantern glass is z -10..10), straight above the sign and the door.
+        const float x=0f,z=-21f,roofY=14.40f,nominalHeight=15.0f;
         B(shell,"T11 OWNER DOLLAR rooftop structural steel support",steel,
             x,14.25f,z,5.0f,.30f,2.5f,true);
         var holder=Group(root,"T11 | OWNER ORIGINAL DEZYNE_3D GOLD DOLLAR | roof");
@@ -463,11 +513,22 @@ public static partial class BraxChampionsCasinoT11
             holder.position.z-scaled.center.z);
         foreach(var collider in dollar.GetComponentsInChildren<Collider>(true))
             UnityEngine.Object.DestroyImmediate(collider);
+        // Owner 10.11 00:36: "Ten dolar ma być złoty, świecący się. Jasne złoto, żółte takie." The model's own
+        // material read dull olive. Shape untouched; every surface gets bright yellow gold that shines by itself.
+        var dollarGold=BraxChampionsGold.Apply(Surface("roof_dollar_bright_yellow_gold",BraxChampionsGold.Colour,false,true));
+        dollarGold.SetColor("_EmissionColor",new Color(.46f,.34f,.06f));   // the roof sign glows a little more than trim
+        EditorUtility.SetDirty(dollarGold);
+        foreach(var r in dollar.GetComponentsInChildren<Renderer>(true))
+        {
+            var mats=r.sharedMaterials;
+            for(int i=0;i<mats.Length;i++)mats[i]=dollarGold;
+            r.sharedMaterials=mats;
+        }
         var finalBounds=DollarBounds(dollar);
         Debug.Log("CHAMPIONS_T11_ROOF_DOLLAR_OWNER_ORIGINAL visible_height="+
             (finalBounds.size.y/K).ToString("F2")+
             "m roofY="+roofY+" x="+x+" z="+z+
-            " model_source=dezyne_3d-dollar-sign-140.glb sourceMaterialsUnchanged=true"+
+            " model_source=dezyne_3d-dollar-sign-140.glb material=bright_yellow_gold_self_lit centred=true"+
             " phoneVisualReviewRequired=true");
     }
 
@@ -782,8 +843,10 @@ public static partial class BraxChampionsCasinoT11
         foreach(float z in new[]{-32f,33f})
         {
             float x=side>0&&z<0?37.6f:side*43f;
-            PlaceNativePolyHaven(shell,shrub,"T11 original Poly Haven Shrub 03 (2K)",
-                x,.78f,z,1.55f,1.75f,count++);
+            // 10.11: one 1.5 m shrub in a 3.4 m planter read as an empty black block; four fill the bed.
+            foreach(var o in new[]{new Vector2(-.80f,-.76f),new Vector2(.80f,-.76f),new Vector2(-.80f,.76f),new Vector2(.80f,.76f)})
+                PlaceNativePolyHaven(shell,shrub,"T11 original Poly Haven Shrub 03 (2K)",
+                    x+o.x,.80f,z+o.y,1.55f,1.75f,count++);
         }
         // The two tree trunks are beyond the rear service door and outside
         // the fire road / delivery bays. Do not replace the approved palms.
@@ -851,8 +914,13 @@ public static partial class BraxChampionsCasinoT11
                     -32.25f,roadTop+.004f,-46.55f,11.7f,.008f,.10f,false);
             }
             foreach(float z in new[]{-32f,33f})
-                B(shell,"Champagne black granite planter",granite,
-                    side>0&&z<0?37.6f:side*43f,.48f,z,3.4f,.6f,3.3f,true);
+            {
+                float px=side>0&&z<0?37.6f:side*43f;
+                B(shell,"Champagne black granite planter",granite,px,.48f,z,3.4f,.6f,3.3f,true);
+                // a planter, not a black block: champagne rim and dark soil under the shrub
+                B(trim,"Planter champagne gold rim",gold,px,.795f,z,3.48f,.03f,3.38f,false);
+                B(trim,"Planter dark soil bed",roof,px,.812f,z,3.16f,.012f,3.06f,false);
+            }
         }
         // Front road fills only the clear span between both fire lanes.
         B(shell,"Front VIP/TAXI circulating driveway",asphalt,0,roadY,-42.5f,99f,roadH,10f,true,true);
@@ -879,11 +947,8 @@ public static partial class BraxChampionsCasinoT11
         // Keep a pedestrian walkway on the WEST facade; east side remains a
         // vehicle approach separated from the existing fire route at x=53.
         B(shell,"T11 west pedestrian path",paving,-39.95f,.255f,4f,2.6f,.07f,25.7f,true,true);
-        // Zebra crossing and separate spectator axis: no vehicle routes across
-        // the entrance doors, and no parking painted onto concrete sidewalks.
-        foreach(float x in new[]{-8.4f,-7.0f,-5.6f,5.6f,7.0f,8.4f})
-            B(trim,"White zebra marking on asphalt",parkingPaint,x,roadTop+.004f,-41.5f,
-                .60f,.008f,5.5f,false);
+        // Owner 10.11 00:22: "A co te pasy tam robią? Dla kogo te pasy są? Na pewno nie dla ludzi, ani dla
+        // samochodów." The six short white stripes beside the red carpet are removed.
         // CITY ROAD -> FRONT LOT: full 11m connector, including the old
         // 7m SIDEWALK. X400 roadway ends at world x410; the graded connector
         // continues to the front-road edge at world x445.5, z=417..428.
@@ -1277,9 +1342,10 @@ public static partial class BraxChampionsCasinoT11
         PolygonRing(signRoot,"T11 WAWER sign real-outline rounded champagne gold border",
             gold,SignCarrierOuter,SignCarrierInner,12.0f,-36.2725f,.025f);
         // 3D gold WAWER / KASYNO on the carrier (10 x 3.24 m, centred at y 12.0); the old PNG Quad faced into the building
-        // nominal glyph box x +-5.02, y -.53..2.71, depth .35: at 1.05 it fills 10.5 x 3.4 m of the 16.8 x 3.65 m carrier
-        if(Place3DSign("WAWER_kasyno",signRoot,"T11 3D gold KASYNO WAWER sign | rotunda",new Vector3(0,10.855f,-36.29f),180f,1.05f))
+        // composition box x +-6.6, y -.38..3.10, depth .36: at .93 it fills 12.3 x 3.24 m of the 16.8 x 3.65 m carrier
+        if(Place3DSign("WAWER_kasyno",signRoot,"T11 3D gold KASYNO WAWER sign | rotunda",new Vector3(0,10.735f,-36.29f),180f,.93f))
         {
+            SignMarquee();
             Debug.Log("T11_3D_SIGN WAWER_KASYNO gold solid glyphs parts="+sign3DParts);
             return;
         }
@@ -1321,6 +1387,7 @@ public static partial class BraxChampionsCasinoT11
         signRoot=Group(root,"T11 original owner sign (always visible)");
         Site();ReferenceFacades();RoofAndSkylight();CurvedFoyer();
         BraxChampionsFoundation.Optional("kasyno T11: lobby rotundy z żyrandolem",RotundaLobby);
+        BraxChampionsFoundation.Optional("kasyno T11: otwarta sala kasyna",CasinoHall);
         // Owner board 9.11 shows no rooftop $: kept in code, off until the owner decides.
         // The 120 m office tower on the board is "docelowo" (later, separate building).
         if(RoofDollarOnOwnerBoard)RoofDollar();

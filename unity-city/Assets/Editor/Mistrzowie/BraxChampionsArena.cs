@@ -16,6 +16,9 @@ public static class BraxChampionsArena
     public const float WallThickness=.45f;
     // Lobby face of the front (Z1=98.3) wall: inner face 98.255 + depth.
     public const float FrontWallLobbyFaceZ=98.3f-.045f+WallThickness;
+    // Finish heights of the hall (bowl metres). The exterior roof slab's underside is at 26.885: the designed
+    // ceiling hangs just below it, so nothing of the finish is hidden inside the roof.
+    public const float WallStoneTop=7.80f, WallWalnutTop=23.90f, CeilingY=26.62f, CeilingBeamDrop=.62f, StandStoneTop=1.05f;
     static Transform colliders;
     static readonly Dictionary<string,Material> materials=new Dictionary<string,Material>();
     public static int SeatCount {get;private set;}
@@ -84,14 +87,27 @@ public static class BraxChampionsArena
             new Color(.47f,.035f,.045f));
         stairVelour.SetFloat("_Roughness",.58f);
         stairVelour.SetFloat("_Metallic",0f);
+        BraxChampionsGold.Apply(interiorGold);   // owner 10.11: "wszystko, co złote, ma być złote"
         var panel = facadePanels;
         var wallUp = facadePanels;
+        // Owner 9.11 23:43-23:46: "arena nie jest w ogóle wykończona ... każda ściana ma być wykończona, te trybuny
+        // z boku, wszystko. Sufit tak samo." Finishes of the hall: smoked-walnut acoustic panelling on the long walls,
+        // black acoustic fabric above it and on the ceiling, walnut ceiling beams with warm light lines, polished
+        // black marble on the lobby face of the front wall, stone + walnut + gold on every stand side and back.
+        var walnut = BraxChampionsFoundation.SourceMaterial(
+            "arena_wall_smoked_walnut_panelling", "smoked_walnut_veneer", 1.6f, new Color(.86f,.74f,.62f));
+        walnut.SetFloat("_Roughness",.46f);
+        var acoustic = Plain("hala walk panele akustyczne czarne", new Color(.105f,.105f,.115f), .1f);
+        var lobbyMarble = BraxChampionsFoundation.LibraryMarble(
+            "arena_lobby_wall_black_marble", new Color(.95f,.93f,.91f), 3.0f);
+        var warmLine = WarmLine();
         var red = Plain("hala walk czerwień BRAXHORN", new Color(.60f, .04f, .05f), .45f);
         var ceil = Plain("hala walk sufit czarny mat", new Color(.09f, .09f, .10f), .05f);
         var black = Plain("oktagon czarny winyl", new Color(.03f, .03f, .035f), .55f);
         var steel = Plain("oktagon stal ciemna", new Color(.16f, .17f, .18f), .5f, .8f);
         var chrome = Plain("słupki chrom", new Color(.75f, .76f, .78f), .85f, .95f);
         var vipGold = Plain("słupki VIP złote", new Color(.88f, .64f, .18f), .88f, .96f);
+        BraxChampionsGold.Apply(vipGold);
         var carpet = Plain("hala walk chodnik czerwony", new Color(.45f, .03f, .04f), .1f);
         var rope = Plain("lina aksamitna czerwona", new Color(.42f, .03f, .05f), .25f);
         var tier = Plain("trybuny beton grafit", new Color(.15f, .15f, .16f), .3f);
@@ -124,9 +140,22 @@ public static class BraxChampionsArena
             float g0 = Mathf.Min(inner, outer), g1 = Mathf.Max(inner, outer);
             if (alongX)
             {
-                // Non-mural wall: 1.20m granite plinth + Concrete Wall 009 above.
+                // Long wall, finished in zones (was 1.20 m granite + bare Concrete Wall 009 to the ceiling):
+                // granite plinth, graphite stone behind the stands, smoked-walnut acoustic panelling in the
+                // spectators' view, black acoustic fabric under the ceiling. Light lines mark both joints.
                 BoxMinMax(wallGranite,a0,a1,yF,1.20f,g0,g1,true);
-                BoxMinMax(wallConcrete,a0,a1,1.20f,yC,g0,g1,true);
+                BoxMinMax(facadePanels,a0,a1,1.20f,WallStoneTop,g0,g1,true);
+                BoxMinMax(walnut,a0,a1,WallStoneTop,WallWalnutTop,g0,g1,true);
+                BoxMinMax(acoustic,a0,a1,WallWalnutTop,yC,g0,g1,true);
+                {
+                    float face=s>0?g1:g0,z0=s>0?face:face-.035f,z1=s>0?face+.035f:face;
+                    foreach(float y in new[]{WallStoneTop,WallWalnutTop})
+                    {
+                        BoxMinMax(warmLine,a0,a1,y-.05f,y+.05f,z0,z1,false);
+                        BoxMinMax(interiorGold,a0,a1,y+.05f,y+.075f,s>0?face:face-.045f,s>0?face+.045f:face,false);
+                        BoxMinMax(interiorGold,a0,a1,y-.075f,y-.05f,s>0?face:face-.045f,s>0?face+.045f:face,false);
+                    }
+                }
                 // 35mm physical gold divisions every ~3.3m, set 15mm proud.
                 for(float a=a0+3.30f;a<a1-.30f;a+=3.30f)
                 {
@@ -137,10 +166,11 @@ public static class BraxChampionsArena
             }
             else
             {
-                // Side mural wall: dark premium base behind the original print.
-                // Mural itself is later placed in front and is NEVER covered.
+                // Side mural wall: granite plinth, graphite stone behind the owner's print (the print hangs in
+                // front and is NEVER covered), black acoustic fabric above the print.
                 BoxMinMax(wallGranite,g0,g1,yF,1.20f,a0,a1,true);
-                BoxMinMax(facadePanels,g0,g1,1.20f,yC,a0,a1,true);
+                BoxMinMax(facadePanels,g0,g1,1.20f,CeilingY,a0,a1,true);
+                BoxMinMax(acoustic,g0,g1,CeilingY,yC,a0,a1,true);
             }
         }
         // Side walls run past both end walls by the wall depth: closed corners.
@@ -152,9 +182,17 @@ public static class BraxChampionsArena
             // Full-depth lintel over the 4.10 m doorway: the opening shows a
             // real 45 cm reveal on both sides and on top, not a 4 cm edge.
             float inner = s > 0 ? f + .045f : f - .045f, outer = inner - s * WallThickness;
-            BoxMinMax(wallConcrete, dA, dB, dH, yC, Mathf.Min(inner, outer), Mathf.Max(inner, outer), true, true);
+            float w0=Mathf.Min(inner, outer),w1=Mathf.Max(inner, outer);
+            BoxMinMax(facadePanels, dA, dB, dH, WallStoneTop, w0, w1, true, true);
+            BoxMinMax(walnut, dA, dB, WallStoneTop, WallWalnutTop, w0, w1, true, true);
+            BoxMinMax(acoustic, dA, dB, WallWalnutTop, yC, w0, w1, true, true);
+            float lf=s>0?w1:w0;
+            foreach(float y in new[]{WallStoneTop,WallWalnutTop})
+                BoxMinMax(warmLine,dA,dB,y-.05f,y+.05f,s>0?lf:lf-.035f,s>0?lf+.035f:lf,false);
         }
         BoxMinMax(ceil, X0, X1, yC, yC + .02f, Z0, Z1, false, true);
+        HallCeiling(X0,X1,Z0,Z1,cx,cz,acoustic,walnut,warmLine,interiorGold);
+        LobbyWallMarble(X0,X1,Z1,yF,dA,dB,dH,lobbyMarble,interiorGold,warmLine);
 
         // oktagon: wierzchołki co 45° (boki prostopadłe do osi i przekątnych), bok i=1 (V1–V2) patrzy na +z — furtka i schody
         const float P = .6f, Rv = 4.6f; float ap = Rv * Mathf.Cos(Mathf.PI / 8f), yT = yF + P;
@@ -250,6 +288,43 @@ public static class BraxChampionsArena
                 int j = 0;
                 for (float a = a0 + .45f; a < a1 - .3f; a += .68f, j++) Seat((j + k) % 9 == 4 ? seatBlk : seatRed, alongX, a, p0 - s * .525f, top, s);
             }
+            // Back of the block (6.45 m of bare tier concrete toward the rear concourse): stone + walnut + gold.
+            float back=front-s*rows*1.05f,topAll=yF+.4f*rows,b0=s>0?back-.04f:back,b1=s>0?back:back+.04f;
+            void BackBox(Material m,float y0,float y1,float extra=0f)
+            {
+                float e0=s>0?b0-extra:b0,e1=s>0?b1:b1+extra;
+                if(alongX)BoxMinMax(m,a0,a1,y0,y1,e0,e1,false);else BoxMinMax(m,e0,e1,y0,y1,a0,a1,false);
+            }
+            BackBox(wallGranite,yF,StandStoneTop);BackBox(walnut,StandStoneTop+.06f,topAll);
+            BackBox(warmLine,StandStoneTop,StandStoneTop+.06f,.012f);BackBox(interiorGold,topAll,topAll+.05f,.03f);
+        }
+        // Side of a block toward an open aisle (owner photo: a black wall beside the red carpet). Every row gets its
+        // own stone / walnut panel 4 cm proud, a gold edge on the tread line, a light line at the foot and a gold
+        // handrail on posts that follows the rake.
+        void StandSide(bool alongX,float front,float s,float edge,float into,int rows)
+        {
+            // edge: coordinate of the side face along the block; into: +1 / -1 = direction from the face into the aisle
+            float e0=into>0?edge:edge-.04f,e1=into>0?edge+.04f:edge;
+            void Side(Material m,float y0,float y1,float lo,float hi,float extra=0f)
+            {
+                float f0=into>0?e0:e0-extra,f1=into>0?e1+extra:e1;
+                if(alongX)BoxMinMax(m,f0,f1,y0,y1,lo,hi,false);else BoxMinMax(m,lo,hi,y0,y1,f0,f1,false);
+            }
+            Vector3 At(float along,float y)=>alongX?new Vector3(edge+into*.10f,y,along):new Vector3(along,y,edge+into*.10f);
+            for(int k=0;k<rows;k++)
+            {
+                float p0=front-s*k*1.05f,p1=front-s*(k+1)*1.05f,top=yF+.4f*(k+1),lo=Mathf.Min(p0,p1),hi=Mathf.Max(p0,p1);
+                Side(wallGranite,yF,Mathf.Min(top,StandStoneTop),lo,hi);
+                if(top>StandStoneTop+.06f)Side(walnut,StandStoneTop+.06f,top,lo,hi);
+                Side(interiorGold,top-.035f,top+.012f,lo,hi,.012f);                       // gold edge of the tread
+                Side(interiorGold,top-.4f,top,Mathf.Min(p0,p0-s*.03f),Mathf.Max(p0,p0-s*.03f),.012f);  // and of the riser
+                // handrail post on every row and the raked rail to the next one
+                var foot=At(p0-s*.525f,top);var head=foot+Vector3.up*.95f;
+                W.Rura(interiorGold,foot,head,.022f,8);
+                if(k+1<rows)W.Rura(interiorGold,head,head+new Vector3(alongX?0f:-s*1.05f,.4f,alongX?-s*1.05f:0f),.026f,8);
+            }
+            float backP=front-s*rows*1.05f;
+            Side(warmLine,StandStoneTop,StandStoneTop+.06f,Mathf.Min(front-s*1.05f*2f,backP),Mathf.Max(front-s*1.05f*2f,backP),.012f);
         }
         // Owner 9.11: "the stands must join at the corners". The long sides
         // (front line x=cx±24) and the ends (front line z=cz±15) now meet in a
@@ -271,6 +346,12 @@ public static class BraxChampionsArena
             Stand(true,cz-EndFront,1,interval.x,interval.y,Rows);
             Stand(true,cz+EndFront,-1,interval.x,interval.y,Rows);
         }
+        // Both 6 m centre aisles (public entrance and fighters' walk): the four tall stand sides.
+        foreach(float side in new[]{-1f,1f})
+        {
+            StandSide(true,cz-EndFront,1,cx+side*3f,-side,Rows);
+            StandSide(true,cz+EndFront,-1,cx+side*3f,-side,Rows);
+        }
         int cornerSeats=0;
         foreach(float sx in new[]{-1f,1f})
             foreach(float sz in new[]{-1f,1f})
@@ -290,6 +371,15 @@ public static class BraxChampionsArena
                         float chord=2f*r1*Mathf.Sin(step*.5f*Mathf.Deg2Rad)+.02f;
                         var q=Quaternion.LookRotation(d,Vector3.up);
                         W.OBox(tier,c+d*rm+Vector3.up*(top*.5f),new Vector3(chord,top,RowDepth),q,true);
+                        if(k==Rows-1)
+                        {
+                            // curved back of the corner bowl: same stone / light line / walnut / gold cap as the straight blocks
+                            float bc=2f*(r1+.04f)*Mathf.Sin(step*.5f*Mathf.Deg2Rad)+.02f;var at=c+d*(r1+.02f);
+                            W.OBox(wallGranite,at+Vector3.up*((yF+StandStoneTop)*.5f),new Vector3(bc,StandStoneTop-yF,.04f),q,false);
+                            W.OBox(warmLine,at+d*.006f+Vector3.up*(StandStoneTop+.03f),new Vector3(bc,.06f,.052f),q,false);
+                            W.OBox(walnut,at+Vector3.up*((StandStoneTop+.06f+top)*.5f),new Vector3(bc,top-StandStoneTop-.06f,.04f),q,false);
+                            W.OBox(interiorGold,at+d*.015f+Vector3.up*(top+.025f),new Vector3(bc,.05f,.07f),q,false);
+                        }
                         if(k>0)
                         {
                             // Aluminium nosing on the front (inner) edge of the step.
@@ -461,6 +551,90 @@ public static class BraxChampionsArena
             m=BraxChampionsFoundation.SourceMaterial(id,"granite_tile",1.1f,color);
         else m=BraxChampionsFoundation.SourceMaterial(id,"granite_tile_02",1.5f,color);
         materials.Add(name,m);return m;
+    }
+    // Warm 3000 K light line (emissive only: no realtime lamp, no shadow pass).
+    static Material WarmLine()
+    {
+        const string id="Arena warm architectural light line";
+        if(materials.TryGetValue(id,out var existing))return existing;
+        var shader=Shader.Find(BraxCityMaterials.ShaderName);
+        if(!shader)throw new InvalidOperationException("Original CityStaticPBR shader missing");
+        var m=new Material(shader){name=id,enableInstancing=true};
+        m.SetColor("_Color",new Color(.95f,.80f,.56f));
+        m.SetColor("_EmissionColor",new Color(1.10f,.80f,.44f));
+        m.SetFloat("_Roughness",.40f);m.SetFloat("_Metallic",0);m.SetFloat("_VertexTint",0);
+        m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        AssetDatabase.CreateAsset(m,Out+"/arena_warm_light_line.mat");
+        materials.Add(id,m);
+        return m;
+    }
+    // Designed ceiling under the roof slab: black acoustic field, smoked-walnut beams in a 10 x 11.7 m grid with a
+    // warm light line and a gold bead under every beam, and a lit ring over the octagon.
+    static void HallCeiling(float X0,float X1,float Z0,float Z1,float cx,float cz,Material acoustic,Material walnut,Material line,Material gold)
+    {
+        float y1=CeilingY,y0=CeilingY-CeilingBeamDrop;
+        BoxMinMax(acoustic,X0,X1,y1,y1+.04f,Z0,Z1,false,true);
+        int beams=0;
+        for(int i=-5;i<=5;i++)
+        {
+            float x=cx+i*10f;
+            BoxMinMax(walnut,x-.35f,x+.35f,y0,y1,Z0,Z1,false,true);
+            BoxMinMax(line,x-.07f,x+.07f,y0-.02f,y0,Z0+.4f,Z1-.4f,false);
+            foreach(float e in new[]{-.33f,.33f})BoxMinMax(gold,x+e-.015f,x+e+.015f,y0-.012f,y0,Z0,Z1,false);
+            beams++;
+        }
+        foreach(float dz in new[]{-23.33f,-11.67f,11.67f,23.33f})
+        {
+            float z=cz+dz;
+            BoxMinMax(walnut,X0,X1,y0+.10f,y1,z-.35f,z+.35f,false,true);
+            BoxMinMax(line,X0+.4f,X1-.4f,y0+.08f,y0+.10f,z-.07f,z+.07f,false);
+            beams++;
+        }
+        // Light ring over the cage: 32 straight pieces on a 9 m radius, hung under the beams.
+        const int n=32;const float r=9f;
+        for(int i=0;i<n;i++)
+        {
+            float a0=2f*Mathf.PI*i/n,a1=2f*Mathf.PI*(i+1)/n,am=(a0+a1)*.5f;
+            var mid=new Vector3(cx+r*Mathf.Cos(am),y0-.20f,cz+r*Mathf.Sin(am));
+            float len=2f*r*Mathf.Sin(Mathf.PI/n)+.02f;
+            var q=Quaternion.Euler(0,-am*Mathf.Rad2Deg,0);
+            W.OBox(gold,mid,new Vector3(.34f,.16f,len),q,false);
+            W.OBox(line,mid+Vector3.down*.085f,new Vector3(.24f,.02f,len),q,false);
+        }
+        foreach(float a in new[]{45f,135f,225f,315f})
+        {
+            var p=new Vector3(cx+r*Mathf.Cos(a*Mathf.Deg2Rad),y0-.12f,cz+r*Mathf.Sin(a*Mathf.Deg2Rad));
+            W.Rura(gold,p,new Vector3(p.x,y1,p.z),.03f,8);
+        }
+        Debug.Log("A1_HALL_CEILING acoustic=black_fabric y="+CeilingY+" walnutBeams="+beams+" lightLines="+beams+" ring=r9_32seg roofUnderside=26.885 realtimeLights=0");
+    }
+    // Lobby face of the hall front wall (was a bare concrete box behind the 80 m print): polished black marble in
+    // 3 m slabs, gold skirting and inlay lines, a warm light slot either side of the doorway. The owner's mural
+    // hangs on it WHOLE above the door (BraxChampionsArenaMural), the belt beside the door.
+    public const float LobbyMarbleDepth=.025f;
+    static void LobbyWallMarble(float X0,float X1,float Z1,float yF,float dA,float dB,float dH,Material marble,Material gold,Material line)
+    {
+        float z0=FrontWallLobbyFaceZ,z1=z0+LobbyMarbleDepth,top=BraxChampionsArenaMural.LobbyRoofUndersideBowlY;
+        BoxMinMax(marble,X0,dA,yF,top,z0,z1,false);BoxMinMax(marble,dB,X1,yF,top,z0,z1,false);
+        BoxMinMax(marble,dA,dB,dH,top,z0,z1,false);
+        foreach(var (a0,a1) in new[]{(X0,dA-.20f),(dB+.20f,X1)})
+            BoxMinMax(gold,a0,a1,yF,yF+.14f,z1,z1+.012f,false);                    // gold skirting
+        int inlays=0;
+        for(float x=X0+6f;x<X1-1f;x+=6f)
+        {
+            if(x>dA-1.2f&&x<dB+1.2f)continue;                                      // clear of the portal
+            if(x>BraxChampionsArenaMural.FrameLeft-.4f&&x<BraxChampionsArenaMural.FrameRight+.4f)
+            {
+                // under and over the framed mural only
+                BoxMinMax(gold,x-.012f,x+.012f,yF+.14f,BraxChampionsArenaMural.FrameBottom-.25f,z1,z1+.008f,false);
+                BoxMinMax(gold,x-.012f,x+.012f,BraxChampionsArenaMural.FrameTop+.25f,top,z1,z1+.008f,false);
+            }
+            else BoxMinMax(gold,x-.012f,x+.012f,yF+.14f,top,z1,z1+.008f,false);
+            inlays++;
+        }
+        foreach(float x in new[]{dA-1.05f,dB+1.05f})
+            BoxMinMax(line,x-.035f,x+.035f,yF+.30f,dH+.20f,z1,z1+.014f,false);     // light slots beside the doorway
+        Debug.Log("A1_LOBBY_WALL_MARBLE Marble016 slabs=3m depth="+LobbyMarbleDepth+" goldInlays="+inlays+" lightSlots=2 doorClear=4.10x4.20");
     }
     static Material LedDiffuser()
     {

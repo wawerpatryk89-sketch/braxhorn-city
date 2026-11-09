@@ -10,7 +10,8 @@ using W = BraxWnetrzaKit;
 // Nominal metres, K applied once by B()/BeveledBox() or by the K-scaled group.
 public static partial class BraxChampionsCasinoT11
 {
-    const bool RoofDollarOnOwnerBoard = false;
+    // Owner 10.11 00:33: "A gdzie jest ten dolar złoty, co był taki duży na kasynie u góry? Czemu go nie ma teraz?" - back on the roof.
+    const bool RoofDollarOnOwnerBoard = true;
     // Elevation levels (nominal metres).
     const float YPlinth = .80f, YSpanBottom = 6.60f, YSpanTop = 7.60f, YHead = 12.0f, YAttic = 14.0f;
     const float PierW = 1.4f, CornerPierW = 2.0f, PierDepth = .62f, GlassRecess = .44f;
@@ -43,11 +44,14 @@ public static partial class BraxChampionsCasinoT11
         }
         foreach (float y in new[] { YPlinth + .05f, YSpanBottom, YSpanTop, YHead - .05f })
             Box(trim, "T11 " + side + " black window transom", windowFrame, c, y, glass + outward * .02f, Size(w, .10f, .14f), false);
-        // Lit interior read through the glass: warm backdrop 1.05 m inside and
-        // two warm ceiling light lines (no empty void behind the windows).
-        Box(shell, "T11 " + side + " interior warm backdrop", interiorBack, c, (YPlinth + YHead) * .5f, glass - outward * 1.05f, Size(w, YHead - YPlinth, .10f), false);
+        // 10.11: no board behind the glass any more. Every window looks into the real casino hall
+        // (BraxChampionsCasinoT11.CasinoHall); two warm light lines stay at the window heads.
         foreach (float y in new[] { YSpanBottom - .15f, YHead - .15f })
             Box(trim, "T11 " + side + " interior warm ceiling light", led, c, y, glass - outward * .55f, Size(w - .12f, .05f, .50f), false);
+        // Ivory curtains drawn to both sides of each storey (lit windows of a palace, not empty glowing boards).
+        foreach (var (y0, y1) in new[] { (YPlinth + .10f, YSpanBottom - .22f), (YSpanTop + .05f, YHead - .22f) })
+            foreach (float e in new[] { -1f, 1f })
+                Box(trim, "T11 " + side + " ivory window curtain", curtain, c + e * (w * .5f - .50f), (y0 + y1) * .5f, glass - outward * .42f, Size(.86f, y1 - y0, .08f), false);
     }
 
     static void CreamPier(string name, float along, float w, bool alongX, float facePlane, float outward, float y0, float y1)
@@ -158,11 +162,13 @@ public static partial class BraxChampionsCasinoT11
                     new Vector3(4.2f * Mathf.Cos(a1), 10.74f, -31f + 4.2f * Mathf.Sin(a1)), .035f, 6, false);
             }
             // Back wall (graphite) with violet light strips and a gold portal to the gaming floor.
-            W.MM(graphite, -16.875f, 16.875f, .20f, 13.9f, -24.2f, -24.0f, true);
+            // 10.11: the back wall is OPEN: a real 6 x 4.5 m portal into the casino hall (was a painted board).
+            W.MM(graphite, -16.875f, -PortalHalf, .20f, 13.9f, -24.2f, -24.0f, true);
+            W.MM(graphite, PortalHalf, 16.875f, .20f, 13.9f, -24.2f, -24.0f, true);
+            W.MM(graphite, -PortalHalf, PortalHalf, PortalTop, 13.9f, -24.2f, -24.0f, true);
             foreach (float x in new[] { -13.5f, -8.5f, -3.9f, 3.9f, 8.5f, 13.5f })
                 W.MM(violet, x - .06f, x + .06f, 1.0f, 10.4f, -24.24f, -24.2f);
-            W.MM(interiorBack, -3f, 3f, .215f, 4.5f, -24.23f, -24.2f);
-            W.MM(violet, -2.6f, 2.6f, 4.0f, 4.1f, -24.25f, -24.23f);
+            W.MM(violet, -2.6f, 2.6f, 4.80f, 4.90f, -24.25f, -24.2f);
             foreach (float x in new[] { -3.08f, 3.08f }) W.MM(gold, x - .08f, x + .08f, .215f, 4.66f, -24.30f, -24.2f);
             W.MM(gold, -3.16f, 3.16f, 4.5f, 4.66f, -24.30f, -24.2f);
             // Side returns closing the lobby against the empty podium.

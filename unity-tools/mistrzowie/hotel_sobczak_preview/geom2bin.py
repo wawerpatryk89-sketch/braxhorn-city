@@ -15,6 +15,17 @@ import numpy as np
 TEMPLATE = "HOTEL SOBCZAK | GUEST FLOOR TEMPLATE"
 
 
+def texture_of(name):
+    """'id|slug|metres' (a textured material) -> (slug, metres); anything else -> (None, 1)."""
+    parts = (name[5:] if name.startswith("mesh:") else name).split("|")
+    if len(parts) == 3:
+        try:
+            return parts[1], float(parts[2])
+        except ValueError:
+            pass
+    return None, 1.0
+
+
 def planar(v, n):
     ax, ay, az = abs(n[0]), abs(n[1]), abs(n[2])
     if ay >= ax and ay >= az:
@@ -40,9 +51,7 @@ def main(src, out, ground=None):
         n = np.cross(v[1] - v[0], v[2] - v[0])
         if np.linalg.norm(n) < 1e-9:
             n = np.cross(v[2] - v[0], v[3] - v[0])
-        parts = m.split("|")
-        tile = float(parts[2]) if len(parts) == 3 else 1.0
-        uv = planar(v, n) / tile
+        uv = np.array(q[15:23], np.float32).reshape(4, 2) if len(q) >= 23 else planar(v, n) / texture_of(m)[1]   # W.QuadUV: the quad's own UVs
         T = np.stack([v[[0, 1, 2]], v[[0, 2, 3]]]); U = np.stack([uv[[0, 1, 2]], uv[[0, 2, 3]]])
         leaf = g.split(" >> ")[-1]
         if g.startswith(TEMPLATE):
@@ -57,7 +66,7 @@ def main(src, out, ground=None):
         p = np.array(verts, np.float32).reshape(-1, 3); t = np.array(tri, int).reshape(-1, 3)
         if not len(t):
             continue
-        P = p[t]; parts = m.split("|"); tile = float(parts[2]) if len(parts) == 3 else 1.0
+        P = p[t]; tile = texture_of(m)[1]
         if len(entry) > 4:                      # a picture (sign, mural): the mesh's own UVs
             U = np.array(entry[4], np.float32).reshape(-1, 2)[t]
         else:                                   # metre-planar UVs per triangle, like the W kit and the casino's Tile()
@@ -73,8 +82,7 @@ def main(src, out, ground=None):
     for i, (m, (ts, us)) in enumerate(groups.items()):
         T = np.concatenate(ts); U = np.concatenate(us)
         T.tofile(out / f"m{i}_pos.bin"); U.tofile(out / f"m{i}_uv.bin")
-        parts = m.split("|")
-        slug = parts[1] if len(parts) == 3 else None
+        slug = texture_of(m)[0]
         c = colours.get(m, [1, 1, 1, 1]) if not m.startswith("mesh:") else colours.get(m[5:], [1, 1, 1, 1])
         amb = ambient.get(m[5:] if m.startswith("mesh:") else m, [.60, .68, .78, .42, .40, .36, .65])
         mats.append(dict(id=i, name=m, slug=slug, colour=c, ambient=amb, count=len(T), pbr=d.get("pbr", {}).get(m[5:] if m.startswith("mesh:") else m)))
@@ -84,13 +92,15 @@ def main(src, out, ground=None):
         floors = [2] if mo["template"] else [None]
         for f in floors:
             yy = y + (lv[f] if f is not None else 0)
-            models.append(dict(path=mo["path"].replace("Assets/Source/Mistrzowie/", ""), pos=[x, yy, -z], rotY=(180 - mo["yaw"]) * np.pi / 180))
+            models.append(dict(path=mo["path"].replace("Assets/Source/Mistrzowie/", ""), pos=[x, yy, -z], rotY=(180 - mo["yaw"]) * np.pi / 180,
+                               scale=mo.get("scale", 1), material=mo.get("material")))
     lights = []
     for x, y, z, rng, inten, tmpl in d.get("lights", []):
         if tmpl:
             y += lv[2]
         lights.append([x, y, -z, rng, inten])
-    json.dump(dict(materials=mats, models=models, lights=lights, ground=ground), open(out / "scene.json", "w"))
+    palms = [[x, y, -z] for x, y, z in d.get("palms", [])]
+    json.dump(dict(materials=mats, models=models, lights=lights, ground=ground, palms=palms), open(out / "scene.json", "w"))
     print("materials", len(mats), "triangles", sum(m["count"] for m in mats), "models", len(models), "lights", len(lights),
           "textured", sum(1 for m in mats if m["slug"]))
 

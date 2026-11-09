@@ -31,29 +31,29 @@ class PremiumReferenceRegressions(unittest.TestCase):
     def test_entrance_print_is_in_front_of_lobby_wall(self):
         text = source('BraxChampionsArenaMural.cs')
         arena = source('BraxChampionsArena.cs')
-        # 9.11 owner: the front wall is a real structural wall. The print sits
-        # 3 cm in front of its LOBBY face, wherever the wall depth puts it.
-        self.assertIn('WallImageZ=BraxChampionsArena.FrontWallLobbyFaceZ+.03f', text)
+        # 9.11 owner: the front wall is a real structural wall, clad in black marble on its lobby face
+        # (23:43). The print panel stands 4.5 cm in front of the marble.
+        self.assertIn('WallImageZ=BraxChampionsArena.FrontWallLobbyFaceZ+BraxChampionsArena.LobbyMarbleDepth+.045f', text)
         thickness = float(re.search(r'WallThickness=([\d.]+)f;', arena).group(1))
         self.assertIn('FrontWallLobbyFaceZ=98.3f-.045f+WallThickness', arena)
         self.assertGreaterEqual(thickness, .30)
         z = 98.3 - .045 + thickness + .03
         self.assertGreater(z, 98.3)
-        self.assertRegex(text, r'mesh\.triangles\s*=\s*new\[\]\s*\{0,2,1,0,3,2\}')
-        # v0 -> v2 -> v1 has +Z normal, towards the lobby in original bowl space.
-        a, b = (82, 27.33333333, 0), (0, 27.33333333, 0)
-        self.assertGreater(a[0] * b[1] - a[1] * b[0], 0)
+        # The print faces the lobby (+Z in bowl space); the winding is chosen from that normal.
+        self.assertIn('Vector3.left,Vector3.forward,MuralWidth,MuralHeight,out _);', text)
+        printer = source('BraxChampionsArenaMuralPrint.cs')
+        self.assertIn('bool flip=Vector3.Dot(Vector3.Cross(tl-bl,tr-bl),facing)<0;', printer)
 
     def test_entrance_uv_is_readable_from_lobby_and_keeps_aspect(self):
         text = source('BraxChampionsArenaMural.cs')
-        self.assertIn('(ImageRight-x)/(ImageRight-ImageLeft)', text)
-        left, right = constant(text, 'ImageLeft'), constant(text, 'ImageRight')
-        bottom, top = constant(text, 'MuralBase'), constant(text, 'MuralTop')
-        self.assertAlmostEqual((right-left)/(top-bottom), 3.0, places=6)
-        self.assertIn('if(x1<=ImageLeft)u0=u1=.998f', text)
-        self.assertIn('else if(x0>=ImageRight)u0=u1=.002f', text)
+        # Owner 9.11 23:43 "Mural jest ucięty": the WHOLE 3:1 picture above the doorway, no door cut-out,
+        # viewer-right = -X (not mirrored), no edge-colour extensions.
+        width, height = field(text, 'MuralWidth'), field(text, 'MuralHeight')
+        self.assertAlmostEqual(width / height, 3.0, places=6)
+        self.assertGreater(field(text, 'MuralBottom'), 4.20 + .18 + .16)      # above the door and its gold portal
         self.assertAlmostEqual(constant(text, 'DoorRight') - constant(text, 'DoorLeft'), 4.10)
-        self.assertIn('DoorLeft,DoorRight,DoorTop,MuralTop,false', text)
+        self.assertIn('new Vector3(cx+MuralWidth*.5f,MuralBottom,WallImageZ),Vector3.left,Vector3.forward', text)
+        self.assertNotIn('AddSegment(', text)
 
     def test_entrance_mural_top_is_below_lobby_roof_underside(self):
         # Owner 9.11: entrance mural was cut at the top by the lobby roof.
@@ -63,9 +63,11 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertIsNotNone(m)
         underside = float(m.group(1)) - float(m.group(2))
         bowl_raise = .22 - .055
-        top = constant(text, 'MuralTop') + bowl_raise
+        top = field(text, 'MuralBottom') + field(text, 'MuralHeight') + .16 + bowl_raise
         self.assertLess(top, underside - .05)
-        self.assertGreater(top, underside - .20)
+        # ... and under the sight line from the entrance doors past the mezzanine edge (slab underside
+        # 11.28 m, hall-side edge 12.9 m from the doors, wall 22.1 m away, eye 1.8 m): about 18 m.
+        self.assertLess(top, 1.8 + (11.28 - 1.8) / 12.9 * 22.1 + .2)
         self.assertNotIn('AddComponent<BoxCollider>', text)
         self.assertNotIn('AddComponent<MeshCollider>', text)
 
@@ -89,7 +91,7 @@ class PremiumReferenceRegressions(unittest.TestCase):
     def test_case_is_owner_photo_vitrine_and_has_no_old_backplate(self):
         text = source('BraxChampionsBeltShowcase.cs')
         for marker in (
-            '"A1 VITRINE | black marble pillar"',
+            '"A1 VITRINE | wall back panel"',
             '"A1 VITRINE | FRONT glass"',
             '"A1 VITRINE | plaque shelf glass"',
             '"A1 VITRINE | brass side bracket"',
@@ -108,7 +110,7 @@ class PremiumReferenceRegressions(unittest.TestCase):
         # Owner 9.11: "po co ta deska obok" - no slat board, no twig planter.
         self.assertNotIn('bronze slat', text)
         self.assertNotIn('cylinder planter', text)
-        # Mounted on the hall wall, 5 mm in front of the entrance mural print.
+        # Hung on the marble hall wall (owner 9.11 23:43: no pillar), 5 mm in front of the marble.
         self.assertIn('LobbyZ=WallMuralFaceZ-PylonD-.005f', text)
         self.assertIn('o.transform.localRotation=Quaternion.Euler(0,180f,0);', text)
         # Black marble with white veins (photo); Poly Haven has none.
@@ -135,8 +137,9 @@ class PremiumReferenceRegressions(unittest.TestCase):
         belt = field(text, 'BeltLength')
         self.assertAlmostEqual(belt, 1.27, places=2)  # UFC Legacy belt, 50 in
         mm_per_px = belt / 962
-        for name, px in (('CaseW', 478), ('CaseH', 1358), ('CaseBottom', 140),
-                         ('ShelfAbove', 213), ('PylonW', 801), ('PlaqueW', 347), ('PlaqueH', 135)):
+        # CaseBottom / PylonW are no longer photo values: the case hangs on the wall (owner 9.11 23:43).
+        for name, px in (('CaseW', 478), ('CaseH', 1358),
+                         ('ShelfAbove', 213), ('PlaqueW', 347), ('PlaqueH', 135)):
             with self.subTest(name=name):
                 self.assertAlmostEqual(field(text, name), px * mm_per_px, delta=.01)
         # The hung belt fits inside the case above the shelf.
@@ -145,7 +148,8 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertIn('float beltCentreY=CaseBottom+.32f+BeltLength*.5f;', text)
         self.assertGreater(bottom + .32, bottom + shelf)
         self.assertLess(bottom + .32 + belt, bottom + h - .08)
-        self.assertLess(field(text, 'CaseD'), field(text, 'PylonD') + .01)
+        self.assertAlmostEqual(bottom, .95, places=2)              # belt centre at eye level
+        self.assertLess(field(text, 'PylonD'), .08)                # a thin back panel, not a pillar
         # Everything is real metres scaled by K exactly once.
         self.assertIn('display.localScale=Vector3.one*k;', text)
 

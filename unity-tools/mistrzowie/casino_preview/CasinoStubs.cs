@@ -8,8 +8,4 @@ public static class BraxChampionsCasinoPbr2K
     public static Material Create(string output, string id, string slug, float metres, Color tint)
         => new Material { name = id + "|" + slug + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true, roughness = .6f };
 }
-namespace UnityEngine
-{
-    public class Texture2D : Texture { public int width = 2048, height = 512; }
-}
 public sealed class BraxCityDoor : MonoBehaviour { public string id, label; public Transform[] leaves; public float[] sides; public float openAngle, range, speed; }

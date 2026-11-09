@@ -54,7 +54,8 @@ class CasinoVehicleAccessContract(unittest.TestCase):
             self.assertIn(label,self.casino)
         self.assertIn("roadTop+.004f,-43.8f",self.casino)
         self.assertIn("roadTop+.004f,-46.55f",self.casino)
-        self.assertIn("roadTop+.004f,-41.5f",self.casino)
+        # Owner 10.11 00:22: the six short zebra stripes beside the red carpet are removed.
+        self.assertNotIn("White zebra marking on asphalt",self.casino)
         self.assertIn('"Rear loading bay white line",parkingPaint',self.casino)
 
     def test_city_road_connector_is_continuous_and_gentle(self):

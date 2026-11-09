@@ -12,14 +12,26 @@ public static class MeshDump
 {
     static string F(float v) => v.ToString("0.####", CultureInfo.InvariantCulture);
     static string V(Vector3 v) => F(v.x) + "," + F(v.y) + "," + F(v.z);
+    // a generator may repaint a model (roof dollar): the preview then draws it in that material, not the file's own
+    static string Override(GameObject g)
+    {
+        var m = g.GetComponent<MeshRenderer>()?.sharedMaterial; if (m == null || m.name == "gltf") return "";
+        return ",\"material\":{\"colour\":[" + F(m.color.r) + "," + F(m.color.g) + "," + F(m.color.b) + "],\"metallic\":" + F(m.metallic) + ",\"roughness\":" + F(m.roughness) +
+            ",\"emission\":[" + F(m.emission.r) + "," + F(m.emission.g) + "," + F(m.emission.b) + "]}";
+    }
     // scale: world units per nominal metre (K when the generator multiplies positions by K itself)
     public static void Write(string file, Transform root, float scale, Func<GameObject, bool> skip = null)
     {
         var sb = new StringBuilder("{\"levels\":[0],\"quads\":[");
-        // W-kit quads are already recorded in root-local nominal metres
-        sb.Append(string.Join(",", Rec.Quads.Select(q => "[\"" + q.g.Replace("\"", "'") + "\",\"" + q.m + "\"," + (q.inside ? 1 : 0) + "," + string.Join(",", new[] { q.a, q.b, q.c, q.d }.Select(V)) + "]")));
+        // W-kit quads are recorded in their group's own frame: take them through the group's final transform
+        // (the group is hung under the building after it is written) into root-local nominal metres.
+        bool Under(Transform t) { for (; t != null; t = t.parent) if (t == root) return true; return false; }
+        Vector3 L(Rec.Q q, Vector3 p) => root.InverseTransformPoint(q.t.TransformPoint(p)) / scale;
+        var mine = Rec.Quads.Where(q => q.t != null && Under(q.t)).ToList();
+        sb.Append(string.Join(",", mine.Select(q => "[\"" + q.g.Replace("\"", "'") + "\",\"" + q.m + "\"," + (q.inside ? 1 : 0) + "," + string.Join(",", new[] { L(q, q.a), L(q, q.b), L(q, q.c), L(q, q.d) }.Select(V)) +
+            (q.hasUv ? "," + string.Join(",", new[] { q.ua, q.ub, q.uc, q.ud }.Select(u => F(u.x) + "," + F(u.y))) : "") + "]")));
         sb.Append("],\"meshes\":[");
-        var parts = new List<string>(); var mats = new Dictionary<string, Material>(Rec.Mats); int tris = 0, objects = 0;
+        var parts = new List<string>(); var mats = new Dictionary<string, Material>(); foreach (var q in mine) mats[q.m] = Rec.Mats[q.m]; int tris = 0, objects = 0;
         foreach (var mf in root.gameObject.GetComponentsInChildren<MeshFilter>(true))
         {
             var mr = mf.GetComponent<MeshRenderer>();
@@ -31,7 +43,21 @@ public static class MeshDump
             string uv = m.picture != null && mf.sharedMesh.uv != null && mf.sharedMesh.uv.Length == v.Length ? ",[" + string.Join(",", mf.sharedMesh.uv.Select(u => F(u.x) + "," + F(u.y))) + "]" : "";
             parts.Add("[\"" + mf.gameObject.name.Replace("\"", "'").Replace("\\", "/") + "\",\"" + m.name + "\",[" + string.Join(",", v.Select(V)) + "],[" + string.Join(",", tr) + "]" + uv + "]");
         }
-        sb.Append(string.Join(",", parts) + "],\"models\":[],\"colours\":{");
+        sb.Append(string.Join(",", parts) + "],\"models\":[");
+        // glTF models placed under the root (planters, lobby furniture): position, yaw and uniform scale
+        var models = new List<string>();
+        foreach (var g in GameObject.Registry.ToArray())
+        {
+            var pm = g.GetComponent<PreviewModel>(); if (pm == null || !Under(g.transform) || !(pm.path.EndsWith(".gltf") || (pm.path.EndsWith(".glb") && File.Exists(pm.path)))) continue;
+            var pos = root.InverseTransformPoint(g.transform.position) / scale;
+            var f = g.transform.rotation * Vector3.forward; float yaw = (float)(Math.Atan2(f.x, f.z) * 180 / Math.PI);
+            float size = g.transform.TransformVector(Vector3.up).magnitude / scale;   // nominal metres per model metre
+            models.Add("{\"path\":\"" + pm.path + "\",\"pos\":[" + V(pos) + "],\"yaw\":" + F(yaw) + ",\"scale\":" + F(size) + ",\"template\":false,\"name\":\"" + g.name.Replace("\"", "'") + "\"" + Override(g) + "}");
+        }
+        sb.Append(string.Join(",", models) + "],\"palms\":[");
+        // city palms (a model pack the preview does not have): positions only, drawn as plain stand-ins
+        sb.Append(string.Join(",", Rec.Palms.Select(p => root.InverseTransformPoint(p) / scale).Where(p => Math.Abs(p.x) < 220 && Math.Abs(p.z) < 220).Select(p => "[" + V(p) + "]")));
+        sb.Append("],\"colours\":{");
         sb.Append(string.Join(",", mats.Select(kv => "\"" + kv.Key + "\":[" + F(kv.Value.color.r) + "," + F(kv.Value.color.g) + "," + F(kv.Value.color.b) + "," + F(kv.Value.color.a) + "]")));
         sb.Append("},\"ambient\":{");
         sb.Append(string.Join(",", mats.Select(kv => "\"" + kv.Key + "\":[" + string.Join(",", new[] { kv.Value.sky.r, kv.Value.sky.g, kv.Value.sky.b, kv.Value.ground.r, kv.Value.ground.g, kv.Value.ground.b, kv.Value.ambient }.Select(F)) + "]")));
@@ -44,6 +70,6 @@ public static class MeshDump
         { var p = root.InverseTransformPoint(l.transform.position) / scale; lights.Add("[" + V(p) + "," + F(l.range / scale) + "," + F(l.intensity) + ",0]"); }
         sb.Append(string.Join(",", lights) + "]}");
         File.WriteAllText(file, sb.ToString());
-        Console.WriteLine("DUMP " + file + " objects=" + objects + " meshTris=" + tris + " materials=" + mats.Count + " lights=" + lights.Count);
+        Console.WriteLine("DUMP " + file + " quads=" + mine.Count + " objects=" + objects + " meshTris=" + tris + " models=" + models.Count + " materials=" + mats.Count + " lights=" + lights.Count);
     }
 }

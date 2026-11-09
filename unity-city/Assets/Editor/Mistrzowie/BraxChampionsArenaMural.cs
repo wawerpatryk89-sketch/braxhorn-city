@@ -17,34 +17,24 @@ public static class BraxChampionsArenaMural
     // Original arena-bowl LOCAL coordinates, before the unchanged 180-degree
     // placement by BraxChampionsArena.Generate. Exterior public entrance is at
     // global/local Z=-59; the inner wall faces the lobby at global Z=-35.
-    const float WallNearLeft=-146f;
-    const float WallNearRight=-26f;
-    // Owner 9.11 "mural na wejściu jest ucięty od góry": the lobby roof slab
-    // (build_exteriors.arena: top 27.35, 0.30 thick) has its UNDERSIDE at
-    // 27.05 in building space = 26.885 in this bowl space (bowl is raised by
-    // .22-.055). The old top 27.533 hid 0.65 m (0.84 m in game) of the image
-    // inside the roof: bull horn tips and dog ears. Top now ends 8.5 cm under
-    // the roof; width shrinks with it so the art stays exactly 3:1.
-    const float ImageLeft=-125.9f;
-    const float ImageRight=-46.1f;
+    // Owner 9.11 23:43: "Mural jest ucięty, ten pierwszy." The print covered 79.8 x 26.6 m of the wall: the doorway
+    // cut its bottom centre, the mezzanine (slab underside 11.28 m, 9 m in front of the wall) hid everything above
+    // ~40% from the lobby floor, the belt pillar stood in front of it. It could never be seen whole.
+    // Now the WHOLE picture, exactly 3:1, hangs above the doorway in a gold frame: 39.6 x 13.2 m, bottom 4.70 m
+    // (door top 4.20 + gold portal), top 17.90 m. From the entrance doors (22 m away) the sight line to its top
+    // passes under the mezzanine edge; nothing cuts it and nothing stands in front of it.
+    public const float MuralWidth=39.6f, MuralHeight=13.2f, MuralBottom=4.70f;
     const float DoorLeft=-88.05f;
     const float DoorRight=-83.95f;
     const float DoorTop=4.20f;
-    const float MuralBase=.20f;
-    const float MuralTop=26.80f;
+    public const float FrameLeft=(DoorLeft+DoorRight)*.5f-MuralWidth*.5f-BraxChampionsArenaMuralPrint.FrameBar;
+    public const float FrameRight=(DoorLeft+DoorRight)*.5f+MuralWidth*.5f+BraxChampionsArenaMuralPrint.FrameBar;
+    public const float FrameBottom=MuralBottom-BraxChampionsArenaMuralPrint.FrameBar;
+    public const float FrameTop=MuralBottom+MuralHeight+BraxChampionsArenaMuralPrint.FrameBar;
     public const float LobbyRoofUndersideBowlY=27.35f-.30f-(.22f-.055f);
-    // Public lobby is on local +Z. The existing wall/cladding ends at Z=98.3.
-    // Keep the printed surface on its LOBBY side, not hidden behind the cladding.
-    // 9.11: the front wall is a real 45 cm structural wall (owner: "too thin");
-    // the print stays 3 cm in front of its NEW lobby face.
-    const float WallImageZ=BraxChampionsArena.FrontWallLobbyFaceZ+.03f;
-    // World scene image aspect stays 1536:512 (3:1) at 79.8:26.6 m.
-    // The 19m peripheral sections extend the existing artwork's EDGE COLOUR
-    // rather than stretching any fighter, emblem or lettering.
-    // From the lobby (looking toward local -Z), viewer-right is local -X.
-    // Reverse only the UV direction: the owner image must not read as a mirror.
-    static float U(float x) => Mathf.Clamp01((ImageRight-x)/(ImageRight-ImageLeft));
-    static float V(float y) => Mathf.Clamp01((y-MuralBase)/(MuralTop-MuralBase));
+    // Public lobby is on local +Z. The front wall is a real 45 cm structural wall clad in black marble on its
+    // lobby face (BraxChampionsArena.LobbyWallMarble); the print panel stands 4.5 cm in front of the marble.
+    public const float WallImageZ=BraxChampionsArena.FrontWallLobbyFaceZ+BraxChampionsArena.LobbyMarbleDepth+.045f;
 
     static GameObject RoundedPanel(Transform parent,string name,Material material,
         Vector3 center,Vector2 size,float depth,float radius)
@@ -110,6 +100,7 @@ public static class BraxChampionsArenaMural
         gold.SetColor("_Color",new Color(.835f,.639f,.231f));
         gold.SetFloat("_Metallic",.98f);gold.SetFloat("_Roughness",.19f);
         gold.SetFloat("_VertexTint",0f);gold.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        BraxChampionsGold.Apply(gold);
         AssetDatabase.CreateAsset(gold,Output+"/A1_entrance_portal_clean_gold.mat");
         var warm=AssetDatabase.LoadAssetAtPath<Material>(
             "Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/light.mat");
@@ -135,123 +126,38 @@ public static class BraxChampionsArenaMural
     }
 
 
-    static void AddSegment(Transform parent,Material mural,
-        string name,float x0,float x1,float y0,float y1,bool extension)
-    {
-        if(x1<=x0||y1<=y0)throw new ArgumentOutOfRangeException(name);
-        float u0=U(x0),u1=U(x1);
-        // Sample exactly one edge column over the monochrome side extensions.
-        // The original 82-metre artwork is not cropped, stretched, or recoloured.
-        if(extension)
-        {
-            if(x1<=ImageLeft)u0=u1=.998f;
-            else if(x0>=ImageRight)u0=u1=.002f;
-        }
-        var mesh=new Mesh{name=name+" | original panoramic UV panel"};
-        mesh.vertices=new[]{
-            new Vector3(x0,y0,WallImageZ),
-            new Vector3(x0,y1,WallImageZ),
-            new Vector3(x1,y1,WallImageZ),
-            new Vector3(x1,y0,WallImageZ)
-        };
-        // Normal must face local +Z, toward the public lobby, before bowl rotation.
-        mesh.uv=new[]{
-            new Vector2(u0,V(y0)),new Vector2(u0,V(y1)),
-            new Vector2(u1,V(y1)),new Vector2(u1,V(y0))
-        };
-        mesh.triangles=new[]{0,2,1,0,3,2};
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
-        mesh.RecalculateUVDistributionMetrics();
-        string safe=name.Replace(' ','_').Replace('|','_');
-        AssetDatabase.CreateAsset(mesh,Output+"/"+safe+".asset");
-        var go=new GameObject(name);
-        go.transform.SetParent(parent,false);
-        go.AddComponent<MeshFilter>().sharedMesh=mesh;
-        var renderer=go.AddComponent<MeshRenderer>();
-        renderer.sharedMaterial=mural;
-        renderer.shadowCastingMode=ShadowCastingMode.Off;
-        renderer.receiveShadows=false;
-        // Murals are PRINTED SURFACES, not replacement walls/colliders.
-        // The real doorway and structural collision stay exactly unchanged.
-        GameObjectUtility.SetStaticEditorFlags(go,StaticEditorFlags.OccludeeStatic);
-    }
-
     public static bool Generate(Transform originalBowlRoot)
     {
         if(!originalBowlRoot)throw new ArgumentNullException(nameof(originalBowlRoot));
-        const bool hd=true;
-        string source=HdImage;
-        if(!File.Exists(source))
+        if(!File.Exists(HdImage))
         {
-            BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: required owner HD source missing: "+source+
+            BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: required owner HD source missing: "+HdImage+
                 "; NO FALLBACK and NO substitute image permitted");
             return false;
         }
-        AssetDatabase.ImportAsset(source,ImportAssetOptions.ForceSynchronousImport);
-        var image=AssetDatabase.LoadAssetAtPath<Texture2D>(source);
-        if(!image)
-        {
-            BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: Unity did not import required owner HD source: "+source);
-            return false;
-        }
-        var importer=AssetImporter.GetAtPath(source) as TextureImporter;
-        if(!importer)throw new InvalidDataException("A1 original mural image has no texture importer");
-        importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
-        if(sourceWidth!=6144||sourceHeight!=2048||sourceWidth!=sourceHeight*3)
-        {
-            BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: required source must remain exact 6144x2048 3:1, got "+
-                sourceWidth+"x"+sourceHeight);
-            return false;
-        }
-        bool importerDirty=false;
-        if(importer.maxTextureSize!=8192){importer.maxTextureSize=8192;importerDirty=true;}
-        if(!importer.mipmapEnabled){importer.mipmapEnabled=true;importerDirty=true;}
-        if(importer.streamingMipmaps){importer.streamingMipmaps=false;importerDirty=true;} // always full resolution
-        if(importer.wrapMode!=TextureWrapMode.Clamp){importer.wrapMode=TextureWrapMode.Clamp;importerDirty=true;}
-        if(importer.filterMode!=FilterMode.Trilinear){importer.filterMode=FilterMode.Trilinear;importerDirty=true;}
-        if(importer.anisoLevel!=4){importer.anisoLevel=4;importerDirty=true;}
-        var android=importer.GetPlatformTextureSettings("Android");
-        if(!android.overridden||android.maxTextureSize!=8192||
-           android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=100)
-        {
-            android.overridden=true;android.maxTextureSize=8192;
-            android.format=TextureImporterFormat.ASTC_4x4;android.compressionQuality=100;
-            importer.SetPlatformTextureSettings(android);importerDirty=true;
-        }
-        if(importerDirty){importer.SaveAndReimport();image=AssetDatabase.LoadAssetAtPath<Texture2D>(source);}
-        if(!image)return false;
-
         Directory.CreateDirectory(Output);
-        var shader=Shader.Find(BraxCityMaterials.ShaderName);
-        if(!shader)throw new InvalidOperationException("Original CityStaticPBR shader unavailable");
-        var m=new Material(shader){name="A1 | owner's ORIGINAL CHAMPION FIGHTER mural",enableInstancing=true};
-        m.SetTexture("_MainTex",image);
-        m.SetTexture("_EmissionMap",image);
-        m.SetColor("_Color",Color.white);
-        m.SetColor("_EmissionColor",new Color(.27f,.27f,.27f));
-        m.SetFloat("_Roughness",.89f);
-        m.SetFloat("_Metallic",0);
-        m.SetFloat("_VertexTint",0);
-        m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
-        AssetDatabase.CreateAsset(m,Output+"/OwnerOriginalChampionFighter.mat");
-
-        var walls=new GameObject("A1 | MURAL CHAMPION FIGHTER BRAXHORN - entire wall, door cutout").transform;
+        var walls=new GameObject("A1 | MURAL CHAMPION FIGHTER BRAXHORN - whole picture above the entrance").transform;
         walls.SetParent(originalBowlRoot,false);
-        // Cover the complete 120m width of the original wall. Keep the central
-        // art at its exact 3:1 ratio and use nonfigural image-edge colour outside.
-        AddSegment(walls,m,"Far left atmospheric edge",WallNearLeft,ImageLeft,MuralBase,MuralTop,true);
-        AddSegment(walls,m,"Original mural left of entry",ImageLeft,DoorLeft,MuralBase,MuralTop,false);
-        AddSegment(walls,m,"Original mural ABOVE doorway",DoorLeft,DoorRight,DoorTop,MuralTop,false);
-        AddSegment(walls,m,"Original mural right of entry",DoorRight,ImageRight,MuralBase,MuralTop,false);
-        AddSegment(walls,m,"Far right atmospheric edge",ImageRight,WallNearRight,MuralBase,MuralTop,true);
+        float cx=(DoorLeft+DoorRight)*.5f;
+        // From the lobby (looking toward local -Z) viewer-right is local -X: the picture is not mirrored.
+        int hung=BraxChampionsArenaMuralPrint.Hang(walls,"A1 | MURAL CHAMPION FIGHTER | owner original 6144x2048","Entrance_ChampionFighter",
+            HdImage,new Vector3(cx+MuralWidth*.5f,MuralBottom,WallImageZ),Vector3.left,Vector3.forward,MuralWidth,MuralHeight,out _);
+        if(hung==0)
+        {
+            UnityEngine.Object.DestroyImmediate(walls.gameObject);
+            BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: Unity did not import the required owner HD source: "+HdImage);
+            return false;
+        }
+        BraxChampionsArenaMuralPrint.Frame(walls,"Entrance",new Vector3(cx,MuralBottom+MuralHeight*.5f,WallImageZ),
+            Vector3.left,Vector3.forward,MuralWidth,MuralHeight);
         PremiumEntrancePortal(walls);
-        if(MuralTop>=LobbyRoofUndersideBowlY)
-            BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: top "+MuralTop+" is inside the lobby roof (underside "+LobbyRoofUndersideBowlY+")");
+        if(FrameTop>=LobbyRoofUndersideBowlY||FrameBottom<=DoorTop+.18f)
+            BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: frame "+FrameBottom+".."+FrameTop+" must sit between the gold portal ("+
+                (DoorTop+.18f)+") and the lobby roof ("+LobbyRoofUndersideBowlY+")");
         Debug.Log("ENTRANCE_MURAL = PASS");
-        Debug.Log("CHAMPION_A1_MURAL_ORIGINAL_APPLIED hd="+hd+" source="+source+
-                  " sourcePixels="+sourceWidth+"x"+sourceHeight+
-                  " wall=120m mural=79.8x26.6m top="+MuralTop+" roofUnderside="+LobbyRoofUndersideBowlY+" visibleArea=2105.47m2"+
+        Debug.Log("CHAMPION_A1_MURAL_ORIGINAL_APPLIED hd=true source="+HdImage+" sourcePixels=6144x2048 panels="+hung+
+                  " mural="+MuralWidth+"x"+MuralHeight+"m bottom="+MuralBottom+" top="+(MuralBottom+MuralHeight)+
+                  " WHOLE_ABOVE_DOOR=true doorCut=false frame=gold backlit=true roofUnderside="+LobbyRoofUndersideBowlY+
                   " door=4.10x4.20m open noMirror=true noStretch=true sourcePixelsUnmodified=true");
         return true;
     }

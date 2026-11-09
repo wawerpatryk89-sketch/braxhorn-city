@@ -379,6 +379,9 @@ jobs:
           python3 unity-tools/mistrzowie/build_sobczak_sign.py
           # Owner 9.11: casino T11 gold 3D signs KASYNO WAWER + PARKING (CasinoWawerSign.bytes).
           python3 unity-tools/mistrzowie/build_casino_sign.py
+          # Owner 9.11: the three arena murals as 3 x 2048 tiles each (lossless crop of the verified originals).
+          # A failure here is not fatal: the build then hangs each mural as one whole 6144x2048 panel.
+          python3 unity-tools/mistrzowie/split_arena_murals.py || echo "::warning::arena mural tiles not made, whole-picture fallback"
           python3 unity-tools/mistrzowie/prepare_arena.py
       - name: Prepare durable Addressables content baseline mode
         if: ${{ inputs.etap != 'sceny' }}

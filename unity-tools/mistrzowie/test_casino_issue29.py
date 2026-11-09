@@ -53,9 +53,9 @@ class CasinoIssue29Contract(unittest.TestCase):
 
     def test_protected_geometry_is_retained(self):
         self.assertIn("24f,.11f,20f",SOURCE)
-        # $ is not on the owner board: kept, switched off until the owner decides.
+        # Owner 10.11 00:33: "A gdzie jest ten dolar złoty ... Czemu go nie ma teraz?" - back on the roof.
         self.assertIn("if(RoofDollarOnOwnerBoard)RoofDollar();",SOURCE)
-        self.assertIn("const bool RoofDollarOnOwnerBoard = false;",FACADE)
+        self.assertIn("const bool RoofDollarOnOwnerBoard = true;",FACADE)
         self.assertIn('Door("T11_CASINO_WAWER_PUBLIC","Public glass main entry",0,-36.28f,180f,5.6f)',SOURCE)
         self.assertIn("6 m delivery opening at x -23..-17",FACADE)
         self.assertIn("tower=LATER",SOURCE)

@@ -235,7 +235,7 @@ public static class BraxChampionsArenaSigns
 
     // Curved signs on the other facades: same outline, extruded from the
     // artwork surface back toward the glazing (they hang .36 m proud of it).
-    static void CurvedSignBody(Transform root,int index,bool front,bool east,float length,float bottom,float height,Material body)
+    static void CurvedSignBody(Transform root,int index,bool front,bool east,float length,float bottom,float height,Material body,int art=-1)
     {
         float k=BraxClaudeOsiedle.K;
         bool reverseU=front?east:!east;
@@ -254,7 +254,7 @@ public static class BraxChampionsArenaSigns
             }
             return new Vector3(x,bottom+vv*height,z)*k;
         }
-        var outline=Outline(index);
+        var outline=Outline(art<0?index:art);   // the body follows the outline of the artwork it carries
         var v=new List<Vector3>();var t=new List<int>();
         for(int i=0;i<outline.Count;i++)
         {
@@ -287,13 +287,17 @@ public static class BraxChampionsArenaSigns
         var body=exterior["arena_black"];
         // Front: render sign box on the gold canopy (artwork 6:1 kept exactly).
         FrontSign3D(t,MakeMat(0),body);
-        Curved(t,1,MakeMat(1),true,true,36f,11.42f,6f);
-        CurvedSignBody(t,1,true,true,36f,11.42f,6f,body);
+        // Owner 9.11 23:45: "z drugiej strony też jest szyld, złoty, nie wiem, z jakiej racji jest złoty" and
+        // "nie wiem, co ten szyld robi w środku, w arenie, ten mój z zewnątrz". All four facade signs now carry the
+        // owner's RED artwork (front + back: red CHAMPION ARENA, both sides: red FIGHT NIGHT; all are 6:1), and
+        // nothing of the exterior signage hangs inside the hall any more (HallBanners is no longer called).
+        Curved(t,1,MakeMat(1,0),true,true,36f,11.42f,6f);
+        CurvedSignBody(t,1,true,true,36f,11.42f,6f,body,0);
         Curved(t,2,MakeMat(2),false,true,34f,11.7f,5.667f);
         CurvedSignBody(t,2,false,true,34f,11.7f,5.667f,body);
-        Curved(t,3,MakeMat(3),false,false,34f,11.7f,5.667f);
-        CurvedSignBody(t,3,false,false,34f,11.7f,5.667f,body);
-        HallBanners(t,body);
+        Curved(t,3,MakeMat(3,2),false,false,34f,11.7f,5.667f);
+        CurvedSignBody(t,3,false,false,34f,11.7f,5.667f,body,2);
+        Debug.Log("A1_FACADE_SIGNS front=red_front back=red_front east=red_fight_night west=red_fight_night gold=NONE hallBanners=REMOVED");
         return true;
     }
 }

@@ -214,7 +214,9 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('Top(floorStone,', self.arena)
         self.assertIn('if (alongX)', self.arena)
         self.assertIn('BoxMinMax(wallGranite', self.arena)
-        self.assertIn('BoxMinMax(wallConcrete', self.arena)
+        # Owner 9.11 23:46 "każda ściana ma być wykończona": no bare concrete in the hall any more.
+        self.assertNotIn('BoxMinMax(wallConcrete', self.arena)
+        self.assertIn('BoxMinMax(walnut,a0,a1,WallStoneTop,WallWalnutTop,g0,g1,true)', self.arena)
         self.assertIn('BoxMinMax(facadePanels', self.arena)
         # Athlete/changing floors stay green; only their walls use Wooden Panels.
         self.assertIn('"arena_athlete_floor_stone_tiles_owner", "stone_tiles"', self.arrival)

@@ -5,11 +5,13 @@ const { chromium } = require('playwright');
 const fs = require('fs'); const path = require('path');
 const [binDir, threeDir, viewsPath, modelsDir, texDir] = process.argv.slice(2);
 const views = JSON.parse(fs.readFileSync(viewsPath, 'utf8'));
+const PALMS_ON = process.env.PREVIEW_PALMS === '1';
 const html = `<!doctype html><html><body style="margin:0;background:#9fc2e5">
 <script type="importmap">{"imports":{"three":"http://preview.local/three/build/three.module.js","three/addons/":"http://preview.local/three/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const PALMS=${PALMS_ON};
 async function bin(n){const r=await fetch('http://preview.local/bin/'+n);return new Float32Array(await r.arrayBuffer());}
 const tl=new THREE.TextureLoader();
 function tex(url,srgb){return new Promise(res=>tl.load(url,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(srgb)t.colorSpace=THREE.SRGBColorSpace;res(t);},undefined,()=>res(null)));}
@@ -68,7 +70,20 @@ window.setup=async function(w,h){
       if(cache[mo.path])cache[mo.path].traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(mt=>cityAmbient(mt,[.55,.63,.71,.23,.27,.22,1]));});
     }
     const src=cache[mo.path];if(!src)continue;
-    const o=src.clone(true);o.position.set(mo.pos[0],mo.pos[1],mo.pos[2]);o.rotation.y=mo.rotY;S.add(o);
+    const o=src.clone(true);o.position.set(mo.pos[0],mo.pos[1],mo.pos[2]);o.rotation.y=mo.rotY;if(mo.scale&&mo.scale!==1)o.scale.setScalar(mo.scale);
+    if(mo.material){const e=mo.material.emission;const mm=new THREE.MeshStandardMaterial({color:S2L(mo.material.colour),metalness:mo.material.metallic,roughness:mo.material.roughness,
+      emissive:S2L(e.map(x=>Math.min(x,1))),emissiveIntensity:1});cityAmbient(mm);o.traverse(n=>{if(n.isMesh)n.material=mm;});}
+    S.add(o);
+  }
+  // City palms: the game places its own palm model pack; the preview draws a plain stand-in (trunk + fronds) there.
+  // Off unless PREVIEW_PALMS=1: a stand-in is not what the game shows (owner 10.11: "żadnych sztucznych drzew").
+  if(PALMS&&scene.palms&&scene.palms.length){
+    const tm=new THREE.MeshStandardMaterial({color:S2L([.42,.33,.24]),roughness:.9});cityAmbient(tm);
+    const fm=new THREE.MeshStandardMaterial({color:S2L([.20,.42,.16]),roughness:.8,side:THREE.DoubleSide});cityAmbient(fm);
+    const palm=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.16,.24,7.2,10),tm);trunk.position.y=3.6;palm.add(trunk);
+    for(let i=0;i<11;i++){const f=new THREE.Mesh(new THREE.PlaneGeometry(.7,3.4),fm);const a=i*Math.PI*2/11;
+      f.position.set(Math.cos(a)*1.35,7.0-(i%2)*.25,Math.sin(a)*1.35);f.rotation.set(0,-a+Math.PI/2,0);f.rotateX(-1.05-(i%2)*.2);palm.add(f);}
+    for(const p of scene.palms){const o=palm.clone(true);o.position.set(p[0],p[1],p[2]);o.rotation.y=p[0]*.7+p[2]*.3;S.add(o);}
   }
   // W.Lampa: colour (1,.95,.86), ForceVertex. Unity per-vertex-light attenuation ~ 1/(1+25 d^2/r^2): decay 1, I = 2.5 x intensity
   window.lights=scene.lights.map(l=>{const L=new THREE.PointLight(S2L([1,.95,.86]),l[4]*2.5,l[3],1);L.position.set(l[0],l[1],l[2]);L.visible=false;S.add(L);return L;});

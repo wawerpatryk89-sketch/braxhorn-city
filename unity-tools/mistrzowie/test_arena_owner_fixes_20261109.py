@@ -34,14 +34,13 @@ class ArenaOwnerFixes20261109(unittest.TestCase):
 
     def test_every_sign_and_hall_banner_is_a_3d_body(self):
         signs = source("BraxChampionsArenaSigns.cs")
-        self.assertIn("HallBanners(t,body);", signs)
+        # Owner 9.11 23:45: "co ten szyld robi w środku, w arenie, ten mój z zewnątrz" - no exterior sign inside.
+        self.assertNotIn("\n        HallBanners(t,body);", signs)
+        self.assertIn("hallBanners=REMOVED", signs)
         self.assertIn('"A1 SIGN BODY | "+label', signs)
         self.assertEqual(signs.count("CurvedSignBody(t,"), 3)
         audit = source("BraxSceneAudit.cs")
-        self.assertIn('AddExact("Arena: szyldy i banery jako bryły 3D",signBodies,6,', audit)
-        # Banners sit above the 16-row stands (16 x .40 = 6.4 m).
-        bottom = float(re.search(r"HallBannerBottom=([\d.]+)f", signs).group(1))
-        self.assertGreater(bottom, 6.4 + .165 + 5)
+        self.assertIn('AddExact("Arena: szyldy jako bryły 3D",signBodies,4,', audit)
 
     def test_trophy_cases_use_real_lathe_cups(self):
         trophies = source("BraxChampionsArenaTrophies.cs")

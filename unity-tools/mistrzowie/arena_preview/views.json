@@ -1,0 +1,12 @@
+[
+ {"out":"A1_ext_front.png","eye":[-26,3,-112],"target":[0,10,-59],"fov":58},
+ {"out":"A1_ext_back.png","eye":[30,4,112],"target":[0,13,59],"fov":56},
+ {"out":"A1_lobby_entry.png","eye":[0,1.9,-57.0],"target":[0,8.5,-35.4],"fov":76,"lights":6},
+ {"out":"A1_lobby_belt.png","eye":[1.6,1.7,-40.0],"target":[4.1,1.9,-35.6],"fov":58,"lights":6},
+ {"out":"A1_hall_entry.png","eye":[0,2.6,-30],"target":[0,6,25],"fov":70,"lights":12},
+ {"out":"A1_hall_side.png","eye":[10,3,0],"target":[60,12,0],"fov":66,"lights":12},
+ {"out":"A1_hall_side2.png","eye":[-10,3,0],"target":[-60,12,0],"fov":66,"lights":12},
+ {"out":"A1_hall_back.png","eye":[52,1.8,-20],"target":[42,3.2,10],"fov":66,"lights":12},
+ {"out":"A1_hall_wall.png","eye":[-22,2.4,-8],"target":[5,12,35],"fov":70,"lights":12},
+ {"out":"A1_hall_top.png","eye":[34,22,-27],"target":[-6,2,5],"fov":60,"lights":12}
+]

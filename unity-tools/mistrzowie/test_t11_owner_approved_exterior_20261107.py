@@ -84,7 +84,9 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertIn("for (int i = 0; i < 3; i++)",FACADE)   # 3 bays per front wing
         self.assertIn("for (int j = 0; j < 8; j++)",FACADE)   # 8 bays per side
         self.assertIn('" tall window glass lower"',FACADE)
-        self.assertIn('" interior warm backdrop"',FACADE)
+        # 10.11 00:30: no board behind the glass; the windows show the real, open casino hall.
+        self.assertNotIn('" interior warm backdrop"',FACADE)
+        self.assertIn('Optional("kasyno T11: otwarta sala kasyna",CasinoHall);',CASINO)
         self.assertNotIn("NO GLASS",CASINO+FACADE)
         curved=method_source("CurvedFoyer")
         self.assertIn("T11 curved graphite-smoke glass | rotunda only",curved)
@@ -134,7 +136,7 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertIn("24f,.11f,20f",CASINO)
         self.assertIn(DOLLAR,CASINO)
         self.assertIn(DOLLAR_SHA,CASINO)
-        self.assertIn("const float x=-24f,z=-15f,roofY=14.40f,nominalHeight=15.0f;",CASINO)
+        self.assertIn("const float x=0f,z=-21f,roofY=14.40f,nominalHeight=15.0f;",CASINO)
         # Not on the owner board 9.11: code kept, off until the owner decides.
         self.assertEqual(CASINO.count("RoofDollar();"),1)
         self.assertIn("if(RoofDollarOnOwnerBoard)RoofDollar();",CASINO)

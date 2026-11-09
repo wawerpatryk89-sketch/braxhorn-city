@@ -92,7 +92,7 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         self.assertNotIn("BraxChampionsBeltShowcase.Generate(", arena)
         self.assertEqual(arrival.count("BraxChampionsBeltShowcase.GenerateLobby(root)"), 1)
         self.assertNotIn('return Trophy(root,', arrival)
-        for value in ("A1 VITRINE | black marble pillar", "A1 VITRINE | FRONT glass",
+        for value in ("A1 VITRINE | wall back panel", "A1 VITRINE | FRONT glass",
                       "A1 VITRINE | brass side bracket", "A1 VITRINE | gold belt pin",
                       "BRAXHORN_ARENA_CASE_PLAQUE.jpg", "var belt=OriginalBelt(display,BeltLength,",
                       "VITRINE_B_CREST"):

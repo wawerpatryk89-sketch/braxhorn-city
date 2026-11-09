@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public static class BraxClaudeOsiedle { public const float K = 1.2944f; }
-public static class BraxBuildQuality { public static void Warn(string m) => Console.WriteLine("WARN " + m); }
+public static class BraxClaudeOsiedle { public const float K = 2.33f / 1.80f; }
+public static class BraxBuildQuality { public static void Warn(string m) => Console.WriteLine("WARN " + m); public static void Issue(Exception e) => Console.WriteLine("WARN ISSUE " + e.Message); }
+public sealed class BraxSeat : MonoBehaviour { public float surfaceY; public string label; }
 public sealed class BraxWidocznoscWnetrza : MonoBehaviour { public Bounds[] strefy = new Bounds[0]; public string nazwa = ""; }
 public static class BraxChampionsFoundation
 {
@@ -13,6 +14,7 @@ public static class BraxChampionsFoundation
     public static Material LibraryMarble(string id, Color tint, float metres) => new Material { name = id + "|Marble016|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryMarbleWhite(string id, Color tint, float metres) => new Material { name = id + "|Marble021|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryTravertine(string id, Color tint, float metres) => new Material { name = id + "|Travertine009|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
+    public static Material LibraryLeather(string id, Color tint) => new Material { name = id + "|Leather037|0.6", color = tint, textured = true };
     public static Material LibraryMetal(string id, Color tint) => new Material { name = id + "|Metal048A|0.65", color = tint, textured = true };
     public static void Optional(string what, Action build) { try { build(); } catch (Exception e) { Console.WriteLine("WARN OPTIONAL_FAILED " + what + ": " + e.Message); } }
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
@@ -26,7 +28,7 @@ public static class BraxMiastoAssety
 }
 public static class Rec
 {
-    public struct Q { public string g, m; public bool inside; public Vector3 a, b, c, d; }
+    public struct Q { public string g, m; public bool inside; public Vector3 a, b, c, d; public Transform t; public bool hasUv; public Vector2 ua, ub, uc, ud; }
     public static readonly List<Q> Quads = new List<Q>();
     public static readonly Dictionary<string, Color> Colours = new Dictionary<string, Color>();
     public static readonly Dictionary<string, float[]> Ambient = new Dictionary<string, float[]>();
@@ -45,9 +47,13 @@ public static class BraxWnetrzaKit
     {
         if (!m) throw new Exception("null material at " + a.x + "," + a.y + "," + a.z);
         string path = Grupa.gameObject.name; for (var p = Grupa.parent; p != null; p = p.parent) path = p.gameObject.name + " >> " + path;
-        Rec.Quads.Add(new Rec.Q { g = path, m = m.name, inside = Wnetrze, a = a, b = b, c = c, d = d });
+        Rec.Quads.Add(new Rec.Q { g = path, m = m.name, inside = Wnetrze, a = a, b = b, c = c, d = d, t = Grupa });
         Rec.Colours[m.name] = m.color; Rec.Mats[m.name] = m;
         Rec.Ambient[m.name] = new[] { m.sky.r, m.sky.g, m.sky.b, m.ground.r, m.ground.g, m.ground.b, m.ambient };
+    }
+    public static void QuadUV(Material m, Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector2 ua, Vector2 ub, Vector2 uc, Vector2 ud)
+    {
+        Quad(m, a, b, c, d); var q = Rec.Quads[Rec.Quads.Count - 1]; q.hasUv = true; q.ua = ua; q.ub = ub; q.uc = uc; q.ud = ud; Rec.Quads[Rec.Quads.Count - 1] = q;
     }
     public static void MM(Material m, float x0, float x1, float y0, float y1, float z0, float z1, bool k = false)
         => OBox(m, new Vector3((x0 + x1) * .5f, (y0 + y1) * .5f, (z0 + z1) * .5f), new Vector3(Math.Abs(x1 - x0), Math.Abs(y1 - y0), Math.Abs(z1 - z0)), Quaternion.identity, k);
@@ -84,6 +90,8 @@ public static class BraxWnetrzaKit
             Quad(m, S(a0, b0), S(a1, b0), S(a1, b1), S(a0, b1));
         }
     }
+    public static void Siedzisko(Vector3 at, Vector3 forward, string label) => Rec.Cols.Add("seat");
+    public static void Kolizja(Vector3 c, Vector3 size, Quaternion q) => Rec.Cols.Add("box");
     public static void KolizjaMM(float x0, float x1, float y0, float y1, float z0, float z1) => Rec.Cols.Add("mm");
     public static void Rampa(Vector3 gora, Vector3 dol, float szer) => Rec.Cols.Add("ramp " + gora.y.ToString("F2") + "->" + dol.y.ToString("F2"));
     public static Light Lampa(string n, Vector3 at, float moc, float zasieg, Color? k = null)

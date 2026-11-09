@@ -267,9 +267,12 @@ public static partial class BraxChampionsArenaArrival
     {
         var shared=exterior["facade_glass"];
         var arenaGlass=new Material(shared){name="A1 arena | uniform dark smoked facade glass"};
-        arenaGlass.SetColor("_Color",new Color(.10f,.11f,.13f,.70f));
+        // Owner 9.11 23:43: "Szyby miały być przyciemnione z zewnątrz ... zobacz jak to wygląda": at alpha .70 the
+        // lobby, the mural and the sky behind still read through. The panes are single-sided (drawn from outside
+        // only), so a near-opaque graphite mirror outside leaves the view from the lobby exactly as it is.
+        arenaGlass.SetColor("_Color",new Color(.045f,.050f,.060f,.90f));
         arenaGlass.SetFloat("_Roughness",.05f);
-        arenaGlass.SetFloat("_ReflectionStrength",.72f);
+        arenaGlass.SetFloat("_ReflectionStrength",.85f);
         AssetDatabase.CreateAsset(arenaGlass,"Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/A1_arena_smoked_glass.mat");
         int swapped=0;
         foreach(var r in arenaRoot.GetComponentsInChildren<Renderer>(true))
@@ -278,7 +281,7 @@ public static partial class BraxChampionsArenaArrival
             for(int i=0;i<mats.Length;i++)if(mats[i]==shared){mats[i]=arenaGlass;hit=true;swapped++;}
             if(hit)r.sharedMaterials=mats;
         }
-        Debug.Log("A1_SMOKED_GLASS uniform lower+upper panes="+swapped+" alpha=.70 doors=clear_glass_only");
+        Debug.Log("A1_SMOKED_GLASS uniform lower+upper panes="+swapped+" alpha=.90 doors=clear_glass_only");
         if(swapped==0)BraxBuildQuality.Warn("A1_SMOKED_GLASS_NOT_APPLIED: no facade_glass renderer under the arena");
     }
 }
