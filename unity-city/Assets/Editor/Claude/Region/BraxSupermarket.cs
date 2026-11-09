@@ -38,7 +38,21 @@ public static class BraxSupermarket
         var miejsca = new List<Vector3>(); var stoper = System.Diagnostics.Stopwatch.StartNew();
         for (int i = 0; i < ile; i++)
         {
-            if (!Szukaj(miejsca, out var c, out float yaw)) { Debug.LogWarning("BRAXHORN_SUPERMARKET kopia " + (i + 1) + ": brak wolnej działki — DO POPRAWKI (miejsce ręczne)"); break; }
+            Vector3 c; float yaw;
+            if (i == 0)
+            {
+                // 9.11 (właściciel: „rondo koło sklepu precz ma być parking dla sklepu, w sklepie stoi drzewo i nie można wejść,
+                // chodnik źle poprowadzony”). W APK 8.11 parking stał na stałych (−126, 104), a sklep #1 Szukaj() postawił na (−108, 132):
+                // dojście kończyło się 22 m przed frontem i 18 m w bok. Sklep #1 stoi NA STAŁE przed parkingiem: oś x = AX (−126),
+                // front na północnej krawędzi dojścia (PetlaZ + PetlaPlac + 5.5), wejście od parkingu (−z). Sklep #2 — nadal Szukaj().
+                float frontZ = BraxRegionMiastoB.PetlaZ + BraxRegionMiastoB.PetlaPlac + 5.5f;
+                float y = BraxRegion.Ground(BraxRegionMiastoB.AX, frontZ + D * .5f, -20f, 80f, out var hg) ? hg.point.y : 0f;
+                c = new Vector3(BraxRegionMiastoB.AX, y, frontZ); yaw = 0f;
+                bool wolne = Pasuje(new Vector2(c.x, c.z), yaw, out _);
+                Debug.Log("BRAXHORN_SUPERMARKET kopia 1: miejsce STAŁE przy parkingu (oś alei x=" + BraxRegionMiastoB.AX + ", front z=" + frontZ.ToString("F1") +
+                          ", hala do z=" + (frontZ + D).ToString("F1") + ") test_dzialki=" + (wolne ? "wolna" : "KOLIZJA_Z_OTOCZENIEM — sprawdzić na nagraniu (OczyscWejscie usuwa drzewa/płoty w hali i w drzwiach)"));
+            }
+            else if (!Szukaj(miejsca, out c, out yaw)) { Debug.LogWarning("BRAXHORN_SUPERMARKET kopia " + (i + 1) + ": brak wolnej działki — DO POPRAWKI (miejsce ręczne)"); break; }
             miejsca.Add(c);
             var t = new GameObject("SUPERMARKET BRAXHORN " + (i + 1)).transform; t.SetParent(root.transform, false);
             t.position = c; t.rotation = Quaternion.Euler(0f, yaw, 0f);
@@ -59,7 +73,7 @@ public static class BraxSupermarket
     static void OczyscWejscie(Scene scene, Transform shopRoot, Transform store,
                              bool mirror, int nr)
     {
-        float half = W * .5f, entryX = mirror ? -(half - 5f*K) : half - 5f*K;
+        float half = W * .5f, entryX = WejscieX(mirror, nr);
         float doorWidth = 2.4f*K, bodyHeight = 2.6f*K;
         Vector3 door = store.TransformPoint(new Vector3(entryX, 0f, 0f));
         // Objętość wycięcia w WORLD AABB musi uwzględnić obrót sklepu
@@ -85,7 +99,9 @@ public static class BraxSupermarket
         }
         bool Named(string x, params string[] parts) =>
             parts.Any(p => x.IndexOf(p, StringComparison.OrdinalIgnoreCase) >= 0);
-        bool IsTree(string x) => Named(x,"drzewo","tree_","_tree","tree ","palm_","palma","palm tree"); // "street" zawiera "tree": NIE usuwaj ulicy
+        // 9.11: drzewa alej B to „Aleja: drzewo” + osobna kapsuła „Aleja: pień kolizja”; drzewa R1 „Drzewo: …” + „Drzewo: kolizja pnia”;
+        // las/plaża „Las za plażą: drzewo”. Kapsuły pni rozpoznajemy po „pień/pnia/trunk”. „street” zawiera „tree”: NIE usuwaj ulicy.
+        bool IsTree(string x) => Named(x,"drzewo","tree_","_tree","tree ","palm_","palma","palm tree","verdant","pień","pnia","trunk");
         bool IsFence(string x) => Named(x,"płot","plot","fence","ogrodzen");
         int trees=0, trunks=0, fenceParts=0, unidentified=0;
         var generated = new List<GameObject>();
@@ -226,10 +242,13 @@ public static class BraxSupermarket
     }
 
     // ---------------- budowa jednej kopii ----------------
-    static int Zbuduj(Transform t, bool lustro, int nr)
+        // 9.11: wejście sklepu #1 w osi alei (x lokalne 0 → parking i dojście prowadzą prosto do drzwi); pozostałe kopie jak dotąd.
+    static float WejscieX(bool lustro, int nr) => nr == 1 ? 0f : (lustro ? -(W * .5f - 5f * K) : W * .5f - 5f * K);
+
+static int Zbuduj(Transform t, bool lustro, int nr)
     {
         float L(float x) => lustro ? -x : x;
-        float hw = W * .5f, xe = L(hw - 5f * K), wd = 2.4f * K, hd = 2.6f * K, yC = .5f * K, yS = 3.4f * K, yA = H + 1.4f * K;
+        float hw = W * .5f, xe = WejscieX(lustro, nr), wd = 2.4f * K, hd = 2.6f * K, yC = .5f * K, yS = 3.4f * K, yA = H + 1.4f * K;   // 9.11: sklep #1 — drzwi w osi alei
         Vector3 Swiat(float x, float y, float z) => t.TransformPoint(new Vector3(x, y, z));
         var rng = new System.Random(4421 * nr);
 

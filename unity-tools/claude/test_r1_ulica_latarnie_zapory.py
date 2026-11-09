@@ -74,3 +74,22 @@ class R1Mural19OnGymWall(unittest.TestCase):
         body = self.SRC[self.SRC.index("static void MuralSilowni"):]
         self.assertIn("mural 19: kolizja ściany", body)
         self.assertIn("AddComponent<BoxCollider>()", body)
+
+
+class R1SupermarketAtParking(unittest.TestCase):
+    """Właściciel 9.11: „rondo koło sklepu precz ma być parking dla sklepu, w sklepie stoi drzewo i nie można wejść, chodnik źle”.
+    APK 8.11: parking (−126,104), a sklep #1 na (−108,132) — 22 m luki. Teraz sklep #1 stoi na stałe przed parkingiem, drzwi w osi alei."""
+    SHOP = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxSupermarket.cs").read_text(encoding="utf-8")
+
+    def test_store_one_pinned_in_front_of_parking(self):
+        body = self.SHOP[self.SHOP.index("public static void Wykonaj"):]
+        self.assertIn("BraxRegionMiastoB.PetlaZ + BraxRegionMiastoB.PetlaPlac + 5.5f", body)
+        self.assertIn("c = new Vector3(BraxRegionMiastoB.AX, y, frontZ)", body)
+
+    def test_store_one_door_on_avenue_axis(self):
+        self.assertIn("static float WejscieX(bool lustro, int nr) => nr == 1 ? 0f :", self.SHOP)
+        self.assertIn("xe = WejscieX(lustro, nr)", self.SHOP)
+        self.assertIn("entryX = WejscieX(mirror, nr)", self.SHOP)
+
+    def test_tree_recognition_includes_trunk_colliders(self):
+        self.assertRegex(self.SHOP, r'bool IsTree\(string x\) => Named\(x,[^)]*"pień"[^)]*"trunk"')
