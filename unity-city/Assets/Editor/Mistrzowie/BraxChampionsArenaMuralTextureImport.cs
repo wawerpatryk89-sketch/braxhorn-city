@@ -13,7 +13,7 @@ public sealed class BraxChampionsArenaMuralTextureImport : AssetPostprocessor
     // the GPU a power-of-two ASTC texture; UVs are normalised, so the picture,
     // its proportions on the wall and every source pixel's content stay the same.
     // A new version forces Unity to re-import cached Library copies.
-    public override uint GetVersion() => 3;
+    public override uint GetVersion() => 4; // 9.11: no mip streaming (phone showed blocky/black murals)
     void OnPreprocessTexture()
     {
         if(!assetPath.StartsWith("Assets/Source/Mistrzowie/ArenaMuralsHD/",StringComparison.Ordinal)
@@ -28,7 +28,10 @@ public sealed class BraxChampionsArenaMuralTextureImport : AssetPostprocessor
         hd.maxTextureSize=8192;
         hd.isReadable=false;
         hd.mipmapEnabled=true;
-        hd.streamingMipmaps=true;
+        // 9.11 phone (APK 33): murals blocky / black. Mip streaming with a 256 MB
+        // budget kept them 3 levels down (8192 -> 1024 px over 70-82 m). The three
+        // owner murals stay fully resident: 3 x ~21 MB ASTC, always sharp.
+        hd.streamingMipmaps=false;
         hd.wrapMode=TextureWrapMode.Clamp;
         hd.filterMode=FilterMode.Trilinear;
         hd.anisoLevel=4;

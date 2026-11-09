@@ -149,17 +149,13 @@ class PremiumReferenceRegressions(unittest.TestCase):
 
     def test_optional_buildings_count_only_after_success(self):
         text = source('BraxChampionsBuildings.cs')
-        self.assertRegex(text, r'bool casinoGenerated=false,poolGenerated=false;')
+        self.assertIn('bool casinoGenerated=false;', text)
         self.assertRegex(text, r'Optional\("kasyno T11",\(\)=>\s*\{\s*BraxChampionsCasinoT11.Generate\(Out\);\s*casinoGenerated=true;')
-        self.assertRegex(text, r'Optional\("basen P1",\(\)=>\s*\{\s*BraxChampionsPoolP1.Generate\(\);\s*poolGenerated=true;')
-        self.assertIn('d.buildings.Length+(casinoGenerated?1:0)+(poolGenerated?1:0)', text)
-        self.assertNotIn('return d.buildings.Length+2;', text)
+        # 9.11 owner: pool P1 removed completely.
+        self.assertNotIn('BraxChampionsPoolP1', text)
+        self.assertIn('d.buildings.Length+(casinoGenerated?1:0)', text)
         self.assertIn('visualAccepted=false', text)
-        # Exhaust the arithmetic contract; this is not execution of Unity C#.
-        expected = {(False,False):2, (True,False):3, (False,True):3, (True,True):4}
-        for (casino,pool),count in expected.items():
-            with self.subTest(casino=casino, pool=pool):
-                self.assertEqual(2+int(casino)+int(pool), count)
+        self.assertFalse((ROOT / 'unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1.cs').exists())
 
     def test_changes_do_not_launch_builds_or_change_owner_approval(self):
         for filename in ('BraxChampionsArenaMural.cs', 'BraxChampionsBeltShowcase.cs', 'BraxChampionsBuildings.cs'):

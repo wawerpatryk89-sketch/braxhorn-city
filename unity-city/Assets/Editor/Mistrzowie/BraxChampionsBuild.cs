@@ -75,7 +75,6 @@ public static class BraxChampionsBuild
             report.sourceImportErrors=RecordSourceImportDiagnostics(reports);
             // Fail fast on 21 original casino maps before generating the world.
             BraxChampionsCasinoPbr2K.VerifyOriginalSourceMaps();
-            BraxChampionsPoolP1Pbr2K.VerifyOriginalSourceMaps();
             BraxChampionsHotelSobczakMaterials.VerifySources();
             BraxChampionsCasinoT11.VerifyOriginalSigns();
             BraxChampionsSourceReadiness.VerifyBeforeScene();
@@ -330,8 +329,11 @@ public static class BraxChampionsBuild
         {
             QualitySettings.SetQualityLevel(i,false);
             QualitySettings.streamingMipmapsActive=true;
-            QualitySettings.streamingMipmapsMemoryBudget=256; // budzet testowy; pomiar GPU na telefonie wymagany
-            QualitySettings.streamingMipmapsMaxLevelReduction=3; // 2K blisko; do 256px przy ograniczonym budzecie i w oddali
+            // 9.11 phone (APK 33): 256 MB was far below the streamed set, so every
+            // surface sat 3 mips down (blocky murals, "painting" ground). 768 MB
+            // fits the region after the pool removal; 2 levels max fallback.
+            QualitySettings.streamingMipmapsMemoryBudget=768;
+            QualitySettings.streamingMipmapsMaxLevelReduction=2;
             QualitySettings.streamingMipmapsAddAllCameras=true;
         }
         QualitySettings.SetQualityLevel(previousQuality,false);

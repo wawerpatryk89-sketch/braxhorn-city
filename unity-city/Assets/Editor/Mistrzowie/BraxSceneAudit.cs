@@ -249,7 +249,6 @@ public static class BraxSceneAudit
             if (Contains(n, "Premium barrel chair")) return "BraxChampionsVIPSeats.cs";
             if (Contains(n, "Champion Arena North")) return "BraxChampionsArena.cs";
             if (Contains(n, "T11 | KASYNO")) return "BraxChampionsCasinoT11.cs";
-            if (Contains(n, "P1 | BASEN")) return "BraxChampionsPoolP1.cs";
             if (Contains(n, "PROMENADA 12 SHOPS") || Regex.IsMatch(n, @"^K(?:[1-9]|1[0-2])\s+\|")) return "BraxChampionsPromenade.cs";
             if (Contains(n, "15 yachts") || Contains(n, "Original user-owned moored")) return "BraxChampionsHarbour.cs";
             if (Contains(n, "LIFEGUARD") || Contains(n, "LOUNGERS")) return "BraxChampionsBeachFurnishings.cs";
@@ -650,8 +649,9 @@ public static class BraxSceneAudit
             "każdy bieg 32 stopnie; tread+riser; szerokość dywanu 1.30m");
         Add("Kasyno WAWER", Find(t => Contains(t.name, "T11 | KASYNO WAWER")),
             "BraxChampionsCasinoT11.cs");
-        Add("Basen P1", Find(t => Contains(t.name, "P1 | BASEN MIEJSKI")),
-            "BraxChampionsPoolP1.cs");
+        // 9.11 owner: pool P1 removed completely.
+        var pool=all.Where(t=>Contains(t.name,"P1 | BASEN")).ToArray();
+        if(pool.Length>0)output.warnings.Add("P1_POOL_STILL_IN_SCENE count="+pool.Length);
         var stations = all.Where(t => t.name.EndsWith("| reused city metro", StringComparison.Ordinal)).ToArray();
         Add("Metro: stacje (oczekiwane 5)", stations.FirstOrDefault(),
             "BraxChampionsInfrastructure.cs", "Wykryto " + stations.Length, stations.Length);

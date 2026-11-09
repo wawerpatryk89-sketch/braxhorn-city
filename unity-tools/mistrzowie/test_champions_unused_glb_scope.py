@@ -39,7 +39,8 @@ class ChampionsUnusedUvImportScope(unittest.TestCase):
         combined="\n".join(p.read_text(encoding="utf8") for p in scripts)
         self.assertNotIn("stack_of_towels_2k.glb",combined)
         self.assertNotIn("harbor_crane.glb",combined)
-        self.assertIn("stack of towels is deferred",combined)
+        # 9.11 owner: pool P1 (and its towels) removed completely.
+        self.assertNotIn("BraxChampionsPoolP1",combined)
 
 if __name__=="__main__":
     unittest.main(verbosity=2)

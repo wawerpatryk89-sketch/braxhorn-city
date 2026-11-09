@@ -20,8 +20,6 @@ CHAMPIONS_CLASSES = {
         "public static class BraxChampionsBeachFurnishings",
     "Editor/Mistrzowie/BraxChampionsFoundation.cs":
         "public static class BraxChampionsFoundation",
-    "Editor/Mistrzowie/BraxChampionsPoolP1.cs":
-        "public static class BraxChampionsPoolP1",
     "Editor/Mistrzowie/BraxChampionsCasinoT11.cs":
         "public static class BraxChampionsCasinoT11",
     "Editor/Mistrzowie/BraxChampionsBuildings.cs":

@@ -61,16 +61,6 @@
       "height": 12
     },
     {
-      "id": "P1",
-      "name": "BASEN MIEJSKI + SPA",
-      "x": 520,
-      "z": 180,
-      "w": 160,
-      "d": 120,
-      "kind": "pool",
-      "height": 16
-    },
-    {
       "id": "G1",
       "name": "GALERIA GŁÓWNA",
       "x": 940,

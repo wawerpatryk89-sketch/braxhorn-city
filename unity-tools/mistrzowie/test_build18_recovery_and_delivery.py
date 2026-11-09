@@ -53,20 +53,6 @@ class Build18Regression(unittest.TestCase):
         self.assertIn("MAPS = ((\"diff\", \"jpg\"), (\"nor_gl\", \"png\"), (\"arm\", \"png\"))", downloader)
         self.assertNotIn("File.Copy(", loader, "Do not silently replace owner-approved native 2K originals")
 
-    def test_p1_2k_source_preview_does_not_kill_real_apk(self):
-        loader = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1Pbr2K.cs")
-        original = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1TextureImport.cs")
-        self.assertIn("sourceWidth!=2048 || sourceHeight!=2048", loader)
-        self.assertIn("ImportAssetOptions.ForceUpdate", loader)
-        self.assertIn("BRAX_P1_IMPORT_RECOVERY", loader)
-        self.assertIn("importer.SaveAndReimport()", loader)
-        self.assertIn("AssetDatabase.LoadMainAssetAtPath(path)", loader)
-        self.assertIn("android.format=TextureImporterFormat.ASTC_4x4", loader)
-        self.assertIn("BraxBuildQuality.Warn(", loader)
-        self.assertNotIn("if(!texture || texture.width!=2048", loader)
-        self.assertNotIn("File.Copy(", loader)
-        self.assertIn("Assets/Source/Mistrzowie/PoolP1/Textures2K/", original)
-
     def test_apk_is_delivered_before_optional_content_publication(self):
         wf = read(".github/workflows/mistrzowie-apk.yml")
         names = (

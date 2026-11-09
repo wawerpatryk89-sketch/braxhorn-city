@@ -85,7 +85,7 @@ public static class BraxChampionsArenaMural
             tris.Add(b);tris.Add(b+1);tris.Add(b+2);
         }
         var mesh=new Mesh{name=name+" rounded R="+radius};
-        mesh.SetVertices(verts);mesh.SetTriangles(tris,0);mesh.RecalculateNormals();mesh.RecalculateBounds();
+        mesh.SetVertices(verts);mesh.SetTriangles(tris,0);mesh.RecalculateNormals();mesh.RecalculateBounds();mesh.RecalculateUVDistributionMetrics();
         string safe=name.Replace(' ','_').Replace('|','_');
         AssetDatabase.CreateAsset(mesh,Output+"/"+safe+"_rounded.asset");
         var go=new GameObject(name);go.transform.SetParent(parent,false);
@@ -155,6 +155,7 @@ public static class BraxChampionsArenaMural
         mesh.triangles=new[]{0,2,1,0,3,2};
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
+        mesh.RecalculateUVDistributionMetrics();
         string safe=name.Replace(' ','_').Replace('|','_');
         AssetDatabase.CreateAsset(mesh,Output+"/"+safe+".asset");
         var go=new GameObject(name);
@@ -199,7 +200,7 @@ public static class BraxChampionsArenaMural
         bool importerDirty=false;
         if(importer.maxTextureSize!=8192){importer.maxTextureSize=8192;importerDirty=true;}
         if(!importer.mipmapEnabled){importer.mipmapEnabled=true;importerDirty=true;}
-        if(!importer.streamingMipmaps){importer.streamingMipmaps=true;importerDirty=true;}
+        if(importer.streamingMipmaps){importer.streamingMipmaps=false;importerDirty=true;} // always full resolution
         if(importer.wrapMode!=TextureWrapMode.Clamp){importer.wrapMode=TextureWrapMode.Clamp;importerDirty=true;}
         if(importer.filterMode!=FilterMode.Trilinear){importer.filterMode=FilterMode.Trilinear;importerDirty=true;}
         if(importer.anisoLevel!=4){importer.anisoLevel=4;importerDirty=true;}

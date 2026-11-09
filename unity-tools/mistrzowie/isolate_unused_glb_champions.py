@@ -3,7 +3,7 @@
 No changes to Git-tracked assets. Intended for an ephemeral GitHub Actions
 worker AFTER restoring the exact original P1 zip and BEFORE Unity editor import.
 
-Harbor crane and original P1 towels are not instantiated in the Champions
+Harbor crane is not instantiated in the Champions
 mobile scene. glTFast cannot currently import their material-specific UV2/3,
 so preserve them byte-for-byte outside /Assets in this worker, not as a
 fake/white placeholder. Never touch any other assets or any other game zone.
@@ -24,10 +24,7 @@ ROOT=Path(__file__).resolve().parents[2]
 ASSETS=ROOT/"unity-city/Assets"
 EVIDENCE=ROOT/"mistrzowie-evidence/isolated-unused-uv-glb.json"
 MODELS=[
-    ("SPA_TOWELS_NOT_IN_MOBILE_SCENE",
-     "Source/Mistrzowie/PoolP1/OwnerEquipment/stack_of_towels_2k.glb",
-     "unity-city/OriginalSources/Mistrzowie/PoolP1/stack_of_towels_2k.glb",
-     "BraxChampionsPoolP1Equipment.cs"),
+    # 9.11 owner: pool P1 removed completely (towels went with it).
     ("HARBOR_CRANE_NOT_PLACED_BY_CHAMPIONS_FLEET",
      "Source/HarborBeach/Models/harbor_crane.glb",
      "unity-city/OriginalSources/HarborBeach/harbor_crane.glb",
@@ -58,8 +55,6 @@ def audit():
             raise RuntimeError("This model is referenced by Champions and may be visible: "
                                +source.name+" "+", ".join(references))
         code=(editor/source_script).read_text(encoding="utf-8")
-        if label.startswith("SPA") and "stack of towels is deferred" not in code:
-            raise RuntimeError("Towel deferral proof no longer present")
         if label.startswith("HARBOR"):
             if "harbor_crane.glb" in code or '"yacht","yacht.glb"' not in code:
                 raise RuntimeError("Harbor port source usage changed; human review required")

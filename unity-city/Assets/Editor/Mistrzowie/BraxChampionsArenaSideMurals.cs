@@ -56,7 +56,7 @@ public static class BraxChampionsArenaSideMurals
         bool dirty=false;
         if(importer.maxTextureSize!=8192){importer.maxTextureSize=8192;dirty=true;}
         if(!importer.mipmapEnabled){importer.mipmapEnabled=true;dirty=true;}
-        if(!importer.streamingMipmaps){importer.streamingMipmaps=true;dirty=true;}
+        if(importer.streamingMipmaps){importer.streamingMipmaps=false;dirty=true;} // always full resolution
         if(importer.wrapMode!=TextureWrapMode.Clamp){importer.wrapMode=TextureWrapMode.Clamp;dirty=true;}
         if(importer.filterMode!=FilterMode.Trilinear){importer.filterMode=FilterMode.Trilinear;dirty=true;}
         if(importer.anisoLevel!=4){importer.anisoLevel=4;dirty=true;}
@@ -129,7 +129,7 @@ public static class BraxChampionsArenaSideMurals
         var interior = new Vector4[vertices.Length];
         for (int i = 0; i < interior.Length; i++) interior[i] = new Vector4(0f, 1f, 1.5f, 2718f);
         mesh.SetUVs(3, interior);
-        mesh.RecalculateNormals(); mesh.RecalculateBounds();
+        mesh.RecalculateNormals(); mesh.RecalculateBounds(); mesh.RecalculateUVDistributionMetrics();
         return mesh;
     }
 
