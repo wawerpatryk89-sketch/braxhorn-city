@@ -17,7 +17,7 @@ using UnityEngine.SceneManagement;
 // woda i słońce. Drzwi działają przez rejestr BraxCityDoor.All. Doczytywanie: BraxObszary (runtime).
 public static class BraxClaudeObszary
 {
-    static readonly Type[] Zostaja = { typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(Camera), typeof(BraxObszary), typeof(BraxCityElevator), typeof(BraxVessel), typeof(BraxNutritionCounter), typeof(BraxObszarZDaleka) };
+    static readonly Type[] Zostaja = { typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(Camera), typeof(BraxObszary), typeof(BraxCityElevator), typeof(BraxVessel), typeof(BraxNutritionCounter), typeof(BraxObszarZDaleka), typeof(BraxTramT1) };   // 9.11: tramwaj T1 jeździ pętlą przez 2 kwadraty — zawsze w scenie głównej
 
     static bool MaZostajace(Transform t) => Zostaja.Any(z => t.GetComponentInChildren(z, true));
 

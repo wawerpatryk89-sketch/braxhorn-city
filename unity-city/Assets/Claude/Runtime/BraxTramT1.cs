@@ -1,142 +1,192 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
-// T1 kurs po istniejącym dwutorowym odcinku C1-C2; tor JEST prosty,
-// zatem CAF rewersuje na krańcówkach (bez skrętu całego 44-metrowego składu
-// w poprzek jezdni). Oryginalny model, nie generujemy drugiego wagonu.
+// TRAMWAJ T1 — LINIA W PĘTLI, SKŁAD PRZEGUBOWY (9.11, właściciel 18:21: „drzwi się źle otwierają”, „nie łamie się na
+// zakrętach”, „żeby elegancko kursował”). Dotąd: sztywny model 44 m wahadłowo na prostym odcinku 130 m (rewers na kozłach),
+// drzwi CAF nierozpoznane (audyt sceny: „drzwi CAF: 0”) — nic się nie otwierało.
+// Teraz (dane liczone przy buildzie, BraxRegionMiastoB.NdTramwaj):
+//  • trasa: zamknięta pętla po prawych pasach ulic wokół kwartału C2–C3 (Tramwajowa → C2 → Aleja Centralna → C3), łuki R 16 m
+//    na skrzyżowaniach, punkty co 0.5 m (`trasa`, `trasaS`), limit prędkości w łukach (`vLimit`, przyspieszenie boczne ≤ 1.1 m/s²);
+//  • skład: człony modelu CAF rozcięte w przegubach (harmonijkach); każdy człon stoi końcami NA TORZE w odległościach
+//    `czlonPrzod`/`czlonTyl` od czoła — na łuku człony łamią się w przegubach jak prawdziwy tramwaj;
+//  • jazda: rozruch 1.0 m/s², hamowanie 1.3 m/s², 25 km/h na prostych, w łukach wolniej (patrzy przed czoło i pod cały skład),
+//    zatrzymanie co do centymetra na przystankach (`przystanki`), postój z drzwiami po prawej stronie;
+//  • drzwi odskokowo-przesuwne (jak w CAF Urbos): najpierw odsunięcie na zewnątrz (`drzwiWysun`), potem przesuw wzdłuż
+//    pudła (`drzwiPrzesun`), zamykanie odwrotnie, dźwięk drzwi;
+//  • skrzyżowania: przed wjazdem tramwaj czeka, aż auta z pola skrzyżowania zjadą, potem auta stoją (strefa zatrzymania
+//    BraxStrefyZatrzymania — ta sama, której słuchają auta i piesi), dopóki tył składu nie opuści skrzyżowania;
+//  • gracz na torze: hamuje przed nim (dzwonek = dźwięk ostrzegawczy drzwi), rusza, gdy zejdzie.
 public sealed class BraxTramT1 : MonoBehaviour
 {
-    public float zachodX, wschodX, torZ, peronX0, peronX1, peronZ;
-    public float predkosc = 6.2f, przyspieszenie = 1.35f;
-    public float postojPeron = 12f, postojZachod = 6f;
+    public Vector3[] trasa = new Vector3[0];
+    public float[] trasaS = new float[0];
+    public float[] vLimit = new float[0];
+    public float dlugosc;
+    public Transform[] czlony = new Transform[0];
+    public float[] czlonPrzod = new float[0], czlonTyl = new float[0];
+    public float s;
+    public float[] przystanki = new float[0];
+    public string[] przystankiNazwy = new string[0];
+    public float[] skrzyzowanieOd = new float[0], skrzyzowanieDo = new float[0];
+    public Vector3[] skrzyzowanieSrodek = new Vector3[0];
+    public float skrzyzowaniePromien = 9.5f;
+    public float vmax = 7f, przysp = 1f, ham = 1.3f, postoj = 14f;
+    public Transform[] drzwi = new Transform[0];
+    public Vector3[] drzwiDom = new Vector3[0], drzwiWysun = new Vector3[0], drzwiPrzesun = new Vector3[0];
 
-    struct Door { public Transform t; public Vector3 home; public Vector3 delta; public Collider[] colliders; }
-    readonly List<Door> doors = new List<Door>();
-    float v, celX, postojDo, doorState; bool atStop, east=true, panelChecked;
-    float floorY;
+    // zgodność ze starymi kontrolami sceny (jeden odcinek, oś na torze)
+    public float zachodX, wschodX, torZ, peronX0, peronX1, peronZ;
+
+    float v, postojDo = -1f, drzwiStan, nastAuta, nastSzukaj;
+    int celPrzystanek = -1;
+    bool naPostoju, drzwiOtwarte;
+    BraxAuto[] auta = new BraxAuto[0];
+    Transform gracz;
+    int[] strefaAut, strefaPieszych;
+    bool[] zajete;
+
+    public float DlugoscSkladu => czlonTyl.Length > 0 ? czlonTyl[czlonTyl.Length - 1] : 0f;
 
     void Start()
     {
-        if (wschodX - zachodX < 3f)
-        { Debug.LogWarning("BRAXHORN_TRAM_T1 DO POPRAWKI: za krotki tor dla CAF"); enabled=false; return; }
-        floorY=transform.position.y;
-        var p=transform.position; p.x=Mathf.Clamp(p.x,zachodX,wschodX); p.z=torZ; transform.position=p;
-        east=Mathf.Abs(p.x-wschodX) <= Mathf.Abs(p.x-zachodX);
-        celX=east?wschodX:zachodX;
-        if (Mathf.Abs(transform.position.x-celX)>1f) celX=wschodX;
-        IdentifyDoors();
-        atStop=Mathf.Abs(transform.position.x-wschodX)<.30f;
-        if(atStop)postojDo=Time.time+postojPeron;
-        Debug.Log("BRAXHORN_TRAM_T1 szlak_x="+zachodX.ToString("F1")+".."+wschodX.ToString("F1")+
-            " peron_z="+peronZ.ToString("F1")+" znalezione_skrzydla="+doors.Count);
+        if (trasa.Length < 4 || dlugosc < 50f || czlony.Length == 0)
+        { Debug.LogWarning("BRAXHORN_TRAM_T1 DO POPRAWKI: brak trasy lub członów — tramwaj stoi"); enabled = false; return; }
+        int n = skrzyzowanieOd.Length;
+        strefaAut = new int[n]; strefaPieszych = new int[n]; zajete = new bool[n];
+        for (int i = 0; i < n; i++)
+        {
+            int k = i;
+            strefaAut[i] = BraxStrefyZatrzymania.Dodaj(new BraxStrefyZatrzymania.Strefa { srodek = skrzyzowanieSrodek[i], promien = skrzyzowaniePromien + 4f, dlaPieszych = false, aktywna = () => zajete[k] });
+            strefaPieszych[i] = BraxStrefyZatrzymania.Dodaj(new BraxStrefyZatrzymania.Strefa { srodek = skrzyzowanieSrodek[i], promien = skrzyzowaniePromien + 6f, dlaPieszych = true, aktywna = () => zajete[k] });
+        }
+        UstawCzlony();
+        // start na przystanku: postój z otwartymi drzwiami, potem kurs
+        for (int i = 0; i < przystanki.Length; i++)
+            if (Mathf.Abs(Mathf.DeltaAngle(0f, (s - przystanki[i]) / dlugosc * 360f)) * dlugosc / 360f < .15f) { naPostoju = true; postojDo = Time.time + postoj; celPrzystanek = i; s = Zawin(przystanki[i]); }
+        Debug.Log("BRAXHORN_TRAM_T1 pętla " + dlugosc.ToString("F0") + " m, członów " + czlony.Length + " (skład " + DlugoscSkladu.ToString("F1") + " m), drzwi " + drzwi.Length +
+                  ", przystanki " + przystanki.Length + ", skrzyżowania " + n);
     }
 
-    // Scena Editor: raport rzeczywistych węzłów drzwi źródłowego modelu,
-    // bez startowania animacji i bez udawania, że są obecne w paczce.
-    public int AuditDoorNodes()
+    void OnDestroy()
     {
-        IdentifyDoors();
-        return doors.Count;
+        if (strefaAut != null) foreach (var id in strefaAut) BraxStrefyZatrzymania.Usun(id);
+        if (strefaPieszych != null) foreach (var id in strefaPieszych) BraxStrefyZatrzymania.Usun(id);
     }
 
-    void IdentifyDoors()
+    float Zawin(float x) { x %= dlugosc; return x < 0f ? x + dlugosc : x; }
+    float DoPrzodu(float cel) => Zawin(cel - s);   // odległość czoła do punktu trasy w kierunku jazdy
+
+    int Indeks(float x)
     {
-        doors.Clear();
-        var all=GetComponentsInChildren<Renderer>(true);
-        var modelBounds=new Bounds();
-        bool first=true;
-        foreach(var r in all){if(!r)continue;if(first){modelBounds=r.bounds;first=false;}else modelBounds.Encapsulate(r.bounds);}
-        if(first)return;
-        foreach(var r in all)
+        x = Zawin(x);
+        int lo = 0, hi = trasaS.Length - 1;
+        while (hi - lo > 1) { int m = (lo + hi) >> 1; if (trasaS[m] <= x) lo = m; else hi = m; }
+        return lo;
+    }
+
+    public Vector3 Punkt(float x)
+    {
+        x = Zawin(x);
+        int i = Indeks(x); int j = (i + 1) % trasa.Length;
+        float a = trasaS[i], b = j == 0 ? dlugosc : trasaS[j];
+        return Vector3.LerpUnclamped(trasa[i], trasa[j], b > a ? (x - a) / (b - a) : 0f);
+    }
+
+    float Limit(float x) => vLimit.Length == trasa.Length ? vLimit[Indeks(x)] : vmax;
+
+    void UstawCzlony()
+    {
+        for (int i = 0; i < czlony.Length; i++)
         {
-            if(!r || !r.GetComponent<MeshFilter>())continue;
-            var name=r.name.ToLowerInvariant();
-            bool labelled=name.Contains("drzwi") || name.Contains("door") || name.Contains("porta");
-            var b=r.bounds;
-            if(!labelled || b.size.y<1f || b.size.y>3.9f ||
-               b.size.x>3f || b.size.z>1.25f) continue;
-            // Na peronie południowym drzwi mają otwierać się w stronę -Z.
-            if(b.center.z > modelBounds.center.z-.25f)continue;
-            if(r.transform==transform)continue;
-            doors.Add(new Door{t=r.transform,home=r.transform.localPosition,
-                delta=Vector3.zero,colliders=r.GetComponents<Collider>()});
-        }
-        // Każdy otwór ma własną PARĘ skrzydeł. Nie wolno przesuwać
-        // wszystkich drzwi w stronę głowicy wagonu — to właśnie wyglądało
-        // jak otwieranie w nieodpowiednią stronę.
-        doors.Sort((a,b)=>a.t.position.x.CompareTo(b.t.position.x));
-        bool valid = doors.Count >= 2 && doors.Count <= 24 && doors.Count%2==0;
-        if(valid)
-        {
-            for(int i=0;i<doors.Count;i+=2)
-            {
-                var a=doors[i]; var b=doors[i+1];
-                float distance=Mathf.Abs(a.t.position.x-b.t.position.x);
-                if(distance>.85f*1.294f+1.5f) {valid=false;break;}
-                a.delta=a.t.parent.InverseTransformVector(Vector3.left*.52f);
-                b.delta=b.t.parent.InverseTransformVector(Vector3.right*.52f);
-                doors[i]=a;doors[i+1]=b;
-            }
-        }
-        if(!valid)
-        {
-            doors.Clear();
-            Debug.LogWarning("BRAXHORN_TRAM_T1 DO POPRAWKI: model CAF nie ma rozpoznanych PAR drzwi od strony peronu. " +
-                "Nie przesuwam losowych brył: potrzebny krótki audyt siatek w Unity.");
+            if (!czlony[i]) continue;
+            var f = Punkt(s - czlonPrzod[i]); var r = Punkt(s - czlonTyl[i]);
+            var d = f - r; d.y = 0f;
+            czlony[i].position = (f + r) * .5f;
+            if (d.sqrMagnitude > 1e-6f) czlony[i].rotation = Quaternion.LookRotation(d.normalized, Vector3.up);
         }
     }
 
     void Update()
     {
-        if (!enabled)return;
-        float dt=Mathf.Min(Time.deltaTime,.1f);
-        if(atStop)
+        float dt = Mathf.Min(Time.deltaTime, .1f);
+        if (Time.unscaledTime > nastSzukaj) { nastSzukaj = Time.unscaledTime + 1.5f; auta = FindObjectsByType<BraxAuto>(FindObjectsSortMode.None); if (!gracz) { var p = FindAnyObjectByType<BraxGymPlayer>(); if (p) gracz = p.transform; } }
+        float L = DlugoscSkladu;
+        // ---- skrzyżowania: zajęte, gdy czoło jest 18 m przed polem albo skład jeszcze w nim ----
+        bool czekajSkrz = false; float doSkrz = 1e9f;
+        for (int i = 0; i < skrzyzowanieOd.Length; i++)
         {
-            // Otwieranie tylko podczas postoju PRZY PERONIE;
-            // po przeciwnej stronie brak peronu — drzwi pozostają zamknięte.
-            bool beside = Mathf.Abs(transform.position.x-wschodX)<.30f;
-            float open = beside && Time.time<postojDo-1.6f ? 1f:0f;
-            UpdateDoors(open,dt);
-            if(Time.time<postojDo || doorState>.015f)return;
-            atStop=false; east=!east;
-            celX=east?wschodX:zachodX;
+            float doWjazdu = DoPrzodu(skrzyzowanieOd[i]);
+            float dlPola = Zawin(skrzyzowanieDo[i] - skrzyzowanieOd[i]);
+            bool czoloWPolu = Zawin(s - skrzyzowanieOd[i]) <= dlPola;
+            bool tylWPolu = Zawin(s - L - skrzyzowanieOd[i]) <= dlPola;
+            bool skladWPolu = czoloWPolu || tylWPolu || (Zawin(s - skrzyzowanieOd[i]) < dlPola + L);
+            bool blisko = doWjazdu < 18f;
+            if (!skladWPolu && blisko && !zajete[i])
+            {
+                // przed wjazdem: auta, które już są w polu skrzyżowania, muszą z niego zjechać
+                bool autoWPolu = false;
+                foreach (var a in auta)
+                {
+                    if (!a) continue;
+                    var d = a.transform.position - skrzyzowanieSrodek[i]; d.y = 0f;
+                    if (d.sqrMagnitude < skrzyzowaniePromien * skrzyzowaniePromien) { autoWPolu = true; break; }
+                }
+                if (autoWPolu) { czekajSkrz = true; doSkrz = Mathf.Min(doSkrz, doWjazdu); }
+                else zajete[i] = true;
+            }
+            else if (!skladWPolu && !blisko) zajete[i] = false;
+            else if (skladWPolu) zajete[i] = true;
         }
-        UpdateDoors(0f,dt);
-        if(doorState>.015f)return;
-        float remain=Mathf.Abs(transform.position.x-celX);
-        if(remain<=.04f)
+        // ---- przystanek ----
+        if (naPostoju)
         {
-            var dest=transform.position;dest.x=celX;dest.z=torZ;dest.y=floorY;
-            transform.position=dest;
-            v=0f;atStop=true;
-            postojDo=Time.time+(east?postojPeron:postojZachod);
-            Debug.Log("BRAXHORN_TRAM_T1 stop="+(east?"PERON":"ZACHOD")+
-                " x="+transform.position.x.ToString("F2"));
-            return;
+            float t = Time.time;
+            bool otworz = t < postojDo - 2.2f && t > postojDo - postoj + .8f;
+            Drzwi(otworz ? 1f : 0f, dt);
+            if (t < postojDo || drzwiStan > .01f) { UstawCzlony(); return; }
+            naPostoju = false; celPrzystanek = -1;
         }
-        float limited=Mathf.Min(predkosc,Mathf.Sqrt(Mathf.Max(0f,2f*przyspieszenie*remain)));
-        v=Mathf.MoveTowards(v,limited,przyspieszenie*dt);
-        var p=transform.position;p.x=Mathf.MoveTowards(p.x,celX,v*dt);p.y=floorY;p.z=torZ;
-        transform.position=p;
-        // Nie obracaj sztywnego tramwaju na zakręcie, którego nie ma
-        // w torowisku; jazda rewersyjna przy obu czołach.
+        Drzwi(0f, dt);
+        if (drzwiStan > .01f) return;
+        // ---- prędkość docelowa: łuki przed czołem i pod składem, przystanek, skrzyżowanie, gracz ----
+        float cel = vmax;
+        for (float d = -L; d <= 0f; d += 2f) cel = Mathf.Min(cel, Limit(s + d));
+        for (float d = 2f; d <= 40f; d += 2f) cel = Mathf.Min(cel, Mathf.Sqrt(Limit(s + d) * Limit(s + d) + 2f * ham * d));
+        int nast = -1; float doPrz = 1e9f;
+        for (int i = 0; i < przystanki.Length; i++) { float d = DoPrzodu(przystanki[i]); if (d > .02f && d < doPrz) { doPrz = d; nast = i; } }
+        if (nast >= 0 && doPrz < 60f) cel = Mathf.Min(cel, Mathf.Sqrt(2f * ham * Mathf.Max(0f, doPrz - .03f)));
+        if (czekajSkrz) cel = Mathf.Min(cel, Mathf.Sqrt(2f * ham * Mathf.Max(0f, doSkrz - 1.5f)));
+        if (gracz)
+        {
+            for (float d = 1f; d <= 20f; d += 1f)
+            {
+                var q = Punkt(s + d) - gracz.position; q.y = 0f;
+                if (q.sqrMagnitude < 2.1f * 2.1f) { cel = Mathf.Min(cel, Mathf.Sqrt(2f * ham * Mathf.Max(0f, d - 3f))); break; }
+            }
+        }
+        float a2 = cel > v ? przysp : ham * 1.4f;
+        v = Mathf.MoveTowards(v, cel, a2 * dt);
+        float krok = v * dt;
+        if (nast >= 0 && doPrz < 1f && (doPrz < .12f || krok >= doPrz))
+        {
+            s = Zawin(przystanki[nast]); v = 0f; naPostoju = true; postojDo = Time.time + postoj; celPrzystanek = nast;
+            Debug.Log("BRAXHORN_TRAM_T1 przystanek " + (nast < przystankiNazwy.Length ? przystankiNazwy[nast] : nast.ToString()));
+        }
+        else s = Zawin(s + krok);
+        UstawCzlony();
     }
 
-    void UpdateDoors(float target,float dt)
+    void Drzwi(float cel, float dt)
     {
-        doorState=Mathf.MoveTowards(doorState,target,dt/.95f);
-        // Całobryłowy collider nie może blokować wejścia, gdy rzeczywiste
-        // skrzydła są otwarte. Bez rozpoznanych drzwi pozostaje włączony.
-        var hull=GetComponent<BoxCollider>();
-        if(hull) hull.enabled=doors.Count==0 || doorState<.85f;
-        float sm=doorState*doorState*(3f-2f*doorState);
-        foreach(var d in doors)
-        {
-            if(!d.t)continue;
-            d.t.localPosition=d.home+d.delta*sm;
-            foreach(var c in d.colliders)if(c)c.enabled=doorState<.05f;
-        }
+        float przed = drzwiStan;
+        drzwiStan = Mathf.MoveTowards(drzwiStan, cel, dt / 1.6f);
+        if (przed <= .001f && drzwiStan > .001f && drzwi.Length > 0) BraxDzwiekiSwiata.Drzwi(czlony.Length > 0 && czlony[0] ? czlony[0].position : transform.position, true);
+        if (przed >= .999f && drzwiStan < .999f && drzwi.Length > 0) BraxDzwiekiSwiata.Drzwi(czlony.Length > 0 && czlony[0] ? czlony[0].position : transform.position, false);
+        // odskok (0–30 %), przesuw (30–100 %)
+        float w = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(drzwiStan / .3f));
+        float p = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((drzwiStan - .3f) / .7f));
+        for (int i = 0; i < drzwi.Length; i++)
+            if (drzwi[i]) drzwi[i].localPosition = drzwiDom[i] + drzwiWysun[i] * w + drzwiPrzesun[i] * p;
     }
 }

@@ -83,47 +83,49 @@ class R1TrafficRetailRepairs(unittest.TestCase):
         self.assertIn("float dx = b.poz.x - p.x", SYM)
         self.assertIn("int NoweNachodzenie(", SYM)
 
-    def test_cars_no_longer_drive_on_dedicated_t1_tracks(self):
-        self.assertNotIn('nazwa = "N pętla C1–C2 południe"',TRAFFIC)
-        self.assertNotIn('nazwa = "N pętla duża (Aleja, C3, Tramwajowa, C0)"',TRAFFIC)
+    def test_cars_never_share_t1_loop_lanes(self):
+        # 9.11: pętla T1 po prawych pasach wokół kwartału C2–C3 — żadna pętla aut nie jedzie tymi pasami
+        self.assertNotIn('nazwa = "N pętla C2–C3 południe',TRAFFIC)
+        self.assertNotIn('nazwa = "N pętla duża (Aleja, C3, Nowojorska, C0)"',TRAFFIC)
+        self.assertIn('nazwa = "N pętla duża (Nowojorska, C3, Aleja, C0)"',TRAFFIC)
+        self.assertIn('nazwa = "N pętla C1–C2 północ"',TRAFFIC)
         self.assertIn("NdTorowisko()",DISTRICT)
-        self.assertIn("TorRect",DISTRICT)
 
-    def test_tram_moves_on_actual_track_without_unsupported_turn(self):
+    def test_tram_runs_a_closed_loop_with_left_turns_only(self):
         self.assertIn('var svc = vehicle.gameObject.AddComponent<BraxTramT1>();',DISTRICT)
-        self.assertIn("svc.wschodX = east; svc.zachodX = west;",DISTRICT)
-        self.assertIn("celX=east?wschodX:zachodX",TRAM)
-        self.assertIn("p.x=Mathf.MoveTowards",TRAM)
-        self.assertIn("p.z=torZ",TRAM)
-        self.assertNotIn("transform.rotation=Quaternion.Euler(0f,180", TRAM)
+        self.assertIn("BraxTramwajSklad.Petla(new[] { new Vector2(xW, zS), new Vector2(xE, zS), new Vector2(xE, zN), new Vector2(xW, zN) }, TramR",DISTRICT)
+        self.assertIn("public const float TramR = 16f;",DISTRICT)
+        self.assertIn("s = Zawin(s + krok);",TRAM)
 
-    def test_tram_pivot_is_recentered_under_moving_hull(self):
-        self.assertIn("o.transform.SetParent(vehicle, true)", DISTRICT)
-        self.assertIn("east-before.center.x", DISTRICT)
-        self.assertIn("box.center = b.center - vehicle.position",DISTRICT)
-        self.assertNotIn('BraxMiastoAssety.Kolizja(root, o, "Tramwaj kolizja"', DISTRICT)
+    def test_left_turn_radius_clears_inner_curb_corner(self):
+        # łuk R przy lewym skręcie z prawego pasa (oś 2.25 m od osi ulicy 9 m): narożnik krawężnika musi być wewnątrz okręgu
+        # łuku z zapasem na pół szerokości wagonu (1.33 m) i wychylenie członu 9 m (L²/8R)
+        R, lane, half = 16.0, 2.25, 4.5
+        cx, cz = lane - R, -lane + R           # środek łuku: skręt z jazdy na wschód (pas z = −2.25) na północ (pas x = +2.25)
+        corner = (-half, half)                 # narożnik krawężnika po wewnętrznej stronie
+        d = math.hypot(corner[0] - cx, corner[1] - cz)
+        clearance = R - d - (1.33 + 81 / (8 * R))
+        self.assertGreater(clearance, 0.3)
 
-    def test_tram_size_fits_straight_track_analytic_clearance(self):
-        k = 1.294
-        track_left = -600 + 9.75
-        track_right = -450 - 9.75
-        tram_length = 33.9 * k
-        travel = (track_right - 1.6 - tram_length/2) - (track_left + 1.6 + tram_length/2)
-        self.assertGreater(travel, 60)
-        self.assertIn("if (east - west < 4f)",DISTRICT)
+    def test_articulated_sections_follow_track_at_both_ends(self):
+        self.assertIn("var f = Punkt(s - czlonPrzod[i]); var r = Punkt(s - czlonTyl[i]);",TRAM)
+        self.assertIn("Quaternion.LookRotation(d.normalized, Vector3.up)",TRAM)
+        self.assertIn("BraxTramwajSklad.Przeguby(o, out var jakPrzeguby)",DISTRICT)
+        sk = src("Editor/Claude/Region/BraxTramwajSklad.cs")
+        self.assertIn("BraxCityMeshCut.Subtract(kopia.transform, przed",sk)
+        self.assertIn("BraxCityMeshCut.Subtract(kopia.transform, za",sk)
 
-    def test_tram_door_pairs_open_only_on_platform_side(self):
-        self.assertIn('name.Contains("drzwi") || name.Contains("door")',TRAM)
-        self.assertIn("b.center.z > modelBounds.center.z-.25f",TRAM)
-        self.assertIn("doors.Count%2==0",TRAM)
-        self.assertIn("Vector3.left*.52f",TRAM)
-        self.assertIn("Vector3.right*.52f",TRAM)
-        self.assertIn("bool beside = Mathf.Abs(transform.position.x-wschodX)",TRAM)
-        self.assertIn("doors.Count==0 || doorState<.85f",TRAM)
+    def test_doors_plug_then_slide_on_the_right_side(self):
+        self.assertIn("drzwiDom[i] + drzwiWysun[i] * w + drzwiPrzesun[i] * p",TRAM)
+        sk = src("Editor/Claude/Region/BraxTramwajSklad.cs")
+        self.assertIn("wysun = new Vector3(.06f, 0f, 0f)",sk)
+        self.assertIn("bool prawa = la.x > .9f && lb2.x > .9f && lc.x > .9f;",sk)
+        self.assertIn("BRAXHORN_TRAM_MODEL",sk)
 
-    def test_tram_unknown_door_meshes_must_be_reported(self):
-        self.assertIn("potrzebny krótki audyt siatek w Unity", TRAM)
-        self.assertIn("Nie przesuwam losowych brył",TRAM)
+    def test_cars_and_pedestrians_yield_to_tram_on_crossings(self):
+        self.assertIn("BraxStrefyZatrzymania.Dodaj(new BraxStrefyZatrzymania.Strefa",TRAM)
+        self.assertIn("dlaPieszych = true",TRAM)
+        self.assertIn("autoWPolu",TRAM)
 
     def test_only_northern_shop_roundabout_removed(self):
         self.assertIn("RONDO_POLNOC_USUNIETE=tak",CITY)

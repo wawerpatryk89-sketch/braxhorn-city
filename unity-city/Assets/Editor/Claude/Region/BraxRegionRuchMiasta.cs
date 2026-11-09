@@ -163,8 +163,11 @@ public static partial class BraxClaudeOsiedle
             // 9.11: 7.11 zdjęto razem z tym 2 z 4 pętli aut (C1–C2 południe, duża) i liczność 8→6 — mniej samochodów, choć właściciel
             // 3.11 10:15 skarżył się „samochody zniknęły”. Zastępcze pętle OMIJAJĄ torowisko: duża po Nowojorskiej + C0/C3 + Alei,
             // oraz C2–C3 południe po Tramwajowej poza odcinkiem torowiska (tor leży między C1 a C2).
-            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla C2–C3 południe (Tramwajowa poza torowiskiem)", petla = true, y = YA, punkty = new[] { P(nA[3]), P(nT[3]), P(nT[2]), P(nA[2]) } });
-            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla duża (Aleja, C3, Nowojorska, C0)", petla = true, y = YA, punkty = new[] { P(nA[0]), P(nA[1]), P(nA[2]), P(nA[3]), P(nN[3]), P(nN[2]), P(nN[1]), P(nN[0]) } });
+            // 9.11 (tramwaj T1 jeździ pętlą po prawych pasach wokół kwartału C2–C3: Tramwajowa na wschód, C2 na północ, Aleja na zachód,
+            // C3 na południe): na tych pasach nie może jechać żadna pętla aut. „C2–C3 południe” (dokładnie te pasy) zastąpiona pętlą
+            // „C1–C2 północ” (ta sama liczba aut), „duża” odwrócona (Aleja na wschód — pas płd., tramwaj jedzie pasem płn.).
+            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla C1–C2 północ", petla = true, y = YA, punkty = new[] { P(nA[1]), P(nN[1]), P(nN[2]), P(nA[2]) } });
+            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla duża (Nowojorska, C3, Aleja, C0)", petla = true, y = YA, punkty = new[] { P(nN[0]), P(nN[1]), P(nN[2]), P(nN[3]), P(nA[3]), P(nA[2]), P(nA[1]), P(nA[0]) } });
             // Kurs autobusu okrąża kwartał C0–C1: na Alei Centralnej wraca w kierunku +X, przy właściwej krawędzi zatoki (-Z).
             defs.Add(new BraxTrasyAut.Definicja { nazwa = "AUTOBUS Aleja Centralna C0-C1 kurs", petla = true, y = YA,
                 punkty = new[] { P(nA[0]), P(nT[0]), P(nT[1]), P(nA[1]) } });

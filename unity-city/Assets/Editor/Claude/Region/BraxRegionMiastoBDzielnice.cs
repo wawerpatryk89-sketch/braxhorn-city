@@ -190,7 +190,8 @@ public static partial class BraxRegionMiastoB
         for (float x = NXA + 10f; x < NX - 10f; x += 16f) { if (PeronTramwaju.xMin - 4f < x && x < PeronTramwaju.xMax + 4f) continue; Drzewo(new Vector3(x, YC - .03f, -79f + ((int)(x * .1f) % 3))); ndDrzewa++; }
     }
 
-    static readonly Rect PeronTramwaju = Rect.MinMaxRect(-512f, NS1 - NPR - 6f, -458f, NS1 - NPR);   // płyty przystanku za chodnikiem
+    // 9.11: przystanek „T1 · TRAMWAJOWA” na pętli T1 (odcinek C3–C2, jazda na wschód, drzwi po prawej = strona płd.)
+    static readonly Rect PeronTramwaju = Rect.MinMaxRect(-672f, NS1 - NPR - 6f, -620f, NS1 - NPR);   // płyty przystanku za chodnikiem
     public const float PrzystanekAutobusuCentralnaX = -318f;
     const float PrzystBusX = PrzystanekAutobusuCentralnaX;                                                                 // przód autobusu na przystanku ALEJA CENTRALNA
 
@@ -331,15 +332,9 @@ public static partial class BraxRegionMiastoB
     // 15:40: nic nie leży na asfalcie). Rozstaw 1.435 m × K. Asfalt odcinka budowany tu (górna powierzchnia z otworami).
     static void NdTorowisko()
     {
-        float roz = Rozstaw * K, glowka = .07f * K, rowek = .045f * K;
-        foreach (float zt in new[] { NS1 - AH * .5f, NS1 + AH * .5f })
-            foreach (int s in new[] { -1, 1 })
-            {
-                float zc = zt + s * (roz * .5f + glowka * .5f);
-                ndWstawkiToru.Add((Rect.MinMaxRect(TorRect.xMin + .8f, zc - glowka * .5f, TorRect.xMax - .8f, zc + glowka * .5f), 1));
-                float zr = zt + s * (roz * .5f - rowek * .5f);   // rowek po wewnętrznej stronie główki
-                ndWstawkiToru.Add((Rect.MinMaxRect(TorRect.xMin + .8f, zr - rowek * .5f, TorRect.xMax - .8f, zr + rowek * .5f), 2));
-            }
+        // 9.11 (właściciel: tramwaj „ma elegancko kursować”, „łamać się na zakrętach”): dawny dwutorowy odcinek C1–C2 z kozłami
+        // (wahadło na prostej) ZDJĘTY — T1 jeździ pętlą wokół kwartału C2–C3 (NdTramwaj, szyny nad asfaltem wzdłuż całej pętli).
+        // Tu zostaje sam asfalt odcinka C1–C2 z oznakowaniem (wstawki farby), bez szyn.
         // farba przecinająca szyny: farba ustępuje szynie (wstawki się nie nakładają)
         var szyny = ndWstawkiToru.Where(w => w.mat > 0).Select(w => w.r).ToList();
         var nowe = new List<(Rect, int)>();
@@ -362,7 +357,7 @@ public static partial class BraxRegionMiastoB
         // kontrola: wstawki toru parami i z asfaltem B (ten prostokąt nie jest w liście asfaltów B — sprawdzany tu)
         for (int i = 0; i < ndWstawkiToru.Count; i++) for (int j = i + 1; j < ndWstawkiToru.Count; j++) if (Niepuste(Przetnij(ndWstawkiToru[i].r, ndWstawkiToru[j].r))) { ndMigotanie++; Debug.LogWarning("BRAXHORN_MIASTO_ASSETY_MIGOTANIE wstawki toru " + ndWstawkiToru[i].r + " × " + ndWstawkiToru[j].r); }
         foreach (var (n, r) in asfalty) if (Niepuste(Przetnij(r, TorRect))) { ndMigotanie++; Debug.LogWarning("BRAXHORN_MIASTO_ASSETY_MIGOTANIE asfalt toru × " + n); }
-        NdLog("torowisko: 2 tory × 2 szyny rowkowe (rozstaw " + (Rozstaw * K).ToString("0.000") + " m = 1.435 × K) x " + (TorRect.xMin + .8f).ToString("0.0") + "…" + (TorRect.xMax - .8f).ToString("0.0") + " — wstawki w wycięciach asfaltu, wstawek " + ndWstawkiToru.Count);
+        NdLog("ul. Tramwajowa C1–C2: asfalt z oznakowaniem (dawne torowisko zdjęte — pętla T1 wokół kwartału C2–C3); rozstaw szyn T1 " + (Rozstaw * K).ToString("0.000") + " m = 1.435 × K) x " + (TorRect.xMin + .8f).ToString("0.0") + "…" + (TorRect.xMax - .8f).ToString("0.0") + " — wstawki w wycięciach asfaltu, wstawek " + ndWstawkiToru.Count);
     }
 
     // górna powierzchnia prostokąta z otworami w miejscach wstawek (każda wstawka swoim materiałem) — wariant Wstawki B
@@ -703,78 +698,94 @@ public static partial class BraxRegionMiastoB
         NdLog("przystanek ALEJA CENTRALNA: wiata i znacznik gotowe; pojazd kursowy z jednej symulacji ruchu");
     }
 
-    // tramwaj: przystanek przy krawężniku ul. Tramwajowej (pas płd., jazda na wschód), peron z płyt za chodnikiem, wiata (model),
-    // tablica „T1 · KRAŃCÓWKA ZACHÓD”, tramwaj CAF (33.9 m × K) kołami na szynach, kozły oporowe na końcach torów.
+    // TRAMWAJ T1 (9.11, właściciel 18:21: „drzwi się źle otwierają, nie łamie się na zakrętach, ma elegancko kursować”).
+    // Pętla po prawych pasach wokół kwartału C2–C3 (lewe skręty — jedyne, które 44-metrowy skład zmieści na jezdni 9 m):
+    // ul. Tramwajowa na wschód (C3 → C2) → ul. C2 na północ → Aleja Centralna na zachód (C2 → C3) → ul. C3 na południe; łuki R 16 m.
+    // Na tych pasach nie jeździ żadna pętla aut (BraxRegionRuchMiasta: pętla aut „C2–C3 południe” zastąpiona „C1–C2 północ”,
+    // „duża” odwrócona); na skrzyżowaniach auta i piesi stają przed tramwajem (BraxTramT1 → BraxStrefyZatrzymania).
+    // Przystanki: „T1 · TRAMWAJOWA” (płd. chodnik, x ≈ −650) i „T1 · PLAC ATLANTA” (zach. chodnik ul. C3) — wiata, słup z tablicą.
+    // Skład: model CAF rozcięty w przegubach na człony (BraxTramwajSklad), drzwi z węzłów albo z szyb drzwiowych modelu.
+    public const float TramR = 16f;
     static void NdTramwaj()
     {
-        float zt = NS1 - AH * .5f;
-        var t1 = new GameObject("BRAXHORN przystanek tramwajowy: T1 KRAŃCÓWKA ZACHÓD"); t1.transform.SetParent(root, false);
-        t1.transform.position = new Vector3(-462f, YA, NS1 - AH); t1.transform.rotation = Quaternion.LookRotation(Vector3.right);
-        BraxRegionMeble.Napis(root, "T1 · KRAŃCÓWKA ZACHÓD", NaPodlozu(new Vector3(-468f, YC, NS1 - NPR - .4f)) + Vector3.up * 2.6f * K, Vector3.forward, .26f * K, new Color(.95f, .95f, .92f));
-        var sl = new BraxRegionMeble.Bud(); var ps = NaPodlozu(new Vector3(-468f, YC, NS1 - NPR - .5f)); sl.Cyl(ps, ps + Vector3.up * 3.1f * K, .04f * K, 10);
-        sl.Box(ps + Vector3.up * 2.65f * K, new Vector3(2.6f * K, .5f * K, .06f)); sl.Obiekt("Przystanek tramwajowy: słup z tablicą", root, BraxCityMaterials.Surface("Przystanek: tablica granatowa", new Color(.06f, .14f, .32f), .5f), false, true);
-        // kozły oporowe (stal, pasy czerwono-białe) na obu końcach obu torów — bryły na asfalcie, nie płaszczyzny
-        var koz = new BraxRegionMeble.Bud(); var pas = new BraxRegionMeble.Bud();
-        foreach (float z in new[] { NS1 - AH * .5f, NS1 + AH * .5f })
-            foreach (float x in new[] { TorRect.xMin + 1.2f, TorRect.xMax - 1.2f })
-            {
-                koz.Box(new Vector3(x, YA + .45f * K, z), new Vector3(.35f * K, .9f * K, Rozstaw * K + .5f));
-                pas.Box(new Vector3(x + (x < TorRect.center.x ? .18f : -.18f) * K, YA + .62f * K, z), new Vector3(.02f, .35f * K, Rozstaw * K + .3f));
-                BraxRegionMeble.Kolizja(root, "Kozioł oporowy kolizja", new Vector3(x, YA + .45f * K, z), new Vector3(.35f * K, .9f * K, Rozstaw * K + .5f));
-            }
-        koz.Obiekt("Kozły oporowe (stal)", root, stal, false, true); pas.Obiekt("Kozły oporowe: tarcze czerwono-białe", root, BraxCityMaterials.Surface("Kozioł: tarcza czerwona", new Color(.75f, .08f, .08f), .5f), false, false);
-        if (BraxMiastoAssety.Jest("miasto_wyposazenie"))
+        float zS = NS1 - AH * .5f, xE = NC[2] + AH * .5f, zN = RZ + AH * .5f, xW = NC[3] - AH * .5f;
+        float yToru = YA;
+        var trasa = BraxTramwajSklad.Petla(new[] { new Vector2(xW, zS), new Vector2(xE, zS), new Vector2(xE, zN), new Vector2(xW, zN) }, TramR, yToru, 7f, 1.1f);
+        var stalSzyny = BraxCityMaterials.Surface("Tor: główka szyny (stal wyślizgana)", new Color(.62f, .62f, .62f), .25f, .9f);
+        var rowekMat = BraxCityMaterials.Surface("Tor: rowek szyny (ciemny)", new Color(.05f, .05f, .05f), .8f, .3f);
+        foreach (var m in new[] { stalSzyny, rowekMat }) { m.SetFloat("_OffsetFactor", -1f); m.SetFloat("_OffsetUnits", -4f); EditorUtility.SetDirty(m); }
+        BraxTramwajSklad.Szyny(trasa, Rozstaw * K, .07f * K, .045f * K, root, stalSzyny, rowekMat);
+        // ---- przystanki: tablica na słupie, wiata (model) ----
+        var tablica = BraxCityMaterials.Surface("Przystanek: tablica granatowa", new Color(.06f, .14f, .32f), .5f);
+        var wiataZr = BraxMiastoAssety.Jest("miasto_wyposazenie") ? BraxMiastoAssety.Model("miasto_wyposazenie", "miasto_wyposazenie") : null;
+        void Przystanek(string nazwa, Vector3 slup, Vector3 lico, Vector3 wiata, float yawWiaty)
         {
-            var wiata = BraxMiastoAssety.Model("miasto_wyposazenie", "miasto_wyposazenie");
-            var kopia = wiata ? (GameObject)UnityEngine.Object.Instantiate(wiata) : null; var t = kopia ? BraxMiastoAssety.Znajdz(kopia.transform, "wiata_przystanku") : null;
+            var sl = new BraxRegionMeble.Bud(); var ps = NaPodlozu(slup); sl.Cyl(ps, ps + Vector3.up * 3.1f * K, .04f * K, 10);
+            var rotTab = Quaternion.LookRotation(lico); sl.Box(ps + Vector3.up * 2.65f * K, new Vector3(2.6f * K, .5f * K, .06f), rotTab);
+            sl.Obiekt("Przystanek tramwajowy " + nazwa + ": słup z tablicą", root, tablica, false, true);
+            BraxRegionMeble.Napis(root, nazwa, ps + Vector3.up * 2.65f * K + lico * .04f, lico, .2f * K, new Color(.95f, .95f, .92f));
+            BraxRegionMeble.Napis(root, nazwa, ps + Vector3.up * 2.65f * K - lico * .04f, -lico, .2f * K, new Color(.95f, .95f, .92f));
+            if (!wiataZr) return;
+            var kopia = (GameObject)UnityEngine.Object.Instantiate(wiataZr); var t = BraxMiastoAssety.Znajdz(kopia.transform, "wiata_przystanku");
             if (t)
             {
-                t.SetParent(root, false); t.name = "Wiata przystanku tramwajowego (model)";
-                t.position = NaPodlozu(new Vector3(-478f, YC, PeronTramwaju.center.y)); t.rotation = Quaternion.identity; t.localScale = Vector3.one * K;
+                t.SetParent(root, false); t.name = "Wiata przystanku tramwajowego " + nazwa + " (model)";
+                t.position = NaPodlozu(wiata); t.rotation = Quaternion.Euler(0f, yawWiaty, 0f); t.localScale = Vector3.one * K;
                 BraxMiastoAssety.Przygotuj(t.gameObject); BraxMiastoAssety.Kolizja(root, t.gameObject, "Wiata tramwaju kolizja", .3f);
             }
-            if (kopia) UnityEngine.Object.DestroyImmediate(kopia);
+            UnityEngine.Object.DestroyImmediate(kopia);
         }
+        float xPrzystA = -627f, zPrzystB = -38f;
+        Przystanek("T1 · TRAMWAJOWA", new Vector3(xPrzystA - 2f, YC, NS1 - AH - Kr - .6f), Vector3.forward, new Vector3(-650f, YC, NS1 - NPR + 1.4f), 0f);
+        Przystanek("T1 · PLAC ATLANTA", new Vector3(NC[3] - AH - Kr - .6f, YC, zPrzystB + 2f), Vector3.right, new Vector3(NC[3] - NPR + 1.4f, YC, zPrzystB + 22f), 90f);
+        // ---- skład ----
         var tram = BraxMiastoAssety.Jest("miasto_pojazdy") ? BraxMiastoAssety.Model("miasto_pojazdy", "tramwaj_caf") : null;
-        if (!tram) { NdLog("tramwaj: brak modelu (paczka miasto_pojazdy) — torowisko, peron i tablica bez tramwaju"); return; }
-        var o = BraxMiastoAssety.Postaw(root, tram, "Tramwaj T1 na przystanku (model CAF)",
-            new Vector3(-463.5f - 33.9f*K*.5f, YA, zt), 0f, 1f, false, true);
+        if (!tram) { NdLog("tramwaj: brak modelu (paczka miasto_pojazdy) — pętla z szynami i przystankami bez tramwaju"); return; }
+        var o = BraxMiastoAssety.Postaw(root, tram, "Tramwaj T1 (model CAF, przed podziałem)", new Vector3(xPrzystA - 22f, YA, zS), 0f, 1f, false, true);
         if (!o) { NdLog("DO POPRAWKI: nie udało się utworzyć tramwaju CAF"); return; }
+        BraxTramwajSklad.Spis(o);
+        // model wzdłuż +x: czoło (x max) na przystanku A, oś na torze, koła na główkach szyn
+        var b0 = BraxRegion.Bounds(o);
+        o.transform.position += new Vector3(xPrzystA - b0.max.x, yToru + .012f - b0.min.y, zS - b0.center.z);
         var b = BraxRegion.Bounds(o);
-        float west = TorRect.xMin + 1.6f + b.size.x*.5f;
-        float east = TorRect.xMax - 1.6f - b.size.x*.5f;
-        if (east - west < 4f)
-        { NdLog("DO POPRAWKI: CAF jest za długi dla istniejącego toru"); UnityEngine.Object.DestroyImmediate(o); return; }
-        // Ruch na osobnym korzeniu w skali 1: przesunięcie ma dotyczyć
-        // środkowej osi wagonu, a nie pivota źródłowego GLB.
-        var vehicle = new GameObject("BRAXHORN TRAMWAJ T1 (ruch i kolizje)").transform;
-        vehicle.SetParent(root, false);
-        vehicle.position = new Vector3(east, 0f, zt);
-        o.transform.SetParent(vehicle, true);
-        var before = BraxRegion.Bounds(o);
-        o.transform.position += new Vector3(east-before.center.x, YA-before.min.y,
-            zt-before.center.z);
-        b = BraxRegion.Bounds(o);
-        foreach (var tr in vehicle.GetComponentsInChildren<Transform>(true))
-            GameObjectUtility.SetStaticEditorFlags(tr.gameObject, 0);
-        // Kolizja przesuwa się razem z tramwajem, nie pozostaje na peronie.
-        var box = vehicle.gameObject.AddComponent<BoxCollider>();
-        box.center = b.center - vehicle.position;
-        box.size = b.size;
-        var rb = vehicle.gameObject.AddComponent<Rigidbody>();
-        rb.isKinematic = true; rb.useGravity = false;
+        var vehicle = new GameObject("BRAXHORN TRAMWAJ T1 (pętla, człony, drzwi)").transform; vehicle.SetParent(root, false); vehicle.position = new Vector3(b.center.x, yToru, zS);
+        var przeguby = BraxTramwajSklad.Przeguby(o, out var jakPrzeguby);
+        var granice = new List<float> { b.min.x }; granice.AddRange(przeguby.OrderBy(x => x)); granice.Add(b.max.x);
+        string folder = BraxRegion.Out + "/Tramwaj";
+        var czlony = new List<Transform>(); var przod = new List<float>(); var tyl = new List<float>();
+        // człony od czoła (x max) do tyłu
+        for (int i = granice.Count - 2; i >= 0; i--)
+        {
+            float xa = granice[i], xb = granice[i + 1];
+            var cz = BraxTramwajSklad.Czlon(o, vehicle, czlony.Count, xa, xb, yToru, zS, folder);
+            czlony.Add(cz); przod.Add(b.max.x - xb); tyl.Add(b.max.x - xa);
+        }
+        UnityEngine.Object.DestroyImmediate(o);
+        var skrzydla = BraxTramwajSklad.Drzwi(czlony.ToArray(), b.min.y + .3f, folder, out var jakDrzwi);
         var svc = vehicle.gameObject.AddComponent<BraxTramT1>();
-        svc.wschodX = east; svc.zachodX = west; svc.torZ = zt;
-        svc.peronX0 = PeronTramwaju.xMin; svc.peronX1 = PeronTramwaju.xMax;
-        svc.peronZ = PeronTramwaju.center.y;
-        NdLog("tramwaj: CAF model " + b.size.x.ToString("0.0") +
-            " m, tor płd. z=" + zt.ToString("F2") +
-            ", trasa x=" + svc.zachodX.ToString("F1") + "..." + svc.wschodX.ToString("F1") +
-            " (na końcach jazda rewersyjna, bez fizycznego skręcania poza szyny)");
+        svc.trasa = trasa.p.ToArray(); svc.trasaS = trasa.s.ToArray(); svc.vLimit = trasa.v.ToArray(); svc.dlugosc = trasa.dl;
+        svc.czlony = czlony.ToArray(); svc.czlonPrzod = przod.ToArray(); svc.czlonTyl = tyl.ToArray();
+        float sA = BraxTramwajSklad.SNajblizej(trasa, new Vector3(xPrzystA, yToru, zS));
+        float sB = BraxTramwajSklad.SNajblizej(trasa, new Vector3(xW, yToru, zPrzystB));
+        svc.s = sA; svc.przystanki = new[] { sA, sB }; svc.przystankiNazwy = new[] { "T1 · TRAMWAJOWA", "T1 · PLAC ATLANTA" };
+        var srodki = new[] { new Vector2(NC[2], NS1), new Vector2(NC[2], RZ), new Vector2(NC[3], RZ), new Vector2(NC[3], NS1) };
+        var od = new List<float>(); var dok = new List<float>(); var sr = new List<Vector3>();
+        foreach (var c in srodki) { var p = BraxTramwajSklad.SPrzedzial(trasa, c, AH + 2f); if (p.x < 0f) continue; od.Add(p.x); dok.Add(p.y); sr.Add(new Vector3(c.x, YA, c.y)); }
+        svc.skrzyzowanieOd = od.ToArray(); svc.skrzyzowanieDo = dok.ToArray(); svc.skrzyzowanieSrodek = sr.ToArray(); svc.skrzyzowaniePromien = AH + 5f;
+        svc.drzwi = skrzydla.Select(q => q.t).ToArray(); svc.drzwiDom = skrzydla.Select(q => q.dom).ToArray();
+        svc.drzwiWysun = skrzydla.Select(q => q.wysun).ToArray(); svc.drzwiPrzesun = skrzydla.Select(q => q.przesun).ToArray();
+        svc.zachodX = xW; svc.wschodX = xE; svc.torZ = zS; svc.peronX0 = PeronTramwaju.xMin; svc.peronX1 = PeronTramwaju.xMax; svc.peronZ = PeronTramwaju.center.y;
+        // ustawienie członów na torze już w scenie (pierwsza klatka bez skoku)
+        for (int i = 0; i < czlony.Count; i++)
+        {
+            Vector3 P(float x) { x %= trasa.dl; if (x < 0) x += trasa.dl; int k = trasa.s.FindLastIndex(q => q <= x); if (k < 0) k = 0; int k2 = (k + 1) % trasa.p.Count; float a0 = trasa.s[k], a1 = k2 == 0 ? trasa.dl : trasa.s[k2]; return Vector3.Lerp(trasa.p[k], trasa.p[k2], a1 > a0 ? (x - a0) / (a1 - a0) : 0f); }
+            var f = P(sA - przod[i]); var r = P(sA - tyl[i]); var d = f - r; d.y = 0f;
+            czlony[i].position = (f + r) * .5f; if (d.sqrMagnitude > 1e-6f) czlony[i].rotation = Quaternion.LookRotation(d.normalized, Vector3.up);
+        }
+        NdLog("tramwaj T1: pętla " + trasa.dl.ToString("F0") + " m wokół kwartału C2–C3 (łuki R " + TramR + " m), członów " + czlony.Count + " (" + jakPrzeguby + "), drzwi: " + jakDrzwi +
+              ", przystanki: T1 · TRAMWAJOWA (s " + sA.ToString("F0") + "), T1 · PLAC ATLANTA (s " + sB.ToString("F0") + "), skrzyżowania " + od.Count);
     }
 
-    // drobne: hydranty przy narożnikach ulic C, skrzynki pocztowe na promenadzie i przy ul. Nowojorskiej, bankomat przy banku
-    // (KINNAIRD), kontenery na śmieci w przerwach między budynkami (zaplecza). Modele TampaJoey — tylko to, czego w grze brakowało.
     static void NdDrobne()
     {
         if (!BraxMiastoAssety.Jest("miasto_wyposazenie")) { NdLog("wyposażenie: brak paczki miasto_wyposazenie"); return; }

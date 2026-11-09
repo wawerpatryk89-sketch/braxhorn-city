@@ -81,20 +81,18 @@ public static class BraxR1SceneAcceptance
         if(tram.Length!=1)bad.Add("TRAMWAJ: oczekiwany jeden T1, jest "+tram.Length);
         foreach(var t in tram)
         {
-            if(!t.GetComponent<Rigidbody>() || !t.GetComponent<BoxCollider>())
-                bad.Add("TRAMWAJ: brak ruchomego kadłuba/kolidującej bryły");
-            if(t.wschodX-t.zachodX<50f)
-                bad.Add("TRAMWAJ: za krótki odcinek ruchu dla CAF");
-            if(Mathf.Abs(t.transform.position.z-t.torZ)>.15f)
-                bad.Add("TRAMWAJ: oś wagonu nie na torze "+
-                    t.transform.position.ToString("F1"));
-            try
-            {
-                int n=t.AuditDoorNodes();
-                doorPanels+=n;
-                if(n<2)bad.Add("TRAMWAJ: BRAK ODDZIELNYCH DRZWI CAF — niepotwierdzone otwieranie na peronie");
-            }
-            catch(Exception e){bad.Add("TRAMWAJ: audyt siatek drzwi "+e.Message);}
+            // 9.11: T1 = pętla wokół kwartału C2–C3, skład z członów (każdy z ruchomą bryłą), drzwi po prawej
+            if(t.czlony==null||t.czlony.Length<2)
+                bad.Add("TRAMWAJ: skład bez członów (model nie rozcięty w przegubach)");
+            else foreach(var cz in t.czlony)
+                if(!cz||!cz.GetComponent<Rigidbody>()||!cz.GetComponent<BoxCollider>())
+                    bad.Add("TRAMWAJ: człon bez ruchomego kadłuba/kolidującej bryły");
+            if(t.dlugosc<300f||t.trasa==null||t.trasa.Length<100)
+                bad.Add("TRAMWAJ: pętla za krótka ("+t.dlugosc.ToString("F0")+" m)");
+            if(t.przystanki==null||t.przystanki.Length<2)
+                bad.Add("TRAMWAJ: mniej niż 2 przystanki na pętli");
+            doorPanels+=t.drzwi!=null?t.drzwi.Length:0;
+            if(t.drzwi==null||t.drzwi.Length<2)bad.Add("TRAMWAJ: BRAK DRZWI DO OTWIERANIA — w logu BRAXHORN_TRAM_MODEL spis modelu");
             stops++;
         }
 
