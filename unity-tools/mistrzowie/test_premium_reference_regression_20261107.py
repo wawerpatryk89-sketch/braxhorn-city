@@ -54,6 +54,18 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertIn('else if(x0>=ImageRight)u0=u1=.002f', text)
         self.assertAlmostEqual(constant(text, 'DoorRight') - constant(text, 'DoorLeft'), 4.10)
         self.assertIn('DoorLeft,DoorRight,DoorTop,MuralTop,false', text)
+
+    def test_entrance_mural_top_is_below_lobby_roof_underside(self):
+        # Owner 9.11: entrance mural was cut at the top by the lobby roof.
+        text = source('BraxChampionsArenaMural.cs')
+        exteriors = (ROOT / 'unity-tools/mistrzowie/build_exteriors.py').read_text(encoding='utf-8')
+        m = re.search(r"m\.slab\('roof',foot\.buffer\(\.55\),([\d.]+),([\d.]+)\)", exteriors)
+        self.assertIsNotNone(m)
+        underside = float(m.group(1)) - float(m.group(2))
+        bowl_raise = .22 - .055
+        top = constant(text, 'MuralTop') + bowl_raise
+        self.assertLess(top, underside - .05)
+        self.assertGreater(top, underside - .20)
         self.assertNotIn('AddComponent<BoxCollider>', text)
         self.assertNotIn('AddComponent<MeshCollider>', text)
 

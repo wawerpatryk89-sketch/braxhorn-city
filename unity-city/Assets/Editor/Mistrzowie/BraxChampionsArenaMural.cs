@@ -19,19 +19,26 @@ public static class BraxChampionsArenaMural
     // global/local Z=-59; the inner wall faces the lobby at global Z=-35.
     const float WallNearLeft=-146f;
     const float WallNearRight=-26f;
-    const float ImageLeft=-127f;
-    const float ImageRight=-45f;
+    // Owner 9.11 "mural na wejściu jest ucięty od góry": the lobby roof slab
+    // (build_exteriors.arena: top 27.35, 0.30 thick) has its UNDERSIDE at
+    // 27.05 in building space = 26.885 in this bowl space (bowl is raised by
+    // .22-.055). The old top 27.533 hid 0.65 m (0.84 m in game) of the image
+    // inside the roof: bull horn tips and dog ears. Top now ends 8.5 cm under
+    // the roof; width shrinks with it so the art stays exactly 3:1.
+    const float ImageLeft=-125.9f;
+    const float ImageRight=-46.1f;
     const float DoorLeft=-88.05f;
     const float DoorRight=-83.95f;
     const float DoorTop=4.20f;
     const float MuralBase=.20f;
-    const float MuralTop=27.53333333f;
+    const float MuralTop=26.80f;
+    public const float LobbyRoofUndersideBowlY=27.35f-.30f-(.22f-.055f);
     // Public lobby is on local +Z. The existing wall/cladding ends at Z=98.3.
     // Keep the printed surface on its LOBBY side, not hidden behind the cladding.
     // 9.11: the front wall is a real 45 cm structural wall (owner: "too thin");
     // the print stays 3 cm in front of its NEW lobby face.
     const float WallImageZ=BraxChampionsArena.FrontWallLobbyFaceZ+.03f;
-    // World scene image aspect stays 1536:512 (3:1) at 82:27.333 m.
+    // World scene image aspect stays 1536:512 (3:1) at 79.8:26.6 m.
     // The 19m peripheral sections extend the existing artwork's EDGE COLOUR
     // rather than stretching any fighter, emblem or lettering.
     // From the lobby (looking toward local -Z), viewer-right is local -X.
@@ -239,10 +246,12 @@ public static class BraxChampionsArenaMural
         AddSegment(walls,m,"Original mural right of entry",DoorRight,ImageRight,MuralBase,MuralTop,false);
         AddSegment(walls,m,"Far right atmospheric edge",ImageRight,WallNearRight,MuralBase,MuralTop,true);
         PremiumEntrancePortal(walls);
+        if(MuralTop>=LobbyRoofUndersideBowlY)
+            BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: top "+MuralTop+" is inside the lobby roof (underside "+LobbyRoofUndersideBowlY+")");
         Debug.Log("ENTRANCE_MURAL = PASS");
         Debug.Log("CHAMPION_A1_MURAL_ORIGINAL_APPLIED hd="+hd+" source="+source+
                   " sourcePixels="+sourceWidth+"x"+sourceHeight+
-                  " wall=120m mural=82x27.333m visibleArea=2224.09m2"+
+                  " wall=120m mural=79.8x26.6m top="+MuralTop+" roofUnderside="+LobbyRoofUndersideBowlY+" visibleArea=2105.47m2"+
                   " door=4.10x4.20m open noMirror=true noStretch=true sourcePixelsUnmodified=true");
         return true;
     }
