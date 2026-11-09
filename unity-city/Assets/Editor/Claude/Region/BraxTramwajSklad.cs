@@ -59,6 +59,13 @@ public static class BraxTramwajSklad
         return tr;
     }
 
+    /// <summary>Kierunek jazdy (poziomy, jednostkowy) w punkcie s trasy.</summary>
+    public static Vector3 Kierunek(Trasa t, float s)
+    {
+        int n = t.p.Count; int i = Mathf.Max(0, t.s.FindLastIndex(q => q <= s)); var d = t.p[(i + 1) % n] - t.p[i]; d.y = 0f;
+        return d.sqrMagnitude > 1e-8f ? d.normalized : Vector3.forward;
+    }
+
     /// <summary>Odległość wzdłuż trasy najbliższego punktu do q (płasko).</summary>
     public static float SNajblizej(Trasa t, Vector3 q)
     {

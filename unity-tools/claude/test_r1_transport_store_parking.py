@@ -84,12 +84,20 @@ class R1TrafficRetailRepairs(unittest.TestCase):
         self.assertIn("int NoweNachodzenie(", SYM)
 
     def test_cars_never_share_t1_loop_lanes(self):
-        # 9.11: pętla T1 po prawych pasach wokół kwartału C2–C3 — żadna pętla aut nie jedzie tymi pasami
-        self.assertNotIn('nazwa = "N pętla C2–C3 południe',TRAFFIC)
-        self.assertNotIn('nazwa = "N pętla duża (Aleja, C3, Nowojorska, C0)"',TRAFFIC)
-        self.assertIn('nazwa = "N pętla duża (Nowojorska, C3, Aleja, C0)"',TRAFFIC)
-        self.assertIn('nazwa = "N pętla C1–C2 północ"',TRAFFIC)
+        # 9.11 19:44: T1 dookoła całych nowych dzielnic przeciwnie do zegara zewnętrznymi pasami — wszystkie pętle aut zgodnie z zegarem
+        self.assertIn('punkty = new[] { P(nA[1]), P(nN[1]), P(nN[0]), P(nA[0]) }',TRAFFIC)      # C0–C1 północ
+        self.assertIn('punkty = new[] { P(nA[3]), P(nN[3]), P(nN[2]), P(nA[2]) }',TRAFFIC)      # C2–C3 północ
+        self.assertIn('punkty = new[] { P(nA[2]), P(nT[2]), P(nT[3]), P(nA[3]) }',TRAFFIC)      # C2–C3 południe
+        self.assertIn('nazwa = "N pętla duża (Aleja, C3, Nowojorska, C0)", petla = true, y = YA, punkty = new[] { P(nA[0]), P(nA[1]), P(nA[2]), P(nA[3]), P(nN[3]), P(nN[2]), P(nN[1]), P(nN[0]) }',TRAFFIC)
+        self.assertIn('punkty = new[] { P(nA[0]), P(nT[0]), P(nT[1]), P(nA[1]) }',TRAFFIC)      # autobus (zgodnie z zegarem)
+        self.assertNotIn('P(nA[0]), P(nN[0]), P(nN[1]), P(nA[1])',TRAFFIC)
         self.assertIn("NdTorowisko()",DISTRICT)
+
+    def test_tram_loop_goes_around_whole_new_district_with_six_stops(self):
+        self.assertIn("float zS = NS1 - AH * .5f, xE = NC[0] + AH * .5f, zN = NN1 + AH * .5f, xW = NC[3] - AH * .5f;",DISTRICT)
+        for n in ("T1 · TRAMWAJOWA ZACHÓD","T1 · TRAMWAJOWA WSCHÓD","T1 · ALEJA CENTRALNA","T1 · NOWOJORSKA WSCHÓD","T1 · NOWOJORSKA ZACHÓD","T1 · PLAC ATLANTA"):
+            self.assertIn('"'+n+'"',DISTRICT)
+        self.assertIn("foreach (var cz2 in new[] { NS1, RZ, NN1 })",DISTRICT)   # wszystkie skrzyżowania obwodu
 
     def test_tram_runs_a_closed_loop_with_left_turns_only(self):
         self.assertIn('var svc = vehicle.gameObject.AddComponent<BraxTramT1>();',DISTRICT)

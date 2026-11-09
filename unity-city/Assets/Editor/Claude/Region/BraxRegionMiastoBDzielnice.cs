@@ -735,19 +735,20 @@ public static partial class BraxRegionMiastoB
         NdLog("przystanek ALEJA CENTRALNA: wiata i znacznik gotowe; pojazd kursowy z jednej symulacji ruchu");
     }
 
-    // TRAMWAJ T1 (9.11, właściciel 18:21: „drzwi się źle otwierają, nie łamie się na zakrętach, ma elegancko kursować”).
-    // Pętla po prawych pasach wokół kwartału C2–C3 (lewe skręty — jedyne, które 44-metrowy skład zmieści na jezdni 9 m):
-    // ul. Tramwajowa na wschód (C3 → C2) → ul. C2 na północ → Aleja Centralna na zachód (C2 → C3) → ul. C3 na południe; łuki R 16 m.
-    // Na tych pasach nie jeździ żadna pętla aut (BraxRegionRuchMiasta: pętla aut „C2–C3 południe” zastąpiona „C1–C2 północ”,
-    // „duża” odwrócona); na skrzyżowaniach auta i piesi stają przed tramwajem (BraxTramT1 → BraxStrefyZatrzymania).
-    // Przystanki: „T1 · TRAMWAJOWA” (płd. chodnik, x ≈ −650) i „T1 · PLAC ATLANTA” (zach. chodnik ul. C3) — wiata, słup z tablicą.
-    // Skład: model CAF rozcięty w przegubach na człony (BraxTramwajSklad), drzwi z węzłów albo z szyb drzwiowych modelu.
+    // TRAMWAJ T1 (9.11, właściciel 18:21: „drzwi się źle otwierają, nie łamie się na zakrętach, ma elegancko kursować”;
+    // 19:44: „ma jechać naokoło całego nowego miasta”). Pętla ~1.2 km po zewnętrznych pasach dookoła całych nowych dzielnic:
+    // ul. Tramwajowa na wschód (C3 → C0) → ul. C0 na północ → ul. Nowojorska na zachód (C0 → C3) → ul. C3 na południe.
+    // Tylko lewe skręty R 16 m (jedyne, które 44-metrowy skład mieści z prawego pasa jezdni 9 m; zapas ~1 m do narożnika).
+    // Wszystkie pętle aut nowych dzielnic jeżdżą zgodnie z ruchem wskazówek zegara (BraxRegionRuchMiasta) — na obwodzie zawsze
+    // przeciwnym pasem niż tramwaj; na skrzyżowaniach auta i piesi stają przed tramwajem (BraxTramT1 → BraxStrefyZatrzymania).
+    // 6 przystanków (co ~200 m, przy krawężniku po prawej, słup z tablicą + wiata): Tramwajowa Zachód/Wschód, Aleja Centralna (C0),
+    // Nowojorska Wschód/Zachód, Plac Atlanta (C3). Skład: model CAF rozcięty w przegubach (BraxTramwajSklad), drzwi po prawej.
     public const float TramR = 16f;
     static void NdTramwaj()
     {
-        float zS = NS1 - AH * .5f, xE = NC[2] + AH * .5f, zN = RZ + AH * .5f, xW = NC[3] - AH * .5f;
+        float zS = NS1 - AH * .5f, xE = NC[0] + AH * .5f, zN = NN1 + AH * .5f, xW = NC[3] - AH * .5f;
         float yToru = YA;
-        var trasa = BraxTramwajSklad.Petla(new[] { new Vector2(xW, zS), new Vector2(xE, zS), new Vector2(xE, zN), new Vector2(xW, zN) }, TramR, yToru, 7f, 1.1f);
+        var trasa = BraxTramwajSklad.Petla(new[] { new Vector2(xW, zS), new Vector2(xE, zS), new Vector2(xE, zN), new Vector2(xW, zN) }, TramR, yToru, 8.3f, 1.1f);
         var stalSzyny = BraxCityMaterials.Surface("Tor: główka szyny (stal wyślizgana)", new Color(.62f, .62f, .62f), .25f, .9f);
         var rowekMat = BraxCityMaterials.Surface("Tor: rowek szyny (ciemny)", new Color(.05f, .05f, .05f), .8f, .3f);
         foreach (var m in new[] { stalSzyny, rowekMat }) { m.SetFloat("_OffsetFactor", -1f); m.SetFloat("_OffsetUnits", -4f); EditorUtility.SetDirty(m); }
@@ -772,12 +773,25 @@ public static partial class BraxRegionMiastoB
             }
             UnityEngine.Object.DestroyImmediate(kopia);
         }
-        float xPrzystA = -627f, zPrzystB = -38f;
-        Przystanek("T1 · TRAMWAJOWA", new Vector3(xPrzystA - 2f, YC, NS1 - AH - Kr - .6f), Vector3.forward, new Vector3(-650f, YC, NS1 - NPR + 1.4f), 0f);
-        Przystanek("T1 · PLAC ATLANTA", new Vector3(NC[3] - AH - Kr - .6f, YC, zPrzystB + 2f), Vector3.right, new Vector3(NC[3] - NPR + 1.4f, YC, zPrzystB + 22f), 90f);
+        // 6 przystanków: czoło składu stoi w punkcie przystanku; słup z tablicą przy krawężniku przed czołem, wiata przy tylnej
+        // krawędzi chodnika w połowie składu (tablica i wiata przodem do jezdni)
+        const float DlSkladu = 33.9f * 1.294f;
+        var przyst = new (string nazwa, Vector3 czolo)[] {
+            ("T1 · TRAMWAJOWA ZACHÓD", new Vector3(-627f, yToru, zS)), ("T1 · TRAMWAJOWA WSCHÓD", new Vector3(-327f, yToru, zS)),
+            ("T1 · ALEJA CENTRALNA", new Vector3(xE, yToru, 10f)), ("T1 · NOWOJORSKA WSCHÓD", new Vector3(-372f, yToru, zN)),
+            ("T1 · NOWOJORSKA ZACHÓD", new Vector3(-672f, yToru, zN)), ("T1 · PLAC ATLANTA", new Vector3(xW, yToru, -38f)) };
+        var sPrzyst = new List<float>();
+        foreach (var (nazwaP, czoloP) in przyst)
+        {
+            float sp = BraxTramwajSklad.SNajblizej(trasa, czoloP); sPrzyst.Add(sp);
+            var kier = BraxTramwajSklad.Kierunek(trasa, sp); var prawo = new Vector3(kier.z, 0f, -kier.x);
+            float yaw = Mathf.Atan2(-prawo.x, -prawo.z) * Mathf.Rad2Deg;
+            Przystanek(nazwaP, czoloP + kier * 2.5f + prawo * (AH * .5f + Kr + 1.0f), -prawo, czoloP - kier * (DlSkladu * .5f) + prawo * (AH * .5f + Kr + Chod - 1.4f), yaw);
+        }
         // ---- skład ----
         var tram = BraxMiastoAssety.Jest("miasto_pojazdy") ? BraxMiastoAssety.Model("miasto_pojazdy", "tramwaj_caf") : null;
         if (!tram) { NdLog("tramwaj: brak modelu (paczka miasto_pojazdy) — pętla z szynami i przystankami bez tramwaju"); return; }
+        float xPrzystA = przyst[0].czolo.x;
         var o = BraxMiastoAssety.Postaw(root, tram, "Tramwaj T1 (model CAF, przed podziałem)", new Vector3(xPrzystA - 22f, YA, zS), 0f, 1f, false, true);
         if (!o) { NdLog("DO POPRAWKI: nie udało się utworzyć tramwaju CAF"); return; }
         BraxTramwajSklad.Spis(o);
@@ -802,10 +816,11 @@ public static partial class BraxRegionMiastoB
         var svc = vehicle.gameObject.AddComponent<BraxTramT1>();
         svc.trasa = trasa.p.ToArray(); svc.trasaS = trasa.s.ToArray(); svc.vLimit = trasa.v.ToArray(); svc.dlugosc = trasa.dl;
         svc.czlony = czlony.ToArray(); svc.czlonPrzod = przod.ToArray(); svc.czlonTyl = tyl.ToArray();
-        float sA = BraxTramwajSklad.SNajblizej(trasa, new Vector3(xPrzystA, yToru, zS));
-        float sB = BraxTramwajSklad.SNajblizej(trasa, new Vector3(xW, yToru, zPrzystB));
-        svc.s = sA; svc.przystanki = new[] { sA, sB }; svc.przystankiNazwy = new[] { "T1 · TRAMWAJOWA", "T1 · PLAC ATLANTA" };
-        var srodki = new[] { new Vector2(NC[2], NS1), new Vector2(NC[2], RZ), new Vector2(NC[3], RZ), new Vector2(NC[3], NS1) };
+        float sA = sPrzyst[0];
+        svc.vmax = 8.3f;   // 30 km/h na prostych pętli 1.2 km (łuki ≤ √(1.1·R) ≈ 4.2 m/s)
+        svc.s = sA; svc.przystanki = sPrzyst.ToArray(); svc.przystankiNazwy = przyst.Select(q => q.nazwa).ToArray();
+        // wszystkie skrzyżowania siatki — te, przez które pętla nie przechodzi, odpadają (SPrzedzial = −1)
+        var srodki = new List<Vector2>(); foreach (var cx in NC) foreach (var cz2 in new[] { NS1, RZ, NN1 }) srodki.Add(new Vector2(cx, cz2));
         var od = new List<float>(); var dok = new List<float>(); var sr = new List<Vector3>();
         foreach (var c in srodki) { var p = BraxTramwajSklad.SPrzedzial(trasa, c, AH + 2f); if (p.x < 0f) continue; od.Add(p.x); dok.Add(p.y); sr.Add(new Vector3(c.x, YA, c.y)); }
         svc.skrzyzowanieOd = od.ToArray(); svc.skrzyzowanieDo = dok.ToArray(); svc.skrzyzowanieSrodek = sr.ToArray(); svc.skrzyzowaniePromien = AH + 5f;
@@ -819,8 +834,8 @@ public static partial class BraxRegionMiastoB
             var f = P(sA - przod[i]); var r = P(sA - tyl[i]); var d = f - r; d.y = 0f;
             czlony[i].position = (f + r) * .5f; if (d.sqrMagnitude > 1e-6f) czlony[i].rotation = Quaternion.LookRotation(d.normalized, Vector3.up);
         }
-        NdLog("tramwaj T1: pętla " + trasa.dl.ToString("F0") + " m wokół kwartału C2–C3 (łuki R " + TramR + " m), członów " + czlony.Count + " (" + jakPrzeguby + "), drzwi: " + jakDrzwi +
-              ", przystanki: T1 · TRAMWAJOWA (s " + sA.ToString("F0") + "), T1 · PLAC ATLANTA (s " + sB.ToString("F0") + "), skrzyżowania " + od.Count);
+        NdLog("tramwaj T1: pętla " + trasa.dl.ToString("F0") + " m dookoła nowych dzielnic (Tramwajowa, C0, Nowojorska, C3; łuki R " + TramR + " m), członów " + czlony.Count + " (" + jakPrzeguby + "), drzwi: " + jakDrzwi +
+              ", przystanki " + przyst.Length + ": " + string.Join(", ", przyst.Select((q, i) => q.nazwa + " (s " + sPrzyst[i].ToString("F0") + ")")) + ", skrzyżowania " + od.Count);
     }
 
     static void NdDrobne()
