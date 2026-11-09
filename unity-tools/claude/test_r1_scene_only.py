@@ -1,7 +1,7 @@
 """R1 source contracts: manual Unity 6 scene-only run, never an APK build.
 
 These tests validate routing and safety, not the Unity-generated world itself.
-The actual scene audit requires workflow_dispatch(scene_only=true).
+The scene-only job is permanently disabled (owner 8.11); the APK path is the only entry.
 """
 from pathlib import Path
 import re
@@ -57,13 +57,15 @@ class R1UnitySceneOnlySourceContract(unittest.TestCase):
         self.assertIn("BraxBrakujaceSkrypty.Sprawdz(scenePaths)",BUILD[end:pkg])
         self.assertIn("Assets/PlayableGenerated/R1SceneAcceptance", QA)
 
-    def test_apk_disabled_in_manual_scene_only_dispatch(self):
-        self.assertIn("scene_only:", YML)
-        self.assertIn("default: false",YML)
-        self.assertIn("github.event.inputs.scene_only == 'false'", YML)
-        self.assertIn("github.event.inputs.scene_only == 'true'", YML)
-        self.assertIn("buildMethod: BraxGymBuild.SceneOnlyCityR1",YML)
-        self.assertIn("targetPlatform: WebGL",YML)
+    def test_scene_only_job_blocked_and_apk_not_gated_by_removed_input(self):
+        # Właściciel 8.11: długi test scene-only zabroniony w tym workflow (26c0b17a) — wejście scene_only
+        # zniknęło, job zostaje wyłączony na stałe, APK nie może od niego zależeć.
+        self.assertNotIn("scene_only:", YML[:YML.index("jobs:")])
+        self.assertNotIn("github.event.inputs.scene_only", YML)
+        job = YML[YML.index("  scene-only-unity6:"):]
+        self.assertIn("if: false", job[:job.index("needs:")])
+        self.assertIn("buildMethod: BraxGymBuild.SceneOnlyCityR1", job)
+        self.assertIn("targetPlatform: Android", YML)
 
     def test_manual_only_workflow_is_one_entrypoint(self):
         self.assertIn("  workflow_dispatch:",YML)

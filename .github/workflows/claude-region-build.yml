@@ -120,6 +120,12 @@ jobs:
           '
         persist-credentials: false
         lfs: false
+    - name: Szybki sprawdzacz C# (zdublowane nazwy lokalne) i testy statyczne przed godzinnym buildem Unity
+      run: |
+        python3 -m pip install --disable-pip-version-check -q -r unity-tools/validation/requirements.txt
+        python3 -m unittest discover -s unity-tools/validation -p 'test_*.py'
+        python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+        python3 -m unittest discover -s unity-tools/claude -p 'test_*.py'
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
         python3 unity-tools/check_webgl_bridges.py
@@ -451,6 +457,12 @@ jobs:
         [ "$GITHUB_RUN_NUMBER" -gt 58 ] || { echo '::error::Numer aktualizacji musi byc wyzszy niz 58.'; exit 1; }
         echo "$GITHUB_RUN_NUMBER" > unity-city/braxhorn.versioncode
         echo "Podpis zgodny z wersja 58, nowy versionCode=$GITHUB_RUN_NUMBER"
+    - name: Szybki sprawdzacz C# (zdublowane nazwy lokalne) i testy statyczne przed godzinnym buildem Unity
+      run: |
+        python3 -m pip install --disable-pip-version-check -q -r unity-tools/validation/requirements.txt
+        python3 -m unittest discover -s unity-tools/validation -p 'test_*.py'
+        python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+        python3 -m unittest discover -s unity-tools/claude -p 'test_*.py'
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
         python3 unity-tools/check_webgl_bridges.py
@@ -979,6 +991,12 @@ jobs:
           '
         persist-credentials: false
         lfs: false
+    - name: Szybki sprawdzacz C# (zdublowane nazwy lokalne) i testy statyczne przed godzinnym buildem Unity
+      run: |
+        python3 -m pip install --disable-pip-version-check -q -r unity-tools/validation/requirements.txt
+        python3 -m unittest discover -s unity-tools/validation -p 'test_*.py'
+        python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+        python3 -m unittest discover -s unity-tools/claude -p 'test_*.py'
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
         python3 unity-tools/check_webgl_bridges.py

@@ -53,7 +53,11 @@ public static class BraxClaudeObszary
             // Build 8: 64 drzewa (Verdant, LOD) na granicy osiedla — pień przeniesiony do obszaru, korona została
             // (LODGroup traci odwołanie między scenami → korona wisi w powietrzu, dopóki obszar się nie wczyta).
             // Obiekt z LODGroup jest niepodzielny: cały w obszarze albo cały zostaje.
-            if (t.GetComponent<LODGroup>()) return;
+            // 9.11 (z gałęzi bocznej, naprawa #97/#98 z 5.11): to samo dla KAŻDEGO poddrzewa ze skryptem (MonoBehaviour) — sterownik
+            // sygnalizacji BraxSwiatloDrogowe zostawał w scenie głównej, a jego 3 szkła szły do kwadratu K_x-5_z0; po SaveScene
+            // odwołania Renderer/Transform między scenami gasły. Całe poddrzewo w kwadracie → przenosi się razem (warunek wyżej),
+            // inaczej zostaje w całości w scenie głównej. Zwykłe siatki dzielą się jak dotąd.
+            if (t.GetComponent<LODGroup>() || t.GetComponent<MonoBehaviour>()) return;
             foreach (Transform c in t) Zbierz(c);
         }
         foreach (var root in scene.GetRootGameObjects()) Zbierz(root.transform);

@@ -46,10 +46,14 @@ public static class BraxKontrolaMigotania
     static Bounds[] Strefy()
     {
         var l = new List<Bounds> { StrefaSilowni() };
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.StartsWith("BraxhornCity", StringComparison.Ordinal))
+        if (BraxKontrola.Obszar == "miasto") // scena w CI może nie być aktywną BraxhornCity podczas audytu; obszar jest ustawiany jawnie przez BraxGymBuild
             foreach (var (a, b) in new[] { (new Vector3(12f, -.5f, 4f), new Vector3(50f, 34f, 46f)),          // kamienica z BRAXHORN NUTRITION i sąsiednie
                                            (new Vector3(-50f, -.5f, -22f), new Vector3(-16f, 34f, 26f)),      // lewa kamienica przy BRAXHORN GYM
-                                           (new Vector3(-121f, -.5f, 44f), new Vector3(-90f, 40f, 76f)) })   // alejka przy BANKU (Aleja Północna 1)
+                                           (new Vector3(-121f, -.5f, 44f), new Vector3(-90f, 40f, 76f)),   // alejka przy BANKU
+                                           (new Vector3(-168f, -2f, -138f), new Vector3(72f, 40f, 108f)),    // sklep spożywczy -> wulkanizacja i boiska
+                                           (new Vector3(63f, -3f, -140f), new Vector3(187f, 28f, 185f)),  // port + plaza
+                                           (new Vector3(BraxMiastoWyspa.CX - 242f, -30f, BraxMiastoWyspa.CZ - 242f),
+                                            new Vector3(BraxMiastoWyspa.CX + 242f, 55f, BraxMiastoWyspa.CZ + 242f)) }) // cala wyspa: bez sztucznych przesuniec warstw
             { var x = new Bounds(); x.SetMinMax(a, b); l.Add(x); }
         return l.ToArray();
     }
@@ -64,7 +68,10 @@ public static class BraxKontrolaMigotania
         float t0 = BraxKontrola.Sekundy;
         lody.Clear();
         strefa = StrefaSilowni(); strefy = Strefy(); tylkoStrefa = false;
-        var W = Wykryj(scena, 60f);
+        // Pelny rejon R1 to tez wyspa (x~1200), nie tylko ulica i port.
+        // Limit dotyczy czasu analizy w edytorze, a kazde niedomkniecie
+        // MUSI byc oznaczone w raporcie zamiast deklaracji "zero migotania".
+        var W = Wykryj(scena, BraxKontrola.Obszar == "miasto" ? 105f : 60f);
         var pows = W.pows; var pls = W.pls; var lista = W.lista;
         // naprawa
         var ruch = new Dictionary<Renderer, (int os, float delta)>();
@@ -73,7 +80,7 @@ public static class BraxKontrolaMigotania
         foreach (var p in lista)
         {
             var A = pows[p.a]; var B = pows[p.b]; var pa = pls[p.plA]; var pb = pls[p.plB];
-            if (A.silownia && B.silownia && WStrefie(p.gdzie)) continue;     // strefa siłowni: wycinanie niżej, bez przesuwania
+            if (WStrefie(p.gdzie)) continue; // ELEWACJE: bez przesuwania i nakładania. Podkład wyciąć niżej pod warstwą docelową.
             if (Mathf.Abs(Teraz(A, pa) - Teraz(B, pb)) >= .0195f) continue;   // już rozsunięte (np. przy poprzedniej parze)
             bool mniejszaA = A.pole <= B.pole;
             var (m1, pm1, o1, po1) = mniejszaA ? (A, pa, B, pb) : (B, pb, A, pa);
@@ -98,7 +105,7 @@ public static class BraxKontrolaMigotania
         Debug.Log(sb.ToString());
         // C3: siłownia — wycięcie dolnej warstwy (przed/po)
         // WŁAŚCICIEL 3.11 10:33 („elewacje, co migają, jak nie zmienione, to zmienić”): pary, których przesunięcie nie rozsunęło,
-        // też idą do WYCINANIA dolnej warstwy (zasada „nie nakładamy — wycinamy”) w całym rejonie, nie tylko w 4 strefach.
+        // też idą do WYCINANIA dolnej warstwy (zasada „nie nakładamy — wycinamy”); w strefach elewacji NIGDY nie przesuwamy obu warstw.
         try { Silownia(scena, W, ruch, nierozwiazane); }
         catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_SILOWNIA_MIGOTANIE — wycinanie: " + e); }
         lody.Clear();
@@ -247,7 +254,8 @@ public static class BraxKontrolaMigotania
         var przed = W.lista.Where(p => W.pows[p.a].silownia && W.pows[p.b].silownia && WStrefie(p.gdzie)).ToList();
         int wStrefach = przed.Count;
         if (reszta != null) { var juz = new HashSet<Para>(przed); foreach (var p in reszta) if (juz.Add(p)) przed.Add(p); }
-        var stoper = System.Diagnostics.Stopwatch.StartNew(); int pominieteBudzet = 0;
+        var stoper = System.Diagnostics.Stopwatch.StartNew();
+        int pominieteBudzet = 0, pominieteCiezkie = 0, pominieteBezSiatki = 0;
         var powody = new Dictionary<(Renderer, Renderer), string>();
         var zadania = new Dictionary<(Renderer, int, int, int, int), (float d, List<Vector2[]> gorne, HashSet<string> nad)>();
         int paryCiete = 0;
@@ -262,15 +270,22 @@ public static class BraxKontrolaMigotania
                 if (pa.tri == null || pb.tri == null) continue;
                 float ea = Pozycja(pa), eb = Pozycja(pb);
                 Pow ciety, gorny; Pl plC, plG;
+                bool aStary = BraxClaudeGround.SourceCity &&
+                    (A.r.transform == BraxClaudeGround.SourceCity ||
+                     A.r.transform.IsChildOf(BraxClaudeGround.SourceCity));
+                bool bStary = BraxClaudeGround.SourceCity &&
+                    (B.r.transform == BraxClaudeGround.SourceCity ||
+                     B.r.transform.IsChildOf(BraxClaudeGround.SourceCity));
                 if (Mathf.Abs(ea - eb) < .001f)
-                {   // ta sama płaszczyzna: podkład (większy, np. ściana) wycięty pod nakładką (mniejszą, np. futryna, lizena)
-                    bool aPodklad = A.pole >= B.pole;
+                {   // NOWA nawierzchnia pozostaje, oryginalną wycinamy pod
+                    // nią bez względu na wielkość starego scalonego mesha.
+                    bool aPodklad = aStary != bStary ? aStary : A.pole >= B.pole;
                     (ciety, plC, gorny, plG) = aPodklad ? (A, pa, B, pb) : (B, pb, A, pa);
                     if (Przezroczysty(gorny.mat)) { powod = "nakładka z alfą w tej samej płaszczyźnie (" + gorny.nazwa + ")"; continue; }
                 }
                 else
                 {   // różne płaszczyzny (< 2 cm): tylna wycięta pod przednią
-                    bool aPrzod = ea > eb;
+                    bool aPrzod = aStary != bStary ? bStary : ea > eb;
                     (gorny, plG, ciety, plC) = aPrzod ? (A, pa, B, pb) : (B, pb, A, pa);
                     if (Przezroczysty(gorny.mat))
                     {
@@ -293,10 +308,16 @@ public static class BraxKontrolaMigotania
         int powierzchnie = 0, trojkaty = 0; float pole = 0; var opisy = new List<string>();
         foreach (var grupa in zadania.GroupBy(kv => kv.Key.Item1))
         {
-            // budżet (OOM osiedla 2.11 — wycinanie bez limitu): najwyżej 240 s i 600 nowych siatek; reszta zostaje z logiem
-            if (stoper.Elapsed.TotalSeconds > 240 || powierzchnie >= 600) { pominieteBudzet++; continue; }
-            var r = grupa.Key; var mf = r ? r.GetComponent<MeshFilter>() : null; if (!mf || !mf.sharedMesh) continue;
-            if (mf.sharedMesh.vertexCount > 65000 || grupa.Sum(kv => kv.Value.gorne.Count) > 6000) { pominieteBudzet++; continue; }
+            // Wycina STARA geometrie spod NOWEJ, nigdy nie doklada
+            // drugiej plyty. Rejon R1 obejmuje tez cala wyspe i ma
+            // powiekszony limit czasu; kosztowne przypadki sa raportowane.
+            // Bledy wizualne pozostaja ostrzezeniami, bez przerywania APK.
+            int limitS = BraxKontrola.Obszar == "miasto" ? 90 : 240;
+            int limitMesh = BraxKontrola.Obszar == "miasto" ? 320 : 600;
+            if (stoper.Elapsed.TotalSeconds > limitS || powierzchnie >= limitMesh) { pominieteBudzet++; continue; }
+            var r = grupa.Key; var mf = r ? r.GetComponent<MeshFilter>() : null;
+            if (!mf || !mf.sharedMesh) { pominieteBezSiatki++; continue; }
+            if (mf.sharedMesh.vertexCount > 65000 || grupa.Sum(kv => kv.Value.gorne.Count) > 6000) { pominieteCiezkie++; continue; }
             var oryginal = mf.sharedMesh; var mesh = oryginal; int zmian = 0; float usuniete = 0; var nad = new HashSet<string>();
             try
             {
@@ -313,17 +334,20 @@ public static class BraxKontrolaMigotania
             if (mesh == oryginal) continue;
             mesh.name = oryginal.name + " (bez nakładania)";
             BraxZapisAssetu.Utworz(mesh, Folder + "/silownia_" + Bezpieczna(r.name) + "_" + (zapisane++) + ".asset");
-            mf.sharedMesh = mesh;                                   // tylko ten renderer (siatka bywa wspólna); kolizje bez zmian
+            mf.sharedMesh = mesh; // tylko stary renderer. Zachowujemy korektę w fizyce:
+            // wycięta stara posadzka nie może zostać jako niewidzialna ściana.
+            foreach (var c in mf.GetComponents<MeshCollider>())
+                if (c && c.sharedMesh == oryginal) c.sharedMesh = mesh;
             powierzchnie++; trojkaty += zmian; pole += usuniete;
             opisy.Add(r.name + ": wycięte " + usuniete.ToString("F2") + " m² (" + zmian + " trójkątów) pod: " + string.Join(", ", nad.Take(4)) + (nad.Count > 4 ? " …" : "") + " " + BraxKontrola.F(r.bounds.center));
         }
         Physics.SyncTransforms();
         // po: ponowne wykrycie tylko w strefie siłowni
         tylkoStrefa = true; Wykrycie po;
-        try { po = Wykryj(scena, 30f); } finally { tylkoStrefa = false; }
+        try { po = Wykryj(scena, BraxKontrola.Obszar == "miasto" ? 75f : 30f); } finally { tylkoStrefa = false; }
         var zostaly = po.lista.Where(p => po.pows[p.a].silownia && po.pows[p.b].silownia && WStrefie(p.gdzie)).ToList();
         var sb = new StringBuilder("BRAXHORN_SILOWNIA_MIGOTANIE pary_przed=" + przed.Count + " pary_po=" + zostaly.Count + " pary_po_powyżej_0.1m²=" + zostaly.Count(p => p.pole > .1f)
-            + " wycięte_pary=" + paryCiete + " powierzchnie=" + powierzchnie + " trójkątów=" + trojkaty + " pole_usunięte=" + pole.ToString("F2") + " m² przesunięte=0 pary_w_strefach=" + wStrefach + " pary_poza_strefami=" + (przed.Count - wStrefach) + " pominięte_budżet=" + pominieteBudzet + " czas_cięcia=" + stoper.Elapsed.TotalSeconds.ToString("F0") + " s stref_ciecia=" + strefy.Length + " (strefa siłowni " + BraxKontrola.F(strefa.min) + " … " + BraxKontrola.F(strefa.max) + ")");
+            + " wycięte_pary=" + paryCiete + " powierzchnie=" + powierzchnie + " trójkątów=" + trojkaty + " pole_usunięte=" + pole.ToString("F2") + " m² przesunięte=0 pary_w_strefach=" + wStrefach + " pary_poza_strefami=" + (przed.Count - wStrefach) + " pominięte_budżet=" + pominieteBudzet + " pominięte_duze=" + pominieteCiezkie + " pominięte_bez_siatki=" + pominieteBezSiatki + " skan_niepelny=" + (W.przerwane || po.przerwane) + " czas_cięcia=" + stoper.Elapsed.TotalSeconds.ToString("F0") + " s stref_ciecia=" + strefy.Length + " (strefa siłowni " + BraxKontrola.F(strefa.min) + " … " + BraxKontrola.F(strefa.max) + ")");
         sb.Append("\n  PRZED (największe):");
         foreach (var p in przed.Take(25)) sb.Append("\n    ").Append(W.pows[p.a].nazwa + " ↔ " + W.pows[p.b].nazwa + " odstęp " + (p.dd * 100f).ToString("F1") + " cm, " + p.pole.ToString("F2") + " m² " + BraxKontrola.F(p.gdzie));
         sb.Append("\n  WYCIĘTE:");
@@ -333,7 +357,13 @@ public static class BraxKontrolaMigotania
             sb.Append("\n    ").Append(po.pows[p.a].nazwa + " ↔ " + po.pows[p.b].nazwa + " odstęp " + (p.dd * 100f).ToString("F1") + " cm, " + p.pole.ToString("F2") + " m² " + BraxKontrola.F(p.gdzie)
                 + (powody.TryGetValue(Klucz2(po.pows[p.a].r, po.pows[p.b].r), out var pw) ? " — " + pw : ""));
         foreach (var l in opisy.Take(200)) BraxKontrola.Zapisz("migotanie siłowni: " + l);
-        if (zostaly.Count(p => p.pole > .1f) > 0) Debug.LogWarning(sb.ToString()); else Debug.Log(sb.ToString());
+        bool niedomkniete = zostaly.Count(p => p.pole > .1f) > 0 ||
+            pominieteBudzet > 0 || pominieteCiezkie > 0 || pominieteBezSiatki > 0 ||
+            W.przerwane || po.przerwane;
+        // Uzytkownik ocenia migotanie w APK. Raport nie moze oglaszac
+        // sukcesu przy niedokonczonym skanie lub pominietych siatkach.
+        if (niedomkniete) Debug.LogWarning("BRAXHORN_R1_NAWIERZCHNIE_WYMAGA_TESTU " + sb);
+        else Debug.Log("BRAXHORN_R1_NAWIERZCHNIE_KOD_PO_CIECIU " + sb);
     }
 
     static float Pozycja(Pl p) => p.znak == 1 ? p.d : -p.d;                 // położenie wzdłuż normalnej (przód = większe)
