@@ -649,9 +649,29 @@ public static partial class BraxChampionsCasinoT11
         B(basement,"Garage gate RIGHT graphite pier",graphite,
             49.18f,2.52f,-22f,.45f,4.65f,.76f,true,true);
         B(basement,"Garage main entrance champagne beam",gold,
-            44.19f,4.95f,-22f,10.65f,.40f,.75f,true);
+            44.19f,4.95f,-22f,10.65f,.40f,.80f,true);
         B(basement,"Garage upper portal warm LED",led,
             44.19f,4.71f,-22.44f,10.35f,.10f,.12f,false);
+        // Owner 9.11 23:40 "wjazd do parkingu poprawić ... z zewnątrz petarda": the gate was two thin posts and a beam.
+        // Now a real portal: gold light reveals on both piers, a graphite canopy with downlight lines over the ramp
+        // head, dark stone copings and a champagne guard rail on both ramp walls (the drop is 4.3 m).
+        foreach(float px in new[]{39.20f,49.18f})
+        {
+            B(trim,"Garage portal pier warm light reveal",led,px,2.45f,-22.395f,.07f,4.3f,.03f,false);
+            B(trim,"Garage portal pier champagne base shoe",gold,px,.29f,-22f,.53f,.16f,.84f,false);
+        }
+        B(basement,"Garage portal graphite canopy over ramp head",graphite,44.19f,5.05f,-20.32f,10.65f,.20f,2.60f,false,true);
+        B(trim,"Garage portal canopy champagne rear edge",gold,44.19f,5.05f,-18.995f,10.65f,.21f,.05f,false);
+        foreach(float lz in new[]{-21.2f,-20.3f,-19.4f})
+            B(trim,"Garage portal canopy warm downlight line",led,44.19f,4.942f,lz,9.2f,.016f,.07f,false);
+        B(trim,"Ramp WEST wall dark stone coping",granite,39.30f,.835f,-3.5f,.42f,.07f,41.04f,false,true);
+        B(trim,"Ramp EAST wall dark stone coping",granite,49.12f,.575f,3.70f,.32f,.07f,50.64f,false,true);
+        B(trim,"Ramp WEST champagne guard rail",gold,39.30f,1.30f,-3.5f,.06f,.05f,41.0f,false);
+        B(trim,"Ramp EAST champagne guard rail",gold,49.12f,1.30f,3.5f,.06f,.05f,51.0f,false);
+        for(int i=0;i<=13;i++)
+            B(trim,"Ramp WEST guard rail post",gold,39.30f,1.0725f,-23.8f+i*3.123f,.045f,.405f,.045f,false);
+        for(int i=0;i<=17;i++)
+            B(trim,"Ramp EAST guard rail post",gold,49.12f,.9425f,-21.8f+i*2.976f,.045f,.665f,.045f,false);
         Debug.Log("T11_B1_GARAGE_LEFT_TURN_GEOMETRY rampClear=9.35m"+
             " westExitZ=17..29 width=12m bottomLanding=9.35x12m"+
             " roadTop=.2485 garageTop=-4.098 smoothRampNoLip=true"+
@@ -761,7 +781,7 @@ public static partial class BraxChampionsCasinoT11
         foreach(float side in new[]{-1f,1f})
         foreach(float z in new[]{-32f,33f})
         {
-            float x=side>0&&z<0?38f:side*43f;
+            float x=side>0&&z<0?37.6f:side*43f;
             PlaceNativePolyHaven(shell,shrub,"T11 original Poly Haven Shrub 03 (2K)",
                 x,.78f,z,1.55f,1.75f,count++);
         }
@@ -832,7 +852,7 @@ public static partial class BraxChampionsCasinoT11
             }
             foreach(float z in new[]{-32f,33f})
                 B(shell,"Champagne black granite planter",granite,
-                    side>0&&z<0?38f:side*43f,.48f,z,3.4f,.6f,3.3f,true);
+                    side>0&&z<0?37.6f:side*43f,.48f,z,3.4f,.6f,3.3f,true);
         }
         // Front road fills only the clear span between both fire lanes.
         B(shell,"Front VIP/TAXI circulating driveway",asphalt,0,roadY,-42.5f,99f,roadH,10f,true,true);
@@ -841,7 +861,15 @@ public static partial class BraxChampionsCasinoT11
         // segmented at the central red-carpet/pedestrian axis and all road junctions.
         foreach(float side in new[]{-1f,1f})
         {
-            ConcreteCurb("Front driveway NORTH concrete curb",side*26.85f,-37.41f,45.3f,.18f);
+            if(side<0)ConcreteCurb("Front driveway NORTH concrete curb",side*26.85f,-37.41f,45.3f,.18f);
+            else
+            {
+                // 9.11 owner "wjazd do parkingu poprawić": the right kerb ran straight ACROSS the garage driveway mouth
+                // (x 39.55..48.9), a 14 cm step for every car. It now stops at the driveway and turns along both sides.
+                ConcreteCurb("Front driveway NORTH concrete curb",21.875f,-37.41f,35.35f,.18f);
+                ConcreteCurb("Garage driveway WEST concrete curb",39.46f,-30.66f,.18f,13.32f);
+                ConcreteCurb("Garage driveway EAST concrete curb",49.11f,-29.94f,.42f,15.12f);
+            }
             ConcreteCurb("Front driveway SOUTH concrete curb",side*26.85f,-47.59f,45.3f,.18f);
             ConcreteCurb("Fire lane INNER concrete curb",side*49.41f,3.25f,.18f,81.5f);
             ConcreteCurb("Fire lane OUTER concrete curb",side*56.59f,3.25f,.18f,81.5f);
@@ -908,7 +936,8 @@ public static partial class BraxChampionsCasinoT11
         PolyHavenVegetation2K();
         foreach(float side in new[]{-1f,1f})
             for(int i=0;i<6;i++)
-                B(trim,"Ground-level warm gold exterior bollard",led,side*48f,.62f,-25f+i*10f,.12f,.85f,.12f,false);
+                // east: x 48 was on the garage driveway / in the air over the ramp; now on the fire-lane kerb
+                B(trim,"Ground-level warm gold exterior bollard",led,side>0?49.41f:-48f,side>0?.8135f:.62f,-25f+i*10f,.12f,.85f,.12f,false);
     }
 
     static void PremiumExteriorLighting()
@@ -1114,10 +1143,10 @@ public static partial class BraxChampionsCasinoT11
 
     static void RoadsideSigns()
     {
-        // Keep only TAXI at the front-right drop-off.
-        // Owner 7.11: remove the freestanding PARKING sign from the garage approach;
-        // the driveway itself stays completely unobstructed.
-        RoadsideOriginalSign("TAXI",TaxiSignPath,42f,-36.8f,0f);
+        // Owner 7.11: remove the freestanding PARKING sign from the garage approach.
+        // Owner 9.11 23:36: the TAXI board by the garage entrance stood empty ("jakaś tabliczka stoi": its
+        // picture Quad faced away from the street) - removed; the garage portal carries a 3D PARKING sign.
+        GarageSign();
     }
 
     // Issue #29 sign carrier contour was derived from the actual alpha silhouette
@@ -1243,6 +1272,18 @@ public static partial class BraxChampionsCasinoT11
 
     static void MainSign()
     {
+        PolygonPrism(signRoot,"T11 WAWER sign real-outline graphite metal carrier",
+            signBacking,SignCarrierOuter,12.0f,-36.14f,.24f,true);
+        PolygonRing(signRoot,"T11 WAWER sign real-outline rounded champagne gold border",
+            gold,SignCarrierOuter,SignCarrierInner,12.0f,-36.2725f,.025f);
+        // 3D gold WAWER / KASYNO on the carrier (10 x 3.24 m, centred at y 12.0); the old PNG Quad faced into the building
+        // nominal glyph box x +-5.02, y -.53..2.71, depth .35: at 1.05 it fills 10.5 x 3.4 m of the 16.8 x 3.65 m carrier
+        if(Place3DSign("WAWER_kasyno",signRoot,"T11 3D gold KASYNO WAWER sign | rotunda",new Vector3(0,10.855f,-36.29f),180f,1.05f))
+        {
+            Debug.Log("T11_3D_SIGN WAWER_KASYNO gold solid glyphs parts="+sign3DParts);
+            return;
+        }
+        // fallback: the owner's original PNG, facing the street (Quad front is -Z: no rotation)
         var picture=LoadOwnerSign(SignPath);
         var shader=Shader.Find(BraxCityMaterials.ShaderName);
         if(!shader)throw new InvalidOperationException("Casino sign needs original CityStaticPBR shader");
@@ -1255,24 +1296,16 @@ public static partial class BraxChampionsCasinoT11
         material.SetOverrideTag("RenderType","TransparentCutout");material.renderQueue=2450;
         material.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
         AssetDatabase.CreateAsset(material,output+"/Materials/T11_original_WAWER_casino_sign.mat");
-
-        PolygonPrism(signRoot,"T11 WAWER sign real-outline graphite metal carrier",
-            signBacking,SignCarrierOuter,12.0f,-36.14f,.24f,true);
-        PolygonRing(signRoot,"T11 WAWER sign real-outline rounded champagne gold border",
-            gold,SignCarrierOuter,SignCarrierInner,12.0f,-36.2725f,.025f);
-
         var image=GameObject.CreatePrimitive(PrimitiveType.Quad);
         image.name="T11 | ORIGINAL C1 KASYNO WAWER | 2048x512 | 4:1";
         image.transform.SetParent(signRoot,false);
         image.transform.localPosition=new Vector3(0,12.0f,-36.34f)*K;
-        image.transform.localRotation=Quaternion.Euler(0,180,0);
         image.transform.localScale=new Vector3(17.2f,4.30f,1f)*K;
         image.GetComponent<MeshRenderer>().sharedMaterial=material;
         UnityEngine.Object.DestroyImmediate(image.GetComponent<Collider>());
-
         Debug.Log("T11_ISSUE29_SIGN ORIGINAL_SIGN_PRESENT=SOURCE_CHECK_PASS LABEL_ASPECT_4_TO_1=SOURCE_GEOMETRY_PASS "+
             "BACKPLATE_FOLLOWS_REAL_LABEL_OUTLINE=SOURCE_GEOMETRY_PASS GOLD_BEVEL_ROUNDED=SOURCE_GEOMETRY_PASS "+
-            "NO_OCCLUSION_OR_Z_FIGHT=SOURCE_GEOMETRY_PASS_VISUAL_PENDING UNITY_SCREENSHOTS_ATTACHED=PENDING_REAL_UNITY_RENDER");
+            "FALLBACK_PICTURE_FACES_STREET=YES UNITY_SCREENSHOTS_ATTACHED=PENDING_REAL_UNITY_RENDER");
     }
 
     public static void Generate(string outFolder)
@@ -1291,6 +1324,7 @@ public static partial class BraxChampionsCasinoT11
         // Owner board 9.11 shows no rooftop $: kept in code, off until the owner decides.
         // The 120 m office tower on the board is "docelowo" (later, separate building).
         if(RoofDollarOnOwnerBoard)RoofDollar();
+        sign3D=null;sign3DParts=0;signGold=null;signGoldDeep=null;
         MainSign();RoadsideSigns();PremiumExteriorLighting();
         // Remove tiny gold detail in distance, keep WAWER sign always visible.
         var renderers=trim.GetComponentsInChildren<Renderer>(true);

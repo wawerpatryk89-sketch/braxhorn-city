@@ -14,6 +14,7 @@ public static class BraxChampionsFoundation
     public static Material LibraryMarbleWhite(string id, Color tint, float metres) => new Material { name = id + "|Marble021|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryTravertine(string id, Color tint, float metres) => new Material { name = id + "|Travertine009|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryMetal(string id, Color tint) => new Material { name = id + "|Metal048A|0.65", color = tint, textured = true };
+    public static void Optional(string what, Action build) { try { build(); } catch (Exception e) { Console.WriteLine("WARN OPTIONAL_FAILED " + what + ": " + e.Message); } }
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
 }
 public static class BraxMiastoAssety
@@ -32,6 +33,7 @@ public static class Rec
     public static readonly List<string> Cols = new List<string>();
     public static readonly List<string> Texts = new List<string>();
     public static readonly List<Vector3> Palms = new List<Vector3>();
+    public static readonly Dictionary<string, Material> Mats = new Dictionary<string, Material>();
     public static void Clear() { Quads.Clear(); Cols.Clear(); Texts.Clear(); Palms.Clear(); }
 }
 public static class BraxWnetrzaKit
@@ -44,7 +46,7 @@ public static class BraxWnetrzaKit
         if (!m) throw new Exception("null material at " + a.x + "," + a.y + "," + a.z);
         string path = Grupa.gameObject.name; for (var p = Grupa.parent; p != null; p = p.parent) path = p.gameObject.name + " >> " + path;
         Rec.Quads.Add(new Rec.Q { g = path, m = m.name, inside = Wnetrze, a = a, b = b, c = c, d = d });
-        Rec.Colours[m.name] = m.color;
+        Rec.Colours[m.name] = m.color; Rec.Mats[m.name] = m;
         Rec.Ambient[m.name] = new[] { m.sky.r, m.sky.g, m.sky.b, m.ground.r, m.ground.g, m.ground.b, m.ambient };
     }
     public static void MM(Material m, float x0, float x1, float y0, float y1, float z0, float z1, bool k = false)
@@ -58,6 +60,7 @@ public static class BraxWnetrzaKit
         Quad(m, P(-1, 1, 1), P(1, 1, 1), P(1, 1, -1), P(-1, 1, -1)); if (!bezDna) Quad(m, P(-1, -1, -1), P(1, -1, -1), P(1, -1, 1), P(-1, -1, 1));
         if (k) Rec.Cols.Add("box");
     }
+    public static void Box(Material m, Vector3 c, Vector3 s, bool k = false) => OBox(m, c, s, Quaternion.identity, k);
     public static void Rura(Material m, Vector3 a, Vector3 b, float r, int boki = 10, bool z = true)
     {
         var os = b - a; if (os.magnitude < 1e-6f) return; os = os.normalized;

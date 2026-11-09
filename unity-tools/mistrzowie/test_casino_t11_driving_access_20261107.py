@@ -68,7 +68,8 @@ class CasinoVehicleAccessContract(unittest.TestCase):
         self.assertIn('"Garage entrance from VIP/TAXI circulation",asphalt',self.casino)
         self.assertIn("44.225f,.228f,-29.75f,9.35f,.041f,15.5f",self.casino)
         self.assertNotIn('RoadsideOriginalSign("PARKING"',self.casino)
-        self.assertIn('RoadsideOriginalSign("TAXI"',self.casino)
+        # Owner 9.11 23:46: the TAXI board stood in the middle of the garage driveway - removed.
+        self.assertNotIn('RoadsideOriginalSign("TAXI"',self.casino)
         self.assertIn("C1_KASYNO_KASYNO_WAWER.png",self.casino)
         self.assertNotIn("BuildPipeline.BuildPlayer",self.casino)
         self.assertNotIn("Tower();",self.casino)

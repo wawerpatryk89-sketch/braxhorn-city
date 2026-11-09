@@ -149,7 +149,10 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertIn("source=\"+width+\"x\"+height+\" expected=2048x512",CASINO)
         self.assertIn('material.SetTexture("_MainTex",picture)',CASINO)
         self.assertIn('material.SetTexture("_EmissionMap",picture)',CASINO)
-        self.assertIn('Quaternion.Euler(0,180,0)',method_source("MainSign"))
+        # Owner 9.11: the PNG Quad was turned 180 degrees = it faced INTO the building (empty carrier from the
+        # street). The carrier now holds the 3D gold sign; the PNG stays only as a fallback and faces the street.
+        self.assertNotIn('Quaternion.Euler(0,180,0)',method_source("MainSign"))
+        self.assertIn('Place3DSign("WAWER_kasyno",signRoot',method_source("MainSign"))
         self.assertIn('new Vector3(17.2f,4.30f,1f)',method_source("MainSign"))
         self.assertNotIn("Casino WAWER front deep graphite casing",CASINO)
         self.assertNotIn("Casino WAWER external bronze mounting rim",CASINO)
@@ -202,7 +205,8 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertIn("-85f,-49.5f,-48f,-37f,0f,roadTop,true",CASINO)
         self.assertIn("UndergroundGarage();",CASINO)
         self.assertIn("const int baysPerRow=16;",CASINO)
-        self.assertIn('RoadsideOriginalSign("TAXI"',CASINO)
+        # Owner 9.11 23:46: "Tabliczka na środku wjazdu ma wypierdalać" - the TAXI board stood on the garage driveway.
+        self.assertNotIn('RoadsideOriginalSign("TAXI"',CASINO)
         self.assertNotIn('RoadsideOriginalSign("PARKING"',CASINO)
 
     def test_logs_do_not_falsely_claim_visual_acceptance(self):

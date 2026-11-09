@@ -70,10 +70,17 @@ namespace UnityEngine
         public static float Round(float a) => (float)Math.Round(a, MidpointRounding.ToEven); public static int RoundToInt(float a) => (int)Math.Round(a, MidpointRounding.ToEven);
         public static int CeilToInt(float a) => (int)Math.Ceiling(a); public static int FloorToInt(float a) => (int)Math.Floor(a);
         public static float Clamp(float v, float a, float b) => v < a ? a : v > b ? b : v;
+        public static float Atan2(float y, float x) => (float)Math.Atan2(y, x); public static float Sqrt(float a) => (float)Math.Sqrt(a); public static float Lerp(float a, float b, float t) => a + (b - a) * Clamp(t, 0, 1);
+        public static float Tan(float a) => (float)Math.Tan(a); public static float Floor(float a) => (float)Math.Floor(a); public static float Ceil(float a) => (float)Math.Ceiling(a);
         public static float Cos(float a) => (float)Math.Cos(a); public static float Sin(float a) => (float)Math.Sin(a); }
     public class Object { string nm; public virtual string name { get => nm; set => nm = value; }
         public static implicit operator bool(Object o) => o != null && !o.destroyed;
         internal bool destroyed;
+        public static T Instantiate<T>(T original) where T : Object
+        {
+            if (original is Mesh m) return new Mesh { name = m.name, vertices = (Vector3[])m.vertices.Clone(), normals = (Vector3[])m.normals?.Clone(), uv = (Vector2[])m.uv?.Clone(), triangles = (int[])m.triangles.Clone() } as T;
+            return original;
+        }
         public static T Instantiate<T>(T original, Transform parent, bool stays) where T : Object
         {
             if (original is GameObject g) { var c = new GameObject(g.name + "(Clone)"); c.transform.SetParent(parent, false); return c as T; }
@@ -90,8 +97,11 @@ namespace UnityEngine
         public bool enableInstancing, textured; public int renderQueue; public Texture mainTexture; public Color color = new Color(1, 1, 1);
         // CityStaticPBR ambient (shader defaults), recorded so the preview lights each material as Unity does
         public Color sky = new Color(.60f, .68f, .78f), ground = new Color(.42f, .40f, .36f); public float ambient = .65f;
-        public void SetFloat(string n, float v) { if (n == "_AmbientIntensity") ambient = v; }
-        public void SetColor(string n, Color c) { if (n == "_Color") color = c; else if (n == "_SkyColor") sky = c; else if (n == "_GroundColor") ground = c; }
+        // metallic / roughness / emission are recorded for generators that build plain meshes (casino, arena)
+        public float metallic = 0, roughness = .5f; public Color emission = new Color(0, 0, 0); public string picture;
+        public void SetFloat(string n, float v) { if (n == "_AmbientIntensity") ambient = v; else if (n == "_Metallic") metallic = v; else if (n == "_Roughness") roughness = v; }
+        public void SetColor(string n, Color c) { if (n == "_Color") color = c; else if (n == "_SkyColor") sky = c; else if (n == "_GroundColor") ground = c; else if (n == "_EmissionColor") emission = c; }
+        public void SetTexture(string n, Texture t) { if (n == "_MainTex" && t != null) { picture = t.name; textured = true; } }
         public void SetVector(string n, Vector4 v) { }
         public void SetOverrideTag(string t, string v) { } public bool HasProperty(string n) => true;
         public string[] GetTexturePropertyNames() => textured ? new[] { "_MainTex" } : new string[0]; public Texture GetTexture(string n) => textured ? new Texture() : null; }
@@ -121,13 +131,39 @@ namespace UnityEngine
         internal static readonly List<GameObject> Registry = new List<GameObject>();
         public bool activeSelf = true; public void SetActive(bool on) => activeSelf = on;
         public GameObject(string n) { name = n; transform = new Transform { gameObject = this }; comps.Add(transform); Registry.Add(this); }
+        // Unity's built-in Cube (1 m, 24 vertices) and Quad (1 m, faces -Z)
+        public static GameObject CreatePrimitive(PrimitiveType type)
+        {
+            var g = new GameObject(type.ToString()); var m = new Mesh { name = type.ToString() };
+            var v = new List<Vector3>(); var nn = new List<Vector3>(); var uv = new List<Vector2>(); var t = new List<int>();
+            void Face(Vector3 n, Vector3 a, Vector3 b)   // a, b: in-plane half axes with n = a x b pointing out in Unity's left-handed, clockwise order
+            {
+                int i = v.Count; var c = n * .5f;
+                v.Add(c - a - b); v.Add(c + a - b); v.Add(c + a + b); v.Add(c - a + b);
+                for (int k = 0; k < 4; k++) nn.Add(n);
+                uv.Add(new Vector2(0, 0)); uv.Add(new Vector2(1, 0)); uv.Add(new Vector2(1, 1)); uv.Add(new Vector2(0, 1));
+                t.AddRange(new[] { i, i + 2, i + 1, i, i + 3, i + 2 });
+            }
+            if (type == PrimitiveType.Quad) { Face(new Vector3(0, 0, -1), new Vector3(.5f, 0, 0), new Vector3(0, .5f, 0)); for (int i = 0; i < 4; i++) v[i] = new Vector3(v[i].x, v[i].y, 0); }
+            else
+            {
+                Face(new Vector3(0, 0, -1), new Vector3(.5f, 0, 0), new Vector3(0, .5f, 0)); Face(new Vector3(0, 0, 1), new Vector3(-.5f, 0, 0), new Vector3(0, .5f, 0));
+                Face(new Vector3(1, 0, 0), new Vector3(0, 0, .5f), new Vector3(0, .5f, 0)); Face(new Vector3(-1, 0, 0), new Vector3(0, 0, -.5f), new Vector3(0, .5f, 0));
+                Face(new Vector3(0, 1, 0), new Vector3(.5f, 0, 0), new Vector3(0, 0, .5f)); Face(new Vector3(0, -1, 0), new Vector3(.5f, 0, 0), new Vector3(0, 0, -.5f));
+            }
+            m.vertices = v.ToArray(); m.normals = nn.ToArray(); m.uv = uv.ToArray(); m.triangles = t.ToArray();
+            g.AddComponent<MeshFilter>().sharedMesh = m; g.AddComponent<MeshRenderer>(); g.AddComponent<BoxCollider>();
+            return g;
+        }
         public static GameObject Find(string n) => Registry.FirstOrDefault(g => g.name == n && g.transform.parent == null);
         public T AddComponent<T>() where T : Component, new() { var c = new T { gameObject = this }; comps.Add(c); return c; }
         public T GetComponent<T>() where T : Component => comps.OfType<T>().FirstOrDefault();
         public T[] GetComponentsInChildren<T>(bool inactive) where T : Component => All<T>();
         public T[] All<T>() where T : Component { var r = new List<T>(); void Walk(Transform t) { r.AddRange(t.gameObject.comps.OfType<T>()); foreach (var c in t.children.ToArray()) Walk(c); } Walk(transform); return r.ToArray(); } }
     public class Behaviour : Component { public bool enabled = true; } public class MonoBehaviour : Behaviour { }
+    public enum PrimitiveType { Sphere, Capsule, Cylinder, Cube, Plane, Quad }
     public class Renderer : Component { public Material sharedMaterial; public Material[] sharedMaterials => new[] { sharedMaterial };
+        public Rendering.ShadowCastingMode shadowCastingMode; public bool receiveShadows = true, enabled = true;
         // A preview model carries the real glTF bounds (Unity axes): bounds follow its transform exactly like Unity's AABB.
         public Bounds bounds { get {
             var pm = gameObject.GetComponent<PreviewModel>(); if (pm == null) return new Bounds(transform.position, Vector3.zero);
@@ -141,15 +177,18 @@ namespace UnityEngine
     // Stand-in for an imported glTF model: its path and the real bounds read from the glTF accessors (x mirrored like glTFast).
     public class PreviewModel : Component { public string path; public Vector3 min, max; }
     public class MeshRenderer : Renderer { }
-    public class Mesh : Object { public Vector3[] vertices = new Vector3[0]; public Vector2[] uv; public int[] triangles = new int[0];
+    public class Mesh : Object { public Vector3[] vertices = new Vector3[0]; public Vector3[] normals; public Vector2[] uv; public int[] triangles = new int[0]; public Bounds bounds;
         public Rendering.IndexFormat indexFormat;
         public void SetVertices(List<Vector3> v) => vertices = v.ToArray(); public void SetNormals(List<Vector3> n) { }
         public void SetUVs(int ch, List<Vector2> u) { } public void SetTriangles(List<int> t, int sub) => triangles = t.ToArray();
         public void RecalculateNormals() { } public void RecalculateTangents() { } public void RecalculateBounds() { } }
     public class MeshFilter : Component { public Mesh sharedMesh; }
-    public class Collider : Component { } public class BoxCollider : Collider { public Vector3 center, size; }
+    public class Collider : Component { public bool isTrigger; } public class BoxCollider : Collider { public Vector3 center, size; }
+    public class MeshCollider : Collider { public Mesh sharedMesh; public bool convex; } public class CapsuleCollider : Collider { public Vector3 center; public float height, radius; public int direction; }
     public class TextMesh : Component { public string text; }
-    public class Light : Behaviour { public float range, intensity; }
+    public enum LightType { Spot, Directional, Point } public enum LightShadows { None, Hard, Soft } public enum LightRenderMode { Auto, ForcePixel, ForceVertex }
+    public class Light : Behaviour { public float range, intensity; public LightType type; public Color color; public LightShadows shadows; public LightRenderMode renderMode; public float spotAngle; public int cullingMask; }
+    public class ReflectionProbe : Behaviour { public Rendering.ReflectionProbeMode mode; public int resolution, importance, cullingMask; public Vector3 size, center; public float intensity, nearClipPlane, farClipPlane; public bool boxProjection; public Texture customBakedTexture, bakedTexture; }
     public struct LOD { public LOD(float h, Renderer[] r) { } }
     public class LODGroup : Component { public void SetLODs(LOD[] l) { } public void RecalculateBounds() { } }
     public struct RaycastHit { public Vector3 point; }
@@ -167,6 +206,8 @@ namespace UnityEngine
 namespace UnityEngine.Rendering
 {
     public enum IndexFormat { UInt16, UInt32 }
+    public enum ShadowCastingMode { Off, On, TwoSided, ShadowsOnly }
+    public enum ReflectionProbeMode { Baked, Realtime, Custom } public enum ReflectionProbeRefreshMode { OnAwake, EveryFrame, ViaScripting }
     public enum BlendMode { Zero = 0, One = 1, DstColor = 2, SrcColor = 3, OneMinusDstColor = 4, SrcAlpha = 5, OneMinusSrcColor = 6, DstAlpha = 7, OneMinusDstAlpha = 8, SrcAlphaSaturate = 9, OneMinusSrcAlpha = 10 }
 }
 namespace UnityEditor
@@ -178,14 +219,24 @@ namespace UnityEditor
     public static class AssetDatabase {
         public static T LoadAssetAtPath<T>(string p) where T : Object
         {
+            if (typeof(T) == typeof(Texture) && p.EndsWith(".exr")) return new Texture { name = p } as T;   // Editor-baked reflection cubemap
+            if (typeof(T) == typeof(GameObject) && p.EndsWith(".glb"))   // embedded GLB (casino vegetation): a stand-in volume, drawn only when the file is there
+            {
+                var b = new GameObject(System.IO.Path.GetFileNameWithoutExtension(p)); GameObject.Registry.Remove(b);
+                var bm = b.AddComponent<PreviewModel>(); bm.path = p; bm.min = new Vector3(-.8f, 0, -.8f); bm.max = new Vector3(.8f, 1.6f, .8f);
+                b.AddComponent<MeshRenderer>().sharedMaterial = new Material { name = "gltf", textured = true }; return b as T;
+            }
             if (typeof(T) != typeof(GameObject) || !p.EndsWith(".gltf") || !System.IO.File.Exists(p)) return null;
             var g = new GameObject(System.IO.Path.GetFileNameWithoutExtension(p)); GameObject.Registry.Remove(g);
             var pm = g.AddComponent<PreviewModel>(); pm.path = p; (pm.min, pm.max) = GltfBounds.Read(p);
             g.AddComponent<MeshRenderer>().sharedMaterial = new Material { name = "gltf", textured = true };
             return g as T;
         }
-        public static void CreateAsset(Object o, string p) { }
+        public static void CreateAsset(Object o, string p) { } public static void Refresh(ImportAssetOptions o = ImportAssetOptions.Default) { } public static Object[] LoadAllAssetsAtPath(string p) => new Object[0];
         public static void SaveAssets() { } public static void ImportAsset(string p, ImportAssetOptions o) { } }
+    public class AssetImporter : Object { public static AssetImporter GetAtPath(string p) => null; public void SaveAndReimport() { } }
+    public class TextureImporter : AssetImporter { public void GetSourceTextureWidthAndHeight(out int w, out int h) { w = 2048; h = 512; } public bool isReadable, mipmapEnabled, sRGBTexture, alphaIsTransparency; public int maxTextureSize; }
+    public static class Lightmapping { public static bool BakeReflectionProbe(ReflectionProbe p, string path) => true; }
     public static class EditorUtility { public static void SetDirty(Object o) { } public static void CopySerialized(Object a, Object b) { } }
     public static class GameObjectUtility { public static void SetStaticEditorFlags(GameObject g, StaticEditorFlags f) { } }
     public static class PrefabUtility

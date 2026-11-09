@@ -48,12 +48,18 @@ window.setup=async function(w,h){
     if(m.slug){p.map=await tex('http://preview.local/tex/'+m.slug+'_diff_1k.jpg',true);p.normalMap=await tex('http://preview.local/tex/'+m.slug+'_nor_gl_1k.jpg',false);
       if(/ceiling|wall_white/.test(n))p.normalScale=new THREE.Vector2(.18,.18);}   // same _BumpScale as the Unity ceiling / white wall materials
     if(/brass|chrome|stainless|bronze|mirror/.test(n)){p.metalness=.9;p.roughness=/mirror|chrome/.test(n)?.08:.3;}
-    if(/light|led|frosted/.test(n)){p.emissive=p.color.clone();p.emissiveIntensity=1.0;}
+    if(m.pbr){   // plain-mesh generators (casino, arena) record the real _Metallic / _Roughness / _EmissionColor
+      p.metalness=m.pbr.metallic;p.roughness=Math.max(m.pbr.roughness,.04);
+      const e=m.pbr.emission;if(e[0]+e[1]+e[2]>0){p.emissive=S2L(e.map(x=>Math.min(x,1)));p.emissiveIntensity=Math.max(1,Math.max(...e));}
+      if(m.pbr.picture){p.map=await tex('http://preview.local/pic/'+encodeURIComponent(m.pbr.picture),true);if(p.map){p.map.wrapS=p.map.wrapT=THREE.ClampToEdgeWrapping;p.alphaTest=.08;if(e[0]+e[1]+e[2]>0)p.emissiveMap=p.map;}}
+    }else if(/light|led|frosted/.test(n)){p.emissive=p.color.clone();p.emissiveIntensity=1.0;}
     const transparent=c[3]<.99;
     if(transparent){p.transparent=true;p.opacity=Math.max(c[3],.18);p.depthWrite=false;p.roughness=.05;}
     const mat=new THREE.MeshStandardMaterial(p);cityAmbient(mat,m.ambient);
     S.add(new THREE.Mesh(g,mat));
   }
+  if(scene.ground!=null){const gm=new THREE.MeshStandardMaterial({color:S2L([.36,.37,.38]),roughness:.9});cityAmbient(gm);
+    const gp=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600),gm);gp.rotation.x=-Math.PI/2;gp.position.y=scene.ground;S.add(gp);}
   // glTF models use glTFast's shader in Unity: RenderSettings trilight ambient (BraxChampionsExplorer), not CityStaticPBR's
   const loader=new GLTFLoader();const cache={};
   for(const mo of scene.models){
@@ -90,6 +96,7 @@ window.ready=true;
     else if (u.startsWith('bin/')) file = path.join(binDir, u.slice(4));
     else if (u.startsWith('models/')) file = path.join(modelsDir, decodeURIComponent(u.slice(7)));
     else if (u.startsWith('tex/')) file = path.join(texDir, u.slice(4));
+    else if (u.startsWith('pic/')) file = path.join(process.env.PREVIEW_PICTURES || texDir, decodeURIComponent(u.slice(4)));
     if (!file || !fs.existsSync(file)) return r.fulfill({ status: 404, body: '' });
     const ext = path.extname(file);
     const type = { '.js': 'application/javascript', '.json': 'application/json', '.gltf': 'model/gltf+json', '.jpg': 'image/jpeg', '.png': 'image/png' }[ext] || 'application/octet-stream';

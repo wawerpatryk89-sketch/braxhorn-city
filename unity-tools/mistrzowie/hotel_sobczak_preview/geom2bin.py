@@ -24,7 +24,7 @@ def planar(v, n):
     return np.stack([-v[:, 0] * np.sign(n[2]), v[:, 1]], 1)
 
 
-def main(src, out):
+def main(src, out, ground=None):
     d = json.load(open(src)); lv = d["levels"]; out = Path(out); out.mkdir(parents=True, exist_ok=True)
     colours = d.get("colours", {}); ambient = d.get("ambient", {})
     groups = {}
@@ -52,9 +52,23 @@ def main(src, out):
             if "ELEVATOR" in g and ("cabin" in g):
                 T = T.copy(); T[..., 1] += lv[0]
             add(m, T, U)
-    for name, m, verts, tri in d["meshes"]:
+    for entry in d["meshes"]:
+        name, m, verts, tri = entry[:4]
         p = np.array(verts, np.float32).reshape(-1, 3); t = np.array(tri, int).reshape(-1, 3)
-        add("mesh:" + m, p[t], np.zeros((len(t), 3, 2), np.float32))
+        if not len(t):
+            continue
+        P = p[t]; parts = m.split("|"); tile = float(parts[2]) if len(parts) == 3 else 1.0
+        if len(entry) > 4:                      # a picture (sign, mural): the mesh's own UVs
+            U = np.array(entry[4], np.float32).reshape(-1, 2)[t]
+        else:                                   # metre-planar UVs per triangle, like the W kit and the casino's Tile()
+            n = np.cross(P[:, 1] - P[:, 0], P[:, 2] - P[:, 0]); a = np.abs(n)
+            top = (a[:, 1] >= a[:, 0]) & (a[:, 1] >= a[:, 2]); xs = ~top & (a[:, 0] >= a[:, 2]); zs = ~top & ~xs
+            U = np.zeros((len(P), 3, 2), np.float32)
+            U[top] = P[top][:, :, [0, 2]]
+            U[xs] = np.stack([P[xs][:, :, 2] * np.sign(n[xs, 0])[:, None], P[xs][:, :, 1]], -1)
+            U[zs] = np.stack([-P[zs][:, :, 0] * np.sign(n[zs, 2])[:, None], P[zs][:, :, 1]], -1)
+            U /= tile
+        add("mesh:" + m, P, U)
     mats = []
     for i, (m, (ts, us)) in enumerate(groups.items()):
         T = np.concatenate(ts); U = np.concatenate(us)
@@ -63,7 +77,7 @@ def main(src, out):
         slug = parts[1] if len(parts) == 3 else None
         c = colours.get(m, [1, 1, 1, 1]) if not m.startswith("mesh:") else colours.get(m[5:], [1, 1, 1, 1])
         amb = ambient.get(m[5:] if m.startswith("mesh:") else m, [.60, .68, .78, .42, .40, .36, .65])
-        mats.append(dict(id=i, name=m, slug=slug, colour=c, ambient=amb, count=len(T)))
+        mats.append(dict(id=i, name=m, slug=slug, colour=c, ambient=amb, count=len(T), pbr=d.get("pbr", {}).get(m[5:] if m.startswith("mesh:") else m)))
     models = []
     for mo in d.get("models", []):
         x, y, z = mo["pos"]
@@ -76,10 +90,11 @@ def main(src, out):
         if tmpl:
             y += lv[2]
         lights.append([x, y, -z, rng, inten])
-    json.dump(dict(materials=mats, models=models, lights=lights), open(out / "scene.json", "w"))
+    json.dump(dict(materials=mats, models=models, lights=lights, ground=ground), open(out / "scene.json", "w"))
     print("materials", len(mats), "triangles", sum(m["count"] for m in mats), "models", len(models), "lights", len(lights),
           "textured", sum(1 for m in mats if m["slug"]))
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "hotel_geometry.json", sys.argv[2] if len(sys.argv) > 2 else "bin")
+    main(sys.argv[1] if len(sys.argv) > 1 else "hotel_geometry.json", sys.argv[2] if len(sys.argv) > 2 else "bin",
+         float(sys.argv[3]) if len(sys.argv) > 3 else None)      # optional: height of a plain ground plane around the plot
