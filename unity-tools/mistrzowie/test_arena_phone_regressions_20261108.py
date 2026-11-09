@@ -34,8 +34,10 @@ class ArenaPhoneRegressions(unittest.TestCase):
         self.assertIn('new Color(.18f,.20f,.23f,.48f)',self.buildings)
         self.assertIn('glass.SetFloat("_ReflectionStrength",.62f);',self.buildings)
         self.assertIn('var clear=Surface("clear_glass",new Color(.78f,.88f,.93f,.19f)',self.buildings)
-        self.assertIn("else if(i%3==0)",self.arrival)
-        self.assertIn("ISSUE27_black_belt_360_y10p85_to18p55",self.arrival)
+        # Owner render 9.11: black mullions every 2nd bay (~2.8 m), belt 3.8 m.
+        self.assertIn("else if(i%2==0)",self.arrival)
+        self.assertIn("black_belt_360_owner_render_y7p60_to11p40",self.arrival)
+        self.assertNotIn("interiorWarmBands",self.arrival)
 
     def test_showcase_matches_owner_corrections(self):
         # 8.11 phone proof: embossed face was backwards -> flip about local up.

@@ -82,7 +82,7 @@ public static class BraxChampionsBuildings
             {
                 BraxChampionsArena.Generate(root);
                 BraxChampionsArenaArrival.Generate(root, materials);
-                BraxChampionsArenaSigns.Generate(root);
+                BraxChampionsArenaSigns.Generate(root, materials);
             }
             var prefab=PrefabUtility.SaveAsPrefabAssetAndConnect(root.gameObject,Out+"/Prefabs/"+b.id+"_Exterior.prefab",InteractionMode.AutomatedAction);
             root.position=at;if(!prefab)throw new IOException("Exterior prefab save failed: "+b.id);

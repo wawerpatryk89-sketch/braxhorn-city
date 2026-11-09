@@ -366,6 +366,8 @@ jobs:
           # Owner-approved temporary 12-sign 3x4 atlas was checked by SHA-256 above.
           # Download 25 true CC0 Poly Haven 2K original 3D models for shops.
           python3 unity-tools/mistrzowie/prepare_promenade_props.py
+          # Owner 9.11: sofas, armchairs and plants behind the A1 entrance glass (CC0, pinned MD5).
+          python3 unity-tools/mistrzowie/prepare_arena_lobby_models.py
           python3 unity-tools/mistrzowie/build_infrastructure.py
           # Five original-size station entrances, six connecting twin-rail tunnels; static only.
           python3 unity-tools/mistrzowie/prepare_landscape.py

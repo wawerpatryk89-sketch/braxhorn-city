@@ -91,7 +91,7 @@ class A1T11Preflight(unittest.TestCase):
         casino=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11.cs")
         self.assertIn("BraxChampionsArena.Generate(root);",buildings)
         self.assertIn("BraxChampionsArenaArrival.Generate(root, materials);",buildings)
-        self.assertIn("BraxChampionsArenaSigns.Generate(root);",buildings)
+        self.assertIn("BraxChampionsArenaSigns.Generate(root, materials);",buildings)
         self.assertIn("BraxChampionsCasinoT11.Generate(Out);",buildings)
         self.assertIn("outFolder+\"/Prefabs/T11_Casino_Exterior.prefab\"",casino)
         self.assertIn("report.buildingExteriors=BraxChampionsBuildings.Generate();",build)

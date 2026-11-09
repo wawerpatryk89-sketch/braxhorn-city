@@ -4,6 +4,7 @@ This checks source geometry and contracts only, NOT a Unity compilation,
 a photographed scene or an Android APK.
 """
 import math
+import re
 from pathlib import Path
 import unittest
 
@@ -28,7 +29,7 @@ class A1PremiumExteriorRegression(unittest.TestCase):
     def test_exterior_generator_connected_and_original_bowl_retained(self):
         self.assertIn("PremiumExterior(root, exterior);", self.arrival)
         self.assertIn('BraxChampionsArena.Generate(root);', self.buildings)
-        self.assertIn('BraxChampionsArenaSigns.Generate(root);', self.buildings)
+        self.assertIn('BraxChampionsArenaSigns.Generate(root, materials);', self.buildings)
         self.assertIn('BraxChampionsArenaArrival.Generate(root, materials);', self.buildings)
         self.assertIn('const float rx=96f,rz=59f;', self.arrival)
         self.assertIn("const int bays=360;", self.arrival)
@@ -62,10 +63,10 @@ class A1PremiumExteriorRegression(unittest.TestCase):
 
     def test_glass_bay_columns_are_wide_premium_not_thin_strips(self):
         # Nominal estate dimensions; K is applied once in the mesh builder.
-        self.assertIn("new Vector3(.85f,9.82f,2.20f)", self.arrival)
-        self.assertIn("new Vector3(.85f,8.00f,2.20f)", self.arrival)
-        self.assertIn(".038f,9.70f,.120f,.018f", self.arrival)
-        self.assertIn(".038f,7.88f,.120f,.018f", self.arrival)
+        # Owner render 9.11: one unbroken column plinth->roof, full-height gold.
+        self.assertIn("new Vector3(.85f,25.52f,2.20f)", self.arrival)
+        self.assertIn(".038f,25.40f,.120f,.018f", self.arrival)
+        self.assertNotIn("new Vector3(.85f,9.82f,2.20f)", self.arrival)
         self.assertIn("rings.Add((back,bevel))", self.arrival)
         self.assertIn("bevel*Mathf.Cos(theta)", self.arrival)
         self.assertIn("(x:front,inset:0f,frontFace:true)", self.arrival)
@@ -74,28 +75,20 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertGreaterEqual(.85, .70)
         self.assertIn("actualFeatureColumns!=38||skippedFeatureColumns!=2", self.arrival)
         self.assertIn("warm_roof_crown_LED_preserved", self.arrival)
-        self.assertIn("three_warm_upper_glass_bands_preserved", self.arrival)
+        # 9.11 phone vs render: the three warm bands read as white stripes.
+        self.assertNotIn("three_warm_upper_glass_bands_preserved", self.arrival)
         self.assertIn("upper_interior_elliptical_halo_preserved", self.arrival)
         self.assertNotIn("REFERENCE red neon vertical sign frame", self.arrival)
         self.assertNotIn("REFERENCE red neon sign top accent", self.arrival)
         self.assertNotIn("REFERENCE red neon sign lower accent", self.arrival)
         self.assertNotIn('Paint("arena_reference_red_neon"', self.arrival)
         self.assertIn("front_sign_external_red_geometry=0", self.arrival)
-        self.assertIn("PUBLIC ISSUE27 recessed warm LED 3000K", self.arrival)
-        self.assertIn("beltTrimR_front=.025 rest=.020 signFrameR=.040", self.arrival)
-        self.assertIn("fasciaR=.120 upperGoldR=.055 sideGoldR=.035 lowerGoldR=.025", self.arrival)
-        self.assertIn("const float graphicDepth=.36f", self.arrival)
-        self.assertIn("const float graphicGap=.08f", self.arrival)
-        self.assertIn("float frameOffset=graphicDepth+graphicGap+frameDepth*.5f", self.arrival)
-        self.assertIn("const float frameDepth=.082f", self.arrival)
-        self.assertIn("new Vector3(.242f,.48f,len)", self.arrival)
-        self.assertIn("new Vector3(.112f,.16f,len)", self.arrival)
-        self.assertIn("mid+outward*.276f+Vector3.up*6.42f", self.arrival)
-        self.assertIn("new Vector3(.052f,.08f,len)", self.arrival)
-        self.assertIn("mid+outward*.256f+Vector3.up*5.69f", self.arrival)
-        self.assertIn("new Vector3(.072f,.100f,back-front)", self.arrival)
+        # Owner render 9.11: canopy soffit full of warm downlights, posts=0,
+        # sign bodies follow the artwork outline (no frames to measure).
+        front=(EDITOR / "BraxChampionsArenaFront.cs").read_text(encoding="utf-8")
+        self.assertIn('"A1 canopy | recessed warm downlight"', front)
+        self.assertIn("foreach(float dz in new[]{.95f,2.25f,3.55f})", front)
         self.assertIn("float totalDepth=protrusion+.002f", self.arrival)
-        self.assertIn("ActualFloorYNominal(arenaRoot,x,-68.70f)", self.arrival)
         self.assertIn("arenaRoot.TransformPoint(new Vector3(x,20f,z)*K)", self.arrival)
         self.assertIn("arenaRoot.InverseTransformPoint(hit.point).y", self.arrival)
         self.assertNotIn("const float plotX=600f,plotZ=800f", self.arrival)
@@ -103,7 +96,8 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("cc.sharedMesh=mesh;", self.arrival)
         self.assertNotIn("CylinderCollider", self.arrival)
         scene_audit=(EDITOR / "BraxSceneAudit.cs").read_text(encoding="utf-8")
-        self.assertIn('t.GetComponent<MeshCollider>()', scene_audit)
+        # 9.11: canopy posts removed; the solid parts are the sign body and canopy meshes.
+        self.assertIn('if(solid)go.AddComponent<MeshCollider>().sharedMesh=mesh;', self.signs)
         self.assertNotIn('GetComponent<CylinderCollider>()', scene_audit)
 
     def test_both_a1_glass_levels_smoked_glossy_but_doors_clear(self):
@@ -120,19 +114,25 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('Door(root, "CHAMPIONS_A1_ATHLETES", "Separate athlete rear entrance", 59.04f, exterior["clear_glass"]',self.arrival)
 
     def test_real_pbr_and_transparent_canopy_no_door_colliders(self):
-        for key in ('granite_plinth_preserved', 'curtain_wall_aluminium_preserved',
-                    'PBR_roof_coping_preserved', 'ISSUE27_public_canopy_gold_outline'):
+        for key in ('granite_plinth_preserved', 'curtain_wall_black_mullions_owner_render',
+                    'PBR_roof_coping_preserved', 'FrontGoldCanopy(group,exterior);'):
             self.assertIn(key, self.arrival)
         self.assertIn('exterior["dark_stone"]', self.arrival)
         self.assertIn('exterior["clear_glass"]', self.arrival)
         # Old thin glass canopy remains ONLY at the athlete/NORTH entrance.
         self.assertEqual(self.arrival.count('new Vector3(21.0f,.07f,6.8f),false'),1)
-        self.assertIn('ISSUE27 curved black canopy 48.00x13.00x0.85', self.arrival)
+        # Owner render 9.11: gold cantilever canopy, no posts, no black cassettes.
+        self.assertNotIn('ISSUE27 curved black canopy 48.00x13.00x0.85', self.arrival)
+        self.assertNotIn('Gold support stem', self.arrival)
         self.assertIn('legacy_public_canopy=21x6.8x0.07_removed=true', self.arrival)
         self.assertNotIn('OriginalImage =', self.arrival)
 
     def test_curved_original_artwork_keeps_six_to_one_ratio_and_quality(self):
-        self.assertIn('Curved(t,0,MakeMat(0),true,false,42f,11.12f,7f);', self.signs)
+        # Front sign is a flat 3D body on the canopy; the artwork keeps 6:1.
+        self.assertIn('FrontSign3D(t,MakeMat(0),body);', self.signs)
+        width = float(re.search(r'FrontWidth=([\d.]+)f', self.signs).group(1))
+        height = float(re.search(r'FrontHeight=([\d.]+)f', self.signs).group(1))
+        self.assertAlmostEqual(width / height, 6.0, places=6)
         self.assertIn("importer.streamingMipmaps=!signs;", self.importer)
         self.assertIn("importer.anisoLevel=signs?16:4;", self.importer)
         self.assertIn("importer.filterMode=FilterMode.Trilinear;", self.importer)
@@ -225,17 +225,14 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('AthleteRoomShells(root, arenaStoneFloor, athleteWoodWall, exterior["dark_stone"]);', self.arrival)
 
     def test_issue27_exact_trim_projections_and_interior_finish(self):
-        # Fascia outer face: .121 + .242/2 = .242m.
-        fascia_outer=.121+.242/2
-        upper_outer=.276+.112/2
-        lower_outer=.256+.052/2
-        self.assertAlmostEqual(upper_outer-fascia_outer,.090,places=6)
-        self.assertAlmostEqual(lower_outer-fascia_outer,.040,places=6)
-        # Side rail: centre .024 + half .072 = .060m exposed.
-        self.assertAlmostEqual(.024+.072/2,.060,places=6)
-        self.assertIn('fasciaR=.120 upperGoldR=.055',self.arrival)
-        self.assertIn('sideGoldR=.035',self.arrival)
-        self.assertIn('lowerGoldR=.025',self.arrival)
+        # Owner render 9.11 canopy: 1.2 m gold fascia on top of a 6.2 m soffit,
+        # sign box standing on it, front of the sign 30 cm behind the fascia.
+        front = (ROOT / 'unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaFront.cs').read_text(encoding='utf-8')
+        self.assertIn('CanopyUnderside=6.20f, CanopyTop=7.40f, CanopyHalfWidth=20f, CanopyFrontZ=-63.6f', front)
+        self.assertIn('FrontQuad(gv,gt,new Vector3(x0,y0,fz)', front)
+        self.assertIn('exterior["arena_gold"],true', front)
+        self.assertIn('posts=0', front)
+        self.assertIn('FrontFaceZ=BraxChampionsArenaArrival.CanopyFrontZ+.30f', self.signs)
         self.assertIn('new Color(.30f,.31f,.33f)',self.arena)
         self.assertIn('gold_edges_20mm_continuous_tread_and_riser=true',self.arena)
 
@@ -281,14 +278,17 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertNotIn('REFERENCE red neon vertical sign frame',self.arrival)
         self.assertNotIn('REFERENCE red neon sign top accent',self.arrival)
         self.assertNotIn('REFERENCE red neon sign lower accent',self.arrival)
-        self.assertIn('ISSUE27_rounded_gold_sign_frames_original_artwork_untouched',self.arrival)
-        self.assertIn('ISSUE27_black_belt_360_y10p85_to18p55',self.arrival)
+        # 9.11: signs are 3D bodies, no rectangular frames; belt at render height.
+        self.assertNotIn('ISSUE27_rounded_gold_sign_frames_original_artwork_untouched',self.arrival)
+        self.assertIn('black_belt_360_owner_render_y7p60_to11p40',self.arrival)
 
     def test_reference_upper_lounge_is_inside_original_oval_without_double_scale(self):
         self.assertIn('ReferenceUpperFacadeLounge(root, exterior);',self.arrival)
         self.assertIn('A1 UPPER GLASS | reference furnished VIP lounge silhouette',self.arrival)
         self.assertIn('A1_upper_facade_charcoal_leather_2k',self.arrival)
-        self.assertIn('new Vector3(0,18.12f,-46.2f)',self.arrival)
+        # Authored at the old 18.24 m floor, moved down ONCE onto the belt.
+        self.assertIn('new Vector3(0,18.12f,-48.05f),new Vector3(84f,.24f,6.9f)',self.arrival)
+        self.assertIn('"A1 UPPER GLASS | reference furnished VIP lounge silhouette",Vector3.up*LoungeDrop);',self.arrival)
         # Front edge at z=-51.5, outmost x=+-42: inside elliptical glass.
         self.assertLess((42/96)**2+(51.5/59)**2,1.0)
         self.assertNotIn('new Vector3(x,0,z)*K)',self.arrival)
