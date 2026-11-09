@@ -25,10 +25,10 @@ def const(name):
 def plots():
     out = {}
     for m in re.finditer(r'new Plot\{id="(T\d+)",name="([^"]+)",x=(\d+),z=(\d+),yaw=([\d.]+)f,halfW=([\d.]+)f,'
-                         r'halfD=([\d.]+)f,floors=(\d+),style=Style\.(\w+),loggia=([\d.]+)f\}', SRC):
+                         r'halfD=([\d.]+)f,floors=(\d+),style=Style\.(\w+),loggia=([\d.]+)f,walk=(-[\d.]+)f\}', SRC):
         out[m.group(1)] = dict(name=m.group(2), x=int(m.group(3)), z=int(m.group(4)), yaw=float(m.group(5)),
                                halfW=float(m.group(6)), halfD=float(m.group(7)), floors=int(m.group(8)),
-                               style=m.group(9), loggia=float(m.group(10)))
+                               style=m.group(9), loggia=float(m.group(10)), walk=float(m.group(11)))
     return out
 
 
@@ -58,9 +58,9 @@ class Apartments20261109(unittest.TestCase):
         inv = {b["id"]: b for b in json.loads((ROOT / "unity-tools/mistrzowie/plan_inventory.json").read_text(encoding="utf-8"))["buildings"]}
         designs = plots()
         # one building at a time, A-Z, in the agreed order
-        self.assertEqual(list(designs), ["T04", "T05"])
-        self.assertIn('Ids={"T04","T05"}', SRC)
-        self.assertEqual((designs["T04"]["style"], designs["T05"]["style"]), ("CurvedWrap", "Loggia"))
+        self.assertEqual(list(designs), ["T04", "T05", "T06"])
+        self.assertIn('Ids={"T04","T05","T06"}', SRC)
+        self.assertEqual([d["style"] for d in designs.values()], ["CurvedWrap", "Loggia", "MarbleGold"])
         half = const("PlotHalf")
         for pid, d in designs.items():
             plot = inv[pid]
@@ -70,10 +70,17 @@ class Apartments20261109(unittest.TestCase):
             # body + roof overhang (1.4 sides, 2.6 front) inside the 60 x 60 plot
             self.assertLess(d["halfW"] + 1.4, half, pid)
             self.assertLess(d["halfD"] + 2.6, half, pid)
-            # yaw 180: local -Z front -> world +Z, road Z650 (plot edge z+30, sidewalk at 633)
-            self.assertEqual(d["yaw"], 180.0)
-            self.assertEqual(plot["z"] + 63.2, 633.2)
-        self.assertIn("-63.2f", SRC)
+            # local -Z front turned to its road; the path ends on that road's sidewalk (|road-x| = 17)
+            if d["yaw"] == 180.0:          # front +Z: road Z650, sidewalk from z 633
+                self.assertAlmostEqual(plot["z"] - d["walk"], 633.2, places=3)
+            elif d["yaw"] == 90.0:         # front -X: road X800, sidewalk to x 817
+                self.assertAlmostEqual(plot["x"] + d["walk"], 816.8, places=3)
+            else:
+                self.fail(pid + " unexpected yaw")
+        # T06 must not face Z330: plot H3 MMA (830..920, 360..400) lies between it and that road
+        h3 = inv["H3"]
+        self.assertLess(h3["z"] + h3["d"] / 2, inv["T06"]["z"] - 30)
+        self.assertEqual(designs["T06"]["yaw"], 90.0)
 
     def test_dog_leg_stair_fits_the_core_with_headroom(self):
         lane_a0, lane_a1, lane_b0, lane_b1 = const("LaneA0"), const("LaneA1"), const("LaneB0"), const("LaneB1")
@@ -101,7 +108,7 @@ class Apartments20261109(unittest.TestCase):
             self.assertNotIn(banned, SRC)
         # four apartments per floor, ground + 3
         self.assertEqual(SRC.count("Apartment(f,") + SRC.count("Apartment(0,"), 6)
-        self.assertTrue(all(d["floors"] == 4 for d in plots().values()))
+        self.assertEqual([d["floors"] for d in plots().values()], [4, 4, 5])
 
     def test_accessible_with_collisions(self):
         self.assertIn("W.Rampa(", SRC)                          # stairs and entrance ramp walkable
@@ -155,6 +162,22 @@ class ApartmentT05Loggias(unittest.TestCase):
         self.assertEqual(SRC.count("for(int i=0;i<20;i++){float x=a+.075f+i*.15f;"), 1)
         self.assertIn(".90 m white parapet with black coping", SRC)
         self.assertIn("white frame grid", SRC)
+
+
+class ApartmentT06MarbleGold(unittest.TestCase):
+    """Owner photo 3: black marble, gold curved balconies with LED, central glass core, ground + 4."""
+
+    def test_marble_gold_glass_core(self):
+        t06 = plots()["T06"]
+        self.assertEqual((t06["floors"], t06["style"]), (5, "MarbleGold"))
+        self.assertIn("static int FrontAndRoofT06()", SRC)
+        self.assertIn("skin=marble?marbleBlack:render;pier=marble?marbleBlack:granite;edge=marble?gold:render;", SRC)
+        self.assertIn("Prism(poly,deckTop-.30f,deckTop,deck,gold,render,true);", SRC)       # gold curved balconies
+        self.assertIn("glass crown of the core above the roof, gold cap", SRC)
+        self.assertIn("if(f==0||style==Style.MarbleGold)", SRC)                            # core lounge every floor
+        self.assertIn("front parapet stops at the core", SRC)
+        # five storeys: roof at 17.10 m, still inside the 44 m interior-visibility zone
+        self.assertAlmostEqual(level(5), 17.10, places=3)
 
 
 if __name__ == "__main__":
