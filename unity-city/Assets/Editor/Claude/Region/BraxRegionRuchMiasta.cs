@@ -361,7 +361,13 @@ public static partial class BraxClaudeOsiedle
             bool port = false; for (var q = r.transform; q; q = q.parent) if (q.name.StartsWith("Port", StringComparison.Ordinal) || q.name.Contains("PORT") || q.name.Contains("osiedl")) { port = true; break; }
             if (port) continue;
             var b = r.bounds; if (b.size.y > 4f) continue;
+            // 9.11 (log APK 8.11: BRAXHORN_DROGI_ZAPORY skasował „słupy znaków” ulicy głównej jako JEDNĄ siatkę 163,8 m, farbę jezdni
+            // 645 m / 691 m / 63 m i kozły oporowe 127 m — właściciel: „źle ustawione znaki”, „latarnie na środku drogi”).
+            // Zapora stoi W POPRZEK jezdni: długość ≤ 16 m (jezdnia ≤ 12 m + pobocza). Dłuższe = infrastruktura WZDŁUŻ ulicy
+            // (scalone słupy znaków, farba, balustrady) — nigdy nie zapora. Farba (≤ 10 cm wysokości) i „Oznakowanie” — nigdy.
+            if (b.size.y < .10f || n.Contains("oznakowanie") || n.Contains("farba") || n.Contains("słupy znaków") || n.Contains("slupy znakow")) continue;
             bool dlX = b.size.x >= b.size.z; float L = dlX ? b.size.x : b.size.z;
+            if (L > 16f) continue;
             if (L < 2f)
             {   // pachołek / blok / kozioł na jezdni (nie przy krawędzi): środek i ±0.8 m z jezdnią
                 var c0 = b.center; var pq = dlX ? new Vector3(0, 0, .8f) : new Vector3(.8f, 0, 0);
@@ -390,7 +396,7 @@ public static partial class BraxClaudeOsiedle
             foreach (var c in g.GetComponentsInChildren<Collider>(true)) UnityEngine.Object.DestroyImmediate(c);
             if (g.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(g); else { var r = g.GetComponent<MeshRenderer>(); if (r) UnityEngine.Object.DestroyImmediate(r); zostalo++; }
         }
-        Debug.Log("BRAXHORN_DROGI_ZAPORY usuniete=" + usun.Count + " (z dziećmi, tylko renderer: " + zostalo + ")" + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(20)) + "]" : "") + " szlaban_tunelu=usunięty tunel=oświetlony_62m_bez_czarnej_ściany");
+        Debug.Log("BRAXHORN_DROGI_ZAPORY usuniete=" + usun.Count + " (z dziećmi, tylko renderer: " + zostalo + ")" + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(20)) + "]" : "") + " (9.11: tylko siatki ≤ 16 m w poprzek jezdni; farba i słupy znaków chronione)");
     }
 
     // ---- MIEJSCA LUDZI z innych kroków (wyspa: „osoba: poza · rola · gdzie”; wnętrza: „BRAXHORN obsada: rola”) ----

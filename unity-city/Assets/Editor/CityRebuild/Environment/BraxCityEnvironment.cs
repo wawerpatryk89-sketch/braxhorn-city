@@ -14,6 +14,30 @@ public static class BraxCityEnvironment
         116,117,118,119,120,121,122,123,124,125,126,127,129,
         151,152,153,154,155,156,166,167,168,169,220,234,250
     };
+    // 9.11 (właściciel: „na ulicy w mieście latarnie dublują się, latarnie na środku drogi”): 16 źródłowych latarni ulicy głównej
+    // (Unity x +60…−54, z 23,6 / 33,5; każda = stopa + słup + wysięgnik 3,4 m nad jezdnią; numery z GLB/manifestu — manifest ma
+    // puste originalName, więc rozpoznanie po nazwie NIE działa) stoi 1–4 m od 20 nowych „Premium graphite curved street lantern”
+    // (BraxCityStreetLighting x −98…62, z 22,9 / 33,32). Źródłowe wyłączone WYŁĄCZNIE po numerach. UWAGA OSIE: glTF → Unity odbija x
+    // (BraxCityBuild.Convert = −x; kontenery portu GLB x −83…−66 = Unity +66…+84), stąd pozycje stóp niżej już w układzie Unity.
+    // 4 latarnie źródłowe na x −78/−80/−94/−96 (Unity; CityMesh 69–74, 99–104) zostają — tam nowe „Premium” też stoją (−98, −82),
+    // ale to już odcinek przy wiadukcie; do oceny na nagraniu, nie usuwam w ciemno.
+    public static readonly int[] SourceMainStreetLampMeshes = {
+        45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,
+        75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98
+    };
+    public static readonly Vector2[] SourceMainStreetLampFeet = {   // Unity (x odbite względem manifestu)
+        new Vector2(58,23.55f),new Vector2(44,23.55f),new Vector2(30,23.55f),new Vector2(10,23.55f),new Vector2(-6,23.55f),new Vector2(-22,23.55f),new Vector2(-38,23.55f),new Vector2(-54,23.55f),
+        new Vector2(60,33.45f),new Vector2(48,33.45f),new Vector2(28,33.45f),new Vector2(16,33.45f),new Vector2(-4,33.45f),new Vector2(-20,33.45f),new Vector2(-36,33.45f),new Vector2(-52,33.45f)
+    };
+    // 9.11 (właściciel: „przed rondem ogrodzenie na drodze z siatki i szlaban usunąć”; zdjęcie 3.11 10:21): w ŹRÓDLE jedyna zapora
+    // w poprzek jezdni to 6 pachołków Metal_Bolard (CityMesh 157–162) na Unity x +66,4 (GLB −66,4), z 24,6…32,6 — wschodni koniec
+    // ulicy przy porcie, nie przed rondem. Kod z 7.11 szukał płotu w x −106…−103 po nazwach — w źródle nie ma tam nic
+    // (PŁOT GŁÓWNA: rendererów=0 w logu APK 8.11). Siatka + szlaban przed rondem NIE są w źródle ani w kodzie R1 — do ustalenia
+    // z nagrania właściciela (kandydat: granica horyzontu / płot lasu BraxMiastoGranice).
+    public static readonly int[] SourceViaductBollardMeshes = { 157,158,159,160,161,162 };
+    public static readonly Vector2[] SourceViaductBollardFeet = {   // Unity
+        new Vector2(66.4f,24.6f),new Vector2(66.4f,26.2f),new Vector2(66.4f,27.8f),new Vector2(66.4f,29.4f),new Vector2(66.4f,31.0f),new Vector2(66.4f,32.6f)
+    };
     // Only CityMesh_231 is clipped here; its warehouse shutter portions outside
     // this box are retained. CityMesh_234 contains only the replaced containers.
     public static readonly Bounds ContainerReplacementRegion = new Bounds(new Vector3(75,2.6f,-13),new Vector3(18.1f,5.3f,12.2f));

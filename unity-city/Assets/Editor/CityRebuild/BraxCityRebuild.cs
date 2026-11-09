@@ -29,6 +29,21 @@ public static class BraxCityRebuild
     static ReviewReport report;
 
     static Bounds Box(float x0,float x1,float y0,float y1,float z0,float z1)=>new Bounds(new Vector3((x0+x1)*.5f,(y0+y1)*.5f,(z0+z1)*.5f),new Vector3(x1-x0,y1-y0,z1-z0));
+    // Walce kolizji źródła („Original round collider”) pod stopą obiektu: dopasowanie po pozycji x/z (±tol) i minimalnej wysokości.
+    static int RemoveRoundColliders(Transform physics,IEnumerable<Vector2> feet,float tol,float minHeight)
+    {
+        if(!physics)return 0;
+        int n=0;
+        foreach(var t in physics.GetComponentsInChildren<Transform>(true).ToArray())
+        {
+            if(!t||!t.name.StartsWith("Original round collider",StringComparison.Ordinal))continue;
+            var p=t.position;float h=t.localScale.y*2f;
+            if(h<minHeight)continue;
+            foreach(var f in feet)
+                if(Mathf.Abs(p.x-f.x)<=tol&&Mathf.Abs(p.z-f.y)<=tol){UnityEngine.Object.DestroyImmediate(t.gameObject);n++;break;}
+        }
+        return n;
+    }
     static void Disable(Transform original,IEnumerable<int> ids)
     {
         var set=new HashSet<string>(ids.Select(i=>"CityMesh_"+i));
@@ -185,6 +200,13 @@ public static class BraxCityRebuild
         // proxies are retained; the environment builder adds collision solely
         // to new objects which did not have a corresponding source proxy.
         Disable(original,BraxCityEnvironment.ReplacedOriginalMeshes);
+        // 9.11: źródłowe latarnie ulicy głównej (dubel z nowymi) i pachołki-zapora pod wiaduktem — po numerach, z kolizjami.
+        Disable(original,BraxCityEnvironment.SourceMainStreetLampMeshes);
+        Disable(original,BraxCityEnvironment.SourceViaductBollardMeshes);
+        int lampCols=RemoveRoundColliders(physics,BraxCityEnvironment.SourceMainStreetLampFeet,.35f,6f);
+        int bollardCols=RemoveRoundColliders(physics,BraxCityEnvironment.SourceViaductBollardFeet,.35f,.3f);
+        Debug.Log("BRAXHORN_ULICA_ZRODLO latarnie_wylaczone="+BraxCityEnvironment.SourceMainStreetLampMeshes.Length/3+" kolizje_latarni="+lampCols+
+            " pacholki_wiaduktu_wylaczone="+BraxCityEnvironment.SourceViaductBollardMeshes.Length+" kolizje_pacholkow="+bollardCols+" (9.11, po numerach CityMesh)");
         var containerBatch=original.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>t.name=="CityMesh_231");
         var timberBatch=original.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>t.name=="CityMesh_226");
         if(!containerBatch||!timberBatch){Debug.LogWarning("DO POPRAWKI: Original harbour batches changed; harbour replacement skipped");}
