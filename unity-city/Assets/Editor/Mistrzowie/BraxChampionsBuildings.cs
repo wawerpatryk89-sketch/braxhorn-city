@@ -98,10 +98,19 @@ public static class BraxChampionsBuildings
             casinoGenerated=true;
         });
         // 9.11 owner: "Ten basen usuń całkowicie" - P1 removed from the game.
+        // 9.11 owner: apartment buildings on the rental plots, one at a time,
+        // each finished A-Z inside and out (empty, no furniture).
+        int apartmentBuildings=0;
+        foreach(string apt in BraxChampionsApartments.Ids)
+            BraxChampionsFoundation.Optional("apartamentowiec "+apt,()=>
+            {
+                BraxChampionsApartments.Generate(apt,materials,Out);
+                apartmentBuildings++;
+            });
         AssetDatabase.SaveAssets();
-        int generated=d.buildings.Length+(casinoGenerated?1:0);
+        int generated=d.buildings.Length+(casinoGenerated?1:0)+apartmentBuildings;
         Debug.Log("CHAMPIONS_BUILDING_GENERATION base="+d.buildings.Length+
-            " T11="+casinoGenerated+" P1=REMOVED_BY_OWNER"+
+            " T11="+casinoGenerated+" APARTMENTS="+apartmentBuildings+"/"+BraxChampionsApartments.Ids.Length+" P1=REMOVED_BY_OWNER"+
             " generated="+generated+" visualAccepted=false");
         return generated;
     }
