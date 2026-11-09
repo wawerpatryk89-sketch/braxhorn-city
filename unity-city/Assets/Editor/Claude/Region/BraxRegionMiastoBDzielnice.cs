@@ -422,7 +422,7 @@ public static partial class BraxRegionMiastoB
                     bryla = tb.GetComponentsInChildren<Renderer>(true); dach = td ? td.GetComponentsInChildren<Renderer>(true) : new Renderer[0];
                 }
                 BraxMiastoAssety.Przygotuj(bud.gameObject, true, true);
-                nSzklo += NdSzklo(bud.gameObject);
+                nSzklo += NdSzklo(bud.gameObject, b.id == "KINNAIRD" || b.paczka == "miasto_kamienice");
                 var originalBounds = BraxRegion.Bounds(bud.gameObject);
                 foreach (var r in dach) r.shadowCastingMode = ShadowCastingMode.Off;
                 // LOD: urządzenia dachowe do 12 % wysokości ekranu, bryła do 0.6 %
@@ -457,8 +457,8 @@ public static partial class BraxRegionMiastoB
     // ≈ 0 nic nie odbija = czarna ściana; (b) szybą półprzezroczystą (CityGenGlass, alfa .25) przed pustą bryłą = czarna dziura.
     // Oba → szkło fasady refleksyjne jak wieżowce miasta (BraxSzyby.Refleksyjne: stalowo-niebieskie, odbicie nieba).
     // Okna malowane w teksturach elewacji zostają. Środki budynków nie są robione (właściciel: „środek nie musi być”).
-    static Material ndSzklo;
-    static int NdSzklo(GameObject o)
+    static Material ndSzklo, ndSzkloKamienice;
+    static int NdSzklo(GameObject o, bool kamienica = false)
     {
         if (!ndSzklo)
         {
@@ -468,18 +468,24 @@ public static partial class BraxRegionMiastoB
             var zapas = BraxCityMaterials.Surface("Nowe dzielnice: szkło fasady (refleksyjne)", new Color(.30f, .37f, .42f), .1f, .85f);
             if (zapas.HasProperty("_ReflectionStrength")) zapas.SetFloat("_ReflectionStrength", .95f);
             ndSzklo = BraxSzkloFasady.Mat("nowe dzielnice", 3.0f, 3.4f * K, .3f, new Color(.20f, .30f, .36f), .55f, .35f, zapas);
+            // ściany kurtynowe modeli mają własne słupki i stropy w geometrii — w szkle tylko cienka linia modułu, bez pasa
+            if (ndSzklo && ndSzklo.HasProperty("_Rama")) { ndSzklo.SetFloat("_Rama", .04f); ndSzklo.SetFloat("_Pas", 0f); }
+            // zabytek KINNAIRD i kamienice: małe okna z własnymi ramami — szyba bez siatki elewacji, ciepłe mieszkania za szybą
+            ndSzkloKamienice = BraxSzkloFasady.Mat("nowe dzielnice — kamienice i zabytek", 2.4f, 3.2f * K, .3f, new Color(.26f, .30f, .32f), .5f, .3f, zapas);
+            if (ndSzkloKamienice && ndSzkloKamienice.HasProperty("_Rama")) { ndSzkloKamienice.SetFloat("_Rama", 0f); ndSzkloKamienice.SetFloat("_Pas", 0f); }
         }
+        var docelowe = kamienica && ndSzkloKamienice ? ndSzkloKamienice : ndSzklo;
         int n = 0;
         foreach (var r in o.GetComponentsInChildren<Renderer>(true))
         {
             var ms = r.sharedMaterials; bool zm = false;
             for (int i = 0; i < ms.Length; i++)
             {
-                var m = ms[i]; if (!m || m == ndSzklo) continue;
+                var m = ms[i]; if (!m || m == ndSzklo || m == ndSzkloKamienice) continue;
                 bool szklo = m.name.IndexOf("glass", StringComparison.OrdinalIgnoreCase) >= 0;
                 bool ciemnyMetal = m.HasProperty("_Metallic") && m.GetFloat("_Metallic") >= .8f && m.HasProperty("_MainTex") && !m.GetTexture("_MainTex")
                                    && m.HasProperty("_Color") && m.GetColor("_Color").grayscale < .2f;
-                if (szklo || ciemnyMetal) { ms[i] = ndSzklo; zm = true; n++; }
+                if ((szklo || ciemnyMetal) && docelowe) { ms[i] = docelowe; zm = true; n++; }
             }
             if (zm) r.sharedMaterials = ms;
         }

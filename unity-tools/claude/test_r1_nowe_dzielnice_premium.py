@@ -42,3 +42,11 @@ class R1SzkloFasad(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class R1SzkloKamienic(unittest.TestCase):
+    def test_heritage_and_tenements_get_gridless_glass(self):
+        nd = code("unity-city/Assets/Editor/Claude/Region/BraxRegionMiastoBDzielnice.cs")
+        self.assertIn('NdSzklo(bud.gameObject, b.id == "KINNAIRD" || b.paczka == "miasto_kamienice")', nd)
+        self.assertIn('ndSzkloKamienice.SetFloat("_Rama", 0f); ndSzkloKamienice.SetFloat("_Pas", 0f);', nd)
+        self.assertIn('ndSzklo.SetFloat("_Rama", .04f); ndSzklo.SetFloat("_Pas", 0f);', nd)
