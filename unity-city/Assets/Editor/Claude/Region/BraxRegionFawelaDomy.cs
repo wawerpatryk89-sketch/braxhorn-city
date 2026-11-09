@@ -29,7 +29,7 @@ public static partial class BraxRegionFawela
     }
 
     // ściana jednostronna z otworami i ościeżami (wewn != null: także lico wewnętrzne w odległości grub — lokale)
-    static void Sciana(Bud b, Fr F, float s0, float s1, float y0, float y1, List<Rect> otw, float pas, float glebia, Bud wewn = null, float grub = .22f)
+    static void Sciana(Bud b, Fr F, float s0, float s1, float y0, float y1, List<Rect> otw, float pas, float glebia, Bud wewn = null, float grub = .22f, float podzial = -1f)
     {
         var xs = new SortedSet<float> { s0, s1 };
         foreach (var o in otw) { if (o.xMin > s0 && o.xMin < s1) xs.Add(o.xMin); if (o.xMax > s0 && o.xMax < s1) xs.Add(o.xMax); }
@@ -51,12 +51,18 @@ public static partial class BraxRegionFawela
             }
         }
         float g = wewn != null ? grub : glebia;
+        // ościeża: zewnętrzny materiał do płaszczyzny stolarki (podzial), dalej okładzina wnętrza — od środka nie widać farby elewacji
+        void Osc(Bud bb, Rect o, float d0, float d1)
+        {
+            bb.Quad(F.P(o.xMin, o.yMin, d0), F.P(o.xMin, o.yMin, d1), F.P(o.xMin, o.yMax, d1), F.P(o.xMin, o.yMax, d0));
+            bb.Quad(F.P(o.xMax, o.yMin, d1), F.P(o.xMax, o.yMin, d0), F.P(o.xMax, o.yMax, d0), F.P(o.xMax, o.yMax, d1));
+            bb.Quad(F.P(o.xMin, o.yMax, d0), F.P(o.xMin, o.yMax, d1), F.P(o.xMax, o.yMax, d1), F.P(o.xMax, o.yMax, d0));
+            if (o.yMin > y0 + .01f) bb.Quad(F.P(o.xMin, o.yMin, d1), F.P(o.xMin, o.yMin, d0), F.P(o.xMax, o.yMin, d0), F.P(o.xMax, o.yMin, d1));
+        }
         foreach (var o in otw)
         {
-            b.Quad(F.P(o.xMin, o.yMin, 0f), F.P(o.xMin, o.yMin, g), F.P(o.xMin, o.yMax, g), F.P(o.xMin, o.yMax, 0f));
-            b.Quad(F.P(o.xMax, o.yMin, g), F.P(o.xMax, o.yMin, 0f), F.P(o.xMax, o.yMax, 0f), F.P(o.xMax, o.yMax, g));
-            b.Quad(F.P(o.xMin, o.yMax, 0f), F.P(o.xMin, o.yMax, g), F.P(o.xMax, o.yMax, g), F.P(o.xMax, o.yMax, 0f));
-            if (o.yMin > y0 + .01f) b.Quad(F.P(o.xMin, o.yMin, g), F.P(o.xMin, o.yMin, 0f), F.P(o.xMax, o.yMin, 0f), F.P(o.xMax, o.yMin, g));
+            if (wewn != null && podzial > 0f && podzial < g) { Osc(b, o, 0f, podzial); Osc(wewn, o, podzial, g); }
+            else Osc(b, o, 0f, g);
         }
     }
 
@@ -730,9 +736,12 @@ public static partial class BraxRegionFawela
                     W(cx, cz, metal, new Color(.6f, .6f, .6f)).Cyl(F.P(G + 1.2f, yF, d + .3f), F.P(G + 1.2f, yF + .45f * k, d + .3f), .05f, 8);
                     KolF(rd, F, G + .9f, G + 1.52f, yF, yF + 1.15f * k, d, d + .6f);
                 }
-                W(cx, cz, lustro, Color.white).Quad(F.P(G + .012f, yF + .9f * k, d - .1f), F.P(G + .012f, yF + .9f * k, d + .7f), F.P(G + .012f, yF + 1.85f * k, d + .7f), F.P(G + .012f, yF + 1.85f * k, d - .1f));
+                // (lustro stanowisk: jedna tafla z prawdziwym odbiciem — niżej)
                 BoxF(bl, F, G, G + .3f, yF + .82f * k, yF + .86f * k, d - .2f, d + .8f, true);
             }
+            // lustro nad stanowiskami: jedna tafla 2.9 m z prawdziwym odbiciem (BraxLustro), rama z ciemnego drewna
+            LustroTafla(rd, "fryzjer, stanowiska", F.P(G + .014f, yF + 1.375f * k, 2.65f), F.R, 2.9f, .95f * k);
+            foreach (float yy in new[] { yF + .9f * k - .05f, yF + 1.85f * k }) BoxF(bl, F, G, G + .03f, yy, yy + .05f, 1.15f, 4.15f, true);
             // poczekalnia: krzesła z tworzywa pod prawą ścianą, przodem do foteli (bez modelu — ławka na nogach z kodu)
             for (int q = 0; q < 3; q++)
                 if (!Rekw(rd, new[] { "plastic_monobloc_chair_01" }, F.P(L - G - .38f, yF, 1.0f + q * .72f), F.Yaw - 90f + (q - 1) * 6f, .88f, true, 25f, "krzesło w poczekalni"))
@@ -745,7 +754,7 @@ public static partial class BraxRegionFawela
             BoxF(cer, F, um, um + .62f, yF + .78f * k, yF + .9f * k, D - .5f, D - .02f, true);
             BoxF(cer, F, um + .22f, um + .4f, yF, yF + .78f * k, D - .3f, D - .05f, true);
             var chrom = W(cx, cz, alu, Color.white); chrom.Cyl(F.P(um + .31f, yF + .9f * k, D - .1f), F.P(um + .31f, yF + .9f * k + .2f, D - .1f), .015f, 6); chrom.Cyl(F.P(um + .31f, yF + .9f * k + .2f, D - .1f), F.P(um + .31f, yF + .9f * k + .2f, D - .24f), .012f, 6, -1f, false);
-            W(cx, cz, lustro, Color.white).Quad(F.P(um - .05f, yF + 1.0f * k, D - .012f), F.P(um + .7f, yF + 1.0f * k, D - .012f), F.P(um + .7f, yF + 1.75f * k, D - .012f), F.P(um - .05f, yF + 1.75f * k, D - .012f));
+            LustroTafla(rd, "fryzjer, umywalka", F.P(um + .325f, yF + 1.375f * k, D - .014f), F.N, .75f, .75f * k);
             float sk0 = um + .95f, sk1 = Mathf.Min(L - G - 1.5f, sk0 + 1.5f);
             BoxF(bl, F, sk0, sk1, yF + 1.3f * k, yF + 1.33f * k, D - .26f, D - .02f, true);
             BoxF(bl, F, sk0, sk1, yF + 1.7f * k, yF + 1.73f * k, D - .26f, D - .02f, true);
@@ -858,6 +867,20 @@ public static partial class BraxRegionFawela
         var st = W(cx, cz, metal, new Color(.36f, .36f, .37f));
         foreach (float s in new[] { s0 + .05f, s1 - .1f }) foreach (float d in new[] { d0 + .05f, d1 - .1f }) BoxF(st, F, s, s + .05f, y0, y1, d, d + .05f, true);
         BoxF(st, F, s0 + .05f, s1 - .05f, y0 + .18f, y0 + .22f, d1 - .1f, d1 - .06f, true);   // poprzeczka z tyłu
+    }
+
+    internal static int luster;
+    /// <summary>Lustro z prawdziwym odbiciem (właściciel 10.11: „lustro ma być lustrem, a nie naklejką”): tafla w × h, środek c,
+    /// normalna n w stronę pokoju. Osobny obiekt (Quad Unity patrzy w −Z) z materiałem Braxhorn/Lustro i skryptem BraxLustro —
+    /// kamera odbita w płaszczyźnie tafli rysuje salę do tekstury, gdy gracz stoi przed lustrem bliżej niż 16 m.</summary>
+    static void LustroTafla(Transform parent, string nazwa, Vector3 c, Vector3 n, float w, float h)
+    {
+        var g = GameObject.CreatePrimitive(PrimitiveType.Quad); g.name = "Fawela: lustro — " + nazwa; g.transform.SetParent(parent, false);
+        var col = g.GetComponent<Collider>(); if (col) UnityEngine.Object.DestroyImmediate(col);
+        g.transform.position = c; g.transform.rotation = Quaternion.LookRotation(-n, Vector3.up); g.transform.localScale = new Vector3(w, h, 1f);
+        var r = g.GetComponent<MeshRenderer>(); r.sharedMaterial = lustro; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; r.receiveShadows = false;
+        g.AddComponent<BraxLustro>();
+        luster++;
     }
 
     static int modeli;
@@ -973,11 +996,11 @@ public static partial class BraxRegionFawela
         Bud Cegla() { var b = W(cx, cz, cegla); b.kolor = p => Color.white * Mathf.Lerp(.66f, 1f, S01(y, y + 1.5f, p.y)); return b; }
         var oF = Gorne(L); oF.Add(Rect.MinMaxRect(e0, y, e1, yd)); oF.Add(Rect.MinMaxRect(b0, y, b1, y + 3.6f));
         var lin = Cegla();   // od środka goła cegła (lamperia z farby niżej — Lamperia)
-        Sciana(Tynk(), fF, 0f, L, y, y + hs, oF, y + 1.4f, G, lin, G);
-        Sciana(Cegla(), fB, 0f, L, y, y + hs, Gorne(L), y + 1.4f, G, lin, G);
+        Sciana(Tynk(), fF, 0f, L, y, y + hs, oF, y + 1.4f, G, lin, G, .15f);
+        Sciana(Cegla(), fB, 0f, L, y, y + hs, Gorne(L), y + 1.4f, G, lin, G, .15f);
         var oL = Gorne(D); float bd0 = D * .5f - .7f * k, bd1 = D * .5f + .7f * k; oL.Add(Rect.MinMaxRect(bd0, y, bd1, yd));
-        Sciana(Tynk(), fL, 0f, D, y, y + hs, oL, y + 1.4f, G, lin, G);
-        Sciana(Cegla(), fP, 0f, D, y, y + hs, Gorne(D), y + 1.4f, G, lin, G);
+        Sciana(Tynk(), fL, 0f, D, y, y + hs, oL, y + 1.4f, G, lin, G, .15f);
+        Sciana(Cegla(), fP, 0f, D, y, y + hs, Gorne(D), y + 1.4f, G, lin, G, .15f);
         foreach (var (F, len) in new[] { (fF, L), (fB, L), (fL, D), (fP, D) })
             foreach (var o in Gorne(len))
             {   // okno przemysłowe: stalowa rama szprosowa 4 × 2 pola (pręty 4 cm, głębokość 5 cm — widoczne z obu stron), szyba
@@ -1134,20 +1157,33 @@ public static partial class BraxRegionFawela
         Rekw(tr, new[] { "medicine_ball_rack" }, new Vector3(s.xMin + 13.3f, y + .01f, s.yMax - G - .5f), 180f, .95f, true, 40f, "stojak z piłkami lekarskimi (biblioteka właściciela)", true);
         Rekw(tr, new[] { "rope_coil" }, new Vector3(s.xMin + 1.8f, y + .03f, s.yMin + 7.4f), 30f, .14f, false, 30f, "lina (biblioteka właściciela)", true);
         // lustra na ścianie tylnej (rama drewniana), szafki stalowe przy ścianie zachodniej, ławki, woda, magnetofon
-        var lus = W(cx, cz, lustro, Color.white); lus.Quad(fB.P(L - 8f, y + .4f, G + .015f), fB.P(L - 2f, y + .4f, G + .015f), fB.P(L - 2f, y + 2.3f * k, G + .015f), fB.P(L - 8f, y + 2.3f * k, G + .015f));
+        LustroTafla(tr, "sala kickboxingu", fB.P(L - 5f, y + .4f + (2.3f * k - .4f) * .5f, G + .016f), -fB.N, 6f, 2.3f * k - .4f);
         var rl = W(cx, cz, lada, new Color(.6f, .5f, .4f));
         BoxF(rl, fB, L - 8.06f, L - 1.94f, y + .34f, y + .4f, G + .01f, G + .05f); BoxF(rl, fB, L - 8.06f, L - 1.94f, y + 2.3f * k, y + 2.3f * k + .06f, G + .01f, G + .05f);
+        // szafki stoją ZA drzwiami bocznymi (10.11, zdjęcie właściciela: stały w świetle drzwi — przez szparę było widać podwórze)
+        float szaf0 = bd1 + .55f + 4.5f < D - .5f ? bd1 + .55f : bd0 - .55f - 4.4f;
         for (int q = 0; q < 7; q++)
         {
             var kolS = q % 3 == 0 ? new Color(.45f, .55f, .68f) : q % 3 == 1 ? new Color(.7f, .7f, .72f) : new Color(.55f, .62f, .5f);
-            W(cx, cz, roletaSzara, kolS).Box(new Vector3(s.xMin + G, y, s.yMin + 8.2f + q * .62f), new Vector3(s.xMin + G + .55f, y + 1.85f * k, s.yMin + 8.78f + q * .62f));
+            W(cx, cz, roletaSzara, kolS).Box(new Vector3(s.xMin + G, y, s.yMin + szaf0 + q * .62f), new Vector3(s.xMin + G + .55f, y + 1.85f * k, s.yMin + szaf0 + .58f + q * .62f));
             // drzwiczki: szczeliny wentylacyjne (3 listwy), uchwyt, wgniecenia farby — fL: s = z − yMin, d = x − xMin (lico szafki d = G + .55)
-            float s0 = 8.2f + q * .62f, dS = G + .55f; var ciemny = W(cx, cz, metal, new Color(.16f, .16f, .17f));
+            float s0 = szaf0 + q * .62f, dS = G + .55f; var ciemny = W(cx, cz, metal, new Color(.16f, .16f, .17f));
             for (int w = 0; w < 3; w++) { float yw = y + 1.85f * k - .22f - w * .06f; BoxF(ciemny, fL, s0 + .12f, s0 + .46f, yw, yw + .025f, dS, dS + .006f, true, false); }
             for (int w = 0; w < 3; w++) { float yw = y + .25f + w * .06f; BoxF(ciemny, fL, s0 + .12f, s0 + .46f, yw, yw + .025f, dS, dS + .006f, true, false); }
             BoxF(W(cx, cz, alu, new Color(.7f, .7f, .7f)), fL, s0 + .47f, s0 + .5f, y + 1.05f * k, y + 1.18f * k, dS, dS + .025f, true, true);
         }
-        Kol(tr, new Vector3(s.xMin + G, y, s.yMin + 8.2f), new Vector3(s.xMin + G + .55f, y + 1.85f * k, s.yMin + 12.6f));
+        Kol(tr, new Vector3(s.xMin + G, y, s.yMin + szaf0), new Vector3(s.xMin + G + .55f, y + 1.85f * k, s.yMin + szaf0 + 4.4f));
+        // stolarka drzwi: ościeżnice z kątownika, drzwi boczne stalowe otwarte na podwórze (90°), wejście — dwa skrzydła otwarte do środka
+        {
+            var osc = W(cx, cz, metal, new Color(.28f, .28f, .29f)); var skrz = W(cx, cz, drzwiStalowe[1], Color.white);
+            foreach (var (F2, a0, a1) in new[] { (fL, bd0, bd1), (fF, e0, e1) })
+            {
+                BoxF(osc, F2, a0, a0 + .05f, y, yd, .1f, .2f, true); BoxF(osc, F2, a1 - .05f, a1, y, yd, .1f, .2f, true); BoxF(osc, F2, a0, a1, yd - .05f, yd, .1f, .2f, true);
+            }
+            BoxF(skrz, fL, bd0 - .045f, bd0, y + .02f, yd - .06f, -(bd1 - bd0 - .06f), .1f, true);
+            float pol = (e1 - e0) * .5f - .04f;
+            BoxF(skrz, fF, e0 - .045f, e0, y + .02f, yd - .06f, G, G + pol, true); BoxF(skrz, fF, e1, e1 + .045f, y + .02f, yd - .06f, G, G + pol, true);
+        }
         foreach (float bxx in new[] { s.xMin + 5.5f, s.xMin + 9.5f })
             if (!Rekw(tr, new[] { "painted_wooden_bench" }, new Vector3(bxx, y + .01f, s.yMin + G + .45f), 0f, .89f, true, 35f, "ławka w sali"))
                 BoxF(W(cx, cz, deski, Color.white), fF, L - (bxx - s.xMin) - .9f, L - (bxx - s.xMin) + .9f, y + .42f * k, y + .47f * k, G + .1f, G + .5f, true);

@@ -33,6 +33,8 @@ TEXTURES = [
     # rdzawe schody zewnętrzne, zniszczone szafki kuchenne
     "peeling_painted_wall", "decrepit_wallpaper", "old_linoleum_flooring_01", "dirty_tiles", "worn_cracked_plaster", "dirty_carpet",
     "rusty_painted_metal", "wood_cabinet_worn_long",
+    # wieżowce murowane nowych dzielnic (10.11): cegły i kamień elewacji
+    "red_brick", "brick_wall_12", "dark_brick_wall", "factory_brick", "sandstone_blocks_08", "marble_01", "granite_tile_03", "granite_tile_04",
 ]
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
@@ -46,7 +48,6 @@ TEXTURES_FAWELA_1K = [
     "rusty_metal_shutter", "rusted_shutter", "wooden_garage_door", "wood_shutter", "metal_plate_02", "asphalt_03",
     "asphalt_04", "concrete_floor_worn_001", "damaged_concrete_floor", "wood_table_worn", "cotton_jersey", "brown_leather",
     "fabric_leather_02", "fabric_leather_01",
-    "wood_floor_worn", "rubberized_track",
 ]
 MODELS_2K = [  # drzewa i krzewy: pełna jakość (2K); reszta roślin w 1K, bo edytor Unity na GitHubie ma 16 GB
     "shrub_01", "shrub_02", "shrub_03",

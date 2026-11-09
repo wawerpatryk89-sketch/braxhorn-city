@@ -494,7 +494,7 @@ public static partial class BraxRegionFawela
         if (!Wlaczona) return;
         gotowe = false; Przygotuj();
         komorki.Clear(); rodzice.Clear(); bezCienia.Clear(); Sprzedawcy.Clear(); Przylacza.Clear();
-        domow = domowPas1 = domowPas2 = lokali = krokow = slupow = trojkatow = graffiti = aut = przylaczy = roslin = modeli = modeliBib = 0; brakModeli.Clear();
+        domow = domowPas1 = domowPas2 = lokali = krokow = slupow = trojkatow = graffiti = aut = przylaczy = roslin = modeli = modeliBib = luster = 0; brakModeli.Clear();
         root = BraxRegion.Root(cityRoot, "CLAUDE fawela: wzgórze za miastem (etap 1)");
         BraxUliceKit.Start();   // litery przestrzenne szyldów (krój miasta) — partie zapisuje krok „zapis kwadratów”
         Materialy();
@@ -509,7 +509,7 @@ public static partial class BraxRegionFawela
         Krok("zapis kwadratów", Zapisz);
         Debug.Log("BRAXHORN_FAWELA etap 1: działek " + Dzialki.Count + ", domów " + domow + " (pas 1: " + domowPas1 + ", pas 2: " + domowPas2 + "), lokali " + lokali +
                   ", stanowisk obsługi " + Sprzedawcy.Count + ", dróg " + Drogi.Count + " (" + Drogi.Sum(d => d.p.Count) + " m), stopni schodów " + krokow + ", słupów " + slupow +
-                  ", przyłączy " + przylaczy + ", graffiti " + graffiti + ", aut zaparkowanych " + aut + ", roślin i rekwizytów z biblioteki " + roslin + " (drzew " + drzew + ", krzewów " + krzewow + ", kamieni " + kamieni + ")" + ", modeli w lokalach " + modeli + ", modeli z biblioteki " + modeliBib + (brakModeli.Count > 0 ? " (brak: " + string.Join(", ", brakModeli) + ")" : "") + ", towaru z biblioteki " + BraxSklepyTowar.Postawione + ", trójkątów " + trojkatow + ", kwadratów 150 m " + komorki.Count +
+                  ", przyłączy " + przylaczy + ", graffiti " + graffiti + ", aut zaparkowanych " + aut + ", luster z odbiciem " + luster + ", roślin i rekwizytów z biblioteki " + roslin + " (drzew " + drzew + ", krzewów " + krzewow + ", kamieni " + kamieni + ")" + ", modeli w lokalach " + modeli + ", modeli z biblioteki " + modeliBib + (brakModeli.Count > 0 ? " (brak: " + string.Join(", ", brakModeli) + ")" : "") + ", towaru z biblioteki " + BraxSklepyTowar.Postawione + ", trójkątów " + trojkatow + ", kwadratów 150 m " + komorki.Count +
                   ", plac y " + Tarasy[0].y.ToString("F2") + ", sala y " + Tarasy[1].y.ToString("F2") + ", fotoskany (" + opisTekstur.Count + ", odchudzonych do 1024 / 512: " + odchudzonych + "): " + string.Join(" | ", opisTekstur) +
                   (brakTekstur.Count > 0 ? " — DO POPRAWKI brak fotoskanów: " + string.Join(", ", brakTekstur) : " — wszystkie wykończenia z fotoskanów"));
     }
@@ -565,7 +565,7 @@ public static partial class BraxRegionFawela
         "corrugated_iron", "wood_peeling_paint_weathered", "old_planks_02", "rusty_metal_04", "green_metal_rust", "blue_metal_plate",
         "rusty_metal_shutter", "rusted_shutter", "wooden_garage_door", "wood_shutter", "metal_plate_02", "asphalt_03",
         "asphalt_04", "concrete_floor_worn_001", "damaged_concrete_floor", "wood_table_worn", "cotton_jersey", "brown_leather",
-        "fabric_leather_02", "fabric_leather_01", "wood_floor_worn", "rubberized_track",
+        "fabric_leather_02", "fabric_leather_01",
     };
 
     /// <summary>Wykończenie główne (ściany, dachy, nawierzchnie): fotoskan — kolor + normalna, do 1024 px.</summary>
@@ -654,12 +654,16 @@ public static partial class BraxRegionFawela
         lada = Tm("drewno lad i regałów (wytarte)", 1.4f, b, .7f, "wood_table_worn", "wood_cabinet_worn_long", "wood_planks");
         deski = Tm("deski (skrzynki, blaty straganów)", 1.2f, b, .8f, "wood_planks", "old_planks_02", "wood_planks_grey");
         plotno = Tm("płótno (markizy, plandeki, pranie)", .9f, b, .95f, "cotton_jersey", "rough_linen", "leather_white");
-        podlogaSali = T("podłoga sali — wytarte deski", 2.0f, b, .75f, "wood_floor_worn", "old_planks_02", "wood_planks");
-        matySali = Tm("maty gumowe sali (wytarte)", 1.2f, b, .85f, "rubberized_track", "rubber_tiles");
+        podlogaSali = T("podłoga sali — stare wytarte deski", 2.0f, new Color(.86f, .82f, .76f), .8f, "old_planks_02", "wood_planks_grey", "wood_planks");   // 10.11: „wood_floor_worn” to nowa sosna (pomarańcz) — nie do starej sali
+        matySali = Tm("maty gumowe sali (czarna guma, wytarte)", 1.2f, new Color(.62f, .62f, .64f), .85f, "rubber_tiles", "asphalt_04");   // 10.11: „rubberized_track” to czerwona bieżnia
         skora = Tm("skóra worków, foteli i narożników", .8f, b, .6f, "brown_leather", "fabric_leather_02", "fabric_leather_01");
         // szkło hali sali (przezroczyste), lustra i źródła światła — jedyne powierzchnie bez fotoskanu; okna domów: shader pokoi miasta
         szyba = BraxCityMaterials.Surface("Fawela: szyba okienna (brudna)", new Color(.20f, .24f, .26f, .42f), .1f, .2f);
-        lustro = BraxCityMaterials.Surface("Fawela: lustro", new Color(.78f, .82f, .84f), .05f, .92f);
+        {   // lustro: shader odbicia płaskiego (BraxLustro rysuje salę z kamery odbitej); bez shadera — gładki metal z sondą
+            var shL = Shader.Find("Braxhorn/Lustro");
+            if (shL) { lustro = new Material(shL) { name = "Fawela: lustro (tafla z odbiciem)" }; Directory.CreateDirectory(BraxRegion.Out + "/Fawela"); BraxZapisAssetu.Utworz(lustro, BraxRegion.Out + "/Fawela/lustro.mat"); }
+            else { lustro = BraxCityMaterials.Surface("Fawela: lustro", new Color(.78f, .82f, .84f), .05f, .92f); Debug.LogWarning("DO POPRAWKI: BRAXHORN_FAWELA brak shadera Braxhorn/Lustro — lustra bez odbicia płaskiego"); }
+        }
         // okna domów: „pokój za szybą” z biblioteki okien miasta (12 faz poziomu podłogi; komórka pokoju 3.2 m × kondygnacja, głębokość 4.2 m)
         okna = new Material[12];
         Directory.CreateDirectory(BraxUliceKit.Out + "/Materialy");

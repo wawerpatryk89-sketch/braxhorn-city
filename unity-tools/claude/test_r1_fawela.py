@@ -263,8 +263,10 @@ class SalaIBiblioteka(unittest.TestCase):
         for m in ("exterior_aircon_unit", "plastic_monobloc_chair_01", "CashRegister_01", "BarberShopChair_01", "ceiling_fan", "hanging_industrial_lamp",
                   "shrub_02", "shrub_03", "boulder_01", "wall_clock", "korean_fire_extinguisher_01", "multi_cleaner_bottle", "bleach_bottle"):
             self.assertIn('"' + m + '"', FETCH_R, m)
+        # podłoga starej sali: stare deski i czarna guma (nowa sosna / czerwona bieżnia wyglądały jak nowa hala — podgląd 10.11)
         for t in ("wood_floor_worn", "rubberized_track"):
-            self.assertIn('"' + t + '"', FETCH_R, t); self.assertIn('"' + t + '"', FAW, t)
+            self.assertNotIn('"' + t + '"', FETCH_R, t); self.assertNotIn('"' + t + '"', FAW, t)
+        self.assertIn('"old_planks_02", "wood_planks_grey", "wood_planks");', FAW)
 
 
 class RealizmPoPodgladzie(unittest.TestCase):
@@ -304,6 +306,79 @@ class SupermarketNaZiemi(unittest.TestCase):
 
     def test_shop_not_on_favela_or_outside_city(self):
         self.assertIn("!BraxMiastoGranice.Grywalny(p.x, p.z) || BraxMiastoGranice.WFaweli(p.x, p.z)", SUPERMARKET)
+
+
+WIEZE = src(R / "BraxRegionFawelaWieze.cs")
+DZIELNICE = src(R / "BraxRegionMiastoBDzielnice.cs")
+SHADERY = ROOT / "unity-city/Assets/Claude/Shaders"
+LUSTRO_CS = (ROOT / "unity-city/Assets/Claude/Runtime/BraxLustro.cs").read_text(encoding="utf-8")
+
+
+class WiezowceMurowane(unittest.TestCase):
+    """Właściciel 10.11 00:04: „wieżowce zrobić murowane, jak policja / szpital… mają być wysokie”."""
+
+    def test_centre_units_replaced_by_masonry_towers(self):
+        self.assertIn('if (BraxRegionFawela.WiezeMurowaneWlaczone && b.paczka == "miasto_centrum")', DZIELNICE)
+        self.assertIn("BraxRegionFawela.WiezaMurowana(g, b.id, b.x, Podloze(b.x, b.z, YC), b.z, b.w, b.d);", DZIELNICE)
+        self.assertEqual(len(re.findall(r'new Bud\("C5_U\d\d", "miasto_centrum_c5"', DZIELNICE)), 14)
+        self.assertIn("public static readonly bool WiezeMurowaneWlaczone = true;", WIEZE)
+
+    def test_towers_are_tall_and_stepped(self):
+        self.assertIn("int N = dlugi ? 22 + r.Next(4) : 24 + r.Next(8);", WIEZE)      # 22–31 kondygnacji po 4.4 m
+        self.assertIn("var pietra = new[] { (R0, 0, n1), (R1, n1, n2), (R2, n2, n3), (R3, n3, N) };", WIEZE)
+
+    def test_five_masonry_styles_from_photoscans(self):
+        for t in ("red_brick", "brick_wall_12", "dark_brick_wall", "factory_brick", "sandstone_blocks_08", "marble_01", "granite_tile_03", "granite_tile_04"):
+            self.assertIn('"' + t + '"', WIEZE, t); self.assertIn('"' + t + '"', FETCH_R, t)
+        self.assertEqual(WIEZE.count("new StylWiezy {"), 5)
+
+    def test_windows_on_world_grid_with_room_behind_glass(self):
+        self.assertIn("const float WG = 3.6f;", WIEZE)
+        self.assertIn("BraxUliceKit.OknoPokoj(WG, kondygnacja, floor0, 0, 5, 4.6f, 0f)", WIEZE)
+        self.assertIn("float s = (j * WG - a0) / kier;", WIEZE)
+
+    def test_base_crown_and_roof_details(self):
+        for czesc in ("PortalWiezy(F, o, WB, st, oknaW, rama, id, si)", "bool namiot = nr % 3 == 1 && !dlugi;", "float yKor = ostatni ? Y(f1 - 2) : y1 + att;"):
+            self.assertIn(czesc, WIEZE, czesc)
+
+    def test_collider_and_lod(self):
+        self.assertIn("col.size = new Vector3(w + 2f * Wys, top - yBase, d + 2f * Wys);", WIEZE)
+        self.assertIn("lod.SetLODs(new[] { new LOD(.004f, rend.ToArray()) });", WIEZE)
+
+
+class LustroPrawdziwe(unittest.TestCase):
+    """Właściciel 10.11 00:15: „lustro ma być lustrem, a nie naklejką na ścianie”."""
+
+    def test_runtime_planar_reflection(self):
+        for czesc in ("public sealed class BraxLustro : MonoBehaviour", "void OnWillRenderObject()", "kam.worldToCameraMatrix = cam.worldToCameraMatrix * odb;",
+                      "cam.CalculateObliqueMatrix(", "GL.invertCulling = !odwr;", "const int MaksNaKlatke = 2;", "finally"):
+            self.assertIn(czesc, LUSTRO_CS, czesc)
+
+    def test_shader_shows_reflection_with_probe_fallback(self):
+        sh = (SHADERY / "Lustro.shader").read_text(encoding="utf-8")
+        self.assertIn('Shader "Braxhorn/Lustro"', sh)
+        self.assertIn("tex2D(_OdbicieTex, suv)", sh); self.assertIn("unity_SpecCube0", sh); self.assertIn("saturate(_OdbicieJest)", sh)
+
+    def test_favela_mirrors_use_it(self):
+        self.assertEqual(DOMY.count("LustroTafla("), 4)      # definicja + fryzjer stanowiska + fryzjer umywalka + sala
+        self.assertIn("g.AddComponent<BraxLustro>();", DOMY)
+        self.assertIn('Shader.Find("Braxhorn/Lustro")', FAW)
+        self.assertNotIn("W(cx, cz, lustro, Color.white)", DOMY)
+
+
+class SzkloFasadArchitektura(unittest.TestCase):
+    def test_facade_types_and_pane_tilt(self):
+        sh = (SHADERY / "SzkloFasady.shader").read_text(encoding="utf-8")
+        for czesc in ("_Typ (", "_FilarCo (", "_Tafla (", "float3 nT = normalize(n +", "half pelnyPas = step(.5, _Typ);"):
+            self.assertIn(czesc, sh, czesc)
+        self.assertEqual(sh.count("{"), sh.count("}"))
+
+
+class SalaStolarka(unittest.TestCase):
+    def test_lockers_clear_of_side_door_and_doors_have_leaves(self):
+        self.assertIn("float szaf0 = bd1 + .55f + 4.5f < D - .5f ? bd1 + .55f : bd0 - .55f - 4.4f;", DOMY)
+        self.assertIn("BoxF(skrz, fL, bd0 - .045f, bd0, y + .02f, yd - .06f, -(bd1 - bd0 - .06f), .1f, true);", DOMY)
+        self.assertIn("float grub = .22f, float podzial = -1f)", DOMY)
 
 
 if __name__ == "__main__":

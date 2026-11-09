@@ -73,7 +73,7 @@ public static partial class BraxRegionMiastoB
     static readonly List<string> ndUsuniete = new List<string>();
     static readonly List<(Rect r, int mat)> ndWstawkiToru = new List<(Rect, int)>();   // 0 farba, 1 główka szyny (stal), 2 rowek
     static readonly List<GameObject> ndBudynki = new List<GameObject>();
-    static int ndMigotanie, ndLatarnie, ndDrzewa, ndZebry;
+    static int ndMigotanie, ndLatarnie, ndDrzewa, ndZebry, ndWiezeMurowane;
     public static bool NoweDzielnice => true;     // teren nowych dzielnic (drogi i kwartały) budowany zawsze; modele — gdy są paczki
 
     static void NdLog(string s) => Debug.Log("BRAXHORN_MIASTO_ASSETY " + s);
@@ -122,7 +122,7 @@ public static partial class BraxRegionMiastoB
     //    kwartały z płyt, skwer, pas zieleni, plac Atlanty, ścieżka za rzędem B. Wszystko prostokątami stykającymi się krawędzią.
     static void NoweDzielniceNawierzchnie()
     {
-        ndRootStart = root.childCount; ndLatarnie = ndDrzewa = ndZebry = ndMigotanie = 0; ndWstawkiToru.Clear(); ndBudynki.Clear();
+        ndRootStart = root.childCount; ndLatarnie = ndDrzewa = ndZebry = ndMigotanie = ndWiezeMurowane = 0; BraxRegionFawela.wiez = BraxRegionFawela.wiezOkien = BraxRegionFawela.wiezTrojkatow = 0; ndWstawkiToru.Clear(); ndBudynki.Clear();
         NdKrok("usunięcie starego na terenie nowych dzielnic", NdUsunStare);
         NdKrok("nawierzchnie: aleja, ulice, skrzyżowania", NdUlice);
         NdKrok("nawierzchnie: kwartały, plac Atlanty, ciąg pieszy", NdKwartaly);
@@ -401,6 +401,14 @@ public static partial class BraxRegionMiastoB
         {
             try
             {
+                // 10.11 (właściciel 00:04: „wieżowce zrobić murowane… wysokie”): 14 jednostek „centrum” ze Sketchfab (czarne ściany,
+                // schody pożarowe na szkle) zastąpione wieżowcami murowanymi budowanymi z kodu w tym samym obrysie (BraxRegionFawelaWieze.cs).
+                // Model zostaje w paczce — wyłącznik BraxRegionFawela.WiezeMurowaneWlaczone przywraca go bez innych zmian.
+                if (BraxRegionFawela.WiezeMurowaneWlaczone && b.paczka == "miasto_centrum")
+                {
+                    var wm = BraxRegionFawela.WiezaMurowana(g, b.id, b.x, Podloze(b.x, b.z, YC), b.z, b.w, b.d);
+                    if (wm) { ndWiezeMurowane++; ok++; continue; }
+                }
                 if (!BraxMiastoAssety.Jest(b.paczka)) { brak++; continue; }
                 var model = BraxMiastoAssety.Model(b.paczka, b.plik); if (!model) { brak++; continue; }
                 float y = Podloze(b.x, b.z, YC);
@@ -450,6 +458,7 @@ public static partial class BraxRegionMiastoB
         try { NdPrzytnijNawisy(); } catch (Exception e) { BraxMiastoAssety.Blad("nawisy budynków", e); }
         try { NdMigotanieBudynkow(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola podstaw budynków", e); }
         NdLog("szkło fasad: " + nSzklo + " materiałów na budynkach zamienione na szkło refleksyjne (czarny metal / szyby przed pustą bryłą)");
+        NdLog("wieżowce murowane z kodu: " + ndWiezeMurowane + " (okien " + BraxRegionFawela.wiezOkien + ", trójkątów " + BraxRegionFawela.wiezTrojkatow + ")");
         NdLog("budynki: postawione " + ok + "/" + NoweBudynki.Length + (brak > 0 ? ", bez modelu " + brak + " (paczka nieodszyfrowana — kwartał zostaje z płytami)" : ""));
     }
 

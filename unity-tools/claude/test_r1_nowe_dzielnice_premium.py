@@ -20,7 +20,7 @@ class R1SzkloFasad(unittest.TestCase):
     def test_glass_reflects_real_sky_with_fresnel_rooms_and_mullions(self):
         self.assertIn('Shader "Braxhorn/SzkloFasady"', SHADER)
         self.assertIn('#include "MiastoTlo.cginc"', SHADER)
-        self.assertIn("MT_Niebo(R, kat * 3)", SHADER)                 # odbicie nieba gry, nie stały kolor
+        self.assertIn("MT_Niebo(R, kat * 8)", SHADER)                 # odbicie nieba gry, nie stały kolor
         self.assertIn("pow(1 - cosv, 5)", SHADER)                     # Fresnel
         self.assertIn("float t = min(min(tx, ty), tz);", SHADER)      # pokój za szybą
         self.assertIn("fwidth(u)", SHADER)                            # siatka bez mory

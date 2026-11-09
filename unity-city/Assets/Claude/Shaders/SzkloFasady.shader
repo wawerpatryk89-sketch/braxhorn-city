@@ -25,6 +25,14 @@ Shader "Braxhorn/SzkloFasady"
         _RamaKolor ("Kolor słupków (aluminium)", Color) = (.62, .65, .68, 1)
         _Pas ("Pas międzykondygnacyjny (m)", Float) = .7
         _PasKolor ("Kolor pasa (szkło emaliowane)", Color) = (.17, .21, .25, 1)
+        // ARCHITEKTURA ELEWACJI (10.11, właściciel po podglądzie: „jak to tak ma wyglądać, to na pewno nie” — sama tafla z siatką
+        // wyglądała jak komputerowe pudło): typ 0 = ściana kurtynowa (pas międzykondygnacyjny ze szkła emaliowanego),
+        // 1 = pasy okien w okładzinie (pas pełny: aluminium / kamień, cień pod pasem), 2 = filary i okna w kamieniu
+        _Typ ("Typ elewacji (0 kurtynowa, 1 pasy, 2 filary)", Float) = 0
+        _Filar ("Filar: szerokość (m)", Float) = 0
+        _FilarCo ("Filar co ile modułów (0 = brak)", Float) = 0
+        _FilarKolor ("Kolor filarów", Color) = (.62, .64, .66, 1)
+        _Tafla ("Nierówność tafli (odbicie każdej szyby inne)", Range(0, .06)) = .018
         _Wnetrze ("Jasność wnętrz", Range(0, 1)) = .55
         _Swiatla ("Udział pokoi ze światłem", Range(0, 1)) = .35
         // tło (niebo, mgiełka) — kopiowane z materiału nieba krokiem horyzontu (BraxRegionHoryzont.UstawTlo)
@@ -58,9 +66,9 @@ Shader "Braxhorn/SzkloFasady"
             #include "UnityCG.cginc"
             #include "MiastoTlo.cginc"
 
-            half4 _Tint, _RamaKolor, _PasKolor;
-            half _F0, _Odbicie, _Wnetrze, _Swiatla;
-            float _CellW, _CellH, _Floor0, _Depth, _Rama, _Pas;
+            half4 _Tint, _RamaKolor, _PasKolor, _FilarKolor;
+            half _F0, _Odbicie, _Wnetrze, _Swiatla, _Typ, _Tafla;
+            float _CellW, _CellH, _Floor0, _Depth, _Rama, _Pas, _Filar, _FilarCo;
             half4 _BraxMgielkaKolor;
             float _BraxMgielkaGestosc;
 
@@ -122,23 +130,50 @@ Shader "Braxhorn/SzkloFasady"
                 room *= _Wnetrze * lerp(.55, 1.15, zapalone);
                 half3 szyba = room * _Tint.rgb * 1.6 + _Tint.rgb * .08;
                 // ---- odbicie: niebo i horyzont miasta (to samo tło co niebo gry) ----
-                float3 R = reflect(V, n);
-                half3 tlo = R.y > 0 ? MT_Niebo(R, kat * 3) : MT_Mgielka(R) * lerp(.85, .55, saturate(-R.y * 4));
+                // każda tafla szkła jest minimalnie inaczej pochylona (jak w prawdziwej ścianie kurtynowej): odbicie chmur łamie się
+                // na podziałach, elewacja nie jest jednym lustrem; z daleka (tafla < 4 px) nierówność wygasa — bez migotania
+                float idT = Hash(float3(cu + 3.7, cv + 9.1, floor(dot(i.wp, n) * .5)));
+                float3 nT = normalize(n + (Tg * (idT - .5) + float3(0, 1, 0) * (frac(idT * 31.7) - .5)) * (_Tafla * saturate(1.25 - max(fu, fv) * 5)));
+                float3 R = reflect(V, nT);
+                half3 tlo = R.y > 0 ? MT_Niebo(R, kat * 8) : MT_Mgielka(R) * lerp(.85, .55, saturate(-R.y * 4));
                 half cosv = saturate(dot(-V, n));
                 half F = _F0 + (1 - _F0) * pow(1 - cosv, 5);
                 half3 kolor = lerp(szyba, tlo * _Odbicie, saturate(F));
                 // odblask słońca
                 float3 L = normalize(_SloKierunek.xyz);
                 kolor += half3(1, .96, .88) * pow(saturate(dot(R, L)), 600) * 2.5;
-                // ---- siatka elewacji: słupki i pas międzykondygnacyjny ----
-                half slupek = Linia(u, _Rama / _CellW, fu);
+                // światło na częściach pełnych (okładzina, filary, słupki): słońce + niebo
+                half ndl = saturate(dot(n, L));
+                half swiatlo = .55 + .45 * ndl;
+                half3 pelne = half3(.42, .45, .50) + half3(1.0, .96, .88) * (ndl * .85);
+                // ---- pas międzykondygnacyjny ----
                 float pv = frac(v);
                 half pas = (1 - smoothstep(_Pas / _CellH - fv, _Pas / _CellH + fv, pv));
                 pas = lerp(pas, _Pas / _CellH, saturate(fv * 2.5 - .25));
-                half3 pasK = _PasKolor.rgb * .9 + tlo * (F * .6 + .05);
-                kolor = lerp(kolor, pasK, pas);
-                half swiatlo = .55 + .45 * saturate(dot(n, L));
+                half pelnyPas = step(.5, _Typ);
+                // okładzina wystaje przed szybę: cień pod pasem wyższej kondygnacji (góra okna) — głębia elewacji
+                half cienPasa = pelnyPas * smoothstep(1 - .16 * (3.4 / _CellH), 1, pv) * (1 - saturate(fv * 4));
+                kolor *= 1 - .42 * cienPasa;
+                half3 pasSzklo = _PasKolor.rgb * .9 + tlo * (F * .6 + .05);
+                // okładzina: płyty z fugą co moduł i cienką linią kapinosu u dołu pasa
+                half fuga = Linia(u, .02 / _CellW, fu) * .28 + (1 - smoothstep(0, .05 / _CellH + fv, pv)) * .25 * (1 - saturate(fv * 4));
+                half3 pasPelny = _PasKolor.rgb * pelne * (1 - fuga);
+                kolor = lerp(kolor, lerp(pasSzklo, pasPelny, pelnyPas), pas * step(.001, _Pas));
+                // ---- słupki co moduł (aluminium) — tylko w polu szyby ----
+                half slupek = Linia(u, _Rama / _CellW, fu) * step(.001, _Rama) * (1 - pas * pelnyPas);
                 kolor = lerp(kolor, _RamaKolor.rgb * swiatlo + tlo * .12, slupek);
+                // ---- filary co kilka modułów: pełne, wysunięte — rzucają wąski cień na szybę po stronie od słońca ----
+                if (_FilarCo > .5)
+                {
+                    float uf = u / _FilarCo, ff = fu / _FilarCo;
+                    float df = (frac(uf + .5) - .5) * _FilarCo * _CellW;        // metry od osi najbliższego filara (ze znakiem wzdłuż Tg)
+                    half filar = Linia(uf, _Filar / (_CellW * _FilarCo), ff);
+                    half strona = dot(L, Tg);
+                    half cienF = (1 - smoothstep(_Filar * .5, _Filar * .5 + .55, -df * sign(strona))) * step(0, -df * sign(strona)) * saturate(abs(strona) * 2.5) * (1 - saturate(ff * _FilarCo * 4));
+                    kolor *= 1 - .38 * cienF * (1 - filar);
+                    half fugaF = (1 - smoothstep(0, .03 / _CellH + fv, abs(pv - _Pas / _CellH))) * .22 * (1 - saturate(fv * 4));
+                    kolor = lerp(kolor, _FilarKolor.rgb * pelne * (1 - fugaF), filar);
+                }
                 // ---- perspektywa powietrzna (jak CityStaticPBR) ----
                 if (_BraxMgielkaGestosc > 0)
                 {
