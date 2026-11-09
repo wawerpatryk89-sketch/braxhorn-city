@@ -514,7 +514,9 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         PlacZPierscieniem("pętla ZACHÓD", c, PetlaR, PetlaPlac, new[] { 0f, 180f }, AH);   // wlot zach. = Aleja Centralna (nowe dzielnice)
         var kraw = new BraxRegionMeble.Bud(); Pierscien(kraw, c, PetlaWyspa - Kr, PetlaWyspa, YC, 48); kraw.Obiekt("Pętla ZACHÓD: krawężnik wyspy", root, krawMat, false, false);
         var tr = Dysk("Pętla ZACHÓD: trawnik wyspy", c, PetlaWyspa - Kr, YC - .03f, 48); Nawierzchnia(tr); BraxRegionTrawa.Teren(tr.GetComponent<MeshRenderer>(), true, false);
-        Plyta("Pętla ZACHÓD: podłoże wyspy", beton, PetlaZX - PetlaWyspa, PetlaZX + PetlaWyspa, RZ - PetlaWyspa, RZ + PetlaWyspa, YC - .06f, .3f, false);
+        // 9.11 (właściciel, zdjęcie 17:28: „ronda mają być okrągłe wszystkie”): KWADRATOWA płyta „podłoże wyspy” (±R wyspy, wierzch
+        // 9 cm nad asfaltem) wystawała narożnikami poza okrągłą wyspę — ronda wyglądały na kwadratowe. ZDJĘTA: wyspę zamyka
+        // okrągły krawężnik (ściany do −0.3 m) i okrągły trawnik; pod spodem asfalt.
         Drzewo(new Vector3(PetlaZX, YC - .03f, RZ));
     }
 
@@ -565,7 +567,9 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         kraw.Obiekt("Rondo: krawężnik wyspy", root, krawMat, false, false);
         var trawa = Dysk("Rondo: trawnik wyspy", c, RWyspa - Kr, YC - .03f, 64); Nawierzchnia(trawa);
         BraxRegionTrawa.Teren(trawa.GetComponent<MeshRenderer>(), true, false);
-        Plyta("Rondo: podłoże wyspy", beton, RX - RWyspa, RX + RWyspa, RZ - RWyspa, RZ + RWyspa, YC - .06f, .3f, false);
+        // 9.11 (właściciel, zdjęcie 17:28: „ronda mają być okrągłe wszystkie”): KWADRATOWA płyta „podłoże wyspy” (±R wyspy, wierzch
+        // 9 cm nad asfaltem) wystawała narożnikami poza okrągłą wyspę — ronda wyglądały na kwadratowe. ZDJĘTA: wyspę zamyka
+        // okrągły krawężnik (ściany do −0.3 m) i okrągły trawnik; pod spodem asfalt.
         // 9.11 (zdjęcia właściciela ronda): „rzeźba” z 24 walców na czarnym cokole z boku wyglądała jak brązowy słup na skrzyni —
         // NIE stawiana (co łatwiej usunąć niż poprawić). Na wyspie zostaje trawnik i drzewa. Rzezba() zostaje w kodzie na prawdziwy model.
         // Pozniej("rzeźba", () => Rzezba(NaPodlozu(new Vector3(RX, YC - .03f, RZ))));

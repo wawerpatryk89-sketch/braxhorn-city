@@ -54,6 +54,14 @@ class R1UlicaGlowna(unittest.TestCase):
         c = code("BraxZnakiPL.cs")
         self.assertIn("Vector3.Dot(cr, wzor) < 0f ? -cr : cr", c)
 
+    def test_roundabouts_have_no_square_island_plate(self):
+        # 9.11 17:28: „ronda mają być okrągłe wszystkie” — kwadratowa płyta pod wyspą wystawała narożnikami
+        c = code("BraxRegionMiastoB.cs")
+        self.assertNotIn('Plyta("Rondo: podłoże wyspy"', c)
+        self.assertNotIn('Plyta("Pętla ZACHÓD: podłoże wyspy"', c)
+        self.assertIn('Pierscien(kraw, c, RWyspa - Kr, RWyspa, YC, 64)', c)
+        self.assertIn('Pierscien(kraw, c, PetlaWyspa - Kr, PetlaWyspa, YC, 48)', c)
+
     def test_roundabout_crude_sculpture_not_placed(self):
         c = code("BraxRegionMiastoB.cs")
         self.assertNotIn('Pozniej("rzeźba"', c)
