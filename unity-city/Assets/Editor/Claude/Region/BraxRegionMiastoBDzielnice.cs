@@ -423,6 +423,7 @@ public static partial class BraxRegionMiastoB
                 }
                 BraxMiastoAssety.Przygotuj(bud.gameObject, true, true);
                 nSzklo += NdSzklo(bud.gameObject, b.id == "KINNAIRD" || b.paczka == "miasto_kamienice");
+                NdAudytBudynku(b.id, bud.gameObject);
                 var originalBounds = BraxRegion.Bounds(bud.gameObject);
                 foreach (var r in dach) r.shadowCastingMode = ShadowCastingMode.Off;
                 // LOD: urządzenia dachowe do 12 % wysokości ekranu, bryła do 0.6 %
@@ -457,6 +458,36 @@ public static partial class BraxRegionMiastoB
     // ≈ 0 nic nie odbija = czarna ściana; (b) szybą półprzezroczystą (CityGenGlass, alfa .25) przed pustą bryłą = czarna dziura.
     // Oba → szkło fasady refleksyjne jak wieżowce miasta (BraxSzyby.Refleksyjne: stalowo-niebieskie, odbicie nieba).
     // Okna malowane w teksturach elewacji zostają. Środki budynków nie są robione (właściciel: „środek nie musi być”).
+    // AUDYT BUDYNKU (9.11, właściciel: „każdy budynek premium — budynek po budynku, każdy detal”): pełny spis każdego budynku
+    // nowych dzielnic w logu (BRAXHORN_BUDYNEK): renderery, trójkąty, materiały z rozdzielczością tekstur i mapą normalnych,
+    // oraz podejrzane miejsca — ciemne powierzchnie bez tekstury (czarne plamy), tekstury < 512 px, brak normalnych na dużych
+    // ścianach, materiały przezroczyste poza szkłem. Na tej podstawie poprawki budynek po budynku (po buildzie, z logu).
+    static void NdAudytBudynku(string id, GameObject o)
+    {
+        var rs = o.GetComponentsInChildren<Renderer>(true); long tris = 0; var mats = new HashSet<Material>();
+        foreach (var r in rs)
+        {
+            var mf = r.GetComponent<MeshFilter>(); if (mf && mf.sharedMesh) for (int k = 0; k < mf.sharedMesh.subMeshCount; k++) tris += mf.sharedMesh.GetIndexCount(k) / 3;
+            foreach (var m in r.sharedMaterials) if (m) mats.Add(m);
+        }
+        var uwagi = new List<string>(); var opis = new List<string>();
+        foreach (var m in mats)
+        {
+            var tex = m.HasProperty("_MainTex") ? m.GetTexture("_MainTex") : null;
+            bool norm = m.HasProperty("_BumpMap") && m.GetTexture("_BumpMap");
+            var kol = m.HasProperty("_Color") ? m.GetColor("_Color") : Color.white;
+            string sh = m.shader ? m.shader.name : "?";
+            opis.Add(m.name + " [" + sh.Replace("Braxhorn/", "") + (tex ? ", " + tex.width + "px" : ", bez tekstury") + (norm ? ", normalne" : "") + "]");
+            if (sh == BraxSzkloFasady.ShaderName) continue;
+            if (!tex && kol.grayscale < .15f) uwagi.Add("ciemna powierzchnia bez tekstury: " + m.name);
+            if (tex && Mathf.Max(tex.width, tex.height) < 512) uwagi.Add("mała tekstura " + tex.width + "px: " + m.name);
+            if (m.HasProperty("_Transparent") && m.GetFloat("_Transparent") > .5f) uwagi.Add("przezroczysty (nie szkło fasady): " + m.name);
+        }
+        var b = BraxRegion.Bounds(o);
+        Debug.Log("BRAXHORN_BUDYNEK " + id + ": rendererów " + rs.Length + ", trójkątów " + tris + ", wymiary " + b.size.ToString("F1") + ", materiałów " + mats.Count + (uwagi.Count > 0 ? " — UWAGI (" + uwagi.Count + "): " + string.Join("; ", uwagi) : " — bez uwag"));
+        Debug.Log("BRAXHORN_BUDYNEK " + id + " materiały: " + string.Join(", ", opis.Take(40)));
+    }
+
     static Material ndSzklo, ndSzkloKamienice;
     static int NdSzklo(GameObject o, bool kamienica = false)
     {
