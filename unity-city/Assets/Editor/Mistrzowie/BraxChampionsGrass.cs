@@ -18,14 +18,17 @@ public static class BraxChampionsGrass
         material.shader=shader;
         var c=JsonUtility.FromJson<Calibration>(File.ReadAllText(Source+"grass-calibration.json"));
         if(c.grass.Length!=3||c.soil.Length!=3)throw new InvalidOperationException("Grass calibration missing");
-        float y=.2126f*c.grass[0]*.536f+.7152f*c.grass[1]+.0722f*c.grass[2]*.536f;
+        // Owner 9.11 video: "trawa" read as flat lime. The old tint cut R and B to
+        // 53.6% ON TOP of the already-green Grass004 photo. Now the photo keeps
+        // its own measured colour; only brightness is calibrated (same .133).
+        float y=.2126f*c.grass[0]+.7152f*c.grass[1]+.0722f*c.grass[2];
         float gain=.133f/Mathf.Max(y,.001f);
-        material.color=new Color(.536f*gain,gain,.536f*gain).gamma;
+        material.color=new Color(gain,gain,gain).gamma;
         material.SetFloat("_MacroMean",Mathf.Max(.001f,.3f*c.grass[0]+.59f*c.grass[1]+.11f*c.grass[2]));
         material.SetFloat("_DryMean",Mathf.Max(.001f,c.grass[1]));
         foreach(string property in new[]{"_MainTex","_BumpMap","_ARM"})material.SetTextureScale(property,Vector2.one/2f);
         material.SetFloat("_Tile",2f);material.SetFloat("_MacroTile",29f);
-        material.SetFloat("_Stripe",1.8f);material.SetFloat("_StripeMix",.045f);
+        material.SetFloat("_Stripe",1.8f);material.SetFloat("_StripeMix",.065f); // visible mowing stripes
         material.SetFloat("_Gloss",.14f);
         var soil=BraxChampionsFoundation.SourceMaterial("grass_soil","brown_mud_leaves_01",1.3f,Color.white);
         material.SetTexture("_SoilTex",soil.GetTexture("_MainTex"));

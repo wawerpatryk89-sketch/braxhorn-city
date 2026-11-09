@@ -1295,7 +1295,8 @@ public static partial class BraxChampionsCasinoT11
         // Remove tiny gold detail in distance, keep WAWER sign always visible.
         var renderers=trim.GetComponentsInChildren<Renderer>(true);
         var lod=trim.gameObject.AddComponent<LODGroup>();
-        lod.SetLODs(new[]{new LOD(.09f,renderers),new LOD(.0001f,Array.Empty<Renderer>())});
+        // 9.11: culling the whole casino below 9% of screen height made it pop in.
+        lod.SetLODs(new[]{new LOD(.012f,renderers),new LOD(.0001f,Array.Empty<Renderer>())});
         lod.RecalculateBounds();
         var at=root.position;root.position=Vector3.zero;
         var prefab=PrefabUtility.SaveAsPrefabAssetAndConnect(root.gameObject,

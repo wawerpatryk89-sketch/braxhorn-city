@@ -36,7 +36,9 @@ public static class BraxChampionsExplorer
         camera.transform.SetParent(rig.transform, false); camera.tag = "MainCamera";
         camera.fieldOfView = 55; camera.nearClipPlane = .15f; camera.farClipPlane = 1800;
         camera.allowHDR = false; camera.allowMSAA = true;
-        camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color(.64f, .73f, .79f);
+        // Owner 9.11 video: empty white horizon. Real sky: Unity's procedural
+        // atmosphere (no texture memory) with a horizon line and a sun disc.
+        camera.clearFlags = CameraClearFlags.Skybox; camera.backgroundColor = new Color(.64f, .73f, .79f);
         camera.gameObject.AddComponent<AudioListener>(); camera.gameObject.AddComponent<BraxClaudeKamera>();
         // Brax receives the same world light as the surroundings. Camera-attached
         // portrait lights stacked three extra directional lights on his skin only.
@@ -87,6 +89,17 @@ public static class BraxChampionsExplorer
         RenderSettings.ambientSkyColor = new Color(.55f,.63f,.71f);
         RenderSettings.ambientEquatorColor = new Color(.38f,.44f,.43f);
         RenderSettings.ambientGroundColor = new Color(.23f,.27f,.22f); RenderSettings.fog = false;
+        var skyShader = Shader.Find("Skybox/Procedural");
+        if (skyShader)
+        {
+            var sky = new Material(skyShader) { name = "Champions procedural daylight sky" };
+            sky.SetFloat("_SunDisk", 2f); sky.SetFloat("_SunSize", .035f); sky.SetFloat("_SunSizeConvergence", 6f);
+            sky.SetFloat("_AtmosphereThickness", .92f); sky.SetFloat("_Exposure", 1.15f);
+            sky.SetColor("_SkyTint", new Color(.46f, .55f, .66f)); sky.SetColor("_GroundColor", new Color(.33f, .36f, .30f));
+            AssetDatabase.CreateAsset(sky, "Assets/PlayableGenerated/Mistrzowie/Materials/champions_procedural_sky.mat");
+            RenderSettings.skybox = sky;
+        }
+        else Debug.LogWarning("CHAMPIONS_SKY_PROCEDURAL_SHADER_MISSING: solid colour background kept");
         var sun = new GameObject("Champions exploration daylight").AddComponent<Light>(); sun.transform.SetParent(rig, false);
         sun.type = LightType.Directional; sun.intensity = 1.08f; sun.color = new Color(1,.97f,.92f);
         sun.transform.rotation = Quaternion.Euler(48,-35,0); sun.shadows = LightShadows.Soft;

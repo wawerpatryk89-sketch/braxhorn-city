@@ -329,6 +329,10 @@ public static class BraxChampionsBuild
         {
             QualitySettings.SetQualityLevel(i,false);
             QualitySettings.streamingMipmapsActive=true;
+            // Owner 9.11 video: objects "pop in". Phone quality levels default
+            // to lodBias .3-.7, which pulls every LOD/cull distance in. 2.0 =
+            // twice the authored distance on every level.
+            QualitySettings.lodBias=2f;
             // 9.11 phone (APK 33): 256 MB was far below the streamed set, so every
             // surface sat 3 mips down (blocky murals, "painting" ground). 768 MB
             // fits the region after the pool removal; 2 levels max fallback.
