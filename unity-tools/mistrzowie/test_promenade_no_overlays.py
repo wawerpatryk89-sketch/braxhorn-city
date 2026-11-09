@@ -113,8 +113,12 @@ class PromenadeLaneNoZFight(unittest.TestCase):
         self.assertIn('id+"_2k.gltf"',stock)
         self.assertIn("BraxRegion.Bounds(instance)",stock)
         self.assertIn("AssetDatabase.LoadAssetAtPath<GameObject>",stock)
-        self.assertIn('android.maxTextureSize=2048',importer)
-        self.assertIn('TextureImporterFormat.ASTC_4x4',importer)
+        # 9.11 owner "pod skalę": Android size from the REAL object size,
+        # ASTC 6x6; a 9 cm lemon gets 512 px, shelves keep 2048.
+        self.assertIn('android.maxTextureSize=AndroidMax(assetPath);',importer)
+        self.assertIn('TextureImporterFormat.ASTC_6x6',importer)
+        self.assertIn('{"lemon",512}',importer)
+        self.assertIn('{"wooden_display_shelves_01",2048}',importer)
         self.assertIn("no invented product geometry",stock.lower())
         for forbidden in ("BraxMieszkaniec","BraxGymPlayer","AnimatorController","NpcSpawner","StartCoroutine"):
             self.assertNotIn(forbidden,stock)

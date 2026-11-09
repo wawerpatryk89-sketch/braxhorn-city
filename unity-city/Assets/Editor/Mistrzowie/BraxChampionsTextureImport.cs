@@ -7,7 +7,14 @@ using UnityEngine;
 // it again. Scope and final texture quality are identical to CopyMap's contract.
 public sealed class BraxChampionsTextureImport : AssetPostprocessor
 {
-    public override uint GetVersion() => 3; // 9.11: NPOT -> ToLarger (velour/wool shipped RGBA32 in APK 32)
+    public override uint GetVersion() => 4; // 9.11 evening: ASTC 6x6 for the shared library (APK weight)
+    // Owner 9.11: "twoje APK nic się nie zmniejszyło". The ~250 shared 2K PBR
+    // maps were ASTC 4x4 (8 bpp, 5.6 MB each). ASTC 6x6 keeps the same 2048 px
+    // at 3.56 bpp (2.5 MB). Hotel Sobczak T03 keeps its own 4x4 contract
+    // (separate executor's spec). Murals, signs and plates use other importers.
+    public static TextureImporterFormat AndroidFormat(string assetPath)
+        => Path.GetFileNameWithoutExtension(assetPath).StartsWith("sobczak")
+            ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
     void OnPreprocessTexture()
     {
         if(!assetPath.StartsWith("Assets/PlayableGenerated/Mistrzowie/Textures/"))return;
@@ -27,7 +34,7 @@ public sealed class BraxChampionsTextureImport : AssetPostprocessor
         importer.textureCompression=TextureImporterCompression.CompressedHQ;
         var android=importer.GetPlatformTextureSettings("Android");
         android.overridden=true;android.maxTextureSize=2048;
-        android.format=TextureImporterFormat.ASTC_4x4;android.compressionQuality=100;
+        android.format=AndroidFormat(assetPath);android.compressionQuality=100;
         importer.SetPlatformTextureSettings(android);
     }
 }

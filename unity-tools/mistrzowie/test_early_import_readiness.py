@@ -80,7 +80,7 @@ class RealOriginalAssetReadiness(unittest.TestCase):
         self.assertIn("BraxBuildQuality.Warn(",source_check)
         self.assertNotIn("!texture||texture.width!=2048",source_check)
         self.assertIn("android.maxTextureSize!=2048",source_check)
-        self.assertIn("android.format!=TextureImporterFormat.ASTC_4x4",source_check)
+        self.assertIn("android.format!=BraxChampionsTextureImport.AndroidFormat(destination)",source_check)
 
 if __name__=="__main__":
     unittest.main()

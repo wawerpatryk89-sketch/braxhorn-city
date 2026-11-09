@@ -333,7 +333,7 @@ public static class BraxChampionsFoundation
         var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(destination);
         if(!texture||importer.textureType!=TextureImporterType.Default
             ||importer.sRGBTexture!=(role=="color")||!android.overridden||android.maxTextureSize!=2048
-            ||android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=100)
+            ||android.format!=BraxChampionsTextureImport.AndroidFormat(destination)||android.compressionQuality!=100)
             throw new InvalidOperationException("Generated PBR import contract failed: "+destination);
         // The original provider file must remain genuine 4K. Android's
         // compressed/imported Texture2D dimensions are not source dimensions.
