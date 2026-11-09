@@ -19,6 +19,11 @@ using W = BraxWnetrzaKit;
 //     regał z konserwami, kartony, puste półki na przyszłe trofea, worek treningowy w kącie, łazienka z brudnymi kaflami.
 // Wszystko z Poly Haven (CC0) i kopii worka z siłowni. Nic nie świeci (żarówka = ForceVertex). Kolizje: stare bryły
 // przycięte (BraxCityMeshCut.SubtractBoxColliders), widok przycięty (Subtract) tylko w otworach.
+// 9.11 (właściciel: „mieszkanie Braxa tragedia”): wersja z buildu 6.11 (9d9aff5: e0c384f4, 33e2d9a2, f830d494, 01a647c4) —
+// brama klatki 1.50 m, dwa biegi 1.45 m zamiast 1.10, przejście W1 1.58 m, mieszkanie w głąb do z 44.8, wieszak/szafka na buty/regał
+// zdjęte z osi przejścia, 2 krzesła zamiast 4 w ciasnym przejściu. Lista okien z generatora pierzei (OknaMieszkaniaNOVA) na R1 nie
+// istnieje — okna nadal z siatek elewacji. Dodatkowo 9.11 zdjęto bryłę „nova_stary_szyld_nad_wejsciem” (BraxMiastoNova, 7.11),
+// która cięła elewację piętra mieszkania (y 5.04–7.85).
 public static class BraxRegionBraxFlat
 {
     const float Street = .15f, Fl = 5.10f, Ceil = 7.95f;
@@ -26,10 +31,10 @@ public static class BraxRegionBraxFlat
     const float SX0 = 32.42f, SX1 = 37.98f, SZ0 = 36.45f, SZ1 = 41.45f;
     // drzwi od ulicy (między pilastrami x 32.9 i 37.3 frontu NOVA)
     // pkt 46 (właściciel 02:22): brama klatki 0.9 × 2.1 m × K (1.16 × 2.72) w otworze okładziny NOVA (x 33.0…34.36, do y 3.01)
-    const float DX0 = 33.10f, DX1 = 34.26f, DoorH = 2.72f, FrontZ = 36.0f;
+    const float DX0 = 32.99f, DX1 = 34.49f, DoorH = 2.72f, FrontZ = 36.0f; // wejście 1.50 m, dopasowane do prawdziwego otworu NOVA
     // mieszkanie
-    // pkt 46: mieszkanie na całym 1. piętrze nad wejściem i toaletami klubu (x 37.98…51.4) — ok. 90 m² świata ≈ 54 m² × K
-    const float AX0 = 37.98f, AX1 = 51.4f, AZ0 = 36.45f, AZ1 = 43.4f;
+    // R1: mieszkanie powiększone w głąb budynku nad NOVA (bez wyjścia poza jej obrys x<=51.4, z<=61.4).
+    const float AX0 = 37.98f, AX1 = 51.4f, AZ0 = 36.45f, AZ1 = 44.8f;
     const float InnerFaceZ = 36.66f;   // wewnętrzna ściana od ulicy (za płaszczyznami udawanych pokoi z = 36.5…36.6)
 
     static Transform root;
@@ -100,7 +105,7 @@ public static class BraxRegionBraxFlat
         B(K, "Klatka: sufit", SX0, SX1, Ceil, Ceil + .12f, SZ0, SZ1, plaster, false);
         const int N = 13; const float tread = .25f, run = (N - 1) * tread;
         float rise = (Fl - Street) / (2 * N);
-        float f1x0 = SX0 + .05f, f1x1 = f1x0 + 1.1f, f2x0 = f1x1 + .2f, f2x1 = f2x0 + 1.1f;
+        float f1x0 = SX0 + .05f, f1x1 = f1x0 + 1.45f, f2x0 = f1x1 + .2f, f2x1 = f2x0 + 1.45f; // 2 biegi 1.45 m zamiast 1.10 m
         float zBottom = SZ0 + 1.1f, zTop = zBottom + run, yMid = Street + N * rise;
         for (int i = 0; i < N; i++)
         {
@@ -172,7 +177,7 @@ public static class BraxRegionBraxFlat
         var tkanina = BraxRegion.Fitting("Mieszkanie: tkanina (pościel, poduszki)", new Color(.82f, .80f, .76f), .9f, 0f);
         var tkaninaC = BraxRegion.Fitting("Mieszkanie: tkanina ciemna (narzuta, dywan)", new Color(.22f, .27f, .33f), .95f, 0f);
         float y = Fl, k = BraxMiastoA.K;
-        float XW = 40.6f, XS = 47.0f, ZH = 39.4f, ZF = InnerFaceZ + .08f, ZB = AZ1 - .06f;   // ściany działowe; lico ściany od ulicy; lico ściany tylnej
+        float XW = 40.9f, XS = 47.0f, ZH = 39.4f, ZF = InnerFaceZ + .08f, ZB = AZ1 - .06f;   // ściany działowe; lico ściany od ulicy; lico ściany tylnej
         float dz0 = 36.8f, dz1 = dz0 + .9f * k, dH = 2.1f * k;                                   // drzwi z klatki (0.9 × 2.1 m × K)
         // podłogi (każde pomieszczenie osobno — bez nakładania)
         B(A, "Przedpokój: parkiet", AX0, XW, Fl - .26f, Fl, AZ0, ZH, parkiet, true);
@@ -181,7 +186,7 @@ public static class BraxRegionBraxFlat
         B(A, "Mieszkanie: sufit", AX0, AX1, Ceil, Ceil + .12f, AZ0, AZ1, paint, true);
         // ściana tylna: łazienka w płytkach, pokój — farba, w aneksie pas płytek nad blatem (warstwy w wysokości, nie na ścianie)
         B(A, "Łazienka: ściana tylna (płytki)", AX0, XW, Fl, Ceil, ZB, AZ1, plytki, true);
-        float kx0 = XW + .2f, kx1 = 44.6f;                                                       // aneks kuchenny przy ścianie tylnej
+        float kx0 = XW + .2f, kx1 = 44.9f;                                                       // aneks kuchenny przy ścianie tylnej
         B(A, "Salon: ściana tylna", XW, kx0, Fl, Ceil, ZB, AZ1, paint, true);
         B(A, "Aneks: ściana tylna (dół)", kx0, kx1, Fl, Fl + .9f, ZB, AZ1, paint, true);
         B(A, "Aneks: ściana tylna (pas płytek nad blatem)", kx0, kx1, Fl + .9f, Fl + 1.5f, ZB, AZ1, plytki, true);
@@ -201,7 +206,7 @@ public static class BraxRegionBraxFlat
 
         // ---- ściany działowe ----
         // W1: x 40.6…40.7 (przedpokój / łazienka | salon): przejście z przedpokoju do salonu z 37.3…38.6 (ościeżnica bez skrzydła)
-        float pz0 = 37.3f, pz1 = pz0 + 1.3f;
+        float pz0 = 37.18f, pz1 = pz0 + 1.58f;
         B(A, "Ściana W1 (przy oknie)", XW, XW + .1f, Fl, Ceil, ZF, pz0, paint, true);
         B(A, "Ściana W1 (nad przejściem)", XW, XW + .1f, Fl + dH, Ceil, pz0, pz1, paint, true);
         B(A, "Ściana W1 (przedpokój)", XW, XW + .1f, Fl, Ceil, pz1, ZH, paint, true);
@@ -261,14 +266,12 @@ public static class BraxRegionBraxFlat
         }
 
         // ---- PRZEDPOKÓJ: wieszak, lustro, szafka na buty, wycieraczka ----
-        W.MM(dab, XW - .03f, XW, y + 1.55f, y + 1.75f, 38.0f, 39.2f);                                   // listwa wieszaka na W1
-        for (int i = 0; i < 5; i++) W.Rura(chrom, new Vector3(XW - .03f, y + 1.62f, 38.15f + i * .25f), new Vector3(XW - .12f, y + 1.68f, 38.15f + i * .25f), .01f, 6);
+        // R1: usunięto wiszący wieszak i haki z osi przejścia W1.
+        // Przejście pozostaje wolne na pełnej wysokości postaci Braxa.
         W.MM(grafit, AX0 + .06f, AX0 + .09f, y + .8f, y + .8f + 1.2f * k, 37.95f + .2f, 38.75f + .2f);      // rama lustra
         W.MM(szklo, AX0 + .09f, AX0 + .1f, y + .83f, y + .77f + 1.2f * k, 37.98f + .2f, 38.72f + .2f);
-        W.MM(biel, XW - .35f, XW - .02f, y + .06f, y + .85f, 37.9f - .02f, 37.9f + .9f, true);            // szafka na buty
-        W.MM(grafit, XW - .33f, XW - .04f, y, y + .06f, 37.9f, 37.9f + .88f);
-        W.MM(dab, XW - .37f, XW - .02f, y + .85f, y + .88f, 37.86f, 38.82f);
-        foreach (float z in new[] { 38.12f, 38.56f }) W.Rura(chrom, new Vector3(XW - .36f, y + .7f, z - .08f), new Vector3(XW - .36f, y + .7f, z + .08f), .007f, 6);
+        // Dawna szafka na buty wchodziła w otwór drzwi W1 (z 37.30…38.60) i blokowała postać.
+        // Usunięta razem z frontem, blatem i uchwytami; nie dokładamy innego mebla w przejściu.
         W.MM(tkaninaC, AX0 + .3f, AX0 + 1.3f, y, y + .012f, dz0 + .05f, dz1 - .1f);                      // wycieraczka
 
         // ---- ŁAZIENKA: kabina prysznicowa, WC, umywalka z szafką, lustro z oświetleniem, wieszak na ręcznik ----
@@ -351,7 +354,8 @@ public static class BraxRegionBraxFlat
         var stol = Prop(A, "Aneks: stół jadalniany", new Vector3(tx, y, tz), 0f, 1f, true, .8f * k, "dining_table", "WoodenTable_02", "WoodenTable_01");
         if (!stol) { W.MM(dab, tx - .7f, tx + .7f, y + .74f * k - .04f, y + .74f * k, tz - .45f, tz + .45f, true); foreach (float sx in new[] { -.62f, .62f }) foreach (float sz in new[] { -.38f, .38f }) W.Rura(grafit, new Vector3(tx + sx, y, tz + sz), new Vector3(tx + sx, y + .74f * k - .04f, tz + sz), .025f, 8); }
         var tb = stol ? BraxRegion.Bounds(stol) : new Bounds(new Vector3(tx, y + .5f, tz), new Vector3(1.4f, 1f, .9f));
-        foreach (var (cx, cz, fx, fz) in new[] { (tx - .35f, tb.min.z - .32f, 0f, 1f), (tx + .35f, tb.min.z - .32f, 0f, 1f), (tx - .35f, tb.max.z + .32f, 0f, -1f), (tx + .35f, tb.max.z + .32f, 0f, -1f) })
+        // R1: dwa krzesła od strony zaplecza, bez pary w ciasnym przejściu od salonu.
+        foreach (var (cx, cz, fx, fz) in new[] { (tx - .35f, tb.max.z + .32f, 0f, -1f), (tx + .35f, tb.max.z + .32f, 0f, -1f) })
             Krzeslo(dab, grafit, new Vector3(cx, y, cz), new Vector3(fx, 0, fz));
 
         // ---- SALON: sofa przodem do TV na ścianie W1, stolik, dywan, fotel, regał, rośliny, obrazy, worek i hantle w kącie ----
@@ -364,7 +368,7 @@ public static class BraxRegionBraxFlat
         Prop(A, "Salon: sofa", new Vector3(42.4f, y, 38.3f), 90f, 1f, true, .95f * k, "Sofa_01", "sofa_02");
         Prop(A, "Salon: stolik kawowy", new Vector3(43.8f, y, 38.3f), 0f, 1f, true, .45f * k, "modern_coffee_table_01", "coffee_table_round_01", "industrial_coffee_table");
         Prop(A, "Salon: fotel", new Vector3(44.6f, y, 39.6f), 225f, 1f, true, 1.0f * k, "ArmChair_01", "modern_arm_chair_01", "mid_century_lounge_chair");
-        Prop(A, "Salon: regał z książkami", new Vector3(XW + .35f, y, 39.5f), 90f, 1f, true, 2.0f, "Shelf_01", "steel_frame_shelves_01");
+        // R1: regał stojący obok przejścia usunięty, żeby odzyskać przestrzeń ruchu.
         Prop(A, "Salon: roślina przy oknie", new Vector3(45.6f, y, ZF + .35f), 0f, 1f, true, 1.4f, "potted_plant_02", "potted_plant_04", "potted_plant_01");
         Prop(A, "Salon: roślina przy RTV", new Vector3(XS - .4f, y, 36.95f + .1f), 0f, 1f, true, 1.1f, "potted_plant_04", "potted_plant_01");
         Prop(A, "Salon: obraz", new Vector3(45.8f, y + 1.55f, ZB - .03f), 180f, 1f, false, .8f, "hanging_picture_frame_02", "hanging_picture_frame_01");
@@ -539,7 +543,15 @@ public static class BraxRegionBraxFlat
                 }
         }
         // tylko okna tego piętra (dół szyby nad podłogą, góra pod sufitem) i sensownej wielkości
-        return rects.Where(w => w.width > .4f && w.height > .6f && w.yMin < Ceil - .6f && w.yMax > Fl + .8f).ToList();
+        var wynik = rects.Where(w => w.width > .4f && w.height > .6f &&
+            w.yMin < Ceil - .6f && w.yMax > Fl + .8f).ToList();
+        if (wynik.Count > 0) return wynik;
+
+        // Nie próbuj odtwarzać nieistniejącej "Upper rear" — generator pierzei
+        // usuwa tę starą fasadę przed budową mieszkania. Nie wolno wycinać
+        // ściany na podstawie fikcyjnych współrzędnych.
+        Debug.LogWarning("BRAXHORN_MIESZKANIE_BRAXA_OKNA_NIEGOTOWE: brak zarejestrowanych otworów w nowej elewacji NOVA; sprawdź generator pierzei");
+        return wynik;
     }
 
     // Kolizje renowacji (front NOVA z kodu: panel, pilastry) — przycięcie jak w BraxCityMeshCut, tylko w zadanej bryle.
