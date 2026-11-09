@@ -22,6 +22,16 @@ def const(name):
     return float(m.group(1))
 
 
+def plots():
+    out = {}
+    for m in re.finditer(r'new Plot\{id="(T\d+)",name="([^"]+)",x=(\d+),z=(\d+),yaw=([\d.]+)f,halfW=([\d.]+)f,'
+                         r'halfD=([\d.]+)f,floors=(\d+),style=Style\.(\w+),loggia=([\d.]+)f\}', SRC):
+        out[m.group(1)] = dict(name=m.group(2), x=int(m.group(3)), z=int(m.group(4)), yaw=float(m.group(5)),
+                               halfW=float(m.group(6)), halfD=float(m.group(7)), floors=int(m.group(8)),
+                               style=m.group(9), loggia=float(m.group(10)))
+    return out
+
+
 def level(f):
     ground, storey, ffl0 = const("GroundStorey"), const("Storey"), const("Ffl0")
     return ffl0 if f <= 0 else ffl0 + ground + (f - 1) * storey
@@ -44,26 +54,34 @@ class Apartments20261109(unittest.TestCase):
         clear = const("Storey") - const("Slab") - .012 - .01
         self.assertGreaterEqual(clear, 2.80)
 
-    def test_building_fits_its_plot_and_faces_the_road(self):
-        inv = json.loads((ROOT / "unity-tools/mistrzowie/plan_inventory.json").read_text(encoding="utf-8"))
-        t04 = next(b for b in inv["buildings"] if b["id"] == "T04")
-        self.assertIn('new Plot{id="T04",name="APARTAMENTY 1",x=870,z=570,yaw=180f}', SRC)
-        self.assertEqual((t04["x"], t04["z"], t04["w"], t04["d"]), (870, 570, 60, 60))
+    def test_buildings_fit_their_plots_and_face_the_road(self):
+        inv = {b["id"]: b for b in json.loads((ROOT / "unity-tools/mistrzowie/plan_inventory.json").read_text(encoding="utf-8"))["buildings"]}
+        designs = plots()
+        # one building at a time, A-Z, in the agreed order
+        self.assertEqual(list(designs), ["T04", "T05"])
+        self.assertIn('Ids={"T04","T05"}', SRC)
+        self.assertEqual((designs["T04"]["style"], designs["T05"]["style"]), ("CurvedWrap", "Loggia"))
         half = const("PlotHalf")
-        self.assertEqual(half * 2, t04["w"])
-        # body + roof overhang (1.4 sides, 2.6 front) inside the 60 x 60 plot
-        self.assertLess(const("HalfW") + 1.4, half)
-        self.assertLess(const("HalfD") + 2.6, half)
-        # yaw 180: local -Z front -> world +Z, the road Z650 side (plot edge 600, sidewalk 633)
+        for pid, d in designs.items():
+            plot = inv[pid]
+            self.assertEqual((d["name"], d["x"], d["z"]), (plot["name"], plot["x"], plot["z"]), pid)
+            self.assertEqual((plot["w"], plot["d"]), (60, 60))
+            self.assertEqual(half * 2, plot["w"])
+            # body + roof overhang (1.4 sides, 2.6 front) inside the 60 x 60 plot
+            self.assertLess(d["halfW"] + 1.4, half, pid)
+            self.assertLess(d["halfD"] + 2.6, half, pid)
+            # yaw 180: local -Z front -> world +Z, road Z650 (plot edge z+30, sidewalk at 633)
+            self.assertEqual(d["yaw"], 180.0)
+            self.assertEqual(plot["z"] + 63.2, 633.2)
         self.assertIn("-63.2f", SRC)
-        self.assertEqual(t04["z"] + 63.2, 633.2)
 
     def test_dog_leg_stair_fits_the_core_with_headroom(self):
         lane_a0, lane_a1, lane_b0, lane_b1 = const("LaneA0"), const("LaneA1"), const("LaneB0"), const("LaneB1")
         self.assertAlmostEqual(lane_a1 - lane_a0, 1.30, places=3)
         self.assertAlmostEqual(lane_b1 - lane_b0, 1.30, places=3)
-        z0, back = const("StairZ0"), 8.5 - .30
-        for f in range(const_int("Floors") - 1):
+        z0 = const("StairZ0")
+        back = min(d["halfD"] for d in plots().values()) - .30
+        for f in range(max(d["floors"] for d in plots().values()) - 1):
             n = risers(f)
             r = (level(f + 1) - level(f)) / n
             self.assertTrue(.15 <= r <= .175 + 1e-6, (f, r))
@@ -76,14 +94,14 @@ class Apartments20261109(unittest.TestCase):
         for finish in ('"oak_wood_planks"', '"tiled_floor_001"', '"marble_01"', '"terrazzo_tiles"', '"beige_wall_001"'):
             self.assertIn(finish, SRC)
         for part in ("static float Apartment(", "static void Stair(", "WallX(paint,LiftZ", "Leaf(true,zs",
-                     "Leaf(false,X(uHall)", "Ceiling(x0,x1,az0,az1,cy)", "W.Lampa(\"corridor light floor \""):
+                     "Leaf(false,X(uHall)", "Ceiling(Lo(X(lu),X(w)),Hi(X(lu),X(w)),az0,az1,cy)", "W.Lampa(\"corridor light floor \""):
             self.assertIn(part, SRC)
         # Owner: "Bez wyposażenia" - no furniture, kitchens or bathroom fittings.
         for banned in ("PlaceLobbyModel", "sofa", "bed_", "kitchen_unit", "toilet", "BraxMeble", "Siedzisko("):
             self.assertNotIn(banned, SRC)
         # four apartments per floor, ground + 3
         self.assertEqual(SRC.count("Apartment(f,") + SRC.count("Apartment(0,"), 6)
-        self.assertEqual(const_int("Floors"), 4)
+        self.assertTrue(all(d["floors"] == 4 for d in plots().values()))
 
     def test_accessible_with_collisions(self):
         self.assertIn("W.Rampa(", SRC)                          # stairs and entrance ramp walkable
@@ -112,8 +130,31 @@ class Apartments20261109(unittest.TestCase):
         self.assertEqual(len(hits), 1)
 
 
-def const_int(name):
-    return int(re.search(r"\b" + name + r"=(\d+);", SRC).group(1))
+
+class ApartmentT05Loggias(unittest.TestCase):
+    """Owner photo 2: white frame grid, grey panels, recessed loggias, two timber strips."""
+
+    def test_loggia_geometry(self):
+        t05 = plots()["T05"]
+        self.assertEqual(t05["loggia"], 2.0)                    # recessed balcony depth
+        self.assertIn("static int FrontAndRoofT05()", SRC)
+        self.assertIn("float zfL=zf+s*livingRecess", SRC)       # living façade behind the loggia
+        self.assertIn("Apartment(f,-HalfW+.3f,-.1f,zFrontIn,zc,true,N(),lights,Loggia)", SRC)
+        self.assertIn("Box(clearGlass,la,lb,y0,y0+Balustrade,-HalfD+.05f,-HalfD+.062f,true)", SRC)
+        self.assertIn("soffit downlights", SRC)
+        # loggia inner edge = face of the living-room partition (lu = round(.45 w, 1))
+        w = (t05["halfW"] - .3) - .1
+        lu = round(.45 * w * 10) / 10
+        self.assertAlmostEqual(-(t05["halfW"] - .3) + lu - .06, -9.26, places=3)
+        self.assertIn("const float xi=9.26f;", SRC)
+
+    def test_frames_panels_timber_roof(self):
+        self.assertIn('panel=M("apt_grey_panel","rectangular_facade_tiles"', SRC)
+        self.assertIn("Seg.Panel", SRC)
+        self.assertIn("two vertical timber strips", SRC)
+        self.assertEqual(SRC.count("for(int i=0;i<20;i++){float x=a+.075f+i*.15f;"), 1)
+        self.assertIn(".90 m white parapet with black coping", SRC)
+        self.assertIn("white frame grid", SRC)
 
 
 if __name__ == "__main__":
