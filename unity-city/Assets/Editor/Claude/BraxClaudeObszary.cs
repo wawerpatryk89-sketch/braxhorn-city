@@ -17,7 +17,7 @@ using UnityEngine.SceneManagement;
 // woda i słońce. Drzwi działają przez rejestr BraxCityDoor.All. Doczytywanie: BraxObszary (runtime).
 public static class BraxClaudeObszary
 {
-    static readonly Type[] Zostaja = { typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(Camera), typeof(BraxObszary), typeof(BraxCityElevator), typeof(BraxVessel), typeof(BraxNutritionCounter), typeof(BraxMetro3StopRide) };
+    static readonly Type[] Zostaja = { typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(Camera), typeof(BraxObszary), typeof(BraxCityElevator), typeof(BraxVessel), typeof(BraxNutritionCounter) };
 
     static bool MaZostajace(Transform t) => Zostaja.Any(z => t.GetComponentInChildren(z, true));
 
@@ -46,9 +46,6 @@ public static class BraxClaudeObszary
         var res = new List<Transform>();
         void Zbierz(Transform t)
         {
-            // Pociąg porusza się przez granice sektorów. Nie wolno wydzielać
-            // jego podmodelu osobno: wagon musiałby zniknąć po unload sektora.
-            if (t.GetComponent<BraxMetro3StopRide>()) return;
             if (!Granice(t, out var b)) return;
             if (obszar.Contains(b.min) && obszar.Contains(b.max) && !MaZostajace(t) && !(t.GetComponent<Light>() && t.GetComponent<Light>().type == LightType.Directional))
             { res.Add(t); return; }

@@ -256,7 +256,7 @@ public static class BraxMiastoAssety
     }
 
     // =====================================================================================================================
-    // BRAMKI BILETOWE METRA (BraxClaudeMetro, linia bramek GX): zamiast obudów i szybek z brył — model ericdavis (CC-BY):
+    // BRAMKI BILETOWE (dziś: wejście areny na wyspie; metra w mieście nie ma od 9.11): zamiast obudów i szybek z brył — model ericdavis (CC-BY):
     // jeden egzemplarz = dwie obudowy i przejście z 4 klapami; klapy chowają się w obudowy (BraxDrzwiPrzesuwne, jak dotąd),
     // blokada przejścia zamknięta, dopóki gracz nie podejdzie. Rząd n przejść wyśrodkowany na środku starego rzędu.
     // true = postawione (stare obudowy i szybki NIE powstają); zA/zB = krawędzie rzędu (do przegród szklanych).

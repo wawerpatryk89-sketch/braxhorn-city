@@ -46,11 +46,10 @@ START_PO_GENEROWANIU = {
 # pliki wspólne edytora (BraxGymBuild, BraxCityBuild, BraxClaudeSiatki, BraxClaudeBezSwiecenia, BraxClaudeObszary,
 # BraxClaudeSufity, BraxClaudeGlosniki, BraxGymPremium, BraxHeroRefinements, postprocesory tekstur …) wchodzą do OBU kluczy.
 TYLKO = {
-    # generator miasta R1 (siłownia z remontem, port, plaża, wyspa, NOVA, Nutrition, metro, wieżowce) — poza kluczem osiedla
+    # generator miasta R1 (siłownia z remontem, port, plaża, wyspa, NOVA, Nutrition, wieżowce) — poza kluczem osiedla
     'miasto': [
         'Assets/Editor/CityRebuild/**',
         'Assets/Editor/Claude/Region/**',
-        'Assets/Editor/Claude/BraxClaudeMetro.cs',
         'Assets/Editor/Claude/BraxClaudeNovaClub.cs',
         'Assets/Editor/Claude/BraxClaudeNovaProbe.cs',
         'Assets/Editor/Claude/BraxClaudeTowerTerrace.cs',

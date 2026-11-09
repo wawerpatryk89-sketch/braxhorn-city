@@ -33,10 +33,8 @@ public static class BraxCitySystemsValidation
                 if(float.IsNaN(v.x)||float.IsNaN(v.y)||float.IsNaN(v.z)||float.IsInfinity(v.x)||float.IsInfinity(v.y)||float.IsInfinity(v.z))
                     throw new InvalidOperationException("Non finite detail geometry "+filter.name);
         }
-        // Stara stacja G5 nie jest już wytwarzana: dawne sondy schodów
-        // nie mogą odrzucić nowej linii. Kontrola 3 stacji i ciągłości torów
-        // jest w BraxMetroLine3Build.KontrolaPrzejscia() po budowie miasta.
+        // 9.11: metra w mieście nie ma (decyzja właściciela) — bez sond schodów i bez kontroli stacji.
         Debug.Log("BRAX_CITY_SYSTEMS_SOURCE_CHECKS signalRules="+signalChecks+
-            " reserves=11 metro=M1_3_stacje_oddzielny_audyt; nie jest to test Androida");
+            " reserves=11 metro=brak; nie jest to test Androida");
     }
 }

@@ -173,9 +173,8 @@ public static class BraxCityRebuild
         Cut(original,physics,Box(19.60f,21.80f,.12f,2.90f,20.30f,21.45f),
             "nutrition_real_source_entrance");
         BraxCityVenueDoors.Apply(world,root);
-        // Stare wycięcia G5/ślepa stacja M1 usunięte z przebiegu budowy.
-        // Nowe otwory wszystkich 3 stacji są wycinane dopiero po pełnym
-        // wygenerowaniu ulic i budynków, wyłącznie przez BraxMetroLine3Build.
+        // 9.11 (właściciel: „metro całkowicie usunąć i zaplanować od zera”): w mieście NIE ma żadnego metra —
+        // ani G5, ani M1 (jedna stacja), ani M1 (3 stacje). Nowe metro powstanie wg rysunku zatwierdzonego przez właściciela.
         var stone=BraxCityMaterials.Surface("Metro limestone",new Color(.55f,.55f,.51f),.93f);
         var concrete=BraxCityMaterials.Surface("Metro fair-faced concrete",new Color(.5f,.51f,.49f),.95f);
         var metal=BraxCityMaterials.Surface("City brushed steel",new Color(.2f,.22f,.23f),.48f,.55f);
@@ -229,16 +228,12 @@ public static class BraxCityRebuild
         BraxClaudeGround.ReplaceGrass(root);
         BraxClaudeTrees.Apply(root);
         BraxClaudeCourts.Apply(root);
-        // Stary pojedynczy peron Claude M1 nie jest już wywoływany.
         BraxNutritionShopBuild.Apply(world,original,physics,root);
         // Wyposażenie klubu NOVA (tylko testowy build Claude, ENABLE_TEST_BUILD.txt).
         BraxClaudeNovaClub.Apply();
         BraxClaudeVenues.Apply();
         // Region R1 na gotowo (Claude, gałąź claude/region-20261030): pawilon, taras, wnętrza, zieleń, anty-migotanie.
         BraxRegion.Apply(world,root);
-        // Wprowadź NOWĄ linię po wszystkich chodnikach, również dzielnicach B.
-        // Stare wejście i 2 stare stacje nie mogą nałożyć się na 3 nowe stacje.
-        BraxMetroLine3Build.Apply(root);
         BraxClaudeGround.Save();
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
             Debug.LogWarning("DO POPRAWKI: Gym doorway integration boundary changed unexpectedly");

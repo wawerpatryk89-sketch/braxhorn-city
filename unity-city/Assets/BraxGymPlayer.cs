@@ -18,7 +18,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public int trainingHits;
     public BraxVessel vessel;   // pojazd wodny, na którym siedzi gracz (BraxVessel.Board)
     public BraxSeat seat;
-    public BraxMetro3StopRide metroRide; // M1 trzy stacje: wyłącznie podczas przejazdu       // sofa / ławka / hoker / łóżko (BraxSeat.Use)
+    // 9.11 (właściciel: „metro całkowicie usunąć i zaplanować od zera”) — pole metroRide zdjęte razem z BraxMetro3StopRide.
+    // sofa / ławka / hoker / łóżko (BraxSeat.Use)
     // Chwila trafienia CIOSU / KOPU (ta sama co trening na workach siłowni): pozycja gracza, kierunek, true = kopnięcie.
     // Słuchają worki, liny ringu i piłki osiedla (BraxWorek, BraxLina, BraxPilka) — bez zależności gracza od nich.
     public static event Action<Vector3,Vector3,bool> OnCios;
@@ -153,8 +154,6 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(!ready||paused||(cityWorld&&cityWorld.loading))return;
         float dt=Mathf.Min(Time.deltaTime,.12f);
         simulationTime+=dt;
-        // Jazda metrem: ruch daje pociąg, nie CharacterController.Move.
-        if(metroRide){speed=0f;vertical=0f;return;}
         if(seat)
         {
             if(move.magnitude>.6f){seat.Leave();}

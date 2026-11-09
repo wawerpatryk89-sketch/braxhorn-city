@@ -142,35 +142,25 @@ public static class BraxCityEnvironment
         Quad(m,new Vector3(a.x,a.y,a.z),new Vector3(b.x,a.y,a.z),new Vector3(b.x,a.y,b.z),new Vector3(a.x,a.y,b.z));
     }
 
-    private static IEnumerable<Rect> Without(Rect area,Rect hole)
-    {
-        float x0=Mathf.Max(area.xMin,hole.xMin),x1=Mathf.Min(area.xMax,hole.xMax),z0=Mathf.Max(area.yMin,hole.yMin),z1=Mathf.Min(area.yMax,hole.yMax);
-        if(x1<=x0||z1<=z0){yield return area;yield break;}
-        if(x0>area.xMin)yield return new Rect(area.xMin,area.yMin,x0-area.xMin,area.height);
-        if(x1<area.xMax)yield return new Rect(x1,area.yMin,area.xMax-x1,area.height);
-        if(z0>area.yMin)yield return new Rect(x0,area.yMin,x1-x0,z0-area.yMin);
-        if(z1<area.yMax)yield return new Rect(x0,z1,x1-x0,area.yMax-z1);
-    }
-
-    private static void Pave(Transform root,string name,Rect area,float y,Material material,bool metroHole)
+    // 9.11 (właściciel: „metro całkowicie usunąć”): bruk promenady bez dziury pod dawne schody G5 (x 75–80.7, z 34.8–49.8).
+    private static void Pave(Transform root,string name,Rect area,float y,Material material)
     {
         for(float x=area.xMin;x<area.xMax-.001f;x+=8)for(float z=area.yMin;z<area.yMax-.001f;z+=8)
         {
-            var chunk=new Rect(x,z,Mathf.Min(8,area.xMax-x),Mathf.Min(8,area.yMax-z));
-            var patches=metroHole?Without(chunk,BraxCitySystemsBuild.MetroExcavation):new[]{chunk};
+            var p=new Rect(x,z,Mathf.Min(8,area.xMax-x),Mathf.Min(8,area.yMax-z));
             var data=new BraxCitySystemMesh();
-            foreach(var p in patches)Quad(data,new Vector3(p.xMin,y,p.yMin),new Vector3(p.xMin,y,p.yMax),new Vector3(p.xMax,y,p.yMax),new Vector3(p.xMax,y,p.yMin));
+            Quad(data,new Vector3(p.xMin,y,p.yMin),new Vector3(p.xMin,y,p.yMax),new Vector3(p.xMax,y,p.yMax),new Vector3(p.xMax,y,p.yMin));
             if(data.VertexCount>0)Emit(name+" "+x+" "+z,root,data,material);
         }
     }
 
     private static void Pavements(Transform root)
     {
-        Pave(root,"Promenade paving",new Rect(66,-6,18,66),.15f,pavement,true);
-        Pave(root,"South promenade paving",new Rect(64,60,20,52),.15f,pavement,false);
-        Pave(root,"Courtyard front asphalt",new Rect(-20,48,52,14),.15f,asphalt,false);
-        Pave(root,"Courtyard rear asphalt",new Rect(-20,62,72,38),.15f,asphalt,false);
-        Pave(root,"Courtyard garages asphalt",new Rect(52,60,12,40),.15f,asphalt,false);
+        Pave(root,"Promenade paving",new Rect(66,-6,18,66),.15f,pavement);
+        Pave(root,"South promenade paving",new Rect(64,60,20,52),.15f,pavement);
+        Pave(root,"Courtyard front asphalt",new Rect(-20,48,52,14),.15f,asphalt);
+        Pave(root,"Courtyard rear asphalt",new Rect(-20,62,72,38),.15f,asphalt);
+        Pave(root,"Courtyard garages asphalt",new Rect(52,60,12,40),.15f,asphalt);
     }
 
     private static void StreetDetails(Transform root)

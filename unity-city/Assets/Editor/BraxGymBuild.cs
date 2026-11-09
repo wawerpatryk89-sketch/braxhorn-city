@@ -387,8 +387,7 @@ public static class BraxGymBuild
         // na sektory; raport ostrzega, nie przerywa kosztownego generowania.
         if(fullCity&&!osiedle)try{BraxR1SceneAcceptance.Run(scene);}
         catch(Exception e){Debug.LogWarning("DO POPRAWKI: R1_SCENA_TRANSPORT_SKLEP: "+e);}
-        // P0.1 (2.11 23:05, „metro nie do wejścia”): obce kolizje w przejściach stacji wyłączone + test przejścia obu wejść
-        if(fullCity&&!osiedle)try{BraxMetroLine3Build.KontrolaPrzejscia();}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_METRO_M1_3_PRZEJSCIE: "+e);}
+        // 9.11 (właściciel: „metro całkowicie usunąć i zaplanować od zera”) — kontrola przejścia metra zdjęta razem z generatorem.
         // 3.11 (właściciel 10:53): trawnik w wycięciu nawierzchni przy każdym drzewie i palmie na chodniku / placu / asfalcie
         if(fullCity&&!osiedle)try{BraxMisyDrzew.Wykonaj(scene);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_MISY_DRZEW: "+e);}
         // C4 (2.11, „szyby globalnie”): szkło bez mleka — przezroczyste z odbiciem nieba, fasady bez wnętrza refleksyjne (BRAXHORN_SZYBY)
