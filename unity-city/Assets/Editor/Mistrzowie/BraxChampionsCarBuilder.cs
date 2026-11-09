@@ -276,7 +276,7 @@ public static class BraxChampionsCarBuilder
         // real 120 km/h is 120/3.6 x K world units per second; SpeedKph divides
         // K back out. Same for reverse and the acceleration/braking feel.
         car.worldScale = K;
-        car.maxSpeed = 150f / 3.6f * K; car.reverseMaxSpeed = 30f / 3.6f * K;
+        car.maxSpeed = 200f / 3.6f * K; car.reverseMaxSpeed = 30f / 3.6f * K;
         car.acceleration = 7.2f * K; car.braking = 11f * K;
         car.interactionRadius = 3.8f * CarScale;
 
@@ -310,7 +310,7 @@ public static class BraxChampionsCarBuilder
         Debug.Log("A1_OWNER_CAR_INSTALLED original=car_rev length=" +
             bounds.size.z.ToString("F2") + " width=" + bounds.size.x.ToString("F2")
             + " height=" + bounds.size.y.ToString("F2") + " K=" + K.ToString("F4")
-            + " driverHipsTarget=" + seat.localPosition + " maxSpeedKph=150real(xK) reverseKph=30 worldLength=" + WorldLengthMetres.ToString("F2")
+            + " driverHipsTarget=" + seat.localPosition + " maxSpeedKph=200real(xK) reverseKph=30 worldLength=" + WorldLengthMetres.ToString("F2")
             + " bodyCollider=REAL_BOUNDS" +
             " start=(645.175,712) side=RIGHT centredInRegularBay=true driverDoorFacesWalkway=true originalDoor=" + (doorPivot != null) +
             " ownerAnimations=EnteringCar,Driving,ExitingCar" +

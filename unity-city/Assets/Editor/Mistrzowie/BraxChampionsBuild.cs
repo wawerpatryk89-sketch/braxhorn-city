@@ -217,8 +217,8 @@ public static class BraxChampionsBuild
         if(car.bodyCollider.transform!=car.transform)
             throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: chassis collider does not belong to source car");
         // Global rule 6.11 §4: speed/size are quality warnings, never build stoppers.
-        if(Mathf.Abs(car.maxSpeed*3.6f/Mathf.Max(.01f,car.worldScale)-120f)>.05f)
-            BraxBuildQuality.Warn("A1_T11_CAR_INTEGRATION_REVIEW: car top speed is not owner-approved real 120 km/h");
+        if(Mathf.Abs(car.maxSpeed*3.6f/Mathf.Max(.01f,car.worldScale)-200f)>.05f)
+            BraxBuildQuality.Warn("A1_T11_CAR_INTEGRATION_REVIEW: car top speed is not owner-approved real 200 km/h");
         if(Mathf.Abs(car.bodyCollider.bounds.size.z-BraxChampionsCarBuilder.WorldLengthMetres)>.10f)
             BraxBuildQuality.Warn("A1_T11_CAR_INTEGRATION_REVIEW: car body is not "+
                 BraxChampionsCarBuilder.WorldLengthMetres.ToString("F2")+" m long (real 4.95 m x K)");

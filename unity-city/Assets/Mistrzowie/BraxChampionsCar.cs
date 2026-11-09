@@ -13,7 +13,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     // owner's Revuelto uses scissor doors (lateral axis, set by the builder).
     public Vector3 doorAxis = Vector3.up;
     public BoxCollider bodyCollider;
-    public float maxSpeed = 150f / 3.6f, reverseMaxSpeed = 30f / 3.6f; // owner 9.11: 150 km/h to explore
+    public float maxSpeed = 200f / 3.6f, reverseMaxSpeed = 30f / 3.6f; // owner 10.11 00:43: "samochód ma jeździć 200 jednak"
     // World units per real metre (K). Speeds are stored in world units; the
     // builder sets maxSpeed = 120/3.6 x K so a real 120 km/h is reached.
     public float worldScale = 1f;
@@ -185,8 +185,8 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     // pitched to that rpm and crossfaded in log-rpm, with real upshifts.
     const float V8IdleRpm = 850f, V8Redline = 6800f, V8Upshift = 6200f, V8Downshift = 3400f;
     static readonly float[] V8LoopRpm = { 850f, 2200f, 4800f };
-    // real km/h at redline per gear (gear 6 reaches the 150 km/h limit at ~5300 rpm)
-    static readonly float[] V8GearTopKph = { 0f, 62f, 98f, 128f, 152f, 172f, 192f };
+    // real km/h at redline per gear (gear 6 reaches the 200 km/h limit at ~6000 rpm)
+    static readonly float[] V8GearTopKph = { 0f, 62f, 98f, 134f, 168f, 198f, 228f };
 
     void UpdateEngineAudio()
     {

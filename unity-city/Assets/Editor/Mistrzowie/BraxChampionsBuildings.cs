@@ -46,7 +46,11 @@ public static class BraxChampionsBuildings
                 int level=levels.Count;var child=new GameObject("LOD"+level).transform;child.SetParent(root,false);
                 var renderers=new List<Renderer>();
                 foreach(var m in entry)renderers.Add(MeshObject(child,b.id+"_LOD"+level+"_"+m.id,m,materials[m.role],false));
-                levels.Add(new LOD(level==0?.18f:.0001f,renderers.ToArray()));
+                // Owner 10.11 00:43 "pojawianie się budynków popraw, strasznie się pokazuje": the detailed shell was swapped
+                // for the low one below 18% of screen height (40% in the low graphics mode, lodBias .45) = a visible
+                // jump while standing next to the arena / hotel. LOD1 has almost the same triangle count, so the
+                // detailed shell now stays until the building is a speck.
+                levels.Add(new LOD(level==0?.012f:.0001f,renderers.ToArray()));
             }
             var group=root.gameObject.AddComponent<LODGroup>();group.SetLODs(levels.ToArray());group.RecalculateBounds();
             var collisions=new GameObject("Permanent exterior collision, independent of LOD").transform;collisions.SetParent(root,false);

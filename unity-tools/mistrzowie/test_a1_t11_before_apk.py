@@ -121,11 +121,11 @@ class A1T11Preflight(unittest.TestCase):
         self.assertIn("GetComponentsInChildren<BraxChampionsCar>(true)",build)
         self.assertIn("cars.Length!=1",build)
         self.assertIn("car.bodyCollider.bounds.size.z-BraxChampionsCarBuilder.WorldLengthMetres",build)
-        self.assertIn("car.maxSpeed*3.6f/Mathf.Max(.01f,car.worldScale)-120f",build)
+        self.assertIn("car.maxSpeed*3.6f/Mathf.Max(.01f,car.worldScale)-200f",build)
         self.assertIn("BraxChampionsCarBuilder.EngineIdleAudio",build)
         self.assertIn("BraxChampionsCarBuilder.EngineRevAudio",build)
         self.assertIn("A1_T11_CAR_SAME_SCENE_PASS",build)
-        self.assertIn("public float maxSpeed = 150f / 3.6f",car)
+        self.assertIn("public float maxSpeed = 200f / 3.6f",car)
         self.assertIn("const float LengthMetres = 4.95f;",builder)
         # Owner 9.11: no 6 m cap, "wszystko ma być odpowiednie pod skalę, też
         # auto" -> real 4.95 m x K like every other object.

@@ -132,7 +132,7 @@ class Apartments20261109(unittest.TestCase):
         self.assertIn("Box(pier,x-.41f,x+.41f,Ffl0,CeilingOf(0),-HalfD-.05f,-HalfD+.85f,true);", SRC)
         self.assertIn("Box(deck,-HalfW,HalfW,SiteY,Ffl0,-HalfD-2.6f,-HalfD,true);", SRC)
         self.assertNotIn("Box(granite,-HalfW,HalfW,SiteY,Ffl0", SRC)
-        self.assertIn("interiorLod.SetLODs(new[]{new LOD(.06f,interiorRenderers)", SRC)
+        self.assertIn("interiorLod.SetLODs(new[]{new LOD(.03f,interiorRenderers)", SRC)
         self.assertIn('var vis=lamps.gameObject.AddComponent<BraxWidocznoscWnetrza>();', SRC)
         self.assertIn("static void Lobby(float y0,float zFrontIn)", SRC)
         self.assertIn('stoneFloor=BraxChampionsFoundation.LibraryMarbleWhite("apt_white_marble_floor"', SRC)
@@ -146,7 +146,7 @@ class Apartments20261109(unittest.TestCase):
         self.assertIn("root.localScale=Vector3.one*K;", SRC)
         self.assertIn("l.range*=K;", SRC)
         self.assertIn("o.transform.localScale=Vector3.one;", SRC)   # palms under the K root
-        self.assertIn("new LOD(.06f,detailRenderers)", SRC)
+        self.assertIn("new LOD(.02f,detailRenderers)", SRC)   # 10.11: details no longer jump in at 6%
         self.assertIn("BraxWidocznoscWnetrza", SRC)
         self.assertIn("Physics.Raycast(", SRC)
         self.assertNotIn("W.Napis(plot.name", SRC)                 # no flat façade sign (ZASADA-SZYLDY-3D)

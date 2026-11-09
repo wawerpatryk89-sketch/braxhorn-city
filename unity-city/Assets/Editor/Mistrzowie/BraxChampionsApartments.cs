@@ -516,7 +516,9 @@ public static class BraxChampionsApartments
         // the white body, glass, balconies and roof always stay (no pop-in of the building itself).
         var detailRenderers=details.GetComponentsInChildren<Renderer>(true);
         var lod=details.gameObject.AddComponent<LODGroup>();
-        lod.SetLODs(new[]{new LOD(.06f,detailRenderers),new LOD(.0001f,Array.Empty<Renderer>())});
+        // 10.11: .06 hid balconies / rails / canopies below 6% of screen height (13% in the low graphics mode):
+        // they jumped in as you walked up. Now they stay until the building is under 2%.
+        lod.SetLODs(new[]{new LOD(.02f,detailRenderers),new LOD(.0001f,Array.Empty<Renderer>())});
         lod.RecalculateBounds();
         // ---- place: K once, yaw toward the road, ground datum from the raycast ----
         root.localScale=Vector3.one*K;
@@ -532,7 +534,7 @@ public static class BraxChampionsApartments
         foreach(var l in inside.GetComponentsInChildren<Light>(true))l.transform.SetParent(lamps,true);
         var interiorRenderers=inside.GetComponentsInChildren<Renderer>(true);
         var interiorLod=inside.gameObject.AddComponent<LODGroup>();
-        interiorLod.SetLODs(new[]{new LOD(.06f,interiorRenderers),new LOD(.0001f,Array.Empty<Renderer>())});
+        interiorLod.SetLODs(new[]{new LOD(.03f,interiorRenderers),new LOD(.0001f,Array.Empty<Renderer>())});
         interiorLod.RecalculateBounds();
         var vis=lamps.gameObject.AddComponent<BraxWidocznoscWnetrza>();vis.nazwa=id+" apartment lamps";
         vis.strefy=new[]{new Bounds(root.position+Vector3.up*8f*K,new Vector3(120f,44f,120f)*K)};

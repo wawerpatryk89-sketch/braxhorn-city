@@ -26,7 +26,7 @@ class Issue30CarAudio(unittest.TestCase):
         r=text("unity-city/Assets/Mistrzowie/BraxChampionsCar.cs")
         for s in ("v8_idle_850.ogg","v8_low_2200.ogg","v8_high_4800.ogg","AudioCompressionFormat.Vorbis","forceToMono = true"):
             self.assertIn(s,b)
-        for s in ("AudioRolloffMode.Linear","spatialBlend = 1f","V8GearTopKph","maxSpeed = 150f / 3.6f"):
+        for s in ("AudioRolloffMode.Linear","spatialBlend = 1f","V8GearTopKph","maxSpeed = 200f / 3.6f"):
             self.assertIn(s,r)
         self.assertIn("LengthMetres = 4.95f",b)
         self.assertNotIn("AudioClip.Create",r)
