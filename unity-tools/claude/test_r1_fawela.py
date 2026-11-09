@@ -173,5 +173,54 @@ class Wykonczenia(unittest.TestCase):
         self.assertIn("BraxRegionMiastoB.AutaWarsztatow.Add(", DROGI)
 
 
+class BibliotekaIRealizm(unittest.TestCase):
+    """Właściciel 9.11 23:03–23:08: towar i wyposażenie z biblioteki, zakaz białych napisów, prawdziwe szyby, jakość jak w mieście."""
+
+    def test_goods_come_from_owner_library(self):
+        for wywolanie in ("BraxSklepyTowar.Korzen(rd,", "BraxSklepyTowar.Polka(typPolek[p], tw,", "BraxSklepyTowar.Lada(typLady, tw,", "BraxSklepyTowar.Zakoncz(tw,"):
+            self.assertIn(wywolanie, DOMY, wywolanie)
+        towar = src(R / "BraxSklepyTowar.cs")
+        blok = DOMY[DOMY.index("string[] typPolek ="):DOMY.index("Transform tw =")]
+        for typ in set(re.findall(r'"([a-z_0-9]+)"', blok)):
+            self.assertIn('"' + typ + '"', towar, "typ towaru spoza biblioteki: " + typ)
+        # kolorowych walców i klocków jako towaru już nie ma (zostają tylko pudełka akcesoriów w naprawie telefonów — biblioteka nie ma elektroniki)
+        self.assertNotIn("var ow = Color.HSVToRGB(new[] { .02f, .11f, .16f, .3f }[q]", DOMY)
+        self.assertIn("Towar(F, s, y + .035f, D - .36f, r, cx, cz, tel ? 2 : 0)", DOMY)
+
+    def test_equipment_from_library(self):
+        for model in ('"miasto_sklepy", "lodowka"', '"miasto_sklepy", "menu_4"', '"miasto_sklepy", "plakat_0"', '"miasto_jedzenie", "wozek_jedzenie"', '"miasto_silownia_metro", "silownia_atlas"'):
+            self.assertIn(model, DOMY, model)
+        for pomocnik in ("BraxMiastoAssety.Klatka(tr,", "BraxMiastoAssety.Lawka(tr,", "BraxMiastoAssety.Bieznia(tr,", '"odz_dol", "odz_polka", "odz_gora"', '"metal_trash_can"', '"wooden_picnic_table"'):
+            self.assertIn(pomocnik, DOMY, pomocnik)
+
+    def test_no_white_lettering(self):
+        blok = DOMY[DOMY.index("ParySzyldow ="):DOMY.index("};", DOMY.index("ParySzyldow ="))]
+        pary = re.findall(r"new Color\(([\d.]+)f, ([\d.]+)f, ([\d.]+)f\)", blok)
+        self.assertEqual(len(pary), 12)
+        for r_, g_, b_ in pary[1::2]:                       # litery: nasycona farba, nie biel / kość słoniowa
+            k = sorted((float(r_), float(g_), float(b_)))
+            self.assertGreater(k[2] - k[0], .2)
+        self.assertNotIn("new Color(.97f, .95f, .88f)", DOMY)
+        self.assertNotIn(".17f * k, new Color(.95f, .93f, .86f)", DOMY)
+
+    def test_real_glass_rooms_on_world_grid(self):
+        self.assertIn("BraxUliceKit.OknoPokoj(2f * SiatkaOkien, Hf, i * Hf / 12f, 0, 5, 4.2f, 0f)", FAW)
+        self.assertIn("dz.yF = Mathf.Ceil((dz.yFront + .10f) / (Hf / 12f)) * (Hf / 12f);", FAW)
+        self.assertIn("Pasek(W(cx, cz, okna[FazaOkna(dz.yF)], Color.white), F, o.xMin, o.xMax, o.yMin, o.yMax, g);", DOMY)
+        self.assertIn("internal const float SiatkaOkien = 1.6f;", DOMY)
+        # okno 1.1 m × K i drzwi balkonu 1.0 m × K mieszczą się w jednej komórce siatki; pokój = 2 komórki
+        self.assertLess(1.1 * 1.294, 1.6)
+        hf, q = 2.8 * 1.294, 2.8 * 1.294 / 12
+        for y_front in (0.2, 1.33, 7.9, 22.47, 40.1):
+            yf = math.ceil((y_front + .10) / q) * q
+            self.assertGreaterEqual(yf - y_front, .10 - 1e-6)
+            self.assertLess(yf - y_front, .10 + q + 1e-6)     # próg najwyżej 40 cm
+            self.assertAlmostEqual((yf / q) - round(yf / q), 0, places=4)
+
+    def test_sidewalk_and_frame_depth(self):
+        self.assertIn("BoxF(ch, fF, -.12f, L + .12f, dz.yFront - .7f, dz.yFront + .05f, -(doDrogi - .32f), 0f, false, false);", DOMY)
+        self.assertIn("void Rama(float s0, float s1, float y0, float y1) => BoxF(br, F, s0, s1, y0, y1, g - .045f, g, false, false);", DOMY)
+
+
 if __name__ == "__main__":
     unittest.main()

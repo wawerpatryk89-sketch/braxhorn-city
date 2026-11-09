@@ -329,7 +329,8 @@ public static partial class BraxRegionFawela
             dz.yFront = dz.polnoc ? WysBez(cx, z1 + .8f) : WysBez(cx, z0 - .8f);
             dz.yMin = float.MaxValue; dz.yMax = float.MinValue;
             foreach (var (px, pz) in new[] { (x, z0), (x1, z0), (x, z1), (x1, z1), (cx, (z0 + z1) * .5f), (cx, z0), (cx, z1) }) { float h = WysBez(px, pz); dz.yMin = Mathf.Min(dz.yMin, h); dz.yMax = Mathf.Max(dz.yMax, h); }
-            dz.yF = dz.yFront + .17f;
+            // posadzka: próg 10–40 cm nad terenem przed frontem, na siatce Hf / 12 (12 wspólnych materiałów okien z pokojem — FazaOkna)
+            dz.yF = Mathf.Ceil((dz.yFront + .10f) / (Hf / 12f)) * (Hf / 12f);
             if (dz.yMax - dz.yMin < 3.4f) Dzialki.Add(dz);
         }
         // 1) pierzeje przy prostych ulicach (front 2.9 m od krawężnika, po obu stronach): ul. dolna i ul. dolna zachodnia
@@ -506,7 +507,7 @@ public static partial class BraxRegionFawela
         Krok("zapis kwadratów", Zapisz);
         Debug.Log("BRAXHORN_FAWELA etap 1: działek " + Dzialki.Count + ", domów " + domow + " (pas 1: " + domowPas1 + ", pas 2: " + domowPas2 + "), lokali " + lokali +
                   ", stanowisk obsługi " + Sprzedawcy.Count + ", dróg " + Drogi.Count + " (" + Drogi.Sum(d => d.p.Count) + " m), stopni schodów " + krokow + ", słupów " + slupow +
-                  ", przyłączy " + przylaczy + ", graffiti " + graffiti + ", aut zaparkowanych " + aut + ", roślin " + roslin + ", modeli w lokalach " + modeli + ", trójkątów " + trojkatow + ", kwadratów 150 m " + komorki.Count +
+                  ", przyłączy " + przylaczy + ", graffiti " + graffiti + ", aut zaparkowanych " + aut + ", roślin i rekwizytów z biblioteki " + roslin + ", modeli w lokalach " + modeli + ", towaru z biblioteki " + BraxSklepyTowar.Postawione + ", trójkątów " + trojkatow + ", kwadratów 150 m " + komorki.Count +
                   ", plac y " + Tarasy[0].y.ToString("F2") + ", sala y " + Tarasy[1].y.ToString("F2") + ", fotoskany (" + opisTekstur.Count + ", odchudzonych do 1024 / 512: " + odchudzonych + "): " + string.Join(" | ", opisTekstur) +
                   (brakTekstur.Count > 0 ? " — DO POPRAWKI brak fotoskanów: " + string.Join(", ", brakTekstur) : " — wszystkie wykończenia z fotoskanów"));
     }
@@ -546,8 +547,8 @@ public static partial class BraxRegionFawela
         BraxRegionMeble.Kolizja(tr, "Fawela: kolizja", (mn + mx) * .5f, new Vector3(Mathf.Abs(mx.x - mn.x), Mathf.Abs(mx.y - mn.y), Mathf.Abs(mx.z - mn.z)));
 
     // ============================================================================ MATERIAŁY — wyłącznie fotoskany CC0 z Poly Haven (stare, zniszczone)
-    internal static Material[] tynki, drzwiStalowe; internal static Material tynkCzerwony, tynkNiebieski, cegla, pustak, beton, betonZbr, blachaRdza, blachaOcynk, drzwiDrewno, drzwiStal, roleta,
-        bramaGaraz, okiennica, szyba, metal, zeliwo, alu, zbiornik, plotno, zaslona, zaslonaKrata, tynkRozowy, roletaSzara, plytkiCiemne, deski, asfalt, kraweznik, farba, zarowka, plytki, linoleum, wnetrze, lada, guma, lustro, lodowka, plastik,
+    internal static Material[] tynki, drzwiStalowe, okna; internal static Material tynkCzerwony, tynkNiebieski, cegla, pustak, beton, betonZbr, blachaRdza, blachaOcynk, drzwiDrewno, drzwiStal, roleta,
+        bramaGaraz, okiennica, szyba, metal, zeliwo, alu, zbiornik, plotno, tynkRozowy, roletaSzara, plytkiCiemne, deski, asfalt, kraweznik, farba, zarowka, plytki, linoleum, wnetrze, lada, guma, lustro, lodowka, plastik,
         kabel, placBeton, skora, neonZielony, matGraffiti;
     static readonly List<string> opisTekstur = new List<string>(), brakTekstur = new List<string>();
 
@@ -649,12 +650,20 @@ public static partial class BraxRegionFawela
         lada = Tm("drewno lad i regałów (wytarte)", 1.4f, b, .7f, "wood_table_worn", "wood_cabinet_worn_long", "wood_planks");
         deski = Tm("deski (skrzynki, blaty straganów)", 1.2f, b, .8f, "wood_planks", "old_planks_02", "wood_planks_grey");
         plotno = Tm("płótno (markizy, plandeki, pranie)", .9f, b, .95f, "cotton_jersey", "rough_linen", "leather_white");
-        zaslona = Tm("zasłony w oknach (gładkie)", .7f, b, .95f, "cotton_jersey", "rough_linen");
-        zaslonaKrata = Tm("zasłony w oknach (kratka)", .5f, b, .95f, "gingham_check", "cotton_jersey");
         skora = Tm("skóra worków, foteli i narożników", .8f, b, .6f, "brown_leather", "fabric_leather_02", "fabric_leather_01");
-        // szkło okien (przezroczyste, za nim zasłona z fotoskanu), lustra i źródła światła — jedyne powierzchnie bez fotoskanu
+        // szkło hali sali (przezroczyste), lustra i źródła światła — jedyne powierzchnie bez fotoskanu; okna domów: shader pokoi miasta
         szyba = BraxCityMaterials.Surface("Fawela: szyba okienna (brudna)", new Color(.20f, .24f, .26f, .42f), .1f, .2f);
         lustro = BraxCityMaterials.Surface("Fawela: lustro", new Color(.78f, .82f, .84f), .05f, .92f);
+        // okna domów: „pokój za szybą” z biblioteki okien miasta (12 faz poziomu podłogi; komórka pokoju 3.2 m × kondygnacja, głębokość 4.2 m)
+        okna = new Material[12];
+        Directory.CreateDirectory(BraxUliceKit.Out + "/Materialy");
+        for (int i = 0; i < 12; i++)
+        {
+            try { okna[i] = BraxUliceKit.OknoPokoj(2f * SiatkaOkien, Hf, i * Hf / 12f, 0, 5, 4.2f, 0f); } catch (Exception e) { okna[i] = null; Debug.LogWarning("DO POPRAWKI: BRAXHORN_FAWELA okno z pokojem: " + e.Message); }
+            if (!okna[i]) okna[i] = szyba;
+            bezCienia.Add(okna[i]);
+        }
+        opisTekstur.Add("okna=" + (okna[0] != szyba && okna[0].shader ? okna[0].shader.name : "BRAK shadera pokoi"));
         zarowka = BraxRegionMeble.Swiecacy("Fawela: żarówka / świetlówka (ciepła)", new Color(1f, .86f, .62f), 1.6f);
         lodowka = BraxRegionMeble.Swiecacy("Fawela: lodówka z napojami (podświetlona)", new Color(.85f, .93f, 1f), .7f);
         neonZielony = BraxRegionMeble.Swiecacy("Fawela: krzyż apteki (świeci)", new Color(.15f, 1f, .35f), 1.8f);
