@@ -24,9 +24,9 @@ class Issue30CarAudio(unittest.TestCase):
     def test_runtime_and_mobile_contract(self):
         b=text("unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarBuilder.cs")
         r=text("unity-city/Assets/Mistrzowie/BraxChampionsCar.cs")
-        for s in ("brax_engine_idle.ogg","brax_engine_rev.ogg","AudioCompressionFormat.Vorbis","forceToMono = true"):
+        for s in ("v8_idle_850.ogg","v8_low_2200.ogg","v8_high_4800.ogg","AudioCompressionFormat.Vorbis","forceToMono = true"):
             self.assertIn(s,b)
-        for s in ("AudioRolloffMode.Linear","spatialBlend = 1f","A1_CAR_ENGINE_REV","maxSpeed = 120f / 3.6f"):
+        for s in ("AudioRolloffMode.Linear","spatialBlend = 1f","V8GearTopKph","maxSpeed = 150f / 3.6f"):
             self.assertIn(s,r)
         self.assertIn("LengthMetres = 4.95f",b)
         self.assertNotIn("AudioClip.Create",r)

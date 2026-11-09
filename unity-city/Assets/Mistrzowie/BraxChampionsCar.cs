@@ -13,7 +13,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     // owner's Revuelto uses scissor doors (lateral axis, set by the builder).
     public Vector3 doorAxis = Vector3.up;
     public BoxCollider bodyCollider;
-    public float maxSpeed = 120f / 3.6f, reverseMaxSpeed = 30f / 3.6f;
+    public float maxSpeed = 150f / 3.6f, reverseMaxSpeed = 30f / 3.6f; // owner 9.11: 150 km/h to explore
     // World units per real metre (K). Speeds are stored in world units; the
     // builder sets maxSpeed = 120/3.6 x K so a real 120 km/h is reached.
     public float worldScale = 1f;
@@ -32,7 +32,9 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 
     // Issue #30 engine audio: real recorded clips only. No procedural fake engine.
     public Transform engineAudioAnchor;
-    public AudioClip engineIdleClip, engineRevClip;
+    // Owner 9.11 "zrób V8": three cross-plane V8 loops (idle 850, low 2200,
+    // high 4800 rpm). engineRevClip keeps its field name = the 2200 rpm loop.
+    public AudioClip engineIdleClip, engineRevClip, engineHighClip;
     public float engineMinDistance = 2.2f, engineMaxDistance = 36f;
 
     public BraxGymPlayer Driver => driver;
@@ -48,7 +50,9 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     float speed, doorAngle, wheelAngle;
     float groundPivotOffset, nextBlockDiagnostic;
     float engineLoad, idleGain;
-    float nextRevAllowed;
+    float nextRevAllowed, engineRpm = 850f;
+    int engineGear = 1;
+    AudioSource engineHighSource;
     bool revArmed = true;
     bool transition;
     Quaternion doorRest;
@@ -154,7 +158,8 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         }
         if (!engineAudioAnchor) engineAudioAnchor = transform;
         if (!engineIdleSource) engineIdleSource = CreateEngineSource("BRAXHORN engine | idle 3D", engineIdleClip, true);
-        if (!engineRevSource) engineRevSource = CreateEngineSource("BRAXHORN engine | rev transient 3D", engineRevClip, false);
+        if (!engineRevSource) engineRevSource = CreateEngineSource("BRAXHORN V8 | 2200 rpm loop 3D", engineRevClip, true);
+        if (!engineHighSource && engineHighClip) engineHighSource = CreateEngineSource("BRAXHORN V8 | 4800 rpm loop 3D", engineHighClip, true);
         StartIdleIfReady();
         Debug.Log("A1_CAR_AUDIO_READY idle=" + engineIdleClip.name + " rev=" + engineRevClip.name
             + " spatial=3D min=" + engineMinDistance.ToString("F1")
@@ -164,24 +169,24 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     void StartIdleIfReady()
     {
         if (!engineIdleSource || !engineIdleClip || engineIdleSource.isPlaying) return;
-        engineIdleSource.pitch = .92f;
+        engineIdleSource.pitch = 1f;
         engineIdleSource.volume = 0f;
         idleGain = 0f;
+        engineRpm = V8IdleRpm;
         engineIdleSource.Play();
+        if (engineRevSource && engineRevClip && !engineRevSource.isPlaying) engineRevSource.Play();
+        if (engineHighSource && engineHighClip && !engineHighSource.isPlaying) engineHighSource.Play();
     }
 
-    void TriggerRev()
-    {
-        if (!engineRevSource || !engineRevClip || Time.unscaledTime < nextRevAllowed) return;
-        nextRevAllowed = Time.unscaledTime + Mathf.Max(.55f, Mathf.Min(engineRevClip.length * .55f, 1.35f));
-        engineRevSource.Stop();
-        engineRevSource.pitch = Mathf.Lerp(.98f, 1.06f,
-            Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.01f, maxSpeed)));
-        engineRevSource.volume = 0f;
-        engineRevSource.Play();
-        Debug.Log("A1_CAR_ENGINE_REV speedKph=" + SpeedKph.ToString("F1")
-            + " throttle=" + Mathf.Abs(control.y).ToString("F2"));
-    }
+
+    // Engine model (owner 9.11: "chodzi źle i źle się jeździ"): the old
+    // Lada recording only moved its pitch +-7%, so 30 and 120 km/h sounded the
+    // same. Now a 6-speed box turns REAL speed into rpm; three V8 loops are
+    // pitched to that rpm and crossfaded in log-rpm, with real upshifts.
+    const float V8IdleRpm = 850f, V8Redline = 6800f, V8Upshift = 6200f, V8Downshift = 3400f;
+    static readonly float[] V8LoopRpm = { 850f, 2200f, 4800f };
+    // real km/h at redline per gear (gear 6 reaches the 150 km/h limit at ~5300 rpm)
+    static readonly float[] V8GearTopKph = { 0f, 62f, 98f, 128f, 152f, 172f, 192f };
 
     void UpdateEngineAudio()
     {
@@ -190,34 +195,38 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 
         float dt = Mathf.Max(.001f, Time.unscaledDeltaTime);
         float throttle = Mathf.Clamp01(Mathf.Abs(control.y));
-        float speed01 = Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.01f, maxSpeed));
-        float targetLoad = Mathf.Clamp01(throttle * .72f + speed01 * .48f);
-        engineLoad = Mathf.MoveTowards(engineLoad, targetLoad,
-            dt * (targetLoad > engineLoad ? 2.8f : 1.8f));
+        float kph = Mathf.Abs(SpeedKph);
+        engineLoad = Mathf.MoveTowards(engineLoad, throttle, dt * (throttle > engineLoad ? 4f : 2.5f));
 
-        float targetIdleGain = driver ? Mathf.Lerp(.27f, .48f, engineLoad) : 0f;
-        idleGain = Mathf.MoveTowards(idleGain, targetIdleGain, dt / .20f);
-        engineIdleSource.volume = idleGain;
-        engineIdleSource.pitch = Mathf.MoveTowards(engineIdleSource.pitch,
-            Mathf.Lerp(.92f, 1.24f, engineLoad), dt * 1.6f);
+        // gearbox with hysteresis
+        float GearRpm(int g) => kph / V8GearTopKph[g] * V8Redline;
+        if (engineGear < 6 && GearRpm(engineGear) > V8Upshift) engineGear++;
+        else if (engineGear > 1 && GearRpm(engineGear) < V8Downshift && GearRpm(engineGear - 1) < V8Upshift - 400f) engineGear--;
+        if (kph < 3f) engineGear = 1;
+        float rolling = Mathf.Max(V8IdleRpm * 1.15f, GearRpm(engineGear));
+        float target = kph < 3f ? V8IdleRpm + engineLoad * 2600f : Mathf.Max(rolling, V8IdleRpm + engineLoad * 900f);
+        if (!driver) target = V8IdleRpm;
+        engineRpm = Mathf.MoveTowards(engineRpm, Mathf.Min(target, V8Redline),
+            dt * (target > engineRpm ? 7000f : 9000f));
 
-        if (throttle < .18f) revArmed = true;
-        if (driver && !transition && revArmed && throttle > .58f)
+        float master = driver ? Mathf.Lerp(.42f, .86f, engineLoad) : 0f;
+        idleGain = Mathf.MoveTowards(idleGain, master, dt / .25f);
+        // log-rpm crossfade between the three loops
+        float l = Mathf.Log(engineRpm);
+        float l0 = Mathf.Log(V8LoopRpm[0]), l1 = Mathf.Log(V8LoopRpm[1]), l2 = Mathf.Log(V8LoopRpm[2]);
+        float w0 = Mathf.Clamp01((l1 - l) / (l1 - l0));
+        float w2 = engineHighSource ? Mathf.Clamp01((l - l1) / (l2 - l1)) : 0f;
+        float w1 = Mathf.Clamp01(1f - w0 - w2);
+        if (!engineRevSource) { w0 = 1f; w1 = 0f; w2 = 0f; }
+        void Drive(AudioSource src, float weight, float loopRpm)
         {
-            revArmed = false;
-            TriggerRev();
+            if (!src) return;
+            src.volume = idleGain * Mathf.Sqrt(weight);           // equal-power crossfade
+            src.pitch = Mathf.Clamp(engineRpm / loopRpm, .5f, 2.2f);
         }
-
-        if (engineRevSource && engineRevSource.isPlaying && engineRevClip)
-        {
-            float time = engineRevSource.time;
-            float remaining = Mathf.Max(0f, engineRevClip.length - time);
-            float fadeIn = Mathf.Clamp01(time / .18f);
-            float fadeOut = Mathf.Clamp01(remaining / .28f);
-            float transient = Mathf.Min(fadeIn, fadeOut);
-            engineRevSource.volume = .56f * transient * Mathf.Lerp(.82f, 1f, throttle);
-            engineRevSource.pitch = Mathf.Lerp(.98f, 1.07f, Mathf.Max(engineLoad, speed01));
-        }
+        Drive(engineIdleSource, w0, V8LoopRpm[0]);
+        Drive(engineRevSource, w1, V8LoopRpm[1]);
+        Drive(engineHighSource, w2, V8LoopRpm[2]);
     }
 
     void Update() => UpdateEngineAudio();

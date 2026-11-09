@@ -10,8 +10,11 @@ using UnityEngine;
 public static class BraxChampionsCarBuilder
 {
     public const string OwnerCar = "Assets/Source/Mistrzowie/Vehicles/car_rev.glb";
-    public const string EngineIdleAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_idle.ogg";
-    public const string EngineRevAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_rev.ogg";
+    // Owner 9.11 "zrób V8": synth_v8_engine.py cross-plane V8 loops replace the
+    // old Lada 1200 recording (brax_engine_*.ogg stay on disk, unused).
+    public const string EngineIdleAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/v8_idle_850.ogg";
+    public const string EngineRevAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/v8_low_2200.ogg";
+    public const string EngineHighAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/v8_high_4800.ogg";
     const float LengthMetres = 4.95f; // Source estate's DlugoscRealna["car_rev"]
     // Owner 9.11: "Auto miało też złą skalę bo małe jakieś było" and, on the
     // old 6 m cap: "Nie mam limitu na nic ... wszystko ma być odpowiednie pod
@@ -269,11 +272,11 @@ public static class BraxChampionsCarBuilder
         car.doorAxis = Vector3.left; // scissor: MoveDoor(-65) lifts the rear of the door
         // Same proportions as the 4.95 m source, enlarged with the body.
         car.wheelbase = 2.7f * CarScale;
-        // Owner 9.11: "ma się rozpędzać do 120 km". The world is K-scaled, so a
+        // Owner 9.11: "do 120 km", then "przyspieszyć do 150, żeby mógł zwiedzać". K-scaled world: a
         // real 120 km/h is 120/3.6 x K world units per second; SpeedKph divides
         // K back out. Same for reverse and the acceleration/braking feel.
         car.worldScale = K;
-        car.maxSpeed = 120f / 3.6f * K; car.reverseMaxSpeed = 30f / 3.6f * K;
+        car.maxSpeed = 150f / 3.6f * K; car.reverseMaxSpeed = 30f / 3.6f * K;
         car.acceleration = 7.2f * K; car.braking = 11f * K;
         car.interactionRadius = 3.8f * CarScale;
 
@@ -287,12 +290,14 @@ public static class BraxChampionsCarBuilder
         car.engineAudioAnchor = audioAnchor;
         car.engineIdleClip = AssetDatabase.LoadAssetAtPath<AudioClip>(EngineIdleAudio);
         car.engineRevClip = AssetDatabase.LoadAssetAtPath<AudioClip>(EngineRevAudio);
+        car.engineHighClip = AssetDatabase.LoadAssetAtPath<AudioClip>(EngineHighAudio);
         if (!car.engineIdleClip || !car.engineRevClip)
             BraxBuildQuality.Warn("A1_CAR_AUDIO_PENDING: Issue #30 audio binaries missing. Expected "
                 + EngineIdleAudio + " and " + EngineRevAudio);
         else
             Debug.Log("A1_CAR_AUDIO_ASSIGNED idle=" + car.engineIdleClip.name
-                + " rev=" + car.engineRevClip.name + " realRecordings=true");
+                + " low=" + car.engineRevClip.name + " high=" + (car.engineHighClip ? car.engineHighClip.name : "MISSING")
+                + " engine=crossplane_V8_synth gearbox=6 rpm=850..6800");
         // If wheels are individual GLB nodes, the runtime animates their
         // existing transforms; no substitute wheel meshes are created.
         var wheelRoots = copy.GetComponentsInChildren<Transform>(true)
@@ -305,7 +310,7 @@ public static class BraxChampionsCarBuilder
         Debug.Log("A1_OWNER_CAR_INSTALLED original=car_rev length=" +
             bounds.size.z.ToString("F2") + " width=" + bounds.size.x.ToString("F2")
             + " height=" + bounds.size.y.ToString("F2") + " K=" + K.ToString("F4")
-            + " driverHipsTarget=" + seat.localPosition + " maxSpeedKph=120real(xK) reverseKph=30 worldLength=" + WorldLengthMetres.ToString("F2")
+            + " driverHipsTarget=" + seat.localPosition + " maxSpeedKph=150real(xK) reverseKph=30 worldLength=" + WorldLengthMetres.ToString("F2")
             + " bodyCollider=REAL_BOUNDS" +
             " start=(645.175,712) side=RIGHT centredInRegularBay=true driverDoorFacesWalkway=true originalDoor=" + (doorPivot != null) +
             " ownerAnimations=EnteringCar,Driving,ExitingCar" +
@@ -320,7 +325,8 @@ public sealed class BraxChampionsCarAudioImporter : AssetPostprocessor
     void OnPreprocessAudio()
     {
         if (assetPath != BraxChampionsCarBuilder.EngineIdleAudio &&
-            assetPath != BraxChampionsCarBuilder.EngineRevAudio) return;
+            assetPath != BraxChampionsCarBuilder.EngineRevAudio &&
+            assetPath != BraxChampionsCarBuilder.EngineHighAudio) return;
         var importer = assetImporter as AudioImporter;
         if (importer == null) return;
         importer.forceToMono = true;

@@ -29,9 +29,9 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         self.assertNotIn('LengthMetres * K / bounds.size.z', builder)
         self.assertIn('car.interactionRadius = 3.8f * CarScale;', builder)
         # Issue #30 owner contract: approved 120 km/h replaces obsolete 65 km/h.
-        self.assertIn('car.maxSpeed = 120f / 3.6f * K;', builder)
+        self.assertIn('car.maxSpeed = 150f / 3.6f * K;', builder)
         self.assertIn('car.worldScale = K;', builder)
-        self.assertIn('public float maxSpeed = 120f / 3.6f', read("unity-city/Assets/Mistrzowie/BraxChampionsCar.cs"))
+        self.assertIn('public float maxSpeed = 150f / 3.6f', read("unity-city/Assets/Mistrzowie/BraxChampionsCar.cs"))
         # Exact regular-bay centre: between x lines 43.65/46.70 and
         # centered in row z[-90.6,-85.4]. Never on paint or accessible bay.
         x, z = 645.175 - 600, 712 - 800

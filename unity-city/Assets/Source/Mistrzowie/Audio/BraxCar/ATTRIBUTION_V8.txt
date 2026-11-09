@@ -1,0 +1,8 @@
+BRAXHORN CITY — AUTO BRAXHORN — SILNIK V8 (9.11.2026)
+
+v8_idle_850.ogg, v8_low_2200.ogg, v8_high_4800.ogg
+Własna synteza, bez nagrań osób trzecich: unity-tools/mistrzowie/synth_v8_engine.py
+Model: 4-suwowy V8 z wałem krzyżowym, kolejność zapłonu 1-8-4-3-6-5-7-2, dwa rzędy
+cylindrów, impulsy wydechu przez rezonanse rury i tłumika, różnica rzędów (bulgot V8).
+Pomiar: dominuje rząd zapłonu (4.), półrzędy 1,5/2,5 = charakterystyka wału krzyżowego.
+Poprzednie nagranie (Lada 1200, ATTRIBUTION.txt) zostaje w repozytorium, nieużywane.
