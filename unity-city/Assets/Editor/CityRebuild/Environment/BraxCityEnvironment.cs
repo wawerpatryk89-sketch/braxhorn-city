@@ -35,6 +35,15 @@ public static class BraxCityEnvironment
     // (PŁOT GŁÓWNA: rendererów=0 w logu APK 8.11). Siatka + szlaban przed rondem NIE są w źródle ani w kodzie R1 — do ustalenia
     // z nagrania właściciela (kandydat: granica horyzontu / płot lasu BraxMiastoGranice).
     public static readonly int[] SourceViaductBollardMeshes = { 157,158,159,160,161,162 };
+    // 9.11 (właściciel, zdjęcie 16:58: podwójny napis „CLUB NOVA”): stary napis źródła na froncie dawnego daszka NOVA —
+    // CityMesh_675 (city_baked_509, 78 wierzchołków, x 39.7…44.3 = oś wejścia 42, y 3.25…3.81, płaski na z 34.39). Pas
+    // wycinania BraxNovaEntranceFinish (z 35.48…36.40) go nie obejmował, a bryła z 7.11 (y od 5.04) też nie — dlatego został
+    // pod nowym szyldem (y 3.62…4.86). Wyłączony po numerze, jak latarnie źródła.
+    public static readonly int[] SourceNovaOldSignMeshes = { 675 };
+    // 9.11 (właściciel: „przed rondem ogrodzenie na drodze z siatki i szlaban usunąć”): osobne siatki końca dawnego miasta (x −104):
+    // tablica 213 (płaska x −103.9, y 1.6…2.8, z 32.5…36.7), pachołki 215–218 (Orange_Cone_3, x −101.5) i blok 219 (Concrete_Block).
+    // Siatka, szlaban i budka są w scalonych siatkach — cięte bryłą w BraxRegionMiastoB.UsunPlotPrzedPierwszymRondem.
+    public static readonly int[] SourceOldCityEndMeshes = { 213, 215, 216, 217, 218, 219 };
     public static readonly Vector2[] SourceViaductBollardFeet = {   // Unity
         new Vector2(66.4f,24.6f),new Vector2(66.4f,26.2f),new Vector2(66.4f,27.8f),new Vector2(66.4f,29.4f),new Vector2(66.4f,31.0f),new Vector2(66.4f,32.6f)
     };

@@ -35,39 +35,33 @@ class R1StreetSafety(unittest.TestCase):
 
     def test_first_roundabout_location_is_grounded(self):
         self.assertIn("public const float RX = -126f, RZ = 28.5f",B)
-        self.assertIn("var exact = Bx(-106.25f, -102.95f",B)
-        self.assertIn("GZ - GH, GZ + GH",B)
-        self.assertGreater(-104.5-(-126),10)   # fence is east of the FIRST main roundabout
+        self.assertGreater(-104.5-(-126),10)   # płot stoi na wschód od PIERWSZEGO ronda (koniec dawnego miasta x −104)
 
-    def test_old_whole_renderer_condition_is_replaced(self):
+    def test_old_city_end_fence_is_cut_by_measured_volume(self):
+        # 9.11: płot/szlaban/budka są w scalonych siatkach źródła — szukanie po nazwie nic nie znalazło (log APK 9.11).
+        body = B[B.index("static void UsunPlotPrzedPierwszymRondem("):B.index("static string Sciezka(")]
         self.assertIn("UsunPlotPrzedPierwszymRondem(korzenie)",B)
-        self.assertNotIn("plot.Contains(b.min) && plot.Contains(b.max)",B)
-        self.assertIn("bool Poprzeczna(Bounds b)",B)
-        self.assertIn('n.Contains("chain link")',B)
-        self.assertIn('n.Contains("szlaban")',B)
-        self.assertIn('n.Contains("barrier")',B)
+        self.assertIn("var brama = Bx(-104.7f, -99.2f, .22f, 6.0f, 20.75f, 35.95f)", body)   # między licami budynków, nad nawierzchnią
+        self.assertIn("BraxCityMeshCut.Subtract(src, brama", body)                           # tylko źródło miasta
+        self.assertIn("BraxClaudeGround.SourceCity", body)
+        self.assertNotIn("DestroyImmediate(g);", body)
 
-    def test_fence_never_clears_whole_street_or_building(self):
-        self.assertIn("q.size.y > 6.0f || q.size.x > 21.0f",B)
-        self.assertIn("q.size.z > 24.0f",B)
-        self.assertIn("if (!named && !shape) continue",B)
-        self.assertIn("if (!q.Intersects(road)) continue;",B)
-        self.assertIn("Chroniony(r.transform)",B)
-        self.assertNotIn("DestroyImmediate(g);",B[B.index("static void UsunPlotPrzedPierwszymRondem("):
-                                             B.index("static string Sciezka(")])
+    def test_fence_colliders_cleaned_without_threshold_across_road(self):
+        body = B[B.index("static void UsunPlotPrzedPierwszymRondem("):B.index("static string Sciezka(")]
+        self.assertIn("c.enabled = false; kolizje++;", body)
+        self.assertIn("q.size.x > 6f", body)                                                  # tylko wąskie (słupki, siatka, szlaban)
+        self.assertIn("BRAXHORN_GLOWNA_PLOT", body)
 
-    def test_fence_mesh_and_physics_colliders_both_cleaned(self):
-        self.assertIn("UnityEngine.Object.DestroyImmediate(r.gameObject)",B)
-        self.assertIn("foreach(var c in g.GetComponentsInChildren<Collider>(true).ToArray())",B)
-        self.assertIn("c.enabled=false;",B)
-        self.assertIn("BRAXHORN_GLOWNA_PLOT DO POPRAWKI",B)
-        self.assertIn("kolizji=",B)
+    def test_old_city_end_separate_meshes_disabled_by_number(self):
+        env = (ROOT / "unity-city/Assets/Editor/CityRebuild/Environment/BraxCityEnvironment.cs").read_text(encoding="utf-8")
+        reb = (ROOT / "unity-city/Assets/Editor/CityRebuild/BraxCityRebuild.cs").read_text(encoding="utf-8")
+        self.assertIn("SourceOldCityEndMeshes = { 213, 215, 216, 217, 218, 219 }", env)
+        self.assertIn("Disable(original,BraxCityEnvironment.SourceOldCityEndMeshes)", reb)
+        self.assertIn("SourceNovaOldSignMeshes = { 675 }", env)
+        self.assertIn("Disable(original,BraxCityEnvironment.SourceNovaOldSignMeshes)", reb)
 
-    def test_original_city_mesh_names_are_verified_from_source_manifest(self):
-        self.assertIn('Assets/Source/City/city-manifest.json', B)
-        self.assertIn('JsonUtility.FromJson<BraxCityBuild.Manifest>', B)
-        self.assertIn('ObcaPrzeszkoda(originalName)', B)
-        # odbiór latarni/ławek też przez manifest nazw źródła, nie po CityMesh_N
+    def test_source_manifest_used_for_street_furniture(self):
+        # odbiór latarni/ławek przez manifest nazw źródła, nie po CityMesh_N
         self.assertIn('labels[m.name] = m.originalName', B)
         self.assertIn('LatarniaZrodla(name)', B)
 

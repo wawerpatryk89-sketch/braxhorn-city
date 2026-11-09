@@ -203,6 +203,8 @@ public static class BraxCityRebuild
         // 9.11: źródłowe latarnie ulicy głównej (dubel z nowymi) i pachołki-zapora pod wiaduktem — po numerach, z kolizjami.
         Disable(original,BraxCityEnvironment.SourceMainStreetLampMeshes);
         Disable(original,BraxCityEnvironment.SourceViaductBollardMeshes);
+        Disable(original,BraxCityEnvironment.SourceNovaOldSignMeshes);   // 9.11: stary napis „CLUB NOVA” pod nowym szyldem
+        Disable(original,BraxCityEnvironment.SourceOldCityEndMeshes);    // 9.11: tablica, pachołki i blok końca dawnego miasta (x −104)
         int lampCols=RemoveRoundColliders(physics,BraxCityEnvironment.SourceMainStreetLampFeet,.35f,6f);
         int bollardCols=RemoveRoundColliders(physics,BraxCityEnvironment.SourceViaductBollardFeet,.35f,.3f);
         Debug.Log("BRAXHORN_ULICA_ZRODLO latarnie_wylaczone="+BraxCityEnvironment.SourceMainStreetLampMeshes.Length/3+" kolizje_latarni="+lampCols+

@@ -121,10 +121,25 @@ public static class BraxZnakiPL
         for (int i = 0; i < sm.Length && i < src_m.subMeshCount; i++) if (sm[i] && !sm[i].name.StartsWith("Metal")) lico = i;
         if (lico < 0) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_ZNAKI_PL " + plik + ": nie znaleziono podsiatki lica"); return; }
         var V = src_m.vertices; var N = src_m.normals; var T = src_m.GetTriangles(lico);
-        Vector3 n = Vector3.zero;
-        for (int i = 0; i + 2 < T.Length; i += 3) { var a = M.MultiplyPoint3x4(V[T[i]]); var b = M.MultiplyPoint3x4(V[T[i + 1]]); var c = M.MultiplyPoint3x4(V[T[i + 2]]); n += Vector3.Cross(b - a, c - a); }
+        // 9.11 (log APK 9.11: wszystkie 65 tarcz „płyta płaska”, 3D z paczki: 0 — „lico nie jest pionowe”, „proporcje 0.04”):
+        // lico w paczce jest DWUSTRONNE (przód i tył w tej samej podsiatce) — zwykła suma normalnych się zerowała albo wychodziła
+        // wzdłuż krawędzi. Teraz: normalne trójkątów zwrócone zgodnie z pierwszym (oś płyty niezależnie od strony), a przód =
+        // strona, po której leży lico względem blachy (środek podsiatki lica vs środek reszty siatki).
+        Vector3 n = Vector3.zero, wzor = Vector3.zero, sL = Vector3.zero; int nL = 0;
+        for (int i = 0; i + 2 < T.Length; i += 3)
+        {
+            var a = M.MultiplyPoint3x4(V[T[i]]); var b = M.MultiplyPoint3x4(V[T[i + 1]]); var c = M.MultiplyPoint3x4(V[T[i + 2]]);
+            var cr = Vector3.Cross(b - a, c - a);
+            if (wzor == Vector3.zero && cr.sqrMagnitude > 1e-12f) wzor = cr;
+            n += Vector3.Dot(cr, wzor) < 0f ? -cr : cr; sL += a + b + c; nL += 3;
+        }
         n.y = 0f; if (n.sqrMagnitude < 1e-10f) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_ZNAKI_PL " + plik + ": lico nie jest pionowe"); return; }
         n.Normalize();
+        {
+            Vector3 sM = Vector3.zero; int nM = 0;
+            for (int k = 0; k < src_m.subMeshCount; k++) { if (k == lico) continue; foreach (int ix in src_m.GetTriangles(k)) { sM += M.MultiplyPoint3x4(V[ix]); nM++; } }
+            if (nM > 0 && nL > 0 && Vector3.Dot(n, sL / nL - sM / nM) < 0f) n = -n;   // lico po stronie normalnej
+        }
         var R = Quaternion.Inverse(Quaternion.LookRotation(n, Vector3.up));
         var P = new Vector3[V.Length]; Vector3 mn = Vector3.one * 1e9f, mx = Vector3.one * -1e9f;
         for (int i = 0; i < V.Length; i++) { P[i] = R * M.MultiplyPoint3x4(V[i]); mn = Vector3.Min(mn, P[i]); mx = Vector3.Max(mx, P[i]); }

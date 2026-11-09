@@ -451,6 +451,7 @@ public static partial class BraxRegionMiastoB
         // „glass|black|metal” powyżej 25·K m i wyłączała renderery ZABYTKU (blacha, obróbki) — „brak tekstur”.
         // Premium nowej części = osobne zlecenie po nagraniu właściciela; NdSzklo (szkło zamiast czarnych okien, 3.11) zostaje.
         // sylwetki z daleka wyłączone (budynki zostają w scenie głównej — patrz wyżej)
+        try { NdPrzytnijNawisy(); } catch (Exception e) { BraxMiastoAssety.Blad("nawisy budynków", e); }
         try { NdMigotanieBudynkow(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola podstaw budynków", e); }
         NdLog("szkło fasad: " + nSzklo + " materiałów na budynkach zamienione na szkło refleksyjne (czarny metal / szyby przed pustą bryłą)");
         NdLog("budynki: postawione " + ok + "/" + NoweBudynki.Length + (brak > 0 ? ", bez modelu " + brak + " (paczka nieodszyfrowana — kwartał zostaje z płytami)" : ""));
@@ -513,6 +514,71 @@ public static partial class BraxRegionMiastoB
 
     // kontrola: poziome trójkąty budynków w płaszczyźnie płyt (±2 cm nad podstawą) — leżałyby na chodniku (migotanie).
     // Offline usunięte (raport paczki: „podlogi_na_podstawie_usuniete”); tu sprawdzenie na siatkach po imporcie.
+    // 9.11 (właściciel: „Historyczny budynek … coś na nim wisi”; nagranie 16:58 — czarna przeszklona płyta nad KINNAIRD wysunięta
+    // z wieżowca obok). Modele Sketchfab mają nawisy/wsporniki projektowane nad SĄSIEDNIM budynkiem, którego u nas nie ma — u nas
+    // wiszą nad aleją i nad zabytkiem. Zasada: powyżej 6 m nad gruntem nic z bryły nie wychodzi poza obrys jej PARTERU (wierzchołki
+    // do 4.5 m) o więcej niż 1.5 m. Nawis liczony z geometrii (pole trójkątów), cięcie precyzyjne (BraxCityMeshCut.Subtract).
+    // Gzymsy i balkony (< 1.5 m) zostają. Jeśli „nawis” to > 25 % bryły (np. parter na słupach) — bez cięcia, ostrzeżenie.
+    static void NdPrzytnijNawisy()
+    {
+        const float Parter = 4.5f, OdWys = 6f, Zapas = 1.5f, MinPole = 40f;
+        int przyciete = 0;
+        foreach (var bud in ndBudynki)
+        {
+            if (!bud) continue;
+            float y0 = bud.transform.position.y;
+            var filtry = bud.GetComponentsInChildren<MeshFilter>(true).Where(f => f && f.sharedMesh && f.GetComponent<MeshRenderer>()).ToArray();
+            float fx0 = float.MaxValue, fx1 = float.MinValue, fz0 = float.MaxValue, fz1 = float.MinValue; int nieczytelne = 0;
+            foreach (var f in filtry)
+            {
+                if (!f.sharedMesh.isReadable) { nieczytelne++; continue; }
+                var m = f.transform.localToWorldMatrix;
+                foreach (var v in f.sharedMesh.vertices)
+                {
+                    var p = m.MultiplyPoint3x4(v);
+                    if (p.y > y0 + Parter) continue;
+                    fx0 = Mathf.Min(fx0, p.x); fx1 = Mathf.Max(fx1, p.x); fz0 = Mathf.Min(fz0, p.z); fz1 = Mathf.Max(fz1, p.z);
+                }
+            }
+            if (fx0 > fx1) { NdLog("nawis " + bud.name + ": brak obrysu parteru (nieczytelne siatki " + nieczytelne + ") — bez zmian"); continue; }
+            fx0 -= Zapas; fx1 += Zapas; fz0 -= Zapas; fz1 += Zapas;
+            double poleWszystko = 0, poleNawis = 0;
+            foreach (var f in filtry)
+            {
+                if (!f.sharedMesh.isReadable) continue;
+                var mesh = f.sharedMesh; var m = f.transform.localToWorldMatrix; var vs = mesh.vertices;
+                for (int sub = 0; sub < mesh.subMeshCount; sub++)
+                {
+                    var t = mesh.GetTriangles(sub);
+                    for (int i = 0; i + 2 < t.Length; i += 3)
+                    {
+                        Vector3 a = m.MultiplyPoint3x4(vs[t[i]]), b = m.MultiplyPoint3x4(vs[t[i + 1]]), c = m.MultiplyPoint3x4(vs[t[i + 2]]);
+                        float pole = Vector3.Cross(b - a, c - a).magnitude * .5f; poleWszystko += pole;
+                        var s0 = (a + b + c) / 3f;
+                        if (s0.y > y0 + OdWys && (s0.x < fx0 || s0.x > fx1 || s0.z < fz0 || s0.z > fz1)) poleNawis += pole;
+                    }
+                }
+            }
+            if (poleNawis < MinPole) continue;
+            if (poleNawis > poleWszystko * .25)
+            {
+                NdLog("nawis " + bud.name + ": " + poleNawis.ToString("F0") + " m² poza obrysem parteru (" + (100 * poleNawis / poleWszystko).ToString("F0") +
+                      " % bryły) — za dużo do automatu, DO POPRAWKI");
+                continue;
+            }
+            var bb = BraxRegion.Bounds(bud);
+            float yc = y0 + OdWys, yt = bb.max.y + 5f, xa = bb.min.x - 5f, xb = bb.max.x + 5f, za = bb.min.z - 5f, zb = bb.max.z + 5f;
+            Bounds Pud(float ax, float ay, float az, float bx, float by, float bz) { var q = new Bounds(); q.SetMinMax(new Vector3(ax, ay, az), new Vector3(bx, by, bz)); return q; }
+            int siatki = 0;
+            foreach (var pud in new[] { Pud(xa, yc, za, fx0, yt, zb), Pud(fx1, yc, za, xb, yt, zb), Pud(fx0, yc, za, fx1, yt, fz0), Pud(fx0, yc, fz1, fx1, yt, zb) })
+                if (pud.size.x > .01f && pud.size.z > .01f) siatki += BraxCityMeshCut.Subtract(bud.transform, pud, BraxRegion.Out + "/Cuts", "nawis_" + bud.name.Replace(' ', '_'));
+            przyciete++;
+            NdLog("nawis " + bud.name + ": przycięto " + poleNawis.ToString("F0") + " m² bryły wiszącej poza obrysem parteru (x " + (fx0 + Zapas).ToString("F1") + ".." +
+                  (fx1 - Zapas).ToString("F1") + ", z " + (fz0 + Zapas).ToString("F1") + ".." + (fz1 - Zapas).ToString("F1") + "), siatek " + siatki);
+        }
+        NdLog("nawisy: przycięte budynki " + przyciete + "/" + ndBudynki.Count);
+    }
+
     static void NdMigotanieBudynkow()
     {
         int pary = 0, siatek = 0, nieczytelne = 0;

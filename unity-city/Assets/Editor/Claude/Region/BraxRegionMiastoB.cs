@@ -235,150 +235,38 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         usuniete.Add("teren rozbudowy: obiekty " + obiekty + ", siatki wycięte " + siatki + ", kolizje " + kolizje);
     }
 
-    // Ulica główna z = 28.5, źródłowy płot przecinający ją przy x≈−104.
-    // Zdjęcie właściciela 7.11: siatka, szlaban czerwono-biały i betonowe
-    // zapory na zebrze; usunąć ZARÓWNO geometrię, JAK I kolizje.
+    // 9.11 (właściciel rano: „przed rondem ogrodzenie na drodze z siatki i szlaban usunąć”; zdjęcie 16:40 — siatka przez całą
+    // ulicę, szlaban czerwono-biały, budka, tablica „OSIEDLE …”). Pomiar źródła (obrysy 724 siatek CityMesh): to KONIEC dawnego
+    // miasta (x −104). Siatka, szlaban i budka są w SCALONYCH siatkach źródła (CityMesh_221/228/232/233, obrys x −104.05…84) —
+    // dlatego szukanie po nazwie i kształcie z 7.11 nic nie znalazło („brak rozpoznanej siatki płotu”, log APK 9.11). Osobne
+    // siatki: tablica CityMesh_213 (x −103.9), pachołki 215–218 i blok betonowy 219 — wyłączone po numerach (BraxCityRebuild).
+    // Tu: cięcie bryłą przez całą szerokość ulicy z chodnikami (między licami budynków: z 20.6 płd. / 36.1 płn.), od 0.22 m
+    // (nawierzchnia i krawężniki zostają) do 6 m, TYLKO w źródle miasta; kolizje źródła w tym pasie wyłączone / przycięte.
     static void UsunPlotPrzedPierwszymRondem(List<GameObject> korzenie)
     {
-        var exact = Bx(-106.25f, -102.95f, -.20f, 5.0f, 18.9f, 38.1f);
-        var road = Bx(-107.0f, -102.5f, .10f, 5.1f, GZ - GH, GZ + GH);
-        // Oryginał Unity importuje nazwy 724 siatek jako CityMesh_N,
-        // więc sama nazwa Renderera NIE identyfikuje siatki płotu.
-        // Manifest source GLTF zachowuje ich opisowe originalName.
-        var labels = new Dictionary<string,string>(StringComparer.Ordinal);
-        const string manifestPath = "Assets/Source/City/city-manifest.json";
-        try
+        var brama = Bx(-104.7f, -99.2f, .22f, 6.0f, 20.75f, 35.95f);
+        int siatki = 0, kolizje = 0;
+        var src = BraxClaudeGround.SourceCity;
+        if (!src) { Debug.LogWarning("BRAXHORN_GLOWNA_PLOT DO POPRAWKI: brak źródła miasta (SourceCity) — płot przy x −104 nietknięty"); return; }
+        try { siatki = BraxCityMeshCut.Subtract(src, brama, BraxRegion.Out + "/Cuts", "koniec_starego_miasta_plot_szlaban"); }
+        catch (Exception e) { usuniete.Add("PŁOT GŁÓWNA: cięcie źródła: " + e.Message); }
+        var fiz = BraxClaudeGround.SourcePhysics;
+        if (fiz)
         {
-            if(File.Exists(manifestPath))
+            // słupki, siatka, szlaban, budka: wąskie w osi x, w pasie końca miasta — wyłączone w całości (bez progu 0.22 m w poprzek)
+            foreach (var c in fiz.GetComponentsInChildren<Collider>(true))
             {
-                var manifest=JsonUtility.FromJson<BraxCityBuild.Manifest>(
-                    File.ReadAllText(manifestPath));
-                if(manifest!=null && manifest.meshes!=null)
-                    foreach(var item in manifest.meshes)
-                        if(item!=null && !string.IsNullOrEmpty(item.name) &&
-                           !string.IsNullOrEmpty(item.originalName))
-                            labels[item.name]=item.originalName;
+                if (!c || !c.enabled || c.isTrigger) continue;
+                var q = c.bounds;
+                if (!q.Intersects(brama) || q.max.y < .3f || q.size.x > 6f || q.min.x < brama.min.x - .5f || q.max.x > brama.max.x + .5f) continue;
+                c.enabled = false; kolizje++;
             }
-            else usuniete.Add("PŁOT GŁÓWNA: brak manifestu oryginalnych nazw siatek");
+            try { kolizje += BraxCityMeshCut.SubtractBoxColliders(fiz, brama); }
+            catch (Exception e) { usuniete.Add("PŁOT GŁÓWNA: przycięcie kolizji: " + e.Message); }
         }
-        catch(Exception e)
-        {
-            usuniete.Add("PŁOT GŁÓWNA: nie można odczytać manifestu: "+e.Message);
-        }
-        bool ObcaPrzeszkoda(string nazwa)
-        {
-            string n = (nazwa ?? "").ToLowerInvariant();
-            return n.Contains("fence") || n.Contains("chain link") ||
-                   n.Contains("chainlink") || n.Contains("ogrodzen") ||
-                   n.Contains("płot") || n.Contains("plot ") ||
-                   n.Contains("szlaban") || n.Contains("barrier") ||
-                   n.Contains("barricade") || n.Contains("roadblock") ||
-                   n.Contains("zapora") || n.Contains("kozioł") ||
-                   n.Contains("kozlo") || n.Contains("pachoł") ||
-                   n.Contains("pachol");
-        }
-        bool Poprzeczna(Bounds b) =>
-            b.Intersects(road) && Mathf.Abs(b.center.x + 104.5f) < 2.7f &&
-            b.size.x < 3.5f && b.size.z > 6.5f &&
-            b.size.y > .45f && b.size.y < 6.0f &&
-            b.min.z < GZ-1f && b.max.z > GZ+1f;
-        var removed = 0; var disabled = 0; var clipped = 0; var colliders = 0; var splitColliders = 0; var unresolved = 0;
-        var descriptions = new List<string>();
-        foreach (var g in korzenie)
-        {
-            if (!g || Chroniony(g.transform)) continue;
-            foreach (var r in g.GetComponentsInChildren<MeshRenderer>(true).ToArray())
-            {
-                if (!r || !r.enabled || Chroniony(r.transform)) continue;
-                Bounds q = r.bounds;
-                if (!q.Intersects(exact) || q.max.y < .5f) continue;
-                bool named = ObcaPrzeszkoda(r.name) ||
-                    (labels.TryGetValue(r.name,out var originalName) &&
-                     ObcaPrzeszkoda(originalName));
-                for(var t = r.transform.parent; t && !named && t != g.transform.parent; t = t.parent)
-                    named = ObcaPrzeszkoda(t.name);
-                // Nienazwana siatka musi wyglądać geometrycznie jak płot
-                // w POPRZEK jezdni. Sam fakt położenia obok nie wystarcza.
-                bool shape = Poprzeczna(q);
-                if (!named && !shape) continue;
-                if (!q.Intersects(road)) continue;
-                // Nie niszczymy długiego ogrodzenia (może ciągnąć się
-                // za jezdnią) ani połączonego mesha. Wycinamy jedynie pas
-                // blokujący przejście; pozostałe trójkąty źródła zostają.
-                if (q.size.y > 6.0f || q.size.x > 21.0f || q.size.z > 24.0f)
-                {
-                    if (named && q.size.y <= 8f)
-                    {
-                        try
-                        {
-                            int cut = BraxCityMeshCut.Subtract(r.transform, exact,
-                                BraxRegion.Out + "/Cuts", "plot_poprzeczny_glowna");
-                            if (cut > 0) { clipped += cut; continue; }
-                        }
-                        catch (Exception e)
-                        {
-                            usuniete.Add("PŁOT GŁÓWNA DO POPRAWKI cięcie siatki: " + e.Message);
-                        }
-                    }
-                    unresolved++;
-                    continue;
-                }
-                string id = Sciezka(r.transform);
-                if(r.transform.childCount==0)
-                {
-                    UnityEngine.Object.DestroyImmediate(r.gameObject);
-                    removed++;
-                }
-                else
-                {
-                    // Inny renderer może mieć wspólnego rodzica z budynkiem;
-                    // znikają wyłącznie trójkąty pojedynczej przeszkody.
-                    r.enabled = false;
-                    foreach(var c in r.GetComponents<Collider>()) c.enabled=false;
-                    disabled++;
-                }
-                if (descriptions.Count < 25) descriptions.Add(id + " [" +
-                    (shape?"geometria_poprzeczna":"nazwa_zapory") + "]");
-            }
-            // Stare collidery często były na osobnym pustym obiekcie:
-            // nie zależą od tego, czy usunięto renderer.
-            foreach(var c in g.GetComponentsInChildren<Collider>(true).ToArray())
-            {
-                if(!c || !c.enabled || c.isTrigger || Chroniony(c.transform) ||
-                    !c.bounds.Intersects(exact) || !c.bounds.Intersects(road))continue;
-                var q=c.bounds;
-                bool shape=Poprzeczna(q);
-                bool named=ObcaPrzeszkoda(c.name);
-                for(var t=c.transform.parent;t && !named && t!=g.transform.parent;t=t.parent)
-                    named=ObcaPrzeszkoda(t.name);
-                if(!(shape||named) || q.size.y>8f || q.size.x>21f)continue;
-                if (q.size.z>24f && c is BoxCollider)
-                {
-                    try
-                    {
-                        int cut = BraxCityMeshCut.SubtractBoxColliders(c.transform, exact);
-                        if (cut>0) { splitColliders+=cut; continue; }
-                    }
-                    catch(Exception e)
-                    {
-                        usuniete.Add("PŁOT GŁÓWNA DO POPRAWKI cięcie kolizji: "+e.Message);
-                    }
-                    unresolved++;
-                    continue;
-                }
-                if(q.size.z>24f) { unresolved++; continue; }
-                c.enabled=false;
-                colliders++;
-            }
-        }
-        usuniete.Add("PŁOT GŁÓWNA PRZED RONDEM: rendererów usuniętych=" +
-            removed+" wyłączonych="+disabled+" cięć_siatek="+clipped+
-            " kolizji="+colliders+" cięć_kolizji="+splitColliders+
-            " nierozpoznanych="+unresolved+
-            (descriptions.Count>0?" ["+string.Join("; ",descriptions)+"]":""));
-        if (removed+disabled+clipped==0)
-            Debug.LogWarning("BRAXHORN_GLOWNA_PLOT DO POPRAWKI: brak rozpoznanej " +
-                "siatki płotu x=-104.5 z=28.5; nie usuwano elementów na ślepo");
+        usuniete.Add("PŁOT + SZLABAN końca starego miasta (x −104): cięte siatki źródła " + siatki + ", kolizje " + kolizje);
+        Debug.Log("BRAXHORN_GLOWNA_PLOT koniec starego miasta x −104…−99.2, z 20.75…35.95, y 0.22…6: cięte siatki źródła " + siatki + ", kolizje " + kolizje);
+        if (siatki == 0) Debug.LogWarning("BRAXHORN_GLOWNA_PLOT DO POPRAWKI: w pasie x −104.7…−99.2 nie było czego ciąć — sprawdzić nagranie");
     }
 
     static string Sciezka(Transform t) { var s = t.name; for (var p = t.parent; p && s.Length < 160; p = p.parent) s = p.name + "/" + s; return s; }
@@ -678,7 +566,9 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         var trawa = Dysk("Rondo: trawnik wyspy", c, RWyspa - Kr, YC - .03f, 64); Nawierzchnia(trawa);
         BraxRegionTrawa.Teren(trawa.GetComponent<MeshRenderer>(), true, false);
         Plyta("Rondo: podłoże wyspy", beton, RX - RWyspa, RX + RWyspa, RZ - RWyspa, RZ + RWyspa, YC - .06f, .3f, false);
-        Pozniej("rzeźba", () => Rzezba(NaPodlozu(new Vector3(RX, YC - .03f, RZ))));
+        // 9.11 (zdjęcia właściciela ronda): „rzeźba” z 24 walców na czarnym cokole z boku wyglądała jak brązowy słup na skrzyni —
+        // NIE stawiana (co łatwiej usunąć niż poprawić). Na wyspie zostaje trawnik i drzewa. Rzezba() zostaje w kodzie na prawdziwy model.
+        // Pozniej("rzeźba", () => Rzezba(NaPodlozu(new Vector3(RX, YC - .03f, RZ))));
         foreach (var a in new[] { 40f, 160f, 280f }) { var p = c + new Vector2(Mathf.Cos(a * Mathf.Deg2Rad), Mathf.Sin(a * Mathf.Deg2Rad)) * 4.6f; Drzewo(new Vector3(p.x, YC - .03f, p.y)); }
         // latarnie na narożnikach placu
         foreach (var a in new[] { 45f, 135f, 225f, 315f })

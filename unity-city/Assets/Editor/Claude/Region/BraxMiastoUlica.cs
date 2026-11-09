@@ -101,15 +101,16 @@ internal static class BraxMiastoUlica
         var okr = BraxUliceKit.S(BraxMiastoA.Tex("Ulica: okrywa zielona misy drzewa", 1.2f, new Color(.85f, 1f, .8f), new Color(.20f, .36f, .14f), .95f, "leafy_grass", "aerial_grass_rock", "forest_floor"));
         float cIn = a - bw;
         okr.Quad(new Vector3(p.x - cIn, p.y - .03f, p.z - cIn), new Vector3(p.x - cIn, p.y - .03f, p.z + cIn), new Vector3(p.x + cIn, p.y - .03f, p.z + cIn), new Vector3(p.x + cIn, p.y - .03f, p.z - cIn), Vector3.up);
-        var lis1 = BraxUliceKit.S(BraxMiastoA.Mat("Ulica: byliny misy (liście)", new Color(.16f, .40f, .12f), .9f, 0f));
-        var lis2 = BraxUliceKit.S(BraxMiastoA.Mat("Ulica: byliny misy (liście jasne)", new Color(.32f, .52f, .18f), .9f, 0f));
-        for (int i = 0; i < 6; i++)
-        {
-            float an = (i * 60f + 20f) * Mathf.Deg2Rad, rr = cIn * .62f;
-            var q = new Vector3(p.x + Mathf.Cos(an) * rr, p.y - .03f, p.z + Mathf.Sin(an) * rr);
-            (i % 2 == 0 ? lis1 : lis2).Walec(q, .13f * K, .18f + .05f * (i % 3), 9);
-            (i % 2 == 0 ? lis2 : lis1).Walec(q + new Vector3(.07f, 0f, .05f), .08f * K, .26f + .04f * (i % 2), 7);
-        }
+        // 9.11 (właściciel, zdjęcia: „zielone klocki” pod drzewami): byliny z walców 7–9-kątnych wyglądały jak zielone klocki — USUNIĘTE.
+        // W misie: okrywa zielona (wyżej) + 3 kępy trawy z modeli Poly Haven (grass_medium), niskie (≤ 0.35 m), bez kolizji.
+        var trawa = BraxRegion.Model("grass_medium_01", "grass_medium_02");
+        if (trawa)
+            for (int i = 0; i < 3; i++)
+            {
+                float an = (i * 120f + 35f) * Mathf.Deg2Rad, rr = cIn * .55f;
+                BraxRegion.Put(root, trawa, "Drzewo w kracie: kępa trawy", new Vector3(p.x + Mathf.Cos(an) * rr, p.y - .03f, p.z + Mathf.Sin(an) * rr),
+                               (i * 97f + p.x * 13f) % 360f, 1f, false, .35f * K);
+            }
         BraxMiastoA.Kol(kol, "krata drzewa", new Vector3(p.x - a, p.y - .3f, p.z - a), new Vector3(p.x + a, p.y, p.z + a));
         var m = BraxRegion.Model("drzewo_verdant");
         if (!m) return false;

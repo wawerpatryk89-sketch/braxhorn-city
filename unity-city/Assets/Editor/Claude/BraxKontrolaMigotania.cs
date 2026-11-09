@@ -312,8 +312,10 @@ public static class BraxKontrolaMigotania
             // drugiej plyty. Rejon R1 obejmuje tez cala wyspe i ma
             // powiekszony limit czasu; kosztowne przypadki sa raportowane.
             // Bledy wizualne pozostaja ostrzezeniami, bez przerywania APK.
-            int limitS = BraxKontrola.Obszar == "miasto" ? 90 : 240;
-            int limitMesh = BraxKontrola.Obszar == "miasto" ? 320 : 600;
+            // 9.11 (właściciel, zdjęcia ulicy: „mozaika” na kamienicach): APK 9.11 — pominięte_budżet=574 przy 90 s / 320 siatek,
+            // czas cięcia 97 s. Miasto dostaje budżet osiedla ×1.25: 300 s / 800 siatek (≈ +3.5 min buildu, pamięć: kopie siatek elewacji).
+            int limitS = BraxKontrola.Obszar == "miasto" ? 300 : 240;
+            int limitMesh = BraxKontrola.Obszar == "miasto" ? 800 : 600;
             if (stoper.Elapsed.TotalSeconds > limitS || powierzchnie >= limitMesh) { pominieteBudzet++; continue; }
             var r = grupa.Key; var mf = r ? r.GetComponent<MeshFilter>() : null;
             if (!mf || !mf.sharedMesh) { pominieteBezSiatki++; continue; }

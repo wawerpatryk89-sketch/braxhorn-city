@@ -141,7 +141,43 @@ public static class BraxSupermarket
                 }
             }
         }
+        // 9.11 (właściciel: „w sklepie stoi drzewo i nie można wejść” — nadal w APK 9.11, zdjęcie 16:40): drzewa źródła i zieleni
+        // nie mają nazw „drzewo/tree” (scalone, „CityMesh_…”, LOD Verdant) — rozpoznanie po nazwie nic nie dało (usuniete_drzewa=0).
+        // GEOMETRIA: każdy obcy obiekt stojący (wys. > 0.6 m, obrys < 12 m — drzewo, krzew, latarnia, ławka, kosz, znak) ze ŚRODKIEM
+        // w hali albo w świetle wejścia — precz w całości (z LODGroup, żeby nie została korona/pień innego LOD). Nawierzchnie
+        // (płaskie) i budynki (duże) nietknięte.
+        var obce = new HashSet<GameObject>();
+        foreach (var go in scene.GetRootGameObjects())
+        {
+            if (!go) continue;
+            foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!r || r is SkinnedMeshRenderer || r.transform.IsChildOf(shopRoot) || !r.enabled || !r.gameObject.activeInHierarchy) continue;
+                var rb = r.bounds;
+                if (rb.size.y < .6f || rb.size.x > 12f || rb.size.z > 12f) continue;
+                var stopa = new Vector3(rb.center.x, rb.min.y + .05f, rb.center.z);
+                if (!Inside(stopa, true) && !Inside(stopa, false)) continue;
+                var lg = r.GetComponentInParent<LODGroup>();
+                var cel = lg && !lg.transform.IsChildOf(shopRoot) && BraxRegion.Bounds(lg.gameObject).size.x < 12f ? lg.gameObject : r.gameObject;
+                if (cel.transform == go.transform && go.transform.childCount > 64) continue;   // nie kasuj całego korzenia sceny
+                obce.Add(cel);
+            }
+        }
+        foreach (var o in obce) if (o && !generated.Contains(o)) { generated.Add(o); trees++; }
         foreach (var tr in generated) if (tr) UnityEngine.Object.DestroyImmediate(tr);
+        // kolizje bez renderera (pnie, słupki) w hali i w wejściu — też precz (nie kolizje samego sklepu)
+        foreach (var go in scene.GetRootGameObjects())
+        {
+            if (!go) continue;
+            foreach (var c in go.GetComponentsInChildren<Collider>(true))
+            {
+                if (!c || c.transform.IsChildOf(shopRoot) || c.isTrigger) continue;
+                var cb = c.bounds;
+                if (cb.size.y < .6f || cb.size.x > 12f || cb.size.z > 12f) continue;
+                var stopa = new Vector3(cb.center.x, cb.min.y + .05f, cb.center.z);
+                if (Inside(stopa, true) || Inside(stopa, false)) { UnityEngine.Object.DestroyImmediate(c); trunks++; }
+            }
+        }
 
         // Usunięte drzewa nie mogą pozostawić niewidzialnego pnia kolizji.
         foreach (var go in scene.GetRootGameObjects())
