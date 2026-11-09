@@ -23,6 +23,9 @@ using W = BraxWnetrzaKit;
 // T06 = owner photo 3: polished black marble, gold curved balconies with LED,
 // central glass core rising above the roof, ground + 4. Faces road X800
 // (the Z330 side is the back of plot H3 MMA).
+// T07 = owner photo 5 with details of photo 4: white body, black marble corner
+// volume, timber slat screen, sharp white balconies with timber soffits.
+// Faces road X1130 (east).
 // Rooms are FINISHED (oak floors, painted walls, white ceilings with downlights,
 // marble bathrooms, doors with walnut casings, terrazzo corridors, stair, lift)
 // and EMPTY: no furniture, no kitchen units, no sanitary fittings (owner).
@@ -49,7 +52,7 @@ public static class BraxChampionsApartments
 
     // Plan inventory (plan_inventory.json, 60x60 "rental" plots). Front = local -Z,
     // turned toward the nearest road: T04/T05 face road Z650, T06/T07 road Z330.
-    enum Style{CurvedWrap,Loggia,MarbleGold}
+    enum Style{CurvedWrap,Loggia,MarbleGold,MarbleCorner}
     // walk = local z (front = -z) where the path meets the road sidewalk.
     struct Plot { public string id, name; public float x, z, yaw, halfW, halfD, loggia, walk; public int floors; public Style style; }
     static readonly Plot[] Plots={
@@ -59,8 +62,10 @@ public static class BraxChampionsApartments
         new Plot{id="T05",name="APARTAMENTY 2",x=1040,z=570,yaw=180f,halfW=17f,halfD=9f,floors=4,style=Style.Loggia,loggia=2.0f,walk=-63.2f},
         // owner photo 3: ground + 4, black marble, gold curved balconies, glass core; front west to road X800 (sidewalk x 817)
         new Plot{id="T06",name="APARTAMENTY 3",x=870,z=450,yaw=90f,halfW=17f,halfD=9f,floors=5,style=Style.MarbleGold,loggia=0f,walk=-53.2f},
+        // owner photo 5 + details of 4: ground + 3, white, black marble corner, timber slats; front east to road X1130 (sidewalk x 1113)
+        new Plot{id="T07",name="APARTAMENTY 4",x=1040,z=450,yaw=270f,halfW=17f,halfD=9f,floors=4,style=Style.MarbleCorner,loggia=0f,walk=-73.2f},
     };
-    public static readonly string[] Ids={"T04","T05","T06"};
+    public static readonly string[] Ids={"T04","T05","T06","T07"};
 
     // ---------------- materials (region textures reused, ASTC 6x6 ids) ----------------
     static readonly Dictionary<string,Material> mats=new Dictionary<string,Material>();
@@ -258,7 +263,7 @@ public static class BraxChampionsApartments
     }
 
     // ---------------- façade ----------------
-    enum Seg{Glass,Door,Render,Timber,Panel}
+    enum Seg{Glass,Door,Render,Timber,Panel,Marble}
     struct Part{public float a,b;public Seg s;public Part(float a,float b,Seg s){this.a=a;this.b=b;this.s=s;}}
     static Transform outside,details,inside;
     // One storey band of a façade. alongX: plane z=c, else plane x=c; nrm = outward sign.
@@ -281,7 +286,7 @@ public static class BraxChampionsApartments
             }
             else
             {
-                var mat=p.s==Seg.Timber?timber:p.s==Seg.Panel?panel:skin;float t=.30f;
+                var mat=p.s==Seg.Timber?timber:p.s==Seg.Panel?panel:p.s==Seg.Marble?marbleBlack:skin;float t=.30f;
                 if(alongX)Box(mat,p.a,p.b,y0,y1,c-t*.5f,c+t*.5f,true);else Box(mat,c-t*.5f,c+t*.5f,y0,y1,p.a,p.b,true);
                 W.Grupa=inside;W.Wnetrze=true;                                     // painted inner face
                 float i0=nrm<0?c+t*.5f:c-t*.5f-.01f,i1=i0+.01f;
@@ -442,7 +447,8 @@ public static class BraxChampionsApartments
         Site();
         Structure();
         CommonFacades();
-        int panes=style==Style.CurvedWrap?FrontAndRoofT04():style==Style.Loggia?FrontAndRoofT05():FrontAndRoofT06();
+        int panes=style==Style.CurvedWrap?FrontAndRoofT04():style==Style.Loggia?FrontAndRoofT05():
+                  style==Style.MarbleGold?FrontAndRoofT06():FrontAndRoofT07();
         panes+=RearBalconies();
         Interior(lights);
 
@@ -690,6 +696,59 @@ public static class BraxChampionsApartments
         Box(gold,-HalfW-.01f,HalfW+.01f,RoofTop+.9f,RoofTop+.94f,HalfD-.26f,HalfD+.01f);
         foreach(float sx in new[]{-1f,1f})
             Box(gold,sx<0?-HalfW-.01f:HalfW-.26f,sx<0?-HalfW+.26f:HalfW+.01f,RoofTop+.9f,RoofTop+.94f,-HalfD+.26f,HalfD-.26f);
+        Box(deck,-HalfW+.25f,HalfW-.25f,RoofTop,RoofTop+.02f,-HalfD+.25f,HalfD-.25f);
+        return panes;
+    }
+
+    // ---- T07 (owner photo 5 + details of 4): white body, black marble corner volume, timber slats ----
+    static int FrontAndRoofT07()
+    {
+        float c=-HalfD+.15f,top=RoofTop+.9f;
+        const float m0=9.2f;                                                                // marble corner from the right living partition
+        for(int f=1;f<Floors;f++)
+            FacadeBand(true,c,-1f,f,new[]{new Part(-HalfW,-16.4f,Seg.Render),new Part(-16.4f,-14.4f,Seg.Glass),new Part(-14.4f,-12.6f,Seg.Door),
+                new Part(-12.6f,-.6f,Seg.Glass),new Part(-.6f,.6f,Seg.Render),new Part(.6f,8.6f,Seg.Glass),new Part(8.6f,m0,Seg.Render),
+                new Part(m0,10.2f,Seg.Marble),new Part(10.2f,15.8f,Seg.Glass),new Part(15.8f,HalfW,Seg.Marble)});
+        W.Grupa=outside;W.Wnetrze=false;
+        // black marble corner volume: 30 cm proud frame on the front and around the corner, ground to parapet
+        Box(marbleBlack,m0-.2f,m0+.2f,CeilingOf(0),top,-HalfD-.30f,-HalfD,true);                   // inner fin
+        Box(marbleBlack,HalfW-.6f,HalfW+.30f,Ffl0,top,-HalfD-.30f,-HalfD+.6f,true);                // corner post
+        for(int f=1;f<=Floors;f++)Box(marbleBlack,m0-.2f,HalfW+.30f,Level(f)-Slab-.06f,Level(f)+.06f,-HalfD-.30f,-HalfD,true);
+        float sw=-HalfD+1.9f;                                                                       // side window of the front living
+        foreach(var z in new[]{(-HalfD+.6f,sw),(sw+2.2f,-3f)})
+            Box(marbleBlack,HalfW,HalfW+.03f,Ffl0,top,z.Item1,z.Item2,true);
+        for(int f=1;f<=Floors;f++)Box(marbleBlack,HalfW,HalfW+.03f,Level(f)-Slab,Level(f),sw,sw+2.2f);
+        Box(marbleBlack,HalfW,HalfW+.30f,Ffl0,top,-3.3f,-3f,true);                                   // side end fin
+        // sharp white balconies on the left, timber soffit and LED (photo 4), frameless glass 1.10 m
+        int panes=0;
+        for(int f=1;f<Floors;f++)
+        {
+            float deckTop=Level(f)-.03f;
+            var poly=RoundRect(-HalfW+.6f,-.9f,-HalfD-2.0f,-HalfD,0f,new[]{false,false,false,false});
+            W.Grupa=outside;
+            Prism(poly,deckTop-.25f,deckTop,deck,render,timber,true);
+            bool Outer(Vector2 p,Vector2 q)=>!(Mathf.Abs(p.y+HalfD)<.01f&&Mathf.Abs(q.y+HalfD)<.01f);
+            panes+=Ribbon(poly,.06f,deckTop,deckTop+Balustrade,.012f,clearGlass,true,Outer);
+            W.Grupa=details;
+            Ribbon(poly,.10f,deckTop-.25f-.012f,deckTop-.25f,.05f,led,false,Outer);
+            foreach(float t in new[]{.2f,.4f,.6f,.8f})Downlight(-HalfW+.6f+(HalfW-1.5f)*t,-HalfD-1.0f,deckTop-.25f);
+        }
+        // timber slat screen (50 x 150 @ 150 mm) in front of the right bedrooms, on black rails
+        W.Grupa=outside;
+        Box(black,.9f,8.4f,CeilingOf(0)-.06f,CeilingOf(0),-HalfD-.30f,-HalfD-.12f);
+        Box(black,.9f,8.4f,RoofTop-.06f,RoofTop,-HalfD-.30f,-HalfD-.12f);
+        for(int i=0;i<50;i++){float x=.975f+i*.15f;Box(timber,x-.025f,x+.025f,CeilingOf(0),RoofTop,-HalfD-.30f,-HalfD-.15f);}
+        // flat roof: white parapet .90 m with black coping; marble parapet over the corner volume
+        Box(render,-HalfW,m0-.2f,RoofTop,top,-HalfD,-HalfD+.25f,true);
+        Box(render,-HalfW,HalfW,RoofTop,top,HalfD-.25f,HalfD,true);
+        Box(render,-HalfW,-HalfW+.25f,RoofTop,top,-HalfD+.25f,HalfD-.25f,true);
+        Box(render,HalfW-.25f,HalfW,RoofTop,top,-3f,HalfD-.25f,true);
+        Box(marbleBlack,m0-.2f,HalfW,RoofTop,top,-HalfD,-HalfD+.25f,true);
+        Box(marbleBlack,HalfW-.25f,HalfW,RoofTop,top,-HalfD+.25f,-3f,true);
+        Box(black,-HalfW-.01f,m0-.2f,top,top+.03f,-HalfD-.01f,-HalfD+.26f);
+        Box(black,-HalfW-.01f,HalfW+.01f,top,top+.03f,HalfD-.26f,HalfD+.01f);
+        Box(black,-HalfW-.01f,-HalfW+.26f,top,top+.03f,-HalfD+.26f,HalfD-.26f);
+        Box(black,HalfW-.26f,HalfW+.01f,top,top+.03f,-3f,HalfD-.26f);
         Box(deck,-HalfW+.25f,HalfW-.25f,RoofTop,RoofTop+.02f,-HalfD+.25f,HalfD-.25f);
         return panes;
     }

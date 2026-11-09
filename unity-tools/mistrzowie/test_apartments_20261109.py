@@ -58,9 +58,9 @@ class Apartments20261109(unittest.TestCase):
         inv = {b["id"]: b for b in json.loads((ROOT / "unity-tools/mistrzowie/plan_inventory.json").read_text(encoding="utf-8"))["buildings"]}
         designs = plots()
         # one building at a time, A-Z, in the agreed order
-        self.assertEqual(list(designs), ["T04", "T05", "T06"])
-        self.assertIn('Ids={"T04","T05","T06"}', SRC)
-        self.assertEqual([d["style"] for d in designs.values()], ["CurvedWrap", "Loggia", "MarbleGold"])
+        self.assertEqual(list(designs), ["T04", "T05", "T06", "T07"])
+        self.assertIn('Ids={"T04","T05","T06","T07"}', SRC)
+        self.assertEqual([d["style"] for d in designs.values()], ["CurvedWrap", "Loggia", "MarbleGold", "MarbleCorner"])
         half = const("PlotHalf")
         for pid, d in designs.items():
             plot = inv[pid]
@@ -75,6 +75,8 @@ class Apartments20261109(unittest.TestCase):
                 self.assertAlmostEqual(plot["z"] - d["walk"], 633.2, places=3)
             elif d["yaw"] == 90.0:         # front -X: road X800, sidewalk to x 817
                 self.assertAlmostEqual(plot["x"] + d["walk"], 816.8, places=3)
+            elif d["yaw"] == 270.0:        # front +X: road X1130, sidewalk from x 1113
+                self.assertAlmostEqual(plot["x"] - d["walk"], 1113.2, places=3)
             else:
                 self.fail(pid + " unexpected yaw")
         # T06 must not face Z330: plot H3 MMA (830..920, 360..400) lies between it and that road
@@ -108,7 +110,7 @@ class Apartments20261109(unittest.TestCase):
             self.assertNotIn(banned, SRC)
         # four apartments per floor, ground + 3
         self.assertEqual(SRC.count("Apartment(f,") + SRC.count("Apartment(0,"), 6)
-        self.assertEqual([d["floors"] for d in plots().values()], [4, 4, 5])
+        self.assertEqual([d["floors"] for d in plots().values()], [4, 4, 5, 4])
 
     def test_accessible_with_collisions(self):
         self.assertIn("W.Rampa(", SRC)                          # stairs and entrance ramp walkable
@@ -178,6 +180,23 @@ class ApartmentT06MarbleGold(unittest.TestCase):
         self.assertIn("front parapet stops at the core", SRC)
         # five storeys: roof at 17.10 m, still inside the 44 m interior-visibility zone
         self.assertAlmostEqual(level(5), 17.10, places=3)
+
+
+class ApartmentT07MarbleCorner(unittest.TestCase):
+    """Owner photo 5 (+ details of 4): white body, black marble corner, timber slats, wood soffits."""
+
+    def test_marble_corner_and_slats(self):
+        t07 = plots()["T07"]
+        self.assertEqual((t07["floors"], t07["style"], t07["yaw"]), (4, "MarbleCorner", 270.0))
+        self.assertIn("static int FrontAndRoofT07()", SRC)
+        self.assertIn("black marble corner volume: 30 cm proud frame", SRC)
+        self.assertIn("new Part(m0,10.2f,Seg.Marble)", SRC)
+        # marble corner starts at the right living partition (X(lu) = 16.7 - 7.5)
+        w = (t07["halfW"] - .3) - .1
+        self.assertAlmostEqual((t07["halfW"] - .3) - round(.45 * w * 10) / 10, 9.2, places=3)
+        self.assertIn("const float m0=9.2f;", SRC)
+        self.assertIn("for(int i=0;i<50;i++){float x=.975f+i*.15f;", SRC)          # 50 slats @ 150 mm
+        self.assertIn("Prism(poly,deckTop-.25f,deckTop,deck,render,timber,true);", SRC)  # timber soffits
 
 
 if __name__ == "__main__":
