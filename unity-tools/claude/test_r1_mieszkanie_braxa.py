@@ -49,6 +49,19 @@ class R1MieszkanieBraxa(unittest.TestCase):
         self.assertIn("EkranTV(A,", FLAT)
         self.assertIn("listwa dźwiękowa", (REG / "BraxRegionBraxFlat.cs").read_text(encoding="utf-8"))
 
+    def test_bathroom_and_bedroom_have_working_doors(self):
+        # 9.11 17:20: „drzwi do łazienki i pokoju drugiego” — stałe skrzydło w połowie otworu → BraxCityDoor
+        self.assertIn('PokojDrzwi(world, A, "BRAX_FLAT_BATH", "ŁAZIENKA"', FLAT)
+        self.assertIn('PokojDrzwi(world, A, "BRAX_FLAT_BEDROOM", "SYPIALNIA"', FLAT)
+        self.assertIn("Oscieznica(A, dab, chrom, ZH, bd0, bd1, true, Fl, 2.1f * k * .97f, false)", FLAT)
+        self.assertIn("Oscieznica(A, dab, chrom, XS + .05f, sd0, sd1, false, Fl, 2.1f * k * .97f, false)", FLAT)
+        body = FLAT[FLAT.index("static void PokojDrzwi("):]
+        self.assertIn("AddComponent<BraxCityDoor>()", body)
+        self.assertIn("world.doors = world.doors.Concat", body)
+
+    def test_mirrors_have_reflection_probes(self):
+        self.assertIn("AddComponent<ReflectionProbe>()", FLAT)
+
 
 if __name__ == "__main__":
     unittest.main()

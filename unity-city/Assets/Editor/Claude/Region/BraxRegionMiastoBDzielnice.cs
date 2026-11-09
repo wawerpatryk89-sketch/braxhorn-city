@@ -562,9 +562,11 @@ public static partial class BraxRegionMiastoB
             if (poleNawis < MinPole) continue;
             if (poleNawis > poleWszystko * .25)
             {
-                NdLog("nawis " + bud.name + ": " + poleNawis.ToString("F0") + " m² poza obrysem parteru (" + (100 * poleNawis / poleWszystko).ToString("F0") +
-                      " % bryły) — za dużo do automatu, DO POPRAWKI");
-                continue;
+                // parter mały (budynek na słupach / z podcieniem): granica = działka z planu (b.x ± w/2, b.z ± d/2), nie parter
+                var plan = NoweBudynki.FirstOrDefault(q => "Budynek " + q.id == bud.name);
+                if (plan == null) { NdLog("nawis " + bud.name + ": " + (100 * poleNawis / poleWszystko).ToString("F0") + " % bryły poza parterem, brak planu działki — DO POPRAWKI"); continue; }
+                fx0 = plan.x - plan.w * .5f - Zapas; fx1 = plan.x + plan.w * .5f + Zapas; fz0 = plan.z - plan.d * .5f - Zapas; fz1 = plan.z + plan.d * .5f + Zapas;
+                NdLog("nawis " + bud.name + ": " + (100 * poleNawis / poleWszystko).ToString("F0") + " % bryły poza parterem — granica = działka z planu " + plan.w.ToString("F1") + " × " + plan.d.ToString("F1") + " m");
             }
             var bb = BraxRegion.Bounds(bud);
             float yc = y0 + OdWys, yt = bb.max.y + 5f, xa = bb.min.x - 5f, xb = bb.max.x + 5f, za = bb.min.z - 5f, zb = bb.max.z + 5f;
@@ -577,6 +579,28 @@ public static partial class BraxRegionMiastoB
                   (fx1 - Zapas).ToString("F1") + ", z " + (fz0 + Zapas).ToString("F1") + ".." + (fz1 - Zapas).ToString("F1") + "), siatek " + siatki);
         }
         NdLog("nawisy: przycięte budynki " + przyciete + "/" + ndBudynki.Count);
+        // 9.11 (właściciel, zdjęcie 17:21: czarna przeszklona bryła z żółtym szyldem wisi nad KINNAIRD): przestrzeń NAD zabytkiem
+        // jest wolna — każda siatka innego budynku (i każdy inny obiekt sceny < 300 m) nad obrysem KINNAIRD (+1 m) od wysokości
+        // jego najwyższego punktu − 1 m w górę zostaje wycięta. Sam zabytek nietknięty.
+        var kin = ndBudynki.FirstOrDefault(q => q && q.name == "Budynek KINNAIRD");
+        if (kin)
+        {
+            var kb = BraxRegion.Bounds(kin);
+            var nad = new Bounds(); nad.SetMinMax(new Vector3(kb.min.x - 1f, kb.max.y - 1f, kb.min.z - 1f), new Vector3(kb.max.x + 1f, kb.max.y + 400f, kb.max.z + 1f));
+            int nadZabytkiem = 0; var kto = new List<string>();
+            foreach (var go in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+                foreach (var r in go.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    if (!r || !r.enabled || r.transform.IsChildOf(kin.transform)) continue;
+                    var rb = r.bounds; if (!rb.Intersects(nad) || rb.size.x > 300f || rb.size.z > 300f) continue;
+                    string nz = r.name.ToLowerInvariant();
+                    if (nz.Contains("panoram") || nz.Contains("niebo") || nz.Contains("horyzont") || nz.Contains("chmur")) continue;
+                    int n = BraxCityMeshCut.Subtract(r.transform, nad, BraxRegion.Out + "/Cuts", "nad_kinnaird");
+                    if (n > 0) { nadZabytkiem += n; if (kto.Count < 8) kto.Add(r.name); }
+                }
+            NdLog("KINNAIRD: wolna przestrzeń nad zabytkiem (y > " + (kb.max.y - 1f).ToString("F1") + " m) — wycięte siatki " + nadZabytkiem + (kto.Count > 0 ? " [" + string.Join(", ", kto) + "]" : ""));
+        }
+        else NdLog("KINNAIRD: brak budynku w scenie — kontrola przestrzeni nad zabytkiem pominięta");
     }
 
     static void NdMigotanieBudynkow()

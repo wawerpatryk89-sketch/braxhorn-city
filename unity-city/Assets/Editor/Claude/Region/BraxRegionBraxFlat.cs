@@ -219,13 +219,17 @@ public static class BraxRegionBraxFlat
         B(A, "Ściana W2 (przedpokój, przy W1)", bd1, XW, Fl, Ceil, ZH - .05f, ZH, paint, true);
         B(A, "Ściana W2 (płytki, przy W1)", bd1, XW, Fl, Ceil, ZH, ZH + .05f, plytki, true);
         B(A, "Ściana W2 (nadproże)", bd0, bd1, Fl + 2.1f * k * .97f, Ceil, ZH - .05f, ZH + .05f, paint, true);
-        Oscieznica(A, dab, chrom, ZH, bd0, bd1, true, Fl, 2.1f * k * .97f);
+        // 9.11 (właściciel: „drzwi do łazienki i pokoju drugiego” — na zdjęciach skrzydło stało na sztywno w połowie otworu):
+        // ościeżnica bez stałego skrzydła + prawdziwe drzwi (BraxCityDoor: otwierają się przy podejściu, same się zamykają)
+        Oscieznica(A, dab, chrom, ZH, bd0, bd1, true, Fl, 2.1f * k * .97f, false);
+        PokojDrzwi(world, A, "BRAX_FLAT_BATH", "ŁAZIENKA", new Vector3((bd0 + bd1) * .5f, Fl, ZH), true, bd1 - bd0, 2.1f * k * .97f, dab, chrom);
         // W3: x 47.0…47.1 (salon | sypialnia) z drzwiami sypialni przy ścianie tylnej
         float sd0 = 41.4f, sd1 = sd0 + .8f * k;
         B(A, "Ściana W3", XS, XS + .1f, Fl, Ceil, ZF, sd0, paint, true);
         B(A, "Ściana W3 (przy tylnej)", XS, XS + .1f, Fl, Ceil, sd1, ZB, paint, true);
         B(A, "Ściana W3 (nadproże)", XS, XS + .1f, Fl + 2.1f * k * .97f, Ceil, sd0, sd1, paint, true);
-        Oscieznica(A, dab, chrom, XS + .05f, sd0, sd1, false, Fl, 2.1f * k * .97f);
+        Oscieznica(A, dab, chrom, XS + .05f, sd0, sd1, false, Fl, 2.1f * k * .97f, false);
+        PokojDrzwi(world, A, "BRAX_FLAT_BEDROOM", "SYPIALNIA", new Vector3(XS + .05f, Fl, (sd0 + sd1) * .5f), false, sd1 - sd0, 2.1f * k * .97f, dab, chrom);
 
         // ---- listwy przypodłogowe (dąb, 8 cm, przy licach ścian pokoi) ----
         void Listwa(float x0, float x1, float z0, float z1) { if (x1 - x0 > .05f || z1 - z0 > .05f) W.MM(dab, x0, x1, y, y + .08f, z0, z1); }
@@ -440,6 +444,16 @@ public static class BraxRegionBraxFlat
                 W.Walec(BraxRegionMeble.Swiecacy("Mieszkanie: klosz oprawy", new Color(1f, .96f, .9f), 1.1f), lp - Vector3.up * .065f, .2f, .006f, 24);
             }
             Light(A, "Mieszkanie: światło", lp - Vector3.up * .4f, .85f, 6.5f);
+        }
+        // lustra w łazience i przedpokoju: sondy odbić (zasada właściciela 6.11 „Lustro = reflection probe”), raz przy wczytaniu
+        foreach (var (nazwa, a, b) in new[] { ("łazienka", new Vector3(AX0, Fl, ZH), new Vector3(XW, Ceil, ZB)), ("przedpokój", new Vector3(AX0, Fl, ZF), new Vector3(XW, Ceil, ZH)) })
+        {
+            var sg = new GameObject("Mieszkanie: sonda odbić (" + nazwa + ")"); sg.transform.SetParent(A, false); sg.transform.position = (a + b) * .5f;
+            var pr = sg.AddComponent<ReflectionProbe>();
+            pr.mode = UnityEngine.Rendering.ReflectionProbeMode.Realtime; pr.refreshMode = UnityEngine.Rendering.ReflectionProbeRefreshMode.OnAwake;
+            pr.timeSlicingMode = UnityEngine.Rendering.ReflectionProbeTimeSlicingMode.IndividualFaces;
+            pr.resolution = 64; pr.boxProjection = true; pr.size = b - a + new Vector3(.1f, .1f, .1f); pr.nearClipPlane = .05f;
+            pr.farClipPlane = Mathf.Max(3f, (b - a).magnitude + .5f); pr.importance = 2; pr.hdr = false; pr.shadowDistance = 0f;
         }
         int siatkiM = W.Zapisz("mieszkanie_braxa");
         Debug.Log("BRAXHORN_MIESZKANIE_BRAXA powierzchnia_m2=" + ((AX1 - AX0) * (AZ1 - InnerFaceZ)).ToString("F0") + " pokoje=przedpokój,łazienka,salon+aneks,sypialnia okna=" + windows.Count
@@ -716,6 +730,29 @@ public static class BraxRegionBraxFlat
         var col = hinge.gameObject.AddComponent<BoxCollider>(); col.center = new Vector3(dw * .5f, h * .5f, 0); col.size = new Vector3(dw, h, .08f);
         var door = entrance.gameObject.AddComponent<BraxCityDoor>();
         door.id = "BRAX_FLAT"; door.label = "MIESZKANIE BRAXA"; door.leaves = new[] { hinge }; door.sides = new[] { 1f };
+        if (world) world.doors = world.doors.Concat(new[] { door }).ToArray();
+    }
+
+    // Drzwi wewnętrzne mieszkania jak drzwi wejściowe (FlatDoor): skrzydło na zawiasie w osi ściany, klamki po obu stronach,
+    // kolizja skrzydła; BraxCityDoor odchyla skrzydło OD gracza, zamyka samo po 3 s bez nikogo w pobliżu.
+    // srodek — środek otworu na podłodze w płaszczyźnie ściany; wzdluzX — ściana wzdłuż x (otwór w osi x), inaczej wzdłuż z.
+    static void PokojDrzwi(BraxCityWorld world, Transform p, string id, string label, Vector3 srodek, bool wzdluzX, float otwor, float wys, Material wood, Material steel)
+    {
+        float dw = otwor - .02f, h = wys - .02f, kl = 1.05f * BraxMiastoA.K;
+        var entrance = new GameObject("Drzwi " + label.ToLowerInvariant() + " (działające)").transform;
+        entrance.SetParent(p, false); entrance.position = srodek; entrance.rotation = wzdluzX ? Quaternion.identity : Quaternion.Euler(0, 90f, 0);
+        var hinge = new GameObject("Actual hinged source door leaf").transform;
+        hinge.SetParent(entrance, false); hinge.localPosition = new Vector3(-dw * .5f, 0, 0);
+        BraxCityArchitecture.Box(label + ": skrzydło drzwi", hinge, new Vector3(dw * .5f, h * .5f, 0), new Vector3(dw - .01f, h - .01f, .04f), wood);
+        foreach (float sd in new[] { -1f, 1f })
+        {
+            BraxCityArchitecture.Box(label + ": szyld klamki", hinge, new Vector3(dw - .1f, kl - .03f, sd * .025f), new Vector3(.04f, .2f, .01f), steel);
+            BraxCityArchitecture.Box(label + ": klamka", hinge, new Vector3(dw - .16f, kl, sd * .05f), new Vector3(.13f, .022f, .022f), steel);
+        }
+        foreach (var t in hinge.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
+        var col = hinge.gameObject.AddComponent<BoxCollider>(); col.center = new Vector3(dw * .5f, h * .5f, 0); col.size = new Vector3(dw, h, .06f);
+        var door = entrance.gameObject.AddComponent<BraxCityDoor>();
+        door.id = id; door.label = label; door.leaves = new[] { hinge }; door.sides = new[] { 1f };
         if (world) world.doors = world.doors.Concat(new[] { door }).ToArray();
     }
 

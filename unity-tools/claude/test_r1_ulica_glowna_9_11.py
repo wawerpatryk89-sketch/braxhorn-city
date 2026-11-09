@@ -29,6 +29,15 @@ class R1UlicaGlowna(unittest.TestCase):
         self.assertIn("poleNawis > poleWszystko * .25", body)          # parter na słupach — bez cięcia, ostrzeżenie
         self.assertNotIn("SetActive(false)", body)
 
+    def test_airspace_above_heritage_is_free(self):
+        c = code("BraxRegionMiastoBDzielnice.cs")
+        body = c[c.index("static void NdPrzytnijNawisy()"):]
+        self.assertIn('q.name == "Budynek KINNAIRD"', body)
+        self.assertIn("kb.max.y + 400f", body)
+        self.assertIn('"nad_kinnaird"', body)
+        self.assertIn("r.transform.IsChildOf(kin.transform)", body)            # sam zabytek nietknięty
+        self.assertIn("granica = działka z planu", body)                       # duży nawis → granica działki, nie „pomiń”
+
     def test_no_green_block_perennials_under_street_trees(self):
         c = code("BraxMiastoUlica.cs")
         self.assertNotIn("byliny misy", c)
