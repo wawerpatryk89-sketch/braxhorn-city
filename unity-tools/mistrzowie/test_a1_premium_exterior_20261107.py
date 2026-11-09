@@ -157,7 +157,7 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("n=360;path=ellipse(96,59,n)",self.exterior_source)
 
     def test_parking_driveways_reach_city_road_without_sidewalk_step(self):
-        self.assertIn("A1_PARKING_ENTRANCES=[(531.8,660.0,6.4,7.0),(661.8,660.0,6.4,7.0)]",self.layout)
+        self.assertIn("A1_PARKING_ENTRANCES=[(531.8,660.0,6.4,7.0),(661.8,660.0,6.4,7.0),(577.8,918.0,6.4,7.0)]",self.layout)
         self.assertIn("A1_PARKING_ENTRANCES",self.foundation)
         self.assertIn("if any(inside((x,z),r) for r in A1_PARKING_ENTRANCES):return None",self.foundation)
         self.assertIn('"Parking road-to-city gentle asphalt entry"',self.arrival)
@@ -219,9 +219,10 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         # Athlete/changing floors stay green; only their walls use Wooden Panels.
         self.assertIn('"arena_athlete_floor_stone_tiles_owner", "stone_tiles"', self.arrival)
         self.assertIn('"arena_athlete_walls_wooden_panels_owner", "wooden_panels"', self.arrival)
-        self.assertIn('Changing room inner wall 1 | Wooden Panels', self.arrival)
-        self.assertIn('Changing room inner wall 2 | Wooden Panels', self.arrival)
-        self.assertIn('Changing room enclosed ceiling", ceiling', self.arrival)
+        athletes = (ROOT / 'unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaAthletes.cs').read_text(encoding='utf-8')
+        self.assertIn('"Changing room inner wall 1 | Wooden Panels" + "inner wall 2"', athletes)
+        self.assertIn('"Changing room enclosed ceiling", ceiling', athletes)
+        self.assertIn('AthleteRoomShells(root, arenaStoneFloor, athleteWoodWall, exterior["dark_stone"]);', self.arrival)
 
     def test_issue27_exact_trim_projections_and_interior_finish(self):
         # Fascia outer face: .121 + .242/2 = .242m.

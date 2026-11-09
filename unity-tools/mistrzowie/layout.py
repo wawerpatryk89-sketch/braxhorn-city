@@ -62,5 +62,9 @@ BUILDING_ACCESS=[(585,667,30,58),(817,805,8,20),(710,790,73,12)]
 # must cross ONLY the north sidewalk of Z650 (world z660..667). These two
 # rectangles are cut out of foundation paving and replaced by graded asphalt
 # meshes from the city-road surface to the arena parking level.
-A1_PARKING_ENTRANCES=[(531.8,660.0,6.4,7.0),(661.8,660.0,6.4,7.0)]
+# 9.11 owner ("parking mały dla zawodników"): the private athletes' car park
+# behind A1 gets one 6.4m driveway across the SOUTH sidewalk of Z935
+# (world z918..925) at world x577.8..584.2 (A1 local x -22.2..-15.8), clear
+# of reserved tram stop TR06 (x620) and bus stop U04 (x685).
+A1_PARKING_ENTRANCES=[(531.8,660.0,6.4,7.0),(661.8,660.0,6.4,7.0),(577.8,918.0,6.4,7.0)]
 EXTRA_CROSSINGS=[(800,815,'z')]

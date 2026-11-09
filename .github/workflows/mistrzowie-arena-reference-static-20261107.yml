@@ -56,6 +56,8 @@ jobs:
             unity-tools/mistrzowie/test_premium_reference_regression_20261107.py
             unity-tools/mistrzowie/test_arena_side_murals.py
             unity-tools/mistrzowie/test_owner_mural_import_advisory.py
+            # Vitrine marble source (ambientCG Marble016) is pinned in prepare_assets.py.
+            unity-tools/mistrzowie/prepare_assets.py
             unity-tools/validation
             unity-city/Assets/Editor/Mistrzowie
             unity-city/Assets/Mistrzowie

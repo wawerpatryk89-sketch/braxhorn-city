@@ -7,7 +7,7 @@ using UnityEngine;
 // A1 local coordinates are nominal metres, relative to the approved (600,800) plot.
 // Every primitive is multiplied by BraxClaudeOsiedle.K exactly once.
 // This does not modify player models, the estate arena, metro, or neighbouring plots.
-public static class BraxChampionsArenaArrival
+public static partial class BraxChampionsArenaArrival
 {
     const string Out = "Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/";
     const string BeltRoot = "Assets/Source/Mistrzowie/Trophies/";
@@ -316,38 +316,6 @@ public static class BraxChampionsArenaArrival
             new Vector3(0, 3.23f, 0), new Vector3(9.74f, .075f, .12f), false);
         var door = root.gameObject.AddComponent<BraxCityDoor>();
         door.id = id; door.label = label; door.leaves = hinges; door.sides = new[] { 1f, -1f };
-    }
-
-    static void DressingRooms(Transform parent, Material floor, Material woodWall, Material ceiling, Material bench, Material metal)
-    {
-        // Rear of adapted bowl = +Z. Athletes enter from north (+59) to original (+35) gate.
-        // Four-metre central route must remain unobstructed.
-        foreach (float side in new[] { -1f, 1f })
-        {
-            float mid = side * 14f, inner = side * 6.2f, outer = side * 22f;
-            Box(parent, "Athlete changing room floor | green Stone Tiles", floor,
-                new Vector3(mid, .239f, 45.5f), new Vector3(15.8f, .018f, 14f), false);
-            Box(parent, "Rear changing room exterior partition | Wooden Panels", woodWall,
-                new Vector3(mid, 1.9f, 52.5f), new Vector3(15.8f, 3.5f, .16f));
-            Box(parent, "Changing room front privacy partition | Wooden Panels", woodWall,
-                new Vector3(mid, 1.9f, 38.5f), new Vector3(15.8f, 3.5f, .16f));
-            Box(parent, "Changing room enclosed ceiling", ceiling,
-                new Vector3(mid, 3.62f, 45.5f), new Vector3(15.8f, .13f, 14f), false);
-            Box(parent, "Changing room outer partition | Wooden Panels", woodWall,
-                new Vector3(outer, 1.9f, 45.5f), new Vector3(.16f, 3.5f, 14f));
-            // Break the inward wall to leave a real 2.4m dressing-room entrance.
-            Box(parent, "Changing room inner wall 1 | Wooden Panels", woodWall,
-                new Vector3(inner, 1.9f, 41.2f), new Vector3(.16f, 3.5f, 5.4f));
-            Box(parent, "Changing room inner wall 2 | Wooden Panels", woodWall,
-                new Vector3(inner, 1.9f, 50.6f), new Vector3(.16f, 3.5f, 3.8f));
-            Box(parent, "Locker room bench", bench,
-                new Vector3(mid, .64f, 48.5f), new Vector3(4.8f, .25f, .65f));
-            for (int i = 0; i < 5; i++)
-                Box(parent, "Individual athlete locker", metal,
-                    new Vector3(mid - 5f + i * 2.45f, 1.48f, 51.5f),
-                    new Vector3(2.2f, 2.65f, .62f));
-            // Display name says what the room actually contains; no false WC/showers.
-        }
     }
 
     static Material ChampionshipBeltPbr()
@@ -1398,7 +1366,11 @@ public static class BraxChampionsArenaArrival
         Stanchions(root, exterior["gold"], redRope, redCarpet);
         Door(root, "CHAMPIONS_A1_PUBLIC", "Main public entrance", -59.04f, exterior["clear_glass"], exterior["steel"]);
         Door(root, "CHAMPIONS_A1_ATHLETES", "Separate athlete rear entrance", 59.04f, exterior["clear_glass"], exterior["steel"]);
-        DressingRooms(root, arenaStoneFloor, athleteWoodWall, exterior["dark_stone"], exterior["teak"], exterior["steel"]);
+        // Athletes' wing (BraxChampionsArenaAthletes.cs): same room shells and owner
+        // finishes, lux furniture, private rear car park and arrival walk.
+        AthleteRoomShells(root, arenaStoneFloor, athleteWoodWall, exterior["dark_stone"]);
+        BraxChampionsFoundation.Optional("szatnie zawodników lux", () => LuxDressingRooms(root, exterior));
+        BraxChampionsFoundation.Optional("tył areny: parking i wejście zawodników", () => AthleteRearArrival(root, exterior, asphalt, paint, sidewalk));
         Box(root, "Main lobby continuous RED carpet", redCarpet,
             // Join exterior carpet exactly at z=-59.3; previously the
             // interior runner started at -58.3 leaving a 1m bare threshold.
