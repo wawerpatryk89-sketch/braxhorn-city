@@ -1,3 +1,5 @@
+**ZASADA 1 (9.11.2026, dla KAŻDEGO wykonawcy i KAŻDEJ gałęzi): [ZASADA-1-BUDOWA-I-WAGA.md](ZASADA-1-BUDOWA-I-WAGA.md) — limity wagi APK, tekstury 1K na Androidzie, bez LZ4/Addressables, jak stawiać modele, zero pomocników, build tylko na słowo właściciela. Czytasz ją PRZED tym plikiem. Sprzeczne notatki innych wykonawców nie obowiązują.**
+
 BRAXHORN CITY — JEDYNA GLOBALNA INSTRUKCJA (wersja 6.11 wieczór)
 
 0. NAJPIERW
