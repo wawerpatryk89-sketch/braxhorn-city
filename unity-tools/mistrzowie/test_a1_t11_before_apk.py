@@ -70,10 +70,10 @@ class A1T11Preflight(unittest.TestCase):
             self.assertIn(text,exhibit)
         self.assertNotIn("REFERENCE black leather back panel",exhibit)
         self.assertNotIn("Podium(display",exhibit)
-        # Decorative parts never collide; the only solids are the marble
-        # pillar and the slat-wall backing (both visible).
+        # Decorative parts never collide; the only solid is the visible
+        # marble pillar (slat wall removed by the owner 9.11).
         self.assertIn("DestroyImmediate(cube.GetComponent<Collider>())",exhibit)
-        self.assertEqual(exhibit.count(",true);"),2)
+        self.assertEqual(exhibit.count(",true);"),1)
     def test_approval_only_quality_gates(self):
         build=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs")
         gate=source("unity-city/Assets/Editor/BraxBuildQuality.cs")

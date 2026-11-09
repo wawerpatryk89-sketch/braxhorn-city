@@ -102,7 +102,7 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
                         "REFERENCE black leather back panel"):
             self.assertNotIn(removed, box)
         self.assertIn("UnityEngine.Object.DestroyImmediate(cube.GetComponent<Collider>())", box)
-        self.assertIn("public const float LobbyX=6.6f, LobbyZ=-45.5f;", box)
+        self.assertIn("public const float LobbyX=4.0f, LobbyZ=WallMuralFaceZ-PylonD-.005f;", box)
         # Face-on 3D belt, true single-pane clear glass and untouched artwork.
         self.assertIn("A1_BELT_OWNER_3D_FRONT_PRESENTATION", box)
         self.assertIn("CrystalGlassPanel(display", box)

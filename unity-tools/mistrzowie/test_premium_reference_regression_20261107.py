@@ -99,14 +99,18 @@ class PremiumReferenceRegressions(unittest.TestCase):
             '"A1 VITRINE | gold belt pin"',
             '"A1 VITRINE | brushed brass plaque"',
             '"BRAXHORN ARENA"', '"CHAMPION\'S BELT"',
-            '"A1 VITRINE | slat wall dark backing"',
-            '"A1 VITRINE | dark bronze cylinder planter"',
         ):
             self.assertIn(marker, text)
         self.assertNotIn('REFERENCE black leather back panel', text)
         self.assertNotIn('Podium(display', text)
         self.assertNotIn('Wood veneer showcase plinth', text)
         self.assertNotIn('inner back inset', text)
+        # Owner 9.11: "po co ta deska obok" - no slat board, no twig planter.
+        self.assertNotIn('bronze slat', text)
+        self.assertNotIn('cylinder planter', text)
+        # Mounted on the hall wall, 5 mm in front of the entrance mural print.
+        self.assertIn('LobbyZ=WallMuralFaceZ-PylonD-.005f', text)
+        self.assertIn('o.transform.localRotation=Quaternion.Euler(0,180f,0);', text)
         # Black marble with white veins (photo); Poly Haven has none.
         self.assertIn('BraxChampionsFoundation.LibraryMarble("A1_vitrine_black_marble_veined"', text)
         self.assertIn('A1_VITRINE_MARBLE016_MISSING', text)

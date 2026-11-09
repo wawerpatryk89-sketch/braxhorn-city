@@ -443,16 +443,20 @@ public static class BraxChampionsBeltShowcase
     // pillar top, so its height is NOT measurable: 3.00 m is a design value
     // (owner may set it), the rest is measured.
     // The display is scaled by K ONCE, so every number below is real metres.
-    public const float LobbyX=6.6f, LobbyZ=-45.5f;
+    // Owner 9.11 (phone): "pas ma stać w dobrym miejscu, po co ta deska obok".
+    // The photo shows a WALL vitrine, not a pillar standing in the lobby. It
+    // now hangs on the hall front wall, RIGHT of the hall door as you walk the
+    // red carpet in, back face 5 mm in front of the mural print. Door half
+    // width 2.05 + gold portal .18 + 1.24 clear + half pillar .53 = x 4.0.
+    // Mural print face in building space: 63.3-(lobby wall face+.03) = -35.435.
+    public const float WallMuralFaceZ=63.3f-(BraxChampionsArena.FrontWallLobbyFaceZ+.03f);
+    public const float LobbyX=4.0f, LobbyZ=WallMuralFaceZ-PylonD-.005f;
     public const float BeltLength=1.27f;                        // ufc.com: 50 in
     public const float CaseW=.63f, CaseH=1.79f, CaseD=.28f;     // 478 x 1358 px
     public const float CaseBottom=.185f;                        // 140 px above floor
     public const float ShelfAbove=.28f;                         // glass shelf, 213 px
     public const float PylonW=1.06f, PylonD=.45f, PylonH=3.00f; // 801 px wide
     public const float PlaqueW=.46f, PlaqueH=.18f;              // 347 x 135 px
-    public const float SlatW=.03f, SlatPitch=.05f, SlatDepth=.05f;
-    public const int Slats=12;
-    public const float PlantAbovePot=.36f;                      // 274 px
     // Photo ratios relative to the hung belt length (pins and strap brackets).
     const float PinOffsetX=.0697f, TopPinBelowTop=.132f, BottomPinAboveBottom=.10f;
 
@@ -488,7 +492,9 @@ public static class BraxChampionsBeltShowcase
     {
         var o=new GameObject("A1 VITRINE | engraved text | "+text);
         o.transform.SetParent(parent,false);o.transform.localPosition=at;
-        // TextMesh reads correctly from -Z with identity rotation (case front).
+        // Phone proof b33: with identity rotation the engraving read MIRRORED
+        // from the case front (-Z). Yaw 180 puts the readable side on -Z.
+        o.transform.localRotation=Quaternion.Euler(0,180f,0);
         var t=o.AddComponent<TextMesh>();t.text=text;
         t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         t.fontSize=64;t.characterSize=lineHeight*10f/64f;
@@ -502,7 +508,7 @@ public static class BraxChampionsBeltShowcase
         float k=BraxClaudeOsiedle.K;
         var display=Group(arrivalRoot,"A1 LOBBY | owner-photo belt vitrine | black marble pillar | ONE 3D belt");
         display.localPosition=new Vector3(LobbyX,0,LobbyZ)*k;
-        display.localRotation=Quaternion.identity; // front (-Z) faces the entrance doors
+        display.localRotation=Quaternion.identity; // front (-Z) faces the lobby / entrance doors
         display.localScale=Vector3.one*k;
         // Stand on the real lobby floor (global rule §3: raycast down).
         Physics.SyncTransforms();
@@ -524,9 +530,6 @@ public static class BraxChampionsBeltShowcase
         var gold=SolidPbr("A1_belt_showcase_clean_gold",new Color(.835f,.639f,.231f),.19f,.98f);
         var brass=SolidPbr("A1_vitrine_brushed_brass",new Color(.78f,.62f,.30f),.34f,.95f);
         var dark=SolidPbr("A1_belt_showcase_plaque_recess",new Color(.035f,.037f,.042f),.24f,.35f);
-        // Slats: lit bronze, photo ratio R:G:B = 1 : .70 : .40. Pot: dark bronze (53,35,25).
-        var bronzeSlat=BraxChampionsFoundation.LibraryMetal("A1_vitrine_bronze_slats",new Color(.70f,.49f,.28f));
-        var bronzePot=BraxChampionsFoundation.LibraryMetal("A1_vitrine_dark_bronze_pot",new Color(.30f,.20f,.13f));
         Material marble;
         bool veinedMarble=true;
         try
@@ -574,7 +577,9 @@ public static class BraxChampionsBeltShowcase
         //    .20 m under the top and .14 m over the bottom (photo).
         foreach(float side in new[]{-1f,1f})
         foreach(float y in new[]{top-.20f,CaseBottom+.14f})
-            Cube(display,"A1 VITRINE | brass side bracket",gold,new Vector3(side*(CaseW*.5f+.0125f),y,front*.5f),new Vector3(.025f,.046f,CaseD));
+            // b33 phone proof: full-depth bars read as rods sticking out. The
+            // photo shows short clamps at the marble: 25 x 46 x 50 mm.
+            Cube(display,"A1 VITRINE | brass side bracket",gold,new Vector3(side*(CaseW*.5f+.0125f),y,-.025f),new Vector3(.025f,.046f,.05f));
 
         // 4) Warm LED (emissive, no shadows): recessed tray with a glowing
         //    frame under the top, two vertical lines at the back corners and
@@ -638,47 +643,6 @@ public static class BraxChampionsBeltShowcase
         foreach(float s in new[]{-1f,1f})
             Cube(display,"A1 VITRINE | engraved rule",dark,new Vector3(s*.135f,plaqueY-.047f,-.0115f),new Vector3(.07f,.002f,.001f));
 
-        // 7) Bronze slat wall to the right of the pillar on a dark backing
-        //    (photo: dark gaps), slat faces 5 cm behind the marble face.
-        float slatX0=PylonW*.5f,unitW=Slats*SlatPitch;
-        MetricCube(display,"A1 VITRINE | slat wall dark backing",dark,
-            new Vector3(slatX0+unitW*.5f,PylonH*.5f,.12f),new Vector3(unitW,PylonH,.04f),true);
-        for(int i=0;i<Slats;i++)
-            Cube(display,"A1 VITRINE | bronze slat "+i,bronzeSlat,
-                new Vector3(slatX0+SlatPitch*(i+.5f),PylonH*.5f,.05f+SlatDepth*.5f),new Vector3(SlatW,PylonH,SlatDepth));
-
-        // 8) Tall dark-bronze cylinder planter in front of the slats + plant.
-        const float potD=.30f,potH=.60f;
-        float potX=slatX0+.30f,potZ=-.22f;
-        var pot=GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        pot.name="A1 VITRINE | dark bronze cylinder planter";
-        pot.transform.SetParent(display,false);
-        pot.transform.localPosition=new Vector3(potX,potH*.5f,potZ);
-        pot.transform.localScale=new Vector3(potD,potH*.5f,potD);
-        pot.GetComponent<MeshRenderer>().sharedMaterial=bronzePot;
-        var shrubSource=AssetDatabase.LoadAssetAtPath<GameObject>(BraxChampionsArenaArrival.PremiumShrubSourcePath);
-        bool plantPlaced=false;
-        if(shrubSource)
-        {
-            var plant=PrefabUtility.InstantiatePrefab(shrubSource) as GameObject;
-            if(plant)
-            {
-                plant.name="A1 VITRINE | plant | original project GLB";
-                plant.transform.SetParent(display,false);
-                plant.transform.localPosition=new Vector3(potX,potH,potZ);
-                Physics.SyncTransforms();
-                var pb=VisualBounds(display,plant.transform);
-                // Leaves above the pot measured on the photo: 274 px = .36 m.
-                if(pb.size.y>.001f)plant.transform.localScale*=PlantAbovePot/pb.size.y;
-                Physics.SyncTransforms();
-                pb=VisualBounds(display,plant.transform);
-                plant.transform.localPosition+=new Vector3(potX-pb.center.x,potH-.02f-pb.min.y,potZ-pb.center.z);
-                foreach(var c in plant.GetComponentsInChildren<Collider>(true))UnityEngine.Object.DestroyImmediate(c);
-                plantPlaced=true;
-            }
-        }
-        if(!plantPlaced)BraxBuildQuality.Warn("A1_VITRINE_PLANT_MISSING: "+BraxChampionsArenaArrival.PremiumShrubSourcePath);
-
         // One warm vertex light in front of the case (no realtime shadows).
         var lamp=new GameObject("A1 VITRINE | warm vertex light").AddComponent<Light>();
         lamp.transform.SetParent(display,false);
@@ -686,11 +650,11 @@ public static class BraxChampionsBeltShowcase
         lamp.type=LightType.Point;lamp.color=new Color(1f,.86f,.62f);lamp.intensity=.85f;
         lamp.range=4.2f*k;lamp.shadows=LightShadows.None;lamp.renderMode=LightRenderMode.ForceVertex;
 
-        Debug.Log("A1_VITRINE_OWNER_PHOTO location=lobby x="+LobbyX+" z="+LobbyZ+" facing=entrance"+
+        Debug.Log("A1_VITRINE_OWNER_PHOTO location=hall_front_wall x="+LobbyX+" z="+LobbyZ+" facing=entrance"+
             " ruler=UFC_belt_1.27m=962px case="+CaseW+"x"+CaseH+"x"+CaseD+" bottom="+CaseBottom+
             " pillar="+PylonW+"x"+PylonH+"x"+PylonD+" marble="+(veinedMarble?"ambientCG_Marble016":"granite_tile_FALLBACK")+
             " belt="+belt.size.ToString("F2")+" pins="+pins+" brackets=4 LED=tray+2vertical+bottom"+
-            " plaque="+PlaqueW+"x"+PlaqueH+" slats="+Slats+" plant="+plantPlaced+" onFloor="+onFloor+" scale=K_once");
+            " plaque="+PlaqueW+"x"+PlaqueH+" mount=hall_wall_right_of_door slats=REMOVED plant=REMOVED onFloor="+onFloor+" scale=K_once");
     }
 
 }
