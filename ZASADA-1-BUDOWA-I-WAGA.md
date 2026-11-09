@@ -46,6 +46,11 @@ Zamiast tego — jak robią to duże realistyczne gry na Androida (Android Devel
 
 ## C. BUILD PLAYERA — ustawienia, których NIE zmienia się „na próbę”
 
+- **JEDNA GRA, JEDEN PLIK APK, INSTALUJE SIĘ NORMALNIE** (właściciel 9.11: „to ma być jedna wspólna gra, jedna zasada” — Miasto R1 instaluje się
+  normalnie, Mistrzowie wymagali pobierania i rozpakowywania zipów — ZABRONIONE). Żadnego OBB, „Split Application Binary”, zipów do rozpakowania,
+  pobierania po instalacji, własnych instalatorów ani skryptów na telefonie. Każdy rejon buduje ten sam `com.braxhorn.city` tym samym
+  kluczem; APK ląduje w Releases i instaluje się jednym dotknięciem jako aktualizacja. Play Asset Delivery (pkt A.5) dopiero wtedy, gdy
+  właściciel zdecyduje o publikacji w Google Play — nie wcześniej i nie na własną rękę.
 - `BuildOptions.None`. **Bez LZ4 / LZ4HC** (w R1 podniosło APK z 743 na 1349 MB). Zmiana kompresji buildu wymaga pomiaru przed/po i cytatu właściciela.
 - IL2CPP, **tylko ARM64**, stripping Managed = Medium lub wyżej. Bez x86, bez ARMv7.
 - **Bez Addressables, bez Asset Bundles, bez pakietów, których kod nie używa.** Nieużywany pakiet w `Packages/manifest.json` = do usunięcia.
@@ -96,7 +101,7 @@ Zamiast tego — jak robią to duże realistyczne gry na Androida (Android Devel
 
 - [ ] żadna nowa tekstura większa niż to, co widać (pkt A.2/B.1); duże zbijane przy imporcie
 - [ ] żadnego nowego pliku 4K/8K w repo ani w pobieraniu CI
-- [ ] `BuildOptions.None`, ARM64, brak nowych pakietów w `manifest.json`
+- [ ] jeden APK instalowany normalnie (bez OBB/zip/pobierania), `BuildOptions.None`, ARM64, brak nowych pakietów w `manifest.json`
 - [ ] każdy nowy obiekt: realny wymiar × K, raycast, materiał PBR z rejonu
 - [ ] testy statyczne + sprawdzacz C# zielone
 - [ ] commit z cytatem właściciela albo z „decyzja techniczna wg ZASADA-1 pkt …”
