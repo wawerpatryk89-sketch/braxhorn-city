@@ -159,10 +159,13 @@ public static partial class BraxClaudeOsiedle
             }
             defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla C0–C1 północ", petla = true, y = YA, punkty = new[] { P(nA[0]), P(nN[0]), P(nN[1]), P(nA[1]) } });
             defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla C2–C3 północ", petla = true, y = YA, punkty = new[] { P(nA[2]), P(nN[2]), P(nN[3]), P(nA[3]) } });
-            // Torowisko C1–C2 jest TYLKO dla tramwaju. Samochody nie jadą
-            // po jego osi i nie przecinają wagonu stojącego na przystanku.
-            // Kurs autobusu okrąża kwartał C0–C1: na Alei Centralnej wraca
-            // w kierunku +X, przy właściwej krawędzi zatoki (-Z).
+            // Torowisko C1–C2 (ul. Tramwajowa) jest TYLKO dla tramwaju: auta nie jadą po jego osi i nie wjeżdżają w wagon na przystanku.
+            // 9.11: 7.11 zdjęto razem z tym 2 z 4 pętli aut (C1–C2 południe, duża) i liczność 8→6 — mniej samochodów, choć właściciel
+            // 3.11 10:15 skarżył się „samochody zniknęły”. Zastępcze pętle OMIJAJĄ torowisko: duża po Nowojorskiej + C0/C3 + Alei,
+            // oraz C2–C3 południe po Tramwajowej poza odcinkiem torowiska (tor leży między C1 a C2).
+            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla C2–C3 południe (Tramwajowa poza torowiskiem)", petla = true, y = YA, punkty = new[] { P(nA[3]), P(nT[3]), P(nT[2]), P(nA[2]) } });
+            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla duża (Aleja, C3, Nowojorska, C0)", petla = true, y = YA, punkty = new[] { P(nA[0]), P(nA[1]), P(nA[2]), P(nA[3]), P(nN[3]), P(nN[2]), P(nN[1]), P(nN[0]) } });
+            // Kurs autobusu okrąża kwartał C0–C1: na Alei Centralnej wraca w kierunku +X, przy właściwej krawędzi zatoki (-Z).
             defs.Add(new BraxTrasyAut.Definicja { nazwa = "AUTOBUS Aleja Centralna C0-C1 kurs", petla = true, y = YA,
                 punkty = new[] { P(nA[0]), P(nT[0]), P(nT[1]), P(nA[1]) } });
         }
@@ -179,7 +182,8 @@ public static partial class BraxClaudeOsiedle
         ra.punkty = wy.punkty.ToArray(); ra.trasy = wy.trasy.ToArray(); ra.zdarzenia = wy.zdarzenia.ToArray(); ra.wezly = wy.wezly.ToArray(); ra.ziarno = 2111;
         var rnd = new System.Random(2111); var pula = PulaAut(szablony); var klakson = Klakson();
         var auta = new List<BraxAuto>(); int taksowki = 0;
-        int[] ile = { 5, 5, 4, 4, 2, 2 }; // po zablokowaniu torowiska C1-C2 nie ma tam samochodów   // + 4 pętle nowych dzielnic; właściciel 3.11 10:15: „gdzie ruch na ulicy, samochody zniknęły” — było 2 na trasę (8 aut w całym mieście B)
+        int[] ile = { 5, 5, 4, 3, 3, 3, 4 };   // 3 pętle miasta B (14 aut) + 4 pętle nowych dzielnic (13 aut); autobus osobno (busRoute → 0 aut z puli).
+                                              // właściciel 3.11 10:15: „gdzie ruch na ulicy, samochody zniknęły”; 9.11: po zdjęciu pętli północnej (parking) i C1–C2 (torowisko) auta rozłożone na pętle zastępcze, łącznie 27 jak przed 7.11
         for (int r = 0; r < wy.trasy.Count; r++)
             for (int k = 0; k < (r == busRoute ? 0 : r < ile.Length ? ile[r] : 1); k++)
             {

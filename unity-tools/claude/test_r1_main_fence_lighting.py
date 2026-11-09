@@ -1,6 +1,7 @@
-"""MIASTO R1: crossroad fence, street lamps and traffic-light pole regressions.
+"""MIASTO R1: płot przed pierwszym rondem i odbiór latarni (BraxRegionMiastoB).
 
-Static checks only. Real results require BraxGymBuild.SceneOnlyCityR1 in Unity 6.
+9.11: BraxR1StreetLightingAudit usunięty (dublował OdbiorWyposazeniaUlic) — jego testy zdjęte.
+Static checks only.
 """
 from pathlib import Path
 import math
@@ -12,7 +13,6 @@ REGION=ROOT/"unity-city/Assets/Editor/Claude/Region"
 EDITOR=ROOT/"unity-city/Assets/Editor"
 B=(REGION/"BraxRegionMiastoB.cs").read_text(encoding="utf8")
 CITY=(REGION/"BraxRegionRuchMiasta.cs").read_text(encoding="utf8")
-LAMPS=(EDITOR/"Claude/BraxR1StreetLightingAudit.cs").read_text(encoding="utf8")
 BUILD=(EDITOR/"BraxGymBuild.cs").read_text(encoding="utf8")
 
 
@@ -29,7 +29,7 @@ def paired(source):
 
 class R1StreetSafety(unittest.TestCase):
     def test_csharp_braces_and_parentheses(self):
-        for name,content in (("street",B),("traffic",CITY),("lighting",LAMPS),("build",BUILD)):
+        for name,content in (("street",B),("traffic",CITY),("build",BUILD)):
             with self.subTest(name=name):
                 self.assertTrue(paired(content))
 
@@ -67,9 +67,9 @@ class R1StreetSafety(unittest.TestCase):
         self.assertIn('Assets/Source/City/city-manifest.json', B)
         self.assertIn('JsonUtility.FromJson<BraxCityBuild.Manifest>', B)
         self.assertIn('ObcaPrzeszkoda(originalName)', B)
-        self.assertIn('sourceLabels[mesh.name]=mesh.originalName', LAMPS)
-        self.assertIn('HasWord(originalName,"latarnia","lampa uliczna","light pole","lightpole")', LAMPS)
-        self.assertIn('IsCandidate(tr,originalName,out bool street', LAMPS)
+        # odbiór latarni/ławek też przez manifest nazw źródła, nie po CityMesh_N
+        self.assertIn('labels[m.name] = m.originalName', B)
+        self.assertIn('LatarniaZrodla(name)', B)
 
     def test_lamp_arm_is_aimed_toward_actual_road(self):
         # Probe incrementally across the green strip, not just two stale points.
@@ -80,46 +80,6 @@ class R1StreetSafety(unittest.TestCase):
         self.assertIn("if (!frontRoad && backRoad)",B)
         self.assertIn("dir = -dir;",B)
         self.assertIn("DO WERYFIKACJI: brak jezdni w promieniu",B)
-
-    def test_all_city_lamps_are_discovered_and_scanned(self):
-        self.assertIn("foreach(var root in roots)",LAMPS)
-        self.assertIn("root.GetComponentsInChildren<Transform>(true)",LAMPS)
-        for s in ('n=="Latarnia uliczna"','n=="Latarnia parkowa"',
-                  'names.IndexOf("streetlight"','names.IndexOf("lamp post"'):
-            self.assertIn(s,LAMPS)
-        self.assertIn("lampsFound=lamps.Count",LAMPS)
-
-    def test_duplicates_and_bad_side_lamps_removed_only_when_grounded(self):
-        self.assertIn("Near(q.foot,lamp.foot,3.6f)",LAMPS)
-        self.assertIn("nearSignal=trafficPoles.Any",LAMPS)
-        self.assertIn("bool inRoad=BraxRegionMiastoB.NaJezdni(lamp.foot)",LAMPS)
-        self.assertIn("UnityEngine.Object.DestroyImmediate(lamp.t.gameObject)",LAMPS)
-        self.assertIn("if(lamp.t.GetComponentsInChildren<BraxSwiatloDrogowe>(true).Length>0)",LAMPS)
-        self.assertIn("BRAXHORN_R1_PLOT_LATARNIE",LAMPS)
-
-    def test_live_traffic_lights_and_other_regions_are_preserved(self):
-        self.assertIn("GetComponentsInChildren<BraxSwiatloDrogowe>(true)",LAMPS)
-        self.assertIn('n.StartsWith("claude wyspa")',LAMPS)
-        self.assertIn('n.Contains("osiedle")',LAMPS)
-        self.assertIn("old.stopSrodek.Length==light.stopSrodek.Length",LAMPS)
-        self.assertIn("Vector3.Distance(a,b)<.1f",LAMPS)
-        self.assertNotIn("DestroyImmediate(old.gameObject)",LAMPS)
-
-    def test_scene_reports_real_remaining_fence_collisions(self):
-        self.assertIn("Physics.OverlapCapsule(",LAMPS)
-        self.assertIn("FenceBlockers(scene,notes)",LAMPS)
-        self.assertIn("r1-plot-latarnie.json",LAMPS)
-        self.assertIn("blockersAcrossMainRoad=barriers",LAMPS)
-        self.assertIn("NIEGOTOWE",LAMPS)
-
-    def test_audit_runs_after_generation_before_quality_and_scene_save(self):
-        self.assertIn("BraxR1StreetLightingAudit.Run(scene)",BUILD)
-        self.assertLess(BUILD.index("BraxSupermarket.Wykonaj(scene,2)"),
-                        BUILD.index("BraxR1StreetLightingAudit.Run(scene)"))
-        self.assertLess(BUILD.index("BraxR1StreetLightingAudit.Run(scene)"),
-                        BUILD.index('BraxKontrola.Wszystko(scene,"miasto")'))
-        self.assertLess(BUILD.index("BraxR1StreetLightingAudit.Run(scene)"),
-                        BUILD.index('EditorSceneManager.SaveScene(scene,scenePath)'))
 
     def test_scene_only_workflow_still_does_not_trigger_apk(self):
         self.assertIn("public static void SceneOnlyCityR1()",BUILD)
