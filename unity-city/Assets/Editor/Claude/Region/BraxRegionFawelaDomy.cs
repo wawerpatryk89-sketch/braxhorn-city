@@ -766,13 +766,39 @@ public static partial class BraxRegionFawela
             KolF(rd, F, um, um + .62f, yF, yF + .9f * k, D - .5f, D);
         }
         if (pralnia)
-        {   // pralki pod lewą ścianą, stół do składania
+        {   // PRALKI: 4 stare automaty ładowane od frontu pod lewą ścianą, 1.5 m w głąb (wejście wolne). Każda z części, nie pudło
+            // (właściciel 10.11: atrapy nie przechodzą): emaliowany korpus z blatem, panel z pokrętłem programatora, szufladą na proszek
+            // i przyciskami, drzwi z obręczą i wypukłą ciemną szybą, zawias, uchwyt, klapka filtra, cokół, nóżki. Na pralkach kosz
+            // wiklinowy i butelki z płynem (biblioteka), przy stole drugi kosz
+            float sF = G + .76f, yT = yF + .86f * k;
             for (int q = 0; q < 4; q++)
             {
-                float d = .7f + q * .85f; BoxF(W(cx, cz, plastik, new Color(.93f, .93f, .92f)), F, G + .02f, G + .7f, yF, yF + .9f * k, d, d + .72f, true);
-                W(cx, cz, szyba, Color.white).Cyl(F.P(G + .7f, yF + .5f * k, d + .36f), F.P(G + .715f, yF + .5f * k, d + .36f), .2f, 12);
+                float d = 1.5f + q * .85f, dc = d + .38f, yc = yF + .45f * k; float zolk = 1f - .05f * ((q * 7 + 3) % 4);
+                var em = W(cx, cz, plastik); em.kolor = p => new Color(.94f, .93f, .89f * zolk) * zolk * Mathf.Lerp(.74f, 1f, S01(yF, yF + .3f, p.y)) * (.95f + .05f * Szum(p.x * 3f + p.y * 2f, p.z * 3f));
+                BoxF(em, F, G + .02f, sF, yF + .04f, yT, d, d + .76f, true);                                     // korpus
+                BoxF(em, F, G, sF + .02f, yT, yT + .035f, d - .01f, d + .77f, true);                             // blat
+                Bud Cm() => W(cx, cz, plastik, new Color(.17f, .18f, .19f));   // ta sama siatka co emalia — kolor ustawiany przy każdym użyciu
+                foreach (float fs in new[] { G + .06f, sF - .1f }) foreach (float fd in new[] { d + .04f, d + .66f }) BoxF(Cm(), F, fs, fs + .06f, yF, yF + .04f, fd, fd + .06f, true);   // nóżki
+                BoxF(Cm(), F, sF, sF + .008f, yF + .04f, yF + .15f, d + .015f, d + .745f, true);                   // cokół
+                BoxF(W(cx, cz, plastik, new Color(.62f, .64f, .66f)), F, sF + .008f, sF + .016f, yF + .06f, yF + .13f, d + .56f, d + .7f, true);   // klapka filtra
+                BoxF(W(cx, cz, plastik, new Color(.74f, .76f, .78f)), F, sF, sF + .012f, yT - .18f, yT - .012f, d + .015f, d + .745f, true);       // panel
+                BoxF(W(cx, cz, plastik, new Color(.9f, .9f, .87f)), F, sF + .012f, sF + .022f, yT - .16f, yT - .04f, d + .05f, d + .3f, true);     // szuflada na proszek
+                BoxF(Cm(), F, sF + .022f, sF + .03f, yT - .075f, yT - .055f, d + .1f, d + .25f, true);                                              // uchwyt szuflady
+                var chrom = W(cx, cz, alu, new Color(.86f, .87f, .88f));
+                chrom.Cyl(F.P(sF + .012f, yT - .095f, d + .58f), F.P(sF + .05f, yT - .095f, d + .58f), .05f, 12, .042f);                          // pokrętło programatora
+                for (int g = 0; g < 3; g++) BoxF(Cm(), F, sF + .012f, sF + .022f, yT - .115f, yT - .08f, d + .36f + g * .05f, d + .395f + g * .05f, true);   // przyciski
+                chrom.Cyl(F.P(sF, yc, dc), F.P(sF + .04f, yc, dc), .25f, 20, .235f);                                                              // obręcz drzwi
+                W(cx, cz, plastik, new Color(.06f, .07f, .09f)).Cyl(F.P(sF + .04f, yc, dc), F.P(sF + .075f, yc, dc), .185f, 16, .12f);            // wypukła ciemna szyba (nieprzezroczysta — bez sortowania przezroczystości na telefonie)
+                W(cx, cz, alu, new Color(.5f, .52f, .54f)).Cyl(F.P(sF + .075f, yc, dc), F.P(sF + .078f, yc, dc), .075f, 12);                      // dno bębna widoczne przez szybę
+                Cm().Cyl(F.P(sF + .001f, yc, dc), F.P(sF + .042f, yc, dc), .19f, 16, -1f, false);                                                   // uszczelka pod szybą
+                BoxF(chrom, F, sF, sF + .05f, yc - .07f, yc + .07f, dc - .29f, dc - .23f, true);                                                  // zawias
+                BoxF(Cm(), F, sF + .04f, sF + .065f, yc - .05f, yc + .05f, dc + .2f, dc + .235f, true);                                             // uchwyt drzwi
             }
-            KolF(rd, F, G, G + .7f, yF, yF + .9f * k, .7f, 4.1f);
+            KolF(rd, F, G, sF + .05f, yF, yT + .035f, 1.5f, 4.85f);
+            Rekw(rd, new[] { "wicker_basket_01", "wicker_basket_02" }, F.P(G + .4f, yT + .035f, 1.5f + .38f), F.Yaw + 15f, .3f, false, 25f, "kosz na pranie (na pralce)");
+            Rekw(rd, new[] { "multi_cleaner_bottle" }, F.P(G + .3f, yT + .035f, 1.5f + 2 * .85f + .2f), F.Yaw + 70f, .26f, false, 25f, "płyn do prania");
+            Rekw(rd, new[] { "bleach_bottle" }, F.P(G + .42f, yT + .035f, 1.5f + 2 * .85f + .5f), F.Yaw + 110f, .28f, false, 25f, "wybielacz");
+            Rekw(rd, new[] { "wicker_basket_02", "wicker_basket_01" }, F.P(L - G - 1.2f, yF + .9f * k, 2.6f), F.Yaw - 20f, .28f, false, 25f, "kosz na pranie (na stole)");
             BoxF(bl, F, L - G - 2.2f, L - G - .3f, yF + .85f * k, yF + .9f * k, 2.2f, 3.0f, true); KolF(rd, F, L - G - 2.2f, L - G - .3f, yF, yF + .9f * k, 2.2f, 3.0f);
             NogiStolu(F, L - G - 2.2f, L - G - .3f, yF, yF + .85f * k, 2.2f, 3.0f, cx, cz);
         }
@@ -784,10 +810,10 @@ public static partial class BraxRegionFawela
             // sprężarka: zbiornik na dwóch stopach z kątownika, silnik z osłoną paska na wierzchu
             foreach (float ss in new[] { G + .7f, G + 1.4f }) BoxF(W(cx, cz, metal, new Color(.3f, .3f, .3f)), F, ss - .03f, ss + .03f, yF, yF + .2f, D - 1.1f, D - .7f, true);
             BoxF(W(cx, cz, drzwiStalowe[2], Color.white), F, G + .75f, G + 1.2f, yF + .75f, yF + 1.05f, D - 1.05f, D - .75f, true);
-            Rekw(rd, new[] { "tire_pump" }, F.P(G + 1.7f, yF, 1.0f), F.Yaw + 30f, .58f, false, 25f, "pompka");
+            Rekw(rd, new[] { "tire_pump" }, F.P(G + 1.5f, yF, 3.6f), F.Yaw + 30f, .58f, false, 25f, "pompka");
             Rekw(rd, new[] { "metal_jerrycan" }, F.P(L - G - .5f, yF, D - 1.1f), F.Yaw, .46f, false, 25f, "kanister");
-            BraxRegionMiastoB.KolaWarsztatow.Add((F.P(G + .7f, yF, 1.2f), Vector3.up, 4, "wulkanizacja na faweli (w środku)"));
-            BraxRegionMiastoB.KolaWarsztatow.Add((F.P(G + .7f, yF, 2.1f), Vector3.up, 3, "wulkanizacja na faweli (w środku)"));
+            BraxRegionMiastoB.KolaWarsztatow.Add((F.P(G + .6f, yF, 2.2f), Vector3.up, 4, "wulkanizacja na faweli (w środku)"));
+            BraxRegionMiastoB.KolaWarsztatow.Add((F.P(G + .6f, yF, 3.1f), Vector3.up, 3, "wulkanizacja na faweli (w środku)"));
             BraxRegionMiastoB.KolaWarsztatow.Add((F.P(w1 + .5f, WysTerenu(F.P(w1 + .5f, 0f, -.8f).x, F.P(w1 + .5f, 0f, -.8f).z), -.8f), Vector3.up, 4, "wulkanizacja na faweli (przed lokalem)"));
         }
         if (przych)
@@ -869,7 +895,7 @@ public static partial class BraxRegionFawela
         BoxF(st, F, s0 + .05f, s1 - .05f, y0 + .18f, y0 + .22f, d1 - .1f, d1 - .06f, true);   // poprzeczka z tyłu
     }
 
-    internal static int luster;
+    internal static int luster, linRingu;
     /// <summary>Lustro z prawdziwym odbiciem (właściciel 10.11: „lustro ma być lustrem, a nie naklejką”): tafla w × h, środek c,
     /// normalna n w stronę pokoju. Osobny obiekt (Quad Unity patrzy w −Z) z materiałem Braxhorn/Lustro i skryptem BraxLustro —
     /// kamera odbita w płaszczyźnie tafli rysuje salę do tekstury, gdy gracz stoi przed lustrem bliżej niż 16 m.</summary>
@@ -1098,18 +1124,48 @@ public static partial class BraxRegionFawela
             stal.Cyl(c0, c0 + Vector3.up * 1.55f * k, .055f, 8);
             skr.K(sx * sz2 > 0 ? new Color(.85f, .3f, .25f) : new Color(.35f, .45f, .85f)); skr.BoxRot(c0 + Vector3.up * .95f * k + new Vector3(-sx * .12f, 0f, -sz2 * .12f), new Vector3(.24f, 1.15f * k, .24f), Quaternion.Euler(0f, 45f, 0f));
         }
-        var liny = W(cx, cz, plotno, new Color(.93f, .92f, .88f));
-        foreach (float hl in new[] { .45f, .75f, 1.05f, 1.35f })
+        // LINY RINGU PRACUJĄ (właściciel 10.11 00:28: „liny mają pracować, mają być aktywne, jak coś się o nie obija”; ta sama
+        // zasada co 1.11 w sali bokserskiej osiedla): BraxLina — bok ringu z 4 grubymi białymi linami i linkami łączącymi, lina
+        // ugina się pod naporem Braxa i po ciosie / kopnięciu, potem drga z tłumieniem; kolizja boku za liną trzyma gracza w ringu.
+        // WEJŚCIE NA RING („co to za schodki, tam wejścia nie ma”): od strony sali w linach jest przerwa 1.7 m między dwoma
+        // słupkami wejścia, a do niej prowadzą drewniane schody 2 m szerokości (3 stopnie po 0.3 m) na stalowych policzkach.
+        float ql = rs - .02f, wej = .85f; var wysLin = new[] { yRing + .45f * k, yRing + .75f * k, yRing + 1.05f * k, yRing + 1.35f * k };
+        void BokLin(Vector3 a0, Vector3 b0, Vector3 nz, string idL, float ka, float kb)
         {
-            float yl = yRing + hl * k, q = rs - .02f;
-            liny.Cyl(new Vector3(rcx - q, yl, rcz - q), new Vector3(rcx + q, yl, rcz - q), .025f, 6, -1f, false); liny.Cyl(new Vector3(rcx - q, yl, rcz + q), new Vector3(rcx + q, yl, rcz + q), .025f, 6, -1f, false);
-            liny.Cyl(new Vector3(rcx - q, yl, rcz - q), new Vector3(rcx - q, yl, rcz + q), .025f, 6, -1f, false); liny.Cyl(new Vector3(rcx + q, yl, rcz - q), new Vector3(rcx + q, yl, rcz + q), .025f, 6, -1f, false);
+            var os = (b0 - a0).normalized; var la = a0 + os * ka; var lb = b0 - os * kb;
+            var go = new GameObject("Sala: liny ringu — " + idL); go.transform.SetParent(tr, false); go.transform.position = Vector3.zero;
+            go.AddComponent<MeshFilter>(); var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = linyRingu; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            var l = go.AddComponent<BraxLina>(); l.a = la; l.b = lb; l.naZewnatrz = nz; l.wysokosci = wysLin; l.promien = .024f; l.maksUgiecie = .2f; l.Zbuduj();
+            var mesh = go.GetComponent<MeshFilter>().sharedMesh; if (mesh) { Directory.CreateDirectory(BraxRegion.Out + "/Fawela"); BraxZapisAssetu.Utworz(mesh, BraxRegion.Out + "/Fawela/liny_ringu_" + idL + ".asset"); }
+            GameObjectUtility.SetStaticEditorFlags(go, 0);
+            var c = (a0 + b0) * .5f + nz * .28f; float len = Vector3.Distance(a0, b0);
+            BraxRegionMeble.Kolizja(tr, "Sala: kolizja lin " + idL, new Vector3(c.x, yRing + .85f * k, c.z), Mathf.Abs(nz.x) > .5f ? new Vector3(.18f, 1.7f * k, len) : new Vector3(len, 1.7f * k, .18f));
+            linRingu++;
         }
+        Vector3 PR(float dx, float dz) => new Vector3(rcx + dx, 0f, rcz + dz);
+        BokLin(PR(-ql, -ql), PR(ql, -ql), Vector3.back, "S", .1f, .1f); BokLin(PR(-ql, ql), PR(ql, ql), Vector3.forward, "N", .1f, .1f); BokLin(PR(ql, -ql), PR(ql, ql), Vector3.right, "E", .1f, .1f);
+        BokLin(PR(-ql, -ql), PR(-ql, -wej), Vector3.left, "W1", .1f, .06f); BokLin(PR(-ql, wej), PR(-ql, ql), Vector3.left, "W2", .06f, .1f);
+        foreach (float ez in new[] { -wej, wej })
+        {   // słupki wejścia (stal) z kolizją
+            var c0 = new Vector3(rcx - ql, yRing, rcz + ez); stal.Cyl(c0, c0 + Vector3.up * 1.5f * k, .04f, 8);
+            Kol(tr, c0 + new Vector3(-.07f, 0f, -.07f), c0 + new Vector3(.07f, 1.5f * k, .07f));
+        }
+        foreach (float sx in new[] { -1f, 1f }) foreach (float sz2 in new[] { -1f, 1f })
+            Kol(tr, new Vector3(rcx + sx * ql - .15f, yRing, rcz + sz2 * ql - .15f), new Vector3(rcx + sx * ql + .15f, yRing + 1.55f * k, rcz + sz2 * ql + .15f));
         Kol(tr, new Vector3(rcx - rs - .25f, y, rcz - rs - .25f), new Vector3(rcx + rs + .25f, yRing, rcz + rs + .25f));
-        // schodki na ring (drewno) od strony sali
-        var sch = W(cx, cz, deski, new Color(.85f, .8f, .72f));
-        for (int q = 0; q < 3; q++) sch.Box(new Vector3(rcx - rs - .25f - .9f + q * .3f, y, rcz - .55f), new Vector3(rcx - rs - .25f, y + .3f * (q + 1), rcz + .55f));
-        Kol(tr, new Vector3(rcx - rs - 1.15f, y, rcz - .55f), new Vector3(rcx - rs - .25f, y + .45f, rcz + .55f));
+        // schody na ring w osi wejścia: 3 stopnie 0.3 × 0.4 m, szerokość 2 m, deski na stalowych policzkach; kolizja każdego stopnia
+        var sch = W(cx, cz, deski, new Color(.85f, .8f, .72f)); float xs0 = rcx - rs - .25f;
+        for (int q = 0; q < 3; q++)
+        {
+            float xa = xs0 - (3 - q) * .4f, xb = xs0 - (2 - q) * .4f, yt = y + .3f * (q + 1);
+            sch.Box(new Vector3(xa, yt - .05f, rcz - 1f), new Vector3(xb + .02f, yt, rcz + 1f), true);
+            Kol(tr, new Vector3(xa, y, rcz - 1f), new Vector3(xs0, yt, rcz + 1f));
+        }
+        foreach (float pz in new[] { -1f, .96f })
+        {   // policzki ze stalowej blachy (trójkąt pod stopniami)
+            var a3 = new Vector3(xs0 - 1.2f, y, rcz + pz); var b3 = new Vector3(xs0, y, rcz + pz); var c3 = new Vector3(xs0, y + .9f, rcz + pz); var o3 = new Vector3(0f, 0f, .04f);
+            stal.Tri(a3, c3, b3); stal.Tri(a3 + o3, b3 + o3, c3 + o3); stal.Quad(a3, a3 + o3, c3 + o3, c3);
+        }
         // WORKI: stalowa belka nad dwoma rzędami, 6 skórzanych worków właściciela na łańcuchach; bez modelu — worek z kodu (skóra)
         float yBelka = y + 3.15f;
         foreach (float bz in new[] { s.yMin + 4.3f, s.yMax - 5.6f })
@@ -1118,7 +1174,7 @@ public static partial class BraxRegionFawela
             foreach (float xr in new[] { s.xMin + 2.25f, s.xMin + 6.75f, s.xMin + 11.25f }) stal.Cyl(new Vector3(xr, yBelka + .22f, bz), new Vector3(xr, yDol, bz), .025f, 5);
             for (int q = 0; q < 3; q++)
             {
-                float bx = s.xMin + 3.2f + q * 3.4f, dol = y + .55f * k;
+                float bx = s.xMin + 2.4f + q * 2.8f, dol = y + .55f * k;   // worki z dala od osi wejścia (korytarz od drzwi w głąb sali wolny)
                 var wor = Rekw(tr, new[] { "leather_punching_bag" }, new Vector3(bx, dol, bz), q * 47f, 1.3f, false, 45f, "worek treningowy (skóra brązowa, biblioteka właściciela)", true);
                 float gora = wor ? BraxRegion.Bounds(wor).max.y : dol + 1.2f * k;
                 if (!wor) { skr.K(new Color(.62f, .38f, .22f)); skr.Cyl(new Vector3(bx, dol, bz), new Vector3(bx, gora, bz), .19f * k, 14); }
@@ -1140,16 +1196,29 @@ public static partial class BraxRegionFawela
         {
             BraxMiastoAssety.Lawka(tr, new Vector3(wx + 3.1f, y + .03f, wz - .5f), 0f);
             var atlas = BraxMiastoAssety.Model("miasto_silownia_metro", "silownia_atlas");
-            if (atlas) { var oa = BraxMiastoAssety.Postaw(tr, atlas, "Sala: atlas wielofunkcyjny (model właściciela)", new Vector3(s.xMin + 13.4f, y + .03f, s.yMin + 2.2f), 0f); BraxMiastoAssety.Kolizja(tr, oa, "Sala: atlas kolizja", .05f); }
+            if (atlas) { var oa = BraxMiastoAssety.Postaw(tr, atlas, "Sala: atlas wielofunkcyjny (model właściciela)", new Vector3(s.xMin + 14.8f, y + .03f, s.yMin + 2.0f), 0f); BraxMiastoAssety.Kolizja(tr, oa, "Sala: atlas kolizja", .05f); }   // między bramą a wejściem, poza korytarzem drzwi
         }
         else
         {
-            stal.Box(new Vector3(wx - 1.2f, y, wz - .08f), new Vector3(wx - 1.1f, y + 1.8f * k, wz + .08f)); stal.Box(new Vector3(wx + 1.1f, y, wz - .08f), new Vector3(wx + 1.2f, y + 1.8f * k, wz + .08f));
-            stal.Cyl(new Vector3(wx - 1.5f, y + 1.35f * k, wz - .15f), new Vector3(wx + 1.5f, y + 1.35f * k, wz - .15f), .022f, 6);
-            foreach (float sx in new[] { -1.4f, -1.33f, 1.33f, 1.4f }) tal.Cyl(new Vector3(wx + sx - .03f, y + 1.35f * k, wz - .15f), new Vector3(wx + sx + .03f, y + 1.35f * k, wz - .15f), .23f * k, 14);
-            skr.K(new Color(.25f, .25f, .28f)); skr.Box(new Vector3(wx - .2f, y + .42f * k, wz - 2.0f), new Vector3(wx + .2f, y + .5f * k, wz - .5f), true);
-            stal.Box(new Vector3(wx - .15f, y, wz - 1.9f), new Vector3(wx + .15f, y + .42f * k, wz - .6f));
-            Kol(tr, new Vector3(wx - 1.5f, y, wz - 2f), new Vector3(wx + 1.5f, y + 1.8f * k, wz + .1f));
+            // stanowisko do wyciskania z kodu (tylko gdy brak paczki właściciela): stojaki z hakami, gryf 2.2 m × K z talerzami,
+            // ławka PEŁNEJ długości (1.4 m × K — leżący Brax mieści się od głowy do bioder), na dwóch stalowych nogach ze stopą
+            float yb = y + 1.02f * k, zb = wz - .15f, dlL = 1.4f * k;
+            foreach (float sx in new[] { -.6f * k, .6f * k })
+            {
+                stal.Box(new Vector3(wx + sx - .04f, y, zb - .04f), new Vector3(wx + sx + .04f, y + 1.25f * k, zb + .04f));
+                stal.Box(new Vector3(wx + sx - .04f, yb - .06f, zb - .12f), new Vector3(wx + sx + .04f, yb - .03f, zb + .04f), true);       // hak
+                stal.Box(new Vector3(wx + sx - .25f, y, zb - .05f), new Vector3(wx + sx + .25f, y + .05f, zb + .05f));                     // stopa stojaka
+            }
+            stal.Cyl(new Vector3(wx - 1.1f * k, yb, zb - .06f), new Vector3(wx + 1.1f * k, yb, zb - .06f), .016f * k, 8);
+            foreach (float sx in new[] { -.92f * k, -.86f * k, .86f * k, .92f * k }) tal.Cyl(new Vector3(wx + sx - .025f, yb, zb - .06f), new Vector3(wx + sx + .025f, yb, zb - .06f), .225f * k, 16);
+            skr.K(new Color(.22f, .2f, .2f)); skr.Box(new Vector3(wx - .16f * k, y + .38f * k, zb - dlL + .25f), new Vector3(wx + .16f * k, y + .46f * k, zb + .25f), true);
+            foreach (float zl in new[] { zb + .1f, zb - dlL + .4f })
+            {
+                stal.Box(new Vector3(wx - .03f, y + .05f, zl - .03f), new Vector3(wx + .03f, y + .38f * k, zl + .03f));
+                stal.Box(new Vector3(wx - .3f, y, zl - .04f), new Vector3(wx + .3f, y + .05f, zl + .04f));
+            }
+            stal.Box(new Vector3(wx - .025f, y + .3f * k, zb - dlL + .4f), new Vector3(wx + .025f, y + .36f * k, zb + .1f), true);                 // belka pod siedziskiem
+            Kol(tr, new Vector3(wx - 1.1f * k, y, zb - dlL + .25f), new Vector3(wx + 1.1f * k, y + 1.25f * k, zb + .25f));
         }
         // hantle na stojaku (stal, talerze gumowe), stojak na piłki lekarskie i lina z biblioteki właściciela
         for (int q = 0; q < 5; q++) { float hx = s.xMin + 9.6f + q * .5f; stal.Cyl(new Vector3(hx, y + .9f, s.yMax - G - .25f), new Vector3(hx + .32f, y + .9f, s.yMax - G - .25f), .02f, 5); tal.Cyl(new Vector3(hx, y + .9f, s.yMax - G - .25f), new Vector3(hx + .07f, y + .9f, s.yMax - G - .25f), .09f + q * .012f, 8); tal.Cyl(new Vector3(hx + .25f, y + .9f, s.yMax - G - .25f), new Vector3(hx + .32f, y + .9f, s.yMax - G - .25f), .09f + q * .012f, 8); }
@@ -1184,12 +1253,18 @@ public static partial class BraxRegionFawela
             float pol = (e1 - e0) * .5f - .04f;
             BoxF(skrz, fF, e0 - .045f, e0, y + .02f, yd - .06f, G, G + pol, true); BoxF(skrz, fF, e1, e1 + .045f, y + .02f, yd - .06f, G, G + pol, true);
         }
-        foreach (float bxx in new[] { s.xMin + 5.5f, s.xMin + 9.5f })
-            if (!Rekw(tr, new[] { "painted_wooden_bench" }, new Vector3(bxx, y + .01f, s.yMin + G + .45f), 0f, .89f, true, 35f, "ławka w sali"))
-                BoxF(W(cx, cz, deski, Color.white), fF, L - (bxx - s.xMin) - .9f, L - (bxx - s.xMin) + .9f, y + .42f * k, y + .47f * k, G + .1f, G + .5f, true);
-        Rekw(tr, new[] { "plastic_bottle_gallon" }, new Vector3(s.xMin + 7.6f, y + .01f, s.yMin + G + .3f), 20f, .27f, false, 25f, "baniak z wodą");
-        Rekw(tr, new[] { "boombox" }, new Vector3(s.xMin + 9.5f, y + .01f + .45f * k, s.yMin + G + .45f), 10f, .3f, false, 25f, "magnetofon");
-        Rekw(tr, new[] { "boxing_headgear" }, new Vector3(s.xMin + 5.1f, y + .01f + .45f * k, s.yMin + G + .45f), 40f, .28f, false, 25f, "kask sparingowy (biblioteka właściciela)", true);
+        // ŁAWKI pod ścianą wschodnią, na południe od ringu (10.11 00:27, właściciel: „drzwi zastawione” — ławka stała w świetle
+        // wejścia, druga przed regałem). Zasada sali: pas 1.5 m przed każdymi drzwiami i 0.5 m po bokach zostaje pusty.
+        float lx = s.xMax - G - .45f; var lawkiZ = new[] { s.yMin + 1.7f, s.yMin + 4.1f };
+        foreach (float lz in lawkiZ)
+            if (!Rekw(tr, new[] { "painted_wooden_bench" }, new Vector3(lx, y + .01f, lz), -90f, .89f, true, 35f, "ławka w sali"))
+            {
+                BoxF(W(cx, cz, deski, Color.white), fP, D - (lz - s.yMin) - .9f, D - (lz - s.yMin) + .9f, y + .42f * k, y + .47f * k, G + .1f, G + .5f, true);
+                NogiStolu(fP, D - (lz - s.yMin) - .9f, D - (lz - s.yMin) + .9f, y, y + .42f * k, G + .1f, G + .5f, cx, cz);
+            }
+        Rekw(tr, new[] { "plastic_bottle_gallon" }, new Vector3(lx + .1f, y + .01f, (lawkiZ[0] + lawkiZ[1]) * .5f), 20f, .27f, false, 25f, "baniak z wodą");
+        Rekw(tr, new[] { "boombox" }, new Vector3(lx, y + .01f + .45f * k, lawkiZ[1]), -80f, .3f, false, 25f, "magnetofon");
+        Rekw(tr, new[] { "boxing_headgear" }, new Vector3(lx, y + .01f + .45f * k, lawkiZ[0] - .3f), 40f, .28f, false, 25f, "kask sparingowy (biblioteka właściciela)", true);
         Rekw(tr, new[] { "wall_clock" }, fB.P(L * .5f, y + 2.7f * k, G + .03f), fB.Yaw + 180f, .32f, false, 30f, "zegar ścienny");
         Rekw(tr, new[] { "korean_fire_extinguisher_01" }, fF.P(e0 - .45f, y + .01f, G + .25f), fF.Yaw + 180f, .66f, false, 25f, "gaśnica");
         Rekw(tr, new[] { "standing_chalkboard_01" }, new Vector3(rcx - rs - 2.6f, y + .01f, rcz - 3.6f), 60f, 1.5f, true, 35f, "tablica z planem treningów");
@@ -1238,7 +1313,7 @@ public static partial class BraxRegionFawela
         Rekw(tr, new[] { "rope_coil" }, new Vector3(pw.center.x, y + .01f, pw.yMax - 2.6f), 0f, .14f, false, 30f, "lina bojowa (biblioteka właściciela)", true);
         Rekw(tr, new[] { "sledgehammer_01" }, new Vector3(pw.center.x + .9f, y + .01f, pw.yMin + 3.6f), 80f, .12f, false, 30f, "młot do opony");
         Rekw(tr, new[] { "trashbag" }, new Vector3(pw.xMin + .6f, y + .01f, pw.yMax - .8f), 30f, .57f, false, 30f, "worek ze śmieciami");
-        Sprzedawcy.Add((fF.P(e0 - 1.6f, y, G + 2.4f), fF.Yaw, "sala kickboxingu — przy wejściu"));
+        Sprzedawcy.Add((fF.P(e1 + 1.9f, y, G + 1.5f), 90f, "sala kickboxingu — przy wejściu, przy regale z odżywkami"));
         Sprzedawcy.Add((new Vector3(rcx - rs - 1.8f, y, rcz + 1.4f), 90f, "sala kickboxingu — trener przy ringu"));
         lokali++;
     }

@@ -33,8 +33,8 @@ TEXTURES = [
     # rdzawe schody zewnętrzne, zniszczone szafki kuchenne
     "peeling_painted_wall", "decrepit_wallpaper", "old_linoleum_flooring_01", "dirty_tiles", "worn_cracked_plaster", "dirty_carpet",
     "rusty_painted_metal", "wood_cabinet_worn_long",
-    # wieżowce murowane nowych dzielnic (10.11): cegły i kamień elewacji
-    "red_brick", "brick_wall_12", "dark_brick_wall", "factory_brick", "sandstone_blocks_08", "marble_01", "granite_tile_03", "granite_tile_04",
+    # wieżowce nowych dzielnic z kodu (10.11): biały tynk, wapień, piaskowiec, okładzina panelowa, granit, czysta cegła
+    "white_stucco", "marble_01", "sandstone_blocks_08", "exterior_wall_cladding_03", "granite_tile", "granite_tile_03",
 ]
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).

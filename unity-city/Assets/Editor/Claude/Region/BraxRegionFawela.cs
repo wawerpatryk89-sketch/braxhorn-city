@@ -494,7 +494,7 @@ public static partial class BraxRegionFawela
         if (!Wlaczona) return;
         gotowe = false; Przygotuj();
         komorki.Clear(); rodzice.Clear(); bezCienia.Clear(); Sprzedawcy.Clear(); Przylacza.Clear();
-        domow = domowPas1 = domowPas2 = lokali = krokow = slupow = trojkatow = graffiti = aut = przylaczy = roslin = modeli = modeliBib = luster = 0; brakModeli.Clear();
+        domow = domowPas1 = domowPas2 = lokali = krokow = slupow = trojkatow = graffiti = aut = przylaczy = roslin = modeli = modeliBib = luster = linRingu = 0; brakModeli.Clear();
         root = BraxRegion.Root(cityRoot, "CLAUDE fawela: wzgórze za miastem (etap 1)");
         BraxUliceKit.Start();   // litery przestrzenne szyldów (krój miasta) — partie zapisuje krok „zapis kwadratów”
         Materialy();
@@ -509,7 +509,7 @@ public static partial class BraxRegionFawela
         Krok("zapis kwadratów", Zapisz);
         Debug.Log("BRAXHORN_FAWELA etap 1: działek " + Dzialki.Count + ", domów " + domow + " (pas 1: " + domowPas1 + ", pas 2: " + domowPas2 + "), lokali " + lokali +
                   ", stanowisk obsługi " + Sprzedawcy.Count + ", dróg " + Drogi.Count + " (" + Drogi.Sum(d => d.p.Count) + " m), stopni schodów " + krokow + ", słupów " + slupow +
-                  ", przyłączy " + przylaczy + ", graffiti " + graffiti + ", aut zaparkowanych " + aut + ", luster z odbiciem " + luster + ", roślin i rekwizytów z biblioteki " + roslin + " (drzew " + drzew + ", krzewów " + krzewow + ", kamieni " + kamieni + ")" + ", modeli w lokalach " + modeli + ", modeli z biblioteki " + modeliBib + (brakModeli.Count > 0 ? " (brak: " + string.Join(", ", brakModeli) + ")" : "") + ", towaru z biblioteki " + BraxSklepyTowar.Postawione + ", trójkątów " + trojkatow + ", kwadratów 150 m " + komorki.Count +
+                  ", przyłączy " + przylaczy + ", graffiti " + graffiti + ", aut zaparkowanych " + aut + ", luster z odbiciem " + luster + ", boków lin ringu (BraxLina) " + linRingu + ", roślin i rekwizytów z biblioteki " + roslin + " (drzew " + drzew + ", krzewów " + krzewow + ", kamieni " + kamieni + ")" + ", modeli w lokalach " + modeli + ", modeli z biblioteki " + modeliBib + (brakModeli.Count > 0 ? " (brak: " + string.Join(", ", brakModeli) + ")" : "") + ", towaru z biblioteki " + BraxSklepyTowar.Postawione + ", trójkątów " + trojkatow + ", kwadratów 150 m " + komorki.Count +
                   ", plac y " + Tarasy[0].y.ToString("F2") + ", sala y " + Tarasy[1].y.ToString("F2") + ", fotoskany (" + opisTekstur.Count + ", odchudzonych do 1024 / 512: " + odchudzonych + "): " + string.Join(" | ", opisTekstur) +
                   (brakTekstur.Count > 0 ? " — DO POPRAWKI brak fotoskanów: " + string.Join(", ", brakTekstur) : " — wszystkie wykończenia z fotoskanów"));
     }
@@ -552,7 +552,7 @@ public static partial class BraxRegionFawela
 
     // ============================================================================ MATERIAŁY — wyłącznie fotoskany CC0 z Poly Haven (stare, zniszczone)
     internal static Material[] tynki, drzwiStalowe, okna; internal static Material tynkCzerwony, tynkNiebieski, cegla, pustak, beton, betonZbr, blachaRdza, blachaOcynk, drzwiDrewno, drzwiStal, roleta,
-        bramaGaraz, okiennica, szyba, metal, zeliwo, alu, zbiornik, plotno, tynkRozowy, roletaSzara, plytkiCiemne, deski, podlogaSali, matySali, matPlakaty, asfalt, kraweznik, farba, zarowka, plytki, linoleum, wnetrze, lada, guma, lustro, lodowka, plastik,
+        bramaGaraz, okiennica, szyba, metal, zeliwo, alu, zbiornik, plotno, tynkRozowy, roletaSzara, plytkiCiemne, deski, podlogaSali, matySali, matPlakaty, linyRingu, asfalt, kraweznik, farba, zarowka, plytki, linoleum, wnetrze, lada, guma, lustro, lodowka, plastik,
         kabel, placBeton, skora, neonZielony, matGraffiti;
     static readonly List<string> opisTekstur = new List<string>(), brakTekstur = new List<string>();
 
@@ -653,6 +653,7 @@ public static partial class BraxRegionFawela
         wnetrze = Tm("ściany lokali — łuszcząca się farba", 2.0f, b, .9f, "peeling_painted_wall", "painted_plaster_wall", "plastered_wall");
         lada = Tm("drewno lad i regałów (wytarte)", 1.4f, b, .7f, "wood_table_worn", "wood_cabinet_worn_long", "wood_planks");
         deski = Tm("deski (skrzynki, blaty straganów)", 1.2f, b, .8f, "wood_planks", "old_planks_02", "wood_planks_grey");
+        linyRingu = Tm("liny ringu (białe, grube, przybrudzone)", .3f, new Color(.93f, .92f, .88f), .8f, "rough_linen", "cotton_jersey", "leather_white");
         plotno = Tm("płótno (markizy, plandeki, pranie)", .9f, b, .95f, "cotton_jersey", "rough_linen", "leather_white");
         podlogaSali = T("podłoga sali — stare wytarte deski", 2.0f, new Color(.86f, .82f, .76f), .8f, "old_planks_02", "wood_planks_grey", "wood_planks");   // 10.11: „wood_floor_worn” to nowa sosna (pomarańcz) — nie do starej sali
         matySali = Tm("maty gumowe sali (czarna guma, wytarte)", 1.2f, new Color(.62f, .62f, .64f), .85f, "rubber_tiles", "asphalt_04");   // 10.11: „rubberized_track” to czerwona bieżnia

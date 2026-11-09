@@ -122,7 +122,7 @@ public static partial class BraxRegionMiastoB
     //    kwartały z płyt, skwer, pas zieleni, plac Atlanty, ścieżka za rzędem B. Wszystko prostokątami stykającymi się krawędzią.
     static void NoweDzielniceNawierzchnie()
     {
-        ndRootStart = root.childCount; ndLatarnie = ndDrzewa = ndZebry = ndMigotanie = ndWiezeMurowane = 0; BraxRegionFawela.wiez = BraxRegionFawela.wiezOkien = BraxRegionFawela.wiezTrojkatow = 0; ndWstawkiToru.Clear(); ndBudynki.Clear();
+        ndRootStart = root.childCount; ndLatarnie = ndDrzewa = ndZebry = ndMigotanie = ndWiezeMurowane = 0; BraxRegionFawela.wiez = BraxRegionFawela.wiezOkien = BraxRegionFawela.wiezTrojkatow = BraxRegionFawela.wiezMurowanych = BraxRegionFawela.wiezSzklanych = 0; ndWstawkiToru.Clear(); ndBudynki.Clear();
         NdKrok("usunięcie starego na terenie nowych dzielnic", NdUsunStare);
         NdKrok("nawierzchnie: aleja, ulice, skrzyżowania", NdUlice);
         NdKrok("nawierzchnie: kwartały, plac Atlanty, ciąg pieszy", NdKwartaly);
@@ -458,7 +458,7 @@ public static partial class BraxRegionMiastoB
         try { NdPrzytnijNawisy(); } catch (Exception e) { BraxMiastoAssety.Blad("nawisy budynków", e); }
         try { NdMigotanieBudynkow(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola podstaw budynków", e); }
         NdLog("szkło fasad: " + nSzklo + " materiałów na budynkach zamienione na szkło refleksyjne (czarny metal / szyby przed pustą bryłą)");
-        NdLog("wieżowce murowane z kodu: " + ndWiezeMurowane + " (okien " + BraxRegionFawela.wiezOkien + ", trójkątów " + BraxRegionFawela.wiezTrojkatow + ")");
+        NdLog("wieżowce z kodu: " + ndWiezeMurowane + " (murowanych " + BraxRegionFawela.wiezMurowanych + ", szklanych " + BraxRegionFawela.wiezSzklanych + ", okien " + BraxRegionFawela.wiezOkien + ", trójkątów " + BraxRegionFawela.wiezTrojkatow + ")");
         NdLog("budynki: postawione " + ok + "/" + NoweBudynki.Length + (brak > 0 ? ", bez modelu " + brak + " (paczka nieodszyfrowana — kwartał zostaje z płytami)" : ""));
     }
 

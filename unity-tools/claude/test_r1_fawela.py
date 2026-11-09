@@ -315,30 +315,52 @@ LUSTRO_CS = (ROOT / "unity-city/Assets/Claude/Runtime/BraxLustro.cs").read_text(
 
 
 class WiezowceMurowane(unittest.TestCase):
-    """Właściciel 10.11 00:04: „wieżowce zrobić murowane, jak policja / szpital… mają być wysokie”."""
+    """Właściciel 10.11 00:04–00:34: „mogą być takie i takie” (szklane i murowane), wszystkie wysokie, wykończenie CZYSTE jak
+    policja / szpital („co to jest, w stylu slamsie” — cegła odrzucona), „tekstura ma być ładna, z Poly Haven”, „okna mają być oknami”."""
 
-    def test_centre_units_replaced_by_masonry_towers(self):
+    def test_centre_units_replaced_by_code_towers(self):
         self.assertIn('if (BraxRegionFawela.WiezeMurowaneWlaczone && b.paczka == "miasto_centrum")', DZIELNICE)
         self.assertIn("BraxRegionFawela.WiezaMurowana(g, b.id, b.x, Podloze(b.x, b.z, YC), b.z, b.w, b.d);", DZIELNICE)
         self.assertEqual(len(re.findall(r'new Bud\("C5_U\d\d", "miasto_centrum_c5"', DZIELNICE)), 14)
         self.assertIn("public static readonly bool WiezeMurowaneWlaczone = true;", WIEZE)
 
-    def test_towers_are_tall_and_stepped(self):
-        self.assertIn("int N = dlugi ? 22 + r.Next(4) : 24 + r.Next(8);", WIEZE)      # 22–31 kondygnacji po 4.4 m
-        self.assertIn("var pietra = new[] { (R0, 0, n1), (R1, n1, n2), (R2, n2, n3), (R3, n3, N) };", WIEZE)
+    def test_mix_of_glass_and_solid_towers(self):
+        m = re.search(r"SzklaneNr = new HashSet<int> \{([^}]*)\}", WIEZE)
+        szklane = {int(x) for x in m.group(1).split(",")}
+        self.assertEqual(len(szklane), 6); self.assertTrue(szklane < set(range(14)))      # 6 szklanych, 8 murowanych
+        self.assertIn("bool szklana = SzklaneNr.Contains(nr);", WIEZE)
+        self.assertIn("BraxRegionFawela.wiezMurowanych", DZIELNICE); self.assertIn("BraxRegionFawela.wiezSzklanych", DZIELNICE)
 
-    def test_five_masonry_styles_from_photoscans(self):
-        for t in ("red_brick", "brick_wall_12", "dark_brick_wall", "factory_brick", "sandstone_blocks_08", "marble_01", "granite_tile_03", "granite_tile_04"):
+    def test_all_towers_are_tall_and_stepped(self):
+        # szklane 26–36 kondygnacji, murowane 22–31; kondygnacja 4.4 m → 100–160 m
+        self.assertIn("int N = szklana ? (dlugi ? 26 + r.Next(4) : 30 + r.Next(7)) : (dlugi ? 22 + r.Next(4) : 24 + r.Next(8));", WIEZE)
+        self.assertIn("new[] { (R0, 0, 2), (R1, 2, n3), (R2, n3, N) } : new[] { (R0, 0, n1), (R1, n1, n2), (R2, n2, n3), (R3, n3, N) };", WIEZE)
+
+    def test_clean_finishes_from_polyhaven_and_no_brick(self):
+        for t in ("white_stucco", "marble_01", "sandstone_blocks_08", "exterior_wall_cladding_03", "granite_tile", "granite_tile_03"):
             self.assertIn('"' + t + '"', WIEZE, t); self.assertIn('"' + t + '"', FETCH_R, t)
-        self.assertEqual(WIEZE.count("new StylWiezy {"), 5)
+        self.assertNotIn("brick", WIEZE)                                                   # cegła = „slamsy”
+        self.assertEqual(WIEZE.count("new StylWiezy {"), 7)                               # 5 stylów murowanych + 2 podia wież szklanych
+        self.assertNotIn("Zaciek", WIEZE)
 
-    def test_windows_on_world_grid_with_room_behind_glass(self):
+    def test_windows_are_real_glass_on_world_grid(self):
         self.assertIn("const float WG = 3.6f;", WIEZE)
-        self.assertIn("BraxUliceKit.OknoPokoj(WG, kondygnacja, floor0, 0, 5, 4.6f, 0f)", WIEZE)
         self.assertIn("float s = (j * WG - a0) / kier;", WIEZE)
+        self.assertIn('BraxSzkloFasady.Mat("wieże — okna " + kl, WG, kondygnacja, floor0,', WIEZE)
+        self.assertIn("float ww = 2.5f, wh = 2.7f, par = .8f;", WIEZE)                    # duże okna
+        self.assertNotIn("OknoPokoj", WIEZE)
+
+    def test_curtain_wall_variants(self):
+        self.assertIn('BraxSzkloFasady.Mat("wieże — ściana kurtynowa " + kl, 1.8f, WHk, floor0, barwy[wariant % 4]', WIEZE)
+        self.assertIn("WB(kurtyna).K(Color.white).Quad(F.P(0f, y0, 0f), F.P(L, y0, 0f), F.P(L, y1, 0f), F.P(0f, y1, 0f));", WIEZE)
+        self.assertEqual(len(re.findall(r"case \d: U\(|default: U\(", WIEZE)), 4)
+        barwy = re.search(r"var barwy = new\[\] \{(.*?)\};", WIEZE).group(1)
+        for r_, g_, b_ in re.findall(r"new Color\(([.\d]+)f, ([.\d]+)f, ([.\d]+)f\)", barwy):
+            self.assertGreaterEqual(float(b_), float(r_), barwy)                            # żadnego brązowego szkła (z góry wyglądało jak cegła)
 
     def test_base_crown_and_roof_details(self):
-        for czesc in ("PortalWiezy(F, o, WB, st, oknaW, rama, id, si)", "bool namiot = nr % 3 == 1 && !dlugi;", "float yKor = ostatni ? Y(f1 - 2) : y1 + att;"):
+        for czesc in ("PortalWiezy(F, o, WB, st, oknaW, rama, id, si)", "bool namiot = !szklana && !dlugi && (st == stylWiez[1] || st == stylWiez[4]);",
+                      "float yKor = ostatni ? Y(f1 - 2) : y1 + att;"):
             self.assertIn(czesc, WIEZE, czesc)
 
     def test_collider_and_lod(self):
@@ -379,6 +401,48 @@ class SalaStolarka(unittest.TestCase):
         self.assertIn("float szaf0 = bd1 + .55f + 4.5f < D - .5f ? bd1 + .55f : bd0 - .55f - 4.4f;", DOMY)
         self.assertIn("BoxF(skrz, fL, bd0 - .045f, bd0, y + .02f, yd - .06f, -(bd1 - bd0 - .06f), .1f, true);", DOMY)
         self.assertIn("float grub = .22f, float podzial = -1f)", DOMY)
+
+
+class SalaRingIPrzejscia(unittest.TestCase):
+    """Właściciel 10.11 00:27–00:28: „drzwi zastawione”, „ławeczka do wyciskania za krótka”, „co to za schodki, tam wejścia nie ma
+    na ring”, „liny mają pracować, mają być aktywne, jak coś się o nie obija”."""
+
+    def test_ring_ropes_are_reactive(self):
+        self.assertIn("var l = go.AddComponent<BraxLina>();", DOMY)
+        self.assertIn("l.wysokosci = wysLin; l.promien = .024f; l.maksUgiecie = .2f; l.Zbuduj();", DOMY)
+        self.assertIn("GameObjectUtility.SetStaticEditorFlags(go, 0);", DOMY)             # lina się rusza — nie może być statyczna
+        self.assertEqual(len(re.findall(r'BokLin\(PR\(', DOMY)), 5)                      # S, N, E pełne + zachód w dwóch częściach
+        self.assertIn('"rough_linen", "cotton_jersey", "leather_white"', FAW)             # liny z fotoskanu, nie z koloru
+        self.assertTrue((ROOT / "unity-city/Assets/Claude/Runtime/BraxLina.cs").exists())
+
+    def test_ring_has_entrance_where_steps_lead(self):
+        self.assertIn("float ql = rs - .02f, wej = .85f;", DOMY)                          # przerwa 1.7 m w linach
+        self.assertIn('BokLin(PR(-ql, -ql), PR(-ql, -wej), Vector3.left, "W1", .1f, .06f); BokLin(PR(-ql, wej), PR(-ql, ql), Vector3.left, "W2", .06f, .1f);', DOMY)
+        self.assertIn("sch.Box(new Vector3(xa, yt - .05f, rcz - 1f), new Vector3(xb + .02f, yt, rcz + 1f), true);", DOMY)   # schody 2 m w osi przerwy
+        self.assertIn("foreach (float ez in new[] { -wej, wej })", DOMY)                  # słupki wejścia
+
+    def test_passages_clear(self):
+        # ławki pod ścianą wschodnią (nie w osi drzwi), worki z dala od korytarza wejścia, atlas między bramą a wejściem
+        self.assertIn("float lx = s.xMax - G - .45f; var lawkiZ = new[] { s.yMin + 1.7f, s.yMin + 4.1f };", DOMY)
+        self.assertIn("float bx = s.xMin + 2.4f + q * 2.8f", DOMY)
+        # drzwi wejściowe: s od xMax w stronę -x, e0 = L/2 + 3 … + 1.7 K; najbliższy worek i atlas poza światłem drzwi z zapasem
+        L_, K_ = 28.0, 1.294
+        drzwi = (-162 - (L_ / 2 + 3 + 1.7 * K_), -162 - (L_ / 2 + 3))
+        for bx in (-190 + 2.4 + q * 2.8 for q in range(3)):
+            self.assertLess(bx + .3, drzwi[0] - .4, bx)        # worek wisi 4.3 m w głębi i z boku osi drzwi
+        self.assertGreater(-190 + 14.8 - 1.2, drzwi[1] + .8)
+
+    def test_laundry_machines_are_built_from_parts_not_boxes(self):
+        # 10.11 (podgląd): pralki były białymi pudłami z kółkiem — atrapy nie przechodzą
+        blok = DOMY[DOMY.index("if (pralnia)"):DOMY.index("if (wulk)")]
+        for czesc in ("float sF = G + .76f, yT = yF + .86f * k;", ".25f, 20, .235f);", ".185f, 16, .12f);", "Bud Cm() =>", '"wicker_basket_01", "wicker_basket_02"', '"bleach_bottle"'):
+            self.assertIn(czesc, blok, czesc)
+        self.assertGreaterEqual(blok.count("BoxF("), 12)
+        self.assertIn("KolF(rd, F, G, sF + .05f, yF, yT + .035f, 1.5f, 4.85f);", blok)     # 1.5 m w głąb — wejście wolne
+
+    def test_bench_press_full_length(self):
+        self.assertIn("dlL = 1.4f * k;", DOMY)
+        self.assertIn("zb - dlL + .25f), new Vector3(wx + .16f * k, y + .46f * k, zb + .25f), true);", DOMY)
 
 
 if __name__ == "__main__":
