@@ -126,11 +126,16 @@ public static partial class BraxChampionsArenaArrival
 
     static void LuxDressingRooms(Transform arrivalRoot, Dictionary<string, Material> exterior)
     {
-        var teak = exterior["teak"];
-        var gold = exterior["gold"];
+        // b33 phone: the shared exterior teak (white tint) read as plain BEIGE
+        // boxes. Pro-team lux lockers: dark smoked walnut (same Poly Haven teak
+        // veneer, tinted), deep black leather, warm LED - like NBA/UFC rooms.
+        var teak = BraxChampionsFoundation.SourceMaterial("A1_athlete_locker_dark_walnut", "teak_veneer", 1.2f,
+            new Color(.40f, .27f, .18f));
+        teak.SetFloat("_Roughness", .38f);
+        var gold = exterior["arena_gold"];
         var led = exterior["light"];
         var granite = exterior["dark_stone"];
-        var leather = BraxChampionsFoundation.LibraryLeather("A1_athlete_locker_black_leather", new Color(.23f, .225f, .22f));
+        var leather = BraxChampionsFoundation.LibraryLeather("A1_athlete_locker_black_leather", new Color(.12f, .115f, .11f));
         var mirror = LuxSolid("mirror", new Color(.80f, .82f, .85f), .04f, 1f);
         var ceramic = LuxSolid("white_ceramic", new Color(.93f, .93f, .91f), .12f, 0f);
         var plaque = LuxSolid("black_sign_plate", new Color(.035f, .037f, .042f), .30f, .2f);

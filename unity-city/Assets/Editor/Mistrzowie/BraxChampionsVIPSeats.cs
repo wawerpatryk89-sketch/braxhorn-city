@@ -220,7 +220,9 @@ public static class BraxChampionsVIPSeats
         chair.transform.SetParent(spot, false);
         chair.transform.localPosition = Vector3.zero;
         // Original front (+Z) points to the octagon; keep the authored mesh and materials.
-        var towardCage = new Vector3(cx - x, 0, cz - z);
+        // Owner 9.11 "loże VIP stać prawidłowo": straight theatre rows, every
+        // chair square to the cage (no fan of individually turned chairs).
+        var towardCage = new Vector3(0, 0, cz - z);
         var facing=Quaternion.LookRotation(towardCage.normalized,Vector3.up);
         chair.transform.localRotation=facing;
         chair.transform.localScale=Vector3.one;
@@ -271,8 +273,9 @@ public static class BraxChampionsVIPSeats
         VerifyImportedTextures(source);
         var leather=BraxChampionsFoundation.SourceMaterial(
             "A1_VIP_black_leather_polyhaven","leather_white",.45f,
-            new Color(.07f,.075f,.08f));
-        leather.SetFloat("_Metallic",0f);leather.SetFloat("_Roughness",.22f);
+            new Color(.12f,.11f,.105f));
+        // b33 phone: .07 black at roughness .22 read as black plastic tubs.
+        leather.SetFloat("_Metallic",0f);leather.SetFloat("_Roughness",.34f);
         var blackMetal=SolidBlackMetal();
         // Existing reserved positions near jury/commentator area:
         // two rows behind cage-side service desks; one 6m central aisle stays open.

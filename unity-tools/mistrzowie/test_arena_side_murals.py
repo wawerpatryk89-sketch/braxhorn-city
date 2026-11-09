@@ -29,11 +29,14 @@ class ChampionSideMuralsTests(unittest.TestCase):
     def test_both_side_walls_use_true_panorama_dimensions_and_face_the_aisle(self):
         # 9.11: 12.5 cm stand-off from the wall's inner face (-26.045/-145.955).
         self.assertIn('float x = left ? HallLeftX - MuralStandOff : HallRightX + MuralStandOff;',self.m)
-        self.assertIn('public const float MuralStandOff = .17f;',self.m)
+        self.assertIn('public const float MuralStandOff = .30f;',self.m)
         x_left,x_right=-26-.17,-146+.17
         self.assertLess(x_left,-26.045-.1)
         self.assertGreater(x_right,-145.955+.1)
-        self.assertIn('mesh.SetUVs(3, interior);',self.m)
+        # b33 black walls: proven entrance path, two-sided, line-of-sight log.
+        self.assertNotIn('mesh.SetUVs(3, interior);',self.m)
+        self.assertIn('two-sided',self.m)
+        self.assertIn('A1_SIDE_MURAL_LINE_OF_SIGHT',self.m)
         z_entry,z_rear=98.3,28.3
         w=z_entry-z_rear
         h=w/3.0
@@ -48,7 +51,7 @@ class ChampionSideMuralsTests(unittest.TestCase):
         self.assertIn('const float WallTopY = 28f',self.m)
         self.assertIn('float[] y = { WallBottomY, BottomY, BottomY + ImageHeight, WallTopY };',self.m)
         self.assertIn('float[] v = { 0f, 0f, 1f, 1f };',self.m)
-        self.assertIn('var triangles = new int[18];',self.m)
+        self.assertIn('var triangles = new int[36];',self.m)
         self.assertIn('var mesh = FullWall(x, start, end, side);',self.m)
         self.assertIn('float start = left ? WallNearZ : WallFarZ;',self.m)
         self.assertIn('float end = left ? WallFarZ : WallNearZ;',self.m)
