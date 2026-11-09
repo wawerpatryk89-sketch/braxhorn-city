@@ -352,7 +352,10 @@ public static partial class BraxChampionsCasinoT11
 
             if(i%3==0)
             {
-                var mullion=BeveledBox(trim,"T11 champagne rounded curved rotunda frame",gold,
+                // Owner 10.11 00:45: "nie masz wszystkiego robić na złoto, ta gra nie jest ze złota". Gold stays where it
+                // means something (sign, dollar, entrance portal, doors, columns, chandeliers, thin lines); the glass
+                // wall's own frames are black metal like every other window of the building.
+                var mullion=BeveledBox(trim,"T11 champagne rounded curved rotunda frame",windowFrame,
                     pa.x,5.55f,pa.z,.19f,10.6f,.19f,.045f,false);
                 mullion.transform.localRotation=yaw;
             }
@@ -727,12 +730,12 @@ public static partial class BraxChampionsCasinoT11
             B(trim,"Garage portal canopy warm downlight line",led,44.19f,4.942f,lz,9.2f,.016f,.07f,false);
         B(trim,"Ramp WEST wall dark stone coping",granite,39.30f,.835f,-3.5f,.42f,.07f,41.04f,false,true);
         B(trim,"Ramp EAST wall dark stone coping",granite,49.12f,.575f,3.70f,.32f,.07f,50.64f,false,true);
-        B(trim,"Ramp WEST champagne guard rail",gold,39.30f,1.30f,-3.5f,.06f,.05f,41.0f,false);
-        B(trim,"Ramp EAST champagne guard rail",gold,49.12f,1.30f,3.5f,.06f,.05f,51.0f,false);
+        B(trim,"Ramp WEST champagne guard rail",windowFrame,39.30f,1.30f,-3.5f,.06f,.05f,41.0f,false);
+        B(trim,"Ramp EAST champagne guard rail",windowFrame,49.12f,1.30f,3.5f,.06f,.05f,51.0f,false);
         for(int i=0;i<=13;i++)
-            B(trim,"Ramp WEST guard rail post",gold,39.30f,1.0725f,-23.8f+i*3.123f,.045f,.405f,.045f,false);
+            B(trim,"Ramp WEST guard rail post",windowFrame,39.30f,1.0725f,-23.8f+i*3.123f,.045f,.405f,.045f,false);
         for(int i=0;i<=17;i++)
-            B(trim,"Ramp EAST guard rail post",gold,49.12f,.9425f,-21.8f+i*2.976f,.045f,.665f,.045f,false);
+            B(trim,"Ramp EAST guard rail post",windowFrame,49.12f,.9425f,-21.8f+i*2.976f,.045f,.665f,.045f,false);
         Debug.Log("T11_B1_GARAGE_LEFT_TURN_GEOMETRY rampClear=9.35m"+
             " westExitZ=17..29 width=12m bottomLanding=9.35x12m"+
             " roadTop=.2485 garageTop=-4.098 smoothRampNoLip=true"+

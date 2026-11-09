@@ -109,7 +109,9 @@ class ArenaOwnerReview20261110(unittest.TestCase):
         self.assertNotIn("Curved(t,1,MakeMat(1),", self.signs)
         self.assertNotIn("\n        HallBanners(t,body);", self.signs)
         alpha = float(re.search(r'arenaGlass\.SetColor\("_Color",new Color\([^)]*,(\.\d+)f\)\)', self.front).group(1))
-        self.assertGreaterEqual(alpha, .88)
+        # tinted, but still glass: .90 read as a black plastic box (owner 10.11 00:46)
+        self.assertGreaterEqual(alpha, .72)
+        self.assertLessEqual(alpha, .80)
 
     def test_belt_hangs_on_the_wall(self):
         self.assertNotIn('"A1 VITRINE | black marble pillar"', self.belt)

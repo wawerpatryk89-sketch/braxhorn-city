@@ -267,12 +267,13 @@ public static partial class BraxChampionsArenaArrival
     {
         var shared=exterior["facade_glass"];
         var arenaGlass=new Material(shared){name="A1 arena | uniform dark smoked facade glass"};
-        // Owner 9.11 23:43: "Szyby miały być przyciemnione z zewnątrz ... zobacz jak to wygląda": at alpha .70 the
-        // lobby, the mural and the sky behind still read through. The panes are single-sided (drawn from outside
-        // only), so a near-opaque graphite mirror outside leaves the view from the lobby exactly as it is.
-        arenaGlass.SetColor("_Color",new Color(.045f,.050f,.060f,.90f));
-        arenaGlass.SetFloat("_Roughness",.05f);
-        arenaGlass.SetFloat("_ReflectionStrength",.85f);
+        // Owner 9.11 23:43: "Szyby miały być przyciemnione z zewnątrz", then 10.11 00:46 on the render of alpha .90:
+        // "z zewnątrz gówno wygląda, jeszcze gorzej niż było" - near-opaque black read as a plastic box, the same
+        // mistake as the old opaque facade_glass. Tinted GLASS: blue-graphite, the lit lobby still glows through,
+        // strong sky reflection. Panes are single-sided, so the view from the lobby is unchanged.
+        arenaGlass.SetColor("_Color",new Color(.085f,.115f,.155f,.76f));
+        arenaGlass.SetFloat("_Roughness",.04f);
+        arenaGlass.SetFloat("_ReflectionStrength",1f);
         AssetDatabase.CreateAsset(arenaGlass,"Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/A1_arena_smoked_glass.mat");
         int swapped=0;
         foreach(var r in arenaRoot.GetComponentsInChildren<Renderer>(true))
@@ -281,7 +282,7 @@ public static partial class BraxChampionsArenaArrival
             for(int i=0;i<mats.Length;i++)if(mats[i]==shared){mats[i]=arenaGlass;hit=true;swapped++;}
             if(hit)r.sharedMaterials=mats;
         }
-        Debug.Log("A1_SMOKED_GLASS uniform lower+upper panes="+swapped+" alpha=.90 doors=clear_glass_only");
+        Debug.Log("A1_SMOKED_GLASS uniform lower+upper panes="+swapped+" alpha=.76 blue_graphite reflection=1 doors=clear_glass_only");
         if(swapped==0)BraxBuildQuality.Warn("A1_SMOKED_GLASS_NOT_APPLIED: no facade_glass renderer under the arena");
     }
 }

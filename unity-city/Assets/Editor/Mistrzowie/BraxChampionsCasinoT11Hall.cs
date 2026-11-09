@@ -85,20 +85,20 @@ public static partial class BraxChampionsCasinoT11
             W.MM(ceiling,-12f,12f,HallCeiling,HallCeiling+.08f,10f,HallZ1);
             foreach(float s in new[]{-1f,1f})
             {
-                W.MM(gold,s*12f-.06f,s*12f+.06f,HallCeiling-.02f,13.94f,-10f,10f);          // lantern shaft lining
-                W.MM(gold,-12f,12f,HallCeiling-.02f,13.94f,s*10f-.06f,s*10f+.06f);
+                W.MM(ceiling,s*12f-.06f,s*12f+.06f,HallCeiling-.02f,13.94f,-10f,10f);       // lantern shaft lining
+                W.MM(ceiling,-12f,12f,HallCeiling-.02f,13.94f,s*10f-.06f,s*10f+.06f);
                 W.MM(led,s*12.25f-.06f,s*12.25f+.06f,HallCeiling-.03f,HallCeiling,-10.3f,10.3f);   // light line around it
                 W.MM(led,-12.3f,12.3f,HallCeiling-.03f,HallCeiling,s*10.25f-.06f,s*10.25f+.06f);
             }
-            // gold coffer beams on the column lines, a light line under each
+            // walnut coffer beams on the column lines, a light line under each (10.11 00:45: not everything gold)
             foreach(float x in new[]{-28.2f,-14.1f,14.1f,28.2f})
             {
-                W.MM(gold,x-.30f,x+.30f,HallCeiling-.36f,HallCeiling,HallZ0,HallZ1);
+                W.MM(wall,x-.30f,x+.30f,HallCeiling-.36f,HallCeiling,HallZ0,HallZ1);
                 W.MM(led,x-.05f,x+.05f,HallCeiling-.38f,HallCeiling-.36f,HallZ0+.6f,HallZ1-.6f);
             }
             foreach(float z in new[]{-14f,14f})
             {
-                W.MM(gold,-HallX,HallX,HallCeiling-.30f,HallCeiling,z-.30f,z+.30f);
+                W.MM(wall,-HallX,HallX,HallCeiling-.30f,HallCeiling,z-.30f,z+.30f);
                 W.MM(led,-HallX+.6f,HallX-.6f,HallCeiling-.32f,HallCeiling-.30f,z-.05f,z+.05f);
             }
 
@@ -121,7 +121,7 @@ public static partial class BraxChampionsCasinoT11
             W.MM(gold,-HallX,HallX,HallFloor+1.0f,HallFloor+1.05f,rear-.08f,rear-.05f);
             for(float x=-33f;x<=33.1f;x+=6f)
             {
-                W.MM(gold,x-.10f,x+.10f,HallFloor+1.05f,HallCeiling,rear-.09f,rear-.05f);
+                W.MM(marble,x-.10f,x+.10f,HallFloor+1.05f,HallCeiling,rear-.09f,rear-.05f);
                 W.MM(violet,x+2.94f,x+3.06f,2.0f,11.4f,rear-.075f,rear-.05f);
             }
             // the 6 m delivery opening in the rear wall is closed by a graphite roller gate inside the wall thickness
