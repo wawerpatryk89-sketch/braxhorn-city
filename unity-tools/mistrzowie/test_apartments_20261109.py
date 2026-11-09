@@ -100,9 +100,9 @@ class Apartments20261109(unittest.TestCase):
             self.assertGreaterEqual(level(f + 1) - level(f) - .20, 2.0)
 
     def test_finished_and_empty_interiors(self):
-        for finish in ('"oak_wood_planks"', '"tiled_floor_001"', '"marble_01"', '"terrazzo_tiles"', '"beige_wall_001"'):
+        for finish in ('"oak_wood_planks"', '"marble_01"', '"hessian_230"', '"smoked_walnut_veneer"', '"beige_wall_001"'):
             self.assertIn(finish, SRC)
-        for part in ("static float Apartment(", "static void Stair(", "WallX(paint,LiftZ", "Leaf(true,zs",
+        for part in ("static float Apartment(", "static void Stair(", "WallX(grasscloth,LiftZ", "Leaf(true,zs",
                      "Leaf(false,X(uHall)", "Ceiling(Lo(X(lu),X(w)),Hi(X(lu),X(w)),az0,az1,cy)", "W.Lampa(\"corridor light floor \""):
             self.assertIn(part, SRC)
         # Owner: "Bez wyposażenia" - no furniture, kitchens or bathroom fittings.
@@ -114,10 +114,30 @@ class Apartments20261109(unittest.TestCase):
 
     def test_accessible_with_collisions(self):
         self.assertIn("W.Rampa(", SRC)                          # stairs and entrance ramp walkable
-        self.assertIn("Wedge(granite", SRC)
+        self.assertIn("Wedge(deck", SRC)                        # light granite ramp (black granite read as a hole)
         self.assertIn("sliding leaf open by half", SRC)        # entrance and balcony doors open
         self.assertIn("panes+=Ribbon(poly,.06f,deckTop,deckTop+Balustrade,.012f,clearGlass,true,Outer)", SRC)
         self.assertIn("top floor: no flight up -> guard the stairwell", SRC)
+
+    def test_owner_9_11_evening_fixes(self):
+        # owner photos/videos 9.11 22:15-22:31: mauve interiors, flickering corner, black entrance, "0.4", pop-in
+        light = (EDITOR / "BraxChampionsInteriorLight.cs").read_text(encoding="utf-8")
+        self.assertIn('m.SetColor("_GroundColor",Ground)', light)
+        self.assertIn("BraxChampionsInteriorLight.Apply(ceiling,BraxChampionsInteriorLight.Ceilings)", SRC)
+        self.assertIn("foreach(var m in new[]{render,panel,granite,timber,deck})BraxChampionsInteriorLight.Facade(m);", SRC)
+        self.assertIn("static void Skirting(bool alongX,float plane,float t,float a,float b,float y0)", SRC)
+        self.assertGreaterEqual(SRC.count("Skirting("), 5)
+        self.assertIn('string N()=>(f*4+(++no)).ToString("00");', SRC)
+        self.assertNotIn('f+"."+(++no)', SRC)
+        self.assertIn("Box(pier,x-.41f,x+.41f,Ffl0,CeilingOf(0),-HalfD-.05f,-HalfD+.85f,true);", SRC)
+        self.assertIn("Box(deck,-HalfW,HalfW,SiteY,Ffl0,-HalfD-2.6f,-HalfD,true);", SRC)
+        self.assertNotIn("Box(granite,-HalfW,HalfW,SiteY,Ffl0", SRC)
+        self.assertIn("interiorLod.SetLODs(new[]{new LOD(.06f,interiorRenderers)", SRC)
+        self.assertIn('var vis=lamps.gameObject.AddComponent<BraxWidocznoscWnetrza>();', SRC)
+        self.assertIn("static void Lobby(float y0,float zFrontIn)", SRC)
+        self.assertIn('stoneFloor=M("apt_marble_floor","marble_01"', SRC)
+        self.assertNotIn('"terrazzo_tiles"', SRC)
+        self.assertTrue((ROOT / "unity-tools/mistrzowie/apartments_preview/zfight.py").exists())
 
     def test_k_once_lod_and_integration(self):
         self.assertIn("root.localScale=Vector3.one*K;", SRC)

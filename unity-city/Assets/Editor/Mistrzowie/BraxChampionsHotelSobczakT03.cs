@@ -146,8 +146,9 @@ public static class BraxChampionsHotelSobczakT03
         var lod=details.gameObject.AddComponent<LODGroup>();
         lod.SetLODs(new[]{new LOD(.05f,detailRenderers),new LOD(.0001f,Array.Empty<Renderer>())});lod.RecalculateBounds();
         var vis=podiumInside.gameObject.AddComponent<BraxWidocznoscWnetrza>();vis.nazwa="T03 public floors";
-        // lobby and restaurant are drawn within ~60 m of the podium (seen through the glass), hidden from far away
-        vis.strefy=new[]{new Bounds(root.TransformPoint(new Vector3(0,12f,0)),new Vector3(2*PodiumHalfW+120f,40f,2*PodiumHalfD+120f)*K)};
+        // lobby and restaurant are seen through the glass: drawn within ~200 m (was 60 m: they popped in on
+        // approach, owner videos 9.11 "pokazuje, znika"); at 200 m the podium is a few % of the screen
+        vis.strefy=new[]{new Bounds(root.TransformPoint(new Vector3(0,12f,0)),new Vector3(2*PodiumHalfW+400f,120f,2*PodiumHalfD+400f)*K)};
         for(int l=0;l<Elevators;l++)Elevator(l,cabins[l],landingL,landingR);
         foreach(var d in root.GetComponentsInChildren<BraxDrzwiAutomatyczne>(true))d.zasieg=2.6f*K;
         var streamer=root.gameObject.AddComponent<BraxHotelSobczakFloorStreamer>();

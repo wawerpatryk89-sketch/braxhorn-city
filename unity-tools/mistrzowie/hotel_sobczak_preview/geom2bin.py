@@ -60,7 +60,7 @@ def main(src, out):
         T = np.concatenate(ts); U = np.concatenate(us)
         T.tofile(out / f"m{i}_pos.bin"); U.tofile(out / f"m{i}_uv.bin")
         parts = m.split("|")
-        slug = parts[1] if len(parts) == 3 and not parts[1].startswith("Marble") else None
+        slug = parts[1] if len(parts) == 3 else None
         c = colours.get(m, [1, 1, 1, 1]) if not m.startswith("mesh:") else colours.get(m[5:], [1, 1, 1, 1])
         amb = ambient.get(m[5:] if m.startswith("mesh:") else m, [.60, .68, .78, .42, .40, .36, .65])
         mats.append(dict(id=i, name=m, slug=slug, colour=c, ambient=amb, count=len(T)))

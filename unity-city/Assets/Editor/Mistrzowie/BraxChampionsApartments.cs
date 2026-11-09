@@ -27,7 +27,7 @@ using W = BraxWnetrzaKit;
 // volume, timber slat screen, sharp white balconies with timber soffits.
 // Faces road X1130 (east).
 // Rooms are FINISHED (oak floors, painted walls, white ceilings with downlights,
-// marble bathrooms, doors with walnut casings, terrazzo corridors, stair, lift)
+// marble bathrooms, doors with walnut casings, marble corridors and stairs, lift)
 // and EMPTY: no furniture, no kitchen units, no sanitary fittings (owner).
 public static class BraxChampionsApartments
 {
@@ -86,7 +86,7 @@ public static class BraxChampionsApartments
     // skin = solid façade parts and slab edges; pier = ground-floor piers; edge = balcony fascia
     static Material skin,pier,edge,gold;
     static Material render,panel,granite,timber,walnut,black,facadeGlass,clearGlass,led,steel,
-        oak,paint,ceiling,bathFloor,bathWall,terrazzo,marbleBlack,deck,grass,paving;
+        oak,paint,ceiling,bathFloor,bathWall,stoneFloor,marbleBlack,deck,grass,paving,grasscloth,brass,lamp,veneer;
 
     static void Materials(Dictionary<string,Material> ext,string outFolder)
     {
@@ -97,19 +97,29 @@ public static class BraxChampionsApartments
         walnut=M("apt_door_walnut","teak_veneer",1.0f,new Color(.44f,.30f,.21f),.50f);
         oak=M("apt_floor_oak","oak_wood_planks",1.6f,new Color(.98f,.93f,.86f),.60f);
         paint=M("apt_wall_paint","beige_wall_001",2.2f,new Color(1f,.99f,.97f),.95f);
-        bathFloor=M("apt_bath_floor","tiled_floor_001",.8f,new Color(.92f,.92f,.92f),.45f);
+        bathFloor=M("apt_bath_floor","marble_01",.9f,new Color(.86f,.84f,.80f),.35f);              // honed marble, matches the walls
         bathWall=M("apt_bath_marble","marble_01",1.4f,Color.white,.30f);
-        terrazzo=M("apt_terrazzo","terrazzo_tiles",1.6f,new Color(.96f,.95f,.93f),.40f);
+        // lobby, corridors and stairs: polished marble (terrazzo_tiles read as a brown carpet, owner 9.11)
+        stoneFloor=M("apt_marble_floor","marble_01",1.2f,new Color(.96f,.95f,.92f),.32f);
+        veneer=M("apt_walnut_veneer","smoked_walnut_veneer",1.2f,new Color(.92f,.86f,.80f),.55f);
         deck=M("apt_balcony_stone","granite_tile_04",1.0f,new Color(.90f,.90f,.88f),.60f);
         // owner 9.11 21:03: every surface finished with Poly Haven maps (was a plain white colour)
         ceiling=M("apt_ceiling_stucco","white_stucco_02",2.0f,new Color(.98f,.98f,.97f),.95f);
         if(ceiling.HasProperty("_BumpScale"))ceiling.SetFloat("_BumpScale",.15f);
-        try{marbleBlack=BraxChampionsFoundation.LibraryMarble("apt_black_marble",new Color(.86f,.80f,.78f),2.5f);}
+        try{marbleBlack=BraxChampionsFoundation.LibraryMarble("apt_black_marble",new Color(.86f,.80f,.78f),2.5f);BraxChampionsInteriorLight.Facade(marbleBlack);}
         catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI APT_BLACK_MARBLE_MISSING "+e.Message);marbleBlack=granite;}
+        // owner 9.11 22:15 ("rewelacji nie ma"): corridors and lobby in grasscloth like the hotel, brass details
+        grasscloth=M("apt_grasscloth","hessian_230",.55f,new Color(1.16f,1.12f,1.06f),1f);
+        // Interior irradiance (owner photos 9.11: mauve walls, dark ceilings): warm interior sky/ground.
+        foreach(var m in new[]{paint,oak,bathFloor,bathWall,stoneFloor,walnut,grasscloth,veneer})BraxChampionsInteriorLight.Apply(m,BraxChampionsInteriorLight.Walls);
+        BraxChampionsInteriorLight.Apply(ceiling,BraxChampionsInteriorLight.Ceilings);
+        // shaded façades: ambient ground = sunlit lawn and paving (BraxChampionsInteriorLight.Facade)
+        foreach(var m in new[]{render,panel,granite,timber,deck})BraxChampionsInteriorLight.Facade(m);
         grass=Region("grass.mat",()=>M("apt_lawn_fallback","brown_mud_leaves_01",1.4f,new Color(.55f,.72f,.40f),1f));
         paving=Region("paving.mat",()=>M("apt_paving","concrete_pavement_02",1.8f,Color.white,1f));
         gold=ext["arena_gold"];
         black=ext["arena_black"];led=ext["light"];steel=ext["steel"];clearGlass=ext["clear_glass"];
+        brass=gold;lamp=led;
         string glassPath=outFolder+"/Materials/apt_facade_glass.mat";
         facadeGlass=AssetDatabase.LoadAssetAtPath<Material>(glassPath);
         if(!facadeGlass)
@@ -211,12 +221,12 @@ public static class BraxChampionsApartments
         float x=x0;
         foreach(var g in gaps)
         {
-            Box(m,x,g.a,y0,y1,z-t*.5f,z+t*.5f,true);
+            Box(m,x,g.a,y0,y1,z-t*.5f,z+t*.5f,true);Skirting(true,z,t,x,g.a,y0);
             Box(m,g.a,g.b,y0+g.top,y1,z-t*.5f,z+t*.5f,true);
             Casing(true,z,g.a,g.b,y0,y0+g.top,t);
             x=g.b;
         }
-        Box(m,x,x1,y0,y1,z-t*.5f,z+t*.5f,true);
+        Box(m,x,x1,y0,y1,z-t*.5f,z+t*.5f,true);Skirting(true,z,t,x,x1,y0);
     }
     static void WallZ(Material m,float x,float z0,float z1,float y0,float y1,float t,params Gap[] gaps)
     {
@@ -224,12 +234,21 @@ public static class BraxChampionsApartments
         float z=z0;
         foreach(var g in gaps)
         {
-            Box(m,x-t*.5f,x+t*.5f,y0,y1,z,g.a,true);
+            Box(m,x-t*.5f,x+t*.5f,y0,y1,z,g.a,true);Skirting(false,x,t,z,g.a,y0);
             Box(m,x-t*.5f,x+t*.5f,y0+g.top,y1,g.a,g.b,true);
             Casing(false,x,g.a,g.b,y0,y0+g.top,t);
             z=g.b;
         }
-        Box(m,x-t*.5f,x+t*.5f,y0,y1,z,z1,true);
+        Box(m,x-t*.5f,x+t*.5f,y0,y1,z,z1,true);Skirting(false,x,t,z,z1,y0);
+    }
+    // Walnut skirting 80 mm on both faces of an interior wall, 15 mm proud: hides the floor-finish edge
+    // (12 mm) that met the wall face in the same plane (z-fighting line at every wall base).
+    static void Skirting(bool alongX,float plane,float t,float a,float b,float y0)
+    {
+        if(!W.Wnetrze||b-a<.03f)return;
+        float lo=y0+Finish,hi=y0+Finish+.08f,d=t*.5f;
+        if(alongX){Box(walnut,a,b,lo,hi,plane-d-.015f,plane-d);Box(walnut,a,b,lo,hi,plane+d,plane+d+.015f);}
+        else{Box(walnut,plane-d-.015f,plane-d,lo,hi,a,b);Box(walnut,plane+d,plane+d+.015f,lo,hi,a,b);}
     }
     // Walnut casing (jambs + head), 5 cm wide, 12 mm proud of both wall faces.
     static void Casing(bool alongX,float plane,float a,float b,float y0,float y1,float t)
@@ -283,7 +302,7 @@ public static class BraxChampionsApartments
                 W.Grupa=details;                                                    // frames drop out far away
                 Rail(alongX,c,p.a,p.b,y1-.06f,y1);
                 if(p.s==Seg.Glass)Rail(alongX,c,p.a,p.b,y0,y0+.06f);
-                else Rail(alongX,c,p.a,p.b,y0-.01f,y0+.012f);                       // flush threshold
+                else Rail(alongX,c,p.a,p.b,y0-.01f,y0+.019f);                       // threshold 7 mm over the finish
                 for(int i=0;i<=n;i++)Mullion(alongX,c,p.a+len*i/n,y0,y1);
             }
             else
@@ -291,8 +310,15 @@ public static class BraxChampionsApartments
                 var mat=p.s==Seg.Timber?timber:p.s==Seg.Panel?panel:p.s==Seg.Marble?marbleBlack:skin;float t=.30f;
                 if(alongX)Box(mat,p.a,p.b,y0,y1,c-t*.5f,c+t*.5f,true);else Box(mat,c-t*.5f,c+t*.5f,y0,y1,p.a,p.b,true);
                 W.Grupa=inside;W.Wnetrze=true;                                     // painted inner face
-                float i0=nrm<0?c+t*.5f:c-t*.5f-.01f,i1=i0+.01f;
-                if(alongX)Box(paint,p.a,p.b,y0,y1,i0,i1);else Box(paint,i0,i1,y0,y1,p.a,p.b);
+                float i0=nrm<0?c+t*.5f:c-t*.5f-.01f,i1=i0+.01f,k0=nrm<0?i1:i0-.015f,k1=k0+.015f,s0=y0+Finish,s1=s0+.08f;
+                // the lining stays inside the body: its end must not reach the outer corner, where it showed as a
+                // flickering 1 cm strip in the plane of the side façade
+                float lim=alongX?HalfW-.30f:HalfD-.30f,la=Mathf.Max(p.a,-lim),lb=Mathf.Min(p.b,lim);
+                if(lb-la>.01f)
+                {
+                    if(alongX){Box(paint,la,lb,y0,y1,i0,i1);Box(walnut,la,lb,s0,s1,k0,k1);}
+                    else{Box(paint,i0,i1,y0,y1,la,lb);Box(walnut,k0,k1,s0,s1,la,lb);}
+                }
             }
         }
         W.Grupa=outside;W.Wnetrze=false;
@@ -354,8 +380,20 @@ public static class BraxChampionsApartments
             // the partition is the loggia's side wall in front of the living: white render on that face
             float face=X(lu)-dirU*Partition*.5f,zo=zfL-s*.30f;
             W.Grupa=outside;W.Wnetrze=false;
-            Box(render,Lo(face,face-dirU*.012f),Hi(face,face-dirU*.012f),y0,y1,Lo(zf,zo),Hi(zf,zo));
+            float zb=zf-s*.32f;                                                     // from the front of the band: covers its end face
+            Box(render,Lo(face,face-dirU*.02f),Hi(face,face-dirU*.02f),y0,y1,Lo(zb,zo),Hi(zb,zo));   // covers the skirting too
             W.Grupa=inside;W.Wnetrze=true;
+        }
+        // living room feature wall: smoked walnut veneer panels (600 mm, 6 mm shadow gaps) above the skirting
+        {
+            float face=X(lu)-dirU*Partition*.5f,f0=Lo(face,face-dirU*.010f),f1=Hi(face,face-dirU*.010f);
+            float za=zfL+s*.05f,zb=zc-s*.05f,lo=y0+Finish+.08f;
+            void Panels(float a,float b,float p0,float p1)
+            {
+                for(float z=a;z<b-.05f;z+=.606f)Box(veneer,f0,f1,p0,p1,z,Mathf.Min(z+.6f,b));
+            }
+            Panels(Lo(za,zb),zm-.75f,lo,cy-.02f);Panels(zm+.75f,Hi(za,zb),lo,cy-.02f);
+            Panels(zm-.75f,zm+.75f,y0+2.30f+.06f,cy-.02f);
         }
         // bedroom 1 | bedroom 2
         WallZ(paint,X(uB2),Lo(zGlass,zs),Hi(zGlass,zs),y0,top,Partition);
@@ -372,11 +410,11 @@ public static class BraxChampionsApartments
         float hw=Partition*.5f,rx0=innerAtX1?bx0+hw:bx0,rx1=innerAtX1?bx1:bx1-hw;
         float rz0=s>0?sz0+hw:sz0,rz1=s>0?sz1:sz1-hw;
         float doorSide=innerAtX1?rx0:rx1,o=innerAtX1?.01f:-.01f,far=innerAtX1?rx1:rx0;
-        Box(bathWall,Lo(doorSide,doorSide+o),Hi(doorSide,doorSide+o),y0,cy,rz0,zm-.40f);
-        Box(bathWall,Lo(doorSide,doorSide+o),Hi(doorSide,doorSide+o),y0,cy,zm+.40f,rz1);
+        Box(bathWall,Lo(doorSide,doorSide+o),Hi(doorSide,doorSide+o),y0+Finish,cy,rz0,zm-.40f);
+        Box(bathWall,Lo(doorSide,doorSide+o),Hi(doorSide,doorSide+o),y0+Finish,cy,zm+.40f,rz1);
         Box(bathWall,Lo(doorSide,doorSide+o),Hi(doorSide,doorSide+o),y0+DoorH,cy,zm-.40f,zm+.40f);
-        Box(bathWall,Lo(far,far-o),Hi(far,far-o),y0,cy,rz0,rz1);
-        Box(bathWall,rx0,rx1,y0,cy,rz0,rz0+.01f);Box(bathWall,rx0,rx1,y0,cy,rz1-.01f,rz1);
+        Box(bathWall,Lo(far,far-o),Hi(far,far-o),y0+Finish,cy,rz0,rz1);
+        Box(bathWall,rx0,rx1,y0+Finish,cy,rz0,rz0+.01f);Box(bathWall,rx0,rx1,y0+Finish,cy,rz1-.01f,rz1);
         // mullions where partitions meet the glass (no see-through gap between rooms)
         float cGlass=zf-s*.15f;
         foreach(float u in new[]{lu,uB2})Box(black,X(u)-.035f,X(u)+.035f,y0,y1,cGlass-.06f,cGlass+.06f);
@@ -406,10 +444,10 @@ public static class BraxChampionsApartments
         for(int k=0;k<half;k++)
         {
             float t1=a+(k+1)*r,t2=mid+(k+1)*r;
-            Box(terrazzo,LaneA0,LaneA1,t1-r-.16f,t1,StairZ0+k*Tread,StairZ0+(k+1)*Tread);
-            Box(terrazzo,LaneB0,LaneB1,t2-r-.16f,t2,zMid-(k+1)*Tread,zMid-k*Tread);
+            Box(stoneFloor,LaneA0,LaneA1,t1-r-.16f,t1,StairZ0+k*Tread,StairZ0+(k+1)*Tread);
+            Box(stoneFloor,LaneB0,LaneB1,t2-r-.16f,t2,zMid-(k+1)*Tread,zMid-k*Tread);
         }
-        Box(terrazzo,LaneA0,LaneB1,mid-.20f,mid,zMid,CoreBack,true);                     // half landing
+        Box(stoneFloor,LaneA0,LaneB1,mid-.20f,mid,zMid,CoreBack,true);                     // half landing
         W.Rampa(new Vector3((LaneA0+LaneA1)*.5f,mid,zMid),new Vector3((LaneA0+LaneA1)*.5f,a,StairZ0),LaneA1-LaneA0);
         W.Rampa(new Vector3((LaneB0+LaneB1)*.5f,b,StairZ0),new Vector3((LaneB0+LaneB1)*.5f,mid,zMid),LaneB1-LaneB0);
         Box(clearGlass,-1.565f,-1.535f,a,b,StairZ0,zMid,true);                            // glass between flights
@@ -427,7 +465,7 @@ public static class BraxChampionsApartments
         if(!found)throw new ArgumentException("Unknown apartment plot "+id);
         HalfW=plot.halfW;HalfD=plot.halfD;Floors=plot.floors;Loggia=plot.loggia;Walk=plot.walk;style=plot.style;
         System.IO.Directory.CreateDirectory(outFolder+"/Materials");System.IO.Directory.CreateDirectory(outFolder+"/Prefabs");
-        Materials(ext,outFolder);apartments=0;doors=0;
+        Materials(ext,outFolder);apartments=0;doors=0;models=0;
         bool marble=style==Style.MarbleGold;
         skin=marble?marbleBlack:render;pier=marble?marbleBlack:granite;edge=marble?gold:render;
         // Ground datum from the real ground: the empty plot base sits at -.25 (legacy_foundation.py).
@@ -467,8 +505,17 @@ public static class BraxChampionsApartments
         root.position=new Vector3(plot.x*K,datum,plot.z*K);
         foreach(var l in root.GetComponentsInChildren<Light>(true))l.range*=K;
         int palms=Palms(root,outside);
-        var vis=inside.gameObject.AddComponent<BraxWidocznoscWnetrza>();vis.nazwa=id+" apartments";
-        // Interiors are seen through the glass from the street: drawn within ~60 m.
+        // Interiors are seen through the glass from the street. They were switched off beyond ~60 m and popped
+        // in on approach (owner videos 9.11 "pokazuje, znika"). Now the finished interior is a distance LOD:
+        // drawn while the building is at least ~3 % of the screen (lodBias 2: ~300 m), so it never pops at
+        // street distance. Only the lamps keep the 60 m zone (vertex lights per object are the expensive part).
+        var lamps=new GameObject("interior lamps (on within ~60 m)").transform;lamps.SetParent(inside,false);
+        foreach(var l in inside.GetComponentsInChildren<Light>(true))l.transform.SetParent(lamps,true);
+        var interiorRenderers=inside.GetComponentsInChildren<Renderer>(true);
+        var interiorLod=inside.gameObject.AddComponent<LODGroup>();
+        interiorLod.SetLODs(new[]{new LOD(.06f,interiorRenderers),new LOD(.0001f,Array.Empty<Renderer>())});
+        interiorLod.RecalculateBounds();
+        var vis=lamps.gameObject.AddComponent<BraxWidocznoscWnetrza>();vis.nazwa=id+" apartment lamps";
         vis.strefy=new[]{new Bounds(root.position+Vector3.up*8f*K,new Vector3(120f,44f,120f)*K)};
         var at=root.position;var rot=root.rotation;root.position=Vector3.zero;root.rotation=Quaternion.identity;
         var prefab=PrefabUtility.SaveAsPrefabAssetAndConnect(root.gameObject,outFolder+"/Prefabs/"+id+"_Apartments.prefab",InteractionMode.AutomatedAction);
@@ -478,7 +525,7 @@ public static class BraxChampionsApartments
             " groundStorey="+GroundStorey+" storey="+Storey+" roofTop="+RoofTop+" loggia="+Loggia+" apartments="+apartments+" doors="+doors+
             " balconyGlassPanes="+panes+" balustrade="+Balustrade+" stair=dog-leg riser"+Riser+"/tread"+Tread+
             " lift=1 lights="+lights.Count+" palms="+palms+" meshes="+saved+" datumY="+datum.ToString("F3")+
-            " yaw="+plot.yaw+" interiors=finished_empty_no_furniture");
+            " yaw="+plot.yaw+" lobbyModels="+models+" interiors=finished_empty_no_furniture interiorLod=.06 lampsZone=60m");
     }
 
     // ---- site: lawn over the whole plot, apron, terrace, ramp, path to the sidewalk, bollards ----
@@ -487,9 +534,9 @@ public static class BraxChampionsApartments
         W.Grupa=outside;W.Wnetrze=false;
         Box(grass,-PlotHalf,PlotHalf,PlotBaseY,SiteY,-PlotHalf,PlotHalf,true);
         Box(paving,-HalfW-1.6f,HalfW+1.6f,SiteY,SiteY+.03f,-HalfD-3.4f,HalfD+2.1f,true);
-        Box(granite,-HalfW,HalfW,PlotBaseY,Ffl0,-HalfD,HalfD,true);                       // plinth
-        Box(granite,-HalfW,HalfW,SiteY,Ffl0,-HalfD-2.6f,-HalfD,true);                     // front terrace
-        Wedge(granite,-2.0f,2.0f,-HalfD-5.5f,SiteY+.03f,-HalfD-2.6f,Ffl0,SiteY);          // 3.8 % ramp, no step
+        Box(deck,-HalfW,HalfW,PlotBaseY,Ffl0,-HalfD,HalfD,true);                          // plinth (light granite)
+        Box(deck,-HalfW,HalfW,SiteY,Ffl0,-HalfD-2.6f,-HalfD,true);                        // front terrace
+        Wedge(deck,-2.0f,2.0f,-HalfD-5.5f,SiteY+.03f,-HalfD-2.6f,Ffl0,SiteY);             // 3.8 % ramp, no step
         Box(paving,-2.5f,2.5f,SiteY,SiteY+.03f,Walk,-HalfD-3.4f,true);                     // to the road sidewalk
         W.Grupa=details;
         for(float z=-16f;z>Walk+2f;z-=6f)
@@ -512,9 +559,9 @@ public static class BraxChampionsApartments
             if(f<Floors)
             {
                 Box(skin,-HalfW,HalfW,y-Slab,y,-HalfD,StairZ0,true);
-                Box(skin,-HalfW,LaneA0,y-Slab,y,StairZ0,HalfD,true);
-                Box(skin,LaneB1,HalfW,y-Slab,y,StairZ0,HalfD,true);
-                Box(skin,LaneA0,LaneB1,y-Slab,y,CoreBack,HalfD,true);
+                Box(skin,-HalfW,LaneA0-.02f,y-Slab,y,StairZ0,HalfD,true);                 // edges 2 cm inside the
+                Box(skin,LaneB1+.02f,HalfW,y-Slab,y,StairZ0,HalfD,true);                  // core walls (no shared plane)
+                Box(skin,LaneA0-.02f,LaneB1+.02f,y-Slab,y,CoreBack,HalfD,true);
             }
             else Box(skin,-HalfW,HalfW,y-Slab,y,-HalfD,HalfD,true);
         }
@@ -538,7 +585,9 @@ public static class BraxChampionsApartments
         }
         W.Grupa=outside;W.Wnetrze=false;
         // ground floor: dark granite piers, LED downlights in the 1 m deep entrance soffit
-        foreach(float x in new[]{-HalfW+.4f,-9f,9f,HalfW-.4f})Box(pier,x-.4f,x+.4f,Ffl0,CeilingOf(0),-HalfD-.05f,-HalfD+.95f,true);
+        // piers end in front of the recessed band (z -HalfD+.85) and are 1 cm wider than the render returns:
+        // no face of a pier lies in the plane of a render face (they flickered on the corner, video IMG_0786)
+        foreach(float x in new[]{-HalfW+.4f,-9f,9f,HalfW-.4f})Box(pier,x-.41f,x+.41f,Ffl0,CeilingOf(0),-HalfD-.05f,-HalfD+.85f,true);
         W.Grupa=details;
         for(float x=-(HalfW-2f);x<=HalfW-1.99f;x+=2f)Downlight(x,-HalfD+.48f,CeilingOf(0));
         W.Grupa=outside;
@@ -739,7 +788,7 @@ public static class BraxChampionsApartments
         W.Grupa=outside;
         Box(black,.9f,8.4f,CeilingOf(0)-.06f,CeilingOf(0),-HalfD-.30f,-HalfD-.12f);
         Box(black,.9f,8.4f,RoofTop-.06f,RoofTop,-HalfD-.30f,-HalfD-.12f);
-        for(int i=0;i<50;i++){float x=.975f+i*.15f;Box(timber,x-.025f,x+.025f,CeilingOf(0),RoofTop,-HalfD-.30f,-HalfD-.15f);}
+        for(int i=0;i<50;i++){float x=.975f+i*.15f;Box(timber,x-.025f,x+.025f,CeilingOf(0),RoofTop-.06f,-HalfD-.29f,-HalfD-.15f);}   // between the rails
         // flat roof: white parapet .90 m with black coping; marble parapet over the corner volume
         Box(render,-HalfW,m0-.2f,RoofTop,top,-HalfD,-HalfD+.25f,true);
         Box(render,-HalfW,HalfW,RoofTop,top,HalfD-.25f,HalfD,true);
@@ -764,59 +813,64 @@ public static class BraxChampionsApartments
             float y0=Level(f),y1=CeilingOf(f),top=Level(f+1),cy=y1-.01f;
             float zFrontIn=f==0?-HalfD+1.15f:-HalfD+.30f,zc=CorridorZ0-CorridorWall*.5f,zr=CorridorZ1+CorridorWall*.5f;
             int no=0;
-            string N()=>f+"."+(++no);
-            // corridor: terrazzo, linear light, windows at both ends
+            string N()=>(f*4+(++no)).ToString("00");                             // 01..20 (was "0.4": owner photo 9.11)
+            // corridor: marble, linear light, windows at both ends
             W.Grupa=inside;W.Wnetrze=true;
-            Box(terrazzo,-HalfW+.3f,HalfW-.3f,y0,y0+Finish,CorridorZ0,CorridorZ1);
+            Box(stoneFloor,-HalfW+.3f,HalfW-.3f,y0,y0+Finish,CorridorZ0,CorridorZ1);
             Ceiling(-HalfW+.3f,HalfW-.3f,CorridorZ0,CorridorZ1,cy);
             Box(led,-HalfW+1.2f,HalfW-1.2f,cy-.012f,cy+.004f,.13f,.27f);
             lights.Add(W.Lampa("corridor light floor "+f,new Vector3(0,y1-.3f,.2f),.8f,14f));
             if(f==0||style==Style.MarbleGold)
             {
                 // lobby from the entrance to the corridor (T06: the glass core's lounge on every floor):
-                // terrazzo, black marble walls, LED lines
+                // marble floor, black marble walls, LED lines
                 float bay=zFrontIn-.15f;
-                Box(terrazzo,-3f,3f,y0,y0+Finish,bay,CorridorZ0);
+                Box(stoneFloor,-3f,3f,y0,y0+Finish,bay,CorridorZ0);
                 foreach(float sx in new[]{-1f,1f})
                 {
-                    WallZ(paint,sx*3.1f,zFrontIn,CorridorZ0,y0,top,CorridorWall);
-                    Box(marbleBlack,sx>0?3.0f-.012f:-3.0f,sx>0?3.0f:-3.0f+.012f,y0,cy,zFrontIn,zc);
+                    WallZ(grasscloth,sx*3.1f,zFrontIn,CorridorZ0,y0,top,CorridorWall);
+                    Box(marbleBlack,sx>0?3.0f-.012f:-3.0f,sx>0?3.0f:-3.0f+.012f,y0+Finish,cy,zFrontIn,zc);
                 }
                 Ceiling(-3f,3f,bay,CorridorZ0,cy);
                 for(float z=bay+1.2f;z<=-1.5f;z+=1.6f)Box(led,-2.2f,2.2f,cy-.012f,cy+.004f,z-.04f,z+.04f);
+                if(f==0)Lobby(y0,zFrontIn);
                 lights.Add(W.Lampa((f==0?"lobby":"glass core lounge floor "+f)+" light",new Vector3(0,y1-.5f,(bay+CorridorZ0)*.5f),1.0f,10f));
                 float eA=Apartment(f,-HalfW+.3f,-3.2f,zFrontIn,zc,true,N(),lights);
                 float eB=Apartment(f,3.2f,HalfW-.3f,zFrontIn,zc,false,N(),lights);
-                WallX(paint,CorridorZ0,-HalfW+.3f,-3.0f,y0,top,CorridorWall,new Gap(eA-DoorW*.5f,eA+DoorW*.5f,DoorH));
-                WallX(paint,CorridorZ0,3.0f,HalfW-.3f,y0,top,CorridorWall,new Gap(eB-DoorW*.5f,eB+DoorW*.5f,DoorH));
+                WallX(grasscloth,CorridorZ0,-HalfW+.3f,-3.0f,y0,top,CorridorWall,new Gap(eA-DoorW*.5f,eA+DoorW*.5f,DoorH));
+                WallX(grasscloth,CorridorZ0,3.0f,HalfW-.3f,y0,top,CorridorWall,new Gap(eB-DoorW*.5f,eB+DoorW*.5f,DoorH));
                 Leaf(true,CorridorZ0,eA-DoorW*.5f,eA+DoorW*.5f,y0,-1f);Leaf(true,CorridorZ0,eB-DoorW*.5f,eB+DoorW*.5f,y0,-1f);
+                Sconce(eA-.85f,y0,CorridorZ0+CorridorWall*.5f,1f);Sconce(eB-.85f,y0,CorridorZ0+CorridorWall*.5f,1f);
             }
             else
             {
                 float eA=Apartment(f,-HalfW+.3f,-.1f,zFrontIn,zc,true,N(),lights,Loggia);
                 float eB=Apartment(f,.1f,HalfW-.3f,zFrontIn,zc,false,N(),lights,Loggia);
-                WallZ(paint,0f,zFrontIn-.14f,zc,y0,top,CorridorWall);                        // party wall
-                WallX(paint,CorridorZ0,-HalfW+.3f,HalfW-.3f,y0,top,CorridorWall,
+                WallZ(paint,0f,zFrontIn,zc,y0,top,CorridorWall);                             // party wall (the render pier closes it to the glass)
+                WallX(grasscloth,CorridorZ0,-HalfW+.3f,HalfW-.3f,y0,top,CorridorWall,
                     new Gap(eA-DoorW*.5f,eA+DoorW*.5f,DoorH),new Gap(eB-DoorW*.5f,eB+DoorW*.5f,DoorH));
                 Leaf(true,CorridorZ0,eA-DoorW*.5f,eA+DoorW*.5f,y0,-1f);Leaf(true,CorridorZ0,eB-DoorW*.5f,eB+DoorW*.5f,y0,-1f);
+                Sconce(eA-.85f,y0,CorridorZ0+CorridorWall*.5f,1f);Sconce(eB-.85f,y0,CorridorZ0+CorridorWall*.5f,1f);
             }
             // rear apartments and the rear corridor wall (open to the core between x -3.1..3.1)
             float eC=Apartment(f,-HalfW+.3f,-3.1f,HalfD-.30f,zr,true,N(),lights);
             float eD=Apartment(f,3.1f,HalfW-.3f,HalfD-.30f,zr,false,N(),lights);
-            WallX(paint,CorridorZ1,-HalfW+.3f,-3.1f,y0,top,CorridorWall,new Gap(eC-DoorW*.5f,eC+DoorW*.5f,DoorH));
-            WallX(paint,CorridorZ1,3.1f,HalfW-.3f,y0,top,CorridorWall,new Gap(eD-DoorW*.5f,eD+DoorW*.5f,DoorH));
+            Sconce(eC-.85f,y0,CorridorZ1-CorridorWall*.5f,-1f);Sconce(eD-.85f,y0,CorridorZ1-CorridorWall*.5f,-1f);
+            WallX(grasscloth,CorridorZ1,-HalfW+.3f,-3.1f,y0,top,CorridorWall,new Gap(eC-DoorW*.5f,eC+DoorW*.5f,DoorH));
+            WallX(grasscloth,CorridorZ1,3.1f,HalfW-.3f,y0,top,CorridorWall,new Gap(eD-DoorW*.5f,eD+DoorW*.5f,DoorH));
             Leaf(true,CorridorZ1,eC-DoorW*.5f,eC+DoorW*.5f,y0,1f);Leaf(true,CorridorZ1,eD-DoorW*.5f,eD+DoorW*.5f,y0,1f);
             // core: walls, landing, lift lobby with closed steel lift doors, stairwell
-            WallZ(paint,-3.05f,CorridorZ1,CoreBack,y0,top,.10f);WallZ(paint,3.05f,CorridorZ1,CoreBack,y0,top,.10f);
-            WallZ(paint,0f,StairZ0,CoreBack,y0,top,CorridorWall);
-            WallX(paint,LiftZ,.1f,3.0f,y0,top,CorridorWall);
-            Box(steel,.85f,2.25f,y0+Finish,y0+DoorH,LiftZ-.115f,LiftZ-.10f);
-            Box(black,1.545f,1.555f,y0+Finish,y0+DoorH,LiftZ-.12f,LiftZ-.115f);
-            Box(steel,.75f,2.35f,y0+DoorH,y0+DoorH+.12f,LiftZ-.12f,LiftZ-.10f);
-            Box(steel,2.45f,2.55f,y0+1.05f,y0+1.25f,LiftZ-.12f,LiftZ-.10f);              // call button panel
-            Box(terrazzo,-3f,3f,y0,y0+Finish,CorridorZ1,StairZ0);
-            Box(terrazzo,.1f,3f,y0,y0+Finish,StairZ0,LiftZ-.1f);
-            if(f==0)Box(terrazzo,LaneA0,LaneB1,y0,y0+Finish,StairZ0,CoreBack);
+            WallZ(grasscloth,-3.05f,CorridorZ1,CoreBack,y0,top,.10f);WallZ(grasscloth,3.05f,CorridorZ1,CoreBack,y0,top,.10f);
+            WallZ(grasscloth,0f,StairZ0,CoreBack,y0,top,CorridorWall);
+            WallX(grasscloth,LiftZ,.1f,3.0f,y0,top,CorridorWall);
+            // lift doors and frame 2-4 cm proud of the wall, in front of the skirting (shared plane flickered)
+            Box(steel,.85f,2.25f,y0+Finish,y0+DoorH,LiftZ-.135f,LiftZ-.10f);
+            Box(black,1.545f,1.555f,y0+Finish,y0+DoorH,LiftZ-.14f,LiftZ-.135f);
+            Box(steel,.75f,2.35f,y0+DoorH,y0+DoorH+.12f,LiftZ-.14f,LiftZ-.10f);
+            Box(steel,2.45f,2.55f,y0+1.05f,y0+1.25f,LiftZ-.14f,LiftZ-.10f);              // call button panel
+            Box(stoneFloor,-3f,3f,y0,y0+Finish,CorridorZ1,StairZ0);
+            Box(stoneFloor,.1f,3f,y0,y0+Finish,StairZ0,LiftZ-.1f);
+            if(f==0)Box(stoneFloor,LaneA0,LaneB1,y0,y0+Finish,StairZ0,CoreBack);
             Ceiling(-3f,3f,CorridorZ1,StairZ0,cy);Ceiling(.1f,3f,StairZ0,LiftZ-.1f,cy);
             Downlight(-1.5f,(CorridorZ1+StairZ0)*.5f,cy);Downlight(1.55f,(StairZ0+LiftZ)*.5f,cy);
             if(f<Floors-1)Stair(f);
@@ -832,6 +886,57 @@ public static class BraxChampionsApartments
             }
         }
 
+    }
+
+    // Wall sconce beside each apartment door: brass back plate, warm opal glass (emission only, no extra lamp).
+    static void Sconce(float x,float y0,float face,float into)
+    {
+        float z0=face,z1=face+into*.05f,z2=face+into*.09f;
+        Box(brass,x-.07f,x+.07f,y0+1.72f,y0+2.02f,Mathf.Min(z0,z1),Mathf.Max(z0,z1));
+        Box(lamp,x-.05f,x+.05f,y0+1.76f,y0+1.98f,Mathf.Min(z1,z2),Mathf.Max(z1,z2));
+    }
+    // Ground-floor lobby (owner 9.11 22:15 "rewelacji nie ma"): walnut mailbox wall with brass doors for every
+    // apartment, two large Poly Haven plants at the door, framed art on the marble. Common parts only:
+    // the apartments themselves stay empty (owner 9.11 18:19).
+    static void Lobby(float y0,float zFrontIn)
+    {
+        W.Grupa=inside;W.Wnetrze=true;
+        float face=-3.0f+.012f,front=face+.30f,za=-4.75f,zb=-2.35f,yb=y0+.85f,yt=y0+2.05f;
+        Box(walnut,face,front,yb,yt,za,zb,true);
+        int cols=5,rows=Mathf.CeilToInt(Floors*4f/5f);
+        float cw=(zb-za-.10f)/cols,rh=(yt-yb-.10f)/rows;
+        for(int r=0;r<rows;r++)for(int c=0;c<cols;c++)
+        {
+            float z0=za+.05f+c*cw+.012f,z1=z0+cw-.024f,b0=yb+.05f+r*rh+.012f,b1=b0+rh-.024f;
+            Box(brass,front,front+.006f,b0,b1,z0,z1);
+            Box(black,front+.006f,front+.009f,b1-.07f,b1-.05f,z0+.04f,z1-.04f);                        // letter slot
+        }
+        Box(lamp,face,front-.02f,yb-.015f,yb,za+.02f,zb-.02f);                                          // LED under the cabinet
+        foreach(float sx in new[]{-1f,1f})
+            Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf",inside,"lobby plant",new Vector3(sx*2.35f,y0+Finish,zFrontIn+.75f),sx*35f);
+        Model("HotelSobczak/fancy_picture_frame_01/fancy_picture_frame_01_1k.gltf",inside,"lobby art",new Vector3(2.95f,y0+1.55f,-3.6f),-90f,true);
+    }
+    static int models;
+    static GameObject Model(string path,Transform parent,string label,Vector3 at,float yaw,bool centre=false)
+    {
+        string full="Assets/Source/Mistrzowie/"+path;
+        var source=AssetDatabase.LoadAssetAtPath<GameObject>(full);
+        if(!source){BraxBuildQuality.Warn("DO POPRAWKI APT_MODEL_MISSING "+full);return null;}
+        var go=PrefabUtility.InstantiatePrefab(source) as GameObject;
+        if(!go)return null;
+        go.name="APT | "+label+" | Poly Haven CC0, real size";
+        go.transform.SetParent(parent,false);
+        go.transform.localRotation=Quaternion.Euler(0,yaw,0)*go.transform.localRotation;
+        go.transform.localScale=Vector3.one;go.transform.localPosition=at;
+        var target=parent.TransformPoint(at);
+        foreach(var c in go.GetComponentsInChildren<Collider>(true))UnityEngine.Object.DestroyImmediate(c);
+        var rs=go.GetComponentsInChildren<Renderer>(true);
+        if(rs.Length>0)
+        {
+            var b=rs[0].bounds;foreach(var r in rs)b.Encapsulate(r.bounds);
+            go.transform.position+=centre?target-b.center:Vector3.up*(target.y-b.min.y);
+        }
+        models++;return go;
     }
 
     // Region palms (miasto_palmy) on the front lawn and behind the building.

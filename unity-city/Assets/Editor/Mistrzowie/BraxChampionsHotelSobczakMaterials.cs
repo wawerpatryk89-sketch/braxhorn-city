@@ -94,14 +94,13 @@ public static class BraxChampionsHotelSobczakMaterials
         s.parquet=P("restaurant_parquet","herringbone_parquet",1.8f,new Color(1f,.97f,.94f),.7f);
         s.whiteTiles=P("kitchen_wall_tiles","long_white_tiles",1.0f,new Color(1f,1f,1f),.6f);
         s.antiSkid=P("kitchen_floor_tiles","anti_skid_tiles",1.0f,new Color(.95f,.95f,.95f),1f);
-        // Interior irradiance. CityStaticPBR has no GI on mobile: an indoor ceiling would take the city ground
-        // (.42,.40,.36 x .65) as its only light away from the lamps and read dark brown-grey. Indoors the lower
-        // hemisphere is the lit floor and the upper one the white ceiling, so interior-only materials get a warm
-        // interior sky/ground (per-material, as the nutrition shop). Sun and lamps are unchanged.
+        // Interior irradiance (BraxChampionsInteriorLight): warm interior sky/ground instead of the city's.
         foreach(var m in new[]{s.ceiling,s.grasscloth,s.paint,s.carpet,s.carpetRoom,s.oak,s.marbleWet,s.parquet,s.terrazzo,s.tile,
                                s.whiteTiles,s.antiSkid,s.boucle,s.jersey,s.linen,s.linenWhite,s.satin,s.velvet,s.rugRoom,s.rugLobby,
                                s.walnut,s.walnutDark,s.cognac})
-            Interior(m,m==s.ceiling?.85f:.70f);
+            BraxChampionsInteriorLight.Apply(m,m==s.ceiling?BraxChampionsInteriorLight.Ceilings:BraxChampionsInteriorLight.Walls);
+        // façades in shade: ground bounce of the sunlit plaza (BraxChampionsInteriorLight.Facade)
+        foreach(var m in new[]{s.brick,s.podiumStone,s.stoneDark,s.teak,s.teakDark})BraxChampionsInteriorLight.Facade(m);
         // surfaces
         s.brass=Surface("polished_brass",new Color(.93f,.70f,.30f),.19f,.98f,false,false);
         s.darkBronze=Surface("dark_bronze_frames",new Color(.10f,.09f,.08f),.30f,.85f,false,false);
@@ -126,12 +125,6 @@ public static class BraxChampionsHotelSobczakMaterials
         var m=BraxChampionsFoundation.SourceMaterial("t03_"+id,slug,metres,tint);
         m.SetFloat("_Roughness",roughFactor);EditorUtility.SetDirty(m);
         return m;
-    }
-    public static readonly Color InteriorSky=new Color(.86f,.85f,.81f),InteriorGround=new Color(.80f,.77f,.72f);
-    public static void Interior(Material m,float ambient)
-    {
-        m.SetColor("_SkyColor",InteriorSky);m.SetColor("_GroundColor",InteriorGround);m.SetFloat("_AmbientIntensity",ambient);
-        EditorUtility.SetDirty(m);
     }
     static Material Region(string file)
         =>AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/Mistrzowie/Materials/"+file);

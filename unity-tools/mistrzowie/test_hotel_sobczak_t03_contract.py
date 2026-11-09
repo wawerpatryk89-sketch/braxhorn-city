@@ -246,10 +246,11 @@ class HotelSobczakT03Contract(unittest.TestCase):
 
     def test_interiors_get_interior_ambient_not_the_city_sky(self):
         # owner photos 9.11: beige walls x blue city sky ambient read mauve, ceilings dark brown-grey
-        self.assertIn("public static void Interior(Material m,float ambient)", self.materials)
-        self.assertIn('m.SetColor("_GroundColor",InteriorGround)', self.materials)
+        light = (EDITOR / "BraxChampionsInteriorLight.cs").read_text(encoding="utf-8")
+        self.assertIn("public static void Apply(Material m,float ambient)", light)
+        self.assertIn('m.SetColor("_GroundColor",Ground)', light)
         block = self.materials[self.materials.index("foreach(var m in new[]{s.ceiling"):]
-        block = block[:block.index("Interior(m,")]
+        block = block[:block.index("BraxChampionsInteriorLight.Apply(m,")]
         for name in ("s.ceiling", "s.grasscloth", "s.carpet", "s.oak", "s.parquet", "s.rugRoom", "s.rugLobby", "s.walnut"):
             self.assertIn(name, block)
         for exterior in ("s.brick", "s.podiumStone", "s.paving", "s.asphalt", "s.kerb"):

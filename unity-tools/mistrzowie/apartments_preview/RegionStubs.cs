@@ -10,7 +10,7 @@ public sealed class BraxWidocznoscWnetrza : MonoBehaviour { public Bounds[] stre
 public static class BraxChampionsFoundation
 {
     public static Material SourceMaterial(string id, string slug, float metres, Color tint) => new Material { name = id + "|" + slug + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
-    public static Material LibraryMarble(string id, Color tint, float metres) => new Material { name = id + "|Marble016" };
+    public static Material LibraryMarble(string id, Color tint, float metres) => new Material { name = id + "|Marble016|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
 }
 public static class BraxMiastoAssety

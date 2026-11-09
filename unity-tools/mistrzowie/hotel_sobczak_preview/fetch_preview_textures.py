@@ -1,8 +1,11 @@
 """Preview only: 1K diffuse + normal (GL) maps of every Poly Haven slug used in bin/scene.json, resolved through
-api.polyhaven.com/files (the build uses the pinned 4K sources from prepare_assets.py). Never writes into the repository."""
+api.polyhaven.com/files (the build uses the pinned 4K sources from prepare_assets.py). The black marble of the region
+(ambientCG Marble016, CC0) comes from ambientcg.com. Never writes into the repository."""
+import io
 import json
 import sys
 import urllib.request
+import zipfile
 from pathlib import Path
 
 UA = {"User-Agent": "BRAXHORN-CITY-preview/1.0"}
@@ -16,6 +19,16 @@ def get(url):
 scene, dest = Path(sys.argv[1]), Path(sys.argv[2])
 dest.mkdir(parents=True, exist_ok=True)
 for slug in sorted({m["slug"] for m in json.load(open(scene))["materials"] if m["slug"]}):
+    if slug == "Marble016":
+        if not (dest / "Marble016_diff_1k.jpg").exists():
+            z = zipfile.ZipFile(io.BytesIO(get("https://ambientcg.com/get?file=Marble016_1K-JPG.zip")))
+            for n in z.namelist():
+                if n.endswith("_Color.jpg"):
+                    (dest / "Marble016_diff_1k.jpg").write_bytes(z.read(n))
+                if n.endswith("_NormalGL.jpg"):
+                    (dest / "Marble016_nor_gl_1k.jpg").write_bytes(z.read(n))
+        print("tex", slug, flush=True)
+        continue
     files = None
     for kind, key in (("diff", COLOR_KEYS.get(slug, "Diffuse")), ("nor_gl", "nor_gl")):
         out = dest / f"{slug}_{kind}_1k.jpg"
