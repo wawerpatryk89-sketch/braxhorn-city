@@ -17,10 +17,17 @@ internal static partial class BraxMiastoWyspa
     static int nDomki, nLatarnie, nLawki, nKosze, nPrzebieralnie, nKapiacy, nRowerki, nDeski, nKrawezniki, nLezaki;
     static float mChodnika, mDeptakuPlazy;
     static Vector3 recepcja, sklep, placZabaw;
+    // Jedna fizyczna sieć dojść: promenada plażowa łączy się z A2 ośrodka.
+    static readonly List<Vector3> plazaDeptak = new List<Vector3>();
+    // Kazdy zbudowany domek (rowniez recepcja i sklep) wymaga fizycznie droznego wejscia.
+    // Dane do audytu z rzeczywistej pozycji drzwi, bez zgadywania wspolrzednych.
+    static readonly List<(string nazwa, Vector3 zewn, Vector3 wewn)> wejsciaDomkow =
+        new List<(string nazwa, Vector3 zewn, Vector3 wewn)>();
     public static void StartC2()
     {
         wiezyczki.Clear(); nDomki = nLatarnie = nLawki = nKosze = nPrzebieralnie = nKapiacy = nRowerki = nDeski = nKrawezniki = nLezaki = 0;
         mChodnika = mDeptakuPlazy = 0; recepcja = sklep = placZabaw = Vector3.zero;
+        plazaDeptak.Clear(); wejsciaDomkow.Clear();
     }
     /// <summary>Skała osadzona na terenie bez prześwitu: spód na najniższym punkcie terenu pod obrysem (część od strony stoku
     /// w ziemi), szerokość ≤ maxW, kolizja na bryle; zajęte miejsce zapisane (palmy i krzewy omijają). Null, gdy koliduje.</summary>
@@ -61,195 +68,157 @@ internal static partial class BraxMiastoWyspa
         }
     }
 
-    // Każdy styk używa TEJ SAMEJ krawędzi obu sąsiednich odcinków.
-    // Wcześniej przy każdym obrocie 2-metrowej deski otwierał się trójkątny ubytek,
-    // a brakujące segmenty (>6m) były pomijane. Teraz jeden pas bez szpar.
-    static float RzutXZ(Vector3 a, Vector3 b) =>
-        Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
-
-    static List<Vector3> DeptakSpojny(BraxNabrzeze.Zbior z, Material deski, Material legary,
-                            IList<Vector3> os, float polSzer, string nazwa)
-    {
-        if (os == null || os.Count < 2) return new List<Vector3>();
-        var pts = new List<Vector3> { os[0] };
-        for (int i = 1; i < os.Count; i++)
-        {
-            Vector3 a = pts[pts.Count - 1], b = os[i];
-            float d = RzutXZ(a, b);
-            if (d < .03f) continue;
-            int kroki = Mathf.Max(1, Mathf.CeilToInt(d / 1.20f));
-            for (int k = 1; k <= kroki; k++)
-            {
-                float t = k / (float)kroki;
-                var p = Vector3.Lerp(a, b, t);
-                // pod pełną szerokością pokładu — nie tylko w środku
-                var kier = new Vector3(b.x - a.x, 0f, b.z - a.z).normalized;
-                var bok = Vector3.Cross(Vector3.up, kier).normalized;
-                float grunt = Y(p.x, p.z);
-                foreach (float o in new[] { -polSzer, 0f, polSzer })
-                    grunt = Mathf.Max(grunt, Y(p.x + bok.x * o, p.z + bok.z * o));
-                p.y = Mathf.Max(p.y, grunt + .12f);
-                pts.Add(p);
-            }
-        }
-        if (pts.Count < 2) return pts;
-        // Profil 1:10 — obie strony podnoszone nad nierównościami, bez stopni.
-        for (int pass = 0; pass < 2; pass++)
-        {
-            for (int i = 1; i < pts.Count; i++)
-            {
-                var p = pts[i];
-                p.y = Mathf.Max(p.y, pts[i - 1].y - .10f * RzutXZ(pts[i - 1], p));
-                pts[i] = p;
-            }
-            for (int i = pts.Count - 2; i >= 0; i--)
-            {
-                var p = pts[i];
-                p.y = Mathf.Max(p.y, pts[i + 1].y - .10f * RzutXZ(p, pts[i + 1]));
-                pts[i] = p;
-            }
-        }
-        var bokI = new Vector3[pts.Count];
-        for (int i = 0; i < pts.Count; i++)
-        {
-            var t = pts[Mathf.Min(pts.Count - 1, i + 1)] -
-                    pts[Mathf.Max(0, i - 1)];
-            t.y = 0f;
-            bokI[i] = Vector3.Cross(Vector3.up, t.normalized).normalized;
-            if (bokI[i].sqrMagnitude < .1f) bokI[i] = Vector3.right;
-            // Palmy, krzewy i późniejsze wyposażenie muszą omijać CAŁY pas.
-            Zajmij(pts[i], polSzer + 1.45f);
-        }
-        float dl = 0f, maxStopien = 0f;
-        for (int i = 0; i < pts.Count - 1; i++)
-        {
-            var a = pts[i]; var b = pts[i + 1];
-            var A = a - bokI[i] * polSzer;
-            var B = b - bokI[i + 1] * polSzer;
-            var C = b + bokI[i + 1] * polSzer;
-            var Dd = a + bokI[i] * polSzer;
-            Q(z[deski], A, B, C, Dd, Vector3.up);
-            float odc = RzutXZ(a, b); if (odc < .03f) continue;
-            var rot = Quaternion.LookRotation((b - a).normalized, Vector3.up);
-            for (float side = -1f; side <= 1f; side += 2f)
-            {
-                var srodek = (a + b) * .5f + (bokI[i] + bokI[i + 1]).normalized *
-                             (side * (polSzer - .22f)) - Vector3.up * .10f;
-                z[legary].Box(srodek, new Vector3(.12f, .16f, Vector3.Distance(a, b) + .005f), rot);
-                if (i % 5 == 0)
-                {
-                    var p = a + bokI[i] * (side * (polSzer - .28f));
-                    float grunt = Y(p.x, p.z) - .28f;
-                    if (p.y > grunt + .17f)
-                        z[legary].Rura(new Vector3(p.x, grunt, p.z),
-                            p - Vector3.up * .10f, .075f, 7);
-                }
-            }
-            BraxNabrzeze.KolRot(kol, nazwa, (a + b) * .5f - Vector3.up * .095f,
-                new Vector3(polSzer * 2f, .18f, Vector3.Distance(a, b) + .015f), rot);
-            dl += odc;
-            maxStopien = Mathf.Max(maxStopien, Mathf.Abs(b.y - a.y));
-        }
-        mDeptakuPlazy += dl;
-        Debug.Log("BRAXHORN_WYSPA_DEPTAK " + nazwa + " dlugosc=" +
-            dl.ToString("F1") + " m probki=" + pts.Count + " skok_max=" +
-            maxStopien.ToString("F3") + " m (wspolne krawedzie, bez pustych szczelin)");
-        return pts;  // rzeczywista wysokość po wyrównaniu: punkty dołączanych kładek
-    }
-
     static void PlazaPremium(BraxNabrzeze.Zbior z, BraxNabrzezeMebel.Mat m)
     {
         var str = new GameObject("Wyspa: plaża premium (deptak, przebieralnie, WC, wypożyczalnia, bar)").transform; str.SetParent(root, false);
         var deski = BraxNabrzeze.Mat("Wyspa: deski deptaku plażowego", 1.5f, new Color(.86f, .76f, .62f), "wood_planks_grey", "wooden_planks", "wood_planks");
         var legar = BraxNabrzeze.Kolor("Wyspa: legary deptaku (impregnat)", new Color(.32f, .25f, .18f), .9f);
         float hw = 1.5f * K;   // deptak plażowy 3 m × k
-        // 1) DEPTAK GŁÓWNY: jedna ciągła wstęga wzdłuż plaży.
-        // Nie pomijamy segmentów na zakrętach, nie obracamy desek jako
-        // osobnych nakładających się platform i nie rysujemy drugiego pokładu.
+        // Rezerwujemy korytarze ratowników ZANIM postawimy ławki, kosze
+        // i latarnie. Zdarzały się przecięcia z później dodanymi kładkami.
+        bool KladkaZajmuje(Vector3 punkt, float polRozmiaru)
+        {
+            var pos = new Vector2(punkt.x, punkt.z);
+            var center = new Vector2(CX, CZ);
+            foreach (var (_, wd) in wiezyczki)
+            {
+                var direction = new Vector2(wd.x, wd.z).normalized;
+                if (direction.sqrMagnitude < .9f) continue;
+                float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                float r = LiniaWody(angle);
+                var pocz = center + direction * (r - 39f);
+                var kon = center + direction * (r - 15f);
+                var length = (kon - pocz).magnitude;
+                float along = Vector2.Dot(pos - pocz, direction);
+                if (along < -polRozmiaru || along > length + polRozmiaru) continue;
+                var nearest = pocz + direction * Mathf.Clamp(along, 0f, length);
+                if (Vector2.Distance(pos, nearest) < .9f * K + polRozmiaru + .3f) return true;
+            }
+            return false;
+        }
+        // 1) DEPTAK Z DESEK wzdłuż plaży, ~38 m od wody (za rzędami leżaków), na legarach 25 cm nad piaskiem
         var pts = new List<Vector3>();
-        for (float ang = PlazaOd + 4f; ang <= PlazaDo - 4f + .001f; ang += .55f)
+        for (float a = PlazaOd + 4f; a <= PlazaDo - 4f; a += .9f)
         {
-            float rs = LiniaWody(ang);
-            var d = new Vector3(Mathf.Cos(ang * Mathf.Deg2Rad), 0f,
-                                Mathf.Sin(ang * Mathf.Deg2Rad));
-            var p = new Vector3(CX, 0f, CZ) + d * (rs - 38f);
-            // Jeżeli plan przechodził przez plac, omijamy jego obrys,
-            // ale NIE zostawiamy wyrwy w deptaku.
-            var odAreny = new Vector3(p.x - (CX + Plac.x), 0f, p.z - (CZ + Plac.y));
-            if (odAreny.magnitude < PlacR + 6f)
-                p += odAreny.normalized * (PlacR + 6f - odAreny.magnitude);
-            float y = Y(p.x, p.z);
-            foreach (float o in new[] { -hw, 0f, hw })
-                y = Mathf.Max(y, Y(p.x + d.x * o, p.z + d.z * o));
-            p.y = y + .22f;
-            pts.Add(p);
+            float rs = LiniaWody(a); var d = new Vector3(Mathf.Cos(a * Mathf.Deg2Rad), 0, Mathf.Sin(a * Mathf.Deg2Rad));
+            var p = new Vector3(CX, 0, CZ) + d * (rs - 38f);
+            if (Vector2.Distance(new Vector2(p.x - CX, p.z - CZ), Plac) < PlacR + 6f) continue;
+            float yMax = W; for (float o = -hw; o <= hw; o += hw) { var q = p + Vector3.Cross(Vector3.up, d) * 0 + d * o; yMax = Mathf.Max(yMax, Y(q.x, q.z)); }
+            p.y = yMax + .25f; pts.Add(p);
         }
-        var glowny = DeptakSpojny(z, deski, legar, pts, hw, "Deptak glowny plazy wyspy");
-
-        // Meble stoją obok pasa: w odległości umożliwiającej przejście
-        // postaci i ominięcie pnia palmy. Nie stawiamy ich na deskach.
-        for (int i = 1; i + 1 < glowny.Count; i++)
+        // wygładzenie wysokości (bez schodków)
+        for (int it = 0; it < 3; it++) for (int i = 1; i < pts.Count - 1; i++) pts[i] = new Vector3(pts[i].x, Mathf.Max(pts[i].y, (pts[i - 1].y + pts[i + 1].y) * .5f), pts[i].z);
+        plazaDeptak.AddRange(pts);
+        for (int i = 0; i + 1 < pts.Count; i++)
         {
-            var a = glowny[i];
-            var d = (glowny[i + 1] - glowny[i - 1]); d.y = 0f;
-            if (d.sqrMagnitude < .1f) continue;
-            var bok = Vector3.Cross(Vector3.up, d.normalized).normalized;
-            var rot = Quaternion.LookRotation(d.normalized, Vector3.up);
-            if (i % 35 == 6)
+            var a = pts[i]; var b = pts[i + 1]; var dir = b - a; float len = dir.magnitude; if (len < .1f || len > 6f) continue;
+            var rot = Quaternion.LookRotation(dir / len, Vector3.up);
+            for (float s = 0; s < len - .05f; s += .16f) z[deski].Box(a + dir / len * (s + .075f) + Vector3.down * .03f, new Vector3(hw * 2f, .05f, .14f), rot);
+            foreach (float o in new[] { -hw + .25f, hw - .25f }) z[legar].Box((a + b) * .5f + rot * new Vector3(o, -.14f, 0), new Vector3(.12f, .16f, len + .02f), rot);
+            foreach (float o in new[] { -hw + .25f, hw - .25f }) { var pp = a + rot * new Vector3(o, 0, 0); z[legar].Rura(new Vector3(pp.x, Y(pp.x, pp.z) - .4f, pp.z), pp + Vector3.down * .2f, .07f, 6); }
+            BraxNabrzeze.KolRot(kol, "Deptak plażowy", (a + b) * .5f + Vector3.down * .1f, new Vector3(hw * 2f, .2f, len + .03f), rot);
+            mDeptakuPlazy += len;
+            if (i % 20 == 5)
             {
-                var p = a - bok * (hw + 2.0f); p.y = Y(p.x, p.z);
-                if (!Zajete(p.x, p.z, .6f))
+                var lp = a + rot * new Vector3(-hw - .5f, 0, 0);
+                lp.y = Y(lp.x, lp.z);
+                if (!KladkaZajmuje(lp, .6f) && !Zajete(lp.x, lp.z, .6f))
                 {
-                    BraxNabrzezeMebel.Latarnia(z, str, m, p, rot.eulerAngles.y);
-                    nLatarnie++; Zajmij(p, .7f);
+                    BraxNabrzezeMebel.Latarnia(z, str, m, lp, rot.eulerAngles.y);
+                    nLatarnie++; Zajmij(lp, .6f);
                 }
             }
-            if (i % 43 == 15)
+            if (i % 26 == 12)
             {
-                var p = a + bok * (hw + 3.3f); p.y = Y(p.x, p.z);
-                if (!Zajete(p.x, p.z, 1.4f))
+                var lp = a + rot * new Vector3(hw + .9f, 0, 0); lp.y = Y(lp.x, lp.z);
+                float yaw = Quaternion.LookRotation(rot * Vector3.right).eulerAngles.y;      // ławka przodem do morza
+                if (!KladkaZajmuje(lp, 1.4f) && !Zajete(lp.x, lp.z, 1.4f))
                 {
-                    BraxNabrzezeMebel.Lawka(z, str, m, p,
-                        Quaternion.LookRotation(bok).eulerAngles.y, "Ławka deptaku plażowego");
-                    nLawki++; Zajmij(p, 1.4f);
-                    var kosz = p + d.normalized * 1.65f; kosz.y = Y(kosz.x, kosz.z);
-                    if (!Zajete(kosz.x, kosz.z, .6f))
-                    { BraxNabrzezeMebel.Kosz(z, str, m, kosz); nKosze++; Zajmij(kosz, .6f); }
+                    BraxNabrzezeMebel.Lawka(z, str, m, lp, yaw, "Ławka deptaku plażowego");
+                    nLawki++; Zajmij(lp, 1.4f);
+                    var kp = lp + rot * new Vector3(0, 0, 1.6f * K);
+                    kp.y = Y(kp.x, kp.z);
+                    if (!KladkaZajmuje(kp, .45f) && !Zajete(kp.x, kp.z, .45f))
+                    {
+                        BraxNabrzezeMebel.Kosz(z, str, m, kp);
+                        nKosze++; Zajmij(kp, .45f);
+                    }
                 }
             }
         }
-
-        // 2) KŁADKI RATOWNIKÓW: zaczynają się na rzeczywistej krawędzi
-        // deptaku głównego i mają wspólny, płynny profil. Żadnych desek
-        // wpychanych pojedynczo w piasek bez kolizji.
+        // 2) KŁADKI do ratowników: deski i KOLIZJA tej samej geometrii.
+        // Wcześniej deski miały wizualne ułożenie na piasku, ale BEZ collidera
+        // postać stąpała poniżej desek. Złącze z promenadą wyrównane.
+        int kladki = 0, laczeniaDoSprawdzenia = 0, segmentyFizyki = 0;
         foreach (var (wp, wd) in wiezyczki)
         {
-            if (glowny.Count < 2) break;
-            float kat = Mathf.Atan2(wd.z, wd.x) * Mathf.Rad2Deg;
-            float rs = LiniaWody(kat);
-            var target = new Vector3(CX, 0f, CZ) + wd * (rs - 38f);
-            var naj = glowny.OrderBy(p => RzutXZ(p, target)).First();
-            var pocz = naj + wd * hw; pocz.y = naj.y;
-            var koniec = new Vector3(CX, 0f, CZ) + wd * (rs - 16.5f);
-            koniec.y = Y(koniec.x, koniec.z) + .14f;
-            var branch = new List<Vector3> { pocz };
-            float L = RzutXZ(pocz, koniec);
-            for (int j = 1, n = Mathf.Max(1, Mathf.CeilToInt(L / 1f)); j <= n; j++)
+            float ang = Mathf.Atan2(wd.z, wd.x) * Mathf.Rad2Deg;
+            float rs = LiniaWody(ang);
+            var a = new Vector3(CX, 0, CZ) + wd * (rs - 37f);
+            var b = new Vector3(CX, 0, CZ) + wd * (rs - 16f);
+            Vector3 dir = (b - a).normalized;
+            float len = Vector3.Distance(a, b);
+            if (len < 1f) { laczeniaDoSprawdzenia++; continue; }
+            var rot = Quaternion.LookRotation(dir, Vector3.up);
+            // Początek kładki zachodzi wewnątrz promenady. Jej rzeczywista
+            // wysokość w tej osi stanowi poziom połączenia.
+            float nearest = float.PositiveInfinity, promenadeY = Y(a.x, a.z) + .12f;
+            foreach (var v in pts)
             {
-                float t = j / (float)n;
-                var p = Vector3.Lerp(pocz, koniec, t);
-                p.y = Mathf.Max(p.y, Y(p.x, p.z) + .14f);
-                branch.Add(p);
+                float d = (new Vector2(v.x - a.x, v.z - a.z)).sqrMagnitude;
+                if (d < nearest) { nearest = d; promenadeY = v.y; }
             }
-            var sprawdzona = DeptakSpojny(z, deski, legar, branch, .90f * K,
-                "Kladka do ratownika plazy wyspy");
-            if (sprawdzona.Count > 0 && Mathf.Abs(sprawdzona[0].y - pocz.y) > .10f)
-                Debug.LogWarning("BRAXHORN_WYSPA_DEPTAK DO POPRAWKI: połączenie ratownika " +
-                    kat.ToString("F0") + " ma uskok " +
-                    Mathf.Abs(sprawdzona[0].y - pocz.y).ToString("F2") + "m");
+            if (nearest > 4f * 4f) { laczeniaDoSprawdzenia++; promenadeY = Y(a.x, a.z) + .12f; }
+            int n = Mathf.CeilToInt(len);
+            float step = len / n;
+            var height = new float[n + 1];
+            for (int i = 0; i <= n; i++)
+            {
+                var p = a + dir * (i * step);
+                height[i] = Y(p.x, p.z) + .12f;
+            }
+            height[0] = Mathf.Max(height[0], promenadeY);
+            // Nie dopuszczamy lokalnych skoków większych niż 12 cm / m.
+            for (int i = 1; i <= n; i++)
+                height[i] = Mathf.Max(height[i], height[i - 1] - .12f * step);
+            for (int i = n - 1; i >= 0; i--)
+                height[i] = Mathf.Max(height[i], height[i + 1] - .12f * step);
+            if (Mathf.Abs(height[0] - promenadeY) > .16f) laczeniaDoSprawdzenia++;
+            for (int i = 0; i < n; i++)
+            {
+                var p0 = a + dir * (i * step); p0.y = height[i];
+                var p1 = a + dir * ((i + 1) * step); p1.y = height[i + 1];
+                var v = p1 - p0;
+                var rot3 = Quaternion.LookRotation(v.normalized, Vector3.up);
+                for (float t = 0f; t < step - .001f; t += .16f)
+                {
+                    float sample = Mathf.Min(step, t + .075f) / step;
+                    var q = Vector3.Lerp(p0, p1, sample);
+                    z[deski].Box(q - Vector3.up * .025f,
+                        new Vector3(.9f * K * 2f, .05f, .14f), rot3);
+                }
+                foreach (float side in new[] { -.7f * K, .7f * K })
+                    {
+                        var q = p0 + rot * Vector3.right * side;
+                        z[legar].Rura(new Vector3(q.x, Y(q.x, q.z) - .24f, q.z),
+                            q + Vector3.down * .10f, .06f, 6);
+                    }
+                BraxNabrzeze.KolRot(kol, "Wyspa kładka do ratownika (fizyka)",
+                    (p0 + p1) * .5f - Vector3.up * .10f,
+                    new Vector3(1.8f * K, .20f, v.magnitude + .012f), rot3);
+                segmentyFizyki++;
+                Zajmij((p0 + p1) * .5f, .9f * K + .35f);
+            }
+            kladki++;
         }
+        string wynikKladki = "WYSPA_KLADKI_SPOJNOSC kladki=" + kladki +
+            " segmenty_kolizji=" + segmentyFizyki +
+            " złącza_do_sprawdzenia=" + laczeniaDoSprawdzenia;
+        if (laczeniaDoSprawdzenia > 0) Ostrzez(wynikKladki + " — ostrzeżenie bez blokowania APK");
+        else Debug.Log(wynikKladki);
         // 3) ZAPLECZE PLAŻY za deptakiem: przebieralnie, WC, wypożyczalnia, bar na plaży
         var drewno = BraxMiastoA.Tex("Wyspa: deskowanie budek plażowych", 1.2f, new Color(.95f, .93f, .88f), new Color(.85f, .82f, .76f), .8f, "wood_plank_wall", "wood_planks_grey");
+        var tynk = BraxMiastoA.Tex("Wyspa: tynk biały (WC)", 2f, new Color(.95f, .95f, .93f), new Color(.92f, .92f, .9f), .85f, "white_plaster_02", "concrete_wall_008");
         var dach = BraxMiastoA.Mat("Wyspa: dach budek (grafit)", new Color(.2f, .21f, .22f), .7f);
         var drzwi = BraxMiastoA.Mat("Wyspa: drzwi budek (błękit morski)", new Color(.16f, .42f, .55f), .55f);
         Vector3 Zaplecze(float ang, float odWody) { float rs = LiniaWody(ang); var d = new Vector3(Mathf.Cos(ang * Mathf.Deg2Rad), 0, Mathf.Sin(ang * Mathf.Deg2Rad)); var p = new Vector3(CX, 0, CZ) + d * (rs - odWody); p.y = Y(p.x, p.z); return p; }
@@ -263,162 +232,90 @@ internal static partial class BraxMiastoWyspa
                 var p = c + rg * k * 1.5f * K; float y0 = Mathf.Max(Y(p.x - .7f, p.z - .7f), Y(p.x + .7f, p.z + .7f), Y(p.x + .7f, p.z - .7f), Y(p.x - .7f, p.z + .7f)) + .12f;
                 float s = 1.25f * K * .5f, h = 2.2f * K;
                 z[legar].Box(new Vector3(p.x, y0 - .3f, p.z), new Vector3(s * 2f + .1f, .6f, s * 2f + .1f), rot);                       // podest (do piasku)
+                var bazaPrzebieralni = new Vector3(p.x, y0, p.z);
                 foreach (var (o, sz) in new[] { (new Vector3(-s, h * .5f, 0), new Vector3(.06f, h, s * 2f)), (new Vector3(s, h * .5f, 0), new Vector3(.06f, h, s * 2f)), (new Vector3(0, h * .5f, -s), new Vector3(s * 2f, h, .06f)) })
-                    z[drewno].Box(new Vector3(p.x, y0, p.z) + rot * o, sz, rot);
-                z[drzwi].Box(new Vector3(p.x, y0, p.z) + rot * new Vector3(0, .25f + (h - .5f) * .5f, s - .03f), new Vector3(s * 2f - .1f, h - .5f, .05f), rot);   // drzwiczki (prześwit 25 cm u dołu, jak w budkach)
-                z[dach].Box(new Vector3(p.x, y0, p.z) + rot * new Vector3(0, h + .05f, 0), new Vector3(s * 2f + .3f, .1f, s * 2f + .3f), rot);
-                BraxNabrzeze.Kol(kol, "Przebieralnia", new Vector3(p.x, y0 + h * .5f, p.z), new Vector3(s * 2f, h, s * 2f), rot.eulerAngles.y);
+                {
+                    var scianaP = bazaPrzebieralni + rot * o;
+                    z[drewno].Box(scianaP, sz, rot);
+                    BraxNabrzeze.Kol(kol, "Przebieralnia sciana", scianaP, sz, rot.eulerAngles.y);
+                }
+                // Uchylone na zewnatrz skrzydlo i prawdziwy otwor do srodka
+                // zamiast calej, niewidzialnej kolizji przez przebieralnie.
+                var zawiasP = bazaPrzebieralni - rg * (s - .05f) + fw * (s - .03f);
+                var skrzydloP = zawiasP + fw * (s - .05f);
+                var obrotP = Quaternion.LookRotation(rg, Vector3.up);
+                z[drzwi].Box(skrzydloP + Vector3.up * (h * .5f), new Vector3(s * 2f - .1f, h - .5f, .05f), obrotP);
+                BraxNabrzeze.KolRot(kol, "Przebieralnia otwarte drzwi",
+                    skrzydloP + Vector3.up * (h * .5f),
+                    new Vector3(s * 2f - .1f, h - .5f, .05f), obrotP);
+                z[dach].Box(bazaPrzebieralni + Vector3.up * (h + .05f), new Vector3(s * 2f + .3f, .1f, s * 2f + .3f), rot);
+                BraxNabrzeze.Kol(kol, "Przebieralnia podloga", bazaPrzebieralni - Vector3.up * .04f,
+                    new Vector3(s * 2f, .08f, s * 2f), rot.eulerAngles.y);
+                wejsciaDomkow.Add(("PRZEBIERALNIA " + (nPrzebieralnie + 1),
+                    bazaPrzebieralni + fw * (s + .4f),
+                    bazaPrzebieralni - fw * .35f));
                 Zajmij(p, 1.4f); nPrzebieralnie++;
             }
             BraxUliceKit.Napis3D("PRZEBIERALNIE", c + Vector3.up * (2.2f * K + .45f) + fw * (1.25f * K * .5f + .2f), fw, .18f, .02f, BraxMiastoA.Mat("Wyspa: litery białe", new Color(.95f, .95f, .93f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
             // prysznic obok przebieralni
             var pr = c + rg * 3.6f * K; pr.y = Y(pr.x, pr.z); BraxNabrzezeMebel.Prysznic(z, str, m, pr, rot.eulerAngles.y); Zajmij(pr, 1f);
         }
-        // DWA WC PREMIUM ZA deptakiem; stare WC (270°, 48m od morza)
-        // miało pełną bryłę ściany przez środek drzwi i kolizję całego budynku.
-        // Nowe pawilony są odrębne, z otwartym wejściem i dojściem bocznym.
+        // WC (budynek murowany z dwojgiem drzwi)
         {
-            var fasada = BraxMiastoA.Tex("Wyspa WC premium: tynk PBR", 2f,
-                new Color(.96f,.95f,.93f), new Color(.91f,.91f,.89f), .7f,
-                "white_plaster_02", "rectangular_facade_tiles");
-            var sciana = BraxMiastoA.Tex("Wyspa WC premium: płytki ścian PBR", 1.1f,
-                new Color(.95f,.96f,.95f), new Color(.91f,.92f,.91f), .4f,
-                "rectangular_facade_tiles", "square_tiles");
-            var posadzka = BraxMiastoA.Tex("Wyspa WC premium: granit posadzki", 1f,
-                new Color(.85f,.85f,.84f), new Color(.75f,.75f,.73f), .58f,
-                "granite_tile_02", "granite_tile");
-            var cokol = BraxMiastoA.Tex("Wyspa WC premium: cokół kamienny", 1.3f,
-                new Color(.68f,.67f,.65f), new Color(.55f,.54f,.52f), .68f,
-                "granite_tile_02", "concrete_wall_008");
-            var dachP = BraxMiastoA.Tex("Wyspa WC premium: dach grafit PBR", 2f,
-                new Color(.35f,.36f,.37f), new Color(.28f,.29f,.30f), .65f,
-                "concrete_wall_008", "granite_tile_02");
-            var ceramika = BraxMiastoA.Tex("Wyspa WC premium: ceramika sanitarna", .55f,
-                new Color(.98f,.98f,.97f), new Color(.96f,.96f,.95f), .18f,
-                "marble_01", "granite_tile");
-            var chrom = BraxNabrzeze.Kolor("Wyspa WC premium: chrom", new Color(.75f,.78f,.8f), .25f, .88f);
-            var rama = BraxNabrzeze.Kolor("Wyspa WC premium: aluminium grafit", new Color(.12f,.13f,.14f), .4f, .65f);
-            var napis = BraxNabrzeze.Kolor("Wyspa WC premium: litery", new Color(.94f,.95f,.92f), .45f);
-            var bokLit = BraxNabrzeze.Kolor("Wyspa WC premium: boki liter", new Color(.08f,.09f,.1f), .55f);
-            int ileWC = 0;
-            foreach (var (kat, tytul, id) in new[] {
-                (222f, "WC DAMSKIE", "wyspa_wc_damskie"),
-                (320f, "WC MĘSKIE", "wyspa_wc_meskie") })
+            float ang = 270f; var c = Zaplecze(ang, 48f); var rot = KuMorzu(ang); var fw = rot * Vector3.forward; var rg = rot * Vector3.right;
+            float w = 5f * K, d = 3.5f * K, h = 2.8f * K;
+            float y0 = W; for (float a = -1; a <= 1; a += 1) for (float b = -1; b <= 1; b += 1) { var q = c + rg * a * w * .5f + fw * b * d * .5f; y0 = Mathf.Max(y0, Y(q.x, q.z)); }
+            y0 += .15f; float yMin = Mathf.Min(Y(c.x - w, c.z - d), Y(c.x + w, c.z + d), Y(c.x, c.z)) - .3f;
+            z[BraxNabrzeze.Kolor("Wyspa: cokół WC (beton)", new Color(.6f, .6f, .58f), .9f)].Box(new Vector3(c.x, (yMin + y0) * .5f, c.z), new Vector3(w + .1f, y0 - yMin, d + .1f), rot);
+            Vector3 Wc(float x, float y, float zz) => new Vector3(c.x, y0, c.z) + rg * x + Vector3.up * y + fw * zz;
+            void ScianaWC(string nazwa, Vector3 srodek, Vector3 rozmiar)
             {
-                const float odWodyWC = 70f; // deptak w odległości 38m, WC za nim
-                var c = Zaplecze(kat, odWodyWC);
-                var rot = KuMorzu(kat); var fw = rot * Vector3.forward;
-                float w = 6.2f*K, d = 4.6f*K, h = 3f*K, wallT = .15f*K;
-                float drzW = 1.85f*K, drzH = 2.20f*K;
-                float lo = float.PositiveInfinity, hi = float.NegativeInfinity;
-                foreach (float xx in new[] { -w*.5f, 0f, w*.5f })
-                foreach (float zz in new[] { -d*.5f, 0f, d*.5f })
-                {
-                    var p = c + rot * new Vector3(xx,0f,zz);
-                    lo = Mathf.Min(lo,Y(p.x,p.z)); hi = Mathf.Max(hi,Y(p.x,p.z));
-                }
-                float y0 = hi + .13f;
-                var baseWC = new Vector3(c.x,y0,c.z);
-                Vector3 P(float x,float y,float zz) => baseWC + rot * new Vector3(x,y,zz);
-                void Piece(Material mat,string tag,float x,float y,float zz,
-                           float ww,float hh,float dd,bool solid)
-                {
-                    var p = P(x,y,zz);
-                    z[mat].Box(p,new Vector3(ww,hh,dd),rot);
-                    if (solid) BraxNabrzeze.Kol(kol,tag+" "+id,p,new Vector3(ww,hh,dd),rot.eulerAngles.y);
-                }
-                float sub=.15f, below=lo-.25f;
-                Piece(cokol,"cokół",0f,(below+y0-sub)*.5f-y0,0f,w+.12f,
-                    y0-sub-below,d+.12f,true);
-                Piece(posadzka,"posadzka",0f,-sub*.5f,0f,w,sub,d,true);
-                // Ściany są wyłącznie dookoła; otwór >2.3m ma wolne collider.
-                Piece(fasada,"tylna ściana",0f,h*.5f,-d*.5f+wallT*.5f,w,h,wallT,true);
-                Piece(fasada,"lewa ściana",-w*.5f+wallT*.5f,h*.5f,0f,
-                    wallT,h,d-2*wallT,true);
-                Piece(fasada,"prawa ściana",w*.5f-wallT*.5f,h*.5f,0f,
-                    wallT,h,d-2*wallT,true);
-                float side=(w-2*wallT-drzW)*.5f;
-                Piece(fasada,"front lewy",-(drzW+side)*.5f,h*.5f,d*.5f-wallT*.5f,
-                    side,h,wallT,true);
-                Piece(fasada,"front prawy",(drzW+side)*.5f,h*.5f,d*.5f-wallT*.5f,
-                    side,h,wallT,true);
-                Piece(fasada,"nadproże",0f,drzH+(h-drzH)*.5f,d*.5f-wallT*.5f,
-                    drzW,h-drzH,wallT,true);
-                Piece(rama,"ościeżnica L",-(drzW*.5f+.055f),drzH*.5f,d*.5f+.012f,
-                    .05f,drzH,.06f,false);
-                Piece(rama,"ościeżnica P",drzW*.5f+.055f,drzH*.5f,d*.5f+.012f,
-                    .05f,drzH,.06f,false);
-                Piece(rama,"nadproże rama",0f,drzH+.033f,d*.5f+.012f,
-                    drzW+.12f,.066f,.06f,false);
-                Piece(dachP,"dach",0f,h+.11f,0f,w+.65f,.22f,d+.65f,false);
-                Piece(sciana,"sufit",0f,h-.045f,0f,w-2*wallT,.035f,d-2*wallT,false);
-                // Dwie kabiny, wejścia dostępne od głównej części pomieszczenia.
-                Piece(sciana,"przegroda kabin",0f,h*.40f,-d*.26f,
-                    .12f,h*.80f,d*.43f,true);
-                for (float sideWC=-1f;sideWC<=1f;sideWC+=2f)
-                {
-                    // Profilowane misy i umywalki zamiast betonowych atrap.
-                    var tp = P(sideWC*w*.25f,.04f,-d*.24f);
-                    var muszla = new UlSiatka();
-                    Toczenie(muszla,new[] {
-                        new Vector2(.12f,0),new Vector2(.24f,.03f),
-                        new Vector2(.27f,.19f),new Vector2(.34f,.35f),
-                        new Vector2(.33f,.43f),new Vector2(.24f,.46f),
-                        new Vector2(.18f,.44f)
-                    },tp,24,1.05f,1.3f,fw);
-                    BraxMiastoA.Obiekt(str,"WC PREMIUM muszla "+id, muszla,ceramika,false);
-                    z[ceramika].Box(P(sideWC*w*.25f,.52f,-d*.43f),
-                        new Vector3(.58f,.77f,.20f),rot);
-                    BraxNabrzeze.Kol(kol,"WC premium misa "+id,tp+Vector3.up*.35f,
-                        new Vector3(.70f,.7f,.88f),rot.eulerAngles.y);
-                    var um=P(sideWC*(w*.5f-.58f),1f,d*.08f);
-                    var zlew=new UlSiatka();
-                    Toczenie(zlew,new[] {
-                        new Vector2(.04f,0f),new Vector2(.18f,.02f),
-                        new Vector2(.28f,.055f),new Vector2(.32f,.12f),
-                        new Vector2(.28f,.16f),new Vector2(.18f,.14f)
-                    },um,22,1f,.82f,fw);
-                    BraxMiastoA.Obiekt(str,"WC PREMIUM umywalka "+id,zlew,ceramika,false);
-                    z[chrom].Rura(um+Vector3.up*.15f-fw*.12f,um+Vector3.up*.36f-fw*.12f,.018f,10);
-                    z[chrom].Rura(um+Vector3.up*.36f-fw*.12f,um+Vector3.up*.36f+fw*.02f,.018f,10);
-                }
-                BraxUliceKit.Napis3D(tytul,P(0f,drzH+.36f,d*.5f+.16f),
-                    fw,.18f,.022f,napis,bokLit);
-                var wej=P(0f,.03f,d*.5f+1f);
-                Miejsca[id]=wej;
-                if (ileWC==0) Miejsca["wyspa_wc"]=wej; // zgodność starych punktów misji
-                Zajmij(baseWC,Mathf.Max(w,d)*.7f+.9f);
-                // Boczny deptak dochodzi do wejścia. WC nie znajduje się NA nim.
-                var cel=new Vector3(CX,0f,CZ)+fw*(LiniaWody(kat)-38f);
-                var naj=glowny.OrderBy(p=>RzutXZ(p,cel)).First();
-                var pocz=naj-fw*hw;pocz.y=naj.y;
-                var dojscie=new List<Vector3>{pocz};
-                float dl=RzutXZ(pocz,wej);
-                int n=Mathf.Max(1,Mathf.CeilToInt(dl/1f));
-                for(int k=1;k<=n;k++)
-                {
-                    float q=k/(float)n;
-                    var p=Vector3.Lerp(pocz,wej,q);
-                    p.y=Mathf.Max(p.y,Y(p.x,p.z)+.11f);
-                    dojscie.Add(p);
-                }
-                var sprawdzoneDojscie = DeptakSpojny(z,deski,legar,dojscie,1.05f*K,
-                    "Dojscie boczne do WC premium "+id);
-                if (sprawdzoneDojscie.Count > 0)
-                {
-                    float uskokStart = Mathf.Abs(sprawdzoneDojscie[0].y - pocz.y);
-                    float uskokWej = Mathf.Abs(sprawdzoneDojscie[sprawdzoneDojscie.Count-1].y - wej.y);
-                    if (uskokStart > .10f || uskokWej > .10f)
-                        Debug.LogWarning("BRAXHORN_WYSPA_WC_PREMIUM DO POPRAWKI " +
-                            id + " uskok_do_glownego=" + uskokStart.ToString("F2") +
-                            " uskok_przed_wejsciem=" + uskokWej.ToString("F2"));
-                }
-                ileWC++;
-                Debug.Log("BRAXHORN_WYSPA_WC_PREMIUM "+id+
-                    " od_wody="+odWodyWC+"m swiatlo_wejscia="+drzW.ToString("F2")+
-                    "m dojscie="+dl.ToString("F1")+"m");
+                z[tynk].Box(srodek, rozmiar, rot);
+                BraxNabrzeze.Kol(kol, "WC plazy " + nazwa, srodek, rozmiar, rot.eulerAngles.y);
             }
-            if (ileWC!=2) Debug.LogWarning("BRAXHORN_WYSPA_WC_PREMIUM DO POPRAWKI: wymagane dwa pawilony");
+            // Cztery realne sciany zamiast pelnej bryly. Dwa przejscia w scianie
+            // frontowej maja rzeczywiste oscieza, a nie tylko namalowane drzwi.
+            ScianaWC("tyl", Wc(0f, h * .5f, -d * .5f), new Vector3(w, h, .12f));
+            foreach (float o in new[] { -1f, 1f })
+                ScianaWC("bok", Wc(o * w * .5f, h * .5f, 0f), new Vector3(.12f, h, d));
+            float szerWC = .9f * K, wysWC = 2.1f * K, poczWC = -w * .5f;
+            foreach (float x in new[] { -w * .25f, w * .25f })
+            {
+                float x0 = x - szerWC * .5f, x1 = x + szerWC * .5f;
+                if (x0 > poczWC + .01f)
+                    ScianaWC("front", Wc((poczWC + x0) * .5f, h * .5f, d * .5f),
+                        new Vector3(x0 - poczWC, h, .12f));
+                ScianaWC("nad drzwiami", Wc(x, (wysWC + h) * .5f, d * .5f),
+                    new Vector3(szerWC, h - wysWC, .12f));
+                poczWC = x1;
+            }
+            if (poczWC < w * .5f - .01f)
+                ScianaWC("front", Wc((poczWC + w * .5f) * .5f, h * .5f, d * .5f),
+                    new Vector3(w * .5f - poczWC, h, .12f));
+            // Podloga obu pomieszczen, bez pudelkowego collidera zaslaniajacego drzwi.
+            z[tynk].Box(Wc(0f, .02f, 0f), new Vector3(w - .2f, .04f, d - .2f), rot);
+            BraxNabrzeze.Kol(kol, "WC plazy podloga", Wc(0f, 0f, 0f),
+                new Vector3(w, .08f, d), rot.eulerAngles.y);
+            ScianaWC("przegroda", Wc(0f, h * .5f, -.16f),
+                new Vector3(.10f, h, d - .32f));
+            z[dach].Box(Wc(0f, h + .08f, 0f), new Vector3(w + .6f, .16f, d + .6f), rot);
+            foreach (float o in new[] { -1f, 1f })
+            {
+                var dp = Wc(o * w * .25f, 0f, d * .5f + .025f);
+                var zawiasWC = dp - rg * (szerWC * .5f - .02f);
+                var otwarteWC = zawiasWC + fw * (szerWC * .5f);
+                var obrotWC = Quaternion.LookRotation(rg, Vector3.up);
+                z[drzwi].Box(otwarteWC + Vector3.up * (wysWC * .5f),
+                    new Vector3(szerWC, wysWC, .05f), obrotWC);
+                BraxNabrzeze.KolRot(kol, "WC plazy otwarte drzwi",
+                    otwarteWC + Vector3.up * (wysWC * .5f),
+                    new Vector3(szerWC, wysWC, .05f), obrotWC);
+                BraxUliceKit.Napis3D(o < 0 ? "WC DAMSKI" : "WC MĘSKI", dp + Vector3.up * (2.1f * K + .25f) + fw * .02f, fw, .16f, .015f, BraxMiastoA.Mat("Wyspa: litery granat", new Color(.1f, .16f, .3f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
+                wejsciaDomkow.Add((o < 0 ? "WC DAMSKI" : "WC MESKI",
+                    dp + fw * .7f, dp - fw * .85f));
+            }
+            Zajmij(c, Mathf.Max(w, d) * .7f);
+            Miejsca["wyspa_wc"] = c + fw * (d * .5f + 1.2f);
         }
         // WYPOŻYCZALNIA: kiosk z ladą, stojak z deskami SUP, rowerki wodne przy wodzie
         {
@@ -466,7 +363,7 @@ internal static partial class BraxMiastoWyspa
             }
         }
         // BAR NA PLAŻY (strzecha, lada, hokery, barman) — przy deptaku, środek plaży
-        try { var bc = Zaplecze(285f, 50f); float yb = bc.y; for (float a = -4f; a <= 4f; a += 2f) for (float b = -3f; b <= 3f; b += 1.5f) yb = Mathf.Max(yb, Y(bc.x + a, bc.z + b)); bc.y = yb + .05f; BarPlazowy(bc, "wyspa_bar_plaza", "BAR PLAŻOWY"); Zajmij(bc, 6f); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI bar na plaży: " + e.Message); }
+        try { var bc = Zaplecze(285f, 50f); float yb = bc.y; for (float a = -4f; a <= 4f; a += 2f) for (float b = -3f; b <= 3f; b += 1.5f) yb = Mathf.Max(yb, Y(bc.x + a, bc.z + b)); bc.y = yb + .05f; BarPlazowy(bc, "wyspa_bar_plaza", "BAR PLAŻOWY"); Zajmij(bc, 6f); } catch (System.Exception e) { Ostrzez("BRAXHORN_WYSPA_DO_POPRAWKI bar plażowy (pominięty): " + e); }
         // 4) LUDZIE W WODZIE przy brzegu (po pas, przed wieżyczkami — w strefie boi) i spacerujący brzegiem
         var rnd = new System.Random(5150);
         foreach (var (wp, wd) in wiezyczki)
@@ -496,7 +393,7 @@ internal static partial class BraxMiastoWyspa
                 if (Mathf.Sqrt(x * x + zz * zz) < LiniaWody(ang) - 44f) continue;
                 plazaM2 += 4f;
             }
-        BraxMiastoA.Log("WYSPA plaża premium: deptak z desek " + mDeptakuPlazy.ToString("F0") + " m, kładek do ratowników " + wiezyczki.Count + ", przebieralni " + nPrzebieralnie + ", WC premium 2, wypożyczalnia 1 (deski SUP " + nDeski + ", rowerki wodne " + nRowerki + "), bar na plaży 1, latarni " + nLatarnie + ", ławek " + nLawki + ", koszy " + nKosze + ", kąpiących się " + nKapiacy + ", plaża " + plazaM2.ToString("F0") + " m²");
+        BraxMiastoA.Log("WYSPA plaża premium: deptak z desek " + mDeptakuPlazy.ToString("F0") + " m, kładek do ratowników " + wiezyczki.Count + ", przebieralni " + nPrzebieralnie + ", WC 1, wypożyczalnia 1 (deski SUP " + nDeski + ", rowerki wodne " + nRowerki + "), bar na plaży 1, latarni " + nLatarnie + ", ławek " + nLawki + ", koszy " + nKosze + ", kąpiących się " + nKapiacy + ", plaża " + plazaM2.ToString("F0") + " m²");
     }
     static float plazaM2;
 
@@ -528,53 +425,185 @@ internal static partial class BraxMiastoWyspa
     static void Chodnik(BraxNabrzeze.Zbior z, int ja)
     {
         var (a, b, szer, kraw, nazwa) = plan[ja];
-        var dir = (b - a); float L = dir.magnitude; if (L < .5f) return; dir /= L;
+        var delta = b - a; float L = delta.magnitude;
+        if (L < .5f) return;
+        var dir = delta / L;
         var bok = new Vector2(dir.y, -dir.x); float hw = szer * .5f;
         var top = z[matChodnik]; var cok = z[matKraw];
-        float TopY(Vector2 p) { float y = -99f; for (float o = -hw - .2f; o <= hw + .2f; o += hw * .5f) { var q = p + bok * o; y = Mathf.Max(y, H(q.x, q.y)); } return W + y + .09f; }
-        float MinY(Vector2 p) { float y = 99f; for (float o = -hw - .2f; o <= hw + .2f; o += hw * .5f) { var q = p + bok * o; y = Mathf.Min(y, H(q.x, q.y)); } return W + y - .35f; }
         Vector3 S3(Vector2 p, float y) => new Vector3(CX + p.x, y, CZ + p.y);
-        var bok3 = new Vector3(bok.x, 0, bok.y); var dir3 = new Vector3(dir.x, 0, dir.y);
-        bool wRun = false; Vector2 runStart = a; float yRunStart = 0;
+        var bok3 = new Vector3(bok.x, 0f, bok.y);
+        var dir3 = new Vector3(dir.x, 0f, dir.y);
+        Vector2 At(float t) => a + dir * Mathf.Clamp(t, 0f, L);
+
+        // Poprzedni profil oparty na osi obrotu każdego odcinka powodował
+        // różne poziomy na tym samym skrzyżowaniu. Jedna funkcja wysokości
+        // w osiach świata daje identyczną wysokość przy wspólnym punkcie.
+        float RawY(Vector2 p)
+        {
+            float y = -99f;
+            for (int ix = -1; ix <= 1; ix++)
+                for (int iz = -1; iz <= 1; iz++)
+                    y = Mathf.Max(y, H(p.x + ix * 1.6f, p.y + iz * 1.6f));
+            return W + y + .09f;
+        }
+        float MinY(Vector2 p)
+        {
+            float y = 99f;
+            foreach (float o in new[] { -hw - .2f, 0f, hw + .2f })
+            {
+                var q = p + bok * o;
+                y = Mathf.Min(y, H(q.x, q.y));
+            }
+            return W + y - .35f;
+        }
+        // Wyrównanie pochyłości (maksymalnie 12 cm na metr), bez obcinania
+        // wysokich punktów pod teren. Podnosimy niskie miejsca, a cokół
+        // dochodzi do gruntu; nie zmieniamy materiału ani przebiegu alei.
+        int nProfil = Mathf.CeilToInt(L * 2f);
+        float krok = L / Mathf.Max(1, nProfil);
+        var profil = new float[nProfil + 1];
+        for (int i = 0; i <= nProfil; i++) profil[i] = RawY(At(i * krok));
+        for (int i = 1; i <= nProfil; i++)
+            profil[i] = Mathf.Max(profil[i], profil[i - 1] - krok * .12f);
+        // Ostatnia płyta łącznika dochodzi do rzeczywistego poziomu
+        // drewnianej promenady, bez schodka na styku dwóch materiałów.
+        if (nazwa == "łącznik A2 do promenady plażowej" &&
+            Miejsca.TryGetValue("wyspa_polaczenie_plaza_a2", out var plazaKoniec))
+            profil[nProfil] = Mathf.Max(profil[nProfil], plazaKoniec.y);
+        for (int i = nProfil - 1; i >= 0; i--)
+            profil[i] = Mathf.Max(profil[i], profil[i + 1] - krok * .12f);
+        if (nazwa == "łącznik A2 do promenady plażowej" &&
+            Miejsca.TryGetValue("wyspa_polaczenie_plaza_a2", out var plazaY) &&
+            Mathf.Abs(profil[nProfil] - plazaY.y) > .12f)
+            Ostrzez("WYSPA_POLACZENIE_PLAZA_A2 nierowny styk " +
+                Mathf.Abs(profil[nProfil] - plazaY.y).ToString("F2") + "m; kontrola Unity konieczna");
+        float TopY(float t)
+        {
+            float pos = Mathf.Clamp(t / krok, 0f, nProfil);
+            int i = Mathf.Min(Mathf.FloorToInt(pos), nProfil - 1);
+            return Mathf.Lerp(profil[i], profil[i + 1], pos - i);
+        }
+
+        // UWAGA: dawne !WInnym(midpoint) usuwało CAŁY 1-metrowy kawałek.
+        // Przy skrzyżowaniu powstawały luki do ~1 m. Granice przecinającego
+        // chodnika wyznaczamy z dokładnością < 4 mm przez bisekcję.
+        bool Przykryte(float t) => WInnym(At(t), ja, 0f, true);
+        float Granica(float lo, float hi, bool stanNaLewo)
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                float m = (lo + hi) * .5f;
+                if (Przykryte(m) == stanNaLewo) lo = m;
+                else hi = m;
+            }
+            return (lo + hi) * .5f;
+        }
+
+        bool otwarte = false; float koniec = 0f; int odcinki = 0, lukiTerenu = 0, zlacza = 0;
+        void Zamknij(float t)
+        {
+            if (!otwarte) return;
+            var p = At(t); float yt = TopY(t), ym = MinY(p);
+            Q(cok, S3(p - bok * hw, yt), S3(p + bok * hw, yt),
+                S3(p + bok * hw, ym), S3(p - bok * hw, ym), dir3);
+            otwarte = false;
+        }
+        void Fragment(float t0, float t1)
+        {
+            if (t1 - t0 < .005f) return;
+            var p0 = At(t0); var p1 = At(t1); var pm = (p0 + p1) * .5f;
+            if (!NaLadzie(pm.x, pm.y) ||
+                !NaLadzie((pm + bok * hw).x, (pm + bok * hw).y) ||
+                !NaLadzie((pm - bok * hw).x, (pm - bok * hw).y) ||
+                Vector2.Distance(pm, Plac) <= PlacR - .5f)
+            {
+                lukiTerenu++;
+                Zamknij(koniec);
+                return;
+            }
+            float y0 = TopY(t0), y1 = TopY(t1), m0 = MinY(p0), m1 = MinY(p1);
+            if (!otwarte || Mathf.Abs(koniec - t0) > .006f)
+            {
+                Zamknij(koniec);
+                Q(cok, S3(p0 - bok * hw, y0), S3(p0 + bok * hw, y0),
+                    S3(p0 + bok * hw, m0), S3(p0 - bok * hw, m0), -dir3);
+                otwarte = true;
+            }
+            Q(top, S3(p0 - bok * hw, y0), S3(p0 + bok * hw, y0),
+                S3(p1 + bok * hw, y1), S3(p1 - bok * hw, y1), Vector3.up);
+            Q(cok, S3(p0 + bok * hw, y0), S3(p1 + bok * hw, y1),
+                S3(p1 + bok * hw, m1), S3(p0 + bok * hw, m0), bok3);
+            Q(cok, S3(p0 - bok * hw, y0), S3(p1 - bok * hw, y1),
+                S3(p1 - bok * hw, m1), S3(p0 - bok * hw, m0), -bok3);
+            koniec = t1;
+            float len = t1 - t0;
+            mChodnika += len;
+            odcinki++;
+
+            // Poprzedni collider obejmował 4 metry, nawet gdy w środku
+            // brakowało nawierzchni. Teraz fizyka pokrywa TYLKO wykonany
+            // fragment; ten sam nachylony profil co widoczna płyta.
+            var A = S3(p0, y0); var B = S3(p1, y1); var v = B - A;
+            if (v.magnitude > .005f)
+                BraxNabrzeze.KolRot(kol, "Wyspa chodnik fizyka " + nazwa,
+                    (A + B) * .5f + Vector3.down * .15f,
+                    new Vector3(szer, .3f, v.magnitude + .012f),
+                    Quaternion.LookRotation(v.normalized, Vector3.up));
+
+            if (kraw)
+            {
+                float kw = .15f * K, kh = .3f;
+                foreach (float sg in new[] { -1f, 1f })
+                {
+                    var c0 = p0 + bok * sg * (hw + kw * .5f);
+                    var c1 = p1 + bok * sg * (hw + kw * .5f);
+                    if (WInnym((c0 + c1) * .5f, ja, kw, false)) continue;
+                    var u = S3(c0, y0 + .1f - kh * .5f);
+                    var v1 = S3(c1, y1 + .1f - kh * .5f);
+                    var d3 = v1 - u;
+                    if (d3.magnitude < .05f) continue;
+                    z[matKraw].Box((u + v1) * .5f,
+                        new Vector3(kw, kh, Mathf.Max(.02f, d3.magnitude - .006f)),
+                        Quaternion.LookRotation(d3.normalized, Vector3.up));
+                    nKrawezniki++;
+                }
+            }
+            // Pełna ochrona pasów pieszych przed późniejszymi palmami
+            // i krzewami. Rezerwacje przy każdej pełnej płycie, a nie co 4 m.
+            Zajmij(S3(pm, 0f), hw + .9f);
+        }
+
         int n = Mathf.CeilToInt(L);
         for (int i = 0; i < n; i++)
         {
-            var p0 = a + dir * i; var p1 = a + dir * Mathf.Min(L, i + 1);
-            var pm = (p0 + p1) * .5f;
-            bool ok = NaLadzie(pm.x, pm.y) && NaLadzie((pm + bok * hw).x, (pm + bok * hw).y) && NaLadzie((pm - bok * hw).x, (pm - bok * hw).y)
-                      && Vector2.Distance(pm, Plac) > PlacR - .5f && !WInnym(pm, ja, 0f, true);
-            if (!ok) { if (wRun) { Koniec(runStart, p0, yRunStart); wRun = false; } continue; }
-            float y0 = TopY(p0), y1 = TopY(p1), m0 = MinY(p0), m1 = MinY(p1);
-            if (!wRun) { wRun = true; runStart = p0; yRunStart = y0; Q(cok, S3(p0 - bok * hw, y0), S3(p0 + bok * hw, y0), S3(p0 + bok * hw, m0), S3(p0 - bok * hw, m0), -dir3); }
-            Q(top, S3(p0 - bok * hw, y0), S3(p0 + bok * hw, y0), S3(p1 + bok * hw, y1), S3(p1 - bok * hw, y1), Vector3.up);
-            Q(cok, S3(p0 + bok * hw, y0), S3(p1 + bok * hw, y1), S3(p1 + bok * hw, m1), S3(p0 + bok * hw, m0), bok3);
-            Q(cok, S3(p0 - bok * hw, y0), S3(p1 - bok * hw, y1), S3(p1 - bok * hw, m1), S3(p0 - bok * hw, m0), -bok3);
-            mChodnika += Vector2.Distance(p0, p1);
-            if (kraw)
-            {   // krawężniki 15 × 25 cm × k, odcinki 1 m z fugą 6 mm, wierzch 10 cm nad chodnikiem, pochylone wzdłuż spadku
-                float kw = .15f * K, kh = .3f;
-                foreach (float s in new[] { -1f, 1f })
-                {
-                    var c0 = p0 + bok * s * (hw + kw * .5f); var c1 = p1 + bok * s * (hw + kw * .5f);
-                    if (WInnym((c0 + c1) * .5f, ja, kw, false)) continue;                 // wejście innego chodnika — krawężnik przerwany
-                    var A = S3(c0, y0 + .1f - kh * .5f); var B = S3(c1, y1 + .1f - kh * .5f); var d3 = B - A; float l3 = d3.magnitude; if (l3 < .05f) continue;
-                    var rot = Quaternion.LookRotation(d3 / l3, Vector3.up);
-                    z[matKraw].Box((A + B) * .5f, new Vector3(kw, kh, l3 - .006f), rot); nKrawezniki++;
-                }
-            }
-            if (i % 4 == 0)
+            float ta = i, tb = Mathf.Min(i + 1f, L);
+            const int probes = 8;
+            float pocz = ta, prev = ta;
+            bool przykryte = Przykryte(ta);
+            for (int j = 1; j <= probes; j++)
             {
-                var A = S3(p0, y0); var B = S3(a + dir * Mathf.Min(L, i + 4), TopY(a + dir * Mathf.Min(L, i + 4))); var d3 = B - A; if (d3.magnitude > .5f)
-                    BraxNabrzeze.KolRot(kol, "Chodnik " + nazwa, (A + B) * .5f + Vector3.down * .15f, new Vector3(szer + (kraw ? .3f * K : 0f), .3f, d3.magnitude + .05f), Quaternion.LookRotation(d3.normalized, Vector3.up));
+                float teraz = Mathf.Lerp(ta, tb, j / (float)probes);
+                bool next = Przykryte(teraz);
+                if (next != przykryte)
+                {
+                    float zmiana = Granica(prev, teraz, przykryte);
+                    if (!przykryte) Fragment(pocz, zmiana);
+                    else { Zamknij(koniec); zlacza++; }
+                    pocz = zmiana;
+                    przykryte = next;
+                }
+                prev = teraz;
             }
-            if (i % 4 == 2) Zajmij(S3(pm, 0), hw + .8f);
+            if (!przykryte) Fragment(pocz, tb);
+            else Zamknij(koniec);
         }
-        if (wRun) Koniec(runStart, a + dir * L, yRunStart);
-        void Koniec(Vector2 s0, Vector2 e, float ys)
-        {
-            float ye = TopY(e), me = MinY(e);
-            Q(cok, S3(e - bok * hw, ye), S3(e + bok * hw, ye), S3(e + bok * hw, me), S3(e - bok * hw, me), dir3);
-        }
+        Zamknij(koniec);
+        string wynik = "WYSPA_CHODNIK_SPOJNOSC " + nazwa + " odcinki=" + odcinki +
+            " zlacza=" + zlacza + " luki_terenu=" + lukiTerenu +
+            " wykonane_m=" + mChodnika.ToString("F1") + " planowane_m=" + L.ToString("F1");
+        if (lukiTerenu > 0)
+            Ostrzez(wynik + " — korytarz wymaga sprawdzenia w Unity; APK nie blokujemy");
+        else Debug.Log(wynik);
     }
 
     struct Paleta { public Color sciana, obrobki, dach, okiennice; }
@@ -594,6 +623,9 @@ internal static partial class BraxMiastoWyspa
     /// spustową, kalenica, lampa przy drzwiach, ścieżka do chodnika. Zwraca stopę schodów (lokalnie) albo null, gdy teren zły.</summary>
     static Vector2? Domek(BraxNabrzeze.Zbior z, BraxNabrzezeMebel.Mat m, Vector2 c, Vector2 fw2, float w, float d, int paleta, string tabliczka, string szyld = null)
     {
+        // Nie stawiamy domku NA zaplanowanej alei (drogi budowane są
+        // dopiero po budynkach, więc zwykła fizyka nie wykrywa tego konfliktu).
+        if (WInnym(c, -1, Mathf.Max(w, d) * .55f + .4f, false)) return null;
         var fw = new Vector3(fw2.x, 0, fw2.y).normalized; var rg = Vector3.Cross(Vector3.up, fw);
         float tD = 2.2f * K, h = 2.6f * K;
         // teren pod bryłą i tarasem
@@ -631,16 +663,51 @@ internal static partial class BraxMiastoWyspa
         foreach (var sc in sciany)
         {
             BraxMiastoA.Sciana(s, sc.A, sc.R, sc.N, sc.W, 0f, h, sc.o, .14f, so);
+            // Zamiast jednej kolizji calego budynku: fizyczne sciany, ale otwor
+            // drzwiowy rzeczywiscie pusty. Okna pozostaja chronione kolizja sciany.
+            float yawSciany = Quaternion.LookRotation(sc.N, Vector3.up).eulerAngles.y;
+            var wejscia = sc.o.Where(o => o.yMin < .01f).ToArray();
+            void SegmentSciany(float x0, float x1, float y0c, float y1c)
+            {
+                if (x1 - x0 < .015f || y1c - y0c < .015f) return;
+                BraxNabrzeze.Kol(kol, "Domek " + tabliczka + " sciana",
+                    sc.A + sc.R * ((x0 + x1) * .5f) + Vector3.up * ((y0c + y1c) * .5f),
+                    new Vector3(x1 - x0, y1c - y0c, .14f), yawSciany);
+            }
+            if (wejscia.Length == 0) SegmentSciany(0f, sc.W, 0f, h);
+            else
+            {
+                float xPoprzedni = 0f;
+                foreach (var otwor in wejscia.OrderBy(o => o.xMin))
+                {
+                    SegmentSciany(xPoprzedni, otwor.xMin, 0f, h);
+                    SegmentSciany(otwor.xMin, otwor.xMax, otwor.yMax, h);
+                    xPoprzedni = Mathf.Max(xPoprzedni, otwor.xMax);
+                }
+                SegmentSciany(xPoprzedni, sc.W, 0f, h);
+            }
             foreach (var o in sc.o)
             {
                 bool drzwi = o.yMin < .01f;
                 Vector3 L(float a, float y, float dd) => sc.A + sc.R * a + Vector3.up * y + sc.N * dd;
                 var ro = Quaternion.LookRotation(sc.N, Vector3.up);
                 if (drzwi)
-                {   // skrzydło drzwi (zamknięte) w głębi ościeża, klamka, tabliczka, lampa
-                    z[okien].Box(L(o.center.x, o.yMin + dh * .5f, -.1f), new Vector3(dw - .02f, dh - .01f, .05f), ro);
-                    z[m.stal].Rura(L(o.xMax - .12f, 1.02f * K, -.06f), L(o.xMax - .12f, 1.02f * K, .02f), .015f, 6);
-                    z[m.stal].Box(L(o.xMax - .18f, 1.02f * K, .025f), new Vector3(.14f, .02f, .02f), ro);
+                {   // Drzwi faktycznie otwarte na zewnatrz: skrzydlo stoi przy zawiasie,
+                    // a otwor w scianie pozostaje drozny. Nie maskujemy pelnego collidera.
+                    // Ten sam material i wymiary skrzydla, bez zmiany kolorystyki domku.
+                    var zawias = L(o.xMin + .04f, o.yMin + dh * .5f, -.10f);
+                    var skrzydloNaBoku = zawias + sc.N * ((dw - .02f) * .5f);
+                    var obrotSkrzydla = Quaternion.LookRotation(sc.R, Vector3.up);
+                    z[okien].Box(skrzydloNaBoku, new Vector3(dw - .02f, dh - .01f, .05f), obrotSkrzydla);
+                    BraxNabrzeze.KolRot(kol, "Domek " + tabliczka + " otwarte skrzydlo", skrzydloNaBoku,
+                        new Vector3(dw - .02f, dh - .01f, .05f), obrotSkrzydla);
+                    // Klamka musi podazac za otwartym skrzydlem, a nie wisiec
+                    // w pustym osciezu przy dawnym zamknietym polozeniu drzwi.
+                    var klamkaNaSkrzydle = L(o.xMin + .04f, 1.02f * K, -.10f) + sc.N * (dw - .18f);
+                    z[m.stal].Rura(klamkaNaSkrzydle - sc.R * .06f,
+                        klamkaNaSkrzydle + sc.R * .07f, .015f, 6);
+                    z[m.stal].Box(klamkaNaSkrzydle + sc.R * .07f,
+                        new Vector3(.14f, .02f, .02f), obrotSkrzydla);
                     var lp = L(o.xMax + .35f, 2.15f * K, .06f);
                     z[m.stalCiemna].Box(lp, new Vector3(.14f, .22f, .12f), ro); z[BraxMiastoA.Mat("Wyspa: klosz lampy (mleczny)", new Color(.95f, .93f, .86f), .3f)].Box(lp + Vector3.down * .04f + sc.N * .02f, new Vector3(.1f, .12f, .08f), ro);
                     if (!string.IsNullOrEmpty(tabliczka))
@@ -739,9 +806,14 @@ internal static partial class BraxMiastoWyspa
             Czlowiek("Sklep ośrodka", "sprzedawca (obsługa)", "stoi", P(-2.6f, 0f, lz + .75f), fw, KlStoi);
             Czlowiek("Sklep ośrodka", "klient", "stoi", P(-2.3f, 0f, lz + 2.05f), -fw, KlStoi);
         }
-        // 5) kolizje bryły i tarasu
-        BraxNabrzeze.Kol(kol, "Domek " + tabliczka, P(0, h * .5f + .02f, 0), new Vector3(w, h + .04f, d), rot.eulerAngles.y);
+        // 5) prawdziwa podloga i wejscie (bez pelnego BoxCollidera przez srodek
+        // domku). Fizyka scian z zachowanym przejsciem powstala powyzej.
+        z[deskaT].Box(P(0, .02f, 0), new Vector3(w - .30f, .04f, d - .30f), rot);
+        BraxNabrzeze.Kol(kol, "Domek " + tabliczka + " podloga", P(0, 0f, 0),
+            new Vector3(w, .08f, d), rot.eulerAngles.y);
         BraxNabrzeze.Kol(kol, "Taras domku " + tabliczka, P(0, -.25f, d * .5f + tD * .5f), new Vector3(w, .5f, tD), rot.eulerAngles.y);
+        var osDrzwi = P(0f, .04f, d * .5f);
+        wejsciaDomkow.Add((tabliczka, osDrzwi + fw * .75f, osDrzwi - fw * .85f));
         BraxNabrzeze.Kol(kol, "Dach domku " + tabliczka, P(0, h + hr * .5f, 0), new Vector3(w + ovG, hr, d * .8f), rot.eulerAngles.y);
         if (!string.IsNullOrEmpty(szyld))
             BraxUliceKit.Napis3D(szyld, P(0, h + .05f - ovE * Mathf.Tan(kat) - .25f, d * .5f + .02f), fw, .3f, .03f, BraxMiastoA.Mat("Wyspa: litery szyldu (granat)", new Color(.08f, .14f, .26f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
@@ -817,6 +889,36 @@ internal static partial class BraxMiastoWyspa
         Planuj(new Vector2(45f, -92f), new Vector2(45f, 115f), szer, true, "aleja A2 (plaża ↔ domki)");
         Planuj(new Vector2(-30f, 85f), new Vector2(105f, 85f), szer, true, "aleja A3");
         Planuj(new Vector2(Plac.x, Plac.y + PlacR - 2f), A1a, szer, true, "łącznik z placu areny");
+        // Jawny łącznik: południowy koniec A2 → istniejąca promenada plaży.
+        // Bez tego obie promenady stanowiły dwa odrębne ciągi piesze.
+        var startPlaza = new Vector2(45f, -92f);
+        var mozliwe = plazaDeptak
+            .Where(q => Vector2.Distance(new Vector2(q.x - CX, q.z - CZ), startPlaza) < 65f)
+            .OrderBy(q => Vector2.Distance(new Vector2(q.x - CX, q.z - CZ), startPlaza))
+            .Take(35).ToArray();
+        Vector3 polaczenie = Vector3.zero;
+        foreach (var v in mozliwe)
+        {
+            var end = new Vector2(v.x - CX, v.z - CZ);
+            bool wolne = true; int n = Mathf.CeilToInt(Vector2.Distance(startPlaza, end) / .70f);
+            for (int k = 1; k < n; k++)
+            {
+                var q = Vector2.Lerp(startPlaza, end, k / (float)n);
+                if (!NaLadzie(q.x, q.y, .95f) || Zajete(CX + q.x, CZ + q.y, 1.1f))
+                { wolne = false; break; }
+            }
+            if (!wolne) continue;
+            polaczenie = v; break;
+        }
+        if (polaczenie != Vector3.zero)
+        {
+            var end = new Vector2(polaczenie.x - CX, polaczenie.z - CZ);
+            Planuj(startPlaza, end, 1.8f * K, false, "łącznik A2 do promenady plażowej");
+            Miejsca["wyspa_polaczenie_plaza_a2"] = polaczenie;
+            Debug.Log("WYSPA_POLACZENIE_PLAZA_A2 odleglosc=" +
+                Vector2.Distance(startPlaza, end).ToString("F1") + "m");
+        }
+        else Ostrzez("WYSPA_POLACZENIE_PLAZA_A2: dojście od A2 do promenady nie ma wolnego korytarza; test APK nieblokowany");
         int glowne = plan.Count;
         // RECEPCJA (przy wejściu od placu), SKLEP (skrzyżowanie A1/A2), PLAC ZABAW (między A1 i A3)
         int pal = 0;
@@ -824,7 +926,7 @@ internal static partial class BraxMiastoWyspa
         if (rec.HasValue) { recepcja = Sw(rec.Value.x, rec.Value.y); Miejsca["wyspa_recepcja"] = recepcja; BraxMiastoA.Akcja(root, "wyspa_recepcja", "ZAMELDUJ", "Recepcja ośrodka: domki na doby i tygodnie, klucze, ręczniki, rowerki wodne na plaży.", recepcja, 2.2f); Czlowiek("Recepcja", "recepcjonistka", "stoi", recepcja + new Vector3(0, 0, -.5f), Vector3.forward, KlStoi); Planuj(rec.Value, new Vector2(rec.Value.x, 45f), 1.6f * K, false, "dojście do recepcji"); }
         var sk = Domek(z, m, new Vector2(60f, 30f), new Vector2(-1, 0), 8f * K * .85f, 6f * K * .85f, 4, "SKLEP", "SKLEP · KAWIARNIA");
         if (sk.HasValue) { sklep = Sw(sk.Value.x, sk.Value.y); Miejsca["wyspa_sklep"] = sklep; BraxMiastoA.Akcja(root, "wyspa_sklep", "KUP", "Sklep ośrodka: woda, lody, krem z filtrem, pieczywo rano.", sklep, 2.2f); Planuj(sk.Value, new Vector2(45f, sk.Value.y), 1.6f * K, false, "dojście do sklepu"); }
-        try { PlacZabaw(z, m, new Vector2(62f, 65f)); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI plac zabaw: " + e.Message); }
+        try { PlacZabaw(z, m, new Vector2(62f, 65f)); } catch (System.Exception e) { Ostrzez("BRAXHORN_WYSPA_DO_POPRAWKI plac zabaw (pominięty): " + e); }
         // DOMKI: działki wzdłuż alej, front do chodnika; na złym terenie (woda, stromo) — pominięte
         var dzialki = new List<(Vector2 c, Vector2 fw, Vector2 aleja)>();
         foreach (float x in new[] { -6f, 14f, 30f, 76f, 96f }) dzialki.Add((new Vector2(x, 31f), new Vector2(0, 1), new Vector2(x, 45f - szer * .5f)));     // A1 południe
@@ -859,17 +961,191 @@ internal static partial class BraxMiastoWyspa
                 {
                     var lp = a + dir * (t + 5f) + bk * (hw + .2f * K + 1.0f); if (!NaLadzie(lp.x, lp.y, 1.2f) || WInnym(lp, -1, 1.2f, false) || Zajete(CX + lp.x, CZ + lp.y, 1.2f)) continue;
                     var l3 = Sw(lp.x, lp.y); BraxNabrzezeMebel.Lawka(z, root, m, l3, Quaternion.LookRotation(new Vector3(-bk.x, 0, -bk.y)).eulerAngles.y, "Ławka alei ośrodka"); nLawki++; Zajmij(l3, 1.4f);
-                    var kp = a + dir * (t + 6.6f) + bk * (hw + .2f * K + .7f); var k3 = Sw(kp.x, kp.y); BraxNabrzezeMebel.Kosz(z, root, m, k3); nKosze++;
+                    var kp = a + dir * (t + 6.6f) + bk * (hw + .2f * K + .7f);
+                    // Kosz miał pozycję niezależną od chodników poprzecznych.
+                    if (NaLadzie(kp.x, kp.y, 1.2f) &&
+                        !WInnym(kp, -1, .65f, false) &&
+                        !Zajete(CX + kp.x, CZ + kp.y, .5f))
+                    {
+                        var k3 = Sw(kp.x, kp.y);
+                        BraxNabrzezeMebel.Kosz(z, root, m, k3);
+                        nKosze++; Zajmij(k3, .5f);
+                    }
                 }
             }
         }
         // budowa wszystkich chodników (główne pierwsze — mają pierwszeństwo na skrzyżowaniach i przy dojściach)
-        for (int k = 0; k < plan.Count; k++) { try { Chodnik(z, k); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI chodnik " + plan[k].nazwa + ": " + e.Message); } }
+        for (int k = 0; k < plan.Count; k++) { try { Chodnik(z, k); } catch (System.Exception e) { Ostrzez("BRAXHORN_WYSPA_DO_POPRAWKI chodnik " + plan[k].nazwa + " (pominięty): " + e); } }
         // spacerowicze po alejach (trasy wzdłuż A1 i A2)
         var tA1 = new List<Vector3>(); for (float x = Plac.x + 10f; x <= 110f; x += 12f) if (NaLadzie(x, 45f, 1.2f)) tA1.Add(Sw(x, 45f) + Vector3.up * .09f);
         var tA2 = new List<Vector3>(); for (float zz = -50f; zz <= 110f; zz += 12f) if (NaLadzie(45f, zz, 1.2f)) tA2.Add(Sw(45f, zz) + Vector3.up * .09f);
         for (int k = 0; k < 6; k++) { var t = k % 2 == 0 ? tA1 : tA2; if (t.Count < 2) continue; int s = (k * 3) % (t.Count - 1); Czlowiek("Aleja ośrodka", "wczasowicz", "spacer", t[s], t[s + 1] - t[s], KlSpacer, t.ToArray()); }
         BraxMiastoA.Log("WYSPA ośrodek domków: domków " + nDomki + " (z recepcją i sklepem), chodników " + mChodnika.ToString("F0") + " m, krawężników " + nKrawezniki + " (odcinki 1 m z fugą), latarni " + nLatarnie + ", ławek " + nLawki + ", koszy " + nKosze + ", plac zabaw " + (placZabaw != Vector3.zero ? "tak" : "nie") + ", aut 0");
+    }
+
+    // Kompletny odbiór osi dojść R1 po wygenerowaniu fizyki i wyposażenia.
+    // TYLKO raport do ręcznej oceny: bez kasowania colliderów i bez blokady APK.
+    internal static void AudytCalejWyspy(Transform wyspa)
+    {
+        if (!wyspa) { Ostrzez("WYSPA_CALA_TRASA_AUDYT brak korzenia"); return; }
+        Physics.SyncTransforms();
+        const int maska = ~((1 << 8) | (1 << 29) | (1 << 31));
+        int probki = 0, brak = 0, przeszkody = 0, wysokosci = 0, przerwy = 0;
+        var raport = new List<string>();
+        void Punkt(Vector3 p, string wzorzec, string nazwa, ref float poprzednie, ref Vector3 poprzedniP)
+        {
+            probki++;
+            float yStart = Mathf.Max(p.y, Y(p.x, p.z)) + 4f;
+            var hit = Physics.RaycastAll(new Vector3(p.x, yStart, p.z),
+                    Vector3.down, 8f, maska, QueryTriggerInteraction.Ignore)
+                .Where(h => h.collider && h.normal.y > .65f &&
+                    (h.collider.transform == wyspa || h.collider.transform.IsChildOf(wyspa)) &&
+                    h.collider.name.Contains(wzorzec))
+                .OrderByDescending(h => h.point.y).FirstOrDefault();
+            if (!hit.collider)
+            {
+                brak++;
+                if (raport.Count < 35) raport.Add("BRAK " + nazwa + " @" + p.ToString("F1"));
+                poprzednie = float.NaN; poprzedniP = Vector3.zero; return;
+            }
+            float y = hit.point.y;
+            if (!float.IsNaN(poprzednie) && poprzedniP != Vector3.zero)
+            {
+                float dist = Vector2.Distance(new Vector2(p.x, p.z), new Vector2(poprzedniP.x, poprzedniP.z));
+                if (dist > .1f && Mathf.Abs(y - poprzednie) > .19f * dist)
+                {
+                    wysokosci++;
+                    if (raport.Count < 35)
+                        raport.Add("NIEROWNOSC " + nazwa + " " + Mathf.Abs(y - poprzednie).ToString("F2") + "m");
+                }
+            }
+            poprzednie = y; poprzedniP = p;
+            foreach (var c in Physics.OverlapCapsule(
+                new Vector3(p.x, y + .61f, p.z), new Vector3(p.x, y + 1.9f, p.z),
+                .31f, maska, QueryTriggerInteraction.Ignore))
+            {
+                if (!c || !c.enabled || c.isTrigger || c.bounds.max.y <= y + .24f ||
+                    !c.transform.IsChildOf(wyspa) ||
+                    c.GetComponentInParent<BraxMieszkaniec>() ||
+                    c.GetComponentInParent<BraxGymPlayer>()) continue;
+                if (c.name.Contains("Wyspa chodnik fizyka") ||
+                    c.name.Contains("Deptak plażowy") ||
+                    c.name.Contains("Wyspa kładka do ratownika") ||
+                    c.name.Contains("kolizja: deptak") ||
+                    c.name.Contains("kolizja: pochylnia deptaka") ||
+                    c.name.Contains("pomost wyspy")) continue;
+                przeszkody++;
+                if (raport.Count < 35) raport.Add("PRZESZKODA " + nazwa + ": " + c.name + " @" + p.ToString("F1"));
+                break;
+            }
+        }
+        void Linia(Vector3 a, Vector3 b, string wzorzec, string nazwa, float krok)
+        {
+            float przed = float.NaN; Vector3 pozycja = Vector3.zero;
+            int n = Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(a, b) / krok));
+            for (int i = 0; i <= n; i++)
+                Punkt(Vector3.Lerp(a, b, i / (float)n), wzorzec, nazwa, ref przed, ref pozycja);
+        }
+        foreach (var (a, b, szer, kraw, nazwa) in plan)
+        {
+            var start = a; var dx = b - a;
+            // Łącznik startuje na płaskiej płycie placu ARENY, a własny
+            // chodnik dopiero na krawędzi placu. Nie zgłaszamy tej części
+            // jako dziury tylko dlatego, że podłoże jest z terenu placu.
+            if (nazwa == "łącznik z placu areny" && dx.sqrMagnitude > .01f)
+            {
+                float odKrawedzi = Mathf.Max(0f, PlacR - Vector2.Distance(a, Plac) + .12f);
+                start = a + dx.normalized * Mathf.Min(dx.magnitude, odKrawedzi);
+            }
+            Linia(new Vector3(CX + start.x, 0, CZ + start.y),
+                  new Vector3(CX + b.x, 0, CZ + b.y),
+                  "Wyspa chodnik fizyka", nazwa, 1.25f);
+        }
+        if (!Miejsca.ContainsKey("wyspa_polaczenie_plaza_a2"))
+        {
+            przerwy++;
+            raport.Add("ODCIETA promenada plaży od alei A2");
+        }
+        if (Miejsca.TryGetValue("wyspa_przystan", out var port))
+        {
+            float y = float.NaN; Vector3 pp = Vector3.zero;
+            Punkt(port, "pomost wyspy", "przystań", ref y, ref pp);
+        }
+        if (deptak.Count < 2) przerwy++;
+        for (int i = 1; i < deptak.Count - 1; i += 4)
+        {
+            float y = float.NaN; Vector3 pp = Vector3.zero;
+            Punkt(deptak[i], "kolizja: deptak", "pomost–arena", ref y, ref pp);
+        }
+        if (plazaDeptak.Count < 2) przerwy++;
+        float poprzednieY = float.NaN; Vector3 poprzedni = Vector3.zero;
+        for (int i = 0; i < plazaDeptak.Count; i++)
+        {
+            if (i > 0 && Vector3.Distance(plazaDeptak[i], plazaDeptak[i - 1]) > 5.8f)
+            {
+                przerwy++;
+                if (raport.Count < 35) raport.Add("PRZERWA promenada plaży odcinek " + i);
+                poprzednieY = float.NaN; poprzedni = Vector3.zero;
+            }
+            if (i % 4 == 1)
+                Punkt(plazaDeptak[i], "Deptak plażowy", "promenada plaży", ref poprzednieY, ref poprzedni);
+        }
+        foreach (var (_, wd) in wiezyczki)
+        {
+            float ang = Mathf.Atan2(wd.z, wd.x) * Mathf.Rad2Deg;
+            float rs = LiniaWody(ang);
+            var a = new Vector3(CX, 0f, CZ) + wd * (rs - 37f);
+            var b = new Vector3(CX, 0f, CZ) + wd * (rs - 16f);
+            Linia(a, b, "Wyspa kładka do ratownika", "kładka ratownika", 1.25f);
+        }
+        // Odbior kazdego rzeczywiscie utworzonego domku, recepcji i sklepu.
+        // Pelna kolizja bryly dawniej zaslaniala wszystkie drzwi — sondy w osi
+        // portalu wykrywaja jej nawrot bez wylaczania fizyki w gotowej grze.
+        int wejsciaProby = 0, wejsciaBlokady = 0, wejsciaBezPodlogi = 0;
+        var wejsciaRaport = new List<string>();
+        foreach (var wejscie in wejsciaDomkow)
+        {
+            int kolizjeWejscia = 0, brakPosadzki = 0;
+            for (int i = 0; i <= 8; i++)
+            {
+                var p = Vector3.Lerp(wejscie.zewn, wejscie.wewn, i / 8f);
+                wejsciaProby++;
+                bool podloga = Physics.RaycastAll(p + Vector3.up * 1.4f, Vector3.down, 2.2f,
+                    maska, QueryTriggerInteraction.Ignore)
+                    .Any(hit => hit.collider && hit.normal.y > .65f &&
+                        (hit.collider.transform == wyspa || hit.collider.transform.IsChildOf(wyspa)) &&
+                        Mathf.Abs(hit.point.y - p.y) < .25f);
+                if (!podloga) { brakPosadzki++; wejsciaBezPodlogi++; }
+                foreach (var c in Physics.OverlapCapsule(p + Vector3.up * .60f,
+                    p + Vector3.up * 1.88f, .30f, maska, QueryTriggerInteraction.Ignore))
+                {
+                    if (!c || !c.enabled || c.isTrigger || c.bounds.max.y <= p.y + .24f ||
+                        (!c.transform.IsChildOf(wyspa) && c.transform != wyspa) ||
+                        c.GetComponentInParent<BraxGymPlayer>() ||
+                        c.GetComponentInParent<BraxMieszkaniec>()) continue;
+                    kolizjeWejscia++; wejsciaBlokady++; break;
+                }
+            }
+            if ((kolizjeWejscia > 0 || brakPosadzki > 0) && wejsciaRaport.Count < 30)
+                wejsciaRaport.Add(wejscie.nazwa + ": przeszkody=" + kolizjeWejscia +
+                    " brak_podlogi=" + brakPosadzki);
+        }
+        string wejsciaWynik = "WYSPA_DOMKI_WEJSCIA domkow_i_lokali=" + wejsciaDomkow.Count +
+            " proby=" + wejsciaProby + " przeszkody=" + wejsciaBlokady +
+            " brak_podlogi=" + wejsciaBezPodlogi +
+            " test_Android=nie [" + string.Join("; ", wejsciaRaport) + "]";
+        if (wejsciaBlokady + wejsciaBezPodlogi > 0)
+            Ostrzez(wejsciaWynik + " — RAPORT, bez blokowania APK");
+        else Debug.Log(wejsciaWynik + " — statyczna fizyka Unity drozna, Android do sprawdzenia");
+        string wynik = "WYSPA_CALA_TRASA_AUDYT alejki=" + plan.Count +
+            " promenada_pts=" + plazaDeptak.Count + " kladki=" + wiezyczki.Count +
+            " probki=" + probki + " brak_podloza=" + brak +
+            " przeszkody=" + przeszkody + " nierownosci=" + wysokosci +
+            " przerwy=" + przerwy + " test_Android=nie [" +
+            string.Join("; ", raport.Take(35)) + "]";
+        if (brak + przeszkody + wysokosci + przerwy > 0)
+            Ostrzez(wynik + " — do kontroli, bez blokowania APK");
+        else Debug.Log(wynik + " geometria_wstepnie_drozna, test_Android_wymagany");
     }
 
     // tablica „WYSPA” na głowicy pomostu (widoczna z łodzi) i drogowskazy na placu
@@ -900,8 +1176,17 @@ internal static partial class BraxMiastoWyspa
         var r = BraxRegion.Root(cityRoot, "CLAUDE A: akwen — morze za kamerą, dno, granica (BraxAkwen)");
         Material woda = AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/CityRebuildWater/HarbourWater.mat");
         if (!woda) foreach (var mr in Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None)) if (mr.sharedMaterial && (mr.sharedMaterial.name.Contains("HarbourWater") || mr.sharedMaterial.name.Contains("harbour water"))) { woda = mr.sharedMaterial; break; }
-        if (woda) { var g = new GameObject("BRAXHORN morze za kamerą"); g.transform.SetParent(r, false); var mz = g.AddComponent<BraxMorzeZaKamera>(); mz.woda = woda; }
-        else BraxMiastoA.Log("WYSPA DO POPRAWKI: brak materiału wody portu — morze za kamerą bez materiału");
+        if (woda) {
+            // Osobny materiał akwenu wyspy; wygląd wody portu pozostaje własnością portu.
+            woda = new Material(woda) { name = "Wyspa: spokojne morze" };
+            // R1: brak fal w shaderze = ostrzeżenie (woda bez animacji fal), nie blokada
+            if (!woda.HasProperty("_RippleStrength")) Ostrzez("BRAXHORN_WYSPA_DO_POPRAWKI brak animowanych fal (_RippleStrength) w shaderze wody — morze bez fal");
+            else woda.SetFloat("_RippleStrength", .45f);
+            // Gruba siatka oceanu ma fale w normalnych; nie unosimy 100-metrowych pól.
+            if (woda.HasProperty("_SwellStrength")) woda.SetFloat("_SwellStrength", 0f);
+            BraxZapisAssetu.Utworz(woda, BraxMiastoA.Out + "/Wyspa/morze_spokojne.mat");
+            var g = new GameObject("BRAXHORN morze za kamerą"); g.transform.SetParent(r, false); var mz = g.AddComponent<BraxMorzeZaKamera>(); mz.woda = woda; }
+        else Ostrzez("BRAXHORN_WYSPA_DO_POPRAWKI brak materiału otwartego morza (HarbourWater) — morze za kamerą pominięte, dno i granica akwenu zostają");
         // dno (kolizja) pod całym akwenem poza wodą portu (tam dno ma BraxRegionSea), głęboko — łodzie go nie „widzą”
         const float x0 = 884f, x1 = BraxAkwen.TwardaX + 100f, z0 = BraxAkwen.TwardaZS - 100f, z1 = BraxAkwen.TwardaZN + 100f;
         var dno = new GameObject("Akwen: dno (kolizja)"); dno.transform.SetParent(r, false);
@@ -1089,3 +1374,4 @@ internal static partial class BraxMiastoWyspa
         Debug.Log("BRAXHORN_MAPA_MIASTA " + Wd + "×" + Hd + " px, świat x " + x0 + "…" + (x0 + w) + " z " + z0 + "…" + (z0 + h) + ", podpisów " + lista.Count + " (WYSPA, tor wodny przerywaną linią)");
     }
 }
+

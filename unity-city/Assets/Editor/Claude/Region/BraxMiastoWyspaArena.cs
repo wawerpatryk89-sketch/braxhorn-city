@@ -40,8 +40,8 @@ internal static partial class BraxMiastoWyspa
         apWej = 3; float best = 1f;
         for (int i = 0; i < 8; i++) { var mid = ((Wk(i, ArenaR) + Wk(i + 1, ArenaR)) * .5f - apC).normalized; if (mid.x < best) { best = mid.x; apWej = i; } }
         apTun = (apWej + 4) % 8;
-        ApMaterialy();
-        void Krok(string n, System.Action a) { try { a(); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI arena premium — " + n + ": " + e); Debug.LogWarning("BRAXHORN_ARENA DO POPRAWKI " + n + ": " + e); } }
+        BraxWyspaOdbior.Krok("arena / materiały", ApMaterialy);
+        void Krok(string n, System.Action a) => BraxWyspaOdbior.Krok("arena / " + n, a);
         Krok("bryła i fasada", ApBryla);
         Krok("dach z kratownicami", ApDach);
         int miejsc = 0; Krok("trybuny", () => miejsc = ApTrybuny());
@@ -51,9 +51,10 @@ internal static partial class BraxMiastoWyspa
         Krok("toalety", ApToalety);
         Krok("tunel i szatnie", ApSzatnie);
         Krok("plac przed wejściem", ApPlacPrzed);
+        Krok("walka pokazowa", ApWalkaPokazowa);
         Krok("detale (zapis)", ApZapiszDrobne);
         BraxRegion.Warm(root, "Arena: światło nad klatką", apC + Vector3.up * (apY0 + 8f), 2.6f, 14f);
-        foreach (int i in new[] { 1, 5, 2, 6, 0, 4 }) BraxRegion.Warm(root, "Arena: światło trybun", Wk(i, 14f) + Vector3.up * (apY0 + 9f), 1.3f, 14f);
+        foreach (int i in new[] { 1, 5 }) BraxRegion.Warm(root, "Arena: światło trybun", Wk(i, 14f) + Vector3.up * (apY0 + 9f), 1.3f, 14f);
         BraxRegion.Warm(root, "Arena: światło holu", ApHolP(18f, 0f, 4f), 1.2f, 10f);
         Miejsca["arena_srodek"] = apC + Vector3.up * (apF + .9f * K);
         int nKol = root.GetComponentsInChildren<Collider>(true).Length - rootKol0;   // kolizje areny (ściany, trybuny, klatka, drzwi, bramki, meble)
@@ -127,39 +128,14 @@ internal static partial class BraxMiastoWyspa
     }
 
     // ---------------- materiały ----------------
-    // Poly Haven: tylko istniejące albedo, normal i ARM. W razie braku zachowujemy
-    // oryginalną powierzchnię i raportujemy, zamiast zmieniać ją na zamiennik.
-    static Material ApPolyFinish(string nazwa, float metry, Color kolor,
-                                 Material bazowy, params string[] slugi)
-    {
-        foreach (var slug in slugi)
-        {
-            if (!BraxRegion.HasTexture(slug)) continue;
-            try { return BraxRegion.Pbr(nazwa, metry, kolor, slug); }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning("BRAXHORN_ARENA_POLYHAVEN " + nazwa + " " + slug + ": " + e.Message);
-            }
-        }
-        Debug.LogWarning("BRAXHORN_ARENA_POLYHAVEN BRAK_PBR " + nazwa +
-                         " — pozostawiono oryginalny materiał");
-        return bazowy;
-    }
-
     static void ApMaterialy()
     {
         apSzklo = BraxMiastoA.Mat("Arena premium: szyba fasady (przezroczysta)", new Color(.70f, .80f, .84f, .22f), .06f, .1f);
         apAlu = BraxMiastoA.Mat("Arena premium: aluminium lizen (anodowane)", new Color(.56f, .58f, .60f), .35f, .8f);
         apGranit = BraxMiastoA.Tex("Arena premium: granit cokołu", 1.2f, new Color(.55f, .55f, .54f), new Color(.45f, .45f, .45f), .7f, "granite_tile_02", "rough_block_wall");
         apPanel = BraxMiastoA.Mat("Arena premium: szkło emaliowane grafit (pas, attyka)", new Color(.16f, .19f, .22f), .3f, .3f);
-        apAkust = ApPolyFinish("Arena premium: panele akustyczne ścian (grafit PBR)", 2.1f,
-            new Color(.30f, .31f, .32f),
-            BraxMiastoA.Mat("Arena premium: panele akustyczne ścian (grafit)", new Color(.12f, .125f, .13f), .9f),
-            "concrete_wall_008", "granite_tile_02");
-        apStrop = ApPolyFinish("Arena premium: strop hali (grafit PBR)", 2.2f,
-            new Color(.26f, .265f, .28f),
-            BraxMiastoA.Mat("Arena premium: strop hali (czarny akustyczny)", new Color(.035f, .035f, .04f), .95f),
-            "concrete_wall_008", "concrete_floor_02");
+        apAkust = BraxMiastoA.Mat("Arena premium: panele akustyczne ścian (grafit)", new Color(.12f, .125f, .13f), .9f);
+        apStrop = BraxMiastoA.Mat("Arena premium: strop hali (czarny akustyczny)", new Color(.035f, .035f, .04f), .95f);
         apBeton = BraxMiastoA.Tex("Arena premium: beton prefabrykatów trybun", 2.4f, new Color(.80f, .80f, .78f), new Color(.55f, .55f, .54f), .85f, "concrete_wall_008", "concrete_floor_02");
         apPosadzka = BraxMiastoA.Mat("Arena premium: posadzka hali (żywica grafit)", new Color(.15f, .15f, .16f), .5f);
         apKamien = BraxMiastoA.Tex("Arena premium: posadzka holu (kamień)", 1.0f, new Color(.86f, .85f, .83f), new Color(.75f, .74f, .72f), .5f, "marble_01", "large_grey_tiles", "granite_tile_02");
@@ -170,23 +146,20 @@ internal static partial class BraxMiastoWyspa
         apLit = BraxMiastoA.Swieci("Arena: litery szyldu (podświetlane)", Color.white, new Color(2f, 2f, 2f));
         apBoki = BraxMiastoA.Mat("Arena: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f);
         apZnak = BraxMiastoA.Swieci("Arena premium: znak wyjścia (zielony)", new Color(.05f, .7f, .25f), new Color(.1f, 1.4f, .45f));
-        apTynk = ApPolyFinish("Arena premium: ściany wnętrz (tynk PBR)", 2.2f,
-            new Color(.90f, .90f, .88f),
-            BraxMiastoA.Mat("Arena premium: ściany wnętrz (farba biała)", new Color(.9f, .9f, .88f), .9f),
-            "white_plaster_02", "rectangular_facade_tiles");
+        apTynk = BraxMiastoA.Mat("Arena premium: ściany wnętrz (farba biała)", new Color(.9f, .9f, .88f), .9f);
         apPlytki = BraxMiastoA.Tex("Arena WC: płytki ścian", .6f, new Color(.96f, .96f, .95f), new Color(.92f, .92f, .9f), .3f, "square_tiles", "rectangular_facade_tiles", "granite_tile");
         apCeram = BraxMiastoA.Mat("Arena premium: ceramika sanitarna", new Color(.96f, .96f, .95f), .15f);
         apChrom = BraxMiastoA.Mat("Arena premium: chrom", new Color(.84f, .85f, .87f), .12f, .95f);
         apHpl = BraxMiastoA.Mat("Arena premium: płyty HPL kabin (grafit)", new Color(.16f, .17f, .18f), .5f, .1f);
-        apSufitM = ApPolyFinish("Arena premium: sufit podwieszany (PBR)", 2.0f,
-            new Color(.92f, .92f, .90f),
-            BraxMiastoA.Mat("Arena premium: sufit podwieszany (biały)", new Color(.92f, .92f, .9f), .9f),
-            "rectangular_facade_tiles", "white_plaster_02");
+        apSufitM = BraxMiastoA.Mat("Arena premium: sufit podwieszany (biały)", new Color(.92f, .92f, .9f), .9f);
         apLedSufit = BraxMiastoA.Swieci("Arena premium: panel LED sufitowy", new Color(.95f, .95f, .92f), new Color(1.6f, 1.6f, 1.5f));
         apGuma = BraxMiastoA.Mat("Arena premium: posadzka sportowa (guma grafit)", new Color(.12f, .12f, .13f), .9f);
-        apDab = BraxMiastoA.Mat("Arena premium: dąb olejowany (ławki, blaty)", new Color(.62f, .48f, .32f), .55f);
+        apDab = BraxMiastoA.Tex("Arena premium: dąb olejowany (ławki, blaty)", 1.8f, new Color(.82f, .74f, .62f), new Color(.62f, .48f, .32f), .55f, "wood_floor", "wooden_planks");
         apCzerw = BraxMiastoA.Mat("Arena premium: czerwień gaśnic (lakier)", new Color(.75f, .06f, .05f), .35f);
         apLustro = BraxMiastoA.Mat("Arena premium: lustro", new Color(.8f, .85f, .88f), .02f, 1f);
+        // R1: brak tekstury = ostrzeżenie (materiał zostaje z kolorem bazowym), arena buduje się dalej
+        foreach (var mat in new[] { apGranit, apBeton, apKamien, apPlytki, apDab })
+            if (!mat || !mat.HasProperty("_MainTex") || !mat.GetTexture("_MainTex")) Ostrzez("BRAXHORN_WYSPA_DO_POPRAWKI brak tekstury architektury areny: " + (mat ? mat.name : "NULL") + " (zostaje kolor bazowy)");
     }
 
     // =====================================================================================================================
@@ -290,24 +263,33 @@ internal static partial class BraxMiastoWyspa
         var ks = new GameObject("kolizja: strop areny"); ks.transform.SetParent(kol, false); ks.transform.position = apC + Vector3.up * (yC + .2f); ks.AddComponent<BoxCollider>().size = new Vector3(ArenaR * 2f, .4f, ArenaR * 2f); apKol++;
     }
 
-    // wejście dla gości: 2 pary drzwi automatycznych, słupek środkowy, podjazd 1:10, daszek szklany, litery ARENA BRAXHORN
+    // Wejście na osi przystani: jedna para drzwi, boczne ościeża, podjazd 1:12, zachowany szklany daszek.
     static void ApWejscie(Vector3 a, Vector3 Rr, Vector3 N, float dl, float p0, float p1)
     {
-        float y0 = apY0, F = apF, g = ApG, hd = 2.81f, ms = .25f, dw = (p1 - p0 - ms) * .5f;
+        float y0 = apY0, F = apF, g = ApG, hd = 2.81f;
         Vector3 P(float s, float y, float d) => a + Rr * s + Vector3.up * y + N * d;
-        var al = BraxUliceKit.S(apAlu);
-        foreach (float sc in new[] { p0 + dw * .5f, p1 - dw * .5f })
-            BraxMiastoA.DrzwiPrzesuwne(root, "ARENA BRAXHORN — wejście", P(sc, F, -g - .01f), Rr, dw, hd, BraxUliceKit.SzkloPrzezroczyste, apAlu);
-        al.OBox(P((p0 + p1) * .5f, (y0 + ApTr1 - .04f) * .5f, -g + .03f), Rr, Vector3.up, N, ms, ApTr1 - .04f - y0, .26f);
-        KolA("słupek drzwi wejścia", P((p0 + p1) * .5f, (y0 + ApTr1) * .5f, -g), N, new Vector3(ms, ApTr1 - y0, .3f));
-        // podjazd 1:10 (granit), szerokość portalu
-        var gr = BraxUliceKit.S(apGranit); float L = 1.6f;
-        var m0 = P(p0, y0, -.25f); var m1 = P(p1, y0, -.25f);
-        gr.Quad(m0 + N * (L + .25f), m1 + N * (L + .25f), m1 + Vector3.up * .15f, m0 + Vector3.up * .15f, (Vector3.up * L + N * .15f).normalized);
-        gr.Tri(m0 + N * (L + .25f), m0 + Vector3.up * .15f, m0, -Rr); gr.Tri(m1 + N * (L + .25f), m1, m1 + Vector3.up * .15f, Rr);
-        var r = new GameObject("kolizja: podjazd wejścia areny"); r.transform.SetParent(kol, false);
-        r.transform.position = P((p0 + p1) * .5f, y0 + .05f, L * .5f - .1f); r.transform.rotation = Quaternion.LookRotation(N, Vector3.up) * Quaternion.Euler(Mathf.Atan2(.15f, L) * Mathf.Rad2Deg, 0, 0);
-        r.AddComponent<BoxCollider>().size = new Vector3(p1 - p0, .1f, L + .5f); apKol++;
+        float center = (p0 + p1) * .5f;
+        // Jedna para drzwi: środek dojścia jest przejściem, nie słupkiem.
+        var drzwi = BraxMiastoA.DrzwiPrzesuwne(root, "BRAXHORN ARENA — wejście",
+            P(center, F, -g - .01f), Rr, p1 - p0, hd, BraxUliceKit.SzkloPrzezroczyste, apAlu);
+        drzwi.promien = 5.5f; drzwi.czasRuchu = .65f;
+        var al = BraxUliceKit.S(apAlu); var gr = BraxUliceKit.S(apGranit);
+        // Portal poza światłem wejścia; żadnej kolizji słupa na osi pomostu.
+        foreach (float edge in new[] { p0 - .28f, p1 + .28f })
+        {
+            gr.OBox(P(edge, y0 + 1.85f, .16f), Rr, Vector3.up, N, .4f, 3.7f, .6f);
+            KolA("ościeże portalu", P(edge, y0 + 1.85f, .16f), N, new Vector3(.4f, 3.7f, .6f));
+            D(apLedSufit).OBox(P(edge, y0 + 1.9f, .467f), Rr, Vector3.up, N, .025f, 2.8f, .012f);
+        }
+        gr.OBox(P(center, y0 + 3.55f, .16f), Rr, Vector3.up, N, p1 - p0 + .96f, .3f, .6f);
+        // Góra rampy i jej collider to TE SAME wierzchołki (1:12); próg do posadzki bez szczeliny.
+        var ramp = new UlSiatka(); const float length = 1.8f;
+        var lowL = P(p0, y0, length - .25f); var lowR = P(p1, y0, length - .25f);
+        var highL = P(p0, F, -.25f); var highR = P(p1, F, -.25f);
+        ramp.Quad(lowL, lowR, highR, highL, (Vector3.up * length + N * .15f).normalized);
+        var rampObject = BraxMiastoA.Obiekt(root, "Arena: podjazd wejścia (wspólna geometria i kolizja)", ramp, apGranit);
+        rampObject.AddComponent<MeshCollider>().sharedMesh = rampObject.GetComponent<MeshFilter>().sharedMesh; apKol++;
+        Miejsca["arena_prog"] = P(center, F, -.25f);
         // daszek: szkło na wspornikach stalowych (profil zbieżny) i cięgnach
         float yd = y0 + 3.9f, wD = p1 - p0 + 3.2f, wys = 3.6f, sm = (p0 + p1) * .5f;
         var st = BraxUliceKit.S(apStal);
@@ -320,16 +302,16 @@ internal static partial class BraxMiastoWyspa
         }
         D(BraxUliceKit.SzkloPrzezroczyste).OBox(P(sm, yd + .012f, wys * .5f + lzFace() + .02f), Rr, Vector3.up, N, wD, .024f, wys - .04f);
         D(apLed).OBox(P(sm, yd - .2f, wys + lzFace() + .021f), Rr, Vector3.up, N, wD - .6f, .06f, .04f, true);
-        float cap = .42f, w = BraxUliceKit.SzerokoscNapisu("ARENA BRAXHORN", cap); if (w > wD - .6f) cap *= (wD - .6f) / w;
-        float dL = wys - .45f + lzFace(); D(apAlu).OBox(P(sm, yd + .024f + (cap + .14f) * .5f, dL - .01f), Rr, Vector3.up, N, BraxUliceKit.SzerokoscNapisu("ARENA BRAXHORN", cap) + .3f, cap + .14f, .02f);
-        BraxUliceKit.Napis3D("ARENA BRAXHORN", P(sm, yd + .03f + .05f, dL), N, cap, .08f, apLit, apBoki);
+        float cap = .42f, w = BraxUliceKit.SzerokoscNapisu("BRAXHORN ARENA", cap); if (w > wD - .6f) cap *= (wD - .6f) / w;
+        float dL = wys - .45f + lzFace(); D(apAlu).OBox(P(sm, yd + .024f + (cap + .14f) * .5f, dL - .01f), Rr, Vector3.up, N, BraxUliceKit.SzerokoscNapisu("BRAXHORN ARENA", cap) + .3f, cap + .14f, .02f);
+        BraxUliceKit.Napis3D("BRAXHORN ARENA", P(sm, yd + .03f + .05f, dL), N, cap, .08f, apLit, apBoki);
         // litery na attyce nad wejściem
-        float capA = 1.3f, wA = BraxUliceKit.SzerokoscNapisu("ARENA BRAXHORN", capA); if (wA > dl - 2.4f) capA *= (dl - 2.4f) / wA;
-        BraxUliceKit.Napis3D("ARENA BRAXHORN", P(dl * .5f, y0 + ApHg + .5f, lzFace()), N, capA, .22f, apLit, apBoki);
+        float capA = 1.3f, wA = BraxUliceKit.SzerokoscNapisu("BRAXHORN ARENA", capA); if (wA > dl - 2.4f) capA *= (dl - 2.4f) / wA;
+        BraxUliceKit.Napis3D("BRAXHORN ARENA", P(dl * .5f, y0 + ApHg + .5f, lzFace()), N, capA, .22f, apLit, apBoki);
         // znak WYJŚCIE nad drzwiami od środka (na ryglu)
         ApZnakWyjscia(P(sm, ApTr1 + .3f, -g - .06f), -N);
         Miejsca["arena_wejscie"] = P(sm, y0, 3f); apMiejsc++;
-        foreach (float s in new[] { sm - 2.4f, sm + 2.4f }) Czlowiek("Wejście ARENY", "ochrona", "stoi", P(s, y0, 2.2f), N, KlStoi);
+        foreach (float s in new[] { p0 - 1.1f, p1 + 1.1f }) Czlowiek("Wejście ARENY", "ochrona", "stoi", P(s, y0, 2.2f), N, KlStoi);
     }
     static float lzFace() => .14f * K;
 
@@ -647,7 +629,8 @@ internal static partial class BraxMiastoWyspa
                     mr.shadowCastingMode = ShadowCastingMode.Off; mr.receiveShadows = true; mr.lightProbeUsage = LightProbeUsage.Off; mr.reflectionProbeUsage = ReflectionProbeUsage.Off;
                     GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccludeeStatic);   // BEZ BatchingStatic — batching zjadłby instancing
                     var siad = sp + Vector3.up * (.45f * K) - dm * .02f;
-                    widownia.Add((siad, -dm)); nKrz++;
+                    // Pierwszy rząd ma interakcje BraxSeat: pozostaje wolny dla gracza.
+                    if (q > 0) widownia.Add((siad, -dm)); nKrz++;
                     if (q == 0) BraxMiastoA.Siedzisko(go.transform, "KRZESEŁKO TRYBUN", siad, -dm);
                 }
                 if (q == 0 && nf > 0) Balustrada(A0 + rr * (mm0 - .1f) + dm * .04f, A1 - rr * (mm1 - .1f) + dm * .04f, dm, .82f * K);
@@ -731,10 +714,11 @@ internal static partial class BraxMiastoWyspa
             var t = new Texture2D(n, n, TextureFormat.RGBA32, false); t.SetPixels(px); t.Apply(); File.WriteAllBytes(path, t.EncodeToPNG()); Object.DestroyImmediate(t);
             AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
             if (AssetImporter.GetAtPath(path) is TextureImporter imp) { imp.wrapMode = TextureWrapMode.Clamp; imp.maxTextureSize = 512; imp.textureCompression = TextureImporterCompression.Compressed; imp.SaveAndReimport(); }
-            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path); if (!tex) return null;
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path); if (!tex) throw new System.InvalidOperationException("Nie zaimportowano logo maty");
             return BraxMiastoA.ZShadera(BraxCityMaterials.ShaderName, "Arena premium: środek maty (logo BRAXHORN w teksturze)", m => { m.SetTexture("_MainTex", tex); m.SetColor("_Color", Color.white); m.SetFloat("_Roughness", .7f); m.SetFloat("_Metallic", 0f); });
         }
-        catch (System.Exception e) { BraxMiastoA.Log("WYSPA arena: logo maty DO POPRAWKI " + e.Message); return null; }
+        // R1: logo maty to detal — bez niego środek maty dostaje zwykły materiał maty, ostrzeżenie, build idzie dalej
+        catch (System.Exception e) { Ostrzez("BRAXHORN_WYSPA_DO_POPRAWKI logo maty (środek maty w zieleni BRAXHORN bez logo): " + e); return BraxMiastoA.Mat("Arena premium: środek maty (zieleń BRAXHORN, bez logo)", new Color(.2f, .52f, .12f), .7f); }
     }
     static void ApKlatka()
     {
@@ -758,7 +742,7 @@ internal static partial class BraxMiastoWyspa
             for (int q = kz; q < mz.v.Count; q++) mz.uv[q] = new Vector2((mz.v[q].x - c.x) / (2f * rZ) + .5f, (mz.v[q].z - c.z) / (2f * rZ) + .5f);
             cz.Rura(Kw(i, rc + fa) + Vector3.up * (yT - .03f), Kw(i + 1, rc + fa) + Vector3.up * (yT - .03f), .045f, 8);     // obrzeże fartucha (wałek)
         }
-        BraxMiastoA.Obiekt(root, "Klatka: mata (z wycięciem pod pas słupków)", mm, mata, true); BraxMiastoA.Obiekt(root, "Klatka: środek maty (logo BRAXHORN)", mz, ApLogoMaty() ?? mataZ, true);
+        BraxMiastoA.Obiekt(root, "Klatka: mata (z wycięciem pod pas słupków)", mm, mata, true); BraxMiastoA.Obiekt(root, "Klatka: środek maty (logo BRAXHORN)", mz, ApLogoMaty(), true);
         var siat = new UlSiatka(); var sMat = ApSiatkaMat(); const float oko = .13f;
         var gb = BraxUliceKit.S(BraxMiastoA.Mat("Arena: osłony klatki (pianka)", new Color(.06f, .06f, .06f), .8f));
         var gbC = BraxUliceKit.S(BraxMiastoA.Mat("Arena: osłona narożnika czerwonego", new Color(.72f, .07f, .07f), .7f));
@@ -807,8 +791,10 @@ internal static partial class BraxMiastoWyspa
                     por.Rura(b0 + Vector3.up * .9f * K, b1 + Vector3.up * .9f * K, .02f, 8); por.Rura(b0, b0 + Vector3.up * .9f * K, .02f, 6); por.Rura(b1, b1 + Vector3.up * .9f * K, .02f, 6);
                 }
                 Miejsca["arena_klatka"] = mid + nrm * .3f + Vector3.up * yT; apMiejsc++;
+                Miejsca["arena_schody_klatka"] = mid + nrm * (fa + 1.6f) + Vector3.up * F;
+                Miejsca["arena_klatka_wnetrze"] = mid - nrm * .8f + Vector3.up * yT;
                 BraxMiastoA.Akcja(root, "arena_klatka", "WEJDŹ DO KLATKI", "Sędzia: Do narożnika — walka o pas mistrza ARENY BRAXHORN.", mid + nrm * (fa + 2.0f) + Vector3.up * F, 2.0f);
-                Czlowiek("Klatka", "sędzia", "stoi", mid - nrm * 1.3f + Vector3.up * yT, -nrm, KlStoi);
+                Czlowiek("Klatka", "sędzia", "stoi", mid - nrm * 1.3f + dd * 1.5f + Vector3.up * yT, -nrm, KlStoi);
             }
             KolA("słupek klatki", a + Vector3.up * (yT + hf * .5f), nrm, new Vector3(.26f, hf, .26f));
         }
@@ -819,7 +805,8 @@ internal static partial class BraxMiastoWyspa
         // narożniki: stołek trenera (toczony) i wiaderko
         foreach (var (kat, czer) in new[] { (czerw, true), (nieb, false) })
         {
-            var dk = (Kw(kat, 1f) - c).normalized; var bk = Vector3.Cross(Vector3.up, dk); var pS = new Vector3(c.x, F, c.z) + dk * (rc + fa + .75f);
+            // Narożnik bliżej podestu: pozostawia drożny pas widowni o promieniu 8.2 m.
+            var dk = (Kw(kat, 1f) - c).normalized; var bk = Vector3.Cross(Vector3.up, dk); var pS = new Vector3(c.x, F, c.z) + dk * (rc + fa + .35f);
             var mS = D(BraxMiastoA.Mat(czer ? "Arena: osłona narożnika czerwonego" : "Arena: osłona narożnika niebieskiego", czer ? new Color(.72f, .07f, .07f) : new Color(.08f, .2f, .7f), .7f));
             float hS = .44f * K;
             Toczenie(mS, new[] { new Vector2(0, hS), new Vector2(.2f, hS), new Vector2(.215f, hS + .03f), new Vector2(.2f, hS + .065f), new Vector2(0, hS + .07f) }, pS, 18);
@@ -828,7 +815,7 @@ internal static partial class BraxMiastoWyspa
             BraxMiastoA.Siedzisko(root, "STOŁEK TRENERA", pS + Vector3.up * (hS + .07f), -dk);
             KolA("stołek trenera", pS + Vector3.up * hS * .5f, dk, new Vector3(.4f, hS, .4f));
             Miejsca[czer ? "arena_naroznik_czerwony" : "arena_naroznik_niebieski"] = pS; apMiejsc++;
-            Czlowiek(czer ? "Narożnik czerwony" : "Narożnik niebieski", "trener narożnika", "stoi", pS + dk * .55f - bk * .5f, -dk, KlStoi);
+            Czlowiek(czer ? "Narożnik czerwony" : "Narożnik niebieski", "trener narożnika", "stoi", pS + dk * .1f - bk * .6f, -dk, KlStoi);
         }
         apElem += 10;
     }
@@ -855,13 +842,7 @@ internal static partial class BraxMiastoWyspa
                     var A = Vector3.Lerp(pas[p0], pas2[p0], t0); var B = Vector3.Lerp(pas[p1], pas2[p1], (t0 + t1) * .5f);
                     st.Rura(A, B, .011f, 4, false); st.Rura(B, Vector3.Lerp(pas[p0], pas2[p0], t1), .011f, 4, false);
                 }
-            // Zamiast wiszących kabli: solidne mocowanie stalowe co drugi narożnik.
-            if (i % 2 == 0)
-            {
-                var p = Kw(i, rT);
-                st.Box(new Vector3(p.x - .11f, yR + a, p.z - .11f),
-                       new Vector3(p.x + .11f, yC, p.z + .11f));
-            }
+            st.Rura(Kw(i, rT) + Vector3.up * (yR + a), Kw(i, rT) + Vector3.up * yC, .008f, 4);
             for (int q = 0; q < 2; q++)
             {
                 var m = Vector3.Lerp(pas[0], pas2[0], (q + 1) / 3f) + Vector3.down * .02f; var dir = (cel - m).normalized;
@@ -885,9 +866,7 @@ internal static partial class BraxMiastoWyspa
             cz.OBox(tc + n * (hw - .1f) + Vector3.up * (hh + .1f), r, Vector3.up, n, 2f * hw - .2f, .2f, .2f, false, false);
             cz.OBox(tc + n * (hw - .1f) - Vector3.up * (hh + .1f), r, Vector3.up, n, 2f * hw - .2f, .2f, .2f, false, false);
         }
-        // Cztery wiszące linki telebimu usunięte: centralny sztywny wspornik.
-        st.Box(new Vector3(tc.x - .16f, tc.y + hh + .20f, tc.z - .16f),
-               new Vector3(tc.x + .16f, yC, tc.z + .16f));
+        foreach (var ox in new[] { -1f, 1f }) foreach (var oz in new[] { -1f, 1f }) st.Rura(new Vector3(tc.x + ox * (hw - .3f), tc.y + hh + .2f, tc.z + oz * (hw - .3f)), new Vector3(tc.x + ox * (hw - .3f), yC, tc.z + oz * (hw - .3f)), .01f, 4);
         BraxMiastoA.Log("WYSPA arena premium: rampa ośmiokątna (kratownica skrzynkowa " + a + " m), reflektorów " + nRefl + ", telebim 4 ekrany");
         apElem += 2 + nRefl;
     }
@@ -900,20 +879,15 @@ internal static partial class BraxMiastoWyspa
         float F = apF, vB = 13.8f, uS = vB * Mathf.Tan(Mathf.PI / 8f) - .12f;
         // bramki: model metra (paczka) albo z kodu
         float zA, zB; bool model = false;
-        try { model = BraxMiastoAssety.BramkiMetra(root, apC.x - vB, F, apC.z, 4, out zA, out zB); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA arena: bramki z modelu DO POPRAWKI " + e.Message); zA = zB = 0f; }
+        // R1: brak modelu bramek = ostrzeżenie; hol buduje się dalej — w miejscu 3 bramek zostaje WOLNE przejście tej samej szerokości
+        // (żadnego zamiennika z brył — właściciel: „brakuje modelu → lista, nie kostki”), przegrody szklane od ścian do tego przejścia.
+        try { model = BraxMiastoAssety.BramkiMetra(root, apC.x - vB, F, apC.z, 3, out zA, out zB); } catch (System.Exception e) { Ostrzez("BRAXHORN_WYSPA_DO_POPRAWKI bramki biletowe areny: " + e); model = false; zA = zB = apC.z; }
         if (!model)
         {
-            float pw = .62f * K, cw = .24f; int n = 4; float tot = n * pw + (n + 1) * cw; zA = apC.z - tot * .5f; zB = apC.z + tot * .5f;
-            var ob = D(BraxMiastoA.Mat("Arena premium: obudowy bramek (stal nierdzewna)", new Color(.7f, .71f, .72f), .3f, .85f)); var gl = D(BraxUliceKit.SzkloPrzezroczyste);
-            for (int k = 0; k <= n; k++)
-            {
-                float z = zA + k * (pw + cw) + cw * .5f; var p = new Vector3(apC.x - vB - .6f, F, z - cw * .5f);
-                Wyciag(ob, PZ(1.2f, 1.0f * K, .1f, new Vector2(0f, .5f * K)), p, Vector3.forward, Vector3.up, Vector3.right, cw);
-                D(apLed).OBox(new Vector3(apC.x - vB - .55f, F + 1.0f * K + .005f, z), Vector3.forward, Vector3.up, Vector3.right, cw * .5f, .01f, .5f, false, true);
-                if (k < n) foreach (float sg in new[] { -1f, 1f }) gl.OBox(new Vector3(apC.x - vB - .1f, F + .55f * K, z + sg * (cw * .5f + .03f) + (sg > 0 ? 0 : 0)), Vector3.right, Vector3.up, Vector3.forward, .5f, .7f * K, .012f);
-                KolAA("obudowa bramki", new Vector3(apC.x - vB - 1.2f, F, z - cw * .5f), new Vector3(apC.x - vB, F + 1.0f * K, z + cw * .5f));
-            }
+            Ostrzez("BRAXHORN_WYSPA_DO_POPRAWKI nie załadowano istniejących modeli bramek biletowych (metro_bramka) — hol z wolnym przejściem bez bramek, brak zamiennika z brył");
+            float przejscie = 3 * .62f * K + 4 * .24f; zA = apC.z - przejscie * .5f; zB = apC.z + przejscie * .5f;
         }
+        BraxWyspaOdbior.SprawdzBramki(root, model ? 3 : 0);
         // przegrody szklane od bramek do trybun (słupki, szkło, poręcz)
         foreach (var (z0, z1) in new[] { (apC.z - uS, zA - .02f), (zB + .02f, apC.z + uS) })
         {
@@ -957,11 +931,7 @@ internal static partial class BraxMiastoWyspa
             var tp = start + Vector3.right * 1.0f + Vector3.up * 3.2f + ws * -.3f;
             D(apAlu).OBox(tp, Vector3.forward, Vector3.up, Vector3.left, 1.6f, .45f, .05f);
             BraxUliceKit.Napis3D("KASY", tp + Vector3.left * .025f + Vector3.down * .12f, Vector3.left, .24f, .02f, apLit, apBoki);
-            // Cienkie, wielometrowe cięgna tablicy KASY zastąpione sztywnym stelażem.
-            foreach (float zz in new[] { -.6f, .6f })
-                D(apAlu).OBox(tp + Vector3.forward * zz + Vector3.down * .43f,
-                    Vector3.forward, Vector3.up, Vector3.left,
-                    .065f, .62f, .065f);
+            foreach (float zz in new[] { -.6f, .6f }) D(apChrom).Rura(tp + Vector3.forward * zz + Vector3.up * .225f, new Vector3(tp.x, apY0 + ApSufit, tp.z + zz), .006f, 4);
         }
         Miejsca["arena_hol"] = ApHolP(18.5f, 0f, 0f); Miejsca["arena_bramki"] = ApHolP(vB + 1.5f, 0f, 0f); apMiejsc += 2;
         BraxMiastoA.Log("WYSPA arena premium: hol — bramki " + (model ? "z modelu metro_bramka" : "z kodu") + ", 2 kasy, przegrody szklane");
@@ -1028,6 +998,9 @@ internal static partial class BraxMiastoWyspa
             ApGniazdko(new Vector3(bx1 - .2f, F + 1.1f, zF - su * .001f), new Vector3(0, 0, -su));
             BraxRegion.Warm(root, "Arena WC: światło (" + nz + ")", new Vector3((xi0 + xi1) * .5f, F + h - .4f, (zi0 + zi1) * .5f), .6f, 5f);
             Miejsca[dam ? "arena_wc_damska" : "arena_wc_meska"] = new Vector3(xi1 - .6f, F, zN - su * 1.2f); apMiejsc++;
+            string wcId = dam ? "arena_wc_damska" : "arena_wc_meska";
+            Miejsca[wcId + "_prog"] = new Vector3((dA + dB) * .5f, F, zN - su * .6f);
+            Miejsca[wcId + "_wnetrze"] = new Vector3((dA + dB) * .5f, F, zN + su * 1f);
             ApGasnica(new Vector3(xi1 + t + .002f, F + 1.2f, zN + su * .9f), Vector3.right);
             ApGniazdko(new Vector3(xi1 + t + .001f, F + .3f * K, zN + su * 2.2f), Vector3.right);
             apElem += 4;
@@ -1063,7 +1036,7 @@ internal static partial class BraxMiastoWyspa
         foreach (float sg in new[] { -1f, 1f }) D(apLed).OBox(new Vector3((x0 + x1) * .5f, F + .35f, cz + sg * (zt - .006f)), Vector3.right, Vector3.up, new Vector3(0, 0, -sg), x1 - x0 - .6f, .04f, .012f, true);
         ApZnakWyjscia(new Vector3(x1 - .005f, F + 3.05f, cz), Vector3.left);
         // wybieg do klatki między barierkami
-        float xk = apC.x + 4.55f * K / Mathf.Cos(Mathf.PI / 8f) + .6f + 1.45f;
+        float xk = apC.x + 8.95f; // poprzeczne przejście przed barierkami tunelu
         foreach (float sg in new[] { -1f, 1f })
         {
             var a = new Vector3(xk, F, cz + sg * 1.45f); var b = new Vector3(x0 - .1f, F, cz + sg * 1.45f); float hb = 1.0f * K;
@@ -1115,6 +1088,9 @@ internal static partial class BraxMiastoWyspa
             BraxUliceKit.Napis3D(kto, new Vector3(apC.x + 17.575f, F + 2.95f, cz + sg * (zt - .005f)), new Vector3(0, 0, -sg), .12f, .015f, apLit, apBoki);
             BraxRegion.Warm(root, "Arena: światło " + kto.ToLowerInvariant(), new Vector3((x0 + x1) * .5f, F + h - .45f, cz + sg * 3.8f), 1.0f, 7f);
             Miejsca[brax ? "arena_szatnia_braxa" : "arena_szatnia_gosci"] = new Vector3((x0 + x1) * .5f, F, cz + sg * 3.8f); apMiejsc++;
+            string room = brax ? "arena_szatnia_braxa" : "arena_szatnia_gosci";
+            Miejsca[room + "_prog"] = new Vector3(apC.x + 17.575f, F, cz + sg * .7f);
+            Miejsca[room + "_wnetrze"] = new Vector3(apC.x + 17.575f, F, cz + sg * 2.2f);
             Czlowiek(kto, "trener", "stoi", new Vector3(tx1 + .5f, F, tz), Vector3.left, KlStoi);
             apElem += 6;
         }
@@ -1133,16 +1109,15 @@ internal static partial class BraxMiastoWyspa
         foreach (float sz in new[] { -1f, 1f })
             for (int k = 0; k < 3; k++)
             {
-                // Meble ustawione ZA zewnętrzną krawędzią okrągłego chodnika
-                // (promień kostki 26..31.5 m). Żadna ławka, latarnia ani donica
-                // nie przecina przejścia dookoła areny ani osi dojścia od pomostu.
+                // Meble ustawione ZA zewnętrzną krawędzią okrągłego chodnika z kostki (R1 24d2ba25; kostka 26..31.5 m od środka
+                // ARENY apC — Teren()), 34.5 m od apC: żadna ławka, latarnia ani donica nie stoi na kostce ani w osi dojścia od pomostu.
                 float kat = sz * (.25f + k * .35f);
                 var promien = new Vector3(-Mathf.Cos(kat), 0f, Mathf.Sin(kat));
                 var styczna = new Vector3(-promien.z, 0f, promien.x);
                 var p = new Vector3(apC.x + promien.x * 34.5f, y, apC.z + promien.z * 34.5f);
                 // roślina w donicy: PRAWDZIWY model Poly Haven (przegląd 3.11: krzew toczony z jednolitej zieleni = „kulka” — zdjęty);
                 // bez modelu nie stawiamy nic (żadnych zastępczych brył)
-                var rosl = BraxRegion.Model("potted_plant_04", "potted_plant_02");
+                var rosl = BraxRegion.Model("potted_plant_04", "potted_plant_02", "potted_plant_01");
                 if (rosl && BraxRegion.Put(root, rosl, "Arena premium: plac — roślina w donicy", p, k * 47f + (sz > 0 ? 20f : 200f), 1f, true, 1.6f * K)) n++;
                 // ławka: siedzisko z listew na wspornikach stalowych, przodem do osi
                 var b = p + styczna * 2.6f; var fw = new Vector3(0, 0, -sz); float hb = .45f * K;
@@ -1155,6 +1130,19 @@ internal static partial class BraxMiastoWyspa
                 Toczenie(D(BraxMiastoA.Swieci("Arena premium: klosz latarni", new Color(1f, .95f, .85f), new Color(1.8f, 1.6f, 1.3f))), new[] { new Vector2(0, 4.45f), new Vector2(.22f, 4.5f), new Vector2(.24f, 4.62f), new Vector2(0, 4.66f) }, l, 14);
                 KolA("latarnia placu", l + Vector3.up * 2.3f, Vector3.forward, new Vector3(.25f, 4.6f, .25f));
             }
+        if (n == 0) Ostrzez("BRAXHORN_WYSPA: brak oryginalnych roślin w donicach przy wejściu — raport kosmetyczny, nie blokuje APK, brak zamienników");
+        var furnishings = new BraxNabrzeze.Zbior(); var materials = BraxNabrzezeMebel.Materialy();
+        foreach (float side in new[] { -1f, 1f })
+        {
+            // kosze i tablice kierunkowe tuż ZA zewnętrzną krawędzią kostki (31.5 m od apC), po obu stronach łącznika od deptaka
+            BraxNabrzezeMebel.Kosz(furnishings, root, materials, new Vector3(xw - 10.4f, y, apC.z + side * 7f));
+            var sign = new Vector3(xw - 10.6f, y + 2.1f, apC.z + side * 5.2f);
+            D(apPanel).OBox(sign, Vector3.forward, Vector3.up, Vector3.left, 2.6f, .85f, .10f);
+            D(apStal).Rura(sign - Vector3.up * 2.1f, sign - Vector3.up * .425f, .045f, 8);
+            BraxUliceKit.Napis3D("BRAXHORN ARENA", sign + Vector3.left * .06f, Vector3.left, .16f, .015f, apLit, apBoki);
+            BraxUliceKit.Napis3D("WEJŚCIE GŁÓWNE", sign + Vector3.left * .06f - Vector3.up * .27f, Vector3.left, .12f, .015f, apLit, apBoki);
+        }
+        furnishings.Emit(root, "Wyspa: kosze przy arenie");
         BraxMiastoA.Log("WYSPA arena premium: plac przed wejściem — 6 × (ławka, latarnia), roślin w donicach (model Poly Haven) " + n + "; bez food trucków i budek");
         apElem += 12 + n;
     }
@@ -1179,3 +1167,4 @@ internal static partial class BraxMiastoWyspa
         apDrobne.Clear();
     }
 }
+

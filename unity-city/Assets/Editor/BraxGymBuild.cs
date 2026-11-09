@@ -391,10 +391,13 @@ public static class BraxGymBuild
         // C4 (2.11, „szyby globalnie”): szkło bez mleka — przezroczyste z odbiciem nieba, fasady bez wnętrza refleksyjne (BRAXHORN_SZYBY)
         if(fullCity&&!osiedle)try{BraxSzyby.Wykonaj(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: szyby (miasto): "+e);}
         if(!osiedle)try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
+        // 9.11 (właściciel: wyspa/arena z buildu 6.11): oprawy areny po globalnej obróbce świateł (metoda nie rzuca; Krok loguje ostrzeżenie).
+        if(fullCity&&!osiedle)BraxWyspaOdbior.Krok("oprawy areny po globalnej obróbce",()=>BraxMiastoWyspa.WykonczOprawy(scene));
         if(!osiedle)try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
         if(!osiedle)BraxRejonBuildu.Czas("obrobka_siatek",tObr,fullCity?"rejon=miasto":"rejon=silownia");
         // C1 (2.11, różowe jachty/żurawie/budka): kontrola końcowa — renderery z materiałem NULL / bez shadera (cel 0), przed zapisem.
         if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pamiec(scene,"przed_zapisem_sceny");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrola braku materiałów (pamięć): "+e);}
+        if(fullCity&&!osiedle)BraxWyspaOdbior.SprawdzScene(scene);   // 9.11: odbiór wyspy — tylko ostrzeżenia i JSON, bez throw
         // Miasto na 2 obszary (właściciel 1.11): nabrzeże (port, plaża, las za plażą, marina, metro, wyspa) osobną sceną,
         // doczytywaną w tle 45 m przed granicą i zwalnianą 110 m od niej (BraxObszary). Scena startowa = centrum.
         string scenePath=osiedle?null:Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!osiedle&&!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
@@ -466,6 +469,7 @@ public static class BraxGymBuild
                 .Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();
             AssetDatabase.SaveAssets();
             BraxBrakujaceSkrypty.Sprawdz(scenePaths);
+            if(fullCity&&scenePaths.Any(p=>Path.GetFileNameWithoutExtension(p)=="BraxhornCity"))BraxWyspaOdbior.SprawdzPaczke(scenePaths);   // 9.11: odbiór sceny wyspy w paczce (ostrzeżenia)
             var output=Path.Combine(Generated,"R1SceneAcceptance");
             Directory.CreateDirectory(output);
             File.WriteAllText(Path.Combine(output,"scene-only.txt"),

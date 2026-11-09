@@ -1,6 +1,7 @@
-"""MIASTO R1 island pier: preserve end connection and non-overlapping decking.
+"""MIASTO R1 island pier: 53 m pier with T-head and a plank boardwalk to the arena plaza.
 
 Source-only geometric arithmetic. No Unity editor, no APK, no asset changes.
+Stan po 9.11: przystań i deptak z buildu 6.11 (commit 9d9aff5).
 """
 import math
 import unittest
@@ -11,33 +12,37 @@ SOURCE=(Path(__file__).resolve().parents[2]/
 
 
 class IslandPierWalkwayBoundary(unittest.TestCase):
-    def test_terminates_exactly_at_arena_platform(self):
-        self.assertIn("int sections = Mathf.CeilToInt(Mathf.Max(0f, xa - x1));",SOURCE)
-        self.assertIn("float x = step == sections ? xa : x1 + step;",SOURCE)
-        self.assertIn("if (sections < 1)",SOURCE)
-        self.assertNotIn("for (float x = x1; x <= xa + .01f; x += 1f)",SOURCE)
-        for length in (0.2, 0.8, 1, 8.01, 25.4, 66.97):
-            n=math.ceil(length)
-            samples=[length if k==n else k for k in range(n+1)]
-            self.assertAlmostEqual(samples[0],0.0)
-            self.assertAlmostEqual(samples[-1],length)
-            self.assertTrue(all(0<samples[i+1]-samples[i]<=1 for i in range(n)))
+    def test_boardwalk_runs_from_pier_to_plaza_edge_with_metre_profile(self):
+        # profil co 1 m od końca pomostu (x1) do krawędzi placu (PlacR - 1 m), wysokość ≥ teren + 25 cm, spadek ≤ 12 cm/m
+        self.assertIn("float xa = CX + Plac.x - PlacR + 1f; var prof = new List<Vector2>();",SOURCE)
+        self.assertIn("for (float x = x1; x <= xa + .01f; x += 1f)",SOURCE)
+        self.assertIn("Mathf.Max(mx + .25f, yPrev - .12f)",SOURCE)
+        self.assertIn("prof[i] = new Vector2(prof[i].x, Mathf.Max(prof[i].y, prof[i + 1].y - .12f));",SOURCE)
+        # każdy odcinek 1 m ma własną kolizję w nachyleniu profilu
+        self.assertIn('new GameObject("kolizja: deptak")',SOURCE)
+        self.assertIn("kc.AddComponent<BoxCollider>().size = new Vector3(Vector2.Distance(a, b) + .02f, .2f, hw * 2f);",SOURCE)
+        # zejście na plac: pochylnia 1:10 bez stopnia
+        self.assertIn("float lr = dh * 10f;",SOURCE)
+        self.assertIn('new GameObject("kolizja: pochylnia deptaka")',SOURCE)
+        for dh in (0.05, 0.12, 0.25, 0.3):
+            self.assertLessEqual(dh / (dh * 10.0), 0.1 + 1e-9)
 
-    def test_deck_boards_never_protrude_past_next_segment(self):
-        self.assertIn("float segment = b.x - a.x;",SOURCE)
-        self.assertIn("float boardWidth = Mathf.Min(.14f, segment - t);",SOURCE)
-        self.assertIn("float middle = (t + boardWidth * .5f) / segment;",SOURCE)
-        self.assertNotIn("t < 1f; t += .15f",SOURCE)
-        for segment in (0.06,0.14,0.2,0.8,1):
-            positions=[i*.15 for i in range(math.ceil(segment/.15))]
-            boards=[(p, min(.14,segment-p)) for p in positions if p<segment-.001]
-            self.assertTrue(all(width>0 and start+width<=segment+1e-8 for start,width in boards))
+    def test_deck_boards_follow_segment_pitch(self):
+        # deski 14 cm co 15 cm wzdłuż każdego odcinka profilu (t od 0 do 1 z krokiem .15)
+        self.assertIn("for (float t = 0; t < 1f; t += .15f)",SOURCE)
+        self.assertIn("z[deski].Box(new Vector3(x, y - .03f, pz), new Vector3(.14f, .06f, hw * 2f));",SOURCE)
+        positions=[i*.15 for i in range(math.ceil(1/.15))]
+        self.assertTrue(all(p<1 for p in positions))
+        self.assertTrue(all(positions[i+1]-positions[i]>0.14 for i in range(len(positions)-1)))
 
     def test_original_structure_and_materials_untouched(self):
         self.assertIn("float x0 = xs - 52f, x1 = xs + 1f, hw = 1.6f * K;",SOURCE)
         self.assertIn("float tx0 = x0 - 4.0f * K, tz0 = pz - 17f, tz1 = pz + 17f;",SOURCE)
         self.assertIn("BraxMiastoA.Kol(kol, \"pomost wyspy\"",SOURCE)
         self.assertIn("BraxMiastoA.Kol(kol, \"głowica pomostu\"",SOURCE)
+        self.assertIn('Miejsca["wyspa_przystan"] = new Vector3(x0 + 1f, deck, pz);',SOURCE)
+        # styk pokładu z deptakiem: różnica poziomu > 12 cm = ostrzeżenie, nie blokada
+        self.assertIn('Ostrzez("WYSPA_POMOST_STYK',SOURCE)
 
 
 if __name__=="__main__":
