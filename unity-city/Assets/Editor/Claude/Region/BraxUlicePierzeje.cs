@@ -77,11 +77,15 @@ public static class BraxUlicePierzeje
 
     static Styl[] style;
     static int nOkien, nWitryn, nLokali, nBokow;
+    // 9.11 (z buildu 6.11, 9d9aff5): dokładne otwory okien mieszkania Braxa z TEGO generatora elewacji nadbudowy NOVA.
+    // Bez tego mieszkanie szukało szyb po nazwie materiału „glass” w nieistniejącej już starej fasadzie → okna=0 (APK 9.11).
+    static readonly List<Rect> oknaMieszkaniaNOVA = new List<Rect>();
+    public static Rect[] OknaMieszkaniaNOVA => oknaMieszkaniaNOVA.ToArray();
 
     public static void Apply(Transform cityRoot)
     {
         BraxUliceKit.Start(); BraxUliceKit.WyczyscOkna(); BraxUliceKit.Usuniete.Clear();
-        nOkien = nWitryn = nLokali = nBokow = 0;
+        nOkien = nWitryn = nLokali = nBokow = 0; oknaMieszkaniaNOVA.Clear();
         var root = BraxRegion.Root(cityRoot, "CLAUDE ulice: pierzeje (elewacje od nowa)");
         var kolizje = new GameObject("kolizje parterów i brył").transform; kolizje.SetParent(root, false);
         style = Style();
@@ -446,7 +450,13 @@ public static class BraxUlicePierzeje
         {
             if (o.drzwi) continue;
             if (o.witryna) { Witryna(f, o, szybaSklep, aluminium); nWitryn++; continue; }
-            Okno(f, o, f.szkloOkien.width > 0f && f.szkloOkien.Contains(o.r.center) ? szkloMieszkania : szybaPokoj, !f.front && o.r.yMax < Parter); nOkien++;
+            bool oknoMieszkania = f.szkloOkien.width > 0f && f.szkloOkien.Contains(o.r.center);
+            if (oknoMieszkania && f.gora && f.b.id == "nadbudowa_NOVA")
+            {
+                var wa = f.P(o.r.xMin, o.r.yMin, -o.gleb + .04f); var wb = f.P(o.r.xMax, o.r.yMax, -o.gleb + .04f);
+                oknaMieszkaniaNOVA.Add(Rect.MinMaxRect(Mathf.Min(wa.x, wb.x), Mathf.Min(wa.y, wb.y), Mathf.Max(wa.x, wb.x), Mathf.Max(wa.y, wb.y)));
+            }
+            Okno(f, o, oknoMieszkania ? szkloMieszkania : szybaPokoj, !f.front && o.r.yMax < Parter); nOkien++;
         }
         // --- detale wzorca (właściciel 15:20: „od razu DETALE wszędzie”): klimatyzatory, schody pożarowe, kominy i anteny ---
         Detale(f, otwory);

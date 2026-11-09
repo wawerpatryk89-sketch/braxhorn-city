@@ -53,14 +53,11 @@ public static class BraxRegionBraxFlat
             try { return BraxRegion.Pbr(n, m, tint, slugs); }
             catch { return BraxRegion.Pbr(n, m, tint, "concrete_wall_008", "granite_tile", "exterior_wall_cladding"); }
         }
-        var peel = M("Mieszkanie: łuszcząca się farba", 2.2f, null, "peeling_painted_wall", "worn_cracked_plaster", "concrete_wall_008");
-        var paper = M("Mieszkanie: stara tapeta", 1.6f, null, "decrepit_wallpaper", "peeling_painted_wall", "worn_cracked_plaster");
-        var plaster = M("Mieszkanie: spękany tynk", 2.4f, null, "worn_cracked_plaster", "concrete_wall_008", "peeling_painted_wall");
-        var lino = M("Mieszkanie: linoleum", 1.8f, null, "old_linoleum_flooring_01", "dirty_carpet", "wood_planks");
-        var tiles = M("Mieszkanie: brudne kafle", 1.2f, null, "dirty_tiles", "rectangular_facade_tiles", "granite_tile");
-        var concrete = M("Klatka: beton schodów", 1.5f, null, "concrete_wall_008", "granite_tile", "worn_cracked_plaster");
-        var rust = M("Klatka: rdzawa stal", 1.0f, null, "rusty_painted_metal", "concrete_wall_008");
-        var oldWood = M("Mieszkanie: zniszczone drewno", 1.2f, null, "wood_cabinet_worn_long", "wood_planks", "teak_veneer");
+        // 9.11 (właściciel: „mieszkanie Braxa tragedia”; zdjęcia APK 9.11 — ściany jak surowy beton): klatka i mieszkanie
+        // MALOWANE gładko (farba bez tekstury tynku — tekstury tynku z plamami na 1K wyglądały jak beton), schody z lastryka.
+        var plaster = BraxRegion.Fitting("Klatka: farba ścian (jasny beż, mat)", new Color(.84f, .81f, .75f), .86f, 0f);
+        var concrete = M("Klatka: lastryko schodów", 1.2f, null, "granite_tile_02", "granite_tile", "concrete_floor_02");
+        var oldWood = M("Mieszkanie: drewno", 1.2f, null, "teak_veneer", "wood_cabinet_worn_long", "wood_planks");
         var steel = BraxRegion.Fitting("Mieszkanie: okucia", new Color(.36f, .36f, .35f), .5f, .7f);
 
         // ---------------- 1) okna mieszkania z elewacji (szyby fasady na 1. piętrze) ----------------
@@ -164,11 +161,13 @@ public static class BraxRegionBraxFlat
         // farba od pokoju — dwie bryły stykające się, bez nakładania). Wszystko × K, kolizje mebli.
         var A = Group("Mieszkanie (przedpokój, łazienka, salon z aneksem, sypialnia)");
         W.Start(A); W.Wnetrze = true; W.Komorka = 14f;
-        var paint = M("Mieszkanie: farba ścian (ciepła biel)", 2.4f, new Color(.97f, .95f, .91f), "white_plaster_02", "worn_cracked_plaster", "concrete_wall_008");
-        var paintAkcent = M("Mieszkanie: ściana akcentowa (szałwia)", 2.4f, new Color(.62f, .70f, .62f), "white_plaster_02", "worn_cracked_plaster");
-        var parkiet = M("Mieszkanie: parkiet dębowy", 1.6f, null, "wood_floor_deck", "wood_planks", "teak_veneer");
-        var plytki = M("Mieszkanie: płytki łazienki", .6f, new Color(.95f, .95f, .94f), "square_tiles", "rectangular_facade_tiles", "granite_tile");
-        var plytkiPodl = M("Mieszkanie: płytki podłogi łazienki", .6f, new Color(.55f, .56f, .57f), "granite_tile", "square_tiles");
+        var paint = BraxRegion.Fitting("Mieszkanie: farba ścian (ciepła biel, mat)", new Color(.93f, .91f, .87f), .88f, 0f);
+        var paintAkcent = BraxRegion.Fitting("Mieszkanie: ściana akcentowa (szałwia, mat)", new Color(.55f, .63f, .55f), .88f, 0f);
+        // parkiet: „wood_floor_deck” to deski tarasowe ze szczelinami (pomarańczowe na zdjęciach) — wnętrze dostaje deski podłogowe
+        var parkiet = M("Mieszkanie: parkiet dębowy", 1.4f, null, "wood_floor", "plank_flooring_02", "wood_floor_deck");
+        // płytki: „square_tiles” w 0.6 m wyglądały jak szachownica — ściany łazienki i pas nad blatem z białego marmuru w dużych płytach
+        var plytki = M("Mieszkanie: płytki ścienne (biały marmur)", 1.2f, null, "marble_01", "floor_tiles_06", "granite_tile");
+        var plytkiPodl = M("Mieszkanie: płytki podłogi łazienki (gres)", 1.2f, null, "floor_tiles_06", "large_grey_tiles", "granite_tile");
         var biel = BraxRegion.Fitting("Mieszkanie: biel lakier (meble, ceramika)", new Color(.95f, .95f, .94f), .3f, 0f);
         var dab = M("Mieszkanie: dąb (fronty, blaty)", 1.0f, null, "teak_veneer", "wood_cabinet_worn_long", "wood_planks");
         var grafit = BraxRegion.Fitting("Mieszkanie: grafit (blat, AGD)", new Color(.12f, .12f, .13f), .35f, .3f);
@@ -351,7 +350,16 @@ public static class BraxRegionBraxFlat
         foreach (var (h0, h1) in new[] { (y + loH * .4f, y + loH * .6f), (y + loH * .64f, y + loH * .8f) }) W.Rura(chrom, new Vector3(lo0 + .06f, h0, ZB - .71f), new Vector3(lo0 + .06f, h1, ZB - .71f), .01f, 8);
         // stół z krzesłami (stół Poly Haven albo z kodu) — 4 krzesła przodem do stołu
         float tx = 43.0f, tz = 40.9f;
-        var stol = Prop(A, "Aneks: stół jadalniany", new Vector3(tx, y, tz), 0f, 1f, true, .8f * k, "dining_table", "WoodenTable_02", "WoodenTable_01");
+        // 9.11 (zdjęcia: stół 2.6 × 1.6 m z obrusem wyglądał jak łóżko w kuchni): model × K bywał 2 m × 1.294 — teraz dopasowany
+        // do stołu na 4 osoby: najdłuższy bok 1.4 m × K, wysokość 0.76 m × K, stopa na podłodze w tym samym punkcie.
+        var stol = Prop(A, "Aneks: stół jadalniany", new Vector3(tx, y, tz), 0f, 1f, false, .8f, "WoodenTable_02", "WoodenTable_01", "dining_table");
+        if (stol)
+        {
+            Dopasuj(stol, new Vector3(tx, y, tz), 1.4f * k, .76f * k);
+            var sb = BraxRegion.Bounds(stol);
+            var sc = new GameObject("Aneks: stół jadalniany kolizja").AddComponent<BoxCollider>(); sc.transform.SetParent(A, false);
+            sc.transform.position = sb.center; sc.size = sb.size;
+        }
         if (!stol) { W.MM(dab, tx - .7f, tx + .7f, y + .74f * k - .04f, y + .74f * k, tz - .45f, tz + .45f, true); foreach (float sx in new[] { -.62f, .62f }) foreach (float sz in new[] { -.38f, .38f }) W.Rura(grafit, new Vector3(tx + sx, y, tz + sz), new Vector3(tx + sx, y + .74f * k - .04f, tz + sz), .025f, 8); }
         var tb = stol ? BraxRegion.Bounds(stol) : new Bounds(new Vector3(tx, y + .5f, tz), new Vector3(1.4f, 1f, .9f));
         // R1: dwa krzesła od strony zaplecza, bez pary w ciasnym przejściu od salonu.
@@ -363,7 +371,12 @@ public static class BraxRegionBraxFlat
         W.MM(dab, tvx, XS, y, y + .5f, 37.4f, 39.2f, true);                                                  // szafka RTV
         W.MM(grafit, tvx - .02f, tvx, y + .06f, y + .44f, 37.45f, 38.27f); W.MM(grafit, tvx - .02f, tvx, y + .06f, y + .44f, 38.33f, 39.15f);
         W.MM(grafit, XS - .06f, XS - .02f, y + 1.0f, y + 1.0f + .8f * k, 37.6f, 37.6f + 1.4f * k);          // TV (panel, ramka)
-        W.MM(M("Salon: ekran TV (wyłączony)", .5f, new Color(.03f, .035f, .04f), "granite_tile"), XS - .065f, XS - .06f, y + 1.02f, y + .98f + .8f * k, 37.62f, 37.58f + 1.4f * k);
+        // 9.11 (zdjęcie: czarna tablica na ścianie): ekran włączony — grafika właściciela (BRAXHORN) na emisji; bez pliku szkło czarne
+        // z połyskiem (odbicie jak w prawdziwym TV). Pod TV listwa dźwiękowa, dioda gotowości.
+        if (!EkranTV(A, new Vector3(XS - .066f, y + 1.0f + .4f * k, 37.6f + .7f * k), 1.4f * k - .06f, .8f * k - .05f))
+            W.MM(BraxRegion.Fitting("Salon: ekran TV (czarne szkło, połysk)", new Color(.02f, .022f, .026f), .06f, .2f), XS - .065f, XS - .06f, y + 1.02f, y + .98f + .8f * k, 37.62f, 37.58f + 1.4f * k);
+        W.MM(grafit, XS - .12f, XS - .02f, y + .9f, y + .96f, 37.9f, 39.1f);                                   // listwa dźwiękowa
+        W.MM(BraxRegionMeble.Swiecacy("Salon: dioda TV", new Color(1f, .25f, .2f), .8f), XS - .07f, XS - .066f, y + 1.01f, y + 1.015f, 38.5f, 38.51f);
         W.MM(tkaninaC, 42.0f, 45.2f, y, y + .012f, 37.2f, 39.4f);                                          // dywan
         Prop(A, "Salon: sofa", new Vector3(42.4f, y, 38.3f), 90f, 1f, true, .95f * k, "Sofa_01", "sofa_02");
         Prop(A, "Salon: stolik kawowy", new Vector3(43.8f, y, 38.3f), 0f, 1f, true, .45f * k, "modern_coffee_table_01", "coffee_table_round_01", "industrial_coffee_table");
@@ -372,7 +385,8 @@ public static class BraxRegionBraxFlat
         Prop(A, "Salon: roślina przy oknie", new Vector3(45.6f, y, ZF + .35f), 0f, 1f, true, 1.4f, "potted_plant_02", "potted_plant_04", "potted_plant_01");
         Prop(A, "Salon: roślina przy RTV", new Vector3(XS - .4f, y, 36.95f + .1f), 0f, 1f, true, 1.1f, "potted_plant_04", "potted_plant_01");
         Prop(A, "Salon: obraz", new Vector3(45.8f, y + 1.55f, ZB - .03f), 180f, 1f, false, .8f, "hanging_picture_frame_02", "hanging_picture_frame_01");
-        Prop(A, "Salon: zegar", new Vector3(XS - .03f, y + 2.0f, 40.4f), 270f, 1f, false, .35f, "wall_clock");
+        // 9.11 (zdjęcie: zegar wisiał za łańcuchem worka — oba na z ≈ 40.4–40.5): zegar na ścianie W1 od salonu, nad stołem
+        Prop(A, "Salon: zegar", new Vector3(XW + .13f, y + 2.0f, 40.9f), 90f, 1f, false, .35f, "wall_clock");
         Bag(A, new Vector3(46.4f, Ceil, 40.5f));
         for (int i = 0; i < 2; i++)   // hantle na podłodze przy worku (gryf + talerze)
         {
@@ -440,6 +454,44 @@ public static class BraxRegionBraxFlat
 
     static Transform Group(string name) { var t = new GameObject(name).transform; t.SetParent(root, false); return t; }
 
+    // Model do realnego wymiaru: najdłuższy bok poziomy ≤ maxDl, wysokość ≤ maxWys; stopa na podłodze w punkcie stopa.
+    static void Dopasuj(GameObject o, Vector3 stopa, float maxDl, float maxWys)
+    {
+        var b = BraxRegion.Bounds(o);
+        float s = Mathf.Min(1f, maxDl / Mathf.Max(.01f, Mathf.Max(b.size.x, b.size.z)), maxWys / Mathf.Max(.01f, b.size.y));
+        if (s < .999f) { o.transform.localScale *= s; b = BraxRegion.Bounds(o); }
+        o.transform.position += new Vector3(stopa.x - b.center.x, stopa.y - b.min.y, stopa.z - b.center.z);
+        Physics.SyncTransforms();
+    }
+
+    // Ekran TV z grafiką właściciela (paczka prywatna); false, gdy brak pliku.
+    static bool EkranTV(Transform p, Vector3 srodek, float w, float h)
+    {
+        string plik = new[] { "Assets/Source/Prywatne/Grafiki/billboardy/12.jpg", "Assets/Source/Prywatne/Miasto/miasto_sklepy/billboardy/12.jpg",
+                              "Assets/Source/Prywatne/Grafiki/billboardy/09.jpg", "Assets/Source/Prywatne/Miasto/miasto_sklepy/billboardy/09.jpg" }
+                      .FirstOrDefault(System.IO.File.Exists);
+        if (plik == null) { BraxRegion.Note("mieszkanie: ekran TV bez grafiki (brak billboardy/12.jpg i 09.jpg) — czarne szkło"); return false; }
+        AssetDatabase.ImportAsset(plik, ImportAssetOptions.ForceSynchronousImport);
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(plik); if (!tex) return false;
+        var m = new Material(Shader.Find("Standard")) { name = "Salon: ekran TV (grafika)", mainTexture = tex };
+        m.SetFloat("_Glossiness", .85f); m.EnableKeyword("_EMISSION"); m.SetTexture("_EmissionMap", tex); m.SetColor("_EmissionColor", new Color(.75f, .75f, .75f));
+        m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+        System.IO.Directory.CreateDirectory(BraxRegion.Out + "/Materials");
+        BraxZapisAssetu.Utworz(m, BraxRegion.Out + "/Materials/mieszkanie_ekran_tv.mat");
+        // kadr 16:9 ze środka grafiki
+        float asp = tex.height > 0 ? (float)tex.width / tex.height : 1.78f, cel = w / h, u0 = 0f, u1 = 1f, v0 = 0f, v1 = 1f;
+        if (asp > cel) { float vis = cel / asp; u0 = (1f - vis) * .5f; u1 = 1f - u0; } else { float vis = asp / cel; v0 = (1f - vis) * .5f; v1 = 1f - v0; }
+        // ekran na ścianie W3 od salonu (lico −x): patrzący stoi po stronie −x, prawo patrzącego = +z
+        var mesh = new Mesh { name = "Salon: ekran TV" };
+        mesh.vertices = new[] { srodek + new Vector3(0, -h * .5f, -w * .5f), srodek + new Vector3(0, -h * .5f, w * .5f), srodek + new Vector3(0, h * .5f, w * .5f), srodek + new Vector3(0, h * .5f, -w * .5f) };
+        mesh.uv = new[] { new Vector2(u1, v0), new Vector2(u0, v0), new Vector2(u0, v1), new Vector2(u1, v1) };   // prawo patrzącego = −z
+        mesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };                                                                 // przód −x (do salonu)
+        mesh.RecalculateNormals(); mesh.RecalculateBounds();
+        var g = BraxMiastoA.Obiekt(p, "Salon: ekran TV (grafika)", mesh, m);
+        g.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+        return true;
+    }
+
     /// <summary>Prostopadłościan z min/max; opcjonalnie otwór drzwi (ox0..ox1 do wysokości oy1) w ścianie poziomej wzdłuż x.</summary>
     static void B(Transform p, string name, float x0, float x1, float y0, float y1, float z0, float z1, Material m, bool solid,
                   float ox0 = float.NaN, float ox1 = float.NaN, float oy1 = float.NaN)
@@ -491,6 +543,10 @@ public static class BraxRegionBraxFlat
             B(p, "Mieszkanie: ściana pod oknem", wx0, wx1, Fl, wy0, z0, z1, wall, true);
             B(p, "Mieszkanie: ściana nad oknem", wx0, wx1, wy1, Ceil, z0, z1, wall, true);
             B(p, "Mieszkanie: parapet", wx0 - .05f, wx1 + .05f, wy0 - .03f, wy0, z0 - .25f, z1 + .06f, wood, false);
+            // 9.11: ościeża wewnętrzne od ramy okna elewacji (z ≈ 36.40) do ściany pokoju — bez szczeliny w głąb muru
+            B(p, "Mieszkanie: ościeże okna (lewe)", wx0 - .06f, wx0, wy0, wy1, z0 - .26f, z0, wall, false);
+            B(p, "Mieszkanie: ościeże okna (prawe)", wx1, wx1 + .06f, wy0, wy1, z0 - .26f, z0, wall, false);
+            B(p, "Mieszkanie: ościeże okna (góra)", wx0 - .06f, wx1 + .06f, wy1, wy1 + .06f, z0 - .26f, z0, wall, false);
             // kolizja w oknie (nie wypadniemy przez szybę elewacji)
             var c = new GameObject("Mieszkanie: okno (kolizja)").AddComponent<BoxCollider>();
             c.transform.SetParent(p, false); c.transform.position = new Vector3((wx0 + wx1) * .5f, (wy0 + wy1) * .5f, (z0 + z1) * .5f); c.size = new Vector3(wx1 - wx0, wy1 - wy0, .08f);
@@ -502,6 +558,16 @@ public static class BraxRegionBraxFlat
     // Okna 1. piętra na elewacji od ulicy: trójkąty siatek „glass” pod „NOVA preserved interior upper storeys”, skupione w prostokąty.
     static List<Rect> FacadeWindows(Transform cityRoot, float x0, float x1, float y0, float y1)
     {
+        // 9.11 (APK 9.11: „okna z elewacji 0 — ściana od ulicy pełna”, mieszkanie bez okien): najpierw DOKŁADNE otwory z generatora
+        // elewacji nadbudowy NOVA (BraxUlicePierzeje — ten sam, który rysuje te okna od ulicy), jak w buildzie 6.11.
+        var projekt = BraxUlicePierzeje.OknaMieszkaniaNOVA
+            .Where(w => w.xMax > x0 && w.xMin < x1 && w.yMax > y0 && w.yMin < y1 && w.width > .4f && w.height > .6f)
+            .OrderBy(w => w.xMin).ToList();
+        if (projekt.Count > 0)
+        {
+            Debug.Log("BRAXHORN_MIESZKANIE_BRAXA_OKNA_Z_ELEWACJI liczba=" + projekt.Count + " (otwory z generatora elewacji NOVA)");
+            return projekt;
+        }
         var rects = new List<Rect>();
         foreach (var mf in cityRoot.GetComponentsInChildren<MeshFilter>(true))
         {
