@@ -1093,6 +1093,16 @@ public static partial class BraxChampionsArenaArrival
                 PlacePremiumShrub(parent,new Vector3(x+i*1.85f,.25f,-61.7f),
                     side<0?12f:-12f,1.22f);
         }
+        // Owner render: warm in-ground uplights along the carpet approach and
+        // in front of both planters (flush 30 x 30 cm, 1 cm proud, no collider).
+        foreach(float x in new[]{-5.4f,5.4f})
+            for(float z=-60.6f;z>=-75.0f;z-=2.4f)
+                Box(parent,"A1 reference entrance | flush warm in-ground uplight",exterior["light"],
+                    new Vector3(x,.255f,z),new Vector3(.30f,.012f,.30f),false);
+        foreach(float side in new[]{-1f,1f})
+            for(int i=-2;i<=2;i++)
+                Box(parent,"A1 reference entrance | planter in-ground uplight",exterior["light"],
+                    new Vector3(side*17.2f+i*2.1f,.255f,-63.5f),new Vector3(.24f,.012f,.24f),false);
         // Low architectural path lights outside the rope line; no obstruction in the carpet aisle.
         foreach(float x in new[]{-8.6f,8.6f})
         foreach(float z in new[]{-73.0f,-68.8f,-64.6f,-60.8f})
@@ -1175,6 +1185,7 @@ public static partial class BraxChampionsArenaArrival
         // the lobby, facing the entrance. Shown ONCE (removed from the judges' area).
         BraxChampionsFoundation.Optional("gablota pasa w lobby",()=>BraxChampionsBeltShowcase.GenerateLobby(root));
         BraxChampionsFoundation.Optional("lobby: sofy i kwiaty za szybą wejścia",()=>EntranceLobbyFurniture(arenaRoot, exterior));
+        BraxChampionsFoundation.Optional("palmy przed areną",()=>EntrancePalmAvenue(arenaRoot, root));
         return AssetDatabase.LoadAssetAtPath<GameObject>(BeltAsset) != null;
     }
 }

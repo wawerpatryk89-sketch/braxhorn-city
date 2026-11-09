@@ -209,4 +209,35 @@ public static partial class BraxChampionsArenaArrival
         Debug.Log("A1_LOBBY_FURNITURE placed="+placed+"/"+wanted+" lounges=4 sofas=4 armchairs=8 plants=10 lamps=4");
         if(placed<wanted)BraxBuildQuality.Warn("A1_LOBBY_FURNITURE incomplete "+placed+"/"+wanted);
     }
+
+    // Owner 9.11: "przed areną prawa lewa palmy mają być". Same owned city palm
+    // as the approved T11 casino (BraxMiastoAssety miasto_palmy/palma), real
+    // size, LOD from its own nodes. Avenue outside the bollards (|x|=8.6) and
+    // the 6.4 m carpet aisle, inside the central walking axis (car parks start
+    // at |x|=30), from the planters down to the street sidewalk (z=-133).
+    static void EntrancePalmAvenue(Transform arenaRoot,Transform parent)
+    {
+        var palm=BraxMiastoAssety.Model("miasto_palmy","palma");
+        if(!palm){BraxBuildQuality.Warn("A1_ENTRANCE_PALMS_MISSING: miasto_palmy/palma");return;}
+        var root=Group(parent,"A1 ENTRANCE | palm avenue left and right (owner 9.11)",Vector3.zero);
+        var spots=new List<Vector2>();
+        foreach(float s in new[]{-1f,1f})
+        {
+            foreach(float z in new[]{-80f,-92f,-104f,-116f,-128f})spots.Add(new Vector2(s*13.5f,z));
+            spots.Add(new Vector2(s*26.5f,-66f));
+        }
+        int placed=0;
+        foreach(var at in spots)
+        {
+            float y=.245f;
+            try{y=ActualFloorYNominal(arenaRoot,at.x,at.y);}catch(Exception){}
+            var world=arenaRoot.TransformPoint(new Vector3(at.x,y,at.y)*K);
+            var instance=BraxMiastoAssety.Postaw(root,palm,"A1 entrance palm",world,(at.x*7f+at.y*3f)%360f,1f,false,true);
+            if(!instance)continue;
+            BraxMiastoAssety.LodyZWezlow(instance,new[]{.25f,.08f,.012f});
+            placed++;
+        }
+        Debug.Log("A1_ENTRANCE_PALMS placed="+placed+"/"+spots.Count+" x=+-13.5 (z -80..-128) and +-26.5 (z -66)");
+        if(placed<spots.Count)BraxBuildQuality.Warn("A1_ENTRANCE_PALMS incomplete "+placed+"/"+spots.Count);
+    }
 }
