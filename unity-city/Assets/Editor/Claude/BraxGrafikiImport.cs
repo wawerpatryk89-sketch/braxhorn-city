@@ -24,10 +24,11 @@ public sealed class BraxGrafikiImport : AssetPostprocessor
         ti.wrapMode = TextureWrapMode.Clamp;
         ti.filterMode = FilterMode.Bilinear;
         ti.anisoLevel = ekran ? 0 : 4;
-        // 2K z bliska dla billboardów; pełnościenny zatwierdzony mural 19
-        // pozostaje 4K. Graficzny ekran menu nie używa streamingu.
+        // budżet APK (miasto ~750 MB, 9.11): billboardy w świecie 1024 i ASTC 6×6; murale oglądane z bliska (02, 19) i ekran startowy 2048.
+        // Mural 19 na całą szarą ścianę siłowni (właściciel: „mural na szarej ścianie siłowni musi być”): 4096 — jedyny wyjątek 4K.
         string plik = System.IO.Path.GetFileNameWithoutExtension(assetPath);
-        ti.maxTextureSize = plik == "19" ? 4096 : 2048;
+        bool zBliska = ekran || plik == "02";
+        ti.maxTextureSize = plik == "19" ? 4096 : (zBliska ? 2048 : 1024);
         ti.streamingMipmaps = !ekran && plik != "19";
         ti.isReadable = false;
         ti.textureCompression = TextureImporterCompression.CompressedHQ;

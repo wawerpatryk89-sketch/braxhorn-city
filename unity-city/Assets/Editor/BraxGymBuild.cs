@@ -112,7 +112,7 @@ public static class BraxGymBuild
             else{PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,useDefault);if(!useDefault)PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,apis);}
             AssetDatabase.SaveAssets();
             var tApk=DateTime.UtcNow;
-            var r=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=v.scenes,target=BuildTarget.Android,locationPathName=Path.Combine(output,"braxhorn-"+v.tag+".apk"),options=BuildOptions.CompressWithLz4});
+            var r=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=v.scenes,target=BuildTarget.Android,locationPathName=Path.Combine(output,"braxhorn-"+v.tag+".apk"),options=BuildOptions.None});
             BraxRejonBuildu.Czas("apk_"+v.tag,tApk);
             SizeReport(r);
             try{File.Copy(Path.Combine(Generated,"build-size.txt"),Path.Combine(Generated,"build-size-"+v.tag+".txt"),true);}catch{}
@@ -130,13 +130,14 @@ public static class BraxGymBuild
         return ok;
     }
 
-    // Owner 7.11: facade/paving textures have 2K maximum on Android at close
-    // range; distant mip levels are selected at runtime. Never force 1K on
-    // import, which also prevents the closest mip from being available.
+    // 9.11 (właściciel: „te apk każda jedna ma straszną wagę”): powrót do limitu 1K na elewacjach/bruku/PBR Androida,
+    // jak w buildzie 874f194 (743 MB). Zmiana 7.11 na 2K (23e2c7b8, bez cytatu właściciela i bez pomiaru) dała +365 MB tekstur
+    // i strefę Nabrzeże 96→227 MB. 2K/4K zostają TYLKO dla murali, szyldów i grafik właściciela (wyjątki niżej + BraxGrafikiImport).
+    // LZ4 w BuildPlayerOptions (ten sam commit) zdjęte: APK/zawartość 55 % → 76 %, ok. +300 MB. Streaming mipmap na importerze zostaje.
     static void CapFacadeTextures(BuildTarget target)
     {
         string platform=target==BuildTarget.Android?"Android":"WebGL";
-        int maxClosePixels=target==BuildTarget.Android?2048:1024; // WebGL preview remains legacy only
+        int maxClosePixels=1024;
         string[] folders={"Assets/Source/City/Images","Assets/PlayableGenerated/CityRebuild/Textures","Assets/Source/CityRebuild/textures","Assets/Source/Claude/PolyHaven/textures","Assets/Source/HarborBeach/Textures","Assets/CityRebuild/Brand"};
         folders=folders.Where(AssetDatabase.IsValidFolder).ToArray();
         if(folders.Length==0)return;
@@ -174,9 +175,8 @@ public static class BraxGymBuild
             imp.SetPlatformTextureSettings(ps);imp.SaveAndReimport();changed++;
         }
         }finally{AssetDatabase.StopAssetEditing();}
-        Debug.Log("BRAXHORN_TEXTURE_CAP "+platform+": importowany limit blisko="+maxClosePixels+
-            " px, zmienione="+changed+", pozostawione wyjątkowe tekstury="+kept+
-            ", zdalne AssetBundles nadal wymagają osobnego wdrożenia");
+        Debug.Log("BRAXHORN_TEXTURE_CAP "+platform+": limit="+maxClosePixels+
+            " px (9.11: powrót do 1K), zmienione="+changed+", pozostawione wyjątkowe tekstury="+kept);
     }
 
     // Raport rozmiaru danych (Android: AAR > 4 GB, WebGL: webgl.data > 2 GB). Co i ile waży, po typie i po pliku.
@@ -558,7 +558,7 @@ public static class BraxGymBuild
         else
         {
             var tb=DateTime.UtcNow;
-            result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=target,locationPathName=location,options=target==BuildTarget.Android?BuildOptions.CompressWithLz4:BuildOptions.None});
+            result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=target,locationPathName=location,options=BuildOptions.None});
             BraxRejonBuildu.Czas(target==BuildTarget.Android?"apk":"webgl",tb);
             SizeReport(result);
         }

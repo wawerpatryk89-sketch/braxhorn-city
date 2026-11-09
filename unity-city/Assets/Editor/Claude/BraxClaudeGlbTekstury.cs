@@ -5,7 +5,7 @@ using UnityEngine;
 
 // Tekstury wyjęte z modeli .glb przez unity-tools/claude/odchudzanie_modeli.py (folder _tekstury_glb obok modelu).
 // glTFast w edytorze bierze ten asset zamiast tworzyć nieskompresowaną kopię RGBA32 — tu ustawiamy kompresję platformy
-// (ETC2 na Androidzie, DXT w przeglądarce), na Androidzie 2K z bliska + streaming mipów, WebGL 1K.
+// (ETC2 na Androidzie, DXT w przeglądarce), limit 1K na telefonie i w przeglądarce (9.11: powrót z 2K — waga APK), mipmapy + streaming, brak kopii do odczytu.
 // „__lin” w nazwie = obraz danych (normalne, chropowatość/metal, okluzja) → bez sRGB, tak jak oczekuje glTFast.
 // Normalne zostają typu Default (glTFast i CityStaticPBR czytają XYZ, nie DXT5nm).
 public sealed class BraxClaudeGlbTekstury : AssetPostprocessor
@@ -54,8 +54,7 @@ public sealed class BraxClaudeGlbTekstury : AssetPostprocessor
         foreach (var platform in new[] { "Android", "WebGL" })
         {
             var ps = t.GetPlatformTextureSettings(platform);
-            ps.name = platform; ps.overridden = true;
-            ps.maxTextureSize = platform == "Android" ? 2048 : 1024;
+            ps.name = platform; ps.overridden = true; ps.maxTextureSize = 1024;
             ps.format = TextureImporterFormat.Automatic; ps.textureCompression = TextureImporterCompression.Compressed;
             ps.compressionQuality = 50;
             t.SetPlatformTextureSettings(ps);

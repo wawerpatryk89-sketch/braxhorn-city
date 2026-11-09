@@ -1,5 +1,7 @@
-"""Miasto R1: preserve owner's 2K-near / camera-distance mip policy.
+"""Miasto R1: budżet tekstur i pakowania APK na telefon (decyzja właściciela 9.11: „te apk każda jedna ma straszną wagę”).
 
+Stan odniesienia: build 874f194 (3.11) = 743 MB. Zmiany 7.11 (2K na elewacjach, LZ4, mip 0 na telefonie) dały 1349 MB
+i zostały cofnięte 9.11. Test pilnuje ZACHOWANIA (limity i opcje), nie dokładnego brzmienia kodu.
 Source-only regression. Unity/Android and installed APK are NOT exercised.
 """
 import re
@@ -10,33 +12,46 @@ ROOT=Path(__file__).resolve().parents[2]
 GRAPHICS=(ROOT/"unity-city/Assets/Claude/BraxGrafika.cs").read_text(encoding="utf-8")
 BUILD=(ROOT/"unity-city/Assets/Editor/BraxGymBuild.cs").read_text(encoding="utf-8")
 ZONES=(ROOT/"unity-city/Assets/Claude/BraxObszary.cs").read_text(encoding="utf-8")
+MANIFEST=(ROOT/"unity-city/Packages/manifest.json").read_text(encoding="utf-8")
 
-class CityR1MobileStreaming(unittest.TestCase):
-    def test_2048_import_nearby_without_1k_android_cap(self):
-        self.assertIn("maxClosePixels=target==BuildTarget.Android?2048:1024", BUILD)
-        self.assertIn("ps.maxTextureSize=maxClosePixels", BUILD)
-        self.assertNotIn("ps.maxTextureSize=1024;", BUILD)
+def strip_comments(src):
+    return re.sub(r'//[^\n]*|/\*[\s\S]*?\*/', '', src)
 
-    def test_importers_opt_in_and_android_data_uses_lz4(self):
-        extracted=(ROOT/"unity-city/Assets/Editor/Claude/BraxClaudeGlbTekstury.cs").read_text(encoding="utf-8")
-        city=(ROOT/"unity-city/Assets/Editor/Claude/BraxMiastoAssetyTekstury.cs").read_text(encoding="utf-8")
-        bill=(ROOT/"unity-city/Assets/Editor/Claude/BraxGrafikiImport.cs").read_text(encoding="utf-8")
-        self.assertIn('ps.maxTextureSize = platform == "Android" ? 2048 : 1024;',extracted)
-        self.assertIn("t.streamingMipmaps = true;",extracted)
-        self.assertIn("t.streamingMipmaps = true;",city)
-        self.assertIn('ti.maxTextureSize = plik == "19" ? 4096 : 2048;',bill)
-        self.assertIn('ti.streamingMipmaps = !ekran && plik != "19";',bill)
-        self.assertIn("imp.streamingMipmaps=true;",BUILD)
-        self.assertIn("options=BuildOptions.CompressWithLz4",BUILD)
-        self.assertIn("options=target==BuildTarget.Android?BuildOptions.CompressWithLz4:BuildOptions.None",BUILD)
+class CityR1MobileTextureBudget(unittest.TestCase):
+    def test_facade_textures_capped_at_1k_on_import(self):
+        code=strip_comments(BUILD)
+        m=re.search(r'int\s+maxClosePixels\s*=\s*([^;]+);',code)
+        self.assertIsNotNone(m,"CapFacadeTextures musi ustawiać maxClosePixels")
+        self.assertNotIn("2048",m.group(1),"elewacje/bruk/PBR Androida: limit 1K (9.11), nie 2K")
+        self.assertIn("1024",m.group(1))
+        self.assertIn("ps.maxTextureSize=maxClosePixels",code)
 
-    def test_mobile_full_mip_nearby_and_distance_streaming(self):
-        self.assertIn("if (Application.isMobilePlatform) n = 0;", GRAPHICS)
-        self.assertIn("QualitySettings.streamingMipmapsActive = true;", GRAPHICS)
-        self.assertIn("QualitySettings.streamingMipmapsAddAllCameras = true;", GRAPHICS)
-        self.assertIn("SystemInfo.supportsMipStreaming", GRAPHICS)
-        self.assertIn("QualitySettings.streamingMipmapsMemoryBudget =", GRAPHICS)
-        self.assertNotIn("Mathf.Max(n, 1)", GRAPHICS)
+    def test_extracted_glb_and_city_pack_textures_capped_at_1k(self):
+        extracted=strip_comments((ROOT/"unity-city/Assets/Editor/Claude/BraxClaudeGlbTekstury.cs").read_text(encoding="utf-8"))
+        self.assertRegex(extracted,r'ps\.maxTextureSize\s*=\s*1024\s*;')
+        self.assertNotRegex(extracted,r'ps\.maxTextureSize\s*=\s*platform\s*==\s*"Android"\s*\?\s*2048')
+
+    def test_owner_graphics_only_murals_above_1k(self):
+        bill=strip_comments((ROOT/"unity-city/Assets/Editor/Claude/BraxGrafikiImport.cs").read_text(encoding="utf-8"))
+        # mural 19 (cała szara ściana siłowni, właściciel) = jedyny 4K; murale z bliska / ekran = 2K; reszta billboardów = 1K
+        self.assertRegex(bill,r'plik\s*==\s*"19"\s*\?\s*4096')
+        self.assertRegex(bill,r'zBliska\s*\?\s*2048\s*:\s*1024')
+
+    def test_android_player_not_packed_with_lz4(self):
+        code=strip_comments(BUILD)
+        self.assertNotIn("CompressWithLz4",code,"LZ4 pogarsza kompresję APK (55 % → 76 %); zdjęte 9.11")
+        self.assertNotIn("CompressWithLz4HC",code)
+
+    def test_mobile_keeps_half_resolution_mip_clamp(self):
+        code=strip_comments(GRAPHICS)
+        m=re.search(r'static\s+void\s+Mip\s*\(\s*int\s+n\s*\)\s*\{([^}]*)\}',code)
+        self.assertIsNotNone(m)
+        body=m.group(1)
+        self.assertIn("Mathf.Max(n, 1)",body,"telefon: limit mip ≥ 1 (zabezpieczenie po zamykaniu gry 31.10)")
+        self.assertNotRegex(body,r'n\s*=\s*0\s*;')
+
+    def test_no_unused_addressables_package(self):
+        self.assertNotIn("com.unity.addressables",MANIFEST,"pakiet bez użycia w C# — wydłuża import i zmienia klucz pamięci Library")
 
     def test_loader_never_retains_lock_on_failed_scene_request(self):
         self.assertIn("try { op = SceneManager.LoadSceneAsync(o.scena, LoadSceneMode.Additive); }", ZONES)
