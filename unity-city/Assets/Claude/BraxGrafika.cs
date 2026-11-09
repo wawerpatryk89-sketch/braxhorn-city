@@ -160,6 +160,16 @@ public sealed class BraxGrafika : MonoBehaviour
     // 9.11 17:42 (właściciel: „zobacz jak to się rysuje”, „ma być jak najlepsza jakość”): wymuszona połowa tekstur na telefonie
     // ZDJĘTA — od 9.11 tekstury Androida mają 1K (zasada 1), czyli pełna rozdzielczość 1K zajmuje tyle co połowa dawnych 2K, przy
     // których gra działała (APK 8.11). Połowa zostaje tylko w trybie NISKA. Pamięć pilnuje budżet streamingu mipmap.
+    // 9.11 (właściciel: „zajebista realna panorama z dachu Tower”): perspektywa powietrzna w shaderze miasta (CityStaticPBR) —
+    // to samo prawo i kolor mgiełki co tło nieba i teren za granicą (MiastoTlo: 1 − e^(−d·0.00042), kolor .70/.76/.83):
+    // 100 m → 4 %, 500 m → 19 %, 1 km → 34 %. Miasto z dachu przechodzi w horyzont jak w rzeczywistości.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void Mgielka()
+    {
+        Shader.SetGlobalColor("_BraxMgielkaKolor", new Color(.70f, .76f, .83f, 1f));
+        Shader.SetGlobalFloat("_BraxMgielkaGestosc", .00042f);
+    }
+
     static void Mip(int n)
     {
         if (QualitySettings.globalTextureMipmapLimit != n) QualitySettings.globalTextureMipmapLimit = n;

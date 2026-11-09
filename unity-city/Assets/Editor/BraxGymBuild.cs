@@ -325,6 +325,12 @@ public static class BraxGymBuild
         var camera=new GameObject("Player camera").AddComponent<Camera>();camera.tag="MainCamera";camera.fieldOfView=55;camera.nearClipPlane=.1f;camera.farClipPlane=100;camera.allowHDR=false;camera.allowMSAA=true;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.14f,.18f,.20f);camera.gameObject.AddComponent<AudioListener>();
         RenderSettings.ambientMode=AmbientMode.Trilight;RenderSettings.ambientSkyColor=new Color(.68f,.70f,.72f);RenderSettings.ambientEquatorColor=new Color(.43f,.44f,.44f);RenderSettings.ambientGroundColor=new Color(.25f,.23f,.20f);RenderSettings.fog=false;
         var light=new GameObject("Soft neutral light for moving character").AddComponent<Light>();light.type=LightType.Directional;light.color=new Color(1,.96f,.9f);light.intensity=.75f;light.transform.rotation=Quaternion.Euler(55,-25,0);light.shadows=LightShadows.None;
+        // 9.11 (zasada 1 D, właściciel: „ma być jak najlepsza jakość… nawet na średnim cieni nie ma”): to światło jest SŁOŃCEM
+        // miasta — kierunek = słońce shaderów miasta (BraxCityMaterials.SunDirection, cienie zgodne z cieniowaniem), cienie miękkie
+        // w czasie rzeczywistym (CityStaticPBR odbiera i rzuca). W sali siłowni startowej bez cieni (BraxSlonceWnetrza) — sala jak dotąd.
+        light.transform.rotation=Quaternion.LookRotation(-BraxCityMaterials.SunDirection);light.shadows=LightShadows.Soft;light.shadowStrength=.82f;
+        light.shadowBias=.04f;light.shadowNormalBias=.35f;RenderSettings.sun=light;
+        light.gameObject.AddComponent<BraxSlonceWnetrza>().bezCieni=new[]{new Bounds(new Vector3(0f,4.8f,-2.5f),new Vector3(37.6f,9.8f,28.4f))};   // sala siłowni (oryginał: x ±18.6, z −16.6…11.6, do 9.5 m)
         var fill=new GameObject("Soft interior fill").AddComponent<Light>();fill.type=LightType.Point;fill.transform.position=new Vector3(0,5,0);fill.range=26;fill.intensity=.6f;fill.color=new Color(.87f,.91f,1f);fill.shadows=LightShadows.None;
         var tex=new Texture2D(64,64,TextureFormat.RGBA32,false);tex.wrapMode=TextureWrapMode.Clamp;
         for(int y=0;y<64;y++)for(int x=0;x<64;x++){float r=new Vector2((x-31.5f)/31.5f,(y-31.5f)/31.5f).magnitude;tex.SetPixel(x,y,new Color(0,0,0,Mathf.Pow(Mathf.Clamp01(1-r),1.6f)*.5f));}tex.Apply();BraxZapisAssetu.Utworz(tex,Generated+"/ContactShadow.asset");
@@ -446,6 +452,8 @@ public static class BraxGymBuild
                     {
                         foreach(var sylZD in korzenZD.GetComponentsInChildren<BraxSylwetkiZDaleka>(true)){if(sylZD.sylwetka)sylZD.sylwetka.gameObject.SetActive(false);sylZD.enabled=false;swZD++;}
                         if(wyspaZD)foreach(var wdZD in korzenZD.GetComponentsInChildren<BraxWyspaDaleko>(true)){foreach(var rdZD in wdZD.renderery)if(rdZD)rdZD.gameObject.SetActive(false);wdZD.enabled=false;swZD++;}
+                        // pierścień horyzontu: „Nasza wyspa” (sylwetka w kierunku wyspy) — zastąpiona kopią wyspy na prawdziwym miejscu
+                        if(wyspaZD)foreach(var trZD in korzenZD.GetComponentsInChildren<Transform>(true))if(trZD.name.StartsWith("Nasza wyspa (z daleka")){trZD.gameObject.SetActive(false);swZD++;}
                     }
                     EditorSceneManager.SaveScene(scene);
                     Debug.Log("BRAXHORN_Z_DALEKA podsumowanie: "+BraxClaudeZDaleka.Podsumowanie()+"; stare sylwetki wyłączone: "+swZD);

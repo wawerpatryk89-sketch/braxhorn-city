@@ -79,3 +79,40 @@ class R1RysowanieZDaleka(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+SHADER = (ROOT / "unity-city/Assets/CityRebuild/Shaders/CityStaticPBR.shader").read_text(encoding="utf-8")
+
+
+class R1CienieIMgielka(unittest.TestCase):
+    """9.11: „na średnim cieni nie ma” (miasto nie miało ani słońca z cieniami, ani przebiegu ShadowCaster w shaderze miasta);
+    „zajebista realna panorama z dachu Tower” — perspektywa powietrzna zgodna z tłem nieba."""
+
+    def test_city_shader_receives_and_casts_sun_shadows(self):
+        self.assertIn('#include "AutoLight.cginc"', SHADER)
+        self.assertIn("#pragma multi_compile_fwdbase", SHADER)
+        self.assertIn("UNITY_SHADOW_COORDS(5)", SHADER)
+        self.assertIn("UNITY_TRANSFER_SHADOW(o, v.uv1);", SHADER)
+        self.assertIn("UNITY_LIGHT_ATTENUATION(cienSlonca, i, i.worldPos);", SHADER)
+        self.assertIn("min(saturate(i.baked.x), cienSlonca)", SHADER)
+        self.assertIn('Tags { "LightMode"="ShadowCaster" }', SHADER)
+        self.assertIn("TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)", SHADER)
+        self.assertIn("SHADOW_CASTER_FRAGMENT(i)", SHADER)
+        self.assertIn("clip(0.5 - _Transparent);", SHADER)
+
+    def test_city_sun_casts_soft_shadows_except_gym_hall(self):
+        self.assertIn("light.transform.rotation=Quaternion.LookRotation(-BraxCityMaterials.SunDirection);light.shadows=LightShadows.Soft;", BUILD)
+        self.assertIn("RenderSettings.sun=light;", BUILD)
+        self.assertIn("AddComponent<BraxSlonceWnetrza>()", BUILD)
+        run = code("unity-city/Assets/Claude/Runtime/BraxSlonceWnetrza.cs")
+        self.assertIn("slonce.shadows = w ? LightShadows.None : cienie;", run)
+
+    def test_aerial_haze_matches_sky(self):
+        self.assertIn("_BraxMgielkaGestosc", SHADER)
+        self.assertIn("1.0 - exp(-odl * _BraxMgielkaGestosc)", SHADER)
+        self.assertIn('Shader.SetGlobalFloat("_BraxMgielkaGestosc", .00042f);', GRAF)
+        sky = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxRegionHoryzont.cs").read_text(encoding="utf-8")
+        self.assertIn('m.SetFloat("_MgielkaGestosc", .00042f)', sky)
+
+    def test_ring_island_replaced_by_real_far_copy(self):
+        self.assertIn('trZD.name.StartsWith("Nasza wyspa (z daleka")', BUILD)

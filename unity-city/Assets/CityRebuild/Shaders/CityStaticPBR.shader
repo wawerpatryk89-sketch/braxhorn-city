@@ -64,7 +64,12 @@ Shader "Braxhorn/CityStaticPBR"
             // Lampy wnętrz: światła punktowe w trybie ForceVertex trafiają do 4 slotów
             // unity_4LightPos*; liczymy je tu PER PIKSEL (bez dodatkowych przebiegów ForwardAdd).
             #pragma multi_compile _ VERTEXLIGHT_ON
+            // 9.11 (zasada 1 D, właściciel: „na średnim cieni nie ma”): cienie słońca W CZASIE RZECZYWISTYM — odbiór mapy cieni
+            // światła kierunkowego sceny (zasięg i kaskady wg trybu grafiki, wygaszanie na końcu zasięgu), łączony z cieniem
+            // zapieczonym w wierzchołkach (min — bez podwójnego przyciemnienia). Bez lightmap.
+            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
             #include "UnityCG.cginc"
+            #include "AutoLight.cginc"
 
             sampler2D _MainTex, _BumpMap, _ARM, _OcclusionMap, _EmissionMap;
             float4 _MainTex_ST, _BumpMap_ST, _ARM_ST, _OcclusionMap_ST, _EmissionMap_ST;
@@ -77,6 +82,10 @@ Shader "Braxhorn/CityStaticPBR"
             half _BumpScale, _NormalEncoding, _Roughness, _Metallic, _UseARMForAO;
             half _OcclusionStrength, _Cutoff, _AlphaClip, _Transparent, _VertexTint;
             half _SunIntensity, _AmbientIntensity, _ReflectionStrength;
+            // 9.11: perspektywa powietrzna (mgiełka z odległością) — globalne, ustawiane w grze (BraxGrafika); 0 = wyłączona.
+            // To samo prawo i kolor co tło nieba i teren za miastem (MiastoTlo: 1 − e^(−d·gęstość)).
+            half4 _BraxMgielkaKolor;
+            float _BraxMgielkaGestosc;
 
             struct appdata
             {
@@ -98,6 +107,7 @@ Shader "Braxhorn/CityStaticPBR"
                 half3 normal : TEXCOORD2;
                 half4 tangent : TEXCOORD3;
                 half2 baked : TEXCOORD4;
+                UNITY_SHADOW_COORDS(5)
                 half4 color : COLOR;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -120,6 +130,7 @@ Shader "Braxhorn/CityStaticPBR"
             v2f vert(appdata v)
             {
                 v2f o;
+                UNITY_INITIALIZE_OUTPUT(v2f, o);
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_TRANSFER_INSTANCE_ID(v,o);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
@@ -138,6 +149,7 @@ Shader "Braxhorn/CityStaticPBR"
                 float has7 = step(abs(v.bake7.w - 2718.0), .1) * step(.99, v.bake7.z);
                 o.baked = lerp(half2(1,1), v.bake3.xy, has3);
                 o.baked = lerp(o.baked, v.bake7.xy, has7);
+                UNITY_TRANSFER_SHADOW(o, v.uv1);
                 return o;
             }
             half4 frag(v2f i, fixed facing : VFACE) : SV_Target
@@ -204,8 +216,9 @@ Shader "Braxhorn/CityStaticPBR"
                 float geometry = (nv/(nv*(1-k)+k)) * (nl/(nl*(1-k)+k));
                 half3 specular = fresnel * (distribution*geometry/max(4*nv*nl,.001));
                 half3 diffuse = (1-fresnel)*(1-metallic)*albedo/UNITY_PI;
+                UNITY_LIGHT_ATTENUATION(cienSlonca, i, i.worldPos);
                 half3 direct = (diffuse+specular) * WorkingColour(_SunColor.rgb)
-                             * (_SunIntensity * nl * saturate(i.baked.x));
+                             * (_SunIntensity * nl * min(saturate(i.baked.x), cienSlonca));
                 half3 sky = WorkingColour(_SkyColor.rgb), ground = WorkingColour(_GroundColor.rgb);
                 half3 ambient = lerp(ground,sky,n.y*.5+.5) * _AmbientIntensity;
                 half3 colour = direct + albedo*(1-metallic)*ambient*ambientAO;
@@ -243,10 +256,69 @@ Shader "Braxhorn/CityStaticPBR"
                     colour += WorkingColour(tex2D(_EmissionMap, MapUV(i.uv,_EmissionMap_ST,
                                       _EmissionMap_Rotation.xy,_EmissionMap_texCoord)).rgb)
                               * WorkingColour(_EmissionColor.rgb);
+                if (_BraxMgielkaGestosc > 0)
+                {
+                    float odl = distance(_WorldSpaceCameraPos.xyz, i.worldPos);
+                    colour = lerp(colour, WorkingColour(_BraxMgielkaKolor.rgb), saturate(1.0 - exp(-odl * _BraxMgielkaGestosc)));
+                }
                 #ifdef UNITY_COLORSPACE_GAMMA
                 colour = LinearToGammaSpace(max(colour,0));
                 #endif
                 return half4(colour, lerp(1,alpha,_Transparent));
+            }
+            ENDCG
+        }
+        // 9.11 (zasada 1 D): miasto RZUCA cienie słońca (dotąd brak przebiegu ShadowCaster — budynki, drzewa z kodu i meble
+        // nie rzucały cieni w czasie rzeczywistym). Maska alfa jak w przebiegu głównym; szkło/przezroczyste nie rzuca.
+        Pass
+        {
+            Name "SHADOWCASTER"
+            Tags { "LightMode"="ShadowCaster" }
+            Cull [_Cull]
+            ZWrite On
+            Blend Off
+            CGPROGRAM
+            #pragma target 3.0
+            #pragma vertex vertCien
+            #pragma fragment fragCien
+            #pragma multi_compile_shadowcaster
+            #pragma multi_compile_instancing
+            #include "UnityCG.cginc"
+            sampler2D _MainTex;
+            float4 _MainTex_ST, _MainTex_Rotation;
+            float _MainTex_texCoord;
+            half4 _Color;
+            half _Cutoff, _AlphaClip, _Transparent;
+            struct appdataCien
+            {
+                float4 vertex : POSITION;
+                float3 normal : NORMAL;
+                float2 uv : TEXCOORD0;
+                float2 uv1 : TEXCOORD1;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+            struct v2fCien
+            {
+                V2F_SHADOW_CASTER;
+                float2 uv : TEXCOORD1;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+            v2fCien vertCien(appdataCien v)
+            {
+                v2fCien o;
+                UNITY_INITIALIZE_OUTPUT(v2fCien, o);
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)
+                float2 p = lerp(v.uv, v.uv1, saturate(_MainTex_texCoord));
+                o.uv = float2(p.x * _MainTex_ST.x + p.y * _MainTex_Rotation.y, p.x * _MainTex_Rotation.x + p.y * _MainTex_ST.y) + _MainTex_ST.zw;
+                return o;
+            }
+            float4 fragCien(v2fCien i) : SV_Target
+            {
+                clip(0.5 - _Transparent);
+                if (_AlphaClip > 0.5) clip(tex2D(_MainTex, i.uv).a * _Color.a - _Cutoff);
+                SHADOW_CASTER_FRAGMENT(i)
             }
             ENDCG
         }
