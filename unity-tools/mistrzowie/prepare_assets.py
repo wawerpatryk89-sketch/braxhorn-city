@@ -140,7 +140,9 @@ def main():
                       ('Marble016',['Color','NormalGL','Roughness']),
                       # 9.11 owner review of the hotel/apartment previews: polished WHITE marble in
                       # seamless slabs for lobbies, corridors and bathrooms (marble_01 = beige tiles).
-                      ('Marble021',['Color','NormalGL','Roughness'])]:
+                      ('Marble021',['Color','NormalGL','Roughness']),
+                      # 9.11 23:29 owner: the grey granite podium of Hotel Sobczak -> vein-cut travertine
+                      ('Travertine009',['Color','NormalGL','Roughness','AmbientOcclusion'])]:
   prefix=asset+'_4K-JPG_'
   names=[prefix+k+'.jpg' for k in kinds]
   # New maps have no historical lock: verify against the archive on every preparation.

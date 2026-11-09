@@ -52,8 +52,11 @@ public static class BraxChampionsHotelSobczakMaterials
         // exterior (board)
         s.brick=P("brick_facade","exterior_wall_cladding_02",2.0f,new Color(1f,.97f,.95f),.92f);
         s.podiumStone=P("podium_granite","granite_tile_03",1.8f,new Color(.96f,.94f,.90f),.55f);
+        // owner 9.11 23:29: the grey granite podium -> warm vein-cut travertine (classic with the brick tower)
+        try{s.podiumStone=BraxChampionsFoundation.LibraryTravertine("t03_podium_travertine",new Color(1.02f,1.0f,.97f),2.2f);s.podiumStone.SetFloat("_Roughness",.55f);}
+        catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI T03_TRAVERTINE_MISSING "+e.Message);}
         s.stoneDark=P("dark_granite","granite_tile",1.2f,new Color(.30f,.31f,.33f),.45f);
-        s.paving=P("sidewalk_paving","concrete_pavement_02",1.8f,new Color(.97f,.97f,.96f),1f);
+        s.paving=P("sidewalk_paving","concrete_pavement_02",1.8f,new Color(1.02f,.97f,.90f),1f);
         s.asphalt=P("drive_asphalt","clean_asphalt",2.5f,new Color(.70f,.70f,.70f),1f);
         s.kerb=P("granite_kerb","granite_tile",1.0f,new Color(.62f,.63f,.65f),.6f);
         s.teak=P("teak_veneer","teak_veneer",1.2f,new Color(.95f,.72f,.50f),.45f);

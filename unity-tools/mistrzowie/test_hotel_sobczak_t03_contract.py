@@ -279,6 +279,11 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('prefix="Marble021_4K-JPG_"', foundation)
         self.assertIn('"lobby centre plant"', self.gen)
         self.assertIn('"roof bar stool, leather"', self.gen)
+        # owner 23:29: grey podium -> travertine; the 3D sign also on the roof, front and back
+        self.assertIn('LibraryTravertine("t03_podium_travertine"', self.materials)
+        self.assertIn("('Travertine009',['Color','NormalGL','Roughness','AmbientOcclusion'])", self.prepare)
+        self.assertIn('(name:"roof front",pos:new Vector3(0,RoofDeck+1.95f,-TowerHalfD+.6f),yaw:180f,scale:1.6f)', self.gen)
+        self.assertIn("h.signPass=h.signBodies==4;", self.audit)
 
 
 if __name__ == "__main__":

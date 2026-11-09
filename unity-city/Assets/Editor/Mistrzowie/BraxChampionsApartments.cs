@@ -90,8 +90,9 @@ public static class BraxChampionsApartments
 
     static void Materials(Dictionary<string,Material> ext,string outFolder)
     {
-        render=M("apt_white_render","white_stucco_02",2.0f,new Color(1.12f,1.12f,1.10f),.90f);      // clean white (read grey)
-        panel=M("apt_grey_panel","rectangular_facade_tiles",2.0f,new Color(.56f,.57f,.59f),.85f);
+        render=M("apt_white_render","white_stucco_02",2.0f,new Color(1.24f,1.22f,1.18f),.90f);      // warm clean white (read grey)
+        // owner 9.11 23:28: "wszystko takie dużo szarego" - T05 panels in warm sandstone instead of grey
+        panel=M("apt_sandstone_panel","rectangular_facade_tiles",2.0f,new Color(1.05f,.93f,.76f),.85f);
         granite=M("apt_dark_granite","granite_tile",1.2f,new Color(.30f,.31f,.33f),.55f);
         timber=M("apt_timber","teak_veneer",1.0f,new Color(.96f,.70f,.47f),.60f);
         walnut=M("apt_door_walnut","teak_veneer",1.0f,new Color(.44f,.30f,.21f),.50f);
@@ -117,7 +118,7 @@ public static class BraxChampionsApartments
         runner=M("apt_corridor_runner","floral_jacquard",.90f,new Color(1.20f,1.10f,1.06f),1f);
         // lobby, corridors and stairs: polished white marble slabs (set above with the bathrooms)
         veneer=M("apt_walnut_veneer","smoked_walnut_veneer",1.2f,new Color(.92f,.86f,.80f),.55f);
-        deck=M("apt_balcony_stone","granite_tile_04",1.0f,new Color(.90f,.90f,.88f),.60f);
+        deck=M("apt_balcony_stone","granite_tile_04",1.0f,new Color(1.02f,.95f,.84f),.60f);       // warm light granite
         // owner 9.11 21:03: every surface finished with Poly Haven maps (was a plain white colour)
         ceiling=M("apt_ceiling_stucco","white_stucco_02",2.0f,new Color(.98f,.98f,.97f),.95f);
         if(ceiling.HasProperty("_BumpScale"))ceiling.SetFloat("_BumpScale",.15f);
@@ -139,13 +140,14 @@ public static class BraxChampionsApartments
         facadeGlass=AssetDatabase.LoadAssetAtPath<Material>(glassPath);
         if(!facadeGlass)
         {
-            // Reflective but readable: the finished rooms are seen from the street.
             facadeGlass=new Material(ext["facade_glass"]){name="apt facade glass | reflective, readable interior"};
-            facadeGlass.SetColor("_Color",new Color(.40f,.47f,.53f,.42f));
-            if(facadeGlass.HasProperty("_ReflectionStrength"))facadeGlass.SetFloat("_ReflectionStrength",.78f);
-            facadeGlass.SetFloat("_Roughness",.05f);
             AssetDatabase.CreateAsset(facadeGlass,glassPath);
         }
+        // Reflective but readable: the finished rooms are seen from the street. Owner 9.11 23:28 ("dużo szarego"):
+        // blue-green architectural glass reflecting the sky instead of a grey tint.
+        facadeGlass.SetColor("_Color",new Color(.26f,.46f,.56f,.40f));
+        if(facadeGlass.HasProperty("_ReflectionStrength"))facadeGlass.SetFloat("_ReflectionStrength",.88f);
+        facadeGlass.SetFloat("_Roughness",.05f);EditorUtility.SetDirty(facadeGlass);
     }
 
     // ---------------- primitives (nominal metres, building local, front = -Z) ----------------
@@ -482,7 +484,8 @@ public static class BraxChampionsApartments
         System.IO.Directory.CreateDirectory(outFolder+"/Materials");System.IO.Directory.CreateDirectory(outFolder+"/Prefabs");
         Materials(ext,outFolder);apartments=0;doors=0;models=0;
         bool marble=style==Style.MarbleGold;
-        skin=marble?marbleBlack:render;pier=marble?marbleBlack:granite;edge=marble?gold:render;
+        // ground-floor piers in teak (warm vertical accents instead of a dark grey band); T06 keeps black marble
+        skin=marble?marbleBlack:render;pier=marble?marbleBlack:timber;edge=marble?gold:render;
         // Ground datum from the real ground: the empty plot base sits at -.25 (legacy_foundation.py).
         Physics.SyncTransforms();
         float datum=0f;
@@ -505,6 +508,7 @@ public static class BraxChampionsApartments
         int panes=style==Style.CurvedWrap?FrontAndRoofT04():style==Style.Loggia?FrontAndRoofT05():
                   style==Style.MarbleGold?FrontAndRoofT06():FrontAndRoofT07();
         panes+=RearBalconies();
+        EntranceCanopy();
         Interior(lights);
 
         int saved=W.Zapisz(id+"_apartments");
@@ -627,7 +631,7 @@ public static class BraxChampionsApartments
             {
                 float deckTop=Level(f)-.03f;
                 var poly=RoundRect(cx-1.8f,cx+1.8f,HalfD,HalfD+1.6f,0f,new[]{false,false,false,false});
-                Prism(poly,deckTop-.25f,deckTop,deck,edge,render,true);
+                Prism(poly,deckTop-.25f,deckTop,deck,edge,timber,true);
                 bool Outer(Vector2 a,Vector2 b)=>!(Mathf.Abs(a.y-HalfD)<.01f&&Mathf.Abs(b.y-HalfD)<.01f);
                 panes+=Ribbon(poly,.06f,deckTop,deckTop+Balustrade,.012f,clearGlass,true,Outer);
             }
@@ -654,7 +658,7 @@ public static class BraxChampionsApartments
             float deckTop=Level(f)-.03f;
             var poly=RoundRect(-11f,11f,-HalfD-2.2f,-HalfD,1.1f,new[]{true,true,false,false});
             W.Grupa=outside;
-            Prism(poly,deckTop-.30f,deckTop,deck,render,render,true);
+            Prism(poly,deckTop-.30f,deckTop,deck,render,timber,true);
             bool Outer(Vector2 a,Vector2 b)=>!(Mathf.Abs(a.y+HalfD)<.01f&&Mathf.Abs(b.y+HalfD)<.01f);
             panes+=Ribbon(poly,.06f,deckTop,deckTop+Balustrade,.012f,clearGlass,true,Outer);
             W.Grupa=details;
@@ -696,7 +700,8 @@ public static class BraxChampionsApartments
                 Box(deck,la,lb,y0,y0+.008f,-HalfD,cr-.06f);                                       // loggia floor finish
                 Box(clearGlass,la,lb,y0,y0+Balustrade,-HalfD+.05f,-HalfD+.062f,true);panes++;    // 1.10 m frameless glass
                 W.Grupa=details;
-                foreach(float t in new[]{.27f,.73f})Downlight(la+(lb-la)*t,(-HalfD+cr)*.5f,y1);  // soffit downlights
+                foreach(float t in new[]{.27f,.73f})Downlight(la+(lb-la)*t,(-HalfD+cr)*.5f,y1-.010f);  // soffit downlights
+                W.Grupa=outside;Box(timber,la,lb,y1-.010f,y1,-HalfD,cr-.06f);W.Grupa=details;          // teak loggia soffit
                 W.Grupa=outside;
             }
         }
@@ -753,7 +758,7 @@ public static class BraxChampionsApartments
                 float deckTop=Level(f)-.03f,a=sx<0?-HalfW+.6f:3.8f,b=sx<0?-3.8f:HalfW-.6f;
                 var poly=RoundRect(a,b,-HalfD-2.0f,-HalfD,1.0f,new[]{true,true,false,false});
                 W.Grupa=outside;
-                Prism(poly,deckTop-.30f,deckTop,deck,gold,render,true);
+                Prism(poly,deckTop-.30f,deckTop,deck,gold,timber,true);
                 bool Outer(Vector2 p,Vector2 q)=>!(Mathf.Abs(p.y+HalfD)<.01f&&Mathf.Abs(q.y+HalfD)<.01f);
                 panes+=Ribbon(poly,.06f,deckTop,deckTop+Balustrade,.012f,clearGlass,true,Outer);
                 W.Grupa=details;
@@ -915,6 +920,29 @@ public static class BraxChampionsApartments
 
     }
 
+    // Entrance canopy (owner 9.11 23:28: "apartament się wiąże z luksusem ... może jakiś daszek"): 6 x 3.6 m
+    // slab 25 cm, 3.2 m past the façade over the terrace, teak soffit with downlights and an LED line, black
+    // fascia (gold on the black-marble T06), two slim black steel columns; clear of every balcony above.
+    static void EntranceCanopy()
+    {
+        W.Grupa=outside;W.Wnetrze=false;
+        float hx=style==Style.MarbleGold?2.9f:3.0f,y0=3.40f,y1=3.65f,zb=-HalfD+.85f,zf=-HalfD-3.2f;
+        var fascia=style==Style.MarbleGold?gold:black;
+        Box(skin,-hx+.06f,hx-.06f,y0+.03f,y1,zf+.06f,zb,true);                                    // slab
+        Box(fascia,-hx,hx,y0,y1+.02f,zf,zf+.06f);                                                 // front fascia
+        foreach(float sx in new[]{-1f,1f})Box(fascia,sx<0?-hx:hx-.06f,sx<0?-hx+.06f:hx,y0,y1+.02f,zf+.06f,zb);
+        Box(timber,-hx+.06f,hx-.06f,y0+.015f,y0+.03f,zf+.06f,zb);                                 // teak soffit
+        foreach(float sx in new[]{-1f,1f})
+        {
+            float cx=sx*(hx-.25f),cz=zf+.30f;
+            Box(black,cx-.06f,cx+.06f,SiteY+.03f,y0,cz-.06f,cz+.06f,true);                       // steel column
+        }
+        W.Grupa=details;
+        Box(led,-hx+.12f,hx-.12f,y0+.005f,y0+.015f,zf+.10f,zf+.14f);                             // LED line under the edge
+        for(float x=-hx+.9f;x<=hx-.89f;x+=(2*hx-1.8f)/2f)
+            foreach(float z in new[]{zf+1.0f,zb-1.1f})Box(led,x-.09f,x+.09f,y0+.003f,y0+.015f,z-.09f,z+.09f);
+        W.Grupa=outside;
+    }
     static void Planter(float x,float z,float hw,float hd)
     {
         Box(deck,x-hw,x+hw,SiteY,SiteY+.50f,z-hd,z+hd,true);

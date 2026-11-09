@@ -404,6 +404,15 @@ public static class BraxChampionsFoundation
             arm=FileIn(tex,"Marble021_ARM_4k.png"),tile=metres});
         m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
     }
+    // Vein-cut travertine (ambientCG Travertine009 4K, CC0) for the Hotel Sobczak podium: owner 9.11 23:29
+    // "ta z dołu kondygnacja taka szara ... jakiejś tekstury dobrej materiału".
+    public static Material LibraryTravertine(string id,Color tint,float metres)
+    {
+        string tex=Source+"/Textures",prefix="Travertine009_4K-JPG_";
+        var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
+            arm=FileIn(tex,"Travertine009_ARM_4k.png"),tile=metres});
+        m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
+    }
     public static Material LibraryLeather(string id,Color tint)
     {
         string tex=Source+"/Textures",prefix="Leather037_4K-JPG_";

@@ -758,7 +758,7 @@ public static class BraxChampionsHotelSobczakT03
         for(float x=4.0f;x<=8.01f;x+=1.0f)
             if(!Model(H+"bar_chair_round_01/bar_chair_round_01_1k.gltf",roof,"roof bar stool, leather",new Vector3(x,y+.02f,bz-.62f),0f,true))Stool(x,y,bz-.62f);
         foreach(float x in new[]{-12f,12f})RoofPlanter(x,10f,2.5f,1.0f,y+.02f);
-        foreach(float x in new[]{-6f,6f})RoofPlanter(x,-15.3f,2.2f,.45f,y+.02f);
+        foreach(float x in new[]{-11f,11f})RoofPlanter(x,-15.3f,2.2f,.45f,y+.02f);
         foreach(var pt in new[]{new Vector2(-15.2f,-15.2f),new Vector2(15.2f,-15.2f),new Vector2(-15.2f,-9.2f),new Vector2(15.2f,-9.2f),
                                  new Vector2(-15.2f,15.2f),new Vector2(15.2f,15.2f),new Vector2(0f,15.2f),new Vector2(-10.8f,-6.4f)})
             Model(A+"potted_plant_01/potted_plant_01_1k.gltf",roof,"roof terrace plant",new Vector3(pt.x,y+.02f,pt.y),pt.x*17f+pt.y*5f,false);
@@ -1637,8 +1637,13 @@ public static class BraxChampionsHotelSobczakT03
         }
         // facade: the solid granite panel of floor 1 above the canopy (back of the sign on the stone, 31 cm deep);
         // reception: a 0.32 copy on the backlit teak wall behind the desk
+        // roof: the same sign x1.6 (12.8 x 6.4 m) on bronze posts at the front and back edge of the roof terrace,
+        // read against the sky from the whole district (owner 9.11 23:29: "nie widać dobrze ten szyld w 3D");
+        // top 110.0 m, inside the 110.3 m crown
         foreach(var place in new[]{(name:"facade",pos:new Vector3(0,Level(1)+.9f,-PodiumHalfD),yaw:180f,scale:1f),
-                                   (name:"reception wall",pos:new Vector3(11.15f,Ffl0+2.85f,-9.4f),yaw:-90f,scale:.32f)})
+                                   (name:"reception wall",pos:new Vector3(11.15f,Ffl0+2.85f,-9.4f),yaw:-90f,scale:.32f),
+                                   (name:"roof front",pos:new Vector3(0,RoofDeck+1.95f,-TowerHalfD+.6f),yaw:180f,scale:1.6f),
+                                   (name:"roof back",pos:new Vector3(0,RoofDeck+1.95f,TowerHalfD-.6f),yaw:0f,scale:1.6f)})
         {
             var g=G(signs,"SOBCZAK HOTEL 3D sign | "+place.name+" | solid bevelled glyphs, 5 stars, S monogram");
             g.localPosition=place.pos;g.localRotation=Quaternion.Euler(0,place.yaw,0);
@@ -1651,6 +1656,8 @@ public static class BraxChampionsHotelSobczakT03
                 parts++;
             }
         }
+        foreach(float sz in new[]{-1f,1f})foreach(float x in new[]{-4.4f,0f,4.4f})
+            Box(M.darkBronze,x-.08f,x+.08f,RoofDeck+.02f,RoofDeck+6.0f,sz*(TowerHalfD-.6f)-(sz<0?-.06f:.22f),sz*(TowerHalfD-.6f)-(sz<0?-.22f:.06f),true);
         return parts;
     }
     [Serializable] sealed class SignFile{public float scaleK;public SignData[] signs;}

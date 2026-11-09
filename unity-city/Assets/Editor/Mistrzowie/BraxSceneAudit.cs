@@ -754,7 +754,7 @@ public static class BraxSceneAudit
         h.elevatorsPass=h.elevators==3 && h.liftStops==29 && h.liftLandingDoors==3*29*2;
         h.stairsPass=h.stairs==2;
         h.entrancePass=h.automaticDoors==2 && h.automaticDoorLeavesWithCollision==4;
-        h.signPass=h.signBodies==2;
+        h.signPass=h.signBodies==4;
         h.noTreesPass=h.treesInPlot==0;
 
         // Whole site (plaza, drop-off, island) stays inside the plot + frontage to the road sidewalk.
@@ -788,6 +788,7 @@ public static class BraxSceneAudit
             if(Contains(n,"font")||Contains(n,"LegacyRuntime")||Contains(n,"napisy")||Contains(shader,"GUI/Text")||Contains(shader,"CitySignText"))return "CUSTOM_TEXT";
             if(user&&user.transform.GetComponentsInParent<Transform>(true).Any(p=>Contains(p.name,"| Poly Haven CC0")))return "POLYHAVEN_MODEL";
             if(Contains(n,"brick_facade"))return "exterior_wall_cladding_02";
+            if(Contains(n,"podium_travertine"))return "Travertine009";
             if(Contains(n,"podium_granite"))return "granite_tile_03";
             if(Contains(n,"dark_granite")||Contains(n,"granite_kerb"))return "granite_tile";
             if(Contains(n,"sidewalk_paving"))return "concrete_pavement_02";
@@ -841,6 +842,7 @@ public static class BraxSceneAudit
                 case "marble_01": return 1.5f;
                 case "Marble016": return 2.5f;
                 case "Marble021": return 2.4f;
+                case "Travertine009": return 2.2f;
                 case "Metal048A": return .65f;
                 case "laminate_floor_02": return 1.8f;
                 case "oak_wood_planks": return 1.6f;
@@ -935,7 +937,7 @@ public static class BraxSceneAudit
         Fail(h.elevatorsPass,"lifts expected 3 x 29 stops with 174 landing door leaves; found "+h.elevators+" x "+h.liftStops+", "+h.liftLandingDoors);
         Fail(h.stairsPass,"stairs expected 2 found "+h.stairs);
         Fail(h.entrancePass,"entrance expected 2 automatic door pairs, 4 leaves with collision; found "+h.automaticDoors+"/"+h.automaticDoorLeavesWithCollision);
-        Fail(h.signPass,"3D SOBCZAK HOTEL sign bodies expected 2 (facade + reception) found "+h.signBodies);
+        Fail(h.signPass,"3D SOBCZAK HOTEL sign bodies expected 4 (facade, reception, roof front, roof back) found "+h.signBodies);
         Fail(h.noTreesPass,"owner 9.11: no trees in front of the hotel; tree/foliage renderers found "+h.treesInPlot);
         Fail(h.glassPass,"glass/material check failed nullRenderers="+h.nullMaterialRenderers+" milkCandidates="+h.milkGlassCandidates);
         Fail(h.materialMappingPass,"visible hotel materials without source mapping "+h.unmappedMaterialCount);

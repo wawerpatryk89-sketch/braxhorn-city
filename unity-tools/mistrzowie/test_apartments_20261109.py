@@ -181,7 +181,7 @@ class ApartmentT05Loggias(unittest.TestCase):
         self.assertIn("const float xi=9.26f;", SRC)
 
     def test_frames_panels_timber_roof(self):
-        self.assertIn('panel=M("apt_grey_panel","rectangular_facade_tiles"', SRC)
+        self.assertIn('panel=M("apt_sandstone_panel","rectangular_facade_tiles"', SRC)   # owner 23:28: less grey
         self.assertIn("Seg.Panel", SRC)
         self.assertIn("two vertical timber strips", SRC)
         self.assertEqual(SRC.count("for(int i=0;i<20;i++){float x=a+.075f+i*.15f;"), 1)
@@ -196,8 +196,10 @@ class ApartmentT06MarbleGold(unittest.TestCase):
         t06 = plots()["T06"]
         self.assertEqual((t06["floors"], t06["style"]), (5, "MarbleGold"))
         self.assertIn("static int FrontAndRoofT06()", SRC)
-        self.assertIn("skin=marble?marbleBlack:render;pier=marble?marbleBlack:granite;edge=marble?gold:render;", SRC)
-        self.assertIn("Prism(poly,deckTop-.30f,deckTop,deck,gold,render,true);", SRC)       # gold curved balconies
+        self.assertIn("skin=marble?marbleBlack:render;pier=marble?marbleBlack:timber;edge=marble?gold:render;", SRC)
+        self.assertIn("static void EntranceCanopy()", SRC)                          # owner 23:28: "może jakiś daszek"
+        self.assertIn("EntranceCanopy();", SRC)
+        self.assertIn("Prism(poly,deckTop-.30f,deckTop,deck,gold,timber,true);", SRC)       # gold curved balconies, teak soffit
         self.assertIn("glass crown of the core above the roof, gold cap", SRC)
         self.assertIn("if(f==0||style==Style.MarbleGold)", SRC)                            # core lounge every floor
         self.assertIn("front parapet stops at the core", SRC)
