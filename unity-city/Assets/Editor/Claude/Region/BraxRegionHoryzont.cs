@@ -61,6 +61,8 @@ public static class BraxRegionHoryzont
         Krok("usunięcie starego (niebo-lustro, kopuła, oryginał za granicą)", () => UsunStare(cityRoot));
         Krok("tekstury tła (profile grzbietów, ziemia z daleka)", Tekstury);
         Krok("niebo i panorama 360°", Niebo);
+        // 9.11: szkło fasad wieżowców (Braxhorn/SzkloFasady) odbija to samo niebo i horyzont — parametry tła po zbudowaniu nieba
+        Krok("szkło fasad: odbicie nieba i horyzontu", () => BraxSzkloFasady.UstawTlo(UstawTlo));
         Krok("teren 3D za granicą", Teren);
         Krok("las za granicą (karty + drzewa przy granicy)", Las);
         Krok("granica grywalna z kolizją", Granica);

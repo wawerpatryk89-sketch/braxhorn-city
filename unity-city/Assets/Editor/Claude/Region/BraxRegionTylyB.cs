@@ -435,6 +435,11 @@ public static class BraxRegionTylyB
     static readonly Dictionary<string, Material> oknaCache = new Dictionary<string, Material>();
     static Material OknoWiezowca(Def d)
     {
+        // 9.11 (właściciel z tarasu Tower: „czarne bryły budynków”): szyby pięter nieużytkowych — szkło elewacyjne z odbiciem
+        // prawdziwego nieba i pokojami za szybą (Braxhorn/SzkloFasady; siatka = rozstaw lizen × 2 i kondygnacja wieżowca).
+        // Bez shadera — dawny „pokój za szybą” (OsiedleOkno), niżej.
+        var nowe = BraxSzkloFasady.Mat("wieżowiec " + d.nazwa, 1.5f * K * 2f, Hf, YC + Hg, new Color(.22f, .31f, .37f), .6f, .4f);
+        if (nowe) { nowe.SetFloat("_Rama", .02f); return nowe; }   // słupki są geometrią (lizeny) — w szkle tylko cienka linia
         var sh = Shader.Find("Braxhorn/OsiedleOkno"); const string path = "Assets/Source/Claude/Osiedle/detail/pokoje.png";
         if (!sh || !File.Exists(path)) return BraxCityMaterials.Surface("Wieżowiec: szyba jasna (bez atlasu pokoi)", new Color(.55f, .64f, .70f), .12f, .15f);
         var m = new Material(sh) { name = "Wieżowiec: okna z pokojami " + d.nazwa };

@@ -467,8 +467,12 @@ public static partial class BraxRegionMiastoB
     {
         if (!ndSzklo)
         {
-            ndSzklo = BraxCityMaterials.Surface("Nowe dzielnice: szkło fasady (refleksyjne)", new Color(.30f, .37f, .42f), .1f, .85f);
-            if (ndSzklo.HasProperty("_ReflectionStrength")) ndSzklo.SetFloat("_ReflectionStrength", .95f);
+            // 9.11 (właściciel z tarasu Tower: „czarne bryły budynków”, „każdy budynek premium”): ciemny metal z odbiciem stałego
+            // koloru → szkło elewacyjne Braxhorn/SzkloFasady (odbicie prawdziwego nieba, pokoje za szybą, słupki, pasy kondygnacji).
+            // Modele × K: kondygnacja ≈ 3.4 m × K, moduł 3 m. Bez shadera — dawny materiał (zapasowy).
+            var zapas = BraxCityMaterials.Surface("Nowe dzielnice: szkło fasady (refleksyjne)", new Color(.30f, .37f, .42f), .1f, .85f);
+            if (zapas.HasProperty("_ReflectionStrength")) zapas.SetFloat("_ReflectionStrength", .95f);
+            ndSzklo = BraxSzkloFasady.Mat("nowe dzielnice", 3.0f, 3.4f * K, .3f, new Color(.20f, .30f, .36f), .55f, .35f, zapas);
         }
         int n = 0;
         foreach (var r in o.GetComponentsInChildren<Renderer>(true))
