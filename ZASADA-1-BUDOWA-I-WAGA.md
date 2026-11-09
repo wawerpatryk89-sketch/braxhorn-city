@@ -59,10 +59,13 @@ Zamiast tego — jak robią to duże realistyczne gry na Androida (Android Devel
 - Obiekt ≤ 65 000 wierzchołków; budynki i drzewa z LOD (3 poziomy, ostatni = bryła); powtarzalne rzeczy (latarnie, ławki, słupki, auta) jako instancje GPU.
 - Mesh Compression włączone, bez Read/Write, bez niepotrzebnych kanałów (kolory wierzchołków, UV2, gdy nieużywane).
 - Model ze Sketchfaba: zostają tylko potrzebne części (budynek bez „aut i trawnika w paczce”); niepotrzebne siatki wycinasz offline, nie wyłączasz w scenie (wyłączone nadal ważą).
-- Światła: słońce + wypalone/vertex; **bez cieni z lamp**, bez świateł real-time per obiekt. Lustro = reflection probe.
+- Światła i cienie (właściciel 9.11: „ma być jak najlepsza jakość — teraz nawet na średnim cieni nie ma”): **cienie ze słońca ZAWSZE włączone**,
+  na każdym poziomie jakości (Niski: 1 kaskada, 40 m, miękkie wyłączone; Średni: 2 kaskady, 80 m; Wysoki: 4 kaskady, 150 m, miękkie).
+  Ustawienia jakości w kodzie buildu (QualitySettings per poziom), nie „jak wyjdzie”. Lampy nocne: wypalone lub bez cieni; żadnego światła
+  real-time per obiekt. Lustro = reflection probe. Oszczędzamy na teksturach i siatkach (pkt A–B), NIE na cieniach i nie na jakości widoku.
 - Audio: Vorbis, SFX mono, muzyka i ambient streaming; bez WAV w buildzie.
 
-## E. JAKOŚĆ — żeby wyglądało (skrót pkt 3 AGENTS.md, obowiązuje w całości)
+## E. JAKOŚĆ — ma być jak najlepsza (właściciel 9.11); oszczędność bierze się z pkt A–B, nie z obniżania wyglądu (skrót pkt 3 AGENTS.md, obowiązuje w całości)
 
 - Skala K = 1,294. Każdy model = realny wymiar × K. Nigdy skalowanie „żeby pasowało do pudełka”.
 - Stawianie: raycast w dół, dół bryły na gruncie/posadzce. Rzeczy ścienne (mural, szyld, lustro, półka) raycast DO ŚCIANY, tył na ścianie.
