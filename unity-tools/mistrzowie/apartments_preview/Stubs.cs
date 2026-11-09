@@ -72,6 +72,11 @@ namespace UnityEngine
     public class Object { string nm; public virtual string name { get => nm; set => nm = value; }
         public static implicit operator bool(Object o) => o != null && !o.destroyed;
         internal bool destroyed;
+        public static T Instantiate<T>(T original, Transform parent, bool stays) where T : Object
+        {
+            if (original is GameObject g) { var c = new GameObject(g.name + "(Clone)"); c.transform.SetParent(parent, false); return c as T; }
+            return original;
+        }
         public static void DestroyImmediate(Object o)
         {
             if (o is GameObject g) { g.transform.SetParent(null, false); GameObject.Registry.Remove(g); }
@@ -79,11 +84,15 @@ namespace UnityEngine
         } }
     public class Texture : Object { }
     public class Shader : Object { public static Shader Find(string n) => new Shader { name = n }; }
-    public class Material : Object { public Material() { } public Material(Material m) { name = m.name; } public Material(Shader s) { }
-        public bool enableInstancing; public int renderQueue; public Texture mainTexture;
-        public void SetFloat(string n, float v) { } public void SetColor(string n, Color c) { } public void SetVector(string n, Vector4 v) { }
+    public class Material : Object { public Material() { } public Material(Material m) { name = m.name; color = m.color; sky = m.sky; ground = m.ground; ambient = m.ambient; } public Material(Shader s) { }
+        public bool enableInstancing, textured; public int renderQueue; public Texture mainTexture; public Color color = new Color(1, 1, 1);
+        // CityStaticPBR ambient (shader defaults), recorded so the preview lights each material as Unity does
+        public Color sky = new Color(.60f, .68f, .78f), ground = new Color(.42f, .40f, .36f); public float ambient = .65f;
+        public void SetFloat(string n, float v) { if (n == "_AmbientIntensity") ambient = v; }
+        public void SetColor(string n, Color c) { if (n == "_Color") color = c; else if (n == "_SkyColor") sky = c; else if (n == "_GroundColor") ground = c; }
+        public void SetVector(string n, Vector4 v) { }
         public void SetOverrideTag(string t, string v) { } public bool HasProperty(string n) => true;
-        public string[] GetTexturePropertyNames() => new string[0]; public Texture GetTexture(string n) => null; }
+        public string[] GetTexturePropertyNames() => textured ? new[] { "_MainTex" } : new string[0]; public Texture GetTexture(string n) => textured ? new Texture() : null; }
     public class Component : Object { public GameObject gameObject; public Transform transform => gameObject.transform;
         public override string name { get => gameObject.name; set => gameObject.name = value; }
         public T GetComponent<T>() where T : Component => gameObject.GetComponent<T>();
@@ -116,7 +125,19 @@ namespace UnityEngine
         public T[] GetComponentsInChildren<T>(bool inactive) where T : Component => All<T>();
         public T[] All<T>() where T : Component { var r = new List<T>(); void Walk(Transform t) { r.AddRange(t.gameObject.comps.OfType<T>()); foreach (var c in t.children.ToArray()) Walk(c); } Walk(transform); return r.ToArray(); } }
     public class Behaviour : Component { public bool enabled = true; } public class MonoBehaviour : Behaviour { }
-    public class Renderer : Component { public Material sharedMaterial; public Material[] sharedMaterials => new[] { sharedMaterial }; public Bounds bounds => new Bounds(transform.position, Vector3.zero); }
+    public class Renderer : Component { public Material sharedMaterial; public Material[] sharedMaterials => new[] { sharedMaterial };
+        // A preview model carries the real glTF bounds (Unity axes): bounds follow its transform exactly like Unity's AABB.
+        public Bounds bounds { get {
+            var pm = gameObject.GetComponent<PreviewModel>(); if (pm == null) return new Bounds(transform.position, Vector3.zero);
+            Vector3 lo = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue), hi = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+            for (int i = 0; i < 8; i++)
+            {
+                var c = transform.TransformPoint(new Vector3((i & 1) == 0 ? pm.min.x : pm.max.x, (i & 2) == 0 ? pm.min.y : pm.max.y, (i & 4) == 0 ? pm.min.z : pm.max.z));
+                lo = new Vector3(Math.Min(lo.x, c.x), Math.Min(lo.y, c.y), Math.Min(lo.z, c.z)); hi = new Vector3(Math.Max(hi.x, c.x), Math.Max(hi.y, c.y), Math.Max(hi.z, c.z));
+            }
+            return new Bounds((lo + hi) * .5f, hi - lo); } } }
+    // Stand-in for an imported glTF model: its path and the real bounds read from the glTF accessors (x mirrored like glTFast).
+    public class PreviewModel : Component { public string path; public Vector3 min, max; }
     public class MeshRenderer : Renderer { }
     public class Mesh : Object { public Vector3[] vertices = new Vector3[0]; public Vector2[] uv; public int[] triangles = new int[0];
         public Rendering.IndexFormat indexFormat;
@@ -152,7 +173,16 @@ namespace UnityEditor
     public enum InteractionMode { AutomatedAction, UserAction }
     [Flags] public enum ImportAssetOptions { Default = 0, ForceUpdate = 1, ForceSynchronousImport = 8 }
     [Flags] public enum StaticEditorFlags { ContributeGI = 1, OccluderStatic = 2, BatchingStatic = 4, NavigationStatic = 8, OccludeeStatic = 16 }
-    public static class AssetDatabase { public static T LoadAssetAtPath<T>(string p) where T : Object => null; public static void CreateAsset(Object o, string p) { }
+    public static class AssetDatabase {
+        public static T LoadAssetAtPath<T>(string p) where T : Object
+        {
+            if (typeof(T) != typeof(GameObject) || !p.EndsWith(".gltf") || !System.IO.File.Exists(p)) return null;
+            var g = new GameObject(System.IO.Path.GetFileNameWithoutExtension(p)); GameObject.Registry.Remove(g);
+            var pm = g.AddComponent<PreviewModel>(); pm.path = p; (pm.min, pm.max) = GltfBounds.Read(p);
+            g.AddComponent<MeshRenderer>().sharedMaterial = new Material { name = "gltf", textured = true };
+            return g as T;
+        }
+        public static void CreateAsset(Object o, string p) { }
         public static void SaveAssets() { } public static void ImportAsset(string p, ImportAssetOptions o) { } }
     public static class EditorUtility { public static void SetDirty(Object o) { } public static void CopySerialized(Object a, Object b) { } }
     public static class GameObjectUtility { public static void SetStaticEditorFlags(GameObject g, StaticEditorFlags f) { } }
@@ -161,7 +191,55 @@ namespace UnityEditor
         public static GameObject SaveAsPrefabAssetAndConnect(GameObject g, string p, InteractionMode m) => g;
         public static GameObject SaveAsPrefabAsset(GameObject g, string p) { var asset = new GameObject(g.name); GameObject.Registry.Remove(asset); return asset; }
         // A prefab instance in the preview is an empty stand-in; the preview draws the template itself at every level.
-        public static Object InstantiatePrefab(Object o) => new GameObject(o.name + " (instance)");
-        public static Object InstantiatePrefab(Object o, Transform parent) { var g = new GameObject(o.name + " (instance)"); g.transform.SetParent(parent, false); return g; }
+        public static Object InstantiatePrefab(Object o) => Clone(o);
+        public static Object InstantiatePrefab(Object o, Transform parent) { var g = Clone(o); g.transform.SetParent(parent, false); return g; }
+        static GameObject Clone(Object o)
+        {
+            var g = new GameObject(o.name + " (instance)"); var src = (o as GameObject)?.GetComponent<PreviewModel>();
+            if (src != null) { var pm = g.AddComponent<PreviewModel>(); pm.path = src.path; pm.min = src.min; pm.max = src.max; g.AddComponent<MeshRenderer>().sharedMaterial = new Material { name = "gltf", textured = true }; }
+            return g;
+        }
+    }
+}
+
+// Bounds of a glTF 2.0 model from its accessors and node transforms, mirrored on X like glTFast (glTF right-handed -> Unity).
+public static class GltfBounds
+{
+    public static (UnityEngine.Vector3, UnityEngine.Vector3) Read(string path)
+    {
+        using var doc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(path));
+        var root = doc.RootElement; var acc = root.GetProperty("accessors"); var meshes = root.GetProperty("meshes"); var nodes = root.GetProperty("nodes");
+        double[] lo = { double.MaxValue, double.MaxValue, double.MaxValue }, hi = { double.MinValue, double.MinValue, double.MinValue };
+        double[] Mul(double[] a, double[] b) { var r = new double[16]; for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++) { double s = 0; for (int k = 0; k < 4; k++) s += a[i * 4 + k] * b[k * 4 + j]; r[i * 4 + j] = s; } return r; }
+        double[] Trs(System.Text.Json.JsonElement n)
+        {
+            if (n.TryGetProperty("matrix", out var mm)) { var c = mm.EnumerateArray().Select(x => x.GetDouble()).ToArray(); var r = new double[16]; for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++) r[i * 4 + j] = c[j * 4 + i]; return r; }
+            double tx = 0, ty = 0, tz = 0, qx = 0, qy = 0, qz = 0, qw = 1, sx = 1, sy = 1, sz = 1;
+            if (n.TryGetProperty("translation", out var t)) { var a = t.EnumerateArray().Select(x => x.GetDouble()).ToArray(); tx = a[0]; ty = a[1]; tz = a[2]; }
+            if (n.TryGetProperty("rotation", out var q)) { var a = q.EnumerateArray().Select(x => x.GetDouble()).ToArray(); qx = a[0]; qy = a[1]; qz = a[2]; qw = a[3]; }
+            if (n.TryGetProperty("scale", out var s)) { var a = s.EnumerateArray().Select(x => x.GetDouble()).ToArray(); sx = a[0]; sy = a[1]; sz = a[2]; }
+            double[] R = { 1 - 2 * (qy * qy + qz * qz), 2 * (qx * qy - qz * qw), 2 * (qx * qz + qy * qw), 2 * (qx * qy + qz * qw), 1 - 2 * (qx * qx + qz * qz), 2 * (qy * qz - qx * qw), 2 * (qx * qz - qy * qw), 2 * (qy * qz + qx * qw), 1 - 2 * (qx * qx + qy * qy) };
+            return new double[] { R[0] * sx, R[1] * sy, R[2] * sz, tx, R[3] * sx, R[4] * sy, R[5] * sz, ty, R[6] * sx, R[7] * sy, R[8] * sz, tz, 0, 0, 0, 1 };
+        }
+        void Walk(int ni, double[] parent)
+        {
+            var n = nodes[ni]; var m = Mul(parent, Trs(n));
+            if (n.TryGetProperty("mesh", out var mi))
+                foreach (var prim in meshes[mi.GetInt32()].GetProperty("primitives").EnumerateArray())
+                {
+                    var a = acc[prim.GetProperty("attributes").GetProperty("POSITION").GetInt32()];
+                    var mn = a.GetProperty("min").EnumerateArray().Select(x => x.GetDouble()).ToArray(); var mx = a.GetProperty("max").EnumerateArray().Select(x => x.GetDouble()).ToArray();
+                    for (int i = 0; i < 8; i++)
+                    {
+                        double px = (i & 1) == 0 ? mn[0] : mx[0], py = (i & 2) == 0 ? mn[1] : mx[1], pz = (i & 4) == 0 ? mn[2] : mx[2];
+                        double[] w = { m[0] * px + m[1] * py + m[2] * pz + m[3], m[4] * px + m[5] * py + m[6] * pz + m[7], m[8] * px + m[9] * py + m[10] * pz + m[11] };
+                        for (int k = 0; k < 3; k++) { lo[k] = Math.Min(lo[k], w[k]); hi[k] = Math.Max(hi[k], w[k]); }
+                    }
+                }
+            if (n.TryGetProperty("children", out var ch)) foreach (var c in ch.EnumerateArray()) Walk(c.GetInt32(), m);
+        }
+        var scene = root.GetProperty("scenes")[root.TryGetProperty("scene", out var sc) ? sc.GetInt32() : 0];
+        foreach (var n in scene.GetProperty("nodes").EnumerateArray()) Walk(n.GetInt32(), new double[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 });
+        return (new UnityEngine.Vector3((float)-hi[0], (float)lo[1], (float)lo[2]), new UnityEngine.Vector3((float)-lo[0], (float)hi[1], (float)hi[2]));
     }
 }

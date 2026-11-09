@@ -33,7 +33,36 @@ public static class HotelProgram
             var t = mf.sharedMesh.triangles; tris += t.Length / 3;
             parts.Add("[\"" + mf.gameObject.name.Replace("\"", "'") + "\",\"" + m + "\",[" + string.Join(",", v.Select(V)) + "],[" + string.Join(",", t) + "]]");
         }
-        sb.Append(string.Join(",", parts) + "]}");
+        sb.Append(string.Join(",", parts) + "],\"models\":[");
+        var models = new List<string>();
+        foreach (var g in GameObject.Registry)
+        {
+            var pm = g.GetComponent<PreviewModel>(); if (pm == null) continue;
+            var top = g.transform; while (top.parent != null) top = top.parent;
+            bool tmpl = top.gameObject.name.StartsWith("HOTEL SOBCZAK | GUEST FLOOR TEMPLATE");
+            if (!tmpl && top != root) continue;
+            var pos = tmpl ? g.transform.position : root.InverseTransformPoint(g.transform.position);
+            var f = g.transform.rotation * Vector3.forward; float yaw = (float)(Math.Atan2(f.x, f.z) * 180 / Math.PI);
+            models.Add("{\"path\":\"" + pm.path + "\",\"pos\":[" + V(pos) + "],\"yaw\":" + F(yaw) + ",\"template\":" + (tmpl ? "true" : "false") + ",\"name\":\"" + g.name.Replace("\"", "'") + "\"}");
+        }
+        sb.Append(string.Join(",", models) + "],\"colours\":{");
+        sb.Append(string.Join(",", Rec.Colours.Select(kv => "\"" + kv.Key + "\":[" + F(kv.Value.r) + "," + F(kv.Value.g) + "," + F(kv.Value.b) + "," + F(kv.Value.a) + "]")));
+        sb.Append("},\"ambient\":{");
+        sb.Append(string.Join(",", Rec.Ambient.Select(kv => "\"" + kv.Key + "\":[" + string.Join(",", kv.Value.Select(F)) + "]")));
+        sb.Append("},\"lights\":[");
+        var lights = new List<string>();
+        foreach (var g in GameObject.Registry)
+        {
+            var l = g.GetComponent<Light>(); if (l == null) continue;
+            var top = g.transform; while (top.parent != null) top = top.parent;
+            bool tmpl = top.gameObject.name.StartsWith("HOTEL SOBCZAK | GUEST FLOOR TEMPLATE");
+            if (!tmpl && top != root) continue;
+            var pos = tmpl ? g.transform.position : root.InverseTransformPoint(g.transform.position);
+            float range = tmpl ? l.range : l.range / BraxClaudeOsiedle.K;
+            lights.Add("[" + V(pos) + "," + F(range) + "," + F(l.intensity) + "," + (tmpl ? 1 : 0) + "]");
+        }
+        sb.Append(string.Join(",", lights) + "]}");
+        Console.WriteLine("MODELS placed=" + models.Count);
         File.WriteAllText("hotel_geometry.json", sb.ToString());
 
         var groups = Rec.Quads.GroupBy(q => q.g.Split('|')[0].Trim().Split('/')[0].Trim()).OrderByDescending(g => g.Count());

@@ -51,7 +51,7 @@ def load(path, floors=True, only=None):
                 w = v.copy(); w[:, 1] += lv[f]
                 polys.append(w); mats.append(m); groups.append("F%d" % f)
             continue
-        if g.startswith("ELEVATOR") or g.startswith("cabin door"):
+        if "ELEVATOR" in g and "cabin" in g:
             v = v.copy(); v[:, 1] += lv[0]
         polys.append(v); mats.append(m); groups.append(g)
     for name, m, verts, tris in d["meshes"]:

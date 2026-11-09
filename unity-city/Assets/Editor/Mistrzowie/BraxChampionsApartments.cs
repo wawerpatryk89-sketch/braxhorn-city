@@ -101,7 +101,9 @@ public static class BraxChampionsApartments
         bathWall=M("apt_bath_marble","marble_01",1.4f,Color.white,.30f);
         terrazzo=M("apt_terrazzo","terrazzo_tiles",1.6f,new Color(.96f,.95f,.93f),.40f);
         deck=M("apt_balcony_stone","granite_tile_04",1.0f,new Color(.90f,.90f,.88f),.60f);
-        ceiling=W.Mat.Plain("apartamenty: sufit biały mat",new Color(.93f,.93f,.92f),.92f);
+        // owner 9.11 21:03: every surface finished with Poly Haven maps (was a plain white colour)
+        ceiling=M("apt_ceiling_stucco","white_stucco_02",2.0f,new Color(.98f,.98f,.97f),.95f);
+        if(ceiling.HasProperty("_BumpScale"))ceiling.SetFloat("_BumpScale",.15f);
         try{marbleBlack=BraxChampionsFoundation.LibraryMarble("apt_black_marble",new Color(.86f,.80f,.78f),2.5f);}
         catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI APT_BLACK_MARBLE_MISSING "+e.Message);marbleBlack=granite;}
         grass=Region("grass.mat",()=>M("apt_lawn_fallback","brown_mud_leaves_01",1.4f,new Color(.55f,.72f,.40f),1f));

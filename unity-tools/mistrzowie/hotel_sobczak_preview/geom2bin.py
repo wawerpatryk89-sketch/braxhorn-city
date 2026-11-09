@@ -1,8 +1,10 @@
-"""hotel_geometry.json -> binary triangle buffers for render3d.js (real depth buffer, no painter's sorting).
+"""hotel_geometry.json -> per-material buffers + scene.json for render3d.js (textures, models, lights).
 
-Unity is left-handed (front face: Cross(b-a,c-a) toward the viewer); three.js is right-handed.
-Mirroring z flips the handedness, so every triangle is written as (a, c, b).
-The guest floor template is placed at all 26 guest levels; lift cabins wait at PARTER.
+Unity is left-handed; three.js is right-handed: z is mirrored and every triangle is written as (a, c, b).
+UVs follow the W kit (planar, metres): floor/ceiling (x, z), walls facing x (z*sign, y), walls facing z (-x*sign, y),
+divided by the material's tile size, exactly like BraxChampionsFoundation.MaterialFor. Materials whose stub name is
+'id|slug|metres' get the real Poly Haven maps; surfaces (brass, glass, LED...) keep their real colour.
+The guest-floor template is drawn at all 26 levels (models and lights on floor 2, where the interior views are).
 """
 import json
 import sys
@@ -10,42 +12,73 @@ from pathlib import Path
 
 import numpy as np
 
-from render import colour
-
 TEMPLATE = "HOTEL SOBCZAK | GUEST FLOOR TEMPLATE"
+
+
+def planar(v, n):
+    ax, ay, az = abs(n[0]), abs(n[1]), abs(n[2])
+    if ay >= ax and ay >= az:
+        return np.stack([v[:, 0], v[:, 2]], 1)
+    if ax >= az:
+        return np.stack([v[:, 2] * np.sign(n[0]), v[:, 1]], 1)
+    return np.stack([-v[:, 0] * np.sign(n[2]), v[:, 1]], 1)
 
 
 def main(src, out):
     d = json.load(open(src)); lv = d["levels"]; out = Path(out); out.mkdir(parents=True, exist_ok=True)
-    tris, cols = [], []
+    colours = d.get("colours", {}); ambient = d.get("ambient", {})
+    groups = {}
 
-    def add(t, m):  # t: (n,3,3) Unity coordinates
-        t = t.copy(); t[..., 2] *= -1; t = t[:, [0, 2, 1]]
-        tris.append(t); c = np.array(colour(m), np.float32); cols.append(np.repeat(c[None], len(t), 0))
+    def add(m, tris, uvs):
+        t = tris.copy(); t[..., 2] *= -1; t = t[:, [0, 2, 1]]; u = uvs[:, [0, 2, 1]]
+        g = groups.setdefault(m, ([], []))
+        g[0].append(t.astype(np.float32)); g[1].append(u.astype(np.float32))
 
-    quads = {}
     for q in d["quads"]:
-        g, m = q[0], q[1]; v = np.array(q[3:], np.float32).reshape(4, 3)
-        if g.startswith("ELEVATOR") or g.startswith("cabin door"):
-            v = v.copy(); v[:, 1] += lv[0]
-        quads.setdefault((g.startswith(TEMPLATE), m), []).append(v)
-    for (tmpl, m), vs in quads.items():
-        V = np.stack(vs); T = np.concatenate([V[:, [0, 1, 2]], V[:, [0, 2, 3]]])
-        if tmpl:
+        g, m = q[0], q[1]
+        v = np.array(q[3:15], np.float32).reshape(4, 3)
+        n = np.cross(v[1] - v[0], v[2] - v[0])
+        if np.linalg.norm(n) < 1e-9:
+            n = np.cross(v[2] - v[0], v[3] - v[0])
+        parts = m.split("|")
+        tile = float(parts[2]) if len(parts) == 3 else 1.0
+        uv = planar(v, n) / tile
+        T = np.stack([v[[0, 1, 2]], v[[0, 2, 3]]]); U = np.stack([uv[[0, 1, 2]], uv[[0, 2, 3]]])
+        leaf = g.split(" >> ")[-1]
+        if g.startswith(TEMPLATE):
             for f in range(2, 28):
-                W = T.copy(); W[..., 1] += lv[f]; add(W, m)
+                W = T.copy(); W[..., 1] += lv[f]; add(m, W, U)
         else:
-            add(T, m)
+            if "ELEVATOR" in g and ("cabin" in g):
+                T = T.copy(); T[..., 1] += lv[0]
+            add(m, T, U)
     for name, m, verts, tri in d["meshes"]:
         p = np.array(verts, np.float32).reshape(-1, 3); t = np.array(tri, int).reshape(-1, 3)
-        add(p[t], m)
-    T = np.concatenate(tris).astype(np.float32); C = np.concatenate(cols).astype(np.float32)
-    opaque = C[:, 3] > .99
-    for tag, sel in (("o", opaque), ("t", ~opaque)):
-        T[sel].tofile(out / f"pos_{tag}.bin")
-        np.repeat(C[sel][:, None, :3], 3, 1).astype(np.float32).tofile(out / f"col_{tag}.bin")
-        np.repeat(C[sel][:, None, 3:], 3, 1).astype(np.float32).tofile(out / f"alpha_{tag}.bin")
-    print("triangles", len(T), "opaque", int(opaque.sum()), "transparent", int((~opaque).sum()))
+        add("mesh:" + m, p[t], np.zeros((len(t), 3, 2), np.float32))
+    mats = []
+    for i, (m, (ts, us)) in enumerate(groups.items()):
+        T = np.concatenate(ts); U = np.concatenate(us)
+        T.tofile(out / f"m{i}_pos.bin"); U.tofile(out / f"m{i}_uv.bin")
+        parts = m.split("|")
+        slug = parts[1] if len(parts) == 3 and not parts[1].startswith("Marble") else None
+        c = colours.get(m, [1, 1, 1, 1]) if not m.startswith("mesh:") else colours.get(m[5:], [1, 1, 1, 1])
+        amb = ambient.get(m[5:] if m.startswith("mesh:") else m, [.60, .68, .78, .42, .40, .36, .65])
+        mats.append(dict(id=i, name=m, slug=slug, colour=c, ambient=amb, count=len(T)))
+    models = []
+    for mo in d.get("models", []):
+        x, y, z = mo["pos"]
+        floors = [2] if mo["template"] else [None]
+        for f in floors:
+            yy = y + (lv[f] if f is not None else 0)
+            models.append(dict(path=mo["path"].replace("Assets/Source/Mistrzowie/", ""), pos=[x, yy, -z], rotY=(180 - mo["yaw"]) * np.pi / 180))
+    lights = []
+    for x, y, z, rng, inten, tmpl in d.get("lights", []):
+        if tmpl:
+            y += lv[2]
+        lights.append([x, y, -z, rng, inten])
+    json.dump(dict(materials=mats, models=models, lights=lights), open(out / "scene.json", "w"))
+    print("materials", len(mats), "triangles", sum(m["count"] for m in mats), "models", len(models), "lights", len(lights),
+          "textured", sum(1 for m in mats if m["slug"]))
 
 
 if __name__ == "__main__":

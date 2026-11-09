@@ -46,7 +46,7 @@ public static class BraxChampionsHotelSobczakT03
     static BraxChampionsHotelSobczakMaterials.Set M;
     static Transform root,site,podium,tower,details,podiumInside,cores,roof,guestFloors,signs;
     static readonly List<GameObject> floorInstances=new List<GameObject>();
-    static int roomsBuilt,doorsBuilt,modelsPlaced,serial;
+    static int roomsBuilt,doorsBuilt,modelsPlaced,modelsMissing,serial;
     static Mesh leafMesh;
 
     [Serializable] sealed class Report
@@ -63,7 +63,7 @@ public static class BraxChampionsHotelSobczakT03
         Directory.CreateDirectory(Out);Directory.CreateDirectory(Out+"/Meshes");Directory.CreateDirectory(Out+"/Materials");
         M=BraxChampionsHotelSobczakMaterials.Create();
         var existing=GameObject.Find(RootName);if(existing)UnityEngine.Object.DestroyImmediate(existing);
-        roomsBuilt=doorsBuilt=modelsPlaced=serial=0;floorInstances.Clear();leafMesh=null;
+        roomsBuilt=doorsBuilt=modelsPlaced=modelsMissing=serial=0;floorInstances.Clear();leafMesh=null;roomRects.Clear();diningChairs.Clear();chairProto=null;
 
         // Ground datum from the real plot base (legacy_foundation.py: plot_base at -.25).
         Physics.SyncTransforms();
@@ -99,6 +99,7 @@ public static class BraxChampionsHotelSobczakT03
         var template=GuestFloorTemplate();
         var cabins=LiftCabins();
         int saved=W.Zapisz("hotel_sobczak_t03");
+        FinishChairs();
         foreach(var cab in cabins)cab.localPosition=new Vector3(0,Ffl0,0);         // cabins wait at PARTER
         foreach(var d in root.GetComponentsInChildren<BraxDrzwiAutomatyczne>(true))   // moving parts are never static
             foreach(var t in d.GetComponentsInChildren<Transform>(true))GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
@@ -155,6 +156,21 @@ public static class BraxChampionsHotelSobczakT03
         streamer.guestBaseY=Level(2);streamer.floorHeight=GuestStorey;streamer.halfWidth=TowerHalfW;streamer.halfDepth=TowerHalfD;
         streamer.neighbourFloors=1;
         foreach(var go in instances)go.SetActive(false);
+        // room furniture (models, fixtures, lights) is drawn only while the player or camera is in the room or at its door
+        int roomZones=0;
+        for(int i=0;i<instances.Length;i++)
+        {
+            int f=i+2;
+            foreach(var r in roomRects)
+            {
+                var g=instances[i].transform.Find("ROOM "+(f*100+r.n%100)+" | furniture (drawn when inside)");
+                if(!g)continue;
+                float zMid=(r.zc+r.zf)*.5f-r.s*1.3f,depth=Mathf.Abs(r.zf-r.zc)+2.6f;
+                var zone=g.gameObject.AddComponent<BraxWidocznoscWnetrza>();zone.nazwa="T03 room "+(f*100+r.n%100);
+                zone.strefy=new[]{new Bounds(root.TransformPoint(new Vector3((r.a+r.b)*.5f,Level(f)+1.7f,zMid)),new Vector3(r.b-r.a+.6f,3.6f,depth)*K)};
+                roomZones++;
+            }
+        }
 
         var report=new Report{rooms=roomsBuilt,doors=doorsBuilt,lobbyModels=modelsPlaced,height=Crown-Ffl0};
         File.WriteAllText(Out+"/hotel-sobczak-report.json",JsonUtility.ToJson(report,true));
@@ -166,7 +182,7 @@ public static class BraxChampionsHotelSobczakT03
         if(roomsBuilt!=TotalRooms)throw new InvalidOperationException("HOTEL SOBCZAK room count "+roomsBuilt+" != "+TotalRooms);
         Debug.Log("HOTEL_SOBCZAK_T03_REBUILT style=MODERN_BRICK podium=42x38 tower=34x32 height="+(Crown-Ffl0).ToString("F2")+
             " guestFloors="+GuestFloors+" rooms="+roomsBuilt+" lifts="+Elevators+" stops="+Stops+" stairs="+Stairs+
-            " doors="+doorsBuilt+" lobbyLeatherModels="+modelsPlaced+" signParts="+signParts+" meshes="+saved+
+            " doors="+doorsBuilt+" polyHavenModels="+modelsPlaced+" modelsMissing="+modelsMissing+" roomZones="+roomZones+" diningChairs="+diningChairs.Count+" signParts="+signParts+" meshes="+saved+
             " datumY="+datum.ToString("F3")+" entrance=automatic_sliding_doors_with_collision trees=0 visualReview=PENDING");
     }
 
@@ -180,6 +196,13 @@ public static class BraxChampionsHotelSobczakT03
         if(x1<x0){var t=x0;x0=x1;x1=t;}if(z1<z0){var t=z0;z0=z1;z1=t;}
         if(x1-x0<.001f||y1-y0<.001f||z1-z0<.001f)return;
         W.MM(m,x0,x1,y0,y1,z0,z1,col);
+    }
+    // a rug, not a painted floor: jacquard field 14 mm thick with a bound edge (leather or jersey binding)
+    static void Rug(Material field,Material edge,float x0,float x1,float y,float z0,float z1,float band=.11f)
+    {
+        Box(field,x0+band,x1-band,y,y+.013f,z0+band,z1-band);
+        Box(edge,x0,x1,y,y+.014f,z0,z0+band);Box(edge,x0,x1,y,y+.014f,z1-band,z1);
+        Box(edge,x0,x0+band,y,y+.014f,z0+band,z1-band);Box(edge,x1-band,x1,y,y+.014f,z0+band,z1-band);
     }
     static void Face(Material m,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Vector3 facing)
     {
@@ -292,7 +315,8 @@ public static class BraxChampionsHotelSobczakT03
             Ring(basin,DriveY,DriveY+.55f,.30f,M.podiumStone,true);
             Prism(Circle(sx*5.9f,-38.6f,2.25f),DriveY,DriveY+.42f,M.water,null,false);
             Prism(Circle(sx*5.9f,-38.6f,.35f,12),DriveY,DriveY+.75f,M.podiumStone,M.podiumStone,true);
-            Rod(M.water,new Vector3(sx*5.9f,DriveY+.75f,-38.6f),new Vector3(sx*5.9f,DriveY+2.1f,-38.6f),.07f);
+            W.Walec(M.water,new Vector3(sx*5.9f,DriveY+.75f,-38.6f),.16f,.10f,18);               // low bubbler over the column
+            W.Walec(M.chrome,new Vector3(sx*5.9f,DriveY+.74f,-38.6f),.05f,.02f,10);
         }
         // zebra crossing (stripes run with the traffic)
         for(float z=-33.55f;z<=-30.4f;z+=.9f)Box(M.whitePaint,-1.7f,1.7f,DriveY,DriveY+.004f,z,z+.45f);
@@ -305,14 +329,16 @@ public static class BraxChampionsHotelSobczakT03
         for(float x=-27f;x<=27.01f;x+=4.5f)
         {
             if(Mathf.Abs(x)<2.5f)continue;
-            Box(M.darkBronze,x-.08f,x+.08f,PlazaY,PlazaY+.9f,-PlotHalf+.6f,-PlotHalf+.76f,true);
-            Box(M.warmLight,x-.085f,x+.085f,PlazaY+.9f,PlazaY+1.0f,-PlotHalf+.595f,-PlotHalf+.765f);
+            W.Walec(M.darkBronze,new Vector3(x,PlazaY,-PlotHalf+.68f),.09f,.82f,14,true);           // round bronze bollard
+            W.Walec(M.frosted,new Vector3(x,PlazaY+.82f,-PlotHalf+.68f),.085f,.12f,14);
+            W.Walec(M.darkBronze,new Vector3(x,PlazaY+.94f,-PlotHalf+.68f),.095f,.03f,14);
         }
         foreach(float sx in new[]{-1f,1f})foreach(float x in new[]{4.2f,13f})
         {
             Rod(M.darkBronze,new Vector3(sx*x,PlazaY,-PlotHalf+.45f),new Vector3(sx*x,PlazaY+5.0f,-PlotHalf+.45f),.07f);
-            Box(M.darkBronze,sx*x-.25f,sx*x+.25f,PlazaY+4.9f,PlazaY+5.05f,-PlotHalf+.2f,-PlotHalf+.7f);
-            Box(M.warmLight,sx*x-.22f,sx*x+.22f,PlazaY+4.86f,PlazaY+4.9f,-PlotHalf+.23f,-PlotHalf+.67f);
+            W.Walec(M.darkBronze,new Vector3(sx*x,PlazaY,-PlotHalf+.45f),.12f,.35f,14,true);        // base
+            W.Walec(M.frosted,new Vector3(sx*x,PlazaY+4.55f,-PlotHalf+.45f),.16f,.42f,16);          // lantern
+            W.Walec(M.darkBronze,new Vector3(sx*x,PlazaY+4.97f,-PlotHalf+.45f),.21f,.05f,16);
         }
         In(site,false);
     }
@@ -343,9 +369,9 @@ public static class BraxChampionsHotelSobczakT03
     }
     // Wall behind the lift bank and the two short returns: closes the void behind the shafts
     // so the rooms on both sides of the core (toilets, service rooms) never connect through it.
-    static void CoreBack(float y0,float y1)
+    static void CoreBack(float y0,float y1,Material face=null)
     {
-        WallX(M.paint,CoreWallZ,-LiftBank,LiftBank,y0,y1,.2f);
+        WallX(face??M.paint,CoreWallZ,-LiftBank,LiftBank,y0,y1,.2f);
         foreach(float sx in new[]{-1f,1f})WallZ(M.paint,sx*(LiftBank+.1f),ShaftBack+.2f,CoreWallZ-.1f,y0,y1,.2f);
     }
 
@@ -484,6 +510,7 @@ public static class BraxChampionsHotelSobczakT03
         Face(M.teak,new Vector3(-7.4f,cy-.005f,c0+.1f),new Vector3(7.4f,cy-.005f,c0+.1f),new Vector3(7.4f,cy-.005f,-PodiumHalfD-.25f),new Vector3(-7.4f,cy-.005f,-PodiumHalfD-.25f),Vector3.down);
         In(details,false);
         foreach(float z in new[]{-PodiumHalfD-1.6f,-PodiumHalfD-3.4f,-PodiumHalfD-5.2f})Box(M.ledCool,-6.8f,6.8f,cy-.02f,cy-.005f,z-.05f,z+.05f);
+        for(float x=-6f;x<=6.01f;x+=2f)foreach(float z in new[]{-PodiumHalfD-2.5f,-PodiumHalfD-4.3f})Downlight(x,z,cy-.005f);
         foreach(float sx in new[]{-1f,1f})Rod(M.steel,new Vector3(sx*6.8f,cy+.5f,c0+.4f),new Vector3(sx*5f,Level(1)+2.6f,-PodiumHalfD-.25f),.04f);   // to the stone piers
         // granite inlay under the canopy (5 mm proud of the plaza)
         In(site,false);
@@ -600,16 +627,29 @@ public static class BraxChampionsHotelSobczakT03
         foreach(float sx in new[]{-1f,1f})Box(M.ledCool,sx*(TowerHalfW+.2f),sx*(TowerHalfW+.24f),y0-.04f,y0,-TowerHalfD,TowerHalfD);
         In(tower,false);
     }
-    // Sheer curtains parked at the outer sides of both room windows (always on: rooms read lived-in from outside).
+    // Pleated linen drapes parked at both sides of every room's window pair (always on: rooms read lived-in from outside).
     static void Curtains(bool alongX,float sz,float b0)
     {
-        float y0=b0+.62f,y1=b0+GuestStorey-Slab-.38f,z=sz*(TowerHalfD-.42f);
+        float y0=b0+.04f,y1=b0+GuestStorey-Slab-.08f,z=sz*(TowerHalfD-.48f);
         for(int i=0;i<5;i++)
         {
             float x=-TowerHalfW+i*RoomW;
-            Box(M.curtain,x+.5f,x+1.1f,y0,y1,z-.02f,z+.02f);
-            Box(M.curtain,x+RoomW-1.1f,x+RoomW-.5f,y0,y1,z-.02f,z+.02f);
+            Drape(x+.45f,x+1.15f,y0,y1,z,sz);
+            Drape(x+RoomW-1.15f,x+RoomW-.45f,y0,y1,z,sz);
         }
+    }
+    // Zig-zag folds (double-sided quads), 6 folds per drape.
+    static void Drape(float x0,float x1,float y0,float y1,float z,float sz)
+    {
+        const int folds=6;float d=.045f;
+        for(int k=0;k<folds;k++)
+        {
+            float u0=x0+(x1-x0)*k/folds,u1=x0+(x1-x0)*(k+1)/folds;
+            float za=z+(k%2==0?-d:d),zb=z+(k%2==0?d:-d);
+            var p0=new Vector3(u0,y0,za);var p1=new Vector3(u1,y0,zb);var p2=new Vector3(u1,y1,zb);var p3=new Vector3(u0,y1,za);
+            W.Quad(M.linen,p0,p1,p2,p3);W.Quad(M.linen,p3,p2,p1,p0);
+        }
+        Box(M.darkBronze,x0-.02f,x1+.02f,y1,y1+.03f,z-.03f,z+.03f);
     }
 
     // ================================================================ ROOF (8 m: technical + terrace)
@@ -678,6 +718,13 @@ public static class BraxChampionsHotelSobczakT03
         }
         // terrace: white leather loungers and planters
         foreach(float x in new[]{-13f,-8f,8f,13f})Lounger(roof,x,y,-11f);
+        foreach(float x in new[]{-3.2f,3.2f})
+        {
+            Model(H+"outdoor_table_chair_set_01/outdoor_table_chair_set_01_1k.gltf",roof,"roof terrace cafe set",new Vector3(x,y+.02f,-12.8f),90f,true);
+            Rod(M.darkBronze,new Vector3(x,y+.02f,-12.8f),new Vector3(x,y+2.55f,-12.8f),.025f);
+            W.Walec(M.linen,new Vector3(x,y+2.45f,-12.8f),1.45f,.05f,8);                           // parasol canopy
+            W.Walec(M.darkBronze,new Vector3(x,y+.02f,-12.8f),.22f,.06f,12,true);
+        }
         foreach(float x in new[]{-12f,12f})RoofPlanter(x,10f,2.5f,1.0f,y+.02f);
     }
     static void Lounger(Transform g,float x,float y,float z)
@@ -696,16 +743,16 @@ public static class BraxChampionsHotelSobczakT03
         Box(M.concrete,-4.15f,4.15f,y0,y1,ShaftBack,ShaftBack+.2f,true);
     }
     // Lift front wall of one stop (corridor face at z=-2.6): three 1.10 m openings, steel portals, call panels.
-    static void LiftFront(float y0,float y1)
+    static void LiftFront(float y0,float y1,Material face=null)
     {
-        float z=-CoreWallZ,t=.2f;
+        float z=-CoreWallZ,t=.2f;var wallM=face??M.paint;
         var gaps=new List<Gap>();foreach(float x in LiftX)gaps.Add(new Gap(x-LiftDoorHalf,x+LiftDoorHalf,2.2f));
         float x0=-LiftBank,cursor=x0;
         foreach(var g in gaps)
         {
-            Box(M.paint,cursor,g.a,y0,y1,z-t*.5f,z+t*.5f,true);Box(M.paint,g.a,g.b,y0+g.top,y1,z-t*.5f,z+t*.5f,true);cursor=g.b;
+            Box(wallM,cursor,g.a,y0,y1,z-t*.5f,z+t*.5f,true);Box(wallM,g.a,g.b,y0+g.top,y1,z-t*.5f,z+t*.5f,true);cursor=g.b;
         }
-        Box(M.paint,cursor,LiftBank,y0,y1,z-t*.5f,z+t*.5f,true);
+        Box(wallM,cursor,LiftBank,y0,y1,z-t*.5f,z+t*.5f,true);
         // corridor face: teak cladding, steel portals, call buttons
         Box(M.teak,-LiftBank,LiftBank,y0+2.2f+.15f,y0+2.9f,z-t*.5f-.02f,z-t*.5f);
         foreach(float x in LiftX)
@@ -827,9 +874,9 @@ public static class BraxChampionsHotelSobczakT03
     static void GroundFloor()
     {
         In(podiumInside,true);
-        float y0=Ffl0,yc=CeilingOf(0)-.01f,top=Level(1);
+        float y0=Ffl0,yc=CeilingOf(0)-.01f,top=Level(1),ys=yc-.55f;
         float zf=-PodiumHalfD+.3f,zb=PodiumHalfD-.3f,xw=PodiumHalfW-.3f;
-        // floors: cream marble lobby with black marble border, wings marble, back zones
+        // floors: cream marble lobby with a black marble border and brass inlay, wings marble, back zones
         Box(M.marble,-11.2f,11.2f,y0,y0+Fin,-14.5f,-CoreWallZ-.1f);
         Box(M.blackMarble,-11.2f,11.2f,y0+Fin,y0+Fin+.002f,-14.5f,-14.1f);
         foreach(float sx in new[]{-1f,1f})Box(M.marble,sx*11.4f,sx*xw,y0,y0+Fin,zf,-CoreWallZ-.1f);
@@ -838,163 +885,274 @@ public static class BraxChampionsHotelSobczakT03
         Box(M.oak,-11.2f,11.2f,y0,y0+Fin,RoomWallZ+.1f,zb);                                            // waiting lounge
         foreach(float sx in new[]{-1f,1f})Box(M.tile,sx*11.4f,sx*xw,y0,y0+Fin,RoomWallZ+.1f,zb);
         foreach(float sx in new[]{-1f,1f})Box(M.marble,sx*(StairX1+.2f),sx*xw,y0,y0+Fin,-2.4f,2.4f);     // side passage wing -> back
-        // ceiling (5.70 m clear) with LED coves, round brass chandelier ring over the lounge; stairwells stay open
+        // ceiling 5.70 m with a 1.0 m perimeter soffit, LED cove and downlights; brass ring chandelier over the lounge
         CeilAround(xw,zb,yc);
-        for(float z=-13f;z<=-4f;z+=3f)Box(M.ledCool,-10.5f,10.5f,yc-.015f,yc,z-.04f,z+.04f);
-        var ring=Circle(-6.5f,-9f,2.4f,32);
-        In(podiumInside,true);
-        Ring(ring,yc-1.5f,yc-1.38f,.08f,M.brass,false);
-        Ring(Circle(-6.5f,-9f,2.25f,32),yc-1.52f,yc-1.49f,.06f,M.warmLight,false);
-        foreach(float a in new[]{0f,120f,240f})
+        Soffit(-11.2f,11.2f,-14.5f,-CoreWallZ-.1f,ys,yc,1.0f);
+        for(float x=-8.5f;x<=8.51f;x+=3.4f)for(float z=-12.2f;z<=-4.5f;z+=2.6f)Downlight(x,z,yc);
+        Ring(Circle(-6.5f,-9f,2.4f,32),ys-1.1f,ys-.98f,.08f,M.brass,false);
+        Ring(Circle(-6.5f,-9f,2.25f,32),ys-1.12f,ys-1.09f,.06f,M.warmLight,false);
+        foreach(float ang in new[]{0f,120f,240f})
         {
-            float rad=a*Mathf.Deg2Rad;Rod(M.brass,new Vector3(-6.5f+Mathf.Cos(rad)*2.4f,yc-1.38f,-9f+Mathf.Sin(rad)*2.4f),new Vector3(-6.5f,yc,-9f),.012f);
+            float rad=ang*Mathf.Deg2Rad;Rod(M.brass,new Vector3(-6.5f+Mathf.Cos(rad)*2.4f,ys-.98f,-9f+Mathf.Sin(rad)*2.4f),new Vector3(-6.5f,yc,-9f),.012f);
         }
-        // walls: wings (wide openings), core band toilets, back corridor walls
+        // walls: wings (wide openings), staff door behind reception; lobby faces clad in large marble panels
         WallZ(M.paint,-11.3f,zf,-CoreWallZ,y0,top,.2f,new Gap(-13.5f,-6.5f,4.2f));                    // bar opening 7 m
         WallZ(M.paint,11.3f,zf,-CoreWallZ,y0,top,.2f,new Gap(-17.8f,-15.2f,2.8f),new Gap(-4.9f,-4.0f,2.1f));   // staff door behind reception
         Leaf(false,11.3f,-4.9f,-4.0f,y0,1f);
-        // reception: teak counter with a marble top at 1.10 m, LED line, backlit teak wall with the small 3D sign
-        Box(M.teak,6.2f,7.0f,y0,y0+1.04f,-12.6f,-6.2f,true);
-        Box(M.marble,6.1f,7.1f,y0+1.04f,y0+1.10f,-12.7f,-6.1f,true);
-        Box(M.ledCool,6.18f,6.2f,y0+.08f,y0+.11f,-12.5f,-6.3f);
-        Box(M.teakDark,7.0f,7.6f,y0,y0+.75f,-12.4f,-6.4f,true);
+        Clad(false,-11.2f,1f,zf,-2.6f,y0,yc,1.2f,1.5f,M.marble,new Gap(-13.5f,-6.5f,4.2f));
+        Clad(false,11.2f,-1f,zf,-13.8f,y0,yc,1.2f,1.5f,M.marble,new Gap(-17.8f,-15.2f,2.8f));
+        Clad(false,11.2f,-1f,-5.0f,-2.6f,y0,yc,1.2f,1.5f,M.marble,new Gap(-4.9f,-4.0f,2.1f));
+        // reception: fluted walnut counter, marble top, brass kick, LED; walnut back desk with monitors; backlit teak wall + 3D sign
+        Fluted(false,6.2f,-1f,-12.6f,-6.2f,y0+.08f,y0+1.04f,M.walnut);
+        Box(M.walnutDark,6.2f,7.0f,y0,y0+1.04f,-12.6f,-6.2f,true);
+        Box(M.brass,6.17f,6.25f,y0,y0+.08f,-12.62f,-6.18f);
+        Box(M.marble,6.05f,7.1f,y0+1.04f,y0+1.10f,-12.7f,-6.1f,true);
+        Box(M.ledCool,6.18f,6.2f,y0+.96f,y0+.99f,-12.5f,-6.3f);
+        Box(M.walnut,7.0f,7.7f,y0,y0+.74f,-12.4f,-6.4f,true);Box(M.marble,6.98f,7.72f,y0+.74f,y0+.77f,-12.42f,-6.38f);
+        foreach(float z in new[]{-10.6f,-8.0f})
+        {
+            Box(M.screen,7.25f,7.28f,y0+.95f,y0+1.27f,z-.27f,z+.27f);Box(M.darkBronze,7.28f,7.32f,y0+.77f,y0+1.0f,z-.04f,z+.04f);
+        }
         Box(M.teak,11.15f,11.2f,y0,yc,-13.8f,-5f);
         Box(M.ledCool,11.12f,11.15f,y0+2.4f,y0+2.43f,-13.6f,-5.2f);
         Box(M.ledCool,11.12f,11.15f,y0+4.6f,y0+4.63f,-13.6f,-5.2f);
-        W.Lampa("reception light",new Vector3(8.5f,yc-1f,-9.4f),1.0f,9f);
-        // lobby lounge: real leather sofas and armchairs (Poly Haven CC0), marble tables, plants, rug
-        Box(M.carpetRoom,-10f,-3f,y0+Fin,y0+Fin+.008f,-12.3f,-5.7f);
-        LobbyModel("sofa_02/sofa_02_2k.gltf","lobby leather sofa",-6.5f,y0,-11.6f,0f,true);
-        LobbyModel("sofa_02/sofa_02_2k.gltf","lobby leather sofa",-6.5f,y0,-6.4f,180f,true);
-        LobbyModel("modern_arm_chair_01/modern_arm_chair_01_2k.gltf","lobby leather armchair",-9.4f,y0,-9f,90f,true);
-        LobbyModel("modern_arm_chair_01/modern_arm_chair_01_2k.gltf","lobby leather armchair",-3.6f,y0,-9f,-90f,true);
-        CoffeeTable(-6.5f,y0,-9f,1.6f,.9f);
-        foreach(var p in new[]{new Vector2(-10.6f,-13.6f),new Vector2(-2.4f,-13.6f),new Vector2(-10.6f,-4.4f),new Vector2(2.6f,-13.6f)})
-            LobbyModel("potted_plant_01/potted_plant_01_1k.gltf","lobby plant",p.x,y0,p.y,(p.x*13f)%360f,false);
-        W.Lampa("lobby light",new Vector3(0,yc-1.2f,-9f),1.1f,13f);
-        // lobby bar (west wing): teak counter, marble top, backlit shelves, leather stools, armchairs
-        Box(M.teak,-15.6f,-14.8f,y0,y0+1.05f,-16.5f,-6f,true);
-        Box(M.marble,-15.75f,-14.65f,y0+1.05f,y0+1.11f,-16.6f,-5.9f,true);
-        Box(M.teakDark,-xw,-xw+.45f,y0,y0+2.6f,-16.5f,-6f,true);
-        for(float yy=y0+1.1f;yy<y0+2.6f;yy+=.5f)Box(M.ledCool,-xw+.42f,-xw+.45f,yy,yy+.02f,-16.4f,-6.1f);
-        for(float z=-15.6f;z<=-6.8f;z+=1.25f)Stool(-14.0f,y0,z);
-        LobbyModel("modern_arm_chair_01/modern_arm_chair_01_2k.gltf","bar leather armchair",-13.0f,y0,-17.9f,0f,true);
-        LobbyModel("modern_arm_chair_01/modern_arm_chair_01_2k.gltf","bar leather armchair",-18.0f,y0,-17.9f,0f,true);
-        W.Lampa("bar light",new Vector3(-16f,yc-1f,-11f),.9f,9f);
-        // east wing: concierge desk, luggage room
-        Box(M.teak,15.5f,16.3f,y0,y0+1.04f,-17.6f,-15.4f,true);Box(M.marble,15.4f,16.4f,y0+1.04f,y0+1.10f,-17.7f,-15.3f,true);
+        Model(H+"ceramic_vase_02/ceramic_vase_02_1k.gltf",podiumInside,"reception vase",new Vector3(6.6f,y0+1.10f,-12.2f),0f,false);
+        Model(H+"potted_plant_04/potted_plant_04_1k.gltf",podiumInside,"reception succulent",new Vector3(6.6f,y0+1.10f,-6.6f),0f,false);
+        W.Lampa("reception light",new Vector3(8.5f,ys-1f,-9.4f),1.0f,9f);
+        // lobby lounge: leather sofas and armchairs, marble/metal coffee table, side tables with vases, jacquard rug, plants, art
+        Rug(M.rugLobby,M.cognac,-10f,-3f,y0+Fin,-12.3f,-5.7f);
+        LobbySeat(A+"sofa_02/sofa_02_2k.gltf","lobby leather sofa",-6.5f,y0,-11.6f,0f,2.2f);
+        LobbySeat(A+"sofa_02/sofa_02_2k.gltf","lobby leather sofa",-6.5f,y0,-6.4f,180f,2.2f);
+        LobbySeat(A+"modern_arm_chair_01/modern_arm_chair_01_2k.gltf","lobby leather armchair",-9.4f,y0,-9f,90f,.85f);
+        LobbySeat(A+"modern_arm_chair_01/modern_arm_chair_01_2k.gltf","lobby leather armchair",-3.6f,y0,-9f,-90f,.85f);
+        Model(H+"coffee_table_round_01/coffee_table_round_01_2k.gltf",podiumInside,"lobby coffee table, marble",new Vector3(-6.5f,y0+Fin,-9f),0f,true);
+        foreach(float x in new[]{-8.4f,-4.6f})
+        {
+            Model(H+"side_table_01/side_table_01_1k.gltf",podiumInside,"lobby side table",new Vector3(x,y0+Fin,-12.0f),0f,true);
+            Model(H+"ceramic_vase_01/ceramic_vase_01_1k.gltf",podiumInside,"lobby vase",new Vector3(x,y0+.56f,-12.0f),0f,false);
+        }
+        foreach(var pt in new[]{new Vector2(-10.4f,-13.9f),new Vector2(2.9f,-13.9f)})
+            Model(A+"potted_plant_02/potted_plant_02_1k.gltf",podiumInside,"lobby plant",new Vector3(pt.x,y0+Fin,pt.y),pt.x*13f,false);
+        Model(H+"hanging_picture_frame_02/hanging_picture_frame_02_1k.gltf",podiumInside,"lobby art west",new Vector3(-11.16f,y0+2.4f,-16.2f),90f,false,Snap.Centre);
+        Model(H+"hanging_picture_frame_02/hanging_picture_frame_02_1k.gltf",podiumInside,"lobby art west 2",new Vector3(-11.16f,y0+2.4f,-4.6f),90f,false,Snap.Centre);
+        W.Lampa("lobby light",new Vector3(0,ys-1.2f,-9f),1.1f,13f);
+        // lobby bar (west wing): fluted walnut front, marble top, brass foot rail, mirrored backlit back bar, leather stools
+        Fluted(false,-14.8f,1f,-16.5f,-6f,y0+.08f,y0+1.05f,M.walnut);
+        Box(M.walnutDark,-15.6f,-14.8f,y0,y0+1.05f,-16.5f,-6f,true);
+        Box(M.brass,-14.85f,-14.77f,y0,y0+.08f,-16.52f,-5.98f);
+        Box(M.marble,-15.75f,-14.6f,y0+1.05f,y0+1.11f,-16.6f,-5.9f,true);
+        Rod(M.brass,new Vector3(-14.55f,y0+.22f,-16.4f),new Vector3(-14.55f,y0+.22f,-6.1f),.025f);
+        Box(M.walnut,-xw,-xw+.45f,y0,y0+.95f,-16.5f,-6f,true);
+        Box(M.mirror,-xw,-xw+.02f,y0+.95f,y0+2.9f,-16.4f,-6.1f);
+        for(float yy=y0+1.25f;yy<y0+2.9f;yy+=.55f){Box(M.walnut,-xw,-xw+.32f,yy,yy+.04f,-16.4f,-6.1f);Box(M.ledCool,-xw+.29f,-xw+.32f,yy-.02f,yy,-16.3f,-6.2f);}
+        Box(M.walnut,-xw,-xw+.45f,y0+2.9f,y0+3.1f,-16.5f,-6f);
+        for(float z=-15.4f;z<=-6.9f;z+=1.4f)
+            if(!Model(H+"bar_chair_round_01/bar_chair_round_01_1k.gltf",podiumInside,"lobby bar stool, leather",new Vector3(-14.0f,y0+Fin,z),-90f,true))Stool(-14.0f,y0,z);
+        LobbySeat(A+"modern_arm_chair_01/modern_arm_chair_01_2k.gltf","bar leather armchair",-13.0f,y0,-17.9f,0f,.85f);
+        LobbySeat(A+"modern_arm_chair_01/modern_arm_chair_01_2k.gltf","bar leather armchair",-18.0f,y0,-17.9f,0f,.85f);
+        Model(H+"side_table_01/side_table_01_1k.gltf",podiumInside,"bar side table",new Vector3(-15.5f,y0+Fin,-17.9f),0f,true);
+        W.Lampa("bar light",new Vector3(-16f,ys-1f,-11f),.9f,9f);
+        // east wing: fluted concierge desk, brass luggage trolley with suitcases, luggage room, wall clock
+        Fluted(false,15.5f,-1f,-17.6f,-15.4f,y0+.08f,y0+1.04f,M.walnut);
+        Box(M.walnutDark,15.5f,16.3f,y0,y0+1.04f,-17.66f,-15.4f,true);Box(M.marble,15.35f,16.45f,y0+1.04f,y0+1.10f,-17.75f,-15.3f,true);
+        LuggageTrolley(13.2f,y0,-16.4f);
         WallX(M.paint,-10f,14.0f,xw,y0,top,.2f,new Gap(16.2f,17.2f,2.1f));       // luggage room (bagazownia)
         WallZ(M.paint,13.9f,-10f,-CoreWallZ,y0,top,.2f);
         Leaf(true,-10f,16.2f,17.2f,y0,1f);
-        for(float z=-8.8f;z<=-4.2f;z+=1.5f)Box(M.teakDark,18.6f,xw,y0,y0+2.2f,z-.25f,z+.25f,true);
-        W.Lampa("concierge light",new Vector3(16f,yc-1f,-14f),.8f,8f);
+        for(float z=-8.8f;z<=-4.2f;z+=1.5f)Box(M.walnut,18.6f,xw,y0,y0+2.2f,z-.25f,z+.25f,true);
+        foreach(float z in new[]{-8.8f,-5.8f})
+            Model(H+"vintage_suitcase/vintage_suitcase_1k.gltf",podiumInside,"stored suitcase",new Vector3(19.4f,y0+2.2f,z),90f,false);
+        Model(H+"wall_clock/wall_clock_1k.gltf",podiumInside,"concierge wall clock",new Vector3(13.8f,y0+2.6f,-10.12f),180f,false,Snap.Centre);
+        W.Lampa("concierge light",new Vector3(16f,ys-1f,-14f),.8f,8f);
         // core band: guest toilets (men west, women east) opening to the lobby
         foreach(float sx in new[]{-1f,1f})Toilets(sx,y0,top,yc);
-        LiftFront(y0,top);
+        LiftFront(y0,top,M.marble);
         Box(M.marble,-LiftBank,LiftBank,y0+2.9f,yc,-CoreWallZ-.12f,-CoreWallZ-.1f);          // marble-clad lift wall up to the ceiling
+        foreach(float sx in new[]{-1f,1f})                                                   // toilet fronts clad like the lift wall
+            Clad(true,-CoreWallZ-.1f,-1f,Lo(sx*4.35f,sx*11.2f),Hi(sx*4.35f,sx*11.2f),y0,yc,1.2f,1.5f,M.marble,new Gap(Lo(sx*8.7f,sx*9.6f),Hi(sx*8.7f,sx*9.6f),2.1f));
         CoreBack(y0,top);
-        // back: corridor walls, waiting lounge (poczekalnia), luggage store, staff room with service exit
-        WallX(M.paint,RoomWallZ,-xw,xw,y0,top,.2f,new Gap(-9f,9f,3.6f),new Gap(-16.6f,-15.6f,2.1f),new Gap(15.6f,16.6f,2.1f));
+        // back: corridor (grasscloth), waiting lounge (poczekalnia), back office, staff room with service exit
+        WallX(M.grasscloth,RoomWallZ,-xw,xw,y0,top,.2f,new Gap(-9f,9f,3.6f),new Gap(-16.6f,-15.6f,2.1f),new Gap(15.6f,16.6f,2.1f));
         Leaf(true,RoomWallZ,-16.6f,-15.6f,y0,1f);Leaf(true,RoomWallZ,15.6f,16.6f,y0,1f);
-        foreach(float sx in new[]{-1f,1f})WallZ(M.paint,sx*11.3f,RoomWallZ+.1f,zb,y0,top,.2f);
-        Box(M.carpetRoom,-8f,8f,y0+Fin,y0+Fin+.008f,8.5f,15.5f);
-        LobbyModel("sofa_02/sofa_02_2k.gltf","waiting leather sofa",-4f,y0,15.6f,180f,true);
-        LobbyModel("sofa_02/sofa_02_2k.gltf","waiting leather sofa",4f,y0,15.6f,180f,true);
-        LobbyModel("modern_arm_chair_01/modern_arm_chair_01_2k.gltf","waiting leather armchair",-7.5f,y0,11f,90f,true);
-        LobbyModel("modern_arm_chair_01/modern_arm_chair_01_2k.gltf","waiting leather armchair",7.5f,y0,11f,-90f,true);
-        CoffeeTable(-4f,y0,12.4f,1.4f,.8f);CoffeeTable(4f,y0,12.4f,1.4f,.8f);
-        foreach(float x in new[]{-10.4f,10.4f})LobbyModel("potted_plant_02/potted_plant_02_1k.gltf","waiting plant",x,y0,17.6f,0f,false);
+        foreach(float sx in new[]{-1f,1f})WallZ(M.grasscloth,sx*11.3f,RoomWallZ+.1f,zb,y0,top,.2f);
+        Rug(M.rugRoom,M.cognac,-8f,8f,y0+Fin,8.5f,15.5f);
+        LobbySeat(A+"sofa_02/sofa_02_2k.gltf","waiting leather sofa",-4f,y0,15.6f,180f,2.2f);
+        LobbySeat(A+"sofa_02/sofa_02_2k.gltf","waiting leather sofa",4f,y0,15.6f,180f,2.2f);
+        foreach(float sx in new[]{-1f,1f})
+        {
+            if(!Model(H+"mid_century_lounge_chair/mid_century_lounge_chair_2k.gltf",podiumInside,"waiting lounge chair, leather",new Vector3(sx*7.6f,y0+Fin,11f),-90f*sx,true))
+                ProceduralSofa(sx*7.6f,y0,11f,-90f*sx,.85f);
+            Model(H+"modern_coffee_table_01/modern_coffee_table_01_2k.gltf",podiumInside,"waiting coffee table",new Vector3(sx*4f,y0+Fin,14.0f),0f,true);
+            Model(H+"ceramic_vase_02/ceramic_vase_02_1k.gltf",podiumInside,"waiting vase",new Vector3(sx*4.3f,y0+.40f,14.0f),0f,false);
+            Model(A+"potted_plant_02/potted_plant_02_1k.gltf",podiumInside,"waiting plant",new Vector3(sx*10.4f,y0+Fin,17.6f),0f,false);
+            Model(H+"fancy_picture_frame_01/fancy_picture_frame_01_1k.gltf",podiumInside,"waiting lounge art",new Vector3(sx*11.18f,y0+2.2f,12f),-90f*sx,false,Snap.Centre);
+        }
+        for(float x=-8f;x<=8.01f;x+=4f)Downlight(x,12f,yc);
         W.Lampa("waiting lounge light",new Vector3(0,yc-1f,12f),.9f,11f);
         foreach(float z in new[]{8f,11.5f,15f})                                                                  // back office desks
         {
-            Box(M.teak,-19.6f,-16.4f,y0+.72f,y0+.76f,z-.6f,z+.6f,true);
-            Box(M.teakDark,-19.55f,-16.45f,y0,y0+.72f,z+.5f,z+.56f);
-            Box(M.leather,-18.3f,-17.7f,y0+.42f,y0+.5f,z-1.3f,z-.7f,true);
+            Box(M.walnut,-19.6f,-16.4f,y0+.72f,y0+.76f,z-.6f,z+.6f,true);
+            Box(M.walnutDark,-19.55f,-16.45f,y0,y0+.72f,z+.5f,z+.56f);
+            Box(M.screen,-19.3f,-19.27f,y0+.9f,y0+1.22f,z-.28f,z+.28f);
+            if(!Model(H+"dining_chair_02/dining_chair_02_2k.gltf",podiumInside,"back office chair",new Vector3(-18f,y0+Fin,z-.9f),0f,true))
+                Box(M.leather,-18.3f,-17.7f,y0+.42f,y0+.5f,z-1.3f,z-.7f,true);
         }
-        for(float z=6.5f;z<=17.5f;z+=1.6f)Box(M.teakDark,-xw,-xw+.6f,y0,y0+2.2f,z-.35f,z+.35f,true);              // archive shelves
-        for(float z=6.5f;z<=12f;z+=1.1f)Box(M.teak,xw-.6f,xw,y0,y0+2.0f,z-.5f,z+.5f,true);                       // staff lockers
-        Box(M.teak,14f,17f,y0+.72f,y0+.76f,14f,16f,true);
+        for(float z=6.5f;z<=17.5f;z+=1.6f)Box(M.walnut,-xw,-xw+.6f,y0,y0+2.2f,z-.35f,z+.35f,true);                // archive cabinets
+        for(float z=6.5f;z<=12f;z+=1.1f)Box(M.walnut,xw-.6f,xw,y0,y0+2.0f,z-.5f,z+.5f,true);                     // staff lockers
+        Box(M.walnut,14f,17f,y0+.72f,y0+.76f,14f,16f,true);
         W.Lampa("back of house light",new Vector3(16f,yc-1f,12f),.7f,9f);
         Stair(-1f,Level(0),Level(1),2);Stair(1f,Level(0),Level(1),2);
         StairWalls(y0,top,true);
     }
+    // Guest toilets: marble walls, walnut cubicles with doors, wall-hung WCs, vessel basins with chrome taps, LED mirror.
     static void Toilets(float sx,float y0,float top,float yc)
     {
-        float a=sx*4.15f,b=sx*11.2f,z0=-CoreWallZ+.1f,z1=CoreWallZ-.1f,x0=Lo(a,b),x1=Hi(a,b);
+        float a=sx*4.15f,b=sx*11.2f,z0=-CoreWallZ+.1f,z1=CoreWallZ-.1f,x0=Lo(a,b),x1=Hi(a,b),ty=y0+3.0f;
         WallX(M.paint,-CoreWallZ,x0,x1,y0,top,.2f,new Gap(sx<0?-9.6f:8.7f,sx<0?-8.7f:9.6f,2.1f));
         Leaf(true,-CoreWallZ,sx<0?-9.6f:8.7f,sx<0?-8.7f:9.6f,y0,1f);
         WallX(M.paint,CoreWallZ,x0,x1,y0,top,.2f);
         Box(M.marbleWet,x0,x1,y0,y0+Fin,z0,z1);
-        Box(M.marble,x0,x1,y0,y0+3.0f,z1-.01f,z1);
+        Box(M.marble,x0,x1,y0,ty,z1-.01f,z1);
+        Box(M.marble,x0,Lo(sx*8.65f,sx*9.65f),y0,ty,z0,z0+.01f);Box(M.marble,Hi(sx*8.65f,sx*9.65f),x1,y0,ty,z0,z0+.01f);
+        Box(M.marble,Lo(sx*8.65f,sx*9.65f),Hi(sx*8.65f,sx*9.65f),y0+2.1f,ty,z0,z0+.01f);
+        Box(M.marble,x0,x0+.01f,y0,ty,z0,z1);Box(M.marble,x1-.01f,x1,y0,ty,z0,z1);
+        // three cubicles against the back wall: walnut partitions and doors (open 90 degrees), wall-hung WCs
         for(int i=0;i<3;i++)
         {
-            float x=sx*(5.2f+i*1.3f);
-            Box(M.whitePaint,x-.2f,x+.2f,y0,y0+.42f,z1-.7f,z1-.05f,true);
-            Box(M.teakDark,x+.62f,x+.67f,y0+.1f,y0+2.1f,z1-1.6f,z1,true);
+            float c=sx*(5.2f+i*1.3f),p=c+sx*.65f;
+            Box(M.walnut,p-.025f,p+.025f,y0+.12f,y0+2.2f,z1-1.6f,z1,true);
+            Box(M.chrome,p-.03f,p+.03f,y0,y0+.12f,z1-1.6f,z1-1.5f);
+            Box(M.marble,c-.25f,c+.25f,y0,y0+1.1f,z1-.18f,z1,true);
+            W.Walec(M.whitePaint,new Vector3(c,y0+.22f,z1-.45f),.19f,.18f,20,true);
+            W.Walec(M.whitePaint,new Vector3(c,y0+.40f,z1-.45f),.20f,.03f,20);
+            Box(M.chrome,c-.1f,c+.1f,y0+.92f,y0+1.04f,z1-.19f,z1-.18f);
+            Box(M.walnut,c-sx*.6f,c-sx*.58f,y0+.12f,y0+2.2f,z1-1.6f-.8f,z1-1.6f);           // door leaf open into the room
+            Box(M.chrome,c-sx*.62f,c-sx*.56f,y0+1.0f,y0+1.03f,z1-2.3f,z1-2.2f);
         }
-        float v0=Lo(sx*4.35f,sx*8.4f),v1=Hi(sx*4.35f,sx*8.4f);                 // vanity clear of the door (8.7-9.6)
+        Box(M.walnut,Lo(sx*4.55f,sx*8.55f),Hi(sx*4.55f,sx*8.55f),y0+2.2f,y0+2.26f,z1-1.62f,z1-1.58f);
+        // vanity: marble slab on walnut, two vessel basins, chrome taps, LED-backlit mirror
+        float v0=Lo(sx*4.35f,sx*8.4f),v1=Hi(sx*4.35f,sx*8.4f);
         Box(M.marble,v0,v1,y0+.82f,y0+.88f,z0,z0+.55f,true);
-        Box(M.teakDark,v0+.05f,v1-.05f,y0+.15f,y0+.82f,z0,z0+.5f);
-        for(float x=v0+.6f;x<v1-.3f;x+=1.2f)Box(M.whitePaint,x-.25f,x+.25f,y0+.84f,y0+.92f,z0+.1f,z0+.42f);
-        Box(M.mirror,v0+.1f,v1-.1f,y0+1.1f,y0+2.1f,z0,z0+.02f);
-        Ceil(x0,x1,z0,z1,y0+3.0f);
+        Box(M.walnut,v0+.05f,v1-.05f,y0+.3f,y0+.82f,z0,z0+.5f);
+        for(float x=v0+1.0f;x<v1-.5f;x+=2.0f)
+        {
+            W.Walec(M.whitePaint,new Vector3(x,y0+.88f,z0+.3f),.2f,.13f,20);
+            Rod(M.chrome,new Vector3(x,y0+.88f,z0+.06f),new Vector3(x,y0+1.16f,z0+.06f),.014f);
+            Rod(M.chrome,new Vector3(x,y0+1.16f,z0+.06f),new Vector3(x,y0+1.16f,z0+.22f),.012f);
+        }
+        Box(M.mirror,v0+.1f,v1-.1f,y0+1.2f,y0+2.2f,z0+.01f,z0+.03f);
+        Box(M.ledCool,v0+.12f,v1-.12f,y0+1.18f,y0+1.2f,z0+.01f,z0+.025f);
+        Ceil(x0,x1,z0,z1,ty);
+        Downlight((x0+x1)*.5f,0,ty);Downlight(sx*5.5f,0,ty);Downlight(sx*9.8f,0,ty);
         W.Lampa((sx<0?"men":"women")+" toilet light",new Vector3((x0+x1)*.5f,y0+2.6f,0),.7f,6f);
     }
     // Stair enclosures: core walls with the landing openings, side walls to the service rooms / toilets.
-    static void StairWalls(float y0,float top,bool podiumLevel)
+    static void StairWalls(float y0,float top,bool podiumLevel,Material face=null)
     {
+        var wm=face??M.paint;
         foreach(float sx in new[]{-1f,1f})
         {
             float a=sx*StairX0,b=sx*StairX1;
             foreach(float sz in new[]{-1f,1f})
-                WallX(M.paint,sz*CoreWallZ,Lo(sx*11.2f,b),Hi(sx*11.2f,b),y0,top,.2f,new Gap(sx<0?-12.5f:11.4f,sx<0?-11.4f:12.5f,2.4f));
+                WallX(wm,sz*CoreWallZ,Lo(sx*11.2f,b),Hi(sx*11.2f,b),y0,top,.2f,new Gap(sx<0?-12.5f:11.4f,sx<0?-11.4f:12.5f,2.4f));
             WallZ(M.paint,sx*11.25f,-CoreWallZ+.1f,CoreWallZ-.1f,y0,top,.1f);
             if(podiumLevel)WallZ(M.paint,sx*(StairX1+.1f),-CoreWallZ-.1f,CoreWallZ+.1f,y0,top,.2f);
             Box(M.terrazzo,Lo(a,sx*StairLand),Hi(a,sx*StairLand),y0,y0+Fin,-2.4f,2.4f);
             if(podiumLevel)Box(M.terrazzo,Lo(sx*StairLand,b),Hi(sx*StairLand,b),y0,y0+Fin,-2.4f,2.4f);
         }
     }
-    static void CoffeeTable(float x,float y,float z,float w,float d)
+    static void Soffit(float x0,float x1,float z0,float z1,float ys,float yc,float w)
     {
-        Box(M.blackMarble,x-w*.5f,x+w*.5f,y+.40f,y+.45f,z-d*.5f,z+d*.5f,true);
-        foreach(float dx in new[]{-1f,1f})Box(M.brass,x+dx*(w*.5f-.12f)-.02f,x+dx*(w*.5f-.12f)+.02f,y,y+.40f,z-d*.5f+.08f,z+d*.5f-.08f);
+        Box(M.ceiling,x0,x1,ys,yc,z0,z0+w);Box(M.ceiling,x0,x1,ys,yc,z1-w,z1);
+        Box(M.ceiling,x0,x0+w,ys,yc,z0+w,z1-w);Box(M.ceiling,x1-w,x1,ys,yc,z0+w,z1-w);
+        Box(M.ledCool,x0+w,x1-w,ys,ys+.025f,z0+w-.012f,z0+w);Box(M.ledCool,x0+w,x1-w,ys,ys+.025f,z1-w,z1-w+.012f);
+        Box(M.ledCool,x0+w-.012f,x0+w,ys,ys+.025f,z0+w,z1-w);Box(M.ledCool,x1-w,x1-w+.012f,ys,ys+.025f,z0+w,z1-w);
+        for(float x=x0+.5f;x<x1;x+=1.6f){Downlight(x,z0+w*.5f,ys);Downlight(x,z1-w*.5f,ys);}
+    }
+    // Large-format stone panels with 4 mm joints on a wall face (openings left free).
+    static void Clad(bool alongX,float plane,float into,float a,float b,float y0,float y1,float pw,float ph,Material m,params Gap[] gaps)
+    {
+        float t=.02f,p0=Lo(plane,plane+into*t),p1=Hi(plane,plane+into*t);
+        for(float u=a;u<b-.01f;u+=pw)
+            for(float v=y0;v<y1-.01f;v+=ph)
+            {
+                float u1=Mathf.Min(u+pw,b)-.002f,v1=Mathf.Min(v+ph,y1)-.002f,ua=u+.002f,va=v+.002f;
+                bool hole=false;
+                foreach(var g in gaps)if(ua<g.b&&u1>g.a&&va<y0+g.top){hole=true;break;}
+                if(hole)
+                {
+                    // split the panel around the opening: parts left/right/above
+                    foreach(var g in gaps)
+                    {
+                        if(!(ua<g.b&&u1>g.a&&va<y0+g.top))continue;
+                        if(ua<g.a)Panel(alongX,ua,g.a,va,v1,p0,p1,m);
+                        if(u1>g.b)Panel(alongX,g.b,u1,va,v1,p0,p1,m);
+                        if(v1>y0+g.top)Panel(alongX,Mathf.Max(ua,g.a),Mathf.Min(u1,g.b),y0+g.top,v1,p0,p1,m);
+                    }
+                    continue;
+                }
+                Panel(alongX,ua,u1,va,v1,p0,p1,m);
+            }
+    }
+    static void Panel(bool alongX,float u0,float u1,float v0,float v1,float p0,float p1,Material m)
+    {
+        if(alongX)Box(m,u0,u1,v0,v1,p0,p1);else Box(m,p0,p1,v0,v1,u0,u1);
+    }
+    // Fluted front: vertical half-round flutes (4.5 cm, 6.5 cm pitch) standing on a face plane.
+    static void Fluted(bool alongX,float plane,float into,float a,float b,float y0,float y1,Material m)
+    {
+        float p0=Lo(plane,plane+into*.025f),p1=Hi(plane,plane+into*.025f);
+        for(float u=a+.01f;u+.045f<=b;u+=.065f)Panel(alongX,u,u+.045f,y0,y1,p0,p1,m);
+    }
+    static void LuggageTrolley(float x,float y,float z)
+    {
+        Box(M.rugLobby,x-.55f,x+.55f,y+.16f,y+.20f,z-.32f,z+.32f,true);
+        Box(M.brass,x-.57f,x+.57f,y+.12f,y+.16f,z-.34f,z+.34f);
+        foreach(float dx in new[]{-.48f,.48f})foreach(float dz in new[]{-.26f,.26f})W.Walec(M.darkBronze,new Vector3(x+dx,y,z+dz),.05f,.12f,10);
+        foreach(float dx in new[]{-.52f,.52f})Rod(M.brass,new Vector3(x+dx,y+.2f,z),new Vector3(x+dx,y+1.75f,z),.02f);
+        Rod(M.brass,new Vector3(x-.52f,y+1.75f,z),new Vector3(x+.52f,y+1.75f,z),.02f);
+        Rod(M.brass,new Vector3(x-.52f,y+1.55f,z),new Vector3(x+.52f,y+1.55f,z),.014f);
+        Model(H+"vintage_suitcase/vintage_suitcase_1k.gltf",podiumInside,"suitcase on trolley",new Vector3(x,y+.2f,z),0f,false);
+    }
+    static void LobbySeat(string path,string label,float x,float y,float z,float yaw,float width)
+    {
+        if(!Model(path,podiumInside,label,new Vector3(x,y+Fin,z),yaw,true))ProceduralSofa(x,y,z,yaw,width);
     }
     static void Stool(float x,float y,float z)
     {
         Rod(M.brass,new Vector3(x,y,z),new Vector3(x,y+.72f,z),.03f);
         Prism(Circle(x,z,.2f,12),y,y+.02f,M.brass,M.brass,false);
-        Prism(Circle(x,z,.21f,12),y+.72f,y+.80f,M.leather,M.leather,true);
+        Prism(Circle(x,z,.21f,12),y+.72f,y+.80f,M.cognac,M.cognac,true);
     }
-    // Poly Haven CC0 leather sofa / armchair / plant, real size, standing exactly on the floor.
-    static bool LobbyModel(string file,string label,float x,float y,float z,float yaw,bool solid)
+    const string H="HotelSobczak/",A="ArenaLobby/";
+    enum Snap{Floor,Top,Centre}
+    // Poly Haven CC0 model at real size under 'parent' (the root is still at the origin, scale 1).
+    // at: floor point (Floor), ceiling/cable point (Top) or centre (Centre); yaw turns the model front (+Z).
+    static GameObject Model(string path,Transform parent,string label,Vector3 at,float yaw,bool solid,Snap snap=Snap.Floor)
     {
-        var source=AssetDatabase.LoadAssetAtPath<GameObject>(LobbyModels+file);
-        if(!source)
+        string full="Assets/Source/Mistrzowie/"+path;
+        var source=AssetDatabase.LoadAssetAtPath<GameObject>(full);
+        if(!source){BraxBuildQuality.Warn("DO POPRAWKI T03_MODEL_MISSING "+full+" (prepare_hotel_sobczak_models.py / prepare_arena_lobby_models.py)");modelsMissing++;return null;}
+        if(!HasTextures(source))   // import-order guard (as in the arena): re-import once so the model gets its maps
         {
-            BraxBuildQuality.Warn("DO POPRAWKI T03_LOBBY_MODEL_MISSING "+file+" (prepare_arena_lobby_models.py)"+(file.StartsWith("potted")?"":" -> procedural leather piece"));
-            if(file.StartsWith("sofa"))ProceduralSofa(x,y,z,yaw,2.2f);
-            else if(file.StartsWith("modern"))ProceduralSofa(x,y,z,yaw,.85f);
-            return false;
-        }
-        if(!HasTextures(source))   // import-order guard (as in the arena): re-import once so the leather gets its maps
-        {
-            AssetDatabase.ImportAsset(LobbyModels+file,ImportAssetOptions.ForceUpdate|ImportAssetOptions.ForceSynchronousImport);
-            source=AssetDatabase.LoadAssetAtPath<GameObject>(LobbyModels+file);
-            if(!source)return false;
+            AssetDatabase.ImportAsset(full,ImportAssetOptions.ForceUpdate|ImportAssetOptions.ForceSynchronousImport);
+            source=AssetDatabase.LoadAssetAtPath<GameObject>(full);
+            if(!source)return null;
         }
         var go=PrefabUtility.InstantiatePrefab(source) as GameObject;
-        if(!go)return false;
-        go.name="T03 LOBBY | "+label+" | Poly Haven CC0 leather, real size";
-        go.transform.SetParent(podiumInside,false);
+        if(!go)return null;
+        go.name="T03 | "+label+" | Poly Haven CC0, real size";
+        go.transform.SetParent(parent,false);
         go.transform.localRotation=Quaternion.Euler(0,yaw,0)*go.transform.localRotation;
-        go.transform.localScale=Vector3.one;                              // root still at scale 1: real metres
-        go.transform.localPosition=new Vector3(x,y,z);
+        go.transform.localScale=Vector3.one;
+        go.transform.localPosition=at;
+        var target=parent.TransformPoint(at);
         foreach(var c in go.GetComponentsInChildren<Collider>(true))UnityEngine.Object.DestroyImmediate(c);
         var rs=go.GetComponentsInChildren<Renderer>(true);
         if(rs.Length>0)
         {
             var b=rs[0].bounds;foreach(var r in rs)b.Encapsulate(r.bounds);
-            go.transform.position+=Vector3.up*(y+Fin-b.min.y);
+            go.transform.position+=snap==Snap.Floor?Vector3.up*(target.y-b.min.y):snap==Snap.Top?Vector3.up*(target.y-b.max.y):target-b.center;
             if(solid)
             {
                 b=rs[0].bounds;foreach(var r in rs)b.Encapsulate(r.bounds);
@@ -1002,9 +1160,9 @@ public static class BraxChampionsHotelSobczakT03
                 var size=go.transform.InverseTransformVector(b.size);box.size=new Vector3(Mathf.Abs(size.x),Mathf.Abs(size.y),Mathf.Abs(size.z));
             }
         }
-        if(!HasTextures(go))BraxBuildQuality.Warn("DO POPRAWKI T03_LOBBY_MODEL_UNTEXTURED "+file);
+        if(!HasTextures(go))BraxBuildQuality.Warn("DO POPRAWKI T03_MODEL_UNTEXTURED "+full);
         modelsPlaced++;
-        return true;
+        return go;
     }
     static bool HasTextures(GameObject go)
     {
@@ -1024,75 +1182,137 @@ public static class BraxChampionsHotelSobczakT03
     }
 
     // ================================================================ FLOOR 1 (5 m)
+    static readonly List<(Transform chair,GameObject model)> diningChairs=new List<(Transform,GameObject)>();
+    static Transform chairProto;
     static void FirstFloor()
     {
         In(podiumInside,true);
-        float y0=Level(1),yc=CeilingOf(1)-.01f,top=Level(2);
+        float y0=Level(1),yc=CeilingOf(1)-.01f,top=Level(2),ys=yc-.45f;
         float zf=-PodiumHalfD+.3f,zb=PodiumHalfD-.3f,xw=PodiumHalfW-.3f;
-        // restaurant across the front: oak floor, pendant LED lines, 15 marble tables with leather chairs
-        Box(M.oak,-xw,xw,y0,y0+Fin,zf,-CoreWallZ-.1f);
+        // restaurant across the front: herringbone parquet, soffit with LED cove, walnut slat wall, 12 pedestal tables
+        Box(M.parquet,-xw,xw,y0,y0+Fin,zf,-CoreWallZ-.1f);
         CeilAround(xw,zb,yc);
+        Soffit(-xw,xw,zf,-CoreWallZ-.1f,ys,yc,.9f);
         foreach(float sx in new[]{-1f,1f})
         {
-            Box(M.oak,sx*(StairX1+.2f),sx*xw,y0,y0+Fin,-2.4f,2.4f);                       // nook off the restaurant
+            Box(M.parquet,sx*(StairX1+.2f),sx*xw,y0,y0+Fin,-2.4f,2.4f);                    // nook off the restaurant
             WallX(M.paint,CoreWallZ,Lo(sx*(StairX1+.2f),sx*xw),Hi(sx*(StairX1+.2f),sx*xw),y0,top,.2f);   // kitchen / SPA stay closed
+            // walnut slats on the core wall between the lift wall and the stair openings
+            for(float x=sx*4.4f;Mathf.Abs(x)<11.2f;x+=sx*.12f)
+            {
+                if(Mathf.Abs(x)>6.9f&&Mathf.Abs(x)<8.3f)continue;                                 // servery / SPA doors
+                Box(M.walnut,x-.035f,x+.035f,y0,ys,-CoreWallZ-.16f,-CoreWallZ-.1f);
+            }
         }
-        for(float x=-18f;x<=18.01f;x+=6f)Box(M.ledCool,x-2f,x+2f,yc-.6f,yc-.57f,-10.5f,-10.45f);
-        for(float x=-16f;x<=8.01f;x+=6f)for(float z=-16f;z<=-6.9f;z+=4.5f)DiningTable(x,y0,z);
-        Box(M.teak,13.5f,14.3f,y0,y0+1.05f,-16f,-6f,true);Box(M.marble,13.4f,14.4f,y0+1.05f,y0+1.11f,-16.1f,-5.9f,true);
-        Box(M.teakDark,xw-.45f,xw,y0,y0+2.8f,-16f,-6f,true);
-        for(float yy=y0+.6f;yy<y0+2.8f;yy+=.55f)Box(M.ledCool,xw-.48f,xw-.45f,yy,yy+.02f,-15.9f,-6.1f);
-        W.Lampa("restaurant light W",new Vector3(-10f,yc-1f,-11f),1.0f,13f);
-        W.Lampa("restaurant light E",new Vector3(8f,yc-1f,-11f),1.0f,13f);
-        LiftFront(y0,top);
+        LiftFront(y0,top,M.marble);
+        Box(M.marble,-LiftBank,LiftBank,y0+2.9f,ys,-CoreWallZ-.12f,-CoreWallZ-.1f);
+        // chair prototype for the far LOD (four walnut legs, padded leather seat and back), cloned after saving
+        chairProto=G(podiumInside,"T03 PROTO | dining chair LOD1 (cloned per chair)");
+        In(chairProto,true);
+        foreach(float dx in new[]{-.18f,.18f})foreach(float dz in new[]{-.18f,.18f})Box(M.walnutDark,dx-.018f,dx+.018f,0,.44f,dz-.018f,dz+.018f);
+        Box(M.cognac,-.22f,.22f,.42f,.50f,-.22f,.22f);
+        W.OBox(M.cognac,new Vector3(0,.72f,-.21f),new Vector3(.42f,.44f,.06f),Quaternion.Euler(-8f,0,0));
+        In(podiumInside,true);
+        diningChairs.Clear();
+        int t=0;
+        foreach(float x in new[]{-15.5f,-9.5f,-3.5f,2.5f})foreach(float z in new[]{-15.6f,-11.2f,-6.8f})DiningTable(x,y0,z,yc,t++);
+        // bar: fluted walnut front, marble top, brass foot rail, mirrored back bar, leather stools
+        Fluted(false,13.5f,-1f,-16f,-6f,y0+.08f,y0+1.05f,M.walnut);
+        Box(M.walnutDark,13.5f,14.3f,y0,y0+1.05f,-16f,-6f,true);Box(M.brass,13.43f,13.51f,y0,y0+.08f,-16.02f,-5.98f);
+        Box(M.marble,13.35f,14.4f,y0+1.05f,y0+1.11f,-16.1f,-5.9f,true);
+        Rod(M.brass,new Vector3(13.3f,y0+.22f,-15.9f),new Vector3(13.3f,y0+.22f,-6.1f),.025f);
+        Box(M.walnut,xw-.45f,xw,y0,y0+.95f,-16f,-6f,true);
+        Box(M.mirror,xw-.02f,xw,y0+.95f,y0+2.8f,-15.9f,-6.1f);
+        for(float yy=y0+1.25f;yy<y0+2.8f;yy+=.5f){Box(M.walnut,xw-.32f,xw,yy,yy+.04f,-15.9f,-6.1f);Box(M.ledCool,xw-.32f,xw-.29f,yy-.02f,yy,-15.8f,-6.2f);}
+        for(float z=-15.0f;z<=-6.9f;z+=1.6f)
+            if(!Model(H+"bar_chair_round_01/bar_chair_round_01_1k.gltf",podiumInside,"restaurant bar stool, leather",new Vector3(12.6f,y0+Fin,z),90f,true))Stool(12.6f,y0,z);
+        W.Lampa("restaurant light W",new Vector3(-10f,ys-1f,-11f),1.0f,13f);
+        W.Lampa("restaurant light E",new Vector3(8f,ys-1f,-11f),1.0f,13f);
         // core band service rooms (servery west, SPA reception east)
         foreach(float sx in new[]{-1f,1f})
         {
             float a=sx*4.15f,b=sx*11.2f;
             WallX(M.paint,-CoreWallZ,Lo(a,b),Hi(a,b),y0,top,.2f,new Gap(sx<0?-8.2f:7.0f,sx<0?-7.0f:8.2f,2.2f));
             WallX(M.paint,CoreWallZ,Lo(a,b),Hi(a,b),y0,top,.2f,new Gap(sx<0?-8.2f:7.0f,sx<0?-7.0f:8.2f,2.2f));
-            Box(sx<0?M.tile:M.terrazzo,Lo(a,b),Hi(a,b),y0,y0+Fin,-2.4f,2.4f);
+            Box(sx<0?M.antiSkid:M.terrazzo,Lo(a,b),Hi(a,b),y0,y0+Fin,-2.4f,2.4f);
         }
         CoreBack(y0,top);
         Box(M.steel,-10.6f,-5f,y0,y0+.9f,-2f,-1.3f,true);                                               // pass counter
-        Box(M.teak,5.5f,8.5f,y0,y0+1.05f,1.2f,1.9f,true);                                                 // SPA desk
-        // kitchen (west back): stainless lines, island, hoods, cold room
-        Box(M.tile,-xw,-4.3f,y0,y0+Fin,CoreWallZ+.1f,zb);
-        WallZ(M.paint,-4.25f,CoreWallZ+.1f,zb,y0,top,.1f);
+        Box(M.whiteTiles,-10.6f,-5f,y0+.9f,y0+2.4f,-2.4f,-2.39f);
+        Fluted(true,1.2f,-1f,5.5f,8.5f,y0+.08f,y0+1.05f,M.walnut);                                      // SPA desk
+        Box(M.walnutDark,5.5f,8.5f,y0,y0+1.05f,1.2f,1.9f,true);Box(M.marble,5.45f,8.55f,y0+1.05f,y0+1.1f,1.15f,1.95f,true);
+        // kitchen (west back): white tiled walls, anti-slip floor, stainless lines, island, hoods, cold room
+        Box(M.antiSkid,-xw,-4.3f,y0,y0+Fin,CoreWallZ+.1f,zb);
+        WallZ(M.whiteTiles,-4.25f,CoreWallZ+.1f,zb,y0,top,.1f);
+        Box(M.whiteTiles,-xw,-4.3f,y0,y0+3.0f,zb-.01f,zb);
         for(float x=-19f;x<=-6.5f;x+=3.1f)
         {
             Box(M.steel,x-1.4f,x+1.4f,y0,y0+.9f,zb-.75f,zb,true);
             Box(M.steel,x-1.4f,x+1.4f,y0+2.2f,y0+2.7f,zb-1.0f,zb);
+            Box(M.screen,x-1.2f,x-.6f,y0+.9f,y0+.92f,zb-.6f,zb-.15f);                                // induction hobs
         }
         Box(M.steel,-15f,-8f,y0,y0+.9f,9f,10.4f,true);
         Box(M.steel,-xw,-16.5f,y0,y0+2.8f,3.2f,7.5f,true);
-        W.Lampa("kitchen light",new Vector3(-12f,yc-.8f,11f),1.0f,12f);
-        // SPA (east back): raised pool, loungers, treatment room
+        Ceil(-xw,-4.3f,CoreWallZ+.1f,zb,yc-1.6f);
+        W.Lampa("kitchen light",new Vector3(-12f,yc-1.9f,11f),1.0f,12f);
+        // SPA (east back): raised pool with marble surround, white leather loungers with rolled towels, plants
         Box(M.terrazzo,4.3f,xw,y0,y0+Fin,CoreWallZ+.1f,zb);
         WallZ(M.paint,4.25f,CoreWallZ+.1f,zb,y0,top,.1f);
+        Clad(false,4.3f,1f,CoreWallZ+.1f,zb,y0,ys,1.2f,1.5f,M.marble);
         Ring(new List<Vector2>{new Vector2(8f,7.5f),new Vector2(17f,7.5f),new Vector2(17f,12f),new Vector2(8f,12f)},y0,y0+.55f,.3f,M.marble,true);
         Box(M.water,8.15f,16.85f,y0+.05f,y0+.45f,7.65f,11.85f);
-        for(float x=8.5f;x<=16.6f;x+=2.7f)Lounger(podiumInside,x,y0,15.6f);
+        for(float x=8.5f;x<=16.6f;x+=2.7f)
+        {
+            Lounger(podiumInside,x,y0,15.6f);
+            W.OBox(M.linenWhite,new Vector3(x,y0+.47f,15.0f),new Vector3(.16f,.16f,.5f),Quaternion.Euler(0,90f,0));
+        }
+        foreach(float x in new[]{6.0f,19.6f})Model(A+"potted_plant_02/potted_plant_02_1k.gltf",podiumInside,"SPA plant",new Vector3(x,y0+Fin,17.6f),0f,false);
         WallX(M.paint,4.4f,15.5f,xw,y0,top,.12f,new Gap(16.2f,17.1f,2.1f));
-        W.Lampa("SPA light",new Vector3(12.5f,yc-1f,10f),.9f,12f);
+        Box(M.walnut,17.0f,19.6f,y0,y0+.62f,2.9f,3.7f,true);Box(M.cognac,16.95f,19.65f,y0+.62f,y0+.74f,2.85f,3.75f,true);   // treatment bed
+        Soffit(4.3f,xw,CoreWallZ+.1f,zb,ys,yc,.8f);
+        W.Lampa("SPA light",new Vector3(12.5f,ys-1f,10f),.9f,12f);
         // back of house behind the lift bank
-        Box(M.tile,-4.15f,4.15f,y0,y0+Fin,CoreWallZ+.1f,zb);
-        for(float z=4f;z<=16f;z+=3f)Box(M.teakDark,-3.8f,-3.2f,y0,y0+2.2f,z-1f,z+1f,true);
+        Box(M.antiSkid,-4.15f,4.15f,y0,y0+Fin,CoreWallZ+.1f,zb);
+        for(float z=4f;z<=16f;z+=3f)Box(M.walnutDark,-3.8f,-3.2f,y0,y0+2.2f,z-1f,z+1f,true);
         Stair(-1f,Level(1),Level(2),2);Stair(1f,Level(1),Level(2),2);
         StairWalls(y0,top,true);
     }
-    static void DiningTable(float x,float y,float z)
+    // Pedestal table (marble top with a brass edge, brass column and round base), pendant on a cable over it,
+    // four leather dining chairs (Poly Haven dining_chair_02 close up, LOD1 prototype further away).
+    static void DiningTable(float x,float y,float z,float yc,int n)
     {
-        Rod(M.brass,new Vector3(x,y,z),new Vector3(x,y+.72f,z),.05f);
-        Prism(Circle(x,z,.55f,16),y+.72f,y+.76f,M.marble,M.marble,true);
-        foreach(var d in new[]{new Vector2(-.85f,0),new Vector2(.85f,0),new Vector2(0,-.85f),new Vector2(0,.85f)})
+        Prism(Circle(x,z,.55f,24),y+.73f,y+.765f,M.marble,M.marble,true);
+        Ring(Circle(x,z,.555f,24),y+.725f,y+.765f,.012f,M.brass,false);
+        Rod(M.brass,new Vector3(x,y,z),new Vector3(x,y+.73f,z),.045f);
+        Prism(Circle(x,z,.30f,20),y,y+.03f,M.brass,M.brass,false);
+        Rod(M.chrome,new Vector3(x,yc,z),new Vector3(x,y+2.45f,z),.004f);
+        Model(H+"modern_ceiling_lamp_01/modern_ceiling_lamp_01_1k.gltf",podiumInside,"restaurant pendant "+n,new Vector3(x,y+2.45f,z),0f,false,Snap.Top);
+        Model(H+"ceramic_vase_01/ceramic_vase_01_1k.gltf",podiumInside,"table vase "+n,new Vector3(x,y+.765f,z),n*37f,false);
+        foreach(var (dx,dz,yaw) in new[]{(-.78f,0f,90f),(.78f,0f,-90f),(0f,-.78f,0f),(0f,.78f,180f)})
         {
-            float cx=x+d.x,cz=z+d.y;
-            Box(M.leather,cx-.23f,cx+.23f,y+.42f,y+.50f,cz-.23f,cz+.23f,true);
-            var back=new Vector2(cx,cz)+d.normalized*.21f;
-            Box(M.leather,back.x-(d.x==0?.23f:.03f),back.x+(d.x==0?.23f:.03f),y+.50f,y+.95f,back.y-(d.x==0?.03f:.23f),back.y+(d.x==0?.03f:.23f));
-            Box(M.brass,cx-.02f,cx+.02f,y,y+.42f,cz-.02f,cz+.02f);
+            var holder=G(podiumInside,"restaurant chair "+n+" | LOD0 leather model / LOD1 prototype");
+            holder.localPosition=new Vector3(x+dx,y+Fin,z+dz);holder.localRotation=Quaternion.Euler(0,yaw,0);
+            var model=Model(H+"dining_chair_02/dining_chair_02_2k.gltf",holder,"restaurant chair "+n,Vector3.zero,0f,true);
+            diningChairs.Add((holder,model));
         }
+    }
+    // After W.Zapisz: clone the LOD1 prototype under every chair and give each chair a LODGroup.
+    static void FinishChairs()
+    {
+        if(!chairProto)return;
+        foreach(var (holder,model) in diningChairs)
+        {
+            var far=UnityEngine.Object.Instantiate(chairProto.gameObject,holder,false);far.name="LOD1 prototype";
+            far.transform.localPosition=Vector3.zero;far.transform.localRotation=Quaternion.identity;far.SetActive(true);
+            var farRenderers=far.GetComponentsInChildren<Renderer>(true);
+            if(model)
+            {
+                var lod=holder.gameObject.AddComponent<LODGroup>();
+                lod.SetLODs(new[]{new LOD(.16f,model.GetComponentsInChildren<Renderer>(true)),new LOD(.012f,farRenderers)});
+                lod.RecalculateBounds();
+            }
+        }
+        UnityEngine.Object.DestroyImmediate(chairProto.gameObject);chairProto=null;
     }
 
     // ================================================================ GUEST FLOOR TEMPLATE (y = 0 at the floor)
@@ -1141,21 +1361,21 @@ public static class BraxChampionsHotelSobczakT03
         }
         // party walls between rooms (both rows)
         foreach(float sz in new[]{-1f,1f})
-            for(int i=1;i<5;i++)WallZ(M.paint,-TowerHalfW+i*RoomW,Lo(sz*RoomWallZ,sz*(TowerHalfD-.3f)),Hi(sz*RoomWallZ,sz*(TowerHalfD-.3f)),0,h,.2f);
+            for(int i=1;i<5;i++)WallZ(M.grasscloth,-TowerHalfW+i*RoomW,Lo(sz*RoomWallZ,sz*(TowerHalfD-.3f)),Hi(sz*RoomWallZ,sz*(TowerHalfD-.3f)),0,h,.2f);
         // core band: lift fronts, service rooms (linen west, technical east), stair walls, back core wall
-        LiftFront(0,h);
+        LiftFront(0,h,M.grasscloth);
         foreach(float sx in new[]{-1f,1f})
         {
             float a=sx*4.15f,b=sx*11.2f;
-            WallX(M.paint,-CoreWallZ,Lo(a,b),Hi(a,b),0,h,.2f);
-            WallX(M.paint,CoreWallZ,Lo(a,b),Hi(a,b),0,h,.2f,new Gap(sx<0?-7.0f:6.1f,sx<0?-6.1f:7.0f,2.1f));
+            WallX(M.grasscloth,-CoreWallZ,Lo(a,b),Hi(a,b),0,h,.2f);
+            WallX(M.grasscloth,CoreWallZ,Lo(a,b),Hi(a,b),0,h,.2f,new Gap(sx<0?-7.0f:6.1f,sx<0?-6.1f:7.0f,2.1f));
             Leaf(true,CoreWallZ,sx<0?-7.0f:6.1f,sx<0?-6.1f:7.0f,0,1f);
             Box(M.tile,Lo(a,b),Hi(a,b),0,Fin,-2.4f,2.4f);
             Ceil(Lo(a,b),Hi(a,b),-2.4f,2.4f,yc);
             for(float x=Lo(a,b)+.8f;x<Hi(a,b)-.5f;x+=1.4f)Box(M.teakDark,x-.6f,x+.6f,0,2.2f,-2.4f,-1.85f,true);
         }
-        CoreBack(0,h);
-        StairWalls(0,h,false);
+        CoreBack(0,h,M.grasscloth);
+        StairWalls(0,h,false,M.grasscloth);
         foreach(float sx in new[]{-1f,1f})
         {
             Ceil(Lo(sx*StairX0,sx*StairLand),Hi(sx*StairX0,sx*StairLand),-2.4f,2.4f,yk);
@@ -1171,18 +1391,22 @@ public static class BraxChampionsHotelSobczakT03
         if(x1>x)Box(M.teakDark,x,x1,Fin,.11f,z0,z1);
     }
 
-    // One finished, furnished 5* room: hall + marble bathroom along the corridor, bedroom to the window.
+    // One finished, furnished 5* room. The shell (walls, floors, ceiling, door, bathroom walls) belongs to the
+    // floor; furniture, fixtures and the room light live in "ROOM n | furniture" and are drawn only while the
+    // player is in the room or at its door (BraxWidocznoscWnetrza added per instance in Generate).
+    static readonly List<(int n,float a,float b,float zc,float zf,float s)> roomRects=new List<(int,float,float,float,float,float)>();
     static void Room(Transform t,int number,float a,float b,float row)
     {
         In(t,true);
         float zc=row*(RoomWallZ+.1f),zf=row*(TowerHalfD-.3f),s=row;
         float Z(float d)=>zc+s*d;
         float yc=GuestStorey-Slab-.01f,h=GuestStorey,zh=Z(3.3f);
+        roomRects.Add((number,a,b,zc,zf,s));
         var marker=new GameObject("ROOM "+number+" | 6.80x10.50 | finished, furnished").transform;marker.SetParent(t,false);
         marker.localPosition=new Vector3((a+b)*.5f,0,(zc+zf)*.5f);
-        // corridor wall with the entry door (0.90 x 2.10), open leaf into the hall, number plate
+        // corridor wall (grasscloth both faces) with the entry door, open leaf into the hall, brass number plate
         float d0=a+.25f,d1=a+1.15f,wall=row*RoomWallZ;
-        WallX(M.paint,wall,a-.1f,b+.1f,0,h,.2f,new Gap(d0,d1,2.1f));
+        WallX(M.grasscloth,wall,a-.1f,b+.1f,0,h,.2f,new Gap(d0,d1,2.1f));
         Leaf(true,wall,d0,d1,0,s);
         float plateZ=wall-s*.1f;
         Box(M.brass,d1+.15f,d1+.45f,1.45f,1.65f,Lo(plateZ,plateZ-s*.012f),Hi(plateZ,plateZ-s*.012f));
@@ -1190,63 +1414,126 @@ public static class BraxChampionsHotelSobczakT03
         Box(M.warmLight,d1+.2f,d1+.4f,2.05f,2.25f,Lo(plateZ,plateZ-s*.03f),Hi(plateZ,plateZ-s*.03f));
         // floors: oak hall and bedroom, marble bathroom
         float bx0=a+1.45f,bx1=a+4.55f;
-        Box(M.oak,a,b,0,Fin,Lo(zh,zf),Hi(zh,zf));
-        Box(M.oak,a,bx0,0,Fin,Lo(zc,zh),Hi(zc,zh));
-        Box(M.oak,bx1,b,0,Fin,Lo(zc,zh),Hi(zc,zh));
-        Box(M.marbleWet,bx0,bx1,0,Fin,Lo(zc,zh),Hi(zc,zh));
-        // bathroom walls (0.80 door from the hall), marble lining, fittings
+        Box(M.oak,a,b,0,Fin,zh,zf);
+        Box(M.oak,a,bx0,0,Fin,zc,zh);
+        Box(M.oak,bx1,b,0,Fin,zc,zh);
+        Box(M.marbleWet,bx0,bx1,0,Fin,zc,zh);
+        // bathroom walls (grasscloth outside, marble lining inside), 0.80 door from the hall
         float zm=(zc+zh)*.5f;
-        WallZ(M.paint,bx0+.06f,Lo(zc,zh),Hi(zc,zh),0,h,.12f,new Gap(zm-.4f,zm+.4f,2.1f));
+        WallZ(M.grasscloth,bx0+.06f,Lo(zc,zh),Hi(zc,zh),0,h,.12f,new Gap(zm-.4f,zm+.4f,2.1f));
         Leaf(false,bx0+.06f,zm-.4f,zm+.4f,0,1f);
-        WallZ(M.paint,bx1-.06f,Lo(zc,zh),Hi(zc,zh),0,h,.12f);
-        WallX(M.paint,zh,bx0,bx1,0,h,.12f);
+        WallZ(M.grasscloth,bx1-.06f,Lo(zc,zh),Hi(zc,zh),0,h,.12f);
+        WallX(M.grasscloth,zh,bx0,bx1,0,h,.12f);
         float ix0=bx0+.12f,ix1=bx1-.12f,iz0=Lo(zc,zh-s*.06f),iz1=Hi(zc,zh-s*.06f);
         Box(M.marble,ix0,ix0+.01f,0,yc,iz0,zm-.4f);Box(M.marble,ix0,ix0+.01f,0,yc,zm+.4f,iz1);Box(M.marble,ix0,ix0+.01f,2.1f,yc,zm-.4f,zm+.4f);
         Box(M.marble,ix1-.01f,ix1,0,yc,iz0,iz1);
-        Box(M.marble,ix0,ix1,0,yc,Lo(zc,zc+s*.01f),Hi(zc,zc+s*.01f));Box(M.marble,ix0,ix1,0,yc,Lo(zh-s*.06f,zh-s*.07f),Hi(zh-s*.06f,zh-s*.07f));
-        Box(M.teakDark,a+1.8f,a+3.2f,.2f,.82f,Lo(Z(.02f),Z(.58f)),Hi(Z(.02f),Z(.58f)),true);                 // vanity
-        Box(M.marble,a+1.75f,a+3.25f,.82f,.88f,Lo(Z(.02f),Z(.62f)),Hi(Z(.02f),Z(.62f)),true);
-        Box(M.whitePaint,a+2.25f,a+2.75f,.84f,.92f,Lo(Z(.12f),Z(.48f)),Hi(Z(.12f),Z(.48f)));
-        Box(M.mirror,a+1.85f,a+3.15f,1.05f,1.95f,Lo(Z(.012f),Z(.03f)),Hi(Z(.012f),Z(.03f)));
-        Box(M.whitePaint,a+3.65f,a+4.15f,0,.42f,Lo(Z(.02f),Z(.72f)),Hi(Z(.02f),Z(.72f)),true);              // WC
-        Box(M.marbleWet,a+3.1f,ix1,Fin,.05f,Lo(zh-s*.07f,Z(2.15f)),Hi(zh-s*.07f,Z(2.15f)));                 // shower tray
-        Box(M.clearGlass,a+3.1f,ix1,.05f,2.05f,Lo(Z(2.13f),Z(2.15f)),Hi(Z(2.13f),Z(2.15f)),true);
-        Box(M.steel,ix1-.45f,ix1-.15f,2.15f,2.18f,Lo(Z(2.6f),Z(2.9f)),Hi(Z(2.6f),Z(2.9f)));
-        // wardrobe niche (teak wardrobe against the corridor wall) and luggage bench
-        Box(M.teak,bx1+.08f,b-.04f,0,2.6f,Lo(Z(.02f),Z(.64f)),Hi(Z(.02f),Z(.64f)),true);
-        Box(M.leather,bx1+.25f,b-.25f,.32f,.45f,Lo(Z(2.0f),Z(2.45f)),Hi(Z(2.0f),Z(2.45f)),true);
-        // bedroom: teak headboard wall, king bed, nightstands with lamps, bench, rug
-        float zb=(zh+zf)*.5f-s*.2f;
-        Box(M.teak,a,a+.03f,0,2.8f,zb-2.0f,zb+2.0f);
-        Box(M.leather,a+.03f,a+.12f,.35f,1.45f,zb-1.25f,zb+1.25f,true);
-        Box(M.teakDark,a+.12f,a+2.25f,0,.32f,zb-1.0f,zb+1.0f,true);
-        Box(M.fabric,a+.14f,a+2.23f,.32f,.58f,zb-.98f,zb+.98f,true);
-        Box(M.fabric,a+.9f,a+2.26f,.58f,.62f,zb-1.0f,zb+1.0f);
-        foreach(float dz in new[]{-.5f,.5f})Box(M.whitePaint,a+.18f,a+.62f,.58f,.72f,zb+dz-.36f,zb+dz+.36f);
-        foreach(float dz in new[]{-1.45f,1.45f})
-        {
-            Box(M.teak,a+.06f,a+.56f,0,.55f,zb+dz-.25f,zb+dz+.25f,true);
-            Rod(M.brass,new Vector3(a+.3f,.55f,zb+dz),new Vector3(a+.3f,.95f,zb+dz),.012f);
-            Box(M.warmLight,a+.2f,a+.4f,.95f,1.15f,zb+dz-.1f,zb+dz+.1f);
-        }
-        Box(M.leather,a+2.35f,a+2.8f,0,.45f,zb-.8f,zb+.8f,true);
-        Box(M.carpetRoom,a+.6f,a+4.4f,Fin,Fin+.008f,zb-1.9f,zb+1.9f);
-        // TV wall: teak media console and panel
-        Box(M.teak,b-.45f,b,.15f,.55f,zb-1.0f,zb+1.0f,true);
-        Box(M.darkBronze,b-.05f,b,.95f,1.75f,zb-.8f,zb+.8f);
-        // window corner: desk with a leather chair (TV side), armchair with a side table (bed side)
-        Box(M.teak,b-.62f,b,.72f,.76f,Lo(Z(10.5f-.5f),Z(10.5f-1.9f)),Hi(Z(10.5f-.5f),Z(10.5f-1.9f)),true);
-        Box(M.teak,b-.6f,b-.55f,0,.72f,Lo(Z(10.5f-.55f),Z(10.5f-1.85f)),Hi(Z(10.5f-.55f),Z(10.5f-1.85f)));
-        Box(M.leather,b-1.25f,b-.8f,.42f,.5f,Lo(Z(10.5f-.95f),Z(10.5f-1.4f)),Hi(Z(10.5f-.95f),Z(10.5f-1.4f)),true);
-        Box(M.leather,b-1.29f,b-1.23f,.5f,.95f,Lo(Z(10.5f-.95f),Z(10.5f-1.4f)),Hi(Z(10.5f-.95f),Z(10.5f-1.4f)));
-        Box(M.leather,a+.6f,a+1.4f,.2f,.45f,Lo(Z(10.5f-.6f),Z(10.5f-1.4f)),Hi(Z(10.5f-.6f),Z(10.5f-1.4f)),true);
-        Box(M.leather,a+.6f,a+1.4f,.45f,.95f,Lo(Z(10.5f-1.3f),Z(10.5f-1.42f)),Hi(Z(10.5f-1.3f),Z(10.5f-1.42f)));
-        Prism(Circle(a+1.9f,Z(10.5f-.9f),.25f,12),0,.55f,M.blackMarble,M.brass,false);
-        // ceiling and light
+        Box(M.marble,ix0,ix1,0,yc,zc,zc+s*.01f);Box(M.marble,ix0,ix1,0,yc,zh-s*.06f,zh-s*.07f);
+        // window wall finished inside: grasscloth on piers, sill and head, marble window boards
+        float x0=Mathf.Round((a+TowerHalfW)/RoomW)*RoomW-TowerHalfW,x1=x0+RoomW,mid=(x0+x1)*.5f,wz=zf-s*.02f,wb=.6f,wt=GuestStorey-Slab-.35f;
+        Box(M.grasscloth,a,x0+.5f,0,yc,zf,wz);Box(M.grasscloth,x1-.5f,b,0,yc,zf,wz);
+        Box(M.grasscloth,mid-.25f,mid+.25f,0,yc,zf,wz);
+        Box(M.grasscloth,a,b,0,wb,zf,wz);Box(M.grasscloth,a,b,wt,yc,zf,wz);
+        foreach(var (w0,w1) in new[]{(x0+.5f,mid-.25f),(mid+.25f,x1-.5f)})
+            Box(M.marble,w0-.03f,w1+.03f,wb-.03f,wb+.02f,zf+s*.16f,zf-s*.06f);
+        Box(M.darkBronze,a,b,yc-.06f,yc,zf-s*.08f,zf-s*.18f);                          // curtain track pelmet
+        // ceiling and downlights
         Ceil(a,b,Lo(zc,zf),Hi(zc,zf),yc);
+        float zb=(zh+zf)*.5f-s*.2f;
         foreach(float dz in new[]{-1.6f,1.6f})Downlight(a+2.6f,zb+dz,yc);
         Downlight((a+bx0)*.5f,zm,yc);Downlight((bx0+bx1)*.5f,zm,yc);Downlight((bx1+b)*.5f,zm,yc);
+
+        // ---------------- furniture, fixtures and light (drawn only near the room)
+        var fg=G(t,"ROOM "+number+" | furniture (drawn when inside)");
+        In(fg,true);
+        // bed wall: smoked walnut panel, channel-tufted boucle headboard, brass cap
+        Box(M.walnutDark,a,a+.03f,0,2.8f,zb-2.0f,zb+2.0f);
+        for(int i=0;i<5;i++)Box(M.boucle,a+.03f,a+.14f,.45f,1.55f,zb-1.2f+i*.48f+.012f,zb-1.2f+(i+1)*.48f-.012f,i==2);
+        Box(M.brass,a+.03f,a+.15f,1.55f,1.575f,zb-1.21f,zb+1.21f);
+        // king bed: upholstered divan on a recessed walnut plinth, mattress, duvet with drops, satin runner, pillows
+        Box(M.walnutDark,a+.22f,a+2.15f,0,.10f,zb-.9f,zb+.9f);
+        Box(M.jersey,a+.14f,a+2.25f,.10f,.34f,zb-1.0f,zb+1.0f,true);
+        Box(M.linenWhite,a+.15f,a+2.23f,.34f,.55f,zb-.97f,zb+.97f,true);
+        Box(M.linenWhite,a+.95f,a+2.27f,.55f,.60f,zb-1.02f,zb+1.02f);
+        foreach(float sd in new[]{-1f,1f})Box(M.linenWhite,a+.95f,a+2.27f,.30f,.60f,zb+sd*1.0f,zb+sd*1.03f);
+        Box(M.linenWhite,a+2.24f,a+2.28f,.30f,.60f,zb-1.03f,zb+1.03f);
+        Box(M.linenWhite,a+.86f,a+1.0f,.55f,.64f,zb-1.0f,zb+1.0f);                      // folded turn-down
+        Box(M.satin,a+1.72f,a+2.10f,.60f,.615f,zb-1.04f,zb+1.04f);
+        foreach(float sd in new[]{-1f,1f})Box(M.satin,a+1.72f,a+2.10f,.36f,.615f,zb+sd*1.03f,zb+sd*1.045f);
+        foreach(float dz in new[]{-.5f,.5f})W.OBox(M.linenWhite,new Vector3(a+.42f,.70f,zb+dz),new Vector3(.17f,.46f,.74f),Quaternion.Euler(0,0,22f));
+        foreach(float dz in new[]{-.42f,.42f})W.OBox(M.velvet,new Vector3(a+.64f,.72f,zb+dz),new Vector3(.13f,.40f,.40f),Quaternion.Euler(0,0,18f));
+        W.OBox(M.satin,new Vector3(a+.78f,.68f,zb),new Vector3(.12f,.26f,.58f),Quaternion.Euler(0,0,14f));
+        // nightstands (Poly Haven side table), pendants on cables, vase and plant
+        foreach(float sd in new[]{-1f,1f})
+        {
+            Model(H+"side_table_01/side_table_01_1k.gltf",fg,"room "+number+" nightstand",new Vector3(a+.34f,Fin,zb+sd*1.5f),90f,true);
+            Rod(M.chrome,new Vector3(a+.34f,yc,zb+sd*1.5f),new Vector3(a+.34f,1.95f,zb+sd*1.5f),.004f);
+            Model(H+"modern_ceiling_lamp_01/modern_ceiling_lamp_01_1k.gltf",fg,"room "+number+" bedside pendant",new Vector3(a+.34f,1.95f,zb+sd*1.5f),0f,false,Snap.Top);
+        }
+        Model(H+"ceramic_vase_02/ceramic_vase_02_1k.gltf",fg,"room "+number+" vase",new Vector3(a+.30f,.56f,zb-1.62f),30f,false);
+        Model(H+"potted_plant_04/potted_plant_04_1k.gltf",fg,"room "+number+" succulent",new Vector3(a+.30f,.56f,zb+1.62f),0f,false);
+        // ottoman at the foot of the bed, jacquard rug
+        Model(H+"Ottoman_01/Ottoman_01_2k.gltf",fg,"room "+number+" ottoman",new Vector3(a+2.78f,Fin+.014f,zb),90f,true);
+        Rug(M.rugRoom,M.jersey,a+.9f,a+4.3f,Fin,zb-1.9f,zb+1.9f);
+        // TV wall: walnut media console with shadow gaps and brass pulls, wall-mounted flat TV
+        Box(M.walnutDark,b-.42f,b-.06f,0,.16f,zb-1.0f,zb+1.0f);
+        Box(M.walnut,b-.46f,b-.02f,.16f,.58f,zb-1.1f,zb+1.1f,true);
+        foreach(float dz in new[]{-.37f,.37f})Box(M.walnutDark,b-.465f,b-.455f,.18f,.56f,zb+dz-.004f,zb+dz+.004f);
+        foreach(float dz in new[]{-.73f,0f,.73f})Box(M.brass,b-.48f,b-.46f,.48f,.50f,zb+dz-.12f,zb+dz+.12f);
+        Box(M.darkBronze,b-.035f,b-.002f,1.10f,1.70f,zb-.55f,zb+.55f);
+        Box(M.screen,b-.06f,b-.035f,1.04f,1.76f,zb-.63f,zb+.63f);
+        Model(H+"ceramic_vase_01/ceramic_vase_01_1k.gltf",fg,"room "+number+" console vase",new Vector3(b-.25f,.58f,zb+.86f),0f,false);
+        // writing desk by the window: walnut slab desk, leather dining chair, arm lamp, framed art
+        float dA=9.95f,dB=8.55f;
+        Box(M.walnut,b-.66f,b-.02f,.72f,.76f,Z(dB),Z(dA),true);
+        Box(M.walnut,b-.64f,b-.04f,0,.72f,Z(dA-.05f),Z(dA),true);Box(M.walnut,b-.64f,b-.04f,0,.72f,Z(dB),Z(dB+.05f),true);
+        Box(M.walnut,b-.06f,b-.04f,.30f,.72f,Z(dB+.05f),Z(dA-.05f));
+        Box(M.brass,b-.665f,b-.655f,.725f,.755f,Z(dB),Z(dA));
+        Model(H+"desk_lamp_arm_01/desk_lamp_arm_01_1k.gltf",fg,"room "+number+" desk lamp",new Vector3(b-.18f,.76f,Z(dA-.25f)),-90f,false);
+        Model(H+"dining_chair_02/dining_chair_02_2k.gltf",fg,"room "+number+" desk chair, leather",new Vector3(b-1.0f,Fin,Z((dA+dB)*.5f)),90f,true);
+        Model(H+"fancy_picture_frame_01/fancy_picture_frame_01_1k.gltf",fg,"room "+number+" art above desk",new Vector3(b-.015f,1.72f,Z((dA+dB)*.5f)),-90f,false,Snap.Centre);
+        // reading corner: leather mid-century lounge chair angled to the room, marble side table, plant, art
+        Model(H+"mid_century_lounge_chair/mid_century_lounge_chair_2k.gltf",fg,"room "+number+" lounge chair, leather",new Vector3(a+.80f,Fin,Z(9.55f)),90f+30f*s,true);
+        Prism(Circle(a+1.95f,Z(10.05f),.22f,18),.53f,.56f,M.marble,M.marble,true);
+        Rod(M.brass,new Vector3(a+1.95f,Fin,Z(10.05f)),new Vector3(a+1.95f,.53f,Z(10.05f)),.025f);
+        Prism(Circle(a+1.95f,Z(10.05f),.16f,18),Fin,.02f,M.brass,M.brass,false);
+        Model(H+"potted_plant_04/potted_plant_04_1k.gltf",fg,"room "+number+" plant on side table",new Vector3(a+1.95f,.56f,Z(10.05f)),45f,false);
+        Model(H+"hanging_picture_frame_02/hanging_picture_frame_02_1k.gltf",fg,"room "+number+" art in reading corner",new Vector3(a+.02f,1.75f,Z(9.3f)),90f,false,Snap.Centre);
+        // wardrobe (walnut doors, brass bars) and a leather luggage bench in the hall
+        Box(M.walnut,bx1+.08f,b-.04f,0,2.6f,Z(.02f),Z(.64f),true);
+        float wm=(bx1+.08f+b-.04f)*.5f;
+        Box(M.walnutDark,wm-.004f,wm+.004f,.02f,2.58f,Z(.64f),Z(.645f));
+        foreach(float dx in new[]{-.08f,.08f})Box(M.brass,wm+dx-.012f,wm+dx+.012f,.8f,1.6f,Z(.645f),Z(.67f));
+        Box(M.walnutDark,bx1+.3f,b-.3f,0,.36f,Z(2.0f),Z(2.45f),true);
+        Box(M.cognac,bx1+.28f,b-.28f,.36f,.46f,Z(1.98f),Z(2.47f),true);
+        // bathroom: walnut vanity, marble top, vessel basin, chrome tap, LED mirror, wall-hung WC, rain shower, towels
+        Box(M.walnut,a+1.8f,a+3.2f,.22f,.82f,Z(.02f),Z(.56f),true);
+        Box(M.walnutDark,a+1.8f,a+3.2f,.515f,.525f,Z(.56f),Z(.565f));
+        Box(M.marble,a+1.75f,a+3.25f,.82f,.87f,Z(.02f),Z(.60f),true);
+        W.Walec(M.whitePaint,new Vector3(a+2.5f,.87f,Z(.33f)),.2f,.13f,20);
+        W.Walec(M.chrome,new Vector3(a+2.5f,.87f,Z(.33f)),.022f,.006f,8);
+        Rod(M.chrome,new Vector3(a+2.5f,.87f,Z(.07f)),new Vector3(a+2.5f,1.16f,Z(.07f)),.014f);
+        Rod(M.chrome,new Vector3(a+2.5f,1.16f,Z(.07f)),new Vector3(a+2.5f,1.16f,Z(.24f)),.012f);
+        Box(M.mirror,a+1.85f,a+3.15f,1.05f,1.95f,Z(.012f),Z(.03f));
+        Box(M.ledCool,a+1.87f,a+3.13f,1.03f,1.05f,Z(.012f),Z(.025f));
+        Box(M.marble,a+3.62f,a+4.18f,0,1.1f,Z(.02f),Z(.20f),true);
+        Box(M.chrome,a+3.80f,a+4.00f,.94f,1.06f,Z(.20f),Z(.21f));
+        W.Walec(M.whitePaint,new Vector3(a+3.9f,.22f,Z(.46f)),.19f,.18f,20,true);
+        W.Walec(M.whitePaint,new Vector3(a+3.9f,.40f,Z(.46f)),.20f,.03f,20);
+        Box(M.whitePaint,a+3.72f,a+4.08f,.22f,.40f,Z(.20f),Z(.30f));
+        Box(M.marbleWet,a+3.1f,ix1,Fin,.05f,zh-s*.07f,Z(2.15f));
+        Box(M.clearGlass,a+3.1f,ix1,.05f,2.05f,Z(2.13f),Z(2.15f),true);
+        Box(M.chrome,a+3.08f,a+3.12f,.05f,2.05f,Z(2.12f),Z(2.16f));
+        Rod(M.chrome,new Vector3(ix1,2.2f,Z(2.75f)),new Vector3(ix1-.32f,2.2f,Z(2.75f)),.012f);
+        W.Walec(M.chrome,new Vector3(ix1-.32f,2.17f,Z(2.75f)),.15f,.02f,20);
+        Box(M.chrome,ix1-.02f,ix1,1.0f,1.2f,Z(2.6f),Z(2.9f));
+        Box(M.chrome,a+3.2f,ix1-.05f,.05f,.055f,Z(3.05f),Z(3.12f));
+        Rod(M.chrome,new Vector3(ix1-.04f,1.1f,Z(1.1f)),new Vector3(ix1-.04f,1.1f,Z(1.7f)),.012f);          // heated towel rail
+        Rod(M.chrome,new Vector3(ix1-.04f,.8f,Z(1.1f)),new Vector3(ix1-.04f,.8f,Z(1.7f)),.012f);
+        Box(M.linenWhite,ix1-.09f,ix1-.02f,.55f,1.13f,Z(1.13f),Z(1.67f));
+        Box(M.linenWhite,a+2.25f,a+2.85f,Fin,Fin+.012f,Z(.95f),Z(1.45f));
         W.Lampa("room "+number+" light",new Vector3((a+b)*.5f,yc-.4f,zb),.85f,8f);
+        W.Lampa("room "+number+" bath light",new Vector3((bx0+bx1)*.5f,yc-.3f,zm),.55f,4f);
+        In(t,true);                        // back to the floor shell: walls built after the rooms must not land in this room's furniture
         roomsBuilt+=GuestFloors;           // the template is instanced on every guest floor
     }
     static void Renumber(Transform floor,int f)

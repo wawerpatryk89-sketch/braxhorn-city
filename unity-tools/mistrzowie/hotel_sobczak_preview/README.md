@@ -11,7 +11,10 @@ Narzędzie dla wykonawcy. Nie uruchamia się w CI i nie buduje APK.
 
 ```bash
 # dotnet 8 SDK w PATH, python3 + numpy + matplotlib, node + playwright, npm install three@0.160.0
-./run_preview.sh /tmp/t03 /ścieżka/do/node_modules/three/build/three.min.js
+./run_preview.sh /tmp/t03 /ścieżka/do/node_modules/three
 ```
 
-Kolory są płaskie, bez tekstur Poly Haven i bez świateł Unity. Kompilacja i odbiór wizualny w Unity są nadal wymagane.
+Tekstury i modele są prawdziwe: mapy Poly Haven 1k (`fetch_preview_textures.py`, API Poly Haven) i modele glTF przypięte MD5 (`prepare_hotel_sobczak_models.py`).
+Światło liczone jak shader `CityStaticPBR` w grze: stałe słońce bez cieni, otoczenie `lerp(ziemia, niebo, n.y)` × `_AmbientIntensity`
+osobno dla każdego materiału (także ciepłe otoczenie wnętrz), szeroki odblask nieba × 0,4, do 4 lamp `ForceVertex` z tłumieniem Unity,
+bez mapowania tonów. Tego samego obrazu należy się spodziewać na telefonie. Kompilacja i odbiór wizualny w Unity są nadal wymagane.

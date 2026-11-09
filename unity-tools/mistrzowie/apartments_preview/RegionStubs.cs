@@ -9,7 +9,7 @@ public static class BraxBuildQuality { public static void Warn(string m) => Cons
 public sealed class BraxWidocznoscWnetrza : MonoBehaviour { public Bounds[] strefy = new Bounds[0]; public string nazwa = ""; }
 public static class BraxChampionsFoundation
 {
-    public static Material SourceMaterial(string id, string slug, float metres, Color tint) => new Material { name = id + "|" + slug };
+    public static Material SourceMaterial(string id, string slug, float metres, Color tint) => new Material { name = id + "|" + slug + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryMarble(string id, Color tint, float metres) => new Material { name = id + "|Marble016" };
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
 }
@@ -24,6 +24,8 @@ public static class Rec
 {
     public struct Q { public string g, m; public bool inside; public Vector3 a, b, c, d; }
     public static readonly List<Q> Quads = new List<Q>();
+    public static readonly Dictionary<string, Color> Colours = new Dictionary<string, Color>();
+    public static readonly Dictionary<string, float[]> Ambient = new Dictionary<string, float[]>();
     public static readonly List<string> Cols = new List<string>();
     public static readonly List<string> Texts = new List<string>();
     public static readonly List<Vector3> Palms = new List<Vector3>();
@@ -37,7 +39,10 @@ public static class BraxWnetrzaKit
     public static void Quad(Material m, Vector3 a, Vector3 b, Vector3 c, Vector3 d)
     {
         if (!m) throw new Exception("null material at " + a.x + "," + a.y + "," + a.z);
-        Rec.Quads.Add(new Rec.Q { g = Grupa.gameObject.name, m = m.name, inside = Wnetrze, a = a, b = b, c = c, d = d });
+        string path = Grupa.gameObject.name; for (var p = Grupa.parent; p != null; p = p.parent) path = p.gameObject.name + " >> " + path;
+        Rec.Quads.Add(new Rec.Q { g = path, m = m.name, inside = Wnetrze, a = a, b = b, c = c, d = d });
+        Rec.Colours[m.name] = m.color;
+        Rec.Ambient[m.name] = new[] { m.sky.r, m.sky.g, m.sky.b, m.ground.r, m.ground.g, m.ground.b, m.ambient };
     }
     public static void MM(Material m, float x0, float x1, float y0, float y1, float z0, float z1, bool k = false)
         => OBox(m, new Vector3((x0 + x1) * .5f, (y0 + y1) * .5f, (z0 + z1) * .5f), new Vector3(Math.Abs(x1 - x0), Math.Abs(y1 - y0), Math.Abs(z1 - z0)), Quaternion.identity, k);
@@ -52,8 +57,26 @@ public static class BraxWnetrzaKit
     }
     public static void Rura(Material m, Vector3 a, Vector3 b, float r, int boki = 10, bool z = true)
     {
-        var d = b - a; var side = Vector3.Cross(d, Vector3.up); side = side.magnitude < 1e-5f ? new Vector3(r, 0, 0) : side.normalized * r;
-        var up = new Vector3(0, r, 0); Quad(m, a - side + up, b - side + up, b + side + up, a + side + up);
+        var os = b - a; if (os.magnitude < 1e-6f) return; os = os.normalized;
+        var u = Vector3.Cross(os, Math.Abs(os.y) > .95f ? Vector3.forward : Vector3.up).normalized; var w = Vector3.Cross(os, u);
+        for (int i = 0; i < boki; i++)
+        {
+            float t0 = 2 * Mathf.PI * i / boki, t1 = 2 * Mathf.PI * (i + 1) / boki;
+            Vector3 n0 = u * Mathf.Cos(t0) + w * Mathf.Sin(t0), n1 = u * Mathf.Cos(t1) + w * Mathf.Sin(t1);
+            Quad(m, a + n0 * r, a + n1 * r, b + n1 * r, b + n0 * r);
+            if (z) { Quad(m, a, a + n1 * r, a + n0 * r, a + n0 * r); Quad(m, b, b + n0 * r, b + n1 * r, b + n1 * r); }
+        }
+    }
+    public static void Walec(Material m, Vector3 p, float r, float h, int boki = 16, bool k = false)
+    { Rura(m, p, p + Vector3.up * h, r, boki, true); if (k) Rec.Cols.Add("walec"); }
+    public static void Kula(Material m, Vector3 c, float r, int pol = 16, int row = 10)
+    {
+        for (int i = 0; i < row; i++) for (int j = 0; j < pol; j++)
+        {
+            float a0 = Mathf.PI * i / row - Mathf.PI / 2, a1 = Mathf.PI * (i + 1) / row - Mathf.PI / 2, b0 = 2 * Mathf.PI * j / pol, b1 = 2 * Mathf.PI * (j + 1) / pol;
+            Vector3 S(float la, float lo) => c + new Vector3(Mathf.Cos(la) * Mathf.Cos(lo), Mathf.Sin(la), Mathf.Cos(la) * Mathf.Sin(lo)) * r;
+            Quad(m, S(a0, b0), S(a1, b0), S(a1, b1), S(a0, b1));
+        }
     }
     public static void KolizjaMM(float x0, float x1, float y0, float y1, float z0, float z1) => Rec.Cols.Add("mm");
     public static void Rampa(Vector3 gora, Vector3 dol, float szer) => Rec.Cols.Add("ramp " + gora.y.ToString("F2") + "->" + dol.y.ToString("F2"));

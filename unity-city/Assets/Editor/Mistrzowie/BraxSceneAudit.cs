@@ -82,7 +82,7 @@ public static class BraxSceneAudit
         public float podiumWidthMeters, podiumDepthMeters, towerWidthMeters, towerDepthMeters, maxHeightMeters;
         public float siteWidthMeters, siteDepthMeters;
         public int guestFloors, streamedFloors, rooms, roomNumbersDistinct, elevators, liftStops, liftLandingDoors, stairs;
-        public int automaticDoors, automaticDoorLeavesWithCollision, signBodies, treesInPlot, parkingPlanned;
+        public int automaticDoors, automaticDoorLeavesWithCollision, signBodies, treesInPlot, parkingPlanned, polyHavenModels;
         public int nullMaterialRenderers, milkGlassCandidates, unmappedMaterialCount, oversizedRuntimeTextureCount;
         public bool centrePass, scaleOncePass, footprintPass, heightPass, siteReservePass;
         public bool roomsPass, guestFloorsPass, elevatorsPass, stairsPass, entrancePass, signPass, noTreesPass;
@@ -742,6 +742,7 @@ public static class BraxSceneAudit
         h.automaticDoors=doors.Length;
         h.automaticDoorLeavesWithCollision=doors.Sum(d=>(d.skrzydloL&&d.skrzydloL.GetComponentInChildren<Collider>(true)?1:0)+
                                                         (d.skrzydloP&&d.skrzydloP.GetComponentInChildren<Collider>(true)?1:0));
+        h.polyHavenModels=tr.Count(x=>Contains(x.name,"| Poly Haven CC0"));
         h.signBodies=tr.Count(x=>x.name.StartsWith("SOBCZAK HOTEL 3D sign",StringComparison.Ordinal) && x.GetComponentsInChildren<MeshRenderer>(true).Length>=3);
         h.treesInPlot=root.GetComponentsInChildren<Renderer>(true).Count(r=>r && (Contains(r.name,"tree")||Contains(r.name,"palm")||Contains(r.name,"foliage")));
         var streamer=root.GetComponent<BraxHotelSobczakFloorStreamer>();
@@ -785,7 +786,7 @@ public static class BraxSceneAudit
             string n=m?m.name:"";
             string shader=m&&m.shader?m.shader.name:"";
             if(Contains(n,"font")||Contains(n,"LegacyRuntime")||Contains(n,"napisy")||Contains(shader,"GUI/Text")||Contains(shader,"CitySignText"))return "CUSTOM_TEXT";
-            if(user&&user.transform.GetComponentsInParent<Transform>(true).Any(p=>p.name.StartsWith("T03 LOBBY |",StringComparison.Ordinal)))return "POLYHAVEN_MODEL";
+            if(user&&user.transform.GetComponentsInParent<Transform>(true).Any(p=>Contains(p.name,"| Poly Haven CC0")))return "POLYHAVEN_MODEL";
             if(Contains(n,"brick_facade"))return "exterior_wall_cladding_02";
             if(Contains(n,"podium_granite"))return "granite_tile_03";
             if(Contains(n,"dark_granite")||Contains(n,"granite_kerb"))return "granite_tile";
@@ -805,9 +806,23 @@ public static class BraxSceneAudit
             if(Contains(n,"white_leather"))return "leather_white";
             if(Contains(n,"bed_linen")||Contains(n,"sheer_curtain"))return "fabric_pattern_05";
             if(Contains(n,"fitness_rubber"))return "rubber_tiles";
+            if(Contains(n,"grasscloth_wallcovering"))return "hessian_230";
+            if(Contains(n,"boucle_upholstery"))return "curly_teddy_natural";
+            if(Contains(n,"taupe_upholstery"))return "cotton_jersey";
+            if(Contains(n,"linen_drapes")||Contains(n,"white_bed_linen"))return "terlenka";
+            if(Contains(n,"champagne_satin"))return "crepe_satin";
+            if(Contains(n,"burgundy_velvet"))return "velour_velvet";
+            if(Contains(n,"room_rug_jacquard"))return "floral_jacquard";
+            if(Contains(n,"lobby_rug_jacquard"))return "floral_jacquard";
+            if(Contains(n,"smoked_walnut"))return "smoked_walnut_veneer";
+            if(Contains(n,"cognac_leather"))return "fabric_leather_02";
+            if(Contains(n,"restaurant_parquet"))return "herringbone_parquet";
+            if(Contains(n,"kitchen_wall_tiles"))return "long_white_tiles";
+            if(Contains(n,"kitchen_floor_tiles"))return "anti_skid_tiles";
             if(Contains(n,"grass")||Contains(n,"planter_lawn"))return "REGION_GRASS";
             if(Contains(n,"brass")||Contains(n,"bronze")||Contains(n,"stainless")||Contains(n,"glass")||Contains(n,"mirror")||
-               Contains(n,"porcelain")||Contains(n,"warm_architectural_light")||Contains(n,"led_strip")||Contains(n,"pool_water"))return "CUSTOM_PBR";
+               Contains(n,"porcelain")||Contains(n,"warm_architectural_light")||Contains(n,"led_strip")||Contains(n,"pool_water")||
+               Contains(n,"chrome")||Contains(n,"tv_black_glass")||Contains(n,"frosted_glass"))return "CUSTOM_PBR";
             return "UNMAPPED";
         }
         float TileMeters(string sourceId)
@@ -833,6 +848,18 @@ public static class BraxSceneAudit
                 case "leather_white": return .35f;
                 case "fabric_pattern_05": return .6f;
                 case "rubber_tiles": return 2.0f;
+                case "hessian_230": return .55f;
+                case "curly_teddy_natural": return .45f;
+                case "cotton_jersey": return .55f;
+                case "terlenka": return .65f;
+                case "crepe_satin": return .60f;
+                case "velour_velvet": return .50f;
+                case "floral_jacquard": return .90f;
+                case "smoked_walnut_veneer": return 1.2f;
+                case "fabric_leather_02": return .45f;
+                case "herringbone_parquet": return 1.8f;
+                case "long_white_tiles": return 1.0f;
+                case "anti_skid_tiles": return 1.0f;
                 default:return 0f;
             }
         }
@@ -938,7 +965,7 @@ public static class BraxSceneAudit
               "; parking B1+B2: planowany " + a.hotelSobczak.parkingPlanned + " (jeszcze nie zbudowany)",
             "- wejście: drzwi automatyczne " + a.hotelSobczak.automaticDoors + " pary, skrzydła z kolizją " +
               a.hotelSobczak.automaticDoorLeavesWithCollision + "; szyld 3D: " + a.hotelSobczak.signBodies +
-              "; drzewa na działce: " + a.hotelSobczak.treesInPlot,
+              "; drzewa na działce: " + a.hotelSobczak.treesInPlot + "; modele Poly Haven: " + a.hotelSobczak.polyHavenModels,
             "- teren: " + F(a.hotelSobczak.siteWidthMeters) + " × " + F(a.hotelSobczak.siteDepthMeters) +
               " m; szkło: " + (a.hotelSobczak.glassPass?"PASS":"FAIL"),
             "", "## 30 najgorszych przypadków"

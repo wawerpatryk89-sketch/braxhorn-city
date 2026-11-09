@@ -368,6 +368,8 @@ jobs:
           python3 unity-tools/mistrzowie/prepare_promenade_props.py
           # Owner 9.11: sofas, armchairs and plants behind the A1 entrance glass (CC0, pinned MD5).
           python3 unity-tools/mistrzowie/prepare_arena_lobby_models.py
+          # Owner 9.11 21:03: Hotel Sobczak furniture/decor from Poly Haven (CC0, pinned MD5).
+          python3 unity-tools/mistrzowie/prepare_hotel_sobczak_models.py
           python3 unity-tools/mistrzowie/build_infrastructure.py
           # Five original-size station entrances, six connecting twin-rail tunnels; static only.
           python3 unity-tools/mistrzowie/prepare_landscape.py

@@ -23,7 +23,7 @@ def load(path, groups=None):
     d = json.load(open(path)); out = []
     for q in d["quads"]:
         g, m, ins = q[0], q[1], q[2]
-        if groups and not any(g.startswith(x) for x in groups): continue
+        if groups and not any(x in g for x in groups): continue
         v = np.array(q[3:], dtype=float).reshape(4, 3)
         out.append((g, m, v))
     return out
@@ -63,7 +63,7 @@ def plan(quads, y0, y1, out, title, half=(20, 13)):
     fig = plt.figure(figsize=(16, 9), dpi=110); ax = fig.add_axes([0, 0, 1, 1]); ax.set_facecolor("white")
     items = []
     for g, m, v in quads:
-        if g.startswith("exterior details"): continue
+        if "exterior details" in g: continue
         if v[:, 1].min() < y0 - .02 or v[:, 1].min() > y1: continue
         n = np.cross(v[1] - v[0], v[2] - v[0])
         if np.linalg.norm(n) < 1e-9: continue
@@ -79,7 +79,7 @@ def plan(quads, y0, y1, out, title, half=(20, 13)):
     cut = (y0 + y1) * .5 + .3
     segs, cl = [], []
     for g, m, v in quads:
-        if g.startswith("exterior details"): continue
+        if "exterior details" in g: continue
         if not (v[:, 1].min() < cut < v[:, 1].max()): continue
         n = np.cross(v[1] - v[0], v[2] - v[0])
         if np.linalg.norm(n) < 1e-9 or abs(n[1]) / np.linalg.norm(n) > .1: continue

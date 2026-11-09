@@ -10,7 +10,9 @@ public sealed class BraxChampionsArenaLobbyTextureImport : AssetPostprocessor
 {
     public const string Folder="/Source/Mistrzowie/ArenaLobby/";
     public const string TrophyFolder="/Source/Mistrzowie/ArenaTrophies/";
-    public override uint GetVersion()=>2;
+    // HOTEL SOBCZAK T03 furniture and decor (prepare_hotel_sobczak_models.py), same ASTC 6x6 contract.
+    public const string HotelFolder="/Source/Mistrzowie/HotelSobczak/";
+    public override uint GetVersion()=>3;
     void OnPreprocessTexture()
     {
         if(assetPath.Contains(TrophyFolder))
@@ -25,7 +27,7 @@ public sealed class BraxChampionsArenaLobbyTextureImport : AssetPostprocessor
             p.SetPlatformTextureSettings(a);
             return;
         }
-        if(!assetPath.Contains(Folder))return;
+        if(!assetPath.Contains(Folder)&&!assetPath.Contains(HotelFolder))return;
         var t=(TextureImporter)assetImporter;
         string name=System.IO.Path.GetFileNameWithoutExtension(assetPath);
         t.textureType=TextureImporterType.Default;

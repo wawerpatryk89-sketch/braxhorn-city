@@ -97,20 +97,24 @@ class HotelSobczakT03Contract(unittest.TestCase):
         ground = self.gen[self.gen.index("static void GroundFloor()"):self.gen.index("static void Toilets(")]
         for needle in ("reception", "lobby lounge", "lobby bar", "concierge", "luggage room", "waiting lounge", "back office"):
             self.assertIn(needle, ground)
-        self.assertGreaterEqual(ground.count('LobbyModel("sofa_02/sofa_02_2k.gltf"'), 4)
-        self.assertGreaterEqual(ground.count('LobbyModel("modern_arm_chair_01/modern_arm_chair_01_2k.gltf"'), 6)
+        self.assertGreaterEqual(ground.count('A+"sofa_02/sofa_02_2k.gltf"'), 4)
+        self.assertGreaterEqual(ground.count('A+"modern_arm_chair_01/modern_arm_chair_01_2k.gltf"'), 4)
+        for model in ("coffee_table_round_01", "bar_chair_round_01", "mid_century_lounge_chair", "modern_coffee_table_01",
+                      "vintage_suitcase", "wall_clock", "fancy_picture_frame_01"):
+            self.assertIn(model, self.gen)
         self.assertIn("HasTextures(source)", self.gen)
         self.assertIn("ProceduralSofa", self.gen)                          # leather stand-in if a model is missing
 
     def test_every_room_is_finished_and_furnished(self):
         room = self.gen[self.gen.index("static void Room(Transform t"):self.gen.index("static void Renumber(")]
-        for needle in ("king bed", "nightstands", "TV wall", "desk", "armchair", "wardrobe", "vanity", "WC", "shower",
+        for needle in ("king bed", "nightstands", "TV wall", "desk", "lounge chair", "wardrobe", "vanity", "WC", "shower",
                        "Leaf(true,wall,d0,d1,0,s)", "W.Napis(number.ToString()", "M.oak", "M.marbleWet"):
             self.assertIn(needle, room)
 
     def test_corridors_and_core_are_finished(self):
         tmpl = self.gen[self.gen.index("static Transform GuestFloorTemplate()"):self.gen.index("static void Skirting(")]
-        for needle in ("M.carpet", "Skirting(", "M.warmLight", "LiftFront(0,h)", "CoreBack(0,h)", "Stair(sx,0,h,1)"):
+        for needle in ("M.carpet", "Skirting(", "M.warmLight", "LiftFront(0,h,M.grasscloth)", "CoreBack(0,h,M.grasscloth)",
+                       "StairWalls(0,h,false,M.grasscloth)", "WallZ(M.grasscloth,-TowerHalfW+i*RoomW", "Stair(sx,0,h,1)"):
             self.assertIn(needle, tmpl)
 
     def test_three_lifts_29_stops_pocket_landing_doors(self):
@@ -197,6 +201,65 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertEqual(positions.count("HotelWorld("), 21)
         self.assertEqual(targets.count("HotelWorld("), 21)
         self.assertIn('labels[20]=="21-roof-terrace"', self.review)
+
+
+    # ---------------------------------------------------------------- premium finish (owner 9.11 21:03)
+    def test_furniture_is_real_poly_haven_models_pinned_by_md5(self):
+        prep = (TOOLS / "prepare_hotel_sobczak_models.py").read_text(encoding="utf-8")
+        for slug in ("dining_chair_02", "mid_century_lounge_chair", "Ottoman_01", "side_table_01", "coffee_table_round_01",
+                     "modern_ceiling_lamp_01", "fancy_picture_frame_01", "bar_chair_round_01", "desk_lamp_arm_01"):
+            self.assertIn("'%s': (" % slug, prep)
+            self.assertIn('H+"%s/' % slug, self.gen)
+        self.assertNotIn("hanging_picture_frame_01", prep + self.gen)          # branded placeholder poster, never used
+        self.assertIn("python3 unity-tools/mistrzowie/prepare_hotel_sobczak_models.py", self.workflow)
+        importer = (EDITOR / "BraxChampionsArenaLobbyTextureImport.cs").read_text(encoding="utf-8")
+        self.assertIn('HotelFolder="/Source/Mistrzowie/HotelSobczak/"', importer)
+
+    def test_restaurant_chairs_have_four_legs_upholstery_and_lod(self):
+        floor1 = self.gen[self.gen.index("static void FirstFloor()"):self.gen.index("static void FinishChairs()")]
+        self.assertIn('H+"dining_chair_02/dining_chair_02_2k.gltf"', floor1)
+        proto = floor1[floor1.index("chairProto=G("):floor1.index("diningChairs.Clear();")]
+        self.assertEqual(proto.count("Box(M.walnutDark,dx-.018f"), 1)          # 4 legs from the dx/dz loop
+        self.assertIn("M.cognac", proto)                                        # padded leather seat and back
+        self.assertNotIn("Box(M.brass,cx-.02f,cx+.02f", self.gen)               # the old single brass leg is gone
+        finish = self.gen[self.gen.index("static void FinishChairs()"):]
+        self.assertIn("AddComponent<LODGroup>()", finish)
+        self.assertIn("FinishChairs();", self.gen)
+
+    def test_every_surface_uses_poly_haven_maps(self):
+        for slug in ("hessian_230", "curly_teddy_natural", "cotton_jersey", "terlenka", "crepe_satin", "floral_jacquard",
+                     "smoked_walnut_veneer", "fabric_leather_02", "herringbone_parquet",
+                     "long_white_tiles", "anti_skid_tiles"):
+            self.assertIn('"%s"' % slug, self.materials)
+            self.assertIn("'%s'" % slug, self.prepare)
+        self.assertNotIn("W.Mat.Plain(", self.gen + self.materials)
+        apartments = (EDITOR / "BraxChampionsApartments.cs").read_text(encoding="utf-8")
+        self.assertIn('ceiling=M("apt_ceiling_stucco","white_stucco_02"', apartments)
+
+    def test_room_furniture_is_streamed_per_room_and_shell_stays_on_the_floor(self):
+        room = self.gen[self.gen.index("static void Room(Transform t"):self.gen.index("static void Renumber(")]
+        self.assertIn('var fg=G(t,"ROOM "+number+" | furniture (drawn when inside)");', room)
+        tail = room[room.index('W.Lampa("room "+number+" bath light"'):]
+        self.assertIn("In(t,true);", tail)                                   # regression: walls after the rooms stay on the floor
+        self.assertIn("AddComponent<BraxWidocznoscWnetrza>()", self.gen)
+        self.assertIn('" | furniture (drawn when inside)"', self.gen[self.gen.index("int roomZones=0;"):])
+
+    def test_interiors_get_interior_ambient_not_the_city_sky(self):
+        # owner photos 9.11: beige walls x blue city sky ambient read mauve, ceilings dark brown-grey
+        self.assertIn("public static void Interior(Material m,float ambient)", self.materials)
+        self.assertIn('m.SetColor("_GroundColor",InteriorGround)', self.materials)
+        block = self.materials[self.materials.index("foreach(var m in new[]{s.ceiling"):]
+        block = block[:block.index("Interior(m,")]
+        for name in ("s.ceiling", "s.grasscloth", "s.carpet", "s.oak", "s.parquet", "s.rugRoom", "s.rugLobby", "s.walnut"):
+            self.assertIn(name, block)
+        for exterior in ("s.brick", "s.podiumStone", "s.paving", "s.asphalt", "s.kerb"):
+            self.assertNotIn(exterior + ",", block)
+
+    def test_rugs_are_real_rugs_with_a_bound_edge(self):
+        self.assertIn("static void Rug(Material field,Material edge", self.gen)
+        self.assertEqual(self.gen.count("Rug(M.rug"), 3)
+        self.assertNotIn("Box(M.rugRoom", self.gen)
+        self.assertNotIn("Box(M.rugLobby,-10f", self.gen)
 
 
 if __name__ == "__main__":
