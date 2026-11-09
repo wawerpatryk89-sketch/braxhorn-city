@@ -67,17 +67,18 @@ public static class BraxTramwajSklad
         return t.s[best];
     }
 
-    /// <summary>Przedział s, w którym oś toru jest w kwadracie skrzyżowania (półbok h).</summary>
+    /// <summary>Przedział s (od, do), w którym oś toru jest w kwadracie skrzyżowania (półbok h). Pętla może zaczynać się w środku
+    /// skrzyżowania — wtedy przedział przechodzi przez koniec trasy (do &lt; od; BraxTramT1 liczy go modulo długość).</summary>
     public static Vector2 SPrzedzial(Trasa t, Vector2 srodek, float h)
     {
-        float od = -1f, d0 = -1f;
-        for (int i = 0; i < t.p.Count; i++)
-        {
-            bool w = Mathf.Abs(t.p[i].x - srodek.x) < h && Mathf.Abs(t.p[i].z - srodek.y) < h;
-            if (w && od < 0f) od = t.s[i];
-            if (w) d0 = t.s[i];
-        }
-        return new Vector2(od, d0);
+        int n = t.p.Count; var w = new bool[n];
+        for (int i = 0; i < n; i++) w[i] = Mathf.Abs(t.p[i].x - srodek.x) < h && Mathf.Abs(t.p[i].z - srodek.y) < h;
+        if (!w.Any(q => q)) return new Vector2(-1f, -1f);
+        // początek przedziału: pierwszy punkt „w środku”, którego poprzednik (modulo) jest „na zewnątrz”
+        int start = -1; for (int i = 0; i < n; i++) if (w[i] && !w[(i + n - 1) % n]) { start = i; break; }
+        if (start < 0) return new Vector2(0f, t.dl);   // cała pętla w polu (nie zdarza się)
+        int k = start; while (w[(k + 1) % n] && (k + 1) % n != start) k = (k + 1) % n;
+        return new Vector2(t.s[start], t.s[k]);
     }
 
     // ---------------------------------------------------------------------------------------------------------------
