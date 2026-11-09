@@ -559,8 +559,8 @@ public static class BraxSceneAudit
             "BraxChampionsArenaSigns.cs","oryginalny owner PNG 1536x256 na bryle 39x6.5x1.5; brak duplikatu");
         // Owner 9.11: every sign is a 3D body (artwork outline extruded).
         var signBodies=all.Where(t=>Contains(t.name,"black metal body extruded from the artwork outline")).ToArray();
-        AddExact("Arena: cztery szyldy jako bryły 3D",signBodies,4,
-            "BraxChampionsArenaSigns.cs","front 1.5 m na złotym zadaszeniu, pozostałe 0.32 m do szyby");
+        AddExact("Arena: szyldy i banery jako bryły 3D",signBodies,6,
+            "BraxChampionsArenaSigns.cs","front 1.5 m na zadaszeniu, 3 elewacje 0.32 m, 2 banery hali 36x6x0.45 m");
         var externalRedSignGeometry=all.Where(t=>
             Contains(t.name,"red neon vertical sign frame")||
             Contains(t.name,"red neon sign top accent")||

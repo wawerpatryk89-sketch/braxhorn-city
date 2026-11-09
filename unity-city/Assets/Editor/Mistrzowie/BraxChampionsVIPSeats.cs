@@ -80,20 +80,32 @@ public static class BraxChampionsVIPSeats
     // Phone proof 8.11 showed the previous feet-name heuristic rejected every
     // valid correction (16 x UPRIGHT_UNCERTAIN). Score geometry first, then use
     // a named back/backrest only to resolve the 180-degree facing ambiguity.
+    // Owner phone 9.11 "one tak kurwa leżą": measured on the owner GLB, the
+    // node chain is Sketchfab_model (-90 X) -> Collada group (+90 X) = upright,
+    // 85 x 73.6 x 78.2 cm (W x H x D), backrest toward -Z, front +Z. glTFast puts
+    // the first node's matrix on the instance ROOT; writing localRotation=facing
+    // there DELETED the -90 and left +90: every chair lay on its back.
+    // Facing is now composed ON TOP of the imported rotation, and the result
+    // must have the authored 73.6 cm height or the build reports it.
+    public const float AuthoredHeightUnits=73.6f, AuthoredDepthUnits=78.2f, AuthoredWidthUnits=85.0f;
     static void KeepImportedChairUpright(GameObject chair,Quaternion facing)
     {
+        var imported=chair.transform.localRotation; // Place never writes it before this
+        var yaw=facing;
         // Audit 9.11 of the owner GLB: its two Sketchfab/Collada root matrices
         // cancel out (net identity), so the AUTHORED pose is already upright
         // (85 x 74 x 75 cm-units). The old geometry score preferred a 90-degree
         // X tilt (ratio .88 is "closer" to 1.08 than the true .87) and the
         // phone showed the chair lying on its side. Keep the authored pose when
         // it is plausibly upright; only search when it clearly is not.
-        chair.transform.localRotation=facing;
+        chair.transform.localRotation=yaw*imported;
         {
             var authored=VisualBounds(chair);
             float authoredUpright=authored.size.y/
                 Mathf.Max(Mathf.Max(authored.size.x,authored.size.z),.001f);
-            if(authoredUpright>=.60f&&authoredUpright<=1.60f)
+            float parent=Mathf.Max(chair.transform.parent?chair.transform.parent.lossyScale.y:1f,.0001f);
+            float heightUnits=authored.size.y/parent;
+            if(Mathf.Abs(heightUnits-AuthoredHeightUnits)<=2.0f||Mathf.Abs(heightUnits*100f-AuthoredHeightUnits)<=2.0f)
             {
                 Debug.Log("CHAMPIONS_VIP_OWNER_GLB_UPRIGHT authored pose kept uprightRatio="+
                     authoredUpright.ToString("F3")+" dimensions="+authored.size.ToString("F3"));
@@ -110,22 +122,20 @@ public static class BraxChampionsVIPSeats
         Quaternion best=Quaternion.identity;
         foreach(var correction in corrections)
         {
-            chair.transform.localRotation=facing*correction;
+            chair.transform.localRotation=yaw*correction*imported;
             var b=VisualBounds(chair);
-            float horizontal=Mathf.Max(b.size.x,b.size.z);
-            float upright=b.size.y/Mathf.Max(horizontal,.001f);
-            // Real barrel lounge chair is roughly human-seat proportions:
-            // upright height close to width/depth; a sideways import is much flatter.
-            float score=Mathf.Abs(upright-1.08f);
-            if(upright<.84f)score+=3f+(.84f-upright)*8f;
-            if(upright>1.48f)score+=(upright-1.48f)*2f;
+            // Measured on the source: upright = 73.6 cm tall (lying = 78.2 or 85).
+            float p=Mathf.Max(chair.transform.parent?chair.transform.parent.lossyScale.y:1f,.0001f);
+            float h=b.size.y/p;
+            float score=Mathf.Min(Mathf.Abs(h-AuthoredHeightUnits),Mathf.Abs(h*100f-AuthoredHeightUnits));
+            if(correction!=Quaternion.identity)score+=.01f; // prefer the authored pose on ties
             if(score<bestScore)
             {
                 bestScore=score;
                 best=correction;
             }
         }
-        chair.transform.localRotation=facing*best;
+        chair.transform.localRotation=yaw*best*imported;
 
         // If the source exposes a semantic back/backrest transform, it belongs
         // AWAY from the cage. Flip only around the now-upright local Y axis.
@@ -142,15 +152,17 @@ public static class BraxChampionsVIPSeats
             float backZ=spot.InverseTransformPoint(back.position).z;
             if(backZ>centreZ)
             {
-                chair.transform.localRotation=facing*Quaternion.Euler(0,180f,0)*best;
+                chair.transform.localRotation=yaw*Quaternion.Euler(0,180f,0)*best*imported;
                 flipped=true;
             }
         }
         var finalBounds=VisualBounds(chair);
         float finalUpright=finalBounds.size.y/
             Mathf.Max(Mathf.Max(finalBounds.size.x,finalBounds.size.z),.001f);
-        if(finalUpright<.84f)
-            BraxBuildQuality.Warn("CHAMPIONS_VIP_UPRIGHT_FAILED geometry still sideways after deterministic axis repair");
+        float fp=Mathf.Max(chair.transform.parent?chair.transform.parent.lossyScale.y:1f,.0001f);
+        float fh=finalBounds.size.y/fp;
+        if(Mathf.Min(Mathf.Abs(fh-AuthoredHeightUnits),Mathf.Abs(fh*100f-AuthoredHeightUnits))>2.0f)
+            BraxBuildQuality.Warn("CHAMPIONS_VIP_UPRIGHT_FAILED height="+fh.ToString("F1")+" expected="+AuthoredHeightUnits+" (chair lying)");
         Debug.Log("CHAMPIONS_VIP_OWNER_GLB_UPRIGHT axisCorrection="+best.eulerAngles+
             " backFacingFlip="+flipped+
             " uprightRatio="+finalUpright.ToString("F3")+
@@ -224,8 +236,7 @@ public static class BraxChampionsVIPSeats
         // chair square to the cage (no fan of individually turned chairs).
         var towardCage = new Vector3(0, 0, cz - z);
         var facing=Quaternion.LookRotation(towardCage.normalized,Vector3.up);
-        chair.transform.localRotation=facing;
-        chair.transform.localScale=Vector3.one;
+        // Keep glTFast's imported root rotation (Sketchfab -90 X): yaw goes on top.
         KeepImportedChairUpright(chair,facing);
 
         var bounds = VisualBounds(chair);

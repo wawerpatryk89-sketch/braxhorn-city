@@ -20,12 +20,13 @@ public static class BraxChampionsArenaSigns
             if(!AssetDatabase.LoadAssetAtPath<Texture2D>(Source+file))return false;
         return true;
     }
-    static Material MakeMat(int index)
+    static Material MakeMat(int index)=>MakeMat(index,index);
+    static Material MakeMat(int slot,int index)
     {
         var shader=Shader.Find(BraxCityMaterials.ShaderName);
         if(!shader)throw new InvalidOperationException("City PBR shader missing");
         var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(Source+Names[index]);
-        var m=new Material(shader){name="Owner's Champion Arena sign "+index,enableInstancing=true};
+        var m=new Material(shader){name="Owner's Champion Arena sign "+slot+" art "+index,enableInstancing=true};
         m.SetTexture("_MainTex",texture);
         m.SetTexture("_EmissionMap",texture);
         m.SetColor("_EmissionColor",new Color(.13f,.105f,.10f));
@@ -38,7 +39,7 @@ public static class BraxChampionsArenaSigns
         m.renderQueue=2450;
         m.SetOverrideTag("RenderType","TransparentCutout");
         m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
-        AssetDatabase.CreateAsset(m,Out+"Materials/champion_sign_"+index+".mat");
+        AssetDatabase.CreateAsset(m,Out+"Materials/champion_sign_"+slot+".mat");
         return m;
     }
     static void Curved(Transform root,int index,Material mat,bool front,bool east,float length,float bottom,float height)
@@ -171,40 +172,65 @@ public static class BraxChampionsArenaSigns
         return o;
     }
 
-    // FRONT public sign: flat box face, standing on the gold canopy (render).
-    static void FrontSign3D(Transform root,Material art,Material body)
+    // Flat sign body: artwork face + outline extruded backwards by depth.
+    // origin = bottom centre of the artwork face; right = viewer's right; n = toward viewer.
+    static void FlatSign3D(Transform root,int index,Material art,Material body,Vector3 origin,Vector3 right,Vector3 n,
+        float w,float h,float depth,string label,bool solid)
     {
-        float k=BraxClaudeOsiedle.K,w=FrontWidth,h=FrontHeight,b=BraxChampionsArenaArrival.CanopyTop;
-        float fz=FrontFaceZ,bz=fz+FrontDepth;
-        var outline=Outline(0);
-        Vector3 P(Vector2 uv,float z)=>new Vector3((uv.x-.5f)*w,b+uv.y*h,z)*k;
-        // Artwork on the front face (viewer at -Z reads u to the right).
-        var av=new List<Vector3>{new Vector3(-w*.5f,b,fz)*k,new Vector3(-w*.5f,b+h,fz)*k,new Vector3(w*.5f,b+h,fz)*k,new Vector3(w*.5f,b,fz)*k};
-        var artMesh=new Mesh{name="A1 front sign artwork face"};
-        artMesh.SetVertices(av);artMesh.SetUVs(0,new List<Vector2>{new Vector2(0,0),new Vector2(0,1),new Vector2(1,1),new Vector2(1,0)});
-        artMesh.SetTriangles(new[]{0,1,2,0,2,3},0);artMesh.RecalculateNormals();artMesh.RecalculateBounds();
-        AssetDatabase.CreateAsset(artMesh,Out+"Meshes/A1_front_sign_artwork_face.asset");
-        var face=MeshObject(root,"A1 facade | original premium sign 0 | owner artwork on the 3D body",artMesh,art,false);
+        float k=BraxClaudeOsiedle.K;
+        var outline=Outline(index);
+        Vector3 P(Vector2 uv,float back)=>(origin+right*((uv.x-.5f)*w)+Vector3.up*(uv.y*h)-n*back)*k;
+        var av=new List<Vector3>{P(new Vector2(0,0),0),P(new Vector2(0,1),0),P(new Vector2(1,1),0),P(new Vector2(1,0),0)};
+        var at=new List<int>();
+        var aq=new List<Vector3>();
+        Quad(aq,at,av[0],av[1],av[2],av[3],n);
+        // Quad() may reorder vertices; rebuild UVs from the actual positions.
+        var auv=new List<Vector2>();
+        foreach(var q in aq){var local=q/k-origin;auv.Add(new Vector2(Vector3.Dot(local,right)/w+.5f,local.y/h));}
+        var artMesh=new Mesh{name=label+" artwork face"};
+        artMesh.SetVertices(aq);artMesh.SetUVs(0,auv);artMesh.SetTriangles(at,0);artMesh.RecalculateNormals();artMesh.RecalculateBounds();
+        AssetDatabase.CreateAsset(artMesh,Out+"Meshes/"+label.Replace(' ','_').Replace('|','_')+"_face.asset");
+        var face=MeshObject(root,label+" | owner artwork on the 3D body",artMesh,art,false);
         face.GetComponent<MeshRenderer>().shadowCastingMode=ShadowCastingMode.Off;
-        // Black body: side walls along the outline, front cap 15 mm behind the
-        // artwork (fills transparent holes) and a back cap.
         var v=new List<Vector3>();var t=new List<int>();
         for(int i=0;i<outline.Count;i++)
         {
             var a=outline[i];var c=outline[(i+1)%outline.Count];
-            var e=new Vector2(c.x-a.x,c.y-a.y);
-            var outward=new Vector3(e.y*h,-e.x*w,0f); // CCW outline -> right-hand normal
-            Quad(v,t,P(a,fz+.015f),P(c,fz+.015f),P(c,bz),P(a,bz),outward);
+            var e=right*((c.x-a.x)*w)+Vector3.up*((c.y-a.y)*h);
+            var outward=Vector3.Cross(n,e); // CCW outline seen by the viewer
+            Quad(v,t,P(a,.015f),P(c,.015f),P(c,depth),P(a,depth),outward);
         }
         var tris=Triangulate(outline);
         for(int i=0;i+2<tris.Count;i+=3)
         {
-            Tri(v,t,P(outline[tris[i]],fz+.015f),P(outline[tris[i+1]],fz+.015f),P(outline[tris[i+2]],fz+.015f),Vector3.back);
-            Tri(v,t,P(outline[tris[i]],bz),P(outline[tris[i+1]],bz),P(outline[tris[i+2]],bz),Vector3.forward);
+            Tri(v,t,P(outline[tris[i]],.015f),P(outline[tris[i+1]],.015f),P(outline[tris[i+2]],.015f),n);
+            Tri(v,t,P(outline[tris[i]],depth),P(outline[tris[i+1]],depth),P(outline[tris[i+2]],depth),-n);
         }
-        MeshObject(root,"A1 FRONT SIGN | black metal body extruded from the artwork outline",SaveMesh("A1 front sign body",v,t),body,true);
-        Debug.Log("A1_SIGN_3D front width="+w+" height="+h+" depth="+FrontDepth+" bottom="+b+" faceZ="+fz+
-            " outlinePoints="+outline.Count+" capTriangles="+(tris.Count/3)+" on=gold_canopy");
+        // Body name must NOT start with "A1 facade | original premium sign "
+        // (BraxChampionsBuild counts exactly 4 owner artworks by that prefix).
+        MeshObject(root,"A1 SIGN BODY | "+label+" | black metal body extruded from the artwork outline",
+            SaveMesh(label.Replace('|','_')+" body",v,t),body,solid);
+        Debug.Log("A1_SIGN_3D "+label+" width="+w+" height="+h+" depth="+depth+" outlinePoints="+outline.Count+" capTriangles="+(tris.Count/3));
+    }
+
+    // FRONT public sign: flat box face, standing on the gold canopy (render).
+    static void FrontSign3D(Transform root,Material art,Material body)
+    {
+        FlatSign3D(root,0,art,body,new Vector3(0,BraxChampionsArenaArrival.CanopyTop,FrontFaceZ),
+            Vector3.right,Vector3.back,FrontWidth,FrontHeight,FrontDepth,"A1 facade | original premium sign 0",true);
+    }
+
+    // Owner 9.11 "te ściany na których murali nie ma - wykończ": the two long
+    // hall walls get the owner's own artwork as 36 x 6 m 3D LED banners above
+    // the stands (16 rows x .40 = 6.4 m), 25 cm off the wall, 0.45 m deep.
+    // Hall in building space: inner faces z=+-34.955, x -60..60, bowl +.165 m.
+    public const float HallBannerWidth=36f, HallBannerHeight=6f, HallBannerBottom=13.165f;
+    static void HallBanners(Transform root,Material body)
+    {
+        FlatSign3D(root,2,MakeMat(4,2),body,new Vector3(0,HallBannerBottom,34.955f-.25f),
+            Vector3.right,Vector3.back,HallBannerWidth,HallBannerHeight,.45f,"A1 HALL BANNER north wall",false);
+        FlatSign3D(root,1,MakeMat(5,1),body,new Vector3(0,HallBannerBottom,-34.955f+.25f),
+            Vector3.left,Vector3.forward,HallBannerWidth,HallBannerHeight,.45f,"A1 HALL BANNER entrance wall",false);
     }
 
     // Curved signs on the other facades: same outline, extruded from the
@@ -267,6 +293,7 @@ public static class BraxChampionsArenaSigns
         CurvedSignBody(t,2,false,true,34f,11.7f,5.667f,body);
         Curved(t,3,MakeMat(3),false,false,34f,11.7f,5.667f);
         CurvedSignBody(t,3,false,false,34f,11.7f,5.667f,body);
+        HallBanners(t,body);
         return true;
     }
 }
