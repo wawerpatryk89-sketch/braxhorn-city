@@ -161,8 +161,19 @@ public sealed class BraxGymPlayer : MonoBehaviour
         }
         if(vessel)
         {
-            vessel.Drive(move,dt);speed=0;vertical=0;
-            if(action!="Idle"){action="Idle";clips["Idle"].wrapMode=WrapMode.Loop;clips["Idle"].speed=1;clips.CrossFade("Idle",.16f,PlayMode.StopAll);}
+            speed=0;vertical=0;
+            // Jacht: wchodzimy na pokład i możemy dojść do steru.
+            // Joystick na pokładzie rusza Braxem, NIE jachtem.
+            if(vessel.IsOnDeck) vessel.WalkDeck(move,dt);
+            else
+            {
+                vessel.Drive(move,dt);
+                if(action!="Idle" && clips["Idle"]!=null)
+                {
+                    action="Idle";clips["Idle"].wrapMode=WrapMode.Loop;
+                    clips["Idle"].speed=0f;clips.CrossFade("Idle",.16f,PlayMode.StopAll);
+                }
+            }
             return;
         }
         bool acting=Time.time<actionEnd;
@@ -308,9 +319,53 @@ public sealed class BraxGymPlayer : MonoBehaviour
         AutoYaw(dt,snap);
         Vector3 want=transform.position+Vector3.up*1.65f;
         cameraTarget=Vector3.Lerp(cameraTarget,want,1-Mathf.Exp(-dt*10f));   // build 14: lekkie opóźnienie za postacią (10/s)
+        // Kabina windy jest dużo węższa niż standardowe 5.8 m kamery TPP.
+        // Film 4.11: wielosekundowy czarny ekran na drzwiach Tower.
+        // Tylko gdy gracz FAKTYCZNIE stoi w kabinie: widok oczu w stronę drzwi.
+        // Po wyjściu automatycznie wraca standardowa kamera zza pleców.
+        if (cityWorld && !seat && !vessel &&
+            BraxWinda.WewnatrzKabiny(transform.position, out Vector3 windaPrzod))
+        {
+            view.transform.position = transform.position + Vector3.up * 1.68f +
+                                      windaPrzod * .14f;
+            view.transform.rotation = Quaternion.LookRotation(windaPrzod, Vector3.up);
+            camNear = -1f;
+            if (!hiddenClose)
+            {
+                hiddenClose = true;
+                foreach (var rr in visual.GetComponentsInChildren<Renderer>(true))
+                    rr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+            }
+            if (contactShadow) contactShadow.position =
+                transform.position + Vector3.up * .018f;
+            return;
+        }
+        // JACHT — kamera rzeczywiście W ŚRODKU kokpitu, za kołem sterowym (właściciel 9.11 11:39: „z jachtu za kierownicą kamera”).
+        // Dawna kamera TPP 2.2 m od sternika lądowała poza szybą i z boku
+        // jachtu. Kotwiczymy ją bezpośrednio w modelu sternika.
+        if (vessel && vessel.HasPilotCamera)
+        {
+            Vector3 k = vessel.transform.TransformPoint(vessel.helmCameraLocal);
+            var f = Vector3.ProjectOnPlane(vessel.transform.forward, Vector3.up);
+            if (f.sqrMagnitude < .01f) f = vessel.transform.forward;
+            view.transform.position = k;
+            view.transform.rotation = Quaternion.LookRotation(
+                f.normalized + Vector3.up * Mathf.Clamp((19f - pitch) * .012f, -.20f, .20f),
+                Vector3.up);
+            camNear = -1f;
+            // Głowa Braxa nie zasłania kamery od środka. Pozostaje jego
+            // naturalna poza przy sterze i rzucany cień, bez drugiego modelu.
+            if (!hiddenClose)
+            {
+                hiddenClose = true;
+                foreach (var rr in visual.GetComponentsInChildren<Renderer>(true))
+                    rr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+            }
+            return;
+        }
         float ya=yaw*Mathf.Deg2Rad,pi=pitch*Mathf.Deg2Rad;
-        // właściciel 3.11 10:39: na jachcie „kamera ze środka, za kierownicą” — blisko za głową sternika (najwyżej 2.2 m)
-        float dist=vessel&&vessel.label=="JACHT"?Mathf.Min(distance,2.2f):distance;
+        // Na motorówce i skuterze zachowujemy kamerę TPP za rufą (jacht i motorówka za sterem: blok HasPilotCamera wyżej).
+        float dist=distance;
         Vector3 offset=new Vector3(Mathf.Sin(ya)*Mathf.Cos(pi),Mathf.Sin(pi),Mathf.Cos(ya)*Mathf.Cos(pi))*dist;
         Vector3 position=cameraTarget+offset;
         // Kamera (audyt filmów właściciela 1.11): nie wchodzi w ściany, szyby, korony drzew i lampy — kolidują z nią też
@@ -371,7 +426,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         {
             string context=door&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f?(doorOpen?"ZAMKNIJ DRZWI":"OTWÓRZ DRZWI"):transform.position.z>18?"ULICA — KOLEJNY ETAP":"";
             if(cityWorld){if(!string.IsNullOrEmpty(cityWorld.Context))context=cityWorld.Context;else if(context=="ULICA — KOLEJNY ETAP")context="";}
-            if(vessel)context="ZEJDŹ · "+vessel.label;
+            if(vessel)context=vessel.Interakcja();
             if(seat)context="WSTAŃ";
             return context;
         }

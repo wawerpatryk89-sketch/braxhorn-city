@@ -44,7 +44,7 @@ public sealed class BraxCityWorld : MonoBehaviour
         {
             if(loading)return "WCZYTYWANIE DZIELNICY…";
             var p=player.transform.position;
-            if(player.vessel)return "WYSIĄDŹ · "+player.vessel.label;   // 2.11: „wsiądź” / „wysiądź” (łódź)
+            if(player.vessel)return player.vessel.Interakcja();  // Jacht: pokład → ster → pokład → pomost; inne: zejdź
             if(player.seat)return "WSTAŃ";
             var vessel=BraxVessel.Nearest(p,3.2f);
             if(vessel)return "WSIĄDŹ · "+vessel.label;
@@ -101,7 +101,7 @@ public sealed class BraxCityWorld : MonoBehaviour
     {
         if(loading)return true;
         var p=player.transform.position;
-        if(player.vessel){player.vessel.Dismount();return true;}
+        if(player.vessel){return player.vessel.Interact();}
         if(player.seat){player.seat.Leave();return true;}
         var vessel=BraxVessel.Nearest(p,3.2f);
         if(vessel){vessel.Board(player);return true;}

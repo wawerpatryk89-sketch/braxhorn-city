@@ -23,7 +23,15 @@ public sealed class BraxVessel : MonoBehaviour
     public float length = 3f, width = 1.2f;
     public Vector3 seat = new Vector3(0, .9f, -.2f);   // miejsce gracza (lokalnie, względem środka pojazdu)
     public bool sit = true;               // skuter/motorówka: siedzi (BraxPose.Ride); jacht: stoi za sterem
-    public float sitLower = .95f;         // biodra 0,95 m nad stopami → korzeń postaci niżej o tyle przy siedzeniu
+    public float sitLower = .95f;         // awaryjny offset gdy rig nie ma Hips
+    public bool walkableDeck;             // jacht: etap wejścia na pokład przed sterowaniem
+    public Vector3 deckEntry;            // lokalny punkt wejścia na pokład, nie woda
+    public Vector3 helmCameraLocal;      // kamera za kołem sterowym (jacht i motorówka)
+    public Transform leftGrip, rightGrip; // rzeczywiste uchwyty kierownicy / steru (dzieci modelu lub markery)
+    public Vector3 helmTargetLocal;       // oś fizycznej kierownicy do audytu pozy sternika
+    public bool IsOnDeck => rider && walkableDeck && onDeck;
+    public bool AtHelm => rider && (!walkableDeck || !onDeck);
+    public bool HasPilotCamera => rider && AtHelm && label != "SKUTER";
     public Vector3 moor;                  // gdzie pojazd stoi zacumowany
     public float moorYaw;
     public Vector3 wejscie;               // miejsce wejścia (lokalnie): przy burcie od pomostu albo za rufą; zero = środek
@@ -32,6 +40,7 @@ public sealed class BraxVessel : MonoBehaviour
     public bool Occupied { get { return rider; } }
     public float Speed { get { return speed; } }
     BraxGymPlayer rider;
+    bool onDeck, returnedToDeck;
     UnityEngine.SceneManagement.Scene riderScene;
     float speed, yawVel, baseYaw, side, pitchS, rollS, heave;
     Vector3 home; bool homed;
@@ -54,29 +63,184 @@ public sealed class BraxVessel : MonoBehaviour
 
     public static BraxVessel Nearest(Vector3 p, float max)
     {
-        BraxVessel best = null; float bd = max;
+        BraxVessel best = null; float bd = max + 1.3f; // zasięg większy tylko dla jachtu z trapem
         foreach (var v in All)
         {
             if (!v || v.rider) continue;
             var d = v.BoardingPoint - p; d.y = 0;
-            if (d.magnitude < bd) { bd = d.magnitude; best = v; }
+            // Jacht: długi, wysoki kadłub i trap z pomostu. Punkt akcji
+            // musi być osiągalny z normalnego końca trapu, nie tylko z wody.
+            float zasieg = v.walkableDeck ? Mathf.Max(max, 4.5f) : max;
+            if (d.magnitude < zasieg && d.magnitude < bd) { bd = d.magnitude; best = v; }
         }
         return best;
+    }
+
+    static Transform ZnajdzBiodra(BraxGymPlayer p)
+    {
+        if (!p || !p.visual) return null;
+        foreach (var t in p.visual.GetComponentsInChildren<Transform>(true))
+        {
+            string n = t.name; int i = n.LastIndexOf(':');
+            if (i >= 0) n = n.Substring(i + 1);
+            if (n == "Hips") return t;
+        }
+        return null;
+    }
+
+    void UstawZaSterem(BraxGymPlayer player)
+    {
+        if (!player) return;
+        onDeck = false;
+        // BraxSeat używa bioder mierzonego rigu. Ten sam standard
+        // stosujemy na łodzi, zamiast odejmować stałe 95 cm od źle
+        // trafionego miejsca i sadzać Braxa w powietrzu / pod fotelem.
+        var hipsBone = ZnajdzBiodra(player);
+        float hip = hipsBone ? Mathf.Clamp(
+            hipsBone.position.y - player.transform.position.y, .55f, 1.60f) : sitLower;
+        // Kość Hips po ustawieniu parent na obracającym się pojeździe
+        // niekoniecznie jest w osi świata. Ustawiamy lokalny punkt oparcia
+        // tak, żeby biodra były ~8 cm ponad realną powierzchnią fotela.
+        player.transform.localPosition = seat +
+            Vector3.up * (.08f * Mathf.Max(1f, transform.lossyScale.y) - hip);
+        player.transform.localRotation = Quaternion.identity;
+        if (player.clips && player.clips["Idle"] != null)
+        {
+            player.clips["Idle"].speed = 0f;
+            player.clips.Play("Idle");
+        }
+        if (sit)
+        {
+            var pose = BraxPose.Get(player);
+            pose.Set(label == "SKUTER" ? BraxPose.Mode.Ride : BraxPose.Mode.Ster, transform);
+            pose.SetGrips(leftGrip, rightGrip);
+        }
+        Debug.Log("BRAXHORN_LODZ_FOTEL " + label + " hip=" +
+            hip.ToString("F2") + "m, siedzenie_local=" + seat.ToString("F2") +
+            ", root_local=" + player.transform.localPosition.ToString("F2"));
     }
 
     public void Board(BraxGymPlayer player)
     {
         if (rider || !player) return;
         rider = player;
-        riderScene = player.gameObject.scene;   // obszary doczytywane (1.11): po zejściu gracz wraca do swojej sceny
+        riderScene = player.gameObject.scene;
+        // Rejs port -> wyspa: zajęta łódź NIE może być dzieckiem sceny
+        // Nabrzeża, która jest zwalniana po wypłynięciu na otwarte morze.
+        // Przenosimy tylko aktualnie używany pojazd do sceny gracza
+        // (bez kopiowania materiałów, całego portu ani wyspy).
+        if (riderScene.IsValid() && riderScene.isLoaded &&
+            gameObject.scene != riderScene)
+        {
+            transform.SetParent(null, true); // MoveGameObjectToScene wymaga korzenia
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(gameObject, riderScene);
+            Debug.Log("BRAXHORN_REJS_SCENA_ZACHOWANA: " + label +
+                " przeniesiony do " + riderScene.name + " (port może zwolnić RAM)");
+        }
         player.vessel = this;
-        player.body.enabled = false;
+        if (player.body) player.body.enabled = false;
         player.transform.SetParent(transform, true);
-        player.transform.localPosition = sit ? seat - Vector3.up * sitLower : seat;
-        player.transform.localRotation = Quaternion.identity;
-        speed = 0; yawVel = 0; side = 0;
-        if (sit) BraxPose.Get(player).Set(label == "MOTORÓWKA" ? BraxPose.Mode.Ster : BraxPose.Mode.Ride, transform);   // skuter okrakiem, motorówka w fotelu
+        speed = 0f; yawVel = 0f; side = 0f;
+        returnedToDeck = false;
+        if (walkableDeck)
+        {
+            onDeck = true;
+            player.transform.localPosition = deckEntry;
+            player.transform.localRotation = Quaternion.identity;
+            BraxPose.Get(player).Set(BraxPose.Mode.None, null);
+            BraxPose.Get(player).SetGrips(null, null);
+            if (player.clips && player.clips["Idle"] != null)
+            {
+                player.clips["Idle"].speed = 1f;
+                player.clips.Play("Idle");
+            }
+            Debug.Log("BRAXHORN_JACHT_POKLAD: wejście z pomostu, teraz możesz przejść za ster");
+        }
+        else UstawZaSterem(player);
+        player.SnapKamera();
         Debug.Log("BRAXHORN_LODZ wsiadł: " + label + " " + name);
+    }
+
+    // JACHT: po wejściu na pokład joystick porusza postacią WYŁĄCZNIE
+    // w obrysie bezpiecznego, otwartego pokładu. Nie jedzie łódź.
+    public void WalkDeck(Vector2 move, float dt)
+    {
+        if (!IsOnDeck || dt <= 0f) return;
+        var local = rider.transform.localPosition;
+        var delta = new Vector3(move.x, 0f, move.y);
+        if (delta.sqrMagnitude > 1f) delta.Normalize();
+        local += delta * (2.15f * dt);
+        float bw = Mathf.Max(.75f, width * .26f);
+        local.x = Mathf.Clamp(local.x, -bw, bw);
+        local.z = Mathf.Clamp(local.z, -length * .45f, length * .24f);
+        local.y = deckEntry.y;
+        rider.transform.localPosition = local;
+        if (delta.sqrMagnitude > .025f)
+        {
+            rider.transform.localRotation = Quaternion.Slerp(
+                rider.transform.localRotation, Quaternion.LookRotation(delta),
+                Mathf.Clamp01(dt * 10f));
+        }
+        if (rider.clips)
+        {
+            string clip = delta.sqrMagnitude > .025f ? "Walk" : "Idle";
+            if (rider.clips[clip] != null && !rider.clips.IsPlaying(clip))
+                rider.clips.CrossFade(clip, .2f);
+        }
+    }
+
+    // Nie uzależniaj sterowania od historii wejścia — wcześniejsza flaga
+    // returnedToDeck blokowała POWRÓT do steru po pierwszym wyjściu z kokpitu.
+    bool BliskoSteru()
+    {
+        if (!rider) return false;
+        Vector3 a = rider.transform.localPosition, b = seat;
+        float d = new Vector2(a.x - b.x, a.z - b.z).magnitude;
+        return d < Mathf.Max(1.25f, width * .32f);
+    }
+    bool BliskoTrapu()
+    {
+        if (!rider) return false;
+        Vector3 a = rider.transform.localPosition;
+        return new Vector2(a.x - deckEntry.x, a.z - deckEntry.z).magnitude <
+               Mathf.Max(1.25f, width * .32f);
+    }
+
+    public string Interakcja()
+    {
+        if (!rider) return "";
+        if (!walkableDeck) return "ZEJDŹ · " + label;
+        if (!onDeck) return "WYJDŹ NA POKŁAD";
+        if (BliskoSteru()) return "STERUJ JACHTEM";
+        if (BliskoTrapu()) return "ZEJDŹ NA POMOST";
+        return "PRZEJDŹ ZA STER";
+    }
+
+    public bool Interact()
+    {
+        if (!rider) return false;
+        if (!walkableDeck) return Dismount();
+        if (!onDeck)
+        {
+            BraxPose.Get(rider).Set(BraxPose.Mode.None, null);
+            if (rider.clips && rider.clips["Idle"] != null)
+                rider.clips["Idle"].speed = 1f;
+            onDeck = true; returnedToDeck = true;
+            // Po oddaniu steru nie przenoś gracza na rufę; zostaje obok kokpitu,
+            // dzięki czemu może później ponownie przejąć ster.
+            rider.transform.localPosition = new Vector3(seat.x,
+                deckEntry.y, Mathf.Clamp(seat.z - .75f, -length * .43f, length * .24f));
+            rider.transform.localRotation = Quaternion.identity;
+            rider.SnapKamera();
+            return true;
+        }
+        if (BliskoTrapu() && !BliskoSteru())
+            return Dismount(); // przy trapie: zejście, nie teleport do kokpitu
+        // Przy sterze albo na pozostałej części otwartego pokładu: gracz
+        // może przejąć ster przyciskiem; przycisk nie może być martwy.
+        UstawZaSterem(rider);
+        rider.SnapKamera();
+        return true;
     }
 
     /// <summary>Zejście: na najbliższy twardy grunt nad wodą w promieniu 4,5 m (pomost, piasek). Zwraca false, gdy za daleko od brzegu.</summary>
@@ -106,6 +270,7 @@ public sealed class BraxVessel : MonoBehaviour
         if (!found) return false;
         var p = rider;
         BraxPose.Get(p).Set(BraxPose.Mode.None, null);
+        if (p.clips && p.clips["Idle"] != null) p.clips["Idle"].speed = 1f;
         p.transform.SetParent(null, true);
         if (riderScene.IsValid() && riderScene.isLoaded && p.gameObject.scene != riderScene)
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(p.gameObject, riderScene);
@@ -113,7 +278,7 @@ public sealed class BraxVessel : MonoBehaviour
         p.transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
         p.body.enabled = true;
         p.vessel = null;
-        rider = null; speed = 0; side = 0;
+        rider = null; onDeck = false; returnedToDeck = false; speed = 0; side = 0;
         home = transform.position; baseYaw = transform.eulerAngles.y;   // pojazd zostaje tam, gdzie go zostawiono
         Debug.Log("BRAXHORN_LODZ wysiadł: " + label + " przy " + best.ToString("F1"));
         return true;
@@ -228,10 +393,11 @@ public sealed class BraxVessel : MonoBehaviour
 
     void Zwolnij()
     {
-        var p = rider; rider = null; speed = 0; side = 0;
+        var p = rider; rider = null; onDeck = false; returnedToDeck = false; speed = 0; side = 0;
         home = transform.position; baseYaw = transform.eulerAngles.y;
         if (!p) return;
         BraxPose.Get(p).Set(BraxPose.Mode.None, null);
+        if (p.clips && p.clips["Idle"] != null) p.clips["Idle"].speed = 1f;
         if (p.transform.parent == transform) p.transform.SetParent(null, true);
         if (riderScene.IsValid() && riderScene.isLoaded && p.gameObject.scene != riderScene)
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(p.gameObject, riderScene);
