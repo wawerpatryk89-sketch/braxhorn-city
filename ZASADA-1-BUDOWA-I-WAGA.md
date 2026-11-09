@@ -46,7 +46,11 @@ Zamiast tego — jak robią to duże realistyczne gry na Androida (Android Devel
 
 ## C. BUILD PLAYERA — ustawienia, których NIE zmienia się „na próbę”
 
-- **JEDNA GRA, JEDEN PLIK APK, INSTALUJE SIĘ NORMALNIE** (właściciel 9.11: „to ma być jedna wspólna gra, jedna zasada” — Miasto R1 instaluje się
+- **JEDNA GRA — DZIŚ 4 APK ROBOCZE (po jednym na rejon: Miasto R1, Osiedle, Obóz, Miasto Mistrzów), KAŻDY JEDEN PLIK, INSTALUJE SIĘ NORMALNIE.**
+  Rejony to etapy pracy nad tą samą grą: ten sam identyfikator, klucz, silnik, skala K, ten sam gracz i sterowanie, te same zasady z tego pliku.
+  Docelowo rejony łączą się w jeden APK (sceny-obszary doczytywane przy podejściu) — dlatego już dziś każdy rejon musi być zbudowany tak,
+  żeby dało się go dołożyć do wspólnego pliku bez przeróbek: własna scena-obszar, bez własnych ustawień playera, bez własnego sposobu instalacji.
+- **KAŻDY Z TYCH APK INSTALUJE SIĘ NORMALNIE** (właściciel 9.11: „to ma być jedna wspólna gra, jedna zasada” — Miasto R1 instaluje się
   normalnie, Mistrzowie wymagali pobierania i rozpakowywania zipów — ZABRONIONE). Żadnego OBB, „Split Application Binary”, zipów do rozpakowania,
   pobierania po instalacji, własnych instalatorów ani skryptów na telefonie. Każdy rejon buduje ten sam `com.braxhorn.city` tym samym
   kluczem; APK ląduje w Releases i instaluje się jednym dotknięciem jako aktualizacja. Play Asset Delivery (pkt A.5) dopiero wtedy, gdy
