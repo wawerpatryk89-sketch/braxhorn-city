@@ -9,6 +9,9 @@ using UnityEngine;
 public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 {
     public Transform driverSeat, doorApproach, doorHinge;
+    // Hinge axis in the hinge's local space. Up = ordinary swing door; the
+    // owner's Revuelto uses scissor doors (lateral axis, set by the builder).
+    public Vector3 doorAxis = Vector3.up;
     public BoxCollider bodyCollider;
     public float maxSpeed = 120f / 3.6f, reverseMaxSpeed = 30f / 3.6f;
     // World units per real metre (K). Speeds are stored in world units; the
@@ -254,11 +257,11 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         for (float t = 0; t < duration; t += Time.deltaTime)
         {
             doorAngle = Mathf.Lerp(from, target, Mathf.SmoothStep(0, 1, Mathf.Clamp01(t / duration)));
-            doorHinge.localRotation = doorRest * Quaternion.Euler(0, doorAngle, 0);
+            doorHinge.localRotation = doorRest * Quaternion.AngleAxis(doorAngle, doorAxis);
             yield return null;
         }
         doorAngle = target;
-        doorHinge.localRotation = doorRest * Quaternion.Euler(0, doorAngle, 0);
+        doorHinge.localRotation = doorRest * Quaternion.AngleAxis(doorAngle, doorAxis);
     }
 
     IEnumerator Board(BraxGymPlayer p)

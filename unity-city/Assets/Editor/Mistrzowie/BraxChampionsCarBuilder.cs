@@ -224,28 +224,41 @@ public static class BraxChampionsCarBuilder
         // Try the REAL separate door assembly. If the source has no reliable
         // split, do not invent a duplicate door or move a body mesh incorrectly.
         Transform doorPivot = null;
-        var doorParts = copy.GetComponentsInChildren<Transform>(true)
+        // Owner phone 9.11 (IMG_0678): "drzwi się nie otwierają". b33 logged
+        // originalDoor=False: the old filter wanted ONE node with its pivot at
+        // x<0, but car_rev's left door is ~15 parts (DoorLPaint, DoorLBase,
+        // DoorLGrille...) whose pivots sit at the car origin. Side is decided by
+        // the parts' RENDERED centre; every top-level left-door part moves together.
+        var doorCandidates = copy.GetComponentsInChildren<Transform>(true)
             .Where(t => t && t != copy.transform &&
-                t.name.IndexOf("door", StringComparison.OrdinalIgnoreCase) >= 0)
-            .Where(t => t.GetComponentsInChildren<Renderer>(true).Length > 0)
-            .Where(t => root.transform.InverseTransformPoint(t.position).x < 0)
-            .OrderByDescending(t => t.GetComponentsInChildren<Renderer>(true).Length)
-            .ToArray();
-        if (doorParts.Length > 0)
+                t.name.IndexOf("door", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                t.GetComponentsInChildren<Renderer>(true).Length > 0)
+            .ToList();
+        Bounds? PartBounds(Transform t)
         {
-            // Reparent a single highest-level original door assembly without
-            // changing geometry; use a hinge at its real front-left edge.
-            var original = doorParts[0];
-            var r = original.GetComponentsInChildren<Renderer>(true);
-            Bounds db = r[0].bounds;
-            foreach (var renderer in r.Skip(1)) db.Encapsulate(renderer.bounds);
-            var hinge = new GameObject("ORIGINAL left door | functional pivot").transform;
+            Bounds? acc = null;
+            foreach (var rr in t.GetComponentsInChildren<Renderer>(true))
+                if (acc == null) acc = rr.bounds; else { var x = acc.Value; x.Encapsulate(rr.bounds); acc = x; }
+            return acc;
+        }
+        var leftDoor = doorCandidates
+            .Where(t => !doorCandidates.Any(o => o != t && t.IsChildOf(o)))
+            .Where(t => { var pb = PartBounds(t); return pb.HasValue && root.transform.InverseTransformPoint(pb.Value.center).x < 0; })
+            .ToArray();
+        if (leftDoor.Length > 0)
+        {
+            Bounds db = PartBounds(leftDoor[0]).Value;
+            foreach (var part in leftDoor.Skip(1)) db.Encapsulate(PartBounds(part).Value);
+            var lo = root.transform.InverseTransformPoint(db.min);
+            var hi = root.transform.InverseTransformPoint(db.max);
+            var hinge = new GameObject("ORIGINAL left door | scissor pivot at front A-pillar").transform;
             hinge.SetParent(root.transform, false);
-            var centre = root.transform.InverseTransformPoint(db.center);
-            hinge.localPosition = new Vector3(centre.x, centre.y,
-                root.transform.InverseTransformPoint(db.max).z);
-            original.SetParent(hinge, true);
+            // Revuelto scissor door: hinge at the front edge, ~35% up the door,
+            // lateral axis; the door's rear rises (runtime axis = left, -65 deg).
+            hinge.localPosition = new Vector3((lo.x + hi.x) * .5f, lo.y + (hi.y - lo.y) * .35f, Mathf.Max(lo.z, hi.z));
+            foreach (var part in leftDoor) part.SetParent(hinge, true);
             doorPivot = hinge;
+            Debug.Log("A1_OWNER_CAR_DOOR parts=" + leftDoor.Length + " size=" + db.size.ToString("F2") + " hinge=" + hinge.localPosition.ToString("F2") + " axis=scissor");
         }
         else
             Debug.LogWarning("A1_OWNER_CAR_DOOR_QA: source model has no independent left door node; keep car mesh original");
@@ -253,6 +266,7 @@ public static class BraxChampionsCarBuilder
         var car = root.AddComponent<BraxChampionsCar>();
         car.bodyCollider = box; car.driverSeat = seat; car.doorApproach = enter;
         car.doorHinge = doorPivot;
+        car.doorAxis = Vector3.left; // scissor: MoveDoor(-65) lifts the rear of the door
         // Same proportions as the 4.95 m source, enlarged with the body.
         car.wheelbase = 2.7f * CarScale;
         // Owner 9.11: "ma się rozpędzać do 120 km". The world is K-scaled, so a
