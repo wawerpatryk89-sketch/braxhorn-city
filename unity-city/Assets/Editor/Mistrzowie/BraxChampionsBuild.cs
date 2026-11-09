@@ -220,7 +220,7 @@ public static class BraxChampionsBuild
             BraxBuildQuality.Warn("A1_T11_CAR_INTEGRATION_REVIEW: car top speed is not owner-approved real 120 km/h");
         if(Mathf.Abs(car.bodyCollider.bounds.size.z-BraxChampionsCarBuilder.WorldLengthMetres)>.10f)
             BraxBuildQuality.Warn("A1_T11_CAR_INTEGRATION_REVIEW: car body is not "+
-                BraxChampionsCarBuilder.WorldLengthMetres.ToString("F2")+" m long (owner cap 6 m)");
+                BraxChampionsCarBuilder.WorldLengthMetres.ToString("F2")+" m long (real 4.95 m x K)");
         var expectedPos=new Vector3(645.175f,.16f,712f)*BraxClaudeOsiedle.K;
         if(Vector3.Distance(car.transform.position,expectedPos)>.05f)
             throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: owner car parking position drifted");

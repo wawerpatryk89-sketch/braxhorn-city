@@ -125,8 +125,10 @@ class A1T11Preflight(unittest.TestCase):
         self.assertIn("A1_T11_CAR_SAME_SCENE_PASS",build)
         self.assertIn("public float maxSpeed = 120f / 3.6f",car)
         self.assertIn("const float LengthMetres = 4.95f;",builder)
-        # Owner 8.11 cap 6 m + 9.11 "too small": world length 6.0 m.
-        self.assertIn("public const float WorldLengthMetres = 6.0f;",builder)
+        # Owner 9.11: no 6 m cap, "wszystko ma być odpowiednie pod skalę, też
+        # auto" -> real 4.95 m x K like every other object.
+        self.assertIn("public static float WorldLengthMetres => LengthMetres * K;",builder)
+        self.assertNotIn("OWNER_CAP_6M",builder)
         self.assertIn('car.engineIdleClip = AssetDatabase.LoadAssetAtPath<AudioClip>(EngineIdleAudio);',builder)
         self.assertIn('car.engineRevClip = AssetDatabase.LoadAssetAtPath<AudioClip>(EngineRevAudio);',builder)
         gate=build[build.index("static void VerifyArenaCasinoCarAssembly("):

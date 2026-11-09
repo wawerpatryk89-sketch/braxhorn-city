@@ -35,7 +35,7 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         # Exact regular-bay centre: between x lines 43.65/46.70 and
         # centered in row z[-90.6,-85.4]. Never on paint or accessible bay.
         x, z = 645.175 - 600, 712 - 800
-        car_half_length = (6.0/1.2944)/2  # 6.0 m world car in nominal bay units
+        car_half_length = 4.95/2  # real 4.95 m car = nominal bay units (both x K)
         self.assertAlmostEqual(x,(43.65+46.70)/2,places=6)
         self.assertAlmostEqual(z,(-90.6-85.4)/2,places=6)
         self.assertGreater(x-43.65,1.4)

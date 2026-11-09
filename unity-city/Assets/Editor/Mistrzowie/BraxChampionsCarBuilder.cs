@@ -14,12 +14,11 @@ public static class BraxChampionsCarBuilder
     public const string EngineIdleAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_idle.ogg";
     public const string EngineRevAudio = "Assets/Source/Mistrzowie/Audio/BraxCar/brax_engine_rev.ogg";
     const float LengthMetres = 4.95f; // Source estate's DlugoscRealna["car_rev"]
-    // Owner 8.11 (Issue #30): "NIE ROBIMY FIZYCZNIE SAMOCHODU DŁUŻSZEGO NIŻ 6 m".
-    // Owner 9.11: "Auto miało też złą skalę bo małe jakieś było". In this
-    // K-scaled world Brax is 2.33 m, so a 4.95-unit car read like a 3.8 m
-    // city car next to him. 6.0 m is the owner's own upper limit: the car is
-    // 1.21x bigger, still shorter than 4.95 x K (6.41 m).
-    public const float WorldLengthMetres = 6.0f;
+    // Owner 9.11: "Auto miało też złą skalę bo małe jakieś było" and, on the
+    // old 6 m cap: "Nie mam limitu na nic ... wszystko ma być odpowiednie pod
+    // skalę! Też auto." -> the real 4.95 m car x K, like every other object
+    // (Brax 2.33 m = 1.80 m real). No invented cap.
+    public static float WorldLengthMetres => LengthMetres * K;
     static float CarScale => WorldLengthMetres / LengthMetres;
     static float K => BraxClaudeOsiedle.K;
 
@@ -186,7 +185,7 @@ public static class BraxChampionsCarBuilder
         Bounds bounds=BoundsLocal(root.transform);
         if (bounds.size.z <= .01f || bounds.size.x <= .01f)
             throw new InvalidOperationException("Original car length/width is invalid");
-        // World length = owner's 6.0 m cap (see WorldLengthMetres), not 4.95 x K.
+        // World length = real 4.95 m x K (see WorldLengthMetres).
         float uniform = WorldLengthMetres / bounds.size.z;
         copy.transform.localScale *= uniform;
         Physics.SyncTransforms();
@@ -297,7 +296,7 @@ public static class BraxChampionsCarBuilder
             + " bodyCollider=REAL_BOUNDS" +
             " start=(645.175,712) side=RIGHT centredInRegularBay=true driverDoorFacesWalkway=true originalDoor=" + (doorPivot != null) +
             " ownerAnimations=EnteringCar,Driving,ExitingCar" +
-            " physicalScale=OWNER_CAP_6M sourceLength=4.95 no_fake_collision=true manual_phone_review_required=true");
+            " physicalScale=REAL_4.95m_xK sourceLength=4.95 no_fake_collision=true manual_phone_review_required=true");
     }
 }
 
