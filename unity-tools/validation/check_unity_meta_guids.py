@@ -51,7 +51,9 @@ def inspect(root: Path, champions: bool = False):
             meta_file = root / (path + ".meta")
             if not source_file.is_file():
                 errors.append(f"Missing required Champions C# source: {source_file}")
-            elif declaration not in source_file.read_text(encoding="utf-8"):
+            elif not any(form in source_file.read_text(encoding="utf-8") for form in
+                         # 9.11: the casino class is split over two files (partial); same class, same GUID.
+                         (declaration, declaration.replace("static class", "static partial class"))):
                 errors.append(f"Missing or changed declaration in {source_file}: {declaration}")
             if not meta_file.is_file():
                 errors.append(f"Missing pinned Champions Unity GUID: {meta_file}")
