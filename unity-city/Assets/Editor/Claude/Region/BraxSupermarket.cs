@@ -61,6 +61,7 @@ public static class BraxSupermarket
             // którego siatka przecina wnętrze lub światło wejścia.
             int towar = Zbuduj(t, lustro, i + 1);
             OczyscWejscie(scena, root.transform, t, lustro, i + 1);
+            try { OczyscHale(scena, root.transform, t, i + 1); } catch (Exception e) { Debug.LogWarning("BRAXHORN_SUPERMARKET_HALA DO POPRAWKI sklep " + (i + 1) + ": " + e.Message); }
             Physics.SyncTransforms();
             Debug.Log("BRAXHORN_SUPERMARKET kopia " + (i + 1) + ": front (środek) " + c.ToString("F1") + ", obrót " + yaw + "°, hala " + W.ToString("F1") + " × " + D.ToString("F1") + " × " + H.ToString("F1") + " m"
                       + (lustro ? ", odbicie lustrzane (wejście i kasy po drugiej stronie)" : "") + ", towar modeli " + towar + ", szukanie " + stoper.ElapsedMilliseconds + " ms");
@@ -220,6 +221,83 @@ public static class BraxSupermarket
             " brak_rozpoznania="+unidentified+" probki="+samples+
             " potencjalne_przeszkody="+obstacles.Count+
             (obstacles.Count>0?" ["+string.Join("; ",obstacles)+"]":""));
+    }
+
+    // 9.11 (właściciel, zdjęcie 17:30: „sklep funkcjonalny, drzewa usunąć z niego, dojście ma być, wszystko”; w APK 9.11 w hali
+    // stało drzewo, na posadzce trawnik, z tyłu płot): sklep stoi na stałe przy parkingu, na terenie z trawnikiem, drzewami
+    // i ogrodzeniem. Wnętrze hali (obrys ścian, od 0.25 m pod wierzchem posadzki do 3 m nad dachem) jest WYCINANE z każdej obcej
+    // siatki sceny (trawnik, płot, drzewo, grunt wystający nad posadzkę) — BraxCityMeshCut, kolizje siatek aktualizowane;
+    // obce kolizje pudełkowe przycięte do hali, kapsuły/kule i drobne kolizje w hali usunięte; kępy trawy (instancje) z hali
+    // usunięte z danych. Sam sklep (korzeń supermarketu), gracz i kamery nietknięte.
+    static void OczyscHale(Scene scene, Transform shopRoot, Transform store, int nr)
+    {
+        Physics.SyncTransforms();
+        float hw = W * .5f, y0 = store.position.y + Podloga - .25f, y1 = store.position.y + H + 3f;
+        Vector3 lo = new Vector3(float.MaxValue, y0, float.MaxValue), hi = new Vector3(float.MinValue, y1, float.MinValue);
+        foreach (var q in new[] { new Vector3(-hw, 0, 0), new Vector3(hw, 0, 0), new Vector3(-hw, 0, D), new Vector3(hw, 0, D) })
+        { var w = store.TransformPoint(q); lo.x = Mathf.Min(lo.x, w.x); lo.z = Mathf.Min(lo.z, w.z); hi.x = Mathf.Max(hi.x, w.x); hi.z = Mathf.Max(hi.z, w.z); }
+        var hala = new Bounds(); hala.SetMinMax(lo, hi);   // sklep obrócony o 0/90/180/270 — obrys w osiach świata dokładny
+        bool Chroniony(Transform t) => t.IsChildOf(shopRoot) || t.GetComponentInParent<BraxGymPlayer>() || t.GetComponentInParent<Camera>();
+        bool WHali(Vector3 p) { var q = store.InverseTransformPoint(p); return Mathf.Abs(q.x) < hw && q.z > 0f && q.z < D; }
+        int siatki = 0, kolPrzyciete = 0, kolUsuniete = 0, kepy = 0;
+        // 1) siatki: precyzyjne cięcie (zostaje to, co poza halą)
+        foreach (var go in scene.GetRootGameObjects())
+        {
+            if (!go || Chroniony(go.transform)) continue;
+            if (!go.GetComponentsInChildren<MeshRenderer>(true).Any(r => r && r.enabled && r.bounds.Intersects(hala) && !Chroniony(r.transform))) continue;
+            try { siatki += BraxCityMeshCut.Subtract(go.transform, hala, BraxRegion.Out + "/Cuts", "supermarket_hala_" + nr); }
+            catch (Exception e) { Debug.LogWarning("BRAXHORN_SUPERMARKET_HALA cięcie " + go.name + ": " + e.Message); }
+        }
+        // 2) kolizje obce w hali
+        var reszta = new GameObject("SUPERMARKET " + nr + ": przycięte kolizje otoczenia").transform; reszta.SetParent(shopRoot, false);
+        foreach (var go in scene.GetRootGameObjects())
+        {
+            if (!go || Chroniony(go.transform)) continue;
+            foreach (var c in go.GetComponentsInChildren<Collider>(true))
+            {
+                if (!c || !c.enabled || c.isTrigger || Chroniony(c.transform)) continue;
+                var b = c.bounds; if (!b.Intersects(hala)) continue;
+                if (c is MeshCollider mc && mc.sharedMesh && mc.sharedMesh.name.Contains("supermarket_hala_")) continue;   // już przycięta z siatką
+                bool srodek = WHali(b.center) && b.max.y > y0 + .3f;
+                bool prosta = c is BoxCollider && Quaternion.Angle(c.transform.rotation, Quaternion.identity) < .01f;
+                if (prosta && !(b.size.x < 12f && b.size.z < 12f && srodek))
+                {
+                    Vector3 l = Vector3.Max(b.min, hala.min), h = Vector3.Min(b.max, hala.max);
+                    if (h.x - l.x < .01f || h.y - l.y < .01f || h.z - l.z < .01f) continue;
+                    void Dodaj(Vector3 a, Vector3 z)
+                    {
+                        var sz = z - a; if (sz.x < .01f || sz.y < .01f || sz.z < .01f) return;
+                        var k = new GameObject(c.name + " (poza halą)"); k.transform.SetParent(reszta, false); k.transform.position = (a + z) * .5f;
+                        k.AddComponent<BoxCollider>().size = sz;
+                    }
+                    Dodaj(b.min, new Vector3(l.x, b.max.y, b.max.z)); Dodaj(new Vector3(h.x, b.min.y, b.min.z), b.max);
+                    Dodaj(new Vector3(l.x, b.min.y, b.min.z), new Vector3(h.x, l.y, b.max.z)); Dodaj(new Vector3(l.x, h.y, b.min.z), new Vector3(h.x, b.max.y, b.max.z));
+                    Dodaj(new Vector3(l.x, l.y, b.min.z), new Vector3(h.x, h.y, l.z)); Dodaj(new Vector3(l.x, l.y, h.z), new Vector3(h.x, h.y, b.max.z));
+                    c.enabled = false; kolPrzyciete++;
+                }
+                else if (srodek || (b.size.x < 15f && b.size.z < 15f && WHali(new Vector3(b.center.x, store.position.y, b.center.z)) && b.max.y > y0 + .3f))
+                { c.enabled = false; kolUsuniete++; }
+            }
+        }
+        // 3) kępy trawy rysowane instancjami (BraxClaudeTrawa) — dane kęp z hali usunięte
+        foreach (var tr in UnityEngine.Object.FindObjectsByType<BraxClaudeTrawa>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!tr || !tr.dane || tr.dane.kepy == null) continue;
+            var d = tr.dane; bool maY = d.y != null && d.y.Length == d.kepy.Length;
+            var nk = new List<Vector4>(d.kepy.Length); var ny = new List<float>(d.kepy.Length);
+            for (int i = 0; i < d.kepy.Length; i++)
+            {
+                var k = d.kepy[i];
+                var q = store.InverseTransformPoint(new Vector3(k.x, store.position.y, k.y));
+                if (Mathf.Abs(q.x) < hw + .3f && q.z > -.3f && q.z < D + .3f) { kepy++; continue; }
+                nk.Add(k); if (maY) ny.Add(d.y[i]);
+            }
+            if (nk.Count == d.kepy.Length) continue;
+            d.kepy = nk.ToArray(); if (maY) d.y = ny.ToArray(); EditorUtility.SetDirty(d);
+        }
+        Physics.SyncTransforms();
+        Debug.Log("BRAXHORN_SUPERMARKET_HALA sklep=" + nr + " hala " + hala.min.ToString("F1") + "…" + hala.max.ToString("F1") + ": wycięte siatki otoczenia " + siatki +
+                  ", kolizje przycięte " + kolPrzyciete + ", kolizje usunięte " + kolUsuniete + ", kępy trawy usunięte " + kepy);
     }
 
     // ---------------- miejsce ----------------

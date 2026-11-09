@@ -50,6 +50,18 @@ class R1UlicaGlowna(unittest.TestCase):
         self.assertIn("GetComponentInParent<LODGroup>()", body)
         self.assertIn("r is SkinnedMeshRenderer", body)
 
+    def test_supermarket_hall_is_cut_free_of_lawn_fence_and_trees(self):
+        # 9.11 17:30: „sklep funkcjonalny, drzewa usunąć z niego, dojście ma być, wszystko” — trawnik i płot w hali
+        c = code("BraxSupermarket.cs")
+        self.assertIn("OczyscHale(scena, root.transform, t, i + 1)", c)
+        body = c[c.index("static void OczyscHale("):]
+        self.assertIn('BraxCityMeshCut.Subtract(go.transform, hala', body)    # siatki otoczenia wycięte w obrysie hali
+        self.assertIn("t.IsChildOf(shopRoot)", body)                          # sam sklep nietknięty
+        self.assertIn("BraxClaudeTrawa", body)                                # kępy trawy z hali usunięte z danych
+        self.assertIn("(poza halą)", body)                                    # kolizje przycięte, nie niewidzialne ściany
+        b = code("BraxRegionMiastoB.cs")
+        self.assertIn('Chodnik("SUPERMARKET BRAXHORN: dojście od parkingu"', b)
+
     def test_sign_face_normal_handles_double_sided_face(self):
         c = code("BraxZnakiPL.cs")
         self.assertIn("Vector3.Dot(cr, wzor) < 0f ? -cr : cr", c)
