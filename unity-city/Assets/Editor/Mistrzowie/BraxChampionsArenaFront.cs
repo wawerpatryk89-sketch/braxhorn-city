@@ -128,7 +128,7 @@ public static partial class BraxChampionsArenaArrival
         return false;
     }
 
-    static bool PlaceLobbyModel(Transform arenaRoot,Transform parent,string file,string label,float x,float z,float yaw,bool solid)
+    static bool PlaceLobbyModel(Transform arenaRoot,Transform parent,string file,string label,float x,float z,float yaw,bool solid,float fixedFloor=float.NaN)
     {
         var source=AssetDatabase.LoadAssetAtPath<GameObject>(LobbyModels+file);
         if(!source){BraxBuildQuality.Warn("A1_LOBBY_MODEL_MISSING: "+LobbyModels+file+" (prepare_arena_lobby_models.py)");return false;}
@@ -146,7 +146,7 @@ public static partial class BraxChampionsArenaArrival
         go.transform.SetParent(parent,false);
         go.transform.localRotation=Quaternion.Euler(0,yaw,0);
         go.transform.localScale=Vector3.one*K; // model is in real metres
-        float floor=LobbyFloorY(arenaRoot,x,z);
+        float floor=float.IsNaN(fixedFloor)?LobbyFloorY(arenaRoot,x,z):fixedFloor;
         go.transform.localPosition=new Vector3(x,floor,z)*K;
         foreach(var c in go.GetComponentsInChildren<Collider>(true))UnityEngine.Object.DestroyImmediate(c);
         Physics.SyncTransforms();
@@ -239,5 +239,22 @@ public static partial class BraxChampionsArenaArrival
         }
         Debug.Log("A1_ENTRANCE_PALMS placed="+placed+"/"+spots.Count+" x=+-13.5 (z -80..-128) and +-26.5 (z -66)");
         if(placed<spots.Count)BraxBuildQuality.Warn("A1_ENTRANCE_PALMS incomplete "+placed+"/"+spots.Count);
+    }
+
+    // Owner render: the upper VIP lounge has green plants between the sofas
+    // and a frameless glass balustrade at the slab edge. Authored in the
+    // lounge's own space (old 18.24 m floor); the lounge root carries LoungeDrop.
+    static void UpperLoungeFinish(Transform lounge,Dictionary<string,Material> exterior)
+    {
+        const float floor=18.24f,edge=-51.40f;
+        Box(lounge,"UPPER lounge | frameless glass balustrade",exterior["clear_glass"],
+            new Vector3(0,floor+.55f,edge),new Vector3(83.6f,1.10f,.024f),true);
+        Box(lounge,"UPPER lounge | champagne gold handrail",exterior["arena_gold"],
+            new Vector3(0,floor+1.12f,edge),new Vector3(83.6f,.05f,.07f),false);
+        int placed=0;
+        foreach(float x in new[]{-41.5f,-28.5f,-18.5f,0f,18.5f,28.5f,41.5f}) // clear of sofas (+-9/22/35) and lamps (+-15/40)
+            if(PlaceLobbyModel(lounge,lounge,"potted_plant_01/potted_plant_01_1k.gltf","upper lounge potted tree",
+                x,-46.4f,(x*13f)%360f,false,floor))placed++;
+        Debug.Log("A1_UPPER_LOUNGE_FINISH plants="+placed+"/7 glassBalustrade=83.6x1.10 goldHandrail=true");
     }
 }

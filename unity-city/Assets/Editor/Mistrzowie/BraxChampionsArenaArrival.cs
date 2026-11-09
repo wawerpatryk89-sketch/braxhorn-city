@@ -972,6 +972,7 @@ public static partial class BraxChampionsArenaArrival
         // clear of the entrance mural so it reads whole from the lobby.
         Box(root,"UPPER lounge | real premium dark-stone mezzanine floor",dark,
             new Vector3(0,18.12f,-48.05f),new Vector3(84f,.24f,6.9f),false);
+        BraxChampionsFoundation.Optional("loża VIP na piętrze: rośliny i balustrada",()=>UpperLoungeFinish(root,exterior));
         Box(root,"UPPER lounge | fine champagne fascia at floor edge",gold,
             new Vector3(0,18.13f,-51.56f),new Vector3(83.5f,.11f,.12f),false);
 
@@ -1026,8 +1027,12 @@ public static partial class BraxChampionsArenaArrival
         {
             Box(root,"UPPER lounge | warm table lamp",light,
                 new Vector3(x,19.11f,-47.0f),new Vector3(.44f,.47f,.44f),false);
+            // Audit 9.11: no table stands at x=+-15/+-40, the old 23 cm foot
+            // floated 0.6 m above the slab. Real floor lamp: base + stem.
             Box(root,"UPPER lounge | lamp champagne foot",gold,
-                new Vector3(x,18.83f,-47.0f),new Vector3(.13f,.23f,.13f),false);
+                new Vector3(x,18.255f,-47.0f),new Vector3(.30f,.03f,.30f),false);
+            Box(root,"UPPER lounge | lamp champagne stem",gold,
+                new Vector3(x,18.56f,-47.0f),new Vector3(.035f,.62f,.035f),false);
         }
         Debug.Log("A1_REFERENCE_UPPER_GLASS_LOUNGE furnishings=6_upright_blackPBR_leather_sofas"+
             " 6_oak_tables warm_lamps=4 upper_floor_inside_ellipse=true"+
