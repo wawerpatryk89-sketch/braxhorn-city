@@ -12,6 +12,10 @@ using W=BraxWnetrzaKit;
 public static class BraxChampionsArena
 {
     const string Out="Assets/PlayableGenerated/Mistrzowie/Arena";
+    // Structural hall wall depth in nominal metres (x K = 0.58 m in game).
+    public const float WallThickness=.45f;
+    // Lobby face of the front (Z1=98.3) wall: inner face 98.255 + depth.
+    public const float FrontWallLobbyFaceZ=98.3f-.045f+WallThickness;
     static Transform colliders;
     static readonly Dictionary<string,Material> materials=new Dictionary<string,Material>();
     public static int SeatCount {get;private set;}
@@ -108,14 +112,21 @@ public static class BraxChampionsArena
         // the artwork: these materials are behind the printed surface and are
         // visible only in the lower/upper margins. Gold dividers are never put
         // on top of a mural.
+        // Owner 9.11: "the wall with the mural behind the glass is paper-thin".
+        // Every hall wall is now a real structural wall WallThickness deep. Its
+        // INNER face stays exactly where the old 4 cm cladding face was, so the
+        // stands, stairs, signs and side murals keep their positions; the extra
+        // depth grows OUTWARD (lobby / concourse side). Solid = player collision.
         void Clad(bool alongX, float f, float s, float a0, float a1)
         {
-            float g0 = s > 0 ? f + .005f : f - .045f, g1 = g0 + .04f;
+            float inner = s > 0 ? f + .045f : f - .045f;
+            float outer = inner - s * WallThickness;
+            float g0 = Mathf.Min(inner, outer), g1 = Mathf.Max(inner, outer);
             if (alongX)
             {
                 // Non-mural wall: 1.20m granite plinth + Concrete Wall 009 above.
-                BoxMinMax(wallGranite,a0,a1,yF,1.20f,g0,g1,false);
-                BoxMinMax(wallConcrete,a0,a1,1.20f,yC,g0,g1,false);
+                BoxMinMax(wallGranite,a0,a1,yF,1.20f,g0,g1,true);
+                BoxMinMax(wallConcrete,a0,a1,1.20f,yC,g0,g1,true);
                 // 35mm physical gold divisions every ~3.3m, set 15mm proud.
                 for(float a=a0+3.30f;a<a1-.30f;a+=3.30f)
                 {
@@ -128,16 +139,20 @@ public static class BraxChampionsArena
             {
                 // Side mural wall: dark premium base behind the original print.
                 // Mural itself is later placed in front and is NEVER covered.
-                BoxMinMax(wallGranite,g0,g1,yF,1.20f,a0,a1,false);
-                BoxMinMax(facadePanels,g0,g1,1.20f,yC,a0,a1,false);
+                BoxMinMax(wallGranite,g0,g1,yF,1.20f,a0,a1,true);
+                BoxMinMax(facadePanels,g0,g1,1.20f,yC,a0,a1,true);
             }
         }
-        Clad(false, X0, 1f, Z0, Z1); Clad(false, X1, -1f, Z0, Z1);
+        // Side walls run past both end walls by the wall depth: closed corners.
+        Clad(false, X0, 1f, Z0 - WallThickness, Z1 + WallThickness);
+        Clad(false, X1, -1f, Z0 - WallThickness, Z1 + WallThickness);
         foreach (var (f, s) in new[] { (Z0, 1f), (Z1, -1f) })
         {
             Clad(true, f, s, X0, dA); Clad(true, f, s, dB, X1);
-            float g0 = s > 0 ? f + .005f : f - .045f;
-            BoxMinMax(wallConcrete, dA, dB, dH, yC, g0, g0 + .04f, false, true);
+            // Full-depth lintel over the 4.10 m doorway: the opening shows a
+            // real 45 cm reveal on both sides and on top, not a 4 cm edge.
+            float inner = s > 0 ? f + .045f : f - .045f, outer = inner - s * WallThickness;
+            BoxMinMax(wallConcrete, dA, dB, dH, yC, Mathf.Min(inner, outer), Mathf.Max(inner, outer), true, true);
         }
         BoxMinMax(ceil, X0, X1, yC, yC + .02f, Z0, Z1, false, true);
 
@@ -236,20 +251,73 @@ public static class BraxChampionsArena
                 for (float a = a0 + .45f; a < a1 - .3f; a += .68f, j++) Seat((j + k) % 9 == 4 ? seatBlk : seatRed, alongX, a, p0 - s * .525f, top, s);
             }
         }
-        // Same four-sided seating scheme as the estate, expanded without scaling furniture.
-        // Six long-side blocks and four end blocks; 2m aisles remain clear between blocks.
-        foreach(var interval in new[]{new Vector2(cz-23,cz-9),new Vector2(cz-7,cz+7),new Vector2(cz+9,cz+23)})
-        { Stand(false,cx-24,1,interval.x,interval.y,16);Stand(false,cx+24,-1,interval.x,interval.y,16); }
+        // Owner 9.11: "the stands must join at the corners". The long sides
+        // (front line x=cx±24) and the ends (front line z=cz±15) now meet in a
+        // continuous bowl: each straight block stops exactly on the other side's
+        // front line and a quarter-ring of the SAME 16 rows (1.05 m deep, 0.40 m
+        // rise) fills the corner around the point where the two front lines cross.
+        // All aisles (cz±8 on the sides, cx±12 and the 6 m centre on the ends)
+        // and both octagon walkways keep their exact positions.
+        const int Rows=16;const float RowDepth=1.05f,RowRise=.4f,SideFront=24f,EndFront=15f;
+        foreach(var interval in new[]{new Vector2(cz-EndFront,cz-9),new Vector2(cz-7,cz+7),new Vector2(cz+9,cz+EndFront)})
+        { Stand(false,cx-SideFront,1,interval.x,interval.y,Rows);Stand(false,cx+SideFront,-1,interval.x,interval.y,Rows); }
         // Four end blocks leave a 6m central FRONT ENTRANCE AISLE all the way
         // down to the octagon. Spectators enter at ground level (no front steps).
         // Two 2m stair gaps are cut in the seating, one on either side.
         foreach(var interval in new[]{
-            new Vector2(cx-22,cx-13),new Vector2(cx-11,cx-3),
-            new Vector2(cx+3,cx+11),new Vector2(cx+13,cx+22)})
+            new Vector2(cx-SideFront,cx-13),new Vector2(cx-11,cx-3),
+            new Vector2(cx+3,cx+11),new Vector2(cx+13,cx+SideFront)})
         {
-            Stand(true,cz-15,1,interval.x,interval.y,16);
-            Stand(true,cz+15,-1,interval.x,interval.y,16);
+            Stand(true,cz-EndFront,1,interval.x,interval.y,Rows);
+            Stand(true,cz+EndFront,-1,interval.x,interval.y,Rows);
         }
+        int cornerSeats=0;
+        foreach(float sx in new[]{-1f,1f})
+            foreach(float sz in new[]{-1f,1f})
+            {
+                // Corner centre: crossing of the side and end FRONT lines.
+                var c=new Vector3(cx+sx*SideFront,0f,cz+sz*EndFront);
+                for(int k=0;k<Rows;k++)
+                {
+                    float r0=k*RowDepth,r1=(k+1)*RowDepth,rm=(r0+r1)*.5f,top=yF+RowRise*(k+1);
+                    // Tier mass: angular segments no wider than ~1.2 m at the back edge.
+                    int parts=Mathf.Max(2,Mathf.CeilToInt(Mathf.PI*.5f*r1/1.2f));
+                    float step=90f/parts;
+                    for(int p=0;p<parts;p++)
+                    {
+                        float a=(p+.5f)*step*Mathf.Deg2Rad;
+                        var d=new Vector3(sx*Mathf.Cos(a),0f,sz*Mathf.Sin(a));
+                        float chord=2f*r1*Mathf.Sin(step*.5f*Mathf.Deg2Rad)+.02f;
+                        var q=Quaternion.LookRotation(d,Vector3.up);
+                        W.OBox(tier,c+d*rm+Vector3.up*(top*.5f),new Vector3(chord,top,RowDepth),q,true);
+                        if(k>0)
+                        {
+                            // Aluminium nosing on the front (inner) edge of the step.
+                            float noseChord=2f*r0*Mathf.Sin(step*.5f*Mathf.Deg2Rad)+.01f;
+                            W.OBox(nose,c+d*(r0+.025f)+Vector3.up*(top-.013f),new Vector3(noseChord,.034f,.05f),q,false);
+                        }
+                    }
+                    // Seats along the row centre-line, every .68 m of arc, facing the
+                    // corner centre (toward the octagon diagonal), never on the joints
+                    // with the straight blocks (half a seat clear of each end).
+                    float rs=r0+.525f,arc=Mathf.PI*.5f*rs;
+                    int seats=Mathf.FloorToInt((arc-.68f)/.68f)+1;
+                    if(arc<1.36f)continue;
+                    for(int j=0;j<seats;j++)
+                    {
+                        float t=(.68f*.5f+j*.68f+(arc-.68f*seats)*.5f)/arc;
+                        float a=t*Mathf.PI*.5f;
+                        var d=new Vector3(sx*Mathf.Cos(a),0f,sz*Mathf.Sin(a));
+                        var face=-d;
+                        PremiumSeat((j+k)%9==4?seatBlk:seatRed,c+d*rs+Vector3.up*top,
+                            Mathf.Atan2(face.x,face.z)*Mathf.Rad2Deg);
+                        SeatCount++;cornerSeats++;
+                    }
+                }
+            }
+        Debug.Log("A1_STANDS_CONTINUOUS_CORNERS corners=4 rows="+Rows+" cornerSeats="+cornerSeats+
+            " sideFront="+SideFront+" endFront="+EndFront+" rowDepth="+RowDepth+" rise="+RowRise+
+            " aislesUnchanged=true");
         // Each stepped aisle is aligned with an actual gap in the seat blocks,
         // not a staircase placed directly across the public entry.
         foreach(float xx in new[]{cx-24,cx+24})

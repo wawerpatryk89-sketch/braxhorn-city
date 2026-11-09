@@ -15,6 +15,10 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     public float interactionRadius = 3.8f;
     public float acceleration = 5.5f, braking = 9.5f;
     public float groundProbeReach = 2.5f, maxGroundStep = .80f, collisionSkin = .10f;
+    // Owner phone video 9.11: the car stopped at the first kerb/parking stop.
+    // Low edges (kerbs ~.19-.26 m in game scale, parking stops, tactile strips)
+    // are driven over like real tyres; anything taller still blocks.
+    public float climbStep = .38f, climbRate = 3.2f, dropRate = 5.5f;
     public Transform[] rollingWheels = new Transform[0];
     public Transform[] steeringWheels = new Transform[0];
 
@@ -378,8 +382,13 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         if (doorHinge) { doorHinge.localRotation = doorRest; doorAngle = 0; }
     }
 
-    bool ProbeGround(Vector3 probe, float expectedGroundY, ref float bestDelta, ref float bestY)
+    // One tyre contact: the real surface under this probe that is closest to the
+    // current road height, accepting a climb of at most climbStep and a drop of
+    // at most maxGroundStep (kerb down, ramp, parking edge).
+    bool ProbeGround(Vector3 probe, float expectedGroundY, out float surfaceY)
     {
+        surfaceY = expectedGroundY;
+        float bestDelta = float.PositiveInfinity;
         int n = Physics.RaycastNonAlloc(probe + Vector3.up * groundProbeReach,
             Vector3.down, groundHits, groundProbeReach * 2f,
             ~(1 << PlayerLayer), QueryTriggerInteraction.Ignore);
@@ -387,10 +396,12 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         {
             var hit = groundHits[i];
             if (!hit.collider || hit.collider.transform.IsChildOf(transform) || hit.normal.y < .55f) continue;
-            float deltaY = Mathf.Abs(hit.point.y - expectedGroundY);
-            if (deltaY > maxGroundStep || deltaY >= bestDelta) continue;
+            float rise = hit.point.y - expectedGroundY;
+            if (rise > climbStep + .02f || rise < -maxGroundStep) continue;
+            float deltaY = Mathf.Abs(rise);
+            if (deltaY >= bestDelta) continue;
             bestDelta = deltaY;
-            bestY = hit.point.y;
+            surfaceY = hit.point.y;
         }
         return bestDelta < float.PositiveInfinity;
     }
@@ -399,20 +410,29 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     {
         groundPosition = next;
         // Compare road height with the current tyre/chassis bottom, not with the vehicle pivot.
-        float expectedGroundY = (physicsBody ? physicsBody.position.y : transform.position.y) - groundPivotOffset;
-        float bestDelta = float.PositiveInfinity, bestY = expectedGroundY;
+        float currentPivotY = physicsBody ? physicsBody.position.y : transform.position.y;
+        float expectedGroundY = currentPivotY - groundPivotOffset;
         Vector3 scale = transform.lossyScale;
         float halfX = bodyCollider ? bodyCollider.size.x * .32f * Mathf.Abs(scale.x) : .5f;
         float halfZ = bodyCollider ? bodyCollider.size.z * .32f * Mathf.Abs(scale.z) : 1f;
         Vector3 right = nextRotation * Vector3.right * halfX;
         Vector3 forward = nextRotation * Vector3.forward * halfZ;
-        ProbeGround(next, expectedGroundY, ref bestDelta, ref bestY);
-        ProbeGround(next + right, expectedGroundY, ref bestDelta, ref bestY);
-        ProbeGround(next - right, expectedGroundY, ref bestDelta, ref bestY);
-        ProbeGround(next + forward, expectedGroundY, ref bestDelta, ref bestY);
-        ProbeGround(next - forward, expectedGroundY, ref bestDelta, ref bestY);
-        if (bestDelta == float.PositiveInfinity) return false;
-        groundPosition.y = bestY + groundPivotOffset;
+        // Four tyre contacts + centre. The chassis rests on the HIGHEST supported
+        // contact, so a front wheel on the kerb lifts the car instead of the
+        // old "closest to the road" rule that pushed the bumper into the kerb.
+        int supported = 0;
+        float highest = float.NegativeInfinity;
+        foreach (var probe in new[] { next, next + right + forward, next - right + forward,
+                                      next + right - forward, next - right - forward })
+        {
+            if (!ProbeGround(probe, expectedGroundY, out float y)) continue;
+            supported++;
+            if (y > highest) highest = y;
+        }
+        if (supported == 0) return false;
+        float targetPivotY = highest + groundPivotOffset;
+        float rate = targetPivotY > currentPivotY ? climbRate : dropRate;
+        groundPosition.y = Mathf.MoveTowards(currentPivotY, targetPivotY, rate * Time.fixedDeltaTime);
         return true;
     }
 
@@ -425,10 +445,17 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         var half = Vector3.Scale(bodyCollider.size * .5f, absScale);
         float skin = Mathf.Max(.03f, collisionSkin);
         half.x = Mathf.Max(.12f, half.x - skin);
-        half.y = Mathf.Max(.12f, half.y - skin);
         half.z = Mathf.Max(.20f, half.z - skin);
+        // Sweep only the part of the body ABOVE the climbable step. A kerb,
+        // parking stop or lowered crossing edge is handled by the tyre probes;
+        // walls, poles, bollards, benches, trees and buildings still block.
+        float fullHalfY = half.y;
+        float bottom = -fullHalfY + Mathf.Max(climbStep, skin);
+        float top = fullHalfY - skin;
+        if (top - bottom < .24f) bottom = top - .24f;
+        half.y = (top - bottom) * .5f;
         Vector3 localCenter = Vector3.Scale(bodyCollider.center, scale);
-        var center = physicsBody.position + nextRotation * localCenter + Vector3.up * skin;
+        var center = physicsBody.position + nextRotation * localCenter + Vector3.up * ((top + bottom) * .5f);
         int count = Physics.BoxCastNonAlloc(center, half,
             advance.normalized, obstacleHits, nextRotation, advance.magnitude + skin,
             ~(1 << PlayerLayer), QueryTriggerInteraction.Ignore);

@@ -20,6 +20,7 @@ public static class BraxChampionsArenaSideMurals
     const float WallBottomY = .055f;
     const float WallTopY = 28f;
     const float BottomY = 2.65f;
+    public const float MuralStandOff = .17f;
     const float WallSpan = WallNearZ - WallFarZ;
     const float ImageHeight = WallSpan / 3f;
 
@@ -86,7 +87,10 @@ public static class BraxChampionsArenaSideMurals
         material.SetTexture("_MainTex", texture);
         material.SetTexture("_EmissionMap", texture);
         material.SetColor("_Color", Color.white);
-        material.SetColor("_EmissionColor", new Color(.18f, .18f, .18f));
+        // 9.11 owner phone video: side murals invisible in the dark hall. Inside
+        // a roofed hall there is no sun (interior UV3 marker below); the print
+        // reads as a lit wall: ambient + .55 of its own colours, never washed out.
+        material.SetColor("_EmissionColor", new Color(.55f, .55f, .55f));
         material.SetFloat("_Metallic", 0f);
         material.SetFloat("_Roughness", .88f);
         material.SetFloat("_VertexTint", 0f);
@@ -120,6 +124,11 @@ public static class BraxChampionsArenaSideMurals
         }
         var mesh = new Mesh { name = "A1 " + side + " full wall | unchanged 3:1 artwork" };
         mesh.vertices = vertices; mesh.uv = uv; mesh.triangles = triangles;
+        // CityStaticPBR interior marker (UV3): sun visibility 0, ambient 1 — the
+        // same rule as every BraxWnetrzaKit interior surface of this hall.
+        var interior = new Vector4[vertices.Length];
+        for (int i = 0; i < interior.Length; i++) interior[i] = new Vector4(0f, 1f, 1.5f, 2718f);
+        mesh.SetUVs(3, interior);
         mesh.RecalculateNormals(); mesh.RecalculateBounds();
         return mesh;
     }
@@ -145,7 +154,10 @@ public static class BraxChampionsArenaSideMurals
         }
         Directory.CreateDirectory(Output);
         var material = CreateOriginalMaterial(photo, side);
-        float x = left ? HallLeftX - .11f : HallRightX + .10f;
+        // Printed panel on 12.5 cm stand-offs in front of the structural wall's
+        // inner face (x=-26.045 / -145.955): no shared depth with the wall at
+        // 60-90 m viewing distance on a phone depth buffer.
+        float x = left ? HallLeftX - MuralStandOff : HallRightX + MuralStandOff;
         float start = left ? WallNearZ : WallFarZ;
         float end = left ? WallFarZ : WallNearZ;
         var mesh = FullWall(x, start, end, side);

@@ -34,8 +34,9 @@ class ChampionVipSeatsTests(unittest.TestCase):
         self.assertEqual(len(self.zs),2)
         self.assertEqual(len(set(self.xs)),8)
         self.assertEqual(len(set(self.zs)),2)
-        # Approved premium envelope is 1.18 x 1.18 x 1.28m, uniform model scale.
-        self.assertIn("new Vector3(1.18f, 1.28f, 1.18f)",self.vip)
+        # 9.11: owner GLB at real size (cm->m) and root K; 1.18 m spacing still separates chairs.
+        self.assertIn("widestUnits > 10f ? .01f : 1f", self.vip)
+        self.assertNotIn("new Vector3(1.18f, 1.28f, 1.18f)", self.vip)  # 9.11: real size x K, no invented box
         self.assertIn('"leather_white"',self.vip)
         self.assertIn("SolidBlackMetal()",self.vip)
         self.assertIn('source.GetFloat(property)>.25f',self.vip)

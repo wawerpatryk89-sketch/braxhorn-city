@@ -28,7 +28,9 @@ public static class BraxChampionsArenaMural
     const float MuralTop=27.53333333f;
     // Public lobby is on local +Z. The existing wall/cladding ends at Z=98.3.
     // Keep the printed surface on its LOBBY side, not hidden behind the cladding.
-    const float WallImageZ=98.33f; // 3cm nominal clearance; existing walls/colliders unchanged
+    // 9.11: the front wall is a real 45 cm structural wall (owner: "too thin");
+    // the print stays 3 cm in front of its NEW lobby face.
+    const float WallImageZ=BraxChampionsArena.FrontWallLobbyFaceZ+.03f;
     // World scene image aspect stays 1536:512 (3:1) at 82:27.333 m.
     // The 19m peripheral sections extend the existing artwork's EDGE COLOUR
     // rather than stretching any fighter, emblem or lettering.

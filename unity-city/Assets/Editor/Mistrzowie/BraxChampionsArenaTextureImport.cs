@@ -5,6 +5,12 @@ using UnityEngine;
 // Scoped to two new owner-supplied assets. Existing city/arena import settings stay untouched.
 public sealed class BraxChampionsArenaTextureImport : AssetPostprocessor
 {
+    // 9.11 audit of APK 32: every non-power-of-two texture (27/27, e.g. murals
+    // 6144x2048, velour 2048x1971) shipped UNCOMPRESSED RGBA32. ToLarger gives
+    // the GPU a power-of-two ASTC texture; UVs are normalised, so the picture,
+    // its proportions on the wall and every source pixel's content stay the same.
+    // A new version forces Unity to re-import cached Library copies.
+    public override uint GetVersion() => 3;
     void OnPreprocessTexture()
     {
         string path=assetPath.Replace('\\','/');
@@ -23,7 +29,7 @@ public sealed class BraxChampionsArenaTextureImport : AssetPostprocessor
         // Keep every SOURCE pixel and the exact original 6:1 artwork.
         importer.streamingMipmaps=!signs;
         importer.isReadable=false;
-        importer.npotScale=TextureImporterNPOTScale.None;
+        importer.npotScale=TextureImporterNPOTScale.ToLarger;
         importer.anisoLevel=signs?16:4;
         if(signs)
         {

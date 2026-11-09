@@ -37,7 +37,8 @@ class OriginalVipModelContract(unittest.TestCase):
         self.assertGreaterEqual(z[1] - z[0], 1.75)
         self.assertGreaterEqual(min(b - a for a,b in zip(x[:4],x[1:4])), 1.45 - .001)
         self.assertGreaterEqual(min(b - a for a,b in zip(x[4:7],x[5:])), 1.45 - .001)
-        self.assertIn("new Vector3(1.18f, 1.28f, 1.18f)",self.vip)
+        self.assertIn("widestUnits > 10f ? .01f : 1f", self.vip)
+        self.assertNotIn("new Vector3(1.18f, 1.28f, 1.18f)", self.vip)  # 9.11: real size x K, no invented box
         for xx in x:
             self.assertTrue(xx + .59 <= -87.55 or xx - .59 >= -84.45)
 

@@ -22,9 +22,15 @@ def constant(text, name):
 class PremiumReferenceRegressions(unittest.TestCase):
     def test_entrance_print_is_in_front_of_lobby_wall(self):
         text = source('BraxChampionsArenaMural.cs')
-        z = constant(text, 'WallImageZ')
+        arena = source('BraxChampionsArena.cs')
+        # 9.11 owner: the front wall is a real structural wall. The print sits
+        # 3 cm in front of its LOBBY face, wherever the wall depth puts it.
+        self.assertIn('WallImageZ=BraxChampionsArena.FrontWallLobbyFaceZ+.03f', text)
+        thickness = float(re.search(r'WallThickness=([\d.]+)f;', arena).group(1))
+        self.assertIn('FrontWallLobbyFaceZ=98.3f-.045f+WallThickness', arena)
+        self.assertGreaterEqual(thickness, .30)
+        z = 98.3 - .045 + thickness + .03
         self.assertGreater(z, 98.3)
-        self.assertLessEqual(z - 98.3, .05)
         self.assertRegex(text, r'mesh\.triangles\s*=\s*new\[\]\s*\{0,2,1,0,3,2\}')
         # v0 -> v2 -> v1 has +Z normal, towards the lobby in original bowl space.
         a, b = (82, 27.33333333, 0), (0, 27.33333333, 0)

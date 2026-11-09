@@ -147,7 +147,7 @@ public static class BraxChampionsPromenade
         bool needsImport=imp.textureType!=TextureImporterType.Default
             ||imp.textureShape!=TextureImporterShape.Texture2D
             ||!imp.sRGBTexture||!imp.mipmapEnabled||imp.maxTextureSize!=4096
-            ||imp.npotScale!=TextureImporterNPOTScale.None
+            ||imp.npotScale!=TextureImporterNPOTScale.ToLarger
             ||imp.wrapMode!=TextureWrapMode.Clamp
             ||!imp.alphaIsTransparency||!android.overridden
             ||android.maxTextureSize!=2048||android.format!=TextureImporterFormat.ASTC_4x4;
@@ -156,7 +156,7 @@ public static class BraxChampionsPromenade
             imp.textureType=TextureImporterType.Default;
             imp.textureShape=TextureImporterShape.Texture2D;
             imp.sRGBTexture=true;imp.mipmapEnabled=true;
-            imp.maxTextureSize=4096;imp.npotScale=TextureImporterNPOTScale.None;
+            imp.maxTextureSize=4096;imp.npotScale=TextureImporterNPOTScale.ToLarger;
             imp.alphaIsTransparency=true;imp.isReadable=false;
             imp.streamingMipmaps=true;
             imp.wrapMode=TextureWrapMode.Clamp;

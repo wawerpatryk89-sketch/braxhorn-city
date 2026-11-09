@@ -8,6 +8,12 @@ using UnityEngine;
 // No old JPEG fallback receives special import handling.
 public sealed class BraxChampionsArenaMuralTextureImport : AssetPostprocessor
 {
+    // 9.11 audit of APK 32: every non-power-of-two texture (27/27, e.g. murals
+    // 6144x2048, velour 2048x1971) shipped UNCOMPRESSED RGBA32. ToLarger gives
+    // the GPU a power-of-two ASTC texture; UVs are normalised, so the picture,
+    // its proportions on the wall and every source pixel's content stay the same.
+    // A new version forces Unity to re-import cached Library copies.
+    public override uint GetVersion() => 3;
     void OnPreprocessTexture()
     {
         if(!assetPath.StartsWith("Assets/Source/Mistrzowie/ArenaMuralsHD/",StringComparison.Ordinal)
@@ -26,7 +32,7 @@ public sealed class BraxChampionsArenaMuralTextureImport : AssetPostprocessor
         hd.wrapMode=TextureWrapMode.Clamp;
         hd.filterMode=FilterMode.Trilinear;
         hd.anisoLevel=4;
-        hd.npotScale=TextureImporterNPOTScale.None;
+        hd.npotScale=TextureImporterNPOTScale.ToLarger;
         hd.alphaSource=TextureImporterAlphaSource.None;
         hd.textureCompression=TextureImporterCompression.CompressedHQ;
 

@@ -7,7 +7,7 @@ using UnityEngine;
 // it again. Scope and final texture quality are identical to CopyMap's contract.
 public sealed class BraxChampionsTextureImport : AssetPostprocessor
 {
-    public override uint GetVersion() => 2;
+    public override uint GetVersion() => 3; // 9.11: NPOT -> ToLarger (velour/wool shipped RGBA32 in APK 32)
     void OnPreprocessTexture()
     {
         if(!assetPath.StartsWith("Assets/PlayableGenerated/Mistrzowie/Textures/"))return;
@@ -18,7 +18,7 @@ public sealed class BraxChampionsTextureImport : AssetPostprocessor
         // CityStaticPBR reads the original RGB GL normal, not Unity's packed normal.
         importer.textureType=TextureImporterType.Default;importer.textureShape=TextureImporterShape.Texture2D;
         importer.sRGBTexture=color;
-        importer.mipmapEnabled=true;importer.npotScale=TextureImporterNPOTScale.None;
+        importer.mipmapEnabled=true;importer.npotScale=TextureImporterNPOTScale.ToLarger;
         // Oryginalne mapy z biblioteki zachowują 4K na dysku. Android otrzymuje
         // do 2K na najbliższych nawierzchniach; tiling materiałów pozostaje.
         importer.maxTextureSize=2048;importer.isReadable=false;importer.anisoLevel=8;

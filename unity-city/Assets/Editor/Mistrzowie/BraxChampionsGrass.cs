@@ -37,7 +37,14 @@ public static class BraxChampionsGrass
         var imp=(TextureImporter)AssetImporter.GetAtPath(mask);
         imp.textureType=TextureImporterType.Default;imp.sRGBTexture=false;imp.mipmapEnabled=true;
         imp.maxTextureSize=2048;imp.npotScale=TextureImporterNPOTScale.None;imp.wrapMode=TextureWrapMode.Clamp;
-        imp.textureCompression=TextureImporterCompression.Uncompressed;imp.isReadable=false;imp.SaveAndReimport();
+        imp.textureCompression=TextureImporterCompression.Uncompressed;imp.isReadable=false;
+        // 9.11: the shader reads only .r — one exact 8-bit channel instead of
+        // RGB24 (7.2 MB -> 1.8 MB), no compression artefacts on the soil edge.
+        var maskAndroid=imp.GetPlatformTextureSettings("Android");
+        maskAndroid.name="Android";maskAndroid.overridden=true;maskAndroid.maxTextureSize=2048;
+        maskAndroid.format=TextureImporterFormat.R8;
+        imp.SetPlatformTextureSettings(maskAndroid);
+        imp.SaveAndReimport();
         material.SetTexture("_Mask",AssetDatabase.LoadAssetAtPath<Texture2D>(mask));
         float k=BraxClaudeOsiedle.K;
         material.SetVector("_MaskRect",new Vector4(0,-500*k,1/(1200*k),1/(1500*k)));

@@ -82,6 +82,24 @@ public static class BraxChampionsVIPSeats
     // a named back/backrest only to resolve the 180-degree facing ambiguity.
     static void KeepImportedChairUpright(GameObject chair,Quaternion facing)
     {
+        // Audit 9.11 of the owner GLB: its two Sketchfab/Collada root matrices
+        // cancel out (net identity), so the AUTHORED pose is already upright
+        // (85 x 74 x 75 cm-units). The old geometry score preferred a 90-degree
+        // X tilt (ratio .88 is "closer" to 1.08 than the true .87) and the
+        // phone showed the chair lying on its side. Keep the authored pose when
+        // it is plausibly upright; only search when it clearly is not.
+        chair.transform.localRotation=facing;
+        {
+            var authored=VisualBounds(chair);
+            float authoredUpright=authored.size.y/
+                Mathf.Max(Mathf.Max(authored.size.x,authored.size.z),.001f);
+            if(authoredUpright>=.60f&&authoredUpright<=1.60f)
+            {
+                Debug.Log("CHAMPIONS_VIP_OWNER_GLB_UPRIGHT authored pose kept uprightRatio="+
+                    authoredUpright.ToString("F3")+" dimensions="+authored.size.ToString("F3"));
+                return;
+            }
+        }
         Quaternion[] corrections={
             Quaternion.identity,
             Quaternion.Euler(90f,0,0),Quaternion.Euler(-90f,0,0),
@@ -146,19 +164,34 @@ public static class BraxChampionsVIPSeats
         foreach(var renderer in chair.GetComponentsInChildren<Renderer>(true))
         {
             var slots=renderer.sharedMaterials;
+            // glTFast names every mesh node "defaultMaterial"; the real part names
+            // (seat_outer_mesh, seat_inner_mesh, seat_pillow_mesh, leg_base_mesh,
+            // leg_pivot_mesh) are on the PARENT nodes. Read the whole path.
+            string path="";
+            for(var t=renderer.transform;t&&t!=chair.transform.parent;t=t.parent)path=t.name+"/"+path;
             for(int i=0;i<slots.Length;i++)
             {
                 var source=slots[i];
-                string semantic=(renderer.gameObject.name+" "+(source?source.name:"")).ToLowerInvariant();
-                bool metal=semantic.Contains("metal")||semantic.Contains("steel")||
+                string semantic=(path+" "+(source?source.name:"")).ToLowerInvariant();
+                bool upholstery=semantic.Contains("seat_")||semantic.Contains("pillow")||
+                    semantic.Contains("cushion")||semantic.Contains(" seat")||
+                    semantic.Contains("upholster")||semantic.Contains("leather")||
+                    semantic.Contains("fabric");
+                bool metal=!upholstery&&(semantic.Contains("metal")||semantic.Contains("steel")||
                     semantic.Contains("chrome")||semantic.Contains("leg")||
                     semantic.Contains("base")||semantic.Contains("frame")||
                     semantic.Contains("foot")||semantic.Contains("stand")||
-                    semantic.Contains("pedestal");
-                if(source)
+                    semantic.Contains("pedestal"));
+                // glTF metallicFactor defaults to 1.0 when a metallicRoughness
+                // TEXTURE drives the value, so the factor alone is not evidence of
+                // metal (that rule turned all upholstery into metal: build 32
+                // "found no upholstery slots"). Use it only for unnamed parts.
+                if(source&&!upholstery&&!metal)
                 {
                     foreach(string property in new[]{"_Metallic","metallicFactor","_MetallicFactor"})
-                        if(source.HasProperty(property)&&source.GetFloat(property)>.25f)metal=true;
+                        if(source.HasProperty(property)&&source.GetFloat(property)>.25f&&
+                           !(source.HasProperty("metallicRoughnessTexture")&&source.GetTexture("metallicRoughnessTexture")))
+                            metal=true;
                 }
                 slots[i]=metal?blackMetal:leather;
                 if(metal)metalSlots++;else leatherSlots++;
@@ -194,12 +227,20 @@ public static class BraxChampionsVIPSeats
         KeepImportedChairUpright(chair,facing);
 
         var bounds = VisualBounds(chair);
-        // Owner-approved premium scale: UNIFORM only, no mesh stretching.
-        // Max envelope 1.18 x 1.18 x 1.28 m still leaves 27cm between centres
-        // horizontally and 57cm between the two 1.75m-spaced rows.
-        float ratio = Mathf.Max(bounds.size.x / 1.18f,
-                        Mathf.Max(bounds.size.z / 1.18f, bounds.size.y / 1.28f));
-        float factor = 1f / ratio;
+        // GLOBAL RULE 6.11 §3: real dimension x K, never "squeeze into an
+        // invented box". The arena root already applies K once, so the chair
+        // needs its REAL size in metres here. The Sketchfab source is authored
+        // in centimetres (85 x 74 x 75 units = a 0.85 m wide barrel chair);
+        // glTF reads those numbers as metres, hence the single cm->m factor.
+        // Measure in the chair's own (unscaled) space: lossy parent scale K is
+        // divided out so the check does not depend on where it is parked.
+        float parentScale = Mathf.Max(spot.lossyScale.x, .0001f);
+        float widestUnits = Mathf.Max(bounds.size.x, bounds.size.z) / parentScale;
+        float factor = widestUnits > 10f ? .01f : 1f;
+        float realWidth = widestUnits * factor;
+        if (realWidth < .55f || realWidth > 1.25f)
+            BraxBuildQuality.Warn("A1_VIP_REAL_SIZE_REVIEW: owner barrel chair measures " +
+                realWidth.ToString("F2") + " m wide after cm->m; expected 0.55-1.25 m");
         chair.transform.localScale *= factor;
         bounds = VisualBounds(chair);
         Vector3 target = spot.position + new Vector3(0, bounds.extents.y, 0);
@@ -209,9 +250,11 @@ public static class BraxChampionsVIPSeats
         // One simple collider per place; no expensive imported MeshColliders.
         foreach (var c in chair.GetComponentsInChildren<Collider>(true))
             UnityEngine.Object.DestroyImmediate(c);
+        // Collider = the chair's own real footprint (local, before root K).
+        var local = Vector3.Scale(bounds.size, new Vector3(1f / parentScale, 1f / parentScale, 1f / parentScale));
         var collider = spot.gameObject.AddComponent<BoxCollider>();
-        collider.center = new Vector3(0, .64f, 0);
-        collider.size = new Vector3(1.18f, 1.28f, 1.18f);
+        collider.center = new Vector3(0, local.y * .5f, 0);
+        collider.size = new Vector3(Mathf.Max(local.x, local.z), local.y, Mathf.Max(local.x, local.z));
         SeatCount++;
     }
 
@@ -245,8 +288,8 @@ public static class BraxChampionsVIPSeats
         if (SeatCount != 16)
             BraxBuildQuality.Warn("Champion A1 expected 16 premium VIP chairs, got " + SeatCount +
                 ". Visual acceptance FAIL.");
-        else Debug.Log("A1_VIP_PREMIUM PASS count=16 maxEnvelope=1.18x1.18x1.28"+
-            " spacingX=1.45 gapX=.27 rowSpacing=1.75 gapRows=.57"+
+        else Debug.Log("A1_VIP_PREMIUM PASS count=16 realSize=sourceCm*0.01 thenRootK"+
+            " spacingX=1.45 rowSpacing=1.75 authoredUpright=true"+
             " blackPolyHavenLeather=true blackPBRMetal=true uniformScale=true");
         return SeatCount;
     }

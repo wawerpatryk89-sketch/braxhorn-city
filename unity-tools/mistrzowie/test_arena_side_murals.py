@@ -27,7 +27,13 @@ class ChampionSideMuralsTests(unittest.TestCase):
         self.assertNotIn('Texture2D.EncodeTo',self.m)
 
     def test_both_side_walls_use_true_panorama_dimensions_and_face_the_aisle(self):
-        x_left,x_right=-26.11,-145.9
+        # 9.11: 12.5 cm stand-off from the wall's inner face (-26.045/-145.955).
+        self.assertIn('float x = left ? HallLeftX - MuralStandOff : HallRightX + MuralStandOff;',self.m)
+        self.assertIn('public const float MuralStandOff = .17f;',self.m)
+        x_left,x_right=-26-.17,-146+.17
+        self.assertLess(x_left,-26.045-.1)
+        self.assertGreater(x_right,-145.955+.1)
+        self.assertIn('mesh.SetUVs(3, interior);',self.m)
         z_entry,z_rear=98.3,28.3
         w=z_entry-z_rear
         h=w/3.0
@@ -52,8 +58,9 @@ class ChampionSideMuralsTests(unittest.TestCase):
         self.assertIn('BraxChampionsArenaMural.Generate(root)',self.h)
         self.assertIn('BraxChampionsArenaSideMurals.Generate(root)',self.h)
         self.assertNotIn('Sign("baner_oktagon"',self.h)
-        self.assertIn('Clad(false, X0, 1f, Z0, Z1)',self.h)
-        self.assertIn('Clad(false, X1, -1f, Z0, Z1)',self.h)
+        # 9.11: real structural walls; side walls close the corners.
+        self.assertIn('Clad(false, X0, 1f, Z0 - WallThickness, Z1 + WallThickness)',self.h)
+        self.assertIn('Clad(false, X1, -1f, Z0 - WallThickness, Z1 + WallThickness)',self.h)
         self.assertIn('BoxMinMax(wallConcrete, dA, dB, dH, yC',self.h)
         self.assertIn('Sign("hala_walk"',self.h)
         self.assertIn('Sign("braxhorn_arena"',self.h)

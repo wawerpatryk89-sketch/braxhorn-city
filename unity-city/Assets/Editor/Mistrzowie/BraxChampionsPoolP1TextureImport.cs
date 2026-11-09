@@ -6,6 +6,12 @@ using UnityEngine;
 // Native Poly Haven maps are 2048x2048, never downscaled from 4K.
 public sealed class BraxChampionsPoolP1TextureImport : AssetPostprocessor
 {
+    // 9.11 audit of APK 32: every non-power-of-two texture (27/27, e.g. murals
+    // 6144x2048, velour 2048x1971) shipped UNCOMPRESSED RGBA32. ToLarger gives
+    // the GPU a power-of-two ASTC texture; UVs are normalised, so the picture,
+    // its proportions on the wall and every source pixel's content stay the same.
+    // A new version forces Unity to re-import cached Library copies.
+    public override uint GetVersion() => 3;
     void OnPreprocessModel()
     {
         // Preserve the owner's FBX bytes and authored material definitions.
@@ -40,7 +46,7 @@ public sealed class BraxChampionsPoolP1TextureImport : AssetPostprocessor
         importer.streamingMipmaps=true;
         importer.maxTextureSize=2048;
         importer.isReadable=false;
-        importer.npotScale=TextureImporterNPOTScale.None;
+        importer.npotScale=TextureImporterNPOTScale.ToLarger;
         importer.anisoLevel=4;
         importer.wrapMode=TextureWrapMode.Repeat;
         importer.filterMode=FilterMode.Trilinear;

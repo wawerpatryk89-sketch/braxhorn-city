@@ -922,6 +922,9 @@ public static class BraxChampionsArenaArrival
             throw new InvalidOperationException("ISSUE27 A1 facade regression: expected 38 actual columns and 2 skipped entrance positions, got "
                 +actualFeatureColumns+" / "+skippedFeatureColumns);
 
+        // 9.11 audit: these two 8-12 cm lines were ONE mesh of 1.47 million
+        // triangles (720 parts x 3x3 rounded segments). From the street a 2 cm
+        // edge radius reads the same with one chamfer segment (~10x lighter).
         // Gold upper/lower lines around the full 360-degree belt. The front
         // representative 48 m is 120 mm high / 50 mm proud. Elsewhere it is
         // 80 mm / 40 mm. A minimum 0.8 m taper is computed around x=+/-24 m.
@@ -946,10 +949,10 @@ public static class BraxChampionsArenaArrival
             float radialCenter=.229f+protrusion*.5f; // visible outer face unchanged
             beltGold.RoundedPrism(mid+outward*radialCenter+
                     Vector3.up*(10.85f+h*.5f),
-                new Vector3(totalDepth,h,len),rotation,radius,radius,3,3);
+                new Vector3(totalDepth,h,len),rotation,radius,radius,1,1);
             beltGold.RoundedPrism(mid+outward*radialCenter+
                     Vector3.up*(18.55f-h*.5f),
-                new Vector3(totalDepth,h,len),rotation,radius,radius,3,3);
+                new Vector3(totalDepth,h,len),rotation,radius,radius,1,1);
         }
 
         // Interior elliptical halo remains visible through the upper smoked glass.
@@ -994,10 +997,10 @@ public static class BraxChampionsArenaArrival
                     float len=Vector3.Distance(p0,p1)+.018f;
                     signGoldFrames.RoundedPrism(
                         m+n*frameOffset+Vector3.up*(bottom-graphicGap-profile*.5f),
-                        new Vector3(frameDepth,profile,len),rotation,.040f,.040f,4,3);
+                        new Vector3(frameDepth,profile,len),rotation,.040f,.040f,2,1);
                     signGoldFrames.RoundedPrism(
                         m+n*frameOffset+Vector3.up*(bottom+height+graphicGap+profile*.5f),
-                        new Vector3(frameDepth,profile,len),rotation,.040f,.040f,4,3);
+                        new Vector3(frameDepth,profile,len),rotation,.040f,.040f,2,1);
                     // Additional 60 mm gold line below the sign, 25 mm proud.
                     underSignGold.RoundedPrism(
                         m+n*(graphicDepth+graphicGap+.0125f)+Vector3.up*(bottom-.11f),
@@ -1014,7 +1017,7 @@ public static class BraxChampionsArenaArrival
                     signGoldFrames.RoundedPrism(
                         p+n*frameOffset+Vector3.up*(bottom+height*.5f),
                         new Vector3(frameDepth,height+2f*(graphicGap+profile),profile),
-                        rot,.040f,.040f,4,3);
+                        rot,.040f,.040f,2,1);
                 }
             }
             FrameSign(true,false,42f,11.12f,7f,.16f);

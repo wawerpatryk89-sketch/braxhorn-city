@@ -8,7 +8,7 @@ using UnityEngine;
 // Only this isolated next-release subdirectory is affected.
 public sealed class BraxChampionsPolyHaven2KImport : AssetPostprocessor
 {
-    public override uint GetVersion() => 1;
+    public override uint GetVersion() => 2; // 9.11: NPOT -> ToLarger (ASTC instead of RGBA32)
 
     void OnPreprocessTexture()
     {
@@ -26,7 +26,7 @@ public sealed class BraxChampionsPolyHaven2KImport : AssetPostprocessor
         imp.textureShape=TextureImporterShape.Texture2D;
         imp.sRGBTexture=filename.Contains("_diff_")||filename.Contains("_col_");
         imp.maxTextureSize=2048;
-        imp.npotScale=TextureImporterNPOTScale.None;
+        imp.npotScale=TextureImporterNPOTScale.ToLarger;
         imp.mipmapEnabled=true;
         imp.streamingMipmaps=true;
         imp.anisoLevel=8;
