@@ -53,7 +53,11 @@ class ArenaOwnerFixes20261109(unittest.TestCase):
         self.assertEqual(float(pts[-1][0]), 0.0)
         self.assertAlmostEqual(max(float(y) for _, y in pts), 0.598, places=3)
         self.assertIn("const float CupMetalHeight=.598f, CupPlinth=.12f;", trophies)
-        self.assertIn('Trophy(root,new Vector3(x+dx,f+baseTop,z),1f', trophies)
+        # Owner 9.11: different designs, not one.
+        for profile in ("UrnProfile", "GlobeProfile", "BowlProfile", "GobletProfile"):
+            self.assertIn("static readonly Vector2[] " + profile + "={", trophies)
+        self.assertIn("switch(design%5)", trophies)
+        self.assertIn("A1_trophy_polished_gold.mat", trophies)
 
 
 if __name__ == "__main__":

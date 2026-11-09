@@ -19,7 +19,54 @@ public static partial class BraxChampionsArenaArrival
         new Vector2(.170f,.588f),new Vector2(.166f,.598f),new Vector2(.156f,.592f),new Vector2(.152f,.560f),
         new Vector2(.148f,.505f),new Vector2(.138f,.452f),new Vector2(.112f,.400f),new Vector2(0f,.372f)};
     const float CupMetalHeight=.598f, CupPlinth=.12f;
-    static Mesh cupMesh, handleMesh;
+    // Owner 9.11 "różne wzory nie tylko jeden": four more real trophy shapes.
+    static readonly Vector2[] UrnProfile={ // lidded urn with finial
+        new Vector2(0f,0f),new Vector2(.085f,0f),new Vector2(.086f,.014f),new Vector2(.060f,.030f),new Vector2(.034f,.060f),
+        new Vector2(.030f,.100f),new Vector2(.046f,.118f),new Vector2(.030f,.134f),new Vector2(.060f,.170f),new Vector2(.105f,.220f),
+        new Vector2(.130f,.290f),new Vector2(.128f,.350f),new Vector2(.100f,.410f),new Vector2(.070f,.448f),new Vector2(.082f,.470f),
+        new Vector2(.090f,.480f),new Vector2(.080f,.492f),new Vector2(.074f,.520f),new Vector2(.052f,.552f),new Vector2(.018f,.572f),
+        new Vector2(.016f,.584f),new Vector2(.024f,.596f),new Vector2(.026f,.610f),new Vector2(.018f,.626f),new Vector2(0f,.632f)};
+    static readonly Vector2[] GlobeProfile={ // column carrying a globe
+        new Vector2(0f,0f),new Vector2(.090f,0f),new Vector2(.090f,.020f),new Vector2(.070f,.032f),new Vector2(.040f,.044f),
+        new Vector2(.030f,.060f),new Vector2(.030f,.360f),new Vector2(.040f,.372f),new Vector2(.026f,.390f),new Vector2(.060f,.420f),
+        new Vector2(.066f,.432f),new Vector2(.058f,.440f),new Vector2(.075f,.452f),new Vector2(.087f,.476f),new Vector2(.094f,.505f),
+        new Vector2(.094f,.535f),new Vector2(.087f,.564f),new Vector2(.075f,.588f),new Vector2(.058f,.606f),new Vector2(.035f,.618f),
+        new Vector2(0f,.624f)};
+    static readonly Vector2[] BowlProfile={ // wide champions bowl on a slender stem
+        new Vector2(0f,0f),new Vector2(.100f,0f),new Vector2(.101f,.012f),new Vector2(.080f,.026f),new Vector2(.040f,.050f),
+        new Vector2(.022f,.080f),new Vector2(.017f,.200f),new Vector2(.026f,.212f),new Vector2(.018f,.226f),new Vector2(.016f,.290f),
+        new Vector2(.040f,.310f),new Vector2(.110f,.340f),new Vector2(.180f,.372f),new Vector2(.214f,.398f),new Vector2(.222f,.410f),
+        new Vector2(.214f,.414f),new Vector2(.200f,.404f),new Vector2(.140f,.372f),new Vector2(0f,.352f)};
+    static readonly Vector2[] GobletProfile={ // tall goblet, no handles
+        new Vector2(0f,0f),new Vector2(.080f,0f),new Vector2(.082f,.012f),new Vector2(.060f,.030f),new Vector2(.030f,.060f),
+        new Vector2(.018f,.110f),new Vector2(.016f,.250f),new Vector2(.030f,.262f),new Vector2(.017f,.276f),new Vector2(.030f,.300f),
+        new Vector2(.080f,.350f),new Vector2(.112f,.420f),new Vector2(.122f,.500f),new Vector2(.130f,.580f),new Vector2(.136f,.600f),
+        new Vector2(.128f,.604f),new Vector2(.118f,.580f),new Vector2(.108f,.500f),new Vector2(0f,.430f)};
+    static readonly Dictionary<string,Mesh> latheCache=new Dictionary<string,Mesh>();
+    static Mesh handleMesh;
+    static Material trophyGold;
+
+    // Owner 9.11 "złoty połysk puchar": the facade gold (rough .16, metal .96)
+    // reads dull on a small curved cup. Dedicated mirror-polished gold: full
+    // metal, minimum shader roughness, full broad reflection of a bright warm
+    // showroom (sky/ground of THIS material only) + a faint gold self-glow.
+    static Material TrophyGold()
+    {
+        if(trophyGold)return trophyGold;
+        var shader=Shader.Find(BraxCityMaterials.ShaderName);
+        trophyGold=new Material(shader){name="A1 trophy | mirror-polished gold",enableInstancing=true};
+        trophyGold.SetColor("_Color",new Color(1.00f,.79f,.34f));
+        trophyGold.SetFloat("_Metallic",1f);
+        trophyGold.SetFloat("_Roughness",.09f);
+        trophyGold.SetFloat("_ReflectionStrength",1f);
+        trophyGold.SetColor("_SkyColor",new Color(1.00f,.96f,.88f));
+        trophyGold.SetColor("_GroundColor",new Color(.30f,.24f,.16f));
+        trophyGold.SetColor("_EmissionColor",new Color(.11f,.075f,.025f));
+        trophyGold.SetFloat("_VertexTint",0f);
+        trophyGold.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        AssetDatabase.CreateAsset(trophyGold,"Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/A1_trophy_polished_gold.mat");
+        return trophyGold;
+    }
 
     static void LatheQuad(List<Vector3> v,List<int> t,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Vector3 facing)
     {
@@ -31,14 +78,15 @@ public static partial class BraxChampionsArenaArrival
         Tri(a,b,c);Tri(a,c,d);
     }
 
-    static Mesh CupMesh()
+    static Mesh CupMesh()=>LatheMesh("cup",CupProfile);
+    static Mesh LatheMesh(string id,Vector2[] profile)
     {
-        if(cupMesh)return cupMesh;
+        if(latheCache.TryGetValue(id,out var cached)&&cached)return cached;
         const int seg=48;
         var v=new List<Vector3>();var t=new List<int>();
-        for(int i=0;i+1<CupProfile.Length;i++)
+        for(int i=0;i+1<profile.Length;i++)
         {
-            var p0=CupProfile[i];var p1=CupProfile[i+1];
+            var p0=profile[i];var p1=profile[i+1];
             float dr=p1.x-p0.x,dy=p1.y-p0.y;
             for(int s=0;s<seg;s++)
             {
@@ -49,12 +97,12 @@ public static partial class BraxChampionsArenaArrival
                 LatheQuad(v,t,P(p0,a0),P(p0,a1),P(p1,a1),P(p1,a0),facing);
             }
         }
-        cupMesh=new Mesh{name="A1 championship cup | lathe 48 | real 0.598 m"};
-        cupMesh.SetVertices(v);cupMesh.SetTriangles(t,0);
-        // Smooth shading: weld by position before normals.
-        cupMesh=Weld(cupMesh);
-        AssetDatabase.CreateAsset(cupMesh,"Assets/PlayableGenerated/Mistrzowie/Buildings/Meshes/A1_trophy_cup.asset");
-        return cupMesh;
+        var raw=new Mesh{name="A1 trophy "+id+" | lathe 48"};
+        raw.SetVertices(v);raw.SetTriangles(t,0);
+        var mesh=Weld(raw);   // smooth shading: weld by position before normals
+        AssetDatabase.CreateAsset(mesh,"Assets/PlayableGenerated/Mistrzowie/Buildings/Meshes/A1_trophy_"+id+".asset");
+        latheCache[id]=mesh;
+        return mesh;
     }
 
     static Mesh HandleMesh()
@@ -103,7 +151,7 @@ public static partial class BraxChampionsArenaArrival
         return w;
     }
 
-    static void Trophy(Transform parent,Vector3 nominalBase,float scale,float yaw,Material gold,Material plinth,string label)
+    static void Trophy(Transform parent,Vector3 nominalBase,float scale,float yaw,Material gold,Material plinth,string label,int design=0)
     {
         var g=new GameObject("A1 TROPHY | "+label).transform;g.SetParent(parent,false);
         g.localPosition=nominalBase*K;g.localRotation=Quaternion.Euler(0,yaw,0);g.localScale=Vector3.one*(K*scale);
@@ -116,7 +164,16 @@ public static partial class BraxChampionsArenaArrival
         band.transform.SetParent(g,false);band.transform.localPosition=new Vector3(0,CupPlinth*.5f,0);
         band.transform.localScale=new Vector3(.205f,.022f,.205f);band.GetComponent<Renderer>().sharedMaterial=gold;
         Object.DestroyImmediate(band.GetComponent<Collider>());
-        foreach(var (mesh,name) in new[]{(CupMesh(),"trophy cup"),(HandleMesh(),"trophy handles")})
+        var parts=new List<(Mesh,string)>();
+        switch(design%5)
+        {
+            case 0:parts.Add((CupMesh(),"trophy loving cup"));parts.Add((HandleMesh(),"trophy handles"));break;
+            case 1:parts.Add((LatheMesh("urn",UrnProfile),"trophy lidded urn"));break;
+            case 2:parts.Add((LatheMesh("globe",GlobeProfile),"trophy globe on column"));break;
+            case 3:parts.Add((LatheMesh("bowl",BowlProfile),"trophy champions bowl"));break;
+            default:parts.Add((LatheMesh("goblet",GobletProfile),"trophy goblet"));break;
+        }
+        foreach(var (mesh,name) in parts)
         {
             var o=new GameObject(name);o.transform.SetParent(g,false);o.transform.localPosition=new Vector3(0,CupPlinth,0);
             o.AddComponent<MeshFilter>().sharedMesh=mesh;o.AddComponent<MeshRenderer>().sharedMaterial=gold;
@@ -129,7 +186,7 @@ public static partial class BraxChampionsArenaArrival
     static void EntranceTrophyCases(Transform arenaRoot,Dictionary<string,Material> exterior)
     {
         var root=Group(arenaRoot,"A1 LOBBY | lit trophy cases either side of the entrance (owner render)",Vector3.zero);
-        var gold=exterior["arena_gold"];var black=exterior["arena_black"];
+        var gold=TrophyGold();var black=exterior["arena_black"];
         var glass=exterior["clear_glass"];var light=exterior["light"];
         const float W=2.40f,D=.60f,baseTop=.80f,glassTop=2.22f,shelf=1.62f;
         int cups=0;
@@ -148,11 +205,20 @@ public static partial class BraxChampionsArenaArrival
                 Box(root,"A1 TROPHY CASE | glass side",glass,new Vector3(x+e*W*.5f,gy,z),new Vector3(.012f,gh,D),true);
             Box(root,"A1 TROPHY CASE | glass shelf",glass,new Vector3(x,f+shelf,z),new Vector3(W-.03f,.012f,D-.03f),false);
             Box(root,"A1 TROPHY CASE | shelf LED line",light,new Vector3(x,f+shelf-.012f,z-D*.5f+.03f),new Vector3(W-.06f,.010f,.012f),false);
-            foreach(float dx in new[]{-.78f,0f,.78f})
-            {Trophy(root,new Vector3(x+dx,f+baseTop,z),1f,dx*40f,gold,black,"large championship cup");cups++;}
-            foreach(float dx in new[]{-.87f,-.29f,.29f,.87f})
-            {Trophy(root,new Vector3(x+dx,f+shelf+.006f,z),.54f,dx*60f,gold,black,"small cup");cups++;}
+            // Warm show light inside each case: gives the polished gold its glints.
+            var lamp=new GameObject("A1 TROPHY CASE | warm show light").AddComponent<Light>();
+            lamp.transform.SetParent(root,false);lamp.transform.localPosition=new Vector3(x,f+glassTop-.15f,z-.10f)*K;
+            lamp.type=LightType.Point;lamp.color=new Color(1f,.88f,.66f);lamp.intensity=1.4f;lamp.range=3.2f*K;
+            lamp.shadows=LightShadows.None;lamp.renderMode=LightRenderMode.ForceVertex;
+            // Every case shows five different designs; the two cases mirror.
+            int[] large=s<0?new[]{1,0,2}:new[]{2,0,1};
+            int[] small=s<0?new[]{3,4,4,3}:new[]{4,3,3,4};
+            float[] lx={-.78f,0f,.78f},sx={-.87f,-.29f,.29f,.87f};
+            for(int i=0;i<3;i++)
+            {Trophy(root,new Vector3(x+lx[i],f+baseTop,z),1f,lx[i]*40f,gold,black,"large trophy design "+large[i],large[i]);cups++;}
+            for(int i=0;i<4;i++)
+            {Trophy(root,new Vector3(x+sx[i],f+shelf+.006f,z),.54f,sx[i]*60f,gold,black,"small trophy design "+small[i],small[i]);cups++;}
         }
-        Debug.Log("A1_TROPHY_CASES cases=2 cups="+cups+" large=0.74m small=0.40m lathe=48 handles=swept material=arena_gold");
+        Debug.Log("A1_TROPHY_CASES cases=2 cups="+cups+" designs=5(loving_cup,lidded_urn,globe,champions_bowl,goblet) large=0.74m small=0.40m lathe=48 handles=swept material=mirror_polished_gold rough=.09 metal=1 reflection=1");
     }
 }
