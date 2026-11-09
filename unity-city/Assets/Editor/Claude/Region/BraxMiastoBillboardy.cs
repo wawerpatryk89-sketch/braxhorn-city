@@ -412,7 +412,7 @@ internal static class BraxMiastoBillboardy
                         n.Contains("billboard") || n.Contains("plakat")) continue;
                     samples.Add(h.point.z);
                 }
-        float z = planZ;
+        float z = planZ; bool licoPotwierdzone = false;
         if (samples.Count >= 3)
         {
             // Wybieramy najliczniejszą płaską powierzchnię, a nie wysuniętą tablicę.
@@ -423,10 +423,35 @@ internal static class BraxMiastoBillboardy
                 if (n > hits || n == hits && Mathf.Abs(p - planZ) < Mathf.Abs(best - planZ))
                 { hits = n; best = p; }
             }
-            if (hits >= 3) z = best;
-            else Debug.LogWarning("BRAXHORN_MURAL_19: rozbieżne trafienia ściany; lico planowe z=20.60, sprawdzić w scenie");
+            if (hits >= 3) { z = best; licoPotwierdzone = true; }
         }
-        else Debug.LogWarning("BRAXHORN_MURAL_19: brak potwierdzenia lica z colliderów; lico planowe z=20.60, sprawdzić w scenie");
+        // 9.11 (właściciel: „mural na szarej ścianie siłowni musi być, a jest przed”). Log APK 8.11: „brak potwierdzenia lica
+        // z colliderów; lico planowe z=20.60” — przybudówka siłowni od ulicy (Gym_Mesh_38 z oryginalnego gymu, x −1.6…15.1 w Unity,
+        // lico z 20.60) NIE MA kolizji (gym-collisions ma tylko bok x −14.85), więc raycast nic nie trafiał, a 6.11 zmieniono mój kod
+        // z 3.11 („brak ślepego muru → mural nie postawiony”) na „stawiaj na zgadniętym z”. Zasada 3: tył na ścianie. Szukamy lica
+        // po RENDERERACH siatki ściany (najbliższa płaska powierzchnia z normalną +z w pasie muralu), a bez potwierdzenia — nie stawiamy.
+        if (!licoPotwierdzone)
+        {
+            var kandydaci = new List<float>();
+            foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (!r || !r.enabled || !r.gameObject.activeInHierarchy) continue;
+                var b = r.bounds;
+                if (b.min.x > x0 + 1f || b.max.x < x1 - 1f) continue;          // ściana obejmuje (prawie) cały pas muralu
+                if (b.min.y > y0 + 1f || b.max.y < y1 - 1.5f) continue;        // i jego wysokość
+                if (Mathf.Abs(b.max.z - planZ) > .6f || b.size.z > 10.5f) continue;  // lico przy linii pierzei; bryła przybudówki ≤ 9.6 m głęboka
+                string n = (r.name + " " + (r.transform.parent ? r.transform.parent.name : "")).ToLowerInvariant();
+                if (n.Contains("mural") || n.Contains("billboard") || n.Contains("szyld") || n.Contains("nośnik")) continue;
+                kandydaci.Add(b.max.z);
+            }
+            if (kandydaci.Count > 0) { z = kandydaci.OrderBy(q => Mathf.Abs(q - planZ)).First(); licoPotwierdzone = true;
+                Debug.Log("BRAXHORN_MURAL_19 lico z rendererów ściany (bez kolizji): z=" + z.ToString("F3") + " kandydatów=" + kandydaci.Count); }
+        }
+        if (!licoPotwierdzone)
+        {
+            string msg = "BRAXHORN_MURAL_19 DO POPRAWKI: brak ściany pod mural (x " + x0 + "…" + x1 + ", z≈" + planZ + ") ani w kolizjach, ani w rendererach — mural NIE postawiony (nie wieszamy w powietrzu)";
+            Debug.LogWarning(msg); opis.Add(msg); return;
+        }
         z += .012f; // 12 mm od powierzchni, bez osobnej płyty; szyld pozostaje przed pigmentem.
 
         // Preferujemy rzeczywisty obrys drzwi w tym fragmencie elewacji.
@@ -494,6 +519,13 @@ internal static class BraxMiastoBillboardy
         var mural = new GameObject("BRAXHORN GYM — mural 19 na CAŁEJ szarej ścianie (bez billboardu)").transform;
         mural.SetParent(rodzic, false);
         BraxMiastoA.Obiekt(mural, "mural_19_sciana_z_wycieciem_drzwi", mesh, mat);
+        // 9.11: ściana przybudówki siłowni nie ma kolizji w oryginale (stąd brak trafień raycastu) — kolizja lica po obu stronach
+        // drzwi, cienka (12 cm w głąb ściany), żeby Brax nie wchodził w mural; otwór drzwi wolny.
+        foreach (var (a, b) in new[] { (x0, doorX0), (doorX1, x1) })
+        {
+            var k = new GameObject("mural 19: kolizja ściany x " + a.ToString("F1") + "…" + b.ToString("F1")); k.transform.SetParent(mural, false);
+            var bc = k.AddComponent<BoxCollider>(); bc.center = new Vector3((a + b) * .5f, (y0 + y1) * .5f, z - .072f); bc.size = new Vector3(b - a, y1 - y0, .12f);
+        }
         postawione++;
         string opis19 = "19: oryginał 19.jpg na ścianie x=" + x0.ToString("F2") + ".." + x1.ToString("F2") +
             ", y=" + y0.ToString("F2") + ".." + y1.ToString("F2") + ", z=" + z.ToString("F3") +

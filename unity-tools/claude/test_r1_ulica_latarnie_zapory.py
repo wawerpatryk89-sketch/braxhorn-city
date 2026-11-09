@@ -52,3 +52,25 @@ class R1MainStreetSourceFixtures(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class R1Mural19OnGymWall(unittest.TestCase):
+    """Właściciel 9.11: „mural na szarej ścianie siłowni musi być, a jest przed”. Mural tylko na potwierdzonym licu;
+    bez ściany — nie stawiamy (zasada 3: tył na ścianie, nic w powietrzu)."""
+    SRC = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxMiastoBillboardy.cs").read_text(encoding="utf-8")
+
+    def test_mural_requires_confirmed_wall_face(self):
+        body = self.SRC[self.SRC.index("static void MuralSilowni"):]
+        self.assertIn("licoPotwierdzone", body)
+        self.assertIn("mural NIE postawiony", body)
+        self.assertNotIn("lico planowe z=20.60, sprawdzić w scenie", body)
+
+    def test_wall_face_fallback_uses_renderers_not_guess(self):
+        body = self.SRC[self.SRC.index("static void MuralSilowni"):]
+        self.assertIn("FindObjectsByType<MeshRenderer>", body)
+        self.assertIn("kandydaci.Add(b.max.z)", body)
+
+    def test_mural_wall_gets_collision_beside_door(self):
+        body = self.SRC[self.SRC.index("static void MuralSilowni"):]
+        self.assertIn("mural 19: kolizja ściany", body)
+        self.assertIn("AddComponent<BoxCollider>()", body)
