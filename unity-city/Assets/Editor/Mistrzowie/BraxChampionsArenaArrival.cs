@@ -1122,6 +1122,7 @@ public static partial class BraxChampionsArenaArrival
     public static bool Generate(Transform arenaRoot, Dictionary<string, Material> exterior)
     {
         tiledMeshSerial = 0;
+        ArenaSmokedGlass(arenaRoot, exterior);
         var root = Group(arenaRoot, "A1 | arena entrance, parking, trophy and athlete facilities", Vector3.zero);
         var asphalt = BraxChampionsFoundation.SourceMaterial("arena_parking_asphalt", "clean_asphalt", 2.2f,
             new Color(.89f, .89f, .89f));

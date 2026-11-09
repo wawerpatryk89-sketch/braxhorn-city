@@ -257,4 +257,28 @@ public static partial class BraxChampionsArenaArrival
                 x,-46.4f,(x*13f)%360f,false,floor))placed++;
         Debug.Log("A1_UPPER_LOUNGE_FINISH plants="+placed+"/7 glassBalustrade=83.6x1.10 goldHandrail=true");
     }
+
+    // Owner 9.11: "szyby u góry były przyciemnione, a na dole jasne - tylko
+    // wejście może być jasne". Both levels already used ONE facade_glass, but
+    // the sun-lit lobby behind the 52%-transmitting lower glass read light.
+    // The arena gets its own darker smoked glass on EVERY facade pane (lower
+    // and upper, all LODs); only the door leaves/entrance fill keep clear_glass.
+    static void ArenaSmokedGlass(Transform arenaRoot,Dictionary<string,Material> exterior)
+    {
+        var shared=exterior["facade_glass"];
+        var arenaGlass=new Material(shared){name="A1 arena | uniform dark smoked facade glass"};
+        arenaGlass.SetColor("_Color",new Color(.10f,.11f,.13f,.70f));
+        arenaGlass.SetFloat("_Roughness",.05f);
+        arenaGlass.SetFloat("_ReflectionStrength",.72f);
+        AssetDatabase.CreateAsset(arenaGlass,"Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/A1_arena_smoked_glass.mat");
+        int swapped=0;
+        foreach(var r in arenaRoot.GetComponentsInChildren<Renderer>(true))
+        {
+            var mats=r.sharedMaterials;bool hit=false;
+            for(int i=0;i<mats.Length;i++)if(mats[i]==shared){mats[i]=arenaGlass;hit=true;swapped++;}
+            if(hit)r.sharedMaterials=mats;
+        }
+        Debug.Log("A1_SMOKED_GLASS uniform lower+upper panes="+swapped+" alpha=.70 doors=clear_glass_only");
+        if(swapped==0)BraxBuildQuality.Warn("A1_SMOKED_GLASS_NOT_APPLIED: no facade_glass renderer under the arena");
+    }
 }
