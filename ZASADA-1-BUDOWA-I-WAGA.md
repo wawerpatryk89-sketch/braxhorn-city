@@ -20,7 +20,14 @@ Zamiast tego — jak robią to duże realistyczne gry na Androida (Android Devel
 3. **Kompresja GPU:** cel **ASTC 6×6** (ok. połowa wagi ETC2 RGBA przy tej samej jakości; wspierane przez każdy telefon z Vulkan/GLES 3.1).
    Dziś ETC2 (działający APK); przejście na ASTC = jeden zmierzony build testowy z raportem przed/po i cytat właściciela, potem standard dla wszystkich rejonów.
    Tekstury UI/ekrany startowe: PNG skompresowany albo WebP. Jednolite kolory: 16-bit (RGB565), nie 32-bit.
-4. **Mipmapy + streaming mipmap wszędzie**, na telefonie mip ≥ 1 (najwyższy poziom nigdy w całości w pamięci — wywrotki 31.10). Unity Texture Streaming.
+4. **Mipmapy + streaming mipmap wszędzie** (Unity Texture Streaming z budżetem: 1024 MB przy ≥ 6 GB RAM, inaczej 640 MB; redukcja najwyżej o 2 poziomy).
+   Pełna rozdzielczość tekstur w trybach Średni i Wysoki — pamięć trzyma limit importu (B.1: 1K) i budżet streamingu, nie „połowa na telefonie”
+   (właściciel 9.11: „ma być jak najlepsza jakość”). Połowa (mip 1) tylko w trybie Niski. (Wywrotki 31.10 były przy 2K + mip 0.)
+8. **Z daleka nic nie znika i nic nie wyskakuje** (właściciel 9.11: „zobacz jak to się rysuje… tak samo wyspa jak do niej płynę”).
+   Każda scena-obszar (kwadrat miasta, dzielnica, wyspa, port, rejon) zostawia w scenie głównej swoją **kopię z daleka** — uproszczoną siatkę
+   dużych brył w tych samych materiałach (`BraxClaudeZDaleka` + `BraxObszarZDaleka`, chowana w klatce wczytania obszaru). Bez szarych pudeł
+   zamiast budynków. Zasięg kamery w każdym trybie sięga najdalszej rzeczy, którą widać z mapy (dziś wyspa ~1 km: Niski 1100 m, Średni 1600 m,
+   Wysoki 2200 m), lodBias Niski 0.7 / Średni 1.25 / Wysoki 2.0.
 5. **Rozbudowa = nowe paczki, nie grubszy jeden plik.** Gra startowa (siłownia, ulica główna, mieszkanie) ma być mała; każdy rejon i każda duża
    dzielnica (wyspa, nowe dzielnice, port, Obóz, Mistrzowie) = osobna scena-obszar doczytywana przy podejściu (jak dziś BraxObszary) i osobna
    pozycja w raporcie wagi. Gdy całość przekroczy to, co telefon instaluje jednym plikiem, przechodzimy na **AAB + Play Asset Delivery**
@@ -39,7 +46,7 @@ Zamiast tego — jak robią to duże realistyczne gry na Androida (Android Devel
 3. **Jedna tekstura = jeden plik.** Zanim dodasz teksturę, sprawdź, czy ta sama (albo równoważna: „inny beton”) już jest w rejonie — użyj jej.
    Zestaw PBR (kolor + normal + ARM) na rodzinę powierzchni (beton, cegła, asfalt, drewno, metal, trawa), nie na obiekt.
 4. **Kompresja:** ETC2 dziś (działający APK) → **ASTC 6×6** po jednym zmierzonym buildzie testowym (pkt A.3), potem standard.
-   Mipmapy włączone, **streaming mipmap włączony**, na telefonie **mip ≥ 1** (poziom 0 nigdy nie ładuje się w całości — wywrotki pamięci 31.10).
+   Mipmapy włączone, **streaming mipmap włączony** z budżetem (A.4); pełna rozdzielczość w trybach Średni/Wysoki, mip 1 tylko w trybie Niski.
    Bez „Read/Write Enabled” (podwaja pamięć). Bez crunch na normalach.
 5. **Generowane w buildzie** (atlasy, przeszklenia, wypalone cienie): te same limity. 9 tekstur po 15 MB „zrobionych przez kod” to 135 MB.
 6. Grafiki właściciela trzymasz w jednym miejscu rejonu z `.meta` o stałym GUID; nie kopiujesz ich do drugiego folderu.
