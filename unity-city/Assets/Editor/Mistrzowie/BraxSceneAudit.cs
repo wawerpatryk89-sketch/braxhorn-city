@@ -587,26 +587,25 @@ public static class BraxSceneAudit
 
         var vip=all.Where(t=>Contains(t.name,"Reserved VIP | imported luxurious barrel seat")).ToArray();
         AddExact("Arena: VIP premium (dokładnie 16)",vip,16,
-            "BraxChampionsVIPSeats.cs","max 1.18x1.18x1.28; uniform scale");
+            "BraxChampionsVIPSeats.cs","real model size (cm->m) x K; uniform scale");
 
-        var showcaseBase=all.Where(t=>Contains(t.name,"A1 SHOWCASE | premium granite base")).ToArray();
-        AddExact("Arena: nowa niska podstawa gabloty",showcaseBase,1,
-            "BraxChampionsBeltShowcase.cs","2.20x0.90x0.28; bez wysokiej tylnej płyty");
-        var showcaseFront=all.Where(t=>Contains(t.name,"A1 SHOWCASE | FRONT optical glass")).ToArray();
+        // 9.11 owner photo vitrine (lobby): measured sizes, not the old low-base case.
+        var vitrinePillar=all.Where(t=>Contains(t.name,"A1 VITRINE | black marble pillar")).ToArray();
+        AddExact("Arena: filar z czarnego marmuru pod gablotą",vitrinePillar,1,
+            "BraxChampionsBeltShowcase.cs","1.06x3.00x0.45 m x K; marble ambientCG Marble016");
+        var showcaseFront=all.Where(t=>Contains(t.name,"A1 VITRINE | FRONT glass")).ToArray();
         AddExact("Arena: front gabloty 12mm",showcaseFront,1,
-            "BraxChampionsBeltShowcase.cs","1.84x2.95; true mesh thickness 0.012m");
-        var showcaseGlass=all.Where(t=>Contains(t.name,"A1 SHOWCASE |")&&
-            Contains(t.name,"optical glass")).ToArray();
-        AddExact("Arena: komplet tafli gabloty 12mm",showcaseGlass,5,
-            "BraxChampionsBeltShowcase.cs","front+back+2 sides+top");
-        var showcaseCorners=all.Where(t=>Contains(t.name,
-            "A1 SHOWCASE | slender gold corner profile")).ToArray();
-        AddExact("Arena: złote narożne profile gabloty",showcaseCorners,4,
-            "BraxChampionsBeltShowcase.cs","4 x 45mm");
-        var beltSupports=all.Where(t=>Contains(t.name,
-            "A1 SHOWCASE | hidden black belt support")).ToArray();
-        AddExact("Arena: ukryte wsporniki pasa",beltSupports,2,
-            "BraxChampionsBeltShowcase.cs","2 x 30mm black metal");
+            "BraxChampionsBeltShowcase.cs","0.63x1.79 m (zmierzone na zdjęciu); true mesh thickness 0.012m");
+        var showcaseGlass=all.Where(t=>Contains(t.name,"A1 VITRINE |")&&Contains(t.name," glass")&&
+            t.GetComponent<MeshFilter>()).ToArray();
+        AddExact("Arena: komplet tafli gabloty 12mm",showcaseGlass,6,
+            "BraxChampionsBeltShowcase.cs","front+2 sides+top+bottom+shelf");
+        var showcaseBrackets=all.Where(t=>Contains(t.name,"A1 VITRINE | brass side bracket")).ToArray();
+        AddExact("Arena: mosiężne uchwyty boczne gabloty",showcaseBrackets,4,
+            "BraxChampionsBeltShowcase.cs","as on the owner photo");
+        var beltSupports=all.Where(t=>Contains(t.name,"A1 VITRINE | gold belt pin")).ToArray();
+        AddExact("Arena: złote kołki pasa",beltSupports,4,
+            "BraxChampionsBeltShowcase.cs","2 top + 2 bottom, photo ratios");
         var canopySupports=all.Where(t=>Contains(t.name,
             "A1 PUBLIC | ISSUE27 round gold support x=")).ToArray();
         AddExact("Arena: dwa złote słupy zadaszenia z raycastem",canopySupports,2,
@@ -632,8 +631,7 @@ public static class BraxSceneAudit
             Contains(t.name,"Gold support stem"))&&t.GetComponent<MeshCollider>()).ToArray();
         AddExact("Arena: kolizje zaokrąglonych złotych słupów (base+stem)",
             supportColliders,4,"BraxChampionsArenaArrival.cs","4 static MeshCollider on rounded geometry");
-        var forbiddenOldBack=all.Where(t=>Contains(t.name,"black marble wall column")||
-            Contains(t.name,"black leather back panel")).ToArray();
+        var forbiddenOldBack=all.Where(t=>Contains(t.name,"black leather back panel")).ToArray();
         if(forbiddenOldBack.Length>0)
         {
             output.inventory.Add(new Presence{requirement="Arena: stara tylna płyta gabloty MUSI być usunięta",

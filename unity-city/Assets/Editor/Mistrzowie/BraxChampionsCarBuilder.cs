@@ -6,8 +6,7 @@ using UnityEngine;
 
 // Uses the EXACT same source model "car_rev.glb" as the estate's Auto Patryka
 // candidate list, without touching the estate scene/assets or creating a fake car.
-// A1 parking is preserved. The raw GLB is calibrated to REAL Unity metres; map coordinates alone use K.
-// This prevents the 4.95 m source car from being enlarged a second time by the city migration scale.
+// A1 parking is preserved. Like everything in the K world: real 4.95 m car x K (see WorldLengthMetres).
 public static class BraxChampionsCarBuilder
 {
     public const string OwnerCar = "Assets/Source/Mistrzowie/Vehicles/car_rev.glb";

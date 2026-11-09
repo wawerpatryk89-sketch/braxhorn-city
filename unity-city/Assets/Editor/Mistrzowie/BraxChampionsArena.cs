@@ -7,7 +7,7 @@ using UnityEngine;
 using W=BraxWnetrzaKit;
 
 // Adapted from BraxClaudeOsiedle.ArenaInterior, exact source recorded in arena-source.json.
-// Same octagon, equipment and four-sided bowl; greater seating area, unscaled human-size furniture.
+// Same octagon, equipment and four-sided bowl; greater seating area. Real sizes, root scaled by K once.
 // This class creates only Mistrzowie objects and never calls the estate-wide build or mutates its assets.
 public static class BraxChampionsArena
 {

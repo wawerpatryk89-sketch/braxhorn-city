@@ -536,7 +536,8 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 
         physicsBody.MoveRotation(nextRotation);
         physicsBody.MovePosition(grounded);
-        wheelAngle += speed * dt * Mathf.Rad2Deg / .34f;
+        // Real tyre radius .34 m lives in the K-scaled world too (speed is x K).
+        wheelAngle += speed * dt * Mathf.Rad2Deg / (.34f * Mathf.Max(.01f, worldScale));
         foreach (var wheel in rollingWheels)
             if (wheel) wheel.localRotation = Quaternion.Euler(wheelAngle, 0, 0);
         foreach (var wheel in steeringWheels)

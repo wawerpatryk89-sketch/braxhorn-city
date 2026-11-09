@@ -440,7 +440,8 @@ public static class BraxChampionsBeltShowcase
     // UFC Legacy championship belt, length 50 in = 1.27 m (ufc.com), which is
     // 962 px on the photo -> 1.32 mm per pixel. A frontal photo cannot show
     // depth: case depth = belt depth + LED tray clearance. The photo crops the
-    // pillar top: its 3.00 m height is a choice (marble 1.2 m above the case).
+    // pillar top, so its height is NOT measurable: 3.00 m is a design value
+    // (owner may set it), the rest is measured.
     // The display is scaled by K ONCE, so every number below is real metres.
     public const float LobbyX=6.6f, LobbyZ=-45.5f;
     public const float BeltLength=1.27f;                        // ufc.com: 50 in
@@ -451,6 +452,7 @@ public static class BraxChampionsBeltShowcase
     public const float PlaqueW=.46f, PlaqueH=.18f;              // 347 x 135 px
     public const float SlatW=.03f, SlatPitch=.05f, SlatDepth=.05f;
     public const int Slats=12;
+    public const float PlantAbovePot=.36f;                      // 274 px
     // Photo ratios relative to the hung belt length (pins and strap brackets).
     const float PinOffsetX=.0697f, TopPinBelowTop=.132f, BottomPinAboveBottom=.10f;
 
@@ -590,8 +592,13 @@ public static class BraxChampionsBeltShowcase
         // 5) The owner's ONE 3D belt, hung vertically: 1.27 m (real length),
         //    bottom .32 m over the case bottom (photo), 3 cm off the marble.
         float beltCentreY=CaseBottom+.32f+BeltLength*.5f;
-        var belt=OriginalBelt(display,BeltLength,.40f,.10f,new Vector3(0,beltCentreY,-.08f),
-            CaseBottom+ShelfAbove,top-.08f,front+.03f,-.01f);
+        // Fit by the REAL LENGTH only: width/depth limits are the case interior,
+        // so they bind (and warn) only if the model physically cannot fit.
+        var belt=OriginalBelt(display,BeltLength,CaseW-.06f,CaseD-.05f,new Vector3(0,beltCentreY,-(CaseD-.05f)*.5f-.01f),
+            CaseBottom+ShelfAbove,top-.08f,front+.02f,-.005f);
+        if(belt.size.y>.01f&&Mathf.Abs(belt.size.y-BeltLength)>.02f)
+            BraxBuildQuality.Warn("A1_VITRINE_BELT_NOT_REAL_LENGTH: "+belt.size.y.ToString("F2")+" m instead of "+BeltLength+
+                " m; the FBX is wider/deeper than the case interior");
         int pins=0;
         if(belt.size.y>.01f)
         {
@@ -661,7 +668,8 @@ public static class BraxChampionsBeltShowcase
                 plant.transform.localPosition=new Vector3(potX,potH,potZ);
                 Physics.SyncTransforms();
                 var pb=VisualBounds(display,plant.transform);
-                if(pb.size.y>.001f)plant.transform.localScale*=.55f/pb.size.y;
+                // Leaves above the pot measured on the photo: 274 px = .36 m.
+                if(pb.size.y>.001f)plant.transform.localScale*=PlantAbovePot/pb.size.y;
                 Physics.SyncTransforms();
                 pb=VisualBounds(display,plant.transform);
                 plant.transform.localPosition+=new Vector3(potX-pb.center.x,potH-.02f-pb.min.y,potZ-pb.center.z);
