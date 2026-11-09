@@ -428,13 +428,20 @@ public static class BraxGymBuild
                 Bounds all=default;bool any=false;
                 foreach(var r in scene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<Renderer>(true))){if(!any){all=r.bounds;any=true;}else all.Encapsulate(r.bounds);}
                 Vector3 spawn=new Vector3(1.5f,0f,2.8f);const float K=150f;int nk=0;
+                Transform horyzontZD=scene.GetRootGameObjects().SelectMany(gH=>gH.GetComponentsInChildren<Transform>(true)).FirstOrDefault(tH=>tH.name=="CLAUDE horyzont: teren za granicą miasta, granica, wiadukt dalej");
                 for(float x=Mathf.Floor(all.min.x/K)*K;x<all.max.x;x+=K)
                     for(float z=Mathf.Floor(all.min.z/K)*K;z<all.max.z;z+=K)
                     {
                         var cell=new Bounds(new Vector3(x+K*.5f,all.center.y,z+K*.5f),new Vector3(K,all.size.y+400f,K));
                         var c2=cell;c2.center=new Vector3(c2.center.x,0f,c2.center.z);
                         if(c2.SqrDistance(spawn)<70f*70f)continue;   // okolica siłowni zostaje w scenie startowej
-                        var w=BraxClaudeObszary.WObszarze(scene,cell);if(w.Count==0)continue;
+                        var w=BraxClaudeObszary.WObszarze(scene,cell);
+                        // 9.11 (właściciel, zdjęcie z tarasu Tower: zamiast miasta i okolicy fioletowa pustka i płaskie pola): teren za
+                        // granicą miasta (Horyzont: teren, las z kart, granica, wiadukt dalej) NIE idzie do kwadratów — był zwalniany razem
+                        // z kwadratem i z wysokości (kamera > 120 m nad gruntem = żaden kwadrat się nie wczytuje) znikał cały. Zostaje
+                        // w scenie głównej; do kwadratu idą z niego tylko prawdziwe drzewa (LODGroup) — z daleka ich ostatni LOD w kopii.
+                        if(horyzontZD){var wynH=new List<Transform>();foreach(var wH in w){if(!wH.IsChildOf(horyzontZD)){wynH.Add(wH);continue;}foreach(var lgH in wH.GetComponentsInChildren<LODGroup>(true))if(lgH.transform!=horyzontZD)wynH.Add(lgH.transform);}w=wynH;}
+                        if(w.Count==0)continue;
                         // The sector identity depends on its coordinates, never on which other sectors are non-empty.
                         string sectorName=BraxCityZoneRegistry.SectorSceneName(Mathf.RoundToInt(x/K),Mathf.RoundToInt(z/K));
                         // 9.11: każdy kwadrat zostawia w scenie głównej swoją kopię z daleka (BraxClaudeZDaleka) — ulica i budynki widoczne

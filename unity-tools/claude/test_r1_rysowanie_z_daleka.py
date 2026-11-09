@@ -116,3 +116,11 @@ class R1CienieIMgielka(unittest.TestCase):
 
     def test_ring_island_replaced_by_real_far_copy(self):
         self.assertIn('trZD.name.StartsWith("Nasza wyspa (z daleka")', BUILD)
+
+
+class R1HoryzontZostaje(unittest.TestCase):
+    def test_horizon_terrain_never_streamed_out(self):
+        # 9.11 18:13 (zdjęcie z tarasu Tower): teren za granicą znikał razem z kwadratami
+        self.assertIn('tH.name=="CLAUDE horyzont: teren za granicą miasta, granica, wiadukt dalej"', BUILD)
+        self.assertIn("if(!wH.IsChildOf(horyzontZD)){wynH.Add(wH);continue;}", BUILD)
+        self.assertIn("GetComponentsInChildren<LODGroup>(true)", BUILD)
