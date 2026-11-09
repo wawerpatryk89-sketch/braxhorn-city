@@ -77,6 +77,9 @@ public static class BraxRegion
         // (Dzielnica zachodnia z WIP — ETAP 2, po dopasowaniu do ronda i alej; do tego czasu krok wyłączony.)
         Step("miasto B: rondo, aleje, ul. Wiaduktowa i Warsztatowa, pierzeje, warsztaty", () => BraxRegionMiastoB.Apply(world, root));
         Step("R1: odbiór latarni, starszych duplikatów i ławek źródłowych przy jezdni", () => BraxRegionMiastoB.OdbiorWyposazeniaUlic(root));
+        // 9.11 (właściciel: slamsy na wzgórzu za miastem, duży teren, łagodne przejście, sklepy, sala rywala): po mieście B (drogi wchodzą z parkingu
+        // warsztatów i z nowych dzielnic), przed łataniem dziur, ruchem (auta zaparkowane, koła, sprzedawcy) i horyzontem (teren za granicą)
+        Step("fawela na wzgórzu za miastem (etap 1): teren, drogi, schody, domy, lokale, plac, sala rywala", () => BraxRegionFawela.Apply(root));
         // 9.11 (właściciel: „te niebieskie… ma poznikać”, teren za siłownią → port → wulkanizacja): po WSZYSTKICH krokach, które
         // kładą nawierzchnie — zmierzone dziury w gruncie (pod nimi woda y −1.7) zamknięte płytą, trawniki z obrzeżem.
         // 9.11 (właściciel: „z siłowni w lewo, potem w lewo — za budynkiem woda… cały budynek prześwietl”): siłownia od zewnątrz

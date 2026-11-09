@@ -34,6 +34,19 @@ TEXTURES = [
     "peeling_painted_wall", "decrepit_wallpaper", "old_linoleum_flooring_01", "dirty_tiles", "worn_cracked_plaster", "dirty_carpet",
     "rusty_painted_metal", "wood_cabinet_worn_long",
 ]
+# FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
+# rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
+# W 1K (telefon): 38 zestawów w 2K to ok. 0,5 GB tekstur w pamięci naraz — ściany dostają kolor + normalną 1024, drobne
+# wykończenia sam kolor 512 (BraxRegionFawela.Odchudz).
+TEXTURES_FAWELA_1K = [
+    "brown_mud_dry", "stony_dirt_path", "painted_plaster_wall", "plastered_wall", "damaged_plaster", "red_brick_plaster_patch_02",
+    "white_rough_plaster", "rough_plaster_broken", "red_plaster_weathered", "blue_plaster_weathered", "rebar_reinforced_concrete", "red_bricks_02",
+    "slumped_mortar_brick", "concrete_block_wall", "concrete_layers", "rusty_corrugated_iron", "rusty_metal_03", "corrugated_iron_02",
+    "corrugated_iron", "wood_peeling_paint_weathered", "old_planks_02", "rusty_metal_04", "green_metal_rust", "blue_metal_plate",
+    "rusty_metal_shutter", "rusted_shutter", "wooden_garage_door", "wood_shutter", "metal_plate_02", "asphalt_03",
+    "asphalt_04", "concrete_floor_worn_001", "damaged_concrete_floor", "wood_table_worn", "cotton_jersey", "brown_leather",
+    "fabric_leather_02", "fabric_leather_01",
+]
 MODELS_2K = [  # drzewa i krzewy: pełna jakość (2K); reszta roślin w 1K, bo edytor Unity na GitHubie ma 16 GB
     "shrub_01", "shrub_02", "shrub_03",
     # island_tree_03 / pine_tree_01 / fir_tree_01: skany 2–17 mln trójkątów — w grze drzewo_verdant (Library)
@@ -99,7 +112,7 @@ def pick(res: dict, *keys):
     raise KeyError(f"brak rozdzielczości {keys} w {list(res)}")
 
 
-def texture(slug: str, report: dict) -> None:
+def texture(slug: str, report: dict, res=("2k", "1k")) -> None:
     d = ROOT / "textures" / slug
     if (d / "diffuse.jpg").exists() and (d / "normal.jpg").exists() and (d / "arm.jpg").exists():
         report["textures"][slug] = "already"
@@ -112,7 +125,7 @@ def texture(slug: str, report: dict) -> None:
             src = f.get("diff") or f.get("Color")
         if src is None:
             raise KeyError(f"{slug}: brak mapy {key} ({list(f)})")
-        url = pick(src, "2k", "1k")["jpg"]["url"]
+        url = pick(src, *res)["jpg"]["url"]
         (d / out).write_bytes(get(url))
     report["textures"][slug] = "ok"
     print("TEX", slug, "OK")
@@ -142,6 +155,12 @@ def main() -> int:
     for t in TEXTURES:
         try:
             texture(t, report)
+        except Exception as exc:  # noqa: BLE001
+            report["missing"].append(f"tex:{t}: {exc}")
+            print("BRAK TEKSTURY", t, exc)
+    for t in TEXTURES_FAWELA_1K:
+        try:
+            texture(t, report, ("1k", "2k"))
         except Exception as exc:  # noqa: BLE001
             report["missing"].append(f"tex:{t}: {exc}")
             print("BRAK TEKSTURY", t, exc)

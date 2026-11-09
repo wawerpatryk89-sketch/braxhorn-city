@@ -869,9 +869,11 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         for (float z = AS1 + 6f; z < -20f; z += 11f) Drzewo(new Vector3(LicoW - 7f + ((int)z % 3), YC - .03f, z));
         Trawa("L8 park wsch. Alei Południowej (pd.)", LicoE, ParkX0, ZboczeZ, ParkAleja0);
         Trawa("L8 park wsch. Alei Południowej (pn.)", LicoE, ParkX0, ParkAleja1, zW0);
-        Trawa("L9 za warsztatami (do skarpy)", -112f, -61.4f, ZboczeZ, ParkZ0, true);
+        // 9.11 fawela: ul. dolna wychodzi z alei parkingu (z −59…−53) na wschód i w dół przez trawniki L9 — korytarz jezdni z krawężnikami bez trawy
+        var korytarzFaweli = BraxRegionFawela.Wlaczona ? new[] { Rect.MinMaxRect(ParkX1, -59.1f, -63.4f, -52.9f), Rect.MinMaxRect(-69.6f, -82.5f, -63.4f, -59.1f), Rect.MinMaxRect(-69.6f, ZboczeZ, -61.4f, -82.5f) } : new Rect[0];
+        TrawaBez("L9 za warsztatami (do skarpy)", Rect.MinMaxRect(-112f, ZboczeZ, -61.4f, ParkZ0), true, korytarzFaweli);
         Trawa("L9 za warsztatami (przy parkingu)", -112f, -61.4f, ParkZ1, zb, true);
-        Trawa("L9 na wschód od parkingu", ParkX1, -61.4f, ParkZ0, ParkZ1, true);
+        TrawaBez("L9 na wschód od parkingu", Rect.MinMaxRect(ParkX1, ParkZ0, -61.4f, ParkZ1), true, korytarzFaweli);
         Trawa("L10 między warsztatami a placem B", -72f, -61.4f, zb, zW0);
         for (float x = -106f; x < -66f; x += 9f) Drzewo(new Vector3(x, YC - .03f, zb - 6f));
         // między ul. Warsztatową a pierzeją płd. ulicy głównej: plac ustawek (w Warsztaty), trawnik za pierzeją, skwerek przy Wiaduktowej
@@ -1108,6 +1110,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     public static float ZboczeZ => AS1 - 1.45f;
     static void Zbocze(Transform g, float zp)
     {
+        if (BraxRegionFawela.Wlaczona) return;   // 9.11: wzgórze nad tunelem jest częścią terenu faweli (BraxRegionFawela.WysBazowa — garb 13.65 m za murem portalu)
         int nx = 60, nz = 30; float x0 = AX - 80f, x1 = AX + 66f, z1 = ZboczeZ, z0 = z1 - 72f;
         var v = new List<Vector3>(); var uv = new List<Vector2>(); var t = new List<int>();
         for (int i = 0; i <= nx; i++) for (int j = 0; j <= nz; j++)

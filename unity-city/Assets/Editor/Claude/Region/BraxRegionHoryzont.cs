@@ -522,6 +522,14 @@ public static class BraxRegionHoryzont
         // południowy wschód: dolina schodzi do morza (ujście potoku), mniej wzgórz
         h *= 1f - .55f * polud * S01(-80f, 40f, x);
         // (2.11, B: wiadukt usunięty — bez korytarza i przekopu na północy)
+        // fawela (9.11): przy jej obrzeżu teren przechodzi w jej stok (ta sama wysokość na linii granicy), dalej góry rosną
+        // dalej od faweli (25 %) — wzgórze z fawelą ciągnie się w las i góry, bez urwiska i bez schodka pod murkiem granicy
+        float dfw = BraxMiastoGranice.OdlegloscFaweli(x, z, out var pfw);
+        if (dfw < 140f)
+        {
+            float hfw = BraxRegionFawela.WysTerenu(pfw.x, pfw.y);
+            h = Mathf.Lerp(hfw - .05f, Mathf.Max(h, hfw + dfw * .25f), S01(0f, 140f, dfw));
+        }
         // brzeg morza: skalisty, schodzi pod wodę (woda miasta y −1.7)
         float brzeg = -3.4f + 3.4f * S01(-14f, 10f, lad);   // na linii brzegu ok. −1.3 m (woda −1.7 zaczyna się tuż dalej)
         h = brzeg + h * S01(8f, 110f, lad);
@@ -596,7 +604,7 @@ public static class BraxRegionHoryzont
 
     static void Teren()
     {
-        var G = BraxMiastoGranice.Prostokat;
+        var G = BraxMiastoGranice.ProstokatCaly;
         float xMin = G.xMin - Zasieg, zMin = G.yMin - Zasieg, zMax = G.yMax + Zasieg;
         float xMax = Mathf.Max(BraxMiastoGranice.Brzeg(zMin), BraxMiastoGranice.Brzeg(zMax)) + 30f;
         PoleOdleglosci(xMin - 8f, xMax + 8f, zMin - 8f, zMax + 8f);
@@ -604,6 +612,8 @@ public static class BraxRegionHoryzont
         var wyjscie = new[] { (40f, 4f), (110f, 6f), (220f, 11f), (360f, 18f), (Zasieg + 10f, 28f) };
         var xs = Linie(G.xMin, G.xMax, 8f, xMin, xMax, wyjscie);
         var zs = Linie(G.yMin, G.yMax, 8f, zMin, zMax, wyjscie);
+        // fawela (9.11): gęstsze linie przy jej bokach (stok za granicą przedłuża wzgórze faweli bez schodka)
+        for (float v = -40f; v <= 40f; v += 4f) { xs.Add(BraxMiastoGranice.FawelaX0 + v); xs.Add(BraxMiastoGranice.FawelaX1 + v); }
         // wycięcia: gęstsze linie wzdłuż ich krawędzi
         foreach (var w in BraxMiastoGranice.Wyciecia)
         {
@@ -663,7 +673,7 @@ public static class BraxRegionHoryzont
     // 4) las
     static void Las()
     {
-        if (odl == null) { var G = BraxMiastoGranice.Prostokat; PoleOdleglosci(G.xMin - Zasieg - 8f, 400f, G.yMin - Zasieg - 8f, G.yMax + Zasieg + 8f); }
+        if (odl == null) { var G = BraxMiastoGranice.ProstokatCaly; PoleOdleglosci(G.xMin - Zasieg - 8f, 400f, G.yMin - Zasieg - 8f, G.yMax + Zasieg + 8f); }
         var lasPng = OsMdl + "drzewo_klaster/las.png";
         var imp = AssetImporter.GetAtPath(lasPng) as TextureImporter;
         var sh = Shader.Find("Braxhorn/MiastoDalLas");
@@ -680,7 +690,7 @@ public static class BraxRegionHoryzont
             UstawTlo(m); m.SetFloat("_MglaOd", .6f); m.SetFloat("_MglaDo", 470f);
             BraxZapisAssetu.Utworz(m, OutDir + "/las_karty.mat"); lasMat = m;
             var kaw = new Dictionary<(int, int), (List<Vector3> v, List<Vector2> uv, List<Vector2> uv2, List<int> i)>();
-            var G = BraxMiastoGranice.Prostokat;
+            var G = BraxMiastoGranice.ProstokatCaly;
             for (int k = 0; k < 60000 && karty < 2600; k++)
             {
                 float x = R(G.xMin - Zasieg, 360f), z = R(G.yMin - Zasieg, G.yMax + Zasieg);
@@ -718,7 +728,7 @@ public static class BraxRegionHoryzont
         if (model)
         {
             var p3 = new GameObject("Drzewa przy granicy").transform; p3.SetParent(lasy, false);
-            var G = BraxMiastoGranice.Prostokat;
+            var G = BraxMiastoGranice.ProstokatCaly;
             for (int k = 0; k < 9000 && drzewa3D < 70; k++)
             {
                 float x = R(G.xMin - 30f, G.xMax + 30f), z = R(G.yMin - 30f, G.yMax + 30f);
@@ -784,7 +794,7 @@ public static class BraxRegionHoryzont
     static void Granica()
     {
         float K = BraxClaudeOsiedle.K;
-        var G = BraxMiastoGranice.Prostokat;
+        var G = BraxMiastoGranice.ProstokatCaly;
         // 1) krawędzie obszaru grywalnego (siatka 1 m): między polem grywalnym a niegrywalnym LĄDEM
         const float c = 1f;
         float gx0 = Mathf.Floor(G.xMin) - 3f, gz0 = Mathf.Floor(G.yMin) - 3f;

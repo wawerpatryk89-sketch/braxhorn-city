@@ -592,6 +592,12 @@ public static partial class BraxClaudeOsiedle
             O("PARK TOWER — kawiarnia", RolaObsluga, "barista", new Vector3(-51.2f, YC, -40.35f), 90f);                  // bar x −50.5…−49.5
             O("Warsztat AUTO NAPRAWA — mechanik", RolaObsluga, "mechanik", BraxRegionMiastoB.MechanikAutoNaprawa, 180f);     // przy stole warsztatowym (9.11: wnętrze od nowa)
             O("WULKANIZACJA — wulkanizator", RolaObsluga, "mechanik", BraxRegionMiastoB.MechanikWulkanizacja, 270f);        // przy montażownicy
+            // FAWELA (9.11): sprzedawcy lokali, targ i sala kickboxingu rywala — posadzki leżą na stoku, więc poziom podany wprost (bez szukania podłogi przy y ≈ 0)
+            foreach (var (pf, yawF, gdzieF) in BraxRegionFawela.Sprzedawcy)
+            {
+                bool wSali = gdzieF.StartsWith("sala", StringComparison.Ordinal);
+                if (Obsada("FAWELA — " + gdzieF, wSali ? RolaSport : RolaObsluga, wSali ? "trener" : gdzieF.StartsWith("bar", StringComparison.Ordinal) ? "barman" : "kasjer", pf, yawF, rnd, lada, pf.y + .02f)) obs++;
+            }
             // ul. Zachodnia (ETAP 2): dyżurny komisariatu i rejestracja szpitala za ladą holu, policjant przed wejściem, lekarz w holu szpitala
             var lk = BraxRegionTylyB.LadaHolu(BraxRegionMiastoB.Komisariat); var ls = BraxRegionTylyB.LadaHolu(BraxRegionMiastoB.Szpital);
             O("KOMISARIAT — dyżurny", RolaPolicja, "policja", new Vector3(lk.x + 1.0f * k, YC, lk.z - .95f * k), 0f);

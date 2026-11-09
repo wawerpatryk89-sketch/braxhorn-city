@@ -19,7 +19,21 @@ public static class BraxMiastoGranice
     // ---- wycięcia: części prostokąta, które NIE są grywalne (teren i las wchodzą do środka, granica idzie dookoła) ----
     // Las na północny zachód (za pętlą Alei Północnej, z ≥ 126) i wzgórze za placem wieżowców (na płd. od z −68, na wschód od x −61.4).
     // Nowe dzielnice (x X0…−262) kończą się na północy na z 156 (ciąg pieszy za rzędem B) — dalej las.
-    public static readonly Rect[] Wyciecia = { Rect.MinMaxRect(-262f, 126f, -40f, Z1), Rect.MinMaxRect(X0, 156f, -262f, Z1), Rect.MinMaxRect(-61.4f, Z0, 84f, -68f) };
+    // 9.11 (właściciel: fawela na wzgórzu za miastem): wzgórze za placem wieżowców (x −61.4…70) jest teraz FAWELĄ (grywalne) —
+    // wycięciem zostaje tylko pas przy morzu x 70…84 (skarpa nad wodą, poza fawelą).
+    public static readonly Rect[] Wyciecia = { Rect.MinMaxRect(-262f, 126f, -40f, Z1), Rect.MinMaxRect(X0, 156f, -262f, Z1), Rect.MinMaxRect(FawelaX1, Z0, 84f, -68f) };
+
+    // ---- FAWELA NA WZGÓRZU (9.11, właściciel: „slamsy… z delikatnym przejściem… nie ma być teren mały”) ----
+    // Całe wzgórze na południe od miasta: od linii miasta (z −68 za parkiem wieżowców na wschód od x −61.4, z Z0 dalej na zachód)
+    // do szczytu z ≈ −357; od x −470 (za nowymi dzielnicami) do x 70 (stok schodzi ku morzu). Grywalne — granicę gry robi
+    // murek na jej obrzeżu (krok horyzontu), teren za nią (las, góry) przedłuża stok.
+    public const float FawelaX0 = -470f, FawelaX1 = 70f, FawelaZSzczyt = -357f;
+    /// <summary>Linia miasta nad fawelą (z, od której zaczyna się stok) dla danego x.</summary>
+    public static float FawelaKrawedz(float x) => x > -61.4f ? -68f : Z0;
+    /// <summary>Czy punkt leży w faweli (grywalne wzgórze za miastem).</summary>
+    public static bool WFaweli(float x, float z) => x >= FawelaX0 && x <= FawelaX1 && z >= FawelaZSzczyt && z <= FawelaKrawedz(x);
+    /// <summary>Prostokąt obejmujący miasto RAZEM z fawelą (zasięg siatek granicy i terenu za granicą).</summary>
+    public static Rect ProstokatCaly => Rect.MinMaxRect(X0, FawelaZSzczyt, X1, Z1);
 
     // ---- portal tunelu wyjazdu na osiedle (mur portalu w poprzek końca Alei Południowej): przerwa w ogrodzeniu granicy ----
     public static readonly Rect PortalTunelu = Rect.MinMaxRect(-148.5f, Z0 - 3f, -103.5f, Z0 + 3f);
@@ -72,6 +86,7 @@ public static class BraxMiastoGranice
     /// <summary>Czy punkt jest grywalny: w prostokącie i poza wycięciami (woda też — na morzu granicę robi nabrzeże).</summary>
     public static bool Grywalny(float x, float z)
     {
+        if (WFaweli(x, z)) return true;
         if (!Wewnatrz(x, z)) return false;
         foreach (var w in Wyciecia) if (w.Contains(new Vector2(x, z))) return false;
         return true;
@@ -81,6 +96,16 @@ public static class BraxMiastoGranice
     public static float Odleglosc(float x, float z)
     {
         float dx = Mathf.Max(0f, Mathf.Max(X0 - x, x - X1)), dz = Mathf.Max(0f, Mathf.Max(Z0 - z, z - Z1));
-        return Mathf.Sqrt(dx * dx + dz * dz);
+        float fx = Mathf.Max(0f, Mathf.Max(FawelaX0 - x, x - FawelaX1)), fz = Mathf.Max(0f, Mathf.Max(FawelaZSzczyt - z, z - FawelaKrawedz(x)));
+        return Mathf.Min(Mathf.Sqrt(dx * dx + dz * dz), Mathf.Sqrt(fx * fx + fz * fz));
+    }
+
+    /// <summary>Odległość od faweli (0 w środku i na krawędzi) i najbliższy punkt jej obrysu (przedłużanie stoku za granicą).</summary>
+    public static float OdlegloscFaweli(float x, float z, out Vector2 najblizszy)
+    {
+        float cx = Mathf.Clamp(x, FawelaX0, FawelaX1);
+        float cz = Mathf.Clamp(z, FawelaZSzczyt, FawelaKrawedz(cx));
+        najblizszy = new Vector2(cx, cz);
+        return Vector2.Distance(new Vector2(x, z), najblizszy);
     }
 }
