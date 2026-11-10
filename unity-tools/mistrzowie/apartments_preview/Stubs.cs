@@ -312,15 +312,27 @@ namespace UnityEditor
     public static class PrefabUtility
     {
         public static GameObject SaveAsPrefabAssetAndConnect(GameObject g, string p, InteractionMode m) => g;
-        public static GameObject SaveAsPrefabAsset(GameObject g, string p) { var asset = new GameObject(g.name); GameObject.Registry.Remove(asset); return asset; }
-        // A prefab instance in the preview is an empty stand-in; the preview draws the template itself at every level.
+        public static GameObject SaveAsPrefabAsset(GameObject g, string p) { var asset = new GameObject(g.name); GameObject.Registry.Remove(asset); Tree(g.transform, asset.transform, false); return asset; }
+        // A prefab instance in the preview is a stand-in with the template's empty transform tree (names + local TRS, no
+        // meshes): the preview draws the template itself at every level, per-floor additions (3D room numbers on the
+        // ROOM NUMBER anchors) are built on the instance like in Unity.
         public static Object InstantiatePrefab(Object o) => Clone(o);
         public static Object InstantiatePrefab(Object o, Transform parent) { var g = Clone(o); g.transform.SetParent(parent, false); return g; }
+        static void Tree(Transform from, Transform to, bool register)
+        {
+            foreach (var c in from.children.ToArray())
+            {
+                var n = new GameObject(c.gameObject.name); if (!register) GameObject.Registry.Remove(n);
+                n.transform.SetParent(to, false); n.transform.localPosition = c.localPosition; n.transform.localRotation = c.localRotation; n.transform.localScale = c.localScale;
+                Tree(c, n.transform, register);
+            }
+        }
         static GameObject Clone(Object o)
         {
             var g = new GameObject(o.name + " (instance)"); var src = (o as GameObject)?.GetComponent<PreviewModel>();
             if (src != null) { var pm = g.AddComponent<PreviewModel>(); pm.path = src.path; pm.min = src.min; pm.max = src.max; g.AddComponent<MeshRenderer>().sharedMaterial = new Material { name = "gltf", textured = true }; }
             g.transform.localScale = (o as GameObject)?.transform.localScale ?? Vector3.one;
+            if (o is GameObject go && src == null) Tree(go.transform, g.transform, true);
             return g;
         }
     }

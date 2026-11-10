@@ -56,7 +56,17 @@ public static class BraxChampionsInfrastructure
             var visibility=o.AddComponent<BraxWidocznoscWnetrza>();visibility.nazwa="Tunnel lighting";
             visibility.strefy=new[]{new Bounds(o.transform.position,new Vector3(80,20,80))};
         }
-        foreach(var l in d.labels)AddLabel(root,l.text,new Vector3(l.x,l.y,l.z)*K,l.yaw,l.size*K);
+        // stop names and arena wayfinding: solid 3D letters on their navy carriers (owner 10.11 "zakaz tanich napisów")
+        if(!BraxChampionsHarbour.Steel)BraxChampionsHarbour.Materials();
+        var letters=new BraxChampionsMeshBatch();
+        foreach(var l in d.labels)
+        {
+            float yaw=l.yaw+180f,cap=.62f*l.size;                                  // TextMesh read from -z at yaw 0, the kit from +z
+            var facing=Quaternion.Euler(0,yaw,0)*Vector3.forward;
+            var at=new Vector3(l.x,l.y-cap*.5f,l.z)-facing*.004f;                   // 2 mm proud of the carrier face
+            BraxChampionsLetters3D.Text(letters,BraxChampionsHarbour.SignFace,BraxChampionsHarbour.Graphite,l.text,at,yaw,cap,.025f,.12f,4.4f);
+        }
+        letters.Build(root,"Transit names | 3D letters",Out+"/InfrastructureMeshes");
         var template=BraxClaudeMetro.ChampionsStationTemplate();Stations.Clear();
         for(int i=0;i<d.metroStations.Length;i++)
         {
@@ -190,13 +200,6 @@ public static class BraxChampionsInfrastructure
         }
         // Maps, name boards and platform destinations use each station's
         // own 1024x1024 metro atlas with unchanged original sign UVs.
-    }
-    static void AddLabel(Transform parent,string text,Vector3 at,float yaw,float size)
-    {
-        var o=new GameObject("Transit label "+text);o.transform.SetParent(parent,false);o.transform.SetPositionAndRotation(at,Quaternion.Euler(0,yaw,0));
-        var t=o.AddComponent<TextMesh>();t.text=text;t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        t.fontSize=64;t.characterSize=size*10f/64f;t.anchor=TextAnchor.MiddleCenter;t.alignment=TextAlignment.Center;t.color=Color.white;
-        o.GetComponent<MeshRenderer>().sharedMaterial=t.font.material;
     }
     static void PersistTransientAssets(Transform root)
     {

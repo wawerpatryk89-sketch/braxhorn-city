@@ -18,7 +18,10 @@ REPORT=ROOT/'mistrzowie-evidence'
 mesh=Meshes();labels=[];walk_checks=[];objects=[];metro_lights=[]
 
 def mark(id,kind,at):objects.append(dict(id=id,kind=kind,x=at[0],y=at[1],z=at[2]))
-def label(id,text,at,axis='x',size=.25):labels.append(dict(id=id,text=text,x=at[0],y=at[1],z=at[2],yaw=0 if axis=='x' else 90,size=size))
+# Owner 10.11 "globalnie zakaz tanich napisów": a label is no longer TextMesh text; BraxChampionsInfrastructure sets
+# solid 3D letters (LetterKit.bytes) on the carrier face. at = 6 mm in front of that face; the letters read from -v
+# (yaw 0 = from -z), flip=True from the other side.
+def label(id,text,at,axis='x',size=.25,flip=False):labels.append(dict(id=id,text=text,x=at[0],y=at[1],z=at[2],yaw=(0 if axis=='x' else 90)+(180 if flip else 0),size=size))
 def local(x,z,axis,u,y,v):return (x+u,y,z+v) if axis=='x' else (x+v,y,z+u)
 def localbox(role,x,z,axis,u,y,v,w,h,d):mesh.box(role,local(x,z,axis,u,y,v),(w,h,d) if axis=='x' else (d,h,w))
 def handrail(a,b):
@@ -122,7 +125,9 @@ def shelter(id,x,z,axis,side,tram_stop=False):
  for u in [-1.1,1.1]:localbox('steel',x,z,axis,u,base+.22,v+side*.25,.07,.44,.34)
  pole=local(x,z,axis,4,base,v);mesh.bar('steel',pole,np.array(pole)+[0,2.7,0],.045)
  localbox('sign',x,z,axis,4,base+2.42,v,.60,.72,.08)
- label(id,('TRAMWAJ' if tram_stop else 'AUTOBUS')+' '+id,local(x,z,axis,0,base+2.18,v-.72),axis,.20)
+ # the stop name on a navy fascia under the front edge of the roof (was floating text under the roof)
+ localbox('sign',x,z,axis,0,base+2.40,v-.86,5.0,.26,.05)
+ label(id,('TRAMWAJ' if tram_stop else 'AUTOBUS')+' '+id,local(x,z,axis,0,base+2.40,v-.891),axis,.20)
  mark(id,'tram_stop' if tram_stop else 'bus_stop',(x,base,z))
 
 for id,x,z,axis in TRAM_STOPS:
@@ -146,6 +151,7 @@ for id,name,x,z in [('WAY_A1','CHAMPION ARENA / PÓŁNOC',777,803),('WAY_A2','CH
  mesh.bar('steel',(x,.16,z),(x,3.4,z),.06,12)
  mesh.box('sign',(x,2.95,z),(4.8,.62,.10))
  label(id,name,(x,2.95,z-.056),'x',.22)
+ label(id+'_B',name,(x,2.95,z+.056),'x',.22,flip=True)                  # both faces of the sign
 
 # Reuse all five existing-city-style stations with original full-size escalators.
 # The connected route is a single, non-self-crossing civil alignment, with

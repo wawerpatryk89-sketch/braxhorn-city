@@ -492,21 +492,6 @@ public static class BraxChampionsBeltShowcase
         return go;
     }
 
-    static void EngravedText(Transform parent,string text,Vector3 at,float lineHeight,Color color)
-    {
-        var o=new GameObject("A1 VITRINE | engraved text | "+text);
-        o.transform.SetParent(parent,false);o.transform.localPosition=at;
-        // Phone proof b33: with identity rotation the engraving read MIRRORED
-        // from the case front (-Z). Yaw 180 puts the readable side on -Z.
-        o.transform.localRotation=Quaternion.Euler(0,180f,0);
-        var t=o.AddComponent<TextMesh>();t.text=text;
-        t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        t.fontSize=64;t.characterSize=lineHeight*10f/64f;
-        t.anchor=TextAnchor.MiddleCenter;t.alignment=TextAlignment.Center;t.color=color;
-        var r=o.GetComponent<MeshRenderer>();r.sharedMaterial=t.font.material;
-        r.shadowCastingMode=ShadowCastingMode.Off;r.receiveShadows=false;
-    }
-
     public static void GenerateLobby(Transform arrivalRoot)
     {
         float k=BraxClaudeOsiedle.K;
@@ -650,9 +635,13 @@ public static class BraxChampionsBeltShowcase
             AtlasLabel(display,label,"VITRINE_B_CREST",new Vector3(0,plaqueY+.052f,-.012f),
                 Quaternion.Euler(0,180f,0),new Vector2(.031f,.055f),.9889f,.8451f,.0684f,.8340f);
         }
-        var engraving=new Color(.16f,.11f,.06f);
-        EngravedText(display,"BRAXHORN ARENA",new Vector3(0,plaqueY-.005f,-.012f),.034f,engraving);
-        EngravedText(display,"CHAMPION'S BELT",new Vector3(0,plaqueY-.047f,-.012f),.018f,engraving);
+        // engraved lettering = solid dark letters 1.2 mm proud of the brass plaque (front face z -.010, read from -Z);
+        // owner 10.11: no TextMesh / bitmap font anywhere
+        var engraving=SolidPbr("A1_vitrine_engraving_dark_bronze",new Color(.16f,.11f,.06f),.45f,.6f);
+        var plaqueText=new BraxChampionsMeshBatch();
+        BraxChampionsLetters3D.Text(plaqueText,engraving,brass,"BRAXHORN ARENA",new Vector3(0,plaqueY-.005f-.011f,-.0102f),180f,.022f,.0012f,.18f,PlaqueW*.86f);
+        BraxChampionsLetters3D.Text(plaqueText,engraving,brass,"CHAMPION'S BELT",new Vector3(0,plaqueY-.047f-.0056f,-.0102f),180f,.0112f,.0010f,.30f,PlaqueW*.6f);
+        BraxChampionsLetters3D.Build(plaqueText,display,"A1 VITRINE | plaque",1f);   // display carries K
         foreach(float s in new[]{-1f,1f})
             Cube(display,"A1 VITRINE | engraved rule",dark,new Vector3(s*.135f,plaqueY-.047f,-.0115f),new Vector3(.07f,.002f,.001f));
 

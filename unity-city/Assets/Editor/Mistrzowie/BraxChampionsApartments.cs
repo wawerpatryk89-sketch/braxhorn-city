@@ -304,6 +304,7 @@ public static class BraxChampionsApartments
     enum Seg{Glass,Door,Render,Timber,Panel,Marble}
     struct Part{public float a,b;public Seg s;public Part(float a,float b,Seg s){this.a=a;this.b=b;this.s=s;}}
     static Transform outside,details,inside;
+    static BraxChampionsMeshBatch doorNumbers;           // owner 10.11 "zakaz tanich napisów": 3D brass numbers
     // One storey band of a façade. alongX: plane z=c, else plane x=c; nrm = outward sign.
     static void FacadeBand(bool alongX,float c,float nrm,int f,Part[] parts)
     {
@@ -446,7 +447,9 @@ public static class BraxChampionsApartments
         // entry from the building corridor into the hall; number on a 12 mm black plate beside it
         float entry=X((lu+uHall)*.5f),wall=zc+s*CorridorWall;
         Box(black,entry+.66f,entry+.94f,y0+1.47f,y0+1.63f,Lo(wall,wall+s*.012f),Hi(wall,wall+s*.012f));
-        W.Napis(number,new Vector3(entry+.80f,y0+1.55f,wall+s*.014f),new Vector3(0,0,s),.10f,new Color(.84f,.66f,.30f));
+        // brass 3D digits, 2 mm proud of the plate (its corridor face at wall + s*.012), read from the corridor
+        BraxChampionsLetters3D.Text(doorNumbers,gold,black,number,new Vector3(entry+.80f,y0+1.55f-.034f,wall+s*.014f),
+            BraxChampionsLetters3D.YawFacing(new Vector3(0,0,s)),.068f,.006f,.10f,.24f);
         apartments++;
         return entry;
     }
@@ -501,6 +504,7 @@ public static class BraxChampionsApartments
         details=new GameObject("exterior details (frames, fins, LED; distance LOD)").transform;details.SetParent(root,false);
         inside=new GameObject("interior (finished, empty)").transform;inside.SetParent(root,false);
         W.Wyczysc();W.Start(outside);W.Wnetrze=false;W.Komorka=40f;
+        doorNumbers=new BraxChampionsMeshBatch();
         var lights=new List<Light>();
         Site();
         Structure();
@@ -512,6 +516,7 @@ public static class BraxChampionsApartments
         Interior(lights);
 
         int saved=W.Zapisz(id+"_apartments");
+        BraxChampionsLetters3D.Build(doorNumbers,inside,id+" door numbers",1f);              // the root carries K
         // Distance LOD: frames, fins and LED lines drop out when the building is small on screen;
         // the white body, glass, balconies and roof always stay (no pop-in of the building itself).
         var detailRenderers=details.GetComponentsInChildren<Renderer>(true);

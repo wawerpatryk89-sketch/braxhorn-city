@@ -25,6 +25,7 @@ public sealed class BraxChampionsMeshBatch
     }
 
     public int Triangles { get { int n = 0; foreach (var p in parts.Values) n += p.t.Count / 3; return n; } }
+    public bool Empty { get { foreach (var p in parts.Values) if (p.t.Count > 0) return false; return true; } }
 
     static Vector2 Planar(Vector3 p, Vector3 n)
     {
@@ -106,13 +107,16 @@ public sealed class BraxChampionsMeshBatch
     }
 
     /// <summary>Writes one mesh per material under parent (x K), saved as assets; returns the group.</summary>
-    public Transform Build(Transform parent, string name, string assetFolder, bool shadows = false)
+    /// <param name="unit">metres per nominal unit: K (default) under an unscaled parent, 1 under a parent that already
+    /// carries K (apartments, hotel, arena interiors, the vitrine)</param>
+    public Transform Build(Transform parent, string name, string assetFolder, bool shadows = false, float unit = 0f)
     {
         var g = new GameObject(name).transform; g.SetParent(parent, false);
+        float u = unit > 0f ? unit : K;
         foreach (var m in order)
         {
             var p = parts[m]; if (p.t.Count == 0) continue;
-            var v = new Vector3[p.v.Count]; for (int i = 0; i < v.Length; i++) v[i] = p.v[i] * K;
+            var v = new Vector3[p.v.Count]; for (int i = 0; i < v.Length; i++) v[i] = p.v[i] * u;
             var mesh = new Mesh { name = name + " | " + m.name, indexFormat = v.Length > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
             mesh.vertices = v; mesh.uv = p.uv.ToArray(); mesh.triangles = p.t.ToArray();
             mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();

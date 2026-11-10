@@ -1465,7 +1465,11 @@ public static class BraxChampionsHotelSobczakT03
         Leaf(true,wall,d0,d1,0,s);
         float plateZ=wall-s*.1f;
         Box(M.brass,d1+.15f,d1+.45f,1.45f,1.65f,Lo(plateZ,plateZ-s*.012f),Hi(plateZ,plateZ-s*.012f));
-        W.Napis(number.ToString(),new Vector3(d1+.3f,1.55f,plateZ-s*.014f),new Vector3(0,0,-s),.10f,new Color(.12f,.10f,.08f));
+        // the number itself: dark bronze 3D digits 2 mm proud of the brass plate, set per floor by Renumber
+        // (owner 10.11 "globalnie zakaz tanich napisów": no TextMesh)
+        var numberAnchor=new GameObject("ROOM NUMBER "+number).transform;numberAnchor.SetParent(t,false);
+        numberAnchor.localPosition=new Vector3(d1+.3f,1.55f-.034f,plateZ-s*.014f);
+        numberAnchor.localRotation=Quaternion.Euler(0,BraxChampionsLetters3D.YawFacing(new Vector3(0,0,-s)),0);
         Box(M.warmLight,d1+.2f,d1+.4f,2.05f,2.25f,Lo(plateZ,plateZ-s*.03f),Hi(plateZ,plateZ-s*.03f));
         // floors: oak hall and bedroom, marble bathroom
         float bx0=a+1.45f,bx1=a+4.55f;
@@ -1604,8 +1608,14 @@ public static class BraxChampionsHotelSobczakT03
         {
             if(tr.name.StartsWith("ROOM 2",StringComparison.Ordinal)&&int.TryParse(tr.name.Substring(5,3),out int n))
                 tr.name="ROOM "+(f*100+n%100)+tr.name.Substring(8);
-            var tm=tr.GetComponent<TextMesh>();
-            if(tm&&int.TryParse(tm.text,out int t))tm.text=(f*100+t%100).ToString();
+        }
+        // 3D room numbers of this floor on the brass plates (anchors from Room)
+        foreach(var anchor in floor.GetComponentsInChildren<Transform>(true))
+        {
+            if(!anchor.name.StartsWith("ROOM NUMBER ",StringComparison.Ordinal)||!int.TryParse(anchor.name.Substring(12),out int n))continue;
+            var digits=new BraxChampionsMeshBatch();
+            BraxChampionsLetters3D.Text(digits,M.darkBronze,M.darkBronze,(f*100+n%100).ToString(),Vector3.zero,0f,.068f,.006f,.10f,.26f);
+            BraxChampionsLetters3D.Build(digits,anchor,"ROOM "+(f*100+n%100),1f);   // the hotel root carries K
         }
     }
 

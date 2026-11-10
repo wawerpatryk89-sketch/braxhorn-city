@@ -112,7 +112,7 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertNotIn('cylinder planter', text)
         # Hung on the marble hall wall (owner 9.11 23:43: no pillar), 5 mm in front of the marble.
         self.assertIn('LobbyZ=WallMuralFaceZ-PylonD-.005f', text)
-        self.assertIn('o.transform.localRotation=Quaternion.Euler(0,180f,0);', text)
+        self.assertIn('BraxChampionsLetters3D.Text(plaqueText', text)          # 10.11: engraving = 3D letters read from -Z
         # Black marble with white veins (photo); Poly Haven has none.
         self.assertIn('BraxChampionsFoundation.LibraryMarble("A1_vitrine_black_marble_veined"', text)
         self.assertIn('A1_VITRINE_MARBLE016_MISSING', text)
@@ -158,7 +158,7 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertIn('Quaternion.Euler(0,180f,0),new Vector2(.031f,.055f)', text)
         # Plaque and lettering sit on the marble, behind the front glass.
         self.assertIn('new Vector3(0,plaqueY,-.006f)', text)
-        self.assertIn('new Vector3(0,plaqueY-.005f,-.012f)', text)
+        self.assertIn('new Vector3(0,plaqueY-.005f-.011f,-.0102f),180f', text)   # 10.11: solid 3D letters (no TextMesh), read from -Z
         self.assertLess(.012, field(text, 'CaseD'))
 
     def test_case_reference_lighting_uses_one_realtime_light(self):

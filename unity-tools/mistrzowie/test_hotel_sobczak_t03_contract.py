@@ -108,7 +108,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
     def test_every_room_is_finished_and_furnished(self):
         room = self.gen[self.gen.index("static void Room(Transform t"):self.gen.index("static void Renumber(")]
         for needle in ("king bed", "nightstands", "TV wall", "desk", "lounge chair", "wardrobe", "vanity", "WC", "shower",
-                       "Leaf(true,wall,d0,d1,0,s)", "W.Napis(number.ToString()", "M.oak", "M.marbleWet"):
+                       "Leaf(true,wall,d0,d1,0,s)", '"ROOM NUMBER "+number', "M.oak", "M.marbleWet"):
             self.assertIn(needle, room)
 
     def test_corridors_and_core_are_finished(self):

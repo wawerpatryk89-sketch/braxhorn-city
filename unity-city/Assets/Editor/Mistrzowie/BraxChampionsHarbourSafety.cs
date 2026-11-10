@@ -87,9 +87,9 @@ public static class BraxChampionsHarbourSafety
         var m=new BraxChampionsMeshBatch();
         const float Y=.16f,Z=-149.85f;
 
-        // promenade quay edge: coping + glass balustrade, open at every gate (gate posts stand at x0-.15 / x1+.15)
+        // promenade quay edge: coping + glass balustrade, ending at the marble gate pylons (x0-GatePylon / x1+GatePylon)
         m.BoxMinMax(coping,700f,1150f,Y,Y+.03f,-150.08f,-149.55f);
-        var cuts=openings.OrderBy(o=>o.x0).Select(o=>(o.x0-.15f,o.x1+.15f)).ToList();
+        var cuts=openings.OrderBy(o=>o.x0).Select(o=>(o.x0-BraxChampionsHarbour.GatePylon,o.x1+BraxChampionsHarbour.GatePylon)).ToList();
         float start=700.1f;
         foreach(var (c0,c1) in cuts)
         {

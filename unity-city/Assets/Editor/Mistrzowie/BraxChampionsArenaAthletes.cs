@@ -140,6 +140,7 @@ public static partial class BraxChampionsArenaArrival
         var ceramic = LuxSolid("white_ceramic", new Color(.93f, .93f, .91f), .12f, 0f);
         var plaque = LuxSolid("black_sign_plate", new Color(.035f, .037f, .042f), .30f, .2f);
         int lockers = 0, seats = 0;
+        var roomNames = new BraxChampionsMeshBatch();      // SZATNIA A / B: gold 3D letters on the black plaques
         var g = BeginNominalGroup("A1 ATHLETES | lux changing rooms A+B | teak lockers, black leather, gold");
         try
         {
@@ -192,32 +193,21 @@ public static partial class BraxChampionsArenaArrival
                     W.MM(gold, s * RoomInner - .15f, s * RoomInner + .15f, RoomFloorTop, 2.75f, z - .05f, z + .05f);
                 W.MM(led, s * RoomInner - .12f, s * RoomInner + .12f, 2.67f, 2.70f, 44.0f, 48.6f);
                 W.MM(plaque, Mathf.Min(face, face - s * .03f), Mathf.Max(face, face - s * .03f), 2.85f, 3.35f, 45.2f, 47.4f);
-                W.Napis("SZATNIA " + room, new Vector3(face - s * .045f, 3.10f, 46.3f), new Vector3(-s, 0, 0), .30f, new Color(.86f, .68f, .30f));
+                // plaque front face at face - s*.03, letters 2 mm proud of it (owner 10.11: no TextMesh)
+                BraxChampionsLetters3D.Text(roomNames, gold, granite, "SZATNIA " + room, new Vector3(face - s * .032f, 3.10f - .093f, 46.3f),
+                    BraxChampionsLetters3D.YawFacing(new Vector3(-s, 0, 0)), .186f, .018f, .14f, 2.0f);
                 // Corridor-side LED skirting along the panelled walls.
                 foreach (var span in new[] { new Vector2(RoomFront, 43.85f), new Vector2(48.75f, RoomBack) })
                     W.MM(led, face - s * .02f, face, .30f, .32f, span.x, span.y);
             }
             seats += lockers;
+            BraxChampionsLetters3D.Build(roomNames, g, "A1 ATHLETES | SZATNIA A / B", 1f);   // g carries K
         }
         catch { W.Wyczysc(); UnityEngine.Object.DestroyImmediate(g.gameObject); throw; }
         EndNominalGroup(g, arrivalRoot, "mistrzowie_a1_athlete_rooms_lux");
         Debug.Log("A1_ATHLETE_ROOMS_LUX rooms=2 lockers=" + lockers + " lockerSize=" + LockerW + "x" + LockerH + "x" + LockerD +
             " seats=" + seats + " vanity=7m_granite_4basins_mirror island=6m_leather floor=stone_tiles walls=wooden_panels" +
             " interiorLightMarker=true scale=K_once");
-    }
-
-    static void AthleteLabel(Transform parent, string text, Vector3 nominal, float lineHeight, Color color)
-    {
-        var o = new GameObject("A1 ATHLETES | sign text | " + text);
-        o.transform.SetParent(parent, false);
-        o.transform.localPosition = nominal * K;
-        o.transform.localRotation = Quaternion.Euler(0, 180f, 0); // readable from +Z (arriving from the car park)
-        o.transform.localScale = Vector3.one * K;
-        var t = o.AddComponent<TextMesh>(); t.text = text;
-        t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        t.fontSize = 64; t.characterSize = lineHeight * 10f / 64f;
-        t.anchor = TextAnchor.MiddleCenter; t.alignment = TextAlignment.Center; t.color = color;
-        o.GetComponent<MeshRenderer>().sharedMaterial = t.font.material;
     }
 
     // Behind the arena (+Z): granite walk from the athletes' glass door to a
@@ -252,9 +242,12 @@ public static partial class BraxChampionsArenaArrival
         // Gold border = gold slab with a black granite inset on top of it.
         Box(rear, "ATHLETES | stele gold border", gold, new Vector3(5.6f, 1.26f, 61.76f), new Vector3(1.66f, 2.26f, .02f), false);
         Box(rear, "ATHLETES | stele black inset", granite, new Vector3(5.6f, 1.26f, 61.78f), new Vector3(1.50f, 2.10f, .02f), false);
-        AthleteLabel(rear, "WEJŚCIE ZAWODNIKÓW", new Vector3(5.6f, 1.70f, 61.80f), .16f, new Color(.90f, .72f, .32f));
-        AthleteLabel(rear, "ATHLETES ONLY", new Vector3(5.6f, 1.42f, 61.80f), .11f, new Color(.90f, .72f, .32f));
-        AthleteLabel(rear, "BRAXHORN ARENA", new Vector3(5.6f, .95f, 61.80f), .10f, new Color(.80f, .80f, .78f));
+        // the stele's names: solid letters on the black inset (front face z 61.79), gold / stainless, read from +Z
+        var stele = new BraxChampionsMeshBatch();
+        BraxChampionsLetters3D.Text(stele, gold, granite, "WEJŚCIE ZAWODNIKÓW", new Vector3(5.6f, 1.70f - .05f, 61.792f), 0f, .10f, .012f, .12f, 1.32f);
+        BraxChampionsLetters3D.Text(stele, gold, granite, "ATHLETES ONLY", new Vector3(5.6f, 1.42f - .034f, 61.792f), 0f, .068f, .010f, .16f, 1.32f);
+        BraxChampionsLetters3D.Text(stele, steel, granite, "BRAXHORN ARENA", new Vector3(5.6f, .95f - .031f, 61.792f), 0f, .062f, .010f, .22f, 1.32f);
+        BraxChampionsLetters3D.Build(stele, rear, "ATHLETES | name stele");
 
         // Private car park: asphalt top .20 (4 cm over the site slab / grass).
         Box(rear, "ATHLETES car park | asphalt, real ground collider", asphalt, new Vector3(-3.1f, .17f, 90f), new Vector3(38.2f, .06f, 20f));

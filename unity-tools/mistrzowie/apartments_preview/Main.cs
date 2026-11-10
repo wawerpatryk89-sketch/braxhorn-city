@@ -51,6 +51,8 @@ public static class Program
                 lights.Add("[" + V(root.InverseTransformPoint(l.transform.position)) + "," + F(l.range / BraxClaudeOsiedle.K) + "," + F(l.intensity) + ",0]");
             sb.Append(string.Join(",", lights) + "]}");
             File.WriteAllText(id + "_geometry.json", sb.ToString());
+            // plain meshes too (3D door numbers, MeshBatch parts): same building, MeshDump format
+            MeshDump.Write(id + "_meshdump.json", root, 1f);
             Console.WriteLine("DUMP " + id + " quads=" + Rec.Quads.Count + " models=" + models.Count + " lights=" + lights.Count + " colliders=" + Rec.Cols.Count + " texts=" + Rec.Texts.Count + " palms=" + Rec.Palms.Count);
         }
     }

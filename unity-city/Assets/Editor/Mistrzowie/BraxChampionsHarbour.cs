@@ -28,7 +28,9 @@ public static class BraxChampionsHarbour
         {"jetski_odd","jetski_01.glb"},
         {"jetski_even","jetski_02.glb"}
     };
-    public static Material Steel,Graphite,Rubber,PedestalWhite,Led,SignFace,SignDark,Fender,Rope,CastIron,ShelterGlass;
+    public static Material Steel,Graphite,Rubber,PedestalWhite,Led,SignFace,SignDark,Fender,Rope,CastIron,ShelterGlass,GateStone;
+    // gangway portal (owner 10.11 10:17 "zakaz tanich napisów"): white marble pylons + lintel, graphite sign band
+    public const float GatePylon=.9f,GateTop=4.4f,GateLintel=1.15f,GateFront=-148.75f,GateBack=-149.95f;
 
     static Material Save(Material material,string path)
     {
@@ -71,13 +73,15 @@ public static class BraxChampionsHarbour
         Rubber=Surface("black_marine_rubber",new Color(.05f,.055f,.06f),.86f,0f);
         PedestalWhite=Surface("pedestal_white_composite",new Color(.93f,.94f,.94f),.34f,.04f);
         Led=Surface("warm_led",new Color(1f,.92f,.78f),.3f,0f,new Color(1.15f,.94f,.66f));
-        // 3D lettering: warm white faces with their own light (readable at dusk), graphite returns
-        SignFace=Surface("sign_letters_warm_white",new Color(.97f,.96f,.92f),.28f,.05f,new Color(.95f,.86f,.66f));
+        // 3D lettering (ZASADA-NAPISY-PREMIUM 10.11): brushed stainless faces with a soft warm halo of their own
+        // (readable at dusk and in the shade of a band), graphite returns; never cream "LED text"
+        SignFace=Surface("sign_letters_brushed_stainless",new Color(.90f,.91f,.92f),.24f,.80f,new Color(.34f,.32f,.28f));
         SignDark=Surface("sign_letter_returns_graphite",new Color(.08f,.085f,.09f),.38f,.55f);
         Fender=Surface("boat_fender_white",new Color(.94f,.95f,.95f),.46f,0f);
         Rope=Surface("mooring_line_navy",new Color(.10f,.14f,.24f),.82f,0f);
         CastIron=Surface("bollard_cast_iron",new Color(.11f,.115f,.12f),.52f,.65f);
         ShelterGlass=Surface("shelter_glass",new Color(.80f,.88f,.93f,.30f),.05f,0f,null,true);
+        GateStone=BraxChampionsFoundation.LibraryMarbleWhite("harbour_gate_white_marble",new Color(1.0f,1.0f,1.0f),1.6f);
         BraxChampionsPromenadeFurniture.Materials();
     }
 
@@ -248,7 +252,7 @@ public static class BraxChampionsHarbour
         m.Box(Steel,at+new Vector3(0,1.04f,0),new Vector3(.48f,.05f,.34f),r);
         m.Box(Led,at+new Vector3(0,1.09f,0),new Vector3(.40f,.05f,.26f),r);
         m.Box(Graphite,at+r*new Vector3(0,.30f,.155f),new Vector3(.30f,.22f,.02f),r);     // socket door
-        Letters(signs,"BERTH_"+number,at+r*new Vector3(0,.70f,.152f),faceYaw,1f);
+        Letters(signs,"BERTH_"+number,at+r*new Vector3(0,.70f,.152f),faceYaw,1f,Graphite,SignDark);   // graphite on white composite
     }
 
     static void BerthFittings(Transform signs,BraxChampionsMeshBatch m,BraxChampionsFoundation.Berth b,BraxChampionsFoundation.Pier dock,float deckY)
@@ -416,34 +420,52 @@ public static class BraxChampionsHarbour
         if(p.id.StartsWith("CRUISE"))return "GATE_CRUISE";
         return null;
     }
+    // Gangway portal at the top of every gangway (owner 10.11 10:17, photo of the old gate: a thin black frame with cream
+    // letters standing on its top bar - "kompletnie zakazuje takich tanich napisów ... globalnie"). Now architecture
+    // carries the name: two white marble pylons flanking the gangway (brushed stainless plinths, a warm LED reveal on
+    // the inner faces), a deep marble lintel with a recessed graphite sign band on both faces, the BRAXHORN lockup in
+    // brushed stainless letters mounted on the band (front toward the promenade, back toward the pontoons), a warm LED
+    // line washing the letters from below and downlights in the soffit. The glass balustrade ends at the pylons.
     static void Gates(Transform harbour,BraxChampionsFoundation.Pier[] piers,BraxChampionsFoundation.Opening[] openings)
     {
         var m=new BraxChampionsMeshBatch();
-        var signs=new GameObject("Bramy pomostów - nazwy 3D").transform;signs.SetParent(harbour,false);
+        var signs=new GameObject("Bramy pomostów - portale z nazwą 3D").transform;signs.SetParent(harbour,false);
+        const float P=GatePylon,zf=GateFront,zb=GateBack,top=GateTop,lin=GateLintel,band0=.14f;
+        float y0=QuayY,lb=y0+top-lin,cz=(zf+zb)*.5f,depth=zf-zb;
         foreach(var o in openings)
         {
             var pier=piers.FirstOrDefault(p=>p.z+p.d>=-150.01f&&p.x<o.x1&&p.x+p.w>o.x0);
             string id=pier==null?null:GateSign(pier);
             if(id==null){BraxBuildQuality.Warn("Port: przejście bez pomostu "+o.x0+"-"+o.x1);continue;}
-            float x0=o.x0-.15f,x1=o.x1+.15f,z=-149.85f,top=4.10f,cx=(x0+x1)*.5f;   // on the promenade, in line with the balustrade
-            foreach(float x in new[]{x0,x1})
+            float x0=o.x0,x1=o.x1,cx=(x0+x1)*.5f,L0=x0-P,L1=x1+P;
+            foreach(var (a,b,inner) in new[]{(L0,x0,x0),(x1,L1,x1)})
             {
-                // slim graphite post, brushed stainless plinth and cap, warm LED strip on the inner face
-                float inner=x==x0?1f:-1f;
-                m.Box(Graphite,new Vector3(x,QuayY+top*.5f,z),new Vector3(.22f,top,.22f));
-                m.Box(Steel,new Vector3(x,QuayY+.09f,z),new Vector3(.30f,.18f,.30f));
-                m.Box(Steel,new Vector3(x,QuayY+top+.02f,z),new Vector3(.28f,.04f,.28f));
-                m.Box(Led,new Vector3(x+inner*.112f,QuayY+.35f+(top-.9f)*.5f,z),new Vector3(.006f,top-.9f,.05f));
-                BraxChampionsMeshBatch.Collider(harbour,id+" słup bramy",new Vector3(x,QuayY+top*.5f,z),new Vector3(.22f,top,.22f));
+                m.BoxMinMax(GateStone,a,b,y0+.12f,lb,zb,zf);                                       // marble pylon
+                m.BoxMinMax(Steel,a-.02f,b+.02f,y0,y0+.12f,zb-.02f,zf+.02f);                       // stainless plinth
+                // warm LED reveal on the face toward the gangway
+                if(inner==x0)m.BoxMinMax(Led,x0,x0+.006f,y0+.45f,lb-.25f,cz-.05f,cz+.05f);
+                else m.BoxMinMax(Led,x1-.006f,x1,y0+.45f,lb-.25f,cz-.05f,cz+.05f);
+                BraxChampionsMeshBatch.Collider(harbour,id+" pylon",new Vector3((a+b)*.5f,y0+top*.5f,cz),new Vector3(b-a,top,depth));
             }
-            m.BoxMinMax(Graphite,x0-.11f,x1+.11f,QuayY+top-.26f,QuayY+top,z-.13f,z+.13f);
-            m.BoxMinMax(Steel,x0-.11f,x1+.11f,QuayY+top-.29f,QuayY+top-.26f,z-.13f,z+.13f);
-            m.BoxMinMax(Led,x0+.12f,x1-.12f,QuayY+top-.302f,QuayY+top-.29f,z-.05f,z+.05f);
-            float w=SignWidth(id);float span=x1-x0+1.6f;
-            float scale=w>span?span/w:1f;
-            Letters(signs,id,new Vector3(cx,QuayY+top+.06f,z),0f,scale);
+            m.BoxMinMax(GateStone,L0,L1,lb,y0+top,zb,zf);                                           // lintel
+            m.BoxMinMax(Steel,L0-.02f,L1+.02f,y0+top,y0+top+.035f,zb-.02f,zf+.02f);                 // stainless coping
+            float bx0=L0+.22f,bx1=L1-.22f,by0=lb+band0,by1=y0+top-band0;
+            foreach(float face in new[]{1f,-1f})
+            {
+                float zs=face>0?zf:zb;
+                m.BoxMinMax(Graphite,bx0,bx1,by0,by1,face>0?zs:zs-.015f,face>0?zs+.015f:zs);       // sign band
+                m.BoxMinMax(Led,bx0+.05f,bx1-.05f,by0+.015f,by0+.027f,face>0?zs+.015f:zs-.035f,face>0?zs+.035f:zs-.015f);
+            }
+            for(float x=x0+.6f;x<=x1-.59f;x+=Mathf.Max(1.2f,(x1-x0-1.2f)/3f))
+                m.Cylinder(Led,new Vector3(x,lb-.012f,cz),.07f,.012f,14,Quaternion.identity,false,true); // soffit downlights
+            // the lockup: fitted inside the band (.5 m side margins), vertically centred
+            float w=SignWidth(id),bandW=bx1-bx0-1.0f,lockH=.66f;
+            float scale=w>bandW&&w>0f?bandW/w:1f;
+            float yb=by0+((by1-by0)-lockH*scale)*.5f;
+            Letters(signs,id,new Vector3(cx,yb,zf+.017f),0f,scale);
+            Letters(signs,id,new Vector3(cx,yb,zb-.017f),180f,scale);
         }
-        m.Build(harbour,"Bramy pomostów",Out+"/Meshes/Harbour");
+        m.Build(harbour,"Bramy pomostów - portale",Out+"/Meshes/Harbour",true);
     }
 
     public static int PlaceOriginalFleet(Transform foundation,BraxChampionsFoundation.Berth[] berths,
