@@ -297,8 +297,9 @@ for x in XROAD:
  for side in (-1,1):
   for z in range(110,916,30):
    if min(abs(z-a) for a in ZROAD)<30:continue
-   # owner 10.11 08:43: along the roads only the thick-trunk palm (variant 0 = miasto_palmy/palma, palm_hp_4)
-   plant(x+side*21,z,'palm' if x>=800 else 'tree',0,'street_grass')
+   # owner 10.11 08:48: palms stay MIXED across the city ("nie wszędzie grube, ma być pomieszane"); the thick-trunk
+   # palm lines only the A1 street front and its entrance walk (BraxChampionsArenaArrival.LawnPalms / palm avenue).
+   plant(x+side*21,z,'palm' if x>=800 else 'tree',len(plants)%2,'street_grass')
 for x in [640,670,700,730,760]:
  for z in [115,145,175,205,225]:plant(x,z,'tree',0,'park')
 # Owner 10.11 08:40: "posadź drzewa jeszcze przy apartamentach, przy hotelach, przy kasynie". The owner's city palms
