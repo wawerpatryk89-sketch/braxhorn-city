@@ -264,6 +264,58 @@ public static class BraxChampionsHarbour
         return 1;
     }
 
+    // Owner 10.11 ("Po kasynie dokończ plaża port"): the second excursion ship, the owner's early-1900 liner (model C,
+    // Mixmamo.studio, CC BY 4.0 - HarborBeach/CREDITS.md), at berth W02 on the west face of the cruise pier in its real
+    // size: hull 118 m (123.7 m with the stern ensign staff), beam 16.9 m. Exterior-only derivative of the owner's 215 MB
+    // file (the full interior removed with glTF-Transform, 204k triangles, 14 MB). Its glTF origin lies on the waterline
+    // (the red antifouling ends at y +0.16), the bow at glTF x 0, the ensign staff (node Object_1220) over the stern.
+    public const string LinerFile="cruise_liner_1900.glb";
+    public const float LinerHull=118.0f,LinerLengthOverall=123.7f;
+    public static int LinersPlaced{get;private set;}
+    static int PlaceLinerC(Transform parent,BraxChampionsFoundation.Berth bay)
+    {
+        var src=BraxHarborBeachBuild.Model(LinerFile);
+        if(!src){BraxBuildQuality.Warn("DO POPRAWKI LINER_C_MISSING "+LinerFile+" - berth "+bay.id+" stays free");return 0;}
+        var root=new GameObject(bay.id+" | cruise_ship | liner 1900 | owner model C (Mixmamo.studio, CC BY 4.0)").transform;
+        root.SetParent(parent,false);
+        var centre=new Vector3(bay.x*K,WaterLevel*K,bay.z*K);
+        root.position=centre;
+        var model=UnityEngine.Object.Instantiate(src);
+        model.name=bay.id+" | liner 1900 (real 118 m hull)";
+        model.transform.SetParent(root.transform,false);
+        model.transform.localScale=Vector3.one*K;                       // the GLB is in metres: real size
+        // long axis (glTF x) to the root's z; glTFast mirrors x (Unity x = -glTF x), so -90 puts the bow (glTF x 0) at +z
+        model.transform.localRotation=Quaternion.Euler(0,-90f,0);
+        var nodes=model.GetComponentsInChildren<Transform>(true);
+        var hull=nodes.FirstOrDefault(t=>t.name=="Object_19");
+        var ensign=nodes.FirstOrDefault(t=>t.name=="Object_1220");
+        var hb=BraxRegion.Bounds(hull?hull.gameObject:model);
+        if(hb.size.x>hb.size.z){model.transform.localRotation=Quaternion.identity;hb=BraxRegion.Bounds(hull?hull.gameObject:model);}
+        // bow to +z of the root (the root then turns it to the sea): the ensign at the stern must lie towards -z
+        if(ensign&&BraxRegion.Bounds(ensign.gameObject).center.z>hb.center.z)
+        {
+            model.transform.localRotation=Quaternion.Euler(0,180f,0)*model.transform.localRotation;
+            hb=BraxRegion.Bounds(hull?hull.gameObject:model);
+        }
+        else if(!ensign)BraxBuildQuality.Warn("DO POPRAWKI LINER_C_NO_ENSIGN node - bow direction assumed");
+        // the hull node alone is 118 m; without node names (never in Unity) the whole model with the ensign staff is 123.7 m
+        float expected=hull?LinerHull:LinerLengthOverall;
+        if(Mathf.Abs(hb.size.z-expected*K)>3f*K)
+            throw new InvalidOperationException("Liner C is not its real size (got "+hb.size.z/K+" m, expected "+expected+")");
+        if(!hull)hb.center+=new Vector3(0,0,(LinerLengthOverall-LinerHull)*.5f*K);   // the staff sticks out at the stern (-z)
+        // hull centred on the berth; the glTF origin (waterline) stays on the water level of the root
+        model.transform.position+=new Vector3(centre.x-hb.center.x,0f,centre.z-hb.center.z);
+        root.transform.rotation=Quaternion.Euler(0,bay.yaw,0);           // bow to the open sea
+        foreach(var renderer in model.GetComponentsInChildren<Renderer>(true))
+        {
+            renderer.sharedMaterials=renderer.sharedMaterials.Select(BraxRegion.CityMaterial).ToArray();
+            renderer.shadowCastingMode=ShadowCastingMode.Off;
+            renderer.receiveShadows=true;
+        }
+        LinersPlaced++;
+        return 1;
+    }
+
     // sun deck (glTF y 48.1, pools glTF x 143-182, z +-5, wind screens at +-11.6): two rows of teak loungers on each
     // side, feet to the pools, white cotton cushions (same real materials as the beach club)
     static int SunDeck(Transform ship)
@@ -741,10 +793,10 @@ public static class BraxChampionsHarbour
             throw new InvalidOperationException("Owner-approved port berth counts changed");
 
         Materials();SignsPlaced=SignsMissing=0;signs=null;signMeshes.Clear();
-        LiveriesApplied=YachtNamesBuilt=0;liveryMaterials.Clear();CruiseShips=CruiseLoungers=CruiseNames=0;HarbourLights=0;
+        LiveriesApplied=YachtNamesBuilt=0;liveryMaterials.Clear();CruiseShips=CruiseLoungers=CruiseNames=0;HarbourLights=0;LinersPlaced=0;
         var sources=new Dictionary<string,GameObject>();
         PrepareOriginalLibrary(sources);
-        var root=new GameObject("MIASTO MISTRZÓW | PORT 10.11 | 15 yachts | 10 motorboats | 10 jetskis | ferry berth | 2 free berths for the owner's ships").transform;
+        var root=new GameObject("MIASTO MISTRZÓW | PORT 10.11 | 15 yachts | 10 motorboats | 10 jetskis | ferry berth | the owner's ships B (W01) and C (W02)").transform;
         root.SetParent(foundation,false);
         var boats=new GameObject("Original user-owned moored models; shared meshes").transform;
         boats.SetParent(root,false);
@@ -753,6 +805,7 @@ public static class BraxChampionsHarbour
         foreach(var bay in berths)
         {
             if(bay.kind=="cruise_ship"&&bay.id=="W01"){placed+=PlaceCruiseShip(boats,bay);continue;}
+            if(bay.kind=="cruise_ship"&&bay.id=="W02"){placed+=PlaceLinerC(boats,bay);continue;}
             if(bay.kind!="yacht"&&bay.kind!="motorboat"&&bay.kind!="jetski")continue;
             string file=bay.kind=="yacht"?"yacht":bay.kind=="motorboat"?"motorboat":
                 (++skisPlaced%2==1?"jetski_odd":"jetski_even");
@@ -770,7 +823,7 @@ public static class BraxChampionsHarbour
         Debug.Log("CHAMPIONS_PORT_10_11 yacht=15 motorboat=10 jetski=10 ferryBerths=1 cruiseBerths=2 boats="+placed
             +" signs3D="+SignsPlaced+" signsMissing="+SignsMissing+" textMeshLabels=0 originalGLBs yachtLength="+YachtLength
             +" yachtLiveries="+LiveriesApplied+"/15 yachtNames3D="+YachtNamesBuilt
-            +" cruiseShipB="+CruiseShips+" cruiseNames3D="+CruiseNames+" sunDeckLoungers="+CruiseLoungers);
+            +" cruiseShipB="+CruiseShips+" cruiseNames3D="+CruiseNames+" sunDeckLoungers="+CruiseLoungers+" linerC="+LinersPlaced);
         return placed;
     }
 }

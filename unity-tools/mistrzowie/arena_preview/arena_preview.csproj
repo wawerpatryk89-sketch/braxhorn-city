@@ -13,6 +13,7 @@
     <Compile Include="../apartments_preview/RegionStubs.cs" />
     <Compile Include="../apartments_preview/MeshDump.cs" />
     <Compile Include="../casino_preview/CasinoStubs.cs" />
+    <Compile Include="../casino_preview/RuntimeStubs.cs" />
     <Compile Include="ArenaStubs.cs" />
     <Compile Include="ArenaMain.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPalmTrunk.cs" />
