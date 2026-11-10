@@ -252,9 +252,12 @@ public static class BraxChampionsHarbour
             BraxChampionsLetters3D.Build(m,t,"cruise ship bow name "+(side>0?"starboard":"port"),1f);
             CruiseNames++;
         }
-        // stern (raked, glTF x 0.48-1.43 over y 13.9-9.7): the name and the home port
-        FaceText(t,"cruise ship stern name",CruiseShipName,new Vector3(-.72f,12.52f,0),new Vector3(.98f,-.20f,0),1.25f,22f,navy,Graphite,1f,.10f,.03f);
-        FaceText(t,"cruise ship stern home port","MIASTO MISTRZÓW",new Vector3(-1.04f,11.05f,0),new Vector3(.96f,-.25f,0),.42f,16f,navy,Graphite,1f,.05f,.03f);
+        // stern (raked, glTF x 0.40-1.43 over y 14.5-9.7). Owner 10.11 16:40 "Poprawka": the name ran through the upper
+        // porthole row and the home port through the lower one. The hull texture has two porthole rows on the stern,
+        // centres y 12.97 and 10.61 (r .24): the name now fills the clear band between them (10.85-12.73), the home
+        // port the band above the upper row (13.21-14.50), each on the transom plane measured at its height.
+        FaceText(t,"cruise ship stern name",CruiseShipName,new Vector3(-.868f,11.79f,0),new Vector3(.976f,-.219f,0),1.25f,22f,navy,Graphite,1f,.10f,.03f);
+        FaceText(t,"cruise ship stern home port","MIASTO MISTRZÓW",new Vector3(-.497f,13.85f,0),new Vector3(.990f,-.140f,0),.42f,16f,navy,Graphite,1f,.05f,.03f);
         CruiseNames+=2;
         CruiseLoungers+=SunDeck(t);
         CruiseShips++;
