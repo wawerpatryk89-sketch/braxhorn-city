@@ -268,6 +268,7 @@ namespace UnityEditor
             // owner pictures: murals only when the file is really there, small estate graphics / signs always (drawn flat)
             if (typeof(T) == typeof(Texture2D)) return (System.IO.File.Exists(p) || p.Contains("/ArenaGraphics/") || p.Contains("/ArenaSigns/") || p.Contains("/ArenaLobby/")) ? new Texture2D { name = p, real = System.IO.File.Exists(p) } as T : null;
             if (typeof(T) == typeof(Mesh) && p.EndsWith(".asset") && p.Contains("/Buildings/Meshes/")) return new Mesh { name = p } as T;   // a mesh the same run has just saved
+            if (typeof(T) == typeof(Shader) && p.EndsWith(".shader") && System.IO.File.Exists(p)) return new Shader { name = p } as T;   // a shader the generator has just written (flags)
             if (typeof(T) == typeof(Texture) && p.EndsWith(".exr")) return new Texture { name = p } as T;   // Editor-baked reflection cubemap
             if (typeof(T) == typeof(GameObject) && p.EndsWith(".glb"))   // embedded GLB (casino vegetation): a stand-in volume, drawn only when the file is there
             {
@@ -295,6 +296,7 @@ namespace UnityEditor
         public void GetSourceTextureWidthAndHeight(out int w, out int h) { bool mural = name != null && name.Contains("6144x2048"); w = mural ? 6144 : 2048; h = mural ? 2048 : 512; } public bool isReadable, mipmapEnabled, sRGBTexture, alphaIsTransparency; public int maxTextureSize; }
     public static class Lightmapping { public static bool BakeReflectionProbe(ReflectionProbe p, string path) => true; }
     public static class EditorUtility { public static void SetDirty(Object o) { } public static void CopySerialized(Object a, Object b) { } }
+    public static class ShaderUtil { public static bool ShaderHasError(Shader s) => false; }
     public static class GameObjectUtility { public static void SetStaticEditorFlags(GameObject g, StaticEditorFlags f) { } }
     public static class PrefabUtility
     {

@@ -330,6 +330,251 @@ public static partial class BraxChampionsArenaArrival
         Debug.Log("A1_LOBBY_PENDANTS rows=3 y=19.5 pieces="+n);
     }
 
+    // ---- Owner 10.11 08:11-08:14: "w lobby trzeba więcej rzeczy ... sofy przy ścianie wzdłuż ... obić skórą ...
+    // kwiatki też w środku" and "z tych zdjęć porobić portrety w ładnej złotej ramce i powiesić w lobby".
+    // GALLERY OF CHAMPIONS on the black marble lobby wall: the owner's 8 portraits (painted frames trimmed, one
+    // uniform gold 3D frame each, a gold picture light), long built-in leather banquettes under them (black leather
+    // seat, owner's quilted A28 backrest, black marble plinth, gold rail), planters, brass vases, round ottomans.
+    const string PortraitAtlas="Assets/Source/Mistrzowie/ArenaPortraits/portraits_";
+    static Material PortraitMaterial(string atlas)
+    {
+        var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(PortraitAtlas+atlas+".jpg");
+        if(!tex){BraxBuildQuality.Warn("A1_PORTRAITS_MISSING: "+PortraitAtlas+atlas+".jpg");return null;}
+        var m=new Material(Shader.Find(BraxCityMaterials.ShaderName)){name="A1 lobby | owner portraits "+atlas,enableInstancing=true};
+        m.SetTexture("_MainTex",tex);m.SetTexture("_EmissionMap",tex);
+        m.SetColor("_Color",new Color(.42f,.42f,.42f));m.SetColor("_EmissionColor",new Color(.70f,.70f,.70f));   // lit like the murals
+        m.SetFloat("_Metallic",0f);m.SetFloat("_Roughness",.85f);m.SetFloat("_VertexTint",0f);
+        m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        AssetDatabase.CreateAsset(m,"Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/A1_lobby_portraits_"+atlas+".mat");
+        return m;
+    }
+    static void PortraitQuad(Transform parent,string name,Material m,int cell,float xc,float y0,float size,float z)
+    {
+        float u0=(cell%2)*.5f,v0=1f-(cell/2+1)*.5f;
+        Vector3 bl=new Vector3(xc-size*.5f,y0,z),br=new Vector3(xc+size*.5f,y0,z),tl=bl+Vector3.up*size,tr=br+Vector3.up*size;
+        var mesh=new Mesh{name=name};
+        mesh.vertices=new[]{bl*K,tl*K,tr*K,br*K};
+        mesh.uv=new[]{new Vector2(u0,v0),new Vector2(u0,v0+.5f),new Vector2(u0+.5f,v0+.5f),new Vector2(u0+.5f,v0)};
+        // faces -Z (toward the lobby): (b-a)x(c-a) must point to -Z
+        bool flip=Vector3.Dot(Vector3.Cross(tl-bl,tr-bl),Vector3.back)<0;
+        mesh.triangles=flip?new[]{0,2,1,0,3,2}:new[]{0,1,2,0,2,3};
+        mesh.RecalculateNormals();mesh.RecalculateBounds();
+        AssetDatabase.CreateAsset(mesh,"Assets/PlayableGenerated/Mistrzowie/Buildings/Meshes/"+name.Replace(' ','_').Replace('|','_')+".asset");
+        var go=new GameObject(name);go.transform.SetParent(parent,false);
+        go.AddComponent<MeshFilter>().sharedMesh=mesh;
+        var r=go.AddComponent<MeshRenderer>();r.sharedMaterial=m;r.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
+    }
+
+    static void Banquette(Transform root,float x0,float x1,float wall,float f,Material black,Material quilt,Material marble,Material gold,Material led)
+    {
+        float L=x1-x0,xc=(x0+x1)*.5f;
+        Box(root,"A1 LOBBY banquette | black marble plinth",marble,new Vector3(xc,f+.05f,wall-.40f),new Vector3(L-.08f,.10f,.60f),true);
+        Box(root,"A1 LOBBY banquette | warm LED toe line",led,new Vector3(xc,f+.012f,wall-.705f),new Vector3(L-.30f,.016f,.02f),false);
+        Box(root,"A1 LOBBY banquette | black leather seat base",black,new Vector3(xc,f+.20f,wall-.45f),new Vector3(L,.20f,.62f),true);
+        int n=Mathf.Max(1,Mathf.RoundToInt((L-.36f)/1.9f));float w=(L-.36f)/n;
+        for(int i=0;i<n;i++)
+            Box(root,"A1 LOBBY banquette | black leather seat cushion",black,new Vector3(x0+.18f+w*(i+.5f),f+.375f,wall-.47f),new Vector3(w-.03f,.15f,.60f),false);
+        Box(root,"A1 LOBBY banquette | quilted A28 leather backrest",quilt,new Vector3(xc,f+.76f,wall-.09f),new Vector3(L,.92f,.14f),true);
+        Box(root,"A1 LOBBY banquette | gold rail on the backrest",gold,new Vector3(xc,f+1.237f,wall-.09f),new Vector3(L+.02f,.035f,.16f),false);
+        foreach(float e in new[]{x0+.09f,x1-.09f})
+            Box(root,"A1 LOBBY banquette | black leather armrest",black,new Vector3(e,f+.40f,wall-.40f),new Vector3(.18f,.60f,.78f),true);
+    }
+
+    static void LobbyGallery(Transform arenaRoot,Dictionary<string,Material> exterior)
+    {
+        var root=Group(arenaRoot,"A1 LOBBY | gallery of champions: portraits, leather banquettes, plants (owner 10.11)",Vector3.zero);
+        float f=LobbyFloorTop,wall=LobbyBackZ;
+        var black=BraxChampionsFoundation.LibraryLeather("A1_lobby_banquette_black_leather",new Color(.10f,.095f,.095f));
+        var quilt=BraxChampionsFoundation.LibraryAcg("A1_lobby_banquette_quilted_A28","Leather013",Color.white,1.2f);
+        var marble=BraxChampionsFoundation.LibraryMarble("A1_lobby_banquette_black_marble",new Color(.95f,.93f,.91f),3.0f);
+        var gold=exterior["arena_gold"];var led=ArenaLed(exterior);
+        // banquettes: clear of the belt vitrine (x 3.5..4.5) and the door light slots (x +-3.1)
+        int seats=0;
+        foreach(float s in new[]{-1f,1f})
+            foreach(var (a,b) in new[]{(6.2f,18.6f),(21.4f,34.8f),(37.2f,50.6f)})
+            { Banquette(root,s<0?-b:a,s<0?-a:b,wall,f,black,quilt,marble,gold,led);seats++; }
+        // portraits: centred between the wall's 6 m gold inlays (x = 24, 30, 36, 42, 48), 3 x 3 m, over the banquettes
+        var mats=new[]{PortraitMaterial("A"),PortraitMaterial("B")};
+        const float size=3.0f,bar=.20f,y0=2.20f,zf=-.035f;
+        var order=new[]{(-27f,6),(-33f,0),(-39f,2),(-45f,5),(27f,4),(33f,7),(39f,1),(45f,3)};
+        int hung=0;
+        foreach(var (xc,i) in order)
+        {
+            var m=mats[i/4];if(!m)continue;
+            float z=wall+zf;
+            PortraitQuad(root,"A1 LOBBY portrait "+(i+1),m,i%4,xc,f+y0,size,z);
+            float yc=f+y0+size*.5f;
+            Box(root,"A1 LOBBY portrait | black liner",exterior["arena_black"],new Vector3(xc,yc,wall-.012f),new Vector3(size+.10f,size+.10f,.02f),false);
+            foreach(float e in new[]{-1f,1f})
+            {
+                Box(root,"A1 LOBBY portrait | gold frame side",gold,new Vector3(xc+e*(size*.5f+.05f+bar*.5f),yc,wall-.06f),new Vector3(bar,size+.10f+2f*bar,.12f),false);
+                Box(root,"A1 LOBBY portrait | gold frame top/bottom",gold,new Vector3(xc,yc+e*(size*.5f+.05f+bar*.5f),wall-.06f),new Vector3(size+.10f,bar,.12f),false);
+            }
+            // gold picture light over the frame
+            Box(root,"A1 LOBBY portrait | gold picture light arm",gold,new Vector3(xc,f+y0+size+.05f+bar+.18f,wall-.20f),new Vector3(.05f,.05f,.40f),false);
+            Box(root,"A1 LOBBY portrait | gold picture light",gold,new Vector3(xc,f+y0+size+.05f+bar+.15f,wall-.42f),new Vector3(1.30f,.08f,.10f),false);
+            Box(root,"A1 LOBBY portrait | picture light warm LED",led,new Vector3(xc,f+y0+size+.05f+bar+.105f,wall-.42f),new Vector3(1.24f,.012f,.06f),false);
+            hung++;
+        }
+        // planters with tall plants between the banquettes, brass vases on marble pedestals
+        int plants=0,vases=0;
+        foreach(float s in new[]{-1f,1f})
+        {
+            foreach(float ax in new[]{20.0f,52.2f})
+            {
+                float x=s*ax,z=wall-.75f;
+                Box(root,"A1 LOBBY | black marble planter",marble,new Vector3(x,f+.30f,z),new Vector3(1.0f,.60f,1.0f),true);
+                Box(root,"A1 LOBBY | gold planter rim",gold,new Vector3(x,f+.615f,z),new Vector3(1.05f,.03f,1.05f),false);
+                if(PlaceLobbyModel(arenaRoot,root,"potted_plant_01/potted_plant_01_1k.gltf","gallery planter tree",x,z,ax*31f%360f,false,f+.33f))plants++;
+            }
+            float px=s*36.0f,pz=wall-.55f;
+            Box(root,"A1 LOBBY | black marble vase pedestal",marble,new Vector3(px,f+.45f,pz),new Vector3(.62f,.90f,.62f),true);
+            Box(root,"A1 LOBBY | gold pedestal line",gold,new Vector3(px,f+.885f,pz),new Vector3(.64f,.03f,.64f),false);
+            if(PlaceLobbyModel(arenaRoot,root,"brass_vase_01/brass_vase_01_1k.gltf","brass vase on pedestal",px,pz,s*30f,false,f+.90f,1.25f))vases++;
+        }
+        // round island ottomans with a planter and a plant in the middle
+        int ottomans=0;
+        foreach(var at in new[]{new Vector2(-40f,-44.5f),new Vector2(40f,-44.5f),new Vector2(-56f,-42.5f),new Vector2(56f,-42.5f)})
+        {
+            RoundedCylinder(root,"A1 LOBBY | round black leather ottoman",black,new Vector3(at.x,f+.225f,at.y),1.90f,.45f,.10f,true);
+            RoundedCylinder(root,"A1 LOBBY | ottoman gold band",gold,new Vector3(at.x,f+.06f,at.y),1.93f,.05f,.01f,false);
+            RoundedCylinder(root,"A1 LOBBY | ottoman centre planter black marble",marble,new Vector3(at.x,f+.75f,at.y),.70f,.60f,.04f,true);
+            RoundedCylinder(root,"A1 LOBBY | ottoman planter gold rim",gold,new Vector3(at.x,f+1.06f,at.y),.73f,.04f,.01f,false);
+            if(PlaceLobbyModel(arenaRoot,root,"potted_plant_02/potted_plant_02_1k.gltf","ottoman planter plant",at.x,at.y,at.x*17f%360f,false,f+.86f,1.3f))plants++;
+            ottomans++;
+        }
+        Debug.Log("A1_LOBBY_GALLERY portraits="+hung+"/8 size=3x3 goldFrames="+hung+" banquettes="+seats+" ottomans="+ottomans+" plants="+plants+" brassVases="+vases);
+        if(hung<8)BraxBuildQuality.Warn("A1_LOBBY_GALLERY portraits "+hung+"/8 (ArenaPortraits atlases)");
+    }
+
+    // Owner 10.11 08:11-08:25: "więcej drzewek przed arenę, tych palm", "żadnych palm w doniczkach, normalnie
+    // posadzone, tam jest miejsca, trawnika jest dużo", "albo wzdłuż ulicy na trawie, ładnie rozsadzić palmy".
+    // The region plan (legacy_foundation.zone) has GRASS between the A1 plot (local z -75) and the Z650 sidewalk
+    // (local z -133), and on both sides of the plot (local |x| 110..183). The owner's own city palms (same pack as
+    // the palm avenue) are planted straight into that lawn, with a small warm uplight in the grass:
+    // a row along the street, a second avenue row beside the promenade, a row on each side lawn.
+    static void LawnPalms(Transform arenaRoot,Transform parent,Dictionary<string,Material> exterior)
+    {
+        var palm=BraxMiastoAssety.Model("miasto_palmy","palma");var palm2=BraxMiastoAssety.Model("miasto_palmy","palma2");
+        if(!palm){BraxBuildQuality.Warn("A1_LAWN_PALMS_MISSING: miasto_palmy/palma");return;}
+        var root=Group(parent,"A1 LAWNS | palms planted in the grass (owner 10.11)",Vector3.zero);
+        var led=ArenaLed(exterior);
+        var spots=new List<Vector2>();
+        foreach(float s in new[]{-1f,1f})
+        {
+            foreach(float z in new[]{-88f,-100f,-112f,-124f})spots.Add(new Vector2(s*21f,z));                 // promenade avenue, 2nd row
+            foreach(float ax in new[]{33f,45f,57f,77f,89f,101f,113f,125f,137f,149f,161f,173f})              // along the street,
+                spots.Add(new Vector2(s*ax,-128.5f));                                                       // clear of the lanes x+-61.8..68.2
+            for(float z=-112f;z<=104.1f;z+=16f)spots.Add(new Vector2(s*128f,z));                            // side lawns
+        }
+        int placed=0;
+        foreach(var at in spots)
+        {
+            float y=.16f;
+            try{y=ActualFloorYNominal(arenaRoot,at.x,at.y);}catch(Exception){}
+            Box(root,"A1 LAWNS | warm uplight in the grass at the palm",led,new Vector3(at.x,y+.015f,at.y-1.30f),new Vector3(.26f,.02f,.26f),false);
+            var src=(palm2&&placed%2==1)?palm2:palm;
+            var world=arenaRoot.TransformPoint(new Vector3(at.x,y,at.y)*K);
+            var instance=BraxMiastoAssety.Postaw(root,src,"A1 lawn palm",world,(at.x*11f+at.y*7f)%360f,1f,false,true);
+            if(!instance)continue;
+            BraxMiastoAssety.LodyZWezlow(instance,new[]{.25f,.08f,.012f});
+            placed++;
+        }
+        Debug.Log("A1_LAWN_PALMS placed="+placed+"/"+spots.Count+" street=24 (z -128.5) avenue=8 (x+-21) sideLawns=28 (x+-128) pots=0");
+        if(placed<spots.Count)BraxBuildQuality.Warn("A1_LAWN_PALMS incomplete "+placed+"/"+spots.Count);
+    }
+
+    // ---- Owner 10.11 08:26: "flagi, żeby powiewały, przed areną, jakieś takie premium". Ten 14 m black poles with
+    // gold collar and gold ball, each with a 1.5 x 6 m swallowtail banner (bordeaux / black, gold border, the gold
+    // bull of the owner's entrance mural, CHAMPION ARENA, B R A X H O R N - make_arena_flags.py) that waves in the
+    // wind in the vertex shader (BraxChampionsFlag.shader). Both sides of the walkway to the doors + the forecourt.
+    const string FlagAtlas="Assets/Source/Mistrzowie/ArenaFlags/arena_flags.png";
+    static Material FlagMaterial()
+    {
+        const string template="Assets/Editor/Mistrzowie/BraxChampionsFlag.shader",path="Assets/PlayableGenerated/Mistrzowie/Buildings/MistrzowieFlag.shader";
+        const string sourceName="Shader \"Braxhorn/MistrzowieFlagSource\"";
+        var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(FlagAtlas);
+        if(!tex){BraxBuildQuality.Warn("A1_FLAGS_ATLAS_MISSING: "+FlagAtlas);return null;}
+        if(!System.IO.File.Exists(template))throw new System.IO.FileNotFoundException("Flag source shader missing",template);
+        string src=System.IO.File.ReadAllText(template);
+        if(!src.Contains(sourceName))throw new InvalidOperationException("Flag shader identity changed");
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+        System.IO.File.WriteAllText(path,src.Replace(sourceName,"Shader \"Braxhorn/MistrzowieFlagMobile\""));
+        AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
+        var shader=AssetDatabase.LoadAssetAtPath<Shader>(path);
+        if(!shader||ShaderUtil.ShaderHasError(shader))throw new InvalidOperationException("Generated flag shader failed import: "+path);
+        var m=new Material(shader){name="A1 arena | waving banner flags",enableInstancing=true};
+        m.SetTexture("_MainTex",tex);m.SetFloat("_Cutoff",.5f);
+        m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        AssetDatabase.CreateAsset(m,"Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/A1_arena_flags.mat");
+        return m;
+    }
+    // Banner mesh in its own frame: x across (0 at the pole, +-1.5 m), y down from the top bar (0..-6), normal -Z.
+    // uv = atlas cell, uv2 = (u from the pole, t from the top) for the wave. Left-side banners mirror x but keep the
+    // print readable from the street.
+    static Mesh BannerMesh(int cell,float dir)
+    {
+        const int nx=6,ny=24;const float bw=1.5f,bh=6.0f;
+        var v=new List<Vector3>();var n=new List<Vector3>();var uv=new List<Vector2>();var uv2=new List<Vector2>();var t=new List<int>();
+        for(int j=0;j<=ny;j++)for(int i=0;i<=nx;i++)
+        {
+            float u=i/(float)nx,tt=j/(float)ny;
+            v.Add(new Vector3(dir*u*bw,-tt*bh,0)*K);n.Add(Vector3.back);
+            float tu=dir>0?u:1f-u;
+            uv.Add(new Vector2(cell*.5f+tu*.5f,1f-tt));uv2.Add(new Vector2(u,tt));
+        }
+        for(int j=0;j<ny;j++)for(int i=0;i<nx;i++)
+        {
+            int a=j*(nx+1)+i,b=a+1,c=a+nx+1,d=c+1;
+            var face=Vector3.Cross(v[b]-v[a],v[c]-v[a]);
+            if(Vector3.Dot(face,Vector3.back)>=0){t.Add(a);t.Add(b);t.Add(c);t.Add(b);t.Add(d);t.Add(c);}
+            else{t.Add(a);t.Add(c);t.Add(b);t.Add(b);t.Add(c);t.Add(d);}
+        }
+        var mesh=new Mesh{name="A1 banner flag "+cell+(dir>0?" R":" L")};
+        mesh.SetVertices(v);mesh.SetNormals(n);mesh.SetUVs(0,uv);mesh.SetUVs(1,uv2);mesh.SetTriangles(t,0);
+        var b2=new Bounds(new Vector3(dir*.75f,-3f,0)*K,new Vector3(2.2f,6.6f,1.2f)*K);mesh.bounds=b2;   // room for the wave
+        AssetDatabase.CreateAsset(mesh,"Assets/PlayableGenerated/Mistrzowie/Buildings/Meshes/A1_banner_flag_"+cell+(dir>0?"_R":"_L")+".asset");
+        return mesh;
+    }
+    static void ArenaFlags(Transform arenaRoot,Transform parent,Dictionary<string,Material> exterior)
+    {
+        var mat=FlagMaterial();if(!mat)return;
+        var root=Group(parent,"A1 FRONT | waving banner flags (owner 10.11)",Vector3.zero);
+        var black=exterior["arena_black"];var gold=exterior["arena_gold"];var stone=exterior["dark_stone"];var led=ArenaLed(exterior);
+        var meshes=new Dictionary<string,Mesh>();
+        var spots=new List<Vector2>();
+        foreach(float s in new[]{-1f,1f})
+        {
+            spots.Add(new Vector2(s*11.5f,-72.5f));                                   // forecourt, either side of the carpet
+            foreach(float z in new[]{-86f,-98f,-110f,-122f})spots.Add(new Vector2(s*10.2f,z));   // walkway, between the palms
+        }
+        const float poleH=14f,plinth=.50f;
+        int k=0;
+        foreach(var at in spots)
+        {
+            float y=.16f;
+            try{y=ActualFloorYNominal(arenaRoot,at.x,at.y);}catch(Exception){}
+            float dir=at.x<0?-1f:1f;                                                  // banner hangs away from the walkway
+            Box(root,"A1 FLAG | black granite plinth",stone,new Vector3(at.x,y+plinth*.5f,at.y),new Vector3(.90f,plinth,.90f),true);
+            Box(root,"A1 FLAG | gold plinth line",gold,new Vector3(at.x,y+plinth-.01f,at.y),new Vector3(.92f,.02f,.92f),false);
+            RoundedCylinder(root,"A1 FLAG | black pole",black,new Vector3(at.x,y+plinth+poleH*.5f,at.y),.085f,poleH,.02f,true);
+            RoundedCylinder(root,"A1 FLAG | gold collar",gold,new Vector3(at.x,y+plinth+.20f,at.y),.13f,.30f,.03f,false);
+            RoundedCylinder(root,"A1 FLAG | gold ball finial",gold,new Vector3(at.x,y+plinth+poleH+.16f,at.y),.17f,.34f,.16f,false);
+            float top=y+plinth+poleH-.45f;
+            Box(root,"A1 FLAG | gold banner arm",gold,new Vector3(at.x+dir*.83f,top+.03f,at.y),new Vector3(1.66f,.05f,.05f),false);
+            Box(root,"A1 FLAG | warm uplight",led,new Vector3(at.x,y+plinth+.012f,at.y-.30f),new Vector3(.22f,.012f,.22f),false);
+            int cell=k%2;string key=cell+(dir>0?"R":"L");
+            if(!meshes.TryGetValue(key,out var mesh)){mesh=BannerMesh(cell,dir);meshes[key]=mesh;}
+            var go=new GameObject("A1 FLAG | waving banner "+(cell==0?"bordeaux":"black"));
+            go.transform.SetParent(root,false);
+            go.transform.localPosition=new Vector3(at.x+dir*.12f,top,at.y)*K;
+            go.AddComponent<MeshFilter>().sharedMesh=mesh;
+            var r=go.AddComponent<MeshRenderer>();r.sharedMaterial=mat;r.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
+            k++;
+        }
+        Debug.Log("A1_ARENA_FLAGS poles="+spots.Count+" height="+poleH+" banners=1.5x6 swallowtail wave=vertexShader atlas="+FlagAtlas);
+    }
+
     // ---- entrance lobby furniture behind the front glass (both sides) ----
     static float LobbyFloorY(Transform arenaRoot,float x,float z)
     {
@@ -353,7 +598,7 @@ public static partial class BraxChampionsArenaArrival
         return false;
     }
 
-    static bool PlaceLobbyModel(Transform arenaRoot,Transform parent,string file,string label,float x,float z,float yaw,bool solid,float fixedFloor=float.NaN)
+    static bool PlaceLobbyModel(Transform arenaRoot,Transform parent,string file,string label,float x,float z,float yaw,bool solid,float fixedFloor=float.NaN,float scale=1f)
     {
         var source=AssetDatabase.LoadAssetAtPath<GameObject>(LobbyModels+file);
         if(!source){BraxBuildQuality.Warn("A1_LOBBY_MODEL_MISSING: "+LobbyModels+file+" (prepare_arena_lobby_models.py)");return false;}
@@ -370,7 +615,7 @@ public static partial class BraxChampionsArenaArrival
         go.name="A1 LOBBY | "+label+" | Poly Haven CC0 real size";
         go.transform.SetParent(parent,false);
         go.transform.localRotation=Quaternion.Euler(0,yaw,0);
-        go.transform.localScale=Vector3.one*K; // model is in real metres
+        go.transform.localScale=Vector3.one*K*scale; // model is in real metres
         float floor=float.IsNaN(fixedFloor)?LobbyFloorY(arenaRoot,x,z):fixedFloor;
         go.transform.localPosition=new Vector3(x,floor,z)*K;
         foreach(var c in go.GetComponentsInChildren<Collider>(true))UnityEngine.Object.DestroyImmediate(c);

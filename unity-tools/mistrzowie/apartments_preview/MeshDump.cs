@@ -56,7 +56,7 @@ public static class MeshDump
         }
         sb.Append(string.Join(",", models) + "],\"palms\":[");
         // city palms (a model pack the preview does not have): positions only, drawn as plain stand-ins
-        sb.Append(string.Join(",", Rec.Palms.Select(p => root.InverseTransformPoint(p) / scale).Where(p => Math.Abs(p.x) < 220 && Math.Abs(p.z) < 220).Select(p => "[" + V(p) + "]")));
+        sb.Append(string.Join(",", Rec.PalmObjs.Select(t => root.InverseTransformPoint(t.position) / scale).Where(p => Math.Abs(p.x) < 220 && Math.Abs(p.z) < 220).Select(p => "[" + V(p) + "]")));
         sb.Append("],\"colours\":{");
         sb.Append(string.Join(",", mats.Select(kv => "\"" + kv.Key + "\":[" + F(kv.Value.color.r) + "," + F(kv.Value.color.g) + "," + F(kv.Value.color.b) + "," + F(kv.Value.color.a) + "]")));
         sb.Append("},\"ambient\":{");

@@ -6,12 +6,17 @@ const fs = require('fs'); const path = require('path');
 const [binDir, threeDir, viewsPath, modelsDir, texDir] = process.argv.slice(2);
 const views = JSON.parse(fs.readFileSync(viewsPath, 'utf8'));
 const PALMS_ON = process.env.PREVIEW_PALMS === '1';
+// PREVIEW_PALM_GLB=<path under the models dir>: the owner's own palm pack (meshopt + KTX2 glTF) drawn at every
+// palm the generator places - the real model, never a stand-in.
+const PALM_GLB = process.env.PREVIEW_PALM_GLB || '';
 const html = `<!doctype html><html><body style="margin:0;background:#9fc2e5">
 <script type="importmap">{"imports":{"three":"http://preview.local/three/build/three.module.js","three/addons/":"http://preview.local/three/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-const PALMS=${PALMS_ON};
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};
 async function bin(n){const r=await fetch('http://preview.local/bin/'+n);return new Float32Array(await r.arrayBuffer());}
 const tl=new THREE.TextureLoader();
 function tex(url,srgb){return new Promise(res=>tl.load(url,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(srgb)t.colorSpace=THREE.SRGBColorSpace;res(t);},undefined,()=>res(null)));}
@@ -75,6 +80,16 @@ window.setup=async function(w,h){
       emissive:S2L(e.map(x=>Math.min(x,1))),emissiveIntensity:1});cityAmbient(mm);o.traverse(n=>{if(n.isMesh)n.material=mm;});}
     S.add(o);
   }
+  if(PALM_GLB&&scene.palms&&scene.palms.length){
+    const pl=new GLTFLoader();pl.setMeshoptDecoder(MeshoptDecoder);
+    pl.setKTX2Loader(new KTX2Loader().setTranscoderPath('http://preview.local/three/examples/jsm/libs/basis/').detectSupport(R));
+    const palm=await new Promise(res=>pl.load('http://preview.local/models/'+PALM_GLB,gl=>res(gl.scene),undefined,e=>{console.log('palm glb failed '+e);res(null);}));
+    if(palm){palm.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(mt=>{mt.side=THREE.DoubleSide;cityAmbient(mt,[.55,.63,.71,.23,.27,.22,1]);});});
+      const bb=new THREE.Box3().setFromObject(palm);const c=bb.getCenter(new THREE.Vector3());
+      const g=new THREE.Group();palm.position.set(-c.x,-bb.min.y,-c.z);g.add(palm);
+      console.log('palm model height '+(bb.max.y-bb.min.y).toFixed(2));
+      for(const p of scene.palms){const o=g.clone(true);o.position.set(p[0],p[1],p[2]);o.rotation.y=p[0]*.7+p[2]*.3;S.add(o);}}
+  }
   // City palms: the game places its own palm model pack; the preview draws a plain stand-in (trunk + fronds) there.
   // Off unless PREVIEW_PALMS=1: a stand-in is not what the game shows (owner 10.11: "żadnych sztucznych drzew").
   if(PALMS&&scene.palms&&scene.palms.length){
@@ -114,7 +129,7 @@ window.ready=true;
     else if (u.startsWith('pic/')) file = path.join(process.env.PREVIEW_PICTURES || texDir, decodeURIComponent(u.slice(4)));
     if (!file || !fs.existsSync(file)) return r.fulfill({ status: 404, body: '' });
     const ext = path.extname(file);
-    const type = { '.js': 'application/javascript', '.json': 'application/json', '.gltf': 'model/gltf+json', '.jpg': 'image/jpeg', '.png': 'image/png' }[ext] || 'application/octet-stream';
+    const type = { '.js': 'application/javascript', '.json': 'application/json', '.gltf': 'model/gltf+json', '.jpg': 'image/jpeg', '.png': 'image/png', '.wasm': 'application/wasm' }[ext] || 'application/octet-stream';
     r.fulfill({ status: 200, body: fs.readFileSync(file), contentType: type });
   });
   await p.goto('http://preview.local/view.html');

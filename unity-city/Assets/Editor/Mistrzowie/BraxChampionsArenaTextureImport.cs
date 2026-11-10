@@ -10,12 +10,17 @@ public sealed class BraxChampionsArenaTextureImport : AssetPostprocessor
     // the GPU a power-of-two ASTC texture; UVs are normalised, so the picture,
     // its proportions on the wall and every source pixel's content stay the same.
     // A new version forces Unity to re-import cached Library copies.
-    public override uint GetVersion() => 3;
+    public override uint GetVersion() => 4;
     void OnPreprocessTexture()
     {
         string path=assetPath.Replace('\\','/');
         bool signs=path.StartsWith("Assets/Source/Mistrzowie/ArenaSigns/",StringComparison.Ordinal);
         bool belt=path.StartsWith("Assets/Source/Mistrzowie/Trophies/",StringComparison.Ordinal);
+        // 10.11: the owner's 8 portraits, two 2048 x 2048 atlases of 1024 px portraits (lobby gallery)
+        bool portraits=path.StartsWith("Assets/Source/Mistrzowie/ArenaPortraits/",StringComparison.Ordinal);
+        // 10.11: the waving banner flags (alpha = swallowtail cut, clamp like the signs)
+        portraits|=path.StartsWith("Assets/Source/Mistrzowie/ArenaFlags/",StringComparison.Ordinal);
+        signs|=portraits;
         if(!signs&&!belt)return;
 
         var importer=(TextureImporter)assetImporter;

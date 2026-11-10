@@ -24,7 +24,7 @@ public static class BraxMiastoAssety
 {
     public static GameObject Model(string paczka, string plik) => new GameObject(plik);
     public static GameObject Postaw(Transform parent, GameObject src, string name, Vector3 p, float yaw, float s = 1f, bool st = true, bool sh = true)
-    { var g = new GameObject(name); g.transform.SetParent(parent, false); g.transform.position = p; Rec.Palms.Add(p); return g; }
+    { var g = new GameObject(name); g.transform.SetParent(parent, false); g.transform.position = p; Rec.Palms.Add(p); Rec.PalmObjs.Add(g.transform); return g; }
     public static void LodyZWezlow(GameObject o, float[] progi) { }
 }
 public static class Rec
@@ -36,8 +36,10 @@ public static class Rec
     public static readonly List<string> Cols = new List<string>();
     public static readonly List<string> Texts = new List<string>();
     public static readonly List<Vector3> Palms = new List<Vector3>();
+    // the palm objects themselves: their world position follows the building root after the prefab is moved back to its plot
+    public static readonly List<Transform> PalmObjs = new List<Transform>();
     public static readonly Dictionary<string, Material> Mats = new Dictionary<string, Material>();
-    public static void Clear() { Quads.Clear(); Cols.Clear(); Texts.Clear(); Palms.Clear(); }
+    public static void Clear() { Quads.Clear(); Cols.Clear(); Texts.Clear(); Palms.Clear(); PalmObjs.Clear(); }
 }
 public static class BraxWnetrzaKit
 {

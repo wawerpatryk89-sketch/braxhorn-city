@@ -1242,6 +1242,9 @@ public static partial class BraxChampionsArenaArrival
         BraxChampionsFoundation.Optional("gablota pasa w lobby",()=>BraxChampionsBeltShowcase.GenerateLobby(root));
         BraxChampionsFoundation.Optional("lobby: sofy i kwiaty za szybą wejścia",()=>EntranceLobbyFurniture(arenaRoot, exterior));
         BraxChampionsFoundation.Optional("palmy przed areną",()=>EntrancePalmAvenue(arenaRoot, root));
+        BraxChampionsFoundation.Optional("palmy na trawnikach przy ulicy i po bokach",()=>LawnPalms(arenaRoot, root, exterior));
+        BraxChampionsFoundation.Optional("flagi przed areną",()=>ArenaFlags(arenaRoot, root, exterior));
+        BraxChampionsFoundation.Optional("lobby: galeria portretów, kanapy, rośliny",()=>LobbyGallery(arenaRoot, exterior));
         BraxChampionsFoundation.Optional("gabloty z pucharami w lobby",()=>EntranceTrophyCases(arenaRoot, exterior));
         return AssetDatabase.LoadAssetAtPath<GameObject>(BeltAsset) != null;
     }

@@ -61,6 +61,14 @@ MODELS = {
         'textures/potted_plant_02_leaves_nor_gl_1k.jpg': (127232, '2420d5c0ab87426f5318a5e91d1ea3bb'),
         'textures/potted_plant_02_pot_nor_gl_1k.jpg': (108343, 'fbb44ccc1c6564b2837b79a11ed45d58'),
     }),
+    # 10.11 owner: "w lobby trzeba więcej rzeczy": brass vases on the gallery pedestals (pinned 10.11).
+    'brass_vase_01': ('1k', {
+        'brass_vase_01_1k.gltf': (2693, 'bb1233b0ac5dcb45fdb6f813cca6c3e7'),
+        'brass_vase_01.bin': (498240, 'e90e1aea42c064d2f9574873b00b835c'),
+        'textures/brass_vase_01_arm_1k.jpg': (112273, 'c84710a58f8f95b9d47b9e2438e34e80'),
+        'textures/brass_vase_01_diff_1k.jpg': (150797, 'f3ccfba161602d7f6c67ff00c43f0bd3'),
+        'textures/brass_vase_01_nor_gl_1k.jpg': (78223, 'd4bf9fa05adb698c8b04dbd46932a52b'),
+    }),
 }
 
 
