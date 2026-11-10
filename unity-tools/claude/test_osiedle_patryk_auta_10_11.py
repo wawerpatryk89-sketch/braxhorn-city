@@ -47,9 +47,12 @@ class RuchyWlasciciela(unittest.TestCase):
             self.assertIn(akcja, k, akcja)
             self.assertEqual(k[akcja]["zrodla"][0], "patryk_owner/" + pliki[akcja], akcja)
             self.assertTrue(k[akcja]["wMiejscu"], akcja + ": bez dryfu bioder (ruch prowadzi fizyka/auto)")
-        # stare ruchy zostają tylko jako zapas
-        self.assertGreater(len(k["Walk"]["zrodla"]), 1)
-        self.assertGreater(len(k["Run"]["zrodla"]), 1)
+        # 10.11 19:58 (właściciel): tylko ruchy Patryka — bez ruchów Braxa (poza A) i bez cudzych zapasów
+        for akcja, wpis in k.items():
+            self.assertEqual(len(wpis["zrodla"]), 1, akcja)
+            self.assertTrue(wpis["zrodla"][0].startswith("patryk_owner/"), akcja)
+        for akcja in ("CombatIdle", "Punch", "Kick"):
+            self.assertNotIn(akcja, k)
         self.assertFalse(k["EnteringCar"]["petla"])
 
     def test_ruchy_wlasciciela_prosto_na_kosci_reszta_humanoid(self):

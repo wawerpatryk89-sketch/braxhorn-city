@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 // Prywatne modele i animacje są odszyfrowywane wyłącznie przez istniejący krok CI.
 // Źródła i model są Humanoid; Unity przenosi anatomiczną pozę i zapisuje klipy Legacy
 // dla BraxGymPlayer. Oryginalna hierarchia i bindposes zostają zachowane.
-// Idle = spokojna poza modelu, CombatIdle = garda dopiero po ciosie. Błąd zatrzymuje build.
+// Idle = spokojna poza modelu (bez gardy — ruchów walki w paczce Patryka nie ma). Błąd zatrzymuje build.
 public static partial class BraxClaudeOsiedle
 {
     public const string PrywatneZrodla = "Assets/Source/Prywatne";
@@ -30,19 +30,20 @@ public static partial class BraxClaudeOsiedle
     // na oryginalne kości Patryka — nie surowe krzywe Mixamo (build Codexa 5.11: „brak krzywych Hips” → T-poza i drganie).
     // Stare ruchy zostają tylko jako zapas, gdy paczki właściciela nie ma.
     const string RuchyWlasciciela = "patryk_owner/";
+    // 10.11 19:58 (właściciel): „Wypierdalaj te ruchy Braxa … puść od nowa z jego animacjami, się żegnamy!” — Brax to poza A,
+    // Patryk poza T. Patryk dostaje WYŁĄCZNIE ruchy ze swojej paczki (prosto na kości, BraxClaudePatrykBezposrednio). Bez ruchów
+    // Braxa i bez cudzych zapasów (extra/nyxa/xd): ciosu, kopnięcia i gardy w paczce Patryka nie ma — gra pomija brakujący
+    // klip (BraxGymPlayer.StartAction: clips[name]==null → return), nie podstawia cudzego ruchu.
     static readonly PatrykKlip[] KlipyPatryka =
     {
-        PK("CombatIdle", true, true, "brax/Idle.fbx"),
-        PK("Walk", true, true, RuchyWlasciciela + "Strut Walking.fbx", "extra/Walking.fbx", "nyxa/Walking.fbx", "extra2/Walking.fbx"),
-        PK("Run", true, true, RuchyWlasciciela + "Fast Run.fbx", "extra/Running.fbx", "extra2/Unarmed Run Forward.fbx"),
-        PK("Punch", false, true, "brax/Jab Cross (1).fbx", "xd/Jab Cross.fbx"),
-        PK("Kick", false, true, "brax/Mma Kick (1).fbx", "nyxa/Mma Kick (1).fbx"),
-        PK("Jump", false, true, RuchyWlasciciela + "Jump.fbx", "brax/Jump.fbx", "extra2/Unarmed Jump Running.fbx"),
+        PK("Walk", true, true, RuchyWlasciciela + "Strut Walking.fbx"),
+        PK("Run", true, true, RuchyWlasciciela + "Fast Run.fbx"),
+        PK("Jump", false, true, RuchyWlasciciela + "Jump.fbx"),
         // Wsiadanie do auta (BraxAutoGracza.Wejdz; wysiadanie = ten sam klip od końca). Bez dryfu bioder w poziomie —
         // drogę od drzwi do fotela prowadzi auto, klip daje ruch ciała (sięgnięcie, krok, siadanie).
         PK("EnteringCar", false, true, RuchyWlasciciela + "Entering Car.fbx"),
     };
-    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "CombatIdle", "Walk", "Run", "Punch", "Kick", "Jump" };
+    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "Walk", "Run", "Jump" };
 
     // „mixamorig:LeftArm”, „mixamorig1:LeftArm”, „mixamorigLeftArm” → „LeftArm”
     static string PatrykKosc(string n)
