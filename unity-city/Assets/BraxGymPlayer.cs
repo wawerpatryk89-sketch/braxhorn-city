@@ -168,7 +168,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
             else
             {
                 vessel.Drive(move,dt);
-                if(action!="Idle" && clips["Idle"]!=null)
+                // 10.11: przy sterze gra klip „Jazda” (Driving właściciela) — nie zastępujemy go zamrożonym Idle
+                if(action!="Idle" && clips["Idle"]!=null && !clips.IsPlaying("Jazda"))
                 {
                     action="Idle";clips["Idle"].wrapMode=WrapMode.Loop;
                     clips["Idle"].speed=0f;clips.CrossFade("Idle",.16f,PlayMode.StopAll);
@@ -349,8 +350,9 @@ public sealed class BraxGymPlayer : MonoBehaviour
             var f = Vector3.ProjectOnPlane(vessel.transform.forward, Vector3.up);
             if (f.sqrMagnitude < .01f) f = vessel.transform.forward;
             view.transform.position = k;
+            // 10.11: domyślnie lekko w dół (≈ 6°) — w kadrze koło, pulpit z ekranami i dziób; palcem dalej góra/dół
             view.transform.rotation = Quaternion.LookRotation(
-                f.normalized + Vector3.up * Mathf.Clamp((19f - pitch) * .012f, -.20f, .20f),
+                f.normalized + Vector3.up * (Mathf.Clamp((19f - pitch) * .012f, -.20f, .20f) - .10f),
                 Vector3.up);
             camNear = -1f;
             // Głowa Braxa nie zasłania kamery od środka. Pozostaje jego

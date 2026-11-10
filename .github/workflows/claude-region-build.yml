@@ -234,6 +234,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
+    - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 unity-tools/claude/brax_jazda.py
     - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
       run: |
         # sparse checkout po sciezkach (bez calego repo), TGA 2048 -> PNG (kolor 1024, normalne 512), w alfie ciala maska ubran
@@ -573,6 +577,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
+    - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 unity-tools/claude/brax_jazda.py
     - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
       run: |
         # sparse checkout po sciezkach (bez calego repo), TGA 2048 -> PNG (kolor 1024, normalne 512), w alfie ciala maska ubran
@@ -1107,6 +1115,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
+    - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 unity-tools/claude/brax_jazda.py
     - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
       run: |
         # sparse checkout po sciezkach (bez calego repo), TGA 2048 -> PNG (kolor 1024, normalne 512), w alfie ciala maska ubran

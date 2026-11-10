@@ -26,12 +26,15 @@ public sealed class BraxVessel : MonoBehaviour
     public float sitLower = .95f;         // awaryjny offset gdy rig nie ma Hips
     public bool walkableDeck;             // jacht: etap wejścia na pokład przed sterowaniem
     public Vector3 deckEntry;            // lokalny punkt wejścia na pokład, nie woda
-    public Vector3 helmCameraLocal;      // kamera za kołem sterowym (jacht i motorówka)
+    public float pokladPrzodZ = float.NaN; // jacht: przód strefy chodzenia (za konsolą sternika)
+    public Vector3 helmCameraLocal;      // kamera za kołem sterowym — TYLKO jacht (właściciel 10.11 17:37: „widok za sterem w jachcie, nie w motorówce”)
     public Transform leftGrip, rightGrip; // rzeczywiste uchwyty kierownicy / steru (dzieci modelu lub markery)
     public Vector3 helmTargetLocal;       // oś fizycznej kierownicy do audytu pozy sternika
+    public Transform kolo;                // jacht: koło sterowe z kodu (oś obrotu = lokalne Z koła), kręci się ze sterem; uchwyty dłoni są jego dziećmi
+    Quaternion koloBaza; bool koloOk; float koloSter;
     public bool IsOnDeck => rider && walkableDeck && onDeck;
     public bool AtHelm => rider && (!walkableDeck || !onDeck);
-    public bool HasPilotCamera => rider && AtHelm && label != "SKUTER";
+    public bool HasPilotCamera => rider && AtHelm && label == "JACHT";   // skuter i motorówka: kamera z tyłu (TPP)
     public Vector3 moor;                  // gdzie pojazd stoi zacumowany
     public float moorYaw;
     public Vector3 wejscie;               // miejsce wejścia (lokalnie): przy burcie od pomostu albo za rufą; zero = środek
@@ -104,7 +107,15 @@ public sealed class BraxVessel : MonoBehaviour
         player.transform.localPosition = seat +
             Vector3.up * (.08f * Mathf.Max(1f, transform.lossyScale.y) - hip);
         player.transform.localRotation = Quaternion.identity;
-        if (player.clips && player.clips["Idle"] != null)
+        // Właściciel 10.11 17:37: „siedzieć i mieć ręce na kierownicy — jest animacja driver”. Klip „Jazda” = jego Driving.fbx
+        // (Mixamo, przepięty na kości Braxa w buildzie). Brak klipu → dawna poza z kodu.
+        bool jazda = sit && player.clips && player.clips.GetClip("Jazda");
+        if (jazda)
+        {
+            var st = player.clips["Jazda"]; st.wrapMode = WrapMode.Loop; st.speed = 1f;
+            player.clips.CrossFade("Jazda", .2f, PlayMode.StopAll);
+        }
+        else if (player.clips && player.clips["Idle"] != null)
         {
             player.clips["Idle"].speed = 0f;
             player.clips.Play("Idle");
@@ -112,12 +123,20 @@ public sealed class BraxVessel : MonoBehaviour
         if (sit)
         {
             var pose = BraxPose.Get(player);
-            pose.Set(label == "SKUTER" ? BraxPose.Mode.Ride : BraxPose.Mode.Ster, transform);
+            pose.Set(label == "SKUTER" ? BraxPose.Mode.Ride : (jazda ? BraxPose.Mode.Kierowca : BraxPose.Mode.Ster), transform);
+            pose.klip = jazda;
             pose.SetGrips(leftGrip, rightGrip);
         }
-        Debug.Log("BRAXHORN_LODZ_FOTEL " + label + " hip=" +
+        Debug.Log("BRAXHORN_LODZ_FOTEL " + label + (jazda ? " klip=Jazda" : " klip=BRAK(poza z kodu)") + " hip=" +
             hip.ToString("F2") + "m, siedzenie_local=" + seat.ToString("F2") +
             ", root_local=" + player.transform.localPosition.ToString("F2"));
+    }
+
+    /// <summary>Koniec siedzenia: klip „Jazda” nie może grać dalej na pomoście (BraxGymPlayer przełącza tylko Idle/Walk/Run).</summary>
+    static void ZdejmijJazde(BraxGymPlayer p)
+    {
+        if (!p || !p.clips) return;
+        if (p.clips["Idle"] != null) { p.clips["Idle"].speed = 1f; if (p.clips.IsPlaying("Jazda")) p.clips.CrossFade("Idle", .2f, PlayMode.StopAll); }
     }
 
     public void Board(BraxGymPlayer player)
@@ -172,7 +191,7 @@ public sealed class BraxVessel : MonoBehaviour
         local += delta * (2.15f * dt);
         float bw = Mathf.Max(.75f, width * .26f);
         local.x = Mathf.Clamp(local.x, -bw, bw);
-        local.z = Mathf.Clamp(local.z, -length * .45f, length * .24f);
+        local.z = Mathf.Clamp(local.z, -length * .40f, float.IsNaN(pokladPrzodZ) ? length * .24f : Mathf.Min(length * .24f, pokladPrzodZ));
         local.y = deckEntry.y;
         rider.transform.localPosition = local;
         if (delta.sqrMagnitude > .025f)
@@ -223,8 +242,7 @@ public sealed class BraxVessel : MonoBehaviour
         if (!onDeck)
         {
             BraxPose.Get(rider).Set(BraxPose.Mode.None, null);
-            if (rider.clips && rider.clips["Idle"] != null)
-                rider.clips["Idle"].speed = 1f;
+            ZdejmijJazde(rider);
             onDeck = true; returnedToDeck = true;
             // Po oddaniu steru nie przenoś gracza na rufę; zostaje obok kokpitu,
             // dzięki czemu może później ponownie przejąć ster.
@@ -270,7 +288,7 @@ public sealed class BraxVessel : MonoBehaviour
         if (!found) return false;
         var p = rider;
         BraxPose.Get(p).Set(BraxPose.Mode.None, null);
-        if (p.clips && p.clips["Idle"] != null) p.clips["Idle"].speed = 1f;
+        ZdejmijJazde(p);
         p.transform.SetParent(null, true);
         if (riderScene.IsValid() && riderScene.isLoaded && p.gameObject.scene != riderScene)
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(p.gameObject, riderScene);
@@ -328,6 +346,12 @@ public sealed class BraxVessel : MonoBehaviour
             if (speed > vMax) speed = Mathf.MoveTowards(speed, vMax, dt * accel * 2f);
         }
         yawVel = Mathf.Lerp(yawVel, steer, 1f - Mathf.Exp(-dt * (sit ? 4f : 1.6f)));    // jacht: bezwładny
+        if (kolo)
+        {   // koło sterowe jachtu kręci się ze sterem (pełne wychylenie = 110°), dłonie na wieńcu idą razem z nim
+            if (!koloOk) { koloBaza = kolo.localRotation; koloOk = true; }
+            koloSter = Mathf.MoveTowards(koloSter, Mathf.Clamp(move.x, -1f, 1f), dt * 2.5f);
+            kolo.localRotation = koloBaza * Quaternion.AngleAxis(-koloSter * 110f, Vector3.forward);
+        }
         float yaw = transform.eulerAngles.y + yawVel * dt;
         var fwd = Quaternion.Euler(0, yaw, 0) * Vector3.forward; var right = Quaternion.Euler(0, yaw, 0) * Vector3.right;
         // poślizg boczny: w zakręcie łódź „wynosi” na zewnątrz, opór boczny wygasza go
@@ -397,7 +421,7 @@ public sealed class BraxVessel : MonoBehaviour
         home = transform.position; baseYaw = transform.eulerAngles.y;
         if (!p) return;
         BraxPose.Get(p).Set(BraxPose.Mode.None, null);
-        if (p.clips && p.clips["Idle"] != null) p.clips["Idle"].speed = 1f;
+        ZdejmijJazde(p);
         if (p.transform.parent == transform) p.transform.SetParent(null, true);
         if (riderScene.IsValid() && riderScene.isLoaded && p.gameObject.scene != riderScene)
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(p.gameObject, riderScene);

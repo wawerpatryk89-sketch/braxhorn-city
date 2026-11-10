@@ -10,7 +10,9 @@ using UnityEngine;
 /// </summary>
 public sealed class BraxPose : MonoBehaviour
 {
-    public enum Mode { None, Ride, Sit, Lie, Drink, Ster }
+    // Kierowca (10.11, właściciel 17:37: „ręce na kierownicy — jest animacja driver”): postawę daje klip właściciela „Jazda”
+    // (Mixamo Driving.fbx), poza dokłada tylko dłonie na prawdziwym kole / kierownicy.
+    public enum Mode { None, Ride, Sit, Lie, Drink, Ster, Kierowca }
     public Mode mode;
     public Transform anchor;         // obiekt, względem którego liczona jest poza (pojazd, siedzisko)
     public float weight;             // 0..1 — płynne wejście/wyjście z pozy
@@ -18,6 +20,8 @@ public sealed class BraxPose : MonoBehaviour
     // Celów nie przypinamy do kości ręki: oba pochodzą z nieruchomych punktów
     // uchwytu w oryginalnym modelu jachtu / skutera / motorówki.
     public Transform leftGrip, rightGrip;
+    // klip = gra klip „Jazda” (siedzenie i ręce z animacji właściciela). Skuter: z klipu tułów i ręce, nogi okrakiem z kodu.
+    public bool klip;
 
 
     Transform visual, hips, spine, chest, head, lUp, lLeg, lFoot, rUp, rLeg, rFoot, lArm, lFore, lHand, rArm, rFore, rHand;
@@ -35,7 +39,7 @@ public sealed class BraxPose : MonoBehaviour
     public void Set(Mode m, Transform a)
     {
         mode = m; anchor = m == Mode.None ? null : a;
-        if (m == Mode.None) SetGrips(null, null);
+        if (m == Mode.None) { SetGrips(null, null); klip = false; }
     }
     public void SetGrips(Transform left, Transform right)
     { leftGrip = left; rightGrip = right; }
@@ -94,7 +98,7 @@ public sealed class BraxPose : MonoBehaviour
         if (doCel.magnitude > maks)
             cel = bark.position + doCel.normalized * maks;
         float w = Mathf.Clamp01(weight);
-        for (int iter = 0; iter < 3; iter++)
+        for (int iter = 0; iter < 8; iter++)   // 10.11: 8 kroków (było 3 — dłonie zostawały 8–13 cm od kierownicy skutera)
         {
             Vector3 odBarku = dlon.position - bark.position;
             Vector3 kier = cel - bark.position;
@@ -125,11 +129,19 @@ public sealed class BraxPose : MonoBehaviour
         {
             case Mode.Ride:   // SKUTER (właściciel 3.11: „ma normalnie siedzieć”): okrakiem — uda na boki siodła i w dół, łydki w dół
                               // i lekko do tyłu (stopy w zagłębieniach po bokach), tułów pochylony, ręce na kierownicy
-                Aim(spine, chest ? chest : head, U * .82f + F * .5f, w);
-                Aim(lUp, lLeg, F * .62f - U * .5f + R * -.6f, w); Aim(rUp, rLeg, F * .62f - U * .5f + R * .6f, w);
-                Aim(lLeg, lFoot, -U * .95f - F * .2f + R * -.08f, w); Aim(rLeg, rFoot, -U * .95f - F * .2f + R * .08f, w);
-                Aim(lArm, lFore, F * .55f - U * .6f + R * -.25f, w); Aim(rArm, rFore, F * .55f - U * .6f + R * .25f, w);
-                Aim(lFore, lHand, F * .95f - U * .12f, w); Aim(rFore, rHand, F * .95f - U * .12f, w);
+                // 10.11 (podgląd): tułów mniej zgarbiony, uda bardziej w przód i mniej na boki, łydki w dół i w tył (stopy w zagłębieniach)
+                Aim(spine, chest ? chest : head, U * .9f + F * .4f, w);
+                Aim(lUp, lLeg, F * .75f - U * .35f + R * -.45f, w); Aim(rUp, rLeg, F * .75f - U * .35f + R * .45f, w);
+                Aim(lLeg, lFoot, -U * .8f - F * .35f + R * -.05f, w); Aim(rLeg, rFoot, -U * .8f - F * .35f + R * .05f, w);
+                if (!klip)
+                {
+                    Aim(lArm, lFore, F * .55f - U * .6f + R * -.25f, w); Aim(rArm, rFore, F * .55f - U * .6f + R * .25f, w);
+                    Aim(lFore, lHand, F * .95f - U * .12f, w); Aim(rFore, rHand, F * .95f - U * .12f, w);
+                }
+                break;
+            case Mode.Kierowca:   // motorówka, jacht: siedzenie i ręce z klipu „Jazda”; tułów lekko do koła (klip auta odchyla
+                                  // plecy do oparcia, przy sterze łodzi ramiona nie sięgały wieńca), dłonie na kole niżej
+                Aim(spine, chest ? chest : head, U * .9f + F * .32f, w * .85f);
                 break;
             case Mode.Ster:   // MOTORÓWKA: fotel sternika — wyprostowany, uda w przód, łydki w dół, ręce do koła sterowego przed sobą
                 Aim(spine, chest ? chest : head, U * .95f + F * .2f, w);
@@ -178,7 +190,7 @@ public sealed class BraxPose : MonoBehaviour
                 }
                 break;
         }
-        if (mode == Mode.Ride || mode == Mode.Ster)
+        if (mode == Mode.Ride || mode == Mode.Ster || mode == Mode.Kierowca)
         {
             // Oryginalny Mixamo rig, prawdziwe punkty na kierownicy:
             // ręce poruszają się razem ze sterem przy przechyle na falach.

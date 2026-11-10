@@ -15,6 +15,9 @@ unity-city/braxhorn.versioncode
 # prywatne zasoby właściciela odszyfrowane w CI (repo publiczne — w gicie tylko unity-city/Prywatne/*.tar.gz.enc)
 unity-city/Assets/Source/Prywatne/
 unity-city/Assets/Source/Prywatne.meta
+# 10.11: Driving.fbx właściciela (Brax przy sterze) — pobierany w CI z jego wydania (unity-tools/claude/brax_jazda.py), nigdy w gicie
+unity-city/Assets/Source/Claude/Brax/
+unity-city/Assets/Source/Claude/Brax.meta
 
 # rejon buildu CI (pisze unity-tools/claude/rejon_buildu.py przed Unity)
 unity-city/rejon-ci.txt

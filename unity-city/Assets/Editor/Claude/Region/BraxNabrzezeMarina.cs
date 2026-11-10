@@ -37,6 +37,8 @@ public static class BraxNabrzezeMarina
     public static void Buduj(Transform portRoot, Transform cityRoot)
     {
         Miejsca.Clear();
+        // 10.11: klip „Jazda” (Driving.fbx właściciela) dla Braxa — skuter, motorówka, jacht (BraxVessel.UstawZaSterem)
+        try { BraxMiastoJazdaBraxa.DodajDoGraczy(); } catch (Exception e) { Debug.LogWarning("BRAXHORN_BRAX_JAZDA DO POPRAWKI: " + e.Message); }
         var root = new GameObject("CLAUDE plaża: marina (od nowa)").transform;    // nazwa „CLAUDE plaża*” → obszar Nabrzeże
         root.SetParent(portRoot, false); root.position = Vector3.zero;
 
@@ -227,13 +229,19 @@ public static class BraxNabrzezeMarina
 
     // ---------------- A 2.11: pomost poprzeczny E i drugi pomost pływający D (jachty w rzędach jak w prawdziwej marinie) ----------------
     public const float DX0 = 136f;
-    static readonly float[] PalceD = { 22.5f, 34.5f, 46.5f, 58.5f, 70.5f };          // palce boksów D (co 12 m); od płn. boks zamyka odnoga G
-    static readonly float[] PalceF = { 22.5f, 34.5f, 46.5f, 58.5f, 70.5f, 82.5f };   // palce boksów F (na wschód od F)
+    static readonly float[] PalceD = { 22.5f, 34.5f, 46.5f, 58.5f, 70.5f };          // palce boksów D (co 12 m) — 10.11: bez jachtów (patrz niżej)
+    // 10.11 (właściciel 18:19–18:20: jachty w PRAWDZIWEJ wielkości jak w Mistrzach — yacht.glb 40,33 × 8,2 m × K; „nie rób takiej
+    // wielkiej mariny, tam ma być większa, tobie starczy z 5”): te same pomosty; jachty tylko przy A i w boksach F (dziobem na otwartą
+    // wodę). W boksach D jacht 52 m stałby dziobem 15 m od pomostu F — nie wypłynąłby (ten błąd właściciel zgłosił 2.11).
+    // Boksy F pod kadłub 8,2 m × K = 10,6: palce 2 m × K co 14,5 (woda 11,9, po 0,65 z każdej burty na odbijacze), długość 30.
+    static readonly float[] PalceF = { 22f, 36.5f, 51f, 65.5f, 80f };    // palce boksów F (na wschód od F)
+    const float PalecPol = 1f;   // połowa szerokości palca F × K (palec 2 m × K)
     // WŁAŚCICIEL 3.11 10:37: „jeszcze raz pomost długi, dalej wzdłuż plaży, i jeszcze jedną odnogę” — drugi długi pomost F dalej
     // na wschód (tor 30 m między dziobami jachtów D a pomostem F) i odnoga G z pomostu E/D do F (przedłużenie E na wschód).
     public const float FX0 = 207f;
     public static float FX1 => FX0 + 2.5f * BraxNabrzeze.K;
     const float PalecDl = 12f;
+    const float PalecDlF = 30f;  // 10.11: palec F ~23 m × K przy kadłubie 52 m
     public static float DX1 => DX0 + 2.5f * BraxNabrzeze.K;
     static void PomostyDE(BraxNabrzeze.Zbior z, Transform kol, BraxNabrzezeMebel.Mat m, Material deski, Material plywak, Material alu)
     {
@@ -245,7 +253,7 @@ public static class BraxNabrzezeMarina
         // G: odnoga z E/D na wschód do F (ta sama szerokość i wysokość co E); F: drugi długi pomost; palce F na wschód
         Pomost(z, kol, m, deski, plywak, DX1, FX1, PomZ1, ez1, pok);
         Pomost(z, kol, m, deski, plywak, FX0, FX1, PomZ0, PomZ1, pok);
-        foreach (float zf in PalceF) Pomost(z, kol, m, deski, plywak, FX1, FX1 + PalecDl, zf - .5f * K, zf + .5f * K, pok);
+        foreach (float zf in PalceF) Pomost(z, kol, m, deski, plywak, FX1, FX1 + PalecDlF, zf - PalecPol * K, zf + PalecPol * K, pok);
         for (float zz = PomZ0 + 2f; zz < PomZ1; zz += 15f) z[alu].Rura(new Vector3(FX1 - .3f, -5f, zz), new Vector3(FX1 - .3f, pok + 2.4f * K, zz), .18f, 12);
         Krawedz(kol, new Vector3(DX1, 0, ez1 + .1f), new Vector3(FX1, 0, ez1 + .1f), pok);        // G północ
         Krawedz(kol, new Vector3(DX1, 0, PomZ1 - .1f), new Vector3(FX0, 0, PomZ1 - .1f), pok);    // G południe (między D a F)
@@ -390,7 +398,8 @@ public static class BraxNabrzezeMarina
 
     // ---------------- łodzie przy pomostach ----------------
     struct Typ { public string plik, label; public float dlug, zanurzenie, vmax, skret, przysp; public bool siedzi; }
-    static readonly Typ Jacht = new Typ { plik = "yacht.glb", label = "JACHT", dlug = 20f, zanurzenie = .11f, vmax = 7.5f, skret = 22f, przysp = 1.6f, siedzi = true };   // A 2.11: „płynę SIEDZĄC jak człowiek” — fotel sternika
+    // 10.11: dlug 40,33 = prawdziwa długość modelu (Sergei, Sketchfab) — skala tylko × K; przy 20 m pokłady były „dla pół człowieka”
+    static readonly Typ Jacht = new Typ { plik = "yacht.glb", label = "JACHT", dlug = 40.33f, zanurzenie = .11f, vmax = 7.5f, skret = 22f, przysp = 1.6f, siedzi = true };   // A 2.11: „płynę SIEDZĄC jak człowiek” — fotel sternika
     static readonly Typ Riva = new Typ { plik = "bateau_riva_boat.glb", label = "MOTORÓWKA", dlug = 8.2f, zanurzenie = .21f, vmax = 13f, skret = 45f, przysp = 3.5f, siedzi = true };
     static readonly Typ Skuter = new Typ { plik = "jetski_01.glb", label = "SKUTER", dlug = 3.3f, zanurzenie = .17f, vmax = 17f, skret = 95f, przysp = 6.5f, siedzi = true };
 
@@ -404,7 +413,8 @@ public static class BraxNabrzezeMarina
         // port”): jachty stały w rzędzie jeden za drugim w kanale 20 m między pomostami A i D (z obu stron) — jacht 26 m nie miał jak
         // wyjść ani zawrócić (przed dziobem drugi jacht). Teraz w każdej linii JEDEN jacht dziobem do wyjścia: A-wschód z 35
         // (kanał A–D wolny, ~14 m), D-wschód z 36 (otwarta woda na wschód) — wychodzą na południe i skręcają w tor wodny ku wyspie.
-        foreach (float zc in new[] { 35f })
+        // 10.11: jacht 52 m × K — środek tak, by cały kadłub stał wzdłuż pomostu A (z 21…82), rufa 1 m od jego początku
+        foreach (float zc in new[] { PomZ0 + Jacht.dlug * K * .5f + 1f })
         {
             var v = Lodz(portRoot, Jacht, "Marina: jacht " + (n + 1), new Vector3(0, 0, zc), 180f, burtaX: x1 + .45f, zachod: false);
             if (v) { n++; Cumy(z, cumy, odbij, v, new Vector3(x1, pok, zc), true); }
@@ -414,18 +424,19 @@ public static class BraxNabrzezeMarina
         // Z pomostu na rufę trap (deska z poręczami); WSIĄDŹ przy trapie. Woda zajęta (kolizje) = boks pusty z logiem.
         int nBoks = 0;
         var boksyJ = new List<(float x, float zc, string nazwa)>();
-        var granD = PalceD.Concat(new[] { PomZ1 + .5f * K }).ToArray();   // ostatni boks D zamyka odnoga G
-        for (int i = 0; i + 1 < granD.Length; i++) boksyJ.Add((DX1, (granD[i] + granD[i + 1]) * .5f, "D" + (i + 1)));
+        // 10.11: jachty 40 m tylko w boksach F (boksy D zostają puste — za mało miejsca przed dziobem na wypłynięcie)
         for (int i = 0; i + 1 < PalceF.Length; i++) boksyJ.Add((FX1, (PalceF[i] + PalceF[i + 1]) * .5f, "F" + (i + 1)));
         // Cztery realne jachty w marinie: jeden przy A i trzy w boksach D/F.
         // Najpierw szeroko rozstawione boksy; pozostałe to alternatywy, jeśli miejsce jest faktycznie zajęte.
         // Nie odrzucać jachtu tylko dlatego, że Physics.OverlapBox trafił na pływak pomostu,
         // globalny collider morza lub niewidzialną bryłę tła miasta.
-        var preferowane = boksyJ.Where(b => b.nazwa == "D1" || b.nazwa == "D3" || b.nazwa == "F2");
-        var pozostale = boksyJ.Where(b => b.nazwa != "D1" && b.nazwa != "D3" && b.nazwa != "F2");
+        // 10.11 (właściciel: „tobie starczy z 5”): 5 jachtów — przy A oraz w boksach F1…F4
+        var pref = new[] { "F1", "F2", "F3", "F4" };
+        var preferowane = boksyJ.Where(b => pref.Contains(b.nazwa));
+        var pozostale = boksyJ.Where(b => !pref.Contains(b.nazwa));
         foreach (var (bx, zc, bn) in preferowane.Concat(pozostale))
         {
-            if (n >= 4) break;
+            if (n >= 5) break;
             float pol = Jacht.dlug * K * .5f;
             bool lad = false; for (float xs = bx + .5f; xs <= bx + .5f + 2f * pol; xs += 4f) for (float dz = -3f; dz <= 3f; dz += 3f) if (BraxNabrzezePlaza.Wysokosc(xs, zc + dz) > W - .8f) lad = true;
             if (lad) { BraxNabrzeze.Log("MARINA boks " + bn + ": za płytko / ląd — jacht pominięty"); continue; }
@@ -453,7 +464,7 @@ public static class BraxNabrzezeMarina
                 foreach (float xs in new[] { bx - .15f, bx + 1.25f }) z[m.stalCiemna].BoxMM(new Vector3(xs - .02f, pok, zc + sz - .02f), new Vector3(xs + .02f, pok + .92f * K, zc + sz + .02f));
             }
         }
-        BraxNabrzeze.Log("MARINA: jachtów " + n + " (wymagane minimum 3, cel 4); w boksach D/F " + nBoks +
+        BraxNabrzeze.Log("MARINA: jachtów " + n + " (prawdziwa wielkość 40,33 × 8,2 m × K; wymagane minimum 3, cel 5); w boksach D/F " + nBoks +
             "/" + boksyJ.Count + ". Biegi wyjściowe odseparowane, bez nakładania kadłubów na pomosty; pomost F x " + FX0);
         if (n < 3)   // R1 9.11: ostrzeżenie, nie błąd — port jest grywalny także z mniejszą liczbą jachtów
             Debug.LogWarning("BRAXHORN_MARINA DO POPRAWKI (NIEGOTOWA): mniej niż 3 jachty po ustawieniu — zweryfikować źródło yacht.glb, obrys wody i kolizje przy testowym uruchomieniu");
@@ -553,6 +564,43 @@ public static class BraxNabrzezeMarina
         Vector3 celSteru = znalezionySter ? allHelms[0].local :
             vessel.seat + new Vector3(0f, (t.label == "SKUTER" ? .43f : .45f) * K,
                 (t.label == "SKUTER" ? .60f : .80f) * K);
+        // 10.11 (właściciel 17:37: „ręce na kierownicy”): w RIVIE „compteurs” to deska zegarów (1,05 m przed fotelem, na wysokości
+        // siedziska) — dłonie nie sięgały. Prawdziwe koło: piasta z zegarem „Cylinder_3”, wieniec w „Subdivision_Surface_4” (Mat.4).
+        // Dłonie na wieńcu na godz. 10 i 2; biodra 0,45 m za piastą, w obrysie fotela assise_4.
+        Vector3 chwytL = new Vector3(-1f, 0f, 0f), chwytP = new Vector3(1f, 0f, 0f);
+        if (t.label == "MOTORÓWKA")
+        {
+            var piasta = go.GetComponentsInChildren<Transform>(true).FirstOrDefault(x => x && x.name.Equals("Cylinder_3", StringComparison.OrdinalIgnoreCase));
+            var wienR = go.GetComponentsInChildren<Renderer>(true).FirstOrDefault(x => x && x.name.StartsWith("Subdivision_Surface_4", StringComparison.OrdinalIgnoreCase) && x.name.IndexOf("Mat.4", StringComparison.OrdinalIgnoreCase) >= 0);
+            var fotel = go.GetComponentsInChildren<Transform>(true).FirstOrDefault(x => x && x.name.Equals("assise_4", StringComparison.OrdinalIgnoreCase));
+            if (piasta)
+            {
+                var hub = v.transform.InverseTransformPoint(BraxRegion.Bounds(piasta.gameObject).center);
+                float R = wienR ? Mathf.Clamp(Mathf.Max(wienR.bounds.size.x, wienR.bounds.size.z) * .5f - .02f, .18f * K, .36f * K) : .25f * K;   // łódź obrócona w marinie: szerokość wieńca = większy wymiar poziomy
+                celSteru = hub; znalezionySter = true;
+                chwytL = new Vector3(-R * .866f, R * .5f, 0f); chwytP = new Vector3(R * .866f, R * .5f, 0f);
+                if (fotel)
+                {
+                    var fb = BraxRegion.Bounds(fotel.gameObject);
+                    float z0 = v.transform.InverseTransformPoint(fb.min).z, z1 = v.transform.InverseTransformPoint(fb.max).z;
+                    vessel.seat.z = Mathf.Clamp(hub.z - .50f * K, Mathf.Min(z0, z1) + .2f, Mathf.Max(z0, z1) - .12f);
+                    // 10.11 (właściciel 18:15 „szczególnie motorówka”): siedzisko = powierzchnia poduszki pod biodrami (promień w dół),
+                    // a nie rama chrom + 7 cm — Brax wisiał 0,19 m nad poduszką i głową sięgał ramy szyby
+                    var tmpF = new List<MeshCollider>();
+                    foreach (var f in fotel.GetComponentsInChildren<MeshFilter>(true)) { if (!f.sharedMesh) continue; var mc = f.gameObject.AddComponent<MeshCollider>(); mc.sharedMesh = f.sharedMesh; tmpF.Add(mc); }
+                    Physics.SyncTransforms();
+                    var pw = v.transform.TransformPoint(new Vector3(vessel.seat.x, 0f, vessel.seat.z));
+                    var trafF = Physics.RaycastAll(pw + v.transform.up * 20f, -v.transform.up, 40f, ~0, QueryTriggerInteraction.Collide)
+                        .Where(h => tmpF.Contains(h.collider as MeshCollider) && Vector3.Dot(h.normal, v.transform.up) > .5f)
+                        .Select(h => v.transform.InverseTransformPoint(h.point).y).OrderByDescending(y => y).ToList();
+                    foreach (var mc in tmpF) UnityEngine.Object.DestroyImmediate(mc);
+                    if (trafF.Count > 0) vessel.seat.y = trafF[0];
+                    else Debug.LogWarning("BRAXHORN_RIVA_KOLO DO POPRAWKI: brak poduszki pod biodrami — wysokość z ramy fotela");
+                }
+                Debug.Log("BRAXHORN_RIVA_KOLO piasta=" + hub.ToString("F2") + " promień=" + R.ToString("F2") + " biodra z=" + vessel.seat.z.ToString("F2"));
+            }
+            else Debug.LogWarning("BRAXHORN_RIVA_KOLO DO POPRAWKI: brak piasty Cylinder_3 — dłonie przy desce zegarów");
+        }
         // Jacht/motorówka — koło przed fotelem; skuter — dwie strony
         // rzeczywistego drążka. Markery nie mają rendererów ani kolizji.
         float gripHalfWidth = t.label == "SKUTER" ? .34f * K : .22f * K;
@@ -568,6 +616,7 @@ public static class BraxNabrzezeMarina
         }
         vessel.leftGrip = Uchwyt("LEWA dłoń na kierownicy", -gripHalfWidth);
         vessel.rightGrip = Uchwyt("PRAWA dłoń na kierownicy", gripHalfWidth);
+        if (t.label == "MOTORÓWKA" && chwytL.y > 0f) { vessel.leftGrip.localPosition = chwytL; vessel.rightGrip.localPosition = chwytP; }
         vessel.helmTargetLocal = celSteru;
         if (!znalezionySter)
             Debug.LogWarning("BRAXHORN_STER_ZRODLO " + t.label +
@@ -577,19 +626,19 @@ public static class BraxNabrzezeMarina
             // Najpierw chodzenie po pokładzie, później sterowanie.
             vessel.walkableDeck = true;
             vessel.deckEntry = new Vector3(0f, vessel.seat.y - .13f * K,
-                                              -.42f * vessel.length);
+                                              -.40f * vessel.length);   // 10.11: w obrysie pokładu flybridge'u (rufa modelu −0,415 l)
+            // 10.11 (właściciel 17:37: „jacht — ze środka kamera, widok zza steru”): model nie ma koła ani konsoli, więc
+            // stanowisko sternika z kodu tuż za szybą flybridge'u; ono ustawia fotel, dłonie, koło i kamerę.
+            if (BraxNabrzezeSter.Jacht(v.transform, go, vessel))
+            {
+                UnityEngine.Object.DestroyImmediate(uchwyty.gameObject);   // zgadywane punkty chwytu przy rufie — już niepotrzebne
+                celSteru = vessel.helmTargetLocal; znalezionySter = true;
+            }
         }
-        if (t.label == "JACHT" || t.label == "MOTORÓWKA")
-        {
-            // Widok z miejsca sternika: za realnym sterem i ponad nim;
-            // jednocześnie w kokpicie, a nie za rufą ani wewnątrz modelu Braxa.
-            vessel.helmCameraLocal = new Vector3(
-                vessel.seat.x,
-                vessel.seat.y + (t.label == "JACHT" ? .95f : .82f) * K,
-                Mathf.Min(vessel.seat.z - .20f * K, celSteru.z - .65f * K));
-        }
+        // Właściciel 10.11 17:37: „widok za sterem w jachcie, NIE w motorówce” — motorówka i skuter: kamera z tyłu (TPP),
+        // Brax siedzi w fotelu kierowcy z rękami na kierownicy (klip „Jazda”). Kamerę zza steru ma tylko jacht (wyżej).
         Debug.Log("BRAXHORN_STER_KAMERA " + t.label +
-            " zrodlo=" + (znalezionySter ? allHelms[0].node.name : "NIE_ZWERYFIKOWANE") +
+            " zrodlo=" + (t.label == "JACHT" && znalezionySter ? "stanowisko z kodu" : znalezionySter ? allHelms[0].node.name : "NIE_ZWERYFIKOWANE") +
             " seat=" + vessel.seat.ToString("F2") +
             " ster=" + celSteru.ToString("F2") +
             " kamera=" + vessel.helmCameraLocal.ToString("F2"));
@@ -678,7 +727,7 @@ public static class BraxNabrzezeMarina
         Physics.SyncTransforms();
         float l = t.dlug * K;
         float zl = t.label == "JACHT" ? -.32f * l :
-                   t.label == "MOTORÓWKA" ? .08f * l : -.12f * l;
+                   t.label == "MOTORÓWKA" ? .08f * l : -.155f * l;   // skuter 10.11: kierowca 15 cm dalej od kierownicy (podgląd)
         var p = v.TransformPoint(new Vector3(0, 0, zl));
         var hits = Physics.RaycastAll(p + Vector3.up * 30f, Vector3.down,
                                       40f, ~0, QueryTriggerInteraction.Collide);
