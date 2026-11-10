@@ -10,8 +10,9 @@ using W = BraxWnetrzaKit;
 // Nominal metres, K applied once by B()/BeveledBox() or by the K-scaled group.
 public static partial class BraxChampionsCasinoT11
 {
-    // Owner 10.11 00:33: "A gdzie jest ten dolar złoty, co był taki duży na kasynie u góry? Czemu go nie ma teraz?" - back on the roof.
-    const bool RoofDollarOnOwnerBoard = true;
+    // Owner 10.11 00:33 wanted the $ back; 13:03 on the phone (APK 37): "Mało czytelny i strasznie wygląda ... ta wielka
+    // kopuła czarna ogromna ... Ma być premium. Całe do zdjęcia." - the $, the sign band and the black dome are removed.
+    const bool RoofDollarOnOwnerBoard = false;
     // Elevation levels (nominal metres).
     const float YPlinth = .80f, YSpanBottom = 6.60f, YSpanTop = 7.60f, YHead = 12.0f, YAttic = 14.0f;
     const float PierW = 1.4f, CornerPierW = 2.0f, PierDepth = .62f, GlassRecess = .44f;
@@ -31,8 +32,8 @@ public static partial class BraxChampionsCasinoT11
             B(parent, name, m, p.x, p.y, p.z, size.x, size.y, size.z, solid);
         }
         // Glass (solid: the podium interior is not walkable), lower and upper storey.
-        Box(shell, "T11 " + side + " tall window glass lower", frontGlass, c, (YPlinth + YSpanBottom) * .5f, glass, Size(w, YSpanBottom - YPlinth, .06f), true);
-        Box(shell, "T11 " + side + " tall window glass upper", frontGlass, c, (YSpanTop + YHead) * .5f, glass, Size(w, YHead - YSpanTop, .06f), true);
+        Box(shell, "T11 " + side + " tall window glass lower", blackGlass, c, (YPlinth + YSpanBottom) * .5f, glass, Size(w, YSpanBottom - YPlinth, .06f), true);
+        Box(shell, "T11 " + side + " tall window glass upper", blackGlass, c, (YSpanTop + YHead) * .5f, glass, Size(w, YHead - YSpanTop, .06f), true);
         // Graphite storey spandrel with a champagne line.
         Box(shell, "T11 " + side + " graphite storey spandrel", graphite, c, (YSpanBottom + YSpanTop) * .5f, glass + outward * .07f, Size(w, YSpanTop - YSpanBottom, .20f), false);
         Box(trim, "T11 " + side + " spandrel champagne line", gold, c, (YSpanBottom + YSpanTop) * .5f, glass + outward * .185f, Size(w, .06f, .03f), false);

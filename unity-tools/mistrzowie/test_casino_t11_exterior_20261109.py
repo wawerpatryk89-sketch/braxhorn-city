@@ -67,7 +67,8 @@ class CasinoExterior20261109(unittest.TestCase):
         self.assertIn('"Garage driveway WEST concrete curb"', self.casino)
         self.assertIn('"Garage driveway EAST concrete curb"', self.casino)
         # planter + shrub 3.4 m wide stood at x 38 = 15 cm inside the asphalt
-        self.assertEqual(self.casino.count("side>0&&z<0?37.6f:side*43f"), 2)   # planter and its shrubs
+        self.assertEqual(self.casino.count("side>0?37.6f:side*43f"), 1)          # planter (palm and shrub stand in it)
+        self.assertEqual(self.casino.count("side>0&&z<0?37.6f:side*43f"), 1)   # its shrubs
         self.assertLess(37.6 + 3.4 / 2, 39.37)
         # east light bollards stood at x 48 = on the driveway and in the air over the ramp
         self.assertNotIn("led,side*48f,.62f", self.casino)
@@ -91,11 +92,12 @@ class CasinoExterior20261109(unittest.TestCase):
         # "jedno poprawiłeś, a drugie zepsułeś": no glowing board behind the glass
         self.assertNotIn('" interior warm backdrop"', facade)
         # "wejście zlane z szybą": gold portal, canopy, framed gold door leaves
-        for label in ("T11 entrance portal solid gold jamb", "T11 entrance portal solid gold lintel",
-                      "T11 entrance canopy black body", "Gold door leaf top rail", "Gold door leaf meeting stile"):
+        # owner 10.11 13:04: one door standard everywhere - black portal with a gold edge, black framed leaves
+        for label in ("T11 entrance portal black jamb", "T11 entrance portal black lintel",
+                      "T11 entrance canopy black body", "Black door leaf top rail", "Black door leaf meeting stile"):
             self.assertIn(label, self.casino)
         # "A gdzie jest ten dolar złoty" / "na środku" / "jasne złoto, świecące się"
-        self.assertIn("const bool RoofDollarOnOwnerBoard = true;", facade)
+        self.assertIn("const bool RoofDollarOnOwnerBoard = false;", facade)   # 13:03: "całe do zdjęcia"
         self.assertIn("const float x=0f,z=-21f,roofY=14.40f,nominalHeight=15.0f;", self.casino)
         self.assertIn("mats[i]=dollarGold;", self.casino)
         # "Wszystko, co złote, ma być złote": one yellow gold, half-metallic, self-lit

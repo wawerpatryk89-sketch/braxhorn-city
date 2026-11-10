@@ -31,6 +31,12 @@ T11_GARAGE_RAMP=(534.15,443.0,10.15,51.0)
 # a single graded drivable mesh (city road y=.16 -> casino apron y=.2485).
 # Preserve the city road itself and all sidewalk outside z=417..428.
 T11_STREET_ENTRANCE=(410.0,417.0,7.0,11.0)
+# 10.11 (owner 13:01-13:06 "zakaz nakładania", "nie ma dojazdu z ulicy"): the graded connector runs from x 410 to the plot
+# line x 435 over what was lawn - the lawn under it is cut too, nothing lies under the asphalt.
+T11_STREET_ENTRANCE_LAWN=(417.0,417.0,18.0,11.0)
+# South drive from road Z330 to the drop-off loop (BraxChampionsCasinoT11 'south_street_road_connection', local x
+# -23.5..-16.5): across the Z330 south sidewalk (z 340..347) and the lawn to the plot line z 415.
+T11_SOUTH_DRIVE=(471.5,340.0,7.0,75.0)
 # 9.11 owner: pool P1 removed completely - no excavations, the lot is ordinary ground.
 XROAD=[70,400,800,1130];ZROAD=[-70,70,330,650,935]
 walks=[(x-4,-180,8,93) for x in (230,530,700,1080)]
@@ -50,6 +56,7 @@ def inside(p,r):
 def zone(x,z):
  if inside((x,z),T11_GARAGE_RAMP):return None
  if inside((x,z),T11_STREET_ENTRANCE):return None
+ if inside((x,z),T11_STREET_ENTRANCE_LAWN) or inside((x,z),T11_SOUTH_DRIVE):return None
  if any(inside((x,z),r) for r in A1_PARKING_ENTRANCES):return None
  if any(inside((x,z),r) for r in ENTRANCE_HOLES):return None
  if any(inside((x,z),r) for r in ENTRANCE_PATHS+BUILDING_ACCESS):return 'paving'
@@ -116,7 +123,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE]+A1_PARKING_ENTRANCES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS+DINING_BED_RECTS
+rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE,T11_STREET_ENTRANCE_LAWN,T11_SOUTH_DRIVE]+A1_PARKING_ENTRANCES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS+DINING_BED_RECTS
 for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
@@ -313,9 +320,19 @@ for x in range(0,1200,5):
   for z in range(-500,-150,5):quad('sea',x0,z,x1,z+5)
 
 plants=[]
+# Owner 10.11 12:39 ("palma na chodniku", "palma w kostce rośnie"): no tree ever enters what a plot's own generator builds
+# outside the plot line. Hotel Sobczak T03 has its drop-off loop, islands and fountains in the 13 m strip to road Z650
+# (BraxChampionsHotelSobczakT03.Site: x +-16, local z -43.2..-30): two ring palms stood in the fountains.
+GENERATOR_FRONTAGE=[(1030-16-2.5,710-43.2-2.5,32+5,13.2+5)]
+DESIGNED_BEDS=('promenade_bed','dining_bed')
 def plant(x,z,kind,source,band):
- # A genuine grass patch is required, with >=1.5m clear root disk, never pavement.
- if not all(zone(x+dx,z+dz)=='grass' for dx,dz in [(0,0),(1.5,0),(-1.5,0),(0,1.5),(0,-1.5)]):return
+ # A genuine grass patch is required, never pavement, never inside a plot generator's own frontage. Free planting: a 2.0 m
+ # clear root disk in 8 directions (the thick palm's flared trunk base is ~1.3 m across in game); the designed beds of the
+ # promenade and the dining islands keep their own 1.5 m disk (the bed is drawn round the palm).
+ r=1.5 if band in DESIGNED_BEDS else 2.0
+ ring=[(0,0)]+[(r*math.cos(k*math.pi/4),r*math.sin(k*math.pi/4)) for k in range(8)]
+ if not all(zone(x+dx,z+dz)=='grass' for dx,dz in ring):return
+ if any(inside((x,z),r) for r in GENERATOR_FRONTAGE):return
  if any((p['x']-x)**2+(p['z']-z)**2<100 for p in plants):return
  plants.append(dict(id=f'V{len(plants)+1:04}',x=x,z=z,kind=kind,variant=source,band=band,yaw=(len(plants)*137.508)%360))
 # Seaside palm row first (owner 10.11: thick palms along a walk): the owner's thick-trunk palma in every bed.

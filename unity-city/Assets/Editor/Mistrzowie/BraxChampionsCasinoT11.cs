@@ -31,7 +31,7 @@ public static partial class BraxChampionsCasinoT11
     static string output;
     static int serial;
     static Transform root,shell,trim,signRoot;
-    static Material cream,graphite,windowFrame,interiorBack,violet,granite,asphalt,paving,gold,pillarGold,steel,glass,frontGlass,skylightGlass,led,roof,redCarpet,parkingPaint,signBacking,curtain;
+    static Material cream,graphite,windowFrame,interiorBack,violet,granite,asphalt,paving,gold,pillarGold,steel,glass,frontGlass,blackGlass,skylightGlass,led,roof,redCarpet,parkingPaint,signBacking,curtain,palmBed;
     static readonly System.Collections.Generic.Dictionary<string,Mesh> bevelMeshes=
         new System.Collections.Generic.Dictionary<string,Mesh>();
     // White finishes are GARAGE-ONLY. Do not repaint the owner-approved casino exterior.
@@ -103,6 +103,12 @@ public static partial class BraxChampionsCasinoT11
         // frame divisions and visible interior. Does not tint side masonry.
         frontGlass=Surface("front_smoke_glass",new Color(.82f,.91f,.97f,.15f),true,false);
         frontGlass.SetFloat("_ReflectionStrength",.85f);
+        // Owner 10.11 12:28-12:50 (all buildings): only the door leaves are light glass, the glazing round them is black,
+        // "zakaz szarego ... albo czarne". Rotunda, tall windows and the door transom: black reflective glass.
+        blackGlass=Surface("black_architectural_glass",new Color(.025f,.03f,.035f,.92f),true,false);
+        blackGlass.SetFloat("_ReflectionStrength",1f);
+        // palms stand in soil beds, never in the stone apron (owner 12:39 "palma w kostce rośnie")
+        palmBed=AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/Mistrzowie/Materials/grass.mat");
          // The reference drawing has a blue-violet translucent glazed roof lantern.
         skylightGlass=Surface("roof_skylight_glass",new Color(.48f,.56f,.76f,.38f),true,false);
         led=Surface("warm_led",new Color(.92f,.78f,.57f),false,true);
@@ -162,7 +168,7 @@ public static partial class BraxChampionsCasinoT11
         o.transform.localScale=new Vector3(w,h,d)*K;
         var renderer=o.GetComponent<MeshRenderer>();
         renderer.sharedMaterial=mat;
-        bool transparent=mat==glass||mat==frontGlass||mat==skylightGlass;
+        bool transparent=mat==glass||mat==frontGlass||mat==blackGlass||mat==skylightGlass;
         if(transparent){renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;}
         if(tiled || ((mat==cream || mat==graphite || mat==granite || mat==roof || mat==paving || mat==asphalt || mat==gold || mat==pillarGold) && Mathf.Max(w,Mathf.Max(h,d))>3f))
             Tile(o,new Vector3(w,h,d));
@@ -294,7 +300,7 @@ public static partial class BraxChampionsCasinoT11
         // Real half-elliptical roof over the curved glass rotunda. The approved
         // image shows a rounded canopy, not a rectangular box.
         const int sides=48;
-        const float yTop=14.24f,yBottom=14.03f;
+        const float yTop=11.10f,yBottom=10.80f;          // slim roof right on the glass (was a 14 m dome over a fascia)
         var verts=new System.Collections.Generic.List<Vector3>();
         var uv=new System.Collections.Generic.List<Vector2>();
         // Centre is on the chord where the rotunda meets the main podium.
@@ -346,7 +352,7 @@ public static partial class BraxChampionsCasinoT11
             float length=delta.magnitude;
             Quaternion yaw=Quaternion.Euler(0,Mathf.Atan2(-delta.z,delta.x)*Mathf.Rad2Deg,0);
             float bottom=Mathf.Abs(centre.x)<3.1f?3.9f:.26f;
-            var pane=B(shell,"T11 curved graphite-smoke glass | rotunda only",frontGlass,
+            var pane=B(shell,"T11 curved black glass | rotunda only",blackGlass,
                 centre.x,(10.8f+bottom)*.5f,centre.z,length+.045f,10.8f-bottom,.115f,false);
             pane.transform.localRotation=yaw;
 
@@ -360,29 +366,21 @@ public static partial class BraxChampionsCasinoT11
                 mullion.transform.localRotation=yaw;
             }
 
+            // Owner 10.11 13:03: the 2.5 m black fascia band and the black dome on top ("ta wielka kopuła czarna") are
+            // gone. The glass ends in a slim black roof (RotundaRoofCap, 30 cm) with one gold edge line just outside it.
             float q=centre.z+28f;
             Vector3 outward=new Vector3(centre.x/(17f*17f),0,q/(8f*8f)).normalized;
-            Vector3 fasciaCentre=centre-outward*.18f;
-            var fascia=BeveledBox(trim,"T11 curved graphite premium fascia 48_OF_48",graphite,
-                fasciaCentre.x,12.5f,fasciaCentre.z,length+.12f,2.50f,.25f,.035f,false);
-            fascia.transform.localRotation=yaw;
-
-            var lower=BeveledBox(trim,"T11 rotunda lower rounded gold fascia trim",gold,
-                centre.x,11.21f,centre.z,length+.10f,.08f,.08f,.025f,false);
-            lower.transform.localRotation=yaw;
-            var upper=BeveledBox(trim,"T11 rotunda upper rounded gold fascia trim",gold,
-                centre.x,13.81f,centre.z,length+.10f,.12f,.11f,.035f,false);
-            upper.transform.localRotation=yaw;
-            var contour=B(trim,"T11 rotunda warm 2700-3000K fine contour LED",led,
-                centre.x,13.91f,centre.z,length+.06f,.04f,.04f,false);
-            contour.transform.localRotation=yaw;
+            var edge=centre+outward*.07f;
+            var line=BeveledBox(trim,"T11 rotunda roof gold edge line",gold,
+                edge.x,10.95f,edge.z,length+.10f,.08f,.05f,.02f,false);
+            line.transform.localRotation=yaw;
         }
         RotundaRoofCap();
         foreach(float side in new[]{-1f,1f})
             for(int j=0;j<3;j++)
                 B(shell,"Entrance side granite stair",paving,side*(7.1f+j*.6f),.22f+j*.03f,-36.3f,5.3f,.14f+j*.07f,1.55f,true,true);
         B(shell,"Unobstructed accessible middle ramp",paving,0,.22f,-40f,7.2f,.08f,7.7f,true,true);
-        B(shell,"Real clear fixed door transom glass",frontGlass,0,3.75f,-36.13f,5.7f,.32f,.10f,false);
+        B(shell,"Black fixed door transom glass",blackGlass,0,3.75f,-36.13f,5.7f,.32f,.10f,false);
         BeveledBox(trim,"Gold entry transom horizontal frame",gold,
             0,3.59f,-36.19f,5.95f,.07f,.12f,.025f,false);
         Door("T11_CASINO_WAWER_PUBLIC","Public glass main entry",0,-36.28f,180f,5.6f);
@@ -398,14 +396,16 @@ public static partial class BraxChampionsCasinoT11
         const float half=2.95f,zFace=-36.62f,top=4.02f;
         foreach(float s in new[]{-1f,1f})
         {
-            BeveledBox(shell,"T11 entrance portal solid gold jamb",gold,s*(half+.24f),(.21f+top)*.5f,zFace,.48f,top-.21f,.62f,.05f,true);
+            BeveledBox(shell,"T11 entrance portal black jamb",windowFrame,s*(half+.24f),(.21f+top)*.5f,zFace,.48f,top-.21f,.62f,.05f,true);
+            B(trim,"T11 entrance portal jamb gold inner edge",gold,s*(half+.005f),(.21f+top)*.5f,zFace,.012f,top-.25f,.63f,false);
             B(trim,"T11 entrance portal jamb light reveal",led,s*(half+.24f),2.1f,zFace-.315f,.07f,3.4f,.02f,false);
             // lantern on a gold post beside the carpet
             BeveledBox(trim,"T11 entrance lantern gold post",gold,s*4.35f,1.21f,-38.9f,.14f,2.0f,.14f,.03f,false);
             BeveledBox(trim,"T11 entrance lantern warm glass",led,s*4.35f,2.42f,-38.9f,.34f,.46f,.34f,.05f,false);
             BeveledBox(trim,"T11 entrance lantern gold cap",gold,s*4.35f,2.70f,-38.9f,.42f,.08f,.42f,.03f,false);
         }
-        BeveledBox(shell,"T11 entrance portal solid gold lintel",gold,0,top+.27f,zFace,2f*half+1.44f,.54f,.62f,.05f,false);
+        BeveledBox(shell,"T11 entrance portal black lintel",windowFrame,0,top+.27f,zFace,2f*half+1.44f,.54f,.62f,.05f,false);
+        B(trim,"T11 entrance portal lintel gold inner edge",gold,0,top+.005f,zFace,2f*half,.012f,.63f,false);
         // canopy: black body, gold edge all round, three light lines underneath
         const float cy=4.74f,cz=-38.05f,cw=8.6f,cd=3.3f;
         B(shell,"T11 entrance canopy black body",signBacking,0,cy,cz,cw,.26f,cd,false);
@@ -432,11 +432,11 @@ public static partial class BraxChampionsCasinoT11
             B(hinge,"Toughened clear door glass",frontGlass,-side*width*.25f,1.8f,0,width*.5f,3.6f,.09f,true);
             // 10.11 00:37 "wejście zlane z szybą": every leaf is a framed gold door, not a bare pane in a glass wall.
             float lw=width*.5f,lc=-side*width*.25f;
-            B(hinge,"Gold door leaf top rail",gold,lc,3.51f,0,lw,.18f,.12f,false);
-            B(hinge,"Gold door leaf bottom rail",gold,lc,.14f,0,lw,.28f,.12f,false);
-            B(hinge,"Gold door leaf hinge stile",gold,-side*.07f,1.8f,0,.14f,3.6f,.12f,false);
-            B(hinge,"Gold door leaf meeting stile",gold,-side*(lw-.07f),1.8f,0,.14f,3.6f,.12f,false);
-            B(hinge,"Gold door leaf middle rail",gold,lc,1.02f,0,lw-.28f,.07f,.11f,false);
+            // owner 10.11 13:04 (casino doors): one door standard everywhere - black framed leaves, clear glass, gold pulls
+            B(hinge,"Black door leaf top rail",windowFrame,lc,3.51f,0,lw,.18f,.12f,false);
+            B(hinge,"Black door leaf bottom rail",windowFrame,lc,.14f,0,lw,.28f,.12f,false);
+            B(hinge,"Black door leaf hinge stile",windowFrame,-side*.07f,1.8f,0,.14f,3.6f,.12f,false);
+            B(hinge,"Black door leaf meeting stile",windowFrame,-side*(lw-.07f),1.8f,0,.14f,3.6f,.12f,false);
             foreach(float face in new[]{-1f,1f})
                 B(hinge,"Champagne door pull",gold,-side*(lw-.36f),1.55f,face*.11f,.07f,1.30f,.075f,false);
         }
@@ -905,24 +905,14 @@ public static partial class BraxChampionsCasinoT11
             // the actual road kerb is concrete and physically separate.
             B(trim,"VIP/TAXI champagne paving inlay",gold,
                 side*27f,.2135f,-36.4f,24f,.012f,.14f,false);
-            // Three VIP parking bays TOTAL, solely on the LEFT.
-            // Right-hand TAXI drop-off remains clear of parking stripes.
-            if(side<0)
+            // Owner 10.11 13:01: "Te parkingi mają zniknąć w ten sposób" - no painted bays on the drop-off loop; the cars
+            // park in the underground garage (east ramp).
+            foreach(var (px,z) in new[]{(side>0?37.6f:side*43f,-32f),(side*43f,33f),(side*26f,-33f)})
             {
-                for(int i=0;i<=3;i++)
-                    B(trim,"T11 3 VIP marked front parking bays | delimiter "+i,
-                        parkingPaint,-38.1f+i*3.9f,roadTop+.004f,-43.8f,
-                        .10f,.008f,5.6f,false);
-                B(trim,"T11 3 VIP bays | common head line",parkingPaint,
-                    -32.25f,roadTop+.004f,-46.55f,11.7f,.008f,.10f,false);
-            }
-            foreach(float z in new[]{-32f,33f})
-            {
-                float px=side>0&&z<0?37.6f:side*43f;
                 B(shell,"Champagne black granite planter",granite,px,.48f,z,3.4f,.6f,3.3f,true);
-                // a planter, not a black block: champagne rim and dark soil under the shrub
+                // a planter, not a black block: champagne rim and a lawn bed the palm is planted in
                 B(trim,"Planter champagne gold rim",gold,px,.795f,z,3.48f,.03f,3.38f,false);
-                B(trim,"Planter dark soil bed",roof,px,.812f,z,3.16f,.012f,3.06f,false);
+                B(trim,"Planter lawn bed",palmBed?palmBed:roof,px,.812f,z,3.16f,.012f,3.06f,false);
             }
         }
         // Front road fills only the clear span between both fire lanes.
@@ -941,7 +931,13 @@ public static partial class BraxChampionsCasinoT11
                 ConcreteCurb("Garage driveway WEST concrete curb",39.46f,-30.66f,.18f,13.32f);
                 ConcreteCurb("Garage driveway EAST concrete curb",49.11f,-29.94f,.42f,15.12f);
             }
-            ConcreteCurb("Front driveway SOUTH concrete curb",side*26.85f,-47.59f,45.3f,.18f);
+            if(side<0)
+            {
+                // the south kerb opens for the drive from road Z330 (x -23.5..-16.5)
+                ConcreteCurb("Front driveway SOUTH concrete curb west",-36.5f,-47.59f,26f,.18f);
+                ConcreteCurb("Front driveway SOUTH concrete curb middle",-10.35f,-47.59f,12.3f,.18f);
+            }
+            else ConcreteCurb("Front driveway SOUTH concrete curb",side*26.85f,-47.59f,45.3f,.18f);
             ConcreteCurb("Fire lane INNER concrete curb",side*49.41f,3.25f,.18f,81.5f);
             ConcreteCurb("Fire lane OUTER concrete curb",side*56.59f,3.25f,.18f,81.5f);
         }
@@ -961,6 +957,12 @@ public static partial class BraxChampionsCasinoT11
         // Rise .2485m / 35.5m = 0.700%; no curb or vertical step.
         GradedDrive(shell,"left_street_road_connection",asphalt,
             -85f,-49.5f,-48f,-37f,0f,roadTop,true);
+        // Owner 10.11 13:01 (phone, from the drop-off loop toward road Z330): "Do kasyna nie ma żadnego dojazdu z ulicy."
+        // A two-way 7 m drive straight from road Z330 (world z 340, across its south sidewalk) to the loop at x -20; the
+        // foundation leaves its footprint empty (legacy_foundation T11_SOUTH_DRIVE), so nothing lies under the asphalt.
+        // Rise .2485 m over 77.5 m (0.32 %), no kerb, no step.
+        GradedDrive(shell,"south_street_road_connection",asphalt,
+            -23.5f,-16.5f,-125f,-47.5f,0f,roadTop,false);
         B(shell,"Casino pedestrian main axis",granite,0,.22f,-43.7f,8.1f,.08f,11.7f,true,true);
         B(trim,"Red carpet leading to the curved casino entrance",redCarpet,
             0,.279f,-41.45f,5.8f,.016f,10.35f,false,true);
@@ -989,14 +991,13 @@ public static partial class BraxChampionsCasinoT11
         // Existing owned palm models (no fabricated vegetation).
         var palm=BraxMiastoAssety.Model("miasto_palmy","palma");
         if(!palm)throw new FileNotFoundException("T11 original city palms missing");
+        // owner 10.11 12:39 ("palma w kostce rośnie"): every palm in the centre of its granite planter, in the lawn bed
         foreach(var at in new[]{
-            new Vector2(-43,-32),new Vector2(35,-32),new Vector2(-45,33),
-            // 9.11: (34,-26) stood INSIDE the podium (front wall z=-28.3); the board
-            // shows a palm either side of the entrance in front of the wings.
-            new Vector2(45,33),new Vector2(-26,-33),new Vector2(26,-33)
+            new Vector2(-43,-32),new Vector2(37.6f,-32),new Vector2(-43,33),
+            new Vector2(43,33),new Vector2(-26,-33),new Vector2(26,-33)
         })
         {
-            var location=shell.TransformPoint(new Vector3(at.x,.22f,at.y)*K);
+            var location=shell.TransformPoint(new Vector3(at.x,.818f,at.y)*K);
             var instance=BraxMiastoAssety.Postaw(shell,palm,"T11 approved city palm",location,0f,1f,false,true);
             BraxMiastoAssety.LodyZWezlow(instance,new[]{.25f,.08f,.012f});
         }
@@ -1338,6 +1339,18 @@ public static partial class BraxChampionsCasinoT11
         return o;
     }
 
+    // KASYNO WAWER in solid 3D capitals (Montserrat SemiBold, BraxChampionsLetters3D), polished gold faces with black
+    // returns, standing on a slim black rail on the front of the rotunda roof (y 11.10), read from the drop-off loop.
+    static void CasinoName()
+    {
+        var batch=new BraxChampionsMeshBatch();
+        // rail on the roof inside the half-ellipse (front point z -36; at x +-7 the edge is z -35.29)
+        B(trim,"T11 name letter rail black",windowFrame,0,11.13f,-35.15f,14.0f,.06f,.12f,false);
+        float w=BraxChampionsLetters3D.Text(batch,gold,windowFrame,"KASYNO WAWER",new Vector3(0,11.16f,-35.20f),180f,1.35f,.18f,.14f,13.6f);
+        BraxChampionsLetters3D.Build(batch,signRoot,"T11 KASYNO WAWER 3D name");
+        if(w<=0f)BraxBuildQuality.Warn("DO POPRAWKI T11_NAME_LETTERS_MISSING");
+        else Debug.Log("T11_NAME_3D 'KASYNO WAWER' width="+w.ToString("F2")+" cap<=1.35 depth=.18 gold rotundaRoof=slim_black signBand=REMOVED dome=REMOVED dollar=REMOVED");
+    }
     static void MainSign()
     {
         PolygonPrism(signRoot,"T11 WAWER sign real-outline graphite metal carrier",
@@ -1395,7 +1408,9 @@ public static partial class BraxChampionsCasinoT11
         // The 120 m office tower on the board is "docelowo" (later, separate building).
         if(RoofDollarOnOwnerBoard)RoofDollar();
         sign3D=null;sign3DParts=0;signGold=null;signGoldDeep=null;
-        MainSign();RoadsideSigns();PremiumExteriorLighting();
+        // Owner 10.11 13:03: the curved sign band with the crown and KASYNO WAWER is removed ("mało czytelny ... całe do
+        // zdjęcia"); the name is premium 3D lettering standing on the slim rotunda roof (CasinoName).
+        CasinoName();RoadsideSigns();PremiumExteriorLighting();
         // Remove tiny gold detail in distance, keep WAWER sign always visible.
         var renderers=trim.GetComponentsInChildren<Renderer>(true);
         var lod=trim.gameObject.AddComponent<LODGroup>();

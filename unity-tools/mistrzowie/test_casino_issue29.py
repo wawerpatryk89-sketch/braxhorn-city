@@ -22,7 +22,9 @@ class CasinoIssue29Contract(unittest.TestCase):
         self.assertIn("static void GlazedBay(",FACADE)
         self.assertIn('"T11 graphite entrance pylon "',FACADE)
         self.assertIn('"T11 pylon warm gold vertical LED "',FACADE)
-        self.assertIn("premium fascia 48_OF_48",SOURCE)
+        # owner 10.11 13:03: the 2.5 m black fascia band and the dome are removed, a slim roof with a gold edge line
+        self.assertNotIn("premium fascia 48_OF_48",SOURCE)
+        self.assertIn("T11 rotunda roof gold edge line",SOURCE)
         self.assertNotIn("static void FrontPanel",SOURCE)
         self.assertNotIn("static void SidePanel",SOURCE)
         self.assertIn("T11_ROTUNDA_LOBBY_OWNER_BOARD",FACADE)
@@ -53,9 +55,9 @@ class CasinoIssue29Contract(unittest.TestCase):
 
     def test_protected_geometry_is_retained(self):
         self.assertIn("24f,.11f,20f",SOURCE)
-        # Owner 10.11 00:33: "A gdzie jest ten dolar złoty ... Czemu go nie ma teraz?" - back on the roof.
+        # Owner 10.11 00:33 wanted the $ back; 13:03 "całe do zdjęcia" - sign band, dome and $ are removed
         self.assertIn("if(RoofDollarOnOwnerBoard)RoofDollar();",SOURCE)
-        self.assertIn("const bool RoofDollarOnOwnerBoard = true;",FACADE)
+        self.assertIn("const bool RoofDollarOnOwnerBoard = false;",FACADE)
         self.assertIn('Door("T11_CASINO_WAWER_PUBLIC","Public glass main entry",0,-36.28f,180f,5.6f)',SOURCE)
         self.assertIn("6 m delivery opening at x -23..-17",FACADE)
         self.assertIn("tower=LATER",SOURCE)

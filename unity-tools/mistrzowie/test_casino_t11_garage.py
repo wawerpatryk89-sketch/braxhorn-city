@@ -17,7 +17,7 @@ class CasinoT11UndergroundTests(unittest.TestCase):
         self.assertIn("T11_STREET_ENTRANCE=(410.0,417.0,7.0,11.0)",self.ground)
         self.assertIn("if inside((x,z),T11_STREET_ENTRANCE):return None",self.ground)
         self.assertIn("if inside((x,z),T11_GARAGE_RAMP):return None",self.ground)
-        self.assertTrue(any(line.startswith("rects=") and "+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE]" in line
+        self.assertTrue(any(line.startswith("rects=") and "+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE,T11_STREET_ENTRANCE_LAWN,T11_SOUTH_DRIVE]" in line
                             for line in self.ground.splitlines()))
 
     def test_grade_turn_and_fire_route_clearance(self):

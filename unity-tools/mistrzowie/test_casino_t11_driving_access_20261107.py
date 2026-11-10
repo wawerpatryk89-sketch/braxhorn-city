@@ -52,8 +52,10 @@ class CasinoVehicleAccessContract(unittest.TestCase):
             "Delivery corridor WEST concrete curb","Delivery corridor EAST concrete curb",
             "Garage approach flush trench drain","Rear loading flush trench drain"):
             self.assertIn(label,self.casino)
-        self.assertIn("roadTop+.004f,-43.8f",self.casino)
-        self.assertIn("roadTop+.004f,-46.55f",self.casino)
+        # owner 10.11 13:01: "te parkingi mają zniknąć w ten sposób" - no painted bays on the drop-off loop
+        self.assertNotIn("roadTop+.004f,-43.8f",self.casino)
+        self.assertNotIn("T11 3 VIP marked front parking bays",self.casino)
+        self.assertIn('GradedDrive(shell,"south_street_road_connection",asphalt,',self.casino)
         # Owner 10.11 00:22: the six short zebra stripes beside the red carpet are removed.
         self.assertNotIn("White zebra marking on asphalt",self.casino)
         self.assertIn('"Rear loading bay white line",parkingPaint',self.casino)

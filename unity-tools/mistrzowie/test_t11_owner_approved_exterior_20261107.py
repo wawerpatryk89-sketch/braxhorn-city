@@ -89,7 +89,7 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertIn('Optional("kasyno T11: otwarta sala kasyna",CasinoHall);',CASINO)
         self.assertNotIn("NO GLASS",CASINO+FACADE)
         curved=method_source("CurvedFoyer")
-        self.assertIn("T11 curved graphite-smoke glass | rotunda only",curved)
+        self.assertIn("T11 curved black glass | rotunda only",curved)          # 12:50 "zakaz szarego - albo czarne"
         self.assertIn("const int segments=48;",curved)
     def test_sandstone_05_is_real_metre_tiled_on_full_walls(self):
         # Cream blocks from the board = Poly Haven floor_tiles_04 (native 2K),
@@ -120,16 +120,15 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertIn("-28f-8f*Mathf.Cos(t)",curved)
         self.assertIn("for(int i=0;i<segments;i++)",curved)
         self.assertIn("if(i%3==0)",curved) # 16 vertical frames from 48 sectors
-        self.assertIn("T11 curved graphite premium fascia 48_OF_48",curved)
-        # Fascia must be outside the i%3 conditional; 48/48, not 16/48.
+        # owner 10.11 13:03: the fascia band is gone; the gold edge line runs on all 48 sectors (outside i%3)
+        self.assertNotIn("fascia 48_OF_48",curved)
         cond=curved.index("if(i%3==0)")
-        fascia=curved.index("fascia 48_OF_48")
+        fascia=curved.index("rotunda roof gold edge line")
         closing=curved.index("}",cond)
         self.assertGreater(fascia,closing)
-        self.assertIn("2.50f,.25f,.035f",curved)
-        self.assertIn("T11 rotunda lower rounded gold fascia trim",curved)
-        self.assertIn("T11 rotunda upper rounded gold fascia trim",curved)
-        self.assertIn("T11 rotunda warm 2700-3000K fine contour LED",curved)
+        for gone in ("2.50f,.25f,.035f","T11 rotunda upper rounded gold fascia trim","T11 rotunda warm 2700-3000K fine contour LED"):
+            self.assertNotIn(gone,curved)
+        self.assertIn("const float yTop=11.10f,yBottom=10.80f;",method_source("RotundaRoofCap"))   # slim roof on the glass
 
     def test_roof_skylight_and_single_original_dollar_are_preserved(self):
         self.assertIn("Actual transparent blue-violet rooftop skylight",CASINO)
@@ -186,7 +185,7 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertGreaterEqual(carrier_front-image,.03)
         self.assertGreaterEqual(ring_front-image,.03)
         self.assertAlmostEqual(carrier_back,-36.02,places=3)
-        self.assertIn("fasciaCentre=centre-outward*.18f",method_source("CurvedFoyer"))
+        self.assertIn("var edge=centre+outward*.07f;",method_source("CurvedFoyer"))
 
     def test_reflections_are_baked_not_realtime(self):
         lighting=method_source("PremiumExteriorLighting")
