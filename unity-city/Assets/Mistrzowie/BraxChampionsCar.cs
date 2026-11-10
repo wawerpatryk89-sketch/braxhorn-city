@@ -22,6 +22,15 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     public float wheelbase = 2.7f, maxSteer = 34f, highSpeedSteerFactor = .16f;
     public float interactionRadius = 3.8f;
     public float acceleration = 5.5f, braking = 9.5f;
+    // Owner 10.11 08:40: "hamulec ręczny, bo się trochę pobawię" and "joystickiem: jak lekko - jedzie wolno, jak na
+    // maksa - zapierdala, regulacja tym joystickiem". The JUMP button (and Space on a desktop) pulls the handbrake for
+    // handbrakeHold seconds per press: hard rear braking, no throttle, the car rotates more than it travels (drift).
+    public float handbrakeHold = .9f, handbrakeBrakeFactor = 1.25f, driftSteerBoost = 1.7f;
+    public float driftGrip = 2.2f, normalGrip = 10f;
+    // Throttle = how far the stick is pushed (its whole length, so a diagonal push while steering keeps the gas),
+    // beyond the .08 dead zone, raised to throttleCurve: 20 % = ~8 km/h, half = ~57 km/h, full = 200 km/h.
+    // Easing the stick lets the car roll down at coastDecel (engine braking); pulling it back brakes at `braking`.
+    public float throttleCurve = 1.6f, coastDecel = 4.5f;
     public float groundProbeReach = 2.5f, maxGroundStep = .80f, collisionSkin = .10f;
     // Owner phone video 9.11: the car stopped at the first kerb/parking stop.
     // Low edges (kerbs ~.19-.26 m in game scale, parking stops, tactile strips)
@@ -38,6 +47,13 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     public float engineMinDistance = 2.2f, engineMaxDistance = 36f;
 
     public BraxGymPlayer Driver => driver;
+    public bool HandbrakeOn => Time.time < handbrakeUntil;
+    public void PullHandbrake()
+    {
+        if (!driver || transition) return;
+        if (!HandbrakeOn) Debug.Log("A1_CAR_HANDBRAKE speedKph=" + SpeedKph.ToString("F0"));
+        handbrakeUntil = Time.time + handbrakeHold;
+    }
     public float Speed => speed;
     public float SpeedKph => Mathf.Abs(speed) * 3.6f / Mathf.Max(.01f, worldScale);
     public bool Transitioning => transition;
@@ -47,7 +63,8 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     Rigidbody physicsBody;
     BraxGymPlayer driver;
     Vector2 control;
-    float speed, doorAngle, wheelAngle;
+    float speed, doorAngle, wheelAngle, handbrakeUntil;
+    Vector3 travelDir;
     float groundPivotOffset, nextBlockDiagnostic;
     float engineLoad, idleGain;
     float nextRevAllowed, engineRpm = 850f;
@@ -229,7 +246,13 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         Drive(engineHighSource, w2, V8LoopRpm[2]);
     }
 
-    void Update() => UpdateEngineAudio();
+    void Update()
+    {
+        UpdateEngineAudio();
+#if UNITY_EDITOR || UNITY_STANDALONE
+        if (driver && !transition && Input.GetKey(KeyCode.Space)) handbrakeUntil = Mathf.Max(handbrakeUntil, Time.time + .12f);
+#endif
+    }
 
     static float TransitionSeconds(AnimationClip clip)
         => clip ? Mathf.Clamp(clip.length, .45f, 3.4f) : 1f;
@@ -280,6 +303,10 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         p.championsCar = this;
         control = Vector2.zero;
         speed = 0f;
+        travelDir = transform.forward;
+        handbrakeUntil = 0f;
+        // the touch buttons SendMessage Command(key) to the player: this relay turns JUMP into the handbrake
+        if (!p.GetComponent<BraxChampionsCarCommands>()) p.gameObject.AddComponent<BraxChampionsCarCommands>();
         p.body.enabled = false;
         var clip = p.clips.GetClip("EnteringCar");
         Vector3 start = p.transform.position;
@@ -520,20 +547,33 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     {
         if (!driver || transition || !physicsBody || !bodyCollider) return;
         float dt = Time.fixedDeltaTime;
-        float target = Mathf.Abs(control.y) < .08f ? 0f
-            : control.y >= 0f ? control.y * maxSpeed : control.y * reverseMaxSpeed;
+        bool handbrake = HandbrakeOn;
+        float deflection = control.magnitude;
+        // forward share of the push: up to ~55 degrees off straight counts in full, a pure sideways push gives no gas
+        float forward = deflection < .08f ? 0f : Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(.20f, .58f, Mathf.Abs(control.y) / deflection));
+        float amount = deflection < .08f ? 0f : Mathf.Pow(Mathf.Clamp01((deflection - .08f) / .92f), throttleCurve) * forward;
+        float target = handbrake || amount <= 0f ? 0f
+            : control.y >= 0f ? amount * maxSpeed : -amount * reverseMaxSpeed;
         bool changingDirection = speed * target < 0f;
         float launch = Mathf.Lerp(1f, topEndAccelerationFactor,
             Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.01f, maxSpeed)));
-        float rate = changingDirection || Mathf.Abs(target) < Mathf.Abs(speed) ? braking : acceleration * launch;
+        float rate = handbrake ? braking * handbrakeBrakeFactor
+            : changingDirection ? braking
+            : Mathf.Abs(target) < Mathf.Abs(speed) ? coastDecel : acceleration * launch;
         speed = Mathf.MoveTowards(speed, target, rate * dt);
 
         float speed01 = Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.01f, maxSpeed));
         float steerFactor = Mathf.Lerp(1f, highSpeedSteerFactor, speed01 * speed01);
-        float yaw = Mathf.Clamp(control.x, -1f, 1f) * maxSteer * steerFactor;
+        bool sliding = handbrake && Mathf.Abs(speed) > 2f * Mathf.Max(.01f, worldScale);
+        float yaw = Mathf.Clamp(control.x, -1f, 1f) * maxSteer * steerFactor * (sliding ? driftSteerBoost : 1f);
         float turn = speed / Mathf.Max(1f, wheelbase) * Mathf.Tan(yaw * Mathf.Deg2Rad);
         var nextRotation = physicsBody.rotation * Quaternion.Euler(0, turn * Mathf.Rad2Deg * dt, 0);
-        Vector3 delta = nextRotation * Vector3.forward * speed * dt;
+        // The car travels along travelDir, which follows the body heading at the tyres' grip rate: instantly on
+        // grip, slowly with the handbrake pulled -> the body swings round while the car keeps sliding (drift).
+        Vector3 heading = nextRotation * Vector3.forward;
+        if (travelDir.sqrMagnitude < .5f) travelDir = heading;
+        travelDir = Vector3.Slerp(travelDir, heading, 1f - Mathf.Exp(-(sliding ? driftGrip : normalGrip) * dt)).normalized;
+        Vector3 delta = travelDir * speed * dt;
         var next = physicsBody.position + delta;
 
         bool hasGround = DriveableGround(next, nextRotation, out Vector3 grounded);

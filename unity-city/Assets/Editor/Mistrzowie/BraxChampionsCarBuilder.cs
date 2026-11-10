@@ -277,7 +277,7 @@ public static class BraxChampionsCarBuilder
         // K back out. Same for reverse and the acceleration/braking feel.
         car.worldScale = K;
         car.maxSpeed = 200f / 3.6f * K; car.reverseMaxSpeed = 30f / 3.6f * K;
-        car.acceleration = 7.2f * K; car.braking = 11f * K;
+        car.acceleration = 8.5f * K; car.braking = 11f * K; car.coastDecel = 4.5f * K;   // owner 10.11: "na maksa zapierdala" (~0-200 in 9.5 s)
         car.interactionRadius = 3.8f * CarScale;
 
         // Real recorded audio only. Missing binaries are advisory until the owner-approved
