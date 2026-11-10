@@ -25,14 +25,22 @@ public static partial class BraxClaudeOsiedle
     // Kolejność kandydatów = pierwszeństwo (pierwszy = ten sam ruch co u Braxa). Pliki muszą być na liście RUCHY_DO_UNITY
     // w unity-tools/claude/prywatne.py. wMiejscu = bez dryfu bioder w poziomie (Mixamo bez „In Place”; u Braxa chód, bieg
     // i Kicking były w miejscu — przesuwa gracza fizyka BraxGymPlayer).
+    // 10.11 (właściciel): Patryk ma chodzić, biegać, skakać i wsiadać do auta ruchami z JEGO paczki „Patryk anima(6).zip”
+    // (22 FBX, import_patryk_owner_22.py → ruchy/patryk_owner). Źródła Humanoid przenoszone przez Unity (HumanPoseHandler)
+    // na oryginalne kości Patryka — nie surowe krzywe Mixamo (build Codexa 5.11: „brak krzywych Hips” → T-poza i drganie).
+    // Stare ruchy zostają tylko jako zapas, gdy paczki właściciela nie ma.
+    const string RuchyWlasciciela = "patryk_owner/";
     static readonly PatrykKlip[] KlipyPatryka =
     {
         PK("CombatIdle", true, true, "brax/Idle.fbx"),
-        PK("Walk", true, true, "extra/Walking.fbx", "nyxa/Walking.fbx", "extra2/Walking.fbx"),
-        PK("Run", true, true, "extra/Running.fbx", "extra2/Unarmed Run Forward.fbx"),
+        PK("Walk", true, true, RuchyWlasciciela + "Strut Walking.fbx", "extra/Walking.fbx", "nyxa/Walking.fbx", "extra2/Walking.fbx"),
+        PK("Run", true, true, RuchyWlasciciela + "Fast Run.fbx", "extra/Running.fbx", "extra2/Unarmed Run Forward.fbx"),
         PK("Punch", false, true, "brax/Jab Cross (1).fbx", "xd/Jab Cross.fbx"),
         PK("Kick", false, true, "brax/Mma Kick (1).fbx", "nyxa/Mma Kick (1).fbx"),
-        PK("Jump", false, true, "brax/Jump.fbx", "extra2/Unarmed Jump Running.fbx"),
+        PK("Jump", false, true, RuchyWlasciciela + "Jump.fbx", "brax/Jump.fbx", "extra2/Unarmed Jump Running.fbx"),
+        // Wsiadanie do auta (BraxAutoGracza.Wejdz; wysiadanie = ten sam klip od końca). Bez dryfu bioder w poziomie —
+        // drogę od drzwi do fotela prowadzi auto, klip daje ruch ciała (sięgnięcie, krok, siadanie).
+        PK("EnteringCar", false, true, RuchyWlasciciela + "Entering Car.fbx"),
     };
     static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "CombatIdle", "Walk", "Run", "Punch", "Kick", "Jump" };
 

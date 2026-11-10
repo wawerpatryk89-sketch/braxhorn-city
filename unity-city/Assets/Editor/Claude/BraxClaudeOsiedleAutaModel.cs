@@ -267,6 +267,43 @@ public static partial class BraxClaudeOsiedle
         matDym = m; return m;
     }
 
+    // Naprawa różowych aut na Androidzie. Tekstury i tint materiału źródłowego
+    // pozostają bez zmian; zamieniany jest tylko shader niezgodny z projektem Built-In.
+    static Material MaterialAutaAndroid(Material source)
+    {
+        if (!source) throw new InvalidOperationException("Auto ma pusty materiał GLB");
+        if (BraxCityMaterials.IsCityMaterial(source)) return source;
+        if (source.HasProperty("baseColorFactor") && source.HasProperty("roughnessFactor") && source.HasProperty("metallicFactor"))
+            return BraxCityMaterials.Imported(source);
+        string shader = source.shader ? source.shader.name : "";
+        bool niezgodny = !source.shader || !source.shader.isSupported
+            || shader.IndexOf("gltf", StringComparison.OrdinalIgnoreCase) >= 0
+            || shader.IndexOf("Universal Render Pipeline", StringComparison.OrdinalIgnoreCase) >= 0
+            || shader.IndexOf("Shader Graphs/", StringComparison.OrdinalIgnoreCase) >= 0;
+        if (!niezgodny) return source;
+        Texture Tex(params string[] names)
+        {
+            foreach (string key in names)
+                if (source.HasProperty(key) && source.GetTexture(key)) return source.GetTexture(key);
+            return null;
+        }
+        Color baseColor = source.HasProperty("baseColorFactor") ? source.GetColor("baseColorFactor")
+            : source.HasProperty("_BaseColor") ? source.GetColor("_BaseColor")
+            : source.HasProperty("_Color") ? source.GetColor("_Color") : Color.white;
+        float rough = source.HasProperty("roughnessFactor") ? source.GetFloat("roughnessFactor") : .7f;
+        float metallic = source.HasProperty("metallicFactor") ? source.GetFloat("metallicFactor") : 0f;
+        var albedo = Tex("baseColorTexture", "_BaseMap", "_MainTex");
+        var normal = Tex("normalTexture", "_BumpMap");
+        var arm = Tex("metallicRoughnessTexture", "_ARM", "_MetallicGlossMap");
+        var converted = albedo
+            ? BraxCityMaterials.Textured("Auto Android / " + source.name, albedo, normal, arm)
+            : BraxCityMaterials.Surface("Auto Android / " + source.name, baseColor, rough, metallic);
+        if (albedo && converted.HasProperty("_Color")) converted.SetColor("_Color", baseColor);
+        Debug.Log("BRAXHORN_AUTO_MATERIAL naprawiony shader " + shader + " -> " + BraxCityMaterials.ShaderName
+            + " materiał=" + source.name + " albedo=" + (albedo ? albedo.name : "brak"));
+        return converted;
+    }
+
     static int autoSiatki;
     static AutoSzablon PrzygotujAuto(GameObject src, Transform rodzic)
     {
@@ -280,11 +317,42 @@ public static partial class BraxClaudeOsiedle
         {
             var materials = renderer.sharedMaterials;
             for (int i = 0; i < materials.Length; i++)
-                if (materials[i] && materials[i].HasProperty("baseColorFactor") && materials[i].HasProperty("roughnessFactor"))
-                    materials[i] = BraxCityMaterials.Imported(materials[i]);
+                materials[i] = MaterialAutaAndroid(materials[i]);
             renderer.sharedMaterials = materials;
         }
-        foreach (var smr in inst.GetComponentsInChildren<SkinnedMeshRenderer>(true)) smr.enabled = false;
+        // GLB może mieć część karoserii / kół jako SkinnedMeshRenderer.
+        // Poprzedni kod wyłączał WSZYSTKIE te części, dlatego znikały koła
+        // lub całe nadwozie. Wypiekamy pozę bazową do osobnej siatki Unity,
+        // zachowując jej materiały i położenie; źródłowy GLB pozostaje nietknięty.
+        foreach (var sk in inst.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        {
+            if (!sk.sharedMesh || sk.sharedMesh.vertexCount == 0) continue;
+            var baked = new Mesh { name = src.name + " (oryginalna poza ze skórą)" };
+            sk.BakeMesh(baked);
+            if (baked.vertexCount < 12 || baked.subMeshCount == 0)
+            {
+                UnityEngine.Object.DestroyImmediate(baked);
+                throw new InvalidOperationException("Auto " + src.name + ": BakeMesh zwrócił pustą siatkę " + sk.name);
+            }
+            string asset = Out + "/auto_" + Safe(src.name) + "_skinned_bake_" + (autoSiatki++) + ".asset";
+            AssetDatabase.CreateAsset(baked, asset);
+            var host = sk.gameObject;
+            var materials = sk.sharedMaterials;
+            for (int i = 0; i < materials.Length; i++) materials[i] = MaterialAutaAndroid(materials[i]);
+            // Nie dodawaj MeshRenderer, kiedy SkinnedMeshRenderer nadal działa
+            // na tym samym obiekcie (dwie implementacje Renderer naraz).
+            UnityEngine.Object.DestroyImmediate(sk);
+            var geometry = host.GetComponent<MeshFilter>();
+            if (!geometry) geometry = host.AddComponent<MeshFilter>();
+            geometry.sharedMesh = baked;
+            var view = host.GetComponent<MeshRenderer>();
+            if (!view) view = host.AddComponent<MeshRenderer>();
+            view.sharedMaterials = materials;
+            view.shadowCastingMode = ShadowCastingMode.On;
+            view.receiveShadows = true;
+            Debug.Log("BRAXHORN_AUTO_SKIN_BAKE " + src.name + " vertices=" + baked.vertexCount +
+                " model źródłowy bez zmian");
+        }
         var A = AnalizujAuto(go.transform);
         if (A == null || A.S.x < 1e-5f) { UnityEngine.Object.DestroyImmediate(go); return null; }
         // 1) długa oś → z
@@ -311,6 +379,10 @@ public static partial class BraxClaudeOsiedle
         float ziemia = A.ileKol == 4 ? A.kola.Min(k => k.c.y - k.R) : A.mn.y;
         inst.transform.localPosition += new Vector3(-(A.mn.x + A.mx.x) * .5f, -ziemia, -(A.mn.z + A.mx.z) * .5f);
         A = AnalizujAuto(go.transform);
+        // Każdy dopuszczony do sceny model musi mieć cztery faktyczne koła.
+        // Wcześniej kod dopuszczał 0-3 koła, a w trybie czterech akceptował puste siatki.
+        if (A.ileKol != 4 || A.kola.Any(w => w == null))
+            throw new InvalidOperationException("Auto " + src.name + ": znaleziono " + A.ileKol + "/4 kół — model odrzucony, nie generuj auta bez kół");
         var sz = new AutoSzablon { id = src.name, go = go, dl = A.S.z, szer = A.S.x, szerNadw = Mathf.Min(A.S.x, A.szerNadw), wys = A.S.y, kol = A.ileKol, przod = OsSurowa(plusZ) + " " + pewn.ToString("F2") };
         sz.obrys = new Bounds((A.mn + A.mx) * .5f, A.S);
         // 5) koła → osobne siatki z osią w środku koła
@@ -328,9 +400,11 @@ public static partial class BraxClaudeOsiedle
                 var p = new GameObject("koło " + nazwy[i]).transform; p.SetParent(go.transform, false); p.localPosition = kolo.c;
                 var obr = new GameObject("obrót").transform; obr.SetParent(p, false);
                 piv[i] = p; spin[i] = obr;
-                if (tris.Count == 0) continue;
+                if (tris.Count < 6)
+                    throw new InvalidOperationException("Auto " + src.name + ": koło " + nazwy[i] + " ma za mało prawdziwych trójkątów (" + tris.Count + ")");
                 var mesh = SiatkaKola(A, tris, kolo.c, out var mats);
-                if (!mesh) continue;
+                if (!mesh || mesh.vertexCount < 12 || mesh.triangles.Length < 18 || mats.Length == 0)
+                    throw new InvalidOperationException("Auto " + src.name + ": koło " + nazwy[i] + " jest puste po wydzieleniu geometrii");
                 AssetDatabase.CreateAsset(mesh, Out + "/auto_" + Safe(src.name) + "_kolo_" + nazwy[i] + "_" + (autoSiatki++) + ".asset");
                 obr.gameObject.AddComponent<MeshFilter>().sharedMesh = mesh;
                 var r = obr.gameObject.AddComponent<MeshRenderer>(); r.sharedMaterials = mats; r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true;

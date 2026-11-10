@@ -15,6 +15,12 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     public AudioClip silnik;
     public float Predkosc => predkosc;
     public Vector3 przesuniecieGracza; // authored from the actual CarIdle hips, in car space
+    // 10.11: wsiadanie/wysiadanie ruchem właściciela „Entering Car” (klip EnteringCar; wysiadanie = ten sam klip od końca).
+    // korektaWsiadania = biodra CarIdle − biodra ostatniej klatki EnteringCar (układ auta), z builda (BraxClaudeAutoPatryka).
+    // obrotWsiadania = obrót (°) wokół pionu, po którym ostatnia klatka EnteringCar patrzy tak jak CarIdle (przód auta).
+    public Vector3 korektaWsiadania; public float obrotWsiadania;
+    Quaternion ObrotRuchu => transform.rotation * Quaternion.Euler(0f, obrotWsiadania, 0f);
+    public const float CzasWsiadaniaMax = 2.6f, CzasWysiadaniaMax = 2.2f;
     // Build 45 (E9): drzwi kierowcy na zawiasie (BraxClaudeAutoPatryka) — otwierają się przy wsiadaniu/wysiadaniu, zamykają za graczem.
     public Transform drzwi; public Vector3 osDrzwi = Vector3.up; public float katDrzwi = 65f;
     // Build 45 (E6/E11): poza Patryka za kierownicą — odchylenie tułowia i pochylenie głowy dobrane w buildzie (zapas nad głową ≥ 0).
@@ -97,26 +103,58 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         przejscie=true;
         var p=gracz; Vector3 start=p.transform.position; Quaternion rot=p.transform.rotation;
         var door=Drzwi(-1); if(Grunt(door,out float floor))door.y=floor;
+        var ruch=p.clips["EnteringCar"]; bool maRuch=ruch && ruch.length>.2f;
+        Quaternion przyDrzwiach=maRuch?ObrotRuchu:transform.rotation;
         p.clips.CrossFade("Walk",.15f);
         float seconds=Mathf.Max(.15f,Vector3.Distance(start,door)/1.5f);
         for(float t=0;t<1;t+=Time.deltaTime/seconds)
         {
             if(!p)yield break;
-            p.transform.SetPositionAndRotation(Vector3.Lerp(start,door,t),Quaternion.Slerp(rot,transform.rotation,t));
+            p.transform.SetPositionAndRotation(Vector3.Lerp(start,door,t),Quaternion.Slerp(rot,przyDrzwiach,t));
             yield return null;
         }
         p.transform.position=door;
-        p.clips.CrossFade("Idle",.2f);
-        Efekt(BraxDzwiekiAuta.DrzwiOtwKlip,.7f);                                 // runda 4: klik zamka
-        yield return Drzwi(0f,1f,.55f);                                         // E9: drzwi otwierają się przed wsiadaniem
-        p.clips.CrossFade("CarIdle",.55f);
         Vector3 end=transform.TransformPoint(przesuniecieGracza);
-        for(float t=0;t<1f;t+=Time.deltaTime/.9f)
+        if(maRuch)
         {
-            if(!p)yield break;
-            float u=Mathf.SmoothStep(0,1,t); wagaPozy=u;
-            p.transform.SetPositionAndRotation(Vector3.Lerp(door,end,u),transform.rotation);
-            yield return null;
+            // Ruch właściciela: sięga do klamki (drzwi otwierają się w tym czasie), wchodzi i siada. Drogę od drzwi
+            // do fotela prowadzi auto (klip bez dryfu bioder); obrót i wysokość bioder z builda — siada przodem
+            // do kierownicy i nie wpada w fotel. Na końcu płynnie w pozę kierowcy CarIdle.
+            float czas=Mathf.Min(ruch.length,CzasWsiadaniaMax);
+            ruch.wrapMode=WrapMode.ClampForever; ruch.speed=ruch.length/czas;
+            p.clips.CrossFade("EnteringCar",.2f,PlayMode.StopAll); ruch.time=0f;
+            Efekt(BraxDzwiekiAuta.DrzwiOtwKlip,.7f);
+            StartCoroutine(Drzwi(0f,1f,Mathf.Min(.55f,czas*.3f)));
+            Quaternion obrot=ObrotRuchu; Vector3 cel=end+transform.rotation*korektaWsiadania;
+            for(float t=0;t<1f;t+=Time.deltaTime/czas)
+            {
+                if(!p)yield break;
+                float u=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.22f,.92f,t)); wagaPozy=0f;
+                p.transform.SetPositionAndRotation(Vector3.Lerp(door,cel,u),obrot);
+                yield return null;
+            }
+            p.clips.CrossFade("CarIdle",.35f,PlayMode.StopAll);
+            for(float t=0;t<1f;t+=Time.deltaTime/.35f)
+            {
+                if(!p)yield break;
+                wagaPozy=t; p.transform.SetPositionAndRotation(Vector3.Lerp(cel,end,t),Quaternion.Slerp(obrot,transform.rotation,t));
+                yield return null;
+            }
+            ruch.speed=1f;
+        }
+        else
+        {
+            p.clips.CrossFade("Idle",.2f);
+            Efekt(BraxDzwiekiAuta.DrzwiOtwKlip,.7f);                             // runda 4: klik zamka
+            yield return Drzwi(0f,1f,.55f);                                     // E9: drzwi otwierają się przed wsiadaniem
+            p.clips.CrossFade("CarIdle",.55f);
+            for(float t=0;t<1f;t+=Time.deltaTime/.9f)
+            {
+                if(!p)yield break;
+                float u=Mathf.SmoothStep(0,1,t); wagaPozy=u;
+                p.transform.SetPositionAndRotation(Vector3.Lerp(door,end,u),transform.rotation);
+                yield return null;
+            }
         }
         wagaPozy=1f;
         p.transform.SetParent(transform,true); p.transform.SetPositionAndRotation(end,transform.rotation);
@@ -221,8 +259,38 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         Efekt(BraxDzwiekiAuta.DrzwiOtwKlip,.7f);
         yield return Drzwi(0f,1f,.5f);                                          // E9: drzwi otwierają się przed wyjściem
         p.transform.SetParent(null,true);
-        p.clips.CrossFade("Idle",.65f);
-        for(float t=0;t<1;t+=Time.deltaTime/.7f){float u=Mathf.SmoothStep(0,1,t);wagaPozy=1f-u;p.transform.position=Vector3.Lerp(from,point,u);yield return null;}
+        var ruch=p.clips["EnteringCar"];
+        if(ruch && ruch.length>.2f)
+        {
+            // Wysiadanie: ten sam ruch właściciela od końca (z fotela przez próg na chodnik), potem spokojna poza.
+            // Najpierw płynnie z pozy kierowcy w ostatnią klatkę wsiadania (klip stoi), potem klip wstecz.
+            float czas=Mathf.Min(ruch.length,CzasWysiadaniaMax);
+            Quaternion obrot=ObrotRuchu, zAuta=p.transform.rotation; Vector3 cel=from+transform.rotation*korektaWsiadania;
+            ruch.wrapMode=WrapMode.ClampForever; ruch.speed=0f;
+            p.clips.CrossFade("EnteringCar",.3f,PlayMode.StopAll); ruch.time=ruch.length;
+            for(float t=0;t<1f;t+=Time.deltaTime/.3f)
+            {
+                if(!p)yield break;
+                wagaPozy=1f-t; p.transform.SetPositionAndRotation(Vector3.Lerp(from,cel,t),Quaternion.Slerp(zAuta,obrot,t));
+                yield return null;
+            }
+            wagaPozy=0f; ruch.speed=-ruch.length/czas;
+            for(float t=0;t<1f;t+=Time.deltaTime/czas)
+            {
+                if(!p)yield break;
+                float u=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.08f,.78f,t));
+                p.transform.SetPositionAndRotation(Vector3.Lerp(cel,point,u),obrot);
+                yield return null;
+            }
+            p.clips.CrossFade("Idle",.3f,PlayMode.StopAll);
+            for(float t=0;t<1f;t+=Time.deltaTime/.3f){if(!p)yield break;yield return null;}
+            ruch.speed=1f;
+        }
+        else
+        {
+            p.clips.CrossFade("Idle",.65f);
+            for(float t=0;t<1;t+=Time.deltaTime/.7f){float u=Mathf.SmoothStep(0,1,t);wagaPozy=1f-u;p.transform.position=Vector3.Lerp(from,point,u);yield return null;}
+        }
         wagaPozy=0f;
         Odlacz(point);
         yield return Drzwi(1f,0f,.5f);                                          // i zamykają się za graczem

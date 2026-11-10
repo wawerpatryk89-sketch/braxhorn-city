@@ -51,13 +51,32 @@ public static partial class BraxClaudeOsiedle
         var hips=kosci.First(t=>PatrykKosc(t.name)=="Hips");
         var spine=kosci.FirstOrDefault(t=>PatrykKosc(t.name)=="Spine"); var head=kosci.FirstOrDefault(t=>PatrykKosc(t.name)=="Head");
         var skora=GlowaWierzcholki(player.visual.GetComponentsInChildren<SkinnedMeshRenderer>(true).Where(r=>r.sharedMesh),head);
-        Vector3 hipsOffset;
+        Vector3 hipsOffset, korektaWsiadania=Vector3.zero; float obrotWsiadania=0f;
         var kandydaci=new List<(AutoSzablon t,bool drzwi,WynikKabiny w,bool miesci,string opis)>();
         try
         {
             player.transform.SetPositionAndRotation(Vector3.zero,Quaternion.identity);
             anim.GetClip("CarIdle").SampleAnimation(anim.gameObject,0);
             hipsOffset=hips.position;
+            // 10.11: wsiadanie ruchem właściciela („Entering Car”). Klip kończy się z biodrami niżej niż poza CarIdle
+            // (siada naprawdę, CarIdle ma biodra z pozy stojącej) — różnica bioder w układzie auta, żeby w grze biodra
+            // nie wpadały w fotel przy płynnym przejściu do CarIdle.
+            // Ostatnia klatka może też patrzeć w bok (Mixamo obraca się, siadając) — obrotWsiadania ustawia gracza tak,
+            // żeby po usiąściu patrzył jak CarIdle (przód auta); korekta = biodra CarIdle − obrócone biodra końca klipu.
+            var wsiadanie=anim.GetClip("EnteringCar");
+            if(wsiadanie)
+            {
+                var lu=kosci.FirstOrDefault(t=>PatrykKosc(t.name)=="LeftUpLeg"); var ru=kosci.FirstOrDefault(t=>PatrykKosc(t.name)=="RightUpLeg");
+                Vector3 Przod(){ if(!lu||!ru)return Vector3.forward; var r=ru.position-lu.position; r.y=0; return r.sqrMagnitude<1e-8f?Vector3.forward:Vector3.Cross(r.normalized,Vector3.up); }
+                Vector3 przodAuta=Przod();
+                wsiadanie.SampleAnimation(anim.gameObject,wsiadanie.length);
+                obrotWsiadania=Vector3.SignedAngle(Przod(),przodAuta,Vector3.up);
+                korektaWsiadania=hipsOffset-Quaternion.Euler(0f,obrotWsiadania,0f)*hips.position;
+                anim.GetClip("CarIdle").SampleAnimation(anim.gameObject,0);
+                Debug.Log("BRAXHORN_AUTO_PATRYKA_WSIADANIE klip EnteringCar "+wsiadanie.length.ToString("F2")+" s, obrót do przodu auta "
+                    +obrotWsiadania.ToString("F0")+"°, biodra koniec→CarIdle "+korektaWsiadania.ToString("F3")+" (wysiadanie = klip od końca)");
+            }
+            else Debug.LogWarning("BRAXHORN_AUTO_PATRYKA_WSIADANIE brak klipu EnteringCar — wsiadanie samą pozą CarIdle");
             foreach(string id in AutaSportowePatryka)
             {
                 var t=templates.FirstOrDefault(q=>q.id==id&&q.kol==4); if(t==null){kandydaci.Add((null,false,default,false,id+": brak modelu"));continue;}
@@ -137,6 +156,7 @@ public static partial class BraxClaudeOsiedle
             var car=go.AddComponent<BraxAutoGracza>();car.obrys=box;
             car.fotel=go.GetComponentsInChildren<Transform>().First(t=>t.name==FotelKierowcy);
             car.przesuniecieGracza=go.transform.InverseTransformPoint(car.fotel.position + car.fotel.up*(.08f*K-wybrany.w.zaglebienie-obnizFotel) - rotation*hipsOffset);
+            car.korektaWsiadania=korektaWsiadania; car.obrotWsiadania=obrotWsiadania;
             car.rozstaw=template.rozstaw*skalaAuta;car.promienKola=template.promienKola*skalaAuta;
             car.kola=new[]{"LP","PP","LT","PT"}.Select(n=>go.transform.Find("koło "+n+"/obrót")).Where(t=>t).ToArray();
             car.skret=new[]{"LP","PP"}.Select(n=>go.transform.Find("koło "+n)).Where(t=>t).ToArray();

@@ -350,6 +350,17 @@ def patryk_i_ruchy():
     if osiedle_build:
         from import_patryk_transfer import restore
         restore()
+        # 10.11 (właściciel): ruchy Patryka z jego paczki „Patryk anima(6).zip” (22 FBX, SHA-256 z manifestu,
+        # szyfr RSA+AES w unity-city/Prywatne/import-patryk-animations-20261106) → ruchy/patryk_owner.
+        # Klipy Walk/Run/Jump/EnteringCar biorą je jako pierwsze (BraxClaudeOsiedlePatryk.KlipyPatryka);
+        # brak paczki = głośna uwaga w logu i stare ruchy jako zapas, build idzie dalej.
+        try:
+            from import_patryk_owner_22 import install as install_patryk_owner_22
+            n = len(install_patryk_owner_22(CEL / "ruchy"))
+            print(f"BRAXHORN_PATRYK_OWNER_22 ruchy właściciela w ruchy/patryk_owner: {n}/22")
+        except Exception as e:
+            shutil.rmtree(CEL / "ruchy" / "patryk_owner", ignore_errors=True)
+            print(f"BRAXHORN_PATRYK_OWNER_22 DO POPRAWKI: {type(e).__name__}: {e} — Patryk na starych ruchach")
     staging = pathlib.Path(tempfile.mkdtemp(prefix="braxhorn-prywatne-", dir=os.environ.get("RUNNER_TEMP") or None))
     ok = []
     try:
