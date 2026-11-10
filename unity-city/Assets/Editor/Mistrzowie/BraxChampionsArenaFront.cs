@@ -253,11 +253,15 @@ public static partial class BraxChampionsArenaArrival
     {
         var gold=exterior["arena_gold"];
         const float belt=.23f;                                   // outer face of the black belt (radial from the glass)
-        GoldSweep(group,"A1 owner render | rounded gold nosing under the belt",gold,BeltBottom-.20f,.42f,.30f,.14f,belt);
-        GoldSweep(group,"A1 owner render | rounded gold nosing over the belt",gold,BeltTop-.22f,.42f,.30f,.14f,belt);
-        GoldSweep(group,"A1 owner render | warm LED line under the belt nosing",ArenaLed(exterior),BeltBottom-.25f,.05f,.26f,.02f,belt,360,1);
-        GoldSweep(group,"A1 owner render | rounded gold crown under the roof",gold,26.62f,.50f,.62f,.16f,0f);
-        Debug.Log("A1_OWNER_RENDER_GOLD_TRIMS belt=2x(0.42 high,0.30 proud,R0.14) crown=0.50x0.62 R0.16 steps=360 continuous=true");
+        // Owner 10.11 08:03-08:04: "u góry okrąg cały złoty ma być grubszy, po środku te dwa jeszcze grubsze, pionowe
+        // zostają" + "zrób sobie obliczenia". Measured on the owner's wide render (building 28 m = 640 px, 23 px/m):
+        // black belt ~5 m, projecting ~1.5 m; crown ~0.65 m; column line ~0.25 m. Hierarchy as ordered: the two
+        // mid rings 2.5x the vertical strip (0.44 m) = 1.10 m high, the crown 0.85 m, both 0.60 m proud, bull-nose.
+        GoldSweep(group,"A1 owner render | rounded gold nosing under the belt",gold,BeltBottom-.20f,1.10f,.60f,.35f,belt,360,6);
+        GoldSweep(group,"A1 owner render | rounded gold nosing over the belt",gold,BeltTop-1.00f,1.10f,.60f,.35f,belt,360,6);
+        GoldSweep(group,"A1 owner render | warm LED line under the belt nosing",ArenaLed(exterior),BeltBottom-.25f,.05f,.54f,.02f,belt,360,1);
+        GoldSweep(group,"A1 owner render | rounded gold crown under the roof",gold,26.55f,.85f,.60f,.30f,0f,360,6);
+        Debug.Log("A1_OWNER_RENDER_GOLD_TRIMS belt=2x(1.10 high,0.60 proud,R0.35) crown=0.85x0.60 R0.30 vertical=0.44 steps=360 continuous=true");
     }
 
     // The entrance must read as the entrance: two black pylons from the paving to the canopy either side of the
