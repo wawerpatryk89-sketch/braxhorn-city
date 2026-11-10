@@ -83,9 +83,9 @@ class E1(unittest.TestCase):
         self.assertGreaterEqual(const(self.cs, "StairRun"), .28)
 
     def test_no_brown_no_beige_and_glyphs(self):
-        # warm maps are tinted to neutral (garage_floor, concrete_floor_02, concrete_pavement_02, pale maple lanes)
+        # warm maps are tinted to neutral (garage_floor, concrete_floor_02, granite forecourt, pale maple lanes)
         for slug, tint in (("garage_floor", "1.0f,1.14f,1.43f"), ("concrete_floor_02", "1.0f,1.09f,1.32f"),
-                           ("concrete_pavement_02", "1.0f,1.09f,1.21f"), ("laminate_floor_02", "1.32f,1.45f,1.62f")):
+                           ("granite_tile_03", ".96f,1.08f,1.26f"), ("laminate_floor_02", "1.32f,1.45f,1.62f")):
             self.assertIn('"' + slug + '",', self.cs)
             self.assertIn(tint, self.cs)
         self.assertNotIn("·", re.sub(r"//.*", "", self.cs))                    # the letter kit has no middle dot

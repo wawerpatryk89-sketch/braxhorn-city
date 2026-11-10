@@ -30,7 +30,7 @@ using UnityEngine;
 //   along it: layout.E1_TAXI_*); the service yard at the back with the loading door and the ramp trench.
 // No brown, no beige (lanes are pale silvered maple), nothing coplanar of two materials, nothing 1-5 mm apart (paint 8 mm,
 // finishes 2 cm), colliders on every floor, wall, stair, ramp and piece of furniture you would walk into.
-public static class BraxChampionsE1
+public static partial class BraxChampionsE1
 {
     // ---- plan (local nominal metres: origin at the plot centre, +x east, +z north, front = -z) - layout.E1_* must match
     public const float CentreX=530f,CentreZ=-13f,HW=60f,HD=25f,Y0=.16f,FFL=.18f,Band=5.4f,Ceiling=6.0f,RoofIn=11.4f,Roof=12f,Parapet=12.6f,PortalTop=15f;
@@ -74,7 +74,8 @@ public static class BraxChampionsE1
         if(!BraxChampionsHarbour.Steel)BraxChampionsHarbour.Materials();
         if(!BraxChampionsPromenadeFurniture.Teak)BraxChampionsPromenadeFurniture.Materials();
         black=BraxChampionsFoundation.LibraryMetal("e1_black_brushed_metal",new Color(.075f,.078f,.088f));          // board: "Panel metalowy (czarny mat)"
-        blackMatte=Inside(Tex("interior_dark_plaster","white_stucco_02",2.2f,new Color(.15f,.15f,.18f)),BraxChampionsInteriorLight.Walls);
+        // owner 10.11 21:57 ("całkowity brak wykończenia"): smooth painted plaster (no rough render inside), graphite
+        blackMatte=Inside(Tex("interior_paint_graphite","beige_wall_001",2.0f,new Color(.33f,.385f,.50f)),BraxChampionsInteriorLight.Walls);
         // owner 10.11 21:51-21:52: "całkowity brak złotego koloru ... w tym projekcie nie ma złotego, to jest światło" and "może
         // być w tym miejscu czerwony świecący": no gold anywhere - the board's lines are LIGHT, here glowing red (the E1 red);
         // hardware that was stainless is polished stainless, lamps give warm white light
@@ -89,7 +90,7 @@ public static class BraxChampionsE1
         facadeGlass=S("facade_glass_graphite",new Color(.20f,.24f,.28f,.40f),.05f,0f,null,true); // "Szkło fasadowe (przyciemniane)"
         clearGlass=S("clear_glass",new Color(.80f,.88f,.92f,.20f),.05f,0f,null,true);
         concrete=Tex("architectural_concrete","concrete_wall_003",2.4f,new Color(1.0f,1.12f,1.31f));      // the map is warm (206,184,157): neutral light grey
-        pavers=Tex("forecourt_pavers","concrete_pavement_02",1.8f,new Color(1.0f,1.09f,1.21f));            // neutral grey, no beige
+        pavers=Tex("forecourt_granite_slabs","granite_tile_03",2.4f,new Color(.96f,1.08f,1.26f));            // board: dark stone slabs, neutral grey
         carpetRed=Tex("red_carpet_wool","poly_wool_herringbone",.9f,new Color(.48f,.034f,.053f));
         hallFloor=Inside(BraxChampionsFoundation.LibraryMarble("e1_hall_black_marble",new Color(.92f,.92f,.95f),1.6f),.8f);
         carpet=Inside(Tex("bowling_carpet_wool","poly_wool_herringbone",.9f,new Color(.29f,.19f,.49f)),.85f);     // woven wool, deep violet
@@ -133,6 +134,7 @@ public static class BraxChampionsE1
         muralBall=S("ball_red_resin",new Color(.62f,.03f,.06f),.10f,.20f);
         BallMaterials();
         ScreenMaterials();
+        FinishMaterials();
         // plush prizes in the claw machines: velour in four colours
         var pt=new[]{new Color(1.40f,1.60f,1.80f),new Color(.45f,2.0f,3.0f),new Color(1.45f,4.6f,.90f),new Color(1.40f,5.2f,3.4f)};
         plush=new Material[pt.Length];for(int i=0;i<pt.Length;i++)plush[i]=Inside(Tex("plush_"+i,"velour_velvet",.25f,pt[i]),.85f);
@@ -793,14 +795,14 @@ public static class BraxChampionsE1
             leaves[i]=hinge;sides[i]=n==1?1f:(i==0?1f:-1f);
         }
         var d=group.gameObject.AddComponent<BraxCityDoor>();d.id=id;d.label=label;d.leaves=leaves;d.sides=sides;
-        Doors++;
+        Doors++;doorList.Add((x,y,z,yaw,width,height,glassLeaf,label));
     }
 
     // ================================================================ GENERATE
     public static int Generate(string outFolder)
     {
         System.IO.Directory.CreateDirectory(Folder);
-        Doors=Bays=Pins=BilliardTables=Colliders=Signs=0;
+        Doors=Bays=Pins=BilliardTables=Colliders=Signs=0;doorList.Clear();
         Materials();
         var go=new GameObject("E1 | CENTRUM ROZRYWKI | kręgle 24 tory, bilard 18 stołów, gry/VR, bar/lounge, parking B1 (owner 10.11 19:18 board)");
         root=go.transform;root.position=new Vector3(CentreX,0,CentreZ)*K;
@@ -814,6 +816,7 @@ public static class BraxChampionsE1
         Bowling();Flush("E1 interior | bowling 24 lanes");
         Billiards();Flush("E1 interior | billiards 18 tables, bar, lounge");
         BackRooms();Flush("E1 interior | games/VR, offices, cloakrooms, toilets, store, plant");
+        Finish();Flush("E1 interior | finish: linings, skirting, frames, ceilings, services, fittings");
         Garage();Flush("E1 B1 | garage");
         Lift();
         var ek=scrGroup.gameObject.AddComponent<BraxChampionsE1Ekrany>();
@@ -1059,7 +1062,7 @@ public static class BraxChampionsE1
             {
                 float y0=Band+.15f+r*1.79f,y1=Mathf.Min(y0+1.77f,Parapet-.05f);
                 int nc=Mathf.Max(1,Mathf.RoundToInt((b-a)/3.1f));
-                for(int c=0;c<nc;c++){float p0=a+c*(b-a)/nc+.01f,p1=a+(c+1)*(b-a)/nc-.01f;B(black,p0,p1,y0,y1,zf-.06f,zf);}
+                for(int c=0;c<nc;c++){float p0=a+c*(b-a)/nc+.01f,p1=a+(c+1)*(b-a)/nc-.01f;B(cladding,p0,p1,y0,y1,zf-.06f,zf);}
             }
             B(redLed,a,b,Band,Band+.15f,zf-.10f,zf);
             B(redLed,a,b,Band-.02f,Band,zf-.30f,zf-.12f);
@@ -1084,7 +1087,7 @@ public static class BraxChampionsE1
                         float p0=a+c*(b-a)/nc+.01f,p1=a+(c+1)*(b-a)/nc-.01f;
                         if(y0<2.8f&&p1>-5.5f&&p0<-4.1f)continue;                                // staff door
                         if(s>0&&y0<3.8f&&p1>15.9f&&p0<20.1f)continue;                         // roller door
-                        B(black,s<0?xo-.06f:xo,s<0?xo:xo+.06f,y0,y1,p0,p1);
+                        B(cladding,s<0?xo-.06f:xo,s<0?xo:xo+.06f,y0,y1,p0,p1);
                     }
                 }
             Door(s<0?"E1_STAFF_W":"E1_STAFF_E","E1 staff door "+(s<0?"west":"east"),s*(HW-.15f),FFL,-4.8f,s<0?90f:-90f,1.2f,2.6f-FFL,false);
@@ -1111,7 +1114,7 @@ public static class BraxChampionsE1
                     if(y0<4.2f&&p1>-38.1f&&p0<-31.9f)continue;
                     if(y0<2.8f&&p1>-55.7f&&p0<-54.3f)continue;
                     if(y0<1.0f&&p1>RampX0-.4f&&p0<RampX1+.4f)continue;
-                    B(black,p0,p1,y0,y1,zb,zb+.06f);
+                    B(cladding,p0,p1,y0,y1,zb,zb+.06f);
                 }
             }
         }
@@ -1193,7 +1196,7 @@ public static class BraxChampionsE1
         {
             B(black,x-3.5f,x+3.5f,y-.75f,y+1.15f,zf-.12f,zf);
             B(redLed,x-3.5f,x+3.5f,y-.75f,y-.71f,zf-.132f,zf-.12f);
-            BraxChampionsLetters3D.Text(m,whiteLit,black,t,new Vector3(x+.8f,y-.30f,zf-.115f),180f,.85f,.12f,.12f,4.3f);
+            BraxChampionsLetters3D.Text(m,whiteLit,black,t,new Vector3(x+1.0f,y-.30f,zf-.115f),180f,.85f,.12f,.12f,3.9f);
             Pictogram(t,new Vector3(x-2.5f,y+.20f,zf-.12f));
             Signs++;
         }
@@ -1533,7 +1536,7 @@ public static class BraxChampionsE1
         B(blackMatte,20f,50f,FFL,Ceiling,-15.2f,-15.0f,true);
         for(int s=0;s<3;s++)
         {
-            float y=FFL+1.12f+s*.55f;RB(chrome,21f,49f,y,y+.04f,-15.55f,-15.2f,.012f,false,2);B(redLed,21f,49f,y+.04f,y+.052f,-15.212f,-15.2f);
+            float y=FFL+1.12f+s*.55f;RB(chrome,21f,49f,y,y+.04f,-15.55f,-15.2f,.012f,false,2);B(redLed,21f,49f,y+.04f,y+.052f,-15.232f,-15.22f);
             for(float x=21.3f;x<48.8f;x+=.32f)
             {
                 int c=((int)(x*7f))%4;
@@ -1542,7 +1545,10 @@ public static class BraxChampionsE1
                 m.Cylinder(bottles[c],new Vector3(x,y+.32f,-15.38f),.014f,.06f,10,Quaternion.identity,true,false);
             }
         }
-        RB(lacquer,21f,49f,FFL,FFL+.92f,-15.75f,-15.2f,.03f,true);
+        // back counter: walnut, with 20 glass-door fridges (1.4 m cells) under the top
+        RB(lacquer,21f,49f,FFL,FFL+.92f,-15.45f,-15.2f,.02f,true);
+        RB(lacquer,21f,49f,FFL+.86f,FFL+.92f,-15.75f,-15.2f,.012f,false,2);B(lacquer,21f,49f,FFL,FFL+.10f,-15.75f,-15.45f);
+        Col(21f,49f,FFL,FFL+.92f,-15.75f,-15.45f,"lada");
         // bar counter 1.06 m: walnut body with half-round ends, fluted front, stainless kick plate, white marble top with an
         // overhang on the guests' side
         float bz0=-18.3f,bz1=-17.6f,bzm=(bz0+bz1)*.5f,br=(bz1-bz0)*.5f,bt=FFL+1.01f;
@@ -1657,11 +1663,11 @@ public static class BraxChampionsE1
                                        (-19f,"E1 toilets M","E1_WC_M"),(-11f,"E1 toilets K","E1_WC_K"),(-4f,"E1 cloakroom K","E1_SZATNIA_K")})
             Door(id,lab,x,FFL,15f,0f,1.2f,2.4f-FFL,false);
         foreach(float x in new[]{-50f,-30f,-22.5f,-15f,-7.5f})B(blackMatte,x-.1f,x+.1f,FFL,top,z0,z1,true);
-        B(garageWhite,-HW+.3f,-.15f,top,top+.1f,z0,z1);
+        B(ceilWhite,-HW+.3f,-.15f,top,top+.1f,z0,z1);
         // floors
         B(techFloor,-HW+.3f,-30.1f,SlabTop,FFL,z0,z1);
-        B(carpetGraphite,-30.1f,-22.6f,SlabTop,FFL,z0,z1);B(carpetGraphite,-7.4f,-.15f,SlabTop,FFL,z0,z1);
-        B(whiteTile,-22.4f,-7.6f,SlabTop,FFL,z0,z1);
+        B(terrazzo,-30.1f,-22.6f,SlabTop,FFL,z0,z1);B(terrazzo,-7.4f,-.15f,SlabTop,FFL,z0,z1);
+        B(wcFloor,-22.4f,-7.6f,SlabTop,FFL,z0,z1);
         // room signs over the doors (3D)
         foreach(var (x,t) in new[]{(-55f,"TECH."),(-40f,"MAGAZYN"),(-26f,"SZATNIA M"),(-19f,"WC M"),(-11f,"WC K"),(-4f,"SZATNIA K")})
             BraxChampionsLetters3D.Text(m,chrome,black,t,new Vector3(x,2.75f,14.91f),180f,.20f,.02f,.14f,2.6f);
@@ -1719,7 +1725,7 @@ public static class BraxChampionsE1
         BraxChampionsLetters3D.Text(m,chrome,black,"STREFA GIER • VR",new Vector3(25f,3.4f,14.91f),180f,.38f,.03f,.14f,9f);
         foreach(var (x,t) in new[]{(44f,"BIURA"),(54.5f,"TECH.")})BraxChampionsLetters3D.Text(m,chrome,black,t,new Vector3(x,2.75f,14.91f),180f,.20f,.02f,.14f,2.6f);
         foreach(float x in new[]{40f,50f})B(blackMatte,x-.1f,x+.1f,FFL,top,z0,z1,true);
-        B(garageWhite,40f,HW-.3f,top,top+.1f,z0,z1);
+        B(ceilWhite,40f,HW-.3f,top,top+.1f,z0,z1);
         B(blackMatte,10.15f,40f,Ceiling,Ceiling+.1f,z0,z1);
         B(carpet,10.15f,40f,SlabTop,FFL,z0,z1);B(carpetGraphite,40.1f,49.9f,SlabTop,FFL,z0,z1);B(techFloor,50.1f,HW-.3f,SlabTop,FFL,z0,z1);
         // games: ten upright arcade cabinets along the back wall, two air hockey tables, four VR pods, two claw machines
