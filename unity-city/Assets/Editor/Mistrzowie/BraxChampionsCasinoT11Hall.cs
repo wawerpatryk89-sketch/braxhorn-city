@@ -62,14 +62,17 @@ public static partial class BraxChampionsCasinoT11
             BraxChampionsInteriorLight.Apply(ceiling,BraxChampionsInteriorLight.Ceilings);
 
             // ---- floor: black marble, white marble band, red marble tile field with a gold edge ----
-            W.MM(marble,-HallX,HallX,.17f,HallFloor,HallZ0,HallZ1);
+            // the rotunda bay floor (granite, x +-16.75, z -28..-24.2) is not covered again by the hall marble (owner 13:05
+            // "zakaz nakładania"): the hall floor starts behind it and only the two wings run forward to the front wall
+            W.MM(marble,-HallX,HallX,.17f,HallFloor,-24.2f,HallZ1);
+            foreach(float s in new[]{-1f,1f})W.MM(marble,Mathf.Min(s*16.75f,s*HallX),Mathf.Max(s*16.75f,s*HallX),.17f,HallFloor,HallZ0,-24.2f);
             W.KolizjaMM(-HallX,HallX,.05f,HallFloor,HallZ0,HallZ1);
             W.MM(white,-33.6f,33.6f,HallFloor,HallFloor+.004f,-21.6f,24.6f);
             W.MM(carpet,-32.4f,32.4f,HallFloor+.004f,HallFloor+.016f,-20.4f,23.4f);
             foreach(float s in new[]{-1f,1f})
             {
                 W.MM(gold,s*32.4f-.04f,s*32.4f+.04f,HallFloor+.004f,HallFloor+.02f,-20.4f,23.4f);
-                W.MM(gold,-32.4f,32.4f,HallFloor+.004f,HallFloor+.02f,(s<0?-20.4f:23.4f)-.04f,(s<0?-20.4f:23.4f)+.04f);
+                W.MM(gold,-32.44f,32.44f,HallFloor+.004f,HallFloor+.02f,(s<0?-20.4f:23.4f)-.04f,(s<0?-20.4f:23.4f)+.04f);
             }
             // red tiles run from the portal into the field
             W.MM(carpet,-PortalHalf,PortalHalf,HallFloor+.004f,HallFloor+.016f,LobbyBackZ,-20.4f);

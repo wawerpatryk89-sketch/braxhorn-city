@@ -591,10 +591,12 @@ public static class BraxChampionsHotelSobczakT03
                 float b0=Level(f),b1=Level(f+1);
                 Box(M.brick,-TowerHalfW,TowerHalfW,b0-Slab,b0+.6f,Lo(zo,zi),Hi(zo,zi),true);         // spandrel / sill
                 Box(M.brick,-TowerHalfW,TowerHalfW,b1-Slab-.35f,b1-Slab,Lo(zo,zi),Hi(zo,zi),true);   // head
-                Box(M.glass,-TowerHalfW,TowerHalfW,b0+.6f,b1-Slab-.35f,sz*(TowerHalfD-.16f),sz*(TowerHalfD-.14f),true);
+                // glass and frames end inside the 50 cm corner piers: their ends lay in the plane of the side facades
+                // (x = +-17) and flickered on every tower corner from afar (owner 13:05 "zero migotania")
+                Box(M.glass,-TowerHalfW+.45f,TowerHalfW-.45f,b0+.6f,b1-Slab-.35f,sz*(TowerHalfD-.16f),sz*(TowerHalfD-.14f),true);
                 In(details,false);
-                Box(M.darkBronze,-TowerHalfW,TowerHalfW,b0+.6f,b0+.66f,sz*(TowerHalfD-.2f),sz*(TowerHalfD-.1f));
-                Box(M.darkBronze,-TowerHalfW,TowerHalfW,b1-Slab-.41f,b1-Slab-.35f,sz*(TowerHalfD-.2f),sz*(TowerHalfD-.1f));
+                Box(M.darkBronze,-TowerHalfW+.45f,TowerHalfW-.45f,b0+.6f,b0+.66f,sz*(TowerHalfD-.2f),sz*(TowerHalfD-.1f));
+                Box(M.darkBronze,-TowerHalfW+.45f,TowerHalfW-.45f,b1-Slab-.41f,b1-Slab-.35f,sz*(TowerHalfD-.2f),sz*(TowerHalfD-.1f));
                 for(int i=0;i<5;i++)foreach(float u in new[]{1.825f,4.975f})
                 {
                     float x=-TowerHalfW+i*RoomW+u;
@@ -809,9 +811,11 @@ public static class BraxChampionsHotelSobczakT03
         Box(M.teak,-LiftBank,LiftBank,y0+2.2f+.15f,y0+2.9f,z-t*.5f-.02f,z-t*.5f);
         foreach(float x in LiftX)
         {
-            Box(M.steel,x-LiftDoorHalf-.1f,x-LiftDoorHalf,y0,y0+2.35f,z-t*.5f-.04f,z+t*.5f);
-            Box(M.steel,x+LiftDoorHalf,x+LiftDoorHalf+.1f,y0,y0+2.35f,z-t*.5f-.04f,z+t*.5f);
-            Box(M.steel,x-LiftDoorHalf-.1f,x+LiftDoorHalf+.1f,y0+2.2f,y0+2.35f,z-t*.5f-.04f,z+t*.5f);
+            // steel portal 1 cm proud into the opening and 1 cm short of the shaft face: its faces never lie in the wall's
+            // reveal or back planes (they flickered in every lift reveal - owner 13:05 "zero migotania")
+            Box(M.steel,x-LiftDoorHalf-.1f,x-LiftDoorHalf+.01f,y0,y0+2.35f,z-t*.5f-.04f,z+t*.5f-.01f);
+            Box(M.steel,x+LiftDoorHalf-.01f,x+LiftDoorHalf+.1f,y0,y0+2.35f,z-t*.5f-.04f,z+t*.5f-.01f);
+            Box(M.steel,x-LiftDoorHalf-.1f,x+LiftDoorHalf+.1f,y0+2.19f,y0+2.35f,z-t*.5f-.04f,z+t*.5f-.01f);
             Box(M.steel,x+LiftDoorHalf+.22f,x+LiftDoorHalf+.34f,y0+1.0f,y0+1.3f,z-t*.5f-.03f,z-t*.5f);
             Box(M.warmLight,x+LiftDoorHalf+.255f,x+LiftDoorHalf+.305f,y0+1.12f,y0+1.17f,z-t*.5f-.04f,z-t*.5f-.03f);
         }
@@ -1093,7 +1097,10 @@ public static class BraxChampionsHotelSobczakT03
         Box(M.marble,x0,x1,y0,ty,z1-.01f,z1);
         Box(M.marble,x0,Lo(sx*8.65f,sx*9.65f),y0,ty,z0,z0+.01f);Box(M.marble,Hi(sx*8.65f,sx*9.65f),x1,y0,ty,z0,z0+.01f);
         Box(M.marble,Lo(sx*8.65f,sx*9.65f),Hi(sx*8.65f,sx*9.65f),y0+2.1f,ty,z0,z0+.01f);
-        Box(M.marble,x0,x0+.01f,y0,ty,z0,z1);Box(M.marble,x1-.01f,x1,y0,ty,z0,z1);
+        // the lining on the lift-core side sits on the toilet face of the 20 cm core wall (x +-4.35), not inside it: in
+        // the wall's lobby face plane (x +-4.15) it fought with the paint (owner 13:05 "zero migotania")
+        float c0=sx>0?x0+.2f:x0,c1=sx>0?x1:x1-.2f;
+        Box(M.marble,c0,c0+.01f,y0,ty,z0,z1);Box(M.marble,c1-.01f,c1,y0,ty,z0,z1);
         // three cubicles against the back wall: walnut partitions and doors (open 90 degrees), wall-hung WCs
         for(int i=0;i<3;i++)
         {

@@ -376,7 +376,7 @@ public static class BraxChampionsApartments
         Rail(true,c,a,b,y1-.06f,y1);Rail(true,c,a,mid-h-jw,y0,y0+.06f);Rail(true,c,mid+h+jw,b,y0,y0+.06f);
         Mullion(true,c,a,y0,y1);Mullion(true,c,b,y0,y1);
         W.Grupa=outside;
-        Box(steel,mid-h,mid+h,y0-.008f,y0+.012f,c-.16f,c+.16f);                                        // stainless threshold
+        Box(steel,mid-h,mid+h,y0-.008f,y0+Finish+.006f,c-.16f,c+.16f);                                  // stainless threshold, 6 mm over the floor finish
         var root=new GameObject("APT entrance | operable double door (black portal, stainless pulls)").transform;
         root.SetParent(outside,false);root.localPosition=new Vector3(mid,y0,c);
         var leaves=new Transform[2];
@@ -393,7 +393,7 @@ public static class BraxChampionsApartments
             Box(black,l1-st,l1,y0+.01f,top-.005f,c-t*.5f,c+t*.5f);
             Box(black,l0+st,l1-st,top-railTop,top-.005f,c-t*.5f,c+t*.5f);                                // top rail
             Box(black,l0+st,l1-st,y0+.01f,y0+railBottom,c-t*.5f,c+t*.5f);                                // bottom (kick) rail
-            Box(steel,l0+st,l1-st,y0+.03f,y0+railBottom-.02f,c-t*.5f-.002f,c+t*.5f+.002f);               // brushed kick plate
+            Box(steel,l0+st,l1-st,y0+.03f,y0+railBottom-.02f,c-t*.5f-.006f,c+t*.5f+.006f);               // brushed kick plate, 6 mm proud
             float px=meet-side*.13f;
             foreach(float f in new[]{-1f,1f})
             {

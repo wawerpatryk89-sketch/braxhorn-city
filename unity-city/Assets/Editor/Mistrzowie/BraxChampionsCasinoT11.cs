@@ -267,11 +267,11 @@ public static partial class BraxChampionsCasinoT11
     static void RoofAndSkylight()
     {
         // Technical flat roof with genuine transparent top skylight.
-        B(shell,"Podium ground slab",granite,0,.08f,0,76f,.18f,56f,true,true);
-        B(shell,"Podium roof west",roof,-25f,14.05f,0,26f,.22f,56f,true,true);
-        B(shell,"Podium roof east",roof,25f,14.05f,0,26f,.22f,56f,true,true);
+        B(shell,"Podium ground slab",granite,0,.08f,-.01f,76f,.18f,55.98f,true,true);   // rear end 2 cm inside the wall face (no flicker)
+        B(shell,"Podium roof west",roof,-25f,14.05f,-.01f,26f,.22f,55.98f,true,true);
+        B(shell,"Podium roof east",roof,25f,14.05f,-.01f,26f,.22f,55.98f,true,true);
         B(shell,"Skylight roof south",roof,0,14.05f,-19f,24f,.22f,18f,true,true);
-        B(shell,"Skylight roof north",roof,0,14.05f,19f,24f,.22f,18f,true,true);
+        B(shell,"Skylight roof north",roof,0,14.05f,18.99f,24f,.22f,17.98f,true,true);
         B(shell,"Actual transparent blue-violet rooftop skylight",skylightGlass,0,14.14f,0,24f,.11f,20f,false);
         for(float x=-12f;x<=12f;x+=4f)
             BeveledBox(trim,"Skylight rounded champagne longitudinal rib",gold,
@@ -397,7 +397,7 @@ public static partial class BraxChampionsCasinoT11
         foreach(float s in new[]{-1f,1f})
         {
             BeveledBox(shell,"T11 entrance portal black jamb",windowFrame,s*(half+.24f),(.21f+top)*.5f,zFace,.48f,top-.21f,.62f,.05f,true);
-            B(trim,"T11 entrance portal jamb gold inner edge",gold,s*(half+.005f),(.21f+top)*.5f,zFace,.012f,top-.25f,.63f,false);
+            B(trim,"T11 entrance portal jamb gold inner edge",gold,s*(half-.0065f),(.21f+top)*.5f,zFace,.017f,top-.25f,.58f,false);
             B(trim,"T11 entrance portal jamb light reveal",led,s*(half+.24f),2.1f,zFace-.315f,.07f,3.4f,.02f,false);
             // lantern on a gold post beside the carpet
             BeveledBox(trim,"T11 entrance lantern gold post",gold,s*4.35f,1.21f,-38.9f,.14f,2.0f,.14f,.03f,false);
@@ -405,7 +405,7 @@ public static partial class BraxChampionsCasinoT11
             BeveledBox(trim,"T11 entrance lantern gold cap",gold,s*4.35f,2.70f,-38.9f,.42f,.08f,.42f,.03f,false);
         }
         BeveledBox(shell,"T11 entrance portal black lintel",windowFrame,0,top+.27f,zFace,2f*half+1.44f,.54f,.62f,.05f,false);
-        B(trim,"T11 entrance portal lintel gold inner edge",gold,0,top+.005f,zFace,2f*half,.012f,.63f,false);
+        B(trim,"T11 entrance portal lintel gold inner edge",gold,0,top-.0065f,zFace,2f*half-.04f,.017f,.58f,false);
         // canopy: black body, gold edge all round, three light lines underneath
         const float cy=4.74f,cz=-38.05f,cw=8.6f,cd=3.3f;
         B(shell,"T11 entrance canopy black body",signBacking,0,cy,cz,cw,.26f,cd,false);
@@ -429,7 +429,7 @@ public static partial class BraxChampionsCasinoT11
             var hinge=Group(group,"Glass door leaf "+(i+1));
             hinge.localPosition=new Vector3(side*width*.5f,0,0)*K;
             leaves[i]=hinge;
-            B(hinge,"Toughened clear door glass",frontGlass,-side*width*.25f,1.8f,0,width*.5f,3.6f,.09f,true);
+            B(hinge,"Toughened clear door glass",frontGlass,-side*width*.25f,1.8f,0,width*.5f-.20f,3.30f,.06f,true);   // edges inside the frame
             // 10.11 00:37 "wejście zlane z szybą": every leaf is a framed gold door, not a bare pane in a glass wall.
             float lw=width*.5f,lc=-side*width*.25f;
             // owner 10.11 13:04 (casino doors): one door standard everywhere - black framed leaves, clear glass, gold pulls
@@ -724,7 +724,7 @@ public static partial class BraxChampionsCasinoT11
             B(trim,"Garage portal pier warm light reveal",led,px,2.45f,-22.395f,.07f,4.3f,.03f,false);
             B(trim,"Garage portal pier champagne base shoe",gold,px,.29f,-22f,.53f,.16f,.84f,false);
         }
-        B(basement,"Garage portal graphite canopy over ramp head",graphite,44.19f,5.05f,-20.32f,10.65f,.20f,2.60f,false,true);
+        B(basement,"Garage portal graphite canopy over ramp head",graphite,44.19f,5.04f,-20.32f,10.59f,.20f,2.60f,false,true);
         B(trim,"Garage portal canopy champagne rear edge",gold,44.19f,5.05f,-18.995f,10.65f,.21f,.05f,false);
         foreach(float lz in new[]{-21.2f,-20.3f,-19.4f})
             B(trim,"Garage portal canopy warm downlight line",led,44.19f,4.942f,lz,9.2f,.016f,.07f,false);
@@ -750,11 +750,11 @@ public static partial class BraxChampionsCasinoT11
             float x=-28f+i*bayWidth;
             foreach(float z in new[]{-17f,10f})
                 B(basement,"B1 physical car-space border white #"+i,garageParkingPaint,
-                    x,-4.099f,z,.095f,.008f,5.25f,false);
+                    x,-4.094f,z,.095f,.008f,5.25f,false);
         }
         foreach(float z in new[]{-19.65f,12.65f})
             B(basement,"B1 continuous marked bay head line",garageParkingPaint,
-                -3.2f,-4.099f,z,baysPerRow*bayWidth,.008f,.095f,false);
+                -3.2f,-4.094f,z,baysPerRow*bayWidth,.008f,.095f,false);
         // Legible two-way drive aisle. Short WHITE centre dashes never
         // obstruct parking slots; the full asphalt surface remains black.
         for(int n=0;n<8;n++)
@@ -963,7 +963,7 @@ public static partial class BraxChampionsCasinoT11
         // Rise .2485 m over 77.5 m (0.32 %), no kerb, no step.
         GradedDrive(shell,"south_street_road_connection",asphalt,
             -23.5f,-16.5f,-125f,-47.5f,0f,roadTop,false);
-        B(shell,"Casino pedestrian main axis",granite,0,.22f,-43.7f,8.1f,.08f,11.7f,true,true);
+        B(shell,"Casino pedestrian main axis",granite,0,.22f,-46.7f,8.1f,.08f,5.7f,true,true);          // z -49.55..-43.85, the ramp continues (no overlap)
         B(trim,"Red carpet leading to the curved casino entrance",redCarpet,
             0,.279f,-41.45f,5.8f,.016f,10.35f,false,true);
         foreach(float side in new[]{-1f,1f})
@@ -1025,7 +1025,7 @@ public static partial class BraxChampionsCasinoT11
             BeveledBox(trim,"T11 champagne facade sconce "+(i+1),gold,
                 p.x,p.y,p.z,.26f,.45f,.24f,.060f,false);
             BeveledBox(trim,"T11 warm LED luminaire diffuser "+(i+1),led,
-                p.x,p.y-.19f,p.z,.18f,.055f,.16f,.018f,false);
+                p.x,p.y-.235f,p.z,.18f,.055f,.16f,.018f,false);
         }
 
         // Issue #29 explicitly requires convincing metal/glass reflections without realtime lighting.
