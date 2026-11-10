@@ -151,3 +151,17 @@ for _p in _PARKINGS:
  _m,_c=_mouth(_p["id"],_p["driveX0"],_p["driveX1"],-80.0,-1);PARKING_DRIVE_MOUTHS.append(_m);PARKING_MOUTH_CORNERS+=_c
 DRIVE_MOUTHS=APT_DRIVE_MOUTHS+T11_DRIVE_MOUTHS+A1_DRIVE_MOUTHS+HOTEL_DRIVE_MOUTHS+PARKING_DRIVE_MOUTHS
 MOUTH_CUTS=T11_MOUTH_CORNERS+A1_MOUTH_CORNERS+HOTEL_MOUTH_CORNERS+HOTEL_DRIVE_STRIPS+PARKING_MOUTH_CORNERS+PARKING_DRIVE_STRIPS
+# Owner 10.11 19:18-20:12 (board "E1 CENTRUM ROZRYWKI", 19:40 "parking podziemny najlepiej", 19:40 "na taksówki przed E1"):
+# E1 (BraxChampionsE1) builds its whole site - the plot, the forecourt to the Z-70 sidewalk (world z -53) and the service
+# yard to the Z70 sidewalk (z 53) - plus a TAXI LAY-BY cut into the Z-70 north sidewalk (bay 3 m + kerb .18, straight
+# x 517..553, S-tapers 7.94 m of R 6 m each end; the city kerb is open along it) and the B1 garage drive across the Z70
+# south sidewalk (x 571..578, street mouth R 3 m). Must match the C# constants (test_e1_20261110.py).
+E1_CENTRE=(530.0,-13.0)
+E1_SITE=(466.0,-53.0,128.0,106.0)
+E1_TAXI_X0,E1_TAXI_X1=530.0-13.0-7.94,530.0+23.0+7.94
+E1_TAXI_CUT=(E1_TAXI_X0,-60.0,E1_TAXI_X1-E1_TAXI_X0,3.18)
+E1_TAXI_MOUTH=('E1_taxi',E1_TAXI_X0,-60.0,E1_TAXI_X1,-60.0)
+E1_GARAGE_DRIVE=(571.0,53.0,7.0,7.0)
+E1_GARAGE_MOUTH,E1_GARAGE_CORNERS=_mouth('E1_garage',571.0,578.0,60.0,-1)
+DRIVE_MOUTHS=DRIVE_MOUTHS+[E1_TAXI_MOUTH,E1_GARAGE_MOUTH]
+MOUTH_CUTS=MOUTH_CUTS+[E1_SITE,E1_TAXI_CUT,E1_GARAGE_DRIVE]+E1_GARAGE_CORNERS

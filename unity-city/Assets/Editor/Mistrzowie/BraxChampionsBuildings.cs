@@ -103,6 +103,14 @@ public static class BraxChampionsBuildings
             BraxChampionsCasinoT11.Generate(Out);
             casinoGenerated=true;
         });
+        // Owner 10.11 19:18-20:12 (board "E1 CENTRUM ROZRYWKI", "rób od podstaw E1 dokładnie, parking podziemny", "na
+        // taksówki przed E1"): the entertainment centre by the promenade with its B1 garage, taxi lay-by and site.
+        bool e1Generated=false;
+        BraxChampionsFoundation.Optional("E1 centrum rozrywki",()=>
+        {
+            BraxChampionsE1.Generate(Out);
+            e1Generated=true;
+        });
         // 9.11 owner: "Ten basen usuń całkowicie" - P1 removed from the game.
         // 9.11 owner: apartment buildings on the rental plots, one at a time,
         // each finished A-Z inside and out (empty, no furniture).
@@ -114,9 +122,9 @@ public static class BraxChampionsBuildings
                 apartmentBuildings++;
             });
         AssetDatabase.SaveAssets();
-        int generated=d.buildings.Length+(casinoGenerated?1:0)+apartmentBuildings;
+        int generated=d.buildings.Length+(casinoGenerated?1:0)+apartmentBuildings+(e1Generated?1:0);
         Debug.Log("CHAMPIONS_BUILDING_GENERATION base="+d.buildings.Length+
-            " T11="+casinoGenerated+" APARTMENTS="+apartmentBuildings+"/"+BraxChampionsApartments.Ids.Length+" P1=REMOVED_BY_OWNER"+
+            " T11="+casinoGenerated+" E1="+e1Generated+" APARTMENTS="+apartmentBuildings+"/"+BraxChampionsApartments.Ids.Length+" P1=REMOVED_BY_OWNER"+
             " generated="+generated+" visualAccepted=false");
         return generated;
     }
