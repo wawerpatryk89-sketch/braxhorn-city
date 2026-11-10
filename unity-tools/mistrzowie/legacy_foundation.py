@@ -304,7 +304,7 @@ for x in [640,670,700,730,760]:
 # Owner 10.11 08:40: "posadź drzewa jeszcze przy apartamentach, przy hotelach, przy kasynie". The owner's city palms
 # straight into the lawn around the finished plots (apartments T04-T07, Hotel Sobczak T03, casino T11): a ring 6 m
 # outside each plot edge, one every ~15 m, only on genuine grass (plant() checks the root disk and 10 m spacing,
-# so roads, sidewalks, driveways, ramps and the existing street palms are left alone).
+# so roads, sidewalks, driveways, ramps and the existing street palms are left alone). Both palm models, mixed.
 GARDEN_PLOTS=('T03','T04','T05','T06','T07','T11')
 for b in buildings:
  if b['id'] not in GARDEN_PLOTS:continue
@@ -312,10 +312,10 @@ for b in buildings:
  n=lambda a,c:max(1,round((c-a)/15))
  for i in range(n(x0,x1)+1):
   x=x0+(x1-x0)*i/n(x0,x1)
-  plant(round(x,2),z0,'palm',0,'plot_garden');plant(round(x,2),z1,'palm',0,'plot_garden')
+  plant(round(x,2),z0,'palm',len(plants)%2,'plot_garden');plant(round(x,2),z1,'palm',len(plants)%2,'plot_garden')
  for j in range(1,n(z0,z1)):
   z=z0+(z1-z0)*j/n(z0,z1)
-  plant(x0,round(z,2),'palm',0,'plot_garden');plant(x1,round(z,2),'palm',0,'plot_garden')
+  plant(x0,round(z,2),'palm',len(plants)%2,'plot_garden');plant(x1,round(z,2),'palm',len(plants)%2,'plot_garden')
 for x,z in [(850,890),(900,890),(950,890),(1000,890),(1080,890),(950,740)]:plant(x,z,'tree',0,'hotel_garden')
 layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,piers=PIERS,promenade=PAVILIONS,tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
 SRC.mkdir(parents=True,exist_ok=True)
