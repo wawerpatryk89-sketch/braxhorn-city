@@ -55,6 +55,9 @@ RAMP_HALF=2.5
 # drive's own kerb arcs meet the city kerb at both ends (BraxChampionsApartments.Parking, BraxChampionsCasinoT11.StreetMouth).
 def in_mouth(x,z):
  return any(a-1e-6<=x<=c+1e-6 and b-.4<=z<=d+.4 if abs(d-b)<1e-6 else b-1e-6<=z<=d+1e-6 and a-.4<=x<=c+.4 for _,a,b,c,d in DRIVE_MOUTHS)
+# junction corners (legacy_foundation.JUNCTION_CORNERS): the square sides inside a corner are not kerb lines any more
+def in_corner(x,z):
+ return any(r[0]-.3<=x<=r[0]+r[2]+.3 and r[1]-.3<=z<=r[1]+r[3]+.3 for _,_,_,_,r in ground.JUNCTION_CORNERS)
 def dropped(x,z):
  # exactly the 5 m of the ramp (was 2.7 m: half-dropped stones next to the full-height walk left a hole)
  return any((abs(x-a)<RAMP_HALF and abs(abs(z-b)-10)<.35) if axis=='x' else (abs(z-b)<RAMP_HALF and abs(abs(x-a)-10)<.35) for a,b,axis in crossings)
@@ -85,7 +88,7 @@ for a,b in edges.values():
   ll=u1-u0
   if ll<.02:continue
   p=line+t*(u0+ll/2)
-  if in_mouth(*p):continue
+  if in_mouth(*p) or in_corner(*p):continue
   h=.02 if dropped(*p) else .16
   dims=(ll-.008,.18,.18) if along_x else (.18,.18,ll-.008)
   if min(dims)<=0:continue
@@ -93,6 +96,46 @@ for a,b in edges.values():
   # footprint incl. the 8 mm joint, so no sliver of paving is left between two stones
   hw,hd=(ll/2,.09) if along_x else (.09,ll/2)
   curb_polys.append(box(p[0]-hw,p[1]-hd,p[0]+hw,p[1]+hd))
+
+# Owner 10.11 17:38-17:40 (rounded kerbs, "łatwiej się wtedy jeździ i autobus będzie miał lepiej"): every junction corner
+# turns in a granite kerb arc R = ground.JUNCTION_R. The corner square is road asphalt in the foundation; the quarter
+# disc behind the arc is cut back out of it (corner_polys, see the cuts) and filled here: 16 arc stones (top .16 like
+# every city kerb, 8 mm joints) and the sidewalk inside them at PAVING_Y. The fan polygon and the stones share the same
+# arc points, so nothing overlaps and nothing is left open.
+corner_polys=[];corner_stones=0
+JR,JSEG,KW=ground.JUNCTION_R,16,.18
+for X,Z,sx,sz,r in ground.JUNCTION_CORNERS:
+ C=np.array([X+sx*(10+JR),Z+sz*(10+JR)])
+ a0=math.atan2(0,-sx);a1=math.atan2(-sz,0)
+ da=(a1-a0+math.pi)%(2*math.pi)-math.pi                 # the 90 degree turn towards the junction
+ P=lambda rad,t:C+rad*np.array([math.cos(a0+da*t),math.sin(a0+da*t)])
+ outer=[P(JR,i/JSEG) for i in range(JSEG+1)]
+ corner_polys.append(Polygon([tuple(C)]+[tuple(q) for q in outer]))
+ # sidewalk inside the arc: a fan from the corner centre, at sidewalk level
+ inner=[P(JR-KW,i/JSEG) for i in range(JSEG+1)]
+ for q0,q1 in zip(inner,inner[1:]):
+  tri=[(C[0],PAVING_Y,C[1]),(q0[0],PAVING_Y,q0[1]),(q1[0],PAVING_Y,q1[1])]
+  if np.cross(np.subtract(tri[1],tri[0]),np.subtract(tri[2],tri[0]))[1]<0:tri=[tri[0],tri[2],tri[1]]
+  mesh.tri('paving',*tri)
+ # arc stones: top, road face, sidewalk face, ends; -.02..+.16 like the straight kerbs
+ j=.004/JR
+ for i in range(JSEG):
+  t0,t1=i/JSEG+(j if i>0 else 0)/abs(da),(i+1)/JSEG-(j if i<JSEG-1 else 0)/abs(da)
+  o0,o1,i0,i1=P(JR,t0),P(JR,t1),P(JR-KW,t0),P(JR-KW,t1)
+  ctr=(o0+o1+i0+i1)/4
+  def face(*q,ctr=ctr):
+   q=[np.array(v,float) for v in q]
+   n=np.cross(q[1]-q[0],q[2]-q[0]);mid=np.mean(q,axis=0)
+   out=np.array([mid[0]-ctr[0],mid[1]-.07,mid[2]-ctr[1]])
+   if np.dot(n,out)<0:q=q[::-1]
+   mesh.quad('curb',*q)
+  Y0,Y1=-.02,PAVING_Y
+  face((i0[0],Y1,i0[1]),(o0[0],Y1,o0[1]),(o1[0],Y1,o1[1]),(i1[0],Y1,i1[1]))
+  face((o0[0],Y0,o0[1]),(o1[0],Y0,o1[1]),(o1[0],Y1,o1[1]),(o0[0],Y1,o0[1]))
+  face((i1[0],Y0,i1[1]),(i0[0],Y0,i0[1]),(i0[0],Y1,i0[1]),(i1[0],Y1,i1[1]))
+  face((i0[0],Y0,i0[1]),(o0[0],Y0,o0[1]),(o0[0],Y1,o0[1]),(i0[0],Y1,i0[1]))
+  face((o1[0],Y0,o1[1]),(i1[0],Y0,i1[1]),(i1[0],Y1,i1[1]),(o1[0],Y1,o1[1]))
+  corner_stones+=1
 
 # Paint follows the same street grid. Junction centres stay clear.
 def near_junction(x,z):return min(abs(x-a) for a in X_ROADS)<16 and min(abs(z-a) for a in Z_ROADS)<16
@@ -270,7 +313,8 @@ from shapely.strtree import STRtree
 kerb_cut=curb_polys+ramp_polys
 level_cut=STRtree(kerb_cut)
 groove_parts=list(grooves.geoms) if hasattr(grooves,'geoms') else [grooves]
-cuts={'asphalt':(STRtree(groove_parts),groove_parts)}
+asphalt_cut=groove_parts+corner_polys
+cuts={'asphalt':(STRtree(asphalt_cut),asphalt_cut)}
 for role in ('paving','grass','prom_paving','cycle_lane','cycle_mark'):cuts[role]=(level_cut,kerb_cut)
 cut_faces=0
 for old in ground.meshes.values():

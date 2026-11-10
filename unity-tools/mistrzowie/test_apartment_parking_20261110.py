@@ -46,7 +46,7 @@ class ApartmentParking(unittest.TestCase):
         self.assertIn("Vector2 Arc(float r,float t)", self.apt)
         self.assertIn("W.Rampa(", self.apt)
         infra = (TOOLS / "build_infrastructure.py").read_text(encoding="utf-8")
-        self.assertIn("if in_mouth(*p):continue", infra)
+        self.assertIn("if in_mouth(*p) or in_corner(*p):continue", infra)
         legacy = (TOOLS / "legacy_foundation.py").read_text(encoding="utf-8")
         self.assertIn("if any(inside((x,z),r) for r in APT_DRIVE_CUTS):return None", legacy)
         self.assertIn("+A1_PARKING_ENTRANCES+APT_DRIVE_CUTS+", legacy)

@@ -53,7 +53,18 @@ validate_promenade()
 def inside(p,r):
  x,z=p;a,b,w,d=r;return a<=x<a+w and b<=z<b+d
 
+# Owner 10.11 17:38-17:40 ("A drogi też zrobiłeś wszędzie zaokrąglone zakręty?", picture of rounded kerbs, "łatwiej się
+# wtedy jeździ i autobus będzie miał lepiej") - ZASADA-DROGI-NAROZNIKI-ZAOKRAGLONE: every street junction turns in kerb
+# arcs R 6 m. The R x R square in each sidewalk corner becomes road asphalt here; build_infrastructure cuts the quarter
+# disc behind the arc back out of it and lays the granite arc kerb and the sidewalk inside it (JUNCTION_CORNERS).
+JUNCTION_R=6.0
+JUNCTION_CORNERS=[]          # (X, Z, sx, sz, rect): filled below from the plain street layout
+def junction_rect(X,Z,sx,sz):
+ x0,x1=sorted((X+sx*10.0,X+sx*(10.0+JUNCTION_R)));z0,z1=sorted((Z+sz*10.0,Z+sz*(10.0+JUNCTION_R)))
+ return (x0,z0,x1-x0,z1-z0)
+
 def zone(x,z):
+ if JUNCTION_CORNERS and any(inside((x,z),c[4]) for c in JUNCTION_CORNERS):return 'asphalt'
  if inside((x,z),T11_GARAGE_RAMP):return None
  if inside((x,z),T11_STREET_ENTRANCE):return None
  if inside((x,z),T11_STREET_ENTRANCE_LAWN) or inside((x,z),T11_SOUTH_DRIVE):return None
@@ -103,6 +114,18 @@ def zone(x,z):
   if inside((x,z),(a,b,w,d)):return role
  return None
 
+# a corner gets its arc only where it is plain sidewalk between two real roads (no metro entrance, stop, drive or plot in
+# the square) - sampled from the street layout itself
+for _X in XROAD:
+ for _Z in ZROAD:
+  for _sx in (-1,1):
+   for _sz in (-1,1):
+    _r=junction_rect(_X,_Z,_sx,_sz)
+    if zone(_X+_sx*5,_Z+_sz*(10+JUNCTION_R*.5))!='asphalt' or zone(_X+_sx*(10+JUNCTION_R*.5),_Z+_sz*5)!='asphalt':continue
+    if all(zone(_r[0]+_r[2]*(i+.5)/12,_r[1]+_r[3]*(j+.5)/12)=='paving' for i in range(12) for j in range(12)):
+     JUNCTION_CORNERS.append((_X,_Z,_sx,_sz,_r))
+JUNCTION_CORNER_RECTS=[c[4] for c in JUNCTION_CORNERS]
+
 def height(role,x,z):
  if role in ('sand_dry','sand_wet'):
   return beach_height(x,z)
@@ -134,7 +157,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE,T11_STREET_ENTRANCE_LAWN,T11_SOUTH_DRIVE]+T11_MOUTH_CORNERS+A1_PARKING_ENTRANCES+APT_DRIVE_CUTS+HOTEL_GARAGE_CUTS+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS+DINING_BED_RECTS+QUAY_APRONS+QUAY_BED_RECTS
+rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE,T11_STREET_ENTRANCE_LAWN,T11_SOUTH_DRIVE]+T11_MOUTH_CORNERS+A1_PARKING_ENTRANCES+APT_DRIVE_CUTS+HOTEL_GARAGE_CUTS+JUNCTION_CORNER_RECTS+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS+DINING_BED_RECTS+QUAY_APRONS+QUAY_BED_RECTS
 # rounded: 4.4 / 3.6 m beds gave -219.8+3.6 = -216.20000000000002 next to -216.2 -> zero-length quay-wall edges
 for x,z,w,d in rects:xs.update([round(x,6),round(x+w,6)]);zs.update([round(z,6),round(z+d,6)])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
