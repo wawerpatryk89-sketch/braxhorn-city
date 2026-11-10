@@ -541,12 +541,18 @@ public static class BraxChampionsHarbour
             float x0=p.x,x1=p.x+p.w,z0=p.z,z1=p.z+p.d;
             // berth faces: cruise both long sides, ferry its east side (the west side gets a railing)
             var faces=cruise?new[]{x0,x1}:new[]{x1};
+            // Owner 10.11 14:47 "mosty też mają swoją grubość - wszystkie": the quay reads as a solid concrete structure -
+            // a 1.06 m edge beam 25 cm proud of the quay wall along every berth face and across the head, fenders on it.
+            var edge=BraxChampionsFoundation.SourceMaterial("harbour_quay_concrete_edge","concrete_wall_008",2.0f,new Color(.80f,.88f,1.0f));   // neutral grey (the map is warm: no beige)
+            m.BoxMinMax(edge,x0-.25f,x1+.25f,QuayY-1.0f,QuayY+.06f,z0-.25f,z0);
+            m.BoxMinMax(edge,x0-.25f,x0,QuayY-1.0f,QuayY+.06f,z0,z1-.02f);
+            m.BoxMinMax(edge,x1,x1+.25f,QuayY-1.0f,QuayY+.06f,z0,z1-.02f);
             foreach(float fx in faces)
             {
                 float inward=fx==x0?1f:-1f;
                 for(float z=z1-8f;z>z0+3f;z-=15f)Bollard(m,new Vector3(fx+inward*.75f,QuayY,z));
                 for(float z=z1-4f;z>z0+2f;z-=8f)
-                    m.Cylinder(Rubber,new Vector3(fx-inward*.36f,-1.75f,z),.34f,1.80f,14,Quaternion.identity,true,true);
+                    m.Cylinder(Rubber,new Vector3(fx-inward*(.25f+.36f),-1.75f,z),.34f,1.80f,14,Quaternion.identity,true,true);
                 // granite coping along the berth edge
                 m.BoxMinMax(Graphite,Mathf.Min(fx,fx+inward*.45f),Mathf.Max(fx,fx+inward*.45f),QuayY,QuayY+.06f,z0,z1);
             }

@@ -132,7 +132,7 @@ class CruiseShipB(unittest.TestCase):
         w = [b for b in pl.BERTHS if b["id"] == "W01"][0]
         self.assertEqual((w["length"], w["width"], w["yaw"]), (289.4, 33.4, 180.0))
         x0, z0, x1, z1 = pl.hull(w).bounds
-        self.assertAlmostEqual(x0, 1120.8, places=3)     # 0.8 m off the quay's east face
+        self.assertAlmostEqual(x0, 1121.0, places=3)     # 1.0 m off the quay's east face (on the fenders)
         self.assertAlmostEqual(z1, -152.0, places=3)     # stern 2 m off the promenade wall
 
     def test_generator(self):

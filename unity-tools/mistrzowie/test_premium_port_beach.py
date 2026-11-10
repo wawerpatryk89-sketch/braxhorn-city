@@ -36,7 +36,8 @@ class PremiumPortBeach(unittest.TestCase):
 
     def test_compact_port(self):
         # the old port ran 313 m into the sea (empty cruise quay) and 260 m (yacht spine)
-        depth=max(-(p["z"]) for p in PIERS)-150
+        # (the cruise terminal pier is as long as the owner's real 289 m ship - owner 10.11 14:46 "cienki")
+        depth=max(-(p["z"]) for p in PIERS if p["role"]!="quay_cruise")-150
         self.assertLess(depth,120)
         yacht=[p for p in PIERS if p["id"]=="YACHT_MAIN_SPINE"][0]
         # 10.11 12:52 "wszystko w skalę": 15 REAL 40 m yachts need 11.6 m per berth (was 65 m for half-size models)

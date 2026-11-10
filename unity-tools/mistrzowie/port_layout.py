@@ -89,6 +89,8 @@ def hull(b):
 YACHT_LEN,YACHT_BEAM=40.33,8.6      # beam 8.21 + fenders
 YACHT_FINGER_LEN,YACHT_FINGER_W,YACHT_PITCH=30.0,2.0,11.6
 CRUISE_B_LEN,CRUISE_B_BEAM=289.4,33.4  # owner's cruise ship B, real size (metres in the GLB)
+CRUISE_C_LEN,CRUISE_C_BEAM=123.7,18.2  # owner's 1900 liner C, real size
+CRUISE_QUAY_X0,CRUISE_QUAY_X1,CRUISE_QUAY_Z0=1095.0,1120.0,-446.0
 RIVA_LEN,RIVA_BEAM=8.5,2.9
 SKI_LEN,SKI_BEAM=3.25,1.6
 JETSKI_X0,JETSKI_X1=883.0,918.0      # jetski pontoon along the promenade quay, opposite K11 WYNAJEM SPRZĘTU (x 902.5)
@@ -160,14 +162,15 @@ def plan():
         berths.append(berth(f"S{i+1:02}","jetski",x,JETSKI_Z0-.4-SKI_LEN/2,SKI_LEN,SKI_BEAM,
                             "JETSKI_PONTOON",x,-151.5,yaw=180))
 
-    # Cruise ships (owner 09:14 "dla wycieczkowców zostaw na razie miejsce"): one 12 x 115 m fixed passenger quay,
-    # W01 east and W02 west of it on free deep water, ready for the owner's ship models later.
-    add(1108,1120,-265,-150,"quay_cruise","CRUISE_PASSENGER_QUAY")
-    # W01: the owner's ship B (Innerscene "cruise-ship.glb", CC0) at its REAL size, 289.4 x 33.4 m, alongside the quay's
-    # east face 0.8 m off it, stern 2 m off the promenade wall, bow to the open sea (yaw 180).
-    berths.append(berth("W01","cruise_ship",1120.8+CRUISE_B_BEAM/2,-152.0-CRUISE_B_LEN/2,CRUISE_B_LEN,CRUISE_B_BEAM,
-                        "CRUISE_PASSENGER_QUAY",1120,-200,yaw=180))
-    berths.append(berth("W02","cruise_ship",1097.5,-213,82,19,"CRUISE_PASSENGER_QUAY",1108,-213,yaw=180))
+    # Cruise ships. Owner 10.11 14:46-14:47 (render of ship B at its real 289 m beside the old 12 x 115 m quay): "jakiś
+    # taki cienki ... mosty też mają swoją grubość" - the passenger quay is now a real cruise terminal pier: 25 m wide,
+    # 296 m long (as long as the ship), a solid concrete edge. W01 east (ship B, real size), W02 west (ship C, the 1900
+    # liner, 123.7 x 18.2 m), both 1.0 m off the quay face (on the fenders), stern 2 m off the promenade, bow to the sea.
+    add(CRUISE_QUAY_X0,CRUISE_QUAY_X1,CRUISE_QUAY_Z0,-150,"quay_cruise","CRUISE_PASSENGER_QUAY")
+    berths.append(berth("W01","cruise_ship",CRUISE_QUAY_X1+1.0+CRUISE_B_BEAM/2,-152.0-CRUISE_B_LEN/2,CRUISE_B_LEN,CRUISE_B_BEAM,
+                        "CRUISE_PASSENGER_QUAY",CRUISE_QUAY_X1,-200,yaw=180))
+    berths.append(berth("W02","cruise_ship",CRUISE_QUAY_X0-1.0-CRUISE_C_BEAM/2,-152.0-CRUISE_C_LEN/2,CRUISE_C_LEN,CRUISE_C_BEAM,
+                        "CRUISE_PASSENGER_QUAY",CRUISE_QUAY_X0,-200,yaw=180))
     PROMENADE_OPENINGS.append((1108.0,1120.0))
     validate(piers,berths)
     return piers,berths
