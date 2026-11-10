@@ -31,6 +31,12 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     // beyond the .08 dead zone, raised to throttleCurve: 20 % = ~8 km/h, half = ~57 km/h, full = 200 km/h.
     // Easing the stick lets the car roll down at coastDecel (engine braking); pulling it back brakes at `braking`.
     public float throttleCurve = 1.6f, coastDecel = 4.5f;
+    // Owner 10.11 12:41 (APK 37): "gwałtownie skręca nagle". The wheel jumped to the stick's sideways value in one
+    // frame and nothing limited the yaw rate (at 100 km/h a half push swung the car ~140 deg/s). Now: dead zone + curve
+    // on the stick (a light touch = a light correction), the wheel turns at steerRate (full lock ~.45 s) and comes back
+    // at steerReturn, and the yaw rate never exceeds what the tyres hold: lateralGrip (m/s2, ~0.9 g) / speed.
+    public float steerDeadZone = .10f, steerCurve = 1.6f, steerRate = 2.2f, steerReturn = 4.0f;
+    public float lateralGrip = 8.8f, driftLateralFactor = 1.7f;
     public float groundProbeReach = 2.5f, maxGroundStep = .80f, collisionSkin = .10f;
     // Owner phone video 9.11: the car stopped at the first kerb/parking stop.
     // Low edges (kerbs ~.19-.26 m in game scale, parking stops, tactile strips)
@@ -54,6 +60,13 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         if (!HandbrakeOn) Debug.Log("A1_CAR_HANDBRAKE speedKph=" + SpeedKph.ToString("F0"));
         handbrakeUntil = Time.time + handbrakeHold;
     }
+    /// <summary>Handbrake held by the on-screen button (BraxChampionsCarHud): on while the finger stays on it.</summary>
+    public void HoldHandbrake(float seconds)
+    {
+        if (!driver || transition) return;
+        if (!HandbrakeOn) Debug.Log("A1_CAR_HANDBRAKE button speedKph=" + SpeedKph.ToString("F0"));
+        handbrakeUntil = Mathf.Max(handbrakeUntil, Time.time + seconds);
+    }
     public float Speed => speed;
     public float SpeedKph => Mathf.Abs(speed) * 3.6f / Mathf.Max(.01f, worldScale);
     public bool Transitioning => transition;
@@ -63,7 +76,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     Rigidbody physicsBody;
     BraxGymPlayer driver;
     Vector2 control;
-    float speed, doorAngle, wheelAngle, handbrakeUntil;
+    float speed, doorAngle, wheelAngle, handbrakeUntil, steerInput;
     Vector3 travelDir;
     float groundPivotOffset, nextBlockDiagnostic;
     float engineLoad, idleGain;
@@ -304,9 +317,12 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         control = Vector2.zero;
         speed = 0f;
         travelDir = transform.forward;
-        handbrakeUntil = 0f;
+        handbrakeUntil = 0f; steerInput = 0f;
         // the touch buttons SendMessage Command(key) to the player: this relay turns JUMP into the handbrake
         if (!p.GetComponent<BraxChampionsCarCommands>()) p.gameObject.AddComponent<BraxChampionsCarCommands>();
+        // Owner 10.11 12:41: "nie ma żadnego hamulca ręcznego, żaden się przycisk nie pokazuje" - the city touch controls
+        // hide every fight button (JUMP too) while driving, so the car draws its own HAMULEC button.
+        if (!GetComponent<BraxChampionsCarHud>()) gameObject.AddComponent<BraxChampionsCarHud>().car = this;
         p.body.enabled = false;
         var clip = p.clips.GetClip("EnteringCar");
         Vector3 start = p.transform.position;
@@ -420,7 +436,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
             if (p.body) p.body.enabled = true;
             if (p.clips && p.clips.GetClip("Idle")) p.clips.Play("Idle");
         }
-        driver = null; speed = 0f; control = Vector2.zero; transition = false;
+        driver = null; speed = 0f; control = Vector2.zero; steerInput = 0f; transition = false;
         revArmed = true;
         if (engineRevSource) engineRevSource.Stop();
         if (doorHinge) { doorHinge.localRotation = doorRest; doorAngle = 0; }
@@ -565,8 +581,16 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         float speed01 = Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.01f, maxSpeed));
         float steerFactor = Mathf.Lerp(1f, highSpeedSteerFactor, speed01 * speed01);
         bool sliding = handbrake && Mathf.Abs(speed) > 2f * Mathf.Max(.01f, worldScale);
-        float yaw = Mathf.Clamp(control.x, -1f, 1f) * maxSteer * steerFactor * (sliding ? driftSteerBoost : 1f);
+        float raw = Mathf.Clamp(control.x, -1f, 1f);
+        float shaped = Mathf.Abs(raw) < steerDeadZone ? 0f
+            : Mathf.Sign(raw) * Mathf.Pow((Mathf.Abs(raw) - steerDeadZone) / (1f - steerDeadZone), steerCurve);
+        bool easing = Mathf.Abs(shaped) < Mathf.Abs(steerInput) || shaped * steerInput < 0f;
+        steerInput = Mathf.MoveTowards(steerInput, shaped, (easing ? steerReturn : steerRate) * dt);
+        float yaw = steerInput * maxSteer * steerFactor * (sliding ? driftSteerBoost : 1f);
         float turn = speed / Mathf.Max(1f, wheelbase) * Mathf.Tan(yaw * Mathf.Deg2Rad);
+        float scale = Mathf.Max(.01f, worldScale);
+        float maxTurn = lateralGrip * scale * (sliding ? driftLateralFactor : 1f) / Mathf.Max(.5f * scale, Mathf.Abs(speed));
+        turn = Mathf.Clamp(turn, -maxTurn, maxTurn);
         var nextRotation = physicsBody.rotation * Quaternion.Euler(0, turn * Mathf.Rad2Deg * dt, 0);
         // The car travels along travelDir, which follows the body heading at the tyres' grip rate: instantly on
         // grip, slowly with the handbrake pulled -> the body swings round while the car keeps sliding (drift).

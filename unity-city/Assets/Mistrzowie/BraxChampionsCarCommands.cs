@@ -7,9 +7,12 @@ using UnityEngine;
 public sealed class BraxChampionsCarCommands : MonoBehaviour
 {
     BraxGymPlayer player;
-    void Awake() { player = GetComponent<BraxGymPlayer>(); }
+    // the menu's "pause" toggles the game (BraxTouchControls.Pauza sends it to the player): the car HUD hides with it
+    public static bool Paused { get; private set; }
+    void Awake() { player = GetComponent<BraxGymPlayer>(); Paused = false; }
     public void Command(string key)
     {
+        if (key == "pause") { Paused = !Paused; return; }
         if (!player || !player.championsCar) return;
         if (key == "jump") player.championsCar.PullHandbrake();
     }
