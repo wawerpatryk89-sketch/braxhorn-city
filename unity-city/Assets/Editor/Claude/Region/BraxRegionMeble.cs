@@ -329,18 +329,29 @@ public static class BraxRegionMeble
     }
 
     /// <summary>Krzesło obrotowe biurowe (siedzisko 0.47 m × k), przodem w yaw.</summary>
+    static Mesh tapBiuro;
     public static GameObject KrzesloBiurowe(Transform parent, Vector3 p, float yaw)
     {
         float k = K; var rot = Quaternion.Euler(0, yaw, 0);
         var g = new GameObject("Krzesło biurowe"); g.transform.SetParent(parent, false); g.transform.position = Vector3.zero;
         var tap = new Bud(); var st = new Bud();
         Vector3 L(float x, float y, float z) => p + rot * new Vector3(x * k, y * k, z * k);
-        tap.Box(L(0, .47f, 0), new Vector3(.48f * k, .07f * k, .46f * k), rot);
-        tap.Box(L(0, .80f, -.24f), new Vector3(.46f * k, .55f * k, .06f * k), rot * Quaternion.Euler(-8f, 0, 0));
+        // 10.11 (12:25 „każde jedno krzesło ma być obite”): siedzisko i oparcie jako miękkie poduchy (zaokrąglone, wypchnięte), nie płyty
+        if (!tapBiuro)
+        {
+            var u = new UlSiatka();
+            u.Poducha(new Vector3(-.24f * k, .435f * k, -.23f * k), new Vector3(.24f * k, .51f * k, .23f * k), .03f, .013f);
+            u.Poducha(new Vector3(-.23f * k, .56f * k, -.29f * k), new Vector3(.23f * k, 1.06f * k, -.21f * k), .03f, .013f);
+            tapBiuro = u.Zbuduj("Biuro: krzesło — tapicerka miękka");
+            System.IO.Directory.CreateDirectory(BraxUliceKit.Out);
+            BraxZapisAssetu.Utworz(tapBiuro, BraxUliceKit.Out + "/mebel_krzeslo_biurowe_tapicerka.asset");
+        }
+        var tm = new GameObject("Krzesło: tapicerka (miękka)"); tm.transform.SetParent(g.transform, false); tm.transform.position = p; tm.transform.rotation = rot;
+        tm.AddComponent<MeshFilter>().sharedMesh = tapBiuro; tm.AddComponent<MeshRenderer>().sharedMaterial = Gladki("Biuro: tkanina grafitowa", new Color(.17f, .18f, .2f), .95f);
         st.Cyl(L(0, .08f, 0), L(0, .44f, 0), .028f * k, 8);
         for (int i = 0; i < 5; i++) { var d = Quaternion.Euler(0, i * 72f, 0) * new Vector3(0, 0, .3f); st.Box(L(d.x * .5f, .07f, d.z * .5f), new Vector3(.04f * k, .03f * k, .3f * k), rot * Quaternion.Euler(0, i * 72f, 0)); }
         st.Box(L(0, .62f, -.24f), new Vector3(.05f * k, .3f * k, .03f * k), rot);
-        tap.Obiekt("Krzesło: tapicerka", g.transform, Gladki("Biuro: tkanina grafitowa", new Color(.17f, .18f, .2f), .95f));
+
         st.Obiekt("Krzesło: stelaż", g.transform, StalCzarna);
         Kolizja(g.transform, "Krzesło: kolizja", L(0, .5f, -.02f), new Vector3(.55f * k, 1.0f * k, .55f * k), rot);
         var seat = new GameObject("Siedzisko: krzesło biurowe"); seat.transform.SetParent(g.transform, false);
@@ -387,14 +398,12 @@ public static class BraxRegionMeble
     {
         float k = K; var rot = Quaternion.Euler(0, yaw, 0);
         Vector3 L(float x, float y, float z) => p + rot * new Vector3(x * k, y * k, z * k);
-        drewno.Box(L(0, .45f, 0), new Vector3(.42f * k, .03f * k, .42f * k), rot);
-        drewno.Box(L(0, .74f, -.2f), new Vector3(.40f * k, .14f * k, .025f * k), rot * Quaternion.Euler(-6f, 0, 0));
-        foreach (var (x, z) in new[] { (-.18f, .18f), (.18f, .18f), (-.18f, -.18f), (.18f, -.18f) }) stal.Cyl(L(x, 0, z), L(x, .44f, z), .012f * k, 6);
-        foreach (float x in new[] { -.18f, .18f }) stal.Cyl(L(x, .44f, -.19f), L(x, .82f, -.21f), .011f * k, 6);
-        Kolizja(parent, "Krzesło: kolizja", L(0, .42f, -.02f), new Vector3(.46f * k, .84f * k, .46f * k), rot);
+        // 10.11 (właściciel 12:25: „każde jedno krzesło ma być obite… nic sztucznego”): zamiast deski siedziska i listwy oparcia —
+        // krzesło tapicerowane (rama z orzecha, miękkie siedzisko i oparcie ze skóry pikowanej czarnej), wspólne z lokalami ulicy
+        BraxUlicePierzeje.KrzesloTapicerowane("Krzesło (tapicerowane)", parent, p, yaw);
         var seat = new GameObject("Siedzisko: krzesło kawiarni"); seat.transform.SetParent(parent, false);
-        seat.transform.position = L(0, .465f, .02f); seat.transform.rotation = rot;
-        var s = seat.AddComponent<BraxSeat>(); s.label = "KRZESŁO"; s.surfaceY = p.y + .465f * k;
+        seat.transform.position = L(0, .48f, .02f); seat.transform.rotation = rot;
+        var s = seat.AddComponent<BraxSeat>(); s.label = "KRZESŁO"; s.surfaceY = p.y + .48f * k;
     }
 
     /// <summary>Model Poly Haven / biblioteki o zadanej wysokości RZECZYWISTEJ × k (null, gdy brak modelu).</summary>

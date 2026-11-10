@@ -334,6 +334,10 @@ public static class BraxRegionTylyB
             {
                 // narożniki bez nakładania: elementy w warstwie elewacji (n0 < 0) stron ±x kończą się przed warstwą stron ±z
                 if (!wzdX && n0 < -.001f && m != lizenaM) { b0 = Mathf.Max(b0, a0 - n0); b1 = Mathf.Min(b1, a1 + n0); }
+                // 10.11 (właściciel 12:34: „wszystkie migotania wyeliminowałeś?”; skaner APK 9.11: „panel stropowy ↔ lizeny 0.0 cm,
+                // 156 m²”, „szyba ↔ lizeny 0.0 cm”): pasy stropowe i szkło kończą się na licu lizeny narożnej (0.45 m × k), nie w jej
+                // płaszczyźnie bocznej — za narożną lizeną nic nie leży w tej samej płaszczyźnie (attyka i cokół bez zmian)
+                if (n0 < -.001f && m != lizenaM && y1 <= top + .01f && y0 >= YC - .001f) { b0 = Mathf.Max(b0, a0 + .45f * K + .003f); b1 = Mathf.Min(b1, a1 - .45f * K - .003f); }
                 if (b1 - b0 < .003f || y1 - y0 < .003f) return;
                 float c0 = c + zew * n0, c1 = c + zew * n1;
                 var p0 = wzdX ? new Vector3(b0, y0, Mathf.Min(c0, c1)) : new Vector3(Mathf.Min(c0, c1), y0, b0);
@@ -377,9 +381,11 @@ public static class BraxRegionTylyB
             {
                 float aa = Mathf.Min(a, a1);
                 bool przyDrzwiach = s == 0 && Mathf.Abs(aa - d.szyb.x) < 2.4f * K * .5f + .3f;
-                Box(lizenaM, aa - .06f * K, aa + .06f * K, przyDrzwiach ? Y(1) - Pas : YC, top, -.18f * K, .14f * K);
+                // tył lizeny 3 cm przed licem szkła (było: w płaszczyźnie szkła — skaner „szyba ↔ lizeny 0.0 cm”)
+                Box(lizenaM, aa - .06f * K, aa + .06f * K, przyDrzwiach ? Y(1) - Pas : YC, top, -.18f * K + .03f, .14f * K);
             }
-            Box(lizenaM, a0, a0 + .45f * K, YC, top, -.3f, .2f * K); Box(lizenaM, a1 - .45f * K, a1, YC, top, -.3f, .2f * K);
+            // lizeny narożne: lico wewnętrzne 3 cm głębiej niż pasy stropowe (−0.3 m) — bez wspólnej płaszczyzny
+            Box(lizenaM, a0, a0 + .45f * K, YC, top, -.33f, .2f * K); Box(lizenaM, a1 - .45f * K, a1, YC, top, -.33f, .2f * K);
             // korona: attyka 2.4 m × k z pasem lizen, gzyms wieńczący
             Box(panel, a0, a1, top, top + 2.4f * K, -.3f, 0f);
             Box(alu, a0 - (wzdX ? .3f * K : 0f), a1 + (wzdX ? .3f * K : 0f), top + 2.4f * K, top + 2.55f * K, -.3f, .3f * K);

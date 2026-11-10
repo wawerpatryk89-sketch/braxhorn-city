@@ -12,6 +12,7 @@ using UnityEngine;
 // Wszystko × k, budowane w układzie lokalnym budynku (front = lokalne −z, w stronę boisk).
 internal static class BraxMiastoSport
 {
+    static Material SkoraLawki => BraxUliceKit.TexPlik("Sport: ławki — skóra pikowana czarna", "Assets/Source/Claude/Nova/tekstury/", "nova_skora_pikowana", .5f, new Color(.2f, .18f, .18f), new Color(.1f, .09f, .09f), .42f);
     const float L = 24f, W = 11f, H = 4.0f, T = .3f;
     const float SX1 = 5.7f, PX0 = 6.0f, DXc = -3f, WD0 = 8.25f, WD1 = 9.45f;   // sklep x −11.7…5.7 | zaplecze graczy x 6…11.7 (szatnia, WC, prysznice)
     static float K => BraxMiastoA.K;
@@ -263,7 +264,9 @@ internal static class BraxMiastoSport
             BraxUliceKit.S(zaslona).Box(new Vector3(px0 - .03f, F + .25f, za + .05f), new Vector3(px0, F + 2.15f * K, zb - .25f));
             ch.Rura(new Vector3(px0 - .015f, F + 2.18f * K, za + .04f), new Vector3(px0 - .015f, F + 2.18f * K, zb - .04f), .012f, 6);
             BraxUliceKit.S(lustro).Box(new Vector3(x1 - .03f, F + .3f, za + .3f), new Vector3(x1 - .01f, F + 2.0f * K, zb - .3f));
-            BraxUliceKit.S(dab).Box(new Vector3(x1 - .4f, F + .45f * K - .04f, za + .2f), new Vector3(x1 - .05f, F + .45f * K, za + .7f));
+            BraxUliceKit.S(dab).Box(new Vector3(x1 - .4f, F + .45f * K - .1f, za + .2f), new Vector3(x1 - .05f, F + .45f * K - .06f, za + .7f));
+            // 10.11 (12:25 „wszystko ma być obite”): ławeczka przymierzalni z miękkim siedziskiem ze skóry pikowanej czarnej
+            BraxUliceKit.S(SkoraLawki).Poducha(new Vector3(x1 - .41f, F + .45f * K - .06f, za + .19f), new Vector3(x1 - .04f, F + .45f * K + .01f, za + .71f), .025f, .01f);
             KolL("przymierzalnia ścianka", new Vector3(px0, F, zb - .04f), new Vector3(x1, F + 2.3f * K, zb));
             BraxMiastoA.Siedzisko(root, "ŁAWECZKA", root.TransformPoint(new Vector3(x1 - .22f, F + .45f * K, za + .45f)), root.TransformDirection(Vector3.left));
         }
@@ -309,7 +312,9 @@ internal static class BraxMiastoSport
         foreach (float zb in new[] { -3.2f, -1.0f })
         {
             var d = BraxUliceKit.S(dab); float y = F + .45f * K;
-            d.Box(new Vector3(7.4f, y - .05f, zb - .2f), new Vector3(10.0f, y, zb + .2f));
+            d.Box(new Vector3(7.4f, y - .11f, zb - .2f), new Vector3(10.0f, y - .07f, zb + .2f));
+            // 10.11 (12:25 „wszystko ma być obite”): ławka szatni z miękkim siedziskiem ze skóry pikowanej czarnej na desce z dębu
+            BraxUliceKit.S(SkoraLawki).Poducha(new Vector3(7.39f, y - .07f, zb - .21f), new Vector3(10.01f, y + .01f, zb + .21f), .03f, .012f);
             foreach (float x in new[] { 7.6f, 9.8f }) BraxUliceKit.S(chrom).Box(new Vector3(x - .03f, F, zb - .15f), new Vector3(x + .03f, y - .05f, zb + .15f));
             KolL("ławka szatni", new Vector3(7.4f, F, zb - .2f), new Vector3(10.0f, y, zb + .2f));
             BraxMiastoA.Siedzisko(root, "ŁAWKA", root.TransformPoint(new Vector3(8.7f, y, zb)), root.TransformDirection(Vector3.back));

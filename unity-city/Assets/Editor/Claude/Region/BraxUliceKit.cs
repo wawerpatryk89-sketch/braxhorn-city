@@ -69,6 +69,46 @@ internal sealed class UlSiatka
     }
     public void BoxC(Vector3 srodek, Vector3 rozmiar, int pomin = 0) => Box(srodek - rozmiar * .5f, srodek + rozmiar * .5f, pomin);
 
+    // PODUCHA OKRĄGŁA (10.11, właściciel 12:19: „krzesła — siedziska za płaskie, zrób to normalnie”): siedzisko hokera jako bryła
+    // obrotowa — p = środek spodu, promień r, grubość h, zaokrąglenie krawędzi górnej rr (dolnej rr/2), kopułka puf na środku.
+    // Normalne gładkie z profilu, UV w metrach (obwód × długość profilu) — tekstura skóry bez rozciągania.
+    public void PoduchaOkragla(Vector3 p, float r, float h, float rr, float puf = .015f, int seg = 28)
+    {
+        rr = Mathf.Clamp(rr, .004f, Mathf.Min(r * .45f, h * .6f)); float rd = rr * .5f;
+        var prof = new List<Vector2>(); var nprof = new List<Vector2>();
+        prof.Add(new Vector2(0f, 0f)); nprof.Add(Vector2.down);
+        prof.Add(new Vector2(r - rd, 0f)); nprof.Add(Vector2.down);
+        for (int i = 1; i <= 4; i++) { float a = -Mathf.PI * .5f + i * Mathf.PI * .125f; prof.Add(new Vector2(r - rd + Mathf.Cos(a) * rd, rd + Mathf.Sin(a) * rd)); nprof.Add(new Vector2(Mathf.Cos(a), Mathf.Sin(a))); }
+        for (int i = 0; i <= 6; i++) { float a = i * Mathf.PI / 12f; prof.Add(new Vector2(r - rr + Mathf.Cos(a) * rr, h - rr + Mathf.Sin(a) * rr)); nprof.Add(new Vector2(Mathf.Cos(a), Mathf.Sin(a))); }
+        float rt = r - rr;
+        for (int i = 1; i <= 6; i++)
+        {
+            float x = rt * (1f - i / 6f), t = x / Mathf.Max(rt, .001f);
+            prof.Add(new Vector2(x, h + puf * (1f - t * t)));
+            var nn = new Vector2(2f * puf * t / Mathf.Max(rt, .001f), 1f).normalized; nprof.Add(nn);
+        }
+        var dl = new float[prof.Count]; for (int i = 1; i < prof.Count; i++) dl[i] = dl[i - 1] + Vector2.Distance(prof[i - 1], prof[i]);
+        int k0 = v.Count, P = prof.Count;
+        for (int s = 0; s <= seg; s++)
+        {
+            float a = s * Mathf.PI * 2f / seg; var kier = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)); var tan = new Vector3(-Mathf.Sin(a), 0f, Mathf.Cos(a));
+            for (int j = 0; j < P; j++)
+            {
+                v.Add(p + kier * prof[j].x + Vector3.up * prof[j].y);
+                n.Add((kier * nprof[j].x + Vector3.up * nprof[j].y).normalized);
+                t.Add(new Vector4(tan.x, tan.y, tan.z, 1f)); c.Add(kolor);
+                uv.Add(new Vector2(a * r, dl[j]));
+            }
+        }
+        for (int s = 0; s < seg; s++)
+            for (int j = 0; j < P - 1; j++)
+            {
+                int a0 = k0 + s * P + j, a1 = a0 + 1, b0 = a0 + P, b1 = b0 + 1;
+                // profil idzie od spodu na zewnątrz, w górę i do środka wierzchu; obrót przeciwnie do wskazówek (widok z góry)
+                i.AddRange(new[] { a0, a1, b1, a0, b1, b0 });
+            }
+    }
+
     // PODUCHA (10.11, właściciel 10:29: „miękkie, okrągłe poduszki”): bryła osiowa min/max o zaokrąglonych krawędziach i narożach
     // (promień r) i lekko wypchniętych ścianach (puf — jak wypchana pianką tapicerka). Siatka: sześcian dzielony na ściany N×N, punkty
     // zagęszczone ku krawędziom, rzutowane na zaokrąglony prostopadłościan; normalne gładkie; UV planarne w metrach jak w Box

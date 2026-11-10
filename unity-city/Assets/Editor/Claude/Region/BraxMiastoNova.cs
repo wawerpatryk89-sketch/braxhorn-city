@@ -560,7 +560,8 @@ internal static class BraxMiastoNova
         var lustro = BraxMiastoA.Mat("NOVA WC: lustro", new Color(.75f, .78f, .80f), .04f, 1f);
         var lodowka = BraxMiastoA.Swieci("NOVA: lodówki barowe (wnętrze podświetlone)", new Color(.7f, .85f, 1f), new Color(.35f, .55f, .8f));
         var chrom = Mosiadz;
-        var skora = SkoraGladka("skóra siedzisk hokerów (koniak)", new Color(.62f, .36f, .22f));
+        // 10.11 (właściciel 12:25: „czarną skórę, a nie ten kolor… a najlepiej pikowaną”): siedziska hokerów — czarna skóra pikowana
+        var skora = SkoraPik("siedziska hokerów — skóra pikowana czarna", Czarna);
         float h = 1.1f * K;
         // lada: front z podświetlanego onyksu (od strony sali), korpus, blat z nawisem, podnóżek
         BraxUliceKit.S(onyks).Box(new Vector3(BX0, F + .12f, BZ0), new Vector3(BX0 + .04f, F + h - .06f, BZ1), 2 | 4 | 8);
@@ -609,10 +610,22 @@ internal static class BraxMiastoNova
         for (float z = BZ0 + .6f; z < BZ1 - .3f; z += 1.2f)
         {
             var p = new Vector3(BX0 - .62f, F, z);
-            BraxUliceKit.S(chrom).Walec(p, .2f * K, .02f, 16); BraxUliceKit.S(chrom).Rura(p + Vector3.up * .02f, p + Vector3.up * .74f * K, .03f, 8);
-            BraxUliceKit.S(chrom).Pierscien(p + Vector3.up * .28f * K, .14f * K, .16f * K, 0, 360, 16);
-            BraxUliceKit.S(skora).Walec(p + Vector3.up * .74f * K, .2f * K, .06f, 18);
-            BraxMiastoA.Siedzisko(root, "HOKER", p + Vector3.up * (.74f * K + .06f), Vector3.left);
+            // 10.11 (właściciel 12:19: „krzesła — siedziska za płaskie, zrób to normalnie”): hoker jak w barze premium — ciężka
+            // mosiężna podstawa z fazą, kolumna, podnóżek z rury (pierścień na 4 wspornikach), talerz pod siedzisko i GRUBA miękka
+            // poducha 11 cm × K z zaokrągloną krawędzią i kopułką (UlSiatka.PoduchaOkragla), skóra koniak
+            var ch = BraxUliceKit.S(chrom);
+            ch.Walec(p, .21f * K, .025f, 24); ch.Walec(p + Vector3.up * .025f, .17f * K, .012f, 24);
+            ch.Rura(p + Vector3.up * .03f, p + Vector3.up * .68f * K, .032f, 12);
+            float yN = .3f * K, rN = .17f * K;
+            for (int q = 0; q < 16; q++)
+            {
+                float a0 = q * Mathf.PI / 8f, a1 = (q + 1) * Mathf.PI / 8f;
+                ch.Rura(p + new Vector3(Mathf.Cos(a0) * rN, yN, Mathf.Sin(a0) * rN), p + new Vector3(Mathf.Cos(a1) * rN, yN, Mathf.Sin(a1) * rN), .012f, 8);
+            }
+            for (int q = 0; q < 4; q++) { float a = q * Mathf.PI * .5f + Mathf.PI * .25f; ch.Rura(p + Vector3.up * yN, p + new Vector3(Mathf.Cos(a) * rN, yN, Mathf.Sin(a) * rN), .009f, 6); }
+            ch.Walec(p + Vector3.up * .68f * K, .15f * K, .03f, 24);
+            BraxUliceKit.S(skora).PoduchaOkragla(p + Vector3.up * (.71f * K), .21f * K, .11f * K, .045f * K, .018f);
+            BraxMiastoA.Siedzisko(root, "HOKER", p + Vector3.up * (.82f * K + .03f), Vector3.left);
             var g = new GameObject("kolizja: hoker"); g.transform.SetParent(kol, false); g.transform.position = p + Vector3.up * .4f * K;
             var cc = g.AddComponent<CapsuleCollider>(); cc.radius = .2f * K; cc.height = .8f * K;
         }
@@ -644,8 +657,9 @@ internal static class BraxMiastoNova
     // ================= LOŻE =================
     static void Loze()
     {
-        var welur = SkoraGladka("siedziska loży — skóra śliwkowa", new Color(.56f, .17f, .43f));   // jaśniejsza niż oparcia: w półmroku widać miękkie poduchy
-        var welurC = SkoraPik("oparcia loży — skóra pikowana śliwkowa", Sliwka);
+        // 10.11 (właściciel 12:25: „czarną skórę… a najlepiej pikowaną”): siedziska i oparcia lóż — czarna skóra pikowana
+        var welur = SkoraPik("siedziska loży — skóra pikowana czarna", Czarna);
+        var welurC = SkoraPik("oparcia loży — skóra pikowana czarna", Czarna);
         var blat = MarmurCzarny;
         var inox = Mosiadz;
         var mlecz = BraxMiastoA.Mat("NOVA: szkło mleczne przegród", new Color(.75f, .72f, .78f, .55f), .2f);

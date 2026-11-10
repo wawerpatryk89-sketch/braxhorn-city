@@ -781,10 +781,9 @@ internal static partial class BraxMiastoWyspa
                 // miejsce trenera: krzesło i stolik z rękawicami, bandażami i wodą (przy ścianie bocznej)
                 var kr = L(sg * (uS - .55f), vb0 + 2.1f, 0f); var krP = -rgt * sg;
                 var krM = BraxUliceKit.S(BraxMiastoA.Mat("Arena: krzesło trenera (czarne)", new Color(.06f, .06f, .065f), .5f));
-                krM.OBox(kr + Vector3.up * .46f * K, krP, Vector3.up, Vector3.Cross(krP, Vector3.up), .48f, .05f, .48f);
-                krM.OBox(kr + Vector3.up * .78f * K - krP * .23f, Vector3.Cross(Vector3.up, krP), Vector3.up, krP, .48f, .42f * K, .04f);
-                foreach (var o in new[] { new Vector2(-.2f, -.2f), new Vector2(.2f, -.2f), new Vector2(-.2f, .2f), new Vector2(.2f, .2f) })
-                    BraxUliceKit.S(alu).Rura(kr + krP * o.x + Vector3.Cross(Vector3.up, krP) * o.y, kr + krP * o.x + Vector3.Cross(Vector3.up, krP) * o.y + Vector3.up * (.46f * K - .025f), .015f, 6);
+                // 10.11 (właściciel 12:25: „każde jedno krzesło ma być obite… nic sztucznego”): krzesło tapicerowane (rama z orzecha,
+                // miękkie siedzisko i oparcie ze skóry pikowanej czarnej) zamiast płyt z bryły
+                BraxUlicePierzeje.KrzesloTapicerowane("Arena: krzesło trenera (tapicerowane)", root, kr, Quaternion.LookRotation(krP, Vector3.up).eulerAngles.y);
                 BraxMiastoA.Siedzisko(root, "KRZESŁO TRENERA", kr + Vector3.up * (.46f * K + .025f), krP);
                 var stl = L(sg * (uS - .5f), vb0 + 3.0f, 0f); float hst = .75f * K;
                 krM.OBox(stl + Vector3.up * (hst - .02f), rgt, Vector3.up, dir, .6f, .04f, .6f); BraxUliceKit.S(alu).Rura(stl, stl + Vector3.up * (hst - .04f), .03f, 8); BraxUliceKit.S(alu).Walec(stl, .22f, .02f, 14);
@@ -873,10 +872,8 @@ internal static partial class BraxMiastoWyspa
                 ekran.OBox(ekr, rw, Vector3.Cross(nEk, rw).normalized * -1f, nEk, .34f, .22f, .012f);
                 if (kom) { BraxUliceKit.S(czarny).Rura(Q(u + .25f, vt + .05f, ht), Q(u + .25f, vt - .05f, ht + .3f), .008f, 6); BraxUliceKit.S(czarny).Walec(Q(u + .25f, vt - .06f, ht + .3f), .025f, .06f, 10); }
                 var kp = Q(u, vt + .8f, 0f);
-                krM.OBox(kp + Vector3.up * .46f * K, rw, Vector3.up, dw, .48f, .05f, .48f);
-                krM.OBox(kp + Vector3.up * .78f * K + dw * .23f, rw, Vector3.up, dw, .48f, .42f * K, .04f);
-                foreach (var o in new[] { new Vector2(-.2f, -.2f), new Vector2(.2f, -.2f), new Vector2(-.2f, .2f), new Vector2(.2f, .2f) })
-                    BraxUliceKit.S(alu).Rura(kp + rw * o.x + dw * o.y, kp + rw * o.x + dw * o.y + Vector3.up * (.46f * K - .025f), .015f, 6);
+                // 10.11 (12:25 „każde jedno krzesło ma być obite”): krzesło tapicerowane przy stole sędziów / komentatorów
+                BraxUlicePierzeje.KrzesloTapicerowane(kom ? "Arena: krzesło komentatora (tapicerowane)" : "Arena: krzesło sędziego (tapicerowane)", root, kp, Quaternion.LookRotation(-dw, Vector3.up).eulerAngles.y);
                 BraxMiastoA.Siedzisko(root, kom ? "KRZESŁO KOMENTATORA" : "KRZESŁO SĘDZIEGO", kp + Vector3.up * (.46f * K + .025f), -dw);
                 Czlowiek(kom ? "Stół komentatorów" : "Stół sędziów", kom ? "komentator" : "sędzia punktowy", "siedzi", kp + Vector3.up * (.46f * K + .025f), -dw, KlSiedzi);
             }

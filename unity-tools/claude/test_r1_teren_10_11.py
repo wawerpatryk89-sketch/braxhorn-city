@@ -264,5 +264,68 @@ class NovaPoludnie(unittest.TestCase):
         self.assertIn('"stroboskop", .13f', NOVA)
 
 
+class Hokery(unittest.TestCase):
+    """Właściciel 10.11 12:19: „krzesła — siedziska za płaskie, zrób to normalnie”."""
+
+    def test_round_soft_cushion_lathe(self):
+        self.assertIn("public void PoduchaOkragla(Vector3 p, float r, float h, float rr, float puf = .015f, int seg = 28)", KIT)
+        self.assertIn("prof.Add(new Vector2(x, h + puf * (1f - t * t)));", KIT)
+
+    def test_nova_and_bar24_stools_thick_seats(self):
+        self.assertIn("BraxUliceKit.S(skora).PoduchaOkragla(p + Vector3.up * (.71f * K), .21f * K, .11f * K, .045f * K, .018f);", NOVA)
+        self.assertNotIn("BraxUliceKit.S(skora).Walec(p + Vector3.up * .74f * K, .2f * K, .06f, 18);", NOVA)
+        self.assertIn("s.PoduchaOkragla(new Vector3(0, .69f * k, 0), .2f * k, .1f * k, .042f * k, .016f)", PIERZEJE)
+        self.assertGreaterEqual(.11, .06 * 1.8)   # siedzisko ≥ 1.8 × grubsze niż dawny krążek
+
+
+MEBLE = src(R / "BraxRegionMeble.cs")
+SPORT = src(R / "BraxMiastoSport.cs")
+
+
+class WszystkoObite(unittest.TestCase):
+    """Właściciel 10.11 12:25: „czarną skórę… najlepiej pikowaną”, „każde jedno krzesło ma być obite… sofa, wszystko… nic sztucznego”."""
+
+    def test_nova_seats_black_quilted(self):
+        self.assertIn('var skora = SkoraPik("siedziska hokerów — skóra pikowana czarna", Czarna);', NOVA)
+        self.assertIn('var welur = SkoraPik("siedziska loży — skóra pikowana czarna", Czarna);', NOVA)
+        self.assertIn('var welurC = SkoraPik("oparcia loży — skóra pikowana czarna", Czarna);', NOVA)
+        self.assertNotIn("koniak", NOVA.split("static void Bar()")[1].split("static void")[0] if "static void Bar()" in NOVA else "")
+
+    def test_upholstered_chair_everywhere(self):
+        self.assertIn("internal static GameObject KrzesloTapicerowane(string nazwa, Transform bg, Vector3 at, float yaw)", PIERZEJE)
+        self.assertNotIn('"outdoor_table_chair_set_01"', PIERZEJE)        # ogrodowy komplet z gołymi siedziskami
+        self.assertNotIn('"SchoolChair_01"', PIERZEJE)
+        self.assertIn('KrzesloTapicerowane("Krzesło kawiarniane (tapicerowane)"', PIERZEJE)
+        self.assertIn('BraxUlicePierzeje.KrzesloTapicerowane("Krzesło (tapicerowane)", parent, p, yaw);', MEBLE)
+        self.assertNotIn("drewno.Box(L(0, .45f, 0)", MEBLE)
+        self.assertIn("u.Poducha(", MEBLE)                                 # krzesło biurowe: miękkie poduchy
+        self.assertIn('"Hoker barowy: siedzisko (skóra pikowana)"', PIERZEJE)
+        self.assertEqual(SPORT.count("BraxUliceKit.S(SkoraLawki).Poducha("), 2)
+        wyspa = src(R / "BraxMiastoWyspa.cs")
+        self.assertEqual(wyspa.count("BraxUlicePierzeje.KrzesloTapicerowane("), 2)     # krzesło trenera, krzesła stołu sędziów
+
+
+TYLYB = src(R / "BraxRegionTylyB.cs")
+MIASTOB = src(R / "BraxRegionMiastoB.cs")
+
+
+class MigotanieSkaner(unittest.TestCase):
+    """Właściciel 10.11 12:34–12:38: migotania od wyjścia z siłowni do portu i budynek od boisk; pary ze skanera APK 9.11."""
+
+    def test_rear_premises_6cm_inside_rear_facade(self):
+        self.assertIn("float rearIn=(b.far?b.z1:b.z0)-behind*.06f;", ARCH)
+        self.assertIn("new Vector3(width-.3f,b.Height,Mathf.Abs(rearIn-interiorEnd))", ARCH)
+        self.assertNotIn("(interiorEnd+(b.far?b.z1:b.z0))*.5f", ARCH)
+
+    def test_tower_pilasters_off_glass_and_spandrel_planes(self):
+        self.assertIn("-.18f * K + .03f, .14f * K);", TYLYB)
+        self.assertIn("Box(lizenaM, a0, a0 + .45f * K, YC, top, -.33f, .2f * K);", TYLYB)
+        self.assertIn("b0 = Mathf.Max(b0, a0 + .45f * K + .003f); b1 = Mathf.Min(b1, a1 - .45f * K - .003f);", TYLYB)
+
+    def test_plaza_curb_above_paving(self):
+        self.assertEqual(MIASTOB.count("YC + .025f); }"), 2)
+        self.assertIn("KlinGora(kraw, c + u0 * R, c + u1 * R, c + u1 * Ro, c + u0 * Ro, YC + .025f);", MIASTOB)
+
+
 if __name__ == "__main__":
     unittest.main()

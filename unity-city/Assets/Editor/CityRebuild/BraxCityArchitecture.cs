@@ -261,10 +261,17 @@ public static class BraxCityArchitecture
             Box("Closed rear of finished street lobby "+b.id,g,
                 new Vector3((b.x0+b.x1)*.5f,lobbyHeight*.5f,interiorEnd),
                 new Vector3(width-.2f,lobbyHeight,.24f),wallFinish,true);
+            // 10.11 (właściciel 12:34–12:38: „migotania… od wyjścia siłowni do portu, budynek od boisk to samo”; skaner APK 9.11:
+            // „modular_factory_facade_brick ↔ Physically closed unbuilt rear premises 0.0 cm, 458 m²”): tylne lico tej bryły leżało
+            // DOKŁADNIE w płaszczyźnie elewacji tylnej (ceglana fasada od podwórzy, boisk i siłowni) — dwie ściany w jednej
+            // płaszczyźnie = migotanie na tyłach wszystkich kamienic. Bryła kończy się 6 cm przed elewacją tylną.
             if(depth-effectiveDepth>.45f)
+            {
+                float rearIn=(b.far?b.z1:b.z0)-behind*.06f;
                 Box("Physically closed unbuilt rear premises "+b.id,g,
-                    new Vector3((b.x0+b.x1)*.5f,b.Height*.5f,(interiorEnd+(b.far?b.z1:b.z0))*.5f),
-                    new Vector3(width-.3f,b.Height,depth-effectiveDepth),wallFinish,true);
+                    new Vector3((b.x0+b.x1)*.5f,b.Height*.5f,(interiorEnd+rearIn)*.5f),
+                    new Vector3(width-.3f,b.Height,Mathf.Abs(rearIn-interiorEnd)),wallFinish,true);
+            }
             // Upper unoccupied floors are protected by structural partitions,
             // but there is intentionally NO solid collider across the
             // player's ground-floor entrance.

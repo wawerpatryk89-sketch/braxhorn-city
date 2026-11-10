@@ -645,10 +645,11 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             {
                 float t0 = Mathf.Lerp(k0, k1, i / (float)segs), t1 = Mathf.Lerp(k0, k1, (i + 1) / (float)segs);
                 Vector2 u0 = new Vector2(Mathf.Cos(t0), Mathf.Sin(t0)), u1 = new Vector2(Mathf.Cos(t1), Mathf.Sin(t1));
-                KlinGora(kraw, c + u0 * R, c + u1 * R, c + u1 * Ro, c + u0 * Ro, YC);
+                // 10.11 (skaner APK 9.11: „Plac: chodnik pętla ZACHÓD ↔ krawężnik 0.0 cm, 57 m²”): wierzch krawężnika 2.5 cm nad płytami
+                KlinGora(kraw, c + u0 * R, c + u1 * R, c + u1 * Ro, c + u0 * Ro, YC + .025f);
             }
-            if (gA.wlot) { float tr = Mathf.Sqrt(Mathf.Max(0f, R * R - (Mathf.Abs(oA) - Kr) * (Mathf.Abs(oA) - Kr))); KlinGora(kraw, c + dA * tr + nA * (oA - Mathf.Sign(oA) * Kr), c + dA * S + nA * (oA - Mathf.Sign(oA) * Kr), c + dA * S + nA * oA, c + dA * tA + nA * oA, YC); }
-            if (gB.wlot) { float tr = Mathf.Sqrt(Mathf.Max(0f, R * R - (Mathf.Abs(oB) - Kr) * (Mathf.Abs(oB) - Kr))); KlinGora(kraw, c + dB * tB + nB * oB, c + dB * S + nB * oB, c + dB * S + nB * (oB - Mathf.Sign(oB) * Kr), c + dB * tr + nB * (oB - Mathf.Sign(oB) * Kr), YC); }
+            if (gA.wlot) { float tr = Mathf.Sqrt(Mathf.Max(0f, R * R - (Mathf.Abs(oA) - Kr) * (Mathf.Abs(oA) - Kr))); KlinGora(kraw, c + dA * tr + nA * (oA - Mathf.Sign(oA) * Kr), c + dA * S + nA * (oA - Mathf.Sign(oA) * Kr), c + dA * S + nA * oA, c + dA * tA + nA * oA, YC + .025f); }
+            if (gB.wlot) { float tr = Mathf.Sqrt(Mathf.Max(0f, R * R - (Mathf.Abs(oB) - Kr) * (Mathf.Abs(oB) - Kr))); KlinGora(kraw, c + dB * tB + nB * oB, c + dB * S + nB * oB, c + dB * S + nB * (oB - Mathf.Sign(oB) * Kr), c + dB * tr + nB * (oB - Mathf.Sign(oB) * Kr), YC + .025f); }
         }
         Nawierzchnia(plyta.Obiekt("Plac: chodnik " + n, root, plyty, true, false));
         { var gt = trawnik.Obiekt("Plac: trawnik narożników " + n, root, BraxRegionTrawa.Material, true, false); if (gt) { foreach (var r in gt.GetComponentsInChildren<MeshRenderer>(true)) r.shadowCastingMode = ShadowCastingMode.Off; Nawierzchnia(gt); } }

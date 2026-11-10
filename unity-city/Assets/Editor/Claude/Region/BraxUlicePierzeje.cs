@@ -1404,7 +1404,8 @@ public static class BraxUlicePierzeje
                 float cap = (.16f - i * .023f) * k; yy -= cap + .05f * k;
                 BraxUliceKit.Napis3D(rz[i], W(sT, yy, dT) + nT * .021f, nT, cap, .004f, czarny, czarny);
             }
-            PH(bg, "SchoolChair_01", "Optyk: krzesło do badania wzroku", W(prawa ? sIn0 + 1.6f : sIn1 - 1.6f, y0, dT), Quaternion.LookRotation(-nT, Vector3.up).eulerAngles.y);
+            // 10.11 (12:25 „każde jedno krzesło ma być obite”): krzesło tapicerowane zamiast szkolnego (sklejka) z Poly Haven
+            KrzesloTapicerowane("Optyk: krzesło do badania wzroku (tapicerowane)", bg, W(prawa ? sIn0 + 1.6f : sIn1 - 1.6f, y0, dT), Quaternion.LookRotation(-nT, Vector3.up).eulerAngles.y);
         }
     }
 
@@ -1471,41 +1472,68 @@ public static class BraxUlicePierzeje
     static void Stolik(Vector3 at, Fasada f, Transform bg, Transform kolizje)
     {
         float k = BraxUliceKit.K;
-        // 10.11 (miasto ekskluzywne): komplet kawiarniany z Poly Haven (drewniany blat, krzesła na stalowych nogach) zamiast brył z kodu
-        var komplet = PH(bg, "outdoor_table_chair_set_01", "Stolik z krzesłami (komplet)", at, Quaternion.LookRotation(f.R, Vector3.up).eulerAngles.y);
-        if (komplet)
-        {
-            var kk = new GameObject("kolizja: stolik z krzesłami"); kk.transform.SetParent(kolizje, false); var bk = kk.AddComponent<BoxCollider>();
-            var bb = BraxRegion.Bounds(komplet); bk.center = bb.center; bk.size = new Vector3(bb.size.x * .8f, bb.size.y, bb.size.z * .8f);
-            return;
-        }
-        var drewno = BraxUliceKit.Mat("meble kawiarni: drewno dębowe", new Color(.46f, .32f, .20f), .55f);
+        // 10.11 (właściciel 12:25: „każde jedno krzesło ma być obite… sofa, wszystko pobijane, nic sztucznego”): bez ogrodowego
+        // kompletu z Poly Haven (gołe drewniane siedziska) i bez krzeseł z brył. Stolik: blat z orzecha z fazą, czarna stalowa
+        // noga na talerzu; krzesła tapicerowane (KrzesloTapicerowane: rama z orzecha, miękkie siedzisko i oparcie ze skóry pikowanej).
+        var orzech = BraxMiastoA.Tex("meble: orzech ciemny (fornir)", 1.4f, new Color(.52f, .36f, .27f), new Color(.20f, .12f, .07f), .42f, "teak_veneer", "dark_wood");
         var stal = BraxUliceKit.Mat("meble kawiarni: stal czarna", new Color(.06f, .06f, .065f), .45f, .5f);
-        var blat = Siatka("stolik kawiarniany", s => { s.Walec(new Vector3(0, .72f * k - .03f, 0), .35f * k, .03f, 20); });
-        var noga = Siatka("noga stolika", s => { s.Walec(Vector3.zero, .22f * k, .02f, 16); s.Rura(new Vector3(0, .02f, 0), new Vector3(0, .72f * k - .03f, 0), .03f, 8); });
-        Mebel("Stolik kawiarniany", bg, blat, drewno, at, 0); Mebel("Stolik kawiarniany: noga", bg, noga, stal, at, 0);
-        var siedzisko = Siatka("krzesło kawiarniane", s =>
-        {
-            float h = .45f * k, w = .42f * k;
-            s.Box(new Vector3(-w * .5f, h - .03f, -w * .5f), new Vector3(w * .5f, h, w * .5f));
-            s.Box(new Vector3(-w * .5f, h, w * .5f - .03f), new Vector3(w * .5f, h + .42f * k, w * .5f));
-            foreach (float x in new[] { -w * .5f + .02f, w * .5f - .02f }) foreach (float z in new[] { -w * .5f + .02f, w * .5f - .02f }) s.Rura(new Vector3(x, 0, z), new Vector3(x, h - .03f, z), .014f, 6);
-        });
+        var blat = Siatka("stolik kawiarniany (orzech)", s => { s.Walec(new Vector3(0, .72f * k - .035f, 0), .36f * k, .035f, 28); s.Walec(new Vector3(0, .72f * k - .05f, 0), .33f * k, .015f, 28); });
+        var noga = Siatka("noga stolika (talerz)", s => { s.Walec(Vector3.zero, .24f * k, .025f, 24); s.Rura(new Vector3(0, .025f, 0), new Vector3(0, .72f * k - .05f, 0), .035f, 12); });
+        Mebel("Stolik kawiarniany", bg, blat, orzech, at, 0); Mebel("Stolik kawiarniany: noga", bg, noga, stal, at, 0);
         foreach (float sg in new[] { -1f, 1f })
-        {
-            var p = at + f.R * sg * .62f * k;
-            var g = Mebel("Krzesło kawiarniane", bg, siedzisko, drewno, p, Quaternion.LookRotation(-f.R * sg).eulerAngles.y);
-            var c = g.AddComponent<BoxCollider>(); c.center = new Vector3(0, .3f * k, 0); c.size = new Vector3(.42f * k, .6f * k, .42f * k);
-        }
+            KrzesloTapicerowane("Krzesło kawiarniane (tapicerowane)", bg, at + f.R * sg * .66f * k, Quaternion.LookRotation(-f.R * sg).eulerAngles.y);
         var kc = new GameObject("kolizja: stolik"); kc.transform.SetParent(kolizje, false); kc.transform.position = at + Vector3.up * .36f * k;
         var col = kc.AddComponent<CapsuleCollider>(); col.radius = .3f * k; col.height = .72f * k;
     }
+    // KRZESŁO TAPICEROWANE (właściciel 10.11 12:25: „każde jedno krzesło ma być obite… nic sztucznego”, „czarną skórę… pikowaną”):
+    // siedzący patrzy w +z lokalnie. Rama z orzecha: cztery nogi, oskrzynienie, tylne nogi przechodzą w słupki oparcia (lekko
+    // odchylone). Tapicerka: miękkie siedzisko 8 cm i poduszka oparcia ze skóry pikowanej czarnej (UlSiatka.Poducha).
+    internal static GameObject KrzesloTapicerowane(string nazwa, Transform bg, Vector3 at, float yaw)
+    {
+        float k = BraxUliceKit.K;
+        var orzech = BraxMiastoA.Tex("meble: orzech ciemny (fornir)", 1.4f, new Color(.52f, .36f, .27f), new Color(.20f, .12f, .07f), .42f, "teak_veneer", "dark_wood");
+        var skora = BraxUliceKit.TexPlik("meble: skóra pikowana czarna", "Assets/Source/Claude/Nova/tekstury/", "nova_skora_pikowana", .5f, new Color(.2f, .18f, .18f), new Color(.1f, .09f, .09f), .42f);
+        float w = .23f * k, hs = .40f * k;
+        var rama = Siatka("krzesło tapicerowane: rama", s =>
+        {
+            foreach (float x in new[] { -w + .025f, w - .025f })
+            {
+                s.Rura(new Vector3(x, 0, w - .025f), new Vector3(x, hs, w - .025f), .019f, 8);                      // nogi przednie
+                s.Rura(new Vector3(x, 0, -w + .025f), new Vector3(x, hs, -w + .025f), .019f, 8);                    // nogi tylne
+                s.Rura(new Vector3(x, hs, -w + .025f), new Vector3(x, .9f * k, -w - .02f * k), .017f, 8);           // słupki oparcia (odchylone)
+            }
+            s.Box(new Vector3(-w, hs - .05f, -w), new Vector3(w, hs, w));                                            // oskrzynienie
+            s.Box(new Vector3(-w + .01f, .88f * k, -w - .04f * k), new Vector3(w - .01f, .92f * k, -w - .01f * k)); // górna listwa oparcia
+        });
+        var tap = Siatka("krzesło tapicerowane: tapicerka", s =>
+        {
+            s.Poducha(new Vector3(-w - .005f, hs, -w + .01f), new Vector3(w + .005f, hs + .08f * k, w + .01f), .03f, .014f);     // siedzisko
+            s.Poducha(new Vector3(-w + .03f, hs + .14f * k, -w - .03f * k), new Vector3(w - .03f, .86f * k, -w + .03f * k), .028f, .012f);   // oparcie
+        });
+        var g = Mebel(nazwa, bg, rama, orzech, at, yaw);
+        var t = new GameObject(nazwa + ": tapicerka"); t.transform.SetParent(g.transform, false); t.transform.position = at; t.transform.rotation = Quaternion.Euler(0, yaw, 0);
+        t.AddComponent<MeshFilter>().sharedMesh = tap; t.AddComponent<MeshRenderer>().sharedMaterial = skora;
+        var c = g.AddComponent<BoxCollider>(); c.center = new Vector3(0, .3f * k, 0); c.size = new Vector3(.46f * k, .6f * k, .46f * k);
+        return g;
+    }
+
     static void Hoker(Vector3 at, Transform bg)
     {
         float k = BraxUliceKit.K;
-        var skora = BraxUliceKit.Mat("hoker: skóra czarna", new Color(.06f, .05f, .05f), .5f);
-        var m = Siatka("hoker barowy", s => { s.Walec(Vector3.zero, .2f * k, .02f, 16); s.Rura(new Vector3(0, .02f, 0), new Vector3(0, .74f * k, 0), .035f, 8); s.Walec(new Vector3(0, .74f * k, 0), .19f * k, .07f, 18); s.Pierscien(new Vector3(0, .3f * k, 0), .15f * k, .17f * k); });
-        var g = Mebel("Hoker barowy", bg, m, skora, at, 0);
+        var skora = BraxUliceKit.TexPlik("meble: skóra pikowana czarna", "Assets/Source/Claude/Nova/tekstury/", "nova_skora_pikowana", .5f, new Color(.2f, .18f, .18f), new Color(.1f, .09f, .09f), .42f);
+        var chrom = BraxUliceKit.Mat("hoker: stal chromowana", new Color(.62f, .63f, .65f), .18f, .95f);
+        // 10.11 (właściciel 12:19: „siedziska za płaskie”): gruba miękka poducha 10 cm × k z zaokrągloną krawędzią zamiast 7-cm krążka,
+        // talerz pod siedziskiem, podnóżek z rury
+        var m = Siatka("hoker barowy: stelaż", s => {
+            s.Walec(Vector3.zero, .2f * k, .022f, 20); s.Rura(new Vector3(0, .02f, 0), new Vector3(0, .66f * k, 0), .035f, 10);
+            s.Walec(new Vector3(0, .66f * k, 0), .14f * k, .03f, 20);
+            for (int q = 0; q < 16; q++) { float a0 = q * Mathf.PI / 8f, a1 = (q + 1) * Mathf.PI / 8f, rN = .16f * k; s.Rura(new Vector3(Mathf.Cos(a0) * rN, .3f * k, Mathf.Sin(a0) * rN), new Vector3(Mathf.Cos(a1) * rN, .3f * k, Mathf.Sin(a1) * rN), .011f, 6); }
+            for (int q = 0; q < 4; q++) { float a = q * Mathf.PI * .5f + Mathf.PI * .25f; s.Rura(new Vector3(0, .3f * k, 0), new Vector3(Mathf.Cos(a) * .16f * k, .3f * k, Mathf.Sin(a) * .16f * k), .008f, 6); }
+            });
+        var siedz = Siatka("hoker barowy: siedzisko", s => s.PoduchaOkragla(new Vector3(0, .69f * k, 0), .2f * k, .1f * k, .042f * k, .016f));
+        var g = Mebel("Hoker barowy", bg, m, chrom, at, 0);
+        var sg = new GameObject("Hoker barowy: siedzisko (skóra pikowana)"); sg.transform.SetParent(g.transform, false); sg.transform.position = at;
+        sg.AddComponent<MeshFilter>().sharedMesh = siedz; sg.AddComponent<MeshRenderer>().sharedMaterial = skora;
         var c = g.AddComponent<CapsuleCollider>(); c.center = new Vector3(0, .4f * k, 0); c.radius = .2f * k; c.height = .8f * k;
     }
 }
