@@ -34,7 +34,7 @@ public static class BraxChampionsExplorer
         if (!animation) throw new InvalidOperationException("Brax has no original animations.");
         var camera = new GameObject("Brax exploration camera").AddComponent<Camera>();
         camera.transform.SetParent(rig.transform, false); camera.tag = "MainCamera";
-        camera.fieldOfView = 55; camera.nearClipPlane = .15f; camera.farClipPlane = 1800;
+        camera.fieldOfView = 55; camera.nearClipPlane = .15f; camera.farClipPlane = BraxChampionsHorizon.ViewDistance;   // the far coast and ridges (owner 10.11 19:51 "panoramę w tle")
         camera.allowHDR = false; camera.allowMSAA = true;
         // Owner 9.11 video: empty white horizon. Real sky: Unity's procedural
         // atmosphere (no texture memory) with a horizon line and a sun disc.
@@ -105,6 +105,9 @@ public static class BraxChampionsExplorer
             RenderSettings.skybox = sky;
         }
         else if (!hdrSky) Debug.LogWarning("CHAMPIONS_SKY_PROCEDURAL_SHADER_MISSING: solid colour background kept");
+        // owner 10.11 19:44-19:51 "I panoramy nie widzę tylko niebo", "daj panoramę w tle": the sea to the horizon, the coast,
+        // hills and mountain ridges round the region, hazed into the HDR sky by the scene fog (BraxChampionsHorizon)
+        BraxChampionsHorizon.Generate();
         var sun = new GameObject("Champions exploration daylight").AddComponent<Light>(); sun.transform.SetParent(rig, false);
         sun.type = LightType.Directional; sun.intensity = 1.08f; sun.color = new Color(1,.97f,.92f);
         sun.transform.rotation = Quaternion.Euler(48,-35,0); sun.shadows = LightShadows.Soft;

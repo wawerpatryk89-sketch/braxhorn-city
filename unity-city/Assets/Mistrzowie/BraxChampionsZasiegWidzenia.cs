@@ -10,7 +10,9 @@ using UnityEngine;
 [RequireComponent(typeof(Camera))]
 public sealed class BraxChampionsZasiegWidzenia : MonoBehaviour
 {
-    public float zasieg = 2500f;
+    // owner 10.11 19:51 ("daj panoramę w tle"): 18 km - the far coast, the mountain ridges and the sea to the horizon round
+    // the region (BraxChampionsHorizon.ViewDistance); the city itself is all within its 1.93 km diagonal as before
+    public float zasieg = 18000f;
     Camera kamera;
     bool zgloszone;
 
