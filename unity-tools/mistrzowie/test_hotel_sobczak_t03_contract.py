@@ -286,8 +286,10 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('LibraryMarbleWhite("t03_podium_white_marble"', self.materials)
         self.assertIn('s.paint=P("wall_paint_white","white_stucco_02"', self.materials)   # 12:54: no beige walls
         self.assertIn("('Travertine009',['Color','NormalGL','Roughness','AmbientOcclusion'])", self.prepare)
-        self.assertIn('(name:"roof front",pos:new Vector3(0,RoofDeck+1.95f,-TowerHalfD+.6f),yaw:180f,scale:1.6f)', self.gen)
-        self.assertIn("h.signPass=h.signBodies==4;", self.audit)
+        # owner 10.11 20:09: "ten u góry jest niepotrzebny w ogóle, z obu stron" - facade + reception signs only
+        self.assertNotIn('roof front', self.gen)
+        self.assertNotIn('roof back', self.gen)
+        self.assertIn("h.signPass=h.signBodies==2;", self.audit)
 
 
 if __name__ == "__main__":

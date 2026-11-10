@@ -1081,28 +1081,9 @@ public static class BraxChampionsHotelSobczakT03
             if(!Model(H+"bar_chair_round_01/bar_chair_round_01_1k.gltf",roof,"roof bar stool, leather",new Vector3(x,y+.02f,bz-.62f),0f,true))Stool(x,y,bz-.62f);
         foreach(float x in new[]{-12f,12f})RoofPlanter(x,10f,2.5f,1.0f,y+.02f);
         foreach(float x in new[]{-11f,11f})RoofPlanter(x,-15.3f,2.2f,.45f,y+.02f);
-        RoofSignLegs(y);
         foreach(var pt in new[]{new Vector2(-15.2f,-15.2f),new Vector2(15.2f,-15.2f),new Vector2(-15.2f,-9.2f),new Vector2(15.2f,-9.2f),
                                  new Vector2(-15.2f,15.2f),new Vector2(15.2f,15.2f),new Vector2(0f,15.2f),new Vector2(-10.8f,-6.4f)})
             Model(A+"potted_plant_01/potted_plant_01_1k.gltf",roof,"roof terrace plant",new Vector3(pt.x,y+.02f,pt.y),pt.x*17f+pt.y*5f,false);
-    }
-    // Owner 10.11 19:50: "Szyld wystarczy połączyć z budynkiem dwiema nogami złotymi z tyłu!! Nic więcej" (the dark steel lattice
-    // frame of 19:17 is gone). Each x1.6 roof sign (Sign(): back plane at z = +-(TowerHalfD-.6), front outward) stands on TWO
-    // polished brass legs behind it, at the pins of its bottom bar (x +-5.01): from a brass foot disc on the terrace paving up
-    // the back of the sign to the middle of the gold arc (sign y 2.21..2.45 at x +-5.01, abs RoofDeck+1.95+2.33). The leg
-    // axis is 4 cm in front of the back plane: radius 8 cm, it bites 1 cm into the backs of the bottom bar, the K and the arc
-    // (sign z .11) and stands 4 cm proud behind them - joined, nothing coplanar, nothing a few mm apart.
-    public const float SignLegX=5.01f,SignLegR=.08f,SignLegAxis=.04f,SignLegTop=1.95f+2.33f;
-    static void RoofSignLegs(float y)
-    {
-        float deck=y+.02f;
-        foreach(float sz in new[]{-1f,1f})
-            foreach(float sx in new[]{-1f,1f})
-            {
-                var foot=new Vector3(sx*SignLegX,deck,sz*(TowerHalfD-.6f)+sz*SignLegAxis);
-                W.Walec(M.brass,foot,.18f,.03f,24,true);                                               // foot disc on the paving
-                W.Walec(M.brass,foot+Vector3.up*.03f,SignLegR,y+SignLegTop-deck-.03f,20,true);          // gold leg
-            }
     }
     static void Lounger(Transform g,float x,float y,float z)
     {
@@ -2009,13 +1990,9 @@ public static class BraxChampionsHotelSobczakT03
         }
         // facade: the solid granite panel of floor 1 above the canopy (back of the sign on the stone, 31 cm deep);
         // reception: a 0.32 copy on the backlit teak wall behind the desk
-        // roof: the same sign x1.6 (12.8 x 6.4 m) on two gold legs at the front and back edge of the roof terrace,
-        // read against the sky from the whole district (owner 9.11 23:29: "nie widać dobrze ten szyld w 3D");
-        // top 110.0 m, inside the 110.3 m crown
+        // owner 10.11 20:09 (photo of the facade sign): "ten u góry jest niepotrzebny w ogóle, z obu stron" - no roof signs
         foreach(var place in new[]{(name:"facade",pos:new Vector3(0,Level(1)+.9f,-PodiumHalfD),yaw:180f,scale:1f),
-                                   (name:"reception wall",pos:new Vector3(11.15f,Ffl0+2.85f,-9.4f),yaw:-90f,scale:.32f),
-                                   (name:"roof front",pos:new Vector3(0,RoofDeck+1.95f,-TowerHalfD+.6f),yaw:180f,scale:1.6f),
-                                   (name:"roof back",pos:new Vector3(0,RoofDeck+1.95f,TowerHalfD-.6f),yaw:0f,scale:1.6f)})
+                                   (name:"reception wall",pos:new Vector3(11.15f,Ffl0+2.85f,-9.4f),yaw:-90f,scale:.32f)})
         {
             var g=G(signs,"SOBCZAK HOTEL 3D sign | "+place.name+" | solid bevelled glyphs, 5 stars, S monogram");
             g.localPosition=place.pos;g.localRotation=Quaternion.Euler(0,place.yaw,0);
@@ -2028,8 +2005,6 @@ public static class BraxChampionsHotelSobczakT03
                 parts++;
             }
         }
-        // (the two gold legs carrying each roof sign are built in Roof(): geometry added here, after W.Zapisz, is never drawn -
-        // only its colliders stood on the terrace and the sign hung in the air, owner 10.11 19:17 "szyld wisi w powietrzu")
         return parts;
     }
     [Serializable] sealed class SignFile{public float scaleK;public SignData[] signs;}
