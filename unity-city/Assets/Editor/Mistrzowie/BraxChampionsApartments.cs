@@ -98,7 +98,8 @@ public static class BraxChampionsApartments
         // owner 10.11 12:42 (photo: the entrance soffit read terracotta) and the region palette "bez sraczkowatych brązów":
         // silver-grey aged teak, as on the beach loungers (teak_veneer alone is orange 175,130,87)
         timber=M("apt_timber_silver_teak","teak_veneer",1.0f,new Color(.91f,1.20f,1.72f),.60f);
-        walnut=M("apt_door_walnut","teak_veneer",1.0f,new Color(.44f,.30f,.21f),.50f);
+        // doors, casings, skirting: dark smoked walnut (owner palette "orzech ciemny"; dark teak read brown)
+        walnut=M("apt_door_dark_walnut","smoked_walnut_veneer",1.2f,new Color(.55f,.46f,.40f),.50f);
         // owner 9.11 23:01: "kolory takie same praktycznie wszędzie" (beige walls, orange oak, beige marble,
         // tan corridors). Palette now: white walls, pale oak, walnut, white and black marble, linen, charcoal.
         oak=M("apt_floor_pale_oak","laminate_floor_02",1.8f,new Color(1f,.98f,.95f),.55f);
@@ -299,21 +300,11 @@ public static class BraxChampionsApartments
             Box(walnut,plane-d,plane+d,y1-w,y1,a,b);
         }
     }
-    // Door leaf standing open at 90 degrees, hinged at the opening's 'a' side, swinging toward 'side'; steel lever.
+    // Owner 10.11 12:55: "Wszędzie drzwi globalnie pozamykane" - a closed dark-walnut leaf in the opening (inside the
+    // 5 cm casing), steel levers on both faces, opens by itself on approach (BraxChampionsInteriorDoor / BraxCityDoor).
     static void Leaf(bool alongX,float plane,float a,float b,float y0,float side)
     {
-        float w=(b-a)-.10f,th=.04f,p0=Mathf.Min(plane,plane+side*w),p1=Mathf.Max(plane,plane+side*w);
-        float face=a+.05f+th,free=plane+side*(w-.10f);
-        if(alongX)
-        {
-            Box(walnut,a+.05f,face,y0+.01f,y0+DoorH-.06f,p0,p1);
-            Box(steel,face,face+.025f,y0+1.0f,y0+1.03f,free-.07f,free+.07f);
-        }
-        else
-        {
-            Box(walnut,p0,p1,y0+.01f,y0+DoorH-.06f,a+.05f,face);
-            Box(steel,free-.07f,free+.07f,y0+1.0f,y0+1.03f,face,face+.025f);
-        }
+        BraxChampionsInteriorDoor.Single("APT_"+plotId+"_DOOR_"+doors,"apartment door",alongX,plane,a+.05f,b-.05f,y0+Finish,DoorH-.05f-Finish,walnut,steel);
         doors++;
     }
 

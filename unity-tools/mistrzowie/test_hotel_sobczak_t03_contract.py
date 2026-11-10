@@ -81,7 +81,10 @@ class HotelSobczakT03Contract(unittest.TestCase):
         body = body[:body.index("return t;")]
         self.assertRegex(body, r"Box\(M\.clearGlass,[^;]*,true\);")      # glass leaf blocks when closed
         vest = self.gen[self.gen.index("static void Entrance()"):self.gen.index("static void AutoDoors")]
-        self.assertRegex(vest, r"Box\(M\.clearGlass,sx\*4f-\.01f,sx\*4f\+\.01f,Ffl0,top,z0,z1,true\)")
+        # owner 10.11 12:48-12:50: fixed vestibule panes black, only the door leaves clear, black portal
+        self.assertRegex(vest, r"Box\(M\.blackGlass,sx\*4f-\.01f,sx\*4f\+\.01f,Ffl0,top,z0,z1,true\)")
+        self.assertNotIn("M.clearGlass", vest)
+        self.assertIn("black door portal", vest)
         self.assertIn("z0-.10f", vest)                                     # leaves never run through the fixed glass
 
     def test_no_trees_real_sidewalks_kerbs_and_drop_off(self):
@@ -279,8 +282,9 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('prefix="Marble021_4K-JPG_"', foundation)
         self.assertIn('"lobby centre plant"', self.gen)
         self.assertIn('"roof bar stool, leather"', self.gen)
-        # owner 23:29: grey podium -> travertine; the 3D sign also on the roof, front and back
-        self.assertIn('LibraryTravertine("t03_podium_travertine"', self.materials)
+        # owner 9.11 23:29 travertine -> 10.11 12:48 (beige on the phone): white marble podium; 3D sign on the roof
+        self.assertIn('LibraryMarbleWhite("t03_podium_white_marble"', self.materials)
+        self.assertIn('s.paint=P("wall_paint_white","white_stucco_02"', self.materials)   # 12:54: no beige walls
         self.assertIn("('Travertine009',['Color','NormalGL','Roughness','AmbientOcclusion'])", self.prepare)
         self.assertIn('(name:"roof front",pos:new Vector3(0,RoofDeck+1.95f,-TowerHalfD+.6f),yaw:180f,scale:1.6f)', self.gen)
         self.assertIn("h.signPass=h.signBodies==4;", self.audit)

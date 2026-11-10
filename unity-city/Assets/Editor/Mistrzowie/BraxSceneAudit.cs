@@ -201,7 +201,7 @@ public static class BraxSceneAudit
         {
             var mr = t.GetComponent<MeshRenderer>(); if (!mr) continue;
             foreach (var m in mr.sharedMaterials)
-                if (m && m.shader && (m.shader.name == "GUI/Text Shader" || t.GetComponent<TextMesh>()))
+                if (m && m.shader && (m.shader.name == "GUI/Text Shader" || t.GetComponent("TextMesh")))
                 { throughWalls++; BraxBuildQuality.Warn("DO POPRAWKI REGION_TEXT_THROUGH_WALLS " + Hierarchy(t)); break; }
         }
         Debug.Log("REGION_TEXT_THROUGH_WALLS count=" + throughWalls + " (GUI/Text Shader = ZTest Always; must be 0)");

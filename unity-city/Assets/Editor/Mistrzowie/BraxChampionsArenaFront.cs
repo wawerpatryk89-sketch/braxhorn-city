@@ -654,7 +654,7 @@ public static partial class BraxChampionsArenaArrival
             // Owner 10.11 12:29 (phone, Brax beside it): "czy to jest na pewno dobra skala tego siedziska? Krzesło tak, ale te
             // drugie nie wiem". Poly Haven sofa_02 is a 1.81 x .71 x .82 m loveseat; a lobby Chesterfield is 2.2 x .86 x
             // 1.0 m (seat .47): x1.22 (the armchair modern_arm_chair_01 is .82 x 1.02 x .99, real size, unchanged).
-            wanted++;if(PlaceLobbyModel(arenaRoot,root,"sofa_02/sofa_02_2k.gltf","black tufted leather sofa",x,z,180f,true,float.NaN,1.22f))placed++;
+            wanted++;if(PlaceLobbyModel(arenaRoot,root,"sofa_02/sofa_02_2k.gltf","black tufted leather sofa",x,z,180f,true,float.NaN,BraxChampionsRealSize.Scale("sofa_02/")))placed++;
             float tz=z-1.30f,floor=LobbyFloorY(arenaRoot,x,tz);
             Box(root,"A1 LOBBY | coffee table dark granite top",stone,new Vector3(x,floor+.40f,tz),new Vector3(1.10f,.05f,.62f),false);
             foreach(float lx in new[]{-.45f,.45f})foreach(float lz in new[]{-.22f,.22f})

@@ -294,12 +294,12 @@ public static class BraxChampionsHotelSobczakT03
         if(alongX){Box(M.teakDark,a,a+w,y0,y1,plane-d,plane+d);Box(M.teakDark,b-w,b,y0,y1,plane-d,plane+d);Box(M.teakDark,a,b,y1-w,y1,plane-d,plane+d);}
         else{Box(M.teakDark,plane-d,plane+d,y0,y1,a,a+w);Box(M.teakDark,plane-d,plane+d,y0,y1,b-w,b);Box(M.teakDark,plane-d,plane+d,y1-w,y1,a,b);}
     }
-    // Door leaf standing open at 90 degrees, hinged at 'a', swinging toward 'side'; brass lever.
+    // Owner 10.11 12:54-12:55 (APK 37: open slabs, openings without a leaf): "Wszędzie drzwi globalnie pozamykane".
+    // A closed dark smoked-walnut leaf inside the 5 cm casing, polished brass levers on both faces; it opens by itself
+    // when the player walks up and closes behind him (BraxChampionsInteriorDoor -> the city's BraxCityDoor).
     static void Leaf(bool alongX,float plane,float a,float b,float y0,float side,float h=2.10f)
     {
-        float w=(b-a)-.10f,th=.045f,p0=Lo(plane,plane+side*w),p1=Hi(plane,plane+side*w),face=a+.05f+th,free=plane+side*(w-.10f);
-        if(alongX){Box(M.teakDark,a+.05f,face,y0+.01f,y0+h-.06f,p0,p1);Box(M.brass,face,face+.025f,y0+1.0f,y0+1.03f,free-.07f,free+.07f);}
-        else{Box(M.teakDark,p0,p1,y0+.01f,y0+h-.06f,a+.05f,face);Box(M.brass,free-.07f,free+.07f,y0+1.0f,y0+1.03f,face,face+.025f);}
+        BraxChampionsInteriorDoor.Single("T03_DOOR_"+doorsBuilt,"hotel door",alongX,plane,a+.05f,b-.05f,y0+.01f,h-.06f,M.walnutDark,M.brass);
         doorsBuilt++;
     }
     static string StopName(int s)=>s==0?"PARTER":s==Stops-1?"TARAS":s.ToString();
@@ -499,26 +499,37 @@ public static class BraxChampionsHotelSobczakT03
     {
         In(podium,false);
         float z0=-PodiumHalfD+.15f,z1=-14.5f,top=3.2f;
-        // glass vestibule (wiatrolap) 8 x 4.5 m: side walls with collisions, teak ceiling with LED
+        // Owner 10.11 12:48-12:50 (APK 37): "Ma być widać, że są drzwi, a nie jakieś jasne drzwi z takim szarym gównem"
+        // and "zakaz szarego koloru przy szybach - albo czarne". Glass vestibule (wiatrolap) 8 x 4.5 m: every fixed pane
+        // (side walls, sidelights, transom) is BLACK glass, every frame black; only the two sliding door pairs stay clear
+        // glass, set in a black portal with a gold edge - the door reads from the street. Black ceiling, warm LED.
         foreach(float sx in new[]{-1f,1f})
         {
-            Box(M.clearGlass,sx*4f-.01f,sx*4f+.01f,Ffl0,top,z0,z1,true);
-            Box(M.steel,sx*4f-.04f,sx*4f+.04f,top-.06f,top,z0,z1);
+            Box(M.blackGlass,sx*4f-.01f,sx*4f+.01f,Ffl0,top,z0,z1,true);
+            Box(M.darkBronze,sx*4f-.04f,sx*4f+.04f,top-.06f,top,z0,z1);
         }
-        // facade bay above and beside the outer doors (glass transom, steel frame)
-        Box(M.clearGlass,-4.5f,4.5f,top,Level(1)-Slab,z0-.01f,z0+.01f,true);
-        foreach(float sx in new[]{-1f,1f})Box(M.clearGlass,sx*1.45f,sx*4.5f,Ffl0,top,z0-.01f,z0+.01f,true);
-        foreach(float sx in new[]{-1f,1f})Box(M.clearGlass,sx*1.45f,sx*4f,Ffl0,top,z1-.01f,z1+.01f,true);
-        Box(M.paint,-4f,4f,top,Level(1)-Slab,z1-.1f,z1+.1f,true);                                   // bulkhead over inner doors
+        // facade bay above and beside the outer doors (black glass transom, black frame)
+        Box(M.blackGlass,-4.5f,4.5f,top,Level(1)-Slab,z0-.01f,z0+.01f,true);
+        foreach(float sx in new[]{-1f,1f})Box(M.blackGlass,sx*1.60f,sx*4.5f,Ffl0,top,z0-.01f,z0+.01f,true);
+        foreach(float sx in new[]{-1f,1f})Box(M.blackGlass,sx*1.60f,sx*4f,Ffl0,top,z1-.01f,z1+.01f,true);
+        Box(M.darkBronze,-4f,4f,top,Level(1)-Slab,z1-.1f,z1+.1f,true);                              // black bulkhead over inner doors
         In(details,false);
         foreach(float z in new[]{z0,z1})
         {
-            Box(M.steel,-4.5f,4.5f,top-.08f,top,z-.06f,z+.06f);
-            foreach(float x in new[]{-4f,-1.45f,1.45f,4f})Box(M.steel,x-.04f,x+.04f,Ffl0,top,z-.06f,z+.06f);
+            Box(M.darkBronze,-4.5f,4.5f,top-.08f,top,z-.06f,z+.06f);
+            foreach(float x in new[]{-4f,4f})Box(M.darkBronze,x-.04f,x+.04f,Ffl0,top,z-.06f,z+.06f);
+            // black door portal: jambs .15 x .24 and a head round the 2.9 m door opening, brass inner edge
+            foreach(float sx in new[]{-1f,1f})
+            {
+                Box(M.darkBronze,sx*1.45f+(sx<0?-.15f:0f),sx*1.45f+(sx<0?0f:.15f),Ffl0,top+.10f,z-.12f,z+.12f);
+                Box(M.brass,sx*1.45f+(sx<0?-.006f:0f),sx*1.45f+(sx<0?0f:.006f),Ffl0+.02f,top-.02f,z-.125f,z+.125f);
+            }
+            Box(M.darkBronze,-1.60f,1.60f,top-.06f,top+.10f,z-.12f,z+.12f);
+            Box(M.brass,-1.45f,1.45f,top-.066f,top-.06f,z-.125f,z+.125f);
         }
         In(podiumInside,true);
         Box(M.blackMarble,-3.95f,3.95f,Ffl0,Ffl0+Fin,z0+.1f,z1);                                    // entrance mat zone
-        Face(M.teak,new Vector3(-3.95f,top-.01f,z0),new Vector3(3.95f,top-.01f,z0),new Vector3(3.95f,top-.01f,z1),new Vector3(-3.95f,top-.01f,z1),Vector3.down);
+        Face(M.darkBronze,new Vector3(-3.95f,top-.01f,z0),new Vector3(3.95f,top-.01f,z0),new Vector3(3.95f,top-.01f,z1),new Vector3(-3.95f,top-.01f,z1),Vector3.down);
         Box(M.ledCool,-3.2f,3.2f,top-.025f,top-.01f,(z0+z1)*.5f-.05f,(z0+z1)*.5f+.05f);
         // two pairs of automatic sliding doors (BraxDrzwiAutomatyczne): closed they block, they open as you walk up
         // leaves run 10 cm in front of the fixed glass (never through it)
@@ -528,7 +539,7 @@ public static class BraxChampionsHotelSobczakT03
         In(podium,false);
         float c0=-PodiumHalfD-6.6f,cy=4.6f;
         Box(M.darkBronze,-7.5f,7.5f,cy,cy+.5f,c0,-PodiumHalfD-.25f,true);
-        Face(M.teak,new Vector3(-7.4f,cy-.005f,c0+.1f),new Vector3(7.4f,cy-.005f,c0+.1f),new Vector3(7.4f,cy-.005f,-PodiumHalfD-.25f),new Vector3(-7.4f,cy-.005f,-PodiumHalfD-.25f),Vector3.down);
+        Face(M.darkBronze,new Vector3(-7.4f,cy-.005f,c0+.1f),new Vector3(7.4f,cy-.005f,c0+.1f),new Vector3(7.4f,cy-.005f,-PodiumHalfD-.25f),new Vector3(-7.4f,cy-.005f,-PodiumHalfD-.25f),Vector3.down);
         In(details,false);
         foreach(float z in new[]{-PodiumHalfD-1.6f,-PodiumHalfD-3.4f,-PodiumHalfD-5.2f})Box(M.ledCool,-6.8f,6.8f,cy-.02f,cy-.005f,z-.05f,z+.05f);
         for(float x=-6f;x<=6.01f;x+=2f)foreach(float z in new[]{-PodiumHalfD-2.5f,-PodiumHalfD-4.3f})Downlight(x,z,cy-.005f);
@@ -551,9 +562,10 @@ public static class BraxChampionsHotelSobczakT03
         var at=door.localPosition+t.localPosition;
         In(t,false);
         Box(M.clearGlass,at.x-.72f,at.x+.72f,at.y+.02f,at.y+3.08f,at.z-.012f,at.z+.012f,true);
-        Box(M.steel,at.x-.74f,at.x+.74f,at.y,at.y+.08f,at.z-.03f,at.z+.03f);
-        Box(M.steel,at.x-.74f,at.x+.74f,at.y+3.04f,at.y+3.12f,at.z-.03f,at.z+.03f);
-        Box(M.steel,at.x+(x<0?-.74f:.70f),at.x+(x<0?-.70f:.74f),at.y,at.y+3.12f,at.z-.03f,at.z+.03f);
+        Box(M.darkBronze,at.x-.74f,at.x+.74f,at.y,at.y+.12f,at.z-.03f,at.z+.03f);                // black bottom rail
+        Box(M.darkBronze,at.x-.74f,at.x+.74f,at.y+3.04f,at.y+3.12f,at.z-.03f,at.z+.03f);
+        Box(M.darkBronze,at.x+(x<0?-.74f:.68f),at.x+(x<0?-.68f:.74f),at.y,at.y+3.12f,at.z-.03f,at.z+.03f);
+        Box(M.darkBronze,at.x+(x<0?.68f:-.74f),at.x+(x<0?.74f:-.68f),at.y,at.y+3.12f,at.z-.03f,at.z+.03f);   // meeting stile
         Box(M.brass,at.x+(x<0?.55f:-.60f),at.x+(x<0?.60f:-.55f),at.y+.9f,at.y+2.1f,at.z-.06f,at.z+.06f);
         return t;
     }
@@ -659,14 +671,15 @@ public static class BraxChampionsHotelSobczakT03
             Drape(x+RoomW-1.15f,x+RoomW-.45f,y0,y1,z,sz);
         }
     }
-    // Zig-zag folds (double-sided quads), 6 folds per drape.
+    // Soft folds (owner 10.11 12:56 "firanki z prawdziwej tekstury"): white linen weave, 5 rounded folds drawn as
+    // 30 narrow double-sided panels on a sine (was 6 flat zig-zag planks).
     static void Drape(float x0,float x1,float y0,float y1,float z,float sz)
     {
-        const int folds=6;float d=.045f;
-        for(int k=0;k<folds;k++)
+        const int seg=30;const float folds=5f,d=.055f;
+        for(int k=0;k<seg;k++)
         {
-            float u0=x0+(x1-x0)*k/folds,u1=x0+(x1-x0)*(k+1)/folds;
-            float za=z+(k%2==0?-d:d),zb=z+(k%2==0?d:-d);
+            float t0=k/(float)seg,t1=(k+1)/(float)seg,u0=Mathf.Lerp(x0,x1,t0),u1=Mathf.Lerp(x0,x1,t1);
+            float za=z+d*Mathf.Sin(t0*folds*2f*Mathf.PI),zb=z+d*Mathf.Sin(t1*folds*2f*Mathf.PI);
             var p0=new Vector3(u0,y0,za);var p1=new Vector3(u1,y0,zb);var p2=new Vector3(u1,y1,zb);var p3=new Vector3(u0,y1,za);
             W.Quad(M.linen,p0,p1,p2,p3);W.Quad(M.linen,p3,p2,p1,p0);
         }
@@ -724,6 +737,7 @@ public static class BraxChampionsHotelSobczakT03
             float a=sx*(StairX0-.2f),b=sx*TowerHalfW,ph=y+3.5f;
             Box(M.brick,Lo(a,b),Hi(a,b),y,ph,2.6f,pz,true);
             WallX(M.brick,-2.7f,Lo(a,b),Hi(a,b),y,ph,.2f,new Gap(sx<0?-12.5f:11.4f,sx<0?-11.4f:12.5f,2.3f));
+            Leaf(true,-2.7f,sx<0?-12.5f:11.4f,sx<0?-11.4f:12.5f,y,1f,2.3f);                          // stair door to the roof
             Box(M.brick,Lo(a,a+sx*.2f),Hi(a,a+sx*.2f),y,ph,-2.6f,2.6f,true);
             Box(M.brick,Lo(b,b-sx*.3f),Hi(b,b-sx*.3f),y,ph,-2.6f,2.6f,true);
             Box(M.concrete,Lo(a,b),Hi(a,b),ph,ph+.25f,-pz,pz,true);
@@ -1012,9 +1026,20 @@ public static class BraxChampionsHotelSobczakT03
         WallX(M.paint,-10f,14.0f,xw,y0,top,.2f,new Gap(16.2f,17.2f,2.1f));       // luggage room (bagazownia)
         WallZ(M.paint,13.9f,-10f,-CoreWallZ,y0,top,.2f);
         Leaf(true,-10f,16.2f,17.2f,y0,1f);
-        for(float z=-8.8f;z<=-4.2f;z+=1.5f)Box(M.walnut,18.6f,xw,y0,y0+2.2f,z-.25f,z+.25f,true);
-        foreach(float z in new[]{-8.8f,-5.8f})
-            Model(H+"vintage_suitcase/vintage_suitcase_1k.gltf",podiumInside,"stored suitcase",new Vector3(19.4f,y0+2.2f,z),90f,false);
+        // Owner 10.11 12:54 (photo: orange solid wood blocks with suitcases on top): open luggage racks - black steel
+        // posts and rails, three dark-walnut shelves each, the suitcases ON the shelves.
+        for(float z=-8.8f;z<=-4.2f;z+=1.5f)
+        {
+            float rx0=18.6f,rx1=xw-.06f;
+            foreach(float px in new[]{rx0,rx1-.04f})foreach(float pz in new[]{z-.30f,z+.26f})Box(M.darkBronze,px,px+.04f,y0,y0+2.1f,pz,pz+.04f,true);
+            foreach(float sy in new[]{.16f,.86f,1.56f})
+            {
+                Box(M.walnutDark,rx0,rx1,y0+sy,y0+sy+.03f,z-.30f,z+.30f,true);
+                Box(M.darkBronze,rx0,rx1,y0+sy-.04f,y0+sy,z-.31f,z-.29f);Box(M.darkBronze,rx0,rx1,y0+sy-.04f,y0+sy,z+.29f,z+.31f);
+            }
+            foreach(float sy in new[]{.19f,.89f})
+                Model(H+"vintage_suitcase/vintage_suitcase_1k.gltf",podiumInside,"stored suitcases (pair)",new Vector3((rx0+rx1)*.5f,y0+sy,z),0f,false);
+        }
         Model(H+"wall_clock/wall_clock_1k.gltf",podiumInside,"concierge wall clock",new Vector3(13.8f,y0+2.6f,-10.12f),180f,false,Snap.Centre);
         W.Lampa("concierge light",new Vector3(16f,ys-1f,-14f),.8f,8f);
         // core band: guest toilets (men west, women east) opening to the lobby
@@ -1107,7 +1132,10 @@ public static class BraxChampionsHotelSobczakT03
         {
             float a=sx*StairX0,b=sx*StairX1;
             foreach(float sz in new[]{-1f,1f})
+            {
                 WallX(wm,sz*CoreWallZ,Lo(sx*11.2f,b),Hi(sx*11.2f,b),y0,top,.2f,new Gap(sx<0?-12.5f:11.4f,sx<0?-11.4f:12.5f,2.4f));
+                Leaf(true,sz*CoreWallZ,sx<0?-12.5f:11.4f,sx<0?-11.4f:12.5f,y0,1f,2.4f);                 // stairwell door
+            }
             WallZ(M.paint,sx*11.25f,-CoreWallZ+.1f,CoreWallZ-.1f,y0,top,.1f);
             if(podiumLevel)WallZ(M.paint,sx*(StairX1+.1f),-CoreWallZ-.1f,CoreWallZ+.1f,y0,top,.2f);
             Box(M.terrazzo,Lo(a,sx*StairLand),Hi(a,sx*StairLand),y0,y0+Fin,-2.4f,2.4f);
@@ -1197,7 +1225,7 @@ public static class BraxChampionsHotelSobczakT03
         go.name="T03 | "+label+" | Poly Haven CC0, real size";
         go.transform.SetParent(parent,false);
         go.transform.localRotation=Quaternion.Euler(0,yaw,0)*go.transform.localRotation;
-        go.transform.localScale=Vector3.one;
+        go.transform.localScale=Vector3.one*BraxChampionsRealSize.Scale(path);       // owner 12:52: real size everywhere
         go.transform.localPosition=at;
         var target=parent.TransformPoint(at);
         foreach(var c in go.GetComponentsInChildren<Collider>(true))UnityEngine.Object.DestroyImmediate(c);
@@ -1287,6 +1315,7 @@ public static class BraxChampionsHotelSobczakT03
             float a=sx*4.15f,b=sx*11.2f;
             WallX(M.paint,-CoreWallZ,Lo(a,b),Hi(a,b),y0,top,.2f,new Gap(sx<0?-8.2f:7.0f,sx<0?-7.0f:8.2f,2.2f));
             WallX(M.paint,CoreWallZ,Lo(a,b),Hi(a,b),y0,top,.2f,new Gap(sx<0?-8.2f:7.0f,sx<0?-7.0f:8.2f,2.2f));
+            foreach(float wz in new[]{-CoreWallZ,CoreWallZ})Leaf(true,wz,sx<0?-8.2f:7.0f,sx<0?-7.0f:8.2f,y0,1f,2.2f);   // kitchen / SPA doors
             Box(sx<0?M.antiSkid:M.terrazzo,Lo(a,b),Hi(a,b),y0,y0+Fin,-2.4f,2.4f);
         }
         CoreBack(y0,top);
@@ -1321,6 +1350,7 @@ public static class BraxChampionsHotelSobczakT03
         }
         foreach(float x in new[]{6.0f,19.6f})Model(A+"potted_plant_02/potted_plant_02_1k.gltf",podiumInside,"SPA plant",new Vector3(x,y0+Fin,17.6f),0f,false);
         WallX(M.paint,4.4f,15.5f,xw,y0,top,.12f,new Gap(16.2f,17.1f,2.1f));
+        Leaf(true,4.4f,16.2f,17.1f,y0,1f);                                                               // treatment room door
         Box(M.walnut,17.0f,19.6f,y0,y0+.62f,2.9f,3.7f,true);Box(M.cognac,16.95f,19.65f,y0+.62f,y0+.74f,2.85f,3.75f,true);   // treatment bed
         Soffit(4.3f,xw,CoreWallZ+.1f,zb,ys,yc,.8f);
         W.Lampa("SPA light",new Vector3(12.5f,ys-1f,10f),.9f,12f);

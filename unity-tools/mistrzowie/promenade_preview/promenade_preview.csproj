@@ -16,6 +16,8 @@
     <Compile Include="PromenadeStubs.cs" />
     <Compile Include="PromenadeMain.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsMeshBatch.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsRealSize.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsInteriorDoor.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsHarbour.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsHarbourSafety.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenadeFurniture.cs" />
