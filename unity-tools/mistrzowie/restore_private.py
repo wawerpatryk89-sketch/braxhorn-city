@@ -1,4 +1,10 @@
-"""Restore only the existing owner palm package; missing source must fail this build."""
+"""Restore the owner's private packages the region uses (encrypted in unity-city/Prywatne, key only in CI).
+
+miasto_palmy + miasto_silownia_metro are required (missing = this build fails: no substitute palms).
+miasto_sklepy (owner 10.11: "budki wyposażyć w kebaby, w pizzę ... tam mamy w katalogu ... wszystko jest") is the city's
+shop pack: only the models the promenade kiosks use are extracted (the whole pack is ~32 MB of supermarket goods); every
+member name is listed in the log. If it cannot be restored the kiosks stay without those models and say so in the log.
+"""
 from pathlib import Path
 import importlib.util,os
 ROOT=Path(__file__).resolve().parents[2]
@@ -12,3 +18,32 @@ for package in ['miasto_palmy','miasto_silownia_metro']:
   count=p.rozpakuj(tar,p.CEL/'Miasto'/package)
  if count<1:raise RuntimeError('Empty existing package: '+package)
  print('BRAX_MISTRZOWIE_PRIVATE_OK package='+package+' files='+str(count))
+
+# Promenade kiosk equipment (BraxChampionsPromenadeEquipment): food, bottles, fridges, tills, menu boards.
+KIOSK_MODELS=['kebab','szawarma','pizza','hamburger','frytki','kurczak','losos','owoce_skrzynka','lodowka','kasa',
+              'menu_2','menu_3','menu_4']+['but_%02d'%i for i in range(1,19)]
+
+
+def wanted(name):
+ n=name[2:] if name.startswith('./') else name
+ return any(n==m+'.glb' or n.startswith('_tekstury/'+m+'/') for m in KIOSK_MODELS)
+
+
+tar=p.odszyfruj('miasto_sklepy')
+if tar is None:
+ print('::warning::BRAX_MISTRZOWIE_PRIVATE_MISSING package=miasto_sklepy - promenade kiosks without the owner food models')
+else:
+ with tar:
+  members=[m for m in tar.getmembers() if m.isfile()]
+  print('BRAX_MISTRZOWIE_PRIVATE_LIST miasto_sklepy '+' '.join(sorted(m.name for m in members if m.name.endswith('.glb'))))
+  cel=(p.CEL/'Miasto'/'miasto_sklepy').resolve();count=0
+  for m in members:
+   if not wanted(m.name):continue
+   dst=(cel/m.name).resolve()
+   if cel not in dst.parents:continue
+   dst.parent.mkdir(parents=True,exist_ok=True)
+   with tar.extractfile(m) as src,open(dst,'wb') as out:out.write(src.read())
+   count+=1
+  got=sorted(n for n in KIOSK_MODELS if (cel/(n+'.glb')).exists())
+  print('BRAX_MISTRZOWIE_PRIVATE_OK package=miasto_sklepy files='+str(count)+' models='+','.join(got)
+        +' missing='+','.join(n for n in KIOSK_MODELS if n not in got))

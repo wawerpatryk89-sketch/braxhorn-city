@@ -1,251 +1,128 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
 
-// Five marina zones share two global low-poly safety railing meshes.
-// The handrails are physical original-scale geometry; rope is a separate
-// solid twisted-look 3D cable, not an animated ring rope (BraxLina).
-// Pier fingers and passenger gangways stay OPEN at actual boarding positions.
-// None of these railings touches the existing promenade, buildings, actors,
-// arena, casino or other Unity regions.
+// Railings of the waterfront, rebuilt 10.11 for the owner ("promenada, barierki tam, gdzie trzeba zrobić"):
+// * the promenade quay edge (z -150, x 700-1150): the promenade drops 2.2 m to the harbour water and had NO railing -
+//   now a glass balustrade (stainless posts every 1.6 m, round stainless handrail at 1.08 m, clear glass infill) on a
+//   granite coping, open only at the gangway gates; both ends of the promenade are closed too (x 50 and x 1150);
+// * the gangways from the promenade down to the yacht and Riva pontoons: stainless handrails following the slope;
+// * the jetski ramp along the quay wall: seaward handrail and its west end;
+// * the heads of the fixed quays (ferry, cruise) and the ferry quay's west face (no berth there).
+// Finger pontoons and the berth faces stay open: people step aboard there.
+// One combined mesh per material (BraxChampionsMeshBatch) + thin box colliders per straight run.
 public static class BraxChampionsHarbourSafety
 {
     const string Output="Assets/PlayableGenerated/Mistrzowie";
-    static float K=>BraxClaudeOsiedle.K;
+    const float Height=1.08f,PostStep=1.6f;
+    static Material glass,coping;
+    public static int Runs,Posts;
 
-    sealed class MeshStream
+    static float RampY(BraxChampionsFoundation.Pier p,float x,float z)
     {
-        public readonly List<Vector3> vertices=new List<Vector3>();
-        public readonly List<Vector2> uv=new List<Vector2>();
-        public readonly List<int> indices=new List<int>();
+        if(p.role=="quay_ramp")return .16f-1.24f*Mathf.Clamp01((-z-150f)/20f);
+        if(p.role=="quay_ramp_along")return .16f-1.53f*Mathf.Clamp01((x-868f)/15f);
+        if(p.role=="quay_jetski")return BraxChampionsHarbour.SkiPontoonY;
+        if(p.role=="quay_wood")return BraxChampionsHarbour.PontoonY;
+        return BraxChampionsHarbour.QuayY;
+    }
 
-        public void Tube(Vector3 start,Vector3 end,float radius,int sides,int divisions,float sag)
+    /// <summary>Glass balustrade on a straight level run a->b (nominal metres, a.y = walking surface).</summary>
+    static void GlassRun(Transform parent,BraxChampionsMeshBatch m,string name,Vector3 a,Vector3 b)
+    {
+        float len=Vector3.Distance(new Vector3(a.x,0,a.z),new Vector3(b.x,0,b.z));if(len<.3f)return;
+        int n=Mathf.Max(1,Mathf.CeilToInt(len/PostStep));
+        var dir=(b-a)/n;var steel=BraxChampionsHarbour.Steel;
+        var side=Vector3.Cross(Vector3.up,(b-a).normalized);
+        for(int i=0;i<=n;i++)
         {
-            Vector3 dir=(end-start).normalized;
-            if(dir.sqrMagnitude<.1f)return;
-            var basis=Mathf.Abs(Vector3.Dot(dir,Vector3.up))>.9f?Vector3.forward:Vector3.up;
-            Vector3 right=Vector3.Cross(dir,basis).normalized;
-            Vector3 up=Vector3.Cross(right,dir).normalized;
-            int n=vertices.Count;
-            for(int i=0;i<=divisions;i++)
+            var p=a+dir*i;
+            m.Cylinder(steel,p,.032f,Height,12);
+            m.Cylinder(steel,p,.055f,.03f,12);Posts++;
+            if(i==n)break;
+            var q=p+dir;
+            // glass panel between the posts, 4 cm clear of each post
+            var g0=p+(q-p).normalized*.06f;var g1=q-(q-p).normalized*.06f;
+            var c=(g0+g1)*.5f+Vector3.up*.56f;float w=Vector3.Distance(g0,g1);
+            m.Box(glass,c,new Vector3(w,.88f,.016f),Quaternion.LookRotation(side,Vector3.up));
+            // two clamps per panel side
+            foreach(float h in new[]{.25f,.85f})
             {
-                float t=(float)i/divisions;
-                var centre=Vector3.Lerp(start,end,t)-Vector3.up*(sag*Mathf.Sin(Mathf.PI*t));
-                for(int j=0;j<=sides;j++)
-                {
-                    float angle=j*2f*Mathf.PI/sides;
-                    vertices.Add(centre+radius*(right*Mathf.Cos(angle)+up*Mathf.Sin(angle)));
-                    uv.Add(new Vector2(t*Vector3.Distance(start,end)/(.34f*K),j/(float)sides));
-                }
+                m.Box(steel,p+(q-p).normalized*.05f+Vector3.up*h,new Vector3(.05f,.06f,.04f),Quaternion.LookRotation(side,Vector3.up));
+                m.Box(steel,q-(q-p).normalized*.05f+Vector3.up*h,new Vector3(.05f,.06f,.04f),Quaternion.LookRotation(side,Vector3.up));
             }
-            for(int i=0;i<divisions;i++)
-            for(int j=0;j<sides;j++)
+        }
+        m.Tube(steel,a+Vector3.up*Height,b+Vector3.up*Height,.028f,10);
+        float yaw=Mathf.Atan2(b.x-a.x,b.z-a.z)*Mathf.Rad2Deg;
+        BraxChampionsMeshBatch.Collider(parent,name+" | kolizja",(a+b)*.5f+Vector3.up*Height*.5f,new Vector3(.08f,Height,len),yaw);
+        Runs++;
+    }
+
+    /// <summary>Stainless handrail on posts following a sloped walking surface (gangways, ramp).</summary>
+    static void HandrailRun(Transform parent,BraxChampionsMeshBatch m,string name,BraxChampionsFoundation.Pier p,Vector3 a,Vector3 b)
+    {
+        float len=Vector3.Distance(new Vector3(a.x,0,a.z),new Vector3(b.x,0,b.z));if(len<.3f)return;
+        int n=Mathf.Max(1,Mathf.CeilToInt(len/2.2f));var steel=BraxChampionsHarbour.Steel;
+        Vector3 At(float t){var q=Vector3.Lerp(a,b,t);q.y=RampY(p,q.x,q.z);return q;}
+        for(int i=0;i<=n;i++){m.Cylinder(steel,At((float)i/n),.03f,1.0f,10);Posts++;}
+        for(int i=0;i<n;i++)
+        {
+            var p0=At((float)i/n);var p1=At((float)(i+1)/n);
+            m.Tube(steel,p0+Vector3.up*1.0f,p1+Vector3.up*1.0f,.026f,10);
+            m.Tube(steel,p0+Vector3.up*.52f,p1+Vector3.up*.52f,.016f,8);
+            float yaw=Mathf.Atan2(p1.x-p0.x,p1.z-p0.z)*Mathf.Rad2Deg;
+            BraxChampionsMeshBatch.Collider(parent,name+" | kolizja "+i,(p0+p1)*.5f+Vector3.up*.5f,new Vector3(.06f,1.0f,Vector3.Distance(p0,p1)),yaw);
+        }
+        Runs++;
+    }
+
+    public static void Generate(Transform harbour,BraxChampionsFoundation.Pier[] piers,BraxChampionsFoundation.Opening[] openings)
+    {
+        if(!harbour||piers==null)throw new InvalidOperationException("Railings need the harbour and its piers");
+        Runs=Posts=0;
+        glass=BraxChampionsHarbour.Surface("balustrade_glass",new Color(.80f,.89f,.93f,.24f),.04f,0f,null,true);
+        coping=BraxChampionsFoundation.SourceMaterial("prom_quay_coping_granite","granite_tile",1.6f,new Color(.88f,.88f,.86f));
+        var colliders=new GameObject("Barierki - kolizje").transform;colliders.SetParent(harbour,false);
+        var m=new BraxChampionsMeshBatch();
+        const float Y=.16f,Z=-149.85f;
+
+        // promenade quay edge: coping + glass balustrade, open at every gate (gate posts stand at x0-.15 / x1+.15)
+        m.BoxMinMax(coping,700f,1150f,Y,Y+.03f,-150.08f,-149.55f);
+        var cuts=openings.OrderBy(o=>o.x0).Select(o=>(o.x0-.15f,o.x1+.15f)).ToList();
+        float start=700.1f;
+        foreach(var (c0,c1) in cuts)
+        {
+            if(c0>start)GlassRun(colliders,m,"Balustrada promenady "+start.ToString("0")+"-"+c0.ToString("0"),new Vector3(start,Y+.03f,Z),new Vector3(c0,Y+.03f,Z));
+            start=Mathf.Max(start,c1);
+        }
+        GlassRun(colliders,m,"Balustrada promenady "+start.ToString("0")+"-1150",new Vector3(start,Y+.03f,Z),new Vector3(1149.85f,Y+.03f,Z));
+        // closed ends of the promenade (beyond them there is no ground)
+        GlassRun(colliders,m,"Balustrada - wschodni koniec promenady",new Vector3(1149.85f,Y,Z),new Vector3(1149.85f,Y,-120.2f));
+        GlassRun(colliders,m,"Balustrada - zachodni koniec promenady",new Vector3(50.15f,Y,-160.85f),new Vector3(50.15f,Y,-120.2f));
+
+        foreach(var p in piers)
+        {
+            float x0=p.x,x1=p.x+p.w,z0=p.z,z1=p.z+p.d;
+            if(p.role=="quay_ramp")
             {
-                int a=n+i*(sides+1)+j,b=a+sides+1;
-                indices.Add(a);indices.Add(b);indices.Add(a+1);
-                indices.Add(a+1);indices.Add(b);indices.Add(b+1);
+                HandrailRun(colliders,m,p.id+" poręcz zachodnia",p,new Vector3(x0+.08f,0,z1-.05f),new Vector3(x0+.08f,0,z0));
+                HandrailRun(colliders,m,p.id+" poręcz wschodnia",p,new Vector3(x1-.08f,0,z1-.05f),new Vector3(x1-.08f,0,z0));
             }
-        }
-
-        public Mesh Create(string name)
-        {
-            if(indices.Count==0)throw new InvalidOperationException("Empty harbour railing mesh: "+name);
-            var mesh=new Mesh{name=name,
-                indexFormat=vertices.Count>65535?IndexFormat.UInt32:IndexFormat.UInt16};
-            mesh.SetVertices(vertices);
-            mesh.SetUVs(0,uv);
-            mesh.SetTriangles(indices,0);
-            mesh.RecalculateNormals();
-            mesh.RecalculateTangents();
-            mesh.RecalculateBounds();
-            return mesh;
-        }
-    }
-
-    sealed class Span
-    {
-        public Vector3 a,b;
-        public string name;
-    }
-    static readonly List<Span> runs=new List<Span>();
-
-    static float Deck(BraxChampionsFoundation.Pier pier,float z)
-    {
-        switch(pier.role)
-        {
-            case "quay_jetski":return -1.37f;
-            case "quay_cruise":
-            case "quay_ferry":return .16f;
-            case "quay_ramp":return .16f-1.24f*Mathf.Clamp01((-z-150f)/20f);
-            case "quay_ramp_jetski":return .16f-1.53f*Mathf.Clamp01((-z-150f)/20f);
-            default:return -1.08f;
-        }
-    }
-
-    static void Add(BraxChampionsFoundation.Pier pier,string label,
-                    float x0,float z0,float x1,float z1)
-    {
-        if(Vector2.Distance(new Vector2(x0,z0),new Vector2(x1,z1))<.65f)return;
-        var a=new Vector3(x0,Deck(pier,z0),z0)*K;
-        var b=new Vector3(x1,Deck(pier,z1),z1)*K;
-        runs.Add(new Span{name=label,a=a,b=b});
-    }
-
-    // Keep actual berthing openings in the main walk: never block their
-    // 5m boarding connection or put a collider directly over a gangway.
-    static void SplitWithGaps(BraxChampionsFoundation.Pier pier,string label,
-                              float x,float from,float to,IEnumerable<float> gaps,float halfGap)
-    {
-        var holes=gaps.OrderBy(z=>z).ToArray();
-        float current=from;
-        foreach(float centre in holes)
-        {
-            float lo=Mathf.Max(from,centre-halfGap),hi=Mathf.Min(to,centre+halfGap);
-            if(lo>current+.7f)Add(pier,label,x,current,x,lo);
-            current=Mathf.Max(current,hi);
-        }
-        if(to>current+.7f)Add(pier,label,x,current,x,to);
-    }
-
-    static BraxChampionsFoundation.Pier Require(IDictionary<string,BraxChampionsFoundation.Pier> piers,string id)
-    {
-        if(!piers.TryGetValue(id,out var pier))
-            throw new InvalidOperationException("Approved marina dock missing: "+id);
-        return pier;
-    }
-
-    static T Save<T>(T asset,string path) where T:UnityEngine.Object
-    {
-        var old=AssetDatabase.LoadAssetAtPath<T>(path);
-        if(old)
-        {
-            EditorUtility.CopySerialized(asset,old);
-            UnityEngine.Object.DestroyImmediate(asset);
-            EditorUtility.SetDirty(old);
-            return old;
-        }
-        AssetDatabase.CreateAsset(asset,path);
-        return asset;
-    }
-
-    static Material Material(string name,Color color,float rough,float metal)
-    {
-        var shader=Shader.Find(BraxCityMaterials.ShaderName);
-        if(!shader)throw new InvalidOperationException("Harbour safety needs CityStaticPBR shader");
-        var m=new Material(shader){name="BRAXHORN "+name,enableInstancing=true};
-        m.SetColor("_Color",color);m.SetFloat("_Roughness",rough);
-        m.SetFloat("_Metallic",metal);m.SetFloat("_VertexTint",0);
-        m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
-        return Save(m,Output+"/Materials/harbour_"+name+".mat");
-    }
-
-    public static void Generate(Transform harbour,BraxChampionsFoundation.Pier[] approvedPiers)
-    {
-        if(!harbour||approvedPiers==null||approvedPiers.Length!=56)
-            throw new InvalidOperationException("Safety railings require the approved 56 pier pieces");
-        var p=approvedPiers.ToDictionary(x=>x.id);
-        runs.Clear();
-        // Main yacht walk: two rows of braided rope with open bays for 9
-        // opposite-side fingers. The shared spine connects all 15 berths.
-        var y=Require(p,"YACHT_MAIN_SPINE");
-        var fingers=Enumerable.Range(0,9).Select(i=>-179.9f-27.2f*i).ToArray();
-        SplitWithGaps(y,"Yacht outer west",y.x,y.z,y.z+y.d,fingers,2.9f);
-        SplitWithGaps(y,"Yacht outer east",y.x+y.w,y.z,y.z+y.d,fingers,2.9f);
-        Add(y,"Yacht seaward head safety",y.x,y.z,y.x+y.w,y.z);
-        var yr=Require(p,"YACHT_ACCESS_FROM_SHORE");
-        Add(yr,"Yacht access west rope",yr.x,yr.z,yr.x,yr.z+yr.d);
-        Add(yr,"Yacht access east rope",yr.x+yr.w,yr.z,yr.x+yr.w,yr.z+yr.d);
-
-        // The 10-motorboat basin is a real U. Guard the OUTER sides, not
-        // the finger docks where people step aboard.
-        var mw=Require(p,"MOTOR_U_WEST");
-        var me=Require(p,"MOTOR_U_EAST");
-        Add(mw,"Motorboat U outer west",mw.x,mw.z,mw.x,mw.z+mw.d);
-        Add(me,"Motorboat U outer east",me.x+me.w,me.z,me.x+me.w,me.z+me.d);
-        var ml=Require(p,"MOTOR_LINK");
-        Add(ml,"Motorboat service west",ml.x,ml.z,ml.x,ml.z+ml.d);
-        Add(ml,"Motorboat service east",ml.x+ml.w,ml.z,ml.x+ml.w,ml.z+ml.d);
-        var mr=Require(p,"MOTOR_ACCESS_FROM_SHORE");
-        Add(mr,"Motorboat ramp west",mr.x,mr.z,mr.x,mr.z+mr.d);
-        Add(mr,"Motorboat ramp east",mr.x+mr.w,mr.z,mr.x+mr.w,mr.z+mr.d);
-
-        // Low watersports dock: keep all ten jetski boarding fingers open.
-        var ski=Require(p,"JETSKI_LOW_MAIN");
-        var skiFingers=Enumerable.Range(0,6).Select(i=>-177f-17.7f*i).ToArray();
-        SplitWithGaps(ski,"Watersports outer west",ski.x,ski.z,ski.z+ski.d,skiFingers,2.1f);
-        SplitWithGaps(ski,"Watersports outer east",ski.x+ski.w,ski.z,ski.z+ski.d,skiFingers,2.1f);
-        var sr=Require(p,"JETSKI_ACCESS_FROM_SHORE");
-        Add(sr,"Jetski ramp west",sr.x,sr.z,sr.x,sr.z+sr.d);
-        Add(sr,"Jetski ramp east",sr.x+sr.w,sr.z,sr.x+sr.w,sr.z+sr.d);
-
-        // Passenger ship quays have sturdy posts + TWO rope runs at 0.53m
-        // and 0.98m high. Open only at actual ship-side gangway bridges.
-        var ferry=Require(p,"FERRY_BOARDING_QUAY");
-        Add(ferry,"Ferry landward safety",ferry.x,ferry.z,ferry.x,ferry.z+ferry.d);
-        SplitWithGaps(ferry,"Ferry vessel side",ferry.x+ferry.w,
-                      ferry.z,ferry.z+ferry.d,new[]{-312f},5f);
-        var cruise=Require(p,"CRUISE_PASSENGER_QUAY");
-        Add(cruise,"Cruise landward safety",cruise.x,cruise.z,cruise.x,cruise.z+cruise.d);
-        SplitWithGaps(cruise,"Cruise embarkation side",cruise.x+cruise.w,
-                      cruise.z,cruise.z+cruise.d,new[]{-273f,-397f},6f);
-
-        Directory.CreateDirectory(Output+"/Meshes");
-        Directory.CreateDirectory(Output+"/Materials");
-        var owner=new GameObject("BRAXHORN | marina real marine rope and stainless safety railings").transform;
-        owner.SetParent(harbour,false);
-        var steel=new MeshStream();
-        var rope=new MeshStream();
-        foreach(var run in runs)
-        {
-            float length=Vector3.Distance(run.a,run.b);
-            int pieces=Mathf.Max(1,Mathf.CeilToInt(length/(5.0f*K)));
-            for(int n=0;n<=pieces;n++)
+            else if(p.role=="quay_ramp_along")
             {
-                Vector3 baseAt=Vector3.Lerp(run.a,run.b,(float)n/pieces);
-                steel.Tube(baseAt+.04f*Vector3.up*K,
-                           baseAt+1.14f*Vector3.up*K,.047f*K,8,1,0f);
+                HandrailRun(colliders,m,p.id+" poręcz od morza",p,new Vector3(x0+.05f,0,z0+.08f),new Vector3(x1,0,z0+.08f));
+                HandrailRun(colliders,m,p.id+" poręcz zachodnia",p,new Vector3(x0+.08f,0,z0+.08f),new Vector3(x0+.08f,0,z1-.12f));
             }
-            for(int n=0;n<pieces;n++)
+            else if(p.role=="quay_cruise")
+                GlassRun(colliders,m,p.id+" głowica",new Vector3(x0+.15f,Y,z0+.15f),new Vector3(x1-.15f,Y,z0+.15f));
+            else if(p.role=="quay_ferry")
             {
-                Vector3 a=Vector3.Lerp(run.a,run.b,(float)n/pieces);
-                Vector3 b=Vector3.Lerp(run.a,run.b,(float)(n+1)/pieces);
-                foreach(float ropeHeight in new[]{.54f,1.04f})
-                    rope.Tube(a+Vector3.up*K*ropeHeight,
-                              b+Vector3.up*K*ropeHeight,.025f*K,8,4,.042f*K);
+                GlassRun(colliders,m,p.id+" głowica",new Vector3(x0+.15f,Y,z0+.15f),new Vector3(x1-.15f,Y,z0+.15f));
+                GlassRun(colliders,m,p.id+" strona zachodnia",new Vector3(x0+.15f,Y,z0+.15f),new Vector3(x0+.15f,Y,z1-.3f));
             }
-            // One slim physical barrier per continuous run, never over
-            // a berth opening, gangway or original beachfront promenade.
-            var hit=new GameObject("RAIL_COLLIDER | "+run.name);
-            hit.transform.SetParent(owner,false);
-            hit.transform.position=(run.a+run.b)*.5f+Vector3.up*.60f*K;
-            var dir=run.b-run.a;dir.y=0;
-            hit.transform.rotation=Quaternion.LookRotation(dir.normalized,Vector3.up);
-            var c=hit.AddComponent<BoxCollider>();
-            c.size=new Vector3(.12f*K,1.18f*K,dir.magnitude);
         }
-        var steelMesh=steel.Create("BRAXHORN marina reusable low-poly steel posts");
-        var ropeMesh=rope.Create("BRAXHORN marina braided-look 3D safety ropes");
-        var savedSteel=Save(steelMesh,Output+"/Meshes/harbour_safety_steel.asset");
-        var savedRope=Save(ropeMesh,Output+"/Meshes/harbour_safety_rope.asset");
-        var steelMat=Material("safety_stainless",new Color(.49f,.52f,.55f,1f),.32f,.84f);
-        var ropeMat=Material("safety_natural_rope",new Color(.70f,.60f,.43f,1f),.81f,.02f);
-        foreach(var item in new[]{(savedSteel,steelMat,"steel posts"),(savedRope,ropeMat,"sagging natural rope")})
-        {
-            var o=new GameObject("Marina safety | "+item.Item3);
-            o.transform.SetParent(owner,false);
-            o.AddComponent<MeshFilter>().sharedMesh=item.Item1;
-            var renderer=o.AddComponent<MeshRenderer>();
-            renderer.sharedMaterial=item.Item2;
-            renderer.shadowCastingMode=ShadowCastingMode.Off;
-            renderer.receiveShadows=false;
-        }
-        Debug.Log("CHAMPIONS_MARINA_SAFETY rail_runs="+runs.Count+
-                  " colliders="+runs.Count+" steel_vertices="+steel.vertices.Count+
-                  " rope_vertices="+rope.vertices.Count+
-                  " boarding_bays_and_ship_gangways=OPEN promenade=UNMODIFIED");
+        m.Build(harbour,"Barierki: balustrada promenady, poręcze trapów i ramp, głowice nabrzeży",Output+"/Meshes/Harbour");
+        Debug.Log("CHAMPIONS_RAILINGS_10_11 runs="+Runs+" posts="+Posts+" openings="+openings.Length+" glassBalustrade=promenade+quays handrails=gangways+jetskiRamp");
     }
 }

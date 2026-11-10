@@ -143,6 +143,7 @@ jobs:
             unity-city/ProjectSettings
             unity-city/Prywatne/miasto_palmy.tar.gz.enc
             unity-city/Prywatne/miasto_silownia_metro.tar.gz.enc
+            unity-city/Prywatne/miasto_sklepy.tar.gz.enc
             public/assets/cars-src/car_rev.glb
             public/assets/chars/brax.glb.gz
             public/assets/tex/brax_color.webp
@@ -379,6 +380,8 @@ jobs:
           python3 unity-tools/mistrzowie/build_sobczak_sign.py
           # Owner 9.11: casino T11 gold 3D signs KASYNO WAWER + PARKING (CasinoWawerSign.bytes).
           python3 unity-tools/mistrzowie/build_casino_sign.py
+          # Owner 10.11 promenade + port: 3D letters for the pier gates, berth numbers and the K1-K12 kiosks (HarbourSigns.bytes).
+          python3 unity-tools/mistrzowie/build_harbour_signs.py
           # Owner 9.11: the three arena murals as 3 x 2048 tiles each (lossless crop of the verified originals).
           # A failure here is not fatal: the build then hangs each mural as one whole 6144x2048 panel.
           python3 unity-tools/mistrzowie/split_arena_murals.py || echo "::warning::arena mural tiles not made, whole-picture fallback"

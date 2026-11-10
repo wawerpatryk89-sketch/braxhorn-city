@@ -97,6 +97,13 @@ namespace UnityEngine
         public static T Instantiate<T>(T original) where T : Object
         {
             if (original is Mesh m) return new Mesh { name = m.name, vertices = (Vector3[])m.vertices.Clone(), normals = (Vector3[])m.normals?.Clone(), uv = (Vector2[])m.uv?.Clone(), triangles = (int[])m.triangles.Clone() } as T;
+            // a preview model (glTF stand-in): a real copy, so every instance has its own transform (harbour boats)
+            if (original is GameObject g && g.GetComponent<PreviewModel>() is PreviewModel src)
+            {
+                var c = new GameObject(g.name + "(Clone)"); var pm = c.AddComponent<PreviewModel>(); pm.path = src.path; pm.min = src.min; pm.max = src.max;
+                c.AddComponent<MeshRenderer>().sharedMaterial = new Material { name = "gltf", textured = true };
+                c.transform.localScale = g.transform.localScale; c.transform.localRotation = g.transform.localRotation; return c as T;
+            }
             return original;
         }
         public static T Instantiate<T>(T original, Transform parent, bool stays) where T : Object
@@ -135,6 +142,9 @@ namespace UnityEngine
         public void SetParent(Transform p, bool keep) { parent?.children.Remove(this); parent = p; p?.children.Add(this); }
         public Transform Find(string n) => children.FirstOrDefault(c => c.gameObject.name == n);
         public Vector3 up => rotation * Vector3.up; public Vector3 forward => rotation * Vector3.forward; public Vector3 right => rotation * Vector3.right;
+        public Vector3 eulerAngles { get { var f = rotation * Vector3.forward; return new Vector3(0, (float)(Math.Atan2(f.x, f.z) * 180 / Math.PI), 0); } }
+        public void Rotate(Vector3 axis, float angle, Space space) { localRotation = localRotation * Quaternion.AngleAxis(angle, axis); }
+        public void RotateAround(Vector3 point, Vector3 axis, float angle) { var q = Quaternion.AngleAxis(angle, axis); var p = position; position = point + q * (p - point); rotation = q * rotation; }
         public Vector3 TransformPoint(Vector3 v) { var l = localPosition + localRotation * Vector3.Scale(localScale, v); return parent == null ? l : parent.TransformPoint(l); }
         public Vector3 TransformVector(Vector3 v) { var l = localRotation * Vector3.Scale(localScale, v); return parent == null ? l : parent.TransformVector(l); }
         public Vector3 InverseTransformPoint(Vector3 w)
@@ -186,6 +196,7 @@ namespace UnityEngine
         public T[] GetComponentsInChildren<T>(bool inactive) where T : Component => All<T>();
         public T[] All<T>() where T : Component { var r = new List<T>(); void Walk(Transform t) { r.AddRange(t.gameObject.comps.OfType<T>()); foreach (var c in t.children.ToArray()) Walk(c); } Walk(transform); return r.ToArray(); } }
     public class Behaviour : Component { public bool enabled = true; } public class MonoBehaviour : Behaviour { }
+    public enum Space { World, Self }
     public enum PrimitiveType { Sphere, Capsule, Cylinder, Cube, Plane, Quad }
     public struct Vector3Int : IEquatable<Vector3Int> { public int x, y, z; public Vector3Int(int x, int y, int z) { this.x = x; this.y = y; this.z = z; }
         public bool Equals(Vector3Int o) => x == o.x && y == o.y && z == o.z; public override bool Equals(object o) => o is Vector3Int v && Equals(v); public override int GetHashCode() => (x * 73856093) ^ (y * 19349663) ^ (z * 83492791); }

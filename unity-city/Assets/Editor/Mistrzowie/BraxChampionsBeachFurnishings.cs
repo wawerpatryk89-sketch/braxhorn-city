@@ -25,7 +25,7 @@ public static class BraxChampionsBeachFurnishings
         return -163f+(deeper+163f)*blend;
     }
 
-    static float SandY(float x,float z)
+    public static float SandY(float x,float z)
     {
         float s=Shore(x);
         float t=Mathf.Clamp01((-161f-z)/(-161f-s));

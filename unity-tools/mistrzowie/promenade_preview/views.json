@@ -1,0 +1,354 @@
+[
+ {
+  "out": "p01_marina_z_promenady.png",
+  "eye": [
+   788,
+   13,
+   -131
+  ],
+  "target": [
+   828,
+   -1.5,
+   -198
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p02_marina_pomost.png",
+  "eye": [
+   830,
+   1.2,
+   -171
+  ],
+  "target": [
+   822,
+   -1.2,
+   -205
+  ],
+  "fov": 62,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p03_jachty_przy_palcach.png",
+  "eye": [
+   800,
+   3.5,
+   -166
+  ],
+  "target": [
+   817,
+   -1,
+   -190
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p04_skutery_przy_brzegu.png",
+  "eye": [
+   872,
+   3.6,
+   -146.5
+  ],
+  "target": [
+   900,
+   -1.6,
+   -157
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p05_motorowki.png",
+  "eye": [
+   938,
+   7,
+   -146
+  ],
+  "target": [
+   955,
+   -1.2,
+   -186
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p06_port_wycieczkowy.png",
+  "eye": [
+   1080,
+   22,
+   -132
+  ],
+  "target": [
+   1114,
+   0,
+   -215
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p07_promenada_spacer.png",
+  "eye": [
+   805,
+   1.75,
+   -136
+  ],
+  "target": [
+   880,
+   1.3,
+   -147
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p08_promenada_z_gory.png",
+  "eye": [
+   640,
+   70,
+   -40
+  ],
+  "target": [
+   820,
+   -1,
+   -185
+  ],
+  "fov": 50,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p09_plaza_kladka.png",
+  "eye": [
+   232,
+   5,
+   -148
+  ],
+  "target": [
+   232,
+   -0.6,
+   -205
+  ],
+  "fov": 58,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p10_plaza_brzeg.png",
+  "eye": [
+   380,
+   6,
+   -228
+  ],
+  "target": [
+   440,
+   -1.6,
+   -285
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p11_prom.png",
+  "eye": [
+   735,
+   9,
+   -140
+  ],
+  "target": [
+   765,
+   -1,
+   -195
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p12_brama_mariny.png",
+  "eye": [
+   830,
+   1.75,
+   -128
+  ],
+  "target": [
+   830,
+   3,
+   -152
+  ],
+  "fov": 60,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "k01_budki_z_promenady.png",
+  "eye": [
+   812,
+   2.0,
+   -131.5
+  ],
+  "target": [
+   835,
+   1.8,
+   -118
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "k02_kebab_budka.png",
+  "eye": [
+   827.5,
+   1.75,
+   -125.5
+  ],
+  "target": [
+   827.5,
+   1.4,
+   -116
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "k04_pizza.png",
+  "eye": [
+   327.5,
+   1.75,
+   -125
+  ],
+  "target": [
+   327.5,
+   1.5,
+   -116
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "k05_lody.png",
+  "eye": [
+   177.5,
+   1.75,
+   -123.5
+  ],
+  "target": [
+   177.5,
+   1.2,
+   -117
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "k06_tyl_budek_od_ulicy.png",
+  "eye": [
+   880,
+   2.0,
+   -100
+  ],
+  "target": [
+   902,
+   1.8,
+   -115
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "k07_kawiarnia.png",
+  "eye": [
+   102.5,
+   1.75,
+   -125
+  ],
+  "target": [
+   102.5,
+   1.4,
+   -116
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "k08_bar.png",
+  "eye": [
+   727.5,
+   1.75,
+   -125.5
+  ],
+  "target": [
+   727.5,
+   1.4,
+   -116
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "k03_kebab_rozen.png",
+  "eye": [
+   827.15,
+   1.65,
+   -118.6
+  ],
+  "target": [
+   827.35,
+   1.45,
+   -115.1
+  ],
+  "fov": 42,
+  "near": 0.02,
+  "lights": 0
+ },
+ {
+  "out": "p13_promenada_palmy_lawki.png",
+  "eye": [
+   640,
+   1.75,
+   -131
+  ],
+  "target": [
+   690,
+   1.0,
+   -145
+  ],
+  "fov": 55,
+  "near": 0.05,
+  "lights": 0
+ },
+ {
+  "out": "p00_port_z_lotu_ptaka.png",
+  "eye": [
+   930,
+   150,
+   -75
+  ],
+  "target": [
+   940,
+   -2,
+   -195
+  ],
+  "fov": 55,
+  "near": 0.5,
+  "lights": 0
+ }
+]

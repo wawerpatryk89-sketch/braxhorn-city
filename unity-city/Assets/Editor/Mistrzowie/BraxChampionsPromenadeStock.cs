@@ -104,6 +104,9 @@ public static class BraxChampionsPromenadeStock
                          ModelEntry spec,int index)
     {
         bool furniture=IsFurniture(spec.id),display=IsDisplay(spec.id),large=IsLarge(spec.id);
+        // 10.11 premium kiosks: seating is outside (BraxChampionsPromenade.Terrace, bar stools) and display shelving
+        // only stands in the walk-in shops - never in the service aisle behind a food counter
+        if(furniture||(display&&!bay.walkIn))throw new InvalidOperationException("seating / free-standing shelves are not used in "+bay.id);
         float width=DesiredSize(spec.id,furniture,display,large);
         float x,z,y;
         float safeHalf=bay.w/2f-.52f;
@@ -122,15 +125,13 @@ public static class BraxChampionsPromenadeStock
             // central shelf position at back wall.
             x=index%2==0?-safeHalf*.72f:safeHalf*.72f;
             z=.15f;
-            y=.164f;
+            y=BraxChampionsPromenade.FloorTop+.012f;
         }
         else if(large)
         {
             x=offset;
-            z=bay.d/2f-.65f;
-            // Blat lady zaplecza: środek .52 + połowa wysokości .55 = .795.
-            // Wcześniej .98 -> skrzynki i kosze wisiały ok. 18 cm nad blatem.
-            y=.80f;
+            z=BraxChampionsPromenade.BackCounterZ(bay.d);
+            y=BraxChampionsPromenade.BackCounterTop;      // the marble back counter of the premium kiosk
         }
         else
         {
@@ -139,8 +140,8 @@ public static class BraxChampionsPromenadeStock
             // Pozycja na półce (index%3) i numer półki (index/3) są niezależne:
             // wcześniej oba = index%3, więc produkt 4 stał w miejscu produktu 1.
             x=offset;
-            z=bay.d/2f-.34f;
-            y=1.31f+((index/3)%3)*.43f;
+            z=BraxChampionsPromenade.ShelfZ(bay.d);
+            y=BraxChampionsPromenade.ShelfTops[(index/3)%3];
         }
 
         var prefab=Original(spec.id);

@@ -146,7 +146,11 @@ def main():
                       # 10.11 owner material board: A28 quilted leather on the arena hall walls, Tiles012 black/white
                       # marble checkerboard on the arena entrance lobby floor.
                       ('Leather013',['Color','NormalGL','Roughness']),
-                      ('Tiles012',['Color','NormalGL','Roughness'])]:
+                      ('Tiles012',['Color','NormalGL','Roughness']),
+                      # 10.11 owner "promenada ... port porządny": real marina decking (pontoons, gangways, beach
+                      # boardwalks) instead of furniture veneer, and premium light stone slabs on the promenade.
+                      ('Planks040',['Color','NormalGL','Roughness','AmbientOcclusion','Metalness']),
+                      ('PavingStones126A',['Color','NormalGL','Roughness','AmbientOcclusion'])]:
   prefix=asset+'_4K-JPG_'
   names=[prefix+k+'.jpg' for k in kinds]
   # New maps have no historical lock: verify against the archive on every preparation.

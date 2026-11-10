@@ -8,8 +8,8 @@ from shapely.ops import unary_union
 ROOT=Path(__file__).resolve().parents[2]
 REPORT=ROOT/'mistrzowie-evidence';REPORT.mkdir(exist_ok=True)
 from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,A1_PARKING_ENTRANCES,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO
-from port_layout import PIERS,BERTHS,SHORE_BACK,SEA_LEVEL,shoreline,beach_height,validate as validate_port
-from promenade_layout import PAVILIONS,PAVILION_PADS,PAVILION_FOOTPRINTS,CYCLE_Z0,CYCLE_Z1,CYCLE_WIDTH,X0 as PROM_X0,X1 as PROM_X1,validate as validate_promenade
+from port_layout import PIERS,BERTHS,SHORE_BACK,SEA_LEVEL,PROMENADE_OPENINGS,JETSKI_RAMP,shoreline,beach_height,validate as validate_port
+from promenade_layout import PAVILIONS,PAVILION_PADS,PAVILION_FOOTPRINTS,CYCLE_Z0,CYCLE_Z1,CYCLE_WIDTH,X0 as PROM_X0,X1 as PROM_X1,PALM_BEDS,PALM_BED_RECTS,FURNITURE,validate as validate_promenade
 SRC=ROOT/'unity-city/Assets/Source/Mistrzowie'
 K=float(np.float32(2.33)/np.float32(1.80))  # exact existing Unity float expression
 base=json.loads((Path(__file__).with_name('plan_inventory.json')).read_text())
@@ -61,8 +61,10 @@ def zone(x,z):
  # Inland pavilion pads replace grass only in 12 footprint rectangles;
  # green palm beds and the entire pedestrian promenade stay intact.
  if any(inside((x,z),r) for r in PAVILION_FOOTPRINTS):return None
- if any(inside((x,z),r) for r in PAVILION_PADS):return 'paving'
- if any(inside((x,z),r) for r in walks) and (z>=-150 or x<740):return 'paving'
+ if any(inside((x,z),r) for r in PAVILION_PADS):return 'prom_paving'
+ # Owner 10.11: the city walks stop at the sand (grass border z -161) - no grey tongues into the beach or the sea;
+ # the beach is reached over timber boardwalks (BraxChampionsBeachFurnishings).
+ if any(inside((x,z),r) for r in walks) and (z>=-150 or (x<690 and z>=-161)):return 'paving'
  if z>=-110:
   v=min(abs(x-a) for a in XROAD) if -70<=z<=935 else 1e6
   h=min(abs(z-a) for a in ZROAD) if 70<=x<=1130 else 1e6
@@ -72,7 +74,10 @@ def zone(x,z):
   if dist<17:return 'paving'
   return 'grass'
  if any(inside((x,z),r) for r in greens):return 'grass'
- if 50<=x<=1150 and -150<=z<-120:return 'paving'
+ # palm beds of the seaside row (owner 10.11 09:06 "palmy posadzić"): planted ground flush with the paving
+ if any(inside((x,z),r) for r in PALM_BED_RECTS):return 'grass'
+ # owner 10.11 "promenady ładne, ekskluzywne": the promenade gets its own premium stone (BraxChampionsFoundation prom_paving)
+ if 50<=x<=1150 and -150<=z<-120:return 'prom_paving'
  # Premium beach is one hand-laid curved geometric grid, not a stepped
  # rectangle independently classified from the 25m city tile grid.
  if 50<=x<700 and z<SHORE_BACK:return None
@@ -91,9 +96,12 @@ def height(role,x,z):
   return .16
  if role=='quay_ramp':
   return .16-1.24*max(0,min(1,(-z-150)/20))
+ if role=='quay_ramp_along':
+  # jetski ramp along the promenade quay wall: promenade level at its west end down to the low pontoon
+  return .16-1.53*max(0,min(1,(x-JETSKI_RAMP[0]-2)/(JETSKI_RAMP[1]-JETSKI_RAMP[0]-2)))
  if role=='quay_ramp_jetski':
   return .16-1.53*max(0,min(1,(-z-150)/20))
- if role in ('paving','grass','cycle_lane') and z>=-170:return PAVING_Y
+ if role in ('paving','prom_paving','grass','cycle_lane') and z>=-170:return PAVING_Y
  if role=='cycle_mark':return PAVING_Y
  if role=='plot_base':return -.25
  if role=='sea':return SEA_LEVEL
@@ -106,7 +114,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE]+A1_PARKING_ENTRANCES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
+rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE]+A1_PARKING_ENTRANCES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS
 for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
@@ -233,7 +241,9 @@ for xx in np.arange(50,700,2.5):
   z01=SHORE_BACK+(s0-SHORE_BACK)*t1
   z11=SHORE_BACK+(s1-SHORE_BACK)*t1
   if min(z00-z01,z10-z11)<.00001:continue
-  role='sand_wet' if (i+.5)/32>.775 else 'sand_dry'
+  # owner 10.11 09:01 "plaża ... kawałek jest chujowy, wygląda niby mokra": one golden sand to the water, only the
+  # last ~7 m at the waterline is wet (same sand, darker in BraxChampionsFoundation), the foam ribbon over it
+  role='sand_wet' if (i+.5)/32>.94 else 'sand_dry'
   warped_quad(role,x0,z01,z00,x1,z11,z10)
   # Record walkable sand faces for analytics but keep the base grid isolated.
 # Shore foam is a separate uncollidable ribbon. No particles/flat bitmap.
@@ -253,18 +263,35 @@ for a,b,c,d,role in cells:
   key=tuple(sorted([u,v]))
   if key in edges:del edges[key]
   else:edges[key]=(u,v)
+FLOATING=('quay_wood','quay_jetski','quay_ramp','quay_ramp_jetski','quay_ramp_along')
 for (a,b),(c,d) in edges.values():
- key=f'x{int((a+c)/2)//300:02}_z{int(((b+d)/2+500)//250):02}_quay_wall'
- m=meshes.setdefault(key,dict(id=key,role='quay_wall',positions=[],uv=[],triangles=[]))
- i=len(m['positions'])//3
  # The cruise ship quay stays tall; floating pontoons meet water naturally.
  ra=zone(a+(c-a)*.02,b+(d-b)*.02)
  rb=zone(c-(c-a)*.02,d-(d-b)*.02)
  ya=height(ra,a,b) if ra and ra.startswith('quay_') else -1.08
  yb=height(rb,c,d) if rb and rb.startswith('quay_') else ya
- for x,y,z in [(a,ya,b),(a,-4.5,b),(c,-4.5,d),(c,yb,d)]:
+ # owner 10.11: floating pontoons are dark floats down to just below the water, not concrete piers to the sea bed
+ floating=(ra in FLOATING) or (rb in FLOATING)
+ wrole='pontoon_side' if floating else 'quay_wall'
+ bottom=SEA_LEVEL-.45 if floating else -4.5
+ key=f'x{int((a+c)/2)//300:02}_z{int(((b+d)/2+500)//250):02}_{wrole}'
+ m=meshes.setdefault(key,dict(id=key,role=wrole,positions=[],uv=[],triangles=[]))
+ i=len(m['positions'])//3
+ for x,y,z in [(a,ya,b),(a,bottom,b),(c,bottom,d),(c,yb,d)]:
   m['positions'] += [round(x*K,6),round(y*K,6),round(z*K,6)]
   m['uv'] += [round(x if abs(c-a)>.01 else z,6),y]
+ m['triangles'] += [i,i+1,i+2,i,i+2,i+3]
+
+# The promenade was a slab hovering over the harbour water with an open edge (owner photos 10.11): a real quay wall
+# under its seaward edge from the end of the beach to the east end, facing the sea (Unity winding: east -> west).
+for x in range(700,1150,25):
+ x0=float(x+25);x1=float(x)
+ key=f'x{int((x0+x1)/2)//300:02}_z{int((-150+500)//250):02}_quay_wall'
+ m=meshes.setdefault(key,dict(id=key,role='quay_wall',positions=[],uv=[],triangles=[]))
+ i=len(m['positions'])//3
+ for xx,y in [(x0,PAVING_Y),(x0,-4.5),(x1,-4.5),(x1,PAVING_Y)]:
+  m['positions'] += [round(xx*K,6),round(y*K,6),round(-150*K,6)]
+  m['uv'] += [round(xx,6),y]
  m['triangles'] += [i,i+1,i+2,i,i+2,i+3]
 
 # Water physically follows the curved beach, instead of ending on a
@@ -289,6 +316,9 @@ def plant(x,z,kind,source,band):
  if not all(zone(x+dx,z+dz)=='grass' for dx,dz in [(0,0),(1.5,0),(-1.5,0),(0,1.5),(0,-1.5)]):return
  if any((p['x']-x)**2+(p['z']-z)**2<100 for p in plants):return
  plants.append(dict(id=f'V{len(plants)+1:04}',x=x,z=z,kind=kind,variant=source,band=band,yaw=(len(plants)*137.508)%360))
+# Seaside palm row first (owner 10.11: thick palms along a walk): the owner's thick-trunk palma in every bed.
+for x,z in PALM_BEDS:plant(x,z,'palm',0,'promenade_bed')
+assert sum(p['band']=='promenade_bed' for p in plants)==len(PALM_BEDS),'every promenade bed gets its palm'
 for x in range(65,1146,25):plant(x,-115,'palm',len(plants)%2,'promenade_soil')
 # More real imported palms facing the bright beach, planted in the coastal
 # grass bed, never obstructing the preserved pedestrian promenade.
@@ -318,7 +348,7 @@ for b in buildings:
   z=z0+(z1-z0)*j/n(z0,z1)
   plant(x0,round(z,2),'palm',len(plants)%2,'plot_garden');plant(x1,round(z,2),'palm',len(plants)%2,'plot_garden')
 for x,z in [(850,890),(900,890),(950,890),(1000,890),(1080,890),(950,740)]:plant(x,z,'tree',0,'hotel_garden')
-layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,piers=PIERS,promenade=PAVILIONS,tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
+layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,piers=PIERS,promenade=PAVILIONS,palmBeds=[dict(x=x,z=z,w=r[2],d=r[3]) for (x,z),r in zip(PALM_BEDS,PALM_BED_RECTS)],furniture=[dict(kind=k,x=x,z=z) for k,x,z in FURNITURE],openings=[dict(x0=a,x1=b) for a,b in PROMENADE_OPENINGS],tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
 SRC.mkdir(parents=True,exist_ok=True)
 (SRC/'Foundation.json').write_text(json.dumps(layout,separators=(',',':')))
 # Geometric checks use the delivered vertices, not only planning rectangles.
@@ -327,7 +357,7 @@ for m in meshes.values():
  v=np.asarray(m['positions']).reshape(-1,3);ix=np.asarray(m['triangles']).reshape(-1,3)
  cross=np.cross(v[ix[:,1]]-v[ix[:,0]],v[ix[:,2]]-v[ix[:,0]])
  assert np.isfinite(v).all() and (np.linalg.norm(cross,axis=1)>1e-7).all(),m['id']
- if m['role']!='quay_wall':assert (cross[:,1]>0).all(),m['id']
+ if m['role'] not in ('quay_wall','pontoon_side'):assert (cross[:,1]>0).all(),m['id']
  assert len(m['uv'])==len(v)*2
  tri+=len(ix)
 assert len(berths)==38

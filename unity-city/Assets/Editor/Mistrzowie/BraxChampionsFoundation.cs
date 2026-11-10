@@ -29,7 +29,14 @@ public static class BraxChampionsFoundation
         public Berth[] berths;
         public Pier[] piers;
         public Pavilion[] promenade;
+        // owner 10.11 promenade: palm beds of the seaside row, benches / lamps between them, gangway openings
+        public PalmBed[] palmBeds;
+        public Furniture[] furniture;
+        public Opening[] openings;
     }
+    [Serializable] public sealed class PalmBed { public float x,z,w,d; }
+    [Serializable] public sealed class Furniture { public string kind; public float x,z; }
+    [Serializable] public sealed class Opening { public float x0,x1; }
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
     [Serializable] public sealed class Plant { public string id, kind, band; public float x,z,yaw; public int variant; }
     [Serializable] public sealed class Building { public string id,name; public float x,z,w,d,height; }
@@ -65,7 +72,7 @@ public static class BraxChampionsFoundation
         var d=JsonUtility.FromJson<Foundation>(File.ReadAllText(Source+"/Foundation.json"));
         if(d==null || d.regionId!="mistrzowie" || Mathf.Abs(d.scaleK-K)>.00001f)
             throw new InvalidOperationException("Region scale differs from BraxClaudeOsiedle.K; regenerate nominal geometry, never rescale imports twice.");
-        if(d.meshes==null || d.meshes.Length==0 || d.plants==null || d.berths==null || d.berths.Length!=38 || d.piers==null || d.piers.Length!=56 || d.promenade==null || d.promenade.Length!=12
+        if(d.meshes==null || d.meshes.Length==0 || d.plants==null || d.berths==null || d.berths.Length!=38 || d.piers==null || d.piers.Length!=48 || d.promenade==null || d.promenade.Length!=12 || d.palmBeds==null || d.palmBeds.Length<45 || d.openings==null || d.openings.Length!=5
             || d.berths.Count(b=>b.kind=="yacht")!=15
             || d.berths.Count(b=>b.kind=="motorboat")!=10
             || d.berths.Count(b=>b.kind=="jetski")!=10
@@ -99,11 +106,11 @@ public static class BraxChampionsFoundation
     {
         string tex=Source+"/Textures";
         var maps=new Dictionary<string,MapSet>();
-        foreach(string pair in new[]{"sand_dry|coast_sand_02","sand_wet|damp_sand"})
-        {
-            var a=pair.Split('|');string slug=a[1];
-            maps[a[0]]=new MapSet{color=FileIn(tex,slug+"_diff_4k.jpg"),normal=FileIn(tex,slug+"_nor_gl_4k.exr"),arm=FileIn(tex,slug+"_arm_4k.png"),tile=a[0]=="sand_dry"?15f:2f};
-        }
+        // Owner 10.11 09:01: "plażę poprawić ... kawałek jest chujowy, wygląda niby mokra" - the outer quarter of the beach
+        // was damp_sand at a 2 m tile (dark pebbly, repeating). One golden coast_sand_02 to the water now; the last ~7 m
+        // (sand_wet) is the SAME sand, only darker (a separate MapSet = its own material tint below).
+        foreach(string role in new[]{"sand_dry","sand_wet"})
+            maps[role]=new MapSet{color=FileIn(tex,"coast_sand_02_diff_4k.jpg"),normal=FileIn(tex,"coast_sand_02_nor_gl_4k.exr"),arm=FileIn(tex,"coast_sand_02_arm_4k.png"),tile=15f};
         maps["grass"]=new MapSet{color=FileIn(tex,"Grass004_4K-JPG_Color.jpg"),normal=FileIn(tex,"Grass004_4K-JPG_NormalGL.jpg"),arm=FileIn(tex,"Grass004_ARM_4k.png"),tile=1.4f};
         foreach(string pair in new[]{"asphalt|clean_asphalt|2.1","paving|concrete_pavement_02|1.8"})
         {
@@ -112,18 +119,32 @@ public static class BraxChampionsFoundation
         }
         // Real Poly Haven PBR for working docks: hard wearing timber on
         // floating pontoons, granite on high passenger/cruise berths.
+        // Owner 10.11: the pontoons were furniture veneer (teak_veneer, read pink in the game). Real marina decking:
+        // ambientCG Planks040 (weathered grey deck boards with gaps and screw lines, CC0), 2 m tile.
         maps["quay_wood"]=new MapSet{
-            color=FileIn(tex,"teak_veneer_diff_4k.jpg"),
-            normal=FileIn(tex,"teak_veneer_nor_gl_4k.exr"),
-            arm=FileIn(tex,"teak_veneer_arm_4k.png"),tile=1.4f};
+            color=FileIn(tex,"Planks040_4K-JPG_Color.jpg"),
+            normal=FileIn(tex,"Planks040_4K-JPG_NormalGL.jpg"),
+            arm=FileIn(tex,"Planks040_ARM_4k.png"),tile=2.0f};
         maps["quay_jetski"]=maps["quay_wood"];
         maps["quay_ramp"]=maps["quay_wood"];
         maps["quay_ramp_jetski"]=maps["quay_wood"];
+        maps["quay_ramp_along"]=maps["quay_wood"];
+        // Premium promenade paving (owner 10.11 "promenady ładne, ekskluzywne"): ambientCG PavingStones126A, large
+        // vein-cut light stone slabs (~0.9 m, CC0), on the promenade and the kiosk pads only; city sidewalks unchanged.
+        maps["prom_paving"]=new MapSet{
+            color=FileIn(tex,"PavingStones126A_4K-JPG_Color.jpg"),
+            normal=FileIn(tex,"PavingStones126A_4K-JPG_NormalGL.jpg"),
+            arm=FileIn(tex,"PavingStones126A_ARM_4k.png"),tile=4.5f};
         maps["quay_cruise"]=new MapSet{
             color=FileIn(tex,"granite_tile_diff_4k.jpg"),
             normal=FileIn(tex,"granite_tile_nor_gl_4k.exr"),
             arm=FileIn(tex,"granite_tile_arm_4k.png"),tile=1.7f};
         maps["quay_ferry"]=maps["quay_cruise"];
+        // floating pontoon sides down to just below the water: dark composite floats, not a concrete pier wall
+        maps["pontoon_side"]=new MapSet{
+            color=FileIn(tex,"concrete_wall_008_diff_4k.jpg"),
+            normal=FileIn(tex,"concrete_wall_008_nor_gl_4k.exr"),
+            arm=FileIn(tex,"concrete_wall_008_arm_4k.png"),tile=1.5f};
         maps["quay_wall"]=new MapSet{
             color=FileIn(tex,"concrete_wall_008_diff_4k.jpg"),
             normal=FileIn(tex,"concrete_wall_008_nor_gl_4k.exr"),
@@ -185,8 +206,7 @@ public static class BraxChampionsFoundation
         var d=Read();Sources();Palms();Tree();
         // Source-only verification before creating expensive Unity scenes.
         // Downloaded originals must include full 2K albedo/normal/ARM.
-        // Fail before generating the world if the user-approved 12-sign PNG is missing.
-        BraxChampionsPromenade.VerifyAtlas();
+        // 10.11: the kiosk names are solid 3D letters (HarbourSigns.bytes), the provisional 3x4 sign atlas is no longer used.
         BraxChampionsPromenadeGoods.Verify25OriginalModels();
         if(!File.Exists("Assets/Source/HarborBeach/Models/lifeguard_tower.glb"))
             throw new FileNotFoundException("Missing owner R1 lifeguard tower; no substitute");
@@ -226,8 +246,15 @@ public static class BraxChampionsFoundation
         materials["cycle_mark"].SetColor("_Color",new Color(.96f,.96f,.91f,1f)); // off-white paint, physically inlaid
         EditorUtility.SetDirty(materials["cycle_lane"]);
         EditorUtility.SetDirty(materials["cycle_mark"]);
-        materials["sand_dry"].SetColor("_Color",new Color(1.52f,1.40f,1.12f,1f));
-        materials["sand_wet"].SetColor("_Color",new Color(1.13f,1.06f,.88f,1f));
+        // owner 10.11 "piasek zrobić ładny": light cream-golden, less orange than the 6.11 tint (1.52,1.40,1.12)
+        materials["sand_dry"].SetColor("_Color",new Color(1.46f,1.37f,1.17f,1f));
+        materials["sand_wet"].SetColor("_Color",new Color(1.16f,1.07f,.88f,1f));
+        // marina decking a touch cooler (Planks040 reads pink-brown under the warm city sun), light granite quays
+        materials["quay_wood"].SetColor("_Color",new Color(.86f,.89f,.94f,1f));
+        materials["quay_cruise"].SetColor("_Color",new Color(1.28f,1.28f,1.26f,1f));
+        EditorUtility.SetDirty(materials["quay_wood"]);EditorUtility.SetDirty(materials["quay_cruise"]);
+        materials["pontoon_side"].SetColor("_Color",new Color(.20f,.21f,.22f,1f));
+        EditorUtility.SetDirty(materials["pontoon_side"]);
         materials["grass"]=BraxChampionsGrass.CreateMaterial(materials["grass"]);
         materials["sea"]=SeaMaterial();
         materials["foam"]=FoamMaterial();
@@ -287,7 +314,9 @@ public static class BraxChampionsFoundation
             // Place the ORIGINAL user-library yacht, Riva and jetski models.
             // No fabricated cruise/ferry vessel is allowed without its source.
             int boats=0;
-            Optional("flota w porcie",()=>boats=BraxChampionsHarbour.PlaceOriginalFleet(root,d.berths,d.piers));
+            Optional("flota w porcie",()=>boats=BraxChampionsHarbour.PlaceOriginalFleet(root,d.berths,d.piers,d.openings));
+            // owner 10.11: palms in planted beds along the promenade, benches, lamps, bins, beach boardwalks
+            Optional("promenada: kwatery palm, ławki, latarnie, kładki na plażę",()=>BraxChampionsPromenadeFurniture.Build(root,d.palmBeds,d.furniture));
             if(boats!=35)BraxBuildQuality.Warn("Port: ustawiono "+boats+" łodzi zamiast 35 (15 jachtów + 10 Riva + 10 skuterów)");
             report.yachtsPlaced=true;
             var reserves=new GameObject("PLAN - działki, przystanki, miejsca promów i wycieczkowców").transform;reserves.SetParent(root,false);

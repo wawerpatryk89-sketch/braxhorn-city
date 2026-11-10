@@ -33,7 +33,8 @@ DATA=(
  ("K7","SKLEPIK PLAŻOWY","SKLEPIK PLAŻOWY",552.5,5.5,4.,3.6,"beach_shop",True),
  ("K8","PAMIĄTKI","PAMIĄTKI",627.5,5.,3.5,3.3,"souvenirs",True),
  ("K9","BAR / DRINKI","BAR • DRINKI",727.5,6.,4.5,3.8,"bar",False),
- ("K10","GRILL / BBQ","GRILL • BBQ",827.5,6.,4.5,3.8,"grill",False),
+ # owner 10.11 09:06/09:16: "budki wyposażyć w kebaby" - the grill kiosk is the kebab (rotating doner) + grill
+ ("K10","KEBAB / GRILL","KEBAB • GRILL",827.5,6.,4.5,3.8,"grill",False),
  ("K11","WYNAJEM SPRZĘTU","WYNAJEM SPRZĘTU",902.5,6.,4.,3.6,"rental",True),
  ("K12","INFORMACJA / TOUR","INFORMACJA • TOUR",1027.5,5.,4.,3.5,"info",True),
 )
@@ -53,6 +54,37 @@ PAVILION_FOOTPRINTS=[
  (p["x"]-p["w"]/2,KIOSK_FRONT,p["w"],p["d"])
  for p in PAVILIONS
 ]
+
+# Owner 10.11 09:01-09:06: "drzewa posadzić ... palmy posadzić ... promenady ładne, ekskluzywne". A seaside row of the
+# owner's thick-trunk palms (palma, the same model as the arena entrance walk) in 3.2 m planted beds flush with the
+# paving, 2.5 m inland of the cycle lane, every 18 m; a bench facing the sea or a lamp in every gap. Gaps are left at
+# every gangway to a pier and at every perpendicular walk from the city (zebra crossings on the cycle lane).
+PALM_ROW_Z=-143.0
+PALM_BED=3.2
+PALM_STEP=18.0
+
+
+def _palm_beds():
+    from port_layout import PROMENADE_OPENINGS
+    keep_clear=[((a+b)/2,(b-a)/2+5.0) for a,b in PROMENADE_OPENINGS]+[(c,w/2+5.0) for c,w in PEDESTRIAN_CONNECTIONS]
+    beds=[]
+    x=X0+12.0
+    while x<=X1-12.0:
+        if all(abs(x-c)>r+PALM_BED/2 for c,r in keep_clear):
+            beds.append((round(x,2),PALM_ROW_Z))
+        x+=PALM_STEP
+    return beds
+
+
+PALM_BEDS=_palm_beds()
+# (x0, z0, w, d) grass rectangles cut out of the promenade paving
+PALM_BED_RECTS=[(x-PALM_BED/2,z-PALM_BED/2,PALM_BED,PALM_BED) for x,z in PALM_BEDS]
+# Benches and lamps in the gaps between neighbouring beds (only gaps of one regular step).
+FURNITURE=[]
+for (xa,_),(xb,_) in zip(PALM_BEDS,PALM_BEDS[1:]):
+    if abs(xb-xa-PALM_STEP)<.01:
+        FURNITURE.append(("bench" if len(FURNITURE)%2==0 else "lamp",round((xa+xb)/2,2),PALM_ROW_Z))
+
 
 def validate():
     assert X1-X0==1100. and Z1-Z0==30.0
@@ -78,6 +110,8 @@ def validate():
         for path_x,path_width in PEDESTRIAN_CONNECTIONS:
             if not (a+w+2<path_x-path_width/2 or a-2>path_x+path_width/2):
                 raise ValueError("Existing access path blocked by "+p["id"])
+        for bx,bz in PALM_BEDS:
+            assert not box(bx-PALM_BED/2,bz-PALM_BED/2,bx+PALM_BED/2,bz+PALM_BED/2).intersects(shape)
         for earlier in used:
             if shape.intersection(earlier).area>0:
                 raise ValueError("Overlapping pavilion slabs "+p["id"])

@@ -8,7 +8,7 @@ public static class BraxClaudeOsiedle { public const float K = 2.33f / 1.80f; }
 public static class BraxBuildQuality { public static void Warn(string m) => Console.WriteLine("WARN " + m); public static void Issue(Exception e) => Console.WriteLine("WARN ISSUE " + e.Message); }
 public sealed class BraxSeat : MonoBehaviour { public float surfaceY; public string label; }
 public sealed class BraxWidocznoscWnetrza : MonoBehaviour { public Bounds[] strefy = new Bounds[0]; public string nazwa = ""; }
-public static class BraxChampionsFoundation
+public static partial class BraxChampionsFoundation
 {
     public static Material SourceMaterial(string id, string slug, float metres, Color tint) => new Material { name = id + "|" + slug + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryMarble(string id, Color tint, float metres) => new Material { name = id + "|Marble016|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
@@ -22,6 +22,7 @@ public static class BraxChampionsFoundation
 }
 public static class BraxMiastoAssety
 {
+    public static bool Jest(string paczka) => false;   // the owner's packs are encrypted: never in the preview
     public static GameObject Model(string paczka, string plik) => new GameObject(plik);
     public static GameObject Postaw(Transform parent, GameObject src, string name, Vector3 p, float yaw, float s = 1f, bool st = true, bool sh = true)
     { var g = new GameObject(name); g.transform.SetParent(parent, false); g.transform.position = p; Rec.Palms.Add(p); Rec.PalmObjs.Add(g.transform); return g; }

@@ -1,8 +1,9 @@
 """Approved-space premium harbour plan for MIASTO MISTRZÓW (Unity 6 only).
 
-One main yacht pier with 15 individual finger berths; a U-shaped motorboat
-basin with 10 bays; 10 separately accessible low jetski bays; ferry quay;
-two empty passenger-cruise ship positions. No invented cruise-ship models.
+Rebuilt 10.11 for the owner ("cały port jest do zmiany"): a compact yacht marina
+(15 yachts alongside finger pontoons), a Riva pontoon (10), a jetski pontoon right at
+the promenade quay (10), a short ferry quay and a short cruise quay with two free
+berths for the owner's ship models later. No invented ship models.
 All dimensions are nominal source metres; the shared game K is applied once
 by the Foundation mesh builder.
 
@@ -52,83 +53,107 @@ def beach_height(x,z):
 
 
 def pier(x0,x1,z0,z1,role,name):
+    # millimetre grid: 6.8 m steps must not leave 1e-13 slivers in the foundation's cell grid
+    x0,x1,z0,z1=(round(float(v),3) for v in (x0,x1,z0,z1))
     assert x1>x0 and z1>z0,(name,x0,x1,z0,z1)
-    return dict(id=name,x=x0,z=z0,w=x1-x0,d=z1-z0,role=role)
+    return dict(id=name,x=x0,z=z0,w=round(x1-x0,3),d=round(z1-z0,3),role=role)
 
 
 def berth(id,kind,x,z,length,width,dock,access_x,access_z,yaw=0.0):
+    x,z,access_x,access_z=(round(float(v),3) for v in (x,z,access_x,access_z))
     return dict(id=id,kind=kind,x=float(x),z=float(z),length=float(length),
                 width=float(width),dock=dock,accessX=float(access_x),
                 accessZ=float(access_z),yaw=float(yaw))
+
+
+def hull(b):
+    """Footprint of a moored hull: the length runs along the bow (yaw 0/180 -> z, 90/270 -> x)."""
+    along_x=round(b["yaw"])%180==90
+    hx=(b["length"] if along_x else b["width"])/2
+    hz=(b["width"] if along_x else b["length"])/2
+    return box(b["x"]-hx,b["z"]-hz,b["x"]+hx,b["z"]+hz)
+
+
+# Owner 10.11 09:01-09:15: "ten port ma być lepiej zrobiony, mniejszy ... jachty mają być dobrze ustawione ... skuterki
+# stoją w miejscach niepotrzebnie, to ma być przy brzegu zaraz ... cały port jest do zmiany ... ma zrobić prawidłowo".
+# Real marina practice: every boat lies ALONGSIDE its own finger pontoon (finger on one side, the next finger on the
+# other), stern a metre off the main pontoon, bow to open water. Real hull sizes of the owner's GLBs after scaling:
+# yacht 19.5 x 3.97 m, Riva 8.5 x 2.53 m, jetski 3.25 x 1.50 m. Bows point to +z in the boat root (BraxChampionsHarbour).
+YACHT_LEN,YACHT_BEAM=19.5,4.4       # beam + fenders
+RIVA_LEN,RIVA_BEAM=8.5,2.9
+SKI_LEN,SKI_BEAM=3.25,1.6
+JETSKI_X0,JETSKI_X1=883.0,918.0      # jetski pontoon along the promenade quay, opposite K11 WYNAJEM SPRZĘTU (x 902.5)
+JETSKI_RAMP=(866.0,883.0)                # 2 m landing at promenade level, then 15 m down to the pontoon
+JETSKI_Z0,JETSKI_Z1=-153.0,-150.0
+# Openings in the promenade-edge balustrade (x0,x1): every gangway from the promenade down to a pier or pontoon.
+PROMENADE_OPENINGS=[]
 
 
 def plan():
     piers=[]
     add=lambda *args:piers.append(pier(*args))
     berths=[]
+    PROMENADE_OPENINGS.clear()
 
-    # Jacht marina — one continuous main pier with branching fingers.
-    # Access from untouched promenade via 20m sloping timber approach.
-    add(826.5,833.5,-410,-170,"quay_wood","YACHT_MAIN_SPINE")
-    add(826.5,833.5,-170,-150,"quay_ramp","YACHT_ACCESS_FROM_SHORE")
-    yacht_rows=[-193.5-i*27.2 for i in range(8)]
+    # Ferry: compact fixed passenger quay (level with the promenade), the berth alongside its east face.
+    add(745,755,-228,-150,"quay_ferry","FERRY_BOARDING_QUAY")
+    berths.append(berth("F01","ferry",773,-189,56,16,"FERRY_BOARDING_QUAY",755,-189,yaw=180))
+    PROMENADE_OPENINGS.append((745.0,755.0))
+
+    # Yacht marina: 5 m main pontoon (62 m) from a 20 m gangway; 9 west + 8 east finger pontoons 18 x 1.6 m every
+    # 6.8 m; 8 yachts west (bow west), 7 east (bow east), each alongside its finger, stern 1 m off the main pontoon.
+    add(827.5,832.5,-170,-150,"quay_ramp","YACHT_ACCESS_FROM_SHORE")
+    add(827.5,832.5,-230,-170,"quay_wood","YACHT_MAIN_SPINE")
+    PROMENADE_OPENINGS.append((827.5,832.5))
+    fz=lambda i:-172.8-6.8*i
     for i in range(9):
-        z=-179.9-27.2*i
-        add(792.0,826.5,z-1.0,z+1.0,"quay_wood",f"YACHT_W_FINGER_{i+1}")
-        add(833.5,868.0,z-1.0,z+1.0,"quay_wood",f"YACHT_E_FINGER_{i+1}")
-    for i,z in enumerate(yacht_rows):
-        berths.append(berth(f"J{i*2+1:02}","yacht",809.5,z,21.0,11.0,
-                            "YACHT_MAIN_SPINE",809.5,z+13.6,yaw=180))
+        add(809.5,827.5,fz(i)-.8,fz(i)+.8,"quay_wood",f"YACHT_W_FINGER_{i+1}")
+    for i in range(8):
+        add(832.5,850.5,fz(i)-.8,fz(i)+.8,"quay_wood",f"YACHT_E_FINGER_{i+1}")
+    n=0
+    for i in range(8):
+        z=fz(i)-3.4
+        n+=1;berths.append(berth(f"J{n:02}","yacht",827.5-1-YACHT_LEN/2,z,YACHT_LEN,YACHT_BEAM,
+                                 f"YACHT_W_FINGER_{i+1}",823.5,fz(i),yaw=270))
         if i<7:
-            berths.append(berth(f"J{i*2+2:02}","yacht",850.5,z,21.0,11.0,
-                                "YACHT_MAIN_SPINE",850.5,z+13.6,yaw=180))
-    # Motorówki: connected U opens SOUTH toward the free water, not to land.
-    add(911,917,-304,-188,"quay_wood","MOTOR_U_WEST")
-    add(999,1005,-304,-188,"quay_wood","MOTOR_U_EAST")
-    add(911,1005,-194,-188,"quay_wood","MOTOR_U_BASE")
-    add(952,958,-188,-170,"quay_wood","MOTOR_LINK")
-    add(952,958,-170,-150,"quay_ramp","MOTOR_ACCESS_FROM_SHORE")
+            n+=1;berths.append(berth(f"J{n:02}","yacht",832.5+1+YACHT_LEN/2,z,YACHT_LEN,YACHT_BEAM,
+                                     f"YACHT_E_FINGER_{i+1}",836.5,fz(i),yaw=90))
+
+    # Motorboats (Riva): 4 m main pontoon (30 m) from a 20 m gangway, 6 + 6 fingers 9 x 1.2 m every 5 m.
+    add(953.5,957.5,-170,-150,"quay_ramp","MOTOR_ACCESS_FROM_SHORE")
+    add(953.5,957.5,-200,-170,"quay_wood","MOTOR_MAIN_PONTOON")
+    PROMENADE_OPENINGS.append((953.5,957.5))
+    mz=lambda i:-172.5-5.0*i
     for i in range(6):
-        z=-201-20*i
-        add(917,934,z-1,z+1,"quay_wood",f"MOTOR_W_FINGER_{i+1}")
-        add(982,999,z-1,z+1,"quay_wood",f"MOTOR_E_FINGER_{i+1}")
+        add(944.5,953.5,mz(i)-.6,mz(i)+.6,"quay_wood",f"MOTOR_W_FINGER_{i+1}")
+        add(957.5,966.5,mz(i)-.6,mz(i)+.6,"quay_wood",f"MOTOR_E_FINGER_{i+1}")
     for i in range(5):
-        z=-211-20*i
-        berths.append(berth(f"L{i*2+1:02}","motorboat",925,z,9.3,3.7,
-                            "MOTOR_U_WEST",925,z+10,yaw=180))
-        berths.append(berth(f"L{i*2+2:02}","motorboat",991,z,9.3,3.7,
-                            "MOTOR_U_EAST",991,z+10,yaw=180))
+        z=mz(i)-2.5
+        berths.append(berth(f"L{i*2+1:02}","motorboat",953.5-.8-RIVA_LEN/2,z,RIVA_LEN,RIVA_BEAM,
+                            f"MOTOR_W_FINGER_{i+1}",951.0,mz(i),yaw=270))
+        berths.append(berth(f"L{i*2+2:02}","motorboat",957.5+.8+RIVA_LEN/2,z,RIVA_LEN,RIVA_BEAM,
+                            f"MOTOR_E_FINGER_{i+1}",960.0,mz(i),yaw=90))
 
-    # Jetski pontoon: ten individual small bays, away from bathing zone.
-    add(1053,1057,-273,-170,"quay_jetski","JETSKI_LOW_MAIN")
-    add(1053,1057,-170,-150,"quay_ramp_jetski","JETSKI_ACCESS_FROM_SHORE")
-    for i in range(6):
-        z=-177.0-17.7*i
-        add(1036,1053,z-.75,z+.75,"quay_jetski",f"JETSKI_W_FINGER_{i+1}")
-        add(1057,1075,z-.75,z+.75,"quay_jetski",f"JETSKI_E_FINGER_{i+1}")
-    for i in range(5):
-        z=-185.85-17.7*i
-        berths.append(berth(f"S{i*2+1:02}","jetski",1043,z,3.6,1.7,
-                            "JETSKI_LOW_MAIN",1043,z+8.85,yaw=180))
-        berths.append(berth(f"S{i*2+2:02}","jetski",1067,z,3.6,1.7,
-                            "JETSKI_LOW_MAIN",1067,z+8.85,yaw=180))
+    # Jetskis right at the shore (owner 09:14): a low floating pontoon ALONG the promenade quay wall in front of the
+    # rental kiosk, reached by a 15 m ramp running down along the wall; 11 short fingers every 3 m, 10 skis between
+    # them, stern 0.4 m off the pontoon, bow to the open sea.
+    add(JETSKI_RAMP[0],JETSKI_RAMP[1],JETSKI_Z0,JETSKI_Z1,"quay_ramp_along","JETSKI_RAMP_ALONG_QUAY")
+    add(JETSKI_X0,JETSKI_X1,JETSKI_Z0,JETSKI_Z1,"quay_jetski","JETSKI_PONTOON")
+    PROMENADE_OPENINGS.append((JETSKI_RAMP[0],JETSKI_RAMP[0]+2.5))
+    for i in range(11):
+        x=885.0+3.0*i
+        add(x-.4,x+.4,-157.5,JETSKI_Z0,"quay_jetski",f"JETSKI_FINGER_{i+1}")
+    for i in range(10):
+        x=886.5+3.0*i
+        berths.append(berth(f"S{i+1:02}","jetski",x,JETSKI_Z0-.4-SKI_LEN/2,SKI_LEN,SKI_BEAM,
+                            "JETSKI_PONTOON",x,-151.5,yaw=180))
 
-    # Ferry: compact ticket/passenger quay and a separate large boat berth.
-    add(746,754,-368,-150,"quay_ferry","FERRY_BOARDING_QUAY")
-    berths.append(berth("F01","ferry",773,-312,56,16,
-                        "FERRY_BOARDING_QUAY",755,-312,yaw=180))
-    # Cruise ships require independent 80m berths, access gangways and room
-    # for two real ship models when supplied; none is fabricated here.
-    add(1109,1117,-463,-150,"quay_cruise","CRUISE_PASSENGER_QUAY")
-    berths.append(berth("W01","cruise_ship",1139,-273,82,19,
-                        "CRUISE_PASSENGER_QUAY",1117,-273,yaw=0))
-    berths.append(berth("W02","cruise_ship",1139,-397,82,19,
-                        "CRUISE_PASSENGER_QUAY",1117,-397,yaw=0))
-
-    # Passenger gangways with unobstructed pier access, not imaginary ships.
-    add(1117,1127,-274,-272,"quay_cruise","CRUISE_GANGWAY_01")
-    add(1117,1127,-398,-396,"quay_cruise","CRUISE_GANGWAY_02")
-    add(754,764,-313,-311,"quay_ferry","FERRY_GANGWAY")
+    # Cruise ships (owner 09:14 "dla wycieczkowców zostaw na razie miejsce"): one 12 x 115 m fixed passenger quay,
+    # W01 east and W02 west of it on free deep water, ready for the owner's ship models later.
+    add(1108,1120,-265,-150,"quay_cruise","CRUISE_PASSENGER_QUAY")
+    berths.append(berth("W01","cruise_ship",1130.5,-213,82,19,"CRUISE_PASSENGER_QUAY",1120,-213,yaw=0))
+    berths.append(berth("W02","cruise_ship",1097.5,-213,82,19,"CRUISE_PASSENGER_QUAY",1108,-213,yaw=180))
+    PROMENADE_OPENINGS.append((1108.0,1120.0))
     validate(piers,berths)
     return piers,berths
 
@@ -139,26 +164,31 @@ def validate(piers,berths):
     assert len({b["id"] for b in berths})==len(berths)==38
     assert len({p["id"] for p in piers})==len(piers)
     # Berths (hulls) must NOT overlap their neighbour or any solid dock.
-    shells={b["id"]:box(b["x"]-b["width"]/2,b["z"]-b["length"]/2,
-                        b["x"]+b["width"]/2,b["z"]+b["length"]/2) for b in berths}
+    shells={b["id"]:hull(b) for b in berths}
     solid=[box(p["x"],p["z"],p["x"]+p["w"],p["z"]+p["d"]) for p in piers]
     for b in berths:
         shape=shells[b["id"]]
-        if shape.bounds[0]<730 or shape.bounds[2]>1188 or shape.bounds[1]<-500 or shape.bounds[3]>-168:
+        if shape.bounds[0]<730 or shape.bounds[2]>1188 or shape.bounds[1]<-500 or shape.bounds[3]>-150.3:
             raise ValueError("Berth hull out of safe harbour bounds: "+b["id"])
         if any(shape.intersection(g).area>.01 for g in solid):
             raise ValueError("Hull overlaps pier/finger: "+b["id"])
         for other in berths:
             if other["id"]>b["id"] and shape.intersection(shells[other["id"]]).area>.01:
                 raise ValueError("Two boats overlap: "+b["id"]+" / "+other["id"])
+        if b["kind"] in MARINA_TYPES:
+            # alongside its own finger: the hull's long side within 0.6 m of the finger edge, never touching it
+            finger=next(g for p,g in zip(piers,solid) if p["id"]==b["dock"])
+            gap=shape.distance(finger)
+            if not (.05<gap<.7):
+                raise ValueError(f"{b['id']} is not alongside {b['dock']} (gap {gap:.2f} m)")
     # Keep the original beach free of ANY yacht, jetski or marine construction.
     if any(p["x"]<730 for p in piers):
         raise ValueError("Pier intrudes into the beach")
     if any(p["z"]+p["d"]>-150+1e-5 for p in piers):
         raise ValueError("Pier intrudes into existing promenade")
-    # The west-to-east main navigation corridor remains open between ship pier
-    # and all mooring clusters for a minimum 30m.
-    if min(b["x"]-b["width"]/2 for b in berths if b["kind"]=="cruise_ship")-1075<30:
+    # The navigation channel to the cruise quay stays open: 30 m clear water west of W02.
+    marina_east=max(p["x"]+p["w"] for p in piers if p["role"] not in ("quay_cruise",))
+    if min(b["x"]-b["width"]/2 for b in berths if b["kind"]=="cruise_ship")-marina_east<30:
         raise ValueError("No separate deep water channel for excursion ships")
     return True
 

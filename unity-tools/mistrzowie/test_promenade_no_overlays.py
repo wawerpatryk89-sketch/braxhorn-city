@@ -50,32 +50,33 @@ class PromenadeLaneNoZFight(unittest.TestCase):
         self.assertIn('materials["cycle_mark"].SetColor(',foundation)
         self.assertIn("2048",texture)
 
-    def test_12_shop_shells_use_owner_verified_temporary_atlas(self):
+    def test_12_premium_kiosks_with_3d_names_terraces_and_equipment(self):
+        # owner 10.11: "te budki ... porobić lepsze, premium, bo są zjebane" / "wyposażyć w kebaby, w pizzę"
         builder=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenade.cs").read_text()
+        equipment=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenadeEquipment.cs").read_text()
         foundation=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs").read_text()
-        loader=(ROOT/"unity-tools/mistrzowie/prepare_promenade_atlas.py").read_text()
         self.assertIn('BraxChampionsPromenade.Build(root,d.promenade)',foundation)
-        self.assertIn('BraxChampionsPromenade.VerifyAtlas();',foundation)
+        self.assertNotIn('BraxChampionsPromenade.VerifyAtlas();',foundation)
         self.assertIn('d.promenade.Length!=12',foundation)
-        self.assertIn('if(sign)SignFace(root,p,sign);',builder)
-        self.assertIn('else TextSign(root,p,roof);',builder)
-        self.assertIn('TextureImporterShape.Texture2D',builder)
-        self.assertNotIn('Unity did not import original promenade atlas',builder)
-        self.assertIn('int atlasIndex=int.Parse(p.id.Substring(1))-1;',builder)
-        self.assertIn('int col=atlasIndex%3, row=atlasIndex/3;',builder)
-        self.assertIn('float v0=(3-row)/4f',builder)
-        self.assertIn('new Vector2(u0,v0),new Vector2(u1,v0)',builder)
-        self.assertIn('GetSourceTextureWidthAndHeight',builder)
-        self.assertIn('android.maxTextureSize!=2048',builder)
-        self.assertIn('TextureImporterFormat.ASTC_4x4',builder)
-        self.assertIn('ClearGlass()',builder)
-        self.assertIn('full 2K PBR shop shell',builder)
-        self.assertIn('generowany szyld z nazwą',builder)
-        self.assertIn('RELEASE_ID=435656828',loader)
-        self.assertIn('ASSET_ID=715528115',loader)
-        self.assertIn('EXPECTED_WH=(2172,724)',loader)
-        self.assertIn('EXPECTED_SHA256="eac1e17f55d8b77340e7d2cca4c9f97ea72e256acaf8237286ff550012145886"',loader)
-        self.assertFalse((ROOT/"unity-tools/mistrzowie/prepare_promenade_signs.py").exists())
+        self.assertIn('BraxChampionsHarbour.Letters(root,"KIOSK_"+p.id',builder)
+        self.assertIn('full 2K PBR shop shell',builder)           # BraxChampionsPromenadeStock / BraxSceneAudit find the shells
+        self.assertIn('if(Food(p.style))Terrace(m,col,p);',builder)
+        self.assertIn('BraxChampionsPromenadeEquipment.Fit(root,p)',builder)
+        self.assertIn('LibraryMarbleWhite("prom_kiosk_white_marble_body"',builder)
+        self.assertNotIn('TextMesh',builder)
+        self.assertNotIn('WallTints',builder)                       # no more pastel pink / green / blue boxes
+        for token in ('static void Kebab(','spin.os=Vector3.up','AddComponent<BraxChampionsObrot>()','ChickenRotisserie(',
+                      'PizzaOven(','Gelato(','"kebab"','"pizza"','"kurczak"','"hamburger"','"frytki"','"lodowka"','"kasa"'):
+            self.assertIn(token,equipment)
+        rot=(ROOT/"unity-city/Assets/Mistrzowie/BraxChampionsObrot.cs")
+        self.assertIn("transform.Rotate(os, stopniNaSekunde * Time.deltaTime, Space.Self)",rot.read_text())
+        self.assertTrue((ROOT/"unity-city/Assets/Mistrzowie/BraxChampionsObrot.cs.meta").exists())
+        self.assertTrue((ROOT/"unity-city/Assets/Source/Mistrzowie/PromenadeFood/kebab_meat.jpg").exists())
+        restore=(ROOT/"unity-tools/mistrzowie/restore_private.py").read_text()
+        self.assertIn("'kebab','szawarma','pizza','hamburger','frytki','kurczak'",restore)
+        workflow=(ROOT/".github/workflows/mistrzowie-apk.yml").read_text()
+        self.assertIn("unity-city/Prywatne/miasto_sklepy.tar.gz.enc",workflow)
+        self.assertIn("python3 unity-tools/mistrzowie/build_harbour_signs.py",workflow)
 
     def test_shop_slab_has_no_original_ground_below_it(self):
         if not FOUND.is_file():self.skipTest("Generate physical foundation first")
@@ -85,7 +86,7 @@ class PromenadeLaneNoZFight(unittest.TestCase):
         covered=unary_union(pads)
         ground=[]
         for mesh in data["meshes"]:
-            if mesh["role"] not in ("paving","grass"):continue
+            if mesh["role"] not in ("paving","prom_paving","grass"):continue
             v=np.asarray(mesh["positions"]).reshape(-1,3)/k
             for triangle in np.asarray(mesh["triangles"]).reshape(-1,3):
                 coords=v[triangle][:,[0,2]]
@@ -109,7 +110,7 @@ class PromenadeLaneNoZFight(unittest.TestCase):
         stock=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenadeStock.cs").read_text()
         promenade=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenade.cs").read_text()
         importer=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPolyHaven2KImport.cs").read_text()
-        self.assertIn("BraxChampionsPromenadeStock.Populate(baseObj.transform,approved)",promenade)
+        self.assertIn("BraxChampionsPromenadeStock.Populate(baseObj,approved)",promenade)
         self.assertIn('id+"_2k.gltf"',stock)
         self.assertIn("BraxRegion.Bounds(instance)",stock)
         self.assertIn("AssetDatabase.LoadAssetAtPath<GameObject>",stock)
