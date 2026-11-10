@@ -281,7 +281,8 @@ internal static class BraxUliceKit
     public static Material TexPlik(string nazwa, string katalog, string slug, float metry, Color? odcien, Color zamiennik, float szorstkosc)
     {
         string d = katalog + slug + "/";
-        Texture2D T(params string[] nazwy) { foreach (var x in nazwy) { var p = d + x; if (File.Exists(p)) { AssetDatabase.ImportAsset(p); var t = AssetDatabase.LoadAssetAtPath<Texture2D>(p); if (t) return t; } } return null; }
+        // 10.11: bez ponownego importu tej samej tekstury przy każdym materiale (BraxRegion.TeksturaRaz)
+        Texture2D T(params string[] nazwy) { foreach (var x in nazwy) { var p = d + x; if (File.Exists(p)) { var t = BraxRegion.TeksturaRaz(p); if (t) return t; } } return null; }
         var dif = T("diffuse.jpg", "diffuse.png", "albedo.jpg", slug + "_diff_2k.jpg", slug + "_diff_1k.jpg");
         if (!dif) return Mat(nazwa + " (bez tekstury)", zamiennik, szorstkosc);
         var nor = T("normal.jpg", "normal.png", slug + "_nor_gl_2k.png", slug + "_nor_gl_1k.png");

@@ -183,11 +183,10 @@ internal static class BraxMiastoA
                     var lista = g.Select(x => x.Item2).ToList();
                     // scal pudła w jednej płaszczyźnie w większe (do 64 cięć na renderer)
                     while (lista.Count > 64) { var a = lista[lista.Count - 1]; lista.RemoveAt(lista.Count - 1); var b = lista[lista.Count - 1]; b.Encapsulate(a); lista[lista.Count - 1] = b; }
-                    foreach (var bb in lista)
-                    {
-                        if (!g.Key) continue;
-                        try { BraxCityMeshCut.Subtract(g.Key.transform, bb, Out + "/Ciecia", "migotanie_" + etykieta); } catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_MIASTO_A_MIGOTANIE cięcie " + g.Key.name + ": " + e.Message); }
-                    }
+                    // 10.11 (build 42810573029 zabity — brak pamięci po 4 h 50 min): wszystkie pudła siatki JEDNYM cięciem i jednym
+                    // zapisem (było: Subtract po jednym pudle = 12 492 kopie siatek w pamięci, 1,5 h)
+                    if (!g.Key) continue;
+                    try { BraxCityMeshCut.SubtractMany(g.Key.transform, lista, Out + "/Ciecia", "migotanie_" + etykieta); } catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_MIASTO_A_MIGOTANIE cięcie " + g.Key.name + ": " + e.Message); }
                 }
                 if (pary == 0) { po = 0; break; }
             }

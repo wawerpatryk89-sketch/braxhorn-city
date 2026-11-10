@@ -20,6 +20,7 @@ public static class BraxMiastoAssety
     static float K => BraxClaudeOsiedle.K;
     static readonly Dictionary<string, GameObject> cache = new Dictionary<string, GameObject>();
     static readonly HashSet<string> brakZgloszony = new HashSet<string>();
+    static readonly HashSet<string> nieudane = new HashSet<string>();
     public static int Postawione, Bledy;
 
     public static void Log(string s) => Debug.Log("BRAXHORN_MIASTO_ASSETY " + s);
@@ -34,6 +35,9 @@ public static class BraxMiastoAssety
     {
         string p = Baza + paczka + "/" + plik + ".glb";
         if (cache.TryGetValue(p, out var g) && g) return g;
+        // 10.11: model, którego import już raz się nie udał (c3, kinnaird, tramwaj — błąd glTFast w każdym buildzie), nie jest
+        // importowany ponownie przy każdym użyciu (było 558 ponownych importów tekstur i GLB w jednym buildzie)
+        if (nieudane.Contains(p)) return null;
         if (!File.Exists(p))
         {
             if (brakZgloszony.Add(p)) Log("brak " + p + " (paczka " + paczka + " nieodszyfrowana — sekret/paczka w CI) — miejsce zostaje bez modelu");
@@ -50,7 +54,7 @@ public static class BraxMiastoAssety
             g = Wczytaj(p);
             Log("ponowny import (tekstury po modelu): " + p + " → " + (Teksturowany(p) ? "z teksturami" : "NADAL bez tekstur — DO POPRAWKI"));
         }
-        if (!g) { if (brakZgloszony.Add(p)) Log("import nieudany: " + p + " — DO POPRAWKI"); return null; }
+        if (!g) { nieudane.Add(p); if (brakZgloszony.Add(p)) Log("import nieudany: " + p + " — DO POPRAWKI"); return null; }
         cache[p] = g;
         return g;
     }

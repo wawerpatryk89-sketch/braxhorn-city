@@ -207,9 +207,18 @@ public static class BraxRegion
 
     static readonly Dictionary<string, Material> materials = new Dictionary<string, Material>();
 
-    static Texture2D Tex(string path)
+    static Texture2D Tex(string path) => TeksturaRaz(path);
+
+    // MIASTO R1 10.11 (build 42810573029 zabity po 4 h 50 min): ImportAsset przy KAŻDYM materiale importował ponownie tę samą,
+    // niezmienioną teksturę — Poly Haven 1838 razy (84 min), np. teak_veneer 163 ×. Tekstura już zaimportowana (start edytora
+    // albo pierwsze użycie) jest brana z bazy; ImportAsset tylko, gdy baza jej jeszcze nie zna (plik dopisany w trakcie).
+    static readonly HashSet<string> sprawdzoneTekstury = new HashSet<string>();
+    public static Texture2D TeksturaRaz(string path)
     {
-        if (!File.Exists(path)) return null;
+        if (string.IsNullOrEmpty(path) || !File.Exists(path)) return null;
+        var t = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if (t) return t;
+        if (!sprawdzoneTekstury.Add(path)) return null;
         AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
         return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
     }

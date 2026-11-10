@@ -150,7 +150,7 @@ public static class BraxRegionMeble
         mats[nazwa] = m; return m;
     }
 
-    static Texture2D Load(string p) { AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceSynchronousImport); return AssetDatabase.LoadAssetAtPath<Texture2D>(p); }
+    static Texture2D Load(string p) => BraxRegion.TeksturaRaz(p);   // 10.11: bez ponownego importu przy każdym meblu
 
     /// <summary>Materiał gładki (okucia, lakier, szkło). Kolor z alfą &lt; 1 = przezroczysty.</summary>
     public static Material Gladki(string nazwa, Color c, float szorstkosc, float metal = 0f) => BraxCityMaterials.Surface(nazwa, c, szorstkosc, metal);

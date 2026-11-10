@@ -76,7 +76,7 @@ public static class BraxClaudeVenues
         string d = "Assets/Source/Claude/PolyHaven/textures/wood_planks/";
         if (File.Exists(d + "diffuse.jpg"))
         {
-            var t = new[] { "diffuse.jpg", "normal.jpg", "arm.jpg" }.Select(f => { AssetDatabase.ImportAsset(d + f); return AssetDatabase.LoadAssetAtPath<Texture2D>(d + f); }).ToArray();
+            var t = new[] { "diffuse.jpg", "normal.jpg", "arm.jpg" }.Select(f => BraxRegion.TeksturaRaz(d + f)).ToArray();
             parquet = BraxCityMaterials.Textured("NOVA: ciemny parkiet", t[0], t[1], t[2], 1f / 1.2f);
             parquet.SetColor("_Color", new Color(.30f, .24f, .20f)); EditorUtility.SetDirty(parquet);
         }

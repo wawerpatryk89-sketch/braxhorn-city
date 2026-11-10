@@ -59,9 +59,98 @@ public static class BraxCityMeshCut
     }
     // keepTallWalls (3.11, właściciel: „biurowiec wisi w powietrzu” przy parku tyłów): wycięcie „tylko gruntu” zostawia ściany
     // (|n.y| < 0.5) siatek wyższych niż 4 m — budynek na granicy strefy nie traci parteru.
+    // MIASTO R1 10.11 (build 42810573029 zabity po 4 h 50 min, kod 137): Refresh przy KAŻDYM cięciu = 13 212 przeładowań
+    // projektu (43 min). Folder rejestrujemy raz — Refresh tylko, gdy AssetDatabase jeszcze go nie zna.
+    static void Folder(string outputDirectory)
+    {
+        if (AssetDatabase.IsValidFolder(outputDirectory)) return;
+        Directory.CreateDirectory(outputDirectory); AssetDatabase.Refresh();
+    }
+
+    // MIASTO R1 10.11: wiele pudeł na JEDNEJ siatce w jednym przejściu i JEDEN zapis. Dawniej kontrola migotania wołała
+    // Subtract 12 492 razy (do 64 razy na tę samą siatkę): każda kopia całej siatki zostawała w pamięci jako asset
+    // (+ import 0,4 s) — 1,5 h i brak pamięci. Wynik identyczny jak kolejne Subtract dla każdego pudła po kolei.
+    public static int SubtractMany(Transform root, IList<Bounds> volumes, string outputDirectory, string label)
+    {
+        if (volumes == null || volumes.Count == 0) return 0;
+        Folder(outputDirectory);
+        int altered = 0;
+        Bounds all = volumes[0]; for (int i = 1; i < volumes.Count; i++) all.Encapsulate(volumes[i]);
+        foreach (var filter in root.GetComponentsInChildren<MeshFilter>(true))
+        {
+            var renderer = filter.GetComponent<MeshRenderer>(); var source = filter.sharedMesh;
+            if (!renderer || !renderer.enabled || !source || !renderer.bounds.Intersects(all)) continue;
+            var mine = new List<Bounds>(); foreach (var v in volumes) if (renderer.bounds.Intersects(v)) mine.Add(v);
+            if (mine.Count == 0) continue;
+            var positions = source.vertices; var normals = source.normals; var tangents = source.tangents;
+            var uv = source.uv; var uv2 = source.uv2; var colors = source.colors;
+            var vertices = new Vertex[positions.Length];
+            for (int i = 0; i < positions.Length; i++) vertices[i] = new Vertex { p = positions[i], world = filter.transform.TransformPoint(positions[i]),
+                n = normals.Length == positions.Length ? normals[i] : Vector3.up, tangent = tangents.Length == positions.Length ? tangents[i] : new Vector4(1, 0, 0, 1),
+                uv = uv.Length == positions.Length ? uv[i] : Vector2.zero, uv2 = uv2.Length == positions.Length ? uv2[i] : Vector2.zero,
+                color = colors.Length == positions.Length ? colors[i] : Color.white, original = i };
+            var result = new List<Vertex>(); var oldToNew = new Dictionary<int, int>();
+            var submeshes = new List<int[]>(); bool changed = false;
+            Func<Vertex, int> add = v => { int index; if (v.original >= 0 && oldToNew.TryGetValue(v.original, out index)) return index;
+                index = result.Count; result.Add(v); if (v.original >= 0) oldToNew.Add(v.original, index); return index; };
+            for (int sub = 0; sub < source.subMeshCount; sub++)
+            {
+                var input = source.GetTriangles(sub);
+                var tris = new List<Vertex[]>(input.Length / 3);
+                for (int j = 0; j + 2 < input.Length; j += 3) tris.Add(new[] { vertices[input[j]], vertices[input[j + 1]], vertices[input[j + 2]] });
+                foreach (var volume in mine)
+                {
+                    var next = new List<Vertex[]>(tris.Count);
+                    foreach (var t in tris)
+                    {
+                        if (TriangleOutside(t[0].world, t[1].world, t[2].world, volume)) { next.Add(t); continue; }
+                        var remainder = new List<Vertex> { t[0], t[1], t[2] };
+                        for (int plane = 0; plane < 6 && remainder.Count > 0; plane++)
+                        {
+                            var poly = Half(remainder, volume, plane, false);
+                            for (int k = 1; k < poly.Count - 1; k++)
+                            {
+                                var a = poly[0]; var b = poly[k]; var c = poly[k + 1];
+                                if (Vector3.Cross(b.p - a.p, c.p - a.p).sqrMagnitude < 1e-14f) continue;
+                                next.Add(new[] { a, b, c });
+                            }
+                            remainder = Half(remainder, volume, plane, true);
+                        }
+                        changed = true;
+                    }
+                    tris = next;
+                }
+                var indices = new List<int>(tris.Count * 3);
+                foreach (var t in tris) { indices.Add(add(t[0])); indices.Add(add(t[1])); indices.Add(add(t[2])); }
+                submeshes.Add(indices.ToArray());
+            }
+            if (!changed) continue;
+            altered++;
+            int triangles = 0; foreach (var indices in submeshes) triangles += indices.Length;
+            if (triangles == 0)
+            {
+                renderer.enabled = false;
+                foreach (var col in filter.GetComponents<Collider>()) col.enabled = false;
+                continue;
+            }
+            var mesh = new Mesh { name = source.name + "_" + label, indexFormat = result.Count > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
+            var pOut = new Vector3[result.Count]; var nOut = new Vector3[result.Count]; var tOut = new Vector4[result.Count];
+            var uOut = new Vector2[result.Count]; var u2Out = new Vector2[result.Count]; var cOut = new Color[result.Count];
+            for (int i = 0; i < result.Count; i++) { var v = result[i]; pOut[i] = v.p; nOut[i] = v.n; tOut[i] = v.tangent; uOut[i] = v.uv; u2Out[i] = v.uv2; cOut[i] = v.color; }
+            mesh.vertices = pOut; mesh.normals = nOut; mesh.tangents = tOut; mesh.uv = uOut; mesh.uv2 = u2Out; mesh.colors = cOut;
+            mesh.subMeshCount = submeshes.Count; for (int i = 0; i < submeshes.Count; i++) mesh.SetTriangles(submeshes[i], i);
+            mesh.RecalculateBounds();
+            var path = AssetDatabase.GenerateUniqueAssetPath(outputDirectory + "/" + filter.name + "_" + label + ".asset");
+            BraxZapisAssetu.Utworz(mesh, path); filter.sharedMesh = mesh;
+            foreach (var collider in filter.GetComponents<MeshCollider>()) collider.sharedMesh = mesh;
+        }
+        Debug.Log("CITY_RENOVATION_CUT_MANY " + label + " meshes=" + altered + " volumes=" + volumes.Count);
+        return altered;
+    }
+
     public static int Subtract(Transform root, Bounds volume, string outputDirectory, string label, bool keepTallWalls = false)
     {
-        Directory.CreateDirectory(outputDirectory);AssetDatabase.Refresh();
+        Folder(outputDirectory);
         int altered=0;
         foreach(var filter in root.GetComponentsInChildren<MeshFilter>(true))
         {
