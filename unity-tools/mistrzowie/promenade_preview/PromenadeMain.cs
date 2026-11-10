@@ -18,14 +18,14 @@ public static class PromenadeProgram
             case "sand_dry": return new Material { name = T("fnd_sand_dry", "coast_sand_02", 15f), color = new Color(1.59f, 1.68f, 1.81f), textured = true, roughness = .9f };
             case "sand_wet": return new Material { name = T("fnd_sand_wet", "coast_sand_02", 15f), color = new Color(1.30f, 1.38f, 1.50f), textured = true, roughness = .6f };
             case "paving": case "plot_base": return new Material { name = T("fnd_paving", "concrete_pavement_02", 1.8f), textured = true, roughness = .8f };
-            case "prom_paving": return new Material { name = T("fnd_prom_paving", "PavingStones126A", 4.5f), textured = true, roughness = .7f };
+            case "prom_paving": case "quay_cruise": case "quay_ferry": return new Material { name = T("fnd_prom_paving", "PavingStones126A", 4.5f), textured = true, roughness = .7f };
             case "asphalt": return new Material { name = T("fnd_asphalt", "clean_asphalt", 2.1f), textured = true, roughness = .85f };
             case "grass": return new Material { name = T("fnd_grass", "Grass004", 1.4f), textured = true, roughness = .9f };
             case "cycle_lane": return new Material { name = T("fnd_cycle_lane", "clean_asphalt", 2f), color = new Color(.74f, .12f, .16f), textured = true, roughness = .8f };
             case "cycle_mark": return new Material { name = T("fnd_cycle_mark", "concrete_pavement_02", 1.8f), color = new Color(.96f, .96f, .91f), textured = true, roughness = .7f };
             case "quay_wood": case "quay_jetski": case "quay_ramp": case "quay_ramp_jetski": case "quay_ramp_along":
                 return new Material { name = T("fnd_deck", "Planks040", 2f), color = new Color(.94f, 1.08f, 1.18f), textured = true, roughness = .8f };
-            case "quay_cruise": case "quay_ferry": return new Material { name = T("fnd_quay_granite", "granite_tile", 1.7f), color = new Color(1.28f, 1.28f, 1.26f), textured = true, roughness = .7f };
+            case "quay_apron": return new Material { name = T("fnd_quay_apron", "granite_tile", 2.4f), color = new Color(1.15f, 1.15f, 1.15f), textured = true, roughness = .7f };
             case "quay_wall": return new Material { name = T("fnd_quay_wall", "concrete_wall_008", 1.5f), color = new Color(.93f, .97f, 1.15f), textured = true, roughness = .8f };
             case "pontoon_side": return new Material { name = T("fnd_pontoon_side", "concrete_wall_008", 1.5f), color = new Color(.20f, .21f, .22f), textured = true, roughness = .6f };
             case "sea": return new Material { name = "fnd_sea", color = new Color(.12f, .25f, .27f), roughness = .12f, metallic = .1f };

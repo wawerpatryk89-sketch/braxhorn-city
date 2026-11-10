@@ -9,6 +9,10 @@ const PALMS_ON = process.env.PREVIEW_PALMS === '1';
 // PREVIEW_PALM_GLB=<path under the models dir>: the owner's own palm pack (meshopt + KTX2 glTF) drawn at every
 // palm the generator places - the real model, never a stand-in.
 const PALM_GLB = process.env.PREVIEW_PALM_GLB || '';
+// PREVIEW_PALM_SCALE: 1/K when the scene is in nominal metres (the game places the real-metre palm in K-scaled world)
+const PALM_SCALE = parseFloat(process.env.PREVIEW_PALM_SCALE || '1');
+// PREVIEW_PALM_HALF=1: the preview palm file holds two palms side by side; keep one (the game plants one per bed)
+const PALM_HALF = process.env.PREVIEW_PALM_HALF === '1';
 // PREVIEW_GROUND_TEX=<texture slug in the textures dir>: the ground plane is that real map (e.g. the region's Grass004
 // lawn) instead of flat grey; PREVIEW_GROUND_BANDS=JSON [[x0,x1,z0,z1,tex,tileMetres],..] draws the region's roads and
 // sidewalks over it (Unity coordinates, nominal metres).
@@ -21,7 +25,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};
+const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const PALM_SCALE=${PALM_SCALE};const PALM_HALF=${PALM_HALF};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};
 async function bin(n){const r=await fetch('http://preview.local/bin/'+n);return new Float32Array(await r.arrayBuffer());}
 const tl=new THREE.TextureLoader();
 function tex(url,srgb){return new Promise(res=>tl.load(url,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(srgb)t.colorSpace=THREE.SRGBColorSpace;res(t);},undefined,()=>res(null)));}
@@ -98,8 +102,12 @@ window.setup=async function(w,h){
     pl.setKTX2Loader(new KTX2Loader().setTranscoderPath('http://preview.local/three/examples/jsm/libs/basis/').detectSupport(R));
     const palm=await new Promise(res=>pl.load('http://preview.local/models/'+PALM_GLB,gl=>res(gl.scene),undefined,e=>{console.log('palm glb failed '+e);res(null);}));
     if(palm){palm.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(mt=>{mt.side=THREE.DoubleSide;cityAmbient(mt,[.55,.63,.71,.23,.27,.22,1]);});});
+      if(PALM_HALF)palm.traverse(o=>{if(!o.isMesh||!o.geometry.index)return;const g=o.geometry,p=g.attributes.position,ix=g.index.array;
+        let lo=1e9,hi=-1e9;for(let i=0;i<p.count;i++){const z=p.getZ(i);lo=Math.min(lo,z);hi=Math.max(hi,z);}
+        const mid=(lo+hi)/2,keep=[];for(let t=0;t<ix.length;t+=3){if(p.getZ(ix[t])+p.getZ(ix[t+1])+p.getZ(ix[t+2])<3*mid)keep.push(ix[t],ix[t+1],ix[t+2]);}
+        g.setIndex(keep);g.computeBoundingBox();g.computeBoundingSphere();});
       const bb=new THREE.Box3().setFromObject(palm);const c=bb.getCenter(new THREE.Vector3());
-      const g=new THREE.Group();palm.position.set(-c.x,-bb.min.y,-c.z);g.add(palm);
+      const g=new THREE.Group();palm.position.set(-c.x,-bb.min.y,-c.z);g.add(palm);g.scale.setScalar(PALM_SCALE);
       console.log('palm model height '+(bb.max.y-bb.min.y).toFixed(2));
       for(const p of scene.palms){const o=g.clone(true);o.position.set(p[0],p[1],p[2]);o.rotation.y=p[0]*.7+p[2]*.3;S.add(o);}}
   }

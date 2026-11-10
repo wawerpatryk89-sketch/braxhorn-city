@@ -8,7 +8,7 @@ from shapely.ops import unary_union
 ROOT=Path(__file__).resolve().parents[2]
 REPORT=ROOT/'mistrzowie-evidence';REPORT.mkdir(exist_ok=True)
 from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,A1_PARKING_ENTRANCES,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO
-from port_layout import PIERS,BERTHS,SHORE_BACK,SEA_LEVEL,PROMENADE_OPENINGS,JETSKI_RAMP,shoreline,beach_height,validate as validate_port
+from port_layout import PIERS,BERTHS,SHORE_BACK,SEA_LEVEL,PROMENADE_OPENINGS,JETSKI_RAMP,QUAY_APRONS,QUAY_BEDS,QUAY_BED_RECTS,QUAY_FURNITURE,shoreline,beach_height,validate as validate_port
 from promenade_layout import PAVILIONS,PAVILION_PADS,PAVILION_FOOTPRINTS,CYCLE_Z0,CYCLE_Z1,CYCLE_WIDTH,X0 as PROM_X0,X1 as PROM_X1,PALM_BEDS,PALM_BED_RECTS,FURNITURE,DINING,DINING_W,DINING_D,DINING_BEDS,DINING_BED_RECTS,validate as validate_promenade
 SRC=ROOT/'unity-city/Assets/Source/Mistrzowie'
 K=float(np.float32(2.33)/np.float32(1.80))  # exact existing Unity float expression
@@ -90,6 +90,10 @@ def zone(x,z):
  # Premium beach is one hand-laid curved geometric grid, not a stepped
  # rectangle independently classified from the 25m city tile grid.
  if 50<=x<700 and z<SHORE_BACK:return None
+ # owner 10.11 14:56 "pomost ... nie tylko beton wylany": the fixed passenger quays - palm beds and the dark granite berth
+ # aprons are cut out of the quay deck (one surface each, edge to edge; port_layout.quay_fit)
+ if any(inside((x,z),r) for r in QUAY_BED_RECTS):return 'grass'
+ if any(inside((x,z),r) for r in QUAY_APRONS):return 'quay_apron'
  for a,b,w,d,role in piers:
   if inside((x,z),(a,b,w,d)):return role
  return None
@@ -101,7 +105,9 @@ def height(role,x,z):
   return -1.08
  if role=='quay_jetski':
   return -1.37
- if role in ('quay_cruise','quay_ferry'):
+ if role in ('quay_cruise','quay_ferry','quay_apron'):
+  return .16
+ if role=='grass' and any(r[0]-1e-6<=x<=r[0]+r[2]+1e-6 and r[1]-1e-6<=z<=r[1]+r[3]+1e-6 for r in QUAY_BED_RECTS):
   return .16
  if role=='quay_ramp':
   return .16-1.24*max(0,min(1,(-z-150)/20))
@@ -123,7 +129,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE,T11_STREET_ENTRANCE_LAWN,T11_SOUTH_DRIVE]+A1_PARKING_ENTRANCES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS+DINING_BED_RECTS
+rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE,T11_STREET_ENTRANCE_LAWN,T11_SOUTH_DRIVE]+A1_PARKING_ENTRANCES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS+DINING_BED_RECTS+QUAY_APRONS+QUAY_BED_RECTS
 for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
@@ -266,7 +272,8 @@ for xx in np.arange(50,700,2.5):
 # Quay outer walls: cancel shared edges, so there are no internal coplanar walls.
 edges={}
 for a,b,c,d,role in cells:
- if not role.startswith('quay_'):continue
+ # the palm beds of the passenger quays are part of the quay slab (no wall round a bed)
+ if not role.startswith('quay_') and not any(inside(((a+c)/2,(b+d)/2),r) for r in QUAY_BED_RECTS):continue
  ring=[(a,b),(a,d),(c,d),(c,b)]
  for u,v in zip(ring,ring[1:]+ring[:1]):
   key=tuple(sorted([u,v]))
@@ -324,7 +331,7 @@ plants=[]
 # outside the plot line. Hotel Sobczak T03 has its drop-off loop, islands and fountains in the 13 m strip to road Z650
 # (BraxChampionsHotelSobczakT03.Site: x +-16, local z -43.2..-30): two ring palms stood in the fountains.
 GENERATOR_FRONTAGE=[(1030-16-2.5,710-43.2-2.5,32+5,13.2+5)]
-DESIGNED_BEDS=('promenade_bed','dining_bed')
+DESIGNED_BEDS=('promenade_bed','dining_bed','quay_bed')
 def plant(x,z,kind,source,band):
  # A genuine grass patch is required, never pavement, never inside a plot generator's own frontage. Free planting: a 2.0 m
  # clear root disk in 8 directions (the thick palm's flared trunk base is ~1.3 m across in game); the designed beds of the
@@ -340,6 +347,8 @@ for x,z in PALM_BEDS:plant(x,z,'palm',0,'promenade_bed')
 assert sum(p['band']=='promenade_bed' for p in plants)==len(PALM_BEDS),'every promenade bed gets its palm'
 for x,z in DINING_BEDS:plant(x,z,'palm',0,'dining_bed')
 assert sum(p['band']=='dining_bed' for p in plants)==len(DINING_BEDS),'every dining bed gets its thick palm'
+for x,z in QUAY_BEDS:plant(x,z,'palm',0,'quay_bed')
+assert sum(p['band']=='quay_bed' for p in plants)==len(QUAY_BEDS),'every quay bed gets its thick palm'
 for x in range(65,1146,25):plant(x,-115,'palm',len(plants)%2,'promenade_soil')
 # Owner 10.11 10:16: "wzdłuż plaży, jak się plaża kończy, mają być te grube palmy" - one row of the owner's
 # THICK-trunk palma (variant 0) in the grass strip along the back edge of the sand, every 15 m (was 17 m, mixed);
@@ -370,7 +379,7 @@ for b in buildings:
   z=z0+(z1-z0)*j/n(z0,z1)
   plant(x0,round(z,2),'palm',len(plants)%2,'plot_garden');plant(x1,round(z,2),'palm',len(plants)%2,'plot_garden')
 for x,z in [(850,890),(900,890),(950,890),(1000,890),(1080,890),(950,740)]:plant(x,z,'tree',0,'hotel_garden')
-layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,piers=PIERS,promenade=PAVILIONS,palmBeds=[dict(x=x,z=z,w=r[2],d=r[3]) for (x,z),r in zip(PALM_BEDS,PALM_BED_RECTS)],furniture=[dict(kind=k,x=x,z=z) for k,x,z in FURNITURE],openings=[dict(x0=a,x1=b) for a,b in PROMENADE_OPENINGS],dining=[dict(x=x,z=z,w=DINING_W,d=DINING_D) for x,z in DINING],tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
+layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,piers=PIERS,promenade=PAVILIONS,palmBeds=[dict(x=x,z=z,w=r[2],d=r[3]) for (x,z),r in zip(PALM_BEDS+QUAY_BEDS,PALM_BED_RECTS+QUAY_BED_RECTS)],furniture=[dict(kind=k,x=x,z=z) for k,x,z in FURNITURE+QUAY_FURNITURE],openings=[dict(x0=a,x1=b) for a,b in PROMENADE_OPENINGS],dining=[dict(x=x,z=z,w=DINING_W,d=DINING_D) for x,z in DINING],tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
 SRC.mkdir(parents=True,exist_ok=True)
 (SRC/'Foundation.json').write_text(json.dumps(layout,separators=(',',':')))
 # Geometric checks use the delivered vertices, not only planning rectangles.

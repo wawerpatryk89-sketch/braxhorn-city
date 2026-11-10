@@ -55,6 +55,37 @@ public static class BraxChampionsPromenadeFurniture
         Benches++;
     }
 
+    // Owner 10.11 14:56-14:57 ("pomost ... żeby wyglądał zajebiście", "most wykończ"): the benches of the passenger quays
+    // are the promenade bench turned to face the ship (face +1 = east, -1 = west): same parts, same 10 mm reveals, the
+    // seat runs along the quay (z), the litter bin beside it in the row.
+    static void QuayBench(BraxChampionsMeshBatch m,Transform colliders,float x,float z,float face)
+    {
+        // local a = along the seat (world z), d = depth with the front (d < 0) toward the ship (world x = x - face*d)
+        void B(Material mat,float a0,float a1,float y0,float y1,float d0,float d1)
+        {
+            float xa=x-face*d0,xb=x-face*d1;
+            m.BoxMinMax(mat,Mathf.Min(xa,xb),Mathf.Max(xa,xb),y0,y1,z+a0,z+a1);
+        }
+        var g=BraxChampionsHarbour.Graphite;
+        foreach(float sa in new[]{-.82f,.82f})
+        {
+            B(g,sa-.04f,sa+.04f,Y,Y+.44f,-.28f,-.22f);          // front leg
+            B(g,sa-.04f,sa+.04f,Y,Y+.84f,.20f,.26f);            // rear leg + back support
+            B(g,sa-.04f,sa+.04f,Y+.40f,Y+.44f,-.30f,.26f);      // seat rail
+            B(g,sa-.05f,sa+.05f,Y+.62f,Y+.66f,-.30f,.12f);      // armrest
+            B(g,sa-.035f,sa+.035f,Y+.44f,Y+.62f,-.275f,-.225f); // armrest support
+        }
+        for(int i=0;i<6;i++){float d0=-.29f+i*.09f;B(Teak,-.95f,.95f,Y+.44f,Y+.475f,d0,d0+.075f);}
+        for(int i=0;i<4;i++){float y0=Y+.52f+i*.09f;B(Teak,-.95f,.95f,y0,y0+.075f,.21f,.245f);}
+        var bin=new Vector3(x,Y,z+1.35f);
+        m.Cylinder(BraxChampionsHarbour.Steel,bin,.22f,.82f,16,Quaternion.identity,false);
+        m.Cylinder(g,bin+Vector3.up*.82f,.235f,.06f,16);
+        m.Cylinder(g,bin,.235f,.05f,16);
+        BraxChampionsMeshBatch.Collider(colliders,"ławka nabrzeża "+z.ToString("0"),new Vector3(x,Y+.45f,z),new Vector3(.62f,.9f,1.95f));
+        BraxChampionsMeshBatch.Collider(colliders,"kosz nabrzeża "+z.ToString("0"),new Vector3(x,Y+.42f,bin.z),new Vector3(.46f,.84f,.46f));
+        Benches++;
+    }
+
     static void Lamp(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
     {
         var g=BraxChampionsHarbour.Graphite;var b=new Vector3(x,Y,z);
@@ -141,6 +172,8 @@ public static class BraxChampionsPromenadeFurniture
         {
             if(f.kind=="bench")Bench(m,colliders,f.x,f.z);
             else if(f.kind=="lamp")Lamp(m,colliders,f.x,f.z);
+            else if(f.kind=="quay_bench_east")QuayBench(m,colliders,f.x,f.z,1f);
+            else if(f.kind=="quay_bench_west")QuayBench(m,colliders,f.x,f.z,-1f);
         }
         m.Build(root,"Promenada: kwatery, ławki, kosze, latarnie",Output+"/Meshes/Harbour");
         // one batch per dining island (each is a separate place on the 1.1 km promenade: culled on its own)

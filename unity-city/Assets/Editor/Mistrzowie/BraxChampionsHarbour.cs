@@ -543,7 +543,9 @@ public static class BraxChampionsHarbour
             var faces=cruise?new[]{x0,x1}:new[]{x1};
             // Owner 10.11 14:47 "mosty też mają swoją grubość - wszystkie": the quay reads as a solid concrete structure -
             // a 1.06 m edge beam 25 cm proud of the quay wall along every berth face and across the head, fenders on it.
-            var edge=BraxChampionsFoundation.SourceMaterial("harbour_quay_concrete_edge","concrete_wall_008",2.0f,new Color(.80f,.88f,1.0f));   // neutral grey (the map is warm: no beige)
+            // 14:56 "nie tylko beton wylany": the edge beam is clad in speckled grey granite blocks (granite_tile_03, its
+            // warm cast neutralised: no beige), under the graphite coping of the berth apron
+            var edge=BraxChampionsFoundation.SourceMaterial("harbour_quay_granite_facing","granite_tile_03",2.4f,new Color(1.0f,1.10f,1.22f));
             m.BoxMinMax(edge,x0-.25f,x1+.25f,QuayY-1.0f,QuayY+.06f,z0-.25f,z0);
             m.BoxMinMax(edge,x0-.25f,x0,QuayY-1.0f,QuayY+.06f,z0,z1-.02f);
             m.BoxMinMax(edge,x1,x1+.25f,QuayY-1.0f,QuayY+.06f,z0,z1-.02f);
@@ -556,9 +558,9 @@ public static class BraxChampionsHarbour
                 // granite coping along the berth edge
                 m.BoxMinMax(Graphite,Mathf.Min(fx,fx+inward*.45f),Mathf.Max(fx,fx+inward*.45f),QuayY,QuayY+.06f,z0,z1);
             }
-            // lamps on the centre line
+            // the lamps stand in the palm rows of the walk (foundation furniture, port_layout.quay_fit): the walk between
+            // the rows and the shelter stay clear (the old centre-line lamp at z1-12 stood inside the shelter)
             float cx=(x0+x1)*.5f;
-            for(float z=z1-12f;z>z0+4f;z-=24f)Lamp(m,new Vector3(cx,QuayY,z),7f,90f,true);
             if(cruise)
             {
                 // passenger shelter at the quay root: slim steel frame, glass roof, two benches
@@ -577,10 +579,44 @@ public static class BraxChampionsHarbour
                     m.BoxMinMax(BraxChampionsPromenadeFurniture.Teak,x-.28f,x+.28f,QuayY+.42f,QuayY+.47f,sz0+2f,sz1-2f);
                 }
                 BraxChampionsMeshBatch.Collider(harbour,"Wiata pasażerska - słupy",new Vector3(cx,QuayY+1.6f,(sz0+sz1)*.5f),new Vector3(6.2f,3.2f,.3f));
+                HarbourLight(harbour,m,edge,new Vector3(cx,QuayY,z0+5.5f));
             }
         }
         m.Build(harbour,"Nabrzeża stałe: pachołki, odbojnice, latarnie, wiata",Out+"/Meshes/Harbour");
     }
+
+    // Owner 10.11 14:57 "most wykończ": the head of the cruise pier gets its harbour light - a granite plinth, a tapered
+    // white tower with two green bands (solid stacked sections, no paint on paint), a graphite gallery with a railing
+    // and a glowing green lantern (the starboard light of the harbour entrance) under a graphite cap.
+    static void HarbourLight(Transform harbour,BraxChampionsMeshBatch m,Material plinth,Vector3 at)
+    {
+        var green=Surface("harbour_light_green_band",new Color(.05f,.32f,.17f),.38f,.05f);
+        var lens=Surface("harbour_light_green_lantern",new Color(.20f,.85f,.42f),.15f,0f,new Color(.25f,1.25f,.55f));
+        m.Cylinder(plinth,at,1.5f,.45f,24,Quaternion.identity,true,false);
+        float y0=.45f,y1=7.65f,r0=.85f,r1=.65f;
+        float R(float y)=>r0+(r1-r0)*(y-y0)/(y1-y0);
+        float[] cut={y0,2.85f,4.05f,5.25f,6.45f,y1};
+        for(int i=0;i<cut.Length-1;i++)
+            m.Cylinder(i%2==1?green:PedestalWhite,at+Vector3.up*cut[i],R(cut[i]),cut[i+1]-cut[i],24,Quaternion.identity,false,false,R(cut[i+1]));   // open ends: the plinth and the gallery close it
+        m.Cylinder(Graphite,at+Vector3.up*y1,1.25f,.12f,24,Quaternion.identity,true,true);                 // gallery deck
+        const int posts=16;float rr=1.17f,top=y1+.12f+1.0f;
+        for(int i=0;i<posts;i++)
+        {
+            float a=i*Mathf.PI*2f/posts,b=(i+1)*Mathf.PI*2f/posts;
+            var p=at+new Vector3(Mathf.Cos(a)*rr,0,Mathf.Sin(a)*rr);
+            m.Cylinder(Steel,p+Vector3.up*(y1+.12f),.022f,.96f,8,Quaternion.identity,false,false);
+            var q=at+new Vector3(Mathf.Cos(b)*rr,0,Mathf.Sin(b)*rr);
+            var mid=(p+q)*.5f;float len=(q-p).magnitude;
+            m.Box(Steel,mid+Vector3.up*(top-.02f),new Vector3(.045f,.04f,len+.02f),Quaternion.LookRotation(q-p,Vector3.up));   // top rail
+        }
+        m.Cylinder(Graphite,at+Vector3.up*(y1+.12f),.50f,.30f,20,Quaternion.identity,true,false);           // lantern base
+        m.Cylinder(lens,at+Vector3.up*(y1+.42f),.38f,.62f,20,Quaternion.identity,false,false);             // green lens
+        m.Cylinder(Graphite,at+Vector3.up*(y1+1.04f),.52f,.46f,20,Quaternion.identity,false,true,.08f);    // cap
+        m.Cylinder(Steel,at+Vector3.up*(y1+1.50f),.025f,.55f,8,Quaternion.identity,true,false);            // finial
+        BraxChampionsMeshBatch.Collider(harbour,"Latarnia portowa - głowica nabrzeża",at+Vector3.up*3.8f,new Vector3(1.8f,7.6f,1.8f));
+        HarbourLights++;
+    }
+    public static int HarbourLights;
 
     // ---------------------------------------------------------------- gangway gates with the pier names
     static string GateSign(BraxChampionsFoundation.Pier p)
@@ -656,7 +692,7 @@ public static class BraxChampionsHarbour
             throw new InvalidOperationException("Owner-approved port berth counts changed");
 
         Materials();SignsPlaced=SignsMissing=0;signs=null;signMeshes.Clear();
-        LiveriesApplied=YachtNamesBuilt=0;liveryMaterials.Clear();CruiseShips=CruiseLoungers=CruiseNames=0;
+        LiveriesApplied=YachtNamesBuilt=0;liveryMaterials.Clear();CruiseShips=CruiseLoungers=CruiseNames=0;HarbourLights=0;
         var sources=new Dictionary<string,GameObject>();
         PrepareOriginalLibrary(sources);
         var root=new GameObject("MIASTO MISTRZÓW | PORT 10.11 | 15 yachts | 10 motorboats | 10 jetskis | ferry berth | 2 free berths for the owner's ships").transform;

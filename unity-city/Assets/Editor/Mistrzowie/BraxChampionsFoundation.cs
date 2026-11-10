@@ -138,11 +138,15 @@ public static class BraxChampionsFoundation
             color=FileIn(tex,"PavingStones126A_4K-JPG_Color.jpg"),
             normal=FileIn(tex,"PavingStones126A_4K-JPG_NormalGL.jpg"),
             arm=FileIn(tex,"PavingStones126A_ARM_4k.png"),tile=4.5f};
-        maps["quay_cruise"]=new MapSet{
+        // Owner 10.11 14:56-14:57 ("pomost ... nie tylko beton wylany", "most wykończ"): the passenger walk of the ferry and
+        // cruise quays is the promenade's own light vein-cut stone (the SAME material - the quays continue the promenade);
+        // the berth aprons along the ship faces are dark flamed granite, cut edge to edge with the walk (one surface).
+        maps["quay_cruise"]=maps["prom_paving"];
+        maps["quay_ferry"]=maps["prom_paving"];
+        maps["quay_apron"]=new MapSet{
             color=FileIn(tex,"granite_tile_diff_4k.jpg"),
             normal=FileIn(tex,"granite_tile_nor_gl_4k.exr"),
-            arm=FileIn(tex,"granite_tile_arm_4k.png"),tile=1.7f};
-        maps["quay_ferry"]=maps["quay_cruise"];
+            arm=FileIn(tex,"granite_tile_arm_4k.png"),tile=2.4f};
         // floating pontoon sides down to just below the water: dark composite floats, not a concrete pier wall
         maps["pontoon_side"]=new MapSet{
             color=FileIn(tex,"concrete_wall_008_diff_4k.jpg"),
@@ -255,8 +259,8 @@ public static class BraxChampionsFoundation
         materials["sand_wet"].SetColor("_Color",new Color(1.30f,1.38f,1.50f,1f));
         // marina decking: silver-grey weathered boards (Planks040 alone is pink-brown 155,132,118 -> ~146,143,139), light granite quays
         materials["quay_wood"].SetColor("_Color",new Color(.94f,1.08f,1.18f,1f));
-        materials["quay_cruise"].SetColor("_Color",new Color(1.28f,1.28f,1.26f,1f));
-        EditorUtility.SetDirty(materials["quay_wood"]);EditorUtility.SetDirty(materials["quay_cruise"]);
+        materials["quay_apron"].SetColor("_Color",new Color(1.15f,1.15f,1.15f,1f));    // dark graphite granite, neutral
+        EditorUtility.SetDirty(materials["quay_wood"]);EditorUtility.SetDirty(materials["quay_apron"]);
         materials["pontoon_side"].SetColor("_Color",new Color(.20f,.21f,.22f,1f));
         EditorUtility.SetDirty(materials["pontoon_side"]);
         // concrete_wall_008 is khaki (141,134,112): neutral grey harbour concrete
