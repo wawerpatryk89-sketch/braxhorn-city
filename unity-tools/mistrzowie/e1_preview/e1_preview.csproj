@@ -33,6 +33,8 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenadeEquipment.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenadeStock.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsObrot.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsPiksele.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsGold.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsLetters3D.cs" />
   </ItemGroup>
 </Project>

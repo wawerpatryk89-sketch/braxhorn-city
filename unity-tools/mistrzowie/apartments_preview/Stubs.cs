@@ -44,6 +44,7 @@ namespace UnityEngine
         static Quaternion Axis(Vector3 a, float deg) { var r = deg * Mathf.Deg2Rad * .5f; var s = (float)Math.Sin(r); return new Quaternion(a.x * s, a.y * s, a.z * s, (float)Math.Cos(r)); }
         // Unity order: Z, then X, then Y (q = qy * qx * qz)
         public static Quaternion Euler(float x, float y, float z) => Axis(Vector3.up, y) * Axis(Vector3.right, x) * Axis(Vector3.forward, z);
+        public static Quaternion LookRotation(Vector3 f) => LookRotation(f, Vector3.up);
         public static Quaternion LookRotation(Vector3 f, Vector3 up)
         {
             var yaw = (float)Math.Atan2(f.x, f.z) * Mathf.Rad2Deg; var h = (float)Math.Sqrt(f.x * f.x + f.z * f.z);
@@ -90,7 +91,10 @@ namespace UnityEngine
         public static float Max(params float[] v) => v.Max(); public static float Min(params float[] v) => v.Min(); public static float Log(float a) => (float)Math.Log(a); public static float Log(float a, float b) => (float)Math.Log(a, b); public static float Exp(float a) => (float)Math.Exp(a);
         public static float Atan2(float y, float x) => (float)Math.Atan2(y, x); public static float Sqrt(float a) => (float)Math.Sqrt(a); public static float Lerp(float a, float b, float t) => a + (b - a) * Clamp(t, 0, 1);
         public static float Tan(float a) => (float)Math.Tan(a); public static float Floor(float a) => (float)Math.Floor(a); public static float Ceil(float a) => (float)Math.Ceiling(a);
-        public static float Cos(float a) => (float)Math.Cos(a); public static float Sin(float a) => (float)Math.Sin(a); }
+        public static float Cos(float a) => (float)Math.Cos(a); public static float Sin(float a) => (float)Math.Sin(a);
+        public static float SmoothStep(float a, float b, float t) { t = Clamp01(t); t = -2f * t * t * t + 3f * t * t; return b * t + a * (1f - t); }
+        public static float DeltaAngle(float a, float b) { float d = (b - a) % 360f; if (d < 0) d += 360f; if (d > 180f) d -= 360f; return d; }
+        public static float InverseLerp(float a, float b, float v) => a != b ? Clamp01((v - a) / (b - a)) : 0f; }
     public class Object { string nm; public virtual string name { get => nm; set => nm = value; }
         public static implicit operator bool(Object o) => o != null && !o.destroyed;
         internal bool destroyed;
@@ -116,7 +120,15 @@ namespace UnityEngine
             if (o is GameObject g) { g.transform.SetParent(null, false); GameObject.Registry.Remove(g); }
             if (o != null) o.destroyed = true;
         } }
-    public class Texture : Object { } public class Texture2D : Texture { public int width = 2048, height = 512; public bool real; } public enum TextureWrapMode { Repeat, Clamp } public enum FilterMode { Point, Bilinear, Trilinear }
+    public class Texture : Object { } public class Texture2D : Texture { public int width = 2048, height = 512; public bool real;
+        // painted textures (E1 balls, screens): the pixels are kept and written as a PNG when the generator saves the asset
+        public Color32[] pixels; public TextureWrapMode wrapMode; public FilterMode filterMode;
+        public Texture2D() { } public Texture2D(int w, int h, TextureFormat f, bool mips) { width = w; height = h; }
+        public void SetPixels32(Color32[] px) { pixels = px; } public void Apply(bool mips = true) { } }
+    public enum TextureFormat { RGBA32, RGB24, ARGB32 }
+    public struct Color32 { public byte r, g, b, a; public Color32(byte r, byte g, byte b, byte a) { this.r = r; this.g = g; this.b = b; this.a = a; }
+        static byte B(float v) => (byte)Math.Max(0, Math.Min(255, (int)Math.Round(v * 255f)));
+        public static implicit operator Color32(Color c) => new Color32(B(c.r), B(c.g), B(c.b), B(c.a)); } public enum TextureWrapMode { Repeat, Clamp } public enum FilterMode { Point, Bilinear, Trilinear }
     public class Shader : Object { public static Shader Find(string n) => new Shader { name = n }; }
     public class Material : Object { public Material() { } public Material(Material m) { name = m.name; color = m.color; sky = m.sky; ground = m.ground; ambient = m.ambient; renderQueue = m.renderQueue; metallic = m.metallic; roughness = m.roughness; emission = m.emission; picture = m.picture; textured = m.textured; } public Material(Shader s) { }
         public bool enableInstancing, textured; public int renderQueue; public Color color = new Color(1, 1, 1);
@@ -300,7 +312,16 @@ namespace UnityEditor
             g.AddComponent<MeshFilter>().sharedMesh = new Mesh { name = "gltf stand-in (drawn from the file)" };
             return g as T;
         }
-        public static void CreateAsset(Object o, string p) { } public static void Refresh(ImportAssetOptions o = ImportAssetOptions.Default) { } public static Object[] LoadAllAssetsAtPath(string p) => new Object[0];
+        public static bool DeleteAsset(string p) => true;
+        public static void CreateAsset(Object o, string p)
+        {
+            // a painted texture: written as a PNG next to the run (Assets/...png), so the preview draws it
+            if (o is Texture2D t && t.pixels != null && t.pixels.Length == t.width * t.height)
+            {
+                var png = System.IO.Path.ChangeExtension(p, ".png"); System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(png));
+                PreviewPng.Write(png, t.width, t.height, t.pixels); t.name = png; t.real = true;
+            }
+        } public static void Refresh(ImportAssetOptions o = ImportAssetOptions.Default) { } public static Object[] LoadAllAssetsAtPath(string p) => new Object[0];
         public static void SaveAssets() { } public static void ImportAsset(string p, ImportAssetOptions o) { } }
     public class AssetImporter : Object { public static AssetImporter GetAtPath(string p) => new TextureImporter { name = p }; public void SaveAndReimport() { } }
     public enum TextureImporterFormat { Automatic, ASTC_4x4, ASTC_6x6, ASTC_8x8 }
@@ -385,5 +406,30 @@ public static class GltfBounds
         var scene = root.GetProperty("scenes")[root.TryGetProperty("scene", out var sc) ? sc.GetInt32() : 0];
         foreach (var n in scene.GetProperty("nodes").EnumerateArray()) Walk(n.GetInt32(), new double[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 });
         return (new UnityEngine.Vector3((float)-hi[0], (float)lo[1], (float)lo[2]), new UnityEngine.Vector3((float)-lo[0], (float)hi[1], (float)hi[2]));
+    }
+}
+
+// minimal PNG writer (RGBA8, zlib) for the painted preview textures; rows bottom-up like Unity's texture memory
+static class PreviewPng
+{
+    static readonly uint[] Crc = MakeCrc();
+    static uint[] MakeCrc() { var t = new uint[256]; for (uint n = 0; n < 256; n++) { uint c = n; for (int k = 0; k < 8; k++) c = (c & 1) != 0 ? 0xEDB88320u ^ (c >> 1) : c >> 1; t[n] = c; } return t; }
+    static void Chunk(System.IO.Stream s, string type, byte[] data)
+    {
+        var len = new byte[] { (byte)(data.Length >> 24), (byte)(data.Length >> 16), (byte)(data.Length >> 8), (byte)data.Length }; s.Write(len, 0, 4);
+        var td = new byte[4 + data.Length]; System.Text.Encoding.ASCII.GetBytes(type).CopyTo(td, 0); data.CopyTo(td, 4); s.Write(td, 0, td.Length);
+        uint c = 0xFFFFFFFFu; foreach (var b in td) c = Crc[(c ^ b) & 0xFF] ^ (c >> 8); c ^= 0xFFFFFFFFu;
+        s.Write(new byte[] { (byte)(c >> 24), (byte)(c >> 16), (byte)(c >> 8), (byte)c }, 0, 4);
+    }
+    public static void Write(string path, int w, int h, UnityEngine.Color32[] px)
+    {
+        var raw = new System.IO.MemoryStream();
+        for (int y = h - 1; y >= 0; y--) { raw.WriteByte(0); for (int x = 0; x < w; x++) { var c = px[y * w + x]; raw.WriteByte(c.r); raw.WriteByte(c.g); raw.WriteByte(c.b); raw.WriteByte(c.a); } }
+        var z = new System.IO.MemoryStream();
+        using (var zs = new System.IO.Compression.ZLibStream(z, System.IO.Compression.CompressionLevel.Optimal, true)) { raw.Position = 0; raw.CopyTo(zs); }
+        using var f = System.IO.File.Create(path);
+        f.Write(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }, 0, 8);
+        Chunk(f, "IHDR", new byte[] { (byte)(w >> 24), (byte)(w >> 16), (byte)(w >> 8), (byte)w, (byte)(h >> 24), (byte)(h >> 16), (byte)(h >> 8), (byte)h, 8, 6, 0, 0, 0 });
+        Chunk(f, "IDAT", z.ToArray()); Chunk(f, "IEND", new byte[0]);
     }
 }
