@@ -404,33 +404,58 @@ class SalaStolarka(unittest.TestCase):
 
 
 class SalaRingIPrzejscia(unittest.TestCase):
-    """Właściciel 10.11 00:27–00:28: „drzwi zastawione”, „ławeczka do wyciskania za krótka”, „co to za schodki, tam wejścia nie ma
-    na ring”, „liny mają pracować, mają być aktywne, jak coś się o nie obija”."""
+    """Właściciel 10.11: 00:27–00:28 „drzwi zastawione”, „ławeczka za krótka”, „tam wejścia nie ma na ring”, „liny mają pracować”;
+    00:59 „ring do zmiany… stary, ale realnie wyglądać”, „worki na czym wiszą”; 07:13–07:20 „obić deskami z zewnątrz, starszymi”,
+    „u góry normalnie matę”, „narożniki okrągłe”, „na około prawdziwe linki”, „stare, ale realistyczne”."""
 
-    def test_ring_ropes_are_reactive(self):
-        self.assertIn("var l = go.AddComponent<BraxLina>();", DOMY)
-        self.assertIn("l.wysokosci = wysLin; l.promien = .024f; l.maksUgiecie = .2f; l.Zbuduj();", DOMY)
-        self.assertIn("GameObjectUtility.SetStaticEditorFlags(go, 0);", DOMY)             # lina się rusza — nie może być statyczna
-        self.assertEqual(len(re.findall(r'BokLin\(PR\(', DOMY)), 5)                      # S, N, E pełne + zachód w dwóch częściach
-        self.assertIn('"rough_linen", "cotton_jersey", "leather_white"', FAW)             # liny z fotoskanu, nie z koloru
-        self.assertTrue((ROOT / "unity-city/Assets/Claude/Runtime/BraxLina.cs").exists())
+    LINA = (ROOT / "unity-city/Assets/Claude/Runtime/BraxLinaSplot.cs").read_text(encoding="utf-8")
+    GEOM = (ROOT / "unity-city/Assets/Claude/Runtime/BraxLinaSplotGeom.cs").read_text(encoding="utf-8")
 
-    def test_ring_has_entrance_where_steps_lead(self):
-        self.assertIn("float ql = rs - .02f, wej = .85f;", DOMY)                          # przerwa 1.7 m w linach
-        self.assertIn('BokLin(PR(-ql, -ql), PR(-ql, -wej), Vector3.left, "W1", .1f, .06f); BokLin(PR(-ql, wej), PR(-ql, ql), Vector3.left, "W2", .06f, .1f);', DOMY)
-        self.assertIn("sch.Box(new Vector3(xa, yt - .05f, rcz - 1f), new Vector3(xb + .02f, yt, rcz + 1f), true);", DOMY)   # schody 2 m w osi przerwy
-        self.assertIn("foreach (float ez in new[] { -wej, wej })", DOMY)                  # słupki wejścia
+    def test_ring_ropes_are_twisted_and_reactive(self):
+        # liny ze splotek (3 splotki śrubowo) — fizyka jak BraxLina (napór, cios, kop); BraxLina z sali osiedla nietknięta
+        self.assertIn("var l = go.AddComponent<BraxLinaSplot>();", DOMY)
+        self.assertIn("l.Zbuduj();", DOMY)                                   # (komentarze wycięte — wywołanie nie może siedzieć za //)
+        self.assertIn("GameObjectUtility.SetStaticEditorFlags(go, 0);", DOMY)
+        self.assertEqual(len(re.findall(r'BokLin\(PR\(', DOMY)), 5)
+        self.assertIn("for (int j = 0; j < 3; j++)", self.GEOM)              # 3 splotki
+        self.assertIn("float x = L * s / odc, th = w * x + fj;", self.GEOM)  # skręt śrubowy
+        self.assertIn("BraxGymPlayer.OnCios += Cios;", self.LINA)
+        self.assertIn("acc = (cel[i] - u[i]) * 2500f - pr[i] * 60f;", self.LINA)
+        self.assertNotIn("rough_linen", FAW[FAW.index("linyRingu = "):FAW.index("linyRingu = ") + 200])   # niebieski len — liny były szare
+
+    def test_ring_platform_planks_mat_round_corners(self):
+        self.assertIn('"weathered_brown_planks"', FAW); self.assertIn('"weathered_brown_planks"', FETCH_R)
+        self.assertIn("var pd = W(cx, cz, deskiRingu);", DOMY)                # podest obity starymi deskami
+        self.assertIn("var mt = W(cx, cz, mataRingu);", DOMY)                 # mata ringowa z płótna na górze
+        self.assertIn('mataRingu = T("mata ringu', FAW)
+        self.assertIn("pad.Cyl(new Vector3(c0.x, yP0, c0.z), new Vector3(c0.x, yP1, c0.z), rp, 16);", DOMY)   # okrągłe ochraniacze
+        self.assertNotIn("leather_red_03", FAW)                               # na Poly Haven bez mapy koloru
+        self.assertNotIn("fart.Quad", DOMY); self.assertNotIn("BoxRot(c0 + Vector3.up * .95f * k", DOMY)   # stary czerwony fartuch i płaskie narożniki
+
+    def test_ring_has_gate_where_steps_lead(self):
+        self.assertIn("float ql = rs - .02f, wej = .85f,", DOMY)
+        self.assertIn('BokLin(PR(-ql, -ql), PR(-ql, -wej), Vector3.left, "W1", rPad, rPadF); BokLin(PR(-ql, wej), PR(-ql, ql), Vector3.left, "W2", rPadF, rPad);', DOMY)
+        self.assertIn("float xs0 = rcx - P - .03f, szS = .7f;", DOMY)
+        self.assertIn("Kol(tr, new Vector3(xa, y, rcz - szS), new Vector3(xs0, yt, rcz + szS));", DOMY)
+        self.assertIn("BraxLinaSplotGeom.Lina(gL, pkt,", DOMY)                 # odpięte liny furtki zwisają
+
+    def test_bags_hang_on_floor_gantry_with_chains(self):
+        for czesc in ("var rama = W(cx, cz, metal,", "float yB = y + 3.0f, xRa = s.xMin + 1.2f, xRb = s.xMin + 8.1f;", "rama.Cyl(st, gr, .055f, 4);",
+                      "void Lanc(Bud bb, Vector3 gora, Vector3 dol,", "Lanc(stalC, new Vector3(bx, yB - .085f, bz),"):
+            self.assertIn(czesc, DOMY, czesc)
+        self.assertNotIn("new Vector3(xr, yDol, bz), .025f, 5)", DOMY)          # pręty 2.5 cm do kratownicy (belka „w powietrzu”)
+        # rama z dala od drzwi wejściowych: drzwi x ∈ [xMin + L/2 − 3 − 1.7K, xMin + L/2 − 3], pas boczny 0.5 m
+        L_, K_ = 28.0, 1.294
+        self.assertLess(8.1 + .06, (L_ / 2 - 3 - 1.7 * K_) - .5)
 
     def test_passages_clear(self):
-        # ławki pod ścianą wschodnią (nie w osi drzwi), worki z dala od korytarza wejścia, atlas między bramą a wejściem
         self.assertIn("float lx = s.xMax - G - .45f; var lawkiZ = new[] { s.yMin + 1.7f, s.yMin + 4.1f };", DOMY)
-        self.assertIn("float bx = s.xMin + 2.4f + q * 2.8f", DOMY)
-        # drzwi wejściowe: s od xMax w stronę -x, e0 = L/2 + 3 … + 1.7 K; najbliższy worek i atlas poza światłem drzwi z zapasem
-        L_, K_ = 28.0, 1.294
-        drzwi = (-162 - (L_ / 2 + 3 + 1.7 * K_), -162 - (L_ / 2 + 3))
-        for bx in (-190 + 2.4 + q * 2.8 for q in range(3)):
-            self.assertLess(bx + .3, drzwi[0] - .4, bx)        # worek wisi 4.3 m w głębi i z boku osi drzwi
-        self.assertGreater(-190 + 14.8 - 1.2, drzwi[1] + .8)
+        self.assertIn("float bx = s.xMin + 2.35f + q * 2.35f, dol = y + .5f * k;", DOMY)
+        self.assertIn('"standing_chalkboard_01" }, new Vector3(s.xMax - G - .55f,', DOMY)   # tablica nie przed schodami
+
+    def test_bench_press_full_length(self):
+        self.assertIn("dlL = 1.4f * k;", DOMY)
+        self.assertIn("zb - dlL + .25f), new Vector3(wx + .16f * k, y + .46f * k, zb + .25f), true);", DOMY)
 
     def test_laundry_machines_are_built_from_parts_not_boxes(self):
         # 10.11 (podgląd): pralki były białymi pudłami z kółkiem — atrapy nie przechodzą
@@ -440,9 +465,16 @@ class SalaRingIPrzejscia(unittest.TestCase):
         self.assertGreaterEqual(blok.count("BoxF("), 12)
         self.assertIn("KolF(rd, F, G, sF + .05f, yF, yT + .035f, 1.5f, 4.85f);", blok)     # 1.5 m w głąb — wejście wolne
 
-    def test_bench_press_full_length(self):
-        self.assertIn("dlL = 1.4f * k;", DOMY)
-        self.assertIn("zb - dlL + .25f), new Vector3(wx + .16f * k, y + .46f * k, zb + .25f), true);", DOMY)
+    def test_no_statement_after_trailing_comment(self):
+        pat = re.compile(r'(\b(var|float|int|bool|string)\s+\w+\s*=)|(\b\w+(\.\w+)*\([^\n]*\)\s*;\s*$)')
+        pliki = sorted(R.glob("BraxRegionFawela*.cs")) + sorted((ROOT / "unity-city/Assets/Claude/Runtime").glob("BraxLinaSplot*.cs"))
+        zle = []
+        for f in pliki:
+            for i, l in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+                j = l.find("//")
+                if j < 0 or l[:j].count('"') % 2 == 1 or not l[:j].strip(): continue
+                if pat.search(l[j + 2:]): zle.append(f.name + ":" + str(i))
+        self.assertEqual(zle, [])
 
 
 if __name__ == "__main__":

@@ -1107,79 +1107,245 @@ public static partial class BraxRegionFawela
             }
         // maty gumowe pod workami i przy ringu
         var mat = W(cx, cz, matySali); mat.kolor = p => Color.white * (.8f + .2f * Szum(p.x * .5f, p.z * .5f));
-        mat.Box(new Vector3(s.xMin + 1.2f, y, s.yMin + 2.2f), new Vector3(s.xMin + 12.2f, y + .025f, s.yMin + 6.4f));
-        mat.Box(new Vector3(s.xMin + 1.2f, y, s.yMax - 7.6f), new Vector3(s.xMin + 12.2f, y + .025f, s.yMax - 3.6f));
-        // RING 6 × 6 m (wewnątrz lin) na podeście 0.9 m: płótno wypłowiałe w plamach, fartuch czerwony, słupki, narożniki skórzane, 4 białe liny
-        float rcx = s.xMax - 6.2f, rcz = cz, rs = 3.0f * k * .95f, yRing = y + .9f;
-        var plot = W(cx, cz, plotno); plot.kolor = p => new Color(.66f, .72f, .80f) * (.78f + .22f * Szum(p.x * 1.7f, p.z * 1.7f));
-        plot.Quad(new Vector3(rcx - rs - .25f, yRing, rcz + rs + .25f), new Vector3(rcx + rs + .25f, yRing, rcz + rs + .25f), new Vector3(rcx + rs + .25f, yRing, rcz - rs - .25f), new Vector3(rcx - rs - .25f, yRing, rcz - rs - .25f));
-        var fart = W(cx, cz, plotno); fart.kolor = p => new Color(.55f, .10f, .09f) * (.8f + .2f * Szum(p.x * 2f + p.y, p.z * 2f));
-        var fr = Fr.Nowa(new Vector3(rcx + rs + .25f, 0f, rcz - rs - .25f), Vector3.back, 2f * rs + .5f);
-        foreach (var Fq in new[] { fr, Fr.Nowa(new Vector3(rcx - rs - .25f, 0f, rcz + rs + .25f), Vector3.forward, 2f * rs + .5f), Fr.Nowa(new Vector3(rcx - rs - .25f, 0f, rcz - rs - .25f), Vector3.left, 2f * rs + .5f), Fr.Nowa(new Vector3(rcx + rs + .25f, 0f, rcz + rs + .25f), Vector3.right, 2f * rs + .5f) })
-            fart.Quad(Fq.P(0f, y, 0f), Fq.P(Fq.L, y, 0f), Fq.P(Fq.L, yRing + .02f, 0f), Fq.P(0f, yRing + .02f, 0f));
-        var skr = W(cx, cz, skora);
+        mat.Box(new Vector3(s.xMin + .9f, y, s.yMin + 2.2f), new Vector3(s.xMin + 8.4f, y + .025f, s.yMin + 6.4f));
+        mat.Box(new Vector3(s.xMin + .9f, y, s.yMax - 7.6f), new Vector3(s.xMin + 8.4f, y + .025f, s.yMax - 3.6f));
+        // RING — STARY, ALE PRAWDZIWY (właściciel 10.11 07:13–07:20: „obić deskami z zewnątrz, fajnymi, jakimiś starszymi”, „ten
+        // kwadrat cały na dole [deski], a u góry normalnie tą matę na ringu”, „narożniki okrągłe”, „na około prawdziwe linki”,
+        // „jak najbardziej realistyczne… stare, ale realistyczne”). Podest 7.9 × 7.9 m, wys. 0.9 m:
+        //  • cały kwadrat obity starymi deskami (weathered_brown_planks): deska czołowa pod krawędzią maty, cokół, stalowe
+        //    kątowniki na narożach, łby śrub;
+        //  • na górze mata ringowa: czerwone płótno bawełniane (cotton_jersey) na filcu, zawinięte przez zaokrągloną krawędź pod deskę czołową,
+        //    szwy pasów płótna, przetarcia i plamy tam, gdzie się walczy;
+        //  • słupy stalowe w OKRĄGŁYCH skórzanych ochraniaczach (czerwony, niebieski, dwa neutralne) na paskach z klamrami;
+        //  • 4 liny SKRĘCANE ZE SPLOTEK (BraxLinaSplot), spięte pionowymi paskami — pracują (napór, cios, kop);
+        //  • furtka w linach od strony sali: słupki w ochraniaczach, odpięte liny furtki zwisają z karabińczykami, naprzeciw
+        //    ucha; do furtki schody z tych samych desek, zamknięte z boków, z poręczami z rury.
+        float rcx = s.xMax - 6.2f, rcz = cz, rs = 3.0f * k * .95f, yRing = y + .9f, P = rs + .25f;
+        Vector3 PR(float dx, float dz) => new Vector3(rcx + dx, 0f, rcz + dz);
+        void QN(Bud bb, Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 nn)
+        { if (Vector3.Dot(Vector3.Cross(b - a, c - a), nn) < 0f) bb.Quad(d, c, b, a); else bb.Quad(a, b, c, d); }
+        void BoxP(Bud bb, Vector3 p, Vector3 q, bool dno = false) => bb.Box(Vector3.Min(p, q), Vector3.Max(p, q), dno);
+        var boki4 = new[] { (Vector3.back, Vector3.right), (Vector3.forward, Vector3.right), (Vector3.left, Vector3.forward), (Vector3.right, Vector3.forward) };   // (na zewnątrz, wzdłuż)
+        var pd = W(cx, cz, deskiRingu); var sruby = W(cx, cz, metal, new Color(.2f, .19f, .18f));
+        float yCz0 = yRing - .27f, yCz1 = yRing - .11f;   // deska czołowa
+        foreach (var (no, wd) in boki4)
+        {
+            var c0 = new Vector3(rcx, 0f, rcz) + no * P; float jasBoku = .9f + .1f * Szum(no.x * 3.1f + 1.3f, no.z * 3.1f + 2.7f);
+            Vector3 A(float t2, float yy, float d) => c0 + wd * t2 + Vector3.up * yy + no * d;
+            // deski boku: każda deska (co 15 cm) trochę inna — wymieniane, wyblakłe od słońca, ciemniejsze przy podłodze
+            pd.kolor = p => Color.white * jasBoku * (.8f + .2f * Szum(Mathf.Floor(p.y / .15f) * 7.3f + p.x * .05f + p.z * .05f, no.x + no.z * 2f)) * Mathf.Lerp(.8f, 1f, S01(y, y + .4f, p.y));
+            for (int seg = 0; seg < 4; seg++)
+            {
+                float ta = -P + seg * P * .5f, tb = ta + P * .5f;
+                QN(pd, A(ta, y + .14f, 0f), A(tb, y + .14f, 0f), A(tb, yCz0, 0f), A(ta, yCz0, 0f), no);
+            }
+            pd.kolor = p => Color.white * jasBoku * .78f * (.9f + .1f * Szum(p.x * .7f, p.z * .7f));
+            BoxP(pd, A(-P - .03f, yCz0, 0f), A(P + .03f, yCz1, .03f), true);                  // deska czołowa (trzyma płótno maty)
+            pd.kolor = p => Color.white * jasBoku * .55f * (.9f + .1f * Szum(p.x * 1.3f, p.z * 1.3f));
+            BoxP(pd, A(-P - .02f, y, 0f), A(P + .02f, y + .14f, .022f));                      // cokół (obity butami)
+            for (float t2 = -P + .45f; t2 < P - .2f; t2 += .9f)                                 // łby śrub deski czołowej
+                sruby.Cyl(A(t2, (yCz0 + yCz1) * .5f, .03f), A(t2, (yCz0 + yCz1) * .5f, .037f), .011f, 6);
+        }
+        var kat = W(cx, cz, metal, new Color(.34f, .29f, .25f));   // kątowniki narożne (stal z rdzą)
         foreach (float sx in new[] { -1f, 1f }) foreach (float sz2 in new[] { -1f, 1f })
         {
-            var c0 = new Vector3(rcx + sx * (rs - .02f), yRing, rcz + sz2 * (rs - .02f));
-            stal.Cyl(c0, c0 + Vector3.up * 1.55f * k, .055f, 8);
-            skr.K(sx * sz2 > 0 ? new Color(.85f, .3f, .25f) : new Color(.35f, .45f, .85f)); skr.BoxRot(c0 + Vector3.up * .95f * k + new Vector3(-sx * .12f, 0f, -sz2 * .12f), new Vector3(.24f, 1.15f * k, .24f), Quaternion.Euler(0f, 45f, 0f));
+            float xx = rcx + sx * P, zz = rcz + sz2 * P;
+            BoxP(kat, new Vector3(xx, y + .14f, zz + sz2 * .006f), new Vector3(xx + sx * .006f, yCz0, zz - sz2 * .075f));
+            BoxP(kat, new Vector3(xx + sx * .006f, y + .14f, zz), new Vector3(xx - sx * .075f, yCz0, zz + sz2 * .006f));
+            foreach (float yy in new[] { y + .3f, (y + yCz0) * .5f + .1f, yCz0 - .1f })
+            {
+                sruby.Cyl(new Vector3(xx + sx * .006f, yy, zz - sz2 * .04f), new Vector3(xx + sx * .012f, yy, zz - sz2 * .04f), .01f, 6);
+                sruby.Cyl(new Vector3(xx - sx * .04f, yy, zz + sz2 * .006f), new Vector3(xx - sx * .04f, yy, zz + sz2 * .012f), .01f, 6);
+            }
         }
-        // LINY RINGU PRACUJĄ (właściciel 10.11 00:28: „liny mają pracować, mają być aktywne, jak coś się o nie obija”; ta sama
-        // zasada co 1.11 w sali bokserskiej osiedla): BraxLina — bok ringu z 4 grubymi białymi linami i linkami łączącymi, lina
-        // ugina się pod naporem Braxa i po ciosie / kopnięciu, potem drga z tłumieniem; kolizja boku za liną trzyma gracza w ringu.
-        // WEJŚCIE NA RING („co to za schodki, tam wejścia nie ma”): od strony sali w linach jest przerwa 1.7 m między dwoma
-        // słupkami wejścia, a do niej prowadzą drewniane schody 2 m szerokości (3 stopnie po 0.3 m) na stalowych policzkach.
-        float ql = rs - .02f, wej = .85f; var wysLin = new[] { yRing + .45f * k, yRing + .75f * k, yRing + 1.05f * k, yRing + 1.35f * k };
+        // MATA: płótno napięte na filcu — siatka 14 × 14 (kolor wierzchołków: wytarcie w środku, plamy potu i krwi, kurz)
+        var mt = W(cx, cz, mataRingu);
+        Color MataK(Vector3 p)
+        {
+            float rr = new Vector2(p.x - rcx, p.z - rcz).magnitude;
+            float wyt = S01(3.6f, 1.0f, rr) * .12f, kurz = .07f * Szum(p.x * 3.7f, p.z * 3.7f);
+            float plama = S01(.6f, .82f, Szum(p.x * .8f + 3.1f, p.z * .8f + 1.7f)) * .22f, krew = S01(.78f, .9f, Szum(p.x * 2.3f + 9.1f, p.z * 2.3f + 4.4f)) * .25f;
+            var c = new Color(1f, .99f, .97f) * (1f - wyt - kurz);
+            c = Color.Lerp(c, new Color(.62f, .5f, .42f), plama); c = Color.Lerp(c, new Color(.5f, .3f, .26f), krew);
+            return c;
+        }
+        mt.kolor = MataK; float m0 = P - .05f;
+        for (int i = 0; i < 14; i++)
+            for (int j = 0; j < 14; j++)
+            {
+                float xa = -m0 + 2f * m0 * i / 14f, xb = -m0 + 2f * m0 * (i + 1) / 14f, za = -m0 + 2f * m0 * j / 14f, zb2 = -m0 + 2f * m0 * (j + 1) / 14f;
+                QN(mt, PR(xa, za) + Vector3.up * yRing, PR(xb, za) + Vector3.up * yRing, PR(xb, zb2) + Vector3.up * yRing, PR(xa, zb2) + Vector3.up * yRing, Vector3.up);
+            }
+        // zaokrąglona krawędź (płótno zawinięte przez filc) i pas płótna w dół za deskę czołową
+        foreach (var (no, wd) in boki4)
+        {
+            var cen = new Vector3(rcx, yRing - .05f, rcz) + no * (P - .05f);
+            for (int i = 0; i < 10; i++)
+            {
+                float ta = -P + 2f * P * i / 10f, tb = -P + 2f * P * (i + 1) / 10f;
+                for (int q = 0; q < 4; q++)
+                {
+                    float a0 = Mathf.PI * .5f * (1f - q / 4f), a1 = Mathf.PI * .5f * (1f - (q + 1) / 4f), am = (a0 + a1) * .5f;
+                    Vector3 Pk(float t2, float a) => cen + wd * t2 + Vector3.up * (.05f * Mathf.Sin(a)) + no * (.05f * Mathf.Cos(a));
+                    QN(mt, Pk(ta, a0), Pk(tb, a0), Pk(tb, a1), Pk(ta, a1), Vector3.up * Mathf.Sin(am) + no * Mathf.Cos(am));
+                }
+                var d0 = new Vector3(rcx, 0f, rcz) + no * P;
+                QN(mt, d0 + wd * ta + Vector3.up * (yRing - .05f), d0 + wd * tb + Vector3.up * (yRing - .05f), d0 + wd * tb + Vector3.up * (yCz1 - .03f), d0 + wd * ta + Vector3.up * (yCz1 - .03f), no);
+            }
+        }
+        // szwy pasów płótna (co 1.3 m) — ciemniejsza nitka na lekkim zgrubieniu
+        mt.kolor = p => MataK(p) * .88f;
+        foreach (float zs in new[] { -2.6f, -1.3f, 0f, 1.3f, 2.6f })
+            QN(mt, PR(-m0, zs - .007f) + Vector3.up * (yRing + .002f), PR(m0, zs - .007f) + Vector3.up * (yRing + .002f), PR(m0, zs + .007f) + Vector3.up * (yRing + .002f), PR(-m0, zs + .007f) + Vector3.up * (yRing + .002f), Vector3.up);
+        // SŁUPY I OKRĄGŁE NAROŻNIKI: słup stalowy widać pod ochraniaczem, ochraniacz skórzany Ø 28 cm na całą wysokość lin,
+        // kopułka na górze, 3 skórzane pasy z klamrami, gumowy kołnierz przy macie. Czerwony i niebieski naprzeciw siebie, dwa neutralne.
+        float ql = rs - .02f, wej = .85f, rPad = .14f, rPadF = .1f, yP0 = yRing + .3f * k, yP1 = yRing + 1.47f * k;
+        var pasy = W(cx, cz, skora); var skr = pasy; var klamry = W(cx, cz, alu, new Color(.72f, .68f, .6f)); var guma2 = W(cx, cz, guma, new Color(.16f, .16f, .17f));
+        void Naroznik(Vector3 c0, float rp, Material mPad, Color barwaPad, Vector3 naZew, int pasow)
+        {
+            stal.Cyl(c0 + Vector3.down * .02f, new Vector3(c0.x, yP0 + .02f, c0.z), rp * .34f, 10);
+            guma2.Cyl(c0, c0 + Vector3.up * .035f, rp * .55f, 12, rp * .45f);
+            var pad = W(cx, cz, mPad);
+            pad.kolor = p => barwaPad * (.84f + .16f * Szum(p.y * 5.3f + c0.x, (p.x + p.z) * 7.1f)) * Mathf.Lerp(.8f, 1f, S01(yP0, yP0 + .35f, p.y));
+            pad.Cyl(new Vector3(c0.x, yP0, c0.z), new Vector3(c0.x, yP1, c0.z), rp, 16);
+            pad.Cyl(new Vector3(c0.x, yP1, c0.z), new Vector3(c0.x, yP1 + .03f, c0.z), rp, 16, rp * .75f, false);
+            pad.Cyl(new Vector3(c0.x, yP1 + .03f, c0.z), new Vector3(c0.x, yP1 + .045f, c0.z), rp * .75f, 16, rp * .3f);
+            pasy.K(new Color(.24f, .17f, .12f));
+            for (int q = 0; q < pasow; q++)
+            {
+                float yb = Mathf.Lerp(yP0 + .13f, yP1 - .13f, pasow == 1 ? .5f : (float)q / (pasow - 1));
+                pasy.Cyl(new Vector3(c0.x, yb - .022f, c0.z), new Vector3(c0.x, yb + .022f, c0.z), rp + .006f, 16, -1f, false);
+                klamry.BoxRot(new Vector3(c0.x, yb, c0.z) + naZew * (rp + .012f), new Vector3(.05f, .056f, .012f), Quaternion.LookRotation(naZew));
+            }
+        }
+        foreach (float sx in new[] { -1f, 1f }) foreach (float sz2 in new[] { -1f, 1f })
+        {
+            bool czerw = sx > 0 && sz2 > 0, nieb = sx < 0 && sz2 < 0;
+            Naroznik(new Vector3(rcx + sx * ql, yRing, rcz + sz2 * ql), rPad, czerw ? narozCzerw : narozJasny, czerw ? new Color(.92f, .86f, .84f) : nieb ? new Color(.3f, .42f, .78f) : new Color(1f, .9f, .93f), new Vector3(sx, 0f, sz2).normalized, 3);
+            Kol(tr, new Vector3(rcx + sx * ql - .16f, yRing, rcz + sz2 * ql - .16f), new Vector3(rcx + sx * ql + .16f, yP1 + .05f, rcz + sz2 * ql + .16f));
+        }
+        foreach (float ez in new[] { -wej, wej })
+        {   // słupki furtki
+            Naroznik(new Vector3(rcx - ql, yRing, rcz + ez), rPadF, narozJasny, new Color(1f, .9f, .93f), Vector3.left, 2);
+            Kol(tr, new Vector3(rcx - ql - .11f, yRing, rcz + ez - .11f), new Vector3(rcx - ql + .11f, yP1 + .05f, rcz + ez + .11f));
+        }
+        Kol(tr, new Vector3(rcx - P, y, rcz - P), new Vector3(rcx + P, yRing, rcz + P));
+        // LINY ZE SPLOTEK, PRACUJĄCE (właściciel 10.11 00:28: „liny mają pracować, mają być aktywne, jak coś się o nie obija”):
+        // BraxLinaSplot — bok ringu z 4 linami skręcanymi i paskami; lina ugina się pod naporem Braxa i po ciosie / kopnięciu,
+        // potem drga z tłumieniem; kolizja boku za liną trzyma gracza w ringu. Liny kończą się w ochraniaczach słupów.
+        var wysLin = new[] { yRing + .45f * k, yRing + .75f * k, yRing + 1.05f * k, yRing + 1.35f * k };
         void BokLin(Vector3 a0, Vector3 b0, Vector3 nz, string idL, float ka, float kb)
         {
             var os = (b0 - a0).normalized; var la = a0 + os * ka; var lb = b0 - os * kb;
-            var go = new GameObject("Sala: liny ringu — " + idL); go.transform.SetParent(tr, false); go.transform.position = Vector3.zero;
-            go.AddComponent<MeshFilter>(); var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = linyRingu; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            var l = go.AddComponent<BraxLina>(); l.a = la; l.b = lb; l.naZewnatrz = nz; l.wysokosci = wysLin; l.promien = .024f; l.maksUgiecie = .2f; l.Zbuduj();
-            var mesh = go.GetComponent<MeshFilter>().sharedMesh; if (mesh) { Directory.CreateDirectory(BraxRegion.Out + "/Fawela"); BraxZapisAssetu.Utworz(mesh, BraxRegion.Out + "/Fawela/liny_ringu_" + idL + ".asset"); }
+            var go = new GameObject("Sala: liny ringu ze splotek — " + idL); go.transform.SetParent(tr, false); go.transform.position = Vector3.zero;
+            go.AddComponent<MeshFilter>(); var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = linyRingu; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+            var l = go.AddComponent<BraxLinaSplot>(); l.a = la; l.b = lb; l.naZewnatrz = nz; l.wysokosci = wysLin; l.promien = .028f; l.skok = .2f; l.maksUgiecie = .2f;
+            l.barwa = new Color(1f, .98f, .95f); l.pasek = new Color(.8f, .76f, .68f); l.Zbuduj();   // paski z taśmy płóciennej (przybrudzone)
+            var mesh = go.GetComponent<MeshFilter>().sharedMesh; if (mesh) { Directory.CreateDirectory(BraxRegion.Out + "/Fawela"); BraxZapisAssetu.Utworz(mesh, BraxRegion.Out + "/Fawela/liny_ringu_" + idL + ".asset"); trojkatow += mesh.triangles.Length / 3; }
             GameObjectUtility.SetStaticEditorFlags(go, 0);
+            var lgL = go.AddComponent<LODGroup>(); lgL.SetLODs(new[] { new LOD(.1f, new Renderer[] { mr }) }); lgL.RecalculateBounds();   // liny (ok. 16 tys. trójkątów na bok) znikają dalej niż ok. 50 m
             var c = (a0 + b0) * .5f + nz * .28f; float len = Vector3.Distance(a0, b0);
             BraxRegionMeble.Kolizja(tr, "Sala: kolizja lin " + idL, new Vector3(c.x, yRing + .85f * k, c.z), Mathf.Abs(nz.x) > .5f ? new Vector3(.18f, 1.7f * k, len) : new Vector3(len, 1.7f * k, .18f));
             linRingu++;
         }
-        Vector3 PR(float dx, float dz) => new Vector3(rcx + dx, 0f, rcz + dz);
-        BokLin(PR(-ql, -ql), PR(ql, -ql), Vector3.back, "S", .1f, .1f); BokLin(PR(-ql, ql), PR(ql, ql), Vector3.forward, "N", .1f, .1f); BokLin(PR(ql, -ql), PR(ql, ql), Vector3.right, "E", .1f, .1f);
-        BokLin(PR(-ql, -ql), PR(-ql, -wej), Vector3.left, "W1", .1f, .06f); BokLin(PR(-ql, wej), PR(-ql, ql), Vector3.left, "W2", .06f, .1f);
-        foreach (float ez in new[] { -wej, wej })
-        {   // słupki wejścia (stal) z kolizją
-            var c0 = new Vector3(rcx - ql, yRing, rcz + ez); stal.Cyl(c0, c0 + Vector3.up * 1.5f * k, .04f, 8);
-            Kol(tr, c0 + new Vector3(-.07f, 0f, -.07f), c0 + new Vector3(.07f, 1.5f * k, .07f));
+        BokLin(PR(-ql, -ql), PR(ql, -ql), Vector3.back, "S", rPad, rPad); BokLin(PR(-ql, ql), PR(ql, ql), Vector3.forward, "N", rPad, rPad); BokLin(PR(ql, -ql), PR(ql, ql), Vector3.right, "E", rPad, rPad);
+        BokLin(PR(-ql, -ql), PR(-ql, -wej), Vector3.left, "W1", rPad, rPadF); BokLin(PR(-ql, wej), PR(-ql, ql), Vector3.left, "W2", rPadF, rPad);
+        {   // furtka: dwie liny furtki odpięte — zwisają ze słupka południowego, na końcach karabińczyki; na słupku północnym ucha
+            var gL = new BraxLinaSplotGeom.Wynik(); var ucho = W(cx, cz, metal, new Color(.6f, .6f, .62f)); float xg = rcx - ql;
+            foreach (int i in new[] { 1, 2 })
+            {
+                var p0 = new Vector3(xg, wysLin[i], rcz - wej + rPadF - .01f); var p3 = new Vector3(xg - .04f, yRing + .22f + .14f * i, rcz - wej + .3f + .05f * i);
+                var p1 = p0 + new Vector3(0f, -.02f, .3f); var p2 = p3 + new Vector3(0f, .4f, 0f); var pkt = new List<Vector3>();
+                for (int q = 0; q <= 14; q++) { float u2 = q / 14f, v2 = 1f - u2; pkt.Add(p0 * (v2 * v2 * v2) + p1 * (3f * v2 * v2 * u2) + p2 * (3f * v2 * u2 * u2) + p3 * (u2 * u2 * u2)); }
+                BraxLinaSplotGeom.Lina(gL, pkt, .028f, .2f, new Color(1f, .98f, .95f), i * 1.9f, 0f);
+                // karabińczyk na końcu (korpus i zapadka) i ucho na słupku północnym
+                ucho.Cyl(p3, p3 + Vector3.down * .09f, .011f, 6); ucho.Cyl(p3 + Vector3.down * .09f, p3 + new Vector3(0f, -.065f, .025f), .009f, 6); ucho.Cyl(p3 + new Vector3(0f, -.065f, .025f), p3 + new Vector3(0f, -.02f, .022f), .008f, 6);
+                var cu = new Vector3(xg, wysLin[i], rcz + wej - rPadF - .02f);
+                for (int q = 0; q < 8; q++) { float a0 = q * Mathf.PI / 4f, a1 = (q + 1) * Mathf.PI / 4f; ucho.Cyl(cu + new Vector3(0f, Mathf.Sin(a0), Mathf.Cos(a0) - 1f) * .028f, cu + new Vector3(0f, Mathf.Sin(a1), Mathf.Cos(a1) - 1f) * .028f, .006f, 4, -1f, false); }
+            }
+            var bl = W(cx, cz, linyRingu); int o = bl.v.Count;
+            bl.v.AddRange(gL.v); bl.n.AddRange(gL.n); bl.uv.AddRange(gL.uv); bl.c.AddRange(gL.c); foreach (int ti in gL.tr) bl.t.Add(o + ti);
         }
-        foreach (float sx in new[] { -1f, 1f }) foreach (float sz2 in new[] { -1f, 1f })
-            Kol(tr, new Vector3(rcx + sx * ql - .15f, yRing, rcz + sz2 * ql - .15f), new Vector3(rcx + sx * ql + .15f, yRing + 1.55f * k, rcz + sz2 * ql + .15f));
-        Kol(tr, new Vector3(rcx - rs - .25f, y, rcz - rs - .25f), new Vector3(rcx + rs + .25f, yRing, rcz + rs + .25f));
-        // schody na ring w osi wejścia: 3 stopnie 0.3 × 0.4 m, szerokość 2 m, deski na stalowych policzkach; kolizja każdego stopnia
-        var sch = W(cx, cz, deski, new Color(.85f, .8f, .72f)); float xs0 = rcx - rs - .25f;
+        // SCHODY do furtki: 3 stopnie 0.3 × 0.4 m, szer. 1.4 m, z tych samych starych desek — stopnice z noskiem, podstopnice,
+        // boki zamknięte deskami; poręcze z rury po obu stronach; kolizja każdego stopnia
+        var sd = W(cx, cz, deskiRingu); float xs0 = rcx - P - .03f, szS = .7f;
         for (int q = 0; q < 3; q++)
         {
-            float xa = xs0 - (3 - q) * .4f, xb = xs0 - (2 - q) * .4f, yt = y + .3f * (q + 1);
-            sch.Box(new Vector3(xa, yt - .05f, rcz - 1f), new Vector3(xb + .02f, yt, rcz + 1f), true);
-            Kol(tr, new Vector3(xa, y, rcz - 1f), new Vector3(xs0, yt, rcz + 1f));
+            float xa = xs0 - (3 - q) * .4f, yt = y + .3f * (q + 1); int qq = q;
+            sd.kolor = p => Color.white * (.82f + .18f * Szum(p.x * 2.1f + qq, p.z * .7f)) * .95f;
+            sd.Box(new Vector3(xa - .025f, yt - .045f, rcz - szS - .012f), new Vector3(xs0, yt, rcz + szS + .012f), true);            // stopnica (nosek 2.5 cm)
+            sd.kolor = p => Color.white * .7f * (.85f + .15f * Szum(p.x * 1.7f, p.z * 1.7f + qq));
+            sd.Box(new Vector3(xa, yt - .3f, rcz - szS), new Vector3(xa + .025f, yt - .045f, rcz + szS));                             // podstopnica
+            foreach (float zs in new[] { -1f, 1f })
+                sd.Box(new Vector3(xa, y, zs < 0 ? rcz - szS : rcz + szS - .025f), new Vector3(xa + .4f, yt - .045f, zs < 0 ? rcz - szS + .025f : rcz + szS));   // bok zamknięty
+            Kol(tr, new Vector3(xa, y, rcz - szS), new Vector3(xs0, yt, rcz + szS));
         }
-        foreach (float pz in new[] { -1f, .96f })
-        {   // policzki ze stalowej blachy (trójkąt pod stopniami)
-            var a3 = new Vector3(xs0 - 1.2f, y, rcz + pz); var b3 = new Vector3(xs0, y, rcz + pz); var c3 = new Vector3(xs0, y + .9f, rcz + pz); var o3 = new Vector3(0f, 0f, .04f);
-            stal.Tri(a3, c3, b3); stal.Tri(a3 + o3, b3 + o3, c3 + o3); stal.Quad(a3, a3 + o3, c3 + o3, c3);
+        foreach (float zs in new[] { -1f, 1f })
+        {   // poręcz: dwa słupki z rury i pochwyt, zakotwione w stopnicach
+            float zr = rcz + zs * (szS - .05f); var pa = new Vector3(xs0 - 1.1f, y + .255f, zr); var pb = new Vector3(xs0 - .25f, y + .855f, zr);
+            stal.Cyl(pa, pa + Vector3.up * .95f, .021f, 8); stal.Cyl(pb, pb + Vector3.up * .95f, .021f, 8);
+            stal.Cyl(pa + Vector3.up * .95f, pb + Vector3.up * .95f, .021f, 8); stal.Cyl(pa + Vector3.up * .5f, pb + Vector3.up * .5f, .016f, 8);
+            Kol(tr, new Vector3(pa.x - .03f, y, zr - .03f), new Vector3(pb.x + .03f, pb.y + .97f, zr + .03f));
         }
-        // WORKI: stalowa belka nad dwoma rzędami, 6 skórzanych worków właściciela na łańcuchach; bez modelu — worek z kodu (skóra)
-        float yBelka = y + 3.15f;
+        // WORKI — STALOWA BRAMOWNICA NA PODŁODZE (10.11 00:59, właściciel: „a te worki to na czym wiszą, co to ma być” — belka wisiała
+        // 4 m pod kratownicą na prętach 2.5 cm i z dołu wyglądała, jakby wisiała w powietrzu). Teraz dwie ramy: nogi w kształcie A
+        // z rury kwadratowej, poprzeczki, zastrzały, stopy przykręcone kotwami do podłogi, u góry dwuteownik 160; każdy worek
+        // (model właściciela z 4 łańcuchami) na krętliku i łańcuchu z ogniwami, zaczep zaciśnięty na stopce dwuteownika.
+        // Ramy z dala od drzwi (pas 1.5 m przed drzwiami i 0.5 m po bokach wolny) i od szafek przy ścianie zachodniej.
+        var rama = W(cx, cz, metal, new Color(.47f, .25f, .18f)); var stalC = W(cx, cz, metal, new Color(.42f, .42f, .44f));
+        float yB = y + 3.0f, xRa = s.xMin + 1.2f, xRb = s.xMin + 8.1f;
+        void Ogn(Bud bb, Vector3 c, Vector3 os, Vector3 bk, float dl, float sz, float d)
+        {   // ogniwo łańcucha: owal z 8 prętów
+            var pts = new Vector3[8];
+            for (int i = 0; i < 8; i++) { float a = i * Mathf.PI / 4f; pts[i] = c + os * (Mathf.Cos(a) * (dl * .5f - d)) + bk * (Mathf.Sin(a) * (sz * .5f - d)); }
+            for (int i = 0; i < 8; i++) bb.Cyl(pts[i], pts[(i + 1) % 8], d, 4, -1f, false);
+        }
+        void Lanc(Bud bb, Vector3 gora, Vector3 dol, float dl, float sz, float d)
+        {   // łańcuch: ogniwa na przemian obrócone o 90°
+            var os = dol - gora; float L2 = os.magnitude; if (L2 < .02f) return; os /= L2;
+            var b1 = Vector3.Cross(os, Mathf.Abs(os.y) > .9f ? Vector3.forward : Vector3.up).normalized; var b2 = Vector3.Cross(os, b1);
+            float krok = dl - 2.2f * d; int n = Mathf.Max(1, Mathf.FloorToInt((L2 - dl) / krok) + 1);
+            for (int i = 0; i < n; i++) Ogn(bb, gora + os * (dl * .5f + i * krok), os, i % 2 == 0 ? b1 : b2, dl, sz, d);
+        }
         foreach (float bz in new[] { s.yMin + 4.3f, s.yMax - 5.6f })
         {
-            stal.Box(new Vector3(s.xMin + 1.4f, yBelka, bz - .06f), new Vector3(s.xMin + 12f, yBelka + .22f, bz + .06f));
-            foreach (float xr in new[] { s.xMin + 2.25f, s.xMin + 6.75f, s.xMin + 11.25f }) stal.Cyl(new Vector3(xr, yBelka + .22f, bz), new Vector3(xr, yDol, bz), .025f, 5);
+            rama.Box(new Vector3(xRa - .12f, yB, bz - .06f), new Vector3(xRb + .12f, yB + .012f, bz + .06f), true);          // stopka dolna
+            rama.Box(new Vector3(xRa - .12f, yB + .012f, bz - .004f), new Vector3(xRb + .12f, yB + .148f, bz + .004f));         // środnik
+            rama.Box(new Vector3(xRa - .12f, yB + .148f, bz - .06f), new Vector3(xRb + .12f, yB + .16f, bz + .06f), true);    // stopka górna
+            foreach (float xe in new[] { xRa, xRb })
+            {
+                float dir = xe == xRa ? 1f : -1f;
+                foreach (float sz2 in new[] { -1f, 1f })
+                {   // noga A z rury 8 × 8 cm, stopa 24 × 24 cm na 4 kotwach
+                    var st = new Vector3(xe, y + .012f, bz + sz2 * .75f); var gr = new Vector3(xe, yB, bz + sz2 * .07f);
+                    rama.Cyl(st, gr, .055f, 4);
+                    rama.Box(new Vector3(xe - .12f, y, st.z - .12f), new Vector3(xe + .12f, y + .012f, st.z + .12f));
+                    foreach (float ox in new[] { -.08f, .08f }) foreach (float oz in new[] { -.08f, .08f })
+                        stalC.Cyl(new Vector3(xe + ox, y + .012f, st.z + oz), new Vector3(xe + ox, y + .032f, st.z + oz), .013f, 6);
+                }
+                foreach (float yy in new[] { .8f, 2.2f })
+                {   // poprzeczki A
+                    float hz = Mathf.Lerp(.75f, .07f, (yy - .012f) / (yB - y - .012f));
+                    rama.Cyl(new Vector3(xe, y + yy, bz - hz), new Vector3(xe, y + yy, bz + hz), .035f, 4);
+                }
+                rama.Cyl(new Vector3(xe, y + 2.2f, bz), new Vector3(xe + dir * .8f, yB, bz), .035f, 4);                          // zastrzał do dwuteownika
+                rama.Box(new Vector3(xe - .1f, yB - .2f, bz - .008f), new Vector3(xe + .1f, yB, bz + .008f));                    // blacha węzłowa
+                Kol(tr, new Vector3(xe - .08f, y, bz - .8f), new Vector3(xe + .08f, yB + .16f, bz + .8f));
+            }
             for (int q = 0; q < 3; q++)
             {
-                float bx = s.xMin + 2.4f + q * 2.8f, dol = y + .55f * k;   // worki z dala od osi wejścia (korytarz od drzwi w głąb sali wolny)
-                var wor = Rekw(tr, new[] { "leather_punching_bag" }, new Vector3(bx, dol, bz), q * 47f, 1.3f, false, 45f, "worek treningowy (skóra brązowa, biblioteka właściciela)", true);
-                float gora = wor ? BraxRegion.Bounds(wor).max.y : dol + 1.2f * k;
-                if (!wor) { skr.K(new Color(.62f, .38f, .22f)); skr.Cyl(new Vector3(bx, dol, bz), new Vector3(bx, gora, bz), .19f * k, 14); }
-                foreach (float ox in new[] { -.1f, .1f }) stal.Cyl(new Vector3(bx + ox, gora - .02f, bz), new Vector3(bx, yBelka, bz), .01f, 4, -1f, false);   // łańcuchy
-                Kol(tr, new Vector3(bx - .22f * k, dol, bz - .22f * k), new Vector3(bx + .22f * k, gora, bz + .22f * k));
+                float bx = s.xMin + 2.35f + q * 2.35f, dol = y + .5f * k;
+                var wor = Rekw(tr, new[] { "leather_punching_bag" }, new Vector3(bx, dol, bz), q * 47f, 1.9f, false, 45f, "worek treningowy (skóra brązowa, biblioteka właściciela)", true);
+                float gora = wor ? BraxRegion.Bounds(wor).max.y : dol + 1.8f;
+                if (!wor) { skr.K(new Color(.62f, .38f, .22f)); skr.Cyl(new Vector3(bx, dol, bz), new Vector3(bx, gora - .45f, bz), .25f, 14); }
+                // zaczep na stopce dwuteownika, ucho, łańcuch z ogniwami, krętlik nad łańcuchami worka
+                stalC.Box(new Vector3(bx - .04f, yB - .035f, bz - .075f), new Vector3(bx + .04f, yB + .02f, bz + .075f), true);
+                Ogn(stalC, new Vector3(bx, yB - .06f, bz), Vector3.down, Vector3.right, .05f, .036f, .007f);
+                float ySw = gora + .1f;
+                Lanc(stalC, new Vector3(bx, yB - .085f, bz), new Vector3(bx, ySw + .03f, bz), .055f, .034f, .0065f);
+                stalC.Cyl(new Vector3(bx, ySw - .05f, bz), new Vector3(bx, ySw + .03f, bz), .016f, 8);                           // krętlik
+                Ogn(stalC, new Vector3(bx, gora + .005f, bz), Vector3.down, Vector3.forward, .06f, .045f, .0075f);               // ogniwo zbiorcze łańcuchów worka
+                Kol(tr, new Vector3(bx - .27f, dol, bz - .27f), new Vector3(bx + .27f, gora - .3f, bz + .27f));
             }
         }
         // gruszki na platformach przy ścianie tylnej (deska, sworzeń, mała gruszka ze skóry)
@@ -1267,7 +1433,7 @@ public static partial class BraxRegionFawela
         Rekw(tr, new[] { "boxing_headgear" }, new Vector3(lx, y + .01f + .45f * k, lawkiZ[0] - .3f), 40f, .28f, false, 25f, "kask sparingowy (biblioteka właściciela)", true);
         Rekw(tr, new[] { "wall_clock" }, fB.P(L * .5f, y + 2.7f * k, G + .03f), fB.Yaw + 180f, .32f, false, 30f, "zegar ścienny");
         Rekw(tr, new[] { "korean_fire_extinguisher_01" }, fF.P(e0 - .45f, y + .01f, G + .25f), fF.Yaw + 180f, .66f, false, 25f, "gaśnica");
-        Rekw(tr, new[] { "standing_chalkboard_01" }, new Vector3(rcx - rs - 2.6f, y + .01f, rcz - 3.6f), 60f, 1.5f, true, 35f, "tablica z planem treningów");
+        Rekw(tr, new[] { "standing_chalkboard_01" }, new Vector3(s.xMax - G - .55f, y + .01f, rcz + P + 1.4f), 90f, 1.5f, true, 35f, "tablica z planem treningów");   // pod ścianą wschodnią — nie przed schodami ringu
         Rekw(tr, new[] { "metal_stool_01" }, new Vector3(rcx - rs - 1.6f, y + .01f, rcz + 2.6f), 90f, .76f, true, 25f, "stołek trenera");
         // wentylatory i lampy przemysłowe pod kratownicami (Poly Haven), światło sali
         foreach (float xf in new[] { s.xMin + 6.75f, s.xMin + 15.75f }) Rekw(tr, new[] { "ceiling_fan" }, new Vector3(xf, yDol - .52f * k, cz), 0f, .52f, false, 45f, "wentylator sufitowy");

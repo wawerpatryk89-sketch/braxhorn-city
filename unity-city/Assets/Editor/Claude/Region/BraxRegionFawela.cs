@@ -509,7 +509,7 @@ public static partial class BraxRegionFawela
         Krok("zapis kwadratów", Zapisz);
         Debug.Log("BRAXHORN_FAWELA etap 1: działek " + Dzialki.Count + ", domów " + domow + " (pas 1: " + domowPas1 + ", pas 2: " + domowPas2 + "), lokali " + lokali +
                   ", stanowisk obsługi " + Sprzedawcy.Count + ", dróg " + Drogi.Count + " (" + Drogi.Sum(d => d.p.Count) + " m), stopni schodów " + krokow + ", słupów " + slupow +
-                  ", przyłączy " + przylaczy + ", graffiti " + graffiti + ", aut zaparkowanych " + aut + ", luster z odbiciem " + luster + ", boków lin ringu (BraxLina) " + linRingu + ", roślin i rekwizytów z biblioteki " + roslin + " (drzew " + drzew + ", krzewów " + krzewow + ", kamieni " + kamieni + ")" + ", modeli w lokalach " + modeli + ", modeli z biblioteki " + modeliBib + (brakModeli.Count > 0 ? " (brak: " + string.Join(", ", brakModeli) + ")" : "") + ", towaru z biblioteki " + BraxSklepyTowar.Postawione + ", trójkątów " + trojkatow + ", kwadratów 150 m " + komorki.Count +
+                  ", przyłączy " + przylaczy + ", graffiti " + graffiti + ", aut zaparkowanych " + aut + ", luster z odbiciem " + luster + ", boków lin ringu ze splotek (BraxLinaSplot) " + linRingu + ", roślin i rekwizytów z biblioteki " + roslin + " (drzew " + drzew + ", krzewów " + krzewow + ", kamieni " + kamieni + ")" + ", modeli w lokalach " + modeli + ", modeli z biblioteki " + modeliBib + (brakModeli.Count > 0 ? " (brak: " + string.Join(", ", brakModeli) + ")" : "") + ", towaru z biblioteki " + BraxSklepyTowar.Postawione + ", trójkątów " + trojkatow + ", kwadratów 150 m " + komorki.Count +
                   ", plac y " + Tarasy[0].y.ToString("F2") + ", sala y " + Tarasy[1].y.ToString("F2") + ", fotoskany (" + opisTekstur.Count + ", odchudzonych do 1024 / 512: " + odchudzonych + "): " + string.Join(" | ", opisTekstur) +
                   (brakTekstur.Count > 0 ? " — DO POPRAWKI brak fotoskanów: " + string.Join(", ", brakTekstur) : " — wszystkie wykończenia z fotoskanów"));
     }
@@ -552,7 +552,7 @@ public static partial class BraxRegionFawela
 
     // ============================================================================ MATERIAŁY — wyłącznie fotoskany CC0 z Poly Haven (stare, zniszczone)
     internal static Material[] tynki, drzwiStalowe, okna; internal static Material tynkCzerwony, tynkNiebieski, cegla, pustak, beton, betonZbr, blachaRdza, blachaOcynk, drzwiDrewno, drzwiStal, roleta,
-        bramaGaraz, okiennica, szyba, metal, zeliwo, alu, zbiornik, plotno, tynkRozowy, roletaSzara, plytkiCiemne, deski, podlogaSali, matySali, matPlakaty, linyRingu, asfalt, kraweznik, farba, zarowka, plytki, linoleum, wnetrze, lada, guma, lustro, lodowka, plastik,
+        bramaGaraz, okiennica, szyba, metal, zeliwo, alu, zbiornik, plotno, tynkRozowy, roletaSzara, plytkiCiemne, deski, podlogaSali, matySali, matPlakaty, linyRingu, deskiRingu, mataRingu, narozCzerw, narozJasny, asfalt, kraweznik, farba, zarowka, plytki, linoleum, wnetrze, lada, guma, lustro, lodowka, plastik,
         kabel, placBeton, skora, neonZielony, matGraffiti;
     static readonly List<string> opisTekstur = new List<string>(), brakTekstur = new List<string>();
 
@@ -565,7 +565,7 @@ public static partial class BraxRegionFawela
         "corrugated_iron", "wood_peeling_paint_weathered", "old_planks_02", "rusty_metal_04", "green_metal_rust", "blue_metal_plate",
         "rusty_metal_shutter", "rusted_shutter", "wooden_garage_door", "wood_shutter", "metal_plate_02", "asphalt_03",
         "asphalt_04", "concrete_floor_worn_001", "damaged_concrete_floor", "wood_table_worn", "cotton_jersey", "brown_leather",
-        "fabric_leather_02", "fabric_leather_01",
+        "fabric_leather_02", "fabric_leather_01", "weathered_brown_planks",
     };
 
     /// <summary>Wykończenie główne (ściany, dachy, nawierzchnie): fotoskan — kolor + normalna, do 1024 px.</summary>
@@ -653,7 +653,13 @@ public static partial class BraxRegionFawela
         wnetrze = Tm("ściany lokali — łuszcząca się farba", 2.0f, b, .9f, "peeling_painted_wall", "painted_plaster_wall", "plastered_wall");
         lada = Tm("drewno lad i regałów (wytarte)", 1.4f, b, .7f, "wood_table_worn", "wood_cabinet_worn_long", "wood_planks");
         deski = Tm("deski (skrzynki, blaty straganów)", 1.2f, b, .8f, "wood_planks", "old_planks_02", "wood_planks_grey");
-        linyRingu = Tm("liny ringu (białe, grube, przybrudzone)", .3f, new Color(.93f, .92f, .88f), .8f, "rough_linen", "cotton_jersey", "leather_white");
+        // RING (10.11 07:13–07:20, właściciel: „obić deskami z zewnątrz, fajnymi, starszymi”, „u góry normalnie tą matę”, „narożniki
+        // okrągłe”, „na około prawdziwe linki”, „stare, ale realistyczne”). Uwaga: rough_linen to NIEBIESKI len — liny wychodziły szare.
+        linyRingu = Tm("liny ringu — skręcane, bawełna (pożółkłe, przybrudzone)", .25f, Color.white, .9f, "cotton_jersey", "fabric_leather_01");
+        deskiRingu = T("podest ringu — stare zwietrzałe deski", 2.4f, new Color(.92f, .9f, .88f), .85f, "weathered_brown_planks", "old_planks_02");
+        mataRingu = T("mata ringu — czerwone płótno bawełniane na filcu (wypłowiałe, przybrudzone)", 1.1f, new Color(.8f, .2f, .18f), .95f, "cotton_jersey", "leather_white");   // 10.11 07:52: „matę zrób czerwoną”, nie w kolorze lin
+        narozCzerw = Tm("narożnik ringu — czerwona skóra (wytarta)", .7f, new Color(.88f, .26f, .21f), .55f, "leather_white", "fabric_leather_01");   // leather_red_02/03 na Poly Haven bez mapy koloru (tylko warianty coll1/coll2)
+        narozJasny = Tm("narożniki ringu — jasna skóra (niebieski i neutralne)", .7f, Color.white, .55f, "leather_white", "fabric_leather_01");
         plotno = Tm("płótno (markizy, plandeki, pranie)", .9f, b, .95f, "cotton_jersey", "rough_linen", "leather_white");
         podlogaSali = T("podłoga sali — stare wytarte deski", 2.0f, new Color(.86f, .82f, .76f), .8f, "old_planks_02", "wood_planks_grey", "wood_planks");   // 10.11: „wood_floor_worn” to nowa sosna (pomarańcz) — nie do starej sali
         matySali = Tm("maty gumowe sali (czarna guma, wytarte)", 1.2f, new Color(.62f, .62f, .64f), .85f, "rubber_tiles", "asphalt_04");   // 10.11: „rubberized_track” to czerwona bieżnia
