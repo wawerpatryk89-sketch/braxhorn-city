@@ -66,7 +66,7 @@ class LiveriesAndNames(unittest.TestCase):
         self.assertEqual(len(set(names)), 15)
         self.assertTrue(all(n.isascii() for n in names))
         self.assertIn('Line("BRAXHORN",', self.h)
-        self.assertIn("Quaternion.FromToRotation(Vector3.back,n)", self.h)
+        self.assertIn("Quaternion.LookRotation(-n,Vector3.up)", self.h)
         self.assertIn("BraxChampionsLetters3D.Text(m,face,ret,text,", self.h)
 
     def test_livery_falls_back_to_white_never_crashes(self):
@@ -110,3 +110,39 @@ class NoUnclearLicence(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CruiseShipB(unittest.TestCase):
+    """Owner's cruise ship B (Innerscene, CC0) at W01: real 289.4 m, bow to the sea, BRAXHORN on both bows and the
+    stern, the sun deck furnished with loungers round the pools."""
+
+    def test_model_is_the_cc0_original(self):
+        p = ROOT / "unity-city/Assets/Source/HarborBeach/Models/cruise_ship_innerscene.glb"
+        b = p.read_bytes()
+        js = json.loads(b[20:20 + struct.unpack("<I", b[12:16])[0]])
+        self.assertIn("Innerscene Corp", js["asset"]["copyright"])
+        self.assertIn("CC0 1.0", js["asset"]["copyright"])
+        import hashlib
+        self.assertEqual(hashlib.sha256(b).hexdigest(), "e586199869aabe7265a36e2e9aafa119c661c439d3354a29896ec02761bd2313")
+        credits = (ROOT / "unity-city/Assets/Source/HarborBeach/CREDITS.md").read_text(encoding="utf-8")
+        self.assertIn("cruise_ship_innerscene.glb", credits)
+
+    def test_berth_real_size_bow_to_sea(self):
+        import port_layout as pl
+        w = [b for b in pl.BERTHS if b["id"] == "W01"][0]
+        self.assertEqual((w["length"], w["width"], w["yaw"]), (289.4, 33.4, 180.0))
+        x0, z0, x1, z1 = pl.hull(w).bounds
+        self.assertAlmostEqual(x0, 1120.8, places=3)     # 0.8 m off the quay's east face
+        self.assertAlmostEqual(z1, -152.0, places=3)     # stern 2 m off the promenade wall
+
+    def test_generator(self):
+        h = (ED / "BraxChampionsHarbour.cs").read_text(encoding="utf-8")
+        self.assertIn('public const string CruiseShipFile="cruise_ship_innerscene.glb";', h)
+        self.assertIn('if(bay.kind=="cruise_ship"&&bay.id=="W01"){placed+=PlaceCruiseShip(boats,bay);continue;}', h)
+        self.assertIn("root.transform.rotation=Quaternion.Euler(0,bay.yaw,0);           // bow (+z of the root) to the open sea", h)
+        self.assertIn('t.name=="Anchors"', h)                       # the bow is found by its anchors, not assumed
+        self.assertIn('Cruise ship B is not its real 289.4 m', h)
+        self.assertEqual(h.count('"BRAXHORN",new Vector3(-205f,10.95f,side*16.13f)'), 1)
+        self.assertIn('"MIASTO MISTRZÓW"', h)
+        self.assertIn("for(float gx=144.5f;gx<=180.6f;gx+=1.5f)", h)
+        self.assertIn("DO POPRAWKI CRUISE_SHIP_MISSING", h)        # never a crash: the berth stays free

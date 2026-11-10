@@ -184,6 +184,115 @@ public static class BraxChampionsHarbour
         return m;
     }
 
+    // ---------------------------------------------------------------- cruise ship B at W01
+    // Owner 10.11 (ships to finish the port): model B "cruise-ship.glb" by Innerscene Corp, CC0 1.0 (licence in the GLB
+    // asset block), a real 289.4 m ship in metres: keel at y 0, boot-top 7.5-8.6 m (waterline 8.0), white hull 8.6-15.3,
+    // sun deck 48.1, pools x 143-182. Moored at its real size alongside the cruise quay, bow to the sea, BRAXHORN on both
+    // bows and on the stern, the sun deck furnished with teak loungers round the pools.
+    public const string CruiseShipFile="cruise_ship_innerscene.glb";
+    public const float CruiseLength=289.4f,CruiseWaterline=8.0f,CruiseSunDeck=48.1f;
+    public static int CruiseShips,CruiseLoungers,CruiseNames;
+
+    // text on a (slightly) tilted face: centre and normal in the parent's frame, letters 3 cm proud
+    static void FaceText(Transform parent,string label,string text,Vector3 centre,Vector3 normal,float cap,float maxWidth,
+                         Material face,Material ret,float unit,float depth=.025f,float proud=.006f)
+    {
+        var n=normal.normalized;
+        var go=new GameObject(label).transform;go.SetParent(parent,false);
+        go.localPosition=centre+n*(proud*(unit>0f?unit:K));
+        go.localRotation=Quaternion.LookRotation(-n,Vector3.up);         // face n, letters upright (no roll on a raked face)
+        var m=new BraxChampionsMeshBatch();
+        BraxChampionsLetters3D.Text(m,face,ret,text,new Vector3(0,-cap*.5f,0),180f,cap,depth,.14f,maxWidth);
+        BraxChampionsLetters3D.Build(m,go,label,unit);
+    }
+
+    static int PlaceCruiseShip(Transform parent,BraxChampionsFoundation.Berth bay)
+    {
+        var src=BraxHarborBeachBuild.Model(CruiseShipFile);
+        if(!src){BraxBuildQuality.Warn("DO POPRAWKI CRUISE_SHIP_MISSING "+CruiseShipFile+" - berth "+bay.id+" stays free");return 0;}
+        var root=new GameObject(bay.id+" | cruise_ship | BRAXHORN | owner model B (Innerscene, CC0)").transform;
+        root.SetParent(parent,false);
+        var centre=new Vector3(bay.x*K,WaterLevel*K,bay.z*K);
+        root.position=centre;
+        var model=UnityEngine.Object.Instantiate(src);
+        model.name=bay.id+" | BRAXHORN cruise ship (real 289 m)";
+        model.transform.SetParent(root.transform,false);
+        model.transform.localScale=Vector3.one*K;                       // the GLB is in metres: real size
+        // long axis to the root's z, bow (the anchors) to +z
+        model.transform.localRotation=Quaternion.Euler(0,90f,0);
+        var bounds=BraxRegion.Bounds(model);
+        if(bounds.size.x>bounds.size.z){model.transform.localRotation=Quaternion.identity;bounds=BraxRegion.Bounds(model);}
+        var anchors=model.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>t.name=="Anchors");
+        if(anchors)
+        {
+            var ab=BraxRegion.Bounds(anchors.gameObject);
+            if(ab.center.z<bounds.center.z){model.transform.localRotation=Quaternion.Euler(0,180f,0)*model.transform.localRotation;bounds=BraxRegion.Bounds(model);}
+        }
+        else BraxBuildQuality.Warn("DO POPRAWKI CRUISE_SHIP_NO_ANCHORS node - bow direction assumed");
+        if(Mathf.Abs(bounds.size.z-CruiseLength*K)>2f*K)
+            throw new InvalidOperationException("Cruise ship B is not its real 289.4 m (got "+bounds.size.z/K+" m)");
+        model.transform.position+=centre-new Vector3(bounds.center.x,bounds.min.y+CruiseWaterline*K,bounds.center.z);
+        root.transform.rotation=Quaternion.Euler(0,bay.yaw,0);           // bow (+z of the root) to the open sea
+        foreach(var renderer in model.GetComponentsInChildren<Renderer>(true))
+        {
+            renderer.sharedMaterials=renderer.sharedMaterials.Select(BraxRegion.CityMaterial).ToArray();
+            renderer.shadowCastingMode=ShadowCastingMode.Off;
+            renderer.receiveShadows=true;
+        }
+        // Livery + deck in the model's own frame (glTF metres, glTFast mirrors x: Unity x = -glTF x), parent carries K.
+        var t=model.transform;
+        var navy=Surface("cruise_name_navy_gloss",new Color(.05f,.09f,.22f),.25f,.15f);
+        // BRAXHORN on both bows: the flat hull side (half beam 16.10 m) from glTF x 199 to 211, letters 1.8 m high
+        foreach(float side in new[]{1f,-1f})
+        {
+            var m=new BraxChampionsMeshBatch();
+            BraxChampionsLetters3D.Text(m,navy,Graphite,"BRAXHORN",new Vector3(-205f,10.95f,side*16.13f),side>0?0f:180f,1.8f,.12f,.14f,12.5f);
+            BraxChampionsLetters3D.Build(m,t,"cruise ship bow name "+(side>0?"starboard":"port"),1f);
+            CruiseNames++;
+        }
+        // stern (raked, glTF x 0.48-1.43 over y 13.9-9.7): the name and the home port
+        FaceText(t,"cruise ship stern name","BRAXHORN",new Vector3(-.72f,12.52f,0),new Vector3(.98f,-.20f,0),1.25f,22f,navy,Graphite,1f,.10f,.03f);
+        FaceText(t,"cruise ship stern home port","MIASTO MISTRZÓW",new Vector3(-1.04f,11.05f,0),new Vector3(.96f,-.25f,0),.42f,16f,navy,Graphite,1f,.05f,.03f);
+        CruiseNames+=2;
+        CruiseLoungers+=SunDeck(t);
+        CruiseShips++;
+        return 1;
+    }
+
+    // sun deck (glTF y 48.1, pools glTF x 143-182, z +-5, wind screens at +-11.6): two rows of teak loungers on each
+    // side, feet to the pools, white cotton cushions (same real materials as the beach club)
+    static int SunDeck(Transform ship)
+    {
+        var teak=BraxChampionsFoundation.SourceMaterial("beach_lounger_silver_teak","teak_veneer",1.1f,new Color(.91f,1.20f,1.72f));
+        var cushion=BraxChampionsPromenade.Fabric("beach_cushion_white_cotton","cotton_jersey",new Color(1.20f,1.36f,1.46f),.6f);
+        var m=new BraxChampionsMeshBatch();int n=0;
+        const float y=CruiseSunDeck,w=.62f,L=1.95f,h=.30f,lie=L*.62f,back=L-lie;
+        foreach(float side in new[]{1f,-1f})
+        foreach(float rowFeet in new[]{5.75f,8.55f})
+        for(float gx=144.5f;gx<=180.6f;gx+=1.5f)
+        {
+            float x=-gx;                                                   // Unity frame
+            // feet at |z| = rowFeet (pool side), head outward
+            // local frame: origin at the head end (outboard), +z toward the feet at the pool, backrest 0..back, seat back..L
+            var head=new Vector3(x,y,side*(rowFeet+L));var r=Quaternion.LookRotation(new Vector3(0,0,-side),Vector3.up);
+            Vector3 P(float lx,float ly,float lz)=>head+r*new Vector3(lx,ly,lz);
+            foreach(float sx in new[]{-.30f,.30f})
+            {
+                m.Box(Graphite,P(sx,h,back+lie*.5f),new Vector3(.035f,.05f,lie),r);
+                foreach(float lz in new[]{back+.06f,L-.05f})m.Box(Graphite,P(sx,h*.5f,lz),new Vector3(.035f,h,.035f),r);
+            }
+            m.Box(teak,P(0,h+.035f,back+lie*.5f),new Vector3(w*.92f,.02f,lie-.02f),r);
+            m.Box(cushion,P(0,h+.075f,back+lie*.5f),new Vector3(w*.86f,.06f,lie*.94f),r);
+            var tilt=r*Quaternion.Euler(40f,0,0);                           // backrest raised toward the head end
+            var bc=P(0,h,back)+tilt*new Vector3(0,0,-back*.5f);
+            m.Box(teak,bc+tilt*new Vector3(0,.035f,0),new Vector3(w*.92f,.02f,back*.96f),tilt);
+            m.Box(cushion,bc+tilt*new Vector3(0,.075f,0),new Vector3(w*.86f,.06f,back*.90f),tilt);
+            n++;
+        }
+        m.Build(ship,"cruise ship sun deck | teak loungers round the pools",Out+"/Meshes/Harbour",false,1f);
+        return n;
+    }
+
     // Raked tender-garage transom of yacht.glb, measured in the GLB mesh (10.11): name facet centre at 5.56 % of the length
     // from the stern and 29.2 % of the height from the keel, normal (aft, up) = (0.84, 0.55); the home-port facet below it
     // at 4.40 % / 24.2 %, normal (0.88, 0.47). Panel 3.1 m wide.
@@ -195,7 +304,7 @@ public static class BraxChampionsHarbour
         void Line(string text,float fz,float fy,Vector3 normal,float cap,float maxWidth,string label)
         {
             var n=normal.normalized;
-            var rot=Quaternion.FromToRotation(Vector3.back,n);
+            var rot=Quaternion.LookRotation(-n,Vector3.up);               // face n, letters upright (no roll)
             var centre=new Vector3(b.center.x,b.min.y+fy*b.size.y,b.min.z+fz*b.size.z);
             var go=new GameObject(label).transform;go.SetParent(root,false);
             go.localPosition=root.InverseTransformPoint(centre)+n*(.006f*K);
@@ -541,7 +650,7 @@ public static class BraxChampionsHarbour
             throw new InvalidOperationException("Owner-approved port berth counts changed");
 
         Materials();SignsPlaced=SignsMissing=0;signs=null;signMeshes.Clear();
-        LiveriesApplied=YachtNamesBuilt=0;liveryMaterials.Clear();
+        LiveriesApplied=YachtNamesBuilt=0;liveryMaterials.Clear();CruiseShips=CruiseLoungers=CruiseNames=0;
         var sources=new Dictionary<string,GameObject>();
         PrepareOriginalLibrary(sources);
         var root=new GameObject("MIASTO MISTRZÓW | PORT 10.11 | 15 yachts | 10 motorboats | 10 jetskis | ferry berth | 2 free berths for the owner's ships").transform;
@@ -552,6 +661,7 @@ public static class BraxChampionsHarbour
         int placed=0,skisPlaced=0;
         foreach(var bay in berths)
         {
+            if(bay.kind=="cruise_ship"&&bay.id=="W01"){placed+=PlaceCruiseShip(boats,bay);continue;}
             if(bay.kind!="yacht"&&bay.kind!="motorboat"&&bay.kind!="jetski")continue;
             string file=bay.kind=="yacht"?"yacht":bay.kind=="motorboat"?"motorboat":
                 (++skisPlaced%2==1?"jetski_odd":"jetski_even");
@@ -568,7 +678,8 @@ public static class BraxChampionsHarbour
         AssetDatabase.SaveAssets();
         Debug.Log("CHAMPIONS_PORT_10_11 yacht=15 motorboat=10 jetski=10 ferryBerths=1 cruiseBerths=2 boats="+placed
             +" signs3D="+SignsPlaced+" signsMissing="+SignsMissing+" textMeshLabels=0 originalGLBs yachtLength="+YachtLength
-            +" yachtLiveries="+LiveriesApplied+"/15 yachtNames3D="+YachtNamesBuilt);
+            +" yachtLiveries="+LiveriesApplied+"/15 yachtNames3D="+YachtNamesBuilt
+            +" cruiseShipB="+CruiseShips+" cruiseNames3D="+CruiseNames+" sunDeckLoungers="+CruiseLoungers);
         return placed;
     }
 }
