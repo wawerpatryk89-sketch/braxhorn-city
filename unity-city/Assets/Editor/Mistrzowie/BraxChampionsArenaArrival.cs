@@ -761,6 +761,7 @@ public static partial class BraxChampionsArenaArrival
         var roofGold=new FacadeBatch();
         var crownLight=new FacadeBatch();
         var columnUplights=new FacadeBatch();
+        var columnGold=new FacadeBatch();
         var upperCeilingHalo=new FacadeBatch();
 
         int actualFeatureColumns=0,skippedFeatureColumns=0,skippedDoorSegments=0;
@@ -791,9 +792,14 @@ public static partial class BraxChampionsArenaArrival
                     blackColumns.RoundedPrism(
                         mid+outward*.425f+Vector3.up*13.79f,
                         new Vector3(.85f,25.52f,2.20f),rotation,.10f,.08f,4,3);
+                    // owner 10.11 07:51 "te pionowe tak samo": a WIDE rounded gold strip on every column, a warm
+                    // LED line glowing in its middle (owner render)
+                    columnGold.CapsulePlaque(
+                        mid+outward*.877f+Vector3.up*13.79f,
+                        .070f,25.40f,.440f,.030f,rotation,8,4);
                     goldColumnInserts.CapsulePlaque(
-                        mid+outward*.861f+Vector3.up*13.79f,
-                        .038f,25.40f,.200f,.018f,rotation,8,4);
+                        mid+outward*.921f+Vector3.up*13.79f,
+                        .030f,25.20f,.120f,.012f,rotation,8,3);
                     // owner render: a warm in-ground uplight at the foot of every lit column
                     columnUplights.Beam(mid+outward*1.45f+Vector3.up*.19f,new Vector3(.34f,.05f,.34f),rotation);
                 }
@@ -890,12 +896,13 @@ public static partial class BraxChampionsArenaArrival
         // Owner render: the line on every black column is a glowing warm LED, not painted gold.
         goldColumnInserts.Emit(group,"ISSUE27_warm_LED_column_capsules_width0p12_projection0p03",ArenaLed(exterior));
         midBelt.Emit(group,"black_belt_360_owner_render_y7p60_to11p40",black);
-        beltGold.Emit(group,"ISSUE27_gold_belt_lines_front120mm_rest80mm",gold);
+        // 10.11: the thin lines are replaced by the owner render's wide rounded nosings (FacadeGoldTrims).
         roof.Emit(group,"PBR_roof_coping_preserved",exterior["roof"]);
         roofGold.Emit(group,"PBR_gold_roof_detail",gold);
         crownLight.Emit(group,"warm_roof_crown_LED_preserved",exterior["light"]);
         upperCeilingHalo.Emit(group,"upper_interior_elliptical_halo_preserved",exterior["light"]);
         columnUplights.Emit(group,"warm_column_foot_uplights_38",ArenaLed(exterior));
+        columnGold.Emit(group,"wide_rounded_gold_column_strips_38_w0p44",gold);
 
         // FINAL OWNER CORRECTION 8.11:
         // zero separate red geometry outside the original CHAMPION ARENA artwork.
@@ -905,6 +912,8 @@ public static partial class BraxChampionsArenaArrival
         // cassette canopy and its two round gold posts are replaced by the
         // render's gold cantilever canopy with the sign box standing on it.
         FrontGoldCanopy(group,exterior);
+        FacadeGoldTrims(group,exterior);
+        EntrancePortal(group,exterior);
 
         // ATHLETES NORTH portico is intentionally preserved unchanged.
         {
@@ -1073,7 +1082,7 @@ public static partial class BraxChampionsArenaArrival
         return b;
     }
 
-    static void PlacePremiumShrub(Transform parent,Vector3 nominal,float yaw,float nominalHeight)
+    static void PlacePremiumShrub(Transform parent,Vector3 nominal,float yaw,float nominalHeight,float baseY=.245f)
     {
         var source=AssetDatabase.LoadAssetAtPath<GameObject>(PremiumShrubSource);
         if(!source)
@@ -1094,7 +1103,7 @@ public static partial class BraxChampionsArenaArrival
         Physics.SyncTransforms();
         b=RendererBounds(go);
         // Put the visible bottom on the same arrival paving plane.
-        go.transform.position+=Vector3.up*(.245f*K-b.min.y);
+        go.transform.position+=Vector3.up*(baseY*K-b.min.y);
         foreach(var col in go.GetComponentsInChildren<Collider>(true))
             UnityEngine.Object.DestroyImmediate(col);
         foreach(var r in go.GetComponentsInChildren<Renderer>(true))
@@ -1118,6 +1127,21 @@ public static partial class BraxChampionsArenaArrival
             for(int i=-2;i<=2;i++)
                 PlacePremiumShrub(parent,new Vector3(x+i*1.85f,.25f,-61.7f),
                     side<0?12f:-12f,1.22f);
+        }
+        // Owner render (10.11 07:31 "ja ci zdjęcie dałem, tak wygląda"): a square black planter with a clipped shrub
+        // either side of the doors, just outside the rope line, gold rim, lit from the paving in front of it.
+        foreach(float side in new[]{-1f,1f})
+        {
+            float x=side*7.25f,z=-60.9f;
+            Box(parent,"A1 reference entrance | square black planter by the door",exterior["arena_black"],
+                new Vector3(x,.245f+.45f,z),new Vector3(1.05f,.90f,1.05f),true);
+            Box(parent,"A1 reference entrance | gold rim of the door planter",exterior["arena_gold"],
+                new Vector3(x,.245f+.915f,z),new Vector3(1.11f,.03f,1.11f),false);
+            Box(parent,"A1 reference entrance | soil of the door planter",exterior["dark_stone"],
+                new Vector3(x,.245f+.89f,z),new Vector3(.97f,.02f,.97f),false);
+            PlacePremiumShrub(parent,new Vector3(x,.25f,z),side<0?20f:-20f,1.10f,.245f+.88f);
+            Box(parent,"A1 reference entrance | door planter warm uplight",ArenaLed(exterior),
+                new Vector3(x,.255f,z-.82f),new Vector3(.26f,.012f,.26f),false);
         }
         // Owner render: warm in-ground uplights along the carpet approach and
         // in front of both planters (flush 30 x 30 cm, 1 cm proud, no collider).
@@ -1148,6 +1172,7 @@ public static partial class BraxChampionsArenaArrival
         // First: the lobby furniture, cases and runner are grounded on this finished floor.
         LobbyFloor(arenaRoot, exterior, LobbyFloorMaterial());
         LobbyCeiling(arenaRoot, exterior);
+        LobbyPendants(arenaRoot, exterior);
         var root = Group(arenaRoot, "A1 | arena entrance, parking, trophy and athlete facilities", Vector3.zero);
         var asphalt = BraxChampionsFoundation.SourceMaterial("arena_parking_asphalt", "clean_asphalt", 2.2f,
             new Color(.89f, .89f, .89f));

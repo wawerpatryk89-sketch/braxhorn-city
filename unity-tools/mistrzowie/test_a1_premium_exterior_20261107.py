@@ -65,8 +65,13 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         # Nominal estate dimensions; K is applied once in the mesh builder.
         # Owner render 9.11: one unbroken column plinth->roof, full-height gold.
         self.assertIn("new Vector3(.85f,25.52f,2.20f)", self.arrival)
-        # owner 10.11: the column line is a 20 cm warm LED (owner render), not a 12 cm gold strip
-        self.assertIn(".038f,25.40f,.200f,.018f", self.arrival)
+        # owner 10.11 07:51 "te pionowe tak samo": a 44 cm rounded gold strip with a warm LED line in it
+        self.assertIn(".070f,25.40f,.440f,.030f", self.arrival)
+        self.assertIn(".030f,25.20f,.120f,.012f", self.arrival)
+        front_cs = (ROOT / 'unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaFront.cs').read_text(encoding='utf-8')
+        self.assertIn("FacadeGoldTrims(group,exterior);", self.arrival)
+        self.assertIn("EntrancePortal(group,exterior);", self.arrival)
+        self.assertIn('"A1 owner render | rounded gold nosing over the belt"', front_cs)
         self.assertNotIn("new Vector3(.85f,9.82f,2.20f)", self.arrival)
         self.assertIn("rings.Add((back,bevel))", self.arrival)
         self.assertIn("bevel*Mathf.Cos(theta)", self.arrival)

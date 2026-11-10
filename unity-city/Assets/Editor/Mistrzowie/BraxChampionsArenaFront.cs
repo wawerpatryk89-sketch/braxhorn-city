@@ -198,6 +198,134 @@ public static partial class BraxChampionsArenaArrival
             " downlights="+lamps+" ledStrips="+lamps+" posts=0 gold_fascia=1.2m");
     }
 
+    // ---- Owner 10.11 07:50-07:51 on the render next to his photo: "w połowie ... złoty, okrągły detal wokół areny,
+    // a u ciebie nie widać nic", "detale mają być tak samo jak na moim zdjęciu: szerokie, zaokrąglone, te złote,
+    // w koło, te pionowe tak samo", "wejście ma być zaznaczone, że to jest wejście ... nic nie widać, wielka szyba".
+    // One smooth swept mesh per trim around the whole ellipse: rounded (bull-nose) gold profile, no end caps.
+    static void GoldSweep(Transform parent,string name,Material m,float y0,float height,float projection,float radius,
+        float baseOffset,int steps=360,int arc=5)
+    {
+        const float rx=96f,rz=59f;
+        float r=Mathf.Min(radius,Mathf.Min(projection,height*.5f)-.001f);
+        var prof=new List<Vector2>();var pn=new List<Vector2>();
+        prof.Add(new Vector2(0,0));pn.Add(new Vector2(0,-1));
+        for(int k=0;k<=arc;k++)
+        {
+            float a=Mathf.Lerp(-90f,0f,k/(float)arc)*Mathf.Deg2Rad;
+            prof.Add(new Vector2(projection-r+r*Mathf.Cos(a),r+r*Mathf.Sin(a)));pn.Add(new Vector2(Mathf.Cos(a),Mathf.Sin(a)));
+        }
+        for(int k=0;k<=arc;k++)
+        {
+            float a=Mathf.Lerp(0f,90f,k/(float)arc)*Mathf.Deg2Rad;
+            prof.Add(new Vector2(projection-r+r*Mathf.Cos(a),height-r+r*Mathf.Sin(a)));pn.Add(new Vector2(Mathf.Cos(a),Mathf.Sin(a)));
+        }
+        prof.Add(new Vector2(0,height));pn.Add(new Vector2(0,1));
+        int P=prof.Count;var v=new List<Vector3>();var n=new List<Vector3>();var uv=new List<Vector2>();var t=new List<int>();
+        for(int i=0;i<=steps;i++)
+        {
+            float a=2f*Mathf.PI*i/steps;
+            var p=new Vector3(rx*Mathf.Cos(a),0,rz*Mathf.Sin(a));
+            var o=new Vector3(p.x/(rx*rx),0,p.z/(rz*rz)).normalized;
+            for(int j=0;j<P;j++)
+            {
+                v.Add((p+o*(baseOffset+prof[j].x)+Vector3.up*(y0+prof[j].y))*K);
+                n.Add((o*pn[j].x+Vector3.up*pn[j].y).normalized);
+                uv.Add(new Vector2(i*.5f,j*.2f));
+            }
+        }
+        for(int i=0;i<steps;i++)for(int j=0;j<P-1;j++)
+        {
+            int a0=i*P+j,a1=(i+1)*P+j,b0=a0+1,b1=a1+1;
+            if(Vector3.Dot(Vector3.Cross(v[a1]-v[a0],v[b0]-v[a0]),n[a0]+n[b0])>=0){t.Add(a0);t.Add(a1);t.Add(b0);t.Add(b0);t.Add(a1);t.Add(b1);}
+            else{t.Add(a0);t.Add(b0);t.Add(a1);t.Add(b0);t.Add(b1);t.Add(a1);}
+        }
+        var mesh=new Mesh{name=name,indexFormat=v.Count>65535?UnityEngine.Rendering.IndexFormat.UInt32:UnityEngine.Rendering.IndexFormat.UInt16};
+        mesh.SetVertices(v);mesh.SetNormals(n);mesh.SetUVs(0,uv);mesh.SetTriangles(t,0);mesh.RecalculateTangents();mesh.RecalculateBounds();
+        AssetDatabase.CreateAsset(mesh,"Assets/PlayableGenerated/Mistrzowie/Buildings/Meshes/"+name.Replace(' ','_').Replace('|','_')+".asset");
+        var go=new GameObject(name);go.transform.SetParent(parent,false);
+        go.AddComponent<MeshFilter>().sharedMesh=mesh;
+        var r2=go.AddComponent<MeshRenderer>();r2.sharedMaterial=m;r2.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
+    }
+
+    // Owner render: a wide rounded gold nosing on both edges of the black belt and a gold crown under the roof
+    // coping, all the way round; a warm LED line glows under the belt's lower nosing.
+    static void FacadeGoldTrims(Transform group,Dictionary<string,Material> exterior)
+    {
+        var gold=exterior["arena_gold"];
+        const float belt=.23f;                                   // outer face of the black belt (radial from the glass)
+        GoldSweep(group,"A1 owner render | rounded gold nosing under the belt",gold,BeltBottom-.20f,.42f,.30f,.14f,belt);
+        GoldSweep(group,"A1 owner render | rounded gold nosing over the belt",gold,BeltTop-.22f,.42f,.30f,.14f,belt);
+        GoldSweep(group,"A1 owner render | warm LED line under the belt nosing",ArenaLed(exterior),BeltBottom-.25f,.05f,.26f,.02f,belt,360,1);
+        GoldSweep(group,"A1 owner render | rounded gold crown under the roof",gold,26.62f,.50f,.62f,.16f,0f);
+        Debug.Log("A1_OWNER_RENDER_GOLD_TRIMS belt=2x(0.42 high,0.30 proud,R0.14) crown=0.50x0.62 R0.16 steps=360 continuous=true");
+    }
+
+    // The entrance must read as the entrance: two black pylons from the paving to the canopy either side of the
+    // doors, each with a wide rounded gold strip and a warm LED line, a black head band with a gold nosing over the
+    // doors, and a lit gold ring hanging just inside the doors (owner render).
+    static void EntrancePortal(Transform group,Dictionary<string,Material> exterior)
+    {
+        var root=Group(group,"A1 PUBLIC ENTRANCE | owner render portal: black pylons, gold, lit ring",Vector3.zero);
+        var black=exterior["arena_black"];var gold=exterior["arena_gold"];var led=ArenaLed(exterior);
+        // back 24 cm inside the curved glazing line (glass z=-58.92 at x=5), front 1.10 m proud of the door line
+        const float glass=-59.04f,back=-58.80f,depth=1.10f,pw=1.15f,px=4.97f+pw*.5f,top=CanopyUnderside;
+        foreach(float s in new[]{-1f,1f})
+        {
+            float x=s*px,zf=glass-depth;
+            Box(root,"A1 entrance | black pylon",black,new Vector3(x,(.245f+top)*.5f,(back+zf)*.5f),new Vector3(pw,top-.245f,back-zf),true);
+            Box(root,"A1 entrance | wide gold strip on the pylon",gold,new Vector3(x,(.60f+top-.25f)*.5f,zf-.03f),new Vector3(.34f,top-.85f,.06f),false);
+            Box(root,"A1 entrance | warm LED line in the gold strip",led,new Vector3(x,(.60f+top-.25f)*.5f,zf-.065f),new Vector3(.10f,top-.95f,.02f),false);
+            Box(root,"A1 entrance | gold LED line on the door side of the pylon",led,
+                new Vector3(s*(px-pw*.5f)-s*.01f,(.60f+top-.25f)*.5f,glass-depth*.5f),new Vector3(.02f,top-.95f,.08f),false);
+        }
+        // head band over the doors (door opening is 4.5 m high, canopy soffit 6.2 m)
+        Box(root,"A1 entrance | black head band over the doors",black,new Vector3(0,(4.50f+top)*.5f,glass-.30f),new Vector3(2f*(px-pw*.5f),top-4.50f,.50f),true);
+        Box(root,"A1 entrance | gold nosing under the head band",gold,new Vector3(0,4.50f+.07f,glass-.58f),new Vector3(2f*(px-pw*.5f),.14f,.10f),false);
+        Box(root,"A1 entrance | warm LED line under the head band",led,new Vector3(0,4.50f-.012f,glass-.40f),new Vector3(2f*(px-pw*.5f)-.2f,.02f,.06f),false);
+        // Lit gold ring just inside the doors, hung from the lobby roof.
+        var ring=new FacadeBatch();var glow=new FacadeBatch();
+        const int parts=40;const float rr=2.6f,ry=5.6f,rz=-55.2f;
+        for(int i=0;i<parts;i++)
+        {
+            float a=2f*Mathf.PI*i/parts,b=2f*Mathf.PI*(i+1)/parts;
+            var p=new Vector3(rr*Mathf.Cos(a),0,rz+rr*Mathf.Sin(a));var q=new Vector3(rr*Mathf.Cos(b),0,rz+rr*Mathf.Sin(b));
+            var rot=Quaternion.LookRotation((q-p).normalized,Vector3.up);float len=Vector3.Distance(p,q)+.02f;
+            ring.Beam((p+q)*.5f+Vector3.up*ry,new Vector3(.18f,.22f,len),rot);
+            glow.Beam((p+q)*.5f+Vector3.up*(ry-.12f),new Vector3(.12f,.02f,len),rot);
+        }
+        ring.Emit(root,"A1_entrance_gold_ring_inside_doors",gold);
+        glow.Emit(root,"A1_entrance_gold_ring_LED",led);
+        foreach(float a in new[]{90f,210f,330f})
+        {
+            var p=new Vector3(rr*Mathf.Cos(a*Mathf.Deg2Rad),ry+.11f,rz+rr*Mathf.Sin(a*Mathf.Deg2Rad));
+            Box(root,"A1 entrance | ring suspension rod",gold,new Vector3(p.x,(p.y+LobbyCeilingY)*.5f,p.z),new Vector3(.02f,LobbyCeilingY-p.y,.02f),false);
+        }
+        Debug.Log("A1_ENTRANCE_PORTAL pylons=2 ("+pw+"x"+depth+"x"+top+") goldStrips=2 ledLines=5 headBand=true ring=r"+rr+"@"+ry);
+    }
+
+    // Owner render: through the upper glass the interior glows - rows of suspended warm linear lights in the lobby
+    // (y 19.5, between the lounge and the roof), following the glazing.
+    static void LobbyPendants(Transform arenaRoot,Dictionary<string,Material> exterior)
+    {
+        var root=Group(arenaRoot,"A1 LOBBY | suspended warm linear lights (seen through the upper glass)",Vector3.zero);
+        var led=ArenaLed(exterior);var black=exterior["arena_black"];
+        int n=0;
+        foreach(float z in new[]{-53.5f,-47.5f,-41.5f})
+        {
+            float w=96f*Mathf.Sqrt(Mathf.Max(0f,1f-z*z/(59f*59f)))-3f;
+            for(float x=-w;x<w-1f;x+=6f)
+            {
+                float x1=Mathf.Min(x+5.2f,w);
+                Box(root,"A1 LOBBY | linear pendant body",black,new Vector3((x+x1)*.5f,19.56f,z),new Vector3(x1-x,.10f,.22f),false);
+                Box(root,"A1 LOBBY | linear pendant warm diffuser",led,new Vector3((x+x1)*.5f,19.50f,z),new Vector3(x1-x-.04f,.02f,.18f),false);
+                foreach(float hx in new[]{x+.4f,x1-.4f})
+                    Box(root,"A1 LOBBY | pendant suspension cable",black,new Vector3(hx,(19.61f+LobbyCeilingY)*.5f,z),new Vector3(.012f,LobbyCeilingY-19.61f,.012f),false);
+                n++;
+            }
+        }
+        Debug.Log("A1_LOBBY_PENDANTS rows=3 y=19.5 pieces="+n);
+    }
+
     // ---- entrance lobby furniture behind the front glass (both sides) ----
     static float LobbyFloorY(Transform arenaRoot,float x,float z)
     {
@@ -363,9 +491,9 @@ public static partial class BraxChampionsArenaArrival
         // Owner 9.11 23:43: "Szyby miały być przyciemnione z zewnątrz"; 10.11 00:48: "Szyby LEKKO przyciemnione, nie
         // czarne" (.70 in APK 35 and .76/.90 on the renders all read as a black box). Owner render: lightly tinted,
         // reflective glass with the warm lit lobby clearly visible behind it. Panes are single-sided.
-        arenaGlass.SetColor("_Color",new Color(.50f,.57f,.63f,.45f));
+        arenaGlass.SetColor("_Color",new Color(.12f,.16f,.22f,.55f));
         arenaGlass.SetFloat("_Roughness",.04f);
-        arenaGlass.SetFloat("_ReflectionStrength",.85f);
+        arenaGlass.SetFloat("_ReflectionStrength",1f);
         AssetDatabase.CreateAsset(arenaGlass,"Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/A1_arena_smoked_glass.mat");
         int swapped=0;
         foreach(var r in arenaRoot.GetComponentsInChildren<Renderer>(true))
@@ -374,7 +502,7 @@ public static partial class BraxChampionsArenaArrival
             for(int i=0;i<mats.Length;i++)if(mats[i]==shared){mats[i]=arenaGlass;hit=true;swapped++;}
             if(hit)r.sharedMaterials=mats;
         }
-        Debug.Log("A1_SMOKED_GLASS uniform lower+upper panes="+swapped+" alpha=.45 light_blue_grey reflection=.85 doors=clear_glass_only");
+        Debug.Log("A1_SMOKED_GLASS uniform lower+upper panes="+swapped+" alpha=.55 smoked_blue reflection=1 doors=clear_glass_only");
         if(swapped==0)BraxBuildQuality.Warn("A1_SMOKED_GLASS_NOT_APPLIED: no facade_glass renderer under the arena");
     }
 }
