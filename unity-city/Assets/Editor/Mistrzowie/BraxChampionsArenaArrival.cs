@@ -244,18 +244,20 @@ public static partial class BraxChampionsArenaArrival
         // Wheelchair-friendly pedestrian connections from both side car parks
         // to the central public promenade, wholly behind the existing z=650 road.
         // The 5m cross-link is flat, unblocked and separate from vehicle aisles.
-        foreach (float sx in new[] { -34.5f, 34.5f })
+        // 10.11: the walk to the doors is 10 m (x +-5), the connectors meet its edge.
+        foreach (float sx in new[] { -33f, 33f })
             Box(parent, "Accessible parking-to-arena paved connector", curb,
-                new Vector3(sx, .18f, -79f), new Vector3(53f, .04f, 5f));
+                new Vector3(sx, .18f, -79f), new Vector3(56f, .04f, 5f));
         // Main spectator route stays permanently clear between parking and entrance.
-        // Connectors meet x=+-8 and the parking exit paths at x=+-61 exactly:
+        // Connectors meet x=+-5 and the parking exit paths at x=+-61 exactly:
         // no coplanar overlap rectangles.
         // Owner render: polished dark stone in front of the arena, not grey sidewalk pavers.
         var promenade=BraxChampionsFoundation.SourceMaterial("arena_promenade_polished_dark_granite","granite_tile_02",1.2f,new Color(.34f,.34f,.36f));
         promenade.SetFloat("_Roughness",.22f);
+        // Owner 10.11 08:36-08:38: the main entrance for people, 10 m between lawns (16 m with lines read as a road).
         Box(parent, "Arena public promenade", promenade,
-            new Vector3(0, .18f, -104f), new Vector3(16f, .04f, 58f));
-        for (float x = -7f; x <= 7f; x += 14f)
+            new Vector3(0, .18f, -104f), new Vector3(10f, .04f, 58f));
+        for (float x = -4.75f; x <= 4.75f; x += 9.5f)
             Box(parent, "Public path warm LED inlay line", arenaLed ? arenaLed : paint,      // owner render: lit lines lead to the door
                 new Vector3(x, .204f, -105.5f), new Vector3(.10f, .008f, 54f), false);
     }

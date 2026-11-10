@@ -177,15 +177,17 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('"Parking south end concrete curb"',self.arrival)
         self.assertIn('"Parking entrance flush trench drain"',self.arrival)
         self.assertIn('"Accessible parking curb ramp"',self.arrival)
-        self.assertIn('new Vector3(sx, .18f, -79f), new Vector3(53f, .04f, 5f)',self.arrival)
-        self.assertIn('new Vector3(0, .18f, -104f), new Vector3(16f, .04f, 58f)',self.arrival)
+        self.assertIn('new Vector3(sx, .18f, -79f), new Vector3(56f, .04f, 5f)',self.arrival)
+        # owner 10.11: the main pedestrian entrance is 10 m between lawns (16 m read as a road)
+        self.assertIn('new Vector3(0, .18f, -104f), new Vector3(10f, .04f, 58f)',self.arrival)
         self.assertIn('new Vector3(stallX, .242f, (a + b) / 2f)',self.arrival)
         # Connector x ranges: left -61..-8, right 8..61. Parking paths begin
         # exactly at +-61 and promenade edges are exactly +-8.
-        self.assertAlmostEqual(-34.5-53/2,-61)
-        self.assertAlmostEqual(-34.5+53/2,-8)
-        self.assertAlmostEqual(34.5-53/2,8)
-        self.assertAlmostEqual(34.5+53/2,61)
+        # owner 10.11: connectors meet the 10 m entrance walk at x=+-5 and the parking exits at x=+-61
+        self.assertAlmostEqual(-33-56/2,-61)
+        self.assertAlmostEqual(-33+56/2,-5)
+        self.assertAlmostEqual(33-56/2,5)
+        self.assertAlmostEqual(33+56/2,61)
 
     def test_reference_entrance_landscaping_uses_real_project_asset(self):
         self.assertIn('PremiumShrubSource = "Assets/Source/CityRebuild/landscape/park_shrub.glb"', self.arrival)

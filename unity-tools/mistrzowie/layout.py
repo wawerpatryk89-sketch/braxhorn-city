@@ -57,7 +57,9 @@ METRO_TRACK_OFFSET=7.6/K
 TRAM_TRACK_OFFSET=3.0
 GAUGE=1.435
 # Ground-level approaches to the first two finished exterior plots. No paving in tree beds.
-BUILDING_ACCESS=[(585,667,30,58),(817,805,8,20),(710,790,73,12)]
+# Owner 10.11 08:36 ("tam gdzie są palmy, nie lepiej trawnik? to wejście dla ludzi, nie dla samochodu"): the A1 walk
+# from the Z650 sidewalk to the doors is a 10 m pedestrian boulevard (was 30 m of paving that read as a road); lawn either side.
+BUILDING_ACCESS=[(595,667,10,58),(817,805,8,20),(710,790,73,12)]
 # A1 side car parks are centred at world X535/X665. Their 6.4m vehicle lanes
 # must cross ONLY the north sidewalk of Z650 (world z660..667). These two
 # rectangles are cut out of foundation paving and replaced by graded asphalt

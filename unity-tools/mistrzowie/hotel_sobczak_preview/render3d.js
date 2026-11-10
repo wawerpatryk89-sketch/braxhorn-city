@@ -9,6 +9,11 @@ const PALMS_ON = process.env.PREVIEW_PALMS === '1';
 // PREVIEW_PALM_GLB=<path under the models dir>: the owner's own palm pack (meshopt + KTX2 glTF) drawn at every
 // palm the generator places - the real model, never a stand-in.
 const PALM_GLB = process.env.PREVIEW_PALM_GLB || '';
+// PREVIEW_GROUND_TEX=<texture slug in the textures dir>: the ground plane is that real map (e.g. the region's Grass004
+// lawn) instead of flat grey; PREVIEW_GROUND_BANDS=JSON [[x0,x1,z0,z1,tex,tileMetres],..] draws the region's roads and
+// sidewalks over it (Unity coordinates, nominal metres).
+const GROUND_TEX = process.env.PREVIEW_GROUND_TEX || '';
+const GROUND_BANDS = process.env.PREVIEW_GROUND_BANDS || '[]';
 const html = `<!doctype html><html><body style="margin:0;background:#9fc2e5">
 <script type="importmap">{"imports":{"three":"http://preview.local/three/build/three.module.js","three/addons/":"http://preview.local/three/examples/jsm/"}}</script>
 <script type="module">
@@ -16,7 +21,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};
+const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};
 async function bin(n){const r=await fetch('http://preview.local/bin/'+n);return new Float32Array(await r.arrayBuffer());}
 const tl=new THREE.TextureLoader();
 function tex(url,srgb){return new Promise(res=>tl.load(url,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(srgb)t.colorSpace=THREE.SRGBColorSpace;res(t);},undefined,()=>res(null)));}
@@ -65,8 +70,13 @@ window.setup=async function(w,h){
     const mat=new THREE.MeshStandardMaterial(p);cityAmbient(mat,m.ambient);
     S.add(new THREE.Mesh(g,mat));
   }
-  if(scene.ground!=null){const gm=new THREE.MeshStandardMaterial({color:S2L([.36,.37,.38]),roughness:.9});cityAmbient(gm);
-    const gp=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600),gm);gp.rotation.x=-Math.PI/2;gp.position.y=scene.ground;S.add(gp);}
+  if(scene.ground!=null){const gm=new THREE.MeshStandardMaterial({color:S2L([.36,.37,.38]),roughness:.9});
+    if(GROUND_TEX){const t=await tex('http://preview.local/tex/'+GROUND_TEX+'_diff_1k.jpg',true);if(t){t.repeat.set(1600/1.4,1600/1.4);gm.map=t;gm.color=new THREE.Color(1,1,1);}}
+    cityAmbient(gm);
+    const gp=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600),gm);gp.rotation.x=-Math.PI/2;gp.position.y=scene.ground;S.add(gp);
+    for(const b of GROUND_BANDS){const w=b[1]-b[0],d=b[3]-b[2];const bm=new THREE.MeshStandardMaterial({roughness:.9});
+      const t=await tex('http://preview.local/tex/'+b[4]+'_diff_1k.jpg',true);if(t){t.repeat.set(w/b[5],d/b[5]);bm.map=t;}cityAmbient(bm);
+      const bp=new THREE.Mesh(new THREE.PlaneGeometry(w,d),bm);bp.rotation.x=-Math.PI/2;bp.position.set((b[0]+b[1])/2,scene.ground+.02,-(b[2]+b[3])/2);S.add(bp);}}
   // glTF models use glTFast's shader in Unity: RenderSettings trilight ambient (BraxChampionsExplorer), not CityStaticPBR's
   const loader=new GLTFLoader();const cache={};
   for(const mo of scene.models){
