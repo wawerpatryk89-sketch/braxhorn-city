@@ -20,7 +20,7 @@ public static partial class BraxClaudeOsiedle
     public static void RuchMiastaB(Transform cityRoot)
     {
         var repPrev = rep; var rootPrev = root; var colPrev = colliders; var groupPrev = group;
-        float rpPrev = BraxTrasyAut.RondoPromien, rjPrev = BraxTrasyAut.RondoJezdnia;
+        float rpPrev = BraxTrasyAut.RondoPromien, rjPrev = BraxTrasyAut.RondoJezdnia; var lukPrev = BraxTrasyAut.OdsuniecieZebr;
         try
         {
             Directory.CreateDirectory(Out); AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
@@ -51,7 +51,7 @@ public static partial class BraxClaudeOsiedle
         finally
         {
             rep = repPrev; root = rootPrev; colliders = colPrev; group = groupPrev;
-            BraxTrasyAut.RondoPromien = rpPrev; BraxTrasyAut.RondoJezdnia = rjPrev;
+            BraxTrasyAut.RondoPromien = rpPrev; BraxTrasyAut.RondoJezdnia = rjPrev; BraxTrasyAut.OdsuniecieZebr = lukPrev;
             groups.Clear();
         }
     }
@@ -250,6 +250,9 @@ public static partial class BraxClaudeOsiedle
         }
         // rondo miasta: tor jazdy w osi pierścienia (7.5…14.5 m → 11 m), krawędź zewnętrzna 14.5 m (obie pętle ronda tej samej wielkości)
         BraxTrasyAut.RondoPromien = (BraxRegionMiastoB.RWyspa + BraxRegionMiastoB.RJezdnia) * .5f; BraxTrasyAut.RondoJezdnia = BraxRegionMiastoB.RJezdnia;
+        // 10.11: narożniki łukiem — zebry za łukiem, linia zatrzymania przed zebrą przesunięta o tyle samo (BraxRegionMiastoBLuki)
+        BraxRegionMiastoB.LukiPlanJesliPusty();
+        BraxTrasyAut.OdsuniecieZebr = c => BraxRegionMiastoB.OdsuniecieZebry(c);
         var wy = BraxTrasyAut.Generuj(ul, wz, defs);
         foreach (var l in wy.log) rep.notes.Add("trasy: " + l);
         if (wy.trasy.Count == 0) { rep.notes.Add("DO POPRAWKI: brak tras aut w mieście"); return; }
@@ -366,6 +369,10 @@ public static partial class BraxClaudeOsiedle
         var st = new BraxRuchAutSym(ra.punkty, ra.trasy, ra.zdarzenia, ra.wezly, ra.ziarno, szerMax, dlMax);
         foreach (var a in auta) st.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax);
         st.UstawStart();
+        // 10.11 (właściciel: „te auta przez to się korkują”): każde zakleszczenie z miejscem, trasą i czołem kolejki w logu —
+        // naprawa dróg po dowodach, nie na ślepo (pierwsze 40 wpisów).
+        int opisane = 0;
+        st.naZakleszczenie = o => { if (++opisane <= 40) Debug.Log("BRAXHORN_RUCH_MIASTO_B_ZAKLESZCZENIE " + o); };
         var wt = st.Test(600f, .1f, p => BraxRegionMiastoB.NaJezdni(p));
         Debug.Log("BRAXHORN_RUCH_MIASTO_B aut=" + auta.Count + " (taksówek " + taksowki + ") tras=" + wy.trasy.Count + " test 600 s: zakleszczenia=" + wt.zakleszczenia + " nachodzenia=" + wt.nachodzenia +
                   " poza_droga=" + wt.pozaDroga + " przejazdy skrzyżowań=" + wt.przejazdyWezlow + " śr. prędkość " + (wt.sredniaV * 3.6f).ToString("F0") + " km/h");

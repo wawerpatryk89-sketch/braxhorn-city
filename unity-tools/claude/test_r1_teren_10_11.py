@@ -323,8 +323,19 @@ class MigotanieSkaner(unittest.TestCase):
         self.assertIn("b0 = Mathf.Max(b0, a0 + .45f * K + .003f); b1 = Mathf.Min(b1, a1 - .45f * K - .003f);", TYLYB)
 
     def test_plaza_curb_above_paving(self):
-        self.assertEqual(MIASTOB.count("YC + .025f); }"), 2)
+        # krawężnik pierścienia, krawężniki wzdłuż wlotów i łuków wlotów (10.11) — wszystkie 2,5 cm nad płytami placu
+        self.assertIn("KlinGora(kraw, c + d * l.a + nn * h, c + d * S + nn * h, c + d * S + nn * (h + Kr), c + d * l.a + nn * (h + Kr), YC + .025f);", MIASTOB)
+        self.assertIn("KlinGora(kraw, zw[i], zw[i + 1], wew[i + 1], wew[i], YC + .025f);", MIASTOB)
         self.assertIn("KlinGora(kraw, c + u0 * R, c + u1 * R, c + u1 * Ro, c + u0 * Ro, YC + .025f);", MIASTOB)
+
+
+class WejscieSupermarketu(unittest.TestCase):
+    """Właściciel 10.11 13:17: wejście do sklepu i wycięte drzewa — całe dojście od parkingu do drzwi."""
+
+    def test_entrance_corridor_to_parking(self):
+        sm = src(R / "BraxSupermarket.cs")
+        self.assertIn("Mathf.Abs(q.x-entryX) < doorWidth*.5f+.8f && q.z > -14f && q.z < 2f;", sm)
+        self.assertIn("float z=Mathf.Lerp(-13.5f,3.5f,i/11f);", sm)
 
 
 if __name__ == "__main__":

@@ -31,8 +31,12 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     public const float AN1 = 96f;                          // koniec 1. kwartału Alei Północnej (dalej pętla)
     public const float PetlaZ = 104f, PetlaR = RJezdnia, PetlaWyspa = RWyspa, PetlaPlac = RPlac;   // pętla = rondo tej samej wielkości (zawracanie aut i autobusu)
     public const float AS1 = -84f;                         // portal tunelu (wyjazd na osiedle)
-    public const float WX = -66.2f, WH = 3f;               // ul. Wiaduktowa
-    public const float SZ = -19f, SH = 3f, SX1 = -61.4f;   // ul. Warsztatowa
+    // 10.11 (właściciel: „auta się korkują”; test ruchu: Wiaduktowa 4,6 m w obie strony = zakleszczenia): jezdnia 2 × 2,9 m × K,
+    // oś 0,7 m na zachód — miejsce z bocznej ściany WARSZTATU (BraxCityArchitecture „workshop” x1 −71 → −72.5), plac wieżowców bez zmian
+    public const float WX = -66.9f, WH = 3.75f;            // ul. Wiaduktowa
+    public const float WiaduktowaLicoZach = -72.45f;       // zach. krawędź chodnika Wiaduktowej (ściana WARSZTATU −72.5)
+    public const float SZ = -19f, SH = 3.75f, SX1 = -61.4f;   // ul. Warsztatowa (10.11: jezdnia 2 × 2,9 m × K, była 4,6 m na oba kierunki)
+    public const float WarsztatowaLukZew = 7f;                // łuk zewnętrzny zakrętu Warsztatowa → Wiaduktowa (≈ 5,4 m)
     public const float GZ = 28.5f, GH = 4.5f;              // ulica główna
     const float YA = .003f, YC = .15f;
     static readonly float[] WlotyRonda = { 0f, 90f, 180f, 270f };   // kąty wlotów ronda (0 = +x E, 90 = +z N, 180 = −x W, 270 = −z S)
@@ -86,13 +90,13 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         if (float.IsNegativeInfinity(best)) { bezPodloza++; if (bezPodloza <= 6) Debug.LogWarning("BRAXHORN_MIASTO_B brak nawierzchni pod (" + x.ToString("0.0") + ", " + z.ToString("0.0") + ") — wysokość domyślna " + dom); return dom; }
         return best;
     }
-    static Vector3 NaPodlozu(Vector3 p) { p.y = Podloze(p.x, p.z, p.y); return p; }
+    static Vector3 NaPodlozu(Vector3 p) { p = PozaLukiem(p); p.y = Podloze(p.x, p.z, p.y); return p; }
     static void Wyposazenie()
     {
         Physics.SyncTransforms();
         int ok = 0;
         foreach (var (co, a) in wyposazenie) { try { a(); ok++; } catch (Exception e) { Debug.LogError("BRAXHORN_MIASTO_B wyposażenie " + co + ": " + e); } }
-        BraxRegion.Note("miasto B: wyposażenie na podłożu " + ok + "/" + wyposazenie.Count + ", bez nawierzchni pod spodem: " + bezPodloza);
+        BraxRegion.Note("miasto B: wyposażenie na podłożu " + ok + "/" + wyposazenie.Count + ", bez nawierzchni pod spodem: " + bezPodloza + ", przesunięte z asfaltu łuków na chodnik: " + lukiPrzesuniete);
         wyposazenie.Clear();
     }
 
@@ -106,6 +110,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         // KOLEJNOŚĆ JAK NA BUDOWIE (właściciel 16:04): 1) teren i nawierzchnie (grunt → jezdnia → krawężnik → chodnik → oznakowanie
         // w nawierzchni), 2) budynki, 3) wyposażenie ulicy (drzewa, latarnie, ławki, słupki, znaki, sygnalizacja, przystanek) —
         // każdy element postawiony na GOTOWYM podłożu (wysokość z promienia w dół na nawierzchnię), 4) ruch (krok osobny, później).
+        Krok("1. plan łuków narożników skrzyżowań (zaokrąglone krawężniki)", LukiPlan);
         Krok("1. nawierzchnie: rondo (pierścień, wyspa, chodniki)", Rondo);
         Krok("1. nawierzchnie: Aleja Północna i pętla", AlejaPolnocna);
         Krok("1. nawierzchnie: Aleja Południowa do tunelu", AlejaPoludniowa);
@@ -165,7 +170,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         yield return Bx(-270f, -104.3f, -3f, 140f, -100f, 128f);        // rondo, aleje, pierzeje alej, wyjazd na osiedle, ul. Zachodnia (ETAP 2)
         yield return Bx(-104.3f, -71.3f, -3f, 140f, -100f, 11.3f);      // za pierzeją płd. ulicy głównej: warsztaty, plac ustawek
         yield return Bx(-104.3f, -61.7f, -3f, 140f, 48.3f, 128f);       // za pierzeją płn.: skwer (dawny teren pod wiaduktem)
-        yield return Bx(-70.95f, -61.45f, -3f, 3f, -100f, 20.55f);      // korytarz dawnego wiaduktu na płd. (ul. Wiaduktowa) — tylko grunt (y < 3)
+        yield return Bx(WiaduktowaLicoZach, -61.45f, -3f, 3f, -100f, 20.55f);   // korytarz dawnego wiaduktu na płd. (ul. Wiaduktowa) — tylko grunt (y < 3)
         yield return Bx(-70.95f, -61.45f, -3f, 3f, 36.2f, 48.3f);       // przejście pod dawnym wiaduktem na płn. — tylko grunt
         yield return Bx(-61.7f, -48.3f, -3f, 3f, 48.3f, 126f);          // skwer wsch. (do x −48, przed podwórkiem A) — tylko grunt
     }
@@ -301,6 +306,22 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     static void Plyta(string n, Material m, float x0, float x1, float z0, float z1, float top, float grub = .3f, bool kolizja = true)
     {
         if (x1 - x0 < .01f || z1 - z0 < .01f) return;
+        if (Luki.Count > 0)
+        {
+            // 10.11: narożniki skrzyżowań łukiem — w kwadracie narożnika płyta tylko wewnątrz łuku (BraxRegionMiastoBLuki)
+            var reszta = BezNaroznikow(Rect.MinMaxRect(x0, z0, x1, z1), out var wN);
+            if (wN != null)
+            {
+                foreach (var r in reszta) PlytaProsta(n, m, r.xMin, r.xMax, r.yMin, r.yMax, top, grub, kolizja);
+                PlytaWLukach(n, m, wN, top, grub, kolizja);
+                return;
+            }
+        }
+        PlytaProsta(n, m, x0, x1, z0, z1, top, grub, kolizja);
+    }
+    static void PlytaProsta(string n, Material m, float x0, float x1, float z0, float z1, float top, float grub, bool kolizja)
+    {
+        if (x1 - x0 < .01f || z1 - z0 < .01f) return;
         var b = new BraxRegionMeble.Bud(); b.MinMax(new Vector3(x0, top - grub, z0), new Vector3(x1, top, z1));
         b.Obiekt(n, root, m, false, false);
         if (kolizja) Nawierzchnia(BraxRegionMeble.Kolizja(root, n + " kolizja", new Vector3((x0 + x1) * .5f, top - grub * .5f, (z0 + z1) * .5f), new Vector3(x1 - x0, grub, z1 - z0)));
@@ -397,6 +418,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             var rr = r; rr.xMin -= .3f; rr.yMin -= .3f; rr.xMax += .3f; rr.yMax += .3f; if (rr.Contains(q)) return true;
         }
         if (Rect.MinMaxRect(-104.5f, 23.7f, 66f, 33.3f).Contains(q)) return true;
+        if (WLukuAsfalt(q, .3f)) return true;   // asfalt narożników łukiem
         foreach (var c in new[] { new Vector2(RX, RZ), new Vector2(AX, PetlaZ), new Vector2(PetlaZX, RZ) }) { float d = Vector2.Distance(q, c); if (d >= RWyspa - .3f && d <= RJezdnia + .3f) return true; }
         // wloty w kwadratach placów (od pierścienia do krawędzi placu, pół jezdni + 0.3 m)
         foreach (var (c, kat, hj) in WlotyPlacow())
@@ -437,6 +459,28 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     }
     static void ChodnikR(string n, Rect r) => Chodnik(n, r.xMin, r.xMax, r.yMin, r.yMax);
     static void Trawa(string n, float x0, float x1, float z0, float z1, bool laka = false)
+    {
+        if (Luki.Count > 0)
+        {
+            // 10.11: trawnik w kwadracie narożnika — cały wewnątrz łuku zostaje trawnikiem, przecięty łukiem staje się chodnikiem
+            var reszta = BezNaroznikow(Rect.MinMaxRect(x0, z0, x1, z1), out var wN);
+            if (wN != null)
+            {
+                // wąskie paski po przycięciu (< 0,6 m — trawnik ich nie kładzie) dostają płyty, żeby nie było dziur w terenie
+                foreach (var r in reszta)
+                    if (r.width < .6f || r.height < .6f) PlytaProsta("Chodnik: " + n + " (pasek przy łuku)", plyty, r.xMin, r.xMax, r.yMin, r.yMax, YC, .3f - YA, true);
+                    else TrawaProsta(n, r.xMin, r.xMax, r.yMin, r.yMax, laka);
+                foreach (var (L, w) in wN)
+                {
+                    if (CalyWKole(w, L, L.R - Kr) && w.width >= .6f && w.height >= .6f) TrawaProsta(n, w.xMin, w.xMax, w.yMin, w.yMax, laka);
+                    else PlytaWielokat("Chodnik: " + n + " (łuk narożnika)", plyty, WKole(w, L, L.R - Kr), YC, .3f - YA, true);
+                }
+                return;
+            }
+        }
+        TrawaProsta(n, x0, x1, z0, z1, laka);
+    }
+    static void TrawaProsta(string n, float x0, float x1, float z0, float z1, bool laka)
     {
         if (x1 - x0 < .6f || z1 - z0 < .6f) return;
         Nawierzchnia(BraxRegionTrawa.Trawnik(root, n, Rect.MinMaxRect(x0, z0, x1, z1), YC - .03f, null, true, true, laka));
@@ -613,15 +657,25 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             Vector2 A_out = c + dA * S + nA * oA, A_in = c + dA * tA + nA * oA;
             Vector2 B_in = c + dB * tB + nB * oB, B_out = c + dB * S + nB * oB;
             Vector2 rog = c + dA * S + nA * S;
-            float k0 = Mathf.Atan2(A_in.y - c.y, A_in.x - c.x), k1 = Mathf.Atan2(B_in.y - c.y, B_in.x - c.x);
+            // 10.11 (właściciel: „zaokrąglone zakręty” — także wjazdy na rondo): styk prostej krawędzi wlotu z pierścieniem łukiem
+            // (okrąg styczny do krawędzi jezdni wlotu i zewnętrznie do pierścienia). Pod chodnikiem placu leży już asfalt (cały plac
+            // jest zarejestrowany jako jezdnia) — łuk tylko cofa chodnik i krawężnik.
+            var lA = gA.wlot ? LukWlotu(c, dA, nA, Mathf.Abs(oA) - Kr, R, S) : null;
+            var lB = gB.wlot ? LukWlotu(c, dB, nB, Mathf.Abs(oB) - Kr, R, S) : null;
+            Vector2 T2A = lA != null ? c + (lA.Cf - c) * (Ro / (R + lA.rf)) : A_in, T2B = lB != null ? c + (lB.Cf - c) * (Ro / (R + lB.rf)) : B_in;
+            float k0 = Mathf.Atan2(T2A.y - c.y, T2A.x - c.x), k1 = Mathf.Atan2(T2B.y - c.y, T2B.x - c.x);
             while (k1 < k0) k1 += Mathf.PI * 2f;
-            var obrys = new List<Vector2> { A_out, A_in };
+            var obrys = new List<Vector2> { A_out };
+            if (lA != null) { obrys.Add(c + dA * lA.a + nA * oA); obrys.AddRange(LukPunkty(lA.Cf, lA.rf - Kr, -nA, (c - lA.Cf).normalized, 10)); }
+            obrys.Add(T2A);
             int segs = Mathf.Max(4, Mathf.CeilToInt((k1 - k0) / (2.5f * Mathf.Deg2Rad)));
             for (int i = 1; i < segs; i++) { float t = Mathf.Lerp(k0, k1, i / (float)segs); obrys.Add(c + new Vector2(Mathf.Cos(t), Mathf.Sin(t)) * Ro); }
-            obrys.Add(B_in); obrys.Add(B_out);
+            obrys.Add(T2B);
+            if (lB != null) { obrys.AddRange(LukPunkty(lB.Cf, lB.rf - Kr, (c - lB.Cf).normalized, -nB, 10)); obrys.Add(c + dB * lB.a + nB * oB); }
+            obrys.Add(B_out);
             // WŁAŚCICIEL 3.11 10:58 („rondo okrągłe, ale za nim kwadrat”): zamiast kwadratu z płyt — chodnik 4.5 m po okręgu
-            // (i 3 m wzdłuż wlotów), a narożnik placu trawnikiem (3 cm niżej, jak wyspa ronda). Pas chodnika: pasy czworokątów
-            // między obrysem pierścienia a łukiem R + 4.5 m; trawnik: wachlarz od narożnika do łuku.
+            // (i 3 m wzdłuż wlotów), a narożnik placu trawnikiem (3 cm niżej, jak wyspa ronda). Pas chodnika: wielokąt między obrysem
+            // (pierścień z łukami wlotów) a łukiem R + 4.5 m, z trójkątów (ucho po uchu); trawnik: wachlarz od narożnika do łuku.
             {
                 const float Pas = 4.5f, Wzdl = 3f;
                 float oA2 = oA + (gA.wlot ? Wzdl : 0f), oB2 = oB + (gB.wlot ? Wzdl : 0f), Rb = Ro + Pas;
@@ -630,17 +684,25 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
                 Vector2 A_o2 = c + dA * S + nA * oA2, B_o2 = c + dB * S + nB * oB2;
                 float q0 = Mathf.Atan2(A_c.y - c.y, A_c.x - c.x), q1 = Mathf.Atan2(B_c.y - c.y, B_c.x - c.x);
                 while (q1 < q0) q1 += Mathf.PI * 2f;
+                int segZ = Mathf.Max(4, Mathf.CeilToInt((q1 - q0) / (2.5f * Mathf.Deg2Rad)));
                 var zew = new List<Vector2> { A_o2, A_c };
-                for (int i = 1; i < segs; i++) { float t = Mathf.Lerp(q0, q1, i / (float)segs); zew.Add(c + new Vector2(Mathf.Cos(t), Mathf.Sin(t)) * Rb); }
+                for (int i = 1; i < segZ; i++) { float t = Mathf.Lerp(q0, q1, i / (float)segZ); zew.Add(c + new Vector2(Mathf.Cos(t), Mathf.Sin(t)) * Rb); }
                 zew.Add(B_c); zew.Add(B_o2);
-                for (int i = 0; i + 1 < obrys.Count; i++)
-                {
-                    TrojkatGora(plyta, zew[i], obrys[i], obrys[i + 1], YC);          // ściana od jezdni (krawędź obrysu)
-                    TrojkatGora(plyta, obrys[i + 1], zew[i + 1], zew[i], YC);        // ściana od trawnika (krawędź łuku)
-                }
+                var pas = new List<Vector2>(zew); for (int i = obrys.Count - 1; i >= 0; i--) pas.Add(obrys[i]);
+                var tri = TriangulacjaUszu(pas);
+                if (tri == null) Debug.LogWarning("BRAXHORN_MIASTO_B_LUKI chodnik placu " + n + ": wielokąt bez triangulacji (ćwiartka " + k + ")");
+                else for (int i = 0; i + 2 < tri.Count; i += 3) TrojkatTrawa(plyta, tri[i], tri[i + 1], tri[i + 2], YC);
+                // ściany boczne pasa: od jezdni (obrys) i od trawnika (łuk zewnętrzny)
+                foreach (var linia in new[] { obrys, zew })
+                    for (int i = 0; i + 1 < linia.Count; i++)
+                    {
+                        Vector3 P = new Vector3(linia[i].x, YC, linia[i].y), Q = new Vector3(linia[i + 1].x, YC, linia[i + 1].y);
+                        Vector3 P0 = new Vector3(P.x, YC - .3f, P.z), Q0 = new Vector3(Q.x, YC - .3f, Q.z);
+                        if ((Q - P).sqrMagnitude > 1e-8f) { plyta.Quad(P, Q, Q0, P0); plyta.Quad(Q, P, P0, Q0); }
+                    }
                 for (int i = 0; i + 1 < zew.Count; i++) TrojkatTrawa(trawnik, rog, zew[i], zew[i + 1], YC - .03f);
             }
-            // krawężnik: łuk R…R+Kr i (dla wlotów) linie wzdłuż jezdni wlotu od pierścienia do brzegu placu
+            // krawężnik: łuk R…R+Kr między łukami wlotów i (dla wlotów) linie wzdłuż jezdni wlotu od łuku do brzegu placu
             for (int i = 0; i < segs; i++)
             {
                 float t0 = Mathf.Lerp(k0, k1, i / (float)segs), t1 = Mathf.Lerp(k0, k1, (i + 1) / (float)segs);
@@ -648,8 +710,18 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
                 // 10.11 (skaner APK 9.11: „Plac: chodnik pętla ZACHÓD ↔ krawężnik 0.0 cm, 57 m²”): wierzch krawężnika 2.5 cm nad płytami
                 KlinGora(kraw, c + u0 * R, c + u1 * R, c + u1 * Ro, c + u0 * Ro, YC + .025f);
             }
-            if (gA.wlot) { float tr = Mathf.Sqrt(Mathf.Max(0f, R * R - (Mathf.Abs(oA) - Kr) * (Mathf.Abs(oA) - Kr))); KlinGora(kraw, c + dA * tr + nA * (oA - Mathf.Sign(oA) * Kr), c + dA * S + nA * (oA - Mathf.Sign(oA) * Kr), c + dA * S + nA * oA, c + dA * tA + nA * oA, YC + .025f); }
-            if (gB.wlot) { float tr = Mathf.Sqrt(Mathf.Max(0f, R * R - (Mathf.Abs(oB) - Kr) * (Mathf.Abs(oB) - Kr))); KlinGora(kraw, c + dB * tB + nB * oB, c + dB * S + nB * oB, c + dB * S + nB * (oB - Mathf.Sign(oB) * Kr), c + dB * tr + nB * (oB - Mathf.Sign(oB) * Kr), YC + .025f); }
+            foreach (var (l, d, nn, o) in new[] { (lA, dA, nA, oA), (lB, dB, nB, oB) })
+            {
+                if (l == null) continue;
+                float h = Mathf.Abs(o) - Kr;
+                KlinGora(kraw, c + d * l.a + nn * h, c + d * S + nn * h, c + d * S + nn * (h + Kr), c + d * l.a + nn * (h + Kr), YC + .025f);
+                // krawężnik łuku wlotu: pierścień rf − Kr … rf wokół środka łuku
+                var wew = LukPunkty(l.Cf, l.rf - Kr, -nn, (c - l.Cf).normalized, 10); var zw = LukPunkty(l.Cf, l.rf, -nn, (c - l.Cf).normalized, 10);
+                wew.Insert(0, l.Cf - nn * (l.rf - Kr)); wew.Add(l.Cf + (c - l.Cf).normalized * (l.rf - Kr));
+                zw.Insert(0, l.Cf - nn * l.rf); zw.Add(l.Cf + (c - l.Cf).normalized * l.rf);
+                for (int i = 0; i + 1 < wew.Count; i++) KlinGora(kraw, zw[i], zw[i + 1], wew[i + 1], wew[i], YC + .025f);
+                lukiWlotow++;
+            }
         }
         Nawierzchnia(plyta.Obiekt("Plac: chodnik " + n, root, plyty, true, false));
         { var gt = trawnik.Obiekt("Plac: trawnik narożników " + n, root, BraxRegionTrawa.Material, true, false); if (gt) { foreach (var r in gt.GetComponentsInChildren<MeshRenderer>(true)) r.shadowCastingMode = ShadowCastingMode.Off; Nawierzchnia(gt); } }
@@ -734,7 +806,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     {
         float z0 = RZ + RPlac;                // 50.5
         float z1 = PetlaZ - PetlaPlac;        // 95
-        PrzekrojZ("Aleja Północna", AX, AH, Ziel, Chod, z0, z1, true, (z0, z0 + 6f), (z1 - 6f, z1));
+        PrzekrojZ("Aleja Północna", AX, AH, Ziel, Chod, z0, z1, true, (z0, z0 + 6f), (z1 - ZebraParkingu - 2f * K - 1f, z1));   // przejście przez zieleń przy zebrze parkingu
         // WŁAŚCICIEL 7.11: zamiast ronda PÓŁNOC przy SUPERMARKET
         // BRAXHORN (sklep #1 x=-120,z=132) — prawdziwy parking.
         // Rondo z drzewem i jego kolizjami NIE powstaje.
@@ -773,18 +845,24 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     static void AlejaPoludniowa()
     {
         float z1 = RZ - RPlac;    // 6.5
-        float zW0 = SZ - SH - Kr - 2.5f, zW1 = SZ + SH + Kr + 2.5f;   // wylot ul. Warsztatowej z chodnikami: −24.75 … −13.25
-        // od ronda do Warsztatowej (z −13.25 … 6.5) i od Warsztatowej do tunelu (z −84 … −24.75)
-        PrzekrojZ("Aleja Południowa", AX, AH, Ziel, Chod, zW1, z1, true, (z1 - 6f, z1), (zW1, zW1 + 4.5f));
+        float zW0 = SZ - SH - Kr - 2.5f, zW1 = SZ + SH + Kr + 2.5f;   // wylot ul. Warsztatowej z chodnikami: −25.5 … −12.5
+        // 10.11: zebry alei przy Warsztatowej stoją za łukami narożników — przejście przez pas zieleni na całej ich szerokości
+        float zebraDo = SH + Kr + .6f + Mathf.Max(0f, RLuku - ZebraPrzedLukiem) + 4f * K + .5f;
+        // od ronda do Warsztatowej (z −12.5 … 6.5) i od Warsztatowej do tunelu (z −84 … −25.5)
+        PrzekrojZ("Aleja Południowa", AX, AH, Ziel, Chod, zW1, z1, true, (z1 - 6f, z1), (zW1, Mathf.Max(zW1 + 4.5f, SZ + zebraDo)));
         Asfalt("tunel", AX - 5.6f, AX + 5.6f, AS1 - 20f, AS1);   // jezdnia w tunelu (portal i ściany: etap 2)
         zjazdy.Add((1, ParkAleja0, ParkAleja1));   // wjazd na parking przy warsztatach
-        PrzekrojZ("Aleja Południowa (do tunelu)", AX, AH, Ziel, Chod, AS1, zW0, true, (zW0 - 6f, zW0), (AS1, AS1 + 14f), (PrzystanekZ - 10f, PrzystanekZ + 6f));
+        PrzekrojZ("Aleja Południowa (do tunelu)", AX, AH, Ziel, Chod, AS1, zW0, true, (Mathf.Min(zW0 - 6f, SZ - zebraDo), zW0), (AS1, AS1 + 14f), (PrzystanekZ - 10f, PrzystanekZ + 6f));
         // skrzyżowanie z Warsztatową: jezdnia alei przez wylot, krawężniki po zachodniej stronie, po wschodniej wylot ulicy
         Asfalt("Aleja Południowa × Warsztatowa", AX - AH, AX + AH, zW0, zW1);
         Kraweznik(AX - AH - Kr, AX - AH, zW0, zW1);
-        Trawa("Aleja Płd. pas zieleni zach. przy Warsztatowej", AX - AH - Kr - Ziel, AX - AH - Kr, zW0 + 6f, zW1 - 6f);
-        Chodnik("Aleja Płd. przejście zach. (pd.)", AX - AH - Kr - Ziel, AX - AH - Kr, zW0, zW0 + 6f);
-        Chodnik("Aleja Płd. przejście zach. (pn.)", AX - AH - Kr - Ziel, AX - AH - Kr, zW1 - 6f, zW1);
+        if (zW1 - zW0 - 12f >= 3f)
+        {
+            Trawa("Aleja Płd. pas zieleni zach. przy Warsztatowej", AX - AH - Kr - Ziel, AX - AH - Kr, zW0 + 6f, zW1 - 6f);
+            Chodnik("Aleja Płd. przejście zach. (pd.)", AX - AH - Kr - Ziel, AX - AH - Kr, zW0, zW0 + 6f);
+            Chodnik("Aleja Płd. przejście zach. (pn.)", AX - AH - Kr - Ziel, AX - AH - Kr, zW1 - 6f, zW1);
+        }
+        else Chodnik("Aleja Płd. przejście zach. (naprzeciw Warsztatowej)", AX - AH - Kr - Ziel, AX - AH - Kr, zW0, zW1);   // bez skrawka trawy 1 m
         Chodnik("Aleja Płd. zach. przy Warsztatowej", LicoW, AX - AH - Kr - Ziel, zW0, zW1);
         // narożniki wschodnie (chodnik alei przechodzi w chodniki Warsztatowej)
         Asfalt("wylot Warsztatowej", AX + AH, AX + AH + Kr + Ziel + Chod, SZ - SH, SZ + SH);
@@ -805,26 +883,27 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         float zN = 23.875f - .12f;   // lico krawężnika płd. ulicy głównej (kerb .24 na 23.875)
         // Wiaduktowa: jezdnia x −69.2…−63.2, z (Warsztatowa pn. krawędź jezdni) … do jezdni ulicy głównej (z 24)
         Asfalt("ul. Wiaduktowa", WX - WH, WX + WH, SZ + SH, 24f);
-        Kraweznik(WX - WH - Kr, WX - WH, SZ + SH + Kr, 24f - .005f); Kraweznik(WX + WH, WX + WH + Kr, SZ + SH + Kr, 24f - .005f);
-        Chodnik("ul. Wiaduktowa zach.", -70.95f, WX - WH - Kr, SZ + SH + Kr + 2.5f, 20.55f);
-        Chodnik("ul. Wiaduktowa wsch.", WX + WH + Kr, -61.45f, SZ + SH + Kr + 2.5f, 20.55f);
+        // 10.11 (właściciel, zdjęcie: zakręt Warsztatowa → Wiaduktowa „zaokrąglony, to można skręcać”): ul. Warsztatowa kończy się
+        // na Wiaduktowej (bez 1,75 m ślepego ogona do placu wieżowców) — zakręt w kształcie L, łuk wewnętrzny (narożnik pn.-zach.,
+        // RLuku) i łuk zewnętrzny (narożnik pd.-wsch., LukZew). Łuk zewnętrzny mieści tor skrętu w lewo z zapasem 0,7 m.
+        float ox = WX + WH, oz = SZ - SH, ro = WarsztatowaLukZew;   // róg zewnętrzny jezdni i promień łuku zewnętrznego
+        Kraweznik(WX - WH - Kr, WX - WH, SZ + SH + Kr, 24f - .005f); Kraweznik(WX + WH, WX + WH + Kr, oz + ro, 24f - .005f);
+        Chodnik("ul. Wiaduktowa zach.", WiaduktowaLicoZach, WX - WH - Kr, SZ + SH + Kr + 2.5f, 20.55f);
+        Chodnik("ul. Wiaduktowa wsch.", WX + WH + Kr, -61.45f, oz + ro, 20.55f);
         // chodnik ulicy głównej po obu stronach wylotu zostaje (oryginał A); jego wycięta krawędź = mój krawężnik Wiaduktowej
-        // Warsztatowa: jezdnia z −22…−16 od alei (x −121.5 = AX+AH) do x −61.4 (koniec przy placu wieżowca B, słupki)
+        // Warsztatowa: jezdnia od alei (lico pierzei wsch. LicoE) do wsch. krawędzi Wiaduktowej; w kwadracie łuku zewnętrznego
+        // jezdnię domyka wycinek koła (LukiBuduj), poza nim chodnik
         float xa = LicoE;   // od lica pierzei wsch. alei (chodnik alei kończy się na LicoE)
-        Asfalt("ul. Warsztatowa", xa, SX1, SZ - SH, SZ + SH);
-        Kraweznik(xa, WX - WH - Kr, SZ + SH, SZ + SH + Kr); Kraweznik(WX + WH + Kr, SX1 + Kr, SZ + SH, SZ + SH + Kr);
-        Kraweznik(xa, SX1 + Kr, SZ - SH - Kr, SZ - SH);
-        Chodnik("ul. Warsztatowa pd.", xa, SX1 + Kr, SZ - SH - Kr - 2.5f, SZ - SH - Kr);
+        foreach (var r in Odejmij(Rect.MinMaxRect(xa, SZ - SH, ox, SZ + SH), Rect.MinMaxRect(ox - ro, oz, ox, oz + ro))) if (Niepuste(r)) Asfalt("ul. Warsztatowa", r.xMin, r.xMax, r.yMin, r.yMax);
+        Kraweznik(xa, WX - WH - Kr, SZ + SH, SZ + SH + Kr);
+        Kraweznik(xa, ox - ro, SZ - SH - Kr, SZ - SH);
+        Chodnik("ul. Warsztatowa pd.", xa, ox - ro, SZ - SH - Kr - 2.5f, SZ - SH - Kr);
         Chodnik("ul. Warsztatowa pn.", xa, WX - WH - Kr, SZ + SH + Kr, SZ + SH + Kr + 2.5f);
-        Chodnik("ul. Warsztatowa pn. (wsch.)", WX + WH + Kr, SX1 + Kr, SZ + SH + Kr, SZ + SH + Kr + 2.5f);
-        // koniec Warsztatowej: krawężnik poprzeczny i plac z granitu do placu wieżowców (x −61.4 … −58)
-        Kraweznik(SX1, SX1 + Kr, SZ - SH, SZ + SH);   // krawężnik poprzeczny na końcu jezdni; dalej plac wieżowców (BraxRegionTylyB, od x −61.15)
-        Pozniej("słupki", () =>
-        {
-            var sl = new BraxRegionMeble.Bud();
-            for (float z = SZ - SH + .6f; z <= SZ + SH - .5f; z += 1.5f) BraxRegionMeble.Slupek(root, sl, NaPodlozu(new Vector3(SX1 + 1.0f, YC, z)));
-            sl.Obiekt("Słupki blokujące wjazd na plac", root, stal, false, true);
-        });
+        // za łukiem zewnętrznym: chodnik do placu wieżowców (BraxRegionTylyB: P1a od x −61.45 dla z ≥ −13.25, P1b od x −61.15)
+        Chodnik("narożnik Warsztatowa / Wiaduktowa (pd.)", ox - ro, SX1 + Kr, SZ - SH - Kr - 2.5f, oz);
+        Chodnik("narożnik Warsztatowa / Wiaduktowa (wsch.)", ox, SX1 + Kr, oz, oz + ro);
+        Chodnik("narożnik Warsztatowa / Wiaduktowa (przy placu)", -61.45f, SX1 + Kr, oz + ro, -13.25f);
+        LukZew("Warsztatowa → Wiaduktowa (łuk zewnętrzny)", ox, oz, -1, 1, ro);
     }
 
     // =====================================================================================================================
@@ -878,8 +957,8 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         Trawa("L10 między warsztatami a placem B", -72f, -61.4f, zb, zW0);
         for (float x = -106f; x < -66f; x += 9f) Drzewo(new Vector3(x, YC - .03f, zb - 6f));
         // między ul. Warsztatową a pierzeją płd. ulicy głównej: plac ustawek (w Warsztaty), trawnik za pierzeją, skwerek przy Wiaduktowej
-        Trawa("L11 za pierzeją ulicy głównej", -104f, -70.95f, 2.5f, 11.3f);
-        Trawa("L12 przy Wiaduktowej", -78f, -70.95f, zW1, 2.5f);
+        Trawa("L11 za pierzeją ulicy głównej", -104f, WiaduktowaLicoZach, 2.5f, 11.3f);
+        Trawa("L12 przy Wiaduktowej", -78f, WiaduktowaLicoZach, zW1, 2.5f);
         Drzewo(new Vector3(-74.5f, YC - .03f, -6f));
         // narożnik pn.-wsch. ronda między pierzeją A (estate_apartments_2) a pierzeją wsch. alei
         Chodnik("narożnik pn.-wsch. ronda", RX + RPlac, LicoE + 16f, 48.3f, RZ + RPlac);
@@ -1150,6 +1229,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
 
     static void PlanOznakowania()
     {
+        LukiBuduj();   // 10.11: krawężniki łukiem i asfalt narożników (koniec etapu nawierzchni)
         czW = BraxRegionMeble.Swiecacy("Sygnalizator: czerwone (świeci)", new Color(1f, .07f, .04f), 2.2f); czO = BraxCityMaterials.Surface("Sygnalizator: czerwone (zgaszone)", new Color(.22f, .03f, .02f), .2f);
         zoW = BraxRegionMeble.Swiecacy("Sygnalizator: żółte (świeci)", new Color(1f, .6f, .04f), 2.2f); zoO = BraxCityMaterials.Surface("Sygnalizator: żółte (zgaszone)", new Color(.22f, .14f, .02f), .2f);
         ziW = BraxRegionMeble.Swiecacy("Sygnalizator: zielone (świeci)", new Color(.1f, 1f, .45f), 2.2f); ziO = BraxCityMaterials.Surface("Sygnalizator: zielone (zgaszone)", new Color(.02f, .18f, .08f), .2f);
@@ -1167,14 +1247,15 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             Zebra(farbaB, c, dir, hj);
         }
         // Przejście do parkingu: stare przejście „wlot ronda” usunięte.
-        Zebra(farbaB, new Vector3(AX, YA, PetlaZ - PetlaPlac - 3f), Vector3.forward, AH);   // wejście na parking
+        Zebra(farbaB, new Vector3(AX, YA, PetlaZ - PetlaPlac - ZebraParkingu), Vector3.forward, AH);   // wejście na parking (za łukami wjazdu)
         Zebra(farbaB, new Vector3(PetlaZX + PetlaPlac + 3f, YA, RZ), Vector3.right, AH);     // wlot pętli ZACHÓD
         // oś ul. Zachodniej: przerywana (bez odcinków przy zebrach)
         for (float x = ZachX1 - 10f; x - 3f > ZachX0 + 9f; x -= 7f) farbaB.MinMax(new Vector3(x - 3f, YA + .02f, RZ - .06f), new Vector3(x, YA + .021f, RZ + .06f));
         // oś ulicy głównej przed J1: linia ciągła 15 m po obu stronach (zamiast usuniętych kresek), dalej przerywana do ronda
+        float osOd = WH + Kr + .6f + OdsuniecieZebry(new Vector2(WX, GZ)) + 4f * K + 1.8f;   // za linią zatrzymania (zebra za łukiem)
         foreach (float sg in new[] { -1f, 1f })
-            farbaB.MinMax(new Vector3(Mathf.Min(WX + sg * 10.8f, WX + sg * 25.8f), YA, GZ - .06f), new Vector3(Mathf.Max(WX + sg * 10.8f, WX + sg * 25.8f), YA, GZ + .06f));
-        for (float x = WX - WH - 25f; x - 3f > -98f; x -= 7f) farbaB.MinMax(new Vector3(x - 3f, YA + .02f, GZ - .06f), new Vector3(x, YA + .021f, GZ + .06f));
+            farbaB.MinMax(new Vector3(Mathf.Min(WX + sg * osOd, WX + sg * (osOd + 15f)), YA, GZ - .06f), new Vector3(Mathf.Max(WX + sg * osOd, WX + sg * (osOd + 15f)), YA, GZ + .06f));
+        for (float x = WX - osOd - 19f; x - 3f > -98f; x -= 7f) farbaB.MinMax(new Vector3(x - 3f, YA + .02f, GZ - .06f), new Vector3(x, YA + .021f, GZ + .06f));
         // osie alej: przerywane, przed skrzyżowaniami ciągłe
         for (float z = RZ + RPlac + 10f; z + 3f < PetlaZ - PetlaPlac - 7f; z += 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z), new Vector3(AX + .06f, YA + .021f, z + 3f));
         for (float z = RZ - RPlac - 10f; z > SZ + SH + 18f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
@@ -1291,7 +1372,8 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             {
                 var R = Vector3.Cross(Vector3.up, dir).normalized;
                 float poprzeczna = Mathf.Abs(dir.x) > .5f ? hjZ : hjX;
-                float zebraOd = poprzeczna + Kr + .6f, zebraW = 4f * K, stop = zebraOd + zebraW + 1.0f;
+                // 10.11: przy narożnikach łukiem zebra (i linia zatrzymania) za łukiem krawężnika
+                float zebraOd = poprzeczna + Kr + .6f + OdsuniecieZebry(c), zebraW = 4f * K, stop = zebraOd + zebraW + 1.0f;
                 Zebra(f, c + dir * (zebraOd + zebraW * .5f), dir, hj);
                 var s0 = c + dir * stop - R * .05f; var s1 = c + dir * (stop + .5f) - R * (hj - .1f);
                 f.MinMax(s0, s1);
@@ -1306,7 +1388,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         {
             var R = Vector3.Cross(Vector3.up, dir).normalized;      // prawa strona patrząc OD środka; wlot do środka jedzie −dir, jego prawa strona = −R
             float poprzeczna = Mathf.Abs(dir.x) > .5f ? hjZ : hjX;   // połowa jezdni ulicy poprzecznej
-            float zebraOd = poprzeczna + Kr + .6f, zebraW = 4f * K, stop = zebraOd + zebraW + 1.0f;
+            float zebraOd = poprzeczna + Kr + .6f + OdsuniecieZebry(c), zebraW = 4f * K, stop = zebraOd + zebraW + 1.0f;   // za łukiem narożnika
             int os = Mathf.Abs(dir.x) > .5f ? 0 : 1;
             var zc = c + dir * (zebraOd + zebraW * .5f);
             // słup z wysięgnikiem po prawej stronie wjeżdżających (−R), tuż za linią zatrzymania (na gotowym chodniku)
@@ -1322,7 +1404,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             // sygnalizatory dla pieszych na obu końcach zebry
             foreach (int sd in new[] { 1, -1 })
             {
-                var pole = c + dir * (zebraOd - .35f) + R * sd * (hj + Kr + .45f); pole.y = Podloze(pole.x, pole.z, YC);
+                var pole = PozaLukiem(c + dir * (zebraOd - .35f) + R * sd * (hj + Kr + .45f)); pole.y = Podloze(pole.x, pole.z, YC);
                 Slup(sz, pole, 3.0f * K, .06f);
                 var fwd = -R * sd;
                 GlowicaPiesi(sz, pole + fwd * (.09f + .2f * K) + Vector3.up * 2.45f * K, fwd);
@@ -1599,7 +1681,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         J("MIASTO Aleja Południowa; chodniki " + Chod + " " + Chod + "; ukryty B", new Vector3(AX, YA, RZ - RJezdnia), new Vector3(AX, YA, AS1 - 18f), AH);
         J("MIASTO Główna (do ronda); chodniki 3.1 3.4", new Vector3(-104f, YA, GZ), new Vector3(RX + RJezdnia, YA, GZ), GH);
         J("MIASTO Wiaduktowa; chodniki 1.55 1.55", new Vector3(WX, YA, GZ), new Vector3(WX, YA, SZ), WH);
-        J("MIASTO Warsztatowa; chodniki 2.5 2.5", new Vector3(AX, YA, SZ), new Vector3(SX1, YA, SZ), SH);
+        J("MIASTO Warsztatowa; chodniki 2.5 2.5", new Vector3(AX, YA, SZ), new Vector3(WX, YA, SZ), SH);   // 10.11: koniec na Wiaduktowej (zakręt L)
         BraxClaudeOsiedle.SkrzyzowaniaInfo.Add(new BraxClaudeOsiedle.SkrzyzowanieInfo { srodek = new Vector3(RX, YA, RZ), promien = RJezdnia, rodzaj = BraxClaudeOsiedle.RodzajSkrzyzowania.Rondo });
         // Pętla PÓŁNOC skasowana: parking nie jest węzłem ronda w sieci ruchu.
         J("MIASTO Zachodnia; chodniki " + Chod + " " + Chod, new Vector3(RX - RJezdnia, YA, RZ), new Vector3(PetlaZX + PetlaR, YA, RZ), AH);

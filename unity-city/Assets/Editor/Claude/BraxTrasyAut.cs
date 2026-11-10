@@ -27,6 +27,12 @@ public static class BraxTrasyAut
         public readonly List<string> log = new List<string>();
     }
     public static float RondoPromien = 9.4f, RondoJezdnia = 12.5f, RondoKatWjazdu = 34f, KrokProbki = .5f;
+    // 10.11 (właściciel: „narożniki zaokrąglone… łatwiej będą samochody wjeżdżać”, zasada na całą grę): o ile zebry skrzyżowania
+    // o środku (x, z) odsunięto od narożnika (łuk krawężnika) — linia zatrzymania przesuwa się o tyle samo; brak = 0 (osiedle).
+    // Tor skrętu w prawo zostaje dawny (mieści się w asfalcie także przy ostrym rogu; łuk tylko dokłada asfaltu) — test lokalny
+    // 30 przebiegów × 600 s: tor współśrodkowy z łukiem dawał więcej zakleszczeń przy rondzie (73 wobec 53).
+    public static Func<Vector2, float> OdsuniecieZebr;
+    static float Luk(Vector2 c) => OdsuniecieZebr != null ? Mathf.Max(0f, OdsuniecieZebr(c)) : 0f;
 
     static Vector2 Rgt(Vector2 d) => new Vector2(d.y, -d.x);
     static float Cross(Vector2 a, Vector2 b) => a.x * b.y - a.y * b.x;
@@ -200,7 +206,7 @@ public static class BraxTrasyAut
         float lin = uin.cw * .5f, lout = uout.cw * .5f;
         // linia zatrzymania: przed zebrą ulicy poprzecznej (zebra w pasie chodnika — półszerokość ulicy poprzecznej)
         Ulica poprzIn = uin.wzdluzX ? w.uz : w.ux, poprzOut = uout.wzdluzX ? w.uz : w.ux;
-        mm.dStop = (poprzIn != null ? poprzIn.half : uout.half) + .6f;
+        mm.dStop = (poprzIn != null ? poprzIn.half : uout.half) + .6f + Luk(cur);
         mm.dWyj = (poprzOut != null ? poprzOut.cw : uin.cw) + .5f;
         var A = cur - din * Ein + rin * lin; var B = cur + dout * Eout + rout * lout;
         if (w.rondo)

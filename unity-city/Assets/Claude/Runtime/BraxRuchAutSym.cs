@@ -149,16 +149,18 @@ public sealed class BraxRuchAutSym
     // Konflikty ruchów na tym samym skrzyżowaniu: obrysy auta (5 × 2,05 m, model rowerowy jak w jeździe) wzdłuż obu
     // torów — od przodu na linii zatrzymania do tyłu za wyjazdem — gdzieś się przecinają, a auta wjeżdżają z różnych
     // wlotów (ten sam wlot — kolejność załatwia czujnik odstępu).
-    void Konflikty()
+    // dlTrasy / szerTrasy: największy pojazd danej trasy (null = każda trasa jak typowe auto: dlAut × szerAut)
+    void Konflikty(float[] dlTrasy = null, float[] szerTrasy = null, float[] osTTrasy = null)
     {
         var lista = new List<int>[wz.Length];
         for (int i = 0; i < zd.Length; i++) if (zd[i].typ == Z_WEZEL) { if (lista[zd[i].wezel] == null) lista[zd[i].wezel] = new List<int>(); lista[zd[i].wezel].Add(i); }
-        float dl = dlAut, szer = szerAut, wb = dlAut * .58f, osT = -dlAut * .28f;
-        float przod = dl * .5f - osT, tyl = dl * .5f + osT;
+        float Dl(int e) => dlTrasy != null ? Mathf.Max(dlAut, dlTrasy[zd[e].trasa]) : dlAut;
+        float Szer(int e) => szerTrasy != null ? Mathf.Max(szerAut, szerTrasy[zd[e].trasa]) : szerAut;
         var obrysy = new Dictionary<int, List<(Vector3 c, Vector3 f)>>();
         List<(Vector3 c, Vector3 f)> Obrys(int e)
         {
             if (obrysy.TryGetValue(e, out var l)) return l;
+            int rt = zd[e].trasa; float dl = Dl(e), wb = dl * .58f, osT = osTTrasy != null && osTTrasy[rt] < -dl * .28f ? osTTrasy[rt] : -dl * .28f, przod = dl * .5f - osT, tyl = dl * .5f + osT;
             l = new List<(Vector3, Vector3)>(); var z = zd[e];
             float s1 = z.s1; if (tr[z.trasa].petla && s1 < z.s0) s1 += tr[z.trasa].dl;
             for (float s = z.s0 - przod; s <= s1 + tyl + 1.5f; s += .5f)
@@ -176,13 +178,15 @@ public sealed class BraxRuchAutSym
                 {
                     int a = l[i], b = l[j];
                     if (Vector3.Dot(zd[a].wlot, zd[b].wlot) > .9f) continue;
+                    float dlA = Dl(a), dlB = Dl(b), szA = Szer(a), szB = Szer(b);
+                    float prog = dlA <= dlAut + .01f && dlB <= dlAut + .01f ? 30f : (dlA + dlB) * (dlA + dlB) * .25f;
                     var oa = Obrys(a); var ob = Obrys(b); bool k = false;
                     foreach (var p in oa)
                     {
                         foreach (var q in ob)
                         {
-                            float dx = p.c.x - q.c.x, dz = p.c.z - q.c.z; if (dx * dx + dz * dz > 30f) continue;
-                            if (Prost(p.c, p.f, szer * .5f + .1f, dl * .5f + .1f, q.c, q.f, szer * .5f + .1f, dl * .5f + .1f)) { k = true; break; }
+                            float dx = p.c.x - q.c.x, dz = p.c.z - q.c.z; if (dx * dx + dz * dz > prog) continue;
+                            if (Prost(p.c, p.f, szA * .5f + .1f, dlA * .5f + .1f, q.c, q.f, szB * .5f + .1f, dlB * .5f + .1f)) { k = true; break; }
                         }
                         if (k) break;
                     }
@@ -190,32 +194,51 @@ public sealed class BraxRuchAutSym
                 }
         }
     }
+    // 10.11 (właściciel: „auta się korkują”): autobus skręcający w prawo zamiata obrysem sąsiedni pas, a konflikty manewrów
+    // liczono obrysem osobówki — autobus i auto wjeżdżały razem i blokowały się nawzajem w środku skrzyżowania. Po dodaniu aut
+    // trasy z większym pojazdem dostają konflikty liczone jego obrysem (tylko DOPISUJE konflikty — nic nie ubywa).
+    void KonfliktyDuzych()
+    {
+        var dlT = new float[tr.Length]; var szT = new float[tr.Length]; var osT = new float[tr.Length]; bool duze = false;
+        foreach (var a in auta) { dlT[a.trasa] = Mathf.Max(dlT[a.trasa], a.dl); szT[a.trasa] = Mathf.Max(szT[a.trasa], a.szer); osT[a.trasa] = Mathf.Min(osT[a.trasa], a.osTyl); }
+        for (int r = 0; r < tr.Length; r++) if (dlT[r] > dlAut + .3f || szT[r] > szerAut + .1f) duze = true;
+        if (!duze) return;
+        Konflikty(dlT, szT, osT);
+        // linie zatrzymania przed skrzyżowaniem cofnięte tak, by czekające auto nie stało w drodze skręcającego autobusu
+        CofnijLinie(dlT, szT, 40, osT);
+    }
     // Linia zatrzymania cofana (do 4 m), dopóki auto czekające przed nią stoi w drodze skręcającym z innych wlotów
     // (np. przy ciasnym skręcie w prawo z szerokiej ulicy w węższą — tył i przód skręcającego zahaczałyby o czekającego).
-    void CofnijLinie()
+    // dlTrasy / szerTrasy: największy pojazd trasy (null = typowe auto); kroki: ile razy po 0,5 m wolno cofnąć linię
+    void CofnijLinie(float[] dlTrasy = null, float[] szerTrasy = null, int kroki = 8, float[] osTTrasy = null)
     {
-        float dl = dlAut, szer = szerAut + .1f, wb = dlAut * .58f, osT = -dlAut * .28f;
-        float przod = dl * .5f - osT, tyl = dl * .5f + osT;
+        float Dl(int r) => dlTrasy != null ? Mathf.Max(dlAut, dlTrasy[r]) : dlAut;
+        float Sz(int r) => (szerTrasy != null ? Mathf.Max(szerAut, szerTrasy[r]) : szerAut) + .1f;
+        float OsT(int r) => osTTrasy != null && osTTrasy[r] < -Dl(r) * .28f ? osTTrasy[r] : -Dl(r) * .28f;   // oś tylna (autobus: −0,4 dł.)
         (Vector3 c, Vector3 f) Poz(int r, float s)
         {
+            float dl = Dl(r), wb = dl * .58f, osT = OsT(r);
             var a = P(r, s); var f = P(r, s + wb) - a; f.y = 0f; f = f.sqrMagnitude > 1e-6f ? f.normalized : T(r, s);
             return (a - f * osT, f);
         }
         for (int e = 0; e < zd.Length; e++)
         {
             if (zd[e].typ != Z_WEZEL) continue;
-            for (int krok = 0; krok < 8; krok++)
+            int re = zd[e].trasa; float dlE = Dl(re), szE = Sz(re), przodE = dlE * .5f - OsT(re);
+            for (int krok = 0; krok < kroki; krok++)
             {
-                var w = Poz(zd[e].trasa, zd[e].s0 - przod); bool kol = false;
+                var w = Poz(re, zd[e].s0 - przodE); bool kol = false;
                 for (int f = 0; f < zd.Length && !kol; f++)
                 {
                     if (f == e || zd[f].typ != Z_WEZEL || zd[f].wezel != zd[e].wezel || Vector3.Dot(zd[f].wlot, zd[e].wlot) > .9f) continue;
-                    float s1 = zd[f].s1; if (tr[zd[f].trasa].petla && s1 < zd[f].s0) s1 += tr[zd[f].trasa].dl;
-                    for (float s = zd[f].s0 - przod + 1f; s <= s1 + tyl; s += .5f)
+                    int rf = zd[f].trasa; float dlF = Dl(rf), szF = Sz(rf), przodF = dlF * .5f - OsT(rf), tylF = dlF * .5f + OsT(rf);
+                    float prog = (dlE + dlF) * (dlE + dlF) * .25f + 4f; if (dlE <= dlAut + .01f && dlF <= dlAut + .01f) prog = 36f;
+                    float s1 = zd[f].s1; if (tr[rf].petla && s1 < zd[f].s0) s1 += tr[rf].dl;
+                    for (float s = zd[f].s0 - przodF + 1f; s <= s1 + tylF; s += .5f)
                     {
-                        var q = Poz(zd[f].trasa, s);
-                        float dx = q.c.x - w.c.x, dz = q.c.z - w.c.z; if (dx * dx + dz * dz > 36f) continue;
-                        if (Prost(w.c, w.f, szer * .5f + .15f, dl * .5f + .15f, q.c, q.f, szer * .5f + .15f, dl * .5f + .15f)) { kol = true; break; }
+                        var q = Poz(rf, s);
+                        float dx = q.c.x - w.c.x, dz = q.c.z - w.c.z; if (dx * dx + dz * dz > prog) continue;
+                        if (Prost(w.c, w.f, szE * .5f + .15f, dlE * .5f + .15f, q.c, q.f, szF * .5f + .15f, dlF * .5f + .15f)) { kol = true; break; }
                     }
                 }
                 if (!kol) break;
@@ -293,6 +316,7 @@ public sealed class BraxRuchAutSym
     // Rozstawienie startowe: od zadanego s do przodu, aż auto stoi z dala od skrzyżowań i od innych aut.
     public void UstawStart()
     {
+        KonfliktyDuzych();
         foreach (var a in auta) a.poz = new Vector3(1e6f + a.id * 100f, 0f, 1e6f);
         foreach (var a in auta)
         {

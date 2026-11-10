@@ -96,7 +96,9 @@ public static class BraxSupermarket
             var q = store.InverseTransformPoint(p);
             return hall
                 ? Mathf.Abs(q.x) < half-.15f && q.z > 0f && q.z < D-.1f
-                : Mathf.Abs(q.x-entryX) < doorWidth*.5f+.8f && q.z > -5.3f && q.z < 2f;
+                // 10.11 (właściciel 13:17: „o wejście do sklepu prosiłem od dawna… te drzewa, żeby były powycinane”): korytarz wejścia
+                // od drzwi aż do alejki parkingu (14 m przed witryną), nie tylko 5.3 m — drzewa, krzewy, słupki i kosze z dojścia precz
+                : Mathf.Abs(q.x-entryX) < doorWidth*.5f+.8f && q.z > -14f && q.z < 2f;
         }
         bool Named(string x, params string[] parts) =>
             parts.Any(p => x.IndexOf(p, StringComparison.OrdinalIgnoreCase) >= 0);
@@ -200,7 +202,7 @@ public static class BraxSupermarket
         float radius=.32f, h=2.2f*K;
         for(int i=0;i<=11;i++)
         {
-            float z=Mathf.Lerp(-4.0f,3.5f,i/11f);
+            float z=Mathf.Lerp(-13.5f,3.5f,i/11f);   // 10.11: sprawdzenie całego dojścia od parkingu do wnętrza
             Vector3 foot=store.TransformPoint(new Vector3(entryX,.12f,z));
             foreach(var c in Physics.OverlapCapsule(foot+Vector3.up*(radius+.06f),
                 foot+Vector3.up*(h-radius),radius,

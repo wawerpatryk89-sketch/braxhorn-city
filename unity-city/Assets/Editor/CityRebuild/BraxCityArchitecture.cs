@@ -33,7 +33,7 @@ public static class BraxCityArchitecture
         new Building("workshop_shop","PRACOWNIA",-36,-24,11.6f,20.6f,7,false,true),
         new Building("hotel","HOTEL",-48,-36,11.6f,20.6f,11),
         new Building("viaduct_corner","BRAXHORN",-61.4f,-48,11.6f,20.6f,8),
-        new Building("workshop","WARSZTAT",-87,-71,11.6f,20.6f,6,false,true),
+        new Building("workshop","WARSZTAT",-87,-72.5f,11.6f,20.6f,6,false,true),   // 10.11: −1,5 m od ul. Wiaduktowej (jezdnia 2 × 2,9 m × K)
         new Building("estate_corner","KAWIARNIA",-104,-87,11.6f,20.6f,9),
         new Building("quay_corner","BRAXHORN TOWER",52,66,36.1f,60,9,true),
         new Building("bakery","PIEKARNIA",18,32,36.1f,48,6,true),

@@ -135,7 +135,7 @@ public static partial class BraxRegionMiastoB
     {
         // --- ALEJA (profil alei B — PrzekrojX2: asfalt odcinka, krawężniki, pasy zieleni z drzewami i latarniami, chodniki) ---
         // przerwy w zieleni: przejścia (zebry przy skrzyżowaniach i przy wlocie pętli), peron przystanku autobusowego
-        float zebraA = AH + Kr + .6f, zebraB = zebraA + 4f * K;   // zebra wlotu skrzyżowania: od 5.35 do 10.53 m od środka
+        float zebraA = AH + Kr + .6f + Mathf.Max(0f, RLuku - ZebraPrzedLukiem), zebraB = zebraA + 4f * K;   // zebra wlotu za łukiem narożnika (10.11): 7.5 … 12.68 m od środka
         var odcinki = new List<(float x0, float x1)> { (NC[0] + NPR, NX) };
         for (int i = 0; i < 3; i++) odcinki.Add((NC[i + 1] + NPR, NC[i] - NPR));
         foreach (var (x0, x1) in odcinki)
@@ -295,7 +295,7 @@ public static partial class BraxRegionMiastoB
         foreach (var (c, c2, ram, prZ, nazwa) in NdSkrzyzowania())
         {
             if (Mathf.Approximately(c2, RZ)) continue;
-            float d = AH + Kr + .6f + 2f * K;
+            float d = AH + Kr + .6f + 2f * K + OdsuniecieZebry(new Vector2(c, c2));   // 10.11: zebra za łukiem narożnika
             if (ram[1]) { Zebra(moja, new Vector3(c + d, YA, c2), Vector3.right, AH); ndZebry++; ZebryBezSwiatelNd.Add((new Vector3(c + d, YA, c2), Vector3.right, AH)); }
             if (ram[3]) { Zebra(moja, new Vector3(c - d, YA, c2), Vector3.left, AH); ndZebry++; ZebryBezSwiatelNd.Add((new Vector3(c - d, YA, c2), Vector3.left, AH)); }
             if (ram[0]) { Zebra(moja, new Vector3(c, YA, c2 + d), Vector3.forward, AH); ndZebry++; ZebryBezSwiatelNd.Add((new Vector3(c, YA, c2 + d), Vector3.forward, AH)); }
