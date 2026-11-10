@@ -36,6 +36,7 @@ public static class BraxChampionsApartments
     public const float PlotHalf=30f, Balustrade=1.10f;
     // Per building, set from its plot design before generating.
     static float HalfW, HalfD, Loggia, Walk;
+    static int ParkSide=1;
     static int Floors;
     static Style style;
     static float CoreBack=>HalfD-.30f;
@@ -54,16 +55,16 @@ public static class BraxChampionsApartments
     // turned toward the nearest road: T04/T05 face road Z650, T06/T07 road Z330.
     enum Style{CurvedWrap,Loggia,MarbleGold,MarbleCorner}
     // walk = local z (front = -z) where the path meets the road sidewalk.
-    struct Plot { public string id, name, brand; public float x, z, yaw, halfW, halfD, loggia, walk; public int floors; public Style style; }
+    struct Plot { public string id, name, brand; public float x, z, yaw, halfW, halfD, loggia, walk; public int floors, park; public Style style; }
     static readonly Plot[] Plots={
         // owner photo 1: ground + 3, curved wraparound balconies
-        new Plot{id="T04",name="APARTAMENTY 1",brand="AURORA",x=870,z=570,yaw=180f,halfW=16f,halfD=8.5f,floors=4,style=Style.CurvedWrap,loggia=0f,walk=-63.2f},
+        new Plot{id="T04",name="APARTAMENTY 1",brand="AURORA",x=870,z=570,yaw=180f,halfW=16f,halfD=8.5f,floors=4,style=Style.CurvedWrap,loggia=0f,walk=-63.2f,park=-1},
         // owner photo 2: ground + 3, recessed loggias 2.0 m, white frames, grey panels, timber strips
-        new Plot{id="T05",name="APARTAMENTY 2",brand="SOLARIS",x=1040,z=570,yaw=180f,halfW=17f,halfD=9f,floors=4,style=Style.Loggia,loggia=2.0f,walk=-63.2f},
+        new Plot{id="T05",name="APARTAMENTY 2",brand="SOLARIS",x=1040,z=570,yaw=180f,halfW=17f,halfD=9f,floors=4,style=Style.Loggia,loggia=2.0f,walk=-63.2f,park=1},
         // owner photo 3: ground + 4, black marble, gold curved balconies, glass core; front west to road X800 (sidewalk x 817)
-        new Plot{id="T06",name="APARTAMENTY 3",brand="ONYX",x=870,z=450,yaw=90f,halfW=17f,halfD=9f,floors=5,style=Style.MarbleGold,loggia=0f,walk=-53.2f},
+        new Plot{id="T06",name="APARTAMENTY 3",brand="ONYX",x=870,z=450,yaw=90f,halfW=17f,halfD=9f,floors=5,style=Style.MarbleGold,loggia=0f,walk=-53.2f,park=1},
         // owner photo 5 + details of 4: ground + 3, white, black marble corner, timber slats; front east to road X1130 (sidewalk x 1113)
-        new Plot{id="T07",name="APARTAMENTY 4",brand="PLATINUM",x=1040,z=450,yaw=270f,halfW=17f,halfD=9f,floors=4,style=Style.MarbleCorner,loggia=0f,walk=-73.2f},
+        new Plot{id="T07",name="APARTAMENTY 4",brand="PLATINUM",x=1040,z=450,yaw=270f,halfW=17f,halfD=9f,floors=4,style=Style.MarbleCorner,loggia=0f,walk=-73.2f,park=1},
     };
     public static readonly string[] Ids={"T04","T05","T06","T07"};
 
@@ -549,7 +550,7 @@ public static class BraxChampionsApartments
         Plot plot=default;bool found=false;
         foreach(var p in Plots)if(p.id==id){plot=p;found=true;}
         if(!found)throw new ArgumentException("Unknown apartment plot "+id);
-        HalfW=plot.halfW;HalfD=plot.halfD;Floors=plot.floors;Loggia=plot.loggia;Walk=plot.walk;style=plot.style;
+        HalfW=plot.halfW;HalfD=plot.halfD;Floors=plot.floors;Loggia=plot.loggia;Walk=plot.walk;style=plot.style;ParkSide=plot.park;
         System.IO.Directory.CreateDirectory(outFolder+"/Materials");System.IO.Directory.CreateDirectory(outFolder+"/Prefabs");
         Materials(ext,outFolder);apartments=0;doors=0;models=0;entrances=0;plotId=plot.id;plotBrand=plot.brand;
         bool marble=style==Style.MarbleGold;
@@ -573,6 +574,7 @@ public static class BraxChampionsApartments
         doorNumbers=new BraxChampionsMeshBatch();nameLetters=new BraxChampionsMeshBatch();
         var lights=new List<Light>();
         Site();
+        int bays=Parking();
         Structure();
         CommonFacades();
         int panes=style==Style.CurvedWrap?FrontAndRoofT04():style==Style.Loggia?FrontAndRoofT05():
@@ -618,7 +620,7 @@ public static class BraxChampionsApartments
         Debug.Log("APT_BUILDING "+id+" '"+plot.name+"' style="+plot.style+" body="+(2*HalfW)+"x"+(2*HalfD)+" floors=ground+"+(Floors-1)+
             " groundStorey="+GroundStorey+" storey="+Storey+" roofTop="+RoofTop+" loggia="+Loggia+" apartments="+apartments+" doors="+doors+
             " balconyGlassPanes="+panes+" balustrade="+Balustrade+" stair=dog-leg riser"+Riser+"/tread"+Tread+
-            " lift=1 lights="+lights.Count+" palms="+palms+" meshes="+saved+" datumY="+datum.ToString("F3")+
+            " lift=1 lights="+lights.Count+" palms="+palms+" parkingBays="+bays+" parkSide="+ParkSide+" meshes="+saved+" datumY="+datum.ToString("F3")+
             " yaw="+plot.yaw+" lobbyModels="+models+" interiors=finished_empty_no_furniture interiorLod=.06 lampsZone=60m");
     }
 
@@ -626,7 +628,14 @@ public static class BraxChampionsApartments
     static void Site()
     {
         W.Grupa=outside;W.Wnetrze=false;
-        Box(grass,-PlotHalf,PlotHalf,PlotBaseY,SiteY,-PlotHalf,PlotHalf,true);
+        // the lawn round the residents' car park (Parking): four pieces edge to edge, nothing under the asphalt
+        {
+            float k0=AisleX0-ParkKerb,lotZ0=BayZ0-ParkKerb,lotZ1=BayZ0+Bays*BayW+ParkKerb;
+            PBox(grass,-PlotHalf,k0,PlotBaseY,SiteY,-PlotHalf,PlotHalf,true);
+            PBox(grass,k0,PlotHalf,PlotBaseY,SiteY,lotZ1,PlotHalf,true);
+            PBox(grass,LotX1,PlotHalf,PlotBaseY,SiteY,lotZ0,lotZ1,true);
+            PBox(grass,AisleX1+ParkKerb,PlotHalf,PlotBaseY,SiteY,-PlotHalf,lotZ0,true);
+        }
         Box(paving,-HalfW-1.6f,HalfW+1.6f,SiteY,SiteY+.03f,-HalfD-3.4f,HalfD+2.1f,true);
         Box(deck,-HalfW,HalfW,PlotBaseY,Ffl0,-HalfD,HalfD,true);                          // plinth (light granite)
         Box(deck,-HalfW,HalfW,SiteY,Ffl0,-HalfD-2.6f,-HalfD,true);                        // front terrace
@@ -650,6 +659,122 @@ public static class BraxChampionsApartments
                 Box(led,x-.085f,x+.085f,SiteY+.85f,SiteY+.95f,z-.085f,z+.085f);
             }
         W.Grupa=outside;
+    }
+
+    // ---- residents' car park ----
+    // Owner 10.11 15:25 ("Po trzecie, apartamentowce mają parkingi zrobione?") -> chose "Parking naziemny" (15:31). Beside
+    // the building on the side away from the bus stops (ParkSide): 20 bays 2.5 x 4.75 m (white lines INLAID in the asphalt,
+    // flush - nothing laid on it), rubber wheel stops, a 5.8 m two-way aisle, granite kerbs 12 cm proud, three 6 m LED
+    // lamps on the back kerb, a black sign with a 3D "P". The aisle runs on as a drive straight to the road: across the
+    // city lawn, down across the sidewalk (16 cm -> road level over 4 m) and into the road between two 3 m kerb arcs
+    // (ZASADA-DROGI-NAROZNIKI-ZAOKRAGLONE 10.11) - asphalt filled to the arc, the sidewalk round it, the city kerb open
+    // across the mouth (layout.APT_DRIVE_CUTS / APT_DRIVE_MOUTHS cut the foundation and the kerbs). Plot-local metres.
+    public const float ParkKerb=.25f, AisleX0=19.0f, AisleX1=24.8f, BayX1=29.55f, LotX1=29.8f, BayW=2.5f, BayZ0=-23.0f;
+    public const int Bays=20;
+    public const float DriveR=3.0f, KerbRise=.12f, SidewalkGrade=4.0f;
+    static float SidewalkInner=>Walk+.2f;          // the city sidewalk is 7 m: inner edge .2 past the walk's end
+    static float RoadEdge=>Walk-6.8f;
+    static Material asphalt,kerbStone,parkPaint,rubber;
+    static void PBox(Material m,float x0,float x1,float y0,float y1,float z0,float z1,bool col=false)
+    {
+        float a=x0*ParkSide,b=x1*ParkSide;Box(m,Mathf.Min(a,b),Mathf.Max(a,b),y0,y1,z0,z1,col);
+    }
+    static Vector3 PV(float x,float y,float z)=>new Vector3(x*ParkSide,y,z);
+    static void PFace(Material m,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Vector3 facing)
+    {
+        // mirrored x flips the winding: Face orients by the facing normal, so only the points are mirrored
+        Face(m,new Vector3(a.x*ParkSide,a.y,a.z),new Vector3(b.x*ParkSide,b.y,b.z),new Vector3(c.x*ParkSide,c.y,c.z),new Vector3(d.x*ParkSide,d.y,d.z),facing);
+    }
+    static int Parking()
+    {
+        W.Grupa=outside;W.Wnetrze=false;
+        asphalt=Region("asphalt.mat",()=>M("apt_parking_asphalt","clean_asphalt",2.1f,Color.white,1f));
+        kerbStone=M("apt_parking_kerb","granite_tile",.9f,new Color(.78f,.79f,.80f),.8f);
+        if(!parkPaint)parkPaint=W.Mat.Plain("apt parking line white",new Color(.90f,.90f,.87f),.65f);
+        if(!rubber)rubber=W.Mat.Plain("apt parking wheel stop rubber",new Color(.05f,.05f,.055f),.85f);
+        float y0=PlotBaseY,top=SiteY,kt=SiteY+KerbRise,lotZ1=BayZ0+Bays*BayW,lotZ0=BayZ0-ParkKerb;
+        float k0=AisleX0-ParkKerb,k1=AisleX1+ParkKerb,inner=SidewalkInner,road=RoadEdge,gradeEnd=road+DriveR;
+        // aisle + drive on the plot and over the city lawn (flush with the lawn: the kerbs stand 12 cm proud)
+        PBox(asphalt,AisleX0,AisleX1,y0,top,inner,lotZ1,true);
+        // bays: asphalt strips with the white lines inlaid between them (one surface, edge to edge)
+        for(int i=0;i<Bays;i++)
+        {
+            float z0=BayZ0+i*BayW,z1=z0+BayW,a=i==0?z0:z0+.05f,b=i==Bays-1?z1:z1-.05f;
+            PBox(asphalt,AisleX1,BayX1,y0,top,a,b,true);
+            if(i>0)PBox(parkPaint,AisleX1,BayX1,y0,top,z0-.05f,z0+.05f,true);
+            PBox(rubber,BayX1-.95f,BayX1-.80f,top,top+.11f,z0+.45f,z1-.45f,true);        // wheel stop .6 m before the kerb
+        }
+        // kerbs (granite, 25 cm wide, 12 cm proud)
+        PBox(kerbStone,k0,AisleX0,y0,kt,inner,lotZ1,true);                // west of the aisle + drive, to the sidewalk
+        PBox(kerbStone,k0,LotX1,y0,kt,lotZ1,lotZ1+ParkKerb,true);          // back
+        PBox(kerbStone,BayX1,LotX1,y0,kt,BayZ0,lotZ1,true);               // behind the bays
+        PBox(kerbStone,AisleX1,LotX1,y0,kt,lotZ0,BayZ0,true);             // front of the bays
+        PBox(kerbStone,AisleX1,k1,y0,kt,inner,lotZ0,true);                // east of the drive, to the sidewalk
+        // across the sidewalk: the drive falls 16 cm to road level over 4 m, then level between the arcs
+        PFace(asphalt,PV(AisleX0,0f,gradeEnd),PV(AisleX1,0f,gradeEnd),PV(AisleX1,top,inner),PV(AisleX0,top,inner),Vector3.up);
+        PFace(asphalt,PV(AisleX0,0f,road),PV(AisleX1,0f,road),PV(AisleX1,0f,gradeEnd),PV(AisleX0,0f,gradeEnd),Vector3.up);
+        W.Rampa(PV((AisleX0+AisleX1)*.5f,top,inner),PV((AisleX0+AisleX1)*.5f,0f,gradeEnd),AisleX1-AisleX0);
+        W.KolizjaMM(Mathf.Min(AisleX0*ParkSide,AisleX1*ParkSide),Mathf.Max(AisleX0*ParkSide,AisleX1*ParkSide),y0,0f,road,gradeEnd);
+        // the drive's kerbs across the sidewalk: flush with the sidewalk (16 cm over the road)
+        PBox(kerbStone,k0,AisleX0,y0,top,gradeEnd,inner,true);
+        PBox(kerbStone,AisleX1,k1,y0,top,gradeEnd,inner,true);
+        // sidewalk beside the drive (the cut is AisleX0-R .. AisleX1+R wide)
+        PBox(paving,AisleX0-DriveR,k0,y0,top,gradeEnd,inner,true);
+        PBox(paving,k1,AisleX1+DriveR,y0,top,gradeEnd,inner,true);
+        // the two corners: asphalt filled to the 3 m arc, a granite kerb on the arc, the sidewalk inside it
+        const int seg=6;
+        foreach(float s in new[]{-1f,1f})
+        {
+            float edge=s<0?AisleX0:AisleX1;
+            var C=new Vector2(edge+s*DriveR,road+DriveR);var P0=new Vector2(edge,road);
+            Vector2 Arc(float r,float t){float th=(s<0?-90f*t:180f+90f*t)*Mathf.Deg2Rad;return C+new Vector2(Mathf.Cos(th),Mathf.Sin(th))*r;}
+            for(int i=0;i<seg;i++)
+            {
+                float t0=(float)i/seg,t1=(float)(i+1)/seg,tm=(t0+t1)*.5f;
+                Vector2 a=Arc(DriveR,t0),b=Arc(DriveR,t1);
+                // asphalt fan from the corner of the drive to the arc (road level)
+                PFace(asphalt,new Vector3(P0.x,0f,P0.y),new Vector3(a.x,0f,a.y),new Vector3(b.x,0f,b.y),new Vector3(b.x,0f,b.y),Vector3.up);
+                // sidewalk fan inside the arc
+                Vector2 c0=Arc(DriveR-ParkKerb,t0),c1=Arc(DriveR-ParkKerb,t1);
+                PFace(paving,new Vector3(C.x,top,C.y),new Vector3(c0.x,top,c0.y),new Vector3(c1.x,top,c1.y),new Vector3(c1.x,top,c1.y),Vector3.up);
+                // kerb stone on the arc (8 mm joints): top, face to the road side, back face, ends
+                float j=.004f/DriveR;Vector2 o0=Arc(DriveR,t0+j*(i>0?1:0)),o1=Arc(DriveR,t1-j*(i<seg-1?1:0));
+                Vector2 i0=Arc(DriveR-ParkKerb,t0+j*(i>0?1:0)),i1=Arc(DriveR-ParkKerb,t1-j*(i<seg-1?1:0));
+                Vector3 V3(Vector2 q,float y)=>new Vector3(q.x,y,q.y);
+                var mid=Arc(DriveR-ParkKerb*.5f,tm);var outN=(Arc(DriveR,tm)-C).normalized;
+                PFace(kerbStone,V3(i0,top),V3(o0,top),V3(o1,top),V3(i1,top),Vector3.up);
+                PFace(kerbStone,V3(o0,-.10f),V3(o1,-.10f),V3(o1,top),V3(o0,top),new Vector3(outN.x*ParkSide,0,outN.y));
+                PFace(kerbStone,V3(i0,-.10f),V3(i1,-.10f),V3(i1,top),V3(i0,top),new Vector3(-outN.x*ParkSide,0,-outN.y));
+                var tan=(o1-o0).normalized;
+                if(i>0)PFace(kerbStone,V3(i0,-.10f),V3(o0,-.10f),V3(o0,top),V3(i0,top),new Vector3(-tan.x*ParkSide,0,-tan.y));
+                if(i<seg-1)PFace(kerbStone,V3(i1,-.10f),V3(o1,-.10f),V3(o1,top),V3(i1,top),new Vector3(tan.x*ParkSide,0,tan.y));
+                // colliders: the stone, and the sidewalk wedge inside it (an oriented box along the radius)
+                var ang=Quaternion.LookRotation(new Vector3(tan.x*ParkSide,0,tan.y),Vector3.up);
+                W.Kolizja(PV(mid.x,(top-.10f)*.5f,mid.y),new Vector3(ParkKerb,top+.10f,(o1-o0).magnitude),ang);
+                var sm=C+(Arc(DriveR,tm)-C)*.5f;
+                W.Kolizja(PV(sm.x,(top+y0)*.5f,sm.y),new Vector3(2f*(DriveR-ParkKerb)*Mathf.Sin(Mathf.PI/4f/seg),top-y0,DriveR-ParkKerb),
+                          Quaternion.LookRotation(new Vector3((sm.x-C.x)*ParkSide,0,sm.y-C.y),Vector3.up));
+            }
+            W.KolizjaMM(Mathf.Min((edge)*ParkSide,(edge+s*DriveR)*ParkSide),Mathf.Max((edge)*ParkSide,(edge+s*DriveR)*ParkSide),y0,0f,road,gradeEnd);
+        }
+        // three 6 m LED lamps on the kerb behind the bays, at bay lines
+        foreach(int line in new[]{3,10,17})
+        {
+            float z=BayZ0+line*BayW,x=(BayX1+LotX1)*.5f;
+            PBox(black,x-.08f,x+.08f,kt,kt+6.0f,z-.08f,z+.08f,true);
+            PBox(black,x-1.10f,x+.10f,kt+5.92f,kt+6.04f,z-.22f,z+.22f);                 // arm + luminaire over the bays
+            PBox(led,x-1.02f,x-.06f,kt+5.905f,kt+5.92f,z-.16f,z+.16f);
+            W.Lampa("apt car park LED",PV(x-.55f,kt+5.6f,z),.9f,16f,new Color(1f,.93f,.82f));
+        }
+        // black sign with a 3D "P" at the drive, facing the street (yaw 180 = -z)
+        {
+            float sx=k1+.55f,sz=-PlotHalf-.6f;
+            PBox(black,sx-.04f,sx+.04f,SiteY,SiteY+2.30f,sz-.04f,sz+.04f,true);
+            PBox(black,sx-.36f,sx+.36f,SiteY+1.62f,SiteY+2.38f,sz-.09f,sz-.04f);
+            BraxChampionsLetters3D.Text(nameLetters,nameFace,black,"P",PV(sx,SiteY+1.82f,sz-.098f),180f,.44f,.03f,0f,.6f);   // 8 mm proud of the plate
+            BraxChampionsLetters3D.Text(nameLetters,nameFace,black,"PARKING",PV(sx,SiteY+1.67f,sz-.098f),180f,.075f,.012f,.12f,.62f);
+        }
+        return Bays;
     }
 
     // ---- structure: floor slabs with the stairwell opening, roof slab ----

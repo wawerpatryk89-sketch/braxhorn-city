@@ -70,3 +70,31 @@ BUILDING_ACCESS=[(595,667,10,58),(817,805,8,20),(710,790,73,12)]
 # of reserved tram stop TR06 (x620) and bus stop U04 (x685).
 A1_PARKING_ENTRANCES=[(531.8,660.0,6.4,7.0),(661.8,660.0,6.4,7.0),(577.8,918.0,6.4,7.0)]
 EXTRA_CROSSINGS=[(800,815,'z')]
+
+# Owner 10.11 15:25-15:31 ("apartamentowce mają parkingi zrobione?" -> chose "Parking naziemny"): every apartment plot
+# T04-T07 gets a residents' car park beside the building (BraxChampionsApartments.Parking: 20 bays 2.5 x 4.75 m along a
+# 5.8 m aisle) and a two-way drive straight to its road. Plot-local metres, front = -z, x mirrored by `side`
+# (the side away from bus stops: T04 east, because bus stop U11 stands at x 852-859 on its west). The drive crosses the
+# city lawn and the sidewalk; at the road its kerbs turn in 3 m arcs (ZASADA-DROGI-NAROZNIKI-ZAOKRAGLONE 10.11) and the
+# city kerb is open across the mouth. Must match the C# constants (test_apartment_parking_20261110.py).
+APT_PARKING={'T04':dict(x=870,z=570,yaw=180,walk=-63.2,side=-1),'T05':dict(x=1040,z=570,yaw=180,walk=-63.2,side=1),
+             'T06':dict(x=870,z=450,yaw=90,walk=-53.2,side=1),'T07':dict(x=1040,z=450,yaw=270,walk=-73.2,side=1)}
+import math
+APT_PARK_KERB,APT_AISLE_X0,APT_AISLE_X1,APT_DRIVE_R=.25,19.0,24.8,3.0
+APT_PLOT_HALF=30.0
+def apt_world(p,x,z):
+ """plot-local (x mirrored by side, z) -> world, Unity yaw (x cos + z sin, -x sin + z cos)."""
+ x*=p['side'];a=math.radians(p['yaw']);c,s=round(math.cos(a)),round(math.sin(a))
+ return (p['x']+x*c+z*s,p['z']-x*s+z*c)
+def apt_rect(p,x0,x1,z0,z1):
+ pts=[apt_world(p,x,z) for x in (x0,x1) for z in (z0,z1)]
+ a,b=min(q[0] for q in pts),min(q[1] for q in pts)
+ return (a,b,max(q[0] for q in pts)-a,max(q[1] for q in pts)-b)
+APT_DRIVE_CUTS=[];APT_DRIVE_MOUTHS=[]
+for _id,_p in APT_PARKING.items():
+ _inner,_road=_p['walk']+.2,_p['walk']-6.8          # sidewalk inner edge / road edge (plot-local z)
+ # city lawn between the plot and the sidewalk (kerbs + asphalt), then the whole sidewalk across the mouth
+ APT_DRIVE_CUTS.append(apt_rect(_p,APT_AISLE_X0-APT_PARK_KERB,APT_AISLE_X1+APT_PARK_KERB,_inner,-APT_PLOT_HALF))
+ APT_DRIVE_CUTS.append(apt_rect(_p,APT_AISLE_X0-APT_DRIVE_R,APT_AISLE_X1+APT_DRIVE_R,_road,_inner))
+ _a,_b=apt_world(_p,APT_AISLE_X0-APT_DRIVE_R,_road),apt_world(_p,APT_AISLE_X1+APT_DRIVE_R,_road)
+ APT_DRIVE_MOUTHS.append((_id,min(_a[0],_b[0]),min(_a[1],_b[1]),max(_a[0],_b[0]),max(_a[1],_b[1])))

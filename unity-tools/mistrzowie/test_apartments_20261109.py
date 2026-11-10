@@ -25,7 +25,7 @@ def const(name):
 def plots():
     out = {}
     for m in re.finditer(r'new Plot\{id="(T\d+)",name="([^"]+)",(?:brand="[A-Z]+",)?x=(\d+),z=(\d+),yaw=([\d.]+)f,halfW=([\d.]+)f,'
-                         r'halfD=([\d.]+)f,floors=(\d+),style=Style\.(\w+),loggia=([\d.]+)f,walk=(-[\d.]+)f\}', SRC):
+                         r'halfD=([\d.]+)f,floors=(\d+),style=Style\.(\w+),loggia=([\d.]+)f,walk=(-[\d.]+)f(?:,park=-?1)?\}', SRC):
         out[m.group(1)] = dict(name=m.group(2), x=int(m.group(3)), z=int(m.group(4)), yaw=float(m.group(5)),
                                halfW=float(m.group(6)), halfD=float(m.group(7)), floors=int(m.group(8)),
                                style=m.group(9), loggia=float(m.group(10)), walk=float(m.group(11)))
