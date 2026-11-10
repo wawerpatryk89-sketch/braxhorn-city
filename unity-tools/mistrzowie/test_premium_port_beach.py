@@ -39,7 +39,8 @@ class PremiumPortBeach(unittest.TestCase):
         depth=max(-(p["z"]) for p in PIERS)-150
         self.assertLess(depth,120)
         yacht=[p for p in PIERS if p["id"]=="YACHT_MAIN_SPINE"][0]
-        self.assertLess(yacht["d"],65)
+        # 10.11 12:52 "wszystko w skalę": 15 REAL 40 m yachts need 11.6 m per berth (was 65 m for half-size models)
+        self.assertLess(yacht["d"],100)
 
     def test_jetskis_right_at_the_promenade_quay(self):
         skis=[b for b in BERTHS if b["kind"]=="jetski"]

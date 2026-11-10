@@ -16,6 +16,8 @@ public static class MeshDump
     static string Override(GameObject g)
     {
         var m = g.GetComponent<MeshRenderer>()?.sharedMaterial; if (m == null || m.name == "gltf") return "";
+        // a glTF model with its own atlas swapped (yacht hull liveries): keep the model's materials, replace the map
+        if (m.textured && m.picture != null && m.picture.EndsWith(".png")) return ",\"map\":\"" + m.picture + "\"";
         return ",\"material\":{\"colour\":[" + F(m.color.r) + "," + F(m.color.g) + "," + F(m.color.b) + "],\"metallic\":" + F(m.metallic) + ",\"roughness\":" + F(m.roughness) +
             ",\"emission\":[" + F(m.emission.r) + "," + F(m.emission.g) + "," + F(m.emission.b) + "]}";
     }

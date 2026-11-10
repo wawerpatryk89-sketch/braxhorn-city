@@ -102,7 +102,9 @@ def arena(detail):
   wall(m,'facade_glass',np.array([p,q]),4.5 if entry else .18,10.75)
  # Upper curtain wall remains glass; no pale stone belt across the owner's signs.
  wall(m,'facade_glass',path,10.75,27.15)
- for yy in [10.75,18.20,27.15]:
+ # (10.11 zero flicker: the top band hangs UNDER the roof slab, 27.05 = slab underside; at 27.15 its bottom lay in the
+ # slab's underside plane - 79 m2 of flicker)
+ for yy in [10.75,18.20,27.05]:
   ribbon(m,'steel',path,0,.16,yy,.10)
  # Dark roof cap and parapet match the reference silhouette.
  m.slab('roof',foot.buffer(.55),27.35,.30)

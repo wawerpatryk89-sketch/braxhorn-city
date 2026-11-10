@@ -50,18 +50,39 @@ for x in X_ROADS:
 for _,x,z,axis in TRAM_STOPS:crossings.append((x+25 if axis=='x' else x,z+25 if axis=='z' else z,axis))
 crossings.extend(EXTRA_CROSSINGS)
 
+RAMP_HALF=2.5
 def dropped(x,z):
- return any((abs(x-a)<2.7 and abs(abs(z-b)-10)<.35) if axis=='x' else (abs(z-b)<2.7 and abs(abs(x-a)-10)<.35) for a,b,axis in crossings)
+ # exactly the 5 m of the ramp (was 2.7 m: half-dropped stones next to the full-height walk left a hole)
+ return any((abs(x-a)<RAMP_HALF and abs(abs(z-b)-10)<.35) if axis=='x' else (abs(z-b)<RAMP_HALF and abs(abs(x-a)-10)<.35) for a,b,axis in crossings)
 
 curb_count=0
+# Owner 10.11 13:04 (IMG_0866, "krawężniki migotają"): the kerb top lay in the plane of the sidewalk (PAVING_Y) over
+# the same 18 cm strip. The kerb now OWNS that strip: its footprint is cut out of every ground surface below (see
+# cuts at the end), so the stone top and the paving meet edge to edge, never one on the other. The stones are split
+# exactly at both ends of every dropped-kerb ramp, so a low stone never stands beside the full-height walk.
+curb_polys=[]
 for a,b in edges.values():
- a=np.array(a);b=np.array(b);d=b-a;length=np.linalg.norm(d);n=np.array([-d[1],d[0]])/length
- for u in np.arange(0,length,1):
-  ll=min(1,length-u);p=a+d/length*(u+ll/2)+n*.09
+ a=np.array(a);b=np.array(b);d=b-a;length=np.linalg.norm(d);n=np.array([-d[1],d[0]])/length;t=d/length
+ along_x=abs(d[0])>abs(d[1])
+ line=a+n*.09                                            # kerb centre line, 9 cm off the asphalt edge
+ cuts_u=set(float(u) for u in np.arange(0,length,1))|{float(length)}
+ for ca,cb,axis in crossings:
+  if along_x and axis=='x' and abs(abs(line[1]-cb)-10)<.35:ends=[(ca+e-a[0])/t[0] for e in (-RAMP_HALF,RAMP_HALF)]
+  elif not along_x and axis=='z' and abs(abs(line[0]-ca)-10)<.35:ends=[(cb+e-a[1])/t[1] for e in (-RAMP_HALF,RAMP_HALF)]
+  else:continue
+  cuts_u.update(float(u) for u in ends if 0<u<length)
+ cuts_u=sorted(cuts_u)
+ for u0,u1 in zip(cuts_u,cuts_u[1:]):
+  ll=u1-u0
+  if ll<.02:continue
+  p=line+t*(u0+ll/2)
   h=.02 if dropped(*p) else .16
-  dims=(ll-.008,.18,.18) if abs(d[0])>abs(d[1]) else (.18,.18,ll-.008)
+  dims=(ll-.008,.18,.18) if along_x else (.18,.18,ll-.008)
   if min(dims)<=0:continue
   mesh.box('curb',(p[0],h-.09,p[1]),dims);curb_count+=1
+  # footprint incl. the 8 mm joint, so no sliver of paving is left between two stones
+  hw,hd=(ll/2,.09) if along_x else (.09,ll/2)
+  curb_polys.append(box(p[0]-hw,p[1]-hd,p[0]+hw,p[1]+hd))
 
 # Paint follows the same street grid. Junction centres stay clear.
 def near_junction(x,z):return min(abs(x-a) for a in X_ROADS)<16 and min(abs(z-a) for a in Z_ROADS)<16
@@ -84,8 +105,9 @@ ramp_polys=[]
 for number,(x,z,axis) in enumerate(crossings):
  for q in np.arange(-9.5,10,1):localbox('paint',x,z,axis,0,.007,q,4,.012,.5)
  for side in [-1,1]:
-  # 3m ramp: 16cm sidewalk -> 2cm dropped kerb. No raised sheet over the old walk.
-  p=[local(x,z,axis,u,0,v) for u,v in [(-2.5,side*10),(2.5,side*10),(2.5,side*13),(-2.5,side*13)]]
+  # 3m ramp: 16cm sidewalk -> 2cm dropped kerb. No raised sheet over the old walk. It starts at the back of the
+  # dropped kerb (10.18 m), flush with its 2 cm top - never over the stone (zero flicker).
+  p=[local(x,z,axis,u,0,v) for u,v in [(-2.5,side*10.18),(2.5,side*10.18),(2.5,side*13),(-2.5,side*13)]]
   poly=Polygon([(a,c) for a,_,c in p]);ramp_polys.append(poly)
   y=[.02,.02,.16,.16]
   coords=[(p[i][0],y[i],p[i][2]) for i in range(4)]
@@ -93,6 +115,12 @@ for number,(x,z,axis) in enumerate(crossings):
   # Surface normals are checked below.
   if np.cross(np.array(coords[1])-coords[0],np.array(coords[2])-coords[0])[1]<0:coords=coords[::-1]
   mesh.quad('paving',*coords)
+  # paved cheeks at both ends of the ramp, up to the walk level (no open side under the walk)
+  for end in [-1,1]:
+   u=end*RAMP_HALF;c=[local(x,z,axis,u,y,v) for v,y in [(side*10.18,.02),(side*13,.02),(side*13,.16),(side*10.18,.16)]]
+   inward=np.array(local(x,z,axis,-end,0,0))-np.array(local(x,z,axis,0,0,0))
+   if np.dot(np.cross(np.array(c[1])-c[0],np.array(c[2])-c[0]),inward)<0:c=c[::-1]
+   mesh.quad('paving',*c)
   for rib in np.linspace(-2.2,2.2,18):localbox('tactile',x,z,axis,rib,.167,side*13.5,.06,.014,.65)
  mark('CROSS_'+str(number+1),'crossing',(x,0,z))
 
@@ -210,21 +238,41 @@ for p,n in [(metro[0],path_frames(metro)[0]),(metro[-1],path_frames(metro)[-1])]
   c=p+n*side*METRO_TRACK_OFFSET
   mesh.box('metro_concrete',(c[0],METRO_RAIL_Y+2.3/K,c[1]),(.3/K,5.6/K,4.8/K) if abs(n[0])<.5 else (4.8/K,5.6/K,.3/K))
 
-# Replace the affected paving and asphalt faces: no buried old sidewalk under ramps,
-# and no solid asphalt obstructing recessed tram rail grooves.
-cuts={'paving':unary_union(ramp_polys),'asphalt':grooves}
+# Replace the affected paving and asphalt faces: no buried old sidewalk under ramps or kerbs, and no solid asphalt
+# obstructing recessed tram rail grooves. Faces untouched by a cut keep their exact vertices; cut faces are
+# re-triangulated on the plane of the original face.
+from shapely.strtree import STRtree
+kerb_cut=curb_polys+ramp_polys
+level_cut=STRtree(kerb_cut)
+groove_parts=list(grooves.geoms) if hasattr(grooves,'geoms') else [grooves]
+cuts={'asphalt':(STRtree(groove_parts),groove_parts)}
+for role in ('paving','grass','prom_paving','cycle_lane','cycle_mark'):cuts[role]=(level_cut,kerb_cut)
+cut_faces=0
 for old in ground.meshes.values():
  role=old['role']
  if role not in cuts:continue
- v=np.asarray(old['positions']).reshape(-1,3)/K;indices=np.asarray(old['triangles']).reshape(-1,3)
+ tree,parts=cuts[role]
+ pos=np.asarray(old['positions'],float).reshape(-1,3);uv=np.asarray(old['uv'],float).reshape(-1,2)
+ v=pos/K;indices=np.asarray(old['triangles']).reshape(-1,3)
  old['positions']=[];old['uv']=[];old['triangles']=[]
  for face in indices:
   poly=Polygon(v[face][:,[0,2]])
-  result=poly.difference(cuts[role])
+  hits=[parts[i] for i in tree.query(poly) if parts[i].intersects(poly)]
+  if not hits or poly.area<1e-10:
+   i=len(old['positions'])//3
+   for k in face:old['positions'] += list(pos[k]);old['uv'] += list(uv[k])
+   old['triangles'] += [i,i+1,i+2];continue
+  cut_faces+=1
+  result=poly.difference(unary_union(hits))
   if result.is_empty:continue
+  # plane of the original face: y = A x + B z + C
+  P=v[face];M=np.c_[P[:,0],P[:,2],np.ones(3)]
+  try:A,B,C=np.linalg.solve(M,P[:,1])
+  except np.linalg.LinAlgError:A,B,C=0.,0.,float(P[:,1].mean())
   for tri in constrained_delaunay_triangles(result).geoms:
-   q=list(orient(tri,sign=1).exterior.coords)[:3][::-1];i=len(old['positions'])//3;y=0 if role=='asphalt' else ground.height(role,*q[0])
-   for x,z in q:old['positions'] += [round(x*K,6),round(y*K,6),round(z*K,6)];old['uv'] += [x,z]
+   if tri.area<1e-9:continue
+   q=list(orient(tri,sign=1).exterior.coords)[:3][::-1];i=len(old['positions'])//3
+   for x,z in q:old['positions'] += [round(x*K,6),round((A*x+B*z+C)*K,6),round(z*K,6)];old['uv'] += [x,z]
    old['triangles'] += [i,i+1,i+2]
 ground.layout['meshes']=[m for m in ground.meshes.values() if m['triangles']]
 ground.layout['entranceHoles']=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in ENTRANCE_HOLES]

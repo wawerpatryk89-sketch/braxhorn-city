@@ -200,7 +200,7 @@ public static partial class BraxChampionsArenaArrival
         Object.DestroyImmediate(p.GetComponent<Collider>());
         var band=GameObject.CreatePrimitive(PrimitiveType.Cube);band.name="trophy gold name band";
         band.transform.SetParent(g,false);band.transform.localPosition=new Vector3(0,CupPlinth*.5f,0);
-        band.transform.localScale=new Vector3(.205f,.022f,.205f);band.GetComponent<Renderer>().sharedMaterial=gold;
+        band.transform.localScale=new Vector3(.215f,.022f,.215f);   // 7.5 mm proud of the plinth (was 2.5 mm: flicker)band.GetComponent<Renderer>().sharedMaterial=gold;
         Object.DestroyImmediate(band.GetComponent<Collider>());
         var plaque=plate>=0?PlaqueMaterial():null;
         if(plaque)
@@ -239,7 +239,7 @@ public static partial class BraxChampionsArenaArrival
             float x=s*8.6f,z=FrontGlassZ(8.6f)+.36f+D*.5f;
             float f=LobbyFloorY(arenaRoot,x,z);
             Box(root,"A1 TROPHY CASE | black lacquer plinth",black,new Vector3(x,f+baseTop*.5f,z),new Vector3(W,baseTop,D),true);
-            Box(root,"A1 TROPHY CASE | gold plinth line",gold,new Vector3(x,f+baseTop-.02f,z),new Vector3(W+.01f,.025f,D+.01f),false);
+            Box(root,"A1 TROPHY CASE | gold plinth line",gold,new Vector3(x,f+baseTop-.02f,z),new Vector3(W+.02f,.025f,D+.02f),false);  // 1 cm proud
             Box(root,"A1 TROPHY CASE | black LED cap",black,new Vector3(x,f+glassTop+.04f,z),new Vector3(W,.08f,D),false);
             Box(root,"A1 TROPHY CASE | warm LED under cap",light,new Vector3(x,f+glassTop-.006f,z),new Vector3(W-.10f,.012f,D-.10f),false);
             float gh=glassTop-baseTop,gy=f+baseTop+gh*.5f;

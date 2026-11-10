@@ -30,10 +30,10 @@ public static class BraxChampionsPromenadeFurniture
         foreach(float sx in new[]{-.82f,.82f})
         {
             m.BoxMinMax(g,x+sx-.04f,x+sx+.04f,Y,Y+.44f,z-.28f,z-.22f);        // front leg
-            m.BoxMinMax(g,x+sx-.04f,x+sx+.04f,Y,Y+.86f,z+.20f,z+.26f);        // rear leg + back support
+            m.BoxMinMax(g,x+sx-.04f,x+sx+.04f,Y,Y+.84f,z+.20f,z+.26f);        // rear leg + back support (under the top slat)
             m.BoxMinMax(g,x+sx-.04f,x+sx+.04f,Y+.40f,Y+.44f,z-.30f,z+.26f);   // seat rail
             m.BoxMinMax(g,x+sx-.05f,x+sx+.05f,Y+.62f,Y+.66f,z-.30f,z+.12f);   // armrest
-            m.BoxMinMax(g,x+sx-.035f,x+sx+.035f,Y+.44f,Y+.62f,z-.27f,z-.21f);
+            m.BoxMinMax(g,x+sx-.035f,x+sx+.035f,Y+.44f,Y+.62f,z-.275f,z-.225f);  // 10 mm off the seat slat faces
         }
         for(int i=0;i<6;i++)
         {
@@ -43,7 +43,7 @@ public static class BraxChampionsPromenadeFurniture
         for(int i=0;i<4;i++)
         {
             float y0=Y+.52f+i*.09f;
-            m.BoxMinMax(Teak,x-.95f,x+.95f,y0,y0+.075f,z+.22f,z+.255f);
+            m.BoxMinMax(Teak,x-.95f,x+.95f,y0,y0+.075f,z+.21f,z+.245f);       // 15 mm inside the rear legs' faces
         }
         // stainless litter bin beside the bench
         var bin=new Vector3(x+1.35f,Y,z);
@@ -60,7 +60,7 @@ public static class BraxChampionsPromenadeFurniture
         var g=BraxChampionsHarbour.Graphite;var b=new Vector3(x,Y,z);
         m.Cylinder(g,b,.16f,.30f,16,Quaternion.identity,true,false,.11f);
         m.Cylinder(g,b+Vector3.up*.30f,.075f,5.1f,14,Quaternion.identity,true,false,.055f);
-        m.Cylinder(BraxChampionsHarbour.Steel,b+Vector3.up*2.9f,.062f,.10f,14);
+        m.Cylinder(BraxChampionsHarbour.Steel,b+Vector3.up*2.9f,.078f,.10f,14);   // ring 1 cm proud of the tapered pole
         // flat round luminaire with a warm LED disc underneath
         m.Cylinder(g,b+Vector3.up*5.36f,.42f,.10f,24,Quaternion.identity,true,true,.40f);
         m.Cylinder(BraxChampionsHarbour.Led,b+Vector3.up*5.345f,.34f,.016f,24,Quaternion.identity,false,true);

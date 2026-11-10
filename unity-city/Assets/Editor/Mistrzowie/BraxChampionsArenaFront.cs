@@ -259,8 +259,10 @@ public static partial class BraxChampionsArenaArrival
         // mid rings 2.5x the vertical strip (0.44 m) = 1.10 m high, the crown 0.85 m, both 0.60 m proud, bull-nose.
         GoldSweep(group,"A1 owner render | rounded gold nosing under the belt",gold,BeltBottom-.20f,1.10f,.60f,.35f,belt,360,6);
         GoldSweep(group,"A1 owner render | rounded gold nosing over the belt",gold,BeltTop-1.00f,1.10f,.60f,.35f,belt,360,6);
-        GoldSweep(group,"A1 owner render | warm LED line under the belt nosing",ArenaLed(exterior),BeltBottom-.25f,.05f,.54f,.02f,belt,360,1);
-        GoldSweep(group,"A1 owner render | rounded gold crown under the roof",gold,26.55f,.85f,.60f,.30f,0f,360,6);
+        // 10.11 zero flicker: 1 cm higher, its top inside the nosing and 1 cm over the entrance canopy roof (was flush: 21 m2)
+        GoldSweep(group,"A1 owner render | warm LED line under the belt nosing",ArenaLed(exterior),BeltBottom-.24f,.05f,.54f,.02f,belt,360,1);
+        // underside 2.5 cm below the top transom (26.545): the transom's soffit is inside the crown (was 5 mm: 101 m2)
+        GoldSweep(group,"A1 owner render | rounded gold crown under the roof",gold,26.52f,.85f,.60f,.30f,0f,360,6);
         Debug.Log("A1_OWNER_RENDER_GOLD_TRIMS belt=2x(1.10 high,0.60 proud,R0.35) crown=0.85x0.60 R0.30 vertical=0.44 steps=360 continuous=true");
     }
 
@@ -284,7 +286,7 @@ public static partial class BraxChampionsArenaArrival
         }
         // head band over the doors (door opening is 4.5 m high, canopy soffit 6.2 m)
         Box(root,"A1 entrance | black head band over the doors",black,new Vector3(0,(4.50f+top)*.5f,glass-.30f),new Vector3(2f*(px-pw*.5f),top-4.50f,.50f),true);
-        Box(root,"A1 entrance | gold nosing under the head band",gold,new Vector3(0,4.50f+.07f,glass-.58f),new Vector3(2f*(px-pw*.5f),.14f,.10f),false);
+        Box(root,"A1 entrance | gold nosing under the head band",gold,new Vector3(0,4.49f+.07f,glass-.58f),new Vector3(2f*(px-pw*.5f),.14f,.10f),false);  // 1 cm below the band
         Box(root,"A1 entrance | warm LED line under the head band",led,new Vector3(0,4.50f-.012f,glass-.40f),new Vector3(2f*(px-pw*.5f)-.2f,.02f,.06f),false);
         // Lit gold ring just inside the doors, hung from the lobby roof.
         var ring=new FacadeBatch();var glow=new FacadeBatch();
@@ -377,7 +379,7 @@ public static partial class BraxChampionsArenaArrival
         Box(root,"A1 LOBBY banquette | quilted A28 leather backrest",quilt,new Vector3(xc,f+.76f,wall-.09f),new Vector3(L,.92f,.14f),true);
         Box(root,"A1 LOBBY banquette | gold rail on the backrest",gold,new Vector3(xc,f+1.237f,wall-.09f),new Vector3(L+.02f,.035f,.16f),false);
         foreach(float e in new[]{x0+.09f,x1-.09f})
-            Box(root,"A1 LOBBY banquette | black leather armrest",black,new Vector3(e,f+.40f,wall-.40f),new Vector3(.18f,.60f,.78f),true);
+            Box(root,"A1 LOBBY banquette | black leather armrest",black,new Vector3(e,f+.40f,wall-.40f),new Vector3(.20f,.60f,.78f),true);  // 1 cm past the backrest end
     }
 
     static void LobbyGallery(Transform arenaRoot,Dictionary<string,Material> exterior)
@@ -429,7 +431,7 @@ public static partial class BraxChampionsArenaArrival
             }
             float px=s*36.0f,pz=wall-.55f;
             Box(root,"A1 LOBBY | black marble vase pedestal",marble,new Vector3(px,f+.45f,pz),new Vector3(.62f,.90f,.62f),true);
-            Box(root,"A1 LOBBY | gold pedestal line",gold,new Vector3(px,f+.885f,pz),new Vector3(.64f,.03f,.64f),false);
+            Box(root,"A1 LOBBY | gold pedestal line",gold,new Vector3(px,f+.865f,pz),new Vector3(.64f,.03f,.64f),false);  // 2 cm under the top
             if(PlaceLobbyModel(arenaRoot,root,"brass_vase_01/brass_vase_01_1k.gltf","brass vase on pedestal",px,pz,s*30f,false,f+.90f,1.25f))vases++;
         }
         // round island ottomans with a planter and a plant in the middle
@@ -560,7 +562,8 @@ public static partial class BraxChampionsArenaArrival
             try{y=ActualFloorYNominal(arenaRoot,at.x,at.y);}catch(Exception){}
             float dir=at.x<0?-1f:1f;                                                  // banner hangs away from the walkway
             Box(root,"A1 FLAG | black granite plinth",stone,new Vector3(at.x,y+plinth*.5f,at.y),new Vector3(.90f,plinth,.90f),true);
-            Box(root,"A1 FLAG | gold plinth line",gold,new Vector3(at.x,y+plinth-.01f,at.y),new Vector3(.92f,.02f,.92f),false);
+            // gold band round the plinth 1 cm under its top edge (its top lay in the granite top: 8 m2 of flicker)
+            Box(root,"A1 FLAG | gold plinth line",gold,new Vector3(at.x,y+plinth-.02f,at.y),new Vector3(.92f,.02f,.92f),false);
             RoundedCylinder(root,"A1 FLAG | black pole",black,new Vector3(at.x,y+plinth+poleH*.5f,at.y),.085f,poleH,.02f,true);
             RoundedCylinder(root,"A1 FLAG | gold collar",gold,new Vector3(at.x,y+plinth+.20f,at.y),.13f,.30f,.03f,false);
             RoundedCylinder(root,"A1 FLAG | gold ball finial",gold,new Vector3(at.x,y+plinth+poleH+.16f,at.y),.17f,.34f,.16f,false);

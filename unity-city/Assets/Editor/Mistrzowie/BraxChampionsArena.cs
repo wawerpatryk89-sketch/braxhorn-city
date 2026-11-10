@@ -283,9 +283,12 @@ public static class BraxChampionsArena
             for (int k = 0; k < rows; k++)
             {
                 float p0 = front - s * k * 1.05f, p1 = front - s * (k + 1) * 1.05f, top = yF + .4f * (k + 1);
-                float lo = Mathf.Min(p0, p1), hi = Mathf.Max(p0, p1), e0 = Mathf.Min(p0, p0 - s * .05f), e1 = Mathf.Max(p0, p0 - s * .05f);
-                if (alongX) { BoxMinMax(tier, a0, a1, 0f, top, lo, hi, true); BoxMinMax(nose, a0, a1, top - .03f, top + .004f, e0 - .002f, e1 + .002f, false); }
-                else { BoxMinMax(tier, lo, hi, 0f, top, a0, a1, true); BoxMinMax(nose, e0 - .002f, e1 + .002f, top - .03f, top + .004f, a0, a1, false); }
+                // Owner 10.11 13:05 (zero flicker, nothing laid on anything): the aluminium nosing is a real 40 x 58 mm bar
+                // standing 10 mm above the tread and 8 mm proud of the riser, its ends 6 mm inside the block ends - no face
+                // of it lies in the plane of the concrete.
+                float lo = Mathf.Min(p0, p1), hi = Mathf.Max(p0, p1), e0 = Mathf.Min(p0 + s * .008f, p0 - s * .05f), e1 = Mathf.Max(p0 + s * .008f, p0 - s * .05f);
+                if (alongX) { BoxMinMax(tier, a0, a1, 0f, top, lo, hi, true); BoxMinMax(nose, a0 + .006f, a1 - .006f, top - .03f, top + .010f, e0, e1, false); }
+                else { BoxMinMax(tier, lo, hi, 0f, top, a0, a1, true); BoxMinMax(nose, e0, e1, top - .03f, top + .010f, a0 + .006f, a1 - .006f, false); }
                 int j = 0;
                 for (float a = a0 + .45f; a < a1 - .3f; a += .68f, j++) Seat((j + k) % 9 == 4 ? seatBlk : seatRed, alongX, a, p0 - s * .525f, top, s);
             }
@@ -317,15 +320,20 @@ public static class BraxChampionsArena
                 float p0=front-s*k*1.05f,p1=front-s*(k+1)*1.05f,top=yF+.4f*(k+1),lo=Mathf.Min(p0,p1),hi=Mathf.Max(p0,p1);
                 Side(marble,yF,Mathf.Min(top,StandStoneTop),lo,hi);
                 if(top>StandStoneTop+.06f)Side(marble,StandStoneTop+.06f,top,lo,hi);
-                Side(interiorGold,top-.035f,top+.012f,lo,hi,.012f);                       // gold edge of the tread
-                Side(interiorGold,top-.4f,top,Mathf.Min(p0,p0-s*.03f),Mathf.Max(p0,p0-s*.03f),.012f);  // and of the riser
+                // gold edge of the tread and of the riser: 6 mm proud of the riser face and stopping 6 mm short of the
+                // block's back, the riser strip ends under the tread strip - no gold face in a marble plane (zero flicker)
+                float tf=p0+s*.006f,tb=p1+s*.006f;
+                Side(interiorGold,top-.035f,top+.012f,Mathf.Min(tf,tb),Mathf.Max(tf,tb),.012f);
+                Side(interiorGold,top-.4f,top-.035f,Mathf.Min(tf,p0-s*.03f),Mathf.Max(tf,p0-s*.03f),.012f);
                 // handrail post on every row and the raked rail to the next one
                 var foot=At(p0-s*.525f,top);var head=foot+Vector3.up*.95f;
                 W.Rura(interiorGold,foot,head,.022f,8);
                 if(k+1<rows)W.Rura(interiorGold,head,head+new Vector3(alongX?0f:-s*1.05f,.4f,alongX?-s*1.05f:0f),.026f,8);
             }
             float backP=front-s*rows*1.05f;
-            Side(warmLine,StandStoneTop,StandStoneTop+.06f,Mathf.Min(front-s*1.05f*2f,backP),Mathf.Max(front-s*1.05f*2f,backP),.012f);
+            // the light line starts behind the gold riser strip of row 3 (never in the same face as the gold)
+            float lineFront=front-s*(1.05f*2f+.03f);
+            Side(warmLine,StandStoneTop,StandStoneTop+.06f,Mathf.Min(lineFront,backP),Mathf.Max(lineFront,backP),.012f);
         }
         // Owner 9.11: "the stands must join at the corners". The long sides
         // (front line x=cx±24) and the ends (front line z=cz±15) now meet in a
@@ -384,8 +392,9 @@ public static class BraxChampionsArena
                         if(k>0)
                         {
                             // Aluminium nosing on the front (inner) edge of the step.
+                            // same real bar as the straight blocks: 10 mm above the tread, 8 mm proud of the riser
                             float noseChord=2f*r0*Mathf.Sin(step*.5f*Mathf.Deg2Rad)+.01f;
-                            W.OBox(nose,c+d*(r0+.025f)+Vector3.up*(top-.013f),new Vector3(noseChord,.034f,.05f),q,false);
+                            W.OBox(nose,c+d*(r0+.021f)+Vector3.up*(top-.01f),new Vector3(noseChord,.04f,.058f),q,false);
                         }
                     }
                     // Seats along the row centre-line, every .68 m of arc, facing the
@@ -438,9 +447,10 @@ public static class BraxChampionsArena
         // front of the stands, then left and right along the stand front to the stairs at cx +-12 (TierStairs); a rope line
         // keeps the public off the cage floor. The public carpet never reaches the octagon.
         float gateFoot = zs - 1.35f, standFront = cz + EndFront, crossZ0 = standFront - 1.45f, crossZ1 = standFront - .05f;
-        Top(carpet, -87.3f, -84.7f, Z0 + .05f, gateFoot - .03f, yF + .006f);                                  // walkout
-        Top(carpet, -87.3f, -84.7f, standFront, Z1 - .05f, yF + .006f);                                       // public aisle
-        Top(carpet, cx - 12.65f, cx + 12.65f, crossZ0, crossZ1, yF + .006f);                                  // to both stand stairs
+        // 10.11 13:05: real 12 mm carpets standing on the floor (a slab with edges), never a sheet floating over it
+        W.MM(carpet, -87.3f, -84.7f, yF, yF + .012f, Z0 + .05f, gateFoot - .03f);                            // walkout
+        W.MM(carpet, -87.3f, -84.7f, yF, yF + .012f, standFront, Z1 - .05f);                                // public aisle
+        W.MM(carpet, cx - 12.65f, cx + 12.65f, yF, yF + .012f, crossZ0, crossZ1);                            // to both stand stairs
         void Rope(Vector3 a, Vector3 b)
         {
             // Phone proof 8.11: a real soft red rope with a 13 cm natural sag between GOLD posts, never a rigid bar.
@@ -495,7 +505,8 @@ public static class BraxChampionsArena
         // The owner has approved two full side-wall murals. Remove the ten
         // tiny repeated banners that would cover the originals or z-fight
         // against them. Preserve both the fighters' exit sign and entrance logo.
-        Sign("hala_walk", new Vector3(cx, 4.75f, Z0 + .06f), 9.6f, 1.8f, Vector3.forward, false);
+        // 2 cm in front of the gold wall lines (they stand 6 cm off the wall): no gold face in the sign plane
+        Sign("hala_walk", new Vector3(cx, 4.75f, Z0 + .08f), 9.6f, 1.8f, Vector3.forward, false);
         Sign("braxhorn_arena", new Vector3(cx, 4.9f, Z1 - .06f), 6f, 1.5f, Vector3.back, false);
         // Four priority fixtures over the octagon. The built-in mobile CityStaticPBR
         // shader shades up to four ForceVertex local lamps per object. Strengthen the
@@ -763,47 +774,32 @@ public static class BraxChampionsArena
         const float carpetHalf=.65f;      // 1.30m red velour
         const float goldWidth=.020f;
         const float overlay=.009f;
+        // Owner 10.11 13:05 (zero flicker): the riser carpet hangs 9 mm IN FRONT of the stone riser (never inside the tread
+        // plane) from the lower tread carpet up to the underside of its own tread carpet; the tread carpet starts on the
+        // front edge of the riser carpet and stops 8 mm short of the next riser. No carpet or gold face lies in a stone face.
         for(int i=0;i<32;i++)
         {
             float raw0=front-facing*i*.525f,raw1=front-facing*(i+1)*.525f;
-            float lo=Mathf.Min(raw0,raw1),hi=Mathf.Max(raw0,raw1);
             float top=.055f+(i+1)*.2f,previous=.055f+i*.2f;
-            if(alongX)
+            // the run climbs toward -facing: the riser front (where you come from) is on the +facing side
+            float outer=raw0+facing*.009f,back=raw1+facing*.008f;
+            float t0=Mathf.Min(outer,back),t1=Mathf.Max(outer,back),r0=Mathf.Min(outer,raw0),r1=Mathf.Max(outer,raw0);
+            float riserBottom=i==0?previous:previous+.003f+overlay,riserTop=top+.003f;
+            // u = across the stair (centre +- half), v = along the run
+            void Run(Material m,float u0,float u1,float y0,float y1,float v0,float v1)
             {
-                W.MM(stone,centre-stairHalf,centre+stairHalf,0,top,lo,hi,true);
-                // Tread carpet: physical overlay, never coplanar.
-                W.MM(carpet,centre-carpetHalf,centre+carpetHalf,top+.003f,top+.003f+overlay,
-                    lo+.008f,hi-.008f,false);
-                // Riser carpet at the approach edge of each step.
-                float z=raw0;
-                W.MM(carpet,centre-carpetHalf,centre+carpetHalf,previous,top,
-                    z-.004f,z+.004f,false);
-                foreach(float side in new[]{-1f,1f})
-                {
-                    float x=centre+side*(carpetHalf+goldWidth*.5f);
-                    W.MM(gold,x-goldWidth*.5f,x+goldWidth*.5f,
-                        top+.003f,top+.003f+overlay,lo+.008f,hi-.008f,false);
-                    // Continuous 20mm gold edge down the vertical riser too.
-                    W.MM(gold,x-goldWidth*.5f,x+goldWidth*.5f,
-                        previous,top,raw0-.004f,raw0+.004f,false);
-                }
+                if(alongX)W.MM(m,u0,u1,y0,y1,v0,v1,false);else W.MM(m,v0,v1,y0,y1,u0,u1,false);
             }
-            else
+            if(alongX)W.MM(stone,centre-stairHalf,centre+stairHalf,0,top,Mathf.Min(raw0,raw1),Mathf.Max(raw0,raw1),true);
+            else W.MM(stone,Mathf.Min(raw0,raw1),Mathf.Max(raw0,raw1),0,top,centre-stairHalf,centre+stairHalf,true);
+            Run(carpet,centre-carpetHalf,centre+carpetHalf,top+.003f,top+.003f+overlay,t0,t1);          // tread
+            Run(carpet,centre-carpetHalf,centre+carpetHalf,riserBottom,riserTop,r0,r1);                // riser
+            foreach(float side in new[]{-1f,1f})
             {
-                W.MM(stone,lo,hi,0,top,centre-stairHalf,centre+stairHalf,true);
-                W.MM(carpet,lo+.008f,hi-.008f,top+.003f,top+.003f+overlay,
-                    centre-carpetHalf,centre+carpetHalf,false);
-                float x=raw0;
-                W.MM(carpet,x-.004f,x+.004f,previous,top,
-                    centre-carpetHalf,centre+carpetHalf,false);
-                foreach(float side in new[]{-1f,1f})
-                {
-                    float z=centre+side*(carpetHalf+goldWidth*.5f);
-                    W.MM(gold,lo+.008f,hi-.008f,top+.003f,top+.003f+overlay,
-                        z-goldWidth*.5f,z+goldWidth*.5f,false);
-                    W.MM(gold,raw0-.004f,raw0+.004f,previous,top,
-                        z-goldWidth*.5f,z+goldWidth*.5f,false);
-                }
+                float u=centre+side*(carpetHalf+goldWidth*.5f);
+                Run(gold,u-goldWidth*.5f,u+goldWidth*.5f,top+.003f,top+.003f+overlay,t0,t1);
+                // continuous 20 mm gold edge down the riser too
+                Run(gold,u-goldWidth*.5f,u+goldWidth*.5f,riserBottom,riserTop,r0,r1);
             }
         }
         Debug.Log("A1_PREMIUM_TIER_STAIRS width=1.70 carpet=1.30 steps=32 tread=.525 riser=.20"+

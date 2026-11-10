@@ -138,11 +138,24 @@ public static class BraxChampionsBeachFurnishings
         {
             float za=z,zb=Mathf.Max(z1,z-2f);
             var a0=On(x0,za);var a1=On(x1,za);var b0=On(x0,zb);var b1=On(x1,zb);
-            m.Quad(Deck,a0,a1,b1,b0);
-            if(fascia)
+            // Owner 10.11 13:05 (zero flicker): the sand is curved, a 2 m plank quad cut through it (23 m2 of deck in the
+            // sand plane). The deck follows the sand in 0.5 x 1 m panels, 7 cm above it everywhere (the sand mesh is the
+            // same profile sampled coarser and concave, so it always stays below).
+            int nz=Mathf.Max(1,Mathf.CeilToInt((za-zb)/.5f)),nx=Mathf.Max(1,Mathf.CeilToInt((x1-x0)/1f));
+            for(int iz=0;iz<nz;iz++)
             {
-                m.Quad(Teak,b0,b0-Vector3.up*.14f,a0-Vector3.up*.14f,a0);
-                m.Quad(Teak,a1,a1-Vector3.up*.14f,b1-Vector3.up*.14f,b1);
+                float zA=Mathf.Lerp(za,zb,iz/(float)nz),zB=Mathf.Lerp(za,zb,(iz+1)/(float)nz);
+                for(int ix=0;ix<nx;ix++)
+                {
+                    float xA=Mathf.Lerp(x0,x1,ix/(float)nx),xB=Mathf.Lerp(x0,x1,(ix+1)/(float)nx);
+                    m.Quad(Deck,On(xA,zA),On(xB,zA),On(xB,zB),On(xA,zB));
+                }
+                if(fascia)
+                {
+                    Vector3 p0=On(x0,zA),q0=On(x0,zB),p1=On(x1,zA),q1=On(x1,zB);
+                    m.Quad(Teak,q0,q0-Vector3.up*.14f,p0-Vector3.up*.14f,p0);
+                    m.Quad(Teak,p1,p1-Vector3.up*.14f,q1-Vector3.up*.14f,q1);
+                }
             }
             m.BoxMinMax(Teak,x0-.05f,x1+.05f,Mathf.Min(b0.y,b1.y)-.16f,Mathf.Min(b0.y,b1.y)-.02f,zb,zb+.12f);
             BraxChampionsMeshBatch.Collider(col,name+" "+i,new Vector3((x0+x1)*.5f,(a0.y+b1.y)*.5f-.06f,(za+zb)*.5f),new Vector3(x1-x0,.12f,za-zb));

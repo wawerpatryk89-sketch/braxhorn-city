@@ -90,14 +90,14 @@ public static class BraxChampionsPromenadeEquipment
     {
         m.BoxMinMax(Steel,b.x-.34f,b.x+.34f,b.y,b.y+.03f,b.z-.30f,b.z+.32f);                  // base plate
         m.Cylinder(Steel,b+new Vector3(0,.03f,0),.20f,.035f,24,Quaternion.identity,true);     // drip tray
-        m.Cylinder(Dark,b+new Vector3(0,.065f,0),.17f,.005f,24,Quaternion.identity,true);
+        m.Cylinder(Dark,b+new Vector3(0,.065f,0),.17f,.012f,24,Quaternion.identity,true);     // grease pan, 12 mm
         // burner panel behind the meat: stainless housing, three rows of glowing ceramic burners facing the cone
         m.BoxMinMax(Steel,b.x-.32f,b.x+.32f,b.y+.03f,b.y+1.02f,b.z+.24f,b.z+.34f);
         for(int i=0;i<3;i++)
         {
             float y0=b.y+.12f+i*.28f;
             m.BoxMinMax(Dark,b.x-.26f,b.x+.26f,y0-.01f,y0+.21f,b.z+.225f,b.z+.24f);
-            m.BoxMinMax(ember,b.x-.23f,b.x+.23f,y0+.01f,y0+.19f,b.z+.222f,b.z+.226f);
+            m.BoxMinMax(ember,b.x-.23f,b.x+.23f,y0+.01f,y0+.19f,b.z+.214f,b.z+.226f);   // 11 mm proud of the panel
         }
         // side knobs, top motor head on a rear column, the spit
         foreach(float s in new[]{-1f,1f})m.Cylinder(Dark,new Vector3(b.x+s*.33f,b.y+.18f,b.z+.29f),.025f,.03f,10,Quaternion.Euler(0,0,s*90f));
@@ -225,14 +225,14 @@ public static class BraxChampionsPromenadeEquipment
         m.Quad(glass,new Vector3(-width*.5f,gy+.28f,z-d*.5f+.10f),new Vector3(width*.5f,gy+.28f,z-d*.5f+.10f),new Vector3(width*.5f,gy+.32f,z+.05f),new Vector3(-width*.5f,gy+.32f,z+.05f));
         foreach(float s in new[]{-1f,1f})m.BoxMinMax(Steel,s*width*.5f-.015f,s*width*.5f+.015f,y,gy+.33f,z-d*.5f,z+.08f);
         m.BoxMinMax(Steel,-width*.5f,width*.5f,gy+.31f,gy+.34f,z+.03f,z+.09f);
-        m.BoxMinMax(Led,-width*.5f+.05f,width*.5f-.05f,gy+.305f,gy+.31f,z+.04f,z+.08f);
+        m.BoxMinMax(Led,-width*.5f+.05f,width*.5f-.05f,gy+.29f,gy+.31f,z+.04f,z+.08f);    // 20 mm LED bar under the canopy
         built++;
     }
 
     static void Espresso(BraxChampionsMeshBatch m,Vector3 b)
     {
         m.BoxMinMax(Steel,b.x-.37f,b.x+.37f,b.y,b.y+.46f,b.z-.20f,b.z+.22f);
-        m.BoxMinMax(Dark,b.x-.36f,b.x+.36f,b.y+.10f,b.y+.40f,b.z-.205f,b.z-.20f);
+        m.BoxMinMax(Dark,b.x-.36f,b.x+.36f,b.y+.10f,b.y+.40f,b.z-.215f,b.z-.20f);         // 15 mm group panel
         m.BoxMinMax(Steel,b.x-.37f,b.x+.37f,b.y,b.y+.04f,b.z-.34f,b.z-.20f);
         foreach(float s in new[]{-.17f,.17f})
         {
@@ -260,8 +260,13 @@ public static class BraxChampionsPromenadeEquipment
 
     static void Fryer(BraxChampionsMeshBatch m,Vector3 b)
     {
-        m.BoxMinMax(Steel,b.x-.21f,b.x+.21f,b.y,b.y+.30f,b.z-.24f,b.z+.24f);
-        m.BoxMinMax(Dark,b.x-.18f,b.x+.18f,b.y+.295f,b.y+.30f,b.z-.18f,b.z+.18f);
+        // body, a real rim round the oil well and the oil 13 mm below the rim (the dark plate lay in the steel top)
+        m.BoxMinMax(Steel,b.x-.21f,b.x+.21f,b.y,b.y+.28f,b.z-.24f,b.z+.24f);
+        m.BoxMinMax(Steel,b.x-.21f,b.x-.18f,b.y+.28f,b.y+.30f,b.z-.24f,b.z+.24f);
+        m.BoxMinMax(Steel,b.x+.18f,b.x+.21f,b.y+.28f,b.y+.30f,b.z-.24f,b.z+.24f);
+        m.BoxMinMax(Steel,b.x-.18f,b.x+.18f,b.y+.28f,b.y+.30f,b.z-.24f,b.z-.18f);
+        m.BoxMinMax(Steel,b.x-.18f,b.x+.18f,b.y+.28f,b.y+.30f,b.z+.18f,b.z+.24f);
+        m.BoxMinMax(Dark,b.x-.18f,b.x+.18f,b.y+.28f,b.y+.287f,b.z-.18f,b.z+.18f);
         foreach(float s in new[]{-.09f,.09f})
         {
             m.BoxMinMax(Steel,b.x+s-.07f,b.x+s+.07f,b.y+.30f,b.y+.36f,b.z-.12f,b.z+.10f);
@@ -290,7 +295,7 @@ public static class BraxChampionsPromenadeEquipment
         m.Cylinder(Steel,b+Vector3.up*.26f,.16f,.10f,18,Quaternion.identity,true,false,.20f);
         m.Cylinder(gelato[6],b+Vector3.up*.32f,.12f,.05f,14);     // oranges in the hopper
         m.Cylinder(glass,b+new Vector3(.30f,0,0),.08f,.22f,14);
-        m.Cylinder(gelato[6],b+new Vector3(.30f,0,0),.075f,.15f,14);
+        m.Cylinder(gelato[6],b+new Vector3(.30f,0,0),.068f,.15f,14);                 // juice 12 mm inside the glass
         built++;
     }
 
@@ -336,11 +341,13 @@ public static class BraxChampionsPromenadeEquipment
         m.BoxMinMax(Dark,f.x-.05f,f.x+.05f,f.y,f.y+1.6f,f.z-.05f,f.z+.05f);
         m.BoxMinMax(Dark,f.x-.05f,f.x+.05f,f.y,f.y+1.6f,f.z+1.95f,f.z+2.05f);
         m.BoxMinMax(Dark,f.x-.05f,f.x+.05f,f.y+1.5f,f.y+1.6f,f.z,f.z+2f);
-        for(int i=0;i<5;i++)
+        // three 56 cm surfboards side by side with 8 cm between them (five 66 cm boards on a 38 cm pitch overlapped:
+        // their faces lay in one plane and flickered - owner 10.11 13:05, zero flicker)
+        for(int i=0;i<3;i++)
         {
-            var mat=i%2==0?white:gelato[i%2==0?11:5];
-            float z=f.z+.25f+i*.38f;
-            m.Box(mat,new Vector3(f.x+.55f,f.y+1.40f,z),new Vector3(.08f,2.9f,.66f),Quaternion.Euler(0,0,-18f));
+            var mat=i%2==0?white:gelato[5];
+            float z=f.z+.36f+i*.64f;
+            m.Box(mat,new Vector3(f.x+.55f,f.y+1.40f,z),new Vector3(.08f,2.9f,.56f),Quaternion.Euler(0,0,-18f));
         }
         built++;
     }
@@ -359,7 +366,7 @@ public static class BraxChampionsPromenadeEquipment
     static void InfoScreen(BraxChampionsMeshBatch m,Vector3 wall,float w)
     {
         m.BoxMinMax(Dark,wall.x-w*.5f-.04f,wall.x+w*.5f+.04f,wall.y-.04f,wall.y+w*.56f+.04f,wall.z-.05f,wall.z);
-        m.BoxMinMax(screen,wall.x-w*.5f,wall.x+w*.5f,wall.y,wall.y+w*.56f,wall.z-.055f,wall.z-.05f);
+        m.BoxMinMax(screen,wall.x-w*.5f,wall.x+w*.5f,wall.y,wall.y+w*.56f,wall.z-.062f,wall.z-.05f);  // glass 12 mm proud of the bezel
         built++;
     }
 

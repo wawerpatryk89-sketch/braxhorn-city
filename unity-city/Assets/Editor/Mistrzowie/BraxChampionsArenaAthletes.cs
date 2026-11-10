@@ -59,24 +59,29 @@ public static partial class BraxChampionsArenaArrival
         var g = BeginNominalGroup("A1 ATHLETES | changing rooms A+B shell | Stone Tiles + Wooden Panels");
         try
         {
+            // Owner 10.11 13:05 (zero flicker): clean butt joints. The front and rear partitions run through to the outer
+            // faces of the side walls; the side walls stand between the partitions; the ceiling sits between all four
+            // walls and the floor ends inside the outer wall. No slab or wall ends in the plane of another face.
+            const float h = RoomWallHalf;
             foreach (float s in new[] { -1f, 1f })
             {
-                float xa = Mathf.Min(s * (RoomInner - .1f), s * (RoomOuter - .1f)), xb = Mathf.Max(s * (RoomInner - .1f), s * (RoomOuter - .1f));
-                // "Athlete changing room floor | green Stone Tiles" (walk surface = paving below).
-                W.MM(floor, xa, xb, .230f, RoomFloorTop, RoomFront, RoomBack);
-                // "Rear changing room exterior partition | Wooden Panels"
-                W.MM(woodWall, xa, xb, .15f, 3.65f, RoomBack - RoomWallHalf, RoomBack + RoomWallHalf, true);
-                // "Changing room front privacy partition | Wooden Panels"
-                W.MM(woodWall, xa, xb, .15f, 3.65f, RoomFront - RoomWallHalf, RoomFront + RoomWallHalf, true);
-                // "Changing room enclosed ceiling", ceiling
-                W.MM(ceiling, xa, xb, 3.555f, 3.685f, RoomFront, RoomBack);
+                float Lo(float a, float b) => Mathf.Min(s * a, s * b);
+                float Hi(float a, float b) => Mathf.Max(s * a, s * b);
+                // "Athlete changing room floor | green Stone Tiles" (walk surface = paving below); 2 cm into the corridor
+                // under the doorway, its outer end hidden inside the outer wall.
+                W.MM(floor, Lo(RoomInner - .1f, RoomOuter), Hi(RoomInner - .1f, RoomOuter), .230f, RoomFloorTop, RoomFront, RoomBack);
+                // "Rear changing room exterior partition | Wooden Panels" and "front privacy partition": full width
+                W.MM(woodWall, Lo(RoomInner - h, RoomOuter + h), Hi(RoomInner - h, RoomOuter + h), .15f, 3.65f, RoomBack - h, RoomBack + h, true);
+                W.MM(woodWall, Lo(RoomInner - h, RoomOuter + h), Hi(RoomInner - h, RoomOuter + h), .15f, 3.65f, RoomFront - h, RoomFront + h, true);
+                // "Changing room enclosed ceiling", ceiling - between the four walls
+                W.MM(ceiling, Lo(RoomInner + h, RoomOuter - h), Hi(RoomInner + h, RoomOuter - h), 3.555f, 3.685f, RoomFront + h, RoomBack - h);
                 // "Changing room outer partition | Wooden Panels"
-                W.MM(woodWall, s * RoomOuter - RoomWallHalf, s * RoomOuter + RoomWallHalf, .15f, 3.65f, RoomFront, RoomBack, true);
+                W.MM(woodWall, s * RoomOuter - h, s * RoomOuter + h, .15f, 3.65f, RoomFront + h, RoomBack - h, true);
                 // "Changing room inner wall 1 | Wooden Panels" + "inner wall 2": 4.8 m entrance between.
-                W.MM(woodWall, s * RoomInner - RoomWallHalf, s * RoomInner + RoomWallHalf, .15f, 3.65f, RoomFront, 43.9f, true);
-                W.MM(woodWall, s * RoomInner - RoomWallHalf, s * RoomInner + RoomWallHalf, .15f, 3.65f, 48.7f, RoomBack, true);
+                W.MM(woodWall, s * RoomInner - h, s * RoomInner + h, .15f, 3.65f, RoomFront + h, 43.9f, true);
+                W.MM(woodWall, s * RoomInner - h, s * RoomInner + h, .15f, 3.65f, 48.7f, RoomBack - h, true);
                 // Wooden Panels head over the entrance (above 2.70 m, no collision).
-                W.MM(woodWall, s * RoomInner - RoomWallHalf, s * RoomInner + RoomWallHalf, 2.70f, 3.65f, 43.9f, 48.7f);
+                W.MM(woodWall, s * RoomInner - h, s * RoomInner + h, 2.70f, 3.65f, 43.9f, 48.7f);
             }
         }
         catch { W.Wyczysc(); UnityEngine.Object.DestroyImmediate(g.gameObject); throw; }
@@ -234,7 +239,7 @@ public static partial class BraxChampionsArenaArrival
         // Granite walk from the door (z 59.3) under the glass portico to the car park (z 80).
         Box(rear, "ATHLETES | polished granite walk door -> car park", granite, new Vector3(0, .18f, 69.65f), new Vector3(6.0f, .04f, 20.7f), false);
         foreach (float x in new[] { -2.9f, 2.9f })
-            Box(rear, "ATHLETES | gold inlay along the walk", gold, new Vector3(x, .203f, 69.65f), new Vector3(.05f, .006f, 20.7f), false);
+            Box(rear, "ATHLETES | gold inlay along the walk", gold, new Vector3(x, .206f, 69.65f), new Vector3(.05f, .012f, 20.7f), false);
         foreach (float x in new[] { -3.6f, 3.6f })
         foreach (float z in new[] { 68f, 72f, 76f })
         {

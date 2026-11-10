@@ -82,8 +82,12 @@ def hull(b):
 # stoją w miejscach niepotrzebnie, to ma być przy brzegu zaraz ... cały port jest do zmiany ... ma zrobić prawidłowo".
 # Real marina practice: every boat lies ALONGSIDE its own finger pontoon (finger on one side, the next finger on the
 # other), stern a metre off the main pontoon, bow to open water. Real hull sizes of the owner's GLBs after scaling:
-# yacht 19.5 x 3.97 m, Riva 8.5 x 2.53 m, jetski 3.25 x 1.50 m. Bows point to +z in the boat root (BraxChampionsHarbour).
-YACHT_LEN,YACHT_BEAM=19.5,4.4       # beam + fenders
+# Riva 8.5 x 2.53 m, jetski 3.25 x 1.50 m. Bows point to +z in the boat root (BraxChampionsHarbour).
+# Owner 10.11 12:52 ("sprawdzasz globalnie, wszystko w skalę"): the yacht GLB is a real 40.3 m superyacht (8.2 m beam,
+# main / upper / bridge / flybridge decks 2.1 / 4.8 / 6.8 / 9.8 m above the waterline). Squeezed to 19.5 m its doors and
+# decks were half a person high. It is moored at its REAL size now; the marina is laid out for 40 m yachts.
+YACHT_LEN,YACHT_BEAM=40.33,8.6      # beam 8.21 + fenders
+YACHT_FINGER_LEN,YACHT_FINGER_W,YACHT_PITCH=30.0,2.0,11.6
 RIVA_LEN,RIVA_BEAM=8.5,2.9
 SKI_LEN,SKI_BEAM=3.25,1.6
 JETSKI_X0,JETSKI_X1=883.0,918.0      # jetski pontoon along the promenade quay, opposite K11 WYNAJEM SPRZĘTU (x 902.5)
@@ -104,19 +108,22 @@ def plan():
     berths.append(berth("F01","ferry",773,-189,56,16,"FERRY_BOARDING_QUAY",755,-189,yaw=180))
     PROMENADE_OPENINGS.append((745.0,755.0))
 
-    # Yacht marina: 5 m main pontoon (62 m) from a 20 m gangway; 9 west + 8 east finger pontoons 18 x 1.6 m every
-    # 6.8 m; 8 yachts west (bow west), 7 east (bow east), each alongside its finger, stern 1 m off the main pontoon.
+    # Yacht marina for real 40 m superyachts: 5 m main pontoon (97 m) from a 20 m gangway; 9 west + 8 east finger
+    # pontoons 30 x 2 m every 11.6 m; 8 yachts west (bow west), 7 east (bow east), each alongside its finger 0.5 m off
+    # it, stern 1 m off the main pontoon.
+    fz=lambda i:-173.0-YACHT_PITCH*i
+    spine_end=fz(8)-YACHT_FINGER_W/2
     add(827.5,832.5,-170,-150,"quay_ramp","YACHT_ACCESS_FROM_SHORE")
-    add(827.5,832.5,-230,-170,"quay_wood","YACHT_MAIN_SPINE")
+    add(827.5,832.5,spine_end,-170,"quay_wood","YACHT_MAIN_SPINE")
     PROMENADE_OPENINGS.append((827.5,832.5))
-    fz=lambda i:-172.8-6.8*i
+    h=YACHT_FINGER_W/2
     for i in range(9):
-        add(809.5,827.5,fz(i)-.8,fz(i)+.8,"quay_wood",f"YACHT_W_FINGER_{i+1}")
+        add(827.5-YACHT_FINGER_LEN,827.5,fz(i)-h,fz(i)+h,"quay_wood",f"YACHT_W_FINGER_{i+1}")
     for i in range(8):
-        add(832.5,850.5,fz(i)-.8,fz(i)+.8,"quay_wood",f"YACHT_E_FINGER_{i+1}")
+        add(832.5,832.5+YACHT_FINGER_LEN,fz(i)-h,fz(i)+h,"quay_wood",f"YACHT_E_FINGER_{i+1}")
     n=0
     for i in range(8):
-        z=fz(i)-3.4
+        z=fz(i)-h-.5-YACHT_BEAM/2
         n+=1;berths.append(berth(f"J{n:02}","yacht",827.5-1-YACHT_LEN/2,z,YACHT_LEN,YACHT_BEAM,
                                  f"YACHT_W_FINGER_{i+1}",823.5,fz(i),yaw=270))
         if i<7:

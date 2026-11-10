@@ -156,7 +156,58 @@ public static class BraxChampionsHarbour
         }
     }
 
-    static float Length(BraxChampionsFoundation.Berth b)=>b.kind=="yacht"?19.5f:b.kind=="motorboat"?8.5f:3.25f;
+    // Owner 10.11 12:52 "wszystko w skalę": the yacht GLB is a real 40.33 m superyacht (8.21 m beam, decks 2.1 / 4.8 / 6.8 /
+    // 9.8 m above the waterline) - moored at its real size (it was squeezed to 19.5 m: doors half a person high).
+    public const float YachtLength=40.33f;
+    static float Length(BraxChampionsFoundation.Berth b)=>b.kind=="yacht"?YachtLength:b.kind=="motorboat"?8.5f:3.25f;
+
+    // ---------------------------------------------------------------- yacht liveries and names
+    // Owner 10.11: "dużo ich zrób ... naklejki na nich narobić, coś, żeby troszeczkę się różniły". Five hulls (original
+    // white + four repainted atlases from build_yacht_liveries.py: only the painted hull topsides change) and a solid 3D
+    // name with the home port on the raked transom of every yacht.
+    public static readonly string[] YachtLiveries={"","navy","black","emerald","sapphire"};
+    public static readonly string[] YachtNames={"BRAXHORN ONE","AURELIA","MISTRAL","ZEPHYR","ALTAIR","CORALIE","ESTRELLA",
+        "AQUAMARINE","ORION","LUNA","SOLEIL","VALKYRIA","SERENITY","NOVA STAR","ATLANTICA"};
+    public static int LiveriesApplied,YachtNamesBuilt;
+    static readonly Dictionary<string,Material> liveryMaterials=new Dictionary<string,Material>();
+    static Material Livery(Material city,string id)
+    {
+        if(string.IsNullOrEmpty(id)||!city)return city;
+        if(liveryMaterials.TryGetValue(id,out var m)&&m)return m;
+        string png="Assets/Source/HarborBeach/Liveries/yacht_livery_"+id+".png";
+        var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(png);
+        if(!tex){BraxBuildQuality.Warn("DO POPRAWKI YACHT_LIVERY_MISSING "+png+" (build_yacht_liveries.py) - white hull");return city;}
+        m=new Material(city){name="Mistrzowie yacht livery "+id,enableInstancing=true};
+        m.SetTexture("_MainTex",tex);
+        m=Save(m,Out+"/Materials/harbour_yacht_livery_"+id+".mat");
+        liveryMaterials[id]=m;
+        return m;
+    }
+
+    // Raked tender-garage transom of yacht.glb, measured in the GLB mesh (10.11): name facet centre at 5.56 % of the length
+    // from the stern and 29.2 % of the height from the keel, normal (aft, up) = (0.84, 0.55); the home-port facet below it
+    // at 4.40 % / 24.2 %, normal (0.88, 0.47). Panel 3.1 m wide.
+    static void YachtName(Transform root,Bounds b,int index)
+    {
+        string name=YachtNames[index%YachtNames.Length];
+        bool white=string.IsNullOrEmpty(YachtLiveries[index%YachtLiveries.Length]);
+        Material face=white?Graphite:Steel,ret=white?Steel:Graphite;
+        void Line(string text,float fz,float fy,Vector3 normal,float cap,float maxWidth,string label)
+        {
+            var n=normal.normalized;
+            var rot=Quaternion.FromToRotation(Vector3.back,n);
+            var centre=new Vector3(b.center.x,b.min.y+fy*b.size.y,b.min.z+fz*b.size.z);
+            var go=new GameObject(label).transform;go.SetParent(root,false);
+            go.localPosition=root.InverseTransformPoint(centre)+n*(.006f*K);
+            go.localRotation=rot;
+            var m=new BraxChampionsMeshBatch();
+            BraxChampionsLetters3D.Text(m,face,ret,text,new Vector3(0,-cap*.5f,0),180f,cap,.025f,.14f,maxWidth);
+            BraxChampionsLetters3D.Build(m,go,label,K);
+        }
+        Line(name,.0556f,.2923f,new Vector3(0,.55f,-.84f),.30f,2.6f,"yacht name "+name);
+        Line("BRAXHORN",.0440f,.2424f,new Vector3(0,.47f,-.88f),.13f,1.6f,"yacht home port");
+        YachtNamesBuilt++;
+    }
 
     static int PlaceBoat(Transform parent,BraxChampionsFoundation.Berth bay,GameObject original,float pierY)
     {
@@ -187,14 +238,18 @@ public static class BraxChampionsHarbour
         bounds=BraxRegion.Bounds(model);
         var submerged=bounds.size.y*(bay.kind=="yacht"?.12f:bay.kind=="motorboat"?.17f:.20f);
         model.transform.position+=centre-new Vector3(bounds.center.x,bounds.min.y+submerged,bounds.center.z);
+        int yachtIndex=bay.kind=="yacht"&&int.TryParse(bay.id.Substring(1),out int nr)?nr-1:-1;
+        if(yachtIndex>=0)YachtName(root.transform,BraxRegion.Bounds(model),yachtIndex);
         root.transform.rotation=Quaternion.Euler(0,bay.yaw,0);
 
+        string livery=yachtIndex>=0?YachtLiveries[yachtIndex%YachtLiveries.Length]:"";
         foreach(var renderer in model.GetComponentsInChildren<Renderer>(true))
         {
-            renderer.sharedMaterials=renderer.sharedMaterials.Select(BraxRegion.CityMaterial).ToArray();
+            renderer.sharedMaterials=renderer.sharedMaterials.Select(BraxRegion.CityMaterial).Select(c=>Livery(c,livery)).ToArray();
             renderer.shadowCastingMode=ShadowCastingMode.Off;
             renderer.receiveShadows=true;
         }
+        if(livery!="")LiveriesApplied++;
 
         // Boarding point on the finger / pontoon beside the hull, carry boat logic of the original city (BraxVessel).
         var vessel=root.AddComponent<BraxVessel>();
@@ -207,8 +262,9 @@ public static class BraxChampionsHarbour
         vessel.turnRate=bay.kind=="yacht"?22f:bay.kind=="motorboat"?45f:65f;
         vessel.accel=bay.kind=="yacht"?1.6f:bay.kind=="motorboat"?3.5f:4.7f;
         vessel.sit=true;
-        vessel.seat=new Vector3(0,(bay.kind=="yacht"?1.6f:.8f)*K,
-                                (bay.kind=="yacht"?-.28f:-.08f)*desiredLength*K);
+        // yacht: the helm on the bridge deck (6.8 m above the waterline, 11 % of the length ahead of midships)
+        vessel.seat=new Vector3(0,(bay.kind=="yacht"?7.25f:.8f)*K,
+                                (bay.kind=="yacht"?.114f:-.08f)*desiredLength*K);
         Vector3 boarding=new Vector3(bay.accessX*K,pierY*K+.03f,bay.accessZ*K);
         vessel.wejscie=root.transform.InverseTransformPoint(boarding);
         vessel.moor=centre;vessel.moorYaw=bay.yaw;
@@ -285,8 +341,9 @@ public static class BraxChampionsHarbour
         var cMid=new Vector3(sternX+sx*len*.55f,deckY,edgeZ-side*.18f);
         var cTip=new Vector3(tipX-sx*.35f,deckY,edgeZ-side*.18f);
         Cleat(m,cRoot,0f);Cleat(m,cMid,0f);Cleat(m,cTip,0f);
-        float hullTop=WaterLevel+(b.kind=="yacht"?1.55f:.95f);
-        float hullSide=b.z+(edgeZ>b.z?1:-1)*(b.kind=="yacht"?1.80f:1.10f);   // the hull side facing the finger
+        // real 40 m yacht: fairleads on the main deck 2.06 m above the water, half beam 4.1 m
+        float hullTop=WaterLevel+(b.kind=="yacht"?2.06f:.95f);
+        float hullSide=b.z+(edgeZ>b.z?1:-1)*(b.kind=="yacht"?4.10f:1.10f);   // the hull side facing the finger
         m.Tube(Rope,cRoot+Vector3.up*.11f,new Vector3(sternX+sx*1.3f,hullTop,hullSide),.018f,6,6,.10f);
         m.Tube(Rope,cMid+Vector3.up*.11f,new Vector3(sternX+sx*len*.40f,hullTop,hullSide),.018f,6,6,.08f);
         m.Tube(Rope,cTip+Vector3.up*.11f,new Vector3(sternX+sx*len*.82f,hullTop-.1f,hullSide),.018f,6,6,.12f);
@@ -443,8 +500,9 @@ public static class BraxChampionsHarbour
                 m.BoxMinMax(GateStone,a,b,y0+.12f,lb,zb,zf);                                       // marble pylon
                 m.BoxMinMax(Steel,a-.02f,b+.02f,y0,y0+.12f,zb-.02f,zf+.02f);                       // stainless plinth
                 // warm LED reveal on the face toward the gangway
-                if(inner==x0)m.BoxMinMax(Led,x0,x0+.006f,y0+.45f,lb-.25f,cz-.05f,cz+.05f);
-                else m.BoxMinMax(Led,x1-.006f,x1,y0+.45f,lb-.25f,cz-.05f,cz+.05f);
+                // (a real 15 mm profile standing on the stone - a 6 mm sheet lay in the marble plane and flickered)
+                if(inner==x0)m.BoxMinMax(Led,x0,x0+.015f,y0+.45f,lb-.25f,cz-.05f,cz+.05f);
+                else m.BoxMinMax(Led,x1-.015f,x1,y0+.45f,lb-.25f,cz-.05f,cz+.05f);
                 BraxChampionsMeshBatch.Collider(harbour,id+" pylon",new Vector3((a+b)*.5f,y0+top*.5f,cz),new Vector3(b-a,top,depth));
             }
             m.BoxMinMax(GateStone,L0,L1,lb,y0+top,zb,zf);                                           // lintel
@@ -483,6 +541,7 @@ public static class BraxChampionsHarbour
             throw new InvalidOperationException("Owner-approved port berth counts changed");
 
         Materials();SignsPlaced=SignsMissing=0;signs=null;signMeshes.Clear();
+        LiveriesApplied=YachtNamesBuilt=0;liveryMaterials.Clear();
         var sources=new Dictionary<string,GameObject>();
         PrepareOriginalLibrary(sources);
         var root=new GameObject("MIASTO MISTRZÓW | PORT 10.11 | 15 yachts | 10 motorboats | 10 jetskis | ferry berth | 2 free berths for the owner's ships").transform;
@@ -508,7 +567,8 @@ public static class BraxChampionsHarbour
         BraxChampionsFoundation.Optional("barierki promenady i pomostów",()=>BraxChampionsHarbourSafety.Generate(root,piers,openings??new BraxChampionsFoundation.Opening[0]));
         AssetDatabase.SaveAssets();
         Debug.Log("CHAMPIONS_PORT_10_11 yacht=15 motorboat=10 jetski=10 ferryBerths=1 cruiseBerths=2 boats="+placed
-            +" signs3D="+SignsPlaced+" signsMissing="+SignsMissing+" textMeshLabels=0 originalGLBs");
+            +" signs3D="+SignsPlaced+" signsMissing="+SignsMissing+" textMeshLabels=0 originalGLBs yachtLength="+YachtLength
+            +" yachtLiveries="+LiveriesApplied+"/15 yachtNames3D="+YachtNamesBuilt);
         return placed;
     }
 }

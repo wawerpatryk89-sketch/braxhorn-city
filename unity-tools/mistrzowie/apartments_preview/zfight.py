@@ -40,19 +40,27 @@ def frame(n):
     return a, np.cross(n, a)
 
 
+def gap(fi, fj):
+    """Distance between the planes of two (nearly) parallel faces, measured locally: the other face's centre from this
+    face's plane and back, averaged. (n . v at world coordinates of ~1 km amplified the tiny float32 differences between
+    the normals of tilted faces into millimetres - false pairs on the beach loungers.)"""
+    ni, ci, nj, cj = fi[5], fi[6], fj[5], fj[6]
+    return .5 * (abs(ni @ (cj - ci)) + abs(nj @ (ci - cj)))
+
+
 def main(paths):
     bad = 0
     for path in paths:
         buckets = defaultdict(list)
         for g, m, inside, v, n in faces(path):
-            buckets[tuple(np.round(n, 2))].append((g, m, inside, v, float(n @ v[0])))
+            buckets[tuple(np.round(n, 2))].append((g, m, inside, v, float(n @ v[0]), n, v.mean(0)))
         # 2D polygons in a frame shared by a normal and its opposite (so contact can be tested)
         prepared = {}
         for key, items in buckets.items():
             n = np.array(key); n /= np.linalg.norm(n)
             canon = n if (n[0], n[1], n[2]) > (0, 0, 0) else -n
             a, b = frame(canon)
-            polys = [Polygon([(p @ a, p @ b) for p in v]).buffer(0) for _, _, _, v, _ in items]
+            polys = [Polygon([(p @ a, p @ b) for p in v]).buffer(0) for _, _, _, v, _, _, _ in items]
             prepared[key] = (items, polys, STRtree(polys), np.array([t[4] for t in items]))
 
         def hidden(key, i):
@@ -63,18 +71,18 @@ def main(paths):
             items, polys, tree, ds = prepared[key]
             oitems, opolys, otree, ods = prepared[opp]
             p = polys[i]
-            cover = [opolys[j] for j in otree.query(p) if abs(ods[j] + ds[i]) < .0015]
+            cover = [opolys[j] for j in otree.query(p) if gap(items[i], oitems[j]) < .0015]
             return bool(cover) and p.difference(unary_union(cover)).area < .02 * max(p.area, 1e-9)
 
         hits = defaultdict(lambda: [0, 0.0, None])
         for key, (items, polys, tree, ds) in prepared.items():
             cache = {}
-            for i, (g, m, inside, v, d) in enumerate(items):
+            for i, (g, m, inside, v, d, _, _) in enumerate(items):
                 for j in tree.query(polys[i]):
                     if j <= i or items[j][1] == m:
                         continue
                     tol = TOL_IN if (inside and items[j][2]) else TOL_OUT
-                    if abs(ds[j] - d) > tol:
+                    if gap(items[i], items[j]) > tol:
                         continue
                     area = polys[i].intersection(polys[j]).area
                     if area < MIN_AREA:

@@ -85,8 +85,11 @@ public static class BraxChampionsPromenade
         float w=p.w,d=p.d,h=p.h,hw=w*.5f,hd=d*.5f,t=.18f,y0=FloorTop;
         var g=BraxChampionsHarbour.Graphite;var led=BraxChampionsHarbour.Led;var steel=BraxChampionsHarbour.Steel;
         float fascia0=h-.78f;                                   // sign fascia band from here to the roof
-        // granite plinth band outside, travertine floor inside
-        m.BoxMinMax(Plinth,-hw-.04f,hw+.04f,0f,y0,-hd-.04f,hd+.04f);
+        // granite plinth band outside the walls, 5 cm proud of the paving; travertine floor inside. (Owner 10.11 13:05,
+        // zero flicker: the plinth was a slab with its top in the paving plane - now only the visible band is built.)
+        m.BoxMinMax(Plinth,-hw-.04f,hw+.04f,0f,y0+.05f,hd,hd+.04f);
+        m.BoxMinMax(Plinth,-hw-.04f,-hw,0f,y0+.05f,-hd-.04f,hd);
+        m.BoxMinMax(Plinth,hw,hw+.04f,0f,y0+.05f,-hd-.04f,hd);
         m.BoxMinMax(Floor,-hw+t,hw-t,y0,y0+.012f,-hd+.05f,hd-t);
         // side and back walls: travertine
         m.BoxMinMax(Trav,-hw,-hw+t,y0,h-.20f,-hd,hd);
@@ -106,7 +109,7 @@ public static class BraxChampionsPromenade
         m.BoxMinMax(g,-hw-.06f,-hw+.22f,y0,fascia0,-hd-.06f,-hd+.10f);
         m.BoxMinMax(g,hw-.22f,hw+.06f,y0,fascia0,-hd-.06f,-hd+.10f);
         m.BoxMinMax(g,-hw-.06f,hw+.06f,fascia0,h-.20f,-hd-.10f,-hd+.10f);
-        m.BoxMinMax(steel,-hw-.06f,hw+.06f,fascia0-.04f,fascia0,-hd-.10f,-hd+.10f);
+        m.BoxMinMax(steel,-hw-.07f,hw+.07f,fascia0-.04f,fascia0,-hd-.11f,-hd+.11f);   // 1 cm proud of the pillars all round
         // cantilevered canopy over the counter (1.6 m to the sea) with a teak soffit, downlights and a warm LED edge
         float c0=fascia0-.18f,c1=fascia0-.04f,cz0=-hd-1.60f;
         m.BoxMinMax(g,-hw-.15f,hw+.15f,c0,c1,cz0,-hd-.10f);
@@ -172,8 +175,10 @@ public static class BraxChampionsPromenade
         Lbox(m,g,f,r,-.22f,.22f,.39f,.42f,-.22f,.22f);                                   // seat frame
         for(int k=0;k<4;k++){float z0=-.22f+k*.112f;Lbox(m,Wood,f,r,-.225f,.225f,.42f,.445f,z0,z0+.10f);}
         Lbox(m,Cushion,f,r,-.205f,.205f,.445f,.495f,-.205f,.205f);
-        foreach(float lx in new[]{-.2f,.2f})Lbox(m,g,f,r,lx-.015f,lx+.015f,.42f,.88f,-.23f,-.20f);   // back posts
-        foreach(float by in new[]{.60f,.74f})Lbox(m,Wood,f,r,-.22f,.22f,by,by+.10f,-.229f,-.201f);  // back slats
+        foreach(float lx in new[]{-.2f,.2f})Lbox(m,g,f,r,lx-.015f,lx+.015f,.39f,.88f,-.23f,-.20f);   // back posts
+        // back slats fixed BETWEEN the posts: ends inside the posts, 8 mm thinner on both faces (no face 1-5 mm from a
+        // post face - zero flicker, owner 10.11 13:05)
+        foreach(float by in new[]{.60f,.74f})Lbox(m,Wood,f,r,-.20f,.20f,by,by+.10f,-.222f,-.208f);
     }
 
     /// <summary>Round bistro table: graphite foot and column, white marble top at .76 m.</summary>

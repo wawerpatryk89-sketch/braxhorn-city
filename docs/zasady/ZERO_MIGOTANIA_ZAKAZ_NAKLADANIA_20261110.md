@@ -19,3 +19,9 @@ Zasada dotyczy **wszystkich rejonów i wszystkich wykonawców**.
 - Obiekty z kodu tylko z prawdziwych materiałów: `OBIEKTY_Z_KODU_PRAWDZIWE_MATERIALY_20261110.md`.
 - **Drzwi w każdym budynku** (12:42–12:55): ma być widać, że to drzwi. Skrzydła mają ramę, uchwyty i próg, wokół jest czarny portal. Wszystkie drzwi są zamknięte i otwierają się przy podejściu (BraxCityDoor).
 - **Szyby** (12:28, 12:50): zakaz szarego szkła. Jasne są tylko skrzydła drzwi, a szyby wokół drzwi i w elewacjach są czarne. Ramy czarne.
+
+## Przebieg kontrolny 10.11 (po zapisaniu zasady)
+- **Krawężniki miasta** (`build_infrastructure.py`): wierzch każdego krawężnika leżał w płaszczyźnie chodnika na tym samym pasie 18 cm, czyli **5091 m²** migotania. Krawężnik ma teraz własny pas wycięty ze wszystkich powierzchni na poziomie chodnika. Obniżone krawężniki mają dokładnie 5 m rampy, a rampa zaczyna się za kamieniem i ma boki. Po zmianie: 0 m².
+- **Arena** (wnętrze + elewacja + LOD0): liczba par spadła ze 147 do 87. Zostały tylko spody leżące na posadzce (niewidoczne) i styki krawędzi poniżej 0,05 m². Poprawione: listwy schodów, złote krawędzie przejść, chodnik na schodach, dywany (płyty 12 mm), szatnie, drzwi wejściowe, cokoły flag, korona pod dachem, LED nad daszkiem, gablota, ławki i stopka dachu w LOD0.
+- **Promenada i plaża**: kładki (deski wchodziły w piasek), cokoły budek, deski SUP, krzesła, ławki, latarnie, LED-y bram, sprzęt w budkach.
+- **Narzędzie** `apartments_preview/zfight.py` mierzy odstęp płaszczyzn lokalnie. Wcześniej `n·v` przy współrzędnych rzędu 1 km dawało fałszywe pary na skośnych ścianach. Siatki modeli trzeba najpierw przepuścić przez `casino_preview/mesh2quads.py`, bo inaczej budynek złożony tylko z siatek daje fałszywe „0 par”.

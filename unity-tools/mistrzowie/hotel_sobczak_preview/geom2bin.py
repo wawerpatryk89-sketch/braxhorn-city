@@ -93,7 +93,7 @@ def main(src, out, ground=None):
         for f in floors:
             yy = y + (lv[f] if f is not None else 0)
             models.append(dict(path=mo["path"].replace("Assets/Source/Mistrzowie/", ""), pos=[x, yy, -z], rotY=(180 - mo["yaw"]) * np.pi / 180,
-                               scale=mo.get("scale", 1), material=mo.get("material")))
+                               scale=mo.get("scale", 1), material=mo.get("material"), map=mo.get("map")))
     lights = []
     for x, y, z, rng, inten, tmpl in d.get("lights", []):
         if tmpl:

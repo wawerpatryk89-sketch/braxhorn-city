@@ -21,9 +21,9 @@ class WalkoutLogic(unittest.TestCase):
         self.assertNotIn("float zs = cz + ap;", self.arena)
 
     def test_public_carpet_never_reaches_the_cage(self):
-        self.assertIn("Top(carpet, -87.3f, -84.7f, Z0 + .05f, gateFoot - .03f, yF + .006f);", self.arena)
-        self.assertIn("Top(carpet, -87.3f, -84.7f, standFront, Z1 - .05f, yF + .006f);", self.arena)
-        self.assertIn("Top(carpet, cx - 12.65f, cx + 12.65f, crossZ0, crossZ1, yF + .006f);", self.arena)
+        self.assertIn("W.MM(carpet, -87.3f, -84.7f, yF, yF + .012f, Z0 + .05f, gateFoot - .03f);", self.arena)
+        self.assertIn("W.MM(carpet, -87.3f, -84.7f, yF, yF + .012f, standFront, Z1 - .05f);", self.arena)
+        self.assertIn("W.MM(carpet, cx - 12.65f, cx + 12.65f, yF, yF + .012f, crossZ0, crossZ1);", self.arena)
         self.assertNotIn("zs + 1.37f, Z1 - .05f", self.arena)
 
 

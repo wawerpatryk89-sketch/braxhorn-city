@@ -226,7 +226,7 @@ public static partial class BraxChampionsArenaArrival
                     new Vector3(31.8f,.22f,.25f));
             }
             Box(parent,"Parking entrance flush trench drain",metal,
-                new Vector3(x,.239f,-109.02f),new Vector3(5.9f,.002f,.12f),false);
+                new Vector3(x,.244f,-109.02f),new Vector3(5.9f,.008f,.12f),false);        // 8 mm grate on the asphalt
             // Accessible wider spaces nearest the pedestrian route, with an unblocked transfer strip.
             float accessibleX = x < 0 ? x + 30.2f : x - 30.2f;
             Box(parent, "Wide accessible bay dividing line", paint,
@@ -303,9 +303,10 @@ public static partial class BraxChampionsArenaArrival
             var h = Group(root, "Real opening glass leaf " + (i + 1), new Vector3(side * hingeX, 0, 0));
             hinges[i] = h;
             float cx = -side * leafW * .5f;
-            Box(h, "Toughened clear glass leaf (frameless)", glass, new Vector3(cx, leafH * .5f, 0), new Vector3(leafW, leafH, leafT));
-            foreach (float y in new[] { .07f, leafH - .07f })
-                Box(h, "Gold patch rail", gold, new Vector3(cx, y, 0), new Vector3(leafW, .14f, leafT + .04f), false);
+            // (10.11 zero flicker) the glass ends INSIDE both patch rails: no glass face in the plane of a rail face
+            Box(h, "Toughened clear glass leaf (frameless)", glass, new Vector3(cx, (leafH + .03f) * .5f, 0), new Vector3(leafW - .012f, leafH - .03f, leafT));
+            foreach (float y in new[] { .025f + .073f, leafH + .009f - .073f })
+                Box(h, "Gold patch rail", gold, new Vector3(cx, y, 0), new Vector3(leafW, .146f, leafT + .04f), false);
             // full-height pull bar on both faces near the meeting edge, two standoffs each
             float px = -side * (leafW - .16f);
             foreach (float f in new[] { -1f, 1f })
@@ -323,11 +324,12 @@ public static partial class BraxChampionsArenaArrival
         foreach (float side in new[] { -1f, 1f })
         {
             Box(root, "Door portal jamb (black)", frame, new Vector3(side * (hingeX + .09f), 1.70f, 0), new Vector3(.18f, 3.40f, .22f));
-            Box(root, "Door portal gold inner edge", gold, new Vector3(side * (hingeX + .005f), 1.66f, 0), new Vector3(.012f, 3.32f, .23f), false);
+            // gold edge 8 mm proud of the jamb face and 15 mm past both jamb faces (was 1 mm / 5 mm: it flickered)
+            Box(root, "Door portal gold inner edge", gold, new Vector3(side * (hingeX - .002f), 1.66f, 0), new Vector3(.012f, 3.32f, .25f), false);
             Box(root, "Sidelight outer frame (black)", frame, new Vector3(side * 4.85f, 1.70f, 0), new Vector3(.10f, 3.40f, .14f), false);
         }
         Box(root, "Door portal head (black)", frame, new Vector3(0, 3.40f, 0), new Vector3(9.74f, .18f, .22f));
-        Box(root, "Door portal gold head edge", gold, new Vector3(0, 3.305f, 0), new Vector3(2f * hingeX, .012f, .23f), false);
+        Box(root, "Door portal gold head edge", gold, new Vector3(0, 3.302f, 0), new Vector3(2f * hingeX, .012f, .25f), false);
         Box(root, "Black threshold", frame, new Vector3(0, .01f, 0), new Vector3(9.74f, .02f, .30f), false);
         var door = root.gameObject.AddComponent<BraxCityDoor>();
         door.id = id; door.label = label; door.leaves = hinges; door.sides = new[] { 1f, -1f };
@@ -770,7 +772,6 @@ public static partial class BraxChampionsArenaArrival
         var midBelt=new FacadeBatch();
         var beltGold=new FacadeBatch();
         var roof=new FacadeBatch();
-        var roofGold=new FacadeBatch();
         var crownLight=new FacadeBatch();
         var columnUplights=new FacadeBatch();
         var columnGold=new FacadeBatch();
@@ -842,8 +843,8 @@ public static partial class BraxChampionsArenaArrival
 
             roof.Beam(mid+outward*.28f+Vector3.up*27.39f,
                 new Vector3(.56f,.34f,length),rotation);
-            roofGold.Beam(mid+outward*.32f+Vector3.up*27.09f,
-                new Vector3(.045f,.075f,length),rotation);
+            // (10.11: the 4.5 x 7.5 cm "gold roof detail" lay entirely inside the roof slab, its underside 2.5 mm over the
+            // slab's - invisible except as flicker; removed)
             crownLight.Beam(mid+outward*.58f+Vector3.up*27.50f,
                 new Vector3(.035f,.085f,length),rotation);
         }
@@ -910,7 +911,6 @@ public static partial class BraxChampionsArenaArrival
         midBelt.Emit(group,"black_belt_360_owner_render_y7p60_to11p40",black);
         // 10.11: the thin lines are replaced by the owner render's wide rounded nosings (FacadeGoldTrims).
         roof.Emit(group,"PBR_roof_coping_preserved",exterior["roof"]);
-        roofGold.Emit(group,"PBR_gold_roof_detail",gold);
         crownLight.Emit(group,"warm_roof_crown_LED_preserved",exterior["light"]);
         upperCeilingHalo.Emit(group,"upper_interior_elliptical_halo_preserved",exterior["light"]);
         columnUplights.Emit(group,"warm_column_foot_uplights_38",ArenaLed(exterior));
