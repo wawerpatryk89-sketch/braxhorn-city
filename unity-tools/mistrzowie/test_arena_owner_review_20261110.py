@@ -132,6 +132,15 @@ class ArenaOwnerReview20261110(unittest.TestCase):
         buildings = src("BraxChampionsBuildings.cs")
         self.assertIn('BraxChampionsGold.Apply(Surface("arena_premium_gold"', buildings)
 
+    def test_less_gold_in_the_hall(self):
+        # owner 10.11 15:22-15:31 (APK photo): "te pionowe kreski ... na tym pikowanym ... wszystkie w pizdu", "najebane
+        # tego złota"; asked which hall gold goes: "Poręcze schodów trybun". The lobby (mural, trophies) is unchanged.
+        self.assertNotIn("for(float a=a0+3.30f;a<a1-.30f;a+=3.30f)", self.arena)
+        self.assertNotIn("35mm physical gold divisions", self.arena)
+        self.assertIn('var railBlack = Plain("trybuny poręcze czarna stal satyna"', self.arena)
+        self.assertIn("W.Rura(railBlack,foot,head,.022f,8);", self.arena)
+        self.assertNotIn("W.Rura(interiorGold,foot,head", self.arena)
+
     def test_preview_harness_exists(self):
         for f in ("arena_preview.csproj", "ArenaMain.cs", "ArenaStubs.cs", "run_preview.sh", "views.json", "README.md"):
             self.assertTrue((TOOLS / "arena_preview" / f).exists(), f)

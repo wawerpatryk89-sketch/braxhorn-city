@@ -113,6 +113,17 @@ class PremiumQuaySources(unittest.TestCase):
         self.assertIn("HarbourLight(harbour,m,edge,new Vector3(cx,QuayY,z0+5.5f));", self.harbour)
         self.assertIn("granite_tile_03", (TOOLS / "prepare_assets.py").read_text(encoding="utf-8"))
 
+    def test_chain_posts_between_apron_and_walk_match_the_layout(self):
+        # owner 10.11 15:31 (barriers: "Fartuch od alei")
+        self.assertIn("ApronFence(m,cruise,x0,x1,z0,z1);", self.harbour)
+        self.assertIn(f"public const float ApronCruise={QUAY_APRON_CRUISE}f,ApronFerry={QUAY_APRON_FERRY}f,QuayStep=24f;", self.harbour)
+        self.assertIn("float firstLamp=cruise?z1-40f+QuayStep*.5f:z1-20f+QuayStep*.5f;", self.harbour)
+        src = (TOOLS / "port_layout.py").read_text(encoding="utf-8")
+        self.assertIn("first=z1-40.0", src)
+        self.assertIn("first=z1-20.0", src)
+        self.assertIn("QUAY_BED,QUAY_STEP=3.2,24.0", src)
+        self.assertIn("first+QUAY_STEP/2-QUAY_STEP*k", src)
+
 
 if __name__ == "__main__":
     unittest.main()

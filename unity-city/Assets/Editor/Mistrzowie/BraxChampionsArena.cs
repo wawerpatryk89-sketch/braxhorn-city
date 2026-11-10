@@ -99,6 +99,9 @@ public static class BraxChampionsArena
         var black = Plain("oktagon czarny winyl", new Color(.03f, .03f, .035f), .55f);
         var steel = Plain("oktagon stal ciemna", new Color(.16f, .17f, .18f), .5f, .8f);
         var chrome = Plain("słupki chrom", new Color(.75f, .76f, .78f), .85f, .95f);
+        // Owner 10.11 15:24-15:31 ("najebane tego złota ... nie znaczy, że chcę mieć całą grę w złocie"; asked which hall
+        // gold goes: "Poręcze schodów trybun"): the aisle handrails and their posts are black satin steel now.
+        var railBlack = Plain("trybuny poręcze czarna stal satyna", new Color(.045f,.045f,.05f), .55f, .65f);
         var vipGold = Plain("słupki VIP złote", new Color(.88f, .64f, .18f), .88f, .96f);
         BraxChampionsGold.Apply(vipGold);
         var carpet = Plain("hala walk chodnik czerwony", new Color(.45f, .03f, .04f), .1f);
@@ -151,13 +154,9 @@ public static class BraxChampionsArena
                         BoxMinMax(interiorGold,a0,a1,y-.075f,y-.05f,s>0?face:face-.045f,s>0?face+.045f:face,false);
                     }
                 }
-                // 35mm physical gold divisions every ~3.3m, set 15mm proud.
-                for(float a=a0+3.30f;a<a1-.30f;a+=3.30f)
-                {
-                    float z=s>0?g1+.0075f:g0-.0075f;
-                    BoxMinMax(interiorGold,a-.0175f,a+.0175f,1.20f,yC,
-                        z-.0075f,z+.0075f,false);
-                }
+                // Owner 10.11 15:22-15:24 (APK photo of the hall): "te pionowe kreski, których nikt nie chciał ... na tym
+                // pikowanym ... wszystkie w pizdu", "najebane tego złota". The 35 mm vertical gold divisions every 3.3 m
+                // on the quilted leather are gone: the leather runs unbroken from the plinth to the acoustic band.
             }
             else
             {
@@ -303,8 +302,8 @@ public static class BraxChampionsArena
             BackBox(warmLine,StandStoneTop,StandStoneTop+.06f,.012f);BackBox(interiorGold,topAll,topAll+.05f,.03f);
         }
         // Side of a block toward an open aisle (owner photo: a black wall beside the red carpet). Every row gets its
-        // own black marble panel 4 cm proud, a gold edge on the tread line, a light line at the foot and a gold
-        // handrail on posts that follows the rake.
+        // own black marble panel 4 cm proud, a gold edge on the tread line, a light line at the foot and a black
+        // satin-steel handrail on posts that follows the rake (owner 10.11: no gold handrails).
         void StandSide(bool alongX,float front,float s,float edge,float into,int rows)
         {
             // edge: coordinate of the side face along the block; into: +1 / -1 = direction from the face into the aisle
@@ -327,8 +326,8 @@ public static class BraxChampionsArena
                 Side(interiorGold,top-.4f,top-.035f,Mathf.Min(tf,p0-s*.03f),Mathf.Max(tf,p0-s*.03f),.012f);
                 // handrail post on every row and the raked rail to the next one
                 var foot=At(p0-s*.525f,top);var head=foot+Vector3.up*.95f;
-                W.Rura(interiorGold,foot,head,.022f,8);
-                if(k+1<rows)W.Rura(interiorGold,head,head+new Vector3(alongX?0f:-s*1.05f,.4f,alongX?-s*1.05f:0f),.026f,8);
+                W.Rura(railBlack,foot,head,.022f,8);
+                if(k+1<rows)W.Rura(railBlack,head,head+new Vector3(alongX?0f:-s*1.05f,.4f,alongX?-s*1.05f:0f),.026f,8);
             }
             float backP=front-s*rows*1.05f;
             // the light line starts behind the gold riser strip of row 3 (never in the same face as the gold)

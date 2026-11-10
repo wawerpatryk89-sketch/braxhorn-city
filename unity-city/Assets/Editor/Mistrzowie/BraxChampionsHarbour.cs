@@ -558,6 +558,7 @@ public static class BraxChampionsHarbour
                 // granite coping along the berth edge
                 m.BoxMinMax(Graphite,Mathf.Min(fx,fx+inward*.45f),Mathf.Max(fx,fx+inward*.45f),QuayY,QuayY+.06f,z0,z1);
             }
+            ApronFence(m,cruise,x0,x1,z0,z1);
             // the lamps stand in the palm rows of the walk (foundation furniture, port_layout.quay_fit): the walk between
             // the rows and the shelter stay clear (the old centre-line lamp at z1-12 stood inside the shelter)
             float cx=(x0+x1)*.5f;
@@ -584,6 +585,49 @@ public static class BraxChampionsHarbour
         }
         m.Build(harbour,"Nabrzeża stałe: pachołki, odbojnice, latarnie, wiata",Out+"/Meshes/Harbour");
     }
+
+    // Owner 10.11 15:31 (asked where the barriers go: "Fartuch od alei"): the dark berth apron is separated from the
+    // palm walk by black cast posts (0.90 m, stainless ring) with a sagging black chain, 30 cm inside the apron. A 3 m
+    // gap at every lamp (the dark cross band leads through it to the ship) and at the root; the head has its railing.
+    // Must match port_layout.quay_fit: aprons 4.5 m (cruise, both faces) / 3.0 m (ferry, east); lamps first+12-24k
+    // with the first bed at z1-40 (cruise) / z1-20 (ferry).
+    public const float ApronCruise=4.5f,ApronFerry=3.0f,QuayStep=24f;
+    static void ApronFence(BraxChampionsMeshBatch m,bool cruise,float x0,float x1,float z0,float z1)
+    {
+        var lines=cruise?new[]{x0+ApronCruise-.30f,x1-ApronCruise+.30f}:new[]{x1-ApronFerry+.30f};
+        float firstLamp=cruise?z1-40f+QuayStep*.5f:z1-20f+QuayStep*.5f;
+        var gaps=new List<float>();
+        for(float z=firstLamp;z>=z0+3f;z-=QuayStep)gaps.Add(z);
+        float start=z1-6f,end=z0+2.5f;
+        // runs between the gaps (from the root toward the head)
+        var cuts=new List<(float hi,float lo)>();float hiZ=start;
+        foreach(float g in gaps){if(g+1.5f<hiZ&&g-1.5f>end){cuts.Add((hiZ,g+1.5f));hiZ=g-1.5f;}}
+        cuts.Add((hiZ,end));
+        foreach(float x in lines)
+            foreach(var (hi,lo) in cuts)
+            {
+                float len=hi-lo;if(len<1f)continue;
+                int spans=Mathf.Max(1,Mathf.CeilToInt(len/2.4f));float step=len/spans;
+                for(int i=0;i<=spans;i++)
+                {
+                    var b=new Vector3(x,QuayY,hi-i*step);
+                    m.Cylinder(CastIron,b,.09f,.06f,14,Quaternion.identity,true,false);                          // foot
+                    m.Cylinder(CastIron,b+Vector3.up*.06f,.055f,.80f,12,Quaternion.identity,false,false,.045f);   // post
+                    m.Cylinder(Steel,b+Vector3.up*.70f,.052f,.03f,12,Quaternion.identity,false,false);            // ring
+                    m.Cylinder(CastIron,b+Vector3.up*.86f,.06f,.04f,12,Quaternion.identity,true,false,.035f);     // cap
+                    if(i==spans)break;
+                    // sagging chain to the next post: 6 straight links of a catenary, 12 cm sag
+                    Vector3 P(float t)=>new Vector3(x,QuayY+.78f-.12f*4f*t*(1f-t),hi-(i+t)*step);
+                    for(int k=0;k<6;k++)
+                    {
+                        Vector3 a=P(k/6f),c=P((k+1)/6f),d=c-a;
+                        m.Cylinder(CastIron,a,.011f,d.magnitude,6,Quaternion.FromToRotation(Vector3.up,d.normalized),false,false);
+                    }
+                }
+            }
+        ApronPosts+=lines.Length;
+    }
+    public static int ApronPosts;
 
     // Owner 10.11 14:57 "most wykończ": the head of the cruise pier gets its harbour light - a granite plinth, a tapered
     // white tower with two green bands (solid stacked sections, no paint on paint), a graphite gallery with a railing
