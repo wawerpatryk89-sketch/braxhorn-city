@@ -65,12 +65,13 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         # Nominal estate dimensions; K is applied once in the mesh builder.
         # Owner render 9.11: one unbroken column plinth->roof, full-height gold.
         self.assertIn("new Vector3(.85f,25.52f,2.20f)", self.arrival)
-        self.assertIn(".038f,25.40f,.120f,.018f", self.arrival)
+        # owner 10.11: the column line is a 20 cm warm LED (owner render), not a 12 cm gold strip
+        self.assertIn(".038f,25.40f,.200f,.018f", self.arrival)
         self.assertNotIn("new Vector3(.85f,9.82f,2.20f)", self.arrival)
         self.assertIn("rings.Add((back,bevel))", self.arrival)
         self.assertIn("bevel*Mathf.Cos(theta)", self.arrival)
         self.assertIn("(x:front,inset:0f,frontFace:true)", self.arrival)
-        self.assertIn("gold_column_front_width=.120 projection=.030 totalDepth=.038 embedded=.008 edge_R=.018 capsule_end_R=.060", self.arrival)
+        self.assertIn("LED_column_front_width=.200 projection=.030 totalDepth=.038 embedded=.008 edge_R=.018 capsule_end_R=.060", self.arrival)
         self.assertGreaterEqual(2.20, 2.0)
         self.assertGreaterEqual(.85, .70)
         self.assertIn("actualFeatureColumns!=38||skippedFeatureColumns!=2", self.arrival)
@@ -86,8 +87,9 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         # Owner render 9.11: canopy soffit full of warm downlights, posts=0,
         # sign bodies follow the artwork outline (no frames to measure).
         front=(EDITOR / "BraxChampionsArenaFront.cs").read_text(encoding="utf-8")
-        self.assertIn('"A1 canopy | recessed warm downlight"', front)
-        self.assertIn("foreach(float dz in new[]{.95f,2.25f,3.55f})", front)
+        self.assertIn('"A1 canopy | warm LED soffit strip"', front)
+        # owner 10.11: LED strips run from the facade to the fascia (owner render), 21 across the 40 m canopy
+        self.assertIn("float x=-18.5f+i*1.85f,z0=fz+.45f,z1=BackZ(x)-.45f;", front)
         self.assertIn("float totalDepth=protrusion+.002f", self.arrival)
         self.assertIn("arenaRoot.TransformPoint(new Vector3(x,20f,z)*K)", self.arrival)
         self.assertIn("arenaRoot.InverseTransformPoint(hit.point).y", self.arrival)
@@ -204,7 +206,8 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         # Exact Poly Haven source slugs selected by owner are wired into
         # the arena and athlete-area generators checked by this sparse workflow.
         self.assertIn('"stone_tiles"', self.arena)
-        self.assertIn('"concrete_wall_009"', self.arena)
+        # Owner 10.11 material board: hall walls = ambientCG Leather013 (A28) on a black marble plinth.
+        self.assertIn('"Leather013"', self.arena)
         self.assertIn('"granite_tile"', self.arena)
         self.assertIn('"rectangular_facade_tiles"', self.arena)
         self.assertIn('"velour_velvet"', self.arena)
@@ -213,11 +216,12 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('"arena_floor_stone_tiles_owner", "stone_tiles"', self.arena)
         self.assertIn('Top(floorStone,', self.arena)
         self.assertIn('if (alongX)', self.arena)
-        self.assertIn('BoxMinMax(wallGranite', self.arena)
+        self.assertIn('BoxMinMax(marble,a0,a1,yF,WallPlinthTop,g0,g1,true);', self.arena)
         # Owner 9.11 23:46 "każda ściana ma być wykończona": no bare concrete in the hall any more.
         self.assertNotIn('BoxMinMax(wallConcrete', self.arena)
-        self.assertIn('BoxMinMax(walnut,a0,a1,WallStoneTop,WallWalnutTop,g0,g1,true)', self.arena)
-        self.assertIn('BoxMinMax(facadePanels', self.arena)
+        # Owner 10.11 00:51-01:10: no walnut / brown anywhere in the hall.
+        self.assertNotIn('smoked_walnut_veneer', self.arena)
+        self.assertIn('BoxMinMax(wallLeather,a0,a1,WallPlinthTop,WallPanelTop,g0,g1,true);', self.arena)
         # Athlete/changing floors stay green; only their walls use Wooden Panels.
         self.assertIn('"arena_athlete_floor_stone_tiles_owner", "stone_tiles"', self.arrival)
         self.assertIn('"arena_athlete_walls_wooden_panels_owner", "wooden_panels"', self.arrival)
@@ -235,7 +239,7 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn('exterior["arena_gold"],true', front)
         self.assertIn('posts=0', front)
         self.assertIn('FrontFaceZ=BraxChampionsArenaArrival.CanopyFrontZ+.30f', self.signs)
-        self.assertIn('new Color(.30f,.31f,.33f)',self.arena)
+        self.assertIn('"Leather013"',self.arena)
         self.assertIn('gold_edges_20mm_continuous_tread_and_riser=true',self.arena)
 
     def test_perimeter_bays_skip_both_entries(self):
@@ -273,7 +277,7 @@ class A1PremiumExteriorRegression(unittest.TestCase):
 
     def test_lit_black_pillars_remain_outside_tinted_glass(self):
         self.assertIn('goldColumnInserts.Emit(group',self.arrival)
-        self.assertIn('ISSUE27_gold_column_capsules_width0p12_projection0p03',self.arrival)
+        self.assertIn('ISSUE27_warm_LED_column_capsules_width0p12_projection0p03",ArenaLed(exterior)',self.arrival)
         self.assertIn('ISSUE27_black_columns_38_width2p20_depth0p85_rounded',self.arrival)
         # Owner correction: no separate red neon geometry may sit outside the artwork.
         # The exterior composition is black belt + physical gold frame only.

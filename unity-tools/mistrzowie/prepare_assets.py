@@ -142,7 +142,11 @@ def main():
                       # seamless slabs for lobbies, corridors and bathrooms (marble_01 = beige tiles).
                       ('Marble021',['Color','NormalGL','Roughness']),
                       # 9.11 23:29 owner: the grey granite podium of Hotel Sobczak -> vein-cut travertine
-                      ('Travertine009',['Color','NormalGL','Roughness','AmbientOcclusion'])]:
+                      ('Travertine009',['Color','NormalGL','Roughness','AmbientOcclusion']),
+                      # 10.11 owner material board: A28 quilted leather on the arena hall walls, Tiles012 black/white
+                      # marble checkerboard on the arena entrance lobby floor.
+                      ('Leather013',['Color','NormalGL','Roughness']),
+                      ('Tiles012',['Color','NormalGL','Roughness'])]:
   prefix=asset+'_4K-JPG_'
   names=[prefix+k+'.jpg' for k in kinds]
   # New maps have no historical lock: verify against the archive on every preparation.

@@ -61,7 +61,7 @@ class ChampionSideMuralsTests(unittest.TestCase):
         # 9.11: real structural walls; side walls close the corners.
         self.assertIn('Clad(false, X0, 1f, Z0 - WallThickness, Z1 + WallThickness)',self.h)
         self.assertIn('Clad(false, X1, -1f, Z0 - WallThickness, Z1 + WallThickness)',self.h)
-        self.assertIn('BoxMinMax(facadePanels, dA, dB, dH, WallStoneTop, w0, w1, true, true);',self.h)
+        self.assertIn('BoxMinMax(wallLeather, dA, dB, dH, WallPanelTop, w0, w1, true, true);',self.h)
         self.assertIn('Sign("hala_walk"',self.h)
         self.assertIn('Sign("braxhorn_arena"',self.h)
         self.assertNotIn('AddComponent<MeshCollider>',self.m)

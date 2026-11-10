@@ -87,12 +87,13 @@ class ArenaOwnerReview20261110(unittest.TestCase):
         self.assertIn("BraxChampionsArenaMuralPrint.Frame(walls,\"Entrance\"", self.mural)
 
     def test_every_wall_ceiling_and_stand_side_is_finished(self):
-        for needle in ("BoxMinMax(walnut,a0,a1,WallStoneTop,WallWalnutTop,g0,g1,true);",
-                       "BoxMinMax(acoustic,a0,a1,WallWalnutTop,yC,g0,g1,true);",
-                       "HallCeiling(X0,X1,Z0,Z1,cx,cz,acoustic,walnut,warmLine,interiorGold);",
+        for needle in ("BoxMinMax(marble,a0,a1,yF,WallPlinthTop,g0,g1,true);",
+                       "BoxMinMax(wallLeather,a0,a1,WallPlinthTop,WallPanelTop,g0,g1,true);",
+                       "BoxMinMax(acoustic,a0,a1,WallPanelTop,yC,g0,g1,true);",
+                       "HallCeiling(X0,X1,Z0,Z1,cx,cz,acoustic,beamBlack,warmLine,interiorGold);",
                        "LobbyWallMarble(X0,X1,Z1,yF,dA,dB,dH,lobbyMarble,interiorGold,warmLine);",
                        "void StandSide(bool alongX,float front,float s,float edge,float into,int rows)",
-                       "BackBox(wallGranite,yF,StandStoneTop);BackBox(walnut,StandStoneTop+.06f,topAll);",
+                       "BackBox(marble,yF,StandStoneTop);BackBox(marble,StandStoneTop+.06f,topAll);",
                        "// curved back of the corner bowl"):
             self.assertIn(needle, self.arena)
         self.assertNotIn("BoxMinMax(wallConcrete", self.arena)             # no bare concrete wall left
@@ -109,9 +110,9 @@ class ArenaOwnerReview20261110(unittest.TestCase):
         self.assertNotIn("Curved(t,1,MakeMat(1),", self.signs)
         self.assertNotIn("\n        HallBanners(t,body);", self.signs)
         alpha = float(re.search(r'arenaGlass\.SetColor\("_Color",new Color\([^)]*,(\.\d+)f\)\)', self.front).group(1))
-        # tinted, but still glass: .90 read as a black plastic box (owner 10.11 00:46)
-        self.assertGreaterEqual(alpha, .72)
-        self.assertLessEqual(alpha, .80)
+        # owner 10.11 00:48 "lekko przyciemnione, nie czarne"; .70-.90 all read as a black box
+        self.assertGreaterEqual(alpha, .40)
+        self.assertLessEqual(alpha, .55)
 
     def test_belt_hangs_on_the_wall(self):
         self.assertNotIn('"A1 VITRINE | black marble pillar"', self.belt)

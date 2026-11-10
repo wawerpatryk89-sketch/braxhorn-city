@@ -250,11 +250,14 @@ public static partial class BraxChampionsArenaArrival
         // Main spectator route stays permanently clear between parking and entrance.
         // Connectors meet x=+-8 and the parking exit paths at x=+-61 exactly:
         // no coplanar overlap rectangles.
-        Box(parent, "Arena public promenade", curb,
+        // Owner render: polished dark stone in front of the arena, not grey sidewalk pavers.
+        var promenade=BraxChampionsFoundation.SourceMaterial("arena_promenade_polished_dark_granite","granite_tile_02",1.2f,new Color(.34f,.34f,.36f));
+        promenade.SetFloat("_Roughness",.22f);
+        Box(parent, "Arena public promenade", promenade,
             new Vector3(0, .18f, -104f), new Vector3(16f, .04f, 58f));
         for (float x = -7f; x <= 7f; x += 14f)
-            Box(parent, "Public path edge line", paint,
-                new Vector3(x, .204f, -105.5f), new Vector3(.12f, .008f, 54f), false);
+            Box(parent, "Public path warm LED inlay line", arenaLed ? arenaLed : paint,      // owner render: lit lines lead to the door
+                new Vector3(x, .204f, -105.5f), new Vector3(.10f, .008f, 54f), false);
     }
 
     static void ParkingLights(Transform parent, Material frame, Material led)
@@ -757,6 +760,7 @@ public static partial class BraxChampionsArenaArrival
         var roof=new FacadeBatch();
         var roofGold=new FacadeBatch();
         var crownLight=new FacadeBatch();
+        var columnUplights=new FacadeBatch();
         var upperCeilingHalo=new FacadeBatch();
 
         int actualFeatureColumns=0,skippedFeatureColumns=0,skippedDoorSegments=0;
@@ -789,7 +793,9 @@ public static partial class BraxChampionsArenaArrival
                         new Vector3(.85f,25.52f,2.20f),rotation,.10f,.08f,4,3);
                     goldColumnInserts.CapsulePlaque(
                         mid+outward*.861f+Vector3.up*13.79f,
-                        .038f,25.40f,.120f,.018f,rotation,8,4);
+                        .038f,25.40f,.200f,.018f,rotation,8,4);
+                    // owner render: a warm in-ground uplight at the foot of every lit column
+                    columnUplights.Beam(mid+outward*1.45f+Vector3.up*.19f,new Vector3(.34f,.05f,.34f),rotation);
                 }
                 else if(i%2==0)
                 {
@@ -846,7 +852,7 @@ public static partial class BraxChampionsArenaArrival
             float frontFactor=0f;
             if(mid.z<0)
                 frontFactor=1f-Mathf.Clamp01((Mathf.Abs(mid.x)-24f)/.80f);
-            float h=Mathf.Lerp(.08f,.12f,frontFactor);
+            float h=Mathf.Lerp(.10f,.20f,frontFactor);   // owner render: bold gold lines on the black belt
             float protrusion=Mathf.Lerp(.04f,.05f,frontFactor);
             float radius=Mathf.Lerp(.020f,.025f,frontFactor);
             float len=Vector3.Distance(p,q)+.025f;
@@ -881,13 +887,15 @@ public static partial class BraxChampionsArenaArrival
         plinth.Emit(group,"granite_plinth_preserved",exterior["dark_stone"]);
         fins.Emit(group,"curtain_wall_black_mullions_owner_render",black);
         blackColumns.Emit(group,"ISSUE27_black_columns_38_width2p20_depth0p85_rounded",black);
-        goldColumnInserts.Emit(group,"ISSUE27_gold_column_capsules_width0p12_projection0p03",gold);
+        // Owner render: the line on every black column is a glowing warm LED, not painted gold.
+        goldColumnInserts.Emit(group,"ISSUE27_warm_LED_column_capsules_width0p12_projection0p03",ArenaLed(exterior));
         midBelt.Emit(group,"black_belt_360_owner_render_y7p60_to11p40",black);
         beltGold.Emit(group,"ISSUE27_gold_belt_lines_front120mm_rest80mm",gold);
         roof.Emit(group,"PBR_roof_coping_preserved",exterior["roof"]);
         roofGold.Emit(group,"PBR_gold_roof_detail",gold);
         crownLight.Emit(group,"warm_roof_crown_LED_preserved",exterior["light"]);
         upperCeilingHalo.Emit(group,"upper_interior_elliptical_halo_preserved",exterior["light"]);
+        columnUplights.Emit(group,"warm_column_foot_uplights_38",ArenaLed(exterior));
 
         // FINAL OWNER CORRECTION 8.11:
         // zero separate red geometry outside the original CHAMPION ARENA artwork.
@@ -937,7 +945,7 @@ public static partial class BraxChampionsArenaArrival
             " owner_signs=4 sign_front=3D_39x6.5_on_canopy sign_rear=36x6 sign_sides=34x5.667"+
             " legacy_public_canopy=21x6.8x0.07_removed=true athlete_canopy_preserved=true");
         Debug.Log("A1_OWNER_RENDER_FACADE black_columns=38 width=2.20 depth=0.85 y=1.03..26.55 unbroken"+
-            " gold_column_capsule=full_height gold_column_front_width=.120 projection=.030 totalDepth=.038 embedded=.008 edge_R=.018 capsule_end_R=.060"+
+            " warm_LED_column_capsule=full_height LED_column_front_width=.200 projection=.030 totalDepth=.038 embedded=.008 edge_R=.018 capsule_end_R=.060"+
             " belt_360_y="+BeltBottom+".."+BeltTop+" depth=0.22 outer_face=0.23"+
             " mullions=black_every_2nd_bay transoms=4.60,16.00,26.62 white_interior_bands=REMOVED"+
             " canopy=gold_cantilever_40m posts=0 sign_frames=REMOVED signs=3D_bodies front_sign_external_red_geometry=0"+
@@ -973,6 +981,19 @@ public static partial class BraxChampionsArenaArrival
         Box(root,"UPPER lounge | real premium dark-stone mezzanine floor",dark,
             new Vector3(0,18.12f,-48.05f),new Vector3(84f,.24f,6.9f),false);
         BraxChampionsFoundation.Optional("loża VIP na piętrze: rośliny i balustrada",()=>UpperLoungeFinish(root,exterior));
+        // Owner render: the lobby ceiling behind the lower glass is full of warm light lines (seen from the street
+        // through the glass and from the lobby). Underside of the mezzanine slab = 18.00 in lounge space.
+        {
+            var led=ArenaLed(exterior);
+            Box(root,"UPPER lounge slab | warm white plaster soffit over the lobby",
+                BraxChampionsFoundation.SourceMaterial("A1_lobby_soffit_warm_white_plaster","white_stucco_02",2.0f,new Color(.93f,.92f,.90f)),
+                new Vector3(0,17.997f,-48.05f),new Vector3(83.9f,.004f,6.88f),false);
+            for(float x=-40.5f;x<=40.51f;x+=3f)
+                Box(root,"UPPER lounge slab | warm LED line in the lobby ceiling",led,
+                    new Vector3(x,17.992f,-48.05f),new Vector3(.06f,.016f,6.3f),false);
+            Box(root,"UPPER lounge slab | warm LED line along the glass",led,
+                new Vector3(0,17.992f,-51.15f),new Vector3(82f,.016f,.06f),false);
+        }
         Box(root,"UPPER lounge | fine champagne fascia at floor edge",gold,
             new Vector3(0,18.13f,-51.56f),new Vector3(83.5f,.11f,.12f),false);
 
@@ -1122,7 +1143,11 @@ public static partial class BraxChampionsArenaArrival
     public static bool Generate(Transform arenaRoot, Dictionary<string, Material> exterior)
     {
         tiledMeshSerial = 0;
+        arenaLed = null;
         ArenaSmokedGlass(arenaRoot, exterior);
+        // First: the lobby furniture, cases and runner are grounded on this finished floor.
+        LobbyFloor(arenaRoot, exterior, LobbyFloorMaterial());
+        LobbyCeiling(arenaRoot, exterior);
         var root = Group(arenaRoot, "A1 | arena entrance, parking, trophy and athlete facilities", Vector3.zero);
         var asphalt = BraxChampionsFoundation.SourceMaterial("arena_parking_asphalt", "clean_asphalt", 2.2f,
             new Color(.89f, .89f, .89f));

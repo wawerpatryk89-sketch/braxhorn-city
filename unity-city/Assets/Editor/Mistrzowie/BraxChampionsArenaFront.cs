@@ -20,6 +20,99 @@ public static partial class BraxChampionsArenaArrival
 
     static float FrontGlassZ(float x)=>-59f*Mathf.Sqrt(Mathf.Max(0f,1f-x*x/(96f*96f)));
 
+    // Owner render 9.11 / owner 10.11 07:14 "z zewnątrz napraw arenę ... masz moje zdjęcia": the vertical lines on the
+    // black columns and the strips in the canopy soffit GLOW warm, they are not painted gold. The shared "light"
+    // diffuser (.45 emission) reads beige in daylight, so the arena gets its own bright 2700 K LED line.
+    static Material arenaLed;
+    static Material ArenaLed(Dictionary<string,Material> exterior)
+    {
+        if(arenaLed)return arenaLed;
+        arenaLed=new Material(exterior["light"]){name="A1 arena | warm 2700K LED line"};
+        arenaLed.SetColor("_Color",new Color(1f,.86f,.58f));
+        arenaLed.SetColor("_EmissionColor",new Color(1.05f,.74f,.36f));
+        AssetDatabase.CreateAsset(arenaLed,"Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/A1_arena_warm_led.mat");
+        return arenaLed;
+    }
+
+    // Owner 10.11 07:19: "podłoga tam jest chyba chujowa na wejściu ... jakąś zajebistą podłogę trzeba dać".
+    // The public lobby (glass ellipse in front of the hall's front wall) gets its own finished floor 4.9 cm over the
+    // structural dark slab (.18). The red runner (.230-.248) lies ON it; a real collider so the lobby furniture
+    // (LobbyFloorY) and the player stand on the finish. The runner strip itself is left open (no coplanar faces).
+    public const float LobbyFloorTop=.229f, LobbyBackZ=-35.43f, LobbyRunnerHalf=2.0f;
+    // Chosen for the owner (10.11 07:25 "na podłogi coś dobierz, na wejściowej, za szkłem"): ambientCG Tiles012,
+    // polished black and white marble checkerboard, 60 x 60 cm tiles (4 x 4 per 2.4 m texture).
+    static Material LobbyFloorMaterial()=>BraxChampionsFoundation.LibraryAcg(
+        "arena_lobby_floor_marble_checkerboard","Tiles012",Color.white,2.4f);
+    static void LobbyFloor(Transform arenaRoot,Dictionary<string,Material> exterior,Material floor)
+    {
+        var root=Group(arenaRoot,"A1 LOBBY | premium entrance floor (owner 10.11)",Vector3.zero);
+        const float rx=96f-.06f,rz=59f-.06f,step=.5f;
+        float HalfWidth(float z)=>rx*Mathf.Sqrt(Mathf.Max(0f,1f-z*z/(rz*rz)));
+        float start=-rz*Mathf.Sqrt(1f-Mathf.Pow((LobbyRunnerHalf+.25f)/rx,2f));
+        var v=new List<Vector3>();var t=new List<int>();int rows=0;
+        for(float z0=start;z0<LobbyBackZ-.001f;z0+=step)
+        {
+            float z1=Mathf.Min(z0+step,LobbyBackZ),w0=HalfWidth(z0),w1=HalfWidth(z1);
+            foreach(float s in new[]{-1f,1f})
+                FrontQuad(v,t,new Vector3(s*LobbyRunnerHalf,LobbyFloorTop,z0),new Vector3(s*w0,LobbyFloorTop,z0),
+                    new Vector3(s*w1,LobbyFloorTop,z1),new Vector3(s*LobbyRunnerHalf,LobbyFloorTop,z1),Vector3.up);
+            rows++;
+        }
+        FrontMesh(root,"A1 lobby premium floor",v,t,floor,true);
+        // Where the lobby continues beside the hall (|x| > 60.4) the 4.9 cm edge of the finish gets a gold nosing.
+        float edgeW=HalfWidth(LobbyBackZ);
+        foreach(float s in new[]{-1f,1f})
+            Box(root,"A1 LOBBY | gold nosing of the floor finish",exterior["arena_gold"],
+                new Vector3(s*(60.40f+edgeW)*.5f,(.18f+LobbyFloorTop)*.5f+.003f,LobbyBackZ+.015f),
+                new Vector3(edgeW-60.40f,LobbyFloorTop-.18f+.006f,.03f),false);
+        Debug.Log("A1_LOBBY_FLOOR material="+floor.name+" top="+LobbyFloorTop+" rows="+rows+" runnerOpen=+-"+LobbyRunnerHalf+" collider=true");
+    }
+
+    // Owner 10.11 07:30: "tak nie zostanie, jaka czarna bryła ... ja ci zdjęcie dałem". In the owner render the whole
+    // glass front shows a WARM, LIT interior; ours showed the black underside of the roof and the black lobby wall,
+    // so every pane read black. The lobby (crescent between the glass and the hall's front wall, 27 m high) gets a
+    // finished light ceiling under the roof: warm white plaster with warm LED lines every 2.5 m and a lit oval halo
+    // over the entrance. Seen through the upper glass from the street and from the lobby. Emissive only, no lamps.
+    public const float LobbyCeilingY=27.03f;
+    static void LobbyCeiling(Transform arenaRoot,Dictionary<string,Material> exterior)
+    {
+        var root=Group(arenaRoot,"A1 LOBBY | lit ceiling under the roof (owner render)",Vector3.zero);
+        var plaster=BraxChampionsFoundation.SourceMaterial("A1_lobby_ceiling_warm_white_plaster","white_stucco_02",2.0f,new Color(.93f,.92f,.90f));
+        var led=ArenaLed(exterior);
+        const float rx=96f-.25f,rz=59f-.25f,step=1f;
+        float HalfWidth(float z)=>rx*Mathf.Sqrt(Mathf.Max(0f,1f-z*z/(rz*rz)));
+        float start=-rz*Mathf.Sqrt(1f-Mathf.Pow(4f/rx,2f));
+        var v=new List<Vector3>();var t=new List<int>();
+        for(float z0=start;z0<LobbyBackZ-.001f;z0+=step)
+        {
+            float z1=Mathf.Min(z0+step,LobbyBackZ),w0=HalfWidth(z0),w1=HalfWidth(z1);
+            FrontQuad(v,t,new Vector3(-w0,LobbyCeilingY,z0),new Vector3(w0,LobbyCeilingY,z0),
+                new Vector3(w1,LobbyCeilingY,z1),new Vector3(-w1,LobbyCeilingY,z1),Vector3.down);
+        }
+        FrontMesh(root,"A1 lobby lit ceiling plaster",v,t,plaster,false);
+        int lines=0;
+        for(float z=LobbyBackZ-1.25f;z>start+.6f;z-=2.5f)
+        {
+            float w=HalfWidth(z)-.6f;if(w<4f)continue;
+            Box(root,"A1 LOBBY ceiling | warm LED line",led,new Vector3(0,LobbyCeilingY-.012f,z),new Vector3(2f*w,.02f,.07f),false);
+            lines++;
+        }
+        // Oval halo over the entrance (owner render: lit ring in the lobby ceiling behind the sign): gold rim + LED.
+        var rim=new FacadeBatch();var glow=new FacadeBatch();
+        const int parts=48;const float hx=14f,hz=6.5f,hcz=-47.5f;
+        for(int i=0;i<parts;i++)
+        {
+            float a=2f*Mathf.PI*i/parts,b=2f*Mathf.PI*(i+1)/parts;
+            var p=new Vector3(hx*Mathf.Cos(a),0,hcz+hz*Mathf.Sin(a));var q=new Vector3(hx*Mathf.Cos(b),0,hcz+hz*Mathf.Sin(b));
+            var rot=Quaternion.LookRotation((q-p).normalized,Vector3.up);var mid=(p+q)*.5f;float len=Vector3.Distance(p,q)+.03f;
+            rim.Beam(mid+Vector3.up*(LobbyCeilingY-.16f),new Vector3(.36f,.32f,len),rot);
+            glow.Beam(mid+Vector3.up*(LobbyCeilingY-.33f),new Vector3(.24f,.02f,len),rot);
+        }
+        rim.Emit(root,"A1_lobby_ceiling_gold_halo_28x13",exterior["arena_gold"]);
+        glow.Emit(root,"A1_lobby_ceiling_halo_LED",led);
+        Debug.Log("A1_LOBBY_CEILING y="+LobbyCeilingY+" plaster=white_stucco_02 ledLines="+lines+" halo=28x13");
+    }
+
     // Orient a quad/triangle so Unity's cross(b-a,c-a) faces the wanted side.
     static void FrontTri(List<Vector3> v,List<int> t,Vector3 a,Vector3 b,Vector3 c,Vector3 facing)
     {
@@ -80,20 +173,20 @@ public static partial class BraxChampionsArenaArrival
         FrontMesh(root,"A1 owner render canopy gold fascia",gv,gt,exterior["arena_gold"],true);
         FrontMesh(root,"A1 owner render canopy black soffit and top",bv,bt,exterior["arena_black"],true);
 
-        // Warm line under the front edge and the three rows of downlights.
-        var light=exterior["light"];
+        // Owner render: a warm line under the front edge and LED STRIPS running from the facade to the fascia
+        // across the whole black soffit (was three rows of small beige squares).
+        var light=ArenaLed(exterior);
         Box(root,"A1 canopy | warm LED line under gold fascia",light,
             new Vector3(0,y0-.012f,fz+.12f),new Vector3(hw*2f-.30f,.024f,.06f),false);
         int lamps=0;
-        foreach(float dz in new[]{.95f,2.25f,3.55f})
-            for(int i=0;i<21;i++)
-            {
-                float x=-18.5f+i*1.85f,z=fz+dz;
-                if(z>BackZ(x)-.45f)continue;
-                Box(root,"A1 canopy | recessed warm downlight",light,
-                    new Vector3(x,y0-.008f,z),new Vector3(.26f,.016f,.26f),false);
-                lamps++;
-            }
+        for(int i=0;i<21;i++)
+        {
+            float x=-18.5f+i*1.85f,z0=fz+.45f,z1=BackZ(x)-.45f;
+            if(z1-z0<.6f)continue;
+            Box(root,"A1 canopy | warm LED soffit strip",light,
+                new Vector3(x,y0-.008f,(z0+z1)*.5f),new Vector3(.08f,.016f,z1-z0),false);
+            lamps++;
+        }
         foreach(float x in new[]{-12f,0f,12f})
         {
             var l=new GameObject("A1 canopy | warm downlight wash").AddComponent<Light>();
@@ -102,7 +195,7 @@ public static partial class BraxChampionsArenaArrival
             l.shadows=LightShadows.None;l.renderMode=LightRenderMode.ForceVertex;
         }
         Debug.Log("A1_OWNER_RENDER_CANOPY width="+(hw*2f)+" front="+fz+" underside="+y0+" top="+y1+
-            " downlights="+lamps+" posts=0 gold_fascia=1.2m");
+            " downlights="+lamps+" ledStrips="+lamps+" posts=0 gold_fascia=1.2m");
     }
 
     // ---- entrance lobby furniture behind the front glass (both sides) ----
@@ -267,13 +360,12 @@ public static partial class BraxChampionsArenaArrival
     {
         var shared=exterior["facade_glass"];
         var arenaGlass=new Material(shared){name="A1 arena | uniform dark smoked facade glass"};
-        // Owner 9.11 23:43: "Szyby miały być przyciemnione z zewnątrz", then 10.11 00:46 on the render of alpha .90:
-        // "z zewnątrz gówno wygląda, jeszcze gorzej niż było" - near-opaque black read as a plastic box, the same
-        // mistake as the old opaque facade_glass. Tinted GLASS: blue-graphite, the lit lobby still glows through,
-        // strong sky reflection. Panes are single-sided, so the view from the lobby is unchanged.
-        arenaGlass.SetColor("_Color",new Color(.085f,.115f,.155f,.76f));
+        // Owner 9.11 23:43: "Szyby miały być przyciemnione z zewnątrz"; 10.11 00:48: "Szyby LEKKO przyciemnione, nie
+        // czarne" (.70 in APK 35 and .76/.90 on the renders all read as a black box). Owner render: lightly tinted,
+        // reflective glass with the warm lit lobby clearly visible behind it. Panes are single-sided.
+        arenaGlass.SetColor("_Color",new Color(.50f,.57f,.63f,.45f));
         arenaGlass.SetFloat("_Roughness",.04f);
-        arenaGlass.SetFloat("_ReflectionStrength",1f);
+        arenaGlass.SetFloat("_ReflectionStrength",.85f);
         AssetDatabase.CreateAsset(arenaGlass,"Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/A1_arena_smoked_glass.mat");
         int swapped=0;
         foreach(var r in arenaRoot.GetComponentsInChildren<Renderer>(true))
@@ -282,7 +374,7 @@ public static partial class BraxChampionsArenaArrival
             for(int i=0;i<mats.Length;i++)if(mats[i]==shared){mats[i]=arenaGlass;hit=true;swapped++;}
             if(hit)r.sharedMaterials=mats;
         }
-        Debug.Log("A1_SMOKED_GLASS uniform lower+upper panes="+swapped+" alpha=.76 blue_graphite reflection=1 doors=clear_glass_only");
+        Debug.Log("A1_SMOKED_GLASS uniform lower+upper panes="+swapped+" alpha=.45 light_blue_grey reflection=.85 doors=clear_glass_only");
         if(swapped==0)BraxBuildQuality.Warn("A1_SMOKED_GLASS_NOT_APPLIED: no facade_glass renderer under the arena");
     }
 }

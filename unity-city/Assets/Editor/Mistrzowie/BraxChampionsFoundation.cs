@@ -413,6 +413,15 @@ public static class BraxChampionsFoundation
             arm=FileIn(tex,"Travertine009_ARM_4k.png"),tile=metres});
         m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
     }
+    // Any other ambientCG 4K pack chosen by the owner from the material board (10.11: Leather013 hall walls, Tiles012
+    // lobby floor). prepare_assets.py extracts <asset>_4K-JPG_{Color,NormalGL,Roughness}.jpg and packs <asset>_ARM_4k.png.
+    public static Material LibraryAcg(string id,string asset,Color tint,float metres)
+    {
+        string tex=Source+"/Textures",prefix=asset+"_4K-JPG_";
+        var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
+            arm=FileIn(tex,asset+"_ARM_4k.png"),tile=metres});
+        m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
+    }
     public static Material LibraryLeather(string id,Color tint)
     {
         string tex=Source+"/Textures",prefix="Leather037_4K-JPG_";

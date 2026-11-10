@@ -12,6 +12,7 @@ public static class BraxChampionsFoundation
 {
     public static Material SourceMaterial(string id, string slug, float metres, Color tint) => new Material { name = id + "|" + slug + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryMarble(string id, Color tint, float metres) => new Material { name = id + "|Marble016|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
+    public static Material LibraryAcg(string id, string asset, Color tint, float metres) => new Material { name = id + "|" + asset + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryMarbleWhite(string id, Color tint, float metres) => new Material { name = id + "|Marble021|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryTravertine(string id, Color tint, float metres) => new Material { name = id + "|Travertine009|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryLeather(string id, Color tint) => new Material { name = id + "|Leather037|0.6", color = tint, textured = true };
