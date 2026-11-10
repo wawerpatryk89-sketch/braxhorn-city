@@ -23,7 +23,7 @@ using UnityEngine;
 // * every sofa, settee, stool and bench is a seat (BraxSeat): you can sit down.
 public static partial class BraxChampionsE1
 {
-    static Material woodFloor,cloakFloor,quiltRed,leatherBlack,marbleWallWhite,marbleWallBlack,labelPaper,labelBlack,labelRed,capBlack,stoneBasin;
+    static Material woodFloor,cloakFloor,slatWood,benchOak,quiltRed,leatherBlack,marbleWallWhite,marbleWallBlack,labelPaper,labelBlack,labelRed,capBlack,stoneBasin;
     static Material[] glassTint,liquid;
     static Transform mirrorGroup;
     public static int LiveMirrors,OwnerModels,OwnerMissing,Seats,TurnedBottles;
@@ -36,6 +36,9 @@ public static partial class BraxChampionsE1
         // material "Drewno (strefy wewn.)" - real oak planks (Poly Haven oak_wood_planks), smoked a shade darker as the board's
         // bar / billiards pictures; the cloakrooms: grey stone tiles in large format (granite_tile_04, neutral grey)
         woodFloor=Inside(Tex("interior_oak_planks","oak_wood_planks",2.2f,new Color(.50f,.44f,.42f)),.85f);
+        // the board's "Drewno (strefy wewn.)" swatch: natural vertical wood slats on the hall walls (warm walnut, not black)
+        slatWood=Inside(Tex("wall_walnut_slats","smoked_walnut_veneer",1.2f,new Color(1.0f,.92f,.86f)),.85f);
+        benchOak=Inside(Tex("bench_oak_slats","oak_wood_planks",1.0f,new Color(.92f,.86f,.82f)),.85f);
         cloakFloor=Inside(Tex("cloakroom_stone_tiles","granite_tile_04",1.4f,new Color(.98f,1.03f,1.12f)),.85f);
         quiltRed=Inside(BraxChampionsFoundation.LibraryAcg("e1_quilted_leather_oxblood","Leather013",new Color(1.6f,1.0f,1.25f),.55f),.85f);
         leatherBlack=Inside(BraxChampionsFoundation.LibraryLeather("e1_leather_black_smooth",new Color(.30f,.52f,.70f)),.85f);
@@ -333,8 +336,37 @@ public static partial class BraxChampionsE1
                 m.Lathe(quiltRed,pc+Vector3.up*.025f,new[]{new Vector2(0,0),new Vector2(.32f,0),new Vector2(.345f,.03f),new Vector2(.355f,.20f),new Vector2(.345f,.37f),new Vector2(.31f,.405f),new Vector2(.20f,.42f),new Vector2(0,.425f)},40,Quaternion.identity,false,true);
                 Col(pc.x-.35f,pc.x+.35f,FFL,FFL+.45f,tz-.35f,tz+.35f,"pufa");Seat(pc.x,FFL+.45f,tz,new Vector3(-s,0,0),"PUFA");
             }
+            // a ring of light over the group (the board's bar / lounge: halo rings): warm LED ring 1.9 m in a black
+            // aluminium profile, on three cables from the ceiling
+            Halo(cx,FFL+3.35f,tz,.95f);
             FinishItems++;
         }
+    }
+    static void Halo(float x,float y,float z,float r)
+    {
+        const int seg=48;
+        for(int i=0;i<seg;i++)
+        {
+            float a0=i*Mathf.PI*2f/seg,a1=(i+1)*Mathf.PI*2f/seg;
+            var p0=new Vector3(x+Mathf.Cos(a0)*r,y,z+Mathf.Sin(a0)*r);var p1=new Vector3(x+Mathf.Cos(a1)*r,y,z+Mathf.Sin(a1)*r);
+            m.Tube(lampWarm,p0,p1,.028f,10);
+            m.Tube(black,p0+Vector3.up*.03f,p1+Vector3.up*.03f,.020f,8);
+        }
+        for(int i=0;i<3;i++){float a=i*Mathf.PI*2f/3f;m.Cylinder(steelPolished,new Vector3(x+Mathf.Cos(a)*r,y+.05f,z+Mathf.Sin(a)*r),.003f,Ceiling-y-.05f,6);}
+    }
+    // changing-room bench: oak slats on a black steel frame (seat 45 cm), along x, centre (x, z)
+    static void SlatBench(float x,float z,float len)
+    {
+        for(int i=0;i<5;i++){float dz=-.18f+i*.09f;RB(benchOak,x-len*.5f,x+len*.5f,FFL+.42f,FFL+.45f,z+dz-.035f,z+dz+.035f,.008f,false,2);}
+        foreach(float s in new[]{-1f,1f})
+        {
+            float lx=x+s*(len*.5f-.15f);
+            B(black,lx-.025f,lx+.025f,FFL,FFL+.42f,z-.20f,z-.16f);B(black,lx-.025f,lx+.025f,FFL,FFL+.42f,z+.16f,z+.20f);
+            B(black,lx-.025f,lx+.025f,FFL+.38f,FFL+.42f,z-.20f,z+.20f);
+        }
+        B(black,x-len*.5f+.15f,x+len*.5f-.15f,FFL+.38f,FFL+.42f,z-.02f,z+.02f);
+        Col(x-len*.5f,x+len*.5f,FFL,FFL+.45f,z-.22f,z+.22f,"ławka");
+        foreach(float u in new[]{-.6f,0f,.6f})Seat(x+u,FFL+.45f,z,Vector3.back,"ŁAWKA");
     }
 
     // ================================================================ TOILETS M / K (x a..b, z 15.1..24.7)
@@ -427,7 +459,7 @@ public static partial class BraxChampionsE1
     }
 
     // ================================================================ linear light slots on the hall ceilings
-    static void Slots(float x0,float x1,float z0,float z1,float y,float step,bool alongX,System.Func<float,float,bool> free=null)
+    static void Slots(float x0,float x1,float z0,float z1,float y,float step,bool alongX,System.Func<float,float,bool> free=null,bool lights=true)
     {
         void Slot(float a,float b,float c)
         {
@@ -436,7 +468,7 @@ public static partial class BraxChampionsE1
             FinishItems++;
         }
         float u0=alongX?x0:z0,u1=alongX?x1:z1,v0=alongX?z0:x0,v1=alongX?z1:x1;
-        for(float v=v0+step*.5f;v<v1-.3f;v+=step)
+        if(lights)for(float v=v0+step*.5f;v<v1-.3f;v+=step)
         {
             float start=float.NaN;
             for(float u=u0+.4f;;u+=.3f)
@@ -446,7 +478,7 @@ public static partial class BraxChampionsE1
                 else{if(!float.IsNaN(start)){float e=u-.3f;if(e-start>=.6f)Slot(start,e,v);start=float.NaN;}if(!inside)break;}
             }
         }
-        for(float x=x0+1.6f;x<x1;x+=3.2f)for(float z=z0+1.6f;z<z1;z+=3.2f)if(free==null||free(x+.45f,z-.45f))Sprinkler(x+.45f,y,z-.45f);
-        for(float x=x0+3.5f;x<x1;x+=7f)for(float z=z0+3.5f;z<z1;z+=7f)if(free==null||free(x-.6f,z+.6f))Smoke(x-.6f,y,z+.6f);
+        for(float x=x0+1.6f;x<x1;x+=3.2f)for(float z=z0+1.6f;z<z1;z+=3.2f)if(free==null||free(x+.45f,z-.45f))Sprinkler(x+.45f,y,z-.45f,true);
+        for(float x=x0+3.5f;x<x1;x+=7f)for(float z=z0+3.5f;z<z1;z+=7f)if(free==null||free(x-.6f,z+.6f))Smoke(x-.6f,y,z+.6f,true);
     }
 }

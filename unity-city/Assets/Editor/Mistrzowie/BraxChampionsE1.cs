@@ -1290,12 +1290,13 @@ public static partial class BraxChampionsE1
         float x0=-HW+.3f,x1=-.15f,z0=-HD+.3f;
         float laneEnd=LaneEnd,mask0=laneEnd,machine=13.0f;
         // floor: woven wool carpet round the lanes, machine room concrete
-        B(carpet,x0,x1,SlabTop,FFL,z0,ApproachZ0);
-        B(carpet,x0,LaneX0,SlabTop,FFL,ApproachZ0,machine);
-        B(carpet,LaneX0+12*PairPitch,x1,SlabTop,FFL,ApproachZ0,machine);
+        // owner 10.11 23:57 ("od razu lepiej" on the oak, "wszystko w jednym kolorze"): the board's oak round the lanes too
+        B(woodFloor,x0,x1,SlabTop,FFL,z0,ApproachZ0);
+        B(woodFloor,x0,LaneX0,SlabTop,FFL,ApproachZ0,machine);
+        B(woodFloor,LaneX0+12*PairPitch,x1,SlabTop,FFL,ApproachZ0,machine);
         B(techFloor,LaneX0,LaneX0+12*PairPitch,SlabTop,FFL,mask0+.3f,machine-.1f);
-        B(carpet,x0,LaneX0,SlabTop,FFL,machine,14.9f);B(carpet,LaneX0+12*PairPitch,x1,SlabTop,FFL,machine,14.9f);
-        B(carpet,LaneX0,LaneX0+12*PairPitch,SlabTop,FFL,machine+.1f,14.9f);                          // back corridor
+        B(woodFloor,x0,LaneX0,SlabTop,FFL,machine,14.9f);B(woodFloor,LaneX0+12*PairPitch,x1,SlabTop,FFL,machine,14.9f);
+        B(woodFloor,LaneX0,LaneX0+12*PairPitch,SlabTop,FFL,machine+.1f,14.9f);                       // back corridor
         B(blackMatte,x0,x1,Ceiling,Ceiling+.1f,z0,14.9f);
         float hz=FoulZ+LaneLen;
         for(int p=0;p<12;p++)
@@ -1327,7 +1328,7 @@ public static partial class BraxChampionsE1
             }
             // capping between the pairs (ball-return track cover, black), divider in the pair, kickbacks at the pin deck
             float cap=xp+PairPitch*.5f;
-            if(p<11){RB(black,cap-.15f,cap+.15f,SlabTop,FFL+.12f,FoulZ+.02f,laneEnd-.3f,.03f,true,2);B(carpet,cap-.15f,cap+.15f,SlabTop,FFL,ApproachZ0,FoulZ+.02f);}
+            if(p<11){RB(black,cap-.15f,cap+.15f,SlabTop,FFL+.12f,FoulZ+.02f,laneEnd-.3f,.03f,true,2);B(woodFloor,cap-.15f,cap+.15f,SlabTop,FFL,ApproachZ0,FoulZ+.02f);}
             RB(black,xp-.04f,xp+.04f,SlabTop,FFL+.25f,FoulZ+.02f,hz0(),.02f,false,2);
             RB(lacquer,xp-.04f,xp+.04f,FFL,1.3f,hz0(),laneEnd+.3f,.02f,true,2);                     // division kickback between the pin decks
             B(black,xp-.04f,xp+.04f,SlabTop,FFL,ApproachZ0,FoulZ+.02f);
@@ -1644,7 +1645,7 @@ public static partial class BraxChampionsE1
                 RB(chrome,x+.36f,x+.42f,y0+.40f,y0+.46f,23.845f,23.862f,.006f,false,2);
             }
             Col(a,b,FFL,2f,23.86f,24.4f,"szafki");
-            Bench(new Vector3((a+b)*.5f,0,19.5f),Vector3.right,b-a-2f,.46f);
+            foreach(float bx in new[]{a+1.6f,b-1.6f})SlatBench(bx,22.6f,2.2f);                 // changing-room benches (oak slats)
         }
         // toilets M / K: BraxChampionsE1Premium.Toilets (owner 10.11 22:36 "tu 100 % do zmiany")
         Toilets();

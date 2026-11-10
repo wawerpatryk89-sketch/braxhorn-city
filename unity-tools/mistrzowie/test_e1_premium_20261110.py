@@ -63,8 +63,10 @@ class E1Premium(unittest.TestCase):
         self.assertNotIn("static void ToiletFittings(", self.fin)
 
     def test_ceilings_linear_slots(self):
-        self.assertIn("Slots(-HW+.3f,-.15f,-HD+.3f,-14f,Ceiling,2.4f,true);", self.fin)
-        self.assertIn("Slots(10.15f,HW-.3f,-HD+.3f,14.9f,Ceiling,2.4f,true,clearOfTables);", self.fin)
+        # 23:57 "te na suficie linie co to": the board's dark ceilings - services only, no light lines; lounge light rings
+        self.assertIn("Slots(-HW+.3f,-.15f,-HD+.3f,-14f,Ceiling,2.4f,true,null,false);", self.fin)
+        self.assertIn("Slots(10.15f,HW-.3f,-HD+.3f,14.9f,Ceiling,2.4f,true,clearOfTables,false);", self.fin)
+        self.assertIn("Halo(cx,FFL+3.35f,tz,.95f);", self.pre)
         self.assertNotIn("Downlight(LaneX(l)", self.fin)
         self.assertIn('w.SetColor("_GroundColor",new Color(.96f,.96f,.97f))', self.fin)   # white stays white
 
@@ -75,6 +77,9 @@ class E1Premium(unittest.TestCase):
         self.assertIn("B(woodFloor,x0,x1,SlabTop,FFL,z0,14.9f);", self.e1)
         self.assertNotIn("B(carpetGraphite,x0,x1,SlabTop,FFL,-15.1f,14.9f);", self.e1)
         self.assertIn("B(cloakFloor,-30.1f,-22.6f,SlabTop,FFL,z0,z1);", self.e1)
+        self.assertNotIn("B(carpet,x0,x1,SlabTop,FFL,z0,ApproachZ0);", self.e1)          # bowling: the board's oak too
+        self.assertIn("RB(slatWood,", self.fin)                                             # warm wood slats, not black
+        self.assertIn("SlatBench(bx,22.6f,2.2f);", self.e1)                               # changing-room benches
         stool = self.pre[self.pre.index("static void Stool("):self.pre.index("static void Bar()")]
         self.assertNotIn("Arc(quiltRed", stool)
 

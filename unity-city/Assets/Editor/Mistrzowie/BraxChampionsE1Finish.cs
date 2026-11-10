@@ -66,8 +66,8 @@ public static partial class BraxChampionsE1
         else B(acousticFelt,a,b,y0,y1,Mathf.Min(c,f0),Mathf.Max(c,f0));
         for(float u=a+.02f;u+.035f<=b-.02f;u+=.07f)
         {
-            if(alongZ)RB(lacquer,Mathf.Min(s0,s1),Mathf.Max(s0,s1),y0+.01f,y1-.01f,u,u+.035f,.006f,false,1);
-            else RB(lacquer,u,u+.035f,y0+.01f,y1-.01f,Mathf.Min(s0,s1),Mathf.Max(s0,s1),.006f,false,1);
+            if(alongZ)RB(slatWood,Mathf.Min(s0,s1),Mathf.Max(s0,s1),y0+.01f,y1-.01f,u,u+.035f,.006f,false,1);
+            else RB(slatWood,u,u+.035f,y0+.01f,y1-.01f,Mathf.Min(s0,s1),Mathf.Max(s0,s1),.006f,false,1);
         }
         // black metal trims top and bottom
         if(alongZ){B(black,Mathf.Min(c,s1+dir*.012f),Mathf.Max(c,s1+dir*.012f),y0-.04f,y0,a,b);B(black,Mathf.Min(c,s1+dir*.012f),Mathf.Max(c,s1+dir*.012f),y1,y1+.04f,a,b);}
@@ -194,13 +194,14 @@ public static partial class BraxChampionsE1
         B(grilleDark,x-.24f,x+.24f,y-.021f,y-.015f,z-.24f,z+.24f);
         for(int i=-2;i<=2;i++){B(fixture,x-.24f,x+.24f,y-.027f,y-.021f,z+i*.09f-.008f,z+i*.09f+.008f);}
     }
-    static void Sprinkler(float x,float y,float z)
+    // on the dark hall ceilings the heads and detectors are black (white ones read as rows of dots on the black)
+    static void Sprinkler(float x,float y,float z,bool dark=false)
     {
-        m.Cylinder(steelPolished,new Vector3(x,y-.05f,z),.011f,.05f,10,Quaternion.identity,false,false);
-        m.Cylinder(steelPolished,new Vector3(x,y-.056f,z),.026f,.006f,14,Quaternion.identity,true,true);
-        m.Cylinder(fixture,new Vector3(x,y-.008f,z),.035f,.008f,14,Quaternion.identity,false,true);
+        m.Cylinder(dark?black:steelPolished,new Vector3(x,y-.05f,z),.011f,.05f,10,Quaternion.identity,false,false);
+        m.Cylinder(dark?black:steelPolished,new Vector3(x,y-.056f,z),.026f,.006f,14,Quaternion.identity,true,true);
+        m.Cylinder(dark?black:fixture,new Vector3(x,y-.008f,z),.035f,.008f,14,Quaternion.identity,false,true);
     }
-    static void Smoke(float x,float y,float z)=>m.Cylinder(fixture,new Vector3(x,y-.05f,z),.055f,.05f,24,Quaternion.identity,false,true,.05f);
+    static void Smoke(float x,float y,float z,bool dark=false)=>m.Cylinder(dark?black:fixture,new Vector3(x,y-.05f,z),.055f,.05f,24,Quaternion.identity,false,true,.05f);
     static void Grid(float x0,float x1,float z0,float z1,float y,float light,bool panels,System.Func<float,float,bool> free=null)
     {
         bool Free(float x,float z)=>free==null||free(x,z);
@@ -214,20 +215,20 @@ public static partial class BraxChampionsE1
     {
         float lanes0=LaneX0,lanes1=LaneX0+12*PairPitch;
         // bowling: over the settees and approaches, over the lanes (lane lights along every lane), the side areas
-        // owner 10.11 22:30: no rows of light dots on the black - linear light slots (warm LED in a black channel)
-        Slots(-HW+.3f,-.15f,-HD+.3f,-14f,Ceiling,2.4f,true);
-        for(int l=0;l<Lanes;l++){float x=LaneX(l);B(black,x-.05f,x+.05f,Ceiling-.03f,Ceiling,-11.5f,4.5f);B(lampWarm,x-.03f,x+.03f,Ceiling-.042f,Ceiling-.03f,-11.48f,4.48f);FinishItems++;}
-        Slots(-HW+.3f,lanes0,-14f,14.9f,Ceiling,2.6f,false);Slots(lanes1,-.15f,-14f,14.9f,Ceiling,2.6f,false);
-        for(float x=lanes0+1.6f;x<lanes1;x+=6f){Sprinkler(x,Ceiling,-3f);Sprinkler(x,Ceiling,3.2f);Smoke(x+3f,Ceiling,0f);}
+        // owner 10.11 23:57 ("te na suficie linie co to"): the board's dark ceilings - no light lines, no rows of dots; the
+        // services stay (sprinklers, smoke detectors); light: the pendants, the lounge light rings, the lamps over the bar
+        Slots(-HW+.3f,-.15f,-HD+.3f,-14f,Ceiling,2.4f,true,null,false);
+        Slots(-HW+.3f,lanes0,-14f,14.9f,Ceiling,2.6f,false,null,false);Slots(lanes1,-.15f,-14f,14.9f,Ceiling,2.6f,false,null,false);
+        for(float x=lanes0+1.6f;x<lanes1;x+=6f){Sprinkler(x,Ceiling,-3f,true);Sprinkler(x,Ceiling,3.2f,true);Smoke(x+3f,Ceiling,0f,true);}
         // billiards / bar / lounge (pendants over the tables: the grid keeps clear of them)
         System.Func<float,float,bool> clearOfTables=(x,z)=>
         {
             for(int i=0;i<6;i++)for(int j=0;j<3;j++){float cx=15.8f+i*7.6f,cz=-8f+j*8f;if(Mathf.Abs(x-cx)<1.2f&&Mathf.Abs(z-cz)<2.0f)return false;}
             return true;
         };
-        Slots(10.15f,HW-.3f,-HD+.3f,14.9f,Ceiling,2.4f,true,clearOfTables);
+        Slots(10.15f,HW-.3f,-HD+.3f,14.9f,Ceiling,2.4f,true,clearOfTables,false);
         // games, the hall (high ceiling: services only), back rooms (white, LED panels)
-        Slots(10.15f,39.9f,15.1f,HD-.3f,Ceiling,2.4f,true);
+        Slots(10.15f,39.9f,15.1f,HD-.3f,Ceiling,2.4f,true,null,false);
         for(float z=-20f;z<20f;z+=6f){Sprinkler(2.5f,11f,z);Sprinkler(7.5f,11f,z);Smoke(5f,11f,z+3f);}
         foreach(var (a,b) in new[]{(-HW+.3f,-50.1f),(-49.9f,-30.1f),(-29.9f,-22.6f),(-7.4f,-.15f),(40.1f,49.9f),(50.1f,HW-.3f)})
             Grid(a,b,15.1f,HD-.3f,4.5f,2.4f,true);
