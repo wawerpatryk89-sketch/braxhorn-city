@@ -320,9 +320,10 @@ def plant(x,z,kind,source,band):
 for x,z in PALM_BEDS:plant(x,z,'palm',0,'promenade_bed')
 assert sum(p['band']=='promenade_bed' for p in plants)==len(PALM_BEDS),'every promenade bed gets its palm'
 for x in range(65,1146,25):plant(x,-115,'palm',len(plants)%2,'promenade_soil')
-# More real imported palms facing the bright beach, planted in the coastal
-# grass bed, never obstructing the preserved pedestrian promenade.
-for x in range(65,693,17):plant(x,-155.5,'palm',len(plants)%2,'beach_soil')
+# Owner 10.11 10:16: "wzdłuż plaży, jak się plaża kończy, mają być te grube palmy" - one row of the owner's
+# THICK-trunk palma (variant 0) in the grass strip along the back edge of the sand, every 15 m (was 17 m, mixed);
+# never on the city walks or the beach-club entry decks (plant() needs a genuine grass root disk).
+for x in range(65,693,15):plant(x,-155.5,'palm',0,'beach_soil')
 for x in XROAD:
  for side in (-1,1):
   for z in range(110,916,30):

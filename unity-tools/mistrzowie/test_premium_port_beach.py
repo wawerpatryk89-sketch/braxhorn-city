@@ -102,6 +102,13 @@ class PremiumPortBeach(unittest.TestCase):
         self.assertIn('"LIFEGUARD + BEACH CLUB"',(EDITOR/"BraxSceneAudit.cs").read_text())
         self.assertNotIn("Boardwalk(",(EDITOR/"BraxChampionsPromenadeFurniture.cs").read_text())
 
+    def test_thick_palms_along_the_beach(self):
+        # owner 10.11 10:16: along the back edge of the beach only the thick palms
+        terrain=(ROOT/"unity-tools/mistrzowie/legacy_foundation.py").read_text()
+        self.assertIn("for x in range(65,693,15):plant(x,-155.5,'palm',0,'beach_soil')",terrain)
+        self.assertIn('BraxMiastoAssety.Model("miasto_palmy","palma"),BraxMiastoAssety.Model("miasto_palmy","palma2")',
+                      (EDITOR/"BraxChampionsFoundation.cs").read_text())    # variant 0 = palma (thick trunk)
+
     def test_preview_mirrors_foundation_colours(self):
         # the preview's copy of the foundation materials must show what Unity builds (review 10.11: pink deck, orange sand)
         f=(EDITOR/"BraxChampionsFoundation.cs").read_text()
