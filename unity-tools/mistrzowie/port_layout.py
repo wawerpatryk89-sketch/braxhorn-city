@@ -222,7 +222,8 @@ PIERS,BERTHS=plan()
 # On the walk: rows of the owner's thick palms in flush granite-kerbed beds (uplit, like the promenade), teak benches
 # facing the ships and the promenade lamps between them; the walk between the rows stays clear.
 QUAY_APRON_CRUISE,QUAY_APRON_FERRY=4.5,3.0
-QUAY_BED,QUAY_STEP=3.2,24.0
+QUAY_BED,QUAY_STEP=4.4,24.0
+QUAY_BED_FERRY=3.6     # the ferry walk is 7 m wide
 
 
 QUAY_BAND=0.8           # dark granite cross bands through the walk at every bed and lamp (a 12 m rhythm)
@@ -230,38 +231,42 @@ QUAY_BAND=0.8           # dark granite cross bands through the walk at every bed
 
 def quay_fit():
     """aprons and cross bands [(x,z,w,d)] (dark granite), beds [(x,z)], furniture [(kind,x,z)] of the fixed quays."""
-    aprons,beds,furniture=[],[],[]
+    aprons,beds,furniture,sizes=[],[],[],[]
     for p in PIERS:
         x0,x1,z0,z1=p["x"],p["x"]+p["w"],p["z"],p["z"]+p["d"]
         if p["role"]=="quay_cruise":
             aprons+=[(x0,z0,QUAY_APRON_CRUISE,z1-z0),(x1-QUAY_APRON_CRUISE,z0,QUAY_APRON_CRUISE,z1-z0)]
             walk=(x0+QUAY_APRON_CRUISE,x1-QUAY_APRON_CRUISE)
             cx=(x0+x1)/2
-            rows=[(cx-5.2,"west"),(cx+5.2,"east")]     # each row faces its own ship (W02 west, W01 east); palms 10.4 m apart
+            # owner 10.11 15:48 ("palmy się ledwo mieszczą w tej trawie albo wystają poza"): 4.4 m beds (were 3.2), the
+            # trunk foot on the bed centre (BraxChampionsPalmTrunk); each row faces its own ship; palms 10.2 m apart
+            rows=[(cx-5.1,"west"),(cx+5.1,"east")]
+            bed=QUAY_BED
             first=z1-40.0                              # the passenger shelter stands at the root (z1-24 .. z1-8)
         elif p["role"]=="quay_ferry":
             aprons.append((x1-QUAY_APRON_FERRY,z0,QUAY_APRON_FERRY,z1-z0))
             walk=(x0,x1-QUAY_APRON_FERRY)
-            rows=[(x0+2.3,"east")]                     # the west side is a railing, the ferry lies east
+            rows=[(x0+2.5,"east")]                     # the west side is a railing, the ferry lies east
+            bed=QUAY_BED_FERRY
             first=z1-20.0
         else:
             continue
         zs=[]
         z=first
-        while z-QUAY_BED/2>=z0+6.0:
+        while z-bed/2>=z0+6.0:
             zs.append(z);z-=QUAY_STEP
         lamps=[z for z in [first+QUAY_STEP/2-QUAY_STEP*k for k in range(len(zs)+1)] if z0+3.0<=z<=z1-6.0]
         for z in sorted(zs+lamps):
             aprons.append((walk[0],round(z-QUAY_BAND/2,3),walk[1]-walk[0],QUAY_BAND))
         for x,face in rows:
             for z in zs:
-                beds.append((round(x,2),round(z,2)))
+                beds.append((round(x,2),round(z,2)));sizes.append(bed)
                 for dz in (-6.0,6.0):
                     furniture.append(("quay_bench_"+face,round(x,2),round(z+dz,2)))
             for z in lamps:
                 furniture.append(("lamp",round(x,2),round(z,2)))
-    return aprons,beds,furniture
+    return aprons,beds,furniture,sizes
 
 
-QUAY_APRONS,QUAY_BEDS,QUAY_FURNITURE=quay_fit()
-QUAY_BED_RECTS=[(x-QUAY_BED/2,z-QUAY_BED/2,QUAY_BED,QUAY_BED) for x,z in QUAY_BEDS]
+QUAY_APRONS,QUAY_BEDS,QUAY_FURNITURE,QUAY_BED_SIZES=quay_fit()
+QUAY_BED_RECTS=[(x-b/2,z-b/2,b,b) for (x,z),b in zip(QUAY_BEDS,QUAY_BED_SIZES)]

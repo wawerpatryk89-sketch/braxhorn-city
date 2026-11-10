@@ -11,7 +11,7 @@ const PALMS_ON = process.env.PREVIEW_PALMS === '1';
 const PALM_GLB = process.env.PREVIEW_PALM_GLB || '';
 // PREVIEW_PALM_SCALE: 1/K when the scene is in nominal metres (the game places the real-metre palm in K-scaled world)
 const PALM_SCALE = parseFloat(process.env.PREVIEW_PALM_SCALE || '1');
-// PREVIEW_PALM_HALF=1: the preview palm file holds two palms side by side; keep one (the game plants one per bed)
+// PREVIEW_PALM_HALF=1: the preview palm file is a cluster of palms; keep one (the game plants one per bed)
 const PALM_HALF = process.env.PREVIEW_PALM_HALF === '1';
 // PREVIEW_GROUND_TEX=<texture slug in the textures dir>: the ground plane is that real map (e.g. the region's Grass004
 // lawn) instead of flat grey; PREVIEW_GROUND_BANDS=JSON [[x0,x1,z0,z1,tex,tileMetres],..] draws the region's roads and
@@ -102,10 +102,28 @@ window.setup=async function(w,h){
     pl.setKTX2Loader(new KTX2Loader().setTranscoderPath('http://preview.local/three/examples/jsm/libs/basis/').detectSupport(R));
     const palm=await new Promise(res=>pl.load('http://preview.local/models/'+PALM_GLB,gl=>res(gl.scene),undefined,e=>{console.log('palm glb failed '+e);res(null);}));
     if(palm){palm.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(mt=>{mt.side=THREE.DoubleSide;cityAmbient(mt,[.55,.63,.71,.23,.27,.22,1]);});});
-      if(PALM_HALF)palm.traverse(o=>{if(!o.isMesh||!o.geometry.index)return;const g=o.geometry,p=g.attributes.position,ix=g.index.array;
-        let lo=1e9,hi=-1e9;for(let i=0;i<p.count;i++){const z=p.getZ(i);lo=Math.min(lo,z);hi=Math.max(hi,z);}
-        const mid=(lo+hi)/2,keep=[];for(let t=0;t<ix.length;t+=3){if(p.getZ(ix[t])+p.getZ(ix[t+1])+p.getZ(ix[t+2])<3*mid)keep.push(ix[t],ix[t+1],ix[t+2]);}
-        g.setIndex(keep);g.computeBoundingBox();g.computeBoundingSphere();});
+      // PREVIEW_PALM_HALF=1: the preview file is a CLUSTER of palms; keep ONE palm (the game plants one per bed): split
+      // every primitive into connected parts, take one trunk, the fronds nearest its crown and the base nearest its foot
+      let trunkFoot=null;
+      if(PALM_HALF){palm.updateMatrixWorld(true);const comps=[];const v=new THREE.Vector3();
+        palm.traverse(o=>{if(!o.isMesh||!o.geometry.index)return;const g=o.geometry,p=g.attributes.position,ix=g.index.array,n=p.count;
+          const par=new Int32Array(n);for(let i=0;i<n;i++)par[i]=i;const f=i=>{while(par[i]!==i){par[i]=par[par[i]];i=par[i];}return i;};
+          for(let t=0;t<ix.length;t+=3){const a=f(ix[t]),b=f(ix[t+1]);if(a!==b)par[b]=a;const c=f(ix[t+2]),a2=f(ix[t]);if(c!==a2)par[c]=a2;}
+          const map=new Map();
+          for(let t=0;t<ix.length;t+=3){const r=f(ix[t]);if(!map.has(r))map.set(r,{mesh:o,kind:(o.material.name||''),tris:[],pts:[]});const C=map.get(r);C.tris.push(t);
+            for(let k=0;k<3;k++){v.fromBufferAttribute(p,ix[t+k]).applyMatrix4(o.matrixWorld);C.pts.push([v.x,v.y,v.z]);}}
+          for(const C of map.values()){let mn=1e9,mx=-1e9;for(const q of C.pts){mn=Math.min(mn,q[1]);mx=Math.max(mx,q[1]);}
+            const avg=sel=>{let x=0,z=0,k=0;for(const q of C.pts)if(sel(q)){x+=q[0];z+=q[2];k++;}return k?[x/k,z/k]:[0,0];};
+            C.minY=mn;C.maxY=mx;C.foot=avg(q=>q[1]<mn+.5);C.top=avg(q=>q[1]>mx-.5);C.mid=avg(q=>true);comps.push(C);}});
+        const trunks=comps.filter(C=>/trunk/i.test(C.kind)&&C.maxY-C.minY>3).sort((a,b)=>(b.maxY-b.minY)-(a.maxY-a.minY));
+        console.log('palm parts '+comps.length+' trunks '+trunks.length);
+        if(trunks.length>1){const T=trunks[0];trunkFoot=T.foot;const d2=(a,b)=>(a[0]-b[0])**2+(a[1]-b[1])**2;
+          const keep=new Set([T]);
+          for(const C of comps){if(C===T||trunks.includes(C))continue;
+            const ref=/base/i.test(C.kind)?'foot':'top';const own=d2(C.mid,T[ref]);
+            if(trunks.every(O=>O===T||own<=d2(C.mid,O[ref])))keep.add(C);}
+          const per=new Map();for(const C of keep){if(!per.has(C.mesh))per.set(C.mesh,[]);const ix=C.mesh.geometry.index.array;for(const t of C.tris)per.get(C.mesh).push(ix[t],ix[t+1],ix[t+2]);}
+          palm.traverse(o=>{if(!o.isMesh||!o.geometry.index)return;o.geometry.setIndex(per.get(o)||[]);o.geometry.computeBoundingBox();o.geometry.computeBoundingSphere();});}}
       const bb=new THREE.Box3().setFromObject(palm);const c=bb.getCenter(new THREE.Vector3());
       // anchor = the trunk foot (centroid of the vertices in the lowest 0.6 m), as BraxChampionsPalmTrunk does in the game -
       // the bounding-box centre of a leaning palm is beside its trunk
@@ -113,7 +131,8 @@ window.setup=async function(w,h){
        palm.traverse(o=>{if(!o.isMesh)return;const p=o.geometry.attributes.position,ix=o.geometry.index?o.geometry.index.array:null;
          const used=ix?new Set(ix):null;for(let i=0;i<p.count;i++){if(used&&!used.has(i))continue;v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);
            if(v.y<bb.min.y+.6){sx+=v.x;sz+=v.z;n++;}}});
-       if(n){c.x=sx/n;c.z=sz/n;}}
+       const bc=bb.getCenter(new THREE.Vector3());if(trunkFoot){c.x=trunkFoot[0];c.z=trunkFoot[1];}else if(n){c.x=sx/n;c.z=sz/n;}
+       console.log('palm foot n='+n+' foot='+c.x.toFixed(2)+','+c.z.toFixed(2)+' bboxCentre='+bc.x.toFixed(2)+','+bc.z.toFixed(2)+' size='+(bb.max.x-bb.min.x).toFixed(2)+'x'+(bb.max.z-bb.min.z).toFixed(2)+' minY='+bb.min.y.toFixed(2));}
       const g=new THREE.Group();palm.position.set(-c.x,-bb.min.y,-c.z);g.add(palm);g.scale.setScalar(PALM_SCALE);
       console.log('palm model height '+(bb.max.y-bb.min.y).toFixed(2));
       for(const p of scene.palms){const o=g.clone(true);o.position.set(p[0],p[1],p[2]);o.rotation.y=p[0]*.7+p[2]*.3;S.add(o);}}

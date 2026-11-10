@@ -6,7 +6,7 @@ import math
 import unittest
 from pathlib import Path
 
-from port_layout import (PIERS, QUAY_APRONS, QUAY_BEDS, QUAY_BED_RECTS, QUAY_FURNITURE, QUAY_BED, QUAY_BAND,
+from port_layout import (PIERS, QUAY_APRONS, QUAY_BEDS, QUAY_BED_RECTS, QUAY_FURNITURE, QUAY_BED, QUAY_BAND, QUAY_BED_SIZES,
                          QUAY_APRON_CRUISE, QUAY_APRON_FERRY)
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -44,7 +44,7 @@ class PremiumQuayLayout(unittest.TestCase):
         self.assertGreaterEqual(len(QUAY_BEDS), 25)
         for x, z, _ in benches:
             for r in QUAY_BED_RECTS:
-                self.assertFalse(inside(x, z, r, 1.6 + .14), (x, z))    # bench + bin keep off the kerbs
+                self.assertFalse(inside(x, z, r, 1.6 + .14), (x, z))    # bench + bin keep 1.6 m off the kerbs
             for lx, lz in lamps:
                 self.assertGreater(math.hypot(x - lx, z - lz), 3.0)
         for lx, lz in lamps:
@@ -54,6 +54,17 @@ class PremiumQuayLayout(unittest.TestCase):
         for i, (x, z) in enumerate(QUAY_BEDS):
             for x2, z2 in QUAY_BEDS[i + 1:]:
                 self.assertGreater(math.hypot(x - x2, z - z2), 10.0)
+
+    def test_beds_are_generous_and_inside_the_walk(self):
+        # owner 10.11 15:48: "palmy się ledwo mieszczą w tej trawie albo wystają poza"
+        c, f = quay("quay_cruise"), quay("quay_ferry")
+        for (x, z), b, r in zip(QUAY_BEDS, QUAY_BED_SIZES, QUAY_BED_RECTS):
+            self.assertGreaterEqual(b, 3.6)
+            p = c if c["x"] < x < c["x"] + c["w"] else f
+            apron = QUAY_APRON_CRUISE if p is c else 0.0
+            self.assertGreater(r[0] - .14, p["x"] + apron + .3)                       # kerb clear of the apron / railing
+            self.assertLess(r[0] + r[2] + .14, p["x"] + p["w"] - (QUAY_APRON_CRUISE if p is c else QUAY_APRON_FERRY) - .3)
+        self.assertEqual(QUAY_BED, 4.4)
 
     def test_benches_face_their_ship_and_the_walk_stays_clear(self):
         c = quay("quay_cruise")
@@ -121,7 +132,7 @@ class PremiumQuaySources(unittest.TestCase):
         src = (TOOLS / "port_layout.py").read_text(encoding="utf-8")
         self.assertIn("first=z1-40.0", src)
         self.assertIn("first=z1-20.0", src)
-        self.assertIn("QUAY_BED,QUAY_STEP=3.2,24.0", src)
+        self.assertIn("QUAY_BED,QUAY_STEP=4.4,24.0", src)
         self.assertIn("first+QUAY_STEP/2-QUAY_STEP*k", src)
 
 
