@@ -455,7 +455,9 @@ public static partial class BraxChampionsArenaArrival
     // a row along the street, a second avenue row beside the promenade, a row on each side lawn.
     static void LawnPalms(Transform arenaRoot,Transform parent,Dictionary<string,Material> exterior)
     {
-        var palm=BraxMiastoAssety.Model("miasto_palmy","palma");var palm2=BraxMiastoAssety.Model("miasto_palmy","palma2");
+        // Owner 10.11 08:43: "te grube palmy na grubym pniu są zajebiste wzdłuż drogi" - only the thick-trunk palm of
+        // the owner's pack (palm_hp_4 -> miasto_palmy/palma, the same as the entrance avenue), never the thin palma2.
+        var palm=BraxMiastoAssety.Model("miasto_palmy","palma");
         if(!palm){BraxBuildQuality.Warn("A1_LAWN_PALMS_MISSING: miasto_palmy/palma");return;}
         var root=Group(parent,"A1 LAWNS | palms planted in the grass (owner 10.11)",Vector3.zero);
         var led=ArenaLed(exterior);
@@ -465,7 +467,8 @@ public static partial class BraxChampionsArenaArrival
             foreach(float z in new[]{-88f,-100f,-112f,-124f})spots.Add(new Vector2(s*21f,z));                 // promenade avenue, 2nd row
             foreach(float ax in new[]{33f,45f,57f,77f,89f,101f,113f,125f,137f,149f,161f,173f})              // along the street,
                 spots.Add(new Vector2(s*ax,-128.5f));                                                       // clear of the lanes x+-61.8..68.2
-            for(float z=-112f;z<=104.1f;z+=16f)spots.Add(new Vector2(s*128f,z));                            // side lawns
+            for(float z=-112f;z<=104.1f;z+=16f)
+                if(!(s>0&&z>-13f&&z<5f))spots.Add(new Vector2(s*128f,z));                                     // side lawns, clear of the east walk (z -10..2)
         }
         int placed=0;
         foreach(var at in spots)
@@ -473,14 +476,13 @@ public static partial class BraxChampionsArenaArrival
             float y=.16f;
             try{y=ActualFloorYNominal(arenaRoot,at.x,at.y);}catch(Exception){}
             Box(root,"A1 LAWNS | warm uplight in the grass at the palm",led,new Vector3(at.x,y+.015f,at.y-1.30f),new Vector3(.26f,.02f,.26f),false);
-            var src=(palm2&&placed%2==1)?palm2:palm;
             var world=arenaRoot.TransformPoint(new Vector3(at.x,y,at.y)*K);
-            var instance=BraxMiastoAssety.Postaw(root,src,"A1 lawn palm",world,(at.x*11f+at.y*7f)%360f,1f,false,true);
+            var instance=BraxMiastoAssety.Postaw(root,palm,"A1 lawn palm (thick trunk)",world,(at.x*11f+at.y*7f)%360f,1f,false,true);
             if(!instance)continue;
             BraxMiastoAssety.LodyZWezlow(instance,new[]{.25f,.08f,.012f});
             placed++;
         }
-        Debug.Log("A1_LAWN_PALMS placed="+placed+"/"+spots.Count+" street=24 (z -128.5) avenue=8 (x+-21) sideLawns=28 (x+-128) pots=0");
+        Debug.Log("A1_LAWN_PALMS placed="+placed+"/"+spots.Count+" street=24 (z -128.5) avenue=8 (x+-21) sideLawns=27 (x+-128, east walk kept clear) pots=0 model=palma(thick)");
         if(placed<spots.Count)BraxBuildQuality.Warn("A1_LAWN_PALMS incomplete "+placed+"/"+spots.Count);
     }
 
