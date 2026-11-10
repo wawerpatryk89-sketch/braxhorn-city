@@ -4,21 +4,21 @@ using UnityEngine;
 // Promenade furniture, owner 10.11 09:01-09:06: "drzewa posadzić ... palmy posadzić ... promenady ładne, ekskluzywne".
 // The seaside palm row (foundation: promenade_layout.PALM_BEDS, the owner's thick-trunk palms planted in 3.2 m beds
 // flush with the paving) gets granite kerbs and a warm uplight at every trunk; between the beds alternately a teak
-// bench on cast frames facing the sea (with a stainless litter bin) or a slim promenade lamp. The city walks no longer
-// run into the sand: timber boardwalks lead from them over the beach to the loungers.
+// bench on cast frames facing the sea (with a stainless litter bin) or a slim promenade lamp. The timber boardwalks over
+// the beach are part of the beach club (BraxChampionsBeachFurnishings).
 // All parts in one combined mesh per material (BraxChampionsMeshBatch).
 public static class BraxChampionsPromenadeFurniture
 {
     const string Output="Assets/PlayableGenerated/Mistrzowie";
     const float Y=.16f;
-    public static Material Teak,Kerb,Deck;
-    public static int Benches,Lamps,Beds,Boardwalks;
+    public static Material Teak,Kerb;
+    public static int Benches,Lamps,Beds;
 
     public static void Materials()
     {
-        Teak=BraxChampionsFoundation.SourceMaterial("prom_bench_pale_oak_slats","oak_wood_planks",.9f,new Color(1.0f,.90f,.78f));
+        // silver-grey aged teak (oak_wood_planks alone is orange 162,117,84 -> ~158,154,148): no brown on the promenade
+        Teak=BraxChampionsFoundation.SourceMaterial("prom_bench_silver_teak_slats","oak_wood_planks",.9f,new Color(.975f,1.32f,1.76f));
         Kerb=BraxChampionsFoundation.SourceMaterial("prom_bed_granite_kerb","granite_tile",1.2f,new Color(.70f,.70f,.69f));
-        Deck=BraxChampionsFoundation.LibraryAcg("prom_beach_boardwalk_deck","Planks040",new Color(.86f,.89f,.94f),2.0f);
     }
 
     static void Bench(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
@@ -79,34 +79,13 @@ public static class BraxChampionsPromenadeFurniture
         Beds++;
     }
 
-    // Timber boardwalk over the sand from the end of a city walk (z -161) to the lounger row (z -199).
-    static void Boardwalk(BraxChampionsMeshBatch m,Transform colliders,float x)
-    {
-        const float half=1.25f,step=2f;
-        float z=-160.9f;int i=0;
-        while(z>-199f)
-        {
-            float za=z,zb=Mathf.Max(-199f,z-step);
-            float ya=BraxChampionsBeachFurnishings.SandY(x,za)+.07f,yb=BraxChampionsBeachFurnishings.SandY(x,zb)+.07f;
-            var a0=new Vector3(x-half,ya,za);var a1=new Vector3(x+half,ya,za);var b0=new Vector3(x-half,yb,zb);var b1=new Vector3(x+half,yb,zb);
-            m.Quad(Deck,a0,a1,b1,b0);
-            // side boards (fascia) and the sleepers they rest on
-            m.Quad(Teak,b0,b0-Vector3.up*.14f,a0-Vector3.up*.14f,a0);
-            m.Quad(Teak,a1,a1-Vector3.up*.14f,b1-Vector3.up*.14f,b1);
-            m.BoxMinMax(Teak,x-half-.05f,x+half+.05f,yb-.16f,yb-.02f,zb,zb+.12f);
-            BraxChampionsMeshBatch.Collider(colliders,"kładka "+x.ToString("0")+" "+i,new Vector3(x,(ya+yb)*.5f-.06f,(za+zb)*.5f),new Vector3(half*2f,.12f,za-zb));
-            z=zb;i++;
-        }
-        Boardwalks++;
-    }
-
     public static void Build(Transform foundation,BraxChampionsFoundation.PalmBed[] beds,BraxChampionsFoundation.Furniture[] furniture)
     {
         if(!foundation||beds==null||furniture==null)throw new InvalidOperationException("Promenade furniture needs the beds and furniture plan");
         if(!BraxChampionsHarbour.Steel)BraxChampionsHarbour.Materials();
         if(!Teak)Materials();
-        Benches=Lamps=Beds=Boardwalks=0;
-        var root=new GameObject("MIASTO MISTRZÓW | PROMENADA 10.11 | palmy w kwaterach, ławki, latarnie, kładki").transform;root.SetParent(foundation,false);
+        Benches=Lamps=Beds=0;
+        var root=new GameObject("MIASTO MISTRZÓW | PROMENADA 10.11 | palmy w kwaterach, ławki, latarnie").transform;root.SetParent(foundation,false);
         var colliders=new GameObject("kolizje").transform;colliders.SetParent(root,false);
         var m=new BraxChampionsMeshBatch();
         foreach(var b in beds)Bed(m,b);
@@ -115,8 +94,7 @@ public static class BraxChampionsPromenadeFurniture
             if(f.kind=="bench")Bench(m,colliders,f.x,f.z);
             else if(f.kind=="lamp")Lamp(m,colliders,f.x,f.z);
         }
-        foreach(float x in new[]{230f,530f})Boardwalk(m,colliders,x);
-        m.Build(root,"Promenada: kwatery, ławki, kosze, latarnie, kładki",Output+"/Meshes/Harbour");
-        Debug.Log("CHAMPIONS_PROMENADE_FURNITURE_10_11 beds="+Beds+" benches="+Benches+" lamps="+Lamps+" boardwalks="+Boardwalks);
+        m.Build(root,"Promenada: kwatery, ławki, kosze, latarnie",Output+"/Meshes/Harbour");
+        Debug.Log("CHAMPIONS_PROMENADE_FURNITURE_10_11 beds="+Beds+" benches="+Benches+" lamps="+Lamps);
     }
 }

@@ -371,7 +371,7 @@ assert sum(p['kind']=='ferry' for p in berths)==1
 # The port-layout module validates non-overlapping original hulls, gangways,
 # the U-shaped motorboat basin, clear ferry and cruise-ship slots.
 validate_port(PIERS,berths)
-assert -286<shoreline(330)<-276  # middle beach ~115-125m wide
+assert -241<shoreline(330)<-232  # middle beach ~72-78 m (owner 10.11 10:04: the 120 m desert is gone)
 assert abs(beach_height(330,SHORE_BACK)-.16)<1e-6
 assert beach_height(330,shoreline(330))<SEA_LEVEL
 assert abs(max(max(m['positions'][0::3]) for m in meshes.values())-1200*K)<1e-5

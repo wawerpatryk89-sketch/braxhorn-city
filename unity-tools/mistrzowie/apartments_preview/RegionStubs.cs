@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class BraxClaudeOsiedle { public const float K = 2.33f / 1.80f; }
 public static class BraxBuildQuality { public static void Warn(string m) => Console.WriteLine("WARN " + m); public static void Issue(Exception e) => Console.WriteLine("WARN ISSUE " + e.Message); }
-public sealed class BraxSeat : MonoBehaviour { public float surfaceY; public string label; }
+public sealed class BraxSeat : MonoBehaviour { public float surfaceY; public string label; public bool lie; }
 public sealed class BraxWidocznoscWnetrza : MonoBehaviour { public Bounds[] strefy = new Bounds[0]; public string nazwa = ""; }
 public static partial class BraxChampionsFoundation
 {

@@ -32,11 +32,15 @@ def smoothstep(t):
 
 
 def shoreline(x):
-    """650m long beach; naturally tapering ends and 110-125m central width."""
+    """650m long beach; naturally tapering ends and ~63-77 m of sand in the middle.
+
+    Owner 10.11 10:04 (photo of the beach): "takie wąskie ... coś tu nie gra" - the old 110-125 m of empty sand read as a
+    desert with the sea far away. A wide premium city beach is ~60-80 m: the water is seen from the city walks.
+    Keep BraxChampionsBeachFurnishings.Shore identical."""
     if not 50<=x<=700:
         return -150.0
     blend=smoothstep((x-50)/37)*smoothstep((700-x)/49)
-    deep=-273.0+7.2*math.sin(x*.013+0.4)+3.3*math.sin(x*.034+1.1)
+    deep=-231.0+5.0*math.sin(x*.013+0.4)+2.4*math.sin(x*.034+1.1)
     return -163.0+(deep+163.0)*blend
 
 

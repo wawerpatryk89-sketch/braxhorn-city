@@ -80,11 +80,37 @@ class PremiumPortBeach(unittest.TestCase):
         self.assertIn("(z>=-150 or (x<690 and z>=-161))",terrain)
         for x in (250,300,330,350,400,450,500):
             width=SHORE_BACK-shoreline(x)
-            self.assertTrue(109<=width<=125,(x,width))
+            self.assertTrue(60<=width<=80,(x,width))
         self.assertLess(beach_height(330,shoreline(330)),SEA_LEVEL)
         self.assertAlmostEqual(beach_height(330,SHORE_BACK),.16,places=5)
         foam=(EDITOR/"BraxChampionsBeachFoam.shader").read_text()
         self.assertIn("_Time.y",foam)
+
+    def test_beach_club_not_a_desert(self):
+        # owner 10.11 10:04 (photo from the city walk): "takie wąskie ... coś tu nie gra" - 120 m of empty sand,
+        # one row of dots and a 2.5 m boardwalk ending in open sand
+        b=(EDITOR/"BraxChampionsBeachFurnishings.cs").read_text()
+        self.assertIn("float deeper=-231f+5.0f*Mathf.Sin(x*.013f+.4f)+2.4f*Mathf.Sin(x*.034f+1.1f);",b)
+        self.assertIn("deep=-231.0+5.0*math.sin(x*.013+0.4)+2.4*math.sin(x*.034+1.1)",(ROOT/"unity-tools/mistrzowie/port_layout.py").read_text())
+        self.assertIn("BoardwalkHalf=2.0f,EntryHalf=6.0f",b)
+        self.assertIn("float end=Shore(xb)+9f;",b)                       # boardwalk reaches the water
+        self.assertIn("for(int row=0;row<4;row++)Set(m,col,x,Shore(x)+17f+row*7f,ref n);",b)
+        self.assertIn("s.lie=true;s.label=\"LEŻAK\"",b)                   # every lounger: lie down
+        self.assertIn("if(Loungers<180||Parasols!=Loungers/2||Seats!=Loungers)",b)
+        self.assertIn("SwimBuoys(root);",b)
+        self.assertNotIn("GameObject.CreatePrimitive",b)                  # batched, not hundreds of cubes
+        self.assertIn('"LIFEGUARD + BEACH CLUB"',(EDITOR/"BraxSceneAudit.cs").read_text())
+        self.assertNotIn("Boardwalk(",(EDITOR/"BraxChampionsPromenadeFurniture.cs").read_text())
+
+    def test_preview_mirrors_foundation_colours(self):
+        # the preview's copy of the foundation materials must show what Unity builds (review 10.11: pink deck, orange sand)
+        f=(EDITOR/"BraxChampionsFoundation.cs").read_text()
+        prev=(ROOT/"unity-tools/mistrzowie/promenade_preview/PromenadeMain.cs").read_text()
+        for unity,mirror in (("new Color(1.59f,1.68f,1.81f,1f)","new Color(1.59f, 1.68f, 1.81f)"),
+                             ("new Color(1.30f,1.38f,1.50f,1f)","new Color(1.30f, 1.38f, 1.50f)"),
+                             ("new Color(.94f,1.08f,1.18f,1f)","new Color(.94f, 1.08f, 1.18f)"),
+                             ("new Color(.93f,.97f,1.15f,1f)","new Color(.93f, .97f, 1.15f)")):
+            self.assertIn(unity,f);self.assertIn(mirror,prev)
 
     def test_generated_manifest_when_available(self):
         path=ROOT/"unity-city/Assets/Source/Mistrzowie/Foundation.json"

@@ -662,7 +662,7 @@ public static class BraxSceneAudit
             (Contains(t.name, "ferry") || Contains(t.name, "prom ")) &&
             !BerthOnly.IsMatch(t.name)),
             "BraxChampionsHarbour.cs", "pustego stanowiska lub tablicy nie uznaje się za prom");
-        Add("Plaża", Find(t => Contains(t.name, "LIFEGUARD + 32 EMPTY LOUNGERS")),
+        Add("Plaża", Find(t => Contains(t.name, "LIFEGUARD + BEACH CLUB")),
             "BraxChampionsBeachFurnishings.cs");
         for (int n = 1; n <= 12; n++)
         {

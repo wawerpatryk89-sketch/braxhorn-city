@@ -247,14 +247,18 @@ public static class BraxChampionsFoundation
         EditorUtility.SetDirty(materials["cycle_lane"]);
         EditorUtility.SetDirty(materials["cycle_mark"]);
         // owner 10.11 "piasek zrobić ładny": light cream-golden, less orange than the 6.11 tint (1.52,1.40,1.12)
-        materials["sand_dry"].SetColor("_Color",new Color(1.46f,1.37f,1.17f,1f));
-        materials["sand_wet"].SetColor("_Color",new Color(1.16f,1.07f,.88f,1f));
-        // marina decking a touch cooler (Planks040 reads pink-brown under the warm city sun), light granite quays
-        materials["quay_wood"].SetColor("_Color",new Color(.86f,.89f,.94f,1f));
+        // review 10.11 10:00: the old tint (1.46,1.37,1.17) gave orange sand (188,156,106); light Mediterranean sand now
+        materials["sand_dry"].SetColor("_Color",new Color(1.59f,1.68f,1.81f,1f));
+        materials["sand_wet"].SetColor("_Color",new Color(1.30f,1.38f,1.50f,1f));
+        // marina decking: silver-grey weathered boards (Planks040 alone is pink-brown 155,132,118 -> ~146,143,139), light granite quays
+        materials["quay_wood"].SetColor("_Color",new Color(.94f,1.08f,1.18f,1f));
         materials["quay_cruise"].SetColor("_Color",new Color(1.28f,1.28f,1.26f,1f));
         EditorUtility.SetDirty(materials["quay_wood"]);EditorUtility.SetDirty(materials["quay_cruise"]);
         materials["pontoon_side"].SetColor("_Color",new Color(.20f,.21f,.22f,1f));
         EditorUtility.SetDirty(materials["pontoon_side"]);
+        // concrete_wall_008 is khaki (141,134,112): neutral grey harbour concrete
+        materials["quay_wall"].SetColor("_Color",new Color(.93f,.97f,1.15f,1f));
+        EditorUtility.SetDirty(materials["quay_wall"]);
         materials["grass"]=BraxChampionsGrass.CreateMaterial(materials["grass"]);
         materials["sea"]=SeaMaterial();
         materials["foam"]=FoamMaterial();
@@ -310,7 +314,7 @@ public static class BraxChampionsFoundation
             // błąd = ostrzeżenie w raporcie, reszta świata buduje się dalej.
             Optional("promenada K1-K12",()=>BraxChampionsPromenade.Build(root,d.promenade));
             // Original first-city tower and R1-size loungers. No staff/visitors.
-            Optional("plaża (leżaki, wieża ratownika)",()=>BraxChampionsBeachFurnishings.Build(root));
+            Optional("plaża: beach club (kładki, prysznice, leżaki z parasolami, ratownik, boje)",()=>BraxChampionsBeachFurnishings.Build(root));
             // Place the ORIGINAL user-library yacht, Riva and jetski models.
             // No fabricated cruise/ferry vessel is allowed without its source.
             int boats=0;

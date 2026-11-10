@@ -50,9 +50,10 @@ public static class BraxChampionsPromenade
         Floor=BraxChampionsFoundation.LibraryMarbleWhite("prom_kiosk_floor_marble",new Color(.86f,.86f,.86f),1.0f);
         Slat=BraxChampionsHarbour.Graphite;
         Soffit=BraxChampionsFoundation.SourceMaterial("prom_kiosk_white_stucco_soffit","white_stucco_02",1.2f,new Color(1.02f,1.0f,.97f));
-        Wood=BraxChampionsFoundation.SourceMaterial("prom_pale_oak_seats","oak_wood_planks",.7f,new Color(1.0f,.90f,.78f));
+        Wood=BraxChampionsFoundation.SourceMaterial("prom_silver_teak_seats","oak_wood_planks",.7f,new Color(.975f,1.32f,1.76f));
         Plinth=BraxChampionsFoundation.SourceMaterial("prom_kiosk_granite_plinth","granite_tile",1.2f,new Color(.42f,.43f,.44f));
-        Canvas=BraxChampionsHarbour.Surface("parasol_canvas_cream",new Color(.96f,.94f,.88f),.85f,0f);
+        // white canvas; a faint glow stands in for sunlight through the cloth, so the underside does not read brown-grey
+        Canvas=BraxChampionsHarbour.Surface("parasol_canvas_white",new Color(.97f,.97f,.95f),.85f,0f,new Color(.50f,.50f,.48f));
         Glass=BraxChampionsHarbour.Surface("kiosk_clear_glass",new Color(.84f,.92f,.96f,.22f),.05f,0f,null,true);
     }
 
@@ -171,14 +172,14 @@ public static class BraxChampionsPromenade
         {
             var b=new Vector3(x,.16f+.76f,zf);
             m.Cylinder(BraxChampionsHarbour.Steel,b,.022f,1.62f,10);
-            float r=1.15f,top=1.86f,eave=1.52f;
+            float r=1.05f,top=1.80f,eave=1.55f;
             var apex=b+Vector3.up*top;
             var corners=new[]{new Vector3(-r,eave,-r),new Vector3(r,eave,-r),new Vector3(r,eave,r),new Vector3(-r,eave,r)};
             for(int i=0;i<4;i++)
             {
                 var a=b+corners[i];var c=b+corners[(i+1)%4];
                 m.Triangle(Canvas,apex,c,a);m.Triangle(Canvas,apex,a,c);       // two-sided cloth
-                m.Quad(Canvas,a,a-Vector3.up*.14f,c-Vector3.up*.14f,c);m.Quad(Canvas,c,c-Vector3.up*.14f,a-Vector3.up*.14f,a);   // valance
+                m.Quad(Canvas,a,a-Vector3.up*.09f,c-Vector3.up*.09f,c);m.Quad(Canvas,c,c-Vector3.up*.09f,a-Vector3.up*.09f,a);   // valance
             }
         }
     }
