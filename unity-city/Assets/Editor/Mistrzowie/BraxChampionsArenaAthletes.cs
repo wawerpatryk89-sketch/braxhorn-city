@@ -136,8 +136,11 @@ public static partial class BraxChampionsArenaArrival
         var led = exterior["light"];
         var granite = exterior["dark_stone"];
         var leather = BraxChampionsFoundation.LibraryLeather("A1_athlete_locker_black_leather", new Color(.12f, .115f, .11f));
-        var mirror = LuxSolid("mirror", new Color(.80f, .82f, .85f), .04f, 1f);
-        var ceramic = LuxSolid("white_ceramic", new Color(.93f, .93f, .91f), .12f, 0f);
+        // owner 10.11 12:33 (photo: lavender flat "mirror", white box basins): a live planar mirror with a polished edge
+        // (BraxChampionsMirror) and round glazed vessel basins with a waste and gold mixer taps
+        var ceramic = LuxSolid("white_glazed_porcelain", new Color(.95f, .95f, .94f), .06f, 0f);
+        var basinInside = LuxSolid("porcelain_bowl_inside", new Color(.86f, .87f, .87f), .05f, 0f);
+        var chrome = LuxSolid("polished_chrome_waste", new Color(.86f, .88f, .90f), .06f, 1f);
         var plaque = LuxSolid("black_sign_plate", new Color(.035f, .037f, .042f), .30f, .2f);
         int lockers = 0, seats = 0;
         var roomNames = new BraxChampionsMeshBatch();      // SZATNIA A / B: gold 3D letters on the black plaques
@@ -162,12 +165,21 @@ public static partial class BraxChampionsArenaArrival
                 W.MM(granite, va - .02f, vb + .02f, .84f, .88f, wall, wall + .62f);
                 for (int i = 0; i < 4; i++)
                 {
-                    float bx = s * (8.875f + i * 1.75f);
-                    W.MM(ceramic, bx - .25f, bx + .25f, .88f, 1.02f, wall + .12f, wall + .50f);
-                    W.Rura(gold, new Vector3(bx, .88f, wall + .07f), new Vector3(bx, 1.12f, wall + .07f), .014f, 8);
-                    W.Rura(gold, new Vector3(bx, 1.12f, wall + .07f), new Vector3(bx, 1.12f, wall + .22f), .012f, 8);
+                    float bx = s * (8.875f + i * 1.75f), bz = wall + .34f;
+                    // round vessel basin 44 cm on the granite: rounded foot, belly, rim; glazed bowl inside, chrome waste
+                    W.Walec(ceramic, new Vector3(bx, .88f, bz), .15f, .025f, 24);
+                    W.Walec(ceramic, new Vector3(bx, .905f, bz), .195f, .045f, 24);
+                    W.Walec(ceramic, new Vector3(bx, .95f, bz), .22f, .085f, 24);
+                    W.Walec(basinInside, new Vector3(bx, 1.033f, bz), .195f, .004f, 24);
+                    W.Walec(chrome, new Vector3(bx, 1.036f, bz), .032f, .003f, 16);
+                    // gold mixer: column from the top, spout over the bowl, lever
+                    W.Rura(gold, new Vector3(bx, .88f, wall + .07f), new Vector3(bx, 1.20f, wall + .07f), .016f, 12);
+                    W.Rura(gold, new Vector3(bx, 1.20f, wall + .07f), new Vector3(bx, 1.20f, wall + .24f), .013f, 12);
+                    W.Rura(gold, new Vector3(bx, 1.20f, wall + .24f), new Vector3(bx, 1.17f, wall + .25f), .013f, 12);
+                    W.Rura(gold, new Vector3(bx, 1.21f, wall + .07f), new Vector3(bx + s * .09f, 1.25f, wall + .07f), .008f, 8);
                 }
-                W.MM(mirror, va, vb, 1.10f, 2.10f, wall, wall + .01f);
+                BraxChampionsMirror.Wall("A1 athletes vanity " + room, new Vector3((va + vb) * .5f, 1.62f, wall), Vector3.forward,
+                    vb - va - .10f, 1.0f, gold, 10f, 16f, 1024, 160);
                 W.MM(led, va, vb, 2.15f, 2.18f, wall, wall + .04f);
 
                 // Island bench: teak base + black leather top, seats on both sides.

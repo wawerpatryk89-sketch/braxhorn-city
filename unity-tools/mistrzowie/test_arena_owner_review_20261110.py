@@ -36,9 +36,14 @@ class ArenaOwnerReview20261110(unittest.TestCase):
         self.assertIn("whole 6144x2048 picture on one panel", self.printer)
         self.assertIn("NO substitute image", self.printer)
         self.assertEqual(self.mural.count("BraxChampionsArenaMuralPrint.Hang("), 1)
-        self.assertEqual(self.side.count("BraxChampionsArenaMuralPrint.Hang("), 1)   # called for LEFT and RIGHT
-        self.assertIn("bool left=Side(originalBowl,PickRequiredHd(LeftFightersHd", self.side)
-        self.assertIn("bool right=Side(originalBowl,PickRequiredHd(RightBeltHd", self.side)
+        # side walls (LEFT/RIGHT) + owner 10.11 12:31: the same two originals on the long walls seen from the doors
+        self.assertEqual(self.side.count("BraxChampionsArenaMuralPrint.Hang("), 2)
+        self.assertIn('bool left=Side(originalBowl,fightersHd,"LEFT_FIGHTERS",true);', self.side)
+        self.assertIn('bool right=Side(originalBowl,beltHd,"RIGHT_BELT",false);', self.side)
+        self.assertIn('bool endFar = End(originalBowl, fightersHd, "FAR_FIGHTERS", true);', self.side)
+        self.assertIn('bool endNear = End(originalBowl, beltHd, "NEAR_BELT", false);', self.side)
+        arena = (ED / "BraxChampionsArena.cs").read_text(encoding="utf-8")
+        self.assertIn("if(BraxChampionsArenaSideMurals.CoversLongWall(a))continue;", arena)   # nothing behind a mural
 
     def test_tiles_are_a_lossless_crop_made_in_ci(self):
         script = (TOOLS / "split_arena_murals.py").read_text(encoding="utf-8")

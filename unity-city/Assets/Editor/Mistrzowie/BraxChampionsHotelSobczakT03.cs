@@ -856,7 +856,7 @@ public static class BraxChampionsHotelSobczakT03
             var cab=G(cores,"ELEVATOR "+(l+1)+" | PASSENGER | cabin");
             In(cab,true);
             Box(M.marble,xc-hw,xc+hw,-.12f,0f,z0,z1,true);
-            Box(M.mirror,xc-hw+.05f,xc+hw-.05f,.9f,2.4f,z1-.05f,z1);
+            BraxChampionsMirror.Wall("T03 lift "+(l+1)+" cabin",new Vector3(xc,1.65f,z1-.05f),Vector3.back,2f*hw-.14f,1.46f,M.steel,5f,6f,384,256);   // owner 12:33: real mirror
             Box(M.teak,xc-hw,xc+hw,0f,2.5f,z1,z1+.05f,true);
             foreach(float sx in new[]{-1f,1f})Box(M.teak,sx>0?xc+hw:xc-hw-.05f,sx>0?xc+hw+.05f:xc-hw,0f,2.5f,z0,z1,true);
             Box(M.steel,xc-hw,xc+hw,2.5f,2.58f,z0,z1);
@@ -1010,7 +1010,7 @@ public static class BraxChampionsHotelSobczakT03
         Box(M.marble,-15.75f,-14.6f,y0+1.05f,y0+1.11f,-16.6f,-5.9f,true);
         Rod(M.brass,new Vector3(-14.55f,y0+.22f,-16.4f),new Vector3(-14.55f,y0+.22f,-6.1f),.025f);
         Box(M.walnut,-xw,-xw+.45f,y0,y0+.95f,-16.5f,-6f,true);
-        Box(M.mirror,-xw,-xw+.02f,y0+.95f,y0+2.9f,-16.4f,-6.1f);
+        BraxChampionsMirror.Wall("T03 lobby bar back",new Vector3(-xw+.02f,y0+1.925f,-11.25f),Vector3.right,10.26f,1.92f,M.brass,20f,30f,1024,192);
         for(float yy=y0+1.25f;yy<y0+2.9f;yy+=.55f){Box(M.walnut,-xw,-xw+.32f,yy,yy+.04f,-16.4f,-6.1f);Box(M.ledCool,-xw+.29f,-xw+.32f,yy-.02f,yy,-16.3f,-6.2f);}
         Box(M.walnut,-xw,-xw+.45f,y0+2.9f,y0+3.1f,-16.5f,-6f);
         for(float z=-15.4f;z<=-6.9f;z+=1.4f)
@@ -1118,7 +1118,7 @@ public static class BraxChampionsHotelSobczakT03
             Rod(M.chrome,new Vector3(x,y0+.88f,z0+.06f),new Vector3(x,y0+1.16f,z0+.06f),.014f);
             Rod(M.chrome,new Vector3(x,y0+1.16f,z0+.06f),new Vector3(x,y0+1.16f,z0+.22f),.012f);
         }
-        Box(M.mirror,v0+.1f,v1-.1f,y0+1.2f,y0+2.2f,z0+.01f,z0+.03f);
+        BraxChampionsMirror.Wall("T03 guest toilets vanity",new Vector3((v0+v1)*.5f,y0+1.7f,z0+.01f),Vector3.forward,v1-v0-.24f,.96f,M.chrome,8f,12f,768,192);
         Box(M.ledCool,v0+.12f,v1-.12f,y0+1.18f,y0+1.2f,z0+.01f,z0+.025f);
         Ceil(x0,x1,z0,z1,ty);
         Downlight((x0+x1)*.5f,0,ty);Downlight(sx*5.5f,0,ty);Downlight(sx*9.8f,0,ty);
@@ -1303,7 +1303,7 @@ public static class BraxChampionsHotelSobczakT03
         Box(M.marble,13.35f,14.4f,y0+1.05f,y0+1.11f,-16.1f,-5.9f,true);
         Rod(M.brass,new Vector3(13.3f,y0+.22f,-15.9f),new Vector3(13.3f,y0+.22f,-6.1f),.025f);
         Box(M.walnut,xw-.45f,xw,y0,y0+.95f,-16f,-6f,true);
-        Box(M.mirror,xw-.02f,xw,y0+.95f,y0+2.8f,-15.9f,-6.1f);
+        BraxChampionsMirror.Wall("T03 restaurant bar back",new Vector3(xw-.02f,y0+1.875f,-11.0f),Vector3.left,9.76f,1.82f,M.brass,20f,30f,1024,192);
         for(float yy=y0+1.25f;yy<y0+2.8f;yy+=.5f){Box(M.walnut,xw-.32f,xw,yy,yy+.04f,-15.9f,-6.1f);Box(M.ledCool,xw-.32f,xw-.29f,yy-.02f,yy,-15.8f,-6.2f);}
         for(float z=-15.0f;z<=-6.9f;z+=1.6f)
             if(!Model(H+"bar_chair_round_01/bar_chair_round_01_1k.gltf",podiumInside,"restaurant bar stool, leather",new Vector3(12.6f,y0+Fin,z),90f,true))Stool(12.6f,y0,z);
@@ -1609,7 +1609,7 @@ public static class BraxChampionsHotelSobczakT03
         W.Walec(M.chrome,new Vector3(a+2.5f,.87f,Z(.33f)),.022f,.006f,8);
         Rod(M.chrome,new Vector3(a+2.5f,.87f,Z(.07f)),new Vector3(a+2.5f,1.16f,Z(.07f)),.014f);
         Rod(M.chrome,new Vector3(a+2.5f,1.16f,Z(.07f)),new Vector3(a+2.5f,1.16f,Z(.24f)),.012f);
-        Box(M.mirror,a+1.85f,a+3.15f,1.05f,1.95f,Z(.012f),Z(.03f));
+        BraxChampionsMirror.Wall("T03 room "+number+" bathroom",new Vector3(a+2.5f,1.50f,Z(.012f)),new Vector3(0,0,s),1.26f,.86f,M.chrome,5f,6f,384,256);
         Box(M.ledCool,a+1.87f,a+3.13f,1.03f,1.05f,Z(.012f),Z(.025f));
         Box(M.marble,a+3.62f,a+4.18f,0,1.1f,Z(.02f),Z(.20f),true);
         Box(M.chrome,a+3.80f,a+4.00f,.94f,1.06f,Z(.20f),Z(.21f));

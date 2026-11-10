@@ -157,7 +157,7 @@ namespace UnityEngine
             var l = parent == null ? w : parent.InverseTransformVector(w); var d = Quaternion.Inverse(localRotation) * l;
             return new Vector3(d.x / localScale.x, d.y / localScale.y, d.z / localScale.z);
         } }
-    public class GameObject : Object { public Transform transform; public readonly List<Component> comps = new List<Component>();
+    public class GameObject : Object { public int layer; public Transform transform; public readonly List<Component> comps = new List<Component>();
         internal static readonly List<GameObject> Registry = new List<GameObject>();
         public bool activeSelf = true; public void SetActive(bool on) => activeSelf = on;
         public GameObject(string n) { name = n; transform = new Transform { gameObject = this }; comps.Add(transform); Registry.Add(this); }

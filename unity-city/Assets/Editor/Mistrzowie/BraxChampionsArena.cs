@@ -18,6 +18,8 @@ public static class BraxChampionsArena
     public const float FrontWallLobbyFaceZ=98.3f-.045f+WallThickness;
     // Finish heights of the hall (bowl metres). The exterior roof slab's underside is at 26.885: the designed
     // ceiling hangs just below it, so nothing of the finish is hidden inside the roof.
+    // Octagon side with the gate (V5-V6 faces -z: the fighters' side). Owner 10.11 12:38.
+    public const int GateSide=5;
     public const float WallStoneTop=7.80f, WallPanelTop=23.90f, CeilingY=26.62f, CeilingBeamDrop=.62f, StandStoneTop=1.05f;
     // Owner 10.11 07:25, from the material board: "A28 ściany w środku, tam gdzie jest oktagon" = ambientCG Leather013,
     // deep oxblood quilted (Chesterfield) leather. A 1.20 m black marble plinth below it (nobody kicks leather).
@@ -149,9 +151,10 @@ public static class BraxChampionsArena
                         BoxMinMax(interiorGold,a0,a1,y-.075f,y-.05f,s>0?face:face-.045f,s>0?face+.045f:face,false);
                     }
                 }
-                // 35mm physical gold divisions every ~3.3m, set 15mm proud.
+                // 35mm physical gold divisions every ~3.3m, set 15mm proud - never behind the long-wall murals.
                 for(float a=a0+3.30f;a<a1-.30f;a+=3.30f)
                 {
+                    if(BraxChampionsArenaSideMurals.CoversLongWall(a))continue;
                     float z=s>0?g1+.0075f:g0-.0075f;
                     BoxMinMax(interiorGold,a-.0175f,a+.0175f,1.20f,yC,
                         z-.0075f,z+.0075f,false);
@@ -190,7 +193,10 @@ public static class BraxChampionsArena
         HallCeiling(X0,X1,Z0,Z1,cx,cz,acoustic,beamBlack,warmLine,interiorGold);
         LobbyWallMarble(X0,X1,Z1,yF,dA,dB,dH,lobbyMarble,interiorGold,warmLine);
 
-        // oktagon: wierzchołki co 45° (boki prostopadłe do osi i przekątnych), bok i=1 (V1–V2) patrzy na +z — furtka i schody
+        // oktagon: wierzchołki co 45° (boki prostopadłe do osi i przekątnych). Owner 10.11 12:38 (APK 37): "tędy wchodzą
+        // kibice, a tu jest wejście na ring. Wejście na ring powinno być z drugiej strony, tam gdzie wchodzą zawodnicy.
+        // Sens, logika zachowana wszędzie." The gate and its steps face -z (bok i=5, V5-V6): the fighters' door (Z0),
+        // their red-carpet walkout and the gate are one line; the public (Z1) goes to the stands, never to the cage.
         const float P = .6f, Rv = 4.6f; float ap = Rv * Mathf.Cos(Mathf.PI / 8f), yT = yF + P;
         Vector3 V(int i, float y) { float a = Mathf.PI / 8f + i * Mathf.PI / 4f; return new Vector3(cx + Rv * Mathf.Cos(a), y, cz + Rv * Mathf.Sin(a)); }
         Vector2 MatUV(Vector3 p) => new Vector2((cx + Rv - p.x) / (2f * Rv), (cz + Rv - p.z) / (2f * Rv));   // logo czytelne od wejścia (+z)
@@ -219,7 +225,7 @@ public static class BraxChampionsArena
             float len = Vector3.Distance(a, b), yw = YawOf(d);
             var n = mid - ctr; n.y = 0; n.Normalize();
             OBox(black, mid + Vector3.up * 1.88f, new Vector3(len - .2f, .14f, .16f), yw);                       // górna rura z obiciem
-            if (i == 1) { OBox(steel, mid + Vector3.up * .012f, new Vector3(len - .34f, .02f, .3f), yw); continue; }   // furtka otwarta
+            if (i == GateSide) { OBox(steel, mid + Vector3.up * .012f, new Vector3(len - .34f, .02f, .3f), yw); continue; }   // furtka otwarta (strona zawodników)
             OBox(black, mid + Vector3.up * .11f, new Vector3(len - .3f, .22f, .1f), yw);                            // dolne obicie
             if (wire)
             {
@@ -244,26 +250,26 @@ public static class BraxChampionsArena
         pm.SetVertices(pv); pm.SetTriangles(pi, 0); pm.RecalculateNormals(); pm.RecalculateBounds();
         BraxZapisAssetu.Utworz(pm, Out + "/oktagon_podest_kolizja.asset");
         var pg = new GameObject("kolizja podestu oktagonu"); pg.transform.SetParent(colliders, false); pg.AddComponent<MeshCollider>().sharedMesh = pm;
-        // schody do furtki (3 × 0.2 m) + rampa kolizji
-        float zs = cz + ap;
+        // schody do furtki (3 × 0.2 m) + rampa kolizji, od strony zawodników (-z, ku drzwiom Z0)
+        float zs = cz - ap;
         for (int k = 0; k < 3; k++)
         {
-            float z0 = zs + (2 - k) * .45f, top = yF + P * (k + 1) / 3f;
+            float z0 = zs - (3 - k) * .45f, top = yF + P * (k + 1) / 3f;
             BoxMinMax(black, cx - 1.1f, cx + 1.1f, 0f, top, z0, z0 + .45f, false);
-            BoxMinMax(red, cx - 1.1f, cx + 1.1f, top - .03f, top + .003f, z0 + .41f, z0 + .452f, false);
+            BoxMinMax(red, cx - 1.1f, cx + 1.1f, top - .03f, top + .003f, z0 - .002f, z0 + .04f, false);   // red nosing on the outer edge
         }
         {
             float run = 1.35f, ang = Mathf.Atan2(P, run) * Mathf.Rad2Deg, L = Mathf.Sqrt(run * run + P * P);
             var rg = new GameObject("rampa schodów oktagonu"); rg.transform.SetParent(colliders, false);
-            rg.transform.rotation = Quaternion.Euler(ang, 0, 0);
-            rg.transform.position = new Vector3(cx, (yF + yT) * .5f, zs + run * .5f) - rg.transform.up * .05f;
+            rg.transform.rotation = Quaternion.Euler(-ang, 0, 0);
+            rg.transform.position = new Vector3(cx, (yF + yT) * .5f, zs - run * .5f) - rg.transform.up * .05f;
             rg.AddComponent<BoxCollider>().size = new Vector3(2.2f, .1f, L);
         }
         foreach (float sx in new[] { cx - 1.02f, cx + 1.02f })                  // audyt: słupki na stopniach (schody x ±1.1), nie w powietrzu
         {
-            Cylinder(chrome, new Vector3(sx, yF + .2f, zs + 1.25f), .025f, .9f, 8, true, false);
-            Cylinder(chrome, new Vector3(sx, yT, zs + .1f), .025f, .9f, 8, true, false);
-            OBoxQ(chrome, new Vector3(sx, (yF + .2f + yT) * .5f + .9f, zs + .675f), new Vector3(.04f, .04f, 1.3f), Quaternion.Euler(Mathf.Atan2(yT - yF - .2f, 1.15f) * Mathf.Rad2Deg, 0, 0));
+            Cylinder(chrome, new Vector3(sx, yF + .2f, zs - 1.25f), .025f, .9f, 8, true, false);
+            Cylinder(chrome, new Vector3(sx, yT, zs - .1f), .025f, .9f, 8, true, false);
+            OBoxQ(chrome, new Vector3(sx, (yF + .2f + yT) * .5f + .9f, zs - .675f), new Vector3(.04f, .04f, 1.3f), Quaternion.Euler(-Mathf.Atan2(yT - yF - .2f, 1.15f) * Mathf.Rad2Deg, 0, 0));
         }
 
         // trybuny: rząd 0.9 m głębokości, 0.4 m wyżej; krzesełko (stopka, siedzisko, oparcie) co 0.56 m
@@ -428,33 +434,45 @@ public static class BraxChampionsArena
                 Seat(leather, false, z, s > 0 ? x0 - .75f : x1 + .75f, yF, s);
             }
         }
-        // czerwony chodnik od drzwi z ulicy do schodów i od wyjścia zawodników do klatki; słupki z liną
-        Top(carpet, -87.3f, -84.7f, zs + 1.37f, Z1 - .05f, yF + .006f);
-        Top(carpet, -87.3f, -84.7f, Z0 + .05f, cz - ap - .08f, yF + .006f);
-        foreach (float x in new[] { -87.55f, -84.45f })
+        // Owner 10.11 12:38: logic everywhere. FIGHTERS: red carpet from their door (Z0) straight to the gate steps (-z),
+        // gold stanchions with red ropes on both sides of the walkout. PUBLIC (Z1): carpet down the 6 m aisle only to the
+        // front of the stands, then left and right along the stand front to the stairs at cx +-12 (TierStairs); a rope line
+        // keeps the public off the cage floor. The public carpet never reaches the octagon.
+        float gateFoot = zs - 1.35f, standFront = cz + EndFront, crossZ0 = standFront - 1.45f, crossZ1 = standFront - .05f;
+        Top(carpet, -87.3f, -84.7f, Z0 + .05f, gateFoot - .03f, yF + .006f);                                  // walkout
+        Top(carpet, -87.3f, -84.7f, standFront, Z1 - .05f, yF + .006f);                                       // public aisle
+        Top(carpet, cx - 12.65f, cx + 12.65f, crossZ0, crossZ1, yF + .006f);                                  // to both stand stairs
+        void Rope(Vector3 a, Vector3 b)
         {
-            for (float z = 70.0f; z <= 77.5f; z += 1.5f)
+            // Phone proof 8.11: a real soft red rope with a 13 cm natural sag between GOLD posts, never a rigid bar.
+            const int ropeSegments=6;
+            for(int segment=0;segment<ropeSegments;segment++)
             {
-                Cylinder(vipGold, new Vector3(x, yF, z), .14f, .04f, 16, true, false);
-                Cylinder(vipGold, new Vector3(x, yF + .04f, z), .03f, .86f, 10, true, false);
-                Cylinder(vipGold, new Vector3(x, yF + .9f, z), .05f, .06f, 10, true, false);
-            }
-            // Phone proof 8.11: straight rigid bars were wrong. Each 1.5m span
-            // is a real soft red rope with a 13cm natural sag between GOLD posts.
-            for (float z = 70.0f; z < 77.5f - .001f; z += 1.5f)
-            {
-                const int ropeSegments=6;
-                for(int segment=0;segment<ropeSegments;segment++)
-                {
-                    float t0=segment/(float)ropeSegments,t1=(segment+1)/(float)ropeSegments;
-                    float y0=.86f-.13f*4f*t0*(1f-t0);
-                    float y1=.86f-.13f*4f*t1*(1f-t1);
-                    W.Rura(rope,
-                        new Vector3(x,y0,z+1.5f*t0),
-                        new Vector3(x,y1,z+1.5f*t1),.022f,8);
-                }
+                float t0=segment/(float)ropeSegments,t1=(segment+1)/(float)ropeSegments;
+                W.Rura(rope,Vector3.Lerp(a,b,t0)+Vector3.up*(.86f-.13f*4f*t0*(1f-t0)),
+                            Vector3.Lerp(a,b,t1)+Vector3.up*(.86f-.13f*4f*t1*(1f-t1)),.022f,8);
             }
         }
+        void Post(Vector3 p)
+        {
+            Cylinder(vipGold, new Vector3(p.x, yF, p.z), .14f, .04f, 16, true, false);
+            Cylinder(vipGold, new Vector3(p.x, yF + .04f, p.z), .03f, .86f, 10, true, false);
+            Cylinder(vipGold, new Vector3(p.x, yF + .9f, p.z), .05f, .06f, 10, true, false);
+        }
+        int walkoutPosts = 0, publicPosts = 0;
+        foreach (float x in new[] { -87.55f, -84.45f })                                                       // walkout lane
+        {
+            Vector3? last = null;
+            for (float z = cz - EndFront + .7f; z <= gateFoot - .25f; z += 1.5f)
+            { var p = new Vector3(x, 0f, z); Post(p); walkoutPosts++; if (last.HasValue) Rope(last.Value, p); last = p; }
+        }
+        {
+            Vector3? last = null;                                                                              // public rope line
+            for (float x = cx - 12.6f; x <= cx + 12.61f; x += 1.575f)
+            { var p = new Vector3(x, 0f, crossZ0 - .25f); Post(p); publicPosts++; if (last.HasValue) Rope(last.Value, p); last = p; }
+        }
+        Debug.Log("A1_WALKOUT_LOGIC gate=-z (fighters' door Z0) walkoutPosts=" + walkoutPosts + " publicCarpet=aisle+cross to stairs cx+-12" +
+                  " publicRopePosts=" + publicPosts + " publicCarpetReachesCage=false");
         // wejście zawodników: czarna rama z czerwonym pasem
         BoxMinMax(black, dA - .35f, dA, yF, dH + .35f, Z0 + .045f, Z0 + .3f, false); BoxMinMax(black, dB, dB + .35f, yF, dH + .35f, Z0 + .045f, Z0 + .3f, false);
         BoxMinMax(black, dA - .35f, dB + .35f, dH, dH + .35f, Z0 + .045f, Z0 + .3f, false, true);

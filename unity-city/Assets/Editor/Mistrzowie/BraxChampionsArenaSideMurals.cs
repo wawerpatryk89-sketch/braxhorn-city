@@ -103,12 +103,46 @@ public static class BraxChampionsArenaSideMurals
         return true;
     }
 
+    // Owner 10.11 12:31 (APK 37, photos of the hall from the public door and the VIP floor): "Mają być murale ... od 10
+    // buildów". From the doors and from the stands one looks at the two LONG walls (z 28.3 / 98.3, 120 m, black
+    // quilted leather with gold divisions) - the side murals are 60 m away left and right, out of the picture. The
+    // owner's hall murals now hang on those long walls too, above the doors and the stand tops: FIGHTERS on the wall
+    // behind the fighters' door (the wall the public faces), BELT on the wall over the public door (the wall the
+    // fighters face on their walkout). 57 x 19 m, 3:1, same back-lit tiles and gold frame; the gold divisions of the
+    // leather stop where a mural hangs (BraxChampionsArena.Clad), nothing lies on top of anything.
+    public const float EndMuralBottom = 4.80f, EndMuralHeight = 19.0f, EndMuralWidth = 57.0f, EndMuralCentreX = -86f;
+    static bool End(Transform bowl, string sourcePath, string side, bool farWall)
+    {
+        if(string.IsNullOrEmpty(sourcePath))return false;
+        float inner = farWall ? WallFarZ + .045f : WallNearZ - .045f;
+        float z = farWall ? inner + MuralStandOff : inner - MuralStandOff;
+        var facing = farWall ? Vector3.forward : Vector3.back;          // from the print toward the hall
+        var right = farWall ? Vector3.left : Vector3.right;            // viewer's right looking at the wall
+        float startX = EndMuralCentreX - right.x * EndMuralWidth * .5f;
+        string name = "A1 MURAL " + side + " | OWNER ORIGINAL | long wall over the door";
+        int hung = BraxChampionsArenaMuralPrint.Hang(bowl, name, "End_" + side, sourcePath,
+            new Vector3(startX, EndMuralBottom, z), right, facing, EndMuralWidth, EndMuralHeight, out var group);
+        if (hung == 0) { BraxBuildQuality.Warn("CHAMPIONS_A1_END_MURAL_MISSING: " + sourcePath); return false; }
+        BraxChampionsArenaMuralPrint.Frame(group, "End_" + side,
+            new Vector3(EndMuralCentreX, EndMuralBottom + EndMuralHeight * .5f, z), right, facing, EndMuralWidth, EndMuralHeight);
+        Debug.Log("CHAMPIONS_A1_END_MURAL_APPLIED " + side + " wall z=" + (farWall ? WallFarZ : WallNearZ) + " panels=" + hung +
+                  " size=57x19 y=" + EndMuralBottom + ".." + (EndMuralBottom + EndMuralHeight) + " backlit=true frame=gold");
+        return true;
+    }
+    /// <summary>x range of the long-wall murals incl. the gold frame (the leather's gold divisions stop there).</summary>
+    public static bool CoversLongWall(float x) => Mathf.Abs(x - EndMuralCentreX) < EndMuralWidth * .5f + BraxChampionsArenaMuralPrint.FrameBar + .30f;
+
     public static int Generate(Transform originalBowl)
     {
         if (!originalBowl) throw new ArgumentNullException(nameof(originalBowl));
         int applied = 0;
-        bool left=Side(originalBowl,PickRequiredHd(LeftFightersHd,"LEFT"),"LEFT_FIGHTERS",true);
-        bool right=Side(originalBowl,PickRequiredHd(RightBeltHd,"RIGHT"),"RIGHT_BELT",false);
+        string fightersHd = PickRequiredHd(LeftFightersHd,"LEFT"), beltHd = PickRequiredHd(RightBeltHd,"RIGHT");
+        bool endFar = End(originalBowl, fightersHd, "FAR_FIGHTERS", true);
+        bool endNear = End(originalBowl, beltHd, "NEAR_BELT", false);
+        if (!endFar || !endNear) BraxBuildQuality.Warn("END_MURALS = FAIL far=" + endFar + " near=" + endNear);
+        else Debug.Log("END_MURALS = 2/2 PASS (long walls, seen from the doors and the stands)");
+        bool left=Side(originalBowl,fightersHd,"LEFT_FIGHTERS",true);
+        bool right=Side(originalBowl,beltHd,"RIGHT_BELT",false);
         if(left)applied++; if(right)applied++;
         if(!left)BraxBuildQuality.Warn("LEFT_MURAL = FAIL");
         else Debug.Log("LEFT_MURAL = PASS");

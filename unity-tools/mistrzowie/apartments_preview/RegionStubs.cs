@@ -22,6 +22,9 @@ public static partial class BraxChampionsFoundation
 }
 // shared by every preview (apartments, casino, arena, promenade): the leaves keep their hinge transforms
 public sealed class BraxCityDoor : MonoBehaviour { public string id, label; public Transform[] leaves; public float[] sides; public float openAngle, range, speed; }
+public sealed class BraxGymPlanarMirror : MonoBehaviour { public object sourceCamera; public Renderer mirrorRenderer; public int textureWidth, textureHeight, mirrorLayer; public float refreshRate, maximumViewDistance, reflectionDistance; }
+public sealed class BraxChampionsMirrorCamera : MonoBehaviour { public const int MirrorLayer = 9; }
+public static class BraxZapisAssetu { public static void Utworz(UnityEngine.Object o, string path) { } }
 public static class BraxMiastoAssety
 {
     public static bool Jest(string paczka) => false;   // the owner's packs are encrypted: never in the preview
@@ -49,6 +52,7 @@ public static class BraxWnetrzaKit
     public static Transform Grupa; public static bool Wnetrze = true; public static float Otoczenie = 1f, Komorka = 14f;
     public static void Start(Transform g) { Grupa = g; Wnetrze = true; Komorka = 14f; }
     public static void Wyczysc() { }
+    public static string Bezpieczna(string s) => new string(System.Array.ConvertAll(s.ToCharArray(), ch => char.IsLetterOrDigit(ch) ? ch : '_'));
     public static void Quad(Material m, Vector3 a, Vector3 b, Vector3 c, Vector3 d)
     {
         if (!m) throw new Exception("null material at " + a.x + "," + a.y + "," + a.z);
