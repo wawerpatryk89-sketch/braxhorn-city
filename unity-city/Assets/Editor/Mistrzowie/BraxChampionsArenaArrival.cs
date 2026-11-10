@@ -285,40 +285,50 @@ public static partial class BraxChampionsArenaArrival
         }
     }
 
+    // Owner 10.11 12:28 (phone, APK 37, lobby looking at the entrance): "tylko i wyłącznie drzwi mają być jasne ze
+    // szkła i mają być dobre, bo są zjebane, a naokoło ta szyba ma być czarna". The 9.74 m opening was clear glass
+    // everywhere with hair-thin frames, the doors did not read as doors. Now: black glass sidelights and transom
+    // (the arena's black facade glass), a black portal frame with a gold inner edge round the door opening, and two
+    // frameless clear toughened-glass leaves with gold top / bottom patch rails and full-height gold pull bars on
+    // both faces. Only the leaves are clear.
     static void Door(Transform parent, string id, string label, float z,
-        Material glass, Material metal)
+        Material glass, Material metal, Material blackGlass, Material frame, Material gold)
     {
         var root = Group(parent, label + " | functional glass double door", new Vector3(0, .24f, z));
         var hinges = new Transform[2];
+        const float leafW = 1.60f, leafH = 3.22f, leafT = .03f, hingeX = 1.72f;
         for (int i = 0; i < 2; i++)
         {
             float side = i == 0 ? -1f : 1f;
-            var h = Group(root, "Real opening glass leaf " + (i + 1),
-                new Vector3(side * 1.72f, 0, 0));
+            var h = Group(root, "Real opening glass leaf " + (i + 1), new Vector3(side * hingeX, 0, 0));
             hinges[i] = h;
-            Box(h, "Toughened transparent glass", glass,
-                new Vector3(-side * .81f, 1.61f, 0), new Vector3(1.60f, 3.22f, .085f));
-            Box(h, "Door pull - satin metal", metal,
-                new Vector3(-side * .23f, 1.32f, side * .11f),
-                new Vector3(.08f, .68f, .08f), false);
+            float cx = -side * leafW * .5f;
+            Box(h, "Toughened clear glass leaf (frameless)", glass, new Vector3(cx, leafH * .5f, 0), new Vector3(leafW, leafH, leafT));
+            foreach (float y in new[] { .07f, leafH - .07f })
+                Box(h, "Gold patch rail", gold, new Vector3(cx, y, 0), new Vector3(leafW, .14f, leafT + .04f), false);
+            // full-height pull bar on both faces near the meeting edge, two standoffs each
+            float px = -side * (leafW - .16f);
+            foreach (float f in new[] { -1f, 1f })
+            {
+                Box(h, "Gold pull bar", gold, new Vector3(px, 1.45f, f * .085f), new Vector3(.045f, 1.80f, .045f), false);
+                foreach (float y in new[] { .70f, 2.20f })
+                    Box(h, "Pull bar standoff", gold, new Vector3(px, y, f * .05f), new Vector3(.025f, .025f, .07f), false);
+            }
         }
-        // The exterior generator leaves a real 9.4m opening. Fill the sides
-        // with fixed transparent sidelights; the central 3.44m double door opens.
+        // black glass to both sides of the doors and above them (the facade around the doors is black)
+        foreach (float side in new[] { -1f, 1f })
+            Box(root, "Black glass sidelight", blackGlass, new Vector3(side * 3.38f, 1.70f, 0), new Vector3(2.98f, 3.40f, .06f));
+        Box(root, "Black glass transom over the doors", blackGlass, new Vector3(0, 3.95f, 0), new Vector3(9.74f, 1.10f, .06f));
+        // black portal frame round the door opening with a gold inner edge (door clear 3.44 x 3.30)
         foreach (float side in new[] { -1f, 1f })
         {
-            Box(root, "Framed fixed glass sidelight", glass,
-                new Vector3(side * 3.38f, 1.61f, 0),
-                new Vector3(2.98f, 3.22f, .09f));
-            Box(root, "Sidelight frame", metal,
-                new Vector3(side * 4.87f, 1.63f, 0),
-                new Vector3(.065f, 3.3f, .14f), false);
+            Box(root, "Door portal jamb (black)", frame, new Vector3(side * (hingeX + .09f), 1.70f, 0), new Vector3(.18f, 3.40f, .22f));
+            Box(root, "Door portal gold inner edge", gold, new Vector3(side * (hingeX + .005f), 1.66f, 0), new Vector3(.012f, 3.32f, .23f), false);
+            Box(root, "Sidelight outer frame (black)", frame, new Vector3(side * 4.85f, 1.70f, 0), new Vector3(.10f, 3.40f, .14f), false);
         }
-        // Exterior opening is 4.5m high; doors are 3.22m. Close the real
-        // remaining transom with glass, not an invisible wall or open air gap.
-        Box(root, "Fixed clear glass transom over double doors", glass,
-            new Vector3(0, 3.74f, 0), new Vector3(9.74f, 1.04f, .085f));
-        Box(root, "Slim metal transom beam", metal,
-            new Vector3(0, 3.23f, 0), new Vector3(9.74f, .075f, .12f), false);
+        Box(root, "Door portal head (black)", frame, new Vector3(0, 3.40f, 0), new Vector3(9.74f, .18f, .22f));
+        Box(root, "Door portal gold head edge", gold, new Vector3(0, 3.305f, 0), new Vector3(2f * hingeX, .012f, .23f), false);
+        Box(root, "Black threshold", frame, new Vector3(0, .01f, 0), new Vector3(9.74f, .02f, .30f), false);
         var door = root.gameObject.AddComponent<BraxCityDoor>();
         door.id = id; door.label = label; door.leaves = hinges; door.sides = new[] { 1f, -1f };
     }
@@ -1207,8 +1217,10 @@ public static partial class BraxChampionsArenaArrival
         ReferenceUpperFacadeLounge(root, exterior);
         ReferenceEntranceLandscaping(root, exterior);
         Stanchions(root, exterior["gold"], redRope, redCarpet);
-        Door(root, "CHAMPIONS_A1_PUBLIC", "Main public entrance", -59.04f, exterior["clear_glass"], exterior["steel"]);
-        Door(root, "CHAMPIONS_A1_ATHLETES", "Separate athlete rear entrance", 59.04f, exterior["clear_glass"], exterior["steel"]);
+        Door(root, "CHAMPIONS_A1_PUBLIC", "Main public entrance", -59.04f, exterior["clear_glass"], exterior["steel"],
+            arenaBlackGlass, exterior["arena_black"], exterior["arena_gold"]);
+        Door(root, "CHAMPIONS_A1_ATHLETES", "Separate athlete rear entrance", 59.04f, exterior["clear_glass"], exterior["steel"],
+            arenaBlackGlass, exterior["arena_black"], exterior["arena_gold"]);
         // Athletes' wing (BraxChampionsArenaAthletes.cs): same room shells and owner
         // finishes, lux furniture, private rear car park and arrival walk.
         AthleteRoomShells(root, arenaStoneFloor, athleteWoodWall, exterior["dark_stone"]);

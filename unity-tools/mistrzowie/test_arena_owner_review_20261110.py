@@ -110,9 +110,10 @@ class ArenaOwnerReview20261110(unittest.TestCase):
         self.assertNotIn("Curved(t,1,MakeMat(1),", self.signs)
         self.assertNotIn("\n        HallBanners(t,body);", self.signs)
         alpha = float(re.search(r'arenaGlass\.SetColor\("_Color",new Color\([^)]*,(\.\d+)f\)\)', self.front).group(1))
-        # owner 10.11 00:48 "lekko przyciemnione, nie czarne"; .70-.90 all read as a black box
-        self.assertGreaterEqual(alpha, .40)
-        self.assertLessEqual(alpha, .55)
+        # owner 10.11 00:48 "lekko przyciemnione", superseded on the phone (APK 37) at 12:28: "tylko i wyłącznie drzwi
+        # mają być jasne ze szkła ... a naokoło ta szyba ma być czarna" and 12:50 "zakaz szarego ... albo czarne"
+        self.assertGreaterEqual(alpha, .90)
+        self.assertIn("doors=clear_glass_leaves_only", self.front)
 
     def test_belt_hangs_on_the_wall(self):
         self.assertNotIn('"A1 VITRINE | black marble pillar"', self.belt)

@@ -8,4 +8,3 @@ public static class BraxChampionsCasinoPbr2K
     public static Material Create(string output, string id, string slug, float metres, Color tint)
         => new Material { name = id + "|" + slug + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true, roughness = .6f };
 }
-public sealed class BraxCityDoor : MonoBehaviour { public string id, label; public Transform[] leaves; public float[] sides; public float openAngle, range, speed; }

@@ -651,7 +651,10 @@ public static partial class BraxChampionsArenaArrival
         {
             float x=s*ax,z=FrontGlassZ(ax)+4.2f;
             // Sofa faces the glass (-Z): its front is what the street sees.
-            wanted++;if(PlaceLobbyModel(arenaRoot,root,"sofa_02/sofa_02_2k.gltf","black tufted leather sofa",x,z,180f,true))placed++;
+            // Owner 10.11 12:29 (phone, Brax beside it): "czy to jest na pewno dobra skala tego siedziska? Krzesło tak, ale te
+            // drugie nie wiem". Poly Haven sofa_02 is a 1.81 x .71 x .82 m loveseat; a lobby Chesterfield is 2.2 x .86 x
+            // 1.0 m (seat .47): x1.22 (the armchair modern_arm_chair_01 is .82 x 1.02 x .99, real size, unchanged).
+            wanted++;if(PlaceLobbyModel(arenaRoot,root,"sofa_02/sofa_02_2k.gltf","black tufted leather sofa",x,z,180f,true,float.NaN,1.22f))placed++;
             float tz=z-1.30f,floor=LobbyFloorY(arenaRoot,x,tz);
             Box(root,"A1 LOBBY | coffee table dark granite top",stone,new Vector3(x,floor+.40f,tz),new Vector3(1.10f,.05f,.62f),false);
             foreach(float lx in new[]{-.45f,.45f})foreach(float lz in new[]{-.22f,.22f})
@@ -737,17 +740,20 @@ public static partial class BraxChampionsArenaArrival
     // the sun-lit lobby behind the 52%-transmitting lower glass read light.
     // The arena gets its own darker smoked glass on EVERY facade pane (lower
     // and upper, all LODs); only the door leaves/entrance fill keep clear_glass.
+    static Material arenaBlackGlass;
     static void ArenaSmokedGlass(Transform arenaRoot,Dictionary<string,Material> exterior)
     {
         var shared=exterior["facade_glass"];
-        var arenaGlass=new Material(shared){name="A1 arena | uniform dark smoked facade glass"};
-        // Owner 9.11 23:43: "Szyby miały być przyciemnione z zewnątrz"; 10.11 00:48: "Szyby LEKKO przyciemnione, nie
-        // czarne" (.70 in APK 35 and .76/.90 on the renders all read as a black box). Owner render: lightly tinted,
-        // reflective glass with the warm lit lobby clearly visible behind it. Panes are single-sided.
-        arenaGlass.SetColor("_Color",new Color(.12f,.16f,.22f,.55f));
+        var arenaGlass=new Material(shared){name="A1 arena | black facade glass"};
+        // Owner 9.11 23:43: "Szyby miały być przyciemnione z zewnątrz"; 10.11 00:48: "lekko przyciemnione"; 10.11 12:28
+        // on the phone in the lobby (APK 37, alpha .55 read as clear glass from inside): "tylko i wyłącznie drzwi mają
+        // być jasne ze szkła ... a naokoło ta szyba ma być czarna". Black reflective glass on every facade pane, the
+        // door sidelights and transom; only the two door leaves stay clear (BraxChampionsArenaArrival.Door).
+        arenaGlass.SetColor("_Color",new Color(.025f,.03f,.035f,.94f));
         arenaGlass.SetFloat("_Roughness",.04f);
         arenaGlass.SetFloat("_ReflectionStrength",1f);
         AssetDatabase.CreateAsset(arenaGlass,"Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/A1_arena_smoked_glass.mat");
+        arenaBlackGlass=arenaGlass;
         int swapped=0;
         foreach(var r in arenaRoot.GetComponentsInChildren<Renderer>(true))
         {
@@ -755,7 +761,7 @@ public static partial class BraxChampionsArenaArrival
             for(int i=0;i<mats.Length;i++)if(mats[i]==shared){mats[i]=arenaGlass;hit=true;swapped++;}
             if(hit)r.sharedMaterials=mats;
         }
-        Debug.Log("A1_SMOKED_GLASS uniform lower+upper panes="+swapped+" alpha=.55 smoked_blue reflection=1 doors=clear_glass_only");
+        Debug.Log("A1_SMOKED_GLASS black lower+upper panes="+swapped+" alpha=.94 reflection=1 doors=clear_glass_leaves_only");
         if(swapped==0)BraxBuildQuality.Warn("A1_SMOKED_GLASS_NOT_APPLIED: no facade_glass renderer under the arena");
     }
 }

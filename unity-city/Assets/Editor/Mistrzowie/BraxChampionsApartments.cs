@@ -54,16 +54,16 @@ public static class BraxChampionsApartments
     // turned toward the nearest road: T04/T05 face road Z650, T06/T07 road Z330.
     enum Style{CurvedWrap,Loggia,MarbleGold,MarbleCorner}
     // walk = local z (front = -z) where the path meets the road sidewalk.
-    struct Plot { public string id, name; public float x, z, yaw, halfW, halfD, loggia, walk; public int floors; public Style style; }
+    struct Plot { public string id, name, brand; public float x, z, yaw, halfW, halfD, loggia, walk; public int floors; public Style style; }
     static readonly Plot[] Plots={
         // owner photo 1: ground + 3, curved wraparound balconies
-        new Plot{id="T04",name="APARTAMENTY 1",x=870,z=570,yaw=180f,halfW=16f,halfD=8.5f,floors=4,style=Style.CurvedWrap,loggia=0f,walk=-63.2f},
+        new Plot{id="T04",name="APARTAMENTY 1",brand="AURORA",x=870,z=570,yaw=180f,halfW=16f,halfD=8.5f,floors=4,style=Style.CurvedWrap,loggia=0f,walk=-63.2f},
         // owner photo 2: ground + 3, recessed loggias 2.0 m, white frames, grey panels, timber strips
-        new Plot{id="T05",name="APARTAMENTY 2",x=1040,z=570,yaw=180f,halfW=17f,halfD=9f,floors=4,style=Style.Loggia,loggia=2.0f,walk=-63.2f},
+        new Plot{id="T05",name="APARTAMENTY 2",brand="SOLARIS",x=1040,z=570,yaw=180f,halfW=17f,halfD=9f,floors=4,style=Style.Loggia,loggia=2.0f,walk=-63.2f},
         // owner photo 3: ground + 4, black marble, gold curved balconies, glass core; front west to road X800 (sidewalk x 817)
-        new Plot{id="T06",name="APARTAMENTY 3",x=870,z=450,yaw=90f,halfW=17f,halfD=9f,floors=5,style=Style.MarbleGold,loggia=0f,walk=-53.2f},
+        new Plot{id="T06",name="APARTAMENTY 3",brand="ONYX",x=870,z=450,yaw=90f,halfW=17f,halfD=9f,floors=5,style=Style.MarbleGold,loggia=0f,walk=-53.2f},
         // owner photo 5 + details of 4: ground + 3, white, black marble corner, timber slats; front east to road X1130 (sidewalk x 1113)
-        new Plot{id="T07",name="APARTAMENTY 4",x=1040,z=450,yaw=270f,halfW=17f,halfD=9f,floors=4,style=Style.MarbleCorner,loggia=0f,walk=-73.2f},
+        new Plot{id="T07",name="APARTAMENTY 4",brand="PLATINUM",x=1040,z=450,yaw=270f,halfW=17f,halfD=9f,floors=4,style=Style.MarbleCorner,loggia=0f,walk=-73.2f},
     };
     public static readonly string[] Ids={"T04","T05","T06","T07"};
 
@@ -85,6 +85,7 @@ public static class BraxChampionsApartments
     }
     // skin = solid façade parts and slab edges; pier = ground-floor piers; edge = balcony fascia
     static Material skin,pier,edge,gold;
+    static Material darkGlass,nameFace;
     static Material render,panel,granite,timber,walnut,black,facadeGlass,clearGlass,led,steel,
         oak,paint,ceiling,bathFloor,bathWall,stoneFloor,marbleBlack,deck,grass,paving,grasscloth,brass,lamp,veneer,runner;
 
@@ -94,7 +95,9 @@ public static class BraxChampionsApartments
         // owner 9.11 23:28: "wszystko takie dużo szarego" - T05 panels in warm sandstone instead of grey
         panel=M("apt_sandstone_panel","rectangular_facade_tiles",2.0f,new Color(1.05f,.93f,.76f),.85f);
         granite=M("apt_dark_granite","granite_tile",1.2f,new Color(.30f,.31f,.33f),.55f);
-        timber=M("apt_timber","teak_veneer",1.0f,new Color(.96f,.70f,.47f),.60f);
+        // owner 10.11 12:42 (photo: the entrance soffit read terracotta) and the region palette "bez sraczkowatych brązów":
+        // silver-grey aged teak, as on the beach loungers (teak_veneer alone is orange 175,130,87)
+        timber=M("apt_timber_silver_teak","teak_veneer",1.0f,new Color(.91f,1.20f,1.72f),.60f);
         walnut=M("apt_door_walnut","teak_veneer",1.0f,new Color(.44f,.30f,.21f),.50f);
         // owner 9.11 23:01: "kolory takie same praktycznie wszędzie" (beige walls, orange oak, beige marble,
         // tan corridors). Palette now: white walls, pale oak, walnut, white and black marble, linen, charcoal.
@@ -143,11 +146,25 @@ public static class BraxChampionsApartments
             facadeGlass=new Material(ext["facade_glass"]){name="apt facade glass | reflective, readable interior"};
             AssetDatabase.CreateAsset(facadeGlass,glassPath);
         }
-        // Reflective but readable: the finished rooms are seen from the street. Owner 9.11 23:28 ("dużo szarego"):
-        // blue-green architectural glass reflecting the sky instead of a grey tint.
-        facadeGlass.SetColor("_Color",new Color(.26f,.46f,.56f,.40f));
-        if(facadeGlass.HasProperty("_ReflectionStrength"))facadeGlass.SetFloat("_ReflectionStrength",.88f);
+        // Owner 10.11 12:50: "Jak robisz szyby, zakaz jakiegoś szarego koloru, to wygląda strasznie. Albo czarne." (the
+        // blue-grey .26/.46/.56 glass read as grey on the phone). Black reflective architectural glass, frames black.
+        facadeGlass.SetColor("_Color",new Color(.025f,.03f,.035f,.88f));
+        if(facadeGlass.HasProperty("_ReflectionStrength"))facadeGlass.SetFloat("_ReflectionStrength",1f);
         facadeGlass.SetFloat("_Roughness",.05f);EditorUtility.SetDirty(facadeGlass);
+        // Owner 10.11 12:28-12:42: only the door leaves are light glass, the glazing round a door is black.
+        string darkPath=outFolder+"/Materials/apt_entrance_black_glass.mat";
+        darkGlass=AssetDatabase.LoadAssetAtPath<Material>(darkPath);
+        if(!darkGlass){darkGlass=new Material(ext["facade_glass"]){name="apt entrance | black glass round the door"};AssetDatabase.CreateAsset(darkGlass,darkPath);}
+        darkGlass.SetColor("_Color",new Color(.025f,.03f,.035f,.94f));
+        if(darkGlass.HasProperty("_ReflectionStrength"))darkGlass.SetFloat("_ReflectionStrength",1f);
+        darkGlass.SetFloat("_Roughness",.04f);EditorUtility.SetDirty(darkGlass);
+        // name letters: brushed stainless with a faint warm glow so the name reads at dusk (like the marina gates)
+        string facePath=outFolder+"/Materials/apt_name_letters_stainless.mat";
+        nameFace=AssetDatabase.LoadAssetAtPath<Material>(facePath);
+        if(!nameFace){nameFace=new Material(steel){name="apt name | brushed stainless letters"};AssetDatabase.CreateAsset(nameFace,facePath);}
+        nameFace.SetColor("_Color",new Color(.90f,.91f,.92f));
+        if(nameFace.HasProperty("_EmissionColor"))nameFace.SetColor("_EmissionColor",new Color(.30f,.29f,.26f));
+        EditorUtility.SetDirty(nameFace);
     }
 
     // ---------------- primitives (nominal metres, building local, front = -Z) ----------------
@@ -301,7 +318,7 @@ public static class BraxChampionsApartments
     }
 
     // ---------------- façade ----------------
-    enum Seg{Glass,Door,Render,Timber,Panel,Marble}
+    enum Seg{Glass,Door,Render,Timber,Panel,Marble,Entrance}
     struct Part{public float a,b;public Seg s;public Part(float a,float b,Seg s){this.a=a;this.b=b;this.s=s;}}
     static Transform outside,details,inside;
     static BraxChampionsMeshBatch doorNumbers;           // owner 10.11 "zakaz tanich napisów": 3D brass numbers
@@ -312,6 +329,7 @@ public static class BraxChampionsApartments
         foreach(var p in parts)
         {
             W.Grupa=outside;W.Wnetrze=false;
+            if(p.s==Seg.Entrance){Entrance(c,nrm,p.a,p.b,y0,y1);continue;}
             if(p.s==Seg.Glass||p.s==Seg.Door)
             {
                 float len=p.b-p.a;int n=Mathf.Max(1,Mathf.CeilToInt(len/1.35f));
@@ -340,6 +358,63 @@ public static class BraxChampionsApartments
             }
         }
         W.Grupa=outside;W.Wnetrze=false;
+    }
+    // Owner 10.11 12:42 (APK 37, apartment entrance): "Każde jedne drzwi sprawdzasz, każde jedne." The entrance was
+    // four plain panes of the glass wall with a sliding leaf hidden among them: no door to be seen. Now a real door,
+    // read from the street: black steel portal, two framed clear-glass leaves that open by themselves like every city
+    // door (BraxCityDoor), brushed stainless pull bars on both faces, a stainless threshold, and BLACK glass in the
+    // sidelights and the transom (owner 12:28: only the door leaves are light glass). Front façade only (alongX).
+    public const float EntranceHalf=1.0f, EntranceDoorH=2.70f;
+    static int entrances;
+    static string plotId="",plotBrand="";
+    static BraxChampionsMeshBatch nameLetters;
+    static void Entrance(float c,float nrm,float a,float b,float y0,float y1)
+    {
+        float mid=(a+b)*.5f,h=EntranceHalf,top=y0+EntranceDoorH,jw=.10f,jd=.24f,head=.14f;
+        W.Grupa=outside;W.Wnetrze=false;
+        foreach(float s in new[]{-1f,1f})
+        {
+            float j0=s<0?mid-h-jw:mid+h,j1=j0+jw;
+            Box(black,j0,j1,y0,top+head,c-jd*.5f,c+jd*.5f,true);                                   // portal jamb
+            float g0=s<0?a:mid+h+jw,g1=s<0?mid-h-jw:b;
+            if(g1-g0>.05f){Box(darkGlass,g0,g1,y0+.06f,top,c-.01f,c+.01f,true);}                // black sidelight
+        }
+        Box(black,a,b,top,top+head,c-jd*.5f,c+jd*.5f);                                                 // portal head
+        Box(darkGlass,a,b,top+head,y1-.06f,c-.01f,c+.01f,true);                                       // black transom
+        W.Grupa=details;
+        Rail(true,c,a,b,y1-.06f,y1);Rail(true,c,a,mid-h-jw,y0,y0+.06f);Rail(true,c,mid+h+jw,b,y0,y0+.06f);
+        Mullion(true,c,a,y0,y1);Mullion(true,c,b,y0,y1);
+        W.Grupa=outside;
+        Box(steel,mid-h,mid+h,y0-.008f,y0+.012f,c-.16f,c+.16f);                                        // stainless threshold
+        var root=new GameObject("APT entrance | operable double door (black portal, stainless pulls)").transform;
+        root.SetParent(outside,false);root.localPosition=new Vector3(mid,y0,c);
+        var leaves=new Transform[2];
+        const float st=.055f,railTop=.09f,railBottom=.16f,t=.05f;
+        for(int i=0;i<2;i++)
+        {
+            float side=i==0?-1f:1f,hinge=mid+side*h,meet=mid-side*.004f;
+            var leaf=new GameObject("entrance leaf "+(i+1)+" (hinge "+(side<0?"left":"right")+")").transform;
+            leaf.SetParent(root,false);leaf.position=new Vector3(hinge,y0,c);leaves[i]=leaf;
+            W.Grupa=leaf;
+            float l0=Mathf.Min(hinge,meet),l1=Mathf.Max(hinge,meet);
+            Box(clearGlass,l0+st,l1-st,y0+railBottom,top-railTop,c-.006f,c+.006f,true);                // 12 mm toughened glass
+            Box(black,l0,l0+st,y0+.01f,top-.005f,c-t*.5f,c+t*.5f);                                       // stiles
+            Box(black,l1-st,l1,y0+.01f,top-.005f,c-t*.5f,c+t*.5f);
+            Box(black,l0+st,l1-st,top-railTop,top-.005f,c-t*.5f,c+t*.5f);                                // top rail
+            Box(black,l0+st,l1-st,y0+.01f,y0+railBottom,c-t*.5f,c+t*.5f);                                // bottom (kick) rail
+            Box(steel,l0+st,l1-st,y0+.03f,y0+railBottom-.02f,c-t*.5f-.002f,c+t*.5f+.002f);               // brushed kick plate
+            float px=meet-side*.13f;
+            foreach(float f in new[]{-1f,1f})
+            {
+                W.Rura(steel,new Vector3(px,y0+.45f,c+f*.085f),new Vector3(px,y0+1.85f,c+f*.085f),.016f,12);   // 32 mm pull bar
+                foreach(float y in new[]{y0+.60f,y0+1.70f})
+                    W.Rura(steel,new Vector3(px,y,c+f*.025f),new Vector3(px,y,c+f*.085f),.010f,10);             // standoffs
+            }
+        }
+        W.Grupa=outside;
+        var door=root.gameObject.AddComponent<BraxCityDoor>();
+        door.id="APT_"+plotId+"_ENTRANCE_"+entrances;door.label=plotBrand+" RESIDENCE entrance";door.leaves=leaves;door.sides=new[]{1f,-1f};
+        entrances++;
     }
     // Left half (x<0) mirrored to the right, optional centre part.
     static Part[] Sym(Part[] left,Part? centre)
@@ -485,7 +560,7 @@ public static class BraxChampionsApartments
         if(!found)throw new ArgumentException("Unknown apartment plot "+id);
         HalfW=plot.halfW;HalfD=plot.halfD;Floors=plot.floors;Loggia=plot.loggia;Walk=plot.walk;style=plot.style;
         System.IO.Directory.CreateDirectory(outFolder+"/Materials");System.IO.Directory.CreateDirectory(outFolder+"/Prefabs");
-        Materials(ext,outFolder);apartments=0;doors=0;models=0;
+        Materials(ext,outFolder);apartments=0;doors=0;models=0;entrances=0;plotId=plot.id;plotBrand=plot.brand;
         bool marble=style==Style.MarbleGold;
         // ground-floor piers in teak (warm vertical accents instead of a dark grey band); T06 keeps black marble
         skin=marble?marbleBlack:render;pier=marble?marbleBlack:timber;edge=marble?gold:render;
@@ -504,7 +579,7 @@ public static class BraxChampionsApartments
         details=new GameObject("exterior details (frames, fins, LED; distance LOD)").transform;details.SetParent(root,false);
         inside=new GameObject("interior (finished, empty)").transform;inside.SetParent(root,false);
         W.Wyczysc();W.Start(outside);W.Wnetrze=false;W.Komorka=40f;
-        doorNumbers=new BraxChampionsMeshBatch();
+        doorNumbers=new BraxChampionsMeshBatch();nameLetters=new BraxChampionsMeshBatch();
         var lights=new List<Light>();
         Site();
         Structure();
@@ -517,6 +592,8 @@ public static class BraxChampionsApartments
 
         int saved=W.Zapisz(id+"_apartments");
         BraxChampionsLetters3D.Build(doorNumbers,inside,id+" door numbers",1f);              // the root carries K
+        BraxChampionsLetters3D.Build(nameLetters,outside,id+" "+plot.brand+" RESIDENCE name",1f);
+        if(entrances<1)BraxBuildQuality.Warn("DO POPRAWKI APT_"+id+"_ENTRANCE_DOOR_MISSING");
         // Distance LOD: frames, fins and LED lines drop out when the building is small on screen;
         // the white body, glass, balconies and roof always stay (no pop-in of the building itself).
         var detailRenderers=details.GetComponentsInChildren<Renderer>(true);
@@ -610,7 +687,7 @@ public static class BraxChampionsApartments
         {
             if(f==0)
                 FacadeBand(true,-HalfD+1.0f,-1f,0,Sym(new[]{new Part(-HalfW,-HalfW+.8f,Seg.Render),new Part(-HalfW+.8f,-3.2f,Seg.Glass),
-                    new Part(-3.2f,-1.6f,Seg.Render),new Part(-1.6f,0f,Seg.Door)},null));
+                    new Part(-3.2f,-1.6f,Seg.Render)},new Part(-1.6f,1.6f,Seg.Entrance)));
             FacadeBand(true,HalfD-.15f,1f,f,Sym(new[]{new Part(-HalfW,-HalfW+1f,Seg.Render),new Part(-HalfW+1f,-HalfW+2.6f,Seg.Glass),
                 new Part(-HalfW+2.6f,-HalfW+4.4f,f==0?Seg.Glass:Seg.Door),new Part(-HalfW+4.4f,-4.5f,Seg.Glass)},new Part(-4.5f,4.5f,Seg.Render)));
             foreach(float sx in new[]{-1f,1f})
@@ -938,7 +1015,22 @@ public static class BraxChampionsApartments
         Box(skin,-hx+.06f,hx-.06f,y0+.03f,y1,zf+.06f,zb,true);                                    // slab
         Box(fascia,-hx,hx,y0,y1+.02f,zf,zf+.06f);                                                 // front fascia
         foreach(float sx in new[]{-1f,1f})Box(fascia,sx<0?-hx:hx-.06f,sx<0?-hx+.06f:hx,y0,y1+.02f,zf+.06f,zb);
-        Box(timber,-hx+.06f,hx-.06f,y0+.015f,y0+.03f,zf+.06f,zb);                                 // teak soffit
+        // owner 10.11 12:42: the teak soffit read terracotta on the phone - satin black metal soffit, LED downlights
+        Box(black,-hx+.06f,hx-.06f,y0+.015f,y0+.03f,zf+.06f,zb);
+        // Owner 10.11 12:46: "Każdy apartament ma być nazwany, piękny napis w 3D!!!" - the building's name in solid 3D
+        // capitals (Montserrat SemiBold, BraxChampionsLetters3D) standing on the canopy's front edge, 8 cm proud of a
+        // slim black rail, brushed stainless (gold on the black-marble ONYX), RESIDENCE tracked wide underneath it on
+        // the fascia. Read from the street; lit by the canopy LED line and the stainless face's own glow.
+        {
+            var face=style==Style.MarbleGold?gold:nameFace;
+            float maxW=2f*hx-.40f,zl=zf+.03f;
+            Box(black,-hx+.10f,hx-.10f,y1+.02f,y1+.06f,zf+.02f,zf+.12f);                          // letter rail
+            float w=BraxChampionsLetters3D.Text(nameLetters,face,black,plotBrand,new Vector3(0,y1+.06f,zl),180f,.62f,.10f,.16f,maxW);
+            // on the gold fascia of ONYX the small line is black (gold on gold vanished in the render)
+            BraxChampionsLetters3D.Text(nameLetters,style==Style.MarbleGold?black:face,black,"RESIDENCE",new Vector3(0,y0+.07f,zf-.002f),180f,.105f,.012f,.62f,maxW);
+            if(w<=0f)BraxBuildQuality.Warn("DO POPRAWKI APT_"+plotId+"_NAME_LETTERS_MISSING");
+            else Debug.Log("APT_NAME_3D "+plotId+" '"+plotBrand+" RESIDENCE' width="+w.ToString("F2")+" cap=.62 depth=.10 face="+(style==Style.MarbleGold?"gold":"brushed_stainless"));
+        }
         foreach(float sx in new[]{-1f,1f})
         {
             float cx=sx*(hx-.25f),cz=zf+.30f;
@@ -969,14 +1061,17 @@ public static class BraxChampionsApartments
     {
         W.Grupa=inside;W.Wnetrze=true;
         float face=-3.0f+.012f,front=face+.30f,za=-4.75f,zb=-2.35f,yb=y0+.85f,yt=y0+2.05f;
-        Box(walnut,face,front,yb,yt,za,zb,true);
+        // owner 10.11 12:42 (photo: the brass mailbox doors read as a yellow plastic block): black marble cabinet,
+        // satin black metal doors in 4 mm shadow gaps, brushed stainless letter flap and lock on every door
+        Box(marbleBlack,face,front,yb,yt,za,zb,true);
         int cols=5,rows=Mathf.CeilToInt(Floors*4f/5f);
         float cw=(zb-za-.10f)/cols,rh=(yt-yb-.10f)/rows;
         for(int r=0;r<rows;r++)for(int c=0;c<cols;c++)
         {
-            float z0=za+.05f+c*cw+.012f,z1=z0+cw-.024f,b0=yb+.05f+r*rh+.012f,b1=b0+rh-.024f;
-            Box(brass,front,front+.006f,b0,b1,z0,z1);
-            Box(black,front+.006f,front+.009f,b1-.07f,b1-.05f,z0+.04f,z1-.04f);                        // letter slot
+            float z0=za+.05f+c*cw+.004f,z1=z0+cw-.008f,b0=yb+.05f+r*rh+.004f,b1=b0+rh-.008f;
+            Box(black,front,front+.008f,b0,b1,z0,z1);
+            Box(steel,front+.008f,front+.012f,b1-.075f,b1-.045f,z0+.035f,z1-.035f);                    // letter flap
+            W.Rura(steel,new Vector3(front+.008f,b0+.06f,z1-.05f),new Vector3(front+.016f,b0+.06f,z1-.05f),.009f,10);   // lock
         }
         Box(lamp,face,front-.02f,yb-.015f,yb,za+.02f,zb-.02f);                                          // LED under the cabinet
         foreach(float sx in new[]{-1f,1f})

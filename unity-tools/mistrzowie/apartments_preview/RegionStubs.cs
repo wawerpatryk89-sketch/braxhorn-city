@@ -20,6 +20,8 @@ public static partial class BraxChampionsFoundation
     public static void Optional(string what, Action build) { try { build(); } catch (Exception e) { Console.WriteLine("WARN OPTIONAL_FAILED " + what + ": " + e.Message); } }
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
 }
+// shared by every preview (apartments, casino, arena, promenade): the leaves keep their hinge transforms
+public sealed class BraxCityDoor : MonoBehaviour { public string id, label; public Transform[] leaves; public float[] sides; public float openAngle, range, speed; }
 public static class BraxMiastoAssety
 {
     public static bool Jest(string paczka) => false;   // the owner's packs are encrypted: never in the preview
@@ -30,7 +32,7 @@ public static class BraxMiastoAssety
 }
 public static class Rec
 {
-    public struct Q { public string g, m; public bool inside; public Vector3 a, b, c, d; public Transform t; public bool hasUv; public Vector2 ua, ub, uc, ud; }
+    public struct Q { public string g, m; public bool inside; public Vector3 a, b, c, d, la, lb, lc, ld; public Transform t; public bool hasUv; public Vector2 ua, ub, uc, ud; }
     public static readonly List<Q> Quads = new List<Q>();
     public static readonly Dictionary<string, Color> Colours = new Dictionary<string, Color>();
     public static readonly Dictionary<string, float[]> Ambient = new Dictionary<string, float[]>();
@@ -51,7 +53,8 @@ public static class BraxWnetrzaKit
     {
         if (!m) throw new Exception("null material at " + a.x + "," + a.y + "," + a.z);
         string path = Grupa.gameObject.name; for (var p = Grupa.parent; p != null; p = p.parent) path = p.gameObject.name + " >> " + path;
-        Rec.Quads.Add(new Rec.Q { g = path, m = m.name, inside = Wnetrze, a = a, b = b, c = c, d = d, t = Grupa });
+        Rec.Quads.Add(new Rec.Q { g = path, m = m.name, inside = Wnetrze, a = a, b = b, c = c, d = d, t = Grupa,
+            la = Grupa.InverseTransformPoint(a), lb = Grupa.InverseTransformPoint(b), lc = Grupa.InverseTransformPoint(c), ld = Grupa.InverseTransformPoint(d) });
         Rec.Colours[m.name] = m.color; Rec.Mats[m.name] = m;
         Rec.Ambient[m.name] = new[] { m.sky.r, m.sky.g, m.sky.b, m.ground.r, m.ground.g, m.ground.b, m.ambient };
     }

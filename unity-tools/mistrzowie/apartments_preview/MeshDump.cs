@@ -23,12 +23,14 @@ public static class MeshDump
     public static void Write(string file, Transform root, float scale, Func<GameObject, bool> skip = null)
     {
         var sb = new StringBuilder("{\"levels\":[0],\"quads\":[");
-        // W-kit quads are recorded in their group's own frame: take them through the group's final transform
-        // (the group is hung under the building after it is written) into root-local nominal metres.
+        // W-kit quads: Unity keeps the build-time world coordinates in a mesh object at the world origin under the group,
+        // so they follow the group's later moves: final = group_final * group_at_build^-1 * p. The stub records p in the
+        // group's frame at build time (la..ld); take that through the group's final transform into root-local metres.
+        // (A hinged door leaf group sits at its hinge at build time: p itself would count the hinge twice.)
         bool Under(Transform t) { for (; t != null; t = t.parent) if (t == root) return true; return false; }
         Vector3 L(Rec.Q q, Vector3 p) => root.InverseTransformPoint(q.t.TransformPoint(p)) / scale;
         var mine = Rec.Quads.Where(q => q.t != null && Under(q.t)).ToList();
-        sb.Append(string.Join(",", mine.Select(q => "[\"" + q.g.Replace("\"", "'") + "\",\"" + q.m + "\"," + (q.inside ? 1 : 0) + "," + string.Join(",", new[] { L(q, q.a), L(q, q.b), L(q, q.c), L(q, q.d) }.Select(V)) +
+        sb.Append(string.Join(",", mine.Select(q => "[\"" + q.g.Replace("\"", "'") + "\",\"" + q.m + "\"," + (q.inside ? 1 : 0) + "," + string.Join(",", new[] { L(q, q.la), L(q, q.lb), L(q, q.lc), L(q, q.ld) }.Select(V)) +
             (q.hasUv ? "," + string.Join(",", new[] { q.ua, q.ub, q.uc, q.ud }.Select(u => F(u.x) + "," + F(u.y))) : "") + "]")));
         sb.Append("],\"meshes\":[");
         var parts = new List<string>(); var mats = new Dictionary<string, Material>(); foreach (var q in mine) mats[q.m] = Rec.Mats[q.m]; int tris = 0, objects = 0;
