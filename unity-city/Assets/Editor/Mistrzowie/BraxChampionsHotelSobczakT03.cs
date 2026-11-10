@@ -1910,20 +1910,20 @@ public static class BraxChampionsHotelSobczakT03
         // wardrobe (walnut doors, brass bars) in the hall; owner 10.11 22:45 (photo from the game): the leather luggage
         // bench stood across the hall in front of it and blocked the way ("coś stoi, blokuje dojście") - gone, the hall
         // and the wardrobe front are clear
-        // "wszystko ma być funkcjonalne": the wardrobe is open inside - walnut back, sides, top and plinth, a hat shelf, a
-        // polished hanging rail under a warm light strip - and its two doors open on approach (BraxChampionsInteriorDoor,
-        // the city's BraxCityDoor), each hinged on its outer side
+        // "wszystko ma być funkcjonalne": the wardrobe is two walnut modules side by side, open inside - back, sides,
+        // divider, top and plinth, a hat shelf, a polished hanging rail under a warm light strip in each - and each module's
+        // door opens on approach (BraxChampionsInteriorDoor, the city's BraxCityDoor), hinged on its left side
         float wx0=bx1+.08f,wx1=b-.04f,wm=(wx0+wx1)*.5f;
         Box(M.walnut,wx0,wx1,0,2.6f,Z(.02f),Z(.04f),true);
         Box(M.walnut,wx0,wx0+.02f,0,2.6f,Z(.04f),Z(.64f),true);Box(M.walnut,wx1-.02f,wx1,0,2.6f,Z(.04f),Z(.64f),true);
         Box(M.walnut,wx0+.02f,wx1-.02f,2.56f,2.6f,Z(.04f),Z(.64f));Box(M.walnutDark,wx0+.02f,wx1-.02f,0,.08f,Z(.04f),Z(.64f));
         Box(M.walnut,wx0+.02f,wx1-.02f,2.10f,2.125f,Z(.04f),Z(.60f));
         Box(M.ledCool,wx0+.04f,wx1-.04f,2.08f,2.10f,Z(.50f),Z(.53f));
-        Rod(M.chrome,new Vector3(wx0+.02f,1.92f,Z(.33f)),new Vector3(wx1-.02f,1.92f,Z(.33f)),.013f);
+        Box(M.walnut,wm-.01f,wm+.01f,.08f,2.56f,Z(.04f),Z(.64f),true);                                     // divider
+        Rod(M.chrome,new Vector3(wx0+.02f,1.92f,Z(.33f)),new Vector3(wm-.01f,1.92f,Z(.33f)),.013f);
+        Rod(M.chrome,new Vector3(wm+.01f,1.92f,Z(.33f)),new Vector3(wx1-.02f,1.92f,Z(.33f)),.013f);
         var wl=BraxChampionsInteriorDoor.Single("T03_WARDROBE_"+number+"_L","room "+number+" wardrobe door left",true,Z(.62f),wx0+.025f,wm-.003f,.085f,2.47f,M.walnut,M.chrome,.03f);
         var wr=BraxChampionsInteriorDoor.Single("T03_WARDROBE_"+number+"_R","room "+number+" wardrobe door right",true,Z(.62f),wm+.003f,wx1-.025f,.085f,2.47f,M.walnut,M.chrome,.03f);
-        // the right leaf is hinged on its outer edge: the door root turned half round about the leaf's centre
-        if(wr){var c=wr.position;wr.RotateAround(new Vector3((wm+wx1)*.5f,c.y,c.z),Vector3.up,180f);}
         // a wardrobe door opens toward you (a room door away from you): the leaf turns the other way (BraxCityDoor sides -1)
         foreach(var wd in new[]{wl,wr})if(wd){var cd=wd.GetComponent<BraxCityDoor>();if(cd)cd.sides=new[]{-1f};}
         wardrobes++;
