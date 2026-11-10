@@ -711,8 +711,9 @@ public static class BraxChampionsApartments
         PBox(kerbStone,AisleX1,LotX1,y0,kt,lotZ0,BayZ0,true);             // front of the bays
         PBox(kerbStone,AisleX1,k1,y0,kt,inner,lotZ0,true);                // east of the drive, to the sidewalk
         // across the sidewalk: the drive falls 16 cm to road level over 4 m, then level between the arcs
-        PFace(asphalt,PV(AisleX0,0f,gradeEnd),PV(AisleX1,0f,gradeEnd),PV(AisleX1,top,inner),PV(AisleX0,top,inner),Vector3.up);
-        PFace(asphalt,PV(AisleX0,0f,road),PV(AisleX1,0f,road),PV(AisleX1,0f,gradeEnd),PV(AisleX0,0f,gradeEnd),Vector3.up);
+        // (PFace mirrors by ParkSide itself: plot-local points, never PV() here)
+        PFace(asphalt,new Vector3(AisleX0,0f,gradeEnd),new Vector3(AisleX1,0f,gradeEnd),new Vector3(AisleX1,top,inner),new Vector3(AisleX0,top,inner),Vector3.up);
+        PFace(asphalt,new Vector3(AisleX0,0f,road),new Vector3(AisleX1,0f,road),new Vector3(AisleX1,0f,gradeEnd),new Vector3(AisleX0,0f,gradeEnd),Vector3.up);
         W.Rampa(PV((AisleX0+AisleX1)*.5f,top,inner),PV((AisleX0+AisleX1)*.5f,0f,gradeEnd),AisleX1-AisleX0);
         W.KolizjaMM(Mathf.Min(AisleX0*ParkSide,AisleX1*ParkSide),Mathf.Max(AisleX0*ParkSide,AisleX1*ParkSide),y0,0f,road,gradeEnd);
         // the drive's kerbs across the sidewalk: flush with the sidewalk (16 cm over the road)
