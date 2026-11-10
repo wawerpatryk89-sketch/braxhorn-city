@@ -59,7 +59,7 @@ public static class BraxChampionsPiksele
     public static void Wypelnij(Color32[] px, Color32 c) { for (int i = 0; i < px.Length; i++) px[i] = c; }
 
     public static readonly Color32 Tlo = new Color32(6, 10, 28, 255), Siatka = new Color32(40, 86, 190, 255), Bialy = new Color32(240, 244, 255, 255),
-        Zloty = new Color32(255, 204, 70, 255), Cyjan = new Color32(90, 220, 255, 255), Aktywny = new Color32(18, 30, 72, 255),
+        Zloty = new Color32(255, 72, 84, 255), Cyjan = new Color32(90, 220, 255, 255), Aktywny = new Color32(18, 30, 72, 255),
         Zielony = new Color32(70, 230, 120, 255), Czerwony = new Color32(255, 70, 80, 255), Fiolet = new Color32(190, 90, 255, 255);
 
     // ---------------- ten-pin scoring ----------------

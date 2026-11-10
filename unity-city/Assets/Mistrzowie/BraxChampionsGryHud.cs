@@ -1,11 +1,11 @@
 using UnityEngine;
 
 // Separate file (Unity keeps a MonoBehaviour in a scene only when the file name = the class name). The E1 games panel:
-// small, top-centre, while the player plays a lane or a table (BraxChampionsGry.Ustaw), and the big flash under it.
+// small, top-centre, while the player plays a lane or a table (BraxChampionsGry.Ustaw), and the big flash under it (red, the E1 accent: no gold).
 public sealed class BraxChampionsGryHud : MonoBehaviour
 {
     GUIStyle lab, big; float rozmiar;
-    static readonly Color Ink = new Color(1f, 1f, 1f, .94f), Glass = new Color(.05f, .05f, .07f, .55f), Gold = new Color(1f, .82f, .40f, .97f);
+    static readonly Color Ink = new Color(1f, 1f, 1f, .94f), Glass = new Color(.05f, .05f, .07f, .55f), Gold = new Color(1f, .30f, .32f, .97f);
 
     void OnGUI()
     {
