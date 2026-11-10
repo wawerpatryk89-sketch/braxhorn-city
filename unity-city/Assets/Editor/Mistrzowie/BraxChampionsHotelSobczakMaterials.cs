@@ -88,8 +88,9 @@ public static class BraxChampionsHotelSobczakMaterials
         // owner 10.11 12:54 (beige rooms on the phone): white mineral plaster instead of beige_wall_001
         s.paint=P("wall_paint_white","white_stucco_02",2.0f,new Color(1.10f,1.10f,1.09f),.95f);
         if(s.paint.HasProperty("_BumpScale"))s.paint.SetFloat("_BumpScale",.20f);
-        s.ceiling=P("ceiling_stucco","white_stucco_02",2.0f,new Color(.98f,.98f,.97f),.95f);
-        if(s.ceiling.HasProperty("_BumpScale"))s.ceiling.SetFloat("_BumpScale",.15f);
+        // owner 10.11 22:43 (photo from the game: "sufity beton"): the stucco grain read as raw concrete on the ceilings -
+        // smooth matte white ceiling paint, no texture grain; a neutral ground ambient below (white stays white)
+        s.ceiling=Surface("ceiling_paint_white_smooth",new Color(.93f,.93f,.94f),.92f,0f,false,false);
         s.concrete=P("technical_concrete","concrete_wall_003",3.0f,new Color(.82f,.81f,.78f),1f);
         // owner palette: no brown - black leather (was brown_leather tinted .40/.24/.15)
         try{s.leather=BraxChampionsFoundation.LibraryLeather("t03_black_leather",new Color(.33f,.55f,.70f));}
@@ -124,6 +125,7 @@ public static class BraxChampionsHotelSobczakMaterials
                                s.whiteTiles,s.antiSkid,s.boucle,s.jersey,s.linen,s.linenWhite,s.satin,s.velvet,s.rugRoom,s.rugLobby,
                                s.walnut,s.walnutDark,s.cognac})
             BraxChampionsInteriorLight.Apply(m,m==s.ceiling?BraxChampionsInteriorLight.Ceilings:BraxChampionsInteriorLight.Walls);
+        s.ceiling.SetColor("_GroundColor",new Color(.96f,.96f,.97f));
         // façades in shade: ground bounce of the sunlit plaza (BraxChampionsInteriorLight.Facade)
         foreach(var m in new[]{s.brick,s.podiumStone,s.stoneDark,s.teak,s.teakDark})BraxChampionsInteriorLight.Facade(m);
         // surfaces

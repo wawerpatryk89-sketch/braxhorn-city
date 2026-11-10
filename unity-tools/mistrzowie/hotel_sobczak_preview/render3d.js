@@ -13,6 +13,8 @@ const PALM_GLB = process.env.PREVIEW_PALM_GLB || '';
 const PALM_SCALE = parseFloat(process.env.PREVIEW_PALM_SCALE || '1');
 // PREVIEW_PALM_HALF=1: the preview palm file is a cluster of palms; keep one (the game plants one per bed)
 const PALM_HALF = process.env.PREVIEW_PALM_HALF === '1';
+// PREVIEW_FLAT=1: flat facets (every triangle its own normal) instead of the game-like smooth shading
+const FLAT = process.env.PREVIEW_FLAT === '1';
 // PREVIEW_GROUND_TEX=<texture slug in the textures dir>: the ground plane is that real map (e.g. the region's Grass004
 // lawn) instead of flat grey; PREVIEW_GROUND_BANDS=JSON [[x0,x1,z0,z1,tex,tileMetres],..] draws the region's roads and
 // sidewalks over it (Unity coordinates, nominal metres).
@@ -25,7 +27,9 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const PALM_SCALE=${PALM_SCALE};const PALM_HALF=${PALM_HALF};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};
+import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
+const process_flat=${FLAT};const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const PALM_SCALE=${PALM_SCALE};const PALM_HALF=${PALM_HALF};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};
 async function bin(n){const r=await fetch('http://preview.local/bin/'+n);return new Float32Array(await r.arrayBuffer());}
 const tl=new THREE.TextureLoader();
 function tex(url,srgb){return new Promise(res=>tl.load(url,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(srgb)t.colorSpace=THREE.SRGBColorSpace;res(t);},undefined,()=>res(null)));}
@@ -52,14 +56,35 @@ window.setup=async function(w,h){
   const R=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});R.setSize(w,h);R.toneMapping=THREE.NoToneMapping;
   document.body.appendChild(R.domElement);
   const S=new THREE.Scene();S.background=new THREE.Color(0x9fc2e5);
+  // live mirror quads (two triangles each, Unity front = into the wall): a three.js Reflector of the same size, turned to
+  // the side the camera is on at each shot
+  window.mirrors=[];
+  const addMirrors=a=>{
+    for(let i=0;i+17<a.length;i+=18){
+      const P=[];for(let k=0;k<6;k++)P.push(new THREE.Vector3(a[i+3*k],a[i+3*k+1],a[i+3*k+2]));
+      const n=new THREE.Vector3().subVectors(P[1],P[0]).cross(new THREE.Vector3().subVectors(P[2],P[0])).normalize();
+      const box=new THREE.Box3();P.forEach(p=>box.expandByPoint(p));const c=box.getCenter(new THREE.Vector3());
+      const u=new THREE.Vector3(0,1,0).cross(n).normalize();let u0=1e9,u1=-1e9;
+      P.forEach(p=>{const d=p.clone().sub(c).dot(u);u0=Math.min(u0,d);u1=Math.max(u1,d);});
+      const w=u1-u0,hh=box.max.y-box.min.y;if(w<.05||hh<.05)continue;
+      const tw=Math.min(4096,Math.max(512,Math.round(w*140))),th=Math.min(1024,Math.max(256,Math.round(tw*hh/w)));
+      const r=new THREE.Group();const rf=new Reflector(new THREE.PlaneGeometry(w,hh),{textureWidth:tw,textureHeight:th,color:0xc4c8cc,clipBias:.003});
+      r.add(rf);r.position.copy(c);r.userData={c,n};r.visible=false;S.add(r);window.mirrors.push(r);
+    }
+  };
   const sun=new THREE.DirectionalLight(S2L([1,.98,.94]),2.4);sun.position.set(-.45,.78,.42);S.add(sun);   // _SunDirection (z mirrored)
   const scene=await (await fetch('http://preview.local/bin/scene.json')).json();
   for(const m of scene.materials){
     const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.BufferAttribute(await bin('m'+m.id+'_pos.bin'),3));
     g.setAttribute('uv',new THREE.BufferAttribute(await bin('m'+m.id+'_uv.bin'),2));
-    g.computeVertexNormals();
     const c=m.colour, n=m.name.toLowerCase();
+    // the game's live mirrors (BraxGymPlanarMirror, materials "... live mirror ..."): a real planar reflection here too
+    if(/live mirror/.test(n)){addMirrors(g.getAttribute('position').array);continue;}
+    // smooth shading like the game (the batches carry smooth normals on round parts): faces under 35 deg apart share
+    // their normals, sharper edges stay hard (PREVIEW_FLAT=1: the old flat facets)
+    let gg=g;if(process_flat)g.computeVertexNormals();else{gg=toCreasedNormals(g,35*Math.PI/180);}
+    const g2=gg;
     const p={color:S2L([Math.min(c[0],1.6),Math.min(c[1],1.6),Math.min(c[2],1.6)]),side:THREE.FrontSide,roughness:.75,metalness:0};
     if(m.slug){p.map=await tex('http://preview.local/tex/'+m.slug+'_diff_1k.jpg',true);p.normalMap=await tex('http://preview.local/tex/'+m.slug+'_nor_gl_1k.jpg',false);
       if(/ceiling|wall_white/.test(n))p.normalScale=new THREE.Vector2(.18,.18);}   // same _BumpScale as the Unity ceiling / white wall materials
@@ -72,7 +97,7 @@ window.setup=async function(w,h){
     const transparent=c[3]<.99;
     if(transparent){p.transparent=true;p.opacity=Math.max(c[3],.18);p.depthWrite=false;p.roughness=.05;}
     const mat=new THREE.MeshStandardMaterial(p);cityAmbient(mat,m.ambient);
-    S.add(new THREE.Mesh(g,mat));
+    S.add(new THREE.Mesh(g2,mat));
   }
   if(scene.ground!=null){const gm=new THREE.MeshStandardMaterial({color:S2L([.36,.37,.38]),roughness:.9});
     if(GROUND_TEX){const t=await tex('http://preview.local/tex/'+GROUND_TEX+'_diff_1k.jpg',true);if(t){t.repeat.set(1600/1.4,1600/1.4);gm.map=t;gm.color=new THREE.Color(1,1,1);}}
@@ -157,6 +182,8 @@ window.shot=function(v,w,h){
   window.lights.map(L=>[L,L.position.distanceTo(eye)]).sort((a,b)=>a[1]-b[1]).slice(0,v.lights??4).forEach(([L,d])=>{if(d<L.distance+2)L.visible=true;});
   const C=new THREE.PerspectiveCamera(v.fov,w/h,v.near||.05,2000);
   C.position.copy(eye);C.lookAt(v.target[0],v.target[1],-v.target[2]);
+  for(const r of window.mirrors){const {c,n}=r.userData;const toEye=eye.clone().sub(c);
+    r.visible=toEye.length()<45;const side=toEye.dot(n)>=0?1:-1;r.lookAt(c.clone().add(n.clone().multiplyScalar(side)));}
   R.render(S,C);return R.domElement.toDataURL('image/png');
 };
 window.ready=true;

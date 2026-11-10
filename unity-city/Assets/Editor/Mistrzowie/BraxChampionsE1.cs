@@ -94,7 +94,9 @@ public static partial class BraxChampionsE1
         carpetRed=Tex("red_carpet_wool","poly_wool_herringbone",.9f,new Color(.48f,.034f,.053f));
         hallFloor=Inside(BraxChampionsFoundation.LibraryMarble("e1_hall_black_marble",new Color(.92f,.92f,.95f),1.6f),.8f);
         carpet=Inside(Tex("bowling_carpet_wool","poly_wool_herringbone",.9f,new Color(.29f,.19f,.49f)),.85f);     // woven wool, deep violet
-        carpetGraphite=Inside(Tex("billiard_carpet_wool","poly_wool_herringbone",.9f,new Color(.33f,.36f,.41f)),.85f);
+        // owner 10.11 22:30 ("każdy jeden materiał premium"): woven charcoal damask (Poly Haven floral_jacquard, as the hotel
+        // corridors) on the billiards / lounge / office floors - the pattern reads, not a flat grey
+        carpetGraphite=Inside(Tex("billiard_carpet_damask","floral_jacquard",1.4f,new Color(1.0f,1.0f,1.06f)),.85f);
         // maple lanes: laminate_floor_02 (155,128,99) lightened to pale natural maple, boards along the lane
         maple=Inside(Tex("lane_maple","laminate_floor_02",1.0f,new Color(1.32f,1.45f,1.62f)),.9f);
         gutter=Inside(BraxChampionsFoundation.LibraryMetal("e1_gutter_black_steel",new Color(.06f,.06f,.07f)),.75f);
@@ -135,6 +137,7 @@ public static partial class BraxChampionsE1
         BallMaterials();
         ScreenMaterials();
         FinishMaterials();
+        PremiumMaterials();
         // plush prizes in the claw machines: velour in four colours
         var pt=new[]{new Color(1.40f,1.60f,1.80f),new Color(.45f,2.0f,3.0f),new Color(1.45f,4.6f,.90f),new Color(1.40f,5.2f,3.4f)};
         plush=new Material[pt.Length];for(int i=0;i<pt.Length;i++)plush[i]=Inside(Tex("plush_"+i,"velour_velvet",.25f,pt[i]),.85f);
@@ -309,7 +312,7 @@ public static partial class BraxChampionsE1
     }
     // a sofa: rounded frame, seat and back cushions, rolled arms, stainless legs. back = centre of the back edge on the floor,
     // along / face = unit axes (x or z), len along, depth .92
-    static void Sofa(Material up,Vector3 back,Vector3 along,Vector3 face,float len,int seats,bool arms=true)
+    static void Sofa(Material up,Vector3 back,Vector3 along,Vector3 face,float len,int seats,bool arms=true,Material backUp=null)
     {
         const float d=.92f,armW=.20f;
         bool ax=Mathf.Abs(along.x)>.5f;
@@ -327,28 +330,13 @@ public static partial class BraxChampionsE1
         {
             float u0=-inner+i*w+.006f,u1=-inner+(i+1)*w-.006f;
             Part(up,u0,u1,.20f,d-.01f,FFL+.29f,FFL+.45f,.06f);                                      // seat cushion
-            Part(up,u0,u1,.16f,.36f,FFL+.45f,FFL+.86f,.09f);                                       // back cushion
+            Part(backUp??up,u0,u1,.16f,.36f,FFL+.45f,FFL+.86f,.09f);                               // back cushion (quilted)
         }
         if(arms)foreach(float sgn in new[]{-1f,1f})Part(up,sgn<0?-L:L-armW,sgn<0?-L+armW:L,0f,d,FFL+.10f,FFL+.62f,.095f);   // rolled arms
         foreach(float su in new[]{-1f,1f})foreach(float sv in new[]{.08f,d-.08f})
             m.Cylinder(chrome,back+along*(su*(L-.08f))+face*sv+Vector3.up*FFL,.024f,.10f,12,Quaternion.identity,false,false,.017f);
         var cc=back+along*0f+face*(d*.5f);var sz=ax?new Vector3(len,.86f,d):new Vector3(d,.86f,len);
         Col(cc.x-sz.x*.5f,cc.x+sz.x*.5f,FFL,FFL+.86f,cc.z-sz.z*.5f,cc.z+sz.z*.5f,"sofa");
-    }
-    // bar stool: stainless foot rest, chrome column, upholstered round seat with a low back
-    static void Stool(float x,float z,float h,Vector3 back)
-    {
-        m.Cylinder(steelPolished,new Vector3(x,FFL,z),.23f,.025f,24,Quaternion.identity,true,false,.21f);
-        m.Cylinder(steelPolished,new Vector3(x,FFL+.025f,z),.032f,h-.12f,14);
-        m.Tube(chrome,new Vector3(x-.2f,FFL+.30f,z),new Vector3(x+.2f,FFL+.30f,z),.012f,8);           // foot rest
-        m.Cylinder(charcoal,new Vector3(x,FFL+h-.11f,z),.19f,.07f,24,Quaternion.identity,true,true,.20f);
-        m.Cylinder(charcoal,new Vector3(x,FFL+h-.04f,z),.20f,.04f,24,Quaternion.identity,true,false,.17f);
-        if(back.sqrMagnitude>.01f)
-        {
-            var bc=new Vector3(x,FFL+h+.12f,z)+back*.17f;var rot=Quaternion.LookRotation(back);
-            m.RoundedBox(charcoal,bc,new Vector3(.34f,.22f,.06f),.03f,rot,3);
-        }
-        Col(x-.21f,x+.21f,FFL,FFL+h,z-.21f,z+.21f,"hoker");
     }
     // office chair: 5-star base on castors, gas lift, rounded seat, back and armrests
     static void Chair(float x,float z,Vector3 face)
@@ -569,7 +557,7 @@ public static partial class BraxChampionsE1
         }
         m.Cylinder(rubber,new Vector3(x+.18f,top,z+.25f),.041f,.008f,24,Quaternion.identity,true,false);
         foreach(float s in new[]{-1f,1f})B(purpleLed,s<0?x-hx-.012f:x+hx,s<0?x-hx:x+hx+.012f,FFL+.57f,FFL+.60f,z-hz+.08f,z+hz-.08f);
-        hockeyR.Add(Screen(scrGroup,"cymbergaj wynik "+(k+1),scrHockey,new Vector3(x-hx-.012f,FFL+.69f,z),.30f,.11f,90f));
+        hockeyR.Add(Screen(scrGroup,"cymbergaj wynik "+(k+1),scrHockey,new Vector3(x-hx-.026f,FFL+.69f,z),.30f,.11f,90f));
         Col(x-hx,x+hx,FFL,top+.06f,z-hz,z+hz,"cymbergaj");
     }
     // VR pod: round plinth with an anti-slip mat and a LED band, padded safety ring on steel posts (open to -z),
@@ -764,7 +752,7 @@ public static partial class BraxChampionsE1
     }
 
     // ---- doors: closed leaves that open on approach (BraxCityDoor), hinge groups at the jambs; frame in the main batch
-    static void Door(string id,string label,float x,float y,float z,float yaw,float width,float height,bool glassLeaf)
+    static void Door(string id,string label,float x,float y,float z,float yaw,float width,float height,bool glassLeaf,Material leaf=null)
     {
         var group=Group(root,label+" | door (opens on approach)");
         group.localPosition=new Vector3(x,y,z)*K;group.localRotation=Quaternion.Euler(0,yaw,0);
@@ -785,7 +773,7 @@ public static partial class BraxChampionsE1
             }
             else
             {
-                lm.BoxMinMax(blackMatte,a0,a1,.02f,height-.02f,-.025f,.025f);
+                lm.BoxMinMax(leaf??blackMatte,a0,a1,.02f,height-.02f,-.025f,.025f);
                 float px=side<0?a1-.12f:a0+.12f;
                 foreach(float f in new[]{-1f,1f})lm.BoxMinMax(chrome,px-.08f,px+.08f,1.02f,1.06f,f>0?.025f:-.075f,f>0?.075f:-.025f);
             }
@@ -802,7 +790,7 @@ public static partial class BraxChampionsE1
     public static int Generate(string outFolder)
     {
         System.IO.Directory.CreateDirectory(Folder);
-        Doors=Bays=Pins=BilliardTables=Colliders=Signs=0;doorList.Clear();
+        Doors=Bays=Pins=BilliardTables=Colliders=Signs=0;doorList.Clear();LiveMirrors=OwnerModels=OwnerMissing=Seats=TurnedBottles=0;mirrorGroup=null;
         Materials();
         var go=new GameObject("E1 | CENTRUM ROZRYWKI | kręgle 24 tory, bilard 18 stołów, gry/VR, bar/lounge, parking B1 (owner 10.11 19:18 board)");
         root=go.transform;root.position=new Vector3(CentreX,0,CentreZ)*K;
@@ -824,7 +812,7 @@ public static partial class BraxChampionsE1
         ek.kregle=kk.Length>0?kk[0]:null;ek.bilard=bb.Length>0?bb[0]:null;
         ek.tablice=boardR.ToArray();ek.kioski=kioskR.ToArray();ek.automaty=arcadeR.ToArray();ek.cymbergaj=hockeyR.ToArray();
         Debug.Log("E1_CENTRUM_ROZRYWKI lanes="+Lanes+" pins="+Pins+" billiardTables="+BilliardTables+" garageBays="+Bays+" doors="+Doors+
-                  " colliders="+Colliders+" signs="+Signs+" lift=B1-HOL taxiBay="+(BayX1-BayX0)+"m");
+                  " colliders="+Colliders+" signs="+Signs+" liveMirrors="+LiveMirrors+" seats="+Seats+" ownerModels="+OwnerModels+" ownerMissing="+OwnerMissing+" lift=B1-HOL taxiBay="+(BayX1-BayX0)+"m");
         return 1;
     }
 
@@ -1351,10 +1339,13 @@ public static partial class BraxChampionsE1
             B(purpleLed,xp-.355f,xp+.355f,FFL+.42f,FFL+.45f,-19.262f,-19.25f);
             // scorer console behind the return: rounded black, two live screens (left lane, right lane) toward the settee
             RB(black,xp-.48f,xp+.48f,FFL,FFL+.95f,-19.75f,-19.45f,.05f,true,3);
-            // U settee in plum velvet facing the lanes (back sofa + two wings), an oval marble table on a steel pedestal
+            // U settee facing the lanes (back sofa + two wings): black leather seats, quilted oxblood leather backs; an oval
+            // marble table on a steel pedestal
             float sz=-22.5f;
-            Sofa(velvet,new Vector3(xp,0,sz),Vector3.right,Vector3.forward,3.2f,3,false);
-            foreach(float sg in new[]{-1f,1f})Sofa(velvet,new Vector3(xp+sg*1.6f,0,sz+1.71f),Vector3.forward,new Vector3(-sg,0,0),1.56f,2,false);
+            Sofa(leatherBlack,new Vector3(xp,0,sz),Vector3.right,Vector3.forward,3.2f,3,false,quiltRed);
+            foreach(float sg in new[]{-1f,1f})Sofa(leatherBlack,new Vector3(xp+sg*1.6f,0,sz+1.71f),Vector3.forward,new Vector3(-sg,0,0),1.56f,2,false,quiltRed);
+            for(int i=-1;i<=1;i++)Seat(xp+i*1.067f,FFL+.45f,sz+.55f,Vector3.forward,"KANAPA");
+            foreach(float sg in new[]{-1f,1f})foreach(float u in new[]{-.39f,.39f})Seat(xp+sg*1.05f,FFL+.45f,sz+1.71f+u,new Vector3(-sg,0,0),"KANAPA");
             m.Cylinder(steelPolished,new Vector3(xp,FFL,-20.6f),.22f,.02f,28);m.Cylinder(steelPolished,new Vector3(xp,FFL+.02f,-20.6f),.04f,.40f,16);
             Oval(marbleWhite,new Vector3(xp,FFL+.42f,-20.6f),.32f,.42f,.04f);
             Col(xp-.32f,xp+.32f,FFL,FFL+.46f,-21.02f,-20.18f,"stolik");
@@ -1400,7 +1391,7 @@ public static partial class BraxChampionsE1
             m.Cylinder(steelPolished,new Vector3(tx,FFL,tz),.26f,.02f,28);m.Cylinder(steelPolished,new Vector3(tx,FFL+.02f,tz),.04f,1.0f,16);
             Oval(marbleWhite,new Vector3(tx,FFL+1.02f,tz),.45f,.45f,.04f);
             Col(tx-.45f,tx+.45f,FFL,FFL+1.06f,tz-.45f,tz+.45f,"stolik");
-            for(int c=0;c<3;c++){float a=c*120f*Mathf.Deg2Rad;var off=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));Stool(tx+off.x*.85f,tz+off.z*.85f,.78f,off);}
+            for(int c=0;c<3;c++){float a=c*120f*Mathf.Deg2Rad;var off=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));Stool(tx+off.x*.85f,tz+off.z*.85f,.78f,-off);}
         }
         BowlingGame(props);
     }
@@ -1474,8 +1465,8 @@ public static partial class BraxChampionsE1
     static void Billiards()
     {
         float x0=10.15f,x1=HW-.3f,z0=-HD+.3f;
-        B(carpetGraphite,x0,x1,SlabTop,FFL,-15.1f,14.9f);
-        B(hallFloor,x0,x1,SlabTop,FFL,z0,-15.1f);                                                         // bar / lounge: black marble
+        // the board's "Drewno (strefy wewn.)": oak planks over the whole billiards / bar / lounge hall (owner 10.11 23:20)
+        B(woodFloor,x0,x1,SlabTop,FFL,z0,14.9f);
         B(blackMatte,x0,x1,Ceiling,Ceiling+.1f,z0,14.9f);
         var game=Group(root,"E1 | BILARD gra (BraxChampionsBilard)");
         var centres=new List<Vector3>();var balls=new List<Rigidbody>();var cushions=new List<Collider>();
@@ -1532,43 +1523,10 @@ public static partial class BraxChampionsE1
             }
         }
         for(float z=-14f;z<14f;z+=3.5f)if(z<-12.1f||Mathf.Abs(z-10.5f)>1.6f)B(redLed,x1-.012f,x1,.8f,Ceiling-.4f,z-.03f,z+.03f);
-        // back bar: plaster wall, three stainless shelves with lit bottles, walnut back counter
+        // the back wall of the bar; the bar and the lounge: BraxChampionsE1Premium (owner 10.11 22:30-22:47)
         B(blackMatte,20f,50f,FFL,Ceiling,-15.2f,-15.0f,true);
-        for(int s=0;s<3;s++)
-        {
-            float y=FFL+1.12f+s*.55f;RB(chrome,21f,49f,y,y+.04f,-15.55f,-15.2f,.012f,false,2);B(redLed,21f,49f,y+.04f,y+.052f,-15.232f,-15.22f);
-            for(float x=21.3f;x<48.8f;x+=.32f)
-            {
-                int c=((int)(x*7f))%4;
-                m.Cylinder(bottles[c],new Vector3(x,y+.04f,-15.38f),.04f,.24f,12,Quaternion.identity,false,true);
-                m.Cylinder(bottles[c],new Vector3(x,y+.28f,-15.38f),.04f,.04f,12,Quaternion.identity,false,false,.014f);
-                m.Cylinder(bottles[c],new Vector3(x,y+.32f,-15.38f),.014f,.06f,10,Quaternion.identity,true,false);
-            }
-        }
-        // back counter: walnut, with 20 glass-door fridges (1.4 m cells) under the top
-        RB(lacquer,21f,49f,FFL,FFL+.92f,-15.45f,-15.2f,.02f,true);
-        RB(lacquer,21f,49f,FFL+.86f,FFL+.92f,-15.75f,-15.2f,.012f,false,2);B(lacquer,21f,49f,FFL,FFL+.10f,-15.75f,-15.45f);
-        Col(21f,49f,FFL,FFL+.92f,-15.75f,-15.45f,"lada");
-        // bar counter 1.06 m: walnut body with half-round ends, fluted front, stainless kick plate, white marble top with an
-        // overhang on the guests' side
-        float bz0=-18.3f,bz1=-17.6f,bzm=(bz0+bz1)*.5f,br=(bz1-bz0)*.5f,bt=FFL+1.01f;
-        B(lacquer,22f,48f,FFL,bt,bz0,bz1,true);
-        HalfRound(lacquer,new Vector3(22f,0,bzm),br,Vector3.left,FFL,bt,20);HalfRound(lacquer,new Vector3(48f,0,bzm),br,Vector3.right,FFL,bt,20);
-        for(float x=22.1f;x<47.95f;x+=.16f)RB(lacquer,x,x+.08f,FFL+.14f,bt-.06f,bz0-.03f,bz0+.01f,.012f,false,2);
-        RB(chrome,22f,48f,FFL,FFL+.12f,bz0-.025f,bz0+.01f,.01f,false,2);
-        B(marbleWhite,22f,48f,bt,bt+.05f,bz0-.25f,bz1+.05f);
-        HalfRound(marbleWhite,new Vector3(22f,0,bzm-.10f),br+.15f,Vector3.left,bt,bt+.05f,24);HalfRound(marbleWhite,new Vector3(48f,0,bzm-.10f),br+.15f,Vector3.right,bt,bt+.05f,24);
-        for(float x=23f;x<=47.01f;x+=1.0f)Stool(x,bz0-.65f,.78f,Vector3.back);
-        // lounge by the glass to the sea: six groups of two black leather sofas, oval marble tables on stainless pedestals
-        for(int k=0;k<6;k++)
-        {
-            float cx=14.5f+k*7.6f,cz=-22.2f;
-            Sofa(charcoal,new Vector3(cx,0,cz-1.36f),Vector3.right,Vector3.forward,3.0f,3);
-            Sofa(charcoal,new Vector3(cx,0,cz+2.36f),Vector3.right,Vector3.back,3.0f,3);
-            m.Cylinder(chrome,new Vector3(cx,FFL,cz+.5f),.30f,.02f,32);m.Cylinder(chrome,new Vector3(cx,FFL+.02f,cz+.5f),.06f,.38f,20);
-            Oval(marbleWhite,new Vector3(cx,FFL+.40f,cz+.5f),.80f,.42f,.04f);
-            Col(cx-.8f,cx+.8f,FFL,FFL+.44f,cz+.08f,cz+.92f,"stolik");
-        }
+        Bar();
+        Lounge();
     }
 
     // a 9 ft table: turned walnut legs on stainless feet, rounded walnut body, the cloth bed, cloth-covered cushions between
@@ -1666,8 +1624,7 @@ public static partial class BraxChampionsE1
         B(ceilWhite,-HW+.3f,-.15f,top,top+.1f,z0,z1);
         // floors
         B(techFloor,-HW+.3f,-30.1f,SlabTop,FFL,z0,z1);
-        B(terrazzo,-30.1f,-22.6f,SlabTop,FFL,z0,z1);B(terrazzo,-7.4f,-.15f,SlabTop,FFL,z0,z1);
-        B(wcFloor,-22.4f,-7.6f,SlabTop,FFL,z0,z1);
+        B(cloakFloor,-30.1f,-22.6f,SlabTop,FFL,z0,z1);B(cloakFloor,-7.4f,-.15f,SlabTop,FFL,z0,z1);                    // cloakrooms: large grey stone tiles
         // room signs over the doors (3D)
         foreach(var (x,t) in new[]{(-55f,"TECH."),(-40f,"MAGAZYN"),(-26f,"SZATNIA M"),(-19f,"WC M"),(-11f,"WC K"),(-4f,"SZATNIA K")})
             BraxChampionsLetters3D.Text(m,chrome,black,t,new Vector3(x,2.75f,14.91f),180f,.20f,.02f,.14f,2.6f);
@@ -1689,35 +1646,8 @@ public static partial class BraxChampionsE1
             Col(a,b,FFL,2f,23.86f,24.4f,"szafki");
             Bench(new Vector3((a+b)*.5f,0,19.5f),Vector3.right,b-a-2f,.46f);
         }
-        // toilets: cubicles with doors that open (BraxCityDoor), wall-hung pans on the tiled duct, basins on a marble
-        // counter under a mirror, urinals with screens in M
-        foreach(var (a,b,men,tag) in new[]{(-22.4f,-15.1f,true,"M"),(-14.9f,-7.6f,false,"K")})
-        {
-            const int n=5;float w=(b-a-.2f)/n,front=23.0f;
-            B(whiteTile,a,b,FFL,FFL+1.12f,24.45f,z1);                                                       // service duct
-            for(int i=0;i<=n;i++){float px=a+.1f+i*w;RB(black,px-.02f,px+.02f,FFL+.15f,FFL+2.0f,front,z1,.01f,true,2);}
-            for(int i=0;i<n;i++)
-            {
-                float cx=a+.1f+(i+.5f)*w;
-                RB(black,cx-w*.5f+.02f,cx-.36f,FFL+.15f,FFL+2.0f,front-.02f,front+.02f,.008f,true,2);
-                RB(black,cx+.36f,cx+w*.5f-.02f,FFL+.15f,FFL+2.0f,front-.02f,front+.02f,.008f,true,2);
-                Door("E1_WC_"+tag+"_"+(i+1),"E1 WC "+tag+" kabina "+(i+1),cx,FFL+.15f,front,0f,.70f,1.85f,false);
-                Toilet(cx,24.45f);
-                m.Cylinder(steelPolished,new Vector3(cx+w*.5f-.02f,FFL+.75f,24.05f),.055f,.12f,20,Quaternion.Euler(0,0,90),true,true);   // paper roll holder
-            }
-            // basin counter on the west wall, three vessel basins with mixers, mirror with a steel frame
-            float wx=a,cz0=16.0f,cz1=20.4f,ct=FFL+.84f;
-            RB(lacquer,wx,wx+.50f,FFL+.42f,ct,cz0,cz1,.02f,true,3);
-            RB(marbleWhite,wx,wx+.56f,ct,ct+.04f,cz0-.03f,cz1+.03f,.012f,false,3);
-            for(int k=0;k<3;k++){float bz=cz0+.75f+k*1.45f;Basin(new Vector3(wx+.30f,ct+.04f,bz),.21f,.15f,.13f);Tap(new Vector3(wx+.30f,ct+.04f,bz),Vector3.left,.24f);}
-            RB(steelPolished,wx,wx+.03f,FFL+1.08f,FFL+2.12f,cz0,cz1,.008f,false,2);
-            B(mirror,wx+.03f,wx+.04f,FFL+1.12f,FFL+2.08f,cz0+.04f,cz1-.04f);
-            if(men)for(int k=0;k<3;k++)
-            {
-                float uz=16.6f+k*.9f;Urinal(b,uz,-1f);
-                RB(black,b-.55f,b,FFL+.55f,FFL+1.65f,uz+.43f,uz+.47f,.008f,true,2);
-            }
-        }
+        // toilets M / K: BraxChampionsE1Premium.Toilets (owner 10.11 22:36 "tu 100 % do zmiany")
+        Toilets();
         // east band: games / VR open to the billiards (3 openings), offices, plant
         WallX(blackMatte,15f,10.15f,HW-.3f,FFL,Ceiling,.2f,(13f,19f,3.0f),(22f,28f,3.0f),(31f,37f,3.0f),(43.4f,44.6f,2.4f),(53.9f,55.1f,2.4f));
         Door("E1_OFFICES","E1 offices / biura",44f,FFL,15f,0f,1.2f,2.4f-FFL,false);
@@ -1727,7 +1657,7 @@ public static partial class BraxChampionsE1
         foreach(float x in new[]{40f,50f})B(blackMatte,x-.1f,x+.1f,FFL,top,z0,z1,true);
         B(ceilWhite,40f,HW-.3f,top,top+.1f,z0,z1);
         B(blackMatte,10.15f,40f,Ceiling,Ceiling+.1f,z0,z1);
-        B(carpet,10.15f,40f,SlabTop,FFL,z0,z1);B(carpetGraphite,40.1f,49.9f,SlabTop,FFL,z0,z1);B(techFloor,50.1f,HW-.3f,SlabTop,FFL,z0,z1);
+        B(carpet,10.15f,40f,SlabTop,FFL,z0,z1);B(woodFloor,40.1f,49.9f,SlabTop,FFL,z0,z1);B(techFloor,50.1f,HW-.3f,SlabTop,FFL,z0,z1);
         // games: ten upright arcade cabinets along the back wall, two air hockey tables, four VR pods, two claw machines
         var gry=Group(root,"E1 strefa gier");
         for(int i=0;i<10;i++)Arcade(11.6f+i*1.1f,23.88f,i);

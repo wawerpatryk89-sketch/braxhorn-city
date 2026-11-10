@@ -24,9 +24,12 @@ public static partial class BraxChampionsE1
 
     static void FinishMaterials()
     {
-        cladding=Tex("facade_fibre_cement_graphite","concrete_wall_009",3.0f,new Color(.286f,.307f,.371f));       // (161,153,140) -> graphite
+        cladding=BraxChampionsFoundation.LibraryMetal("e1_facade_black_metal_panels",new Color(.17f,.18f,.215f));   // board "Panel metalowy (czarny mat)": brushed grain reads
         ceilWhite=Inside(S("ceiling_paint_white_matte",new Color(.92f,.92f,.91f),.88f,0f),BraxChampionsInteriorLight.Ceilings);
         wallWhite=Inside(S("wall_paint_white_matte",new Color(.88f,.88f,.87f),.85f,0f),BraxChampionsInteriorLight.Walls);
+        // the interior ambient's ground colour is warm (.80,.77,.72): a downward face (a ceiling) took it and read beige /
+        // like raw concrete (owner 10.11 22:43 on the hotel). White paint keeps a neutral ground colour: white stays white.
+        foreach(var w in new[]{ceilWhite,wallWhite})w.SetColor("_GroundColor",new Color(.96f,.96f,.97f));
         acousticFelt=Inside(Tex("acoustic_felt_black","hessian_230",.6f,new Color(.21f,.25f,.38f)),.8f);
         fixture=Inside(S("fixture_white_powder_coat",new Color(.93f,.94f,.95f),.35f,.05f),.9f);
         exitGreen=S("exit_sign_green",new Color(.05f,.62f,.25f),.3f,0f,new Color(.05f,.95f,.35f));
@@ -47,8 +50,6 @@ public static partial class BraxChampionsE1
         DoorFrames();
         Ceilings();
         Services();
-        ToiletFittings();
-        BarFittings();
         Plants();
         Rooms();
         Outside();
@@ -95,13 +96,7 @@ public static partial class BraxChampionsE1
             FaceRun(wallWhite,false,15.1f,1f,a,b,FFL+.08f,4.5f,.008f);FaceRun(wallWhite,false,HD-.3f,-1f,a,b,FFL+.08f,4.5f,.008f);
             FaceRun(wallWhite,true,a,1f,15.1f,HD-.3f,FFL+.08f,4.5f,.008f);FaceRun(wallWhite,true,b,-1f,15.1f,HD-.3f,FFL+.08f,4.5f,.008f);
         }
-        // toilets M / K: tiles floor to ceiling on every wall (door x -19 / -11 in the front wall)
-        foreach(var (a,b,door) in new[]{(-22.4f,-15.1f,-19f),(-14.9f,-7.6f,-11f)})
-        {
-            Tiles(true,a,1f,15.1f,24.7f,FFL,4.5f);Tiles(true,b,-1f,15.1f,24.7f,FFL,4.5f);
-            Tiles(false,15.1f,1f,a,door-.66f,FFL,4.5f);Tiles(false,15.1f,1f,door+.66f,b,FFL,4.5f);Tiles(false,15.1f,1f,door-.66f,door+.66f,2.48f,4.5f);
-            Tiles(false,24.7f,-1f,a,b,FFL+1.12f,4.5f);
-        }
+        // toilets: marble linings in BraxChampionsE1Premium.Toilets
     }
 
     // ================================================================ skirting: 80 mm black metal, 12 mm proud
@@ -168,7 +163,7 @@ public static partial class BraxChampionsE1
     {
         foreach(var d in doorList)
         {
-            if(d.glass)continue;                                      // the glass doors stand in the black glazing frames
+            if(d.glass||d.label.Contains("kabina"))continue;          // glass doors: in the glazing frames; cubicles: the lacquer panels frame them
             float depth=d.label.Contains("kabina")?.08f:.34f,hw=d.w*.5f,top=d.h;
             var rot=Quaternion.Euler(0,d.yaw,0);var o=new Vector3(d.x,d.y,d.z);
             void Bx(float x0,float x1,float y0,float y1,float z0,float z1)
@@ -219,9 +214,10 @@ public static partial class BraxChampionsE1
     {
         float lanes0=LaneX0,lanes1=LaneX0+12*PairPitch;
         // bowling: over the settees and approaches, over the lanes (lane lights along every lane), the side areas
-        Grid(-HW+.3f,-.15f,-HD+.3f,-14f,Ceiling,2.4f,false);
-        for(int l=0;l<Lanes;l++)for(float z=-11f;z<4.5f;z+=3.1f){Downlight(LaneX(l),Ceiling,z);FinishItems++;}
-        Grid(-HW+.3f,lanes0,-14f,14.9f,Ceiling,2.6f,false);Grid(lanes1,-.15f,-14f,14.9f,Ceiling,2.6f,false);
+        // owner 10.11 22:30: no rows of light dots on the black - linear light slots (warm LED in a black channel)
+        Slots(-HW+.3f,-.15f,-HD+.3f,-14f,Ceiling,2.4f,true);
+        for(int l=0;l<Lanes;l++){float x=LaneX(l);B(black,x-.05f,x+.05f,Ceiling-.03f,Ceiling,-11.5f,4.5f);B(lampWarm,x-.03f,x+.03f,Ceiling-.042f,Ceiling-.03f,-11.48f,4.48f);FinishItems++;}
+        Slots(-HW+.3f,lanes0,-14f,14.9f,Ceiling,2.6f,false);Slots(lanes1,-.15f,-14f,14.9f,Ceiling,2.6f,false);
         for(float x=lanes0+1.6f;x<lanes1;x+=6f){Sprinkler(x,Ceiling,-3f);Sprinkler(x,Ceiling,3.2f);Smoke(x+3f,Ceiling,0f);}
         // billiards / bar / lounge (pendants over the tables: the grid keeps clear of them)
         System.Func<float,float,bool> clearOfTables=(x,z)=>
@@ -229,11 +225,11 @@ public static partial class BraxChampionsE1
             for(int i=0;i<6;i++)for(int j=0;j<3;j++){float cx=15.8f+i*7.6f,cz=-8f+j*8f;if(Mathf.Abs(x-cx)<1.2f&&Mathf.Abs(z-cz)<2.0f)return false;}
             return true;
         };
-        Grid(10.15f,HW-.3f,-HD+.3f,14.9f,Ceiling,2.4f,false,clearOfTables);
+        Slots(10.15f,HW-.3f,-HD+.3f,14.9f,Ceiling,2.4f,true,clearOfTables);
         // games, the hall (high ceiling: services only), back rooms (white, LED panels)
-        Grid(10.15f,39.9f,15.1f,HD-.3f,Ceiling,2.4f,false);
+        Slots(10.15f,39.9f,15.1f,HD-.3f,Ceiling,2.4f,true);
         for(float z=-20f;z<20f;z+=6f){Sprinkler(2.5f,11f,z);Sprinkler(7.5f,11f,z);Smoke(5f,11f,z+3f);}
-        foreach(var (a,b) in new[]{(-HW+.3f,-50.1f),(-49.9f,-30.1f),(-29.9f,-22.6f),(-22.4f,-15.1f),(-14.9f,-7.6f),(-7.4f,-.15f),(40.1f,49.9f),(50.1f,HW-.3f)})
+        foreach(var (a,b) in new[]{(-HW+.3f,-50.1f),(-49.9f,-30.1f),(-29.9f,-22.6f),(-7.4f,-.15f),(40.1f,49.9f),(50.1f,HW-.3f)})
             Grid(a,b,15.1f,HD-.3f,4.5f,2.4f,true);
     }
 
@@ -291,8 +287,9 @@ public static partial class BraxChampionsE1
                 if(cubicle&&s>0)continue;
                 var face=rot*Quaternion.Euler(0,s>0?0f:180f,0);
                 if(d.glass&&s>0)continue;                                                   // glass doors: the sign inside, on the transom
-                if(!cubicle)ExitSign(o+Vector3.up*(d.glass?d.h+.10f:d.h+.28f)+n*(s*(off+.025f)),face);
-                if(!d.glass&&!cubicle)Switch(o+n*(s*off)+along*(d.w*.5f+.20f)*(s>0?1f:-1f),n*s,FFL+1.05f,false);
+                float lin=s>0&&d.label.StartsWith("E1 toilets")?.012f:0f;                         // the toilets' marble lining (12 mm)
+                if(!cubicle)ExitSign(o+Vector3.up*(d.glass?d.h+.10f:d.h+.28f)+n*(s*(off+lin+.025f)),face);
+                if(!d.glass&&!cubicle)Switch(o+n*(s*(off+lin))+along*(d.w*.5f+.20f)*(s>0?1f:-1f),n*s,FFL+1.05f,false);
             }
             FinishItems++;
         }
@@ -309,76 +306,6 @@ public static partial class BraxChampionsE1
         foreach(var (a,b) in new[]{(-49.9f,-30.1f),(-29.9f,-22.6f),(-7.4f,-.15f),(10.15f,39.9f),(40.1f,49.9f)})
             for(float x=a+1.5f;x<b-1f;x+=3f){Switch(new Vector3(x,0,15.1f),Vector3.forward,FFL+.30f,true);Switch(new Vector3(x,0,HD-.3f),Vector3.back,FFL+.30f,true);}
         for(float z=-22f;z<14f;z+=4f)Switch(new Vector3(HW-.3f,0,z),Vector3.left,FFL+.30f,true);
-    }
-
-    // ================================================================ toilets
-    static void ToiletFittings()
-    {
-        foreach(var (a,b,men) in new[]{(-22.4f,-15.1f,true),(-14.9f,-7.6f,false)})
-        {
-            float wx=a+.01f;
-            // mirror light (LED bar), soap dispensers over the basins, towel dispenser, hand dryer, bin
-            B(lampWarm,wx,wx+.05f,FFL+2.14f,FFL+2.17f,16.04f,20.36f);
-            for(int k=0;k<3;k++){float bz=16.0f+.75f+k*1.45f;m.RoundedBox(steelPolished,new Vector3(wx+.04f,FFL+1.0f,bz+.32f),new Vector3(.07f,.16f,.09f),.02f,2);}
-            m.RoundedBox(steelPolished,new Vector3(wx+.08f,FFL+1.25f,21.2f),new Vector3(.14f,.36f,.30f),.02f,2);
-            m.RoundedBox(steelPolished,new Vector3(wx+.09f,FFL+1.05f,15.75f),new Vector3(.18f,.26f,.30f),.04f,3);   // hand dryer
-            m.Cylinder(steelPolished,new Vector3(wx+.25f,FFL,21.2f),.14f,.42f,24,Quaternion.identity,true,false);
-            // in every cubicle: coat hook, brush holder, bin
-            float w=(b-a-.2f)/5f;
-            for(int i=0;i<5;i++)
-            {
-                float cx=a+.1f+(i+.5f)*w;
-                m.Cylinder(steelPolished,new Vector3(cx-w*.5f+.12f,FFL,24.2f),.05f,.38f,16,Quaternion.identity,true,false);
-                m.Cylinder(steelPolished,new Vector3(cx+w*.5f-.15f,FFL,24.25f),.09f,.30f,20,Quaternion.identity,true,false);
-                m.Cylinder(steelPolished,new Vector3(cx,FFL+1.75f,23.02f),.012f,.06f,10,Quaternion.Euler(90,0,0),true,false);
-                FinishItems++;
-            }
-            if(!men)m.RoundedBox(fixture,new Vector3(b-.06f,FFL+.95f,17.0f),new Vector3(.12f,.55f,.85f),.04f,3);    // baby changing unit (folded)
-        }
-    }
-
-    // ================================================================ bar
-    static void BarFittings()
-    {
-        // mirror wall behind the bottles, the shelf lights moved 12 mm in front of it
-        B(mirror,21f,49f,FFL+1.0f,FFL+2.95f,-15.22f,-15.2f);
-        // under-counter glass-door fridges in the back counter (stainless frame, glass, lit inside)
-        for(int i=0;i<20;i++)
-        {
-            float x=21f+i*1.4f;
-            RB(steelPolished,x-.02f,x+.02f,FFL+.10f,FFL+.86f,-15.76f,-15.45f,.006f,false,2);                    // divider / door frame
-            B(fixture,x+.02f,x+1.38f,FFL+.10f,FFL+.86f,-15.47f,-15.45f);                                          // white inner back
-            B(lampWarm,x+.06f,x+1.34f,FFL+.84f,FFL+.86f,-15.72f,-15.47f);                                         // light under the top
-            B(steelPolished,x+.04f,x+1.36f,FFL+.42f,FFL+.43f,-15.72f,-15.47f);                                    // wire shelf
-            B(clearGlass,x+.03f,x+1.37f,FFL+.12f,FFL+.84f,-15.758f,-15.75f);
-            m.Cylinder(steelPolished,new Vector3(x+1.25f,FFL+.30f,-15.79f),.008f,.40f,8);                       // handle
-            for(int k=0;k<6;k++){m.Cylinder(bottles[(i+k)%4],new Vector3(x+.15f+k*.22f,FFL+.10f,-15.6f),.032f,.20f,10,Quaternion.identity,true,false);
-                                 m.Cylinder(bottles[(i+k+1)%4],new Vector3(x+.15f+k*.22f,FFL+.43f,-15.6f),.032f,.20f,10,Quaternion.identity,true,false);}
-            FinishItems++;
-        }
-        RB(steelPolished,48.98f,49.0f,FFL+.10f,FFL+.86f,-15.76f,-15.45f,.006f,false,2);
-        // coffee machine and grinder on the back counter, the till on the bar
-        m.RoundedBox(steelPolished,new Vector3(34f,FFL+1.12f,-15.5f),new Vector3(.80f,.40f,.50f),.04f,3);
-        m.RoundedBox(black,new Vector3(34.6f,FFL+1.05f,-15.5f),new Vector3(.22f,.26f,.30f),.03f,3);
-        m.RoundedBox(black,new Vector3(34.6f,FFL+1.25f,-15.5f),new Vector3(.18f,.18f,.18f),.08f,3);
-        m.RoundedBox(black,new Vector3(30f,FFL+1.12f,-17.75f),new Vector3(.36f,.16f,.30f),.02f,2);
-        // beer towers on the bar: chrome column, four taps
-        foreach(float x in new[]{26f,37f,44f})
-        {
-            m.Cylinder(steelPolished,new Vector3(x,FFL+1.06f,-17.95f),.05f,.45f,20);
-            for(int i=0;i<4;i++){float a=i*90f*Mathf.Deg2Rad;var d=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));
-                m.Tube(steelPolished,new Vector3(x,FFL+1.38f,-17.95f)+d*.05f,new Vector3(x,FFL+1.38f,-17.95f)+d*.12f,.012f,10);
-                m.Cylinder(black,new Vector3(x,FFL+1.38f,-17.95f)+d*.12f,.012f,.12f,10);}
-            FinishItems++;
-        }
-        // pendants over the bar: black cylinders with warm diffusers on cords
-        for(float x=23f;x<=47.01f;x+=2f)
-        {
-            m.Cylinder(steelPolished,new Vector3(x,FFL+2.35f,-17.95f),.003f,Ceiling-FFL-2.35f,6);
-            m.Cylinder(black,new Vector3(x,FFL+2.05f,-17.95f),.11f,.30f,28,Quaternion.identity,true,false);
-            m.Cylinder(lampWarm,new Vector3(x,FFL+2.04f,-17.95f),.10f,.01f,28,Quaternion.identity,false,true);
-            FinishItems++;
-        }
     }
 
     // ================================================================ plants (Poly Haven potted_plant_01 / 02, real size x K)
@@ -442,14 +369,18 @@ public static partial class BraxChampionsE1
         // cloakrooms: a full-height mirror and a coat rail with hooks on the side walls
         foreach(var (a,b) in new[]{(-29.9f,-22.6f),(-7.4f,-.15f)})
         {
-            RB(steelPolished,a,a+.025f,FFL+.25f,FFL+2.05f,16.6f,18.0f,.006f,false,2);B(mirror,a+.025f,a+.035f,FFL+.29f,FFL+2.01f,16.64f,17.96f);
+            RB(lacquer,a,a+.02f,FFL+.22f,FFL+2.08f,16.56f,18.04f,.006f,false,2);
+            RB(steelPolished,a+.02f,a+.06f,FFL+.24f,FFL+.28f,16.58f,18.02f,.006f,false,2);RB(steelPolished,a+.02f,a+.06f,FFL+2.02f,FFL+2.06f,16.58f,18.02f,.006f,false,2);
+            RB(steelPolished,a+.02f,a+.06f,FFL+.28f,FFL+2.02f,16.58f,16.62f,.006f,false,2);RB(steelPolished,a+.02f,a+.06f,FFL+.28f,FFL+2.02f,17.98f,18.02f,.006f,false,2);
+            // the wall facing the lockers: walnut slats on black felt either side of the door (as the halls)
+            float dx=a<-20f?-26f:-4f;Slats(false,15.108f,1f,a+.25f,dx-.95f,FFL+.14f,3.2f);Slats(false,15.108f,1f,dx+.95f,b-.25f,FFL+.14f,3.2f);
+            Slats(true,a+.008f,1f,15.35f,16.45f,FFL+.14f,3.2f);Slats(true,a+.008f,1f,18.15f,23.8f,FFL+.14f,3.2f);   // the mirror wall
+            LiveMirror("cloakroom "+(a<-20f?"M":"K"),new Vector3(a+.05f,FFL+1.15f,17.3f),Vector3.right,1.38f,1.76f,512,640,8f,10f);
             m.Tube(steelPolished,new Vector3(b-.06f,FFL+1.75f,16.2f),new Vector3(b-.06f,FFL+1.75f,21.6f),.016f,12);
             for(float z=16.4f;z<21.5f;z+=.45f){m.Tube(steelPolished,new Vector3(b-.008f,FFL+1.75f,z),new Vector3(b-.14f,FFL+1.82f,z),.008f,8);}
             RB(black,b-.03f,b,FFL+1.70f,FFL+1.80f,16.1f,21.7f,.01f,false,2);
             FinishItems++;
         }
-        // lounge: wool rugs under the sofa groups
-        for(int k=0;k<6;k++){float cx=14.5f+k*7.6f,cz=-22.2f;B(carpetGraphite,cx-1.75f,cx+1.75f,FFL,FFL+.012f,cz-1.2f,cz+2.2f);B(redLed,cx-1.75f,cx+1.75f,FFL,FFL+.006f,cz-1.26f,cz-1.2f);}
         // store: crates on the shelves
         for(int i=0;i<2;i++){float x=-48.5f+i*4.6f;for(int lv=0;lv<3;lv++)for(int c=0;c<4;c++)
             Prop(g,(c+lv)%2==0?"PolyHaven/plastic_crate_02/plastic_crate_02_2k.gltf":"PolyHaven/wooden_crate_02/wooden_crate_02_2k.gltf",new Vector3(x+.45f+c*.9f,.44f+lv*.7f,19.0f+(c%2)*2.5f),c*90f,true);}

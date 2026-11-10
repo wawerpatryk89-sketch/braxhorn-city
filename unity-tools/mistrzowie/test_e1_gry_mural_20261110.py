@@ -18,7 +18,7 @@ def code(path):
 class E1Games(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.e1 = code(ED / "BraxChampionsE1.cs")
+        cls.e1 = code(ED / "BraxChampionsE1.cs") + code(ED / "BraxChampionsE1Premium.cs")
         cls.kregle = code(RT / "BraxChampionsKregle.cs")
         cls.bilard = code(RT / "BraxChampionsBilard.cs")
         cls.piksele = code(RT / "BraxChampionsPiksele.cs")

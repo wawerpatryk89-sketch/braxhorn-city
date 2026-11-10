@@ -46,7 +46,7 @@ public static class BraxChampionsHotelSobczakT03
     static BraxChampionsHotelSobczakMaterials.Set M;
     static Transform root,site,podium,tower,details,podiumInside,cores,roof,guestFloors,signs;
     static readonly List<GameObject> floorInstances=new List<GameObject>();
-    static int roomsBuilt,doorsBuilt,modelsPlaced,modelsMissing,serial;
+    static int roomsBuilt,doorsBuilt,modelsPlaced,modelsMissing,serial,wardrobes;
     static Mesh leafMesh;
 
     [Serializable] sealed class Report
@@ -63,7 +63,7 @@ public static class BraxChampionsHotelSobczakT03
         Directory.CreateDirectory(Out);Directory.CreateDirectory(Out+"/Meshes");Directory.CreateDirectory(Out+"/Materials");
         M=BraxChampionsHotelSobczakMaterials.Create();
         var existing=GameObject.Find(RootName);if(existing)UnityEngine.Object.DestroyImmediate(existing);
-        roomsBuilt=doorsBuilt=modelsPlaced=modelsMissing=serial=0;floorInstances.Clear();leafMesh=null;roomRects.Clear();diningChairs.Clear();chairProto=null;
+        roomsBuilt=doorsBuilt=modelsPlaced=modelsMissing=serial=wardrobes=0;floorInstances.Clear();leafMesh=null;roomRects.Clear();diningChairs.Clear();chairProto=null;
 
         // Ground datum from the real plot base (legacy_foundation.py: plot_base at -.25).
         Physics.SyncTransforms();
@@ -185,7 +185,7 @@ public static class BraxChampionsHotelSobczakT03
         if(roomsBuilt!=TotalRooms)throw new InvalidOperationException("HOTEL SOBCZAK room count "+roomsBuilt+" != "+TotalRooms);
         Debug.Log("HOTEL_SOBCZAK_T03_REBUILT style=MODERN_BRICK podium=42x38 tower=34x32 height="+(Crown-Ffl0).ToString("F2")+
             " guestFloors="+GuestFloors+" rooms="+roomsBuilt+" lifts="+Elevators+" stops="+Stops+" stairs="+Stairs+
-            " doors="+doorsBuilt+" polyHavenModels="+modelsPlaced+" modelsMissing="+modelsMissing+" roomZones="+roomZones+" diningChairs="+diningChairs.Count+" signParts="+signParts+" meshes="+saved+
+            " doors="+doorsBuilt+" wardrobesOpening="+wardrobes+" polyHavenModels="+modelsPlaced+" modelsMissing="+modelsMissing+" roomZones="+roomZones+" diningChairs="+diningChairs.Count+" signParts="+signParts+" meshes="+saved+
             " garageBays="+garageBays+" garageLift=B1-PLAC datumY="+datum.ToString("F3")+" entrance=automatic_sliding_doors_with_collision trees=0 visualReview=PENDING");
     }
 
@@ -1907,13 +1907,26 @@ public static class BraxChampionsHotelSobczakT03
         Prism(Circle(a+1.95f,Z(10.05f),.16f,18),Fin,.02f,M.brass,M.brass,false);
         Model(H+"potted_plant_04/potted_plant_04_1k.gltf",fg,"room "+number+" plant on side table",new Vector3(a+1.95f,.56f,Z(10.05f)),45f,false);
         Model(H+"hanging_picture_frame_02/hanging_picture_frame_02_1k.gltf",fg,"room "+number+" art in reading corner",new Vector3(a+.02f,1.75f,Z(9.3f)),90f,false,Snap.Centre);
-        // wardrobe (walnut doors, brass bars) and a leather luggage bench in the hall
-        Box(M.walnut,bx1+.08f,b-.04f,0,2.6f,Z(.02f),Z(.64f),true);
-        float wm=(bx1+.08f+b-.04f)*.5f;
-        Box(M.walnutDark,wm-.004f,wm+.004f,.02f,2.58f,Z(.64f),Z(.645f));
-        foreach(float dx in new[]{-.08f,.08f})Box(M.brass,wm+dx-.012f,wm+dx+.012f,.8f,1.6f,Z(.645f),Z(.67f));
-        Box(M.walnutDark,bx1+.3f,b-.3f,0,.36f,Z(2.0f),Z(2.45f),true);
-        Box(M.cognac,bx1+.28f,b-.28f,.36f,.46f,Z(1.98f),Z(2.47f),true);
+        // wardrobe (walnut doors, brass bars) in the hall; owner 10.11 22:45 (photo from the game): the leather luggage
+        // bench stood across the hall in front of it and blocked the way ("coś stoi, blokuje dojście") - gone, the hall
+        // and the wardrobe front are clear
+        // "wszystko ma być funkcjonalne": the wardrobe is open inside - walnut back, sides, top and plinth, a hat shelf, a
+        // polished hanging rail under a warm light strip - and its two doors open on approach (BraxChampionsInteriorDoor,
+        // the city's BraxCityDoor), each hinged on its outer side
+        float wx0=bx1+.08f,wx1=b-.04f,wm=(wx0+wx1)*.5f;
+        Box(M.walnut,wx0,wx1,0,2.6f,Z(.02f),Z(.04f),true);
+        Box(M.walnut,wx0,wx0+.02f,0,2.6f,Z(.04f),Z(.64f),true);Box(M.walnut,wx1-.02f,wx1,0,2.6f,Z(.04f),Z(.64f),true);
+        Box(M.walnut,wx0+.02f,wx1-.02f,2.56f,2.6f,Z(.04f),Z(.64f));Box(M.walnutDark,wx0+.02f,wx1-.02f,0,.08f,Z(.04f),Z(.64f));
+        Box(M.walnut,wx0+.02f,wx1-.02f,2.10f,2.125f,Z(.04f),Z(.60f));
+        Box(M.ledCool,wx0+.04f,wx1-.04f,2.08f,2.10f,Z(.50f),Z(.53f));
+        Rod(M.chrome,new Vector3(wx0+.02f,1.92f,Z(.33f)),new Vector3(wx1-.02f,1.92f,Z(.33f)),.013f);
+        var wl=BraxChampionsInteriorDoor.Single("T03_WARDROBE_"+number+"_L","room "+number+" wardrobe door left",true,Z(.62f),wx0+.025f,wm-.003f,.085f,2.47f,M.walnut,M.chrome,.03f);
+        var wr=BraxChampionsInteriorDoor.Single("T03_WARDROBE_"+number+"_R","room "+number+" wardrobe door right",true,Z(.62f),wm+.003f,wx1-.025f,.085f,2.47f,M.walnut,M.chrome,.03f);
+        // the right leaf is hinged on its outer edge: the door root turned half round about the leaf's centre
+        if(wr){var c=wr.position;wr.RotateAround(new Vector3((wm+wx1)*.5f,c.y,c.z),Vector3.up,180f);}
+        // a wardrobe door opens toward you (a room door away from you): the leaf turns the other way (BraxCityDoor sides -1)
+        foreach(var wd in new[]{wl,wr})if(wd){var cd=wd.GetComponent<BraxCityDoor>();if(cd)cd.sides=new[]{-1f};}
+        wardrobes++;
         // bathroom: walnut vanity, marble top, vessel basin, chrome tap, LED mirror, wall-hung WC, rain shower, towels
         Box(M.walnut,a+1.8f,a+3.2f,.22f,.82f,Z(.02f),Z(.56f),true);
         Box(M.walnutDark,a+1.8f,a+3.2f,.515f,.525f,Z(.56f),Z(.565f));

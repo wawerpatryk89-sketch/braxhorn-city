@@ -144,6 +144,7 @@ jobs:
             unity-city/Prywatne/miasto_palmy.tar.gz.enc
             unity-city/Prywatne/miasto_silownia_metro.tar.gz.enc
             unity-city/Prywatne/miasto_sklepy.tar.gz.enc
+            unity-city/Prywatne/osiedle_wnetrza.tar.gz.enc
             public/assets/cars-src/car_rev.glb
             public/assets/chars/brax.glb.gz
             public/assets/tex/brax_color.webp

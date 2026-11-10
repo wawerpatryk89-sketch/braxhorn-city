@@ -13,7 +13,7 @@ ED = ROOT / "unity-city/Assets/Editor/Mistrzowie"
 class E1Finish(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.e1 = (ED / "BraxChampionsE1.cs").read_text(encoding="utf-8")
+        cls.e1 = (ED / "BraxChampionsE1.cs").read_text(encoding="utf-8") + (ED / "BraxChampionsE1Premium.cs").read_text(encoding="utf-8")
         cls.fin = (ED / "BraxChampionsE1Finish.cs").read_text(encoding="utf-8")
 
     def test_wired(self):
@@ -22,14 +22,14 @@ class E1Finish(unittest.TestCase):
         self.assertIn('Finish();Flush("E1 interior | finish', self.e1)
         self.assertIn("FinishMaterials();", self.e1)
         self.assertIn("doorList.Add((x,y,z,yaw,width,height,glassLeaf,label));", self.e1)
-        for step in ("Linings();", "Skirting();", "DoorFrames();", "Ceilings();", "Services();", "ToiletFittings();",
-                     "BarFittings();", "Plants();", "Rooms();", "Outside();"):
+        # 10.11 22:30-22:47: the toilets and the bar fittings moved to BraxChampionsE1Premium (Toilets(), Bar())
+        for step in ("Linings();", "Skirting();", "DoorFrames();", "Ceilings();", "Services();", "Plants();", "Rooms();", "Outside();"):
             self.assertIn(step, self.fin)
 
     def test_real_finishes_no_rough_render_no_gold(self):
         self.assertIn('blackMatte=Inside(Tex("interior_paint_graphite","beige_wall_001"', self.e1)   # smooth paint, not stucco
         self.assertNotIn('"interior_dark_plaster","white_stucco_02"', self.e1)
-        self.assertIn('cladding=Tex("facade_fibre_cement_graphite","concrete_wall_009"', self.fin)
+        self.assertIn('cladding=BraxChampionsFoundation.LibraryMetal("e1_facade_black_metal_panels"', self.fin)   # board: black metal panels
         self.assertGreaterEqual(self.e1.count("B(cladding,"), 3)                                    # front, sides, back
         self.assertNotRegex(re.sub(r"//.*", "", self.e1 + self.fin), r"\bgold\b|BraxChampionsGold")
         for mat in ("acousticFelt", "wcFloor", "terrazzo", "wallWhite", "ceilWhite"):

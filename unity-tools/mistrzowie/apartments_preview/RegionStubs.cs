@@ -32,6 +32,8 @@ public static class BraxMiastoAssety
     public static GameObject Postaw(Transform parent, GameObject src, string name, Vector3 p, float yaw, float s = 1f, bool st = true, bool sh = true)
     { var g = new GameObject(name); g.transform.SetParent(parent, false); g.transform.position = p; Rec.Palms.Add(p); Rec.PalmObjs.Add(g.transform); return g; }
     public static void LodyZWezlow(GameObject o, float[] progi) { }
+    public static Bounds Granice(GameObject o) => new Bounds(o.transform.position, Vector3.zero);
+    public static void Przygotuj(GameObject o, bool statyczny = true, bool cienie = true) { }
 }
 public static class Rec
 {

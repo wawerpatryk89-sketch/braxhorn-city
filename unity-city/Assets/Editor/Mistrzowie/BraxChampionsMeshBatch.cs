@@ -145,6 +145,53 @@ public sealed class BraxChampionsMeshBatch
     public void Cylinder(Material m, Vector3 baseCentre, float radius, float height, int sides = 12, bool top = true)
         => Cylinder(m, baseCentre, radius, height, sides, Quaternion.identity, top);
 
+    /// <summary>
+    /// Turned solid (bottle, glass, basin, stool seat, lamp shade): profile = (radius, height) points from the bottom up about
+    /// the base centre, smooth normals along the profile; a repeated point is a crease (hard edge). A profile may turn back
+    /// down (a glass: outside up, rim, inside down) - the faces follow its direction. Caps close a first / last ring of r &gt; 0.
+    /// </summary>
+    public void Lathe(Material m, Vector3 c, Vector2[] prof, int sides, Quaternion r, bool capBottom = true, bool capTop = true)
+    {
+        var up = r * Vector3.up; int n = prof.Length; if (n < 2) return;
+        var en = new Vector2[n - 1];
+        for (int i = 0; i + 1 < n; i++) { var e = prof[i + 1] - prof[i]; en[i] = e.sqrMagnitude < 1e-12f ? Vector2.zero : new Vector2(e.y, -e.x).normalized; }
+        Vector2 Smooth(int edge, int other)
+        {
+            if (other < 0 || other >= en.Length || en[other].sqrMagnitude < 1e-12f) return en[edge];
+            var s = en[edge] + en[other]; return s.sqrMagnitude < 1e-6f ? en[edge] : s.normalized;
+        }
+        for (int i = 0; i + 1 < n; i++)
+        {
+            if (en[i].sqrMagnitude < 1e-12f || (prof[i].x < 1e-6f && prof[i + 1].x < 1e-6f)) continue;
+            Vector2 na = Smooth(i, i - 1), nb = Smooth(i, i + 1);
+            for (int j = 0; j < sides; j++)
+            {
+                float a0 = j * Mathf.PI * 2f / sides, a1 = (j + 1) * Mathf.PI * 2f / sides;
+                Vector3 d0 = r * new Vector3(Mathf.Cos(a0), 0, Mathf.Sin(a0)), d1 = r * new Vector3(Mathf.Cos(a1), 0, Mathf.Sin(a1));
+                Vector3 b0 = c + d0 * prof[i].x + up * prof[i].y, b1 = c + d1 * prof[i].x + up * prof[i].y;
+                Vector3 t0 = c + d0 * prof[i + 1].x + up * prof[i + 1].y, t1 = c + d1 * prof[i + 1].x + up * prof[i + 1].y;
+                var p = Of(m); int q = p.v.Count;
+                if (prof[i].x < 1e-6f) Triangle(m, b0, t0, t1);
+                else if (prof[i + 1].x < 1e-6f) Triangle(m, b1, b0, t0);
+                else Quad(m, b1, b0, t0, t1);
+                Vector3 N(Vector2 v, Vector3 d) => (d * v.x + up * v.y).normalized;
+                var face = p.n[q]; var want = N(en[i], (d0 + d1).normalized);
+                float s = Vector3.Dot(face, want) < 0f ? -1f : 1f;      // the faces follow the profile's direction
+                if (prof[i].x < 1e-6f) { p.n[q] = s * N(na, d0); p.n[q + 1] = s * N(nb, d0); p.n[q + 2] = s * N(nb, d1); }
+                else if (prof[i + 1].x < 1e-6f) { p.n[q] = s * N(na, d1); p.n[q + 1] = s * N(na, d0); p.n[q + 2] = s * N(nb, d0); }
+                else { p.n[q] = s * N(na, d1); p.n[q + 1] = s * N(na, d0); p.n[q + 2] = s * N(nb, d0); p.n[q + 3] = s * N(nb, d1); }
+            }
+        }
+        for (int j = 0; j < sides; j++)
+        {
+            float a0 = j * Mathf.PI * 2f / sides, a1 = (j + 1) * Mathf.PI * 2f / sides;
+            Vector3 d0 = r * new Vector3(Mathf.Cos(a0), 0, Mathf.Sin(a0)), d1 = r * new Vector3(Mathf.Cos(a1), 0, Mathf.Sin(a1));
+            if (capBottom && prof[0].x > 1e-6f) { var cb = c + up * prof[0].y; Triangle(m, cb, cb + d0 * prof[0].x, cb + d1 * prof[0].x); }
+            if (capTop && prof[n - 1].x > 1e-6f) { var ct = c + up * prof[n - 1].y; Triangle(m, ct, ct + d1 * prof[n - 1].x, ct + d0 * prof[n - 1].x); }
+        }
+    }
+    public void Lathe(Material m, Vector3 c, Vector2[] prof, int sides = 24) => Lathe(m, c, prof, sides, Quaternion.identity);
+
     /// <summary>Round tube from a to b (railing, rope, pole); sag bends it down in the middle (rope).</summary>
     public void Tube(Material m, Vector3 a, Vector3 b, float radius, int sides = 8, int divisions = 1, float sag = 0f)
     {
