@@ -40,6 +40,8 @@ public static class BraxChampionsExplorer
         // atmosphere (no texture memory) with a horizon line and a sun disc.
         camera.clearFlags = CameraClearFlags.Skybox; camera.backgroundColor = new Color(.64f, .73f, .79f);
         camera.gameObject.AddComponent<AudioListener>(); camera.gameObject.AddComponent<BraxClaudeKamera>();
+        // owner 10.11 09:07 "stały problem": the game graphics modes cut the view at 170-540 m, buildings popped in
+        camera.gameObject.AddComponent<BraxChampionsZasiegWidzenia>();
         // Brax receives the same world light as the surroundings. Camera-attached
         // portrait lights stacked three extra directional lights on his skin only.
         var runtime = player.AddComponent<BraxGymPlayer>();
