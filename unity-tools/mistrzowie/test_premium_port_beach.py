@@ -109,6 +109,31 @@ class PremiumPortBeach(unittest.TestCase):
         self.assertIn('BraxMiastoAssety.Model("miasto_palmy","palma"),BraxMiastoAssety.Model("miasto_palmy","palma2")',
                       (EDITOR/"BraxChampionsFoundation.cs").read_text())    # variant 0 = palma (thick trunk)
 
+    def test_dining_islands_between_kiosks(self):
+        # owner 10.11 10:28: between the kiosks chairs, eating stations and palms
+        import promenade_layout as pl
+        self.assertEqual(len(pl.DINING),11)
+        self.assertTrue(pl.validate_dining())
+        terrain=(ROOT/"unity-tools/mistrzowie/legacy_foundation.py").read_text()
+        self.assertIn("for x,z in DINING_BEDS:plant(x,z,'palm',0,'dining_bed')",terrain)
+        self.assertIn("+PALM_BED_RECTS+DINING_BED_RECTS",terrain)          # grid lines: the beds really are soil
+        f=(EDITOR/"BraxChampionsPromenadeFurniture.cs").read_text()
+        for needle in ("static void Island(","BraxChampionsPromenade.Chair(m,f+new Vector3(.74f,0,0),-90f);",
+                       "BraxChampionsPromenade.Parasol(m,f+Vector3.up*.76f,1.45f);","standing counters","BraxChampionsPromenade.Leather"):
+            self.assertIn(needle,f)
+        self.assertIn("d.dining==null || d.dining.Length!=11",(EDITOR/"BraxChampionsFoundation.cs").read_text())
+
+    def test_real_materials_on_seats_and_cloth(self):
+        # owner 10.11 10:27: wood is wood, upholstery is fabric / leather, cloth is woven cloth (no flat colour, no plaid)
+        p=(EDITOR/"BraxChampionsPromenade.cs").read_text()
+        self.assertIn('Canvas=Fabric("prom_parasol_canvas_white","terlenka"',p)
+        self.assertIn('Cushion=Fabric("prom_seat_cushion_white","cotton_jersey"',p)
+        self.assertIn('BraxChampionsFoundation.LibraryLeather("prom_bar_stool_black_leather"',p)
+        b=(EDITOR/"BraxChampionsBeachFurnishings.cs").read_text()
+        self.assertNotIn('"fabric_pattern_05"',b)
+        self.assertNotIn('Surface("beach_parasol_canvas_white"',b)
+        self.assertIn('"terlenka"',b);self.assertIn('"cotton_jersey"',b)
+
     def test_preview_mirrors_foundation_colours(self):
         # the preview's copy of the foundation materials must show what Unity builds (review 10.11: pink deck, orange sand)
         f=(EDITOR/"BraxChampionsFoundation.cs").read_text()

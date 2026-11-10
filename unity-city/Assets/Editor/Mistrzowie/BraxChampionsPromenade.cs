@@ -29,7 +29,7 @@ public static class BraxChampionsPromenade
     public static float ShelfZ(float d)=>d*.5f-.18f-ShelfDepth*.5f;
     public static float FrontCounterZ(float d)=>-d*.5f+.40f;
     public const float FrontCounterTop=1.02f;
-    public static Material Trav,Marble,Slat,Plinth,Glass,Canvas,Floor,Soffit,Wood;
+    public static Material Trav,Marble,Slat,Plinth,Glass,Canvas,Floor,Soffit,Wood,Cushion,Leather;
     public static int Built,Letters3D;
 
     [Serializable] public sealed class KioskRecord
@@ -40,7 +40,15 @@ public static class BraxChampionsPromenade
         public bool walkIn;
     }
 
-    static void Materials()
+    /// <summary>Real woven fabric (Poly Haven maps, tinted), optional glow for translucent canvas.</summary>
+    public static Material Fabric(string id,string slug,Color tint,float metres,Color? glow=null)
+    {
+        var m=BraxChampionsFoundation.SourceMaterial(id,slug,metres,tint);
+        if(glow.HasValue){m.SetColor("_EmissionColor",glow.Value);EditorUtility.SetDirty(m);}
+        return m;
+    }
+
+    public static void Materials()
     {
         if(!BraxChampionsHarbour.Steel)BraxChampionsHarbour.Materials();
         // white marble body (the owner liked the marble walls of the arena lobby; no brown / beige - "sraczkowate"),
@@ -52,8 +60,12 @@ public static class BraxChampionsPromenade
         Soffit=BraxChampionsFoundation.SourceMaterial("prom_kiosk_white_stucco_soffit","white_stucco_02",1.2f,new Color(1.02f,1.0f,.97f));
         Wood=BraxChampionsFoundation.SourceMaterial("prom_silver_teak_seats","oak_wood_planks",.7f,new Color(.975f,1.32f,1.76f));
         Plinth=BraxChampionsFoundation.SourceMaterial("prom_kiosk_granite_plinth","granite_tile",1.2f,new Color(.42f,.43f,.44f));
-        // white canvas; a faint glow stands in for sunlight through the cloth, so the underside does not read brown-grey
-        Canvas=BraxChampionsHarbour.Surface("parasol_canvas_white",new Color(.97f,.97f,.95f),.85f,0f,new Color(.50f,.50f,.48f));
+        // owner 10.11 10:27 (OBIEKTY_Z_KODU_PRAWDZIWE_MATERIALY): cloth is real cloth, seats are wood or upholstery.
+        // Parasol canvas = Poly Haven terlenka woven fabric (white; a faint glow = sun through the cloth, so the
+        // underside does not read brown-grey); seat cushions = cotton_jersey; bar stools = black Leather037.
+        Canvas=Fabric("prom_parasol_canvas_white","terlenka",new Color(1.21f,1.36f,1.53f),.9f,new Color(.42f,.42f,.40f));
+        Cushion=Fabric("prom_seat_cushion_white","cotton_jersey",new Color(1.20f,1.36f,1.46f),.6f);
+        Leather=BraxChampionsFoundation.LibraryLeather("prom_bar_stool_black_leather",new Color(.33f,.55f,.70f));
         Glass=BraxChampionsHarbour.Surface("kiosk_clear_glass",new Color(.84f,.92f,.96f,.22f),.05f,0f,null,true);
     }
 
@@ -144,43 +156,61 @@ public static class BraxChampionsPromenade
         Built++;
     }
 
-    // bistro table (marble top, graphite pedestal), two teak chairs and a square cream parasol
-    static void Terrace(BraxChampionsMeshBatch m,Transform col,KioskRecord p)
+    // ---------------- outdoor dining furniture (kiosk terraces and the dining islands between the kiosks) ----------------
+    // Owner 10.11 10:27: "co ma być drewnem, ma być drewnem ... obite ... materiałem": graphite powder-coated frames,
+    // silver-teak slats, white cotton cushions, white marble table tops, woven white parasol canvas.
+
+    /// <summary>Box given by local min/max in a frame at origin o turned by yaw (nominal metres).</summary>
+    static void Lbox(BraxChampionsMeshBatch m,Material mat,Vector3 o,Quaternion r,float x0,float x1,float y0,float y1,float z0,float z1)
+        =>m.Box(mat,o+r*new Vector3((x0+x1)*.5f,(y0+y1)*.5f,(z0+z1)*.5f),new Vector3(x1-x0,y1-y0,z1-z0),r);
+
+    /// <summary>Dining chair standing at floor point f; the sitter looks toward (sin yaw, 0, cos yaw).</summary>
+    public static void Chair(BraxChampionsMeshBatch m,Vector3 f,float yaw)
+    {
+        var g=BraxChampionsHarbour.Graphite;var r=Quaternion.Euler(0,yaw,0);
+        foreach(float lx in new[]{-.2f,.2f})foreach(float lz in new[]{-.2f,.2f})Lbox(m,g,f,r,lx-.015f,lx+.015f,0,.42f,lz-.015f,lz+.015f);
+        Lbox(m,g,f,r,-.22f,.22f,.39f,.42f,-.22f,.22f);                                   // seat frame
+        for(int k=0;k<4;k++){float z0=-.22f+k*.112f;Lbox(m,Wood,f,r,-.225f,.225f,.42f,.445f,z0,z0+.10f);}
+        Lbox(m,Cushion,f,r,-.205f,.205f,.445f,.495f,-.205f,.205f);
+        foreach(float lx in new[]{-.2f,.2f})Lbox(m,g,f,r,lx-.015f,lx+.015f,.42f,.88f,-.23f,-.20f);   // back posts
+        foreach(float by in new[]{.60f,.74f})Lbox(m,Wood,f,r,-.22f,.22f,by,by+.10f,-.229f,-.201f);  // back slats
+    }
+
+    /// <summary>Round bistro table: graphite foot and column, white marble top at .76 m.</summary>
+    public static void BistroTable(BraxChampionsMeshBatch m,Vector3 f,float topRadius)
     {
         var g=BraxChampionsHarbour.Graphite;
-        float zf=-p.d*.5f-3.6f;                                  // in front of the canopy, in the 5 m service strip
-        foreach(float x in new[]{-p.w*.5f+.9f,p.w*.5f-.9f})
+        m.Cylinder(g,f,.26f,.03f,16);
+        m.Cylinder(g,f+Vector3.up*.03f,.04f,.70f,10);
+        m.Cylinder(Marble,f+Vector3.up*.73f,topRadius,.03f,24,Quaternion.identity,true,true);
+    }
+
+    /// <summary>Round 16-rib parasol through a table centre (pole from the table top), woven white canvas.</summary>
+    public static void Parasol(BraxChampionsMeshBatch m,Vector3 tableTop,float radius)
+    {
+        m.Cylinder(BraxChampionsHarbour.Steel,tableTop,.022f,1.70f,10);
+        const int ribs=16;float eave=1.52f,top=1.84f;var apex=tableTop+Vector3.up*top;
+        for(int j=0;j<ribs;j++)
         {
-            float y=.16f;
-            m.Cylinder(g,new Vector3(x,y,zf),.26f,.03f,16);
-            m.Cylinder(g,new Vector3(x,y+.03f,zf),.04f,.70f,10);
-            m.Cylinder(Marble,new Vector3(x,y+.73f,zf),.38f,.03f,24,Quaternion.identity,true,true);
-            foreach(float s in new[]{-1f,1f})
-            {
-                float cx=x+s*.62f;float face=s>0?-1f:1f;
-                foreach(float lx in new[]{-.2f,.2f})foreach(float lz in new[]{-.2f,.2f})
-                    m.BoxMinMax(g,cx+lx-.015f,cx+lx+.015f,y,y+.45f,zf+lz-.015f,zf+lz+.015f);
-                m.BoxMinMax(Canvas,cx-.23f,cx+.23f,y+.45f,y+.51f,zf-.23f,zf+.23f);
-                float bx=cx-face*.23f;
-                m.BoxMinMax(g,bx-.015f,bx+.015f,y+.45f,y+.88f,zf-.21f,zf+.21f);
-                m.BoxMinMax(Canvas,bx-.025f,bx+.025f,y+.60f,y+.86f,zf-.23f,zf+.23f);
-            }
-            BraxChampionsMeshBatch.Collider(col,p.id+" stolik "+x.ToString("0.0"),new Vector3(x,y+.38f,zf),new Vector3(1.7f,.76f,.8f));
+            float a0=2f*Mathf.PI*j/ribs,a1=2f*Mathf.PI*(j+1)/ribs,s0=j%2==0?0f:.04f,s1=(j+1)%2==0?0f:.04f;
+            var p0=tableTop+new Vector3(radius*Mathf.Cos(a0),eave-s0,radius*Mathf.Sin(a0));
+            var p1=tableTop+new Vector3(radius*Mathf.Cos(a1),eave-s1,radius*Mathf.Sin(a1));
+            m.Triangle(Canvas,apex,p1,p0);m.Triangle(Canvas,apex,p0,p1);                    // two-sided cloth
+            m.Quad(Canvas,p0,p0-Vector3.up*.08f,p1-Vector3.up*.08f,p1);m.Quad(Canvas,p1,p1-Vector3.up*.08f,p0-Vector3.up*.08f,p0);
         }
-        // a parasol through the centre of each table (the walk to the counter stays free)
+        m.Cylinder(BraxChampionsHarbour.Steel,apex-Vector3.up*.02f,.04f,.08f,10);
+    }
+
+    // two bistro tables with two chairs each and a parasol, in front of every food kiosk
+    static void Terrace(BraxChampionsMeshBatch m,Transform col,KioskRecord p)
+    {
+        float zf=-p.d*.5f-3.6f,y=.16f;                          // in front of the canopy, in the 5 m service strip
         foreach(float x in new[]{-p.w*.5f+.9f,p.w*.5f-.9f})
         {
-            var b=new Vector3(x,.16f+.76f,zf);
-            m.Cylinder(BraxChampionsHarbour.Steel,b,.022f,1.62f,10);
-            float r=1.05f,top=1.80f,eave=1.55f;
-            var apex=b+Vector3.up*top;
-            var corners=new[]{new Vector3(-r,eave,-r),new Vector3(r,eave,-r),new Vector3(r,eave,r),new Vector3(-r,eave,r)};
-            for(int i=0;i<4;i++)
-            {
-                var a=b+corners[i];var c=b+corners[(i+1)%4];
-                m.Triangle(Canvas,apex,c,a);m.Triangle(Canvas,apex,a,c);       // two-sided cloth
-                m.Quad(Canvas,a,a-Vector3.up*.09f,c-Vector3.up*.09f,c);m.Quad(Canvas,c,c-Vector3.up*.09f,a-Vector3.up*.09f,a);   // valance
-            }
+            BistroTable(m,new Vector3(x,y,zf),.38f);
+            Chair(m,new Vector3(x+.66f,y,zf),-90f);Chair(m,new Vector3(x-.66f,y,zf),90f);
+            Parasol(m,new Vector3(x,y+.76f,zf),1.1f);
+            BraxChampionsMeshBatch.Collider(col,p.id+" stolik "+x.ToString("0.0"),new Vector3(x,y+.38f,zf),new Vector3(1.8f,.76f,.8f));
         }
     }
 

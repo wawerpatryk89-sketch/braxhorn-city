@@ -57,7 +57,7 @@ public static class PromenadeProgram
         BraxChampionsFoundation.Optional("promenada K1-K12", () => BraxChampionsPromenade.Build(root, d.promenade));
         BraxChampionsFoundation.Optional("plaża: beach club", () => BraxChampionsBeachFurnishings.Build(root));
         BraxChampionsFoundation.Optional("flota w porcie", () => BraxChampionsHarbour.PlaceOriginalFleet(root, d.berths, d.piers, d.openings));
-        BraxChampionsFoundation.Optional("promenada: kwatery palm, ławki, latarnie", () => BraxChampionsPromenadeFurniture.Build(root, d.palmBeds, d.furniture));
+        BraxChampionsFoundation.Optional("promenada: kwatery palm, ławki, latarnie", () => BraxChampionsPromenadeFurniture.Build(root, d.palmBeds, d.furniture, d.dining));
         // palm positions of the waterfront (the owner's palm pack is encrypted: drawn only with the real model)
         foreach (var p in d.plants)
             if (p.kind == "palm" && p.z < -100f)

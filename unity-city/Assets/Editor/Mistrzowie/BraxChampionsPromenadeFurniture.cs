@@ -11,14 +11,16 @@ public static class BraxChampionsPromenadeFurniture
 {
     const string Output="Assets/PlayableGenerated/Mistrzowie";
     const float Y=.16f;
-    public static Material Teak,Kerb;
-    public static int Benches,Lamps,Beds;
+    public static Material Teak,Kerb,Deck;
+    public static int Benches,Lamps,Beds,Islands,Chairs,Stools;
 
     public static void Materials()
     {
         // silver-grey aged teak (oak_wood_planks alone is orange 162,117,84 -> ~158,154,148): no brown on the promenade
         Teak=BraxChampionsFoundation.SourceMaterial("prom_bench_silver_teak_slats","oak_wood_planks",.9f,new Color(.975f,1.32f,1.76f));
         Kerb=BraxChampionsFoundation.SourceMaterial("prom_bed_granite_kerb","granite_tile",1.2f,new Color(.70f,.70f,.69f));
+        // the same silver-grey weathered boards as the pontoons and the beach boardwalks
+        Deck=BraxChampionsFoundation.LibraryAcg("prom_beach_boardwalk_deck","Planks040",new Color(.94f,1.08f,1.18f),2.0f);
     }
 
     static void Bench(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
@@ -79,12 +81,58 @@ public static class BraxChampionsPromenadeFurniture
         Beds++;
     }
 
-    public static void Build(Transform foundation,BraxChampionsFoundation.PalmBed[] beds,BraxChampionsFoundation.Furniture[] furniture)
+    // Owner 10.11 10:28: "między budkami ... krzesełka obok, stanowiska do jedzenia, palmy posadzić". A dining island
+    // in every gap between two kiosks (promenade_layout.DINING): a silver-teak deck 12 cm high with a granite edge,
+    // three marble bistro tables with four chairs and a parasol each, two standing counters with leather stools at
+    // the deck ends, and a flush bed with the owner's thick palm (planted by the foundation) beyond each end.
+    static void Island(BraxChampionsMeshBatch m,Transform colliders,BraxChampionsFoundation.Dining d)
     {
-        if(!foundation||beds==null||furniture==null)throw new InvalidOperationException("Promenade furniture needs the beds and furniture plan");
+        float x0=d.x-d.w*.5f,x1=d.x+d.w*.5f,z0=d.z-d.d*.5f,z1=d.z+d.d*.5f,e=.16f,top=Y+.12f;
+        m.BoxMinMax(Kerb,x0,x1,Y,top,z0,z0+e);m.BoxMinMax(Kerb,x0,x1,Y,top,z1-e,z1);
+        m.BoxMinMax(Kerb,x0,x0+e,Y,top,z0+e,z1-e);m.BoxMinMax(Kerb,x1-e,x1,Y,top,z0+e,z1-e);
+        m.BoxMinMax(Deck,x0+e,x1-e,Y,top,z0+e,z1-e);
+        BraxChampionsMeshBatch.Collider(colliders,"strefa jedzenia "+d.x.ToString("0"),new Vector3(d.x,Y+.06f,d.z),new Vector3(d.w,.12f,d.d));
+        foreach(float dx in new[]{-4.0f,0f,4.0f})
+        {
+            var f=new Vector3(d.x+dx,top,d.z);
+            BraxChampionsPromenade.BistroTable(m,f,.45f);
+            BraxChampionsPromenade.Chair(m,f+new Vector3(.74f,0,0),-90f);BraxChampionsPromenade.Chair(m,f+new Vector3(-.74f,0,0),90f);
+            BraxChampionsPromenade.Chair(m,f+new Vector3(0,0,.74f),180f);BraxChampionsPromenade.Chair(m,f+new Vector3(0,0,-.74f),0f);
+            BraxChampionsPromenade.Parasol(m,f+Vector3.up*.76f,1.45f);
+            BraxChampionsMeshBatch.Collider(colliders,"stolik "+(d.x+dx).ToString("0"),new Vector3(f.x,top+.38f,f.z),new Vector3(1.9f,.76f,1.9f));
+            Chairs+=4;
+        }
+        // standing counters ("stanowiska do jedzenia"): marble top at 1.08 m, two padded leather stools each
+        foreach(float s in new[]{-1f,1f})
+        {
+            var f=new Vector3(d.x+s*6.15f,top,d.z);
+            var g=BraxChampionsHarbour.Graphite;
+            m.Cylinder(g,f,.30f,.03f,16);m.Cylinder(g,f+Vector3.up*.03f,.045f,1.02f,10);
+            m.Cylinder(BraxChampionsPromenade.Marble,f+Vector3.up*1.05f,.36f,.035f,24,Quaternion.identity,true,true);
+            foreach(float sz in new[]{-1f,1f})
+            {
+                var st=f+new Vector3(0,0,sz*.62f);
+                m.Cylinder(g,st,.19f,.025f,16);m.Cylinder(BraxChampionsHarbour.Steel,st+Vector3.up*.025f,.028f,.70f,10);
+                m.Cylinder(g,st+Vector3.up*.28f,.16f,.018f,16);                                         // foot ring
+                m.Cylinder(BraxChampionsHarbour.Steel,st+Vector3.up*.72f,.19f,.015f,20);
+                m.Cylinder(BraxChampionsPromenade.Leather,st+Vector3.up*.735f,.185f,.065f,20,Quaternion.identity,true,false,.16f);
+                Stools++;
+            }
+            BraxChampionsMeshBatch.Collider(colliders,"lada stojąca "+f.x.ToString("0"),new Vector3(f.x,top+.54f,f.z),new Vector3(.8f,1.08f,1.9f));
+        }
+        // palm beds beyond both ends (the palms themselves: foundation plants, band dining_bed)
+        foreach(float s in new[]{-1f,1f})
+            Bed(m,new BraxChampionsFoundation.PalmBed{x=d.x+s*(d.w*.5f+1.6f+.4f),z=d.z,w=3.2f,d=3.2f});
+        Islands++;
+    }
+
+    public static void Build(Transform foundation,BraxChampionsFoundation.PalmBed[] beds,BraxChampionsFoundation.Furniture[] furniture,BraxChampionsFoundation.Dining[] dining)
+    {
+        if(!foundation||beds==null||furniture==null||dining==null)throw new InvalidOperationException("Promenade furniture needs the beds, furniture and dining plan");
         if(!BraxChampionsHarbour.Steel)BraxChampionsHarbour.Materials();
         if(!Teak)Materials();
-        Benches=Lamps=Beds=0;
+        if(!BraxChampionsPromenade.Marble||!BraxChampionsPromenade.Cushion)BraxChampionsPromenade.Materials();
+        Benches=Lamps=Beds=Islands=Chairs=Stools=0;
         var root=new GameObject("MIASTO MISTRZÓW | PROMENADA 10.11 | palmy w kwaterach, ławki, latarnie").transform;root.SetParent(foundation,false);
         var colliders=new GameObject("kolizje").transform;colliders.SetParent(root,false);
         var m=new BraxChampionsMeshBatch();
@@ -95,6 +143,13 @@ public static class BraxChampionsPromenadeFurniture
             else if(f.kind=="lamp")Lamp(m,colliders,f.x,f.z);
         }
         m.Build(root,"Promenada: kwatery, ławki, kosze, latarnie",Output+"/Meshes/Harbour");
-        Debug.Log("CHAMPIONS_PROMENADE_FURNITURE_10_11 beds="+Beds+" benches="+Benches+" lamps="+Lamps);
+        // one batch per dining island (each is a separate place on the 1.1 km promenade: culled on its own)
+        foreach(var d in dining)
+        {
+            var im=new BraxChampionsMeshBatch();Island(im,colliders,d);
+            im.Build(root,"Strefa jedzenia x"+d.x.ToString("0"),Output+"/Meshes/Harbour",true);
+        }
+        Debug.Log("CHAMPIONS_PROMENADE_FURNITURE_10_11 beds="+Beds+" benches="+Benches+" lamps="+Lamps+
+                  " diningIslands="+Islands+" chairs="+Chairs+" stools="+Stools);
     }
 }

@@ -308,7 +308,8 @@ public static class BraxChampionsPromenadeEquipment
     {
         m.Cylinder(Dark,f,.20f,.03f,16);m.Cylinder(Steel,f+Vector3.up*.03f,.03f,.70f,10);
         m.Cylinder(Dark,f+Vector3.up*.30f,.17f,.02f,16);
-        m.Cylinder(BraxChampionsPromenade.Wood,f+Vector3.up*.73f,.19f,.05f,18);
+        m.Cylinder(Steel,f+Vector3.up*.72f,.195f,.015f,20);                                          // stainless seat pan
+        m.Cylinder(BraxChampionsPromenade.Leather,f+Vector3.up*.735f,.19f,.065f,20,Quaternion.identity,true,false,.165f); // padded leather
     }
 
     static void FruitStand(Transform root,BraxChampionsMeshBatch m,Vector3 f)

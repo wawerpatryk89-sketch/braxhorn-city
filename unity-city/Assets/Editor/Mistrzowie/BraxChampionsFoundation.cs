@@ -33,10 +33,13 @@ public static class BraxChampionsFoundation
         public PalmBed[] palmBeds;
         public Furniture[] furniture;
         public Opening[] openings;
+        // owner 10.11 10:28: dining islands between the kiosks (deck, tables, counters, palms at both ends)
+        public Dining[] dining;
     }
     [Serializable] public sealed class PalmBed { public float x,z,w,d; }
     [Serializable] public sealed class Furniture { public string kind; public float x,z; }
     [Serializable] public sealed class Opening { public float x0,x1; }
+    [Serializable] public sealed class Dining { public float x,z,w,d; }
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
     [Serializable] public sealed class Plant { public string id, kind, band; public float x,z,yaw; public int variant; }
     [Serializable] public sealed class Building { public string id,name; public float x,z,w,d,height; }
@@ -72,7 +75,7 @@ public static class BraxChampionsFoundation
         var d=JsonUtility.FromJson<Foundation>(File.ReadAllText(Source+"/Foundation.json"));
         if(d==null || d.regionId!="mistrzowie" || Mathf.Abs(d.scaleK-K)>.00001f)
             throw new InvalidOperationException("Region scale differs from BraxClaudeOsiedle.K; regenerate nominal geometry, never rescale imports twice.");
-        if(d.meshes==null || d.meshes.Length==0 || d.plants==null || d.berths==null || d.berths.Length!=38 || d.piers==null || d.piers.Length!=48 || d.promenade==null || d.promenade.Length!=12 || d.palmBeds==null || d.palmBeds.Length<45 || d.openings==null || d.openings.Length!=5
+        if(d.meshes==null || d.meshes.Length==0 || d.plants==null || d.berths==null || d.berths.Length!=38 || d.piers==null || d.piers.Length!=48 || d.promenade==null || d.promenade.Length!=12 || d.palmBeds==null || d.palmBeds.Length<45 || d.openings==null || d.openings.Length!=5 || d.dining==null || d.dining.Length!=11
             || d.berths.Count(b=>b.kind=="yacht")!=15
             || d.berths.Count(b=>b.kind=="motorboat")!=10
             || d.berths.Count(b=>b.kind=="jetski")!=10
@@ -320,7 +323,7 @@ public static class BraxChampionsFoundation
             int boats=0;
             Optional("flota w porcie",()=>boats=BraxChampionsHarbour.PlaceOriginalFleet(root,d.berths,d.piers,d.openings));
             // owner 10.11: palms in planted beds along the promenade, benches, lamps, bins, beach boardwalks
-            Optional("promenada: kwatery palm, ławki, latarnie, kładki na plażę",()=>BraxChampionsPromenadeFurniture.Build(root,d.palmBeds,d.furniture));
+            Optional("promenada: kwatery palm, ławki, latarnie, strefy jedzenia między budkami",()=>BraxChampionsPromenadeFurniture.Build(root,d.palmBeds,d.furniture,d.dining));
             if(boats!=35)BraxBuildQuality.Warn("Port: ustawiono "+boats+" łodzi zamiast 35 (15 jachtów + 10 Riva + 10 skuterów)");
             report.yachtsPlaced=true;
             var reserves=new GameObject("PLAN - działki, przystanki, miejsca promów i wycieczkowców").transform;reserves.SetParent(root,false);

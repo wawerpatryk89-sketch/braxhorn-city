@@ -52,11 +52,12 @@ public static class BraxChampionsBeachFurnishings
         if(!BraxChampionsHarbour.Steel)BraxChampionsHarbour.Materials();
         // teak_veneer alone is orange (175,130,87): silver-grey aged teak ~ (160,156,150)
         Teak=BraxChampionsFoundation.SourceMaterial("beach_lounger_silver_teak","teak_veneer",1.1f,new Color(.91f,1.20f,1.72f));
-        // fabric_pattern_05 alone is khaki (143,147,128): white cushions/canvas, navy towels and valance
-        Cushion=BraxChampionsFoundation.SourceMaterial("beach_cushion_white","fabric_pattern_05",.62f,new Color(1.62f,1.58f,1.78f));
-        Towel=BraxChampionsFoundation.SourceMaterial("beach_towel_navy","fabric_pattern_05",.62f,new Color(.30f,.43f,.84f));
-        Canvas=BraxChampionsHarbour.Surface("beach_parasol_canvas_white",new Color(.97f,.97f,.95f),.85f,0f,new Color(.45f,.45f,.43f));
-        Navy=BraxChampionsHarbour.Surface("beach_parasol_valance_navy",new Color(.10f,.17f,.33f),.8f,0f);
+        // owner 10.11 10:27: real cloth (OBIEKTY_Z_KODU_PRAWDZIWE_MATERIALY) - plain cotton cushions and towels,
+        // woven terlenka canvas (the plaid fabric_pattern_05 is gone); white + navy, no beige
+        Cushion=BraxChampionsPromenade.Fabric("beach_cushion_white_cotton","cotton_jersey",new Color(1.20f,1.36f,1.46f),.6f);
+        Towel=BraxChampionsPromenade.Fabric("beach_towel_navy_cotton","cotton_jersey",new Color(.18f,.30f,.59f),.6f);
+        Canvas=BraxChampionsPromenade.Fabric("beach_parasol_canvas_white","terlenka",new Color(1.21f,1.36f,1.53f),.9f,new Color(.38f,.38f,.36f));
+        Navy=BraxChampionsPromenade.Fabric("beach_parasol_valance_navy","terlenka",new Color(.17f,.30f,.60f),.9f);
         Deck=BraxChampionsFoundation.LibraryAcg("prom_beach_boardwalk_deck","Planks040",new Color(.94f,1.08f,1.18f),2.0f);
         Buoy=BraxChampionsHarbour.Surface("beach_swim_buoy_yellow",new Color(1.0f,.78f,.08f),.35f,0f);
         Rope=BraxChampionsHarbour.Surface("beach_swim_rope_white",new Color(.92f,.92f,.90f),.8f,0f);

@@ -85,6 +85,35 @@ for (xa,_),(xb,_) in zip(PALM_BEDS,PALM_BEDS[1:]):
     if abs(xb-xa-PALM_STEP)<.01:
         FURNITURE.append(("bench" if len(FURNITURE)%2==0 else "lamp",round((xa+xb)/2,2),PALM_ROW_Z))
 
+# Owner 10.11 10:28: "między budkami ... krzesełka obok, stanowiska do jedzenia, palmy posadzić, w składzie dopracować".
+# A dining island in the middle of every gap between two kiosks, on the landward side of the promenade paving (the
+# walking corridor toward the sea, z -145.5..-126.5, stays clear): a 14 x 6 m silver-teak deck with a granite edge,
+# three marble bistro tables (four teak chairs with cotton cushions, a woven white parasol through each), two standing
+# counters with leather stools, and a 3.2 m flush bed with the owner's thick palm at each end of the deck.
+DINING_W,DINING_D,DINING_Z=14.0,6.0,-123.5
+DINING_BED=3.2
+DINING=[(round((a["x"]+b["x"])/2,2),DINING_Z) for a,b in zip(PAVILIONS,PAVILIONS[1:])]
+DINING_BEDS=[(round(x+s*(DINING_W/2+DINING_BED/2+.4),2),z) for x,z in DINING for s in (-1,1)]
+DINING_BED_RECTS=[(x-DINING_BED/2,z-DINING_BED/2,DINING_BED,DINING_BED) for x,z in DINING_BEDS]
+
+
+def validate_dining():
+    assert len(DINING)==11 and len(DINING_BEDS)==22
+    shapes=[box(x-DINING_W/2,z-DINING_D/2,x+DINING_W/2,z+DINING_D/2) for x,z in DINING]
+    shapes+=[box(a,b,a+w,b+d) for a,b,w,d in DINING_BED_RECTS]
+    for s in shapes:
+        assert s.bounds[1]>=PEDESTRIAN_ZONE[0]+18.0 and s.bounds[3]<=-120.0+1e-6, s.bounds   # corridor clear, on paving
+        for path_x,path_width in PEDESTRIAN_CONNECTIONS:
+            assert s.bounds[2]<path_x-path_width/2-.3 or s.bounds[0]>path_x+path_width/2+.3, (s.bounds,path_x)
+        for a,b,w,d in PAVILION_PADS:                      # kiosk, its pad and its terrace (3.6 m in front)
+            assert not s.intersects(box(a-2,b-5,a+w+2,b+d)), (s.bounds,a)
+        for bx,bz in PALM_BEDS:
+            assert not s.intersects(box(bx-PALM_BED/2,bz-PALM_BED/2,bx+PALM_BED/2,bz+PALM_BED/2))
+    for i,s in enumerate(shapes):
+        for t in shapes[i+1:]:
+            assert s.intersection(t).area==0
+    return True
+
 
 def validate():
     assert X1-X0==1100. and Z1-Z0==30.0
@@ -116,6 +145,6 @@ def validate():
             if shape.intersection(earlier).area>0:
                 raise ValueError("Overlapping pavilion slabs "+p["id"])
         used.append(shape)
-    return True
+    return validate_dining()
 
 validate()
