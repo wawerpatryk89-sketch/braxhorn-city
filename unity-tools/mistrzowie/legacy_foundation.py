@@ -130,7 +130,8 @@ for a in XROAD:
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
 rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE,T11_STREET_ENTRANCE_LAWN,T11_SOUTH_DRIVE]+A1_PARKING_ENTRANCES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS+DINING_BED_RECTS+QUAY_APRONS+QUAY_BED_RECTS
-for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
+# rounded: 4.4 / 3.6 m beds gave -219.8+3.6 = -216.20000000000002 next to -216.2 -> zero-length quay-wall edges
+for x,z,w,d in rects:xs.update([round(x,6),round(x+w,6)]);zs.update([round(z,6),round(z+d,6)])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
 def quad(role,x0,z0,x1,z1):
