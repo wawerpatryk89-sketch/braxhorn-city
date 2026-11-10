@@ -393,7 +393,10 @@ public static class BraxCityArchitecture
                         new Vector3(bay-.14f,floorHeight*.75f,.055f));
                     frame.Box(new Vector3(x+.045f,y+floorHeight*.5f,.075f),new Vector3(.09f,floorHeight,.22f));
                     frame.Box(new Vector3(x+bay*.5f,y+floorHeight*.65f,.075f),new Vector3(bay,.055f,.16f));
-                    opaque.Box(new Vector3(x+bay*.5f,y+.28f,.0f),new Vector3(bay,.56f,.14f));
+                    // 10.11 (właściciel: „tam, gdzie boiska — migota”; APK 9.11 BRAXHORN_MIGOTANIE: „mullion ↔ spandrel odstęp
+                    // 0.0 cm”, wieże z 113 za boiskami): pas stropowy szedł przez słupki, jego czoła leżały w licach słupków
+                    // (ta sama płaszczyzna, ten sam zwrot). Teraz pas tylko MIĘDZY słupkami (x + 0.09 … x + bay) — styk plecami.
+                    opaque.Box(new Vector3(x+.09f+(bay-.09f)*.5f,y+.28f,.0f),new Vector3(bay-.09f,.56f,.14f));
                 }
                 frame.Box(new Vector3(f[3],y+floorHeight*.5f,.075f),new Vector3(.09f,floorHeight,.22f));
                 frame.Box(new Vector3(f[3]*.5f,y+floorHeight-.04f,.075f),new Vector3(f[3],.09f,.19f));

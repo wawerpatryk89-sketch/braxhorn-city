@@ -391,6 +391,8 @@ internal static class BraxMiastoBillboardy
     // w płaszczyźnie ściany (±30 cm), zostaje otworem; mury przed ścianą (boki dziedzińca, budynki) zasłaniają. Kadr grafiki
     // = prostokąt widocznej szarej ściany. Ściana siłowni ma własną kolizję (gym-collisions z 11…11.6) — bez dodatkowych pudeł.
     const float MuralKrok = .10f, MuralOdstep = .012f;
+    // dziedziniec przed siłownią: od lica boku BAR 24 (StreetBuildings „bar” x1 = −1) do lica NUTRITION (x 14.5)
+    const float DziedzinecX0 = -1.0f, DziedzinecX1 = 14.5f;
     static readonly string[] MuralPomijaj = { "mural", "drzewo", "tree", "verdant", "palm", "liść", "lisc", "leaf", "krzew", "bush",
                                               "latarn", "lamp", "człowiek", "czlowiek", "npc", "ludzie", "przechod" };
 
@@ -507,6 +509,7 @@ internal static class BraxMiastoBillboardy
             for (int j = 0; j < ny; j++)
             {
                 float x = gx0 + (i + .5f) * MuralKrok, y = gy0 + (j + .5f) * MuralKrok;
+                if (x < DziedzinecX0 || x > DziedzinecX1) continue;     // 10.11: tylko między licami sąsiadów (bez prześwitów przez ich okna)
                 var h = Trafienia(x, y);
                 int w = Array.FindIndex(h, t => zrodlo[t.collider] == sciana && t.normal.z > .85f && Mathf.Abs(t.point.z - lico) < .08f);
                 if (w < 0) continue;                                    // otwór w samej ścianie
@@ -558,10 +561,13 @@ internal static class BraxMiastoBillboardy
                 if (etykieta[i, j] == najw) { i0 = Mathf.Min(i0, i); i1 = Mathf.Max(i1, i); j0 = Mathf.Min(j0, j); j1 = Mathf.Max(j1, j); }
         float x0 = gx0 + i0 * MuralKrok, x1 = gx0 + (i1 + 1) * MuralKrok, y0 = gy0 + j0 * MuralKrok, y1 = gy0 + (j1 + 1) * MuralKrok;
 
-        // 4) kadr grafiki = prostokąt widocznej ściany; proporcja obrazu zachowana (wypełnienie), w pionie zostaje GÓRA obrazu
-        float wallAspect = (x1 - x0) / (y1 - y0), uMin = 0f, uMax = 1f, vMin = 0f, vMax = 1f;
-        if (proporcja > wallAspect) { float widac = wallAspect / proporcja; uMin = (1f - widac) * .5f; uMax = 1f - uMin; }
-        else { float widac = proporcja / wallAspect; vMin = 1f - widac; }
+        // 4) 10.11 (właściciel 09:21: „mural na siłowni — zobacz, jak jest ucięty”): w APK 9.11 kadr = obrys widocznej ściany
+        //    x −1.9…18.0 (prześwity przez okna sąsiadów) przy proporcji 3:2 → widać było tylko górne 64 % obrazu, a boki z bykami
+        //    chowały się za BAR 24 i NUTRITION. Teraz CAŁY obraz bez kadrowania: wysokość = wysokość ściany dziedzińca, szerokość
+        //    z proporcji (gdy się nie mieści — szerokość dziedzińca), środek w osi dziedzińca; poza obrazem zostaje szara ściana.
+        float imgH = y1 - y0, imgW = imgH * proporcja;
+        if (imgW > x1 - x0) { imgW = x1 - x0; imgH = imgW / proporcja; }
+        float ix1 = (x0 + x1) * .5f + imgW * .5f, ix0 = ix1 - imgW, iy1 = y1, iy0 = iy1 - imgH;
         float z = lico + MuralOdstep;
         var v = new List<Vector3>(); var uv = new List<Vector2>(); var tr = new List<int>();
         for (int j = j0; j <= j1; j++)
@@ -571,11 +577,12 @@ internal static class BraxMiastoBillboardy
             {
                 if (etykieta[i, j] != najw) { i++; continue; }
                 int a = i; while (i <= i1 && etykieta[i, j] == najw) i++;
-                float xa = gx0 + a * MuralKrok, xb = gx0 + i * MuralKrok, ya = gy0 + j * MuralKrok, yb = ya + MuralKrok;
+                float xa = Mathf.Max(gx0 + a * MuralKrok, ix0), xb = Mathf.Min(gx0 + i * MuralKrok, ix1), ya = Mathf.Max(gy0 + j * MuralKrok, iy0), yb = Mathf.Min(gy0 + (j + 1) * MuralKrok, iy1);
+                if (xb - xa < .001f || yb - ya < .001f) continue;
                 int n0 = v.Count;
                 v.Add(new Vector3(xa, ya, z)); v.Add(new Vector3(xb, ya, z)); v.Add(new Vector3(xb, yb, z)); v.Add(new Vector3(xa, yb, z));
                 foreach (var p in v.Skip(n0).Take(4))   // widz patrzy w −z: +x jest po jego LEWEJ — u rośnie w stronę −x (bez lustra)
-                    uv.Add(new Vector2(Mathf.Lerp(uMin, uMax, (x1 - p.x) / (x1 - x0)), Mathf.Lerp(vMin, vMax, (p.y - y0) / (y1 - y0))));
+                    uv.Add(new Vector2((ix1 - p.x) / imgW, (p.y - iy0) / imgH));
                 tr.AddRange(new[] { n0, n0 + 1, n0 + 2, n0, n0 + 2, n0 + 3 });   // front +z — do ulicy
             }
         }
@@ -587,7 +594,8 @@ internal static class BraxMiastoBillboardy
         mural.SetParent(rodzic, false); mural.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
         BraxMiastoA.Obiekt(mural, "mural_19_szara_sciana_silowni", mesh, mat);
         postawione++;
-        string opis19 = "19: oryginał 19.jpg na " + sciana.name + " (lico z=" + lico.ToString("F2") + "), widoczna ściana x=" + x0.ToString("F1") + ".." + x1.ToString("F1") +
+        string opis19 = "19: oryginał 19.jpg CAŁY (bez kadrowania) " + imgW.ToString("F2") + "×" + imgH.ToString("F2") + " m, x=" + ix0.ToString("F2") + ".." + ix1.ToString("F2") +
+            ", y=" + iy0.ToString("F2") + ".." + iy1.ToString("F2") + " na " + sciana.name + " (lico z=" + lico.ToString("F2") + "), widoczna ściana x=" + x0.ToString("F1") + ".." + x1.ToString("F1") +
             ", y=" + y0.ToString("F1") + ".." + y1.ToString("F1") + ", " + pole.ToString("F1") + " m², otwory (drzwi/szyld) " + (otwory * MuralKrok * MuralKrok).ToString("F1") +
             " m², zasłonięte murami " + (zaslonione * MuralKrok * MuralKrok).ToString("F1") + " m², pasów " + (tr.Count / 6) + ", usunięte stare tablice " + usuniete;
         opis.Add(opis19);

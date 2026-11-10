@@ -182,7 +182,7 @@ class BibliotekaIRealizm(unittest.TestCase):
     """Właściciel 9.11 23:03–23:08: towar i wyposażenie z biblioteki, zakaz białych napisów, prawdziwe szyby, jakość jak w mieście."""
 
     def test_goods_come_from_owner_library(self):
-        for wywolanie in ("BraxSklepyTowar.Korzen(rd,", "BraxSklepyTowar.Polka(typPolek[p], tw,", "BraxSklepyTowar.Lada(typLady, tw,", "BraxSklepyTowar.Zakoncz(tw,"):
+        for wywolanie in ("BraxSklepyTowar.Korzen(rd,", "BraxSklepyTowar.Polka(typPolek[p % typPolek.Length], tw,", "BraxSklepyTowar.Lada(typLady, tw,", "BraxSklepyTowar.Zakoncz(tw,"):
             self.assertIn(wywolanie, DOMY, wywolanie)
         towar = src(R / "BraxSklepyTowar.cs")
         blok = DOMY[DOMY.index("string[] typPolek ="):DOMY.index("Transform tw =")]
@@ -193,7 +193,7 @@ class BibliotekaIRealizm(unittest.TestCase):
         self.assertIn("Towar(F, s, y + .035f, D - .36f, r, cx, cz, tel ? 2 : 0)", DOMY)
 
     def test_equipment_from_library(self):
-        for model in ('"miasto_sklepy", "lodowka"', '"miasto_sklepy", "menu_4"', '"miasto_sklepy", "plakat_0"', '"miasto_jedzenie", "wozek_jedzenie"', '"miasto_silownia_metro", "silownia_atlas"'):
+        for model in ('"miasto_sklepy", "lodowka"', '"miasto_sklepy", "menu_4"', '"miasto_sklepy", "menu_3"', '? "plakat_0" + (7 + q) : "plakat_0" + (1 + (dz.nr + q) % 3)', '"miasto_jedzenie", "wozek_jedzenie"', '"miasto_silownia_metro", "silownia_atlas"'):
             self.assertIn(model, DOMY, model)
         for pomocnik in ("BraxMiastoAssety.Klatka(tr,", "BraxMiastoAssety.Lawka(tr,", '"odz_dol", "odz_polka", "odz_gora"', '"trashbag"', '"wooden_picnic_table"'):
             self.assertIn(pomocnik, DOMY, pomocnik)
@@ -457,13 +457,26 @@ class SalaRingIPrzejscia(unittest.TestCase):
         self.assertIn("dlL = 1.4f * k;", DOMY)
         self.assertIn("zb - dlL + .25f), new Vector3(wx + .16f * k, y + .46f * k, zb + .25f), true);", DOMY)
 
-    def test_laundry_machines_are_built_from_parts_not_boxes(self):
-        # 10.11 (podgląd): pralki były białymi pudłami z kółkiem — atrapy nie przechodzą
-        blok = DOMY[DOMY.index("if (pralnia)"):DOMY.index("if (wulk)")]
-        for czesc in ("float sF = G + .76f, yT = yF + .86f * k;", ".25f, 20, .235f);", ".185f, 16, .12f);", "Bud Cm() =>", '"wicker_basket_01", "wicker_basket_02"', '"bleach_bottle"'):
+    def test_tyre_shop_has_tyres_wheels_and_machines(self):
+        # 10.11 01:39: „wulkanizacja — opony, koła gdzie?”
+        blok = DOMY[DOMY.index("if (wulk)\n"):DOMY.index("if (przych)")]
+        for czesc in ('"old_tyre"', '"rusted_wheel_rim_01"', '"bench_vice_01"', '"metal_tool_chest"', "Opona(F.P(sR0 + .18f + q * .26f, yl - .005f, dS), F.R,",
+                      "Kolo(F.P(sm, yS + .05f, dm), Vector3.up,", "Stos(F.P(G + .52f, yF, 2.05f), 4,",
+                      'var o = Rekw(rd, new[] { "old_tyre" }, p, yaw, .6f, false, 28f, nazwa, true);'):   # model stoi: wysokość = średnica 0.6 m
             self.assertIn(czesc, blok, czesc)
-        self.assertGreaterEqual(blok.count("BoxF("), 12)
-        self.assertIn("KolF(rd, F, G, sF + .05f, yF, yT + .035f, 1.5f, 4.85f);", blok)     # 1.5 m w głąb — wejście wolne
+        self.assertNotIn("KolaWarsztatow", blok)
+        for m in ("old_tyre", "rusted_wheel_rim_01", "bench_vice_01", "metal_tool_chest"):
+            self.assertIn('"' + m + '"', FETCH_R, m)
+
+    def test_laundry_machines_are_built_from_parts_not_boxes(self):
+        # 10.11: pralki-pudła odrzucone (atrapy), 00:54 „pralki mogłyby być ładniejsze”
+        blok = DOMY[DOMY.index("if (pralnia)"):DOMY.index("if (wulk)")]
+        for czesc in ("float sF = G + .72f, yT = yF + .86f * k;", "void Drzwi(Vector3 c, Vector3 n, Vector3 a, float rO, bool zPraniem, int nr)",
+                      "W(cx, cz, szyba, Color.white).Cyl(c + n * .052f, c + n * .085f, rO * .79f, 20, rO * .5f);",   # wypukła szyba, za nią bęben i pranie
+                      "// wrzutnik monet", "for (int t2 = 0; t2 < 2; t2++)", '"wicker_basket_01", "wicker_basket_02"', '"bleach_bottle"', '"plastic_monobloc_chair_01"'):
+            self.assertIn(czesc.replace("// wrzutnik monet", "d1 - .13f, d1 - .03f, true);"), blok, czesc)
+        self.assertIn('emalia = T("pralki i suszarki — biała emalia (stara)", 1.6f, Color.white, .3f, "white_stucco"', FAW)
+        self.assertIn("KolF(rd, F, G, sF + .06f, yF, yT + .03f, 1.5f, 1.5f + 4 * .82f);", blok)     # 1.5 m w głąb — wejście wolne
 
     def test_no_statement_after_trailing_comment(self):
         pat = re.compile(r'(\b(var|float|int|bool|string)\s+\w+\s*=)|(\b\w+(\.\w+)*\([^\n]*\)\s*;\s*$)')
@@ -479,3 +492,69 @@ class SalaRingIPrzejscia(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SklepyPelne(unittest.TestCase):
+    """10.11 (właściciel 07:52–08:09): sklepy, apteki, wszystko pełne; kebab, pizza; prawdziwe jedzenie, nie tylko etykiety."""
+    LIB = ROOT / "unity-city" / "Assets" / "Source" / "Claude" / "Library"
+
+    def test_real_food_models_in_library(self):
+        for nazwa in ("skrzynka_jablka", "skrzynka_cytryny", "skrzynka_limonki", "skrzynka_cebula", "skrzynka_bataty", "skrzynka_kiwi",
+                      "skrzynka_granaty", "skrzynka_gruszki", "banany_kisc", "bulki", "chleb_bochenki", "bagietki", "chleb_okragly",
+                      "kanister_mleka", "papierosy", "konsola", "doniczka_anturium_1", "doniczka_kalatea_3", "doniczka_paproc_2"):
+            p = self.LIB / (nazwa + ".glb")
+            self.assertTrue(p.exists(), nazwa)
+            self.assertLess(p.stat().st_size, 900_000, nazwa + ": tekstury 512 px JPEG, nie PNG 1K")
+        self.assertIn("CC0", (self.LIB / "skrzynki_owocow.CREDITS.md").read_text(encoding="utf-8"))
+        self.assertTrue((ROOT / "unity-tools" / "claude" / "skrzynki_owocow.py").exists())
+
+    def test_shop_types_use_real_food(self):
+        towar = src(R / "BraxSklepyTowar.cs")
+        for typ, musi in (("warzywniak", "ph:skrzynka_jablka"), ("piekarnia", "ph:chleb_bochenki"), ("pieczywo", "ph:bagietki"),
+                          ("wedliny", "sk:kielbaski_paczka"), ("kebab", "sk:kebab"), ("pizzeria", "sk:pizza"), ("kwiaty", "ph:doniczka_"),
+                          ("elektronika", "ph:television_02"), ("dom", "ph:pot_enamel_01"), ("kiosk", "ph:papierosy")):
+            linia = [l for l in towar.splitlines() if l.strip().startswith('"' + typ + '" =>')]
+            self.assertTrue(linia, typ)
+            self.assertIn(musi, linia[0], typ)
+        self.assertNotIn('"ph:bananas"', towar, "kiść bananów ze skanu 47 tys. trójkątów — w bibliotece lżejsza banany_kisc")
+
+    def test_favela_shops_full(self):
+        self.assertIn('bool kebab = rodzaj == "KEBAB", pizza = rodzaj.StartsWith("PIZZA")', DOMY)
+        self.assertIn('"gastro_blat"', DOMY)                                  # kebab / pizza-kebab: blat z prawdziwym jedzeniem, nie półki z butelkami
+        self.assertIn('"KEBAB"', src(R / "BraxRegionFawela.cs")); self.assertIn('"PIZZA · KEBAB"', src(R / "BraxRegionFawela.cs"))
+        self.assertIn("int nPol = kebab || pizza ? 0 : apteka ? 7 : 4", DOMY)   # apteka: gęste półki, leki w dwóch warstwach
+        self.assertIn("string[] regalBoczny = apteka ?", DOMY)              # drugi regał w sklepach
+        self.assertIn('BraxSklepyTowar.Polka("wedliny"', DOMY)              # gablota z wędlinami w spożywczym
+        self.assertIn("float zs0 = w1 + .2f", DOMY)                         # warzywniak: stragan obok wejścia, nie w drzwiach
+        self.assertIn("bool piec = pizza", DOMY); self.assertIn("zarPieca", DOMY)
+
+    def test_city_every_shop_has_interior(self):
+        u = src(R / "BraxUlicePierzeje.cs")
+        self.assertIn('if (!(wiez && lok.typ == "fitness"))', u)                  # także Bar 24 (ETAP-GALERIA p. 4)
+        self.assertIn('"ZAKŁADY"', u); self.assertIn('"CashRegister_01"', u)
+        self.assertIn('(f.wiezowiec && f.lok.typ == "fitness") || !f.front ? BraxUliceKit.OknoPokoj(', u)
+        for co in ("static void Wykonczenie(", "static void Wyposazenie(", '"RECEPCJA"', '"KUPNO  SPRZEDAŻ"', "static void Rower(", "static void KoloRoweru(", "string TypPolki("):
+            self.assertIn(co, u, co)
+        towar = src(R / "BraxSklepyTowar.cs")
+        for typ in ("kwiaty", "optyk", "poczta", "warsztat"):
+            self.assertIn('"' + typ + '" =>', towar, typ)
+
+    def test_new_poly_haven_models_are_fetched(self):
+        fetch = (ROOT / "unity-tools" / "claude" / "fetch_region.py").read_text(encoding="utf-8")
+        towar = src(R / "BraxSklepyTowar.cs") + src(R / "BraxUlicePierzeje.cs") + DOMY
+        lib = {p.stem for p in self.LIB.glob("*.glb")}
+        for ph in set(re.findall(r'"ph:([A-Za-z0-9_]+)', towar)):
+            if ph in lib: continue
+            self.assertIn('"' + ph + '"', fetch, "model Poly Haven bez pobierania w CI: " + ph)
+
+    def test_rotating_doner_and_chicken_rotisserie(self):
+        """10.11 09:10: kebab, który się kręci (pręt widać tylko nad i pod mięsem); kurczak właściciela na rożnie z grzałką."""
+        self.assertTrue((self.LIB / "kebab_mieso.glb").exists())
+        obrot = (ROOT / "unity-city" / "Assets" / "Claude" / "Runtime" / "BraxObrot.cs").read_text(encoding="utf-8")
+        self.assertIn("transform.Rotate(0f, stopniNaSekunde * Time.deltaTime, 0f, Space.World)", obrot)
+        u = src(R / "BraxUlicePierzeje.cs")
+        for kod in (DOMY, u):
+            self.assertIn('BraxRegion.Model("kebab_mieso")', kod)
+            self.assertIn("AddComponent<BraxObrot>()", kod)
+            self.assertIn("(StaticEditorFlags)0", kod)                  # kręcący się obiekt nie może być statyczny
+            self.assertIn('Model("miasto_sklepy", "kurczak")', kod)

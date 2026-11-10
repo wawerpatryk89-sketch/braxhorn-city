@@ -19,11 +19,33 @@ public static class BraxSklepyTowar
 
     static string[] Polki(string typ) => typ switch
     {
-        "piekarnia" => new[] { "ph:wicker_basket_01", "ph:hamburger_buns", "ph:croissant*3", "ph:wicker_basket_02", "ph:hamburger_buns" },
+        // pieczywo: bochenki / bagietki / chleb okrągły (skan bułki rozciągnięty — skrzynki_owocow.py), bułki, rogaliki, kosze
+        "piekarnia" => new[] { "ph:chleb_bochenki", "ph:bulki", "ph:chleb_okragly", "ph:croissant*3", "ph:bagietki", "ph:chleb_bochenki", "ph:wicker_basket_01", "ph:bulki*2" },
         "cukiernia" => new[] { "ph:carrot_cake", "ph:strawberry_chocolate_cake", "ph:croissant*2" },
-        "warzywniak" => new[] { "sk:owoce_skrzynka", "ph:bananas", "sk:owoce_skrzynka", "sk:owoce_skrzynka", "ph:bananas" },
+        // PRAWDZIWE owoce i warzywa (właściciel 10.11 08:09): skrzynki ze skanów Poly Haven (biblioteka, skrzynki_owocow.py) + skrzynka właściciela
+        "warzywniak" => new[] { "ph:skrzynka_jablka", "sk:owoce_skrzynka", "ph:skrzynka_cytryny", "ph:skrzynka_cebula", "ph:banany_kisc*2", "ph:skrzynka_kiwi", "ph:skrzynka_granaty", "ph:skrzynka_limonki", "ph:skrzynka_bataty", "ph:skrzynka_gruszki" },
+        "warzywa_dol" => new[] { "ph:skrzynka_cebula", "ph:skrzynka_bataty", "ph:skrzynka_jablka", "sk:owoce_skrzynka", "ph:skrzynka_cytryny" },
+        "pieczywo" => new[] { "ph:chleb_bochenki", "ph:bulki*2", "ph:croissant*3", "ph:bagietki", "ph:chleb_okragly", "ph:banany_kisc", "ph:long_life_food", "ph:kanister_mleka*2" },
+        "wedliny" => new[] { "sk:kielbaski_paczka*2", "sk:ser_klin*2", "sk:parowki*2", "sk:ser_dojrzewajacy", "sk:kielbaski_paczka" },
+        // ULICA MIASTA (10.11, zamiast kolorowych klocków): kwiaciarnia — rośliny w doniczkach (zestawy Poly Haven rozdzielone,
+        // skrzynki_owocow.py) i wazony; optyk — okulary i lupy; poczta — artykuły papiernicze, książki, słodycze; warsztat rowerowy — narzędzia
+        "kwiaty" => new[] { "ph:doniczka_anturium_1", "ph:doniczka_kalatea_1", "ph:ceramic_vase_02", "ph:doniczka_paproc_1", "ph:potted_plant_04", "ph:doniczka_anturium_2", "ph:ceramic_vase_04", "ph:doniczka_kalatea_2", "ph:brass_vase_03*2", "ph:ceramic_vase_03" },
+        "optyk" => new[] { "ph:round_spectacles*3", "ph:magnifying_glass_01", "ph:round_spectacles*4", "ph:ceramic_vase_03", "ph:round_spectacles*2" },
+        "poczta" => new[] { "ph:cardboard_box_01*2", "ph:stationery_supplies", "ph:cardboard_box_01", "sk:tor_04", "ph:cardboard_box_01*3", "ph:stationery_supplies" },   // 10.11: paczki i druki (nie książki)
+        "warsztat" => new[] { "ph:metal_toolbox", "ph:lubricant_spray*3", "ph:small_oil_can_01", "ph:combination_wrench*3", "ph:pipe_wrench", "ph:ratchet_wrench*2", "ph:lightbulb_01*2" },
+        // naprawa telefonów / elektronika (fawela): stare telewizory, radia, konsole, pady, żarówki, kartony
+        "elektronika" => new[] { "ph:television_02", "ph:boombox", "ph:konsola", "ph:gamepad", "ph:cardboard_box_01", "ph:lightbulb_01*3", "ph:boombox" },
+        // wszystko dla domu: wiadra, garnki, konewki, szufelki, chemia w kanistrach, pojemniki
+        "dom" => new[] { "ph:multi_cleaner_5_litre*2", "ph:pot_enamel_01", "ph:watering_can_metal_01", "ph:dustpan", "ph:all_purpose_cleaner*3", "ph:drain_cleaner*2", "ph:metal_jug", "ph:lightbulb_01*4", "ph:wicker_basket_02", "ph:spray_paint_bottles" },
         "kawiarnia" => new[] { "ph:tea_set_01", "ph:jug_01", "ph:wooden_bowl_01", "ph:ceramic_vase_01" },
-        "pizzeria" or "bar" or "bistro" => new[] { "ph:wine_bottles_01", "ph:jug_01", "ph:wine_bottles_01", "ph:russian_food_cans_01" },
+        // bary i bistro: wino (lżejsza kopia skanu w bibliotece — 5 tys. zamiast 29 tys.), dzbanki, konserwy; bez butelek mleka / kefiru
+        // (właściciel 10.11 09:00: „co to za pizzeria z mlekiem”)
+        "bar" or "bistro" => new[] { "ph:wino_butelki", "ph:wooden_bowl_01", "ph:wino_butelki", "ph:russian_food_cans_01*2", "ph:wino_butelki", "ph:wooden_cutting_board" },   // 10.11: bez kwiecistych dzbanków (wyglądały jak mleko)
+        "pizzeria" => new[] { "sk:pizza", "ph:wino_butelki", "ph:wooden_cutting_board", "ph:CheeseBox_01", "ph:russian_food_cans_01*2", "sk:pizza", "ph:wino_butelki", "ph:wooden_bowl_01" },
+        // kebab / pizza-kebab (fawela): blat roboczy z prawdziwym jedzeniem z biblioteki właściciela
+        // (rożen kebaba — osobno, kręcący się; tu porcje: kebab w bułce, rollo / szawarma, frytki, burgery, pizze, kurczak)
+        "gastro_blat" => new[] { "sk:kebab*2", "sk:szawarma*2", "sk:frytki*2", "sk:hamburger*2", "sk:kurczak", "sk:szawarma*2", "sk:frytki" },
+        "gastro_blat_pizza" => new[] { "sk:pizza", "ph:wooden_cutting_board", "sk:kebab", "sk:pizza", "sk:szawarma*2", "sk:pizza", "sk:frytki*2" },
         // towar z etykiet właściciela (3.11 14:17, towar_gen.py): alejki supermarketu sm_g0…8, odżywki BRAXHORN, delikatesy
         "sm_g0" => new[] { "sk:pud_b01*3", "sk:pud_d17*3", "sk:pud_d03*3", "sk:pud_d01*3", "sk:pud_b08*3", "sk:pud_b24*3", "sk:pud_d24*3", "sk:pud_a24*3", "sk:pud_d04*3", "sk:pud_d08*3", "sk:pud_d02*3", "sk:pud_b02*3", "sk:pud_a01*3", "sk:pud_b03*3", "sk:pud_a17*3", "sk:pud_a04*3", "sk:pud_a03*3", "sk:pud_a02*3", "sk:pud_b17*3", "sk:pud_a08*3", "sk:pud_b04*3" },
         "sm_g1" => new[] { "sk:pud_a19*3", "sk:pud_a07*3", "sk:pud_a16*3", "sk:pud_a22*3", "sk:pud_b12*3", "sk:pud_c01*3", "sk:pud_b20*3", "sk:pud_a23*3", "sk:pud_a05*3", "sk:pud_b07*3", "sk:pud_b13*3", "sk:pud_a18*3", "sk:pud_a14*3", "sk:pud_b19*3", "sk:pud_b09*3", "sk:pud_a12*3", "sk:pud_b10*3", "sk:pud_a11*3", "sk:pud_b11*3", "sk:pud_b22*3", "sk:pud_b06*3", "sk:pud_b21*3", "sk:pud_b18*3", "sk:pud_b15*3", "sk:pud_a20*3", "sk:pud_a15*3", "sk:pud_a10*3", "sk:pud_b16*3", "sk:pud_b05*3", "sk:pud_a06*3", "sk:pud_c02*3", "sk:pud_b23*3", "sk:pud_b14*3", "sk:pud_c04*3", "sk:pud_a21*3", "sk:pud_a13*3", "sk:pud_c03*3", "sk:pud_a09*3" },
@@ -37,11 +59,13 @@ public static class BraxSklepyTowar
         "odz_dol" => new[] { "sk:odz_gainer_a1*2", "sk:odz_gainer_a2*2", "sk:odz_gainer_b1*2", "sk:odz_gainer_b2*2", "sk:odz_kg_1*2", "sk:odz_kg_3*2", "sk:odz_kg_4*2", "sk:odz_whey_1*2", "sk:odz_whey_2*2", "sk:odz_whey_3*2", "sk:odz_whey_4*2" },
         "odz_polka" => new[] { "sk:odz_whey_1*3", "sk:odz_whey_2*3", "sk:odz_whey_3*3", "sk:odz_whey_4*3", "sk:odz_mala_1*3", "sk:odz_mala_2*3", "sk:odz_mala_3*3", "sk:odz_mala_4*3", "sk:odz_mala_5*3", "sk:odz_mala_6*3", "sk:odz_dod_1*3", "sk:odz_dod_2*3", "sk:odz_dod_3*3", "sk:odz_dod_4*3", "sk:odz_dod_5*3", "sk:odz_dod_6*3", "sk:odz_kg_2*3", "sk:odz_kg_5*3", "sk:odz_kg_6*3", "sk:odz_kg_7*3", "sk:odz_kg_8*3" },
         "odz_gora" => new[] { "sk:odz_mala_1*4", "sk:odz_mala_2*4", "sk:odz_mala_3*4", "sk:odz_mala_4*4", "sk:odz_mala_5*4", "sk:odz_mala_6*4", "sk:odz_dod_1*4", "sk:odz_dod_2*4", "sk:odz_dod_3*4", "sk:odz_dod_4*4", "sk:odz_dod_5*4", "sk:odz_dod_6*4", "sk:odz_kg_2*4", "sk:odz_kg_5*4", "sk:odz_kg_6*4", "sk:odz_kg_7*4", "sk:odz_kg_8*4" },
-        "market" => new[] { "sk:tor_01*3", "sk:tor_02*3", "sk:tor_03*3", "sk:tor_04*3", "sk:tor_05*3", "sk:tor_06*3", "sk:tor_07*3", "sk:tor_08*3", "sk:tor_09*3", "sk:tor_10*3", "sk:tor_11*3", "sk:tor_12*3", "sk:tor_13*3", "sk:tor_14*3", "sk:tor_15*3", "sk:tor_16*3", "sk:pud_a23*3", "sk:kar_09*3", "sk:pud_d16*3", "sk:pud_c19*3", "sk:pud_a14*3", "sk:pud_d21*3", "sk:pus_b10*3", "sk:pud_c03*3", "sk:but_07*3", "sk:pud_a19*3", "sk:pud_a10*3", "sk:pus_a01*3", "sk:pud_b09*3", "sk:pus_b04*3", "sk:but_16*3", "sk:kar_13*3", "sk:pus_a16*3", "sk:pus_b07*3", "sk:pus_a04*3", "sk:pus_b13*3", "sk:pud_b22*3", "sk:but_04*3", "sk:pud_a05*3", "sk:pus_b16*3", "sk:pud_c11*3", "sk:kar_11*3", "sk:pud_d12*3", "sk:pud_b13*3", "sk:pud_b18*3", "sk:kar_01*3", "sk:but_10*3", "sk:pus_b01*3", "sk:pud_d07*3", "sk:pud_c15*3", "sk:but_01*3", "sk:pus_a07*3", "sk:kar_03*3", "sk:kar_15*3", "sk:kar_07*3", "sk:pud_c23*3", "sk:pus_a10*3", "sk:pud_c07*3", "sk:pus_a13*3", "sk:kar_05*3", "sk:mleko*5", "ph:long_life_food", "ph:CheeseBox_01" },
+        "market" => new[] { "ph:bulki", "ph:long_life_food", "ph:russian_food_cans_01*2", "ph:kanister_mleka", "sk:tor_01*3", "sk:tor_02*3", "sk:tor_03*3", "sk:tor_04*3", "sk:tor_05*3", "sk:tor_06*3", "sk:tor_07*3", "sk:tor_08*3", "sk:tor_09*3", "sk:tor_10*3", "sk:tor_11*3", "sk:tor_12*3", "sk:tor_13*3", "sk:tor_14*3", "sk:tor_15*3", "sk:tor_16*3", "sk:pud_a23*3", "sk:kar_09*3", "sk:pud_d16*3", "sk:pud_c19*3", "sk:pud_a14*3", "sk:pud_d21*3", "sk:pus_b10*3", "sk:pud_c03*3", "sk:but_07*3", "sk:pud_a19*3", "sk:pud_a10*3", "sk:pus_a01*3", "sk:pud_b09*3", "sk:pus_b04*3", "sk:but_16*3", "sk:kar_13*3", "sk:pus_a16*3", "sk:pus_b07*3", "sk:pus_a04*3", "sk:pus_b13*3", "sk:pud_b22*3", "sk:but_04*3", "sk:pud_a05*3", "sk:pus_b16*3", "sk:pud_c11*3", "sk:kar_11*3", "sk:pud_d12*3", "sk:pud_b13*3", "sk:pud_b18*3", "sk:kar_01*3", "sk:but_10*3", "sk:pus_b01*3", "sk:pud_d07*3", "sk:pud_c15*3", "sk:but_01*3", "sk:pus_a07*3", "sk:kar_03*3", "sk:kar_15*3", "sk:kar_07*3", "sk:pud_c23*3", "sk:pus_a10*3", "sk:pud_c07*3", "sk:pus_a13*3", "sk:kar_05*3", "sk:mleko*5", "ph:long_life_food", "ph:CheeseBox_01" },
         // supermarket (BraxSupermarket): trzy typy segmentów regału-wyspy (różne odstępy półek)
         "sm_a" => new[] { "sk:mleko*4", "ph:russian_food_cans_01", "sk:mleko*4" },
         "sm_b" => new[] { "ph:long_life_food", "sk:mleko*4", "ph:CheeseBox_01", "ph:russian_food_cans_01" },
         "sm_c" => new[] { "ph:wine_bottles_01", "ph:multi_cleaner_bottle", "ph:bleach_bottle", "ph:wine_bottles_01" },
+        // chemia domowa (fawela: WSZYSTKO DLA DOMU)
+        "chemia" => new[] { "ph:multi_cleaner_bottle*4", "ph:bleach_bottle*4", "sk:pud_c05*2", "ph:multi_cleaner_bottle*3" },
         // księgarnia (3.11 14:41): rzędy książek z grzbietami z grafik właściciela (po 10 książek w modelu)
         "ksiegarnia" => new[] { "sk:ksiazki_01", "sk:ksiazki_02", "sk:ksiazki_03", "sk:ksiazki_04", "sk:ksiazki_05", "sk:ksiazki_06", "sk:ksiazki_07", "sk:ksiazki_08" },
         // apteka: 24 leki BRAXHORN PHARMA (etykiety właściciela 3.11 14:00, pudełka leki.py), po kilka sztuk obok siebie
@@ -55,16 +79,20 @@ public static class BraxSklepyTowar
 
     static string[] NaLadzie(string typ) => typ switch
     {
-        "piekarnia" => new[] { "ph:hamburger_buns", "ph:croissant*3", "ph:hamburger_buns" },
+        "piekarnia" => new[] { "ph:chleb_okragly", "ph:croissant*3", "ph:bulki", "ph:chleb_bochenki" },
         "cukiernia" => new[] { "ph:strawberry_chocolate_cake", "ph:carrot_cake" },
         "kawiarnia" => new[] { "ph:croissant*2", "ph:carrot_cake" },
-        "warzywniak" => new[] { "sk:owoce_skrzynka", "ph:bananas" },
-        "pizzeria" => new[] { "sk:pizza", "sk:pizza" },
+        "warzywniak" => new[] { "ph:banany_kisc", "ph:skrzynka_cytryny", "ph:banany_kisc" },
+        "kiosk" => new[] { "ph:papierosy*5", "sk:tor_05*2", "sk:tor_11*2", "ph:papierosy*3" },
+        "pizzeria" => new[] { "sk:pizza", "ph:wooden_cutting_board", "sk:pizza" },
         "bistro" => new[] { "sk:hamburger*2", "sk:frytki*2", "sk:kurczak", "sk:szawarma*2" },
         "bar" => new[] { "sk:kebab", "sk:frytki", "sk:hamburger" },
-        "market" => new[] { "sk:mleko*3" },
+        "market" => new[] { "sk:mleko*3", "sk:tor_09*2", "sk:tor_10*2", "sk:tor_12*2" },
         "ksiegarnia" => new[] { "sk:okladka_6", "sk:okladka_1", "sk:okladka_7", "sk:okladka_3" },
-        "apteka" => new[] { "sk:lek_01*2", "sk:lek_13", "sk:lek_20*2" },
+        "apteka" => new[] { "sk:lek_01*2", "sk:lek_13", "sk:lek_20*2", "sk:lek_07*2", "sk:lek_16" },
+        // kebab (10.11 07:59: „kebab był, pizza była — wszystko było”): rożen z kebabem na ladzie, szawarmy, frytki
+        "kebab" => new[] { "sk:kebab", "sk:szawarma*3", "sk:frytki*2", "sk:hamburger" },
+        "pizza_kebab" => new[] { "sk:pizza", "sk:kebab", "sk:szawarma*2", "sk:pizza", "sk:frytki" },
         _ => null
     };
 

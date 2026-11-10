@@ -76,7 +76,7 @@ MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     # tyły siłowni: biura w wieżowcu A, warsztaty pod wiaduktem, wzgórze
     "rollershutter_door", "metal_office_desk", "classic_laptop", "desk_lamp_arm_01", "office_notepads", "stationery_supplies",
     "SchoolChair_01", "modern_wooden_cabinet", "drawer_cabinet", "Sofa_01", "sofa_02", "dining_table", "WoodenTable_01", "WoodenTable_02",
-    "tool_cart", "metal_tool_chest", "hand_truck", "old_tyre", "rusted_wheel_rim_01", "barrel_03", "Barrel_02", "coast_land_rocks_02",
+    "tool_cart", "metal_tool_chest", "hand_truck", "old_tyre", "rusted_wheel_rim_01", "bench_vice_01", "barrel_03", "Barrel_02", "coast_land_rocks_02",
     # biedne mieszkanie Braxa nad NOVA (właściciel 31.10, 21:09–21:10): stare łóżko, telewizor kineskopowy, kuchenka, mikrofala,
     # czajnik, szafa, regał, krzesło, stół, budzik, kartony, skrzynka, konserwy, goła żarówka, radio
     "old_bed_frame", "Television_01", "electric_stove", "vintage_microwave", "vintage_electric_kettle", "painted_wooden_cabinet_02",
@@ -93,6 +93,13 @@ MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     "plastic_jerrycan", "plastic_bottle_gallon", "metal_jerrycan", "cement_bag", "wooden_ladder", "folding_wooden_stool",
     "CashRegister_01", "BarberShopChair_01", "tire_pump", "medical_box", "ceiling_fan", "hanging_industrial_lamp", "security_light",
     "sledgehammer_01",
+    # 10.11 sklepy pełne (MIASTO R1): fawela — naprawa telefonów (stare RTV), wszystko dla domu (chemia, garnki, konewki, szufelki);
+    # ulica miasta — kwiaciarnia (wazony, mała roślina w doniczce), optyk (okulary, lupa), warsztat rowerowy (narzędzia, smary),
+    # hotel (zegar stojący, walizki); rośliny w doniczkach, skrzynki z owocami, pieczywo — w bibliotece (skrzynki_owocow.py)
+    "television_02", "gamepad", "all_purpose_cleaner", "drain_cleaner", "multi_cleaner_5_litre", "pot_enamel_01", "watering_can_metal_01",
+    "dustpan", "metal_jug", "spray_paint_bottles", "potted_plant_04", "ceramic_vase_02", "ceramic_vase_03", "ceramic_vase_04", "brass_vase_03",
+    "round_spectacles", "magnifying_glass_01", "metal_toolbox", "lubricant_spray", "small_oil_can_01", "combination_wrench", "pipe_wrench",
+    "ratchet_wrench", "vintage_suitcase", "vintage_grandfather_clock_01",
 ]
 
 

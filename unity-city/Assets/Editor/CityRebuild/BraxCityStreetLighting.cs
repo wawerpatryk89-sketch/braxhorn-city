@@ -28,18 +28,22 @@ public static class BraxCityStreetLighting
         float z=far?33.32f:22.90f;
         var root=Group("Premium graphite curved street lantern "+x+" "+(far?"far":"near"),
             street,new Vector3(x,.15f,z));
+        // 10.11 (właściciel 09:21: „latarnie mają być dobrze ustawione w stronę ulicy, a nie w stronę chodnika”): wysięgnik
+        // szedł wzdłuż osi x — równolegle do krawężnika, oprawa wisiała nad chodnikiem. Teraz wysięgnik i oprawa nad JEZDNIĄ:
+        // strona bliższa (z 22.90) → +z, dalsza (z 33.32) → −z (oś jezdni z ≈ 28.5).
         float facing=far?-1f:1f;
+        Vector3 Z(float along,float y)=>new Vector3(0,y,along*facing);
         var frame=new BraxCitySystemMesh();
         var fixtures=new BraxCitySystemMesh();
         var screws=new BraxCitySystemMesh();
         frame.Tube(new Vector3(0,0,0),new Vector3(0,.26f,0),.21f,20,.17f);
         frame.Tube(new Vector3(0,.26f,0),new Vector3(0,5.72f,0),.13f,16,.085f);
-        frame.Tube(new Vector3(0,5.72f,0),new Vector3(.18f*facing,6.04f,0),.085f,16,.080f);
-        frame.Tube(new Vector3(.18f*facing,6.04f,0),new Vector3(1.22f*facing,6.04f,0),.078f,16,.06f);
-        frame.Tube(new Vector3(1.22f*facing,6.04f,0),new Vector3(1.46f*facing,5.85f,0),.06f,16,.055f);
-        // Recessed luminaire, casting housing and optical lower plate.
-        fixtures.Box(new Vector3(1.54f*facing,5.88f,0),new Vector3(.7f,.22f,.4f));
-        fixtures.Box(new Vector3(1.54f*facing,5.73f,0),new Vector3(.57f,.07f,.32f));
+        frame.Tube(Z(0,5.72f),Z(.18f,6.04f),.085f,16,.080f);
+        frame.Tube(Z(.18f,6.04f),Z(1.22f,6.04f),.078f,16,.06f);
+        frame.Tube(Z(1.22f,6.04f),Z(1.46f,5.85f),.06f,16,.055f);
+        // Recessed luminaire, casting housing and optical lower plate (long side along the arm).
+        fixtures.Box(Z(1.54f,5.88f),new Vector3(.4f,.22f,.7f));
+        fixtures.Box(Z(1.54f,5.73f),new Vector3(.32f,.07f,.57f));
         frame.Box(new Vector3(0,5.40f,0),new Vector3(.18f,.045f,.18f));
         for(int i=0;i<8;i++)
         {
@@ -51,7 +55,7 @@ public static class BraxCityStreetLighting
         BraxCityArchitecture.MeshObject("Diecast aluminium luminaire with closed optical glazing",root,fixtures,steel);
         BraxCityArchitecture.MeshObject("Real flange fixings",root,screws,bolts);
         BraxCityArchitecture.Box("Dark inset LED diffuser (unlit daylight)",root,
-            new Vector3(1.54f*facing,5.682f,0),new Vector3(.51f,.012f,.28f),glass);
+            Z(1.54f,5.682f),new Vector3(.28f,.012f,.51f),glass);
         var c=root.gameObject.AddComponent<CapsuleCollider>();
         c.center=new Vector3(0,2.92f,0);c.radius=.145f;c.height=5.84f;
         // No emission and no point lights in daylight; this reduces GPU cost.
@@ -69,15 +73,21 @@ public static class BraxCityStreetLighting
         bolts=BraxCityMaterials.Surface("Stainless steel street fixture bolts",
             new Color(.42f,.45f,.45f),.40f,.76f);
         var root=Group("Main street both-side professional lanterns / no traffic",street,Vector3.zero);
+        int pominiete=0;
         foreach(float x in Posts)
         {
-            Post(root,x,false);
+            // 10.11 (właściciel 09:21: „wychodzisz z siłowni, w lewo, potem ulica w lewo — na środku drogi stoi słup”): w miejscu
+            // dawnego wiaduktu jest wylot ul. Wiaduktowej (jezdnia x −69.2…−63.2 aż do jezdni głównej; chodnik i krawężnik
+            // ulicy głównej w wylocie wycięte w BraxRegionMiastoB). Słup bliższej strony x −66 (z 22.90) stał na jezdni.
+            // Skrzyżowanie oświetlają sygnalizatory na wysięgnikach i latarnie Wiaduktowej.
+            if(Mathf.Abs(x-(-66f))<.01f)pominiete++;
+            else Post(root,x,false);
             // The eastern metro entrance sits at X=78.9. The farther-side
             // posts here remain behind the curb and outside the excavated
             // metro rectangle; crosswalk X=50..54 is kept unobstructed.
             Post(root,x,true);
         }
-        Debug.Log("CITY_PREMIUM_STREET_FURNITURE built="+(Posts.Length*2)+
+        Debug.Log("CITY_PREMIUM_STREET_FURNITURE built="+(Posts.Length*2-pominiete)+" (wysięgniki nad jezdnią; pominięty słup w wylocie ul. Wiaduktowej: "+pominiete+")"+
             " unlit physical pedestrian lanterns; traffic, NPCs, police and missions absent");
     }
 }

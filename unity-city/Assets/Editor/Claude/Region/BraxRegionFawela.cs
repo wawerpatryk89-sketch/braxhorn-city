@@ -135,8 +135,8 @@ public static partial class BraxRegionFawela
 
     internal static readonly string[] RodzajeLokali =
     {
-        "SKLEP SPOŻYWCZY", "APTEKA", "PIEKARNIA", "BAR", "WARZYWA · OWOCE", "FRYZJER", "SKLEP SPOŻYWCZY", "NAPRAWA TELEFONÓW", "MIĘSO · WĘDLINY",
-        "BAR", "APTEKA", "WSZYSTKO DLA DOMU", "LOTERIA · OPŁATY", "SKLEP SPOŻYWCZY", "PRZYCHODNIA", "PRALNIA", "BAR", "SKLEP SPOŻYWCZY", "WULKANIZACJA"
+        "SKLEP SPOŻYWCZY", "APTEKA", "PIEKARNIA", "KEBAB", "WARZYWA · OWOCE", "FRYZJER", "SKLEP SPOŻYWCZY", "NAPRAWA TELEFONÓW", "MIĘSO · WĘDLINY",
+        "PIZZA · KEBAB", "APTEKA", "WSZYSTKO DLA DOMU", "LOTERIA · OPŁATY", "SKLEP SPOŻYWCZY", "PRZYCHODNIA", "PRALNIA", "BAR", "SKLEP SPOŻYWCZY", "WULKANIZACJA"
     };
 
     internal static void Przygotuj()
@@ -552,8 +552,8 @@ public static partial class BraxRegionFawela
 
     // ============================================================================ MATERIAŁY — wyłącznie fotoskany CC0 z Poly Haven (stare, zniszczone)
     internal static Material[] tynki, drzwiStalowe, okna; internal static Material tynkCzerwony, tynkNiebieski, cegla, pustak, beton, betonZbr, blachaRdza, blachaOcynk, drzwiDrewno, drzwiStal, roleta,
-        bramaGaraz, okiennica, szyba, metal, zeliwo, alu, zbiornik, plotno, tynkRozowy, roletaSzara, plytkiCiemne, deski, podlogaSali, matySali, matPlakaty, linyRingu, deskiRingu, mataRingu, narozCzerw, narozJasny, asfalt, kraweznik, farba, zarowka, plytki, linoleum, wnetrze, lada, guma, lustro, lodowka, plastik,
-        kabel, placBeton, skora, neonZielony, matGraffiti;
+        bramaGaraz, okiennica, szyba, metal, zeliwo, alu, zbiornik, plotno, tynkRozowy, roletaSzara, plytkiCiemne, deski, podlogaSali, matySali, matPlakaty, linyRingu, deskiRingu, mataRingu, narozCzerw, narozJasny, emalia, asfalt, kraweznik, farba, zarowka, plytki, linoleum, wnetrze, lada, guma, lustro, lodowka, plastik,
+        kabel, placBeton, skora, neonZielony, matGraffiti, zarPieca;
     static readonly List<string> opisTekstur = new List<string>(), brakTekstur = new List<string>();
 
     /// <summary>Zestawy pobierane tylko dla faweli (fetch_region.py: TEXTURES_FAWELA_1K) — wolno je zmniejszać; pozostałe są wspólne z miastem.</summary>
@@ -660,6 +660,7 @@ public static partial class BraxRegionFawela
         mataRingu = T("mata ringu — czerwone płótno bawełniane na filcu (wypłowiałe, przybrudzone)", 1.1f, new Color(.8f, .2f, .18f), .95f, "cotton_jersey", "leather_white");   // 10.11 07:52: „matę zrób czerwoną”, nie w kolorze lin
         narozCzerw = Tm("narożnik ringu — czerwona skóra (wytarta)", .7f, new Color(.88f, .26f, .21f), .55f, "leather_white", "fabric_leather_01");   // leather_red_02/03 na Poly Haven bez mapy koloru (tylko warianty coll1/coll2)
         narozJasny = Tm("narożniki ringu — jasna skóra (niebieski i neutralne)", .7f, Color.white, .55f, "leather_white", "fabric_leather_01");
+        emalia = T("pralki i suszarki — biała emalia (stara)", 1.6f, Color.white, .3f, "white_stucco", "leather_white");   // 10.11: „pralki mogłyby być ładniejsze” — plastik (leather_white) dawał ziarno skóry
         plotno = Tm("płótno (markizy, plandeki, pranie)", .9f, b, .95f, "cotton_jersey", "rough_linen", "leather_white");
         podlogaSali = T("podłoga sali — stare wytarte deski", 2.0f, new Color(.86f, .82f, .76f), .8f, "old_planks_02", "wood_planks_grey", "wood_planks");   // 10.11: „wood_floor_worn” to nowa sosna (pomarańcz) — nie do starej sali
         matySali = Tm("maty gumowe sali (czarna guma, wytarte)", 1.2f, new Color(.62f, .62f, .64f), .85f, "rubber_tiles", "asphalt_04");   // 10.11: „rubberized_track” to czerwona bieżnia
@@ -684,7 +685,8 @@ public static partial class BraxRegionFawela
         zarowka = BraxRegionMeble.Swiecacy("Fawela: żarówka / świetlówka (ciepła)", new Color(1f, .86f, .62f), 1.6f);
         lodowka = BraxRegionMeble.Swiecacy("Fawela: lodówka z napojami (podświetlona)", new Color(.85f, .93f, 1f), .7f);
         neonZielony = BraxRegionMeble.Swiecacy("Fawela: krzyż apteki (świeci)", new Color(.15f, 1f, .35f), 1.8f);
-        foreach (var m in new[] { szyba, zarowka, lodowka, neonZielony, kabel }) bezCienia.Add(m);
+        zarPieca = BraxRegionMeble.Swiecacy("Fawela: żar w piecu do pizzy", new Color(1f, .42f, .1f), 2.2f);
+        foreach (var m in new[] { szyba, zarowka, lodowka, neonZielony, kabel, zarPieca }) bezCienia.Add(m);
         try { matPlakaty = Plakaty(); } catch (Exception e) { matPlakaty = null; Debug.LogWarning("DO POPRAWKI: BRAXHORN_FAWELA plakaty: " + e.Message); }
         try { matGraffiti = Graffiti(); } catch (Exception e) { matGraffiti = null; Debug.LogWarning("DO POPRAWKI: BRAXHORN_FAWELA graffiti: " + e.Message); }
         if (matGraffiti) bezCienia.Add(matGraffiti);

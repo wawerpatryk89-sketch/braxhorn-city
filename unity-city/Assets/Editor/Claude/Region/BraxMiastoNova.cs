@@ -43,12 +43,48 @@ internal static class BraxMiastoNova
     static Vector3 Kula => new Vector3((DX0 + DX1) * .5f, 3.45f, (DZ0 + DZ1) * .5f);
 
     static Transform root, kol;
+
+    // 10.11 (właściciel 10:06–10:08: „ta dyskoteka mi się nie podoba… kolega obija pikowaną skórą, drewienko — ty tak nie możesz?”,
+    // „wygląda jak jeden wielki klocek, piksel”): zamiast gołych kolorów — materiały z fakturą. Skóra pikowana (chesterfield,
+    // guziki w węzłach rombów) to własna tekstura z ziarnem skóry Poly Haven brown_leather (CC0) i mapą normalnych poduszek
+    // (Assets/Source/Claude/Nova/tekstury/nova_skora_pikowana), barwiona w materiale; orzech = fornir teak przyciemniony,
+    // marmur czarny = marble_01, posadzka = kamień polerowany; okucia z mosiądzu.
+    const string TeksturyNova = "Assets/Source/Claude/Nova/tekstury/";
+    static Material SkoraPik(string nazwa, Color c) => BraxUliceKit.TexPlik("NOVA: " + nazwa, TeksturyNova, "nova_skora_pikowana", .64f, c, c * .5f, .42f);
+    static Material SkoraGladka(string nazwa, Color c) => BraxMiastoA.Tex("NOVA: " + nazwa, .7f, c, c * .5f, .45f, "brown_leather", "leather_red_02");
+    static Material Orzech => BraxMiastoA.Tex("NOVA: orzech ciemny (fornir)", 1.4f, new Color(.52f, .36f, .27f), new Color(.20f, .12f, .07f), .42f, "teak_veneer", "dark_wood");
+    static Material MarmurCzarny => BraxMiastoA.Tex("NOVA: marmur czarny polerowany", 1.8f, new Color(.30f, .30f, .32f), new Color(.05f, .05f, .055f), .12f, "marble_01");
+    static Material Posadzka => BraxMiastoA.Tex("NOVA: posadzka kamień polerowany grafit", 1.6f, new Color(.42f, .42f, .44f), new Color(.10f, .10f, .11f), .22f, "granite_tile_02", "marble_01");
+    static Material Mosiadz => BraxMiastoA.Mat("NOVA: mosiądz szczotkowany", new Color(.72f, .56f, .30f), .3f, .9f);
+    static Color Bordo => new Color(.50f, .11f, .12f);
+    static Color Czarna => new Color(.20f, .18f, .18f);
+    static Color Sliwka => new Color(.38f, .11f, .30f);
+
+    // Okładzina ściany sali od środka: cokół z orzecha, pas skóry pikowanej do wysokości oparcia (1.26 m), mosiężna listwa,
+    // wyżej pionowe lamele z orzecha co 14 cm do sufitu. A = punkt na licu ściany (y dowolne), R = wzdłuż, N = do sali; otwory (s0, s1).
+    static void Okladzina(Vector3 A, Vector3 R, Vector3 N, float L, params (float a, float b)[] otwory)
+    {
+        var sk = BraxUliceKit.S(SkoraPik("skóra pikowana ścian (bordo)", Bordo)); var wo = BraxUliceKit.S(Orzech); var ms = BraxUliceKit.S(Mosiadz);
+        Vector3 P(float a, float y, float d) => new Vector3(A.x, 0, A.z) + R * a + Vector3.up * y + N * d;
+        void B(UlSiatka u, Vector3 p, Vector3 q) => u.Box(Vector3.Min(p, q), Vector3.Max(p, q));
+        var odc = new List<(float, float)>(); float s0 = 0f;
+        foreach (var o in otwory.OrderBy(o => o.a)) { if (o.a - s0 > .08f) odc.Add((s0, o.a)); s0 = Mathf.Max(s0, o.b); }
+        if (L - s0 > .08f) odc.Add((s0, L));
+        foreach (var (a, b) in odc)
+        {
+            B(wo, P(a, F, .0f), P(b, F + .14f, .07f));                        // cokół
+            B(sk, P(a, F + .14f, .01f), P(b, F + 1.22f, .065f));              // skóra pikowana
+            B(ms, P(a, F + 1.22f, .0f), P(b, F + 1.26f, .075f));              // listwa mosiężna
+            for (float t = a + .07f; t < b - .04f; t += .14f) B(wo, P(t - .035f, F + 1.30f, .0f), P(t + .035f, C - .16f, .045f));   // lamele
+            B(wo, P(a, C - .16f, .0f), P(b, C - .1f, .05f));                    // listwa pod sufitem
+        }
+    }
     static readonly List<Light> swiatla = new List<Light>();
-    static readonly List<Transform> lasery = new List<Transform>(), glowice = new List<Transform>();
+    static readonly List<Transform> lasery = new List<Transform>(), glowice = new List<Transform>(), migacze = new List<Transform>();
 
     public static void Apply(Transform cityRoot)
     {
-        BraxUliceKit.Start(); BraxMiastoA.WyczyscPamiec(); swiatla.Clear(); lasery.Clear(); glowice.Clear();
+        BraxUliceKit.Start(); BraxMiastoA.WyczyscPamiec(); swiatla.Clear(); lasery.Clear(); glowice.Clear(); migacze.Clear();
         var flat = cityRoot.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.StartsWith("CLAUDE mieszkanie Braxa"));
         var stareKlub = cityRoot.GetComponentsInChildren<Transform>(true).Where(t => t.name.StartsWith("CLAUDE NOVA") || t.name.StartsWith("NOVA club")).ToArray();
         // 1) ZDEJMIJ STARE
@@ -92,7 +128,7 @@ internal static class BraxMiastoNova
         Efekty();
         Swiatla();
         var ef = root.gameObject.AddComponent<BraxNovaEfekty>();
-        ef.kula = root.Find("Kula lustrzana (obrót)"); ef.lasery = lasery.ToArray(); ef.glowice = glowice.ToArray(); ef.swiatla = swiatla.ToArray();
+        ef.kula = root.Find("Kula lustrzana (obrót)"); ef.obrotyNaMinute = 12f; ef.lasery = lasery.ToArray(); ef.glowice = glowice.ToArray(); ef.migacze = migacze.ToArray(); ef.swiatla = swiatla.ToArray();
         BraxRegion.Rep.nova = true;
         BraxMiastoA.Log("NOVA: fasada + przedsionek + sala " + (HX1 - HX0).ToString("F1") + "×" + (HZ1 - HZ0).ToString("F1") + " m, parkiet " + (DX1 - DX0) + "×" + (DZ1 - DZ0) + " m, laserów " + lasery.Count + ", głowic " + glowice.Count + ", świateł " + swiatla.Count + ", siatek " + siatek + ", starych grup " + stare + "; zdjęte: " + string.Join(" | ", raport));
     }
@@ -149,14 +185,9 @@ internal static class BraxMiastoNova
         BraxUliceKit.S(szklo).Box(new Vector3(39.1f, dy + .13f, dz0 + .1f), new Vector3(44.9f, dy + .145f, z - .01f));
         BraxUliceKit.S(listwaMag).Box(new Vector3(39.02f, dy - .03f, dz0 + .01f), new Vector3(44.98f, dy, dz0 + .06f));
         foreach (float x in new[] { 39.6f, 44.4f }) st.Rura(new Vector3(x, dy + .14f, dz0 + .12f), new Vector3(x, 4.9f, z - .02f), .018f, 8);
-        // panel szyldu nad daszkiem + litery przestrzenne „CLUB NOVA” (równo, w osi wejścia) + obwódka LED
-        float pz = z - .04f;
-        BraxUliceKit.S(panel).Box(new Vector3(38.4f, 3.62f, pz), new Vector3(45.6f, 4.86f, z), 32);
-        var lm = BraxUliceKit.S(listwaMag);
-        lm.Box(new Vector3(38.36f, 3.58f, pz - .03f), new Vector3(45.64f, 3.62f, z)); lm.Box(new Vector3(38.36f, 4.86f, pz - .03f), new Vector3(45.64f, 4.90f, z));
-        lm.Box(new Vector3(38.36f, 3.62f, pz - .03f), new Vector3(38.4f, 4.86f, z)); lm.Box(new Vector3(45.6f, 3.62f, pz - .03f), new Vector3(45.64f, 4.86f, z));
-        float cap = .74f, w = BraxUliceKit.SzerokoscNapisu("CLUB NOVA", cap); if (w > 6.6f) cap *= 6.6f / w;
-        BraxUliceKit.Napis3D("CLUB NOVA", new Vector3(42f, 3.86f, pz), Vector3.back, cap, .12f, litery, boki);
+        // 10.11 (właściciel 09:26, zdjęcie fasady: „klub NOVA — to jest stary szyld, już od 5 buildów, nie chcę go”; 6.11:
+        // „tylko stary napis nad NOVA”): panel z czarnego szkła z literami „CLUB NOVA” i różową obwódką LED nad daszkiem
+        // (x 38.4…45.6, y 3.62…4.86) NIE jest już stawiany — nad wejściem zostaje wyłącznie szyld właściciela „NOVA DYSKOTEKA”.
         // pkt 48b (właściciel 01:01): plakaty i banery na klubie NOVA USUNIĘTE — reklama tylko na nośnikach (BraxMiastoBillboardy)
         // kinkiety przy wejściu
         foreach (float x in new[] { 40.25f, 43.75f })
@@ -228,9 +259,9 @@ internal static class BraxMiastoNova
         var posadzka = BraxMiastoA.Tex("NOVA: posadzka kamień grafit", 1.2f, new Color(.30f, .30f, .32f), new Color(.12f, .12f, .13f), .55f, "granite_tile_02", "granite_tile");
         var sciana = BraxMiastoA.Mat("NOVA: panele akustyczne grafit", new Color(.07f, .07f, .08f), .95f);
         var sufit = BraxMiastoA.Mat("NOVA: sufit czarny mat", new Color(.025f, .025f, .03f), .95f);
-        var lada = BraxMiastoA.Mat("NOVA: lada orzech ciemny", new Color(.20f, .12f, .07f), .5f);
-        var blat = BraxMiastoA.Mat("NOVA: blat czarny kamień", new Color(.05f, .05f, .055f), .3f, .1f);
-        var mos = BraxMiastoA.Mat("NOVA: mosiądz szczotkowany", new Color(.72f, .56f, .30f), .32f, .9f);
+        var lada = Orzech;
+        var blat = MarmurCzarny;
+        var mos = Mosiadz;
         var cieple = BraxMiastoA.Swieci("NOVA: listwa LED ciepła", new Color(1f, .9f, .75f), new Color(1.6f, 1.25f, .8f));
         // pokój przedsionka: front z otworem drzwi, ściana do sali z przejściem 4 m
         var otwFront = new[] { Rect.MinMaxRect(PX1 - 43.2f, F, PX1 - 40.8f, F + 2.85f) };
@@ -243,6 +274,11 @@ internal static class BraxMiastoNova
         BraxMiastoA.Kol(kol, "sufit przedsionka", new Vector3(PX0, C, WewFront), new Vector3(PX1, C + .2f, 41.6f));
         BraxMiastoA.Kol(kol, "ściana przedsionka zachód", new Vector3(SX1, F, WewFront), new Vector3(PX0, C, 41.6f));
         BraxMiastoA.Kol(kol, "ściana przedsionek–toalety", new Vector3(PX1, F, WewFront), new Vector3(WX0, C, 41.6f));
+        // okładzina przedsionka jak w sali: skóra pikowana, mosiądz, lamele z orzecha (otwory: drzwi, przejście do sali, kasa)
+        Okladzina(new Vector3(PX0, 0, WewFront), Vector3.forward, Vector3.right, 41.6f - WewFront);
+        Okladzina(new Vector3(PX1, 0, WewFront), Vector3.forward, Vector3.left, 41.6f - WewFront, (37.0f - .05f - WewFront, 38.8f + .05f - WewFront));
+        Okladzina(new Vector3(PX0, 0, WewFront), Vector3.right, Vector3.forward, PX1 - PX0, (40.65f - PX0, 43.35f - PX0));
+        Okladzina(new Vector3(PX0, 0, 41.6f), Vector3.right, Vector3.back, PX1 - PX0, (40.0f - PX0, 44.0f - PX0));
         // szatnia: lada (wys. 1.05 × k) przy ścianie zachodniej, za nią wieszaki z okryciami
         float lh = 1.05f * K, lx0 = 39.5f, lx1 = 40.05f, lz0 = 37.2f, lz1 = 40.8f;
         var sl = BraxUliceKit.S(lada); sl.Box(new Vector3(lx0, F, lz0), new Vector3(lx1, F + lh - .04f, lz1), 4);
@@ -251,9 +287,31 @@ internal static class BraxMiastoNova
         BraxMiastoA.Kol(kol, "lada szatni", new Vector3(lx0, F, lz0), new Vector3(lx1 + .06f, F + lh, lz1));
         var okr = BraxUliceKit.S(BraxMiastoA.Mat("NOVA: okrycia (kolory z wierzchołków)", Color.white, .9f));
         var rng = new System.Random(36);
+        // 10.11 (właściciel 09:26: „szatnie mają być normalne, nie kwadraty”): płaszcze i wieszaki z modeli jak w dyskotece osiedla
+        // (paczka osiedle_wnetrza: Wool Coat 3DECraft, Wood Clothes Hanger tedpermana — CC BY). Płaszcz wisi ramionami w poprzek
+        // drążka (drążek wzdłuż z), co ok. 0.34 m, część miejsc z pustym wieszakiem; 5 odcieni wełny. Bez paczki — bryły jak dotąd.
+        var plaszcz = BraxMiastoAssety.Model("osiedle_wnetrza", "szatnia_plaszcz_3decraft");
+        var wieszak = BraxMiastoAssety.Model("osiedle_wnetrza", "szatnia_wieszak_roh3d");
+        Color[] welna = { new Color(.16f, .16f, .17f), new Color(.62f, .45f, .28f), new Color(.17f, .21f, .34f), new Color(.45f, .45f, .46f), new Color(.40f, .12f, .14f) };
+        int plaszczy = 0, wieszakow = 0;
         foreach (float xr in new[] { 38.6f, 39.1f })
         {
-            BraxUliceKit.S(mos).Rura(new Vector3(xr, F + 1.75f * K, 36.9f), new Vector3(xr, F + 1.75f * K, 41.2f), .018f, 8);
+            float yDrazek = F + 1.75f * K;
+            BraxUliceKit.S(mos).Rura(new Vector3(xr, yDrazek, 36.9f), new Vector3(xr, yDrazek, 41.2f), .018f, 8);
+            if (plaszcz)
+            {
+                for (float zz = 37.15f; zz < 41.0f; zz += .34f)
+                {
+                    int los = rng.Next(10);
+                    if (los < 7)
+                    {
+                        var o = NaDrazku(plaszcz, "Szatnia: płaszcz", new Vector3(xr, yDrazek - .04f, zz), 1.02f, true, (float)rng.NextDouble());
+                        if (o) { Odcien(o, welna[rng.Next(welna.Length)]); plaszczy++; }
+                    }
+                    else if (wieszak && NaDrazku(wieszak, "Szatnia: pusty wieszak", new Vector3(xr, yDrazek + .1f, zz), .24f, true, (float)rng.NextDouble())) wieszakow++;
+                }
+                continue;
+            }
             for (float zz = 37.0f; zz < 41.1f; zz += .16f)
             {
                 okr.kolor = BraxUliceKit.C(.1f + (float)rng.NextDouble() * .5f, .08f + (float)rng.NextDouble() * .3f, .08f + (float)rng.NextDouble() * .35f);
@@ -262,6 +320,7 @@ internal static class BraxMiastoNova
             }
         }
         okr.kolor = BraxUliceKit.Bialy;
+        BraxMiastoA.Log("NOVA szatnia: " + (plaszcz ? "płaszcze z modelu " + plaszczy + ", puste wieszaki " + wieszakow : "BRAK paczki osiedle_wnetrza — okrycia z brył"));
         // kasa (stanowisko biletów) przy ścianie wschodniej
         sl.Box(new Vector3(44.3f, F, 37.0f), new Vector3(PX1, F + lh - .04f, 38.8f), 4);
         BraxUliceKit.S(blat).Box(new Vector3(44.25f, F + lh - .04f, 36.96f), new Vector3(PX1, F + lh, 38.84f), 4);
@@ -272,6 +331,85 @@ internal static class BraxMiastoNova
         lmag.Box(new Vector3(PX0 + .05f, C - .08f, 41.6f - .09f), new Vector3(PX1 - .05f, C - .04f, 41.6f - .05f));
         BraxMiastoA.Akcja(root, "nova_szatnia", "ODDAJ KURTKĘ", "Szatnia: numerek 27, odbiór przy wyjściu.", new Vector3(40.7f, F, 39.0f), 1.5f);
         BraxMiastoA.Akcja(root, "nova_kasa", "KUP WEJŚCIE", "Kasa: wejście 40 zł, w cenie jeden napój przy barze.", new Vector3(43.6f, F, 37.9f), 1.5f);
+    }
+
+    // Model na drążku szatni: wysokość realna wys × K, ramiona (dłuższy wymiar poziomy) w poprzek drążka (drążek wzdłuż z),
+    // GÓRA obrysu w punkcie p (haczyk na drążku); los 0…1: przód/tył i lekki skręt. Obrót i skala korzenia z importu zostają.
+    static GameObject NaDrazku(GameObject src, string nazwa, Vector3 p, float wys, bool odGory, float los)
+    {
+        if (!src) return null;
+        var o = (GameObject)Object.Instantiate(src, root, false); o.name = nazwa;
+        var r0 = src.transform.localRotation; var s0 = src.transform.localScale;
+        o.transform.position = Vector3.zero; o.transform.rotation = r0; o.transform.localScale = s0;
+        var b = BraxMiastoAssety.Granice(o);
+        float yaw = (b.size.x >= b.size.z ? 0f : 90f) + (los < .5f ? 0f : 180f) + (los * 12f - 6f);
+        o.transform.rotation = Quaternion.Euler(0f, yaw, 0f) * r0;
+        b = BraxMiastoAssety.Granice(o);
+        float s = wys * K / Mathf.Max(1e-4f, b.size.y);
+        o.transform.localScale = s0 * s;
+        b = BraxMiastoAssety.Granice(o);
+        o.transform.position += new Vector3(p.x - b.center.x, odGory ? p.y - b.max.y : p.y - b.min.y, p.z - b.center.z);
+        BraxMiastoAssety.Przygotuj(o, true, false);
+        return o;
+    }
+
+    static readonly Dictionary<(Material, int), Material> odcienie = new Dictionary<(Material, int), Material>();
+    static void Odcien(GameObject o, Color c)
+    {
+        int klucz = (Mathf.RoundToInt(c.r * 255) << 16) | (Mathf.RoundToInt(c.g * 255) << 8) | Mathf.RoundToInt(c.b * 255);
+        foreach (var r in o.GetComponentsInChildren<Renderer>(true))
+            r.sharedMaterials = r.sharedMaterials.Select(src =>
+            {
+                if (!src || !src.HasProperty("_Color")) return src;
+                if (odcienie.TryGetValue((src, klucz), out var have) && have) return have;
+                var m = new Material(src) { name = src.name + " (odcień " + klucz.ToString("X6") + ")" };
+                m.SetColor("_Color", c * 1.6f);
+                Directory.CreateDirectory(BraxMiastoA.Out + "/Materialy");
+                BraxZapisAssetu.Utworz(m, BraxMiastoA.Out + "/Materialy/nova_szatnia_" + odcienie.Count + ".mat");
+                odcienie[(src, klucz)] = m; return m;
+            }).ToArray();
+    }
+
+    // Regały z butelkami (model osiedla) wzdłuż ściany wschodniej baru tylnego (x = HX1), od BZ0 do BZ1, na blacie y0.
+    static bool RegalyButelek(float bx, float y0)
+    {
+        var polki = BraxMiastoAssety.Model("osiedle_wnetrza", "bar_polki_butelki_windupbird");
+        if (!polki) { BraxMiastoA.Log("NOVA bar: BRAK paczki osiedle_wnetrza — półki i butelki z kodu"); return false; }
+        try
+        {
+            var tmp = (GameObject)Object.Instantiate(polki); tmp.transform.position = Vector3.zero; tmp.transform.rotation = polki.transform.localRotation;
+            var hs = tmp.GetComponentsInChildren<Transform>(true).Where(t => t != tmp.transform && (t.name.StartsWith("Object") || t.name.StartsWith("Box")))
+                .Select(t => BraxRegion.Bounds(t.gameObject).size.y).Where(h => h > 1e-4f).ToList();
+            var b0 = BraxMiastoAssety.Granice(tmp); Object.DestroyImmediate(tmp);
+            float maxB = hs.Count >= 3 ? hs.Max() : b0.size.y * .2f;
+            float s = Mathf.Min(.33f * K / maxB, (C - .45f - y0) / Mathf.Max(1e-4f, b0.size.y));
+            bool dlugiX = b0.size.x >= b0.size.z;
+            float yaw = dlugiX ? 270f : 0f;                     // dłuższy bok wzdłuż ściany (z), przód do sali (−x) — jak na osiedlu
+            float wr = Mathf.Max(b0.size.x, b0.size.z) * s, L = BZ1 - BZ0 - .2f;
+            int n = Mathf.Clamp(Mathf.FloorToInt((L + .1f) / (wr + .1f)), 1, 8);
+            float krok = L / n;
+            int postawione = 0;
+            for (int i = 0; i < n; i++)
+            {
+                float cz = BZ0 + .1f + krok * (i + .5f);
+                var o = (GameObject)Object.Instantiate(polki, root, false); o.name = "Bar tylny: regał z butelkami " + (i + 1) + " (windupbird, CC BY)";
+                var r0 = polki.transform.localRotation; var s0 = polki.transform.localScale;
+                o.transform.position = Vector3.zero; o.transform.rotation = Quaternion.Euler(0f, yaw, 0f) * r0; o.transform.localScale = s0 * s;
+                var b = BraxMiastoAssety.Granice(o);
+                o.transform.position += new Vector3(HX1 - .06f - b.max.x, y0 - b.min.y, cz - b.center.z);
+                BraxMiastoAssety.Przygotuj(o, true, false);
+                postawione++;
+            }
+            // butelki whisky i wina (Helyeouka) na ladzie baru od strony sali — przy nalewakach, na blacie z nawisem (x BX0 − 0.28 … BX1)
+            var butelki = BraxMiastoAssety.Model("osiedle_wnetrza", "bar_butelki_helyeouka");
+            int naLadzie = 0;
+            if (butelki)
+                foreach (float z in new[] { 45.2f, 48.2f, 51.7f, 54.3f })
+                    if (NaDrazku(butelki, "Lada: butelki whisky i wina (Helyeouka, CC BY)", new Vector3((BX0 + BX1) * .5f + .05f, F + 1.1f * K + .001f, z), .3f, false, .3f)) naLadzie++;
+            BraxMiastoA.Log("NOVA bar: regały z butelkami z modelu osiedla ×" + postawione + " (szer. " + wr.ToString("F2") + " m, skala " + s.ToString("F3") + "), zestawy butelek na ladzie " + naLadzie);
+            return postawione > 0;
+        }
+        catch (System.Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_MIASTO_A NOVA bar regały z modelu: " + e.Message); return false; }
     }
 
     // ================= TOALETY =================
@@ -338,6 +476,18 @@ internal static class BraxMiastoNova
                     ce.Box(new Vector3(x0 + .02f, F + .55f * K, uz - .18f * K), new Vector3(x0 + .3f * K, F + 1.2f * K, uz + .18f * K));
                     BraxMiastoA.Kol(kol, "pisuar", new Vector3(x0, F + .5f * K, uz - .2f * K), new Vector3(x0 + .32f * K, F + 1.2f * K, uz + .2f * K));
                 }
+            // 10.11 (właściciel 09:26: „łazienki mają być pozamykane, nieotwarte”): drzwi ZAMKNIĘTE w przejściu (otwór toalety xd ± 0.6,
+            // otwór w ścianie sali przesunięty o 5 cm — skrzydło kryje oba), ościeżnica przez całą grubość ściany 41.58…41.82
+            // (lica ścian w środku ościeżnicy), klamka od sali, kolizja skrzydła.
+            float hc = meska ? 49.85f : 46.75f, da = Mathf.Min(xd, hc) - .6f, db = Mathf.Max(xd, hc) + .6f, dh = F + 2.6f;
+            BraxUliceKit.S(Orzech).Box(new Vector3(da, F + .01f, 41.68f), new Vector3(db, dh - .005f, 41.72f));
+            hp.Box(new Vector3(da - .07f, F, 41.58f), new Vector3(da, dh + .07f, 41.82f)); hp.Box(new Vector3(db, F, 41.58f), new Vector3(db + .07f, dh + .07f, 41.82f));
+            hp.Box(new Vector3(da, dh, 41.58f), new Vector3(db, dh + .07f, 41.82f));
+            var kl = BraxUliceKit.S(Mosiadz); float xk = meska ? da + .12f : db - .12f, xk2 = meska ? xk + .14f : xk - .14f;
+            kl.Rura(new Vector3(xk, F + 1.05f, 41.72f), new Vector3(xk, F + 1.05f, 41.79f), .012f, 8);
+            kl.Rura(new Vector3(xk, F + 1.05f, 41.79f), new Vector3(xk2, F + 1.05f, 41.79f), .012f, 8);
+            kl.Walec(new Vector3(xk, F + 1.0f, 41.72f), .035f, .012f, 12);
+            BraxMiastoA.Kol(kol, "WC drzwi zamknięte", new Vector3(da, F, 41.62f), new Vector3(db, dh, 41.78f));
             // oznaczenie nad drzwiami od strony sali
             BraxUliceKit.Napis3D(meska ? "WC MĘSKA" : "WC DAMSKA", new Vector3(xd, F + 2.75f, 41.8f), Vector3.forward, .16f, .03f, litery, boki);
             BraxRegion.Warm(root, "WC światło", new Vector3(xd, 2.9f, (z0 + z1) * .5f), 1.2f, 6f);
@@ -347,7 +497,7 @@ internal static class BraxMiastoNova
     // ================= SALA =================
     static void Sala()
     {
-        var posadzka = BraxMiastoA.Mat("NOVA: posadzka beton polerowany grafit", new Color(.10f, .10f, .11f), .55f, .05f);
+        var posadzka = Posadzka;
         var sciana = BraxMiastoA.Mat("NOVA: panele akustyczne grafit", new Color(.07f, .07f, .08f), .95f);
         var sufit = BraxMiastoA.Mat("NOVA: sufit czarny mat", new Color(.025f, .025f, .03f), .95f);
         var lmag = BraxMiastoA.Swieci("NOVA: listwa LED magenta", new Color(.9f, .3f, .8f), new Color(2.2f, .35f, 1.8f));
@@ -381,14 +531,17 @@ internal static class BraxMiastoNova
         lm.Box(new Vector3(HX0 + .05f, C - .08f, HZ0 + .05f), new Vector3(HX1 - .05f, C - .04f, HZ0 + .09f));
         lm.Box(new Vector3(HX0 + .05f, C - .08f, HZ1 - .09f), new Vector3(HX1 - .05f, C - .04f, HZ1 - .05f));
         lm.Box(new Vector3(HX0 + .05f, C - .08f, HZ0 + .09f), new Vector3(HX0 + .09f, C - .04f, HZ1 - .09f));
-        for (float z = HZ0 + 1.6f; z < HZ1 - 1f; z += 3.0f)
-            if (z < 43f || z > 58.2f) ln.Box(new Vector3(HX0 + .02f, F + .3f, z - .02f), new Vector3(HX0 + .05f, C - .3f, z + .02f));
+        // okładzina: ściana zachodnia (za lożami) na całej długości, południowa od sali między otworami (przejście, WC), wschodnia
+        // przy barze tam, gdzie nie ma baru tylnego ani zaplecza; północna = mural na całą ścianę
+        Okladzina(new Vector3(HX0, 0, HZ0), Vector3.forward, Vector3.right, HZ1 - HZ0);
+        Okladzina(new Vector3(HX0, 0, HZ0), Vector3.right, Vector3.forward, HX1 - HX0, (40.0f - HX0, 44.0f - HX0), (46.05f - HX0, 47.45f - HX0), (49.15f - HX0, 50.55f - HX0));
+        Okladzina(new Vector3(HX1, 0, HZ0), Vector3.forward, Vector3.left, ZZ0 - .2f - HZ0, (BZ0 - HZ0, BZ1 - HZ0));
         // stoliki koktajlowe (wys. 1.1 m × k) przy wejściu do sali
-        var blat = BraxMiastoA.Mat("NOVA: blat czarny kamień", new Color(.05f, .05f, .055f), .3f, .1f);
+        var blat = MarmurCzarny; var mos = BraxUliceKit.S(Mosiadz);
         foreach (var p in new[] { new Vector3(37.0f, F, 43.4f), new Vector3(45.6f, F, 43.4f) })
         {
             BraxUliceKit.S(blat).Walec(p + Vector3.up * (1.1f * K - .04f), .32f * K, .04f, 22);
-            inox.Rura(p + Vector3.up * .02f, p + Vector3.up * (1.1f * K - .04f), .04f, 10); inox.Walec(p, .25f * K, .02f, 18);
+            mos.Rura(p + Vector3.up * .02f, p + Vector3.up * (1.1f * K - .04f), .04f, 10); mos.Walec(p, .25f * K, .02f, 18);
             var g = new GameObject("kolizja: stolik koktajlowy"); g.transform.SetParent(kol, false); g.transform.position = p + Vector3.up * .55f * K;
             var cc = g.AddComponent<CapsuleCollider>(); cc.radius = .3f * K; cc.height = 1.1f * K;
         }
@@ -398,21 +551,23 @@ internal static class BraxMiastoNova
     // ================= BAR =================
     static void Bar()
     {
-        var onyks = BraxMiastoA.Swieci("NOVA: front baru onyks podświetlany", new Color(.95f, .78f, .52f), new Color(.95f, .55f, .22f));
-        var blat = BraxMiastoA.Mat("NOVA: blat baru marmur czarny", new Color(.06f, .06f, .065f), .22f, .1f);
-        var orzech = BraxMiastoA.Mat("NOVA: lada orzech ciemny", new Color(.20f, .12f, .07f), .5f);
+        var onyks = SkoraPik("front baru — skóra pikowana czarna", Czarna);
+        var blat = MarmurCzarny;
+        var orzech = Orzech;
         var szklo = BraxMiastoA.Mat("NOVA: półki szklane", new Color(.75f, .85f, .9f, .35f), .05f, .1f);
         var butelki = BraxMiastoA.Mat("NOVA: butelki (kolory z wierzchołków)", Color.white, .12f, .15f);
         var led = BraxMiastoA.Swieci("NOVA: listwa LED ciepła", new Color(1f, .9f, .75f), new Color(1.6f, 1.25f, .8f));
         var lustro = BraxMiastoA.Mat("NOVA WC: lustro", new Color(.75f, .78f, .80f), .04f, 1f);
         var lodowka = BraxMiastoA.Swieci("NOVA: lodówki barowe (wnętrze podświetlone)", new Color(.7f, .85f, 1f), new Color(.35f, .55f, .8f));
-        var chrom = BraxMiastoA.Mat("NOVA: chrom słupków", new Color(.85f, .86f, .88f), .12f, 1f);
-        var skora = BraxMiastoA.Mat("NOVA: skóra siedzisk czarna", new Color(.04f, .035f, .035f), .45f);
+        var chrom = Mosiadz;
+        var skora = SkoraGladka("skóra siedzisk hokerów (koniak)", new Color(.62f, .36f, .22f));
         float h = 1.1f * K;
         // lada: front z podświetlanego onyksu (od strony sali), korpus, blat z nawisem, podnóżek
         BraxUliceKit.S(onyks).Box(new Vector3(BX0, F + .12f, BZ0), new Vector3(BX0 + .04f, F + h - .06f, BZ1), 2 | 4 | 8);
         BraxUliceKit.S(orzech).Box(new Vector3(BX0 + .04f, F, BZ0), new Vector3(BX1, F + h - .06f, BZ1), 4 | 8 | 1);
         BraxUliceKit.S(orzech).Box(new Vector3(BX0, F, BZ0), new Vector3(BX0 + .04f, F + .12f, BZ1), 4 | 2);
+        BraxUliceKit.S(led).Box(new Vector3(BX0 - .02f, F + .12f, BZ0 + .05f), new Vector3(BX0 + .005f, F + .15f, BZ1 - .05f));   // ciepła listwa pod frontem
+        BraxUliceKit.S(Mosiadz).Box(new Vector3(BX0 - .025f, F + h - .1f, BZ0), new Vector3(BX0 + .005f, F + h - .07f, BZ1));      // mosiężna listwa pod blatem
         BraxUliceKit.S(blat).Box(new Vector3(BX0 - .28f, F + h - .06f, BZ0 - .05f), new Vector3(BX1 + .05f, F + h, BZ1 + .05f));
         BraxUliceKit.S(chrom).Rura(new Vector3(BX0 - .18f, F + .25f, BZ0 + .1f), new Vector3(BX0 - .18f, F + .25f, BZ1 - .1f), .025f, 10);
         BraxMiastoA.Kol(kol, "lada baru", new Vector3(BX0 - .28f, F, BZ0), new Vector3(BX1 + .05f, F + h, BZ1));
@@ -430,7 +585,11 @@ internal static class BraxMiastoNova
         BraxUliceKit.S(lustro).Box(new Vector3(HX1 - .04f, F + 1.0f, BZ0 + .1f), new Vector3(HX1 - .02f, C - .4f, BZ1 - .1f), 2);
         var bu = BraxUliceKit.S(butelki); var rng = new System.Random(124);
         Color32[] kolory = { BraxUliceKit.C(.55f, .30f, .08f), BraxUliceKit.C(.12f, .35f, .12f), BraxUliceKit.C(.85f, .88f, .9f), BraxUliceKit.C(.25f, .35f, .75f), BraxUliceKit.C(.6f, .1f, .12f), BraxUliceKit.C(.9f, .75f, .3f) };
-        for (int sh = 0; sh < 3; sh++)
+        // 10.11 (właściciel 09:26: „alkohol ma być normalnie ten sam, co jest na osiedlu — nasz, prawdziwy alkohol”): regały z butelkami
+        // z modelu dyskoteki osiedla (Bar with bottles — windupbird, CC BY) na całej długości baru tylnego, plecami do lustra; butelki
+        // whisky i wina (Helyeouka, CC BY) na blacie roboczym. Skala jak na osiedlu: najwyższa butelka 0.33 m × k. Bez paczki — półki z kodu.
+        bool polkiZModelu = RegalyButelek(bx, F + 1.0f + .02f);
+        for (int sh = 0; sh < 3 && !polkiZModelu; sh++)
         {
             float y = F + 1.55f + sh * .62f;
             BraxUliceKit.S(szklo).Box(new Vector3(bx + .05f, y - .02f, BZ0 + .1f), new Vector3(HX1 - .05f, y, BZ1 - .1f), 2);
@@ -485,10 +644,10 @@ internal static class BraxMiastoNova
     // ================= LOŻE =================
     static void Loze()
     {
-        var welur = BraxMiastoA.Mat("NOVA: welur loży śliwkowy", new Color(.22f, .05f, .16f), .92f);
-        var welurC = BraxMiastoA.Mat("NOVA: welur oparć ciemniejszy", new Color(.15f, .03f, .11f), .92f);
-        var blat = BraxMiastoA.Mat("NOVA: blat czarny kamień", new Color(.05f, .05f, .055f), .3f, .1f);
-        var inox = BraxMiastoA.Mat("NOVA: stal nierdzewna szczotkowana", new Color(.62f, .63f, .65f), .35f, .9f);
+        var welur = SkoraGladka("siedziska loży — skóra śliwkowa", new Color(.56f, .17f, .43f));   // jaśniejsza niż oparcia: w półmroku widać miękkie poduchy
+        var welurC = SkoraPik("oparcia loży — skóra pikowana śliwkowa", Sliwka);
+        var blat = MarmurCzarny;
+        var inox = Mosiadz;
         var mlecz = BraxMiastoA.Mat("NOVA: szkło mleczne przegród", new Color(.75f, .72f, .78f, .55f), .2f);
         var lmag = BraxMiastoA.Swieci("NOVA: listwa LED magenta", new Color(.9f, .3f, .8f), new Color(2.2f, .35f, 1.8f));
         float sh = .45f * K, gl = .62f * K, op = .95f * K;   // wysokość siedziska, głębokość siedziska, wysokość oparcia
@@ -497,22 +656,41 @@ internal static class BraxMiastoNova
         foreach (float z0 in z0s)
         {
             float z1 = z0 + 3.1f, zc = (z0 + z1) * .5f;
-            var w = BraxUliceKit.S(welur); var wc = BraxUliceKit.S(welurC);
-            // siedzisko wzdłuż ściany + boki U; poduchy z 1 cm przerwami (czytelna tapicerka)
-            w.Box(new Vector3(xb, F, z0 + .05f), new Vector3(xb + gl, F + sh, z1 - .05f));
-            w.Box(new Vector3(xb + gl + .01f, F, z0 + .05f), new Vector3(xF, F + sh, z0 + .05f + gl));
-            w.Box(new Vector3(xb + gl + .01f, F, z1 - .05f - gl), new Vector3(xF, F + sh, z1 - .05f));
-            wc.Box(new Vector3(x0 + .02f, F, z0 + .05f), new Vector3(xb, F + op, z1 - .05f));
-            wc.Box(new Vector3(xb, F, z0 - .1f), new Vector3(xF, F + op, z0 + .05f)); wc.Box(new Vector3(xb, F, z1 - .05f), new Vector3(xF, F + op, z1 + .1f));
+            var w = BraxUliceKit.S(welur); var wc = BraxUliceKit.S(welurC); var cok = BraxUliceKit.S(Orzech);
+            // 10.11 (właściciel 10:29: „miękkie, okrągłe poduszki”): cokół z orzecha, na nim MIĘKKIE poduchy o zaokrąglonych krawędziach
+            // i wypchniętych licach (UlSiatka.Poducha) — siedzisko wzdłuż ściany z trzech poduch, boki U z dwóch, oparcia pikowane
+            // nad każdą poduchą; 1.2 cm przerwy między poduchami (czytelna tapicerka)
+            float hc = .14f * K, pr = .065f * K, po = .055f * K;
+            cok.Box(new Vector3(x0 + .02f, F, z0 - .1f), new Vector3(xb + gl - .04f, F + hc, z1 + .1f));
+            cok.Box(new Vector3(xb + gl - .04f, F, z0 - .1f), new Vector3(xF - .04f, F + hc, z0 + .05f + gl - .04f));
+            cok.Box(new Vector3(xb + gl - .04f, F, z1 - .05f - gl + .04f), new Vector3(xF - .04f, F + hc, z1 + .1f));
+            float dz = (z1 - z0 - .1f) / 3f;
+            for (int q = 0; q < 3; q++)
+            {
+                float a0 = z0 + .05f + q * dz + .006f, a1 = a0 + dz - .012f;
+                w.Poducha(new Vector3(xb, F + hc, a0), new Vector3(xb + gl, F + sh, a1), pr, .02f);
+                wc.Poducha(new Vector3(x0 + .02f, F + hc, a0), new Vector3(xb, F + op, a1), po, .022f);
+            }
+            float dx = (xF - (xb + gl + .01f)) / 2f;
+            for (int q = 0; q < 2; q++)
+            {
+                float a0 = xb + gl + .01f + q * dx + .006f, a1 = a0 + dx - .012f;
+                w.Poducha(new Vector3(a0, F + hc, z0 + .05f), new Vector3(a1, F + sh, z0 + .05f + gl), pr, .02f);
+                w.Poducha(new Vector3(a0, F + hc, z1 - .05f - gl), new Vector3(a1, F + sh, z1 - .05f), pr, .02f);
+            }
+            wc.Poducha(new Vector3(xb + .006f, F + hc, z0 - .1f), new Vector3(xF, F + op, z0 + .05f), po, .022f);
+            wc.Poducha(new Vector3(xb + .006f, F + hc, z1 - .05f), new Vector3(xF, F + op, z1 + .1f), po, .022f);
             // pikowanie oparcia: listwy co 0.3 m (1 cm przed licem)
-            for (float z = z0 + .3f; z < z1 - .2f; z += .3f) wc.Box(new Vector3(xb, F + sh + .1f, z - .008f), new Vector3(xb + .012f, F + op - .06f, z + .008f));
+            // (pikowanie oparcia — w teksturze skóry pikowanej, guziki w węzłach rombów)
             // stolik niski z kubełkiem i kieliszkami
             var c = new Vector3(xb + gl + .55f, F, zc);
             BraxUliceKit.S(blat).Walec(c + Vector3.up * (.5f * K - .03f), .42f * K, .03f, 24);
             BraxUliceKit.S(inox).Rura(c + Vector3.up * .02f, c + Vector3.up * (.5f * K - .03f), .05f, 10); BraxUliceKit.S(inox).Walec(c, .3f * K, .02f, 20);
             var kub = c + Vector3.up * (.5f * K) + new Vector3(.1f, 0, .05f);
             BraxUliceKit.S(inox).Walec(kub, .1f * K, .2f * K, 14);
-            BraxUliceKit.S(BraxMiastoA.Mat("NOVA: butelki (kolory z wierzchołków)", Color.white, .12f, .15f)).Rura(kub + Vector3.up * .1f, kub + new Vector3(.02f, .38f * K, 0), .035f * K, 7);
+            var but = BraxUliceKit.S(BraxMiastoA.Mat("NOVA: butelki (kolory z wierzchołków)", Color.white, .12f, .15f));
+            but.kolor = new Color32(28, 72, 40, 255); but.Rura(kub + Vector3.up * .1f, kub + new Vector3(.02f, .34f * K, 0), .035f * K, 10);   // szampan w kubełku: zielone szkło
+            but.kolor = new Color32(196, 160, 70, 255); but.Rura(kub + new Vector3(.02f, .34f * K, 0), kub + new Vector3(.025f, .42f * K, 0), .014f * K, 8); but.kolor = BraxUliceKit.Bialy;   // złota folia szyjki
             var g = new GameObject("kolizja: stolik loży"); g.transform.SetParent(kol, false); g.transform.position = c + Vector3.up * .25f * K;
             var cc = g.AddComponent<CapsuleCollider>(); cc.radius = .42f * K; cc.height = .5f * K;
             BraxMiastoA.Kol(kol, "loża siedzisko", new Vector3(x0, F, z0 - .1f), new Vector3(xb + gl, F + sh, z1 + .1f));
@@ -523,7 +701,7 @@ internal static class BraxMiastoNova
             BraxMiastoA.Siedzisko(root, "LOŻA", new Vector3(xb + gl + .6f, F + sh, z1 - .05f - gl * .5f), Vector3.back);
             // przegroda ze szkła mlecznego z ramą (między lożami) i listwa LED na ścianie za oparciem
             if (z0 > z0s[0]) { BraxUliceKit.S(mlecz).Box(new Vector3(xb, F + op, z0 - .14f), new Vector3(xF, F + 1.75f * K, z0 - .1f)); BraxUliceKit.S(inox).Box(new Vector3(xb, F + 1.75f * K, z0 - .15f), new Vector3(xF, F + 1.75f * K + .03f, z0 - .09f)); }
-            BraxUliceKit.S(lmag).Box(new Vector3(HX0 + .02f, F + op + .25f, z0 + .2f), new Vector3(HX0 + .05f, F + op + .29f, z1 - .2f));
+            BraxUliceKit.S(lmag).Box(new Vector3(HX0 + .08f, F + op + .25f, z0 + .2f), new Vector3(HX0 + .11f, F + op + .29f, z1 - .2f));   // przed lamelami
         }
         BraxMiastoA.Akcja(root, "nova_loza_vip", "ZAREZERWUJ LOŻĘ", "Kelnerka: Loża na dziś wolna — rezerwacja przy barze.", new Vector3(xF + .6f, F, 51.5f), 1.6f);
     }
@@ -551,7 +729,7 @@ internal static class BraxMiastoNova
         }
         // konsoleta DJ (front ze świecącym logo pasem), blat na 1.0 m × k nad podestem
         float dz0 = 57.1f, dz1 = 57.95f, dx0 = 39.3f, dx1 = 42.7f, dh = 1.0f * K;
-        BraxUliceKit.S(konsola).Box(new Vector3(dx0, top, dz0), new Vector3(dx1, top + dh - .05f, dz1), 4);
+        BraxUliceKit.S(SkoraPik("front konsolety DJ — skóra pikowana czarna", Czarna)).Box(new Vector3(dx0, top, dz0), new Vector3(dx1, top + dh - .05f, dz1), 4);
         BraxUliceKit.S(alu).Box(new Vector3(dx0 - .03f, top + dh - .05f, dz0 - .03f), new Vector3(dx1 + .03f, top + dh, dz1 + .03f), 4);
         BraxUliceKit.S(lmag).Box(new Vector3(dx0 + .1f, top + .25f, dz0 - .03f), new Vector3(dx1 - .1f, top + .29f, dz0));
         BraxMiastoA.Kol(kol, "konsoleta DJ", new Vector3(dx0, top, dz0), new Vector3(dx1, top + dh, dz1));
@@ -571,25 +749,18 @@ internal static class BraxMiastoNova
         // ekran LED za DJ-em (10 cm przed ścianą) z ramą
         float ez = HZ1 - .12f;
         // 3.11 15:59 (właściciel): MURAL NOVA CLUB za DJ-em (grafika z czatu, 3:1) zamiast wzoru LED; bez paczki — ekran LED
+        // 10.11 (właściciel 09:26: „ten mural miał być na całą ścianę”): mural NOVA CLUB na CAŁEJ ścianie północnej sali — od ściany
+        // zachodniej (x 32.6) do ściany zaplecza baru (x 47.2), od posadzki po sufit; kadr wypełnia ścianę (proporcja zachowana,
+        // nadmiar obcięty po równo z góry i z dołu). Bez czarnej obudowy ekranu. Bez paczki grafik — ekran LED w obudowie jak dotąd.
+        // 10.11 11:xx (właściciel 10:41: „ten mural na całą ścianę koło DJ-a”): mural owinięty dalej na ścianę zaplecza od strony
+        // parkietu (x 47.19, z 61.39 → 57.01) — cały koniec sali za DJ-em to mural, bez ciemnego bloku po prawej
+        if (!MuralNaCalaSciane(HX0 + .01f, ZX0 - .21f, F + .01f, C - .02f, HZ1 - .012f, ZX0 - .212f, ZZ0 - .19f))
         {
-            float mw = RX1 - RX0 + 2f, mhMax = C - .35f - (F + .9f), mh = mw / 3f; if (mh > mhMax) { mh = mhMax; mw = mh * 3f; }
-            if (!BraxMiastoBillboardy.Mural(root, "mural_nova", new Vector3((RX0 + RX1) * .5f, F + .9f + mhMax * .5f, ez - .005f), Vector3.back, mw, mh))
-                BraxUliceKit.S(ekranM).Quad(new Vector3(RX1 + 1f, F + .9f, ez), new Vector3(RX0 - 1f, F + .9f, ez), new Vector3(RX0 - 1f, C - .35f, ez), new Vector3(RX1 + 1f, C - .35f, ez), Vector3.back);
+            BraxUliceKit.S(ekranM).Quad(new Vector3(RX1 + 1f, F + .9f, ez), new Vector3(RX0 - 1f, F + .9f, ez), new Vector3(RX0 - 1f, C - .35f, ez), new Vector3(RX1 + 1f, C - .35f, ez), Vector3.back);
+            BraxUliceKit.S(glosnik).Box(new Vector3(RX0 - 1.08f, F + .82f, ez), new Vector3(RX1 + 1.08f, C - .27f, HZ1 - .01f), 32);   // obudowa (lico ekranu 2 cm przed nią… ekran leży w otworze obudowy)
         }
-        BraxUliceKit.S(glosnik).Box(new Vector3(RX0 - 1.08f, F + .82f, ez), new Vector3(RX1 + 1.08f, C - .27f, HZ1 - .01f), 32);   // obudowa (lico ekranu 2 cm przed nią… ekran leży w otworze obudowy)
-        // głośniki liniowe (podwieszone, 8 modułów w łuku) i suby przed podestem
-        foreach (float x in new[] { RX0 - .3f, RX1 + .3f })
-        {
-            for (int i = 0; i < 8; i++)
-            {
-                float y = C - .4f - i * .3f, tilt = i * 2.2f;
-                var c0 = new Vector3(x, y, RZ0 - .5f + i * .012f * i);
-                var q = Quaternion.Euler(tilt, 0, 0);
-                BraxUliceKit.S(glosnik).OBox(c0, Vector3.right, q * Vector3.up, q * Vector3.back, .9f, .26f, .5f);
-                BraxUliceKit.S(siatka).OBox(c0 + q * Vector3.back * .255f, Vector3.right, q * Vector3.up, q * Vector3.back, .84f, .2f, .01f);
-            }
-            BraxUliceKit.S(alu).Rura(new Vector3(x, C - .35f, RZ0 - .5f), new Vector3(x, C, RZ0 - .5f), .02f, 6);
-        }
+        // 10.11 (właściciel 10:39: „koło DJ-a dwie kolumny, jak schody, wiszą, czarne — ma zniknąć”): podwieszone głośniki liniowe
+        // (2 × 8 czarnych modułów w łuku) usunięte — zasłaniały mural. Zostają suby na posadzce przed podestem.
         foreach (float x in new[] { RX0 + .9f, RX1 - .9f })
         {
             BraxUliceKit.S(glosnik).Box(new Vector3(x - .65f, F, RZ0 - 1.05f), new Vector3(x + .65f, F + .75f, RZ0 - .05f));
@@ -597,11 +768,106 @@ internal static class BraxMiastoNova
             BraxMiastoA.Kol(kol, "subwoofer", new Vector3(x - .65f, F, RZ0 - 1.07f), new Vector3(x + .65f, F + .75f, RZ0 - .05f));
         }
         // głośniki narożne na wspornikach
-        foreach (var p in new[] { new Vector3(HX0 + .4f, 3.5f, HZ0 + .4f), new Vector3(HX1 - .4f, 3.5f, HZ0 + .4f), new Vector3(HX0 + .4f, 3.5f, HZ1 - .4f) })
+        // (10.11: bez głośnika w narożniku przy ścianie z muralem — wisiał na rogu muralu)
+        foreach (var p in new[] { new Vector3(HX0 + .4f, 3.5f, HZ0 + .4f), new Vector3(HX1 - .4f, 3.5f, HZ0 + .4f) })
         {
             var d = (new Vector3((DX0 + DX1) * .5f, 1.5f, (DZ0 + DZ1) * .5f) - p).normalized; var r = Vector3.Cross(Vector3.up, d).normalized; var u = Vector3.Cross(d, r);
             BraxUliceKit.S(glosnik).OBox(p, r, u, d, .5f, .75f, .45f); BraxUliceKit.S(siatka).OBox(p + d * .23f, r, u, d, .44f, .69f, .01f);
         }
+    }
+
+    // Mural właściciela (szyldy/mural_nova.jpg) na prostokącie ściany x0…x1, y0…y1 w płaszczyźnie z (lico do sali: −z).
+    /// <summary>Mural NOVA CLUB na ścianie z = const (widz patrzy w +z), od x0 do x1. Gdy podano sx: ciąg dalszy za narożnikiem
+    /// wewnętrznym na ścianie x = sx (lico ku −x) od z (narożnik) do sz0 — obraz rozwinięty na obie ściany jak ekran LED owinięty
+    /// wokół rogu. Kadr wypełnia całość; nadmiar wysokości obcinany głównie z dołu (u góry logo NOVA CLUB; dół zasłania podest DJ).</summary>
+    static bool MuralNaCalaSciane(float x0, float x1, float y0, float y1, float z, float sx = float.NaN, float sz0 = 0f)
+    {
+        const string p = "Assets/Source/Prywatne/Grafiki/szyldy/mural_nova.jpg";
+        if (!File.Exists(p)) { Debug.Log("BRAXHORN_MURAL brak " + p + " — NOVA: ekran LED zamiast muralu"); return false; }
+        AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceSynchronousImport);
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(p); if (!tex) return false;
+        bool bok = !float.IsNaN(sx);
+        float asp = (float)tex.width / Mathf.Max(1, tex.height), Wn = x1 - x0, Wb = bok ? z - sz0 : 0f, W = Wn + Wb, H = y1 - y0;
+        float u0 = 0f, u1 = 1f, v0 = 0f, v1 = 1f;
+        if (W / H > asp) { float vis = H * asp / W; v1 = 1f - (1f - vis) * .15f; v0 = v1 - vis; }
+        else { float vis = W / (H * asp); u0 = (1f - vis) * .5f; u1 = 1f - u0; }
+        float uR = u0 + (u1 - u0) * (Wn / W);   // u na narożniku
+        var m = new Material(Shader.Find("Standard")) { name = "mural_nova_cala_sciana", mainTexture = tex };
+        m.SetFloat("_Glossiness", .25f); m.EnableKeyword("_EMISSION"); m.SetTexture("_EmissionMap", tex); m.SetColor("_EmissionColor", new Color(.6f, .6f, .6f));
+        m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+        Directory.CreateDirectory(BraxMiastoA.Out + "/Materialy");
+        BraxZapisAssetu.Utworz(m, BraxMiastoA.Out + "/Materialy/mural_nova_cala_sciana.mat");
+        var mesh = new Mesh { name = "NOVA: mural na całą ścianę" };
+        var v = new List<Vector3> { new Vector3(x0, y0, z), new Vector3(x1, y0, z), new Vector3(x1, y1, z), new Vector3(x0, y1, z) };
+        var uv = new List<Vector2> { new Vector2(u0, v0), new Vector2(uR, v0), new Vector2(uR, v1), new Vector2(u0, v1) };   // widz patrzy w +z: +x po prawej
+        var nr = new List<Vector3> { Vector3.back, Vector3.back, Vector3.back, Vector3.back };
+        var tr = new List<int> { 0, 3, 2, 0, 2, 1 };
+        if (bok)
+        {   // ściana za narożnikiem: widz patrzy w +x, po prawej −z (od narożnika z ku sz0)
+            v.AddRange(new[] { new Vector3(sx, y0, z), new Vector3(sx, y0, sz0), new Vector3(sx, y1, sz0), new Vector3(sx, y1, z) });
+            uv.AddRange(new[] { new Vector2(uR, v0), new Vector2(u1, v0), new Vector2(u1, v1), new Vector2(uR, v1) });
+            nr.AddRange(new[] { Vector3.left, Vector3.left, Vector3.left, Vector3.left });
+            tr.AddRange(new[] { 4, 7, 6, 4, 6, 5 });
+        }
+        mesh.SetVertices(v); mesh.SetUVs(0, uv); mesh.SetNormals(nr); mesh.SetTriangles(tr, 0); mesh.RecalculateBounds();
+        BraxMiastoA.Obiekt(root, "mural nova_club", mesh, m);   // nazwa chroniona w BraxNovaEntranceFinish (szyld właściciela)
+        Debug.Log("BRAXHORN_MURAL mural_nova CAŁA ŚCIANA " + Wn.ToString("F1") + (bok ? " + za narożnikiem " + Wb.ToString("F1") : "") + "×" + H.ToString("F2") + " m, kadr u " + u0.ToString("F2") + "…" + u1.ToString("F2") + ", v " + v0.ToString("F2") + "…" + v1.ToString("F2"));
+        return true;
+    }
+
+    static void KulaZLusterek(Transform piv, float r)
+    {
+        // paleta 16 × 1 px (bez filtrowania): kolor fasetki = albedo i emisja
+        string dir = BraxMiastoA.Out + "/Tekstury"; Directory.CreateDirectory(dir);
+        string png = dir + "/nova_kula_paleta.png";
+        Color[] pal =
+        {
+            new Color(.97f, .97f, 1f), new Color(.88f, .90f, .95f), new Color(.78f, .80f, .86f), new Color(.66f, .68f, .75f),
+            new Color(1f, .86f, .96f), new Color(.84f, .92f, 1f), new Color(.95f, .95f, .9f), new Color(.55f, .57f, .64f),
+            new Color(.92f, .93f, .98f), new Color(.40f, .42f, .48f), new Color(.99f, .99f, .99f), new Color(.72f, .75f, .82f),
+            new Color(.90f, .80f, 1f), new Color(.30f, .31f, .36f), new Color(.85f, .87f, .92f), new Color(.98f, .92f, .86f),
+        };
+        if (!File.Exists(png))
+        {
+            var t = new Texture2D(16, 1, TextureFormat.RGBA32, false); t.SetPixels(pal); t.Apply();
+            File.WriteAllBytes(png, t.EncodeToPNG()); Object.DestroyImmediate(t);
+            AssetDatabase.ImportAsset(png, ImportAssetOptions.ForceSynchronousImport);
+            var imp = (TextureImporter)AssetImporter.GetAtPath(png);
+            imp.mipmapEnabled = false; imp.filterMode = FilterMode.Point; imp.wrapMode = TextureWrapMode.Clamp;
+            imp.textureCompression = TextureImporterCompression.Uncompressed; imp.npotScale = TextureImporterNPOTScale.None; imp.SaveAndReimport();
+        }
+        var paleta = AssetDatabase.LoadAssetAtPath<Texture2D>(png);
+        var lustra = BraxCityMaterials.Surface("A świeci: NOVA kula — lusterka (paleta = emisja)", Color.white, .08f, .7f);
+        if (paleta) { lustra.SetTexture("_MainTex", paleta); lustra.SetTexture("_EmissionMap", paleta); }
+        lustra.SetColor("_EmissionColor", paleta ? new Color(1.05f, 1.05f, 1.1f) : new Color(.7f, .7f, .75f)); EditorUtility.SetDirty(lustra);
+        var fuga = BraxMiastoA.Mat("NOVA: kula — fuga (rdzeń)", new Color(.05f, .05f, .06f), .6f, .3f);
+        var rng = new System.Random(4242);
+        var s = new UlSiatka(); var core = new UlSiatka();
+        const int pasy = 18, fasety = 36;
+        Vector3 P(float th, float ph, float rr) => new Vector3(Mathf.Sin(th) * Mathf.Cos(ph), Mathf.Cos(th), Mathf.Sin(th) * Mathf.Sin(ph)) * rr;
+        for (int j = 0; j < pasy; j++)
+        {
+            float t0 = Mathf.PI * j / pasy, t1 = Mathf.PI * (j + 1) / pasy;
+            int nf = Mathf.Max(6, Mathf.RoundToInt(fasety * Mathf.Sin((t0 + t1) * .5f)));   // przy biegunach mniej, ale kwadratowe lusterka
+            for (int i = 0; i < nf; i++)
+            {
+                float p0 = 2f * Mathf.PI * i / nf, p1 = 2f * Mathf.PI * (i + 1) / nf;
+                // rdzeń (fuga) — pełna komórka na promieniu 0.985 r
+                core.Quad(P(t0, p0, r * .985f), P(t0, p1, r * .985f), P(t1, p1, r * .985f), P(t1, p0, r * .985f), P((t0 + t1) * .5f, (p0 + p1) * .5f, 1f));
+                // lusterko: 5 % mniejsze na każdym brzegu, płaskie, normalna = środek komórki
+                float ta = Mathf.Lerp(t0, t1, .05f), tb = Mathf.Lerp(t0, t1, .95f), pa = Mathf.Lerp(p0, p1, .05f), pb = Mathf.Lerp(p0, p1, .95f);
+                var nn = P((t0 + t1) * .5f, (p0 + p1) * .5f, 1f);
+                int k0 = s.Wierzcholki;
+                s.Quad(P(ta, pa, r), P(ta, pb, r), P(tb, pb, r), P(tb, pa, r), nn);
+                var uvF = new Vector2((rng.Next(16) + .5f) / 16f, .5f);
+                for (int q = 0; q < 4; q++) { s.uv[k0 + q] = uvF; s.n[k0 + q] = nn; }
+            }
+        }
+        BraxMiastoA.Obiekt(piv, "Kula lustrzana — lusterka (świecą)", s, lustra).transform.localPosition = Vector3.zero;
+        BraxMiastoA.Obiekt(piv, "Kula lustrzana — fuga", core, fuga).transform.localPosition = Vector3.zero;
+        // uchwyt: kołnierz i krótki pręt nad kulą (pręt do stropu stawia kratownica)
+        var ch = new UlSiatka(); ch.Walec(Vector3.up * (r - .01f), .05f, .06f, 14); ch.Walec(Vector3.up * (r + .05f), .015f, .25f, 8);
+        BraxMiastoA.Obiekt(piv, "Kula lustrzana — uchwyt", ch, BraxMiastoA.Mat("NOVA: chrom słupków", new Color(.85f, .86f, .88f), .12f, 1f)).transform.localPosition = Vector3.zero;
     }
 
     static GameObject LoadGlb(string p)
@@ -645,17 +911,11 @@ internal static class BraxMiastoNova
         // KULA: model CC-BY (WwWuengy) w osi obrotu; iskry na jej powierzchni (dziecko — obracają się z nią)
         var piv = new GameObject("Kula lustrzana (obrót)").transform; piv.SetParent(root, false); piv.position = Kula;
         float d = .65f * K;
-        var src = LoadGlb("Assets/Source/Claude/Nova/disco_ball.glb");
-        if (src)
-        {
-            var ball = BraxRegion.Put(piv, src, "Kula lustrzana (disco_ball — CC BY WwWuengy)", Kula - Vector3.up * d * .5f, 0f, 1f, false, d, 0f, false);
-            if (ball) foreach (var r in ball.GetComponentsInChildren<Renderer>(true)) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        }
-        else
-        {
-            var s = new UlSiatka(); s.Walec(Vector3.zero - Vector3.up * d * .5f, d * .5f, d, 24);
-            BraxMiastoA.Obiekt(piv, "Kula lustrzana (zastępcza)", s, BraxMiastoA.Mat("NOVA: lustro kuli", new Color(.85f, .86f, .88f), .05f, 1f)).transform.localPosition = Vector3.zero;
-        }
+        // 10.11 (właściciel 09:26: „kula ma świecić, kurwa, się kręcić”; w APK szaroniebieska gładka bryła — materiał modelu po
+        // konwersji matowy, obrotu na gładkiej kuli nie widać): kula z kodu z LUSTERKAMI — 18 pasów × 36 fasetek, każda fasetka
+        // płaska (własna normalna), 5 % szczeliny z ciemną fugą (rdzeń), jasność i odcień fasetki z palety (srebro, biel, róż,
+        // błękit, kilka ciemnych) — paleta jest też mapą EMISJI, więc kula ŚWIECI, a obrót (12 obr./min) widać po wzorze lusterek.
+        KulaZLusterek(piv, d * .5f);
         var isk = new UlSiatka(); var rng = new System.Random(77); var uv1 = new List<Vector2>();
         for (int i = 0; i < 56; i++)
         {
@@ -706,8 +966,10 @@ internal static class BraxMiastoNova
                 var o = BraxRegion.Put(pv, laserSrc, "Oprawa lasera (laser_light — CC BY JanoschR)", p - Vector3.up * .3f, 0f, 1f, false, .3f * K, 0f, false);
                 if (o) o.transform.rotation = pv.rotation * o.transform.rotation;
             }
-            var col = barwy[i]; var mat = BraxMiastoA.ZShadera("Braxhorn/WnetrzaPromien", "NOVA laser " + i, m => { m.SetColor("_Tint", col); m.SetFloat("_Moc", 1.8f); });
-            var wach = Promienie(pv, "Wachlarz promieni lasera " + (i + 1), p, pv.forward, 46f, 7, 15f, .012f, .05f, mat, true);
+            var col = barwy[i]; var mat = BraxMiastoA.ZShadera("Braxhorn/WnetrzaPromien", "NOVA laser " + i, m => { m.SetColor("_Tint", col); m.SetFloat("_Moc", 1.3f); });
+            // 10.11 (właściciel 10:45: „lasery — nie że świeci jak było, tylko ewentualnie może mrugać”): cieńsze promienie, w grze
+            // tylko KRÓTKIE błyski (BraxNovaEfekty.LaserBlysk) — przez większość czasu wiązek nie ma
+            var wach = Promienie(pv, "Wachlarz promieni lasera " + (i + 1), p, pv.forward, 46f, 7, 12f, .006f, .028f, mat, true);
             lasery.Add(wach);
         }
         // GŁOWICE RUCHOME na kratownicy (po 3 na długich bokach): jarzmo + głowica + snop w dół
@@ -724,7 +986,43 @@ internal static class BraxMiastoNova
                 Promienie(g, "Snop głowicy", p + g.forward * .45f, g.forward, 0f, 1, 6.5f, .08f, .75f, snop, false);
                 glowice.Add(g);
             }
-        BraxMiastoA.Log("NOVA efekty: kula " + (src ? "disco_ball.glb" : "zastępcza") + ", iskier 56, plamek 260, lasery " + (laserSrc ? "laser_light.glb" : "bez oprawy") + " ×4 (7 promieni), głowic " + n);
+        // MIGACZE (właściciel 10.11 10:45: „światełka mrugające mają być jeszcze na dyskotece, oprócz kuli”): reflektory PAR LED
+        // na kratownicy — czarna puszka z jarzmem, soczewka ciemna (zgaszona) i przed nią świecąca (włączana przez BraxNovaEfekty
+        // w rytm: gonitwa kolorów, błyski na uderzenie, stroboskop). Do tego dwa białe stroboskopy przy DJ-u.
+        var puszka = BraxMiastoA.Mat("NOVA: puszka PAR (czarny mat)", new Color(.03f, .03f, .035f), .5f, .4f);
+        var ciemna = BraxMiastoA.Mat("NOVA: soczewka zgaszona", new Color(.08f, .08f, .09f), .15f, .2f);
+        var barwyPar = new[] { new Color(1f, .1f, .7f), new Color(.2f, .4f, 1f), new Color(.15f, 1f, .5f), new Color(1f, .55f, .1f), new Color(.65f, .2f, 1f), new Color(.1f, .95f, 1f) };
+        int nm = 0;
+        void Migacz(Vector3 p, Vector3 cel, Color c, string rodzaj, float r)
+        {
+            var g = new GameObject("Migacz " + (++nm) + " (" + rodzaj + ")").transform; g.SetParent(root, false); g.position = p;
+            g.rotation = Quaternion.LookRotation((cel - p).normalized, Vector3.up);
+            var s = new UlSiatka(); s.Rura(new Vector3(0, 0, -.12f), new Vector3(0, 0, .1f), r + .03f, 16);
+            s.Box(new Vector3(-r - .06f, -.02f, -.03f), new Vector3(-r - .04f, .2f, .03f)); s.Box(new Vector3(r + .04f, -.02f, -.03f), new Vector3(r + .06f, .2f, .03f));
+            var o = BraxMiastoA.Obiekt(g, "Migacz: puszka", s, puszka); o.transform.localPosition = Vector3.zero; o.transform.localRotation = Quaternion.identity;
+            var sc = new UlSiatka(); sc.Rura(new Vector3(0, 0, .1f), new Vector3(0, 0, .104f), r, 16);
+            var oc = BraxMiastoA.Obiekt(g, "Migacz: soczewka zgaszona", sc, ciemna); oc.transform.localPosition = Vector3.zero; oc.transform.localRotation = Quaternion.identity;
+            var sw = new UlSiatka(); sw.Rura(new Vector3(0, 0, .106f), new Vector3(0, 0, .11f), r - .005f, 16);
+            var em = BraxMiastoA.Swieci("NOVA migacz " + ColorUtility.ToHtmlStringRGB(c), c, c * 3.2f);
+            var os = BraxMiastoA.Obiekt(g, "Migacz: soczewka świecąca", sw, em); os.transform.localPosition = Vector3.zero; os.transform.localRotation = Quaternion.identity;
+            migacze.Add(g);
+        }
+        var srodek = new Vector3((DX0 + DX1) * .5f, F, (DZ0 + DZ1) * .5f);
+        for (int i = 0; i < 5; i++)
+            foreach (float z in new[] { DZ0 + .15f, DZ1 - .15f })
+            {
+                float x = Mathf.Lerp(DX0 + .6f, DX1 - .6f, (i + .5f) / 5f);
+                Migacz(new Vector3(x, TY - .22f, z), new Vector3(x, F, Mathf.Lerp(z, srodek.z, .45f)), barwyPar[(i + (z < 50f ? 0 : 3)) % barwyPar.Length], "PAR LED", .1f);
+            }
+        foreach (float x in new[] { DX0 + .15f, DX1 - .15f })
+            for (int i = 0; i < 2; i++)
+            {
+                float z = Mathf.Lerp(DZ0 + 1.5f, DZ1 - 1.5f, (i + .5f) / 2f);
+                Migacz(new Vector3(x, TY - .22f, z), new Vector3(Mathf.Lerp(x, srodek.x, .45f), F, z), barwyPar[(i * 2 + (x < 40f ? 1 : 4)) % barwyPar.Length], "PAR LED", .1f);
+            }
+        foreach (float x in new[] { RX0 + .25f, RX1 - .25f })
+            Migacz(new Vector3(x, F + RH + 1.95f, RZ0 + .35f), new Vector3(x, F + 1.2f, DZ1 - 2f), Color.white, "stroboskop", .13f);
+        BraxMiastoA.Log("NOVA efekty: kula " + "z lusterek (świeci, 12 obr/min)" + ", iskier 56, plamek 260, lasery " + (laserSrc ? "laser_light.glb" : "bez oprawy") + " ×4 (7 promieni, tylko krótkie błyski), głowic " + n + ", migaczy " + migacze.Count + " (PAR LED + 2 stroboskopy)");
     }
 
     /// <summary>Wachlarz promieni (każdy = dwa skrzyżowane pasy, uv.y wzdłuż) z punktu p w kierunku dir; rozpiętość w stopniach.

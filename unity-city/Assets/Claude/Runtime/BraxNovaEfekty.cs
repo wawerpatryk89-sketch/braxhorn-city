@@ -14,6 +14,7 @@ public sealed class BraxNovaEfekty : MonoBehaviour
     public float obrotyNaMinute = 7f;
     public Transform[] lasery = new Transform[0];
     public Transform[] glowice = new Transform[0];
+    public Transform[] migacze = new Transform[0];   // 10.11: reflektory PAR LED i stroboskopy (mrugają — soczewka świecąca włącz/wyłącz)
     public Light[] swiatla = new Light[0];
     public float bpm = 124f;
     public float zasieg = 48f;
@@ -24,6 +25,7 @@ public sealed class BraxNovaEfekty : MonoBehaviour
 
     Quaternion[] laserStart, glowStart;
     BraxStrob strob;   // 3.11 15:58 (właściciel): lasery i snopy głowic mrugają w zmiennym tempie (wspólny wzór z PULS CLUB)
+    Renderer[][] laserR, migR; bool[] strobo;   // 10.11: lasery osobno — tylko krótkie błyski; migacze — własny wzór
     Transform gracz; float szukaj, czas, aktywny, kat;
 
     void Awake()
@@ -34,9 +36,18 @@ public sealed class BraxNovaEfekty : MonoBehaviour
         for (int i = 0; i < glowice.Length; i++) if (glowice[i]) glowStart[i] = glowice[i].localRotation;
         Shader.SetGlobalFloat(idAkt, 0f);
         strob = new BraxStrob();
-        foreach (var x in lasery) strob.Dodaj(BraxStrob.Wiazki(x, "wachlarz", "promie", "wiązk", "laser beam"));
+        // 10.11 (właściciel 10:45: „lasery — nie że świeci ten laser, jak było, tylko ewentualnie może mrugać”): wiązki laserów
+        // poza wspólnym stroboskopem — przez większość czasu zgaszone, krótkie błyski (LaserBlysk)
+        laserR = new Renderer[lasery.Length][];
+        for (int i = 0; i < lasery.Length; i++) { laserR[i] = BraxStrob.Wiazki(lasery[i], "wachlarz", "promie", "wiązk", "laser beam"); foreach (var r in laserR[i]) if (r) r.enabled = false; }
         foreach (var x in glowice) strob.Dodaj(BraxStrob.Wiazki(x, "snop", "stożek", "promie", "wiązk", "wachlarz", "beam"));
-        Debug.Log("BRAXHORN_NOVA mruganie: źródeł " + strob.Ile);
+        migR = new Renderer[migacze.Length][]; strobo = new bool[migacze.Length];
+        for (int i = 0; i < migacze.Length; i++)
+        {
+            migR[i] = BraxStrob.Wiazki(migacze[i], "soczewka świecąca"); strobo[i] = migacze[i] && migacze[i].name.Contains("stroboskop");
+            foreach (var r in migR[i]) if (r) r.enabled = false;
+        }
+        Debug.Log("BRAXHORN_NOVA mruganie: źródeł " + strob.Ile + ", laserów (krótkie błyski) " + laserR.Length + ", migaczy " + migR.Length);
     }
 
     bool Blisko()
@@ -75,6 +86,24 @@ public sealed class BraxNovaEfekty : MonoBehaviour
             float yaw = Mathf.Sin(czas * tempo * 2.1f + f) * 38f;
             float pitch = Mathf.Sin(czas * tempo * 1.3f + f * .6f) * 16f + (tryb == 2f ? Mathf.Sin(beat * Mathf.PI) * 6f : 0f);
             t.localRotation = laserStart[i] * Quaternion.Euler(pitch, yaw, 0f);
+        }
+        // lasery: krótki błysk (1/8 uderzenia) na co drugie uderzenie, tylko w co trzecim takcie (8 uderzeń); poza tym ciemno
+        int takt = (int)(beat / 8f), ud = (int)beat % 8; float fb = beat - Mathf.Floor(beat);
+        for (int i = 0; i < laserR.Length; i++)
+        {
+            bool on = takt % 3 == 2 && (ud + i) % 2 == 0 && fb < .12f;
+            foreach (var r in laserR[i]) if (r && r.enabled != on) r.enabled = on;
+        }
+        // migacze: PAR LED — co takt inny wzór (gonitwa, błysk na uderzenie, na przemian), stroboskopy — 3 błyski w ostatnim uderzeniu taktu
+        int wz = takt % 3, n = migR.Length;
+        for (int i = 0; i < n; i++)
+        {
+            bool on;
+            if (strobo[i]) on = ud == 7 && (fb * 6f) % 1f < .3f;
+            else if (wz == 0) on = ((int)(beat * 2f) % Mathf.Max(1, n)) == i || ((int)(beat * 2f) + n / 2) % Mathf.Max(1, n) == i;
+            else if (wz == 1) on = fb < .3f && (i + ud) % 3 != 0;
+            else on = ((ud + i) % 2 == 0) ? fb < .55f : fb >= .5f && fb < .8f;
+            foreach (var r in migR[i]) if (r && r.enabled != on) r.enabled = on;
         }
         for (int i = 0; i < glowice.Length; i++)
         {

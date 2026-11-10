@@ -108,7 +108,10 @@ public static class BraxClaudeCourts
         if (m) return m;
         if (!tex || !sh) return BraxUliceKit.Mat("siatka " + klucz + " (bez tekstury)", new Color(kolor.r, kolor.g, kolor.b, .35f), .9f);
         m = new Material(sh) { name = "Boisko: siatka " + klucz };
-        m.SetTexture("_MainTex", tex); m.SetTextureScale("_MainTex", Vector2.one / oczko); m.SetColor("_Color", kolor);
+        // 10.11 (właściciel 09:21: „zobacz, jak ta siatka się maluje od boiska — tragedia”): tekstura ma 8 oczek na kafel (128 px,
+        // co 16 px), a kafel był skalowany do „oczka” (12.5 cm) → oczko 1.6 cm i drut 2 mm: mniej niż piksel już z kilku metrów,
+        // siatka migała mory, a z daleka robiła się z niej ciemna ściana. Teraz kafel = 8 oczek → oczko 12.5 cm, drut 1.6 cm.
+        m.SetTexture("_MainTex", tex); m.SetTextureScale("_MainTex", Vector2.one / (oczko * 8f)); m.SetColor("_Color", kolor);
         m.SetFloat("_Roughness", .8f); m.SetFloat("_Metallic", klucz == "romb" ? .5f : 0f); m.SetFloat("_AlphaClip", 1); m.SetFloat("_Cutoff", .5f); m.SetFloat("_Cull", 0);
         m.renderQueue = 2450; m.SetOverrideTag("RenderType", "TransparentCutout"); m.doubleSidedGI = true;
         BraxZapisAssetu.Utworz(m, path); return m;

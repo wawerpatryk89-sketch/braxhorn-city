@@ -69,6 +69,46 @@ internal sealed class UlSiatka
     }
     public void BoxC(Vector3 srodek, Vector3 rozmiar, int pomin = 0) => Box(srodek - rozmiar * .5f, srodek + rozmiar * .5f, pomin);
 
+    // PODUCHA (10.11, właściciel 10:29: „miękkie, okrągłe poduszki”): bryła osiowa min/max o zaokrąglonych krawędziach i narożach
+    // (promień r) i lekko wypchniętych ścianach (puf — jak wypchana pianką tapicerka). Siatka: sześcian dzielony na ściany N×N, punkty
+    // zagęszczone ku krawędziom, rzutowane na zaokrąglony prostopadłościan; normalne gładkie; UV planarne w metrach jak w Box
+    // (tekstura skóry pikowanej / gładkiej ciągnie się przez zaokrąglenie). Spód (−y) płaski — poducha leży na cokole.
+    public void Poducha(Vector3 a, Vector3 b, float r, float puf = .012f, int N = 10)
+    {
+        var lo = Vector3.Min(a, b); var hi = Vector3.Max(a, b); var sr = (lo + hi) * .5f; var h = (hi - lo) * .5f;
+        r = Mathf.Clamp(r, .002f, Mathf.Min(h.x, Mathf.Min(h.y, h.z)) * .95f);
+        var hin = h - Vector3.one * r;
+        Vector3[] fns = { Vector3.right, Vector3.left, Vector3.up, Vector3.down, Vector3.forward, Vector3.back };
+        foreach (var fn in fns)
+        {
+            Vector3 ua = Mathf.Abs(fn.x) > .5f ? Vector3.forward : Vector3.right, wa = Mathf.Abs(fn.y) > .5f ? Vector3.forward : Vector3.up;
+            float hf = Vector3.Dot(h, new Vector3(Mathf.Abs(fn.x), Mathf.Abs(fn.y), Mathf.Abs(fn.z))), hu = Vector3.Dot(h, ua), hw = Vector3.Dot(h, wa);
+            float pf = fn.y < -.5f ? 0f : Mathf.Min(puf, hf * .3f);
+            Planar(fn, out var pu, out var pw); float sign = Vector3.Dot(Vector3.Cross(fn, pu), pw) >= 0 ? 1f : -1f;
+            int k0 = v.Count;
+            for (int iw = 0; iw <= N; iw++)
+                for (int iu = 0; iu <= N; iu++)
+                {
+                    float su = Mathf.Sin(((float)iu / N - .5f) * Mathf.PI), sw = Mathf.Sin(((float)iw / N - .5f) * Mathf.PI);
+                    var q = fn * hf + ua * su * hu + wa * sw * hw;                                   // punkt na ścianie prostopadłościanu
+                    var wn = new Vector3(Mathf.Clamp(q.x, -hin.x, hin.x), Mathf.Clamp(q.y, -hin.y, hin.y), Mathf.Clamp(q.z, -hin.z, hin.z));
+                    var d = q - wn; var nr = d.sqrMagnitude > 1e-10f ? d.normalized : fn;
+                    float B = (1f - su * su) * (1f - sw * sw);                                      // wypchnięcie środka ściany
+                    var p = sr + wn + nr * r + fn * (pf * B);
+                    var nn = (nr - ua * (pf * -2f * su * (1f - sw * sw) / Mathf.Max(hu, .01f)) - wa * (pf * -2f * sw * (1f - su * su) / Mathf.Max(hw, .01f))).normalized;
+                    v.Add(p); n.Add(nn); t.Add(new Vector4(pu.x, pu.y, pu.z, sign)); c.Add(kolor);
+                    uv.Add(new Vector2(Vector3.Dot(p, pu), Vector3.Dot(p, pw)));
+                }
+            bool zgodnie = Vector3.Dot(Vector3.Cross(ua, wa), fn) >= 0;
+            for (int iw = 0; iw < N; iw++)
+                for (int iu = 0; iu < N; iu++)
+                {
+                    int p00 = k0 + iw * (N + 1) + iu, p10 = p00 + 1, p01 = p00 + N + 1, p11 = p01 + 1;
+                    if (zgodnie) i.AddRange(new[] { p00, p10, p11, p00, p11, p01 }); else i.AddRange(new[] { p00, p11, p10, p00, p01, p11 });   // jak Quad: Cross(p1−p0, p2−p0) ku fn
+                }
+        }
+    }
+
     // Prostopadłościan obrócony: środek c, osie a (szer.), b (wys.), nn (głęb.) ortonormalne; bezTylu = bez ściany −nn.
     public void OBox(Vector3 c0, Vector3 a, Vector3 b, Vector3 nn, float sa, float sb, float sn, bool bezTylu = false, bool bezSpodu = false)
     {

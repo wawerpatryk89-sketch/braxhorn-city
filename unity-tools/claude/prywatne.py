@@ -222,7 +222,8 @@ def przygotuj_patryka(staging):
 # (zmniejszone offline), po zapisie pamięci Library. Generator bez nich: port bez dużych statków, kontenery z innego modelu.
 PACZKI_MIASTA = ("miasto_centrum", "miasto_kamienice", "miasto_wiezowce", "miasto_wyposazenie", "miasto_pojazdy",
                  "miasto_port", "miasto_silownia_metro", "miasto_znaki", "miasto_palmy",
-                 "miasto_jedzenie", "miasto_sklepy")
+                 "miasto_jedzenie", "miasto_sklepy",
+                 "osiedle_wnetrza")   # 10.11: klub NOVA — ten sam alkohol i szatnia co dyskoteka osiedla (właściciel 09:26)
 
 
 def miasto():

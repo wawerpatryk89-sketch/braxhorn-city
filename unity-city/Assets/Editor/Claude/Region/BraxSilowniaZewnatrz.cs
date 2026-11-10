@@ -54,6 +54,7 @@ public static class BraxSilowniaZewnatrz
         Krok("narożniki, gzyms narożny", Narozniki);
         Krok("dach: membrana, attyka, świetliki, wentylacja", Dach);
         Krok("podwórze: drzewa w kratach, latarnie, ławki, kosze", Wyposazenie);
+        Krok("dziedziniec: ceglane ściany boczne oryginału w licach BAR 24 i NUTRITION (migotanie)", ScianyDziedzinca);
         Debug.Log("BRAXHORN_SILOWNIA_ZEWNATRZ elewacje 3 (cegła klinkierowa, cokół, lizeny, okna " + okien + ", lampy " + lamp + ", rynny), dach nad stropem (membrana, świetliki, agregaty)," +
                   " podwórze " + Pole().ToString("0") + " m² (płyty granitowe y " + YC + "), wnętrze sali bez zmian");
     }
@@ -263,6 +264,39 @@ public static class BraxSilowniaZewnatrz
         gl.Obiekt("Siłownia: dach — świetliki (poliwęglan)", root, swietlik, false, true);
         ag.Obiekt("Siłownia: dach — agregaty i wywiewki", root, agregat, false, true);
         st.Obiekt("Siłownia: dach — wentylatory, kratki, kanały", root, stal, false, true);
+    }
+
+    // 10.11 (właściciel 09:21, zdjęcia z APK: „elewacja koło siłowni po lewej i po prawej stronie — zobacz, jak ona migota”).
+    // POMIAR (braxhorn-original-gym.glb, Gym_Mesh_38, oś x odbita przy imporcie): dziedziniec przed wejściem ograniczały dwie
+    // ceglane płyty 0.6 × 9.5 × 9 m — x −1.6…−1.0 i 14.5…15.1, z 11.6…20.6. Miasto postawiło w tym miejscu BAR 24 (x −12…−1,
+    // bok od dziedzińca to nasza elewacja boczna z oknami i schodami pożarowymi) i BRAXHORN NUTRITION (x 14.5…26). Lica płyt
+    // x −1.0 i x 14.5 leżały DOKŁADNIE w licach tych budynków → dwie cegły walczyły o piksel (kratka na zdjęciu), a w oknach
+    // sąsiadów widać było cegłę płyty. Obie płyty w całości są w bryłach sąsiadów (ich wysokość 9.5 m < wysokość budynków),
+    // więc ich nie widać z żadnej strony — rysowanie wyłączone (kolizje dziedzińca dają budynki i gym-collisions).
+    static void ScianyDziedzinca()
+    {
+        int wylaczone = 0;
+        foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!r || r.name != "Gym_Mesh_38") continue;
+            var b = r.bounds;
+            bool zgodne = Mathf.Abs(b.min.z - 11.6f) < .15f && Mathf.Abs(b.max.z - 20.6f) < .15f && b.max.y < 10.5f
+                          && ((b.min.x > -2.2f && b.min.x < -1.0f) || (b.max.x > 14.5f && b.max.x < 15.7f));
+            if (!zgodne) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_SILOWNIA_ZEWNATRZ Gym_Mesh_38 w innym miejscu niż pomiar: " + b); continue; }
+            r.enabled = false; wylaczone++;
+        }
+        // bok BAR 24 od dziedzińca = nasza elewacja boczna (oryginał w jej licu zdejmują pierzeje: ZrodloWLicuX „bok_bar”).
+        // Bok NUTRITION od dziedzińca: od 5.1 m bok nadbudowy (lico oryginału zdjęte w pierzejach), niżej została tylko czerwona
+        // cegła oryginału (city_baked_112) — okładzina z tego samego ciemnego klinkieru co sklep (właściciel 9.11: „sklep z odżywkami
+        // cały w tej małej cegiełce ciemnej, czerwona do wywalenia”), 2 cm przed licem oryginału (bez wspólnej płaszczyzny), cokół.
+        var klinkier = BraxRegionMeble.Tex("Nutrition: cegła ciemna (mały klinkier)", 1.0f, new Color(.60f, .51f, .47f), .9f, "brick_wall_001");
+        var kl = new BraxRegionMeble.Bud(); var ck = new BraxRegionMeble.Bud();
+        kl.MinMax(new Vector3(14.38f, .75f, 11.63f), new Vector3(14.48f, 5.08f, 20.56f));
+        ck.MinMax(new Vector3(14.34f, .05f, 11.63f), new Vector3(14.48f, .75f, 20.56f));
+        kl.Obiekt("Dziedziniec: bok NUTRITION — okładzina z ciemnego klinkieru", root, klinkier ? klinkier : cegla, false, true);
+        ck.Obiekt("Dziedziniec: bok NUTRITION — cokół (granit)", root, cokol, false, true);
+        Debug.Log("BRAXHORN_SILOWNIA_ZEWNATRZ ściany boczne dziedzińca (Gym_Mesh_38, lica w licach BAR 24 i NUTRITION): wyłączone " + wylaczone +
+                  "; bok NUTRITION parter: okładzina klinkier x 14.38…14.48, z 11.63…20.56, y 0.05…5.08");
     }
 
     static void Wyposazenie()
