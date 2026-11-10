@@ -25,13 +25,13 @@ class SandSteps(unittest.TestCase):
         self.assertIn('return s.Contains("sand") || s.Contains("piasek") || s.Contains("piask");', self.s)
 
     def test_real_print_never_lying_on_the_sand(self):
-        # sole 10 mm over the sand, crest 35 mm, the ridge's outer foot 10 mm UNDER it: no surface 1-5 mm apart
+        # sole 10 mm over the sand, crest 24 mm, the ridge's outer foot 10 mm UNDER it: no surface 1-5 mm apart
         heights = [float(h) for h in re.findall(r"At\(outline\[i\], [\d.]+f, (-?[\d.]+)f\)", self.s)]
-        self.assertEqual(heights, [.010, .035, -.010])
+        self.assertEqual(heights, [.010, .024, -.010])
         for h in heights:
             self.assertFalse(.001 <= abs(h) <= .005)
         self.assertNotIn("_Transparent", self.s)
-        self.assertIn("p.t.position = p.at - p.up * (.045f * t * p.t.lossyScale.y);", self.s)   # settles under the sand
+        self.assertIn("p.t.position = p.at - p.up * (.034f * t * p.t.lossyScale.y);", self.s)   # settles under the sand
 
     def test_rule_written_down(self):
         rule = (ROOT / "docs/zasady/PIASEK_ZAPADANIE_SLADY_20261110.md").read_text(encoding="utf-8")

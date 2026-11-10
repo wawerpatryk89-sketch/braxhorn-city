@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 // sand_dry / sand_wet ground, or any collider / material whose name says sand or piasek):
 //   - the feet sink in: the player's visual sinks 4 cm into the sand (eased in and out, never on paving),
 //   - every footfall (the foot bone comes down after a lift, as in BraxKroki) leaves a real 3D footprint where it lands:
-//     a sole of compressed, darker sand 10 mm over the surface inside a ridge of pushed-up sand 35 mm high whose outer
+//     a sole of compressed, darker sand 10 mm over the surface inside a gently sloped ridge of pushed-up sand 24 mm high whose outer
 //     slope starts 10 mm BELOW the surface - real thickness, nothing lies on the sand 1-5 mm apart (zero migotania),
 //   - after 50 s a print settles back into the sand over 10 s (it sinks under the surface, no transparency) and is
 //     reused; at most 160 prints (a minute of walking).
@@ -154,15 +154,15 @@ public sealed class BraxChampionsSandSteps : MonoBehaviour
             if (age >= Life) { p.t.gameObject.SetActive(false); continue; }
             if (age > Life - Settle)
             {
-                // settles back into the sand: down by its full height (4.5 cm in model metres) over the last 10 s
+                // settles back into the sand: down by its full height (3.4 cm in model metres) over the last 10 s
                 float t = (age - (Life - Settle)) / Settle;
-                p.t.position = p.at - p.up * (.045f * t * p.t.lossyScale.y);
+                p.t.position = p.at - p.up * (.034f * t * p.t.lossyScale.y);
             }
         }
     }
 
     // Footprint in model metres: x across (right foot; mirrored for the left), z along (toes +z), y up. Outline of a
-    // 27 x 10 cm shoe sole. Submesh 0: the sole (compressed sand, +10 mm), submesh 1: the ridge (crest +35 mm, outer
+    // 27 x 10 cm shoe sole. Submesh 0: the sole (compressed sand, +10 mm), submesh 1: the ridge (crest +24 mm, outer
     // foot 10 mm under the surface).
     static Mesh Build()
     {
@@ -184,8 +184,8 @@ public sealed class BraxChampionsSandSteps : MonoBehaviour
         for (int i = 0; i < n; i++)
         {
             inner[i] = Add(At(outline[i], 1.00f, .010f));
-            crest[i] = Add(At(outline[i], 1.22f, .035f));
-            foot[i] = Add(At(outline[i], 1.58f, -.010f));
+            crest[i] = Add(At(outline[i], 1.45f, .024f));
+            foot[i] = Add(At(outline[i], 2.05f, -.010f));
         }
         for (int i = 0; i < n; i++)
         {

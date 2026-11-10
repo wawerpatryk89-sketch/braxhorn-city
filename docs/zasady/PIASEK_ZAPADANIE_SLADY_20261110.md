@@ -14,7 +14,7 @@
    - ślad jest obrócony w kierunku marszu i dopasowany do pochylenia piasku.
 3. **Bez nakładania i migotania** (ZASADA-ZERO-MIGOTANIA):
    - podeszwa z ubitego, ciemniejszego piasku leży 10 mm nad powierzchnią;
-   - wokół niej jest wał wypchniętego piasku wysoki na 35 mm;
+   - wokół niej jest łagodny wał wypchniętego piasku wysoki na 24 mm;
    - zewnętrzny stok wału zaczyna się 10 mm **pod** piaskiem;
    - nic nie leży na piasku w odstępie 1–5 mm i nie ma przezroczystych naklejek.
 4. **Znikanie po ok. 1 min.** Przez 50 s ślad stoi. Przez kolejne 10 s osiada w piasek, czyli schodzi pod powierzchnię bez przezroczystości. Potem wraca do puli.
