@@ -39,7 +39,7 @@ public static class MeshDump
         foreach (var mf in root.gameObject.GetComponentsInChildren<MeshFilter>(true))
         {
             var mr = mf.GetComponent<MeshRenderer>();
-            if (mf.sharedMesh == null || mr == null || mr.sharedMaterial == null || !mr.enabled || (skip != null && skip(mf.gameObject))) continue;
+            if (mf.sharedMesh == null || mf.sharedMesh.vertices.Length == 0 || mr == null || mr.sharedMaterial == null || !mr.enabled || (skip != null && skip(mf.gameObject))) continue;
             bool active = true; for (var t = mf.transform; t != null; t = t.parent) active &= t.gameObject.activeSelf; if (!active) continue;
             var m = mr.sharedMaterial; mats[m.name] = m;
             var v = mf.sharedMesh.vertices.Select(p => root.InverseTransformPoint(mf.transform.TransformPoint(p)) / scale).ToArray();

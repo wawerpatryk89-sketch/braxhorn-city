@@ -11,7 +11,7 @@ public static partial class BraxChampionsFoundation
         public string version, regionId, sourceCommit; public float scaleK;
         public MeshData[] meshes; public Plant[] plants; public Building[] buildings;
         public Berth[] berths; public Pier[] piers; public Pavilion[] promenade;
-        public PalmBed[] palmBeds; public Furniture[] furniture; public Opening[] openings; public Dining[] dining;
+        public PalmBed[] palmBeds; public Furniture[] furniture; public Opening[] openings; public Dining[] dining; public Zone[] zones; public Parking[] parkings;
     }
     [Serializable] public sealed class Plant { public string id, kind, band; public float x, z, yaw; public int variant; }
     [Serializable] public sealed class Building { public string id, name; public float x, z, w, d, height; }
@@ -22,6 +22,8 @@ public static partial class BraxChampionsFoundation
     [Serializable] public sealed class Furniture { public string kind; public float x, z; }
     [Serializable] public sealed class Opening { public float x0, x1; }
     [Serializable] public sealed class Dining { public float x, z, w, d; }
+    [Serializable] public sealed class Parking { public string id; public float x0, x1, z0, z1, sidewalkZ, driveX0, driveX1, pathX0, pathX1; }
+    [Serializable] public sealed class Zone { public string id, kind; public float x, z, w, d, pathX, pathZ, pathW, pathD; }
 }
 
 // The owner's harbour GLBs (Assets/Source/HarborBeach/Models): real bounds, drawn by the preview from the files.

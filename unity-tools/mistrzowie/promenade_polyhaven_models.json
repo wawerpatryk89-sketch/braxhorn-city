@@ -212,6 +212,18 @@
         "K7",
         "K11"
       ]
+    },
+    {
+      "id": "flower_empodium",
+      "polycount": 5820,
+      "kiosks": [],
+      "promenade": "flower planters (owner board 10.11 18:12: donice z kwiatami)"
+    },
+    {
+      "id": "flower_gazania",
+      "polycount": 25819,
+      "kiosks": [],
+      "promenade": "fountain plaza flower beds"
     }
   ],
   "excludedMissingProducts": [

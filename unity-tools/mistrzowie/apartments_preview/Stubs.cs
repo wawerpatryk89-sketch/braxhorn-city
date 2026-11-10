@@ -295,6 +295,9 @@ namespace UnityEditor
             var g = new GameObject(System.IO.Path.GetFileNameWithoutExtension(p)); GameObject.Registry.Remove(g);
             var pm = g.AddComponent<PreviewModel>(); pm.path = p; (pm.min, pm.max) = GltfBounds.Read(p);
             g.AddComponent<MeshRenderer>().sharedMaterial = new Material { name = "gltf", textured = true };
+            // like glTFast: the imported model has a mesh (generators check for real geometry); the dump skips it, three.js
+            // draws the .gltf itself
+            g.AddComponent<MeshFilter>().sharedMesh = new Mesh { name = "gltf stand-in (drawn from the file)" };
             return g as T;
         }
         public static void CreateAsset(Object o, string p) { } public static void Refresh(ImportAssetOptions o = ImportAssetOptions.Default) { } public static Object[] LoadAllAssetsAtPath(string p) => new Object[0];

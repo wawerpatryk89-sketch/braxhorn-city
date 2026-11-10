@@ -1,4 +1,5 @@
 using System;
+using UnityEditor;
 using UnityEngine;
 
 // Promenade furniture, owner 10.11 09:01-09:06: "drzewa posadzić ... palmy posadzić ... promenady ładne, ekskluzywne".
@@ -12,7 +13,7 @@ public static class BraxChampionsPromenadeFurniture
     const string Output="Assets/PlayableGenerated/Mistrzowie";
     const float Y=.16f;
     public static Material Teak,Kerb,Deck;
-    public static int Benches,Lamps,Beds,Islands,Chairs,Stools;
+    public static int Benches,Lamps,Beds,Islands,Chairs,Stools,Planters,Flowers,BikeHoops,Chargers,RepairStands,Drinking,Telescopes,Bins;
 
     public static void Materials()
     {
@@ -28,7 +29,7 @@ public static class BraxChampionsPromenadeFurniture
     // back). Every bench of the promenade and the quays is now one design: two cast graphite END FRAMES outside the slats
     // (front post with the armrest, rear post up to the top of the backrest, seat rail, armrest), teak seat and back slats
     // spanning between the frames (nothing crosses them), two bearers under the seat. f = the way the bench faces.
-    static void BenchFramed(BraxChampionsMeshBatch m,Transform colliders,float x,float z,Vector2 f,string label)
+    public static void BenchFramed(BraxChampionsMeshBatch m,Transform colliders,float x,float z,Vector2 f,string label)
     {
         f=f.normalized;var u=new Vector2(-f.y,f.x);                     // along the seat
         // local a (along), d (depth, front d<0 toward f), y
@@ -66,7 +67,7 @@ public static class BraxChampionsPromenadeFurniture
     // Owner 10.11 14:56-14:57: the benches of the passenger quays face the ship (face +1 = east, -1 = west), seat along z
     static void QuayBench(BraxChampionsMeshBatch m,Transform colliders,float x,float z,float face)=>BenchFramed(m,colliders,x,z,new Vector2(face,0),"nabrzeża "+z.ToString("0"));
 
-    static void Lamp(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
+    public static void Lamp(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
     {
         var g=BraxChampionsHarbour.Graphite;var b=new Vector3(x,Y,z);
         m.Cylinder(g,b,.16f,.30f,16,Quaternion.identity,true,false,.11f);
@@ -77,6 +78,126 @@ public static class BraxChampionsPromenadeFurniture
         m.Cylinder(BraxChampionsHarbour.Led,b+Vector3.up*5.345f,.34f,.016f,24,Quaternion.identity,false,true);
         BraxChampionsMeshBatch.Collider(colliders,"latarnia "+x.ToString("0"),new Vector3(x,Y+2.7f,z),new Vector3(.22f,5.4f,.22f));
         Lamps++;
+    }
+
+    // ---- owner 10.11 18:12, the promenade board ("donice / zieleń", "kosze", "stojaki rowerowe", "stacje naprawy rowerów",
+    // "źródełka z wodą", "ładowarki e-bike", "punkty widokowe"): promenade_layout.LINE_FURNITURE ----
+
+    // granite planter 2.0 x 0.9 x 0.55 m, lawn inside, the owner board's flowers (Poly Haven flower_empodium) on it
+    public static void Planter(BraxChampionsMeshBatch m,Transform colliders,Transform models,float x,float z,string flower="flower_empodium")
+    {
+        float x0=x-1.0f,x1=x+1.0f,z0=z-.45f,z1=z+.45f,t=.08f,top=Y+.55f,soil=Y+.47f;
+        m.BoxMinMax(Kerb,x0,x1,Y,top,z0,z0+t);m.BoxMinMax(Kerb,x0,x1,Y,top,z1-t,z1);
+        m.BoxMinMax(Kerb,x0,x0+t,Y,top,z0+t,z1-t);m.BoxMinMax(Kerb,x1-t,x1,Y,top,z0+t,z1-t);
+        m.BoxMinMax(Lawn(),x0+t,x1-t,Y,soil,z0+t,z1-t);
+        BraxChampionsMeshBatch.Collider(colliders,"donica "+x.ToString("0"),new Vector3(x,Y+.275f,z),new Vector3(2.0f,.55f,.9f));
+        // two staggered rows of the original flower set (5 plants each), the second turned round
+        Flower(models,flower,new Vector3(x-.08f,soil,z-.17f),1.62f);
+        Flower(models,flower,new Vector3(x+.08f,soil,z+.17f),1.62f,180f);
+        Planters++;
+    }
+    static Material lawn;
+    public static Material Lawn()
+    {
+        if(lawn)return lawn;
+        lawn=AssetDatabase.LoadAssetAtPath<Material>(Output+"/Materials/grass.mat");
+        if(!lawn)lawn=BraxChampionsHarbour.Surface("prom_planter_lawn",new Color(.30f,.46f,.20f),.85f,0f);
+        return lawn;
+    }
+    // one flower model scaled so its longest side is `length` (nominal), longest side along x, standing on `at`
+    public static void Flower(Transform models,string id,Vector3 at,float length,float yaw=0f)
+    {
+        var src=BraxChampionsPromenadeStock.Flower(id);if(!src)return;
+        var o=(GameObject)UnityEngine.Object.Instantiate(src);o.name="kwiaty "+id;
+        o.transform.SetParent(models,false);
+        var b=BraxRegion.Bounds(o);float longest=Mathf.Max(b.size.x,b.size.z);
+        if(longest<1e-4f){UnityEngine.Object.DestroyImmediate(o);return;}
+        if(b.size.z>b.size.x)yaw+=90f;
+        o.transform.localRotation=Quaternion.Euler(0,yaw,0);
+        o.transform.localScale=o.transform.localScale*(length*K/longest);
+        b=BraxRegion.Bounds(o);
+        o.transform.position+=models.TransformPoint(at*K)-new Vector3(b.center.x,b.min.y,b.center.z);
+        foreach(var c in o.GetComponentsInChildren<Collider>(true))UnityEngine.Object.DestroyImmediate(c);
+        // small plants: drawn up close only (about 25 m for a 40 cm plant), never a distant cost on the phone
+        var lod=o.AddComponent<LODGroup>();lod.SetLODs(new[]{new LOD(.015f,o.GetComponentsInChildren<Renderer>(true))});lod.RecalculateBounds();
+        Flowers++;
+    }
+    static float K=>BraxClaudeOsiedle.K;
+
+    // stainless litter bin on its own
+    static void Bin(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
+    {
+        var g=BraxChampionsHarbour.Graphite;var bin=new Vector3(x,Y,z);
+        m.Cylinder(BraxChampionsHarbour.Steel,bin,.22f,.82f,16,Quaternion.identity,false);
+        m.Cylinder(g,bin+Vector3.up*.82f,.235f,.06f,16);m.Cylinder(g,bin,.235f,.05f,16);
+        BraxChampionsMeshBatch.Collider(colliders,"kosz "+x.ToString("0"),new Vector3(x,Y+.42f,z),new Vector3(.46f,.84f,.46f));
+        Bins++;
+    }
+
+    // five stainless Sheffield hoops (bikes park across the line) and an e-bike charging post at the east end
+    static void BikeRack(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
+    {
+        var st=BraxChampionsHarbour.Steel;const float r=.024f,h=.80f,half=.34f,bend=.10f;
+        for(int i=0;i<5;i++)
+        {
+            float hx=x-1.8f+i*.9f;
+            Vector3 a=new Vector3(hx,Y-.02f,z-half),b=new Vector3(hx,Y+h-bend,z-half),c=new Vector3(hx,Y+h,z-half+bend);
+            Vector3 d=new Vector3(hx,Y+h,z+half-bend),e=new Vector3(hx,Y+h-bend,z+half),f=new Vector3(hx,Y-.02f,z+half);
+            m.Tube(st,a,b,r,10);m.Tube(st,b,c,r,10);m.Tube(st,c,d,r,10);m.Tube(st,d,e,r,10);m.Tube(st,e,f,r,10);
+            BraxChampionsMeshBatch.Collider(colliders,"stojak rowerowy "+hx.ToString("0.0"),new Vector3(hx,Y+.40f,z),new Vector3(.06f,.80f,.72f));
+            BikeHoops++;
+        }
+        // e-bike charger: graphite post, warm LED ring, two stainless socket covers facing the bikes
+        var g=BraxChampionsHarbour.Graphite;float cx=x+2.75f;
+        m.BoxMinMax(g,cx-.13f,cx+.13f,Y,Y+1.10f,z-.13f,z+.13f);
+        m.BoxMinMax(BraxChampionsHarbour.Led,cx-.13f,cx+.13f,Y+1.10f,Y+1.14f,z-.13f,z+.13f);     // LED band flush with the post
+        m.BoxMinMax(g,cx-.13f,cx+.13f,Y+1.14f,Y+1.25f,z-.13f,z+.13f);
+        foreach(float s in new[]{-1f,1f})m.BoxMinMax(st,cx-.09f,cx+.09f,Y+.78f,Y+.96f,z+s*.13f-(s<0?.02f:0f),z+s*.13f+(s>0?.02f:0f));
+        BraxChampionsMeshBatch.Collider(colliders,"ładowarka e-bike "+cx.ToString("0"),new Vector3(cx,Y+.625f,z),new Vector3(.26f,1.25f,.26f));
+        Chargers++;
+    }
+
+    // bike repair stand: post with a hanger arm, steel tool cables, a floor pump with a gauge
+    static void BikeRepair(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
+    {
+        var g=BraxChampionsHarbour.Graphite;var st=BraxChampionsHarbour.Steel;
+        m.BoxMinMax(g,x-.09f,x+.09f,Y,Y+1.55f,z-.09f,z+.09f);
+        m.BoxMinMax(g,x-.09f,x+.09f,Y+1.47f,Y+1.55f,z-.55f,z-.09f);                 // hanger arm toward the walk
+        foreach(float dx in new[]{-.07f,.07f})m.Tube(st,new Vector3(x+dx,Y+1.47f,z-.50f),new Vector3(x+dx,Y+1.38f,z-.50f),.012f,8);
+        for(int i=0;i<4;i++)m.Tube(st,new Vector3(x-.06f+i*.04f,Y+1.20f,z-.09f),new Vector3(x-.06f+i*.04f,Y+.95f,z-.12f),.004f,6);
+        var pump=new Vector3(x+.45f,Y,z);
+        m.Cylinder(g,pump,.10f,.04f,12);m.Cylinder(st,pump+Vector3.up*.04f,.035f,.95f,10);
+        m.Cylinder(BraxChampionsPromenade.Marble,pump+new Vector3(0,.60f,-.03f),.045f,.025f,16,Quaternion.Euler(-90,0,0));  // gauge toward the walk
+        BraxChampionsMeshBatch.Collider(colliders,"stacja naprawy rowerów "+x.ToString("0"),new Vector3(x+.2f,Y+.78f,z-.2f),new Vector3(.7f,1.55f,.6f));
+        RepairStands++;
+    }
+
+    // drinking fountain: granite plinth, graphite column, stainless bowl with a spout, a low dog bowl
+    static void DrinkingFountain(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
+    {
+        var g=BraxChampionsHarbour.Graphite;var st=BraxChampionsHarbour.Steel;var b=new Vector3(x,Y,z);
+        m.Cylinder(Kerb,b,.32f,.06f,20);
+        m.Cylinder(g,b+Vector3.up*.06f,.13f,.84f,16,Quaternion.identity,false);
+        m.Cylinder(st,b+Vector3.up*.90f,.24f,.07f,24,Quaternion.identity,true,true,.27f);
+        m.Tube(st,b+new Vector3(0,.97f,.06f),b+new Vector3(0,1.03f,-.06f),.012f,8);
+        m.Cylinder(st,b+new Vector3(0,0f,-.52f),.13f,.12f,16);                           // dog bowl on the paving
+        BraxChampionsMeshBatch.Collider(colliders,"źródełko "+x.ToString("0"),new Vector3(x,Y+.5f,z-.1f),new Vector3(.64f,1.0f,.84f));
+        Drinking++;
+    }
+
+    // coin telescope on the sea edge, looking out to sea (-z)
+    static void Telescope(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
+    {
+        var g=BraxChampionsHarbour.Graphite;var st=BraxChampionsHarbour.Steel;var b=new Vector3(x,Y,z);
+        m.Cylinder(g,b,.24f,.05f,20);m.Cylinder(g,b+Vector3.up*.05f,.07f,1.02f,14);
+        m.BoxMinMax(g,x-.20f,x+.20f,Y+1.07f,Y+1.12f,z-.06f,z+.06f);                     // yoke
+        foreach(float s in new[]{-1f,1f})m.BoxMinMax(g,x+s*.20f-.02f,x+s*.20f+.02f,Y+1.12f,Y+1.36f,z-.05f,z+.05f);
+        m.Box(st,new Vector3(x,Y+1.30f,z),new Vector3(.34f,.24f,.42f));
+        foreach(float s in new[]{-1f,1f})
+            m.Cylinder(g,new Vector3(x+s*.07f,Y+1.33f,z+.21f),.035f,.09f,12,Quaternion.Euler(90,0,0));    // eyepieces to the land side
+        m.Cylinder(g,new Vector3(x,Y+1.30f,z-.21f),.11f,.05f,16,Quaternion.Euler(-90,0,0));            // objective hood to the sea
+        BraxChampionsMeshBatch.Collider(colliders,"luneta "+x.ToString("0"),new Vector3(x,Y+.7f,z),new Vector3(.48f,1.4f,.48f));
+        Telescopes++;
     }
 
     static void Bed(BraxChampionsMeshBatch m,BraxChampionsFoundation.PalmBed b)
@@ -143,9 +264,10 @@ public static class BraxChampionsPromenadeFurniture
         if(!BraxChampionsHarbour.Steel)BraxChampionsHarbour.Materials();
         if(!Teak)Materials();
         if(!BraxChampionsPromenade.Marble||!BraxChampionsPromenade.Cushion)BraxChampionsPromenade.Materials();
-        Benches=Lamps=Beds=Islands=Chairs=Stools=0;
+        Benches=Lamps=Beds=Islands=Chairs=Stools=Planters=Flowers=BikeHoops=Chargers=RepairStands=Drinking=Telescopes=Bins=0;
         var root=new GameObject("MIASTO MISTRZÓW | PROMENADA 10.11 | palmy w kwaterach, ławki, latarnie").transform;root.SetParent(foundation,false);
         var colliders=new GameObject("kolizje").transform;colliders.SetParent(root,false);
+        var models=new GameObject("kwiaty w donicach (Poly Haven, oryginały 2K)").transform;models.SetParent(root,false);
         var m=new BraxChampionsMeshBatch();
         foreach(var b in beds)Bed(m,b);
         foreach(var f in furniture)
@@ -154,6 +276,13 @@ public static class BraxChampionsPromenadeFurniture
             else if(f.kind=="lamp")Lamp(m,colliders,f.x,f.z);
             else if(f.kind=="quay_bench_east")QuayBench(m,colliders,f.x,f.z,1f);
             else if(f.kind=="quay_bench_west")QuayBench(m,colliders,f.x,f.z,-1f);
+            else if(f.kind=="planter")Planter(m,colliders,models,f.x,f.z);
+            else if(f.kind=="bin")Bin(m,colliders,f.x,f.z);
+            else if(f.kind=="bike_rack")BikeRack(m,colliders,f.x,f.z);
+            else if(f.kind=="bike_repair")BikeRepair(m,colliders,f.x,f.z);
+            else if(f.kind=="water_fountain")DrinkingFountain(m,colliders,f.x,f.z);
+            else if(f.kind=="binoculars")Telescope(m,colliders,f.x,f.z);
+            else BraxBuildQuality.Warn("DO POPRAWKI promenada: nieznany element "+f.kind+" x"+f.x.ToString("0"));
         }
         m.Build(root,"Promenada: kwatery, ławki, kosze, latarnie",Output+"/Meshes/Harbour");
         // one batch per dining island (each is a separate place on the 1.1 km promenade: culled on its own)
@@ -163,6 +292,8 @@ public static class BraxChampionsPromenadeFurniture
             im.Build(root,"Strefa jedzenia x"+d.x.ToString("0"),Output+"/Meshes/Harbour",true);
         }
         Debug.Log("CHAMPIONS_PROMENADE_FURNITURE_10_11 beds="+Beds+" benches="+Benches+" lamps="+Lamps+
-                  " diningIslands="+Islands+" chairs="+Chairs+" stools="+Stools);
+                  " diningIslands="+Islands+" chairs="+Chairs+" stools="+Stools+" planters="+Planters+" flowers="+Flowers+
+                  " bikeHoops="+BikeHoops+" ebikeChargers="+Chargers+" repairStands="+RepairStands+" drinkingFountains="+Drinking+
+                  " telescopes="+Telescopes+" bins="+Bins);
     }
 }

@@ -8,7 +8,7 @@ using UnityEngine;
 // Only this isolated next-release subdirectory is affected.
 public sealed class BraxChampionsPolyHaven2KImport : AssetPostprocessor
 {
-    public override uint GetVersion() => 3; // 9.11 evening: size by real object size, ASTC 6x6
+    public override uint GetVersion() => 4; // 9.11 evening: size by real object size, ASTC 6x6
     // Owner rule "wszystko ma być odpowiednie pod skalę": a 9 cm lemon does not
     // need 2048 px (0.05 mm per pixel). Android size from the model's REAL
     // longest dimension (Poly Haven API, 9.11): <=0.35 m 512, <=1.0 m 1024,
@@ -21,7 +21,9 @@ public sealed class BraxChampionsPolyHaven2KImport : AssetPostprocessor
         {"painted_wooden_shelves",2048},{"plastic_crate_02",1024},{"wicker_basket_02",1024},
         {"outdoor_table_chair_set_01",2048},{"metal_stool_03",2048},{"life_jacket",1024},{"binoculars",512},
         {"long_life_food",1024},{"wooden_bowl_02",512},{"tea_set_01",1024},{"brass_goblets",1024},
-        {"plastic_thermos",512},{"wooden_crate_02",2048}};
+        {"plastic_thermos",512},{"wooden_crate_02",2048},
+        // promenade planters (owner board 10.11 18:12): flowers 1.3-1.6 m long
+        {"flower_empodium",1024},{"flower_gazania",1024}};
     public static int AndroidMax(string assetPath)
     {
         var rest=assetPath.Substring("Assets/Source/Mistrzowie/PolyHaven/".Length);

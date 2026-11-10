@@ -27,7 +27,7 @@ public static class HotelProgram
         var parts = new List<string>(); int tris = 0;
         foreach (var mf in root.gameObject.GetComponentsInChildren<MeshFilter>(true))
         {
-            if (mf.sharedMesh == null) continue;
+            if (mf.sharedMesh == null || mf.sharedMesh.vertices.Length == 0) continue;
             var mr = mf.GetComponent<MeshRenderer>(); var m = mr != null && mr.sharedMaterial != null ? mr.sharedMaterial.name : "?";
             var v = mf.sharedMesh.vertices.Select(p => root.InverseTransformPoint(mf.transform.TransformPoint(p))).ToArray();
             var t = mf.sharedMesh.triangles; tris += t.Length / 3;

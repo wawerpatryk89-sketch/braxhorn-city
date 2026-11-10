@@ -10,6 +10,7 @@ REPORT=ROOT/'mistrzowie-evidence';REPORT.mkdir(exist_ok=True)
 from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,A1_PARKING_ENTRANCES,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO,APT_DRIVE_CUTS,HOTEL_GARAGE_CUTS,T11_MOUTH_CORNERS,MOUTH_CUTS
 from port_layout import PIERS,BERTHS,SHORE_BACK,SEA_LEVEL,PROMENADE_OPENINGS,JETSKI_RAMP,QUAY_APRONS,QUAY_BEDS,QUAY_BED_RECTS,QUAY_FURNITURE,shoreline,beach_height,validate as validate_port
 from promenade_layout import PAVILIONS,PAVILION_PADS,PAVILION_FOOTPRINTS,CYCLE_Z0,CYCLE_Z1,CYCLE_WIDTH,X0 as PROM_X0,X1 as PROM_X1,PALM_BEDS,PALM_BED_RECTS,FURNITURE,DINING,DINING_W,DINING_D,DINING_BEDS,DINING_BED_RECTS,validate as validate_promenade
+from promenade_layout import ZONES,ZONE_RECTS,ZONE_PATHS,LINE_FURNITURE,PARKINGS,PARKING_RECTS,PARKING_DRIVES,PARKING_PATHS,PARK_Z0,PARK_Z1,PARK_SIDEWALK_Z
 SRC=ROOT/'unity-city/Assets/Source/Mistrzowie'
 K=float(np.float32(2.33)/np.float32(1.80))  # exact existing Unity float expression
 base=json.loads((Path(__file__).with_name('plan_inventory.json')).read_text())
@@ -69,6 +70,10 @@ def zone(x,z):
  if inside((x,z),T11_STREET_ENTRANCE):return None
  if inside((x,z),T11_STREET_ENTRANCE_LAWN) or inside((x,z),T11_SOUTH_DRIVE):return None
  if any(inside((x,z),r) for r in MOUTH_CUTS):return None            # street mouths: casino, arena, hotel
+ # owner 10.11 18:12 (promenade board): recreation zones and their paths (BraxChampionsPromenadeZones builds them)
+ if any(inside((x,z),r) for r in ZONE_RECTS+ZONE_PATHS):return None
+ # owner 10.11 18:31: public car parks by the marina and the beach (BraxChampionsPromenadeParking builds them)
+ if any(inside((x,z),r) for r in PARKING_RECTS+PARKING_DRIVES+PARKING_PATHS):return None
  if any(inside((x,z),r) for r in A1_PARKING_ENTRANCES):return None
  # apartment car-park drives (BraxChampionsApartments.Parking builds the asphalt, kerbs, arcs and sidewalk round them)
  if any(inside((x,z),r) for r in APT_DRIVE_CUTS):return None
@@ -158,6 +163,8 @@ for a in XROAD:
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
 rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE,T11_STREET_ENTRANCE_LAWN,T11_SOUTH_DRIVE]+MOUTH_CUTS+A1_PARKING_ENTRANCES+APT_DRIVE_CUTS+HOTEL_GARAGE_CUTS+JUNCTION_CORNER_RECTS+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS+DINING_BED_RECTS+QUAY_APRONS+QUAY_BED_RECTS
+# owner 10.11 18:12 / 18:31: the promenade's recreation zones, their paths and the two public car parks
+rects+=ZONE_RECTS+ZONE_PATHS+PARKING_RECTS+PARKING_DRIVES+PARKING_PATHS
 # rounded: 4.4 / 3.6 m beds gave -219.8+3.6 = -216.20000000000002 next to -216.2 -> zero-length quay-wall edges
 for x,z,w,d in rects:xs.update([round(x,6),round(x+w,6)]);zs.update([round(z,6),round(z+d,6)])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
@@ -408,7 +415,7 @@ for b in buildings:
   z=z0+(z1-z0)*j/n(z0,z1)
   plant(x0,round(z,2),'palm',len(plants)%2,'plot_garden');plant(x1,round(z,2),'palm',len(plants)%2,'plot_garden')
 for x,z in [(850,890),(900,890),(950,890),(1000,890),(1080,890),(950,740)]:plant(x,z,'tree',0,'hotel_garden')
-layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,piers=PIERS,promenade=PAVILIONS,palmBeds=[dict(x=x,z=z,w=r[2],d=r[3]) for (x,z),r in zip(PALM_BEDS+QUAY_BEDS,PALM_BED_RECTS+QUAY_BED_RECTS)],furniture=[dict(kind=k,x=x,z=z) for k,x,z in FURNITURE+QUAY_FURNITURE],openings=[dict(x0=a,x1=b) for a,b in PROMENADE_OPENINGS],dining=[dict(x=x,z=z,w=DINING_W,d=DINING_D) for x,z in DINING],tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
+layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,piers=PIERS,promenade=PAVILIONS,palmBeds=[dict(x=x,z=z,w=r[2],d=r[3]) for (x,z),r in zip(PALM_BEDS+QUAY_BEDS,PALM_BED_RECTS+QUAY_BED_RECTS)],furniture=[dict(kind=k,x=x,z=z) for k,x,z in FURNITURE+QUAY_FURNITURE+LINE_FURNITURE],parkings=[dict(id=p['id'],x0=p['x0'],x1=p['x1'],z0=PARK_Z0,z1=PARK_Z1,sidewalkZ=PARK_SIDEWALK_Z,driveX0=p['driveX0'],driveX1=p['driveX1'],pathX0=p['pathX0'],pathX1=p['pathX1']) for p in PARKINGS],zones=[dict(id=z['id'],kind=z['kind'],x=z['x'],z=z['z'],w=z['w'],d=z['d'],pathX=pp[0],pathZ=pp[1],pathW=pp[2],pathD=pp[3]) for z,pp in zip(ZONES,ZONE_PATHS)],openings=[dict(x0=a,x1=b) for a,b in PROMENADE_OPENINGS],dining=[dict(x=x,z=z,w=DINING_W,d=DINING_D) for x,z in DINING],tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
 SRC.mkdir(parents=True,exist_ok=True)
 (SRC/'Foundation.json').write_text(json.dumps(layout,separators=(',',':')))
 # Geometric checks use the delivered vertices, not only planning rectangles.

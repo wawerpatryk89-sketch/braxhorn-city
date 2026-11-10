@@ -99,8 +99,8 @@ class PromenadeLaneNoZFight(unittest.TestCase):
     def test_all_12_shops_have_only_real_pbr_products_and_zero_human_actors(self):
         cat=json.loads((ROOT/"unity-tools/mistrzowie/promenade_polyhaven_models.json").read_text())
         assets=cat["assets"]
-        self.assertEqual(len(assets),25)
-        self.assertEqual(len({a["id"] for a in assets}),25)
+        self.assertEqual(len(assets),27)                      # 25 kiosk goods + 2 flowers (owner board 10.11 18:12)
+        self.assertEqual(len({a["id"] for a in assets}),27)
         counts={f"K{i}":0 for i in range(1,13)}
         for a in assets:
             for kiosk in a["kiosks"]:

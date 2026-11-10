@@ -35,9 +35,15 @@ public static class BraxChampionsFoundation
         public Opening[] openings;
         // owner 10.11 10:28: dining islands between the kiosks (deck, tables, counters, palms at both ends)
         public Dining[] dining;
+        public Zone[] zones;
+        public Parking[] parkings;
     }
     [Serializable] public sealed class PalmBed { public float x,z,w,d; }
     [Serializable] public sealed class Furniture { public string kind; public float x,z; }
+    // owner 10.11 18:12 board "PROMENADA NADMORSKA - PROJEKT ROZBUDOWY": recreation zones and fountain plazas (promenade_layout.ZONES)
+    // owner 10.11 18:31: public car parks by the marina and the beach (promenade_layout.PARKINGS)
+    [Serializable] public sealed class Parking { public string id; public float x0,x1,z0,z1,sidewalkZ,driveX0,driveX1,pathX0,pathX1; }
+    [Serializable] public sealed class Zone { public string id,kind; public float x,z,w,d,pathX,pathZ,pathW,pathD; }
     [Serializable] public sealed class Opening { public float x0,x1; }
     [Serializable] public sealed class Dining { public float x,z,w,d; }
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
@@ -332,6 +338,8 @@ public static class BraxChampionsFoundation
             Optional("flota w porcie",()=>boats=BraxChampionsHarbour.PlaceOriginalFleet(root,d.berths,d.piers,d.openings));
             // owner 10.11: palms in planted beds along the promenade, benches, lamps, bins, beach boardwalks
             Optional("promenada: kwatery palm, ławki, latarnie, strefy jedzenia między budkami",()=>BraxChampionsPromenadeFurniture.Build(root,d.palmBeds,d.furniture,d.dining));
+            Optional("promenada: strefa relaksu, place z fontannami, siłownia plenerowa, plac zabaw",()=>BraxChampionsPromenadeZones.Build(root,d.zones));
+            Optional("promenada: parkingi przy marinie i plaży",()=>BraxChampionsPromenadeParking.Build(root,d.parkings));
             if(boats!=35)BraxBuildQuality.Warn("Port: ustawiono "+boats+" łodzi zamiast 35 (15 jachtów + 10 Riva + 10 skuterów)");
             report.yachtsPlaced=true;
             var reserves=new GameObject("PLAN - działki, przystanki, miejsca promów i wycieczkowców").transform;reserves.SetParent(root,false);

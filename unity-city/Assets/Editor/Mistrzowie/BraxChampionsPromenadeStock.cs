@@ -14,7 +14,7 @@ public static class BraxChampionsPromenadeStock
 {
     const string Src="Assets/Source/Mistrzowie/PolyHaven";
     const string Approved="unity-tools/mistrzowie/promenade_polyhaven_models.json";
-    const int ExpectedSources=25;
+    const int ExpectedSources=27;                 // 25 kiosk goods + 2 flowers for the promenade planters
     const int MaxInstances=62;
     static float K=>BraxClaudeOsiedle.K;
 
@@ -37,6 +37,14 @@ public static class BraxChampionsPromenadeStock
             Path.Combine(Directory.GetParent(Application.dataPath).Parent?.FullName??"",relative)})
             if(File.Exists(candidate))return candidate;
         return null;
+    }
+
+    // the promenade's flower planters and plaza beds (BraxChampionsPromenadeFurniture / Zones): the same verified 2K
+    // Poly Haven originals as the kiosk goods; null (and a warning) when the download is not there
+    public static GameObject Flower(string id)
+    {
+        try{return Original(id);}
+        catch(Exception e){BraxBuildQuality.Warn("Promenada: kwiaty "+id+" niedostępne: "+e.Message);return null;}
     }
 
     static GameObject Original(string id)

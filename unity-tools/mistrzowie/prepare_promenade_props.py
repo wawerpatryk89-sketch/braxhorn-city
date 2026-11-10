@@ -29,7 +29,7 @@ CDN="https://dl.polyhaven.org/file/ph-assets/Models/"
 MAX_SINGLE_BYTES=16*1024*1024
 MAX_TOTAL_BYTES=230*1024*1024
 USER_AGENT="BRAXHORN-CITY-Unity6-PolyHaven-CC0-Staging/1.0"
-EXPECTED_ASSETS=25
+EXPECTED_ASSETS=27      # 25 kiosk goods + 2 flowers for the promenade planters (owner board 10.11 18:12)
 ALLOWED_EXT={".jpg",".jpeg",".png",".bin",".gltf"}
 
 
@@ -123,7 +123,7 @@ def download(only=None,metadata_only=False):
     data=json.loads(CATALOG.read_text(encoding="utf-8"))
     assets=data["assets"]
     if len(assets)!=EXPECTED_ASSETS or len({x["id"] for x in assets})!=EXPECTED_ASSETS:
-        raise ValueError("Expected 25 distinct confirmed source assets")
+        raise ValueError("Expected "+str(EXPECTED_ASSETS)+" distinct confirmed source assets")
     if only:
         assets=[x for x in assets if x["id"] in only]
         if len(assets)!=len(set(only)):raise ValueError("Unknown selected model IDs")
@@ -189,7 +189,7 @@ def download(only=None,metadata_only=False):
         (SOURCE/"CREDITS.md").write_text(
             "# BRAXHORN CITY — imported original Poly Haven models\n\n"
             "Powered by Poly Haven — https://polyhaven.com\n"
-            "All 25 model originals under CC0. Source references in "+
+            "All "+str(EXPECTED_ASSETS)+" model originals under CC0. Source references in "+
             "mistrzowie-evidence/promenade-polyhaven-import.json.\n"
             "Do not republish or modify original author/source declarations.\n")
     print("PROMENADE_POLYHAVEN_MODELS "+conclusion["status"]+

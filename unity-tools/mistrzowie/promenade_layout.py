@@ -79,11 +79,17 @@ def _palm_beds():
 PALM_BEDS=_palm_beds()
 # (x0, z0, w, d) grass rectangles cut out of the promenade paving
 PALM_BED_RECTS=[(x-PALM_BED/2,z-PALM_BED/2,PALM_BED,PALM_BED) for x,z in PALM_BEDS]
-# Benches and lamps in the gaps between neighbouring beds (only gaps of one regular step).
+# Benches and lamps in the gaps between neighbouring beds (only gaps of one regular step). Owner 10.11 18:12 (the board:
+# "latarnie LED 110-140 szt.", "ławki 90-120 szt."): every gap has a bench facing the sea in its middle and a lamp
+# 5.3 m to either side of it (was a bench OR a lamp).
+PALM_GAP_LAMP=5.3
 FURNITURE=[]
 for (xa,_),(xb,_) in zip(PALM_BEDS,PALM_BEDS[1:]):
     if abs(xb-xa-PALM_STEP)<.01:
-        FURNITURE.append(("bench" if len(FURNITURE)%2==0 else "lamp",round((xa+xb)/2,2),PALM_ROW_Z))
+        mid=round((xa+xb)/2,2)
+        FURNITURE.append(("bench",mid,PALM_ROW_Z))
+        FURNITURE.append(("lamp",round(mid-PALM_GAP_LAMP,2),PALM_ROW_Z))
+        FURNITURE.append(("lamp",round(mid+PALM_GAP_LAMP,2),PALM_ROW_Z))
 
 # Owner 10.11 10:28: "między budkami ... krzesełka obok, stanowiska do jedzenia, palmy posadzić, w składzie dopracować".
 # A dining island in the middle of every gap between two kiosks, on the landward side of the promenade paving (the
@@ -147,4 +153,122 @@ def validate():
         used.append(shape)
     return validate_dining()
 
+# ---- Owner 10.11 18:12: the promenade board "PROMENADA NADMORSKA - PROJEKT ROZBUDOWY" in full ----
+# Recreation zones on the inland lawn behind the kiosk verge (z -114..-93; the lawn runs to the Z-70 sidewalk at -87),
+# each reached by a 6 m paved path from the promenade: two round fountain plazas, a relax zone with pergolas, the
+# outdoor gym and the playground. The foundation cuts each rect and its path out of the lawn (BraxChampionsPromenadeZones builds them).
+ZONES=[
+ dict(id="STREFA_RELAKSU",kind="relax",x=92.0,z=-101.0,w=26.0,d=16.0),
+ dict(id="PLAC_FONTANNA_ZACHOD",kind="plaza",x=270.0,z=-104.0,w=20.0,d=20.0),
+ dict(id="SILOWNIA_PLENEROWA",kind="gym",x=430.0,z=-101.0,w=22.0,d=14.0),
+ dict(id="PLAC_FONTANNA_SRODEK",kind="plaza",x=505.0,z=-104.0,w=20.0,d=20.0),
+ dict(id="PLAC_ZABAW",kind="playground",x=777.5,z=-101.0,w=26.0,d=16.0),
+]
+# (the lawn behind the kiosks holds four reserved plots, x 135-205, 285-355, 565-635, 890-960 at z -108..-90, and the
+# city walks at x 230 / 530 / 700 / 1080: the zones sit in the free lawn between them)
+ZONE_PATH_W=6.0
+ZONE_RECTS=[(z["x"]-z["w"]/2,z["z"]-z["d"]/2,z["w"],z["d"]) for z in ZONES]
+ZONE_PATHS=[(z["x"]-ZONE_PATH_W/2,Z1,ZONE_PATH_W,(z["z"]-z["d"]/2)-Z1) for z in ZONES]
+
+# The inland furniture line on the promenade paving (between the walking corridor, -126.5, and the kiosk verge, -120):
+# a slot every 9 m, skipping kiosks with their terraces, dining islands with their beds, the city walks and the zone
+# paths. Every other slot a lamp; between them benches facing the sea and flower planters; bike racks (5 Sheffield
+# hoops + an e-bike charger) beside the kiosks people ride to; a drinking fountain next to every dining island; bike
+# repair stands by the city walks. Coin telescopes on the sea edge of the promenade (z -149.25, seaward of the lane).
+LINE_Z=-121.4
+SEA_EDGE_Z=-149.25
+BIKE_KIOSKS=("K1","K7","K9","K11","K12")
+BIKE_REPAIR_KIOSKS=("K1","K12")
+BINOCULARS_X=(160.0,335.0,470.0,640.0,905.0,1100.0)
+
+
+# Owner 10.11 18:31 ("koło mariny też jakiś parking by się przydał ... mariny, koło mariny, czy plaży"): two public car
+# parks on the lawn between the city road Z-70 (its south sidewalk z -87..-80) and the palm strip (z -110..-120): one by
+# the marina, one by the beach and the fountain plazas. Each: a two-way drive from the road with a street mouth (R 3 m
+# kerb arcs, layout.PARKING_DRIVE_MOUTHS), 2 rows of 2.5 x 5.0 m bays on a 7 m aisle, a footpath to the promenade
+# between two palms (BraxChampionsPromenadeParking builds them; the foundation leaves the rectangles open).
+PARKINGS=[
+ dict(id="PARKING_PLAZA",x0=358.0,x1=416.0,driveX0=404.0,driveX1=411.0,pathX0=375.5,pathX1=379.5),
+ dict(id="PARKING_MARINA",x0=966.0,x1=1070.0,driveX0=1012.0,driveX1=1019.0,pathX0=1000.0,pathX1=1004.0),
+]
+PARK_Z0,PARK_Z1=-106.5,-89.0                 # the lot incl. its granite border
+PARK_SIDEWALK_Z=-87.0                        # plot-side edge of the city sidewalk of road Z-70
+PARKING_RECTS=[(p["x0"],PARK_Z0,p["x1"]-p["x0"],PARK_Z1-PARK_Z0) for p in PARKINGS]
+PARKING_DRIVES=[(p["driveX0"],PARK_Z1,p["driveX1"]-p["driveX0"],PARK_SIDEWALK_Z-PARK_Z1) for p in PARKINGS]
+PARKING_PATHS=[(p["pathX0"],Z1,p["pathX1"]-p["pathX0"],PARK_Z0-Z1) for p in PARKINGS]
+
+
+def _line_items():
+    def blocked(x):
+        for p in PAVILIONS:
+            if abs(x-p["x"])<p["w"]/2+3.5:return True
+        for dx,_ in DINING:
+            if abs(x-dx)<DINING_W/2+DINING_BED+.4+1.2:return True
+        for c,w in PEDESTRIAN_CONNECTIONS:
+            if abs(x-c)<w/2+2.0:return True
+        for z in ZONES:
+            if abs(x-z["x"])<ZONE_PATH_W/2+1.5:return True
+        for a,_,w,_ in PARKING_PATHS:
+            if abs(x-(a+w/2))<w/2+2.5:return True
+        return False
+    slots=[round(X0+9.0+9.0*k,2) for k in range(int((X1-X0-18.0)/9.0)+1)]
+    free=[x for x in slots if not blocked(x)]
+    items=[]
+    used=set()
+    def nearest(x0,taken):
+        best=min((x for x in free if x not in taken),key=lambda x:abs(x-x0))
+        taken.add(best);return best
+    for kid in BIKE_KIOSKS:
+        p=next(q for q in PAVILIONS if q["id"]==kid)
+        items.append(("bike_rack",nearest(p["x"],used),LINE_Z))
+    for dx,_ in DINING:
+        items.append(("water_fountain",nearest(dx,used),LINE_Z))
+    for c,_ in PEDESTRIAN_CONNECTIONS:
+        items.append(("bike_repair",nearest(c,used),LINE_Z))
+    for kid in BIKE_REPAIR_KIOSKS:                         # board: 5-8 bike repair stations; also at both end kiosks
+        p=next(q for q in PAVILIONS if q["id"]==kid)
+        items.append(("bike_repair",nearest(p["x"],used),LINE_Z))
+    for p in PAVILIONS:                                    # a flower planter at both sides of every kiosk front
+        for sgn in (-1,1):items.append(("planter",round(p["x"]+sgn*(p["w"]/2+1.2),2),-120.95))
+    others=[x for x in free if x not in used]
+    for i,x in enumerate(others):
+        items.append(("lamp" if i%4==0 else "bench",x,LINE_Z))     # board: 110-140 lamps, 90-120 benches with the palm row and zones
+    items+= [("binoculars",x,SEA_EDGE_Z) for x in BINOCULARS_X]
+    return sorted(items,key=lambda t:(t[2],t[1]))
+
+
+LINE_FURNITURE=_line_items()
+
+
+def validate_zones():
+    from shapely.geometry import box as b
+    shapes=[b(a,c,a+w,c+d) for a,c,w,d in ZONE_RECTS+ZONE_PATHS]
+    for i,sh in enumerate(shapes):
+        for t in shapes[i+1:]:
+            assert sh.intersection(t).area==0
+        assert sh.bounds[1]>=Z1-1e-6 and sh.bounds[3]<=-90.0           # behind the promenade, before the city sidewalk
+        for a,c,w,d in PAVILION_PADS:
+            assert not sh.intersects(b(a-1,c,a+w+1,c+d))
+    kinds={k for k,_,_ in LINE_FURNITURE}
+    assert {"lamp","bench","planter","bike_rack","water_fountain","bike_repair","binoculars"}<=kinds
+    for k,x,z in LINE_FURNITURE:
+        if z==LINE_Z:
+            for p in PAVILIONS:assert abs(x-p["x"])>=p["w"]/2+3.5,(k,x)
+    return True
+
+
+def validate_parkings():
+    from shapely.geometry import box as b
+    lots=[b(a,c,a+w,c+d) for a,c,w,d in PARKING_RECTS+PARKING_DRIVES+PARKING_PATHS]
+    others=[b(a,c,a+w,c+d) for a,c,w,d in ZONE_RECTS+ZONE_PATHS+[(a-1,c,w+2,d) for a,c,w,d in PAVILION_PADS]]
+    for sh in lots:
+        assert all(sh.intersection(o).area==0 for o in others)
+        assert sh.bounds[1]>=Z1-1e-6 and sh.bounds[3]<=PARK_SIDEWALK_Z+1e-6
+    for p in PARKINGS:
+        assert p["x0"]+2<p["driveX0"]<p["driveX1"]-6<p["x1"]-8 and p["x0"]<p["pathX0"]<p["pathX1"]<p["x1"]
+    return True
+
+
 validate()
+validate_zones()
+validate_parkings()
