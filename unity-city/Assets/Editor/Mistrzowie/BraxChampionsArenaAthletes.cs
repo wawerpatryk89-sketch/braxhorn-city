@@ -276,7 +276,10 @@ public static partial class BraxChampionsArenaArrival
         // Driveway to road Z935: asphalt, then a graded ramp over the cut sidewalk (layout.A1_PARKING_ENTRANCES).
         float dx = (AthleteDriveX0 + AthleteDriveX1) * .5f, dw = AthleteDriveX1 - AthleteDriveX0;
         Box(rear, "ATHLETES driveway | asphalt", asphalt, new Vector3(dx, .17f, 109f), new Vector3(dw, .06f, 18f));
-        GradedSurface(rear, "ATHLETES driveway | road-to-car-park graded ramp", asphalt, AthleteDriveX0, AthleteDriveX1, 118f, 125f, .20f, 0f, true);
+        // owner 10.11 17:38-17:40: a street mouth across the Z935 sidewalk (road edge local z 125, the plot towards -z)
+        BraxChampionsDriveMouth.Build(rear, new BraxChampionsDriveMouth.Spec{id="A1 ATHLETES driveway street mouth",
+            alongX=true, edge=125f, dir=-1f, u0=AthleteDriveX0, u1=AthleteDriveX1, R=MouthR, depth=7f, topEnd=.20f, unit=K, assetDir=MouthMeshes},
+            asphalt, CityWalk(curb), CityKerb());
         // Kerbs: 15 cm over the asphalt, open at the walk (x -3..3) and the driveway.
         Box(rear, "ATHLETES car park | east kerb", curb, new Vector3(16.125f, .275f, 90f), new Vector3(.25f, .15f, 20f));
         Box(rear, "ATHLETES car park | north kerb", curb, new Vector3(.1f, .275f, 100.125f), new Vector3(31.8f, .15f, .25f));

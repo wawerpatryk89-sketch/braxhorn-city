@@ -167,8 +167,8 @@ class A1PremiumExteriorRegression(unittest.TestCase):
         self.assertIn("A1_PARKING_ENTRANCES=[(531.8,660.0,6.4,7.0),(661.8,660.0,6.4,7.0),(577.8,918.0,6.4,7.0)]",self.layout)
         self.assertIn("A1_PARKING_ENTRANCES",self.foundation)
         self.assertIn("if any(inside((x,z),r) for r in A1_PARKING_ENTRANCES):return None",self.foundation)
-        self.assertIn('"Parking road-to-city gentle asphalt entry"',self.arrival)
-        self.assertIn("x-3.2f,x+3.2f,-140f,-133f,0f,parkingTop,true",self.arrival)
+        # owner 10.11 17:38-17:40: a street mouth with R 3 m kerb arcs (BraxChampionsDriveMouth, layout.A1_DRIVE_MOUTHS)
+        self.assertIn('alongX=true,edge=-140f,dir=1f,u0=x-3.2f,u1=x+3.2f,R=MouthR,depth=7f,topEnd=parkingTop,unit=K',self.arrival)
         self.assertIn("new Vector3(x, .199f, -121f), new Vector3(6.4f, .078f, 24f)",self.arrival)
         self.assertAlmostEqual(.238/7,.034,places=3)
 

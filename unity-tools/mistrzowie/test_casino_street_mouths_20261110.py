@@ -31,7 +31,7 @@ class CasinoStreetMouths(unittest.TestCase):
         self.assertEqual((wb, wd), (LOT[1] - 48 - T11_MOUTH_R, LOT[1] - 37 + T11_MOUTH_R))
         self.assertEqual((sb, sd), (LOT[1] - 125, LOT[1] - 125))
         self.assertEqual((sa, sc), (LOT[0] - 23.5 - T11_MOUTH_R, LOT[0] - 16.5 + T11_MOUTH_R))
-        self.assertEqual(DRIVE_MOUTHS, APT_DRIVE_MOUTHS + T11_DRIVE_MOUTHS)
+        self.assertEqual(DRIVE_MOUTHS[:len(APT_DRIVE_MOUTHS) + 2], APT_DRIVE_MOUTHS + T11_DRIVE_MOUTHS)
         self.assertEqual(len(T11_MOUTH_CORNERS), 4)
 
     def test_city_kerb_open_and_corners_cut(self):
@@ -39,8 +39,11 @@ class CasinoStreetMouths(unittest.TestCase):
         self.assertIn("for _,a,b,c,d in DRIVE_MOUTHS)", infra)
         self.assertIn(" for _,ma,mb,mc,md in DRIVE_MOUTHS:", infra)
         legacy = (TOOLS / "legacy_foundation.py").read_text(encoding="utf-8")
-        self.assertIn(" if any(inside((x,z),r) for r in T11_MOUTH_CORNERS):return None", legacy)
-        self.assertIn("+T11_MOUTH_CORNERS+", legacy)
+        self.assertIn(" if any(inside((x,z),r) for r in MOUTH_CUTS):return None", legacy)
+        self.assertIn("+MOUTH_CUTS+", legacy)
+        from layout import MOUTH_CUTS
+        for r in T11_MOUTH_CORNERS:
+            self.assertIn(r, MOUTH_CUTS)
 
     def test_clear_of_the_tram_zebra(self):
         # TR01's zebra crosses Z330 at x+25 with a 5 m dropped kerb: the south mouth must end before it

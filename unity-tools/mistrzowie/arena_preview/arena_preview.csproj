@@ -36,6 +36,9 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsInteriorLight.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsBeltShowcase.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsMeshBatch.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsDriveMouth.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11Street.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsObrot.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsMirror.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsRealSize.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsInteriorDoor.cs" />

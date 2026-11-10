@@ -355,6 +355,15 @@ public static class BraxChampionsHotelSobczakT03
             W.Walec(M.water,new Vector3(sx*5.9f,DriveY+.75f,-38.6f),.16f,.10f,18);               // low bubbler over the column
             W.Walec(M.chrome,new Vector3(sx*5.9f,DriveY+.74f,-38.6f),.05f,.02f,10);
         }
+        // owner 10.11 17:38-17:40 (rounded kerbs everywhere): the in / out lanes cross the Z650 sidewalk (local z -50 =
+        // world 660, to the lanes at -43.2) as road mouths - city kerb open, R 3 m kerb arcs (layout.HOTEL_DRIVE_MOUTHS)
+        {
+            var cityWalk=AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/Mistrzowie/Materials/paving.mat");
+            var cityKerb=BraxChampionsFoundation.SourceMaterial("infrastructure_kerb","granite_tile",.9f,new Color(.78f,.79f,.80f));
+            foreach(var (u0,u1,id) in new[]{(-16f,-10f,"in"),(10f,16f,"out")})
+                BraxChampionsDriveMouth.Build(site,new BraxChampionsDriveMouth.Spec{id="T03 drop-off "+id+" road mouth",alongX=true,edge=-50f,dir=1f,
+                    u0=u0,u1=u1,R=3f,depth=edge+50f,topEnd=DriveY,unit=1f,assetDir=Out+"/Meshes"},M.asphalt,cityWalk?cityWalk:M.paving,cityKerb);
+        }
         // zebra crossing (stripes run with the traffic)
         for(float z=-33.55f;z<=-30.4f;z+=.9f)Box(M.whitePaint,-1.7f,1.7f,DriveY,DriveY+.004f,z,z+.45f);
         // raised lawn beds with granite edges on the sides and the back (no trees: owner 9.11)

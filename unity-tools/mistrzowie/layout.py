@@ -124,4 +124,23 @@ T11_DRIVE_MOUTHS=[('T11_west',410.0,417.0-T11_MOUTH_R,410.0,428.0+T11_MOUTH_R),
                   ('T11_south',471.5-T11_MOUTH_R,340.0,478.5+T11_MOUTH_R,340.0)]
 T11_MOUTH_CORNERS=[(410.0,417.0-T11_MOUTH_R,T11_MOUTH_R,T11_MOUTH_R),(410.0,428.0,T11_MOUTH_R,T11_MOUTH_R),
                    (471.5-T11_MOUTH_R,340.0,T11_MOUTH_R,T11_MOUTH_R),(478.5,340.0,T11_MOUTH_R,T11_MOUTH_R)]
-DRIVE_MOUTHS=APT_DRIVE_MOUTHS+T11_DRIVE_MOUTHS
+
+# Owner 10.11 17:38-17:40 (rounded kerbs everywhere): the arena A1 car-park drives (two across the Z650 north sidewalk,
+# the athletes' one across the Z935 south sidewalk) and the two Hotel Sobczak T03 drop-off lanes (in x 1014..1020, out
+# x 1040..1046, across the Z650 north sidewalk z 660..666.8 up to the hotel's own lanes at local z -43.2) get street
+# mouths like the casino: city kerb open, R 3 m arcs (BraxChampionsDriveMouth).
+DRIVE_MOUTH_R=3.0
+def _mouth(id,x0,x1,road_z,into):
+ # (id, x0, z, x1, z) on the road edge, the city kerb open R beyond both sides; corner squares on the sidewalk side
+ m=(id,x0-DRIVE_MOUTH_R,road_z,x1+DRIVE_MOUTH_R,road_z)
+ zc=road_z if into>0 else road_z-DRIVE_MOUTH_R
+ return m,[(x0-DRIVE_MOUTH_R,zc,DRIVE_MOUTH_R,DRIVE_MOUTH_R),(x1,zc,DRIVE_MOUTH_R,DRIVE_MOUTH_R)]
+A1_DRIVE_MOUTHS=[];A1_MOUTH_CORNERS=[]
+for _id,(_x,_z,_w,_d),_into in zip(('A1_west','A1_east','A1_athletes'),A1_PARKING_ENTRANCES,(1,1,-1)):
+ _m,_c=_mouth(_id,_x,_x+_w,_z if _into>0 else _z+_d,_into);A1_DRIVE_MOUTHS.append(_m);A1_MOUTH_CORNERS+=_c
+HOTEL_DRIVE_STRIPS=[(1014.0,660.0,6.0,6.8),(1040.0,660.0,6.0,6.8)]
+HOTEL_DRIVE_MOUTHS=[];HOTEL_MOUTH_CORNERS=[]
+for _id,(_x,_z,_w,_d) in zip(('T03_in','T03_out'),HOTEL_DRIVE_STRIPS):
+ _m,_c=_mouth(_id,_x,_x+_w,_z,1);HOTEL_DRIVE_MOUTHS.append(_m);HOTEL_MOUTH_CORNERS+=_c
+DRIVE_MOUTHS=APT_DRIVE_MOUTHS+T11_DRIVE_MOUTHS+A1_DRIVE_MOUTHS+HOTEL_DRIVE_MOUTHS
+MOUTH_CUTS=T11_MOUTH_CORNERS+A1_MOUTH_CORNERS+HOTEL_MOUTH_CORNERS+HOTEL_DRIVE_STRIPS

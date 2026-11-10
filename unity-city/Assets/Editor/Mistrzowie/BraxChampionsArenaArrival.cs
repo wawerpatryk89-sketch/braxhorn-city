@@ -173,6 +173,17 @@ public static partial class BraxChampionsArenaArrival
         }
     }
 
+    public const float MouthR=3.0f;
+    const string MouthMeshes="Assets/PlayableGenerated/Mistrzowie/Buildings/Meshes";
+    // the city's own sidewalk and kerb materials for the street mouths (the arena's paving only when the foundation
+    // has not been generated)
+    static Material CityWalk(Material fallback)
+    {
+        var m=AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/Mistrzowie/Materials/paving.mat");
+        return m?m:fallback;
+    }
+    static Material CityKerb()=>BraxChampionsFoundation.SourceMaterial("infrastructure_kerb","granite_tile",.9f,new Color(.78f,.79f,.80f));
+
     static void Parking(Transform parent, Material asphalt, Material paint, Material curb, Material dark, Material metal)
     {
         // Two independent courts, west/east of the preserved central walking axis.
@@ -186,8 +197,11 @@ public static partial class BraxChampionsArenaArrival
                 new Vector3(x, .199f, -97f), new Vector3(70f, .078f, 24f));
             Box(parent, "Parking vehicle access lane", asphalt,
                 new Vector3(x, .199f, -121f), new Vector3(6.4f, .078f, 24f));
-            GradedSurface(parent,"Parking road-to-city gentle asphalt entry",asphalt,
-                x-3.2f,x+3.2f,-140f,-133f,0f,parkingTop,true);
+            // owner 10.11 17:38-17:40: a real street mouth across the Z650 sidewalk - city kerb open, R 3 m kerb arcs,
+            // road -> sidewalk over R, then up to the car-park lane (layout.A1_DRIVE_MOUTHS / A1_MOUTH_CORNERS)
+            BraxChampionsDriveMouth.Build(parent,new BraxChampionsDriveMouth.Spec{id="A1 car park "+(x<0?"west":"east")+" street mouth",
+                alongX=true,edge=-140f,dir=1f,u0=x-3.2f,u1=x+3.2f,R=MouthR,depth=7f,topEnd=parkingTop,unit=K,assetDir=MouthMeshes},
+                asphalt,CityWalk(curb),CityKerb());
             // 5.2m marked bays, two opposed rows, 6.4m minimum centre manoeuvring zone.
             for (int row = 0; row < 2; row++)
             {
