@@ -205,8 +205,7 @@ class CasinoIssue29Acceptance(unittest.TestCase):
 
     def test_access_and_garage_contract_unchanged(self):
         self.assertIn('Door("T11_CASINO_WAWER_PUBLIC","Public glass main entry",0,-36.28f,180f,5.6f)',CASINO)
-        self.assertIn('GradedDrive(shell,"left_street_road_connection",asphalt,',CASINO)
-        self.assertIn("-85f,-49.5f,-48f,-37f,0f,roadTop,true",CASINO)
+        self.assertIn("StreetMouths();",CASINO)                 # owner 10.11 17:15: real street mouths (T11Street)
         self.assertIn("UndergroundGarage();",CASINO)
         self.assertIn("const int baysPerRow=16;",CASINO)
         # Owner 9.11 23:46: "Tabliczka na środku wjazdu ma wypierdalać" - the TAXI board stood on the garage driveway.

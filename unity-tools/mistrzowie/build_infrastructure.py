@@ -51,10 +51,10 @@ for _,x,z,axis in TRAM_STOPS:crossings.append((x+25 if axis=='x' else x,z+25 if 
 crossings.extend(EXTRA_CROSSINGS)
 
 RAMP_HALF=2.5
-# Apartment car-park drives (layout.APT_DRIVE_MOUTHS): no city kerb stone across the mouth - the drive's own 3 m kerb
-# arcs meet the city kerb at both ends (BraxChampionsApartments.Parking).
+# Apartment car-park drives and the two casino drives (layout.DRIVE_MOUTHS): no city kerb stone across the mouth - the
+# drive's own kerb arcs meet the city kerb at both ends (BraxChampionsApartments.Parking, BraxChampionsCasinoT11.StreetMouth).
 def in_mouth(x,z):
- return any(a-1e-6<=x<=c+1e-6 and b-.4<=z<=d+.4 if abs(d-b)<1e-6 else b-1e-6<=z<=d+1e-6 and a-.4<=x<=c+.4 for _,a,b,c,d in APT_DRIVE_MOUTHS)
+ return any(a-1e-6<=x<=c+1e-6 and b-.4<=z<=d+.4 if abs(d-b)<1e-6 else b-1e-6<=z<=d+1e-6 and a-.4<=x<=c+.4 for _,a,b,c,d in DRIVE_MOUTHS)
 def dropped(x,z):
  # exactly the 5 m of the ramp (was 2.7 m: half-dropped stones next to the full-height walk left a hole)
  return any((abs(x-a)<RAMP_HALF and abs(abs(z-b)-10)<.35) if axis=='x' else (abs(z-b)<RAMP_HALF and abs(abs(x-a)-10)<.35) for a,b,axis in crossings)
@@ -75,7 +75,7 @@ for a,b in edges.values():
   elif not along_x and axis=='z' and abs(abs(line[0]-ca)-10)<.35:ends=[(cb+e-a[1])/t[1] for e in (-RAMP_HALF,RAMP_HALF)]
   else:continue
   cuts_u.update(float(u) for u in ends if 0<u<length)
- for _,ma,mb,mc,md in APT_DRIVE_MOUTHS:
+ for _,ma,mb,mc,md in DRIVE_MOUTHS:
   if along_x and abs(mb-md)<1e-6 and abs(line[1]-mb)<.35:ends=[(e-a[0])/t[0] for e in (ma,mc)]
   elif not along_x and abs(ma-mc)<1e-6 and abs(line[0]-ma)<.35:ends=[(e-a[1])/t[1] for e in (mb,md)]
   else:continue

@@ -955,21 +955,8 @@ public static partial class BraxChampionsCasinoT11
         B(shell,"T11 west pedestrian path",paving,-39.95f,.255f,4f,2.6f,.07f,25.7f,true,true);
         // Owner 10.11 00:22: "A co te pasy tam robią? Dla kogo te pasy są? Na pewno nie dla ludzi, ani dla
         // samochodów." The six short white stripes beside the red carpet are removed.
-        // CITY ROAD -> FRONT LOT: full 11m connector, including the old
-        // 7m SIDEWALK. X400 roadway ends at world x410; the graded connector
-        // continues to the front-road edge at world x445.5, z=417..428.
-        // The foundation removes the exact x410..417 sidewalk strip; inside
-        // the casino plot the same mesh continues without another road seam.
-        // Real source street ASPHALT is y=0.
-        // Rise .2485m / 35.5m = 0.700%; no curb or vertical step.
-        GradedDrive(shell,"left_street_road_connection",asphalt,
-            -85f,-49.5f,-48f,-37f,0f,roadTop,true);
-        // Owner 10.11 13:01 (phone, from the drop-off loop toward road Z330): "Do kasyna nie ma żadnego dojazdu z ulicy."
-        // A two-way 7 m drive straight from road Z330 (world z 340, across its south sidewalk) to the loop at x -20; the
-        // foundation leaves its footprint empty (legacy_foundation T11_SOUTH_DRIVE), so nothing lies under the asphalt.
-        // Rise .2485 m over 77.5 m (0.32 %), no kerb, no step.
-        GradedDrive(shell,"south_street_road_connection",asphalt,
-            -23.5f,-16.5f,-125f,-47.5f,0f,roadTop,false);
+        // both street connections: real mouths with kerb arcs, ramp to the sidewalk, edging (BraxChampionsCasinoT11Street)
+        StreetMouths();
         B(shell,"Casino pedestrian main axis",granite,0,.22f,-46.7f,8.1f,.08f,5.7f,true,true);          // z -49.55..-43.85, the ramp continues (no overlap)
         B(trim,"Red carpet leading to the curved casino entrance",redCarpet,
             0,.279f,-41.45f,5.8f,.016f,10.35f,false,true);

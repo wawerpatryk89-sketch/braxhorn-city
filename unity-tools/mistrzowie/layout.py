@@ -112,3 +112,16 @@ def _hotel_rect(x0,x1,z0,z1):
 HOTEL_GARAGE_CUTS=[_hotel_rect(HOTEL_RAMP_WALLS[0],HOTEL_RAMP_WALLS[1],-30.0,HOTEL_GARAGE_PORTAL_Z),   # ramp trench
                    _hotel_rect(16.0,HOTEL_RAMP_WALLS[1]+.18,-34.18,-30.0),                            # lane + kerbs
                    _hotel_rect(*HOTEL_CORE_OUTER)]                                                    # stair + lift core
+
+# Owner 10.11 17:15 ("Kasyno nie ma dojazdu z ulicy, już wspominałem"): both T11 drives (west from road X400 across its
+# east sidewalk x 410..417, south from road Z330 across its south sidewalk z 340..347) had the city kerb running
+# straight across the mouth and square corners. Now the city kerb is open over the drive plus a 3.5 m kerb arc each
+# side (ZASADA-DROGI-NAROZNIKI-ZAOKRAGLONE), the corner squares are cut from the sidewalk and BraxChampionsCasinoT11
+# StreetMouth builds them (asphalt fan, granite arc, sidewalk inside it). R 3.5 keeps the south mouth clear of the TR01
+# zebra (dropped kerb x 482.5..487.5).
+T11_MOUTH_R=3.5
+T11_DRIVE_MOUTHS=[('T11_west',410.0,417.0-T11_MOUTH_R,410.0,428.0+T11_MOUTH_R),
+                  ('T11_south',471.5-T11_MOUTH_R,340.0,478.5+T11_MOUTH_R,340.0)]
+T11_MOUTH_CORNERS=[(410.0,417.0-T11_MOUTH_R,T11_MOUTH_R,T11_MOUTH_R),(410.0,428.0,T11_MOUTH_R,T11_MOUTH_R),
+                   (471.5-T11_MOUTH_R,340.0,T11_MOUTH_R,T11_MOUTH_R),(478.5,340.0,T11_MOUTH_R,T11_MOUTH_R)]
+DRIVE_MOUTHS=APT_DRIVE_MOUTHS+T11_DRIVE_MOUTHS

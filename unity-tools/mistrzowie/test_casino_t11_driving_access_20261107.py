@@ -55,15 +55,17 @@ class CasinoVehicleAccessContract(unittest.TestCase):
         # owner 10.11 13:01: "te parkingi mają zniknąć w ten sposób" - no painted bays on the drop-off loop
         self.assertNotIn("roadTop+.004f,-43.8f",self.casino)
         self.assertNotIn("T11 3 VIP marked front parking bays",self.casino)
-        self.assertIn('GradedDrive(shell,"south_street_road_connection",asphalt,',self.casino)
+        # owner 10.11 17:15: both street drives are real mouths (BraxChampionsCasinoT11Street, test_casino_street_mouths)
+        self.assertIn("StreetMouths();",self.casino)
         # Owner 10.11 00:22: the six short zebra stripes beside the red carpet are removed.
         self.assertNotIn("White zebra marking on asphalt",self.casino)
         self.assertIn('"Rear loading bay white line",parkingPaint',self.casino)
 
     def test_city_road_connector_is_continuous_and_gentle(self):
-        self.assertIn('GradedDrive(shell,"left_street_road_connection",asphalt,',self.casino)
-        self.assertIn("-85f,-49.5f,-48f,-37f,0f,roadTop,true",self.casino)
-        self.assertLess(.2485/35.5,.01)
+        street=(Path(__file__).parent.parent.parent/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11Street.cs").read_text(encoding="utf-8")
+        self.assertIn('id="left_street_road_connection",alongX=false,edge=-85f,u0=-48f,u1=-37f,vPlot=25f,vEnd=35.5f',street)
+        self.assertLess((.2485-.16)/5,.02)                       # the last rise to the apron road: under 2 %
+        self.assertLess(.16/3.5,.05)                             # road -> sidewalk over the corner radius
         self.assertAlmostEqual(495-85,410)
         self.assertAlmostEqual(495-49.5,445.5)
 
