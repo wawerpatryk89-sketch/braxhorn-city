@@ -73,7 +73,8 @@ class CasinoCrownSign(unittest.TestCase):
         self.assertGreater(y + lo_sign, sign.COPING_TOP)
         self.assertLess(y + lo_sign, sign.COPING_TOP + .03)
         # the text faces the street: the word's middle is the front point of the rotunda
-        self.assertLess(abs(np.median(wx)), 1.0)
+        self.assertLess(abs(wx.min() + wx.max()), .05)
+        self.assertGreater(pts[np.abs(wx) < .5, 2].max(), 7.9)                  # the front of the word at the front point
 
     def test_name_no_longer_on_the_rotunda(self):
         name = method(self.casino, "CasinoName")
