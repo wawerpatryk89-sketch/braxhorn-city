@@ -192,6 +192,19 @@ public static class BraxSceneAudit
         Textures(items, report);
         Inventory(transforms, items, report);
         AuditHotelSobczak(transforms, report);
+        // Owner 10.11 12:55 (APK 37): "Wszędzie za mną ta rysa chodzi" - a broken white line at eye level on every wall.
+        // Cause: TextMesh labels (stops, wayfinding, berths) used the built-in font material (GUI/Text Shader, ZTest
+        // Always): distant white text drew THROUGH every wall at the horizon once the view reached the whole region.
+        // The region builds no TextMesh any more (3D letters); this catches any text that still ignores the depth.
+        int throughWalls = 0;
+        foreach (var t in transforms)
+        {
+            var mr = t.GetComponent<MeshRenderer>(); if (!mr) continue;
+            foreach (var m in mr.sharedMaterials)
+                if (m && m.shader && (m.shader.name == "GUI/Text Shader" || t.GetComponent<TextMesh>()))
+                { throughWalls++; BraxBuildQuality.Warn("DO POPRAWKI REGION_TEXT_THROUGH_WALLS " + Hierarchy(t)); break; }
+        }
+        Debug.Log("REGION_TEXT_THROUGH_WALLS count=" + throughWalls + " (GUI/Text Shader = ZTest Always; must be 0)");
         report.levitatingCount = report.levitating.Count;
         report.embeddedCount = report.embedded.Count;
         report.overlapsCount = report.overlaps.Count;

@@ -19,7 +19,9 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     public float worldScale = 1f;
     // Acceleration fades toward top speed: 7.2 m/s2 launch, 0-120 km/h in ~6.7 s.
     public float topEndAccelerationFactor = .45f;
-    public float wheelbase = 2.7f, maxSteer = 34f, highSpeedSteerFactor = .16f;
+    // Owner 10.11 13:00: "bardziej przy wolnej skręca ostro" - 34 deg of lock turned the car on the spot at walking pace.
+    // 26 deg of lock, the curved stick (below) and an absolute cap of maxYawRate deg/s at any speed.
+    public float wheelbase = 2.7f, maxSteer = 26f, highSpeedSteerFactor = .16f, maxYawRate = 50f;
     public float interactionRadius = 3.8f;
     public float acceleration = 5.5f, braking = 9.5f;
     // Owner 10.11 08:40: "hamulec ręczny, bo się trochę pobawię" and "joystickiem: jak lekko - jedzie wolno, jak na
@@ -31,6 +33,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     // beyond the .08 dead zone, raised to throttleCurve: 20 % = ~8 km/h, half = ~57 km/h, full = 200 km/h.
     // Easing the stick lets the car roll down at coastDecel (engine braking); pulling it back brakes at `braking`.
     public float throttleCurve = 1.6f, coastDecel = 4.5f;
+    public float enterSkipSeconds = 2.0f;
     // Owner 10.11 12:41 (APK 37): "gwałtownie skręca nagle". The wheel jumped to the stick's sideways value in one
     // frame and nothing limited the yaw rate (at 100 km/h a half push swung the car ~140 deg/s). Now: dead zone + curve
     // on the stick (a light touch = a light correction), the wheel turns at steerRate (full lock ~.45 s) and comes back
@@ -335,8 +338,13 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
             Debug.LogWarning("A1_CAR_DRIVER_HIPS_MISSING: fallback root-to-seat used; verify original Brax skeleton");
         Vector3 door = doorApproach.position;
         p.clips.CrossFade("EnteringCar", .14f, PlayMode.StopAll);
-        yield return MoveDoor(-65f, .38f);
-        float duration = TransitionSeconds(clip);
+        // Owner 10.11 12:59 (video IMG_0865): "akurat do tego auta trzeba było skrócić animację, żeby było bez otwierania
+        // drzwi". The Mixamo Entering Car clip (5.45 s) spends its first ~2 s reaching for and pulling a hinged door;
+        // this car's scissor door lifts by itself. The clip starts after that part: Brax steps straight in.
+        float skip = clip ? Mathf.Min(enterSkipSeconds, clip.length * .6f) : 0f;
+        if (clip && p.clips["EnteringCar"]) p.clips["EnteringCar"].time = skip;
+        yield return MoveDoor(-65f, .25f);
+        float duration = clip ? Mathf.Clamp(clip.length - skip, .45f, 3.4f) : TransitionSeconds(clip);
         for (float time = 0; time < duration; time += Time.deltaTime)
         {
             float t = Mathf.SmoothStep(0, 1, Mathf.Clamp01(time / duration));
@@ -590,6 +598,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         float turn = speed / Mathf.Max(1f, wheelbase) * Mathf.Tan(yaw * Mathf.Deg2Rad);
         float scale = Mathf.Max(.01f, worldScale);
         float maxTurn = lateralGrip * scale * (sliding ? driftLateralFactor : 1f) / Mathf.Max(.5f * scale, Mathf.Abs(speed));
+        maxTurn = Mathf.Min(maxTurn, maxYawRate * Mathf.Deg2Rad * (sliding ? driftLateralFactor : 1f));
         turn = Mathf.Clamp(turn, -maxTurn, maxTurn);
         var nextRotation = physicsBody.rotation * Quaternion.Euler(0, turn * Mathf.Rad2Deg * dt, 0);
         // The car travels along travelDir, which follows the body heading at the tyres' grip rate: instantly on

@@ -60,11 +60,22 @@ class CarHudSteeringTests(unittest.TestCase):
             v = kph / 3.6 * K
             yaw_rate = math.degrees(grip * K / v)
             self.assertLessEqual(yaw_rate, max_deg, (kph, yaw_rate))
+        # owner 13:00 "bardziej przy wolnej skręca ostro": absolute cap and less lock
+        self.assertLessEqual(field(self.car, "maxYawRate"), 60)
+        self.assertLessEqual(field(self.car, "maxSteer"), 28)
+        self.assertIn("maxTurn = Mathf.Min(maxTurn, maxYawRate * Mathf.Deg2Rad", self.car)
         # APK 37 (no limit): half push at 100 km/h was ~140 deg/s
         wheelbase, max_steer = 2.7 * K, 34.0
         v = 100 / 3.6 * K
         old = math.degrees(v / wheelbase * math.tan(math.radians(.5 * max_steer * (1 - (.84 * .25)))))
         self.assertGreater(old, 100)
+
+    def test_boarding_skips_the_door_pull(self):
+        # owner 12:59 (IMG_0865): the scissor door lifts by itself - Brax must not mime pulling a hinged door
+        self.assertIn('p.clips["EnteringCar"].time = skip;', self.car)
+        skip = field(self.car, "enterSkipSeconds")
+        self.assertTrue(1.5 <= skip <= 2.4, skip)                       # Mixamo Entering Car 5.45 s: door pull ~0-2 s
+        self.assertIn("Mathf.Clamp(clip.length - skip, .45f, 3.4f)", self.car)
 
 
 if __name__ == "__main__":
