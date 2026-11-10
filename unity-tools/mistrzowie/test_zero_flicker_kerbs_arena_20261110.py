@@ -40,6 +40,22 @@ class Kerbs(unittest.TestCase):
         self.assertIn("# paved cheeks at both ends of the ramp", self.s)
 
 
+class StopsAndCrossings(unittest.TestCase):
+    """Owner 10.11 14:36: "wszystkie przystanki, potem na ulicach krawężniki ... żeby nic nie migotało". Scan of the
+    whole street layer (Infrastructure + Foundation, 1.04 M faces) after the fixes: 5 sub-cm2 edge contacts left."""
+    @classmethod
+    def setUpClass(cls):
+        cls.s = (TOOLS / "build_infrastructure.py").read_text(encoding="utf-8")
+
+    def test_zebra_cut_at_the_tram_rails(self):
+        self.assertIn("for q in np.arange(-9.5,10,1):zebra.append((x,z,axis,q))", self.s)
+        self.assertIn("rest=stripe.difference(grooves)", self.s)
+        self.assertLess(self.s.index("grooves=unary_union("), self.s.index("for x,z,axis,q in zebra:"))
+
+    def test_stop_sign_holds_its_pole(self):
+        self.assertIn("localbox('sign',x,z,axis,4,base+2.42,v,.60,.72,.12)", self.s)
+
+
 class Arena(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

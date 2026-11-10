@@ -101,9 +101,10 @@ for axis,fixed,start,end in [('z',x,-70,935) for x in X_ROADS]+[('x',z,70,1130) 
    if not near_junction(x,z):localbox('paint',x,z,axis,0,.005,side*9.75,4.8,.009,.10)
 
 # Raised tactile strips and dropped curb locations. Ramps replace paving below.
-ramp_polys=[]
+ramp_polys=[];zebra=[]
 for number,(x,z,axis) in enumerate(crossings):
- for q in np.arange(-9.5,10,1):localbox('paint',x,z,axis,0,.007,q,4,.012,.5)
+ # zebra stripes are laid after the tram rails exist: a stripe never lies on a rail (they are cut at the grooves)
+ for q in np.arange(-9.5,10,1):zebra.append((x,z,axis,q))
  for side in [-1,1]:
   # 3m ramp: 16cm sidewalk -> 2cm dropped kerb. No raised sheet over the old walk. It starts at the back of the
   # dropped kerb (10.18 m), flush with its 2 cm top - never over the stone (zero flicker).
@@ -136,6 +137,20 @@ assert np.linalg.norm(tram[0]-tram[-1])<1e-8
 assert np.linalg.norm(tn[0]-tn[-1])<1e-8
 grooves=unary_union([l.buffer(.078,cap_style=2,join_style=2) for l in rail_lines])
 
+# Owner 10.11 13:04-14:36 (zero flicker, "wszystkie przystanki ... krawężniki ... wszystko"): a zebra stripe crossing the
+# tram tracks lay on the rail heads; the stripe is cut at every rail groove and keeps real 12 mm edges.
+def paint_slab(poly,top=.013,thick=.012):mesh.slab('paint',poly,top,thick)      # top, bottom and real edges
+zebra_cut=0
+for x,z,axis,q in zebra:
+ a0=local(x,z,axis,-2,0,q-.25);a1=local(x,z,axis,2,0,q+.25)
+ stripe=box(min(a0[0],a1[0]),min(a0[2],a1[2]),max(a0[0],a1[0]),max(a0[2],a1[2]))
+ if not stripe.intersects(grooves):
+  localbox('paint',x,z,axis,0,.007,q,4,.012,.5);continue
+ zebra_cut+=1
+ rest=stripe.difference(grooves)
+ for part in ([rest] if rest.geom_type=='Polygon' else [g for g in getattr(rest,'geoms',[]) if g.geom_type=='Polygon']):
+  if part.area>1e-4:paint_slab(orient(part,sign=1))
+
 def shelter(id,x,z,axis,side,tram_stop=False):
  base=.30 if tram_stop else .16;v=0 if tram_stop else side*14.6
  # Four steel posts, footing plates, transparent windscreen and shallow curved roof.
@@ -152,7 +167,7 @@ def shelter(id,x,z,axis,side,tram_stop=False):
  localbox('bench',x,z,axis,0,base+.46,v+side*.25,2.8,.10,.46)
  for u in [-1.1,1.1]:localbox('steel',x,z,axis,u,base+.22,v+side*.25,.07,.44,.34)
  pole=local(x,z,axis,4,base,v);mesh.bar('steel',pole,np.array(pole)+[0,2.7,0],.045)
- localbox('sign',x,z,axis,4,base+2.42,v,.60,.72,.08)
+ localbox('sign',x,z,axis,4,base+2.42,v,.60,.72,.12)     # 12 cm: the 9 cm pole stays inside it (was 8 cm: flicker)
  # the stop name on a navy fascia under the front edge of the roof (was floating text under the roof)
  localbox('sign',x,z,axis,0,base+2.40,v-.86,5.0,.26,.05)
  label(id,('TRAMWAJ' if tram_stop else 'AUTOBUS')+' '+id,local(x,z,axis,0,base+2.40,v-.891),axis,.20)
