@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
 
 class CruiseShipB(unittest.TestCase):
-    """Owner's cruise ship B (Innerscene, CC0) at W01: real 289.4 m, bow to the sea, BRAXHORN on both bows and the
+    """Owner's cruise ship B (Innerscene, CC0) at W01: real 289.4 m, bow to the sea, DIVINA P&M on both bows and the
     stern, the sun deck furnished with loungers round the pools."""
 
     def test_model_is_the_cc0_original(self):
@@ -142,7 +142,10 @@ class CruiseShipB(unittest.TestCase):
         self.assertIn("root.transform.rotation=Quaternion.Euler(0,bay.yaw,0);           // bow (+z of the root) to the open sea", h)
         self.assertIn('t.name=="Anchors"', h)                       # the bow is found by its anchors, not assumed
         self.assertIn('Cruise ship B is not its real 289.4 m', h)
-        self.assertEqual(h.count('"BRAXHORN",new Vector3(-205f,10.95f,side*16.13f)'), 1)
+        # owner 10.11 16:08: "Wycieczkowiec nazwał DIVINA P&M"
+        self.assertIn('public const string CruiseShipName="DIVINA P&M";', h)
+        self.assertEqual(h.count('CruiseShipName,new Vector3(-205f,10.95f,side*16.13f)'), 1)
+        self.assertIn('FaceText(t,"cruise ship stern name",CruiseShipName,', h)
         self.assertIn('"MIASTO MISTRZÓW"', h)
         self.assertIn("for(float gx=144.5f;gx<=180.6f;gx+=1.5f)", h)
         self.assertIn("DO POPRAWKI CRUISE_SHIP_MISSING", h)        # never a crash: the berth stays free

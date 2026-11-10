@@ -187,8 +187,10 @@ public static class BraxChampionsHarbour
     // ---------------------------------------------------------------- cruise ship B at W01
     // Owner 10.11 (ships to finish the port): model B "cruise-ship.glb" by Innerscene Corp, CC0 1.0 (licence in the GLB
     // asset block), a real 289.4 m ship in metres: keel at y 0, boot-top 7.5-8.6 m (waterline 8.0), white hull 8.6-15.3,
-    // sun deck 48.1, pools x 143-182. Moored at its real size alongside the cruise quay, bow to the sea, BRAXHORN on both
+    // sun deck 48.1, pools x 143-182. Moored at its real size alongside the cruise quay, bow to the sea, its name on both
     // bows and on the stern, the sun deck furnished with teak loungers round the pools.
+    // Owner 10.11 16:08: "Wycieczkowiec nazwał DIVINA P&M" - the ship is the DIVINA P&M (was BRAXHORN), home port MIASTO MISTRZÓW.
+    public const string CruiseShipName="DIVINA P&M";
     public const string CruiseShipFile="cruise_ship_innerscene.glb";
     public const float CruiseLength=289.4f,CruiseWaterline=8.0f,CruiseSunDeck=48.1f;
     public static int CruiseShips,CruiseLoungers,CruiseNames;
@@ -210,12 +212,12 @@ public static class BraxChampionsHarbour
     {
         var src=BraxHarborBeachBuild.Model(CruiseShipFile);
         if(!src){BraxBuildQuality.Warn("DO POPRAWKI CRUISE_SHIP_MISSING "+CruiseShipFile+" - berth "+bay.id+" stays free");return 0;}
-        var root=new GameObject(bay.id+" | cruise_ship | BRAXHORN | owner model B (Innerscene, CC0)").transform;
+        var root=new GameObject(bay.id+" | cruise_ship | "+CruiseShipName+" | owner model B (Innerscene, CC0)").transform;
         root.SetParent(parent,false);
         var centre=new Vector3(bay.x*K,WaterLevel*K,bay.z*K);
         root.position=centre;
         var model=UnityEngine.Object.Instantiate(src);
-        model.name=bay.id+" | BRAXHORN cruise ship (real 289 m)";
+        model.name=bay.id+" | "+CruiseShipName+" cruise ship (real 289 m)";
         model.transform.SetParent(root.transform,false);
         model.transform.localScale=Vector3.one*K;                       // the GLB is in metres: real size
         // long axis to the root's z, bow (the anchors) to +z
@@ -242,16 +244,16 @@ public static class BraxChampionsHarbour
         // Livery + deck in the model's own frame (glTF metres, glTFast mirrors x: Unity x = -glTF x), parent carries K.
         var t=model.transform;
         var navy=Surface("cruise_name_navy_gloss",new Color(.05f,.09f,.22f),.25f,.15f);
-        // BRAXHORN on both bows: the flat hull side (half beam 16.10 m) from glTF x 199 to 211, letters 1.8 m high
+        // the name on both bows: the flat hull side (half beam 16.10 m) from glTF x 199 to 211, letters up to 1.8 m high
         foreach(float side in new[]{1f,-1f})
         {
             var m=new BraxChampionsMeshBatch();
-            BraxChampionsLetters3D.Text(m,navy,Graphite,"BRAXHORN",new Vector3(-205f,10.95f,side*16.13f),side>0?0f:180f,1.8f,.12f,.14f,12.5f);
+            BraxChampionsLetters3D.Text(m,navy,Graphite,CruiseShipName,new Vector3(-205f,10.95f,side*16.13f),side>0?0f:180f,1.8f,.12f,.14f,12.5f);
             BraxChampionsLetters3D.Build(m,t,"cruise ship bow name "+(side>0?"starboard":"port"),1f);
             CruiseNames++;
         }
         // stern (raked, glTF x 0.48-1.43 over y 13.9-9.7): the name and the home port
-        FaceText(t,"cruise ship stern name","BRAXHORN",new Vector3(-.72f,12.52f,0),new Vector3(.98f,-.20f,0),1.25f,22f,navy,Graphite,1f,.10f,.03f);
+        FaceText(t,"cruise ship stern name",CruiseShipName,new Vector3(-.72f,12.52f,0),new Vector3(.98f,-.20f,0),1.25f,22f,navy,Graphite,1f,.10f,.03f);
         FaceText(t,"cruise ship stern home port","MIASTO MISTRZÓW",new Vector3(-1.04f,11.05f,0),new Vector3(.96f,-.25f,0),.42f,16f,navy,Graphite,1f,.05f,.03f);
         CruiseNames+=2;
         CruiseLoungers+=SunDeck(t);

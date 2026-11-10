@@ -23,68 +23,48 @@ public static class BraxChampionsPromenadeFurniture
         Deck=BraxChampionsFoundation.LibraryAcg("prom_beach_boardwalk_deck","Planks040",new Color(.94f,1.08f,1.18f),2.0f);
     }
 
-    static void Bench(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
+    // Owner 10.11 15:53 (render of a quay bench from the walk: "coś z niej wystaje ... jakby jakiś słupek z drugiej strony
+    // od morza"): the rear legs ran up THROUGH the backrest (8 cm posts crossing the slats, standing proud of them on the
+    // back). Every bench of the promenade and the quays is now one design: two cast graphite END FRAMES outside the slats
+    // (front post with the armrest, rear post up to the top of the backrest, seat rail, armrest), teak seat and back slats
+    // spanning between the frames (nothing crosses them), two bearers under the seat. f = the way the bench faces.
+    static void BenchFramed(BraxChampionsMeshBatch m,Transform colliders,float x,float z,Vector2 f,string label)
     {
-        // faces the sea (-z): seat slats along x, backrest on the land side
-        var g=BraxChampionsHarbour.Graphite;
-        foreach(float sx in new[]{-.82f,.82f})
-        {
-            m.BoxMinMax(g,x+sx-.04f,x+sx+.04f,Y,Y+.44f,z-.28f,z-.22f);        // front leg
-            m.BoxMinMax(g,x+sx-.04f,x+sx+.04f,Y,Y+.84f,z+.20f,z+.26f);        // rear leg + back support (under the top slat)
-            m.BoxMinMax(g,x+sx-.04f,x+sx+.04f,Y+.40f,Y+.44f,z-.30f,z+.26f);   // seat rail
-            m.BoxMinMax(g,x+sx-.05f,x+sx+.05f,Y+.62f,Y+.66f,z-.30f,z+.12f);   // armrest
-            m.BoxMinMax(g,x+sx-.035f,x+sx+.035f,Y+.44f,Y+.62f,z-.275f,z-.225f);  // 10 mm off the seat slat faces
-        }
-        for(int i=0;i<6;i++)
-        {
-            float z0=z-.29f+i*.09f;
-            m.BoxMinMax(Teak,x-.95f,x+.95f,Y+.44f,Y+.475f,z0,z0+.075f);
-        }
-        for(int i=0;i<4;i++)
-        {
-            float y0=Y+.52f+i*.09f;
-            m.BoxMinMax(Teak,x-.95f,x+.95f,y0,y0+.075f,z+.21f,z+.245f);       // 15 mm inside the rear legs' faces
-        }
-        // stainless litter bin beside the bench
-        var bin=new Vector3(x+1.35f,Y,z);
-        m.Cylinder(BraxChampionsHarbour.Steel,bin,.22f,.82f,16,Quaternion.identity,false);
-        m.Cylinder(g,bin+Vector3.up*.82f,.235f,.06f,16);
-        m.Cylinder(g,bin,.235f,.05f,16);
-        BraxChampionsMeshBatch.Collider(colliders,"ławka "+x.ToString("0"),new Vector3(x,Y+.45f,z),new Vector3(1.95f,.9f,.62f));
-        BraxChampionsMeshBatch.Collider(colliders,"kosz "+x.ToString("0"),new Vector3(bin.x,Y+.42f,z),new Vector3(.46f,.84f,.46f));
-        Benches++;
-    }
-
-    // Owner 10.11 14:56-14:57 ("pomost ... żeby wyglądał zajebiście", "most wykończ"): the benches of the passenger quays
-    // are the promenade bench turned to face the ship (face +1 = east, -1 = west): same parts, same 10 mm reveals, the
-    // seat runs along the quay (z), the litter bin beside it in the row.
-    static void QuayBench(BraxChampionsMeshBatch m,Transform colliders,float x,float z,float face)
-    {
-        // local a = along the seat (world z), d = depth with the front (d < 0) toward the ship (world x = x - face*d)
+        f=f.normalized;var u=new Vector2(-f.y,f.x);                     // along the seat
+        // local a (along), d (depth, front d<0 toward f), y
         void B(Material mat,float a0,float a1,float y0,float y1,float d0,float d1)
         {
-            float xa=x-face*d0,xb=x-face*d1;
-            m.BoxMinMax(mat,Mathf.Min(xa,xb),Mathf.Max(xa,xb),y0,y1,z+a0,z+a1);
+            Vector2 p0=new Vector2(x,z)+u*a0-f*d0,p1=new Vector2(x,z)+u*a1-f*d1;
+            m.BoxMinMax(mat,Mathf.Min(p0.x,p1.x),Mathf.Max(p0.x,p1.x),Y+y0,Y+y1,Mathf.Min(p0.y,p1.y),Mathf.Max(p0.y,p1.y));
         }
         var g=BraxChampionsHarbour.Graphite;
-        foreach(float sa in new[]{-.82f,.82f})
+        const float half=.86f,fw=.04f;                                   // slats end at +-.86, frames .86..90
+        foreach(float s in new[]{-1f,1f})
         {
-            B(g,sa-.04f,sa+.04f,Y,Y+.44f,-.28f,-.22f);          // front leg
-            B(g,sa-.04f,sa+.04f,Y,Y+.84f,.20f,.26f);            // rear leg + back support
-            B(g,sa-.04f,sa+.04f,Y+.40f,Y+.44f,-.30f,.26f);      // seat rail
-            B(g,sa-.05f,sa+.05f,Y+.62f,Y+.66f,-.30f,.12f);      // armrest
-            B(g,sa-.035f,sa+.035f,Y+.44f,Y+.62f,-.275f,-.225f); // armrest support
+            float a0=s<0?-half-fw:half,a1=s<0?-half:half+fw;
+            B(g,a0,a1,0f,.66f,-.27f,-.21f);                               // front post, carries the armrest
+            B(g,a0,a1,0f,.88f,.19f,.25f);                                 // rear post to the top of the backrest
+            B(g,a0,a1,.40f,.44f,-.21f,.19f);                              // seat rail between the posts
+            B(g,a0,a1,.62f,.66f,-.21f,.19f);                              // armrest between the posts
+            B(g,a0-.005f*s,a1+.005f*s,.62f,.66f,-.31f,-.27f);             // armrest nose in front of the post
         }
-        for(int i=0;i<6;i++){float d0=-.29f+i*.09f;B(Teak,-.95f,.95f,Y+.44f,Y+.475f,d0,d0+.075f);}
-        for(int i=0;i<4;i++){float y0=Y+.52f+i*.09f;B(Teak,-.95f,.95f,y0,y0+.075f,.21f,.245f);}
-        var bin=new Vector3(x,Y,z+1.35f);
+        foreach(float s in new[]{-1f,1f})B(g,s*.60f-.02f,s*.60f+.02f,.40f,.44f,-.27f,.19f);   // bearers under the seat
+        for(int i=0;i<6;i++){float d0=-.29f+i*.083f;B(Teak,-half,half,.44f,.475f,d0,d0+.07f);}
+        for(int i=0;i<4;i++){float y0=.52f+i*.09f;B(Teak,-half,half,y0,y0+.075f,.155f,.19f);}   // back slats on the posts' faces
+        // stainless litter bin beside the bench
+        var bp=new Vector2(x,z)+u*1.35f;var bin=new Vector3(bp.x,Y,bp.y);
         m.Cylinder(BraxChampionsHarbour.Steel,bin,.22f,.82f,16,Quaternion.identity,false);
         m.Cylinder(g,bin+Vector3.up*.82f,.235f,.06f,16);
         m.Cylinder(g,bin,.235f,.05f,16);
-        BraxChampionsMeshBatch.Collider(colliders,"ławka nabrzeża "+z.ToString("0"),new Vector3(x,Y+.45f,z),new Vector3(.62f,.9f,1.95f));
-        BraxChampionsMeshBatch.Collider(colliders,"kosz nabrzeża "+z.ToString("0"),new Vector3(x,Y+.42f,bin.z),new Vector3(.46f,.84f,.46f));
+        bool alongX=Mathf.Abs(u.x)>.5f;
+        BraxChampionsMeshBatch.Collider(colliders,"ławka "+label,new Vector3(x,Y+.45f,z),alongX?new Vector3(1.85f,.9f,.6f):new Vector3(.6f,.9f,1.85f));
+        BraxChampionsMeshBatch.Collider(colliders,"kosz "+label,new Vector3(bin.x,Y+.42f,bin.z),new Vector3(.46f,.84f,.46f));
         Benches++;
     }
+    // faces the sea (-z): seat along x, backrest on the land side
+    static void Bench(BraxChampionsMeshBatch m,Transform colliders,float x,float z)=>BenchFramed(m,colliders,x,z,new Vector2(0,-1),x.ToString("0"));
+    // Owner 10.11 14:56-14:57: the benches of the passenger quays face the ship (face +1 = east, -1 = west), seat along z
+    static void QuayBench(BraxChampionsMeshBatch m,Transform colliders,float x,float z,float face)=>BenchFramed(m,colliders,x,z,new Vector2(face,0),"nabrzeża "+z.ToString("0"));
 
     static void Lamp(BraxChampionsMeshBatch m,Transform colliders,float x,float z)
     {
