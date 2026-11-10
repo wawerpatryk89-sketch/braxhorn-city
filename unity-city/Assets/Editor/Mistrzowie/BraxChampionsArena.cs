@@ -65,7 +65,10 @@ public static class BraxChampionsArena
     }
     static void CopiedEstateArena()
     {
-        const float X0=-146f,X1=-26f,Z0=28.3f,Z1=98.3f,yF=.055f,yC=28f,cx=-86f,cz=63.3f,dA=-88.05f,dB=-83.95f,dH=4.2f;
+        // yC: top of the hall walls and of the plate over the designed ceiling. It was 28 (bowl) = 28.165 m outside, 0.8 m
+        // OVER the exterior roof (top 27.35): a 120 x 70 m black box stood on the roof, seen from the Hotel Sobczak and hiding
+        // the BRAXHORN bull mark (owner 10.11 19:14). Now the plate's top is flush under the roof slab (underside 26.885 bowl).
+        const float X0=-146f,X1=-26f,Z0=28.3f,Z1=98.3f,yF=.055f,yC=26.865f,cx=-86f,cz=63.3f,dA=-88.05f,dB=-83.95f,dH=4.2f;
         W.KolizjaMM(X0,X1,yF-.20f,yF,Z0,Z1);
         // Owner 7.11: the whole arena floor uses the exact greenish Poly Haven Stone Tiles.
         var floorStone = BraxChampionsFoundation.SourceMaterial(

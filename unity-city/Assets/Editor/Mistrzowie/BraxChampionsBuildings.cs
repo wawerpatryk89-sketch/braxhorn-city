@@ -87,6 +87,8 @@ public static class BraxChampionsBuildings
                 BraxChampionsArena.Generate(root);
                 BraxChampionsArenaArrival.Generate(root, materials);
                 BraxChampionsArenaSigns.Generate(root, materials);
+                // owner 10.11 19:14: the BRAXHORN bull mark on the roof, seen from the hotel and from above
+                BraxChampionsFoundation.Optional("byk BRAXHORN na dachu areny",()=>BraxChampionsArenaRoofBull.Generate(root));
             }
             var prefab=PrefabUtility.SaveAsPrefabAssetAndConnect(root.gameObject,Out+"/Prefabs/"+b.id+"_Exterior.prefab",InteractionMode.AutomatedAction);
             root.position=at;if(!prefab)throw new IOException("Exterior prefab save failed: "+b.id);

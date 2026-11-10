@@ -382,6 +382,8 @@ jobs:
           python3 unity-tools/mistrzowie/build_casino_sign.py
           # Owner 10.11 promenade + port: 3D letters for the pier gates, berth numbers and the K1-K12 kiosks (HarbourSigns.bytes).
           python3 unity-tools/mistrzowie/build_harbour_signs.py
+          # Owner 10.11 19:14: the BRAXHORN bull mark as an 80 m 3D relief on the A1 roof (ArenaRoofBull.bytes).
+          python3 unity-tools/mistrzowie/build_arena_roof_bull.py
           # Owner 10.11 "globalnie zakaz tanich napisów": one 3D glyph kit (Montserrat, OFL) for every composed text
           # in the region - door and room numbers, stop names, arena wayfinding, the vitrine plaque (LetterKit.bytes).
           python3 unity-tools/mistrzowie/build_letter_kit.py

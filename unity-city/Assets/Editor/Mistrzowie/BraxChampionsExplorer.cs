@@ -91,8 +91,11 @@ public static class BraxChampionsExplorer
         RenderSettings.ambientSkyColor = new Color(.55f,.63f,.71f);
         RenderSettings.ambientEquatorColor = new Color(.38f,.44f,.43f);
         RenderSettings.ambientGroundColor = new Color(.23f,.27f,.22f); RenderSettings.fog = false;
-        var skyShader = Shader.Find("Skybox/Procedural");
-        if (skyShader)
+        // owner 10.11 19:12: a real 360 HDR sky (BraxChampionsSky); the procedural atmosphere stays only as the fallback
+        var hdrSky = BraxChampionsSky.Create();
+        var skyShader = hdrSky ? null : Shader.Find("Skybox/Procedural");
+        if (hdrSky) RenderSettings.skybox = hdrSky;
+        else if (skyShader)
         {
             var sky = new Material(skyShader) { name = "Champions procedural daylight sky" };
             sky.SetFloat("_SunDisk", 2f); sky.SetFloat("_SunSize", .035f); sky.SetFloat("_SunSizeConvergence", 6f);
@@ -101,7 +104,7 @@ public static class BraxChampionsExplorer
             AssetDatabase.CreateAsset(sky, "Assets/PlayableGenerated/Mistrzowie/Materials/champions_procedural_sky.mat");
             RenderSettings.skybox = sky;
         }
-        else Debug.LogWarning("CHAMPIONS_SKY_PROCEDURAL_SHADER_MISSING: solid colour background kept");
+        else if (!hdrSky) Debug.LogWarning("CHAMPIONS_SKY_PROCEDURAL_SHADER_MISSING: solid colour background kept");
         var sun = new GameObject("Champions exploration daylight").AddComponent<Light>(); sun.transform.SetParent(rig, false);
         sun.type = LightType.Directional; sun.intensity = 1.08f; sun.color = new Color(1,.97f,.92f);
         sun.transform.rotation = Quaternion.Euler(48,-35,0); sun.shadows = LightShadows.Soft;

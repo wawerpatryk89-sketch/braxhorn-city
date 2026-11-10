@@ -19,3 +19,7 @@ unity-city/Assets/Source/Prywatne.meta
 # rejon buildu CI (pisze unity-tools/claude/rejon_buildu.py przed Unity)
 unity-city/rejon-ci.txt
 unity-tools/mistrzowie/__pycache__/
+
+# owner 10.11 19:12: the HDR 360 sky is downloaded by prepare_assets.py in CI (Poly Haven, size + MD5), never committed
+unity-city/Assets/Source/Mistrzowie/Sky/
+unity-city/Assets/Source/Mistrzowie/Sky.meta

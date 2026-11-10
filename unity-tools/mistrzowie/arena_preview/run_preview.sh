@@ -12,8 +12,8 @@ HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../../.." && pwd)"; HOT
 WORK="${1:?work dir}"; THREE="${2:?node_modules/three}"
 SRC="$WORK/Assets/Source/Mistrzowie"; mkdir -p "$SRC"; GEN="$REPO/unity-city/Assets/Source/Mistrzowie"
 (cd "$REPO/unity-tools/mistrzowie" && python3 build_exteriors.py >/dev/null && python3 build_signs.py >/dev/null \
-  && python3 build_casino_sign.py >/dev/null && python3 prepare_arena.py >/dev/null)
-mv "$GEN/Exteriors.bytes" "$GEN/Signs.bytes" "$GEN/CasinoWawerSign.bytes" "$SRC/"      # generated in CI, never committed
+  && python3 build_casino_sign.py >/dev/null && python3 prepare_arena.py >/dev/null && python3 build_arena_roof_bull.py >/dev/null)
+mv "$GEN/Exteriors.bytes" "$GEN/Signs.bytes" "$GEN/CasinoWawerSign.bytes" "$GEN/ArenaRoofBull.bytes" "$SRC/"      # generated in CI, never committed
 rm -rf "$SRC/ArenaGraphics"; mv "$GEN/ArenaGraphics" "$SRC/"; rm -f "$GEN/SignFont-LICENSE.txt"
 rm -f "$REPO/mistrzowie-evidence/exterior-checks.json" "$REPO/mistrzowie-evidence/sign-geometry-checks.json"
 (cd "$HERE" && dotnet build -v q -nologo | grep -E " error |Build succeeded")

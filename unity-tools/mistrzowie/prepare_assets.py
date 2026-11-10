@@ -25,6 +25,23 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  'smoked_walnut_veneer','long_white_tiles','anti_skid_tiles','fabric_leather_02',
                  'laminate_floor_02')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
+# Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
+# (Poly Haven CC0, the same partly cloudy sky as the first city), the original 4K Radiance .hdr checked against the
+# provider's size and MD5 (BraxChampionsSky imports it as the Skybox/Panoramic texture).
+SKY_HDRIS=('kloofendal_48d_partly_cloudy_puresky',)
+SKY_DEST=DEST.parent/'Sky'
+
+def fetch_sky(slug):
+ metadata=json.loads(get('https://api.polyhaven.com/files/'+slug))
+ item=metadata['hdri']['4k']['hdr']
+ SKY_DEST.mkdir(parents=True,exist_ok=True)
+ path=SKY_DEST/(slug+'_4k.hdr')
+ data=path.read_bytes() if path.exists() else None
+ if data is None or not matches_source(data,item):data=get(item['url'])
+ if not matches_source(data,item):raise RuntimeError('Poly Haven HDRI '+slug+': invalid download size/checksum for 4k/hdr')
+ if not data.startswith(b'#?RADIANCE') and not data.startswith(b'#?RGBE'):raise RuntimeError('Poly Haven HDRI '+slug+': not a Radiance HDR')
+ path.write_bytes(data)
+ return dict(file='Sky/'+path.name,sha256=hashlib.sha256(data).hexdigest(),bytes=len(data),source=item['url'])
 # The provider's own blend/glTF defaults use col_01 for this fabric. Do not
 # choose an arbitrary colour variation by dictionary order.
 COLOR_KEYS={'fabric_pattern_05':'col_01'}
@@ -130,6 +147,9 @@ def main():
    if data is None or not matches_source(data,item) or (name in LOCK and hashlib.sha256(data).hexdigest()!=LOCK[name]):data=get(url)
    if not matches_source(data,item):raise RuntimeError(f'Poly Haven {slug}: invalid download size/checksum for {kind} 4k/{ext}')
    report.append(save(name,data,url,provider_native_aspect=True))
+ for slug in SKY_HDRIS:
+  print('BRAX_MISTRZOWIE_SKY_SOURCE '+slug,flush=True)
+  report.append(fetch_sky(slug))
  # Extract the complete original packs once; retain original maps and pack ARM outside Unity.
  for asset, kinds in [('Grass004',['Color','NormalGL','Roughness','AmbientOcclusion']),
                       ('Metal048A',['Color','NormalGL','Roughness','Metalness']),

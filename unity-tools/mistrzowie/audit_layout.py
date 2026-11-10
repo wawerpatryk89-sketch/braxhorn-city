@@ -13,7 +13,9 @@ def audit(buildings):
     for a,b in itertools.combinations(shapes,2):
         if shapes[a].intersection(shapes[b]).area>1e-6:errors.append('Overlapping reservations: '+a+'/'+b)
     for b in buildings:
-        if not box(0,0,1200,1000).covers(shapes[b['id']]):errors.append('Outside core: '+b['id'])
+        # owner 10.11 19:22 ("E1 ... znajdź działkę pod nią przy promenadzie bliżej"): the first city block row between road
+        # Z-70 and Z70 (lawn z -53..53, right behind the promenade) is building land too
+        if not box(0,-53,1200,1000).covers(shapes[b['id']]):errors.append('Outside core: '+b['id'])
         for x in X_ROADS:
             if shapes[b['id']].intersection(box(x-17,-70,x+17,935)).area>1e-6:errors.append('Road/sidewalk X: '+b['id'])
         for z in Z_ROADS:
