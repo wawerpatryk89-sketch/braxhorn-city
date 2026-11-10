@@ -81,6 +81,8 @@ public static partial class BraxClaudeOsiedle
                 if(Bone(side+"Foot")&&Bone(side+"ToeBase"))
                     Aim(side+"Foot",side+"ToeBase",forward+outward*.07f);
             }
+            // 10.11: dłonie wnętrzem do ciała (APK dd490e9: kciuk 73–77° na zewnątrz = dłonie do przodu)
+            PatrykRece(rest.Select(s=>s.t).ToList(),forward);
         }
         var clip = new AnimationClip { name = name, legacy = true, frameRate = 30, wrapMode = WrapMode.Loop };
         foreach (var s in rest)
@@ -294,13 +296,16 @@ public static partial class BraxClaudeOsiedle
         {
             var up = K(s + "UpLeg"); var leg = K(s + "Leg"); var foot = K(s + "Foot"); var toe = K(s + "ToeBase");
             if (!up || !leg || !foot) continue;
-            if (toe)
+            var thigh = leg.position - up.position; var shin = foot.position - leg.position;
+            float bend = Vector3.Angle(thigh, shin); var os = Vector3.Cross(thigh, shin);
+            // 10.11: kierunek stopy liczony tylko na nodze podporowej (kolano < 35°, łydka do 45° od pionu) — tam stopa bokiem
+            // jest błędem; w fazie wymachu biegu pięta przy pośladku i stopa do tyłu to ruch prawidłowy (dawne 178,8° w Run)
+            bool podpora = bend < 35f && Vector3.Angle(shin, Vector3.down) < 45f;
+            if (toe && podpora)
             {
                 var f = toe.position - foot.position; var fh = f; fh.y = 0f;
                 if (fh.magnitude > .3f * f.magnitude) { float a = Vector3.Angle(fh, F); w.stopaMax = Mathf.Max(w.stopaMax, a); if (a > 35f) w.stopaPonad++; }
             }
-            var thigh = leg.position - up.position; var shin = foot.position - leg.position;
-            float bend = Vector3.Angle(thigh, shin); var os = Vector3.Cross(thigh, shin);
             float znak = os.sqrMagnitude > 1e-12f && Vector3.Dot(os, R) < 0f ? -1f : 1f, sz = znak * bend;
             w.zgMin = Mathf.Min(w.zgMin, sz); w.zgMax = Mathf.Max(w.zgMax, sz);
             if (sz < -3f) w.koloTyl++;
@@ -328,6 +333,7 @@ public static partial class BraxClaudeOsiedle
         foreach (var k in KlipyPatryka.Where(q => q.nazwa == "Walk" || q.nazwa == "Run"))
         {
             string zr = k.zrodla.Select(z => PatrykRuchy + "/" + z).FirstOrDefault(System.IO.File.Exists); if (zr == null) continue;
+            if (PatrykRuchWlasciciela(zr)) { linie.Add(k.nazwa + ": ruch właściciela bezpośrednio (bez awatara)"); continue; }
             foreach (var (av, nazwa) in new[] { (importowany, "import"), (tPoza, "T-poza") })
             {
                 if (!av) continue;

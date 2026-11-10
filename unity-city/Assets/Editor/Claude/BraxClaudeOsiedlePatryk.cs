@@ -149,7 +149,10 @@ public static partial class BraxClaudeOsiedle
                     if (!File.Exists(sciezka)) continue;
                     try
                     {
-                        gotowy = PatrykHumanoid(hero, awatarRuchu, hips, kosci, spoczynek, sciezka, k, out string uwagi);
+                        string uwagi;
+                        gotowy = PatrykRuchWlasciciela(sciezka)
+                            ? PatrykBezposrednio(hero, hips, kosci, spoczynek, sciezka, k, out uwagi)          // 10.11: ruchy właściciela bez Humanoid
+                            : PatrykHumanoid(hero, awatarRuchu, hips, kosci, spoczynek, sciezka, k, out uwagi);
                         opis.Add(k.nazwa + "←" + z + uwagi);
                         break;
                     }
@@ -264,14 +267,15 @@ public static partial class BraxClaudeOsiedle
         var kolor = PatrykTekstura("Patryk_BaseColor.png", false, false); if (!kolor) throw new Exception("brak Patryk_BaseColor.png");
         var normal = PatrykTekstura("Patryk_Normal.png", false, true);
         var orm = PatrykTekstura("Patryk_ORM.png", true, false);
-        // Ten sam shader co Brax; nowe źródłowe kolory, normalne i kanały PBR bez tłumienia.
+        // 10.11 (właściciel 18:40: „ma wyglądać Patryk tak jak go dostarczyłem, żadnego plastiku”): ten sam shader co Brax,
+        // tekstury właściciela bez zmian (kolor i normalne 4K), ale połysk jak u Braxa: chropowatość z mapy przycięta do 0,78–0,96
+        // (mapa Tripo ma 0,11–0,57 = połysk plastiku), metal 0 (kanał metalu Tripo to szum 0,02–0,52 na skórze i tkaninie).
         var mat = new Material(shader) { name = "Patryk PBR (ORM)", color = Color.white };
         mat.SetTexture("_MainTex", kolor);
         if (normal) mat.SetTexture("_BumpMap", normal);
         if (orm) mat.SetTexture("_Orm", orm);
-        else mat.SetFloat("_MetallicScale", 0f);   // bez ORM (biała): bez metalu; chropowatość z dolnej granicy
-        mat.SetFloat("_BumpScale", 1f); mat.SetFloat("_RoughnessFloor", 0f); mat.SetFloat("_RoughnessCeiling", 1f);
-        mat.SetFloat("_MetallicScale", 1f); mat.SetFloat("_OcclusionStrength", 1f);
+        mat.SetFloat("_BumpScale", 1f); mat.SetFloat("_RoughnessFloor", .78f); mat.SetFloat("_RoughnessCeiling", .96f);
+        mat.SetFloat("_MetallicScale", 0f); mat.SetFloat("_OcclusionStrength", 1f);
         string sc = PatrykWynik + "/PatrykORM.mat";
         var existing = AssetDatabase.LoadAssetAtPath<Material>(sc);
         if (existing) { EditorUtility.CopySerialized(mat, existing); Object.DestroyImmediate(mat); return existing; }

@@ -52,16 +52,25 @@ class RuchyWlasciciela(unittest.TestCase):
         self.assertGreater(len(k["Run"]["zrodla"]), 1)
         self.assertFalse(k["EnteringCar"]["petla"])
 
-    def test_przeniesienie_humanoid_nie_surowe_krzywe(self):
-        # build Codexa 5.11: surowe krzywe Mixamo → „brak krzywych Hips” → T-poza. Tu wyłącznie HumanPoseHandler.
+    def test_ruchy_wlasciciela_prosto_na_kosci_reszta_humanoid(self):
+        # build Codexa 5.11: surowe krzywe po ścieżkach → „brak krzywych Hips” → T-poza. 10.11 (APK dd490e9): Humanoid wykrzywia
+        # ruchy zrobione pod Patryka. Ruchy właściciela: obrót kości w świecie po NAZWIE kości (nie ścieżki krzywych), bez Humanoid;
+        # ruchy Braxa (inny szkielet) nadal przez HumanPoseHandler.
         h = czytaj(ED / "BraxClaudePatrykHumanoid.cs")
         self.assertIn("new HumanPoseHandler(animator.avatar, source.transform)", h)
         self.assertIn("writer.SetHumanPose(ref pose)", h)
+        b = czytaj(ED / "BraxClaudePatrykBezposrednio.cs")
+        self.assertIn("b.rotation = s.rotation * Quaternion.Inverse(s0) * T0[b];", b)
+        self.assertIn("PatrykKosciPoNazwie(source.GetComponentsInChildren<Transform>(true))", b)
         p = czytaj(ED / "BraxClaudeOsiedlePatryk.cs")
+        self.assertIn("PatrykRuchWlasciciela(sciezka)", p)
+        self.assertIn("PatrykBezposrednio(hero, hips, kosci, spoczynek, sciezka, k, out uwagi)", p)
         self.assertIn("PatrykHumanoid(hero, awatarRuchu", p)
         self.assertIn("PatrykWybierzAwatar", p)
         imp = czytaj(ED / "BraxPrywatneImport.cs")
         self.assertIn("ModelImporterAnimationType.Human", imp)
+        self.assertIn('assetPath.StartsWith(Katalog + "ruchy/patryk_owner/")', imp)
+        self.assertIn("ModelImporterAnimationType.Generic", imp)
 
     def test_wsiadanie_nie_jest_wymagane_do_startu(self):
         p = czytaj(ED / "BraxClaudeOsiedlePatryk.cs")

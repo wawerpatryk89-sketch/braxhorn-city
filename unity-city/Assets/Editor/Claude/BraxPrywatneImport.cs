@@ -4,14 +4,16 @@ using UnityEditor;
 // Ustawienia importu prywatnych zasobów właściciela (Assets/Source/Prywatne — odszyfrowane w CI przez
 // unity-tools/claude/prywatne.py, poza gitem). Ustawiane PRZED pierwszym importem (bez ponownego importu 30 MB FBX):
 //   patryk/*.fbx  — Humanoid (awatar z modelu, kontrola w BRAXHORN_PATRYK), bez materiałów i animacji z pliku;
-//   ruchy/**.fbx  — Humanoid, krzywe bez kompresji (źródło przenoszenia na kości Patryka, BraxClaudeOsiedlePatryk);
+//   ruchy/patryk_owner/*.fbx — Generic bez awatara (10.11: ruchy właściciela zrobione pod Patryka idą PROSTO na jego kości,
+//                  bez konwersji Humanoid — BraxClaudePatrykBezposrednio), krzywe bez kompresji;
+//   ruchy/**.fbx  — pozostałe (Brax): Humanoid, krzywe bez kompresji (przenoszenie przez HumanPoseHandler);
 //   patryk/*.png  — Color/Normal 4K, ORM 2K, Android ASTC 4×4, jakość 50; normalne i ORM liniowo.
 //   pozostałe png — najwyżej 2K, kompresja jakości 50.
 public sealed class BraxPrywatneImport : AssetPostprocessor
 {
     const string Katalog = "Assets/Source/Prywatne/";
 
-    public override uint GetVersion() { return 5; }
+    public override uint GetVersion() { return 6; }
 
     void OnPreprocessModel()
     {
@@ -30,6 +32,15 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
             mi.optimizeGameObjects = false;
             mi.isReadable = true;                                   // pomiar wzrostu z wierzchołków (10 tys. — ~1 MB, bez znaczenia)
             mi.importTangents = ModelImporterTangents.CalculateMikk;  // mapa normalnych w Braxhorn/HeroPremium
+        }
+        else if (assetPath.StartsWith(Katalog + "ruchy/patryk_owner/"))
+        {
+            mi.animationType = ModelImporterAnimationType.Generic;
+            mi.avatarSetup = ModelImporterAvatarSetup.NoAvatar;
+            mi.optimizeGameObjects = false;
+            mi.importAnimation = true;
+            mi.resampleCurves = true;
+            mi.animationCompression = ModelImporterAnimationCompression.Off;
         }
         else
         {
