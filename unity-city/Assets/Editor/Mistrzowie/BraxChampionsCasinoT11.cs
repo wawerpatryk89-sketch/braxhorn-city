@@ -279,10 +279,11 @@ public static partial class BraxChampionsCasinoT11
         for(float z=-10f;z<=10f;z+=5f)
             BeveledBox(trim,"Skylight rounded champagne crossbar",gold,
                 0,14.24f,z,24f,.13f,.12f,.040f,false);
+        // one front parapet stone run (the two halves left a 1 m notch right under the KASYNO WAWER crown)
+        B(trim,"Parapet front cream limestone",cream,0,14.9f,-27.8f,75f,1.4f,.65f);
+        B(trim,"Parapet rear cream limestone",cream,0,14.9f,27.8f,75f,1.4f,.65f);
         foreach(float side in new[]{-1f,1f})
         {
-            B(trim,"Parapet front cream limestone",cream,side*19f,14.9f,-27.8f,37f,1.4f,.65f);
-            B(trim,"Parapet rear cream limestone",cream,side*19f,14.9f,27.8f,37f,1.4f,.65f);
             B(trim,"Parapet side cream limestone",cream,side*37.7f,14.9f,0,.60f,1.4f,55.4f);
             BeveledBox(trim,"Roof rounded perimeter gold",gold,
                 side*37.86f,15.58f,0,.14f,.16f,55.2f,.045f,false);
@@ -297,10 +298,12 @@ public static partial class BraxChampionsCasinoT11
 
     static void RotundaRoofCap()
     {
-        // Real half-elliptical roof over the curved glass rotunda. The approved
-        // image shows a rounded canopy, not a rectangular box.
+        // Owner 10.11 16:36-16:39: "to czarne coś ... te jajo, na czym jest szyld, to wszystko psuje" / "to coś
+        // zaokrąglone znika". The black 30 cm roof slab with the name standing on it is gone: the glass rotunda now ends
+        // in a thin cream limestone coping (15 cm, 15 cm proud of the glass) like every parapet of the building, and
+        // the name stands on the front parapet against the sky (CasinoName).
         const int sides=48;
-        const float yTop=11.10f,yBottom=10.80f;          // slim roof right on the glass (was a 14 m dome over a fascia)
+        const float yTop=10.95f,yBottom=10.80f,over=.15f;
         var verts=new System.Collections.Generic.List<Vector3>();
         var uv=new System.Collections.Generic.List<Vector2>();
         // Centre is on the chord where the rotunda meets the main podium.
@@ -312,7 +315,7 @@ public static partial class BraxChampionsCasinoT11
             for(int i=0;i<=sides;i++)
             {
                 float angle=-Mathf.PI*.5f + Mathf.PI*i/sides;
-                float x=17f*Mathf.Sin(angle),z=-28f-8f*Mathf.Cos(angle);
+                float x=(17f+over)*Mathf.Sin(angle),z=-28f-(8f+over)*Mathf.Cos(angle);
                 verts.Add(new Vector3(x,y,z)*K);
                 uv.Add(new Vector2(x,z));
             }
@@ -328,14 +331,14 @@ public static partial class BraxChampionsCasinoT11
             tris.Add(a);tris.Add(next);tris.Add(bottomOffset+next);
             tris.Add(a);tris.Add(bottomOffset+next);tris.Add(bottomOffset+a);
         }
-        var mesh=new Mesh{name="T11 real curved rotunda roof"};
+        var mesh=new Mesh{name="T11 rotunda cream limestone coping roof"};
         mesh.SetVertices(verts);mesh.SetUVs(0,uv);mesh.SetTriangles(tris,0);
         mesh.RecalculateNormals();mesh.RecalculateBounds();
         AssetDatabase.CreateAsset(mesh,output+"/Meshes/T11_Curved_Rotunda_Roof.asset");
-        var o=new GameObject("Real half-elliptical rotunda roof cap");
+        var o=new GameObject("Rotunda thin cream limestone roof coping");
         o.transform.SetParent(shell,false);
         o.AddComponent<MeshFilter>().sharedMesh=mesh;
-        o.AddComponent<MeshRenderer>().sharedMaterial=roof;
+        o.AddComponent<MeshRenderer>().sharedMaterial=cream;
         o.AddComponent<MeshCollider>().sharedMesh=mesh;
     }
 
@@ -367,15 +370,15 @@ public static partial class BraxChampionsCasinoT11
             }
 
             // Owner 10.11 13:03: the 2.5 m black fascia band and the black dome on top ("ta wielka kopuła czarna") are
-            // gone. The glass ends in a slim black roof (RotundaRoofCap, 30 cm) with one gold edge line just outside it.
-            float q=centre.z+28f;
-            Vector3 outward=new Vector3(centre.x/(17f*17f),0,q/(8f*8f)).normalized;
-            var edge=centre+outward*.07f;
-            var line=BeveledBox(trim,"T11 rotunda roof gold edge line",gold,
-                edge.x,10.95f,edge.z,length+.10f,.08f,.05f,.02f,false);
-            line.transform.localRotation=yaw;
+            // gone; 16:36 the slim black roof and its gold edge line went too (RotundaRoofCap: thin cream coping).
         }
         RotundaRoofCap();
+        // Above the rotunda, between the pylons, the facade was open up to the parapet: from the street one looked into
+        // the hall's ceiling and panelling (the white and brown patches beside the pylons). It is closed with the same
+        // black glass as the rotunda, in black frames that run into the coping below and the parapet above.
+        B(shell,"T11 black glass wall above the rotunda",blackGlass,0,(10.90f+14.25f)*.5f,-28.0f,33.9f,3.35f,.10f,false);
+        for(int k=-5;k<=5;k++)
+            B(trim,"T11 black frame above the rotunda",windowFrame,k*2.8f,(10.90f+14.25f)*.5f,-28.08f,.12f,3.30f,.16f,false);
         foreach(float side in new[]{-1f,1f})
             for(int j=0;j<3;j++)
                 B(shell,"Entrance side granite stair",paving,side*(7.1f+j*.6f),.22f+j*.03f,-36.3f,5.3f,.14f+j*.07f,1.55f,true,true);
@@ -1340,17 +1343,35 @@ public static partial class BraxChampionsCasinoT11
         return o;
     }
 
-    // KASYNO WAWER in solid 3D capitals (Montserrat SemiBold, BraxChampionsLetters3D), polished gold faces with black
-    // returns, standing on a slim black rail on the front of the rotunda roof (y 11.10), read from the drop-off loop.
+    // Owner 10.11 16:36-16:45: no rounded black roof under the name, the name "lepszy i czytelniejszy", "premium
+    // premium", and of his two reference pictures "ten drugi lepszy": KASYNO WAWER as the crown of the facade - heavy
+    // gold capitals in a red outline and a gold rim, the four card suits fanned behind the top, gold ribbons with a red
+    // stripe flying from both ends and white sparkles (build_casino_sign.py roof_crown, one layered relief in real depth).
+    // It stands on the front parapet between the pylons, 1.75 m capitals against the sky; black steel posts and raking
+    // struts behind it carry it to the roof, hidden from the street by the sign itself.
+    public const float CrownZ=-27.80f,CrownBaseY=16.02f;
+    static readonly float[] CrownPostX={-10.6f,-6.4f,-2.2f,2.2f,6.4f,10.6f};
     static void CasinoName()
     {
-        var batch=new BraxChampionsMeshBatch();
-        // rail on the roof inside the half-ellipse (front point z -36; at x +-7 the edge is z -35.29)
-        B(trim,"T11 name letter rail black",windowFrame,0,11.13f,-35.15f,14.0f,.06f,.12f,false);
-        float w=BraxChampionsLetters3D.Text(batch,gold,windowFrame,"KASYNO WAWER",new Vector3(0,11.16f,-35.20f),180f,1.35f,.18f,.14f,13.6f);
-        BraxChampionsLetters3D.Build(batch,signRoot,"T11 KASYNO WAWER 3D name");
-        if(w<=0f)BraxBuildQuality.Warn("DO POPRAWKI T11_NAME_LETTERS_MISSING");
-        else Debug.Log("T11_NAME_3D 'KASYNO WAWER' width="+w.ToString("F2")+" cap<=1.35 depth=.18 gold rotundaRoof=slim_black signBand=REMOVED dome=REMOVED dollar=REMOVED");
+        if(!Place3DSign("KASYNO_WAWER_crown",signRoot,"T11 KASYNO WAWER crown sign | front parapet",new Vector3(0,CrownBaseY,CrownZ),180f,1f))
+        {
+            BraxBuildQuality.Warn("DO POPRAWKI T11_NAME_CROWN_MISSING");
+            return;
+        }
+        // the word's back face is 6 cm behind the gold rim front: posts stand 2 cm behind it, on the parapet top (15.60)
+        const float postZ=CrownZ+.06f+.02f+.07f,parapetTop=15.60f,roofTop=14.16f;
+        foreach(float x in CrownPostX)
+        {
+            float top=CrownBaseY+1.35f;
+            B(signRoot,"T11 crown sign black steel post",windowFrame,x,(parapetTop-.02f+top)*.5f,postZ,.14f,top-parapetTop+.02f,.14f,false);
+            // raking strut from the post down to the roof slab behind the parapet
+            var a=new Vector3(x,top-.25f,postZ+.07f);var b=new Vector3(x,roofTop-.01f,CrownZ+3.2f);
+            var d=b-a;float len=d.magnitude;
+            var strut=B(signRoot,"T11 crown sign black steel raking strut",windowFrame,x,(a.y+b.y)*.5f,(a.z+b.z)*.5f,.10f,len,.10f,false);
+            strut.transform.localRotation=Quaternion.Euler(Mathf.Atan2(d.z,d.y)*Mathf.Rad2Deg,0,0);
+        }
+        Debug.Log("T11_NAME_CROWN 'KASYNO WAWER' cap=1.75 gold+redOutline+goldRim suits=4 ribbons=2 sparkles=5 onFrontParapet=true"+
+            " posts="+CrownPostX.Length+" rotundaRoof=thin_cream_coping blackCap=REMOVED letterRail=REMOVED");
     }
     static void MainSign()
     {

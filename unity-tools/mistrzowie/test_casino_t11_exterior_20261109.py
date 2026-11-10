@@ -29,7 +29,8 @@ class CasinoExterior20261109(unittest.TestCase):
         # real yellow gold on every glyph face (owner photo of gold bars), not a brown mirror
         self.assertIn('BraxChampionsGold.Apply(signGold);', self.sign)
         self.assertIn('BraxChampionsGold.Apply(signGoldDeep,true);', self.sign)
-        self.assertIn('m.role=="light"?led:m.role=="dark"?signBacking:m.role=="accent"?signGoldDeep:signGold', self.sign)
+        self.assertIn('m.role=="light"?(id=="KASYNO_WAWER_crown"?signSparkle:led):m.role=="dark"?signBacking:', self.sign)
+        self.assertIn('m.role=="accent"?signGoldDeep:m.role=="red"?signRed:m.role=="black"?signBlack:signGold;', self.sign)
         self.assertIn("mesh.RecalculateNormals()", self.sign)
 
     def test_sign_fits_the_carrier(self):

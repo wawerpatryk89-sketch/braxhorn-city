@@ -63,7 +63,7 @@ class Geometry:
    if not front:pts=pts[::-1]
    self.triangle(role,[(x,y,z) for x,y in pts])
   assert abs(area-g.area)<1e-8*max(1,g.area),'cap area / hole coverage'
- def solid(self,g,z0,z1,front='gold',side='dark',bevel=.008):
+ def solid(self,g,z0,z1,front='gold',side='dark',bevel=.008,bevel_role='gold'):
   for poly in polygons(g):
    poly=orient(poly,sign=1)
    start=len(self.solid_checks)
@@ -80,7 +80,7 @@ class Geometry:
    for tri in constrained_delaunay_triangles(edge).geoms:
     pts=np.array(orient(tri,sign=1).exterior.coords)[:3]
     vertices=[(x,y,z1 if inner.boundary.distance(Point(x,y))<1e-7 else z1-b) for x,y in pts]
-    self.triangle('gold',vertices)
+    self.triangle(bevel_role,vertices)
    for ring in [poly.exterior,*poly.interiors]:
     coords=list(ring.coords);length=0
     for a,bp in zip(coords,coords[1:]):

@@ -22,9 +22,11 @@ class CasinoIssue29Contract(unittest.TestCase):
         self.assertIn("static void GlazedBay(",FACADE)
         self.assertIn('"T11 graphite entrance pylon "',FACADE)
         self.assertIn('"T11 pylon warm gold vertical LED "',FACADE)
-        # owner 10.11 13:03: the 2.5 m black fascia band and the dome are removed, a slim roof with a gold edge line
+        # owner 10.11 13:03: the 2.5 m black fascia band and the dome are removed; 16:36 the slim black roof with its
+        # gold edge line went too ("te jajo, na czym jest szyld") - a thin cream limestone coping
         self.assertNotIn("premium fascia 48_OF_48",SOURCE)
-        self.assertIn("T11 rotunda roof gold edge line",SOURCE)
+        self.assertNotIn("T11 rotunda roof gold edge line",SOURCE)
+        self.assertIn("Rotunda thin cream limestone roof coping",SOURCE)
         self.assertNotIn("static void FrontPanel",SOURCE)
         self.assertNotIn("static void SidePanel",SOURCE)
         self.assertIn("T11_ROTUNDA_LOBBY_OWNER_BOARD",FACADE)

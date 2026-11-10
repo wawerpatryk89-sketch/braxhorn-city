@@ -120,15 +120,18 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertIn("-28f-8f*Mathf.Cos(t)",curved)
         self.assertIn("for(int i=0;i<segments;i++)",curved)
         self.assertIn("if(i%3==0)",curved) # 16 vertical frames from 48 sectors
-        # owner 10.11 13:03: the fascia band is gone; the gold edge line runs on all 48 sectors (outside i%3)
+        # owner 10.11 13:03: the fascia band is gone; 16:36-16:39 ("to czarne coś ... te jajo, na czym jest szyld"):
+        # the slim black roof and its gold edge line are gone too - a thin cream limestone coping, no name on it
         self.assertNotIn("fascia 48_OF_48",curved)
-        cond=curved.index("if(i%3==0)")
-        fascia=curved.index("rotunda roof gold edge line")
-        closing=curved.index("}",cond)
-        self.assertGreater(fascia,closing)
+        self.assertNotIn("rotunda roof gold edge line",curved)
         for gone in ("2.50f,.25f,.035f","T11 rotunda upper rounded gold fascia trim","T11 rotunda warm 2700-3000K fine contour LED"):
             self.assertNotIn(gone,curved)
-        self.assertIn("const float yTop=11.10f,yBottom=10.80f;",method_source("RotundaRoofCap"))   # slim roof on the glass
+        cap=method_source("RotundaRoofCap")
+        self.assertIn("const float yTop=10.95f,yBottom=10.80f,over=.15f;",cap)
+        self.assertIn("sharedMaterial=cream;",cap)
+        self.assertNotIn("sharedMaterial=roof;",cap)
+        # the open void above the rotunda is closed with black glass in black frames
+        self.assertIn('"T11 black glass wall above the rotunda",blackGlass',curved)
 
     def test_roof_skylight_and_single_original_dollar_are_preserved(self):
         self.assertIn("Actual transparent blue-violet rooftop skylight",CASINO)
@@ -185,7 +188,7 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertGreaterEqual(carrier_front-image,.03)
         self.assertGreaterEqual(ring_front-image,.03)
         self.assertAlmostEqual(carrier_back,-36.02,places=3)
-        self.assertIn("var edge=centre+outward*.07f;",method_source("CurvedFoyer"))
+        self.assertNotIn("var edge=centre+outward",method_source("CurvedFoyer"))      # no gold edge line on the rotunda
 
     def test_reflections_are_baked_not_realtime(self):
         lighting=method_source("PremiumExteriorLighting")

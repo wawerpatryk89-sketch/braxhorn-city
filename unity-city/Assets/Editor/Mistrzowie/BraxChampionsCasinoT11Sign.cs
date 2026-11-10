@@ -17,13 +17,13 @@ public static partial class BraxChampionsCasinoT11
     [Serializable] sealed class Sign3DData{public string id;public BraxChampionsFoundation.MeshData[] meshes;}
     static Sign3DFile sign3D;
     static int sign3DParts;
-    static Material signGold,signGoldDeep;
+    static Material signGold,signGoldDeep,signRed,signBlack,signSparkle;
 
     // Bright solid gold that stays gold in shade: Metal048A brushed maps, half-metallic (a full mirror metal under
     // CityStaticPBR only reflects the sky x .4 and reads brown, like the arena sign) and a faint warm self-glow.
     static void SignGoldMaterials()
     {
-        if(signGold&&signGoldDeep)return;
+        if(signGold&&signGoldDeep&&signRed&&signBlack&&signSparkle)return;
         signGold=BraxChampionsFoundation.LibraryMetal("T11_3D_sign_bright_gold",new Color(1f,.80f,.42f));
         signGold.SetFloat("_Metallic",.62f);signGold.SetFloat("_Roughness",.24f);
         signGold.SetColor("_EmissionColor",new Color(.22f,.15f,.05f));EditorUtility.SetDirty(signGold);
@@ -32,6 +32,15 @@ public static partial class BraxChampionsCasinoT11
         signGoldDeep.SetFloat("_Metallic",.72f);signGoldDeep.SetFloat("_Roughness",.20f);
         signGoldDeep.SetColor("_EmissionColor",new Color(.10f,.065f,.02f));EditorUtility.SetDirty(signGoldDeep);
         BraxChampionsGold.Apply(signGoldDeep,true);
+        // KASYNO WAWER crown (owner 10.11 16:45): glossy red lacquered aluminium outline, piano-black spade and club,
+        // white sparkles that glow
+        signRed=Surface("sign_red_lacquered_aluminium",new Color(.80f,.035f,.05f),false,false);
+        signRed.SetFloat("_Metallic",.08f);signRed.SetFloat("_Roughness",.16f);
+        signRed.SetColor("_EmissionColor",new Color(.10f,.004f,.006f));EditorUtility.SetDirty(signRed);
+        signBlack=Surface("sign_piano_black_lacquer",new Color(.018f,.018f,.022f),false,false);
+        signBlack.SetFloat("_Metallic",.05f);signBlack.SetFloat("_Roughness",.10f);EditorUtility.SetDirty(signBlack);
+        signSparkle=Surface("sign_sparkle_white_glow",new Color(1f,.99f,.95f),false,true);
+        signSparkle.SetColor("_EmissionColor",new Color(1.10f,1.05f,.95f));EditorUtility.SetDirty(signSparkle);
     }
 
     // position in nominal metres (x K here), the sign's own vertices already carry K; front toward -Z with yaw 180
@@ -63,7 +72,8 @@ public static partial class BraxChampionsCasinoT11
             var o=new GameObject(label+" | "+m.role);o.transform.SetParent(g,false);
             o.AddComponent<MeshFilter>().sharedMesh=mesh;
             // every face gold (owner: "złoty"): ivory/gold faces champagne gold, accents polished gold
-            o.AddComponent<MeshRenderer>().sharedMaterial=m.role=="light"?led:m.role=="dark"?signBacking:m.role=="accent"?signGoldDeep:signGold;
+            o.AddComponent<MeshRenderer>().sharedMaterial=m.role=="light"?(id=="KASYNO_WAWER_crown"?signSparkle:led):m.role=="dark"?signBacking:
+                m.role=="accent"?signGoldDeep:m.role=="red"?signRed:m.role=="black"?signBlack:signGold;
             GameObjectUtility.SetStaticEditorFlags(o,StaticEditorFlags.OccludeeStatic|StaticEditorFlags.BatchingStatic);
             sign3DParts++;
         }
