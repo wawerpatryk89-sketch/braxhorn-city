@@ -242,7 +242,7 @@ class NovaPoludnie(unittest.TestCase):
 
     def test_mural_wraps_onto_backroom_wall(self):
         self.assertIn("MuralNaCalaSciane(HX0 + .01f, ZX0 - .21f, F + .01f, C - .02f, HZ1 - .012f, ZX0 - .212f, ZZ0 - .19f)", NOVA)
-        self.assertIn("v1 = 1f - (1f - vis) * .15f; v0 = v1 - vis;", NOVA)     # logo u góry zostaje
+        self.assertIn("float Wobr = H * asp;", NOVA)     # 10.11 17:46: cały obraz bez obcinania (zawinięcie tylko, gdy się nie mieści)
         # rozwinięcie: 14.58 + 4.38 m przy 4.38 m wysokości (obraz 3:1) — widać 69 % wysokości obrazu
         W = (47.4 - .21) - (32.6 + .01) + ((61.4 - .012) - (57.2 - .19)); H = (4.55 - .02) - (.15 + .01)
         self.assertGreater(H * 3 / W, .6)

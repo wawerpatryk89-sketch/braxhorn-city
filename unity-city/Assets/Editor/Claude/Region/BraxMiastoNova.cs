@@ -803,7 +803,16 @@ internal static class BraxMiastoNova
         bool bok = !float.IsNaN(sx);
         float asp = (float)tex.width / Mathf.Max(1, tex.height), Wn = x1 - x0, Wb = bok ? z - sz0 : 0f, W = Wn + Wb, H = y1 - y0;
         float u0 = 0f, u1 = 1f, v0 = 0f, v1 = 1f;
-        if (W / H > asp) { float vis = H * asp / W; v1 = 1f - (1f - vis) * .15f; v0 = v1 - vis; }
+        // 10.11 (właściciel 17:46: „szczególnie ten mural ucięty”, 18:27 „zrób to jeszcze”): CAŁY obraz, bez obcinania.
+        // Ściana szersza niż obraz → mural na pełną wysokość, szerokość = wysokość × proporcje, na środku ściany głównej
+        // (gdy się nie mieści — reszta za narożnikiem). Dawniej kadr wypełniał ścianę 19 × 4,4 m i ucinał ok. 31 % wysokości.
+        if (W / H > asp)
+        {
+            float Wobr = H * asp;
+            if (Wobr <= Wn) { float c = (x0 + x1) * .5f; x0 = c - Wobr * .5f; x1 = c + Wobr * .5f; Wn = Wobr; bok = false; Wb = 0f; }
+            else if (bok) { Wb = Wobr - Wn; sz0 = z - Wb; }
+            W = Wn + Wb;
+        }
         else { float vis = W / (H * asp); u0 = (1f - vis) * .5f; u1 = 1f - u0; }
         float uR = u0 + (u1 - u0) * (Wn / W);   // u na narożniku
         var m = new Material(Shader.Find("Standard")) { name = "mural_nova_cala_sciana", mainTexture = tex };

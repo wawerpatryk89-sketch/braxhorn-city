@@ -76,5 +76,15 @@ class TeksturyRaz(unittest.TestCase):
         self.assertIn("nieudane.Add(p);", m)
 
 
+class MuralNovaCaly(unittest.TestCase):
+    """Właściciel 17:46: „szczególnie ten mural ucięty” — mural NOVA cały, bez obcinania wysokości."""
+
+    def test_mural_nova_bez_kadrowania_wysokosci(self):
+        n = czytaj(REG / "BraxMiastoNova.cs")
+        m = metoda(n, "static bool MuralNaCalaSciane(")
+        self.assertIn("float Wobr = H * asp;", m)
+        self.assertNotIn("v1 = 1f - (1f - vis) * .15f", m)     # dawne ucinanie ~31 % wysokości
+
+
 if __name__ == "__main__":
     unittest.main()
