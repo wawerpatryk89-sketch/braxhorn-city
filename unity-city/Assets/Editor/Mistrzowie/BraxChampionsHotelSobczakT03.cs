@@ -1081,53 +1081,28 @@ public static class BraxChampionsHotelSobczakT03
             if(!Model(H+"bar_chair_round_01/bar_chair_round_01_1k.gltf",roof,"roof bar stool, leather",new Vector3(x,y+.02f,bz-.62f),0f,true))Stool(x,y,bz-.62f);
         foreach(float x in new[]{-12f,12f})RoofPlanter(x,10f,2.5f,1.0f,y+.02f);
         foreach(float x in new[]{-11f,11f})RoofPlanter(x,-15.3f,2.2f,.45f,y+.02f);
-        RoofSignFrames(y);
+        RoofSignLegs(y);
         foreach(var pt in new[]{new Vector2(-15.2f,-15.2f),new Vector2(15.2f,-15.2f),new Vector2(-15.2f,-9.2f),new Vector2(15.2f,-9.2f),
                                  new Vector2(-15.2f,15.2f),new Vector2(15.2f,15.2f),new Vector2(0f,15.2f),new Vector2(-10.8f,-6.4f)})
             Model(A+"potted_plant_01/potted_plant_01_1k.gltf",roof,"roof terrace plant",new Vector3(pt.x,y+.02f,pt.y),pt.x*17f+pt.y*5f,false);
     }
-    // Owner 10.11 19:17 ("szyld wisi w powietrzu", photo from the roof terrace): the two x1.6 roof signs (Sign(): 12.8 m wide,
-    // letters from RoofDeck+1.3 to the arc top RoofDeck+7.7, back face at z = +-(TowerHalfD-.6)) stand on a dark bronze steel
-    // frame behind the letters, from the terrace paving: five posts following the sign's outline, two rails and the top rail of
-    // the arc, X-braces in the bays, base plates, and stand-off brackets to the back of the sign (6 cm gap, nothing coplanar).
-    static void RoofSignFrames(float y)
+    // Owner 10.11 19:50: "Szyld wystarczy połączyć z budynkiem dwiema nogami złotymi z tyłu!! Nic więcej" (the dark steel lattice
+    // frame of 19:17 is gone). Each x1.6 roof sign (Sign(): back plane at z = +-(TowerHalfD-.6), front outward) stands on TWO
+    // polished brass legs behind it, at the pins of its bottom bar (x +-5.01): from a brass foot disc on the terrace paving up
+    // the back of the sign to the middle of the gold arc (sign y 2.21..2.45 at x +-5.01, abs RoofDeck+1.95+2.33). The leg
+    // axis is 4 cm in front of the back plane: radius 8 cm, it bites 1 cm into the backs of the bottom bar, the K and the arc
+    // (sign z .11) and stands 4 cm proud behind them - joined, nothing coplanar, nothing a few mm apart.
+    public const float SignLegX=5.01f,SignLegR=.08f,SignLegAxis=.04f,SignLegTop=1.95f+2.33f;
+    static void RoofSignLegs(float y)
     {
-        var steel=M.darkBronze;float deck=y+.02f;
+        float deck=y+.02f;
         foreach(float sz in new[]{-1f,1f})
-        {
-            float back=sz*(TowerHalfD-.6f),f0=back-sz*.06f,f1=back-sz*.26f,fm=(f0+f1)*.5f;   // frame plane on the terrace side
-            float Z0=Lo(f0,f1),Z1=Hi(f0,f1);
-            // posts: x, top (each under the sign's own upper outline)
-            var posts=new[]{(-4.6f,4.45f),(-1.2f,5.45f),(0f,7.35f),(1.2f,5.45f),(4.6f,4.45f)};
-            foreach(var (px,top) in posts)
-            {
-                Box(steel,px-.25f,px+.25f,deck,deck+.03f,Z0-.15f,Z1+.15f);                        // base plate
-                Box(steel,px-.10f,px+.10f,deck+.03f,y+top,Z0,Z1,true);                             // post 20 x 20 cm
-            }
-            float r0=Lo(f0+(-sz)*.02f,f1-(-sz)*.02f),r1=Hi(f0+(-sz)*.02f,f1-(-sz)*.02f);       // rails 16 cm deep inside the posts
-            Box(steel,-4.7f,4.7f,y+1.55f,y+1.70f,r0,r1);                                      // bottom rail behind the letters
-            Box(steel,-4.7f,4.7f,y+4.10f,y+4.25f,r0,r1);                                      // upper rail
-            Box(steel,-1.3f,1.3f,y+5.25f,y+5.40f,r0,r1);                                      // under the arc
-            Box(steel,-.6f,.6f,y+7.10f,y+7.25f,r0,r1);                                        // arc top
-            // X-braces in the four bays between the rails (flat bars 8 x 4 cm in the middle of the frame)
-            foreach(var (a,b) in new[]{(-4.6f,-1.2f),(-1.2f,0f),(0f,1.2f),(1.2f,4.6f)})
-            {
-                float ya=y+1.70f,yb=y+4.10f,w=b-a,h=yb-ya,len=Mathf.Sqrt(w*w+h*h),ang=Mathf.Atan2(h,w)*Mathf.Rad2Deg;
-                var c=new Vector3((a+b)*.5f,(ya+yb)*.5f,fm);
-                W.OBox(steel,c,new Vector3(len,.08f,.04f),Quaternion.Euler(0,0,ang));
-                W.OBox(steel,c+new Vector3(0,0,sz*.06f),new Vector3(len,.08f,.04f),Quaternion.Euler(0,0,-ang));
-            }
-            // arms from the outer posts to the two ends of the gold arc (x +-6.4, y 2.3..3.3), with their own stand-offs
             foreach(float sx in new[]{-1f,1f})
             {
-                Box(steel,Lo(sx*4.7f,sx*6.2f),Hi(sx*4.7f,sx*6.2f),y+2.62f,y+2.76f,r0,r1);
-                Box(steel,sx*6.08f-.06f,sx*6.08f+.06f,y+2.63f,y+2.75f,Lo(back,f0),Hi(back,f0));
+                var foot=new Vector3(sx*SignLegX,deck,sz*(TowerHalfD-.6f)+sz*SignLegAxis);
+                W.Walec(M.brass,foot,.18f,.03f,24,true);                                               // foot disc on the paving
+                W.Walec(M.brass,foot+Vector3.up*.03f,SignLegR,y+SignLegTop-deck-.03f,20,true);          // gold leg
             }
-            // stand-off brackets from the frame to the back of the sign at the rails
-            foreach(var (px,top) in posts)
-                foreach(float by in new[]{1.62f,4.17f})
-                    if(by<top)Box(steel,px-.06f,px+.06f,y+by-.06f,y+by+.06f,Lo(back,f0),Hi(back,f0));
-        }
     }
     static void Lounger(Transform g,float x,float y,float z)
     {
@@ -2034,7 +2009,7 @@ public static class BraxChampionsHotelSobczakT03
         }
         // facade: the solid granite panel of floor 1 above the canopy (back of the sign on the stone, 31 cm deep);
         // reception: a 0.32 copy on the backlit teak wall behind the desk
-        // roof: the same sign x1.6 (12.8 x 6.4 m) on bronze posts at the front and back edge of the roof terrace,
+        // roof: the same sign x1.6 (12.8 x 6.4 m) on two gold legs at the front and back edge of the roof terrace,
         // read against the sky from the whole district (owner 9.11 23:29: "nie widać dobrze ten szyld w 3D");
         // top 110.0 m, inside the 110.3 m crown
         foreach(var place in new[]{(name:"facade",pos:new Vector3(0,Level(1)+.9f,-PodiumHalfD),yaw:180f,scale:1f),
@@ -2053,8 +2028,8 @@ public static class BraxChampionsHotelSobczakT03
                 parts++;
             }
         }
-        // (the steel frame carrying the two roof signs is built in Roof(): boxes added here, after W.Zapisz, were never drawn -
-        // only their colliders stood on the terrace and the sign hung in the air, owner 10.11 19:17 "szyld wisi w powietrzu")
+        // (the two gold legs carrying each roof sign are built in Roof(): geometry added here, after W.Zapisz, is never drawn -
+        // only its colliders stood on the terrace and the sign hung in the air, owner 10.11 19:17 "szyld wisi w powietrzu")
         return parts;
     }
     [Serializable] sealed class SignFile{public float scaleK;public SignData[] signs;}

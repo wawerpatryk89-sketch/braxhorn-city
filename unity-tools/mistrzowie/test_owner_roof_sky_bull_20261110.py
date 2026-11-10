@@ -20,20 +20,25 @@ class OwnerRoofSkyBull(unittest.TestCase):
         cls.prepare = (TOOLS / "prepare_assets.py").read_text()
         cls.workflow = (ROOT / ".github/workflows/mistrzowie-apk.yml").read_text()
 
-    def test_roof_sign_frame_is_built_before_the_kit_is_saved(self):
+    def test_roof_sign_stands_on_two_gold_legs(self):
+        # owner 10.11 19:50: "Szyld wystarczy połączyć z budynkiem dwiema nogami złotymi z tyłu!! Nic więcej"
         roof = self.hotel[self.hotel.index("    static void Roof()"):self.hotel.index("    static void Lounger(")]
-        self.assertIn("RoofSignFrames(y);", roof)
+        self.assertIn("RoofSignLegs(y);", roof)
+        self.assertNotIn("RoofSignFrames", self.hotel)                     # the dark lattice frame is gone
+        legs = self.hotel[self.hotel.index("    static void RoofSignLegs("):self.hotel.index("    static void Lounger(")]
+        self.assertEqual(legs.count("W.Walec(M.brass,"), 2)                # foot disc + leg, gold, x 2 sides x 2 signs
+        self.assertNotIn("Box(", legs)
+        self.assertNotIn("OBox(", legs)
+        self.assertNotIn("darkBronze", legs)
+        self.assertIn("SignLegX=5.01f,SignLegR=.08f,SignLegAxis=.04f,SignLegTop=1.95f+2.33f", self.hotel)
         sign = self.hotel[self.hotel.index("    static int Sign()"):]
         sign = sign[:sign.index("\n    }\n") + 6]
         self.assertNotIn("Box(", sign)                                   # nothing added to W after W.Zapisz
         gen = self.hotel[self.hotel.index("    public static void Generate()"):]
         self.assertLess(gen.index("W.Zapisz("), gen.index("Sign()"))
-        frame = self.hotel[self.hotel.index("    static void RoofSignFrames("):self.hotel.index("    static void Lounger(")]
-        for s in ("base plate", "post 20 x 20 cm", "bottom rail", "X-braces", "stand-off"):
-            self.assertIn(s, frame)
 
     def test_roof_finishes_are_what_brax_stands_on(self):
-        roof = self.hotel[self.hotel.index("    static void Roof()"):self.hotel.index("    static void RoofSignFrames(")]
+        roof = self.hotel[self.hotel.index("    static void Roof()"):self.hotel.index("    static void RoofSignLegs(")]
         self.assertIn("Box(M.paving,-e,e,y,y+.02f,-f,TechZ0,true);", roof)
         self.assertIn("Box(M.teakDark,-15.2f,15.2f,y+.02f,y+.045f,-15.0f,-9.4f,true);", roof)
 
