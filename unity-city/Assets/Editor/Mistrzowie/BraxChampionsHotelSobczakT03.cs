@@ -88,6 +88,7 @@ public static class BraxChampionsHotelSobczakT03
         W.Wyczysc();W.Start(site);W.Wnetrze=false;W.Komorka=40f;
 
         Site();
+        int garageBays=Garage();
         PodiumShell();
         Entrance();
         TowerShell();
@@ -150,6 +151,7 @@ public static class BraxChampionsHotelSobczakT03
         // approach, owner videos 9.11 "pokazuje, znika"); at 200 m the podium is a few % of the screen
         vis.strefy=new[]{new Bounds(root.TransformPoint(new Vector3(0,12f,0)),new Vector3(2*PodiumHalfW+400f,120f,2*PodiumHalfD+400f)*K)};
         for(int l=0;l<Elevators;l++)Elevator(l,cabins[l],landingL,landingR);
+        GarageLiftConfigure();
         foreach(var d in root.GetComponentsInChildren<BraxDrzwiAutomatyczne>(true))d.zasieg=2.6f*K;
         var streamer=root.gameObject.AddComponent<BraxHotelSobczakFloorStreamer>();
         var instances=new GameObject[floorInstances.Count];for(int i=0;i<instances.Length;i++)instances[i]=floorInstances[i];
@@ -184,7 +186,7 @@ public static class BraxChampionsHotelSobczakT03
         Debug.Log("HOTEL_SOBCZAK_T03_REBUILT style=MODERN_BRICK podium=42x38 tower=34x32 height="+(Crown-Ffl0).ToString("F2")+
             " guestFloors="+GuestFloors+" rooms="+roomsBuilt+" lifts="+Elevators+" stops="+Stops+" stairs="+Stairs+
             " doors="+doorsBuilt+" polyHavenModels="+modelsPlaced+" modelsMissing="+modelsMissing+" roomZones="+roomZones+" diningChairs="+diningChairs.Count+" signParts="+signParts+" meshes="+saved+
-            " datumY="+datum.ToString("F3")+" entrance=automatic_sliding_doors_with_collision trees=0 visualReview=PENDING");
+            " garageBays="+garageBays+" garageLift=B1-PLAC datumY="+datum.ToString("F3")+" entrance=automatic_sliding_doors_with_collision trees=0 visualReview=PENDING");
     }
 
     // ================================================================ helpers
@@ -311,14 +313,28 @@ public static class BraxChampionsHotelSobczakT03
         // plaza deck around the podium, flush with the lobby floor (no step at the door), cut for the dropped kerb
         float pw=PodiumHalfW,pd=PodiumHalfD;
         Box(M.paving,-PlotHalf,-1.8f,PlotBaseY,PlazaY,-PlotHalf,-pd,true);
-        Box(M.paving,1.8f,PlotHalf,PlotBaseY,PlazaY,-PlotHalf,-pd,true);
+        // the garage ramp trench (east, x RampWall0..RampWall1, z -30..GaragePortalZ) and the garage stair + lift core
+        // (west, CoreOuter*) are cut out of the deck: pieces edge to edge round them
+        Box(M.paving,1.8f,RampWall0,PlotBaseY,PlazaY,-PlotHalf,-pd,true);
+        Box(M.paving,RampWall1,PlotHalf,PlotBaseY,PlazaY,-PlotHalf,-pd,true);
         Box(M.paving,-1.8f,1.8f,PlotBaseY,PlazaY,-PlotHalf+1.2f,-pd,true);
         Box(M.paving,-PlotHalf,PlotHalf,PlotBaseY,PlazaY,pd,PlotHalf,true);
-        foreach(float sx in new[]{-1f,1f})Box(M.paving,sx*pw,sx*PlotHalf,PlotBaseY,PlazaY,-pd,pd,true);
+        Box(M.paving,pw,RampWall0,PlotBaseY,PlazaY,-pd,GaragePortalZ,true);
+        Box(M.paving,RampWall1,PlotHalf,PlotBaseY,PlazaY,-pd,GaragePortalZ,true);
+        Box(M.paving,pw,PlotHalf,PlotBaseY,PlazaY,GaragePortalZ,pd,true);
+        Box(M.paving,-PlotHalf,CoreOuterX0,PlotBaseY,PlazaY,-pd,pd,true);
+        Box(M.paving,CoreOuterX1,-pw,PlotBaseY,PlazaY,-pd,pd,true);
+        Box(M.paving,CoreOuterX0,CoreOuterX1,PlotBaseY,PlazaY,-pd,CoreOuterZ0,true);
+        Box(M.paving,CoreOuterX0,CoreOuterX1,PlotBaseY,PlazaY,CoreOuterZ1,pd,true);
         Wedge(M.paving,-1.8f,1.8f,-PlotHalf,DriveY,-PlotHalf+1.2f,PlazaY,PlotBaseY);      // dropped kerb at the crossing
         // granite kerb along the plaza front edge (11 cm above the drive)
         Box(M.kerb,-PlotHalf,-1.8f,DriveY-.05f,PlazaY+.005f,-PlotHalf,-PlotHalf+.18f,true);
-        Box(M.kerb,1.8f,PlotHalf,DriveY-.05f,PlazaY+.005f,-PlotHalf,-PlotHalf+.18f,true);
+        Box(M.kerb,1.8f,RampWall0,DriveY-.05f,PlazaY+.005f,-PlotHalf,-PlotHalf+.18f,true);
+        Box(M.kerb,RampWall1,PlotHalf,DriveY-.05f,PlazaY+.005f,-PlotHalf,-PlotHalf+.18f,true);
+        // the drop-off lane runs on east to the garage ramp (layout.HOTEL_GARAGE_CUTS cuts the lawn under it)
+        Box(M.asphalt,16f,RampWall1,SiteY,DriveY,-34f,-PlotHalf,true);
+        Box(M.kerb,16f,RampWall1+.18f,SiteY,DriveY+.12f,-34.18f,-34f,true);
+        Box(M.kerb,RampWall1,RampWall1+.18f,SiteY,DriveY+.12f,-34f,-PlotHalf,true);
         // frontage to road Z650 (13 m strip, sidewalk edge at local z -43.2): drop-off loop, island, path
         const float edge=-43.2f;
         Box(M.asphalt,-16f,16f,SiteY,DriveY,-34f,-PlotHalf,true);                       // drop-off lane
@@ -342,14 +358,15 @@ public static class BraxChampionsHotelSobczakT03
         // zebra crossing (stripes run with the traffic)
         for(float z=-33.55f;z<=-30.4f;z+=.9f)Box(M.whitePaint,-1.7f,1.7f,DriveY,DriveY+.004f,z,z+.45f);
         // raised lawn beds with granite edges on the sides and the back (no trees: owner 9.11)
-        foreach(float sx in new[]{-1f,1f})Planter(sx*23.2f,sx*29.6f,-26f,27f);
+        Planter(23.2f,29.6f,GaragePortalZ+.6f,27f);                                           // east: beside the ramp trench
+        Planter(-29.6f,-23.2f,-26f,CoreOuterZ0-.6f);Planter(-29.6f,-23.2f,CoreOuterZ1+.6f,27f); // west: round the garage pavilion
         Planter(-23.2f,23.2f,21.6f,29.6f);
         foreach(float sx in new[]{-1f,1f})foreach(float x in new[]{10.5f,15f})Planter(sx*x-1.6f,sx*x+1.6f,-23.6f,-22.2f);
         // LED bollards along the plaza edge and drop-off lamps
         In(details,false);
         for(float x=-27f;x<=27.01f;x+=4.5f)
         {
-            if(Mathf.Abs(x)<2.5f)continue;
+            if(Mathf.Abs(x)<2.5f||(x>RampWall0-.5f&&x<RampWall1+.5f))continue;               // the ramp mouth stays open
             W.Walec(M.darkBronze,new Vector3(x,PlazaY,-PlotHalf+.68f),.09f,.82f,14,true);           // round bronze bollard
             W.Walec(M.frosted,new Vector3(x,PlazaY+.82f,-PlotHalf+.68f),.085f,.12f,14);
             W.Walec(M.darkBronze,new Vector3(x,PlazaY+.94f,-PlotHalf+.68f),.095f,.03f,14);
@@ -369,6 +386,284 @@ public static class BraxChampionsHotelSobczakT03
         Box(M.podiumStone,x0,x1,PlazaY,PlazaY+.45f,z0,z0+.18f,true);Box(M.podiumStone,x0,x1,PlazaY,PlazaY+.45f,z1-.18f,z1,true);
         Box(M.podiumStone,x0,x0+.18f,PlazaY,PlazaY+.45f,z0+.18f,z1-.18f,true);Box(M.podiumStone,x1-.18f,x1,PlazaY,PlazaY+.45f,z0+.18f,z1-.18f,true);
         Box(M.lawn,x0+.18f,x1-.18f,PlazaY,PlazaY+.38f,z0+.18f,z1-.18f,true);
+    }
+
+    // ================================================================ GARAGE B1
+    // Owner 10.11 15:25-15:26 ("Hotel Sobczak ... coś tam mówiłeś o parkingu, że zostawisz na później ... do teraz parkingu
+    // nie ma", "Nie ma nic na później"): the B1 garage of the 9.11 plan, 60 bays, built now. Under the north part of the plot
+    // (z .8..29.2, the tower's core stays on rock): 3 rows of 20 bays 2.5 x 5.0 m (lines inlaid in the asphalt, flush),
+    // two 6 m aisles, white walls and columns on a 7.5 m grid with black bases, downstand beams, LED lines and lights. Cars
+    // come off the drop-off lane (extended east) into a ramp beside the podium: an open granite-walled trench from the plot
+    // edge (8 % / 13 % / 8 %, parapets on the plaza) under the plaza deck into B1 (clear 2.45 m under the beams).
+    // People: a glass pavilion on the west side of the plaza (black glass, clear door leaf, "PARKING" in 3D letters) over a
+    // straight stair and a two-stop lift (BraxWinda: B1, PLAC). layout.HOTEL_GARAGE_CUTS opens the foundation for the trench,
+    // the lane and the core. Hotel-local nominal metres (front = -z).
+    public const float GarageFloorY=-3.60f,GarageCeilY=-.70f,GarageX0=-29.2f,GarageX1=29.2f,GarageZ0=.8f,GarageZ1=29.2f,GarageWallT=.30f;
+    public const float GaragePortalZ=GarageZ0-GarageWallT,RampWall0=21.9f,RampWall1=29.5f,RampRoad0=22.5f,RampRoad1=28.9f,RampBottomZ=3.0f;
+    public const float CoreOuterX0=-29.5f,CoreOuterX1=-23.4f,CoreOuterZ0=-8.3f,CoreOuterZ1=1.1f;
+    public const float BayW=2.5f,BayD=5.0f,AisleW=6.0f,BeamDrop=.45f,ColumnStep=7.5f;
+    public const int BaysPerRow=20,GarageBays=60;
+    const float CoreX0=-29.2f,CoreX1=-23.7f,CoreZ0=-8.0f,GStairX1=-27.6f,StairBottomZ=-.5f,PassX0=-27.4f;
+    const float GLiftX=-24.85f,GLiftFrontZ=-3.0f,GLiftZ0=-2.80f,GLiftZ1=-.70f,GLiftHW=.95f;
+    static Transform garage,garageCab;static readonly Transform[] gLandL=new Transform[2],gLandR=new Transform[2];
+    // ramp profile: flat at the drive, 8 % over 3 m, 13 % to z 0, 8 % to the floor at RampBottomZ
+    public static float RampY(float z)
+    {
+        if(z<=-28.5f)return DriveY;
+        if(z<=-25.5f)return DriveY-.08f*(z+28.5f);
+        float top=DriveY-.24f,low=GarageFloorY+.24f;
+        if(z<=0f)return top-(top-low)*(z+25.5f)/25.5f;
+        if(z<=RampBottomZ)return low-.08f*z;
+        return GarageFloorY;
+    }
+    static Material garageWhite;
+    static int Garage()
+    {
+        garage=G(root,"T03 GARAGE B1 / 60 bays, ramp, stair + lift pavilion");
+        // clean cool white for walls, columns, beams and ceiling (the hotel's warm stucco read beige under the B1 lights;
+        // region palette: no beige): white_stucco_02 neutralised, a cool neutral ambient of its own
+        garageWhite=BraxChampionsFoundation.SourceMaterial("t03_garage_white_paint","white_stucco_02",2.0f,new Color(1.10f,1.14f,1.20f));
+        garageWhite.SetColor("_SkyColor",new Color(.90f,.92f,.95f));garageWhite.SetColor("_GroundColor",new Color(.82f,.84f,.87f));
+        garageWhite.SetFloat("_AmbientIntensity",.72f);
+        In(garage,true);
+        float f0=GarageFloorY-.30f,f1=GarageFloorY,top=GarageCeilY,beamY=GarageCeilY-BeamDrop;
+        // ---- floor: aisles, bay strips with inlaid lines (one surface, edge to edge)
+        float aisle1=7.0f,rowB=13.0f,rowC=18.0f,aisle2=23.0f,rowA=2.0f,bayX0=GarageX0,bayX1=bayX0+BaysPerRow*BayW;   // bays x -29.2..20.8
+        Box(M.asphalt,GarageX0,RampWall0,f0,f1,GarageZ0,rowA,true);                                // walkway along the south wall
+        Box(M.asphalt,GarageX0,GarageX1,f0,f1,aisle1,rowB,true);                                   // aisle 1
+        Box(M.asphalt,GarageX0,GarageX1,f0,f1,aisle2,GarageZ1,true);                               // aisle 2
+        Box(M.asphalt,RampWall0,GarageX1,f0,f1,RampBottomZ,aisle1,true);                            // ramp landing
+        Box(M.asphalt,bayX1,RampWall0,f0,f1,rowA,aisle1,true);                                      // end of row A
+        Box(M.asphalt,bayX1,GarageX1,f0,f1,rowB,aisle2,true);                                       // east crossover between the aisles
+        int bays=0;
+        foreach(var (z0,z1,stopNorth) in new[]{(rowA,aisle1,false),(rowB,rowC,true),(rowC,aisle2,false)})
+        {
+            for(int i=0;i<BaysPerRow;i++)
+            {
+                float x0=bayX0+i*BayW,x1=x0+BayW,a=i==0?x0:x0+.05f,b=i==BaysPerRow-1?x1:x1-.05f;
+                float zb0=z0,zb1=z1;
+                if(z0==rowC){zb0=z0+.05f;}                                                          // the back-to-back line rowB|rowC
+                if(z1==rowC){zb1=z1-.05f;}
+                Box(M.asphalt,a,b,f0,f1,zb0,zb1,true);
+                if(i>0)Box(M.whitePaint,x0-.05f,x0+.05f,f0,f1,zb0,zb1,true);
+                // rubber wheel stop .6 m before the back of the bay (cars come in from the aisle)
+                float ws=stopNorth?z1-.75f:z0+.60f;
+                Box(M.rubber,x0+.45f,x1-.45f,f1,f1+.11f,ws,ws+.15f,true);
+                bays++;
+            }
+        }
+        Box(M.whitePaint,bayX0,bayX1,f0,f1,rowC-.05f,rowC+.05f,true);                               // line between rows B and C
+        // ---- walls (white), slab, downstand beams, columns
+        Box(garageWhite,GarageX0-GarageWallT,GarageX0,f0,top,GaragePortalZ,GarageZ1+GarageWallT,true);              // west
+        Box(garageWhite,GarageX1,GarageX1+GarageWallT,f0,top,GaragePortalZ,GarageZ1+GarageWallT,true);            // east
+        Box(garageWhite,GarageX0,GarageX1,f0,top,GarageZ1,GarageZ1+GarageWallT,true);                              // north
+        // south wall with the stair door (x -29.0..-27.8, 2.10 high)
+        Box(garageWhite,GarageX0,-29.0f,f0,top,GaragePortalZ,GarageZ0,true);
+        Box(garageWhite,-27.8f,RampWall0,f0,top,GaragePortalZ,GarageZ0,true);
+        Box(garageWhite,-29.0f,-27.8f,f1+2.10f,top,GaragePortalZ,GarageZ0,true);
+        // steel frame inside the reveal, threshold, the closed door (opens on approach)
+        Box(M.darkBronze,-29.0f,-28.92f,f1,f1+2.10f,GaragePortalZ-.05f,GarageZ0+.05f,true);
+        Box(M.darkBronze,-27.88f,-27.8f,f1,f1+2.10f,GaragePortalZ-.05f,GarageZ0+.05f,true);
+        Box(M.darkBronze,-28.92f,-27.88f,f1+2.02f,f1+2.10f,GaragePortalZ-.05f,GarageZ0+.05f,true);
+        Box(M.stoneDark,-29.0f,-27.8f,f0,f1,GaragePortalZ,GarageZ0,true);
+        BraxChampionsInteriorDoor.Single("T03_GARAGE_STAIR_DOOR","garage stair door",true,(GaragePortalZ+GarageZ0)*.5f,-28.92f,-27.88f,f1,2.02f,M.steel,M.steel);
+        doorsBuilt++;
+        // the ramp's west wall runs on into B1 to the bottom of the ramp (beside the last bay of row A)
+        Box(garageWhite,RampWall0,RampX0In,f0,top,GaragePortalZ,RampBottomZ,true);
+        Box(garageWhite,GarageX0-GarageWallT,GarageX1+GarageWallT,top,-.26f,GaragePortalZ,GarageZ1+GarageWallT,true);   // slab (1 cm under the plot base)
+        // (the slab's own underside is the ceiling: no second face 2 mm under it)
+        var colX=new List<float>();for(int k=3;k<BaysPerRow;k+=3)colX.Add(bayX0+k*BayW);   // -21.7 -14.2 -6.7 .8 8.3 15.8
+        foreach(float x in colX)
+        {
+            Box(garageWhite,x-.225f,x+.225f,beamY,top-.004f,GarageZ0,GarageZ1,true);                  // downstand beam
+            foreach(float z in new[]{aisle1-.4f,rowB+.4f,aisle2-.4f})
+            {
+                Box(M.stoneDark,x-.235f,x+.235f,f1,f1+.30f,z-.235f,z+.235f,true);                  // black base 1 cm proud
+                Box(garageWhite,x-.225f,x+.225f,f1+.30f,beamY,z-.225f,z+.225f,true);
+            }
+        }
+        // ---- LED lines over the aisles and the warm lights
+        In(garage,true);
+        foreach(float z in new[]{(aisle1+rowB)*.5f,(aisle2+GarageZ1)*.5f})
+            for(float x=GarageX0+3.75f;x<GarageX1-1f;x+=ColumnStep)
+            {
+                if(colX.Exists(c=>Mathf.Abs(c-x)<.6f))continue;
+                Box(M.ledCool,x-.75f,x+.75f,top-.05f,top-.006f,z-.06f,z+.06f);
+            }
+        foreach(float z in new[]{(aisle1+rowB)*.5f,(aisle2+GarageZ1)*.5f})
+            foreach(float x in new[]{-18f,0f,18f})W.Lampa("T03 garage light",new Vector3(x,top-.3f,z),.85f,15f,new Color(.96f,.98f,1f));
+        W.Lampa("T03 garage ramp light",new Vector3(25.7f,top-.3f,(GarageZ0+aisle1)*.5f),.8f,12f,new Color(.96f,.98f,1f));
+        GarageRamp();
+        GarageCore();
+        return bays;
+    }
+    const float RampX0In=22.2f,RampX1In=29.2f;
+    static void GarageRamp()
+    {
+        In(site,false);
+        const float seg=1f;
+        for(float z=-PlotHalf;z<RampBottomZ-.001f;z+=seg)
+        {
+            float z1=Mathf.Min(z+seg,RampBottomZ),y0=RampY(z),y1=RampY(z1);
+            Face(M.asphalt,new Vector3(RampRoad0,y0,z),new Vector3(RampRoad1,y0,z),new Vector3(RampRoad1,y1,z1),new Vector3(RampRoad0,y1,z1),Vector3.up);
+            W.Rampa(new Vector3((RampRoad0+RampRoad1)*.5f,y0,z),new Vector3((RampRoad0+RampRoad1)*.5f,y1,z1),RampRoad1-RampRoad0);
+            // raised 15 cm kerb walks on both sides (granite), their faces to the road
+            foreach(var (a,b,face) in new[]{(RampX0In,RampRoad0,1f),(RampRoad1,RampX1In,-1f)})
+            {
+                Face(M.kerb,new Vector3(a,y0+.15f,z),new Vector3(b,y0+.15f,z),new Vector3(b,y1+.15f,z1),new Vector3(a,y1+.15f,z1),Vector3.up);
+                float xf=face>0?b:a;
+                Face(M.kerb,new Vector3(xf,y0,z),new Vector3(xf,y1,z1),new Vector3(xf,y1+.15f,z1),new Vector3(xf,y0+.15f,z),new Vector3(face,0,0));
+                W.Rampa(new Vector3((a+b)*.5f,y0+.15f,z),new Vector3((a+b)*.5f,y1+.15f,z1),b-a);
+            }
+            // retaining walls (granite) from the ramp up to the plaza, inner faces only (the deck is built round them)
+            // (up to the plot base: the wall-top box carries the face from there to the plaza - never two faces in one plane)
+            if(z<GaragePortalZ&&y1+.15f<PlotBaseY)
+                foreach(var (xf,face) in new[]{(RampX0In,1f),(RampX1In,-1f)})
+                    Face(M.podiumStone,new Vector3(xf,Mathf.Min(y0+.15f,PlotBaseY),z),new Vector3(xf,y1+.15f,Mathf.Min(z1,GaragePortalZ)),new Vector3(xf,PlotBaseY,Mathf.Min(z1,GaragePortalZ)),new Vector3(xf,PlotBaseY,z),new Vector3(face,0,0));
+        }
+        // wall tops and granite parapets 1.05 m on the plaza (sides of the trench and over the portal)
+        foreach(var (a,b) in new[]{(RampWall0,RampX0In),(RampX1In,RampWall1)})
+        {
+            Box(M.podiumStone,a,b,PlotBaseY,PlazaY,-PlotHalf,GaragePortalZ,true);
+            Box(M.podiumStone,a,b,PlazaY,PlazaY+1.05f,-PlotHalf,GaragePortalZ+.30f,true);
+            Box(M.stoneDark,a-.02f,b+.02f,PlazaY+1.05f,PlazaY+1.11f,-PlotHalf,GaragePortalZ+.32f,true);
+        }
+        Box(M.podiumStone,RampX0In,RampX1In,PlazaY,PlazaY+1.05f,GaragePortalZ,GaragePortalZ+.30f,true);
+        Box(M.stoneDark,RampX0In+.02f,RampX1In-.02f,PlazaY+1.05f,PlazaY+1.11f,GaragePortalZ-.02f,GaragePortalZ+.32f,true);
+        // portal: the slab edge over the ramp with a cool LED line and "PARKING B1" in 3D letters for the drivers
+        Box(M.ledCool,RampX0In+.2f,RampX1In-.2f,GarageCeilY-.012f,GarageCeilY,GaragePortalZ+.05f,GaragePortalZ+.15f);
+        var letters=new BraxChampionsMeshBatch();
+        BraxChampionsLetters3D.Text(letters,M.steel,M.stoneDark,"PARKING  B1",new Vector3((RampX0In+RampX1In)*.5f,-.60f,GaragePortalZ-.008f),180f,.24f,.012f,.14f,6.4f);
+        BraxChampionsLetters3D.Build(letters,site,"T03 GARAGE portal letters",1f);
+    }
+    static void GarageCore()
+    {
+        In(garage,true);
+        float f0=GarageFloorY-.30f,f1=GarageFloorY,deck0=0f,deck1=PlazaY,roofY=3.6f;
+        // B1 floor of the core, walls round it (white inside), the wall beside the stair
+        Box(M.antiSkid,CoreX0,CoreX1,f0,f1,CoreZ0,GaragePortalZ,true);
+        Box(garageWhite,CoreOuterX0,CoreX0,f0,deck1,CoreOuterZ0,GaragePortalZ,true);
+        Box(garageWhite,CoreX1,CoreOuterX1,f0,deck1,CoreOuterZ0,GaragePortalZ,true);
+        Box(garageWhite,CoreX0,CoreX1,f0,deck1,CoreOuterZ0,CoreZ0,true);
+        Box(garageWhite,GStairX1,PassX0,f1,deck1,-6.38f,StairBottomZ,true);                                 // top carries the railing
+        Box(garageWhite,GStairX1,PassX0,-.40f,deck1,StairBottomZ,GaragePortalZ,true);                        // beam over the landing-passage link
+        // straight stair 22 risers from B1 to the plaza (south up), 1.6 m wide, solid granite steps, steel handrail
+        const int n=22;float r=(PlazaY-GarageFloorY)/n;
+        for(int i=1;i<n;i++)
+        {
+            float zA=StairBottomZ-i*Tread,zB=zA+Tread;
+            Box(M.stoneDark,CoreX0,GStairX1,f1,f1+i*r,zA,zB,false);
+        }
+        W.Rampa(new Vector3((CoreX0+GStairX1)*.5f,PlazaY,StairBottomZ-(n-1)*Tread),new Vector3((CoreX0+GStairX1)*.5f,f1,StairBottomZ),GStairX1-CoreX0);
+        Rod(M.steel,new Vector3(CoreX0+.08f,f1+.9f,StairBottomZ),new Vector3(CoreX0+.08f,PlazaY+.9f,StairBottomZ-(n-1)*Tread),.022f);
+        // ---- pavilion deck (.30) round the stair opening and the lift shaft
+        float shaftX0=-26.15f,shaftZ0=-3.1f,shaftZ1=-.45f,landZ=StairBottomZ-(n-1)*Tread;   // -6.38
+        // each deck piece: white soffit layer (the B1 ceiling) under the black marble, stacked - never two faces in a plane
+        void Deck(float x0,float x1,float z0,float z1)
+        {
+            Box(garageWhite,x0,x1,deck0,deck0+.06f,z0,z1,true);Box(M.blackMarble,x0,x1,deck0+.06f,deck1,z0,z1,true);
+        }
+        Deck(CoreX0,GStairX1,CoreZ0,landZ);Deck(PassX0,CoreX1,CoreZ0,shaftZ0);Deck(PassX0,shaftX0,shaftZ0,GaragePortalZ);
+        Deck(shaftX0,CoreX1,shaftZ1,GaragePortalZ);
+        Box(M.blackMarble,CoreOuterX0,CoreOuterX1,-.26f,deck1,GaragePortalZ,CoreOuterZ1,true);           // over the garage wall
+        Deck(GStairX1,PassX0,CoreZ0,landZ);                                                               // over the stair-side wall
+        // steel railing round the stair opening (posts + rails, no glass)
+        for(float z=landZ+.1f;z<=GaragePortalZ-.05f;z+=1.2f)Rod(M.steel,new Vector3(PassX0-.06f,deck1,z),new Vector3(PassX0-.06f,deck1+1.1f,z),.022f);
+        Rod(M.steel,new Vector3(PassX0-.06f,deck1+1.1f,landZ+.1f),new Vector3(PassX0-.06f,deck1+1.1f,GaragePortalZ-.05f),.025f);
+        Rod(M.steel,new Vector3(PassX0-.06f,deck1+.55f,landZ+.1f),new Vector3(PassX0-.06f,deck1+.55f,GaragePortalZ-.05f),.016f);
+        // and along the north end of the opening (on the strip over the garage wall)
+        for(float x=CoreX0+.1f;x<PassX0-.05f;x+=.9f)Rod(M.steel,new Vector3(x,deck1,GaragePortalZ+.06f),new Vector3(x,deck1+1.1f,GaragePortalZ+.06f),.022f);
+        Rod(M.steel,new Vector3(CoreX0+.1f,deck1+1.1f,GaragePortalZ+.06f),new Vector3(PassX0-.06f,deck1+1.1f,GaragePortalZ+.06f),.025f);
+        // ---- lift shaft (B1 to the pavilion roof) with the front wall and openings at both stops
+        // west wall between the front and the back wall (never overlapping them: no two faces in one plane)
+        Box(garageWhite,shaftX0,shaftX0+.15f,f0,deck1,GLiftFrontZ+.1f,shaftZ1-.15f,true);Box(M.blackMarble,shaftX0,shaftX0+.15f,deck1,roofY,GLiftFrontZ+.1f,shaftZ1-.15f,true);
+        Box(garageWhite,shaftX0,CoreX1,f0,deck1,shaftZ1-.15f,shaftZ1,true);Box(M.blackMarble,shaftX0,CoreX1,deck1,roofY,shaftZ1-.15f,shaftZ1,true);
+        Box(M.blackMarble,CoreX1,CoreX1+.15f,deck1,roofY,shaftZ0,shaftZ1,true);                    // shaft east wall in the pavilion
+        foreach(float y in new[]{f1,deck1})
+        {
+            float yTop=y==f1?deck1:roofY;var wallM=y==f1?garageWhite:M.blackMarble;
+            Box(wallM,shaftX0,GLiftX-LiftDoorHalf,y,yTop,shaftZ0,GLiftFrontZ+.1f,true);
+            Box(wallM,GLiftX+LiftDoorHalf,CoreX1,y,yTop,shaftZ0,GLiftFrontZ+.1f,true);
+            Box(wallM,GLiftX-LiftDoorHalf,GLiftX+LiftDoorHalf,y+2.2f,yTop,shaftZ0,GLiftFrontZ+.1f,true);
+            Box(M.steel,GLiftX-LiftDoorHalf-.1f,GLiftX-LiftDoorHalf+.01f,y,y+2.35f,shaftZ0-.04f,GLiftFrontZ+.09f);
+            Box(M.steel,GLiftX+LiftDoorHalf-.01f,GLiftX+LiftDoorHalf+.1f,y,y+2.35f,shaftZ0-.04f,GLiftFrontZ+.09f);
+            Box(M.steel,GLiftX-LiftDoorHalf-.1f,GLiftX+LiftDoorHalf+.1f,y+2.19f,y+2.35f,shaftZ0-.04f,GLiftFrontZ+.09f);
+            Box(M.steel,GLiftX-LiftDoorHalf-.34f,GLiftX-LiftDoorHalf-.22f,y+1.0f,y+1.3f,shaftZ0-.03f,shaftZ0);
+            Box(M.warmLight,GLiftX-LiftDoorHalf-.305f,GLiftX-LiftDoorHalf-.255f,y+1.12f,y+1.17f,shaftZ0-.04f,shaftZ0-.03f);
+        }
+        // landing doors (the lift's moving parts) at B1 and on the plaza
+        for(int s=0;s<2;s++)
+        {
+            float y=s==0?f1:deck1;
+            gLandL[s]=LeafObject(garage,"Landing door L | garage lift | "+(s==0?"B1":"PLAC"),new Vector3(GLiftX-LiftDoorHalf*.5f,y+1.1f,GLiftFrontZ));
+            gLandR[s]=LeafObject(garage,"Landing door R | garage lift | "+(s==0?"B1":"PLAC"),new Vector3(GLiftX+LiftDoorHalf*.5f,y+1.1f,GLiftFrontZ));
+        }
+        // the moving cabin (built at local floor 0, set to the plaza stop)
+        {
+            float xc=GLiftX,z0=GLiftZ0,z1=GLiftZ1,hw=GLiftHW;
+            garageCab=G(garage,"GARAGE LIFT | cabin");
+            In(garageCab,true);
+            Box(M.blackMarble,xc-hw,xc+hw,-.12f,0f,z0,z1,true);
+            BraxChampionsMirror.Wall("T03 garage lift cabin",new Vector3(xc,1.65f,z1-.05f),Vector3.back,2f*hw-.14f,1.46f,M.steel,5f,6f,384,256);
+            Box(M.steel,xc-hw,xc+hw,0f,2.5f,z1,z1+.05f,true);
+            foreach(float sx in new[]{-1f,1f})Box(M.steel,sx>0?xc+hw:xc-hw-.05f,sx>0?xc+hw+.05f:xc-hw,0f,2.5f,z0,z1,true);
+            Box(M.steel,xc-hw,xc+hw,2.5f,2.58f,z0,z1);
+            Box(M.ledCool,xc-.5f,xc+.5f,2.47f,2.5f,z0+.4f,z1-.4f);
+            foreach(float sx in new[]{-1f,1f})Box(M.steel,sx>0?xc+LiftDoorHalf:xc-hw,sx>0?xc+hw:xc-LiftDoorHalf,0f,2.5f,z0-.03f,z0,true);
+            Box(M.steel,xc-hw,xc+hw,2.2f,2.5f,z0-.03f,z0,true);
+            var cabL=G(garageCab,"cabin door L");var cabR=G(garageCab,"cabin door R");
+            In(cabL,true);Box(M.steel,xc-LiftDoorHalf,xc,0f,2.2f,z0-.06f,z0-.03f,true);
+            In(cabR,true);Box(M.steel,xc,xc+LiftDoorHalf,0f,2.2f,z0-.06f,z0-.03f,true);
+            In(garageCab,true);
+            W.Lampa("garage lift cabin light",new Vector3(xc,2.2f,(z0+z1)*.5f),.7f,3f);
+        }
+        // ---- the glass pavilion on the plaza: black frame, black glass, clear door leaf (east), roof with LED, "PARKING"
+        In(site,false);
+        float px0=CoreOuterX0,px1=CoreOuterX1,pz0=CoreOuterZ0,pz1=CoreOuterZ1,doorA=-6.0f,doorB=-4.2f;
+        Box(M.stoneDark,px0,px1,roofY,roofY+.30f,pz0,pz1,true);                                    // roof slab
+        // (the roof slab's dark granite underside is the pavilion ceiling)
+        for(float x=px0+1.2f;x<px1-.6f;x+=1.6f)Downlight(x,(pz0+pz1)*.5f,roofY-.002f);
+        // corner posts and mullions (black), black glass between them, 8 cm frames
+        void Mull(float x,float z){Box(M.darkBronze,x-.05f,x+.05f,deck1,roofY,z-.05f,z+.05f,true);}
+        foreach(float x in new[]{px0+.05f,px1-.05f})foreach(float z in new[]{pz0+.05f,pz1-.05f})Mull(x,z);
+        for(float z=pz0+1.6f;z<pz1-.5f;z+=1.6f){Mull(px0+.05f,z);if(z<doorA-.1f||z>doorB+.1f)Mull(px1-.05f,z);}
+        for(float x=px0+1.5f;x<px1-.5f;x+=1.5f){Mull(x,pz0+.05f);Mull(x,pz1-.05f);}
+        Box(M.blackGlass,px0+.04f,px0+.06f,deck1,roofY,pz0+.1f,pz1-.1f,true);                       // west
+        Box(M.blackGlass,px0+.1f,px1-.1f,deck1,roofY,pz0+.04f,pz0+.06f,true);                       // south
+        Box(M.blackGlass,px0+.1f,px1-.1f,deck1,roofY,pz1-.06f,pz1-.04f,true);                       // north
+        Box(M.blackGlass,px1-.06f,px1-.04f,deck1,roofY,pz0+.1f,doorA-.15f,true);                    // east, both sides of the door
+        Box(M.blackGlass,px1-.06f,px1-.04f,deck1,roofY,doorB+.15f,pz1-.1f,true);
+        Box(M.blackGlass,px1-.06f,px1-.04f,deck1+2.30f,roofY,doorA-.15f,doorB+.15f,true);           // over the door
+        // black portal round the door, the door itself (clear leaf, closed, opens as you walk up)
+        Box(M.darkBronze,px1-.12f,px1+.02f,deck1,deck1+2.30f,doorA-.15f,doorA-.03f,true);
+        Box(M.darkBronze,px1-.12f,px1+.02f,deck1,deck1+2.30f,doorB+.03f,doorB+.15f,true);
+        Box(M.darkBronze,px1-.12f,px1+.02f,deck1+2.18f,deck1+2.30f,doorA-.03f,doorB+.03f,true);
+        BraxChampionsInteriorDoor.Single("T03_GARAGE_PAVILION_DOOR","garage pavilion door",false,px1-.05f,doorA,doorB,deck1,2.18f,M.clearGlass,M.steel);
+        doorsBuilt++;
+        // "PARKING" over the door on the east fascia (8 mm proud of the roof slab edge), read from the plaza
+        var letters=new BraxChampionsMeshBatch();
+        BraxChampionsLetters3D.Text(letters,M.steel,M.stoneDark,"PARKING",new Vector3(px1+.008f,roofY+.06f,(pz0+pz1)*.5f),90f,.18f,.012f,.16f,6f);
+        BraxChampionsLetters3D.Build(letters,site,"T03 GARAGE pavilion letters",1f);
+        // the pavilion floor is the deck above; the plaza around it is built in Site()
+    }
+    static void GarageLiftConfigure()
+    {
+        if(!garageCab)return;
+        garageCab.localPosition=new Vector3(0,PlazaY,0);                                              // waits on the plaza
+        var c=garageCab.gameObject.AddComponent<BraxWinda>();
+        c.nazwa="HOTEL SOBCZAK · WINDA GARAŻ";
+        c.kabina=garageCab;c.kabinaL=garageCab.Find("cabin door L");c.kabinaP=garageCab.Find("cabin door R");
+        float[] stopY={GarageFloorY,PlazaY};
+        c.pietraY=new[]{root.TransformPoint(new Vector3(0,stopY[0],0)).y,root.TransformPoint(new Vector3(0,stopY[1],0)).y};
+        c.pietraNazwy=new[]{"B1","PLAC"};c.uzytkowe=new[]{true,true};
+        c.wezwanie=new[]{root.TransformPoint(new Vector3(GLiftX,stopY[0]+1.2f,GLiftFrontZ-.9f)),root.TransformPoint(new Vector3(GLiftX,stopY[1]+1.2f,GLiftFrontZ-.9f))};
+        c.przystanekL=new[]{gLandL[0],gLandL[1]};c.przystanekP=new[]{gLandR[0],gLandR[1]};
+        var shaft=root.TransformPoint(new Vector3(GLiftX,0,(GLiftZ0+GLiftZ1)*.5f));
+        c.szyb=new Vector2(shaft.x,shaft.z);c.wnetrze=new Vector2(GLiftHW*K,(GLiftZ1-GLiftZ0)*.5f*K);
+        c.przesuw=LiftDoorHalf*.95f;c.start=1;
+        foreach(var t in garageCab.GetComponentsInChildren<Transform>(true))GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
+        foreach(var t in gLandL)if(t)GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
+        foreach(var t in gLandR)if(t)GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
     }
 
     // ================================================================ SLABS with core holes

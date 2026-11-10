@@ -40,7 +40,7 @@ class RealMirrors(unittest.TestCase):
         self.assertIn('Shader.Find("Braxhorn/GymPlanarMirror")', helper)
         self.assertIn("go.AddComponent<BraxChampionsMirrorCamera>()", helper)
         hotel = src("BraxChampionsHotelSobczakT03.cs")
-        self.assertEqual(hotel.count("BraxChampionsMirror.Wall("), 5)        # lifts, lobby bar, toilets, restaurant bar, rooms
+        self.assertEqual(hotel.count("BraxChampionsMirror.Wall("), 6)        # lifts, lobby bar, toilets, restaurant bar, rooms, garage lift (10.11)
         self.assertIn("BraxChampionsMirror.Wall(", src("BraxChampionsArenaAthletes.cs"))
         runtime = (ROOT / "unity-city/Assets/Mistrzowie/BraxChampionsMirrorCamera.cs").read_text(encoding="utf-8")
         self.assertIn("mirror.sourceCamera = cam;", runtime)

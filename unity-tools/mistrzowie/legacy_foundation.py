@@ -7,7 +7,7 @@ from shapely.geometry import box,Point,LineString,Polygon
 from shapely.ops import unary_union
 ROOT=Path(__file__).resolve().parents[2]
 REPORT=ROOT/'mistrzowie-evidence';REPORT.mkdir(exist_ok=True)
-from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,A1_PARKING_ENTRANCES,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO,APT_DRIVE_CUTS
+from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,A1_PARKING_ENTRANCES,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO,APT_DRIVE_CUTS,HOTEL_GARAGE_CUTS
 from port_layout import PIERS,BERTHS,SHORE_BACK,SEA_LEVEL,PROMENADE_OPENINGS,JETSKI_RAMP,QUAY_APRONS,QUAY_BEDS,QUAY_BED_RECTS,QUAY_FURNITURE,shoreline,beach_height,validate as validate_port
 from promenade_layout import PAVILIONS,PAVILION_PADS,PAVILION_FOOTPRINTS,CYCLE_Z0,CYCLE_Z1,CYCLE_WIDTH,X0 as PROM_X0,X1 as PROM_X1,PALM_BEDS,PALM_BED_RECTS,FURNITURE,DINING,DINING_W,DINING_D,DINING_BEDS,DINING_BED_RECTS,validate as validate_promenade
 SRC=ROOT/'unity-city/Assets/Source/Mistrzowie'
@@ -60,6 +60,8 @@ def zone(x,z):
  if any(inside((x,z),r) for r in A1_PARKING_ENTRANCES):return None
  # apartment car-park drives (BraxChampionsApartments.Parking builds the asphalt, kerbs, arcs and sidewalk round them)
  if any(inside((x,z),r) for r in APT_DRIVE_CUTS):return None
+ # Hotel Sobczak B1 garage: ramp trench, lane to it, stair + lift core (BraxChampionsHotelSobczakT03.Garage)
+ if any(inside((x,z),r) for r in HOTEL_GARAGE_CUTS):return None
  if any(inside((x,z),r) for r in ENTRANCE_HOLES):return None
  if any(inside((x,z),r) for r in ENTRANCE_PATHS+BUILDING_ACCESS):return 'paving'
  if any(inside((x,z),p) for p in plots):return 'plot_base'
@@ -131,7 +133,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE,T11_STREET_ENTRANCE_LAWN,T11_SOUTH_DRIVE]+A1_PARKING_ENTRANCES+APT_DRIVE_CUTS+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS+DINING_BED_RECTS+QUAY_APRONS+QUAY_BED_RECTS
+rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE,T11_STREET_ENTRANCE_LAWN,T11_SOUTH_DRIVE]+A1_PARKING_ENTRANCES+APT_DRIVE_CUTS+HOTEL_GARAGE_CUTS+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS+DINING_BED_RECTS+QUAY_APRONS+QUAY_BED_RECTS
 # rounded: 4.4 / 3.6 m beds gave -219.8+3.6 = -216.20000000000002 next to -216.2 -> zero-length quay-wall edges
 for x,z,w,d in rects:xs.update([round(x,6),round(x+w,6)]);zs.update([round(z,6),round(z+d,6)])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)

@@ -98,3 +98,17 @@ for _id,_p in APT_PARKING.items():
  APT_DRIVE_CUTS.append(apt_rect(_p,APT_AISLE_X0-APT_DRIVE_R,APT_AISLE_X1+APT_DRIVE_R,_road,_inner))
  _a,_b=apt_world(_p,APT_AISLE_X0-APT_DRIVE_R,_road),apt_world(_p,APT_AISLE_X1+APT_DRIVE_R,_road)
  APT_DRIVE_MOUTHS.append((_id,min(_a[0],_b[0]),min(_a[1],_b[1]),max(_a[0],_b[0]),max(_a[1],_b[1])))
+
+# Owner 10.11 15:25-15:26 (Hotel Sobczak: "do teraz parkingu nie ma ... nie ma nic na później"): the B1 garage of T03
+# (BraxChampionsHotelSobczakT03.Garage, 60 bays). Hotel-local rects (centre 1030,710, no rotation) opened in the
+# foundation: the ramp trench beside the podium, the drop-off lane extended to the ramp, the stair + lift core under the
+# pavilion. Must match the C# constants (test_hotel_garage_20261110.py).
+HOTEL_CENTRE=(1030.0,710.0)
+HOTEL_RAMP_WALLS=(21.9,29.5)
+HOTEL_GARAGE_PORTAL_Z=.5
+HOTEL_CORE_OUTER=(-29.5,-23.4,-8.3,1.1)
+def _hotel_rect(x0,x1,z0,z1):
+ return (HOTEL_CENTRE[0]+x0,HOTEL_CENTRE[1]+z0,x1-x0,z1-z0)
+HOTEL_GARAGE_CUTS=[_hotel_rect(HOTEL_RAMP_WALLS[0],HOTEL_RAMP_WALLS[1],-30.0,HOTEL_GARAGE_PORTAL_Z),   # ramp trench
+                   _hotel_rect(16.0,HOTEL_RAMP_WALLS[1]+.18,-34.18,-30.0),                            # lane + kerbs
+                   _hotel_rect(*HOTEL_CORE_OUTER)]                                                    # stair + lift core
