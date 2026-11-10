@@ -151,10 +151,9 @@ public static class BraxChampionsArena
                         BoxMinMax(interiorGold,a0,a1,y-.075f,y-.05f,s>0?face:face-.045f,s>0?face+.045f:face,false);
                     }
                 }
-                // 35mm physical gold divisions every ~3.3m, set 15mm proud - never behind the long-wall murals.
+                // 35mm physical gold divisions every ~3.3m, set 15mm proud.
                 for(float a=a0+3.30f;a<a1-.30f;a+=3.30f)
                 {
-                    if(BraxChampionsArenaSideMurals.CoversLongWall(a))continue;
                     float z=s>0?g1+.0075f:g0-.0075f;
                     BoxMinMax(interiorGold,a-.0175f,a+.0175f,1.20f,yC,
                         z-.0075f,z+.0075f,false);
