@@ -1111,6 +1111,7 @@ public static class BraxChampionsApartments
             if(!o)continue;
             o.transform.localScale=Vector3.one;                     // the parent already carries K
             BraxMiastoAssety.LodyZWezlow(o,new[]{.25f,.08f,.012f});
+            BraxChampionsPalmTrunk.OnSpot(o,world);
             placed++;
         }
         return placed;

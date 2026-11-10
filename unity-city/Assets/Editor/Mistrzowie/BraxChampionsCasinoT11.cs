@@ -1000,6 +1000,7 @@ public static partial class BraxChampionsCasinoT11
             var location=shell.TransformPoint(new Vector3(at.x,.818f,at.y)*K);
             var instance=BraxMiastoAssety.Postaw(shell,palm,"T11 approved city palm",location,0f,1f,false,true);
             BraxMiastoAssety.LodyZWezlow(instance,new[]{.25f,.08f,.012f});
+            BraxChampionsPalmTrunk.OnSpot(instance,location);
         }
         // Real original 2K Poly Haven vegetation, with existing palms intact.
         PolyHavenVegetation2K();

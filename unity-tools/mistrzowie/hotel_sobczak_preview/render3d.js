@@ -107,6 +107,13 @@ window.setup=async function(w,h){
         const mid=(lo+hi)/2,keep=[];for(let t=0;t<ix.length;t+=3){if(p.getZ(ix[t])+p.getZ(ix[t+1])+p.getZ(ix[t+2])<3*mid)keep.push(ix[t],ix[t+1],ix[t+2]);}
         g.setIndex(keep);g.computeBoundingBox();g.computeBoundingSphere();});
       const bb=new THREE.Box3().setFromObject(palm);const c=bb.getCenter(new THREE.Vector3());
+      // anchor = the trunk foot (centroid of the vertices in the lowest 0.6 m), as BraxChampionsPalmTrunk does in the game -
+      // the bounding-box centre of a leaning palm is beside its trunk
+      {palm.updateMatrixWorld(true);let sx=0,sz=0,n=0;const v=new THREE.Vector3();
+       palm.traverse(o=>{if(!o.isMesh)return;const p=o.geometry.attributes.position,ix=o.geometry.index?o.geometry.index.array:null;
+         const used=ix?new Set(ix):null;for(let i=0;i<p.count;i++){if(used&&!used.has(i))continue;v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);
+           if(v.y<bb.min.y+.6){sx+=v.x;sz+=v.z;n++;}}});
+       if(n){c.x=sx/n;c.z=sz/n;}}
       const g=new THREE.Group();palm.position.set(-c.x,-bb.min.y,-c.z);g.add(palm);g.scale.setScalar(PALM_SCALE);
       console.log('palm model height '+(bb.max.y-bb.min.y).toFixed(2));
       for(const p of scene.palms){const o=g.clone(true);o.position.set(p[0],p[1],p[2]);o.rotation.y=p[0]*.7+p[2]*.3;S.add(o);}}

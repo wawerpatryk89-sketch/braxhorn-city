@@ -13,6 +13,7 @@
     <Compile Include="RegionStubs.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="MeshDump.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPalmTrunk.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsApartments.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsInteriorLight.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsMeshBatch.cs" />

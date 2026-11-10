@@ -27,6 +27,26 @@ class PalmsNeverOnPaving(unittest.TestCase):
         self.assertIn("new Vector3(at.x,.818f,at.y)*K", casino)          # on the lawn bed, not the stone apron (.22)
         self.assertIn('"Planter lawn bed"', casino)
 
+    def test_trunk_not_model_origin_on_the_spot(self):
+        # owner 10.11 15:17-15:18 ("uważaj na te palmy ... na chodnikach", "na bank ... na 100%"): Postaw puts the model
+        # origin on the spot; a leaning palm's origin is not under its trunk. Every region palm is moved trunk-on-spot.
+        helper = (ED / "BraxChampionsPalmTrunk.cs").read_text(encoding="utf-8")
+        self.assertIn("if (p.y < minY + .6f) { s += p; n++; }", helper)
+        self.assertIn('t.name.EndsWith("_LOD0")', helper)
+        sites = {"BraxChampionsFoundation.cs": ("BraxChampionsPalmTrunk.OnSpot(o,at);", 1),
+                 "BraxChampionsApartments.cs": ("BraxChampionsPalmTrunk.OnSpot(o,world);", 1),
+                 "BraxChampionsArenaFront.cs": ("BraxChampionsPalmTrunk.OnSpot(instance,world);", 2),
+                 "BraxChampionsCasinoT11.cs": ("BraxChampionsPalmTrunk.OnSpot(instance,location);", 1)}
+        for name, (call, n) in sites.items():
+            src = (ED / name).read_text(encoding="utf-8")
+            self.assertEqual(src.count(call), n, name)
+            # every Postaw of a palm in the file is followed by the trunk alignment
+            self.assertEqual(len(re.findall(r"Postaw\([^;]*palm", src, re.I)), n, name)
+        found = (ED / "BraxChampionsFoundation.cs").read_text(encoding="utf-8")
+        self.assertLess(found.index("BraxChampionsPalmTrunk.Reset();"), found.index("BraxChampionsPalmTrunk.OnSpot(o,at);"))
+        for proj in ("apartments_preview", "arena_preview", "casino_preview"):
+            self.assertIn("BraxChampionsPalmTrunk.cs", (TOOLS / proj / (proj + ".csproj")).read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

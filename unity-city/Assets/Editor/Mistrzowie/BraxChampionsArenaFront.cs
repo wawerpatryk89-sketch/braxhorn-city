@@ -484,6 +484,7 @@ public static partial class BraxChampionsArenaArrival
             var instance=BraxMiastoAssety.Postaw(root,src,"A1 lawn palm",world,(at.x*11f+at.y*7f)%360f,1f,false,true);
             if(!instance)continue;
             BraxMiastoAssety.LodyZWezlow(instance,new[]{.25f,.08f,.012f});
+            BraxChampionsPalmTrunk.OnSpot(instance,world);
             placed++;
         }
         Debug.Log("A1_LAWN_PALMS placed="+placed+"/"+spots.Count+" street=24 (z -128.5) avenue=8 (x+-21) sideLawns=27 (x+-128, east walk kept clear) pots=0 thick=street+walk mixed=sideLawns");
@@ -715,6 +716,7 @@ public static partial class BraxChampionsArenaArrival
             var instance=BraxMiastoAssety.Postaw(root,palm,"A1 entrance palm",world,(at.x*7f+at.y*3f)%360f,1f,false,true);
             if(!instance)continue;
             BraxMiastoAssety.LodyZWezlow(instance,new[]{.25f,.08f,.012f});
+            BraxChampionsPalmTrunk.OnSpot(instance,world);
             placed++;
         }
         Debug.Log("A1_ENTRANCE_PALMS placed="+placed+"/"+spots.Count+" x=+-13.5 (z -80..-128) and +-26.5 (z -66)");

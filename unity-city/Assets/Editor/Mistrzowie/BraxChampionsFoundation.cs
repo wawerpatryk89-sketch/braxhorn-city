@@ -293,6 +293,7 @@ public static class BraxChampionsFoundation
             }
             BraxChampionsGrass.AddClumps(root,materials["grass"]);
             var vegetation=new GameObject("Zielen - ziemia i trawniki poza chodnikami").transform;vegetation.SetParent(root,false);
+            BraxChampionsPalmTrunk.Reset();
             foreach(var p in d.plants)
             {
                 Vector3 at=new Vector3(p.x*K,.16f*K,p.z*K);GameObject o;
@@ -301,6 +302,7 @@ public static class BraxChampionsFoundation
                     // Source palms are in real metres; Postaw applies the shared K once.
                     o=BraxMiastoAssety.Postaw(vegetation,palms[p.variant%palms.Length],p.id+" Palma "+p.band,at,p.yaw,1f,false,true);
                     BraxMiastoAssety.LodyZWezlow(o,new[]{.25f,.08f,.012f});report.palms++;
+                    BraxChampionsPalmTrunk.OnSpot(o,at);                    // the trunk, not the model origin, in the bed
                 }
                 else
                 {
@@ -315,6 +317,8 @@ public static class BraxChampionsFoundation
                 }
                 foreach(var r in o.GetComponentsInChildren<Renderer>(true))GameObjectUtility.SetStaticEditorFlags(r.gameObject,StaticEditorFlags.OccludeeStatic);
             }
+            Debug.Log("CHAMPIONS_PALM_TRUNKS_10_11 moved="+BraxChampionsPalmTrunk.Moved+" maxShiftNominal="+BraxChampionsPalmTrunk.MaxShift.ToString("0.00")+
+                      " unreadable="+BraxChampionsPalmTrunk.Unreadable+" (trunk foot on the bed centre, not the model origin)");
             // Instantiate 12 actual 2K-PBR premium shop shells on REMOVED
             // inland lawn patches, with no duplicate floor under their slab.
             // Dekoracje (promenada, plaża, flota) nie mogą zatrzymać całego miasta:
