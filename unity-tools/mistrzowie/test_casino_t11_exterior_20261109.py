@@ -98,8 +98,8 @@ class CasinoExterior20261109(unittest.TestCase):
                       "T11 entrance canopy black body", "Black door leaf top rail", "Black door leaf meeting stile"):
             self.assertIn(label, self.casino)
         # "A gdzie jest ten dolar złoty" / "na środku" / "jasne złoto, świecące się"
-        self.assertIn("const bool RoofDollarOnOwnerBoard = false;", facade)   # 13:03: "całe do zdjęcia"
-        self.assertIn("const float x=0f,z=-21f,roofY=14.40f,nominalHeight=15.0f;", self.casino)
+        self.assertIn("const bool RoofDollarOnOwnerBoard = true;", facade)    # 13:03 off; 17:15 "na dachu i się kręcić"
+        self.assertIn("const float x=0f,z=-21f,roofY=14.40f,nominalHeight=9.0f;", self.casino)
         self.assertIn("mats[i]=dollarGold;", self.casino)
         # "Wszystko, co złote, ma być złote": one yellow gold, half-metallic, self-lit
         self.assertIn("Colour=new Color(1f,.80f,.20f)", gold)

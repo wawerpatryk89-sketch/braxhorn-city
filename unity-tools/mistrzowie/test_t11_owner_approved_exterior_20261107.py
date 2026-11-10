@@ -138,7 +138,7 @@ class CasinoIssue29Acceptance(unittest.TestCase):
         self.assertIn("24f,.11f,20f",CASINO)
         self.assertIn(DOLLAR,CASINO)
         self.assertIn(DOLLAR_SHA,CASINO)
-        self.assertIn("const float x=0f,z=-21f,roofY=14.40f,nominalHeight=15.0f;",CASINO)
+        self.assertIn("const float x=0f,z=-21f,roofY=14.40f,nominalHeight=9.0f;",CASINO)
         # Not on the owner board 9.11: code kept, off until the owner decides.
         self.assertEqual(CASINO.count("RoofDollar();"),1)
         self.assertIn("if(RoofDollarOnOwnerBoard)RoofDollar();",CASINO)

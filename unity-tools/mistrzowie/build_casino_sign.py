@@ -133,7 +133,9 @@ def parking():
 # behind its top edge, gold ribbons with a red stripe flying from both ends and white sparkles.
 # Built here as one layered relief in real depth (every layer its own closed solid, layers 4-14 cm apart in z, never
 # a decal): gold letters (front .50) -> red outline (.36) -> gold rim (.26) -> suits behind the top -> ribbons behind
-# the ends. It stands on the casino's front parapet between the pylons, against the sky.
+# the ends. Owner 17:15: "na tym zaokrąglonym na górze powinien być ten szyld" - the relief is built flat with dense
+# outlines and then bent round the glass rotunda (half-ellipse 17 x 8 m, centre z -28): it stands on the rotunda's
+# thin cream coping, following its curve, on slim black steel posts.
 CROWN_TEXT = 'KASYNO WAWER'
 CROWN_CAP = 1.75
 CROWN_RED, CROWN_RIM = .17, .27
@@ -189,8 +191,48 @@ def stripe(band, h):
     return clean(up.buffer(-.04, join_style='mitre'))     # 4 cm inside every edge of its band: no shared side faces
 
 
-def roof_crown():
+# the rotunda: glass on the half-ellipse 17 x 8 m about (0, -28), cream coping 15 cm proud of it (to 17.15 x 8.15),
+# top y 10.95. The sign's back plane (z 0) follows the ellipse 16.52 x 7.52: the gold letters' faces (z .50) stay
+# inside the coping edge all round.
+ROTUNDA_CENTRE_Z, CROWN_A, CROWN_B, COPING_TOP = -28.0, 16.52, 7.52, 10.95
+CROWN_DENSE = .20
+
+
+def ellipse_table(a, b, n=20000):
+    t = np.linspace(0, math.pi / 2, n)
+    speed = np.sqrt((a * np.cos(t)) ** 2 + (b * np.sin(t)) ** 2)
+    s = np.concatenate([[0], np.cumsum((speed[1:] + speed[:-1]) / 2 * np.diff(t))])
+    return t, s
+
+
+def bend_round_rotunda(meshes, a=CROWN_A, b=CROWN_B):
+    """Flat relief (x along the sign = arc length from the rotunda's front point, z out of the face) -> bent round
+    the ellipse. Output in the frame Place3DSign uses with the sign at (0, y, ROTUNDA_CENTRE_Z), yaw 180, before the
+    Unity mirror: world x = x, world z = centre - z."""
+    t_tab, s_tab = ellipse_table(a, b)
+    for m in meshes:
+        p = np.array(m['positions'], float).reshape(-1, 3)
+        x, z = p[:, 0], p[:, 2]
+        assert np.abs(x).max() < s_tab[-1], 'sign longer than the rotunda'
+        t = np.sign(x) * np.interp(np.abs(x), s_tab, t_tab)
+        px, pz = a * np.sin(t), b * np.cos(t)                          # pz: distance in front of the centre line
+        nx, nz = b * np.sin(t), a * np.cos(t)
+        ln = np.hypot(nx, nz)
+        nx, nz = nx / ln, nz / ln
+        p[:, 0] = px + nx * z
+        p[:, 2] = pz + nz * z
+        m['positions'] = p.flatten().tolist()
+        tri = np.array(m['triangles']).reshape(-1, 3)
+        v = p[tri]
+        n = np.cross(v[:, 1] - v[:, 0], v[:, 2] - v[:, 0])
+        n /= np.linalg.norm(n, axis=1)[:, None]
+        m['normals'] = np.repeat(n, 3, axis=0).flatten().tolist()       # one vertex per corner (Geometry.triangle)
+
+
+def roof_crown(bend=True):
     g = Geometry()
+    plain_solid = g.solid
+    g.solid = lambda *args, **kw: plain_solid(*args, densify=CROWN_DENSE, **kw)
     cap = CROWN_CAP
     word = heavy_text(CROWN_TEXT, cap)
     red = word.buffer(CROWN_RED, quad_segs=8, join_style='round')
@@ -227,6 +269,12 @@ def roof_crown():
     for x, y, r, z0, z1 in ((-xe + 1.0, cap * .95, .44, .44, .58), (xe - 2.3, cap * .10, .36, .44, .58),
                             (-1.75, top + 1.95, .46, .12, .25), (4.05, top + 1.35, .36, .07, .21), (-4.35, top + 1.25, .30, .05, .17)):
         g.solid(star4(x, y, r), z0, z1, front='light', side='light', bevel=.004, bevel_role='light')
+    # slim black steel posts behind the word, down to the coping (the sign's lowest point sits 1 cm over it)
+    low = min(min(m['positions'][1::3]) for m in g.roles.values())
+    for x in (-10.6, -6.4, -2.2, 2.2, 6.4, 10.6):
+        g.solid(box(x - .07, low - .02, x + .07, cap * .6), -.20, -.06, front='dark', side='dark', bevel=.006, bevel_role='dark')
+    if bend:
+        bend_round_rotunda(g.roles.values())
     for role, m in g.roles.items():
         m['positions'] = [round(v * K, 7) for v in m['positions']]
         m['normals'] = [round(v, 7) for v in m['normals']]

@@ -15,6 +15,7 @@
     <Compile Include="CasinoStubs.cs" />
     <Compile Include="CasinoMain.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPalmTrunk.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsObrot.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11Facade.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11Sign.cs" />

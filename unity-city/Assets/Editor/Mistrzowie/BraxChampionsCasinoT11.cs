@@ -497,7 +497,9 @@ public static partial class BraxChampionsCasinoT11
         // central atrium, front glass, main sign and roof skylight x=-12..12.
         // Owner 10.11 00:35: "tego dolara to bym dał na środku". Centre axis of the building, on the solid roof
         // between the rotunda and the roof lantern (lantern glass is z -10..10), straight above the sign and the door.
-        const float x=0f,z=-21f,roofY=14.40f,nominalHeight=15.0f;
+        // Owner 10.11 17:15: "ten dolar mógłby być na dachu i się kręcić" - on again, 9 m on the roof axis behind the
+        // KASYNO WAWER crown, turning slowly about its own vertical axis (BraxChampionsObrot, never static-batched).
+        const float x=0f,z=-21f,roofY=14.40f,nominalHeight=9.0f;
         B(shell,"T11 OWNER DOLLAR rooftop structural steel support",steel,
             x,14.25f,z,5.0f,.30f,2.5f,true);
         var holder=Group(root,"T11 | OWNER ORIGINAL DEZYNE_3D GOLD DOLLAR | roof");
@@ -530,11 +532,13 @@ public static partial class BraxChampionsCasinoT11
             for(int i=0;i<mats.Length;i++)mats[i]=dollarGold;
             r.sharedMaterials=mats;
         }
+        var spin=holder.gameObject.AddComponent<BraxChampionsObrot>();
+        spin.os=Vector3.up;spin.stopniNaSekunde=30f;spin.zasieg=600f;          // seen from the streets round the casino
         var finalBounds=DollarBounds(dollar);
         Debug.Log("CHAMPIONS_T11_ROOF_DOLLAR_OWNER_ORIGINAL visible_height="+
             (finalBounds.size.y/K).ToString("F2")+
             "m roofY="+roofY+" x="+x+" z="+z+
-            " model_source=dezyne_3d-dollar-sign-140.glb material=bright_yellow_gold_self_lit centred=true"+
+            " model_source=dezyne_3d-dollar-sign-140.glb material=bright_yellow_gold_self_lit centred=true spinning=30deg/s"+
             " phoneVisualReviewRequired=true");
     }
 
@@ -1344,34 +1348,21 @@ public static partial class BraxChampionsCasinoT11
     }
 
     // Owner 10.11 16:36-16:45: no rounded black roof under the name, the name "lepszy i czytelniejszy", "premium
-    // premium", and of his two reference pictures "ten drugi lepszy": KASYNO WAWER as the crown of the facade - heavy
-    // gold capitals in a red outline and a gold rim, the four card suits fanned behind the top, gold ribbons with a red
-    // stripe flying from both ends and white sparkles (build_casino_sign.py roof_crown, one layered relief in real depth).
-    // It stands on the front parapet between the pylons, 1.75 m capitals against the sky; black steel posts and raking
-    // struts behind it carry it to the roof, hidden from the street by the sign itself.
-    public const float CrownZ=-27.80f,CrownBaseY=16.02f;
-    static readonly float[] CrownPostX={-10.6f,-6.4f,-2.2f,2.2f,6.4f,10.6f};
+    // premium", and of his two reference pictures "ten drugi lepszy": heavy gold capitals in a red outline and a gold
+    // rim, the four card suits fanned behind the top, gold ribbons with a red stripe flying from both ends and white
+    // sparkles (build_casino_sign.py roof_crown, one layered relief in real depth). 17:15: "na tym zaokrąglonym na górze
+    // powinien być ten szyld" - the relief is bent round the glass rotunda and stands on its thin cream coping (10.95)
+    // on slim black steel posts (part of the sign mesh), 1.75 m capitals right over the entrance.
+    public const float CrownZ=-28f,CrownBaseY=11.316f;
     static void CasinoName()
     {
-        if(!Place3DSign("KASYNO_WAWER_crown",signRoot,"T11 KASYNO WAWER crown sign | front parapet",new Vector3(0,CrownBaseY,CrownZ),180f,1f))
+        if(!Place3DSign("KASYNO_WAWER_crown",signRoot,"T11 KASYNO WAWER crown sign | round the rotunda",new Vector3(0,CrownBaseY,CrownZ),180f,1f))
         {
             BraxBuildQuality.Warn("DO POPRAWKI T11_NAME_CROWN_MISSING");
             return;
         }
-        // the word's back face is 6 cm behind the gold rim front: posts stand 2 cm behind it, on the parapet top (15.60)
-        const float postZ=CrownZ+.06f+.02f+.07f,parapetTop=15.60f,roofTop=14.16f;
-        foreach(float x in CrownPostX)
-        {
-            float top=CrownBaseY+1.35f;
-            B(signRoot,"T11 crown sign black steel post",windowFrame,x,(parapetTop-.02f+top)*.5f,postZ,.14f,top-parapetTop+.02f,.14f,false);
-            // raking strut from the post down to the roof slab behind the parapet
-            var a=new Vector3(x,top-.25f,postZ+.07f);var b=new Vector3(x,roofTop-.01f,CrownZ+3.2f);
-            var d=b-a;float len=d.magnitude;
-            var strut=B(signRoot,"T11 crown sign black steel raking strut",windowFrame,x,(a.y+b.y)*.5f,(a.z+b.z)*.5f,.10f,len,.10f,false);
-            strut.transform.localRotation=Quaternion.Euler(Mathf.Atan2(d.z,d.y)*Mathf.Rad2Deg,0,0);
-        }
-        Debug.Log("T11_NAME_CROWN 'KASYNO WAWER' cap=1.75 gold+redOutline+goldRim suits=4 ribbons=2 sparkles=5 onFrontParapet=true"+
-            " posts="+CrownPostX.Length+" rotundaRoof=thin_cream_coping blackCap=REMOVED letterRail=REMOVED");
+        Debug.Log("T11_NAME_CROWN 'KASYNO WAWER' cap=1.75 gold+redOutline+goldRim suits=4 ribbons=2 sparkles=5 bentRoundRotunda=16.52x7.52"+
+            " onCoping=10.95 rotundaRoof=thin_cream_coping blackCap=REMOVED letterRail=REMOVED");
     }
     static void MainSign()
     {

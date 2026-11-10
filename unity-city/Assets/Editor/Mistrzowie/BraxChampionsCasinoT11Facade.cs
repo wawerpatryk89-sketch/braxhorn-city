@@ -12,7 +12,7 @@ public static partial class BraxChampionsCasinoT11
 {
     // Owner 10.11 00:33 wanted the $ back; 13:03 on the phone (APK 37): "Mało czytelny i strasznie wygląda ... ta wielka
     // kopuła czarna ogromna ... Ma być premium. Całe do zdjęcia." - the $, the sign band and the black dome are removed.
-    const bool RoofDollarOnOwnerBoard = false;
+    const bool RoofDollarOnOwnerBoard = true;     // owner 10.11 17:15: "ten dolar mógłby być na dachu i się kręcić"
     // Elevation levels (nominal metres).
     const float YPlinth = .80f, YSpanBottom = 6.60f, YSpanTop = 7.60f, YHead = 12.0f, YAttic = 14.0f;
     const float PierW = 1.4f, CornerPierW = 2.0f, PierDepth = .62f, GlassRecess = .44f;

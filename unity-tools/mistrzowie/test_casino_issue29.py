@@ -59,7 +59,7 @@ class CasinoIssue29Contract(unittest.TestCase):
         self.assertIn("24f,.11f,20f",SOURCE)
         # Owner 10.11 00:33 wanted the $ back; 13:03 "całe do zdjęcia" - sign band, dome and $ are removed
         self.assertIn("if(RoofDollarOnOwnerBoard)RoofDollar();",SOURCE)
-        self.assertIn("const bool RoofDollarOnOwnerBoard = false;",FACADE)
+        self.assertIn("const bool RoofDollarOnOwnerBoard = true;",FACADE)        # owner 10.11 17:15: on the roof, turning
         self.assertIn('Door("T11_CASINO_WAWER_PUBLIC","Public glass main entry",0,-36.28f,180f,5.6f)',SOURCE)
         self.assertIn("6 m delivery opening at x -23..-17",FACADE)
         self.assertIn("tower=LATER",SOURCE)

@@ -8,7 +8,7 @@ import json, math, shutil, gzip
 import numpy as np
 from matplotlib.textpath import TextPath
 from matplotlib.font_manager import FontProperties
-from shapely import symmetric_difference_all, constrained_delaunay_triangles
+from shapely import symmetric_difference_all, constrained_delaunay_triangles, segmentize
 from shapely.geometry import Polygon, MultiPolygon, LineString, Point
 from shapely.geometry.polygon import orient
 from shapely.affinity import scale, translate
@@ -63,9 +63,10 @@ class Geometry:
    if not front:pts=pts[::-1]
    self.triangle(role,[(x,y,z) for x,y in pts])
   assert abs(area-g.area)<1e-8*max(1,g.area),'cap area / hole coverage'
- def solid(self,g,z0,z1,front='gold',side='dark',bevel=.008,bevel_role='gold'):
+ def solid(self,g,z0,z1,front='gold',side='dark',bevel=.008,bevel_role='gold',densify=None):
   for poly in polygons(g):
    poly=orient(poly,sign=1)
+   if densify:poly=orient(segmentize(poly,densify),sign=1)   # dense outline for a sign bent after building
    start=len(self.solid_checks)
    # Bevel is an actual sloped annulus, including counters in A/B/O/R.
    b=min(bevel,(z1-z0)*.2)
@@ -74,6 +75,7 @@ class Geometry:
     if not inner.is_empty and len(polygons(inner))==1:break
     b*=.5;inner=poly.buffer(-b,join_style='mitre')
    assert not inner.is_empty,'bevel consumed glyph'
+   if densify:inner=segmentize(inner,densify)
    edge=poly.difference(inner)
    self.cap(poly,z0,side,False)
    self.cap(inner,z1,front,True)

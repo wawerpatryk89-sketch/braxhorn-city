@@ -20,6 +20,14 @@ def method(src, name):
 
 
 class CasinoCrownSign(unittest.TestCase):
+    def test_dollar_on_the_roof_turning(self):
+        # owner 17:15: "ten dolar mógłby być na dachu i się kręcić"
+        facade = (ED / "BraxChampionsCasinoT11Facade.cs").read_text(encoding="utf-8")
+        self.assertIn("const bool RoofDollarOnOwnerBoard = true;", facade)
+        self.assertIn("var spin=holder.gameObject.AddComponent<BraxChampionsObrot>();", self.casino)
+        self.assertIn("spin.os=Vector3.up;", self.casino)
+
+
     @classmethod
     def setUpClass(cls):
         cls.crown = sign.roof_crown()
@@ -34,7 +42,7 @@ class CasinoCrownSign(unittest.TestCase):
 
     def test_composition_like_the_owners_reference(self):
         roles = {m["role"] for m in self.crown["meshes"]}
-        self.assertEqual(roles, {"gold", "accent", "red", "black", "light"})
+        self.assertEqual(roles, {"gold", "accent", "red", "black", "light", "dark"})     # dark: the steel posts
         self.assertEqual(sign.CROWN_TEXT, "KASYNO WAWER")
         self.assertGreaterEqual(sign.CROWN_CAP, 1.7)                       # readable from the street
         src = (Path(__file__).parent / "build_casino_sign.py").read_text(encoding="utf-8")
@@ -45,19 +53,27 @@ class CasinoCrownSign(unittest.TestCase):
         self.assertIn("g.solid(red, .12, .36,", src)
         self.assertIn("g.solid(rim, .06, .26,", src)
 
-    def test_fits_between_the_pylons_and_sits_on_the_parapet(self):
-        lo, hi = self.bounds()
-        # pylons at x +-18.25, 2.75 wide: inner faces +-16.875
-        self.assertLess(hi[0], 16.875 - 1.5)
-        self.assertGreater(lo[0], -16.875 + 1.5)
+    def test_bent_round_the_rotunda_and_standing_on_its_coping(self):
+        # owner 17:15: "na tym zaokrąglonym na górze powinien być ten szyld"
+        import numpy as np
         z = float(re.search(r"CrownZ=(-?[\d.]+)f", self.casino).group(1))
         y = float(re.search(r"CrownBaseY=(-?[\d.]+)f", self.casino).group(1))
-        bottom = y + lo[1]
-        self.assertGreater(bottom, 15.60)                                    # parapet top
-        self.assertLess(bottom, 15.60 + .10)
-        # front of the letters a little proud of the parapet face (-28.125), the back still over the parapet
-        self.assertLess(z - hi[2], -28.125)
-        self.assertGreater(z - lo[2], -28.125)
+        self.assertEqual(z, sign.ROTUNDA_CENTRE_Z)
+        flat = sign.roof_crown(bend=False)
+        pts = np.concatenate([np.array(m["positions"]).reshape(-1, 3) / sign.K for m in self.crown["meshes"]])
+        # every point of the bent sign lies over the rotunda's cream coping (ellipse 17.15 x 8.15 round x 0, z -28)
+        wx, wz = pts[:, 0], z - pts[:, 2]
+        r = (wx / 17.15) ** 2 + ((wz - z) / 8.15) ** 2
+        body = pts[:, 1] < 3.0                                   # sparkles on the letters may stand a few cm proud
+        self.assertLess(r[body].max(), 1.0)
+        # the lowest point of the relief 1 cm over the coping (10.95), the posts 1 cm into it
+        lo_sign = min((np.array(m["positions"]).reshape(-1, 3) / sign.K)[:, 1].min() for m in flat["meshes"] if m["role"] != "dark")
+        lo_post = min((np.array(m["positions"]).reshape(-1, 3) / sign.K)[:, 1].min() for m in flat["meshes"] if m["role"] == "dark")
+        self.assertAlmostEqual(y + lo_post, sign.COPING_TOP - .01, places=2)
+        self.assertGreater(y + lo_sign, sign.COPING_TOP)
+        self.assertLess(y + lo_sign, sign.COPING_TOP + .03)
+        # the text faces the street: the word's middle is the front point of the rotunda
+        self.assertLess(abs(np.median(wx)), 1.0)
 
     def test_name_no_longer_on_the_rotunda(self):
         name = method(self.casino, "CasinoName")
