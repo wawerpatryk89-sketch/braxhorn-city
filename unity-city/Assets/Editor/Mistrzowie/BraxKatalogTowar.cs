@@ -68,7 +68,7 @@ public static partial class BraxKatalog
         if (!wzory.TryGetValue(key, out var parts))
         {
             var lm = new BraxChampionsMeshBatch();
-            build(new Ctx { m = lm, root = c.root, cols = c.cols, unit = c.unit, water = c.water, seat = c.seat });
+            build(new Ctx { m = lm, root = c.root, cols = null, unit = c.unit, water = null, seat = null });   // a template: no colliders / seats / water
             var tmp = new GameObject("BraxKatalog wzory (tmp)");
             var g = lm.Build(tmp.transform, "BraxKatalog wzór " + key, Folder, false, c.unit);
             var list = new System.Collections.Generic.List<(Mesh, Material)>();
@@ -96,6 +96,17 @@ public static partial class BraxKatalog
     /// <summary>A garment "sewn" on a hanger (see GarmentMesh); shared meshes: 3 drape variants per kind.</summary>
     public static void Garment(Ctx c, Vector3 hook, Vector3 along, int kind, Material mat)
     { int v = Var(hook, 3); Place(c, "ubranie " + kind + "-" + v, cc => GarmentMesh(cc, Vector3.zero, Vector3.forward, kind, Slot, v * 2.1f + .4f), hook, along, mat, 1f, true); }
+    /// <summary>A chrome wire hanger alone (for the owner's model garments): hook = the top of the hook on the rail.</summary>
+    public static void Hanger(Ctx c, Vector3 hook, Vector3 along)
+    {
+        Place(c, "wieszak druciany", cc =>
+        {
+            Materials(); var k = new Fr(Vector3.zero, Vector3.forward);
+            cc.m.Tube(Chrome, k.P(-.012f, .018f, 0f), k.P(0f, -.045f, 0f), .0022f, 5);
+            cc.m.Tube(Chrome, k.P(0f, -.045f, 0f), k.P(-.205f, -.095f, 0f), .0022f, 5); cc.m.Tube(Chrome, k.P(0f, -.045f, 0f), k.P(.205f, -.095f, 0f), .0022f, 5);
+            cc.m.Tube(Chrome, k.P(-.205f, -.095f, 0f), k.P(.205f, -.095f, 0f), .0022f, 5);
+        }, hook, along, null);
+    }
     /// <summary>A stack of n (5-7) folded T-shirts: p = the base centre, f = the folded front.</summary>
     public static void FoldedStack(Ctx c, Vector3 p, Vector3 f, Material mat, int n)
     { Place(c, "stos " + n, cc => FoldedStackMesh(cc, Vector3.zero, Vector3.forward, Slot, n), p, f, mat, 1f, true); }

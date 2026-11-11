@@ -106,6 +106,10 @@ def main():
     sys.path.insert(0, str(ROOT / "unity-tools/wideo"))
     import install_braxhorn_wideo
     install_braxhorn_wideo.install()
+    # the owner's shop models (clothes, bags, shoes; global for every shop in the game)
+    sys.path.insert(0, str(ROOT / "unity-tools/sklep"))
+    import install_sklep_modele
+    install_sklep_modele.install()
     if not os.environ.get("KLUCZ", "").strip():
         print("BRAX_OWNER_MEDIA_SKIPPED: no KLUCZ (the cinema shows BRAK PLIKU FILMU, the TVs their still pictures)")
         return 0

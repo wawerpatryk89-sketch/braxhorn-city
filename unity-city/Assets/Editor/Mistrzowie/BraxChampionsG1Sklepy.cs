@@ -259,7 +259,25 @@ public static partial class BraxChampionsD2
     // build a shop's small goods into their own culled group (the static batch m is swapped meanwhile)
     // the 10 m column grid (x, z = 5 mod 10): goods hung or stood in the middle of a unit keep clear of a column
     static bool NearColumn(Vector3 p,float r){float gx=Mathf.Round((p.x-5f)/10f)*10f+5f,gz=Mathf.Round((p.z-5f)/10f)*10f+5f;return (p.x-gx)*(p.x-gx)+(p.z-gz)*(p.z-gz)<r*r;}
-    static Transform goodsInst;   // the goods group being built: the catalogue's shared pieces are placed in it (culled with it)
+    static Transform goodsInst;
+    // the owner's Tripo clothes (pack sklep_ubrania_01, cut by unity-tools/sklep/split_sheet.py, global for every shop in the
+    // game; owner 11.11 22:44): on the rails instead of the code garments when the pack is in (CI with KLUCZ); the code
+    // garments stay as the fallback and for the dresses and the sports jerseys
+    const string UbraniaPaczka="sklep_ubrania_01";
+    static readonly Dictionary<int,string[]> UbraniaModele=new Dictionary<int,string[]>{
+        {0,new[]{"ubranie_polo_granat","ubranie_henley_bezowy"}},{1,new[]{"ubranie_koszula_biala","ubranie_koszula_krata","ubranie_henley_bezowy"}},
+        {2,new[]{"ubranie_trencz_bezowy","ubranie_kurtka_puchowa_czarna"}},{3,new[]{"ubranie_chinosy_bezowe","ubranie_dresy_szare"}},
+        {6,new[]{"ubranie_bluza_grafit","ubranie_kardigan_bezowy"}}};
+    static bool ModelGarment(Vector3 hookLocal,Vector3 alongLocal,int kind,int i)
+    {
+        if(!UbraniaModele.TryGetValue(kind,out var names)||!BraxMiastoAssety.Jest(UbraniaPaczka))return false;
+        string n=names[((i%names.Length)+names.Length)%names.Length];
+        var src=BraxMiastoAssety.Model(UbraniaPaczka,n+"_wieszak");if(!src)return false;
+        var w=root.rotation*alongLocal;float yaw=Mathf.Atan2(w.x,w.z)*Mathf.Rad2Deg;
+        BraxMiastoAssety.Postaw(goodsInst?goodsInst:g1Goods,src,n,Wld(hookLocal+Vector3.down*.06f),yaw,1f,false,false);
+        BraxKatalog.Hanger(Kat(),hookLocal,alongLocal);
+        return true;
+    }   // the goods group being built: the catalogue's shared pieces are placed in it (culled with it)
     static void Goods(string label,Action build)
     {
         var keep=m;var keepI=goodsInst;m=new BraxChampionsMeshBatch();var g=Group(g1Goods,label);goodsInst=g;
@@ -446,7 +464,7 @@ public static partial class BraxChampionsD2
                 void Hang(Vector3 a,Vector3 b,float step,int seed)
                 {
                     var al=(b-a).normalized;int n=Mathf.FloorToInt((b-a).magnitude/step);
-                    for(int i=0;i<n;i++){int kind=kinds[((i/6)+seed)%kinds.Length];var hk=a+al*((i+.5f)*step);if(NearColumn(hk,.75f))continue;BraxKatalog.Garment(Kat(),hk,al,kind,Cloth(kind,i+seed));}
+                    for(int i=0;i<n;i++){int kind=kinds[((i/6)+seed)%kinds.Length];var hk=a+al*((i+.5f)*step);if(NearColumn(hk,.75f))continue;if(!ModelGarment(hk,al,kind,i+seed))BraxKatalog.Garment(Kat(),hk,al,kind,Cloth(kind,i+seed));}
                 }
                 if(!bags)Goods(nm+" | ubrania",()=>
                 {

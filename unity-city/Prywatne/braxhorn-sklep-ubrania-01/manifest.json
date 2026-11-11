@@ -1,0 +1,44 @@
+{
+ "source": "owner Tripo sheet 11.11.2026 22:44 (10 garments: polo, henley, flannel shirt, white shirt, sweatshirt, cardigan, puffer jacket, trench coat, chinos, joggers), cut by unity-tools/sklep/split_sheet.py",
+ "target": "sklep_ubrania_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_ubrania_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "cfaa98f8e8860a67a274036a8e714e7e2f87c608cf9a0ae6dad0bb5421de738f",
+ "cmsSha256": "22a9a70e6c2c1e3846d98114da2d8d89a6f48521adcb5b39409b87f4d714e872",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 83076825,
+   "sha256": "22a9a70e6c2c1e3846d98114da2d8d89a6f48521adcb5b39409b87f4d714e872"
+  }
+ ],
+ "files": {
+  "oryginal/spec.json": "885ee85028ed93316b7c11bf1db6d79678029d708e5053d459e36626f250f841",
+  "oryginal/tripo_convert_01c8a3f8-937f-4c9f-bb78-ac1e7d7b2714.zip": "9664322aae551612ff40f1260fff8155a12da7d3a792faa39c62bffed0a675b0",
+  "sklep_ubrania_01/_tekstury/sklep_ubrania_01_kolor.jpg": "63c9a0c0b6ab6615c9641915f3474d74613514fe4ca044f93bf4e5145274e8e5",
+  "sklep_ubrania_01/_tekstury/sklep_ubrania_01_mr.png": "18cef891a0f15afc6e99c0a0ecca946abf502e3fdad90162e817554b4bd7492d",
+  "sklep_ubrania_01/_tekstury/sklep_ubrania_01_normal.png": "0c6f07a37da6612a58c551014b9d6276124baa26d8ca907917d55ce8b71d4cf7",
+  "sklep_ubrania_01/katalog.json": "1ac79960ee4b2eefeab598b4a32d6e868adc580be2c8ed35c07faa84b2c9fd8f",
+  "sklep_ubrania_01/ubranie_bluza_grafit.glb": "50fbf514ed5aa2f1589b5b60583d97f4e1815b711e395c5ea88732af3eb98f6c",
+  "sklep_ubrania_01/ubranie_bluza_grafit_wieszak.glb": "ae316728b1b24bfcceadb8e13635183311d3bede185d412b5a9624405353f948",
+  "sklep_ubrania_01/ubranie_chinosy_bezowe.glb": "c826c1c2426e51adb7dc5691af64cdf9e40442a08bbc8a51357ccb19708053e7",
+  "sklep_ubrania_01/ubranie_chinosy_bezowe_wieszak.glb": "47cfa5113902f3489373001dc81d1327697edeebd42a87273b96f7d4cfcd0eef",
+  "sklep_ubrania_01/ubranie_dresy_szare.glb": "4d585358f0244fa49aaf01d31ae3b28183fc21f478f5ab6e9a386cc65ebada34",
+  "sklep_ubrania_01/ubranie_dresy_szare_wieszak.glb": "6717a5cfdc4fb15c9c8b8b55f9d71ccba4cc50efad8f17c33427acd52fbbf83b",
+  "sklep_ubrania_01/ubranie_henley_bezowy.glb": "5844bb035a0af552ad7aafa3f3cc93c175f1e6ed66844b62794b20461cf01f26",
+  "sklep_ubrania_01/ubranie_henley_bezowy_wieszak.glb": "12d87635d87a65dc07209a6719e1b3536b1047b57e7fda806d1f335b4fd8f6c6",
+  "sklep_ubrania_01/ubranie_kardigan_bezowy.glb": "b74652235f29b1e3c1b76137eaeb0b2bb0d2c6ed4af159d8e67cab2ac153963e",
+  "sklep_ubrania_01/ubranie_kardigan_bezowy_wieszak.glb": "96d044739d6b24febb305c51bbf02bc9793f56a8f3a2c928ab780b68b860e24a",
+  "sklep_ubrania_01/ubranie_koszula_biala.glb": "86cbca7a827e1f59ef26228be41a15b2e27f81b57cfec244c642702c23e7b130",
+  "sklep_ubrania_01/ubranie_koszula_biala_wieszak.glb": "e49bbb04f60f154e41af617c46d40776b04ee2ba855bd709de8f49b8d09be7cb",
+  "sklep_ubrania_01/ubranie_koszula_krata.glb": "d586051215994c2611b197f4b2ac71dfdecc60d6b84bff5a3c57bf595735ce95",
+  "sklep_ubrania_01/ubranie_koszula_krata_wieszak.glb": "7f0e84443bd70bd843e78041b3bbfb3e5da788630ee1584ea615bed0d6baf83f",
+  "sklep_ubrania_01/ubranie_kurtka_puchowa_czarna.glb": "a29c6f487a44bebdd45b1a451636f6de8d4349b3e2190642bf43f2294cba0a91",
+  "sklep_ubrania_01/ubranie_kurtka_puchowa_czarna_wieszak.glb": "ed14010464932e63685edf9d52bd75ee21af5a5be6f15090710d22f96d12c610",
+  "sklep_ubrania_01/ubranie_polo_granat.glb": "66dc535566d10e69ec646b6cec8e1279215e6c6f62cc80b8b6b6f1c032f3f75f",
+  "sklep_ubrania_01/ubranie_polo_granat_wieszak.glb": "7a751951a75ba3ae6eb5ea546ed657dc92ea0b8a4b29942bac0d543e91e06752",
+  "sklep_ubrania_01/ubranie_trencz_bezowy.glb": "ac946a1c2661c2b75cb8af7efc40fab9b4285be1181a6021200d30929fc2d5fb",
+  "sklep_ubrania_01/ubranie_trencz_bezowy_wieszak.glb": "91b323ed06b59cc659e9bdd1ee187f36bf2826f1cd640cdae392d2cb2a3de57a"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

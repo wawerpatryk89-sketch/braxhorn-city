@@ -27,10 +27,29 @@ public sealed class BraxChampionsMirrorCamera : MonoBehaviour { public const int
 public static class BraxZapisAssetu { public static void Utworz(UnityEngine.Object o, string path) { } }
 public static class BraxMiastoAssety
 {
-    public static bool Jest(string paczka) => false;   // the owner's packs are encrypted: never in the preview
-    public static GameObject Model(string paczka, string plik) => new GameObject(plik);
+    // the owner's packs are encrypted: in the preview only when a decrypted copy was put beside the run (the shop models
+    // cut from the owner's Tripo sheets: Assets/Source/Prywatne/Miasto/<pack>/*.glb), drawn from the .glb by three.js
+    public const string Baza = "Assets/Source/Prywatne/Miasto/";
+    public static bool Jest(string paczka) => System.IO.Directory.Exists(Baza + paczka) && System.IO.Directory.GetFiles(Baza + paczka, "*.glb").Length > 0;
+    public static GameObject Model(string paczka, string plik)
+    {
+        string p = Baza + paczka + "/" + plik + ".glb";
+        if (!System.IO.File.Exists(p)) return new GameObject(plik);
+        var g = new GameObject(plik); GameObject.Registry.Remove(g);
+        var pm = g.AddComponent<PreviewModel>(); pm.path = p; (pm.min, pm.max) = GltfBounds.Read(p);
+        g.AddComponent<MeshRenderer>().sharedMaterial = new Material { name = "gltf", textured = true };
+        return g;
+    }
     public static GameObject Postaw(Transform parent, GameObject src, string name, Vector3 p, float yaw, float s = 1f, bool st = true, bool sh = true)
-    { var g = new GameObject(name); g.transform.SetParent(parent, false); g.transform.position = p; Rec.Palms.Add(p); Rec.PalmObjs.Add(g.transform); return g; }
+    {
+        if (src != null && src.GetComponent<PreviewModel>() != null)
+        {
+            var o = UnityEngine.Object.Instantiate(src); o.transform.SetParent(parent, false); o.name = name;   // the copy keeps its PreviewModel
+            o.transform.position = p; o.transform.rotation = Quaternion.Euler(0f, yaw, 0f); o.transform.localScale = Vector3.one * (s * 1.2944f);
+            return o;
+        }
+        var g = new GameObject(name); g.transform.SetParent(parent, false); g.transform.position = p; Rec.Palms.Add(p); Rec.PalmObjs.Add(g.transform); return g;
+    }
     public static void LodyZWezlow(GameObject o, float[] progi) { }
     public static Bounds Granice(GameObject o) => new Bounds(o.transform.position, Vector3.zero);
     public static void Przygotuj(GameObject o, bool statyczny = true, bool cienie = true) { }

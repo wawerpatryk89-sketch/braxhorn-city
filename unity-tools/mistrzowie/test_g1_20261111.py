@@ -256,5 +256,18 @@ class G1OwnerMediaTests(unittest.TestCase):
         self.assertIn('owner_media()', (ROOT / 'unity-tools/mistrzowie/prepare_assets.py').read_text())
 
 
+class G1ShopModelsTests(unittest.TestCase):
+    def test_owner_clothes_pack_is_global(self):
+        # owner 22:44: the Tripo clothes / bags / shoes for every shop in the game - one encrypted pack, one installer
+        m = json.loads((ROOT / 'unity-city/Prywatne/braxhorn-sklep-ubrania-01/manifest.json').read_text())
+        self.assertEqual(m['target'], 'sklep_ubrania_01')
+        self.assertTrue(any(k.endswith('ubranie_trencz_bezowy_wieszak.glb') for k in m['files']))
+        self.assertFalse(any(p.suffix in ('.glb', '.png', '.jpg', '.zip') for p in (ROOT / 'unity-city/Prywatne/braxhorn-sklep-ubrania-01').iterdir()))
+        self.assertIn('install_sklep_modele', (ROOT / 'unity-tools/mistrzowie/install_owner_media.py').read_text())
+        sk = (ED / 'BraxChampionsG1Sklepy.cs').read_text()
+        self.assertIn('BraxMiastoAssety.Model(UbraniaPaczka', sk)
+        self.assertTrue((ROOT / 'docs/zasady/ZASADA_SKLEP_MODELE_GLOBALNE_20261111.md').exists())
+
+
 if __name__ == '__main__':
     unittest.main()
