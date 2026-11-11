@@ -46,7 +46,8 @@ class R1MieszkanieBraxa(unittest.TestCase):
         self.assertIn("XW", clock.group(1))                     # zegar na ścianie W1, nie na W3 za workiem
 
     def test_tv_is_a_screen_not_a_black_board(self):
-        self.assertIn("EkranTV(A,", FLAT)
+        # 11.11 21:40: telewizor z kodu z filmami właściciela (BraxTelewizory), nie czarna tablica ani stała grafika
+        self.assertIn('BraxTelewizory.NaScianie(A, "mieszkanie Braxa — salon"', FLAT)
         self.assertIn("listwa dźwiękowa", (REG / "BraxRegionBraxFlat.cs").read_text(encoding="utf-8"))
 
     def test_bathroom_and_bedroom_have_working_doors(self):

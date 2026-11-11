@@ -789,6 +789,13 @@ public static partial class BraxRegionFawela
                 KolF(rd, F, L - G - .01f - gL, L - G, yF, yF + BraxChlodnie.Wysokosc, fd - wL * .5f, fd + wL * .5f);
             }
         }
+        // TELEWIZOR z filmami właściciela (21:40 „żeby w każdym pomieszczeniu były”): bar, kebab, pizzeria, loteria, przychodnia
+        // (poczekalnia) — 40" na lewej ścianie, fryzjer — na prawej (lewa: lustra); środek 2.05 m × K, nad meblami i plakatami
+        if (bar || loteria || przych || fryzjer)
+        {
+            bool prawa = fryzjer; float dTv = przych ? 2.9f : fryzjer ? 1.7f : 2.1f;
+            BraxTelewizory.NaScianie(rd, "fawela " + rodzaj + " " + dz.nr, F.P(prawa ? L - G : G, yF + 2.05f * k, dTv), prawa ? -F.R : F.R, .9f * k);
+        }
         // wyposażenie wg branży
         if (bar)
         {   // hokery przy ladzie, stolik i krzesła z tworzywa pod markizą

@@ -275,9 +275,9 @@ internal static class BraxChlodnie
             var e = Etykiety[i]; int ox = (i % 4) * CW, oy = (i / 4) * CW;
             for (int y = 0; y < CW; y++) for (int x = 0; x < CW; x++) px[(oy + y) * S + ox + x] = (y >= 22 && y < 66) || (y >= 226 && y < 234) ? e.pas : e.tlo;
             float jas = e.pas.r * .3f + e.pas.g * .59f + e.pas.b * .11f;
-            TekstAtlasu(px, S, ox, oy, CW, e.marka, 176f, 34f, e.tekstMarki);
-            TekstAtlasu(px, S, ox, oy, CW, e.nazwa, 88f, 74f, e.tekst);
-            TekstAtlasu(px, S, ox, oy, CW, e.dopisek, 33f, 22f, jas > .55f ? Cz : Bi);
+            TekstAtlasu(px, S, ox, oy, CW, CW, e.marka, 176f, 34f, e.tekstMarki);
+            TekstAtlasu(px, S, ox, oy, CW, CW, e.nazwa, 88f, 74f, e.tekst);
+            TekstAtlasu(px, S, ox, oy, CW, CW, e.dopisek, 33f, 22f, jas > .55f ? Cz : Bi);
         }
         var tx = new Texture2D(S, S, TextureFormat.RGB24, true); tx.SetPixels(px); tx.Apply();
         Directory.CreateDirectory(Katalog); string path = Katalog + "/etykiety_napojow.png";
@@ -289,17 +289,19 @@ internal static class BraxChlodnie
         if (t) { m.SetTexture("_MainTex", t); EditorUtility.SetDirty(m); }
         return m;
     }
-    static void TekstAtlasu(Color[] px, int S, int ox, int oy, int CW, string tekst, float by, float cap, Color kol)
+    /// <summary>Napis krojem Bebas w obrazie (px szerokości S): w prostokącie ox, oy, CW × CH, wyśrodkowany, linia bazowa by,
+    /// wysokość wersalika cap (zmniejszana do 88 % szerokości), wygładzanie 2 × 2 próbki na piksel.</summary>
+    internal static void TekstAtlasu(Color[] px, int S, int ox, int oy, int CW, int CH, string tekst, float by, float cap, Color kol)
     {
         if (string.IsNullOrEmpty(tekst)) return;
         float w = BraxLiteryBebas.Szerokosc(tekst, cap); if (w > CW * .88f) cap *= CW * .88f / w;
-        var maska = new byte[CW * CW];   // próbki 2 × 2 na piksel (bity), suma po wszystkich trójkątach napisu — bez szwów między trójkątami
+        var maska = new byte[CW * CH];   // próbki 2 × 2 na piksel (bity), suma po wszystkich trójkątach napisu — bez szwów między trójkątami
         foreach (var tr in BraxLiteryBebas.Trojkaty(tekst, new Vector3(CW * .5f, by, 0f), Vector3.right, Vector3.up, cap))
         {
             Vector2 a = tr[0], b = tr[1], c = tr[2];
             float pole = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x); if (Mathf.Abs(pole) < 1e-6f) continue;
             int x0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.x, Mathf.Min(b.x, c.x)))), x1 = Mathf.Min(CW - 1, Mathf.CeilToInt(Mathf.Max(a.x, Mathf.Max(b.x, c.x))));
-            int y0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.y, Mathf.Min(b.y, c.y)))), y1 = Mathf.Min(CW - 1, Mathf.CeilToInt(Mathf.Max(a.y, Mathf.Max(b.y, c.y))));
+            int y0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.y, Mathf.Min(b.y, c.y)))), y1 = Mathf.Min(CH - 1, Mathf.CeilToInt(Mathf.Max(a.y, Mathf.Max(b.y, c.y))));
             for (int y = y0; y <= y1; y++)
                 for (int x = x0; x <= x1; x++)
                     for (int q = 0; q < 4; q++)
@@ -309,7 +311,7 @@ internal static class BraxChlodnie
                         if (pole > 0f ? (w0 >= 0f && w1 >= 0f && w2 >= 0f) : (w0 <= 0f && w1 <= 0f && w2 <= 0f)) maska[y * CW + x] |= (byte)(1 << q);
                     }
         }
-        for (int y = 0; y < CW; y++)
+        for (int y = 0; y < CH; y++)
             for (int x = 0; x < CW; x++)
             {
                 int bity = maska[y * CW + x]; if (bity == 0) continue;

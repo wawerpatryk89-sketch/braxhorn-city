@@ -375,13 +375,10 @@ public static class BraxRegionBraxFlat
         float tvx = XS - .45f;                                                                              // RTV przy W3 (salon | sypialnia)
         W.MM(dab, tvx, XS, y, y + .5f, 37.4f, 39.2f, true);                                                  // szafka RTV
         W.MM(grafit, tvx - .02f, tvx, y + .06f, y + .44f, 37.45f, 38.27f); W.MM(grafit, tvx - .02f, tvx, y + .06f, y + .44f, 38.33f, 39.15f);
-        W.MM(grafit, XS - .06f, XS - .02f, y + 1.0f, y + 1.0f + .8f * k, 37.6f, 37.6f + 1.4f * k);          // TV (panel, ramka)
-        // 9.11 (zdjęcie: czarna tablica na ścianie): ekran włączony — grafika właściciela (BRAXHORN) na emisji; bez pliku szkło czarne
-        // z połyskiem (odbicie jak w prawdziwym TV). Pod TV listwa dźwiękowa, dioda gotowości.
-        if (!EkranTV(A, new Vector3(XS - .066f, y + 1.0f + .4f * k, 37.6f + .7f * k), 1.4f * k - .06f, .8f * k - .05f))
-            W.MM(BraxRegion.Fitting("Salon: ekran TV (czarne szkło, połysk)", new Color(.02f, .022f, .026f), .06f, .2f), XS - .065f, XS - .06f, y + 1.02f, y + .98f + .8f * k, 37.62f, 37.58f + 1.4f * k);
+        // 11.11 (właściciel 20:56 „w telewizorach lecą filmiki moje”, 21:40 telewizory kolegi z filmami): telewizor z kodu na ścianie
+        // (BraxTelewizory — ramka, korpus, ekran z filmami właściciela w pętli, gdy gracz jest w mieszkaniu); pod nim listwa dźwiękowa
+        BraxTelewizory.NaScianie(A, "mieszkanie Braxa — salon", new Vector3(XS - .02f, y + 1.0f + .45f * k, 37.6f + .7f * k), Vector3.left, 1.36f * k);
         W.MM(grafit, XS - .12f, XS - .02f, y + .9f, y + .96f, 37.9f, 39.1f);                                   // listwa dźwiękowa
-        W.MM(BraxRegionMeble.Swiecacy("Salon: dioda TV", new Color(1f, .25f, .2f), .8f), XS - .07f, XS - .066f, y + 1.01f, y + 1.015f, 38.5f, 38.51f);
         W.MM(tkaninaC, 42.0f, 45.2f, y, y + .012f, 37.2f, 39.4f);                                          // dywan
         Prop(A, "Salon: sofa", new Vector3(42.4f, y, 38.3f), 90f, 1f, true, .95f * k, "Sofa_01", "sofa_02");
         Prop(A, "Salon: stolik kawowy", new Vector3(43.8f, y, 38.3f), 0f, 1f, true, .45f * k, "modern_coffee_table_01", "coffee_table_round_01", "industrial_coffee_table");
@@ -477,34 +474,6 @@ public static class BraxRegionBraxFlat
         if (s < .999f) { o.transform.localScale *= s; b = BraxRegion.Bounds(o); }
         o.transform.position += new Vector3(stopa.x - b.center.x, stopa.y - b.min.y, stopa.z - b.center.z);
         Physics.SyncTransforms();
-    }
-
-    // Ekran TV z grafiką właściciela (paczka prywatna); false, gdy brak pliku.
-    static bool EkranTV(Transform p, Vector3 srodek, float w, float h)
-    {
-        string plik = new[] { "Assets/Source/Prywatne/Grafiki/billboardy/12.jpg", "Assets/Source/Prywatne/Miasto/miasto_sklepy/billboardy/12.jpg",
-                              "Assets/Source/Prywatne/Grafiki/billboardy/09.jpg", "Assets/Source/Prywatne/Miasto/miasto_sklepy/billboardy/09.jpg" }
-                      .FirstOrDefault(System.IO.File.Exists);
-        if (plik == null) { BraxRegion.Note("mieszkanie: ekran TV bez grafiki (brak billboardy/12.jpg i 09.jpg) — czarne szkło"); return false; }
-        AssetDatabase.ImportAsset(plik, ImportAssetOptions.ForceSynchronousImport);
-        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(plik); if (!tex) return false;
-        var m = new Material(Shader.Find("Standard")) { name = "Salon: ekran TV (grafika)", mainTexture = tex };
-        m.SetFloat("_Glossiness", .85f); m.EnableKeyword("_EMISSION"); m.SetTexture("_EmissionMap", tex); m.SetColor("_EmissionColor", new Color(.75f, .75f, .75f));
-        m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
-        System.IO.Directory.CreateDirectory(BraxRegion.Out + "/Materials");
-        BraxZapisAssetu.Utworz(m, BraxRegion.Out + "/Materials/mieszkanie_ekran_tv.mat");
-        // kadr 16:9 ze środka grafiki
-        float asp = tex.height > 0 ? (float)tex.width / tex.height : 1.78f, cel = w / h, u0 = 0f, u1 = 1f, v0 = 0f, v1 = 1f;
-        if (asp > cel) { float vis = cel / asp; u0 = (1f - vis) * .5f; u1 = 1f - u0; } else { float vis = asp / cel; v0 = (1f - vis) * .5f; v1 = 1f - v0; }
-        // ekran na ścianie W3 od salonu (lico −x): patrzący stoi po stronie −x, prawo patrzącego = +z
-        var mesh = new Mesh { name = "Salon: ekran TV" };
-        mesh.vertices = new[] { srodek + new Vector3(0, -h * .5f, -w * .5f), srodek + new Vector3(0, -h * .5f, w * .5f), srodek + new Vector3(0, h * .5f, w * .5f), srodek + new Vector3(0, h * .5f, -w * .5f) };
-        mesh.uv = new[] { new Vector2(u1, v0), new Vector2(u0, v0), new Vector2(u0, v1), new Vector2(u1, v1) };   // prawo patrzącego = −z
-        mesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };                                                                 // przód −x (do salonu)
-        mesh.RecalculateNormals(); mesh.RecalculateBounds();
-        var g = BraxMiastoA.Obiekt(p, "Salon: ekran TV (grafika)", mesh, m);
-        g.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-        return true;
     }
 
     /// <summary>Prostopadłościan z min/max; opcjonalnie otwór drzwi (ox0..ox1 do wysokości oy1) w ścianie poziomej wzdłuż x.</summary>

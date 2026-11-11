@@ -156,6 +156,29 @@ class Optyk(unittest.TestCase):
         self.assertNotIn("round_spectacles", t[t.index('"optyk" =>'):t.index("\n", t.index('"optyk" =>'))])
 
 
+class Telewizory(unittest.TestCase):
+    def test_tvs_play_owner_films(self):
+        # 20:56 „jak jest telewizor, to w telewizorach lecą filmiki moje”; 21:40 „Twój kolega zrobił telewizory, które grają…
+        # tak samo możesz z nich skorzystać, żeby w każdym pomieszczeniu były”
+        tv = src(R / "BraxTelewizory.cs")
+        for s in ["public static Transform NaScianie(", "public static Transform NaSzafce(", '"R1: ekran TV (filmy właściciela)"', "AddComponent<BraxR1ReklamyTV>()",
+                  '"reklama_1_puma.mp4"', "sK.Box(new Vector3(-w * .5f - bz + .003f"]:
+            self.assertIn(s, tv)
+        rt = src(RT / "BraxR1ReklamyTV.cs")
+        for s in ["VideoAudioOutputMode.None", "FindAnyObjectByType<BraxGymPlayer>()", 'katalog = "R1/Reklamy"', "Camera.main" if False else "zasieg"]:
+            self.assertIn(s, rt)
+        self.assertNotIn("Camera.main", rt)
+        self.assertIn("BraxTelewizory.NaScianie(rodzic, f.lok.szyld", src(R / "BraxUlicePierzeje.cs"))
+        self.assertIn("BraxTelewizory.NaScianie(rd, \"fawela \"", src(R / "BraxRegionFawelaDomy.cs"))
+        self.assertIn("BraxTelewizory.NaSzafce(A, \"apartament Tower", src(R / "BraxRegionTylyB.cs"))
+        wf = src(ROOT / ".github" / "workflows" / "claude-region-build.yml")
+        self.assertEqual(wf.count("python3 unity-tools/claude/r1_reklamy_tv.py"), 3)
+        self.assertTrue((ROOT / "unity-city" / "Prywatne" / "mistrzowie-reklamy-20261111" / "manifest.json").exists())
+        ins = src(ROOT / "unity-tools" / "claude" / "r1_reklamy_tv.py")
+        self.assertIn('"-pass", "env:KLUCZ"', ins)                       # hasło tylko przez zmienną środowiskową
+        self.assertIn("*.mp4", src(ROOT / "unity-city" / "Assets" / "StreamingAssets" / "R1" / "Reklamy" / ".gitignore"))
+
+
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):
         k = src(ROOT / "unity-tools" / "claude" / "kontrola_kompilacji" / "kompiluj.sh")

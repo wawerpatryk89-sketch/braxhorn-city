@@ -1056,8 +1056,8 @@ public static class BraxRegionTylyB
         dyw.Obiekt("Salon: dywan wełniany", A, BraxCityMaterials.Surface("Apartament: dywan (wełna szaro-beżowa)", new Color(.62f, .58f, .52f), .98f), false, false);
         var rtv = new BraxRegionMeble.Bud(); rtv.MinMax(new Vector3(ix0 + 5.6f, y, 41.2f), new Vector3(ix0 + 6.1f, y + .5f * K, 43.8f));
         rtv.Obiekt("Salon: szafka RTV", A, drewno, false, true);
-        var tv = new BraxRegionMeble.Bud(); tv.MinMax(new Vector3(ix0 + 5.95f, y + .75f * K, 41.4f), new Vector3(ix0 + 6.0f, y + 1.45f * K, 43.6f));
-        tv.Obiekt("Salon: telewizor", A, czarny, false, false);
+        // telewizor 75" z kodu na szafce RTV, z filmami właściciela (BraxTelewizory; 11.11 21:40)
+        BraxTelewizory.NaSzafce(A, "apartament Tower — salon", new Vector3(ix0 + 5.85f, y + .5f * K, 42.5f), Vector3.left, 1.65f * K);
         BraxRegionMeble.Kolizja(A, "RTV kolizja", new Vector3(ix0 + 5.85f, y + .3f * K, 42.5f), new Vector3(.5f, .6f * K, 2.6f));
         // jadalnia (wsch.): stół 1.8 × 0.9 m × k, 6 krzeseł
         var st = new BraxRegionMeble.Bud(); float tx = 62.6f, tz = 40.5f;

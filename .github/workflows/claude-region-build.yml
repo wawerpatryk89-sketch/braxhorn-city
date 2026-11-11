@@ -234,6 +234,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
+    - name: Filmy wlasciciela na telewizory R1 (paczka reklam zaszyfrowana, ta sama co w Miescie Mistrzow; klucz tylko w sekretach, bez niego obraz staly)
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/claude/r1_reklamy_tv.py
     - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
       env:
         GH_TOKEN: ${{ github.token }}
@@ -577,6 +581,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
+    - name: Filmy wlasciciela na telewizory R1 (paczka reklam zaszyfrowana, ta sama co w Miescie Mistrzow; klucz tylko w sekretach, bez niego obraz staly)
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/claude/r1_reklamy_tv.py
     - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
       env:
         GH_TOKEN: ${{ github.token }}
@@ -1115,6 +1123,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
+    - name: Filmy wlasciciela na telewizory R1 (paczka reklam zaszyfrowana, ta sama co w Miescie Mistrzow; klucz tylko w sekretach, bez niego obraz staly)
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/claude/r1_reklamy_tv.py
     - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
       env:
         GH_TOKEN: ${{ github.token }}
