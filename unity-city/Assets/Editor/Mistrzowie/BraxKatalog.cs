@@ -98,7 +98,11 @@ public static partial class BraxKatalog
     static void Col(Ctx c, Fr k, float x0, float x1, float y0, float y1, float d0, float d1, string name)
     {
         var centre = k.P((x0 + x1) * .5f, (y0 + y1) * .5f, (d0 + d1) * .5f);
-        BraxChampionsMeshBatch.Collider(c.cols, name, centre, new Vector3(x1 - x0, y1 - y0, d1 - d0), Mathf.Atan2(k.f.x, k.f.z) * Mathf.Rad2Deg);
+        if (!c.cols) return;
+        // the caller's unit: x K under an unscaled parent (G1), 1 under a parent that carries K (hotel, flats)
+        var o = new GameObject(name); o.transform.SetParent(c.cols, false);
+        o.transform.localPosition = centre * c.unit; o.transform.localRotation = Quaternion.Euler(0, Mathf.Atan2(k.f.x, k.f.z) * Mathf.Rad2Deg, 0);
+        o.AddComponent<BoxCollider>().size = new Vector3(x1 - x0, y1 - y0, d1 - d0) * c.unit;
     }
     // a picture facing the viewer at k.f: centre s, w x h (u to the viewer's right)
     static void Picture(Ctx c, Material mat, Fr k, Vector3 s, float w, float h)

@@ -356,7 +356,9 @@ public static partial class BraxChampionsD2
     // a padded velvet back (14 deg) with a rounded head bolster, the black moulded back shell
     static void CinemaSeat(float x,float yk,float z0)
     {
-        var tiltS=Quaternion.Euler(-6f,0,0);var tiltB=Quaternion.Euler(-14f,0,0);
+        // owner 21:46 "te fotele nie są odwrotnie do ekranu?": the tilts were reversed (the back leaned over the seat toward
+        // the screen, the cushion sloped forward); Euler(+a) about x lifts +z: the seat's front edge up, the back leans back
+        var tiltS=Quaternion.Euler(6f,0,0);var tiltB=Quaternion.Euler(14f,0,0);
         m.RoundedBox(kVelvet,new Vector3(x,yk+.48f,z0+.66f),new Vector3(.49f,.13f,.48f),.05f,tiltS,2);
         m.RoundedBox(kVelvet,new Vector3(x,yk+.86f,z0+.97f),new Vector3(.49f,.66f,.13f),.055f,tiltB,2);
         m.RoundedBox(kVelvet,new Vector3(x,yk+1.25f,z0+1.06f),new Vector3(.44f,.16f,.15f),.065f,tiltB,1);

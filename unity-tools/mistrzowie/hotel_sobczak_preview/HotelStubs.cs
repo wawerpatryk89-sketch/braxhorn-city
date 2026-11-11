@@ -40,3 +40,12 @@ public sealed class BraxHotelSobczakFloorStreamer : MonoBehaviour
     public float halfDepth = 21f;
     public int neighbourFloors = 1;
 }
+
+// the catalogue (BraxKatalog: the working BRAXHORN TVs in the rooms) needs the harbour's plain surface and the TV component:
+// preview stand-ins (the material's colour / gloss / emission only; the TV keeps its fields)
+public static class BraxChampionsHarbour
+{
+    public static Material Surface(string id, Color c, float rough, float metal, Color? emission = null, bool transparent = false)
+        => new Material { name = "Champions harbour " + id, color = c, roughness = rough, metallic = metal, emission = emission ?? Color.black };
+}
+public sealed class BraxTelewizor : MonoBehaviour { public bool wlaczony = true, pion; public float zasieg = 26f, zasiegPrzycisku = 2.8f; public Material obraz, wylaczony; public int start; }

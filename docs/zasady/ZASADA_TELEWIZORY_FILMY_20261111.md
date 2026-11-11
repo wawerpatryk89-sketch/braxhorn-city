@@ -8,7 +8,14 @@
 > wyłączenia i ma w nim lecieć filmik. Obecnie te, które mamy, a później będzie jeszcze robił.” (20:57)
 
 Obowiązuje w całej grze, we wszystkich rejonach i u wszystkich wykonawców: w mieście, na osiedlu, w hotelach, apartamentach,
-galerii, barach i biurach. Dotyczy każdego nowego i poprawianego telewizora, monitora reklamowego i totemu.
+galerii, barach i biurach.
+
+> „filmy … tylko i wyłącznie apartamenty, hotele, kino … tam, gdzie są telewizory. W żadnych ulicach telewizorów nie ma być …
+> na razie te filmiki tylko mają być w pomieszczeniach użytkowych” (21:50)
+
+**Tylko wnętrza.** Filmy grają wyłącznie na telewizorach w pomieszczeniach: mieszkania, apartamenty, pokoje hotelowe,
+sklepy i salony w budynkach, biura. Kino ma własne filmy. Na ulicach, placach, promenadzie i elewacjach nie ma ekranów
+z filmami (tablice informacyjne, repertuar i menu zostają). Obowiązuje do odwołania przez właściciela. Dotyczy każdego nowego i poprawianego telewizora, monitora reklamowego i totemu.
 Telewizor z samym obrazkiem nie jest skończony (ZASADA_FUNKCJONALNE_JAK_W_ZYCIU_20261111).
 
 ## 1. Każdy telewizor

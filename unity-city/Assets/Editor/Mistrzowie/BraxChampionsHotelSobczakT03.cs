@@ -190,6 +190,14 @@ public static class BraxChampionsHotelSobczakT03
     }
 
     // ================================================================ helpers
+    // a working BRAXHORN TV from the catalogue (owner 11.11 20:57: every TV switches on and off and plays the films, rule
+    // ZASADA_TELEWIZORY_FILMY_20261111): wall-mounted, built under g (the hotel root carries K: unit 1)
+    static void HotelTv(Transform g,Vector3 wall,Vector3 face,float inches,int picture,string label)
+    {
+        var lm=new BraxChampionsMeshBatch();
+        BraxKatalog.Tv(new BraxKatalog.Ctx{m=lm,root=g,cols=g,unit=1f},wall,face,inches,picture,false,label);
+        lm.Build(g,label,"Assets/PlayableGenerated/Mistrzowie/Katalog",false,1f);
+    }
     static Transform G(Transform p,string name){var t=new GameObject(name).transform;t.SetParent(p,false);return t;}
     static void In(Transform g,bool interior){W.Grupa=g;W.Wnetrze=interior;}
     static float Lo(float a,float b)=>Mathf.Min(a,b);
@@ -1889,7 +1897,7 @@ public static class BraxChampionsHotelSobczakT03
         foreach(float dz in new[]{-.37f,.37f})Box(M.walnutDark,b-.465f,b-.455f,.18f,.56f,zb+dz-.004f,zb+dz+.004f);
         foreach(float dz in new[]{-.73f,0f,.73f})Box(M.brass,b-.48f,b-.46f,.48f,.50f,zb+dz-.12f,zb+dz+.12f);
         Box(M.darkBronze,b-.035f,b-.002f,1.10f,1.70f,zb-.55f,zb+.55f);
-        Box(M.screen,b-.06f,b-.035f,1.04f,1.76f,zb-.63f,zb+.63f);
+        HotelTv(fg,new Vector3(b-.035f,1.40f,zb),Vector3.left,57f,number%4,"ROOM "+number+" TV BRAXHORN");   // a working TV: WŁĄCZ / WYŁĄCZ, the films
         Model(H+"ceramic_vase_01/ceramic_vase_01_1k.gltf",fg,"room "+number+" console vase",new Vector3(b-.25f,.58f,zb+.86f),0f,false);
         // writing desk by the window: walnut slab desk, leather dining chair, arm lamp, framed art
         float dA=9.95f,dB=8.55f;

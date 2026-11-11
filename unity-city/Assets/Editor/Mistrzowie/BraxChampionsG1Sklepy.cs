@@ -257,6 +257,8 @@ public static partial class BraxChampionsD2
         lod.RecalculateBounds();
     }
     // build a shop's small goods into their own culled group (the static batch m is swapped meanwhile)
+    // the 10 m column grid (x, z = 5 mod 10): goods hung or stood in the middle of a unit keep clear of a column
+    static bool NearColumn(Vector3 p,float r){float gx=Mathf.Round((p.x-5f)/10f)*10f+5f,gz=Mathf.Round((p.z-5f)/10f)*10f+5f;return (p.x-gx)*(p.x-gx)+(p.z-gz)*(p.z-gz)<r*r;}
     static Transform goodsInst;   // the goods group being built: the catalogue's shared pieces are placed in it (culled with it)
     static void Goods(string label,Action build)
     {
@@ -444,7 +446,7 @@ public static partial class BraxChampionsD2
                 void Hang(Vector3 a,Vector3 b,float step,int seed)
                 {
                     var al=(b-a).normalized;int n=Mathf.FloorToInt((b-a).magnitude/step);
-                    for(int i=0;i<n;i++){int kind=kinds[((i/6)+seed)%kinds.Length];BraxKatalog.Garment(Kat(),a+al*((i+.5f)*step),al,kind,Cloth(kind,i+seed));}
+                    for(int i=0;i<n;i++){int kind=kinds[((i/6)+seed)%kinds.Length];var hk=a+al*((i+.5f)*step);if(NearColumn(hk,.75f))continue;BraxKatalog.Garment(Kat(),hk,al,kind,Cloth(kind,i+seed));}
                 }
                 if(!bags)Goods(nm+" | ubrania",()=>
                 {

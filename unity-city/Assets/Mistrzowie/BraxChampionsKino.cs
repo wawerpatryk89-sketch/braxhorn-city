@@ -52,8 +52,8 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
         DW = BraxChampionsKinoEkrany.DW, DH = BraxChampionsKinoEkrany.DH, PW = BraxChampionsKinoEkrany.PW, PH = BraxChampionsKinoEkrany.PH;
     static readonly Color32 Ciemny = BraxChampionsKinoEkrany.Ciemny, Pasek = BraxChampionsKinoEkrany.Pasek, Bursztyn = BraxChampionsKinoEkrany.Bursztyn,
         Wybor = BraxChampionsKinoEkrany.Wybor;
-    float[][] widokBaza = new float[0][]; MaterialPropertyBlock mpb;
-    static readonly int Ambient = Shader.PropertyToID("_AmbientIntensity");
+    float[][] widokBaza = new float[0][]; Color[][] emisjaBaza = new Color[0][]; MaterialPropertyBlock mpb;
+    static readonly int Ambient = Shader.PropertyToID("_AmbientIntensity"), Emisja = Shader.PropertyToID("_EmissionColor");
 
     readonly List<Film> filmy = new List<Film>();
     bool wczytane;
@@ -75,12 +75,19 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
         swiatlaBaza = new float[swiatla.Length];
         for (int i = 0; i < swiatla.Length; i++) swiatlaBaza[i] = swiatla[i] ? swiatla[i].intensity : 1f;
         mpb = new MaterialPropertyBlock();
-        widokBaza = new float[widok.Length][];
+        widokBaza = new float[widok.Length][]; emisjaBaza = new Color[widok.Length][];
         for (int i = 0; i < widok.Length; i++)
         {
             var mats = widok[i] ? widok[i].sharedMaterials : new Material[0];
-            widokBaza[i] = new float[mats.Length];
-            for (int j = 0; j < mats.Length; j++) widokBaza[i][j] = mats[j] && mats[j].HasProperty(Ambient) ? mats[j].GetFloat(Ambient) : -1f;
+            widokBaza[i] = new float[mats.Length]; emisjaBaza[i] = new Color[mats.Length];
+            for (int j = 0; j < mats.Length; j++)
+            {
+                widokBaza[i][j] = mats[j] && mats[j].HasProperty(Ambient) ? mats[j].GetFloat(Ambient) : -1f;
+                // the lit fittings (wall lights, the starry ceiling, the LED lines) go dark with the film; the exit signs stay
+                var e = mats[j] && mats[j].HasProperty(Emisja) ? mats[j].GetColor(Emisja) : Color.black;
+                bool wyjscie = mats[j] && mats[j].name.ToLowerInvariant().Contains("exit");
+                emisjaBaza[i][j] = !wyjscie && e.maxColorComponent > .02f ? e : new Color(0f, 0f, 0f, -1f);
+            }
         }
         tab = Nowy(TW, TH, tablice, "G1 kino repertuar");
         ekr = new Ekran[ekrany.Length]; ekrBaza = new Material[ekrany.Length];
@@ -342,7 +349,9 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
         }
         if (!blisko) return;
         // the house lights: down while the film runs in that hall, up otherwise (3 s)
-        float cel = stan == Stan.Gra || stan == Stan.Laduje ? .06f : stan == Stan.Pauza ? .35f : 1f;
+        // owner 21:47 "jak się film odpala, to wszystkie światła gasną ... tylko film widać": the house lights and the lit
+        // fittings fade out over 3 s (the exit signs stay), back up at the end, half up on a pause
+        float cel = stan == Stan.Gra || stan == Stan.Laduje ? .03f : stan == Stan.Pauza ? .35f : 1f;
         if (!Mathf.Approximately(jasnosc, cel))
         {
             jasnosc = Mathf.MoveTowards(jasnosc, cel, Time.deltaTime / 3f);
@@ -428,8 +437,12 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
             var b = widokBaza[i];
             for (int j = 0; j < b.Length; j++)
             {
-                if (b[j] < 0f) continue;
-                widok[i].GetPropertyBlock(mpb, j); mpb.SetFloat(Ambient, b[j] * Mathf.Max(k, .04f)); widok[i].SetPropertyBlock(mpb, j);
+                var e = i < emisjaBaza.Length && j < emisjaBaza[i].Length ? emisjaBaza[i][j] : new Color(0f, 0f, 0f, -1f);
+                if (b[j] < 0f && e.a < 0f) continue;
+                widok[i].GetPropertyBlock(mpb, j);
+                if (b[j] >= 0f) mpb.SetFloat(Ambient, b[j] * Mathf.Max(k, .04f));
+                if (e.a >= 0f) mpb.SetColor(Emisja, new Color(e.r, e.g, e.b, 1f) * Mathf.Max(k * k, .015f));   // the lights fade faster than the room
+                widok[i].SetPropertyBlock(mpb, j);
             }
         }
     }

@@ -436,7 +436,7 @@ public static partial class BraxChampionsD2
                     {
                         int n=Mathf.FloorToInt(5f/.22f);
                         for(int i=0;i<n;i++){int kind=kinds[((i/6)+rr+(int)x)%kinds.Length];var mat=kind==3?BraxKatalog.Trousers[(i+rr)%2==0?0:3]:kind==2?BraxKatalog.Coats[(i+rr)%4]:BraxKatalog.SportCols[(i/6+rr)%4];
-                            BraxKatalog.Garment(Kat(),new Vector3(x+(i+.5f)*.22f,y+1.55f,zz),Vector3.right,kind,mat);}
+                            var hk=new Vector3(x+(i+.5f)*.22f,y+1.55f,zz);if(!NearColumn(hk,.75f))BraxKatalog.Garment(Kat(),hk,Vector3.right,kind,mat);}
                     }
                     if(zz+4f<40f)for(float x=56f;x<80f;x+=8f)
                     {
