@@ -59,7 +59,8 @@ internal static class BraxMiastoUlica
         {
             string n = t.name;
             bool wej = n.StartsWith("PUBLIC WORKING ENTRANCE", System.StringComparison.Ordinal) || n.StartsWith("Source-kit working entrance", System.StringComparison.Ordinal)
-                       || n.StartsWith("Drzwi automatyczne:", System.StringComparison.Ordinal) || n == "Tower: drzwi automatyczne";
+                       || n.StartsWith("Drzwi automatyczne:", System.StringComparison.Ordinal) || n == "Tower: drzwi automatyczne"
+                       || n.StartsWith("Drzwi lokalu:", System.StringComparison.Ordinal);   // 11.11: drzwi premium lokali (BraxDrzwiLokalu)
             if (!wej) continue;
             var rs = t.GetComponentsInChildren<Renderer>(true);
             Vector3 c = t.position;
@@ -68,7 +69,7 @@ internal static class BraxMiastoUlica
             bool pln = Mathf.Abs(c.z - 36.1f) < 1.6f, pld = Mathf.Abs(c.z - 20.6f) < 1.6f;
             if (!pln && !pld) continue;
             if (drzwi.Any(d => d.polnoc == pln && Mathf.Abs(d.x - c.x) < .8f)) continue;
-            drzwi.Add((c.x, pln, n.Replace("PUBLIC WORKING ENTRANCE ", "").Replace("Source-kit working entrance ", "")));
+            drzwi.Add((c.x, pln, n.Replace("PUBLIC WORKING ENTRANCE ", "").Replace("Source-kit working entrance ", "").Replace("Drzwi lokalu: ", "")));
         }
         BraxMiastoA.Log("PORTOWA drzwi lokali: " + drzwi.Count + " — " + string.Join(", ", drzwi.OrderBy(d => d.polnoc).ThenBy(d => d.x).Select(d => d.nazwa + " x" + d.x.ToString("0.0") + (d.polnoc ? " N" : " S"))));
     }

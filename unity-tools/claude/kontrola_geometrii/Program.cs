@@ -31,9 +31,42 @@ public static class Harness
         string outDir = args.Length > 0 ? args[0] : "out"; Directory.CreateDirectory(outDir);
         float limitCm = 2f;
         var miasto = new GameObject("BraxhornCity");
-        BraxMiastoDworzec.Apply(miasto.transform);
-        foreach (var l in UnityEngine.Debug.Log_) if (l.StartsWith("LOG BRAXHORN_DWORZEC_R1")) File.WriteAllText(Path.Combine(outDir, "opis.txt"), l.Replace(" | ", "\n"));
-        var root = BraxMiastoDworzec.root;
+        Transform root;
+        if (args.Length > 1 && args[1] == "drzwi")
+        {
+            // podgląd drzwi lokalu premium (BraxDrzwiLokalu) w otworze 2.34 × 3.05 m w ścianie 0.3 m: zamknięte i uchylone 60°
+            root = new GameObject("PODGLĄD drzwi lokalu").transform; root.SetParent(miasto.transform, false);
+            var sc = BraxUliceKit.Tex("ściana podglądu: kamień", 2.4f, null, new Color(.8f, .75f, .7f), .9f, "sandstone_blocks_08");
+            var po = BraxUliceKit.Tex("posadzka podglądu", 2.0f, null, new Color(.6f, .6f, .6f), .9f, "concrete_pavement_02");
+            var sw = new UlSiatka(); var pp = new UlSiatka();
+            sw.Box(new Vector3(-4f, 0f, -.3f), new Vector3(-1.17f, 4f, 0f)); sw.Box(new Vector3(1.17f, 0f, -.3f), new Vector3(4f, 4f, 0f)); sw.Box(new Vector3(-1.17f, 3.05f, -.3f), new Vector3(1.17f, 4f, 0f));
+            pp.Box(new Vector3(-4f, -.2f, -4f), new Vector3(4f, 0f, 4f), 0);
+            BraxMiastoA.Obiekt(root, "ściana z otworem", sw, sc); BraxMiastoA.Obiekt(root, "posadzka", pp, po);
+            var d1 = BraxDrzwiLokalu.Podwojne(root, "R1_PODGLAD_A", "LOKAL A", new Vector3(0f, 0f, 0f), Vector3.forward, 2.34f, 3.05f, .3f);
+            var r2 = new GameObject("drugie drzwi").transform; r2.SetParent(root, false);
+            sw = new UlSiatka(); sw.Box(new Vector3(6f - 2.83f, 0f, -.3f), new Vector3(6f - 1.17f, 4f, 0f)); sw.Box(new Vector3(6f + 1.17f, 0f, -.3f), new Vector3(10f, 4f, 0f)); sw.Box(new Vector3(6f - 1.17f, 3.05f, -.3f), new Vector3(6f + 1.17f, 4f, 0f));
+            pp = new UlSiatka(); pp.Box(new Vector3(4f, -.2f, -4f), new Vector3(10f, 0f, 4f), 0);
+            BraxMiastoA.Obiekt(r2, "ściana 2", sw, sc); BraxMiastoA.Obiekt(r2, "posadzka 2", pp, po);
+            var d2 = BraxDrzwiLokalu.Podwojne(r2, "R1_PODGLAD_B", "LOKAL B", new Vector3(6f, 0f, 0f), Vector3.forward, 2.34f, 3.05f, .3f);
+            d2.leaves[0].localRotation = Quaternion.Euler(0, 60, 0); d2.leaves[1].localRotation = Quaternion.Euler(0, -60, 0);
+            // modele 1 (drewniane) i 2 (stalowe): obok, x 12 i 18; skrzydło lewe uchylone
+            foreach (var (xm, model) in new[] { (12f, BraxDrzwiLokalu.Drewniane), (18f, BraxDrzwiLokalu.Stalowe), (24f, BraxDrzwiLokalu.Przesuwne) })
+            {
+                var r3 = new GameObject("drzwi model " + model).transform; r3.SetParent(root, false);
+                sw = new UlSiatka(); sw.Box(new Vector3(xm - 4.83f, 0f, -.3f), new Vector3(xm - 1.17f, 4f, 0f)); sw.Box(new Vector3(xm + 1.17f, 0f, -.3f), new Vector3(xm + 3f, 4f, 0f)); sw.Box(new Vector3(xm - 1.17f, 3.05f, -.3f), new Vector3(xm + 1.17f, 4f, 0f));
+                pp = new UlSiatka(); pp.Box(new Vector3(xm - 2f, -.2f, -4f), new Vector3(xm + 3f, 0f, 4f), 0);
+                BraxMiastoA.Obiekt(r3, "ściana m" + model, sw, sc); BraxMiastoA.Obiekt(r3, "posadzka m" + model, pp, po);
+                var d3 = BraxDrzwiLokalu.Podwojne(r3, "R1_PODGLAD_M" + model, "MODEL " + model, new Vector3(xm, 0f, 0f), Vector3.forward, 2.34f, 3.05f, .3f, 0f, model);
+                if (d3 != null) d3.leaves[0].localRotation = Quaternion.Euler(0, 35, 0);
+                else foreach (var dp in r3.GetComponentsInChildren<BraxDrzwiPrzesuwne>()) { dp.skrzydla[0].localPosition += dp.przesuniecie[0] * .55f; dp.skrzydla[1].localPosition += dp.przesuniecie[1] * .55f; }
+            }
+        }
+        else
+        {
+            BraxMiastoDworzec.Apply(miasto.transform);
+            foreach (var l in UnityEngine.Debug.Log_) if (l.StartsWith("LOG BRAXHORN_DWORZEC_R1")) File.WriteAllText(Path.Combine(outDir, "opis.txt"), l.Replace(" | ", "\n"));
+            root = BraxMiastoDworzec.root;
+        }
         if (args.Length > 1 && args[1] == "otwarte")
         {
             // podgląd: drzwi windy przy peronie 1 (przystanek 0 i kabina) otwarte na 90 %, drzwi WC od hali i pierwsze kabiny uchylone

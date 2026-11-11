@@ -54,6 +54,33 @@ class Ulica(unittest.TestCase):
             self.assertNotIn("BraxRegionMeble.KrataDrzewa(root, p); DrzewoTeraz(p);", kod)
 
 
+class Lokale(unittest.TestCase):
+    def test_premium_doors_three_models(self):
+        # 19:33–19:45 „drzwi straszne… z przerwami… konkretne… klamki”; 20:28 „chociaż trzy modele… mogą być nie szklane”
+        d = src(R / "BraxDrzwiLokalu.cs")
+        for s in ["public const int Szklane = 0, Drewniane = 1, Stalowe = 2, Przesuwne = 3;", "AddComponent<BraxDrzwiPrzesuwne>()", "AddComponent<BraxCityDoor>()", "d.sides = new[] { 1f, -1f };",
+                  "KLAMKA: szyld", "zawiasy (3 na skrzydło)", "z.localPosition = new Vector3(hx, 0f, -.1f);", "oak_veneer_01"]:
+            self.assertIn(s, d)
+        u = src(R / "BraxUlicePierzeje.cs")
+        self.assertIn("BraxDrzwiLokalu.UsunStare(id);", u)
+        self.assertIn("BraxDrzwiLokalu.ModelDla(lok.typ)", u)
+        self.assertIn('|| n.StartsWith("Drzwi lokalu:", System.StringComparison.Ordinal)', src(R / "BraxMiastoUlica.cs"))
+
+    def test_tenement_shops_real_interiors(self):
+        # FRYZJER z książkami, KEBAB z półkami — w kamienicach miasta B był tylko obrazek pokoju za szybą
+        b = src(R / "BraxRegionMiastoB.cs")
+        self.assertIn('"FRYZJER" => "fryzjer", "KEBAB" => "bistro"', b)
+        k = src(R / "BraxRegionKamienica.cs")
+        self.assertIn("B(M[realny ? BraxUliceKit.SzkloPrzezroczyste : st.witryna]", k)
+        self.assertIn("BraxUlicePierzeje.WnetrzeKamienicy(go,", k)
+        self.assertIn('Kol("bryły nad lokalem"', k)
+        u = src(R / "BraxUlicePierzeje.cs")
+        self.assertIn('if (t == "fryzjer")', u)
+        self.assertIn("BraxCeramika.FotelFryzjerski(", u)
+        self.assertIn("UlSiatka.ZaokraglenieBox = .008f;", u)
+        self.assertIn("public static float ZaokraglenieBox = 0f;", src(R / "BraxUliceKit.cs"))
+
+
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):
         k = src(ROOT / "unity-tools" / "claude" / "kontrola_kompilacji" / "kompiluj.sh")

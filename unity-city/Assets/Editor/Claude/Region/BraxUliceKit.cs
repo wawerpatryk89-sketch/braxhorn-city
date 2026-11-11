@@ -55,10 +55,19 @@ internal sealed class UlSiatka
         if (Vector3.Dot(Vector3.Cross(b - a, d - a), nn) >= 0) i.AddRange(new[] { k, k + 1, k + 2 }); else i.AddRange(new[] { k, k + 2, k + 1 });
     }
 
+    // 11.11 (zasada „zero klocków”, właściciel 19:56: „taka jakość, jak w łazience… tak ze wszystkim”): tryb zaokrąglania Box()
+    // włączany na czas budowy wnętrz lokali — meble, lady, regały (≥ 0.3 m) dostają krawędź r (Poducha), drobny towar zostaje bryłą.
+    public static float ZaokraglenieBox = 0f;
+
     // Prostopadłościan osiowy (min/max). pomin: maska ścian do pominięcia: 1 −x, 2 +x, 4 −y, 8 +y, 16 −z, 32 +z.
     public void Box(Vector3 a, Vector3 b, int pomin = 0)
     {
         var lo = Vector3.Min(a, b); var hi = Vector3.Max(a, b);
+        if (ZaokraglenieBox > 0f && pomin == 0)
+        {
+            var d = hi - lo; float mx = Mathf.Max(d.x, Mathf.Max(d.y, d.z)), mn = Mathf.Min(d.x, Mathf.Min(d.y, d.z));
+            if (mx >= .3f && mn >= .012f) { Poducha(lo, hi, Mathf.Min(ZaokraglenieBox, mn * .45f), 0f, 3); return; }
+        }
         Vector3 P(float x, float y, float z) => new Vector3(x, y, z);
         if ((pomin & 8) == 0) Quad(P(lo.x, hi.y, lo.z), P(hi.x, hi.y, lo.z), P(hi.x, hi.y, hi.z), P(lo.x, hi.y, hi.z), Vector3.up);
         if ((pomin & 4) == 0) Quad(P(lo.x, lo.y, lo.z), P(hi.x, lo.y, lo.z), P(hi.x, lo.y, hi.z), P(lo.x, lo.y, hi.z), Vector3.down);

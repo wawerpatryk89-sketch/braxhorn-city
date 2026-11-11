@@ -16,6 +16,7 @@ public sealed class BraxWinda : MonoBehaviour
     public Renderer[] przyciski; public Material przyciskAktywny, przyciskWybrany, przyciskNieaktywny;
 }
 public sealed class BraxCityDoor : MonoBehaviour { public string id, label; public Transform[] leaves; public float[] sides; }
+public sealed class BraxCityWorld : MonoBehaviour { public BraxCityDoor[] doors = new BraxCityDoor[0]; }
 public sealed class BraxZegarDworca : MonoBehaviour { public Transform godzinowa, minutowa, sekundnik; }
 public sealed class BraxDrzwiPrzesuwne : MonoBehaviour { public string etykieta; public Transform[] skrzydla; public Vector3[] przesuniecie; public Collider[] blokady; public float promien; }
 

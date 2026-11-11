@@ -76,7 +76,7 @@ public static class BraxUlicePierzeje
     static readonly HashSet<string> BokWschod = new HashSet<string> { "workshop", "bar", "estate_apartments_1" };
 
     static Styl[] style;
-    static int nOkien, nWitryn, nLokali, nBokow;
+    static int nOkien, nWitryn, nLokali, nBokow, nDrzwi;
     // 9.11 (z buildu 6.11, 9d9aff5): dokładne otwory okien mieszkania Braxa z TEGO generatora elewacji nadbudowy NOVA.
     // Bez tego mieszkanie szukało szyb po nazwie materiału „glass” w nieistniejącej już starej fasadzie → okna=0 (APK 9.11).
     static readonly List<Rect> oknaMieszkaniaNOVA = new List<Rect>();
@@ -85,7 +85,7 @@ public static class BraxUlicePierzeje
     public static void Apply(Transform cityRoot)
     {
         BraxUliceKit.Start(); BraxUliceKit.WyczyscOkna(); BraxUliceKit.Usuniete.Clear();
-        nOkien = nWitryn = nLokali = nBokow = 0; licaZrodla = 0; oknaMieszkaniaNOVA.Clear();
+        nOkien = nWitryn = nLokali = nBokow = nDrzwi = 0; licaZrodla = 0; oknaMieszkaniaNOVA.Clear();
         var root = BraxRegion.Root(cityRoot, "CLAUDE ulice: pierzeje (elewacje od nowa)");
         var kolizje = new GameObject("kolizje parterów i brył").transform; kolizje.SetParent(root, false);
         ZdejmijWindyWiezowcow();
@@ -115,7 +115,7 @@ public static class BraxUlicePierzeje
             {
                 BraxUliceKit.UstawGrupe("Wnętrze lokalu " + lok.szyld, 45f);
                 if (lok.typ == "fitness") { try { BraxMiastoFitness.Buduj(bg, f.A + f.R * f.drzwiS); } catch (System.Exception e) { Debug.LogWarning("BRAXHORN_FITNESS DO POPRAWKI " + e); } }
-                else Wnetrze(f, bg, kolizje);
+                else { UlSiatka.ZaokraglenieBox = .008f; try { Wnetrze(f, bg, kolizje); } finally { UlSiatka.ZaokraglenieBox = 0f; } }
                 nLokali++;
             }
             Drzwi(bg, b, lok, f);
@@ -171,7 +171,7 @@ public static class BraxUlicePierzeje
         Debug.Log("BRAXHORN_ULICE_LICA_ZRODLA zdjęte lica oryginału miasta w płaszczyźnie nowych elewacji (boki, nadbudowy): siatek " + licaZrodla);
         string usun = string.Join("; ", BraxUliceKit.Usuniete.GroupBy(x => x).Select(g => g.Key + (g.Count() > 1 ? " ×" + g.Count() : "")));
         BraxRegion.Note("pierzeje: budynków " + gotowe.Count + " (" + string.Join(", ", gotowe) + "), okien " + nOkien + ", witryn " + nWitryn + ", boków " + nBokow + ", lokali urządzonych " + nLokali + ", siatek " + siatek);
-        Debug.Log("BRAXHORN_ULICE_PIERZEJE budynki=" + gotowe.Count + " okna=" + nOkien + " witryny=" + nWitryn + " boki=" + nBokow + " lokale=" + nLokali + " siatki=" + siatek + " k=" + BraxUliceKit.K.ToString("F3"));
+        Debug.Log("BRAXHORN_ULICE_PIERZEJE budynki=" + gotowe.Count + " okna=" + nOkien + " witryny=" + nWitryn + " boki=" + nBokow + " lokale=" + nLokali + " drzwi_premium=" + nDrzwi + " siatki=" + siatek + " k=" + BraxUliceKit.K.ToString("F3"));
         Debug.Log("BRAXHORN_ULICE_USUNIETE pierzeje: " + BraxUliceKit.Usuniete.Count + " obiektów — " + usun);
     }
 
@@ -791,17 +791,47 @@ public static class BraxUlicePierzeje
     // ---------------- drzwi: etykieta, punkty pod misje ----------------
     static void Drzwi(Transform bg, BraxCityArchitecture.Building b, Lokal lok, Fasada f)
     {
-        foreach (var d in bg.GetComponentsInChildren<BraxCityDoor>(true))
-            if (d.id == "R1_PUBLIC_DOOR_" + b.id) { d.label = lok.szyld; EditorUtility.SetDirty(d); }
+        // 11.11 (właściciel 19:33–19:45: „straszne te drzwi do lokali. Nie otwierają się… słabe, z przerwami… mają być konkretne…
+        // klamki”): stare drzwi przebudowy (skrzydła-klocki, szczeliny 12 cm, otwarty pas nad nadprożem) zdjęte, w otworze elewacji
+        // (drzwiS ± 1.17 m, Chodnik…3.2 m, ościeże 0.3 m) nowe drzwi premium: ościeżnica, naświetle, dwa szklane skrzydła z pochwytami
+        string id = "R1_PUBLIC_DOOR_" + b.id;
+        int stare = BraxDrzwiLokalu.UsunStare(id);
+        BraxDrzwiLokalu.Podwojne(bg, id, lok.szyld, f.P(f.drzwiS, Chodnik, 0f), f.N, 2.34f, 3.2f - Chodnik, .3f, 0f, BraxDrzwiLokalu.ModelDla(lok.typ));
+        nDrzwi++; if (stare == 0) Debug.LogWarning("BRAXHORN_DRZWI_LOKALI brak starych drzwi " + id + " (nowe postawione)");
         BraxUliceKit.Punkt("ulica_" + b.id + "_drzwi", "przed drzwiami: " + lok.szyld + " (nr " + lok.numer + ") — AKCJA = drzwi; miejsce zlecenia przy wejściu", f.P(f.drzwiS, Chodnik, 1.2f));
     }
 
     // ---------------- wnętrze lokalu za witryną ----------------
+    // wysokość sufitu lokalu (nad chodnikiem 0.15 układu ulicy); ulica główna 3.66, kamienice miasta B — pod fryzem (WnetrzeKamienicy)
+    static float SufitLokalu = 3.66f;
+    // odsunięcie ścian bocznych wnętrza od lica (ulica 0.33; kamienice 0.36 — 4 cm od wnęk witryn sąsiednich stron, bez migotania)
+    static float OdsuniecieScian = .33f;
+
+    /// <summary>11.11 (właściciel 19:35–20:06: FRYZJER z regałem książek, KEBAB z półkami sklepowymi — w kamienicach miasta B za
+    /// witryną był tylko obrazek pokoju; „każdy lokal… wejście… kebab ma być kebabem… wszystko ma być porobione”): prawdziwe wnętrze
+    /// lokalu kamienicy — ten sam generator branż co ulica główna (posadzka, ściany, sufit, lady, regały, towar, rożna, stoliki).
+    /// Układ jak elewacja ulicy: A = punkt lica na poziomie (chodnik − 0.15), R wzdłuż lica (s 0…W), N na zewnątrz; drzwiS = oś drzwi.</summary>
+    public static void WnetrzeKamienicy(Transform bud, string szyld, string typ, int numer, Vector3 A, Vector3 R, Vector3 N, float W, float glebokosc, float drzwiS, float ySufitu, float odsuniecieScian = .33f)
+    {
+        var kol = new GameObject("kolizje wnętrza lokalu " + szyld).transform; kol.SetParent(bud, false);
+        var lok = new Lokal(szyld, typ, numer, 0);
+        var b = new BraxCityArchitecture.Building("kamienica_" + numer + "_" + BraxUliceKit.Bezpieczna(szyld), szyld, 0f, W, 0f, glebokosc, 1);
+        var f = new Fasada { b = b, A = A, R = R, N = N, W = W, lok = lok, drzwiS = drzwiS, front = true };
+        float stary = SufitLokalu, staryOds = OdsuniecieScian; SufitLokalu = ySufitu; OdsuniecieScian = odsuniecieScian;
+        BraxUliceKit.UstawGrupe("Wnętrze lokalu " + szyld + " (kamienica miasta B)", 45f);
+        UlSiatka.ZaokraglenieBox = .008f;
+        try { Wnetrze(f, bud, kol); }
+        finally { SufitLokalu = stary; OdsuniecieScian = staryOds; UlSiatka.ZaokraglenieBox = 0f; }
+        BraxUliceKit.Zapisz(bud, "kamienica_lokal_" + numer);
+        nLokaliKamienic++;
+    }
+    public static int nLokaliKamienic;
+
     static void Wnetrze(Fasada f, Transform bg, Transform kolizje)
     {
         var b = f.b; float k = BraxUliceKit.K; var lok = f.lok;
         float gl = Mathf.Min(7.05f, (b.z1 - b.z0) - .55f);        // głębokość holu (BraxCityArchitecture.Build)
-        float sIn0 = .34f, sIn1 = f.W - .34f, dTyl = -(gl - .14f), y0 = .11f, ySuf = 3.66f;
+        float sIn0 = OdsuniecieScian + .01f, sIn1 = f.W - OdsuniecieScian - .01f, dTyl = -(gl - .14f), y0 = .11f, ySuf = SufitLokalu;
         var korpus = BraxUliceKit.Mat("meble sklepowe: korpus (laminat)", Color.white, .6f);
         var blat = BraxUliceKit.Mat("meble sklepowe: blat", new Color(.20f, .19f, .18f), .35f, .1f);
         var towar = BraxUliceKit.Mat("towar na półkach (kolory z wierzchołków)", Color.white, .55f);
@@ -867,7 +897,7 @@ public static class BraxUlicePierzeje
         Vector3 W(float s, float y, float d) => f.P(s, y, d);
         float hR = Mathf.Min(2.2f * k, ySuf - y0 - .25f);
         // regał na ścianie tylnej (cała szerokość) i przy ścianie lewej (od strony bez drzwi)
-        bool regaly = lok.typ != "hotel" && lok.typ != "kantor";   // hotel: recepcja i hol, kantor: tablica kursów — bez regałów z towarem
+        bool regaly = lok.typ != "hotel" && lok.typ != "kantor" && lok.typ != "fryzjer";   // hotel: recepcja i hol, kantor: tablica kursów, fryzjer: stanowiska — bez regałów z towarem
         int nPolek = lok.typ == "apteka" ? 9 : 5;                  // apteka: gęste półki co ok. 0.33 m
         if (regaly) Regal(W(sIn0 + .1f, 0, dTyl + .5f), f.R, -f.N, sIn1 - sIn0 - .2f, .45f, hR, nPolek);
         // gastronomia (bistro, pizzeria, kawiarnia, bar): regał tylko za ladą — na sali stoliki, nie półki jak w sklepie
@@ -1124,7 +1154,7 @@ public static class BraxUlicePierzeje
     static void Wykonczenie(Fasada f, float gl)
     {
         // ściany boczne 0.33 m od lica budynku: przykrywają ościeża okien parteru z elewacji bocznych (wnęka 0.3 m — z wnętrza czarne ramki)
-        string t = f.lok.typ; float W = f.W, y0 = .11f, dT = -(gl - .12f) + .004f, s0 = .33f, s1 = W - .33f, ySuf = 3.676f;
+        string t = f.lok.typ; float W = f.W, y0 = .11f, dT = -(gl - .12f) + .004f, s0 = OdsuniecieScian, s1 = W - OdsuniecieScian, ySuf = SufitLokalu + .016f;
         string[] pod = { "floor_tiles_06", "square_tiles" }, sc = { "white_stucco", "white_plaster_02" }; float mp = 1.2f, ms = 3.0f; Color? kp = null, ks = null;
         switch (t)
         {
@@ -1134,6 +1164,7 @@ public static class BraxUlicePierzeje
             case "kawiarnia": case "bistro": case "bar": pod = new[] { "wood_floor", "plank_flooring_02" }; mp = 2.0f; sc = new[] { "red_brick_03", "brick_wall_001" }; ms = 2.2f; break;
             case "pizzeria": pod = new[] { "wood_floor", "plank_flooring_02" }; mp = 2.0f; sc = new[] { "red_brick_03", "brick_wall_001" }; ms = 2.2f; break;
             case "ksiegarnia": case "optyk": pod = new[] { "wood_floor", "plank_flooring_02" }; mp = 2.0f; ks = new Color(.95f, .93f, .88f); break;
+            case "fryzjer": pod = new[] { "marble_01", "floor_tiles_06" }; mp = 1.6f; sc = new[] { "white_stucco", "white_plaster_02" }; ks = new Color(.97f, .96f, .94f); break;
             // 10.11: concrete_floor_02 (brudny, chropowaty jak ziemia) → szlifowany beton concrete_floor_worn_001
             case "kwiaty": pod = new[] { "concrete_floor_worn_001", "concrete_floor_02" }; mp = 2.5f; sc = new[] { "brick_wall_001", "red_brick_03" }; ms = 2.6f; ks = new Color(.93f, .93f, .9f); break;
             case "warsztat": pod = new[] { "concrete_floor_worn_001", "concrete_floor_02" }; mp = 2.5f; kp = new Color(.92f, .92f, .92f); sc = new[] { "red_brick_03", "brick_wall_001" }; ms = 2.2f; break;
@@ -1179,6 +1210,30 @@ public static class BraxUlicePierzeje
         float yawDoUlicy = Quaternion.LookRotation(f.N, Vector3.up).eulerAngles.y, yawWGlab = yawDoUlicy + 180f;
         bool drzwiPrawo = f.drzwiS > (sIn0 + sIn1) * .5f;          // po której stronie są drzwi — wolna strona na meble
         float sWolna0 = drzwiPrawo ? sIn0 + .5f : f.drzwiS + 1.4f, sWolna1 = drzwiPrawo ? f.drzwiS - 1.4f : sIn1 - .5f;
+        if (t == "fryzjer")
+        {   // SALON FRYZJERSKI (11.11, właściciel 19:35: „FRYZJER… w środku regał z książkami” — wnętrze z innego lokalu): stanowiska
+            // wzdłuż ściany tylnej — lustro z prawdziwym odbiciem na całej długości w czarnej ramie, blat dębowy z szufladami pod lustrem,
+            // fotele fryzjerskie z kodu przodem do lustra (skóra, chrom, podnóżek), myjka do głów (misa toczona) przy ścianie bocznej,
+            // poczekalnia: krzesła tapicerowane przy witrynie, rośliny. Lada recepcji z kasą jak w innych lokalach (przy drzwiach).
+            float fs0 = sIn0 + .5f, fs1 = sIn1 - .5f, ym = y0 + .85f * k, dB = dTyl + .02f;
+            var dabF = BraxUliceKit.Tex("fryzjer: blat i szafki (dąb)", 1.6f, null, new Color(.6f, .45f, .3f), .45f, "oak_veneer_01", "teak_veneer");
+            var czarnyF = BraxUliceKit.Mat("fryzjer: rama lustra (czarny mat)", new Color(.05f, .05f, .055f), .5f, .3f);
+            BraxUliceKit.S(dabF).Poducha(Vector3.Min(W(fs0, ym - .35f, dB), W(fs1, ym, dB - .42f)), Vector3.Max(W(fs0, ym - .35f, dB), W(fs1, ym, dB - .42f)), .01f, 0f, 3);
+            BraxCeramika.Lustro(rodzic, "fryzjer " + f.lok.szyld, W((fs0 + fs1) * .5f, ym + .2f + .55f * k, dB - .03f), f.N, fs1 - fs0 - .08f, 1.1f * k);
+            foreach (var (a0, a1, b0, b1) in new[] { (fs0, fs0 + .04f, ym + .16f, ym + .24f + 1.1f * k), (fs1 - .04f, fs1, ym + .16f, ym + .24f + 1.1f * k), (fs0 + .04f, fs1 - .04f, ym + .16f, ym + .2f), (fs0 + .04f, fs1 - .04f, ym + .2f + 1.1f * k, ym + .24f + 1.1f * k) })
+                BraxUliceKit.S(czarnyF).Poducha(Vector3.Min(W(a0, b0, dB), W(a1, b1, dB - .05f)), Vector3.Max(W(a0, b0, dB), W(a1, b1, dB - .05f)), .006f, 0f, 3);
+            int nSt = Mathf.Clamp((int)((fs1 - fs0) / (1.35f * k)), 1, 4); float krok = (fs1 - fs0) / nSt;
+            for (int q = 0; q < nSt; q++) BraxCeramika.FotelFryzjerski(W(fs0 + krok * (q + .5f), y0, dB - 1.25f * k), -f.N, kolizje);
+            // myjka do głów przy ścianie bocznej bez drzwi: szafka, misa toczona, bateria
+            float sm = drzwiPrawo ? sIn0 + .45f : sIn1 - .45f; var bok = drzwiPrawo ? f.R : -f.R;
+            Vector3 mc = W(sm, y0, dB - 2.2f * k) + bok * 0f;
+            BraxUliceKit.S(dabF).Poducha(Vector3.Min(mc - bok * .3f - f.N * .35f, mc + bok * .3f + f.N * .35f + Vector3.up * .8f * k), Vector3.Max(mc - bok * .3f - f.N * .35f, mc + bok * .3f + f.N * .35f + Vector3.up * .8f * k), .01f, 0f, 3);
+            BraxCeramika.Umywalka(mc + Vector3.up * .8f * k);
+            BraxMiastoA.Kol(kolizje, "myjka fryzjera", mc - bok * .3f - f.N * .35f, mc + bok * .3f + f.N * .35f + Vector3.up * .95f * k);
+            // poczekalnia przy witrynie (strona wolna)
+            for (int q = 0; q < 2; q++) KrzesloTapicerowane("Fryzjer: krzesło poczekalni", bg, W(sWolna0 + .45f + q * .75f, y0, -1.0f), yawWGlab);
+            PH(rodzic, "doniczka_kalatea_3", "Fryzjer: roślina", W(sWolna1 - .3f, y0 + .004f, -.7f), 40f);
+        }
         if (t == "hotel")
         {   // RECEPCJA HOTELU: tablica z kluczami za ladą, napis RECEPCJA, hol z sofą, fotelami, stolikiem, zegarem stojącym, roślinami, walizki
             var drewno = BraxUliceKit.Mat("hotel: tablica kluczy (orzech)", new Color(.25f, .15f, .09f), .45f);

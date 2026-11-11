@@ -195,23 +195,26 @@ class WindyIWC(unittest.TestCase):
     def test_urinals_real_ceramic_not_pillows(self):
         # właściciel 19:39: „te takie dwie… pisuary, czy co to jest?” — pisuar z kodu: powłoka z misą, warga, odpływ, zawór chrom
         self.assertNotIn("S(ceramika).Poducha(V(xp", DW)
-        self.assertEqual(DW.count("Pisuar(new Vector3(xp, Y0, zb), Vector3.right, Vector3.back)"), 1)
-        body = DW[DW.index("static void Pisuar("):DW.index("static void Lustro(")]
+        self.assertEqual(DW.count("BraxCeramika.Pisuar(new Vector3(xp, Y0, zb), Vector3.right, Vector3.back)"), 1)
+        CER = code("BraxCeramika.cs")
+        body = CER[CER.index("public static void Pisuar("):CER.index("public static void Umywalka(")]
         for s in ["Warga(", "Obrys(", "sitko", "S(chrom)", "S(ceramika)", "* K"]:
             self.assertIn(s, body)
         self.assertIn("/ e;", body)                                            # pochodne dzielone przez krok (Normalize w Unity)
         self.assertIn("WC: przegroda pisuarów", DW)
-        self.assertIn('chrom = BraxCityMaterials.Surface("Dworzec: armatura — chrom polerowany"', DW)
-        self.assertIn("yD = .525f, zD = .175f", DW)                          # odpływ w najniższym punkcie misy (właściciel 19:52–19:59)
+        self.assertIn('chrom = BraxCityMaterials.Surface("armatura — chrom polerowany"', CER)
+        self.assertIn("yD = .525f, zD = .175f", CER)                          # odpływ w najniższym punkcie misy (właściciel 19:52–19:59)
 
     def test_sinks_are_basins_with_drain_not_plates(self):
         # właściciel 19:53: „czy mają dziurę… odpływ, czy są jak talerze” — misa toczona z wnętrzem, odpływem i sitkiem
         self.assertNotIn("S(ceramika).PoduchaOkragla(V(xu", DW)
-        self.assertIn("Umywalka(V(xu, Y(hb), zs + sg * gl * .5f));", DW)
-        body = DW[DW.index("static void Umywalka("):DW.index("static void Toczony(")]
+        self.assertIn("BraxCeramika.Umywalka(V(xu, Y(hb), zs + sg * gl * .5f));", DW)
+        CER = code("BraxCeramika.cs")
+        body = CER[CER.index("public static void Umywalka("):CER.index("public static void Toczony(")]
         for s in ["yIn = .045f, ySit = .025f", "Toczony(s, p, pr, seg)", "Pierscien(", "S(b % 2 == 0 ? chrom : grafit)"]:
             self.assertIn(s, body)
         self.assertIn("wylewka z perlatorem", DW)
+        self.assertIn("internal static class BraxCeramika", CER)                # wspólna ceramika całego miasta (właściciel 19:59)
 
 
 class Las(unittest.TestCase):

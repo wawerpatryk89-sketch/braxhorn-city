@@ -42,6 +42,9 @@ public static class BraxRegionKamienica
         public bool schodyPozarowe, balkony = true, klimatyzatory = true;
         public int ziarno = 1;
         public float y0 = .15f;                      // poziom chodnika
+        // 11.11 (właściciel 19:35–20:06: lokale miasta B miały za witryną tylko obrazek pokoju — FRYZJER z książkami, KEBAB z półkami):
+        // prawdziwy lokal od strony frontLokalu — szkło przezroczyste, drzwi premium (BraxDrzwiLokalu), wnętrze branży (BraxUlicePierzeje)
+        public string typLokalu; public int frontLokalu = -1, numerLokalu;
     }
 
     // wymiary × k (wartości rzeczywiste w komentarzach)
@@ -179,6 +182,7 @@ public static class BraxRegionKamienica
         var lod0 = new GameObject("LOD0 (detal)").transform; lod0.SetParent(go.transform, false);
         var lod1 = new GameObject("LOD1 (bryła z oknami)").transform; lod1.SetParent(go.transform, false);
         var M0 = new Mesze(); var M1 = new Mesze();
+        drzwiLokalu = null;
         float y0 = s.y0, H = Hpar + s.pietra * Hp;
         float yTop = y0 + H, attyka = .9f * K;
         for (int i = 0; i < 4; i++)
@@ -217,13 +221,44 @@ public static class BraxRegionKamienica
         }
         foreach (var kv in M0.m) kv.Value.Obiekt(s.nazwa + " — " + kv.Key.name, lod0, kv.Key, false, true);
         foreach (var kv in M1.m) kv.Value.Obiekt(s.nazwa + " — " + kv.Key.name + " (LOD1)", lod1, kv.Key, false, false);
+        if (s.typLokalu != null && drzwiLokalu.HasValue && s.frontLokalu >= 0) Lokal(go.transform, s, y0, H + attyka);
         // kolizja bryły (ściany zewnętrzne) — jeden prostopadłościan
-        BraxRegionMeble.Kolizja(go.transform, "Kolizja bryły " + s.nazwa, new Vector3((s.x0 + s.x1) * .5f, y0 + (H + attyka) * .5f, (s.z0 + s.z1) * .5f), new Vector3(s.x1 - s.x0, H + attyka, s.z1 - s.z0));
+        else BraxRegionMeble.Kolizja(go.transform, "Kolizja bryły " + s.nazwa, new Vector3((s.x0 + s.x1) * .5f, y0 + (H + attyka) * .5f, (s.z0 + s.z1) * .5f), new Vector3(s.x1 - s.x0, H + attyka, s.z1 - s.z0));
         var lg = go.AddComponent<LODGroup>();
         lg.SetLODs(new[] { new LOD(.10f, lod0.GetComponentsInChildren<Renderer>(true)), new LOD(.008f, lod1.GetComponentsInChildren<Renderer>(true)) });
         lg.RecalculateBounds();
         nBud++;
         return go;
+    }
+
+    // ---------------- prawdziwy lokal (11.11) ----------------
+    static (float a0, float a1, float h)? drzwiLokalu;
+    public static int Lokale;
+    static void Lokal(Transform go, Segment s, float y0, float hCala)
+    {
+        var sd = StronaBud(s, s.frontLokalu, y0);
+        var (a0, a1, hd) = drzwiLokalu.Value;
+        float depth = s.frontLokalu % 2 == 0 ? s.z1 - s.z0 : s.x1 - s.x0;
+        float gl = Mathf.Min(7.05f, depth - Lic - .4f), ac = (a0 + a1) * .5f;
+        string szyld = s.szyldy[s.frontLokalu];
+        BraxDrzwiLokalu.Podwojne(go, "R1_KAMIENICA_" + BraxUliceKit.Bezpieczna(s.nazwa), szyld, sd.P(ac, 0f, 0f), sd.N, a1 - a0, hd, Lic, .025f, BraxDrzwiLokalu.ModelDla(s.typLokalu));
+        BraxUlicePierzeje.WnetrzeKamienicy(go, szyld, s.typLokalu, s.numerLokalu, sd.P(0f, -.15f, 0f), sd.A, sd.N, sd.L, gl + .55f, ac, hd + .02f + .15f, .36f);
+        // kolizje: bryła nad lokalem, przód parteru bez otworu drzwi, ściany boczne lokalu, reszta parteru za ścianą tylną lokalu
+        float yL = hd + .3f;
+        void Kol(string n, float aa0, float aa1, float yy0, float yy1, float d0, float d1)
+        {
+            var p0 = sd.P(aa0, yy0, d0); var p1 = sd.P(aa1, yy1, d1); var lo = Vector3.Min(p0, p1); var hi = Vector3.Max(p0, p1);
+            if (hi.x - lo.x < .02f || hi.y - lo.y < .02f || hi.z - lo.z < .02f) return;
+            BraxRegionMeble.Kolizja(go, "Kolizja " + n + " " + s.nazwa, (lo + hi) * .5f, hi - lo);
+        }
+        Kol("bryły nad lokalem", 0f, sd.L, yL, hCala, -depth, 0f);
+        Kol("przodu lokalu (lewa)", 0f, a0, 0f, yL, -Lic, 0f);
+        Kol("przodu lokalu (prawa)", a1, sd.L, 0f, yL, -Lic, 0f);
+        Kol("nad drzwiami lokalu", a0, a1, hd, yL, -Lic, 0f);
+        Kol("ściany bocznej lokalu", 0f, .36f, 0f, yL, -gl - .3f, -Lic);
+        Kol("ściany bocznej lokalu", sd.L - .36f, sd.L, 0f, yL, -gl - .3f, -Lic);
+        Kol("zaplecza parteru", 0f, sd.L, 0f, yL, -depth, -gl - .3f);
+        Lokale++;
     }
 
     static Material tabliczka;
@@ -243,6 +278,7 @@ public static class BraxRegionKamienica
         float m0 = (L - n * Bay) * .5f;
         var osie = new List<float>(); for (int i = 0; i < n; i++) osie.Add(m0 + Bay * (i + .5f));
         bool sklep = seg.sklepy[s.i];
+        bool realny = sklep && seg.typLokalu != null && seg.frontLokalu == s.i;   // 11.11: prawdziwy lokal za witryną (szkło, drzwi premium)
         var sciana = st.sciana; var rama = st.rama; var det = st.detal;
 
         // ---------------- PARTER ----------------
@@ -275,8 +311,14 @@ public static class BraxRegionKamienica
                 float a0 = osie[i] - (Bay - filar) * .5f, a1 = osie[i] + (Bay - filar) * .5f;
                 bool d = i == drzwi;
                 float yb = d ? 0f : cok;
-                // szyba witryny / drzwi w głębi (wnęka 0.18 m × k)
-                B(M[st.witryna], s, a0, a1, yb, fryz0, -Lic, -Glab);
+                if (d && realny)
+                {   // otwór drzwi lokalu: próg granitowy 2.5 cm nad chodnikiem w grubości ściany, drzwi premium stawia Lokal()
+                    B(M[st.cokol], s, a0, a1, -.02f, .025f, -Lic, .03f);
+                    if (detal) drzwiLokalu = (a0, a1, fryz0);
+                    continue;
+                }
+                // szyba witryny / drzwi w głębi (wnęka 0.18 m × k); w prawdziwym lokalu — szkło przezroczyste (widać wnętrze)
+                B(M[realny ? BraxUliceKit.SzkloPrzezroczyste : st.witryna], s, a0, a1, yb, fryz0, -Lic, -Glab);
                 if (!d) B(M[st.cokol], s, a0, a1, 0f, yb, -Lic, .04f);   // cokół pod witryną (do 3.11 brakowało — dziura do wnętrza pod każdą witryną)
                 if (d) B(M[st.cokol], s, a0, a1, -.02f, .02f, -Glab - .02f, .03f);   // próg granitowy (posadzka + 2 cm, bez progu do przeskakiwania)
                 if (!detal) continue;

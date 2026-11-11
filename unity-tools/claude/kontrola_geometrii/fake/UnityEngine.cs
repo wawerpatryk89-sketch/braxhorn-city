@@ -230,7 +230,15 @@ namespace UnityEngine
         public int GetInstanceID() => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
         public static T Instantiate<T>(T o) where T : Object => o;
         public static Object Instantiate(Object o, Transform p, bool w) => o;
+        public static T[] FindObjectsByType<T>(FindObjectsInactive a, FindObjectsSortMode b) where T : Component =>
+            GameObject.Wszystkie.Where(g => g).SelectMany(g => g.GetComponents<T>()).Where(c => c).ToArray();
+        public static T[] FindObjectsByType<T>(FindObjectsSortMode b) where T : Component => FindObjectsByType<T>(FindObjectsInactive.Exclude, b);
+        public static T FindFirstObjectByType<T>(FindObjectsInactive a) where T : Component => FindObjectsByType<T>(a, FindObjectsSortMode.None).FirstOrDefault();
+        public static T FindFirstObjectByType<T>() where T : Component => FindFirstObjectByType<T>(FindObjectsInactive.Exclude);
+        public static T FindAnyObjectByType<T>() where T : Component => FindFirstObjectByType<T>(FindObjectsInactive.Exclude);
     }
+    public enum FindObjectsInactive { Exclude, Include }
+    public enum FindObjectsSortMode { None, InstanceID }
 
     public class Component : Object
     {

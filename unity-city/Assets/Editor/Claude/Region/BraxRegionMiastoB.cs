@@ -1069,10 +1069,19 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     {
         var s = new BraxRegionKamienica.Segment { nazwa = nazwa, x0 = x0, x1 = x1, z0 = z0, z1 = z1, pietra = pietra, styl = styl, numer = numer, schodyPozarowe = schody, ziarno = nazwa.Length * 131 + pietra };
         s.sklepy[front] = true; s.ulica[front] = true; s.szyldy[front] = szyld;
+        // 11.11 (właściciel 19:40: „każdy lokal… czy jest wejście do sklepu… Kebab ma być kebabem… mięso… kurczak z rożna”): lokal od frontu
+        // prawdziwy — drzwi premium, szkło, wnętrze branży (ten sam generator co ulica główna)
+        s.typLokalu = TypLokalu(szyld); s.frontLokalu = s.typLokalu != null ? front : -1; s.numerLokalu = 100 + (int.TryParse(numer, out int nr) ? nr : 0) + nazwa.Length;
         if (frontPn) { s.sklepy[0] = true; s.ulica[0] = true; s.szyldy[0] = szyld; }
         if (frontPd) { s.sklepy[2] = true; s.ulica[2] = true; s.szyldy[2] = szyld; }
         return s;
     }
+
+    static string TypLokalu(string szyld) => szyld switch
+    {
+        "APTEKA" => "apteka", "PIEKARNIA" => "piekarnia", "KWIACIARNIA" => "kwiaty", "FRYZJER" => "fryzjer", "KEBAB" => "bistro",
+        "PIZZERIA" => "pizzeria", "KAWIARNIA" => "kawiarnia", "BANK" => "kantor", "SKLEP SPOŻYWCZY" => "market", _ => null,
+    };
 
     // rząd budynków wzdłuż z: ściana wspólna (ślepa, bez okien) u OBU sąsiadów — każda w swoim budynku (bez nakładania),
     // nad niższym sąsiadem widać ślepą ścianę wyższego (jak w prawdziwej pierzei)
