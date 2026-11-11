@@ -246,6 +246,17 @@ class Muzeum(unittest.TestCase):
         self.assertNotIn("mosiądz", k.split("internal static class")[1])
         self.assertIn("LiczbaObrazow", k)
 
+    def test_museum_filled_whole_hall(self):
+        # 12.11 00:31 „wyposażenie musi zrobić większe, bo tam nic nie ma” — hol, PORT, TECHNIKA, SZTUKA zapełnione z kodu
+        m, k = src(R / "BraxMuzeum.cs"), src(R / "BraxMuzeumKod.cs")
+        for f in ["Lodz(", "Ladunek(", "Dzwon(", "Luneta(", "Kamera(", "MaszynaParowa(", "Rzezba(", "Amfory(", "LampyNaftowe(", "Szatnia(", "Sklepik("]:
+            self.assertIn("public static Transform " + f, k)
+            self.assertIn("BraxMuzeumKod." + f, m)
+        self.assertIn('Vector3.forward, 1); muzEksponatow++;', m)          # bryg
+        self.assertIn('Vector3.forward, 2); muzEksponatow++;', m)          # kuter
+        self.assertNotIn("Mathf.Pow(Mathf.Cos(a)", k)                      # bez NaN w kadłubach (cos < 0 na burcie)
+        self.assertIn("wierzchołki NaN", src(ROOT / "unity-tools" / "claude" / "kontrola_geometrii" / "Program.cs"))
+
 
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):

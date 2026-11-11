@@ -291,6 +291,42 @@ public static partial class BraxRegionMiastoB
             Lawka(xs, zi0 + 3.4f, Vector3.back); Lawka(xs, zS + 3.0f, Vector3.back);
         }
         Lawka(xP, zi0 + 3.4f, Vector3.back); Lawka(xT, zi0 + 3.4f, Vector3.back);
+        // ---- 12.11 00:31 (właściciel: „wyposażenie musi zrobić większe, bo tam nic nie ma”): cała sala zapełniona
+        // HOL: szatnia i sklep muzealny pod ścianą wejściową, dzwon okrętowy, luneta, dwie rzeźby, rośliny
+        BraxMuzeumKod.Szatnia(g, "hol", new Vector3(xi0 + 3.2f, y0 + .02f, zi1), Vector3.back);
+        BraxMuzeumKod.Sklepik(g, "hol", new Vector3(xi1 - 3.2f, y0 + .02f, zi1), Vector3.back);
+        BraxMuzeumKod.Dzwon(g, "hol", new Vector3(cx - 12f, y0 + .02f, zk1 + 4.5f), Vector3.forward); muzEksponatow++;
+        Pulpit(cx - 10.7f, zk1 + 5.4f, Vector3.forward, "DZWON OKRĘTOWY");
+        BraxMuzeumKod.Luneta(g, "hol", new Vector3(cx + 12f, y0 + .02f, zk1 + 4.5f), Vector3.left); muzEksponatow++;
+        Pulpit(cx + 13.3f, zk1 + 5.4f, Vector3.forward, "LUNETA");
+        string[] rzezby = { "RZEŹBA · PIERŚCIEŃ", "RZEŹBA · SPIRALA", "RZEŹBA · TRZY KULE", "RZEŹBA · ŁUK" };
+        foreach (var (x, z, w) in new[] { (cx - 6f, zk1 + 2.6f, 1), (cx + 6f, zk1 + 2.6f, 3), (cx - 9.5f, zg + 2.8f, 2), (cx + 9.5f, zg + 2.8f, 0), (cx, zS, 1) })
+        {
+            if (Mathf.Abs(x - cx) > sw - 1f) continue;
+            BraxMuzeumKod.Rzezba(g, "dział SZTUKA", new Vector3(x, y0 + .02f, z), Vector3.forward, w); muzEksponatow++;
+            if (z != zS) Pulpit(x + 1.05f, z + .8f, Vector3.forward, rzezby[w]);
+        }
+        foreach (var (x, z, m) in new[] { (cx - hw - 1.2f, zi1 - .7f, "potted_plant_01"), (cx + hw + 1.2f, zi1 - .7f, "potted_plant_01"), (xi0 + 6.6f, zi1 - .7f, "potted_plant_04"), (xi1 - 6.9f, zi1 - .7f, "potted_plant_04") })
+        {   // rośliny w donicach (Poly Haven) w holu
+            var r = BraxRegion.Model(m); if (r) BraxRegion.Put(g, r, "Muzeum: roślina w holu", new Vector3(x, y0 + .02f, z), 0f, 1f, true, 1.6f * k);
+        }
+        // PORT: dwa kolejne modele statków (bryg, kuter), amfory, ładunek portowy, łódź wiosłowa za barierką
+        BraxMuzeumKod.Zaglowiec(g, "dział PORT · bryg", new Vector3(xP + 4.8f, y0 + .02f, zg + 2.6f), Vector3.forward, 1); muzEksponatow++;
+        Pulpit(xP + 6.55f, zg + 3.6f, Vector3.forward, "MODEL BRYGU");
+        BraxMuzeumKod.Zaglowiec(g, "dział PORT · kuter", new Vector3(xP + 4.8f, y0 + .02f, zg - 2.6f), Vector3.forward, 2); muzEksponatow++;
+        Pulpit(xP + 6.55f, zg - 1.6f, Vector3.forward, "MODEL KUTRA");
+        Gablota(g, new Vector3(xP - 4.3f, y0 + .02f, zg - 3f), marmur, mosiadz, szklo, null, "amfory", "AMFORY", q => BraxMuzeumKod.Amfory(g, "dział PORT", q, Vector3.forward));
+        BraxMuzeumKod.Ladunek(g, "dział PORT", new Vector3(xP - 4.0f, y0 + .02f, zg + 3f), Vector3.forward); muzEksponatow++;
+        BraxMuzeumKod.Lodz(g, "dział PORT", new Vector3(xP, y0 + .02f, zi0 + 6.6f), Vector3.forward); muzEksponatow++;
+        { float zL = zi0 + 6.6f; Barierka(new Vector3(xP - 3.5f, 0f, zL - 1.6f), new Vector3(xP + 3.5f, 0f, zL - 1.6f), new Vector3(xP + 3.5f, 0f, zL + 1.6f), new Vector3(xP - 3.5f, 0f, zL + 1.6f), new Vector3(xP - 3.5f, 0f, zL - 1.6f)); }
+        Pulpit(xP + 4.1f, zi0 + 8.0f, Vector3.forward, "ŁÓDŹ WIOSŁOWA");
+        // TECHNIKA: lampy naftowe w gablocie, kamera filmowa, maszyna parowa za barierką
+        Gablota(g, new Vector3(xT - 4.5f, y0 + .02f, zg + 3f), marmur, mosiadz, szklo, null, "lampy naftowe", "LAMPY NAFTOWE", q => BraxMuzeumKod.LampyNaftowe(g, "dział TECHNIKA", q, Vector3.forward));
+        BraxMuzeumKod.Kamera(g, "dział TECHNIKA", new Vector3(xT - 4.5f, y0 + .02f, zg - 3f), Vector3.left); muzEksponatow++;
+        Pulpit(xT - 5.6f, zg - 2.1f, Vector3.left, "KAMERA FILMOWA");
+        BraxMuzeumKod.MaszynaParowa(g, "dział TECHNIKA", new Vector3(xT, y0 + .02f, zi0 + 6.6f), Vector3.forward); muzEksponatow++;
+        { float zM = zi0 + 6.6f; Barierka(new Vector3(xT - 2.75f, 0f, zM - 1.65f), new Vector3(xT + 3.25f, 0f, zM - 1.65f), new Vector3(xT + 3.25f, 0f, zM + 1.65f), new Vector3(xT - 2.75f, 0f, zM + 1.65f), new Vector3(xT - 2.75f, 0f, zM - 1.65f)); }
+        Pulpit(xT - 3.4f, zi0 + 8.1f, Vector3.forward, "MASZYNA PAROWA");
         // ściana południowa: obrazy z kodu na przemian z obrazami w ramach (Poly Haven), barierka z linką
         string[] ramy = { "hanging_picture_frame_01", "hanging_picture_frame_02", "hanging_picture_frame_03" };
         int[] poludnie = { 2, 9, 12, 5, 13, 0, 7, 6, 8, 14, 1, 15 }; int ir = 0, io = 0;

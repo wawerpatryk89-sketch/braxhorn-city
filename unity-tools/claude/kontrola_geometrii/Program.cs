@@ -189,6 +189,7 @@ public static class Harness
         js.Append("],\n\"swiatla\":[" + string.Join(",", Rejestr.Swiatla.Select(l => "{\"p\":[" + F(l.p.x) + "," + F(l.p.y) + "," + F(l.p.z) + "],\"i\":" + F(l.i) + ",\"r\":" + F(l.r) + "}")) + "]}");
         File.WriteAllText(Path.Combine(outDir, "geom.json"), js.ToString());
         Console.WriteLine("geometria: renderery " + rend.Count + ", partie " + pows.Count + ", wierzchołki " + pos.Count / 3 + ", trójkąty " + idx.Count / 3 + ", modele " + Rejestr.Modele.Count + ", materiały " + mats.Count);
+        { int nan = 0; for (int q = 0; q < pos.Count; q++) if (float.IsNaN(pos[q]) || float.IsInfinity(pos[q])) nan++; Console.WriteLine("wierzchołki NaN/∞ (ma być 0): " + nan / 3); }   // 12.11: kadłub łodzi z Pow(cos<0) dawał NaN
 
         // ---------------- kontrola migotania
         var kub = new Dictionary<(int, int, int, int, int), List<int>>();

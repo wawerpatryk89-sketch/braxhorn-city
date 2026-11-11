@@ -33,7 +33,7 @@ internal static class BraxMuzeumKod
     static float K => BraxClaudeOsiedle.K;
     const string Katalog = BraxRegion.Out + "/Muzeum";
     static Material czern, stal, swiatlo, drewno, dab, zeliwo, miedz, plotno, lina, tuba, guma, skora, szklo, marmur, talerz;
-    static Material _obrazy, _plansze, _globus, _kadlub;
+    static Material _obrazy, _plansze, _globus; static readonly Material[] _kadluby = new Material[3];
     static readonly Color32[] Bl = { new Color32(255, 255, 255, 255) };
     public static int Postawione;
 
@@ -59,7 +59,7 @@ internal static class BraxMuzeumKod
     static Material ObrazyM => _obrazy ? _obrazy : (_obrazy = AtlasObrazow());
     static Material PlanszeM => _plansze ? _plansze : (_plansze = AtlasPlansz());
     static Material GlobusM => _globus ? _globus : (_globus = AtlasGlobusa());
-    static Material KadlubM => _kadlub ? _kadlub : (_kadlub = AtlasKadluba());
+    static Material KadlubM(int w) => _kadluby[w] ? _kadluby[w] : (_kadluby[w] = AtlasKadluba(w));
     static Color32 C(float r, float g, float b) => new Color32((byte)(Mathf.Clamp01(r) * 255f), (byte)(Mathf.Clamp01(g) * 255f), (byte)(Mathf.Clamp01(b) * 255f), 255);
     static Color K3(float r, float g, float b) => new Color(r, g, b);
     static Color Lp(Color a, Color b, float t) => Color.Lerp(a, b, t);
@@ -688,8 +688,9 @@ internal static class BraxMuzeumKod
     }
 
     // ================================================================ KADŁUB ŻAGLOWCA — malowanie (u wzdłuż kadłuba, v = |t| przekroju)
-    static Material AtlasKadluba()
-    {
+    static Material AtlasKadluba(int w)
+    {   // 0: burty z dębu, czerwony pas z furtami | 1: czarne burty, biały pas z furtami (bryg) | 2: granatowe burty, biały pas (kuter)
+        Color burta = w == 0 ? K3(.24f, .15f, .09f) : w == 1 ? K3(.05f, .05f, .06f) : K3(.07f, .12f, .26f), pasK = w == 0 ? K3(.62f, .12f, .09f) : K3(.9f, .88f, .82f);
         const int W = 512, H = 256; var px = new Color[W * H];
         for (int y = 0; y < H; y++)
             for (int x = 0; x < W; x++)
@@ -697,12 +698,12 @@ internal static class BraxMuzeumKod
                 float s = (x + .5f) / W, t = (y + .5f) / H; Color c;
                 if (t < .62f) { c = K3(.56f, .33f, .23f) * (.9f + .15f * Szum(s * 60f, t * 20f, 1)); if (Mathf.Repeat(s * 40f, 1f) < .05f || Mathf.Repeat(t * 14f, 1f) < .06f) c *= .8f; }   // miedziane dno (blachy)
                 else if (t < .68f) c = K3(.92f, .9f, .85f);                                                                                                        // linia wodna
-                else if (t < .83f || t > .935f) { c = K3(.24f, .15f, .09f) * (.85f + .25f * Szum(s * 3f, t * 60f, 2)); if (Mathf.Repeat(t * 42f, 1f) < .1f) c *= .7f; }   // burty z klepek
-                else { c = K3(.62f, .12f, .09f); float fx = Mathf.Repeat(s * 13f, 1f); if (s > .1f && s < .9f && fx > .38f && fx < .62f && t > .86f && t < .91f) c = K3(.04f, .03f, .03f); }   // pas z furtami
+                else if (t < .83f || t > .935f) { c = burta * (.85f + .25f * Szum(s * 3f, t * 60f, 2)); if (Mathf.Repeat(t * 42f, 1f) < .1f) c *= .7f; }   // burty z klepek
+                else { c = pasK; float fx = Mathf.Repeat(s * (w == 1 ? 10f : 13f), 1f); if (w < 2 && s > .1f && s < .9f && fx > .38f && fx < .62f && t > .86f && t < .91f) c = K3(.04f, .03f, .03f); }   // pas (z furtami)
                 if (t > .975f) c = K3(.05f, .04f, .04f);                                                                                                           // listwa nadburcia
                 px[y * W + x] = c;
             }
-        return Atlas("kadlub_zaglowca.png", "muzeum: model żaglowca — kadłub (malowany)", W, H, px, .45f);
+        return Atlas("kadlub_zaglowca_" + w + ".png", "muzeum: model żaglowca — kadłub " + w + " (malowany)", W, H, px, .45f);
     }
 
     // ================================================================ EKSPONATY 3D
@@ -822,15 +823,16 @@ internal static class BraxMuzeumKod
         Sz(new Vector3(lo.x + e, hi.y - h, lo.z + e), new Vector3(hi.x - e, hi.y - h, lo.z + e), new Vector3(hi.x - e, hi.y - h, hi.z - e), new Vector3(lo.x + e, hi.y - h, hi.z - e), Vector3.up);
     }
 
-    /// <summary>Model żaglowca w dużej gablocie (szafka + klosz): punkt = środek szafki na posadzce, przod = burta do oglądających.</summary>
-    public static Transform Zaglowiec(Transform rodzic, string nazwa, Vector3 p, Vector3 przod)
+    /// <summary>Model statku w dużej gablocie (szafka + klosz): punkt = środek szafki na posadzce, przod = burta do oglądających;
+    /// wariant 0 = fregata (3 maszty), 1 = bryg (2 maszty rejowe), 2 = kuter (1 maszt z gaflem i foki).</summary>
+    public static Transform Zaglowiec(Transform rodzic, string nazwa, Vector3 p, Vector3 przod, int wariant = 0)
     {
-        Materialy(); var km = KadlubM;
-        var g = Postaw(rodzic, "Model żaglowca · " + nazwa, "muzeum_zaglowiec", q => BudujZaglowiec(q, km), p, przod);
+        Materialy(); wariant = Mathf.Clamp(wariant, 0, 2); var km = KadlubM(wariant); int w = wariant;
+        var g = Postaw(rodzic, "Model statku · " + nazwa, "muzeum_zaglowiec_" + w, q => BudujZaglowiec(q, km, w), p, przod);
         BraxChlodnie.Kolizja(g, "gablota żaglowca", new Vector3(-1.03f, 0f, -.48f), new Vector3(1.03f, 2.07f, .48f));
         return g;
     }
-    static void BudujZaglowiec(BraxChlodnie.Partie q, Material kadlub)
+    static void BudujZaglowiec(BraxChlodnie.Partie q, Material kadlub, int w)
     {
         const float A = 1.0f, Bz = .45f, Hs = .85f, Hk = 1.22f;
         q[drewno].Poducha(new Vector3(-A, 0f, -Bz), new Vector3(A, Hs - .03f, Bz), .02f, 0f, 3);                        // szafka
@@ -840,14 +842,14 @@ internal static class BraxMuzeumKod
         dr.Poducha(new Vector3(-.6f, Hs, -.16f), new Vector3(.6f, Hs + .025f, .16f), .006f, 0f, 3);                     // deska ekspozycyjna
         foreach (float x in new[] { -.3f, .25f }) dr.Box(new Vector3(x - .035f, Hs + .025f, -.06f), new Vector3(x + .035f, Hs + .1f, .06f));   // podpórki
         // ---- kadłub z wręg (u: 0 rufa → 1 dziób; t: −1 lewa burta … 0 stępka … 1 prawa burta)
-        const float L = 1.1f, B = .24f, H = .2f; var o = new Vector3(0f, Hs + .095f, 0f);
+        float L = w == 0 ? 1.1f : w == 1 ? .95f : .82f, B = w == 2 ? .22f : .24f, H = w == 2 ? .18f : .2f; var o = new Vector3(0f, Hs + .095f, 0f);
         float Szer(float u) => B * .5f * (1f - Mathf.Pow(Mathf.Max(0f, (u - .55f) / .45f), 2f)) * (.78f + .22f * SS(0f, .3f, u)) + .003f;
         float Gl(float u) => H * (1f - .4f * Mathf.Pow(Mathf.Max(0f, (u - .72f) / .28f), 2f)) * (1f - .1f * Mathf.Max(0f, (.12f - u) / .12f));
         float Sh(float u) => .045f * (1f - u) * (1f - u) + .03f * u * u * u;
         Vector3 Pt(float u, float t)
         {
             float b = Szer(u), d = Gl(u), ys = H + Sh(u), a = t * Mathf.PI * .5f;
-            return o + new Vector3(-L * .5f + u * L, ys - d * Mathf.Pow(Mathf.Cos(a), 1.3f), b * Mathf.Sign(t) * Mathf.Pow(Mathf.Abs(Mathf.Sin(a)), .7f));
+            return o + new Vector3(-L * .5f + u * L, ys - d * Mathf.Pow(Mathf.Max(0f, Mathf.Cos(a)), 1.3f), b * Mathf.Sign(t) * Mathf.Pow(Mathf.Abs(Mathf.Sin(a)), .7f));
         }
         float[] ts = { -1f, -.93f, -.86f, -.78f, -.68f, -.6f, -.48f, -.34f, -.18f, 0f, .18f, .34f, .48f, .6f, .68f, .78f, .86f, .93f, 1f };
         const int N = 24; int M = ts.Length; var s = q[kadlub]; int k0 = s.v.Count;
@@ -887,19 +889,21 @@ internal static class BraxMuzeumKod
         var bow = new Vector3(L * .5f - .04f, Pok(L * .5f - .04f) + .012f, 0f); var bEnd = new Vector3(L * .5f + .27f, bow.y + .12f, 0f);
         dr.Rura(bow, bEnd, .007f, 8);                                                                                    // bukszpryt
         // ---- maszty, reje, żagle, olinowanie
-        float[] mx = { .27f, -.02f, -.3f }, mh = { .72f, .8f, .58f }; var topy = new Vector3[3]; var wanty = new List<(Vector3, Vector3)>();
+        float[] mx = w == 0 ? new[] { .27f, -.02f, -.3f } : w == 1 ? new[] { .2f, -.15f } : new[] { .06f }, mh = w == 0 ? new[] { .72f, .8f, .58f } : w == 1 ? new[] { .68f, .74f } : new[] { .78f };
+        int gafel = w == 0 ? 2 : w == 2 ? 0 : -1; var topy = new Vector3[mx.Length]; var wanty = new List<(Vector3, Vector3)>();
         var br = Quaternion.Euler(0f, 25f, 0f); Vector3 rk = br * Vector3.forward, nS = Vector3.Cross(rk, Vector3.up).normalized;   // reje brasowane 25°
         if (nS.x < 0f) nS = -nS;   // wydęcie żagli ku dziobowi (+x)
-        for (int m = 0; m < 3; m++)
+        for (int m = 0; m < mx.Length; m++)
         {
             float yd = Pok(mx[m]); var b0 = new Vector3(mx[m], yd - .03f, 0f); var top = new Vector3(mx[m], yd + mh[m], 0f); topy[m] = top;
             dr.Rura(b0, new Vector3(mx[m], yd + mh[m] * .56f, 0f), .009f, 8); dr.Rura(new Vector3(mx[m], yd + mh[m] * .52f, 0f), top, .0055f, 8);   // maszt i stenga
             dr.Box(new Vector3(mx[m] - .03f, yd + mh[m] * .5f, -.04f), new Vector3(mx[m] + .03f, yd + mh[m] * .5f + .006f, .04f));               // mars
             float b = Szer((mx[m] + L * .5f) / L);
             foreach (float sz in new[] { -1f, 1f }) foreach (float dx in new[] { -.02f, -.06f, -.1f }) wanty.Add((new Vector3(mx[m], yd + mh[m] * .5f, 0f), new Vector3(mx[m] + dx, yd + .012f, sz * (b - .004f))));
-            if (m == 2)
-            {   // bezan: bom, gafel i żagiel skośny w płaszczyźnie symetrii (dwustronny)
-                var bom0 = new Vector3(mx[m], yd + .08f, 0f); var bom1 = new Vector3(mx[m] - .3f, yd + .1f, 0f); var gaf0 = new Vector3(mx[m], yd + .42f, 0f); var gaf1 = new Vector3(mx[m] - .25f, yd + .52f, 0f);
+            if (m == gafel)
+            {   // bezan / grot kutra: bom, gafel i żagiel skośny w płaszczyźnie symetrii (dwustronny)
+                float lb = w == 2 ? .42f : .3f, hg = w == 2 ? .58f : .42f;
+                var bom0 = new Vector3(mx[m], yd + .08f, 0f); var bom1 = new Vector3(mx[m] - lb, yd + .1f, 0f); var gaf0 = new Vector3(mx[m], yd + hg, 0f); var gaf1 = new Vector3(mx[m] - lb * .85f, yd + hg + .1f, 0f);
                 dr.Rura(bom0, bom1, .004f, 6); dr.Rura(gaf0, gaf1, .004f, 6);
                 var pk = new[] { bom0 + new Vector3(-.01f, .006f, 0f), bom1 + new Vector3(.005f, .006f, 0f), gaf1 + new Vector3(.005f, -.006f, 0f), gaf0 + new Vector3(-.01f, -.006f, 0f) };
                 q[plotno].Quad(pk[0], pk[1], pk[2], pk[3], Vector3.forward); q[plotno].Quad(pk[0], pk[1], pk[2], pk[3], Vector3.back);
@@ -933,9 +937,12 @@ internal static class BraxMuzeumKod
         // olinowanie: wanty, sztagi, achtersztag
         var li = q[lina];
         foreach (var (a, b) in wanty) li.Rura(a, b, .0016f, 4);
-        li.Rura(topy[0], bEnd, .0016f, 4); li.Rura(topy[1], new Vector3(mx[0], Pok(mx[0]) + mh[0] * .5f, 0f), .0016f, 4); li.Rura(topy[2], new Vector3(mx[1], Pok(mx[1]) + mh[1] * .45f, 0f), .0016f, 4);
-        foreach (float sz in new[] { -1f, 1f }) li.Rura(topy[1], new Vector3(mx[1] - .2f, Pok(mx[1] - .2f) + .012f, sz * (Szer((mx[1] - .2f + L * .5f) / L) - .004f)), .0016f, 4);
-        var pp = topy[1] + Vector3.down * .01f;                                                                          // proporzec
+        li.Rura(topy[0], bEnd, .0016f, 4);
+        if (mx.Length > 1) li.Rura(topy[1], new Vector3(mx[0], Pok(mx[0]) + mh[0] * .5f, 0f), .0016f, 4);
+        if (mx.Length > 2) li.Rura(topy[2], new Vector3(mx[1], Pok(mx[1]) + mh[1] * .45f, 0f), .0016f, 4);
+        int gl = mx.Length > 1 ? 1 : 0; float xa = mx[gl] - .2f;                                                         // achtersztagi z najwyższego masztu
+        foreach (float sz in new[] { -1f, 1f }) li.Rura(topy[gl], new Vector3(xa, Pok(xa) + .012f, sz * (Szer((xa + L * .5f) / L) - .004f)), .0016f, 4);
+        var pp = topy[gl] + Vector3.down * .01f;                                                                         // proporzec
         q[tuba].Tri(pp, pp + new Vector3(0f, -.03f, 0f), pp + new Vector3(-.11f, -.012f, 0f), Vector3.forward); q[tuba].Tri(pp, pp + new Vector3(0f, -.03f, 0f), pp + new Vector3(-.11f, -.012f, 0f), Vector3.back);
     }
 
@@ -1082,5 +1089,357 @@ internal static class BraxMuzeumKod
         var tilt = Quaternion.AngleAxis(-23.5f, Vector3.forward); var os2 = tilt * Vector3.up;
         KulaUV(p[mapa], c, Rg, 48, 24, tilt * Quaternion.Euler(0f, -75f, 0f));
         foreach (float sg in new[] { -1f, 1f }) st.Rura(c + os2 * (sg * (Rg - .01f)), c + os2 * (sg * (Rm + .002f)), .007f, 8);   // osie w biegunach
+    }
+
+    // ================================================================ WIĘCEJ WYPOSAŻENIA (12.11 00:31: „wyposażenie musi zrobić większe, bo tam nic nie ma”)
+    static Material terakota, zielen, ksiazki, plaszcze;
+    static void Materialy2()
+    {
+        Materialy(); if (terakota) return;
+        terakota = BraxUliceKit.Tex("muzeum: terakota (amfory)", .5f, new Color(.86f, .5f, .34f), new Color(.62f, .32f, .2f), .85f, "white_rough_plaster", "white_stucco");
+        zielen = BraxCityMaterials.Surface("muzeum: lakier zielony (kocioł maszyny parowej)", new Color(.08f, .22f, .15f), .3f, .35f);
+        ksiazki = BraxUliceKit.Tex("muzeum: oprawy książek (skóra, kolory)", .3f, null, new Color(.6f, .55f, .5f), .6f, "leather_white", "white_stucco");
+        plaszcze = BraxUliceKit.Tex("muzeum: płaszcze w szatni (wełna, kolory)", .4f, null, new Color(.4f, .4f, .42f), .9f, "rough_linen", "white_stucco");
+    }
+    static Transform Postaw2(Transform rodzic, string nazwa, string klucz, System.Action<BraxChlodnie.Partie> buduj, Vector3 p, Vector3 przod, Vector3 kolLo, Vector3 kolHi)
+    {
+        Materialy2(); var g = Postaw(rodzic, nazwa, klucz, buduj, p, przod);
+        if (kolHi.y > kolLo.y) BraxChlodnie.Kolizja(g, nazwa, kolLo, kolHi);
+        BraxChlodnie.Lod(g, Mathf.Max(1.5f, (kolHi - kolLo).magnitude * .5f));
+        return g;
+    }
+    static void Cokol(BraxChlodnie.Partie p, float a, float c, float h) => p[marmur].Poducha(new Vector3(-a, 0f, -c), new Vector3(a, h, c), .015f, 0f, 3);
+
+    /// <summary>Łódź wiosłowa (4.2 m) na kozłach na podeście: punkt = środek podestu na posadzce, przod = burta do oglądających.</summary>
+    public static Transform Lodz(Transform rodzic, string nazwa, Vector3 p, Vector3 przod)
+        => Postaw2(rodzic, "Łódź wiosłowa · " + nazwa, "muzeum_lodz", BudujLodz, p, przod, new Vector3(-2.4f, 0f, -.95f), new Vector3(2.4f, 1.25f, .95f));
+    static void BudujLodz(BraxChlodnie.Partie q)
+    {
+        var dr = q[drewno]; var dk = q[dab]; const float L = 4.2f, B = 1.3f, H = .55f, g = .03f;
+        q[czern].Poducha(new Vector3(-2.35f, 0f, -.9f), new Vector3(2.35f, .12f, .9f), .02f, 0f, 3);                   // podest
+        var o = new Vector3(0f, .52f, 0f);
+        float Szer(float u) => B * .5f * (1f - Mathf.Pow(Mathf.Max(0f, (u - .5f) / .5f), 1.8f)) * (.7f + .3f * SS(0f, .35f, u)) + .004f;
+        float Gl(float u) => H * (1f - .45f * Mathf.Pow(Mathf.Max(0f, (u - .7f) / .3f), 2f));
+        float Sh(float u) => .06f * (1f - u) * (1f - u) + .1f * u * u * u;
+        Vector3 Pt(float u, float t, float wn)
+        {
+            float b = Szer(u) - wn, d = Gl(u) - wn, ys = H + Sh(u), a = t * Mathf.PI * .5f;
+            return o + new Vector3(-L * .5f + u * L, ys - Mathf.Max(0f, d) * Mathf.Pow(Mathf.Max(0f, Mathf.Cos(a)), 1.2f), Mathf.Max(0f, b) * Mathf.Sign(t) * Mathf.Pow(Mathf.Abs(Mathf.Sin(a)), .65f));
+        }
+        float[] ts = { -1f, -.85f, -.7f, -.55f, -.4f, -.25f, -.12f, 0f, .12f, .25f, .4f, .55f, .7f, .85f, 1f };
+        const int N = 22; int M = ts.Length;
+        foreach (var (mat, wn, zewn) in new[] { (dk, 0f, true), (dk, g, false) })
+        {   // poszycie z zewnątrz i od środka (2.5–3 cm grubości), UV w metrach (wzdłuż × po obwodzie)
+            var s = mat; int k0 = s.v.Count;
+            for (int i = 0; i <= N; i++)
+            {
+                float u = (float)i / N, dl = 0f; var prev = Pt(u, ts[0], wn);
+                for (int j = 0; j < M; j++) { var P = Pt(u, ts[j], wn); dl += Vector3.Distance(prev, P); prev = P; s.v.Add(P); s.uv.Add(new Vector2(P.x, dl)); s.c.Add(s.kolor); s.n.Add(Vector3.up); s.t.Add(new Vector4(1f, 0f, 0f, 1f)); }
+            }
+            for (int i = 0; i <= N; i++)
+                for (int j = 0; j < M; j++)
+                {
+                    int id = k0 + i * M + j; var dS = s.v[k0 + Mathf.Min(N, i + 1) * M + j] - s.v[k0 + Mathf.Max(0, i - 1) * M + j]; var dT = s.v[k0 + i * M + Mathf.Min(M - 1, j + 1)] - s.v[k0 + i * M + Mathf.Max(0, j - 1)];
+                    var sr = new Vector3(s.v[id].x, o.y + H * .7f, 0f); var n = Vector3.Cross(dS, dT); if (n.sqrMagnitude < 1e-10f) n = s.v[id] - sr; n.Normalize();
+                    if ((Vector3.Dot(n, s.v[id] - sr) < 0f) == zewn) n = -n; s.n[id] = n;
+                    var tg = dS.sqrMagnitude > 1e-10f ? dS.normalized : Vector3.right; tg = (tg - n * Vector3.Dot(tg, n)).normalized; if (tg.sqrMagnitude < .5f) tg = Vector3.Cross(n, Vector3.up).normalized;
+                    s.t[id] = new Vector4(tg.x, tg.y, tg.z, 1f);   // styczne wzdłuż kadłuba (mapa normalnych tekstury)
+                }
+            for (int i = 0; i < N; i++)
+                for (int j = 0; j < M - 1; j++)
+                {
+                    int a = k0 + i * M + j, b = a + 1, c = a + M, d = c + 1; var ns = s.n[a] + s.n[b] + s.n[c] + s.n[d];
+                    if (Vector3.Dot(Vector3.Cross(s.v[b] - s.v[a], s.v[d] - s.v[a]), ns) + Vector3.Dot(Vector3.Cross(s.v[d] - s.v[a], s.v[c] - s.v[a]), ns) >= 0f) s.i.AddRange(new[] { a, b, d, a, d, c }); else s.i.AddRange(new[] { a, d, b, a, c, d });
+                }
+        }
+        for (int i = 0; i < N; i++)
+            foreach (float t in new[] { -1f, 1f })
+            {   // burta (relingi) z ciemnego drewna — listwa na krawędzi poszycia
+                float u0 = (float)i / N, u1 = (float)(i + 1) / N;
+                dr.Quad(Pt(u0, t, 0f) + Vector3.up * .004f, Pt(u1, t, 0f) + Vector3.up * .004f, Pt(u1, t, g) + Vector3.up * .004f, Pt(u0, t, g) + Vector3.up * .004f, Vector3.up);
+            }
+        var sR = Vector3.zero; for (int j = 0; j < M; j++) sR += Pt(0f, ts[j], 0f); sR /= M;
+        for (int j = 0; j < M - 1; j++) { dk.Tri(sR, Pt(0f, ts[j], 0f), Pt(0f, ts[j + 1], 0f), Vector3.left); dk.Tri(sR + Vector3.right * g, Pt(0f, ts[j], g) + Vector3.right * g, Pt(0f, ts[j + 1], g) + Vector3.right * g, Vector3.right); }   // pawęż
+        dr.Rura(Pt(1f, 0f, 0f) + new Vector3(-.02f, -.01f, 0f), Pt(1f, 1f, 0f) + new Vector3(0f, .03f, 0f), .025f, 8);         // dziobnica
+        foreach (float x in new[] { -1.1f, .1f, 1.15f })
+        {   // ławki (pawęże) na wspornikach
+            float u = (x + L * .5f) / L, y = o.y + H + Sh(u) - .2f, b = 0f;
+            for (float t = 0f; t <= 1.001f; t += .02f) { var P = Pt(u, t, g); if (P.y >= y - .03f) { b = P.z - .004f; break; } }   // szerokość wnętrza na wysokości ławki
+            if (b > .05f) dk.Box(new Vector3(x - .13f, y - .03f, -b), new Vector3(x + .13f, y, b));
+        }
+        foreach (float sz in new[] { -1f, 1f })
+        {   // dwa wiosła leżące na ławkach, dulki na burtach
+            var a0 = new Vector3(1.25f, o.y + H - .165f, sz * .17f); var a1 = new Vector3(-1.35f, o.y + H - .165f, sz * .27f);   // pióra wioseł w szerokiej części rufowej (w obrysie łodzi)
+            dr.Rura(a0, a1, .022f, 8); dk.OBox(a1 + (a1 - a0).normalized * .25f, (a1 - a0).normalized, Vector3.forward * sz, Vector3.up, .55f, .15f, .02f);
+            float u = (.2f + L * .5f) / L; var dl = Pt(u, sz, 0f); q[stal].Rura(dl, dl + Vector3.up * .07f, .01f, 6);
+        }
+        foreach (float x in new[] { -1.3f, 1.2f })
+        {   // kozły pod kilem
+            float u = (x + L * .5f) / L, yk = Pt(u, 0f, 0f).y;
+            dr.Box(new Vector3(x - .08f, .12f, -.35f), new Vector3(x + .08f, yk + .01f, .35f));
+        }
+    }
+
+    /// <summary>Ładunek portowy: paleta, beczki z obręczami, skrzynie, zwoje liny — punkt = środek na posadzce.</summary>
+    public static Transform Ladunek(Transform rodzic, string nazwa, Vector3 p, Vector3 przod)
+        => Postaw2(rodzic, "Ładunek portowy · " + nazwa, "muzeum_ladunek", BudujLadunek, p, przod, new Vector3(-1.05f, 0f, -.75f), new Vector3(1.05f, 1.2f, .75f));
+    static void Beczka(BraxChlodnie.Partie q, Vector3 c, float h, float r)
+    {
+        var pr = new List<Vector3>(); for (int i = 0; i <= 8; i++) { float y = h * i / 8f; pr.Add(new Vector3(r * (.86f + .14f * Mathf.Sin(Mathf.PI * i / 8f)), y, 0)); }
+        pr.Insert(0, new Vector3(0f, .015f, 0)); pr.Insert(1, new Vector3(r * .86f - .012f, .015f, 0)); pr.Insert(2, new Vector3(r * .86f - .012f, 0f, 0));
+        pr.Add(new Vector3(r * .86f - .012f, h, 0)); pr.Add(new Vector3(r * .86f - .012f, h - .018f, 0)); pr.Add(new Vector3(0f, h - .018f, 0));
+        BraxChlodnie.Toczony(q[drewno], c, pr, Bl, 18);
+        foreach (float f in new[] { .1f, .3f, .7f, .9f })
+        {   // obręcze
+            float rr = r * (.86f + .14f * Mathf.Sin(Mathf.PI * f)); TocOs(q[zeliwo], c + Vector3.up * (h * f), Vector3.up, Torus(rr + .002f, .006f, .016f, 0f, 6), 18);
+        }
+    }
+    static void BudujLadunek(BraxChlodnie.Partie q)
+    {
+        var dk = q[dab];
+        for (int i = 0; i < 5; i++) dk.Box(new Vector3(-1f, .1f, -.7f + i * .34f), new Vector3(1f, .125f, -.7f + i * .34f + .09f));       // paleta: deski
+        foreach (float x in new[] { -.95f, 0f, .95f }) dk.Box(new Vector3(x - .05f, 0f, -.7f), new Vector3(x + .05f, .1f, .7f));          // klocki
+        Beczka(q, new Vector3(-.6f, .125f, -.32f), .82f, .3f); Beczka(q, new Vector3(-.6f, .125f, .32f), .82f, .3f);
+        foreach (var (lo, hi) in new[] { (new Vector3(.05f, .125f, -.62f), new Vector3(.95f, .62f, -.02f)), (new Vector3(.1f, .125f, .05f), new Vector3(.9f, .5f, .62f)), (new Vector3(.2f, .62f, -.55f), new Vector3(.85f, 1.0f, -.08f)) })
+        {   // skrzynie z listwami
+            dk.Poducha(lo, hi, .012f, 0f, 3);
+            foreach (float yy in new[] { lo.y + .06f, hi.y - .1f }) q[drewno].Box(new Vector3(lo.x - .025f, yy, lo.z - .025f), new Vector3(hi.x + .025f, yy + .04f, hi.z + .025f));
+        }
+        for (int k = 0; k < 4; k++) TocOs(q[lina], new Vector3(.5f, .5f + .022f, .33f), Vector3.up, Torus(.07f + k * .05f, .022f, .022f, 0f, 6), 20);   // zwój liny na skrzyni
+    }
+
+    /// <summary>Dzwon okrętowy na drewnianej ramie z linką: punkt = środek ramy na posadzce, przod = do oglądających.</summary>
+    public static Transform Dzwon(Transform rodzic, string nazwa, Vector3 p, Vector3 przod)
+        => Postaw2(rodzic, "Dzwon okrętowy · " + nazwa, "muzeum_dzwon", BudujDzwon, p, przod, new Vector3(-.6f, 0f, -.4f), new Vector3(.6f, 1.95f, .4f));
+    static void BudujDzwon(BraxChlodnie.Partie q)
+    {
+        var dr = q[drewno]; var dz = q[stal]; const float yd = 1.0f;
+        dr.Poducha(new Vector3(-.6f, 0f, -.4f), new Vector3(.6f, .08f, .4f), .015f, 0f, 3);                             // podstawa
+        foreach (float sx in new[] { -1f, 1f }) dr.Poducha(new Vector3(sx * .5f - .06f, .08f, -.06f), new Vector3(sx * .5f + .06f, 1.85f, .06f), .012f, 0f, 3);   // słupy
+        dr.Poducha(new Vector3(-.6f, 1.85f, -.08f), new Vector3(.6f, 1.95f, .08f), .012f, 0f, 3);                        // belka
+        dz.Rura(new Vector3(0f, 1.85f, 0f), new Vector3(0f, yd + .5f, 0f), .015f, 8);                                     // zawiesie
+        BraxChlodnie.Toczony(dz, new Vector3(0f, yd, 0f), new List<Vector3> { new Vector3(0f, .4f, 0), new Vector3(.11f, .37f, 0), new Vector3(.15f, .2f, 0), new Vector3(.19f, .03f, 0), new Vector3(.215f, 0f, 0),
+            new Vector3(.228f, .006f, 0), new Vector3(.205f, .045f, 0), new Vector3(.175f, .14f, 0), new Vector3(.15f, .26f, 0), new Vector3(.14f, .36f, 0), new Vector3(.12f, .43f, 0), new Vector3(.07f, .47f, 0), new Vector3(0f, .48f, 0) }, Bl, 32);   // dzwon (wnętrze i zewnątrz)
+        TocOs(dz, new Vector3(0f, yd + .52f, 0f), Vector3.right, Torus(.04f, .012f, .012f, 0f, 6), 14);                   // ucho
+        dz.Rura(new Vector3(0f, yd + .4f, 0f), new Vector3(0f, yd + .06f, 0f), .01f, 6); BraxChlodnie.Toczony(dz, new Vector3(0f, yd + .05f, 0f), KulaProfil(.035f), Bl, 12);   // serce
+        q[plotno].Rura(new Vector3(0f, yd + .02f, 0f), new Vector3(0f, yd - .42f, 0f), .011f, 8);                         // linka dzwonu z frędzlem
+        BraxChlodnie.Toczony(q[plotno], new Vector3(0f, yd - .52f, 0f), new List<Vector3> { new Vector3(0f, 0f, 0), new Vector3(.035f, .01f, 0), new Vector3(.02f, .1f, 0), new Vector3(.012f, .11f, 0) }, Bl, 10);
+    }
+
+    /// <summary>Luneta na drewnianym trójnogu: punkt = środek na posadzce, przod = kierunek obiektywu.</summary>
+    public static Transform Luneta(Transform rodzic, string nazwa, Vector3 p, Vector3 przod)
+        => Postaw2(rodzic, "Luneta · " + nazwa, "muzeum_luneta", BudujLunete, p, przod, new Vector3(-.5f, 0f, -.6f), new Vector3(.5f, 1.55f, .75f));
+    static void Trojnog(BraxChlodnie.Partie q, float h, float rozstaw)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            float a = (90f + i * 120f) * Mathf.Deg2Rad; var d = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a));
+            q[drewno].Rura(d * rozstaw, Vector3.up * h + d * .05f, .022f, 8); q[stal].Rura(d * rozstaw - Vector3.up * .001f, d * rozstaw + Vector3.up * .04f, .025f, 8);
+        }
+        BraxChlodnie.Toczony(q[stal], Vector3.up * (h - .02f), new List<Vector3> { new Vector3(0f, 0f, 0), new Vector3(.08f, 0f, 0), new Vector3(.08f, .05f, 0), new Vector3(0f, .05f, 0) }, Bl, 16);
+    }
+    static void BudujLunete(BraxChlodnie.Partie q)
+    {
+        Trojnog(q, 1.2f, .45f);
+        q[stal].Rura(new Vector3(0f, 1.23f, 0f), new Vector3(0f, 1.32f, 0f), .025f, 10);
+        var os = new Vector3(0f, .26f, 1f).normalized; var c0 = new Vector3(0f, 1.36f, 0f) - os * .45f;
+        TocOs(q[czern], c0, os, new List<Vector3> { new Vector3(0f, 0f, 0), new Vector3(.022f, 0f, 0), new Vector3(.022f, .12f, 0), new Vector3(.03f, .14f, 0), new Vector3(.034f, .4f, 0), new Vector3(.042f, .42f, 0),
+            new Vector3(.045f, .75f, 0), new Vector3(.055f, .77f, 0), new Vector3(.058f, 1.05f, 0), new Vector3(.064f, 1.07f, 0), new Vector3(.064f, 1.15f, 0), new Vector3(.05f, 1.15f, 0), new Vector3(.05f, 1.08f, 0), new Vector3(0f, 1.08f, 0) }, 20);
+        foreach (float t in new[] { .14f, .42f, .77f, 1.07f }) TocOs(q[stal], c0 + os * t, os, Torus(t < .3f ? .031f : t < .6f ? .043f : t < .9f ? .056f : .065f, .004f, .006f, 0f, 6), 20);   // pierścienie ze stali
+        q[stal].Rura(new Vector3(0f, 1.32f, 0f), c0 + os * .5f - Vector3.up * .04f, .02f, 8);                              // obejma
+    }
+
+    /// <summary>Kamera filmowa na statywie (dwie szpule, obiektyw, korba): punkt = środek na posadzce, przod = obiektyw.</summary>
+    public static Transform Kamera(Transform rodzic, string nazwa, Vector3 p, Vector3 przod)
+        => Postaw2(rodzic, "Kamera filmowa · " + nazwa, "muzeum_kamera", BudujKamere, p, przod, new Vector3(-.5f, 0f, -.5f), new Vector3(.5f, 1.85f, .6f));
+    static void BudujKamere(BraxChlodnie.Partie q)
+    {
+        Trojnog(q, 1.15f, .45f);
+        var dr = q[drewno]; var cz = q[czern]; var st = q[stal];
+        dr.Poducha(new Vector3(-.13f, 1.2f, -.22f), new Vector3(.13f, 1.52f, .2f), .012f, 0f, 3);                         // korpus (drewno)
+        cz.Box(new Vector3(-.14f, 1.17f, -.15f), new Vector3(.14f, 1.2f, .15f));                                           // głowica
+        TocOs(st, new Vector3(0f, 1.38f, .2f), Vector3.forward, new List<Vector3> { new Vector3(.05f, 0f, 0), new Vector3(.05f, .04f, 0), new Vector3(.04f, .05f, 0), new Vector3(.04f, .14f, 0), new Vector3(.045f, .15f, 0), new Vector3(.03f, .155f, 0), new Vector3(0f, .155f, 0) }, 18);   // obiektyw
+        foreach (float zz in new[] { -.12f, .1f })
+        {   // szpule na górze
+            TocOs(cz, new Vector3(-.03f, 1.66f, zz), Vector3.right, new List<Vector3> { new Vector3(0f, 0f, 0), new Vector3(.15f, 0f, 0), new Vector3(.15f, .06f, 0), new Vector3(0f, .06f, 0) }, 24);
+            st.Rura(new Vector3(-.06f, 1.66f, zz), new Vector3(.06f, 1.66f, zz), .012f, 8);   // oś szpuli (≥ 3 cm poza tarczą)
+        }
+        st.Rura(new Vector3(.13f, 1.36f, -.05f), new Vector3(.2f, 1.36f, -.05f), .008f, 6); st.Rura(new Vector3(.2f, 1.36f, -.05f), new Vector3(.2f, 1.28f, -.05f), .007f, 6); cz.Rura(new Vector3(.2f, 1.28f, -.05f), new Vector3(.25f, 1.28f, -.05f), .012f, 8);   // korba
+    }
+
+    /// <summary>Maszyna parowa (kocioł z kominem, cylinder, korbowód, koło zamachowe, regulator) na żeliwnej ramie i ceglanym
+    /// fundamencie: punkt = środek na posadzce, przod = bok maszyny do oglądających.</summary>
+    public static Transform MaszynaParowa(Transform rodzic, string nazwa, Vector3 p, Vector3 przod)
+        => Postaw2(rodzic, "Maszyna parowa · " + nazwa, "muzeum_maszyna_parowa", BudujMaszyne, p, przod, new Vector3(-1.75f, 0f, -.95f), new Vector3(2.15f, 2.95f, .95f));
+    static void BudujMaszyne(BraxChlodnie.Partie q)
+    {
+        var fe = q[zeliwo]; var st = q[stal]; var zi = q[zielen]; var cz = q[tuba];
+        q[marmur].Poducha(new Vector3(-1.7f, 0f, -.9f), new Vector3(2.1f, .25f, .9f), .02f, 0f, 3);                      // fundament
+        fe.Box(new Vector3(-1.6f, .25f, -.5f), new Vector3(2.0f, .4f, .5f));                                               // rama
+        // kocioł poziomy (oś x) z pasami i paleniskiem, komin
+        TocOs(zi, new Vector3(-1.45f, .95f, -.1f), Vector3.right, new List<Vector3> { new Vector3(0f, 0f, 0), new Vector3(.38f, 0f, 0), new Vector3(.42f, .04f, 0), new Vector3(.42f, 1.9f, 0), new Vector3(.38f, 1.94f, 0), new Vector3(.2f, 1.96f, 0), new Vector3(0f, 1.97f, 0) }, 28);
+        foreach (float t in new[] { .25f, .7f, 1.15f, 1.6f }) TocOs(st, new Vector3(-1.45f + t, .95f, -.1f), Vector3.right, Torus(.424f, .012f, .02f, 0f, 6), 28);
+        foreach (float x in new[] { -1.2f, -.05f }) fe.Box(new Vector3(x - .08f, .4f, -.42f), new Vector3(x + .08f, .6f, .22f));   // siodła kotła (między pasami)
+        fe.Poducha(new Vector3(-1.62f, .4f, -.42f), new Vector3(-1.45f, 1.25f, .22f), .015f, 0f, 3);                       // drzwiczki paleniska (czoło)
+        fe.Rura(new Vector3(-1.2f, 1.3f, -.1f), new Vector3(-1.2f, 2.75f, -.1f), .11f, 16);                                 // komin
+        TocOs(fe, new Vector3(-1.2f, 2.75f, -.1f), Vector3.up, new List<Vector3> { new Vector3(.11f, 0f, 0), new Vector3(.17f, .12f, 0), new Vector3(.17f, .16f, 0), new Vector3(.09f, .16f, 0), new Vector3(.09f, .02f, 0) }, 16);   // korona komina
+        TocOs(st, new Vector3(-.3f, 1.35f, -.1f), Vector3.up, new List<Vector3> { new Vector3(.07f, 0f, 0), new Vector3(.07f, .1f, 0), new Vector3(.1f, .12f, 0), new Vector3(.1f, .2f, 0), new Vector3(.06f, .26f, 0), new Vector3(0f, .27f, 0) }, 16);   // dzwon parowy (kopuła)
+        // cylinder (oś x) na kotle, tłoczysko, wodzik, korbowód, wał z kołem zamachowym (oś z) i regulator odśrodkowy
+        TocOs(fe, new Vector3(.25f, 1.5f, -.1f), Vector3.right, new List<Vector3> { new Vector3(0f, 0f, 0), new Vector3(.13f, 0f, 0), new Vector3(.15f, .02f, 0), new Vector3(.15f, .48f, 0), new Vector3(.13f, .5f, 0), new Vector3(0f, .5f, 0) }, 20);
+        st.Rura(new Vector3(.75f, 1.5f, -.1f), new Vector3(1.15f, 1.5f, -.1f), .02f, 10);                                 // tłoczysko
+        st.Box(new Vector3(1.1f, 1.45f, -.16f), new Vector3(1.22f, 1.55f, -.04f));                                         // wodzik
+        st.Box(new Vector3(.75f, 1.41f, -.15f), new Vector3(1.3f, 1.43f, -.05f));                                          // prowadnica wodzika
+        fe.Box(new Vector3(1.22f, .4f, -.14f), new Vector3(1.3f, 1.41f, -.06f));                                          // wspornik prowadnicy
+        var kc = new Vector3(1.38f, 1.05f, -.1f); var czop = kc + new Vector3(.18f, .12f, 0f);
+        st.Rura(new Vector3(1.18f, 1.5f, -.1f), czop, .022f, 10);                                                          // korbowód
+        TocOs(st, kc + new Vector3(0f, 0f, -.12f), Vector3.forward, new List<Vector3> { new Vector3(0f, 0f, 0), new Vector3(.23f, 0f, 0), new Vector3(.23f, .04f, 0), new Vector3(0f, .04f, 0) }, 24);   // tarcza korby
+        fe.Box(new Vector3(1.3f, .4f, -.18f), new Vector3(1.46f, kc.y - .05f, -.02f));                                    // łożysko wału
+        st.Rura(kc + new Vector3(0f, 0f, -.15f), kc + new Vector3(0f, 0f, .55f), .045f, 12);                               // wał
+        var kz = kc + new Vector3(0f, 0f, .4f);                                                                            // koło zamachowe
+        TocOs(cz, kz, Vector3.forward, new List<Vector3> { new Vector3(.52f, -.05f, 0), new Vector3(.62f, -.05f, 0), new Vector3(.64f, -.03f, 0), new Vector3(.64f, .03f, 0), new Vector3(.62f, .05f, 0), new Vector3(.52f, .05f, 0), new Vector3(.52f, -.05f, 0) }, 40);
+        TocOs(cz, kz, Vector3.forward, new List<Vector3> { new Vector3(0f, -.06f, 0), new Vector3(.1f, -.06f, 0), new Vector3(.1f, .06f, 0), new Vector3(0f, .06f, 0) }, 20);
+        for (int i = 0; i < 6; i++) { float a = i * Mathf.PI / 3f; var d = new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0f); cz.Rura(kz + d * .09f, kz + d * .53f, .025f, 8); }
+        st.Rura(kz + new Vector3(0f, 0f, .06f), kz + new Vector3(0f, 0f, .09f), .05f, 12);
+        var rg = new Vector3(.9f, 1.7f, -.1f); st.Rura(new Vector3(.9f, 1.6f, -.1f), rg + Vector3.up * .3f, .015f, 8);      // regulator Watta
+        foreach (float sx in new[] { -1f, 1f }) { var kul = rg + new Vector3(sx * .14f, .1f, 0f); st.Rura(rg + Vector3.up * .28f, kul, .006f, 6); BraxChlodnie.Toczony(st, kul, KulaProfil(.035f), Bl, 12); }
+    }
+
+    /// <summary>Rzeźba współczesna na postumencie: 0 = pierścień ze stali, 1 = spirala z płyt marmuru, 2 = trzy kule, 3 = łuk
+    /// (grafit). Punkt = środek postumentu na posadzce.</summary>
+    public static Transform Rzezba(Transform rodzic, string nazwa, Vector3 p, Vector3 przod, int wariant)
+    {
+        wariant = ((wariant % 4) + 4) % 4; int w = wariant;
+        return Postaw2(rodzic, "Rzeźba · " + nazwa, "muzeum_rzezba_" + w, q => BudujRzezbe(q, w), p, przod, new Vector3(-.45f, 0f, -.45f), new Vector3(.45f, 2.2f, .45f));
+    }
+    static void BudujRzezbe(BraxChlodnie.Partie q, int w)
+    {
+        const float hp = .55f; q[czern].Poducha(new Vector3(-.42f, 0f, -.42f), new Vector3(.42f, hp, .42f), .012f, 0f, 3);   // postument (grafit)
+        if (w == 0)
+        {   // pierścień pionowy ze stali polerowanej na krótkim trzpieniu
+            q[stal].Rura(new Vector3(0f, hp, 0f), new Vector3(0f, hp + .1f, 0f), .04f, 12);
+            TocOs(q[stal], new Vector3(0f, hp + .1f + .62f, 0f), Vector3.forward, Torus(.5f, .12f, .12f, 0f, 14), 48);
+        }
+        else if (w == 1)
+        {   // spirala: 16 płyt marmuru, każda obrócona o 11°
+            for (int i = 0; i < 16; i++)
+            {
+                float y = hp + i * .085f + .0425f, a = i * 11f * Mathf.Deg2Rad; var r = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)); var f = Vector3.Cross(r, Vector3.up);
+                q[marmur].OBox(new Vector3(0f, y, 0f), r, Vector3.up, f, .72f, .085f, .26f);   // płyty stykają się (bez szczelin)
+            }
+        }
+        else if (w == 2)
+        {   // trzy kule w równowadze: grafit, stal, marmur
+            BraxChlodnie.Toczony(q[czern], new Vector3(0f, hp + .3f, 0f), KulaProfil(.3f, 0f, 14), Bl, 28);
+            BraxChlodnie.Toczony(q[stal], new Vector3(.04f, hp + .6f + .2f, 0f), KulaProfil(.2f, 0f, 12), Bl, 24);
+            BraxChlodnie.Toczony(q[marmur], new Vector3(-.02f, hp + 1.0f + .12f, 0f), KulaProfil(.12f, 0f, 10), Bl, 20);
+        }
+        else
+        {   // łuk: pół torusa z grafitu, stojący
+            for (int i = 0; i < 16; i++)
+            {   // segmenty łuku (rury) po półokręgu w płaszczyźnie xy
+                float a0 = i * Mathf.PI / 16f, a1 = (i + 1) * Mathf.PI / 16f;
+                q[czern].Rura(new Vector3(Mathf.Cos(a0) * .55f, hp + Mathf.Sin(a0) * .55f * 1.6f, 0f), new Vector3(Mathf.Cos(a1) * .55f, hp + Mathf.Sin(a1) * .55f * 1.6f, 0f), .07f, 14);
+            }
+        }
+    }
+
+    /// <summary>Trzy amfory (do gabloty): punkt = środek dna gabloty.</summary>
+    public static Transform Amfory(Transform rodzic, string nazwa, Vector3 p, Vector3 przod)
+        => Postaw2(rodzic, "Amfory · " + nazwa, "muzeum_amfory", BudujAmfory, p, przod, Vector3.zero, Vector3.zero);
+    static void BudujAmfory(BraxChlodnie.Partie q)
+    {
+        foreach (var (x, s) in new[] { (-.22f, .8f), (0f, 1f), (.22f, .75f) })
+        {
+            float h = .5f * s, r = .08f * s; var c = new Vector3(x, 0f, 0f);
+            BraxChlodnie.Toczony(q[czern], c, new List<Vector3> { new Vector3(0f, 0f, 0), new Vector3(.045f * s, 0f, 0), new Vector3(.045f * s, .025f * s, 0), new Vector3(0f, .025f * s, 0) }, Bl, 16);   // stojak
+            BraxChlodnie.Toczony(q[terakota], c + Vector3.up * .025f * s, new List<Vector3> { new Vector3(0f, 0f, 0), new Vector3(.02f * s, 0f, 0), new Vector3(.025f * s, .04f * s, 0), new Vector3(r * .7f, h * .25f, 0), new Vector3(r, h * .5f, 0),
+                new Vector3(r * .85f, h * .72f, 0), new Vector3(r * .35f, h * .85f, 0), new Vector3(r * .3f, h * .97f, 0), new Vector3(r * .42f, h, 0), new Vector3(r * .3f, h, 0), new Vector3(r * .26f, h * .95f, 0) }, Bl, 20);
+            foreach (float sz in new[] { -1f, 1f })
+                for (int i = 0; i < 5; i++)
+                {   // ucha
+                    float a0 = i * Mathf.PI / 5f, a1 = (i + 1) * Mathf.PI / 5f; var b0 = c + Vector3.up * (.025f * s + h * .8f);
+                    Vector3 P(float a) => b0 + new Vector3(0f, Mathf.Sin(a) * h * .1f, sz * (r * .35f + (1f - Mathf.Cos(a)) * r * .28f));
+                    q[terakota].Rura(P(a0), P(a1), .008f * s, 6);
+                }
+        }
+    }
+
+    /// <summary>Lampy naftowe (trzy, do gabloty): punkt = środek dna gabloty.</summary>
+    public static Transform LampyNaftowe(Transform rodzic, string nazwa, Vector3 p, Vector3 przod)
+        => Postaw2(rodzic, "Lampy naftowe · " + nazwa, "muzeum_lampy", BudujLampy, p, przod, Vector3.zero, Vector3.zero);
+    static void BudujLampy(BraxChlodnie.Partie q)
+    {
+        foreach (var (x, s) in new[] { (-.22f, .85f), (0f, 1f), (.22f, .9f) })
+        {
+            var c = new Vector3(x, 0f, 0f);
+            BraxChlodnie.Toczony(q[talerz], c, new List<Vector3> { new Vector3(0f, 0f, 0), new Vector3(.07f * s, 0f, 0), new Vector3(.07f * s, .02f * s, 0), new Vector3(.03f * s, .05f * s, 0), new Vector3(.03f * s, .1f * s, 0), new Vector3(.075f * s, .16f * s, 0), new Vector3(.06f * s, .21f * s, 0), new Vector3(.025f * s, .23f * s, 0) },
+                new[] { C(.25f, .32f, .45f) }, 20);   // podstawa i zbiornik (szkło barwione)
+            BraxChlodnie.Toczony(q[stal], c + Vector3.up * .23f * s, new List<Vector3> { new Vector3(.025f * s, 0f, 0), new Vector3(.04f * s, .02f * s, 0), new Vector3(.04f * s, .045f * s, 0), new Vector3(.03f * s, .05f * s, 0) }, Bl, 16);   // palnik
+            BraxChlodnie.Toczony(q[szklo], c + Vector3.up * .28f * s, new List<Vector3> { new Vector3(.03f * s, 0f, 0), new Vector3(.045f * s, .05f * s, 0), new Vector3(.025f * s, .12f * s, 0), new Vector3(.02f * s, .2f * s, 0) }, Bl, 16);   // klosz szklany
+        }
+    }
+
+    /// <summary>Szatnia: lada z blatem, dwa wieszaki z płaszczami, napis 3D SZATNIA na ścianie — punkt = środek przy ścianie (lico),
+    /// przod = do sali, dl = długość lady (m rzeczywiste).</summary>
+    public static Transform Szatnia(Transform rodzic, string nazwa, Vector3 punktSciany, Vector3 przod)
+    {
+        var g = Postaw2(rodzic, "Szatnia · " + nazwa, "muzeum_szatnia", BudujSzatnie, punktSciany, przod, new Vector3(-1.8f, 0f, 1.45f), new Vector3(1.8f, 1.1f, 1.95f));
+        BraxRegionMeble.Napis(rodzic, "SZATNIA", g.position + g.rotation * (new Vector3(0f, 2.55f, 0f) * K), g.forward, .26f * K / .72f, new Color(.13f, .13f, .14f), .05f);
+        return g;
+    }
+    static void BudujSzatnie(BraxChlodnie.Partie q)
+    {
+        q[dab].Poducha(new Vector3(-1.8f, 0f, 1.45f), new Vector3(1.8f, 1.02f, 1.9f), .012f, 0f, 3);                       // lada
+        q[marmur].Poducha(new Vector3(-1.84f, 1.02f, 1.42f), new Vector3(1.84f, 1.06f, 1.95f), .01f, 0f, 3);                // blat
+        Color32[] kol = { C(.12f, .16f, .3f), C(.35f, .35f, .37f), C(.6f, .5f, .38f), C(.08f, .08f, .09f), C(.4f, .12f, .12f), C(.2f, .3f, .22f) };
+        foreach (float zr in new[] { .45f })
+        {
+            foreach (float sx in new[] { -1.6f, 1.6f }) q[stal].Rura(new Vector3(sx, 0f, zr), new Vector3(sx, 1.75f, zr), .02f, 10);
+            q[stal].Rura(new Vector3(-1.6f, 1.72f, zr), new Vector3(1.6f, 1.72f, zr), .016f, 10);                          // drążek
+            for (int i = 0; i < 9; i++)
+            {   // wieszaki z płaszczami
+                float x = -1.4f + i * .35f; var pl = q[plaszcze]; pl.kolor = kol[i % kol.Length];
+                q[stal].Rura(new Vector3(x, 1.72f, zr), new Vector3(x, 1.64f, zr), .004f, 4);
+                pl.Poducha(new Vector3(x - .2f, .72f + (i % 3) * .06f, zr - .1f), new Vector3(x + .2f, 1.62f, zr + .1f), .06f, .01f, 4); pl.kolor = Bl[0];
+            }
+        }
+    }
+
+    /// <summary>Sklep muzealny: dwa regały z książkami pod ścianą i stół z wydawnictwami, napis 3D SKLEP MUZEALNY — punkt = środek
+    /// przy ścianie (lico), przod = do sali.</summary>
+    public static Transform Sklepik(Transform rodzic, string nazwa, Vector3 punktSciany, Vector3 przod)
+    {
+        var g = Postaw2(rodzic, "Sklep muzealny · " + nazwa, "muzeum_sklepik", BudujSklepik, punktSciany, przod, new Vector3(-2.3f, 0f, 0f), new Vector3(2.3f, 2.2f, .42f));
+        BraxChlodnie.Kolizja(g, "stół sklepu", new Vector3(-.8f, 0f, 1.6f), new Vector3(.8f, .78f, 2.4f));
+        BraxRegionMeble.Napis(rodzic, "SKLEP MUZEALNY", g.position + g.rotation * (new Vector3(0f, 2.55f, 0f) * K), g.forward, .22f * K / .72f, new Color(.13f, .13f, .14f), .05f);
+        return g;
+    }
+    static void BudujSklepik(BraxChlodnie.Partie q)
+    {
+        var dk = q[dab]; var ks = q[ksiazki]; var rnd = new System.Random(11);
+        Color32[] kol = { C(.45f, .1f, .1f), C(.1f, .2f, .4f), C(.15f, .3f, .2f), C(.6f, .55f, .45f), C(.1f, .1f, .12f), C(.5f, .3f, .15f), C(.75f, .72f, .65f) };
+        foreach (float xs in new[] { -1.15f, 1.15f })
+        {
+            dk.Box(new Vector3(xs - 1.1f, 0f, .02f), new Vector3(xs - 1.07f, 2.1f, .4f)); dk.Box(new Vector3(xs + 1.07f, 0f, .02f), new Vector3(xs + 1.1f, 2.1f, .4f));   // boki
+            dk.Box(new Vector3(xs - 1.07f, 0f, .02f), new Vector3(xs + 1.07f, 2.1f, .04f));                                // plecy
+            for (int l = 0; l < 6; l++)
+            {
+                float y = .05f + l * .4f; dk.Box(new Vector3(xs - 1.07f, y - .025f, .04f), new Vector3(xs + 1.07f, y, .4f));       // półka
+                if (l == 5) continue;
+                float x = xs - 1.04f;
+                while (x < xs + .95f)
+                {   // książki: grzbiety od sali, różne wysokości i kolory
+                    float w = .025f + (float)rnd.NextDouble() * .035f, h = .2f + (float)rnd.NextDouble() * .1f; ks.kolor = kol[rnd.Next(kol.Length)];
+                    ks.Box(new Vector3(x, y, .07f), new Vector3(x + w - .002f, y + h, .07f + .14f + (float)rnd.NextDouble() * .06f)); x += w;
+                }
+            }
+        }
+        dk.Poducha(new Vector3(-.8f, 0f, 1.6f), new Vector3(.8f, .74f, 2.4f), .012f, 0f, 3);                                // stół
+        for (int i = 0; i < 8; i++)
+        {   // stosy książek na stole
+            float x = -.6f + (i % 4) * .4f, z = 1.8f + (i / 4) * .4f; int n = 2 + rnd.Next(3); float y = .74f;
+            for (int j = 0; j < n; j++) { ks.kolor = kol[rnd.Next(kol.Length)]; float th = .03f + (float)rnd.NextDouble() * .02f; ks.Box(new Vector3(x - .11f, y, z - .14f), new Vector3(x + .11f, y + th, z + .14f)); y += th + .002f; }
+        }
+        ks.kolor = Bl[0];
     }
 }
