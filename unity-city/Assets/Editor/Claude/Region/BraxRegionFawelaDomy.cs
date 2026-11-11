@@ -653,10 +653,12 @@ public static partial class BraxRegionFawela
         // MIĘSNY (11.11, właściciel 19:44: „mięsa są na półkach. A mają być w lodówkach… lodówki szklane… jak w normalnym życiu”):
         // lada chłodnicza z giętą szybą (BraxChlodnie) zamiast drewnianej lady; za sprzedawcą szafa chłodnicza z mięsem. Lada głęboka
         // (1.0 m × K) — przesunięta ku wejściu tak, by za nią zostało ≥ 0.75 m dla sprzedawcy przed szafą, przed nią ≥ 1.4 m dla klienta.
-        float gLady = mieso ? BraxChlodnie.GlebokoscLady : .6f;
-        if (mieso) ld = Mathf.Clamp(D - BraxChlodnie.Glebokosc - .75f - gLady, 1.4f, 2.5f);
+        // SPOŻYWCZY: wędliny i sery też w ladzie chłodniczej (wcześniej pod szybą na zwykłej ladzie) — lada jest zarazem kasą
+        bool spozywczy = rodzaj == "SKLEP SPOŻYWCZY", ladaChl = mieso || spozywczy;
+        float gLady = ladaChl ? BraxChlodnie.GlebokoscLady : .6f;
+        if (ladaChl) ld = Mathf.Clamp(D - (mieso ? BraxChlodnie.Glebokosc : .42f) - .75f - gLady, 1.4f, 2.5f);
         var bl = W(cx, cz, lada, Color.white);
-        if (mieso)
+        if (ladaChl)
         {   // (sama lada z towarem — niżej, gdy jest już korzeń towaru lokalu)
             KolF(rd, F, l0, l1, yF, yF + BraxChlodnie.WysokoscLady, ld - .08f, ld + gLady);
             Rekw(rd, new[] { "CashRegister_01" }, F.P(l1 - .38f, yF + .95f * k, ld + gLady - .2f * k), F.Yaw + 180f, .35f, false, 25f, "kasa sklepowa");
@@ -840,7 +842,8 @@ public static partial class BraxRegionFawela
             W(cx, cz, metal, new Color(.42f, .42f, .43f)).Cyl(F.P(sm, yF + hk + .22f, pd1 - .2f), F.P(sm, ys - .02f, pd1 - .2f), .09f, 10);
             KolF(rd, F, p0 - .03f, p1 + .03f, yF, yF + hk + .25f, pd0 - .04f, pd1);
         }
-        if (mieso) BraxChlodnie.LadaChlodnicza(tw ? tw : rd, "Fawela: lada chłodnicza z mięsem " + dz.nr, F.P((l0 + l1) * .5f, yF, ld), F.N, l1 - l0, tw, r, false);
+        if (ladaChl) BraxChlodnie.LadaChlodnicza(tw ? tw : rd, "Fawela: lada chłodnicza " + (mieso ? "z mięsem " : "z wędlinami ") + dz.nr, F.P((l0 + l1) * .5f, yF, ld), F.N, l1 - l0, tw, r, false,
+            mieso ? "ch_dol" : "wedliny", mieso ? "ch_srodek" : "ch_gora");
         if (regalBoczny != null)
         {   // SKLEPY PEŁNE (10.11 07:52): drugi regał na prawej ścianie — apteka: leki BRAXHORN PHARMA (7 półek, dwie warstwy) od 1.6 m;
             // spożywczy, loteria, wszystko dla domu, naprawa telefonów: za lodówką (od 2.05 m). Wejście i przejście do lady wolne.
@@ -856,9 +859,8 @@ public static partial class BraxRegionFawela
                 KolF(rd, F, sR - .36f, sR, yF, yF + 2.0f * k, ap0, ap1);
             }
         }
-        if (spoz) BraxSklepyTowar.Polka("wedliny", tw, F.P(l0 + .15f, yF + .965f * k, ld + .28f), F.R, -F.N, l1 - l0 - .95f, r, .3f);   // wędliny i sery w gablocie
-        if (piekarnia || tel || apteka || spoz)
-        {   // szklana gablota na ladzie (mięsny: lada chłodnicza z szybą — wyżej)
+        if (piekarnia || tel || apteka)
+        {   // szklana gablota na ladzie (mięsny i spożywczy: lada chłodnicza z szybą — wyżej)
             Pasek(W(cx, cz, szyba, Color.white), F, l0 + .1f, l1 - .7f, yF + .96f * k, yF + .96f * k + .32f, ld + .02f);
             BoxF(W(cx, cz, alu, Color.white), F, l0 + .1f, l1 - .7f, yF + .96f * k + .32f, yF + .96f * k + .345f, ld, ld + .5f, true);
             if (tel) for (float s = l0 + .2f; s < l1 - .9f; s += .22f) BoxF(W(cx, cz, plastik, new Color(.1f, .1f, .12f)), F, s, s + .14f, yF + .96f * k, yF + .96f * k + .02f, ld + .15f, ld + .38f, true);

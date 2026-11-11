@@ -380,17 +380,17 @@ internal static class BraxChlodnie
 
     /// <summary>LADA CHŁODNICZA (mięsny, wędliny): p = punkt posadzki w połowie długości lady na licu od klienta, przod = kierunek
     /// do klienta, dlugosc w metrach świata. Głębokość 1.0 m × K (od klienta do sprzedawcy), wys. 1.29 m × K.</summary>
-    public static Transform LadaChlodnicza(Transform rodzic, string nazwa, Vector3 p, Vector3 przod, float dlugosc, Transform towar, System.Random rng, bool kolizja = true)
+    public static Transform LadaChlodnicza(Transform rodzic, string nazwa, Vector3 p, Vector3 przod, float dlugosc, Transform towar, System.Random rng, bool kolizja = true, string typPrzod = "ch_dol", string typTyl = "ch_srodek")
     {
         float dl = Mathf.Max(1.0f, dlugosc / K), h = dl * .5f;
         dl = Mathf.Round(dl * 50f) / 50f; h = dl * .5f;
         var t = Korzen(rodzic, nazwa, p, -przod);   // lokalne +z = od klienta do sprzedawcy
         Wstaw(t, "lada", Wez("lada_chlodnicza_" + Mathf.RoundToInt(dl * 100f), q => Lada(q, dl)), Vector3.zero, true);
-        bool paczka = towar && BraxSklepyTowar.Ma("ch_dol");
+        bool paczka = towar && BraxSklepyTowar.Ma(typPrzod);
         if (paczka)
         {
-            BraxSklepyTowar.Polka("ch_dol", towar, Sw(t, -h + .07f, .824f, .30f), t.right, t.forward, (dl - .14f) * K, rng, .40f * K);
-            BraxSklepyTowar.Polka("ch_srodek", towar, Sw(t, -h + .07f, .824f, .56f), t.right, t.forward, (dl - .14f) * K, rng, .36f * K);
+            BraxSklepyTowar.Polka(typPrzod, towar, Sw(t, -h + .07f, .824f, .30f), t.right, t.forward, (dl - .14f) * K, rng, .40f * K);
+            BraxSklepyTowar.Polka(typTyl, towar, Sw(t, -h + .07f, .824f, .56f), t.right, t.forward, (dl - .14f) * K, rng, .36f * K);
         }
         else
         {

@@ -529,7 +529,7 @@ class SklepyPelne(unittest.TestCase):
         self.assertIn('"KEBAB"', src(R / "BraxRegionFawela.cs")); self.assertIn('"PIZZA · KEBAB"', src(R / "BraxRegionFawela.cs"))
         self.assertIn("int nPol = kebab || pizza || mieso ? 0 : apteka ? 7 : 4", DOMY)   # apteka: gęste półki, leki w dwóch warstwach
         self.assertIn("string[] regalBoczny = apteka ?", DOMY)              # drugi regał w sklepach
-        self.assertIn('BraxSklepyTowar.Polka("wedliny"', DOMY)              # gablota z wędlinami w spożywczym
+        self.assertIn('mieso ? "ch_dol" : "wedliny"', DOMY)                # 11.11: wędliny w spożywczym w ladzie chłodniczej (BraxChlodnie)
         self.assertIn("float zs0 = w1 + .2f", DOMY)                         # warzywniak: stragan obok wejścia, nie w drzwiach
         self.assertIn("bool piec = pizza", DOMY); self.assertIn("zarPieca", DOMY)
 
