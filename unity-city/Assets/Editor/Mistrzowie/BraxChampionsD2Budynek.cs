@@ -15,7 +15,7 @@ using UnityEngine;
 //   "DWORZEC" (1.7 m) and "KOLEJOWO-AUTOBUSOWY" (.62 m), white, backlit, on the glazing above it.
 public static partial class BraxChampionsD2
 {
-    const float VaultR=38.25f,VaultCY=Crown-VaultR,Roof=.9f,FrontEave=-1.2f,RearEave=BD+1.2f,TowerTop=10.2f;
+    const float VaultR=38.25f,VaultCY=Crown-VaultR,Roof=.6f,FrontEave=-1.2f,RearEave=BD+1.2f,TowerTop=10.2f;
     static float VaultY(float x)=>VaultCY+Mathf.Sqrt(Mathf.Max(0f,VaultR*VaultR-x*x));     // outer roof line over the hall
     static float VaultIn(float x)=>VaultY(x)-Roof;                                        // the slat ceiling under it
     static Material spandrel,windowFrame,doorGlass,slatsInside,acoustic;
@@ -48,7 +48,7 @@ public static partial class BraxChampionsD2
             // the underside of the eaves (larch) front and back, and the ceiling inside (larch slats are separate boards)
             Q(larchSoffit,new Vector3(x0,y0-Roof,FrontEave),new Vector3(x1,y1-Roof,FrontEave),new Vector3(x1,y1-Roof,0f),new Vector3(x0,y0-Roof,0f),-up);
             Q(larchSoffit,new Vector3(x0,y0-Roof,BD),new Vector3(x1,y1-Roof,BD),new Vector3(x1,y1-Roof,RearEave),new Vector3(x0,y0-Roof,RearEave),-up);
-            Q(acoustic,new Vector3(x0,y0-Roof-.30f,0f),new Vector3(x1,y1-Roof-.30f,0f),new Vector3(x1,y1-Roof-.30f,BD),new Vector3(x0,y0-Roof-.30f,BD),-up);
+            Q(acoustic,new Vector3(x0,y0-Roof-.15f,0f),new Vector3(x1,y1-Roof-.15f,0f),new Vector3(x1,y1-Roof-.15f,BD),new Vector3(x0,y0-Roof-.15f,BD),-up);
             // fascia (navy) round the arch at both ends
             foreach(float z in new[]{FrontEave,RearEave})
                 Q(navy,new Vector3(x0,y0-Roof,z),new Vector3(x1,y1-Roof,z),new Vector3(x1,y1+.05f,z),new Vector3(x0,y0+.05f,z),new Vector3(0,0,z<0?-1:1));
@@ -492,14 +492,20 @@ public static partial class BraxChampionsD2
         {
             float a=s*HallW,b=s*BW,lo=Mathf.Min(a,b),hi=Mathf.Max(a,b);
             float li=s<0?lo:lo+.06f,hj=s<0?hi-.06f:hi;
-            B(concrete,li,hj,Floor1,Floor1+.35f,.06f,BD-.06f,true);
-            Flat(hallFloor,li,hj,.06f,BD-.06f,Floor1+.40f);
+            // the +1 slab with the holes of the stair core and its lift (x +-23..30, z .9..8.8)
+            var holes=new List<(float,float,float,float)>{(Mathf.Min(s*23f,s*28.2f),Mathf.Max(s*23f,s*28.2f),.9f,6.4f),(Mathf.Min(s*28.4f,s*29.94f),Mathf.Max(s*28.4f,s*29.94f),6.6f,8.8f)};
+            Slab(concrete,li,hj,.06f,BD-.06f,Floor1,Floor1+.35f,holes,true);
+            Slab(hallFloor,li,hj,.06f,BD-.06f,Floor1+.388f,Floor1+.40f,holes,false);
             Q(ceilWhite,new Vector3(lo,Floor1-.01f,0f),new Vector3(hi,Floor1-.01f,0f),new Vector3(hi,Floor1-.01f,BD),new Vector3(lo,Floor1-.01f,BD),Vector3.down);
             B(navy,Mathf.Min(a,a-s*.06f),Mathf.Max(a,a-s*.06f),Floor1-.10f,Floor1+.40f,6.0f,32.5f);
             Balustrade(a,6.0f,32.5f,Floor1+.40f,s);
             // hall side wall below the gallery: larch panels with the shopfronts of the waiting room and the ticket hall
             float wx=a+s*.10f;
-            B(wallPanel,Mathf.Min(a,wx),Mathf.Max(a,wx),FFL,Floor1-.1f,6.0f,10.0f,true);
+            // the opening from the hall to the stair core (z 6.6..9.4), walnut lintel over it
+            B(wallPanel,Mathf.Min(a,wx),Mathf.Max(a,wx),FFL,Floor1-.1f,6.0f,6.6f,true);B(wallPanel,Mathf.Min(a,wx),Mathf.Max(a,wx),FFL,Floor1-.1f,9.4f,10.0f,true);
+            B(wallPanel,Mathf.Min(a,wx),Mathf.Max(a,wx),2.8f,Floor1-.1f,6.6f,9.4f,true);
+            StairCore(s);
+            UpperFloor(s);
             ShopFront(a,10f,24f,s,s<0?"POCZEKALNIA KOLEJ":"POCZEKALNIA AUTOBUS");
             B(wallPanel,Mathf.Min(a,wx),Mathf.Max(a,wx),FFL,Floor1-.1f,24.0f,26.0f,true);
             Rooms(s);

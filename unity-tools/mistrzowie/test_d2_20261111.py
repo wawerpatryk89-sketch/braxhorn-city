@@ -12,7 +12,7 @@ from prepare_assets import POLYHAVEN_SLUGS
 
 ROOT = Path(__file__).resolve().parents[2]
 ED = ROOT / 'unity-city/Assets/Editor/Mistrzowie'
-FILES = ['BraxChampionsD2.cs', 'BraxChampionsD2Budynek.cs', 'BraxChampionsD2Kolej.cs', 'BraxChampionsD2Autobusy.cs', 'BraxChampionsD2Meble.cs']
+FILES = ['BraxChampionsD2.cs', 'BraxChampionsD2Budynek.cs', 'BraxChampionsD2Kolej.cs', 'BraxChampionsD2Autobusy.cs', 'BraxChampionsD2Meble.cs', 'BraxChampionsD2Pietro.cs']
 
 
 def consts():
