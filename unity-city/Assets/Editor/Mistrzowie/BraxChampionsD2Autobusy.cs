@@ -302,54 +302,9 @@ public static partial class BraxChampionsD2
     }
 
     // ================================================================ the train (BraxChampionsD2Pociag runs it)
-    public const string TrainModel="Assets/Source/Claude/Metro/metro_train.glb";   // CC BY 4.0 kane_sk06 (Assets/Source/Claude/Metro CREDITS)
     public const float TrainBodyWidth=2.85f,TrainStopX=PlatX1-6f,TrainSpeed=22f;   // nominal m, m/s (80 km/h on the line)
     static BraxChampionsD2Pociag trainRun;
-    static void Train()
-    {
-        trainRun=null;
-        var src=AssetDatabase.LoadAssetAtPath<GameObject>(TrainModel);
-        if(!src){Debug.LogWarning("D2 pociąg: "+TrainModel+" missing");return;}
-        var g=Group(root,"D2 pociąg | 2 jednostki x 2 wagony (model metro_train, CC BY kane_sk06) - BraxChampionsD2Pociag");
-        // size and front from the model (as the city's metro: body width from the 'Side' material, front from the cab parts)
-        var probe=(GameObject)UnityEngine.Object.Instantiate(src);probe.transform.position=Vector3.zero;probe.transform.rotation=src.transform.localRotation;probe.transform.localScale=Vector3.one;
-        Bounds All(GameObject o,Func<Renderer,bool> f){bool any=false;var b=new Bounds(o.transform.position,Vector3.zero);foreach(var r in o.GetComponentsInChildren<Renderer>(true)){if(f!=null&&!f(r))continue;if(!any){b=r.bounds;any=true;}else b.Encapsulate(r.bounds);}return b;}
-        string Mats(Renderer r){var s="";foreach(var mm in r.sharedMaterials)if(mm)s+=mm.name.ToLowerInvariant()+" ";return s;}
-        var all=All(probe,null);var body=All(probe,r=>Mats(r).Contains("side"));if(body.size.sqrMagnitude<1e-6f)body=all;
-        bool alongZ=all.size.z>=all.size.x;
-        var cab=All(probe,r=>{var n=Mats(r);return n.Contains("mirror.001")||n.Contains("aistandardsurface");});
-        float zn=alongZ?cab.center.z-all.center.z:cab.center.x-all.center.x;
-        bool known=cab.size.sqrMagnitude>1e-6f&&Mathf.Abs(zn)>(alongZ?all.size.z:all.size.x)*.25f;
-        var front=alongZ?new Vector3(0,0,known?Mathf.Sign(zn):1f):new Vector3(known?Mathf.Sign(zn):1f,0,0);
-        UnityEngine.Object.DestroyImmediate(probe);
-        float width=alongZ?body.size.x:body.size.z;if(width<1e-4f){Debug.LogWarning("D2 pociąg: model has no width");return;}
-        float s=TrainBodyWidth*K/width,L=(alongZ?all.size.z:all.size.x)*s/K,gap=.9f;
-        float yawFront=Mathf.Atan2(front.x,front.z)*Mathf.Rad2Deg;
-        // cars from the east end (the front at TrainStopX): unit A (cab east, cab west), unit B (cab east, cab west)
-        var cars=new List<Transform>();
-        for(int i=0;i<4;i++)
-        {
-            float cx=TrainStopX-L*.5f-i*(L+gap);bool east=i%2==0;
-            float yaw=(east?90f:-90f)-yawFront;
-            var w=(GameObject)UnityEngine.Object.Instantiate(src,g,false);
-            w.name="D2 wagon "+(i+1)+" (metro_train, CC BY kane_sk06)";
-            w.transform.localRotation=Quaternion.Euler(0,yaw,0)*src.transform.localRotation;w.transform.localScale=Vector3.one*s;w.transform.localPosition=Vector3.zero;
-            var b=All(w,null);var bp=All(w,r=>Mats(r).Contains("side"));if(bp.size.sqrMagnitude<1e-6f)bp=b;
-            var target=root.TransformPoint(new Vector3(cx,RailTop,Track1Z)*K);
-            w.transform.position+=new Vector3(target.x-b.center.x,target.y-b.min.y,target.z-bp.center.z);
-            BraxMiastoAssety.Przygotuj(w,false,true);
-            foreach(var t in w.GetComponentsInChildren<Transform>(true))GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
-            cars.Add(w.transform);
-        }
-        // the train's collider (body) moves with it
-        float len=4*L+3*gap;
-        var bc=new GameObject("pociąg kolizja");bc.transform.SetParent(g,false);
-        bc.transform.localPosition=new Vector3(TrainStopX-len*.5f,RailTop+2.1f,Track1Z)*K;
-        bc.AddComponent<BoxCollider>().size=new Vector3(len,3.6f,TrainBodyWidth)*K;
-        var run=g.gameObject.AddComponent<BraxChampionsD2Pociag>();trainRun=run;
-        // appears with its east end 60 m inside the portal, stops with it at TrainStopX, leaves until it is wholly in the tunnel
-        run.wjazdX=(LX(PortalWX)-60f-TrainStopX)*K;run.wyjazdX=(LX(TunnelEndWX)+10f+len-TrainStopX)*K;run.drugiTorZ=(Track2Z-Track1Z)*K;
-        run.predkosc=TrainSpeed*K;run.hamowanie=.9f*K;run.postoj=45f;run.przerwa=35f;
-        Debug.Log("D2_POCIAG cars=4 carLength="+L.ToString("0.0")+"m trainLength="+len.ToString("0.0")+"m scale="+s.ToString("0.0000")+" front="+(known?"model":"+z")+" stopX="+TrainStopX);
-    }
+    // the train is built in code since 11.11 (BraxChampionsD2Sklad: loco + 3 coaches, walkable, doors working); the metro
+    // model is no longer used here
+    static void Train(){TrainSet();}
 }

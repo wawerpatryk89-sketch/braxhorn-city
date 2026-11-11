@@ -12,7 +12,7 @@ from prepare_assets import POLYHAVEN_SLUGS
 
 ROOT = Path(__file__).resolve().parents[2]
 ED = ROOT / 'unity-city/Assets/Editor/Mistrzowie'
-FILES = ['BraxChampionsD2.cs', 'BraxChampionsD2Budynek.cs', 'BraxChampionsD2Kolej.cs', 'BraxChampionsD2Autobusy.cs', 'BraxChampionsD2Meble.cs', 'BraxChampionsD2Pietro.cs']
+FILES = ['BraxChampionsD2.cs', 'BraxChampionsD2Budynek.cs', 'BraxChampionsD2Kolej.cs', 'BraxChampionsD2Autobusy.cs', 'BraxChampionsD2Meble.cs', 'BraxChampionsD2Pietro.cs', 'BraxChampionsD2Sklad.cs']
 
 
 def consts():
@@ -149,6 +149,35 @@ class D2LayoutTests(unittest.TestCase):
         src = self.src
         self.assertGreaterEqual(src.count('GlassRail('), 10)
         self.assertNotIn('Beam(stainless', src)
+
+    def test_train_is_built_in_code_and_works(self):
+        """owner 11.11 15:28-16:18: the train made in code (lighter than the metro model), loco + coaches with the inside,
+        one can walk in (doors open, the platform edge opens at them), sit (BraxSeat), real head lights, a clear windscreen
+        with the cab behind it; it stands at the platform for now; 15:47 everything functional as in life."""
+        sk = (ED / 'BraxChampionsD2Sklad.cs').read_text()
+        src = self.src
+        self.assertNotIn('metro_train', src)
+        self.assertIn('static void Train(){TrainSet();}', (ED / 'BraxChampionsD2Autobusy.cs').read_text())
+        for frag in ['AddComponent<BraxChampionsD2DrzwiPociagu>()', 'AddComponent<BraxSeat>()', 'AddComponent<Light>()',
+                     'run.staly=true', 'static void Nose(', 'static void Cab(', 'static void Gangway(', 'static void PlatformDoor(',
+                     'static void GlassSlidingDoor(', 'c.blokady=']:
+            self.assertIn(frag, sk)
+        self.assertIn('TrainDoorXs()', (ED / 'BraxChampionsD2Kolej.cs').read_text())
+        rt = ROOT / 'unity-city/Assets/Mistrzowie/BraxChampionsD2DrzwiPociagu.cs'
+        self.assertTrue(rt.exists() and Path(str(rt) + '.meta').exists())
+        r = rt.read_text()
+        self.assertIn('FindAnyObjectByType<BraxGymPlayer>()', r)
+        self.assertIn('blokady', r)
+        p = (ROOT / 'unity-city/Assets/Mistrzowie/BraxChampionsD2Pociag.cs').read_text()
+        self.assertIn('public bool staly = true;', p)
+        # the windscreen is clear (alpha well under .3), not a black panel
+        m = re.search(r'tWindscreen=S\("train_windscreen_glass",new Color\(([^)]*)\)', sk)
+        self.assertIsNotNone(m)
+        alpha = float(m.group(1).split(',')[3].strip().rstrip('f'))
+        self.assertLess(alpha, .3)
+        # level boarding: the coach floor 12 mm over the platform; the doors' step reaches the platform edge
+        c = self.c
+        self.assertAlmostEqual(c['RailTop'] + 0.772 - c['PlatformTop'], .012, places=3)
 
     def test_no_generated_foundation_committed(self):
         out = subprocess.run(['git', 'ls-files', 'unity-city/Assets/Source/Mistrzowie/Foundation.json'], cwd=ROOT, capture_output=True, text=True).stdout

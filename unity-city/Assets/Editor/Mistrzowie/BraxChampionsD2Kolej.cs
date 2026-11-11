@@ -144,7 +144,22 @@ public static partial class BraxChampionsD2
             Col(x-.1f,x+.1f,PlatformTop,PlatformTop+2f,lo,hi,"koniec peronu");
         }
         // invisible wall along the platform edge above the track (no jumping down; the train has its own collider)
-        Col(PlatX0,PlatX1,PlatformTop-1.5f,PlatformTop+3.0f,Mathf.Min(edge,edge+s*.15f),Mathf.Max(edge,edge+s*.15f),"krawędź peronu");
+        // (platform 1, where the train stands: open at its doorways - there a gate collider each, switched off by the train's
+        // door while it is open, so one can step in; owner 11.11 15:31 "żeby można było wejść do pociągu")
+        float ez0=Mathf.Min(edge,edge+s*.15f),ez1=Mathf.Max(edge,edge+s*.15f);
+        if(p!=0)Col(PlatX0,PlatX1,PlatformTop-1.5f,PlatformTop+3.0f,ez0,ez1,"krawędź peronu");
+        else
+        {
+            trainGates.Clear();
+            var gaps=new List<(float a,float b)>();foreach(float dx in TrainDoorXs())gaps.Add((dx-.70f,dx+.70f));
+            foreach(var (a,b) in TCut(PlatX0,PlatX1,gaps))Col(a,b,PlatformTop-1.5f,PlatformTop+3.0f,ez0,ez1,"krawędź peronu");
+            foreach(var (a,b) in gaps)
+            {
+                var g=new GameObject("krawędź peronu przy drzwiach pociągu");g.transform.SetParent(cols,false);
+                g.transform.localPosition=new Vector3((a+b)*.5f,PlatformTop+.75f,(ez0+ez1)*.5f)*K;
+                var bc=g.AddComponent<BoxCollider>();bc.size=new Vector3(b-a,4.5f,ez1-ez0)*K;trainGates.Add(bc);Colliders++;
+            }
+        }
         // furniture: benches (back to back) and bins every 24 m between the columns, out of the access openings
         for(float x=-120f;x<=120f;x+=24f)
         {

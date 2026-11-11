@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// D2 station train (owner 11.11 13:08: "pociąg, który tam startuje i wyjeżdża za miasto ... jedzie do innego miasta i znika
+// D2 station train (now built in code - BraxChampionsD2Sklad; owner 11.11 13:08: "pociąg, który tam startuje i wyjeżdża za miasto ... jedzie do innego miasta i znika
 // z naszej gry. Taka sztuczka"). The train (BraxChampionsD2.Train: 4 cars on track 1, its east end at the stop mark) is
 // moved along the line by this component, on the local x of its parent (the station root, K-scaled offsets):
 //   in the tunnel (hidden) -> runs in, braking to the stop at the platform -> stands -> leaves west, accelerating, into the
@@ -14,6 +14,9 @@ public sealed class BraxChampionsD2Pociag : MonoBehaviour
     public float predkosc = 28f;        // line speed (world units / s)
     public float hamowanie = 1.0f;      // deceleration / acceleration (world units / s^2)
     public float postoj = 45f, przerwa = 35f;
+    // owner 11.11 15:31 "żeby stał na razie": the train stands at platform 1 with its doors working (one can walk in and sit);
+    // only the departure countdown of the boards runs (a new trip number each round). false: the runs in / out of the tunnel.
+    public bool staly = true;
 
     enum Stan { Ukryty, Wjazd, Postoj, Odjazd }
     Stan stan = Stan.Postoj;
@@ -52,7 +55,9 @@ public sealed class BraxChampionsD2Pociag : MonoBehaviour
                 Ustaw(); break;
             }
             case Stan.Postoj:
-                t -= dt; if (t <= 0f) stan = Stan.Odjazd; break;
+                t -= dt;
+                if (t <= 0f) { if (staly) { t = postoj; Kurs++; } else stan = Stan.Odjazd; }
+                break;
             case Stan.Odjazd:
                 v = Mathf.Min(predkosc, v + hamowanie * dt);
                 x -= v * dt; Ustaw();
