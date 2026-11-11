@@ -192,6 +192,15 @@ class Drogowskaz(unittest.TestCase):
         self.assertNotIn('BraxRegionMeble.Napis(g, "OSIEDLE  ↓  TUNEL"', b)
 
 
+class NapisyR1(unittest.TestCase):
+    def test_signs_are_3d_not_ghost_textmesh(self):
+        # zdjęcie właściciela: „FRYZJER — napis-duch na szybie”; zasada SZYLDY 3D — BraxRegionMeble.Napis = litery Bebas 3D
+        m = src(R / "BraxRegionMeble.cs")
+        blok = m[m.index("public static void Napis(Transform parent"):m.index("\n    }", m.index("public static void Napis(Transform parent"))]
+        self.assertIn("BraxLiteryBebas.Napis(sl, sb, tekst", blok)
+        self.assertNotIn("BraxCityArchitecture.Sign(", blok)
+
+
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):
         k = src(ROOT / "unity-tools" / "claude" / "kontrola_kompilacji" / "kompiluj.sh")

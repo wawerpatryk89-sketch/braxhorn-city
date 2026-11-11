@@ -298,11 +298,28 @@ public static class BraxRegionMeble
     }
 
     /// <summary>Napis 3D (test głębi) na tablicy: tekst czytelny dla patrzącego od strony „przod” (kierunek świata).</summary>
+    // 11.11 (lista ze zdjęć właściciela: „FRYZJER — napis-duch na szybie”; zasada SZYLDY 3D 9.11): dotąd płaski TextMesh (czcionka
+    // systemowa, półprzezroczysty z daleka — „duch”). Teraz LITERY PRZESTRZENNE krojem Bebas (jak szyldy miasta): lico w kolorze
+    // napisu, boki ciemniejsze, głębokość 15 % wysokości (2–4 cm), tył napisu w punkcie p (lico w stronę przod) — wszystkie szyldy,
+    // tabliczki, semafory, numery i napisy wnętrz R1 jednym wywołaniem. Wysokość wys = wysokość wiersza jak dotąd (wersalik 72 %).
+    static readonly Dictionary<string, (Material lico, Material boki)> napisMat = new Dictionary<string, (Material, Material)>();
     public static void Napis(Transform parent, string tekst, Vector3 p, Vector3 przod, float wys, Color kolor)
     {
-        var g = new GameObject("Napis " + tekst); g.transform.SetParent(parent, false);
-        g.transform.position = p; g.transform.rotation = Quaternion.LookRotation(przod.normalized, Vector3.up);
-        BraxCityArchitecture.Sign(g.transform, tekst, Vector3.zero, wys, kolor);
+        if (string.IsNullOrWhiteSpace(tekst)) return;
+        przod = przod.normalized; if (przod.sqrMagnitude < .5f) przod = Vector3.forward;
+        string klucz = ColorUtility.ToHtmlStringRGB(kolor);
+        if (!napisMat.TryGetValue(klucz, out var mm) || !mm.lico)
+            napisMat[klucz] = mm = (BraxCityMaterials.Surface("Napis 3D: lico " + klucz, kolor, .4f, .1f),
+                                     BraxCityMaterials.Surface("Napis 3D: boki " + klucz, Color.Lerp(kolor, Color.black, .55f), .5f, .2f));
+        float cap = wys * .72f, gl = Mathf.Clamp(cap * .15f, .02f, .04f);
+        // jak BraxLiteryBebas.Napis(nn): prawo czytającego = up × (−przód), góra liter = prawo × przód
+        var up0 = Mathf.Abs(Vector3.Dot(przod, Vector3.up)) > .95f ? Vector3.forward : Vector3.up;
+        var r = Vector3.Cross(up0, -przod).normalized; var up = Vector3.Cross(r, przod).normalized;
+        var sl = new UlSiatka(); var sb = new UlSiatka();
+        BraxLiteryBebas.Napis(sl, sb, tekst, -up * (cap * .5f), r, up, przod, cap, gl, .05f, .002f);
+        var g = new GameObject("Napis " + tekst); g.transform.SetParent(parent, false); g.transform.position = p;
+        if (sl.Wierzcholki > 0) BraxMiastoA.Obiekt(g.transform, "Napis 3D " + tekst + " (lico)", sl, mm.lico, true);
+        if (sb.Wierzcholki > 0) BraxMiastoA.Obiekt(g.transform, "Napis 3D " + tekst + " (boki)", sb, mm.boki, true);
     }
 
     // ------------------------------------------------------------------ meble wnętrz (× k)
