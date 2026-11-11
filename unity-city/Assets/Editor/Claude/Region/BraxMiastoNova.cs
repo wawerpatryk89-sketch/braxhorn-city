@@ -128,7 +128,10 @@ internal static class BraxMiastoNova
         Efekty();
         Swiatla();
         var ef = root.gameObject.AddComponent<BraxNovaEfekty>();
-        ef.kula = root.Find("Kula lustrzana (obrót)"); ef.obrotyNaMinute = 12f; ef.lasery = lasery.ToArray(); ef.glowice = glowice.ToArray(); ef.migacze = migacze.ToArray(); ef.swiatla = swiatla.ToArray();
+        ef.kula = root.Find("Kula lustrzana (obrót)"); ef.obrotyNaMinute = 12f;
+        // 11.11: efekty liczą odległość gracza od środka sali (korzeń klubu stoi w 0,0,0 świata — sala 66 m dalej)
+        ef.srodekSali = new Vector3((HX0 + HX1) * .5f, 1.5f, (HZ0 + HZ1) * .5f); ef.maSrodekSali = true; ef.zasieg = 30f;
+        ef.lasery = lasery.ToArray(); ef.glowice = glowice.ToArray(); ef.migacze = migacze.ToArray(); ef.swiatla = swiatla.ToArray();
         BraxRegion.Rep.nova = true;
         BraxMiastoA.Log("NOVA: fasada + przedsionek + sala " + (HX1 - HX0).ToString("F1") + "×" + (HZ1 - HZ0).ToString("F1") + " m, parkiet " + (DX1 - DX0) + "×" + (DZ1 - DZ0) + " m, laserów " + lasery.Count + ", głowic " + glowice.Count + ", świateł " + swiatla.Count + ", siatek " + siatek + ", starych grup " + stare + "; zdjęte: " + string.Join(" | ", raport));
     }
@@ -1072,17 +1075,18 @@ internal static class BraxMiastoNova
     // ================= ŚWIATŁA =================
     static void Swiatla()
     {
-        // 6 kolorowych świateł nad parkietem (barwa w rytm — BraxNovaEfekty), ciepłe nad barem i lożami, przedsionek
+        // 6 kolorowych świateł nad parkietem (barwa w rytm — BraxNovaEfekty), ciepłe nad barem i lożami, przedsionek.
+        // 11.11 (właściciel 19:35: „na sali powinno być trochę ciemniej”): parkiet 1.6 → 1.0, bar 1.3 → 0.8, loże 0.9 → 0.5, DJ 1.0 → 0.7
         for (int i = 0; i < 6; i++)
         {
             var p = new Vector3(Mathf.Lerp(DX0 + 1.5f, DX1 - 1.5f, (i % 3) / 2f), 3.6f, i < 3 ? DZ0 + 2f : DZ1 - 2f);
-            var l = BraxRegion.Warm(root, "NOVA światło parkietu " + (i + 1), p, 1.6f, 9f); l.color = new Color(1f, .2f, .8f); swiatla.Add(l);
+            var l = BraxRegion.Warm(root, "NOVA światło parkietu " + (i + 1), p, 1.0f, 9f); l.color = new Color(1f, .2f, .8f); swiatla.Add(l);
         }
-        BraxRegion.Warm(root, "NOVA światło baru", new Vector3(49.6f, 3.4f, 47f), 1.3f, 7f);
-        BraxRegion.Warm(root, "NOVA światło baru", new Vector3(49.6f, 3.4f, 53f), 1.3f, 7f);
-        BraxRegion.Warm(root, "NOVA światło lóż", new Vector3(34.5f, 3.2f, 47.5f), .9f, 7f);
-        BraxRegion.Warm(root, "NOVA światło lóż", new Vector3(34.5f, 3.2f, 56.5f), .9f, 7f);
+        BraxRegion.Warm(root, "NOVA światło baru", new Vector3(49.6f, 3.4f, 47f), .8f, 6f);
+        BraxRegion.Warm(root, "NOVA światło baru", new Vector3(49.6f, 3.4f, 53f), .8f, 6f);
+        BraxRegion.Warm(root, "NOVA światło lóż", new Vector3(34.5f, 3.2f, 47.5f), .5f, 6f);
+        BraxRegion.Warm(root, "NOVA światło lóż", new Vector3(34.5f, 3.2f, 56.5f), .5f, 6f);
         BraxRegion.Warm(root, "NOVA światło przedsionka", new Vector3(41.6f, 3.6f, 39f), 1.2f, 7f);
-        BraxRegion.Warm(root, "NOVA światło DJ", new Vector3(41f, 3.6f, 58.5f), 1.0f, 6f);
+        BraxRegion.Warm(root, "NOVA światło DJ", new Vector3(41f, 3.6f, 58.5f), .7f, 5f);
     }
 }

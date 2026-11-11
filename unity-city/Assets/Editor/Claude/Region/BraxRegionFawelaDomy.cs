@@ -721,8 +721,14 @@ public static partial class BraxRegionFawela
                 foreach (float yr in new[] { yb + .2f, yb + .44f })
                 {
                     W(cx, cz, metal, new Color(.7f, .7f, .72f)).Cyl(F.P(r0 + .04f, yr, D - .34f), F.P(r1 - .04f, yr, D - .34f), .006f, 6);
-                    if (kur) for (int q = 0; q < 3; q++)
-                        BraxMiastoAssety.Postaw(tw, kur, "Fawela: kurczak na rożnie", F.P(r0 + .2f + q * .3f, yr - .07f, D - .34f), F.Yaw + 90f, 1f, true, false);
+                    if (!kur) continue;
+                    // 11.11 (właściciel 19:40: „kurczak z rożna… obkręcać się, rożno ma być”): kurczaki na węźle osi pręta — obrót
+                    // BraxObrot wokół osi pręta (F.R), bez flag statycznych
+                    var rozen = new GameObject("Fawela: rożen kurczaków (obraca się)").transform; rozen.SetParent(tw, false); rozen.position = F.P((r0 + r1) * .5f, yr, D - .34f);
+                    for (int q = 0; q < 3; q++)
+                        BraxMiastoAssety.Postaw(rozen, kur, "Fawela: kurczak na rożnie", F.P(r0 + .2f + q * .3f, yr - .07f, D - .34f), F.Yaw + 90f, 1f, false, false);
+                    foreach (var tt in rozen.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(tt.gameObject, (StaticEditorFlags)0);
+                    var obr = rozen.gameObject.AddComponent<BraxObrot>(); obr.os = F.R; obr.osSwiata = true; obr.stopniNaSekunde = 40f;
                 }
                 rg1 = r0 - .05f;   // reszta blatu na pizze i kebab
             }

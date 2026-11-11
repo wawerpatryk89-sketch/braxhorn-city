@@ -77,6 +77,8 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     // wyposażenie odłożone do etapu 3 (stawiane na gotowej nawierzchni) i rejestr kolizji nawierzchni (do pomiaru wysokości)
     static readonly List<(string co, Action a)> wyposazenie = new List<(string, Action)>();
     static readonly HashSet<Collider> nawierzchnie = new HashSet<Collider>();
+    static readonly HashSet<Collider> trawniki = new HashSet<Collider>();   // 11.11: drzewa tylko na trawnikach (nie na chodniku)
+    static int drzewaZChodnika;
     static void Pozniej(string co, Action a) => wyposazenie.Add((co, a));
     static void Nawierzchnia(GameObject g) { if (g) foreach (var c in g.GetComponentsInChildren<Collider>(true)) nawierzchnie.Add(c); }
     static void Nawierzchnia(Collider c) { if (c) nawierzchnie.Add(c); }
@@ -96,13 +98,14 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         Physics.SyncTransforms();
         int ok = 0;
         foreach (var (co, a) in wyposazenie) { try { a(); ok++; } catch (Exception e) { Debug.LogError("BRAXHORN_MIASTO_B wyposażenie " + co + ": " + e); } }
-        BraxRegion.Note("miasto B: wyposażenie na podłożu " + ok + "/" + wyposazenie.Count + ", bez nawierzchni pod spodem: " + bezPodloza + ", przesunięte z asfaltu łuków na chodnik: " + lukiPrzesuniete);
+        BraxRegion.Note("miasto B: wyposażenie na podłożu " + ok + "/" + wyposazenie.Count + ", bez nawierzchni pod spodem: " + bezPodloza + ", przesunięte z asfaltu łuków na chodnik: " + lukiPrzesuniete + ", drzew NIE postawionych na chodniku/placu: " + drzewaZChodnika);
+        Debug.Log("BRAXHORN_ULICA_CZYSTA miasto B: drzew pominiętych na twardej nawierzchni " + drzewaZChodnika + " (stoją tylko na trawnikach)");
         wyposazenie.Clear();
     }
 
     public static void Apply(BraxCityWorld world, Transform cityRoot)
     {
-        usuniete.Clear(); kroki.Clear(); SkrzyzowaniaZeSwiatlami.Clear(); asfalty.Clear(); wyposazenie.Clear(); nawierzchnie.Clear(); zjazdy.Clear(); MiejscaParkingu.Clear(); drzewa = latarnie = zebry = sygnalizatory = 0; MigotaniePary = 0;
+        usuniete.Clear(); kroki.Clear(); SkrzyzowaniaZeSwiatlami.Clear(); asfalty.Clear(); wyposazenie.Clear(); nawierzchnie.Clear(); trawniki.Clear(); drzewaZChodnika = 0; zjazdy.Clear(); MiejscaParkingu.Clear(); drzewa = latarnie = zebry = sygnalizatory = 0; MigotaniePary = 0;
         BraxRegionKamienica.Zeruj(); BraxZnakiPL.Zeruj();
         root = BraxRegion.Root(cityRoot, "CLAUDE miasto B: rondo, aleje, ul. Wiaduktowa i Warsztatowa");
         Krok("usunięcie wiaduktu, płotu końca ulicy i gruntu-lustra", () => UsunStare(cityRoot));
@@ -483,7 +486,8 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     static void TrawaProsta(string n, float x0, float x1, float z0, float z1, bool laka)
     {
         if (x1 - x0 < .6f || z1 - z0 < .6f) return;
-        Nawierzchnia(BraxRegionTrawa.Trawnik(root, n, Rect.MinMaxRect(x0, z0, x1, z1), YC - .03f, null, true, true, laka));
+        var gT = BraxRegionTrawa.Trawnik(root, n, Rect.MinMaxRect(x0, z0, x1, z1), YC - .03f, null, true, true, laka);
+        Nawierzchnia(gT); if (gT) foreach (var c in gT.GetComponentsInChildren<Collider>(true)) trawniki.Add(c);
         // pod trawnikiem ziemia (bez lustra pod spodem, kolizja trawnika jest płaska)
         Plyta("Podłoże trawnika: " + n, beton, x0, x1, z0, z1, YC - .06f, .3f, false);
     }
@@ -943,7 +947,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             for (float x = -256f; x < -158f; x += 12f)
             {
                 float xx = x, za = zA;
-                Pozniej("drzewo w kracie (CENTRUM)", () => { var p = NaPodlozu(new Vector3(xx, YC, za)); BraxRegionMeble.KrataDrzewa(root, p); DrzewoTeraz(p); });
+                // 11.11: drzewa w kratach na alejach CENTRUM zdjęte (właściciel: „na chodnikach nie ma nic być”)
                 Pozniej("latarnia (CENTRUM)", () => { BraxRegionMeble.Latarnia(root, NaPodlozu(new Vector3(xx + 6f, YC, za))); latarnie++; });
                 // R1: ławki na ciągu ulicznym CENTRUM usunięte.
             }
@@ -1511,7 +1515,18 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
 
     // =====================================================================================================================
     // drzewa i latarnie
-    static void Drzewo(Vector3 p) => Pozniej("drzewo", () => DrzewoTeraz(NaPodlozu(p)));
+    // 11.11 (właściciel 19:40 „Na chodnikach nie ma nic być… wszystko pościągać z tej ulicy, bo tam nawet jak przejść nie ma”,
+    // 20:05 „na ulicy są jakieś kwadratowe zielone… w środku trawa”): drzewo staje TYLKO na trawniku (najwyższa nawierzchnia pod
+    // punktem to trawnik z rejestru). Na chodniku, placu, płytach — nie stawiane (bez drzewa nie powstaje też kwadratowa misa
+    // z trawą z BraxMisyDrzew). Drzewa w kratach (aleje CENTRUM, promenada rzędu C, plac Atlanty) zdjęte w całości.
+    static void Drzewo(Vector3 p) => Pozniej("drzewo", () => { var q = NaPodlozu(p); if (NaTrawniku(q)) DrzewoTeraz(q); else drzewaZChodnika++; });
+    static bool NaTrawniku(Vector3 p)
+    {
+        Collider top = null; float best = float.NegativeInfinity;
+        foreach (var h in Physics.RaycastAll(new Vector3(p.x, 60f, p.z), Vector3.down, 70f, ~0, QueryTriggerInteraction.Ignore))
+            if (nawierzchnie.Contains(h.collider) && h.point.y > best) { best = h.point.y; top = h.collider; }
+        return top && trawniki.Contains(top);
+    }
     static void DrzewoTeraz(Vector3 p)
     {
         var src = BraxRegion.Model("drzewo_verdant");

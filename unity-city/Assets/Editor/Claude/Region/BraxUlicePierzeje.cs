@@ -88,6 +88,7 @@ public static class BraxUlicePierzeje
         nOkien = nWitryn = nLokali = nBokow = 0; licaZrodla = 0; oknaMieszkaniaNOVA.Clear();
         var root = BraxRegion.Root(cityRoot, "CLAUDE ulice: pierzeje (elewacje od nowa)");
         var kolizje = new GameObject("kolizje parterów i brył").transform; kolizje.SetParent(root, false);
+        ZdejmijWindyWiezowcow();
         style = Style();
         var wieze = new HashSet<string>(BraxCityStreetSkyline.HighRises.Select(h => h.id));
         var gotowe = new List<string>();
@@ -367,6 +368,31 @@ public static class BraxUlicePierzeje
     }
 
     // ---------------- zdejmowanie starego ----------------
+    // 11.11 (właściciel 19:33 „w sklepach, w piekarniach windy są powstawiane”; lista zatwierdzona 20:08: „wszystkie te windy, które
+    // wchodzą do sklepu, wypierdalają… nie musi każdy jeden budynek być dostępny”): 8 szybów BraxCityTowerLiftNetwork stało 4.85 m za
+    // frontem — w środku lokali (APTEKA, DELIKATESY, BISTRO, HOTEL, KAWIARNIA, BRAXHORN FITNESS, KSIĘGARNIA, PIZZERIA). Zdjęte całe
+    // (szyb, kabina, drzwi, płyty i barierki dachu), wykreślone ze świata (windy i punkty R1_TOWER_<id>_*). Winda BRAXHORN TOWER
+    // przy nabrzeżu (quay_corner) zostaje.
+    static readonly string[] WindyWLokalach = { "apothecary", "corner_store", "restaurant", "hotel", "estate_corner", "gallery", "apartments_1", "estate_apartments_2" };
+    static void ZdejmijWindyWiezowcow()
+    {
+        var zdjete = new List<string>();
+        foreach (var t in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!t || !t.name.StartsWith("REAL SKYSCRAPER ELEVATOR ")) continue;
+            string id = t.name.Substring("REAL SKYSCRAPER ELEVATOR ".Length);
+            if (System.Array.IndexOf(WindyWLokalach, id) < 0) continue;
+            zdjete.Add(id); UnityEngine.Object.DestroyImmediate(t.gameObject);
+        }
+        var swiat = UnityEngine.Object.FindFirstObjectByType<BraxCityWorld>(FindObjectsInactive.Include);
+        if (swiat)
+        {
+            swiat.additionalTowerElevators = swiat.additionalTowerElevators.Where(e => e).ToArray();
+            swiat.points = swiat.points.Where(p => p == null || !WindyWLokalach.Any(id => p.id != null && p.id.StartsWith("R1_TOWER_" + id + "_"))).ToArray();
+        }
+        Debug.Log("BRAXHORN_WINDY_W_LOKALACH zdjęte " + zdjete.Count + "/8: " + string.Join(", ", zdjete) + " (zostaje winda BRAXHORN TOWER)");
+    }
+
     static void ZdejmijStare(Transform bg, BraxCityArchitecture.Building b)
     {
         var front = bg.Find("Street frontage"); if (front) BraxUliceKit.Usun(front.gameObject, "stara elewacja frontowa " + b.id);
@@ -1248,7 +1274,13 @@ public static class BraxUlicePierzeje
                 foreach (float yr in new[] { yb + .22f, yb + .47f })
                 {
                     stal.Rura(W(rs0 + .04f, yr, dm), W(rs1 - .04f, yr, dm), .006f, 6);
-                    if (kur) for (int q = 0; q < 3; q++) BraxMiastoAssety.Postaw(rodzic, kur, "Kurczak na rożnie", W(rs0 + .22f + q * .33f, yr - .07f, dm), Quaternion.LookRotation(f.R, Vector3.up).eulerAngles.y, 1f, true, false);
+                    if (!kur) continue;
+                    // 11.11 (właściciel 19:40: „kurczak z rożna ma być też, obkręcać się, rożno ma być”): kurczaki pod osobnym węzłem
+                    // na osi pręta — obraca się (BraxObrot, oś pręta f.R), kurczaki nie statyczne (bez batchingu)
+                    var rozen = new GameObject("Rożen kurczaków (obraca się)").transform; rozen.SetParent(rodzic, false); rozen.position = W((rs0 + rs1) * .5f, yr, dm);
+                    for (int q = 0; q < 3; q++) BraxMiastoAssety.Postaw(rozen, kur, "Kurczak na rożnie", W(rs0 + .22f + q * .33f, yr - .07f, dm), Quaternion.LookRotation(f.R, Vector3.up).eulerAngles.y, 1f, false, false);
+                    foreach (var tt in rozen.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(tt.gameObject, (StaticEditorFlags)0);
+                    var obr = rozen.gameObject.AddComponent<BraxObrot>(); obr.os = f.R; obr.osSwiata = true; obr.stopniNaSekunde = 40f;
                 }
                 var kl = new GameObject("kolizja: rożen z kurczakami"); kl.transform.SetParent(kolizje, false); var bcr = kl.AddComponent<BoxCollider>();
                 var ra = W(rs0, y0, dP); var rb = W(rs1, yb + .74f, dT); bcr.center = (ra + rb) * .5f; bcr.size = new Vector3(Mathf.Abs(rb.x - ra.x), rb.y - ra.y, Mathf.Abs(rb.z - ra.z));

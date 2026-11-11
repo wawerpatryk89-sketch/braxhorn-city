@@ -202,7 +202,7 @@ class WindyIWC(unittest.TestCase):
         self.assertIn("/ e;", body)                                            # pochodne dzielone przez krok (Normalize w Unity)
         self.assertIn("WC: przegroda pisuarów", DW)
         self.assertIn('chrom = BraxCityMaterials.Surface("Dworzec: armatura — chrom polerowany"', DW)
-        self.assertIn("var Bc = new Vector2(0f, .655f);", DW)                # odpływ na dole misy (właściciel 19:52)
+        self.assertIn("yD = .525f, zD = .175f", DW)                          # odpływ w najniższym punkcie misy (właściciel 19:52–19:59)
 
     def test_sinks_are_basins_with_drain_not_plates(self):
         # właściciel 19:53: „czy mają dziurę… odpływ, czy są jak talerze” — misa toczona z wnętrzem, odpływem i sitkiem

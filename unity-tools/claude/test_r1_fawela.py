@@ -553,10 +553,15 @@ class SklepyPelne(unittest.TestCase):
         """10.11 09:10: kebab, który się kręci (pręt widać tylko nad i pod mięsem); kurczak właściciela na rożnie z grzałką."""
         self.assertTrue((self.LIB / "kebab_mieso.glb").exists())
         obrot = (ROOT / "unity-city" / "Assets" / "Claude" / "Runtime" / "BraxObrot.cs").read_text(encoding="utf-8")
-        self.assertIn("transform.Rotate(0f, stopniNaSekunde * Time.deltaTime, 0f, Space.World)", obrot)
+        # 11.11 (właściciel 19:35 „kebab się nie kręci… Nie kręci się nic”): odległość od gracza (nie od Camera.main), oś świata
+        self.assertIn("transform.Rotate(os, stopniNaSekunde * Time.deltaTime, osSwiata ? Space.World : Space.Self)", obrot)
+        self.assertIn("FindAnyObjectByType<BraxGymPlayer>()", obrot)
+        self.assertNotIn("var cam = Camera.main", obrot)
         u = src(R / "BraxUlicePierzeje.cs")
         for kod in (DOMY, u):
             self.assertIn('BraxRegion.Model("kebab_mieso")', kod)
             self.assertIn("AddComponent<BraxObrot>()", kod)
             self.assertIn("(StaticEditorFlags)0", kod)                  # kręcący się obiekt nie może być statyczny
             self.assertIn('Model("miasto_sklepy", "kurczak")', kod)
+            self.assertIn("rożen kurczaków (obraca się)", kod.lower() if kod is DOMY else kod.lower())   # 11.11: kurczaki się obracają
+            self.assertIn("obr.osSwiata = true; obr.stopniNaSekunde = 40f;", kod)

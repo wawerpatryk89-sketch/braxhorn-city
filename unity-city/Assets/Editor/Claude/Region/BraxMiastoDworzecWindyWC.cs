@@ -268,16 +268,17 @@ internal static partial class BraxMiastoDworzec
     // PISUAR WISZĄCY (11.11, właściciel 19:39 „te takie dwie… pisuary, czy co to jest?”) — ceramika z kodu jak w życiu, wymiary
     // rzeczywiste × K: szer. 36 cm, wys. 66 cm (spód 46 cm, warga misy 58 cm nad posadzką), głębokość 33.5 cm przy wardze.
     // Jedna gładka powłoka: obrys przy ścianie (superelipsa) → boki wychodzą prostopadle ze ściany → zaokrąglona warga (r 1.8 cm)
-    // → misa schodzi w głąb ku ścianie do odpływu NA DOLE misy (właściciel 19:52: „odpływ powinien być na dole”; okrągły, Ø 6 cm,
-    // tuż nad dnem przy dolnej wardze) → studzienka 2 cm → sitko (pierścienie chrom/grafit,
+    // → misa (krzywa Béziera od wargi: w głąb ku ścianie, potem w dół) zbiega lejem do odpływu w NAJNIŻSZYM punkcie — w dnie misy,
+    // 7 cm PONIŻEJ dolnej wargi, poziomo (właściciel 19:52–19:59: „odpływ na dole… nie ma szans, żeby woda spłynęła”; woda
+    // z każdego miejsca misy spływa w dół do odpływu) → studzienka 2 cm → sitko poziome (pierścienie chrom/grafit,
     // równo w jednej płaszczyźnie — bez nakładania). Nad pisuarem zawór spłukujący (chrom): rura z kołpaka, korpus, dźwignia,
     // przyłącze do ściany z rozetą. Bez tylnej ściany — korpus przylega do płytek (zasada zero migotania).
     // o: punkt na licu ściany na poziomie posadzki pod środkiem pisuaru; ex: wzdłuż ściany; en: od ściany do pomieszczenia.
     static void Pisuar(Vector3 o, Vector3 ex, Vector3 en)
     {
         const int M = 72;
-        const float pO = 2.4f, pR = 2.6f, rl = .018f, zb = .055f, rd = .024f;
-        var Bc = new Vector2(0f, .655f);            // środek odpływu: 5.7 cm nad dolną wargą (wnętrze misy .598–.942)
+        const float pO = 2.4f, pR = 2.6f, rl = .018f, rd = .024f, yD = .525f, zD = .175f;   // odpływ: Ø 4.8 cm × K, dno misy 52.5 cm
+        var Bc = new Vector2(0f, .77f);             // środek wargi (kierunek zaokrąglenia do wnętrza)
         float Se(float c, float p) => Mathf.Sign(c) * Mathf.Pow(Mathf.Abs(c), 2f / p);
         Vector2 Obrys(float th) { float c = Mathf.Cos(th), s = Mathf.Sin(th); return new Vector2(.18f * (1f - .06f * (1f - s)) * Se(c, pO), .79f + .33f * Se(s, pO)); }
         Vector2 Warga(float th) { float c = Mathf.Cos(th), s = Mathf.Sin(th); return new Vector2(.14f * (1f - .08f * (1f - s)) * Se(c, pR), .77f + .19f * Se(s, pR)); }
@@ -291,12 +292,22 @@ internal static partial class BraxMiastoDworzec
             {
                 case 0: { float f = t * Mathf.PI * .5f; return W(O + (R - O) * (1f - Mathf.Cos(f)), -.004f + (zr + .004f) * Mathf.Sin(f)); }
                 case 1: { float a = t * Mathf.PI * .5f; return W(R + dIn * (rl * Mathf.Sin(a)), zr - rl + rl * Mathf.Cos(a)); }
-                case 2: { var Cd = Bc + (Rin - Bc).normalized * rd; float ps = Mathf.PI * .5f * (1f - t); return W(Cd + (Rin - Cd) * Mathf.Sin(ps), zb + (zr - rl - zb) * (1f - Mathf.Cos(ps))); }
-                default: { var Cd = Bc + (Rin - Bc).normalized * rd; return W(Cd, Mathf.Lerp(zb, zb - .02f, t)); }
+                case 2:
+                {
+                    // Bézier: od wargi w głąb (styczna −en jak koniec wargi), potem pionowo w dół do okręgu odpływu (styczna −y)
+                    float sn = Mathf.Sin(th), z0 = zr - rl;
+                    var B0 = new Vector3(Rin.x, Rin.y, z0);
+                    var B1 = new Vector3(Rin.x, Rin.y, Mathf.Lerp(z0, .06f, .55f + .25f * sn));
+                    var B3 = new Vector3(rd * Mathf.Cos(th), yD, zD - rd * sn);
+                    var B2 = B3 + Vector3.up * ((Rin.y - yD) * .6f);
+                    float u = 1f - t; var q = u * u * u * B0 + 3f * u * u * t * B1 + 3f * u * t * t * B2 + t * t * t * B3;
+                    return W(new Vector2(q.x, q.y), q.z);
+                }
+                default: { float sn = Mathf.Sin(th); return W(new Vector2(rd * Mathf.Cos(th), Mathf.Lerp(yD, yD - .02f, t)), zD - rd * sn); }
             }
         }
         int[] podzial = { 10, 5, 16, 1 };
-        var s = S(ceramika); var sit = new List<Vector2>(); float zSit = 0f;
+        var s = S(ceramika);
         // orientacja: na szczycie wargi (dół misy) normalna patrzy od ściany (+en)
         float Zn(int seg, float th, float t)
         {
@@ -324,7 +335,6 @@ internal static partial class BraxMiastoDworzec
                     var tg = a.sqrMagnitude > 1e-8f ? a.normalized : ex;
                     s.v.Add(p); s.n.Add(nn); s.t.Add(new Vector4(tg.x, tg.y, tg.z, 1f)); s.c.Add(s.kolor);
                     s.uv.Add(new Vector2(j * 1.4f * K / M, dl + seg * .3f));
-                    if (seg == 3 && q == nT && j < M) { var w = p - o; sit.Add(new Vector2(Vector3.Dot(w, ex), Vector3.Dot(w, Vector3.up))); zSit = Vector3.Dot(w, en); }
                 }
             }
             for (int j = 0; j < M; j++)
@@ -336,19 +346,13 @@ internal static partial class BraxMiastoDworzec
                     else s.i.AddRange(new[] { a0, b1, a1, a0, b0, b1 });
                 }
         }
-        // sitko odpływu: koło dzielone na pierścienie chrom / grafit (jedna płaszczyzna, bez nakładania)
-        var c2 = Vector2.zero; foreach (var q in sit) c2 += q; c2 /= sit.Count;
-        Vector3 Ws(Vector2 q) => o + ex * q.x + Vector3.up * q.y + en * zSit;
+        // sitko odpływu poziome w dnie misy: koło dzielone na pierścienie chrom / grafit (jedna płaszczyzna, bez nakładania)
+        var cS = W(new Vector2(0f, yD - .02f), zD);
         float[] pas = { 0f, .22f, .34f, .54f, .66f, 1f };
         for (int b = 0; b < pas.Length - 1; b++)
         {
             var sm = S(b % 2 == 0 ? chrom : grafit);
-            for (int j = 0; j < sit.Count; j++)
-            {
-                var q0 = sit[j]; var q1 = sit[(j + 1) % sit.Count];
-                Vector3 p00 = Ws(c2 + (q0 - c2) * pas[b]), p01 = Ws(c2 + (q1 - c2) * pas[b]), p10 = Ws(c2 + (q0 - c2) * pas[b + 1]), p11 = Ws(c2 + (q1 - c2) * pas[b + 1]);
-                if (b == 0) sm.Tri(p00, p10, p11, en); else sm.Quad(p00, p10, p11, p01, en);
-            }
+            if (b == 0) sm.Kolo(cS, rd * K * pas[1], M); else sm.Pierscien(cS, rd * K * pas[b], rd * K * pas[b + 1], 0f, 360f, M);
         }
         // zawór spłukujący nad pisuarem (chrom): rura z kołpaka (wchodzi 2.5 cm w ceramikę), korpus, dźwignia, przyłącze w ścianę z rozetą
         var ch = S(chrom); float zz = .07f;

@@ -264,19 +264,17 @@ public static partial class BraxRegionMiastoB
             {
                 float xx = x;
                 if (Mathf.Abs(xx - (PrzystBusX - 9f)) < 9f) continue;   // wiata przystanku
-                Pozniej("drzewo w kracie (promenada)", () => { var p = NaPodlozu(new Vector3(xx, YC, 10.5f)); BraxRegionMeble.KrataDrzewa(root, p); DrzewoTeraz(p); });
+                // 11.11: drzewa w kratach na promenadzie zdjęte (właściciel: „na chodnikach nie ma nic być… kwadratowe zielone… trawa”)
                 // R1: żadnych ławek na miejskiej promenadzie przy ulicy.
                 if (((int)(-xx / 12f)) % 2 == 0) Pozniej("kosz (promenada)", () => BraxRegionMeble.Kosz(root, NaPodlozu(new Vector3(xx + 5.6f, YC, 9.9f)), 180f));
                 else Pozniej("latarnia (promenada)", () => { BraxRegionMeble.Latarnia(root, NaPodlozu(new Vector3(xx + 6f, YC, 4.5f))); latarnie++; });
-                ndDrzewa++;
             }
         }
         // plac Atlanty: dwa rzędy drzew w kratach wzdłuż wschodniego lica i ławki
         for (float z = RzC0 + 4f; z < RzB1 - 4f; z += 13f)
         {
             float zz = z; if (Mathf.Abs(zz - RZ) < 9f) continue;   // oś alei — wejście
-            Pozniej("drzewo w kracie (plac Atlanty)", () => { var p = NaPodlozu(new Vector3(NC[3] - NPR - 4.5f, YC, zz)); BraxRegionMeble.KrataDrzewa(root, p); DrzewoTeraz(p); });
-            ndDrzewa++;
+            // 11.11: drzewa w kratach na placu Atlanty zdjęte (plac wolny do przejścia)
         }
         // skwer zachodni: latarnie parkowe i ławki przy ścieżce (aleja przecina skwer)
         for (float z = RZ + APR + 14f; z < NZ1 - 8f; z += 26f) { float zz = z; Pozniej("latarnia (skwer)", () => { BraxRegionMeble.Latarnia(root, NaPodlozu(new Vector3(-276f, YC, zz))); latarnie++; }); }

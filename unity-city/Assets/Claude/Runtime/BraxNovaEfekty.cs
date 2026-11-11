@@ -18,6 +18,12 @@ public sealed class BraxNovaEfekty : MonoBehaviour
     public Light[] swiatla = new Light[0];
     public float bpm = 124f;
     public float zasieg = 48f;
+    // 11.11 (właściciel 19:35: „światełka w klubie Nowa… stoją jak martwe”): PRZYCZYNA — korzeń klubu stoi w (0,0,0) świata
+    // (BraxRegion.Root), a sala jest ~66 m dalej, więc odległość gracza liczona od transform.position nigdy nie spadała poniżej
+    // 48 m: efekty nie startowały (lasery wyłączone od Awake, kula stała). Teraz odległość od środka sali (pole ustawiane przez
+    // generator klubu); gdy pole puste — od transform.position jak dawniej.
+    public Vector3 srodekSali;
+    public bool maSrodekSali;
 
     static readonly int idCzas = Shader.PropertyToID("_NovaCzas"), idBeat = Shader.PropertyToID("_NovaBeat"),
                         idAkt = Shader.PropertyToID("_NovaAktywny"), idKat = Shader.PropertyToID("_NovaKat");
@@ -58,7 +64,8 @@ public sealed class BraxNovaEfekty : MonoBehaviour
             var p = FindAnyObjectByType<BraxGymPlayer>(); if (p) gracz = p.transform;
         }
         if (!gracz) return false;
-        return (gracz.position - transform.position).sqrMagnitude < zasieg * zasieg;
+        var c = maSrodekSali ? srodekSali : transform.position;
+        return (gracz.position - c).sqrMagnitude < zasieg * zasieg;
     }
 
     void Update()
@@ -118,7 +125,7 @@ public sealed class BraxNovaEfekty : MonoBehaviour
             var l = swiatla[i]; if (!l) continue;
             int k = ((int)(beat / 4f) + i) % Barwy.Length;
             l.color = Color.Lerp(l.color, Barwy[k], Time.deltaTime * 6f);
-            l.intensity = (1.1f + .9f * puls) * aktywny;
+            l.intensity = (.55f + .65f * puls) * aktywny;   // 11.11: sala ciemniejsza (właściciel 19:35)
         }
     }
 
