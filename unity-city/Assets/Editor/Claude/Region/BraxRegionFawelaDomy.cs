@@ -650,8 +650,18 @@ public static partial class BraxRegionFawela
         }
         // lada (drewno wytarte) — sprzedawca za nią, przodem do wejścia
         float l0 = Mathf.Max(G + .5f, w0 + .2f), l1 = Mathf.Min(l0 + 2.4f, L - G - 1.5f), ld = 2.5f;
+        // MIĘSNY (11.11, właściciel 19:44: „mięsa są na półkach. A mają być w lodówkach… lodówki szklane… jak w normalnym życiu”):
+        // lada chłodnicza z giętą szybą (BraxChlodnie) zamiast drewnianej lady; za sprzedawcą szafa chłodnicza z mięsem. Lada głęboka
+        // (1.0 m × K) — przesunięta ku wejściu tak, by za nią zostało ≥ 0.75 m dla sprzedawcy przed szafą, przed nią ≥ 1.4 m dla klienta.
+        float gLady = mieso ? BraxChlodnie.GlebokoscLady : .6f;
+        if (mieso) ld = Mathf.Clamp(D - BraxChlodnie.Glebokosc - .75f - gLady, 1.4f, 2.5f);
         var bl = W(cx, cz, lada, Color.white);
-        if (!fryzjer && !pralnia && !wulk)
+        if (mieso)
+        {   // (sama lada z towarem — niżej, gdy jest już korzeń towaru lokalu)
+            KolF(rd, F, l0, l1, yF, yF + BraxChlodnie.WysokoscLady, ld - .08f, ld + gLady);
+            Rekw(rd, new[] { "CashRegister_01" }, F.P(l1 - .38f, yF + .95f * k, ld + gLady - .2f * k), F.Yaw + 180f, .35f, false, 25f, "kasa sklepowa");
+        }
+        else if (!fryzjer && !pralnia && !wulk)
         {
             BoxF(bl, F, l0, l1, yF, yF + .92f * k, ld, ld + .6f, true, false);
             BoxF(W(cx, cz, lada, new Color(.8f, .78f, .74f)), F, l0 - .04f, l1 + .04f, yF + .92f * k, yF + .96f * k, ld - .05f, ld + .65f, true);
@@ -659,7 +669,7 @@ public static partial class BraxRegionFawela
             if (!Rekw(rd, new[] { "CashRegister_01" }, F.P(l1 - .38f, yF + .96f * k, ld + .3f), F.Yaw + 180f, .35f, false, 25f, "kasa sklepowa"))
                 BoxF(W(cx, cz, metal, new Color(.3f, .3f, .32f)), F, l1 - .55f, l1 - .15f, yF + .96f * k, yF + .96f * k + .28f, ld + .12f, ld + .5f, true);   // kasa
         }
-        Sprzedawcy.Add((F.P((l0 + l1) * .5f, yF, ld + 1.35f), F.Yaw, rodzaj.ToLowerInvariant()));
+        Sprzedawcy.Add((F.P((l0 + l1) * .5f, yF, ld + gLady + .75f), F.Yaw, rodzaj.ToLowerInvariant()));
         // TOWAR Z BIBLIOTEKI (właściciel 9.11 23:03: „dlaczego produktów do sklepów nie bierzesz z naszej biblioteki… mamy etykiety”):
         // te same modele co w sklepach ulicy i supermarkecie (BraxSklepyTowar — pudełka, puszki, butelki, kartony, leki, wędliny,
         // sery, owoce, pieczywo z etykietami właściciela + Poly Haven). Brak modelu = luka na półce i wpis w logu, nigdy klocek.
@@ -746,9 +756,16 @@ public static partial class BraxRegionFawela
         }
         if (!fryzjer && !pralnia && !wulk && !przych)
         {
-            if (!kebab && !pizza) foreach (float s in new[] { rg0, (rg0 + rg1) * .5f - .02f, rg1 - .04f }) BoxF(bl, F, s, s + .04f, yF, yF + 2.0f * k, D - .42f, D - .02f, true);
+            if (!kebab && !pizza && !mieso) foreach (float s in new[] { rg0, (rg0 + rg1) * .5f - .02f, rg1 - .04f }) BoxF(bl, F, s, s + .04f, yF, yF + 2.0f * k, D - .42f, D - .02f, true);
+            if (mieso)
+            {   // MIĘSNY (11.11, 19:44 „mięsa… mają być w lodówkach”): pod ścianką zaplecza SZAFA CHŁODNICZA z mięsem za szklanymi drzwiami
+                // (1–3 drzwi, ile się mieści od lewej ściany do drzwi zaplecza), kaseton „MIĘSO”, towar z biblioteki na 5 poziomach
+                int nd = Mathf.Clamp(Mathf.FloorToInt((rg1 - rg0) / BraxChlodnie.Szer(1) + .05f), 1, 3); float sz = BraxChlodnie.Szer(nd), sm = rg0 + sz * .5f;
+                BraxChlodnie.SzafaMiesna(tw ? tw : rd, "Fawela: szafa chłodnicza z mięsem " + dz.nr, F.P(sm, yF, D - .01f), F.N, nd, tw, r, false);
+                KolF(rd, F, sm - sz * .5f, sm + sz * .5f, yF, yF + BraxChlodnie.Wysokosc, D - .01f - BraxChlodnie.Glebokosc, D - .01f);
+            }
             // apteka: gęste półki (7 co 0.29 m × K) z lekami w dwóch warstwach — jak w prawdziwej aptece, bez pustej ściany nad lekami
-            int nPol = kebab || pizza ? 0 : apteka ? 7 : 4; float rozst = (apteka ? .29f : .5f) * k;
+            int nPol = kebab || pizza || mieso ? 0 : apteka ? 7 : 4; float rozst = (apteka ? .29f : .5f) * k;
             for (int p = 0; p < nPol; p++)
             {
                 float y = yF + .12f + p * rozst; bl.K(Color.white); BoxF(bl, F, rg0, rg1, y, y + .035f, D - .42f, D - .02f, true);
@@ -761,18 +778,13 @@ public static partial class BraxRegionFawela
                 }
                 else for (float s = rg0 + .08f; s < rg1 - .28f; s += .27f) Towar(F, s, y + .035f, D - .36f, r, cx, cz, tel ? 2 : 0);   // naprawa telefonów: pudełka z akcesoriami (biblioteka nie ma elektroniki)
             }
-            var lodM = !apteka && BraxMiastoAssety.Jest("miasto_sklepy") ? BraxMiastoAssety.Model("miasto_sklepy", "lodowka") : null;
-            if (lodM)
-            {   // lodówka z biblioteki właściciela (0.85 × 0.94 × 2.18 m × K) pod prawą ścianą, frontem do środka sklepu
-                float fs = L - G - .944f * k * .5f - .03f, fd = G + 1.1f;
-                BraxMiastoAssety.Postaw(tw ? tw : rd, lodM, "Fawela: lodówka (model właściciela)", F.P(fs, yF, fd), Mathf.Atan2(F.R.x, F.R.z) * Mathf.Rad2Deg, 1f, true, false);
-                KolF(rd, F, fs - .5f * k, L - G, yF, yF + 2.18f * k, fd - .45f * k, fd + .45f * k);
-            }
-            else if (!apteka)
-            {
-                float f0 = L - G - 1.25f; BoxF(W(cx, cz, plastik, new Color(.9f, .9f, .9f)), F, f0, f0 + .8f, yF, yF + 1.95f * k, .5f + G, 1.2f + G, true);
-                Pasek(W(cx, cz, lodowka, Color.white), F, f0 + .06f, f0 + .74f, yF + .3f, yF + 1.85f * k, .5f + G - .004f);   // podświetlony front (widać od wejścia? — tył do frontu: front lodówki patrzy na wejście)
-                KolF(rd, F, f0, f0 + .8f, yF, yF + 1.95f * k, .5f + G, 1.2f + G);
+            if (!apteka && !tel)
+            {   // LODÓWKA Z NAPOJAMI Z KODU (11.11, właściciel 20:53: „te lodówki z napojami… puste, dziwne, te modele 3D… lepiej jak ty
+                // stworzysz taką lodówkę z napojami”): BraxChlodnie — szklane drzwi w czarnej ramie z uchwytem, półki pełne napojów
+                // (PET, puszki, szkło), LED, kaseton „ZIMNE NAPOJE”; pod prawą ścianą frontem do środka sklepu (model właściciela zdjęty)
+                float wL = BraxChlodnie.Szer(1), gL = BraxChlodnie.Glebokosc, fd = G + 1.1f;   // jak dotąd (kontrola przejść)
+                BraxChlodnie.LodowkaNapojow(tw ? tw : rd, "Fawela: lodówka z napojami " + dz.nr, F.P(L - G - .01f, yF, fd), -F.R, 1, dz.nr, false);
+                KolF(rd, F, L - G - .01f - gL, L - G, yF, yF + BraxChlodnie.Wysokosc, fd - wL * .5f, fd + wL * .5f);
             }
         }
         // wyposażenie wg branży
@@ -828,7 +840,7 @@ public static partial class BraxRegionFawela
             W(cx, cz, metal, new Color(.42f, .42f, .43f)).Cyl(F.P(sm, yF + hk + .22f, pd1 - .2f), F.P(sm, ys - .02f, pd1 - .2f), .09f, 10);
             KolF(rd, F, p0 - .03f, p1 + .03f, yF, yF + hk + .25f, pd0 - .04f, pd1);
         }
-        if (mieso) BraxSklepyTowar.Polka("ch_dol", tw, F.P(l0 + .15f, yF + .965f * k, ld + .28f), F.R, -F.N, l1 - l0 - .95f, r, .3f);
+        if (mieso) BraxChlodnie.LadaChlodnicza(tw ? tw : rd, "Fawela: lada chłodnicza z mięsem " + dz.nr, F.P((l0 + l1) * .5f, yF, ld), F.N, l1 - l0, tw, r, false);
         if (regalBoczny != null)
         {   // SKLEPY PEŁNE (10.11 07:52): drugi regał na prawej ścianie — apteka: leki BRAXHORN PHARMA (7 półek, dwie warstwy) od 1.6 m;
             // spożywczy, loteria, wszystko dla domu, naprawa telefonów: za lodówką (od 2.05 m). Wejście i przejście do lady wolne.
@@ -845,8 +857,8 @@ public static partial class BraxRegionFawela
             }
         }
         if (spoz) BraxSklepyTowar.Polka("wedliny", tw, F.P(l0 + .15f, yF + .965f * k, ld + .28f), F.R, -F.N, l1 - l0 - .95f, r, .3f);   // wędliny i sery w gablocie
-        if (piekarnia || mieso || tel || apteka || spoz)
-        {   // szklana gablota na ladzie
+        if (piekarnia || tel || apteka || spoz)
+        {   // szklana gablota na ladzie (mięsny: lada chłodnicza z szybą — wyżej)
             Pasek(W(cx, cz, szyba, Color.white), F, l0 + .1f, l1 - .7f, yF + .96f * k, yF + .96f * k + .32f, ld + .02f);
             BoxF(W(cx, cz, alu, Color.white), F, l0 + .1f, l1 - .7f, yF + .96f * k + .32f, yF + .96f * k + .345f, ld, ld + .5f, true);
             if (tel) for (float s = l0 + .2f; s < l1 - .9f; s += .22f) BoxF(W(cx, cz, plastik, new Color(.1f, .1f, .12f)), F, s, s + .14f, yF + .96f * k, yF + .96f * k + .02f, ld + .15f, ld + .38f, true);

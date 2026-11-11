@@ -63,11 +63,14 @@ internal static partial class BraxLiteryBebas
     /// <summary>Napis w dowolnej płaszczyźnie: r = kierunek pisania (w prawo dla czytającego), up = góra liter, nn = zwrot lica
     /// (np. napis farbą na jezdni: nn = w górę, up = w kierunku jazdy). Pozostałe jak wyżej.</summary>
     public static float Napis(string tekst, Vector3 o, Vector3 r, Vector3 up, Vector3 nn, float cap, float glebokosc, Material lico, Material boki, float track = .05f, float odstep = .004f)
+        => Napis(BraxUliceKit.S(lico), BraxUliceKit.S(boki), tekst, o, r, up, nn, cap, glebokosc, track, odstep);
+
+    /// <summary>Jak wyżej, do podanych siatek (lico, boki) — np. meble budowane raz i stawiane wiele razy (BraxChlodnie).</summary>
+    public static float Napis(UlSiatka sl, UlSiatka sb, string tekst, Vector3 o, Vector3 r, Vector3 up, Vector3 nn, float cap, float glebokosc, float track = .05f, float odstep = .004f)
     {
         r = r.normalized; up = up.normalized; nn = nn.normalized;
         var uklad = Uklad(tekst, track, out float a, out float b);
         float x0 = -(a + b) * .5f;   // środek atramentu w o
-        var sl = BraxUliceKit.S(lico); var sb = BraxUliceKit.S(boki);
         foreach (var (ch, xp) in uklad)
         {
             var g = Glify[ch];

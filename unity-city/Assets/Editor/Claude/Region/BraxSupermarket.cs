@@ -499,17 +499,21 @@ static int Zbuduj(Transform t, bool lustro, int nr)
             towar += twC.GetComponentsInChildren<Renderer>(true).Length;
             BraxRegionMeble.Napis(t, "MIĘSO · WĘDLINY · SERY", Swiat((cA + cB) * .5f, yK + .7f * K, zw - .02f), -t.forward, .32f * K, new Color(.55f, .12f, .10f));
         }
-        var lod = BraxMiastoAssety.Model("miasto_sklepy", "lodowka");
-        if (lod)
+        // LODÓWKI Z NAPOJAMI Z KODU (11.11, właściciel 20:53: „te lodówki z napojami… puste, dziwne, te modele 3D, które ja ściągnąłem…
+        // lepiej jak ty stworzysz taką lodówkę z napojami”): BraxChlodnie — zestawy po 3 drzwi (szklane drzwi w czarnej ramie, uchwyty,
+        // półki pełne napojów: PET 1.5 / 0.5 l, puszki, szkło; LED, kaseton „ZIMNE NAPOJE”) od regału chłodniczego do ściany bocznej
         {
-            float sz = .854f * K + .02f, zl = D - Grub - .944f * K * .5f - .03f; int n = 0;
-            for (float x = -hw + Grub + .4f + sz * .5f; x < hw - Grub - .4f - sz * .5f; x += sz)
+            float kA = lustro ? -hw + Grub + .4f : cB + .1f, kB = lustro ? cA - .1f : hw - Grub - .4f, x = kA; int n = 0;
+            while (true)
             {
-                if (x + sz * .5f > cA - .1f && x - sz * .5f < cB + .1f) continue;
-                BraxMiastoAssety.Postaw(wyp, lod, "Lodówka " + (++n), Swiat(x, Podloga, zl), yaw0, 1f, true, true);
+                int dr = 3; while (dr > 0 && x + BraxChlodnie.Szer(dr) > kB) dr--;
+                if (dr == 0) break;
+                float sz = BraxChlodnie.Szer(dr);
+                BraxChlodnie.LodowkaNapojow(wyp, "Lodówka z napojami " + (++n) + " (" + dr + " drzwi)", Swiat(x + sz * .5f, Podloga, zw - .01f), -t.forward, dr, n + nr, false);
+                x += sz + .04f;
             }
-            float kA = lustro ? -hw + Grub + .4f : cB + .1f, kB = lustro ? cA - .1f : hw - Grub - .4f;
-            Kol("lodówki", new Vector3(kA, Podloga, zl - .944f * K * .5f), new Vector3(kB, Podloga + 2.184f * K, zl + .944f * K * .5f));
+            if (n > 0) Kol("lodówki", new Vector3(kA, Podloga, zw - .01f - BraxChlodnie.Glebokosc), new Vector3(x - .04f, Podloga + BraxChlodnie.Wysokosc, zw));
+            BraxMiastoA.Log("Supermarket " + nr + ": lodówek z napojami z kodu " + n);
         }
         // kasy (3 podwójne) między wejściem a alejkami; w kopii lustrzanej obrócone
         var kasa = BraxMiastoAssety.Model("miasto_sklepy", "kasa");

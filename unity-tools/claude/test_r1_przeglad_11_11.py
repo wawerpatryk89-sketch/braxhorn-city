@@ -114,6 +114,28 @@ class LazienkiMiasta(unittest.TestCase):
         self.assertNotIn("wc.Cyl(cm, cm + Vector3.up * .4f * K", tyly)
 
 
+class Chlodnie(unittest.TestCase):
+    def test_code_fridges_replace_owner_models(self):
+        # 19:44 „mięsa są na półkach. A mają być w lodówkach… lodówki szklane… w kodzie”; 20:53 „te lodówki z napojami… puste,
+        # dziwne, te modele 3D… lepiej jak ty stworzysz taką lodówkę z napojami”
+        c = src(R / "BraxChlodnie.cs")
+        for s in ["public static Transform LodowkaNapojow(", "public static Transform SzafaMiesna(", "public static Transform LadaChlodnicza(",
+                  '"ZIMNE NAPOJE"', "ProfilPet(", "ProfilPuszka(", "ProfilSzklo(", "BraxSklepyTowar.Polka(typ[k], towar", '"ch_dol"',
+                  "Szyba(p[szklo]", "w.siatki.All(m => m)", "BraxLiteryBebas.Napis(p[napisM], p[czarny]"]:
+            self.assertIn(s, c)
+        d = src(R / "BraxRegionFawelaDomy.cs")
+        self.assertNotIn('"miasto_sklepy", "lodowka"', d)
+        for s in ["BraxChlodnie.LodowkaNapojow(", "BraxChlodnie.SzafaMiesna(", "BraxChlodnie.LadaChlodnicza(", "int nPol = kebab || pizza || mieso ? 0"]:
+            self.assertIn(s, d)
+        self.assertNotIn('if (mieso) BraxSklepyTowar.Polka("ch_dol", tw, F.P(l0', d)   # mięso już nie leży na ladzie
+        sm = src(R / "BraxSupermarket.cs")
+        self.assertNotIn('"miasto_sklepy", "lodowka"', sm)
+        self.assertIn("BraxChlodnie.LodowkaNapojow(wyp,", sm)
+        self.assertIn("BraxChlodnie.LodowkaNapojow(g,", src(R / "BraxMiastoFitness.cs"))
+        self.assertIn("BraxChlodnie.LodowkaNapojow(root,", src(R / "BraxMiastoWyspaDomki.cs"))
+        self.assertIn('"chlodnie"', src(ROOT / "unity-tools" / "claude" / "kontrola_geometrii" / "Program.cs"))
+
+
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):
         k = src(ROOT / "unity-tools" / "claude" / "kontrola_kompilacji" / "kompiluj.sh")

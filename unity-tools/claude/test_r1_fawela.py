@@ -139,7 +139,7 @@ class Plan(unittest.TestCase):
     def test_clerks_stand_on_given_floor(self):
         self.assertIn("foreach (var (pf, yawF, gdzieF) in BraxRegionFawela.Sprzedawcy)", RUCH)
         self.assertIn("pf, yawF, rnd, lada, pf.y + .02f)", RUCH)
-        self.assertIn("Sprzedawcy.Add((F.P((l0 + l1) * .5f, yF, ld + 1.35f), F.Yaw,", DOMY)
+        self.assertIn("Sprzedawcy.Add((F.P((l0 + l1) * .5f, yF, ld + gLady + .75f), F.Yaw,", DOMY)   # 11.11: za ladą (mięsny — za ladą chłodniczą)
 
     def test_floor_not_coplanar_with_foundation(self):
         self.assertIn("new Vector3(x1 + .06f, yF - .03f, z1 + .06f)", DOMY)
@@ -195,7 +195,10 @@ class BibliotekaIRealizm(unittest.TestCase):
         self.assertIn("Towar(F, s, y + .035f, D - .36f, r, cx, cz, tel ? 2 : 0)", DOMY)
 
     def test_equipment_from_library(self):
-        for model in ('"miasto_sklepy", "lodowka"', '"miasto_sklepy", "menu_4"', '"miasto_sklepy", "menu_3"', '? "plakat_0" + (7 + q) : "plakat_0" + (1 + (dz.nr + q) % 3)', '"miasto_jedzenie", "wozek_jedzenie"', '"miasto_silownia_metro", "silownia_atlas"'):
+        # 11.11 20:53: lodówka właściciela („puste, dziwne”) zdjęta — lodówka z napojami z kodu (BraxChlodnie)
+        self.assertNotIn('"miasto_sklepy", "lodowka"', DOMY)
+        self.assertIn('BraxChlodnie.LodowkaNapojow(', DOMY)
+        for model in ('"miasto_sklepy", "menu_4"', '"miasto_sklepy", "menu_3"', '? "plakat_0" + (7 + q) : "plakat_0" + (1 + (dz.nr + q) % 3)', '"miasto_jedzenie", "wozek_jedzenie"', '"miasto_silownia_metro", "silownia_atlas"'):
             self.assertIn(model, DOMY, model)
         for pomocnik in ("BraxMiastoAssety.Klatka(tr,", "BraxMiastoAssety.Lawka(tr,", '"odz_dol", "odz_polka", "odz_gora"', '"trashbag"', '"wooden_picnic_table"'):
             self.assertIn(pomocnik, DOMY, pomocnik)
@@ -524,7 +527,7 @@ class SklepyPelne(unittest.TestCase):
         self.assertIn('bool kebab = rodzaj == "KEBAB", pizza = rodzaj.StartsWith("PIZZA")', DOMY)
         self.assertIn('"gastro_blat"', DOMY)                                  # kebab / pizza-kebab: blat z prawdziwym jedzeniem, nie półki z butelkami
         self.assertIn('"KEBAB"', src(R / "BraxRegionFawela.cs")); self.assertIn('"PIZZA · KEBAB"', src(R / "BraxRegionFawela.cs"))
-        self.assertIn("int nPol = kebab || pizza ? 0 : apteka ? 7 : 4", DOMY)   # apteka: gęste półki, leki w dwóch warstwach
+        self.assertIn("int nPol = kebab || pizza || mieso ? 0 : apteka ? 7 : 4", DOMY)   # apteka: gęste półki, leki w dwóch warstwach
         self.assertIn("string[] regalBoczny = apteka ?", DOMY)              # drugi regał w sklepach
         self.assertIn('BraxSklepyTowar.Polka("wedliny"', DOMY)              # gablota z wędlinami w spożywczym
         self.assertIn("float zs0 = w1 + .2f", DOMY)                         # warzywniak: stragan obok wejścia, nie w drzwiach

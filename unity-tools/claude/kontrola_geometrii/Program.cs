@@ -61,6 +61,23 @@ public static class Harness
                 else foreach (var dp in r3.GetComponentsInChildren<BraxDrzwiPrzesuwne>()) { dp.skrzydla[0].localPosition += dp.przesuniecie[0] * .55f; dp.skrzydla[1].localPosition += dp.przesuniecie[1] * .55f; }
             }
         }
+        else if (args.Length > 1 && args[1] == "chlodnie")
+        {
+            // podgląd chłodni z kodu (BraxChlodnie): lodówki z napojami 1/2/3 drzwi, szafa z mięsem 2 drzwi (mięso z kodu — bez paczki),
+            // lada chłodnicza 2.4 m; ściana tylna z = 0 (lico do +z), posadzka
+            root = new GameObject("PODGLĄD chłodni").transform; root.SetParent(miasto.transform, false);
+            var sc = BraxUliceKit.Tex("ściana podglądu: płytki", 1.2f, null, new Color(.9f, .9f, .88f), .4f, "white_tiles_02", "tiles_white");
+            var po = BraxUliceKit.Tex("posadzka podglądu", 2.0f, null, new Color(.6f, .6f, .6f), .9f, "concrete_pavement_02");
+            var sw = new UlSiatka(); var pp = new UlSiatka();
+            sw.Box(new Vector3(-6f, 0f, -.3f), new Vector3(10f, 3.6f, 0f)); pp.Box(new Vector3(-6f, -.2f, -.3f), new Vector3(10f, 0f, 8f), 0);
+            BraxMiastoA.Obiekt(root, "ściana", sw, sc); BraxMiastoA.Obiekt(root, "posadzka", pp, po);
+            BraxChlodnie.SzafaMiesna(root, "szafa z mięsem", new Vector3(-3.6f, 0f, .01f), Vector3.forward, 2, null, new System.Random(3));
+            BraxChlodnie.LodowkaNapojow(root, "lodówka 1", new Vector3(-1.2f, 0f, .01f), Vector3.forward, 1, 0);
+            BraxChlodnie.LodowkaNapojow(root, "lodówka 2", new Vector3(.9f, 0f, .01f), Vector3.forward, 2, 1);
+            BraxChlodnie.LodowkaNapojow(root, "lodówka 3", new Vector3(4.6f, 0f, .01f), Vector3.forward, 3, 2);
+            BraxChlodnie.LadaChlodnicza(root, "lada chłodnicza", new Vector3(-2.4f, 0f, 4.4f), Vector3.forward, 2.4f, null, new System.Random(5));
+            Console.WriteLine("CHŁODNIE: siatek " + BraxChlodnie.Siatek + ", kopii " + BraxChlodnie.Kopii);
+        }
         else
         {
             BraxMiastoDworzec.Apply(miasto.transform);
@@ -84,7 +101,7 @@ public static class Harness
         // ---------------- zbiór powierzchni
         var pows = new List<Pow>(); var mats = new List<Material>(); var matIdx = new Dictionary<Material, int>();
         var rend = root.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.gameObject.activeSelf).ToList();
-        var pos = new List<float>(); var nor = new List<float>(); var uvs = new List<float>(); var idx = new List<int>();
+        var pos = new List<float>(); var nor = new List<float>(); var uvs = new List<float>(); var idx = new List<int>(); var kol = new List<float>();
         var meshe = new List<string>();
         var tris = new List<Tr>();
         foreach (var r in rend)
@@ -107,6 +124,8 @@ public static class Harness
                     {
                         nk = map.Count; map[k] = nk; var p = wv[k]; var n = wn[k]; var uv = k < mesh.uv.Length ? mesh.uv[k] : Vector2.zero;
                         pos.Add(p.x); pos.Add(p.y); pos.Add(p.z); nor.Add(n.x); nor.Add(n.y); nor.Add(n.z); uvs.Add(uv.x); uvs.Add(uv.y);
+                        var cc = mesh.colors32 != null && k < mesh.colors32.Length ? mesh.colors32[k] : new Color32(255, 255, 255, 255);   // kolor wierzchołka (shader miasta mnoży albedo)
+                        kol.Add(cc.r / 255f); kol.Add(cc.g / 255f); kol.Add(cc.b / 255f);
                     }
                     idx.Add(nk);
                 }
@@ -129,9 +148,9 @@ public static class Harness
         // ---------------- zapis geometrii
         using (var f = new BinaryWriter(File.Create(Path.Combine(outDir, "geom.bin"))))
         {
-            foreach (var x in pos) f.Write(x); foreach (var x in nor) f.Write(x); foreach (var x in uvs) f.Write(x); foreach (var x in idx) f.Write(x);
+            foreach (var x in pos) f.Write(x); foreach (var x in nor) f.Write(x); foreach (var x in uvs) f.Write(x); foreach (var x in idx) f.Write(x); foreach (var x in kol) f.Write(x);
         }
-        var js = new StringBuilder("{\"nv\":" + pos.Count / 3 + ",\"ni\":" + idx.Count + ",\"meshe\":[" + string.Join(",\n", meshe) + "],\n\"materialy\":[");
+        var js = new StringBuilder("{\"nv\":" + pos.Count / 3 + ",\"ni\":" + idx.Count + ",\"kolory\":true,\"meshe\":[" + string.Join(",\n", meshe) + "],\n\"materialy\":[");
         js.Append(string.Join(",\n", mats.Select(m =>
         {
             var c = m.color; var e = m.c.TryGetValue("_EmissionColor", out var ee) ? ee : Color.black;

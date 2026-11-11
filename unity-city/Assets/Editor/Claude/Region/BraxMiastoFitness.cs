@@ -80,10 +80,10 @@ internal static class BraxMiastoFitness
         W.MM(czern, lx1 - .6f, lx1 - .25f, Y0 + 1.05f * K, Y0 + 1.05f * K + .3f, lz0 + .25f, lz0 + .28f);   // monitor kasy
         W.MM(czern, lx1 - .45f, lx1 - .4f, Y0 + 1.05f * K, Y0 + 1.05f * K + .1f, lz0 + .29f, lz0 + .36f);
         W.Obsada("recepcja fitness (Nyxa / recepcjonistka)", new Vector3((lx0 + lx1) * .5f, Y0, lz1 + .55f), 180f);
-        // lodówka z napojami, roślina, ławka przy witrynie
-        W.MM(biel, X1 - .7f, X1 - .05f, Y0, Y0 + 2.0f * K * .9f, 38.0f, 38.65f, true);
-        W.MM(szklo, X1 - .66f, X1 - .09f, Y0 + .1f, Y0 + 2.0f * K * .9f - .1f, 37.99f, 38.0f);
-        for (int i = 0; i < 5; i++) W.MM(stal, X1 - .64f, X1 - .11f, Y0 + .3f + i * .42f, Y0 + .32f + i * .42f, 38.02f, 38.6f);
+        // lodówka z napojami Z KODU (11.11, właściciel 20:53: „te lodówki z napojami… puste… lepiej jak ty stworzysz taką lodówkę
+        // z napojami”): BraxChlodnie — szklane drzwi, półki pełne napojów (woda, izotoniki, puszki), LED; przy prawej ścianie
+        // frontem do witryny; roślina, ławka przy witrynie
+        BraxChlodnie.LodowkaNapojow(g, "Fitness: lodówka z napojami", new Vector3(X1 - .05f - BraxChlodnie.Szer(1) * .5f, Y0, 38.65f), Vector3.back, 1, 1);
         W.Walec(biel, new Vector3(X1 - .4f, Y0, 37.0f), .22f, .45f, 16, true);
         for (int i = 0; i < 7; i++) { float an = i * 51f * Mathf.Deg2Rad; W.Walec(zielen, new Vector3(X1 - .4f + Mathf.Cos(an) * .1f, Y0 + .45f, 37.0f + Mathf.Sin(an) * .1f), .12f, .5f + .1f * (i % 3), 8); }
         Lawka(drewno, stal, lx0 + .2f, lx1 - .2f, 36.85f);
