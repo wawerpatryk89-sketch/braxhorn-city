@@ -213,7 +213,7 @@ class WindyIWC(unittest.TestCase):
         body = CER[CER.index("public static void Umywalka("):CER.index("public static void Toczony(")]
         for s in ["yIn = .045f, ySit = .025f", "Toczony(s, p, pr, seg)", "Pierscien(", "S(b % 2 == 0 ? chrom : grafit)"]:
             self.assertIn(s, body)
-        self.assertIn("wylewka z perlatorem", DW)
+        self.assertIn("perlator", CER)                                         # bateria z perlatorem i strumieniem (BraxCeramika.Bateria)
         self.assertIn("internal static class BraxCeramika", CER)                # wspólna ceramika całego miasta (właściciel 19:59)
 
 
