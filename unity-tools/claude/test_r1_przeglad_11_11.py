@@ -168,8 +168,12 @@ class Telewizory(unittest.TestCase):
         for s in ["VideoAudioOutputMode.None", "FindAnyObjectByType<BraxGymPlayer>()", 'katalog = "R1/Reklamy"', "Camera.main" if False else "zasieg"]:
             self.assertIn(s, rt)
         self.assertNotIn("Camera.main", rt)
-        self.assertIn("BraxTelewizory.NaScianie(rodzic, f.lok.szyld", src(R / "BraxUlicePierzeje.cs"))
-        self.assertIn("BraxTelewizory.NaScianie(rd, \"fawela \"", src(R / "BraxRegionFawelaDomy.cs"))
+        # 21:48 „na ulicach żadnych filmów… zakazane globalnie… W mieszkaniach, w hotelach, w apartamentach”
+        u = src(R / "BraxUlicePierzeje.cs")
+        self.assertIn('if (t == "hotel")\n            BraxTelewizory.NaScianie(rodzic, f.lok.szyld', u)
+        self.assertEqual(u.count("BraxTelewizory."), 1)
+        self.assertNotIn("BraxTelewizory.", src(R / "BraxRegionFawelaDomy.cs"))
+        self.assertIn('BraxTelewizory.NaScianie(A, "mieszkanie Braxa', src(R / "BraxRegionBraxFlat.cs"))
         self.assertIn("BraxTelewizory.NaSzafce(A, \"apartament Tower", src(R / "BraxRegionTylyB.cs"))
         wf = src(ROOT / ".github" / "workflows" / "claude-region-build.yml")
         self.assertEqual(wf.count("python3 unity-tools/claude/r1_reklamy_tv.py"), 3)

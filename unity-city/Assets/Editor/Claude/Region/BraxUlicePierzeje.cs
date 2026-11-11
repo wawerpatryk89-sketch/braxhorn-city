@@ -1224,10 +1224,10 @@ public static class BraxUlicePierzeje
         float yawDoUlicy = Quaternion.LookRotation(f.N, Vector3.up).eulerAngles.y, yawWGlab = yawDoUlicy + 180f;
         bool drzwiPrawo = f.drzwiS > (sIn0 + sIn1) * .5f;          // po której stronie są drzwi — wolna strona na meble
         float sWolna0 = drzwiPrawo ? sIn0 + .5f : f.drzwiS + 1.4f, sWolna1 = drzwiPrawo ? f.drzwiS - 1.4f : sIn1 - .5f;
-        // TELEWIZOR z filmami właściciela (21:40 „żeby w każdym pomieszczeniu były”): bary, bistro, pizzeria, kawiarnia, fryzjer,
-        // hotel — na ścianie bocznej bez drzwi, w połowie głębokości lokalu, środek 2.1 m × K (nad meblami); bar — 72", reszta 55"
-        if (t == "bar" || t == "bistro" || t == "pizzeria" || t == "kawiarnia" || t == "fryzjer" || t == "hotel")
-            BraxTelewizory.NaScianie(rodzic, f.lok.szyld, W(drzwiPrawo ? sIn0 : sIn1, y0 + 2.1f * k, dTyl * .5f), drzwiPrawo ? f.R : -f.R, (t == "bar" ? 1.25f : 1.0f) * k);
+        // TELEWIZOR z filmami właściciela — TYLKO hotel (właściciel 21:48: „na ulicach żadnych filmów… zakazane globalnie… W mieszkaniach,
+        // w hotelach, w apartamentach… Tam, gdzie są telewizory”): w holu na ścianie bocznej bez drzwi, środek 2.1 m × K, 55"
+        if (t == "hotel")
+            BraxTelewizory.NaScianie(rodzic, f.lok.szyld, W(drzwiPrawo ? sIn0 : sIn1, y0 + 2.1f * k, dTyl * .5f), drzwiPrawo ? f.R : -f.R, 1.0f * k);
         if (t == "fryzjer")
         {   // SALON FRYZJERSKI (11.11, właściciel 19:35: „FRYZJER… w środku regał z książkami” — wnętrze z innego lokalu): stanowiska
             // wzdłuż ściany tylnej — lustro z prawdziwym odbiciem na całej długości w czarnej ramie, blat dębowy z szufladami pod lustrem,
