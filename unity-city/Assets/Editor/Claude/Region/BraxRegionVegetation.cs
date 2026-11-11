@@ -152,7 +152,9 @@ public static class BraxRegionVegetation
 
         // 4) Chodniki przy ulicy: donice z kwiatami co ok. 24 m, naprzemiennie strony, blisko fasad; hydrant przy sklepie.
         int streetN = 0;
-        if (planter)
+        // 11.11 19:40 (właściciel: „Na chodnikach nie ma nic być… Świetnik może być ewentualnie i nic więcej”): donice z kwiatami
+        // i hydrant z chodników ulicy zdjęte
+        if (planter && false)
             for (float x = -96f; x < 62f; x += 24f)
             {
                 float z = ((int)((x + 96f) / 24f)) % 2 == 0 ? 22.1f : 34.6f;   // środek chodnika (20.6..23.6 i 33.4..36.1)
@@ -166,7 +168,7 @@ public static class BraxRegionVegetation
                     for (int k = 0; k < 3; k++)
                         if (BraxRegion.Put(root, BraxRegion.Pick(flowers), "Ulica: kwiaty w donicy", h.point + new Vector3(-.45f + k * .45f, .3f, 0), BraxRegion.Range(0, 360), 1f, false, .5f)) streetN++;
             }
-        if (hydrant)
+        if (hydrant && false)
         {
             RaycastHit h;
             if (BraxRegion.Ground(27.5f, 22.3f, -.5f, 1f, out h) && BraxRegion.Free(h.point + Vector3.up * .55f, new Vector3(.7f, .9f, .7f)))

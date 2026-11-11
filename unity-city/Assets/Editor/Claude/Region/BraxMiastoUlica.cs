@@ -220,32 +220,10 @@ internal static class BraxMiastoUlica
                 if (Wolne(xk, polnoc) && !przeszk.Any(q => q.x1 > xk - .6f && q.x0 < xk + .6f)) { Kosz(new Vector3(xk, Grunt(xk, zl), zl)); koszy++; zajete.Add((xk - .3f, xk + .3f, polnoc)); }
                 else porzadek.Add("kosz x" + xk.ToString("0.0") + (polnoc ? " N" : " S") + ": nie stawiany (drzwi / latarnia / przeszkoda)");
             }
-            // stojaki rowerowe przy piekarni / delikatesach — 11.11: cały rząd poza drzwiami (dotąd 3 stojaki w drzwiach PIEKARNI)
-            // miejsce hydrantu, który później stawia krok zieleni (BraxRegionVegetation: x 27.5, z 22.3) — stojaki nie wchodzą na niego
-            if (!polnoc) zajete.Add((26.9f, 28.1f, false));
-            float xs = Miejsce(polnoc ? 24.5f : 30.5f, polnoc, 1.8f, przeszk);
-            if (!float.IsNaN(xs))
-            {
-                for (int i = 0; i < 3; i++) Stojak(new Vector3(xs + i * .9f, Grunt(xs, zl), zl));
-                zajete.Add((xs - .4f, xs + 2.2f, polnoc));
-                if (Mathf.Abs(xs - (polnoc ? 24.5f : 30.5f)) > .01f) porzadek.Add("stojaki rowerowe " + (polnoc ? "N" : "S") + ": x " + (polnoc ? 24.5f : 30.5f).ToString("0.0") + " → " + xs.ToString("0.0") + " (poza drzwiami)");
-            }
-            // słupki przy przejściu (narożniki, 0.5 m od krawężnika)
-            foreach (float x in new[] { 48.2f, 55.8f }) foreach (float d in new[] { .5f, 1.4f })
-                { var p = new Vector3(x, 0, polnoc ? KrawPln + d : KrawPld - d); p.y = Grunt(p.x, p.z); Slupek(p); }
-            // hydrant przy krawężniku — 11.11: nie przed drzwiami i nie drugi obok istniejącego (APK 2bfadac: hydrant oryginału x −26
-            // i nasz x −30 przy drzwiach KWIACIARNI)
-            float xh0 = polnoc ? -20f : -30f, zh = polnoc ? KrawPln + .55f : KrawPld - .55f;
-            bool jest = cityRoot.GetComponentsInChildren<Transform>(true).Any(t => t && !t.IsChildOf(root) && t.name.IndexOf("hydrant", System.StringComparison.OrdinalIgnoreCase) >= 0
-                        && Mathf.Abs(t.position.z - zh) < 2.5f && Mathf.Abs(t.position.x - xh0) < 12f);
-            float xh = jest ? float.NaN : Miejsce(xh0, polnoc, 0f, przeszk);
-            if (!float.IsNaN(xh))
-            {
-                var hp = new Vector3(xh, 0, zh); hp.y = Grunt(hp.x, hp.z);
-                var hm = BraxRegion.Model("fire_hydrant"); if (hm) BraxRegion.Put(root, hm, "Hydrant", hp, polnoc ? 180f : 0f, 1f, true, .85f * K);
-                zajete.Add((xh - .4f, xh + .4f, polnoc));
-            }
-            else porzadek.Add("hydrant " + (polnoc ? "N" : "S") + " x" + xh0.ToString("0") + ": nie stawiany (" + (jest ? "hydrant oryginału obok" : "brak miejsca poza drzwiami") + ")");
+            // 11.11 19:40 (właściciel: „Na chodnikach nie ma nic być… Świetnik może być ewentualnie i nic więcej na ulicy. Wszystko
+            // pościągać z tej ulicy, bo tam nawet jak przejść nie ma”): stojaki rowerowe, słupki przy przejściu i nasze hydranty zdjęte —
+            // na chodnikach Portowej zostają tylko kosze (i latarnie, tablice nazw ulic na narożnikach)
+            porzadek.Add("chodnik " + (polnoc ? "N" : "S") + ": bez stojaków, słupków i hydrantów (19:40 — tylko kosze)");
         }
         // tablice nazw ulic (polski standard) przy końcach i przy przejściu
         foreach (var (p, polnoc, tekst) in new[] { (new Vector3(63.2f, 0, KrawPln + .45f), true, "ul. PORTOWA"), (new Vector3(63.2f, 0, KrawPld - .45f), false, "BULWAR NADMORSKI"), (new Vector3(-100.5f, 0, KrawPld - .45f), false, "ul. PORTOWA"), (new Vector3(10.5f, 0, KrawPld - .45f), false, "ul. PORTOWA") })

@@ -316,7 +316,8 @@ public static class BraxCityEnvironment
 
     private static void QuayDetails(Transform root)
     {
-        foreach(float z in new[]{18f,58f,104f})Bench(root,new Vector3(67.2f,.15f,z),90,false);
+        // MIASTO R1 11.11 (właściciel 19:40: „Na chodnikach nie ma nic być… też nie ma być ławki… Świetnik może być i nic więcej”):
+        // ławki z promenady nabrzeża zdjęte — zostają kosze
         foreach(float z in new[]{31f,65f,102f})Bin(root,new Vector3(67.35f,.15f,z),true);
         foreach(float z in new[]{4f,38f,58f,94f})
         {
@@ -332,7 +333,7 @@ public static class BraxCityEnvironment
 
     private static void YardDetails(Transform root)
     {
-        Bench(root,new Vector3(15,.15f,89.6f),180,false);Bench(root,new Vector3(5,.15f,89.6f),180,false);
+        // MIASTO R1 11.11 (19:40 „nie ma być ławki”): ławki z chodnika przy garażach zdjęte, kosz zostaje
         Bin(root,new Vector3(18,.15f,90.2f),true);
         foreach(var p in new[]{new Vector3(55,.166f,75),new Vector3(30,.166f,94),new Vector3(-16,.166f,64)})Drain(root,p);
         foreach(float z in new[]{84.5f,91.5f})

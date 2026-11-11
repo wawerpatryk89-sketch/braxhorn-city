@@ -908,7 +908,9 @@ public static class BraxUlicePierzeje
         // regał na ścianie tylnej (cała szerokość) i przy ścianie lewej (od strony bez drzwi)
         bool regaly = lok.typ != "hotel" && lok.typ != "kantor" && lok.typ != "fryzjer";   // hotel: recepcja i hol, kantor: tablica kursów, fryzjer: stanowiska — bez regałów z towarem
         int nPolek = lok.typ == "apteka" ? 9 : lok.typ == "optyk" ? 8 : 5;   // apteka: gęste półki co ok. 0.33 m; optyk: ściana oprawek
-        if (regaly) Regal(W(sIn0 + .1f, 0, dTyl + .5f), f.R, -f.N, sIn1 - sIn0 - .2f, .45f, hR, nPolek);
+        // lokal płytki (lada przy fasadzie nie zmieści się przed regałem tylnym z przejściem 0.5 m) — bez regału na ścianie tylnej
+        bool plytki = Mathf.Min(dTyl + 1.6f * k, -1.25f) - .6f * k < dTyl + .5f + .5f;
+        if (regaly && !plytki) Regal(W(sIn0 + .1f, 0, dTyl + .5f), f.R, -f.N, sIn1 - sIn0 - .2f, .45f, hR, nPolek);
         // gastronomia (bistro, pizzeria, kawiarnia, bar): regał tylko za ladą — na sali stoliki, nie półki jak w sklepie
         bool gastro = lok.typ == "bistro" || lok.typ == "pizzeria" || lok.typ == "kawiarnia" || lok.typ == "bar";
         if (regaly && lok.typ != "warsztat" && !gastro)
@@ -919,7 +921,11 @@ public static class BraxUlicePierzeje
         // lada (wysokość 0.95 m × k) z blatem, przed regałem tylnym, z boku osi drzwi
         float ladaS0 = Mathf.Max(sIn0 + .6f, f.drzwiS + .9f), ladaS1 = Mathf.Min(sIn1 - .6f, ladaS0 + 2.4f * k);
         if (ladaS1 - ladaS0 < 1.2f) { ladaS1 = Mathf.Min(sIn1 - .6f, f.drzwiS - .9f); ladaS0 = Mathf.Max(sIn0 + .6f, ladaS1 - 2.4f * k); }
-        float ladaD = dTyl + 1.6f * k, ladaH = .95f * k, ladaG = .6f * k;
+        // 11.11 (zdjęcie właściciela: „PIEKARNIA SOBCZAK — lada wystaje na chodnik”): w płytkich lokalach kamienic lada liczona od
+        // ściany tylnej (dTyl + 1.6 m × K) wychodziła przed fasadę. Lada zawsze w środku: lico od klienta co najmniej 1.25 m za fasadą
+        // (wejście i drzwi wolne), a w lokalu płytszym niż lada + zaplecze — lada bliżej ściany tylnej (regał tylny zdjęty niżej)
+        float ladaD = Mathf.Min(dTyl + 1.6f * k, -1.25f), ladaH = .95f * k, ladaG = .6f * k;
+        if (ladaD - ladaG < dTyl + .55f) BraxRegion.Note("ulica: lokal " + lok.szyld + " płytki (" + gl.ToString("F1") + " m) — lada przy fasadzie −1.25 m, za nią " + (ladaD - ladaG - dTyl).ToString("F2") + " m");
         sk.kolor = lok.typ == "bar" ? Kol(.30f, .18f, .10f) : lok.typ == "hotel" ? Kol(.38f, .24f, .14f) : lok.typ == "kantor" || lok.typ == "poczta" ? Kol(.75f, .74f, .70f) : Kol(.88f, .86f, .82f);
         var a0 = W(ladaS0, y0, ladaD); var a1 = W(ladaS1, y0 + ladaH - .04f, ladaD - ladaG);
         if (okleina)
