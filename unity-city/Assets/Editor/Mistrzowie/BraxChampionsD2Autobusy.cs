@@ -76,33 +76,8 @@ public static partial class BraxChampionsD2
             if(o)BraxMiastoAssety.Kolizja(g,o,"autobus kolizja",.1f);
         }
     }
-    // outdoor bench at level y (3 seats, larch on a graphite frame), a BraxSeat per seat
-    static void OutdoorBench(float cx,float z,Vector3 face,float y)
-    {
-        bool alongX=Mathf.Abs(face.z)>.5f;float s=alongX?Mathf.Sign(face.z):Mathf.Sign(face.x);
-        for(int i=0;i<3;i++)
-        {
-            float a=-1.35f+i*.9f;
-            if(alongX)
-            {
-                RB(larch,cx+a+.03f,cx+a+.87f,y+.42f,y+.47f,Mathf.Min(z-s*.22f,z+s*.20f),Mathf.Max(z-s*.22f,z+s*.20f),.02f);
-                RB(larch,cx+a+.03f,cx+a+.87f,y+.52f,y+.86f,Mathf.Min(z-s*.25f,z-s*.20f),Mathf.Max(z-s*.25f,z-s*.20f),.02f);
-                Seat(cx+a+.45f,y+.47f,z+s*.02f,face,"ławka "+cx.ToString("0")+"/"+z.ToString("0")+"/"+i);
-            }
-            else
-            {
-                RB(larch,Mathf.Min(cx-s*.22f,cx+s*.20f),Mathf.Max(cx-s*.22f,cx+s*.20f),y+.42f,y+.47f,z+a+.03f,z+a+.87f,.02f);
-                RB(larch,Mathf.Min(cx-s*.25f,cx-s*.20f),Mathf.Max(cx-s*.25f,cx-s*.20f),y+.52f,y+.86f,z+a+.03f,z+a+.87f,.02f);
-                Seat(cx+s*.02f,y+.47f,z+a+.45f,face,"ławka "+cx.ToString("0")+"/"+z.ToString("0")+"/"+i);
-            }
-        }
-        foreach(float a in new[]{-1.4f,1.4f})
-        {
-            if(alongX)B(frame,cx+a-.04f,cx+a+.04f,y,y+.47f,z-.25f,z+.25f);else B(frame,cx-.25f,cx+.25f,y,y+.47f,z+a-.04f,z+a+.04f);
-        }
-        if(alongX)Col(cx-1.4f,cx+1.4f,y,y+.9f,z-.3f,z+.3f,"ławka");else Col(cx-.3f,cx+.3f,y,y+.9f,z-1.4f,z+1.4f,"ławka");
-        Benches++;
-    }
+    // outdoor bench at level y (StationBench, 4 seats, oak slats)
+    static void OutdoorBench(float cx,float z,Vector3 face,float y)=>StationBench(new Vector3(cx,y,z),face,4,"ławka "+cx.ToString("0")+"/"+z.ToString("0"));
 
     // ================================================================ forecourt furniture
     static void SiteFurniture()
@@ -110,6 +85,31 @@ public static partial class BraxChampionsD2
         Fountain(new Vector3(0,WalkY,-31f));
         // the plaza: granite ring round the basin (12 mm inlay), four raised lawn beds with trees and flowers
         Ring(granite,new Vector3(0,WalkY+.012f,-31f),7.6f,10.5f,WalkY+.012f,WalkY+.012f,64);
+        // eight dark granite spokes from the ring toward the plaza's edge (12 mm inlays), round granite planters with the
+        // board's flowers between them on R 12.6, two benches facing the fountain
+        for(int i=0;i<8;i++)
+        {
+            float a=2*Mathf.PI*(i+.5f)/8f;var d=new Vector2(Mathf.Cos(a),Mathf.Sin(a));var nn=new Vector2(-d.y,d.x);
+            float r1=d.y<0?Mathf.Min(13.5f,(-31f-(SiteZ0+3.5f))/-d.y):Mathf.Min(13.5f,((FrontZ-LaneHalf-.6f)+31f)/d.y);
+            Vector3 V(float r,float o)=>new Vector3(d.x*r+nn.x*o,WalkY+.012f,-31f+d.y*r+nn.y*o);
+            Q(graniteDark,V(10.5f,-.2f),V(r1,-.2f),V(r1,.2f),V(10.5f,.2f),Vector3.up);
+        }
+        var fl=Group(root,"D2 kwiaty przy fontannie (Poly Haven)");
+        for(int i=0;i<8;i++)
+        {
+            float a=2*Mathf.PI*i/8f;var p=new Vector3(Mathf.Cos(a)*12.6f,WalkY,-31f+Mathf.Sin(a)*12.6f);
+            if(p.z>FrontZ-LaneHalf-1.6f||p.z<SiteZ0+4f)continue;
+            m.Lathe(granite,p,new[]{new Vector2(.95f,0f),new Vector2(1.02f,.48f),new Vector2(.92f,.48f),new Vector2(.86f,.06f)},40,Quaternion.identity,false,false);
+            m.Cylinder(lawn,p+Vector3.up*.44f,.92f,.01f,32,Quaternion.identity,true,false);
+            BraxChampionsPromenadeFurniture.Flower(fl,i%2==0?"flower_empodium":"flower_gazania",p+Vector3.up*.45f,1.62f,i*45f);
+            Col(p.x-1f,p.x+1f,WalkY,WalkY+.48f,p.z-1f,p.z+1f,"donica");
+        }
+        foreach(float a in new[]{200f,340f})
+        {
+            var d=new Vector3(Mathf.Cos(a*Mathf.Deg2Rad),0,Mathf.Sin(a*Mathf.Deg2Rad));
+            var p=new Vector3(0,WalkY,-31f)+d*9.4f;
+            StationBench(p,-d,4,"ławka przy fontannie "+a.ToString("0"));
+        }
         var flowers=Group(root,"D2 kwiaty (Poly Haven)");
         foreach(float s in new[]{-1f,1f})
         {
@@ -152,32 +152,43 @@ public static partial class BraxChampionsD2
         for(int i=0;i<n;i++){float a0=2*Mathf.PI*i/n,a1=2*Mathf.PI*(i+1)/n;
             T(mat,c,c+new Vector3(Mathf.Cos(a0)*r,0,Mathf.Sin(a0)*r),c+new Vector3(Mathf.Cos(a1)*r,0,Mathf.Sin(a1)*r),Vector3.up);}
     }
-    // the roundabout fountain: granite basin R 7 (coping at .55), water at .42, three tiers and a tall central jet, a ring of
-    // twelve jets; the basin floor dark granite under the water
+    // the forecourt fountain (board: a fountain on the roundabout), low so it never hides the station: a granite basin R 7
+    // (coping .45), dark granite floor under the water, a central cluster of jets (2.4 m and 1.4 m) rising from foam, and
+    // sixteen water arcs from bronze-free stainless nozzles on the rim falling toward the centre
     static void Fountain(Vector3 c)
     {
-        const int n=64;
-        Ring(granite,c,7.0f,7.6f,0f,.55f,n);
-        Disc(graniteDark,c+Vector3.up*.06f,7.0f,n);
-        Disc(water,c+Vector3.up*.42f,7.0f,n);
-        m.Cylinder(granite,c+Vector3.up*.06f,.9f,.9f,32,Quaternion.identity,false);
-        m.Lathe(granite,c+Vector3.up*.96f,new[]{new Vector2(.9f,0f),new Vector2(2.6f,.30f),new Vector2(2.6f,.42f),new Vector2(2.45f,.42f),new Vector2(2.45f,.34f),new Vector2(.5f,.10f)},48,Quaternion.identity,false,false);
-        Disc(water,c+Vector3.up*1.33f,2.45f,48);
-        m.Cylinder(waterJet,c+Vector3.up*.42f,2.62f,.92f,48,Quaternion.identity,false);                       // curtain from the lower bowl
-        m.Cylinder(granite,c+Vector3.up*1.38f,.35f,.9f,24,Quaternion.identity,false);
-        m.Lathe(granite,c+Vector3.up*2.28f,new[]{new Vector2(.35f,0f),new Vector2(1.2f,.20f),new Vector2(1.2f,.28f),new Vector2(1.1f,.28f),new Vector2(1.1f,.22f),new Vector2(.25f,.06f)},40,Quaternion.identity,false,false);
-        Disc(water,c+Vector3.up*2.52f,1.1f,40);
-        m.Cylinder(waterJet,c+Vector3.up*1.33f,1.22f,1.2f,40,Quaternion.identity,false);
-        m.Cylinder(waterJet,c+Vector3.up*2.52f,.10f,3.2f,16,Quaternion.identity,true,false,.03f);              // central jet
-        for(int i=0;i<12;i++)
+        const int n=72;
+        Ring(granite,c,7.0f,7.6f,c.y,c.y+.45f,n);
+        Ring(graniteDark,c,6.85f,7.0f,c.y+.06f,c.y+.30f,n);
+        Disc(graniteDark,c+Vector3.up*.06f,6.85f,n);
+        Disc(water,c+Vector3.up*.30f,6.85f,n);
+        // the jets: a column of water (tapered translucent cones) and its foam
+        Disc(foam(),c+Vector3.up*.312f,1.1f,32);
+        m.Cylinder(waterJet,c+Vector3.up*.31f,.16f,2.4f,20,Quaternion.identity,true,false,.05f);
+        m.Cylinder(waterJet,c+Vector3.up*.31f,.28f,.9f,20,Quaternion.identity,false,false,.12f);
+        for(int i=0;i<8;i++)
         {
-            float a=2*Mathf.PI*i/12f;var p=c+new Vector3(Mathf.Cos(a)*5.2f,.42f,Mathf.Sin(a)*5.2f);
-            m.Cylinder(waterJet,p,.06f,1.1f,10,Quaternion.identity,true,false,.02f);
-            m.Cylinder(stainless,p+Vector3.down*.03f,.08f,.05f,12,Quaternion.identity,true);
+            float a=2*Mathf.PI*i/8f;var p=c+new Vector3(Mathf.Cos(a)*.75f,.31f,Mathf.Sin(a)*.75f);
+            m.Cylinder(waterJet,p,.06f,1.4f,10,Quaternion.identity,true,false,.02f);
         }
-        Col(c.x-7.6f,c.x+7.6f,c.y,c.y+.55f,c.z-7.6f,c.z+7.6f,"fontanna");
-        Col(c.x-2.6f,c.x+2.6f,c.y,c.y+2.6f,c.z-2.6f,c.z+2.6f,"fontanna środek");
+        // sixteen arcs: parabolas from the rim nozzles (R 6.5, .45) to the water at R 3.2, peak 1.7 m
+        for(int i=0;i<16;i++)
+        {
+            float a=2*Mathf.PI*i/16f;var dir=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));
+            var p0=c+dir*6.5f+Vector3.up*.45f;var p1=c+dir*3.2f+Vector3.up*.30f;int k=10;
+            Vector3 prev=p0;
+            for(int j=1;j<=k;j++)
+            {
+                float t=j/(float)k;var q=Vector3.Lerp(p0,p1,t)+Vector3.up*(4f*1.3f*t*(1-t));
+                m.Tube(waterJet,prev,q,.035f,6,1);prev=q;
+            }
+            Disc(foam(),p1+Vector3.up*.012f,.22f,12);
+            m.Cylinder(stainless,c+dir*6.62f+Vector3.up*.40f,.05f,.08f,10,Quaternion.identity,true);
+        }
+        Col(c.x-7.6f,c.x+7.6f,c.y,c.y+.45f,c.z-7.6f,c.z+7.6f,"fontanna");
     }
+    static Material foamMat;
+    static Material foam(){if(!foamMat)foamMat=S("fountain_foam",new Color(.92f,.96f,.98f,.55f),.3f,0f,new Color(.25f,.27f,.28f),true);return foamMat;}
     // a raised lawn bed with a granite edge (15 cm), grass at +.10
     static void Bed(float x0,float x1,float z0,float z1)
     {
@@ -220,20 +231,68 @@ public static partial class BraxChampionsD2
         Col(x-.1f,x+.1f,WalkY,WalkY+2.7f,z-.1f,z+.1f,"znak");Signs++;
     }
 
-    // ================================================================ the lift cars (static cabin at the platform for now)
-    static void LiftCar(float x0,float x1,float z0,float z1,int p)
+    // ================================================================ the lift cars (BraxWinda: the city's lift; doors slide on the
+    // cabin's local x, so the cabin and the landing doors are turned to put their door face on the track side)
+    const float LiftDoorHalf=.55f;
+    static void LiftCar(float x0,float x1,float z0,float z1,int p,float xa)
     {
-        float y=PlatformTop;
-        B(stainless,x0+.1f,x1-.1f,y-.15f,y,z0+.1f,z1-.1f);
-        B(stainless,x0+.1f,x1-.1f,y+2.35f,y+2.45f,z0+.1f,z1-.1f);
-        B(led,x0+.4f,x1-.4f,y+2.33f,y+2.35f,z0+.4f,z1-.4f);
+        float xc=(x0+x1)*.5f,zc=(z0+z1)*.5f,yaw=p==0?180f:0f,hw=(x1-x0)*.5f-.12f,hd=(z1-z0)*.5f-.12f;   // local door face at -z
+        float[] stops={WalkY+.012f,PlatformTop+.012f};string[] names={"PASAŻ","PERON "+(p+1)};   // cabin floor 12 mm over the landing
+        string id="D2 winda "+(xa<-1f?"zachód":xa>1f?"wschód":"środek")+" peron "+(p+1);
+        var landL=new Transform[2];var landR=new Transform[2];
+        for(int s=0;s<2;s++)
+        {
+            var land=Group(root,id+" | przystanek "+names[s]);land.localPosition=new Vector3(xc,stops[s],zc)*K;land.localRotation=Quaternion.Euler(0,yaw,0);
+            foreach(float side in new[]{-1f,1f})
+            {
+                var t=Group(land,"drzwi przystanku "+(side<0?"L":"P"));t.localPosition=new Vector3(side*LiftDoorHalf*.5f,0,-hd-.18f)*K;
+                var lm=new BraxChampionsMeshBatch();
+                lm.BoxMinMax(stainless,-LiftDoorHalf*.5f,LiftDoorHalf*.5f,0f,2.2f,-.015f,.015f);
+                lm.BoxMinMax(glass,-LiftDoorHalf*.5f+.08f,LiftDoorHalf*.5f-.08f,.3f,2.05f,-.02f,.02f);
+                lm.Build(t,"drzwi przystanku",Folder,false);
+                BraxChampionsMeshBatch.Collider(t,"drzwi przystanku",new Vector3(0,1.1f,0),new Vector3(LiftDoorHalf,2.2f,.05f));
+                foreach(var c in t.GetComponentsInChildren<Transform>(true))GameObjectUtility.SetStaticEditorFlags(c.gameObject,0);
+                if(side<0)landL[s]=t;else landR[s]=t;
+            }
+        }
+        var cab=Group(root,id+" | kabina");cab.localPosition=new Vector3(xc,stops[0],zc)*K;cab.localRotation=Quaternion.Euler(0,yaw,0);
+        var cm=new BraxChampionsMeshBatch();
+        cm.BoxMinMax(granite,-hw,hw,-.12f,0f,-hd,hd);
+        cm.BoxMinMax(stainless,-hw,hw,0f,2.45f,hd,hd+.04f);
+        foreach(float s in new[]{-1f,1f})cm.BoxMinMax(glass,s>0?hw:-hw-.04f,s>0?hw+.04f:-hw,0f,2.45f,-hd,hd);
+        cm.BoxMinMax(stainless,-hw-.04f,hw+.04f,2.45f,2.53f,-hd,hd+.04f);
+        cm.BoxMinMax(led,-.5f,.5f,2.42f,2.45f,-hd+.4f,hd-.4f);
+        foreach(float s in new[]{-1f,1f})cm.BoxMinMax(stainless,s>0?LiftDoorHalf:-hw,s>0?hw:-LiftDoorHalf,0f,2.45f,-hd-.03f,-hd);
+        cm.BoxMinMax(stainless,-hw,hw,2.2f,2.45f,-hd-.03f,-hd);
+        cm.BoxMinMax(stainless,-hw+.05f,hw-.05f,.9f,.94f,hd-.03f,hd);                                   // handrail
+        cm.BoxMinMax(signBlue,hw-.30f,hw-.05f,1.0f,1.5f,-hd+.02f,-hd+.06f);                            // button panel
+        cm.Build(cab,"kabina",Folder,false);
+        BraxChampionsMeshBatch.Collider(cab,"podłoga kabiny",new Vector3(0,-.06f,0),new Vector3(2*hw,.12f,2*hd));
+        foreach(float s in new[]{-1f,1f})BraxChampionsMeshBatch.Collider(cab,"ściana kabiny",new Vector3(s*hw,1.25f,0),new Vector3(.05f,2.5f,2*hd));
+        BraxChampionsMeshBatch.Collider(cab,"tył kabiny",new Vector3(0,1.25f,hd+.02f),new Vector3(2*hw,2.5f,.05f));
+        var cabL=Group(cab,"drzwi kabiny L");var cabR=Group(cab,"drzwi kabiny P");
+        var dm=new BraxChampionsMeshBatch();dm.BoxMinMax(stainless,-LiftDoorHalf,0f,0f,2.2f,-hd-.07f,-hd-.04f);dm.Build(cabL,"drzwi kabiny L",Folder,false);
+        dm=new BraxChampionsMeshBatch();dm.BoxMinMax(stainless,0f,LiftDoorHalf,0f,2.2f,-hd-.07f,-hd-.04f);dm.Build(cabR,"drzwi kabiny P",Folder,false);
+        foreach(var t in cab.GetComponentsInChildren<Transform>(true))GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
+        var w=cab.gameObject.AddComponent<BraxWinda>();
+        w.nazwa="D2 • WINDA PERON "+(p+1);w.kabina=cab;w.kabinaL=cabL;w.kabinaP=cabR;
+        w.pietraY=new[]{root.TransformPoint(new Vector3(0,stops[0],0)*K).y,root.TransformPoint(new Vector3(0,stops[1],0)*K).y};
+        w.pietraNazwy=names;w.uzytkowe=new[]{true,true};
+        float callZ=p==0?z1+1.0f:z0-1.0f;
+        w.wezwanie=new[]{root.TransformPoint(new Vector3(xc,stops[0]+1.2f,callZ)*K),root.TransformPoint(new Vector3(xc,stops[1]+1.2f,callZ)*K)};
+        w.przystanekL=landL;w.przystanekP=landR;
+        var shaft=root.TransformPoint(new Vector3(xc,0,zc)*K);
+        w.szyb=new Vector2(shaft.x,shaft.z);w.wnetrze=new Vector2(hw*K,hd*K);
+        w.przesuw=LiftDoorHalf*.95f*K;w.start=0;
     }
 
     // ================================================================ the train (BraxChampionsD2Pociag runs it)
     public const string TrainModel="Assets/Source/Claude/Metro/metro_train.glb";   // CC BY 4.0 kane_sk06 (Assets/Source/Claude/Metro CREDITS)
     public const float TrainBodyWidth=2.85f,TrainStopX=PlatX1-6f,TrainSpeed=22f;   // nominal m, m/s (80 km/h on the line)
+    static BraxChampionsD2Pociag trainRun;
     static void Train()
     {
+        trainRun=null;
         var src=AssetDatabase.LoadAssetAtPath<GameObject>(TrainModel);
         if(!src){Debug.LogWarning("D2 pociąg: "+TrainModel+" missing");return;}
         var g=Group(root,"D2 pociąg | 2 jednostki x 2 wagony (model metro_train, CC BY kane_sk06) - BraxChampionsD2Pociag");
@@ -272,7 +331,7 @@ public static partial class BraxChampionsD2
         var bc=new GameObject("pociąg kolizja");bc.transform.SetParent(g,false);
         bc.transform.localPosition=new Vector3(TrainStopX-len*.5f,RailTop+2.1f,Track1Z)*K;
         bc.AddComponent<BoxCollider>().size=new Vector3(len,3.6f,TrainBodyWidth)*K;
-        var run=g.gameObject.AddComponent<BraxChampionsD2Pociag>();
+        var run=g.gameObject.AddComponent<BraxChampionsD2Pociag>();trainRun=run;
         // appears with its east end 60 m inside the portal, stops with it at TrainStopX, leaves until it is wholly in the tunnel
         run.wjazdX=(LX(PortalWX)-60f-TrainStopX)*K;run.wyjazdX=(LX(TunnelEndWX)+10f+len-TrainStopX)*K;run.drugiTorZ=(Track2Z-Track1Z)*K;
         run.predkosc=TrainSpeed*K;run.hamowanie=.9f*K;run.postoj=45f;run.przerwa=35f;

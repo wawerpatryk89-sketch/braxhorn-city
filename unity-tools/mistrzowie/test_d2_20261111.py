@@ -12,7 +12,7 @@ from prepare_assets import POLYHAVEN_SLUGS
 
 ROOT = Path(__file__).resolve().parents[2]
 ED = ROOT / 'unity-city/Assets/Editor/Mistrzowie'
-FILES = ['BraxChampionsD2.cs', 'BraxChampionsD2Budynek.cs', 'BraxChampionsD2Kolej.cs', 'BraxChampionsD2Autobusy.cs']
+FILES = ['BraxChampionsD2.cs', 'BraxChampionsD2Budynek.cs', 'BraxChampionsD2Kolej.cs', 'BraxChampionsD2Autobusy.cs', 'BraxChampionsD2Meble.cs']
 
 
 def consts():
@@ -103,7 +103,7 @@ class D2LayoutTests(unittest.TestCase):
         self.assertIn('BraxChampionsD2.Generate(Out)', b)
         for f in FILES:
             self.assertTrue((ED / (f + '.meta')).exists(), f)
-        for f in ['BraxChampionsD2Pociag.cs', 'BraxChampionsZegar.cs']:
+        for f in ['BraxChampionsD2Pociag.cs', 'BraxChampionsZegar.cs', 'BraxChampionsD2Tablice.cs']:
             p = ROOT / 'unity-city/Assets/Mistrzowie' / f
             self.assertTrue(p.exists() and Path(str(p) + '.meta').exists(), f)
         h = (ED / 'BraxChampionsHorizon.cs').read_text()
@@ -118,6 +118,21 @@ class D2LayoutTests(unittest.TestCase):
         self.assertIn('unity-city/Prywatne/miasto_pojazdy.tar.gz.enc', w)
         self.assertTrue((ROOT / 'unity-city/Prywatne/miasto_pojazdy.tar.gz.enc').exists())
         self.assertTrue((ROOT / 'unity-city/Assets/Source/Mistrzowie/D2/CREDITS.md').exists())
+
+    def test_premium_signs_on_carriers(self):
+        b = (ED / 'BraxChampionsD2Budynek.cs').read_text()
+        # the letters' returns are brushed stainless (not a dark plastic edge), the big ones stand on navy carriers with LED lines
+        self.assertIn('"DWORZEC",new Vector3(0,by0+.18f,bz0-.002f),180f,1.45f,.14f', b)
+        self.assertIn('RoundedBoxMinMax(navy,-bx,bx,by0,by1,bz0,bz1', b)
+        self.assertNotIn('TextMesh', '\n'.join((ED / f).read_text() for f in FILES))
+
+    def test_benches_are_real_benches(self):
+        m = (ED / 'BraxChampionsD2Meble.cs').read_text()
+        self.assertIn('static void StationBench', m)
+        for f in FILES:
+            src = (ED / f).read_text()
+            for call in re.findall(r'static void (?:WaitingBench|PlatformBench|OutdoorBench)\(.*', src):
+                self.assertIn('StationBench(', call)
 
     def test_no_generated_foundation_committed(self):
         out = subprocess.run(['git', 'ls-files', 'unity-city/Assets/Source/Mistrzowie/Foundation.json'], cwd=ROOT, capture_output=True, text=True).stdout

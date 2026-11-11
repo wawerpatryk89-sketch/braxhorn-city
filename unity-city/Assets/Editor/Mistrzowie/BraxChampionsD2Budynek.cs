@@ -18,11 +18,13 @@ public static partial class BraxChampionsD2
     const float VaultR=38.25f,VaultCY=Crown-VaultR,Roof=.9f,FrontEave=-1.2f,RearEave=BD+1.2f,TowerTop=10.2f;
     static float VaultY(float x)=>VaultCY+Mathf.Sqrt(Mathf.Max(0f,VaultR*VaultR-x*x));     // outer roof line over the hall
     static float VaultIn(float x)=>VaultY(x)-Roof;                                        // the slat ceiling under it
-    static Material spandrel,windowFrame,doorGlass,slatsInside;
+    static Material spandrel,windowFrame,doorGlass,slatsInside,acoustic;
     static void BuildingMaterials()
     {
         spandrel=navy;windowFrame=frame;doorGlass=glass;
-        slatsInside=Inside(Tex("larch_ceiling_slats","teak_veneer",1.4f,new Color(1.10f,.92f,.78f)),.9f);
+        slatsInside=Inside(Tex("larch_ceiling_slats","teak_veneer",1.4f,new Color(1.12f,1.0f,.90f)),.9f);
+        // black acoustic felt behind the slats (a real slatted ceiling): the gaps read dark, the wood warm
+        acoustic=Inside(Tex("acoustic_felt_black","poly_wool_herringbone",.8f,new Color(.13f,.13f,.15f)),.8f);
     }
 
     // ================================================================ shell
@@ -46,7 +48,7 @@ public static partial class BraxChampionsD2
             // the underside of the eaves (larch) front and back, and the ceiling inside (larch slats are separate boards)
             Q(larchSoffit,new Vector3(x0,y0-Roof,FrontEave),new Vector3(x1,y1-Roof,FrontEave),new Vector3(x1,y1-Roof,0f),new Vector3(x0,y0-Roof,0f),-up);
             Q(larchSoffit,new Vector3(x0,y0-Roof,BD),new Vector3(x1,y1-Roof,BD),new Vector3(x1,y1-Roof,RearEave),new Vector3(x0,y0-Roof,RearEave),-up);
-            Q(ceilWhite,new Vector3(x0,y0-Roof-.30f,0f),new Vector3(x1,y1-Roof-.30f,0f),new Vector3(x1,y1-Roof-.30f,BD),new Vector3(x0,y0-Roof-.30f,BD),-up);
+            Q(acoustic,new Vector3(x0,y0-Roof-.30f,0f),new Vector3(x1,y1-Roof-.30f,0f),new Vector3(x1,y1-Roof-.30f,BD),new Vector3(x0,y0-Roof-.30f,BD),-up);
             // fascia (navy) round the arch at both ends
             foreach(float z in new[]{FrontEave,RearEave})
                 Q(navy,new Vector3(x0,y0-Roof,z),new Vector3(x1,y1-Roof,z),new Vector3(x1,y1+.05f,z),new Vector3(x0,y0+.05f,z),new Vector3(0,0,z<0?-1:1));
@@ -299,89 +301,144 @@ public static partial class BraxChampionsD2
         if(x1-x0<1e-4f||z1-z0<1e-4f)return;
         Q(mat,new Vector3(x0,y,z0),new Vector3(x1,y,z0),new Vector3(x1,y,z1),new Vector3(x0,y,z1),Vector3.down);
     }
-    // ---- entrance canopy (cantilever from the hall front, tension rods to the arch frame)
+    // ---- entrance canopy (cantilever from the hall front, tension rods to the arch frame); the front fascia is the carrier of
+    // "KOLEJOWO-AUTOBUSOWY" (navy band .85 m, brushed stainless letters, LED line under them)
     static void Canopy()
     {
-        float x0=-20f,x1=20f,z0=-6f,y0=4.7f,y1=5.2f;
-        B(navy,x0,x1,y0,y1,z0,z0+.18f,true);B(navy,x0,x0+.18f,y0,y1,z0,0f);B(navy,x1-.18f,x1,y0,y1,z0,0f);    // fascia
-        B(roofGraphite,x0+.18f,x1-.18f,y1-.10f,y1-.02f,z0+.18f,-.02f);                                       // membrane top
-        Q(larchSoffit,new Vector3(x0+.18f,y0+.02f,z0+.18f),new Vector3(x1-.18f,y0+.02f,z0+.18f),new Vector3(x1-.18f,y0+.02f,0f),new Vector3(x0+.18f,y0+.02f,0f),Vector3.down);
+        float x0=-20f,x1=20f,z0=-6f,y0=4.6f,y1=5.45f,ys=5.05f;
+        B(navy,x0,x1,y0,y1,z0,z0+.20f,true);B(navy,x0,x0+.18f,ys,y1,z0+.20f,0f);B(navy,x1-.18f,x1,ys,y1,z0+.20f,0f);
+        B(navy,x0,x0+.18f,y0,ys,z0+.20f,-.82f);B(navy,x1-.18f,x1,y0,ys,z0+.20f,-.82f);                     // sides (clear of the towers)
+        B(roofGraphite,x0+.18f,x1-.18f,y1-.10f,y1-.02f,z0+.20f,-.02f);                                     // membrane top
+        Flip(larchSoffit,x0+.18f,x1-.18f,z0+.20f,0f,y0+.02f);
+        B(navy,x0+.18f,x1-.18f,y0+.045f,ys,-.32f,-.02f);                                                    // the back beam at the glass
         for(float x=x0+1.5f;x<x1-1f;x+=3f)for(float z=z0+1.2f;z<-.5f;z+=2.0f)m.Cylinder(ledWarm,new Vector3(x,y0+.008f,z),.09f,.012f,12,Quaternion.identity,false,true);
+        B(led,x0+.4f,x1-.4f,y0-.02f,y0,z0+.04f,z0+.16f);                                                   // LED line under the band
         Col(x0,x1,y0,y1,z0,0f,"zadaszenie");
         foreach(float x in new[]{-15f,-6f,6f,15f})Beam(steel,new Vector3(x,y1,z0+.3f),new Vector3(x,8.2f,0f),.05f,.05f);
     }
 
-    // ================================================================ 3D letters and pictograms
+    // ================================================================ 3D letters and pictograms (ZASADA-NAPISY-PREMIUM 10.11)
+    // Every inscription stands on a carrier from the architecture, full 3D letters (faces, returns, backs), Montserrat SemiBold
+    // (the letter kit), white backlit faces with BRUSHED STAINLESS returns, 2 mm off the carrier, an LED line under each row:
+    // * DWORZEC: on a navy sign board (19 x 1.8 m, 30 cm) fixed to the arch's mullions by stainless brackets, letters 1.45 m,
+    //   14 cm deep; the board is lit from below;
+    // * KOLEJOWO-AUTOBUSOWY: on the canopy's front band;
+    // * KOLEJ / AUTOBUSY: navy plaques (6.8 x 2.1 m, 14 cm) on the larch slat panels, on stainless stand-offs, the pictogram
+    //   in a lit white disc (navy figure 12 mm proud), the word under it.
     static void BuildingSigns()
     {
         var lm=new BraxChampionsMeshBatch();
-        // DWORZEC (1.7 m) and KOLEJOWO-AUTOBUSOWY (.62 m) on a slim navy rail in front of the glazing, above the canopy
-        BraxChampionsLetters3D.Text(lm,whiteLetters,navy,"DWORZEC",new Vector3(0,6.20f,-.38f),180f,1.5f,.22f,.10f,26f);
-        BraxChampionsLetters3D.Text(lm,whiteLetters,navy,"KOLEJOWO-AUTOBUSOWY",new Vector3(0,5.42f,-.38f),180f,.62f,.14f,.10f,26f);
-        B(frame,-14f,14f,6.05f,6.15f,-.30f,-.06f);B(frame,-14f,14f,5.30f,5.38f,-.30f,-.06f);Signs+=2;
-        // KOLEJ / AUTOBUSY on the wing slat panels (x 22.6..30.6), pictograms above the words
+        // DWORZEC sign board
+        float bx=9.5f,by0=6.55f,by1=8.35f,bz0=-.62f,bz1=-.32f;
+        lm.RoundedBoxMinMax(navy,-bx,bx,by0,by1,bz0,bz1,.05f,3);
+        foreach(float x in new[]{-6f,0f,6f})foreach(float y in new[]{by0+.35f,by1-.35f})lm.BoxMinMax(stainless,x-.06f,x+.06f,y-.06f,y+.06f,bz1,-.12f);
+        lm.BoxMinMax(led,-bx+.3f,bx-.3f,by0-.015f,by0+.0f,bz0+.06f,bz0+.20f);
+        BraxChampionsLetters3D.Text(lm,whiteLetters,stainless,"DWORZEC",new Vector3(0,by0+.18f,bz0-.002f),180f,1.45f,.14f,.12f,2*bx-1.2f);
+        // KOLEJOWO-AUTOBUSOWY on the canopy band (z -6)
+        BraxChampionsLetters3D.Text(lm,stainless,frame,"KOLEJOWO-AUTOBUSOWY",new Vector3(0,4.84f,-6.002f),180f,.40f,.06f,.12f,34f);
+        Signs+=2;
         foreach(float s in new[]{-1f,1f})
         {
-            float cx=s*26.6f;
-            BraxChampionsLetters3D.Text(lm,whiteLetters,navy,s<0?"KOLEJ":"AUTOBUSY",new Vector3(cx,5.25f,-.26f),180f,.62f,.10f,.10f,7.2f);
-            if(s<0)TrainPictogram(lm,cx,6.35f,-.26f);else BusPictogram(lm,cx,6.35f,-.26f);
-            Signs+=2;
+            float cx=s*26.6f,pw=3.4f,py0=5.05f,py1=7.15f,pz0=-.44f,pz1=-.30f;
+            lm.RoundedBoxMinMax(navy,cx-pw,cx+pw,py0,py1,pz0,pz1,.04f,3);
+            foreach(float x in new[]{cx-pw+.4f,cx+pw-.4f})foreach(float y in new[]{py0+.3f,py1-.3f})lm.Cylinder(stainless,new Vector3(x,y,pz1),.035f,.07f,10,Quaternion.Euler(90,0,0),true,true);
+            lm.BoxMinMax(led,cx-pw+.2f,cx+pw-.2f,py0-.015f,py0,pz0+.03f,pz0+.12f);
+            var dc=new Vector3(cx,6.42f,pz0);
+            lm.Cylinder(whiteLetters,dc,.50f,.03f,48,Quaternion.Euler(-90,0,0),true,false);
+            if(s<0)TrainPictogram(lm,cx,6.42f,pz0-.03f);else BusPictogram(lm,cx,6.42f,pz0-.03f);
+            BraxChampionsLetters3D.Text(lm,whiteLetters,stainless,s<0?"KOLEJ":"AUTOBUSY",new Vector3(cx,py0+.22f,pz0-.002f),180f,.52f,.08f,.12f,2*pw-.6f);
+            Signs++;
         }
         BraxChampionsLetters3D.Build(lm,root,"D2 napisy 3D");
     }
-    // front view of a train: rounded body, dark windscreen, two lamps, buffer beam, rails - white, 1.0 m tall
-    static void TrainPictogram(BraxChampionsMeshBatch lm,float cx,float y,float z)
+    // pictograms in navy on the lit white disc (centre cx, cy; front face z; 12 mm proud), .7 m tall, rounded parts
+    static void TrainPictogram(BraxChampionsMeshBatch lm,float cx,float cy,float z)
     {
-        float d=.10f;
-        lm.RoundedBoxMinMax(whiteLetters,cx-.42f,cx+.42f,y,y+.92f,z-d,z,.16f,4);
-        lm.RoundedBoxMinMax(navy,cx-.32f,cx+.32f,y+.50f,y+.80f,z-d-.012f,z-d+.02f,.06f,3);
-        foreach(float s in new[]{-1f,1f})lm.Cylinder(navy,new Vector3(cx+s*.24f,y+.22f,z-d-.012f),.07f,.02f,16,Quaternion.Euler(-90,0,0),true,true);
-        lm.BoxMinMax(navy,cx-.30f,cx+.30f,y+.06f,y+.10f,z-d-.012f,z-d+.02f);
-        foreach(float s in new[]{-1f,1f})lm.BoxMinMax(whiteLetters,cx+s*.30f-.04f,cx+s*.30f+.04f,y-.22f,y,z-d,z);
-        lm.BoxMinMax(whiteLetters,cx-.5f,cx+.5f,y-.26f,y-.20f,z-d,z);
+        float d=.012f,y=cy-.30f;
+        lm.RoundedBoxMinMax(navy,cx-.22f,cx+.22f,y+.12f,y+.58f,z-d,z,.09f,4);                    // the front of the unit
+        lm.RoundedBoxMinMax(whiteLetters,cx-.16f,cx+.16f,y+.36f,y+.52f,z-d-.012f,z-d+.002f,.035f,3); // windscreen
+        foreach(float s in new[]{-1f,1f})
+        {
+            lm.Cylinder(whiteLetters,new Vector3(cx+s*.12f,y+.22f,z-d),.035f,.012f,16,Quaternion.Euler(-90,0,0),true,false);   // lamps
+            lm.Box(navy,new Vector3(cx+s*.14f,y+.06f,z-d*.5f),new Vector3(.05f,.12f,d),Quaternion.Euler(0,0,s*-25f));                  // legs
+        }
+        lm.BoxMinMax(navy,cx-.30f,cx+.30f,y-.03f,y+.0f,z-d,z);                                      // rail
+        lm.BoxMinMax(navy,cx-.04f,cx+.04f,y+.58f,y+.66f,z-d,z);                                     // pantograph
+        lm.BoxMinMax(navy,cx-.12f,cx+.12f,y+.65f,y+.68f,z-d,z);
     }
-    static void BusPictogram(BraxChampionsMeshBatch lm,float cx,float y,float z)
+    static void BusPictogram(BraxChampionsMeshBatch lm,float cx,float cy,float z)
     {
-        float d=.10f;
-        lm.RoundedBoxMinMax(whiteLetters,cx-.45f,cx+.45f,y-.05f,y+.90f,z-d,z,.10f,4);
-        lm.RoundedBoxMinMax(navy,cx-.36f,cx+.36f,y+.40f,y+.76f,z-d-.012f,z-d+.02f,.05f,3);
-        foreach(float s in new[]{-1f,1f}){lm.Cylinder(navy,new Vector3(cx+s*.27f,y+.13f,z-d-.012f),.06f,.02f,16,Quaternion.Euler(-90,0,0),true,true);
-            lm.BoxMinMax(whiteLetters,cx+s*.33f-.08f,cx+s*.33f+.08f,y-.22f,y-.05f,z-d,z);
-            lm.BoxMinMax(whiteLetters,cx+s*.52f-.03f,cx+s*.52f+.03f,y+.55f,y+.80f,z-d,z);}                      // mirrors
-        lm.BoxMinMax(navy,cx-.2f,cx+.2f,y+.80f,y+.86f,z-d-.012f,z-d+.02f);                                     // route display
+        float d=.012f,y=cy-.30f;
+        lm.RoundedBoxMinMax(navy,cx-.24f,cx+.24f,y+.08f,y+.62f,z-d,z,.07f,4);
+        lm.RoundedBoxMinMax(whiteLetters,cx-.19f,cx+.19f,y+.32f,y+.54f,z-d-.012f,z-d+.002f,.03f,3);
+        lm.BoxMinMax(whiteLetters,cx-.12f,cx+.12f,y+.565f,y+.595f,z-d-.012f,z-d+.002f);              // route display
+        foreach(float s in new[]{-1f,1f})
+        {
+            lm.Cylinder(whiteLetters,new Vector3(cx+s*.15f,y+.17f,z-d),.03f,.012f,16,Quaternion.Euler(-90,0,0),true,false);
+            lm.RoundedBoxMinMax(navy,cx+s*.16f-.05f,cx+s*.16f+.05f,y-.02f,y+.10f,z-d,z,.02f,2);   // wheels
+            lm.BoxMinMax(navy,s<0?cx-.30f:cx+.25f,s<0?cx-.25f:cx+.30f,y+.42f,y+.52f,z-d,z);          // mirrors
+        }
     }
 
-    // ================================================================ the clock (live: BraxChampionsZegar)
-    static void Clock()
+    // ================================================================ station clocks (live: BraxChampionsZegar)
+    // a railway clock: stainless rounded bezel (lathe), white dial with black batons, black tapered hands, the red seconds
+    // hand with its disc; faces -z of its group (turned by yaw); on the facade a navy backplate with stainless brackets
+    static void StationClock(string name,Vector3 c,float yaw,float r,bool backplate)
     {
-        float cy=9.6f,z=-.42f,r=1.5f;
-        var g=Group(root,"D2 zegar dworcowy (BraxChampionsZegar, czas z telefonu)");g.localPosition=new Vector3(0,cy,z)*K;
-        var cm=new BraxChampionsMeshBatch();
-        var rot=Quaternion.Euler(-90,0,0);
-        cm.Cylinder(navy,new Vector3(0,0,.10f),r+.16f,.22f,64,rot,true,true);                 // case (navy), 22 cm deep
-        cm.Cylinder(clockFace,new Vector3(0,0,-.12f),r,.012f,64,rot,true,false);           // face 12 mm proud of the case
-        cm.Cylinder(stainless,new Vector3(0,0,-.124f),r+.16f,.03f,64,rot,false,false,r+.16f);
-        for(int i=0;i<12;i++)
+        var g=Group(root,name+" (BraxChampionsZegar, czas z telefonu)");g.localPosition=c*K;g.localRotation=Quaternion.Euler(0,yaw,0);
+        var cm=new BraxChampionsMeshBatch();var rot=Quaternion.Euler(-90,0,0);float k=r/1.5f;
+        if(backplate)
         {
-            float a=i*30f*Mathf.Deg2Rad,l=i%3==0?.30f:.18f,w=i%3==0?.09f:.05f;
-            var c=new Vector3(Mathf.Sin(a)*(r-.14f-l*.5f),Mathf.Cos(a)*(r-.14f-l*.5f),-.142f);
-            cm.Box(black,c,new Vector3(w,l,.02f),Quaternion.Euler(0,0,-i*30f));
+            cm.Cylinder(navy,new Vector3(0,0,.36f),r+.20f,.14f,72,rot,true,true);
+            foreach(float a in new[]{45f,135f,225f,315f}){var p=new Vector3(Mathf.Cos(a*Mathf.Deg2Rad)*(r+.12f),Mathf.Sin(a*Mathf.Deg2Rad)*(r+.12f),.36f);cm.Cylinder(stainless,p,.05f,.24f,10,Quaternion.Euler(90,0,0),true,true);}
         }
-        for(int i=0;i<60;i++){if(i%5==0)continue;float a=i*6f*Mathf.Deg2Rad;cm.Box(black,new Vector3(Mathf.Sin(a)*(r-.17f),Mathf.Cos(a)*(r-.17f),-.138f),new Vector3(.025f,.07f,.012f),Quaternion.Euler(0,0,-i*6f));}
-        cm.Build(g,"D2 zegar tarcza",Folder,false);
-        Transform Hand(string name,float len,float w,float zz,Material mat)
+        // the case and the bezel (a rounded stainless ring), the dial
+        cm.Cylinder(stainless,new Vector3(0,0,.22f),r+.08f*k,.10f,72,rot,false,false);
+        cm.Lathe(stainless,new Vector3(0,0,.12f),new[]{new Vector2(r-.02f*k,0f),new Vector2(r+.06f*k,0f),new Vector2(r+.11f*k,.03f*k),new Vector2(r+.13f*k,.08f*k),
+            new Vector2(r+.11f*k,.13f*k),new Vector2(r+.05f*k,.16f*k),new Vector2(r-.01f*k,.16f*k),new Vector2(r-.03f*k,.12f*k)},72,rot,false,false);
+        cm.Cylinder(clockFace,new Vector3(0,0,.12f),r,.012f,72,rot,true,false);
+        float zf=.12f-.012f;
+        for(int i=0;i<60;i++)
         {
-            var h=Group(g,name);var hm=new BraxChampionsMeshBatch();
-            hm.Box(mat,new Vector3(0,len*.5f-.12f,zz),new Vector3(w,len,.015f),Quaternion.identity);
-            hm.Build(h,name,Folder,false);
-            foreach(var t in h.GetComponentsInChildren<Transform>(true))GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
+            float a=i*6f*Mathf.Deg2Rad;bool h=i%5==0;float l=(h?.30f:.09f)*k,w=(h?.075f:.022f)*k;
+            float rr=r-.10f*k-l*.5f;
+            cm.Box(black,new Vector3(Mathf.Sin(a)*rr,Mathf.Cos(a)*rr,zf-.006f),new Vector3(w,l,.012f),Quaternion.Euler(0,0,-i*6f));
+        }
+        cm.Build(g,name+" tarcza",Folder,false);
+        // hands: tapered blades (front, back and side faces), each its own transform
+        Transform Hand(string hn,float len,float tail,float w0,float w1,float zz,Material mat,bool disc)
+        {
+            var h=Group(g,hn);var hm=new BraxChampionsMeshBatch();float t=.012f*Mathf.Max(1f,k);
+            var q=new[]{new Vector3(-w0*.5f,-tail,0),new Vector3(w0*.5f,-tail,0),new Vector3(w1*.5f,len,0),new Vector3(-w1*.5f,len,0)};
+            Vector3 F(Vector3 v,float dz)=>v+new Vector3(0,0,zz+dz);
+            hm.Quad(mat,F(q[0],-t*.5f),F(q[3],-t*.5f),F(q[2],-t*.5f),F(q[1],-t*.5f));
+            hm.Quad(mat,F(q[0],t*.5f),F(q[1],t*.5f),F(q[2],t*.5f),F(q[3],t*.5f));
+            for(int e=0;e<4;e++){var a=q[e];var b=q[(e+1)%4];hm.Quad(mat,F(a,-t*.5f),F(b,-t*.5f),F(b,t*.5f),F(a,t*.5f));}
+            if(disc)hm.Cylinder(mat,new Vector3(0,len-.12f*k,zz+t*.5f),.085f*k,t,24,rot,true,true);
+            hm.Build(h,hn,Folder,false);
+            foreach(var tr in h.GetComponentsInChildren<Transform>(true))GameObjectUtility.SetStaticEditorFlags(tr.gameObject,0);
             return h;
         }
-        var hh=Hand("wskazówka godzinowa",.95f,.10f,-.175f,black);var mm=Hand("wskazówka minutowa",1.32f,.07f,-.20f,black);var ss=Hand("wskazówka sekundowa",1.30f,.025f,-.225f,bufferRed);
+        var hh=Hand("wskazówka godzinowa",.82f*k,.18f*k,.11f*k,.075f*k,zf-.03f,black,false);
+        var mm=Hand("wskazówka minutowa",1.22f*k,.22f*k,.09f*k,.055f*k,zf-.06f,black,false);
+        var ss=Hand("wskazówka sekundowa",1.02f*k,.30f*k,.024f*k,.020f*k,zf-.09f,bufferRed,true);
         var zc=g.gameObject.AddComponent<BraxChampionsZegar>();zc.godzinowa=hh;zc.minutowa=mm;zc.sekundowa=ss;
-        var cap=new BraxChampionsMeshBatch();cap.Cylinder(black,new Vector3(0,0,-.2325f),.07f,.02f,24,rot,true,false);cap.Build(g,"D2 zegar oś",Folder,false);
+        var cap=new BraxChampionsMeshBatch();cap.Cylinder(bufferRed,new Vector3(0,0,zf-.09f-.006f),.05f*k,.015f,20,rot,true,false);cap.Build(g,name+" oś",Folder,false);
     }
-
+    static void Clock()
+    {
+        StationClock("D2 zegar dworcowy",new Vector3(0,9.95f,-.62f),0f,1.20f,true);
+        // platform clocks: double-sided, hanging under the canopies (facing along the platforms)
+        for(int p=0;p<2;p++)
+            foreach(float x in new[]{-72f,0f,72f})
+            {
+                float cz=CanopyColumnZ(p)-(p==0?1f:-1f)*1.0f,y=PlatformTop+3.1f;
+                StationClock("D2 zegar peron "+(p+1)+" "+x.ToString("0")+" W",new Vector3(x-.22f,y,cz),90f,.36f,false);
+                StationClock("D2 zegar peron "+(p+1)+" "+x.ToString("0")+" E",new Vector3(x+.22f,y,cz),-90f,.36f,false);
+                m.Cylinder(frame,new Vector3(x,y+.36f+.06f,cz),.03f,PlatformTop+4.0f-(y+.42f),10,Quaternion.identity,true);
+            }
+        Flush("D2 clocks | stems");
+    }
     // ================================================================ doors (BraxCityDoor, glass leaves, open on approach)
     static void Door(string id,string label,float x,float y,float z,float yaw,float width,float height,bool glassLeaf)
     {
@@ -425,7 +482,7 @@ public static partial class BraxChampionsD2
     static void Interior()
     {
         counterTop=Inside(BraxChampionsFoundation.LibraryMarbleWhite("d2_counter_white_marble",new Color(.96f,.96f,.97f),2.0f),.85f);
-        wallPanel=Inside(Tex("hall_wall_larch","teak_veneer",1.4f,new Color(1.05f,.88f,.74f)),.85f);
+        wallPanel=Inside(Tex("hall_wall_walnut","smoked_walnut_veneer",1.2f,new Color(1.05f,.98f,.92f)),.85f);
         benchWood=Inside(Tex("bench_oak","oak_wood_planks",1.0f,new Color(.92f,.86f,.82f)),.85f);
         // floor: granite tiles everywhere, a darker granite band at the entrance mats and round the info desk
         Flat(hallFloor,-BW,BW,0f,BD,FFL);
@@ -450,7 +507,7 @@ public static partial class BraxChampionsD2
         InfoDesk();
         HallBenches();
         TicketCounters();
-        DepartureBoards();
+        HallDetails();
     }
     static void Balustrade(float x,float z0,float z1,float y,float s)
     {
@@ -519,38 +576,8 @@ public static partial class BraxChampionsD2
     }
     static Material porcelain;
     static Material porcelainMat(){if(!porcelain)porcelain=Inside(S("porcelain_white",new Color(.95f,.95f,.94f),.12f,0f),.85f);return porcelain;}
-    // a 4-seat station bench: oak seats and backs on a graphite steel beam, armrests between seats; every seat is a BraxSeat
-    static void WaitingBench(float cx,float z,float s)
-    {
-        float y=FFL;
-        B(frame,cx-1.95f,cx+1.95f,y+.36f,y+.42f,z-.05f,z+.05f);
-        foreach(float lx in new[]{-1.6f,1.6f}){B(frame,cx+lx-.04f,cx+lx+.04f,y,y+.42f,z-.25f,z+.25f);B(frame,cx+lx-.15f,cx+lx+.15f,y,y+.02f,z-.30f,z+.30f);}
-        for(int i=0;i<4;i++)
-        {
-            float x0=cx-1.9f+i*.95f;
-            RB(benchWood,x0+.03f,x0+.92f,y+.42f,y+.47f,z-.25f,z+.20f,.02f);
-            RB(benchWood,x0+.03f,x0+.92f,y+.52f,y+.90f,z+.20f,z+.25f,.02f);
-            Seat(x0+.475f,y+.47f,z-.02f,Vector3.back,"ławka poczekalnia "+cx.ToString("0")+"/"+z.ToString("0")+"/"+i);
-            if(i>0)B(frame,x0-.02f,x0+.02f,y+.47f,y+.68f,z-.20f,z+.15f);
-        }
-        Col(cx-1.95f,cx+1.95f,y,y+.9f,z-.3f,z+.3f,"ławka");Benches++;
-    }
-    // round info desk (D 5 m) with a white marble top, larch front, "i" in 3D above it
-    static void InfoDesk()
-    {
-        var c=new Vector3(0,FFL,6.5f);
-        m.Lathe(wallPanel,c,new[]{new Vector2(2.5f,0f),new Vector2(2.5f,1.02f),new Vector2(1.7f,1.02f),new Vector2(1.7f,0f)},48,Quaternion.identity,false,false);
-        m.Lathe(counterTop,c+Vector3.up*1.02f,new[]{new Vector2(2.62f,0f),new Vector2(2.62f,.06f),new Vector2(1.6f,.06f),new Vector2(1.6f,0f)},48,Quaternion.identity,false,false);
-        Col(-2.5f,2.5f,FFL,FFL+1.08f,4.0f,9.0f,"informacja");
-        // the "i" pylon on the desk: navy disc with a white i, 2.5 m up
-        m.Cylinder(steel,c+Vector3.up*1.08f,.05f,1.9f,12,Quaternion.identity,true);
-        m.Cylinder(signBlue,c+new Vector3(0,3.2f,0),.55f,.08f,40,Quaternion.Euler(-90,0,0),true,true);
-        var lm=new BraxChampionsMeshBatch();
-        BraxChampionsLetters3D.Text(lm,whiteLetters,navy,"I",c+new Vector3(0,2.95f,-.09f),180f,.50f,.03f);
-        BraxChampionsLetters3D.Text(lm,whiteLetters,navy,"I",c+new Vector3(0,2.95f,.09f),0f,.50f,.03f);
-        BraxChampionsLetters3D.Text(lm,whiteLetters,navy,"INFORMACJA",c+new Vector3(0,1.25f,-2.65f),180f,.18f,.02f);
-        BraxChampionsLetters3D.Build(lm,root,"D2 informacja");Signs++;
-    }
+    // a bench in the hall rows / waiting rooms (StationBench, upholstered, arms between every two seats), facing the entrance
+    static void WaitingBench(float cx,float z,float s)=>StationBench(new Vector3(cx,FFL,z),Vector3.back,6,"ławka hala "+cx.ToString("0")+"/"+z.ToString("0"),2,true);
     // benches in the hall: two blocks either side of the central aisle (board plan), facing the entrance
     static void HallBenches()
     {
@@ -560,21 +587,134 @@ public static partial class BraxChampionsD2
     static void TicketCounters()
     {
         foreach(float s in new[]{-1f,1f})
-        {
-            float xa=s*8f,xb=s*31f,lo=Mathf.Min(xa,xb),hi=Mathf.Max(xa,xb);
-            B(wallPanel,lo,hi,FFL,1.05f,33.4f,34.2f,true);
-            B(counterTop,lo,hi,1.05f,1.11f,33.3f,34.3f);
-            int n=Mathf.FloorToInt((hi-lo)/2.3f);
-            for(int i=0;i<=n;i++){float x=lo+i*(hi-lo)/n;B(frame,x-.03f,x+.03f,1.11f,2.4f,33.7f,33.8f);}
-            var p0=new Vector3(lo,1.11f,33.75f);var p1=new Vector3(hi,1.11f,33.75f);var p2=new Vector3(hi,2.4f,33.75f);var p3=new Vector3(lo,2.4f,33.75f);
-            Q(glass,p0,p1,p2,p3,Vector3.back);Q(glass,p0,p1,p2,p3,Vector3.forward);
-            B(navy,lo,hi,2.4f,3.3f,33.6f,33.9f);
-            B(plaster,lo,hi,FFL,Floor1,BD-.3f,BD-.18f);
-            var lm=new BraxChampionsMeshBatch();
-            BraxChampionsLetters3D.Text(lm,whiteLetters,navy,s<0?"KASY KOLEJOWE":"KASY AUTOBUSOWE",new Vector3((lo+hi)*.5f,2.62f,33.58f),180f,.42f,.05f,.10f,hi-lo-1f);
-            BraxChampionsLetters3D.Build(lm,root,"D2 napis kasy");Signs++;
-            for(int i=0;i<n;i++){float x=lo+(i+.5f)*(hi-lo)/n;BraxChampionsLetters3D.Text(m,whiteLetters,navy,(i+1).ToString(),new Vector3(x,2.05f,33.70f),180f,.16f,.01f);}
-        }
+            foreach(var (xa,xb,sign) in new[]{(7.5f,17.8f,true),(22.8f,32.0f,false)})
+            {
+                float x0=s*xa,x1=s*xb,lo=Mathf.Min(x0,x1),hi=Mathf.Max(x0,x1);
+                B(wallPanel,lo,hi,FFL,1.05f,33.4f,34.2f,true);
+                B(counterTop,lo,hi,1.05f,1.11f,33.3f,34.3f);
+                B(black,lo,hi,FFL,FFL+.10f,33.32f,33.4f);
+                int n=Mathf.Max(1,Mathf.RoundToInt((hi-lo)/2.4f));
+                for(int i=0;i<=n;i++){float x=lo+i*(hi-lo)/n;B(stainless,x-.03f,x+.03f,1.11f,2.4f,33.7f,33.8f);}
+                var p0=new Vector3(lo,1.11f,33.75f);var p1=new Vector3(hi,1.11f,33.75f);var p2=new Vector3(hi,2.4f,33.75f);var p3=new Vector3(lo,2.4f,33.75f);
+                Q(glass,p0,p1,p2,p3,Vector3.back);Q(glass,p0,p1,p2,p3,Vector3.forward);
+                B(navy,lo,hi,2.4f,3.3f,33.55f,33.9f);
+                B(led,lo+.2f,hi-.2f,2.38f,2.4f,33.56f,33.66f);
+                B(wallPanel,lo,hi,FFL,Floor1,BD-.3f,BD-.18f);
+                var lm=new BraxChampionsMeshBatch();
+                if(sign)BraxChampionsLetters3D.Text(lm,stainless,frame,s<0?"KASY KOLEJOWE":"KASY AUTOBUSOWE",new Vector3((lo+hi)*.5f,2.62f,33.548f),180f,.40f,.05f,.10f,hi-lo-.8f);
+                for(int i=0;i<n;i++){float x=lo+(i+.5f)*(hi-lo)/n;BraxChampionsLetters3D.Text(lm,whiteLetters,stainless,(s<0?(i+1+(sign?0:n)):(i+1+(sign?0:n))).ToString(),new Vector3(x,2.04f,33.548f),180f,.16f,.02f);
+                    B(navy,x-.18f,x+.18f,1.98f,2.26f,33.55f,33.7f);}
+                BraxChampionsLetters3D.Build(lm,root,"D2 napis kasy");Signs++;
+            }
     }
-    static void DepartureBoards(){}
+    // the hall's finish: dark granite bands in the floor on the rib module (12 mm), LED ring pendants on every rib, plants in
+    // stone planters, ticket machines at the ticket halls, bins
+    static void HallDetails()
+    {
+        for(int r=1;r<=4;r++){float z=r*6f;Flat(graniteDark,-HallW+.6f,HallW-.6f,z-.15f,z+.15f,FFL+.012f);}
+        foreach(float x in new[]{-6.15f,5.85f})Flat(graniteDark,x,x+.3f,3.2f,24f-.15f,FFL+.012f);
+        foreach(float z in new[]{9f,15f,21f})foreach(float x in new[]{-9.5f,9.5f})Halo(x,7.2f,z,1.25f,3);
+        foreach(var (x,z) in new[]{(-16.6f,1.6f),(16.6f,1.6f),(-16.6f,22.4f),(16.6f,22.4f),(-4.6f,25.0f),(4.6f,25.0f)})
+        {
+            m.Lathe(granite,new Vector3(x,FFL,z),new[]{new Vector2(.42f,0f),new Vector2(.50f,.62f),new Vector2(.44f,.62f),new Vector2(.38f,.05f)},32,Quaternion.identity,false,false);
+            m.Cylinder(lawn,new Vector3(x,FFL+.54f,z),.44f,.01f,24,Quaternion.identity,true,false);
+            Prop(root,"ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf",new Vector3(x,FFL+.55f,z),(x*7f+z)%360f);
+            Col(x-.5f,x+.5f,FFL,FFL+.62f,z-.5f,z+.5f,"donica");
+        }
+        foreach(float s in new[]{-1f,1f}){TicketMachine(s*16.9f,27.2f,s<0?90f:-90f);TicketMachine(s*16.9f,28.6f,s<0?90f:-90f);}
+        foreach(var (x,z) in new[]{(-6.5f,2.2f),(6.5f,2.2f),(-15.5f,10.5f),(15.5f,10.5f),(-7f,26.5f),(7f,26.5f)})Bin(x,FFL,z);
+    }
+
+    // ================================================================ live screens (BraxChampionsD2Tablice)
+    static Mesh unitQuad;
+    static MeshRenderer ScreenQuad(Transform parent,string name,Material mat,Vector3 c,float w,float h,float yaw)
+    {
+        string path=Folder+"/d2_screen_unit_quad.asset";
+        if(!unitQuad)unitQuad=AssetDatabase.LoadAssetAtPath<Mesh>(path);
+        if(!unitQuad)
+        {
+            unitQuad=new Mesh{name="D2 screen unit quad"};
+            unitQuad.vertices=new[]{new Vector3(-.5f,-.5f,0),new Vector3(.5f,-.5f,0),new Vector3(.5f,.5f,0),new Vector3(-.5f,.5f,0)};
+            unitQuad.uv=new[]{new Vector2(0,0),new Vector2(1,0),new Vector2(1,1),new Vector2(0,1)};
+            unitQuad.triangles=new[]{0,2,1,0,3,2};unitQuad.normals=new[]{Vector3.back,Vector3.back,Vector3.back,Vector3.back};
+            unitQuad.RecalculateTangents();unitQuad.RecalculateBounds();AssetDatabase.CreateAsset(unitQuad,path);
+        }
+        var g=new GameObject(name);g.transform.SetParent(parent,false);
+        g.transform.localPosition=c*K;g.transform.localRotation=Quaternion.Euler(0,yaw,0);g.transform.localScale=new Vector3(w*K,h*K,1f);
+        g.AddComponent<MeshFilter>().sharedMesh=unitQuad;var mr=g.AddComponent<MeshRenderer>();mr.sharedMaterial=mat;
+        mr.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
+        Screens++;
+        return mr;
+    }
+    static Material ScreenMaterial(string id,int w,int h,Color32[] px)
+    {
+        var tex=new Texture2D(w,h,TextureFormat.RGBA32,true){name="D2 "+id,wrapMode=TextureWrapMode.Clamp,filterMode=FilterMode.Bilinear};
+        tex.SetPixels32(px);tex.Apply(true);
+        System.IO.Directory.CreateDirectory(Out+"/Textures");
+        string path=Out+"/Textures/d2_"+id+".asset";
+        if(AssetDatabase.LoadAssetAtPath<Texture2D>(path))AssetDatabase.DeleteAsset(path);
+        AssetDatabase.CreateAsset(tex,path);
+        var mt=S("screen_"+id,Color.white,.18f,0f,new Color(1.05f,1.05f,1.10f));
+        mt.SetTexture("_MainTex",tex);mt.SetTexture("_EmissionMap",tex);EditorUtility.SetDirty(mt);return mt;
+    }
+    // a screen in a navy housing: front face toward -z turned by yaw (both faces when twoSided)
+    static void Housing(float x,float y,float z,float w,float h,float yaw,bool twoSided)
+    {
+        var rot=Quaternion.Euler(0,yaw,0);float d=twoSided?.16f:.10f;
+        m.RoundedBox(navy,new Vector3(x,y,z)+rot*new Vector3(0,0,twoSided?0f:d*.5f+.012f),new Vector3(w+.12f,h+.12f,d),.03f,rot,3);
+    }
+    static void LiveScreens()
+    {
+        var g=Group(root,"D2 tablice odjazdów (BraxChampionsD2Tablice, na żywo)");
+        var t0=new DateTime(2026,11,11,12,0,0);
+        var po=new Color32[BraxChampionsD2Tablice.OW*BraxChampionsD2Tablice.OH];BraxChampionsD2Tablice.Odjazdy(po,t0,0,0,40f,true,false);
+        var p1=new Color32[BraxChampionsD2Tablice.PW*BraxChampionsD2Tablice.PH];BraxChampionsD2Tablice.Peron(p1,0,t0,0,0,40f,true,false);
+        var p2=new Color32[BraxChampionsD2Tablice.PW*BraxChampionsD2Tablice.PH];BraxChampionsD2Tablice.Peron(p2,1,t0,0,0,40f,true,false);
+        var pa=new Color32[BraxChampionsD2Tablice.AW*BraxChampionsD2Tablice.AH];BraxChampionsD2Tablice.Autobusy(pa,t0);
+        var mo=ScreenMaterial("odjazdy",BraxChampionsD2Tablice.OW,BraxChampionsD2Tablice.OH,po);
+        var m1=ScreenMaterial("peron_1",BraxChampionsD2Tablice.PW,BraxChampionsD2Tablice.PH,p1);
+        var m2=ScreenMaterial("peron_2",BraxChampionsD2Tablice.PW,BraxChampionsD2Tablice.PH,p2);
+        var ma=ScreenMaterial("autobusy",BraxChampionsD2Tablice.AW,BraxChampionsD2Tablice.AH,pa);
+        var odj=new List<Renderer>();var r1=new List<Renderer>();var r2=new List<Renderer>();var ra=new List<Renderer>();
+        // the hall: a big two-sided board over the passage doors (4.0 x 1.6 m) on rods from the ceiling
+        float hy=5.6f,hz=30.5f;
+        Housing(0f,hy,hz,4.0f,1.6f,0f,true);
+        odj.Add(ScreenQuad(g,"hala odjazdy (wejście)",mo,new Vector3(0,hy,hz-.092f),4.0f,1.6f,0f));
+        odj.Add(ScreenQuad(g,"hala odjazdy (perony)",mo,new Vector3(0,hy,hz+.092f),4.0f,1.6f,180f));
+        foreach(float x in new[]{-1.6f,1.6f})m.Tube(steel,new Vector3(x,hy+.86f,hz),new Vector3(x,VaultIn(x)-.3f,hz),.02f,8,1);
+        // waiting rooms: two-sided boards hanging from the ceiling at the ticket hall (z 23.5): trains west, buses east
+        foreach(float s in new[]{-1f,1f})
+        {
+            var mat=s<0?mo:ma;var list=s<0?odj:ra;float x=s*28f,y=3.2f,z=23.5f;
+            Housing(x,y,z,2.4f,.96f,0f,true);
+            list.Add(ScreenQuad(g,(s<0?"poczekalnia kolej":"poczekalnia autobus")+" odjazdy",mat,new Vector3(x,y,z-.092f),2.4f,.96f,0f));
+            list.Add(ScreenQuad(g,(s<0?"kasy kolej":"kasy autobus")+" odjazdy",mat,new Vector3(x,y,z+.092f),2.4f,.96f,180f));
+            foreach(float dx in new[]{-1f,1f})m.Tube(steel,new Vector3(x+dx,y+.54f,z),new Vector3(x+dx,Floor1,z),.015f,6,1);
+        }
+        // platforms: two-sided displays across each platform under the canopy (facing along it)
+        for(int p=0;p<2;p++)
+        {
+            float cz=CanopyColumnZ(p)-(p==0?1f:-1f)*1.0f,y=PlatformTop+3.25f;
+            foreach(float x in new[]{-96f,-24f,48f,120f})
+            {
+                Housing(x,y,cz,1.6f,.4f,90f,true);
+                foreach(float f in new[]{-1f,1f})
+                {
+                    var r=ScreenQuad(g,"peron "+(p+1)+" wyświetlacz "+x.ToString("0"),p==0?m1:m2,new Vector3(x+f*.092f,y,cz),1.6f,.4f,f<0?90f:-90f);
+                    (p==0?r1:r2).Add(r);
+                }
+                foreach(float dz in new[]{-.6f,.6f})m.Tube(steel,new Vector3(x,y+.26f,cz+dz),new Vector3(x,PlatformTop+4.0f,cz+dz),.015f,6,1);
+            }
+        }
+        // the bus island and the terminal: departure boards
+        Housing(BusX0+3f,2.9f,12.25f,2.4f,.96f,0f,false);
+        ra.Add(ScreenQuad(g,"wyspa autobusowa odjazdy",ma,new Vector3(BusX0+3f,2.9f,12.238f),2.4f,.96f,0f));
+        foreach(float dx in new[]{-1f,1f})m.Tube(steel,new Vector3(BusX0+3f+dx,3.4f,12.3f),new Vector3(BusX0+3f+dx,WalkY+4.3f,12.3f),.015f,6,1);
+        Housing(TermX0+.3f,2.6f,(TermZ0+TermZ1)*.5f+6f,2.4f,.96f,90f,false);
+        ra.Add(ScreenQuad(g,"terminal odjazdy",ma,new Vector3(TermX0+.29f,2.6f,(TermZ0+TermZ1)*.5f+6f),2.4f,.96f,90f));
+        var tb=g.gameObject.AddComponent<BraxChampionsD2Tablice>();
+        tb.odjazdy=odj.ToArray();tb.peron1=r1.ToArray();tb.peron2=r2.ToArray();tb.autobusy=ra.ToArray();
+        tb.pociag=trainRun;
+        Flush("D2 screens | housings, rods");
+    }
 }

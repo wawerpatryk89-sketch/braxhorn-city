@@ -28,6 +28,22 @@ public static partial class BraxChampionsD2
     // the opening in the deck / platform for the access at xa: from where the stair is 2.1 m under the soffit to the top,
     // then the lift shaft beyond the top of the stair
     static (float x0,float x1) Opening(float xa)=>(xa-2.4f,xa+7.0f+.6f+LiftW+.3f);
+    // the holes in the deck / platform: the stair's (to its top at xa+7) and the lift shaft's (xa+7.6..9.9), a .6 m landing between
+    static IEnumerable<(float x0,float x1)> Holes(float xa){yield return (xa-2.4f,xa+7.0f);yield return (xa+7.6f,xa+7.6f+LiftW);}
+    // transverse frames on the 13.3 m grid, moved out of the access zones (xa-8..xa+11: stairs, lift, their cap beams)
+    static List<float> FrameXs()
+    {
+        var xs=new List<float>();
+        for(int k=0;k<10;k++)foreach(float s in new[]{-1f,1f})
+        {
+            float x=s*(6.65f+13.3f*k);
+            foreach(float xa in Accesses){float a=xa-8f,b=xa+11f;if(x>a&&x<b)x=x-a<b-x?a:b;}
+            xs.Add(x);
+        }
+        xs.Add(DeckEndX-1.0f);xs.Sort();
+        for(int i=xs.Count-1;i>0;i--)if(xs[i]-xs[i-1]<6f)xs.RemoveAt(i);
+        return xs;
+    }
     static float CanopyColumnZ(int p)=>p==0?P1Z0+4.9f:P2Z1-4.9f;
 
     // ================================================================ the hill (shared with BraxChampionsHorizon.RailHill)
@@ -53,20 +69,23 @@ public static partial class BraxChampionsD2
     {
         // slab with holes for the accesses (both platforms' bands), split into rectangles
         var holes=new List<(float x0,float x1,float z0,float z1)>();
-        foreach(float xa in Accesses)for(int p=0;p<2;p++){var (o0,o1)=Opening(xa);var (b0,b1)=Band(p);holes.Add((o0,o1,b0,b1));}
+        foreach(float xa in Accesses)for(int p=0;p<2;p++)foreach(var (o0,o1) in Holes(xa)){var (b0,b1)=Band(p);holes.Add((o0,o1,b0,b1));}
         Slab(concrete,PlatX0,DeckEndX,DeckZ0,DeckZ1,DeckSoffit,DeckTop,holes,true);
-        // deck edges: fascia with a shadow line, drip
+        // deck edges: the edge beam and, over it, the station's navy metal fascia (board "metal_panels_02"): from under the
+        // deck to a 10 cm upstand over the platform, panels on a 2.4 m module with graphite joints, a cool LED line under it
         foreach(float z in new[]{DeckZ0,DeckZ1})
         {
-            float s=z<50f?-1f:1f;
+            float s=z<50f?-1f:1f,inner=s<0?P1Z0:P2Z1;
             B(concrete,PlatX0,DeckEndX,DeckSoffit-.35f,DeckSoffit,Mathf.Min(z,z-s*.45f),Mathf.Max(z,z-s*.45f));          // edge beam
-            B(frame,PlatX0,DeckEndX,DeckSoffit+.18f,DeckSoffit+.24f,Mathf.Min(z,z+s*.012f),Mathf.Max(z,z+s*.012f));    // shadow line (12 mm)
+            float fo=z+s*.06f;
+            B(navy,PlatX0-.2f,DeckEndX+.06f,DeckSoffit-.55f,PlatformTop+.10f,Mathf.Min(fo,inner),Mathf.Max(fo,inner),true);
+            for(float x=PlatX0+2.2f;x<DeckEndX-.5f;x+=2.4f)B(frame,x-.012f,x+.012f,DeckSoffit-.53f,PlatformTop+.08f,Mathf.Min(fo,fo+s*.012f),Mathf.Max(fo,fo+s*.012f));
+            B(led,PlatX0,DeckEndX,DeckSoffit-.57f,DeckSoffit-.55f,Mathf.Min(fo-s*.05f,fo-s*.15f),Mathf.Max(fo-s*.05f,fo-s*.15f));
         }
         // the corridor deck between the bridge and the station (x -142..-130), same section as the viaduct west
         BoxGirder(BridgeX1,PlatX0);
         // transverse frames: three round columns (D 1.0) + cap beam, every 13.3 m
-        for(int k=0;k<10;k++)foreach(float s in new[]{-1f,1f})Frame(s*(6.65f+13.3f*k));
-        Frame(DeckEndX-1.0f);
+        foreach(float x in FrameXs())Frame(x);
         // platforms
         for(int p=0;p<2;p++)Platform(p);
     }
@@ -105,7 +124,7 @@ public static partial class BraxChampionsD2
         float wall=edge-s*.20f;
         B(concrete,PlatX0+.02f,PlatX1-.02f,DeckTop,PlatformTop-.20f,Mathf.Min(wall,wall-s*.25f),Mathf.Max(wall,wall-s*.25f),true);
         // the surface: coping (granite .40, overhanging), white line .10, a .40 gap, tactile .40, then paving to the outer edge
-        var holes=new List<(float,float,float,float)>();var (b0,b1)=Band(p);foreach(float xa in Accesses){var (o0,o1)=Opening(xa);holes.Add((o0,o1,b0,b1));}
+        var holes=new List<(float,float,float,float)>();var (b0,b1)=Band(p);foreach(float xa in Accesses)foreach(var (o0,o1) in Holes(xa))holes.Add((o0,o1,b0,b1));
         float c1=edge-s*.40f,w1=c1-s*.10f,t0=edge-s*.90f,t1=edge-s*1.30f;
         B(granite,PlatX0,PlatX1,PlatformTop-.20f,PlatformTop,Mathf.Min(edge,c1),Mathf.Max(edge,c1),true);
         Flat(paintWhite,PlatX0+.3f,PlatX1-.3f,Mathf.Min(c1,w1),Mathf.Max(c1,w1),PlatformTop+.012f);
@@ -138,21 +157,8 @@ public static partial class BraxChampionsD2
             PlatformBench(x,cz,s);
         }
     }
-    // a platform bench (5 seats, oak on a graphite beam), facing the track; seats are BraxSeats
-    static void PlatformBench(float cx,float z,float s)
-    {
-        float y=PlatformTop;var face=new Vector3(0,0,s);
-        B(frame,cx-2.3f,cx+2.3f,y+.38f,y+.43f,z-.05f,z+.05f);
-        foreach(float lx in new[]{-1.9f,1.9f})B(frame,cx+lx-.04f,cx+lx+.04f,y,y+.43f,z-.22f,z+.22f);
-        for(int i=0;i<5;i++)
-        {
-            float x0=cx-2.25f+i*.9f;
-            RB(benchWood??BraxChampionsPromenadeFurniture.Teak,x0+.03f,x0+.87f,y+.43f,y+.48f,Mathf.Min(z-s*.22f,z+s*.20f),Mathf.Max(z-s*.22f,z+s*.20f),.02f);
-            RB(benchWood??BraxChampionsPromenadeFurniture.Teak,x0+.03f,x0+.87f,y+.53f,y+.88f,Mathf.Min(z-s*.25f,z-s*.20f),Mathf.Max(z-s*.25f,z-s*.20f),.02f);
-            Seat(x0+.45f,y+.48f,z+s*.02f,face,"ławka peron "+cx.ToString("0")+"/"+i);
-        }
-        Col(cx-2.3f,cx+2.3f,y,y+.9f,z-.3f,z+.3f,"ławka peronowa");Benches++;
-    }
+    // a platform bench (5 seats, StationBench, oak slats), facing the track
+    static void PlatformBench(float cx,float z,float s)=>StationBench(new Vector3(cx,PlatformTop,z),new Vector3(0,0,s),5,"ławka peron "+cx.ToString("0"));
 
     // ================================================================ canopies + catenary
     static void Canopies()
@@ -173,10 +179,15 @@ public static partial class BraxChampionsD2
             {
                 bool skip=false;foreach(float xa in Accesses){var (o0,o1)=Opening(xa);if(x>o0-.6f&&x<o1+.6f)skip=true;}
                 if(skip)continue;
-                m.Cylinder(steelNavy,new Vector3(x,PlatformTop,cz),.18f,soffit-PlatformTop,20,Quaternion.identity,false);
+                float ct=soffit-1.1f;
+                m.Cylinder(steelNavy,new Vector3(x,PlatformTop,cz),.18f,ct-PlatformTop,20,Quaternion.identity,false);
                 m.Cylinder(frame,new Vector3(x,PlatformTop,cz),.26f,.12f,20,Quaternion.identity,true);
-                B(steelNavy,x-.12f,x+.12f,soffit-.35f,soffit+.02f,r0+.2f,r1-.2f);
+                m.Cylinder(steelNavy,new Vector3(x,ct,cz),.18f,.16f,20,Quaternion.identity,false,false,.24f);       // capital
+                // four inclined struts from the capital to the roof beam (a "tree"), and the roof beam across the canopy
+                foreach(float zz in new[]{r0+.6f,cz-1.6f,cz+1.6f,r1-.6f})Beam(steelNavy,new Vector3(x,ct+.12f,cz),new Vector3(x,soffit-.02f,zz),.14f,.14f);
+                B(steelNavy,x-.09f,x+.09f,soffit-.22f,soffit+.02f,r0+.25f,r1-.25f);
                 Col(x-.2f,x+.2f,PlatformTop,soffit,cz-.2f,cz+.2f,"słup wiaty");
+                Bin(x+.6f,PlatformTop,cz+(p==0?-1f:1f)*.55f);
             }
             // platform number boards hanging under the soffit every 48 m, the station name every 48 m (offset 24)
             for(float x=-108f;x<=108f;x+=48f)
@@ -335,30 +346,39 @@ public static partial class BraxChampionsD2
         Rail(new Vector3(o0,y,z0),new Vector3(xa+7f,y,z0));Rail(new Vector3(o0,y,z1),new Vector3(xa+7f,y,z1));Rail(new Vector3(o0,y,z0),new Vector3(o0,y,z1));
         // lift: glass shaft from the passage to the platform + 2.6 m, navy corner posts, cabin at the platform
         float lx0=xa+7.6f,lx1=lx0+LiftW;
-        Lift(lx0,lx1,z0+.15f,z1-.15f,p);
-        // the opening's sides in the deck: concrete reveals
-        B(concrete,o0,o1,DeckSoffit,DeckTop,z0-.02f,z0);B(concrete,o0,o1,DeckSoffit,DeckTop,z1,z1+.02f);
+        Lift(lx0,lx1,z0,z1,p,xa);
+        // the holes' sides in the deck: concrete reveals
+        foreach(var (h0,h1) in Holes(xa)){B(concrete,h0,h1,DeckSoffit,DeckTop,z0-.02f,z0);B(concrete,h0,h1,DeckSoffit,DeckTop,z1,z1+.02f);}
     }
-    static void Lift(float x0,float x1,float z0,float z1,int p)
+    // glass lift (BraxWinda, the city's lift): shaft x0..x1 in the band z0..z1 from the passage (.30) to 2.7 m over the
+    // platform, the doors on the track side (P1 +z, P2 -z) at both stops, the cabin rides between them
+    static void Lift(float x0,float x1,float z0,float z1,int p,float xa)
     {
-        float yb=WalkY,yt=PlatformTop+2.7f;
+        float yb=WalkY,yt=PlatformTop+2.7f,dz=p==0?z1:z0,back=p==0?z0:z1,f=p==0?1f:-1f;
         foreach(float x in new[]{x0,x1})foreach(float z in new[]{z0,z1})B(steelNavy,x-.06f,x+.06f,yb,yt+.2f,z-.06f,z+.06f);
         B(steelNavy,x0-.06f,x1+.06f,yt,yt+.25f,z0-.06f,z1+.06f);
-        // glass on the three closed sides (the doors face -x, toward the stair)
-        foreach(float z in new[]{z0,z1})
-        {
-            var a=new Vector3(x0,yb,z);var b=new Vector3(x1,yb,z);var c=new Vector3(x1,yt,z);var d=new Vector3(x0,yt,z);
-            Q(glass,a,b,c,d,Vector3.forward);Q(glass,a,b,c,d,Vector3.back);
-        }
-        {var a=new Vector3(x1,yb,z0);var b=new Vector3(x1,yb,z1);var c=new Vector3(x1,yt,z1);var d=new Vector3(x1,yt,z0);Q(glass,a,b,c,d,Vector3.right);Q(glass,a,b,c,d,Vector3.left);}
-        // door frames (stainless) at both stops on the -x face
+        // glass: the back (outer) side and both x sides; the door side has the landing door frames + glass above the doors
+        void Glass(Vector3 a,Vector3 b,Vector3 c,Vector3 d,Vector3 n){Q(glass,a,b,c,d,n);Q(glass,a,b,c,d,-n);}
+        Glass(new Vector3(x0,yb,back),new Vector3(x1,yb,back),new Vector3(x1,yt,back),new Vector3(x0,yt,back),Vector3.forward);
+        foreach(float x in new[]{x0,x1})Glass(new Vector3(x,yb,z0),new Vector3(x,yb,z1),new Vector3(x,yt,z1),new Vector3(x,yt,z0),Vector3.right);
+        float xc=(x0+x1)*.5f,hd=.55f;
         foreach(float y in new[]{yb,PlatformTop})
         {
-            B(stainless,x0-.08f,x0+.02f,y,y+2.2f,z0,z0+.35f);B(stainless,x0-.08f,x0+.02f,y,y+2.2f,z1-.35f,z1);B(stainless,x0-.08f,x0+.02f,y+2.1f,y+2.3f,z0,z1);
+            float top=y==yb?DeckSoffit-.05f:yt;
+            B(stainless,x0,xc-hd,y,y+2.2f,dz-.04f,dz+.04f,true);B(stainless,xc+hd,x1,y,y+2.2f,dz-.04f,dz+.04f,true);
+            B(stainless,x0,x1,y+2.2f,y+2.35f,dz-.04f,dz+.04f);
+            Glass(new Vector3(x0,y+2.35f,dz),new Vector3(x1,y+2.35f,dz),new Vector3(x1,top,dz),new Vector3(x0,top,dz),Vector3.forward);
+            Col(x0,x1,y+2.2f,top,dz-.05f,dz+.05f,"szyb nad drzwiami");
         }
-        Col(x0,x1,yb,yt,z0-.1f,z0+.1f,"szyb windy");Col(x0,x1,yb,yt,z1-.1f,z1+.1f,"szyb windy");Col(x1-.1f,x1+.1f,yb,yt,z0,z1,"szyb windy");
+        Col(x0,x1,yb,yt,back-.1f,back+.1f,"szyb windy");Col(x0-.1f,x0+.1f,yb,yt,z0,z1,"szyb windy");Col(x1-.1f,x1+.1f,yb,yt,z0,z1,"szyb windy");
+        // the call panel beside the door at each stop (stainless plate, a lit button)
+        foreach(float y in new[]{yb,PlatformTop})
+        {
+            B(stainless,x1+.15f,x1+.35f,y+.95f,y+1.25f,dz+f*.02f-.01f,dz+f*.02f+.01f);
+            m.Cylinder(led,new Vector3(x1+.25f,y+1.10f,dz+f*.035f),.035f,.012f,12,Quaternion.Euler(f*90f,0,0),true,true);
+        }
         Lifts++;
-        LiftCar(x0,x1,z0,z1,p);
+        LiftCar(x0,x1,z0,z1,p,xa);
     }
 
     // ================================================================ bridge over X70: steel tied arch

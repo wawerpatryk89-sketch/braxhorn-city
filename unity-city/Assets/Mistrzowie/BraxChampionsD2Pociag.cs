@@ -18,6 +18,12 @@ public sealed class BraxChampionsD2Pociag : MonoBehaviour
     enum Stan { Ukryty, Wjazd, Postoj, Odjazd }
     Stan stan = Stan.Postoj;
     float t, x, v; int tor;
+    // for the departure boards (BraxChampionsD2Tablice): the track (0 = peron 1), the trip number (destination), the state
+    public int Tor => tor;
+    public int Kurs { get; private set; }
+    public bool Stoi => stan == Stan.Postoj;
+    public bool Wjezdza => stan == Stan.Wjazd;
+    public float DoOdjazdu => stan == Stan.Postoj ? t : stan == Stan.Wjazd ? postoj + Mathf.Max(0f, -x) / Mathf.Max(predkosc * .6f, 1f) : stan == Stan.Ukryty ? t + 40f + postoj : 0f;
     Renderer[] rs; Collider[] cs;
 
     void Start()
@@ -35,7 +41,7 @@ public sealed class BraxChampionsD2Pociag : MonoBehaviour
         {
             case Stan.Ukryty:
                 t -= dt; if (t > 0f) return;
-                tor = 1 - tor; x = wjazdX; v = predkosc; Pokaz(true); stan = Stan.Wjazd; break;
+                tor = 1 - tor; x = wjazdX; v = predkosc; Kurs++; Pokaz(true); stan = Stan.Wjazd; break;
             case Stan.Wjazd:
             {
                 float d = -x;                                                   // distance to the stop mark

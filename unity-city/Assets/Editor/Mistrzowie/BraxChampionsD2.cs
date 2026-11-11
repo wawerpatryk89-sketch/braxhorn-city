@@ -100,7 +100,7 @@ public static partial class BraxChampionsD2
         frame=S("frame_graphite",new Color(.16f,.17f,.19f),.32f,.75f);
         steel=BraxChampionsHarbour.Steel;
         steelNavy=S("steel_navy_paint",new Color(.10f,.16f,.30f),.38f,.55f);
-        concrete=Tex("architectural_concrete","concrete_wall_003",2.6f,new Color(1.0f,1.10f,1.27f));
+        concrete=Tex("fair_faced_concrete","concrete_wall_009",3.0f,new Color(.97f,1.0f,1.06f));   // clean formwork concrete (viaduct, piers, slabs)
         concreteDark=Tex("concrete_weathered","concrete_wall_008",3.0f,new Color(.82f,.86f,.92f));
         ballast=Tex("track_ballast","gravel_embedded_concrete_02",.9f,new Color(.80f,.80f,.82f));
         sleeper=S("sleeper_concrete",new Color(.62f,.62f,.60f),.85f,0f);
@@ -251,7 +251,7 @@ public static partial class BraxChampionsD2
         Bridge();Flush("D2 railway | steel tied-arch bridge over X70");
         LineWest();Flush("D2 railway | viaduct to the region edge, embankment, cutting, tunnel portal");
         BusTerminal();Flush("D2 bus terminal | island, canopy, stands, terminal building");
-        Clock();Train();
+        Clock();Train();LiveScreens();
         Debug.Log("D2_DWORZEC platforms=2x"+(PlatX1-PlatX0)+"m railTop="+RailTop+" bridgeSpan="+(BridgeX1-BridgeX0)+" carBays="+Bays+" accessible="+AccessibleBays+
                   " busStands="+Stands+" doors="+Doors+" colliders="+Colliders+" signs="+Signs+" trees="+Trees+" lamps="+Lamps+" benches="+Benches+
                   " seats="+Seats+" sleepers="+Sleepers+" piers="+Piers+" hangers="+Hangers+" lifts="+Lifts+" screens="+Screens+" portalWorldX="+PortalWX);
