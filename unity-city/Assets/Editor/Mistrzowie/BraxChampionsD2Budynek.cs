@@ -296,6 +296,43 @@ public static partial class BraxChampionsD2
         // the attic: the roof is closed above the first-floor ceiling (8.0) - the wing's ceiling slab
         B(concrete,Mathf.Min(s*(a+.06f),s*(b-.8f)),Mathf.Max(s*(a+.06f),s*(b-.8f)),e-.35f,e-.05f,.06f,BD-.06f);
     }
+    // a downward quad over x0..x1, z0..z1 minus rectangular holes (split into strips along x, like Slab)
+    static void FlipHoles(Material mat,float x0,float x1,float z0,float z1,float y,List<(float x0,float x1,float z0,float z1)> holes)
+    {
+        var xs=new List<float>{x0,x1};foreach(var h in holes){if(h.x0>x0&&h.x0<x1)xs.Add(h.x0);if(h.x1>x0&&h.x1<x1)xs.Add(h.x1);}
+        xs.Sort();
+        for(int i=0;i+1<xs.Count;i++)
+        {
+            float a=xs[i],b=xs[i+1];if(b-a<1e-3f)continue;float xm=(a+b)*.5f,z=z0;
+            var hz=new List<(float,float)>();foreach(var h in holes)if(xm>h.x0&&xm<h.x1)hz.Add((Mathf.Max(z0,h.z0),Mathf.Min(z1,h.z1)));
+            hz.Sort((p,q)=>p.Item1.CompareTo(q.Item1));
+            foreach(var (h0,h1) in hz){if(h0>z)Flip(mat,a,b,z,h0,y);z=Mathf.Max(z,h1);}
+            if(z<z1)Flip(mat,a,b,z,z1,y);
+        }
+    }
+    // A finished slatted ceiling (owner 11.11 15:29: "sufity nie są zrobione, są betonowe"): black acoustic felt at y (facing
+    // down), larch slats along z 15 mm under it (12 cm wide, 5 cm deep, pitch 25 cm), warm LED lines in every 10th gap;
+    // holes (stair wells, lift shafts) left open.
+    static void SlatCeiling(float x0,float x1,float z0,float z1,float y,List<(float x0,float x1,float z0,float z1)> holes)
+    {
+        holes=holes??new List<(float,float,float,float)>();
+        FlipHoles(acoustic,x0,x1,z0,z1,y,holes);
+        List<(float,float)> Runs(float xa,float xb)
+        {
+            var r=new List<(float,float)>();float z=z0;var hz=new List<(float,float)>();
+            foreach(var h in holes)if(xb>h.x0-.02f&&xa<h.x1+.02f)hz.Add((h.z0-.02f,h.z1+.02f));
+            hz.Sort((p,q)=>p.Item1.CompareTo(q.Item1));
+            foreach(var (h0,h1) in hz){if(h0>z+.05f)r.Add((z,h0));z=Mathf.Max(z,h1);}
+            if(z1>z+.05f)r.Add((z,z1));
+            return r;
+        }
+        int k=0;
+        for(float x=x0+.065f;x+.12f<x1-.02f;x+=.25f,k++)
+        {
+            foreach(var (a,b) in Runs(x,x+.12f))B(slatsInside,x,x+.12f,y-.065f,y-.015f,a+.01f,b-.01f);
+            if(k%10==5&&x+.25f<x1-.1f)foreach(var (a,b) in Runs(x+.145f,x+.225f))B(ledWarm,x+.165f,x+.205f,y-.045f,y-.02f,a+.05f,b-.05f);
+        }
+    }
     static void Flip(Material mat,float x0,float x1,float z0,float z1,float y)
     {
         if(x1-x0<1e-4f||z1-z0<1e-4f)return;
@@ -496,7 +533,16 @@ public static partial class BraxChampionsD2
             var holes=new List<(float,float,float,float)>{(Mathf.Min(s*23f,s*28.2f),Mathf.Max(s*23f,s*28.2f),.9f,6.4f),(Mathf.Min(s*28.4f,s*29.94f),Mathf.Max(s*28.4f,s*29.94f),6.6f,8.8f)};
             Slab(concrete,li,hj,.06f,BD-.06f,Floor1,Floor1+.35f,holes,true);
             Slab(hallFloor,li,hj,.06f,BD-.06f,Floor1+.388f,Floor1+.40f,holes,false);
-            Q(ceilWhite,new Vector3(lo,Floor1-.01f,0f),new Vector3(hi,Floor1-.01f,0f),new Vector3(hi,Floor1-.01f,BD),new Vector3(lo,Floor1-.01f,BD),Vector3.down);
+            // the ground-floor ceiling of the wing: larch slats on black felt with LED lines, the stair well and lift open
+            SlatCeiling(lo,hi,.06f,BD-.06f,Floor1-.012f,holes);
+            // the stair well's slab edges lined with a navy band (nosing flush with the +1 floor), where no flight runs past
+            {
+                float yb=Floor1-.092f,yt=Floor1+.40f,i0=s*23f,o0=s*28.2f;
+                B(navy,Mathf.Min(i0,o0)+.015f,Mathf.Max(i0,o0)-.015f,yb,yt,.915f,.935f);
+                B(navy,Mathf.Min(i0+s*.015f,i0+s*.035f),Mathf.Max(i0+s*.015f,i0+s*.035f),yb,yt,.935f,6.4f);
+                B(navy,Mathf.Min(o0-s*.035f,o0-s*.015f),Mathf.Max(o0-s*.035f,o0-s*.015f),yb,yt,.935f,3.7f);
+                B(navy,Mathf.Min(i0+s*.035f,s*25.5f),Mathf.Max(i0+s*.035f,s*25.5f),yb,yt,6.365f,6.385f);
+            }
             B(navy,Mathf.Min(a,a-s*.06f),Mathf.Max(a,a-s*.06f),Floor1-.10f,Floor1+.40f,6.0f,32.5f);
             Balustrade(a,6.0f,32.5f,Floor1+.40f,s);
             // hall side wall below the gallery: larch panels with the shopfronts of the waiting room and the ticket hall

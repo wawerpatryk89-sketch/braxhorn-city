@@ -273,17 +273,10 @@ public static partial class BraxChampionsD2
     static void Access()
     {
         foreach(float xa in Accesses)for(int p=0;p<2;p++)Stair(xa,p);
-        // the passage under the tracks at the hall (x -6..6): larch slat ceiling under the deck, LED lines, wayfinding
+        DeckCeiling();
+        // wayfinding at the stair feet
         foreach(float xa in Accesses)
         {
-            float x0=xa-8f,x1=xa+14f;
-            for(float z=DeckZ0+.6f;z<DeckZ1-.7f;z+=.25f)
-            {
-                bool hole=false;for(int p=0;p<2;p++){var (b0,b1)=Band(p);if(z+.15f>b0-.05f&&z<b1+.05f)hole=true;}
-                if(hole)continue;
-                B(larchSoffit,x0,x1,DeckSoffit-.12f,DeckSoffit-.06f,z,z+.15f);
-            }
-            for(float z=DeckZ0+3f;z<DeckZ1-2f;z+=6f)B(led,x0,x1,DeckSoffit-.14f,DeckSoffit-.12f,z-.04f,z+.04f);
             // the "PERON 1" / "PERON 2" signs at the stair feet
             for(int p=0;p<2;p++)
             {
@@ -295,6 +288,42 @@ public static partial class BraxChampionsD2
             }
         }
     }
+    // the whole underside of the station deck over the paved arcade (owner 11.11 15:29: no raw concrete ceilings): larch slats
+    // along x (15 cm, pitch 25 cm) 4 cm under black acoustic felt, cut round the stair / lift openings; cool LED lines along
+    // x between the platform bands. The frames' cap beams and the edge beams stay fair-faced concrete (structure).
+    static void DeckCeiling()
+    {
+        var holes=new List<(float x0,float x1,float z0,float z1)>();
+        foreach(float xa in Accesses)for(int p=0;p<2;p++){var (b0,b1)=Band(p);foreach(var (o0,o1) in Holes(xa))holes.Add((o0,o1,b0,b1));}
+        float x0=PlatX0+.3f,x1=DeckEndX-.3f,za=DeckZ0+.5f,zb=DeckZ1-.5f,yf=DeckSoffit-.012f;
+        // felt: strips between the holes (as the slab)
+        List<(float,float)> XRuns(float z,float w,float mz)
+        {
+            var r=new List<(float,float)>();float x=x0;var hx=new List<(float,float)>();
+            foreach(var h in holes)if(z+w>h.z0-mz&&z<h.z1+mz)hx.Add((h.x0-.05f,h.x1+.05f));
+            hx.Sort((p,q)=>p.Item1.CompareTo(q.Item1));
+            foreach(var (h0,h1) in hx){if(h0>x+.1f)r.Add((x,h0));x=Mathf.Max(x,h1);}
+            if(x1>x+.1f)r.Add((x,x1));
+            return r;
+        }
+        var zs=new List<float>{za,zb};foreach(var h in holes){zs.Add(h.z0);zs.Add(h.z1);}
+        zs.Sort();
+        for(int i=0;i+1<zs.Count;i++)
+        {
+            float a=Mathf.Max(za,zs[i]),b=Mathf.Min(zb,zs[i+1]);if(b-a<.01f)continue;
+            foreach(var (u0,u1) in XRuns(a+.001f,b-a-.002f,0f))
+                Q(acousticDeck(),new Vector3(u0,yf,a),new Vector3(u1,yf,a),new Vector3(u1,yf,b),new Vector3(u0,yf,b),Vector3.down);
+        }
+        for(float z=za+.05f;z+.15f<zb;z+=.25f)foreach(var (u0,u1) in XRuns(z,.15f,.05f))B(larchSoffit,u0,u1,DeckSoffit-.10f,DeckSoffit-.05f,z,z+.15f);
+        var (p1a,p1b)=Band(0);var (p2a,p2b)=Band(1);
+        foreach(float lz in new[]{p1b+2.5f,(p1b+p2a)*.5f,p2a-2.5f})
+        {
+            float g=za+.05f+Mathf.Round((lz-za-.05f)/.25f)*.25f+.20f;                       // the middle of a gap between two slats
+            B(led,x0,x1,DeckSoffit-.08f,DeckSoffit-.05f,g-.03f,g+.03f);
+        }
+    }
+    static Material deckFelt;
+    static Material acousticDeck(){if(!deckFelt)deckFelt=Tex("deck_soffit_felt_black","poly_wool_herringbone",.8f,new Color(.13f,.13f,.15f));return deckFelt;}
     // two flights (20 risers each) rising toward +x from xa-7 (passage .30) to xa+7 (platform 7.26), landing at xa-1..xa+1;
     // the lift (glass shaft, navy frame) beyond the top; glass balustrade round the opening on the platform
     static void Stair(float xa,int p)

@@ -119,8 +119,10 @@ public static partial class BraxChampionsD2
         water=S("fountain_water",new Color(.22f,.40f,.46f,.62f),.03f,.1f,null,true);
         waterJet=S("fountain_jet",new Color(.88f,.94f,.97f,.24f),.05f,0f,new Color(.22f,.24f,.26f),true);
         hallFloor=Inside(Tex("hall_granite","granite_tile_03",1.2f,new Color(1.08f,1.12f,1.20f)),.85f);
-        plaster=Inside(Tex("plaster_white","white_stucco_02",2.0f,new Color(1.06f,1.08f,1.12f)),BraxChampionsInteriorLight.Walls);
-        ceilWhite=Inside(Tex("ceiling_white","white_stucco_02",2.0f,new Color(1.10f,1.12f,1.16f)),BraxChampionsInteriorLight.Ceilings);
+        // interior partitions: smooth warm-white emulsion on skimmed plaster (the stucco texture read as grey concrete)
+        plaster=Inside(S("wall_paint_warm_white",new Color(.91f,.90f,.87f),.82f,0f),BraxChampionsInteriorLight.Walls);
+        // smooth painted plasterboard (the stucco texture read as raw concrete on a ceiling - owner 11.11 15:29)
+        ceilWhite=Inside(S("ceiling_board_white",new Color(.93f,.93f,.92f),.88f,0f),BraxChampionsInteriorLight.Ceilings);
         tunnelDark=S("tunnel_soot",new Color(.045f,.045f,.05f),.95f,0f);
         black=S("black_matte",new Color(.03f,.03f,.035f),.6f,0f);
         rubber=S("rubber_black",new Color(.05f,.05f,.055f),.85f,0f);
@@ -576,8 +578,10 @@ public static partial class BraxChampionsD2
     // ---- markings: lane arrows, zebra on the table, lay-by bays, "K+R" and "TAXI" painted, bus stand numbers + bay lines
     static void Markings(List<Vector2> c)
     {
-        // zebra stripes across the table (x -6..6), 0.5 m stripes / 0.5 m gaps, along the walking direction (z)
-        for(float x=-TableX+.25f;x<TableX-.2f;x+=1.0f)Flat(paintWhite,x,x+.5f,FrontZ-LaneHalf+.3f,FrontZ+LaneHalf-.3f,WalkY+.012f);
+        // zebra (P-10) on the table: the stripes PARALLEL TO THE LANE (x), 0.5 m wide / 0.5 m gaps, laid one after another
+        // across the lane (z) - the pedestrian walking north to the entrance steps over them (owner 11.11 15:28: they were
+        // along the walking direction); crossing 10 m wide in front of the three doors
+        for(int k=0;k<7;k++){float z=FrontZ-LaneHalf+.25f+k*1.0f;Flat(paintWhite,-5f,5f,z,z+.5f,WalkY+.012f);}
         // arrows: in-arm north, front lane east, out-arm south
         Arrow(new Vector2(-ArmX,-38f),new Vector2(0,1));Arrow(new Vector2(-26f,FrontZ),new Vector2(1,0));Arrow(new Vector2(26f,FrontZ),new Vector2(1,0));
         Arrow(new Vector2(ArmX,-32f),new Vector2(0,-1));

@@ -130,10 +130,16 @@ public static partial class BraxChampionsD2
     static void UpperFloor(float s)
     {
         float X(float v)=>s*v;float y=UpY;
-        // ceiling: white under the attic slab with a grid of downlights
-        float lo=Mathf.Min(X(HallW+.06f),X(BW-.06f)),hi=Mathf.Max(X(HallW+.06f),X(BW-.06f));
-        Flip(ceilWhite,lo,hi,.06f,BD-.06f,Eave-.42f);
-        for(float x=21f;x<39f;x+=3f)for(float z=2f;z<35f;z+=3f){var p=new Vector3(X(x),Eave-.43f,z);m.Cylinder(ledWarm,p+Vector3.down*.0f,.09f,.012f,12,Quaternion.Euler(180,0,0),true,false);}
+        // ceilings (owner 11.11 15:29: finished, not concrete): the food court and the corridor under larch slats on black
+        // felt with LED lines (as the hall); the shops / offices (east, x 33..40) a smooth white plasterboard with downlights
+        float yc=Eave-.42f,xe=s<0?BW-.06f:32.74f;
+        float lo=Mathf.Min(X(HallW+.26f),X(xe)),hi=Mathf.Max(X(HallW+.26f),X(xe));
+        SlatCeiling(lo,hi,.06f,BD-.06f,yc,null);
+        if(s>0)
+        {
+            Flip(ceilWhite,33f,BW-.06f,.06f,BD-.06f,yc);
+            for(float x=34.5f;x<39.6f;x+=2.4f)for(float z=1.5f;z<35f;z+=2.4f)m.Cylinder(ledWarm,new Vector3(x,yc-.002f,z),.09f,.012f,16,Quaternion.Euler(180,0,0),true,false);
+        }
         // the walls of the +1 rooms toward the outside are the facade glazing; inner partitions here
         // the hall's vault springs at 6.8 inside, the wing's ceiling is at 7.58: a navy edge beam closes the gap over the gallery
         float ex=s*HallW;
@@ -147,10 +153,10 @@ public static partial class BraxChampionsD2
         {
             float z0=10f+i*8.2f,z1=z0+7.6f,xb=-39.6f,xf=-36.4f;
             // back wall with the walnut panelling and the navy name band; the counter in front (marble top, walnut front, LED)
-            B(wallPanel,xb-.1f,xb,y,y+2.9f,z0,z1,true);
-            B(navy,xb,xb+.25f,y+2.25f,y+2.95f,z0+.2f,z1-.2f);
+            B(wallPanel,xb-.1f,xb,y,Eave-.42f,z0,z1,true);                                   // up to the ceiling (2.68 m)
+            B(navy,xb,xb+.25f,y+2.15f,y+2.62f,z0+.2f,z1-.2f);
             var lm=new BraxChampionsMeshBatch();
-            BraxChampionsLetters3D.Text(lm,stainless,frame,names[i],new Vector3(xb+.252f,y+2.40f,(z0+z1)*.5f),90f,.36f,.04f,.10f,z1-z0-1f);
+            BraxChampionsLetters3D.Text(lm,stainless,frame,names[i],new Vector3(xb+.252f,y+2.24f,(z0+z1)*.5f),90f,.30f,.04f,.10f,z1-z0-1f);
             BraxChampionsLetters3D.Build(lm,root,"D2 napis "+names[i]);Signs++;
             for(int k=0;k<3;k++){float zc=z0+1.4f+k*2.4f;B(black,xb,xb+.05f,y+1.45f,y+2.1f,zc-.55f,zc+.55f);B(screenLit(),xb+.05f,xb+.056f,y+1.5f,y+2.05f,zc-.5f,zc+.5f);}
             B(walnut,xf-.6f,xf,y,y+1.02f,z0+.4f,z1-.4f,true);
@@ -204,12 +210,13 @@ public static partial class BraxChampionsD2
         for(int i=0;i<3;i++)
         {
             float z0=8.5f+i*9.0f,z1=z0+8.4f,xf=33f;
-            // glass front with a door, the name on a navy band over it
-            GlazingZ(xf,z0,z0+3.0f,y,y+2.9f,1f);GlazingZ(xf,z0+4.6f,z1,y,y+2.9f,1f);GlazingZ(xf,z0+3.0f,z0+4.6f,y+2.4f,y+2.9f,1f);
-            Door("D2_up_"+i,"D2 piętro "+names[i],xf,y,z0+3.8f,90f,1.6f,2.35f,true);
-            B(navy,xf-.25f,xf,y+2.9f,y+3.35f,z0,z1,true);
+            // glass front with a door (black frames), the name on a navy band over it up to the ceiling (clear height 2.68 m)
+            GlazingZ(xf,z0,z0+3.0f,y,y+2.2f,1f);GlazingZ(xf,z0+4.6f,z1,y,y+2.2f,1f);
+            B(frame,xf-.08f,xf+.08f,y+2.1f,y+2.2f,z0+3.0f,z0+4.6f);
+            Door("D2_up_"+i,"D2 piętro "+names[i],xf,y,z0+3.8f,90f,1.6f,2.1f,true);
+            B(navy,xf-.26f,xf,y+2.2f,Eave-.42f,z0,z1,true);
             var lm=new BraxChampionsMeshBatch();
-            BraxChampionsLetters3D.Text(lm,stainless,frame,names[i],new Vector3(xf-.252f,y+2.98f,(z0+z1)*.5f),-90f,.28f,.03f,.10f,z1-z0-1f);
+            BraxChampionsLetters3D.Text(lm,stainless,frame,names[i],new Vector3(xf-.262f,y+2.30f,(z0+z1)*.5f),-90f,.26f,.03f,.10f,z1-z0-1f);
             BraxChampionsLetters3D.Build(lm,root,"D2 napis "+names[i]);Signs++;
             // side walls between the units (walnut lining inside)
             B(plaster,xf,BW-.1f,y,Eave-.42f,z1,z1+.12f,true);
