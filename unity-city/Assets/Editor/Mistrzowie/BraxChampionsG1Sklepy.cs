@@ -17,7 +17,7 @@ using UnityEngine;
 // Small goods sit in LOD groups that disappear beyond ~25 m (phone cost; no far-distance depth fighting).
 public static partial class BraxChampionsD2
 {
-    static Material eAlu,eKey,eBezel,eBack,eWhite,eDisplay;
+    static Material eAlu,eKey,eBezel,eBack,eWhite,eDisplay,jSilver,jDial,jDiamond,jSapphire,jEmerald,jRuby;
     static readonly System.Random g1Rng=new System.Random(1111);
     static Transform g1Goods;
     // the screen atlas (1024 x 256): desktop | film still | football game (256 x 144 each) | phone home screen (118 x 256)
@@ -30,6 +30,13 @@ public static partial class BraxChampionsD2
     static void ShopMaterials()
     {
         eAlu=Inside(S("g1_el_aluminium",new Color(.76f,.77f,.79f),.32f,.9f),.9f);
+        // jewellery (owner 19:29: the jeweller must read as a jeweller): polished silver / platinum, a white dial, cut stones
+        jSilver=Inside(S("g1_jewel_silver_polished",new Color(.92f,.92f,.94f),.06f,1f),.95f);
+        jDial=Inside(S("g1_jewel_dial_white",new Color(.95f,.95f,.93f),.18f,0f),.95f);
+        jDiamond=Inside(S("g1_jewel_diamond",new Color(.95f,.98f,1.0f),.02f,0f,new Color(.30f,.32f,.36f)),.95f);
+        jSapphire=Inside(S("g1_jewel_sapphire",new Color(.10f,.22f,.85f),.03f,0f,new Color(.04f,.08f,.30f)),.95f);
+        jEmerald=Inside(S("g1_jewel_emerald",new Color(.04f,.60f,.30f),.03f,0f,new Color(.02f,.20f,.10f)),.95f);
+        jRuby=Inside(S("g1_jewel_ruby",new Color(.75f,.04f,.10f),.03f,0f,new Color(.25f,.01f,.03f)),.95f);
         eKey=Inside(S("g1_el_keys_black",new Color(.05f,.05f,.06f),.55f,0f),.9f);
         eBezel=Inside(S("g1_el_bezel_black",new Color(.02f,.02f,.025f),.12f,0f),.9f);
         eBack=Inside(S("g1_el_back_graphite",new Color(.14f,.15f,.17f),.25f,.6f),.9f);
@@ -182,6 +189,53 @@ public static partial class BraxChampionsD2
         var pad=p+f*.24f+r*.12f;
         m.RoundedBox(eKey,pad+Vector3.up*.02f,new Vector3(.15f,.035f,.06f),.015f,rot,2);
         foreach(float s in new[]{-1f,1f})m.RoundedBox(eKey,pad+Vector3.up*.018f+r*s*.06f-f*.03f,new Vector3(.045f,.03f,.08f),.014f,rot,2);
+    }
+    // ---- jewellery built in code (owner 17:33: "jeżeli potrafisz zrobić sam ... realistycznie"): p on the display surface,
+    // f toward the customer
+    static Vector3 JU(Vector3 f)=>Vector3.Cross(Vector3.up,f).normalized;
+    static void JGem(Vector3 c,float r,Material mat,Quaternion rot)
+    {
+        m.Lathe(mat,c,new[]{new Vector2(.0005f,-r*.9f),new Vector2(r,-r*.05f),new Vector2(r*.62f,r*.35f),new Vector2(.0005f,r*.42f)},8,rot,false,false);
+    }
+    static void JRingTorus(Vector3 c,float R,float r,Material mat,Quaternion rot)
+    {
+        var prof=new List<Vector2>();for(int i=0;i<=10;i++){float a=Mathf.PI*2f*i/10f;prof.Add(new Vector2(R+Mathf.Cos(a)*r,Mathf.Sin(a)*r));}
+        m.Lathe(mat,c,prof.ToArray(),20,rot,false,false);
+    }
+    // a wristwatch on a black velvet cushion: the polished case and bezel, a white dial with black indices and hands, the
+    // crown, a black leather strap over the cushion
+    static void Watch(Vector3 p,Vector3 f)
+    {
+        f.y=0;f.Normalize();var u=JU(f);var rot=Quaternion.LookRotation(f,Vector3.up);
+        m.RoundedBox(gVelvetBlack,p+Vector3.up*.032f,new Vector3(.075f,.064f,.05f),.022f,rot,2);
+        m.RoundedBox(gLeatherBlack,p+Vector3.up*.064f+f*.004f,new Vector3(.020f,.006f,.058f),.003f,rot,1);
+        var c=p+Vector3.up*.040f+f*.027f;var face=Quaternion.FromToRotation(Vector3.up,f);
+        m.RoundedBox(gLeatherBlack,c,new Vector3(.020f,.062f,.006f),.003f,rot,1);
+        m.Cylinder(jSilver,c,.020f,.010f,24,face,true,true,.019f);
+        m.Cylinder(jDial,c+f*.0101f,.0165f,.0008f,24,face,true,false);
+        for(int i=0;i<12;i++){float a=i*30f*Mathf.Deg2Rad;var q=c+f*.0112f+(u*Mathf.Sin(a)+Vector3.up*Mathf.Cos(a))*.0135f;m.Box(eKey,q,new Vector3(.0012f,.0012f,.0006f)+((i%3==0)?new Vector3(.0006f,.0025f,0f):Vector3.zero),rot*Quaternion.Euler(0,0,-i*30f));}   // 1 mm indices: a radius would not show
+        m.Box(eKey,c+f*.0114f+Vector3.up*.004f,new Vector3(.0012f,.009f,.0005f),rot);
+        m.Box(eKey,c+f*.0114f+u*.004f,new Vector3(.011f,.0012f,.0005f),rot*Quaternion.Euler(0,0,12f));
+        m.Cylinder(jSilver,c+u*.021f,.0022f,.004f,8,Quaternion.FromToRotation(Vector3.up,u),true,true);
+    }
+    // a ring in an open velvet box: the base, the lid tilted back, the band (polished) with a cut stone
+    static void RingBox(Vector3 p,Vector3 f,Material stone)
+    {
+        f.y=0;f.Normalize();var u=JU(f);var rot=Quaternion.LookRotation(f,Vector3.up);
+        m.RoundedBox(gVelvetBlack,p+Vector3.up*.019f,new Vector3(.052f,.038f,.052f),.008f,rot,2);
+        m.RoundedBox(gVelvetBlack,p+Vector3.up*.058f-f*.029f,new Vector3(.052f,.046f,.010f),.004f,rot*Quaternion.Euler(-14f,0,0),2);
+        var c=p+Vector3.up*.050f;
+        JRingTorus(c,.0095f,.0016f,jSilver,Quaternion.FromToRotation(Vector3.up,u));
+        JGem(c+Vector3.up*.0122f,.0042f,stone,Quaternion.identity);
+    }
+    // a necklace on a black velvet neck form: the chain round the neck (lower in front), the pendant stone
+    static void NecklaceBust(Vector3 p,Vector3 f,Material stone)
+    {
+        f.y=0;f.Normalize();var u=JU(f);
+        m.Lathe(gVelvetBlack,p,new[]{new Vector2(.055f,0f),new Vector2(.05f,.012f),new Vector2(.03f,.03f),new Vector2(.022f,.10f),new Vector2(.024f,.17f),new Vector2(.05f,.20f),new Vector2(.056f,.215f),new Vector2(.002f,.225f)},20,Quaternion.identity,true,false);
+        Vector3 Q(float a){float s=Mathf.Sin(a),c=Mathf.Cos(a);return p+u*(s*.027f)+f*(c*.027f)+Vector3.up*(.155f-.035f*Mathf.Max(0f,c));}
+        for(int i=0;i<20;i++){float a0=Mathf.PI*2f*i/20f,a1=Mathf.PI*2f*(i+1)/20f;m.Tube(jSilver,Q(a0),Q(a1),.0012f,5);}
+        JGem(Q(0f)+f*.003f-Vector3.up*.007f,.006f,stone,Quaternion.FromToRotation(Vector3.up,f));
     }
     static void Camera(Vector3 p,Vector3 f)
     {
@@ -460,6 +514,7 @@ public static partial class BraxChampionsD2
                 // vitrines: white marble bases, glass cases in black frames (empty until the jewellery models)
                 for(float d=3.0f;d<D-2.0f;d+=2.8f)foreach(float t in new[]{Wd*.3f,Wd*.7f})
                 {
+                    {var tt=t;var dd=d;Goods(nm+" | witryna",()=>{Material[] st={jDiamond,jSapphire,jEmerald,jRuby};for(int i=0;i<4;i++){var p=P(tt-.54f+i*.36f,y+.93f,dd+.36f);if(i%3==0)Watch(p,toFront);else if(i%3==1)RingBox(p,toFront,st[(i+(int)dd)%4]);else NecklaceBust(p,toFront,st[(i+1)%4]);}});}
                     Box(gCinemaDark,t-.74f,t+.74f,y,y+.08f,d+.06f,d+.64f);Box(walnut,t-.8f,t+.8f,y+.08f,y+.86f,d,d+.7f,true);Box(StoneTop(),t-.82f,t+.82f,y+.86f,y+.9f,d-.02f,d+.72f);Box(gCinemaDark,t-.75f,t+.75f,y+.9f,y+.93f,d+.05f,d+.65f);   // walnut cabinet on a shadow plinth, stone top
                     var g0=P(t-.78f,y+.93f,d+.02f);var g1=P(t+.78f,y+1.3f,d+.68f);
                     B(frame,Mathf.Min(g0.x,g1.x),Mathf.Max(g0.x,g1.x),y+1.30f,y+1.33f,Mathf.Min(g0.z,g1.z),Mathf.Max(g0.z,g1.z));
@@ -471,7 +526,9 @@ public static partial class BraxChampionsD2
                 {
                     SideWall(s,2.6f,D-1.2f,false);if(SideOpen(s))continue;
                     float w=s==0f?0f:Wd,dr=s==0f?1f:-1f;
-                    for(float d=2.75f;d+1.3f<D-1.3f;d+=1.5f){GlassCase(Mathf.Min(w+dr*.10f,w+dr*.48f),Mathf.Max(w+dr*.10f,w+dr*.48f),d,d+1.3f,y+.90f,.42f);SB(ledWarm,Mathf.Min(w+dr*.12f,w+dr*.46f),Mathf.Max(w+dr*.12f,w+dr*.46f),y+1.31f,y+1.32f,d+.05f,d+1.25f);}
+                    var face=s==0f?alongT:-alongT;
+                    for(float d=2.75f;d+1.3f<D-1.3f;d+=1.5f){var dd=d;var ww=w+dr*.29f;Goods(nm+" | gablota ścienna",()=>{Material[] st={jSapphire,jDiamond,jRuby,jEmerald};for(int i=0;i<3;i++){var p=P(ww,y+.90f,dd+.25f+i*.40f);if(i==1)NecklaceBust(p,face,st[i]);else if(i==0)Watch(p,face);else RingBox(p,face,st[(int)dd%4]);}});
+                        GlassCase(Mathf.Min(w+dr*.10f,w+dr*.48f),Mathf.Max(w+dr*.10f,w+dr*.48f),d,d+1.3f,y+.90f,.42f);SB(ledWarm,Mathf.Min(w+dr*.12f,w+dr*.46f),Mathf.Max(w+dr*.12f,w+dr*.46f),y+1.31f,y+1.32f,d+.05f,d+1.25f);}
                 }
                 break;
             }

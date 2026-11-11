@@ -50,6 +50,27 @@ public static class G1Program
         var g1 = GameObject.Registry.Find(g => g.transform.parent == null && g.name.StartsWith("G1 | "));
         if (g1 != null) g1.transform.SetParent(root, true);
         Console.WriteLine("G1 doors=" + BraxChampionsD2.Doors + " bays=" + BraxChampionsD2.G1Bays + " accessible=" + BraxChampionsD2.G1AccessibleBays + " colliders=" + BraxChampionsD2.Colliders + " seats=" + BraxChampionsD2.Seats + " shops=" + BraxChampionsD2.G1Shops);
+        // preview only (owner 11.11 19:30 "rób skalę wszystkiego"): 1.80 m reference figures (nominal, x K like the game) at the
+        // points of figures.json [[x, floor y, z, yaw], ...] (nominal world metres) - never part of the game
+        if (args.Length > 2 && File.Exists(args[2]))
+        {
+            var fm = new Material { name = "preview_scale_figure_180cm", color = new Color(.62f, .64f, .68f), roughness = .6f };
+            var fb = new BraxChampionsMeshBatch();
+            var txt = File.ReadAllText(args[2]).Replace("[", " ").Replace("]", " ").Split(new[] { ',', ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i + 3 < txt.Length; i += 4)
+            {
+                float x = float.Parse(txt[i], CultureInfo.InvariantCulture), y = float.Parse(txt[i + 1], CultureInfo.InvariantCulture), z = float.Parse(txt[i + 2], CultureInfo.InvariantCulture), yaw = float.Parse(txt[i + 3], CultureInfo.InvariantCulture);
+                var b = new Vector3(x - 940f, y, z - 175f); var r = Quaternion.Euler(0, yaw, 0);
+                Vector3 P(float a, float h, float d) => b + r * new Vector3(a, h, d);
+                foreach (float s in new[] { -1f, 1f }) { fb.Cylinder(fm, P(s * .10f, 0f, 0f), .075f, .86f, 12, Quaternion.identity, true, true, .09f); fb.Cylinder(fm, P(s * .25f, .86f, 0f), .045f, .58f, 10, Quaternion.identity, true, true, .055f); }
+                fb.RoundedBox(fm, P(0f, 1.16f, 0f), new Vector3(.40f, .62f, .22f), .08f, r, 2);
+                fb.Cylinder(fm, P(0f, 1.47f, 0f), .055f, .09f, 10, Quaternion.identity, true, true);
+                var prof = new System.Collections.Generic.List<Vector2>(); for (int k = 0; k <= 8; k++) { float t = Mathf.PI * k / 8f; prof.Add(new Vector2(Mathf.Max(.002f, Mathf.Sin(t) * .115f), .115f - Mathf.Cos(t) * .115f)); }
+                fb.Lathe(fm, P(0f, 1.565f, 0f), prof.ToArray(), 16, Quaternion.identity, false, false);
+            }
+            var fg = new GameObject("PREVIEW | skala: człowiek 1,80 m").transform; fg.SetParent(g1 != null ? g1.transform : root, false);
+            fb.Build(fg, "PREVIEW skala 1,80 m", "out", false);
+        }
         MeshDump.Write(args.Length > 1 ? args[1] : "g1_geometry.json", root, K);
     }
 }

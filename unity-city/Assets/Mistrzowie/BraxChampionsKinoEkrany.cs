@@ -42,6 +42,27 @@ public static class BraxChampionsKinoEkrany
         T(px, w, h, "WKRÓTCE", 26, 5, 1, Bursztyn);
         T(px, w, h, "NOWY FILM", 26, 18, 1, BraxChampionsPiksele.Cyjan);
     }
+    // the bar's three menu screens (owner 19:30: "trzy monitorki. Co to jest"): POPCORN / NAPOJE / ZESTAWY with prices
+    public static void MenuBaru(Color32[] px, int k)
+    {
+        int w = EW, h = EH; BraxChampionsPiksele.Wypelnij(px, Ciemny);
+        BraxChampionsPiksele.Prost(px, w, h, 0, h - 22, w, h, Pasek);
+        string[] tyt = { "POPCORN", "NAPOJE", "ZESTAWY KINO" };
+        string[][] poz = {
+            new[] { "MAŁY 1,5 L", "14 ZŁ", "ŚREDNI 3 L", "19 ZŁ", "DUŻY 5 L", "24 ZŁ", "KARMEL / SER", "+3 ZŁ" },
+            new[] { "COLA 0,5 L", "9 ZŁ", "WODA 0,5 L", "6 ZŁ", "SOK 0,3 L", "8 ZŁ", "KAWA LATTE", "11 ZŁ" },
+            new[] { "ZESTAW 1: POPCORN + COLA", "26 ZŁ", "ZESTAW 2: 2 X POPCORN", "45 ZŁ", "NACHOS + SOS", "17 ZŁ", "HOT DOG", "12 ZŁ" } };
+        k = Mathf.Clamp(k, 0, 2);
+        S(px, w, h, tyt[k], 5, 2, BraxChampionsPiksele.Bialy);
+        for (int i = 0; i < 4; i++)
+        {
+            int y = 34 + i * 24;
+            T(px, w, h, poz[k][2 * i], 10, y, 1, Bursztyn);
+            string c = poz[k][2 * i + 1]; T(px, w, h, c, w - 10 - BraxChampionsPiksele.Szer(c, 2), y - 3, 2, BraxChampionsPiksele.Bialy);
+            if (i < 3) BraxChampionsPiksele.Prost(px, w, h, 10, h - y - 16, w - 10, h - y - 15, new Color32(60, 60, 70, 255));
+        }
+        S(px, w, h, "BAR · BRAXHORN KINO", h - 14, 1, BraxChampionsPiksele.Cyjan);
+    }
     // a poster light box with no poster: the WKRÓTCE card
     public static void KartaWkrotce(Color32[] px)
     {

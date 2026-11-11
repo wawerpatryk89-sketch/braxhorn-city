@@ -19,7 +19,7 @@ using UnityEngine;
 // sofas, chairs and beds are BraxSeat places. The goods-in (x 47..85, z -55..-38) is behind the store.
 public static partial class BraxChampionsD2
 {
-    static Material hBoucle,hWoolGrey,hWoolCharcoal,hVelvetGreen,hVelvetRust,hLinen,hCotton,hTaupe,hCognac,hOakSolid,hParquet,hRugGrey,hRugBeige,hOpal,hShade;
+    static Material hBoucle,hWoolGrey,hWoolCharcoal,hVelvetGreen,hVelvetRust,hLinen,hCotton,hTaupe,hCognac,hOakSolid,hParquet,hRugGrey,hRugBeige,hOpal,hShade,hConcrete;
     static void HomeMaterials()
     {
         if(hBoucle)return;
@@ -34,6 +34,9 @@ public static partial class BraxChampionsD2
         hCognac=Inside(Tex("g1_home_leather_cognac","brown_leather",.6f,new Color(1.55f,1.45f,1.35f)),.85f);
         hOakSolid=Inside(Tex("g1_home_oak_solid","oak_wood_planks",2.4f,new Color(1.05f,.98f,.92f)),.85f);
         hParquet=Inside(Tex("g1_home_parquet","herringbone_parquet",1.8f,new Color(1.0f,.95f,.90f)),.85f);
+        // owner 11.11 19:31-19:32 ("wszystko w jednym kolorze ... się zlewa", "zmień teksturę na słupy"): the columns in grey
+        // polished microcement (not wood), the ceiling black
+        hConcrete=Inside(Tex("g1_home_polished_concrete","concrete_floor_02",3.0f,new Color(.92f,.92f,.94f)),.85f);
         hRugGrey=Inside(Tex("g1_home_rug_grey","poly_wool_herringbone",.9f,new Color(1.05f,1.05f,1.10f)),.85f);
         hRugBeige=Inside(Tex("g1_home_rug_beige","terlenka",1.2f,new Color(1.05f,1.0f,.95f)),.85f);
         hOpal=S("g1_home_opal_glass",new Color(.98f,.95f,.88f),.15f,0f,new Color(1.25f,1.05f,.78f));
@@ -318,12 +321,22 @@ public static partial class BraxChampionsD2
         float wz0=-12.6f,wz1=-7.4f,wx=81.0f;                                   // the side entrance's windbreak (street door x 85)
         // ---- floor: herringbone oak parquet; the windbreak in the malls' stone; the walls lined; the ceiling slats
         void Fl(Material mat,float a,float b,float c0,float c1){if(b-a>.01f&&c1-c0>.01f)B(mat,a,b,WalkY,y,c0,c1,true);}
-        Fl(hParquet,x0,wx,z0,9.94f);Fl(hParquet,wx,x1,z0,wz0);Fl(hParquet,wx,x1,wz1,9.94f);Fl(gMallBand,wx,x1,wz0,wz1);
+        Fl(hParquet,x0,wx,z0,9.94f);Fl(hParquet,wx,x1,z0,wz0);Fl(hParquet,wx,x1,wz1,9.94f);   // owner 19:32: "podłoga może być"Fl(gMallBand,wx,x1,wz0,wz1);
         B(gWhitePanel,x0-.15f,x0,y,G1Slab,z0,G1SouthMallZ0,true);B(gWhitePanel,x0-.15f,x0,y,G1Slab,G1SouthMallZ1,z1-.06f,true);
         B(gDark,x0-.17f,x0,4.2f,G1Slab,G1SouthMallZ0,G1SouthMallZ1);
         B(gWallWarm,x0,x0+.06f,y,G1Ceil0,-35.06f,G1SouthMallZ0);B(gWallWarm,x0,x0+.06f,y,G1Ceil0,G1SouthMallZ1,9.94f);
         B(gWallWarm,x0+.06f,x1,y,G1Ceil0,9.94f,10f);
-        SlatCeiling(x0+.06f,x1,z0,9.94f,G1Ceil0,null);
+        // a black ceiling with black tracks and spotlights over the room settings (a showroom, not a wood box)
+        Q(gCinemaDark,new Vector3(x0+.06f,G1Ceil0,z0),new Vector3(x1,G1Ceil0,z0),new Vector3(x1,G1Ceil0,9.94f),new Vector3(x0+.06f,G1Ceil0,9.94f),Vector3.down);
+        foreach(float zt in new[]{-31.5f,-28.0f,-19.0f,-12.5f,-1.5f,2.0f})
+        {
+            B(frame,x0+1.0f,x1-1.0f,G1Ceil0-.05f,G1Ceil0,zt-.025f,zt+.025f);
+            for(float x=x0+2.0f;x<x1-1.5f;x+=2.2f)
+            {
+                var sp=new Vector3(x,G1Ceil0-.05f,zt);m.Cylinder(frame,sp-Vector3.up*.06f,.012f,.06f,8,Quaternion.identity,false,false);
+                m.Cylinder(frame,sp-Vector3.up*.24f,.055f,.18f,16,Quaternion.identity,true,false,.05f);m.Cylinder(ledWarm,sp-Vector3.up*.252f,.042f,.012f,16,Quaternion.identity,false,true);
+            }
+        }
         PortalSign("BRAXHORN HOME",new Vector3(x0-.17f,3.92f,(G1SouthMallZ0+G1SouthMallZ1)*.5f),Vector3.left,11.4f,"BRAXHORN HOME","MEBLE • OŚWIETLENIE • DODATKI",1.0f);
         // ---- the partitions (3.0 m, warm plaster, rounded) along the column lines z -35 (with the staff door) and z 5
         float py=y+3.0f;
@@ -421,7 +434,7 @@ public static partial class BraxChampionsD2
         // the armchair collection: a walnut podium (12 cm) between the column lines, eight armchairs facing the aisle
         Room("kolekcja foteli",()=>
         {
-            RB(walnut,56.2f,73.8f,y,y+.12f,-12.7f,-11.1f,.03f,true,2);
+            RB(granite,56.2f,73.8f,y,y+.12f,-12.7f,-11.1f,.02f,true,2);B(ledWarm,56.4f,73.6f,y+.02f,y+.035f,-12.712f,-12.70f);   // dark granite, an LED line along its front
             Material[] fab={hBoucle,hWoolGrey,hVelvetGreen,hCognac,hLinen,hWoolCharcoal,gLeatherBlack,hVelvetRust};
             Material[] acc={hVelvetRust,hBoucle,hLinen,hWoolGrey,hVelvetGreen,hBoucle,hCognac,hLinen};
             for(int i=0;i<8;i++)HSofa(new Vector3(57.3f+i*2.2f,y+.12f,-12.45f),Sth,.92f,fab[i],acc[i],i%2==0?walnut:frame,"fotel kolekcja",0f,1,.17f);

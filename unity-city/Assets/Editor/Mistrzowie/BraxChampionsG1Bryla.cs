@@ -89,11 +89,12 @@ public static partial class BraxChampionsD2
         {
             if(x<G1CinemaX1-.1f||Mathf.Abs(x)<.1f)continue;
             if(z>G1HallZ0-.1f&&Mathf.Abs(x)<20.1f)continue;
+            if(Mathf.Abs(x)<G1VoidX&&z>G1SouthMallZ1&&z<G1NorthMallZ0)continue;     // nothing standing in the atrium's void (owner 19:29: the columns were not joined)
             if((Mathf.Abs(z-35f)<.1f||Mathf.Abs(z+15f)<.1f)&&Mathf.Abs(x)<47.1f)continue;   // nothing on the malls' axes (owner 11.11 17:52: the column hid the KINO sign)
             bool pub=Mathf.Abs(x)<=G1MallX+.1f||(z>G1NorthMallZ0&&z<G1NorthMallZ1)||(z>G1SouthMallZ0&&z<G1SouthMallZ1)||(Mathf.Abs(x)<=G1FoodX+.1f&&z<G1FoodZ1);
             bool food=Mathf.Abs(x)<=G1FoodX+.1f&&z<G1FoodZ1;
             bool home=x>G1EastX0&&z>-38f&&z<10f;                                  // BRAXHORN HOME: round, walnut-clad
-            if(home){m.Cylinder(gWood,new Vector3(x,G1F0,z),.40f,G1Slab-G1F0,24,Quaternion.identity,false);Col(x-.4f,x+.4f,G1F0,G1Slab,z-.4f,z+.4f,"słup");m.Cylinder(gWood,new Vector3(x,G1F1,z),.35f,G1Roof-.9f-G1F1,24,Quaternion.identity,false);Col(x-.35f,x+.35f,G1F1,G1Roof-.9f,z-.35f,z+.35f,"słup");continue;}
+            if(home){HomeMaterials();m.Cylinder(hConcrete,new Vector3(x,G1F0,z),.40f,G1Slab-G1F0,24,Quaternion.identity,false);Col(x-.4f,x+.4f,G1F0,G1Slab,z-.4f,z+.4f,"słup");m.Cylinder(gWood,new Vector3(x,G1F1,z),.35f,G1Roof-.9f-G1F1,24,Quaternion.identity,false);Col(x-.35f,x+.35f,G1F1,G1Roof-.9f,z-.35f,z+.35f,"słup");continue;}
             float top=food?G1Roof-.9f:G1Slab;
             if(pub)
             {

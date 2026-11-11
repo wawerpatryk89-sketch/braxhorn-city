@@ -86,7 +86,7 @@ public static partial class BraxChampionsD2
         gVelvetBlack=Inside(Tex("g1_velvet_black","velour_velvet",.6f,new Color(.10f,.10f,.11f)),.7f);
         // trims: black anodised aluminium (smooth metal, clean PBR); letters: brushed stainless faces, graphite returns
         frame=S("g1_black_anodised_aluminium",new Color(.07f,.07f,.08f),.30f,.85f);
-        gLetterFace=S("g1_letters_brushed_steel",new Color(.86f,.87f,.89f),.22f,.92f,new Color(.34f,.34f,.36f));
+        gLetterFace=S("g1_letters_lit_white",new Color(.97f,.97f,.96f),.25f,0f,new Color(1.05f,1.05f,1.0f));   // owner 19:29: every sign readable - lit white faces
         gLetterSide=S("g1_letters_graphite_returns",new Color(.10f,.10f,.11f),.40f,.6f);
     }
 
@@ -100,7 +100,7 @@ public static partial class BraxChampionsD2
             Doors=Colliders=Signs=Bays=AccessibleBays=Benches=Lamps=Trees=Seats=Lifts=Screens=0;
             G1Bays=G1AccessibleBays=G1Shops=G1Halls=G1CinemaSeats=G1Escalators=0;
             treeGroup=null;treeModel=null;
-            Materials();FurnitureMaterials();BuildingMaterials();G1Materials();
+            Materials();FurnitureMaterials();BuildingMaterials();G1Materials();hBoucle=null;HomeMaterials();
             counterTop=StoneTop();benchWood=Inside(Tex("bench_oak","oak_wood_planks",1.0f,new Color(.92f,.86f,.82f)),.85f);wallPanel=gWood;
             var go=new GameObject("G1 | GALERIA GŁÓWNA + KINO MULTIPLEX | 170 x 110 x 24 m, plac, parkingi, dostawy (owner 11.11 board G1)");
             root=go.transform;root.position=new Vector3(G1CentreX,0,G1CentreZ)*K;

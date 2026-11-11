@@ -39,3 +39,19 @@ Kontrola przed oddaniem:
 - test w repozytorium pilnujący działania.
 
 Push i build tylko na słowo właściciela.
+
+## Uzupełnienie 11.11, 19:42 (właściciel)
+> „Wszystko funkcjonalne ma być. Wszystko, krzesła, wszystko ma być funkcjonalne. Bo później pod to będziemy wszystko
+> postacie robić. To jest globalna zasada. Wszystko w naszym świecie ma być funkcjonalne. Prysznic tak samo. Wchodzę pod
+> prysznic … i ma być prysznic, lecieć woda.”
+
+- **Każde krzesło, ławka, fotel, sofa, łóżko i fotel kinowy** ma miejsce do siedzenia albo leżenia (BraxSeat) o wysokości
+  i głębokości jak w życiu × K. Ozdobne siedzisko, na którym nie da się usiąść, jest niedokończone.
+- **Woda:**
+  - prysznic po wejściu albo AKCJI leje wodę (strumień, krople, dźwięk), a po wyjściu się zakręca;
+  - krany w umywalkach, zlewach i toaletach po AKCJI albo zbliżeniu dłoni lecą wodą;
+  - spłuczka spłukuje;
+  - fontanna leje stale.
+- **Urządzenia w sklepach i lokalach:** ekrany coś pokazują (menu, repertuar, produkt). Kasa, terminal i automat mają
+  swoją AKCJĘ albo przynajmniej działający ekran. Pusty niebieski prostokąt jest zakazany.
+- **Kino:** film leci na ekranie, a każdy fotel to miejsce do siedzenia.

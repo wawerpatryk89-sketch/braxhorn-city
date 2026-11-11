@@ -104,7 +104,7 @@ public static partial class BraxChampionsD2
         Debug.Log("G1_KINO sale=8 miejsca="+G1CinemaSeats+" tablice="+boards.Count+" plakaty="+posters.Count+" repertuar=StreamingAssets/Mistrzowie/Kino/repertuar.json");
     }
     static readonly List<Renderer> kSeatR=new List<Renderer>();static readonly List<int> kSeatH=new List<int>();
-    static Material kScreenBoard,kScreenCard;
+    static Material kScreenBoard,kScreenCard;static Material[] kMenu;
     static Material[] kScreenHall,kScreenDoor;
     static void KinoScreens()
     {
@@ -112,6 +112,8 @@ public static partial class BraxChampionsD2
         kScreenBoard=ScreenMaterial("g1_kino_repertuar",BraxChampionsKinoEkrany.TW,BraxChampionsKinoEkrany.TH,px);
         px=new Color32[BraxChampionsKinoEkrany.PW*BraxChampionsKinoEkrany.PH];BraxChampionsKinoEkrany.KartaWkrotce(px);
         kScreenCard=ScreenMaterial("g1_kino_plakat",BraxChampionsKinoEkrany.PW,BraxChampionsKinoEkrany.PH,px);
+        kMenu=new Material[3];
+        for(int i=0;i<3;i++){px=new Color32[BraxChampionsKinoEkrany.EW*BraxChampionsKinoEkrany.EH];BraxChampionsKinoEkrany.MenuBaru(px,i);kMenu[i]=ScreenMaterial("g1_kino_menu_baru_"+(i+1),BraxChampionsKinoEkrany.EW,BraxChampionsKinoEkrany.EH,px);}
         kScreenHall=new Material[8];kScreenDoor=new Material[8];
         for(int h=0;h<8;h++)
         {
@@ -170,7 +172,7 @@ public static partial class BraxChampionsD2
         }
         for(int i=0;i<2;i++){float x=-57.6f+i*1.5f;RB(stainless,x,x+1.1f,y+.99f,y+1.75f,z0+.1f,z0+.6f,.03f,false,2);for(int t=0;t<4;t++){RB(gCinemaDark,x+.1f+t*.25f,x+.2f+t*.25f,y+1.25f,y+1.35f,z0+.6f,z0+.68f,.012f,false,1);m.Cylinder(stainless,new Vector3(x+.15f+t*.25f,y+1.18f,z0+.64f),.008f,.07f,8,Quaternion.identity,true);}}
         RB(gCinemaDark,-54.6f,-53.6f,y+.99f,y+1.55f,z0+.1f,z0+.6f,.04f,false,2);m.Cylinder(stainless,new Vector3(-54.1f,y+1.25f,z0+.62f),.02f,.08f,10,Quaternion.Euler(90,0,0),true,true);   // the coffee machine
-        for(int i=0;i<3;i++){float x=-62.4f+i*3.2f;RB(gCinemaDark,x,x+2.8f,y+2.7f,y+4.3f,KLobbyZ+.19f,KLobbyZ+.25f,.02f,false,1);B(screenLit(),x+.06f,x+2.74f,y+2.76f,y+4.24f,KLobbyZ+.25f,KLobbyZ+.256f);}
+        for(int i=0;i<3;i++){float x=-62.4f+i*3.2f;RB(gCinemaDark,x,x+2.8f,y+2.7f,y+4.3f,KLobbyZ+.19f,KLobbyZ+.25f,.02f,false,1);ScreenQuad(kr,"menu baru "+(i+1),kMenu[i],new Vector3(x+1.4f,y+3.5f,KLobbyZ+.252f),2.68f,1.48f,180f);}   // the bar's menu: POPCORN / NAPOJE / ZESTAWY
         // over the reception (owner 11.11 19:09 "tam gdzie się kupuje bilety ... pod oba filmy"): the repertoire board (4.0 x
         // 1.8 m) between the two films' posters (16:9 screens 3.2 x 1.8, the owner's key art: slot 100 + film)
         RB(gCinemaDark,-76.0f-2.06f,-76.0f+2.06f,y+2.9f,y+4.82f,KLobbyZ+.19f,KLobbyZ+.25f,.02f,false,1);

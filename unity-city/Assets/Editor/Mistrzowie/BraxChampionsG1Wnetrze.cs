@@ -143,7 +143,22 @@ public static partial class BraxChampionsD2
         // floor (on the slab / screed), ceiling with downlights
         float ix0=u.x0+(oW?0f:.08f),ix1=u.x1-(oE?0f:.08f),iz0=u.z0+(oS?0f:.08f),iz1=fac?zb:u.z1-(oN?0f:.08f);
         B(ShopFloor(u.trade),ix0,ix1,u.level==0?WalkY:G1F1-.12f,y,iz0,iz1,true);
-        SlatCeiling(ix0+.01f,ix1-.01f,iz0+.02f,iz1-.02f,yc,null);                                    // timber slats on black felt, LED lines (no white ceilings)
+        // the ceiling by trade (owner 18:28 no white, 19:31 not one colour everywhere): electronics and sport black with LED
+        // lines, the "clean" trades (jewellery, cosmetics, optician, pharmacy, café, salon, services, flowers) warm plaster with
+        // downlights, fashion / shoes / books / toys / home timber slats on black felt
+        string tr=u.trade;
+        if(tr=="electronics"||tr=="phones"||tr=="games"||tr=="sport")
+        {
+            Q(gCinemaDark,new Vector3(ix0,yc,iz0),new Vector3(ix1,yc,iz0),new Vector3(ix1,yc,iz1),new Vector3(ix0,yc,iz1),Vector3.down);
+            if(ix1-ix0>iz1-iz0)for(float z=iz0+1.2f;z<iz1-.8f;z+=2.4f)B(led,ix0+.6f,ix1-.6f,yc-.03f,yc,z-.03f,z+.03f);
+            else for(float x=ix0+1.2f;x<ix1-.8f;x+=2.4f)B(led,x-.03f,x+.03f,yc-.03f,yc,iz0+.6f,iz1-.6f);
+        }
+        else if(tr=="jewellery"||tr=="cosmetics"||tr=="optician"||tr=="pharmacy"||tr=="cafe"||tr=="salon"||tr=="service"||tr=="flowers")
+        {
+            Q(gWallWarm,new Vector3(ix0,yc,iz0),new Vector3(ix1,yc,iz0),new Vector3(ix1,yc,iz1),new Vector3(ix0,yc,iz1),Vector3.down);
+            for(float x=ix0+1.3f;x<ix1-.9f;x+=1.8f)for(float z=iz0+1.3f;z<iz1-.9f;z+=1.8f){m.Cylinder(frame,new Vector3(x,yc-.014f,z),.075f,.014f,16,Quaternion.identity,false,true);m.Cylinder(ledWarm,new Vector3(x,yc-.026f,z),.055f,.012f,16,Quaternion.identity,false,true);}
+        }
+        else SlatCeiling(ix0+.01f,ix1-.01f,iz0+.02f,iz1-.02f,yc,null);                                    // timber slats on black felt, LED lines (no white ceilings)
         // the main front with its automatic door; a corner unit's second frontage glazed (no door), both with the name
         bool along=u.face=='S'||u.face=='N';
         ShopFront(u,u.face,true,along?u.x0:u.z0,along?u.x1:u.z1);
@@ -183,9 +198,9 @@ public static partial class BraxChampionsD2
         if(door)SlidingGlassDoor("G1 "+u.name+" drzwi",Fp(fc,y,.18f),yaw,dw,2.6f);
         FrontBox(gDark,f0+.012f,f1-.012f,y+4.08f,ym,.0f,.16f);
         var lm=new BraxChampionsMeshBatch();
-        float cap=Mathf.Min(.42f,(ym-y-4.08f)*.42f);
+        float cap=Mathf.Min(.46f,(ym-y-4.08f)*.62f);                                  // large, lit (owner 19:29: każdy szyld czytelny)
         var bp=Fp(fc,y+4.08f+((ym-y-4.08f)-cap)*.5f,-.002f);
-        BraxChampionsLetters3D.Text(lm,u.trade=="pharmacy"?Inside(S("g1_pharmacy_green_lit",new Color(.2f,.85f,.4f),.3f,0f,new Color(.25f,1.0f,.45f)),.9f):gLetterFace,gLetterSide,u.name,bp,yaw,cap,.05f,.12f,f1-f0-1.2f);
+        BraxChampionsLetters3D.Text(lm,u.trade=="pharmacy"?Inside(S("g1_pharmacy_green_lit",new Color(.2f,.85f,.4f),.3f,0f,new Color(.25f,1.0f,.45f)),.9f):gLetterFace,gLetterSide,u.name,bp,yaw,cap,.06f,.12f,f1-f0-1.2f);
         BraxChampionsLetters3D.Build(lm,root,"G1 szyld "+u.name+(door?"":" (narożnik)"));Signs++;
         FrontBox(led,f0+.3f,f1-.3f,y+4.10f,y+4.13f,-.02f,.0f);
     }

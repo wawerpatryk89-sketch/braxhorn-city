@@ -73,6 +73,7 @@ class G1Tests(unittest.TestCase):
         w = src('BraxChampionsG1Wnetrze.cs')
         unit = w[w.index('static void ShopUnit('):w.index('static void ShopFront(')]
         self.assertIn('SlatCeiling(ix0+.01f,ix1-.01f,iz0+.02f,iz1-.02f,yc,null)', unit)
+        self.assertIn('Q(gWallWarm,', unit)
         self.assertNotIn('ceilWhite', unit)
         ceil = w[w.index('static void G1Ceilings()'):w.index('static void G1Galleries()')]
         self.assertNotIn('ceilWhite', ceil)
