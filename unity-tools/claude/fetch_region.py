@@ -36,6 +36,14 @@ TEXTURES = [
     # wieżowce nowych dzielnic z kodu (10.11): biały tynk, wapień, piaskowiec, okładzina panelowa, granit, czysta cegła
     "white_stucco", "marble_01", "sandstone_blocks_08", "exterior_wall_cladding_03", "granite_tile", "granite_tile_03",
 ]
+# DWORZEC R1 (11.11, właściciel 15:53: „Poly Haven, tylko i wyłącznie Poly Haven. Do wszystkiego, materiałów, obić”): plac
+# i perony z granitu, chodniki, asfalt, tłuczeń, podkłady, pas z wypustkami, okleina dębowa, trawa pasa lasu (lista =
+# BraxMiastoDworzec.Materialy; blue_metal_plate, metal_plate_02, corrugated_iron, brown_leather są też w liście faweli).
+TEXTURES_DWORZEC = [
+    "granite_tile_04", "concrete_pavement_02", "clean_asphalt", "gravel_stones", "concrete_floor_01", "anti_skid_tiles",
+    "oak_veneer_01", "leafy_grass", "blue_metal_plate", "metal_plate_02", "corrugated_iron", "brown_leather",
+    "floor_tiles_02",   # płytki ścienne WC dworca (marmur jasny)
+]
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
 # W 1K (telefon): 38 zestawów w 2K to ok. 0,5 GB tekstur w pamięci naraz — ściany dostają kolor + normalną 1024, drobne
@@ -50,13 +58,14 @@ TEXTURES_FAWELA_1K = [
     "fabric_leather_02", "fabric_leather_01", "weathered_brown_planks",
 ]
 MODELS_2K = [  # drzewa i krzewy: pełna jakość (2K); reszta roślin w 1K, bo edytor Unity na GitHubie ma 16 GB
-    "shrub_01", "shrub_02", "shrub_03",
+    "shrub_01", "shrub_02", "shrub_03", "shrub_04",   # shrub_04: donice placu dworca i podszyt lasu (11.11)
     # island_tree_03 / pine_tree_01 / fir_tree_01: skany 2–17 mln trójkątów — w grze drzewo_verdant (Library)
 ]
 MODELS_1K_PLANTS = [
     "grass_medium_01", "grass_medium_02",
     "flower_gazania", "flower_ursinia", "periwinkle_plant", "celandine_01",
     "anthurium_botany_01", "calathea_orbifolia_01", "potted_plant_01", "fern_02", "pachira_aquatica_01",
+    "tree_stump_01", "tree_stump_02",   # las między miastem a fawelą (11.11): pniaki w podszycie
 ]
 MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     "rock_moss_set_01", "boulder_01", "stone_01",
@@ -168,7 +177,7 @@ def model(mid: str, res: str, report: dict) -> None:
 
 def main() -> int:
     report = {"source": "Poly Haven (CC0), wpisy opcjonalne", "textures": {}, "models": {}, "missing": []}
-    for t in TEXTURES:
+    for t in TEXTURES + [x for x in TEXTURES_DWORZEC if x not in TEXTURES]:
         try:
             texture(t, report)
         except Exception as exc:  # noqa: BLE001

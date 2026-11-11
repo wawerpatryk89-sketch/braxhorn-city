@@ -35,6 +35,32 @@ public static partial class BraxRegionFawela
     /// <summary>Granice pasów (odległość od zabudowy miasta): pas 1 do 45 m (stok 4.5 %), pas 2 do 105 m (12 %), dalej pas 3 (19 %).</summary>
     public const float Pas1 = 45f, Pas2 = 105f;
 
+    // ODSUNIĘCIE OD MIASTA (11.11, właściciel 14:49: „oddzielić, oddalić trochę te fawele od tych budynków”; 15:35: „rozdziel wtedy
+    // te fawele od miasta dworcem, torami i lasem. Od strony fawel jeszcze lekko”). Plan faweli liczony jak dotąd — w PRZESTRZENI
+    // PLANU (linia miasta z −68 na wschód od x −61.4, Z0 dalej na zachód; szczyt z −357), cała fawela stoi Odsuniecie dalej na
+    // południe (root.position.z = −Odsuniecie). Pas między miastem a fawelą (las, dworzec, tory) buduje BraxMiastoDworzec.
+    // Kwadraty 150 m (sceny doczytywane) liczone w ŚWIECIE: klucz z = floor((z planu − Odsuniecie) / Kw).
+    public const float Odsuniecie = 115f;
+    public const float PlanSzczyt = -357f;
+    /// <summary>Górna krawędź faweli w przestrzeni planu (dawna linia miasta).</summary>
+    public static float PlanKrawedz(float x) => x > -61.4f ? -68f : BraxMiastoGranice.Z0;
+    /// <summary>Czy punkt PLANU leży w faweli (dawne BraxMiastoGranice.WFaweli przed odsunięciem).</summary>
+    public static bool WPlanie(float x, float z) => x >= BraxMiastoGranice.FawelaX0 && x <= BraxMiastoGranice.FawelaX1 && z >= PlanSzczyt && z <= PlanKrawedz(x);
+    /// <summary>Punkt planu → świat.</summary>
+    public static Vector3 DoSwiata(Vector3 p) => new Vector3(p.x, p.y, p.z - Odsuniecie);
+    /// <summary>Górna krawędź faweli w ŚWIECIE (od niej na północ pas lasu, torów i dworca).</summary>
+    public static float KrawedzSwiat(float x) => PlanKrawedz(x) - Odsuniecie;
+    /// <summary>Wysokość nawierzchni na górnej krawędzi faweli w danym x (jezdnia drogi faweli, jeśli tam jest; inaczej teren) —
+    /// łączniki z pasa dworca kończą się na tej wysokości.</summary>
+    public static float WysNaKrawedzi(float x)
+    {
+        Przygotuj(); float z = PlanKrawedz(x);
+        float d = DoJezdni(x, z, out float y, 12f);
+        return d < 0f ? y : WysTerenu(x, z);
+    }
+    /// <summary>Wysokość terenu w ŚWIECIE: pas dworca i lasu (BraxMiastoDworzec) albo fawela (plan przesunięty).</summary>
+    public static float WysSwiat(float x, float z) => z > KrawedzSwiat(x) ? BraxMiastoDworzec.WysKorytarza(x, z) : WysTerenu(x, z + Odsuniecie);
+
     // ============================================================================ TEREN
     internal static float S01(float a, float b, float v) { float t = Mathf.Clamp01((v - a) / (b - a)); return t * t * (3f - 2f * t); }
     internal static float Sq(float v) => v * v;
@@ -66,15 +92,8 @@ public static partial class BraxRegionFawela
         float h = YC + .045f * Mathf.Min(d, Pas1) + .12f * Mathf.Clamp(d - Pas1, 0f, Pas2 - Pas1) + .19f * Mathf.Max(0f, d - Pas2);
         h += ((Szum(x / 95f + 1.7f, z / 95f + 4.2f) - .5f) * 10f + (Szum(x / 31f + 7.1f, z / 31f + 2.3f) - .5f) * 2.4f) * S01(40f, 160f, d);
         h = YC + (h - YC) * (1f - .85f * S01(20f, 70f, x));                         // wschód: stok schodzi ku morzu
-        // wzgórze nad tunelem na osiedle: portal x −148…−104 (mur do 13.5 m) na z −85.45, rura x −132…−120 do z −146 (strop 7.6 m)
-        float ax = Mathf.Abs(x + 126f), dz = BraxMiastoGranice.Z0 - z;
-        if (ax < 40f && dz >= 0f)
-        {
-            float przyPortalu = 1f - S01(22f, 24f, ax);
-            float w = (1f - S01(22f, 40f, ax)) * Mathf.Lerp(S01(0f, 18f, dz), 1f, przyPortalu) * (1f - S01(62f, 75f, dz));
-            float garb = 13.65f - 3.4f * S01(0f, 60f, dz);
-            h = Mathf.Max(h, Mathf.Lerp(h, garb, w));
-        }
+        // (11.11: wzgórze nad tunelem na osiedle — garb 13.65 m za murem portalu — jest teraz w pasie dworca, w świecie:
+        // BraxMiastoDworzec.GarbTunelu; fawela odsunięta o Odsuniecie, jej plan zaczyna się za lasem)
         return h;
     }
 
@@ -144,18 +163,20 @@ public static partial class BraxRegionFawela
         if (gotowe) return;
         gotowe = true; drogiGotowe = false;
         Drogi.Clear(); Tarasy.Clear(); Schody.Clear(); schodyRamki.Clear(); Dzialki.Clear(); dzKub.Clear();
-        // R0: ulica dolna od parkingu warsztatów (aleja manewrowa x −72, z −56) przez trawnik L9 w dół i na wschód wzdłuż pasa 1
-        var r0 = NowaDroga("ul. dolna (od warsztatów)", 5.5f, true, new[] { new Vector2(-72f, -56f), new Vector2(-69.5f, -56f), new Vector2(-66.5f, -59f), new Vector2(-66.5f, -82.5f), new Vector2(-61f, -88f), new Vector2(50f, -88f) }, 1);
+        // R0: ulica dolna — 11.11: zaczyna się na górnej krawędzi faweli (plan x −94, Z0), gdzie dochodzi łącznik z ul. Dworcowej
+        // przez przejazd kolejowy (BraxMiastoDworzec.LacznikX); dalej na wschód wzdłuż pasa 1 jak dotąd
+        var r0 = NowaDroga("ul. dolna (od przejazdu przy dworcu)", 5.5f, true, new[] { new Vector2(BraxMiastoDworzec.LacznikX, BraxMiastoGranice.Z0), new Vector2(BraxMiastoDworzec.LacznikX, -86.2f), new Vector2(BraxMiastoDworzec.LacznikX + 4f, -88f), new Vector2(50f, -88f) }, 1);
         // R1: serpentyna główna od ul. dolnej na szczyt
         var r1 = NowaDroga("serpentyna", 5.0f, true, new[] { new Vector2(-66.5f, -88f), new Vector2(-84f, -112f), new Vector2(-92f, -140f), new Vector2(-160f, -170f),
             new Vector2(-260f, -178f), new Vector2(-330f, -200f), new Vector2(-300f, -228f), new Vector2(-190f, -240f), new Vector2(-90f, -255f), new Vector2(0f, -262f),
             new Vector2(25f, -285f), new Vector2(-70f, -300f), new Vector2(-200f, -312f), new Vector2(-320f, -322f), new Vector2(-280f, -345f), new Vector2(-150f, -350f), new Vector2(-40f, -350f) }, 3);
         // R3: ul. dolna zachodnia (pas 1 za nowymi dzielnicami), R2: wjazd z ul. C0 (x −300) przez pas zieleni do serpentyny, R4: wjazd z ul. C1
         var r3 = NowaDroga("ul. dolna zachodnia", 4.5f, false, new[] { new Vector2(-460f, -106f), new Vector2(-160f, -106f) }, 0);
-        var r2 = NowaDroga("wjazd z nowych dzielnic (ul. C0)", 4.5f, false, new[] { new Vector2(-300f, -66.75f), new Vector2(-300f, -106f), new Vector2(-297f, -150f), new Vector2(-300f, -189f) }, 2);
-        var r4 = NowaDroga("wjazd z ul. C1", 4.5f, false, new[] { new Vector2(-450f, -66.75f), new Vector2(-450f, -106f) }, 0);
-        Wysokosci(r0, null, .15f); Wysokosci(r1, r0, .15f); Wysokosci(r3, null, .15f); Wysokosci(r2, r3, .19f, r1); Wysokosci(r4, r3, .19f);
-        Pomin(r1, r0); Pomin(r2, r3); Pomin(r2, r1); Pomin(r4, r3);
+        // 11.11: R2 zaczyna się na krawędzi faweli (łącznik z ul. C0 przez las i przejazd kolejowy buduje BraxMiastoDworzec);
+        // wjazd z ul. C1 (x −450) zlikwidowany — tam zachodni portal tunelu kolejowego (wzgórze w pasie dworca)
+        var r2 = NowaDroga("wjazd z nowych dzielnic (ul. C0)", 4.5f, false, new[] { new Vector2(BraxMiastoDworzec.C0X, BraxMiastoGranice.Z0), new Vector2(BraxMiastoDworzec.C0X, -106f), new Vector2(BraxMiastoDworzec.C0X + 3f, -150f), new Vector2(BraxMiastoDworzec.C0X, -189f) }, 2);
+        Wysokosci(r0, null, .15f); Wysokosci(r1, r0, .15f); Wysokosci(r3, null, .15f); Wysokosci(r2, r3, .19f, r1);
+        Pomin(r1, r0); Pomin(r2, r3); Pomin(r2, r1);
         Nawrotka = r0.p[r0.p.Count - 1] + new Vector2(6f, 0f); NawrotkaY = r0.y[r0.y.Count - 1];
         drogiGotowe = true;
         // tarasy: plac z targiem i sala rywala — na poziomie krawężnika serpentyny (najbliższy punkt drogi)
@@ -214,7 +235,7 @@ public static partial class BraxRegionFawela
         {
             var q = d.p[i];
             y[i] = WysBazowa(q.x, q.y);
-            if (!BraxMiastoGranice.WFaweli(q.x, q.y)) { y[i] = poziomMiasta; stale[i] = true; }
+            if (!WPlanie(q.x, q.y)) { y[i] = poziomMiasta; stale[i] = true; }
             foreach (var o in new[] { a, b })
             {
                 if (o == null) continue;
@@ -294,16 +315,15 @@ public static partial class BraxRegionFawela
     static bool Wolne(float x0, float x1, float z0, float z1, out int pas, out float d)
     {
         pas = 0; d = 0f;
-        if (Mathf.FloorToInt((x0 - 2.4f) / Kw) != Mathf.FloorToInt((x1 + 2.4f) / Kw) || Mathf.FloorToInt((z0 - 2.4f) / Kw) != Mathf.FloorToInt((z1 + 2.4f) / Kw)) return false;   // z balkonem, markizą i stolikami
+        if (Mathf.FloorToInt((x0 - 2.4f) / Kw) != Mathf.FloorToInt((x1 + 2.4f) / Kw) || Mathf.FloorToInt((z0 - 2.4f - Odsuniecie) / Kw) != Mathf.FloorToInt((z1 + 2.4f - Odsuniecie) / Kw)) return false;   // z balkonem, markizą i stolikami; linie kwadratów ŚWIATA
         float cx = (x0 + x1) * .5f, cz = (z0 + z1) * .5f;
         foreach (var (x, z) in new[] { (x0, z0), (x1, z0), (x0, z1), (x1, z1), (cx, cz), (cx, z0), (cx, z1), (x0, cz), (x1, cz) })
         {
-            if (!BraxMiastoGranice.WFaweli(x, z)) return false;
+            if (!WPlanie(x, z)) return false;
             if (x < BraxMiastoGranice.FawelaX0 + 4f || x > BraxMiastoGranice.FawelaX1 - 4f) return false;
             if (DoDrog(x, z, 12f) < 2.6f) return false;
             if (DoSchodow(x, z) < 2.4f) return false;
             foreach (var t in Tarasy) if (DoProst(t.r, x, z) < 3f) return false;
-            if (Mathf.Abs(x + 126f) < 34f && BraxMiastoGranice.Z0 - z < 78f) return false;    // wzgórze nad tunelem
         }
         d = Glebokosc(cx, cz);
         bool przyPlacu = DoProst(Plac, cx, cz) < 34f || DoProst(Sala, cx, cz) < 34f;
@@ -349,7 +369,7 @@ public static partial class BraxRegionFawela
         // 2) rzędy na stoku (alejki 1–3 m między rzędami, przesmyki między domami, co kilkunasta działka pusta — podwórko)
         foreach (var (xa, xb, zTop) in new[] { (BraxMiastoGranice.FawelaX0 + 4f, -63f, BraxMiastoGranice.Z0), (-59f, BraxMiastoGranice.FawelaX1 - 4f, -68f) })
         {
-            for (float zf = zTop - 3.5f; zf > BraxMiastoGranice.FawelaZSzczyt + 14f; )
+            for (float zf = zTop - 3.5f; zf > PlanSzczyt + 14f; )
             {
                 float gleb = 7.5f + R() * 3f;
                 float x = xa + R() * 3f;
@@ -507,6 +527,10 @@ public static partial class BraxRegionFawela
         Krok("zieleń dzika stoku: drzewa, krzewy, kamienie", Zielen);
         Krok("słupy, transformatory, przewody, przyłącza, latarnie", Slupy);
         Krok("zapis kwadratów", Zapisz);
+        // 11.11: cała fawela na swoje miejsce — Odsuniecie na południe (pas lasu, torów i dworca między nią a miastem)
+        root.position = new Vector3(0f, 0f, -Odsuniecie);
+        for (int i = 0; i < Sprzedawcy.Count; i++) Sprzedawcy[i] = (DoSwiata(Sprzedawcy[i].p), Sprzedawcy[i].yaw, Sprzedawcy[i].gdzie);
+        Debug.Log("BRAXHORN_FAWELA odsunięta o " + Odsuniecie.ToString("F0") + " m na południe: górna krawędź z " + KrawedzSwiat(0f).ToString("F2") + " (wschód) / " + KrawedzSwiat(-100f).ToString("F2") + " (zachód), szczyt z " + (PlanSzczyt - Odsuniecie).ToString("F0") + "; stanowisk obsługi w świecie " + Sprzedawcy.Count);
         Debug.Log("BRAXHORN_FAWELA etap 1: działek " + Dzialki.Count + ", domów " + domow + " (pas 1: " + domowPas1 + ", pas 2: " + domowPas2 + "), lokali " + lokali +
                   ", stanowisk obsługi " + Sprzedawcy.Count + ", dróg " + Drogi.Count + " (" + Drogi.Sum(d => d.p.Count) + " m), stopni schodów " + krokow + ", słupów " + slupow +
                   ", przyłączy " + przylaczy + ", graffiti " + graffiti + ", aut zaparkowanych " + aut + ", luster z odbiciem " + luster + ", boków lin ringu ze splotek (BraxLinaSplot) " + linRingu + ", roślin i rekwizytów z biblioteki " + roslin + " (drzew " + drzew + ", krzewów " + krzewow + ", kamieni " + kamieni + ")" + ", modeli w lokalach " + modeli + ", modeli z biblioteki " + modeliBib + (brakModeli.Count > 0 ? " (brak: " + string.Join(", ", brakModeli) + ")" : "") + ", towaru z biblioteki " + BraxSklepyTowar.Postawione + ", trójkątów " + trojkatow + ", kwadratów 150 m " + komorki.Count +
@@ -524,14 +548,14 @@ public static partial class BraxRegionFawela
     internal static Bud W(float x, float z, Material m, Color k) => W(x, z, m).K(k);
     internal static Bud W(float x, float z, Material m)
     {
-        var key = (Mathf.FloorToInt(x / Kw), Mathf.FloorToInt(z / Kw));
+        var key = (Mathf.FloorToInt(x / Kw), Mathf.FloorToInt((z - Odsuniecie) / Kw));   // kwadrat ŚWIATA (plan przesunięty)
         if (!komorki.TryGetValue(key, out var d)) komorki[key] = d = new Dictionary<Material, Bud>();
         if (!d.TryGetValue(m, out var b)) d[m] = b = new Bud();
         return b;
     }
     internal static Transform Rodzic(float x, float z)
     {
-        var key = (Mathf.FloorToInt(x / Kw), Mathf.FloorToInt(z / Kw));
+        var key = (Mathf.FloorToInt(x / Kw), Mathf.FloorToInt((z - Odsuniecie) / Kw));
         if (rodzice.TryGetValue(key, out var t) && t) return t;
         t = new GameObject("Fawela: kwadrat " + key.Item1 + "_" + key.Item2).transform; t.SetParent(root, false); t.position = Vector3.zero;
         return rodzice[key] = t;
@@ -542,7 +566,7 @@ public static partial class BraxRegionFawela
         BraxRegion.Note("fawela: siatek liter szyldów " + liter);
         foreach (var kv in komorki)
         {
-            var r = Rodzic((kv.Key.Item1 + .5f) * Kw, (kv.Key.Item2 + .5f) * Kw);
+            var r = Rodzic((kv.Key.Item1 + .5f) * Kw, (kv.Key.Item2 + .5f) * Kw + Odsuniecie);
             foreach (var mb in kv.Value) mb.Value.Obiekt("Fawela: " + mb.Key.name, r, mb.Key, !bezCienia.Contains(mb.Key));
         }
     }

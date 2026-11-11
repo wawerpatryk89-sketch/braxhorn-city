@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- KONTROLA GEOMETRII R1: prawdziwy generator dworca (Editor) skompilowany z atrapą UnityEngine — zapis geometrii i kontrola
+       migotania poza Unity. Ścieżki względne do repozytorium (unity-tools/claude/kontrola_geometrii → unity-city/Assets). -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework><LangVersion>latest</LangVersion><OutputType>Exe</OutputType><Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems><NoWarn>CS0162;CS0168;CS0219;CS0414;CS0649;CS0169;CS8321;CS0618;CS0612;CS0108;CS0114;CS8981</NoWarn>
+    <ImplicitUsings>disable</ImplicitUsings><StartupObject>Harness</StartupObject><InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="fake/*.cs;gen/*.cs;Program.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Claude/Region/BraxMiastoDworzec*.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxLiteryBebas*.cs;../../../unity-city/Assets/Claude/Runtime/BraxMiastoGranice.cs" />
+  </ItemGroup>
+</Project>

@@ -31,7 +31,155 @@ internal static class BraxMiastoUlica
         if (!polnoc && x > 18.8f && x < 23.2f) return false;      // Nutrition: drzwi
         if (!polnoc && x > 2.5f && x < 9.5f) return false;        // siłownia: wyjście
         foreach (float l in new[] { -98f, -82f, -66f, -50f, -34f, -2f, 14f, 30f, 46f, 62f }) if (Mathf.Abs(x - l) < 1.4f) return false;   // latarnie
+        // 11.11 (właściciel 14:14: „odblokowujesz każde wejście”): przed każdymi drzwiami lokalu wolne 2.3 m od krawężnika do drzwi
+        foreach (var d in drzwi) if (d.polnoc == polnoc && Mathf.Abs(x - d.x) < DrzwiZapas) return false;
+        foreach (var z in zajete) if (z.polnoc == polnoc && x > z.x0 - .5f && x < z.x1 + .5f) return false;
         return true;
+    }
+
+    // ---------------- 11.11 PORTOWA: porządek (właściciel 14:14: „z całej ulicy usuwasz drzewa i odblokowujesz każde wejście, bo jakieś
+    // siedziska stoją w wejściu… całą ulicę sprzątasz porządnie — Portowa”). Dane z APK 2bfadac: 14 drzew w misach (w drzwiach HOTELU,
+    // CUKIERNI, TOWER), wiata przystanku z ławką w drzwiach BISTRO (usunięta — autobus tu nie jeździ), niewidzialne okrągłe kolizje oryginału przed BISTRO, HOTELEM
+    // i DELIKATESAMI, kosze w drzwiach KWIACIARNI i KSIĘGARNI, stojaki rowerowe w drzwiach PIEKARNI, drugi hydrant przy kwiaciarni.
+    const float DrzwiZapas = 2.3f;   // od osi drzwi: skrzydła ±1.0 m + wolny pas
+    static readonly List<(float x, bool polnoc, string nazwa)> drzwi = new List<(float, bool, string)>();
+    static readonly List<(float x0, float x1, bool polnoc)> zajete = new List<(float, float, bool)>();
+    static readonly List<string> porzadek = new List<string>();
+    static bool PasChodnika(float z, out bool polnoc)
+    {
+        polnoc = z > 28.5f;
+        return polnoc ? z > KrawPln - .1f && z < 36.25f : z > 20.45f && z < KrawPld + .1f;
+    }
+
+    /// <summary>Drzwi lokali po obu stronach Portowej — z gotowej sceny (wejścia oryginału, drzwi automatyczne, klatka Braxa).</summary>
+    static void ZbierzDrzwi(Transform cityRoot)
+    {
+        drzwi.Clear(); zajete.Clear(); porzadek.Clear();
+        foreach (var t in cityRoot.GetComponentsInChildren<Transform>(true))
+        {
+            string n = t.name;
+            bool wej = n.StartsWith("PUBLIC WORKING ENTRANCE", System.StringComparison.Ordinal) || n.StartsWith("Source-kit working entrance", System.StringComparison.Ordinal)
+                       || n.StartsWith("Drzwi automatyczne:", System.StringComparison.Ordinal) || n == "Tower: drzwi automatyczne";
+            if (!wej) continue;
+            var rs = t.GetComponentsInChildren<Renderer>(true);
+            Vector3 c = t.position;
+            if (rs.Length > 0) { var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); c = b.center; }
+            if (c.y > 3f || c.x < -106f || c.x > 68f) continue;
+            bool pln = Mathf.Abs(c.z - 36.1f) < 1.6f, pld = Mathf.Abs(c.z - 20.6f) < 1.6f;
+            if (!pln && !pld) continue;
+            if (drzwi.Any(d => d.polnoc == pln && Mathf.Abs(d.x - c.x) < .8f)) continue;
+            drzwi.Add((c.x, pln, n.Replace("PUBLIC WORKING ENTRANCE ", "").Replace("Source-kit working entrance ", "")));
+        }
+        BraxMiastoA.Log("PORTOWA drzwi lokali: " + drzwi.Count + " — " + string.Join(", ", drzwi.OrderBy(d => d.polnoc).ThenBy(d => d.x).Select(d => d.nazwa + " x" + d.x.ToString("0.0") + (d.polnoc ? " N" : " S"))));
+    }
+
+    /// <summary>Drobne przeszkody już stojące na chodniku (krzewy, kosze, hydranty, słupki) — nowe rzeczy nie stają na nich.</summary>
+    /// Tylko te, które w poprzek chodnika zachodzą na pas zmin…zmax (rury spustowe i futryny przy licu nie blokują wiaty stojącej 1 m od lica).
+    static List<(float x0, float x1)> Przeszkody(bool polnoc, Transform pomin, float zmin = -1e9f, float zmax = 1e9f)
+    {
+        var l = new List<(float, float)>();
+        foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            if (!r || !r.enabled || r is SkinnedMeshRenderer || r is ParticleSystemRenderer || (pomin && r.transform.IsChildOf(pomin)) || r.transform.IsChildOf(root)) continue;
+            var b = r.bounds;
+            if (b.size.x > 3f || b.size.z > 3f || b.max.y < .3f || b.min.y > 1.5f) continue;
+            if (b.max.z < zmin || b.min.z > zmax) continue;
+            if (!PasChodnika(b.center.z, out bool p) || p != polnoc || b.center.x < -106f || b.center.x > 68f) continue;
+            l.Add((b.min.x, b.max.x));
+        }
+        return l;
+    }
+
+    /// <summary>Najbliższe x (początek odcinka długości dl), w którym cały odcinek jest wolny (drzwi, latarnie, zajęte, przeszkody).
+    /// Najpierw w stronę +x (wschód), potem −x; NaN, gdy w promieniu 14 m nie ma miejsca.</summary>
+    static float Miejsce(float x, bool polnoc, float dl, List<(float x0, float x1)> przeszkody = null)
+    {
+        bool Ok(float s)
+        {
+            for (float u = s; u <= s + dl + .001f; u += .25f) if (!Wolne(u, polnoc)) return false;
+            if (!Wolne(s + dl, polnoc)) return false;   // koniec odcinka dokładnie (krok .25 m mógł go przeskoczyć)
+            if (przeszkody != null) foreach (var q in przeszkody) if (q.x1 > s - .3f && q.x0 < s + dl + .3f) return false;
+            return true;
+        }
+        for (float d = 0f; d <= 14f; d += .25f) { if (Ok(x + d)) return x + d; if (d > 0f && Ok(x - d)) return x - d; }
+        return float.NaN;
+    }
+
+    /// <summary>Niewidzialne kolizje na chodnikach Portowej — walce kolizji ORYGINAŁU („Original city collisions”), których przedmiot
+    /// dawno zniknął (APK 2bfadac, sprawdzone wierzchołkami wszystkich siatek: przed DELIKATESAMI x 34, HOTELEM x −42, BISTRO x −18,
+    /// przy NUTRITION x 20 i 24.5, rząd słupków x 44…50 przed NOVA): wyłączone. Kolizja zostaje, gdy w jej obrysie (0.3 m nad
+    /// chodnikiem i wyżej) leży choć jeden wierzchołek widocznej siatki — latarnie, hydrant, kosz oryginału zostają z kolizją.
+    /// Własne kolizje kroków (z bryłami) nie są ruszane.</summary>
+    static int UsunNiewidzialneKolizje()
+    {
+        var rendery = Object.FindObjectsByType<Renderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+            .Where(r => r && r.enabled && r.bounds.max.x > -110f && r.bounds.min.x < 72f && r.bounds.max.z > 16f && r.bounds.min.z < 41f).ToArray();
+        var wierzcholki = new Dictionary<Mesh, Vector3[]>();
+        // obrys BEZ zapasu: zapas 0.1 m łapał gzymsy i pilastry nowych elewacji (lico 20.6, występy do 21.08) — kolizja przed
+        // DELIKATESAMI i HOTELEM zostałaby, choć nic w niej nie stoi
+        bool Widoczna(Bounds bb)
+        {
+            foreach (var r in rendery)
+            {
+                var rb = r.bounds; if (!rb.Intersects(bb)) continue;
+                var mf = r.GetComponent<MeshFilter>(); var m = mf ? mf.sharedMesh : null;
+                if (!m || !m.isReadable)
+                {
+                    // siatki nieczytelnej nie da się sprawdzić — drobna bryła, której obrys obejmuje środek kolizji, liczy się jako widoczna
+                    if (rb.size.x <= 3f && rb.size.z <= 3f && rb.size.y >= .25f && Mathf.Abs(rb.center.x - bb.center.x) < rb.extents.x + .05f && Mathf.Abs(rb.center.z - bb.center.z) < rb.extents.z + .05f) return true;
+                    continue;
+                }
+                if (!wierzcholki.TryGetValue(m, out var v)) { v = m.vertices; wierzcholki[m] = v; }
+                var M = r.transform.localToWorldMatrix;
+                foreach (var a in v) { var w = M.MultiplyPoint3x4(a); if (w.y > .3f && bb.Contains(w)) return true; }
+            }
+            return false;
+        }
+        int n = 0;
+        foreach (var c in Object.FindObjectsByType<Collider>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            if (!c || !c.enabled || c.isTrigger || c.transform.IsChildOf(root)) continue;
+            bool oryginal = c.name.StartsWith("Original round collider", System.StringComparison.Ordinal) || (c.transform.parent && c.transform.parent.name == "Original city collisions");
+            if (!oryginal) continue;
+            var b = c.bounds;
+            if (b.size.x > 1.6f || b.size.z > 1.6f || b.max.y < .4f || b.min.y > 1.5f) continue;
+            if (!PasChodnika(b.center.z, out _) || b.center.x < -106f || b.center.x > 66f) continue;
+            if (c.GetComponentInParent<Rigidbody>()) continue;
+            if (Widoczna(b)) continue;
+            c.enabled = false; n++;
+            porzadek.Add("niewidzialna kolizja " + c.name.Trim() + " (" + b.center.x.ToString("0.0") + ", " + b.center.z.ToString("0.0") + ", Ø " + b.size.x.ToString("0.00") + " m)");
+        }
+        return n;
+    }
+
+    /// <summary>11.11 (właściciel 14:50: „na ulicy Portowej nie musi być przystanków, bo tam nie będzie jeździć autobus — nawet nie ma
+    /// jak zawrócić”): wiata przystanku oryginału (BraxCityEnvironment.BusShelter: słupy, dach, szyby, ławka) stała w drzwiach
+    /// BISTRO — USUNIĘTA w całości, razem z tablicą reklamową w jej boku (CityMesh_128) i kolizjami oryginału w jej obrysie
+    /// (ściany boczna i tylna „Source”, walec przy słupie).</summary>
+    static string UsunPrzystanek(Transform cityRoot)
+    {
+        var w = cityRoot.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == "Finished BRAXHORN bus shelter");
+        if (!w) return "przystanek: brak w scenie";
+        var rs = w.GetComponentsInChildren<Renderer>(true);
+        if (rs.Length == 0) { BraxUliceKit.Usun(w.gameObject, "przystanek na Portowej (bez brył)"); return "przystanek: usunięty (bez brył)"; }
+        var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        if (!PasChodnika(b.center.z, out _)) return "przystanek: poza chodnikiem Portowej (" + b.center.ToString("F1") + ") — bez zmian";
+        var bb = b; bb.Expand(new Vector3(.3f, .2f, .3f));
+        var usun = new List<GameObject> { w.gameObject }; var wylacz = new List<Collider>();
+        foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (r && !r.transform.IsChildOf(w) && r.name.StartsWith("CityMesh_", System.StringComparison.Ordinal) && r.bounds.size.x < 3f && r.bounds.size.z < 3f && r.bounds.size.y > .5f
+                && bb.Contains(r.bounds.center) && r.transform.childCount == 0) usun.Add(r.gameObject);
+        foreach (var c in Object.FindObjectsByType<Collider>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!c || c.transform.IsChildOf(w) || c.bounds.size.x > 5f || c.bounds.size.z > 5f || !bb.Contains(c.bounds.center)) continue;
+            if (c.GetComponentInParent<Rigidbody>()) continue;
+            // sam obiekt kolizji (bez brył i dzieci) — usunięty; kolizja na obiekcie z bryłą — tylko wyłączona
+            if (c.transform.childCount == 0 && !c.GetComponent<Renderer>() && c.GetComponents<Component>().Length <= 3) usun.Add(c.gameObject); else wylacz.Add(c);
+        }
+        foreach (var c in wylacz) c.enabled = false;
+        int n = 0; foreach (var g in usun.Distinct().ToList()) if (g) { BraxUliceKit.Usun(g, "przystanek na Portowej (autobus tu nie jeździ)"); n++; }
+        string o = "przystanek z wiatą i ławką przed BISTRO (x " + b.min.x.ToString("0.0") + "…" + b.max.x.ToString("0.0") + "): USUNIĘTY — obiektów " + n + " (wiata, tablica reklamowa, kolizje), wyłączonych kolizji " + wylacz.Count;
+        porzadek.Add(o); return o;
     }
     static float Grunt(float x, float z)
     {
@@ -50,36 +198,65 @@ internal static class BraxMiastoUlica
         root = BraxRegion.Root(cityRoot, "CLAUDE A: ulica główna — wyposażenie i reklamy");
         kol = new GameObject("kolizje").transform; kol.SetParent(root, false);
         Physics.SyncTransforms();
+        // 11.11 PORTOWA: drzwi, przystanek (usunięty), niewidzialne kolizje — przed rozstawieniem koszy, stojaków i hydrantów
+        ZbierzDrzwi(cityRoot);
+        string wiata = UsunPrzystanek(cityRoot);
+        Physics.SyncTransforms();
+        int niewidzialne = UsunNiewidzialneKolizje();
+        Physics.SyncTransforms();
         BraxUliceKit.UstawGrupe("Ulica: wyposażenie chodników", 70f);
         int drzew = 0, lawek = 0, koszy = 0;
         foreach (bool polnoc in new[] { false, true })
         {
             float zl = polnoc ? KrawPln + .95f : KrawPld - .95f;   // linia mebli 0.95 m od krawężnika
+            var przeszk = Przeszkody(polnoc, null, zl - .6f, zl + .6f);   // to, co już stoi w linii mebli (hydrant oryginału, stare latarnie)
             foreach (float x in new[] { -90f, -74f, -42f, -26f, -10f, 6f, 22f, 38f, 58f })
             {
-                if (!Wolne(x, polnoc)) continue;
-                if (Drzewo(cityRoot, new Vector3(x, Grunt(x, zl), zl))) drzew++;
-                // Odbiór R1 (7.11): brak ławek wzdłuż ulicy i przy witrynach.
+                // 11.11 (właściciel 14:14: „z całej ulicy usuwasz drzewa”): drzew w misach NIE MA (Drzewo() nie jest wołane — z nim
+                // znikają misa, trawa, która wchodziła do BAR 24 i kwiaciarni, i kolizja pnia). Odbiór R1 (7.11): brak ławek.
+                // Kosz zostaje co 16 m, ale nigdy przed drzwiami (Wolne: oś drzwi ±2.3 m).
                 float xk = x - 2.1f;
-                if (Wolne(xk, polnoc)) { Kosz(new Vector3(xk, Grunt(xk, zl), zl)); koszy++; }
+                if (Wolne(xk, polnoc) && !przeszk.Any(q => q.x1 > xk - .6f && q.x0 < xk + .6f)) { Kosz(new Vector3(xk, Grunt(xk, zl), zl)); koszy++; zajete.Add((xk - .3f, xk + .3f, polnoc)); }
+                else porzadek.Add("kosz x" + xk.ToString("0.0") + (polnoc ? " N" : " S") + ": nie stawiany (drzwi / latarnia / przeszkoda)");
             }
-            // stojaki rowerowe przy piekarni / delikatesach
-            float xs = polnoc ? 24.5f : 30.5f;
-            if (Wolne(xs, polnoc)) for (int i = 0; i < 3; i++) Stojak(new Vector3(xs + i * .9f, Grunt(xs, zl), zl));
+            // stojaki rowerowe przy piekarni / delikatesach — 11.11: cały rząd poza drzwiami (dotąd 3 stojaki w drzwiach PIEKARNI)
+            // miejsce hydrantu, który później stawia krok zieleni (BraxRegionVegetation: x 27.5, z 22.3) — stojaki nie wchodzą na niego
+            if (!polnoc) zajete.Add((26.9f, 28.1f, false));
+            float xs = Miejsce(polnoc ? 24.5f : 30.5f, polnoc, 1.8f, przeszk);
+            if (!float.IsNaN(xs))
+            {
+                for (int i = 0; i < 3; i++) Stojak(new Vector3(xs + i * .9f, Grunt(xs, zl), zl));
+                zajete.Add((xs - .4f, xs + 2.2f, polnoc));
+                if (Mathf.Abs(xs - (polnoc ? 24.5f : 30.5f)) > .01f) porzadek.Add("stojaki rowerowe " + (polnoc ? "N" : "S") + ": x " + (polnoc ? 24.5f : 30.5f).ToString("0.0") + " → " + xs.ToString("0.0") + " (poza drzwiami)");
+            }
             // słupki przy przejściu (narożniki, 0.5 m od krawężnika)
             foreach (float x in new[] { 48.2f, 55.8f }) foreach (float d in new[] { .5f, 1.4f })
                 { var p = new Vector3(x, 0, polnoc ? KrawPln + d : KrawPld - d); p.y = Grunt(p.x, p.z); Slupek(p); }
-            // hydrant przy krawężniku
-            var hp = new Vector3(polnoc ? -20f : -30f, 0, polnoc ? KrawPln + .55f : KrawPld - .55f); hp.y = Grunt(hp.x, hp.z);
-            var hm = BraxRegion.Model("fire_hydrant"); if (hm) BraxRegion.Put(root, hm, "Hydrant", hp, polnoc ? 180f : 0f, 1f, true, .85f * K);
+            // hydrant przy krawężniku — 11.11: nie przed drzwiami i nie drugi obok istniejącego (APK 2bfadac: hydrant oryginału x −26
+            // i nasz x −30 przy drzwiach KWIACIARNI)
+            float xh0 = polnoc ? -20f : -30f, zh = polnoc ? KrawPln + .55f : KrawPld - .55f;
+            bool jest = cityRoot.GetComponentsInChildren<Transform>(true).Any(t => t && !t.IsChildOf(root) && t.name.IndexOf("hydrant", System.StringComparison.OrdinalIgnoreCase) >= 0
+                        && Mathf.Abs(t.position.z - zh) < 2.5f && Mathf.Abs(t.position.x - xh0) < 12f);
+            float xh = jest ? float.NaN : Miejsce(xh0, polnoc, 0f, przeszk);
+            if (!float.IsNaN(xh))
+            {
+                var hp = new Vector3(xh, 0, zh); hp.y = Grunt(hp.x, hp.z);
+                var hm = BraxRegion.Model("fire_hydrant"); if (hm) BraxRegion.Put(root, hm, "Hydrant", hp, polnoc ? 180f : 0f, 1f, true, .85f * K);
+                zajete.Add((xh - .4f, xh + .4f, polnoc));
+            }
+            else porzadek.Add("hydrant " + (polnoc ? "N" : "S") + " x" + xh0.ToString("0") + ": nie stawiany (" + (jest ? "hydrant oryginału obok" : "brak miejsca poza drzwiami") + ")");
         }
         // tablice nazw ulic (polski standard) przy końcach i przy przejściu
         foreach (var (p, polnoc, tekst) in new[] { (new Vector3(63.2f, 0, KrawPln + .45f), true, "ul. PORTOWA"), (new Vector3(63.2f, 0, KrawPld - .45f), false, "BULWAR NADMORSKI"), (new Vector3(-100.5f, 0, KrawPld - .45f), false, "ul. PORTOWA"), (new Vector3(10.5f, 0, KrawPld - .45f), false, "ul. PORTOWA") })
-        { var q = p; q.y = Grunt(q.x, q.z); TablicaUlicy(q, polnoc, tekst); }
+        {
+            var q = p; float xt = Miejsce(p.x, polnoc, 0f); if (!float.IsNaN(xt)) q.x = xt;   // 11.11: słup tablicy nie przed drzwiami
+            q.y = Grunt(q.x, q.z); TablicaUlicy(q, polnoc, tekst);
+        }
         BraxUliceKit.UstawGrupe("Ulica: ekrany LED na wieżowcach");
         int ekr = Ekrany(cityRoot);
         int siatek = BraxUliceKit.Zapisz(root, "ulica_wyposazenie");
-        BraxMiastoA.Log("ULICA: drzew w kratach " + drzew + ", ławek " + lawek + ", koszy " + koszy + ", ekranów LED " + ekr + ", siatek " + siatek + "; zdjęte stare tablice reklamowe: " + stare);
+        BraxMiastoA.Log("ULICA: drzew w kratach " + drzew + " (11.11: usunięte z całej Portowej), ławek " + lawek + ", koszy " + koszy + ", ekranów LED " + ekr + ", siatek " + siatek + "; zdjęte stare tablice reklamowe: " + stare);
+        Debug.Log("BRAXHORN_PORTOWA porządek: drzwi " + drzwi.Count + ", wyłączone niewidzialne kolizje " + niewidzialne + ", " + wiata + "; " + string.Join("; ", porzadek));
     }
 
     static bool Drzewo(Transform cityRoot, Vector3 p)

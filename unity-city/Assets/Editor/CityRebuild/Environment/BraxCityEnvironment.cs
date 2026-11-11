@@ -19,15 +19,19 @@ public static class BraxCityEnvironment
     // puste originalName, więc rozpoznanie po nazwie NIE działa) stoi 1–4 m od 20 nowych „Premium graphite curved street lantern”
     // (BraxCityStreetLighting x −98…62, z 22,9 / 33,32). Źródłowe wyłączone WYŁĄCZNIE po numerach. UWAGA OSIE: glTF → Unity odbija x
     // (BraxCityBuild.Convert = −x; kontenery portu GLB x −83…−66 = Unity +66…+84), stąd pozycje stóp niżej już w układzie Unity.
-    // 4 latarnie źródłowe na x −78/−80/−94/−96 (Unity; CityMesh 69–74, 99–104) zostają — tam nowe „Premium” też stoją (−98, −82),
-    // ale to już odcinek przy wiadukcie; do oceny na nagraniu, nie usuwam w ciemno.
+    // 11.11 (właściciel 15:06–15:08: „latarnie mają być prawidłowo nowe, tylko i wyłącznie nowe, ustawione w stronę ulicy”):
+    // 4 ostatnie latarnie źródłowe na x −78/−80/−94/−96 (Unity; CityMesh 69–74, 99–104: stopa, słup, wysięgnik nad jezdnią;
+    // 1–2 m od nowych „Premium” x −82 i −98) też wyłączone, razem z walcami kolizji pod stopą. Nowe latarnie bez zmian —
+    // w APK 2bfadac oprawy nad jezdnią (strona bliższa z 24.1…24.8, dalsza z 31.4…32.1).
     public static readonly int[] SourceMainStreetLampMeshes = {
         45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,
-        75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98
+        75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,
+        69,70,71,72,73,74,99,100,101,102,103,104
     };
     public static readonly Vector2[] SourceMainStreetLampFeet = {   // Unity (x odbite względem manifestu)
         new Vector2(58,23.55f),new Vector2(44,23.55f),new Vector2(30,23.55f),new Vector2(10,23.55f),new Vector2(-6,23.55f),new Vector2(-22,23.55f),new Vector2(-38,23.55f),new Vector2(-54,23.55f),
-        new Vector2(60,33.45f),new Vector2(48,33.45f),new Vector2(28,33.45f),new Vector2(16,33.45f),new Vector2(-4,33.45f),new Vector2(-20,33.45f),new Vector2(-36,33.45f),new Vector2(-52,33.45f)
+        new Vector2(60,33.45f),new Vector2(48,33.45f),new Vector2(28,33.45f),new Vector2(16,33.45f),new Vector2(-4,33.45f),new Vector2(-20,33.45f),new Vector2(-36,33.45f),new Vector2(-52,33.45f),
+        new Vector2(-80,23.55f),new Vector2(-96,23.55f),new Vector2(-78,33.45f),new Vector2(-94,33.45f)   // 11.11: 4 ostatnie przy wylocie Wiaduktowej
     };
     // 9.11 (właściciel: „przed rondem ogrodzenie na drodze z siatki i szlaban usunąć”; zdjęcie 3.11 10:21): w ŹRÓDLE jedyna zapora
     // w poprzek jezdni to 6 pachołków Metal_Bolard (CityMesh 157–162) na Unity x +66,4 (GLB −66,4), z 24,6…32,6 — wschodni koniec

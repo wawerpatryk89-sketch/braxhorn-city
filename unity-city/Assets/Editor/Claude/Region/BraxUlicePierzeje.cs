@@ -932,8 +932,9 @@ public static class BraxUlicePierzeje
             }
             if (lok.typ == "market")
             {
-                bool wPrawo = f.drzwiS + 1.0f + 1.6f * k < sIn1 - .3f;
-                BraxSklepyTowar.Wozki(tw, kolizje, W(f.drzwiS + (wPrawo ? .95f : -.95f), y0, -.6f), wPrawo ? f.R : -f.R, 2);
+                // 11.11: wózki poza przejściem od drzwi (dotąd pierwszy wózek 1.1 m od osi drzwi — w wejściu)
+                bool wPrawo = f.drzwiS + 1.45f + 1.6f * k < sIn1 - .3f;
+                BraxSklepyTowar.Wozki(tw, kolizje, W(f.drzwiS + (wPrawo ? 1.4f : -1.4f), y0, -.6f), wPrawo ? f.R : -f.R, 2);
             }
         }
         // lampy sufitowe (panele)
@@ -943,11 +944,14 @@ public static class BraxUlicePierzeje
         if (lok.typ == "kawiarnia" || lok.typ == "bistro" || lok.typ == "cukiernia" || lok.typ == "pizzeria" || lok.typ == "piekarnia")
         {
             int ile = 0;
-            for (float s = sIn0 + 1.1f; s < f.drzwiS - 1.6f && ile < 3; s += 1.9f, ile++) Stolik(W(s, y0, -1.5f), f, bg, kolizje);
-            for (float s = f.drzwiS + 1.8f; s < sIn1 - 1.0f && ile < 4; s += 1.9f, ile++) if (s < ladaS0 - .9f || s > ladaS1 + .9f) Stolik(W(s, y0, -1.5f), f, bg, kolizje);
+            // 11.11 (właściciel 14:14: „odblokowujesz każde wejście, bo jakieś siedziska stoją w wejściu”): od drzwi w głąb lokalu
+            // wolne przejście 2.3 m (oś drzwi ±1.15 m) — krzesło stoi 0.85 m od środka stolika i ma 0.3 m pół szerokości, więc
+            // stolik co najmniej 2.3 m od osi drzwi (dotąd 1.6 / 1.8 m: krzesło KAWIARNI na rogu i PIEKARNI 0.9–1.0 m od osi drzwi)
+            for (float s = sIn0 + 1.1f; s < f.drzwiS - WolneOdDrzwi && ile < 3; s += 1.9f, ile++) Stolik(W(s, y0, -1.5f), f, bg, kolizje);
+            for (float s = f.drzwiS + WolneOdDrzwi; s < sIn1 - 1.0f && ile < 4; s += 1.9f, ile++) if (s < ladaS0 - .9f || s > ladaS1 + .9f) Stolik(W(s, y0, -1.5f), f, bg, kolizje);
             // drugi rząd stolików w głębi sali (bistro, pizzeria, kawiarnia) — między pierwszym rzędem a ladą, poza przejściem od drzwi
             if (lok.typ != "cukiernia" && lok.typ != "piekarnia" && ladaD + .35f < -3.6f)
-                for (float s = sIn0 + 1.1f; s < sIn1 - 1.0f; s += 1.9f) if (Mathf.Abs(s - f.drzwiS) > 1.3f) Stolik(W(s, y0, -3.35f), f, bg, kolizje);
+                for (float s = sIn0 + 1.1f; s < sIn1 - 1.0f; s += 1.9f) if (Mathf.Abs(s - f.drzwiS) > WolneOdDrzwi) Stolik(W(s, y0, -3.35f), f, bg, kolizje);
         }
         if (lok.typ == "bar")
             for (float s = ladaS0 + .35f; s < ladaS1 - .2f; s += .7f) Hoker(W(s, y0, ladaD + .45f), bg);
@@ -1454,6 +1458,8 @@ public static class BraxUlicePierzeje
         stal.Rura(c - os * .05f * k, c + os * .05f * k, .018f * k, 8);
     }
 
+    /// <summary>11.11: odległość środka stolika od osi drzwi lokalu (wolne przejście 2.3 m od drzwi w głąb).</summary>
+    const float WolneOdDrzwi = 2.3f;
     static readonly Dictionary<string, Mesh> meble = new Dictionary<string, Mesh>();
     static Mesh Siatka(string klucz, Action<UlSiatka> buduj)
     {

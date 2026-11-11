@@ -24,7 +24,7 @@ public static partial class BraxRegionFawela
         var r = new System.Random(6061);
         float R(float a, float b) => a + (float)r.NextDouble() * (b - a);
         var drzewa = new List<Vector2>(); var krz = new List<Vector2>();
-        float x0 = BraxMiastoGranice.FawelaX0 + 5f, x1 = BraxMiastoGranice.FawelaX1 - 5f, zS = BraxMiastoGranice.FawelaZSzczyt + 5f;
+        float x0 = BraxMiastoGranice.FawelaX0 + 5f, x1 = BraxMiastoGranice.FawelaX1 - 5f, zS = PlanSzczyt + 5f;
         for (float x = x0; x < x1; x += 6.5f)
             for (float z = -70f; z > zS; z -= 6.5f)
             {

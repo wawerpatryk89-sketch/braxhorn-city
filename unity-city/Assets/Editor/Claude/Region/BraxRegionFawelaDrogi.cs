@@ -44,7 +44,7 @@ public static partial class BraxRegionFawela
         foreach (var (x0, x1, zTop, nazwa) in new[] { (BraxMiastoGranice.FawelaX0, -61.4f, BraxMiastoGranice.Z0, "zachód"), (-61.4f, BraxMiastoGranice.FawelaX1, -68f, "wschód") })
         {
             var xs = new List<float>(); for (float x = x0; x < x1 - .01f; x += 2f) xs.Add(x); xs.Add(x1);
-            var zs = new List<float>(); for (float z = zTop; z > BraxMiastoGranice.FawelaZSzczyt + .01f; z -= 2f) zs.Add(z); zs.Add(BraxMiastoGranice.FawelaZSzczyt);
+            var zs = new List<float>(); for (float z = zTop; z > PlanSzczyt + .01f; z -= 2f) zs.Add(z); zs.Add(PlanSzczyt);
             int nx = xs.Count, nz = zs.Count;
             var hh = new float[nx, nz];
             for (int i = 0; i < nx; i++) for (int j = 0; j < nz; j++) hh[i, j] = WysTerenu(xs[i], zs[j]);
@@ -120,7 +120,7 @@ public static partial class BraxRegionFawela
             for (int i = 0; i + 1 < n; i++)
             {
                 if (d.pomin[i] && d.pomin[i + 1]) continue;
-                bool wMiescie = !BraxMiastoGranice.WFaweli(d.p[i].x, d.p[i].y);
+                bool wMiescie = !WPlanie(d.p[i].x, d.p[i].y);
                 for (int q = 0; q < 4; q++) bA.QuadC(V(i, offs[q], 0f), V(i + 1, offs[q], 0f), V(i + 1, offs[q + 1], 0f), V(i, offs[q + 1], 0f), KA(i, q), KA(i + 1, q), KA(i + 1, q + 1), KA(i, q + 1));
                 // krawężniki 0.25 m, 12 cm nad jezdnią, lico zewnętrzne 0.5 m w dół; miejscami malowane w żółto-białe pasy
                 bool malowany = Szum(i / 37f + d.szer, d.p[0].x) > .74f;
@@ -278,7 +278,7 @@ public static partial class BraxRegionFawela
             {
                 var a = s[i]; var b = s[i + 1];
                 float yt = WysBez(b.x, b.y);
-                if (DoDrog(a.x, a.y, 10f) < .5f || DoDrog(b.x, b.y, 10f) < .5f || !BraxMiastoGranice.WFaweli(b.x, b.y)) { yPop = yt; continue; }
+                if (DoDrog(a.x, a.y, 10f) < .5f || DoDrog(b.x, b.y, 10f) < .5f || !WPlanie(b.x, b.y)) { yPop = yt; continue; }
                 float y = yPop;
                 if (yt - yPop > stopien * .55f) y = yPop + stopien; else if (yPop - yt > stopien * .55f) y = yPop - stopien;
                 if (Mathf.Abs(y - yt) > stopien * 1.6f) y = yt;      // za drogą / przy tarasie: wyrównanie do terenu
@@ -329,7 +329,7 @@ public static partial class BraxRegionFawela
                 var dir = (b - a).normalized; var nn = new Vector2(-dir.y, dir.x);
                 float hl = WysBazowa(a.x + nn.x * 6f, a.y + nn.y * 6f), hr = WysBazowa(a.x - nn.x * 6f, a.y - nn.y * 6f), strona = hl < hr ? 1f : -1f;
                 var q2 = a + nn * strona * (d.szer * .5f + .95f);
-                if (!BraxMiastoGranice.WFaweli(q2.x, q2.y) || DoDzialek(q2.x, q2.y) < .5f || DoSchodow(q2.x, q2.y) < 1.5f || WJezdniInnej(d, q2.x, q2.y, 1.2f)) { pop = null; continue; }
+                if (!WPlanie(q2.x, q2.y) || DoDzialek(q2.x, q2.y) < .5f || DoSchodow(q2.x, q2.y) < 1.5f || WJezdniInnej(d, q2.x, q2.y, 1.2f)) { pop = null; continue; }
                 float y = WysTerenu(q2.x, q2.y);
                 var p0 = new Vector3(q2.x, y - .4f, q2.y); var top = p0 + Vector3.up * 9.4f;
                 // słup żelbetowy (zwężany), poprzeczki z izolatorami

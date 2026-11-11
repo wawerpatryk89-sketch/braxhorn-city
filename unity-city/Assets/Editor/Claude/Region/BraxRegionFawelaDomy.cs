@@ -628,7 +628,7 @@ public static partial class BraxRegionFawela
         Pasek(tab, F, sx0 + .03f, sx1 - .03f, sy0 + .03f, sy1 - .03f, -.305f);
         float hTab = sy1 - sy0 - .06f, cap = Mathf.Min(.32f * k, hTab * .56f);
         float wNap = BraxUliceKit.SzerokoscNapisu(rodzaj, cap); if (wNap > sx1 - sx0 - .3f) { cap *= (sx1 - sx0 - .3f) / wNap; wNap = sx1 - sx0 - .3f; }
-        BraxUliceKit.UstawGrupe("Fawela szyldy " + Mathf.FloorToInt(cx / Kw) + "_" + Mathf.FloorToInt(cz / Kw), 70f);
+        BraxUliceKit.UstawGrupe("Fawela szyldy " + Mathf.FloorToInt(cx / Kw) + "_" + Mathf.FloorToInt((cz - Odsuniecie) / Kw), 70f);   // kwadraty świata (fawela odsunięta o Odsuniecie)
         BraxUliceKit.Napis3D(rodzaj, F.P((sx0 + sx1) * .5f, sy0 + .03f + (hTab - cap) * .5f, -.305f), F.N, cap, .04f, LiteryFarba(kolLit), metal);
         if (apteka || przych)
         {   // krzyż świecący na wysięgniku

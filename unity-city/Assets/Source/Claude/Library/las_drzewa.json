@@ -1,0 +1,86 @@
+{
+ "las_jodla_a": {
+  "zrodlo": "fir_tree_01 / fir_tree_01_a_LOD0",
+  "drewno_trojkatow": 1517,
+  "drewno_zrodlo": 84308,
+  "wysokosc_m": 17.546592131257057,
+  "liscie_0_trojkatow": 1122,
+  "liscie_1_trojkatow": 480,
+  "liscie_2_trojkatow": 180,
+  "korona_zrodlo_trojkatow": 4066119,
+  "plik_kB": 908
+ },
+ "las_jodla_b": {
+  "zrodlo": "fir_tree_01 / fir_tree_01_b_LOD0",
+  "drewno_trojkatow": 1610,
+  "drewno_zrodlo": 78776,
+  "wysokosc_m": 12.52579614520073,
+  "liscie_0_trojkatow": 862,
+  "liscie_1_trojkatow": 382,
+  "liscie_2_trojkatow": 150,
+  "korona_zrodlo_trojkatow": 2207296,
+  "plik_kB": 776
+ },
+ "las_jodla_c": {
+  "zrodlo": "fir_tree_01 / fir_tree_01_c_LOD0",
+  "drewno_trojkatow": 1596,
+  "drewno_zrodlo": 46268,
+  "wysokosc_m": 13.322330825030804,
+  "liscie_0_trojkatow": 862,
+  "liscie_1_trojkatow": 380,
+  "liscie_2_trojkatow": 150,
+  "korona_zrodlo_trojkatow": 446074,
+  "plik_kB": 674
+ },
+ "las_sosna_a": {
+  "zrodlo": "pine_tree_01 / pine_tree_01_a_LOD0",
+  "drewno_trojkatow": 1515,
+  "drewno_zrodlo": 84332,
+  "wysokosc_m": 17.545981779694557,
+  "liscie_0_trojkatow": 1040,
+  "liscie_1_trojkatow": 462,
+  "liscie_2_trojkatow": 182,
+  "korona_zrodlo_trojkatow": 6838822,
+  "plik_kB": 924
+ },
+ "las_sosna_b": {
+  "zrodlo": "pine_tree_01 / pine_tree_01_b_LOD0",
+  "drewno_trojkatow": 1622,
+  "drewno_zrodlo": 78776,
+  "wysokosc_m": 12.526221483945847,
+  "liscie_0_trojkatow": 842,
+  "liscie_1_trojkatow": 382,
+  "liscie_2_trojkatow": 150,
+  "korona_zrodlo_trojkatow": 4136950,
+  "plik_kB": 869
+ },
+ "las_sosna_c": {
+  "zrodlo": "pine_tree_01 / pine_tree_01_c_LOD0",
+  "drewno_trojkatow": 1604,
+  "drewno_zrodlo": 46268,
+  "wysokosc_m": 15.182856909930706,
+  "liscie_0_trojkatow": 922,
+  "liscie_1_trojkatow": 400,
+  "liscie_2_trojkatow": 160,
+  "korona_zrodlo_trojkatow": 5924930,
+  "plik_kB": 936
+ },
+ "las_drzewko": {
+  "zrodlo": "tree_small_02 / tree_small_02_LOD0",
+  "drewno_trojkatow": 948,
+  "drewno_zrodlo": 28293,
+  "wysokosc_m": 3.6886768005788326,
+  "liscie_0_trojkatow": 660,
+  "liscie_1_trojkatow": 302,
+  "liscie_2_trojkatow": 122,
+  "korona_zrodlo_trojkatow": 1939380,
+  "plik_kB": 643
+ },
+ "las_kloda": {
+  "zrodlo": "dead_tree_trunk_02 / dead_tree_trunk_02",
+  "drewno_trojkatow": 3111,
+  "drewno_zrodlo": 83128,
+  "wysokosc_m": 1.0550733506679535,
+  "plik_kB": 164
+ }
+}

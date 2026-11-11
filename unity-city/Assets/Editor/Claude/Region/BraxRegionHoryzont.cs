@@ -527,7 +527,7 @@ public static class BraxRegionHoryzont
         float dfw = BraxMiastoGranice.OdlegloscFaweli(x, z, out var pfw);
         if (dfw < 140f)
         {
-            float hfw = BraxRegionFawela.WysTerenu(pfw.x, pfw.y);
+            float hfw = BraxRegionFawela.WysSwiat(pfw.x, pfw.y);   // 11.11: fawela odsunięta — przed nią pas dworca i lasu (świat)
             h = Mathf.Lerp(hfw - .05f, Mathf.Max(h, hfw + dfw * .25f), S01(0f, 140f, dfw));
         }
         // brzeg morza: skalisty, schodzi pod wodę (woda miasta y −1.7)

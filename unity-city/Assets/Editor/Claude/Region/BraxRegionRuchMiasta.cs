@@ -605,6 +605,9 @@ public static partial class BraxClaudeOsiedle
                 bool wSali = gdzieF.StartsWith("sala", StringComparison.Ordinal);
                 if (Obsada("FAWELA — " + gdzieF, wSali ? RolaSport : RolaObsluga, wSali ? "trener" : gdzieF.StartsWith("bar", StringComparison.Ordinal) ? "barman" : "kasjer", pf, yawF, rnd, lada, pf.y + .02f)) obs++;
             }
+            // DWORZEC R1 (11.11): kasy, informacja, kawiarnia — stanowiska obsługi wg BraxMiastoDworzec (posadzka hali podana wprost)
+            foreach (var (pd, yawD, gdzieD) in BraxMiastoDworzec.Obsluga)
+                if (Obsada("DWORZEC — " + gdzieD, gdzieD.StartsWith("kasa", StringComparison.Ordinal) || gdzieD.StartsWith("informacja", StringComparison.Ordinal) ? RolaRecepcja : RolaObsluga, gdzieD.StartsWith("kawiarnia", StringComparison.Ordinal) ? "barista" : "kasjer", pd, yawD, rnd, lada, pd.y + .02f)) obs++;
             // ul. Zachodnia (ETAP 2): dyżurny komisariatu i rejestracja szpitala za ladą holu, policjant przed wejściem, lekarz w holu szpitala
             var lk = BraxRegionTylyB.LadaHolu(BraxRegionMiastoB.Komisariat); var ls = BraxRegionTylyB.LadaHolu(BraxRegionMiastoB.Szpital);
             O("KOMISARIAT — dyżurny", RolaPolicja, "policja", new Vector3(lk.x + 1.0f * k, YC, lk.z - .95f * k), 0f);

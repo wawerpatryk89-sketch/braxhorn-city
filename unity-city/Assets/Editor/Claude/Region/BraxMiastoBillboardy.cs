@@ -391,6 +391,8 @@ internal static class BraxMiastoBillboardy
     // w płaszczyźnie ściany (±30 cm), zostaje otworem; mury przed ścianą (boki dziedzińca, budynki) zasłaniają. Kadr grafiki
     // = prostokąt widocznej szarej ściany. Ściana siłowni ma własną kolizję (gym-collisions z 11…11.6) — bez dodatkowych pudeł.
     const float MuralKrok = .10f, MuralOdstep = .012f;
+    /// <summary>11.11: mural 19 na całą widoczną szarą ścianę (pokrycie, dół obrazu pod chodnikiem) zamiast całego obrazu z białymi bokami.</summary>
+    const bool MuralCalaSciana = true;
     // dziedziniec przed siłownią: od lica boku BAR 24 (StreetBuildings „bar” x1 = −1) do lica NUTRITION (x 14.5)
     const float DziedzinecX0 = -1.0f, DziedzinecX1 = 14.5f;
     static readonly string[] MuralPomijaj = { "mural", "drzewo", "tree", "verdant", "palm", "liść", "lisc", "leaf", "krzew", "bush",
@@ -399,6 +401,20 @@ internal static class BraxMiastoBillboardy
     static void MuralSilowni(Transform cityRoot, Transform rodzic)
     {
         int usuniete = UsunBilbord19PrzySzarejScianie(cityRoot);
+        // 11.11 (właściciel 14:43: „napis BRAXHORN GYM ma zrobić ładny w 3D. Tam to usuń”): płaski szyld nad drzwiami wyłączony
+        // PRZED muralem (mural przechodzi przez jego miejsce), szyld 3D stawiany po muralu (BraxSzyldGym3D)
+        try { BraxSzyldGym3D.ZdejmijPlaski(); } catch (Exception e) { Debug.LogWarning("BRAXHORN_GYM_SZYLD_3D płaski DO POPRAWKI " + e.Message); }
+        licoSciany = float.NaN;
+        try { MuralSilowniWlasciwy(cityRoot, rodzic, usuniete); }
+        finally
+        {
+            try { opis.Add(BraxSzyldGym3D.Postaw(rodzic, licoSciany)); } catch (Exception e) { Debug.LogWarning("BRAXHORN_GYM_SZYLD_3D DO POPRAWKI " + e.Message); opis.Add("szyld GYM 3D: DO POPRAWKI"); }
+        }
+    }
+    static float licoSciany = float.NaN;
+
+    static void MuralSilowniWlasciwy(Transform cityRoot, Transform rodzic, int usuniete)
+    {
         var mat = Grafika("19", 1.5f, out float proporcja);
         if (mat == pusta || !mat.mainTexture)
         {
@@ -485,6 +501,7 @@ internal static class BraxMiastoBillboardy
             Debug.LogWarning(msg); opis.Add(msg); return;
         }
         float lico = sumaZ[sciana] / liczba[sciana];
+        licoSciany = lico;
 
         // 2) siatka co 10 cm na obrysie tej ściany: komórka = mural tylko, gdy promień trafia lico ściany, a przed nim nie ma
         //    (a) niczego w płaszczyźnie ściany (drzwi, szyld, plakat, okno) ani (b) muru/budynku, który ją zasłania od ulicy.
@@ -566,8 +583,23 @@ internal static class BraxMiastoBillboardy
         //    chowały się za BAR 24 i NUTRITION. Teraz CAŁY obraz bez kadrowania: wysokość = wysokość ściany dziedzińca, szerokość
         //    z proporcji (gdy się nie mieści — szerokość dziedzińca), środek w osi dziedzińca; poza obrazem zostaje szara ściana.
         float imgH = y1 - y0, imgW = imgH * proporcja;
-        if (imgW > x1 - x0) { imgW = x1 - x0; imgH = imgW / proporcja; }
-        float ix1 = (x0 + x1) * .5f + imgW * .5f, ix0 = ix1 - imgW, iy1 = y1, iy0 = iy1 - imgH;
+        float ix1, ix0, iy1, iy0;
+        if (MuralCalaSciana)
+        {
+            // 11.11 (właściciel 14:14: „ten mural masz zrobić w końcu prawidłowo”; 6.11: „cała szara ściana, grafika 19, otwór na
+            // drzwi”): APK 2bfadac — cały obraz 12.75 × 8.5 m na widocznej ścianie 15.5 m, po bokach 1.4 m gołej białej cegły.
+            // Teraz obraz pokrywa CAŁĄ widoczną szarą ścianę od krawędzi do krawędzi: szerokość = szerokość ściany, wysokość
+            // z proporcji; góra obrazu przy górnej krawędzi ściany (napis i głowy całe, 3 % nad krawędzią), nadmiar wysokości
+            // schodzi pod chodnik (dół obrazu — nogi). Gdyby ściana była wyższa niż obraz — pokrycie po wysokości, boki symetrycznie.
+            imgW = x1 - x0; imgH = imgW / proporcja;
+            if (imgH < y1 - y0) { imgH = y1 - y0; imgW = imgH * proporcja; }
+            ix1 = (x0 + x1) * .5f + imgW * .5f; ix0 = ix1 - imgW; iy1 = y1 + imgH * .03f; iy0 = iy1 - imgH;
+        }
+        else
+        {
+            if (imgW > x1 - x0) { imgW = x1 - x0; imgH = imgW / proporcja; }
+            ix1 = (x0 + x1) * .5f + imgW * .5f; ix0 = ix1 - imgW; iy1 = y1; iy0 = iy1 - imgH;
+        }
         float z = lico + MuralOdstep;
         var v = new List<Vector3>(); var uv = new List<Vector2>(); var tr = new List<int>();
         for (int j = j0; j <= j1; j++)
@@ -594,7 +626,7 @@ internal static class BraxMiastoBillboardy
         mural.SetParent(rodzic, false); mural.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
         BraxMiastoA.Obiekt(mural, "mural_19_szara_sciana_silowni", mesh, mat);
         postawione++;
-        string opis19 = "19: oryginał 19.jpg CAŁY (bez kadrowania) " + imgW.ToString("F2") + "×" + imgH.ToString("F2") + " m, x=" + ix0.ToString("F2") + ".." + ix1.ToString("F2") +
+        string opis19 = "19: oryginał 19.jpg " + (MuralCalaSciana ? "NA CAŁĄ ŚCIANĘ (pod chodnikiem " + Mathf.Max(0f, y0 - iy0).ToString("F2") + " m dołu obrazu, nad krawędzią " + Mathf.Max(0f, iy1 - y1).ToString("F2") + " m) " : "CAŁY (bez kadrowania) ") + imgW.ToString("F2") + "×" + imgH.ToString("F2") + " m, x=" + ix0.ToString("F2") + ".." + ix1.ToString("F2") +
             ", y=" + iy0.ToString("F2") + ".." + iy1.ToString("F2") + " na " + sciana.name + " (lico z=" + lico.ToString("F2") + "), widoczna ściana x=" + x0.ToString("F1") + ".." + x1.ToString("F1") +
             ", y=" + y0.ToString("F1") + ".." + y1.ToString("F1") + ", " + pole.ToString("F1") + " m², otwory (drzwi/szyld) " + (otwory * MuralKrok * MuralKrok).ToString("F1") +
             " m², zasłonięte murami " + (zaslonione * MuralKrok * MuralKrok).ToString("F1") + " m², pasów " + (tr.Count / 6) + ", usunięte stare tablice " + usuniete;

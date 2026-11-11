@@ -852,7 +852,11 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         PrzekrojZ("Aleja Południowa", AX, AH, Ziel, Chod, zW1, z1, true, (z1 - 6f, z1), (zW1, Mathf.Max(zW1 + 4.5f, SZ + zebraDo)));
         Asfalt("tunel", AX - 5.6f, AX + 5.6f, AS1 - 20f, AS1);   // jezdnia w tunelu (portal i ściany: etap 2)
         zjazdy.Add((1, ParkAleja0, ParkAleja1));   // wjazd na parking przy warsztatach
-        PrzekrojZ("Aleja Południowa (do tunelu)", AX, AH, Ziel, Chod, AS1, zW0, true, (Mathf.Min(zW0 - 6f, SZ - zebraDo), zW0), (AS1, AS1 + 14f), (PrzystanekZ - 10f, PrzystanekZ + 6f));
+        // 11.11 (MIASTO R1): wjazd w ul. Dworcową do dworca autobusowo-kolejowego (BraxMiastoDworzec) — zjazd przez pas zieleni
+        // wschodni; przerwa zieleni przy portalu kończy się przed nim
+        bool dworzec = BraxMiastoDworzec.Wlaczony && BraxRegionFawela.Wlaczona;
+        if (dworzec) zjazdy.Add((1, BraxMiastoDworzec.DworcowaZ - BraxMiastoDworzec.Pas, BraxMiastoDworzec.DworcowaZ + BraxMiastoDworzec.Pas));
+        PrzekrojZ("Aleja Południowa (do tunelu)", AX, AH, Ziel, Chod, AS1, zW0, true, (Mathf.Min(zW0 - 6f, SZ - zebraDo), zW0), (AS1, dworzec ? BraxMiastoDworzec.DworcowaZ - BraxMiastoDworzec.Pas - .01f : AS1 + 14f), (PrzystanekZ - 10f, PrzystanekZ + 6f));
         // skrzyżowanie z Warsztatową: jezdnia alei przez wylot, krawężniki po zachodniej stronie, po wschodniej wylot ulicy
         Asfalt("Aleja Południowa × Warsztatowa", AX - AH, AX + AH, zW0, zW1);
         Kraweznik(AX - AH - Kr, AX - AH, zW0, zW1);
@@ -947,10 +951,12 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         Trawa("L4 na północ od pętli", AX - PetlaPlac - 3f, AX + PetlaPlac + 3f, PetlaZ + PetlaPlac, 126f, true);
         Trawa("L7 park zach. Alei Południowej", LicoW - 16f, LicoW, ZboczeZ, -14f, true);
         for (float z = AS1 + 6f; z < -20f; z += 11f) Drzewo(new Vector3(LicoW - 7f + ((int)z % 3), YC - .03f, z));
-        Trawa("L8 park wsch. Alei Południowej (pd.)", LicoE, ParkX0, ZboczeZ, ParkAleja0);
+        // 11.11: pas L8/L9 od z Z0 do −67.5 (x −114…−61.4) przejmuje ul. Dworcowa z chodnikiem i teren pasa dworca (BraxMiastoDworzec)
+        var pasDworca = BraxMiastoDworzec.Wlaczony && BraxRegionFawela.Wlaczona ? new[] { Rect.MinMaxRect(BraxMiastoDworzec.LicoAlei, ZboczeZ, -61.4f, BraxMiastoDworzec.PasAleiZ1) } : new Rect[0];
+        TrawaBez("L8 park wsch. Alei Południowej (pd.)", Rect.MinMaxRect(LicoE, ZboczeZ, ParkX0, ParkAleja0), false, pasDworca);
         Trawa("L8 park wsch. Alei Południowej (pn.)", LicoE, ParkX0, ParkAleja1, zW0);
         // 9.11 fawela: ul. dolna wychodzi z alei parkingu (z −59…−53) na wschód i w dół przez trawniki L9 — korytarz jezdni z krawężnikami bez trawy
-        var korytarzFaweli = BraxRegionFawela.Wlaczona ? new[] { Rect.MinMaxRect(ParkX1, -59.1f, -63.4f, -52.9f), Rect.MinMaxRect(-69.6f, -82.5f, -63.4f, -59.1f), Rect.MinMaxRect(-69.6f, ZboczeZ, -61.4f, -82.5f) } : new Rect[0];
+        var korytarzFaweli = pasDworca.Length > 0 ? pasDworca : BraxRegionFawela.Wlaczona ? new[] { Rect.MinMaxRect(ParkX1, -59.1f, -63.4f, -52.9f), Rect.MinMaxRect(-69.6f, -82.5f, -63.4f, -59.1f), Rect.MinMaxRect(-69.6f, ZboczeZ, -61.4f, -82.5f) } : new Rect[0];
         TrawaBez("L9 za warsztatami (do skarpy)", Rect.MinMaxRect(-112f, ZboczeZ, -61.4f, ParkZ0), true, korytarzFaweli);
         Trawa("L9 za warsztatami (przy parkingu)", -112f, -61.4f, ParkZ1, zb, true);
         TrawaBez("L9 na wschód od parkingu", Rect.MinMaxRect(ParkX1, ParkZ0, -61.4f, ParkZ1), true, korytarzFaweli);

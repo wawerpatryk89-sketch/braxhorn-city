@@ -27,10 +27,18 @@ public static class BraxMiastoGranice
     // Całe wzgórze na południe od miasta: od linii miasta (z −68 za parkiem wieżowców na wschód od x −61.4, z Z0 dalej na zachód)
     // do szczytu z ≈ −357; od x −470 (za nowymi dzielnicami) do x 70 (stok schodzi ku morzu). Grywalne — granicę gry robi
     // murek na jej obrzeżu (krok horyzontu), teren za nią (las, góry) przedłuża stok.
-    public const float FawelaX0 = -470f, FawelaX1 = 70f, FawelaZSzczyt = -357f;
-    /// <summary>Linia miasta nad fawelą (z, od której zaczyna się stok) dla danego x.</summary>
+    // 11.11 (właściciel: „rozdziel wtedy te fawele od miasta dworcem, torami i lasem”): fawela odsunięta o FawelaOdsuniecie na
+    // południe — między linią miasta a fawelą pas lasu, dworzec autobusowo-kolejowy i tory (grywalne, ta sama granica gry).
+    // Obszar „fawela” w tej klasie = pas dworca + fawela (od linii miasta do szczytu); sama fawela zaczyna się KrawedzFaweliOdsunietej.
+    public const float FawelaOdsuniecie = 115f;
+    public const float FawelaX0 = -470f, FawelaX1 = 70f, FawelaZSzczyt = -357f - FawelaOdsuniecie;
+    /// <summary>Linia miasta nad pasem dworca i fawelą (z, od której zaczyna się teren za miastem) dla danego x.</summary>
     public static float FawelaKrawedz(float x) => x > -61.4f ? -68f : Z0;
-    /// <summary>Czy punkt leży w faweli (grywalne wzgórze za miastem).</summary>
+    /// <summary>Górna krawędź samej faweli (za lasem i torami) dla danego x.</summary>
+    public static float KrawedzFaweliOdsunietej(float x) => FawelaKrawedz(x) - FawelaOdsuniecie;
+    /// <summary>Czy punkt leży w pasie dworca, torów i lasu między miastem a fawelą.</summary>
+    public static bool WPasieDworca(float x, float z) => x >= FawelaX0 && x <= FawelaX1 && z <= FawelaKrawedz(x) && z > KrawedzFaweliOdsunietej(x);
+    /// <summary>Czy punkt leży w faweli albo w pasie dworca przed nią (grywalne — teren za miastem).</summary>
     public static bool WFaweli(float x, float z) => x >= FawelaX0 && x <= FawelaX1 && z >= FawelaZSzczyt && z <= FawelaKrawedz(x);
     /// <summary>Prostokąt obejmujący miasto RAZEM z fawelą (zasięg siatek granicy i terenu za granicą).</summary>
     public static Rect ProstokatCaly => Rect.MinMaxRect(X0, FawelaZSzczyt, X1, Z1);

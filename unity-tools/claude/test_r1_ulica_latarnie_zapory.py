@@ -24,13 +24,14 @@ def ints(name, src):
 class R1MainStreetSourceFixtures(unittest.TestCase):
     def test_source_lamps_listed_by_mesh_number_in_full_triplets(self):
         ids = ints("SourceMainStreetLampMeshes", ENV)
-        self.assertEqual(len(ids), 48)           # 16 latarni × (stopa, słup, wysięgnik)
-        self.assertEqual(len(set(ids)), 48)
+        self.assertEqual(len(ids), 60)           # 20 latarni × (stopa, słup, wysięgnik)
+        self.assertEqual(len(set(ids)), 60)
         self.assertEqual(ids[:3], [45, 46, 47])
-        self.assertEqual(ids[-3:], [96, 97, 98])
-        # latarnie promenady (69–74, 99–104) zostają
+        # 11.11 (właściciel: „tylko i wyłącznie nowe”): także 4 ostatnie przy wylocie Wiaduktowej (69–74, 99–104)
         for i in (69, 70, 71, 72, 73, 74, 99, 100, 101, 102, 103, 104):
-            self.assertNotIn(i, ids)
+            self.assertIn(i, ids)
+        feet = re.search(r"SourceMainStreetLampFeet\s*=\s*\{(.*?)\};", ENV, re.S).group(1)
+        self.assertEqual(feet.count("new Vector2("), 20)
 
     def test_viaduct_bollards_listed_by_mesh_number(self):
         self.assertEqual(ints("SourceViaductBollardMeshes", ENV), [157, 158, 159, 160, 161, 162])

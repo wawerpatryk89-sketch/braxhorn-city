@@ -80,6 +80,10 @@ public static class BraxRegion
         // 9.11 (właściciel: slamsy na wzgórzu za miastem, duży teren, łagodne przejście, sklepy, sala rywala): po mieście B (drogi wchodzą z parkingu
         // warsztatów i z nowych dzielnic), przed łataniem dziur, ruchem (auta zaparkowane, koła, sprzedawcy) i horyzontem (teren za granicą)
         Step("fawela na wzgórzu za miastem (etap 1): teren, drogi, schody, domy, lokale, plac, sala rywala", () => BraxRegionFawela.Apply(root));
+        // 11.11 (właściciel: „rozdziel te fawele od miasta dworcem, torami i lasem”): fawela odsunięta o 115 m; w pasie między nią
+        // a miastem: las, dworzec autobusowo-kolejowy, tory pod pociąg MIASTA MISTRZÓW. Po faweli (jej plan i krawędź), przed
+        // ruchem i ludźmi (obsada kas), przed horyzontem (teren za granicą przedłuża pas i fawelę).
+        Step("dworzec R1: las, dworzec autobusowo-kolejowy, tory, przejazdy", () => BraxMiastoDworzec.Apply(root));
         // 9.11 (właściciel: „te niebieskie… ma poznikać”, teren za siłownią → port → wulkanizacja): po WSZYSTKICH krokach, które
         // kładą nawierzchnie — zmierzone dziury w gruncie (pod nimi woda y −1.7) zamknięte płytą, trawniki z obrzeżem.
         // 9.11 (właściciel: „z siłowni w lewo, potem w lewo — za budynkiem woda… cały budynek prześwietl”): siłownia od zewnątrz

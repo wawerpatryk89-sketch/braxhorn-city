@@ -62,8 +62,10 @@ class Kolejnosc(unittest.TestCase):
             self.assertLess(i_f, REGION.index(dalej), dalej)
 
     def test_horizon_continues_favela_terrain(self):
-        self.assertIn("BraxRegionFawela.WysTerenu(pfw.x, pfw.y)", HORYZONT)
+        # 11.11: fawela odsunięta o 115 m — horyzont przedłuża teren ŚWIATA (pas dworca albo przesunięty plan faweli)
+        self.assertIn("BraxRegionFawela.WysSwiat(pfw.x, pfw.y)", HORYZONT)
         self.assertIn("public static float WysTerenu(float x, float z)", FAW)
+        self.assertIn("public static float WysSwiat(float x, float z)", FAW)
         self.assertIn("public static bool WFaweli(float x, float z)", GRANICE)
         self.assertIn("if (WFaweli(x, z)) return true;", GRANICE)
 
