@@ -146,27 +146,33 @@ internal static class BraxMiastoNutrition
         Color32[] marka = { BraxUliceKit.C(.05f, .05f, .055f), BraxUliceKit.C(.95f, .95f, .95f), BraxUliceKit.C(.25f, .75f, .15f), BraxUliceKit.C(.12f, .12f, .13f), BraxUliceKit.C(.85f, .2f, .15f), BraxUliceKit.C(.95f, .75f, .15f) };
         var tw = BraxUliceKit.S(towar); var cz = BraxUliceKit.S(czern);
         bool odzywki = BraxMiastoAssety.Jest("miasto_sklepy");
-        // LODÓWKI z napojami (ściana tylna, po bokach muralu)
+        // 11.11 (właściciel 19:44: „sklep z odżywkami… są lodówki. Po co lodówki w sklepie z odżywkami? Tam mają być półki, na półkach
+        // odżywki”): lodówki zdjęte — po bokach muralu REGAŁY Z ODŻYWKAMI (czarna rama z zaokrąglonymi krawędziami, 5 białych półek,
+        // plecy jasne, listwa LED pod górną półką), towar prawdziwy z paczki sklepów: dół — gainery i kubły 2–4 kg, środek — whey,
+        // małe opakowania, góra — kreatyna, przedtreningówki, dodatki (BraxSklepyTowar „odz_dol / odz_polka / odz_gora”)
+        var plecy = BraxMiastoA.Mat("Nutrition: plecy regału (biel mat)", new Color(.9f, .9f, .89f), .7f);
         foreach (float xa in new[] { X0 + .65f, X1 - 2.35f })
         {
-            // lodówka przeszklona: korpus (boki, góra, dół, plecy podświetlone), półki, napoje w środku, drzwi ze szkła
-            float xb = xa + 1.7f, zf = Z0 + .75f, hL = 2.1f * K;
-            cz.Box(new Vector3(xa, F, Z0), new Vector3(xa + .06f, F + hL, zf)); cz.Box(new Vector3(xb - .06f, F, Z0), new Vector3(xb, F + hL, zf));
-            cz.Box(new Vector3(xa + .06f, F, Z0), new Vector3(xb - .06f, F + .15f, zf), 4); cz.Box(new Vector3(xa + .06f, F + hL - .22f, Z0), new Vector3(xb - .06f, F + hL, zf), 8);
-            BraxUliceKit.S(lodowka).Quad(new Vector3(xa + .06f, F + .15f, Z0 + .03f), new Vector3(xb - .06f, F + .15f, Z0 + .03f), new Vector3(xb - .06f, F + hL - .22f, Z0 + .03f), new Vector3(xa + .06f, F + hL - .22f, Z0 + .03f), Vector3.forward);
-            for (int p = 0; p < 4; p++)
+            float xb = xa + 1.7f, zf = Z0 + .5f * K, hR = 2.15f * K;
+            cz.Poducha(new Vector3(xa, F, Z0 + .005f), new Vector3(xa + .05f, F + hR, zf), .008f, 0f, 3);
+            cz.Poducha(new Vector3(xb - .05f, F, Z0 + .005f), new Vector3(xb, F + hR, zf), .008f, 0f, 3);
+            cz.Poducha(new Vector3(xa + .05f, F, Z0 + .005f), new Vector3(xb - .05f, F + .12f, zf - .02f), .006f, 0f, 3);           // cokół
+            cz.Poducha(new Vector3(xa + .05f, F + hR - .08f, Z0 + .005f), new Vector3(xb - .05f, F + hR, zf), .008f, 0f, 3);        // wieniec
+            BraxUliceKit.S(plecy).Quad(new Vector3(xa + .05f, F + .12f, Z0 + .03f), new Vector3(xb - .05f, F + .12f, Z0 + .03f), new Vector3(xb - .05f, F + hR - .08f, Z0 + .03f), new Vector3(xa + .05f, F + .12f + hR - .2f, Z0 + .03f), Vector3.forward);
+            string[] typ = { "odz_dol", "odz_polka", "odz_polka", "odz_gora", "odz_gora" };
+            float krok = (hR - .25f) / 5f;
+            for (int p = 0; p < 5; p++)
             {
-                float y = F + .15f + p * (hL - .4f) / 4f;
-                if (p > 0) BraxUliceKit.S(polka).Box(new Vector3(xa + .06f, y - .015f, Z0 + .05f), new Vector3(xb - .06f, y, zf - .06f));
-                for (float x = xa + .14f; x < xb - .12f; x += .105f)
-                    for (float zb = Z0 + .15f; zb < zf - .12f; zb += .16f)
-                    { tw.kolor = marka[rng.Next(marka.Length)]; tw.Rura(new Vector3(x, y + .002f, zb), new Vector3(x, y + .2f * K, zb), .032f * K, 6); }
+                float y = F + .12f + p * krok;
+                if (p > 0) BraxUliceKit.S(polka).Poducha(new Vector3(xa + .05f, y - .025f, Z0 + .04f), new Vector3(xb - .05f, y, zf - .01f), .006f, 0f, 3);
+                if (odzywki) BraxSklepyTowar.Polka(typ[p], root, new Vector3(xa + .1f, y + .004f, (Z0 + .04f + zf) * .5f), Vector3.right, Vector3.back, 1.5f, rng, krok - .06f);
+                else
+                    for (float x = xa + .16f; x < xb - .14f; x += .2f)
+                    { tw.kolor = marka[rng.Next(marka.Length)]; tw.Rura(new Vector3(x, y + .002f, (Z0 + zf) * .5f), new Vector3(x, y + Mathf.Min(krok - .08f, .26f * K), (Z0 + zf) * .5f), .085f * K, 12); }
             }
             tw.kolor = BraxUliceKit.Bialy;
-            BraxUliceKit.S(BraxUliceKit.SzkloPrzezroczyste).Quad(new Vector3(xa + .06f, F + .15f, zf - .02f), new Vector3(xb - .06f, F + .15f, zf - .02f), new Vector3(xb - .06f, F + hL - .22f, zf - .02f), new Vector3(xa + .06f, F + hL - .22f, zf - .02f), Vector3.forward);
-            BraxUliceKit.S(stal).Box(new Vector3((xa + xb) * .5f - .02f, F + .15f, zf - .02f), new Vector3((xa + xb) * .5f + .02f, F + hL - .22f, zf + .02f));
-            BraxUliceKit.S(stal).Rura(new Vector3((xa + xb) * .5f - .08f, F + .9f, zf + .05f), new Vector3((xa + xb) * .5f - .08f, F + 1.6f, zf + .05f), .012f, 6);
-            BraxMiastoA.Kol(kol, "lodówka", new Vector3(xa, F, Z0), new Vector3(xb, F + hL, zf + .05f));
+            BraxUliceKit.S(led).Box(new Vector3(xa + .08f, F + hR - .08f - .03f, zf - .06f), new Vector3(xb - .08f, F + hR - .08f - .005f, zf - .03f));
+            BraxMiastoA.Kol(kol, "regał z odżywkami", new Vector3(xa, F, Z0), new Vector3(xb, F + hR, zf));
         }
         // JEDNA LADA (właściciel 9.11 17:57–17:58: „i tą ladę usunąć, bo są dwie”): wolnostojąca lada z kasą USUNIĘTA; zostaje
         // lada shake baru przy ścianie wschodniej — na niej kasa z ekranem (stan regeneracji), blendery, kubki; sprzedaż i shake z jednej lady.
@@ -176,12 +182,23 @@ internal static class BraxMiastoNutrition
         BraxUliceKit.S(blat).Box(new Vector3(X1 - .68f, F + .9f * K, lz0 - .5f), new Vector3(X1, F + .9f * K + .04f, lz1 + .5f), 2);
         BraxMiastoA.Kol(kol, "blat shake baru", new Vector3(X1 - .68f, F, lz0 - .5f), new Vector3(X1, F + .9f * K + .04f, lz1 + .5f));
         float yb = F + .9f * K + .04f;
-        // kasa z ekranem przodem do klienta (−x), przy południowym końcu lady; ekran pokazuje regenerację (BraxNutritionCounter)
-        float kz = lz0 - .1f;
-        BraxUliceKit.S(czern).Box(new Vector3(X1 - .62f, yb, kz - .2f), new Vector3(X1 - .3f, yb + .08f, kz + .2f));
-        BraxUliceKit.S(czern).Box(new Vector3(X1 - .5f, yb + .08f, kz - .03f), new Vector3(X1 - .46f, yb + .2f, kz + .03f));
-        BraxUliceKit.S(czern).Box(new Vector3(X1 - .52f, yb + .2f, kz - .19f), new Vector3(X1 - .49f, yb + .44f, kz + .19f));
-        ekranKasy = new Vector3(X1 - .525f, yb + .32f, kz);
+        // 11.11 (właściciel 19:44: „nie ma normalnej lady, żeby tam ktoś sprzedawał. Ona jest przy samej ścianie”): LADA SPRZEDAŻY
+        // wolnostojąca 0.9 m przed blatem shake baru — sprzedawca stoi między ladą a blatem, klient od sali. Front z dębu na cofniętym
+        // czarnym cokole, blat z białego kwarcu z nawisem od klienta, wejście za ladę od południa (przy regale).
+        float lx0 = X1 - .68f - .9f - .62f, lx1 = lx0 + .62f, lzA = lz0 - .1f, lzB = lz1 + .5f;
+        BraxUliceKit.S(czern).Poducha(new Vector3(lx0 + .06f, F, lzA), new Vector3(lx1, F + .1f, lzB), .006f, 0f, 3);
+        BraxUliceKit.S(dab).Poducha(new Vector3(lx0, F + .1f, lzA), new Vector3(lx1, yb - .04f, lzB), .01f, 0f, 4);
+        BraxUliceKit.S(blat).Poducha(new Vector3(lx0 - .06f, yb - .04f, lzA - .02f), new Vector3(lx1 + .01f, yb, lzB + .02f), .01f, 0f, 4);
+        BraxMiastoA.Kol(kol, "lada sprzedaży", new Vector3(lx0 - .06f, F, lzA - .02f), new Vector3(lx1 + .01f, yb, lzB + .02f));
+        BraxUliceKit.Napis3D("BRAXHORN NUTRITION", new Vector3(lx0 - .002f, F + .62f * K, (lzA + lzB) * .5f), Vector3.left, .11f, .02f, zielone, boki);
+        // kasa z ekranem przodem do klienta (−x) na ladzie sprzedaży; ekran pokazuje regenerację (BraxNutritionCounter)
+        float kz = lzA + .45f, kx = lx1 - .12f;
+        BraxUliceKit.S(czern).Poducha(new Vector3(kx - .3f, yb, kz - .2f), new Vector3(kx, yb + .08f, kz + .2f), .01f, 0f, 3);
+        BraxUliceKit.S(czern).Box(new Vector3(kx - .2f, yb + .08f, kz - .03f), new Vector3(kx - .16f, yb + .2f, kz + .03f));
+        BraxUliceKit.S(czern).Poducha(new Vector3(kx - .22f, yb + .2f, kz - .19f), new Vector3(kx - .19f, yb + .44f, kz + .19f), .006f, 0f, 3);
+        ekranKasy = new Vector3(kx - .225f, yb + .32f, kz);
+        // na ladzie: kubły whey i shakery przy kasie (towar do ręki)
+        if (odzywki) BraxSklepyTowar.Polka("odz_gora", root, new Vector3(lx0 + .3f, yb + .004f, kz + .5f), Vector3.forward, Vector3.right, lzB - kz - .7f, rng, .3f);
         for (int i = 0; i < 3; i++)
         {
             var b = new Vector3(X1 - .35f, yb, lz0 + .4f + i * .7f);
@@ -220,9 +237,11 @@ internal static class BraxMiastoNutrition
         if (roslina) foreach (var p in new[] { new Vector3(X0 + .6f, F, Z1 - .45f), new Vector3(X1 - .55f, F, Z1 - .45f) }) BraxRegion.Put(root, roslina, "Nutrition: roślina w donicy", p, 30f, 1f, true, 1.5f * K);
         BraxRegion.Warm(root, "Nutrition światło", new Vector3(18f, 3.5f, 16f), 1.3f, 9f);
         BraxRegion.Warm(root, "Nutrition światło", new Vector3(23f, 3.5f, 15f), 1.3f, 9f);
-        BraxMiastoA.Akcja(root, "nutrition_lada", "KUP", "Sprzedawca: Białko, kreatyna, przedtreningówka — co dziś bierzesz?", new Vector3(X1 - 1.35f, F, lz0 + .2f), 1.5f);
-        BraxMiastoA.Akcja(root, "nutrition_shake", "ZAMÓW SHAKE", "Shake bar: Wanilia, czekolada albo truskawka — 30 g białka.", new Vector3(X1 - 1.35f, F, lz1 - .2f), 1.4f);
-        punktLady = new Vector3(X1 - 1.35f, F, (lz0 + lz1) * .5f);
+        // klient podchodzi do lady sprzedaży od sali (−x)
+        float xk = X1 - .68f - .9f - .62f - .7f;
+        BraxMiastoA.Akcja(root, "nutrition_lada", "KUP", "Sprzedawca: Białko, kreatyna, przedtreningówka — co dziś bierzesz?", new Vector3(xk, F, lz0 + .4f), 1.5f);
+        BraxMiastoA.Akcja(root, "nutrition_shake", "ZAMÓW SHAKE", "Shake bar: Wanilia, czekolada albo truskawka — 30 g białka.", new Vector3(xk, F, lz1 - .2f), 1.4f);
+        punktLady = new Vector3(xk, F, (lz0 + lz1) * .5f);
     }
 
     // 9.11 17:55 (zdjęcia z APK: „KREATYNA”, „REGENERACJA” i „REGENERACJA 92/100” wiszą przy muralu i na nim): napisy działów

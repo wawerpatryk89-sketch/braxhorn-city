@@ -120,24 +120,32 @@ class NutritionWallFinishTests(unittest.TestCase):
 
     def test_white_wall_shelf_assembly_not_generated(self):
         ts = method('Wnetrze')
-        self.assertEqual(calls(ts, 'Polka'), [])
+        # 11.11 19:44 („na półkach mają być odżywki”): towar tylko na regałach z odżywkami przy muralu i na ladzie sprzedaży —
+        # długa biała ściana produktów (zachodnia, 6.11) nie wraca
+        for c in calls(ts, 'Polka'):
+            self.assertTrue(c[0] == ['typ', '[', 'p', ']'] or c[0] == ['"odz_gora"'], c[0])
         self.assertNotIn('"ściana produktów"', ts)
         # rz0/rz1/rd belonged only to the deleted full-length west shelf assembly.
         self.assertFalse({'rz0','rz1','rd','twN'}.intersection(ts))
 
     def test_other_fixtures_remain(self):
         ts = method('Wnetrze')
-        for label in ('"lodówka"','"blat shake baru"','"podest ekspozycyjny"'):
+        # 11.11 19:44 („Po co lodówki w sklepie z odżywkami? Tam mają być półki”): lodówki → regały z odżywkami
+        for label in ('"regał z odżywkami"','"blat shake baru"','"podest ekspozycyjny"'):
             self.assertEqual(sum(label in arg for call in calls(ts, 'Kol') for arg in call), 1)
         self.assertIn('"Nutrition: menu SHAKE BAR"', ts)
         self.assertIn('"Nutrition: kubeł whey na podeście"', ts)
         self.assertEqual(len(calls(ts, 'Akcja')), 2)
 
     def test_single_counter_owner_9_11(self):
-        # 9.11 17:57: „i tą ladę usunąć, bo są dwie” — wolnostojąca lada zdjęta, kasa na ladzie shake baru
+        # 9.11 17:57: „i tą ladę usunąć, bo są dwie” — druga lada nie wraca; 11.11 19:44: „Tam nie ma normalnej lady, żeby tam ktoś
+        # sprzedawał. Ona jest przy samej ścianie” — JEDNA lada sprzedaży wolnostojąca przed blatem shake baru, kasa na niej
         ts = method('Wnetrze')
         self.assertEqual(sum('"lada"' in arg for call in calls(ts, 'Kol') for arg in call), 0)
-        self.assertNotIn('lx0', ts)
+        self.assertEqual(sum('"lada sprzedaży"' in arg for call in calls(ts, 'Kol') for arg in call), 1)
+        self.assertIn('lx0', ts)
+        self.assertIn('"BRAXHORN NUTRITION"', ts)
+        self.assertIn('ekranKasy', ts)
         self.assertIn('ekranKasy', ts)
 
     def test_dark_small_clinker_on_all_walls_owner_9_11(self):
