@@ -183,6 +183,15 @@ class Telewizory(unittest.TestCase):
         self.assertIn("*.mp4", src(ROOT / "unity-city" / "Assets" / "StreamingAssets" / "R1" / "Reklamy" / ".gitignore"))
 
 
+class Drogowskaz(unittest.TestCase):
+    def test_tunnel_sign_premium_3d(self):
+        # lista ze zdjęć pkt 1: płaski napis drogowskazu do tunelu → tablica E-2 z kodu, obwódka i strzałka 3D, litery Bebas
+        b = src(R / "BraxRegionMiastoB.cs")
+        self.assertIn('BraxChlodnie.Wez("znak_E2_osiedle_tunel"', b)
+        self.assertIn('BraxLiteryBebas.Napis(q[bialyZ], q[bialyZ], "OSIEDLE"', b)
+        self.assertNotIn('BraxRegionMeble.Napis(g, "OSIEDLE  ↓  TUNEL"', b)
+
+
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):
         k = src(ROOT / "unity-tools" / "claude" / "kontrola_kompilacji" / "kompiluj.sh")

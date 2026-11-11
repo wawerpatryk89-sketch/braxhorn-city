@@ -1149,12 +1149,36 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         Physics.SyncTransforms();
         var g = new GameObject("Wyjazd na osiedle: szlaban i znak OSIEDLE").transform; g.SetParent(root, false);
         // znak drogowskazowy E-2 (niebieski) „OSIEDLE ↓” na chodniku wsch. przy z −58
-        var sl = new BraxRegionMeble.Bud(); var p0 = NaPodlozu(new Vector3(AX + AH + Kr + .6f, YC, -58f));
-        sl.Cyl(p0, p0 + Vector3.up * 3.2f * K, .04f * K, 10);
-        sl.Obiekt("Znak OSIEDLE: słup", g, stal, false, true);
-        var tb = new BraxRegionMeble.Bud(); tb.MinMax(p0 + new Vector3(-1.5f * K, 2.3f * K, -.03f), p0 + new Vector3(.2f * K, 3.1f * K, .03f));
-        tb.Obiekt("Znak OSIEDLE: tablica", g, BraxCityMaterials.Surface("Znak: niebieski E-2", new Color(.04f, .2f, .55f), .35f), false, false);
-        BraxRegionMeble.Napis(g, "OSIEDLE  ↓  TUNEL", p0 + new Vector3(-.65f * K, 2.7f * K, .05f), Vector3.forward, .2f * K, Color.white);
+        // 11.11 (lista ze zdjęć właściciela, pkt 1; 21:52 „wszystko ma być dopieszczone”): drogowskaz z kodu jak prawdziwy E-2 —
+        // słup ocynkowany z kapslem, obejmy, tablica dwuwarstwowa (tył aluminium, lico niebieskie, krawędzie zaokrąglone), biała
+        // obwódka i strzałka „prosto” w 3D (2.1 cm nad licem), litery 3D OSIEDLE / TUNEL (Bebas); wymiary × K, tablica przed słupem
+        var p0 = NaPodlozu(new Vector3(AX + AH + Kr + .6f, YC, -58f));
+        var znak = BraxChlodnie.Wez("znak_E2_osiedle_tunel", q =>
+        {
+            var ocynk = BraxCityMaterials.Surface("Znak: słup ocynk", new Color(.62f, .64f, .66f), .45f, .8f);
+            var aluT = BraxCityMaterials.Surface("Znak: tył tablicy (aluminium)", new Color(.70f, .72f, .74f), .5f, .7f);
+            var nieb = BraxCityMaterials.Surface("Znak: niebieski E-2 (folia odblaskowa)", new Color(.04f, .2f, .55f), .3f);
+            var bialyZ = BraxCityMaterials.Surface("Znak: biel odblaskowa", new Color(.95f, .95f, .94f), .3f);
+            q[ocynk].Rura(Vector3.zero, Vector3.up * 3.2f, .038f, 12);
+            float x0 = -1.5f, x1 = .2f, y0 = 2.3f, y1 = 3.1f, zt = .06f;                        // tablica 1.7 × 0.8 m, 6 cm przed osią słupa
+            foreach (float yc in new[] { y0 + .15f, y1 - .15f }) q[aluT].Box(new Vector3(-.05f, yc - .025f, .03f), new Vector3(.05f, yc + .025f, zt));   // obejmy
+            q[aluT].Poducha(new Vector3(x0, y0, zt), new Vector3(x1, y1, zt + .016f), .008f, 0f, 3);
+            q[nieb].Poducha(new Vector3(x0, y0, zt + .018f), new Vector3(x1, y1, zt + .03f), .006f, 0f, 3);
+            float zl = zt + .03f, b = .035f, m = .04f, zb = zl + .021f;                       // obwódka 3.5 cm, 4 cm od krawędzi
+            q[bialyZ].Box(new Vector3(x0 + m, y1 - m - b, zl), new Vector3(x1 - m, y1 - m, zb)); q[bialyZ].Box(new Vector3(x0 + m, y0 + m, zl), new Vector3(x1 - m, y0 + m + b, zb));
+            q[bialyZ].Box(new Vector3(x0 + m, y0 + m + b, zl), new Vector3(x0 + m + b, y1 - m - b, zb)); q[bialyZ].Box(new Vector3(x1 - m - b, y0 + m + b, zl), new Vector3(x1 - m, y1 - m - b, zb));
+            // strzałka „prosto” (po prawej patrzącego = −x): trzon i grot
+            float ax = x0 + .32f, ay0 = y0 + .16f, ay1 = y1 - .34f;
+            q[bialyZ].Box(new Vector3(ax - .045f, ay0, zl), new Vector3(ax + .045f, ay1, zb));
+            Vector3 g0 = new Vector3(ax - .14f, ay1, zb), g1 = new Vector3(ax + .14f, ay1, zb), g2 = new Vector3(ax, y1 - .14f, zb);
+            q[bialyZ].Tri(g0, g1, g2, Vector3.forward);
+            foreach (var (a, c) in new[] { (g0, g1), (g1, g2), (g2, g0) })
+            { var nn = Vector3.Cross(Vector3.forward, c - a).normalized; if (Vector3.Dot(nn, a - (g0 + g1 + g2) / 3f) < 0f) nn = -nn; q[bialyZ].Quad(a, c, c - Vector3.forward * .021f, a - Vector3.forward * .021f, nn); }
+            BraxLiteryBebas.Napis(q[bialyZ], q[bialyZ], "OSIEDLE", new Vector3(-.58f, y0 + .43f, zl), Vector3.left, Vector3.up, Vector3.forward, .2f, .02f, .05f, .002f);
+            BraxLiteryBebas.Napis(q[bialyZ], q[bialyZ], "TUNEL", new Vector3(-.58f, y0 + .13f, zl), Vector3.left, Vector3.up, Vector3.forward, .2f, .02f, .05f, .002f);
+        });
+        var zt0 = BraxChlodnie.Korzen(g, "Znak OSIEDLE · TUNEL (E-2)", p0, Vector3.forward);
+        BraxChlodnie.Wstaw(zt0, "znak E-2", znak, Vector3.zero, true);
         BraxRegionMeble.Kolizja(g, "Znak kolizja", p0 + Vector3.up * 1.6f * K, new Vector3(.12f, 3.2f * K, .12f));
         // pkt 42 (właściciel): szlaban „WJAZD ZAMKNIĘTY” w poprzek jezdni = błąd — usunięty razem z budką i kolizją; droga do tunelu
         // otwarta. Za portalem tunel długi i oświetlony; bez osiedla w aplikacji BraxTunelZawrot zawraca gracza z komunikatem.
