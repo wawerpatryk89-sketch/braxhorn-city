@@ -121,10 +121,6 @@ public static partial class BraxChampionsD2
             G1Circulation();Flush("G1 interior | escalators, lifts, stairs");
             G1Cinema();Flush("G1 kino | lobby, reception, halls");
             G1Home();G1GoodsIn();Flush("G1 dostawy | rampa rozładunkowa, korytarz, magazyn");
-            // owner 11.11 20:46-20:47: his short films loop on every BRAXHORN TV of the gallery (no sound, 640 x 360)
-            var tv=new GameObject("G1 | reklamy na telewizorach (BraxChampionsReklamyTV)").AddComponent<BraxChampionsReklamyTV>();
-            tv.transform.SetParent(root,false);tv.ekrany=BraxKatalog.TvMaterials();tv.srodek=root.position;tv.promien=120f*K;
-            tv.pliki=new[]{"reklama_1_puma.mp4","reklama_2_alpy.mp4","reklama_3_roboty.mp4","reklama_4_gangsterzy.mp4","reklama_5_fabryka.mp4"};
             Debug.Log("G1_GALERIA bays="+G1Bays+" accessible="+G1AccessibleBays+" shops="+G1Shops+" cinemaHalls="+G1Halls+" cinemaSeats="+G1CinemaSeats+" escalators="+G1Escalators+
                       " doors="+Doors+" colliders="+Colliders+" signs="+Signs+" trees="+Trees+" lamps="+Lamps+" benches="+Benches+" seats="+Seats+" lifts="+Lifts+" screens="+Screens);
             return 1;
@@ -334,7 +330,7 @@ public static partial class BraxChampionsD2
         foreach(float x0 in new[]{-80f,72f})for(int i=0;i<6;i++)BikeRack(x0+i*1.0f,G1HD+6.5f);
         for(float x=-29f;x<=74f;x+=3f){if(x>55f&&x<70f)continue;Bollard(x,G1SiteZ1-1.2f);}
         // lamps: the square, the walks, the car parks, the yard, the drop-off
-        foreach(var (x,z) in new[]{(-80f,62f),(-55f,62f),(55f,62f),(80f,62f),(-28f,84f),(73f,84f),(-28f,110f),(73f,110f),(-28f,134f),(73f,134f),(15f,84f),(15f,134f),
+        foreach(var (x,z) in new[]{(-80f,62f),(-55f,62f),(55f,62f),(80f,62f),(-28f,84f),(73f,84f),(-28f,110f),(73f,110f),(-32f,134f),(73f,134f),(15f,84f),(15f,134f),
                                    (100f,62f),(140f,70f)})
         {BraxChampionsPromenadeFurniture.Lamp(m,cols,x,z);}
         for(int i=0;i<8;i++){BraxChampionsPromenadeFurniture.Lamp(m,cols,(G1WestX0+G1WestX1)*.5f,G1WestZ0+12f+i*20f);}

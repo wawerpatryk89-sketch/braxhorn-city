@@ -244,13 +244,15 @@ class G1OwnerMediaTests(unittest.TestCase):
         self.assertFalse([t for t in tracked if 'StreamingAssets/Mistrzowie' in t])
         self.assertIn('*.mp4', (ROOT / 'unity-city/Assets/StreamingAssets/Mistrzowie/Reklamy/.gitignore').read_text())
 
-    def test_ads_loop_on_the_tvs(self):
-        g = src('BraxChampionsG1.cs')
-        self.assertIn('AddComponent<BraxChampionsReklamyTV>()', g)
-        self.assertIn('BraxKatalog.TvMaterials()', g)
-        rt = (RT / 'BraxChampionsReklamyTV.cs').read_text()
-        self.assertIn('VideoAudioOutputMode.None', rt)
-        self.assertIn('loopPointReached += Nastepny', rt)
+    def test_every_tv_works(self):
+        # owner 20:57: every TV can be switched on and off and plays the films (the global library, BraxTelewizor)
+        k = (ED / 'BraxKatalog.cs').read_text()
+        self.assertIn('AddComponent<BraxTelewizor>()', k)
+        self.assertIn('WorkingScreen(c, Screen("tv_"', k)
+        rt = (ROOT / 'unity-city/Assets/BraxhornWideo/BraxTelewizor.cs').read_text()
+        for t in ('IBraxInterakcja', '"WŁĄCZ TV"', '"WYŁĄCZ TV"', 'BraxhornWideo/', 'loopPointReached'):
+            self.assertIn(t, rt)
+        self.assertTrue((ROOT / 'docs/zasady/ZASADA_TELEWIZORY_FILMY_20261111.md').exists())
         self.assertIn('owner_media()', (ROOT / 'unity-tools/mistrzowie/prepare_assets.py').read_text())
 
 

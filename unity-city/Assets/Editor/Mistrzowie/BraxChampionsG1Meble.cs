@@ -506,8 +506,9 @@ public static partial class BraxChampionsD2
             WcPanReal(new Vector3(68.6f,y,-21.614f),Vector3.back);
             m.Tube(chrome,new Vector3(70.0f,y+1.1f,-21.68f),new Vector3(70.7f,y+1.1f,-21.68f),.012f,10);   // a towel rail with a towel
             foreach(float x in new[]{70.0f,70.7f})m.Tube(chrome,new Vector3(x,y+1.1f,-21.614f),new Vector3(x,y+1.1f,-21.68f),.008f,8);
-            RB(hLinen,70.08f,70.62f,y+.62f,y+1.11f,-21.70f,-21.66f,.012f,false,2);
-            BraxKatalog.Dresser(k,new Vector3(72.4f,y,-21.614f),Vector3.back,1.6f,2,2,BraxKatalog.Oak,BraxKatalog.BlackMatt,true,.62f,true,"BRAXHORN HOME szafka łazienkowa");
+            RB(hLinen,70.08f,70.62f,y+.62f,y+1.088f,-21.695f,-21.665f,.010f,false,2);                    // the towel hangs over the rail:
+            m.Cylinder(hLinen,new Vector3(70.08f,y+1.1f,-21.68f),.021f,.54f,14,Quaternion.Euler(0,0,-90),true,true);   // its fold round the bar
+            BraxKatalog.Dresser(k,new Vector3(72.4f,y,-21.614f-.45f),Vector3.back,1.6f,2,2,BraxKatalog.Oak,BraxKatalog.BlackMatt,true,.62f,true,"BRAXHORN HOME szafka łazienkowa");
             HPlant(new Vector3(73.8f,y,-22.4f),25f,1);
         });
         Room("RTV (telewizory BRAXHORN)",()=>

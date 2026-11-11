@@ -1,0 +1,37 @@
+{
+ "source": "owner short films for every TV in the game, 11.11.2026 20:46-20:58 (5 ads 16:9 + 5 short films 9:16 incl. the music video; the sixth 9:16 file was a byte copy of 'hala')",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer, release oboz-transfer-key-41749904696; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "layout": "tv/ = 640x360 H.264 baseline + AAC mono 64k (9:16 films over their own blurred picture); pion/ = 360x640 native portrait; oryginaly/ = the owner's 9:16 originals (the 16:9 originals are in mistrzowie-reklamy-20261111)",
+ "tarSha256": "26d55a0b5d782fd6c100e79794186cd15e7bd6f3cb5cdf39b8ba852d16f32cbf",
+ "cmsSha256": "cf010b93c786a586f74cf6e0acdf504f211427d00f302f06dd702eb9f9112ace",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 66615325,
+   "sha256": "cf010b93c786a586f74cf6e0acdf504f211427d00f302f06dd702eb9f9112ace"
+  }
+ ],
+ "files": {
+  "oryginaly/6726_auto.mp4": "0626b0a539d5c98ef010b3099b710d85bee839bffbf382a7ce1ccc12105309b5",
+  "oryginaly/6729_korytarz.mp4": "e0d7fe4758681ee31426518701cb8508ca7ed2058b812da3bf4920e435ae7f45",
+  "oryginaly/6734_basen.mp4": "ad4ef29c9996cfc06c4eadd6a309a721188ca2a367d8b4432dea14aa2b98500f",
+  "oryginaly/6735_teledysk.mp4": "30a93f1dbea045566667b8c3665e1a6def47b750652128e4f1c452f3a9098b96",
+  "oryginaly/6736_hala.mp4": "6cbb980f5c7d47b46db4bbff9796c4bb59a00ae6f005e356647bcd6918d5c15d",
+  "pion/pion_06_korytarz.mp4": "29e0e8089f117364a2a7cf8f732845ba0a23d556228f328fd157a1de363b99af",
+  "pion/pion_07_auto.mp4": "4766745dbcc033c36552a825b8672bc2c959c5036c675a03b7e59627ca026b2c",
+  "pion/pion_08_basen.mp4": "53372f5101da095b4742305fbcd2ce14e1506cf917e25a70bb121028e06d3cb4",
+  "pion/pion_09_hala.mp4": "a50228de8cad1f39b75578ef7687e501e9bbf962d372b16a722593220ab1e97f",
+  "pion/pion_10_teledysk.mp4": "7d481edcc12dd5f0a0c8557598baab06f3416db659c846d7d437bd0890093a03",
+  "tv/tv_01_puma.mp4": "661cde1545e85510d6657bc4a0d986072509124ac2cdd8d96af99fe3b7aa5f64",
+  "tv/tv_02_alpy.mp4": "08819e7f54311804fea3dd430b145e9e533907601f397a0ab0051fa283d543de",
+  "tv/tv_03_roboty.mp4": "d38d1d42d22ccc0c4845c1d5fced0b8a48dc8458754d99052241e41bacf8a0fb",
+  "tv/tv_04_gangsterzy.mp4": "98ff910110c3847b36416a2723477961a49dd95621ed87211d88c26746dcd099",
+  "tv/tv_05_fabryka.mp4": "442ca8ed1946470933239481b4a37e2aa958073491e8f35082407276a6878ac6",
+  "tv/tv_06_korytarz.mp4": "ddd4c120768694716801718f2960113f3c3a8502986e0e3756249910f71eb775",
+  "tv/tv_07_auto.mp4": "f5cceb58e88d055ea99122f8f23985cef5218cfeb643491e7bea187feefa9807",
+  "tv/tv_08_basen.mp4": "fbe76d22ec4c1b4908e0673a135b6e3de4eabdf129ce5585f15a87144440e129",
+  "tv/tv_09_hala.mp4": "4761e22510692a492f0cf4c2aabff928e788b0879f28f78554c3f59535e243bc",
+  "tv/tv_10_teledysk.mp4": "ef2125ad358b8560b0f79e7028bbe3b6967b96091483d2c8420e73fd6814aab8"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

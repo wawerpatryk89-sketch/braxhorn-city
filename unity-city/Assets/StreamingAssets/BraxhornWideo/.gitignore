@@ -1,0 +1,9 @@
+# the TV film library (ZASADA_TELEWIZORY_FILMY_20261111): tv/*.mp4 (640x360) and pion/*.mp4 (360x640) are staged in CI
+# from the encrypted pack unity-city/Prywatne/braxhorn-wideo-20261111 by unity-tools/mistrzowie/install_owner_media.py.
+# The repository is public: never commit the films themselves.
+tv/
+pion/
+tv.meta
+pion.meta
+*.mp4
+*.mp4.meta

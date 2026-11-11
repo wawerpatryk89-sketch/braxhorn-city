@@ -23,5 +23,5 @@ public sealed class BraxChampionsKino : MonoBehaviour
     public int[] plakatFilm = new int[0]; public Vector3 kiosk, kasa; public float zasieg = 1.8f; public string folder = "Mistrzowie/Kino", plikRepertuaru = "repertuar.json";
 }
 
-// the TVs' ads player (runtime BraxChampionsReklamyTV): the preview keeps its fields only
-public sealed class BraxChampionsReklamyTV : MonoBehaviour { public Material[] ekrany = new Material[0]; public string katalog = "Mistrzowie/Reklamy"; public string[] pliki = new string[0]; public Vector3 srodek; public float promien = 150f; }
+// a working TV screen (runtime BraxTelewizor, global): the preview keeps its fields only
+public sealed class BraxTelewizor : MonoBehaviour { public bool wlaczony = true, pion; public float zasieg = 26f, zasiegPrzycisku = 2.8f; public Material obraz, wylaczony; public int start; }

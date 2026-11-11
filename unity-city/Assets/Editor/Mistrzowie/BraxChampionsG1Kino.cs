@@ -145,7 +145,7 @@ public static partial class BraxChampionsD2
             RB(walnut,a,b,y+.10f,y+1.02f,28.6f,29.4f,.035f,true,2);
             RB(StoneTop(),a-.05f,b+.05f,y+1.02f,y+1.07f,28.55f,29.45f,.015f,false,2);
             B(ledWarm,a+.1f,b-.1f,y+.98f,y+1.0f,29.4f,29.415f);                                   // the warm line under the top
-            RB(walnut,a,b,y,y+.95f,z0,z0+.7f,.03f,true,2);RB(stainless,a,b,y+.95f,y+.99f,z0,z0+.72f,.01f,false,1);
+            RB(walnut,a,b,y,y+.95f,z0,z0+.7f,.03f,true,2);RB(stainless,a+.012f,b-.012f,y+.95f,y+.99f,z0,z0+.72f,.01f,false,1);   // 12 mm in from the ends (the wall battens)
             RB(walnut,a-.4f,a,y,y+1.02f,z0,29.4f,.03f,true,2);                                  // the counter's end (closes the staff zone)
             var lmc=new BraxChampionsMeshBatch();
             BraxChampionsLetters3D.Text(lmc,gLetterFace,gLetterSide,name,new Vector3((a+b)*.5f,y+2.35f,KLobbyZ+.192f),0f,.34f,.05f,.12f,b-a-1f);

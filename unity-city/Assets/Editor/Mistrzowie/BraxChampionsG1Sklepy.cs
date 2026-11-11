@@ -257,11 +257,12 @@ public static partial class BraxChampionsD2
         lod.RecalculateBounds();
     }
     // build a shop's small goods into their own culled group (the static batch m is swapped meanwhile)
+    static Transform goodsInst;   // the goods group being built: the catalogue's shared pieces are placed in it (culled with it)
     static void Goods(string label,Action build)
     {
-        var keep=m;m=new BraxChampionsMeshBatch();
-        try{build();var g=Group(g1Goods,label);m.Build(g,label,Folder,false);LodCull(g,25f);}
-        finally{m=keep;}
+        var keep=m;var keepI=goodsInst;m=new BraxChampionsMeshBatch();var g=Group(g1Goods,label);goodsInst=g;
+        try{build();m.Build(g,label,Folder,false);LodCull(g,25f);}
+        finally{m=keep;goodsInst=keepI;}
     }
     static Vector3 Wld(Vector3 local)=>root.TransformPoint(local*K);
     // the owner's library on a shelf / counter: start = the left end on the shelf top at mid depth (local), along it,
@@ -298,7 +299,7 @@ public static partial class BraxChampionsD2
 
     // ================================================================ the fit-out of a shop unit
     // the catalogue's context on the current batch (BraxKatalog: one function per piece, used everywhere)
-    static BraxKatalog.Ctx Kat()=>new BraxKatalog.Ctx{m=m,root=root,cols=cols,unit=K,water=waterJet,seat=(p,f,l)=>Seat(p.x,p.y,p.z,f,l)};
+    static BraxKatalog.Ctx Kat()=>new BraxKatalog.Ctx{m=m,root=root,cols=cols,unit=K,water=waterJet,seat=(p,f,l)=>Seat(p.x,p.y,p.z,f,l),inst=goodsInst};
     static void ShopFitOut(G1Unit u,float x0,float x1,float z0,float z1,float y,bool fac=false)
     {
         bool alongX=u.face=='S'||u.face=='N';float D=alongX?z1-z0:x1-x0,Wd=alongX?x1-x0:z1-z0;
@@ -434,6 +435,46 @@ public static partial class BraxChampionsD2
                     Box(glassDark,t0+.3f,t1-.3f,y+.3f,y+2.0f,D-.17f,D-.15f);
                 }
                 Box(gWood,fr-2.8f-.05f,fr-2.8f,y,y+2.4f,D-1.8f,D-.12f,true);
+                // the goods (owner 19:52 "sklepy są niewyposażone", 21:21 the empty rails): clothes on wire hangers on every rail,
+                // folded stacks / balls on the table, dress forms at the front; bags: handbags and suitcases instead of clothes
+                BraxKatalog.ClothesMaterials();
+                bool sport=u.trade=="sport",bags=u.trade=="bags";
+                int[] kinds=sport?new[]{5,6,0,5,3}:nm.Contains("DENIM")?new[]{3,0,3,1,6}:nm.Contains("BIELIZNA")?new[]{4,0,4,4}:nm.Contains("ELEGANCJA")?new[]{2,1,4,2,1}:nm.Contains("URBAN")?new[]{6,0,3,2,0}:new[]{0,1,2,4,3,6};
+                Material Cloth(int kind,int i)=>sport&&kind!=3?BraxKatalog.SportCols[i%4]:kind==1?BraxKatalog.Shirts[i%4]:kind==2?BraxKatalog.Coats[i%4]:kind==3?BraxKatalog.Trousers[i%4]:kind==4?BraxKatalog.Dresses[i%4]:BraxKatalog.Tees[i%6];
+                void Hang(Vector3 a,Vector3 b,float step,int seed)
+                {
+                    var al=(b-a).normalized;int n=Mathf.FloorToInt((b-a).magnitude/step);
+                    for(int i=0;i<n;i++){int kind=kinds[((i/6)+seed)%kinds.Length];BraxKatalog.Garment(Kat(),a+al*((i+.5f)*step),al,kind,Cloth(kind,i+seed));}
+                }
+                if(!bags)Goods(nm+" | ubrania",()=>
+                {
+                    foreach(float s in new[]{0f,1f})if(!SideOpen(s)){float t=s==0?.35f:Wd-.35f;Hang(P(t,y+1.65f,3.5f),P(t,y+1.65f,D-3.5f),.18f,(int)s*3);}
+                    int sd=1;foreach(float t in new[]{Wd*.35f,Wd*.65f})Hang(P(t,y+1.55f,4.1f),P(t,y+1.55f,D-4.6f),.20f,sd++*5);
+                    for(int i=0;i<3;i++)for(int j=0;j<2;j++)
+                    {
+                        var q=P(Wd*.5f-.55f+i*.55f,y+.80f,2.2f+j*.5f);
+                        if(sport&&j==1)BraxKatalog.Ball(Kat(),q,i);else BraxKatalog.FoldedStack(Kat(),q,toFront,Cloth(i==1?0:kinds[0],i+j*3),5+(i+j)%3);
+                    }
+                    if(sport)foreach(float s in new[]{0f,1f})if(!SideOpen(s))for(float d=3.7f;d<D-3.6f;d+=.75f)
+                    {var q=P(s==0?.28f:Wd-.28f,y+2.19f,d);var f=s==0?alongT:-alongT;BraxKatalog.Sneaker(Kat(),q-toBack*.07f,f,Cloth(5,(int)(d*3)));BraxKatalog.Sneaker(Kat(),q+toBack*.07f,f,Cloth(5,(int)(d*3)));}
+                });
+                else Goods(nm+" | torby i walizki",()=>
+                {
+                    Material[] lth={BraxKatalog.Leather,BraxKatalog.Coats[1],BraxKatalog.Dresses[1],BraxKatalog.Coats[0]};
+                    foreach(float s in new[]{0f,1f})if(!SideOpen(s))
+                    {
+                        var f=s==0?alongT:-alongT;int i=0;
+                        for(float d=3.7f;d<D-3.7f;d+=.45f)BraxKatalog.Handbag(Kat(),P(s==0?.28f:Wd-.28f,y+2.19f,d),f,lth[i++%4],.28f+(i%3)*.04f);
+                        for(float d=3.6f;d<D-3.6f;d+=.70f)BraxKatalog.Suitcase(Kat(),P(s==0?.40f:Wd-.40f,y,d),f,i++%2==0?BraxKatalog.Graphite:BraxKatalog.Alu,(i%3)!=0);
+                    }
+                    for(int i=0;i<3;i++)BraxKatalog.Handbag(Kat(),P(Wd*.5f-.55f+i*.55f,y+.80f,2.45f),toFront,lth[i],.34f);
+                });
+                // dress forms: on the street window's podiums (façade units) or by the entrance
+                if(!bags)
+                {
+                    if(fac){float Df=D+2.4f;for(int i=0;i<3;i++)BraxKatalog.Mannequin(Kat(),P(Wd*(.2f+.3f*i),y+.42f,Df-1.1f),toBack,Cloth(kinds[i%kinds.Length]==3?4:kinds[i%kinds.Length],i));}
+                    else foreach(float t in new[]{Wd*.16f,Wd*.36f})BraxKatalog.Mannequin(Kat(),P(t,y,1.1f),toFront,Cloth(t<Wd*.2f?4:2,(int)t));
+                }
                 break;
             }
             case "shoes":
@@ -538,15 +579,33 @@ public static partial class BraxChampionsD2
             case "books":
             {
                 // walnut bookcases on both walls and two tables: the owner's books (ksiazki_01..08, covers) from the library
-                var tops=WallShelves(walnut,5,.36f,2.8f,D-.8f,2.4f);var g=Lib();
+                var tops=WallShelves(gCinemaDark,5,.36f,2.8f,D-.8f,2.4f);var g=Lib();   // black bookcases: the books stand out of the walnut room
                 foreach(var (t,yy,s) in tops)LibShelf(g,"ksiegarnia",P(t,yy,2.85f),toBack,s==0?-alongT:alongT,D-3.7f,.36f);
                 for(float d=3.5f;d<D-2.5f;d+=3.2f){Box(walnut,Wd*.5f-1f,Wd*.5f+1f,y,y+.8f,d,d+1.2f,true);LibCounter(g,"ksiegarnia",P(Wd*.5f-.9f,y+.8f,d+.6f),alongT,toBack,1.8f);}
                 break;
             }
             case "toys":
             {
-                WallShelves(gOak,4,.50f,2.8f,D-.8f,2.0f);
+                // oak shelving on both walls full of toys (catalogue: teddy bears, die-cast cars, stacking rings, balls), a play rug
+                // with two big bears and a car race in the middle (owner 21:21 the empty shop)
+                var tops=WallShelves(gOak,4,.50f,2.8f,D-.8f,2.0f);
                 Box(Inside(Tex("g1_toys_play_rug","poly_wool_herringbone",.6f,new Color(.62f,1.30f,1.80f)),.9f),Wd*.5f-1.5f,Wd*.5f+1.5f,y,y+.012f,D*.5f-1.5f,D*.5f+1.5f);
+                BraxKatalog.ClothesMaterials();
+                Goods(nm+" | zabawki",()=>
+                {
+                    Material[] car={BraxKatalog.ToyRed,BraxKatalog.ToyBlue,BraxKatalog.ToyYellow,BraxKatalog.ToyGreen};
+                    foreach(var (t,yy,s) in tops)
+                    {
+                        var f=s==0?alongT:-alongT;int i=(int)(yy*7f);
+                        for(float d=3.1f;d<D-1.1f;d+=.46f,i++)
+                        {
+                            var q=P(t,yy,d);
+                            switch(i%5){case 0:BraxKatalog.TeddyBear(Kat(),q,f,1f,i%2==0);break;case 1:BraxKatalog.ToyCar(Kat(),q,f,car[i%4]);break;case 2:BraxKatalog.StackingRings(Kat(),q);break;case 3:BraxKatalog.Ball(Kat(),q,i%3);break;default:BraxKatalog.ToyCar(Kat(),q,-f,car[(i+1)%4]);break;}
+                        }
+                    }
+                    BraxKatalog.TeddyBear(Kat(),P(Wd*.5f-.7f,y+.012f,D*.5f),toFront,2.4f);BraxKatalog.TeddyBear(Kat(),P(Wd*.5f+.7f,y+.012f,D*.5f),toFront,2.0f,true);
+                    for(int i=0;i<4;i++)BraxKatalog.ToyCar(Kat(),P(Wd*.5f-.6f+i*.4f,y+.012f,D*.5f-.8f),toFront,car[i]);
+                });
                 break;
             }
             case "home":

@@ -12,7 +12,7 @@ using UnityEngine;
 // f = the direction its front faces (horizontal). Brand: BRAXHORN (own brand, never a real one). Materials: Poly Haven
 // photoscans for wood, stone, fabric; clean PBR for metal, glass, plastic, screens. Zero flicker: overlays >= 12 mm, the
 // screens' pictures 14 mm in front of the panel behind them, bezels round (never over) the pictures.
-public static class BraxKatalog
+public static partial class BraxKatalog
 {
     public sealed class Ctx
     {
@@ -21,6 +21,7 @@ public static class BraxKatalog
         public float unit = 1.2944f;          // x K
         public Material water;                // a transparent water material (taps)
         public Action<Vector3, Vector3, string> seat;   // a BraxSeat at a sitting point, facing
+        public Transform inst;                // shared pieces (clothes, shoes, toys) go here (a culled goods group); null = root
     }
     const string Folder = "Assets/PlayableGenerated/Mistrzowie/Katalog";
 
@@ -72,7 +73,7 @@ public static class BraxKatalog
         screens[id] = mt; return mt;
     }
 
-    /// <summary>the four TV pictures' materials (BraxChampionsReklamyTV plays the owner's ads into them)</summary>
+    /// <summary>the four TV pictures' materials (the stills; BraxTelewizor plays the films over them)</summary>
     public static Material[] TvMaterials()
     {
         Materials(); var o = new Material[4];
@@ -106,6 +107,25 @@ public static class BraxKatalog
         var a = s - rv * (w * .5f) - up * (h * .5f); var b = s + rv * (w * .5f) - up * (h * .5f); var cc = s + rv * (w * .5f) + up * (h * .5f); var d = s - rv * (w * .5f) + up * (h * .5f);
         c.m.QuadUV(mat, a, d, cc, b, new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 0));
     }
+    /// <summary>A working screen (owner 20:57: every TV can be switched on / off and plays the films): the picture quad in
+    /// its own renderer with BraxTelewizor (the still picture until it plays, black glass when off). c = the picture's
+    /// centre, n = toward the viewer; pion = a portrait screen (the 9:16 list).</summary>
+    public static GameObject WorkingScreen(Ctx c, Material still, Vector3 centre, Vector3 n, float w, float h, bool pion, string label, int start = 0)
+    {
+        Materials();
+        var k = new Fr(centre, n); var lm = new BraxChampionsMeshBatch(); var keep = c.m; c.m = lm;
+        Picture(c, still, k, centre, w, h); c.m = keep;
+        var g = lm.Build(c.root, label + " | ekran (BraxTelewizor: WŁĄCZ / WYŁĄCZ, filmy)", Folder, false, c.unit);
+        GameObject screen = null;
+        foreach (var r in g.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            GameObjectUtility.SetStaticEditorFlags(r.gameObject, 0); screen = r.gameObject;
+            var tv = r.gameObject.AddComponent<BraxTelewizor>();
+            tv.obraz = still; tv.wylaczony = GlassDark; tv.pion = pion; tv.zasieg = 26f * c.unit; tv.zasiegPrzycisku = 2.6f * c.unit; tv.start = start;
+        }
+        return screen;
+    }
+
     // a bar handle (black matt or brushed): length L along `along`, 12 mm round bar on two posts 30 mm off the front
     static void BarHandle(Ctx c, Material mat, Vector3 mid, Vector3 along, Vector3 outward, float L)
     {
@@ -256,7 +276,7 @@ public static class BraxKatalog
         var k = new Fr(p, f);
         float yc = onStand ? .10f + H * .5f + .03f : 0f, d = onStand ? 0f : .045f + .03f;     // the picture plane's offset
         var s = k.P(0f, yc, d);
-        Picture(c, Screen("tv_" + picture, 320, 180, TvPicture(picture)), k, s, W, H);
+        WorkingScreen(c, Screen("tv_" + picture, 320, 180, TvPicture(picture)), s, f, W, H, false, label, picture * 3);
         // the bezel (5 mm, 2 mm proud of the picture), the panel's back plate, the electronics box, the chin with the logo
         RB(c, BlackGloss, k, -W * .5f - .005f, W * .5f + .005f, yc + H * .5f, yc + H * .5f + .005f, d - .014f, d + .002f, .0015f, 1);
         RB(c, BlackGloss, k, -W * .5f - .005f, W * .5f + .005f, yc - H * .5f - .005f, yc - H * .5f, d - .014f, d + .002f, .0015f, 1);
@@ -271,7 +291,7 @@ public static class BraxKatalog
         if (onStand)
         {
             RB(c, Alu, k, -.20f, .20f, 0f, .010f, -.15f, .09f, .006f, 2);                                   // the foot plate
-            RB(c, Alu, k, -.035f, .035f, .010f, yc - H * .25f, -.060f, -.040f, .006f, 1);                     // the neck to the box
+            RB(c, Alu, k, -.035f, .035f, .010f, yc - H * .25f, -.078f, -.058f, .006f, 1);                     // the neck to the box (behind it)
             RB(c, Rubber, k, -.19f, .19f, -.002f, .0005f, -.14f, .08f, .001f, 1);
             Col(c, k, -W * .5f, W * .5f, 0f, yc + H * .5f, -.15f, .09f, label);
         }
@@ -393,7 +413,7 @@ public static class BraxKatalog
         {
             float u0 = x, u1 = x + MW; bool tall = mod == "lodowka" || mod == "slupek";
             Box(BlackMatt, u0 + .002f, u1 - .002f, 0f, Hp, .05f, Dp - .04f, .002f);                 // the recessed plinth
-            Box(tall ? front : Graphite, u0, u1, Hp, tall ? 2.20f : Hc, 0f, Dp, .002f);              // the carcass
+            Box(tall ? front : Graphite, u0, u1, Hp, tall ? 2.20f : mod == "zlew" ? Hc - .21f : Hc, 0f, Dp, .002f);   // the carcass (under the sink: below its bowl)
             switch (mod)
             {
                 case "szuflady": Front(u0, u1, Hp, Hp + .26f, true); Front(u0, u1, Hp + .26f, Hp + .52f, true); Front(u0, u1, Hp + .52f, Hc, true); break;

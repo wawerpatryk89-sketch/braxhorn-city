@@ -175,4 +175,27 @@ public static class BraxChampionsKinoEkrany
         BraxChampionsPiksele.Prost(px, w, h, 3, 4, w - 3, 18, new Color32(40, 44, 62, 255));
         for (int c = 0; c < 4; c++) BraxChampionsPiksele.Prost(px, w, h, 7 + c * 14, 6, 15 + c * 14, 15, ik[(c + 2) % ik.Length]);
     }
+
+    // a portrait advertising screen's still picture (until the owner's 9:16 films play on it): a dark gradient, the brand,
+    // the offer of the week, the gallery's name
+    public const int VW = 144, VH = 256;
+    public static void ReklamaPion(Color32[] px, int k)
+    {
+        int w = VW, h = VH;
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++)
+            {
+                float t = y / (float)h; var a = k % 2 == 0 ? new Color(.55f, .04f, .07f) : new Color(.05f, .10f, .30f);
+                var c = Color.Lerp(new Color(.02f, .02f, .03f), a, t);
+                px[y * w + x] = new Color32((byte)(c.r * 255), (byte)(c.g * 255), (byte)(c.b * 255), 255);
+            }
+        string[][] txt = { new[] { "BRAXHORN", "HOME", "-20%", "MEBLE", "DO NIEDZIELI" }, new[] { "KINO", "MULTIPLEX", "2 FILMY", "BILETY", "W KASACH" }, new[] { "TECHNO", "SPOT", "4K TV", "BRAXHORN", "OLED 65 CALI" } };
+        var t0 = txt[k % txt.Length];
+        S(px, w, h, t0[0], 30, 2, BraxChampionsPiksele.Bialy);
+        S(px, w, h, t0[1], 52, 2, BraxChampionsPiksele.Bialy);
+        S(px, w, h, t0[2], 112, 3, Bursztyn);
+        S(px, w, h, t0[3], 170, 2, BraxChampionsPiksele.Bialy);
+        S(px, w, h, t0[4], 192, 1, BraxChampionsPiksele.Cyjan);
+        BraxChampionsPiksele.Prost(px, w, h, 0, 0, w, 18, new Color32(10, 10, 14, 255));
+        S(px, w, h, "GALERIA GŁÓWNA", h - 13, 1, BraxChampionsPiksele.Bialy);
+    }
 }
