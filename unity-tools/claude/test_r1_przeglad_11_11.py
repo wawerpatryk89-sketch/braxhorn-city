@@ -148,8 +148,9 @@ class Optyk(unittest.TestCase):
     def test_glasses_wall_from_code(self):
         # 20:05 „skala… okulary u optyka za małe”: ściana oprawek z kodu (skala × K) zamiast małych modeli na półkach
         u = src(R / "BraxUlicePierzeje.cs")
-        for s in ["internal static void Okulary(Vector3 c, Vector3 przod, Color32 kolor, float k)", "optyk: plecy ekspozycji (podświetlone)",
-                  "lok.typ == \"optyk\" ? 8 : 5", "Okulary(W(ladaS0 + .3f + i * .26f * k"]:
+        for s in ["internal static void Okulary(Vector3 c, Vector3 przod, Color32 kolor, float k, int model = 0, int przyc = 0)", "optyk: plecy ekspozycji (podświetlone)",
+                  "lok.typ == \"optyk\" ? 8 : 5", "Okulary(W(ladaS0 + .3f + i * .3f * k", "LosujOkulary(rng, sl,",
+                  "// 4 pilotki", "// 5 kocie oko", "// 6 motylkowe", "// 7 sportowe owijane", "// 8 kwadratowe duże", "okulary: szkła przeciwsłoneczne (przyciemniane)"]:
             self.assertIn(s, u)
         t = src(R / "BraxSklepyTowar.cs")
         self.assertNotIn("round_spectacles", t[t.index('"optyk" =>'):t.index("\n", t.index('"optyk" =>'))])

@@ -880,8 +880,9 @@ public static class BraxUlicePierzeje
                 sr.Box(P(.03f, y - .025f, .0f), P(dl - .03f, y, glb - .02f));
                 if (p == polek - 1) break;
                 if (optyk && y > y0 + .85f * k && y < y0 + 2.0f * k)
-                {   // rząd oprawek co 27 cm × K, przodem do sali, w różnych kolorach (acetat czarny, havana, granat, bordo, metal)
-                    for (float a = .17f * k; a < dl - .17f * k; a += .27f * k) Okulary(P(a, y + .0005f, .05f), -wglab, KoloryOprawek[rng.Next(KoloryOprawek.Length)], k);
+                {   // rząd oprawek co 27 cm × K, przodem do sali; rzędy na zmianę: korekcyjne (szkła przezroczyste) i przeciwsłoneczne
+                    bool sl = p % 2 == 1;
+                    for (float a = .17f * k; a < dl - .17f * k; a += .27f * k) { LosujOkulary(rng, sl, out int mo, out var ko, out int pz); Okulary(P(a, y + .0005f, .05f), -wglab, ko, k, mo, pz); }
                     continue;
                 }
                 if (prawdziwy)
@@ -1097,7 +1098,7 @@ public static class BraxUlicePierzeje
                         // (± 0.32 głębokości), drugi rząd przesunięty o pół kroku — zauszniki (0.19 m) nie sięgają drugiego rzędu
                         else foreach (float sg in new[] { -1f, 1f })
                                 for (float a = s0w + (sg < 0f ? .15f : .29f) * k; a < s1w - .15f * k; a += .28f * k)
-                                    Okulary(W(a, y0 + hb + .0005f, dC + sg * gw * .32f), sg * f.N, KoloryOprawek[rng.Next(KoloryOprawek.Length)], k);
+                                { LosujOkulary(rng, true, out int mo, out var ko, out int pz); Okulary(W(a, y0 + hb + .0005f, dC + sg * gw * .32f), sg * f.N, ko, k, mo, pz); }   // gablota: przeciwsłoneczne
                         szyb.Box(W(s0w + .01f, y0 + hb, dC + gw * .5f - .01f), W(s1w - .01f, y0 + hb + hs, dC - gw * .5f + .01f));
                         nogi.Box(W(s0w, y0 + hb + hs, dC + gw * .5f), W(s1w, y0 + hb + hs + .025f, dC - gw * .5f));
                         if (ck) BraxUliceKit.S(BraxMiastoA.Swieci("witryna chłodnicza: listwa LED", new Color(1f, .97f, .9f), new Color(1.3f, 1.25f, 1.1f))).Box(W(s0w + .05f, y0 + hb + hs - .03f, dC + .05f), W(s1w - .05f, y0 + hb + hs - .005f, dC - .05f));
@@ -1495,7 +1496,7 @@ public static class BraxUlicePierzeje
         if (t == "optyk")
         {   // okulary na ladzie + tablica do badania wzroku (litery malejące rzędami) na ścianie bez regału, krzesło badanego naprzeciw
             // okulary na ladzie (z kodu, ta sama skala co na ścianie) i lupa
-            for (int i = 0; i < 3; i++) Okulary(W(ladaS0 + .3f + i * .26f * k, y0 + ladaH + .0005f, ladaD - ladaG * .55f), f.N, KoloryOprawek[(i * 3 + 1) % KoloryOprawek.Length], k);
+            for (int i = 0; i < 3; i++) { LosujOkulary(rng, i == 1, out int mo, out var ko, out int pz); Okulary(W(ladaS0 + .3f + i * .3f * k, y0 + ladaH + .0005f, ladaD - ladaG * .55f), f.N, ko, k, mo, pz); }
             PH(rodzic, "magnifying_glass_01", "Optyk: lupa na ladzie", W(ladaS1 - .35f, y0 + ladaH + .004f, ladaD - ladaG * .5f), yawDoUlicy + 20f, .2f * k);
             bool prawa = f.drzwiS > 3.2f;                       // regał boczny stoi przy lewej ścianie → tablica na prawej (i odwrotnie)
             Vector3 nT = prawa ? -f.R : f.R; float sT = prawa ? sIn1 - .02f : sIn0 + .02f, dT = -2.6f;
@@ -1645,48 +1646,117 @@ public static class BraxUlicePierzeje
         var c = g.AddComponent<CapsuleCollider>(); c.center = new Vector3(0, .4f * k, 0); c.radius = .2f * k; c.height = .8f * k;
     }
 
-    // OKULARY Z KODU (11.11, właściciel 20:05: „skala… okulary u optyka za małe”) — oprawka jak w życiu × K: szkła 52 × 40 mm
-    // (zaokrąglony prostokąt), mostek 18 mm, obręcze 4 mm (acetat / metal — kolor wierzchołków), szkła przezroczyste, zauszniki
-    // 140 mm rozłożone do tyłu i opadające na półkę (okulary stoją jak na ekspozycji). c = środek dolnej krawędzi oprawki na półce,
-    // przod = kierunek, w który patrzą szkła (do klienta).
-    static Material okularyRama, okularySzkla;
-    internal static void Okulary(Vector3 c, Vector3 przod, Color32 kolor, float k)
+    // OKULARY Z KODU (11.11, właściciel 20:05: „skala… okulary u optyka za małe”; 21:36: „modele okularów też mogę zrobić więcej.
+    // Prostokątne… różne są modele okularów” + wzornik okularów przeciwsłonecznych) — oprawki jak w życiu × K, 9 modeli:
+    // korekcyjne: 0 klasyczne, 1 prostokątne, 2 okrągłe metalowe, 3 „browline” (gruba górna krawędź, dół z cienkiego drutu);
+    // przeciwsłoneczne: 4 pilotki (metal, kropla, podwójny mostek), 5 kocie oko, 6 duże „motylkowe”, 7 sportowe owijane,
+    // 8 duże kwadratowe. Obręcz = taśma wokół obrysu szkła (lico, krawędzie, tył; grubość zmienna — browline), szkła przezroczyste
+    // albo przyciemniane z gradientem (ciemniej u góry), mostek łukiem, zauszniki rozłożone do tyłu i opadające na półkę;
+    // acetat „havana” w cętki (kolor na czworokąt). Oprawka odchylona 7° do tyłu — leży na obręczach i końcówkach zauszników.
+    // c = środek dolnej krawędzi oprawki na półce, przod = kierunek, w który patrzą szkła (do klienta).
+    struct ModelOprawki { public float a, b, p, wr, gr, most, kropla, kot, brew, owiniecie, rZaus; public bool podwojny, metal; }
+    static ModelOprawki MO(float a, float b, float p, float wr, float gr, float most, float rZaus, float kropla = 0f, float kot = 0f, float brew = 0f, float owiniecie = 0f, bool podwojny = false, bool metal = false)
+        => new ModelOprawki { a = a, b = b, p = p, wr = wr, gr = gr, most = most, rZaus = rZaus, kropla = kropla, kot = kot, brew = brew, owiniecie = owiniecie, podwojny = podwojny, metal = metal };
+    static readonly ModelOprawki[] ModeleOprawek =
     {
-        if (!okularyRama) { okularyRama = BraxUliceKit.Mat("okulary: oprawki (acetat, połysk)", Color.white, .22f, 0f); okularySzkla = BraxUliceKit.Mat("okulary: szkła (przezroczyste)", new Color(.8f, .86f, .9f, .18f), .03f, 0f); }
+        MO(.026f, .020f, 2.8f, .005f, .0045f, .009f, .0026f),                                      // 0 klasyczne
+        MO(.028f, .016f, 5.0f, .0055f, .005f, .009f, .0028f),                                      // 1 prostokątne
+        MO(.022f, .022f, 2.0f, .0028f, .0026f, .010f, .0017f, metal: true),                        // 2 okrągłe metalowe
+        MO(.026f, .018f, 3.6f, .0018f, .004f, .009f, .0026f, brew: .0075f),                        // 3 browline
+        MO(.029f, .023f, 2.2f, .0026f, .0026f, .008f, .0017f, kropla: .007f, podwojny: true, metal: true),   // 4 pilotki
+        MO(.027f, .019f, 3.0f, .006f, .005f, .009f, .003f, kot: .008f),                            // 5 kocie oko
+        MO(.033f, .027f, 2.5f, .007f, .006f, .008f, .0034f, kropla: .006f, kot: .004f),            // 6 motylkowe
+        MO(.034f, .019f, 3.4f, .007f, .006f, .007f, .0036f, owiniecie: .014f),                     // 7 sportowe owijane
+        MO(.031f, .026f, 4.2f, .0075f, .006f, .009f, .0034f),                                      // 8 kwadratowe duże
+    };
+    static readonly Color32 Havana = new Color32(1, 2, 3, 255);   // znacznik: acetat w cętki
+    static readonly Color32[] KoloryOprawek = { new Color32(12, 12, 14, 255), Havana, new Color32(28, 38, 88, 255), new Color32(104, 18, 24, 255), new Color32(48, 70, 52, 255), new Color32(150, 40, 90, 255), new Color32(235, 232, 225, 255) };
+    static readonly Color32[] KoloryMetalu = { new Color32(190, 192, 198, 255), new Color32(72, 74, 80, 255), new Color32(20, 20, 22, 255) };
+    static readonly Color32[] Przyciemnienia = { new Color32(70, 72, 76, 255), new Color32(120, 72, 30, 255), new Color32(80, 60, 96, 255), new Color32(46, 70, 60, 255) };
+    static Material okularyRama, okularySzkla, okularySzklaPrzyc;
+
+    /// <summary>Losuje oprawkę: korekcyjne (modele 0–3, szkła przezroczyste) albo przeciwsłoneczne (4–8, przyciemniane).</summary>
+    internal static void LosujOkulary(System.Random r, bool sloneczne, out int model, out Color32 kolor, out int przyc)
+    {
+        model = sloneczne ? 4 + r.Next(5) : r.Next(4);
+        kolor = ModeleOprawek[model].metal ? KoloryMetalu[r.Next(KoloryMetalu.Length)] : KoloryOprawek[r.Next(KoloryOprawek.Length)];
+        przyc = sloneczne ? 1 + r.Next(Przyciemnienia.Length) : 0;
+    }
+
+    internal static void Okulary(Vector3 c, Vector3 przod, Color32 kolor, float k, int model = 0, int przyc = 0)
+    {
+        if (!okularyRama)
+        {
+            okularyRama = BraxUliceKit.Mat("okulary: oprawki (acetat / metal, połysk)", Color.white, .22f, 0f);
+            okularySzkla = BraxUliceKit.Mat("okulary: szkła (przezroczyste)", new Color(.8f, .86f, .9f, .18f), .03f, 0f);
+            okularySzklaPrzyc = BraxUliceKit.Mat("okulary: szkła przeciwsłoneczne (przyciemniane)", new Color(1f, 1f, 1f, .78f), .03f, 0f);
+        }
+        var M = ModeleOprawek[Mathf.Clamp(model, 0, ModeleOprawek.Length - 1)];
         przod.y = 0f; przod.Normalize(); var prawo = Vector3.Cross(Vector3.up, przod);
-        var rm = BraxUliceKit.S(okularyRama); var sz = BraxUliceKit.S(okularySzkla); var stary = rm.kolor; rm.kolor = kolor;
-        const float a = .026f, b = .020f, wr = .005f, gr = .0045f, most = .009f; const int N = 20;   // obręcz gładka (20 odcinków)
-        // oprawka odchylona 7° do tyłu (leży na obręczach i końcówkach zauszników, jak na półce u optyka)
-        const float sT = .1219f, cT = .9925f;
+        var rm = BraxUliceKit.S(okularyRama); var sz = BraxUliceKit.S(przyc > 0 ? okularySzklaPrzyc : okularySzkla); var stary = rm.kolor;
+        bool havana = kolor.r == Havana.r && kolor.g == Havana.g && kolor.b == Havana.b; var rngH = new System.Random(c.GetHashCode());
+        Color32 KolorQ() => havana ? (Color32)Color.Lerp(new Color(.22f, .11f, .05f), new Color(.62f, .38f, .14f), (float)rngH.NextDouble()) : kolor;
+        rm.kolor = KolorQ();
+        const int N = 20; const float sT = .1219f, cT = .9925f;   // obręcz z 20 odcinków; odchylenie 7°
         Vector3 L(float x, float y, float z) => c + Vector3.up * .001f + (prawo * x + Vector3.up * (y * cT + z * sT) + przod * (z * cT - y * sT)) * k;
-        Vector2 Obrys(float t, float off) { float co = Mathf.Cos(t), si = Mathf.Sin(t); return new Vector2((a + off) * Mathf.Sign(co) * Mathf.Pow(Mathf.Abs(co), 2f / 2.8f), (b + off) * Mathf.Sign(si) * Mathf.Pow(Mathf.Abs(si), 2f / 2.8f)); }
+        // obrys szkła w układzie (u na zewnątrz — ku zawiasowi, v w górę), off = przesunięcie (± pół obręczy)
+        float Se(float x) => Mathf.Sign(x) * Mathf.Pow(Mathf.Abs(x), 2f / M.p);
+        Vector2 Obrys(float t, float off)
+        {
+            float co = Mathf.Cos(t), si = Mathf.Sin(t);
+            float u = (M.a + off) * Se(co), v = (M.b + off) * Se(si);
+            if (M.kropla > 0f)
+            {   // kropla (pilotki, motylkowe): góra spłaszczona, dół głębszy po stronie zewnętrznej i wysunięty na zewnątrz
+                if (si > 0f) v *= 1f - .9f * M.kropla / M.b;
+                else { v *= 1f + M.kropla / M.b * (.5f + 1.1f * Mathf.Max(0f, co)); u += M.kropla * .8f * Mathf.Max(0f, co) * -si; }
+            }
+            if (si > 0f) v += M.kot * Mathf.Pow(Mathf.Max(0f, co), 2f) * si;                             // kocie oko: zewnętrzny górny róg uniesiony
+            return new Vector2(u, v);
+        }
+        float Wr(float t) => M.wr + M.brew * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(t)), 1.5f);              // browline: gruba górna krawędź
+        float Zg(float u) => -M.owiniecie * Mathf.Pow(Mathf.Max(0f, u / M.a), 2f);                       // owinięcie (sportowe): zewnętrze do tyłu
+        // położenie szkła: wewnętrzna krawędź obręczy przy mostku, dół obręczy na półce
+        float uMin = 0f, uMax = 0f, vMin = 0f, vMax = 0f;
+        for (int i = 0; i < N; i++) { float t = i * Mathf.PI * 2f / N; var q = Obrys(t, Wr(t) * .5f); uMin = Mathf.Min(uMin, q.x); uMax = Mathf.Max(uMax, q.x); vMin = Mathf.Min(vMin, q.y); vMax = Mathf.Max(vMax, q.y); }
+        float cy = -vMin, gr = M.gr;
         foreach (float sg in new[] { -1f, 1f })
         {
-            float cx = sg * (most + a + wr * .5f), cy = b + wr;
+            float cx = sg * (M.most - uMin);
+            Vector3 P(Vector2 q, float z) => L(cx + sg * q.x, cy + q.y, z + Zg(q.x));
+            var srodek = P(Vector2.zero, -gr * .5f);
             for (int i = 0; i < N; i++)
             {
                 float t0 = i * Mathf.PI * 2f / N, t1 = (i + 1) * Mathf.PI * 2f / N;
-                Vector2 o0 = Obrys(t0, wr * .5f), o1 = Obrys(t1, wr * .5f), w0 = Obrys(t0, -wr * .5f), w1 = Obrys(t1, -wr * .5f);
-                Vector3 P(Vector2 q, float z) => L(cx + q.x, cy + q.y, z);
-                rm.Quad(P(o0, 0f), P(o1, 0f), P(w1, 0f), P(w0, 0f), przod);                                    // lico obręczy
-                var nz = new Vector2((o0 + o1).x, (o0 + o1).y).normalized; var nn = prawo * nz.x + Vector3.up * nz.y;
-                rm.Quad(P(o0, 0f), P(o1, 0f), P(o1, -gr), P(o0, -gr), nn);                                     // krawędź zewnętrzna
-                rm.Quad(P(w0, 0f), P(w1, 0f), P(w1, -gr), P(w0, -gr), -nn);                                    // krawędź wewnętrzna
-                rm.Quad(P(o0, -gr), P(o1, -gr), P(w1, -gr), P(w0, -gr), -przod);                               // tył
-                // szkło (wachlarz ze środka, obie strony) w połowie grubości obręczy
-                var s0 = L(cx, cy, -gr * .5f); var q0 = P(w0, -gr * .5f); var q1 = P(w1, -gr * .5f);
-                sz.Tri(s0, q0, q1, przod); sz.Tri(s0, q1, q0, -przod);
+                Vector2 o0 = Obrys(t0, Wr(t0) * .5f), o1 = Obrys(t1, Wr(t1) * .5f), w0 = Obrys(t0, -Wr(t0) * .5f), w1 = Obrys(t1, -Wr(t1) * .5f);
+                var nz = (o0 + o1).normalized; var nn = prawo * (sg * nz.x) + Vector3.up * nz.y;
+                rm.kolor = KolorQ(); rm.Quad(P(o0, 0f), P(o1, 0f), P(w1, 0f), P(w0, 0f), przod);       // lico obręczy
+                rm.kolor = KolorQ(); rm.Quad(P(o0, 0f), P(o1, 0f), P(o1, -gr), P(o0, -gr), nn);        // krawędź zewnętrzna
+                rm.kolor = KolorQ(); rm.Quad(P(w0, 0f), P(w1, 0f), P(w1, -gr), P(w0, -gr), -nn);       // krawędź wewnętrzna
+                rm.Quad(P(o0, -gr), P(o1, -gr), P(w1, -gr), P(w0, -gr), -przod);                         // tył
+                // szkło (wachlarz ze środka, obie strony); przyciemniane — gradient: ciemniej u góry, jaśniej u dołu
+                var q0 = P(w0, -gr * .5f); var q1 = P(w1, -gr * .5f);
+                Color32 Kg(float v) { if (przyc == 0) return new Color32(255, 255, 255, 255); var b = (Color)Przyciemnienia[(przyc - 1) % Przyciemnienia.Length]; return (Color32)Color.Lerp(b * .55f, Color.Lerp(b, Color.white, .35f), Mathf.Clamp01(.5f - v / (2f * M.b))); }
+                foreach (var nnS in new[] { przod, -przod })
+                {
+                    int k0 = sz.v.Count;
+                    foreach (var (pp, vv) in new[] { (srodek, 0f), (q0, w0.y), (q1, w1.y) })
+                    { sz.v.Add(pp); sz.n.Add(nnS); sz.t.Add(new Vector4(prawo.x, prawo.y, prawo.z, 1f)); sz.c.Add(Kg(vv)); sz.uv.Add(Vector2.zero); }
+                    if (Vector3.Dot(Vector3.Cross(q0 - srodek, q1 - srodek), nnS) >= 0f) sz.i.AddRange(new[] { k0, k0 + 1, k0 + 2 }); else sz.i.AddRange(new[] { k0, k0 + 2, k0 + 1 });
+                }
             }
             // zausznik: zawias przy zewnętrznej krawędzi obręczy, do tyłu z lekkim rozchyleniem, końcówka opada na półkę
-            float xz = sg * (most + 2f * a + wr), yz = cy + b * .55f;
-            Vector3 z0 = L(xz, yz, -gr), z1 = L(xz + sg * .008f, yz + .004f, -.11f), z2 = L(xz + sg * .01f, .004f + .145f * sT / cT, -.145f);
-            rm.Rura(L(xz - sg * .002f, yz, -.0005f), z0, .0028f, 4); rm.Rura(z0, z1, .0022f, 4, false); rm.Rura(z1, z2, .0022f, 4);
+            float xz = sg * (M.most - uMin + uMax), yz = cy + vMax * .55f, zz = Zg(uMax);
+            rm.kolor = KolorQ();
+            Vector3 z0 = L(xz, yz, zz - gr), z1 = L(xz + sg * .008f, yz + .004f, -.11f), z2 = L(xz + sg * .01f, .004f + .145f * sT / cT, -.145f);
+            rm.Rura(L(xz - sg * .002f, yz, zz - .0005f), z0, M.rZaus * 1.1f, 4); rm.Rura(z0, z1, M.rZaus, 4, false); rm.Rura(z1, z2, M.rZaus, 4);
         }
-        // mostek (łuk nad nosem)
-        Vector3 m0 = L(-most - .001f, b * 1.55f + wr, -gr * .5f), m1 = L(0f, b * 1.75f + wr, -gr * .5f), m2 = L(most + .001f, b * 1.55f + wr, -gr * .5f);
-        rm.Rura(m0, m1, .0025f, 4, false); rm.Rura(m1, m2, .0025f, 4, false);
+        // mostek (łuk nad nosem); pilotki — druga belka nad szkłami
+        rm.kolor = KolorQ();
+        float ym = cy + vMax * .45f, rM = M.metal ? .0018f : .0026f;
+        Vector3 m0 = L(-M.most - .001f, ym, -gr * .5f), m1 = L(0f, ym + .004f, -gr * .5f), m2 = L(M.most + .001f, ym, -gr * .5f);
+        rm.Rura(m0, m1, rM, 4, false); rm.Rura(m1, m2, rM, 4, false);
+        if (M.podwojny) { float yp = cy + vMax * .96f; rm.Rura(L(-M.most - .014f, yp, -gr * .5f), L(M.most + .014f, yp, -gr * .5f), .0016f, 4); }   // belka górna pilotek (od obręczy do obręczy)
         rm.kolor = stary;
     }
-    static readonly Color32[] KoloryOprawek = { new Color32(12, 12, 14, 255), new Color32(92, 52, 26, 255), new Color32(28, 38, 88, 255), new Color32(104, 18, 24, 255), new Color32(190, 192, 198, 255), new Color32(170, 176, 182, 255), new Color32(48, 70, 52, 255) };
 
 }

@@ -79,7 +79,15 @@ public static class Harness
             // ściana oprawek optyka (BraxUlicePierzeje.Okulary): dwie półki po 8 par, x 7.4…9.4, przodem do +z
             var pol = new UlSiatka(); foreach (float y in new[] { 1.30f, 1.70f }) pol.Box(new Vector3(7.2f, y - .025f, .0f), new Vector3(9.6f, y, .45f));
             BraxMiastoA.Obiekt(root, "półki optyka", pol, BraxUliceKit.Mat("półka (biała)", new Color(.95f, .95f, .94f), .5f));
-            int q = 0; foreach (float y in new[] { 1.30f, 1.70f }) for (float x = 7.45f; x < 9.5f; x += .25f * BraxClaudeOsiedle.K) BraxUlicePierzeje.Okulary(new Vector3(x, y + .0005f, .40f), Vector3.forward, BraxUlicePierzeje.KolorOprawki(q++), BraxClaudeOsiedle.K);
+            // dolna półka: korekcyjne (modele 0–3), górna: przeciwsłoneczne (4–8); kolory losowane jak w grze
+            var rq = new System.Random(11); int q = 0;
+            foreach (float y in new[] { 1.30f, 1.70f })
+                for (float x = 7.45f; x < 9.5f; x += .27f * BraxClaudeOsiedle.K, q++)
+                {
+                    BraxUlicePierzeje.LosujOkulary(rq, y > 1.5f, out int mo, out var ko, out int pz);
+                    mo = y > 1.5f ? 4 + q % 5 : q % 4;
+                    BraxUlicePierzeje.Okulary(new Vector3(x, y + .0005f, .40f), Vector3.forward, ko, BraxClaudeOsiedle.K, mo, pz);
+                }
             BraxUliceKit.Zapisz(root, "okulary");
             Console.WriteLine("CHŁODNIE: siatek " + BraxChlodnie.Siatek + ", kopii " + BraxChlodnie.Kopii);
         }
