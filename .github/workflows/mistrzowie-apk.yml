@@ -146,6 +146,9 @@ jobs:
             unity-city/Prywatne/miasto_sklepy.tar.gz.enc
             unity-city/Prywatne/osiedle_wnetrza.tar.gz.enc
             unity-city/Prywatne/miasto_pojazdy.tar.gz.enc
+            unity-city/Prywatne/braxhorn-*/
+            unity-tools/wideo
+            unity-tools/sklep
             public/assets/cars-src/car_rev.glb
             public/assets/chars/brax.glb.gz
             public/assets/tex/brax_color.webp

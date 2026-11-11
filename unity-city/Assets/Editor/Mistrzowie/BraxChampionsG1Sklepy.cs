@@ -281,6 +281,10 @@ public static partial class BraxChampionsD2
     // the owner's BRAXHORN sports equipment (Tripo 23:34; the racket's torn string bed left out): balls, a pair of 10 kg
     // dumbbells, a kettlebell, boxing gloves, a punching bag, a skipping rope, a rolled mat
     static readonly string[] Pilki={"pilka_nozna","pilka_do_kosza","pilka_siatkowa"};
+    // sports shoes: the first sheet's runners / sneakers / basketball / boots + the owner's BRAXHORN fight sheet (23:45, sklep_walka_01)
+    static readonly string[] SportButy={"buty_biegowe_szare","buty_sneakersy_bezowe","buty_trampki_wysokie_czarne","buty_koszykarskie_czerwone","buty_korki_neonowe",
+        "sklep_walka_01/buty_bokserskie_czarno_zlote","sklep_walka_01/buty_biegowe_biale_czerwone_braxhorn","sklep_walka_01/buty_treningowe_czarne_braxhorn",
+        "sklep_walka_01/buty_bokserskie_czerwone","sklep_walka_01/buty_zapasnicze_czarno_zlote"};
     static readonly string[] Buty={"buty_biegowe_szare","buty_sneakersy_bezowe","buty_trampki_wysokie_czarne","buty_koszykarskie_czerwone","buty_korki_neonowe",
         "buty_trekkingowe","buty_sztyblety_brazowe","buty_workery_miodowe","buty_szpilki_czerwone","buty_sandaly_na_obcasie_bezowe",
         // the owner's second shoe sheet (23:38, pack sklep_buty_02)
@@ -545,7 +549,7 @@ public static partial class BraxChampionsD2
                         if(sport&&j==1){if(!ShopModel(Sprzet,Pilki[i%3],q,toFront))BraxKatalog.Ball(Kat(),q,i);}else BraxKatalog.FoldedStack(Kat(),q,toFront,Cloth(i==1?0:kinds[0],i+j*3),5+(i+j)%3);
                     }
                     if(sport)foreach(float s in new[]{0f,1f})if(!SideOpen(s))for(float d=3.7f;d<D-3.6f;d+=.75f)
-                    {var q=P(s==0?.28f:Wd-.28f,y+2.19f,d);var f=s==0?alongT:-alongT;if(ShopModel(ButyPaczka,Buty[(int)(d*3)%5],q,f))continue;BraxKatalog.Sneaker(Kat(),q-toBack*.07f,f,Cloth(5,(int)(d*3)));BraxKatalog.Sneaker(Kat(),q+toBack*.07f,f,Cloth(5,(int)(d*3)));}
+                    {var q=P(s==0?.28f:Wd-.28f,y+2.19f,d);var f=s==0?alongT:-alongT;if(ShopModel(ButyPaczka,SportButy[((int)(d*3))%SportButy.Length],q,f))continue;BraxKatalog.Sneaker(Kat(),q-toBack*.07f,f,Cloth(5,(int)(d*3)));BraxKatalog.Sneaker(Kat(),q+toBack*.07f,f,Cloth(5,(int)(d*3)));}
                 });
                 else Goods(nm+" | torby i walizki",()=>
                 {

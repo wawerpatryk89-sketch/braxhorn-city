@@ -103,6 +103,30 @@ public static class BraxChampionsPromenade
         }
         var mt=BraxChampionsHarbour.Surface("prom_kiosk_portal_"+(style??"x"),c,.42f,.35f);accents[style??""]=mt;return mt;
     }
+    // owner 12.11 00:05 ("popraw te domki na kolory różne"): every kiosk's walls a different painted plaster colour (Poly Haven
+    // white_stucco_02 tinted), the white marble cornice, counters and the coloured portal stay
+    static readonly Dictionary<string,Material> bodies=new Dictionary<string,Material>();
+    static Material Body(string style)
+    {
+        if(bodies.TryGetValue(style??"",out var have)&&have)return have;
+        Color c;
+        switch(style)
+        {
+            case "cafe":c=new Color(.60f,.72f,.58f);break;          // sage green
+            case "icecream":c=new Color(1.00f,.76f,.80f);break;     // pastel pink
+            case "fish":c=new Color(.58f,.76f,.94f);break;          // sky blue
+            case "pizza":c=new Color(.86f,.48f,.34f);break;         // terracotta
+            case "burger":c=new Color(1.00f,.82f,.34f);break;       // sunflower yellow
+            case "juice":c=new Color(1.00f,.62f,.38f);break;        // apricot
+            case "beach_shop":c=new Color(.34f,.76f,.78f);break;    // turquoise
+            case "souvenirs":c=new Color(.76f,.68f,.92f);break;     // lavender
+            case "bar":c=new Color(.16f,.46f,.48f);break;           // deep teal
+            case "grill":c=new Color(.70f,.26f,.24f);break;         // brick red
+            case "rental":c=new Color(.22f,.34f,.60f);break;        // navy
+            default:return bodies[style??""]=Trav;                  // info: white marble
+        }
+        var mt=BraxChampionsFoundation.SourceMaterial("prom_kiosk_body_"+(style??"x"),"white_stucco_02",1.2f,c);bodies[style??""]=mt;return mt;
+    }
     static void Shell(BraxChampionsMeshBatch m,Transform col,KioskRecord p)
     {
         float w=p.w,d=p.d,h=p.h,hw=w*.5f,hd=d*.5f,t=.18f,y0=FloorTop;
@@ -116,9 +140,10 @@ public static class BraxChampionsPromenade
         m.BoxMinMax(Plinth,hw,hw+.04f,0f,y0+.05f,-hd-.04f,hd);
         m.BoxMinMax(Floor,-hw+t,hw-t,y0,y0+.012f,-hd+.05f,hd-t);
         // side and back walls: travertine
-        m.BoxMinMax(Trav,-hw,-hw+t,y0,h-.20f,-hd,hd);
-        m.BoxMinMax(Trav,hw-t,hw,y0,h-.20f,-hd,hd);
-        m.BoxMinMax(Trav,-hw+t,hw-t,y0,h-.20f,hd-t,hd);
+        var body=Body(p.style);
+        m.BoxMinMax(body,-hw,-hw+t,y0,h-.20f,-hd,hd);
+        m.BoxMinMax(body,hw-t,hw,y0,h-.20f,-hd,hd);
+        m.BoxMinMax(body,-hw+t,hw-t,y0,h-.20f,hd-t,hd);
         BraxChampionsMeshBatch.Collider(col,p.id+" ściana lewa",new Vector3(-hw+t*.5f,(y0+h)*.5f,0),new Vector3(t,h,d));
         BraxChampionsMeshBatch.Collider(col,p.id+" ściana prawa",new Vector3(hw-t*.5f,(y0+h)*.5f,0),new Vector3(t,h,d));
         BraxChampionsMeshBatch.Collider(col,p.id+" ściana tylna",new Vector3(0,(y0+h)*.5f,hd-t*.5f),new Vector3(w,h,t));

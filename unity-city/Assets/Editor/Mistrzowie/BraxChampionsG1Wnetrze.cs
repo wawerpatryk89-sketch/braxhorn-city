@@ -442,7 +442,7 @@ public static partial class BraxChampionsD2
                     {
                         for(int i=0;i<4;i++)BraxKatalog.FoldedStack(Kat(),new Vector3(x+.4f+i*.45f,y+.85f,zz+4f-.2f),Vector3.back,BraxKatalog.SportCols[(i+rr)%4],5+i%3);
                         for(int i=0;i<3;i++){var q=new Vector3(x+.6f+i*.7f,y+.85f,zz+4f+.25f);if(!ShopModel(Sprzet,Pilki[(i+rr)%3],q,Vector3.back))BraxKatalog.Ball(Kat(),q,(i+rr)%3);}
-                        if(!ShopModel(ButyPaczka,Buty[(rr+(int)x)%5],new Vector3(x+2.7f,y+.85f,zz+4f+.1f),Vector3.back))foreach(float xs in new[]{x+2.62f,x+2.80f})BraxKatalog.Sneaker(Kat(),new Vector3(xs,y+.85f,zz+4f+.1f),Vector3.back,BraxKatalog.SportCols[rr%4]);
+                        if(!ShopModel(ButyPaczka,SportButy[((rr+(int)x))%SportButy.Length],new Vector3(x+2.7f,y+.85f,zz+4f+.1f),Vector3.back))foreach(float xs in new[]{x+2.62f,x+2.80f})BraxKatalog.Sneaker(Kat(),new Vector3(xs,y+.85f,zz+4f+.1f),Vector3.back,BraxKatalog.SportCols[rr%4]);
                     }
                 });
             }
@@ -454,7 +454,7 @@ public static partial class BraxChampionsD2
                 for(int i=0;i<10;i++)BraxKatalog.Dumbbell(Kat(),new Vector3(rx+.2f+i*.38f,y+(i<5?.35f:.75f)+.049f+(4f+i*2f)*.0028f,rz),Vector3.forward,4f+i*2f);   // resting on the head
                 // the free halves of the rack: the owner's kettlebells (lower shelf, right) and boxing gloves (upper shelf, left)
                 for(int i=0;i<4;i++)ShopModel(Sprzet,"kettlebell_16kg",new Vector3(rx+2.25f+i*.45f,y+.35f,rz),Vector3.back);
-                for(int i=0;i<3;i++)ShopModel(Sprzet,"rekawice_bokserskie",new Vector3(rx+.35f+i*.55f,y+.75f,rz),Vector3.back);
+                for(int i=0;i<3;i++)ShopModel(Sprzet,i==1?"sklep_walka_01/rekawice_bokserskie_braxhorn_czarno_zlote":"rekawice_bokserskie",new Vector3(rx+.35f+i*.55f,y+.75f,rz),Vector3.back);
                 Material[] mats={BraxKatalog.SportCols[0],BraxKatalog.SportCols[1],BraxKatalog.SportCols[3]};
                 for(int i=0;i<9;i++)BraxKatalog.MatRoll(Kat(),new Vector3(65f+(i%3)*.16f,y,44.0f+(i/3)*.16f),Vector3.up,mats[i%3]);
             });
@@ -464,7 +464,7 @@ public static partial class BraxChampionsD2
         for(int r=0;r<6;r++){float yy=y+.4f+r*.45f;F(StoneTop(),47.2f,48.2f,yy,yy+.03f,-50f,26f);}
         F(gWood,47.15f,47.22f,y,y+3.2f,-50f,26f);
         for(int i=0;i<3;i++)StationBench(new Vector3(50.5f,y,-40f+i*20f),Vector3.left,3,"ławka przymierzania obuwia",0,true);
-        Goods("SPORT ARENA | ściana butów",()=>{for(int r=1;r<5;r++){float yy=y+.4f+r*.45f+.03f;int i=r;for(float z=-49.5f;z<25.6f;z+=1.0f,i++){if(ShopModel(ButyPaczka,Buty[i%5],new Vector3(47.75f,yy,z),Vector3.right))continue;BraxKatalog.Sneaker(Kat(),new Vector3(47.75f,yy,z-.07f),Vector3.right,BraxKatalog.SportCols[i%4]);BraxKatalog.Sneaker(Kat(),new Vector3(47.75f,yy,z+.07f),Vector3.right,BraxKatalog.SportCols[i%4]);}}});
+        Goods("SPORT ARENA | ściana butów",()=>{for(int r=1;r<5;r++){float yy=y+.4f+r*.45f+.03f;int i=r;for(float z=-49.5f;z<25.6f;z+=1.0f,i++){if(ShopModel(ButyPaczka,SportButy[(i)%SportButy.Length],new Vector3(47.75f,yy,z),Vector3.right))continue;BraxKatalog.Sneaker(Kat(),new Vector3(47.75f,yy,z-.07f),Vector3.right,BraxKatalog.SportCols[i%4]);BraxKatalog.Sneaker(Kat(),new Vector3(47.75f,yy,z+.07f),Vector3.right,BraxKatalog.SportCols[i%4]);}}});
         // BRAXHORN NUTRITION on the south wall (x 56..76): walnut shelving, the owner's supplements on every shelf
         {
             float a=56f,b=76f,zw=z0+.08f,dep=.45f;
