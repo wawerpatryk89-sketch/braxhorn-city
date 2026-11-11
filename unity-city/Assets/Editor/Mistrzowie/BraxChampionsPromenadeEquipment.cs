@@ -406,6 +406,37 @@ public static class BraxChampionsPromenadeEquipment
         }
     }
 
+    static readonly Dictionary<string,string[]> Menus=new Dictionary<string,string[]>
+    {
+        {"cafe",new[]{"BRAXHORN CAFÉ","ESPRESSO 9 ZŁ","CAPPUCCINO 12 ZŁ","LATTE 13 ZŁ","SERNIK 14 ZŁ"}},
+        {"icecream",new[]{"LODY • GOFRY","GAŁKA LODÓW 7 ZŁ","GOFR 14 ZŁ","GOFR Z OWOCAMI 19 ZŁ","SHAKE 16 ZŁ"}},
+        {"fish",new[]{"RYBY NA WYNOS","DORSZ Z FRYTKAMI 39 ZŁ","ŁOSOŚ Z GRILLA 45 ZŁ","FLĄDRA 36 ZŁ","FRYTKI 12 ZŁ"}},
+        {"pizza",new[]{"PIZZA • BISTRO","MARGHERITA 32 ZŁ","PEPPERONI 38 ZŁ","CAPRICCIOSA 39 ZŁ","4 SERY 42 ZŁ"}},
+        {"burger",new[]{"BRAX BURGER","CLASSIC 29 ZŁ","CHEESEBURGER 32 ZŁ","BRAX DOUBLE 42 ZŁ","FRYTKI 12 ZŁ"}},
+        {"juice",new[]{"SOKI • OWOCE","POMARAŃCZA 14 ZŁ","JABŁKO • MARCHEW 14 ZŁ","SMOOTHIE 18 ZŁ","LEMONIADA 12 ZŁ"}},
+        {"bar",new[]{"BAR • DRINKI","PIWO 14 ZŁ","MOJITO 28 ZŁ","APEROL 29 ZŁ","LEMONIADA 12 ZŁ"}},
+        {"grill",new[]{"KEBAB • GRILL","KEBAB 29 ZŁ","SZAWARMA 27 ZŁ","KURCZAK Z ROŻNA 35 ZŁ","FRYTKI 12 ZŁ"}},
+    };
+    // the menu on the back wall above the shelves: y0 its bottom, wallZ the wall's inner face (the board faces the counter, -z)
+    static void MenuBoard(BraxChampionsMeshBatch m,BraxChampionsPromenade.KioskRecord p,float y0,float wallZ)
+    {
+        if(!Menus.TryGetValue(p.style??"",out var lines))return;
+        float bw=Mathf.Min(p.w-1.2f,3.0f),bh=.50f,z1=wallZ-.003f,z0=z1-.03f,hw=bw*.5f;
+        var dark=BraxChampionsHarbour.SignDark;var face=BraxChampionsHarbour.SignFace;
+        if(!dark||!face){BraxBuildQuality.Warn("DO POPRAWKI PROMENADE_MENU_NO_MATERIALS "+p.id);return;}
+        m.BoxMinMax(dark,-hw,hw,y0,y0+bh,z0,z1);
+        foreach(var (a,b,c,d) in new[]{(-hw-.02f,hw+.02f,y0+bh,y0+bh+.02f),(-hw-.02f,hw+.02f,y0-.02f,y0),(-hw-.02f,-hw,y0,y0+bh),(hw,hw+.02f,y0,y0+bh)})
+            m.BoxMinMax(Steel,a,b,c,d,z0-.006f,z1);
+        BraxChampionsLetters3D.Text(m,face,dark,lines[0],new Vector3(0,y0+bh-.135f,z0),180f,.10f,.008f,.12f,bw-.2f);
+        m.BoxMinMax(Steel,-hw+.12f,hw-.12f,y0+bh-.165f,y0+bh-.160f,z0-.004f,z0);   // a steel rule under the title
+        for(int i=1;i<lines.Length;i++)
+        {
+            float col=(i-1)%2==0?-bw*.25f:bw*.25f;   // seen from the counter -x is the reader's left (render check 12.11)
+            float row=y0+bh-.27f-((i-1)/2)*.12f;
+            BraxChampionsLetters3D.Text(m,face,dark,lines[i],new Vector3(col,row,z0),180f,.062f,.006f,.12f,bw*.5f-.12f);
+        }
+    }
+
     public static void Fit(Transform root,BraxChampionsPromenade.KioskRecord p)
     {
         Materials();
@@ -419,7 +450,9 @@ public static class BraxChampionsPromenadeEquipment
         // owner 11.11 20:03 ("pousuwać te kasy fiskalne wielkie, które są, zagradzają"): no more the pack's supermarket till on
         // the counters - a small POS tablet on a stand and a card reader (code-built)
         void Till(float x,float y,float z)=>SmallTill(m,new Vector3(x,y,z));
-        void Menu(string id)=>PackModel(root,id,new Vector3(0,shelves[2]+.30f,wallZ-.04f),180f,"tablica menu");
+        // owner 12.11 00:13 ("jak jest kebab, to jest tabliczka shaker bar ... z cennikami"): the pack's menu boards carried other
+        // bars' names and prices - each kiosk has its own 3D menu now (graphite board, steel frame, its name and its prices)
+        void Menu(string id)=>MenuBoard(m,p,shelves[2]+.28f,wallZ);
         void Bottles(int count,int shelf,int from)
         {
             var names=Enumerable.Range(0,count).Select(i=>"but_"+(((from+i)%18)+1).ToString("00")).ToArray();

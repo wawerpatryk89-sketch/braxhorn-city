@@ -147,6 +147,7 @@ jobs:
             unity-city/Prywatne/osiedle_wnetrza.tar.gz.enc
             unity-city/Prywatne/miasto_pojazdy.tar.gz.enc
             unity-city/Prywatne/braxhorn-*/
+            unity-city/Prywatne/mistrzowie-kino-filmy-20261111/
             unity-tools/wideo
             unity-tools/sklep
             public/assets/cars-src/car_rev.glb
