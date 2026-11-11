@@ -879,9 +879,9 @@ public static class BraxUlicePierzeje
                 float y = y0 + .12f + p * (wys - .2f) / Mathf.Max(1, polek - 1);
                 sr.Box(P(.03f, y - .025f, .0f), P(dl - .03f, y, glb - .02f));
                 if (p == polek - 1) break;
-                if (optyk && y > y0 + .7f * k && y < y0 + 2.1f * k)
-                {   // rząd oprawek co 25 cm × K, przodem do sali, w różnych kolorach (acetat czarny, havana, granat, bordo, metal)
-                    for (float a = .16f * k; a < dl - .16f * k; a += .25f * k) Okulary(P(a, y + .0005f, .05f), -wglab, KoloryOprawek[rng.Next(KoloryOprawek.Length)], k);
+                if (optyk && y > y0 + .85f * k && y < y0 + 2.0f * k)
+                {   // rząd oprawek co 27 cm × K, przodem do sali, w różnych kolorach (acetat czarny, havana, granat, bordo, metal)
+                    for (float a = .17f * k; a < dl - .17f * k; a += .27f * k) Okulary(P(a, y + .0005f, .05f), -wglab, KoloryOprawek[rng.Next(KoloryOprawek.Length)], k);
                     continue;
                 }
                 if (prawdziwy)
@@ -1093,8 +1093,11 @@ public static class BraxUlicePierzeje
                         mebel.Box(W(s0w, y0, dC + gw * .5f), W(s1w, y0 + hb - .03f, dC - gw * .5f));
                         BraxUliceKit.S(granit).Box(W(s0w - .02f, y0 + hb - .03f, dC + gw * .5f + .02f), W(s1w + .02f, y0 + hb, dC - gw * .5f - .02f));
                         if (ck) BraxSklepyTowar.Polka(lok.typ, tw, W(s0w + .08f, y0 + hb + .004f, dC), f.R, f.N, L - .16f, rng, hs - .04f);
-                        else for (float a = s0w + .15f * k; a < s1w - .15f * k; a += .22f * k)   // optyk: oprawki z kodu w dwóch rzędach, przodem do klienta
-                            foreach (float sg in new[] { -1f, 1f }) Okulary(W(a, y0 + hb + .0005f, dC + sg * gw * .22f), sg * f.N, KoloryOprawek[rng.Next(KoloryOprawek.Length)], k);
+                        // optyk: oprawki z kodu w dwóch rzędach plecami do siebie, przodem do klientów z obu stron; rzędy przy szybach
+                        // (± 0.32 głębokości), drugi rząd przesunięty o pół kroku — zauszniki (0.19 m) nie sięgają drugiego rzędu
+                        else foreach (float sg in new[] { -1f, 1f })
+                                for (float a = s0w + (sg < 0f ? .15f : .29f) * k; a < s1w - .15f * k; a += .28f * k)
+                                    Okulary(W(a, y0 + hb + .0005f, dC + sg * gw * .32f), sg * f.N, KoloryOprawek[rng.Next(KoloryOprawek.Length)], k);
                         szyb.Box(W(s0w + .01f, y0 + hb, dC + gw * .5f - .01f), W(s1w - .01f, y0 + hb + hs, dC - gw * .5f + .01f));
                         nogi.Box(W(s0w, y0 + hb + hs, dC + gw * .5f), W(s1w, y0 + hb + hs + .025f, dC - gw * .5f));
                         if (ck) BraxUliceKit.S(BraxMiastoA.Swieci("witryna chłodnicza: listwa LED", new Color(1f, .97f, .9f), new Color(1.3f, 1.25f, 1.1f))).Box(W(s0w + .05f, y0 + hb + hs - .03f, dC + .05f), W(s1w - .05f, y0 + hb + hs - .005f, dC - .05f));
@@ -1652,8 +1655,10 @@ public static class BraxUlicePierzeje
         if (!okularyRama) { okularyRama = BraxUliceKit.Mat("okulary: oprawki (acetat, połysk)", Color.white, .22f, 0f); okularySzkla = BraxUliceKit.Mat("okulary: szkła (przezroczyste)", new Color(.8f, .86f, .9f, .18f), .03f, 0f); }
         przod.y = 0f; przod.Normalize(); var prawo = Vector3.Cross(Vector3.up, przod);
         var rm = BraxUliceKit.S(okularyRama); var sz = BraxUliceKit.S(okularySzkla); var stary = rm.kolor; rm.kolor = kolor;
-        const float a = .026f, b = .020f, wr = .004f, gr = .004f, most = .009f; const int N = 12;
-        Vector3 L(float x, float y, float z) => c + (prawo * x + Vector3.up * y + przod * z) * k;
+        const float a = .026f, b = .020f, wr = .005f, gr = .0045f, most = .009f; const int N = 20;   // obręcz gładka (20 odcinków)
+        // oprawka odchylona 7° do tyłu (leży na obręczach i końcówkach zauszników, jak na półce u optyka)
+        const float sT = .1219f, cT = .9925f;
+        Vector3 L(float x, float y, float z) => c + Vector3.up * .001f + (prawo * x + Vector3.up * (y * cT + z * sT) + przod * (z * cT - y * sT)) * k;
         Vector2 Obrys(float t, float off) { float co = Mathf.Cos(t), si = Mathf.Sin(t); return new Vector2((a + off) * Mathf.Sign(co) * Mathf.Pow(Mathf.Abs(co), 2f / 2.8f), (b + off) * Mathf.Sign(si) * Mathf.Pow(Mathf.Abs(si), 2f / 2.8f)); }
         foreach (float sg in new[] { -1f, 1f })
         {
@@ -1674,7 +1679,7 @@ public static class BraxUlicePierzeje
             }
             // zausznik: zawias przy zewnętrznej krawędzi obręczy, do tyłu z lekkim rozchyleniem, końcówka opada na półkę
             float xz = sg * (most + 2f * a + wr), yz = cy + b * .55f;
-            Vector3 z0 = L(xz, yz, -gr), z1 = L(xz + sg * .008f, yz - .004f, -.11f), z2 = L(xz + sg * .01f, .004f, -.145f);
+            Vector3 z0 = L(xz, yz, -gr), z1 = L(xz + sg * .008f, yz + .004f, -.11f), z2 = L(xz + sg * .01f, .004f + .145f * sT / cT, -.145f);
             rm.Rura(L(xz - sg * .002f, yz, -.0005f), z0, .0028f, 4); rm.Rura(z0, z1, .0022f, 4, false); rm.Rura(z1, z2, .0022f, 4);
         }
         // mostek (łuk nad nosem)
