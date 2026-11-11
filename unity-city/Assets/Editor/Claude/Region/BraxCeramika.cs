@@ -25,10 +25,11 @@ internal static class BraxCeramika
     }
 
     /// <summary>Tafla lustra z prawdziwym odbiciem (BraxLustro): środek c, lico w stronę n, w × h, pod rodzicem.</summary>
-    public static GameObject Lustro(Transform rodzic, string nazwa, Vector3 c, Vector3 n, float w, float h)
+    public static GameObject Lustro(Transform rodzic, string nazwa, Vector3 c, Vector3 n, float w, float h, bool lokalnie = false)
     {
         Materialy();
-        var g = new GameObject("lustro — " + nazwa).transform; g.SetParent(rodzic, false); g.position = c; g.rotation = Quaternion.LookRotation(-n, Vector3.up);
+        var g = new GameObject("lustro — " + nazwa).transform; g.SetParent(rodzic, false);
+        if (lokalnie) { g.localPosition = c; g.localRotation = Quaternion.LookRotation(-n, Vector3.up); } else { g.position = c; g.rotation = Quaternion.LookRotation(-n, Vector3.up); }
         var s = new UlSiatka(); s.Quad(new Vector3(-w * .5f, -h * .5f, 0f), new Vector3(w * .5f, -h * .5f, 0f), new Vector3(w * .5f, h * .5f, 0f), new Vector3(-w * .5f, h * .5f, 0f), Vector3.back);
         var t = BraxMiastoA.Obiekt(g, "lustro — " + nazwa + " (tafla)", s, lustroM);
         t.AddComponent<BraxLustro>();
@@ -139,9 +140,9 @@ internal static class BraxCeramika
     // Ø 38 cm × K, wys. 13 cm × K; ścianka zewnętrzna od blatu (podstawa Ø 0.62) wybrzuszona do krawędzi, zaokrąglona krawędź
     // (r 1.2 cm), wnętrze schodzi do płaskiego dna 4.5 cm nad blatem, odpływ Ø 5.6 cm × K z sitkiem 2.5 cm nad blatem (pierścienie
     // chrom / grafit w jednej płaszczyźnie). Spód nie jest budowany — misa stoi na blacie (zasada zero migotania).
-    public static void Umywalka(Vector3 p)
+    public static void Umywalka(Vector3 p, float skala = 1f)
     {
-        float R = .19f * K, H = .13f * K, rr = .012f * K, rb = R * .62f, rd = .022f * K, yIn = .045f, ySit = .025f;
+        float R = .19f * K * skala, H = .13f * K * skala, rr = .012f * K, rb = R * .62f, rd = .022f * K, yIn = .045f, ySit = .025f;
         const int seg = 48;
         var segmenty = new List<List<Vector2>>();
         List<Vector2> L(int n, System.Func<float, Vector2> f) { var l = new List<Vector2>(); for (int i = 0; i <= n; i++) l.Add(f((float)i / n)); return l; }
@@ -292,7 +293,7 @@ internal static class BraxCeramika
     // gdy gracz stoi przy umywalce (≤ 1.1 m), szum wody. baza = punkt blatu pod kolumną, wysieg = kierunek wylewki, hMisy = wysokość
     // dna misy nad blatem (koniec strumienia).
     static Material wodaM;
-    public static void Bateria(Transform rodzic, string nazwa, Vector3 baza, Vector3 wysieg, float wys, float dl, float hMisy)
+    public static void Bateria(Transform rodzic, string nazwa, Vector3 baza, Vector3 wysieg, float wys, float dl, float hMisy, bool lokalnie = false)
     {
         Materialy();
         if (!wodaM) wodaM = BraxUliceKit.Mat("woda z kranu (strumień)", new Color(.78f, .88f, .95f, .45f), .05f, 0f);
@@ -305,10 +306,32 @@ internal static class BraxCeramika
         ch.Rura(perl, perl - Vector3.up * .035f, .012f * K, 12);                                      // perlator
         ch.Rura(baza + Vector3.up * (wys - .005f), baza + Vector3.up * (wys + .03f) - wysieg * .06f, .009f * K, 10);   // dźwignia mieszacza na górze, skośnie do tyłu
         // strumień: osobny obiekt (włączany przez BraxKran), walec Ø 1.2 cm od perlatora do dna misy
-        var g = new GameObject("Kran: " + nazwa).transform; g.SetParent(rodzic, false); g.position = perl;
+        var g = new GameObject("Kran: " + nazwa).transform; g.SetParent(rodzic, false); if (lokalnie) g.localPosition = perl; else g.position = perl;   // lokalnie: współrzędne w układzie rodzica (siatki partii pod nim)
         var w = new UlSiatka(); w.Rura(Vector3.down * .036f, Vector3.down * Mathf.Max(.05f, (wys - .012f - .036f - hMisy)), .006f * K, 10, false);
         var go = BraxMiastoA.Obiekt(g, "Kran: " + nazwa + " — strumień wody", w, wodaM);
         var kran = g.gameObject.AddComponent<BraxKran>(); kran.strumien = go.GetComponent<Renderer>(); kran.promien = 1.1f * K;
         GameObjectUtility.SetStaticEditorFlags(go, 0);
+    }
+
+    // ZESTAW UMYWALKOWY (11.11 — do każdej łazienki i WC miasta): blat dębowy wiszący (szer × 0.5 m × K, 0.85 m × K nad posadzką),
+    // umywalka nablatowa z odpływem, bateria z wodą (BraxKran), lustro z prawdziwym odbiciem w ramie chrom. p = punkt na licu ściany
+    // na posadzce pod środkiem blatu, wzdluz = kierunek wzdłuż ściany (oś świata), od = od ściany do pomieszczenia (oś świata).
+    static Material dabB;
+    public static void ZestawUmywalkowy(Transform rodzic, string nazwa, Vector3 p, Vector3 wzdluz, Vector3 od, float szer)
+    {
+        Materialy();
+        if (!dabB) dabB = BraxUliceKit.Tex("blat łazienki: okleina dębowa", 1.2f, null, new Color(.6f, .45f, .3f), .55f, "oak_veneer_01", "teak_veneer");
+        float gl = .5f * K, yb = .85f * K, sk = Mathf.Clamp(szer / (.62f * K), .7f, 1f);
+        Vector3 L(float a, float y, float d) => p + wzdluz * a + Vector3.up * y + od * d;
+        void Br(Material m, float a0, float a1, float y0, float y1, float d0, float d1, float r)
+        { var A = L(a0, y0, d0); var B = L(a1, y1, d1); S(m).Poducha(Vector3.Min(A, B), Vector3.Max(A, B), r, 0f, 4); }
+        Br(dabB, -szer * .5f, szer * .5f, yb - .07f, yb, .005f, gl, .012f);                                   // blat (5 mm od ściany)
+        Br(dabB, -szer * .5f + .02f, szer * .5f - .02f, yb - .32f, yb - .07f, .005f, gl - .04f, .01f);       // szafka pod blatem
+        Umywalka(L(0f, yb, gl * .56f), sk);
+        Bateria(rodzic, nazwa, L(0f, yb, .075f), od, .28f, .13f, .045f);
+        float ly0 = yb + .33f, ly1 = yb + .33f + .8f * K, lw = Mathf.Min(szer, .8f * K);
+        Lustro(rodzic, nazwa, L(0f, (ly0 + ly1) * .5f, .03f), od, lw - .06f, ly1 - ly0 - .06f);
+        foreach (var (a0, a1, y0, y1) in new[] { (-lw * .5f, -lw * .5f + .03f, ly0, ly1), (lw * .5f - .03f, lw * .5f, ly0, ly1), (-lw * .5f + .03f, lw * .5f - .03f, ly0, ly0 + .03f), (-lw * .5f + .03f, lw * .5f - .03f, ly1 - .03f, ly1) })
+            Br(chrom, a0, a1, y0, y1, 0f, .045f, .005f);
     }
 }

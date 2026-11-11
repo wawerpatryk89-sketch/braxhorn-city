@@ -453,30 +453,29 @@ internal static class BraxMiastoNova
                 var kier = Quaternion.Euler(0, -30f, 0) * Vector3.left;
                 hp.OBox(piv + kier * dl * .5f + Vector3.up * (1.0f * K - .06f), kier, Vector3.up, Vector3.Cross(kier, Vector3.up).normalized, dl, 2.0f * K - .14f, .03f);
                 var c = new Vector3((a + b) * .5f, F, z0 + .42f * K);
-                var ce = BraxUliceKit.S(ceramika);
-                ce.Walec(c + Vector3.forward * .1f, .15f * K, .28f * K, 16);
-                ce.Walec(c + new Vector3(0, .28f * K, .14f), .21f * K, .12f * K, 18);
-                ce.Box(new Vector3(c.x - .22f * K, F + .5f * K, z0 + .02f), new Vector3(c.x + .22f * K, F + .9f * K, z0 + .2f * K));
-                BraxUliceKit.S(chrom).Walec(new Vector3(c.x, F + .9f * K, z0 + .1f * K), .035f, .02f, 10);
+                // 11.11 (właściciel 19:59: „toalety… żeby były ceramiczne… to wystarczy poprzynosić”): miska wisząca z kodu jak na dworcu
+                BraxCeramika.MiskaWiszaca(new Vector3(c.x, F, z0), Vector3.right, Vector3.forward);
                 BraxMiastoA.Kol(kol, "miska ustępowa", new Vector3(c.x - .25f * K, F, z0), new Vector3(c.x + .25f * K, F + .45f * K, z0 + .7f * K));
             }
             // umywalki w blacie z lustrem i listwą LED (ściana wschodnia), pisuary w męskiej (ściana zachodnia)
             float ux = x1 - .55f * K;
             BraxUliceKit.S(blat).Box(new Vector3(ux, F + .82f * K, 40.2f), new Vector3(x1 - .01f, F + .88f * K, 41.4f), 0);
             BraxMiastoA.Kol(kol, "blat umywalek", new Vector3(ux, F, 40.2f), new Vector3(x1, F + .88f * K, 41.4f));
-            foreach (float uz in new[] { 40.55f, 41.05f })
-            {
-                BraxUliceKit.S(ceramika).Walec(new Vector3(x1 - .3f * K, F + .88f * K, uz), .17f * K, .06f, 16);
-                BraxUliceKit.S(chrom).Rura(new Vector3(x1 - .06f, F + .88f * K, uz), new Vector3(x1 - .06f, F + 1.1f * K, uz), .015f, 8);
-                BraxUliceKit.S(chrom).Rura(new Vector3(x1 - .06f, F + 1.1f * K, uz), new Vector3(x1 - .2f * K, F + 1.1f * K, uz), .013f, 8);
+            foreach (float uz in new[] { 40.48f, 41.12f })
+            {   // umywalka nablatowa z odpływem i bateria z wodą (BraxCeramika — jak na dworcu)
+                BraxCeramika.Umywalka(new Vector3(x1 - .3f * K, F + .88f * K, uz));
+                BraxCeramika.Bateria(root, "NOVA WC " + (meska ? "męska" : "damska") + " " + uz.ToString("0.00"), new Vector3(x1 - .06f, F + .88f * K, uz), Vector3.left, .3f, .14f, .045f);
             }
-            BraxUliceKit.S(lustro).Box(new Vector3(x1 - .03f, F + 1.15f * K, 40.25f), new Vector3(x1 - .01f, F + 1.95f * K, 41.35f));
+            // lustro z prawdziwym odbiciem (BraxLustro) 3 cm przed ścianą, czarna rama wokół tafli (lico ramy 1.5 cm przed taflą)
+            float ly0 = F + 1.15f * K, ly1 = F + 1.95f * K;
+            BraxCeramika.Lustro(root, "NOVA WC " + (meska ? "męska" : "damska"), new Vector3(x1 - .03f, (ly0 + ly1) * .5f, 40.8f), Vector3.left, 1.04f, ly1 - ly0);
+            foreach (var (za, zb, ya, yb) in new[] { (40.25f, 40.28f, ly0, ly1), (41.32f, 41.35f, ly0, ly1), (40.28f, 41.32f, ly0 - .03f, ly0), (40.28f, 41.32f, ly1, ly1 + .025f) })   // górna listwa ramy pod listwą LED (bez nakładania)
+                BraxUliceKit.S(hpl).Poducha(new Vector3(x1 - .045f, ya, za), new Vector3(x1, yb, zb), .005f, 0f, 3);
             BraxUliceKit.S(led).Box(new Vector3(x1 - .05f, F + 1.97f * K, 40.25f), new Vector3(x1 - .02f, F + 2.0f * K, 41.35f));
             if (meska)
                 foreach (float uz in new[] { 38.5f, 39.2f })
                 {
-                    var ce = BraxUliceKit.S(ceramika);
-                    ce.Box(new Vector3(x0 + .02f, F + .55f * K, uz - .18f * K), new Vector3(x0 + .3f * K, F + 1.2f * K, uz + .18f * K));
+                    BraxCeramika.Pisuar(new Vector3(x0, F, uz), Vector3.forward, Vector3.right);   // pisuar z kodu jak na dworcu
                     BraxMiastoA.Kol(kol, "pisuar", new Vector3(x0, F + .5f * K, uz - .2f * K), new Vector3(x0 + .32f * K, F + 1.2f * K, uz + .2f * K));
                 }
             // 10.11 (właściciel 09:26: „łazienki mają być pozamykane, nieotwarte”): drzwi ZAMKNIĘTE w przejściu (otwór toalety xd ± 0.6,

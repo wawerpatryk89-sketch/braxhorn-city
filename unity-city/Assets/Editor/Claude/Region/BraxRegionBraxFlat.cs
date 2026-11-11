@@ -291,22 +291,23 @@ public static class BraxRegionBraxFlat
         W.OBox(chrom, new Vector3(lx0 + .04f, y + 1.05f, lz1 - .25f), new Vector3(.06f, .12f, .14f), Quaternion.identity);              // bateria
         // WC (kompakt: postument, misa, deska, zbiornik, przycisk)
         float wcx = XW - .55f, wcz = lz1 - .32f;
-        W.Walec(biel, new Vector3(wcx, y, wcz + .02f), .16f, .3f, 18);
-        W.Walec(biel, new Vector3(wcx, y + .3f, wcz - .02f), .21f, .1f, 20);
-        W.Walec(biel, new Vector3(wcx, y + .4f, wcz - .02f), .22f, .025f, 20);
-        W.OBox(biel, new Vector3(wcx, y + .62f, lz1 - .09f), new Vector3(.4f, .42f, .17f), Quaternion.identity, true);
-        W.Walec(chrom, new Vector3(wcx, y + .83f, lz1 - .09f), .03f, .01f, 12);
+        // 11.11 (właściciel 19:59: „toalety… ceramiczne… poprzynosić” — wzorzec WC dworca): miska wisząca z kodu, deska, klapa,
+        // przycisk spłuczki; umywalka nablatowa z odpływem, bateria z wodą (BraxKran), lustro z odbiciem — BraxCeramika
+        BraxUliceKit.UstawGrupe("Mieszkanie Braxa: ceramika łazienki", 30f);
+        BraxCeramika.MiskaWiszaca(new Vector3(wcx, y, lz1), Vector3.right, Vector3.back);
         W.Rura(chrom, new Vector3(XW - .02f, y + .75f, wcz - .35f), new Vector3(XW - .1f, y + .75f, wcz - .35f), .008f, 6);              // uchwyt papieru
         W.Walec(biel, new Vector3(XW - .1f, y + .69f, wcz - .35f), .055f, .1f, 12);
         // umywalka na szafce (front dąb, uchwyt), bateria, lustro z listwą LED, wieszak z ręcznikiem
         float ux = AX0 + .45f, uz0 = ZH + .25f, uz1 = uz0 + .8f;
         W.MM(dab, AX0 + .06f, AX0 + .52f, y + .25f, y + .82f, uz0, uz1, true);
         W.MM(biel, AX0 + .06f, AX0 + .54f, y + .82f, y + .86f, uz0 - .02f, uz1 + .02f);
-        W.Walec(biel, new Vector3(ux - .1f, y + .86f, (uz0 + uz1) * .5f), .2f, .12f, 22);
-        W.Rura(chrom, new Vector3(AX0 + .1f, y + .86f, (uz0 + uz1) * .5f), new Vector3(AX0 + .1f, y + 1.1f, (uz0 + uz1) * .5f), .013f, 8);
-        W.Rura(chrom, new Vector3(AX0 + .1f, y + 1.1f, (uz0 + uz1) * .5f), new Vector3(AX0 + .25f, y + 1.06f, (uz0 + uz1) * .5f), .011f, 8);
+        BraxCeramika.Umywalka(new Vector3(AX0 + .31f, y + .86f, (uz0 + uz1) * .5f), .85f);
+        BraxCeramika.Bateria(A, "mieszkanie Braxa", new Vector3(AX0 + .1f, y + .86f, (uz0 + uz1) * .5f), Vector3.right, .28f, .14f, .045f);
         W.Rura(chrom, new Vector3(AX0 + .51f, y + .55f, uz0 + .15f), new Vector3(AX0 + .51f, y + .55f, uz1 - .15f), .008f, 6);
-        W.MM(szklo, AX0 + .06f, AX0 + .08f, y + 1.2f, y + 1.95f, uz0 + .05f, uz1 - .05f);
+        BraxCeramika.Lustro(A, "mieszkanie Braxa", new Vector3(AX0 + .09f, y + 1.575f, (uz0 + uz1) * .5f), Vector3.right, uz1 - uz0 - .16f, .69f);
+        foreach (var (za, zb, ya, yb2) in new[] { (uz0 + .05f, uz0 + .08f, y + 1.2f, y + 1.95f), (uz1 - .08f, uz1 - .05f, y + 1.2f, y + 1.95f), (uz0 + .08f, uz1 - .08f, y + 1.2f, y + 1.23f), (uz0 + .08f, uz1 - .08f, y + 1.92f, y + 1.95f) })
+            BraxUliceKit.S(BraxCeramika.chrom).Poducha(new Vector3(AX0 + .06f, ya, za), new Vector3(AX0 + .105f, yb2, zb), .005f, 0f, 3);
+        BraxUliceKit.Zapisz(A, "mieszkanie_ceramika");
         W.MM(BraxRegionMeble.Swiecacy("Mieszkanie: LED lustra", new Color(1f, .97f, .92f), 1.2f), AX0 + .06f, AX0 + .1f, y + 1.97f, y + 2.0f, uz0 + .1f, uz1 - .1f);
         W.Rura(chrom, new Vector3(XW - .02f, y + 1.3f, uz0 + .1f), new Vector3(XW - .1f, y + 1.3f, uz0 + .1f), .01f, 6);
         W.Rura(chrom, new Vector3(XW - .1f, y + 1.3f, uz0 + .1f), new Vector3(XW - .1f, y + 1.3f, uz0 + .7f), .01f, 6);

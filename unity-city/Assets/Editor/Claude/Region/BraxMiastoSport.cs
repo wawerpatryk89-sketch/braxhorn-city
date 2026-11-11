@@ -334,20 +334,24 @@ internal static class BraxMiastoSport
             h.Box(new Vector3(a - .02f, F + .12f, zc0), new Vector3(a, F + 2.1f, z1));
             h.Box(new Vector3(a, F + .12f, zc0 - .02f), new Vector3(b - .7f, F + 2.1f, zc0));
             var c = new Vector3((a + b) * .5f, F, z1 - .42f * K);
-            BraxUliceKit.S(ceramika).Walec(c - Vector3.forward * .1f, .15f * K, .28f * K, 16);
-            BraxUliceKit.S(ceramika).Walec(c + new Vector3(0, .28f * K, -.14f), .21f * K, .12f * K, 18);
-            BraxUliceKit.S(ceramika).Box(new Vector3(c.x - .22f * K, F + .5f * K, z1 - .2f * K), new Vector3(c.x + .22f * K, F + .9f * K, z1));
+            // 11.11 (właściciel 19:59: toalety ceramiczne jak na dworcu): miska wisząca z kodu (BraxCeramika), układ lokalny szatni
+            BraxCeramika.MiskaWiszaca(new Vector3(c.x, F, z1), Vector3.right, Vector3.back);
             KolL("kabina WC", new Vector3(a - .02f, F, zc0 - .02f), new Vector3(b - .7f, F + 2.1f, zc0));
             KolL("miska", new Vector3(c.x - .25f * K, F, z1 - .7f * K), new Vector3(c.x + .25f * K, F + .45f * K, z1));
         }
         // umywalki z lustrem na ścianie działowej, prysznice przy ścianie zachodniej
+        // blat dębowy wiszący (0.55 m × K), na nim dwie umywalki nablatowe z bateriami (woda leci przy podejściu), lustro z odbiciem w ramie
+        float yb = F + .85f * K, zw = zP + .2f;
+        BraxUliceKit.S(dab).Poducha(new Vector3(x0 + 2.2f, yb - .06f, zw + .005f), new Vector3(x0 + 4.0f, yb, zw + .55f * K), .015f, 0f, 4);
         for (int i = 0; i < 2; i++)
         {
-            var u = new Vector3(x0 + 2.6f + i * .9f, F + .85f * K, zP + .2f + .25f * K);
-            BraxUliceKit.S(ceramika).Box(u + new Vector3(-.3f * K, -.12f, -.25f * K), u + new Vector3(.3f * K, 0, .25f * K));
-            BraxUliceKit.S(chrom).Rura(u + new Vector3(0, 0, -.2f * K), u + new Vector3(0, .2f, -.2f * K), .014f, 8);
+            float xu = x0 + 2.65f + i * .9f;
+            BraxCeramika.Umywalka(new Vector3(xu, yb, zw + .3f * K));
+            BraxCeramika.Bateria(root, "szatnia " + (i + 1), new Vector3(xu, yb, zw + .07f), Vector3.forward, .3f, .14f, .045f, true);
         }
-        BraxUliceKit.S(lustro).Box(new Vector3(x0 + 2.2f, F + 1.15f * K, zP + .2f), new Vector3(x0 + 4.0f, F + 1.95f * K, zP + .22f));
+        BraxCeramika.Lustro(root, "szatnia", new Vector3(x0 + 3.1f, F + 1.55f * K, zw + .03f), Vector3.forward, 1.74f, 1.04f * K - .06f, true);   // tafla dokładnie w ramie
+        foreach (var (xa, xb, ya, yb2) in new[] { (x0 + 2.2f, x0 + 2.23f, F + 1.03f * K, F + 2.07f * K), (x0 + 3.97f, x0 + 4.0f, F + 1.03f * K, F + 2.07f * K), (x0 + 2.23f, x0 + 3.97f, F + 1.03f * K, F + 1.03f * K + .03f), (x0 + 2.23f, x0 + 3.97f, F + 2.07f * K - .03f, F + 2.07f * K) })
+            BraxUliceKit.S(hpl).Poducha(new Vector3(xa, ya, zw), new Vector3(xb, yb2, zw + .045f), .005f, 0f, 3);
         KolL("umywalki", new Vector3(x0 + 2.2f, F, zP + .2f), new Vector3(x0 + 4.0f, F + .85f * K, zP + .2f + .5f * K));
         foreach (float z in new[] { 3.0f, 4.4f })
         {

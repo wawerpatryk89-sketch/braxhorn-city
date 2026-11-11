@@ -95,6 +95,25 @@ class Lazienki(unittest.TestCase):
         self.assertIn("BraxCeramika.Bateria(root,", w)
 
 
+class LazienkiMiasta(unittest.TestCase):
+    def test_city_bathrooms_use_shared_ceramics(self):
+        # 19:59 „Proszę sprawdzić całe miasto… toalety… żeby były ceramiczne… wystarczy to poprzynosić”
+        nova = src(R / "BraxMiastoNova.cs")
+        self.assertIn("BraxCeramika.MiskaWiszaca(new Vector3(c.x, F, z0), Vector3.right, Vector3.forward);", nova)
+        self.assertIn("BraxCeramika.Pisuar(new Vector3(x0, F, uz), Vector3.forward, Vector3.right);", nova)
+        self.assertIn("BraxCeramika.Umywalka(new Vector3(x1 - .3f * K, F + .88f * K, uz));", nova)
+        sport = src(R / "BraxMiastoSport.cs")
+        self.assertIn("BraxCeramika.MiskaWiszaca(new Vector3(c.x, F, z1), Vector3.right, Vector3.back);", sport)
+        self.assertIn('BraxCeramika.Lustro(root, "szatnia"', sport)
+        flat = src(R / "BraxRegionBraxFlat.cs")
+        self.assertIn("BraxCeramika.MiskaWiszaca(new Vector3(wcx, y, lz1), Vector3.right, Vector3.back);", flat)
+        self.assertIn('BraxUliceKit.Zapisz(A, "mieszkanie_ceramika");', flat)
+        tyly = src(R / "BraxRegionTylyB.cs")
+        self.assertIn("BraxCeramika.ZestawUmywalkowy(F,", tyly)
+        self.assertIn("BraxCeramika.ZestawUmywalkowy(A,", tyly)
+        self.assertNotIn("wc.Cyl(cm, cm + Vector3.up * .4f * K", tyly)
+
+
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):
         k = src(ROOT / "unity-tools" / "claude" / "kontrola_kompilacji" / "kompiluj.sh")

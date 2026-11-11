@@ -672,12 +672,13 @@ public static class BraxRegionTylyB
         zn.Obiekt("Znak: wyjście ewakuacyjne", F, zielonyZnak, false, false);
         BraxRegionMeble.Napis(F, "WYJŚCIE EWAKUACYJNE", new Vector3(klD, y0 + dH + .27f, zb + .04f), Vector3.forward, .09f * K, Color.white);
         // WC: miska, umywalka z lustrem (pionowe — nie posadzka), suszarka; klatka: biegi schodów (bez wejścia na inne piętra)
-        var wc = new BraxRegionMeble.Bud(); var bial = BraxCityMaterials.Surface("WC: ceramika biała", new Color(.95f, .95f, .94f), .2f);
+        // 11.11 (właściciel 19:59: „toalety… ceramiczne… poprzynosić”): miska wisząca i zestaw umywalkowy z kodu jak na dworcu (BraxCeramika)
         var cm = new Vector3(wcX0 + .55f * K, y0, iz0 + .45f * K);
-        wc.Cyl(cm, cm + Vector3.up * .4f * K, .2f * K, 16, .17f * K); wc.MinMax(cm + new Vector3(-.2f * K, .4f * K, -.35f * K), cm + new Vector3(.2f * K, .85f * K, -.2f * K));
-        var um = new Vector3(wcX1 - .55f * K, y0, iz0 + .3f * K);
-        wc.MinMax(um + new Vector3(-.3f * K, .78f * K, -.05f), um + new Vector3(.3f * K, .88f * K, .4f * K));
-        wc.Obiekt("WC p." + i + ": ceramika", F, bial, false, true);
+        BraxUliceKit.UstawGrupe("Wieżowiec: WC piętra " + i, 30f);
+        BraxCeramika.MiskaWiszaca(new Vector3(cm.x, y0, iz0), Vector3.right, Vector3.forward);
+        BraxCeramika.ZestawUmywalkowy(F, "wieżowiec WC p." + i, new Vector3(wcX1 - .55f * K, y0, iz0), Vector3.right, Vector3.forward, .62f * K);
+        var cerF = new GameObject("WC p." + i + ": ceramika (świat)").transform; cerF.SetParent(F, false); cerF.position = Vector3.zero; cerF.rotation = Quaternion.identity;   // siatki partii w układzie świata
+        BraxUliceKit.Zapisz(cerF, "wiezowiec_wc_" + i);
         BraxRegionMeble.Kolizja(F, "WC kolizja", cm + Vector3.up * .4f * K, new Vector3(.45f * K, .85f * K, .75f * K));
         var schody = new BraxRegionMeble.Bud();
         float run = .3f * K, rise = .17f * K; int st = Mathf.Clamp(Mathf.FloorToInt((zb - .2f - iz0 - .3f) / run), 3, 12);
@@ -1093,8 +1094,12 @@ public static class BraxRegionTylyB
         // łazienka: WC, umywalka, prysznic (brodzik + szkło)
         var bia = BraxCityMaterials.Surface("Łazienka: ceramika biała", new Color(.95f, .95f, .94f), .2f);
         var lz = new BraxRegionMeble.Bud(); var wc = new Vector3(ix1 - .5f * K, y, 56.2f);
-        lz.Cyl(wc, wc + Vector3.up * .4f * K, .2f * K, 16, .17f * K); lz.MinMax(wc + new Vector3(.15f * K, .4f * K, -.2f * K), wc + new Vector3(.32f * K, .85f * K, .2f * K));
-        lz.MinMax(new Vector3(ix1 - .5f * K, y + .8f * K, 58.2f), new Vector3(ix1, y + .9f * K, 59.0f));
+        // 11.11: miska wisząca i zestaw umywalkowy z kodu (BraxCeramika) zamiast walca i płyty
+        BraxUliceKit.UstawGrupe("Tower: łazienka apartamentu", 30f);
+        BraxCeramika.MiskaWiszaca(new Vector3(ix1, y, 56.2f), Vector3.forward, Vector3.left);
+        BraxCeramika.ZestawUmywalkowy(A, "apartament Tower", new Vector3(ix1, y, 58.6f), Vector3.forward, Vector3.left, .8f);
+        var cerA = new GameObject("Łazienka: ceramika (świat)").transform; cerA.SetParent(A, false); cerA.position = Vector3.zero; cerA.rotation = Quaternion.identity;
+        BraxUliceKit.Zapisz(cerA, "apartament_lazienka");
         lz.MinMax(new Vector3(xw + .2f, y, 57.6f), new Vector3(xw + .2f + 1.0f * K, y + .05f, iz1));   // brodzik (5 cm)
         lz.Obiekt("Łazienka: ceramika", A, bia, false, true);
         var ps = new BraxRegionMeble.Bud(); ps.MinMax(new Vector3(xw + .2f + 1.0f * K, y + .05f, 57.6f), new Vector3(xw + .22f + 1.0f * K, y + 2.0f * K, iz1)); ps.Obiekt("Łazienka: szkło prysznica", A, szklo, false, false);
