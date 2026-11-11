@@ -381,35 +381,18 @@ public static partial class BraxRegionMiastoB
         else
         {
             // WULKANIZACJA: montażownica i wyważarka z kołami, regał z kołami, stosy opon, podnośnik „żaba”, auto klienta
-            var mo = new BraxRegionMeble.Bud(); var ms = new BraxRegionMeble.Bud();
+            // 11.11 (właściciel 19:36 „felgi brzydkie”, zdjęcia: czerwone maszyny-klocki; 21:52 „wszystko ma być dopieszczone”):
+            // montażownica i wyważarka z kodu (BraxWarsztatKod) z kołami z kodu na talerzu i na wałku, przodem do hali (+x)
             var pm = new Vector3(x0 + 1.2f, yp, zc + 2.4f);   // montażownica (bok przy oknie)
-            mo.MinMax(pm + new Vector3(-.45f * K, 0f, -.4f * K), pm + new Vector3(.45f * K, .82f * K, .4f * K));
-            ms.Cyl(pm + new Vector3(0f, .82f * K, 0f), pm + new Vector3(0f, .88f * K, 0f), .34f * K, 20);
-            ms.MinMax(pm + new Vector3(-.08f * K, .82f * K, -.5f * K), pm + new Vector3(.08f * K, 1.75f * K, -.36f * K));
-            ms.MinMax(pm + new Vector3(-.06f * K, 1.62f * K, -.5f * K), pm + new Vector3(.06f * K, 1.72f * K, .05f * K));
-            ms.MinMax(pm + new Vector3(-.04f * K, 1.25f * K, -.04f * K), pm + new Vector3(.04f * K, 1.68f * K, .04f * K));
-            KolaWarsztatow.Add((pm + new Vector3(0f, .88f * K, 0f), Vector3.up, 1, "montażownica"));
-            var pw = new Vector3(x0 + 1.0f, yp, zc - 1.6f);   // wyważarka: korpus, wałek, osłona, wyświetlacz
-            mo.MinMax(pw + new Vector3(-.35f * K, 0f, -.45f * K), pw + new Vector3(.35f * K, 1.0f * K, .45f * K));
-            ms.Cyl(pw + new Vector3(.35f * K, .75f * K, 0f), pw + new Vector3(.75f * K, .75f * K, 0f), .03f * K, 10);
-            ms.MinMax(pw + new Vector3(-.3f * K, 1.0f * K, -.2f * K), pw + new Vector3(.3f * K, 1.32f * K, .2f * K));
-            KolaWarsztatow.Add((pw + new Vector3(.62f * K, .75f * K, 0f) - Vector3.up * .33f, Vector3.right, 1, "wyważarka"));
-            mo.Obiekt("Warsztat WULKANIZACJA: montażownica i wyważarka (korpusy)", w, czerwony, false, true);
-            ms.Obiekt("Warsztat WULKANIZACJA: montażownica i wyważarka (stal)", w, czarny, false, true);
-            BraxRegionMeble.Kolizja(w, "Montażownica kolizja", pm + new Vector3(0f, .5f * K, 0f), new Vector3(.9f * K, 1.0f * K, .9f * K));
-            BraxRegionMeble.Kolizja(w, "Wyważarka kolizja", pw + new Vector3(.1f, .5f * K, 0f), new Vector3(.9f * K, 1.0f * K, .9f * K));
-            var lc = BraxRegionMeble.Swiecacy("Warsztat: wyświetlacz wyważarki", new Color(.2f, .6f, 1f), .9f);
-            var ekr = new BraxRegionMeble.Bud(); ekr.MinMax(pw + new Vector3(-.36f * K, .8f * K, -.18f * K), pw + new Vector3(-.35f * K, .95f * K, .18f * K)); ekr.Obiekt("Warsztat WULKANIZACJA: wyświetlacz", w, lc, false, false);
+            BraxWarsztatKod.Montazownica(w, "WULKANIZACJA", pm, Vector3.right, 0);
+            var pw = new Vector3(x0 + 1.0f, yp, zc - 1.6f);   // wyważarka
+            BraxWarsztatKod.Wywazarka(w, "WULKANIZACJA", pw, Vector3.right, 4);
             MechanikWulkanizacja = pm + new Vector3(.95f, 0f, 0f);
             RegalKol(w, niebieski, x0 + .05f, 1f, z0 + .3f, z0 + 3.9f, yp, 3, 4, "WULKANIZACJA — regał z kołami");
             foreach (var (sxp, szp, ile) in new[] { (x1 - 1.0f, z1 - 1.0f, 5), (x1 - 1.0f, z1 - 1.8f, 4), (x1 - 1.8f, z1 - 1.0f, 3) })
                 KolaWarsztatow.Add((new Vector3(sxp, yp, szp), Vector3.up, ile, "WULKANIZACJA — stos opon"));
             // podnośnik „żaba” (lewarek warsztatowy na kółkach) przy aucie
-            var zb2 = new BraxRegionMeble.Bud();
-            var pj = new Vector3(m + 1.9f, yp, zc + .2f);
-            zb2.MinMax(pj + new Vector3(-.15f, .05f, -.6f), pj + new Vector3(.15f, .2f, .5f));
-            zb2.Cyl(pj + new Vector3(0f, .2f, .45f), pj + new Vector3(0f, .9f, 1.1f), .025f, 8);
-            zb2.Obiekt("Warsztat WULKANIZACJA: podnośnik żaba", w, czerwony, false, true);
+            BraxWarsztatKod.Zaba(w, "WULKANIZACJA", new Vector3(m + 1.9f, yp, zc + .2f), Vector3.back);   // z kodu: korpus, kółka, siodło, dyszel
             AutaWarsztatow.Add((new Vector3(m + .7f, yp, zc + .3f), Vector3.back, 0f, "WULKANIZACJA — auto klienta"));
             world_point("R1_WULKANIZACJA", "WULKANIZACJA (otwarta: wymiana opon)", new Vector3(m, yp, z1 - 2f));
         }

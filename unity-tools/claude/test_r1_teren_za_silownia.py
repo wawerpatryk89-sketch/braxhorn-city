@@ -176,7 +176,12 @@ class Warsztaty(unittest.TestCase):
         self.assertIn("BraxRegionMiastoB.KolaWarsztatow", RUCH)
         self.assertIn("BraxRegionMiastoB.AutaWarsztatow", RUCH)
         self.assertIn("BraxRegionMiastoB.MechanikWulkanizacja", RUCH)
-        self.assertIn('t.parent.name.StartsWith("koło", StringComparison.Ordinal)', RUCH)
+        # 11.11 19:36 („felgi brzydkie w wulkanizacji”): koła z kodu zamiast wycinanych z modeli aut
+        self.assertIn("BraxWarsztatKod.Kolo(e, nazwa, p,", RUCH)
+        self.assertNotIn('t.parent.name.StartsWith("koło", StringComparison.Ordinal)', RUCH)
+        self.assertIn('BraxWarsztatKod.Montazownica(w, "WULKANIZACJA"', WARSZTATY)
+        self.assertIn('BraxWarsztatKod.Wywazarka(w, "WULKANIZACJA"', WARSZTATY)
+        self.assertIn('BraxWarsztatKod.Zaba(w, "WULKANIZACJA"', WARSZTATY)
 
     def test_roof_hidden_behind_parapet(self):
         self.assertIn("yA = yT + .6f", WARSZTATY)

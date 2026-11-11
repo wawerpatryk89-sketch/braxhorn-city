@@ -69,7 +69,7 @@ public static class Harness
             var sc = BraxUliceKit.Tex("ściana podglądu: płytki", 1.2f, null, new Color(.9f, .9f, .88f), .4f, "white_tiles_02", "tiles_white");
             var po = BraxUliceKit.Tex("posadzka podglądu", 2.0f, null, new Color(.6f, .6f, .6f), .9f, "concrete_pavement_02");
             var sw = new UlSiatka(); var pp = new UlSiatka();
-            sw.Box(new Vector3(-6f, 0f, -.3f), new Vector3(10f, 3.6f, 0f)); pp.Box(new Vector3(-6f, -.2f, -.3f), new Vector3(10f, 0f, 8f), 0);
+            sw.Box(new Vector3(-6f, 0f, -.3f), new Vector3(10f, 3.6f, 0f)); pp.Box(new Vector3(-6f, -.2f, -.3f), new Vector3(20f, 0f, 8f), 0);
             BraxMiastoA.Obiekt(root, "ściana", sw, sc); BraxMiastoA.Obiekt(root, "posadzka", pp, po);
             BraxChlodnie.SzafaMiesna(root, "szafa z mięsem", new Vector3(-3.6f, 0f, .01f), Vector3.forward, 2, null, new System.Random(3));
             BraxChlodnie.LodowkaNapojow(root, "lodówka 1", new Vector3(-1.2f, 0f, .01f), Vector3.forward, 1, 0);
@@ -89,6 +89,12 @@ public static class Harness
                     BraxUlicePierzeje.Okulary(new Vector3(x, y + .0005f, .40f), Vector3.forward, ko, BraxClaudeOsiedle.K, mo, pz);
                 }
             BraxUliceKit.Zapisz(root, "okulary");
+            // wulkanizacja z kodu: montażownica i wyważarka (przodem do +z), stos kół i 3 koła pionowo (wzory × kolory)
+            BraxWarsztatKod.Montazownica(root, "podgląd", new Vector3(11.5f, 0f, 1.2f), Vector3.forward, 0);
+            BraxWarsztatKod.Wywazarka(root, "podgląd", new Vector3(13.6f, 0f, 1.2f), Vector3.forward, 4);
+            BraxWarsztatKod.Zaba(root, "podgląd", new Vector3(14.6f, 0f, 3.0f), Vector3.right);
+            for (int i = 0; i < 4; i++) BraxWarsztatKod.Kolo(root, "stos", new Vector3(15.6f, (BraxWarsztatKod.Sz * .5f + i * (BraxWarsztatKod.Sz + .004f)) * BraxClaudeOsiedle.K, 1.2f), Vector3.up, i < 2 ? 3 : 7, i * 40f);
+            for (int i = 0; i < 3; i++) BraxWarsztatKod.Kolo(root, "pion", new Vector3(16.8f + i * .92f, BraxWarsztatKod.R * BraxClaudeOsiedle.K, 1.2f), Vector3.forward, i * 3 + i, 0f);
             Console.WriteLine("CHŁODNIE: siatek " + BraxChlodnie.Siatek + ", kopii " + BraxChlodnie.Kopii);
         }
         else

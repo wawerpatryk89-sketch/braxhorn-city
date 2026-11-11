@@ -56,8 +56,8 @@ internal static class BraxChlodnie
     static Color32 C(float r, float g, float b) => new Color32((byte)(r * 255f), (byte)(g * 255f), (byte)(b * 255f), 255);
 
     // ---------------------------------------------------------------- wzory: siatki raz na wariant, wiele kopii
-    sealed class Wzor { public Mesh[] siatki; public Material[] mat; }
-    sealed class Partie
+    internal sealed class Wzor { public Mesh[] siatki; public Material[] mat; }
+    internal sealed class Partie
     {
         public readonly Dictionary<Material, UlSiatka> d = new Dictionary<Material, UlSiatka>();
         public UlSiatka this[Material m] { get { if (!d.TryGetValue(m, out var s)) d[m] = s = new UlSiatka(); return s; } }
@@ -65,7 +65,7 @@ internal static class BraxChlodnie
     static readonly Dictionary<string, Wzor> wzory = new Dictionary<string, Wzor>();
     public static int Siatek, Kopii;
 
-    static Wzor Wez(string klucz, System.Action<Partie> buduj)
+    internal static Wzor Wez(string klucz, System.Action<Partie> buduj)
     {
         if (wzory.TryGetValue(klucz, out var w) && w.siatki.All(m => m)) return w;
         Materialy();
@@ -83,7 +83,7 @@ internal static class BraxChlodnie
         return wzory[klucz] = new Wzor { siatki = ls.ToArray(), mat = lm.ToArray() };
     }
 
-    static Transform Wstaw(Transform rodzic, string nazwa, Wzor w, Vector3 lokalnie, bool cien)
+    internal static Transform Wstaw(Transform rodzic, string nazwa, Wzor w, Vector3 lokalnie, bool cien)
     {
         var g = new GameObject(nazwa).transform; g.SetParent(rodzic, false); g.localPosition = lokalnie;
         for (int i = 0; i < w.siatki.Length; i++)
@@ -97,7 +97,7 @@ internal static class BraxChlodnie
         return g;
     }
 
-    static Transform Korzen(Transform rodzic, string nazwa, Vector3 p, Vector3 przodLokalneZ)
+    internal static Transform Korzen(Transform rodzic, string nazwa, Vector3 p, Vector3 przodLokalneZ)
     {
         var g = new GameObject(nazwa).transform; g.SetParent(rodzic, false);
         przodLokalneZ.y = 0f; g.position = p; g.rotation = Quaternion.LookRotation(przodLokalneZ.normalized, Vector3.up);
@@ -106,13 +106,13 @@ internal static class BraxChlodnie
 
     static Vector3 Sw(Transform t, float x, float y, float z) => t.position + t.rotation * (new Vector3(x, y, z) * K);
 
-    static void Kolizja(Transform t, string nazwa, Vector3 lo, Vector3 hi)
+    internal static void Kolizja(Transform t, string nazwa, Vector3 lo, Vector3 hi)
     {
         var g = new GameObject("kolizja: " + nazwa); g.transform.SetParent(t, false);
         var bc = g.AddComponent<BoxCollider>(); bc.center = (lo + hi) * .5f * K; bc.size = (hi - lo) * K;
     }
 
-    static void Lod(Transform t, float metry)
+    internal static void Lod(Transform t, float metry)
     {
         var rs = t.GetComponentsInChildren<Renderer>(true); if (rs.Length == 0) return;
         var lod = t.gameObject.AddComponent<LODGroup>();
@@ -125,7 +125,7 @@ internal static class BraxChlodnie
     // ---------------------------------------------------------------- bryły toczone z kolorem na pierścień
     /// <summary>Bryła toczona wokół pionu przez p: profil (r, y, indeks koloru) — normalne gładkie (po prawej stronie kierunku
     /// profilu = na zewnątrz), granice kolorów jako zdublowane punkty (ostra zmiana barwy bez nakładania).</summary>
-    static void Toczony(UlSiatka s, Vector3 p, List<Vector3> pr, Color32[] kol, int seg)
+    internal static void Toczony(UlSiatka s, Vector3 p, List<Vector3> pr, Color32[] kol, int seg)
     {
         int P = pr.Count, k0 = s.v.Count; var dl = new float[P];
         for (int j = 1; j < P; j++) dl[j] = dl[j - 1] + Vector2.Distance(pr[j - 1], pr[j]);
