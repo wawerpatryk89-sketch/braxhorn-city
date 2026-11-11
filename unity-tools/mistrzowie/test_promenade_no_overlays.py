@@ -66,7 +66,7 @@ class PromenadeLaneNoZFight(unittest.TestCase):
         self.assertNotIn('TextMesh',builder)
         self.assertNotIn('WallTints',builder)                       # no more pastel pink / green / blue boxes
         for token in ('static void Kebab(','spin.os=Vector3.up','AddComponent<BraxChampionsObrot>()','ChickenRotisserie(',
-                      'PizzaOven(','Gelato(','"kebab"','"pizza"','"kurczak"','"hamburger"','"frytki"','"lodowka"','"kasa"'):
+                      'PizzaOven(','Gelato(','"kebab"','"pizza"','"kurczak"','"hamburger"','"frytki"','"lodowka"','SmallTill('):   # owner 11.11 20:03: small tills, not the pack's big one
             self.assertIn(token,equipment)
         rot=(ROOT/"unity-city/Assets/Mistrzowie/BraxChampionsObrot.cs")
         self.assertIn("transform.Rotate(os, stopniNaSekunde * Time.deltaTime, Space.Self)",rot.read_text())

@@ -6,6 +6,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 public static class G1Program
@@ -70,6 +71,26 @@ public static class G1Program
             }
             var fg = new GameObject("PREVIEW | skala: człowiek 1,80 m").transform; fg.SetParent(g1 != null ? g1.transform : root, false);
             fb.Build(fg, "PREVIEW skala 1,80 m", "out", false);
+        }
+        // preview only: one frame (PREVIEW_FOUNTAIN_T s, default 1.3) of every fountain's moving water (BraxChampionsFontanna
+        // runs the same BraxChampionsFontannaKlatka every frame in the game)
+        float ft = float.TryParse(Environment.GetEnvironmentVariable("PREVIEW_FOUNTAIN_T") ?? "", NumberStyles.Float, CultureInfo.InvariantCulture, out var tv) ? tv : 1.3f;
+        var wm = new Material { name = "preview_fountain_water", color = new Color(.90f, .95f, 1f, .62f), roughness = .1f, emission = new Color(.30f, .32f, .34f) };
+        foreach (var go in GameObject.Registry.ToArray())
+        {
+            var f = go.GetComponent<BraxChampionsFontanna>(); if (f == null) continue;
+            var js = new BraxChampionsFontannaKlatka.Strumien[f.a.Length];
+            for (int i = 0; i < js.Length; i++) js[i] = new BraxChampionsFontannaKlatka.Strumien { a = f.a[i], b = f.b[i], h = f.h[i], w = f.w[i], n = f.n[i], plusk = f.plusk[i] };
+            var V = new System.Collections.Generic.List<Vector3>(); var N = new System.Collections.Generic.List<Vector3>(); var U = new System.Collections.Generic.List<Vector2>();
+            var C = new System.Collections.Generic.List<Color>(); var T0 = new System.Collections.Generic.List<int>(); var T1 = new System.Collections.Generic.List<int>();
+            BraxChampionsFontannaKlatka.Klatka(js, f.lustroC, f.lustroR, f.g, f.lift, ft, V, N, U, C, T0, T1);
+            // the preview draws the streams only (no alpha maps here: the rings and the surface layer would be squares / discs)
+            var T = new System.Collections.Generic.List<int>();
+            for (int q = 0; q + 2 < T0.Count; q += 3) if (U[T0[q]].x < .5f || U[T0[q + 1]].x < .5f || U[T0[q + 2]].x < .5f) { T.Add(T0[q]); T.Add(T0[q + 1]); T.Add(T0[q + 2]); }
+            T0 = T;
+            go.GetComponent<MeshFilter>().sharedMesh = new Mesh { name = "fontanna klatka", vertices = V.ToArray(), triangles = T0.ToArray() };
+            go.GetComponent<MeshRenderer>().sharedMaterial = wm;
+            Console.WriteLine("FOUNTAIN_FRAME " + go.name + " t=" + ft + " vertices=" + V.Count);
         }
         MeshDump.Write(args.Length > 1 ? args[1] : "g1_geometry.json", root, K);
     }

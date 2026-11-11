@@ -32,6 +32,8 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsG1Kino.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsG1Sklepy.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsG1Meble.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsG1Lazienki.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxKatalog.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsHorizon.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPalmTrunk.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsInteriorLight.cs" />
@@ -51,6 +53,7 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenadeStock.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsObrot.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsPiksele.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsFontannaKlatka.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsKinoEkrany.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsGold.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsLetters3D.cs" />

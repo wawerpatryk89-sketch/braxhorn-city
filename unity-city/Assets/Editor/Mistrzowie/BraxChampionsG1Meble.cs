@@ -138,13 +138,14 @@ public static partial class BraxChampionsD2
         foreach(float s in new[]{-1f,1f})
         {
             HLeg(wood,k.P(s*.20f,0f,.05f),.405f,.014f,.02f);
-            m.Tube(wood,k.P(s*.20f,0f,.42f),k.P(s*.205f,.88f,.49f),.017f,10);
+            m.Tube(wood,k.P(s*.20f,0f,.42f),k.P(s*.215f,.93f,.49f),.017f,10);
             m.Tube(wood,k.P(s*.20f,.13f,.05f),k.P(s*.20f,.13f,.42f),.010f,8);
         }
         m.Tube(wood,k.P(-.20f,.15f,.25f),k.P(.20f,.15f,.25f),.010f,8);
-        // the back: a centre panel and two angled wings
-        m.RoundedBox(seat,k.P(0f,.74f,.47f),new Vector3(.26f,.28f,.055f),.025f,k.Lean(8f),3);
-        foreach(float s in new[]{-1f,1f})m.RoundedBox(seat,k.P(s*.155f,.74f,.455f),new Vector3(.12f,.28f,.055f),.025f,k.rot*Quaternion.Euler(-8f,-s*14f,0f),2);
+        // the back (owner 11.11 19:51: "tam gdzie się siedzi jest dłuższe niż oparcie"): as wide as the seat (.48) and 34 cm
+        // tall - a centre panel and two angled wings
+        m.RoundedBox(seat,k.P(0f,.76f,.47f),new Vector3(.25f,.34f,.055f),.025f,k.Lean(8f),3);
+        foreach(float s in new[]{-1f,1f})m.RoundedBox(seat,k.P(s*.178f,.76f,.452f),new Vector3(.13f,.34f,.055f),.025f,k.rot*Quaternion.Euler(-8f,-s*14f,0f),2);
         var st=k.P(0f,.51f,.22f);Seat(st.x,st.y,st.z,face,label);
         HCol(k,-.24f,.24f,0f,.50f,.90f,"krzesło");
     }
@@ -415,7 +416,7 @@ public static partial class BraxChampionsD2
             HDesk(new Vector3(69.4f,y+.012f,1.0f),N,1.8f,.80f);
             HOfficeChair(new Vector3(69.4f,y+.012f,1.1f),Sth,"krzesło biurowe");
             HTableLamp(new Vector3(68.6f,y+.772f,.45f),.40f,gStoneTop);
-            Goods("BRAXHORN HOME | laptop",()=>Laptop(new Vector3(69.6f,y+.772f,.6f),N));
+            Goods("BRAXHORN HOME | laptop",()=>{BraxKatalog.Laptop(Kat(),new Vector3(70.0f,y+.772f,.62f),N,3);BraxKatalog.Monitor(Kat(),new Vector3(69.1f,y+.772f,.36f),N,2);BraxKatalog.KeyboardMouse(Kat(),new Vector3(69.1f,y+.772f,.74f),N);});
             HSofa(new Vector3(73.2f,y+.012f,.6f),new Vector3(-.5f,0f,-.8f),.92f,hVelvetRust,hLinen,walnut,"fotel do czytania",0f,1,.17f);
             HFloorLamp(new Vector3(74.2f,y+.012f,1.6f));
             HCoffeeRound(new Vector3(72.1f,y+.012f,-.3f),.24f,.52f,walnut,frame);
@@ -447,13 +448,76 @@ public static partial class BraxChampionsD2
             for(float x=50.6f;x<54.9f;x+=.14f)B(walnut,x,x+.06f,y+.12f,y+2.88f,-34.93f,-34.90f);
             RB(gCinemaDark,50.9f,54.3f,y,y+.08f,-31.25f,-30.65f,.02f,false,2);
             RB(walnut,50.8f,54.4f,y+.08f,y+1.02f,-31.3f,-30.6f,.03f,true,2);RB(gStoneTop,50.75f,54.45f,y+1.02f,y+1.06f,-31.35f,-30.55f,.012f,false,2);
-            Goods("BRAXHORN HOME | kasa",()=>Monitor(new Vector3(53.6f,y+1.06f,-30.95f),N));
+            Goods("BRAXHORN HOME | kasa",()=>BraxKatalog.Monitor(Kat(),new Vector3(53.6f,y+1.06f,-30.95f),N,0,24f));
             HTableLamp(new Vector3(51.3f,y+1.06f,-30.95f),.40f,gStoneTop);
             HCoffeeRound(new Vector3(51.0f,y,-4.0f),.80f,.75f,walnut,walnut);
             HTableLamp(new Vector3(50.7f,y+.75f,-4.2f),.50f,gStoneTop);HTableLamp(new Vector3(51.4f,y+.75f,-3.7f),.36f,walnut);HVase(new Vector3(51.3f,y+.75f,-4.45f),.30f,gStoneTop);
             for(int i=0;i<7;i++){float a=i*51.4f*Mathf.Deg2Rad,r=i==0?0f:.55f;HPendant(new Vector3(51.0f+Mathf.Sin(a)*r,y+2.2f+(i%3)*.28f,-4.0f+Mathf.Cos(a)*r),.13f+(i%2)*.04f,G1Ceil0-.065f);}
-            HArcLamp(new Vector3(48.4f,y,-7.0f),new Vector3(.6f,0f,.6f),1.3f);HFloorLamp(new Vector3(53.6f,y,-1.4f));HFloorLamp(new Vector3(48.6f,y,-1.2f));
+            HArcLamp(new Vector3(53.4f,y,-6.2f),new Vector3(-.6f,0f,.6f),1.3f);HFloorLamp(new Vector3(53.6f,y,-1.4f));HFloorLamp(new Vector3(48.6f,y,-1.2f));
             HPlant(new Vector3(48.0f,y,-26.4f),15f,0);HPlant(new Vector3(54.2f,y,-26.4f),80f,1);
+        });
+        // ---- owner 20:07 ("szafki ładne z klameczkami, komody ... sklep full bogaty, żeby tam było wszystko do mieszkań"): a
+        // display wall (z -21.6..-21.4, x 56.4..74.6) with two full kitchens, wardrobes, dressers and bathroom vanities, the
+        // TV wall on the west side - every piece from BraxKatalog, the same functions the flats and the hotel will use
+        Room("ściana ekspozycyjna (kuchnie, szafy, łazienki)",()=>
+        {
+            RB(gWallWarm,56.4f,74.6f,y,y+2.75f,-21.6f,-21.4f,.02f,true,2);
+            B(ledWarm,56.5f,74.5f,y+2.75f,y+2.762f,-21.58f,-21.42f);
+        });
+        Room("K1 kuchnia orzech z wyspą",()=>
+        {
+            BraxKatalog.Materials();var k=Kat();
+            BraxKatalog.Kitchen(k,new Vector3(57.0f,y,-21.4f),Vector3.right,Vector3.forward,new[]{"slupek","lodowka","szuflady","zlew","zmywarka","szuflady","piekarnik","szuflady"},BraxKatalog.Walnut,BraxKatalog.BlackMatt,BraxKatalog.Stone,"BRAXHORN HOME kuchnia orzech");
+            // the island (drawers to the kitchen, a stone top with an overhang for three bar stools on the other side)
+            BraxKatalog.Kitchen(k,new Vector3(60.0f,y,-19.0f),Vector3.left,Vector3.back,new[]{"szuflady","drzwi","drzwi","szuflady"},BraxKatalog.Walnut,BraxKatalog.BlackMatt,BraxKatalog.Stone,"BRAXHORN HOME wyspa",false);
+            RB(BraxKatalog.Walnut,57.6f,60.0f,y+.10f,y+.87f,-19.0f,-18.98f,.004f,false,1);
+            RB(BraxKatalog.Stone,57.6f,60.0f,y+.87f,y+.91f,-19.0f,-18.68f,.006f,false,2);
+            foreach(float x in new[]{58.0f,58.8f,59.6f})BarStool(new Vector3(x,y,-18.35f),Vector3.back);
+            foreach(float x in new[]{58.2f,59.4f})HPendant(new Vector3(x,y+2.0f,-19.3f),.15f,G1Ceil0-.065f);
+            HRug(new Vector3(59.4f,y,-17.0f),2.4f,1.6f,hRugGrey);
+        });
+        Room("K2 kuchnia grafit",()=>
+        {
+            BraxKatalog.Materials();var k=Kat();
+            BraxKatalog.Kitchen(k,new Vector3(61.8f,y,-21.6f),Vector3.left,Vector3.back,new[]{"lodowka","szuflady","piekarnik","szuflady","zlew","zmywarka","szuflady","slupek"},BraxKatalog.Graphite,BraxKatalog.Steel,BraxKatalog.StoneDark,"BRAXHORN HOME kuchnia grafit");
+            HDiningTable(new Vector3(59.4f,y+.012f,-24.2f),Vector3.forward,1.6f,.9f,hOakSolid,hOakSolid);
+            foreach(float x in new[]{58.9f,59.9f}){HDiningChair(new Vector3(x,y+.012f,-23.75f),Vector3.back,hLinen,hOakSolid,"krzesło kuchnia");HDiningChair(new Vector3(x,y+.012f,-24.65f),Vector3.forward,hLinen,hOakSolid,"krzesło kuchnia");}
+        });
+        Room("szafy i komody",()=>
+        {
+            BraxKatalog.Materials();var k=Kat();
+            BraxKatalog.Wardrobe(k,new Vector3(64.2f,y,-21.4f+.60f+.022f),Vector3.forward,2.0f,BraxKatalog.Oak,BraxKatalog.Oak,2.30f,"BRAXHORN HOME szafa dąb 200");
+            BraxKatalog.Wardrobe(k,new Vector3(66.8f,y,-21.4f+.60f+.022f),Vector3.forward,1.5f,BraxKatalog.Walnut,BraxKatalog.Walnut,2.30f,"BRAXHORN HOME szafa orzech 150");
+            BraxKatalog.Dresser(k,new Vector3(69.0f,y,-21.4f+.45f),Vector3.forward,1.6f,3,2,BraxKatalog.Walnut,BraxKatalog.BlackMatt,true,.82f,false,"BRAXHORN HOME komoda orzech");
+            G1Mirror("BRAXHORN HOME lustro nad komodą",new Vector3(69.0f,y+1.62f,-21.4f),Vector3.forward,1.0f,.80f);
+            HTableLamp(new Vector3(68.5f,y+.82f,-21.2f),.40f,gStoneTop);HVase(new Vector3(69.6f,y+.82f,-21.2f),.30f,gStoneTop);
+            BraxKatalog.Dresser(k,new Vector3(71.0f,y,-21.4f+.45f),Vector3.forward,1.2f,4,1,BraxKatalog.Oak,BraxKatalog.Chrome,false,1.15f,true,"BRAXHORN HOME komoda dąb");
+            BraxKatalog.Dresser(k,new Vector3(73.0f,y,-21.4f+.45f),Vector3.forward,1.4f,2,3,BraxKatalog.Graphite,BraxKatalog.Steel,true,.75f,true,"BRAXHORN HOME komoda grafit");
+            HRug(new Vector3(68.5f,y,-18.6f),3.0f,2.0f,hRugBeige);
+            HBench(new Vector3(68.5f,y+.012f,-18.2f),Vector3.forward,1.4f,hVelvetGreen,"pufa przy szafach");
+        });
+        Room("łazienki",()=>
+        {
+            BraxKatalog.Materials();var k=Kat();if(!wcTile)WcMaterials();
+            B(wcTile,62.8f,74.4f,y,y+2.40f,-21.614f,-21.6f);                      // a 14 mm tiled panel on the wall's south face
+            BraxKatalog.Vanity(k,new Vector3(64.2f,y,-21.614f),Vector3.back,1.0f,BraxKatalog.Oak,"BRAXHORN HOME umywalka dąb");
+            BraxKatalog.Vanity(k,new Vector3(66.4f,y,-21.614f),Vector3.back,1.2f,BraxKatalog.Walnut,"BRAXHORN HOME umywalka orzech");
+            foreach(var (x,w) in new[]{(64.2f,.8f),(66.4f,1.0f)})G1Mirror("BRAXHORN HOME łazienka "+x.ToString("0.0"),new Vector3(x,y+1.56f,-21.614f),Vector3.back,w,.78f);   // live mirrors
+            WcPanReal(new Vector3(68.6f,y,-21.614f),Vector3.back);
+            m.Tube(chrome,new Vector3(70.0f,y+1.1f,-21.68f),new Vector3(70.7f,y+1.1f,-21.68f),.012f,10);   // a towel rail with a towel
+            foreach(float x in new[]{70.0f,70.7f})m.Tube(chrome,new Vector3(x,y+1.1f,-21.614f),new Vector3(x,y+1.1f,-21.68f),.008f,8);
+            RB(hLinen,70.08f,70.62f,y+.62f,y+1.11f,-21.70f,-21.66f,.012f,false,2);
+            BraxKatalog.Dresser(k,new Vector3(72.4f,y,-21.614f),Vector3.back,1.6f,2,2,BraxKatalog.Oak,BraxKatalog.BlackMatt,true,.62f,true,"BRAXHORN HOME szafka łazienkowa");
+            HPlant(new Vector3(73.8f,y,-22.4f),25f,1);
+        });
+        Room("RTV (telewizory BRAXHORN)",()=>
+        {
+            BraxKatalog.Materials();var k=Kat();
+            BraxKatalog.MediaUnit(k,new Vector3(x0+.06f+.44f,y,-11.4f),Vector3.right,2.0f,walnut,65f,0,"BRAXHORN HOME RTV orzech");
+            BraxKatalog.MediaUnit(k,new Vector3(x0+.06f+.44f,y,-8.4f),Vector3.right,2.0f,BraxKatalog.Graphite,55f,1,"BRAXHORN HOME RTV grafit");
+            HSofa(new Vector3(51.8f,y+.012f,-9.9f),Vector3.left,2.4f,hWoolGrey,hVelvetGreen,walnut,"sofa RTV");
+            HCoffeeRect(new Vector3(50.3f,y+.012f,-9.9f),Vector3.left,1.1f,.6f,.38f,walnut,gOak);
+            HRug(new Vector3(50.4f,y,-9.9f),2.4f,3.2f,hRugGrey);
         });
         BraxSklepyTowar.Zakoncz(books,"G1 BRAXHORN HOME");
         var lm=new BraxChampionsMeshBatch();

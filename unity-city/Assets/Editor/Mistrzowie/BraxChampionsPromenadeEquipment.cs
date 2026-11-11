@@ -146,9 +146,24 @@ public static class BraxChampionsPromenadeEquipment
         else AssetDatabase.CreateAsset(mesh,path);
         cone.AddComponent<MeshFilter>().sharedMesh=mesh;
         var rend=cone.AddComponent<MeshRenderer>();rend.sharedMaterial=meat;rend.shadowCastingMode=ShadowCastingMode.Off;
-        var spin=cone.AddComponent<BraxChampionsObrot>();spin.os=Vector3.up;spin.stopniNaSekunde=18f;
+        var spin=cone.AddComponent<BraxChampionsObrot>();spin.os=Vector3.up;spin.stopniNaSekunde=30f;   // owner 20:03 "kebab ma się kręcić": a turn in 12 s, clearly seen
         turning++;built++;
     }
+
+    // a kiosk's till: a black tablet on a brushed stand (screen to the staff, +z), a card reader toward the customer (-z)
+    static void SmallTill(BraxChampionsMeshBatch m,Vector3 b)
+    {
+        m.Cylinder(Dark,b,.07f,.012f,18,Quaternion.identity,true);
+        m.BoxMinMax(Steel,b.x-.012f,b.x+.012f,b.y+.012f,b.y+.14f,b.z-.012f,b.z+.012f);
+        var t=b+new Vector3(0,.22f,.0f);var rot=Quaternion.Euler(-22f,180f,0f);
+        m.Box(Dark,t,new Vector3(.26f,.175f,.010f),rot);
+        m.Box(screen,t+rot*new Vector3(0,0,.007f),new Vector3(.236f,.150f,.004f),rot);
+        m.Box(Dark,b+new Vector3(.20f,.035f,-.03f),new Vector3(.075f,.035f,.15f),Quaternion.Euler(12f,0,0));
+        m.Box(screen,b+new Vector3(.20f,.056f,-.05f),new Vector3(.05f,.004f,.035f),Quaternion.Euler(12f,0,0));
+        built++;
+    }
+    /// <summary>the doner spit for other generators (the gallery's food court): the same turning cone</summary>
+    public static void KebabSpit(Transform root,BraxChampionsMeshBatch m,Vector3 b){Materials();Kebab(root,m,b);}
 
     /// <summary>Chicken rotisserie: glass cabinet with two horizontal spits of the owner's roast chickens, turning.</summary>
     static void ChickenRotisserie(Transform root,BraxChampionsMeshBatch m,Vector3 b)
@@ -401,7 +416,9 @@ public static class BraxChampionsPromenadeEquipment
         var shelves=BraxChampionsPromenade.ShelfTops;float sz=BraxChampionsPromenade.ShelfZ(p.d);
         // fridge on the left wall facing into the kiosk, till on the counter, menu board above the shelves
         void Fridge()=>PackModel(root,"lodowka",new Vector3(-hw+t+.38f,floor,-.05f),90f,"lodówka z napojami");
-        void Till(float x,float y,float z)=>PackModel(root,"kasa",new Vector3(x,y,z),0f,"kasa");
+        // owner 11.11 20:03 ("pousuwać te kasy fiskalne wielkie, które są, zagradzają"): no more the pack's supermarket till on
+        // the counters - a small POS tablet on a stand and a card reader (code-built)
+        void Till(float x,float y,float z)=>SmallTill(m,new Vector3(x,y,z));
         void Menu(string id)=>PackModel(root,id,new Vector3(0,shelves[2]+.30f,wallZ-.04f),180f,"tablica menu");
         void Bottles(int count,int shelf,int from)
         {

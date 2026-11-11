@@ -203,6 +203,39 @@ public sealed class BraxChampionsMeshBatch
     }
     public void Lathe(Material m, Vector3 c, Vector2[] prof, int sides = 24) => Lathe(m, c, prof, sides, Quaternion.identity);
 
+    /// <summary>Smooth parametric surface P(u, v), u and v 0..1 over nu x nv cells (porcelain shells: a urinal, a pan);
+    /// keep(u, v) false skips a cell (an opening), flip turns the faces (the inside of a shell). Per-vertex normals from the
+    /// surface's derivatives, turned to the face's side.</summary>
+    public void Surface(Material m, Func<float, float, Vector3> P, int nu, int nv, bool flip = false, Func<float, float, bool> keep = null)
+    {
+        Vector3 Nrm(float u, float v)
+        {
+            const float e = 1e-3f;
+            var du = P(Mathf.Min(1f, u + e), v) - P(Mathf.Max(0f, u - e), v);
+            var dv = P(u, Mathf.Min(1f, v + e)) - P(u, Mathf.Max(0f, v - e));
+            var n = Vector3.Cross(du, dv);
+            if (n.sqrMagnitude < 1e-14f) { float uu = Mathf.Clamp(u, .02f, .98f), vv = Mathf.Clamp(v, .02f, .98f); if (uu != u || vv != v) return Nrm(uu, vv); }
+            return n.normalized;
+        }
+        for (int i = 0; i < nu; i++)
+            for (int j = 0; j < nv; j++)
+            {
+                float u0 = i / (float)nu, u1 = (i + 1) / (float)nu, v0 = j / (float)nv, v1 = (j + 1) / (float)nv;
+                if (keep != null && !keep((u0 + u1) * .5f, (v0 + v1) * .5f)) continue;
+                Vector3 a = P(u0, v0), b = P(u1, v0), c = P(u1, v1), d = P(u0, v1);
+                if ((a - b).sqrMagnitude + (c - d).sqrMagnitude < 1e-12f) continue;
+                var p = Of(m); int q = p.v.Count;
+                if (flip) Quad(m, d, c, b, a); else Quad(m, a, b, c, d);
+                if (p.v.Count == q) continue;
+                var face = p.n[q];
+                float[] us = flip ? new[] { u0, u1, u1, u0 } : new[] { u0, u1, u1, u0 }, vs = flip ? new[] { v1, v1, v0, v0 } : new[] { v0, v0, v1, v1 };
+                for (int k = 0; k < 4; k++)
+                {
+                    var n = Nrm(us[k], vs[k]); if (Vector3.Dot(n, face) < 0f) n = -n; p.n[q + k] = n;
+                }
+            }
+    }
+
     /// <summary>Round tube from a to b (railing, rope, pole); sag bends it down in the middle (rope).</summary>
     public void Tube(Material m, Vector3 a, Vector3 b, float radius, int sides = 8, int divisions = 1, float sag = 0f)
     {
@@ -227,6 +260,24 @@ public sealed class BraxChampionsMeshBatch
                     p.n[q] = N(j) * sg; p.n[q + 1] = N(j) * sg; p.n[q + 2] = N(j + 1) * sg; p.n[q + 3] = N(j + 1) * sg;
                 }
             }
+    }
+
+    /// <summary>A fountain's moving water (owner 11.11 19:49: "woda ma lecieć ... realistycznie"): a GameObject at c
+    /// (nominal, x unit) with BraxChampionsFontanna, which rebuilds the streams, spray, ripples every frame. Jets a -> b
+    /// with the apex h over the higher end, width w, n streaks, plusk = rings / splash where it lands; the basins' surfaces
+    /// lc / lr get a drifting ripple layer. Everything nominal metres relative to c.</summary>
+    public static GameObject FountainWater(Transform parent, string name, Vector3 c, float unit, Vector3[] a, Vector3[] b, float[] h,
+                                           float[] w, int[] n, bool[] plusk, Vector3[] lc, float[] lr, Material water, float sensor = 0f)
+    {
+        var go = new GameObject(name); go.transform.SetParent(parent, false); go.transform.localPosition = c * unit;
+        go.AddComponent<MeshFilter>(); var r = go.AddComponent<MeshRenderer>(); r.sharedMaterial = water;
+        r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false;
+        var f = go.AddComponent<BraxChampionsFontanna>();
+        Vector3[] Sc(Vector3[] v) { var o = new Vector3[v.Length]; for (int i = 0; i < v.Length; i++) o[i] = v[i] * unit; return o; }
+        float[] Sf(float[] v) { var o = new float[v.Length]; for (int i = 0; i < v.Length; i++) o[i] = v[i] * unit; return o; }
+        f.a = Sc(a); f.b = Sc(b); f.h = Sf(h); f.w = Sf(w); f.n = n; f.plusk = plusk; f.lustroC = Sc(lc); f.lustroR = Sf(lr);
+        f.g = 9.81f * unit; f.lift = .02f * unit; f.woda = water; f.tafla = water; f.czujnik = sensor * unit;
+        return go;
     }
 
     /// <summary>Writes one mesh per material under parent (x K), saved as assets; returns the group.</summary>

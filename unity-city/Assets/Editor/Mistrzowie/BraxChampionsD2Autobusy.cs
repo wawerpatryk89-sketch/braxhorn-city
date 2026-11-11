@@ -153,8 +153,10 @@ public static partial class BraxChampionsD2
             T(mat,c,c+new Vector3(Mathf.Cos(a0)*r,0,Mathf.Sin(a0)*r),c+new Vector3(Mathf.Cos(a1)*r,0,Mathf.Sin(a1)*r),Vector3.up);}
     }
     // the forecourt fountain (board: a fountain on the roundabout), low so it never hides the station: a granite basin R 7
-    // (coping .45), dark granite floor under the water, a central cluster of jets (2.4 m and 1.4 m) rising from foam, and
-    // sixteen water arcs from bronze-free stainless nozzles on the rim falling toward the centre
+    // (coping .45), dark granite floor under the water, a central rose of jets (2.4 m) and an inner ring (1.4 m) rising from
+    // foam, sixteen arcs from stainless nozzles on the rim falling toward the centre. Owner 11.11 19:49 ("woda ma lecieć ...
+    // tryska ... realistycznie"): the water is no longer static tubes - BraxChampionsFontanna runs it every frame (real
+    // ballistic arcs, spray, ripple rings and splashes, a moving surface); here only the stone, the nozzles and the foam
     static void Fountain(Vector3 c)
     {
         const int n=72;
@@ -162,29 +164,29 @@ public static partial class BraxChampionsD2
         Ring(graniteDark,c,6.85f,7.0f,c.y+.06f,c.y+.30f,n);
         Disc(graniteDark,c+Vector3.up*.06f,6.85f,n);
         Disc(water,c+Vector3.up*.30f,6.85f,n);
-        // the jets: a column of water (tapered translucent cones) and its foam
-        Disc(foam(),c+Vector3.up*.312f,1.1f,32);
-        m.Cylinder(waterJet,c+Vector3.up*.31f,.16f,2.4f,20,Quaternion.identity,true,false,.05f);
-        m.Cylinder(waterJet,c+Vector3.up*.31f,.28f,.9f,20,Quaternion.identity,false,false,.12f);
+        Disc(foam(),c+Vector3.up*.32f,1.25f,32);                                         // 2 cm over the water (outside)
+        m.Cylinder(stainless,c+Vector3.up*.20f,.10f,.18f,16,Quaternion.identity,true);   // the central rose, 8 cm proud
+        var A=new List<Vector3>();var Bp=new List<Vector3>();var H=new List<float>();var W=new List<float>();var N=new List<int>();var Pl=new List<bool>();
+        void J(Vector3 a,Vector3 b,float h,float w,int k){A.Add(a);Bp.Add(b);H.Add(h);W.Add(w);N.Add(k);Pl.Add(true);}
+        // the central column: six streams up 2.4 m, opening as they fall onto the foam
+        for(int i=0;i<6;i++){float a=2*Mathf.PI*i/6f;J(new Vector3(0,.38f,0),new Vector3(Mathf.Cos(a)*.55f,.30f,Mathf.Sin(a)*.55f),2.02f,.075f,18);}
+        // the inner ring: eight jets 1.4 m
         for(int i=0;i<8;i++)
         {
-            float a=2*Mathf.PI*i/8f;var p=c+new Vector3(Mathf.Cos(a)*.75f,.31f,Mathf.Sin(a)*.75f);
-            m.Cylinder(waterJet,p,.06f,1.4f,10,Quaternion.identity,true,false,.02f);
+            float a=2*Mathf.PI*(i+.5f)/8f;var d=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));
+            m.Cylinder(stainless,c+d*.75f+Vector3.up*.22f,.035f,.12f,10,Quaternion.identity,true);
+            J(d*.75f+Vector3.up*.34f,d*1.15f+Vector3.up*.30f,1.06f,.05f,14);
         }
-        // sixteen arcs: parabolas from the rim nozzles (R 6.5, .45) to the water at R 3.2, peak 1.7 m
+        // sixteen arcs: from the rim nozzles (R 6.5, .45) to the water at R 3.2, peak 1.7 m
         for(int i=0;i<16;i++)
         {
             float a=2*Mathf.PI*i/16f;var dir=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));
-            var p0=c+dir*6.5f+Vector3.up*.45f;var p1=c+dir*3.2f+Vector3.up*.30f;int k=10;
-            Vector3 prev=p0;
-            for(int j=1;j<=k;j++)
-            {
-                float t=j/(float)k;var q=Vector3.Lerp(p0,p1,t)+Vector3.up*(4f*1.3f*t*(1-t));
-                m.Tube(waterJet,prev,q,.035f,6,1);prev=q;
-            }
-            Disc(foam(),p1+Vector3.up*.012f,.22f,12);
+            J(dir*6.5f+Vector3.up*.45f,dir*3.2f+Vector3.up*.30f,1.25f,.045f,16);
+            Disc(foam(),c+dir*3.2f+Vector3.up*.32f,.28f,12);
             m.Cylinder(stainless,c+dir*6.62f+Vector3.up*.40f,.05f,.08f,10,Quaternion.identity,true);
         }
+        BraxChampionsMeshBatch.FountainWater(root,"fontanna — płynąca woda (BraxChampionsFontanna)",c,K,A.ToArray(),Bp.ToArray(),H.ToArray(),W.ToArray(),N.ToArray(),Pl.ToArray(),
+            new[]{Vector3.up*.30f},new[]{6.85f},waterJet);
         Col(c.x-7.6f,c.x+7.6f,c.y,c.y+.45f,c.z-7.6f,c.z+7.6f,"fontanna");
     }
     static Material foamMat;

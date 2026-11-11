@@ -25,7 +25,15 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsD2Meble.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsD2Pietro.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsD2Sklad.cs" />
+    <Compile Include="../g1_preview/G1Stubs.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsG1.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsG1Sklepy.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsG1Meble.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsG1Lazienki.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxKatalog.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsKinoEkrany.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsFontannaKlatka.cs" />
+
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsG1Bryla.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsG1Wnetrze.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsG1Kino.cs" />

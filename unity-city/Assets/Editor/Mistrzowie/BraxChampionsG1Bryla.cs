@@ -34,7 +34,7 @@ public static partial class BraxChampionsD2
     // cassettes (M-01) over u0..u1 x y0..y1 on a black backing: 2.5 x ~1.5 m panels, 16 mm open joints
     static void Cassettes(int side,float u0,float u1,float y0,float y1,Material mat=null)
     {
-        mat=mat??gDark;
+        mat=mat??gCladding;
         if(u1-u0<.05f||y1-y0<.05f)return;
         FB(gCinemaDark,side,u0,u1,y0,y1,-.27f,0f,true);                         // 2 cm deeper than the mullions
         int nu=Mathf.Max(1,Mathf.RoundToInt((u1-u0)/2.5f)),nv=Mathf.Max(1,Mathf.RoundToInt((y1-y0)/1.5f));
@@ -76,6 +76,15 @@ public static partial class BraxChampionsD2
     static void Pilaster(int side,float u,float w=.9f){FB(gLight,side,u-w*.5f,u+w*.5f,-.05f,G1Top,.05f,.45f,true);}
     static void Fin(int side,float u){FB(gRed,side,u-.15f,u+.15f,G1F0,G1Top-.8f,.065f,.85f,true);}   // under the cornice, 15 mm off the bands
 
+    // a column: black satin cylinder R .40, a 12 cm brushed stainless base band 12 mm proud
+    static Material gColumn;
+    static void G1Column(float x,float z,float y0,float y1)
+    {
+        if(!gColumn)gColumn=S("g1_column_black_satin",new Color(.045f,.045f,.05f),.62f,.35f);
+        m.Cylinder(gColumn,new Vector3(x,y0,z),.40f,y1-y0,32,Quaternion.identity,false);
+        m.Cylinder(stainless,new Vector3(x,y0,z),.412f,.12f,32,Quaternion.identity,true);
+    }
+
     // ================================================================ shell
     static void G1Shell()
     {
@@ -91,18 +100,16 @@ public static partial class BraxChampionsD2
             if(z>G1HallZ0-.1f&&Mathf.Abs(x)<20.1f)continue;
             if(Mathf.Abs(x)<G1VoidX&&z>G1SouthMallZ1&&z<G1NorthMallZ0)continue;     // nothing standing in the atrium's void (owner 19:29: the columns were not joined)
             if((Mathf.Abs(z-35f)<.1f||Mathf.Abs(z+15f)<.1f)&&Mathf.Abs(x)<47.1f)continue;   // nothing on the malls' axes (owner 11.11 17:52: the column hid the KINO sign)
-            bool pub=Mathf.Abs(x)<=G1MallX+.1f||(z>G1NorthMallZ0&&z<G1NorthMallZ1)||(z>G1SouthMallZ0&&z<G1SouthMallZ1)||(Mathf.Abs(x)<=G1FoodX+.1f&&z<G1FoodZ1);
+            if(x>-47.1f&&x<-29.9f&&z<-24.9f)continue;                                // the toilet block: in its walls (owner 19:49: a column in the WC)
+            if(x>29.9f&&x<47.1f&&Mathf.Abs(z+25f)<.1f)continue;                      // the SE unit's shop front line
+            // owner 11.11 19:49 ("Słupy ... niektóre rzeczy są niewykończone"): one column everywhere - round, black satin
+            // (the gallery's black / red / white), a brushed stainless base band; no more white / walnut / concrete mix
             bool food=Mathf.Abs(x)<=G1FoodX+.1f&&z<G1FoodZ1;
-            bool home=x>G1EastX0&&z>-38f&&z<10f;                                  // BRAXHORN HOME: round, walnut-clad
-            if(home){HomeMaterials();m.Cylinder(hConcrete,new Vector3(x,G1F0,z),.40f,G1Slab-G1F0,24,Quaternion.identity,false);Col(x-.4f,x+.4f,G1F0,G1Slab,z-.4f,z+.4f,"słup");m.Cylinder(gWood,new Vector3(x,G1F1,z),.35f,G1Roof-.9f-G1F1,24,Quaternion.identity,false);Col(x-.35f,x+.35f,G1F1,G1Roof-.9f,z-.35f,z+.35f,"słup");continue;}
+            bool home=x>G1EastX0&&z>-38f&&z<10f;
             float top=food?G1Roof-.9f:G1Slab;
-            if(pub)
-            {
-                m.Cylinder(gWhitePanel,new Vector3(x,G1F0,z),.40f,top-G1F0,24,Quaternion.identity,false);
-                if(!food)m.Cylinder(gWhitePanel,new Vector3(x,G1F1,z),.40f,G1Roof-.9f-G1F1,24,Quaternion.identity,false);
-                Col(x-.4f,x+.4f,G1F0,G1Roof-.9f,z-.4f,z+.4f,"słup");
-            }
-            else{m.Cylinder(gWood,new Vector3(x,G1F0,z),.35f,G1Roof-.9f-G1F0,24,Quaternion.identity,false);Col(x-.35f,x+.35f,G1F0,G1Roof-.9f,z-.35f,z+.35f,"słup");}   // in the shops: round, walnut-clad (owner 18:28: no white)
+            G1Column(x,z,G1F0,top);
+            if(!food)G1Column(x,z,G1F1,G1Roof-.9f);
+            Col(x-.4f,x+.4f,G1F0,G1Roof-.9f,z-.4f,z+.4f,"słup");
         }
         // ---- the plinth (dark granite) round the whole building, below the floor level, but not across the doors
         foreach(int side in new[]{0,1,2,3})
@@ -240,7 +247,7 @@ public static partial class BraxChampionsD2
         FB(frame,s,-52.5f,-37.5f,4.55f,4.75f,.05f,3.2f);                       // dock canopy
         foreach(float u in new[]{-35f,-25f,-15f,12f,22f,32f,42f,52f})Pilaster(s,u);
         FB(gLight,s,-54.9f,54.9f,G1Roof-.18f,G1Roof+.5f,.05f,.32f);
-        foreach(float u in new[]{-45f,0f,27f,47f})Fin(s,u);
+        foreach(float u in new[]{-36.7f,0f,27f,47f})Fin(s,u);   // owner 19:47: no fin across the docks (was u -45)
     }
     static void G1Dock(float u0)
     {
@@ -464,12 +471,12 @@ public static partial class BraxChampionsD2
         B(led,-17f,17f,G1HallTop+.47f,G1HallTop+.55f,zf+.05f,zf+.062f);
         // KINO MULTIPLEX on the cinema block (front) and on the west façade
         BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"KINO",new Vector3(-70f,14.6f,G1HD+.052f),0f,4.2f,.30f,.12f,26f);
-        BraxChampionsLetters3D.Text(lm,gRed,frame,"MULTIPLEX",new Vector3(-70f,12.3f,G1HD+.052f),0f,1.5f,.18f,.14f,26f);
+        BraxChampionsLetters3D.Text(lm,gRedLit,gLetterSide,"MULTIPLEX",new Vector3(-70f,12.3f,G1HD+.052f),0f,1.5f,.18f,.14f,26f);
         BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"KINO MULTIPLEX",new Vector3(-G1HW-.052f,16.0f,-20f),-90f,3.2f,.25f,.12f,60f);
         B(led,-G1HW-.062f,-G1HW-.05f,15.4f,15.48f,-48f,8f);
         // BRAXHORN CITY (north-east block) with the owner's bull mark over it
         BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"BRAXHORN",new Vector3(70f,10.0f,G1HD+.052f),0f,2.2f,.22f,.12f,26f);
-        BraxChampionsLetters3D.Text(lm,gRed,frame,"CITY",new Vector3(70f,7.4f,G1HD+.052f),0f,1.6f,.18f,.20f,26f);
+        BraxChampionsLetters3D.Text(lm,gRedLit,gLetterSide,"CITY",new Vector3(70f,7.4f,G1HD+.052f),0f,1.6f,.18f,.20f,26f);
         BraxChampionsLetters3D.Build(lm,root,"G1 napisy 3D");Signs+=4;
         G1Bull(new Vector3(70f,18.0f,G1HD+.05f));
     }

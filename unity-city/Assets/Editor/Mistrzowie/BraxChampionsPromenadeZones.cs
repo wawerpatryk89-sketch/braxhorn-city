@@ -251,13 +251,21 @@ public static class BraxChampionsPromenadeZones
         m.Cylinder(stone,C+Vector3.up*1.05f,.52f,.20f,n,Quaternion.identity,false,true,1.35f);   // lower bowl
         RoundWall(m,stone,C+Vector3.up*1.25f,1.22f,1.35f,0f,-.07f,0f,n,false);   // its rim
         Disc(m,water,C+Vector3.up*1.18f,1.22f,n);
-        m.Cylinder(curtain,C+Vector3.up*.36f,1.37f,.89f,n,Quaternion.identity,false);   // water falling from the rim's edge
         m.Cylinder(stone,C+Vector3.up*1.18f,.17f,.42f,16,Quaternion.identity,false);   // upper column to 1.60
         m.Cylinder(stone,C+Vector3.up*1.60f,.19f,.12f,32,Quaternion.identity,false,true,.62f);   // upper bowl
         RoundWall(m,stone,C+Vector3.up*1.72f,.54f,.62f,0f,-.04f,0f,32,false);
         Disc(m,water,C+Vector3.up*1.68f,.54f,32);
-        m.Cylinder(curtain,C+Vector3.up*1.18f,.64f,.54f,32,Quaternion.identity,false);
-        m.Cylinder(jet,C+Vector3.up*1.68f,.055f,.95f,12,Quaternion.identity,true,false,.018f);
+        m.Cylinder(BraxChampionsHarbour.Steel,C+Vector3.up*1.62f,.03f,.10f,10,Quaternion.identity,true);   // the jet's nozzle, 4 cm proud
+        // owner 11.11 19:49 ("na promenadzie ... fontanna jest chyba nieruchoma, woda"): the water moves - the top jet, the
+        // spill from the upper bowl's rim into the lower bowl and from the lower bowl's rim into the basin, ripples on all
+        // three surfaces (BraxChampionsFontanna, every frame); was static cylinders
+        var A=new List<Vector3>();var Bq=new List<Vector3>();var H=new List<float>();var W=new List<float>();var N=new List<int>();var Pl=new List<bool>();
+        void J(Vector3 a,Vector3 b,float h,float w,int k,bool p){A.Add(a);Bq.Add(b);H.Add(h);W.Add(w);N.Add(k);Pl.Add(p);}
+        for(int i=0;i<5;i++){float a=2*Mathf.PI*i/5f;J(new Vector3(0,1.72f,0),new Vector3(Mathf.Cos(a)*.36f,1.68f,Mathf.Sin(a)*.36f),.90f,.035f,12,true);}
+        for(int i=0;i<24;i++){float a=2*Mathf.PI*i/24f;var d=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));J(d*.63f+Vector3.up*1.72f,d*.86f+Vector3.up*1.18f,.025f,.06f,6,i%3==0);}
+        for(int i=0;i<36;i++){float a=2*Mathf.PI*(i+.5f)/36f;var d=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));J(d*1.37f+Vector3.up*1.25f,d*1.72f+Vector3.up*.36f,.03f,.07f,7,i%3==0);}
+        BraxChampionsMeshBatch.FountainWater(c,"fontanna — płynąca woda (BraxChampionsFontanna)",C,BraxClaudeOsiedle.K,A.ToArray(),Bq.ToArray(),H.ToArray(),W.ToArray(),N.ToArray(),Pl.ToArray(),
+            new[]{Vector3.up*.36f,Vector3.up*1.18f,Vector3.up*1.68f},new[]{3.0f,1.22f,.54f},jet);
         BraxChampionsMeshBatch.Collider(c,"fontanna",C+Vector3.up*.25f,new Vector3(6.8f,.5f,6.8f));
         BraxChampionsMeshBatch.Collider(c,"fontanna środek",C+Vector3.up*.9f,new Vector3(2.7f,1.0f,2.7f));
         Fountains++;

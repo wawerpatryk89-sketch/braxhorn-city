@@ -297,6 +297,8 @@ public static partial class BraxChampionsD2
     }
 
     // ================================================================ the fit-out of a shop unit
+    // the catalogue's context on the current batch (BraxKatalog: one function per piece, used everywhere)
+    static BraxKatalog.Ctx Kat()=>new BraxKatalog.Ctx{m=m,root=root,cols=cols,unit=K,water=waterJet,seat=(p,f,l)=>Seat(p.x,p.y,p.z,f,l)};
     static void ShopFitOut(G1Unit u,float x0,float x1,float z0,float z1,float y,bool fac=false)
     {
         bool alongX=u.face=='S'||u.face=='N';float D=alongX?z1-z0:x1-x0,Wd=alongX?x1-x0:z1-z0;
@@ -463,13 +465,14 @@ public static partial class BraxChampionsD2
                                 else if(audio){if(i%2==0)Headphones(p,face);else Speaker(p,face,.30f);}
                                 else if(foto)Camera(p,face);
                                 else if(games){if(i%2==0)Console(p,face);else Headphones(p,face);}
-                                else if(i%2==0)Laptop(p,face);else Monitor(p,face);
+                                else if(i%2==0)BraxKatalog.Laptop(Kat(),p,face,i+(int)d);else BraxKatalog.Monitor(Kat(),p,face,i+1);   // owner 20:07-20:12: the catalogue's BRAXHORN laptops / monitors
                             }
                         }
                     }
                     // TVs: on the back wall (inner units) or both side walls (façade units), 55" / 65"
-                    if(!fac)for(float t=1.4f;t<Wd-1.2f;t+=2.0f)Screen169(P(t,y+2.1f,D-.30f),toFront,1.23f,false,y,!games);
-                    else foreach(float s in new[]{0f,1f})if(!SideOpen(s))for(float d=3.5f;d<D-1.5f;d+=2.6f)Screen169(P(s==0?.22f:Wd-.22f,y+2.1f,d),s==0?alongT:-alongT,1.23f,false,y,!games);
+                    // the BRAXHORN TVs (owner 20:12: "telewizory ... jak najlepsze ... swoją markę"): 65" on the back wall, 55" on the side walls
+                    if(!fac){int k=0;for(float t=1.4f;t<Wd-1.2f;t+=2.0f)BraxKatalog.Tv(Kat(),P(t,y+2.1f,D-.16f),toFront,65f,k++,false,nm+" TV");}
+                    else foreach(float s in new[]{0f,1f})if(!SideOpen(s)){int k=(int)s;for(float d=3.5f;d<D-1.5f;d+=2.6f)BraxKatalog.Tv(Kat(),P(s==0?.05f:Wd-.05f,y+2.1f,d),s==0?alongT:-alongT,55f,k++,false,nm+" TV");}
                     if(audio)foreach(float t in new[]{.8f,Wd-.8f})Speaker(P(t,y,D-1.0f),toFront,1.05f);
                 });
                 // both side walls finished: battens, the oak cabinet with the goods on it, lit shelves (façade units: the TVs over the cabinet)
@@ -480,7 +483,7 @@ public static partial class BraxChampionsD2
                     else if(audio){if(l==0)Speaker(p,f,.30f);else Headphones(p,f);}
                     else if(foto)Camera(p,f);
                     else if(games){if(l==0)Console(p,f);else Headphones(p,f);}
-                    else{if(l==0)Laptop(p,f);else if(l==1)Headphones(p,f);else Speaker(p,f,.24f);}
+                    else{if(l==0)BraxKatalog.Laptop(Kat(),p,f,(int)(p.x+p.z));else if(l==1)Headphones(p,f);else Speaker(p,f,.24f);}
                 });});
                 break;
             }

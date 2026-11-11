@@ -214,10 +214,11 @@ public static partial class BraxChampionsD2
         {
             m.Tube(frame,P(a,0f,-.19f),P(a,.44f,-.17f),.012f,6);
             m.Tube(frame,P(a,0f,.20f),P(a,.44f,.17f),.012f,6);
-            m.Tube(frame,P(a,.44f,.17f),P(a,.86f,.22f),.012f,6);
+            m.Tube(frame,P(a,.44f,.17f),P(a,.92f,.22f),.012f,6);
         }
         m.RoundedBox(gChairLeather,P(0,.475f,0f),new Vector3(.46f,.07f,.44f),.02f,rot,1);
-        m.RoundedBox(gChairLeather,P(0,.70f,.20f),new Vector3(.44f,.28f,.05f),.015f,rot*Quaternion.Euler(8f,0,0),1);
+        // the back as wide as the seat and 36 cm tall (owner 19:51: the seat was longer than the back)
+        m.RoundedBox(gChairLeather,P(0,.735f,.205f),new Vector3(.46f,.36f,.05f),.015f,rot*Quaternion.Euler(8f,0,0),1);
         Seat(P(0,.51f,0).x,P(0,.51f,0).y,P(0,.51f,0).z,face,"krzesło");
         var cc=P(0,.45f,0);Col(cc.x-.25f,cc.x+.25f,p.y,p.y+.9f,cc.z-.25f,cc.z+.25f,"krzesło");
     }
@@ -253,8 +254,8 @@ public static partial class BraxChampionsD2
     {
         float x0=G1EastX0,x1=G1HW-.3f,z0=10f,z1=G1HD-.26f,y=G1F0,yc=G1Ceil0;
         B(gMarketFloor,x0+.15f,x1,WalkY,y,z0+.15f,z1,true);
-        B(gWhitePanel,x0,x1,y,G1Slab,z0,z0+.15f,true);                                  // the south wall (to the entertainment)
-        B(gWhitePanel,x0,x0+.15f,y,G1Slab,z0+.15f,G1NorthMallZ0,true);B(gWhitePanel,x0,x0+.15f,y,G1Slab,G1NorthMallZ1,z1,true);
+        B(gWallWarm,x0,x1,y,G1Slab,z0,z0+.15f,true);                                    // the south wall (to the furniture store)
+        B(gWallWarm,x0,x0+.15f,y,G1Slab,z0+.15f,G1NorthMallZ0,true);B(gWallWarm,x0,x0+.15f,y,G1Slab,G1NorthMallZ1,z1,true);
         B(gDark,x0-.02f,x0+.15f,4.2f,G1Slab,G1NorthMallZ0,G1NorthMallZ1);               // the portal's head over the mall front
         PortalSign("BRAXHORN MARKET",new Vector3(x0-.02f,3.92f,(G1NorthMallZ0+G1NorthMallZ1)*.5f),Vector3.left,11.4f,"BRAXHORN MARKET","SUPERMARKET • ŚWIEŻE • CODZIENNIE",1.0f);
         SlatCeiling(x0+.15f,x1,z0+.15f,z1,yc,null);                             // timber slats on black felt (owner 18:28: no white)
@@ -288,10 +289,12 @@ public static partial class BraxChampionsD2
                 }
                 else
                 {
-                    // built island (white steel, 5 shelves each side, a centre panel) - empty
-                    F(gWhitePanel,x-.45f,x+.45f,y,y+.12f,zc-2.3f,zc+2.3f,true);F(gWhitePanel,x-.03f,x+.03f,y+.12f,y+1.75f,zc-2.3f,zc+2.3f);
-                    for(int l=0;l<5;l++){float yy=y+.40f+l*.30f;F(gWhitePanel,x-.42f,x+.42f,yy-.02f,yy,zc-2.28f,zc+2.28f);}
-                    foreach(float e in new[]{-1f,1f})F(gWhitePanel,x-.45f,x+.45f,y,y+1.75f,Mathf.Min(zc+e*2.3f,zc+e*2.27f),Mathf.Max(zc+e*2.3f,zc+e*2.27f));
+                    // built island (owner 19:49: no grey blocks): black steel plinth, back panel and ends, oak shelves with
+                    // chrome price rails, an LED line under each shelf - empty until the pack's goods
+                    if(!wcTile)WcMaterials();
+                    F(blackMatt,x-.45f,x+.45f,y,y+.12f,zc-2.3f,zc+2.3f,true);F(blackMatt,x-.03f,x+.03f,y+.12f,y+1.75f,zc-2.3f,zc+2.3f);
+                    for(int l=0;l<5;l++){float yy=y+.40f+l*.30f;F(gOak,x-.42f,x+.42f,yy-.025f,yy,zc-2.28f,zc+2.28f);foreach(float sg in new[]{-1f,1f})F(chrome,Mathf.Min(x+sg*.42f,x+sg*.44f),Mathf.Max(x+sg*.42f,x+sg*.44f),yy-.05f,yy-.005f,zc-2.28f,zc+2.28f);}
+                    foreach(float e in new[]{-1f,1f})F(blackMatt,x-.45f,x+.45f,y,y+1.75f,Mathf.Min(zc+e*2.3f,zc+e*2.27f),Mathf.Max(zc+e*2.3f,zc+e*2.27f));
                 }
                 if(i==4)F(signBlue,x-.25f,x+.25f,y+2.25f,y+2.55f,zc+2.25f,zc+2.30f);   // the aisle number plate
             }
@@ -307,7 +310,7 @@ public static partial class BraxChampionsD2
             var lmc=new BraxChampionsMeshBatch();
             BraxChampionsLetters3D.Text(lmc,Inside(S("g1_market_meat_red",new Color(.55f,.12f,.10f),.5f,0f),.9f),frame,"MIĘSO • WĘDLINY • SERY",new Vector3((a+b)*.5f,yK+.35f,zw+.6f+.002f),0f,.30f,.03f,.10f,b-a-1f);
             BraxChampionsLetters3D.Build(lmc,root,"G1 market napis chłodni");Signs++;
-            B(gWhitePanel,a,b,yK+.15f,yK+.75f,zw+.55f,zw+.6f);
+            B(gCinemaDark,a,b,yK+.15f,yK+.75f,zw+.55f,zw+.6f);
             var tw=BraxSklepyTowar.Korzen(wyp,"BRAXHORN MARKET chłodnia");
             LibShelf(tw,"ch_dol",new Vector3(a+.06f,y1+.004f,zw+dC*.5f),Vector3.right,Vector3.back,b-a-.12f,.5f);
             LibShelf(tw,"ch_srodek",new Vector3(a+.06f,y2+.004f,zw+.355f),Vector3.right,Vector3.back,b-a-.12f,.4f);
@@ -355,7 +358,7 @@ public static partial class BraxChampionsD2
             m.RoundedBox(mat,new Vector3(p.x,c.y+(y0+y1)*.5f,p.z),new Vector3(a1-a0,y1-y0,b1-b0),Mathf.Clamp(th*.3f,.003f,.03f),r,th>.1f?2:1);
             if(col){BraxChampionsMeshBatch.Collider(cols,"kasa",new Vector3(p.x,c.y+(y0+y1)*.5f,p.z),new Vector3(a1-a0,y1-y0,b1-b0),yaw);Colliders++;}
         }
-        Bx(gWhitePanel,-.30f,.30f,0f,.85f,-1.8f,1.8f,true);
+        Bx(gOak,-.30f,.30f,0f,.85f,-1.8f,1.8f,true);
         Bx(gCinemaDark,-.31f,.31f,.85f,.88f,-1.81f,1.81f);
         Bx(rubber,-.24f,.24f,.88f,.90f,.1f,1.7f);                                        // the belt
         Bx(gCinemaDark,-.20f,.20f,.88f,.93f,-.45f,-.05f);Bx(glassDark,-.16f,.16f,.93f,.935f,-.40f,-.10f);   // scanner
@@ -396,9 +399,9 @@ public static partial class BraxChampionsD2
     {
         float x0=G1EastX0,x1=G1HW-.3f,z0=-G1HD+.3f,z1=G1HD-.26f,y=G1F1;
         B(gMallBand,x0+.15f,x1,G1F1-.12f,y,z0,z1,true);
-        B(gWhitePanel,x0,x0+.15f,y,G1Roof-.9f,z0,G1NorthMallZ0,true);B(gWhitePanel,x0,x0+.15f,y,G1Roof-.9f,G1NorthMallZ1,z1,true);
+        B(ShopWall("sport"),x0,x0+.15f,y,G1Roof-.9f,z0,G1NorthMallZ0,true);B(ShopWall("sport"),x0,x0+.15f,y,G1Roof-.9f,G1NorthMallZ1,z1,true);
         B(gDark,x0-.02f,x0+.15f,y+3.9f,G1Roof-.9f,G1NorthMallZ0,G1NorthMallZ1);
-        B(gWhitePanel,x0+.15f,x1,y,G1Roof-.9f,z0,z0+.08f,true);
+        B(ShopWall("sport"),x0+.15f,x1,y,G1Roof-.9f,z0,z0+.08f,true);
         PortalSign("SPORT ARENA",new Vector3(x0-.02f,y+3.62f,(G1NorthMallZ0+G1NorthMallZ1)*.5f),Vector3.left,11.4f,"SPORT ARENA","ODZIEŻ • OBUWIE • NUTRITION",1.0f);
         var lm=new BraxChampionsMeshBatch();
         BraxChampionsLetters3D.Text(lm,Inside(S("g1_nutrition_green",new Color(.2f,.85f,.4f),.3f,0f,new Color(.25f,1.0f,.45f)),.9f),frame,"BRAXHORN NUTRITION",new Vector3(66f,y+3.1f,z0+.082f),0f,.32f,.03f,.10f,10f);
@@ -453,7 +456,12 @@ public static partial class BraxChampionsD2
         {
             float sx=i<4?-1f:1f;int k=i%4;float z0=-52f+k*6.5f,z1=z0+6.0f,xb=sx*(G1FoodX-.3f),xf=sx*(G1FoodX-4.0f);
             F(gWood,Mathf.Min(xb,xb-sx*.10f),Mathf.Max(xb,xb-sx*.10f),y,y+5.2f,z0,z1,true);
-            for(int j=0;j<3;j++){float zc=z0+1.0f+j*2.0f;F(gCinemaDark,Mathf.Min(xb-sx*.10f,xb-sx*.14f),Mathf.Max(xb-sx*.10f,xb-sx*.14f),y+2.4f,y+3.3f,zc-.85f,zc+.85f);B(screenLit(),Mathf.Min(xb-sx*.14f,xb-sx*.146f),Mathf.Max(xb-sx*.14f,xb-sx*.146f),y+2.44f,y+3.26f,zc-.81f,zc+.81f);}
+            for(int j=0;j<3;j++)
+            {
+                float zc=z0+1.0f+j*2.0f;F(gCinemaDark,Mathf.Min(xb-sx*.10f,xb-sx*.14f),Mathf.Max(xb-sx*.10f,xb-sx*.14f),y+2.4f,y+3.3f,zc-.85f,zc+.85f);
+                var px=new Color32[BraxChampionsKinoEkrany.ML*BraxChampionsKinoEkrany.MH];BraxChampionsKinoEkrany.MenuLokalu(px,i,j);   // owner 19:49: no empty blue screens
+                ScreenPanel(ScreenMaterial("g1_menu_"+i+"_"+j,BraxChampionsKinoEkrany.ML,BraxChampionsKinoEkrany.MH,px),new Vector3(xb-sx*.156f,y+2.85f,zc),new Vector3(-sx,0,0),1.60f,.80f,.015f);
+            }
             F(walnut,Mathf.Min(xf,xf+sx*.7f),Mathf.Max(xf,xf+sx*.7f),y,y+1.05f,z0+.3f,z1-.3f,true);
             F(StoneTop(),Mathf.Min(xf-sx*.05f,xf+sx*.75f),Mathf.Max(xf-sx*.05f,xf+sx*.75f),y+1.05f,y+1.09f,z0+.25f,z1-.25f);
             B(led,Mathf.Min(xf-sx*.012f,xf),Mathf.Max(xf-sx*.012f,xf),y+.12f,y+.15f,z0+.4f,z1-.4f);
@@ -465,6 +473,7 @@ public static partial class BraxChampionsD2
             F(gWood,Mathf.Min(xb,xf),Mathf.Max(xb,xf),y,y+3.4f,z1,z1+.12f,true);
             // the food on the counter from the library: pizza / kebab, shawarma / burgers, fries (pack miasto_sklepy), fruit
             // in wooden bowls and cakes (the region's Poly Haven originals); the others' counters stay clear until their models
+            if(i==3)BraxChampionsPromenadeEquipment.KebabSpit(root,m,new Vector3(xb-sx*.42f,y+.92f,(z0+z1)*.5f-1.6f));   // the turning doner spit on the kitchen line (owner 20:03)
             string lada=i==0?"pizzeria":i==2?"bistro":i==3?"bar":null;
             if(lada!=null)
             {
@@ -501,9 +510,9 @@ public static partial class BraxChampionsD2
         G1Toilets(0);G1Toilets(1);
         float y=G1F0;
         B(gMallBand,G1FoodX+.15f,G1EastX0,WalkY,y,-G1HD+.3f,G1ServiceZ1,true);
-        B(gWhitePanel,G1FoodX,G1FoodX+.15f,y,G1Slab,-G1HD+.3f,-53.8f,true);B(gWhitePanel,G1FoodX,G1FoodX+.15f,y,G1Slab,-52.8f,G1ServiceZ1,true);
-        B(gWhitePanel,G1FoodX,G1FoodX+.15f,y+2.2f,G1Slab,-53.8f,-52.8f);
-        B(gWhitePanel,G1FoodX+.15f,G1EastX0,y,G1Slab,-G1HD+.3f,-G1HD+.38f,true);       // the lining on the south façade
+        B(gWallWarm,G1FoodX,G1FoodX+.15f,y,G1Slab,-G1HD+.3f,-53.8f,true);B(gWallWarm,G1FoodX,G1FoodX+.15f,y,G1Slab,-52.8f,G1ServiceZ1,true);
+        B(gWallWarm,G1FoodX,G1FoodX+.15f,y+2.2f,G1Slab,-53.8f,-52.8f);
+        B(gWallWarm,G1FoodX+.15f,G1EastX0,y,G1Slab,-G1HD+.3f,-G1HD+.38f,true);       // the lining on the south façade
         Door("G1_service_fc","G1 zaplecze food court (personel)",G1FoodX+.075f,y,-53.3f,90f,1.0f,2.2f,false);
         Q(ceilWhite,new Vector3(G1FoodX+.15f,y+3.0f,-G1HD+.38f),new Vector3(G1EastX0,y+3.0f,-G1HD+.38f),new Vector3(G1EastX0,y+3.0f,G1ServiceZ1),new Vector3(G1FoodX+.15f,y+3.0f,G1ServiceZ1),Vector3.down);
         for(float x=G1FoodX+2f;x<G1EastX0;x+=3f)B(led,x-.3f,x+.3f,y+2.97f,y+3.0f,-53.35f,-53.25f);
@@ -528,72 +537,6 @@ public static partial class BraxChampionsD2
     static void Basin(Vector3 top)
     {
         m.Lathe(porcelainMat(),top,new[]{new Vector2(.0f,.0f),new Vector2(.12f,.0f),new Vector2(.18f,.04f),new Vector2(.21f,.12f),new Vector2(.215f,.13f),new Vector2(.19f,.13f),new Vector2(.165f,.06f),new Vector2(.0f,.03f)},28,Quaternion.identity,false,false);
-    }
-
-    static void G1Toilets(int l)
-    {
-        float y=LevelY(l),top=l==0?G1Slab:G1Roof-.9f,yc=y+3.0f,y0=l==0?WalkY:G1F1-.12f;
-        const float X0=-47f,X1=-30f,Z0=-54.7f,ZL=-32f,ZM=-25f;
-        string lv=l==0?" P0":" P1";
-        F(StoneTop(),X0+.15f,X1-.15f,y0,y,Z0,ZM-.15f,true);
-        // outer walls: west (the cinema wing), east (the food court), the mall wall with the entrance x -39.2..-36.2
-        B(gWhitePanel,X0,X0+.15f,y,top,Z0,ZM,true);B(gWhitePanel,X1-.15f,X1,y,top,Z0,ZM,true);
-        B(gWhitePanel,X0+.15f,-39.2f,y,top,ZM-.15f,ZM,true);B(gWhitePanel,-36.2f,X1-.15f,y,top,ZM-.15f,ZM,true);B(gWhitePanel,-39.2f,-36.2f,y+2.6f,top,ZM-.15f,ZM);
-        RB(frame,-39.27f,-39.17f,y+.004f,y+2.6f,ZM-.17f,ZM+.02f,.01f,false,1);RB(frame,-36.23f,-36.13f,y+.004f,y+2.6f,ZM-.17f,ZM+.02f,.01f,false,1);RB(frame,-39.27f,-36.13f,y+2.57f,y+2.66f,ZM-.17f,ZM+.02f,.01f,false,1);   // the lining 3 cm proud of the wall ends
-        var lm=new BraxChampionsMeshBatch();
-        BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"WC",new Vector3(-37.7f,y+2.9f,ZM+.002f),0f,.40f,.03f,.10f,2.6f);
-        BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"PANOWIE",new Vector3(-42.0f,y+2.35f,ZL+.002f),0f,.14f,.015f,.10f,1.6f);
-        BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"PANIE",new Vector3(-36.0f,y+2.35f,ZL+.002f),0f,.14f,.015f,.10f,1.6f);
-        BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"WC DOSTĘPNE",new Vector3(-42.848f,y+2.45f,-30.6f),90f,.12f,.015f,.10f,2.4f);
-        BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"MATKA I DZIECKO",new Vector3(-34.152f,y+2.45f,-30.6f),-90f,.12f,.015f,.10f,2.6f);
-        BraxChampionsLetters3D.Build(lm,root,"G1 napisy WC"+lv);Signs+=5;
-        // the rooms' north wall (z -32) with the men's door x -42.5..-41.5 and the women's x -36.5..-35.5; the M/K partition
-        B(gWhitePanel,X0+.15f,-42.5f,y,top,ZL-.15f,ZL,true);B(gWhitePanel,-41.5f,-36.5f,y,top,ZL-.15f,ZL,true);B(gWhitePanel,-35.5f,X1-.15f,y,top,ZL-.15f,ZL,true);
-        B(gWhitePanel,-42.5f,-41.5f,y+2.2f,top,ZL-.15f,ZL);B(gWhitePanel,-36.5f,-35.5f,y+2.2f,top,ZL-.15f,ZL);
-        Door("G1_wc_m"+l,"G1 WC panowie"+lv,-42f,y,ZL-.075f,0f,1.0f,2.2f,false);Door("G1_wc_k"+l,"G1 WC panie"+lv,-36f,y,ZL-.075f,0f,1.0f,2.2f,false);
-        B(gWhitePanel,-38.6f,-38.45f,y,top,Z0,ZL-.15f,true);
-        // the lobby's side rooms: the accessible WC (x -46.85..-43) and the baby care room (x -33.85..-30.15), doors at z -28.5
-        foreach(var (xw,xa,xb) in new[]{(-43f,-43f,-42.85f),(-34f,-34f,-33.85f)})
-        {
-            B(gWhitePanel,xa,xb,y,top,ZL,-29f,true);B(gWhitePanel,xa,xb,y,top,-28f,ZM-.15f,true);B(gWhitePanel,xa,xb,y+2.2f,top,-29f,-28f);
-        }
-        Door("G1_wc_acc"+l,"G1 WC dostępne"+lv,-42.925f,y,-28.5f,90f,1.0f,2.2f,false);Door("G1_wc_baby"+l,"G1 pokój matki i dziecka"+lv,-33.925f,y,-28.5f,90f,1.0f,2.2f,false);
-        Q(ceilWhite,new Vector3(X0+.15f,yc,Z0),new Vector3(X1-.15f,yc,Z0),new Vector3(X1-.15f,yc,ZM-.15f),new Vector3(X0+.15f,yc,ZM-.15f),Vector3.down);
-        for(float x=X0+1.6f;x<X1-1f;x+=2.4f)for(float z=Z0+1.4f;z<ZM-1f;z+=2.4f)m.Cylinder(ledWarm,new Vector3(x,yc-.002f,z),.08f,.012f,16,Quaternion.Euler(180,0,0),true,false);
-        // cubicles along the south wall: M 4 (x -46.85..-40.85), K 5 (x -38.45..-30.95): partitions, front panels, doors, pans
-        void Cubicles(float xa,int n,string who)
-        {
-            for(int i=0;i<n;i++)
-            {
-                float a=xa+i*1.5f,b=a+1.5f,zf=Z0+2.1f;
-                if(i<n)RB(gWhitePanel,b-.025f,b+.025f,y+.15f,y+2.1f,Z0,zf,.012f,true,1);
-                RB(gWhitePanel,a+.025f,a+.35f,y+.15f,y+2.1f,zf-.025f,zf+.025f,.012f,true,1);RB(gWhitePanel,a+1.15f,b-.025f,y+.15f,y+2.1f,zf-.025f,zf+.025f,.012f,true,1);
-                Door("G1_wc_"+who+l+"_"+i,"G1 kabina WC"+lv,a+.75f,y+.15f,zf,0f,.8f,1.95f,false);
-                WcPan(new Vector3(a+.75f,y,Z0),Vector3.forward);
-                F(stainless,a+.70f,a+.80f,y+.95f,y+1.0f,Z0+.20f,Z0+.24f);
-            }
-            RB(gWhitePanel,xa-.025f,xa+.025f,y+.15f,y+2.1f,Z0,Z0+2.1f,.012f,true,1);
-        }
-        Cubicles(X0+.15f,4,"m");Cubicles(-38.45f,5,"k");
-        // urinals on the M west wall with dividers; basins on marble counters with mirrors on the partition (both sides)
-        for(int i=0;i<4;i++){float z=-50f+i*.9f;Urinal(new Vector3(X0+.15f,y,z+.225f),Vector3.right);if(i>0)B(gWhitePanel,X0+.15f,X0+.65f,y+.5f,y+1.5f,z-.24f,z-.21f);}
-        foreach(float s in new[]{-1f,1f})
-        {
-            float xw=s<0?-38.6f:-38.45f,xo=xw+s*.6f;
-            F(StoneTop(),Mathf.Min(xw,xo),Mathf.Max(xw,xo),y+.82f,y+.88f,-40f,-35f,true);
-            for(int i=0;i<3;i++){Basin(new Vector3(xw+s*.32f,y+.88f,-39.2f+i*1.6f));m.Cylinder(stainless,new Vector3(xw+s*.06f,y+.88f,-39.2f+i*1.6f),.015f,.22f,8,Quaternion.identity,true);}
-            F(glassDark,Mathf.Min(xw,xw+s*.02f),Mathf.Max(xw,xw+s*.02f),y+1.15f,y+2.15f,-40f,-35f);
-            B(frame,Mathf.Min(xw,xw+s*.03f),Mathf.Max(xw,xw+s*.03f),y+2.15f,y+2.19f,-40.04f,-34.96f);
-            F(stainless,Mathf.Min(xw,xw+s*.12f),Mathf.Max(xw,xw+s*.12f),y+1.25f,y+1.6f,-34.6f,-34.3f);   // hand dryer
-        }
-        // the accessible WC: pan, fold-up grab bars, basin, mirror; the baby room: changing counter, basin, a chair
-        WcPan(new Vector3(-46.85f,y,-31.3f),Vector3.right);
-        Beam(stainless,new Vector3(-46.2f,y+.75f,-31.8f),new Vector3(-46.2f,y+.75f,-30.6f),.035f,.035f);Beam(stainless,new Vector3(-45.3f,y+.75f,-31.8f),new Vector3(-45.3f,y+.75f,-30.7f),.035f,.035f);
-        F(StoneTop(),-46.85f,-46.3f,y+.80f,y+.86f,-26.6f,-25.6f,true);Basin(new Vector3(-46.5f,y+.86f,-26.1f));
-        F(glassDark,-46.85f,-46.83f,y+1.1f,y+2.0f,-26.6f,-25.6f);
-        F(gWood,-31.0f,-30.15f,y,y+.90f,-31.6f,-29.6f,true);RB(gStoneTop,-31.04f,-30.15f,y+.90f,y+.94f,-31.64f,-29.56f,.015f,false,2);
-        F(StoneTop(),-30.75f,-30.15f,y+.82f,y+.88f,-27.2f,-26.0f,true);Basin(new Vector3(-30.45f,y+.88f,-26.6f));
-        G1Chair(new Vector3(-32.4f,y,-26.2f),Vector3.left);
     }
 
     // ---- ceilings: the malls white with linear LED lines along the axes (the fascias are the bulkheads at the fronts); the
@@ -622,8 +565,8 @@ public static partial class BraxChampionsD2
         {
             float a=Mathf.Min(sx*G1VaultR,sx*19.95f),b=Mathf.Max(sx*G1VaultR,sx*19.95f);   // to the strips over the units (x 19.95..20)
             SlatCeiling(a,b,G1NorthMallZ1,G1HallZ0,G1Ceil1,null);
-            B(gWhitePanel,a,b,G1Ceil1,G1Roof,G1HallZ0,G1HallZ0+.03f);
-            B(gWhitePanel,Mathf.Min(sx*20f,sx*19.95f),Mathf.Max(sx*20f,sx*19.95f),G1Ceil1,G1Roof-.88f,G1NorthMallZ1,G1HD-.26f);
+            B(gBlackFascia,a,b,G1Ceil1,G1Roof,G1HallZ0,G1HallZ0+.03f);
+            B(gBlackFascia,Mathf.Min(sx*20f,sx*19.95f),Mathf.Max(sx*20f,sx*19.95f),G1Ceil1,G1Roof-.88f,G1NorthMallZ1,G1HD-.26f);
         }
     }
 
@@ -646,21 +589,21 @@ public static partial class BraxChampionsD2
             Rail(new Vector3(sx*e,y,G1LiftZ+.6f),new Vector3(sx*e,y,zn));
             foreach(float z in new[]{zs,zn})Rail(new Vector3(sx*G1EscHalf,y,z),new Vector3(sx*e,y,z),true,false);
             // slab edge cladding (from the P0 ceiling to the P1 floor) with an LED line, the void's long sides
-            B(gWhitePanel,Mathf.Min(sx*G1VoidX,sx*(G1VoidX-.05f)),Mathf.Max(sx*G1VoidX,sx*(G1VoidX-.05f)),G1Ceil0,G1F1-.012f,G1SouthMallZ1,G1NorthMallZ0);
+            B(gBlackFascia,Mathf.Min(sx*G1VoidX,sx*(G1VoidX-.05f)),Mathf.Max(sx*G1VoidX,sx*(G1VoidX-.05f)),G1Ceil0,G1F1-.012f,G1SouthMallZ1,G1NorthMallZ0);
             B(led,Mathf.Min(sx*(G1VoidX-.05f),sx*(G1VoidX-.062f)),Mathf.Max(sx*(G1VoidX-.05f),sx*(G1VoidX-.062f)),G1Slab-.10f,G1Slab-.06f,G1SouthMallZ1+.06f,G1NorthMallZ0-.06f);
             // the lift's sill at P1 (the gallery edge to the landing door)
             B(granite,Mathf.Min(sx*G1VoidX,sx*(G1VoidX-.11f)),Mathf.Max(sx*G1VoidX,sx*(G1VoidX-.11f)),G1F1-.10f,G1F1,G1LiftZ-.55f,G1LiftZ+.55f,true);
         }
         // the bridges' edges at the void (z -13, z 28)
-        B(gWhitePanel,-G1VoidX,G1VoidX,G1Ceil0,G1F1-.012f,G1NorthMallZ0-.05f,G1NorthMallZ0);B(gWhitePanel,-G1VoidX,G1VoidX,G1Ceil0,G1F1-.012f,G1SouthMallZ1,G1SouthMallZ1+.05f);
+        B(gBlackFascia,-G1VoidX,G1VoidX,G1Ceil0,G1F1-.012f,G1NorthMallZ0-.05f,G1NorthMallZ0);B(gBlackFascia,-G1VoidX,G1VoidX,G1Ceil0,G1F1-.012f,G1SouthMallZ1,G1SouthMallZ1+.05f);
         // over the entrance hall (z 40, gaps for the grand stairs) and the food court (z -25)
         float zh=G1NorthMallZ1-.04f,s0=G1StairX-G1StairW*.5f-.05f,s1=G1StairX+G1StairW*.5f+.05f;
         Rail(new Vector3(-20f+.04f,y,zh),new Vector3(-s1,y,zh));Rail(new Vector3(-s0,y,zh),new Vector3(s0,y,zh));Rail(new Vector3(s1,y,zh),new Vector3(20f-.04f,y,zh));
         Rail(new Vector3(-G1FoodX+.04f,y,G1SouthMallZ0+.04f),new Vector3(G1FoodX-.04f,y,G1SouthMallZ0+.04f));
-        B(gWhitePanel,-20f,20f,G1Ceil0-.02f,G1F1-.012f,G1NorthMallZ1,G1NorthMallZ1+.05f);B(led,-19.9f,19.9f,G1Slab-.10f,G1Slab-.06f,G1NorthMallZ1+.05f,G1NorthMallZ1+.062f);   // in the void, in front of the slab's edge
-        B(gWhitePanel,-G1FoodX,G1FoodX,G1Ceil0-.02f,G1F1-.012f,G1SouthMallZ0-.05f,G1SouthMallZ0);B(led,-G1FoodX+.1f,G1FoodX-.1f,G1Slab-.10f,G1Slab-.06f,G1SouthMallZ0-.062f,G1SouthMallZ0-.05f);
+        B(gBlackFascia,-20f,20f,G1Ceil0-.02f,G1F1-.012f,G1NorthMallZ1,G1NorthMallZ1+.05f);B(led,-19.9f,19.9f,G1Slab-.10f,G1Slab-.06f,G1NorthMallZ1+.05f,G1NorthMallZ1+.062f);   // in the void, in front of the slab's edge
+        B(gBlackFascia,-G1FoodX,G1FoodX,G1Ceil0-.02f,G1F1-.012f,G1SouthMallZ0-.05f,G1SouthMallZ0);B(led,-G1FoodX+.1f,G1FoodX-.1f,G1Slab-.10f,G1Slab-.06f,G1SouthMallZ0-.062f,G1SouthMallZ0-.05f);
         // the hall's side slab edges (x +-20, z 40..54.74) between the units' storeys
-        foreach(float sx in new[]{-1f,1f})B(gWhitePanel,Mathf.Min(sx*20f,sx*19.95f),Mathf.Max(sx*20f,sx*19.95f),G1Ceil0,G1F1+.08f,G1NorthMallZ1,G1HD-.26f);
+        foreach(float sx in new[]{-1f,1f})B(gBlackFascia,Mathf.Min(sx*20f,sx*19.95f),Mathf.Max(sx*20f,sx*19.95f),G1Ceil0,G1F1+.08f,G1NorthMallZ1,G1HD-.26f);
     }
 
     // ---- mall furniture: upholstered benches back to back in the north / south malls, planters with greenery, lit
@@ -679,22 +622,149 @@ public static partial class BraxChampionsD2
                 Prop(root,"ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf",new Vector3(x,y,z),x*13f+z,.3f);
             foreach(float x in new[]{-28f,28f}){Bin(x,y,(G1NorthMallZ0+G1NorthMallZ1)*.5f);Bin(x,y,(G1SouthMallZ0+G1SouthMallZ1)*.5f);}
         }
-        G1Directory(-5.2f,G1F0,6f);G1Directory(5.2f,G1F0,6f);
-        G1Directory(-10.5f,G1F1,G1NorthMallZ0+2.5f);G1Directory(10.5f,G1F1,G1SouthMallZ1-2.5f);
-        G1Directory(0f,G1F0,G1NorthMallZ1+2.0f);
+        G1Directory(-5.2f,G1F0,6f,"ATRIUM · PARTER");G1Directory(5.2f,G1F0,6f,"ATRIUM · PARTER");
+        G1Directory(-10.5f,G1F1,G1NorthMallZ0+2.5f,"PIĘTRO · PÓŁNOC");G1Directory(10.5f,G1F1,G1SouthMallZ1-2.5f,"PIĘTRO · POŁUDNIE");
+        G1Directory(0f,G1F0,G1NorthMallZ1+2.0f,"HOL GŁÓWNY");
+        G1Hall();
     }
-    static void G1Directory(float x,float y,float z)
+    static readonly Dictionary<string,Material> g1Plans=new Dictionary<string,Material>();
+    static Material PlanMat(string tu)
+    {
+        if(g1Plans.TryGetValue(tu,out var mt)&&mt)return mt;
+        var n0=new List<string>();var t0=new List<string>();var n1=new List<string>();var t1=new List<string>();
+        foreach(var u in g1Units){(u.level==0?n0:n1).Add(u.name);(u.level==0?t0:t1).Add(u.trade);}
+        n0.AddRange(new[]{"BRAXHORN MARKET","BRAXHORN HOME","KINO MULTIPLEX","FOOD COURT","WC"});t0.AddRange(new[]{"food","home","games","food","x"});
+        n1.AddRange(new[]{"SPORT ARENA","KINO MULTIPLEX","WC"});t1.AddRange(new[]{"sport","games","x"});
+        var px=new Color32[BraxChampionsKinoEkrany.PGW*BraxChampionsKinoEkrany.PGH];
+        BraxChampionsKinoEkrany.PlanGalerii(px,n0.ToArray(),t0.ToArray(),n1.ToArray(),t1.ToArray(),tu);
+        mt=ScreenMaterial("g1_plan_"+g1Plans.Count,BraxChampionsKinoEkrany.PGW,BraxChampionsKinoEkrany.PGH,px);g1Plans[tu]=mt;return mt;
+    }
+    // a screen with its picture (UV 0..1, read from the front): c = the glass's centre, n = toward the viewer; a black
+    // bezel round it 4 mm proud (never over the picture); the caller keeps 15 mm free behind the glass
+    static void ScreenPanel(Material mat,Vector3 c,Vector3 n,float w,float h,float bz=.03f)
+    {
+        n.y=0;n.Normalize();var r=Vector3.Cross(n,Vector3.up).normalized;var up=Vector3.up;
+        var a=c-r*(w*.5f)-up*(h*.5f);var b=c+r*(w*.5f)-up*(h*.5f);var cc=c+r*(w*.5f)+up*(h*.5f);var d=c-r*(w*.5f)+up*(h*.5f);
+        m.QuadUV(mat,a,d,cc,b,new Vector2(0,0),new Vector2(0,1),new Vector2(1,1),new Vector2(1,0));
+        var rot=Quaternion.LookRotation(n,Vector3.up);
+        foreach(float s in new[]{-1f,1f})
+        {
+            m.Box(frame,c+up*(s*(h*.5f+bz*.5f))-n*.0055f,new Vector3(w+2f*bz,bz,.019f),rot);
+            m.Box(frame,c+r*(s*(w*.5f+bz*.5f))-n*.0055f,new Vector3(bz,h,.019f),rot);
+        }
+        Screens++;
+    }
+    static void G1Directory(float x,float y,float z,string tu)
     {
         RB(gDark,x-.6f,x+.6f,y,y+2.2f,z-.12f,z+.12f,.04f,true);
         var lm=new BraxChampionsMeshBatch();
         foreach(float f in new[]{-1f,1f})
         {
-            float zf=z+f*.122f;
-            B(screenLit(),x-.5f,x+.5f,y+.5f,y+2.0f,Mathf.Min(zf,zf+f*.004f),Mathf.Max(zf,zf+f*.004f));
+            float zf=z+f*.12f;
+            ScreenPanel(PlanMat(tu),new Vector3(x,y+1.25f,zf+f*.016f),new Vector3(0,0,f),1.0f,1.5f,.02f);
             BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"PLAN GALERII",new Vector3(x,y+2.05f,zf+f*.002f),f>0?0f:180f,.09f,.01f,.10f,1.0f);
         }
         BraxChampionsLetters3D.Build(lm,root,"G1 plan galerii");
         Signs++;
+    }
+
+    // ---- the entrance hall (owner 11.11 19:49: "na tym holu jest pusto ... jakiś lombard z telefonami ... mały"): an
+    // island kiosk LOMBARD GSM west of the axis (black lacquer counter with an oak top, glass vitrines with phones, tablets
+    // and watches on stands, a central oak display tower with lit shelves and the price screen, a black fascia ring on slim
+    // posts with the lit name, a red LED line, two bar stools for the customers), east of the axis a round seating island
+    // (cognac leather round a planter with low indoor plants), planters by the stairs
+    static Material phoneScreenA,phoneScreenB,lombardScreen;
+    static void Phone(Vector3 p,Vector3 face,int v,float scale=1f)
+    {
+        face.y=0;face.Normalize();var rot=Quaternion.LookRotation(face,Vector3.up)*Quaternion.Euler(-14f,0,0);
+        var up=rot*Vector3.up;var fw=rot*Vector3.forward;var r=rot*Vector3.right;
+        float w=.074f*scale,h=.156f*scale;
+        m.Box(glass,p+Vector3.up*.035f-face*.03f,new Vector3(.06f*scale,.07f,.004f),Quaternion.LookRotation(face,Vector3.up)*Quaternion.Euler(-14f,0,0));   // the acrylic stand
+        var c=p+Vector3.up*(h*.5f+.01f);
+        m.RoundedBox(blackMatt,c,new Vector3(w,h,.0085f),.006f*scale,rot,2);
+        var s=c+fw*.0045f;var a=s-r*(w*.44f)-up*(h*.45f);var b=s+r*(w*.44f)-up*(h*.45f);var cc=s+r*(w*.44f)+up*(h*.45f);var d=s-r*(w*.44f)+up*(h*.45f);
+        m.QuadUV(v%2==0?phoneScreenA:phoneScreenB,a,b,cc,d,new Vector2(1,0),new Vector2(0,0),new Vector2(0,1),new Vector2(1,1));
+    }
+    static void G1Hall()
+    {
+        float y=G1F0;
+        if(!phoneScreenA)
+        {
+            var pa=new Color32[BraxChampionsKinoEkrany.FW*BraxChampionsKinoEkrany.FH];BraxChampionsKinoEkrany.EkranTelefonu(pa,0);phoneScreenA=ScreenMaterial("g1_telefon_a",BraxChampionsKinoEkrany.FW,BraxChampionsKinoEkrany.FH,pa);
+            var pb=new Color32[BraxChampionsKinoEkrany.FW*BraxChampionsKinoEkrany.FH];BraxChampionsKinoEkrany.EkranTelefonu(pb,1);phoneScreenB=ScreenMaterial("g1_telefon_b",BraxChampionsKinoEkrany.FW,BraxChampionsKinoEkrany.FH,pb);
+            var pl=new Color32[BraxChampionsKinoEkrany.LW*BraxChampionsKinoEkrany.LH];BraxChampionsKinoEkrany.EkranLombardu(pl);lombardScreen=ScreenMaterial("g1_lombard_cennik",BraxChampionsKinoEkrany.LW,BraxChampionsKinoEkrany.LH,pl);
+        }
+        if(!wcTile)WcMaterials();
+        // ---- LOMBARD GSM: x -9.0..-5.0, z 46.8..49.2
+        const float kx0=-9.0f,kx1=-5.0f,kz0=46.8f,kz1=49.2f;float kc=(kx0+kx1)*.5f,kzc=(kz0+kz1)*.5f;
+        RB(gCinemaDark,kx0,kx1,y,y+.95f,kz0,kz1,.04f,true,2);                                       // the counter body (closed ring, the staff gap east)
+        RB(gOak,kx0-.03f,kx1+.03f,y+.95f,y+.99f,kz0-.03f,kz1+.03f,.012f,false,2);                   // the oak top
+        B(gRedLit,kx0+.05f,kx1-.05f,y+.10f,y+.115f,kz0-.012f,kz0);B(gRedLit,kx0+.05f,kx1-.05f,y+.10f,y+.115f,kz1,kz1+.012f);   // the red LED line (owner: black, red, white)
+        // glass vitrines on the long sides: black frames, glass, the goods on black velvet
+        foreach(float sz in new[]{-1f,1f})
+        {
+            float zo=sz<0?kz0+.02f:kz1-.02f,zi=sz<0?kz0+.42f:kz1-.42f;
+            RB(gVelvetBlack,kx0+.12f,kx1-.12f,y+.99f,y+1.01f,Mathf.Min(zo,zi),Mathf.Max(zo,zi),.004f,false,1);
+            foreach(var (a,b) in new[]{(kx0+.10f,kx0+.13f),(kx1-.13f,kx1-.10f)})B(frame,a,b,y+.99f,y+1.33f,Mathf.Min(zo,zi),Mathf.Max(zo,zi));
+            B(frame,kx0+.10f,kx1-.10f,y+1.30f,y+1.33f,Mathf.Min(zo,zi),Mathf.Max(zo,zi));
+            var g0=new Vector3(kx0+.13f,y+1.01f,zo);var g1=new Vector3(kx1-.13f,y+1.01f,zo);
+            Q(glass,g0,g1,g1+Vector3.up*.29f,g0+Vector3.up*.29f,new Vector3(0,0,sz));Q(glass,g0,g1,g1+Vector3.up*.29f,g0+Vector3.up*.29f,new Vector3(0,0,-sz));
+            var t0=new Vector3(kx0+.13f,y+1.30f,zo);var t1=new Vector3(kx1-.13f,y+1.30f,zi);
+            Q(glass,t0,new Vector3(t1.x,t0.y,t0.z),t1,new Vector3(t0.x,t0.y,t1.z),Vector3.up);
+            for(int i=0;i<9;i++){var p=new Vector3(kx0+.38f+i*.40f,y+1.012f,(zo+zi)*.5f);if(i%3==2){Watch(p,new Vector3(0,0,sz));}else Phone(p,new Vector3(0,0,sz),i);}
+        }
+        // the central tower: oak, lit shelves of phones both ways, the price screen over the till on the west end
+        RB(gOak,kc-.9f,kc+.9f,y+.99f,y+2.35f,kzc-.18f,kzc+.18f,.02f,true,2);
+        foreach(float sz in new[]{-1f,1f})
+            for(int j=0;j<2;j++)
+            {
+                float ys=y+1.45f+j*.42f,zf=kzc+sz*.18f;
+                B(gStoneTop,kc-.8f,kc+.8f,ys,ys+.025f,Mathf.Min(zf,zf+sz*.16f),Mathf.Max(zf,zf+sz*.16f));
+                B(ledWarm,kc-.78f,kc+.78f,ys+.38f,ys+.392f,Mathf.Min(zf+sz*.012f,zf+sz*.06f),Mathf.Max(zf+sz*.012f,zf+sz*.06f));
+                for(int i=0;i<5;i++)Phone(new Vector3(kc-.64f+i*.32f,ys+.025f,zf+sz*.08f),new Vector3(0,0,sz),i+j,1f);
+            }
+        ScreenPanel(lombardScreen,new Vector3(kc-.905f-.016f,y+1.85f,kzc),Vector3.left,.62f,.35f,.02f);
+        ScreenPanel(lombardScreen,new Vector3(kc+.905f+.016f,y+1.85f,kzc),Vector3.right,.62f,.35f,.02f);
+        // the till: a card terminal and a small screen on the east end, the staff stool
+        RB(blackMatt,kx1-.45f,kx1-.30f,y+.99f,y+1.02f,kzc-.10f,kzc+.10f,.008f,false,1);
+        RB(blackMatt,kx1-.42f,kx1-.34f,y+1.02f,y+1.10f,kzc-.04f,kzc+.04f,.01f,false,1);
+        // the fascia ring on four slim black posts (2.45..2.95) with LOMBARD GSM lit white on both long sides
+        foreach(float px in new[]{kx0+.05f,kx1-.05f})foreach(float pz in new[]{kz0+.05f,kz1-.05f})m.Cylinder(frame,new Vector3(px,y+.99f,pz),.025f,1.46f,12,Quaternion.identity,true);
+        RB(gCinemaDark,kx0-.05f,kx1+.05f,y+2.45f,y+2.95f,kz0-.05f,kz1+.05f,.03f,false,2);
+        B(gRedLit,kx0-.04f,kx1+.04f,y+2.44f,y+2.452f,kz0-.04f,kz1+.04f);
+        var lm=new BraxChampionsMeshBatch();
+        foreach(float sz in new[]{-1f,1f})
+        {
+            float zf=sz<0?kz0-.05f-.002f:kz1+.05f+.002f;
+            BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"LOMBARD GSM",new Vector3(kc,y+2.62f,zf),sz<0?180f:0f,.22f,.04f,.12f,3.6f);
+            BraxChampionsLetters3D.Text(lm,gRedLit,gLetterSide,"SKUP • SPRZEDAŻ • NAPRAWA",new Vector3(kc,y+2.51f,zf),sz<0?180f:0f,.065f,.015f,.14f,3.6f);
+        }
+        BraxChampionsLetters3D.Build(lm,root,"G1 szyld LOMBARD GSM");Signs++;
+        foreach(float sz in new[]{-1f,1f})BarStool(new Vector3(kc-.6f,y,sz<0?kz0-.45f:kz1+.45f),new Vector3(0,0,-sz));
+        G1Shops++;
+        // ---- the seating island east: a round leather bench ring (R 1.15..1.75, seat .45) round a granite planter with a tree
+        var sc=new Vector3(7f,y,48f);
+        Ring(gStoneTop,sc,.95f,1.15f,y,y+.60f,48);Disc(lawn,sc+Vector3.up*.56f,.95f,48);
+        Ring(gCinemaDark,sc,1.15f,1.75f,y,y+.36f,48);
+        Ring(gChairLeather,sc,1.17f,1.73f,y+.36f,y+.46f,48);
+        // owner 11.11 20:18 ("z tym drzewem w galerii to przesadziłeś"): no tree indoors - low indoor plants in the planter
+        foreach(var (dx,dz,k) in new[]{(0f,0f,1),(-.45f,.35f,0),(.45f,-.35f,0),(.3f,.5f,1),(-.35f,-.5f,1)})Prop(root,k==0?"ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf":"ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf",new Vector3(sc.x+dx,y+.56f,sc.z+dz),dx*90f+dz*40f,0f);
+        for(int i=0;i<8;i++){float a=i*45f*Mathf.Deg2Rad;var d=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));var p=sc+d*1.45f;Seat(p.x,y+.46f,p.z,d,"siedzisko wyspy w holu");}
+        Col(sc.x-1.75f,sc.x+1.75f,y,y+.46f,sc.z-1.75f,sc.z+1.75f,"wyspa z siedziskami");
+        // planters at the stairs' feet
+        foreach(float sx in new[]{-1f,1f})Prop(root,"ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf",new Vector3(sx*12.6f,y,51.6f),sx*30f,.3f);
+    }
+    // a bar stool: a black steel base and column, a round cognac leather seat, a foot ring; a BraxSeat
+    static void BarStool(Vector3 p,Vector3 face)
+    {
+        m.Cylinder(frame,p,.22f,.02f,24,Quaternion.identity,true);
+        m.Cylinder(chrome,p+Vector3.up*.02f,.03f,.62f,14,Quaternion.identity,false);
+        var ring=new List<Vector3>();for(int k=0;k<=20;k++){float a=k*Mathf.PI*2f/20f;ring.Add(p+Vector3.up*.30f+new Vector3(Mathf.Cos(a)*.17f,0,Mathf.Sin(a)*.17f));}
+        for(int k=0;k+1<ring.Count;k++)m.Tube(chrome,ring[k],ring[k+1],.011f,8);
+        for(int k=0;k<4;k++){float a=k*Mathf.PI*.5f;m.Tube(chrome,p+Vector3.up*.30f+new Vector3(Mathf.Cos(a)*.17f,0,Mathf.Sin(a)*.17f),p+Vector3.up*.30f+new Vector3(Mathf.Cos(a)*.03f,0,Mathf.Sin(a)*.03f),.008f,6);}
+        m.Lathe(gChairLeather,p+Vector3.up*.64f,new[]{new Vector2(0,0),new Vector2(.17f,0),new Vector2(.19f,.02f),new Vector2(.195f,.05f),new Vector2(.18f,.075f),new Vector2(0,.08f)},28,Quaternion.identity,true,true);
+        Seat(p.x,p.y+.72f,p.z,face,"hoker");
+        Col(p.x-.2f,p.x+.2f,p.y,p.y+.72f,p.z-.2f,p.z+.2f,"hoker");
     }
 
     // ================================================================ circulation (escalators, lifts, stairs)
@@ -756,7 +826,7 @@ public static partial class BraxChampionsD2
             // skirts / deck (black): the flat ends as boxes, the incline as a beam into the floors
             B(frame,xs-.09f,xs+.09f,yTop,yTop+.12f,Mathf.Min(zTop,zTop-dir*ext),Mathf.Max(zTop,zTop-dir*ext));
             B(frame,xs-.09f,xs+.09f,yBot,yBot+.12f,Mathf.Min(zBot,zBot+dir*ext),Mathf.Max(zBot,zBot+dir*ext));
-            Beam(frame,L(1,-.44f),L(2,-.44f),.18f,1.12f);
+            Beam(stainless,L(1,-.44f),L(2,-.44f),.18f,1.12f);                    // owner 19:49: not black blocks - brushed steel
             // glass panes (12 mm joints) clamped in the deck, 0.88 high
             for(int k=0;k<3;k++)
             {
@@ -782,7 +852,7 @@ public static partial class BraxChampionsD2
             Col(xs-.1f,xs+.1f,yBot,yTop+1.05f,Mathf.Min(zTop-dir*ext,zBot+dir*ext),Mathf.Max(zTop-dir*ext,zBot+dir*ext),"schody ruchome balustrada");
         }
         // the truss's underside cladding (black) under the incline
-        Beam(frame,new Vector3(xc,yTop-1.0f,zTop),new Vector3(xc,yBot-1.0f,zBot),sw+.37f,.06f);
+        Beam(gOak,new Vector3(xc,yTop-1.0f,zTop),new Vector3(xc,yBot-1.0f,zBot),sw+.37f,.06f);   // the underside in oak (owner 19:49: not black blocks)
         var drive=new GameObject(name+" | napęd i jazda").AddComponent<BraxSchodyRuchomeJazda>();
         drive.transform.SetParent(root,false);
         drive.gora=root.TransformPoint(pT*K);drive.dol=root.TransformPoint(pB*K);drive.szer=sw*K;drive.wGore=up;drive.predkosc=.5f*K;drive.okresPoreczy=.5f*K;drive.porecze=porecze.ToArray();
@@ -839,7 +909,7 @@ public static partial class BraxChampionsD2
         for(int i=0;i<n;i++)
         {
             float zf=zTop+dir*(n-1-i)*run,zb=zf+dir*run,y=G1F0+(i+1)*rise;   // step i (from the bottom), front edge zb, back zf
-            B(gWhitePanel,xc-hw,xc+hw,G1F0,y-.04f,Mathf.Min(zf,zb),Mathf.Max(zf,zb),true);
+            B(gBlackFascia,xc-hw,xc+hw,G1F0,y-.04f,Mathf.Min(zf,zb),Mathf.Max(zf,zb),true);
             B(granite,xc-hw-.02f,xc+hw+.02f,y-.04f,y,Mathf.Min(zf,zb+dir*.02f),Mathf.Max(zf,zb+dir*.02f));
         }
         float zBot=zTop+dir*n*run;

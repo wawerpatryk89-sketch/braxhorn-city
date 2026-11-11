@@ -71,4 +71,108 @@ public static class BraxChampionsKinoEkrany
         S(px, w, h, "BRAXHORN", 14, 1, BraxChampionsPiksele.Bialy); S(px, w, h, "KINO", 26, 1, BraxChampionsPiksele.Cyjan);
         S(px, w, h, "WKRÓTCE", 50, 1, Bursztyn); S(px, w, h, "NOWY FILM", 66, 1, BraxChampionsPiksele.Bialy);
     }
+
+    // ================================================================ G1 GALERIA GŁÓWNA screens (owner 11.11 19:49: the blue screens were empty)
+    public const int PGW = 256, PGH = 384, ML = 256, MH = 128, LW = 256, LH = 144, FW = 64, FH = 128;
+    static Color32 Kategoria(string t)
+    {
+        switch (t)
+        {
+            case "fashion": case "bags": return new Color32(190, 90, 255, 255);
+            case "shoes": return new Color32(255, 130, 60, 255);
+            case "electronics": case "phones": case "games": return new Color32(60, 150, 255, 255);
+            case "cosmetics": case "pharmacy": case "optician": return new Color32(70, 230, 120, 255);
+            case "jewellery": return new Color32(240, 244, 255, 255);
+            case "food": case "cafe": return new Color32(255, 176, 40, 255);
+            case "toys": case "books": return new Color32(255, 220, 60, 255);
+            case "home": case "flowers": return new Color32(170, 120, 80, 255);
+            default: return new Color32(150, 150, 165, 255);
+        }
+    }
+    // the directory: PARTER / PIĘTRO in two columns, a colour per trade, the number of the unit, "TU JESTEŚ"
+    public static void PlanGalerii(Color32[] px, string[] n0, string[] t0, string[] n1, string[] t1, string tu)
+    {
+        int w = PGW, h = PGH; BraxChampionsPiksele.Wypelnij(px, Ciemny);
+        BraxChampionsPiksele.Prost(px, w, h, 0, h - 36, w, h, Pasek);
+        S(px, w, h, "PLAN GALERII", 5, 2, BraxChampionsPiksele.Bialy);
+        S(px, w, h, "GALERIA GŁÓWNA · BRAXHORN", 24, 1, BraxChampionsPiksele.Cyjan);
+        void Kol(string[] n, string[] t, int x0, string tyt, int nr0)
+        {
+            T(px, w, h, tyt, x0 + 4, 44, 1, Bursztyn);
+            BraxChampionsPiksele.Prost(px, w, h, x0 + 4, h - 55, x0 + 122, h - 54, new Color32(80, 80, 92, 255));
+            for (int i = 0; i < n.Length; i++)
+            {
+                int y = 60 + i * 13;
+                BraxChampionsPiksele.Prost(px, w, h, x0 + 4, h - y - 7, x0 + 9, h - y, Kategoria(t[i]));
+                T(px, w, h, (nr0 + i).ToString(), x0 + 12, y, 1, new Color32(150, 150, 165, 255));
+                T(px, w, h, Krotko(n[i], 15), x0 + 31, y, 1, BraxChampionsPiksele.Bialy);
+            }
+        }
+        Kol(n0, t0, 0, "PARTER", 1); Kol(n1, t1, 128, "PIĘTRO", 101);
+        BraxChampionsPiksele.Prost(px, w, h, 128, 40, 129, h - 48, new Color32(60, 60, 70, 255));
+        BraxChampionsPiksele.Prost(px, w, h, 0, 0, w, 22, new Color32(18, 18, 24, 255));
+        BraxChampionsPiksele.Prost(px, w, h, 8, 7, 16, 15, BraxChampionsPiksele.Czerwony);
+        T(px, w, h, "TU JESTEŚ: " + tu, 22, h - 15, 1, BraxChampionsPiksele.Bialy);
+    }
+    // a food court counter's three menu screens: k the counter (0..7), e the screen (0 ZESTAWY, 1 DANIA, 2 NAPOJE)
+    static readonly string[] Lokale = { "PIZZA NAPOLI", "SUSHI ZEN", "BURGER BAR", "KEBAB GRILL", "PIEROGI U BABCI", "THAI WOK", "SAŁATKI FRESH", "CAFE DOLCE" };
+    static readonly string[][] Dania = {
+        new[] { "MARGHERITA 32 CM", "29 ZŁ", "PEPPERONI", "34 ZŁ", "CAPRICCIOSA", "36 ZŁ", "QUATTRO FORMAGGI", "38 ZŁ" },
+        new[] { "ZESTAW MAKI 12 SZT.", "36 ZŁ", "NIGIRI ŁOSOŚ 6 SZT.", "32 ZŁ", "CALIFORNIA ROLL", "29 ZŁ", "ZUPA MISO", "12 ZŁ" },
+        new[] { "CLASSIC BURGER", "27 ZŁ", "CHEESEBURGER", "29 ZŁ", "BACON BBQ", "33 ZŁ", "FRYTKI", "10 ZŁ" },
+        new[] { "KEBAB W BUŁCE", "24 ZŁ", "KEBAB TALERZ", "32 ZŁ", "DURUM", "26 ZŁ", "FALAFEL", "22 ZŁ" },
+        new[] { "RUSKIE 10 SZT.", "24 ZŁ", "Z MIĘSEM 10 SZT.", "27 ZŁ", "Z KAPUSTĄ", "25 ZŁ", "BARSZCZ", "11 ZŁ" },
+        new[] { "PAD THAI", "33 ZŁ", "KURCZAK CURRY", "31 ZŁ", "WOK WOŁOWINA", "36 ZŁ", "SAJGONKI 4 SZT.", "14 ZŁ" },
+        new[] { "CEZAR Z KURCZAKIEM", "28 ZŁ", "GRECKA", "25 ZŁ", "BOWL Z ŁOSOSIEM", "34 ZŁ", "KREM DNIA", "14 ZŁ" },
+        new[] { "ESPRESSO", "9 ZŁ", "CAPPUCCINO", "13 ZŁ", "SERNIK", "16 ZŁ", "CROISSANT", "9 ZŁ" } };
+    public static void MenuLokalu(Color32[] px, int k, int e)
+    {
+        int w = ML, h = MH; k = Mathf.Clamp(k, 0, 7); e = Mathf.Clamp(e, 0, 2); BraxChampionsPiksele.Wypelnij(px, Ciemny);
+        BraxChampionsPiksele.Prost(px, w, h, 0, h - 20, w, h, Pasek);
+        S(px, w, h, Lokale[k] + (e == 0 ? " · ZESTAWY" : e == 1 ? " · MENU" : " · NAPOJE"), 6, 1, BraxChampionsPiksele.Bialy);
+        string[] poz = e == 1 ? Dania[k] : e == 0
+            ? new[] { "ZESTAW DNIA + NAPÓJ", "35 ZŁ", "ZESTAW DUŻY", "42 ZŁ", "ZESTAW DZIECIĘCY", "21 ZŁ", "DOKŁADKA", "+6 ZŁ" }
+            : new[] { "COLA 0,5 L", "9 ZŁ", "WODA 0,5 L", "6 ZŁ", "LEMONIADA", "12 ZŁ", "HERBATA", "8 ZŁ" };
+        for (int i = 0; i < 4; i++)
+        {
+            int y = 28 + i * 24;
+            T(px, w, h, Krotko(poz[2 * i], 22), 8, y + 3, 1, Bursztyn);
+            string c = poz[2 * i + 1]; T(px, w, h, c, w - 8 - BraxChampionsPiksele.Szer(c, 2), y, 2, BraxChampionsPiksele.Bialy);
+            if (i < 3) BraxChampionsPiksele.Prost(px, w, h, 8, h - y - 19, w - 8, h - y - 18, new Color32(60, 60, 70, 255));
+        }
+    }
+    // the hall's LOMBARD GSM kiosk price screen (owner 11.11 19:49: "lombard z telefonami ... mały")
+    public static void EkranLombardu(Color32[] px)
+    {
+        int w = LW, h = LH; BraxChampionsPiksele.Wypelnij(px, Ciemny);
+        BraxChampionsPiksele.Prost(px, w, h, 0, h - 22, w, h, Pasek);
+        S(px, w, h, "LOMBARD GSM · CENNIK", 7, 1, BraxChampionsPiksele.Bialy);
+        string[] poz = { "SMARTFON BX 15 PRO", "2399 ZŁ", "SMARTFON BX 14", "1699 ZŁ", "TABLET BX TAB 11", "899 ZŁ", "ZEGAREK BX WATCH", "549 ZŁ", "WYMIANA EKRANU", "OD 199 ZŁ" };
+        for (int i = 0; i < 5; i++)
+        {
+            int y = 28 + i * 21;
+            T(px, w, h, poz[2 * i], 8, y + 4, 1, Bursztyn);
+            string c = poz[2 * i + 1]; T(px, w, h, c, w - 8 - BraxChampionsPiksele.Szer(c, 2), y, 2, BraxChampionsPiksele.Bialy);
+        }
+        S(px, w, h, "SKUP TELEFONÓW · WYCENA OD RĘKI", h - 12, 1, BraxChampionsPiksele.Zielony);
+    }
+    // a phone's home screen (the kiosk's and the shops' phones): a gradient, the clock, a grid of app tiles, the dock
+    public static void EkranTelefonu(Color32[] px, int wariant)
+    {
+        int w = FW, h = FH;
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++)
+            {
+                float t = y / (float)h; var a = wariant % 2 == 0 ? new Color(.10f, .16f, .45f) : new Color(.45f, .08f, .20f); var b = new Color(.02f, .02f, .05f);
+                var c = Color.Lerp(b, a, t); px[y * w + x] = new Color32((byte)(c.r * 255), (byte)(c.g * 255), (byte)(c.b * 255), 255);
+            }
+        T(px, w, h, "12:00", 17, 8, 1, BraxChampionsPiksele.Bialy);
+        Color32[] ik = { new Color32(70, 230, 120, 255), new Color32(60, 150, 255, 255), new Color32(255, 176, 40, 255), new Color32(255, 70, 80, 255), new Color32(190, 90, 255, 255), new Color32(240, 244, 255, 255) };
+        for (int r = 0; r < 4; r++) for (int c = 0; c < 4; c++)
+            {
+                int x0 = 5 + c * 14, y0 = h - 30 - r * 16;
+                BraxChampionsPiksele.Prost(px, w, h, x0, y0 - 10, x0 + 10, y0, ik[(r * 4 + c + wariant) % ik.Length]);
+            }
+        BraxChampionsPiksele.Prost(px, w, h, 3, 4, w - 3, 18, new Color32(40, 44, 62, 255));
+        for (int c = 0; c < 4; c++) BraxChampionsPiksele.Prost(px, w, h, 7 + c * 14, 6, 15 + c * 14, 15, ik[(c + 2) % ik.Length]);
+    }
 }

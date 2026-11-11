@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 ED = ROOT / 'unity-city/Assets/Editor/Mistrzowie'
 RT = ROOT / 'unity-city/Assets/Mistrzowie'
 FILES = ['BraxChampionsG1.cs', 'BraxChampionsG1Bryla.cs', 'BraxChampionsG1Wnetrze.cs', 'BraxChampionsG1Sklepy.cs',
-         'BraxChampionsG1Kino.cs', 'BraxChampionsG1Meble.cs']
+         'BraxChampionsG1Kino.cs', 'BraxChampionsG1Meble.cs', 'BraxChampionsG1Lazienki.cs']
 
 
 def src(name=None):
@@ -156,6 +156,72 @@ class G1Tests(unittest.TestCase):
         g = src('BraxChampionsG1.cs')
         self.assertIn('G1Edges();', g)
         self.assertIn('static void G1Edges()', g)
+
+
+class G1Owner1947Tests(unittest.TestCase):
+    # owner 11.11 19:47-20:18: black / red / white facade, MULTIPLEX lit red, no fin on the docks, one column, the hall's
+    # LOMBARD GSM (no indoor tree), real toilets with running taps, fountains with moving water, the furnishing catalogue,
+    # chairs' backs as wide as their seats, small tills on the promenade, a turning kebab
+    def test_facade_black_red_white(self):
+        g = src('BraxChampionsG1.cs'); b = src('BraxChampionsG1Bryla.cs')
+        self.assertIn('"g1_letters_lit_red"', g)
+        self.assertIn('gRedLit,gLetterSide,"MULTIPLEX"', b)
+        self.assertIn('"g1_m02_white_composite"', g)
+        self.assertIn('"rectangular_facade_tiles"', g)
+        self.assertNotIn('{-45f,0f,27f,47f})Fin', b)
+
+    def test_one_column_everywhere(self):
+        b = src('BraxChampionsG1Bryla.cs')
+        loop = b[b.index('// ---- columns on the 10 m grid'):b.index('// ---- the plinth')]
+        self.assertIn('G1Column(x,z,G1F0,top)', loop)
+        for old in ('gWhitePanel', 'hConcrete', 'gWood'):
+            self.assertNotIn(old, loop)
+
+    def test_hall_kiosk_and_no_indoor_tree(self):
+        w = src('BraxChampionsG1Wnetrze.cs')
+        hall = w[w.index('static void G1Hall()'):w.index('static void BarStool(')]
+        self.assertIn('"LOMBARD GSM"', hall)
+        self.assertNotIn('Tree(', hall)
+        self.assertIn('PlanGalerii', w + (RT / 'BraxChampionsKinoEkrany.cs').read_text())
+        self.assertIn('MenuLokalu(px,i,j)', w)
+
+    def test_toilets_are_real(self):
+        l = src('BraxChampionsG1Lazienki.cs')
+        self.assertIn('static void UrinalReal(', l)
+        self.assertIn('the drain at\n    // the LOWEST point', l)        # the R1 urinal geometry (owner 20:39), the drain at the bowl's bottom
+        self.assertIn('FountainWater(', l)          # the sensor taps run
+        self.assertIn('BraxChampionsMirror.Wall(', l)
+        self.assertIn('"long_white_tiles"', l)
+
+    def test_fountains_move(self):
+        d2 = (ED / 'BraxChampionsD2Autobusy.cs').read_text(); pz = (ED / 'BraxChampionsPromenadeZones.cs').read_text()
+        for f in (d2, pz):
+            self.assertIn('FountainWater(', f)
+        self.assertNotIn('m.Cylinder(waterJet', d2)
+        self.assertNotIn('m.Cylinder(curtain', pz)
+        self.assertTrue((RT / 'BraxChampionsFontanna.cs').exists() and (RT / 'BraxChampionsFontanna.cs.meta').exists())
+        self.assertIn('MarkDynamic', (RT / 'BraxChampionsFontanna.cs').read_text())
+
+    def test_catalogue(self):
+        k = (ED / 'BraxKatalog.cs').read_text()
+        for f in ('public static void Tv(', 'public static void Laptop(', 'public static void Monitor(', 'public static void Kitchen(',
+                  'public static void Wardrobe(', 'public static void Dresser(', 'public static void MediaUnit(', 'public static void Vanity('):
+            self.assertIn(f, k)
+        self.assertIn('"BRAXHORN"', k)
+        self.assertTrue((ED / 'BraxKatalog.cs.meta').exists())
+        m = src('BraxChampionsG1Meble.cs')
+        for f in ('BraxKatalog.Kitchen(', 'BraxKatalog.Wardrobe(', 'BraxKatalog.Dresser(', 'BraxKatalog.MediaUnit(', 'BraxKatalog.Vanity('):
+            self.assertIn(f, m)
+
+    def test_chair_backs_as_wide_as_seats(self):
+        w = src('BraxChampionsG1Wnetrze.cs')
+        self.assertIn('new Vector3(.46f,.36f,.05f)', w[w.index('static void G1Chair('):])
+
+    def test_promenade_small_tills_and_kebab(self):
+        e = (ED / 'BraxChampionsPromenadeEquipment.cs').read_text()
+        self.assertNotIn('PackModel(root,"kasa"', e)
+        self.assertIn('static void SmallTill(', e)
+        self.assertIn('spin.stopniNaSekunde=30f', e)
 
 
 if __name__ == '__main__':

@@ -44,7 +44,7 @@ public static partial class BraxChampionsD2
     public static int G1Bays,G1AccessibleBays,G1Shops,G1Halls,G1CinemaSeats,G1Escalators;
 
     static Material gDark,gLight,gRed,gStone,gRoof,gRoofLight,gHvac,gVaultGlass,gShopGlass,gCinemaDark,gMallFloor,gMallFloor2,gMallBand,gWhitePanel,gWood,gMarketFloor,gChairLeather;
-    static Material gLetterFace,gLetterSide,gStoneTop,gVelvetBlack,gLeatherBlack,gOak,gWallPanels,gWallWarm;
+    static Material gRedLit,gCladding,gBlackFascia,gLetterFace,gLetterSide,gStoneTop,gVelvetBlack,gLeatherBlack,gOak,gWallPanels,gWallWarm;
     static void G1Materials()
     {
         // Owner 11.11 15:53 ("Poly Haven, tylko i wyłącznie Poly Haven ... materiałów, obić, wszystkiego") and 17:53 ("drewno to
@@ -53,8 +53,13 @@ public static partial class BraxChampionsD2
         // M-01 anthracite composite (painted aluminium), M-02 light architectural concrete, M-03 the facade glass, M-04 red
         // accent (painted metal), M-05 trims black anodised, M-06 granite plinth, M-07 paving, M-08 asphalt, M-10 roof
         gDark=S("g1_m01_anthracite_composite",new Color(.17f,.18f,.19f),.38f,.72f);
-        gLight=Tex("g1_m02_concrete_light","concrete_wall_009",3.0f,new Color(1.16f,1.15f,1.12f));
-        gRed=S("g1_m04_red_accent_painted_metal",new Color(.62f,.05f,.06f),.42f,.55f);
+        // owner 11.11 19:47 ("dać czarny, czerwony i biały"): the pilasters, cornices and bands white composite (was the light
+        // concrete), the fins a bright signal red, the cassettes graphite façade tiles with a visible texture (was flat black)
+        gLight=S("g1_m02_white_composite",new Color(.97f,.97f,.96f),.60f,.15f,new Color(.10f,.10f,.10f));
+        gRed=S("g1_m04_red_accent_painted_metal",new Color(.80f,.05f,.07f),.50f,.45f,new Color(.18f,.0f,.01f));
+        gRedLit=S("g1_letters_lit_red",new Color(.95f,.06f,.08f),.25f,0f,new Color(1.35f,.07f,.09f));   // owner 19:47: MULTIPLEX "prawie niewidoczny" - lit red
+        gBlackFascia=Inside(S("g1_black_gloss_composite",new Color(.045f,.045f,.05f),.30f,.35f),.9f);   // owner 19:49: the slab edges, stair bodies not grey
+        gCladding=Tex("g1_m01_graphite_facade_tiles","rectangular_facade_tiles",2.0f,new Color(.34f,.34f,.36f));
         gStone=graniteDark;
         gRoof=Tex("g1_m10_roof_membrane","concrete_floor_02",3.0f,new Color(.46f,.47f,.49f));
         gRoofLight=Tex("g1_m10_roof_walkway","anti_slip_concrete",1.5f,new Color(.95f,.95f,.96f));
@@ -307,7 +312,7 @@ public static partial class BraxChampionsD2
         // the fountain on the square's axis, its granite ring and benches; beds with trees round the square; lamps
         var fc=new Vector3(-2f,WalkY,104f);
         Fountain(fc);
-        Ring(granite,new Vector3(fc.x,WalkY+.024f,fc.z),7.6f,10.5f,WalkY+.024f,WalkY+.024f,64);   // 12 mm over the dark bands
+        Ring(granite,new Vector3(fc.x,WalkY,fc.z),7.6f,10.5f,WalkY,WalkY+.034f,64);   // a solid ring 2.2 cm over the dark bands (outside)
         foreach(float a in new[]{20f,160f,250f,290f})
         {
             var d=new Vector3(Mathf.Cos(a*Mathf.Deg2Rad),0,Mathf.Sin(a*Mathf.Deg2Rad));
@@ -333,10 +338,43 @@ public static partial class BraxChampionsD2
         foreach(float x in new[]{100f,140f})BraxChampionsPromenadeFurniture.Lamp(m,cols,x,G1YardZ1-1f);
         // the gallery's pylon at the corner of the square by the road (GALERIA GŁÓWNA, KINO, P), parking and taxi signs
         G1Pylon(-27f,G1SiteZ1-4f);
+        G1TowerParks();
         PSign(G1WestX1+1.5f,G1WestZ0+8f);PSign(-74.5f,G1SiteZ0+5f);PSign(23.5f,G1SiteZ0+5f);
         TaxiSign(G1TaxiX0+9f,G1TaxiZ1-1.2f,"TAXI");
         // flags in front of the main entrance (navy, red, white cloth on black masts)
         for(int i=0;i<4;i++){Flag(-44f+i*5f,G1HD+3.2f,i);Flag(29f+i*5f,G1HD+3.2f,i+1);}
+    }
+    // the tower plots T15 (west) and T14 (east) by the square stay for their towers; until they are built the foundation's
+    // plot base lies 25 cm under the ground with open edges (the owner saw the sky through the gap, 19:47): each plot gets a
+    // raised park - a granite edge 45 cm (a seat all round), lawn, a granite cross of paths, trees on a 10 m grid, benches
+    static void G1TowerParks()
+    {
+        foreach(var (x0,x1,z0,z1) in new[]{(-80f,-30f,80f,130f),(75f,125f,80f,130f)})
+        {
+            const float e=.40f,yb=-.25f,ye=WalkY+.45f,yl=WalkY+.40f;
+            float xm=(x0+x1)*.5f,zm=(z0+z1)*.5f,pw=1.6f;
+            // the edge with an entrance at each path's end: two granite steps (20 cm) up from the square
+            B(granite,x0,xm-pw,yb,ye,z0,z0+e,true);B(granite,xm+pw,x1,yb,ye,z0,z0+e,true);B(granite,x0,xm-pw,yb,ye,z1-e,z1,true);B(granite,xm+pw,x1,yb,ye,z1-e,z1,true);
+            B(granite,x0,x0+e,yb,ye,z0+e,zm-pw,true);B(granite,x0,x0+e,yb,ye,zm+pw,z1-e,true);B(granite,x1-e,x1,yb,ye,z0+e,zm-pw,true);B(granite,x1-e,x1,yb,ye,zm+pw,z1-e,true);
+            B(granite,xm-pw,xm+pw,yb,yl,z0,z0+e,true);B(granite,xm-pw,xm+pw,yb,yl,z1-e,z1,true);B(granite,x0,x0+e,yb,yl,zm-pw,zm+pw,true);B(granite,x1-e,x1,yb,yl,zm-pw,zm+pw,true);
+            foreach(var (sx,sz) in new[]{(0f,-1f),(0f,1f),(-1f,0f),(1f,0f)})
+            {
+                // the steps outside the edge (on the square: z0 / z1 / x0 / x1 side), never into the tower plot's neighbours
+                for(int k=0;k<2;k++)
+                {
+                    float o0=k*.32f,o1=(k+1)*.32f,yt=WalkY+(2-k)*.20f;
+                    if(sz!=0f){float za=sz<0?z0-o1:z1+o0,zb=sz<0?z0-o0:z1+o1;B(granite,xm-pw,xm+pw,WalkY,yt,za,zb,true);}
+                    else{float xa=sx<0?x0-o1:x1+o0,xb=sx<0?x0-o0:x1+o1;B(granite,xa,xb,WalkY,yt,zm-pw,zm+pw,true);}
+                }
+            }
+            // the lawn in four fields round the paths; the paths' granite at the lawn level
+            foreach(var (a,b,c,d) in new[]{(x0+e,xm-pw,z0+e,zm-pw),(xm+pw,x1-e,z0+e,zm-pw),(x0+e,xm-pw,zm+pw,z1-e),(xm+pw,x1-e,zm+pw,z1-e)})B(lawn,a,b,yb,yl,c,d,true);
+            B(granite,xm-pw,xm+pw,yb,yl,z0+e,z1-e,true);B(granite,x0+e,xm-pw,yb,yl,zm-pw,zm+pw,true);B(granite,xm+pw,x1-e,yb,yl,zm-pw,zm+pw,true);
+            for(float x=x0+6f;x<x1-3f;x+=10f)for(float z=z0+6f;z<z1-3f;z+=10f){if(Mathf.Abs(x-xm)<3f||Mathf.Abs(z-zm)<3f)continue;Tree(x,z,yl);}
+            foreach(var (bx,bz,fx,fz) in new[]{(xm-4f,zm+2.6f,0f,-1f),(xm+4f,zm-2.6f,0f,1f),(xm+2.6f,zm+4f,-1f,0f),(xm-2.6f,zm-4f,1f,0f)})
+                StationBench(new Vector3(bx,yl,bz),new Vector3(fx,0,fz),3,"ławka park przy galerii",0,false);
+            for(float x=x0+1f;x<x1-.5f;x+=2.5f){if(Mathf.Abs(x-xm)<pw+.4f)continue;Seat(x,ye,z0+e*.5f,Vector3.back,"murek parku");Seat(x,ye,z1-e*.5f,Vector3.forward,"murek parku");}
+        }
     }
     static void BedG1(float x0,float x1,float z0,float z1)
     {
@@ -391,7 +429,7 @@ public static partial class BraxChampionsD2
             float zf=z+f*.352f,yaw=f>0?0f:180f;
             BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"GALERIA",new Vector3(x,WalkY+7.6f,zf),yaw,.42f,.03f,.10f,2.0f);
             BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"GŁÓWNA",new Vector3(x,WalkY+7.0f,zf),yaw,.42f,.03f,.10f,2.0f);
-            BraxChampionsLetters3D.Text(lm,gRed,frame,"KINO",new Vector3(x,WalkY+5.6f,zf),yaw,.34f,.03f,.10f,2.0f);
+            BraxChampionsLetters3D.Text(lm,gRedLit,gLetterSide,"KINO",new Vector3(x,WalkY+5.6f,zf),yaw,.34f,.03f,.10f,2.0f);
             BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"MULTIPLEX",new Vector3(x,WalkY+5.1f,zf),yaw,.24f,.03f,.10f,2.0f);
             BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"P 420",new Vector3(x,WalkY+3.4f,zf),yaw,.40f,.03f,.10f,2.0f);
         }

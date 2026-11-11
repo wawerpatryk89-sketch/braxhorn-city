@@ -433,3 +433,11 @@ static class PreviewPng
         Chunk(f, "IDAT", z.ToArray()); Chunk(f, "IEND", new byte[0]);
     }
 }
+
+// the fountains' moving water (runtime BraxChampionsFontanna): the preview keeps its fields; G1Main draws single frames of it
+public sealed class BraxChampionsFontanna : UnityEngine.MonoBehaviour
+{
+    public UnityEngine.Vector3[] a = new UnityEngine.Vector3[0], b = new UnityEngine.Vector3[0]; public float[] h = new float[0], w = new float[0];
+    public int[] n = new int[0]; public bool[] plusk = new bool[0]; public UnityEngine.Vector3[] lustroC = new UnityEngine.Vector3[0];
+    public float[] lustroR = new float[0]; public float g, lift, zasieg = 180f, czujnik; public UnityEngine.Material woda, tafla;
+}
