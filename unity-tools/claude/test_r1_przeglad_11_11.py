@@ -201,6 +201,17 @@ class NapisyR1(unittest.TestCase):
         self.assertNotIn("BraxCityArchitecture.Sign(", blok)
 
 
+class Muzeum(unittest.TestCase):
+    def test_museum_in_historic_building(self):
+        # 20:06 „ten zabytkowy budynek zrobił funkcjonalny… można było wejść, jakieś takie muzeum… Poly Haven pod to”
+        m = src(R / "BraxMuzeum.cs")
+        for s in ["static void Muzeum()", 'q.name == "Budynek KINNAIRD"', "if (otwor.Contains(c)) { zmiana = true;", "BraxDrzwiLokalu.Drewniane",
+                  '"MUZEUM MIASTA BRAXHORN"', "static void Gablota(", '"marble_bust_01"', '"horse_statue_01"', "KOTWICA PORTOWA", 'Kol("bryła nad salą"']:
+            self.assertIn(s, m)
+        self.assertIn("Krok(\"2. budynki: MUZEUM MIASTA BRAXHORN w zabytku KINNAIRD", src(R / "BraxRegionMiastoB.cs"))
+        self.assertIn('"marble_bust_01", "horse_statue_01"', src(ROOT / "unity-tools" / "claude" / "fetch_region.py"))
+
+
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):
         k = src(ROOT / "unity-tools" / "claude" / "kontrola_kompilacji" / "kompiluj.sh")

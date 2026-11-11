@@ -71,8 +71,9 @@ public static class BraxRegion
     }
 }
 
-public static class BraxRegionMeble
+public static partial class BraxRegionMeble
 {
+    public static GameObject Latarnia(Transform parent, Vector3 p, float wys = 4.5f) { var s = new UlSiatka(); s.Rura(p, p + Vector3.up * wys, .06f, 10); return BraxMiastoA.Obiekt(parent, "latarnia (podgląd)", s, BraxUliceKit.Mat("latarnia (podgląd)", new Color(.2f, .2f, .22f), .5f, .5f)); }
     public static BoxCollider Kolizja(Transform parent, string name, Vector3 c, Vector3 size, Quaternion rot)
     {
         var g = new GameObject(name); g.transform.SetParent(parent, false); g.transform.position = c; g.transform.rotation = rot;
@@ -194,3 +195,4 @@ public static class BraxSklepyTowar
     public static bool Ma(string typ) => false;
     public static void Polka(string typ, Transform parent, Vector3 start, Vector3 wzdl, Vector3 wglab, float dl, System.Random rng, float maxWys = 99f) { }
 }
+namespace UnityEngine { public static class ColorUtility { public static string ToHtmlStringRGB(Color c) => ((int)(Mathf.Clamp01(c.r) * 255)).ToString("X2") + ((int)(Mathf.Clamp01(c.g) * 255)).ToString("X2") + ((int)(Mathf.Clamp01(c.b) * 255)).ToString("X2"); } }

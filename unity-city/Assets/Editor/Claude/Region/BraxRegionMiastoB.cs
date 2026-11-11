@@ -128,6 +128,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         Krok("2. budynki: komisariat policji i szpital miejski (ul. Zachodnia)", () => BraxRegionTylyB.BudynkiZachodu(world, cityRoot, Komisariat, Szpital));
         Krok("2. budynki: CENTRUM — 6 wieżowców i GALERIA (ETAP 3)", () => BraxRegionTylyB.Centrum(world, cityRoot, WiezeCentrum, Galeria));
         Krok("2. budynki: NOWE DZIELNICE (modele Sketchfab: centrum city5, kamienice city3, ATLANTA, LONDON, KINNAIRD)", () => NoweDzielniceBudynki(cityRoot));
+        Krok("2. budynki: MUZEUM MIASTA BRAXHORN w zabytku KINNAIRD (wejście, sala, eksponaty)", Muzeum);
         Krok("2. budowle: portal tunelu i zbocze", WyjazdNaOsiedle);
         Krok("3. wyposażenie na gotowym podłożu (drzewa, latarnie, ławki, słupki, rzeźba)", Wyposazenie);
         Krok("3. sygnalizacja na wysięgnikach i znaki", Sygnalizacja);

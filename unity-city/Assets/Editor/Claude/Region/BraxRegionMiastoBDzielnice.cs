@@ -863,10 +863,8 @@ public static partial class BraxRegionMiastoB
             o.transform.position = NaPodlozu(p); o.transform.rotation = Quaternion.Euler(0, yaw, 0); o.transform.localScale = Vector3.one * K;
             BraxMiastoAssety.Przygotuj(o); if (kol) BraxMiastoAssety.Kolizja(root, o, co + " kolizja", .05f); n2++;
         }
-        // hydranty: na chodnikach ulic C, 18 m od osi alei, przy krawężniku (poza zebrami i słupami)
-        for (int i = 0; i < 4; i++) { P("hydrant", new Vector3(NC[i] + AH + Kr + 1.2f, YC, RZ + APR + 6f), 0f); P("hydrant", new Vector3(NC[i] - AH - Kr - 1.2f, YC, RZ - APR - 6f), 180f); }
-        // skrzynki pocztowe
-        P("skrzynka_pocztowa", new Vector3(-372f, YC, 13.6f), 0f); P("skrzynka_pocztowa", new Vector3(-520f, YC, RzB0 + 1.2f), 180f); P("skrzynka_pocztowa", new Vector3(-660f, YC, 13.6f), 0f);
+        // 11.11 19:40 (właściciel: „Na chodnikach nie ma nic być… Świetnik może być ewentualnie i nic więcej na ulicy”): hydranty
+        // i skrzynki pocztowe z chodników nowych dzielnic zdjęte (zostają kosze, latarnie i bankomaty przy banku)
         // bankomat przy banku (KINNAIRD) — przy balustradzie od promenady, ekranem do ludzi
         var kin = NoweBudynki.First(b => b.id == "KINNAIRD");
         P("bankomat", new Vector3(kin.x + 8f, YC, PromenadaZ + .45f), 0f);
