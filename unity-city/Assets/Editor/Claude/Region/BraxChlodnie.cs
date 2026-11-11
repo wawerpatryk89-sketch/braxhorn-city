@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -13,7 +14,9 @@ using UnityEngine.Rendering;
 //    plecy z mlecznego panelu podświetlonego, pionowe listwy LED przy krawędziach, 4 półki z listwą cenową (cenówki), cokół
 //    z kratką wentylacyjną, kaseton u góry z literami LED „ZIMNE NAPOJE”. W środku NAPOJE Z KODU, w rzędach jak w sklepie (po
 //    2–4 sztuki tego samego obok siebie, dwa rzędy w głąb): butelki PET 1.5 l (dół), PET 0.5 l, puszki 0.33 i 0.5 l, butelki
-//    szklane — bryły toczone z płynem w kolorze napoju, etykietą z paskiem, nakrętką, pustą szyjką; puszki z rantem i wieczkiem.
+//    szklane — bryły toczone z płynem w kolorze napoju, nakrętką, pustą szyjką; puszki z rantem i wieczkiem; ETYKIETY Z NAZWAMI
+//    (atlas z kodu: BRAXHORN COLA / ZERO / ISO / ENERGY / POWER, WAWER WODA / TONIK / LAGER / PILS, SOBCZAK ORANŻADA / LEMONIADA /
+//    ICE TEA / LIMONKA).
 //  • SZAFA CHŁODNICZA Z MIĘSEM — ta sama obudowa (kaseton „MIĘSO”), na półkach mięso z biblioteki właściciela (BraxSklepyTowar:
 //    steki, łosoś, kurczak, mięso, kiełbasy, parówki, sery); bez paczki — tacki z mięsem z kodu.
 //  • LADA CHŁODNICZA (mięsny) — korpus ze stali nierdzewnej na cofniętym cokole, odbojnica na wspornikach od klienta, policzki
@@ -27,7 +30,7 @@ internal static class BraxChlodnie
 {
     static float K => BraxClaudeOsiedle.K;
     const string Katalog = BraxRegion.Out + "/Chlodnie";
-    static Material blacha, stal, czarny, szklo, led, plecy, napisM, pet, puszka, szkloBut, kratka, mieso, tacka, ekran, deska;
+    static Material blacha, stal, czarny, szklo, led, plecy, napisM, pet, puszka, szkloBut, kratka, mieso, tacka, ekran, deska, etykiety;
 
     static void Materialy()
     {
@@ -47,6 +50,7 @@ internal static class BraxChlodnie
         mieso = BraxUliceKit.Mat("chłodnie: mięso z kodu (zapas bez paczki sklepów)", Color.white, .5f, 0f);
         tacka = BraxUliceKit.Mat("chłodnie: tacki i cenówki", Color.white, .45f, 0f);
         deska = BraxUliceKit.Tex("chłodnie: deska do krojenia (dąb)", .6f, null, new Color(.62f, .48f, .32f), .55f, "oak_veneer_01", "wood_table_001");
+        etykiety = AtlasEtykiet();
     }
 
     static Color32 C(float r, float g, float b) => new Color32((byte)(r * 255f), (byte)(g * 255f), (byte)(b * 255f), 255);
@@ -127,7 +131,7 @@ internal static class BraxChlodnie
         for (int j = 1; j < P; j++) dl[j] = dl[j - 1] + Vector2.Distance(pr[j - 1], pr[j]);
         for (int i = 0; i <= seg; i++)
         {
-            float a = i * Mathf.PI * 2f / seg; var kier = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)); var tan = new Vector3(-Mathf.Sin(a), 0f, Mathf.Cos(a));
+            float a = -Mathf.PI * .5f + i * Mathf.PI * 2f / seg; var kier = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)); var tan = new Vector3(-Mathf.Sin(a), 0f, Mathf.Cos(a));   // od −90° jak pas etykiety
             for (int j = 0; j < P; j++)
             {
                 Vector2 d = (Vector2)pr[Mathf.Min(P - 1, j + 1)] - (Vector2)pr[Mathf.Max(0, j - 1)];
@@ -148,77 +152,171 @@ internal static class BraxChlodnie
             }
     }
 
-    // kolory profilu: 0 płyn / szkło, 1 etykieta, 2 pasek etykiety, 3 nakrętka, 4 PET nad płynem, 5 aluminium
-    static List<Vector3> ProfilPet(float r, float h)
+    // ---------------------------------------------------------------- napoje: kształty, marki, etykiety z nazwami
+    // Właściciel 21:27: „te napoje też dobrze stworzyłeś… tylko musiałbyś nazwy jakieś im dać… żeby uzupełnić asortyment nasz…
+    // nazwać jakoś fajnie”. Marki = firmy z gry (BRAXHORN, WAWER, SOBCZAK — właściciel 3.11), nazwy napojów zwykłymi słowami.
+    // Etykieta to osobny pas toczony (bez nakładania na butelkę) z ATLASU 1024 × 1024 (4 × 4 kwadraty po 256 px): wysokość pasa
+    // = 1/3 obwodu, więc przód butelki pokazuje całą etykietę bez zniekształceń; litery krojem Bebas (jak szyldy miasta).
+    struct Etykieta { public string marka, nazwa, dopisek; public Color tlo, pas, tekst, tekstMarki; }
+    static Etykieta E(string marka, string nazwa, string dopisek, Color tlo, Color pas, Color tekst, Color tekstMarki)
+        => new Etykieta { marka = marka, nazwa = nazwa, dopisek = dopisek, tlo = tlo, pas = pas, tekst = tekst, tekstMarki = tekstMarki };
+    static readonly Color Bi = new Color(.97f, .97f, .96f), Cz = new Color(.06f, .06f, .07f), Czerw = new Color(.78f, .06f, .07f), Zolty = new Color(.98f, .8f, .15f),
+        Granat = new Color(.1f, .25f, .65f), Ziel = new Color(.1f, .52f, .22f), Nieb = new Color(.15f, .45f, .85f);
+    internal static readonly string[] NazwyNapojow = { "BRAXHORN COLA", "BRAXHORN ZERO", "SOBCZAK ORANŻADA", "SOBCZAK LEMONIADA", "WAWER WODA NIEGAZOWANA", "WAWER WODA GAZOWANA",
+        "SOBCZAK ICE TEA", "BRAXHORN ISO", "BRAXHORN ENERGY", "BRAXHORN POWER", "BRAXHORN COLA (puszka)", "SOBCZAK ORANŻADA (puszka)", "SOBCZAK LIMONKA", "WAWER TONIK", "WAWER LAGER", "WAWER PILS" };
+    static readonly Etykieta[] Etykiety =
     {
-        var l = new List<Vector3>(); void A(float rr, float yy, int k) => l.Add(new Vector3(rr, yy, k));
-        A(0f, 0f, 0); A(r * .72f, 0f, 0); A(r * .95f, h * .025f, 0); A(r, h * .07f, 0);
-        A(r, h * .30f, 0); A(r, h * .30f, 1); A(r, h * .42f, 1); A(r, h * .42f, 2); A(r, h * .48f, 2); A(r, h * .48f, 1); A(r, h * .62f, 1); A(r, h * .62f, 0);
-        A(r * .97f, h * .69f, 0); A(r * .88f, h * .73f, 0); A(r * .88f, h * .73f, 4); A(r * .62f, h * .80f, 4); A(.0135f, h - .03f, 4); A(.0135f, h - .021f, 4);
-        A(.0135f, h - .021f, 3); A(.0152f, h - .021f, 3); A(.0152f, h - .003f, 3); A(.0125f, h, 3); A(0f, h, 3);
-        return l;
-    }
-    static List<Vector3> ProfilPuszka(float r, float h)
-    {
-        var l = new List<Vector3>(); void A(float rr, float yy, int k) => l.Add(new Vector3(rr, yy, k));
-        A(0f, .009f, 5); A(r * .62f, .004f, 5); A(r * .8f, 0f, 5); A(r * .94f, .004f, 5); A(r, .013f, 5);
-        A(r, .013f, 1); A(r, h * .40f, 1); A(r, h * .40f, 2); A(r, h * .55f, 2); A(r, h * .55f, 1); A(r, h - .014f, 1);
-        A(r, h - .014f, 5); A(r * .9f, h - .005f, 5); A(r * .84f, h - .002f, 5); A(r * .84f, h, 5); A(r * .78f, h, 5); A(r * .77f, h - .004f, 5); A(0f, h - .004f, 5);
-        return l;
-    }
-    static List<Vector3> ProfilSzklo(float r, float h)
-    {
-        var l = new List<Vector3>(); void A(float rr, float yy, int k) => l.Add(new Vector3(rr, yy, k));
-        A(0f, 0f, 0); A(r * .85f, 0f, 0); A(r, .008f, 0); A(r, h * .17f, 0); A(r, h * .17f, 1); A(r, h * .30f, 1); A(r, h * .30f, 2); A(r, h * .36f, 2); A(r, h * .36f, 1); A(r, h * .47f, 1); A(r, h * .47f, 0);
-        A(r, h * .53f, 0); A(r * .9f, h * .64f, 0); A(r * .55f, h * .76f, 0); A(.0135f, h * .86f, 0); A(.0135f, h - .016f, 0); A(.0158f, h - .013f, 0);
-        A(.0158f, h - .013f, 3); A(.0158f, h - .002f, 3); A(.012f, h, 3); A(0f, h, 3);
-        return l;
-    }
+        E("BRAXHORN", "COLA", "ORYGINALNA", Czerw, Bi, Bi, Bi),                                         // 0 PET
+        E("BRAXHORN", "ZERO", "BEZ CUKRU", Cz, Czerw, Bi, Czerw),                                       // 1
+        E("SOBCZAK", "ORANŻADA", "GAZOWANA", Granat, Zolty, Bi, Zolty),                                // 2
+        E("SOBCZAK", "LEMONIADA", "CYTRYNA · MIĘTA", Ziel, Zolty, Bi, Zolty),                          // 3
+        E("WAWER", "WODA", "NIEGAZOWANA", Nieb, Bi, Bi, Bi),                                            // 4
+        E("WAWER", "WODA", "GAZOWANA", Ziel, Bi, Bi, Bi),                                               // 5
+        E("SOBCZAK", "ICE TEA", "BRZOSKWINIA", Zolty, new Color(.15f, .45f, .2f), Cz, new Color(.15f, .45f, .2f)),   // 6
+        E("BRAXHORN", "ISO", "IZOTONIK", Bi, Nieb, Nieb, Cz),                                           // 7
+        E("BRAXHORN", "ENERGY", "500 ML", Cz, new Color(.4f, .85f, .2f), new Color(.4f, .85f, .2f), Bi),   // 8 puszki
+        E("BRAXHORN", "POWER", "ENERGY DRINK", new Color(.74f, .76f, .8f), Granat, Granat, Cz),        // 9
+        E("BRAXHORN", "COLA", "ORYGINALNA", Czerw, Bi, Bi, Bi),                                         // 10
+        E("SOBCZAK", "ORANŻADA", "GAZOWANA", new Color(.98f, .5f, .1f), Granat, Granat, Bi),           // 11
+        E("SOBCZAK", "LIMONKA", "GAZOWANA", new Color(.4f, .75f, .2f), Bi, Bi, Cz),                    // 12
+        E("WAWER", "TONIK", "GORZKI", Bi, Czerw, Czerw, Cz),                                            // 13
+        E("WAWER", "LAGER", "JASNE PEŁNE", new Color(.95f, .93f, .86f), new Color(.6f, .1f, .1f), new Color(.15f, .1f, .08f), new Color(.6f, .1f, .1f)),   // 14 szkło
+        E("WAWER", "PILS", "JASNE", new Color(.95f, .93f, .86f), new Color(.1f, .35f, .15f), new Color(.1f, .3f, .14f), new Color(.15f, .1f, .08f)),        // 15
+    };
 
-    // NAPOJE (nazwy fikcyjne — tylko barwy): ks 0 PET 0.5 l, 1 PET 1.5 l, 2 puszka 0.33 l, 3 puszka 0.5 l, 4 butelka szklana 0.33 l
-    struct Napoj { public int ks; public Color32 plyn, etyk, pas, nak; }
-    static Napoj N(int ks, Color32 plyn, Color32 etyk, Color32 pas, Color32 nak) => new Napoj { ks = ks, plyn = plyn, etyk = etyk, pas = pas, nak = nak };
-    static readonly Color32 Cola = C(.17f, .07f, .03f), Woda = C(.84f, .91f, .97f), Bialy = C(.97f, .97f, .96f), Alu = C(.84f, .85f, .87f);
+    // NAPOJE: ks 0 PET 0.5 l, 1 PET 1.5 l, 2 puszka 0.33 l, 3 puszka 0.5 l, 4 butelka szklana 0.33 l; et = komórka atlasu
+    struct Napoj { public int ks, et; public Color32 plyn, nak; }
+    static Napoj N(int ks, int et, Color32 plyn, Color32 nak) => new Napoj { ks = ks, et = et, plyn = plyn, nak = nak };
+    static readonly Color32 Cola = C(.17f, .07f, .03f), Woda = C(.84f, .91f, .97f), Alu = C(.84f, .85f, .87f), Srebro = C(.75f, .76f, .78f);
     static readonly Napoj[] Pet =
     {
-        N(0, Cola, C(.78f, .06f, .07f), Bialy, C(.78f, .06f, .07f)),                     // cola
-        N(0, Cola, C(.08f, .08f, .09f), C(.8f, .1f, .1f), C(.08f, .08f, .09f)),           // cola bez cukru
-        N(0, C(.98f, .55f, .08f), C(.1f, .25f, .65f), C(.98f, .8f, .15f), C(.1f, .25f, .65f)),   // oranżada
-        N(0, C(.86f, .9f, .45f), C(.1f, .55f, .2f), C(.95f, .95f, .3f), C(.1f, .55f, .2f)),      // lemoniada
-        N(0, Woda, C(.15f, .45f, .85f), Bialy, C(.15f, .45f, .85f)),                       // woda
-        N(0, Woda, C(.1f, .5f, .3f), Bialy, C(.1f, .5f, .3f)),                             // woda gazowana
-        N(0, C(.62f, .32f, .08f), C(.95f, .78f, .1f), C(.15f, .45f, .2f), C(.95f, .78f, .1f)),   // herbata mrożona
-        N(0, C(.35f, .7f, .95f), C(.92f, .92f, .94f), C(.15f, .4f, .85f), C(.15f, .4f, .85f)),   // izotonik
+        N(0, 0, Cola, C(.78f, .06f, .07f)), N(0, 1, Cola, C(.08f, .08f, .09f)), N(0, 2, C(.98f, .55f, .08f), C(.1f, .25f, .65f)), N(0, 3, C(.86f, .9f, .45f), C(.1f, .55f, .2f)),
+        N(0, 4, Woda, C(.15f, .45f, .85f)), N(0, 5, Woda, C(.1f, .5f, .3f)), N(0, 6, C(.62f, .32f, .08f), C(.95f, .78f, .1f)), N(0, 7, C(.35f, .7f, .95f), C(.15f, .4f, .85f)),
     };
-    static readonly Napoj[] Puszki =
+    static readonly Napoj[] Puszki = { N(2, 8, Alu, Alu), N(2, 9, Alu, Alu), N(2, 10, Alu, Alu), N(2, 11, Alu, Alu), N(2, 12, Alu, Alu), N(2, 13, Alu, Alu) };
+    static readonly Napoj[] Szklane = { N(4, 14, C(.32f, .17f, .05f), Srebro), N(4, 15, C(.12f, .38f, .15f), Srebro) };
+
+    // kształty: profil pod etykietą (dol) i nad nią (gora) — (r, y, kolor: 0 płyn / szkło, 1 nadruk puszki, 3 nakrętka, 4 PET nad płynem,
+    // 5 aluminium); między nimi pas etykiety y0…y1 (wysokość = 1/3 obwodu)
+    static float Obw3(float r) => 2f * Mathf.PI * r / 3f;
+    static void ProfilPet(float r, float h, out float y0, out float y1, List<Vector3> dol, List<Vector3> gora)
     {
-        N(2, Alu, C(.07f, .07f, .08f), C(.4f, .85f, .2f), Alu),     // energetyk czarno-zielony
-        N(2, Alu, C(.74f, .76f, .8f), C(.1f, .25f, .7f), Alu),      // energetyk srebrno-niebieski
-        N(2, Alu, C(.78f, .06f, .07f), Bialy, Alu),                 // cola
-        N(2, Alu, C(.98f, .5f, .1f), C(.1f, .25f, .65f), Alu),      // oranżada
-        N(2, Alu, C(.4f, .75f, .2f), Bialy, Alu),                   // limonka
-        N(2, Alu, C(.95f, .95f, .95f), C(.85f, .1f, .12f), Alu),    // tonik
-    };
-    static readonly Napoj[] Szklane =
+        y0 = h * .30f; y1 = y0 + Obw3(r); float yy1 = y1;
+        void D(float rr, float yy, int k) => dol.Add(new Vector3(rr, yy, k)); void G(float rr, float yy, int k) => gora.Add(new Vector3(rr, yy, k));
+        D(0f, 0f, 0); D(r * .72f, 0f, 0); D(r * .95f, h * .025f, 0); D(r, h * .07f, 0); D(r, y0, 0);
+        G(r, yy1, 0); G(r, Mathf.Max(yy1 + .004f, h * .64f), 0); G(r * .97f, h * .69f, 0); G(r * .88f, h * .73f, 0); G(r * .88f, h * .73f, 4); G(r * .62f, h * .80f, 4);
+        G(.0135f, h - .03f, 4); G(.0135f, h - .021f, 4); G(.0135f, h - .021f, 3); G(.0152f, h - .021f, 3); G(.0152f, h - .003f, 3); G(.0125f, h, 3); G(0f, h, 3);
+    }
+    static void ProfilPuszka(float r, float h, out float y0, out float y1, List<Vector3> dol, List<Vector3> gora)
     {
-        N(4, C(.32f, .17f, .05f), C(.95f, .93f, .86f), C(.75f, .1f, .1f), C(.75f, .76f, .78f)),   // brązowa
-        N(4, C(.12f, .38f, .15f), C(.95f, .93f, .86f), C(.1f, .3f, .15f), C(.75f, .76f, .78f)),   // zielona
-        N(4, C(.78f, .84f, .82f), C(.98f, .6f, .1f), Bialy, C(.85f, .1f, .1f)),                   // sok w przezroczystej
-    };
+        float b0 = .013f, b1 = h - .014f; y0 = (b0 + b1) * .5f - Obw3(r) * .5f; y1 = y0 + Obw3(r); float yy0 = y0, yy1 = y1;
+        void D(float rr, float yy, int k) => dol.Add(new Vector3(rr, yy, k)); void G(float rr, float yy, int k) => gora.Add(new Vector3(rr, yy, k));
+        D(0f, .009f, 5); D(r * .62f, .004f, 5); D(r * .8f, 0f, 5); D(r * .94f, .004f, 5); D(r, b0, 5); D(r, b0, 1); D(r, yy0, 1);
+        G(r, yy1, 1); G(r, b1, 1); G(r, b1, 5); G(r * .9f, h - .005f, 5); G(r * .84f, h - .002f, 5); G(r * .84f, h, 5); G(r * .78f, h, 5); G(r * .77f, h - .004f, 5); G(0f, h - .004f, 5);
+    }
+    static void ProfilSzklo(float r, float h, out float y0, out float y1, List<Vector3> dol, List<Vector3> gora)
+    {
+        y0 = h * .17f; y1 = y0 + Obw3(r); float yy0 = y0, yy1 = y1;
+        void D(float rr, float yy, int k) => dol.Add(new Vector3(rr, yy, k)); void G(float rr, float yy, int k) => gora.Add(new Vector3(rr, yy, k));
+        D(0f, 0f, 0); D(r * .85f, 0f, 0); D(r, .008f, 0); D(r, yy0, 0);
+        G(r, yy1, 0); G(r, h * .53f, 0); G(r * .9f, h * .64f, 0); G(r * .55f, h * .76f, 0); G(.0135f, h * .86f, 0); G(.0135f, h - .016f, 0); G(.0158f, h - .013f, 0);
+        G(.0158f, h - .013f, 3); G(.0158f, h - .002f, 3); G(.012f, h, 3); G(0f, h, 3);
+    }
 
     static void Postaw(Partie p, Napoj n, Vector3 q, int seg)
     {
-        var kol = new[] { n.plyn, n.etyk, n.pas, n.nak, C(.86f, .9f, .92f), Alu };
+        var et = Etykiety[n.et]; var tlo = (Color32)et.tlo;
+        var kol = new[] { n.plyn, tlo, tlo, n.nak, C(.86f, .9f, .92f), Alu };
+        var dol = new List<Vector3>(); var gora = new List<Vector3>(); float y0, y1, r = Promien(n.ks); Material m;
         switch (n.ks)
         {
-            case 1: Toczony(p[pet], q, ProfilPet(.045f, .32f), kol, seg); break;
-            case 2: Toczony(p[puszka], q, ProfilPuszka(.033f, .115f), kol, seg); break;
-            case 3: Toczony(p[puszka], q, ProfilPuszka(.033f, .168f), kol, seg); break;
-            case 4: Toczony(p[szkloBut], q, ProfilSzklo(.03f, .23f), kol, seg); break;
-            default: Toczony(p[pet], q, ProfilPet(.0325f, .205f), kol, seg); break;
+            case 1: ProfilPet(r, .32f, out y0, out y1, dol, gora); m = pet; break;
+            case 2: ProfilPuszka(r, .115f, out y0, out y1, dol, gora); m = puszka; break;
+            case 3: ProfilPuszka(r, .168f, out y0, out y1, dol, gora); m = puszka; break;
+            case 4: ProfilSzklo(r, .23f, out y0, out y1, dol, gora); m = szkloBut; break;
+            default: ProfilPet(r, .205f, out y0, out y1, dol, gora); m = pet; break;
         }
+        Toczony(p[m], q, dol, kol, seg); Toczony(p[m], q, gora, kol, seg);
+        PasEtykiety(p[etykiety], q, r, y0, y1, n.et, seg);
     }
     static float Promien(int ks) => ks == 1 ? .045f : ks == 4 ? .03f : ks == 0 ? .0325f : .033f;
+
+    /// <summary>Pas etykiety (walec r, y0…y1) z UV do komórki atlasu: przód (+z) = środek etykiety, ±60° = jej krawędzie (dalej tło).
+    /// Kąty jak w Toczony (od −90°), więc pierścienie brzegowe pokrywają się z bryłą butelki — bez szczelin i bez nakładania.</summary>
+    static void PasEtykiety(UlSiatka s, Vector3 p, float r, float y0, float y1, int kom, int seg)
+    {
+        int k0 = s.v.Count, col = kom % 4, row = kom / 4; const float mg = .012f;
+        for (int i = 0; i <= seg; i++)
+        {
+            float a = -Mathf.PI * .5f + i * Mathf.PI * 2f / seg, d = a - Mathf.PI * .5f;   // d: −π…π, 0 = przód
+            var kier = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)); var tan = new Vector3(-Mathf.Sin(a), 0f, Mathf.Cos(a));
+            float u = (col + mg + Mathf.Clamp01(.5f + d / (Mathf.PI * 2f / 3f)) * (1f - 2f * mg)) * .25f;
+            foreach (float y in new[] { y0, y1 })
+            {
+                s.v.Add(p + kier * r + Vector3.up * y); s.n.Add(kier); s.t.Add(new Vector4(tan.x, tan.y, tan.z, 1f)); s.c.Add(new Color32(255, 255, 255, 255));
+                s.uv.Add(new Vector2(u, (row + mg + (y > y0 ? 1f - 2f * mg : 0f)) * .25f));
+            }
+        }
+        for (int i = 0; i < seg; i++)
+        {
+            int a0 = k0 + 2 * i, a1 = a0 + 1, b0 = a0 + 2, b1 = a0 + 3;
+            if (Vector3.Dot(Vector3.Cross(s.v[a1] - s.v[a0], s.v[b1] - s.v[a0]), s.n[a0] + s.n[b0]) >= 0f) s.i.AddRange(new[] { a0, a1, b1, a0, b1, b0 });
+            else s.i.AddRange(new[] { a0, b1, a1, a0, b0, b1 });
+        }
+    }
+
+    // atlas etykiet: tło, pasek u dołu z dopiskiem, cienka linia u góry, marka, nazwa (Bebas, wygładzanie 4 próbki na piksel)
+    static Material AtlasEtykiet()
+    {
+        const int S = 1024, CW = 256;
+        var px = new Color[S * S];
+        for (int i = 0; i < Etykiety.Length; i++)
+        {
+            var e = Etykiety[i]; int ox = (i % 4) * CW, oy = (i / 4) * CW;
+            for (int y = 0; y < CW; y++) for (int x = 0; x < CW; x++) px[(oy + y) * S + ox + x] = (y >= 22 && y < 66) || (y >= 226 && y < 234) ? e.pas : e.tlo;
+            float jas = e.pas.r * .3f + e.pas.g * .59f + e.pas.b * .11f;
+            TekstAtlasu(px, S, ox, oy, CW, e.marka, 176f, 34f, e.tekstMarki);
+            TekstAtlasu(px, S, ox, oy, CW, e.nazwa, 88f, 74f, e.tekst);
+            TekstAtlasu(px, S, ox, oy, CW, e.dopisek, 33f, 22f, jas > .55f ? Cz : Bi);
+        }
+        var tx = new Texture2D(S, S, TextureFormat.RGB24, true); tx.SetPixels(px); tx.Apply();
+        Directory.CreateDirectory(Katalog); string path = Katalog + "/etykiety_napojow.png";
+        File.WriteAllBytes(path, tx.EncodeToPNG()); Object.DestroyImmediate(tx);
+        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+        if (AssetImporter.GetAtPath(path) is TextureImporter imp) { imp.sRGBTexture = true; imp.wrapMode = TextureWrapMode.Clamp; imp.maxTextureSize = 1024; imp.mipmapEnabled = true; imp.SaveAndReimport(); }
+        var t = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        var m = BraxCityMaterials.Surface("napoje: etykiety (atlas marek BRAXHORN / WAWER / SOBCZAK)", Color.white, .35f, 0f);
+        if (t) { m.SetTexture("_MainTex", t); EditorUtility.SetDirty(m); }
+        return m;
+    }
+    static void TekstAtlasu(Color[] px, int S, int ox, int oy, int CW, string tekst, float by, float cap, Color kol)
+    {
+        if (string.IsNullOrEmpty(tekst)) return;
+        float w = BraxLiteryBebas.Szerokosc(tekst, cap); if (w > CW * .88f) cap *= CW * .88f / w;
+        var maska = new byte[CW * CW];   // próbki 2 × 2 na piksel (bity), suma po wszystkich trójkątach napisu — bez szwów między trójkątami
+        foreach (var tr in BraxLiteryBebas.Trojkaty(tekst, new Vector3(CW * .5f, by, 0f), Vector3.right, Vector3.up, cap))
+        {
+            Vector2 a = tr[0], b = tr[1], c = tr[2];
+            float pole = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x); if (Mathf.Abs(pole) < 1e-6f) continue;
+            int x0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.x, Mathf.Min(b.x, c.x)))), x1 = Mathf.Min(CW - 1, Mathf.CeilToInt(Mathf.Max(a.x, Mathf.Max(b.x, c.x))));
+            int y0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.y, Mathf.Min(b.y, c.y)))), y1 = Mathf.Min(CW - 1, Mathf.CeilToInt(Mathf.Max(a.y, Mathf.Max(b.y, c.y))));
+            for (int y = y0; y <= y1; y++)
+                for (int x = x0; x <= x1; x++)
+                    for (int q = 0; q < 4; q++)
+                    {
+                        float sx = x + .25f + .5f * (q & 1), sy = y + .25f + .5f * (q >> 1);
+                        float w0 = (b.x - a.x) * (sy - a.y) - (b.y - a.y) * (sx - a.x), w1 = (c.x - b.x) * (sy - b.y) - (c.y - b.y) * (sx - b.x), w2 = (a.x - c.x) * (sy - c.y) - (a.y - c.y) * (sx - c.x);
+                        if (pole > 0f ? (w0 >= 0f && w1 >= 0f && w2 >= 0f) : (w0 <= 0f && w1 <= 0f && w2 <= 0f)) maska[y * CW + x] |= (byte)(1 << q);
+                    }
+        }
+        for (int y = 0; y < CW; y++)
+            for (int x = 0; x < CW; x++)
+            {
+                int bity = maska[y * CW + x]; if (bity == 0) continue;
+                float cov = ((bity & 1) + ((bity >> 1) & 1) + ((bity >> 2) & 1) + ((bity >> 3) & 1)) * .25f;
+                int i = (oy + y) * S + ox + x; px[i] = Color.Lerp(px[i], kol, cov);
+            }
+    }
 
     // ---------------------------------------------------------------- obudowa lodówki / szafy chłodniczej
     const float Dz = .62f, Hc = 1.84f, Hn = .22f, Wd = .70f, Bok = .04f, Sufit = 1.815f;
@@ -306,8 +404,8 @@ internal static class BraxChlodnie
                 if (grupa == 0) { n = lista[rng.Next(lista.Length)]; n.ks = ks; grupa = 2 + rng.Next(3); }
                 float z0 = Dz - .095f - .008f - r;
                 Postaw(p, n, new Vector3(x, y, z0), 12);
-                Postaw(p, n, new Vector3(x, y, z0 - 2f * r - .008f), 7);
-                if (ks == 2) { Postaw(p, n, new Vector3(x, y + .1155f, z0), 12); Postaw(p, n, new Vector3(x, y + .1155f, z0 - 2f * r - .008f), 7); }   // puszki 0.33 w dwóch warstwach
+                Postaw(p, n, new Vector3(x, y, z0 - 2f * r - .008f), 8);
+                if (ks == 2) { Postaw(p, n, new Vector3(x, y + .1155f, z0), 12); Postaw(p, n, new Vector3(x, y + .1155f, z0 - 2f * r - .008f), 8); }   // puszki 0.33 w dwóch warstwach
                 x += krok; grupa--;
             }
         }

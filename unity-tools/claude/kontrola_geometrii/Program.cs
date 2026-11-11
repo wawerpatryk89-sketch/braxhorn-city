@@ -76,6 +76,11 @@ public static class Harness
             BraxChlodnie.LodowkaNapojow(root, "lodówka 2", new Vector3(.9f, 0f, .01f), Vector3.forward, 2, 1);
             BraxChlodnie.LodowkaNapojow(root, "lodówka 3", new Vector3(4.6f, 0f, .01f), Vector3.forward, 3, 2);
             BraxChlodnie.LadaChlodnicza(root, "lada chłodnicza", new Vector3(-2.4f, 0f, 4.4f), Vector3.forward, 2.4f, null, new System.Random(5));
+            // ściana oprawek optyka (BraxUlicePierzeje.Okulary): dwie półki po 8 par, x 7.4…9.4, przodem do +z
+            var pol = new UlSiatka(); foreach (float y in new[] { 1.30f, 1.70f }) pol.Box(new Vector3(7.2f, y - .025f, .0f), new Vector3(9.6f, y, .45f));
+            BraxMiastoA.Obiekt(root, "półki optyka", pol, BraxUliceKit.Mat("półka (biała)", new Color(.95f, .95f, .94f), .5f));
+            int q = 0; foreach (float y in new[] { 1.30f, 1.70f }) for (float x = 7.45f; x < 9.5f; x += .25f * BraxClaudeOsiedle.K) BraxUlicePierzeje.Okulary(new Vector3(x, y + .0005f, .40f), Vector3.forward, BraxUlicePierzeje.KolorOprawki(q++), BraxClaudeOsiedle.K);
+            BraxUliceKit.Zapisz(root, "okulary");
             Console.WriteLine("CHŁODNIE: siatek " + BraxChlodnie.Siatek + ", kopii " + BraxChlodnie.Kopii);
         }
         else
@@ -154,7 +159,7 @@ public static class Harness
         js.Append(string.Join(",\n", mats.Select(m =>
         {
             var c = m.color; var e = m.c.TryGetValue("_EmissionColor", out var ee) ? ee : Color.black;
-            return "{\"n\":" + Js(m.name) + ",\"rodzaj\":\"" + m.rodzaj + "\",\"slug\":" + Js(m.slugi.FirstOrDefault() ?? "") + ",\"metry\":" + F(m.metry) + ",\"kolor\":[" + F(c.r) + "," + F(c.g) + "," + F(c.b) + "," + F(c.a) + "],\"rough\":" + F(m.GetFloat("_Roughness")) + ",\"metal\":" + F(m.GetFloat("_Metallic")) + ",\"emisja\":[" + F(e.r) + "," + F(e.g) + "," + F(e.b) + "]}";
+            return "{\"n\":" + Js(m.name) + ",\"rodzaj\":\"" + m.rodzaj + "\",\"slug\":" + Js(m.slugi.FirstOrDefault() ?? "") + ",\"metry\":" + F(m.metry) + ",\"kolor\":[" + F(c.r) + "," + F(c.g) + "," + F(c.b) + "," + F(c.a) + "],\"rough\":" + F(m.GetFloat("_Roughness")) + ",\"metal\":" + F(m.GetFloat("_Metallic")) + ",\"emisja\":[" + F(e.r) + "," + F(e.g) + "," + F(e.b) + "],\"plik\":" + Js(m.mainTexture != null ? m.mainTexture.name ?? "" : "") + "}";
         })));
         js.Append("],\n\"modele\":[" + string.Join(",\n", Rejestr.Modele.Select(m => "{\"id\":" + Js(m.id) + ",\"n\":" + Js(m.nazwa) + ",\"p\":[" + F(m.floor.x) + "," + F(m.floor.y) + "," + F(m.floor.z) + "],\"yaw\":" + F(m.yaw) + ",\"s\":" + F(m.scale) + ",\"sink\":" + F(m.sink) + ",\"maxH\":" + F(m.maxH) + "}")));
         js.Append("],\n\"swiatla\":[" + string.Join(",", Rejestr.Swiatla.Select(l => "{\"p\":[" + F(l.p.x) + "," + F(l.p.y) + "," + F(l.p.z) + "],\"i\":" + F(l.i) + ",\"r\":" + F(l.r) + "}")) + "]}");

@@ -135,6 +135,25 @@ class Chlodnie(unittest.TestCase):
         self.assertIn("BraxChlodnie.LodowkaNapojow(root,", src(R / "BraxMiastoWyspaDomki.cs"))
         self.assertIn('"chlodnie"', src(ROOT / "unity-tools" / "claude" / "kontrola_geometrii" / "Program.cs"))
 
+    def test_drinks_have_named_labels(self):
+        # 21:27 „te napoje też dobrze stworzyłeś… tylko musiałbyś nazwy jakieś im dać… nazwać jakoś fajnie” — marki z gry
+        c = src(R / "BraxChlodnie.cs")
+        for s in ["static Material AtlasEtykiet()", "PasEtykiety(p[etykiety]", "BraxLiteryBebas.Trojkaty(tekst", '"/etykiety_napojow.png"',
+                  'E("BRAXHORN", "COLA"', 'E("WAWER", "WODA"', 'E("SOBCZAK", "ORANŻADA"', 'E("WAWER", "LAGER"']:
+            self.assertIn(s, c)
+        self.assertEqual(c.count('        E("'), 16)   # 16 komórek atlasu 4 × 4
+
+
+class Optyk(unittest.TestCase):
+    def test_glasses_wall_from_code(self):
+        # 20:05 „skala… okulary u optyka za małe”: ściana oprawek z kodu (skala × K) zamiast małych modeli na półkach
+        u = src(R / "BraxUlicePierzeje.cs")
+        for s in ["internal static void Okulary(Vector3 c, Vector3 przod, Color32 kolor, float k)", "optyk: plecy ekspozycji (podświetlone)",
+                  "lok.typ == \"optyk\" ? 8 : 5", "Okulary(W(ladaS0 + .3f + i * .26f * k"]:
+            self.assertIn(s, u)
+        t = src(R / "BraxSklepyTowar.cs")
+        self.assertNotIn("round_spectacles", t[t.index('"optyk" =>'):t.index("\n", t.index('"optyk" =>'))])
+
 
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):

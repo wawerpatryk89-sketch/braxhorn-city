@@ -335,7 +335,30 @@ namespace UnityEngine
         public Texture2D(int w, int h) { width = w; height = h; }
         public Texture2D(int w, int h, TextureFormat f, bool mip) { width = w; height = h; }
         public void SetPixels(Color[] p) => px = p; public void Apply() { }
-        public byte[] EncodeToPNG() => new byte[0];
+        // prawdziwy PNG (RGB 8 bit) — podgląd pokazuje tekstury generowane kodem (np. etykiety napojów)
+        public byte[] EncodeToPNG()
+        {
+            if (px == null || px.Length != width * height) return new byte[0];
+            var crcT = new uint[256]; for (uint n = 0; n < 256; n++) { uint c = n; for (int k = 0; k < 8; k++) c = (c & 1) != 0 ? 0xEDB88320u ^ (c >> 1) : c >> 1; crcT[n] = c; }
+            var ms = new System.IO.MemoryStream();
+            void BE(System.IO.Stream st, uint v) { st.WriteByte((byte)(v >> 24)); st.WriteByte((byte)(v >> 16)); st.WriteByte((byte)(v >> 8)); st.WriteByte((byte)v); }
+            void Chunk(string typ, byte[] dane)
+            {
+                BE(ms, (uint)dane.Length); var tb = System.Text.Encoding.ASCII.GetBytes(typ); ms.Write(tb, 0, 4); ms.Write(dane, 0, dane.Length);
+                uint c = 0xFFFFFFFFu; foreach (var b in tb) c = crcT[(c ^ b) & 0xFF] ^ (c >> 8); foreach (var b in dane) c = crcT[(c ^ b) & 0xFF] ^ (c >> 8); BE(ms, c ^ 0xFFFFFFFFu);
+            }
+            ms.Write(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }, 0, 8);
+            var ih = new System.IO.MemoryStream(); BE(ih, (uint)width); BE(ih, (uint)height); ih.Write(new byte[] { 8, 2, 0, 0, 0 }, 0, 5); Chunk("IHDR", ih.ToArray());
+            var raw = new System.IO.MemoryStream();
+            using (var z = new System.IO.Compression.ZLibStream(raw, System.IO.Compression.CompressionLevel.Fastest, true))
+                for (int r = height - 1; r >= 0; r--)
+                {
+                    z.WriteByte(0);
+                    for (int x = 0; x < width; x++) { var c = px[r * width + x]; z.WriteByte((byte)Math.Round(Math.Clamp(c.r, 0f, 1f) * 255)); z.WriteByte((byte)Math.Round(Math.Clamp(c.g, 0f, 1f) * 255)); z.WriteByte((byte)Math.Round(Math.Clamp(c.b, 0f, 1f) * 255)); }
+                }
+            Chunk("IDAT", raw.ToArray()); Chunk("IEND", new byte[0]);
+            return ms.ToArray();
+        }
     }
     public class Shader : Object { public static Shader Find(string n) => new Shader { name = n }; }
     public class Material : Object
@@ -429,7 +452,7 @@ namespace UnityEditor
     public static class AssetDatabase
     {
         public static void ImportAsset(string p, ImportAssetOptions o = ImportAssetOptions.Default) { }
-        public static T LoadAssetAtPath<T>(string p) where T : Object => null;
+        public static T LoadAssetAtPath<T>(string p) where T : Object => typeof(T) == typeof(Texture2D) && System.IO.File.Exists(p) ? new Texture2D(1, 1) { name = p } as T : null;
         public static string GenerateUniqueAssetPath(string p) => p;
         public static void CreateAsset(Object o, string p) { } public static void SaveAssets() { } public static void Refresh() { }
     }
