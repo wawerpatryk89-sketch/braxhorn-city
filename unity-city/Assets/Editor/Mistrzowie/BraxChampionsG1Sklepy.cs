@@ -218,6 +218,22 @@ public static partial class BraxChampionsD2
         m.Box(eKey,c+f*.0114f+u*.004f,new Vector3(.011f,.0012f,.0005f),rot*Quaternion.Euler(0,0,12f));
         m.Cylinder(jSilver,c+u*.021f,.0022f,.004f,8,Quaternion.FromToRotation(Vector3.up,u),true,true);
     }
+    // the owner's jewellery (Tripo 23:31, pack sklep_bizuteria_01): kind 0 a watch wrapped on a black velvet cushion (owner 23:32:
+    // the bracelets are cut short - their ends go into the cushion, as in a real case), kind 1 a ring / earrings / bracelet on a
+    // velvet plinth, kind 2 a necklace or chain on an upright velvet board; false = the code piece stays
+    const string Jubiler="sklep_bizuteria_01";
+    static readonly string[] JZegarki={"zegarek_zloty","zegarek_stalowy"},JNaszyjniki={"naszyjnik_wisiorek_brylant","lancuszek_zloty"},
+        JDrobne={"pierscionek_brylant","kolczyki_kola_zlote","bransoleta_tenisowa_srebrna","obraczka_zlota","kolczyki_wiszace_brylant","bransoleta_zlota_pleciona"};
+    static bool JModel(int kind,int i,Vector3 p,Vector3 f)
+    {
+        if(!BraxMiastoAssety.Jest(Jubiler))return false;
+        string n=kind==0?JZegarki[i%2]:kind==2?JNaszyjniki[i%2]:JDrobne[i%JDrobne.Length];
+        if(!BraxMiastoAssety.Model(Jubiler,n))return false;
+        f.y=0;f.Normalize();var rot=Quaternion.LookRotation(f,Vector3.up);
+        if(kind==0){m.RoundedBox(gVelvetBlack,p+Vector3.up*.0885f-f*.046f,new Vector3(.075f,.177f,.06f),.024f,rot,2);return ShopModel(Jubiler,n,p,f);}
+        if(kind==2){m.RoundedBox(gVelvetBlack,p+Vector3.up*.15f-f*.012f,new Vector3(.17f,.30f,.016f),.006f,rot,2);return ShopModel(Jubiler,n,p+Vector3.up*.03f+f*.012f,f);}
+        m.RoundedBox(gVelvetBlack,p+Vector3.up*.012f,new Vector3(.08f,.024f,.07f),.008f,rot,2);return ShopModel(Jubiler,n,p+Vector3.up*.024f,f);
+    }
     // a ring in an open velvet box: the base, the lid tilted back, the band (polished) with a cut stone
     static void RingBox(Vector3 p,Vector3 f,Material stone)
     {
@@ -261,14 +277,22 @@ public static partial class BraxChampionsD2
     static bool NearColumn(Vector3 p,float r){float gx=Mathf.Round((p.x-5f)/10f)*10f+5f,gz=Mathf.Round((p.z-5f)/10f)*10f+5f;return (p.x-gx)*(p.x-gx)+(p.z-gz)*(p.z-gz)<r*r;}
     static Transform goodsInst;
     // the owner's Tripo shoes and bags (packs sklep_buty_01, sklep_torebki_01; global for every shop in the game)
-    const string ButyPaczka="sklep_buty_01",TorebkiPaczka="sklep_torebki_01";
+    const string ButyPaczka="sklep_buty_01",TorebkiPaczka="sklep_torebki_01",Sprzet="sklep_sprzet_01";
+    // the owner's BRAXHORN sports equipment (Tripo 23:34; the racket's torn string bed left out): balls, a pair of 10 kg
+    // dumbbells, a kettlebell, boxing gloves, a punching bag, a skipping rope, a rolled mat
+    static readonly string[] Pilki={"pilka_nozna","pilka_do_kosza","pilka_siatkowa"};
     static readonly string[] Buty={"buty_biegowe_szare","buty_sneakersy_bezowe","buty_trampki_wysokie_czarne","buty_koszykarskie_czerwone","buty_korki_neonowe",
-        "buty_trekkingowe","buty_sztyblety_brazowe","buty_workery_miodowe","buty_szpilki_czerwone","buty_sandaly_na_obcasie_bezowe"};
+        "buty_trekkingowe","buty_sztyblety_brazowe","buty_workery_miodowe","buty_szpilki_czerwone","buty_sandaly_na_obcasie_bezowe",
+        // the owner's second shoe sheet (23:38, pack sklep_buty_02)
+        "sklep_buty_02/buty_sneakersy_biale_skora","sklep_buty_02/buty_biegowe_czarne","sklep_buty_02/buty_mokasyny_bezowe","sklep_buty_02/buty_polbuty_czarne",
+        "sklep_buty_02/buty_trampki_wysokie_czerwone","sklep_buty_02/buty_trapery_brazowe","sklep_buty_02/buty_szpilki_czarne","sklep_buty_02/buty_biegowe_biale",
+        "sklep_buty_02/buty_wsuwane_szare","sklep_buty_02/buty_zimowe_z_futrem"};
     static readonly string[] Torebki={"torebka_kuferek_bordo_kroko","torebka_lakierowana_czarna","torebka_jeansowa","torebka_koszyk_slomkowy","torebka_srebrna_z_bigielkiem",
         "torebka_hobo_czarna_cwieki","torebka_hobo_taupe","torebka_kopertowa_kremowa","torebka_kuferek_rozowy","torebka_listonoszka_koniak"};
     // a model from the owner's pack on a surface: its base centre at local (shelf top), its front toward faceLocal
     static bool ShopModel(string pack,string name,Vector3 local,Vector3 faceLocal)
     {
+        int sl=name.IndexOf('/');if(sl>0){pack=name.Substring(0,sl);name=name.Substring(sl+1);}   // "pack/name" = a model from another pack
         if(!BraxMiastoAssety.Jest(pack))return false;
         var src=BraxMiastoAssety.Model(pack,name);if(!src)return false;
         var w=root.rotation*faceLocal;float yaw=Mathf.Atan2(w.x,w.z)*Mathf.Rad2Deg;
@@ -278,7 +302,7 @@ public static partial class BraxChampionsD2
     // the owner's Tripo clothes (pack sklep_ubrania_01, cut by unity-tools/sklep/split_sheet.py, global for every shop in the
     // game; owner 11.11 22:44): on the rails instead of the code garments when the pack is in (CI with KLUCZ); the code
     // garments stay as the fallback and for the dresses and the sports jerseys
-    const string UbraniaPaczka="sklep_ubrania_01",Ubrania2="sklep_ubrania_02/";
+    const string UbraniaPaczka="sklep_ubrania_01",Ubrania2="sklep_ubrania_02/",Sport="sklep_sport_01/";
     // the owner's Tripo sheets: "name" = pack sklep_ubrania_01, "sklep_ubrania_02/name" = the second sheet (23:15: biker jacket,
     // bomber, hoodie, T-shirt, denim jacket, cable sweater, wide jeans, cargo trousers, denim mini skirt, slip dress)
     static readonly Dictionary<int,string[]> UbraniaModele=new Dictionary<int,string[]>{
@@ -287,7 +311,10 @@ public static partial class BraxChampionsD2
         {3,new[]{"ubranie_chinosy_bezowe",Ubrania2+"ubranie_jeansy_szerokie","ubranie_dresy_szare",Ubrania2+"ubranie_bojowki_khaki"}},
         {4,new[]{Ubrania2+"ubranie_sukienka_bordo",Ubrania2+"ubranie_spodnica_mini_jeans"}},
         {6,new[]{"ubranie_bluza_grafit",Ubrania2+"ubranie_sweter_warkocz_kremowy","ubranie_kardigan_bezowy",Ubrania2+"ubranie_bluza_kaptur_szara"}},
-        {5,new[]{"ubranie_bluza_grafit",Ubrania2+"ubranie_bluza_kaptur_szara","ubranie_polo_granat","ubranie_kurtka_puchowa_czarna"}}};   // sports tops: the owner's models until his sports sheet
+        // sports (owner's BRAXHORN sports sheet 23:28, pack sklep_sport_01): kind 5 = tops and jackets, kind 7 = sports bottoms
+        {5,new[]{Sport+"sport_koszulka_braxhorn_czarno_zlota",Sport+"sport_bluza_kaptur_czarna",Sport+"sport_koszulka_czerwona",Sport+"sport_kurtka_dresowa_zlote_lampasy",
+                 Sport+"sport_koszulka_bez_rekawow",Sport+"sport_wiatrowka_szara",Sport+"sport_kurtka_puchowa_czarna"}},
+        {7,new[]{Sport+"sport_spodnie_dresowe_lampasy",Sport+"sport_legginsy_czarne",Sport+"sport_spodenki_czarne"}}};
     static bool ModelGarment(Vector3 hookLocal,Vector3 alongLocal,int kind,int i)
     {
         if(!UbraniaModele.TryGetValue(kind,out var names))return false;
@@ -501,12 +528,12 @@ public static partial class BraxChampionsD2
                 // folded stacks / balls on the table, dress forms at the front; bags: handbags and suitcases instead of clothes
                 BraxKatalog.ClothesMaterials();
                 bool sport=u.trade=="sport",bags=u.trade=="bags";
-                int[] kinds=sport?new[]{5,6,0,5,3}:nm.Contains("DENIM")?new[]{3,0,3,1,6}:nm.Contains("BIELIZNA")?new[]{4,0,4,4}:nm.Contains("ELEGANCJA")?new[]{2,1,4,2,1}:nm.Contains("URBAN")?new[]{6,0,3,2,0}:new[]{0,1,2,4,3,6};
+                int[] kinds=sport?new[]{5,7,5,5,7}:nm.Contains("DENIM")?new[]{3,0,3,1,6}:nm.Contains("BIELIZNA")?new[]{4,0,4,4}:nm.Contains("ELEGANCJA")?new[]{2,1,4,2,1}:nm.Contains("URBAN")?new[]{6,0,3,2,0}:new[]{0,1,2,4,3,6};
                 Material Cloth(int kind,int i)=>sport&&kind!=3?BraxKatalog.SportCols[i%4]:kind==1?BraxKatalog.Shirts[i%4]:kind==2?BraxKatalog.Coats[i%4]:kind==3?BraxKatalog.Trousers[i%4]:kind==4?BraxKatalog.Dresses[i%4]:BraxKatalog.Tees[i%6];
                 void Hang(Vector3 a,Vector3 b,float step,int seed)
                 {
                     var al=(b-a).normalized;int n=Mathf.FloorToInt((b-a).magnitude/step);
-                    for(int i=0;i<n;i++){int kind=kinds[((i/6)+seed)%kinds.Length];var hk=a+al*((i+.5f)*step);if(NearColumn(hk,.75f))continue;if(!ModelGarment(hk,al,kind,i+seed))BraxKatalog.Garment(Kat(),hk,al,kind,Cloth(kind,i+seed));}
+                    for(int i=0;i<n;i++){int kind=kinds[((i/6)+seed)%kinds.Length];var hk=a+al*((i+.5f)*step);if(NearColumn(hk,.75f))continue;if(!ModelGarment(hk,al,kind,i+seed)){int k=kind==7?3:kind;BraxKatalog.Garment(Kat(),hk,al,k,Cloth(k,i+seed));}}
                 }
                 if(!bags)Goods(nm+" | ubrania",()=>
                 {
@@ -515,7 +542,7 @@ public static partial class BraxChampionsD2
                     for(int i=0;i<3;i++)for(int j=0;j<2;j++)
                     {
                         var q=P(Wd*.5f-.55f+i*.55f,y+.80f,2.2f+j*.5f);
-                        if(sport&&j==1)BraxKatalog.Ball(Kat(),q,i);else BraxKatalog.FoldedStack(Kat(),q,toFront,Cloth(i==1?0:kinds[0],i+j*3),5+(i+j)%3);
+                        if(sport&&j==1){if(!ShopModel(Sprzet,Pilki[i%3],q,toFront))BraxKatalog.Ball(Kat(),q,i);}else BraxKatalog.FoldedStack(Kat(),q,toFront,Cloth(i==1?0:kinds[0],i+j*3),5+(i+j)%3);
                     }
                     if(sport)foreach(float s in new[]{0f,1f})if(!SideOpen(s))for(float d=3.7f;d<D-3.6f;d+=.75f)
                     {var q=P(s==0?.28f:Wd-.28f,y+2.19f,d);var f=s==0?alongT:-alongT;if(ShopModel(ButyPaczka,Buty[(int)(d*3)%5],q,f))continue;BraxKatalog.Sneaker(Kat(),q-toBack*.07f,f,Cloth(5,(int)(d*3)));BraxKatalog.Sneaker(Kat(),q+toBack*.07f,f,Cloth(5,(int)(d*3)));}
@@ -625,7 +652,7 @@ public static partial class BraxChampionsD2
                 // vitrines: white marble bases, glass cases in black frames (empty until the jewellery models)
                 for(float d=3.0f;d<D-2.0f;d+=2.8f)foreach(float t in new[]{Wd*.3f,Wd*.7f})
                 {
-                    {var tt=t;var dd=d;Goods(nm+" | witryna",()=>{Material[] st={jDiamond,jSapphire,jEmerald,jRuby};for(int i=0;i<4;i++){var p=P(tt-.54f+i*.36f,y+.93f,dd+.36f);if(i%3==0)Watch(p,toFront);else if(i%3==1)RingBox(p,toFront,st[(i+(int)dd)%4]);else NecklaceBust(p,toFront,st[(i+1)%4]);}});}
+                    {var tt=t;var dd=d;Goods(nm+" | witryna",()=>{Material[] st={jDiamond,jSapphire,jEmerald,jRuby};for(int i=0;i<4;i++){var p=P(tt-.54f+i*.36f,y+.93f,dd+.36f);int k=i%3,ji=i+(int)(dd*2+tt);if(JModel(k,ji,p,toFront))continue;if(k==0)Watch(p,toFront);else if(k==1)RingBox(p,toFront,st[(i+(int)dd)%4]);else NecklaceBust(p,toFront,st[(i+1)%4]);}});}
                     Box(gCinemaDark,t-.74f,t+.74f,y,y+.08f,d+.06f,d+.64f);Box(walnut,t-.8f,t+.8f,y+.08f,y+.86f,d,d+.7f,true);Box(StoneTop(),t-.82f,t+.82f,y+.86f,y+.9f,d-.02f,d+.72f);Box(gCinemaDark,t-.75f,t+.75f,y+.9f,y+.93f,d+.05f,d+.65f);   // walnut cabinet on a shadow plinth, stone top
                     var g0=P(t-.78f,y+.93f,d+.02f);var g1=P(t+.78f,y+1.3f,d+.68f);
                     B(frame,Mathf.Min(g0.x,g1.x),Mathf.Max(g0.x,g1.x),y+1.30f,y+1.33f,Mathf.Min(g0.z,g1.z),Mathf.Max(g0.z,g1.z));
@@ -638,7 +665,7 @@ public static partial class BraxChampionsD2
                     SideWall(s,2.6f,D-1.2f,false);if(SideOpen(s))continue;
                     float w=s==0f?0f:Wd,dr=s==0f?1f:-1f;
                     var face=s==0f?alongT:-alongT;
-                    for(float d=2.75f;d+1.3f<D-1.3f;d+=1.5f){var dd=d;var ww=w+dr*.29f;Goods(nm+" | gablota ścienna",()=>{Material[] st={jSapphire,jDiamond,jRuby,jEmerald};for(int i=0;i<3;i++){var p=P(ww,y+.90f,dd+.25f+i*.40f);if(i==1)NecklaceBust(p,face,st[i]);else if(i==0)Watch(p,face);else RingBox(p,face,st[(int)dd%4]);}});
+                    for(float d=2.75f;d+1.3f<D-1.3f;d+=1.5f){var dd=d;var ww=w+dr*.29f;Goods(nm+" | gablota ścienna",()=>{Material[] st={jSapphire,jDiamond,jRuby,jEmerald};for(int i=0;i<3;i++){var p=P(ww,y+.90f,dd+.25f+i*.40f);int k=i==0?0:i==1?2:1;if(JModel(k,i+(int)(dd*3),p,face))continue;if(i==1)NecklaceBust(p,face,st[i]);else if(i==0)Watch(p,face);else RingBox(p,face,st[(int)dd%4]);}});
                         GlassCase(Mathf.Min(w+dr*.10f,w+dr*.48f),Mathf.Max(w+dr*.10f,w+dr*.48f),d,d+1.3f,y+.90f,.42f);SB(ledWarm,Mathf.Min(w+dr*.12f,w+dr*.46f),Mathf.Max(w+dr*.12f,w+dr*.46f),y+1.31f,y+1.32f,d+.05f,d+1.25f);}
                 }
                 break;
@@ -667,7 +694,7 @@ public static partial class BraxChampionsD2
                         for(float d=3.1f;d<D-1.1f;d+=.46f,i++)
                         {
                             var q=P(t,yy,d);
-                            switch(i%5){case 0:BraxKatalog.TeddyBear(Kat(),q,f,1f,i%2==0);break;case 1:BraxKatalog.ToyCar(Kat(),q,f,car[i%4]);break;case 2:BraxKatalog.StackingRings(Kat(),q);break;case 3:BraxKatalog.Ball(Kat(),q,i%3);break;default:BraxKatalog.ToyCar(Kat(),q,-f,car[(i+1)%4]);break;}
+                            switch(i%5){case 0:BraxKatalog.TeddyBear(Kat(),q,f,1f,i%2==0);break;case 1:BraxKatalog.ToyCar(Kat(),q,f,car[i%4]);break;case 2:BraxKatalog.StackingRings(Kat(),q);break;case 3:if(!ShopModel(Sprzet,Pilki[i%3],q,f))BraxKatalog.Ball(Kat(),q,i%3);break;default:BraxKatalog.ToyCar(Kat(),q,-f,car[(i+1)%4]);break;}
                         }
                     }
                     BraxKatalog.TeddyBear(Kat(),P(Wd*.5f-.7f,y+.012f,D*.5f),toFront,2.4f);BraxKatalog.TeddyBear(Kat(),P(Wd*.5f+.7f,y+.012f,D*.5f),toFront,2.0f,true);

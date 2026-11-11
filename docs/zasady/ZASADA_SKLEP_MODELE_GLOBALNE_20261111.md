@@ -48,6 +48,11 @@ Narzędzie robi kolejno:
 | `braxhorn-sklep-ubrania-02` | `sklep_ubrania_02` | ramoneska czarna, bomberka khaki, bluza z kapturem szara, koszulka biała (zmatowiona: `rough_min` 0,55), katana jeansowa, sweter warkocz kremowy, jeansy szerokie, bojówki khaki, spódnica mini jeansowa, sukienka bordo (+ wersje `_wieszak`) |
 | `braxhorn-sklep-manekiny-01` | `sklep_manekiny_01` | czarne manekiny w pełnych strojach: bomberka + jeansy, beżowy żakiet + spódnica + torebka, granatowy garnitur, czerwona suknia, czarny dres |
 | `braxhorn-sklep-manekiny-02` | `sklep_manekiny_02` | czarne manekiny: kurtka baseballowa + bojówki, czarny garnitur, dres z kapturem, katana + jeansy (białe manekiny z planszy odrzucone przez właściciela 23:22 i wycięte: `"skip": true`) |
+| `braxhorn-sklep-sport-01` | `sklep_sport_01` | odzież sportowa BRAXHORN: koszulka meczowa czarno-złota, koszulka czerwona, bluza z kapturem, bluza dresowa z lampasami, spodnie dresowe, spodenki, legginsy, kurtka puchowa, wiatrówka, koszulka bez rękawów |
+| `braxhorn-sklep-bizuteria-01` | `sklep_bizuteria_01` | zegarki złoty i stalowy (na aksamitnych poduszkach, bo bransolety są ucięte), łańcuszek, naszyjnik z wisiorkiem, bransolety, obrączka, pierścionek, kolczyki (cięcie ręcznymi polami `boxes`, złoto rozjaśnione `color_gain`) |
+| `braxhorn-sklep-sprzet-01` | `sklep_sprzet_01` | piłki nożna, do kosza, siatkowa, hantle 10 kg, kettlebell, rękawice bokserskie, worek bokserski, skakanka, mata (rakieta odrzucona: zniszczony naciąg) |
+| `braxhorn-sklep-buty-02` | `sklep_buty_02` | sneakersy białe, biegowe czarne i białe, mokasyny, półbuty, trampki czerwone, trapery, szpilki czarne, wsuwane, zimowe z kożuszkiem |
+| `braxhorn-sklep-walka-01` | `sklep_walka_01` | sporty walki BRAXHORN: rękawice czarno-złote, kaski bokserskie (czerwony, niebieski, z kratą), ochraniacz na zęby w pudełku, buty bokserskie, zapaśnicze i treningowe (paczka gotowa, rozstawienie w następnym kroku) |
 
 Buty leżą na planszy w rzędach na podłodze, więc tnie się je w widoku z góry (`"view": "top"`). Cała plansza ma jedną skalę (`"scale"`), dzięki czemu rozmiary sztuk zgadzają się między sobą. Na półkach stawiamy przez `ShopModel` (podstawa na półce, przód do klienta).
 

@@ -106,6 +106,8 @@ def main(sheet, out_dir, spec_path):
         from io import BytesIO
         return Image.open(BytesIO(image(g["textures"][texinfo["index"]]["source"])))
     base = img_of(mat["pbrMetallicRoughness"]["baseColorTexture"]).convert("RGB").resize((A, A), Image.LANCZOS)
+    if spec.get("color_gain"):     # a dark sheet (owner's jewellery 23:31: the gold came out dark) lifted evenly
+        base = base.point(lambda v: min(255, int(v * spec["color_gain"])))
     base.save(tex / (pack + "_kolor.jpg"), quality=90)
     img_of(mat["normalTexture"]).convert("RGB").resize((A, A), Image.LANCZOS).save(tex / (pack + "_normal.png"), optimize=True)
     rough = Image.open(spec["roughness"]).convert("L").resize((MRs, MRs), Image.LANCZOS) if spec.get("roughness") else Image.new("L", (MRs, MRs), 230)
@@ -116,6 +118,10 @@ def main(sheet, out_dir, spec_path):
         # plastic (owner's white T-shirt, sheet ubrania 02)
         mra = img_of(mrt).convert("RGB").resize((MRs, MRs), Image.LANCZOS); _, rough, metal = mra.split()
         if spec.get("rough_min"): rough = rough.point(lambda v: max(v, int(spec["rough_min"] * 255)))
+        if spec.get("rough_max"): rough = rough.point(lambda v: min(v, int(spec["rough_max"] * 255)))   # polished metal
+        if spec.get("metal_min"): metal = metal.point(lambda v: max(v, int(spec["metal_min"] * 255)))
+    elif spec.get("metal_min") or spec.get("rough_max"):
+        metal = Image.new("L", (MRs, MRs), int(spec.get("metal_min", 0) * 255)); rough = Image.new("L", (MRs, MRs), int(spec.get("rough_max", .9) * 255))
     Image.merge("RGB", (Image.new("L", (MRs, MRs), 255), rough, metal)).save(tex / (pack + "_mr.png"), optimize=True)
     uris = {"base": "_tekstury/" + pack + "_kolor.jpg", "normal": "_tekstury/" + pack + "_normal.png", "mr": "_tekstury/" + pack + "_mr.png"}
     # the pieces: connected components, each assigned to the grid cell of its centre (rows top to bottom, columns left to right)
@@ -125,41 +131,53 @@ def main(sheet, out_dir, spec_path):
     # the products stand apart on the sheet: the front view (x, y) rasterised at 2 mm, the separate silhouettes labelled;
     # the silhouettes sorted into rows (top to bottom) and columns (left to right); a component (a sleeve, a collar, a
     # button) goes to the silhouette most of its vertices fall in
-    from PIL import ImageDraw
-    from scipy import ndimage
-    res = spec.get("raster", .001)
-    # the view the products stand apart in: "front" (x, y; rows top to bottom - clothes, bags) or "top" (x, z; rows back
-    # to front - shoes laid on the floor in rows)
-    top = spec.get("view", "front") == "top"
-    def rowc(v): return (v[2] - lo[2]) if top else (hi[1] - v[1])
-    W_ = int((hi[0] - lo[0]) / res) + 3; H_ = int(((hi[2] - lo[2]) if top else (hi[1] - lo[1])) / res) + 3
-    def px(v): return ((v[0] - lo[0]) / res + 1, rowc(v) / res + 1)
-    mask = Image.new("L", (W_, H_), 0); dr = ImageDraw.Draw(mask)
-    for a, b_, c in I: dr.polygon([px(P[a]), px(P[b_]), px(P[c])], fill=255)
-    sil = np.array(mask) > 0
-    # products touching in the front view (a sleeve against the next one) are cut apart by eroding the silhouettes until
-    # the expected number of separate ones appears; every pixel then takes the nearest label
-    lab, nlab = ndimage.label(sil)
-    for it in range(1, 40):
-        if nlab >= rows * cols and sorted(ndimage.sum(np.ones_like(lab), lab, range(1, nlab + 1)))[-rows * cols] > 2000: break
-        lab, nlab = ndimage.label(ndimage.binary_erosion(sil, iterations=it))
-    print("erosion", it, "silhouettes", nlab)
-    idx = ndimage.distance_transform_edt(lab == 0, return_distances=False, return_indices=True)
-    lab = lab[idx[0], idx[1]]
-    sizes = ndimage.sum(np.ones_like(lab), lab, range(1, nlab + 1))
-    big = [i + 1 for i in np.argsort(-sizes)[:rows * cols]]
-    print("silhouettes", nlab, "kept", len(big), "smallest kept px", int(min(sizes[b - 1] for b in big)))
-    cy_ = {b: ndimage.center_of_mass(lab == b) for b in big}          # (row px, col px)
-    order = sorted(big, key=lambda b: cy_[b][0])
-    cell_of_label = {}
-    for r in range(rows):
-        for k, b in enumerate(sorted(order[r * cols:(r + 1) * cols], key=lambda b: cy_[b][1])): cell_of_label[b] = r * cols + k
-    vx = np.clip(((P[:, 0] - lo[0]) / res + 1).astype(int), 0, W_ - 1); vy = np.clip(((P[:, 2] - lo[2]) if top else (hi[1] - P[:, 1])) / res + 1, 0, H_ - 1).astype(int)
-    vlab = lab[vy, vx]
-    cell_of_comp = {}
-    for cid in np.unique(tri_comp):
-        vs = np.unique(I[tri_comp == cid].reshape(-1)); ls = [cell_of_label[l] for l in vlab[vs] if l in cell_of_label]
-        cell_of_comp[cid] = int(np.bincount(ls).argmax()) if ls else -1
+    if spec.get("boxes"):
+        # hand-set cells (owner's jewellery 23:31: earring pairs and a broken chain stand closer to each other than the
+        # products do): "boxes" = per row the [x0, x1] fractions of the sheet width, "row_split" = the row borders as fractions
+        # of the sheet height from the top; every component goes to the cell its centre falls in
+        splits = spec.get("row_split", []); cell_of_comp = {}
+        for cid in np.unique(tri_comp):
+            c = P[np.unique(I[tri_comp == cid].reshape(-1))].mean(0)
+            xf = (c[0] - lo[0]) / (hi[0] - lo[0]); yf = (hi[1] - c[1]) / (hi[1] - lo[1]); r = sum(yf > s for s in splits)
+            cell_of_comp[cid] = next((r * cols + k for k, (x0, x1) in enumerate(spec["boxes"][r]) if x0 <= xf < x1), -1)
+    else:
+        from PIL import ImageDraw
+        from scipy import ndimage
+        res = spec.get("raster", .001)
+        # the view the products stand apart in: "front" (x, y; rows top to bottom - clothes, bags) or "top" (x, z; rows back
+        # to front - shoes laid on the floor in rows)
+        top = spec.get("view", "front") == "top"
+        def rowc(v): return (v[2] - lo[2]) if top else (hi[1] - v[1])
+        W_ = int((hi[0] - lo[0]) / res) + 3; H_ = int(((hi[2] - lo[2]) if top else (hi[1] - lo[1])) / res) + 3
+        def px(v): return ((v[0] - lo[0]) / res + 1, rowc(v) / res + 1)
+        mask = Image.new("L", (W_, H_), 0); dr = ImageDraw.Draw(mask)
+        for a, b_, c in I: dr.polygon([px(P[a]), px(P[b_]), px(P[c])], fill=255)
+        sil = np.array(mask) > 0
+        if spec.get("dilate"):            # pairs (earrings) and broken chains joined into one product each
+            sil = ndimage.binary_dilation(sil, iterations=int(spec["dilate"]))
+        # products touching in the front view (a sleeve against the next one) are cut apart by eroding the silhouettes until
+        # the expected number of separate ones appears; every pixel then takes the nearest label
+        lab, nlab = ndimage.label(sil)
+        for it in range(1, 40):
+            if nlab >= rows * cols and sorted(ndimage.sum(np.ones_like(lab), lab, range(1, nlab + 1)))[-rows * cols] > 2000: break
+            lab, nlab = ndimage.label(ndimage.binary_erosion(sil, iterations=it))
+        print("erosion", it, "silhouettes", nlab)
+        idx = ndimage.distance_transform_edt(lab == 0, return_distances=False, return_indices=True)
+        lab = lab[idx[0], idx[1]]
+        sizes = ndimage.sum(np.ones_like(lab), lab, range(1, nlab + 1))
+        big = [i + 1 for i in np.argsort(-sizes)[:rows * cols]]
+        print("silhouettes", nlab, "kept", len(big), "smallest kept px", int(min(sizes[b - 1] for b in big)))
+        cy_ = {b: ndimage.center_of_mass(lab == b) for b in big}          # (row px, col px)
+        order = sorted(big, key=lambda b: cy_[b][0])
+        cell_of_label = {}
+        for r in range(rows):
+            for k, b in enumerate(sorted(order[r * cols:(r + 1) * cols], key=lambda b: cy_[b][1])): cell_of_label[b] = r * cols + k
+        vx = np.clip(((P[:, 0] - lo[0]) / res + 1).astype(int), 0, W_ - 1); vy = np.clip(((P[:, 2] - lo[2]) if top else (hi[1] - P[:, 1])) / res + 1, 0, H_ - 1).astype(int)
+        vlab = lab[vy, vx]
+        cell_of_comp = {}
+        for cid in np.unique(tri_comp):
+            vs = np.unique(I[tri_comp == cid].reshape(-1)); ls = [cell_of_label[l] for l in vlab[vs] if l in cell_of_label]
+            cell_of_comp[cid] = int(np.bincount(ls).argmax()) if ls else -1
     tri_cell = np.array([cell_of_comp[c] for c in tri_comp])
     report = []
     for cell, item in enumerate(spec["items"]):

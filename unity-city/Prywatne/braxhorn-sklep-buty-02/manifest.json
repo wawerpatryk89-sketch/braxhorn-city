@@ -1,0 +1,34 @@
+{
+ "source": "Właściciel 11.11.2026 23:38: plansza Tripo (GLB) — buty: sneakersy białe, biegowe czarne i białe, mokasyny, półbuty, trampki czerwone, trapery, szpilki czarne, wsuwane, zimowe z kożuszkiem",
+ "target": "sklep_buty_02",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_buty_02 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "5246f4866f483c157876aed806952e89bb0948c4f1c3ad04b9fb2a889f6eba35",
+ "cmsSha256": "f7904c99fb2b971ce05316844e4c97f4fa2f7bfb05440aac55561f0fcbfcb6c4",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 8856573,
+   "sha256": "f7904c99fb2b971ce05316844e4c97f4fa2f7bfb05440aac55561f0fcbfcb6c4"
+  }
+ ],
+ "files": {
+  "oryginal/buty2.glb": "a2d11f289312bf9db0093581433bc3373a31be42a9dcad7b9f83cd086b4618c4",
+  "oryginal/spec.json": "c1d57ce900e1a4d0cdeb3a334b0cf504ee37a7e5d50bdcabb551deb6c85a4461",
+  "sklep_buty_02/_tekstury/sklep_buty_02_kolor.jpg": "d403c46c88eec4b21d035ffd73f2692a6340d1116c3cf127b664490ceb77b56b",
+  "sklep_buty_02/_tekstury/sklep_buty_02_mr.png": "c2d48f23c7ee8246b414a75ec7f69dfc852b002a4c53f740fb47f7be2cef0a12",
+  "sklep_buty_02/_tekstury/sklep_buty_02_normal.png": "7bab92f9a8218a96fbf19b5c4f3272f694bf8cbd298ac9990ec13bd34c2e2e19",
+  "sklep_buty_02/buty_biegowe_biale.glb": "0e7dd711781b2a9a267276e14450520ed70581ba0fa508977dbf134eb314aa19",
+  "sklep_buty_02/buty_biegowe_czarne.glb": "0b04578f82663eae9e7866e92f249be9b9a27fdde477c18aec77cbdad1889680",
+  "sklep_buty_02/buty_mokasyny_bezowe.glb": "49079e9cc268bdfb1ead9913ed04ab6f27894a896d2c325f67246f36533cbe16",
+  "sklep_buty_02/buty_polbuty_czarne.glb": "24c16bb3f4a00bc544dc3167409a78e30dfa214b0fceff19adda15577a834106",
+  "sklep_buty_02/buty_sneakersy_biale_skora.glb": "f37a1e7b34217d0b35bc0f3b68ed3058dfc1ecbad28f3716324bd3f830a8d5cb",
+  "sklep_buty_02/buty_szpilki_czarne.glb": "a1eac0679a58f9da474b65a4b4030a1995a3d0e549f24e61cf22f06cec8f156f",
+  "sklep_buty_02/buty_trampki_wysokie_czerwone.glb": "16278c52992c3a840787362f71100d891c30cb7689d5a5c6b67d93cd9f9a5f89",
+  "sklep_buty_02/buty_trapery_brazowe.glb": "b2ef5d4f3dcb405351b49caff603c9a6f401fe9540e4f4fadc5c51491d89c5ec",
+  "sklep_buty_02/buty_wsuwane_szare.glb": "18b94cd85b02482ecb38584a809c5add44fa67e38f210f1bece7964480f97a0e",
+  "sklep_buty_02/buty_zimowe_z_futrem.glb": "0e9a581290fb6a7d29841528154a91e1912e883b395ee9f630c20e2c514ac99a",
+  "sklep_buty_02/katalog.json": "11a34ea44fbd0c9320343ed33167398f2dd3b82989065c417b126dfb70d2497f"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

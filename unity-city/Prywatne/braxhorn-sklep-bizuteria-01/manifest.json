@@ -1,0 +1,34 @@
+{
+ "source": "Właściciel 11.11.2026 23:31: plansza Tripo (GLB) — biżuteria: zegarki złoty i stalowy (na poduszkach, 23:32), łańcuszek, naszyjnik z wisiorkiem, bransolety, obrączka, pierścionek, kolczyki",
+ "target": "sklep_bizuteria_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_bizuteria_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "82b6795a37f4be42e2b03c385a71ccb522b901a6de7a3e75e6050dcc464c77f9",
+ "cmsSha256": "9b35218af456ca59b2953bce527bd91885170badbd21e8293ccb30e221bbfc56",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 11767573,
+   "sha256": "9b35218af456ca59b2953bce527bd91885170badbd21e8293ccb30e221bbfc56"
+  }
+ ],
+ "files": {
+  "oryginal/bizuteria.glb": "bece4c5a92449c111faa2bd0ec74984021510b8f04b8851966ff5dd6731dc4f6",
+  "oryginal/spec.json": "ecfb3cafa29dc6dfea1ce9cff5fbfecb42e94574e7375d6d13b52650c5d0b637",
+  "sklep_bizuteria_01/_tekstury/sklep_bizuteria_01_kolor.jpg": "32697713a6ccf3a38ac57f693c77b468d96a86754342c06965a402e60c54edef",
+  "sklep_bizuteria_01/_tekstury/sklep_bizuteria_01_mr.png": "87ce15e3080f6eee98a5b029f9fbc895e06b56a3e5c7543550914b5e7d90a47f",
+  "sklep_bizuteria_01/_tekstury/sklep_bizuteria_01_normal.png": "c422fbca6fe651f4912ccf296d3e72768dae66aa08ac8f4dc56f2c67b6aa1a46",
+  "sklep_bizuteria_01/bransoleta_tenisowa_srebrna.glb": "aec5d2d85b82b7cccb48ce5178b0201de0fd7450ea9ad3f80f6ce03421fe62c7",
+  "sklep_bizuteria_01/bransoleta_zlota_pleciona.glb": "392e881c9c57dc8793fdd3780d26a9dc50dad6343f65b9468a6a0172e6c0cfeb",
+  "sklep_bizuteria_01/katalog.json": "b750c069c20824a6808bd34185e11b787149041fbc9c3631efd35e2fc116fcde",
+  "sklep_bizuteria_01/kolczyki_kola_zlote.glb": "2e9dda7759eb5f8c29328dccca23a9347c97363bfe8c1c50d9d08362fe65bdae",
+  "sklep_bizuteria_01/kolczyki_wiszace_brylant.glb": "dc742989649ccb22f37f95bdaeed69f1d8473e8d46a29d2e34b0315788a446ae",
+  "sklep_bizuteria_01/lancuszek_zloty.glb": "f3e6d756df9a8392e1259d157a6fd577e55f1b88650c756bec5426d07c5c42c3",
+  "sklep_bizuteria_01/naszyjnik_wisiorek_brylant.glb": "2b4fec2d017b38ccb3fcf4a13221fc5cb3a637d3ca95e6cbbfbe0f0143e1e165",
+  "sklep_bizuteria_01/obraczka_zlota.glb": "4e1b2eec49e441fddb72e99904ce6c06bca4e674ab853f6f2ba3596941880183",
+  "sklep_bizuteria_01/pierscionek_brylant.glb": "cb4b75923352bdfabc5d66c6bc019f56ef373a864e3b1f73fa11654a95d60f66",
+  "sklep_bizuteria_01/zegarek_stalowy.glb": "3c1451b0dd7f8417c261a102f6db769453c79651d3eff036c824332398b6ab85",
+  "sklep_bizuteria_01/zegarek_zloty.glb": "55b5793526531cfefaae24375b9d6b09890506f401ffd47c3f225fd3b48c030d"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

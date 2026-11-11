@@ -431,17 +431,17 @@ public static partial class BraxChampionsD2
                 var zz=z;var rr=row;
                 Goods("SPORT ARENA | ubrania "+rr,()=>
                 {
-                    int[] kinds={5,6,0,3,5,2};
+                    int[] kinds={5,7,5,6,5,7};   // the owner's BRAXHORN sports sheet: tops (5) and sports bottoms (7); 6 = hoodies
                     for(float x=55f;x<80f;x+=8f)
                     {
                         int n=Mathf.FloorToInt(5f/.22f);
-                        for(int i=0;i<n;i++){int kind=kinds[((i/6)+rr+(int)x)%kinds.Length];var mat=kind==3?BraxKatalog.Trousers[(i+rr)%2==0?0:3]:kind==2?BraxKatalog.Coats[(i+rr)%4]:BraxKatalog.SportCols[(i/6+rr)%4];
-                            var hk=new Vector3(x+(i+.5f)*.22f,y+1.55f,zz);if(!NearColumn(hk,.75f)&&!ModelGarment(hk,Vector3.right,kind,i+rr))BraxKatalog.Garment(Kat(),hk,Vector3.right,kind,mat);}
+                        for(int i=0;i<n;i++){int kind=kinds[((i/6)+rr+(int)x)%kinds.Length];var mat=kind==3||kind==7?BraxKatalog.Trousers[(i+rr)%2==0?0:3]:kind==2?BraxKatalog.Coats[(i+rr)%4]:BraxKatalog.SportCols[(i/6+rr)%4];
+                            var hk=new Vector3(x+(i+.5f)*.22f,y+1.55f,zz);if(!NearColumn(hk,.75f)&&!ModelGarment(hk,Vector3.right,kind,i+rr))BraxKatalog.Garment(Kat(),hk,Vector3.right,kind==7?3:kind,mat);}
                     }
                     if(zz+4f<40f)for(float x=56f;x<80f;x+=8f)
                     {
                         for(int i=0;i<4;i++)BraxKatalog.FoldedStack(Kat(),new Vector3(x+.4f+i*.45f,y+.85f,zz+4f-.2f),Vector3.back,BraxKatalog.SportCols[(i+rr)%4],5+i%3);
-                        for(int i=0;i<3;i++)BraxKatalog.Ball(Kat(),new Vector3(x+.6f+i*.7f,y+.85f,zz+4f+.25f),(i+rr)%3);
+                        for(int i=0;i<3;i++){var q=new Vector3(x+.6f+i*.7f,y+.85f,zz+4f+.25f);if(!ShopModel(Sprzet,Pilki[(i+rr)%3],q,Vector3.back))BraxKatalog.Ball(Kat(),q,(i+rr)%3);}
                         if(!ShopModel(ButyPaczka,Buty[(rr+(int)x)%5],new Vector3(x+2.7f,y+.85f,zz+4f+.1f),Vector3.back))foreach(float xs in new[]{x+2.62f,x+2.80f})BraxKatalog.Sneaker(Kat(),new Vector3(xs,y+.85f,zz+4f+.1f),Vector3.back,BraxKatalog.SportCols[rr%4]);
                     }
                 });
@@ -452,6 +452,9 @@ public static partial class BraxChampionsD2
                 foreach(float h in new[]{.35f,.75f})B(frame,rx,rx+4f,y+h-.03f,y+h,rz-.25f,rz+.25f);
                 foreach(float x in new[]{rx,rx+2f,rx+4f-.05f})foreach(float zq in new[]{rz-.25f,rz+.2f})B(frame,x,x+.05f,y,y+.80f,zq,zq+.05f);
                 for(int i=0;i<10;i++)BraxKatalog.Dumbbell(Kat(),new Vector3(rx+.2f+i*.38f,y+(i<5?.35f:.75f)+.049f+(4f+i*2f)*.0028f,rz),Vector3.forward,4f+i*2f);   // resting on the head
+                // the free halves of the rack: the owner's kettlebells (lower shelf, right) and boxing gloves (upper shelf, left)
+                for(int i=0;i<4;i++)ShopModel(Sprzet,"kettlebell_16kg",new Vector3(rx+2.25f+i*.45f,y+.35f,rz),Vector3.back);
+                for(int i=0;i<3;i++)ShopModel(Sprzet,"rekawice_bokserskie",new Vector3(rx+.35f+i*.55f,y+.75f,rz),Vector3.back);
                 Material[] mats={BraxKatalog.SportCols[0],BraxKatalog.SportCols[1],BraxKatalog.SportCols[3]};
                 for(int i=0;i<9;i++)BraxKatalog.MatRoll(Kat(),new Vector3(65f+(i%3)*.16f,y,44.0f+(i/3)*.16f),Vector3.up,mats[i%3]);
             });
@@ -679,7 +682,7 @@ public static partial class BraxChampionsD2
         if(g1Plans.TryGetValue(tu,out var mt)&&mt)return mt;
         var n0=new List<string>();var t0=new List<string>();var n1=new List<string>();var t1=new List<string>();
         foreach(var u in g1Units){(u.level==0?n0:n1).Add(u.name);(u.level==0?t0:t1).Add(u.trade);}
-        n0.AddRange(new[]{"BRAXHORN MARKET","BRAXHORN HOME","KINO MULTIPLEX","FOOD COURT","WC"});t0.AddRange(new[]{"food","home","games","food","x"});
+        n0.AddRange(new[]{"BRAXHORN MARKET","SOBCZAK MEBLE","KINO MULTIPLEX","FOOD COURT","WC"});t0.AddRange(new[]{"food","home","games","food","x"});
         n1.AddRange(new[]{"SPORT ARENA","KINO MULTIPLEX","WC"});t1.AddRange(new[]{"sport","games","x"});
         var px=new Color32[BraxChampionsKinoEkrany.PGW*BraxChampionsKinoEkrany.PGH];
         BraxChampionsKinoEkrany.PlanGalerii(px,n0.ToArray(),t0.ToArray(),n1.ToArray(),t1.ToArray(),tu);

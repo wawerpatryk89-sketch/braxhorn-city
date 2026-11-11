@@ -58,7 +58,7 @@ class G1Tests(unittest.TestCase):
         for word in ('BraxChampionsKregle', 'BraxChampionsBilard', 'G1Bowling', 'G1Billiards', 'KRĘGLE', 'BILARD'):
             self.assertNotIn(word, self.s, word)
         self.assertIn('G1Home();', src('BraxChampionsG1.cs'))
-        self.assertIn('"BRAXHORN HOME"', src('BraxChampionsG1Meble.cs'))
+        self.assertIn('"SOBCZAK MEBLE"', src('BraxChampionsG1Meble.cs'))   # owner 23:37: the furniture store is SOBCZAK MEBLE
 
     def test_poly_haven_only(self):
         # every texture slug is a fetched Poly Haven slug; no ambientCG library material (Leather037, Marble016/021,
@@ -269,13 +269,16 @@ class G1ShopModelsTests(unittest.TestCase):
         self.assertTrue((ROOT / 'docs/zasady/ZASADA_SKLEP_MODELE_GLOBALNE_20261111.md').exists())
         for pack, target in (('braxhorn-sklep-buty-01', 'sklep_buty_01'), ('braxhorn-sklep-torebki-01', 'sklep_torebki_01'),
                              ('braxhorn-sklep-ubrania-02', 'sklep_ubrania_02'), ('braxhorn-sklep-manekiny-01', 'sklep_manekiny_01'),
-                             ('braxhorn-sklep-manekiny-02', 'sklep_manekiny_02')):
+                             ('braxhorn-sklep-manekiny-02', 'sklep_manekiny_02'), ('braxhorn-sklep-sport-01', 'sklep_sport_01'),
+                             ('braxhorn-sklep-bizuteria-01', 'sklep_bizuteria_01'), ('braxhorn-sklep-sprzet-01', 'sklep_sprzet_01'),
+                             ('braxhorn-sklep-buty-02', 'sklep_buty_02')):
             mf = json.loads((ROOT / 'unity-city/Prywatne' / pack / 'manifest.json').read_text())
             self.assertEqual(mf['target'], target)
             self.assertFalse(any(p.suffix in ('.glb', '.png', '.jpg') for p in (ROOT / 'unity-city/Prywatne' / pack).iterdir()))
             for part in mf['parts']: self.assertTrue((ROOT / 'unity-city/Prywatne' / pack / part['name']).exists())
         self.assertIn('ShopModel(ButyPaczka', sk); self.assertIn('ShopModel(TorebkiPaczka', sk)
         # owner 23:03 "na manekinie też musisz dać ciuchy komplet": his dressed mannequins; 23:22 the white ones cut away
+        self.assertIn('JModel(k,', sk); self.assertIn('ShopModel(Sprzet,Pilki', sk); self.assertIn('Sport+"sport_koszulka_braxhorn_czarno_zlota"', sk)
         self.assertIn('ModelMannequin(mset', sk); self.assertIn('Ubrania2+"ubranie_ramoneska_czarna"', sk)
         m2 = json.loads((ROOT / 'unity-city/Prywatne/braxhorn-sklep-manekiny-02/manifest.json').read_text())
         self.assertEqual(sum(k.endswith('.glb') and k.startswith('sklep_manekiny_02/') for k in m2['files']), 4)

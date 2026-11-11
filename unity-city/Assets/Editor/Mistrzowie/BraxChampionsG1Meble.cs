@@ -19,7 +19,7 @@ using UnityEngine;
 // sofas, chairs and beds are BraxSeat places. The goods-in (x 47..85, z -55..-38) is behind the store.
 public static partial class BraxChampionsD2
 {
-    static Material hBoucle,hWoolGrey,hWoolCharcoal,hVelvetGreen,hVelvetRust,hLinen,hCotton,hTaupe,hCognac,hOakSolid,hParquet,hRugGrey,hRugBeige,hOpal,hShade,hConcrete;
+    static Material hMarbleFloor,hWallWhite,hBoucle,hWoolGrey,hWoolCharcoal,hVelvetGreen,hVelvetRust,hLinen,hCotton,hTaupe,hCognac,hOakSolid,hParquet,hRugGrey,hRugBeige,hOpal,hShade,hConcrete;
     static void HomeMaterials()
     {
         if(hBoucle)return;
@@ -34,6 +34,10 @@ public static partial class BraxChampionsD2
         hCognac=Inside(Tex("g1_home_leather_cognac","brown_leather",.6f,new Color(1.55f,1.45f,1.35f)),.85f);
         hOakSolid=Inside(Tex("g1_home_oak_solid","oak_wood_planks",2.4f,new Color(1.05f,.98f,.92f)),.85f);
         hParquet=Inside(Tex("g1_home_parquet","herringbone_parquet",1.8f,new Color(1.0f,.95f,.90f)),.85f);
+        // owner 11.11 23:46 ("nie wygląda premium ... podłoga zjebana, ściany zjebane"): the store floor in wide light oak planks
+        // (calm, no small tiles, no stains), the walls bright warm-white plaster to the black ceiling
+        hMarbleFloor=Inside(Tex("g1_home_oak_wide_planks","laminate_floor_02",2.2f,new Color(1.40f,1.34f,1.26f)),.92f);
+        hWallWhite=Inside(Tex("g1_home_wall_white","white_stucco_02",2.0f,new Color(1.40f,1.38f,1.33f)),.92f);
         // owner 11.11 19:31-19:32 ("wszystko w jednym kolorze ... się zlewa", "zmień teksturę na słupy"): the columns in grey
         // polished microcement (not wood), the ceiling black
         hConcrete=Inside(Tex("g1_home_polished_concrete","concrete_floor_02",3.0f,new Color(.92f,.92f,.94f)),.85f);
@@ -322,11 +326,11 @@ public static partial class BraxChampionsD2
         float wz0=-12.6f,wz1=-7.4f,wx=81.0f;                                   // the side entrance's windbreak (street door x 85)
         // ---- floor: herringbone oak parquet; the windbreak in the malls' stone; the walls lined; the ceiling slats
         void Fl(Material mat,float a,float b,float c0,float c1){if(b-a>.01f&&c1-c0>.01f)B(mat,a,b,WalkY,y,c0,c1,true);}
-        Fl(hParquet,x0,wx,z0,9.94f);Fl(hParquet,wx,x1,z0,wz0);Fl(hParquet,wx,x1,wz1,9.94f);   // owner 19:32: "podłoga może być"Fl(gMallBand,wx,x1,wz0,wz1);
+        Fl(hMarbleFloor,x0,wx,z0,9.94f);Fl(hMarbleFloor,wx,x1,z0,wz0);Fl(hMarbleFloor,wx,x1,wz1,9.94f);   // owner 19:32: "podłoga może być"Fl(gMallBand,wx,x1,wz0,wz1);
         B(gWhitePanel,x0-.15f,x0,y,G1Slab,z0,G1SouthMallZ0,true);B(gWhitePanel,x0-.15f,x0,y,G1Slab,G1SouthMallZ1,z1-.06f,true);
         B(gDark,x0-.17f,x0,4.2f,G1Slab,G1SouthMallZ0,G1SouthMallZ1);
-        B(gWallWarm,x0,x0+.06f,y,G1Ceil0,-35.06f,G1SouthMallZ0);B(gWallWarm,x0,x0+.06f,y,G1Ceil0,G1SouthMallZ1,9.94f);
-        B(gWallWarm,x0+.06f,x1,y,G1Ceil0,9.94f,10f);
+        B(hWallWhite,x0,x0+.06f,y,G1Ceil0,-35.06f,G1SouthMallZ0);B(hWallWhite,x0,x0+.06f,y,G1Ceil0,G1SouthMallZ1,9.94f);
+        B(hWallWhite,x0+.06f,x1,y,G1Ceil0,9.94f,10f);
         // a black ceiling with black tracks and spotlights over the room settings (a showroom, not a wood box)
         Q(gCinemaDark,new Vector3(x0+.06f,G1Ceil0,z0),new Vector3(x1,G1Ceil0,z0),new Vector3(x1,G1Ceil0,9.94f),new Vector3(x0+.06f,G1Ceil0,9.94f),Vector3.down);
         foreach(float zt in new[]{-31.5f,-28.0f,-19.0f,-12.5f,-1.5f,2.0f})
@@ -338,13 +342,14 @@ public static partial class BraxChampionsD2
                 m.Cylinder(frame,sp-Vector3.up*.24f,.055f,.18f,16,Quaternion.identity,true,false,.05f);m.Cylinder(ledWarm,sp-Vector3.up*.252f,.042f,.012f,16,Quaternion.identity,false,true);
             }
         }
-        PortalSign("BRAXHORN HOME",new Vector3(x0-.17f,3.92f,(G1SouthMallZ0+G1SouthMallZ1)*.5f),Vector3.left,11.4f,"BRAXHORN HOME","MEBLE • OŚWIETLENIE • DODATKI",1.0f);
+        // owner 11.11 23:37 "ten sklep się ma nazywać Sobczak ... Sobczak meble ... piękny napis w 3D": SOBCZAK MEBLE
+        PortalSign("SOBCZAK MEBLE",new Vector3(x0-.17f,3.92f,(G1SouthMallZ0+G1SouthMallZ1)*.5f),Vector3.left,11.4f,"SOBCZAK MEBLE","DOM • OŚWIETLENIE • DODATKI",1.0f);
         // ---- the partitions (3.0 m, warm plaster, rounded) along the column lines z -35 (with the staff door) and z 5
-        float py=y+3.0f;
-        RB(gWallWarm,x0+.06f,48.6f,y,py,-35.07f,-34.93f,.02f,true,2);RB(gWallWarm,50.4f,x1,y,py,-35.07f,-34.93f,.02f,true,2);
-        RB(gWallWarm,48.6f,50.4f,y+2.3f,py,-35.07f,-34.93f,.02f,false,2);
+        float py=G1Ceil0-.003f;   // full height to the black ceiling: no grey shell band over the partitions (owner 23:46)
+        RB(hWallWhite,x0+.06f,48.6f,y,py,-35.07f,-34.93f,.02f,true,2);RB(hWallWhite,50.4f,x1,y,py,-35.07f,-34.93f,.02f,true,2);
+        RB(hWallWhite,48.6f,50.4f,y+2.3f,py,-35.07f,-34.93f,.02f,false,2);
         Door("G1_home_staff","G1 BRAXHORN HOME zaplecze",49.5f,y,-35f,0f,1.8f,2.3f,false);
-        RB(gWallWarm,55f,x1,y,py,4.93f,5.07f,.02f,true,2);
+        RB(hWallWhite,55f,x1,y,py,4.93f,5.07f,.02f,true,2);
         Flush("G1 BRAXHORN HOME | podłoga, ściany, sufit, przegrody");
         // ---- the rooms (each its own group, drawn up close)
         void Room(string name,Action build)
@@ -461,7 +466,7 @@ public static partial class BraxChampionsD2
         // TV wall on the west side - every piece from BraxKatalog, the same functions the flats and the hotel will use
         Room("ściana ekspozycyjna (kuchnie, szafy, łazienki)",()=>
         {
-            RB(gWallWarm,56.4f,74.6f,y,y+2.75f,-21.6f,-21.4f,.02f,true,2);
+            RB(hWallWhite,56.4f,74.6f,y,y+2.75f,-21.6f,-21.4f,.02f,true,2);
             B(ledWarm,56.5f,74.5f,y+2.75f,y+2.762f,-21.58f,-21.42f);
         });
         Room("K1 kuchnia orzech z wyspą",()=>
@@ -522,8 +527,8 @@ public static partial class BraxChampionsD2
         });
         BraxSklepyTowar.Zakoncz(books,"G1 BRAXHORN HOME");
         var lm=new BraxChampionsMeshBatch();
-        BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"BRAXHORN HOME",new Vector3(52.75f,y+2.25f,-34.90f+.004f),0f,.30f,.04f,.12f,4.0f);
-        BraxChampionsLetters3D.Build(lm,root,"G1 szyld BRAXHORN HOME (wnętrze)");Signs++;
+        BraxChampionsLetters3D.Text(lm,gLetterFace,gLetterSide,"SOBCZAK MEBLE",new Vector3(53.05f,y+2.22f,-34.90f+.004f),0f,.27f,.06f,.12f,3.35f);   // clear of the column at x 50.9
+        BraxChampionsLetters3D.Build(lm,root,"G1 szyld SOBCZAK MEBLE (wnętrze)");Signs++;
         G1Shops++;
     }
 
