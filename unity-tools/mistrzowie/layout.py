@@ -165,3 +165,25 @@ E1_GARAGE_DRIVE=(571.0,53.0,7.0,7.0)
 E1_GARAGE_MOUTH,E1_GARAGE_CORNERS=_mouth('E1_garage',571.0,578.0,60.0,-1)
 DRIVE_MOUTHS=DRIVE_MOUTHS+[E1_TAXI_MOUTH,E1_GARAGE_MOUTH]
 MOUTH_CUTS=MOUTH_CUTS+[E1_SITE,E1_TAXI_CUT,E1_GARAGE_DRIVE]+E1_GARAGE_CORNERS
+# Owner 11.11 12:56 (board "D2 DWORZEC KOLEJOWO-AUTOBUSOWY": plot 160 x 110 m, building 80 x 36 m, platforms 2 x 260 m,
+# bus terminal 8 stands, parking 140, TAXI 6, Kiss&Ride 4) and 13:08-13:09 ("tory ... żeby za miasto uciekały", "ulic nie
+# trzeba było zmieniać, albo jakiś wiadukt", the plan D2_plan_tory.png): the station (BraxChampionsD2) builds its whole site
+# in the south part of the block X70..X400 / Z70..Z330 (the register's D1 / DB reservations): world x 95..375, z 87 (the Z70
+# north sidewalk) .. 204; the railway runs on a viaduct along world z 186.5 (rail +6.5 m) west over road X70 (steel arch,
+# clearance 5.25 m: the street and its trees untouched) out of the region into a tunnel. Street mouths across the Z70 north
+# sidewalk (road edge z 80): the one-way loop (in west, out east), the car park's two-way drive, the bus drives in / out.
+# Must match the C# constants (BraxChampionsD2, test_d2_20261111.py).
+D2_CENTRE=(235.0,135.0)
+D2_SITE=(95.0,87.0,280.0,117.0)
+D2_MOUTHS_X=[('D2_in',173.0,180.0),('D2_out',290.0,297.0),('D2_park',108.5,115.5),('D2_bus_in',344.0,351.0),('D2_bus_out',360.0,367.0)]
+D2_DRIVE_STRIPS=[(_x0,80.0,_x1-_x0,7.0) for _,_x0,_x1 in D2_MOUTHS_X]
+D2_DRIVE_MOUTHS=[];D2_MOUTH_CORNERS=[]
+for _id,_x0,_x1 in D2_MOUTHS_X:
+ _m,_c=_mouth(_id,_x0,_x1,80.0,1);D2_DRIVE_MOUTHS.append(_m);D2_MOUTH_CORNERS+=_c
+DRIVE_MOUTHS=DRIVE_MOUTHS+D2_DRIVE_MOUTHS
+MOUTH_CUTS=MOUTH_CUTS+[D2_SITE]+D2_DRIVE_STRIPS+D2_MOUTH_CORNERS
+# the railway corridor (world): rail top, track centre line z, the bridge over X70, the region edge, the tunnel portal
+D2_RAIL_TOP=6.5
+D2_LINE_Z=186.5
+D2_BRIDGE_X=(49.0,93.0)
+D2_PORTAL_X=-185.0

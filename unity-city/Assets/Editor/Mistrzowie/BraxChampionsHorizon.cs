@@ -48,7 +48,7 @@ public static class BraxChampionsHorizon
         float a = Hash(xi, yi), b = Hash(xi + 1, yi), c = Hash(xi, yi + 1), d = Hash(xi + 1, yi + 1);
         return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
     }
-    static float Fbm(float x, float y, int octaves = 5)
+    public static float Fbm(float x, float y, int octaves = 5)
     {
         float sum = 0, amp = 1, norm = 0;
         for (int i = 0; i < octaves; i++) { sum += Value(x, y) * amp; norm += amp; amp *= .5f; x = x * 2.03f + 17.1f; y = y * 2.03f - 9.3f; }
@@ -89,8 +89,16 @@ public static class BraxChampionsHorizon
         float dx = MathF.Max(MathF.Max(X0 - x, x - X1), 0), dz = MathF.Max(MathF.Max(Z0 - z, z - Z1), 0);
         return MathF.Sqrt(dx * dx + dz * dz);
     }
-    // ground height; inside the region rectangle the far land stays under the region's own ground and sea
+    // ground height of the coarse far land: under the D2 railway hill (BraxChampionsD2.Hill*) it is pressed down, so the fine
+    // hill patch (RailHill) with the cutting and the tunnel lies over it and nothing of the coarse land shows in the tunnel
     public static float Height(float x, float z)
+    {
+        float h = FarHeight(x, z);
+        if (!Inside(x, z) && BraxChampionsD2.HillR2(x, z) < .78f) h = MathF.Min(h, 0f);
+        return h;
+    }
+    // ground height; inside the region rectangle the far land stays under the region's own ground and sea
+    public static float FarHeight(float x, float z)
     {
         if (Inside(x, z)) return z < QuayZ ? SeaLevel - 2f : -.6f;
         float dc = z - Coast(x);
@@ -116,6 +124,46 @@ public static class BraxChampionsHorizon
         c = Color.Lerp(c, rock, Smooth(.30f, .58f, slope) * .85f + Smooth(850, 1150, h) * .9f);
         return Color.Lerp(c, high, Smooth(1050, 1300, h) * .8f);
     }
+
+    // Owner 11.11 13:08-13:09 (D2: "tory ... za miasto", the train goes into a tunnel and disappears): the green hill west of
+    // the region with the railway's cutting and the tunnel portal (BraxChampionsD2.HillGround), a fine patch (2 m near the
+    // line, 6 m elsewhere) over the coarse land, in the same vertex albedo. Columns either side of the portal 10 cm apart:
+    // the cutting floor and the hill above the tube meet inside the portal's headwall.
+    public static Chunk RailHill(float k)
+    {
+        var ch = new Chunk();
+        float cx = BraxChampionsD2.HillWX, cz = BraxChampionsD2.HillWZ, R = BraxChampionsD2.HillRX, RZ = BraxChampionsD2.HillRZ, xp = BraxChampionsD2.PortalWX;
+        var xs = new List<float>(); var zs = new List<float>();
+        for (float x = cx - R - 4f; x <= -40f; x += 6f) xs.Add(x);
+        for (float x = -260f; x <= -60f; x += 2f) xs.Add(x);
+        xs.RemoveAll(x => MathF.Abs(x - xp) < .5f); xs.Add(xp - .05f); xs.Add(xp + .05f);
+        for (float z = cz - RZ - 4f; z <= cz + RZ + 4f; z += 6f) zs.Add(z);
+        for (float z = cz - 50f; z <= cz + 50f; z += 2f) zs.Add(z);
+        xs.Sort(); zs.Sort();
+        Dedup(xs); Dedup(zs);
+        int nx = xs.Count, nz = zs.Count;
+        for (int i = 0; i < nx; i++)
+            for (int j = 0; j < nz; j++)
+            {
+                float x = xs[i], z = zs[j], h = BraxChampionsD2.HillGround(x, z);
+                float e = 1f, sx = x >= xp ? 1f : -1f;                                      // one-sided at the portal
+                float hx = (BraxChampionsD2.HillGround(x + sx * e, z) - h) / (sx * e), hz = (BraxChampionsD2.HillGround(x, z + e) - BraxChampionsD2.HillGround(x, z - e)) / (2 * e);
+                var nn = new Vector3(-hx, 1, -hz).normalized;
+                ch.v.Add(new Vector3(x, h, z) * k); ch.n.Add(nn); ch.c.Add(Albedo(x, z, h, 1 - nn.y));
+            }
+        for (int i = 0; i + 1 < nx; i++)
+            for (int j = 0; j + 1 < nz; j++)
+            {
+                float mx = (xs[i] + xs[i + 1]) * .5f, mz = (zs[j] + zs[j + 1]) * .5f;
+                if (BraxChampionsD2.HillR2(mx, mz) > 1.01f) continue;
+                int a = i * nz + j, b = (i + 1) * nz + j, c = a + 1, d = b + 1;
+                // x east, z north: (i,j) -> (i,j+1) -> (i+1,j) faces up in Unity's winding
+                ch.t.Add(a); ch.t.Add(c); ch.t.Add(b);
+                ch.t.Add(c); ch.t.Add(d); ch.t.Add(b);
+            }
+        return ch;
+    }
+    static void Dedup(List<float> l) { for (int i = l.Count - 1; i > 0; i--) if (l[i] - l[i - 1] < .04f) l.RemoveAt(i); }
 
     public sealed class Chunk { public List<Vector3> v = new List<Vector3>(); public List<Vector3> n = new List<Vector3>(); public List<Color> c = new List<Color>(); public List<int> t = new List<int>(); }
 
@@ -207,6 +255,13 @@ public static class BraxChampionsHorizon
             mesh.SetVertices(ch.v); mesh.SetNormals(ch.n); mesh.SetColors(ch.c); mesh.SetTriangles(ch.t, 0); mesh.RecalculateBounds();
             AssetDatabase.CreateAsset(mesh, Out + "/Meshes/champions_horizon_land_" + i + ".asset");
             Renderer(root.transform, "far land " + i, mesh, land); tris += ch.t.Count / 3; parts++;
+        }
+        {
+            var hill = RailHill(k);
+            var mesh = new Mesh { name = "champions horizon D2 rail hill", indexFormat = hill.v.Count > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
+            mesh.SetVertices(hill.v); mesh.SetNormals(hill.n); mesh.SetColors(hill.c); mesh.SetTriangles(hill.t, 0); mesh.RecalculateBounds();
+            AssetDatabase.CreateAsset(mesh, Out + "/Meshes/champions_horizon_d2_hill.asset");
+            Renderer(root.transform, "D2 railway hill (cutting + tunnel)", mesh, land); tris += hill.t.Count / 3; parts++;
         }
         var sea = AssetDatabase.LoadAssetAtPath<Material>(Out + "/Materials/sea.mat");
         if (!sea) BraxBuildQuality.Warn("DO POPRAWKI CHAMPIONS_HORIZON_SEA_MATERIAL_MISSING " + Out + "/Materials/sea.mat");

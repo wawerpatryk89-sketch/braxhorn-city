@@ -1,0 +1,12 @@
+[
+{"out": "d01_front_z_ulicy.png", "eye": [205, 1.7, 56], "target": [235, 8, 150], "fov": 62},
+{"out": "d02_front_z_gory.png", "eye": [150, 60, 25], "target": [240, 5, 150], "fov": 55},
+{"out": "d03_plac_fontanna.png", "eye": [222, 1.7, 92], "target": [237, 6, 135], "fov": 65},
+{"out": "d04_peron_1.png", "eye": [175, 9.0, 179], "target": [290, 8.5, 182], "fov": 65},
+{"out": "d05_most_nad_X70.png", "eye": [70, 1.7, 145], "target": [70, 9, 186], "fov": 65},
+{"out": "d06_tunel_z_gory.png", "eye": [-40, 45, 110], "target": [-175, 10, 186], "fov": 55},
+{"out": "d07_calosc_z_gory.png", "eye": [430, 120, 30], "target": [190, 0, 170], "fov": 55},
+{"out": "d08_hala.png", "eye": [235, 1.7, 136.5], "target": [235, 7, 168], "fov": 72},
+{"out": "d09_terminal_autobusowy.png", "eye": [285, 1.7, 100], "target": [335, 3, 145], "fov": 65},
+{"out": "d10_parking.png", "eye": [140, 16, 72], "target": [118, 0, 135], "fov": 60}
+]

@@ -34,6 +34,7 @@ public static class BraxMiastoAssety
     public static void LodyZWezlow(GameObject o, float[] progi) { }
     public static Bounds Granice(GameObject o) => new Bounds(o.transform.position, Vector3.zero);
     public static void Przygotuj(GameObject o, bool statyczny = true, bool cienie = true) { }
+    public static void Kolizja(Transform parent, GameObject o, string name, float margin) { }
 }
 public static class Rec
 {

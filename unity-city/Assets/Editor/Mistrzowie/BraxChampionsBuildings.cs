@@ -111,6 +111,14 @@ public static class BraxChampionsBuildings
             BraxChampionsE1.Generate(Out);
             e1Generated=true;
         });
+        // Owner 11.11 12:56-13:09 (board "D2 DWORZEC KOLEJOWO-AUTOBUSOWY", the railway out of the city on a viaduct and into
+        // a tunnel): the station, its platforms, the bus terminal and the forecourt.
+        bool d2Generated=false;
+        BraxChampionsFoundation.Optional("D2 dworzec kolejowo-autobusowy",()=>
+        {
+            BraxChampionsD2.Generate(Out);
+            d2Generated=true;
+        });
         // 9.11 owner: "Ten basen usuń całkowicie" - P1 removed from the game.
         // 9.11 owner: apartment buildings on the rental plots, one at a time,
         // each finished A-Z inside and out (empty, no furniture).
@@ -122,9 +130,9 @@ public static class BraxChampionsBuildings
                 apartmentBuildings++;
             });
         AssetDatabase.SaveAssets();
-        int generated=d.buildings.Length+(casinoGenerated?1:0)+apartmentBuildings+(e1Generated?1:0);
+        int generated=d.buildings.Length+(casinoGenerated?1:0)+apartmentBuildings+(e1Generated?1:0)+(d2Generated?1:0);
         Debug.Log("CHAMPIONS_BUILDING_GENERATION base="+d.buildings.Length+
-            " T11="+casinoGenerated+" E1="+e1Generated+" APARTMENTS="+apartmentBuildings+"/"+BraxChampionsApartments.Ids.Length+" P1=REMOVED_BY_OWNER"+
+            " T11="+casinoGenerated+" E1="+e1Generated+" D2="+d2Generated+" APARTMENTS="+apartmentBuildings+"/"+BraxChampionsApartments.Ids.Length+" P1=REMOVED_BY_OWNER"+
             " generated="+generated+" visualAccepted=false");
         return generated;
     }

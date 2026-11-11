@@ -23,7 +23,9 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  # natural-colour fabrics, grasscloth, walnut, rugs, service tiles.
                  'terlenka','cotton_jersey','curly_teddy_natural','crepe_satin','hessian_230','floral_jacquard',
                  'smoked_walnut_veneer','long_white_tiles','anti_skid_tiles','fabric_leather_02',
-                 'laminate_floor_02')
+                 'laminate_floor_02',
+                 # D2 DWORZEC 11.11 (owner board "metal_panels_02", navy cladding): Poly Haven blue_metal_plate.
+                 'blue_metal_plate')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
 # (Poly Haven CC0, the same partly cloudy sky as the first city), the original 4K Radiance .hdr checked against the

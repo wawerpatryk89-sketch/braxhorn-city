@@ -58,7 +58,24 @@ public static class BraxRegion
         var b = rs[0].bounds; foreach (var r in rs.Skip(1)) b.Encapsulate(r.bounds); return b;
     }
     public static Material CityMaterial(Material m) => m;
-    public static GameObject Model(params string[] ids) => null;
+    // the region's street tree is a plain .glb in the repo: drawn in the preview when the work dir has it
+    public static GameObject Model(params string[] ids)
+    {
+        foreach (var id in ids)
+            if (id == "drzewo_verdant") { var g = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Source/Claude/Library/drzewo_verdant.glb"); if (g != null && System.IO.File.Exists("Assets/Source/Claude/Library/drzewo_verdant.glb")) return g; }
+        return null;
+    }
+    public static GameObject Put(Transform parent, GameObject source, string label, Vector3 floor, float yaw, float scale = 1f, bool solid = true, float maxHeight = 0f, float sink = 0f, bool skalaK = true)
+    {
+        if (source == null) return null;
+        var o = UnityEditor.PrefabUtility.InstantiatePrefab(source, parent) as GameObject; o.name = label;
+        float kk = BraxClaudeOsiedle.K; if (skalaK) { scale *= kk; if (maxHeight > 0f) maxHeight *= kk; }
+        o.transform.rotation = Quaternion.Euler(0, yaw, 0); o.transform.localScale = Vector3.one * scale; o.transform.position = Vector3.zero;
+        var b = Bounds(o);
+        if (maxHeight > 0f && b.size.y > maxHeight) { o.transform.localScale *= maxHeight / b.size.y; b = Bounds(o); }
+        o.transform.position = floor + new Vector3(-b.center.x, -b.min.y, -b.center.z);
+        return o;
+    }
 }
 public sealed class BraxVessel : MonoBehaviour
 {

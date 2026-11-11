@@ -8,6 +8,9 @@ osiedle_wnetrza (owner 10.11 22:31: "asortyment alkoholu oryginał z mojej bibli
 the estate disco's interior pack: E1's bar takes his back-bar units with bottles, whisky and wine, leather bar stools, bar
 pendants and glasses from it (BraxChampionsE1Premium). Only those models are extracted; without the pack E1 builds its
 stand-ins and the log says so.
+miasto_pojazdy (owner 11.11: the D2 station's bus terminal, "autobusy" on the board) is the city's vehicle pack: only the
+bus (MAN Lion's City 12 m, CC BY KarpWorkz) is extracted for the stands of BraxChampionsD2; without it the stands stay
+empty and the log says so.
 """
 from pathlib import Path
 import importlib.util,os
@@ -80,3 +83,32 @@ else:
   got=sorted(n for n in E1_MODELS if (cel/(n+'.glb')).exists())
   print('BRAX_MISTRZOWIE_PRIVATE_OK package=osiedle_wnetrza files='+str(count)+' models='+','.join(got)
         +' missing='+','.join(n for n in E1_MODELS if n not in got))
+
+
+# D2 bus terminal (BraxChampionsD2.Buses): the city's own bus model from the vehicle pack (Assets/Source/Mistrzowie/D2/CREDITS.md)
+D2_MODELS=['autobus']
+
+
+def wanted_d2(name):
+ n=name[2:] if name.startswith('./') else name
+ return any(n==m+'.glb' or n.startswith('_tekstury/'+m+'/') for m in D2_MODELS)
+
+
+tar=p.odszyfruj('miasto_pojazdy')
+if tar is None:
+ print('::warning::BRAX_MISTRZOWIE_PRIVATE_MISSING package=miasto_pojazdy - D2 bus stands without the owner bus')
+else:
+ with tar:
+  members=[m for m in tar.getmembers() if m.isfile()]
+  print('BRAX_MISTRZOWIE_PRIVATE_LIST miasto_pojazdy '+' '.join(sorted(m.name for m in members if m.name.endswith('.glb'))))
+  cel=(p.CEL/'Miasto'/'miasto_pojazdy').resolve();count=0
+  for m in members:
+   if not wanted_d2(m.name):continue
+   dst=(cel/m.name).resolve()
+   if cel not in dst.parents:continue
+   dst.parent.mkdir(parents=True,exist_ok=True)
+   with tar.extractfile(m) as src,open(dst,'wb') as out:out.write(src.read())
+   count+=1
+  got=sorted(n for n in D2_MODELS if (cel/(n+'.glb')).exists())
+  print('BRAX_MISTRZOWIE_PRIVATE_OK package=miasto_pojazdy files='+str(count)+' models='+','.join(got)
+        +' missing='+','.join(n for n in D2_MODELS if n not in got))
