@@ -110,6 +110,12 @@ def main(sheet, out_dir, spec_path):
     img_of(mat["normalTexture"]).convert("RGB").resize((A, A), Image.LANCZOS).save(tex / (pack + "_normal.png"), optimize=True)
     rough = Image.open(spec["roughness"]).convert("L").resize((MRs, MRs), Image.LANCZOS) if spec.get("roughness") else Image.new("L", (MRs, MRs), 230)
     metal = Image.open(spec["metallic"]).convert("L").resize((MRs, MRs), Image.LANCZOS) if spec.get("metallic") else Image.new("L", (MRs, MRs), 0)
+    mrt = mat["pbrMetallicRoughness"].get("metallicRoughnessTexture")
+    if spec.get("mr_from_glb") and mrt:
+        # the sheet's own metallic-roughness map (G roughness, B metallic, glTF); "rough_min" keeps cloth from shining like
+        # plastic (owner's white T-shirt, sheet ubrania 02)
+        mra = img_of(mrt).convert("RGB").resize((MRs, MRs), Image.LANCZOS); _, rough, metal = mra.split()
+        if spec.get("rough_min"): rough = rough.point(lambda v: max(v, int(spec["rough_min"] * 255)))
     Image.merge("RGB", (Image.new("L", (MRs, MRs), 255), rough, metal)).save(tex / (pack + "_mr.png"), optimize=True)
     uris = {"base": "_tekstury/" + pack + "_kolor.jpg", "normal": "_tekstury/" + pack + "_normal.png", "mr": "_tekstury/" + pack + "_mr.png"}
     # the pieces: connected components, each assigned to the grid cell of its centre (rows top to bottom, columns left to right)
@@ -122,8 +128,12 @@ def main(sheet, out_dir, spec_path):
     from PIL import ImageDraw
     from scipy import ndimage
     res = spec.get("raster", .001)
-    W_ = int((hi[0] - lo[0]) / res) + 3; H_ = int((hi[1] - lo[1]) / res) + 3
-    def px(v): return ((v[0] - lo[0]) / res + 1, (hi[1] - v[1]) / res + 1)
+    # the view the products stand apart in: "front" (x, y; rows top to bottom - clothes, bags) or "top" (x, z; rows back
+    # to front - shoes laid on the floor in rows)
+    top = spec.get("view", "front") == "top"
+    def rowc(v): return (v[2] - lo[2]) if top else (hi[1] - v[1])
+    W_ = int((hi[0] - lo[0]) / res) + 3; H_ = int(((hi[2] - lo[2]) if top else (hi[1] - lo[1])) / res) + 3
+    def px(v): return ((v[0] - lo[0]) / res + 1, rowc(v) / res + 1)
     mask = Image.new("L", (W_, H_), 0); dr = ImageDraw.Draw(mask)
     for a, b_, c in I: dr.polygon([px(P[a]), px(P[b_]), px(P[c])], fill=255)
     sil = np.array(mask) > 0
@@ -144,7 +154,7 @@ def main(sheet, out_dir, spec_path):
     cell_of_label = {}
     for r in range(rows):
         for k, b in enumerate(sorted(order[r * cols:(r + 1) * cols], key=lambda b: cy_[b][1])): cell_of_label[b] = r * cols + k
-    vx = np.clip(((P[:, 0] - lo[0]) / res + 1).astype(int), 0, W_ - 1); vy = np.clip(((hi[1] - P[:, 1]) / res + 1).astype(int), 0, H_ - 1)
+    vx = np.clip(((P[:, 0] - lo[0]) / res + 1).astype(int), 0, W_ - 1); vy = np.clip(((P[:, 2] - lo[2]) if top else (hi[1] - P[:, 1])) / res + 1, 0, H_ - 1).astype(int)
     vlab = lab[vy, vx]
     cell_of_comp = {}
     for cid in np.unique(tri_comp):
@@ -153,13 +163,15 @@ def main(sheet, out_dir, spec_path):
     tri_cell = np.array([cell_of_comp[c] for c in tri_comp])
     report = []
     for cell, item in enumerate(spec["items"]):
+        if item.get("skip"):          # a piece the owner rejected (23:22: the white mannequins out) - cut away, not written
+            print("SKIP", item.get("name", cell)); continue
         tris = I[tri_cell == cell]
         if len(tris) == 0:
             print("EMPTY", item["name"]); continue
         vs, inv = np.unique(tris.reshape(-1), return_inverse=True)
         p, n, u = P[vs].copy(), N[vs], U[vs]
         mn, mx = p.min(0), p.max(0); h = mx[1] - mn[1]
-        s = item["height"] / h
+        s = spec["scale"] if spec.get("scale") else item["height"] / h      # one scale for the sheet keeps the sizes true to each other
         pivot = np.array([(mn[0] + mx[0]) * .5, mx[1] if item.get("pivot", "top") == "top" else mn[1], (mn[2] + mx[2]) * .5])
         p = (p - pivot) * s
         write_glb(out / (item["name"] + ".glb"), item["name"], p, n, u, inv.reshape(-1, 3), uris, spec.get("metallicFactor", 1.0))

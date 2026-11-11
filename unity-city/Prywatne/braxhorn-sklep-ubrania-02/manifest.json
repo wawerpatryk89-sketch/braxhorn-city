@@ -1,0 +1,44 @@
+{
+ "source": "Właściciel 11.11.2026 23:15: plansza Tripo (GLB) — ramoneska, bomberka, bluza z kapturem, koszulka, katana, sweter, jeansy szerokie, bojówki, spódnica mini, sukienka; pocięte split_sheet.py",
+ "target": "sklep_ubrania_02",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_ubrania_02 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "9c0ebefe8063e3686aecd899483ced4164ffb7652f251e8e80e5ea93cce92612",
+ "cmsSha256": "00daeb280069d4edb3b08c03c6beba6c4f859b02f8db6fe4824928799264a689",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 11029573,
+   "sha256": "00daeb280069d4edb3b08c03c6beba6c4f859b02f8db6fe4824928799264a689"
+  }
+ ],
+ "files": {
+  "oryginal/n3.glb": "ab4d92d76180ac36f7163e998e70da7bb5ac5441f0dffd0fe7c2a062dbf646e3",
+  "oryginal/spec.json": "311d9ee751eea48c5bbd966512c44982605e3eff44f84d62350ae09fcfb6e8a2",
+  "sklep_ubrania_02/_tekstury/sklep_ubrania_02_kolor.jpg": "b421cea344cf045ec7b19c4087a16c21aac8659301d19cbcbcb6afe66212a806",
+  "sklep_ubrania_02/_tekstury/sklep_ubrania_02_mr.png": "39114338ad458992f3b95aeab383695492155d620cf4cf8fab719dc567a9ffa1",
+  "sklep_ubrania_02/_tekstury/sklep_ubrania_02_normal.png": "168a8941d3deabf035ca4844db056f86937e758e8334e9462f33212585e9f1a4",
+  "sklep_ubrania_02/katalog.json": "82b63a73000133512098f465d7855d5e7a5a1883a9543bceed4e9865782ca01c",
+  "sklep_ubrania_02/ubranie_bluza_kaptur_szara.glb": "015055bb72e28e8d1de77b840667a1b187b865ba86ddd37e4345dc45062ceb55",
+  "sklep_ubrania_02/ubranie_bluza_kaptur_szara_wieszak.glb": "38c65dacfd478cba4871f70458c760797aba5236ab4d0c95f69a7a18d99a6334",
+  "sklep_ubrania_02/ubranie_bojowki_khaki.glb": "d460109cf123bb79f0eacf73216b15165bc361d87aaa9b649b7b1c58944c1227",
+  "sklep_ubrania_02/ubranie_bojowki_khaki_wieszak.glb": "7df95b31530607f68c37e1621abbe459421e7edd1a8c9c3b9e547e59e7c1963f",
+  "sklep_ubrania_02/ubranie_bomberka_khaki.glb": "bda09e8d8a6931b5710ce78cc92f4d6c5c2c9cd8ccc52a208fd0dfb3b4d295a4",
+  "sklep_ubrania_02/ubranie_bomberka_khaki_wieszak.glb": "a0838c4592a6a47b5e11927c8f60d2d277729817d7f6c2ddedf353f3377ed284",
+  "sklep_ubrania_02/ubranie_jeansy_szerokie.glb": "336330776683a83c42b8a3e4e64309749004088e436bc63bf930117b38d85316",
+  "sklep_ubrania_02/ubranie_jeansy_szerokie_wieszak.glb": "f9636d039e11a3947f488811b675896c1ca6b17171825d10a58fbcfa169d18b7",
+  "sklep_ubrania_02/ubranie_katana_jeansowa.glb": "74e543fbf44193810634150ffd21a9318d41fdfc663bdc1a6a91c7cf0472ed6a",
+  "sklep_ubrania_02/ubranie_katana_jeansowa_wieszak.glb": "5b2d34e07648af168ef0bfc464d36cd20be7f3fbf1e9c613b1bae8e174797b43",
+  "sklep_ubrania_02/ubranie_koszulka_biala.glb": "b3e7363b897483302a8c3b057d37fa2d29bc5050176b5f4168f7122b97aee7a0",
+  "sklep_ubrania_02/ubranie_koszulka_biala_wieszak.glb": "4e7fb885b0cb3b359eb372c9085326484dfbb4be96e178abe3e7e2986e0bb93f",
+  "sklep_ubrania_02/ubranie_ramoneska_czarna.glb": "ff5dff25ca796166b58125e722fdee3236c08cb9a76db2d6bbf00ac7ee51819a",
+  "sklep_ubrania_02/ubranie_ramoneska_czarna_wieszak.glb": "f1035adaa157574ff17b6d25c4d64782af25edc90c9ab281e28ff63a701dc7ac",
+  "sklep_ubrania_02/ubranie_spodnica_mini_jeans.glb": "34b262488a1336db032bd97606e9bc373e23119bea182c8a069a428aa93f50d8",
+  "sklep_ubrania_02/ubranie_spodnica_mini_jeans_wieszak.glb": "a5557418d2726af4d60a304a7e7fc37d3382e543c54764f517718c5db4a1d049",
+  "sklep_ubrania_02/ubranie_sukienka_bordo.glb": "afd41b5ee3509bbcbc476c047ca63a49639fd0d1d44a90ebf7212972219ad106",
+  "sklep_ubrania_02/ubranie_sukienka_bordo_wieszak.glb": "3ffb7b539a749d9ce370ef2c399836b07fdc19de32a4406edca3e2c74ac5e552",
+  "sklep_ubrania_02/ubranie_sweter_warkocz_kremowy.glb": "3e455b6acfff03885d52871ffcc29a0fd784f9043dfba8220bf0c2ba16b0c193",
+  "sklep_ubrania_02/ubranie_sweter_warkocz_kremowy_wieszak.glb": "5eea97bb3c3dd932438fabf1b4ea5fa9bf0fe5d7e7d5c2a76afe54d6fa61ecf1"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

@@ -265,8 +265,20 @@ class G1ShopModelsTests(unittest.TestCase):
         self.assertFalse(any(p.suffix in ('.glb', '.png', '.jpg', '.zip') for p in (ROOT / 'unity-city/Prywatne/braxhorn-sklep-ubrania-01').iterdir()))
         self.assertIn('install_sklep_modele', (ROOT / 'unity-tools/mistrzowie/install_owner_media.py').read_text())
         sk = (ED / 'BraxChampionsG1Sklepy.cs').read_text()
-        self.assertIn('BraxMiastoAssety.Model(UbraniaPaczka', sk)
+        self.assertIn('BraxMiastoAssety.Model(pack,n+"_wieszak")', sk)
         self.assertTrue((ROOT / 'docs/zasady/ZASADA_SKLEP_MODELE_GLOBALNE_20261111.md').exists())
+        for pack, target in (('braxhorn-sklep-buty-01', 'sklep_buty_01'), ('braxhorn-sklep-torebki-01', 'sklep_torebki_01'),
+                             ('braxhorn-sklep-ubrania-02', 'sklep_ubrania_02'), ('braxhorn-sklep-manekiny-01', 'sklep_manekiny_01'),
+                             ('braxhorn-sklep-manekiny-02', 'sklep_manekiny_02')):
+            mf = json.loads((ROOT / 'unity-city/Prywatne' / pack / 'manifest.json').read_text())
+            self.assertEqual(mf['target'], target)
+            self.assertFalse(any(p.suffix in ('.glb', '.png', '.jpg') for p in (ROOT / 'unity-city/Prywatne' / pack).iterdir()))
+            for part in mf['parts']: self.assertTrue((ROOT / 'unity-city/Prywatne' / pack / part['name']).exists())
+        self.assertIn('ShopModel(ButyPaczka', sk); self.assertIn('ShopModel(TorebkiPaczka', sk)
+        # owner 23:03 "na manekinie też musisz dać ciuchy komplet": his dressed mannequins; 23:22 the white ones cut away
+        self.assertIn('ModelMannequin(mset', sk); self.assertIn('Ubrania2+"ubranie_ramoneska_czarna"', sk)
+        m2 = json.loads((ROOT / 'unity-city/Prywatne/braxhorn-sklep-manekiny-02/manifest.json').read_text())
+        self.assertEqual(sum(k.endswith('.glb') and k.startswith('sklep_manekiny_02/') for k in m2['files']), 4)
 
 
 if __name__ == '__main__':

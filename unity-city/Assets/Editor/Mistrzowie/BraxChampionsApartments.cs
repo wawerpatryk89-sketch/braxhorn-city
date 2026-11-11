@@ -517,8 +517,49 @@ public static class BraxChampionsApartments
         // brass 3D digits, 2 mm proud of the plate (its corridor face at wall + s*.012), read from the corridor
         BraxChampionsLetters3D.Text(doorNumbers,gold,black,number,new Vector3(entry+.80f,y0+1.55f-.034f,wall+s*.014f),
             BraxChampionsLetters3D.YawFacing(new Vector3(0,0,s)),.068f,.006f,.10f,.24f);
+        Furnish(number,X,dirU,s,lu,uB2,uHall,w,zfL,zGlass,zs,zc,zm,y0+Finish);
         apartments++;
         return entry;
+    }
+
+    // ---------------- furnishing from the catalogue (owner 11.11 20:02: "apartamenty też możesz od razu wyposażyć. Już jak
+    // mamy meble, wszystko mamy, to od razu na gotowca lecieć") - BRAXHORN HOME pieces as shared meshes (BraxKatalog.Place),
+    // their seats (W.Siedzisko: sit on the sofa and chairs, lie on the bed) and colliders per flat; the TV a working
+    // BRAXHORN (WŁĄCZ / WYŁĄCZ, the owner's films; rule ZASADA_TELEWIZORY_FILMY_20261111)
+    static BraxChampionsMeshBatch kat;
+    static int furnished;
+    static void Furnish(string number,Func<float,float> X,float dirU,float s,float lu,float uB2,float uHall,float w,float zfL,float zGlass,float zs,float zc,float zm,float yF)
+    {
+        if(kat==null)return;
+        BraxKatalog.HomeMaterials();   // the catalogue materials before they are passed as arguments
+        var c=new BraxKatalog.Ctx{m=kat,root=inside,cols=inside,unit=1f,water=null,inst=inside,seat=(p,f,l)=>W.Siedzisko(p,f,l+" "+number)};
+        var toU=new Vector3(dirU,0,0);var toLiving=-toU;
+        int hsh=number.GetHashCode()&0x7fffffff,pic=hsh%4;
+        // living: the media wall on the walnut partition, the sofa facing it, a coffee table, a rug, a reading lamp
+        float zTV=(zfL+zs)*.5f,xw=X(lu)-dirU*(Partition*.5f+.012f);
+        BraxKatalog.MediaUnit(c,new Vector3(xw,yF,zTV)+toLiving*.44f,toLiving,2.0f,BraxKatalog.Walnut,65f,pic,"APT "+number+" szafka RTV");
+        BraxKatalog.Rug(c,new Vector3(X(lu-2.1f),yF,zTV),Vector3.forward,2.6f,2.4f,false);
+        BraxKatalog.CoffeeTable(c,new Vector3(X(lu-1.3f),yF+.012f,zTV),toU,1.1f,.6f);
+        BraxKatalog.Sofa(c,new Vector3(X(lu-2.3f),yF+.012f,zTV),toU,2.4f,hsh/4%2,"sofa");   // 1.8 m from the screen
+        BraxKatalog.FloorLamp(c,new Vector3(X(lu-2.85f),yF,zTV+s*1.45f));
+        // the kitchen along the corridor wall (the run from the window side to the hall opening), the dining set by the window
+        int nm=Mathf.Clamp(Mathf.FloorToInt((lu-.6f)/.6f),5,9);
+        string[] all={"lodowka","szuflady","zlew","zmywarka","szuflady","plyta","szuflady","slupek","drzwi"};
+        var mods=new string[nm];for(int i=0;i<nm;i++)mods[i]=all[i];
+        var kf=new Vector3(0,0,-s);var run=Vector3.Cross(Vector3.up,kf);bool fromWindow=run.x*dirU>0f;
+        var kp=new Vector3(fromWindow?X(.25f):X(.25f+nm*.6f),yF,zc-s*.005f);
+        bool dark=(hsh/8)%2==1;
+        BraxKatalog.Place(c,"kuchnia "+nm+(dark?" grafit":" orzech"),cc=>BraxKatalog.Kitchen(cc,Vector3.zero,Vector3.right,Vector3.forward,mods,dark?BraxKatalog.Graphite:BraxKatalog.Walnut,dark?BraxKatalog.Steel:BraxKatalog.BlackMatt,dark?BraxKatalog.StoneDark:BraxKatalog.Stone,"kuchnia",true),kp,kf,null);
+        {var a=kp;var b2=kp+run*(nm*.6f)+kf*.60f;W.KolizjaMM(Mathf.Min(a.x,b2.x),Mathf.Max(a.x,b2.x),yF,yF+.92f,Mathf.Min(a.z,b2.z),Mathf.Max(a.z,b2.z));}
+        BraxKatalog.DiningSet(c,new Vector3(X(1.0f),yF+.012f,zTV-s*.45f),new Vector3(0,0,-s),"krzesło");   // by the side window, .5 m behind the sofa
+        // bedrooms: a double bed with its head on the partition, bedside tables with lamps
+        float zB=(zGlass+zs)*.5f;
+        BraxKatalog.Bed(c,new Vector3(X(lu+Partition*.5f+.02f+2.20f),yF+.012f,zB),toU,1.6f,"łóżko");
+        BraxKatalog.Bed(c,new Vector3(X(uB2+Partition*.5f+.02f+2.20f),yF+.012f,zB),toU,1.6f,"łóżko");
+        // the bathroom: the wall-hung WC on the far wall, the vanity on the corridor-side wall
+        BraxKatalog.WcPan(c,new Vector3(X(w)-dirU*(Partition*.5f+.02f),yF,zm-s*.55f),toLiving);
+        BraxKatalog.Place(c,"umywalka 0.8 dąb",cc=>BraxKatalog.Vanity(cc,Vector3.zero,Vector3.forward,.8f,BraxKatalog.Oak,"umywalka"),new Vector3(X(uHall+1.1f),yF,zc-s*.02f),new Vector3(0,0,-s),null);
+        furnished++;
     }
 
     // Dog-leg stair from level f to f+1: flight 1 in lane A (+Z), half landing, flight 2 in lane B (-Z).
@@ -581,7 +622,10 @@ public static class BraxChampionsApartments
                   style==Style.MarbleGold?FrontAndRoofT06():FrontAndRoofT07();
         panes+=RearBalconies();
         EntranceCanopy();
+        kat=new BraxChampionsMeshBatch();furnished=0;
         Interior(lights);
+        kat.Build(inside,id+" | apartments furniture (catalogue)",outFolder,false,1f);kat=null;
+        Debug.Log("APT_"+id+"_FURNISHED flats="+furnished+" shared pieces="+BraxKatalog.Placed);
 
         int saved=W.Zapisz(id+"_apartments");
         BraxChampionsLetters3D.Build(doorNumbers,inside,id+" door numbers",1f);              // the root carries K
