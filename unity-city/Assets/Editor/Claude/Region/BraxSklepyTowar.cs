@@ -30,7 +30,9 @@ public static class BraxSklepyTowar
         // ULICA MIASTA (10.11, zamiast kolorowych klocków): kwiaciarnia — rośliny w doniczkach (zestawy Poly Haven rozdzielone,
         // skrzynki_owocow.py) i wazony; optyk — okulary i lupy; poczta — artykuły papiernicze, książki, słodycze; warsztat rowerowy — narzędzia
         "kwiaty" => new[] { "ph:doniczka_anturium_1", "ph:doniczka_kalatea_1", "ph:ceramic_vase_02", "ph:doniczka_paproc_1", "ph:potted_plant_04", "ph:doniczka_anturium_2", "ph:ceramic_vase_04", "ph:doniczka_kalatea_2", "ph:brass_vase_03*2", "ph:ceramic_vase_03" },
-        "optyk" => new[] { "ph:round_spectacles*3", "ph:magnifying_glass_01", "ph:round_spectacles*4", "ph:ceramic_vase_03", "ph:round_spectacles*2" },
+        // 11.11: oprawki z kodu na ścianie ekspozycji i na ladzie (BraxUlicePierzeje.Okulary — skala × K); na półkach poza pasem
+        // ekspozycji płyny i krople do soczewek (pudełka BRAXHORN PHARMA), lupy, wazony
+        "optyk" => new[] { "sk:lek_05*3", "ph:magnifying_glass_01", "sk:lek_12*3", "ph:ceramic_vase_03", "sk:lek_18*3", "sk:lek_09*2" },
         "poczta" => new[] { "ph:cardboard_box_01*2", "ph:stationery_supplies", "ph:cardboard_box_01", "sk:tor_04", "ph:cardboard_box_01*3", "ph:stationery_supplies" },   // 10.11: paczki i druki (nie książki)
         "warsztat" => new[] { "ph:metal_toolbox", "ph:lubricant_spray*3", "ph:small_oil_can_01", "ph:combination_wrench*3", "ph:pipe_wrench", "ph:ratchet_wrench*2", "ph:lightbulb_01*2" },
         // naprawa telefonów / elektronika (fawela): stare telewizory, radia, konsole, pady, żarówki, kartony

@@ -869,13 +869,21 @@ public static class BraxUlicePierzeje
         {
             Vector3 P(float a, float y, float g) => o + wzdl * a + Vector3.up * y + wglab * g;
             var sr = okleina ? BraxUliceKit.S(okleina) : sk; sk.kolor = Kol(.95f, .95f, .94f);
+            bool optyk = lok.typ == "optyk" && Vector3.Dot(wglab, f.N) < -.9f;   // ściana oprawek na ścianie tylnej (boczny regał — towar)
             sr.Box(P(0, y0, 0), P(.03f, y0 + wys, glb)); sr.Box(P(dl - .03f, y0, 0), P(dl, y0 + wys, glb));   // boki
-            sr.Box(P(.03f, y0, glb - .02f), P(dl - .03f, y0 + wys, glb));                                     // plecy
+            // plecy; optyk — ŚCIANA OPRAWEK: plecy podświetlone (mleczny panel), oprawki z kodu w pasie 0.75–2.1 m × K
+            (optyk ? BraxUliceKit.S(BraxMiastoA.Swieci("optyk: plecy ekspozycji (podświetlone)", new Color(.95f, .95f, .94f), new Color(.55f, .55f, .52f))) : sr)
+                .Box(P(.03f, y0, glb - .02f), P(dl - .03f, y0 + wys, glb));
             for (int p = 0; p < polek; p++)
             {
                 float y = y0 + .12f + p * (wys - .2f) / Mathf.Max(1, polek - 1);
                 sr.Box(P(.03f, y - .025f, .0f), P(dl - .03f, y, glb - .02f));
                 if (p == polek - 1) break;
+                if (optyk && y > y0 + .7f * k && y < y0 + 2.1f * k)
+                {   // rząd oprawek co 25 cm × K, przodem do sali, w różnych kolorach (acetat czarny, havana, granat, bordo, metal)
+                    for (float a = .16f * k; a < dl - .16f * k; a += .25f * k) Okulary(P(a, y + .0005f, .05f), -wglab, KoloryOprawek[rng.Next(KoloryOprawek.Length)], k);
+                    continue;
+                }
                 if (prawdziwy)
                 {   // apteka: leki w dwóch warstwach (jak w prawdziwej aptece — bez pustej ściany nad pudełkami)
                     float odst = (wys - .2f) / Mathf.Max(1, polek - 1);
@@ -898,7 +906,7 @@ public static class BraxUlicePierzeje
         float hR = Mathf.Min(2.2f * k, ySuf - y0 - .25f);
         // regał na ścianie tylnej (cała szerokość) i przy ścianie lewej (od strony bez drzwi)
         bool regaly = lok.typ != "hotel" && lok.typ != "kantor" && lok.typ != "fryzjer";   // hotel: recepcja i hol, kantor: tablica kursów, fryzjer: stanowiska — bez regałów z towarem
-        int nPolek = lok.typ == "apteka" ? 9 : 5;                  // apteka: gęste półki co ok. 0.33 m
+        int nPolek = lok.typ == "apteka" ? 9 : lok.typ == "optyk" ? 8 : 5;   // apteka: gęste półki co ok. 0.33 m; optyk: ściana oprawek
         if (regaly) Regal(W(sIn0 + .1f, 0, dTyl + .5f), f.R, -f.N, sIn1 - sIn0 - .2f, .45f, hR, nPolek);
         // gastronomia (bistro, pizzeria, kawiarnia, bar): regał tylko za ladą — na sali stoliki, nie półki jak w sklepie
         bool gastro = lok.typ == "bistro" || lok.typ == "pizzeria" || lok.typ == "kawiarnia" || lok.typ == "bar";
@@ -1084,7 +1092,9 @@ public static class BraxUlicePierzeje
                         bool ck = lok.typ == "cukiernia"; float gw = ck ? .85f : .7f, hb = .88f * k, hs = ck ? .42f : .28f;
                         mebel.Box(W(s0w, y0, dC + gw * .5f), W(s1w, y0 + hb - .03f, dC - gw * .5f));
                         BraxUliceKit.S(granit).Box(W(s0w - .02f, y0 + hb - .03f, dC + gw * .5f + .02f), W(s1w + .02f, y0 + hb, dC - gw * .5f - .02f));
-                        BraxSklepyTowar.Polka(lok.typ, tw, W(s0w + .08f, y0 + hb + .004f, dC), f.R, f.N, L - .16f, rng, hs - .04f);
+                        if (ck) BraxSklepyTowar.Polka(lok.typ, tw, W(s0w + .08f, y0 + hb + .004f, dC), f.R, f.N, L - .16f, rng, hs - .04f);
+                        else for (float a = s0w + .15f * k; a < s1w - .15f * k; a += .22f * k)   // optyk: oprawki z kodu w dwóch rzędach, przodem do klienta
+                            foreach (float sg in new[] { -1f, 1f }) Okulary(W(a, y0 + hb + .0005f, dC + sg * gw * .22f), sg * f.N, KoloryOprawek[rng.Next(KoloryOprawek.Length)], k);
                         szyb.Box(W(s0w + .01f, y0 + hb, dC + gw * .5f - .01f), W(s1w - .01f, y0 + hb + hs, dC - gw * .5f + .01f));
                         nogi.Box(W(s0w, y0 + hb + hs, dC + gw * .5f), W(s1w, y0 + hb + hs + .025f, dC - gw * .5f));
                         if (ck) BraxUliceKit.S(BraxMiastoA.Swieci("witryna chłodnicza: listwa LED", new Color(1f, .97f, .9f), new Color(1.3f, 1.25f, 1.1f))).Box(W(s0w + .05f, y0 + hb + hs - .03f, dC + .05f), W(s1w - .05f, y0 + hb + hs - .005f, dC - .05f));
@@ -1481,7 +1491,9 @@ public static class BraxUlicePierzeje
         }
         if (t == "optyk")
         {   // okulary na ladzie + tablica do badania wzroku (litery malejące rzędami) na ścianie bez regału, krzesło badanego naprzeciw
-            for (int i = 0; i < 2; i++) BraxSklepyTowar.Polka("optyk", rodzic, W(ladaS0 + .15f + i * .9f, y0 + ladaH + .004f, ladaD - ladaG * .5f), f.R, -f.N, .75f, rng);
+            // okulary na ladzie (z kodu, ta sama skala co na ścianie) i lupa
+            for (int i = 0; i < 3; i++) Okulary(W(ladaS0 + .3f + i * .26f * k, y0 + ladaH + .0005f, ladaD - ladaG * .55f), f.N, KoloryOprawek[(i * 3 + 1) % KoloryOprawek.Length], k);
+            PH(rodzic, "magnifying_glass_01", "Optyk: lupa na ladzie", W(ladaS1 - .35f, y0 + ladaH + .004f, ladaD - ladaG * .5f), yawDoUlicy + 20f, .2f * k);
             bool prawa = f.drzwiS > 3.2f;                       // regał boczny stoi przy lewej ścianie → tablica na prawej (i odwrotnie)
             Vector3 nT = prawa ? -f.R : f.R; float sT = prawa ? sIn1 - .02f : sIn0 + .02f, dT = -2.6f;
             var bialy = BraxUliceKit.Mat("optyk: tablica Snellena (biała)", new Color(.96f, .96f, .95f), .5f);
@@ -1629,4 +1641,47 @@ public static class BraxUlicePierzeje
         sg.AddComponent<MeshFilter>().sharedMesh = siedz; sg.AddComponent<MeshRenderer>().sharedMaterial = skora;
         var c = g.AddComponent<CapsuleCollider>(); c.center = new Vector3(0, .4f * k, 0); c.radius = .2f * k; c.height = .8f * k;
     }
+
+    // OKULARY Z KODU (11.11, właściciel 20:05: „skala… okulary u optyka za małe”) — oprawka jak w życiu × K: szkła 52 × 40 mm
+    // (zaokrąglony prostokąt), mostek 18 mm, obręcze 4 mm (acetat / metal — kolor wierzchołków), szkła przezroczyste, zauszniki
+    // 140 mm rozłożone do tyłu i opadające na półkę (okulary stoją jak na ekspozycji). c = środek dolnej krawędzi oprawki na półce,
+    // przod = kierunek, w który patrzą szkła (do klienta).
+    static Material okularyRama, okularySzkla;
+    internal static void Okulary(Vector3 c, Vector3 przod, Color32 kolor, float k)
+    {
+        if (!okularyRama) { okularyRama = BraxUliceKit.Mat("okulary: oprawki (acetat, połysk)", Color.white, .22f, 0f); okularySzkla = BraxUliceKit.Mat("okulary: szkła (przezroczyste)", new Color(.8f, .86f, .9f, .18f), .03f, 0f); }
+        przod.y = 0f; przod.Normalize(); var prawo = Vector3.Cross(Vector3.up, przod);
+        var rm = BraxUliceKit.S(okularyRama); var sz = BraxUliceKit.S(okularySzkla); var stary = rm.kolor; rm.kolor = kolor;
+        const float a = .026f, b = .020f, wr = .004f, gr = .004f, most = .009f; const int N = 12;
+        Vector3 L(float x, float y, float z) => c + (prawo * x + Vector3.up * y + przod * z) * k;
+        Vector2 Obrys(float t, float off) { float co = Mathf.Cos(t), si = Mathf.Sin(t); return new Vector2((a + off) * Mathf.Sign(co) * Mathf.Pow(Mathf.Abs(co), 2f / 2.8f), (b + off) * Mathf.Sign(si) * Mathf.Pow(Mathf.Abs(si), 2f / 2.8f)); }
+        foreach (float sg in new[] { -1f, 1f })
+        {
+            float cx = sg * (most + a + wr * .5f), cy = b + wr;
+            for (int i = 0; i < N; i++)
+            {
+                float t0 = i * Mathf.PI * 2f / N, t1 = (i + 1) * Mathf.PI * 2f / N;
+                Vector2 o0 = Obrys(t0, wr * .5f), o1 = Obrys(t1, wr * .5f), w0 = Obrys(t0, -wr * .5f), w1 = Obrys(t1, -wr * .5f);
+                Vector3 P(Vector2 q, float z) => L(cx + q.x, cy + q.y, z);
+                rm.Quad(P(o0, 0f), P(o1, 0f), P(w1, 0f), P(w0, 0f), przod);                                    // lico obręczy
+                var nz = new Vector2((o0 + o1).x, (o0 + o1).y).normalized; var nn = prawo * nz.x + Vector3.up * nz.y;
+                rm.Quad(P(o0, 0f), P(o1, 0f), P(o1, -gr), P(o0, -gr), nn);                                     // krawędź zewnętrzna
+                rm.Quad(P(w0, 0f), P(w1, 0f), P(w1, -gr), P(w0, -gr), -nn);                                    // krawędź wewnętrzna
+                rm.Quad(P(o0, -gr), P(o1, -gr), P(w1, -gr), P(w0, -gr), -przod);                               // tył
+                // szkło (wachlarz ze środka, obie strony) w połowie grubości obręczy
+                var s0 = L(cx, cy, -gr * .5f); var q0 = P(w0, -gr * .5f); var q1 = P(w1, -gr * .5f);
+                sz.Tri(s0, q0, q1, przod); sz.Tri(s0, q1, q0, -przod);
+            }
+            // zausznik: zawias przy zewnętrznej krawędzi obręczy, do tyłu z lekkim rozchyleniem, końcówka opada na półkę
+            float xz = sg * (most + 2f * a + wr), yz = cy + b * .55f;
+            Vector3 z0 = L(xz, yz, -gr), z1 = L(xz + sg * .008f, yz - .004f, -.11f), z2 = L(xz + sg * .01f, .004f, -.145f);
+            rm.Rura(L(xz - sg * .002f, yz, -.0005f), z0, .0028f, 4); rm.Rura(z0, z1, .0022f, 4, false); rm.Rura(z1, z2, .0022f, 4);
+        }
+        // mostek (łuk nad nosem)
+        Vector3 m0 = L(-most - .001f, b * 1.55f + wr, -gr * .5f), m1 = L(0f, b * 1.75f + wr, -gr * .5f), m2 = L(most + .001f, b * 1.55f + wr, -gr * .5f);
+        rm.Rura(m0, m1, .0025f, 4, false); rm.Rura(m1, m2, .0025f, 4, false);
+        rm.kolor = stary;
+    }
+    static readonly Color32[] KoloryOprawek = { new Color32(12, 12, 14, 255), new Color32(92, 52, 26, 255), new Color32(28, 38, 88, 255), new Color32(104, 18, 24, 255), new Color32(190, 192, 198, 255), new Color32(170, 176, 182, 255), new Color32(48, 70, 52, 255) };
+
 }
