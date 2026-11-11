@@ -2,3 +2,4 @@
 # mistrzowie-kino-filmy (unity-tools/mistrzowie/install_kino_films.py, SHA-256 pinned)
 *.mp4
 *.mp4.meta
+# since 11.11 20:51 also encrypted in unity-city/Prywatne/mistrzowie-kino-filmy-20261111 (install_owner_media.py)

@@ -193,5 +193,16 @@ def main():
  (DEST.parent/'source-materials.json').write_text(json.dumps(report,indent=2))
  print('BRAX_MISTRZOWIE_PBR_OK maps='+str(len(report))+' original=4K')
 
-if __name__=='__main__':main()
+def owner_media():
+ # the owner's cinema films and TV ads (encrypted packs, 11.11): staged here because this CI step carries KLUCZ; never
+ # fails the build (missing = BRAK PLIKU FILMU / the TVs' still pictures)
+ try:
+  import importlib.util
+  spec=importlib.util.spec_from_file_location('install_owner_media',Path(__file__).with_name('install_owner_media.py'))
+  mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod);mod.main()
+ except Exception as e:print('BRAX_OWNER_MEDIA_ERROR '+str(e)[:200])
+
+if __name__=='__main__':
+ main()
+ owner_media()
 

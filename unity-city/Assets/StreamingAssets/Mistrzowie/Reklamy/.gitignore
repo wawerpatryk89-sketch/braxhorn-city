@@ -1,0 +1,3 @@
+# the owner TV ads (640x360, no sound) are staged in CI from unity-city/Prywatne/mistrzowie-reklamy-20261111 (install_owner_media.py)
+*.mp4
+*.mp4.meta

@@ -121,6 +121,10 @@ public static partial class BraxChampionsD2
             G1Circulation();Flush("G1 interior | escalators, lifts, stairs");
             G1Cinema();Flush("G1 kino | lobby, reception, halls");
             G1Home();G1GoodsIn();Flush("G1 dostawy | rampa rozładunkowa, korytarz, magazyn");
+            // owner 11.11 20:46-20:47: his short films loop on every BRAXHORN TV of the gallery (no sound, 640 x 360)
+            var tv=new GameObject("G1 | reklamy na telewizorach (BraxChampionsReklamyTV)").AddComponent<BraxChampionsReklamyTV>();
+            tv.transform.SetParent(root,false);tv.ekrany=BraxKatalog.TvMaterials();tv.srodek=root.position;tv.promien=120f*K;
+            tv.pliki=new[]{"reklama_1_puma.mp4","reklama_2_alpy.mp4","reklama_3_roboty.mp4","reklama_4_gangsterzy.mp4","reklama_5_fabryka.mp4"};
             Debug.Log("G1_GALERIA bays="+G1Bays+" accessible="+G1AccessibleBays+" shops="+G1Shops+" cinemaHalls="+G1Halls+" cinemaSeats="+G1CinemaSeats+" escalators="+G1Escalators+
                       " doors="+Doors+" colliders="+Colliders+" signs="+Signs+" trees="+Trees+" lamps="+Lamps+" benches="+Benches+" seats="+Seats+" lifts="+Lifts+" screens="+Screens);
             return 1;

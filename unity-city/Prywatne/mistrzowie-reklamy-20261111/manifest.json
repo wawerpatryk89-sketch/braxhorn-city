@@ -1,0 +1,26 @@
+{
+ "source": "owner ads for the TVs, 11.11.2026 20:46 (5 short films: puma, Alps, robots, gangsters, factory)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer, release oboz-transfer-key-41749904696; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "cd9670f906226cd14f1d3981b5519f0b7026d509e9f5b2a72c679cc19fbc0ca5",
+ "cmsSha256": "cc006799c06cb532b78fa8de48f9b0fb68de133cc242557b5a07cb3e3594807b",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 70530825,
+   "sha256": "cc006799c06cb532b78fa8de48f9b0fb68de133cc242557b5a07cb3e3594807b"
+  }
+ ],
+ "files": {
+  "oryginaly/2041.mp4": "4d1922a2b98239722dc2c8f9ba17e2c73c6c48f3741fb05ee5b4bbd997c73696",
+  "oryginaly/6705.mp4": "ca6bd8cee0d6e5ff3f91cc8be5bc7cbaf909d74120e1aaa148845a77e3cfe947",
+  "oryginaly/6706.mp4": "2e22a19b7d1a85c3c35e200b0c751b455009f64fa881a16906b0514780b55474",
+  "oryginaly/6707.mp4": "80d4a382ff939d337d7b528eff125d937fe314333981b968d9ea26adbe9c2ac9",
+  "oryginaly/6708.mp4": "2f3cc24e590e5e391a1457c6c1c312e5f7d3a9fc7b73a3e6bce33c72360a5be8",
+  "tv_640x360/reklama_1_puma.mp4": "58d38786d79354543515dcc2edb8556d9ab8e4e700db8d0e1544dc68c6697ae7",
+  "tv_640x360/reklama_2_alpy.mp4": "7b0d496a2306141cdf450104610cf33ab71818dcb45b1934a48af79a0a73b81c",
+  "tv_640x360/reklama_3_roboty.mp4": "5d623c15ebe15a355cb4498ec18b5b32fc313ed5357426994e314881e4341fae",
+  "tv_640x360/reklama_4_gangsterzy.mp4": "5631ef27877c341276e45c6789363d61ece925d6c7406530f760a2b27b9445f2",
+  "tv_640x360/reklama_5_fabryka.mp4": "05ea8d451db45ea5b7296d028eef444e02dc3cef0fad3be0821afd826b08dcd6"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

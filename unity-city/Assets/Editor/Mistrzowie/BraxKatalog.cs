@@ -72,6 +72,14 @@ public static class BraxKatalog
         screens[id] = mt; return mt;
     }
 
+    /// <summary>the four TV pictures' materials (BraxChampionsReklamyTV plays the owner's ads into them)</summary>
+    public static Material[] TvMaterials()
+    {
+        Materials(); var o = new Material[4];
+        for (int i = 0; i < 4; i++) o[i] = Screen("tv_" + i, 320, 180, TvPicture(i));
+        return o;
+    }
+
     // ---------------------------------------------------------------- frame helpers
     struct Fr
     {

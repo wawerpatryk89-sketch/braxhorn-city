@@ -1,0 +1,47 @@
+{
+ "source": "owner films for the G1 cinema, 11.11.2026 19:00-19:09 (BEZPRAWIE, BEZ GRANIC odc. 1)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (release oboz-transfer-key-41749904696; recipient.pem.enc protected by KLUCZ) -> split 90 MB",
+ "cmsSha256": "1d86be27909d1972e9a0f96dab77a915269b435433d2a757941e6f73acfe793f",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 94371840,
+   "sha256": "1243ad3cf6eae60cac07a8efc4111d54897809f8baa4e75cc97e7b1b23d21205"
+  },
+  {
+   "name": "part-001.cms",
+   "bytes": 94371840,
+   "sha256": "14b5f2fc2ad8162a11088b8cf97f077207dd09c1772f91efb70d91a35614e8ea"
+  },
+  {
+   "name": "part-002.cms",
+   "bytes": 94371840,
+   "sha256": "76dab617f78c30a99791364c4e3eaf307815eec4e6bcddd7bf8ca9fb596c15c8"
+  },
+  {
+   "name": "part-003.cms",
+   "bytes": 94371840,
+   "sha256": "85c868b520946895c8a72b9c81563db40b9fa3e2e989e69602a3e1e6eca10fca"
+  },
+  {
+   "name": "part-004.cms",
+   "bytes": 94371840,
+   "sha256": "4cbeaabf7341454bc61d8b57fc2c2a912627372bea7d9206faa3923f95516033"
+  },
+  {
+   "name": "part-005.cms",
+   "bytes": 94371840,
+   "sha256": "41bd07d333d58bbff5870970b8a7f4f9f1e4b4152fa879f35a2533e44e38a85d"
+  },
+  {
+   "name": "part-006.cms",
+   "bytes": 16492285,
+   "sha256": "04cf6d8e157a69dba5082084eb1fbe8ab75738406584ed30d065f19dd6170564"
+  }
+ ],
+ "files": {
+  "bezprawie.mp4": "5952685b1193f1b3f9f29b319a055e767d45a336fc41766a1db527a99a0656b1",
+  "bez_granic_1.mp4": "3c879a1428b12e0e6cbf68ae95b4c4a5b0caf5295c3e8cde0db30bccdea56742"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

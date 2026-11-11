@@ -224,5 +224,35 @@ class G1Owner1947Tests(unittest.TestCase):
         self.assertIn('spin.stopniNaSekunde=30f', e)
 
 
+class G1OwnerMediaTests(unittest.TestCase):
+    # owner 11.11 19:00-20:47: his films and TV ads kept encrypted in the repo (public), staged in CI, looping on the TVs
+    def test_packs_complete(self):
+        import hashlib
+        for name in ('mistrzowie-kino-filmy-20261111', 'mistrzowie-reklamy-20261111'):
+            d = ROOT / 'unity-city/Prywatne' / name
+            m = json.loads((d / 'manifest.json').read_text())
+            self.assertTrue((d / 'recipient.crt').exists() and (d / 'recipient.pem.enc').exists())
+            for part in m['parts']:
+                self.assertLess(part['bytes'], 100 * 1024 * 1024)
+                self.assertEqual(hashlib.sha256((d / part['name']).read_bytes()).hexdigest(), part['sha256'])
+        films = json.loads((ROOT / 'unity-city/Prywatne/mistrzowie-kino-filmy-20261111/manifest.json').read_text())['files']
+        self.assertEqual(films['bezprawie.mp4'], '5952685b1193f1b3f9f29b319a055e767d45a336fc41766a1db527a99a0656b1')
+
+    def test_no_raw_video_in_git(self):
+        import subprocess
+        tracked = subprocess.run(['git', 'ls-files', '*.mp4'], cwd=ROOT, capture_output=True, text=True).stdout.split()
+        self.assertFalse([t for t in tracked if 'StreamingAssets/Mistrzowie' in t])
+        self.assertIn('*.mp4', (ROOT / 'unity-city/Assets/StreamingAssets/Mistrzowie/Reklamy/.gitignore').read_text())
+
+    def test_ads_loop_on_the_tvs(self):
+        g = src('BraxChampionsG1.cs')
+        self.assertIn('AddComponent<BraxChampionsReklamyTV>()', g)
+        self.assertIn('BraxKatalog.TvMaterials()', g)
+        rt = (RT / 'BraxChampionsReklamyTV.cs').read_text()
+        self.assertIn('VideoAudioOutputMode.None', rt)
+        self.assertIn('loopPointReached += Nastepny', rt)
+        self.assertIn('owner_media()', (ROOT / 'unity-tools/mistrzowie/prepare_assets.py').read_text())
+
+
 if __name__ == '__main__':
     unittest.main()

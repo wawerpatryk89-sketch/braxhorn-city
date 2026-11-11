@@ -80,10 +80,34 @@ public static class BraxChampionsPromenade
         return spans;
     }
 
+    // a painted-metal portal colour per kiosk (owner: the kiosks in different colours; never gold)
+    static readonly Dictionary<string,Material> accents=new Dictionary<string,Material>();
+    static Material Accent(string style)
+    {
+        if(accents.TryGetValue(style??"",out var have)&&have)return have;
+        Color c;
+        switch(style)
+        {
+            case "cafe":c=new Color(.30f,.18f,.11f);break;          // espresso
+            case "icecream":c=new Color(.55f,.82f,.74f);break;      // mint
+            case "fish":c=new Color(.10f,.20f,.42f);break;          // navy
+            case "pizza":c=new Color(.66f,.10f,.09f);break;         // tomato red
+            case "burger":c=new Color(.95f,.66f,.10f);break;        // mustard
+            case "juice":c=new Color(.96f,.45f,.10f);break;         // orange
+            case "beach_shop":c=new Color(.10f,.58f,.62f);break;    // turquoise
+            case "souvenirs":c=new Color(.92f,.42f,.40f);break;     // coral
+            case "bar":c=new Color(.08f,.32f,.20f);break;           // bottle green
+            case "grill":c=new Color(.42f,.06f,.10f);break;         // burgundy
+            case "rental":c=new Color(.35f,.62f,.90f);break;        // sky blue
+            default:c=new Color(.94f,.94f,.93f);break;              // info: white
+        }
+        var mt=BraxChampionsHarbour.Surface("prom_kiosk_portal_"+(style??"x"),c,.42f,.35f);accents[style??""]=mt;return mt;
+    }
     static void Shell(BraxChampionsMeshBatch m,Transform col,KioskRecord p)
     {
         float w=p.w,d=p.d,h=p.h,hw=w*.5f,hd=d*.5f,t=.18f,y0=FloorTop;
         var g=BraxChampionsHarbour.Graphite;var led=BraxChampionsHarbour.Led;var steel=BraxChampionsHarbour.Steel;
+        var acc=Accent(p.style);                                // owner (kiosks "różne kolory"): each kiosk its own portal colour
         float fascia0=h-.78f;                                   // sign fascia band from here to the roof
         // granite plinth band outside the walls, 5 cm proud of the paving; travertine floor inside. (Owner 10.11 13:05,
         // zero flicker: the plinth was a slab with its top in the paving plane - now only the visible band is built.)
@@ -106,13 +130,13 @@ public static class BraxChampionsPromenade
         m.BoxMinMax(Trav,-hw-.10f,hw+.10f,h-.20f,h-.06f,-hd-.10f,hd+.10f);
         m.BoxMinMax(g,-hw-.12f,hw+.12f,h-.06f,h,-hd-.12f,hd+.12f);
         // front portal: graphite jambs and the sign fascia
-        m.BoxMinMax(g,-hw-.06f,-hw+.22f,y0,fascia0,-hd-.06f,-hd+.10f);
-        m.BoxMinMax(g,hw-.22f,hw+.06f,y0,fascia0,-hd-.06f,-hd+.10f);
-        m.BoxMinMax(g,-hw-.06f,hw+.06f,fascia0,h-.20f,-hd-.10f,-hd+.10f);
+        m.BoxMinMax(acc,-hw-.06f,-hw+.22f,y0,fascia0,-hd-.06f,-hd+.10f);
+        m.BoxMinMax(acc,hw-.22f,hw+.06f,y0,fascia0,-hd-.06f,-hd+.10f);
+        m.BoxMinMax(acc,-hw-.06f,hw+.06f,fascia0,h-.20f,-hd-.10f,-hd+.10f);
         m.BoxMinMax(steel,-hw-.07f,hw+.07f,fascia0-.04f,fascia0,-hd-.11f,-hd+.11f);   // 1 cm proud of the pillars all round
         // cantilevered canopy over the counter (1.6 m to the sea) with a teak soffit, downlights and a warm LED edge
         float c0=fascia0-.18f,c1=fascia0-.04f,cz0=-hd-1.60f;
-        m.BoxMinMax(g,-hw-.15f,hw+.15f,c0,c1,cz0,-hd-.10f);
+        m.BoxMinMax(acc,-hw-.15f,hw+.15f,c0,c1,cz0,-hd-.10f);
         m.BoxMinMax(Soffit,-hw-.10f,hw+.10f,c0-.012f,c0,cz0+.05f,-hd-.12f);
         m.BoxMinMax(led,-hw-.12f,hw+.12f,c0+.02f,c0+.05f,cz0-.006f,cz0);
         for(float x=-hw+.6f;x<=hw-.5f;x+=1.1f)m.Cylinder(led,new Vector3(x,c0-.022f,cz0+.75f),.07f,.01f,12,Quaternion.identity,false,true);
