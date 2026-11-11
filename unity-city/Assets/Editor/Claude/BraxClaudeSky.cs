@@ -10,6 +10,10 @@ public static class BraxClaudeSky
 
     public static void Upgrade()
     {
+        // 11.11 (właściciel: „niebo musi być jedna całość na całym mieście”): niebem gry zostaje niebo horyzontu
+        // (Braxhorn/MiastoNiebo) — to samo, które liczą szyby wieżowców, daleki teren i las (BraxNieboJedno). Stare niebo
+        // Skybox/Panoramic z BraxCitySkyAuthoring (drugie, inne niebo = linie na niebie) zostaje tylko, gdy horyzontu nie ma.
+        if (BraxNieboJedno.Zastosuj(null)) return;
         if (!BraxClaudeTowerTerrace.Enabled || !File.Exists(Sky) || !RenderSettings.skybox) return;
         AssetDatabase.ImportAsset(Sky, ImportAssetOptions.ForceSynchronousImport);
         var imp = (TextureImporter)AssetImporter.GetAtPath(Sky);

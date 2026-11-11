@@ -457,6 +457,8 @@ public static partial class BraxRegionMiastoB
         // sylwetki z daleka wyłączone (budynki zostają w scenie głównej — patrz wyżej)
         try { NdPrzytnijNawisy(); } catch (Exception e) { BraxMiastoAssety.Blad("nawisy budynków", e); }
         try { NdMigotanieBudynkow(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola podstaw budynków", e); }
+        // 11.11 (właściciel: okrągły wieżowiec „brzydki”, „zrób porządnie”) — po przycięciu nawisów, bryła modelu bez zmian
+        try { NdLondonFasada(g); } catch (Exception e) { BraxMiastoAssety.Blad("LONDON elewacja", e); }
         NdLog("szkło fasad: " + nSzklo + " materiałów na budynkach zamienione na szkło refleksyjne (czarny metal / szyby przed pustą bryłą)");
         NdLog("wieżowce z kodu: " + ndWiezeMurowane + " (murowanych " + BraxRegionFawela.wiezMurowanych + ", szklanych " + BraxRegionFawela.wiezSzklanych + ", okien " + BraxRegionFawela.wiezOkien + ", trójkątów " + BraxRegionFawela.wiezTrojkatow + ")");
         NdLog("budynki: postawione " + ok + "/" + NoweBudynki.Length + (brak > 0 ? ", bez modelu " + brak + " (paczka nieodszyfrowana — kwartał zostaje z płytami)" : ""));

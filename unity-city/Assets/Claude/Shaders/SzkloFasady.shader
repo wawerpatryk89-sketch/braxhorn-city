@@ -35,6 +35,9 @@ Shader "Braxhorn/SzkloFasady"
         _Tafla ("Nierówność tafli (odbicie każdej szyby inne)", Range(0, .06)) = .018
         _Wnetrze ("Jasność wnętrz", Range(0, 1)) = .55
         _Swiatla ("Udział pokoi ze światłem", Range(0, 1)) = .35
+        // 11.11 (właściciel: okrągły wieżowiec „brzydki”): bryła zaokrąglona — siatka elewacji z UV2 (x = metry po obwodzie
+        // przekroju, liczone przy buildzie), nie z rzutu na płaszczyznę stycznej (na łuku dawało faliste, rozjechane okna)
+        _SiatkaUV ("Siatka z UV2 (1 = bryła zaokrąglona)", Float) = 0
         // tło (niebo, mgiełka) — kopiowane z materiału nieba krokiem horyzontu (BraxRegionHoryzont.UstawTlo)
         [NoScaleOffset] _NieboTex ("Niebo (panorama 2:1)", 2D) = "grey" {}
         _NieboObrot ("Obrót nieba (rad)", Float) = 0
@@ -67,13 +70,13 @@ Shader "Braxhorn/SzkloFasady"
             #include "MiastoTlo.cginc"
 
             half4 _Tint, _RamaKolor, _PasKolor, _FilarKolor;
-            half _F0, _Odbicie, _Wnetrze, _Swiatla, _Typ, _Tafla;
+            half _F0, _Odbicie, _Wnetrze, _Swiatla, _Typ, _Tafla, _SiatkaUV;
             float _CellW, _CellH, _Floor0, _Depth, _Rama, _Pas, _Filar, _FilarCo;
             half4 _BraxMgielkaKolor;
             float _BraxMgielkaGestosc;
 
-            struct appdata { float4 vertex : POSITION; float3 normal : NORMAL; UNITY_VERTEX_INPUT_INSTANCE_ID };
-            struct v2f { float4 pos : SV_POSITION; float3 wp : TEXCOORD0; float3 n : TEXCOORD1; UNITY_VERTEX_OUTPUT_STEREO };
+            struct appdata { float4 vertex : POSITION; float3 normal : NORMAL; float2 uv2 : TEXCOORD1; UNITY_VERTEX_INPUT_INSTANCE_ID };
+            struct v2f { float4 pos : SV_POSITION; float3 wp : TEXCOORD0; float3 n : TEXCOORD1; float2 uv2 : TEXCOORD2; UNITY_VERTEX_OUTPUT_STEREO };
 
             v2f vert(appdata v)
             {
@@ -84,6 +87,7 @@ Shader "Braxhorn/SzkloFasady"
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.wp = mul(unity_ObjectToWorld, v.vertex).xyz;
                 o.n = UnityObjectToWorldNormal(v.normal);
+                o.uv2 = v.uv2;
                 return o;
             }
 
@@ -105,7 +109,8 @@ Shader "Braxhorn/SzkloFasady"
                 float kat = MT_KatPiksela();
                 // oś elewacji (pozioma, styczna do szyby) i współrzędne w modułach
                 float3 Tg = abs(n.y) < .9 ? normalize(cross(float3(0, 1, 0), n)) : float3(1, 0, 0);
-                float u = dot(i.wp, Tg) / _CellW, v = (i.wp.y - _Floor0) / _CellH;
+                bool luk = _SiatkaUV > .5;
+                float u = (luk ? i.uv2.x : dot(i.wp, Tg)) / _CellW, v = (i.wp.y - _Floor0) / _CellH;
                 float fu = fwidth(u), fv = fwidth(v);
                 // ---- wnętrze: pokój za szybą (tylna ściana, sufit z lampą, podłoga) ----
                 float cu = floor(u), cv = floor(v);
@@ -116,7 +121,8 @@ Shader "Braxhorn/SzkloFasady"
                 float tz = 1 / rd.z;
                 float t = min(min(tx, ty), tz);
                 float3 h = saturate(p + rd * t);
-                float id = Hash(float3(cu, cv, floor(dot(i.wp, n) * .5)));
+                float lico = luk ? 0 : floor(dot(i.wp, n) * .5);           // na łuku normalna się obraca — pokój = sama komórka siatki
+                float id = Hash(float3(cu, cv, lico));
                 half zapalone = step(id, _Swiatla);
                 half3 sciana = lerp(half3(.62, .62, .60), half3(.70, .67, .62), frac(id * 7.31));
                 half3 room;
@@ -132,7 +138,7 @@ Shader "Braxhorn/SzkloFasady"
                 // ---- odbicie: niebo i horyzont miasta (to samo tło co niebo gry) ----
                 // każda tafla szkła jest minimalnie inaczej pochylona (jak w prawdziwej ścianie kurtynowej): odbicie chmur łamie się
                 // na podziałach, elewacja nie jest jednym lustrem; z daleka (tafla < 4 px) nierówność wygasa — bez migotania
-                float idT = Hash(float3(cu + 3.7, cv + 9.1, floor(dot(i.wp, n) * .5)));
+                float idT = Hash(float3(cu + 3.7, cv + 9.1, lico));
                 float3 nT = normalize(n + (Tg * (idT - .5) + float3(0, 1, 0) * (frac(idT * 31.7) - .5)) * (_Tafla * saturate(1.25 - max(fu, fv) * 5)));
                 float3 R = reflect(V, nT);
                 half3 tlo = R.y > 0 ? MT_Niebo(R, kat * 8) : MT_Mgielka(R) * lerp(.85, .55, saturate(-R.y * 4));
