@@ -95,14 +95,15 @@ public static class Harness
             BraxWarsztatKod.Zaba(root, "podgląd", new Vector3(14.6f, 0f, 3.0f), Vector3.right);
             for (int i = 0; i < 4; i++) BraxWarsztatKod.Kolo(root, "stos", new Vector3(15.6f, (BraxWarsztatKod.Sz * .5f + i * (BraxWarsztatKod.Sz + .004f)) * BraxClaudeOsiedle.K, 1.2f), Vector3.up, i < 2 ? 3 : 7, i * 40f);
             for (int i = 0; i < 3; i++) BraxWarsztatKod.Kolo(root, "pion", new Vector3(16.8f + i * .92f, BraxWarsztatKod.R * BraxClaudeOsiedle.K, 1.2f), Vector3.forward, i * 3 + i, 0f);
-            // muzeum (sala z kodu jak w KINNAIRD): fasada z otworem 3.1 × 3.8 m w z −6.4…−8, sala x 24…48, z −30…−8, wys. 4.3 m
+            // muzeum (sala z kodu jak w KINNAIRD, wymiary prawdziwe: zabytek 55.67 × 41.18 m → sala 52.7 × 38.1 × 4.3 m): fasada z otworem
+            // 3.1 × 3.8 m w z −6.4…−8, sala x 9.7…62.3, z −46.1…−8
             {
-                var fas = new UlSiatka(); float bx = 36f, zf = -6.4f, gm = 1.6f, dw = 3.1f, dh = 3.8f, gf = .7f;
-                fas.Box(new Vector3(22f, .001f, zf - gf), new Vector3(bx - dw * .5f - .25f, 9f, zf)); fas.Box(new Vector3(bx + dw * .5f + .25f, .001f, zf - gf), new Vector3(50f, 9f, zf)); fas.Box(new Vector3(bx - dw * .5f - .25f, dh + .3f, zf - gf), new Vector3(bx + dw * .5f + .25f, 9f, zf));
+                var fas = new UlSiatka(); float bx = 36f, zf = -6.4f, gm = 1.6f, dw = 3.1f, dh = 3.8f, gf = .7f, xs0 = bx - 27.8f, xs1 = bx + 27.8f;
+                fas.Box(new Vector3(xs0, .001f, zf - gf), new Vector3(bx - dw * .5f - .3f, 9f, zf)); fas.Box(new Vector3(bx + dw * .5f + .3f, .001f, zf - gf), new Vector3(xs1, 9f, zf)); fas.Box(new Vector3(bx - dw * .5f - .3f, dh + .45f, zf - gf), new Vector3(bx + dw * .5f + .3f, 9f, zf));
                 BraxMiastoA.Obiekt(root, "fasada zabytku (podgląd)", fas, BraxUliceKit.Tex("fasada podglądu", 2f, null, new Color(.75f, .7f, .62f), .8f, "sandstone_blocks_08"));
-                var pm = new UlSiatka(); pm.Box(new Vector3(20f, -.2f, -32f), new Vector3(52f, 0f, -.3f), 0); BraxMiastoA.Obiekt(root, "posadzka muzeum (podgląd)", pm, BraxUliceKit.Tex("posadzka podglądu", 2.0f, null, new Color(.6f, .6f, .6f), .9f, "concrete_pavement_02"));
+                var pm = new UlSiatka(); pm.Box(new Vector3(xs0 - 2f, -.2f, -48f), new Vector3(xs1 + 2f, 0f, -.3f), 0); BraxMiastoA.Obiekt(root, "posadzka muzeum (podgląd)", pm, BraxUliceKit.Tex("posadzka podglądu", 2.0f, null, new Color(.6f, .6f, .6f), .9f, "concrete_pavement_02"));
                 var mg = new GameObject("MUZEUM (podgląd)").transform; mg.SetParent(root, false);
-                BraxRegionMiastoB.PodgladSali(mg, bx, 0f, 23.5f, 48.5f, -30f, zf - gm, 4.3f, zf, dw, dh, gm);
+                BraxRegionMiastoB.PodgladSali(mg, bx, 0f, bx - 26.335f, bx + 26.335f, zf - gm - 38.08f, zf - gm, 4.3f, zf, dw, dh, gm);
             }
             Console.WriteLine("CHŁODNIE: siatek " + BraxChlodnie.Siatek + ", kopii " + BraxChlodnie.Kopii);
         }

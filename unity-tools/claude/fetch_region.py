@@ -83,7 +83,7 @@ MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     "hanging_picture_frame_01", "hanging_picture_frame_02", "hanging_picture_frame_03",
     # MUZEUM w zabytku KINNAIRD (11.11, właściciel 20:06: „muzeum… ta Poly Haven pod to”) — eksponaty w gablotach (wpisy opcjonalne)
     # (wazy, serwis, talerz, telewizor, radio, okulary, lupa, zegar, kasa — już w liście niżej / wyżej)
-    "marble_bust_01", "horse_statue_01", "antique_ceramic_vase_01", "brass_vase_01",
+    "marble_bust_01", "horse_statue_01", "antique_ceramic_vase_01",   # bez mosiężnych waz (zasada 10.11 — bez złota)
     "industrial_wall_lamp", "industrial_wall_sconce", "security_camera_01",
     # tyły siłowni: biura w wieżowcu A, warsztaty pod wiaduktem, wzgórze
     "rollershutter_door", "metal_office_desk", "classic_laptop", "desk_lamp_arm_01", "office_notepads", "stationery_supplies",

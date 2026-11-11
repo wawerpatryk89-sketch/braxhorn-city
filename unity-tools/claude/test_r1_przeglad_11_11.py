@@ -206,9 +206,9 @@ class Muzeum(unittest.TestCase):
         # 20:06 „ten zabytkowy budynek zrobił funkcjonalny… można było wejść, jakieś takie muzeum… Poly Haven pod to”
         m = src(R / "BraxMuzeum.cs")
         for s in ["static void Muzeum()", 'q.name == "Budynek KINNAIRD"', "if (otwor.Contains(c)) { zmiana = true;", "BraxDrzwiLokalu.Drewniane",
-                  '"MUZEUM MIASTA BRAXHORN"', "static void Gablota(", '"marble_bust_01"', '"horse_statue_01"', "KOTWICA PORTOWA", 'Kol("bryła nad salą"']:
+                  '"MUZEUM BRAXHORN"', "static void Gablota(", '"marble_bust_01"', '"horse_statue_01"', "KOTWICA PORTOWA", 'Kol("bryła nad salą"']:
             self.assertIn(s, m)
-        self.assertIn("Krok(\"2. budynki: MUZEUM MIASTA BRAXHORN w zabytku KINNAIRD", src(R / "BraxRegionMiastoB.cs"))
+        self.assertIn("Krok(\"2. budynki: MUZEUM BRAXHORN w zabytku KINNAIRD", src(R / "BraxRegionMiastoB.cs"))
         self.assertIn('"marble_bust_01", "horse_statue_01"', src(ROOT / "unity-tools" / "claude" / "fetch_region.py"))
 
     def test_door_flush_with_facade_and_portal(self):
@@ -222,6 +222,29 @@ class Muzeum(unittest.TestCase):
         k = src(R / "BraxMuzeumKod.cs")
         self.assertIn("public static Transform Kinkiet(", k)
         self.assertNotIn("mosiądz", k.split("internal static class")[1])
+
+    def test_name_and_3d_lettering(self):
+        # 12.11 00:04 „Muzeum Braxhorn, nie miasta”; 00:05 „napis zawsze w 3D… nie napis zwykły w ścianie”
+        m, k = src(R / "BraxMuzeum.cs"), src(R / "BraxMuzeumKod.cs")
+        for f in ["BraxMuzeum.cs", "BraxMuzeumKod.cs", "BraxRegionMiastoB.cs"]:
+            self.assertNotIn("MUZEUM MIASTA", src(R / f))
+        self.assertIn('BraxRegionMeble.Napis(g, "MUZEUM BRAXHORN", new Vector3(b.x, yN + .02f, zf + .3f), Vector3.forward, capP / .72f, new Color(.8f, .81f, .83f), .08f);', m)
+        self.assertIn('"muzeum: pas szyldu (grafit)"', m)
+        self.assertIn('"muzeum: linia LED pod literami (ciepła biel)"', m)
+        self.assertIn("float glebokosc = 0f)", src(R / "BraxRegionMeble.cs"))
+        self.assertNotIn("TekstAtlasu", k)                      # zero tekstu w teksturach plansz — litery 3D
+        self.assertIn("BraxRegionMeble.Napis(h, t, Pkt(", k)
+
+    def test_museum_exhibits_from_code(self):
+        # 23:09 „Je wyposażenie. Zrób muzeum.” — eksponaty z kodu, bez pustych gablot, bez złota/mosiądzu
+        m, k = src(R / "BraxMuzeum.cs"), src(R / "BraxMuzeumKod.cs")
+        for f in ["Zaglowiec(", "Armata(", "KoloSterowe(", "HelmNurka(", "Gramofon(", "Bicykl(", "Globus(", "Obraz(", "Plansza(", "Kinkiet("]:
+            self.assertIn("public static Transform " + f, k)
+            self.assertIn("BraxMuzeumKod." + f, m)
+        self.assertIn("if (!model && kod == null) return;", m)
+        self.assertNotIn("brass_vase", m)
+        self.assertNotIn("mosiądz", k.split("internal static class")[1])
+        self.assertIn("LiczbaObrazow", k)
 
 
 class Narzedzia(unittest.TestCase):

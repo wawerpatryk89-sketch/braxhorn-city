@@ -4,14 +4,15 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-// MUZEUM MIASTA BRAXHORN w zabytku KINNAIRD (11.11.2026, właściciel 20:06: „chciałem, żebyś ten zabytkowy budynek zrobił
+// MUZEUM BRAXHORN w zabytku KINNAIRD (11.11.2026; nazwa — właściciel 12.11 00:04: „Muzeum Braxhorn, nie miasta”; właściciel 20:06: „chciałem, żebyś ten zabytkowy budynek zrobił
 // funkcjonalny. Że tam można było wejść, jakieś takie muzeum… A z tego też jest sporo takich rzeczy różnych, ta Poly Haven pod to”;
 // 21:52: „Wszystko ma być dopieszczone”). Wejście od promenady (lico północne zabytku, z = PromenadaZ), w osi budynku:
 //  • WEJŚCIE: lico fasady wyszukane z wierzchołków modelu (parter, oś ±2.5 m), w modelu wycięty otwór 3.1 × 3.8 m (trójkąty
 //    w bryle otworu usuwane z kopii siatek), ościeża z kamienia w grubości muru, drzwi dwuskrzydłowe dębowe płycinowe z klamkami
 //    (BraxDrzwiLokalu.Drewniane, otwierane) W LICU FASADY (23:09 — wcześniej cofnięte), schody nie są potrzebne (posadzka =
-//    poziom promenady). PORTAL z kamienia: pilastry na cokołach z kapitelami, fryz z literami 3D MUZEUM MIASTA BRAXHORN (Bebas,
-//    grafit), gzyms; na pilastrach kinkiety (BraxMuzeumKod.Kinkiet) zamiast latarni na chodniku.
+//    poziom promenady). PORTAL z kamienia: pilastry na cokołach z kapitelami, fryz z grafitowym pasem i literami 3D MUZEUM BRAXHORN
+//    (Bebas, stal szczotkowana, 8 cm grubości — 12.11 00:05 „napis zawsze w 3D”), linia LED pod literami, gzyms; na pilastrach
+//    kinkiety (BraxMuzeumKod.Kinkiet) zamiast latarni na chodniku.
 //  • SALA na parterze (4.3 m — pod stropem pierwszego piętra modelu, cała szerokość zabytku bez 1.5 m przy ścianach): posadzka z marmuru, ściany z tynku w ciepłym
 //    odcieniu z boazerią dębową do 1.1 m i listwą, gzyms pod sufitem, sufit tynkowy, dwa rzędy kolumn toczonych (baza, trzon,
 //    kapitel), recepcja z kasą biletów, ławki muzealne (skóra), barierki z linką na słupkach chrom, gabloty szklane na postumentach
@@ -64,7 +65,7 @@ public static partial class BraxRegionMiastoB
             System.IO.Directory.CreateDirectory(BraxRegion.Out + "/Muzeum"); BraxZapisAssetu.Utworz(kopia, BraxRegion.Out + "/Muzeum/otwor_" + BraxUliceKit.Bezpieczna(m.name) + "_" + muzWycietych + ".asset");
             mf.sharedMesh = kopia;
         }
-        var g = new GameObject("MUZEUM MIASTA BRAXHORN (zabytek KINNAIRD)").transform; g.SetParent(kin.transform.parent, false);
+        var g = new GameObject("MUZEUM BRAXHORN (zabytek KINNAIRD)").transform; g.SetParent(kin.transform.parent, false);
         // 3) kolizje: bryła zastąpiona (ściany sali z przejściem, bryła nad salą)
         var stara = kin.transform.parent.Find("Budynek KINNAIRD kolizja"); if (stara) UnityEngine.Object.DestroyImmediate(stara.gameObject);
         float hS = 4.3f, xi0 = sx0 + 1.5f, xi1 = sx1 - 1.5f, zi0 = sz0 + 1.5f, zi1 = zf - gMur;   // sala
@@ -81,7 +82,7 @@ public static partial class BraxRegionMiastoB
         UlSiatka.ZaokraglenieBox = .008f;
         try { Sala(g, b, y0, xi0, xi1, zi0, zi1, hS, zf, dw, dh, gMur); }
         finally { UlSiatka.ZaokraglenieBox = 0f; }
-        BraxUliceKit.Punkt("muzeum_wejscie", "MUZEUM MIASTA BRAXHORN — wejście od promenady (zabytek KINNAIRD)", new Vector3(b.x, y0, zf + 1.5f));
+        BraxUliceKit.Punkt("muzeum_wejscie", "MUZEUM BRAXHORN — wejście od promenady (zabytek KINNAIRD)", new Vector3(b.x, y0, zf + 1.5f));
         BraxUliceKit.Punkt("muzeum_sala", "MUZEUM — sala wystawowa (parter)", new Vector3(b.x, y0, (zi0 + zi1) * .5f));
         NdLog("MUZEUM w KINNAIRD: lico wejścia z " + zf.ToString("0.00") + " (obrys " + sz1.ToString("0.00") + "), wycięte trójkąty otworu " + muzWycietych + ", sala " + (xi1 - xi0).ToString("0.0") + " × " + (zi1 - zi0).ToString("0.0") + " × " + hS + " m, eksponatów " + muzEksponatow);
     }
@@ -134,7 +135,7 @@ public static partial class BraxRegionMiastoB
         // 23:09 (właściciel: „drzwi… są w środku, jakoś dziwnie są”): drzwi dębowe płycinowe w LICU fasady — ościeżnica 8 cm za
         // licem, skrzydła równo z murem (wcześniej cofnięte o 35–50 cm w kamiennym „tunelu”); za nimi przedsionek w grubości muru
         BraxDrzwiLokalu.UsunStare("R1_MUZEUM");
-        BraxDrzwiLokalu.Podwojne(g, "R1_MUZEUM", "MUZEUM MIASTA BRAXHORN", new Vector3(b.x, y0 + .04f, zf + .07f), Vector3.forward, dw, dh - .02f, .3f, 0f, BraxDrzwiLokalu.Drewniane);
+        BraxDrzwiLokalu.Podwojne(g, "R1_MUZEUM", "MUZEUM BRAXHORN", new Vector3(b.x, y0 + .04f, zf + .07f), Vector3.forward, dw, dh - .02f, .3f, 0f, BraxDrzwiLokalu.Drewniane);
         // PORTAL z kamienia przed licem fasady: pilastry na cokołach z kapitelami, belka (fryz) z literami 3D, gzyms wysunięty;
         // tył brył na licu fasady pominięty (bez wspólnej płaszczyzny z modelem), spód na chodniku pominięty
         foreach (float sx in new[] { -1f, 1f })
@@ -149,76 +150,164 @@ public static partial class BraxRegionMiastoB
         }
         os.Box(new Vector3(b.x - hw - .85f, y0 + dh + .45f, zf), new Vector3(b.x + hw + .85f, y0 + dh + 1.2f, zf + .24f), 16);     // fryz
         os.Poducha(new Vector3(b.x - hw - 1.0f, y0 + dh + 1.2f, zf - .05f), new Vector3(b.x + hw + 1.0f, y0 + dh + 1.42f, zf + .38f), .03f, 0f, 4);   // gzyms
-        // litery 3D na fryzie (grafit — bez złota), wysokość dopasowana do szerokości fryzu
-        float capP = Mathf.Min(.36f, (dw + 1.2f) / BraxLiteryBebas.Szerokosc("MUZEUM MIASTA BRAXHORN", 1f));
-        BraxRegionMeble.Napis(g, "MUZEUM MIASTA BRAXHORN", new Vector3(b.x, y0 + dh + .825f, zf + .24f), Vector3.forward, capP / .72f, new Color(.11f, .11f, .12f));
+        // szyld (12.11 00:04–00:05: „Muzeum Braxhorn, nie miasta… napis zawsze w 3D, nie napis zwykły w ścianie”): grafitowy pas
+        // wysunięty 6 cm z fryzu, na nim litery przestrzenne ze stali szczotkowanej 8 cm grubości (2 mm od pasa), pod literami
+        // linia LED (ciepła biel) — bez złota; wysokość liter dopasowana do szerokości fryzu
+        float capP = Mathf.Min(.36f, (dw + 1.2f) / BraxLiteryBebas.Szerokosc("MUZEUM BRAXHORN", 1f)), szP = BraxLiteryBebas.Szerokosc("MUZEUM BRAXHORN", capP), yN = y0 + dh + .825f;
+        var pasSzyldu = BraxCityMaterials.Surface("muzeum: pas szyldu (grafit)", new Color(.1f, .1f, .11f), .45f, .3f);
+        BraxUliceKit.S(pasSzyldu).Poducha(new Vector3(b.x - szP * .5f - .28f, yN - capP * .5f - .14f, zf + .2f), new Vector3(b.x + szP * .5f + .28f, yN + capP * .5f + .12f, zf + .3f), .012f, 0f, 3);
+        BraxRegionMeble.Napis(g, "MUZEUM BRAXHORN", new Vector3(b.x, yN + .02f, zf + .3f), Vector3.forward, capP / .72f, new Color(.8f, .81f, .83f), .08f);
+        var led = BraxMiastoA.Swieci("muzeum: linia LED pod literami (ciepła biel)", new Color(1f, .95f, .86f), new Color(1.6f, 1.45f, 1.2f));
+        float yL = yN + .02f - capP * .5f - .07f;
+        BraxUliceKit.S(led).Box(new Vector3(b.x - szP * .5f - .08f, yL, zf + .3f), new Vector3(b.x + szP * .5f + .08f, yL + .014f, zf + .322f), 16);   // lico 2.2 cm przed pasem
         BraxRegion.Warm(g, "Muzeum: światło wejścia", new Vector3(b.x, y0 + 2.9f, zf + 1.3f), .9f, 7f);
-        // kolumny: dwa rzędy co ~5 m wzdłuż sali (baza, trzon, kapitel)
+        // kolumny: dwa rzędy, symetrycznie względem osi wejścia co 6 m (baza, trzon, kapitel)
         var bl = new[] { new Color32(255, 255, 255, 255) };
-        float zk0 = zi0 + (zi1 - zi0) * .3f, zk1 = zi0 + (zi1 - zi0) * .7f;
+        float cx = b.x, W = xi1 - xi0, D = zi1 - zi0, zk0 = zi0 + D * .3f, zk1 = zi0 + D * .7f, zg = (zk0 + zk1) * .5f;
         var kol = BraxUliceKit.S(kamien);
         foreach (float zk in new[] { zk0, zk1 })
-            for (float x = xi0 + 5f; x < xi1 - 4f; x += 6f)
-            {
-                var pr = new List<Vector3> { new Vector3(.42f, y0 + .02f, 0), new Vector3(.42f, y0 + .3f, 0), new Vector3(.36f, y0 + .38f, 0), new Vector3(.3f, y0 + .45f, 0),
-                    new Vector3(.27f, y0 + hS - .75f, 0), new Vector3(.33f, y0 + hS - .6f, 0), new Vector3(.42f, y0 + hS - .45f, 0), new Vector3(.42f, y0 + hS - .3f, 0), new Vector3(.36f, y0 + hS - .3f, 0), new Vector3(.36f, y0 + hS, 0) };
-                BraxChlodnie.Toczony(kol, new Vector3(x, 0f, zk), pr, bl, 24);
-                BraxRegionMeble.Kolizja(g, "Muzeum kolizja: kolumna", new Vector3(x, y0 + hS * .5f, zk), new Vector3(.8f, hS, .8f));
-            }
-        // oprawy sufitowe (świecą) i światło
+            for (float dx = 3f; cx + dx < xi1 - 4f; dx += 6f)
+                foreach (float x in new[] { cx - dx, cx + dx })
+                {
+                    var pr = new List<Vector3> { new Vector3(.42f, y0 + .02f, 0), new Vector3(.42f, y0 + .3f, 0), new Vector3(.36f, y0 + .38f, 0), new Vector3(.3f, y0 + .45f, 0),
+                        new Vector3(.27f, y0 + hS - .75f, 0), new Vector3(.33f, y0 + hS - .6f, 0), new Vector3(.42f, y0 + hS - .45f, 0), new Vector3(.42f, y0 + hS - .3f, 0), new Vector3(.36f, y0 + hS - .3f, 0), new Vector3(.36f, y0 + hS, 0) };
+                    BraxChlodnie.Toczony(kol, new Vector3(x, 0f, zk), pr, bl, 24);
+                    BraxRegionMeble.Kolizja(g, "Muzeum kolizja: kolumna", new Vector3(x, y0 + hS * .5f, zk), new Vector3(.8f, hS, .8f));
+                }
+        // oprawy sufitowe (świecą) w osiach między kolumnami i światło
         int nSw = 0;
-        for (float x = xi0 + 3f; x < xi1 - 2f; x += 6f)
+        for (float x = cx - 6f * Mathf.Floor((cx - xi0 - 2f) / 6f); x < xi1 - 2f; x += 6f)
             for (float z = zi0 + 3f; z < zi1 - 2f; z += 6f, nSw++)
             {
                 BraxUliceKit.S(swiatlo).Box(new Vector3(x - .5f, y0 + hS - .06f, z - .5f), new Vector3(x + .5f, y0 + hS - .02f, z + .5f), 8);
                 if (nSw % 4 == 0) BraxRegion.Warm(g, "Muzeum: światło sali", new Vector3(x, y0 + hS - .6f, z), 1.2f, 14f);   // co czwarta oprawa ze światłem (telefon)
             }
         // recepcja z kasą biletów (przy wejściu, po prawej idącego)
-        float rx = b.x + dw * .5f + 2.5f, rz = zi1 - 2.2f;
+        float rx = b.x + hw + 2.5f, rz = zi1 - 2.2f;
         BraxUliceKit.S(dab).Poducha(new Vector3(rx - 1.4f, y0 + .02f, rz - .35f), new Vector3(rx + 1.4f, y0 + 1.05f * k, rz + .35f), .012f, 0f, 3);
         BraxUliceKit.S(kamien).Poducha(new Vector3(rx - 1.45f, y0 + 1.05f * k, rz - .4f), new Vector3(rx + 1.45f, y0 + 1.05f * k + .04f, rz + .4f), .01f, 0f, 3);
-        BraxRegionMeble.Napis(g, "KASA · BILETY", new Vector3(rx, y0 + .7f * k, rz - .37f), Vector3.back, .16f * k, new Color(.85f, .78f, .6f));   // od zwiedzających (sala); kasjer od strony wejścia
+        BraxRegionMeble.Napis(g, "KASA · BILETY", new Vector3(rx, y0 + .7f * k, rz - .37f), Vector3.back, .16f * k, new Color(.86f, .87f, .89f));   // od zwiedzających (sala); kasjer od strony wejścia
         BraxRegionMeble.Kolizja(g, "Muzeum kolizja: recepcja", new Vector3(rx, y0 + .55f * k, rz), new Vector3(2.9f, 1.1f * k, .8f));
         var kasa = BraxRegion.Model("CashRegister_01"); if (kasa) BraxRegion.Put(g, kasa, "Muzeum: kasa biletowa", new Vector3(rx + .6f, y0 + 1.05f * k + .04f, rz), 0f, .35f * k, false);
-        // gabloty na postumentach z eksponatami Poly Haven (popiersie, koń, wazy, zegar, technika) — w osiach między kolumnami
-        string[][] eksponaty = { new[] { "marble_bust_01" }, new[] { "horse_statue_01" }, new[] { "antique_ceramic_vase_01", "ceramic_vase_02" }, new[] { "brass_vase_03", "brass_vase_01" },
-            new[] { "tea_set_01" }, new[] { "carved_wooden_plate" }, new[] { "television_02" }, new[] { "boombox" }, new[] { "ceramic_vase_04" }, new[] { "round_spectacles", "magnifying_glass_01" } };
-        int ie = 0; float zg = (zk0 + zk1) * .5f;
-        for (float x = xi0 + 8f; x < xi1 - 7f && ie < eksponaty.Length; x += 6f, ie++)
-        {
-            var model = BraxRegion.Model(eksponaty[ie]);
-            Gablota(g, new Vector3(x, y0 + .02f, zg), marmur, mosiadz, szklo, model, "eksponat " + (ie + 1));
-        }
-        // zegar stojący i obrazy w ramach na ścianach (Poly Haven), tabliczki
-        var zegar = BraxRegion.Model("vintage_grandfather_clock_01"); if (zegar) { BraxRegion.Put(g, zegar, "Muzeum: zegar stojący (eksponat)", new Vector3(xi0 + .6f, y0 + .02f, zi0 + 1.2f), 90f, 1f, true, 2.1f * k); muzEksponatow++; }
-        string[] ramy = { "hanging_picture_frame_01", "hanging_picture_frame_02", "hanging_picture_frame_03" };
-        int ir = 0;
-        for (float x = xi0 + 4f; x < xi1 - 3f; x += 4.5f, ir++)
-        {
-            var rm = BraxRegion.Model(ramy[ir % ramy.Length]);
-            if (rm && BraxRegion.Put(g, rm, "Muzeum: obraz w ramie", new Vector3(x, y0 + 1.45f * k, zi0 + .06f), 0f, 1f, false, 1.2f * k)) muzEksponatow++;   // przodem do sali (+z)
-        }
-        // ławki muzealne (skóra na chromowanych nogach) i barierki z linką wzdłuż ściany z obrazami
+        // hol: plan wystawy (wolnostojąca plansza) po lewej idącego
+        BraxMuzeumKod.Plansza(g, "hol", new Vector3(cx - hw - 2.8f, y0 + .02f, zi1 - 3.2f), Vector3.forward, 5, true);
+
+        // ---- pomocnicze: słupki z linką, ławki, pulpity z opisem, obrazy na ścianie (nad boazerią)
         var sk = BraxUliceKit.S(skora); var ch = BraxUliceKit.S(mosiadz);
-        for (float x = xi0 + 7f; x < xi1 - 6f; x += 12f)
+        var pulpitM = BraxCityMaterials.Surface("muzeum: pulpit opisu (grafit)", new Color(.09f, .09f, .1f), .4f, .3f);
+        var grafit = new Color(.13f, .13f, .14f);
+        void Slupek(float x, float z)
         {
-            float zb = zi0 + 3.2f;
+            ch.Rura(new Vector3(x, y0 + .02f, z), new Vector3(x, y0 + .95f * k, z), .025f, 10);
+            BraxChlodnie.Toczony(ch, new Vector3(x, y0 + .02f, z), new List<Vector3> { new Vector3(.16f, 0f, 0), new Vector3(.16f, .02f, 0), new Vector3(.03f, .035f, 0), new Vector3(0f, .035f, 0) }, bl, 16);
+            BraxChlodnie.Toczony(ch, new Vector3(x, y0 + .95f * k, z), new List<Vector3> { new Vector3(0f, -.02f, 0), new Vector3(.035f, 0f, 0), new Vector3(.03f, .03f, 0), new Vector3(0f, .045f, 0) }, bl, 16);
+        }
+        void Barierka(params Vector3[] pkt)   // słupki co ≤ 2.2 m wzdłuż łamanej, linka między nimi
+        {
+            for (int i = 0; i + 1 < pkt.Length; i++)
+            {
+                int n = Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(pkt[i], pkt[i + 1]) / 2.2f));
+                for (int j = 0; j < n; j++)
+                {
+                    var p0 = Vector3.Lerp(pkt[i], pkt[i + 1], (float)j / n); var p1 = Vector3.Lerp(pkt[i], pkt[i + 1], (float)(j + 1) / n);
+                    Slupek(p0.x, p0.z);
+                    BraxUliceKit.S(lina).Rura(new Vector3(p0.x, y0 + .88f * k, p0.z), new Vector3(p1.x, y0 + .88f * k, p1.z), .015f, 8);
+                }
+            }
+            var ost = pkt[pkt.Length - 1]; if ((pkt[0] - ost).sqrMagnitude > .01f) Slupek(ost.x, ost.z);
+        }
+        void Lawka(float x, float zb, Vector3 patrzy)
+        {
             sk.Poducha(new Vector3(x - .9f, y0 + .42f * k, zb - .25f), new Vector3(x + .9f, y0 + .5f * k, zb + .25f), .03f, .01f, 6);
             foreach (float dx in new[] { -.8f, .8f }) ch.Box(new Vector3(x + dx - .03f, y0 + .02f, zb - .2f), new Vector3(x + dx + .03f, y0 + .42f * k, zb + .2f));
             BraxRegionMeble.Kolizja(g, "Muzeum kolizja: ławka", new Vector3(x, y0 + .25f * k, zb), new Vector3(1.8f, .5f * k, .5f));
-            BraxMiastoA.Siedzisko(g, "Muzeum: ławka", new Vector3(x, y0 + .5f * k, zb), Vector3.forward);
+            BraxMiastoA.Siedzisko(g, "Muzeum: ławka", new Vector3(x, y0 + .5f * k, zb), patrzy);
         }
-        float zs = zi0 + 1.4f;
-        for (float x = xi0 + 2f; x < xi1 - 1.5f; x += 2.2f)
+        void Pulpit(float x, float z, Vector3 n, string tekst)
+        {   // słupek ze stali i pochylona płyta z opisem (litery 3D)
+            n.y = 0f; n.Normalize(); var r = Vector3.Cross(Vector3.up, n).normalized; var pn = (n + Vector3.up * 1.2f).normalized; var gora = Vector3.Cross(pn, r).normalized;
+            float yP = y0 + .95f * k;
+            ch.Rura(new Vector3(x, y0 + .02f, z), new Vector3(x, yP - .03f, z), .022f, 10);
+            BraxChlodnie.Toczony(ch, new Vector3(x, y0 + .02f, z), new List<Vector3> { new Vector3(.14f, 0f, 0), new Vector3(.14f, .015f, 0), new Vector3(.03f, .03f, 0), new Vector3(0f, .03f, 0) }, bl, 16);
+            BraxUliceKit.S(pulpitM).OBox(new Vector3(x, yP, z), r, gora, pn, .44f, .28f, .02f);
+            BraxRegionMeble.Napis(g, tekst, new Vector3(x, yP, z) + pn * .0101f, pn, .05f * k, new Color(.86f, .87f, .89f));
+            BraxRegionMeble.Kolizja(g, "Muzeum kolizja: pulpit", new Vector3(x, y0 + .5f * k, z), new Vector3(.3f, 1f * k, .3f));
+        }
+        float SzerObrazu(int nr, float skala) { float a = BraxMuzeumKod.Aspekt(nr); return (a > 1.1f ? 1.4f : a < .9f ? .95f : 1.1f) * skala; }
+        void ObrazNaScianie(Vector3 lico, Vector3 n, int nr)
+        {   // dolna krawędź ramy 1.55 m nad posadzką (nad listwą boazerii)
+            float sz = SzerObrazu(nr, 1f), h = BraxMuzeumKod.WysokoscObrazu(nr, sz);
+            BraxMuzeumKod.Obraz(g, "ściana", new Vector3(lico.x, y0 + 1.55f + h * .5f, lico.z), n, nr, sz); muzEksponatow++;
+        }
+
+        // ---- działy: PORT (zachód) · SZTUKA (środek, oś wejścia) · TECHNIKA (wschód)
+        float sw = Mathf.Min(12f, W * .23f), xP = (xi0 + cx - sw) * .5f, xT = (xi1 + cx + sw) * .5f, dz = Mathf.Min(4.5f, (zk1 - zk0) * .3f);
+        // PORT: model żaglowca w gablocie, armata za barierką, hełm nurka w gablocie, koło sterowe na ścianie, plansze, marynistyka
+        BraxMuzeumKod.Zaglowiec(g, "dział PORT", new Vector3(xP, y0 + .02f, zg), Vector3.forward); muzEksponatow++;
+        Pulpit(xP + 1.75f, zg + 1.0f, Vector3.forward, "MODEL ŻAGLOWCA");
+        BraxMuzeumKod.Armata(g, "dział PORT", new Vector3(xP, y0 + .02f, zg - dz), Vector3.right); muzEksponatow++;
+        { float zA = zg - dz; Barierka(new Vector3(xP - 1.85f, 0f, zA - 1.85f), new Vector3(xP + 2.15f, 0f, zA - 1.85f), new Vector3(xP + 2.15f, 0f, zA + 1.45f), new Vector3(xP - 1.85f, 0f, zA + 1.45f), new Vector3(xP - 1.85f, 0f, zA - 1.85f)); }
+        Pulpit(xP + 2.75f, zg - dz + 1.0f, Vector3.right, "ARMATA OKRĘTOWA");
+        Gablota(g, new Vector3(xP, y0 + .02f, zg + dz), marmur, mosiadz, szklo, null, "hełm nurka", "HEŁM NURKA", q => BraxMuzeumKod.HelmNurka(g, "dział PORT", q, Vector3.forward), .5f, .5f, .66f);
+        BraxMuzeumKod.KoloSterowe(g, "dział PORT", new Vector3(xi0, y0 + 1.95f, zg), Vector3.right); muzEksponatow++;
+        Pulpit(xi0 + 1.4f, zg + 1.3f, Vector3.right, "KOŁO STEROWE");
+        BraxMuzeumKod.Plansza(g, "dział PORT", new Vector3(xi0, y0 + 2.2f, zg - 3.2f), Vector3.right, 0);
+        BraxMuzeumKod.Plansza(g, "dział PORT", new Vector3(xi0, y0 + 2.2f, zg + 3.2f), Vector3.right, 1);
+        int[] zachod = { 0, 6, 8, 14 }, wschod = { 7, 12, 2, 9 }; float[] zSciany = { zg - 11f, zg - 6.8f, zg + 6.8f, zg + 11f };
+        for (int i = 0; i < 4; i++)
+            if (zSciany[i] > zi0 + 1.6f && zSciany[i] < zi1 - 1.6f) { ObrazNaScianie(new Vector3(xi0, 0f, zSciany[i]), Vector3.right, zachod[i]); ObrazNaScianie(new Vector3(xi1, 0f, zSciany[i]), Vector3.left, wschod[i]); }
+        // TECHNIKA: gramofon z tubą, bicykl za barierką, globus, gabloty z techniką (Poly Haven), zegar stojący, plansze
+        BraxMuzeumKod.Gramofon(g, "dział TECHNIKA", new Vector3(xT, y0 + .02f, zg + dz), Vector3.left); muzEksponatow++;
+        Pulpit(xT - 1.2f, zg + dz + .9f, Vector3.left, "GRAMOFON Z TUBĄ");
+        BraxMuzeumKod.Bicykl(g, "dział TECHNIKA", new Vector3(xT, y0 + .02f, zg), Vector3.left); muzEksponatow++;
+        Barierka(new Vector3(xT - .95f, 0f, zg - 1.9f), new Vector3(xT + .95f, 0f, zg - 1.9f), new Vector3(xT + .95f, 0f, zg + 2.1f), new Vector3(xT - .95f, 0f, zg + 2.1f), new Vector3(xT - .95f, 0f, zg - 1.9f));
+        Pulpit(xT - 1.55f, zg - 1.3f, Vector3.left, "BICYKL");
+        BraxMuzeumKod.Globus(g, "dział TECHNIKA", new Vector3(xT, y0 + .02f, zg - dz), Vector3.left); muzEksponatow++;
+        Pulpit(xT - 1.2f, zg - dz + .9f, Vector3.left, "GLOBUS");
+        float xG = Mathf.Min(xT + 3.6f, xi1 - 2.2f);
+        string[][] technika = { new[] { "television_02" }, new[] { "boombox" }, new[] { "round_spectacles", "magnifying_glass_01" } };
+        for (int i = 0; i < technika.Length; i++) Gablota(g, new Vector3(xG, y0 + .02f, zg + (i - 1) * dz), marmur, mosiadz, szklo, BraxRegion.Model(technika[i]), "technika " + (i + 1));
+        BraxMuzeumKod.Plansza(g, "dział TECHNIKA", new Vector3(xi1, y0 + 2.2f, zg - 3.2f), Vector3.left, 3);
+        BraxMuzeumKod.Plansza(g, "dział TECHNIKA", new Vector3(xi1, y0 + 2.2f, zg + 3.2f), Vector3.left, 4);
+        var zegar = BraxRegion.Model("vintage_grandfather_clock_01"); if (zegar) { BraxRegion.Put(g, zegar, "Muzeum: zegar stojący (eksponat)", new Vector3(xi1 - .6f, y0 + .02f, zi0 + 1.2f), 270f, 1f, true, 2.1f * k); muzEksponatow++; }
+        // SZTUKA: gabloty z rzeźbą i ceramiką (Poly Haven) przed kotwicą, ścianki ekspozycyjne z obrazami, ławki
+        string[][] sztuka = { new[] { "marble_bust_01" }, new[] { "horse_statue_01" }, new[] { "antique_ceramic_vase_01", "ceramic_vase_02" }, new[] { "tea_set_01" }, new[] { "carved_wooden_plate" }, new[] { "ceramic_vase_04", "ceramic_vase_03" } };
+        float[] xSz = { -2.5f, 2.5f, -5.5f, 5.5f, -8.5f, 8.5f };
+        for (int i = 0; i < sztuka.Length; i++) if (Mathf.Abs(xSz[i]) < sw - 1.5f) Gablota(g, new Vector3(cx + xSz[i], y0 + .02f, zg - 1.8f), marmur, mosiadz, szklo, BraxRegion.Model(sztuka[i]), "sztuka " + (i + 1));
+        var tynkS = BraxUliceKit.Tex("muzeum: ścianki ekspozycyjne (bordo)", 2.0f, new Color(.46f, .12f, .14f), new Color(.4f, .09f, .11f), .85f, "painted_plaster_wall", "white_stucco");
+        float zS = zi0 + (zk0 - zi0) * .55f;
+        int[][] scianki = { new[] { 3, 10 }, new[] { 4, 11 } };
+        for (int i = 0; i < 2; i++)
         {
-            ch.Rura(new Vector3(x, y0 + .02f, zs), new Vector3(x, y0 + .95f * k, zs), .025f, 10);
-            BraxChlodnie.Toczony(ch, new Vector3(x, y0 + .02f, zs), new List<Vector3> { new Vector3(.16f, 0f, 0), new Vector3(.16f, .02f, 0), new Vector3(.03f, .035f, 0), new Vector3(0f, .035f, 0) }, bl, 16);
-            if (x + 2.2f < xi1 - 1.5f) BraxUliceKit.S(lina).Rura(new Vector3(x, y0 + .88f * k, zs), new Vector3(x + 2.2f, y0 + .88f * k, zs), .015f, 8);
+            float xs = cx + (i == 0 ? -5.5f : 5.5f);
+            BraxUliceKit.S(dab).Box(new Vector3(xs - 2.48f, y0 + .02f, zS - .13f), new Vector3(xs + 2.48f, y0 + .14f, zS + .13f), 4);           // cokół
+            BraxUliceKit.S(tynkS).Box(new Vector3(xs - 2.5f, y0 + .14f, zS - .15f), new Vector3(xs + 2.5f, y0 + 3.1f, zS + .15f));              // ścianka
+            BraxRegionMeble.Kolizja(g, "Muzeum kolizja: ścianka ekspozycyjna", new Vector3(xs, y0 + 1.6f, zS), new Vector3(5f, 3.1f, .3f));
+            for (int s2 = 0; s2 < 2; s2++)
+            {
+                int nr = scianki[i][s2]; float szO = SzerObrazu(nr, 1.15f), h = BraxMuzeumKod.WysokoscObrazu(nr, szO); var n = s2 == 0 ? Vector3.forward : Vector3.back;
+                BraxMuzeumKod.Obraz(g, "ścianka", new Vector3(xs, y0 + 1.75f, zS) + n * .15f, n, nr, szO); muzEksponatow++;
+            }
+            Lawka(xs, zi0 + 3.4f, Vector3.back); Lawka(xs, zS + 3.0f, Vector3.back);
         }
+        Lawka(xP, zi0 + 3.4f, Vector3.back); Lawka(xT, zi0 + 3.4f, Vector3.back);
+        // ściana południowa: obrazy z kodu na przemian z obrazami w ramach (Poly Haven), barierka z linką
+        string[] ramy = { "hanging_picture_frame_01", "hanging_picture_frame_02", "hanging_picture_frame_03" };
+        int[] poludnie = { 2, 9, 12, 5, 13, 0, 7, 6, 8, 14, 1, 15 }; int ir = 0, io = 0;
+        for (float x = xi0 + 4f; x < xi1 - 3f; x += 4.5f, ir++)
+        {
+            var rm = ir % 2 == 1 ? BraxRegion.Model(ramy[(ir / 2) % ramy.Length]) : null;
+            if (rm && BraxRegion.Put(g, rm, "Muzeum: obraz w ramie", new Vector3(x, y0 + 1.45f * k, zi0 + .06f), 0f, 1f, false, 1.2f * k)) { muzEksponatow++; continue; }   // przodem do sali (+z)
+            ObrazNaScianie(new Vector3(x, 0f, zi0), Vector3.forward, poludnie[io++ % poludnie.Length]);
+        }
+        Barierka(new Vector3(xi0 + 2f, 0f, zi0 + 1.4f), new Vector3(xi1 - 1.5f, 0f, zi0 + 1.4f));
+        // ściana od wejścia (od strony sali): obrazy po obu stronach holu
+        int[] polnoc = { 1, 13, 5, 15 }; float[] xN = { -15f, -9f, 9f, 15f };
+        for (int i = 0; i < 4; i++) { float x = cx + xN[i]; if (x > xi0 + 2f && x < xi1 - 2f && Mathf.Abs(x - rx) > 3f) ObrazNaScianie(new Vector3(x, 0f, zi1), Vector3.back, polnoc[i]); }
         // eksponat centralny: kotwica portowa (miasto portowe — ul. Portowa) na kamiennym cokole, z kodu: trzon, poprzeczka, ramiona
         // z łapami, pierścień; tablice działów na ścianach (litery 3D): PORT · SZTUKA · TECHNIKA
         {
-            float cx = (xi0 + xi1) * .5f, cz = (zk0 + zk1) * .5f + (zk1 - zk0) * .25f;
+            float cz = zg + (zk1 - zk0) * .25f;
             var stalK = BraxCityMaterials.Surface("muzeum: kotwica (stal kuta, ciemna)", new Color(.16f, .15f, .14f), .55f, .8f);
             BraxUliceKit.S(kamien).Poducha(new Vector3(cx - 1.1f, y0 + .02f, cz - .7f), new Vector3(cx + 1.1f, y0 + .5f, cz + .7f), .03f, 0f, 3);
             var kt = BraxUliceKit.S(stalK); float yb = y0 + .5f;
@@ -231,23 +320,38 @@ public static partial class BraxRegionMiastoB
                 Vector3 P(float a) => new Vector3(cx - Mathf.Cos(a) * R, yb + .35f + R - Mathf.Sin(a) * R, cz);
                 kt.Rura(P(a0), P(a1), .06f, 10);
             }
-            foreach (float sx in new[] { -1f, 1f })
-            {
-                var t = new Vector3(cx + sx * .95f, yb + 1.3f, cz);
-                kt.Poducha(new Vector3(t.x - .16f, t.y - .05f, cz - .05f), new Vector3(t.x + .16f, t.y + .22f, cz + .05f), .02f, 0f, 3);   // łapy
-            }
+            foreach (float sx in new[] { -1f, 1f })   // łapy: płaskie płyty w kształcie łopaty na końcach ramion (prostopadle do płaszczyzny kotwicy)
+                kt.OBox(new Vector3(cx + sx * .95f, yb + 1.32f, cz), Vector3.up, Vector3.forward, Vector3.right * sx, .42f, .3f, .035f);
             BraxRegionMeble.Kolizja(g, "Muzeum kolizja: kotwica", new Vector3(cx, y0 + 1.5f, cz), new Vector3(2.2f, 3f, 1.4f));
-            BraxRegionMeble.Napis(g, "KOTWICA PORTOWA", new Vector3(cx, y0 + .3f, cz + .72f), Vector3.forward, .09f * k, new Color(.85f, .78f, .6f));
-            foreach (var (tekst, p, n) in new[] { ("PORT", new Vector3(xi0 + .06f, y0 + 3.72f, (zi0 + zi1) * .5f), Vector3.right), ("SZTUKA", new Vector3(cx, y0 + 3.72f, zi0 + .06f), Vector3.forward), ("TECHNIKA", new Vector3(xi1 - .06f, y0 + 3.72f, (zi0 + zi1) * .5f), Vector3.left) })
-                BraxRegionMeble.Napis(g, tekst, p, n, .38f * k, new Color(.55f, .42f, .25f));
+            BraxRegionMeble.Napis(g, "KOTWICA PORTOWA", new Vector3(cx, y0 + .3f, cz + .72f), Vector3.forward, .09f * k, grafit);
+            muzEksponatow++;
+            foreach (var (tekst, p, n) in new[] { ("PORT", new Vector3(xi0, y0 + 3.72f, (zi0 + zi1) * .5f), Vector3.right), ("SZTUKA", new Vector3(cx, y0 + 3.72f, zi0), Vector3.forward), ("TECHNIKA", new Vector3(xi1, y0 + 3.72f, (zi0 + zi1) * .5f), Vector3.left) })
+                BraxRegionMeble.Napis(g, tekst, p, n, .38f * k, grafit, .07f);   // litery 7 cm grubości na licu ściany
         }
         BraxUliceKit.Zapisz(g, "muzeum");
     }
 
-    // gablota: postument z marmuru (0.9 m × K), szklany klosz 0.9 × 0.6 × 0.6 m z chromowaną ramą, eksponat w środku, tabliczka
-    static void Gablota(Transform g, Vector3 p, Material marmur, Material chrom, Material szklo, GameObject model, string nazwa)
+    static string OpisEksponatu(string n)
     {
-        float k = K, hp = .9f * k, a = .45f, c = .3f, hg = .6f * k;
+        n = (n ?? "").ToLowerInvariant();
+        if (n.Contains("bust")) return "POPIERSIE MARMUROWE";
+        if (n.Contains("horse")) return "RZEŹBA KONIA";
+        if (n.Contains("tea_set")) return "SERWIS DO HERBATY";
+        if (n.Contains("plate")) return "TALERZ RZEŹBIONY";
+        if (n.Contains("vase")) return "WAZA CERAMICZNA";
+        if (n.Contains("television")) return "TELEWIZOR LAMPOWY";
+        if (n.Contains("boombox")) return "RADIOMAGNETOFON";
+        if (n.Contains("spectacles")) return "OKULARY";
+        if (n.Contains("magnifying")) return "LUPA";
+        return "EKSPONAT";
+    }
+
+    // gablota: postument z marmuru (0.9 m × K), szklany klosz z chromowaną ramą, eksponat w środku (model Poly Haven albo z kodu),
+    // tabliczka; bez eksponatu gablota nie powstaje (żadnych pustych gablot)
+    static void Gablota(Transform g, Vector3 p, Material marmur, Material chrom, Material szklo, GameObject model, string nazwa, string opis = null, System.Action<Vector3> kod = null, float a = .45f, float c = .3f, float hgM = .6f)
+    {
+        if (!model && kod == null) return;
+        float k = K, hp = .9f * k, hg = hgM * k;
         BraxUliceKit.S(marmur).Poducha(new Vector3(p.x - a, p.y, p.z - c), new Vector3(p.x + a, p.y + hp, p.z + c), .02f, 0f, 3);
         var s = BraxUliceKit.S(szklo); float y1 = p.y + hp, y2 = y1 + hg;
         foreach (var (n, q0, q1, q2, q3) in new[] {
@@ -262,8 +366,9 @@ public static partial class BraxRegionMiastoB
         foreach (float z in new[] { p.z - c, p.z + c - .02f }) r.Box(new Vector3(p.x - a + .02f, y2, z), new Vector3(p.x + a - .02f, y2 + .02f, z + .02f));
         foreach (float x in new[] { p.x - a, p.x + a - .02f }) r.Box(new Vector3(x, y2, p.z - c + .02f), new Vector3(x + .02f, y2 + .02f, p.z + c - .02f));
         BraxRegionMeble.Kolizja(g, "Muzeum kolizja: gablota", new Vector3(p.x, p.y + (hp + hg) * .5f, p.z), new Vector3(2f * a, hp + hg, 2f * c));
-        if (model && BraxRegion.Put(g, model, "Muzeum: " + nazwa + " (" + model.name + ")", new Vector3(p.x, y1 + .004f, p.z), 180f, 1f, false, hg - .08f)) muzEksponatow++;
-        // tabliczka opisowa na postumencie (od zwiedzającego, +z)
-        BraxRegionMeble.Napis(g, model ? model.name.Replace('_', ' ').ToUpperInvariant() : "EKSPONAT", new Vector3(p.x, p.y + hp * .78f, p.z + c + .01f), Vector3.forward, .05f * k, new Color(.85f, .78f, .6f));
+        if (model) { if (BraxRegion.Put(g, model, "Muzeum: " + nazwa + " (" + model.name + ")", new Vector3(p.x, y1 + .004f, p.z), 180f, 1f, false, hg - .08f)) muzEksponatow++; }
+        else { kod(new Vector3(p.x, y1, p.z)); muzEksponatow++; }
+        // tabliczka opisowa na postumencie (od zwiedzającego, +z), litery grafitowe na marmurze
+        BraxRegionMeble.Napis(g, opis ?? OpisEksponatu(model ? model.name : null), new Vector3(p.x, p.y + hp * .78f, p.z + c + .01f), Vector3.forward, .05f * k, new Color(.13f, .13f, .14f));
     }
 }

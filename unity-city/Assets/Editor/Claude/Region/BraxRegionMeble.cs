@@ -303,7 +303,9 @@ public static class BraxRegionMeble
     // napisu, boki ciemniejsze, głębokość 15 % wysokości (2–4 cm), tył napisu w punkcie p (lico w stronę przod) — wszystkie szyldy,
     // tabliczki, semafory, numery i napisy wnętrz R1 jednym wywołaniem. Wysokość wys = wysokość wiersza jak dotąd (wersalik 72 %).
     static readonly Dictionary<string, (Material lico, Material boki)> napisMat = new Dictionary<string, (Material, Material)>();
-    public static void Napis(Transform parent, string tekst, Vector3 p, Vector3 przod, float wys, Color kolor)
+    // 12.11 (właściciel 00:05: „napis zawsze w 3D, zawsze… nie napis zwykły w ścianie”; zasada napisów premium 10.11 — duże litery
+    // 7–15 cm grubości): glebokosc > 0 nadaje grubość liter wprost (szyldy fasad, tablice działów); 0 = jak dotąd 15 % wysokości.
+    public static void Napis(Transform parent, string tekst, Vector3 p, Vector3 przod, float wys, Color kolor, float glebokosc = 0f)
     {
         if (string.IsNullOrWhiteSpace(tekst)) return;
         przod = przod.normalized; if (przod.sqrMagnitude < .5f) przod = Vector3.forward;
@@ -311,7 +313,7 @@ public static class BraxRegionMeble
         if (!napisMat.TryGetValue(klucz, out var mm) || !mm.lico)
             napisMat[klucz] = mm = (BraxCityMaterials.Surface("Napis 3D: lico " + klucz, kolor, .4f, .1f),
                                      BraxCityMaterials.Surface("Napis 3D: boki " + klucz, Color.Lerp(kolor, Color.black, .55f), .5f, .2f));
-        float cap = wys * .72f, gl = Mathf.Clamp(cap * .15f, .02f, .04f);
+        float cap = wys * .72f, gl = glebokosc > 0f ? glebokosc : Mathf.Clamp(cap * .15f, .02f, .04f);
         // jak BraxLiteryBebas.Napis(nn): prawo czytającego = up × (−przód), góra liter = prawo × przód
         var up0 = Mathf.Abs(Vector3.Dot(przod, Vector3.up)) > .95f ? Vector3.forward : Vector3.up;
         var r = Vector3.Cross(up0, -przod).normalized; var up = Vector3.Cross(r, przod).normalized;
