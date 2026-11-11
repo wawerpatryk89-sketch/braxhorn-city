@@ -81,6 +81,20 @@ class Lokale(unittest.TestCase):
         self.assertIn("public static float ZaokraglenieBox = 0f;", src(R / "BraxUliceKit.cs"))
 
 
+class Lazienki(unittest.TestCase):
+    def test_wall_hung_toilet_and_running_tap(self):
+        # 20:00 „woda w kranie leci… wszystko funkcjonalne”; miska WC z kodu zamiast dwóch poduszek
+        c = src(R / "BraxCeramika.cs")
+        for s in ["public static void MiskaWiszaca(", "public static void Bateria(", "AddComponent<BraxKran>()", "deska i klapa WC"]:
+            self.assertIn(s, c)
+        k = src(RT / "BraxKran.cs")
+        self.assertIn("strumien.enabled = b;", k)
+        self.assertIn("FindAnyObjectByType<BraxGymPlayer>()", k)
+        w = src(R / "BraxMiastoDworzecWindyWC.cs")
+        self.assertIn("BraxCeramika.MiskaWiszaca(new Vector3(WcX1, Y0, mz), Vector3.forward, Vector3.left);", w)
+        self.assertIn("BraxCeramika.Bateria(root,", w)
+
+
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):
         k = src(ROOT / "unity-tools" / "claude" / "kontrola_kompilacji" / "kompiluj.sh")

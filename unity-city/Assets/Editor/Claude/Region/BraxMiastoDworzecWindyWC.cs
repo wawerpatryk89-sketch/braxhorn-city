@@ -210,9 +210,8 @@ internal static partial class BraxMiastoDworzec
             foreach (float xu in new[] { bx0 + .6f, bx1 - .6f })
             {
                 BraxCeramika.Umywalka(V(xu, Y(hb), zs + sg * gl * .5f));      // misa nablatowa z odpływem (właściciel 19:53: „czy są jak talerze”)
-                S(stal).Rura(V(xu, Y(hb), zs + sg * .08f), V(xu, Y(hb + .28f), zs + sg * .08f), .018f, 8);
-                S(stal).Rura(V(xu, Y(hb + .28f), zs + sg * .08f), V(xu, Y(hb + .28f), zs + sg * .22f), .016f, 8);
-                S(stal).Rura(V(xu, Y(hb + .28f), zs + sg * .21f), V(xu, Y(hb + .245f), zs + sg * .21f), .011f, 10);   // wylewka z perlatorem
+                // bateria z wodą (właściciel 20:00: „woda w kranie leci… wszystko funkcjonalne”): chrom, strumień do dna misy przy podejściu
+                BraxCeramika.Bateria(root, "WC " + nazwyWc[k] + " " + (xu < (bx0 + bx1) * .5f ? "lewa" : "prawa"), V(xu, Y(hb), zs + sg * .08f), Vector3.forward * sg, .3f, .14f, .045f);
             }
             // lustro w czarnej ramie: rama obwodowa 3 cm, tafla w środku cofnięta 1.5 cm (bez tafli na ramie)
             // lustro: tafla z odbiciem 30 mm przed ścianą, czarna rama wokół tafli (nie na niej), lico ramy 1.5 cm przed taflą
@@ -237,9 +236,8 @@ internal static partial class BraxMiastoDworzec
                 DrzwiZawiasy("WC " + nazwyWc[k] + " kabina " + (c + 1), V(kx0, Y(.15f), (cz0 + cz1) * .5f), Vector3.left, dwk - .02f, 2.05f, dab);
                 // miska wisząca przy ścianie wschodniej, przycisk spłuczki, uchwyt na papier
                 float mz = (cz0 + cz1) * .5f;
-                S(ceramika).Poducha(V(WcX1 - .55f * K, Y(.25f), mz - .19f * K), V(WcX1 - .02f, Y(.4f * K), mz + .19f * K), .12f, .01f, 6);
-                S(ceramika).Poducha(V(WcX1 - .56f * K, Y(.4f * K), mz - .19f * K), V(WcX1 - .04f, Y(.4f * K + .03f), mz + .19f * K), .1f, 0f, 5);
-                S(stal).Poducha(V(WcX1 - .025f, Y(1.0f * K), mz - .12f), V(WcX1, Y(1.0f * K + .16f), mz + .12f), .006f, 0f, 3);   // przycisk spłuczki 2.5 cm
+                // miska wisząca z kodu (korpus ceramiczny, deska, klapa, zawiasy) i przycisk spłuczki na ścianie — BraxCeramika
+                BraxCeramika.MiskaWiszaca(new Vector3(WcX1, Y0, mz), Vector3.forward, Vector3.left);
                 S(stal).Rura(V(WcX1 - .3f, Y(.75f), cz0 + .02f), V(WcX1 - .3f, Y(.75f), cz0 + .12f), .06f, 12);
                 Kol("WC: miska", V(WcX1 - .55f * K, Y0, mz - .19f * K), V(WcX1, Y(.4f * K), mz + .19f * K));
                 Kol("WC: ścianka kabiny", V(kx0, Y0, cz0), V(WcX1, Y(2.4f), cz0 + .04f));

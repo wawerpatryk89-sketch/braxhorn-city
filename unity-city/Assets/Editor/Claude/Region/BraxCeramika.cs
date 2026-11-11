@@ -216,4 +216,99 @@ internal static class BraxCeramika
         Bryla(chrom, -.2f, .14f, .42f, .2f, .17f, .56f, .012f, 0f);                                       // podnóżek
         if (kolizje) BraxMiastoA.Kol(kolizje, "fotel fryzjerski", L(-.37f, 0f, -.33f), L(.37f, 1.46f, .56f));
     }
+
+    // MISKA WC WISZĄCA (11.11 — kompakt „jak w życiu” zamiast dwóch poduszek): korpus ceramiczny z kodu, przekroje zaokrąglonego
+    // prostokąta (superelipsa p=3) wzdłuż głębokości 54 cm × K, z góry owal zwężający się do przodu, spód podnosi się ku przodowi;
+    // deska (2 cm) i klapa zamknięta (2.5 cm) z tworzywa (biel), zawiasy chrom, przycisk spłuczki na ścianie (płytka 2.5 cm z dwoma
+    // przyciskami). Wymiary rzeczywiste × K: szer. 36, wys. krawędzi 40, głęb. 54 cm. o: punkt na licu ściany na posadzce pod osią miski.
+    static Material deskaM;
+    public static void MiskaWiszaca(Vector3 o, Vector3 ex, Vector3 en)
+    {
+        Materialy();
+        if (!deskaM) deskaM = BraxUliceKit.Mat("deska i klapa WC (tworzywo białe, połysk)", new Color(.97f, .97f, .96f), .2f, 0f);
+        const int M = 40, N = 18; const float zf = .54f, yt = .40f, p = 3f;
+        Vector3 W(float x, float y, float z) => o + (ex * x + Vector3.up * y + en * z) * K;
+        float Se(float c) => Mathf.Sign(c) * Mathf.Pow(Mathf.Abs(c), 2f / p);
+        float A(float z) => z <= .2f ? .18f : .18f * Mathf.Sqrt(Mathf.Max(0f, 1f - Mathf.Pow((z - .2f) / (zf - .2f), 2f)));
+        float Yb(float z) => Mathf.Lerp(.17f, .27f, z / zf);
+        // przekrój w głębokości z: pół-szerokość A(z), pół-wysokość Hh(z) (z przodu maleje do zera — nos zamknięty w punkcie u góry)
+        float Zt(float t) => (1f - Mathf.Pow(1f - t, 1.6f)) * zf - .004f * (1f - t);
+        float Hh(float z) => (yt - Yb(z)) * .5f * (z <= .2f ? 1f : Mathf.Sqrt(A(z) / .18f));
+        Vector3 P(float fi, float t)
+        {
+            float z = Zt(t), a = A(z), hh = Hh(z);
+            return W(a * Se(Mathf.Cos(fi)), yt - hh + hh * Se(Mathf.Sin(fi)), z);
+        }
+        var s = S(ceramika); int k0 = s.v.Count;
+        for (int j = 0; j <= M; j++)
+            for (int q = 0; q <= N; q++)
+            {
+                float fi = j * Mathf.PI * 2f / M, t = (float)q / N; const float e = 1e-3f;
+                var pp = P(fi, t);
+                var a = (P(fi + e, t) - P(fi - e, t)) / e; var b = (P(fi, Mathf.Min(1f, t + e)) - P(fi, Mathf.Max(0f, t - e))) / e;
+                var nn = Vector3.Cross(b, a); if (Vector3.Dot(nn, pp - W(0f, .33f, .22f)) < 0f) nn = -nn;   // na zewnątrz od punktu wnętrza korpusu (bryła gwiaździsta)
+                nn = nn.sqrMagnitude > 1e-8f ? nn.normalized : en;
+                s.v.Add(pp); s.n.Add(nn); var tg = a.sqrMagnitude > 1e-8f ? a.normalized : ex; s.t.Add(new Vector4(tg.x, tg.y, tg.z, 1f)); s.c.Add(s.kolor);
+                s.uv.Add(new Vector2(j * 1.1f * K / M, t * zf * K));
+            }
+        for (int j = 0; j < M; j++)
+            for (int q = 0; q < N; q++)
+            {
+                int a0 = k0 + j * (N + 1) + q, a1 = a0 + 1, b0 = a0 + N + 1, b1 = b0 + 1;
+                var nsr = s.n[a0] + s.n[a1] + s.n[b0] + s.n[b1];
+                if (Vector3.Dot(Vector3.Cross(s.v[a1] - s.v[a0], s.v[b1] - s.v[a0]), nsr) >= 0f) s.i.AddRange(new[] { a0, a1, b1, a0, b1, b0 });
+                else s.i.AddRange(new[] { a0, b1, a1, a0, b0, b1 });
+            }
+        // deska i klapa: graniastosłupy po obrysie z góry (owal), deska 2 cm, klapa 2.5 cm (zamknięta), bez wspólnych płaszczyzn
+        void Plyta(UlSiatka u, float y0, float y1, float ins, float zp)
+        {
+            var obw = new List<Vector2>();
+            for (int i = 0; i <= 24; i++) { float z = zp + (zf - .02f - zp) * i / 24f; obw.Add(new Vector2(A(z) - ins, z)); }
+            for (int i = 24; i >= 0; i--) { float z = zp + (zf - .02f - zp) * i / 24f; obw.Add(new Vector2(-(A(z) - ins), z)); }
+            var c = Vector2.zero; foreach (var q in obw) c += q; c /= obw.Count;
+            for (int i = 0; i < obw.Count; i++)
+            {
+                var q0 = obw[i]; var q1 = obw[(i + 1) % obw.Count];
+                Vector3 g0 = W(q0.x, y0, q0.y), g1 = W(q1.x, y0, q1.y), h0 = W(q0.x, y1, q0.y), h1 = W(q1.x, y1, q1.y);
+                var bok = Vector3.Cross(Vector3.up, g1 - g0).normalized; if (Vector3.Dot(bok, g0 - W(c.x, y0, c.y)) < 0f) bok = -bok;
+                u.Quad(g0, g1, h1, h0, bok);
+                u.Tri(W(c.x, y1, c.y), h0, h1, Vector3.up); u.Tri(W(c.x, y0, c.y), g0, g1, Vector3.down);
+            }
+        }
+        var de = S(deskaM);
+        Plyta(de, yt, yt + .02f, .004f, .06f);
+        Plyta(de, yt + .02f, yt + .045f, .008f, .05f);
+        var ch = S(chrom);
+        foreach (float sx in new[] { -.1f, .1f }) ch.Rura(W(sx - .025f, yt + .035f, .045f), W(sx + .025f, yt + .035f, .045f), .012f * K, 10);
+        // przycisk spłuczki na ścianie: płytka 25 × 16 cm × K, 2.5 cm przed licem, dwa przyciski (mały / duży) wysunięte 2 cm
+        ch.Poducha(Vector3.Min(W(-.125f, .98f, -.002f), W(.125f, 1.14f, .025f)), Vector3.Max(W(-.125f, .98f, -.002f), W(.125f, 1.14f, .025f)), .008f, 0f, 4);
+        var pz = S(deskaM);
+        pz.Poducha(Vector3.Min(W(-.105f, 1.0f, .025f), W(-.01f, 1.12f, .045f)), Vector3.Max(W(-.105f, 1.0f, .025f), W(-.01f, 1.12f, .045f)), .01f, 0f, 4);
+        pz.Poducha(Vector3.Min(W(.01f, 1.0f, .025f), W(.105f, 1.12f, .045f)), Vector3.Max(W(.01f, 1.0f, .025f), W(.105f, 1.12f, .045f)), .01f, 0f, 4);
+    }
+
+    // BATERIA UMYWALKOWA Z WODĄ (11.11, właściciel 20:00: „woda w kranie leci, wszystko po kolei robimy funkcjonalne”): korpus
+    // chrom (kolumna, wylewka z perlatorem), strumień wody (przezroczysty walec z kodu) od perlatora do misy — BraxKran włącza go,
+    // gdy gracz stoi przy umywalce (≤ 1.1 m), szum wody. baza = punkt blatu pod kolumną, wysieg = kierunek wylewki, hMisy = wysokość
+    // dna misy nad blatem (koniec strumienia).
+    static Material wodaM;
+    public static void Bateria(Transform rodzic, string nazwa, Vector3 baza, Vector3 wysieg, float wys, float dl, float hMisy)
+    {
+        Materialy();
+        if (!wodaM) wodaM = BraxUliceKit.Mat("woda z kranu (strumień)", new Color(.78f, .88f, .95f, .45f), .05f, 0f);
+        wysieg.y = 0f; wysieg.Normalize();
+        var ch = S(chrom);
+        ch.PoduchaOkragla(baza, .028f * K, .022f, .006f, 0f, 18);                                    // rozeta na blacie (2.2 cm — lico ≥ 2 cm nad blatem)
+        ch.Rura(baza + Vector3.up * .01f, baza + Vector3.up * wys, .018f * K, 16);                     // kolumna
+        ch.Rura(baza + Vector3.up * (wys - .012f) - wysieg * .02f, baza + Vector3.up * (wys - .012f) + wysieg * dl, .016f * K, 14);   // wylewka
+        var perl = baza + Vector3.up * (wys - .012f) + wysieg * (dl - .012f);
+        ch.Rura(perl, perl - Vector3.up * .035f, .012f * K, 12);                                      // perlator
+        ch.Rura(baza + Vector3.up * (wys - .005f), baza + Vector3.up * (wys + .03f) - wysieg * .06f, .009f * K, 10);   // dźwignia mieszacza na górze, skośnie do tyłu
+        // strumień: osobny obiekt (włączany przez BraxKran), walec Ø 1.2 cm od perlatora do dna misy
+        var g = new GameObject("Kran: " + nazwa).transform; g.SetParent(rodzic, false); g.position = perl;
+        var w = new UlSiatka(); w.Rura(Vector3.down * .036f, Vector3.down * Mathf.Max(.05f, (wys - .012f - .036f - hMisy)), .006f * K, 10, false);
+        var go = BraxMiastoA.Obiekt(g, "Kran: " + nazwa + " — strumień wody", w, wodaM);
+        var kran = g.gameObject.AddComponent<BraxKran>(); kran.strumien = go.GetComponent<Renderer>(); kran.promien = 1.1f * K;
+        GameObjectUtility.SetStaticEditorFlags(go, 0);
+    }
 }

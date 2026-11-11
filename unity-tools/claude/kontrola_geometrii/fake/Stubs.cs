@@ -188,3 +188,4 @@ internal static class BraxMiastoA
 public sealed class BraxLustro : MonoBehaviour { public float zasieg = 16f; public int rozmiar = 512; }
 public static class BraxZapisAssetu { public static void Utworz(UnityEngine.Object o, string p) { } }
 public static class BraxCityMaterials { public static Material Surface(string n, Color c, float r, float m = 0f) => BraxUliceKit.Mat(n, c, r, m); }
+public sealed class BraxKran : MonoBehaviour { public Renderer strumien; public float promien; }
