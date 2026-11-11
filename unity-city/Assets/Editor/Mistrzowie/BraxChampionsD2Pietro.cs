@@ -5,7 +5,7 @@ using UnityEngine;
 
 // D2 first floor (board: "Piętro (+1): strefa gastronomiczna, sklepy, biura, zaplecze"; "pełna dostępność: windy"):
 // * in each wing's front corner by the hall (x +-23..30, z .9..8.8, open to the hall through the walnut portal) a U stair
-//   (2 x 13 risers of 17.6 cm, 30 cm going, granite treads with contrast nosings, glass balustrades with stainless rails)
+//   (2 x 13 risers of 17.6 cm, 30 cm going, granite treads with contrast nosings, glass balustrades: separate panes, black posts, black handrail caps)
 //   and a working lift (BraxWinda) HOL <-> PIĘTRO;
 // * WEST +1: the food court - three food counters along the outer wall with 3D names on navy bands and lit menu boards,
 //   twelve round marble tables with four upholstered chairs each, the gallery over the hall;
@@ -25,46 +25,56 @@ public static partial class BraxChampionsD2
             for(int i=0;i<13;i++)
             {
                 float z0=zStart+dir*i*run,z1=z0+dir*(run+(i<12?.02f:0f)),y=yStart+(i+1)*rise;
-                B(granite,lo,hi,y-.05f,y,Mathf.Min(z0,z1),Mathf.Max(z0,z1));
-                B(concrete,lo+.02f,hi-.02f,yStart-.25f+i*rise,y-.05f,Mathf.Min(z0,z0+dir*run),Mathf.Max(z0,z0+dir*run));
-                float zn=z0+dir*.0f;Flat(paintYellow,lo+.05f,hi-.05f,Mathf.Min(zn,zn+dir*.05f),Mathf.Max(zn,zn+dir*.05f),y+.012f);
+                // treads clear of the balustrade shoes (glass on the stringers at lo+.03 / hi-.03) by 15 mm
+                B(granite,lo+.075f,hi-.075f,y-.05f,y,Mathf.Min(z0,z1),Mathf.Max(z0,z1));
+                B(concrete,lo+.08f,hi-.08f,yStart-.25f+i*rise,y-.05f,Mathf.Min(z0,z0+dir*run),Mathf.Max(z0,z0+dir*run));
+                float zn=z0+dir*.0f;Flat(paintYellow,lo+.10f,hi-.10f,Mathf.Min(zn,zn+dir*.05f),Mathf.Max(zn,zn+dir*.05f),y+.012f);
             }
             float len=13*run,h=13*rise,zc=zStart+dir*len*.5f;
             var o=new GameObject("schody piętro | kolizja");o.transform.SetParent(cols,false);
             o.transform.localPosition=new Vector3((lo+hi)*.5f,yStart+h*.5f-.15f,zc)*K;
             o.transform.localRotation=Quaternion.Euler(dir*Mathf.Atan2(h,len)*Mathf.Rad2Deg,0,0);
             o.AddComponent<BoxCollider>().size=new Vector3(hi-lo,.3f,Mathf.Sqrt(len*len+h*h))*K;Colliders++;
-            foreach(float x in new[]{lo,hi})
+            // navy stringers carrying the glass: separate panes between black posts, black handrail cap and shoe (owner 11.11)
+            foreach(float x in new[]{lo+.03f,hi-.03f})
             {
                 var a=new Vector3(x,yStart,zStart);var b=new Vector3(x,yStart+h,zStart+dir*len);
-                Q(glass,a,b,b+Vector3.up*.95f,a+Vector3.up*.95f,Vector3.right);Q(glass,a,b,b+Vector3.up*.95f,a+Vector3.up*.95f,Vector3.left);
-                Beam(stainless,a+Vector3.up*.97f,b+Vector3.up*.97f,.045f,.045f);
-                Beam(steelNavy,a+new Vector3(0,-.12f,0),b+new Vector3(0,-.12f,0),.08f,.30f);
+                Beam(steelNavy,a+new Vector3(0,-.12f,0),b+new Vector3(0,-.12f,0),.10f,.30f);
+                GlassRail(a,b,1.0f,1.3f);
             }
         }
         float y1=FFL+13*rise;
         Flight(23.0f,25.4f,6.4f,-1f,FFL);
-        B(granite,Mathf.Min(X(23f),X(28.2f)),Mathf.Max(X(23f),X(28.2f)),y1-.25f,y1,.9f,2.5f,true);
-        Flight(25.8f,28.2f,2.5f,1f,y1);
-        // the hole's balustrades at +1: along the front (z .9) and the inner side (x 23) and the north edge over flight 1
-        float lo=Mathf.Min(X(23f),X(28.2f)),hi=Mathf.Max(X(23f),X(28.2f));
-        void Rail(Vector3 a,Vector3 b)
         {
-            var n=Vector3.Cross(b-a,Vector3.up);
-            Q(glass,a,b,b+Vector3.up*1.05f,a+Vector3.up*1.05f,n);Q(glass,a,b,b+Vector3.up*1.05f,a+Vector3.up*1.05f,-n);
-            Beam(stainless,a+Vector3.up*1.08f,b+Vector3.up*1.08f,.05f,.05f);
+            // the landing (granite inside navy edge beams, like the flights' stringers) and its open sides: glass on the
+            // edge beams (south z .95, and x 23 / 28.2 up to the flights)
+            float l0=Mathf.Min(X(23f),X(28.2f)),l1=Mathf.Max(X(23f),X(28.2f));
+            B(granite,l0+.095f,l1-.095f,y1-.25f,y1,1.015f,2.5f,true);
+            B(steelNavy,l0-.02f,l0+.08f,y1-.30f,y1+.03f,.9f,2.5f);B(steelNavy,l1-.08f,l1+.02f,y1-.30f,y1+.03f,.9f,2.5f);
+            B(steelNavy,l0+.08f,l1-.08f,y1-.30f,y1+.03f,.9f,1.0f);
+            GlassRail(new Vector3(l0+.03f,y1,2.5f),new Vector3(l0+.03f,y1,.95f),1.0f,1.3f,false,true);
+            GlassRail(new Vector3(l0+.03f,y1,.95f),new Vector3(l1-.03f,y1,.95f),1.0f,1.3f,false,false);
+            GlassRail(new Vector3(l1-.03f,y1,.95f),new Vector3(l1-.03f,y1,2.5f),1.0f,1.3f,true,false);
+        }
+        Flight(25.8f,28.2f,2.5f,1f,y1);
+        // the hole's balustrades at +1, on the slab 5 cm back from the hole's edges: the front (z .9), the inner side (x 23),
+        // the outer side (x 28.2, beside flight 2's arrival) and the north edge over flight 1
+        void Rail(Vector3 a,Vector3 b,bool first=true)
+        {
+            GlassRail(a,b,1.08f,1.4f,first);
             var c=(a+b)*.5f;Col(c.x-Mathf.Abs(b.x-a.x)*.5f-.05f,c.x+Mathf.Abs(b.x-a.x)*.5f+.05f,UpY,UpY+1.1f,c.z-Mathf.Abs(b.z-a.z)*.5f-.05f,c.z+Mathf.Abs(b.z-a.z)*.5f+.05f,"balustrada");
         }
-        Rail(new Vector3(lo,UpY,.9f),new Vector3(hi,UpY,.9f));
-        Rail(new Vector3(X(23f),UpY,.9f),new Vector3(X(23f),UpY,6.4f));
-        Rail(new Vector3(X(23f),UpY,6.4f),new Vector3(X(25.6f),UpY,6.4f));
+        Rail(new Vector3(X(22.95f),UpY,.85f),new Vector3(X(28.25f),UpY,.85f));
+        Rail(new Vector3(X(22.95f),UpY,.85f),new Vector3(X(22.95f),UpY,6.45f),false);
+        Rail(new Vector3(X(28.25f),UpY,.85f),new Vector3(X(28.25f),UpY,6.45f),false);
+        Rail(new Vector3(X(22.95f),UpY,6.45f),new Vector3(X(25.6f),UpY,6.45f),false);
         // the lift: shaft x 28.4..29.94, z 6.6..8.8, doors toward the stair (-s x)
         float lx0=Mathf.Min(X(28.4f),X(29.94f)),lx1=Mathf.Max(X(28.4f),X(29.94f));
         foreach(float y in new[]{FFL,UpY})
         {
             float dx=s<0?lx1:lx0;
-            B(stainless,dx-.04f,dx+.04f,y,y+2.2f,6.68f,7.25f,true);B(stainless,dx-.04f,dx+.04f,y,y+2.2f,8.15f,8.72f,true);
-            B(stainless,dx-.04f,dx+.04f,y+2.2f,y==FFL?Floor1:y+2.58f,6.68f,8.72f,true);
+            B(frame,dx-.04f,dx+.04f,y,y+2.2f,6.68f,7.25f,true);B(frame,dx-.04f,dx+.04f,y,y+2.2f,8.15f,8.72f,true);
+            B(frame,dx-.04f,dx+.04f,y+2.2f,y==FFL?Floor1:y+2.58f,6.68f,8.72f,true);
         }
         B(plaster,lx0,lx1,FFL,UpY+2.6f,6.6f,6.68f,true);B(plaster,lx0,lx1,FFL,UpY+2.6f,8.72f,8.8f,true);
         BuildingLift("D2 winda piętro "+(s<0?"zachód":"wschód"),(lx0+lx1)*.5f,7.7f,.62f,.98f,s*90f,new[]{FFL+.012f,UpY+.012f},new[]{"HOL","PIĘTRO"},.45f);
@@ -190,7 +200,7 @@ public static partial class BraxChampionsD2
         // the corridor along the gallery: benches facing the hall, planters
         for(int i=0;i<3;i++)StationBench(new Vector3(24.5f,y,12f+i*8f),Vector3.left,4,"ławka piętro "+i,2,true);
         foreach(float z in new[]{8f,16f,24f,32f})Prop(root,"ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf",new Vector3(29.5f,y,z),z*13f,.3f);
-        string[] names={"PRASA · KSIĄŻKI","PAMIĄTKI","BIURO PODRÓŻY"};
+        string[] names={"PRASA • KSIĄŻKI","PAMIĄTKI","BIURO PODRÓŻY"};
         for(int i=0;i<3;i++)
         {
             float z0=8.5f+i*9.0f,z1=z0+8.4f,xf=33f;

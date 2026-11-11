@@ -97,7 +97,10 @@ public static partial class BraxChampionsD2
         roofGraphite=BraxChampionsFoundation.LibraryMetal("d2_roof_graphite_metal",new Color(.20f,.215f,.24f));
         glass=S("glass_clear",new Color(.66f,.76f,.82f,.26f),.04f,0f,null,true);
         glassDark=S("glass_facade",new Color(.18f,.24f,.29f,.42f),.04f,.1f,null,true);
-        frame=S("frame_graphite",new Color(.16f,.17f,.19f),.32f,.75f);
+        // everything that holds glass is BLACK (owner 11.11 14:57: "zakaz szarych listew na szkle" - grey blends with the
+        // glass): satin black anodised aluminium (ambientCG Metal048A brushed, tinted black) for frames, mullions, posts,
+        // handrail caps, shoes, door frames and handles, lift frames
+        frame=BraxChampionsFoundation.LibraryMetal("d2_frame_black_anodised",new Color(.075f,.075f,.085f));
         steel=BraxChampionsHarbour.Steel;
         steelNavy=S("steel_navy_paint",new Color(.10f,.16f,.30f),.38f,.55f);
         concrete=Tex("fair_faced_concrete","concrete_wall_009",3.0f,new Color(.97f,1.0f,1.06f));   // clean formwork concrete (viaduct, piers, slabs)
@@ -183,6 +186,33 @@ public static partial class BraxChampionsD2
         var d=b-a;float len=d.magnitude;if(len<1e-4f)return;
         var rot=Quaternion.LookRotation(d/len,Mathf.Abs(d.normalized.y)>.99f?Vector3.forward:Vector3.up);
         m.Box(mat,(a+b)*.5f,new Vector3(w,h,len),rot);
+    }
+    // Glass balustrade (owner 11.11 14:57/14:58): nothing grey at any glass and the glass divided - separate toughened panes
+    // (max ~1.4 m) between slim black posts (40 x 50, the glass 8 mm deep in their slots), a black handrail cap over the top
+    // edge, a black base shoe. a..b is the line the glass stands on (sloping on stairs), h its height over that line;
+    // first/last: posts at the ends (off where another run already has a post at that corner).
+    static void GlassRail(Vector3 a,Vector3 b,float h,float pane=1.4f,bool first=true,bool last=true)
+    {
+        var d=b-a;var flat=new Vector3(d.x,0f,d.z);float L=flat.magnitude;if(L<.05f)return;
+        var dir=flat/L;var n=new Vector3(-dir.z,0f,dir.x);var rot=Quaternion.LookRotation(n,Vector3.up);
+        int N=Mathf.Max(1,Mathf.CeilToInt(L/pane-.02f));
+        Vector3 At(float t)=>a+d*t;
+        float inset=.012f/L;
+        for(int i=0;i<N;i++)
+        {
+            float t0=(float)i/N+inset,t1=(float)(i+1)/N-inset;
+            var p0=At(t0)+Vector3.up*.03f;var p1=At(t1)+Vector3.up*.03f;var p2=At(t1)+Vector3.up*(h-.02f);var p3=At(t0)+Vector3.up*(h-.02f);
+            Q(glass,p0,p1,p2,p3,n);Q(glass,p0,p1,p2,p3,-n);
+        }
+        for(int i=0;i<=N;i++)
+        {
+            if((i==0&&!first)||(i==N&&!last))continue;
+            var c=At((float)i/N);
+            m.Box(frame,c+Vector3.up*((h-.005f)*.5f),new Vector3(.04f,h-.005f,.05f),rot);
+        }
+        var u=d.normalized*.025f;var ue=d.normalized*.01f;
+        Beam(frame,a-u+Vector3.up*h,b+u+Vector3.up*h,.055f,.07f);            // handrail cap
+        Beam(frame,a-ue+Vector3.up*.03f,b+ue+Vector3.up*.03f,.06f,.10f);     // base shoe (1 cm past the ends: never flush with a beam end)
     }
     static Transform Group(Transform parent,string name){var g=new GameObject(name).transform;g.SetParent(parent,false);return g;}
     static void Flush(string name,Transform parent=null){m.Build(parent??root,name,Folder,false);m=new BraxChampionsMeshBatch();}

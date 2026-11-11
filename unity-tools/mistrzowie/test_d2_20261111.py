@@ -134,6 +134,22 @@ class D2LayoutTests(unittest.TestCase):
             for call in re.findall(r'static void (?:WaitingBench|PlatformBench|OutdoorBench)\(.*', src):
                 self.assertIn('StationBench(', call)
 
+    def test_glass_has_black_fittings_and_divided_panes(self):
+        """owner 11.11 14:57/14:58: no grey strip, post or frame at any glass (grey blends with it) - black; the glass of
+        balustrades in separate panes with divisions (GlassRail), not one long sheet with a grey rail on top."""
+        d2 = (ED / 'BraxChampionsD2.cs').read_text()
+        self.assertIn('frame=BraxChampionsFoundation.LibraryMetal("d2_frame_black_anodised"', d2)
+        body = d2[d2.index('static void GlassRail'):d2.index('static Transform Group')]
+        self.assertNotRegex(body, r'stainless|steel|navy')
+        self.assertIn('Mathf.CeilToInt(L/pane', body)
+        for f in FILES:
+            for line in (ED / f).read_text().splitlines():
+                if re.search(r'\bglass\b', line) and not line.strip().startswith('//'):
+                    self.assertNotIn('stainless', line, f + ': ' + line.strip()[:120])
+        src = self.src
+        self.assertGreaterEqual(src.count('GlassRail('), 10)
+        self.assertNotIn('Beam(stainless', src)
+
     def test_no_generated_foundation_committed(self):
         out = subprocess.run(['git', 'ls-files', 'unity-city/Assets/Source/Mistrzowie/Foundation.json'], cwd=ROOT, capture_output=True, text=True).stdout
         self.assertEqual(out.strip(), '')

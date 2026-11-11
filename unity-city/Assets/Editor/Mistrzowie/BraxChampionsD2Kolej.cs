@@ -133,12 +133,9 @@ public static partial class BraxChampionsD2
         float pa=c1,pb=outer;
         Slab(granite,PlatX0,PlatX1,Mathf.Min(pa,pb),Mathf.Max(pa,pb),PlatformTop-.25f,PlatformTop,holes,true);
         Slab(concrete,PlatX0+.02f,PlatX1-.02f,Mathf.Min(wall-s*.25f,pb),Mathf.Max(wall-s*.25f,pb),DeckTop,PlatformTop-.25f,holes,false);
-        // outer edge: glass balustrade 1.1 m with a stainless rail, navy posts every 2 m
-        float bz=outer+s*.05f;
-        var g0=new Vector3(PlatX0,PlatformTop,bz);var g1=new Vector3(PlatX1,PlatformTop,bz);var g2=new Vector3(PlatX1,PlatformTop+1.1f,bz);var g3=new Vector3(PlatX0,PlatformTop+1.1f,bz);
-        Q(glass,g0,g1,g2,g3,Vector3.forward);Q(glass,g0,g1,g2,g3,Vector3.back);
-        B(stainless,PlatX0,PlatX1,PlatformTop+1.1f,PlatformTop+1.16f,bz-.03f,bz+.03f);
-        for(float x=PlatX0;x<=PlatX1+.01f;x+=2f)B(steelNavy,x-.03f,x+.03f,PlatformTop,PlatformTop+1.1f,bz-.04f,bz+.04f);
+        // outer edge: glass balustrade 1.1 m in separate 1.5 m panes between black posts, black handrail cap and shoe
+        float bz=outer+s*.08f;
+        GlassRail(new Vector3(PlatX0+.06f,PlatformTop,bz),new Vector3(PlatX1-.06f,PlatformTop,bz),1.1f,1.5f);
         Col(PlatX0,PlatX1,PlatformTop,PlatformTop+1.2f,bz-.1f,bz+.1f,"balustrada peronu");
         // ends: ramps down for staff are closed by railings with a gate; colliders across the ends (no walking onto the line)
         foreach(float x in new[]{PlatX0,PlatX1})
@@ -309,9 +306,9 @@ public static partial class BraxChampionsD2
             for(int i=0;i<StairRisers;i++)
             {
                 float x=xs+i*StairRun,y=ys+(i+1)*rise;
-                B(granite,x,x+StairRun+.02f,y-.05f,y,z0+.05f,z1-.05f);
-                B(concrete,x,x+StairRun,ys-.25f+i*rise,y-.05f,z0+.07f,z1-.07f);
-                Flat(paintYellow,x,x+.05f,z0+.08f,z1-.08f,y+.012f);                 // contrast nosing
+                B(granite,x,x+StairRun+(i<StairRisers-1?.02f:0f),y-.05f,y,z0+.115f,z1-.115f);
+                B(concrete,x,x+StairRun,ys-.25f+i*rise,y-.05f,z0+.135f,z1-.135f);
+                Flat(paintYellow,x,x+.05f,z0+.13f,z1-.13f,y+.012f);                 // contrast nosing
             }
             // collider as a ramp
             float len=StairRisers*StairRun,h=StairRisers*rise;
@@ -319,31 +316,29 @@ public static partial class BraxChampionsD2
             float ang=-Mathf.Atan2(h,len)*Mathf.Rad2Deg;
             o.transform.localPosition=new Vector3(xs+len*.5f,ys+h*.5f-.15f,(z0+z1)*.5f)*K;o.transform.localRotation=Quaternion.Euler(0,0,-ang);
             o.AddComponent<BoxCollider>().size=new Vector3(Mathf.Sqrt(len*len+h*h),.3f,z1-z0)*K;Colliders++;
-            // stringers (navy steel) and stainless handrails on both sides
+            // stringers (navy steel) and on them the glass balustrades: separate panes, black posts, black handrail cap
             foreach(float zz in new[]{z0+.05f,z1-.05f})
             {
-                Beam(steelNavy,new Vector3(xs,ys-.15f,zz),new Vector3(xs+len,ys+h-.15f,zz),.10f,.40f);
-                Beam(stainless,new Vector3(xs,ys+.95f,zz+(zz<(z0+z1)*.5f?.05f:-.05f)),new Vector3(xs+len,ys+h+.95f,zz+(zz<(z0+z1)*.5f?.05f:-.05f)),.05f,.05f);
-                var g0=new Vector3(xs,ys,zz);var g1=new Vector3(xs+len,ys+h,zz);var g2=new Vector3(xs+len,ys+h+.9f,zz);var g3=new Vector3(xs,ys+.9f,zz);
-                Q(glass,g0,g1,g2,g3,Vector3.forward);Q(glass,g0,g1,g2,g3,Vector3.back);
+                Beam(steelNavy,new Vector3(xs,ys-.20f,zz),new Vector3(xs+len,ys+h-.20f,zz),.10f,.40f);    // top 5 cm under the shoe's
+                GlassRail(new Vector3(xs,ys,zz),new Vector3(xs+len,ys+h,zz),1.0f,1.3f);
             }
         }
         Flight(xb,WalkY);
         float yl=WalkY+StairRisers*rise;
-        B(granite,xa-1f,xa+1f,yl-.25f,yl,z0+.05f,z1-.05f,true);
+        B(granite,xa-1f,xa+1f,yl-.25f,yl,z0+.115f,z1-.115f,true);
+        foreach(float zz in new[]{z0+.05f,z1-.05f}){B(steelNavy,xa-1.05f,xa+1.05f,yl-.55f,yl+.02f,zz-.04f,zz+.04f);GlassRail(new Vector3(xa-1f,yl,zz),new Vector3(xa+1f,yl,zz),1.0f,1.3f,false,false);}
         Flight(xa+1f,yl);
         // glass balustrade round the opening on the platform (three sides; the stair arrives at xa+7 open toward +x)
         var (o0,o1)=Opening(xa);
         float y=PlatformTop;
-        void Rail(Vector3 a,Vector3 b)
+        void Rail(Vector3 a,Vector3 b,bool first=true)
         {
-            var n=Vector3.Cross(b-a,Vector3.up);
-            Q(glass,a,b,b+Vector3.up*1.1f,a+Vector3.up*1.1f,n);Q(glass,a,b,b+Vector3.up*1.1f,a+Vector3.up*1.1f,-n);
-            Beam(stainless,a+Vector3.up*1.13f,b+Vector3.up*1.13f,.05f,.05f);
+            GlassRail(a,b,1.1f,1.4f,first);
             var c=(a+b)*.5f;var sz=new Vector3(Mathf.Abs(b.x-a.x)+.1f,1.2f,Mathf.Abs(b.z-a.z)+.1f);
             Col(c.x-sz.x*.5f,c.x+sz.x*.5f,y,y+1.2f,c.z-sz.z*.5f,c.z+sz.z*.5f,"balustrada otworu");
         }
-        Rail(new Vector3(o0,y,z0),new Vector3(xa+7f,y,z0));Rail(new Vector3(o0,y,z1),new Vector3(xa+7f,y,z1));Rail(new Vector3(o0,y,z0),new Vector3(o0,y,z1));
+        // (on the paving round the hole, 5 cm back from its edge)
+        Rail(new Vector3(o0-.05f,y,z0-.05f),new Vector3(xa+7f,y,z0-.05f));Rail(new Vector3(o0-.05f,y,z1+.05f),new Vector3(xa+7f,y,z1+.05f));Rail(new Vector3(o0-.05f,y,z0-.05f),new Vector3(o0-.05f,y,z1+.05f),false);
         // lift: glass shaft from the passage to the platform + 2.6 m, navy corner posts, cabin at the platform
         float lx0=xa+7.6f,lx1=lx0+LiftW;
         Lift(lx0,lx1,z0,z1,p,xa);
@@ -355,8 +350,14 @@ public static partial class BraxChampionsD2
     static void Lift(float x0,float x1,float z0,float z1,int p,float xa)
     {
         float yb=WalkY,yt=PlatformTop+2.7f,dz=p==0?z1:z0,back=p==0?z0:z1,f=p==0?1f:-1f;
-        foreach(float x in new[]{x0,x1})foreach(float z in new[]{z0,z1})B(steelNavy,x-.06f,x+.06f,yb,yt+.2f,z-.06f,z+.06f);
-        B(steelNavy,x0-.06f,x1+.06f,yt,yt+.25f,z0-.06f,z1+.06f);
+        // black frame (owner 11.11: nothing grey at glass): corner posts, the head, transoms dividing the panes every floor
+        foreach(float x in new[]{x0,x1})foreach(float z in new[]{z0,z1})B(frame,x-.06f,x+.06f,yb,yt+.2f,z-.06f,z+.06f);
+        B(frame,x0-.06f,x1+.06f,yt,yt+.25f,z0-.06f,z1+.06f);
+        foreach(float ty in new[]{yb+.06f,WalkY+2.6f,DeckSoffit-.05f,PlatformTop+.06f})
+        {
+            B(frame,x0+.06f,x1-.06f,ty-.04f,ty+.04f,back-.035f,back+.035f);
+            foreach(float x in new[]{x0,x1})B(frame,x-.035f,x+.035f,ty-.04f,ty+.04f,z0+.06f,z1-.06f);
+        }
         // glass: the back (outer) side and both x sides; the door side has the landing door frames + glass above the doors
         void Glass(Vector3 a,Vector3 b,Vector3 c,Vector3 d,Vector3 n){Q(glass,a,b,c,d,n);Q(glass,a,b,c,d,-n);}
         Glass(new Vector3(x0,yb,back),new Vector3(x1,yb,back),new Vector3(x1,yt,back),new Vector3(x0,yt,back),Vector3.forward);
@@ -365,8 +366,8 @@ public static partial class BraxChampionsD2
         foreach(float y in new[]{yb,PlatformTop})
         {
             float top=y==yb?DeckSoffit-.05f:yt;
-            B(stainless,x0,xc-hd,y,y+2.2f,dz-.04f,dz+.04f,true);B(stainless,xc+hd,x1,y,y+2.2f,dz-.04f,dz+.04f,true);
-            B(stainless,x0,x1,y+2.2f,y+2.35f,dz-.04f,dz+.04f);
+            B(frame,x0+.06f,xc-hd,y,y+2.2f,dz-.04f,dz+.04f,true);B(frame,xc+hd,x1-.06f,y,y+2.2f,dz-.04f,dz+.04f,true);
+            B(frame,x0+.06f,x1-.06f,y+2.2f,y+2.35f,dz-.04f,dz+.04f);
             Glass(new Vector3(x0,y+2.35f,dz),new Vector3(x1,y+2.35f,dz),new Vector3(x1,top,dz),new Vector3(x0,top,dz),Vector3.forward);
             Col(x0,x1,y+2.2f,top,dz-.05f,dz+.05f,"szyb nad drzwiami");
         }
@@ -374,7 +375,7 @@ public static partial class BraxChampionsD2
         // the call panel beside the door at each stop (stainless plate, a lit button)
         foreach(float y in new[]{yb,PlatformTop})
         {
-            B(stainless,x1+.15f,x1+.35f,y+.95f,y+1.25f,dz+f*.02f-.01f,dz+f*.02f+.01f);
+            B(frame,x1+.15f,x1+.35f,y+.95f,y+1.25f,dz+f*.02f-.01f,dz+f*.02f+.01f);
             m.Cylinder(led,new Vector3(x1+.25f,y+1.10f,dz+f*.035f),.035f,.012f,12,Quaternion.Euler(f*90f,0,0),true,true);
         }
         Lifts++;

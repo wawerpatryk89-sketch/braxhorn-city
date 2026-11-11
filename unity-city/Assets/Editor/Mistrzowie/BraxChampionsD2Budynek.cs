@@ -120,7 +120,7 @@ public static partial class BraxChampionsD2
         for(int i=0;i<36;i++)
         {
             float x0=-HallW+i,x1=x0+1;
-            Beam(navy,new Vector3(x0,VaultIn(x0)-.18f,gz),new Vector3(x1,VaultIn(x1)-.18f,gz),.45f,.30f);
+            Beam(windowFrame,new Vector3(x0,VaultIn(x0)-.18f,gz),new Vector3(x1,VaultIn(x1)-.18f,gz),.45f,.30f);
         }
         // ground-floor wall pieces are glass: colliders along the front except the doors
         if(front)
@@ -320,7 +320,7 @@ public static partial class BraxChampionsD2
     // ================================================================ 3D letters and pictograms (ZASADA-NAPISY-PREMIUM 10.11)
     // Every inscription stands on a carrier from the architecture, full 3D letters (faces, returns, backs), Montserrat SemiBold
     // (the letter kit), white backlit faces with BRUSHED STAINLESS returns, 2 mm off the carrier, an LED line under each row:
-    // * DWORZEC: on a navy sign board (19 x 1.8 m, 30 cm) fixed to the arch's mullions by stainless brackets, letters 1.45 m,
+    // * DWORZEC: on a navy sign board (19 x 1.8 m, 30 cm) fixed to the arch's (black) mullions by black brackets, letters 1.45 m,
     //   14 cm deep; the board is lit from below;
     // * KOLEJOWO-AUTOBUSOWY: on the canopy's front band;
     // * KOLEJ / AUTOBUSY: navy plaques (6.8 x 2.1 m, 14 cm) on the larch slat panels, on stainless stand-offs, the pictogram
@@ -331,7 +331,7 @@ public static partial class BraxChampionsD2
         // DWORZEC sign board
         float bx=9.5f,by0=6.55f,by1=8.35f,bz0=-.62f,bz1=-.32f;
         lm.RoundedBoxMinMax(navy,-bx,bx,by0,by1,bz0,bz1,.05f,3);
-        foreach(float x in new[]{-6f,0f,6f})foreach(float y in new[]{by0+.35f,by1-.35f})lm.BoxMinMax(stainless,x-.06f,x+.06f,y-.06f,y+.06f,bz1,-.12f);
+        foreach(float x in new[]{-6f,0f,6f})foreach(float y in new[]{by0+.35f,by1-.35f})lm.BoxMinMax(frame,x-.06f,x+.06f,y-.06f,y+.06f,bz1,-.12f);
         lm.BoxMinMax(led,-bx+.3f,bx-.3f,by0-.015f,by0+.0f,bz0+.06f,bz0+.20f);
         BraxChampionsLetters3D.Text(lm,whiteLetters,stainless,"DWORZEC",new Vector3(0,by0+.18f,bz0-.002f),180f,1.45f,.14f,.12f,2*bx-1.2f);
         // KOLEJOWO-AUTOBUSOWY on the canopy band (z -6)
@@ -382,7 +382,7 @@ public static partial class BraxChampionsD2
 
     // ================================================================ station clocks (live: BraxChampionsZegar)
     // a railway clock: stainless rounded bezel (lathe), white dial with black batons, black tapered hands, the red seconds
-    // hand with its disc; faces -z of its group (turned by yaw); on the facade a navy backplate with stainless brackets
+    // hand with its disc; faces -z of its group (turned by yaw); on the facade a navy backplate with black brackets to the glazing
     static void StationClock(string name,Vector3 c,float yaw,float r,bool backplate)
     {
         var g=Group(root,name+" (BraxChampionsZegar, czas z telefonu)");g.localPosition=c*K;g.localRotation=Quaternion.Euler(0,yaw,0);
@@ -390,7 +390,7 @@ public static partial class BraxChampionsD2
         if(backplate)
         {
             cm.Cylinder(navy,new Vector3(0,0,.36f),r+.20f,.14f,72,rot,true,true);
-            foreach(float a in new[]{45f,135f,225f,315f}){var p=new Vector3(Mathf.Cos(a*Mathf.Deg2Rad)*(r+.12f),Mathf.Sin(a*Mathf.Deg2Rad)*(r+.12f),.36f);cm.Cylinder(stainless,p,.05f,.24f,10,Quaternion.Euler(90,0,0),true,true);}
+            foreach(float a in new[]{45f,135f,225f,315f}){var p=new Vector3(Mathf.Cos(a*Mathf.Deg2Rad)*(r+.12f),Mathf.Sin(a*Mathf.Deg2Rad)*(r+.12f),.36f);cm.Cylinder(frame,p,.05f,.24f,10,Quaternion.Euler(90,0,0),true,true);}
         }
         // the case and the bezel (a rounded stainless ring), the dial
         cm.Cylinder(stainless,new Vector3(0,0,.22f),r+.08f*k,.10f,72,rot,false,false);
@@ -457,7 +457,7 @@ public static partial class BraxChampionsD2
                 lm.BoxMinMax(frame,a0,a0+.08f,.20f,height-.12f,-.04f,.04f);lm.BoxMinMax(frame,a1-.08f,a1,.20f,height-.12f,-.04f,.04f);
                 lm.BoxMinMax(glass,a0+.08f,a1-.08f,.20f,height-.12f,-.01f,.01f);
                 float px=side<0?a1-.25f:a0+.25f;
-                foreach(float f in new[]{-1f,1f})lm.BoxMinMax(stainless,px-.025f,px+.025f,.80f,1.90f,f>0?.04f:-.10f,f>0?.10f:-.04f);
+                foreach(float f in new[]{-1f,1f})lm.BoxMinMax(frame,px-.025f,px+.025f,.80f,1.90f,f>0?.04f:-.10f,f>0?.10f:-.04f);   // black pull bars
             }
             else
             {
@@ -517,9 +517,8 @@ public static partial class BraxChampionsD2
     }
     static void Balustrade(float x,float z0,float z1,float y,float s)
     {
-        var p0=new Vector3(x,y,z0);var p1=new Vector3(x,y,z1);var p2=new Vector3(x,y+1.05f,z1);var p3=new Vector3(x,y+1.05f,z0);
-        Q(glass,p0,p1,p2,p3,new Vector3(-s,0,0));Q(glass,p0,p1,p2,p3,new Vector3(s,0,0));
-        B(stainless,x-.03f,x+.03f,y+1.05f,y+1.11f,z0,z1);
+        // separate panes between black posts, black handrail cap, the shoe filling the joint between the navy edge and the slab
+        GlassRail(new Vector3(x+s*.03f,y,z0+.05f),new Vector3(x+s*.03f,y,z1-.05f),1.08f,1.4f);
         Col(x-.05f,x+.05f,y,y+1.1f,z0,z1,"balustrada");
     }
     // glass shopfront in the hall's side wall (x = a) between z0..z1, a double door in the middle, the room's name above
@@ -600,9 +599,14 @@ public static partial class BraxChampionsD2
                 B(counterTop,lo,hi,1.05f,1.11f,33.3f,34.3f);
                 B(black,lo,hi,FFL,FFL+.10f,33.32f,33.4f);
                 int n=Mathf.Max(1,Mathf.RoundToInt((hi-lo)/2.4f));
-                for(int i=0;i<=n;i++){float x=lo+i*(hi-lo)/n;B(stainless,x-.03f,x+.03f,1.11f,2.4f,33.7f,33.8f);}
-                var p0=new Vector3(lo,1.11f,33.75f);var p1=new Vector3(hi,1.11f,33.75f);var p2=new Vector3(hi,2.4f,33.75f);var p3=new Vector3(lo,2.4f,33.75f);
-                Q(glass,p0,p1,p2,p3,Vector3.back);Q(glass,p0,p1,p2,p3,Vector3.forward);
+                // glass screens: one pane per window between black posts (owner 11.11: nothing grey at glass)
+                for(int i=0;i<=n;i++){float x=lo+i*(hi-lo)/n;B(frame,x-.03f,x+.03f,1.11f,2.4f,33.7f,33.8f);}
+                for(int i=0;i<n;i++)
+                {
+                    float xa0=lo+i*(hi-lo)/n+.02f,xb0=lo+(i+1)*(hi-lo)/n-.02f;
+                    var p0=new Vector3(xa0,1.11f,33.75f);var p1=new Vector3(xb0,1.11f,33.75f);var p2=new Vector3(xb0,2.4f,33.75f);var p3=new Vector3(xa0,2.4f,33.75f);
+                    Q(glass,p0,p1,p2,p3,Vector3.back);Q(glass,p0,p1,p2,p3,Vector3.forward);
+                }
                 B(navy,lo,hi,2.4f,3.3f,33.55f,33.9f);
                 B(led,lo+.2f,hi-.2f,2.38f,2.4f,33.56f,33.66f);
                 B(wallPanel,lo,hi,FFL,Floor1,BD-.3f,BD-.18f);
