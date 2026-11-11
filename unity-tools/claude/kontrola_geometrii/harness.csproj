@@ -8,6 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="fake/*.cs;gen/*.cs;Program.cs" />
-    <Compile Include="../../../unity-city/Assets/Editor/Claude/Region/BraxMiastoDworzec*.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxLiteryBebas*.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxDrzwiLokalu.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxCeramika.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxChlodnie.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxWarsztatKod.cs;../../../unity-city/Assets/Claude/Runtime/BraxMiastoGranice.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Claude/Region/BraxMiastoDworzec*.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxLiteryBebas*.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxDrzwiLokalu.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxCeramika.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxChlodnie.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxWarsztatKod.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxMuzeumKod.cs;../../../unity-city/Assets/Claude/Runtime/BraxMiastoGranice.cs" />
   </ItemGroup>
 </Project>

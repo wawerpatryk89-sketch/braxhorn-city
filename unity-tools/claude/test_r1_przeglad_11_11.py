@@ -211,6 +211,18 @@ class Muzeum(unittest.TestCase):
         self.assertIn("Krok(\"2. budynki: MUZEUM MIASTA BRAXHORN w zabytku KINNAIRD", src(R / "BraxRegionMiastoB.cs"))
         self.assertIn('"marble_bust_01", "horse_statue_01"', src(ROOT / "unity-tools" / "claude" / "fetch_region.py"))
 
+    def test_door_flush_with_facade_and_portal(self):
+        # 23:09 „Muzeum Miasta drzwi zjebałeś… one są w środku, jakoś dziwnie są” — drzwi w licu, portal, kinkiety (nie latarnie)
+        m = src(R / "BraxMuzeum.cs")
+        self.assertIn('new Vector3(b.x, y0 + .04f, zf + .07f), Vector3.forward, dw', m)
+        self.assertNotIn("zf - .35f", m)
+        self.assertNotIn("BraxRegionMeble.Latarnia(", m)
+        for s in ["// trzon", "// cokół", "// kapitel", "// fryz", "// gzyms", "BraxMuzeumKod.Kinkiet(g, \"portal muzeum\""]:
+            self.assertIn(s, m)
+        k = src(R / "BraxMuzeumKod.cs")
+        self.assertIn("public static Transform Kinkiet(", k)
+        self.assertNotIn("mosiądz", k.split("internal static class")[1])
+
 
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):

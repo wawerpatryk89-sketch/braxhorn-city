@@ -9,8 +9,9 @@ using UnityEngine.Rendering;
 // 21:52: „Wszystko ma być dopieszczone”). Wejście od promenady (lico północne zabytku, z = PromenadaZ), w osi budynku:
 //  • WEJŚCIE: lico fasady wyszukane z wierzchołków modelu (parter, oś ±2.5 m), w modelu wycięty otwór 3.1 × 3.8 m (trójkąty
 //    w bryle otworu usuwane z kopii siatek), ościeża z kamienia w grubości muru, drzwi dwuskrzydłowe dębowe płycinowe z klamkami
-//    (BraxDrzwiLokalu.Drewniane, otwierane), schody nie są potrzebne (posadzka = poziom promenady), nad wejściem litery 3D
-//    MUZEUM MIASTA BRAXHORN (Bebas), dwie latarnie przy wejściu.
+//    (BraxDrzwiLokalu.Drewniane, otwierane) W LICU FASADY (23:09 — wcześniej cofnięte), schody nie są potrzebne (posadzka =
+//    poziom promenady). PORTAL z kamienia: pilastry na cokołach z kapitelami, fryz z literami 3D MUZEUM MIASTA BRAXHORN (Bebas,
+//    grafit), gzyms; na pilastrach kinkiety (BraxMuzeumKod.Kinkiet) zamiast latarni na chodniku.
 //  • SALA na parterze (4.3 m — pod stropem pierwszego piętra modelu, cała szerokość zabytku bez 1.5 m przy ścianach): posadzka z marmuru, ściany z tynku w ciepłym
 //    odcieniu z boazerią dębową do 1.1 m i listwą, gzyms pod sufitem, sufit tynkowy, dwa rzędy kolumn toczonych (baza, trzon,
 //    kapitel), recepcja z kasą biletów, ławki muzealne (skóra), barierki z linką na słupkach chrom, gabloty szklane na postumentach
@@ -90,7 +91,8 @@ public static partial class BraxRegionMiastoB
         float k = K;
         BraxUliceKit.UstawGrupe("Muzeum: sala", 90f);
         var marmur = BraxUliceKit.Tex("muzeum: posadzka marmur", 1.6f, null, new Color(.9f, .88f, .85f), .2f, "marble_01");
-        var tynk = BraxUliceKit.Tex("muzeum: ściany tynk (ciepły)", 2.0f, new Color(.93f, .88f, .80f), new Color(.92f, .87f, .78f), .9f, "white_plaster_02", "white_stucco");
+        // ściany: jasny stiuk w ciepłym odcieniu (white_plaster_02 wychodził szary jak beton — podgląd 23:10)
+        var tynk = BraxUliceKit.Tex("muzeum: ściany stiuk jasny (ciepły)", 2.0f, new Color(.97f, .94f, .88f), new Color(.93f, .9f, .84f), .9f, "white_stucco", "white_plaster_02");
         var dab = BraxUliceKit.Tex("muzeum: boazeria dąb", 1.2f, null, new Color(.55f, .4f, .26f), .5f, "oak_veneer_01", "dark_wood");
         var kamien = BraxUliceKit.Tex("muzeum: kamień (ościeża, kolumny, gzyms)", 1.6f, new Color(.95f, .93f, .9f), new Color(.85f, .82f, .76f), .6f, "sandstone_blocks_08", "marble_01");
         var sufit = BraxUliceKit.Mat("muzeum: sufit tynk", new Color(.95f, .94f, .91f), .9f);
@@ -119,23 +121,38 @@ public static partial class BraxRegionMiastoB
         Sciana(new Vector3(b.x - dw * .5f, 0, zi1), new Vector3(xi0, 0, zi1), Vector3.back);
         Sciana(new Vector3(xi1, 0, zi1), new Vector3(b.x + dw * .5f, 0, zi1), Vector3.back);
         BraxUliceKit.S(tynk).Quad(new Vector3(b.x + dw * .5f, y0 + dh, zi1), new Vector3(b.x - dw * .5f, y0 + dh, zi1), new Vector3(b.x - dw * .5f, y0 + hS, zi1), new Vector3(b.x + dw * .5f, y0 + hS, zi1), Vector3.back);
-        // ościeża otworu (kamień) w grubości muru — od lica sali do lica fasady
-        var os = BraxUliceKit.S(kamien);
+        // ościeża otworu (kamień) w grubości muru — od lica sali do 12 cm przed lico fasady (opaska 30 cm wokół drzwi)
+        // portal i opaska drzwi z jasnego, gładkiego kamienia (odcina się od lica zabytku)
+        var portal = BraxUliceKit.Tex("muzeum: portal (kamień jasny gładki)", 1.6f, new Color(.9f, .86f, .78f), new Color(.88f, .84f, .76f), .6f, "white_stucco", "white_plaster_02");
+        var os = BraxUliceKit.S(portal);
         // (bez lica od sali i spodu — tam ściana sali i posadzka; zero równoległych lic)
-        os.Box(new Vector3(b.x - dw * .5f - .25f, y0, zi1), new Vector3(b.x - dw * .5f, y0 + dh, zf + .04f), 16 | 4);
-        os.Box(new Vector3(b.x + dw * .5f, y0, zi1), new Vector3(b.x + dw * .5f + .25f, y0 + dh, zf + .04f), 16 | 4);
-        os.Box(new Vector3(b.x - dw * .5f - .25f, y0 + dh, zi1), new Vector3(b.x + dw * .5f + .25f, y0 + dh + .3f, zf + .04f), 16);
-        BraxUliceKit.S(marmur).Box(new Vector3(b.x - dw * .5f, y0, zi1), new Vector3(b.x + dw * .5f, y0 + .02f, zf + .3f), 4);   // próg
-        // drzwi dębowe płycinowe z klamkami w licu fasady (otwierane — BraxCityDoor)
+        float hw = dw * .5f;
+        os.Box(new Vector3(b.x - hw - .3f, y0, zi1), new Vector3(b.x - hw, y0 + dh, zf + .12f), 16 | 4);
+        os.Box(new Vector3(b.x + hw, y0, zi1), new Vector3(b.x + hw + .3f, y0 + dh, zf + .12f), 16 | 4);
+        os.Box(new Vector3(b.x - hw - .3f, y0 + dh, zi1), new Vector3(b.x + hw + .3f, y0 + dh + .45f, zf + .12f), 16);
+        BraxUliceKit.S(marmur).Box(new Vector3(b.x - hw, y0, zi1), new Vector3(b.x + hw, y0 + .02f, zf + .3f), 4);   // próg
+        // 23:09 (właściciel: „drzwi… są w środku, jakoś dziwnie są”): drzwi dębowe płycinowe w LICU fasady — ościeżnica 8 cm za
+        // licem, skrzydła równo z murem (wcześniej cofnięte o 35–50 cm w kamiennym „tunelu”); za nimi przedsionek w grubości muru
         BraxDrzwiLokalu.UsunStare("R1_MUZEUM");
-        BraxDrzwiLokalu.Podwojne(g, "R1_MUZEUM", "MUZEUM MIASTA BRAXHORN", new Vector3(b.x, y0 + .04f, zf - .35f), Vector3.forward, dw, dh - .02f, .3f, 0f, BraxDrzwiLokalu.Drewniane);
-        // napis nad wejściem (litery 3D) i latarnie przy wejściu
-        BraxRegionMeble.Napis(g, "MUZEUM MIASTA BRAXHORN", new Vector3(b.x, y0 + dh + .75f, zf + .06f), Vector3.forward, .42f * k, new Color(.85f, .78f, .6f));
+        BraxDrzwiLokalu.Podwojne(g, "R1_MUZEUM", "MUZEUM MIASTA BRAXHORN", new Vector3(b.x, y0 + .04f, zf + .07f), Vector3.forward, dw, dh - .02f, .3f, 0f, BraxDrzwiLokalu.Drewniane);
+        // PORTAL z kamienia przed licem fasady: pilastry na cokołach z kapitelami, belka (fryz) z literami 3D, gzyms wysunięty;
+        // tył brył na licu fasady pominięty (bez wspólnej płaszczyzny z modelem), spód na chodniku pominięty
         foreach (float sx in new[] { -1f, 1f })
         {
-            var p = new Vector3(b.x + sx * (dw * .5f + .9f), y0, zf + .45f);
-            BraxRegionMeble.Latarnia(g, p);
+            float xa = b.x + sx * (hw + .3f), xb = b.x + sx * (hw + .75f), xc = b.x + sx * (hw + .25f), xd = b.x + sx * (hw + .8f);
+            os.Box(new Vector3(Mathf.Min(xa, xb), y0, zf), new Vector3(Mathf.Max(xa, xb), y0 + dh + .25f, zf + .22f), 16 | 4);      // trzon
+            os.Box(new Vector3(Mathf.Min(xc, xd), y0, zf), new Vector3(Mathf.Max(xc, xd), y0 + .5f, zf + .3f), 16 | 4);             // cokół
+            os.Box(new Vector3(Mathf.Min(xc, xd), y0 + dh + .25f, zf), new Vector3(Mathf.Max(xc, xd), y0 + dh + .45f, zf + .3f), 16); // kapitel
+            BraxRegionMeble.Kolizja(g, "Muzeum kolizja: pilaster portalu", new Vector3((xc + xd) * .5f, y0 + (dh + .45f) * .5f, zf + .15f), new Vector3(.55f, dh + .45f, .3f));
+            // kinkiet na pilastrze (23:09 — zamiast latarni na chodniku)
+            BraxMuzeumKod.Kinkiet(g, "portal muzeum", new Vector3(b.x + sx * (hw + .525f), y0 + 2.45f, zf + .22f), Vector3.forward);
         }
+        os.Box(new Vector3(b.x - hw - .85f, y0 + dh + .45f, zf), new Vector3(b.x + hw + .85f, y0 + dh + 1.2f, zf + .24f), 16);     // fryz
+        os.Poducha(new Vector3(b.x - hw - 1.0f, y0 + dh + 1.2f, zf - .05f), new Vector3(b.x + hw + 1.0f, y0 + dh + 1.42f, zf + .38f), .03f, 0f, 4);   // gzyms
+        // litery 3D na fryzie (grafit — bez złota), wysokość dopasowana do szerokości fryzu
+        float capP = Mathf.Min(.36f, (dw + 1.2f) / BraxLiteryBebas.Szerokosc("MUZEUM MIASTA BRAXHORN", 1f));
+        BraxRegionMeble.Napis(g, "MUZEUM MIASTA BRAXHORN", new Vector3(b.x, y0 + dh + .825f, zf + .24f), Vector3.forward, capP / .72f, new Color(.11f, .11f, .12f));
+        BraxRegion.Warm(g, "Muzeum: światło wejścia", new Vector3(b.x, y0 + 2.9f, zf + 1.3f), .9f, 7f);
         // kolumny: dwa rzędy co ~5 m wzdłuż sali (baza, trzon, kapitel)
         var bl = new[] { new Color32(255, 255, 255, 255) };
         float zk0 = zi0 + (zi1 - zi0) * .3f, zk1 = zi0 + (zi1 - zi0) * .7f;
