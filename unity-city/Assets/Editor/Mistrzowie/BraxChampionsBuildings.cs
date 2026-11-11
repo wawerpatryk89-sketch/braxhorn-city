@@ -119,6 +119,15 @@ public static class BraxChampionsBuildings
             BraxChampionsD2.Generate(Out);
             d2Generated=true;
         });
+        // Owner 11.11 16:33-16:36 (board "G1 GALERIA GŁÓWNA + KINO", "zrób galerię na gotowo ... zadbaj o detale wszystkie",
+        // "kino ... żeby leciały nasze filmy ... recepcja ... wybór repertuarów"): the mall, the cinema, the square, the car
+        // parks, the deliveries.
+        bool g1Generated=false;
+        BraxChampionsFoundation.Optional("G1 galeria główna + kino",()=>
+        {
+            BraxChampionsD2.GenerateG1(Out);
+            g1Generated=true;
+        });
         // 9.11 owner: "Ten basen usuń całkowicie" - P1 removed from the game.
         // 9.11 owner: apartment buildings on the rental plots, one at a time,
         // each finished A-Z inside and out (empty, no furniture).
@@ -130,9 +139,9 @@ public static class BraxChampionsBuildings
                 apartmentBuildings++;
             });
         AssetDatabase.SaveAssets();
-        int generated=d.buildings.Length+(casinoGenerated?1:0)+apartmentBuildings+(e1Generated?1:0)+(d2Generated?1:0);
+        int generated=d.buildings.Length+(casinoGenerated?1:0)+apartmentBuildings+(e1Generated?1:0)+(d2Generated?1:0)+(g1Generated?1:0);
         Debug.Log("CHAMPIONS_BUILDING_GENERATION base="+d.buildings.Length+
-            " T11="+casinoGenerated+" E1="+e1Generated+" D2="+d2Generated+" APARTMENTS="+apartmentBuildings+"/"+BraxChampionsApartments.Ids.Length+" P1=REMOVED_BY_OWNER"+
+            " T11="+casinoGenerated+" E1="+e1Generated+" D2="+d2Generated+" G1="+g1Generated+" APARTMENTS="+apartmentBuildings+"/"+BraxChampionsApartments.Ids.Length+" P1=REMOVED_BY_OWNER"+
             " generated="+generated+" visualAccepted=false");
         return generated;
     }

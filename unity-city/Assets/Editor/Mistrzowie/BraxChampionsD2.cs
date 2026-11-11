@@ -57,7 +57,8 @@ public static partial class BraxChampionsD2
     public const float HillWX=-330f,HillWZ=CentreZ+LineZ,HillRX=250f,HillRZ=400f,HillH=44f,PortalWX=-185f,Formation=RailTop-.6f,CutHalf=6.5f;
     public const float TunnelEndWX=-310f;
 
-    const string Out="Assets/PlayableGenerated/Mistrzowie",Folder=Out+"/Meshes/D2";
+    const string Out="Assets/PlayableGenerated/Mistrzowie";
+    static string Folder=Out+"/Meshes/D2";                                  // G1 (the same builders) switches it to Meshes/G1
     static float K=>BraxClaudeOsiedle.K;
     public static int Doors,Colliders,Signs,Bays,AccessibleBays,Benches,Lamps,Trees,Seats,Sleepers,Piers,Hangers,Lifts,Screens;
 

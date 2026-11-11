@@ -1,0 +1,6 @@
+{
+  "filmy": [
+    { "tytul": "Bezprawie", "plik": "bezprawie.mp4", "url": "", "plakat": "bezprawie_plakat.jpg", "baner": "bezprawie_baner.jpg", "minuty": 15, "wiek": "16+", "opis": "Film AI" },
+    { "tytul": "Bez granic · odc. 1", "plik": "bez_granic_1.mp4", "url": "", "plakat": "bez_granic_1_plakat.jpg", "baner": "bez_granic_1_baner.jpg", "minuty": 27, "wiek": "16+", "opis": "Film AI, odcinek 1" }
+  ]
+}

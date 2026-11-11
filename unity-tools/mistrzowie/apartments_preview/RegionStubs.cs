@@ -17,7 +17,7 @@ public static partial class BraxChampionsFoundation
     public static Material LibraryTravertine(string id, Color tint, float metres) => new Material { name = id + "|Travertine009|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryLeather(string id, Color tint) => new Material { name = id + "|Leather037|0.6", color = tint, textured = true };
     public static Material LibraryMetal(string id, Color tint) => new Material { name = id + "|Metal048A|0.65", color = tint, textured = true };
-    public static void Optional(string what, Action build) { try { build(); } catch (Exception e) { Console.WriteLine("WARN OPTIONAL_FAILED " + what + ": " + e.Message); } }
+    public static void Optional(string what, Action build) { try { build(); } catch (Exception e) { Console.WriteLine("WARN OPTIONAL_FAILED " + what + ": " + e.Message + (Environment.GetEnvironmentVariable("PREVIEW_STACK") == "1" ? "\n" + e.StackTrace : "")); } }
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
 }
 // shared by every preview (apartments, casino, arena, promenade): the leaves keep their hinge transforms

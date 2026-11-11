@@ -187,3 +187,26 @@ D2_RAIL_TOP=6.5
 D2_LINE_Z=186.5
 D2_BRIDGE_X=(49.0,93.0)
 D2_PORTAL_X=-185.0
+
+# Owner 11.11 16:33 (board "G1 GALERIA GŁÓWNA + KINO": 170 x 110 x 24 m, 2 storeys, grid 10 x 10, facade module 5 m,
+# main square >= 8000 m2, 600-800 parking spaces, taxi / drop-off, deliveries at the back / side; 16:33-16:36 "kino ...
+# funkcjonalne, żeby leciały nasze filmy ... recepcja ... wybór repertuaru", "galerię na gotowo ... zadbaj o detale"): the
+# gallery (BraxChampionsG1) builds its whole site in the block X800..X1130 / Z70..Z330 round the register's G1 plot
+# (centre 940,175), leaving the tower plots T14 / T15 / T16 to the foundation. The front (main entrances, the square with
+# the M5 metro entrance and the tram stop TR09) faces north to road Z330; car parks west (with a deck) and south, the
+# delivery yard south-east, the taxi / drop-off lay-by north-west. Street mouths: three across the Z70 north sidewalk
+# (road edge z 80; the west and east car-park drives, the delivery drive), two across the X800 east sidewalk (road edge
+# x 810; the west car park, the drop-off). Must match the C# constants (BraxChampionsG1, test_g1_20261111.py).
+G1_CENTRE=(940.0,175.0)
+G1_SITE_RECTS=[(817.0,87.0,233.0,168.0),(1050.0,87.0,63.0,51.0),(1050.0,212.0,63.0,43.0),(910.0,255.0,105.0,58.0),(817.0,255.0,43.0,58.0)]
+G1_MOUTHS_Z70=[('G1_park_w',862.0,869.0),('G1_park_e',960.0,967.0),('G1_dostawy',1062.0,1070.0)]
+G1_MOUTHS_X800=[('G1_west',175.0,182.0),('G1_taxi',270.0,277.0)]
+G1_DRIVE_STRIPS=[(_x0,80.0,_x1-_x0,7.0) for _,_x0,_x1 in G1_MOUTHS_Z70]+[(810.0,_z0,7.0,_z1-_z0) for _,_z0,_z1 in G1_MOUTHS_X800]
+G1_DRIVE_MOUTHS=[];G1_MOUTH_CORNERS=[]
+for _id,_x0,_x1 in G1_MOUTHS_Z70:
+ _m,_c=_mouth(_id,_x0,_x1,80.0,1);G1_DRIVE_MOUTHS.append(_m);G1_MOUTH_CORNERS+=_c
+for _id,_z0,_z1 in G1_MOUTHS_X800:
+ G1_DRIVE_MOUTHS.append((_id,810.0,_z0-DRIVE_MOUTH_R,810.0,_z1+DRIVE_MOUTH_R))
+ G1_MOUTH_CORNERS+=[(810.0,_z0-DRIVE_MOUTH_R,DRIVE_MOUTH_R,DRIVE_MOUTH_R),(810.0,_z1,DRIVE_MOUTH_R,DRIVE_MOUTH_R)]
+DRIVE_MOUTHS=DRIVE_MOUTHS+G1_DRIVE_MOUTHS
+MOUTH_CUTS=MOUTH_CUTS+G1_SITE_RECTS+G1_DRIVE_STRIPS+G1_MOUTH_CORNERS

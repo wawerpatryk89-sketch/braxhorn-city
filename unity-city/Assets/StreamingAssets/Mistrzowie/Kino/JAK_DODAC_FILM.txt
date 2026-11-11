@@ -1,0 +1,19 @@
+BRAXHORN KINO (G1 GALERIA GŁÓWNA) - jak dodać film
+
+1. Plik MP4 (H.264 + AAC, 1280x720), plakat pionowy (JPG/PNG 2:3, do gablot) i baner poziomy (16:9, ekrany nad kasami)
+   kładziemy w tym folderze. Filmy powyżej 100 MB nie wchodzą do repozytorium: idą do wydania mistrzowie-kino-filmy,
+   a CI kładzie je tu przed buildem (unity-tools/mistrzowie/install_kino_films.py, nazwa i SHA-256 przypięte).
+2. W repertuar.json dopisujemy wpis do listy "filmy", np.:
+
+{
+  "filmy": [
+    { "tytul": "Tytuł filmu", "plik": "film1.mp4", "url": "", "plakat": "film1_plakat.jpg", "baner": "film1_baner.jpg", "minuty": 30, "wiek": "12+", "opis": "Jedno zdanie" },
+    { "tytul": "Drugi film", "plik": "", "url": "https://adres/film2.mp4", "plakat": "film2_plakat.jpg", "baner": "", "minuty": 15, "wiek": "", "opis": "" }
+  ]
+}
+
+- "plik" = MP4 z tego folderu (wchodzi do APK); "url" = film z serwera (bez powiększania APK). Wystarczy jedno z nich.
+- Sala n gra film n mod liczba filmów (8 sal); kolejność w liście = sale 1, 2, ... Seanse liczą się same z zegara telefonu.
+- Na razie seanse są GRATIS (właściciel 11.11 19:09): wejście do sali albo AKCJA w sali odpala jej film; w kasie AKCJA
+  daje bilet na wybrany film, kolejna AKCJA = drugi film.
+- Bez filmów ekrany, tablice i plakaty pokazują WKRÓTCE; brak pliku = BRAK PLIKU FILMU. Kina się nie przebudowuje.

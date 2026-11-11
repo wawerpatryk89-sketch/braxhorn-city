@@ -1,0 +1,4 @@
+# the owner's films are ~200-370 MB each (GitHub keeps files <= 100 MB): CI stages them from the release
+# mistrzowie-kino-filmy (unity-tools/mistrzowie/install_kino_films.py, SHA-256 pinned)
+*.mp4
+*.mp4.meta

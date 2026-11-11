@@ -31,9 +31,23 @@ KIOSK_MODELS=['kebab','szawarma','pizza','hamburger','frytki','kurczak','losos',
               'menu_2','menu_3','menu_4']+['but_%02d'%i for i in range(1,19)]
 
 
+# G1 GALERIA GŁÓWNA (owner 11.11 17:32: "musi być uzupełniony każdy sklep, jak jest możliwość, z naszej biblioteki ... mięso
+# ... w lodówkach"): BRAXHORN MARKET (island shelving, fridges, checkouts, trolleys, the goods of the nine aisles, meat,
+# cold cuts, cheese, salmon, fruit crates), the pharmacy (BRAXHORN PHARMA lek_01..24), the bookshop (ksiazki, okladka),
+# BRAXHORN NUTRITION in SPORT ARENA (odz_*) - the same models as the city's SUPERMARKET BRAXHORN (BraxSklepyTowar lists).
+G1_MODELS=(['regal_sklep','lodowka','kasa','wozek','owoce_skrzynka','mleko','mieso','stek','kurczak_surowy','kielbaski_paczka',
+            'parowki','ser_klin','ser_dojrzewajacy','losos']
+           +['lek_%02d'%i for i in range(1,25)]+['ksiazki_%02d'%i for i in range(1,9)]+['okladka_%d'%i for i in range(1,9)]
+           +['pud_%s%02d'%(r,i) for r in 'abcd' for i in range(1,25)]+['pus_%s%02d'%(r,i) for r in 'ab' for i in range(1,19)]
+           +['kar_%02d'%i for i in range(1,17)]+['tor_%02d'%i for i in range(1,17)]
+           +['odz_gainer_a1','odz_gainer_a2','odz_gainer_b1','odz_gainer_b2']+['odz_kg_%d'%i for i in range(1,9)]
+           +['odz_whey_%d'%i for i in range(1,5)]+['odz_mala_%d'%i for i in range(1,7)]+['odz_dod_%d'%i for i in range(1,7)])
+SKLEPY_MODELS=KIOSK_MODELS+[n for n in G1_MODELS if n not in KIOSK_MODELS]
+
+
 def wanted(name):
  n=name[2:] if name.startswith('./') else name
- return any(n==m+'.glb' or n.startswith('_tekstury/'+m+'/') for m in KIOSK_MODELS)
+ return any(n==m+'.glb' or n.startswith('_tekstury/'+m+'/') for m in SKLEPY_MODELS)
 
 
 tar=p.odszyfruj('miasto_sklepy')
@@ -54,6 +68,9 @@ else:
   got=sorted(n for n in KIOSK_MODELS if (cel/(n+'.glb')).exists())
   print('BRAX_MISTRZOWIE_PRIVATE_OK package=miasto_sklepy files='+str(count)+' models='+','.join(got)
         +' missing='+','.join(n for n in KIOSK_MODELS if n not in got))
+  g1=[n for n in G1_MODELS if (cel/(n+'.glb')).exists()]
+  print('BRAX_MISTRZOWIE_PRIVATE_G1 miasto_sklepy models='+str(len(g1))+'/'+str(len(G1_MODELS))
+        +' missing='+','.join(n for n in G1_MODELS if n not in g1))
 
 
 # E1 bar (BraxChampionsE1Premium): the owner's own models from the estate disco pack, CC BY (Assets/Source/Mistrzowie/E1/CREDITS.md)

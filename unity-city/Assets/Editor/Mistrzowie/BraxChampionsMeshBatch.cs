@@ -46,6 +46,17 @@ public sealed class BraxChampionsMeshBatch
         p.t.Add(i); p.t.Add(i + 1); p.t.Add(i + 2); p.t.Add(i); p.t.Add(i + 2); p.t.Add(i + 3);
     }
 
+    /// <summary>Quad with its own UVs (a picture on a screen: 0..1 or an atlas tile), same winding as Quad.</summary>
+    public void QuadUV(Material m, Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector2 ua, Vector2 ub, Vector2 uc, Vector2 ud)
+    {
+        var p = Of(m); int i = p.v.Count;
+        var n = Vector3.Cross(b - a, c - a); if (n.sqrMagnitude < 1e-12f) n = Vector3.Cross(c - a, d - a);
+        n.Normalize();
+        p.v.Add(a); p.v.Add(b); p.v.Add(c); p.v.Add(d); p.n.Add(n); p.n.Add(n); p.n.Add(n); p.n.Add(n);
+        p.uv.Add(ua); p.uv.Add(ub); p.uv.Add(uc); p.uv.Add(ud);
+        p.t.Add(i); p.t.Add(i + 1); p.t.Add(i + 2); p.t.Add(i); p.t.Add(i + 2); p.t.Add(i + 3);
+    }
+
     public void Triangle(Material m, Vector3 a, Vector3 b, Vector3 c)
     {
         var p = Of(m); int i = p.v.Count;

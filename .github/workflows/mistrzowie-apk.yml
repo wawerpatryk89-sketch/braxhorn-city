@@ -298,6 +298,12 @@ jobs:
         run: |
           python3 unity-tools/mistrzowie/prepare_promenade_atlas.py
 
+      - name: G1 KINO — stage the owner's two films (release mistrzowie-kino-filmy, SHA-256 pinned; missing = BRAK PLIKU)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 unity-tools/mistrzowie/install_kino_films.py
+
       - name: Verify key and sign a real tiny APK before the expensive Unity build
         if: inputs.etap != 'sceny'
         env:
