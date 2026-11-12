@@ -20,10 +20,13 @@ ROOT = Path(__file__).resolve().parents[2]
 DEST = ROOT / "unity-city/Assets/StreamingAssets/Mistrzowie/Kino"
 RELEASE = "mistrzowie-kino-filmy"
 FILMS = {
-    # bezprawie.mp4: the owner's "BEZ PRAWIE FILM AI.mp4" (1278x720) scaled to 1280x720 H.264 High + AAC, faststart
-    "bezprawie.mp4": "5952685b1193f1b3f9f29b319a055e767d45a336fc41766a1db527a99a0656b1",
-    # bez_granic_1.mp4: the owner's "BEZ GRANIC epizod 1 (film AI).mp4" unchanged (1280x720 H.264 High + AAC)
-    "bez_granic_1.mp4": "3c879a1428b12e0e6cbf68ae95b4c4a5b0caf5295c3e8cde0db30bccdea56742",
+    # 12.11 (owner 01:03 "więcej w tej samej wadze"): both re-encoded 1280x720 H.264 High ~1 Mb/s + AAC 96k, faststart
+    # (210 + 372 MB -> 120 + 213 MB). The encrypted pack unity-city/Prywatne/mistrzowie-kino-filmy-20261111 carries them
+    # (install_owner_media.py); the old release files no longer match and are rejected here.
+    # bezprawie.mp4: the owner's "BEZ PRAWIE FILM AI.mp4"
+    "bezprawie.mp4": "3776901578c7599ee00240a51714d2983a6e7ba7347daafe15046e0e3adb8925",
+    # bez_granic_1.mp4: the owner's "BEZ GRANIC epizod 1 (film AI).mp4"
+    "bez_granic_1.mp4": "98f207add8ea2d77d6b5f8bbfb21bd4ed46310f5b2f89b81cd167ec6990228ac",
 }
 
 

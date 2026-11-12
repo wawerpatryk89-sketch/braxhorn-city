@@ -236,7 +236,7 @@ class G1OwnerMediaTests(unittest.TestCase):
                 self.assertLess(part['bytes'], 100 * 1024 * 1024)
                 self.assertEqual(hashlib.sha256((d / part['name']).read_bytes()).hexdigest(), part['sha256'])
         films = json.loads((ROOT / 'unity-city/Prywatne/mistrzowie-kino-filmy-20261111/manifest.json').read_text())['files']
-        self.assertEqual(films['bezprawie.mp4'], '5952685b1193f1b3f9f29b319a055e767d45a336fc41766a1db527a99a0656b1')
+        self.assertEqual(films['bezprawie.mp4'], '3776901578c7599ee00240a51714d2983a6e7ba7347daafe15046e0e3adb8925')
 
     def test_no_raw_video_in_git(self):
         import subprocess

@@ -38,8 +38,8 @@ OPENSSL_VARIANTS = [
     ["openssl", "enc", "-d", "-aes-256-cbc", "-md", "sha256"],
 ]
 FILMS = {
-    "bezprawie.mp4": "5952685b1193f1b3f9f29b319a055e767d45a336fc41766a1db527a99a0656b1",
-    "bez_granic_1.mp4": "3c879a1428b12e0e6cbf68ae95b4c4a5b0caf5295c3e8cde0db30bccdea56742",
+    "bezprawie.mp4": "3776901578c7599ee00240a51714d2983a6e7ba7347daafe15046e0e3adb8925",
+    "bez_granic_1.mp4": "98f207add8ea2d77d6b5f8bbfb21bd4ed46310f5b2f89b81cd167ec6990228ac",
 }
 
 
