@@ -136,6 +136,8 @@ jobs:
         name: unity6-original-imports-${{ github.sha }}
         path: unity-city/Assets/Source/
     - name: Restore authored facades and PBR materials (audited source archive)
+      id: zrodla_fasad
+      continue-on-error: true
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
         repository: wawerpatryk89-sketch/braxhorn-city
@@ -143,7 +145,14 @@ jobs:
         github-token: ${{ github.token }}
         name: city-rebuild-curated-extended-3c98ccd919409da59d8145c0171b0776bc65b93d
         path: unity-city/Assets/
+    - name: Trwala kopia zrodel gdy artefakt wygasl (curated-extended.zip z wydania claude-base-backup-20261030, SHA-256 sprawdzane)
+      if: steps.zrodla_fasad.outcome != 'success'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 unity-tools/updates/kopia_bazy.py curated-extended.zip unity-city/Assets
     - name: Recover exact reviewed packed bag derivative instead of changed vendor response
+      id: zrodla_workow
+      continue-on-error: true
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
         repository: wawerpatryk89-sketch/braxhorn-city
@@ -151,6 +160,11 @@ jobs:
         github-token: ${{ github.token }}
         name: unity-kickboxing-review-b2279bd24f7ce1660160c6fc3af119e9820a32f9
         path: reviewed-gym-source/
+    - name: Trwala kopia zrodel gdy artefakt wygasl (kickboxing-review.zip z wydania claude-base-backup-20261030, SHA-256 sprawdzane)
+      if: steps.zrodla_workow.outcome != 'success'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 unity-tools/updates/kopia_bazy.py kickboxing-review.zip reviewed-gym-source
     - name: Prepare unchanged player and current source assets
       run: 'mkdir -p kickboxing-review
 
@@ -491,6 +505,8 @@ jobs:
         name: unity6-original-imports-${{ github.sha }}
         path: unity-city/Assets/Source/
     - name: Restore authored facades and PBR materials (audited source archive)
+      id: zrodla_fasad
+      continue-on-error: true
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
         repository: wawerpatryk89-sketch/braxhorn-city
@@ -498,7 +514,14 @@ jobs:
         github-token: ${{ github.token }}
         name: city-rebuild-curated-extended-3c98ccd919409da59d8145c0171b0776bc65b93d
         path: unity-city/Assets/
+    - name: Trwala kopia zrodel gdy artefakt wygasl (curated-extended.zip z wydania claude-base-backup-20261030, SHA-256 sprawdzane)
+      if: steps.zrodla_fasad.outcome != 'success'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 unity-tools/updates/kopia_bazy.py curated-extended.zip unity-city/Assets
     - name: Recover exact reviewed packed bag derivative instead of changed vendor response
+      id: zrodla_workow
+      continue-on-error: true
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
         repository: wawerpatryk89-sketch/braxhorn-city
@@ -506,6 +529,11 @@ jobs:
         github-token: ${{ github.token }}
         name: unity-kickboxing-review-b2279bd24f7ce1660160c6fc3af119e9820a32f9
         path: reviewed-gym-source/
+    - name: Trwala kopia zrodel gdy artefakt wygasl (kickboxing-review.zip z wydania claude-base-backup-20261030, SHA-256 sprawdzane)
+      if: steps.zrodla_workow.outcome != 'success'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 unity-tools/updates/kopia_bazy.py kickboxing-review.zip reviewed-gym-source
     - name: Prepare unchanged player and current source assets
       run: 'mkdir -p kickboxing-review
 
@@ -1084,6 +1112,8 @@ jobs:
         name: unity6-original-imports-${{ github.sha }}
         path: unity-city/Assets/Source/
     - name: Restore authored facades and PBR materials (audited source archive)
+      id: zrodla_fasad
+      continue-on-error: true
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
         repository: wawerpatryk89-sketch/braxhorn-city
@@ -1091,7 +1121,14 @@ jobs:
         github-token: ${{ github.token }}
         name: city-rebuild-curated-extended-3c98ccd919409da59d8145c0171b0776bc65b93d
         path: unity-city/Assets/
+    - name: Trwala kopia zrodel gdy artefakt wygasl (curated-extended.zip z wydania claude-base-backup-20261030, SHA-256 sprawdzane)
+      if: steps.zrodla_fasad.outcome != 'success'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 unity-tools/updates/kopia_bazy.py curated-extended.zip unity-city/Assets
     - name: Recover exact reviewed packed bag derivative instead of changed vendor response
+      id: zrodla_workow
+      continue-on-error: true
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
         repository: wawerpatryk89-sketch/braxhorn-city
@@ -1099,6 +1136,11 @@ jobs:
         github-token: ${{ github.token }}
         name: unity-kickboxing-review-b2279bd24f7ce1660160c6fc3af119e9820a32f9
         path: reviewed-gym-source/
+    - name: Trwala kopia zrodel gdy artefakt wygasl (kickboxing-review.zip z wydania claude-base-backup-20261030, SHA-256 sprawdzane)
+      if: steps.zrodla_workow.outcome != 'success'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 unity-tools/updates/kopia_bazy.py kickboxing-review.zip reviewed-gym-source
     - name: Prepare unchanged player and current source assets
       run: 'mkdir -p kickboxing-review
 
