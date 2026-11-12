@@ -229,6 +229,21 @@ public static partial class BraxChampionsAquapark
         m.Cylinder(steel, b + Vector3.up * 2.28f + Vector3.forward * .45f, .14f, .03f, 16);
         m.Box(steel, b + Vector3.up * 1.1f + Vector3.back * .05f, new Vector3(.08f, .08f, .04f));
         Col(b.x - .06f, b.x + .06f, b.y, b.y + 2.3f, b.z - .06f, b.z + .06f, "prysznic");
+        ShowerWater(b + Vector3.up * 2.26f + Vector3.forward * .45f, b.y, "prysznic basenowy");
+    }
+
+    // the shower runs (the region's fountain water in its sensor mode: only while you stand under / next to it - the rule
+    // "wchodzę pod prysznic i ma lecieć woda"): a rain of streaks from the head onto the floor, splashing
+    public static void ShowerWater(Vector3 head, float floorY, string name)
+    {
+        const int k = 10; var a = new Vector3[k]; var b = new Vector3[k];
+        for (int i = 0; i < k; i++)
+        {
+            float ang = i * 2f * Mathf.PI / k; var d = new Vector3(Mathf.Cos(ang), 0, Mathf.Sin(ang));
+            a[i] = head + d * .06f - Vector3.up * .03f; b[i] = new Vector3(head.x, floorY + .01f, head.z) + d * .24f;
+        }
+        BraxChampionsMeshBatch.FountainWater(root, name + " (woda, czujnik)", Vector3.zero, K, a, b, Enumerable.Repeat(.01f, k).ToArray(),
+            Enumerable.Repeat(.016f, k).ToArray(), Enumerable.Repeat(3, k).ToArray(), Enumerable.Repeat(true, k).ToArray(), new Vector3[0], new float[0], fountainWater, 5.5f);
     }
 
     // the strolling routes: the lagoon's outline 3.2 m / 5.0 m out from the coping, its south half from the west shore round to

@@ -270,7 +270,13 @@ public static partial class BraxChampionsAquapark
             Owner("lawka_szatnia", V(mx + dx, FFL, z), 0f, true);
         // showers: four owner cabins on the north wall (two each side of the door to the deck)
         float door = mx;
-        foreach (float dx in new[] { -6.2f, -4.6f, 4.6f, 6.2f }) Owner("prysznic_kabina", V(door + dx, FFL, BZ1 - .75f), 180f, true);
+        foreach (float dx in new[] { -6.2f, -4.6f, 4.6f, 6.2f })
+        {
+            Owner("prysznic_kabina", V(door + dx, FFL, BZ1 - .75f), 180f, false);
+            ShowerWater(V(door + dx, FFL + 2.02f, BZ1 - .75f), FFL, "kabina " + name);
+            // the cabin's two side walls and back are solid, its front is the door you walk in through
+            foreach (float sx in new[] { -.64f, .64f }) Col(CX + door + dx + sx - .03f, CX + door + dx + sx + .03f, FFL, FFL + 2.2f, CZ + BZ1 - 1.27f, CZ + BZ1 - .2f, "kabina prysznic");
+        }
         // vanities and the mirror on the south wall, east of the corridor door
         foreach (float dx in new[] { 3.4f, 5.4f }) Owner("umywalka_podwojna", V(door + dx, FFL, zc0 + .45f), 0f, true);
         BL(mirror, door + 2.5f, door + 6.3f, FFL + 1.25f, FFL + 2.25f, zc0 + .08f, zc0 + .1f);
@@ -315,7 +321,9 @@ public static partial class BraxChampionsAquapark
         // SAUNA room: the owner's two cabins, a bench, the cold shower
         Owner("sauna_kabina", V(43.5f, FFL, -88.6f), 0f, true);
         Owner("sauna_kabina", V(46.4f, FFL, -88.6f), 0f, true);
-        Owner("prysznic_kabina", V(56.6f, FFL, -88.8f), 0f, true);
+        Owner("prysznic_kabina", V(56.6f, FFL, -88.8f), 0f, false);
+        ShowerWater(V(56.6f, FFL + 2.02f, -88.8f), FFL, "zimny prysznic SPA");
+        foreach (float sx in new[] { -.64f, .64f }) Col(CX + 56.6f + sx - .03f, CX + 56.6f + sx + .03f, FFL, FFL + 2.2f, CZ - 89.3f, CZ - 88.2f, "kabina prysznic");
         Owner("lawka_szatnia", V(50f, FFL, -82.8f), 90f, true);
         // MASSAGE A / B: the owner's tables (you lie on them), a cabinet, warm light
         Massage("stol_masaz_drewno", V(44.5f, FFL, -76f), 0f, .74f);
