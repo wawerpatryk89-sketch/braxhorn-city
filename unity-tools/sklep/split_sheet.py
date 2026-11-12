@@ -127,6 +127,10 @@ def main(sheet, out_dir, spec_path):
     # the pieces: connected components, each assigned to the grid cell of its centre (rows top to bottom, columns left to right)
     comp = components(I, len(P))
     tri_comp = comp[I[:, 0]]
+    if spec.get("per_triangle"):
+        # figures that touch (owner's five club girls 12.11: two hold hands): every triangle is its own piece, cut by
+        # the rectangles at the touching point
+        tri_comp = np.arange(len(I))
     lo, hi = P.min(0), P.max(0); rows, cols = spec["rows"], spec["cols"]
     # the products stand apart on the sheet: the front view (x, y) rasterised at 2 mm, the separate silhouettes labelled;
     # the silhouettes sorted into rows (top to bottom) and columns (left to right); a component (a sleeve, a collar, a
@@ -173,8 +177,9 @@ def main(sheet, out_dir, spec_path):
         # [x0, x1, r0, r1] rectangle per item in fractions of the sheet - x across, r = rows (front view: height from the
         # top; top view: depth from the back); every component goes to the rectangle its centre falls in
         top_ = spec.get("view", "front") == "top"; cell_of_comp = {}
+        cents = P[I].mean(1) if spec.get("per_triangle") else None
         for cid in np.unique(tri_comp):
-            c = P[np.unique(I[tri_comp == cid].reshape(-1))].mean(0)
+            c = cents[cid] if cents is not None else P[np.unique(I[tri_comp == cid].reshape(-1))].mean(0)
             xf = (c[0] - lo[0]) / (hi[0] - lo[0])
             rf = (c[2] - lo[2]) / (hi[2] - lo[2]) if top_ else (hi[1] - c[1]) / (hi[1] - lo[1])
             cell_of_comp[cid] = next((k for k, (x0, x1, r0, r1) in enumerate(spec["rects"]) if x0 <= xf < x1 and r0 <= rf < r1), -1)

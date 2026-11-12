@@ -128,6 +128,11 @@ public static class BraxChampionsBuildings
             BraxChampionsD2.GenerateG1(Out);
             g1Generated=true;
         });
+        // Owner 12.11 01:59-02:33: the girls at the doors of E1 and the casino, the walkers on the promenade (after E1/T11:
+        // they stand on their real forecourts)
+        BraxChampionsFoundation.Optional("postacie: pod klubami i na promenadzie",()=>BraxChampionsPostacie.Generate());
+        // Owner 12.11 02:25-02:37: BRAXHORN NUTRITION posters with his two friends - G1 SPORT ARENA, promenade, E1
+        BraxChampionsFoundation.Optional("plakaty BRAXHORN NUTRITION",()=>BraxChampionsPlakaty.Generate());
         // 9.11 owner: "Ten basen usuń całkowicie" - P1 removed from the game.
         // 9.11 owner: apartment buildings on the rental plots, one at a time,
         // each finished A-Z inside and out (empty, no furniture).

@@ -1,0 +1,37 @@
+{
+ "source": "Owner Tripo characters 12.11 02:18-02:33: five club girls (one rig, cut by unity-tools/sklep/split_sheet.py per_triangle) + four rigged walkers animated by unity-tools/sklep/postac_animacja.py",
+ "target": "postacie_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/postacie_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "7ba31d76a1d59e178086c5cae0905e375bd294db5d1404f34dce5f7f506c1296",
+ "cmsSha256": "c5bc176bbf08048eeaa2c09afa69a37067c61ff782d6771831b97bc5a8c3928b",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 52993073,
+   "sha256": "c5bc176bbf08048eeaa2c09afa69a37067c61ff782d6771831b97bc5a8c3928b"
+  }
+ ],
+ "files": {
+  "oryginal/orig.tar": "1b6dccbb44b348217f396c9807dd0ca78aebe7aadbcb829a07e7e883a62e2403",
+  "oryginal/spec.json": "4d3d04fd43d40d47df59a7f2f6eb56f320c42d0c1d76641f25852a99367b958a",
+  "postacie_01/_tekstury/postacie_01_kolor.jpg": "e07e8e73ec72bd7973b06fac0e5e5cd2a3ab2266f54a9404a628f71c8f7be242",
+  "postacie_01/_tekstury/postacie_01_mr.png": "37c4f173ab830aea4d35f19ddc1d62960ef75319e8c0e5c23d3b2815a061c605",
+  "postacie_01/_tekstury/postacie_01_normal.png": "1b5572876eb22f9f63aa4a812ed40960fe968fced4fcd7fabff902136b5b0234",
+  "postacie_01/chodzi_biale_bikini.glb": "a34e17c7c24b2d9c488311acf83133751d4f9ee8c1a2d172a0cf0efcdcde7865",
+  "postacie_01/chodzi_biale_bikini.json": "a0af98f2dfc11d8095faaed8ba9e349dd5c7b8d63529b5c80fb11391ad92d0b8",
+  "postacie_01/chodzi_czarne_bikini.glb": "1d3ae6fec1a1de24cb1de8a65f8b2ef810e8a14915463a9526f529bee78711f6",
+  "postacie_01/chodzi_czarne_bikini.json": "352a3ebc6b30cad99071b25ca447d1e57c0728239a2da1a2ded4517a849934ae",
+  "postacie_01/chodzi_czerwona_bluzka.glb": "b19c2a7636875e5bc5a5a4231bfa849c6ac77a1922ecbd676571770daaf93c86",
+  "postacie_01/chodzi_czerwona_bluzka.json": "667a724b243d9fbdbbf781e8db6e5afcd9c8d6b718f4403e1669247d0822a9a2",
+  "postacie_01/chodzi_niebieska_bluzka.glb": "599a58b816b7905e35e0c12611cf483340a586375ddb472d19dbd14d852d8a95",
+  "postacie_01/chodzi_niebieska_bluzka.json": "772fdc08670e43b07d1721e0d09420cba4df34f7b4f7de79fca07dd369bc92db",
+  "postacie_01/katalog.json": "5d673df2d4a686f3bb5e0428025ce9c08d8482e5d7a8e56f89e72163f12a3024",
+  "postacie_01/klub_biala_sukienka.glb": "cc13bd94be29a7ee208fccbf2d80e543f76d53ddf64a286a602aeb7f94462f24",
+  "postacie_01/klub_czarna_sukienka.glb": "95ceecddb9ac693d3271b724bcb0f9646a383b74c061983f53c42b7bd1c3c416",
+  "postacie_01/klub_czerwona_sukienka.glb": "73ec57e80f81a3b7ae9a17f44119a3d4893e1c6e335188d2e4193dbbfeb2d6d5",
+  "postacie_01/klub_panterka.glb": "38e5f5cb9157001eb99db8dcefd8671f2becc85aa8f1cf941af2185aed4d43af",
+  "postacie_01/klub_rozowa_sukienka.glb": "325570ad1eded7b014341d50bf385a4cebf2e5bf0e192e2a83bcc751f681f5f9"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

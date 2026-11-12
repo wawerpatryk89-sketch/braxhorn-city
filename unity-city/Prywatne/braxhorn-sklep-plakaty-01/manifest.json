@@ -1,0 +1,23 @@
+{
+ "source": "Owner posters 12.11 02:25 BRAXHORN NUTRITION (his two friends)",
+ "target": "plakaty_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/plakaty_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "4b5400b42e43f4385d6ee36fe2146b480a43137fa0b6b1ddfcf47b2b0877d889",
+ "cmsSha256": "65a974d29e880f87e8f20f692796bf631d429894bd645e594341e63bee865a7f",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 6335073,
+   "sha256": "65a974d29e880f87e8f20f692796bf631d429894bd645e594341e63bee865a7f"
+  }
+ ],
+ "files": {
+  "oryginal/orig.tar": "7746488e71382f61826e41505650bb95356a5e1b8c5a7e53256bdfd561117d10",
+  "oryginal/spec.json": "00752f48ee497a04d7e8fe54d61acb39f4c0be311cd0be0ce2de2b9a0003cc60",
+  "plakaty_01/katalog.json": "c264fa3ef08f6aeffdfc1922ae1c4dba8919df39bdedb9bd46f602a90413d5e5",
+  "plakaty_01/plakat_braxhorn_nutrition_kreatyna.jpg": "535623a2f9a6b649250d565ca880551fde0e80c7ad8715f8f5778380aee13f2c",
+  "plakaty_01/plakat_braxhorn_nutrition_whey.jpg": "45a1029d98959ab2a6d2997c9593fb1add5de2b6ecfc6f171cd7fd41cd5c76e1"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
