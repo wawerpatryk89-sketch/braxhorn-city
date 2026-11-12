@@ -64,5 +64,25 @@ class PaczkiGlobalne(unittest.TestCase):
             self.assertNotIn(auto, head)
 
 
+class SilowniaIArena(unittest.TestCase):
+    # 12.11 01:17–01:48: „zrobisz tak samo siłownię porządną u nas. I worki tak samo. Wszystko”, „tak samo masz wyposażyć szatnie
+    # w arenie… worki do treningu, gruszki”, „jeżeli coś… jest lepsze od tego, co mamy, zastępuj”
+    def test_gym_uses_owner_gear_with_code_fallback(self):
+        g = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxRegionGym.cs").read_text()
+        for n in ['"gruszka_refleks_na_stojaku"', '"worek_stojacy_czarno_zloty"', '"stojak_hantli_3_poziomy"', '"lawka_plaska"', '"lawka_regulowana"',
+                  '"lawka_olimpijska_ze_stojakiem"', '"maszyna_prostowanie_nog"', '"modlitewnik"', '"lawka_do_prostownikow"', '"suwnica_hack"']:
+            self.assertIn(n, g)
+        self.assertIn("if (!tripo1 && Miejsce(2.6f, .8f, 1.0f", g)          # stojak hantli z kodu tylko bez paczki
+        self.assertIn("if (!tripo1 && Miejsce(1.3f, .5f, .6f", g)           # ławka płaska z kodu tylko bez paczki
+
+    def test_arena_locker_rooms_warmup(self):
+        a = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxMiastoWyspaArena.cs").read_text()
+        self.assertIn("ApRozgrzewka(brax, sg, x0 + t, x1, cz, F, h);", a)
+        for n in ['"worek_wiszacy_czarno_zloty"', '"gruszka_refleks_na_stojaku"', '"gruszka_podwojnie_zaczepiona"', '"kask_bokserski_czerwony"',
+                  '"kask_bokserski_niebieski"', '"ochraniacz_tulowia_czerwony"', '"tarcza_thai_"']:
+            self.assertIn(n, a)
+        self.assertIn("Vector3.Min(a, b), Vector3.Max(a, b)", a)             # szatnia gości (oś z odwrócona) bez odwróconych brył
+
+
 if __name__ == "__main__":
     unittest.main()

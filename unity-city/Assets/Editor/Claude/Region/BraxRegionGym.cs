@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+// 12.11: sprzęt właściciela z Tripo (paczki globalne silownia_sprzet_01/02, silownia_boks_01/02) zamiast brył z kodu.
 // BRAXHORN CITY — siłownia (wizytówka): strefa judo z czerwonym tatami (Poly Haven tatami_mat),
 // zegar ścienny, gaśnica, kosz, roślina przy wyjściu. Stawiane tylko w wolnym miejscu hali
 // (kolizje sprawdzane po odbudowie sali i sprzętu), ring, worki i maty treningowe bez zmian.
@@ -60,6 +61,11 @@ public static class BraxRegionGym
             float need = wantReflex ? 1.6f : 1.4f;
             if (!BraxRegion.Free(new Vector3(sp.x, h.point.y + 1.3f, sp.z), new Vector3(need, 2.4f, need))) continue;
             var c = new Vector3(sp.x, h.point.y, sp.z);
+            // 12.11 (właściciel 01:47–01:48: „zrobisz siłownię porządną… i worki… zastępuj”): sprzęt właściciela z Tripo —
+            // gruszka refleksowa na stojaku (silownia_boks_02) i worek stojący czarno-złoty (silownia_boks_01) zamiast brył z kodu
+            var tripo = wantReflex ? BraxMiastoAssety.Model("silownia_boks_02", "gruszka_refleks_na_stojaku") : BraxMiastoAssety.Model("silownia_boks_01", "worek_stojacy_czarno_zloty");
+            if (tripo && BraxRegion.Put(root, tripo, wantReflex ? "Siłownia: gruszka refleksowa na stojaku (Tripo właściciela)" : "Siłownia: worek stojący czarno-złoty (Tripo właściciela)", c, sp.x * 37f % 360f, 1f, true))
+            { if (wantReflex) reflex++; else speed++; placed++; Physics.SyncTransforms(); continue; }
             if (wantReflex)
             {
                 // podstawa (dysk), słup chrom, sprężyna, gruszka skórzana (elipsoida z dwóch kul)
@@ -86,7 +92,7 @@ public static class BraxRegionGym
             }
             placed++;
         }
-        rep.notes.Add("gruszki premium: reflex " + reflex + ", speed bag " + speed);
+        rep.notes.Add("gruszki premium: reflex " + reflex + ", speed bag / worek stojący " + speed + (BraxMiastoAssety.Jest("silownia_boks_02") ? " (Tripo właściciela)" : " (z kodu — brak paczki)"));
     }
     static void Cyl(Transform root, string name, Vector3 center, float radius, float height, Material m)
     {
@@ -258,9 +264,10 @@ public static class BraxRegionGym
             return false;
         }
         void Kolizja(string n, Bounds b) { var g = new GameObject(n); g.transform.SetParent(root, false); g.transform.position = b.center; g.AddComponent<BoxCollider>().size = b.size; Physics.SyncTransforms(); }
-        void Model(string plik, string nazwa, float sx, float sz, float h)
+        void Model(string plik, string nazwa, float sx, float sz, float h) => ModelZ("miasto_silownia_metro", plik, nazwa, sx, sz, h);
+        void ModelZ(string paczka, string plik, string nazwa, float sx, float sz, float h)
         {
-            var m = BraxMiastoAssety.Jest("miasto_silownia_metro") ? BraxMiastoAssety.Model("miasto_silownia_metro", plik) : null;
+            var m = BraxMiastoAssety.Jest(paczka) ? BraxMiastoAssety.Model(paczka, plik) : null;
             if (!m) { opis.Add(nazwa + ": brak paczki"); return; }
             if (!Miejsce(sx, sz, h, out var c, out float yaw)) { opis.Add(nazwa + ": brak miejsca"); return; }
             var o = BraxMiastoAssety.Postaw(root, m, "Siłownia Braxa: " + nazwa + " (model)", c, yaw);
@@ -282,8 +289,27 @@ public static class BraxRegionGym
         Model("silownia_bieznia", "bieżnia 1", 1.1f, 2.7f, 1.8f);
         Model("silownia_bieznia", "bieżnia 2", 1.1f, 2.7f, 1.8f);
         Model("silownia_lawka", "ławka skośna", 1.7f, .8f, 1.3f);
-        // stojak hantli z 10 parami (z kodu)
-        if (Miejsce(2.6f, .8f, 1.0f, out var hc, out float hy))
+        // 12.11 — sprzęt właściciela z Tripo (zasada globalna 01:02: „ten sprzęt na wszystkie siłownie”; 01:47–01:48 „zastępuj”):
+        // ławki, stojak z hantlami, ławka olimpijska ze stojakiem, prostowanie nóg, modlitewnik, ławka rzymska, suwnica.
+        // Wymiary rzeczywiste × K (z zapasem); gdy paczki są, stojak hantli i ławka płaska z kodu nie powstają.
+        bool tripo1 = BraxMiastoAssety.Jest("silownia_sprzet_01"), tripo2 = BraxMiastoAssety.Jest("silownia_sprzet_02");
+        if (tripo1)
+        {
+            ModelZ("silownia_sprzet_01", "stojak_hantli_3_poziomy", "stojak z hantlami (3 poziomy)", 2.1f * K, .8f * K, 1.1f * K);
+            ModelZ("silownia_sprzet_01", "lawka_plaska", "ławka płaska", 1.25f * K, .5f * K, .5f * K);
+            ModelZ("silownia_sprzet_01", "lawka_regulowana", "ławka regulowana 1", 1.45f * K, .7f * K, 1.0f * K);
+            ModelZ("silownia_sprzet_01", "lawka_regulowana_2", "ławka regulowana 2", 1.45f * K, .7f * K, 1.0f * K);
+        }
+        if (tripo2)
+        {
+            ModelZ("silownia_sprzet_02", "lawka_olimpijska_ze_stojakiem", "ławka olimpijska ze stojakiem", 1.9f * K, 1.7f * K, 1.7f * K);
+            ModelZ("silownia_sprzet_02", "maszyna_prostowanie_nog", "maszyna do prostowania nóg", 1.4f * K, 1.2f * K, 1.5f * K);
+            ModelZ("silownia_sprzet_02", "modlitewnik", "modlitewnik", 1.2f * K, 1.0f * K, 1.1f * K);
+            ModelZ("silownia_sprzet_02", "lawka_do_prostownikow", "ławka rzymska", 1.4f * K, .9f * K, 1.1f * K);
+            ModelZ("silownia_sprzet_02", "suwnica_hack", "suwnica", 2.3f * K, 1.4f * K, 1.7f * K);
+        }
+        // stojak hantli z 10 parami (z kodu) — tylko bez paczki właściciela
+        if (!tripo1 && Miejsce(2.6f, .8f, 1.0f, out var hc, out float hy))
         {
             var q = Quaternion.Euler(0, hy, 0); var r = q * Vector3.right; var f = q * Vector3.forward;
             foreach (float s in new[] { -1.2f, 1.2f }) foreach (float d in new[] { -.3f, .3f }) BraxRegion.Box("Stojak hantli: noga", root, hc + r * s + f * d + Vector3.up * .45f, new Vector3(.06f, .9f, .06f), stal, false, 1f);
@@ -323,8 +349,8 @@ public static class BraxRegionGym
             Kolizja("kolizja: drzewko i stojak gryfów", new Bounds(tc + Vector3.up * .9f, ty == 0f ? new Vector3(1.6f, 1.8f, .8f) : new Vector3(.8f, 1.8f, 1.6f)));
             kod++; opis.Add("drzewko talerzy + stojak gryfów @" + tc.ToString("F1"));
         }
-        // ławka płaska (z kodu): rama, nogi, tapicerka
-        if (Miejsce(1.3f, .5f, .6f, out var lc, out float ly))
+        // ławka płaska (z kodu): rama, nogi, tapicerka — tylko bez paczki właściciela
+        if (!tripo1 && Miejsce(1.3f, .5f, .6f, out var lc, out float ly))
         {
             var q = Quaternion.Euler(0, ly, 0); var r = q * Vector3.right;
             bool wx = ly == 0f;

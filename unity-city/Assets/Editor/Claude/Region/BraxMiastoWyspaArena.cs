@@ -1093,10 +1093,95 @@ internal static partial class BraxMiastoWyspa
             Miejsca[room + "_wnetrze"] = new Vector3(apC.x + 17.575f, F, cz + sg * 2.2f);
             Czlowiek(kto, "trener", "stoi", new Vector3(tx1 + .5f, F, tz), Vector3.left, KlStoi);
             apElem += 6;
+            ApRozgrzewka(brax, sg, x0 + t, x1, cz, F, h);
         }
         BraxRegion.Warm(root, "Arena: światło tunelu", new Vector3((x0 + x1) * .5f, F + 2.6f, cz), .9f, 6f);
         Miejsca["arena_tunel"] = new Vector3(x0 + .5f, F, cz); Miejsca["arena_szatnie"] = new Vector3((x0 + x1) * .5f, F, cz); apMiejsc += 2;
         BraxMiastoA.Log("WYSPA arena premium: tunel zawodników + szatnia Braxa i gości (szafki, ławki, stół do masażu, lustro, sufit z LED)");
+    }
+
+    // ROZGRZEWKA W SZATNI (właściciel 12.11 01:18: „tak samo masz wyposażyć szatnie w arenie. Żeby były dostępne worki do
+    // treningu, gruszki i takie inne rzeczy”; 01:47 „zapisz to na gałęzi… albo na siłowni”): sprzęt właściciela z Tripo
+    // (paczki globalne silownia_boks_01/02, sklep_walka_01). Worek czarno-złoty na łańcuchach spod sufitu, gruszka refleksowa
+    // przed lustrem, gruszka podwójnie zaczepiona na linkach (sufit–podłoga), regał na ścianie tylnej: półka z rękawicami
+    // i łapami, półka z kaskami, pod nimi tarcze thai. Szatnia Braxa w czerwieni, gości w czerni ze złotem. Bez paczek — nic
+    // (miejsce zostaje wolne, szatnia działa jak dotąd). Wszystko w wolnym pasie między stołem do masażu a ławką.
+    static void ApRozgrzewka(bool brax, float sg, float xs, float x1, float cz, float F, float h)
+    {
+        GameObject M(string paczka, string plik) => BraxMiastoAssety.Model(paczka, plik);
+        Vector3 P(float x, float y, float o) => new Vector3(x, y, cz + sg * o);
+        void BoxP(UlSiatka q, Vector3 a, Vector3 b) => q.Box(Vector3.Min(a, b), Vector3.Max(a, b));   // szatnia gości: oś z odwrócona
+        string kto = brax ? "szatnia Braxa" : "szatnia gości";
+        int n = 0;
+        // worek wiszący: łańcuchy pod sam sufit, dół worka ok. 0.9 m nad posadzką
+        var worek = M("silownia_boks_01", "worek_wiszacy_czarno_zloty");
+        if (worek)
+        {
+            float hw = 1.75f * K;
+            if (BraxRegion.Put(root, worek, "Arena " + kto + ": worek wiszący (Tripo właściciela)", P(x1 - 1.0f, F + h - .03f - hw, 4.15f), sg > 0 ? 200f : 20f, 1f, true)) n++;
+        }
+        // gruszka refleksowa na stojaku przed lustrem
+        var refleks = M("silownia_boks_02", "gruszka_refleks_na_stojaku");
+        if (refleks && BraxRegion.Put(root, refleks, "Arena " + kto + ": gruszka refleksowa (Tripo właściciela)", P(xs + .85f, F + .02f, 4.0f), 90f, 1f, true)) n++;
+        // gruszka podwójnie zaczepiona: kula na wys. ok. 1.55 m, linki gumowe do sufitu i do kotwy w posadzce
+        var dwu = M("silownia_boks_02", "gruszka_podwojnie_zaczepiona");
+        if (dwu)
+        {
+            float hd = .6f * K, yd = F + 1.55f - hd * .5f; var pd = P(x1 - 2.4f, yd, 4.15f);
+            if (BraxRegion.Put(root, dwu, "Arena " + kto + ": gruszka podwójnie zaczepiona (Tripo właściciela)", pd, 0f, 1f, false))
+            {
+                var linka = D(apCzarny);
+                linka.Rura(new Vector3(pd.x, yd + hd - .01f, pd.z), new Vector3(pd.x, F + h - .03f, pd.z), .006f, 6);   // do sufitu
+                linka.Rura(new Vector3(pd.x, F + .04f, pd.z), new Vector3(pd.x, yd + .01f, pd.z), .006f, 6);           // do kotwy
+                D(apChrom).Rura(new Vector3(pd.x, F + .02f, pd.z), new Vector3(pd.x, F + .045f, pd.z), .035f, 12);    // kotwa w posadzce
+                D(apChrom).Rura(new Vector3(pd.x, F + h - .055f, pd.z), new Vector3(pd.x, F + h - .03f, pd.z), .03f, 12); // zaczep w suficie
+                KolAA("gruszka podwójna", new Vector3(pd.x - .15f, F, pd.z - .15f), new Vector3(pd.x + .15f, F + h, pd.z + .15f));
+                n++;
+            }
+        }
+        // regał na ścianie tylnej (x1): dwie półki dębowe na wspornikach ze stali, rękawice i łapy, kaski; tarcze thai pod spodem
+        float rz0 = 1.65f, rz1 = 3.15f, gl = .32f, y1 = F + .95f * K, y2 = F + 1.4f * K;
+        string zestaw = brax ? "silownia_boks_02" : "silownia_boks_01", kolor = brax ? "czerwona" : "czarno_zlota";
+        var rek1 = M(zestaw, "rekawica_" + kolor + "_1"); var kask = M("sklep_walka_01", brax ? "kask_bokserski_czerwony" : "kask_bokserski_niebieski");
+        if (rek1 || kask)
+        {
+            foreach (float y in new[] { y1, y2 })
+            {
+                BoxP(D(apDab), P(x1 - gl, y - .03f, rz0), P(x1 - .006f, y, rz1));                               // półka
+                foreach (float o in new[] { rz0 + .12f, rz1 - .12f })
+                {
+                    BoxP(D(apStal), P(x1 - .04f, y - .25f, o - .015f), P(x1 - .006f, y - .03f, o + .015f));    // listwa ścienna
+                    D(apStal).Rura(P(x1 - .03f, y - .22f, o), P(x1 - gl + .05f, y - .035f, o), .012f, 6);        // wspornik skośny
+                }
+            }
+            { Vector3 ka = P(x1 - gl - .02f, F, rz0), kb = P(x1, y2 + .5f, rz1); KolAA("regał sprzętu", Vector3.Min(ka, kb), Vector3.Max(ka, kb)); }
+            Vector3 Na(float y, float o) => P(x1 - gl * .5f, y + .003f, o);
+            string[] dol = brax ? new[] { "rekawica_czerwona_1", "rekawica_czerwona_2", "rekawica_czerwona_1" } : new[] { "rekawica_czarno_zlota_1", "rekawica_czarno_zlota_2", "lapa_bokserska_czarno_zlota_1", "lapa_bokserska_czarno_zlota_2" };
+            for (int i = 0; i < dol.Length; i++)
+            {
+                var m = M(zestaw, dol[i]); if (!m) continue;
+                if (BraxRegion.Put(root, m, "Arena " + kto + ": " + dol[i].Replace('_', ' ') + " na półce (Tripo właściciela)", Na(y1, rz0 + .22f + i * ((rz1 - rz0 - .44f) / Mathf.Max(1, dol.Length - 1))), -90f, 1f, false, .27f)) n++;
+            }
+            string[] gora = brax ? new[] { "kask_bokserski_czerwony", "kask_z_krata_czarno_zloty" } : new[] { "kask_bokserski_niebieski", "kask_z_krata_czarno_zloty" };
+            for (int i = 0; i < gora.Length; i++)
+            {
+                var m = M("sklep_walka_01", gora[i]); if (!m) continue;
+                if (BraxRegion.Put(root, m, "Arena " + kto + ": " + gora[i].Replace('_', ' ') + " (Tripo właściciela)", Na(y2, rz0 + .45f + i * .6f), -90f, 1f, false, .3f)) n++;
+            }
+            string[] tarcze = { "tarcza_thai_" + kolor + "_1", "tarcza_thai_" + kolor + "_2" };
+            for (int i = 0; i < 2; i++)
+            {
+                var m = M(zestaw, tarcze[i]); if (!m) continue;
+                if (BraxRegion.Put(root, m, "Arena " + kto + ": tarcza thai (Tripo właściciela)", P(x1 - .32f, F + .02f, rz0 + .4f + i * .7f), -90f, 1f, false)) n++;
+            }
+        }
+        if (brax)
+        {   // ochraniacz tułowia trenera na ławce przy regale (szatnia Braxa)
+            var och = M("silownia_boks_02", "ochraniacz_tulowia_czerwony");
+            if (och && BraxRegion.Put(root, och, "Arena szatnia Braxa: ochraniacz tułowia (Tripo właściciela)", P(x1 - 1.2f, F + .45f * K, 5.15f), 180f, 1f, false)) n++;
+        }
+        apElem += n;
+        BraxMiastoA.Log("WYSPA arena premium: " + kto + " — rozgrzewka, sprzętu właściciela " + n + (n == 0 ? " (brak paczek Tripo w buildzie)" : ""));
     }
 
     // PLAC PRZED WEJŚCIEM (właściciel 10:47: bez food trucków, pojazdów i budek z brył): nawierzchnia (plac terenu), ławki,
