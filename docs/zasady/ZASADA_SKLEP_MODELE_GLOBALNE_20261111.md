@@ -53,6 +53,7 @@ Narzędzie robi kolejno:
 | `braxhorn-sklep-sprzet-01` | `sklep_sprzet_01` | piłki nożna, do kosza, siatkowa, hantle 10 kg, kettlebell, rękawice bokserskie, worek bokserski, skakanka, mata (rakieta odrzucona: zniszczony naciąg) |
 | `braxhorn-sklep-buty-02` | `sklep_buty_02` | sneakersy białe, biegowe czarne i białe, mokasyny, półbuty, trampki czerwone, trapery, szpilki czarne, wsuwane, zimowe z kożuszkiem |
 | `braxhorn-sklep-walka-01` | `sklep_walka_01` | sporty walki BRAXHORN: rękawice czarno-złote, kaski bokserskie (czerwony, niebieski, z kratą), ochraniacz na zęby w pudełku, buty bokserskie, zapaśnicze i treningowe (buty w rotacji sklepów sportowych i ściany butów SPORT ARENA, rękawice na stojaku; kaski i ochraniacz do rozstawienia) |
+| `braxhorn-sklep-silownia-01` | `silownia_sprzet_01` | **sprzęt na siłownie (globalnie, wszystkie siłownie w grze):** ławka płaska (wydłużona do 1,15 m: `stretch`), dwie ławki regulowane, hantle heksagonalne, stojak 3-poziomowy z kompletem hantli |
 
 Buty leżą na planszy w rzędach na podłodze, więc tnie się je w widoku z góry (`"view": "top"`). Cała plansza ma jedną skalę (`"scale"`), dzięki czemu rozmiary sztuk zgadzają się między sobą. Na półkach stawiamy przez `ShopModel` (podstawa na półce, przód do klienta).
 
@@ -62,4 +63,10 @@ Buty leżą na planszy w rzędach na podłodze, więc tnie się je w widoku z g�
 - Manekiny stoją w witrynach i przy wejściu. Biorą pełne stroje z paczek `sklep_manekiny_*`, dobrane do stylu sklepu: sport (dres), elegancja (garnitur, suknia), denim (katana, jeansy), urban (kurtka baseballowa, dres z kapturem). Bez paczki zostaje manekin z kodu.
 - Sklep z torebkami nie ma wieszaków na ubrania. Ma dwie półki z orzecha (1,1 m i 2,15 m) z torebkami właściciela, a pod nimi walizki.
 - Białe manekiny nie wchodzą do gry (właściciel 23:22).
+
+## Siłownie (właściciel 12.11.2026, 01:02)
+
+> „Tak ci wysyłam sprzęt na siłownię, zapisać to globalnie na wszystkie siłownie, ten sprzęt.”
+
+Sprzęt z paczki `silownia_sprzet_01` stawiamy w każdej siłowni w grze: w Mistrzach, w mieście R1, na osiedlu, w obozie i w hotelach. Stawia się go przez `BraxMiastoAssety.Model("silownia_sprzet_01", "lawka_regulowana")` i `Postaw(..., statyczny: false)`. Kolejne plansze siłowni (maszyny, bramy, gryfy, talerze) dochodzą jako `silownia_sprzet_02…`. Żaden rejon nie robi własnej kopii.
 

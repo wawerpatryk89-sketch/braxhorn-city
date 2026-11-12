@@ -131,7 +131,17 @@ def main(sheet, out_dir, spec_path):
     # the products stand apart on the sheet: the front view (x, y) rasterised at 2 mm, the separate silhouettes labelled;
     # the silhouettes sorted into rows (top to bottom) and columns (left to right); a component (a sleeve, a collar, a
     # button) goes to the silhouette most of its vertices fall in
-    if spec.get("boxes"):
+    if spec.get("rects"):
+        # free layout (owner's gym sheet 12.11: benches, dumbbells and a rack laid out on the floor, no grid): one
+        # [x0, x1, r0, r1] rectangle per item in fractions of the sheet - x across, r = rows (front view: height from the
+        # top; top view: depth from the back); every component goes to the rectangle its centre falls in
+        top_ = spec.get("view", "front") == "top"; cell_of_comp = {}
+        for cid in np.unique(tri_comp):
+            c = P[np.unique(I[tri_comp == cid].reshape(-1))].mean(0)
+            xf = (c[0] - lo[0]) / (hi[0] - lo[0])
+            rf = (c[2] - lo[2]) / (hi[2] - lo[2]) if top_ else (hi[1] - c[1]) / (hi[1] - lo[1])
+            cell_of_comp[cid] = next((k for k, (x0, x1, r0, r1) in enumerate(spec["rects"]) if x0 <= xf < x1 and r0 <= rf < r1), -1)
+    elif spec.get("boxes"):
         # hand-set cells (owner's jewellery 23:31: earring pairs and a broken chain stand closer to each other than the
         # products do): "boxes" = per row the [x0, x1] fractions of the sheet width, "row_split" = the row borders as fractions
         # of the sheet height from the top; every component goes to the cell its centre falls in
@@ -192,6 +202,8 @@ def main(sheet, out_dir, spec_path):
         s = spec["scale"] if spec.get("scale") else item["height"] / h      # one scale for the sheet keeps the sizes true to each other
         pivot = np.array([(mn[0] + mx[0]) * .5, mx[1] if item.get("pivot", "top") == "top" else mn[1], (mn[2] + mx[2]) * .5])
         p = (p - pivot) * s
+        if item.get("stretch"):        # a Tripo piece out of proportion (owner's flat gym bench 52 cm long): x, y, z factors
+            st = np.array(item["stretch"], dtype=np.float64); p = p * st; n = n / st; n = n / np.linalg.norm(n, axis=1, keepdims=True)
         write_glb(out / (item["name"] + ".glb"), item["name"], p, n, u, inv.reshape(-1, 3), uris, spec.get("metallicFactor", 1.0))
         # the rail version: a garment on a hanger hangs flat (front to back x flatten), the normals by the inverse transpose
         if spec.get("flatten"):
