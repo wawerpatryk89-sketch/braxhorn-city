@@ -21,7 +21,8 @@ class ChampionsContentModeTests(unittest.TestCase):
 
     def test_first_apk_contains_bootstrap_and_content_baseline(self):
         builder = self.code("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs")
-        self.assertIn('BraxContentBuild.Baseline("mistrzowie", new[] { BraxChampionsExplorer.ScenePath })', builder)
+        # 12.11: the main scene first, then the area scenes it reads on approach (BraxChampionsPodzial)
+        self.assertIn('BraxContentBuild.Baseline("mistrzowie", new[] { BraxChampionsExplorer.ScenePath }.Concat(areaScenes).ToArray())', builder)
         self.assertIn('scenes=new[]{startPath},target=BuildTarget.Android', builder)
         self.assertLess(builder.index('BraxContentBuild.Baseline("mistrzowie"'),
                         builder.index('var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions'))

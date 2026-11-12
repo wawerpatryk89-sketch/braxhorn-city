@@ -34,21 +34,38 @@ public sealed class BraxChampionsWydajnosc : MonoBehaviour
     float nastepneLampy, nastepneLustra; int kursor;
     static readonly RaycastHit[] trafienia = new RaycastHit[16];
 
-    void Start()
+    // The region is read in parts (BraxChampionsObszary): the lamps and mirrors of a building arrive with its scene and leave
+    // with it, so the lists are taken again whenever a scene comes or goes.
+    bool skanuj = true;
+    void OnEnable() { UnityEngine.SceneManagement.SceneManager.sceneLoaded += ScenaDoszla; UnityEngine.SceneManagement.SceneManager.sceneUnloaded += ScenaOdeszla; }
+    void OnDisable() { UnityEngine.SceneManagement.SceneManager.sceneLoaded -= ScenaDoszla; UnityEngine.SceneManagement.SceneManager.sceneUnloaded -= ScenaOdeszla; }
+    void ScenaDoszla(UnityEngine.SceneManagement.Scene s, UnityEngine.SceneManagement.LoadSceneMode m) { skanuj = true; }
+    void ScenaOdeszla(UnityEngine.SceneManagement.Scene s) { skanuj = true; }
+
+    void Start() { if (!kamera) kamera = Camera.main; }
+
+    void Przeskanuj()
     {
-        if (!kamera) kamera = Camera.main;
+        skanuj = false;
         var wszystkie = FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         var l = new List<Light>();
         foreach (var x in wszystkie) if (x && x.type != LightType.Directional) l.Add(x);
-        lampy = l.ToArray();
+        lampy = l.ToArray(); kursor = 0;
         lustra = FindObjectsByType<BraxGymPlanarMirror>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        foreach (var m in lustra) if (m) m.enabled = false;
+        // a mirror that is new here sleeps until it is seen; the live one and the ones showing their copy stay as they are
+        foreach (var m in lustra) if (m && m != czynne && !kopie.ContainsKey(m) && !budzone.Contains(m)) m.enabled = false;
+        // the copies of mirrors that left with their scene
+        List<BraxGymPlanarMirror> martwe = null;
+        foreach (var para in kopie) if (!para.Key) (martwe ?? (martwe = new List<BraxGymPlanarMirror>())).Add(para.Key);
+        if (martwe != null) foreach (var m in martwe) { var k = kopie[m]; kopie.Remove(m); if (k.rt) { k.rt.Release(); Destroy(k.rt); } }
+        budzone.RemoveAll(b => !b);
         Debug.Log("A1_WYDAJNOSC lamps=" + lampy.Length + " (on within range+" + ZapasLampy + ") mirrors=" + lustra.Length + " (one in sight at a time) small layers 20/21 to " + ZasiegMale + "/" + ZasiegDrobne);
     }
 
     void LateUpdate()
     {
         if (!kamera) { kamera = Camera.main; if (!kamera) return; }
+        if (skanuj || lampy == null) Przeskanuj();
         Warstwy();
         float t = Time.unscaledTime; var p = kamera.transform.position;
         if (t >= nastepneLampy) { nastepneLampy = t + .1f; Lampy(p); }

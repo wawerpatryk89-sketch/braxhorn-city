@@ -163,6 +163,16 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
     IEnumerator Start()
     {
         if(Array.IndexOf(Environment.GetCommandLineArgs(),"--champions-review")<0)yield break;
+        // The region is read in parts (BraxChampionsObszary): the review reads every area first, so each area scene is
+        // proven to load in a real player and every frame finds its place.
+        if(FindAnyObjectByType<BraxChampionsObszary>())
+        {
+            BraxChampionsObszary.Wszystko=true;
+            float limit=Time.realtimeSinceStartup+900f;
+            yield return null;yield return null;
+            while(!(BraxChampionsObszary.Spokoj&&BraxChampionsObszary.Laduje==0)&&Time.realtimeSinceStartup<limit)yield return null;
+            Debug.Log("CHAMPIONS_REVIEW_AREAS loaded="+BraxChampionsObszary.Wczytane+"/"+BraxChampionsObszary.Razem+" failed="+BraxChampionsObszary.Bledy+" t="+Time.realtimeSinceStartup.ToString("F1")+" s");
+        }
         var basePositions=positions;var baseTargets=targets;var baseLabels=labels;
         ConfigureHotelIfPresent();
         if(positions!=null&&targets!=null&&labels!=null)AddArenaMuralFrames();

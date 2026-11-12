@@ -53,7 +53,8 @@ public static class BraxChampionsBuild
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone,ScriptingImplementation.Mono2x);
         string output=Path.GetFullPath("../build/VisualReview/Mistrzowie.x86_64");
         Directory.CreateDirectory(Path.GetDirectoryName(output));
-        var report=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=new[]{BraxChampionsExplorer.ScenePath},
+        // the region is read in parts: the review player gets the area scenes beside the main one (plain SceneManager there)
+        var report=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=new[]{BraxChampionsExplorer.ScenePath}.Concat(BraxChampionsPodzial.Sceny()).ToArray(),
             target=BuildTarget.StandaloneLinux64,locationPathName=output,options=BuildOptions.None});
         if(report.summary.result!=BuildResult.Succeeded)throw new InvalidOperationException("Visual review player build failed");
     }
@@ -130,12 +131,14 @@ public static class BraxChampionsBuild
             {
                 // Read-only metrics only for explicitly requested scenes, never for APK.
                 BraxSceneAudit.Run(scene, report.sourceCommit);
+                SplitIntoAreas(report);
                 report.status=gateFails.Count==0?"UNITY_SCENES_GENERATED_APK_NOT_BUILT_DEVICE_REVIEW_PENDING"
                     :"UNITY_SCENES_GENERATED_INTEGRATION_FAIL: "+string.Join(" | ",gateFails);
                 return;
             }
             if(apk)
             {
+                SplitIntoAreas(report);
                 BuildExplorationApk();
                 report.status="ANDROID_APK_COMPILED_DEVICE_AND_VISUAL_REVIEW_PENDING";
                 report.checks.Add("ARM64 exploration APK compiled; repository signing certificate verification is still required in CI");
@@ -297,6 +300,25 @@ public static class BraxChampionsBuild
         return errors;
     }
 
+    // Owner 12.11 20:46 ("jak miasto R1 ... jedna ta sama gra, tylko że podzielona"): the finished, checked exploration
+    // scene is split into area scenes read on approach (BraxChampionsPodzial). A failure of the split as a whole leaves
+    // the region in one scene, as it was built and checked - it never costs the build.
+    static void SplitIntoAreas(Report report)
+    {
+        try
+        {
+            int areas=BraxChampionsPodzial.Podziel(BraxChampionsExplorer.ScenePath);
+            report.checks.Add("Region split into "+areas+" area scenes read on approach (BraxChampionsObszary); the main scene keeps the ground, streets, waterfront and player");
+        }
+        catch(Exception e)
+        {
+            Debug.LogError("A1_PODZIAL_FAILED region left in one scene: "+e);
+            report.checks.Add("AREA SPLIT FAILED - region left in one scene: "+e.Message);
+            try{EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);BraxChampionsPodzial.Wyczysc();AssetDatabase.SaveAssets();}
+            catch(Exception e2){Debug.LogError("A1_PODZIAL_FAILED cleanup: "+e2.Message);}
+        }
+    }
+
     static void BuildExplorationApk()
     {
         if(!File.Exists("braxhorn.keystore")||!File.Exists("braxhorn.keystore.pass"))
@@ -343,7 +365,10 @@ public static class BraxChampionsBuild
         // .braxupdate.zip against this saved state without BuildPlayer.
         if (!BraxContentBuild.Requested)
             throw new InvalidOperationException("Miasto Mistrzów wymaga nowego APK bazowego z Addressables: content-mode.txt=baseline");
-        BraxContentBuild.Baseline("mistrzowie", new[] { BraxChampionsExplorer.ScenePath });
+        // The main scene first (BraxStart opens it), then the area scenes BraxChampionsObszary reads on approach.
+        var areaScenes=BraxChampionsPodzial.Sceny();
+        Debug.Log("BRAX_MISTRZOWIE_CONTENT scenes=1+"+areaScenes.Length);
+        BraxContentBuild.Baseline("mistrzowie", new[] { BraxChampionsExplorer.ScenePath }.Concat(areaScenes).ToArray());
         // Apply to every selectable quality tier of this separate APK, not to other region builders.
         int previousQuality=QualitySettings.GetQualityLevel();
         for(int i=0;i<QualitySettings.names.Length;i++)
