@@ -211,10 +211,27 @@ internal static partial class BraxMiastoWyspa
                 if ((odAreny > 23f && odAreny < 35f) || odKrawedziPlacu < 2.5f)
                 {
                     const int fine = 6; var idxFine = new int[fine + 1, fine + 1];
+                    // 12.11 (zdjęcie wejścia zawodników: krawędź kostki i placu dalej „w ząbki” ~0.4 m — podział kwadratu po
+                    // przekątnej dawał zygzak nawet na prostym odcinku): wierzchołki drobnej siatki leżące bliżej niż pół oczka od
+                    // granicy nawierzchni są DOSUWANE na tę granicę (okrąg kostki 26 / 31.5 m, okrąg placu, brzegi łącznika), więc
+                    // krawędź idzie po wierzchołkach — gładki łuk z odcinków ~0.4 m, bez ząbków. Klasyfikacja po środku trójkąta.
+                    float thr = step / fine * .505f; var dosuniete = new HashSet<int>();
+                    Vector2 Dosun(float xx, float zz, bool wnetrze)
+                    {
+                        var q = new Vector2(xx, zz); float dA = Vector2.Distance(q, arenaC), dPl = Vector2.Distance(q, Plac);
+                        if (Mathf.Abs(dA - 26f) < thr) return arenaC + (q - arenaC) * (26f / dA);
+                        if (Mathf.Abs(dA - 31.5f) < thr) return arenaC + (q - arenaC) * (31.5f / dA);
+                        if (wnetrze && xx <= arenaC.x - 31f + thr && xx >= Plac.x - 35.5f - thr && Mathf.Abs(Mathf.Abs(zz - Plac.y) - 2.5f) < thr) return new Vector2(xx, Plac.y + Mathf.Sign(zz - Plac.y) * 2.5f);
+                        if (Mathf.Abs(dPl - (PlacR - 3f)) < thr) return Plac + (q - Plac) * ((PlacR - 3f) / dPl);
+                        return q;
+                    }
                     for (int ix = 0; ix <= fine; ix++) for (int iz = 0; iz <= fine; iz++)
                     {
                         float tx = ix / (float)fine, tz = iz / (float)fine;
                         float xx = -ext + (i + tx) * step, zz = -ext + (j + tz) * step;
+                        // okręgi: także brzegi komórek (sąsiad liczy to samo — siatka szczelna; pas drobnej siatki sięga ≥ 0.7 m dalej niż
+                        // dosuwanie, więc styk z grubą siatką się nie rusza); brzegi łącznika: tylko wnętrze komórki
+                        { var ds = Dosun(xx, zz, ix > 0 && ix < fine && iz > 0 && iz < fine); if (ds.x != xx || ds.y != zz) dosuniete.Add(v.Count); xx = ds.x; zz = ds.y; }
                         idxFine[ix, iz] = v.Count;
                         v.Add(new Vector3(CX + xx, W + H(xx, zz), CZ + zz));
                         col.Add(Color.Lerp(Color.Lerp(col[a], col[b], tx), Color.Lerp(col[c], col[dd], tx), tz));
@@ -226,15 +243,22 @@ internal static partial class BraxMiastoWyspa
                             cc = idxFine[ix, iz + 1], d1 = idxFine[ix + 1, iz + 1];
                         // Łącznik od drewnianego deptaka na zachodzie (koniec pochylni ~ Plac.x − 32.5) do pierścienia (brzeg wewnętrzny
                         // arenaC.x − 31.5 = Plac.x − 27.5), w osi deptaka ± 2.5 m. Klasyfikacja po środku KAŻDEGO trójkąta.
-                        List<int> Klasa(float u, float w)
+                        List<int> Klasa(int p0, int p1, int p2)
                         {
-                            float xx = -ext + (i + u / fine) * step, zz = -ext + (j + w / fine) * step;
+                            var sr = (v[p0] + v[p1] + v[p2]) / 3f; float xx = sr.x - CX, zz = sr.z - CZ;   // środek trójkąta po dosunięciu
                             var d = Vector2.Distance(new Vector2(xx, zz), arenaC);
                             bool lacznik = xx <= arenaC.x - 31f && xx >= Plac.x - 35.5f && Mathf.Abs(zz - Plac.y) < 2.5f;
                             return (d >= 26f && d <= 31.5f) || lacznik ? tChodnik : Vector2.Distance(new Vector2(xx, zz), Plac) < PlacR - 3f ? tP : tT;
                         }
-                        var t1 = Klasa(ix + 1f / 3f, iz + 2f / 3f); t1.Add(aa); t1.Add(cc); t1.Add(d1);
-                        var t2 = Klasa(ix + 2f / 3f, iz + 1f / 3f); t2.Add(aa); t2.Add(d1); t2.Add(bb);
+                        // przekątna kwadratu po wierzchołkach leżących na granicy (inaczej trójkąt przecinałby granicę — ząbek)
+                        if (dosuniete.Contains(bb) && dosuniete.Contains(cc) && !(dosuniete.Contains(aa) && dosuniete.Contains(d1)))
+                        {
+                            var u1 = Klasa(aa, cc, bb); u1.Add(aa); u1.Add(cc); u1.Add(bb);
+                            var u2 = Klasa(cc, d1, bb); u2.Add(cc); u2.Add(d1); u2.Add(bb);
+                            quads++; continue;
+                        }
+                        var t1 = Klasa(aa, cc, d1); t1.Add(aa); t1.Add(cc); t1.Add(d1);
+                        var t2 = Klasa(aa, d1, bb); t2.Add(aa); t2.Add(d1); t2.Add(bb);
                         quads++;
                     }
                     continue;

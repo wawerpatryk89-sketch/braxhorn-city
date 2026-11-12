@@ -11,6 +11,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 REG = ROOT / "unity-city/Assets/Editor/Claude/Region"
 ARENA = (REG / "BraxMiastoWyspaArena.cs").read_text(encoding="utf-8")
 DOMKI = (REG / "BraxMiastoWyspaDomki.cs").read_text(encoding="utf-8")
+WYSPA = (REG / "BraxMiastoWyspa.cs").read_text(encoding="utf-8")
 
 
 def fn(src, name, nxt):
@@ -63,6 +64,57 @@ class WcPlazowe(unittest.TestCase):
     def test_zero_migotania(self):
         self.assertIn("Bx(posW, -hw2 + tw, hw2 - tw, -.03f, .025f, -hd2 + tw, hd2 + .03f);", self.W)   # posadzka zatopiona w cokole
         self.assertIn("hd2 + .6f, hd2 + .63f);", self.W)                                              # opaska 3 cm przed płytą dachu
+
+    def test_tynk_naprawde_bialy(self):
+        self.assertIn('"white_stucco", "white_plaster_02");', self.W)                                  # white_plaster_02 wychodził szary
+
+    def test_plytki_do_sufitu(self):
+        self.assertIn("float yT = h - .03f, tT = .025f;", self.W)
+
+
+class DeptakIWidownia(unittest.TestCase):
+    def test_latarnia_nie_stoi_w_dojsciu_do_wc(self):
+        self.assertIn("if (Mathf.Abs(lp.x - CX) < 3.0f * K + .6f && lp.z < CZ) continue;", DOMKI)
+        self.assertIn("foreach (float przes in new[] { 0f, 6f, -6f })", DOMKI)
+
+    def test_kotwa_krzeselka_ponad_2_cm(self):
+        self.assertIn("me.Walec(new Vector3(0, 0, -.14f), .085f, .022f, 6);", ARENA)
+        self.assertIn("me.Rura(new Vector3(0, .022f, -.14f)", ARENA)
+
+
+class SzatniePremium(unittest.TestCase):
+    S = fn(ARENA, "static void ApSzatnie()", "static void ApRozgrzewka(")
+
+    def test_boksy_zawodnikow_zamiast_plaskich_szafek(self):
+        self.assertIn("// BOKSY ZAWODNIKÓW", self.S)
+        self.assertNotIn('"Arena: szafki szatni (stal lakierowana)"', ARENA)
+        self.assertNotIn("lakD.OBox(dc, Vector3.right, Vector3.up, ws, lw - .006f, hl - .12f, .018f);", ARENA)
+        for s in ('"brown_leather"', "BraxUliceKit.Napis3D(nrBoksu.ToString()", '"Arena premium: LED boksów szatni"'):
+            self.assertIn(s, self.S)
+
+    def test_zaokraglone_bryly_nie_klocki(self):
+        self.assertIn("q.Poducha(Vector3.Min(A, B), Vector3.Max(A, B), r, puf, 3);", self.S)
+        self.assertGreaterEqual(self.S.count("Pd("), 10)
+
+    def test_sciany_debowe_i_posadzka_gumowa(self):
+        self.assertIn('"Arena premium: ściany szatni (panele dębowe)"', self.S)
+        self.assertIn('"rubber_tiles"', ARENA)
+
+    def test_siedzisko_gracza_w_boksie(self):
+        self.assertIn('BraxMiastoA.Siedzisko(root, "ŁAWKA — " + kto, siad, ws);', self.S)
+
+    def test_gasnica_gladka(self):
+        self.assertIn("new Vector2(0, .5f * s) }, b, 28);", ARENA)
+
+
+class KrawedzPlacuBezZabkow(unittest.TestCase):
+    def test_wierzcholki_dosuwane_na_granice(self):
+        self.assertIn("Vector2 Dosun(float xx, float zz, bool wnetrze)", WYSPA)
+        self.assertIn("float thr = step / fine * .505f;", WYSPA)
+        self.assertIn("List<int> Klasa(int p0, int p1, int p2)", WYSPA)       # klasyfikacja po środku trójkąta po dosunięciu
+
+    def test_przekatna_po_granicy(self):
+        self.assertIn("if (dosuniete.Contains(bb) && dosuniete.Contains(cc) && !(dosuniete.Contains(aa) && dosuniete.Contains(d1)))", WYSPA)
 
 
 if __name__ == "__main__":

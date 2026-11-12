@@ -183,9 +183,16 @@ internal static partial class BraxMiastoWyspa
             // latarnie co ~18 m (od lądu), ławki z koszem co ~23 m (od morza, przodem do morza)
             for (float sd = 9f; sd < dl[n - 1] - 2f; sd += 18f)
             {
-                var (pp, tt) = W2(sd); var rot = Quaternion.LookRotation(tt, Vector3.up);
-                var lp = pp + rot * new Vector3(-hw - .5f, 0, 0); lp.y = Y(lp.x, lp.z);
-                if (!KladkaZajmuje(lp, .6f) && !Zajete(lp.x, lp.z, .6f)) { BraxNabrzezeMebel.Latarnia(z, str, m, lp, rot.eulerAngles.y); nLatarnie++; Zajmij(lp, .6f); }
+                // 12.11: latarnia nie może stanąć w dojściu z desek do WC plażowego (oś 270°, szerokość 6 m × K) — przesuwa się
+                // wzdłuż deptaku o 6 m w tę stronę, po której jest wolne
+                foreach (float przes in new[] { 0f, 6f, -6f })
+                {
+                    var (pp, tt) = W2(Mathf.Clamp(sd + przes, 1f, dl[n - 1] - 1f)); var rot = Quaternion.LookRotation(tt, Vector3.up);
+                    var lp = pp + rot * new Vector3(-hw - .5f, 0, 0); lp.y = Y(lp.x, lp.z);
+                    if (Mathf.Abs(lp.x - CX) < 3.0f * K + .6f && lp.z < CZ) continue;
+                    if (!KladkaZajmuje(lp, .6f) && !Zajete(lp.x, lp.z, .6f)) { BraxNabrzezeMebel.Latarnia(z, str, m, lp, rot.eulerAngles.y); nLatarnie++; Zajmij(lp, .6f); }
+                    break;
+                }
             }
             for (float sd = 14f; sd < dl[n - 1] - 2f; sd += 23f)
             {
@@ -330,7 +337,7 @@ internal static partial class BraxMiastoWyspa
             float y0 = W; for (float a = -1; a <= 1; a += .5f) for (float b = -1; b <= 1; b += .5f) { var q = c + rg * a * w * .5f + fw * b * d * .5f; y0 = Mathf.Max(y0, Y(q.x, q.z)); }
             y0 += .2f; float yMin = W; { yMin = 99f; for (float a = -1; a <= 1; a += .5f) for (float b = -1; b <= 1; b += .5f) { var q = c + rg * a * w * .5f + fw * b * d * .5f; yMin = Mathf.Min(yMin, Y(q.x, q.z)); } yMin -= .3f; }
             var granitW = BraxMiastoA.Tex("Wyspa WC plażowe: cokół (granit szary)", 1.6f, new Color(1f, 1f, 1f), new Color(.55f, .55f, .55f), .7f, "granite_tile", "granite_tile_04");
-            var tynkW = BraxMiastoA.Tex("Wyspa WC plażowe: tynk biały", 2f, Farba(new Color(.96f, .96f, .95f)), new Color(.93f, .93f, .91f), .85f, "white_plaster_02", "white_stucco");
+            var tynkW = BraxMiastoA.Tex("Wyspa WC plażowe: tynk biały", 2f, new Color(1.08f, 1.08f, 1.06f), new Color(.93f, .93f, .91f), .85f, "white_stucco", "white_plaster_02");   // white_stucco jest naprawdę biały (white_plaster_02 wychodził szary jak beton)
             var plytW = BraxMiastoA.Tex("Wyspa WC plażowe: płytki ścian (białe, długie)", 1.0f, new Color(1.05f, 1.05f, 1.05f), new Color(.93f, .93f, .92f), .25f, "long_white_tiles", "floor_tiles_02");
             var posW = BraxMiastoA.Tex("Wyspa WC plażowe: posadzka (płyty wielkoformatowe)", 2.0f, new Color(1f, 1f, 1f), new Color(.6f, .6f, .62f), .5f, "large_floor_tiles_02", "granite_tile_04");
             var teakW = BraxMiastoA.Tex("Wyspa WC plażowe: lamele z teku", 1.2f, new Color(1f, .95f, .88f), new Color(.6f, .42f, .26f), .6f, "teak_veneer", "oak_veneer_01");

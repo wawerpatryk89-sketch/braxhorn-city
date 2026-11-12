@@ -153,7 +153,7 @@ internal static partial class BraxMiastoWyspa
         apHpl = BraxMiastoA.Mat("Arena premium: płyty HPL kabin (grafit)", new Color(.16f, .17f, .18f), .5f, .1f);
         apSufitM = BraxMiastoA.Mat("Arena premium: sufit podwieszany (biały)", new Color(.92f, .92f, .9f), .9f);
         apLedSufit = BraxMiastoA.Swieci("Arena premium: panel LED sufitowy", new Color(.95f, .95f, .92f), new Color(1.6f, 1.6f, 1.5f));
-        apGuma = BraxMiastoA.Mat("Arena premium: posadzka sportowa (guma grafit)", new Color(.12f, .12f, .13f), .9f);
+        apGuma = BraxMiastoA.Tex("Arena premium: posadzka sportowa (guma grafit)", 1.0f, new Color(1.5f, 1.5f, 1.5f), new Color(.12f, .12f, .13f), .85f, "rubber_tiles");   // 12.11: płyty gumowe z fugą (było: gładki kolor)
         apDab = BraxMiastoA.Tex("Arena premium: dąb olejowany (ławki, blaty)", 1.8f, new Color(.82f, .74f, .62f), new Color(.62f, .48f, .32f), .55f, "wood_floor", "wooden_planks");
         apCzerw = BraxMiastoA.Mat("Arena premium: czerwień gaśnic (lakier)", new Color(.75f, .06f, .05f), .35f);
         apLustro = BraxMiastoA.Mat("Arena premium: lustro", new Color(.8f, .85f, .88f), .02f, 1f);
@@ -448,7 +448,7 @@ internal static partial class BraxMiastoWyspa
     {
         n.y = 0; n.Normalize(); var r = Vector3.Cross(Vector3.up, n); float s = K;
         var b = p + n * (.1f * s) + Vector3.down * (.5f * s);
-        Toczenie(D(apCzerw), new[] { new Vector2(0, 0), new Vector2(.072f * s, 0), new Vector2(.078f * s, .02f * s), new Vector2(.078f * s, .40f * s), new Vector2(.06f * s, .47f * s), new Vector2(.022f * s, .5f * s), new Vector2(0, .5f * s) }, b, 14);
+        Toczenie(D(apCzerw), new[] { new Vector2(0, 0), new Vector2(.066f * s, 0), new Vector2(.074f * s, .006f * s), new Vector2(.078f * s, .02f * s), new Vector2(.078f * s, .37f * s), new Vector2(.076f * s, .41f * s), new Vector2(.069f * s, .445f * s), new Vector2(.055f * s, .472f * s), new Vector2(.037f * s, .49f * s), new Vector2(.022f * s, .5f * s), new Vector2(0, .5f * s) }, b, 28);   // 12.11: zaokrąglone ramię i dno (było kanciaste)
         D(apCzarny).Rura(b + Vector3.up * .5f * s, b + Vector3.up * .58f * s, .018f * s, 8);
         D(apCzarny).Rura(b + Vector3.up * .57f * s, b + Vector3.up * .57f * s + r * .1f * s, .012f * s, 6);
         D(apCzarny).Rura(b + Vector3.up * .54f * s - r * .02f, b + Vector3.up * .2f * s - r * .09f * s, .011f * s, 6);
@@ -635,8 +635,8 @@ internal static partial class BraxMiastoWyspa
             foreach (var (s, nn) in new[] { (1f, Vector3.right), (-1f, Vector3.left) }) pl.Quad(Op(s, t0), Op(s, t1), Op(s, t1) - Nf(s, t1) * gr, Op(s, t0) - Nf(s, t0) * gr, nn);
         }
         // stal: noga z kotwą (płyta), poprzeczka pod siedziskiem, wspornik oparcia
-        me.Rura(new Vector3(0, .012f, -.14f), new Vector3(0, h - .055f, -.07f), .032f, 6, false);
-        me.Walec(new Vector3(0, 0, -.14f), .085f, .012f, 6);
+        me.Rura(new Vector3(0, .022f, -.14f), new Vector3(0, h - .055f, -.07f), .032f, 6, false);
+        me.Walec(new Vector3(0, 0, -.14f), .085f, .022f, 6);   // kotwa 2.2 cm (wierzch ponad 2 cm nad betonem stopnia — zero migotania)
         me.Rura(new Vector3(-sw * .38f, h - .068f, -.06f), new Vector3(sw * .38f, h - .068f, -.06f), .016f, 4, false);
         me.Rura(new Vector3(0, h - .06f, -.2f), Op(0, .25f) - Nf(0, .25f) * (gr + .012f), .018f, 4, false);
         var m1 = pl.Zbuduj("plastik"); var m2 = me.Zbuduj("stal");
@@ -1163,19 +1163,21 @@ internal static partial class BraxMiastoWyspa
         // drzwi z szatni; wejście zawodników od tyłu areny (ApWejscieZawodnikow: drzwi automatyczne, podjazd, zadaszenie)
         float xM = apC.x + 18.75f, zs2 = 8.7f, xD0 = apC.x + 19.2f;
         var graf = apAkust;
+        // 12.11 („premium, zero klocków”): ściany szatni od środka w panelach dębowych (było: biała farba)
+        var szat = BraxMiastoA.Tex("Arena premium: ściany szatni (panele dębowe)", 1.4f, new Color(1f, .97f, .92f), new Color(.62f, .48f, .32f), .5f, "oak_veneer_01", "wood_floor");
         // front (z otworem tunelu), boki zewnętrzne, ściany tunelu z drzwiami do szatni, okładzina tylna (z drzwiami służbowymi w tunelu)
-        ApSciana(false, x0 + t * .5f, cz - zs - t, cz + zs + t, t, F, F + h, new[] { (cz - zt, cz + zt, 2.85f) }, graf, apTynk);
+        ApSciana(false, x0 + t * .5f, cz - zs - t, cz + zs + t, t, F, F + h, new[] { (cz - zt, cz + zt, 2.85f) }, graf, szat);
         foreach (float sg in new[] { -1f, 1f })
         {
             // ściana zewnętrzna szatni: do strefy mokrej (natryski + WC) — od xM płytki od strony natrysków, drzwi 1.0 m
-            ApSciana(true, cz + sg * (zs + t * .5f), x0 + t, xM - t, t, F, F + h, null, sg > 0 ? apTynk : graf, sg > 0 ? graf : apTynk);
-            ApSciana(true, cz + sg * (zs + t * .5f), xM - t, x1, t, F, F + h, new[] { (xD0, xD0 + 1.0f, 2.3f) }, sg > 0 ? apTynk : apPlytki, sg > 0 ? apPlytki : apTynk);
-            ApSkrzydlo(true, cz + sg * (zs + t * .5f), xD0, 1.0f, 2.3f, -sg, 1f, BraxMiastoA.Mat("Arena premium: drzwi szatni (laminat dąb)", new Color(.6f, .47f, .32f), .5f));   // otwarte do szatni (natryski wolne)
+            ApSciana(true, cz + sg * (zs + t * .5f), x0 + t, xM - t, t, F, F + h, null, sg > 0 ? szat : graf, sg > 0 ? graf : szat);
+            ApSciana(true, cz + sg * (zs + t * .5f), xM - t, x1, t, F, F + h, new[] { (xD0, xD0 + 1.0f, 2.3f) }, sg > 0 ? szat : apPlytki, sg > 0 ? apPlytki : szat);
+            ApSkrzydlo(true, cz + sg * (zs + t * .5f), xD0, 1.0f, 2.3f, -sg, 1f, BraxMiastoA.Mat("Arena premium: drzwi szatni (laminat grafit)", new Color(.085f, .085f, .095f), .45f));   // otwarte do szatni (natryski wolne)
             ApStrefaMokra(sg, F, h, t, xM, x1, cz + sg * (zs + t), cz + sg * zs2, x0);
-            ApSciana(true, cz + sg * (zt + t * .5f), x0 + t, x1, t, F, F + h, new[] { (apC.x + 17.0f, apC.x + 18.15f, 2.75f) }, sg > 0 ? graf : apTynk, sg > 0 ? apTynk : graf);
-            ApSkrzydlo(true, cz + sg * (zt + t * .5f), apC.x + 17.0f, 1.15f, 2.75f, sg, 1f, BraxMiastoA.Mat("Arena premium: drzwi szatni (laminat dąb)", new Color(.6f, .47f, .32f), .5f));
+            ApSciana(true, cz + sg * (zt + t * .5f), x0 + t, x1, t, F, F + h, new[] { (apC.x + 17.0f, apC.x + 18.15f, 2.75f) }, sg > 0 ? graf : szat, sg > 0 ? szat : graf);
+            ApSkrzydlo(true, cz + sg * (zt + t * .5f), apC.x + 17.0f, 1.15f, 2.75f, sg, 1f, BraxMiastoA.Mat("Arena premium: drzwi szatni (laminat grafit)", new Color(.085f, .085f, .095f), .45f));
         }
-        ApSciana(false, x1 + .0475f, cz - zs, cz + zs, .095f, F, F + h, new[] { (cz - .82f, cz + .82f, 2.81f) }, apTynk, graf, true);
+        ApSciana(false, x1 + .0475f, cz - zs, cz + zs, .095f, F, F + h, new[] { (cz - .82f, cz + .82f, 2.81f) }, szat, graf, true);
         ApSufitPom(x0 + t, x1, cz - zs, cz + zs, F + h, F + h + .15f, new List<Rect>
         {
             Rect.MinMaxRect(x0 + .8f, cz - .2f, x1 - .8f, cz + .2f),
@@ -1198,38 +1200,54 @@ internal static partial class BraxMiastoWyspa
             KolAA("barierka wybiegu", a + new Vector3(0, 0, -.05f), b + new Vector3(0, hb, .05f));
         }
         // wyposażenie szatni
-        var lak = D(BraxMiastoA.Mat("Arena: szafki szatni (stal lakierowana)", new Color(.2f, .21f, .23f), .45f, .4f));
         var stol = D(BraxMiastoA.Mat("Arena premium: stół do masażu (skaj czarny)", new Color(.07f, .07f, .075f), .55f));
+        var boksSkora = D(BraxMiastoA.Tex("Arena premium: siedziska boksów (skóra ciemny brąz)", .8f, new Color(.75f, .7f, .68f), new Color(.2f, .12f, .07f), .5f, "brown_leather", "fabric_leather_02"));
+        var boksLed = D(BraxMiastoA.Swieci("Arena premium: LED boksów szatni", new Color(1f, .95f, .85f), new Color(1.6f, 1.45f, 1.2f)));
+        var boksCyfry = BraxMiastoA.Mat("Arena premium: numery boksów (biel)", new Color(.93f, .93f, .91f), .4f);
         foreach (float sg in new[] { 1f, -1f })
         {
             bool brax = sg > 0; string kto = brax ? "SZATNIA BRAXA" : "SZATNIA GOŚCI";
             float zw = cz + sg * zs;   // lico ściany zewnętrznej od środka
             var ws = new Vector3(0, 0, -sg);
             var lakD = D(brax ? BraxMiastoA.Mat("Arena premium: drzwiczki szafek Braxa (czerwień)", new Color(.55f, .07f, .06f), .4f, .3f) : BraxMiastoA.Mat("Arena premium: drzwiczki szafek gości (granat)", new Color(.08f, .15f, .42f), .4f, .3f));
-            // szafki: korpus z daszkiem skośnym (profil), drzwiczki osobno ze szczelinami, uchwyty
-            float dp = .5f, hl = 1.8f * K;
+            // BOKSY ZAWODNIKÓW (12.11 — było: płaskie drzwiczki na klocku): przegrody z czarnego laminatu z zaokrągloną krawędzią,
+            // plecy w kolorze drużyny, siedzisko z dębu z poduchą ze skóry, szuflada pod siedziskiem, drążek i haczyki, szafka górna
+            // z drzwiczkami i numerem 3D, listwa LED pod szafką. Wymiary × K. Lica równoległe ≥ 2 cm od siebie albo rozłączne.
+            float dp = .6f, hl = 1.85f * K, hs = .45f * K, yT = 1.5f * K, b0 = .025f, yF = F + .02f; int nrBoksu = 0; Vector3 siad = Vector3.zero;
+            void Pd(UlSiatka q, float xa, float xb, float ya, float yb, float d0, float d1, float r, float puf = 0f)
+            { var A = new Vector3(xa, yF + ya, zw - sg * d0); var B = new Vector3(xb, yF + yb, zw - sg * d1); q.Poducha(Vector3.Min(A, B), Vector3.Max(A, B), r, puf, 3); }
             foreach (var (lx0, lx1) in new[] { (x0 + t + .5f, xD0 - .15f), (xD0 + 1.15f, x1 - .3f) })   // dwa rzędy — przerwa na drzwi do natrysków
             {
-                int nl = Mathf.FloorToInt((lx1 - lx0) / .5f); if (nl < 1) continue; float lw = (lx1 - lx0) / nl;
-                Wyciag(lak, new[] { new Vector2(0, 0), new Vector2(dp - .06f, 0), new Vector2(dp - .06f, .1f), new Vector2(dp, .1f), new Vector2(dp, hl), new Vector2(0, hl + .18f) }, new Vector3(lx0, F + .02f, zw), Vector3.right, Vector3.up, ws, lx1 - lx0);
+                int nl = Mathf.Max(1, Mathf.RoundToInt((lx1 - lx0) / .8f)); float lw = (lx1 - lx0) / nl, gp = .036f;
+                Pd(D(apCzarny), lx0, lx1, 0f, .08f, b0, dp - .06f, .004f);                               // cokół cofnięty 6 cm
+                Pd(lakD, lx0, lx1, .09f, hl - .01f, 0f, b0, .003f);                                      // plecy w kolorze drużyny (nad listwą ściany)
+                for (int k = 0; k <= nl; k++) Pd(D(apCzarny), lx0 + k * lw - gp * .5f, lx0 + k * lw + gp * .5f, 0f, hl, b0, dp, .008f);   // przegrody
                 for (int k = 0; k < nl; k++)
                 {
-                    var dc = new Vector3(lx0 + (k + .5f) * lw, F + .02f + (.1f + hl) * .5f, zw - sg * (dp + .011f));
-                    lakD.OBox(dc, Vector3.right, Vector3.up, ws, lw - .006f, hl - .12f, .018f);
-                    D(apChrom).Rura(dc + ws * .01f + Vector3.right * (lw * .35f) + Vector3.up * .05f, dc + ws * .01f + Vector3.right * (lw * .35f) - Vector3.up * .08f, .009f, 6);
+                    float xa = lx0 + k * lw + gp * .5f, xb = lx0 + (k + 1) * lw - gp * .5f, xc = (xa + xb) * .5f; nrBoksu++;
+                    Pd(D(apDab), xa, xb, hs - .05f, hs, b0, dp - .012f, .006f);                           // siedzisko (dąb)
+                    Pd(boksSkora, xa + .03f, xb - .03f, hs, hs + .05f, b0 + .04f, dp - .04f, .02f, .012f); // poducha ze skóry
+                    Pd(lakD, xa + .02f, xb - .02f, .1f, hs - .07f, dp - .05f, dp - .03f, .006f);          // front szuflady
+                    D(apChrom).Rura(new Vector3(xc - .09f, yF + hs * .5f, zw - sg * (dp - .005f)), new Vector3(xc + .09f, yF + hs * .5f, zw - sg * (dp - .005f)), .008f, 8);
+                    foreach (float e in new[] { -.09f, .09f }) D(apChrom).Rura(new Vector3(xc + e, yF + hs * .5f, zw - sg * (dp - .03f)), new Vector3(xc + e, yF + hs * .5f, zw - sg * (dp - .005f)), .006f, 6);
+                    Pd(D(apCzarny), xa, xb, yT, yT + .03f, b0, dp - .012f, .004f);                        // półka — spód szafki górnej
+                    Pd(D(apCzarny), xa, xb, hl - .04f, hl - .01f, b0, dp - .012f, .004f);                 // wieniec górny
+                    Pd(lakD, xa + .008f, xb - .008f, yT + .034f, hl - .044f, dp - .05f, dp - .02f, .006f); // drzwiczki szafki górnej (3 cm)
+                    D(apChrom).Rura(new Vector3(xb - .07f, yF + yT + .09f, zw - sg * (dp - .012f)), new Vector3(xb - .07f, yF + yT + .21f, zw - sg * (dp - .012f)), .008f, 8);   // uchwyt styczny do drzwiczek
+                    BraxUliceKit.Napis3D(nrBoksu.ToString(), new Vector3(xc, yF + hl - .16f, zw - sg * (dp - .02f)), ws, .07f, .026f, boksCyfry, apBoki);
+                    D(apChrom).Rura(new Vector3(xa, yF + 1.42f * K, zw - sg * dp * .5f), new Vector3(xb, yF + 1.42f * K, zw - sg * dp * .5f), .012f, 10, false);   // drążek na wieszaki
+                    foreach (float e in new[] { -.25f, .25f })                                            // haczyki na plecach
+                    {
+                        var hk = new Vector3(xc + e * lw, yF + 1.25f * K, zw - sg * b0);
+                        D(apChrom).Rura(hk, hk + ws * .07f, .007f, 8); D(apChrom).Rura(hk + ws * .07f, hk + ws * .07f + Vector3.up * .035f, .007f, 8);
+                    }
+                    Pd(boksLed, xa + .05f, xb - .05f, yT - .055f, yT - .025f, b0, b0 + .025f, .004f);      // listwa LED pod szafką (2.5 cm przed plecami)
+                    if (nrBoksu == 2) siad = new Vector3(xc, yF + hs + .05f, zw - sg * dp * .55f);
                 }
-                KolAA("szafki szatni", new Vector3(lx0, F, Mathf.Min(zw, zw - sg * dp)), new Vector3(lx1, F + hl + .2f, Mathf.Max(zw, zw - sg * dp)));
+                KolAA("szafki szatni", new Vector3(lx0, F, Mathf.Min(zw, zw - sg * dp)), new Vector3(lx1, F + hl + .02f, Mathf.Max(zw, zw - sg * dp)));
             }
-            // ławka: 3 listwy dębowe na stalowej ramie (rury)
-            float zl = zw - sg * 1.25f, bx0 = x0 + 1.0f, bx1 = xD0 - .35f, hb = .45f * K;   // ławka kończy się przed drzwiami do natrysków
-            for (int k = 0; k < 3; k++) Wyciag(D(apDab), PZ(.11f, .035f, .012f, new Vector2(0, hb - .018f)), new Vector3(bx0, F, zl + (k - 1) * .125f), Vector3.right, Vector3.up, Vector3.forward, bx1 - bx0);
-            for (float x = bx0 + .2f; x < bx1; x += (bx1 - bx0 - .4f) / 2f)
-            {
-                foreach (float e in new[] { -.16f, .16f }) D(apStal).Rura(new Vector3(x, F, zl + e), new Vector3(x, hb + F - .036f, zl + e), .02f, 6);
-                D(apStal).Rura(new Vector3(x, F + hb - .05f, zl - .18f), new Vector3(x, F + hb - .05f, zl + .18f), .018f, 6);
-            }
-            KolAA("ławka szatni", new Vector3(bx0, F, zl - .2f), new Vector3(bx1, F + hb, zl + .2f));
-            BraxMiastoA.Siedzisko(root, "ŁAWKA — " + kto, new Vector3((bx0 + bx1) * .5f, F + hb, zl), -ws);
+            // siedzisko dla gracza: w boksie nr 2 (twarzą do szatni) — osobnej ławki na środku już nie ma (wolna podłoga do rozgrzewki)
+            BraxMiastoA.Siedzisko(root, "ŁAWKA — " + kto, siad, ws);
             // stół do masażu: blat tapicerowany (profil zaokrąglony), nogi, poprzeczki
             float tz = cz + sg * 3.0f, tx0 = x0 + 2.2f, tx1 = tx0 + 1.9f, th = .75f * K;
             Wyciag(stol, PZ(.7f, .1f, .04f, new Vector2(0, th - .05f)), new Vector3(tx0, F, tz), Vector3.right, Vector3.up, Vector3.forward, tx1 - tx0);
