@@ -98,3 +98,26 @@ Certyfikat transferowy jest ważny do 4.12.2026. Po tej dacie nowe paczki wymaga
 - `install_braxhorn_wideo.py` w logu CI wypisuje `BRAX_WIDEO_OK` / `BRAX_WIDEO_MISSING` dla każdej nazwy z katalogu i na końcu `BRAX_WIDEO_STAGED n`.
 - Render kontrolny pokazuje ekran z obrazem i ramką.
 - Narzędzie kontroli migotania pokazuje 0 par. W `BraxKatalog.Tv` obraz leży 14 mm przed tylną płytą panelu, a ramka wystaje 2 mm przed obraz.
+
+## 7. Reklamy przed seansem w kinie G1 (12.11.2026)
+
+Właściciel 02:49: trzy krótkie filmy (6923 festiwal, 6924 port wycieczkowców, 6925 łódka) „możesz dać przed kinem jako reklama”.
+
+- Grają **w sali kina, przed filmem**, jak w prawdziwym kinie. Zasada z 11.11 obowiązuje dalej: żadnych filmów na ulicy, więc nie ma ich na ekranach przed budynkiem.
+- Kolejność reklam zmienia się przy każdym seansie. AKCJA w sali w trakcie reklam = „POMIŃ REKLAMY” i od razu startuje film. Brakująca albo uszkodzona reklama jest pomijana, a film i tak rusza.
+- Prawdziwe logotypy są rozmyte narzędziem `unity-tools/wideo/zamaz_logo.py`, które śledzi ruch obrazu. Zamazane są:
+  - logo armatora na kadłubach i kominach statków;
+  - czerwony napis na statku;
+  - emblemat taksówki;
+  - nadruk na koszulce;
+  - herb i sponsor na koszulce klubowej;
+  - emblemat na beczce.
+
+  Boksy z kluczowych klatek leżą w paczce (`maski/*.json`).
+- Paczka `unity-city/Prywatne/mistrzowie-kino-reklamy-20261112` zawiera:
+  - `kino/reklama_0[1-3].mp4`;
+  - oryginały;
+  - maski.
+
+  CI rozpakowuje ją przez `install_owner_media.py` do `StreamingAssets/Mistrzowie/Kino`. Lista jest w `repertuar.json` → `"reklamy"`.
+- Test: `unity-tools/mistrzowie/test_kino_reklamy_20261112.py`.

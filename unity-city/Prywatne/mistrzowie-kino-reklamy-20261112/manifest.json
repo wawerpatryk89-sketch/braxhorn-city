@@ -1,0 +1,26 @@
+{
+ "source": "owner 12.11.2026 02:49: three short films (6923 festival, 6924 cruise port, 6925 boat trip) \"możesz dać przed kinem jako reklama\" - the G1 cinema's pre-show before every film; real brand marks blurred (unity-tools/wideo/zamaz_logo.py with maski/*.json)",
+ "staging": "kino/*.mp4 -> unity-city/Assets/StreamingAssets/Mistrzowie/Kino (install_owner_media.py; repertuar.json \"reklamy\")",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "edb2042da9d8c4265be62d3b0850827d5f93bc3b6f7026f8596d64fd7a7eecc4",
+ "cmsSha256": "04872a71b04440c2f3df127a3aa73292de7e0c6eeaa999d9ef5d9ecf478d0ded",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 22253325,
+   "sha256": "04872a71b04440c2f3df127a3aa73292de7e0c6eeaa999d9ef5d9ecf478d0ded"
+  }
+ ],
+ "files": {
+  "kino/reklama_01.mp4": "a976dacafc6dd8aef2a8e2acab8fea7ca05d35ff23429c6bea589c767432e150",
+  "kino/reklama_02.mp4": "09faf9a244198a1b881497d13ddc0637852322d3255d6337f7169974996889c1",
+  "kino/reklama_03.mp4": "0a051247edf7c89a091fd2526c652b343e2050aa7d623a4083130cc2bb01a35d",
+  "maski/maski_6923.json": "9417116173e343ba1d60e98e89c1554c56a71e888e1db48b040b95c26fae1753",
+  "maski/maski_6924.json": "9aa7b6ded5f18c28b485ad14b63f836e9b6cb25ac7d00af100f02b59d5f6ed20",
+  "maski/maski_6925.json": "962f8d7400e784d1fcb8175c1cb7f6e7125e7d7dd65452178aec8fb08157cb31",
+  "oryginaly/6923.mp4": "51040c545f24e7c81d9a2ec7437a4d0255305d65ec153d52dc8023f43406dc36",
+  "oryginaly/6924.mp4": "ee68e72af820030dac7e8abbc87dc070b39528d7e1b73f7b9d18d9a40ad050cb",
+  "oryginaly/6925.mp4": "9b1d6fb79c814654e0b0ca18262e3aa2c854a78a5dedb8e3d6ff3bced6536c5a"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

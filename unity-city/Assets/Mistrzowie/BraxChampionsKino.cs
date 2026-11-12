@@ -29,7 +29,9 @@ using UnityEngine.Video;
 public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
 {
     [Serializable] public sealed class Film { public string tytul = ""; public string plik = ""; public string url = ""; public string plakat = ""; public string baner = ""; public int minuty; public string wiek = ""; public string opis = ""; }
-    [Serializable] sealed class Repertuar { public Film[] filmy = new Film[0]; }
+    // reklamy: the owner's short clips (MP4 in the same folder) played as the pre-show before every film, like a real cinema
+    // (owner 12.11 02:49 "możesz dać przed kinem jako reklama"; inside the hall only - the 11.11 rule: no films on streets)
+    [Serializable] sealed class Repertuar { public Film[] filmy = new Film[0]; public string[] reklamy = new string[0]; }
 
     // ---- configuration (BraxChampionsG1Kino, world space)
     public Renderer[] ekrany = new Renderer[0];                       // hall screens (uv 0..1 = the picture), hall order
@@ -56,6 +58,10 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
     static readonly int Ambient = Shader.PropertyToID("_AmbientIntensity"), Emisja = Shader.PropertyToID("_EmissionColor");
 
     readonly List<Film> filmy = new List<Film>();
+    // the show's queue: the pre-show ads (rotated each show) and then the film; AKCJA during the ads skips to the film,
+    // a missing or broken ad is skipped (the film still starts)
+    readonly List<string> reklamy = new List<string>(), kolejka = new List<string>(); int krok, seanse;
+    bool Reklama => salaGra >= 0 && kolejka.Count > 1 && krok < kolejka.Count - 1;
     bool wczytane;
     int wybor, bilet = -1, biletSala = -1, biletRzad, biletMiejsce;
     enum Stan { Nic, Laduje, Gra, Pauza, Koniec, Blad }
@@ -128,13 +134,14 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
                 {
                     var r = JsonUtility.FromJson<Repertuar>(rq.downloadHandler.text);
                     if (r != null && r.filmy != null) foreach (var f in r.filmy) if (f != null && !string.IsNullOrEmpty(f.tytul)) filmy.Add(f);
+                    if (r != null && r.reklamy != null) foreach (var a in r.reklamy) if (!string.IsNullOrEmpty(a)) reklamy.Add(a);
                 }
                 catch (Exception e) { Debug.LogWarning("BRAXHORN_KINO repertuar.json DO POPRAWKI " + e.Message); }
             }
             else Debug.Log("BRAXHORN_KINO brak repertuaru (" + rq.error + ") - ekrany: WKRÓTCE");
         }
         wczytane = true;
-        Debug.Log("BRAXHORN_KINO repertuar filmy=" + filmy.Count);
+        Debug.Log("BRAXHORN_KINO repertuar filmy=" + filmy.Count + " reklamy=" + reklamy.Count);
         Maluj();
         var obrazy = new List<string>();
         foreach (var f in filmy) { if (!string.IsNullOrEmpty(f.plakat)) obrazy.Add(f.plakat); if (!string.IsNullOrEmpty(f.baner)) obrazy.Add(f.baner); }
@@ -240,7 +247,7 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
         T(px, w, hh, f >= 0 ? Krotko(Tytul(filmy[f]), 16) : "WKRÓTCE", 26, 5, 1, Bursztyn);
         bool tu = h == salaGra && (stan == Stan.Gra || stan == Stan.Pauza);
         var nx = Nastepne(h, 1);
-        T(px, w, hh, tu ? "SEANS TRWA" : f >= 0 && nx.Count > 0 ? "SEANS " + Hm(nx[0]) : "", 26, 18, 1, tu ? BraxChampionsPiksele.Czerwony : BraxChampionsPiksele.Cyjan);
+        T(px, w, hh, tu ? (Reklama ? "REKLAMY" : "SEANS TRWA") : f >= 0 && nx.Count > 0 ? "SEANS " + Hm(nx[0]) : "", 26, 18, 1, tu ? BraxChampionsPiksele.Czerwony : BraxChampionsPiksele.Cyjan);
     }
     Texture2D karta;
     void Plakaty()
@@ -295,7 +302,7 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
         int h = Sala(p);
         if (h >= 0 && h == salaGra)
         {
-            if (stan == Stan.Gra) return "KINO · PAUZA";
+            if (stan == Stan.Gra) return Reklama ? "KINO · POMIŃ REKLAMY" : "KINO · PAUZA";
             if (stan == Stan.Pauza) return "KINO · WZNÓW SEANS";
         }
         if (h >= 0 && N > 0 && zaDarmo && FilmSali(h) >= 0 && !(h == salaGra && (stan == Stan.Gra || stan == Stan.Pauza || stan == Stan.Laduje)))
@@ -325,6 +332,7 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
             Maluj(); return true;
         }
         int h = Sala(p);
+        if (h >= 0 && h == salaGra && vp && Reklama && (stan == Stan.Gra || stan == Stan.Pauza)) { krok = kolejka.Count - 2; Dalej(); return true; }
         if (h >= 0 && h == salaGra && vp)
         {
             if (stan == Stan.Gra) { vp.Pause(); stan = Stan.Pauza; Maluj(); return true; }
@@ -396,6 +404,16 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
         string adres = !string.IsNullOrEmpty(film.url) ? film.url : !string.IsNullOrEmpty(film.plik) ? Sciezka(film.plik) : "";
         if (adres.StartsWith("file://")) adres = adres.Substring(7);
         salaGra = h;
+        kolejka.Clear(); krok = 0;
+        if (!string.IsNullOrEmpty(adres))
+        {
+            for (int i = 0; i < reklamy.Count; i++)
+            {
+                string a = reklamy[(seanse + i) % reklamy.Count]; a = a.StartsWith("http") ? a : Sciezka(a);
+                kolejka.Add(a.StartsWith("file://") ? a.Substring(7) : a);
+            }
+            seanse++; kolejka.Add(adres);
+        }
         if (string.IsNullOrEmpty(adres)) { stan = Stan.Blad; Maluj(); return; }
         if (!vp)
         {
@@ -411,10 +429,10 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
         if (!rt) { rt = new RenderTexture(1280, 720, 0, RenderTextureFormat.ARGB32) { name = "G1 kino obraz" }; rt.Create(); }
         vp.targetTexture = rt;
         if (h < glosnik.Length) glos.transform.position = glosnik[h];
-        vp.source = VideoSource.Url; vp.url = adres;
+        vp.source = VideoSource.Url; vp.url = kolejka[0];
         stan = Stan.Laduje; Maluj();
         vp.Prepare();
-        Debug.Log("BRAXHORN_KINO seans sala=" + (h + 1) + " film=" + film.tytul + " adres=" + adres);
+        Debug.Log("BRAXHORN_KINO seans sala=" + (h + 1) + " film=" + film.tytul + " reklamy=" + (kolejka.Count - 1) + " adres=" + adres);
     }
     void Gotowe(VideoPlayer v)
     {
@@ -424,9 +442,15 @@ public sealed class BraxChampionsKino : MonoBehaviour, IBraxInterakcja
         if (salaGracza == salaGra) { v.Play(); stan = Stan.Gra; } else { stan = Stan.Pauza; }
         Maluj();
     }
-    void Koniec(VideoPlayer v) { stan = Stan.Koniec; bilet = -1; biletSala = -1; Obraz(); Maluj(); }
-    void Blad(VideoPlayer v, string msg) { Debug.LogWarning("BRAXHORN_KINO film DO POPRAWKI " + msg); stan = Stan.Blad; Obraz(); Maluj(); }
-    void Zatrzymaj() { if (vp) vp.Stop(); Przyciemnij(salaGra, 1f); stan = Stan.Nic; Obraz(); salaGra = -1; jasnosc = 1f; for (int i = 0; i < swiatla.Length; i++) if (swiatla[i]) swiatla[i].intensity = swiatlaBaza[i]; }
+    // the next item of the show (the next ad or the film): the screen keeps the last frame until it is ready, the lights stay down
+    void Dalej()
+    {
+        if (!vp || krok >= kolejka.Count - 1) return;
+        krok++; vp.Stop(); vp.url = kolejka[krok]; stan = Stan.Laduje; vp.Prepare(); Maluj();
+    }
+    void Koniec(VideoPlayer v) { if (Reklama) { Dalej(); return; } stan = Stan.Koniec; bilet = -1; biletSala = -1; Obraz(); Maluj(); }
+    void Blad(VideoPlayer v, string msg) { if (Reklama) { Debug.Log("BRAXHORN_KINO reklama pominięta " + msg); Dalej(); return; } Debug.LogWarning("BRAXHORN_KINO film DO POPRAWKI " + msg); stan = Stan.Blad; Obraz(); Maluj(); }
+    void Zatrzymaj() { if (vp) vp.Stop(); Przyciemnij(salaGra, 1f); stan = Stan.Nic; Obraz(); salaGra = -1; kolejka.Clear(); krok = 0; jasnosc = 1f; for (int i = 0; i < swiatla.Length; i++) if (swiatla[i]) swiatla[i].intensity = swiatlaBaza[i]; }
     // the hall's surfaces: their ambient (the region's interior light) scaled by k through property blocks
     void Przyciemnij(int sala, float k)
     {

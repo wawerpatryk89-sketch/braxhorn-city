@@ -8,6 +8,9 @@ assety od właściciela pakować od razu):
   unity-city/Prywatne/braxhorn-wideo-20261111/          the TV library: tv/*.mp4 (640x360) and pion/*.mp4 (360x640), with
                                                         sound, -> Assets/StreamingAssets/BraxhornWideo/{tv,pion}
   unity-city/Prywatne/mistrzowie-reklamy-20261111/      the five 16:9 ads' originals (kept as the source; not staged)
+  unity-city/Prywatne/mistrzowie-kino-reklamy-20261112/ the cinema's pre-show (owner 12.11 02:49 "przed kinem jako reklama"):
+                                                        kino/reklama_0[1-3].mp4 with the real brand marks blurred ->
+                                                        StreamingAssets/Mistrzowie/Kino (repertuar.json "reklamy")
 
 Each pack: tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (the owner's CI transfer certificate "Braxhorn camp
 input transfer", release oboz-transfer-key-41749904696) -> parts <= 90 MB with SHA-256 in manifest.json. The private key
@@ -40,6 +43,13 @@ OPENSSL_VARIANTS = [
 FILMS = {
     "bezprawie.mp4": "3776901578c7599ee00240a51714d2983a6e7ba7347daafe15046e0e3adb8925",
     "bez_granic_1.mp4": "98f207add8ea2d77d6b5f8bbfb21bd4ed46310f5b2f89b81cd167ec6990228ac",
+}
+
+# the cinema's pre-show ads (BraxChampionsKino plays them before every film; AKCJA skips them)
+ADS = {
+    "reklama_01.mp4": "a976dacafc6dd8aef2a8e2acab8fea7ca05d35ff23429c6bea589c767432e150",
+    "reklama_02.mp4": "09faf9a244198a1b881497d13ddc0637852322d3255d6337f7169974996889c1",
+    "reklama_03.mp4": "0a051247edf7c89a091fd2526c652b343e2050aa7d623a4083130cc2bb01a35d",
 }
 
 
@@ -120,6 +130,13 @@ def main():
             for n, d in FILMS.items():
                 if sha256(films / n) == d:
                     shutil.copy2(films / n, SA / "Kino" / n); print("BRAX_KINO_FILM_OK " + n)
+        ads = open_pack("mistrzowie-kino-reklamy-20261112", tmp)
+        if ads:
+            (SA / "Kino").mkdir(parents=True, exist_ok=True)
+            for n, d in ADS.items():
+                f = ads / "kino" / n
+                if f.exists() and sha256(f) == d:
+                    shutil.copy2(f, SA / "Kino" / n); print("BRAX_KINO_REKLAMA_OK " + n)
     return 0
 
 
