@@ -65,5 +65,6 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsAquaparkWyposazenie.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsAquaparkZjezdzalnie.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsAquaparkBudynek.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsAquaparkRzeka.cs" />
   </ItemGroup>
 </Project>

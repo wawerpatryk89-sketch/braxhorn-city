@@ -7,7 +7,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 ED = ROOT / 'unity-city/Assets/Editor/Mistrzowie'
-FILES = ['BraxChampionsAquapark', 'BraxChampionsAquaparkTeren', 'BraxChampionsAquaparkWyposazenie', 'BraxChampionsAquaparkZjezdzalnie', 'BraxChampionsAquaparkBudynek']
+FILES = ['BraxChampionsAquapark', 'BraxChampionsAquaparkTeren', 'BraxChampionsAquaparkWyposazenie', 'BraxChampionsAquaparkZjezdzalnie', 'BraxChampionsAquaparkBudynek',
+         'BraxChampionsAquaparkRzeka']
 
 
 def src():
@@ -20,6 +21,7 @@ class Aquapark(unittest.TestCase):
         self.assertIn('BraxChampionsAquapark.Generate()', b)
         for f in FILES: self.assertTrue((ED / (f + '.cs.meta')).exists(), f)
         self.assertTrue((ROOT / 'unity-city/Assets/Mistrzowie/BraxChampionsZjezdzalnia.cs.meta').exists())
+        self.assertTrue((ROOT / 'unity-city/Assets/Mistrzowie/BraxChampionsLeniwaRzeka.cs.meta').exists())
 
     def test_ground_cut_matches_the_lot(self):
         lf = (ROOT / 'unity-tools/mistrzowie/legacy_foundation.py').read_text(encoding='utf8')
@@ -59,6 +61,19 @@ class Aquapark(unittest.TestCase):
         self.assertNotIn('BraxChampionsGold', s)
         self.assertIn('Braxhorn/ChampionsP1PoolWater', s)
         self.assertIn('AQUAPARK_TRIANGULATE_AREA', s)                                # every surface checked for gaps / overlaps
+
+
+    def test_lazy_river(self):
+        # LENIWA RZEKA: a real pool (swimming), the rings drift on it and you ride them, stairs in, the bank to get off
+        s = src()
+        self.assertIn('MakePool(river, poolTile, poolFloor, water, true, true)', s)
+        self.assertIn('AddComponent<BraxChampionsLeniwaRzeka>()', s)
+        self.assertIn('rz.brzeg = bank', s)
+        self.assertIn('SetStaticEditorFlags(t.gameObject, 0)', s)          # moving rings: never static-batched
+        self.assertIn('river.cop', s)                                        # cut out of the deck
+        r = (ROOT / 'unity-city/Assets/Mistrzowie/BraxChampionsLeniwaRzeka.cs').read_text(encoding='utf8')
+        self.assertIn('"LENIWA RZEKA · WSIĄDŹ DO KOŁA"', r)
+        self.assertIn('Zejdz()', r)
 
 
 if __name__ == '__main__':

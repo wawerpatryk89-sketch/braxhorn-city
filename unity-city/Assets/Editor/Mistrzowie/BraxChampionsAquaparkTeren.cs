@@ -7,7 +7,8 @@ using UnityEngine;
 // centre CX/CZ, +x east, +z north; the street Z70 and the entrance pavilion south, the tram stop on Z330 behind):
 //   forecourt z -113..-96 | pavilion x -58..58, z -96..-64 | deck with the south teak terrace | LAGOON x -38..46, z -20..35
 //   | slide tower x 23..33, z 53..63, red tube spiral round (10, 62), yellow round (43, 60), racers into the north bay
-//   | KIDS' ZONE x -98..-56, z 22..66 west | JACUZZI teak deck x 58..92, z -12..22 east | lawns with palms round the edge.
+//   | KIDS' ZONE x -98..-56, z 22..66 west | LENIWA RZEKA x -97..-64, z -58..8 round a palm island (south-west)
+//   | JACUZZI teak deck x 58..92, z -12..22 east | lawns with palms round the edge.
 public static partial class BraxChampionsAquapark
 {
     sealed class Pool { public string id; public List<Vector2> edge, cop; public float water, floor; public readonly List<List<Vector2>> islands = new List<List<Vector2>>(); }
@@ -45,11 +46,12 @@ public static partial class BraxChampionsAquapark
             p.cop = Offset(p.edge, .35f); spas.Add(p);
         }
         // lawns (palms, flowers): west strip, east strip, the north band split by the path to the tram gate, islands
-        lawns.Add(W(RoundRect(-99f, -64f, -60f, 10f, 5f)));
         lawns.Add(W(RoundRect(62f, 99f, -60f, -22f, 5f)));
         lawns.Add(W(RoundRect(-99f, -75f, 76f, 109f, 5f)));
         lawns.Add(W(RoundRect(-63f, 99f, 80f, 109f, 5f)));
         lawns.Add(W(RoundRect(56f, 99f, 30f, 70f, 5f)));
+        // the west: LENIWA RZEKA round a palm island (BraxChampionsAquaparkRzeka) where the big west lawn was
+        RiverLayout();
         plazaRect = new List<Vector2> { P(-103, -113), P(103, -113), P(103, -96), P(-103, -96) };
         // the deck: the lot without the forecourt strip and the pavilion's footprint (a notch, never a touching hole)
         deckOuter = Ccw(new[] { P(-103, -96), P(-58, -96), P(-58, -64), P(58, -64), P(58, -96), P(103, -96), P(103, 113), P(-103, 113) });
@@ -73,6 +75,7 @@ public static partial class BraxChampionsAquapark
             JacuzziBench(s);
         }
         Pools = 2 + spas.Count;
+        RiverPool();
     }
 
     static void MakePool(Pool p, Material wall, Material floorMat, Material wat, bool lights, bool swim)
@@ -238,7 +241,7 @@ public static partial class BraxChampionsAquapark
     // ================================================================ GROUND
     static void Ground()
     {
-        var holes = new List<List<Vector2>> { lagoon.cop, kidsArea, teakSouth, teakEast };
+        var holes = new List<List<Vector2>> { lagoon.cop, river.cop, kidsArea, teakSouth, teakEast };
         foreach (var l in lawns) holes.Add(Offset(l, .15f));
         foreach (var (c, r) in palmPlanters) holes.Add(Circle(c, r + .14f, 32));
         Fill(walk, deck, deckOuter, holes, DY);

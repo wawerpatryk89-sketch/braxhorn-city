@@ -15,3 +15,9 @@ public static class BraxChampionsPostacie
 }
 // the region's looping 3D water sound (R1 runtime): the preview records only its settings
 public sealed class BraxZrodloPetli : MonoBehaviour { public string rodzaj = "woda"; public float glosnosc = .5f, zasieg = 30f; }
+// the lazy river's drifting rings (Unity only): the preview records the loop and the rings
+public sealed class BraxChampionsLeniwaRzeka : MonoBehaviour
+{
+    public Vector3[] petla = new Vector3[0], brzeg = new Vector3[0]; public Transform[] kola = new Transform[0]; public BraxSeat[] siedziska = new BraxSeat[0];
+    public float predkosc, zasieg, siedzenie, kolysanie;
+}
