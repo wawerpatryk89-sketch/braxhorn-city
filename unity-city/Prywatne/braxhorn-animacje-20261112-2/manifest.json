@@ -1,0 +1,23 @@
+{
+ "source": "Owner Mixamo animations 12.11.2026 23:23-23:25 (Waving_1.zip: Waving x2, Talking At Watercooler, Watering); list: animacje_20261112_2/katalog.json",
+ "target": "animacje_20261112_2",
+ "staging": "not staged by any build yet; kept so nothing is lost",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (same recipient as braxhorn-sklep-*) -> one part",
+ "tarSha256": "313708a65608904fc13dcae090977d2372e0c3abb9bd1e569eadb6e022d85c76",
+ "cmsSha256": "7aaae2473164008c053d77ef390320f3a640f59c4aa93bc6cb500c77979fe777",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 7967296,
+   "sha256": "7aaae2473164008c053d77ef390320f3a640f59c4aa93bc6cb500c77979fe777"
+  }
+ ],
+ "files": {
+  "animacje_20261112_2/Talking At Watercooler.fbx": "051ceef7522b74d7d20f2c6392b9e1b08b5aad100349b6b570bf3c212a690929",
+  "animacje_20261112_2/Watering.fbx": "b87b47c82fdfb2cded7aef0a697b5592e6f291bd838dbfe2124face5753fd759",
+  "animacje_20261112_2/Waving (1).fbx": "95561882e402755ff94bce37d8755998c6785218bdb61682ed9bfa9a4cc82850",
+  "animacje_20261112_2/Waving.fbx": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+  "animacje_20261112_2/katalog.json": "183dc1f0355370714e00a840038f1d0d25844401747d3e9ceed4b08b1f7963dd"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
