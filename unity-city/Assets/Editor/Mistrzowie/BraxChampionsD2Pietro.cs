@@ -6,7 +6,7 @@ using UnityEngine;
 // D2 first floor (board: "Piętro (+1): strefa gastronomiczna, sklepy, biura, zaplecze"; "pełna dostępność: windy"):
 // * in each wing's front corner by the hall (x +-23..30, z .9..8.8, open to the hall through the walnut portal) a U stair
 //   (2 x 13 risers of 17.6 cm, 30 cm going, granite treads with contrast nosings, glass balustrades: separate panes, black posts, black handrail caps)
-//   and a working lift (BraxWinda) HOL <-> PIĘTRO;
+//   (the lift HOL <-> PIĘTRO was removed on the owner's word 12.11: no lifts in the station);
 // * WEST +1: the food court - three food counters along the outer wall with 3D names on navy bands and lit menu boards,
 //   twelve round marble tables with four upholstered chairs each, the gallery over the hall;
 // * EAST +1: shops and offices behind glass fronts (PRASA · KSIĄŻKI, PAMIĄTKI, BIURO PODRÓŻY) with shelves and desks;
@@ -70,16 +70,8 @@ public static partial class BraxChampionsD2
         Rail(new Vector3(X(22.95f),UpY,.85f),new Vector3(X(22.95f),UpY,6.45f),false);
         Rail(new Vector3(X(28.25f),UpY,.85f),new Vector3(X(28.25f),UpY,6.45f),false);
         Rail(new Vector3(X(22.95f),UpY,6.45f),new Vector3(X(25.6f),UpY,6.45f),false);
-        // the lift: shaft x 28.4..29.94, z 6.6..8.8, doors toward the stair (-s x)
-        float lx0=Mathf.Min(X(28.4f),X(29.94f)),lx1=Mathf.Max(X(28.4f),X(29.94f));
-        foreach(float y in new[]{FFL,UpY})
-        {
-            float dx=s<0?lx1:lx0;
-            B(frame,dx-.04f,dx+.04f,y,y+2.2f,6.68f,7.25f,true);B(frame,dx-.04f,dx+.04f,y,y+2.2f,8.15f,8.72f,true);
-            B(frame,dx-.04f,dx+.04f,y+2.2f,y==FFL?Floor1:y+2.58f,6.68f,8.72f,true);
-        }
-        B(plaster,lx0,lx1,FFL,UpY+2.6f,6.6f,6.68f,true);B(plaster,lx0,lx1,FFL,UpY+2.6f,8.72f,8.8f,true);
-        BuildingLift("D2 winda piętro "+(s<0?"zachód":"wschód"),(lx0+lx1)*.5f,7.7f,.62f,.98f,s*90f,new[]{FFL+.012f,UpY+.012f},new[]{"HOL","PIĘTRO"},.45f);
+        // (no lift beside the stair any more: owner 12.11 12:00 "żadnych wind tam nie ma być" - the whole station is lift-free;
+        // the +1 slab is closed where its shaft was)
     }
     // a lift in the building (BraxWinda): car hw (along the door) x hd (depth), the door face at the car's local -z
     static void BuildingLift(string id,float xc,float zc,float hw,float hd,float yaw,float[] stops,string[] names,float doorHalf)

@@ -22,8 +22,49 @@ public static class MeshDump
             ",\"emission\":[" + F(m.emission.r) + "," + F(m.emission.g) + "," + F(m.emission.b) + "]}";
     }
     // scale: world units per nominal metre (K when the generator multiplies positions by K itself)
+    // Owner 12.11 11:39 ("każde wejście, każde drzwi chcę widzieć, jak wyglądają, czy się otwierają"): every door of the
+    // generated scene is listed next to the dump (<file>.doors.json: name, kind, centre, facing, how it opens) and, with
+    // PREVIEW_DOORS_OPEN=1, drawn OPEN exactly the way its game component moves it - hinged leaves (BraxCityDoor) turned
+    // 90 degrees by their sides, sliding leaves (BraxDrzwiAutomatyczne, BraxDrzwiPrzesuwne) moved by their travel. Read by
+    // reflection, so every preview's own stand-ins work.
+    static object Fld(object o, string n) => o.GetType().GetField(n)?.GetValue(o);
+    public static void Doors(string file, Transform root, float scale)
+    {
+        bool open = Environment.GetEnvironmentVariable("PREVIEW_DOORS_OPEN") == "1";
+        var list = new List<string>();
+        foreach (var c in root.gameObject.All<Component>())
+        {
+            string kind = c.GetType().Name; Transform t = c.transform; string label = c.gameObject.name, how;
+            if (kind == "BraxCityDoor")
+            {
+                var leaves = Fld(c, "leaves") as Transform[]; var sides = Fld(c, "sides") as float[];
+                label = (Fld(c, "label") as string) ?? label; how = "skrzydła na zawiasach, otwierają się same przy podejściu (" + (leaves?.Length ?? 0) + ")";
+                if (open && leaves != null) for (int i = 0; i < leaves.Length; i++) if (leaves[i] != null)
+                    leaves[i].localRotation = leaves[i].localRotation * Quaternion.Euler(0, (sides != null && i < sides.Length ? sides[i] : 1f) * 90f, 0);
+            }
+            else if (kind == "BraxDrzwiAutomatyczne")
+            {
+                var l = Fld(c, "skrzydloL") as Transform; var r = Fld(c, "skrzydloP") as Transform; float d = Fld(c, "przesuw") is float f ? f : 1f;
+                label = (Fld(c, "nazwa") as string) ?? label; how = "automatyczne rozsuwane, otwierają się same przy podejściu";
+                if (open) { if (l != null) l.localPosition = l.localPosition + new Vector3(-d, 0, 0); if (r != null) r.localPosition = r.localPosition + new Vector3(d, 0, 0); }
+            }
+            else if (kind == "BraxDrzwiPrzesuwne")
+            {
+                var leaves = Fld(c, "skrzydla") as Transform[]; var mv = Fld(c, "przesuniecie") as Vector3[];
+                label = (Fld(c, "etykieta") as string) ?? label; how = "przesuwne, otwierają się same przy podejściu";
+                if (open && leaves != null && mv != null) for (int i = 0; i < leaves.Length && i < mv.Length; i++) if (leaves[i] != null) leaves[i].localPosition = leaves[i].localPosition + mv[i];
+            }
+            else continue;
+            var pos = root.InverseTransformPoint(t.position) / scale; var fw = Quaternion.Inverse(root.rotation) * (t.rotation * Vector3.forward);
+            list.Add("{\"name\":\"" + label.Replace("\"", "'") + "\",\"kind\":\"" + kind + "\",\"how\":\"" + how + "\",\"pos\":[" + V(pos) + "],\"forward\":[" + V(fw) + "]}");
+        }
+        File.WriteAllText(file + ".doors.json", "[" + string.Join(",\n", list) + "]", new UTF8Encoding(false));
+        Console.WriteLine("DOORS " + list.Count + (open ? " (drawn OPEN)" : ""));
+    }
+
     public static void Write(string file, Transform root, float scale, Func<GameObject, bool> skip = null)
     {
+        Doors(file, root, scale);
         // streamed to the file (a whole region is ~0.5 GB of text: one string of it ran the preview out of memory)
         using var sb = new StreamWriter(file, false, new UTF8Encoding(false), 1 << 20);
         sb.Write("{\"levels\":[0],\"quads\":[");

@@ -19,8 +19,16 @@ class PeronMigotanie(unittest.TestCase):
         holes = re.search(r'static IEnumerable<\(float x0,float x1\)> Holes\(float xa\)\{(.*?)\}', k).group(1)
         self.assertEqual(holes.count('yield return'), 1)
         self.assertNotIn('LiftCar(', src('BraxChampionsD2Autobusy.cs'))
-        # the lifts inside the station building (hall <-> first floor) stay
-        self.assertIn('BuildingLift(', src('BraxChampionsD2Pietro.cs'))
+        # owner 12.11 12:00 "żadnych wind tam nie ma być": no lift anywhere in the station (the G1 gallery keeps its own)
+        self.assertNotIn('BuildingLift("D2', src('BraxChampionsD2Pietro.cs'))
+        self.assertNotIn('29.94f', src('BraxChampionsD2Budynek.cs'))
+        self.assertIn('BuildingLift(', src('BraxChampionsG1Wnetrze.cs'))
+
+    def test_train_has_a_locomotive_at_each_end(self):
+        s = src('BraxChampionsD2Sklad.cs')
+        self.assertIn('Locomotive(front-TLocoLoB,front);', s)
+        self.assertIn('Locomotive(xw-TLocoLoB,xw,"BX 160-02");', s)
+        self.assertIn('float len=2f*TLocoLoB+TrainCoaches*TCoachLoB;', s)
 
     def test_platform_lines_and_nosings_inlaid(self):
         k = src('BraxChampionsD2Kolej.cs')

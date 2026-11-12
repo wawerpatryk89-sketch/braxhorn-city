@@ -97,7 +97,7 @@ public static partial class BraxChampionsD2
         TrainMaterials();
         trainSeats=0;
         Flush("D2 zegary i reszta przed pociągiem");                             // nothing of the station may end up in the moving group
-        tg=Group(root,"D2 pociąg | lokomotywa + "+TrainCoaches+" wagony (z kodu) - BraxChampionsD2Pociag");
+        tg=Group(root,"D2 pociąg | 2 lokomotywy + "+TrainCoaches+" wagony (z kodu) - BraxChampionsD2Pociag");
         float front=TrainStopX;
         Locomotive(front-TLocoLoB,front);
         Flush("D2 pociąg | lokomotywa",tg);
@@ -107,15 +107,22 @@ public static partial class BraxChampionsD2
             Coach(k,x0+TBuf,x1-TBuf,k==0,k==TrainCoaches-1);
             Flush("D2 pociąg | wagon "+(k+1),tg);
         }
+        // owner 12.11 12:01 ("jedzie i koniec drogi, nie ma drogi ... powinny być dwie lokomotywy czy nie?"): the tracks end
+        // at the buffer stop east of the platforms, so the train turns back here - like every train at a terminus it has a
+        // locomotive at EACH end: it comes in from the tunnel with the west one leading, stops at the buffer, and leaves
+        // back west over the bridge into the tunnel with the other one leading (the driver changes ends; nothing turns)
+        float xw=front-TLocoLoB-TrainCoaches*TCoachLoB;
+        Locomotive(xw-TLocoLoB,xw,"BX 160-02");
+        Flush("D2 pociąg | lokomotywa 2 (zachodnia)",tg);
         // gangways between the coaches (bellows, walkable)
         for(int k=0;k+1<TrainCoaches;k++){float xe=front-TLocoLoB-(k+1)*TCoachLoB;Gangway(xe-TBuf,xe+TBuf);}
         Flush("D2 pociąg | przejścia",tg);
         foreach(var t in tg.GetComponentsInChildren<Transform>(true))GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
-        float len=TLocoLoB+TrainCoaches*TCoachLoB;
+        float len=2f*TLocoLoB+TrainCoaches*TCoachLoB;
         var run=tg.gameObject.AddComponent<BraxChampionsD2Pociag>();trainRun=run;
         run.wjazdX=(LX(PortalWX)-60f-TrainStopX)*K;run.wyjazdX=(LX(TunnelEndWX)+10f+len-TrainStopX)*K;run.drugiTorZ=(Track2Z-Track1Z)*K;
         run.predkosc=TrainSpeed*K;run.hamowanie=.9f*K;run.postoj=240f;run.przerwa=35f;run.staly=true;
-        Debug.Log("D2_POCIAG z kodu: lokomotywa + "+TrainCoaches+" wagony, długość "+len.ToString("0.0")+" m, drzwi peronowe="+(TrainCoaches*2)+" (działają), miejsca="+trainSeats+", stopX="+TrainStopX);
+        Debug.Log("D2_POCIAG z kodu: 2 lokomotywy (po jednej na każdym końcu) + "+TrainCoaches+" wagony, długość "+len.ToString("0.0")+" m, drzwi peronowe="+(TrainCoaches*2)+" (działają), miejsca="+trainSeats+", stopX="+TrainStopX);
     }
     static int trainSeats;
     static void TSeat(float x,float h,float w,float f,string label)
@@ -592,7 +599,7 @@ public static partial class BraxChampionsD2
         var L=go.AddComponent<Light>();L.type=LightType.Spot;L.range=55f*K;L.spotAngle=34f;L.intensity=3.2f;L.color=new Color(1f,.97f,.90f);L.shadows=LightShadows.None;
     }
 
-    static void Locomotive(float x0,float x1)
+    static void Locomotive(float x0,float x1,string nr="BX 160-01")
     {
         float xr=x0+.55f,xf=x1-.55f,hw=TLocoHW;
         float XF(float h)=>xf-NoseSide(h);float XR(float h)=>xr+NoseSide(h);
@@ -697,7 +704,7 @@ public static partial class BraxChampionsD2
             // name and number in 3D
             var lm=new BraxChampionsMeshBatch();float yaw=s<0?180f:0f;
             BraxChampionsLetters3D.Text(lm,whiteLetters,tPaintNavy,"BRAXHORN",TP((xr+xf)*.5f,1.42f,s*(hw+.002f)),yaw,.42f,.02f,.12f,7.0f);
-            foreach(float dir in new[]{1f,-1f})BraxChampionsLetters3D.Text(lm,whiteLetters,tPaintNavy,"BX 160-01",TP(dir>0?xf-1.75f:xr+1.75f,1.66f,s*(hw+.002f)),yaw,.12f,.012f,.10f,.9f);
+            foreach(float dir in new[]{1f,-1f})BraxChampionsLetters3D.Text(lm,whiteLetters,tPaintNavy,nr,TP(dir>0?xf-1.75f:xr+1.75f,1.66f,s*(hw+.002f)),yaw,.12f,.012f,.10f,.9f);
             BraxChampionsLetters3D.Build(lm,tg,"D2 lokomotywa napisy "+(s<0?"peron":"tor"));Signs++;
         }
         // underframe, equipment, bogies, buffers, couplings, aprons and ploughs

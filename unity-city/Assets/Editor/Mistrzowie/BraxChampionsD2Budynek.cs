@@ -529,11 +529,11 @@ public static partial class BraxChampionsD2
         {
             float a=s*HallW,b=s*BW,lo=Mathf.Min(a,b),hi=Mathf.Max(a,b);
             float li=s<0?lo:lo+.06f,hj=s<0?hi-.06f:hi;
-            // the +1 slab with the holes of the stair core and its lift (x +-23..30, z .9..8.8)
-            var holes=new List<(float,float,float,float)>{(Mathf.Min(s*23f,s*28.2f),Mathf.Max(s*23f,s*28.2f),.9f,6.4f),(Mathf.Min(s*28.4f,s*29.94f),Mathf.Max(s*28.4f,s*29.94f),6.6f,8.8f)};
+            // the +1 slab with the hole of the stair core (x +-23..28.2, z .9..6.4); no lift shaft any more (owner 12.11)
+            var holes=new List<(float,float,float,float)>{(Mathf.Min(s*23f,s*28.2f),Mathf.Max(s*23f,s*28.2f),.9f,6.4f)};
             Slab(concrete,li,hj,.06f,BD-.06f,Floor1,Floor1+.35f,holes,true);
             Slab(hallFloor,li,hj,.06f,BD-.06f,Floor1+.388f,Floor1+.40f,holes,false);
-            // the ground-floor ceiling of the wing: larch slats on black felt with LED lines, the stair well and lift open
+            // the ground-floor ceiling of the wing: larch slats on black felt with LED lines, the stair well open
             SlatCeiling(lo,hi,.06f,BD-.06f,Floor1-.012f,holes);
             // the stair well's slab edges lined with a navy band (nosing flush with the +1 floor), where no flight runs past
             {
