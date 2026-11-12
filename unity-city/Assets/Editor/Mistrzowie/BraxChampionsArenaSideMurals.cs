@@ -4,8 +4,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-// Two owner originals on the opposite walls beside the cage. The third mural
-// belongs to the entrance lobby and is generated separately, exactly once.
+// Two owner originals in the hall, left and right of the fighters' door on the wall every visitor faces (12.11).
+// The third mural belongs to the entrance lobby and is generated separately, exactly once.
 public static class BraxChampionsArenaSideMurals
 {
     const string Output = "Assets/PlayableGenerated/Mistrzowie/Arena/Mural";
@@ -13,19 +13,10 @@ public static class BraxChampionsArenaSideMurals
     public const string LeftFightersHd = HdSource + "MURAL_LEWA_ZAWODNICY_6144x2048.png";
     public const string RightBeltHd = HdSource + "MURAL_PRAWA_PAS_6144x2048.png";
 
-    const float HallLeftX = -26f;
-    const float HallRightX = -146f;
-    const float WallNearZ = 98.3f;
-    const float WallFarZ = 28.3f;
-    const float WallBottomY = .055f;
-    const float WallTopY = 28f;
-    const float BottomY = 2.65f;
     // b33 / APK 35 phone: both side walls showed BLACK although the log said APPLIED (one 8192-wide padded ASTC
     // texture sampled 4-5 mips down, lit only by a dim interior ambient). Since 9.11 23:43 every mural is hung by
     // BraxChampionsArenaMuralPrint: three 2048 tiles, back-lit, gold frame.
     public const float MuralStandOff = .12f;
-    const float WallSpan = WallNearZ - WallFarZ;
-    const float ImageHeight = WallSpan / 3f;
 
     static string PickRequiredHd(string hd, string label)
     {
@@ -78,28 +69,42 @@ public static class BraxChampionsArenaSideMurals
         return true;
     }
 
+    // Owner 12.11 00:30-01:55 (APK 38): "Te dwa murale na arenie ... mają być, między nimi chodzi", "W arenie. Po prawej i
+    // po lewej. Od 5 buildów ich nie ma", "mają być i chuj". On the two short walls (x -26 / -146) the prints hung 60 m to
+    // the side of anyone walking in from the public door or standing at the cage: out of the picture on the phone, behind
+    // the side stands. Now both hang on the wall EVERY visitor faces - the long wall of the fighters' door (Z0), seen
+    // straight ahead from the public door, from the aisle and from the cage: FIGHTERS on the LEFT of the fighters' door,
+    // BELT on the RIGHT (as seen from the hall), the fighters walk out BETWEEN them. 52.5 x 17.5 m each (3:1, the owner's
+    // 6144 x 2048 untouched), bottom 8.0 m (over the top row of the stands and the HALA WALK sign), top 25.5 m (under the
+    // ceiling beams), 12 cm in front of the quilted leather, back-lit tiles drawn from both sides, gold frame. Each owner
+    // mural exactly once (owner 10.11 13:20): the short walls keep their leather.
+    public const float DoorWallZ = 28.3f, DoorCentreX = -86f;
+    public const float WallMuralWidth = 52.5f, WallMuralHeight = 17.5f, WallMuralBottom = 8.0f, WallMuralCentreOffset = 28.5f;
+
     static bool Side(Transform bowl, string sourcePath, string side, bool left)
     {
         if(string.IsNullOrEmpty(sourcePath))return false;
         if(!ConfigureOwnerHdImporter(sourcePath,side))return false;
-        // Print 12 cm in front of the structural wall's inner face (x=-26.045 / -145.955).
-        float x = left ? HallLeftX - MuralStandOff : HallRightX + MuralStandOff;
-        // Seen from the hall: the left wall is looked at along +X (viewer-right = -Z), the right wall along -X.
-        var facing = left ? Vector3.left : Vector3.right;
-        var right = left ? Vector3.back : Vector3.forward;
-        float startZ = left ? WallNearZ : WallFarZ;
-        string name = "A1 MURAL " + side + " | OWNER ORIGINAL | whole cage-side wall";
+        // Print 12 cm in front of the long wall's inner face (z = 28.345).
+        float z = DoorWallZ + .045f + MuralStandOff;
+        // Seen from the hall the visitor looks along -Z: the viewer's right is -X, so the LEFT mural is the +X one.
+        var facing = Vector3.forward;
+        var right = Vector3.left;
+        float xc = DoorCentreX + (left ? WallMuralCentreOffset : -WallMuralCentreOffset);
+        string name = "A1 MURAL " + side + " | OWNER ORIGINAL | fighters' door wall, " + (left ? "left" : "right") + " of the door";
         int hung = BraxChampionsArenaMuralPrint.Hang(bowl, name, "Side_" + side, sourcePath,
-            new Vector3(x, BottomY, startZ), right, facing, WallSpan, ImageHeight, out var group);
+            new Vector3(xc + WallMuralWidth * .5f, WallMuralBottom, z), right, facing, WallMuralWidth, WallMuralHeight, out var group);
         if (hung == 0)
         {
             BraxBuildQuality.Warn("CHAMPIONS_A1_SIDE_MURAL_MISSING: " + sourcePath + "; no substitute image");
             return false;
         }
         BraxChampionsArenaMuralPrint.Frame(group, "Side_" + side,
-            new Vector3(x, BottomY + ImageHeight * .5f, (WallNearZ + WallFarZ) * .5f), right, facing, WallSpan - .34f, ImageHeight);
+            new Vector3(xc, WallMuralBottom + WallMuralHeight * .5f, z), right, facing, WallMuralWidth, WallMuralHeight);
         Debug.Log("CHAMPIONS_A1_SIDE_MURAL_APPLIED " + side + " source=" + sourcePath + " panels=" + hung +
-            " sourcePixels=6144x2048 wall=70x27.945 originalArt=70x23.333 backlit=true frame=gold");
+            " sourcePixels=6144x2048 wall=Z0 (fighters' door) x=" + (xc - WallMuralWidth * .5f).ToString("F2") + ".." +
+            (xc + WallMuralWidth * .5f).ToString("F2") + " y=" + WallMuralBottom + ".." + (WallMuralBottom + WallMuralHeight) +
+            " art=52.5x17.5 seenFrom=public door, aisle, cage backlit=true frame=gold");
         return true;
     }
 
@@ -108,7 +113,7 @@ public static class BraxChampionsArenaSideMurals
         if (!originalBowl) throw new ArgumentNullException(nameof(originalBowl));
         int applied = 0;
         // Owner 10.11 13:20: "Czemu zrobiłeś duplikaty? Murale mają być tam, gdzie ja chcę" - each owner mural exactly once:
-        // the two hall murals on the two side walls beside the cage (left fighters, right belt), the third in the lobby.
+        // the two hall murals left and right of the fighters' door (12.11), the third in the lobby.
         bool left=Side(originalBowl,PickRequiredHd(LeftFightersHd,"LEFT"),"LEFT_FIGHTERS",true);
         bool right=Side(originalBowl,PickRequiredHd(RightBeltHd,"RIGHT"),"RIGHT_BELT",false);
         if(left)applied++; if(right)applied++;
@@ -119,7 +124,7 @@ public static class BraxChampionsArenaSideMurals
         if(applied!=2)BraxBuildQuality.Warn("SIDE_MURALS = "+applied+"/2 FAIL");
         else Debug.Log("SIDE_MURALS = 2/2 PASS");
         Debug.Log("CHAMPIONS_A1_SIDE_MURALS ownerHD="+applied+
-                  "/2 wall=70x27.945 art=70x23.333 y=2.65..25.983 source=6144x2048 noFallback=true");
+                  "/2 wall=Z0 left+right of the fighters' door art=52.5x17.5 y=8.0..25.5 source=6144x2048 noFallback=true");
         return applied;
     }
 }

@@ -58,15 +58,17 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
     }
 
     // owner 12.11 00:30 ("jak mi nie potwierdzicie, że są, to ci nie puszczę"): two extra frames from the real player in
-    // the arena hall, one at each owner mural (left FIGHTERS, right BELT), from the floor beside the cage
+    // the arena hall, from where a visitor stands after walking in by the public door (60 m in front of the fighters'
+    // door wall, eye 1.7 m over the floor), one looking at each owner mural (left FIGHTERS, right BELT)
     void AddArenaMuralFrames()
     {
+        Renderer tile=null;
         Bounds? Find(string prefix)
         {
             foreach(var r in FindObjectsByType<Renderer>(FindObjectsInactive.Include,FindObjectsSortMode.None))
                 if(r.transform.parent&&r.transform.parent.name.StartsWith(prefix,StringComparison.Ordinal)&&r.name.Contains("tile"))
                 {
-                    var b=r.bounds;
+                    var b=r.bounds;if(!tile)tile=r;
                     foreach(Transform t in r.transform.parent){var rr=t.GetComponent<Renderer>();if(rr)b.Encapsulate(rr.bounds);}
                     return b;
                 }
@@ -75,13 +77,18 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
         var left=Find("A1 MURAL LEFT_FIGHTERS");var right=Find("A1 MURAL RIGHT_BELT");
         if(left==null||right==null){Debug.LogWarning("CHAMPIONS_REVIEW_ARENA_MURALS missing left="+(left!=null)+" right="+(right!=null));return;}
         var a=left.Value;var b=right.Value;
-        var mid=(a.center+b.center)*.5f;var eye=new Vector3(mid.x,Mathf.Min(a.min.y,b.min.y)-1.2f,mid.z);
+        var mf=tile.GetComponent<MeshFilter>();
+        var n=mf&&mf.sharedMesh&&mf.sharedMesh.normals.Length>0?tile.transform.TransformDirection(mf.sharedMesh.normals[0]).normalized:Vector3.forward;
+        n.y=0f;n.Normalize();
+        float s=a.size.y/17.82f;                                     // world units per metre (17.5 m print + 2 x .16 m frame)
+        float floor=a.min.y-7.84f*s;
+        var mid=(a.center+b.center)*.5f;var eye=mid+n*(60f*s);eye.y=floor+1.7f*s;
         Array.Resize(ref positions,positions.Length+2);Array.Resize(ref targets,targets.Length+2);Array.Resize(ref labels,labels.Length+2);
-        int n=labels.Length;
-        positions[n-2]=eye+(a.center-eye).normalized*20f;positions[n-2].y=eye.y;targets[n-2]=a.center;labels[n-2]="22-arena-mural-lewy-zawodnicy";
-        positions[n-1]=eye+(b.center-eye).normalized*20f;positions[n-1].y=eye.y;targets[n-1]=b.center;labels[n-1]="23-arena-mural-prawy-pas";
-        if(nightFrames!=null&&nightFrames.Length==n-2)Array.Resize(ref nightFrames,n);
-        Debug.Log("CHAMPIONS_REVIEW_ARENA_MURALS left="+a.center+" right="+b.center+" eye="+eye);
+        int k=labels.Length;
+        positions[k-2]=eye;targets[k-2]=a.center;labels[k-2]="22-arena-mural-lewy-zawodnicy";
+        positions[k-1]=eye;targets[k-1]=b.center;labels[k-1]="23-arena-mural-prawy-pas";
+        if(nightFrames!=null&&nightFrames.Length==k-2)Array.Resize(ref nightFrames,k);
+        Debug.Log("CHAMPIONS_REVIEW_ARENA_MURALS left="+a.center+" right="+b.center+" eye="+eye+" normal="+n);
     }
 
     IEnumerator Start()
