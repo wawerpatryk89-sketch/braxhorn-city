@@ -1,0 +1,25 @@
+{
+ "source": "Właściciel 12.11.2026 01:42: model Tripo — ring bokserski BRAXHORN GYM ze schodkami z dwóch stron (7,45 × 7,4 m, wys. 2,6 m)",
+ "target": "silownia_ring_02",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/silownia_ring_02 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "b47ceb7c5438299d9f4f6ac3f9710eab2c7babf32128dd6dc4ed9ae939666257",
+ "cmsSha256": "119e3decff3f060df6577b9779a43a841dae36286603b4fe7ae470d31f0f2853",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 9216576,
+   "sha256": "119e3decff3f060df6577b9779a43a841dae36286603b4fe7ae470d31f0f2853"
+  }
+ ],
+ "files": {
+  "oryginal/ring2.glb": "ac865c91fc5668d941e83acee7a4ac53da0f26a7e0dfe5666709e16db0cd6225",
+  "oryginal/spec.json": "b6edc9f10338b1b35fcd27c51ec88b3596f8d62f3308808cc060a0111e5f5844",
+  "silownia_ring_02/_tekstury/silownia_ring_02_kolor.jpg": "6cebcaafc0a2eb3ff8756bfff9c30e81311f089bf47cbef303eb7f238d819534",
+  "silownia_ring_02/_tekstury/silownia_ring_02_mr.png": "eb85ad9f001af7b22ca48c37b9b007c919ed05fcd6c873946c0edcd335f84788",
+  "silownia_ring_02/_tekstury/silownia_ring_02_normal.png": "c56192d1d2a0e9e9f6ba0aa5739ac9d5e5236601161efdfd9f4bd2669cd59faa",
+  "silownia_ring_02/katalog.json": "aa74ccdc37d786cc26e8594bdcb7df38bc75edc4e910b51e05abb6c6a715b29f",
+  "silownia_ring_02/ring_bokserski_02.glb": "b757f84735715627cf8f4bba8f5ec9caa8ebc3f2b07cffcf645e3783d7ac0b61"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

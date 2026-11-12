@@ -14,7 +14,11 @@ class PaczkiGlobalne(unittest.TestCase):
     def test_vehicle_packs_owner_12_11(self):
         # 01:30 „motory globalnie do wszystkich miast, rejonów”; 01:32 „rowery globalnie… bierz tylko te, które się nadają”
         for nazwa, target, sztuki in [("braxhorn-sklep-motory-01", "pojazdy_motory_01", 5), ("braxhorn-sklep-rowery-01", "pojazdy_rowery_01", 2),
-                                      ("braxhorn-sklep-meble-01", "meble_01", 5), ("braxhorn-sklep-muzeum-01", "muzeum_eksponaty_01", 9)]:
+                                      ("braxhorn-sklep-meble-01", "meble_01", 5), ("braxhorn-sklep-muzeum-01", "muzeum_eksponaty_01", 9),
+                                      # 01:47 „jeżeli dostałeś coś, czego nie potrzebujesz, zapisz to na gałęzi… albo na siłowni”
+                                      ("braxhorn-sklep-boks-01", "silownia_boks_01", 8), ("braxhorn-sklep-boks-02", "silownia_boks_02", 7),
+                                      ("braxhorn-sklep-wyciag-01", "silownia_wyciag_01", 6), ("braxhorn-sklep-ring-01", "silownia_ring_01", 1),
+                                      ("braxhorn-sklep-ring-02", "silownia_ring_02", 1)]:
             m = json.loads((PRYW / nazwa / "manifest.json").read_text())
             self.assertEqual(m["target"], target)
             glb = [f for f in m["files"] if f.startswith(target + "/") and f.endswith(".glb")]

@@ -1,0 +1,30 @@
+{
+ "source": "Właściciel 12.11.2026 01:09 (ponownie 01:42): plansza Tripo — końcówki do wyciągu: lina do tricepsa, 2 uchwyty D, drążek prosty, drążek łamany EZ, opaska na kostkę",
+ "target": "silownia_wyciag_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/silownia_wyciag_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "7dbb86db4c170803182a5ecb7750cde31a8dee495a2319ad73c1b8d00a470f1e",
+ "cmsSha256": "ad2a3c3a6e14e8199b100ed15cf0afd69808515ffa610e062b8a7565c162ed62",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 10639936,
+   "sha256": "ad2a3c3a6e14e8199b100ed15cf0afd69808515ffa610e062b8a7565c162ed62"
+  }
+ ],
+ "files": {
+  "oryginal/spec.json": "3062d2a5f4f3a6d10e5a5c04a73169830bf05b9222926ee6202a58840fd33b55",
+  "oryginal/wyciag.glb": "5bc2a485cc427734385220232aeff65ee27cba83abb9c56fe7541725785e6057",
+  "silownia_wyciag_01/_tekstury/silownia_wyciag_01_kolor.jpg": "6bd8e20d730616404eab076483034936e03be2824018693f68feee8e9438b5b7",
+  "silownia_wyciag_01/_tekstury/silownia_wyciag_01_mr.png": "90720cf23099d17c71631473f9736958fec5c270ac43125c5afc9d6d50f6f636",
+  "silownia_wyciag_01/_tekstury/silownia_wyciag_01_normal.png": "7c2c091afd7328f614fde63d01c771eb95b3d7c107ee9cc33510137d51107766",
+  "silownia_wyciag_01/drazek_lamany_ez.glb": "fdc04634aae20e9430db0fa189c9d872df207abe90a5a3603564d6a4d0525c92",
+  "silownia_wyciag_01/drazek_prosty.glb": "bb2c780909ec595e740b7bd2bb3ca09c5f4b7443e2232304df59285ac11ffe62",
+  "silownia_wyciag_01/katalog.json": "161fc95b5364b7d2cf281e5f35cb6941aee698c36532b519b7574b0f353a2e53",
+  "silownia_wyciag_01/lina_triceps.glb": "377778d7757c629eca4a3952171353e0738cab44a9606e550022d472a0d85aa7",
+  "silownia_wyciag_01/opaska_na_kostke.glb": "15e350991bdb088f3ec128c841b6f7d93f8b39efd0dfc1e97d1fcb97248a7d4d",
+  "silownia_wyciag_01/uchwyt_d_1.glb": "525abcb0cebc485d12874fa0d5fa6a35158c94e6f96d6046a4f4d875d12ffe18",
+  "silownia_wyciag_01/uchwyt_d_2.glb": "9db63ca93541ad5305a0b56155d1c81ce400354cf787077838f503b1e62eb2d4"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

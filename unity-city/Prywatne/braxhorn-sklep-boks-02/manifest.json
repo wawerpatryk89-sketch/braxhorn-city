@@ -1,0 +1,31 @@
+{
+ "source": "Właściciel 12.11.2026 01:18 (ponownie 01:42): plansza Tripo — sprzęt bokserski czerwono-czarny BRAXHORN: gruszka refleksowa na stojaku, gruszka podwójnie zaczepiona, 2 tarcze thai, ochraniacz tułowia, 2 rękawice",
+ "target": "silownia_boks_02",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/silownia_boks_02 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "7ee548f653d1862dae2e27d09ff618d073c6dc9c836ba9063d2843ac94284aad",
+ "cmsSha256": "c5458b92cc9d0bd53187aaed1131e70d2ccc7e3985fe6efab3f046cdec1b14b7",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 6892096,
+   "sha256": "c5458b92cc9d0bd53187aaed1131e70d2ccc7e3985fe6efab3f046cdec1b14b7"
+  }
+ ],
+ "files": {
+  "oryginal/boks_czerwony.glb": "9fd0fa513a9ed98d108c74a0d988286a3c29970ae139de127047e53b1a535150",
+  "oryginal/spec.json": "83b78afb87c1a33a4ed93edeb05dc435e4c6ddd77a843a046a8a7131ceffdab4",
+  "silownia_boks_02/_tekstury/silownia_boks_02_kolor.jpg": "be4cf831d63afadc119a1ea0e4a3eb8f73b3c6f958b4e6b8daa97bbdb384269a",
+  "silownia_boks_02/_tekstury/silownia_boks_02_mr.png": "a423c5d418543a66b312bbd69cc9fef5d7ec3ce3aae231c309130573ef6013d6",
+  "silownia_boks_02/_tekstury/silownia_boks_02_normal.png": "cb92da0ffbc1a450fafa58522db8dafa52c1f4d2dd6f3e312855b577e8ecc84b",
+  "silownia_boks_02/gruszka_podwojnie_zaczepiona.glb": "76333c29ca7172b6c1f405ebc059d3edcb32729bd099eabe479f83287363b46f",
+  "silownia_boks_02/gruszka_refleks_na_stojaku.glb": "5698b4a9a34fb36a8c8bbb54c2016c46d3967b6bd66ac6711c44ecf52508fe2a",
+  "silownia_boks_02/katalog.json": "a5739f151afdc1ffefce720933a248abb32c55ceae32cbd8727247acc387ba9a",
+  "silownia_boks_02/ochraniacz_tulowia_czerwony.glb": "92ea15c551ba74e09c08a559a8f6afcb7d0c358b4aec2abaaf7e5fa6a1e62157",
+  "silownia_boks_02/rekawica_czerwona_1.glb": "f77ee5b448b441f21ac95687f3d7c549929764ce92e8b8b75162229f006d0d05",
+  "silownia_boks_02/rekawica_czerwona_2.glb": "d1073fe2e362cf390ac32cb4280f6f5cedd7b4f9c8727870aa2945c4a4249e0c",
+  "silownia_boks_02/tarcza_thai_czerwona_1.glb": "35955faf81893958f1d6761b0c3c564db5d7ec7e9215810e2422dbf5a092bc53",
+  "silownia_boks_02/tarcza_thai_czerwona_2.glb": "94ce52efcd0c9aa5c9fcc45e59c573003f404c69e1191c8212d86dc8f598be4c"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

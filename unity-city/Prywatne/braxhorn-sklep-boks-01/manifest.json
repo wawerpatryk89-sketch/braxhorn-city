@@ -1,0 +1,32 @@
+{
+ "source": "Właściciel 12.11.2026 01:12 (ponownie 01:42): plansza Tripo — sprzęt bokserski czarno-złoty BRAXHORN (miał iść do Miasta Mistrzów; 01:47: „jeżeli dostałeś coś, czego nie potrzebujesz, zapisz to na gałęzi… albo na siłowni, zastąp”): worek stojący, worek wiszący na łańcuchach, 2 łapy, 2 tarcze thai, 2 rękawice",
+ "target": "silownia_boks_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/silownia_boks_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "a69dc53b088410069aa8043251024827938aca161416facd9c3f75e779df5466",
+ "cmsSha256": "6505065e39ae4e0fcc6e5a0bdd59e27fca9d3134e8237675eee3e5233167cfc5",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 8806976,
+   "sha256": "6505065e39ae4e0fcc6e5a0bdd59e27fca9d3134e8237675eee3e5233167cfc5"
+  }
+ ],
+ "files": {
+  "oryginal/boks_czarno_zloty.glb": "46970018ccd335ba7f863e7481a23df0cc7f5417cc312aae3ae501e9ed634d80",
+  "oryginal/spec.json": "7dc770b85d404a23b73c6f2eb35ad90f232c76f5911501e76ef0b23b8cbda47f",
+  "silownia_boks_01/_tekstury/silownia_boks_01_kolor.jpg": "0dfe923bce4e5f3afff68a526c98f2b66bf0ea06e8b51993dc93f45e698530ac",
+  "silownia_boks_01/_tekstury/silownia_boks_01_mr.png": "39d13d679eed1e80f00ad125193618f95c3fc1485947f7254a4f3c06f38712b2",
+  "silownia_boks_01/_tekstury/silownia_boks_01_normal.png": "1a6cb2cebebf001a483d155869d4cb5958776d14dec7388a4e8f6b369f3a25b0",
+  "silownia_boks_01/katalog.json": "5e224152a2e840955a7df444093e0868eeb67e80e698f5540fa302054b084499",
+  "silownia_boks_01/lapa_bokserska_czarno_zlota_1.glb": "fcc5cd99dc18f447535bb564640d1d9fcd9a3fe2314a1ad1dc623e0aeaa123f4",
+  "silownia_boks_01/lapa_bokserska_czarno_zlota_2.glb": "bd86b7237cf9310b53beaa620ef6f3afdbeec21517263c9c539762fbc1a0f7a7",
+  "silownia_boks_01/rekawica_czarno_zlota_1.glb": "3db133fea37c467d182694dddb30b62ff6a8619456a4102d95b789978522cf4f",
+  "silownia_boks_01/rekawica_czarno_zlota_2.glb": "90f4893bde622fb47296f30c1d1f141ab364ceaf5c443ce6688cc2a79e6d2659",
+  "silownia_boks_01/tarcza_thai_czarno_zlota_1.glb": "5d25f3b5b06a7f199e62209efe612c70b791ac22ded742e8317b4700ccb48ef6",
+  "silownia_boks_01/tarcza_thai_czarno_zlota_2.glb": "3d04dd7fc9348104b78ad8ca265e0005047db7f065726816de0a31798b39730d",
+  "silownia_boks_01/worek_stojacy_czarno_zloty.glb": "c6b194c00c84ed0b486716563cf50413f1aa82d135b87f9acf52279cdd076797",
+  "silownia_boks_01/worek_wiszacy_czarno_zloty.glb": "4805ddf69dffcb28463b36cdb85c9f2951f2c9f3ebee03add21d38b9cce8499b"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

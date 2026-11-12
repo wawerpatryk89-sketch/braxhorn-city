@@ -1,0 +1,25 @@
+{
+ "source": "Właściciel 12.11.2026 01:42: model Tripo — ring bokserski czarno-złoty ze schodkami (7,4 × 6,8 m, wys. 2,9 m)",
+ "target": "silownia_ring_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/silownia_ring_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "56207a100f8e82803af27188f62a08859b2ddb599e7a263a7a601ef6b6180ae3",
+ "cmsSha256": "6c55d28797c056351b2abb9b425e0bcf1899710f215cc5a6b5135f1f4ddbba59",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 8929856,
+   "sha256": "6c55d28797c056351b2abb9b425e0bcf1899710f215cc5a6b5135f1f4ddbba59"
+  }
+ ],
+ "files": {
+  "oryginal/ring1.glb": "1286ef38b58cb00fd201b5b9467fd61c6f2cde56e4b8fb6e09a0810ca96d2976",
+  "oryginal/spec.json": "b48486cc6e2083e45d25da1a749b06e78d08ea44d8c2894aa885d132e52bd0f2",
+  "silownia_ring_01/_tekstury/silownia_ring_01_kolor.jpg": "faa37b35fd5bc160d445ef0f6787f328a00631c32ae67c6fdbca710520fa1adb",
+  "silownia_ring_01/_tekstury/silownia_ring_01_mr.png": "8c7c04db9c7c544bf22a4e36a89386941bc0498f37fd4d24640f1540dea3b537",
+  "silownia_ring_01/_tekstury/silownia_ring_01_normal.png": "1d2f0df903de935d75713302e13d0593a3f81f88e2a946b4ad3673c6a5e06c28",
+  "silownia_ring_01/katalog.json": "74e8108f82962d274ec10e27163493446bc9222a2b5c5ffd8bbf445ee9e3eacf",
+  "silownia_ring_01/ring_bokserski_01.glb": "40818fc0802d39939f1ce16973b6651730e0f8d3dfe838688118d2f3acfe29c5"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
