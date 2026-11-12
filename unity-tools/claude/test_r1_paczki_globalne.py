@@ -84,5 +84,19 @@ class SilowniaIArena(unittest.TestCase):
         self.assertIn("Vector3.Min(a, b), Vector3.Max(a, b)", a)             # szatnia gości (oś z odwrócona) bez odwróconych brył
 
 
+class MotoryRowery(unittest.TestCase):
+    # 01:30 „motory globalnie do wszystkich miast”, 01:32 „rowery… bierz tylko te, które się nadają”, 02:05 „dokończ to, co masz”
+    def test_motorcycles_on_parking_bikes_in_workshop(self):
+        m = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxMiastoMotory.cs").read_text()
+        r = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxRegionRuchMiasta.cs").read_text()
+        u = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxUlicePierzeje.cs").read_text()
+        self.assertIn('"pojazdy_motory_01"', m); self.assertIn('"pojazdy_rowery_01"', m)
+        self.assertIn("ile = Mathf.Clamp(ile, 1, 2)", m)                     # najwyżej 2 na stanowisku — kierownice się nie stykają
+        self.assertIn("BraxMiastoMotory.NaStanowisku(gm, m.c, m.przod, m.rozmiar", r)
+        self.assertIn("if (dlaMotorow.Contains(i)) continue;", r)          # stanowisko z motocyklami nie dostaje auta
+        self.assertIn("BraxMiastoMotory.Rower(bg, i,", u)
+        self.assertNotIn("Rower(", u.split("ZASADA")[0][:0])
+
+
 if __name__ == "__main__":
     unittest.main()

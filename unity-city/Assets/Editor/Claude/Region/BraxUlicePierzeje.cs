@@ -1460,7 +1460,13 @@ public static class BraxUlicePierzeje
         {   // WARSZTAT ROWEROWY: rowery (z kodu — Poly Haven nie ma roweru) przy ścianie bocznej, koła na ścianie, stół z imadłem, skrzynia narzędzi
             Color[] lakiery = { new Color(.55f, .08f, .07f), new Color(.08f, .22f, .45f), new Color(.12f, .35f, .18f), new Color(.85f, .75f, .1f) };
             float sR = drzwiPrawo ? sIn0 + .45f : sIn1 - .45f;
-            for (int i = 0; i < 3; i++) Rower(W(sR, y0 + .004f, -1.6f - i * 1.35f * k), -f.N, lakiery[i % lakiery.Length], k, drzwiPrawo ? 1f : -1f, f.R);
+            // 12.11 (właściciel 01:32 „rowery globalnie”, 01:48 „jeżeli coś… jest lepsze, zastępuj”): dwa pierwsze rowery to modele
+            // właściciela z Tripo (fatbike, trekkingowy elektryczny — BraxMiastoMotory.Rower), trzeci z kodu; bez paczki wszystkie z kodu
+            for (int i = 0; i < 3; i++)
+            {
+                if (i < 2 && BraxMiastoMotory.Rower(bg, i, W(sR, y0 + .004f, -1.6f - i * 1.35f * k), -f.N)) continue;
+                Rower(W(sR, y0 + .004f, -1.6f - i * 1.35f * k), -f.N, lakiery[i % lakiery.Length], k, drzwiPrawo ? 1f : -1f, f.R);
+            }
             foreach (var (o, ki) in new[] { (-.6f, 0), (.6f, 1) }) KoloRoweru(W(drzwiPrawo ? sIn0 + .32f : sIn1 - .32f, y0 + 2.25f * k, -2.0f + o), f.R, k);
             PH(bg, "metal_tool_chest", "Warsztat: skrzynia narzędzi", W(ladaS1 + .6f, y0, ladaD - .3f), yawDoUlicy, .65f * k);
             PH(bg, "tool_cart", "Warsztat: wózek narzędziowy", W(sWolna1 - .2f, y0, -2.6f), yawDoUlicy + 15f);

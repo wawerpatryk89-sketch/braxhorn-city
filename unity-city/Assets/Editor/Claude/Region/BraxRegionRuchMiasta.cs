@@ -65,10 +65,29 @@ public static partial class BraxClaudeOsiedle
         if (miejsca.Count == 0) { Debug.Log("BRAXHORN_RUCH_MIASTO_B parking: brak stanowisk (krok miasta B nie zbudował parkingu)"); return; }
         var zapas = MiejscaParkingowe.ToList();
         var g = group;
+        // 12.11 (właściciel 01:30 „motory globalnie”, 02:05 „dokończ”): 3 stanowiska na motocykle właściciela (2 + 2 + 1) — pierwsze,
+        // środkowe i ostatnie z listy (parking warsztatów i supermarketu); bez paczki stanowiska wracają do aut
+        var dlaMotorow = new HashSet<int>();
+        if (BraxMiastoMotory.SaMotory && miejsca.Count >= 6)
+        {
+            var gm = new GameObject("CLAUDE miasto B: motocykle na parkingu").transform; gm.SetParent(root.parent ? root.parent : root, false); gm.position = Vector3.zero;
+            int nr = 0, motorow = 0;
+            foreach (int i in new[] { 0, miejsca.Count / 2, miejsca.Count - 1 })
+            {
+                if (!dlaMotorow.Add(i)) continue;
+                int ile = nr < 2 ? 2 : 1; var m = miejsca[i];
+                motorow += BraxMiastoMotory.NaStanowisku(gm, m.c, m.przod, m.rozmiar, nr * 2, ile); nr++;
+            }
+            Debug.Log("BRAXHORN_RUCH_MIASTO_B motocykle właściciela na parkingu: " + motorow + " na " + dlaMotorow.Count + " stanowiskach");
+        }
         try
         {
             MiejscaParkingowe.Clear();
-            foreach (var m in miejsca) MiejscaParkingowe.Add(new MiejsceParkingowe { srodek = m.c, przod = m.przod, rozmiar = m.rozmiar, przyScianie = false });
+            for (int i = 0; i < miejsca.Count; i++)
+            {
+                if (dlaMotorow.Contains(i)) continue;
+                var m = miejsca[i]; MiejscaParkingowe.Add(new MiejsceParkingowe { srodek = m.c, przod = m.przod, rozmiar = m.rozmiar, przyScianie = false });
+            }
             group = "Miasto B: auta zaparkowane";
             AutaZaparkowane(szablony);
         }
