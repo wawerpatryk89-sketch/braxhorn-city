@@ -58,7 +58,7 @@ on:
       etap:
         description: 'apk = kompilacja APK; sceny = kontrola scen w Unity bez APK i bundles (też trwa)'
         type: choice
-        options: [apk, sceny, aktualizacja]
+        options: [apk, sceny, aktualizacja, biblioteka]
         default: apk
       zdjecia:
         description: 'Opcjonalny dodatkowy player Linux i zdjęcia po udanym teście sceny lub po dostarczeniu APK; wydłuża build'
@@ -93,11 +93,12 @@ permissions:
   contents: write
   actions: read
 concurrency:
-  group: mistrzowie-apk
+  # etap=biblioteka (a list of names, no Unity, ~2 min) never waits behind a running APK build
+  group: mistrzowie-apk${{ inputs.etap == 'biblioteka' && '-biblioteka' || '' }}
   cancel-in-progress: false
 jobs:
   exploration-apk:
-    if: ${{ inputs.recovery_run == '' && inputs.etap != 'aktualizacja' }}
+    if: ${{ inputs.recovery_run == '' && inputs.etap != 'aktualizacja' && inputs.etap != 'biblioteka' }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     env:
@@ -768,6 +769,38 @@ jobs:
           if 'INTEGRATION_FAIL' in status:
               print('::error::' + status); sys.exit(1)
           PYVERDICT
+  # Owner 12.11 22:55 ("prześledź bibliotekę na repo"): the encrypted animation packs listed by NAME only (pack, file,
+  # size, with or without the character, fps). No Unity, no APK, nothing extracted to disk, ~2 minutes.
+  animation-library:
+    if: ${{ inputs.etap == 'biblioteka' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout only the encrypted animation packs and the lister
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Prywatne/ruchy_brax.tar.gz.enc
+            unity-city/Prywatne/ruchy_wlasciciela.tar.gz.enc
+            unity-city/Prywatne/nina_1.tar.gz.enc
+            unity-city/Prywatne/nina_2.tar.gz.enc
+            unity-city/Prywatne/nina_3.tar.gz.enc
+            unity-city/Prywatne/postacie_wzory.tar.gz.enc
+            unity-tools/mistrzowie/biblioteka_animacji.py
+      - name: List the animation library (names only)
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          mkdir -p biblioteka
+          python3 unity-tools/mistrzowie/biblioteka_animacji.py biblioteka/biblioteka-animacji.json biblioteka/biblioteka-animacji.md
+          cat biblioteka/biblioteka-animacji.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Save the list
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: biblioteka-animacji-${{ github.run_id }}
+          path: biblioteka/
   recover-existing-apk:
     # Explicit manual recovery only. No Unity compilation, no generated key,
     # no unverified APK release. The original raw artifact is quarantined.
