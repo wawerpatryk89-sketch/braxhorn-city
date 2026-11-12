@@ -968,8 +968,8 @@ public static partial class BraxRegionFawela
                 foreach (float fs in new[] { G + .1f, sF - .1f }) foreach (float fd in new[] { d + .05f, d1 - .1f }) BoxF(Em(ciem), F, fs, fs + .05f, yF, yF + .045f, fd, fd + .05f, true);
                 // za pralką: zawory wody na ścianie, wąż dopływowy i wąż odpływowy do rury
                 foreach (var (dz2, kz) in new[] { (dc - .12f, new Color(.75f, .15f, .12f)), (dc + .02f, new Color(.2f, .35f, .75f)) })
-                {   // zawór na ścianie (mosiężny korpus, dźwignia czerwona / niebieska) i wąż w oplocie w dół, za pralkę
-                    var zv = F.P(G, yT + .2f, dz2); var mosiadz = Em(new Color(.72f, .6f, .32f));
+                {   // zawór na ścianie (korpus stalowy chromowany, dźwignia czerwona / niebieska) i wąż w oplocie w dół, za pralkę
+                    var zv = F.P(G, yT + .2f, dz2); var mosiadz = Em(new Color(.74f, .75f, .77f));   // 12.11: bez mosiądzu
                     mosiadz.Cyl(zv, zv + F.R * .05f, .016f, 8); mosiadz.Cyl(zv + F.R * .05f, zv + F.R * .05f + Vector3.down * .04f, .012f, 6);
                     Em(kz).BoxRot(zv + F.R * .035f + Vector3.up * .025f, new Vector3(.012f, .012f, .07f), Quaternion.LookRotation(-F.N, Vector3.up));
                     Em(new Color(.55f, .56f, .58f)).Cyl(zv + F.R * .05f + Vector3.down * .04f, F.P(G + .05f, yT - .02f, dz2), .009f, 6);

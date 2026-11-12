@@ -125,7 +125,7 @@ public static class BraxRegionBraxFlat
         // zamkiem), kinkiety zamiast gołych żarówek
         W.Start(K); W.Wnetrze = true;
         var stalK = BraxRegion.Fitting("Klatka: stal malowana (poręcze, skrzynki)", new Color(.16f, .17f, .18f), .4f, .5f);
-        var mosK = BraxRegion.Fitting("Klatka: mosiądz (zamki, wizytówki)", new Color(.72f, .58f, .3f), .3f, .9f);
+        var mosK = BraxRegion.Fitting("Klatka: stal polerowana (zamki, wizytówki)", new Color(.8f, .81f, .83f), .22f, .9f);   // 12.11: bez mosiądzu (zasada 10.11)
         foreach (var (a, b, xw) in new[] { (new Vector3(SX0 + .1f, Street + .95f, zBottom - .1f), new Vector3(SX0 + .1f, yMid + .95f, zTop + .1f), SX0 + .02f),
                                            (new Vector3(f2x1 - .08f, yMid + .95f, zTop + .1f), new Vector3(f2x1 - .08f, Fl + .95f, zBottom - .1f), f2x1) })
         {

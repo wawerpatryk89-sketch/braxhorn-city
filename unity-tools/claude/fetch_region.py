@@ -116,7 +116,7 @@ MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     # ulica miasta — kwiaciarnia (wazony, mała roślina w doniczce), optyk (okulary, lupa), warsztat rowerowy (narzędzia, smary),
     # hotel (zegar stojący, walizki); rośliny w doniczkach, skrzynki z owocami, pieczywo — w bibliotece (skrzynki_owocow.py)
     "television_02", "gamepad", "all_purpose_cleaner", "drain_cleaner", "multi_cleaner_5_litre", "pot_enamel_01", "watering_can_metal_01",
-    "dustpan", "metal_jug", "spray_paint_bottles", "potted_plant_04", "ceramic_vase_02", "ceramic_vase_03", "ceramic_vase_04", "brass_vase_03",
+    "dustpan", "metal_jug", "spray_paint_bottles", "potted_plant_04", "ceramic_vase_02", "ceramic_vase_03", "ceramic_vase_04",
     "round_spectacles", "magnifying_glass_01", "metal_toolbox", "lubricant_spray", "small_oil_can_01", "combination_wrench", "pipe_wrench",
     "ratchet_wrench", "vintage_suitcase", "vintage_grandfather_clock_01",
 ]

@@ -17,11 +17,11 @@ using UnityEngine;
 internal static class BraxDrzwiLokalu
 {
     static float K => BraxClaudeOsiedle.K;
-    static Material czarny, szklo, stal, dab, grafit, mosiadz;
+    static Material czarny, szklo, stal, dab, grafit;
 
     // 11.11 (właściciel 20:28: „nie wszystkie drzwi muszą być takie same… chociaż trzy modele drzwi… mogą być też nie szklane,
     // normalne drzwi”): 0 = szklane w czarnym aluminium z pochwytami, 1 = drewniane płycinowe pełne (dąb) z klamką i szyldem
-    // mosiężnym, 2 = stalowe grafitowe z wąskim pionowym przeszkleniem i klamką ze stali. Wszystkie: zawiasy widoczne (3 na skrzydło).
+    // ze stali (12.11: bez mosiądzu), 2 = stalowe grafitowe z wąskim pionowym przeszkleniem i klamką ze stali. Wszystkie: zawiasy widoczne (3 na skrzydło).
     // 20:34 („oszklone drzwi… takie balkonowe bardziej wyglądają… w sklepach mogą być sklepowe, otwierane na bok… do każdego lokalu
     // podobieraj takie, jakie potrzebuje”): 3 = automatyczne przesuwne (skrzydła odjeżdżają na boki w kieszeń muru, napęd w ślemieniu,
     // czujnik ruchu, pas oznakowania na szybie) — markety, apteki, poczta, hotel, fitness. Szklane rozwierane tylko jako zapas.
@@ -42,7 +42,6 @@ internal static class BraxDrzwiLokalu
         stal = BraxCityMaterials.Surface("drzwi lokalu: pochwyt stal szczotkowana", new Color(.8f, .81f, .82f), .25f, 1f);
         dab = BraxUliceKit.Tex("drzwi lokalu: dąb (okleina jak w WC dworca)", 1.2f, null, new Color(.6f, .45f, .3f), .5f, "oak_veneer_01", "teak_veneer");   // 20:30 „z tego drewna, co w łazience”
         grafit = BraxUliceKit.Tex("drzwi lokalu: stal malowana antracyt (mat)", 1.2f, new Color(.42f, .44f, .47f), new Color(.2f, .21f, .23f), .62f, "blue_metal_plate", "metal_plate");
-        mosiadz = BraxCityMaterials.Surface("drzwi lokalu: klamka mosiądz szczotkowany", new Color(.78f, .62f, .36f), .3f, 1f);
     }
 
     /// <summary>Drzwi dwuskrzydłowe w otworze: p = środek otworu na posadzce w licu elewacji, n = normalna elewacji (na zewnątrz),
@@ -148,7 +147,7 @@ internal static class BraxDrzwiLokalu
             }
             else
             {   // KLAMKA: szyld (płytka 5 × 22 cm × K, 2.2 cm) z klamką — szyjka od szyldu i ramię w stronę zawiasu, zakończone kulką; obie strony
-                var mK = model == Drewniane ? mosiadz : stal; var kl = BraxUliceKit.S(mK);
+                var mK = stal; var kl = BraxUliceKit.S(mK);   // 12.11: bez mosiądzu (zasada 10.11 — okucia ze stali nierdzewnej)
                 float xk = wL - .075f, yk = 1.05f * K;
                 foreach (float sg in new[] { 1f, -1f })
                 {
@@ -163,7 +162,7 @@ internal static class BraxDrzwiLokalu
             var zaw = new UlSiatka();
             foreach (float yz in new[] { y0 + .25f, (y0 + y1) * .5f, y1 - .25f })
                 zaw.Rura(new Vector3(-dir * .006f, yz - .07f, zF1 + .012f + .1f), new Vector3(-dir * .006f, yz + .07f, zF1 + .012f + .1f), .011f, 10);   // walec przed licem ościeżnicy
-            BraxMiastoA.Obiekt(z, "Drzwi " + label + ": zawiasy", zaw, model == Drewniane ? mosiadz : stal, true);
+            BraxMiastoA.Obiekt(z, "Drzwi " + label + ": zawiasy", zaw, stal, true);
             BraxMiastoA.Obiekt(z, "Drzwi " + label + ": skrzydło", rama, mRamy, true);
             if (plyc.Wierzcholki > 0) BraxMiastoA.Obiekt(z, "Drzwi " + label + ": płyciny", plyc, mRamy, true);
             if (tafla.Wierzcholki > 0) BraxMiastoA.Obiekt(z, "Drzwi " + label + ": szyba skrzydła", tafla, szklo);

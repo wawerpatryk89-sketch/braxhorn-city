@@ -1261,7 +1261,7 @@ public static class BraxUlicePierzeje
         if (t == "hotel")
         {   // RECEPCJA HOTELU: tablica z kluczami za ladą, napis RECEPCJA, hol z sofą, fotelami, stolikiem, zegarem stojącym, roślinami, walizki
             var drewno = BraxUliceKit.Mat("hotel: tablica kluczy (orzech)", new Color(.25f, .15f, .09f), .45f);
-            var mosiadz = BraxUliceKit.Mat("hotel: mosiądz (haczyki, klucze)", new Color(.78f, .6f, .3f), .3f, .9f);
+            var mosiadz = BraxUliceKit.Mat("hotel: stal polerowana (haczyki, klucze, litery)", new Color(.82f, .83f, .85f), .2f, .9f);   // 12.11: bez mosiądzu (zasada 10.11)
             float kc = (ladaS0 + ladaS1) * .5f, kd = dTyl + .02f, ky0 = 1.35f * k, ky1 = 2.2f * k;
             BraxUliceKit.S(drewno).Box(W(kc - .8f, y0 + ky0, kd + .04f), W(kc + .8f, y0 + ky1, kd));
             var ms = BraxUliceKit.S(mosiadz);
@@ -1286,13 +1286,13 @@ public static class BraxUlicePierzeje
         {   // BAR 24 (ETAP-GALERIA p. 4): dwie loże (kanapy ze skóry z wysokim oparciem, stolik), tablica zakładów na ustawki na ścianie.
             // 10.11 (właściciel 10:06–10:13: „jeden wielki kloc”, „obija pikowaną skórą, drewienko”): loże jak w klubie NOVA — oparcia
             // ze skóry pikowanej (tekstura rombów z guzikami), siedziska z gładkiej skóry na cokole z orzecha, boki loży od przejścia
-            // i listwa na oparciu z orzecha, stolik z blatem z orzecha i mosiężnym obrzeżem. Tablica zakładów nad lożami (ściana boczna)
+            // i listwa na oparciu z orzecha, stolik z blatem z orzecha i stalowym obrzeżem. Tablica zakładów nad lożami (ściana boczna)
             // — wcześniej wisiała za regałem z butelkami (widać było tylko górę, wiersze nachodziły na siebie).
             var bordo = new Color(.50f, .11f, .12f);
             var pik = BraxUliceKit.S(BraxUliceKit.TexPlik("bar: oparcia lóż — skóra pikowana bordo", "Assets/Source/Claude/Nova/tekstury/", "nova_skora_pikowana", .64f, bordo, bordo * .5f, .42f));
             var gladka = BraxUliceKit.S(BraxMiastoA.Tex("bar: siedziska lóż — skóra bordo", .7f, bordo, bordo * .5f, .45f, "leather_red_02", "brown_leather"));
             var orzech = BraxUliceKit.S(BraxMiastoA.Tex("bar: orzech ciemny (fornir)", 1.4f, new Color(.52f, .36f, .27f), new Color(.20f, .12f, .07f), .42f, "teak_veneer", "dark_wood"));
-            var mosB = BraxUliceKit.S(BraxMiastoA.Mat("bar: mosiądz szczotkowany", new Color(.72f, .56f, .30f), .3f, .9f));
+            var mosB = BraxUliceKit.S(BraxMiastoA.Mat("bar: stal polerowana (obrzeża)", new Color(.80f, .81f, .83f), .22f, .9f));   // 12.11: bez mosiądzu (zasada 10.11)
             float gL = 1.5f * k, sL = drzwiPrawo ? sIn0 + .05f : sIn1 - .05f - gL;   // loże prostopadle do ściany bocznej po stronie bez drzwi
             float sP0 = drzwiPrawo ? sL + gL - .045f : sL, sP1 = sP0 + .045f;                 // skrzydło oparcia od przejścia (orzech)
             float sC0 = drzwiPrawo ? sL : sP1 + .004f, sC1 = drzwiPrawo ? sP0 - .004f : sL + gL; // oparcie między ścianą a skrzydłem
@@ -1319,7 +1319,7 @@ public static class BraxUlicePierzeje
                 var kl = new GameObject("kolizja: loża baru " + (i + 1)); kl.transform.SetParent(kolizje, false); var bcl = kl.AddComponent<BoxCollider>();
                 var a = W(sL, y0, dA); var bb = W(sL + gL, y0 + hB, dB - sz - op); bcl.center = (a + bb) * .5f; bcl.size = new Vector3(Mathf.Abs(bb.x - a.x), hB, Mathf.Abs(bb.z - a.z));
             }
-            // tablica zakładów: na ścianie bocznej nad lożami (czarna w mosiężnej ramie, kursy bursztynem), 2.2 × 0.95 m
+            // tablica zakładów: na ścianie bocznej nad lożami (czarna w stalowej ramie, kursy bursztynem), 2.2 × 0.95 m
             var tab = BraxUliceKit.Mat("bar: tablica zakładów (czarna)", new Color(.03f, .03f, .035f), .3f, .2f);
             var led = BraxMiastoA.Swieci("bar: kursy zakładów (bursztyn)", new Color(1f, .62f, .12f), new Color(2.2f, 1.2f, .2f));
             Vector3 nT = drzwiPrawo ? f.R : -f.R; float sT = drzwiPrawo ? sIn0 + .005f : sIn1 - .005f, ty0 = 1.55f * k, ty1 = 2.5f * k, tL = 1.1f;

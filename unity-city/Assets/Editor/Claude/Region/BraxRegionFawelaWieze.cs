@@ -324,7 +324,7 @@ public static partial class BraxRegionFawela
         {
             BoxF(dr, F, a, b, o.yMin + .03f, yD, g - .05f, g, false, false);
             Pasek(szklo, F, a + .16f, b - .16f, o.yMin + 1.0f, yD - .2f, g - .055f);
-            BoxF(WB(wStal).K(new Color(.85f, .75f, .45f)), F, (a + b) * .5f + (a < cs ? .32f : -.4f), (a + b) * .5f + (a < cs ? .4f : -.32f), o.yMin + 1.0f, o.yMin + 1.5f, g - .1f, g - .05f, false, true);   // pochwyt mosiężny
+            BoxF(WB(wStal).K(new Color(.8f, .81f, .83f)), F, (a + b) * .5f + (a < cs ? .32f : -.4f), (a + b) * .5f + (a < cs ? .4f : -.32f), o.yMin + 1.0f, o.yMin + 1.5f, g - .1f, g - .05f, false, true);   // pochwyt stalowy (12.11: bez mosiądzu)
         }
         Pasek(szklo, F, o.xMin + .06f, o.xMax - .06f, yD + .08f, o.yMax - .06f, g - .01f);                                             // naświetle
         foreach (float s in new[] { o.xMin, o.xMax - .06f }) Pasek(rama, F, s, s + .06f, o.yMin, o.yMax, g - .03f);

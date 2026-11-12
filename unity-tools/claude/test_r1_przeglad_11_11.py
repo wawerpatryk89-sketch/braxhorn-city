@@ -288,6 +288,18 @@ class Muzeum(unittest.TestCase):
             self.assertNotIn(zakaz, m.lower())
 
 
+class BezMosiadzu(unittest.TestCase):
+    def test_no_brass_or_gold_materials_in_r1(self):
+        # zasada 10.11 („całkowity brak złotego koloru… okucia ze stali”), 12.11 01:10 „jeżeli coś się nie nadaje… wyrzucaj”
+        import re
+        for f in sorted(R.glob("*.cs")):
+            s = f.read_text(encoding="utf-8")
+            for m in re.finditer(r'Mat\("[^"]*(mosiądz|złot)[^"]*"|Fitting\("[^"]*(mosiądz|złot)[^"]*"|Surface\("[^"]*(mosiądz|złot)[^"]*"', s):
+                self.fail(f.name + ": " + m.group(0))
+            self.assertNotIn("brass_vase", s, f.name)
+            self.assertNotIn("Color32(196, 160, 70", s, f.name)
+
+
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):
         k = src(ROOT / "unity-tools" / "claude" / "kontrola_kompilacji" / "kompiluj.sh")

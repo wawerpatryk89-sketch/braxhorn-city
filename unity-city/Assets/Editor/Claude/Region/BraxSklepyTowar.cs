@@ -29,7 +29,7 @@ public static class BraxSklepyTowar
         "wedliny" => new[] { "sk:kielbaski_paczka*2", "sk:ser_klin*2", "sk:parowki*2", "sk:ser_dojrzewajacy", "sk:kielbaski_paczka" },
         // ULICA MIASTA (10.11, zamiast kolorowych klocków): kwiaciarnia — rośliny w doniczkach (zestawy Poly Haven rozdzielone,
         // skrzynki_owocow.py) i wazony; optyk — okulary i lupy; poczta — artykuły papiernicze, książki, słodycze; warsztat rowerowy — narzędzia
-        "kwiaty" => new[] { "ph:doniczka_anturium_1", "ph:doniczka_kalatea_1", "ph:ceramic_vase_02", "ph:doniczka_paproc_1", "ph:potted_plant_04", "ph:doniczka_anturium_2", "ph:ceramic_vase_04", "ph:doniczka_kalatea_2", "ph:brass_vase_03*2", "ph:ceramic_vase_03" },
+        "kwiaty" => new[] { "ph:doniczka_anturium_1", "ph:doniczka_kalatea_1", "ph:ceramic_vase_02", "ph:doniczka_paproc_1", "ph:potted_plant_04", "ph:doniczka_anturium_2", "ph:ceramic_vase_04", "ph:doniczka_kalatea_2", "ph:antique_ceramic_vase_01*2", "ph:ceramic_vase_03" },
         // 11.11: oprawki z kodu na ścianie ekspozycji i na ladzie (BraxUlicePierzeje.Okulary — skala × K); na półkach poza pasem
         // ekspozycji płyny i krople do soczewek (pudełka BRAXHORN PHARMA), lupy, wazony
         "optyk" => new[] { "sk:lek_05*3", "ph:magnifying_glass_01", "sk:lek_12*3", "ph:ceramic_vase_03", "sk:lek_18*3", "sk:lek_09*2" },

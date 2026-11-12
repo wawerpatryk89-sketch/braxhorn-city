@@ -13,7 +13,7 @@ using UnityEngine;
 // „CLUB NOVA”, billboard „NOVA DYSKOTEKA”, próg/podest, drzwi) — źródło miasta, Codex, Fable i Claude 31.10 (kroki
 // BraxClaudeNovaClub i BraxRegionInteriors.NovaClub/NovaFront WYŁĄCZONE). Nietknięte: klatka i mieszkanie Braxa nad klubem.
 // NOWE (× k, podłoga = poziom chodnika 0.15 — wejście bez progu, idąc):
-//  • fasada premium: czarny kamień, mosiężne lizeny, cokół z granitu, portal wejścia, szklany daszek z podświetleniem,
+//  • fasada premium: czarny kamień, stalowe lizeny, cokół z granitu, portal wejścia, szklany daszek z podświetleniem,
 //    szyld „CLUB NOVA” z liter przestrzennych na podświetlanym panelu (równo, w osi wejścia), kasetony z plakatami,
 //    kinkiety, czerwony chodnik, KOLEJKA ze słupkami i aksamitną liną, ochrona przy drzwiach (punkt akcji), gzyms;
 //  • drzwi automatyczne szklane (BraxDrzwiPrzesuwne), przedsionek z szatnią (lada, wieszaki z okryciami) i kasą;
@@ -48,19 +48,19 @@ internal static class BraxMiastoNova
     // „wygląda jak jeden wielki klocek, piksel”): zamiast gołych kolorów — materiały z fakturą. Skóra pikowana (chesterfield,
     // guziki w węzłach rombów) to własna tekstura z ziarnem skóry Poly Haven brown_leather (CC0) i mapą normalnych poduszek
     // (Assets/Source/Claude/Nova/tekstury/nova_skora_pikowana), barwiona w materiale; orzech = fornir teak przyciemniony,
-    // marmur czarny = marble_01, posadzka = kamień polerowany; okucia z mosiądzu.
+    // marmur czarny = marble_01, posadzka = kamień polerowany; okucia ze stali polerowanej (12.11, zasada 10.11 — bez mosiądzu).
     const string TeksturyNova = "Assets/Source/Claude/Nova/tekstury/";
     static Material SkoraPik(string nazwa, Color c) => BraxUliceKit.TexPlik("NOVA: " + nazwa, TeksturyNova, "nova_skora_pikowana", .64f, c, c * .5f, .42f);
     static Material SkoraGladka(string nazwa, Color c) => BraxMiastoA.Tex("NOVA: " + nazwa, .7f, c, c * .5f, .45f, "brown_leather", "leather_red_02");
     static Material Orzech => BraxMiastoA.Tex("NOVA: orzech ciemny (fornir)", 1.4f, new Color(.52f, .36f, .27f), new Color(.20f, .12f, .07f), .42f, "teak_veneer", "dark_wood");
     static Material MarmurCzarny => BraxMiastoA.Tex("NOVA: marmur czarny polerowany", 1.8f, new Color(.30f, .30f, .32f), new Color(.05f, .05f, .055f), .12f, "marble_01");
     static Material Posadzka => BraxMiastoA.Tex("NOVA: posadzka kamień polerowany grafit", 1.6f, new Color(.42f, .42f, .44f), new Color(.10f, .10f, .11f), .22f, "granite_tile_02", "marble_01");
-    static Material Mosiadz => BraxMiastoA.Mat("NOVA: mosiądz szczotkowany", new Color(.72f, .56f, .30f), .3f, .9f);
+    static Material Mosiadz => BraxMiastoA.Mat("NOVA: stal polerowana (okucia)", new Color(.80f, .81f, .83f), .22f, .9f);   // 12.11: bez mosiądzu i złota (zasada 10.11), nazwa pola bez zmian
     static Color Bordo => new Color(.50f, .11f, .12f);
     static Color Czarna => new Color(.20f, .18f, .18f);
     static Color Sliwka => new Color(.38f, .11f, .30f);
 
-    // Okładzina ściany sali od środka: cokół z orzecha, pas skóry pikowanej do wysokości oparcia (1.26 m), mosiężna listwa,
+    // Okładzina ściany sali od środka: cokół z orzecha, pas skóry pikowanej do wysokości oparcia (1.26 m), stalowa listwa,
     // wyżej pionowe lamele z orzecha co 14 cm do sufitu. A = punkt na licu ściany (y dowolne), R = wzdłuż, N = do sali; otwory (s0, s1).
     static void Okladzina(Vector3 A, Vector3 R, Vector3 N, float L, params (float a, float b)[] otwory)
     {
@@ -74,7 +74,7 @@ internal static class BraxMiastoNova
         {
             B(wo, P(a, F, .0f), P(b, F + .14f, .07f));                        // cokół
             B(sk, P(a, F + .14f, .01f), P(b, F + 1.22f, .065f));              // skóra pikowana
-            B(ms, P(a, F + 1.22f, .0f), P(b, F + 1.26f, .075f));              // listwa mosiężna
+            B(ms, P(a, F + 1.22f, .0f), P(b, F + 1.26f, .075f));              // listwa stalowa
             for (float t = a + .07f; t < b - .04f; t += .14f) B(wo, P(t - .035f, F + 1.30f, .0f), P(t + .035f, C - .16f, .045f));   // lamele
             B(wo, P(a, C - .16f, .0f), P(b, C - .1f, .05f));                    // listwa pod sufitem
         }
@@ -141,7 +141,7 @@ internal static class BraxMiastoNova
     {
         var kamien = BraxMiastoA.Tex("NOVA: czarny kamień polerowany", 2.2f, new Color(.16f, .16f, .17f), new Color(.06f, .06f, .065f), .35f, "granite_tile_02", "granite_tile", "marble_01");
         var granit = BraxMiastoA.Tex("NOVA: cokół granit", 1.4f, new Color(.45f, .45f, .46f), new Color(.18f, .18f, .19f), .6f, "granite_tile_02", "granite_tile");
-        var mosiadz = BraxMiastoA.Mat("NOVA: mosiądz szczotkowany", new Color(.72f, .56f, .30f), .32f, .9f);
+        var mosiadz = BraxMiastoA.Mat("NOVA: stal polerowana (okucia)", new Color(.80f, .81f, .83f), .22f, .9f);
         var stal = BraxMiastoA.Mat("NOVA: stal czarna", new Color(.05f, .05f, .055f), .4f, .7f);
         var szklo = BraxUliceKit.SzkloPrzezroczyste;
         var panel = BraxMiastoA.Mat("NOVA: panel szyldu (czarne szkło)", new Color(.02f, .02f, .025f), .1f, .3f);
@@ -164,7 +164,7 @@ internal static class BraxMiastoNova
         var g = BraxUliceKit.S(granit);
         foreach (var (a, b) in new[] { (32f, 33.0f), (34.36f, 40.8f), (43.2f, 52f) })
             g.Box(new Vector3(a, F, z - .02f), new Vector3(b, .75f, 36.1f), 4 | 32);
-        // mosiężne lizeny co ok. 2.4 m (poza drzwiami i panelem szyldu), cienkie listwy LED w fugach
+        // stalowe lizeny co ok. 2.4 m (poza drzwiami i panelem szyldu), cienkie listwy LED w fugach
         var m = BraxUliceKit.S(mosiadz);
         foreach (float x in new[] { 32.12f, 35.0f, 37.6f, 39.95f, 44.05f, 46.3f, 49.15f, 51.88f })
             m.Box(new Vector3(x - .06f, .75f, z - .12f), new Vector3(x + .06f, yG - .02f, z), 32);
@@ -172,7 +172,7 @@ internal static class BraxMiastoNova
         var gz = BraxUliceKit.S(granit);
         gz.Box(new Vector3(31.9f, yG, z - .32f), new Vector3(52.1f, yG + .14f, 36.1f), 32);
         gz.Box(new Vector3(31.95f, yG + .14f, z - .2f), new Vector3(52.05f, yG + .30f, 36.1f), 32);
-        // portal wejścia: mosiężna rama 15 cm wokół otworu drzwi, ościeże 55 cm w głąb (drzwi w osi muru)
+        // portal wejścia: stalowa rama 15 cm wokół otworu drzwi, ościeże 55 cm w głąb (drzwi w osi muru)
         m.Box(new Vector3(40.65f, F, z - .1f), new Vector3(40.8f, F + 2.98f, z + .02f), 32);
         m.Box(new Vector3(43.2f, F, z - .1f), new Vector3(43.35f, F + 2.98f, z + .02f), 32);
         m.Box(new Vector3(40.65f, F + 2.85f, z - .1f), new Vector3(43.35f, F + 3.0f, z + .02f), 32);
@@ -277,7 +277,7 @@ internal static class BraxMiastoNova
         BraxMiastoA.Kol(kol, "sufit przedsionka", new Vector3(PX0, C, WewFront), new Vector3(PX1, C + .2f, 41.6f));
         BraxMiastoA.Kol(kol, "ściana przedsionka zachód", new Vector3(SX1, F, WewFront), new Vector3(PX0, C, 41.6f));
         BraxMiastoA.Kol(kol, "ściana przedsionek–toalety", new Vector3(PX1, F, WewFront), new Vector3(WX0, C, 41.6f));
-        // okładzina przedsionka jak w sali: skóra pikowana, mosiądz, lamele z orzecha (otwory: drzwi, przejście do sali, kasa)
+        // okładzina przedsionka jak w sali: skóra pikowana, stal polerowana, lamele z orzecha (otwory: drzwi, przejście do sali, kasa)
         Okladzina(new Vector3(PX0, 0, WewFront), Vector3.forward, Vector3.right, 41.6f - WewFront);
         Okladzina(new Vector3(PX1, 0, WewFront), Vector3.forward, Vector3.left, 41.6f - WewFront, (37.0f - .05f - WewFront, 38.8f + .05f - WewFront));
         Okladzina(new Vector3(PX0, 0, WewFront), Vector3.right, Vector3.forward, PX1 - PX0, (40.65f - PX0, 43.35f - PX0));
@@ -570,7 +570,7 @@ internal static class BraxMiastoNova
         BraxUliceKit.S(orzech).Box(new Vector3(BX0 + .04f, F, BZ0), new Vector3(BX1, F + h - .06f, BZ1), 4 | 8 | 1);
         BraxUliceKit.S(orzech).Box(new Vector3(BX0, F, BZ0), new Vector3(BX0 + .04f, F + .12f, BZ1), 4 | 2);
         BraxUliceKit.S(led).Box(new Vector3(BX0 - .02f, F + .12f, BZ0 + .05f), new Vector3(BX0 + .005f, F + .15f, BZ1 - .05f));   // ciepła listwa pod frontem
-        BraxUliceKit.S(Mosiadz).Box(new Vector3(BX0 - .025f, F + h - .1f, BZ0), new Vector3(BX0 + .005f, F + h - .07f, BZ1));      // mosiężna listwa pod blatem
+        BraxUliceKit.S(Mosiadz).Box(new Vector3(BX0 - .025f, F + h - .1f, BZ0), new Vector3(BX0 + .005f, F + h - .07f, BZ1));      // stalowa listwa pod blatem
         BraxUliceKit.S(blat).Box(new Vector3(BX0 - .28f, F + h - .06f, BZ0 - .05f), new Vector3(BX1 + .05f, F + h, BZ1 + .05f));
         BraxUliceKit.S(chrom).Rura(new Vector3(BX0 - .18f, F + .25f, BZ0 + .1f), new Vector3(BX0 - .18f, F + .25f, BZ1 - .1f), .025f, 10);
         BraxMiastoA.Kol(kol, "lada baru", new Vector3(BX0 - .28f, F, BZ0), new Vector3(BX1 + .05f, F + h, BZ1));
@@ -613,7 +613,7 @@ internal static class BraxMiastoNova
         {
             var p = new Vector3(BX0 - .62f, F, z);
             // 10.11 (właściciel 12:19: „krzesła — siedziska za płaskie, zrób to normalnie”): hoker jak w barze premium — ciężka
-            // mosiężna podstawa z fazą, kolumna, podnóżek z rury (pierścień na 4 wspornikach), talerz pod siedzisko i GRUBA miękka
+            // stalowa podstawa z fazą, kolumna, podnóżek z rury (pierścień na 4 wspornikach), talerz pod siedzisko i GRUBA miękka
             // poducha 11 cm × K z zaokrągloną krawędzią i kopułką (UlSiatka.PoduchaOkragla), skóra koniak
             var ch = BraxUliceKit.S(chrom);
             ch.Walec(p, .21f * K, .025f, 24); ch.Walec(p + Vector3.up * .025f, .17f * K, .012f, 24);
@@ -706,7 +706,7 @@ internal static class BraxMiastoNova
             BraxUliceKit.S(inox).Walec(kub, .1f * K, .2f * K, 14);
             var but = BraxUliceKit.S(BraxMiastoA.Mat("NOVA: butelki (kolory z wierzchołków)", Color.white, .12f, .15f));
             but.kolor = new Color32(28, 72, 40, 255); but.Rura(kub + Vector3.up * .1f, kub + new Vector3(.02f, .34f * K, 0), .035f * K, 10);   // szampan w kubełku: zielone szkło
-            but.kolor = new Color32(196, 160, 70, 255); but.Rura(kub + new Vector3(.02f, .34f * K, 0), kub + new Vector3(.025f, .42f * K, 0), .014f * K, 8); but.kolor = BraxUliceKit.Bialy;   // złota folia szyjki
+            but.kolor = new Color32(188, 190, 194, 255); but.Rura(kub + new Vector3(.02f, .34f * K, 0), kub + new Vector3(.025f, .42f * K, 0), .014f * K, 8); but.kolor = BraxUliceKit.Bialy;   // srebrna folia szyjki (bez złota)
             var g = new GameObject("kolizja: stolik loży"); g.transform.SetParent(kol, false); g.transform.position = c + Vector3.up * .25f * K;
             var cc = g.AddComponent<CapsuleCollider>(); cc.radius = .42f * K; cc.height = .5f * K;
             BraxMiastoA.Kol(kol, "loża siedzisko", new Vector3(x0, F, z0 - .1f), new Vector3(xb + gl, F + sh, z1 + .1f));

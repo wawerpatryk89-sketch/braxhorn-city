@@ -172,7 +172,7 @@ class SklepyKazdy(unittest.TestCase):
         bar = PIERZEJE.split('if (t == "bar")')[1].split('if (t == "bistro" || t == "pizzeria" || t == "bar")')[0]
         self.assertIn('"nova_skora_pikowana"', bar)
         self.assertIn('"bar: orzech ciemny (fornir)"', bar)
-        self.assertIn('"bar: mosiądz szczotkowany"', bar)
+        self.assertIn('"bar: stal polerowana (obrzeża)"', bar)          # 12.11: bez mosiądzu (zasada 10.11)
         self.assertNotIn('BraxUliceKit.Mat("bar: skóra loży (bordo)"', bar)
         # tablica zakładów nad lożami na ścianie bocznej, wiersze co 21 cm przy wersalikach 7.5 cm (nie nachodzą)
         self.assertIn("Vector3 nT = drzwiPrawo ? f.R : -f.R;", bar)
