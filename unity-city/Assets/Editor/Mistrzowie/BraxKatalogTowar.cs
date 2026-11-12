@@ -3,7 +3,7 @@ using UnityEngine;
 // BRAXHORN KATALOG — TOWAR (owner 11.11 19:52 "te sklepy są niewyposażone", 20:10 "wszystkie sklepy, które są potrzebne ...
 // do domu wszystko", 20:12 "każdy detal"): the goods of the gallery's fashion, sport and toy shops as catalogue pieces, so
 // the flats' wardrobes, the hotel rooms and the other region use the same clothes, shoes, balls and toys. Built from code
-// with Poly Haven fabrics (cotton_jersey, crepe_satin, terlenka, poly_wool_herringbone, curly_teddy_natural, Leather037);
+// with Poly Haven fabrics (cotton_jersey, crepe_satin, terlenka, poly_wool_herringbone, curly_teddy_natural, leather_white);
 // zero blocks: every piece has its real shape (a garment on a wire hanger with sleeves and a collar, a dress form, a
 // sneaker with a sole and a collar, a ball, a hex dumbbell, a teddy bear). Zero flicker: proud details >= 12 mm, stacked
 // pieces rest face to face (hidden contact), nothing coplanar.
@@ -50,7 +50,10 @@ public static partial class BraxKatalog
         TeddyLight = T("teddy_cream", "curly_teddy_natural", .25f, new Color(1.35f, 1.25f, 1.10f));
         ToyRed = S("toy_red", new Color(.85f, .08f, .10f), .25f, 0f); ToyBlue = S("toy_blue", new Color(.10f, .32f, .85f), .25f, 0f);
         ToyYellow = S("toy_yellow", new Color(.98f, .78f, .10f), .25f, 0f); ToyGreen = S("toy_green", new Color(.15f, .65f, .30f), .25f, 0f);
-        Leather = T("leather_black", "Leather037", .4f, new Color(.30f, .30f, .32f));
+        // black leather from Poly Haven's leather_white (fetched by prepare_assets) tinted down - NOT the ambientCG Leather037:
+        // T() takes Poly Haven slugs only, "Leather037_diff_4k.jpg" does not exist and the missing map threw the WHOLE G1
+        // gallery out of APK 39 (owner 12.11 11:51 "nie ma w ogóle galerii")
+        Leather = T("leather_black", "leather_white", .4f, new Color(.12f, .12f, .13f));
     }
 
     // ---------------------------------------------------------------- shared pieces (one mesh, many placements)
