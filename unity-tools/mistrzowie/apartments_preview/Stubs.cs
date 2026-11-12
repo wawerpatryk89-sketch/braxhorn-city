@@ -331,7 +331,7 @@ namespace UnityEditor
                 var png = System.IO.Path.ChangeExtension(p, ".png"); System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(png));
                 PreviewPng.Write(png, t.width, t.height, t.pixels); t.name = png; t.real = true;
             }
-        } public static void Refresh(ImportAssetOptions o = ImportAssetOptions.Default) { } public static Object[] LoadAllAssetsAtPath(string p) => new Object[0];
+        } public static void Refresh(ImportAssetOptions o = ImportAssetOptions.Default) { } public static bool IsValidFolder(string p) => true; public static string CreateFolder(string parent, string name) => parent + "/" + name; public static Object[] LoadAllAssetsAtPath(string p) => new Object[0];
         public static void SaveAssets() { } public static void ImportAsset(string p, ImportAssetOptions o) { } }
     public class AssetImporter : Object { public static AssetImporter GetAtPath(string p) => new TextureImporter { name = p }; public void SaveAndReimport() { } }
     public enum TextureImporterFormat { Automatic, ASTC_4x4, ASTC_6x6, ASTC_8x8 }

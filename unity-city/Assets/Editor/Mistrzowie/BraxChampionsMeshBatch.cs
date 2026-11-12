@@ -310,7 +310,21 @@ public sealed class BraxChampionsMeshBatch
     {
         var old = AssetDatabase.LoadAssetAtPath<Mesh>(path);
         if (old) { EditorUtility.CopySerialized(mesh, old); UnityEngine.Object.DestroyImmediate(mesh); EditorUtility.SetDirty(old); return old; }
+        Folder(System.IO.Path.GetDirectoryName(path).Replace('\\', '/'));
         AssetDatabase.CreateAsset(mesh, path); return mesh;
+    }
+
+    // the folder known to the AssetDatabase, created level by level (12.11 scene run 43220934508: the G1 gallery was skipped
+    // with "Parent directory must exist before creating asset at Assets/PlayableGenerated/Mistrzowie/Katalog/batch_1676" -
+    // the catalogue folder had only ever been made by a TV screen's texture, and the first hanger came before any screen)
+    public static void Folder(string dir)
+    {
+        if (string.IsNullOrEmpty(dir) || AssetDatabase.IsValidFolder(dir)) return;
+        var parent = System.IO.Path.GetDirectoryName(dir).Replace('\\', '/');
+        Folder(parent);
+        // on disk but not yet imported (made by System.IO): import it, never a second "Katalog 1" beside it
+        if (System.IO.Directory.Exists(dir)) AssetDatabase.ImportAsset(dir, ImportAssetOptions.ForceSynchronousImport);
+        if (!AssetDatabase.IsValidFolder(dir)) AssetDatabase.CreateFolder(parent, System.IO.Path.GetFileName(dir));
     }
 
     /// <summary>Invisible box collider (nominal centre/size, rotation about Y) for railings, posts, counters.</summary>

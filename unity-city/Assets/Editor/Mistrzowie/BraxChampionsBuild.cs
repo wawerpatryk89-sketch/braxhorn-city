@@ -60,7 +60,7 @@ public static class BraxChampionsBuild
 
     static void BuildInternal(bool apk,bool validationOnly=false,bool skipWalkChecks=false)
     {
-        string reports=Path.GetFullPath("../mistrzowie-evidence");Directory.CreateDirectory(reports);
+        string reports=Path.GetFullPath("../mistrzowie-evidence");Directory.CreateDirectory(reports);gateFails.Clear();
         // Fresh per-run log of EVERY nonblocking scene-material, collision
         // mesh and missing-component problem; never stop after the first.
         File.WriteAllText(Path.Combine(reports,"scene-asset-quality.txt"),
@@ -115,7 +115,7 @@ public static class BraxChampionsBuild
             if(!skipWalkChecks)CheckExteriorAccess();report.rendererCount=CheckAssets(scene);report.sceneReloadPassed=true;
             // Scene-only integration gate: Arena A1 and Casino T11 MUST both
             // survive serialization before the user can approve a combined city.
-            if(validationOnly)VerifyArenaCasinoAssembly(scene,report,"foundation-serialized");
+            if(validationOnly)Gate(report,()=>VerifyArenaCasinoAssembly(scene,report,"foundation-serialized"));
             report.checks.Add("Serialized scene reopened; consult quality-review.json for inspection warnings");
             BraxChampionsExplorer.Generate(report.sourceCommit);
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
@@ -123,14 +123,15 @@ public static class BraxChampionsBuild
             Physics.SyncTransforms();
             report.playerClips=BraxChampionsExplorer.Validate(scene);
             CheckAssets(scene);report.explorationSceneReloadPassed=true;
-            if(validationOnly)VerifyArenaCasinoAssembly(scene,report,"exploration-serialized");
-            if(validationOnly)VerifyArenaCasinoCarAssembly(scene,report);
+            if(validationOnly)Gate(report,()=>VerifyArenaCasinoAssembly(scene,report,"exploration-serialized"));
+            if(validationOnly)Gate(report,()=>VerifyArenaCasinoCarAssembly(scene,report));
             report.checks.Add("Exploration scene reopened; player quality and traversability require manual device review");
             if(validationOnly)
             {
                 // Read-only metrics only for explicitly requested scenes, never for APK.
                 BraxSceneAudit.Run(scene, report.sourceCommit);
-                report.status="UNITY_SCENES_GENERATED_APK_NOT_BUILT_DEVICE_REVIEW_PENDING";
+                report.status=gateFails.Count==0?"UNITY_SCENES_GENERATED_APK_NOT_BUILT_DEVICE_REVIEW_PENDING"
+                    :"UNITY_SCENES_GENERATED_INTEGRATION_FAIL: "+string.Join(" | ",gateFails);
                 return;
             }
             if(apk)
@@ -154,6 +155,21 @@ public static class BraxChampionsBuild
         }
         catch(Exception e){report.status="FAILED: "+e.Message;Debug.LogException(e);throw;}
         finally {if(BraxBuildQuality.Advisory)report.status+="_QUALITY_ADVISORY_MANUAL_REVIEW_REQUIRED";if(skipWalkChecks)report.status+="_WALK_CHECKS_SKIPPED";File.WriteAllText(reports+"/unity-validation.json",JsonUtility.ToJson(report,true));Debug.Log("BRAX_MISTRZOWIE_UNITY "+JsonUtility.ToJson(report));}
+    }
+
+    // PHOTOS FIRST (owner 12.11 19:32 "Miałeś teraz mieć zdjęcia? Gdzie są"): the 12.11 scene run 43220934508 worked 3 hours and
+    // threw on a stale casino-sign check before the exploration scene existed, so the photo player never ran. In a scene
+    // check an integration failure is now written down (log, report status) and the scenes are finished; the workflow
+    // takes the photos and only then fails the job on "INTEGRATION_FAIL" in unity-validation.json. Nothing passes silently.
+    static readonly List<string> gateFails=new List<string>();
+    static void Gate(Report report,Action check)
+    {
+        try{check();}
+        catch(InvalidOperationException e)
+        {
+            gateFails.Add(e.Message);report.checks.Add("INTEGRATION_FAIL "+e.Message);
+            Debug.LogError("BRAX_INTEGRATION_FAIL "+e.Message+" (the scenes are finished and photographed; the job fails after the photos)");
+        }
     }
 
     // Only the explicitly requested Unity scene test calls this routine.
@@ -182,10 +198,13 @@ public static class BraxChampionsBuild
         int arenaSigns=arena[0].GetComponentsInChildren<Transform>(true)
             .Count(t=>t.name.StartsWith("A1 facade | original premium sign ",StringComparison.Ordinal));
         var casinoParts=casino[0].GetComponentsInChildren<Transform>(true);
-        // 9.11: the casino carries the 3D gold sign (the owner PNG is only its fallback).
+        // 9.11: the casino carries the 3D gold sign (the owner PNG is only its fallback); since 10.11 (e09846c, the owner's
+        // example) that sign is the KASYNO WAWER crown bent round the rotunda - the check still looked for the old carrier
+        // sign and failed the 12.11 scene run (43220934508) with "T11 owner sign=0" although the crown was built
         int casinoSigns=casinoParts.Count(t=>t.name.StartsWith(
             "T11 | ORIGINAL C1 KASYNO WAWER |",StringComparison.Ordinal)||
-            t.name=="T11 3D gold KASYNO WAWER sign | rotunda");
+            t.name=="T11 3D gold KASYNO WAWER sign | rotunda"||
+            t.name=="T11 KASYNO WAWER crown sign | round the rotunda");
         int casinoDollars=casinoParts.Count(t=>t.name.StartsWith(
             "T11 | OWNER ORIGINAL DEZYNE_3D GOLD DOLLAR |",StringComparison.Ordinal));
         if(arenaSigns!=4||casinoSigns!=1||casinoDollars!=1)

@@ -741,6 +741,22 @@ jobs:
             unity-city/BraxContentBuild/base/scene-guids.txt
           if-no-files-found: warn
           retention-days: 30
+      - name: Scene check verdict after the photos (integration failures fail the job here, not before the photos)
+        if: always() && !cancelled() && inputs.etap == 'sceny'
+        run: |
+          # owner 12.11 19:32: a 3-hour scene run must never end without photos; BraxChampionsBuild writes an
+          # integration failure into the report and finishes the scenes, the photos are taken and saved above,
+          # and the verdict is given here
+          python3 - <<'PYVERDICT'
+          import json, pathlib, sys
+          p = pathlib.Path('mistrzowie-evidence/unity-validation.json')
+          if not p.exists():
+              print('BRAX_SCENE_VERDICT no unity-validation.json'); sys.exit(0)
+          status = json.loads(p.read_text(encoding='utf-8')).get('status', '')
+          print('BRAX_SCENE_VERDICT', status)
+          if 'INTEGRATION_FAIL' in status:
+              print('::error::' + status); sys.exit(1)
+          PYVERDICT
       - name: Pack encrypted imports after delivery attempts or failed Unity validation
         id: library_pack
         if: always() && !cancelled() && !inputs.zdjecia && (steps.unity_build.outcome == 'success' || steps.unity_build.outcome == 'failure')
