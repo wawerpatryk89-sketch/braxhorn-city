@@ -100,6 +100,16 @@ class PrzegladModeli(unittest.TestCase):
         self.assertIn('for(int i=-1;i<=1;i++)ShopModel(Elektronika,n,p+Vector3.up*.04f+side*(i*.11f),f);', s)
         self.assertIn('ShopModel(Sprzet,"skakanka",new Vector3(rx+1.82f,y+.75f,rz-.12f),Vector3.back,-60f,-.040f);', src('BraxChampionsG1Wnetrze.cs'))
 
+    def test_laptops_and_tablets_straight_and_held(self):
+        # owner 15:24-15:31 "laptopy ... wszystko sprawdzaj, poprawiaj", "mam nadzieję, że ty to widzisz": they stood 60 degrees
+        # askew (the sheet's three-quarter view) - squared in the pack (wyprostuj.py), the glass flat (ekran_plaski.py);
+        # the bare tablet leaning on nothing gets a stand
+        for f in ('wyprostuj.py', 'ekran_plaski.py'):
+            self.assertTrue((TOOLS / f).exists(), f)
+        s = src('BraxChampionsG1Sklepy.cs')
+        self.assertIn('if(!TabletModel(Tablety[(((int)d)%3+3)%3],p,face))', s)
+        self.assertIn('return ShopModel(Elektronika,n,p,f,0f,.004f);', s)
+
     def test_unpacked_originals_are_archived(self):
         # owner 15:18 "mam nadzieję, że to nie przepadło": the sheets not cut yet are kept encrypted, never staged into a build
         d = PACKS / 'braxhorn-tripo-oryginaly-20261112'; m = json.loads((d / 'manifest.json').read_text(encoding='utf-8'))

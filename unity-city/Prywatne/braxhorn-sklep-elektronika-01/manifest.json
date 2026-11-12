@@ -3,13 +3,13 @@
  "target": "sklep_elektronika_01",
  "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_elektronika_01 (BraxMiastoAssety.Model)",
  "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
- "tarSha256": "751a6bb701bc000d87a6872e2cbfe390a4665e5815893cd03f9979f3ef0f803b",
- "cmsSha256": "5763919093db3695cad61ae7c58968ae917ad741170061099147e9d207f6c941",
+ "tarSha256": "10b4bfc1cd761db070d756e426638c5c19818588f23f9f346629b3b551b20388",
+ "cmsSha256": "af9bfec19aa54c4fd9fe4ebf3d6cf9bae90b4fbdcc6b17127125a1c210c9bd4b",
  "parts": [
   {
    "name": "part-000.cms",
-   "bytes": 8262073,
-   "sha256": "5763919093db3695cad61ae7c58968ae917ad741170061099147e9d207f6c941"
+   "bytes": 8190325,
+   "sha256": "af9bfec19aa54c4fd9fe4ebf3d6cf9bae90b4fbdcc6b17127125a1c210c9bd4b"
   }
  ],
  "files": {
@@ -17,17 +17,17 @@
   "oryginal/spec.json": "ab4d18d4ab089a13ff0fe9e3e312ead9c06ae7488dda1b149b3d25fdd612f784",
   "sklep_elektronika_01/_tekstury/sklep_elektronika_01_kolor.jpg": "6d9503082d60174ad5f1552e5cd99c62b1bd7bbd7e5c97cd8500c1567f2a4bd3",
   "sklep_elektronika_01/_tekstury/sklep_elektronika_01_mr.png": "8a19f6db60cc4da646f11a3effaf96de32b32adb8d2e79bf5f9f256b1741907f",
-  "sklep_elektronika_01/_tekstury/sklep_elektronika_01_normal.png": "e2dbe149c25ac019a0c9f026c8a820adfed77441a2c58a5eca00f705e309e744",
-  "sklep_elektronika_01/katalog.json": "771f9f8634433acb926d012bf64cf0bf4b2e516d115447b56c2e7d0cb5556cdc",
-  "sklep_elektronika_01/laptop_gamingowy_czerwony.glb": "ae6627b016821c22d4c2813af0bf891f1f0fe24551783b86194141ad821804fa",
-  "sklep_elektronika_01/laptop_srebrny.glb": "92045e44ad6d05a64a352b7bbca844147d33db5d89ecb9e508039e2001e19aae",
-  "sklep_elektronika_01/laptop_zloty.glb": "eadf508208825145691f4fa2b99ec5cfd072c33bd397e4afcfef3cfd8917ea5d",
+  "sklep_elektronika_01/_tekstury/sklep_elektronika_01_normal.png": "9416496891e98ffd3b3bb0f060e657035217f503d3abe9a08c509967ee7c3931",
+  "sklep_elektronika_01/katalog.json": "4976dc2ac752ec18ff1ad5ae5aea1abbb1b30dd1651bf2a23fac6de7306b2422",
+  "sklep_elektronika_01/laptop_gamingowy_czerwony.glb": "ebbb5b2c35c03ab8b1efa0572fd56ae54735ae8041ba3e81f1b40f3f1715c44c",
+  "sklep_elektronika_01/laptop_srebrny.glb": "48644b0e0424f47f1f55c54076e2e4d5a3b57b8dca6f9e8833d4be38e0298eb8",
+  "sklep_elektronika_01/laptop_zloty.glb": "9ab100764bee66a2c27af6ae8828821ae0a632d8a4e1e3f24d335110777ef28d",
   "sklep_elektronika_01/powerbank_braxhorn.glb": "9298f1324fdc3ea1698ca86cb12f86c5f4c32d834cbd7db4f0fca5b0ddfe2b6a",
   "sklep_elektronika_01/powerbank_solarny.glb": "e9eea2892e3a2cc4a28e919add7bca8837ea2173dcf2a20bbde5d6b631e6687d",
   "sklep_elektronika_01/smartwatch_czarny.glb": "ddc0245e6494c73a9d9293c577cc21643c2960175c3c7e9ce58a02a95b7cf8a6",
-  "sklep_elektronika_01/tablet_kolorowy.glb": "0b0ee901d375a9bd63a7aa26b61cbd0d75b9fa7cc6722c234108b004f8d32637",
-  "sklep_elektronika_01/tablet_w_etui.glb": "2ca032b6c012761d799a8f5020b059d4bbe787148d961e50c4ae95dc31a6a678",
-  "sklep_elektronika_01/tablet_z_klawiatura.glb": "2d84ff56d6352e3c859143740969fdb53dc61f5588a2a480efbb9119533b62dc",
+  "sklep_elektronika_01/tablet_kolorowy.glb": "2f96569433b0e8d7b44b3cf9585d64f3dfb5655e50f8f30193c059ef5c551aba",
+  "sklep_elektronika_01/tablet_w_etui.glb": "8a350f124a2408b5ee6397872d210d5a6ef5062057163d7f8be52625f6432268",
+  "sklep_elektronika_01/tablet_z_klawiatura.glb": "13ed8c193a7ea869a2b81c625217c6868d06ab7571ebf8f66fc662f8c36ffe1a",
   "sklep_elektronika_01/zegarek_chronograf.glb": "58129403981144f8e3bdd0e2bde3d89c918bed41b4780fc167f8b7110ac9d3cf"
  },
  "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"

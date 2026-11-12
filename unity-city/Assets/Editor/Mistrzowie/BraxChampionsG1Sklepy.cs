@@ -323,6 +323,21 @@ public static partial class BraxChampionsD2
     // "wykorzystać co najlepsze wszystko"): the smartwatch and the chronograph (5 cm, standing on their straps) and the two
     // power banks - on the lit wall shelves of the phone shops and the general electronics shops
     static readonly string[] Drobne={"smartwatch_czarny","powerbank_braxhorn","zegarek_chronograf","powerbank_solarny"};
+    // a tablet on the display table. The bare tablet of the owner's sheet leans back 12 degrees with nothing holding it
+    // (it stood so on the Tripo sheet): it gets a black aluminium stand - a base plate with a lip under its lower edge and
+    // two legs up to its back - and rises 4 mm onto the plate. The tablet in its case and the one in the keyboard folio
+    // stand on their own.
+    static bool TabletModel(string n,Vector3 p,Vector3 f)
+    {
+        if(n!="tablet_kolorowy")return ShopModel(Elektronika,n,p,f);
+        if(!BraxMiastoAssety.Jest(Elektronika)||!BraxMiastoAssety.Model(Elektronika,n))return false;
+        f.y=0;f.Normalize();var rot=Quaternion.LookRotation(f,Vector3.up);Vector3 L(float x,float y,float z)=>p+rot*new Vector3(x,y,z);
+        m.Box(gBlackFascia,L(0f,.002f,-.015f),new Vector3(.10f,.004f,.09f),rot);
+        m.Box(gBlackFascia,L(0f,.008f,.0335f),new Vector3(.10f,.012f,.005f),rot);
+        foreach(float x in new[]{-.035f,.035f})m.Tube(gBlackFascia,L(x,.004f,-.055f),L(x,.089f,-.0075f),.003f,8);
+        m.Tube(gBlackFascia,L(-.035f,.089f,-.0075f),L(.035f,.089f,-.0075f),.003f,8);
+        return ShopModel(Elektronika,n,p,f,0f,.004f);
+    }
     // one place on the shelf: a power bank stands alone; a watch is 5 cm - three of them in a row on a black velvet step
     // (one alone is lost on a 40 cm shelf)
     static bool DrobneModel(int k,Vector3 p,Vector3 f)
@@ -658,7 +673,7 @@ public static partial class BraxChampionsD2
                                 else if(foto)Camera(p,face);
                                 else if(games){if(i%2==0)Console(p,face);else Headphones(p,face);}
                                 else if(i%2==0){if(!ShopModel(Elektronika,Laptopy[((i/2+(int)d)%3+3)%3],p,face))BraxKatalog.Laptop(Kat(),p,face,i+(int)d);}
-                                else if(i==1){if(!ShopModel(Elektronika,Tablety[(((int)d)%3+3)%3],p,face))BraxKatalog.Monitor(Kat(),p,face,i+1);}
+                                else if(i==1){if(!TabletModel(Tablety[(((int)d)%3+3)%3],p,face))BraxKatalog.Monitor(Kat(),p,face,i+1);}
                                 else BraxKatalog.Monitor(Kat(),p,face,i+1);   // owner 20:07-20:12: the catalogue's BRAXHORN monitors; laptops / tablets: the owner's Tripo sheet
                             }
                         }
