@@ -274,7 +274,7 @@ class G1ShopModelsTests(unittest.TestCase):
                              ('braxhorn-sklep-buty-02', 'sklep_buty_02'), ('braxhorn-sklep-walka-01', 'sklep_walka_01'),
                              ('braxhorn-sklep-silownia-01', 'silownia_sprzet_01'), ('braxhorn-sklep-silownia-02', 'silownia_sprzet_02'), ('braxhorn-sklep-silownia-03', 'silownia_sprzet_03'),
                              ('braxhorn-sklep-perfumy-01', 'sklep_perfumy_01'), ('braxhorn-sklep-perfumy-02', 'sklep_perfumy_02'),
-                             ('braxhorn-sklep-elektronika-01', 'sklep_elektronika_01')):
+                             ('braxhorn-sklep-elektronika-01', 'sklep_elektronika_01'), ('braxhorn-sklep-ring-01', 'silownia_ring_01')):
             mf = json.loads((ROOT / 'unity-city/Prywatne' / pack / 'manifest.json').read_text())
             self.assertEqual(mf['target'], target)
             self.assertFalse(any(p.suffix in ('.glb', '.png', '.jpg') for p in (ROOT / 'unity-city/Prywatne' / pack).iterdir()))

@@ -60,6 +60,7 @@ Narzędzie robi kolejno:
 | `braxhorn-sklep-silownia-03` | `silownia_sprzet_03` | talerze obciążeniowe BRAXHORN z uchwytami: 5, 10, 20 kg (dwa rozmiary) |
 | `braxhorn-sklep-perfumy-01` / `-02` | `sklep_perfumy_01` / `_02` | 20 flakonów perfum (część z bykiem BRAXHORN): półki i lada perfumerii (G1: sklepy „cosmetics”) |
 | `braxhorn-sklep-elektronika-01` | `sklep_elektronika_01` | laptopy (gamingowy czerwony, złoty, srebrny), tablety (3), zegarek chronograf, smartwatch, powerbanki: stoły i ściany sklepów RTV |
+| `braxhorn-sklep-ring-01` | `silownia_ring_01` | ring bokserski BRAXHORN GYM 7,85 × 7,8 m (mata 0,86 m, 4 liny): zepsute nadruki Tripo zamaskowane, napis 3D BRAXHORN (stal) + GYM (złoto) na obu fartuchach, nadruk byka właściciela na macie, prawdziwe liny ze skórzanymi przekładkami (`unity-tools/sklep/ring_braxhorn.py`). Do wszystkich siłowni i sal treningowych |
 
 Buty leżą na planszy w rzędach na podłodze, więc tnie się je w widoku z góry (`"view": "top"`). Cała plansza ma jedną skalę (`"scale"`), dzięki czemu rozmiary sztuk zgadzają się między sobą. Na półkach stawiamy przez `ShopModel` (podstawa na półce, przód do klienta).
 

@@ -1,0 +1,28 @@
+{
+ "source": "Owner Tripo boxing ring 12.11 01:29 (BRAXHORN GYM), processed by unity-tools/sklep/ring_braxhorn.py",
+ "target": "silownia_ring_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/silownia_ring_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "4715348cb7b0f67da798fe67fe729b2b1b612ffb0e2c8f72c453295073ca8d27",
+ "cmsSha256": "b81d4cf0ae18be21a5c2601444ef1a41cb28fc623bd833e21a82175fcf6e1496",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 12280073,
+   "sha256": "b81d4cf0ae18be21a5c2601444ef1a41cb28fc623bd833e21a82175fcf6e1496"
+  }
+ ],
+ "files": {
+  "oryginal/in.glb": "ac865c91fc5668d941e83acee7a4ac53da0f26a7e0dfe5666709e16db0cd6225",
+  "oryginal/spec.json": "661f9cd0e541cd6ac7cebda2b2070641b5473ac1b7370c0de9c1b88889495f4e",
+  "silownia_ring_01/_tekstury/ring_bokserski_braxhorn_kolor.jpg": "da7fbcbbf60a8d58593f575df75d1e6184e93c2b540d12ee70421308d8d1dad4",
+  "silownia_ring_01/_tekstury/ring_bokserski_braxhorn_mata_kolor.jpg": "d4cd8963ee74dc0468444fec7e24996d9d41f666eb51bb88002d6523ebf81163",
+  "silownia_ring_01/_tekstury/ring_bokserski_braxhorn_mata_mr.png": "c4900dff604f2d588763b5e912ce43f01ff3eba5d6206d917ab00ca29a93d3b0",
+  "silownia_ring_01/_tekstury/ring_bokserski_braxhorn_mata_normal.png": "69364e065c395a24dd967c42226df7b518af61e29d3527c84075274a1624513c",
+  "silownia_ring_01/_tekstury/ring_bokserski_braxhorn_mr.png": "30582d4191898613f0865cf4cdb47aad8329af173be21f62e85266d865c506bb",
+  "silownia_ring_01/_tekstury/ring_bokserski_braxhorn_normal.png": "de0df453dfaff8ec1e9343dadc0dbff42867b10221f925c91689aba635d2e6b7",
+  "silownia_ring_01/katalog.json": "1111b367078ea34e22b40eb75be7757b06b0fc9d70d576b97cfbcabad8ab2b39",
+  "silownia_ring_01/ring_bokserski_braxhorn.glb": "18e20bc2978967bc353df818ddadf8408a50308ab4533d28826b4cec5a02e131"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
