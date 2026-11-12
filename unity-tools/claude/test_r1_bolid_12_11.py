@@ -44,6 +44,11 @@ class PamiecBuildu(unittest.TestCase):
         self.assertIn('nohup "$RUNNER_TEMP/pamiec.sh"', WF)
         self.assertIn("BRAXHORN_PAMIEC_RAM szczyt", WF)
 
+    def test_limit_pamieci_kontenera_unity(self):
+        # bolid 43165930897: --memory=15183m (domyślne 95 % RAM) → kontener RAM + swap ≈ 30 GB, zabity przy 30 GB
+        i = WF.index("id: unity_android"); j = WF.index("Pamiec RAM i swap w czasie buildu")
+        self.assertIn("dockerMemoryLimit: 22g", WF[i:j])
+
     def test_raport_pamieci_po_kompilacji_takze_przy_awarii(self):
         i = WF.index("id: unity_android"); j = WF.index("Pamiec RAM i swap w czasie buildu")
         self.assertLess(i, j)

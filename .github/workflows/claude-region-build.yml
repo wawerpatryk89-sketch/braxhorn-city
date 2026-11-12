@@ -820,6 +820,10 @@ jobs:
         androidExportType: androidPackage
         versioning: None
         allowDirtyBuild: true
+        # 12.11 (bolid 43165930897): domyślnie game-ci daje kontenerowi --memory=95 % RAM (15183m), a Docker bez --memory-swap
+        # pozwala wtedy na RAM + tyle samo swapu = ~30 GB — Unity zabity (137) przy 14,7 GB RAM + 15,5 GB swap, choć na hoście
+        # było 30 GB pliku wymiany. 22g → limit kontenera ~44 GB (RAM 16 GB + swap hosta 30 GB).
+        dockerMemoryLimit: 22g
     - name: Pamiec RAM i swap w czasie buildu (szczyt i ostatnie pomiary, takze przy awarii)
       if: always()
       run: |
