@@ -454,7 +454,9 @@ public static partial class BraxChampionsD2
                 for(int i=0;i<10;i++)BraxKatalog.Dumbbell(Kat(),new Vector3(rx+.2f+i*.38f,y+(i<5?.35f:.75f)+.049f+(4f+i*2f)*.0028f,rz),Vector3.forward,4f+i*2f);   // resting on the head
                 // the free halves of the rack: the owner's kettlebells (lower shelf, right) and boxing gloves (upper shelf, left)
                 for(int i=0;i<4;i++)ShopModel(Sprzet,"kettlebell_16kg",new Vector3(rx+2.25f+i*.45f,y+.35f,rz),Vector3.back);
-                for(int i=0;i<3;i++)ShopModel(Sprzet,i==1?"sklep_walka_01/rekawice_bokserskie_braxhorn_czarno_zlote":"rekawice_bokserskie",new Vector3(rx+.35f+i*.55f,y+.75f,rz),Vector3.back);
+                // (the red pair is out: two gloves grown into one leaning lump; the black-gold pair LIES on the shelf, cuffs to the
+                // wall, as in the changing room - owner 12:45 "jak te rękawice stoją")
+                for(int i=0;i<3;i++)ShopModel(Sprzet,"sklep_walka_01/rekawice_bokserskie_braxhorn_czarno_zlote",new Vector3(rx+.35f+i*.55f,y+.75f,rz+.15f),Vector3.back,90f,.118f);
                 Material[] mats={BraxKatalog.SportCols[0],BraxKatalog.SportCols[1],BraxKatalog.SportCols[3]};
                 for(int i=0;i<9;i++)BraxKatalog.MatRoll(Kat(),new Vector3(65f+(i%3)*.16f,y,44.0f+(i/3)*.16f),Vector3.up,mats[i%3]);
             });

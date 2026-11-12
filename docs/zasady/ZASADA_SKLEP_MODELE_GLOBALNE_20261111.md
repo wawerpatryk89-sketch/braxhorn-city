@@ -54,6 +54,7 @@ Narzędzie robi kolejno:
 | `braxhorn-sklep-bizuteria-01` | `sklep_bizuteria_01` | zegarki złoty i stalowy (na aksamitnych poduszkach, bo bransolety są ucięte), łańcuszek, naszyjnik z wisiorkiem, bransolety, obrączka, pierścionek, kolczyki (cięcie ręcznymi polami `boxes`, złoto rozjaśnione `color_gain`) |
 | `braxhorn-sklep-sprzet-01` | `sklep_sprzet_01` | piłki nożna, do kosza, siatkowa, hantle 10 kg, kettlebell, rękawice bokserskie, worek bokserski, skakanka, mata (rakieta odrzucona: zniszczony naciąg) |
 | `braxhorn-sklep-buty-02` | `sklep_buty_02` | sneakersy białe, biegowe czarne i białe, mokasyny, półbuty, trampki czerwone, trapery, szpilki czarne, wsuwane, zimowe z kożuszkiem |
+| `braxhorn-sklep-buty-03` | `sklep_buty_03` | **14 pojedynczych butów sportowych** z trzeciej planszy właściciela (12.11 13:58): każdy stoi na podeszwie, noskiem wzdłuż półki, bokiem do klienta, w prawdziwej długości 25–29 cm (`unity-tools/sklep/buty_pojedyncze.py`). Jedyna paczka butów wystawiana w sklepach |
 | `braxhorn-sklep-walka-01` | `sklep_walka_01` | sporty walki BRAXHORN: rękawice czarno-złote, kaski bokserskie (czerwony, niebieski, z kratą), ochraniacz na zęby w pudełku, buty bokserskie, zapaśnicze i treningowe (buty w rotacji sklepów sportowych i ściany butów SPORT ARENA, rękawice na stojaku; kaski i ochraniacz do rozstawienia) |
 | `braxhorn-sklep-silownia-01` | `silownia_sprzet_01` | **sprzęt na siłownie (globalnie, wszystkie siłownie w grze):** ławka płaska (wydłużona do 1,15 m: `stretch`), dwie ławki regulowane, hantle heksagonalne, stojak 3-poziomowy z kompletem hantli |
 | `braxhorn-sklep-silownia-02` | `silownia_sprzet_02` | **maszyny na siłownie (globalnie):** ławka olimpijska ze stojakiem, maszyna do prostowania nóg ze stosem, modlitewnik, ławka rzymska 45°, suwnica / hack (cięcie `cluster3d`: maszyny nachodzą na siebie w każdym widoku, ale w 3D się nie dotykają) |
@@ -79,4 +80,37 @@ Buty leżą na planszy w rzędach na podłodze, więc tnie się je w widoku z g�
 > „Tak ci wysyłam sprzęt na siłownię, zapisać to globalnie na wszystkie siłownie, ten sprzęt.”
 
 Sprzęt z paczki `silownia_sprzet_01` stawiamy w każdej siłowni w grze: w Mistrzach, w mieście R1, na osiedlu, w obozie i w hotelach. Stawia się go przez `BraxMiastoAssety.Model("silownia_sprzet_01", "lawka_regulowana")` i `Postaw(..., statyczny: false)`. Kolejne plansze siłowni (maszyny, bramy, gryfy, talerze) dochodzą jako `silownia_sprzet_02…`. Żaden rejon nie robi własnej kopii.
+
+## Przegląd modeli z każdej strony (właściciel 12.11.2026, 13:58–14:03)
+
+> „Przejrzeć te modele, czy wszystko się zgadza, żeby nie było lipy.” „Co się nadaje, zostawiamy, co nie, to nie i tyle.” „Czego nie da rady naprawić” — wyrzucamy.
+
+Każdy model z Tripo oglądamy z sześciu stron, zanim trafi do sklepu: `node unity-tools/sklep/przeglad_modeli.js <folder paczki> <three> <arkusz.png>` (przód, tył, boki, góra, spód; `PRZEGLAD_KLIENT` dodaje widok od klienta). Sam widok z przodu nie wystarcza, bo Tripo dorabia tył i boki po swojemu.
+
+**Wynik przeglądu z 12.11:**
+
+| co | werdykt | co zrobione |
+|---|---|---|
+| buty `sklep_buty_01`, `sklep_buty_02` (20 par) | **nie nadają się**: każda para to jedna bryła, pięty albo całe wnętrza zrośnięte; po rozcięciu zostaje wyrwany bok, od nosków też widać zrost | paczki zostają w repozytorium, ale sklepy ich nie stawiają (`Odrzucony`) |
+| trzecia plansza butów (37 sztuk) | 14 czystych pojedynczych butów; reszta ma nogi, zrośnięte pary albo wzory prawdziwych marek | paczka `sklep_buty_03` |
+| piłka nożna, piłka siatkowa | dobre tylko z jednej strony, reszta rozmazana | piłki z kodu, szyte z prawdziwych paneli (`BraxKatalog.Ball`): 12 pięciokątów i 20 sześciokątów, siatkowa 18 paneli |
+| piłka do kosza | dobra z każdej strony | zostaje; zdjęty pokręcony napis |
+| rękawice czerwone | dwie rękawice zrośnięte w jedną krzywą bryłę | wyrzucone; czarno-złote leżą na półce |
+| buty zapaśnicze | zrośnięta para | wyrzucone |
+| perfumy: bursztyn, czerwone ze złotą szyjką, żółta kula, lawendowe | rozdarte boki albo tył | wyrzucone; zostaje 16 flakonów |
+| kolczyki (obie pary) | urwane koło, luźne złote okruchy | wyrzucone |
+| koszula biała | plecy w kratę (z innej koszuli z planszy) | zdjęta z wieszaków |
+| spodnie dresowe z lampasami | naszywka to poszarpana czarna plama na złotych lampasach | zdjęte z wieszaków |
+| kettlebell | luźny okruch przy uchwycie, wgnieciona tabliczka | okruch wycięty (`okruchy.py`), tabliczka wyrównana do kuli |
+| zegarki | brak tarczy od tyłu (gładka skorupa) | stoją owinięte na aksamitnej poduszce, tył jest w poduszce |
+| ubrania, torebki, elektronika, manekiny, kaski, sprzęt basenowy, siłownia | całe z każdej strony | zostają |
+
+**Napisy.** Tripo dobrze rysuje tylko duży napis (BRAXHORN na czarno-złotej koszulce meczowej). Każdy mały nadruk wychodzi jako pokręcone litery („DRAXRUNV” na piłce, „BRAJHUH” na mankiecie rękawicy). Takie nadruki zdejmujemy z tekstury bez śladu, byk zostaje: `unity-tools/sklep/napisy_precz.py <rozszyfrowana paczka> unity-tools/sklep/napisy/<paczka>.json`. Lista nadruków jest zapisana tak, jak widać je na arkuszu przeglądu: model, widok i prostokąt w kafelku.
+
+**Jak robić plansze w Tripo, żeby nie było poprawek:**
+
+- Buty: **pojedyncze sztuki, nie pary**, z odstępem między nimi. Para na obrazku zawsze zrasta się w jedną bryłę.
+- Najwyżej 8–10 sztuk na planszę. Przy 37 butach na jednej planszy każdy dostaje około 250 pikseli tekstury i wychodzi nieostry.
+- Bez małych napisów na obrazku. Sam byk wychodzi dobrze, duży napis też; małe litery zawsze się kręcą.
+- Bez nóg i stóp w butach.
 

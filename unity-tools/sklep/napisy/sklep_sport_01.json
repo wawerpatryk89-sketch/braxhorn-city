@@ -1,0 +1,170 @@
+{
+ "pack": "sklep_sport_01",
+ "prints": [
+  {
+   "model": "sport_bluza_kaptur_czarna",
+   "view": "przod",
+   "rect": [
+    0.31,
+    0.32,
+    0.69,
+    0.55
+   ],
+   "caly": true
+  },
+  {
+   "model": "sport_bluza_kaptur_czarna",
+   "view": "lewy",
+   "rect": [
+    0.61,
+    0.23,
+    0.7,
+    0.52
+   ]
+  },
+  {
+   "model": "sport_bluza_kaptur_czarna",
+   "view": "prawy",
+   "rect": [
+    0.29,
+    0.24,
+    0.38,
+    0.45
+   ]
+  },
+  {
+   "model": "sport_koszulka_bez_rekawow",
+   "view": "przod",
+   "rect": [
+    0.31,
+    0.3,
+    0.6,
+    0.375
+   ],
+   "caly": true
+  },
+  {
+   "model": "sport_koszulka_bez_rekawow",
+   "view": "tyl",
+   "rect": [
+    0.33,
+    0.165,
+    0.66,
+    0.38
+   ],
+   "caly": true
+  },
+  {
+   "model": "sport_koszulka_czerwona",
+   "view": "przod",
+   "rect": [
+    0.55,
+    0.276,
+    0.72,
+    0.325
+   ],
+   "caly": true
+  },
+  {
+   "model": "sport_koszulka_czerwona",
+   "view": "lewy",
+   "rect": [
+    0.47,
+    0.5,
+    0.63,
+    0.88
+   ],
+   "caly": true
+  },
+  {
+   "model": "sport_koszulka_czerwona",
+   "view": "prawy",
+   "rect": [
+    0.37,
+    0.54,
+    0.53,
+    0.88
+   ],
+   "caly": true
+  },
+  {
+   "model": "sport_kurtka_dresowa_zlote_lampasy",
+   "view": "przod",
+   "rect": [
+    0.54,
+    0.345,
+    0.72,
+    0.395
+   ],
+   "caly": true
+  },
+  {
+   "model": "sport_kurtka_puchowa_czarna",
+   "view": "przod",
+   "rect": [
+    0.55,
+    0.378,
+    0.75,
+    0.425
+   ],
+   "caly": true
+  },
+  {
+   "model": "sport_legginsy_czarne",
+   "view": "przod",
+   "rect": [
+    0.32,
+    0.645,
+    0.4,
+    0.83
+   ],
+   "caly": true
+  },
+  {
+   "model": "sport_legginsy_czarne",
+   "view": "tyl",
+   "rect": [
+    0.42,
+    0.09,
+    0.57,
+    0.15
+   ],
+   "caly": true
+  },
+  {
+   "model": "sport_wiatrowka_szara",
+   "view": "przod",
+   "rect": [
+    0.56,
+    0.348,
+    0.69,
+    0.388
+   ],
+   "caly": true
+  },
+  {
+   "model": "sport_spodenki_czarne",
+   "view": "przod",
+   "rect": [
+    0.66,
+    0.65,
+    0.9,
+    0.83
+   ],
+   "tylko": "jasne",
+   "prog": 60
+  },
+  {
+   "model": "sport_spodenki_czarne",
+   "view": "prawy",
+   "rect": [
+    0.22,
+    0.65,
+    0.42,
+    0.86
+   ],
+   "tylko": "jasne",
+   "prog": 60
+  }
+ ]
+}

@@ -1,0 +1,40 @@
+{
+ "pack": "sklep_sprzet_01",
+ "prints": [
+  {
+   "model": "kettlebell_16kg",
+   "view": "przod",
+   "rect": [
+    0.3,
+    0.61,
+    0.61,
+    0.82
+   ],
+   "caly": true,
+   "kula": true
+  },
+  {
+   "model": "kettlebell_16kg",
+   "view": "przod",
+   "rect": [
+    0.26,
+    0.52,
+    0.66,
+    0.86
+   ],
+   "caly": true,
+   "kula": "normalne"
+  },
+  {
+   "model": "pilka_do_kosza",
+   "view": "przod",
+   "rect": [
+    0.38,
+    0.34,
+    0.77,
+    0.405
+   ],
+   "prog": 70
+  }
+ ]
+}

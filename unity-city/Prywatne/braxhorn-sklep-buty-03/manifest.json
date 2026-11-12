@@ -1,0 +1,38 @@
+{
+ "source": "Właściciel 12.11.2026 13:58: plansza Tripo (GLB) — paczka 37 butów sportowych. Wybrane 14 czystych pojedynczych butów (bez nóg, bez zrośniętych par, bez wzorów prawdziwych marek), każdy postawiony na podeszwie, noskiem do +x, w prawdziwej długości (unity-tools/sklep/buty_pojedyncze.py)",
+ "target": "sklep_buty_03",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_buty_03 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "31971bb375adecea3d1a35cf651dfd54aa55a07acbd7cce29dab25b39ca34cea",
+ "cmsSha256": "b46b75fa4c38dc9777c7dea1dd9dfe3cbad83071fc5cd16d8a2e9d36c41156f8",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 14391573,
+   "sha256": "b46b75fa4c38dc9777c7dea1dd9dfe3cbad83071fc5cd16d8a2e9d36c41156f8"
+  }
+ ],
+ "files": {
+  "oryginal/buty3.glb": "510a799311f2b0d0f356a7286d8ba3ebe7e762e743664df98dc0ed2a7783723f",
+  "oryginal/spec.json": "5d363c365d118cdff637840e443158e6e9937c7a5fc018fca1d03c5bdeecb40f",
+  "sklep_buty_03/_tekstury/sklep_buty_03_kolor.jpg": "14548a341cba53fc778084f8e757229bc193edd04cdd623ed63084cb7a678d02",
+  "sklep_buty_03/_tekstury/sklep_buty_03_mr.png": "88ec3daf80f4df2864747d40b947159fa9285878c25d05e63c748739c962c099",
+  "sklep_buty_03/_tekstury/sklep_buty_03_normal.jpg": "af86fff0de4d0175a90f89e29a088014f5707aa606a7d8790b45f6cae5df7aca",
+  "sklep_buty_03/but_bialy.glb": "82a99005fe5046ff2a08aac8de521787afa292ddb468ec817310a709cffd5eaf",
+  "sklep_buty_03/but_bialy_czerwone_wstawki.glb": "a5dac51aeeca1c0787370a59c5e7916765637d10129b914890a8e85ed71ca2f2",
+  "sklep_buty_03/but_czarny_biala_pieta.glb": "1300c6337e8c71e89c7e4a6eaa9dfa13bf722071cdc31925bd2523ea6269e6d2",
+  "sklep_buty_03/but_czarny_biala_podeszwa.glb": "fce4835bba36abbf609a16fd8f73113e56e32cb8c137abc63b00a885fb2816ee",
+  "sklep_buty_03/but_czarny_czerwona_podeszwa.glb": "e3b1933ee1cf6ea4463fddd77f7acf0d47ec146b9bcb5547641107e71b893f6d",
+  "sklep_buty_03/but_czarny_czerwony_pas.glb": "3cebe0fa2c1c6bdc9a85f326eca1e7e6a254d7e440be683cdacabceda124117e",
+  "sklep_buty_03/but_czarny_pomaranczowe_pasy.glb": "35fb61a54514fdc123a66498d93bcaa093bb087843e1052b3b9d09e5e8dfcbe4",
+  "sklep_buty_03/but_czarny_szary_nosek.glb": "f82e80e2dc96afec116ca94814106768fa7a04c0e22cec8e95edf6830cf21fdd",
+  "sklep_buty_03/but_czarny_zlote_pasy.glb": "bf7e867c30b016eda7364f431cc1fe6c3ba5f3720e1b3b222863e72dac165695",
+  "sklep_buty_03/but_czarny_zolta_podeszwa.glb": "c31a5096dc50874b650f40b495609947dd2331eed801b71f023f09be1599c8d7",
+  "sklep_buty_03/but_kremowy_dzianina.glb": "1d1bd8400636ab5ec4a9ba1e5e0d194bf7c0a15181845d3383b11a40d2858450",
+  "sklep_buty_03/but_oliwkowy.glb": "30bbe2dd45c11125a21e998436afe2829b843269b0764367437d5e1b46747510",
+  "sklep_buty_03/but_rozowy.glb": "9b57a574b4fb8bdcd4083b6732065dc94356dbb88c2ac5ee2ffb74bab72dd4f6",
+  "sklep_buty_03/but_rozowy_dzianina.glb": "fd56b9260694d6fb1987a17b0881ab763d53d9acede587c2f1a8267a9a5bf944",
+  "sklep_buty_03/katalog.json": "67a23e9e44723a1d5fd93bd57724557c6e177bf72ba18c3e2c9603c5bb42b664"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

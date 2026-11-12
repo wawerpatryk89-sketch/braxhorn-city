@@ -1,0 +1,27 @@
+{
+ "pack": "sklep_manekiny_02",
+ "prints": [
+  {
+   "model": "manekin_dres_czarny_kaptur",
+   "view": "przod",
+   "rect": [
+    0.4,
+    0.255,
+    0.6,
+    0.37
+   ],
+   "caly": true
+  },
+  {
+   "model": "manekin_dres_czarny_kaptur",
+   "view": "przod",
+   "rect": [
+    0.535,
+    0.495,
+    0.59,
+    0.54
+   ],
+   "caly": true
+  }
+ ]
+}

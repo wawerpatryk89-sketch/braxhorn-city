@@ -1,0 +1,16 @@
+{"pack": "sklep_walka_01", "prints": [
+ {"model": "kask_bokserski_czerwony", "view": "przod", "rect": [0.58, 0.295, 0.84, 0.385]},
+ {"model": "kask_bokserski_czerwony", "view": "prawy", "rect": [0.09, 0.295, 0.36, 0.385]},
+ {"model": "kask_bokserski_niebieski", "view": "przod", "rect": [0.22, 0.262, 0.47, 0.33]},
+ {"model": "kask_bokserski_niebieski", "view": "lewy", "rect": [0.78, 0.26, 0.92, 0.335]},
+ {"model": "kask_z_krata_czarno_zloty", "view": "przod", "rect": [0.34, 0.335, 0.62, 0.41]},
+ {"model": "ochraniacz_szczeki_w_pudelku", "view": "przod", "rect": [0.46, 0.352, 0.83, 0.455]},
+ {"model": "ochraniacz_szczeki_w_pudelku", "view": "tyl", "rect": [0.22, 0.375, 0.42, 0.47]},
+ {"model": "ochraniacz_szczeki_w_pudelku", "view": "tyl", "rect": [0.24, 0.545, 0.58, 0.63]},
+ {"model": "rekawice_bokserskie_braxhorn_czarno_zlote", "view": "przod", "rect": [0.19, 0.705, 0.48, 0.815]},
+ {"model": "rekawice_bokserskie_braxhorn_czarno_zlote", "view": "przod", "rect": [0.56, 0.705, 0.90, 0.815]},
+ {"model": "rekawice_bokserskie_braxhorn_czarno_zlote", "view": "prawy", "rect": [0.20, 0.705, 0.54, 0.815]},
+ {"model": "buty_bokserskie_czerwone", "view": "przod", "rect": [0.46, 0.245, 0.75, 0.38]},
+ {"model": "buty_bokserskie_czerwone", "view": "lewy", "rect": [0.16, 0.25, 0.57, 0.38]},
+ {"model": "buty_bokserskie_czerwone", "view": "tyl", "rect": [0.40, 0.26, 0.53, 0.36]}
+]}

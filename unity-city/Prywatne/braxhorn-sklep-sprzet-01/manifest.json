@@ -3,24 +3,24 @@
  "target": "sklep_sprzet_01",
  "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_sprzet_01 (BraxMiastoAssety.Model)",
  "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
- "tarSha256": "9bc71e9054813749a934a138194cd79433d926b5ed163acdf731cd89af37d548",
- "cmsSha256": "7cf4790a5236fa06aa90151c25e7eac26486aaf834ef98aff3293e7a65ee5360",
+ "tarSha256": "219b7799f5430073e04b1997ffcd60867171a7d7409eac28fcd92040b0725c65",
+ "cmsSha256": "048529aea71255cc788c0533d9040c4357d6d49e72b35ea1e8940ff9d0492b7a",
  "parts": [
   {
    "name": "part-000.cms",
-   "bytes": 10179136,
-   "sha256": "7cf4790a5236fa06aa90151c25e7eac26486aaf834ef98aff3293e7a65ee5360"
+   "bytes": 10414573,
+   "sha256": "048529aea71255cc788c0533d9040c4357d6d49e72b35ea1e8940ff9d0492b7a"
   }
  ],
  "files": {
   "oryginal/spec.json": "7850b7b09871f817b37653ec923861a8bf50a1dc7b97166973ae801dbe6fb52f",
   "oryginal/sprzet.glb": "799bedf4f4ec820844875127ba6f264fd72c0c1a4f034db2aa0d21ee3a4507c0",
-  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_kolor.jpg": "d5b425cadc7e361731f07734a3bbb15d5c68ba9a564d71662e9bc05257f20773",
-  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_mr.png": "388237009fab5f32c4bec5f904380635bc5ca8d45c89f69dd85db4f95a25c2a7",
-  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_normal.png": "40573758b1d90549bbe7faf644add76da50da00696b3566ae279362eccb5f90f",
+  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_kolor.jpg": "71b957b8b8c107ec22cae54a0650de3bc6daa69266aca5bfc20deceb07449a62",
+  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_mr.png": "56dfb895e85619d692fc88b1f9b3c5eaa37a6757c614fd74b8434b518f0171a8",
+  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_normal.png": "d4dac042287f8abf2d58952fed65aceb4ca82e20938fe5ac6b2332bb38221b86",
   "sklep_sprzet_01/hantle_para_10kg.glb": "ad31df822737c6e700d5b725353d0524c26cddbdbff2d8477296dd6309e8bbdb",
-  "sklep_sprzet_01/katalog.json": "c2dec8762f315362881968b74a2f318bcb8f3fc437a7feafdb9fb8cff2f27306",
-  "sklep_sprzet_01/kettlebell_16kg.glb": "a29f709d08e9a038a3c0550353bd78420ac5fe4a3fd0ca5657e9713b15e9bfb7",
+  "sklep_sprzet_01/katalog.json": "5881fc574ac6a0dec25e976b0798fea3e472ea972571af00baf5314071086430",
+  "sklep_sprzet_01/kettlebell_16kg.glb": "d4cc36ceb66ad715a58dce88c0b6c66dab1517a1d9756998f219ae524666cf58",
   "sklep_sprzet_01/mata_zwinieta_fioletowa.glb": "cb226b0230e1747cd849daf60760c7420a5f21eba05f8a644fecc8b9ee38e85b",
   "sklep_sprzet_01/pilka_do_kosza.glb": "65265946f9436b0721f559d40fd12ff6acca85b17331d9a65e2700d05a86d2a6",
   "sklep_sprzet_01/pilka_nozna.glb": "84d0f94b5d2a7c9bded23f591a281480cb7044e5f846afb42b7c9f6115aa82f2",

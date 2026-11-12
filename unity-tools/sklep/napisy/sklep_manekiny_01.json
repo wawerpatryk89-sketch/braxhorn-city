@@ -1,0 +1,27 @@
+{
+ "pack": "sklep_manekiny_01",
+ "prints": [
+  {
+   "model": "manekin_dres_czarny",
+   "view": "przod",
+   "rect": [
+    0.43,
+    0.25,
+    0.58,
+    0.292
+   ],
+   "caly": true
+  },
+  {
+   "model": "manekin_dres_czarny",
+   "view": "przod",
+   "rect": [
+    0.53,
+    0.508,
+    0.6,
+    0.54
+   ],
+   "caly": true
+  }
+ ]
+}

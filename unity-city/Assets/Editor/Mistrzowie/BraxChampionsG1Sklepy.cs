@@ -223,7 +223,8 @@ public static partial class BraxChampionsD2
     // velvet plinth, kind 2 a necklace or chain on an upright velvet board; false = the code piece stays
     const string Jubiler="sklep_bizuteria_01";
     static readonly string[] JZegarki={"zegarek_zloty","zegarek_stalowy"},JNaszyjniki={"naszyjnik_wisiorek_brylant","lancuszek_zloty"},
-        JDrobne={"pierscionek_brylant","kolczyki_kola_zlote","bransoleta_tenisowa_srebrna","obraczka_zlota","kolczyki_wiszace_brylant","bransoleta_zlota_pleciona"};
+        // (review 12.11: both pairs of earrings left out - a torn hoop, loose gold chips round the drop earrings)
+        JDrobne={"pierscionek_brylant","bransoleta_tenisowa_srebrna","obraczka_zlota","bransoleta_zlota_pleciona"};
     static bool JModel(int kind,int i,Vector3 p,Vector3 f)
     {
         if(!BraxMiastoAssety.Jest(Jubiler))return false;
@@ -276,39 +277,68 @@ public static partial class BraxChampionsD2
     // the 10 m column grid (x, z = 5 mod 10): goods hung or stood in the middle of a unit keep clear of a column
     static bool NearColumn(Vector3 p,float r){float gx=Mathf.Round((p.x-5f)/10f)*10f+5f,gz=Mathf.Round((p.z-5f)/10f)*10f+5f;return (p.x-gx)*(p.x-gx)+(p.z-gz)*(p.z-gz)<r*r;}
     static Transform goodsInst;
-    // the owner's Tripo shoes and bags (packs sklep_buty_01, sklep_torebki_01; global for every shop in the game)
-    const string ButyPaczka="sklep_buty_01",TorebkiPaczka="sklep_torebki_01",Sprzet="sklep_sprzet_01";
-    // the owner's BRAXHORN sports equipment (Tripo 23:34; the racket's torn string bed left out): balls, a pair of 10 kg
-    // dumbbells, a kettlebell, boxing gloves, a punching bag, a skipping rope, a rolled mat
-    static readonly string[] Pilki={"pilka_nozna","pilka_do_kosza","pilka_siatkowa"};
+    // the owner's Tripo shoes and bags (packs sklep_buty_03, sklep_torebki_01; global for every shop in the game)
+    //
+    // THE REVIEW OF EVERY TRIPO MODEL FROM SIX SIDES (owner 12.11.2026 13:58-14:03: "przejrzeć te modele ... co się nadaje,
+    // zostawiamy, co nie, to nie i tyle ... czego nie da rady naprawić" - out; unity-tools/sklep/przeglad_modeli.js):
+    //   * shoes: both first sheets (sklep_buty_01, sklep_buty_02) are PAIRS grown together - the heels one lump, the insoles one
+    //     surface; no pair parts without a torn inner side, from the toes the web between the two shoes shows too. Neither pack
+    //     is put out any more. The owner's third sheet (37 loose shoes) gives 14 clean single shoes (no leg, no second shoe
+    //     grown in, no real maker's stripes): pack sklep_buty_03, each stood on its sole, toe along the shelf, its profile to
+    //     the customer - a shop shows one shoe of a pair (unity-tools/sklep/buty_pojedyncze.py);
+    //   * balls: the football and the volleyball are right from one side only -> the stitched balls from code
+    //     (BraxKatalog.Ball: real panels, the same from every side); the basketball is good all round and stays;
+    //   * the red boxing gloves are two gloves grown into one leaning lump -> out; the black-gold pair lies on the shelf;
+    //   * the wrestling shoes (sklep_walka_01) are a grown-together pair -> out; the other four fight shoes stay;
+    //   * perfumes: four bottles torn at the sides / back (amber, red with a gold neck, the yellow ball, the lavender) -> out;
+    //   * the white shirt has a checked back (another shirt of the sheet) -> off the rails; the track trousers' badge is a
+    //     torn black blot over the gold stripes -> off the rails;
+    //   * LETTERING: Tripo draws the big BRAXHORN of the black-gold jersey right, every small print comes out scrambled
+    //     ("DRAXRUNV" on the basketball, "BRAJHUH" on a glove's cuff, the badges of the jackets). The scrambled prints are
+    //     taken off in the packs' textures without a trace, the bull stays (unity-tools/sklep/napisy_precz.py and its
+    //     lists unity-tools/sklep/napisy/*.json): head guards, gloves, mouthguard box, red boxing shoe, basketball,
+    //     kettlebell, hoodie, tank top, red shirt, track jacket, down jacket, leggings, shorts, windbreaker, both
+    //     tracksuit mannequins;
+    //   * the kettlebell's loose flake is cut off in the pack (unity-tools/sklep/okruchy.py); watches stand wrapped on their
+    //     velvet cushion (the blank back is inside it); everything else is whole from every side and stays.
+    const string ButyPaczka="sklep_buty_03",TorebkiPaczka="sklep_torebki_01",Sprzet="sklep_sprzet_01";
+    // models that failed the review: never put out, whatever list still names them (the code-built piece takes the place)
+    static readonly HashSet<string> Odrzucone=new HashSet<string>{"pilka_nozna","pilka_siatkowa","rekawice_bokserskie","buty_zapasnicze_czarno_zlote",
+        "perfumy_bursztyn","perfumy_czerwone_zlota_szyjka","perfumy_zolta_kula","perfumy_lawendowe_motyl","kolczyki_kola_zlote","kolczyki_wiszace_brylant","ubranie_koszula_biala",
+        "sport_spodnie_dresowe_lampasy"};
+    static bool Odrzucony(string pack,string name){return Odrzucone.Contains(name)||pack=="sklep_buty_01"||pack=="sklep_buty_02";}
+    // the owner's BRAXHORN sports equipment (Tripo 23:34; the racket's torn string bed left out): the basketball, a pair of
+    // 10 kg dumbbells, a kettlebell, a punching bag, a skipping rope, a rolled mat
+    static readonly string[] Pilki={"pilka_nozna","pilka_do_kosza","pilka_siatkowa"};       // 0 and 2: from code (Odrzucone), 1: the owner's
     // the owner's perfumes (two sheets) and electronics (Tripo 23:48-23:53)
     const string Perfumy0="sklep_perfumy_01",Elektronika="sklep_elektronika_01";
-    static readonly string[] Perfumy={"perfumy_braxhorn_czarno_zlote","perfumy_bursztyn","perfumy_rubin_kula","perfumy_czerwone_zlota_szyjka","perfumy_czarne_zlote_obszycie",
-        "perfumy_braxhorn_kremowe","perfumy_granatowe","perfumy_zolta_kula","perfumy_czarne_z_tabliczka","perfumy_fioletowy_krysztal",
+    static readonly string[] Perfumy={"perfumy_braxhorn_czarno_zlote","perfumy_rubin_kula","perfumy_czarne_zlote_obszycie",
+        "perfumy_braxhorn_kremowe","perfumy_granatowe","perfumy_czarne_z_tabliczka","perfumy_fioletowy_krysztal",
         "sklep_perfumy_02/perfumy_braxhorn_dymione","sklep_perfumy_02/perfumy_rozowa_kula","sklep_perfumy_02/perfumy_czerwone_kwadrat","sklep_perfumy_02/perfumy_zlota_kula",
-        "sklep_perfumy_02/perfumy_czarne_kwadrat","sklep_perfumy_02/perfumy_oliwkowe","sklep_perfumy_02/perfumy_braxhorn_czarne_byk","sklep_perfumy_02/perfumy_lawendowe_motyl",
+        "sklep_perfumy_02/perfumy_czarne_kwadrat","sklep_perfumy_02/perfumy_oliwkowe","sklep_perfumy_02/perfumy_braxhorn_czarne_byk",
         "sklep_perfumy_02/perfumy_niebieskie","sklep_perfumy_02/perfumy_rozowe_kokarda"};
     static readonly string[] Laptopy={"laptop_gamingowy_czerwony","laptop_zloty","laptop_srebrny"},Tablety={"tablet_kolorowy","tablet_w_etui","tablet_z_klawiatura"};
-    // sports shoes: the first sheet's runners / sneakers / basketball / boots + the owner's BRAXHORN fight sheet (23:45, sklep_walka_01)
-    static readonly string[] SportButy={"buty_biegowe_szare","buty_sneakersy_bezowe","buty_trampki_wysokie_czarne","buty_koszykarskie_czerwone","buty_korki_neonowe",
+    // sports shoes: the single shoes of the third sheet + the owner's BRAXHORN fight sheet (23:45, sklep_walka_01)
+    static readonly string[] SportButy={"but_czarny_biala_podeszwa","but_czarny_zolta_podeszwa","but_czarny_czerwony_pas","but_bialy_czerwone_wstawki","but_czarny_zlote_pasy",
         "sklep_walka_01/buty_bokserskie_czarno_zlote","sklep_walka_01/buty_biegowe_biale_czerwone_braxhorn","sklep_walka_01/buty_treningowe_czarne_braxhorn",
-        "sklep_walka_01/buty_bokserskie_czerwone","sklep_walka_01/buty_zapasnicze_czarno_zlote"};
-    static readonly string[] Buty={"buty_biegowe_szare","buty_sneakersy_bezowe","buty_trampki_wysokie_czarne","buty_koszykarskie_czerwone","buty_korki_neonowe",
-        "buty_trekkingowe","buty_sztyblety_brazowe","buty_workery_miodowe","buty_szpilki_czerwone","buty_sandaly_na_obcasie_bezowe",
-        // the owner's second shoe sheet (23:38, pack sklep_buty_02)
-        "sklep_buty_02/buty_sneakersy_biale_skora","sklep_buty_02/buty_biegowe_czarne","sklep_buty_02/buty_mokasyny_bezowe","sklep_buty_02/buty_polbuty_czarne",
-        "sklep_buty_02/buty_trampki_wysokie_czerwone","sklep_buty_02/buty_trapery_brazowe","sklep_buty_02/buty_szpilki_czarne","sklep_buty_02/buty_biegowe_biale",
-        "sklep_buty_02/buty_wsuwane_szare","sklep_buty_02/buty_zimowe_z_futrem"};
+        "sklep_walka_01/buty_bokserskie_czerwone","but_czarny_pomaranczowe_pasy","but_czarny_szary_nosek","but_rozowy_dzianina","but_bialy","but_czarny_czerwona_podeszwa"};
+    static readonly string[] Buty={"but_czarny_biala_podeszwa","but_kremowy_dzianina","but_czarny_pomaranczowe_pasy","but_oliwkowy","but_czarny_zolta_podeszwa",
+        "but_rozowy","but_czarny_czerwony_pas","but_bialy","but_czarny_szary_nosek","but_czarny_zlote_pasy","but_rozowy_dzianina","but_czarny_czerwona_podeszwa",
+        "but_bialy_czerwone_wstawki","but_czarny_biala_pieta"};
     static readonly string[] Torebki={"torebka_kuferek_bordo_kroko","torebka_lakierowana_czarna","torebka_jeansowa","torebka_koszyk_slomkowy","torebka_srebrna_z_bigielkiem",
         "torebka_hobo_czarna_cwieki","torebka_hobo_taupe","torebka_kopertowa_kremowa","torebka_kuferek_rozowy","torebka_listonoszka_koniak"};
-    // a model from the owner's pack on a surface: its base centre at local (shelf top), its front toward faceLocal
-    static bool ShopModel(string pack,string name,Vector3 local,Vector3 faceLocal)
+    // a model from the owner's pack on a surface: its base centre at local (shelf top), its front toward faceLocal;
+    // tilt 90 = a model that stands in its file laid on its back (a pair of gloves), lift = how far its base centre rises
+    // then so that it rests on the surface
+    static bool ShopModel(string pack,string name,Vector3 local,Vector3 faceLocal,float tilt=0f,float lift=0f)
     {
         int sl=name.IndexOf('/');if(sl>0){pack=name.Substring(0,sl);name=name.Substring(sl+1);}   // "pack/name" = a model from another pack
+        if(Odrzucony(pack,name))return false;
         if(!BraxMiastoAssety.Jest(pack))return false;
         var src=BraxMiastoAssety.Model(pack,name);if(!src)return false;
         var w=root.rotation*faceLocal;float yaw=Mathf.Atan2(w.x,w.z)*Mathf.Rad2Deg;
-        BraxMiastoAssety.Postaw(goodsInst?goodsInst:g1Goods,src,name,Wld(local),yaw,1f,false,false);
+        var o=BraxMiastoAssety.Postaw(goodsInst?goodsInst:g1Goods,src,name,Wld(local+Vector3.up*lift),yaw,1f,false,false);
+        if(o&&tilt!=0f)o.transform.rotation=Quaternion.Euler(0f,yaw,0f)*Quaternion.Euler(tilt,0f,0f);
         return true;
     }
     // the owner's Tripo clothes (pack sklep_ubrania_01, cut by unity-tools/sklep/split_sheet.py, global for every shop in the
@@ -318,7 +348,7 @@ public static partial class BraxChampionsD2
     // the owner's Tripo sheets: "name" = pack sklep_ubrania_01, "sklep_ubrania_02/name" = the second sheet (23:15: biker jacket,
     // bomber, hoodie, T-shirt, denim jacket, cable sweater, wide jeans, cargo trousers, denim mini skirt, slip dress)
     static readonly Dictionary<int,string[]> UbraniaModele=new Dictionary<int,string[]>{
-        {0,new[]{"ubranie_polo_granat",Ubrania2+"ubranie_koszulka_biala","ubranie_henley_bezowy"}},{1,new[]{"ubranie_koszula_biala","ubranie_koszula_krata","ubranie_henley_bezowy"}},
+        {0,new[]{"ubranie_polo_granat",Ubrania2+"ubranie_koszulka_biala","ubranie_henley_bezowy"}},{1,new[]{"ubranie_koszula_krata","ubranie_henley_bezowy"}},
         {2,new[]{"ubranie_trencz_bezowy",Ubrania2+"ubranie_ramoneska_czarna","ubranie_kurtka_puchowa_czarna",Ubrania2+"ubranie_bomberka_khaki",Ubrania2+"ubranie_katana_jeansowa"}},
         {3,new[]{"ubranie_chinosy_bezowe",Ubrania2+"ubranie_jeansy_szerokie","ubranie_dresy_szare",Ubrania2+"ubranie_bojowki_khaki"}},
         {4,new[]{Ubrania2+"ubranie_sukienka_bordo",Ubrania2+"ubranie_spodnica_mini_jeans"}},
@@ -326,7 +356,7 @@ public static partial class BraxChampionsD2
         // sports (owner's BRAXHORN sports sheet 23:28, pack sklep_sport_01): kind 5 = tops and jackets, kind 7 = sports bottoms
         {5,new[]{Sport+"sport_koszulka_braxhorn_czarno_zlota",Sport+"sport_bluza_kaptur_czarna",Sport+"sport_koszulka_czerwona",Sport+"sport_kurtka_dresowa_zlote_lampasy",
                  Sport+"sport_koszulka_bez_rekawow",Sport+"sport_wiatrowka_szara",Sport+"sport_kurtka_puchowa_czarna"}},
-        {7,new[]{Sport+"sport_spodnie_dresowe_lampasy",Sport+"sport_legginsy_czarne",Sport+"sport_spodenki_czarne"}}};
+        {7,new[]{Sport+"sport_legginsy_czarne",Sport+"sport_spodenki_czarne"}}};
     static bool ModelGarment(Vector3 hookLocal,Vector3 alongLocal,int kind,int i)
     {
         if(!UbraniaModele.TryGetValue(kind,out var names))return false;
@@ -554,7 +584,7 @@ public static partial class BraxChampionsD2
                     for(int i=0;i<3;i++)for(int j=0;j<2;j++)
                     {
                         var q=P(Wd*.5f-.55f+i*.55f,y+.80f,2.2f+j*.5f);
-                        if(sport&&j==1){if(!ShopModel(Sprzet,Pilki[i%3],q,toFront))BraxKatalog.Ball(Kat(),q,i);}else BraxKatalog.FoldedStack(Kat(),q,toFront,Cloth(i==1?0:kinds[0],i+j*3),5+(i+j)%3);
+                        if(sport&&j==1){if(!ShopModel(Sprzet,Pilki[i%3],q,toFront))BraxKatalog.Ball(Kat(),q,i%3);}else BraxKatalog.FoldedStack(Kat(),q,toFront,Cloth(i==1?0:kinds[0],i+j*3),5+(i+j)%3);
                     }
                     if(sport)foreach(float s in new[]{0f,1f})if(!SideOpen(s))for(float d=3.7f;d<D-3.6f;d+=.75f)
                     {var q=P(s==0?.28f:Wd-.28f,y+2.19f,d);var f=s==0?alongT:-alongT;if(ShopModel(ButyPaczka,SportButy[((int)(d*3))%SportButy.Length],q,f))continue;BraxKatalog.Sneaker(Kat(),q-toBack*.07f,f,Cloth(5,(int)(d*3)));BraxKatalog.Sneaker(Kat(),q+toBack*.07f,f,Cloth(5,(int)(d*3)));}
@@ -582,9 +612,8 @@ public static partial class BraxChampionsD2
             }
             case "shoes":
             {
-                // the shoe wall: white marble shelves on both walls with the owner's shoes (pack sklep_buty_01: runners, sneakers,
-                // high-tops, basketball, football boots, trekking, chelsea, work boots, stilettos, heeled sandals), leather
-                // benches, low mirrors
+                // the shoe wall: white marble shelves on both walls with the owner's shoes (pack sklep_buty_03: 14 single
+                // sports shoes, each in profile to the customer, as a shop shows one shoe of a pair), leather benches, low mirrors
                 var shelves=WallShelves(StoneTop(),6,.45f,3.2f,D-1.0f,2.6f);
                 Goods(nm+" | buty",()=>{int i=nm.Length;foreach(var (t,yy,sd) in shelves){var f=sd==0?alongT:-alongT;for(float d=3.45f;d<D-1.2f;d+=.42f)ShopModel(ButyPaczka,Buty[i++%Buty.Length],P(t,yy,d),f);}});
                 for(int i=0;i<2;i++)Box(leatherNavy,Wd*.3f+i*Wd*.4f-.6f,Wd*.3f+i*Wd*.4f+.6f,y,y+.45f,D*.5f-.3f,D*.5f+.3f,true);

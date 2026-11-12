@@ -3,21 +3,21 @@
  "target": "sklep_manekiny_02",
  "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_manekiny_02 (BraxMiastoAssety.Model)",
  "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
- "tarSha256": "2b0ea4c64742e90f8bd5d7f4b5f0a90e8423557185cabe1dee0831f38fde9693",
- "cmsSha256": "9a0aa4266e0ba2685fe02d6201c1107f3330efc68c3accbd8d150fab71d1f50d",
+ "tarSha256": "4471a34b77813a9df56177ed155fec55d908cd2c8082959872e63c34c31e968e",
+ "cmsSha256": "4d55ac7e4bbc0b8b1149f2712e43eb7aa98d8864b396cd66fbf6ea78720d2e2a",
  "parts": [
   {
    "name": "part-000.cms",
-   "bytes": 9389573,
-   "sha256": "9a0aa4266e0ba2685fe02d6201c1107f3330efc68c3accbd8d150fab71d1f50d"
+   "bytes": 10209573,
+   "sha256": "4d55ac7e4bbc0b8b1149f2712e43eb7aa98d8864b396cd66fbf6ea78720d2e2a"
   }
  ],
  "files": {
   "oryginal/manekiny_b.glb": "dbf4c409ca3bca67231499c86876d0769e8f42bb12345a0e5cce20769b8dd77a",
   "oryginal/spec.json": "8e28f54b9ecb6c3da4daec1a539af76710de3833dadf6c6c8bf66cd7a33e63a4",
-  "sklep_manekiny_02/_tekstury/sklep_manekiny_02_kolor.jpg": "ed51cb58c652d778cecae9da4a84f033426312f12e8aa87ced0af2cba48c183e",
-  "sklep_manekiny_02/_tekstury/sklep_manekiny_02_mr.png": "951c6653a55dd0305c0cbe395db6d558fe4523d652cc8c596f3b14d778cc91ba",
-  "sklep_manekiny_02/_tekstury/sklep_manekiny_02_normal.png": "351230aeea3ad710d6aafc30676094485f2addc459b3d4e605d0b3f32b3f9f07",
+  "sklep_manekiny_02/_tekstury/sklep_manekiny_02_kolor.jpg": "6143ee9fa4dc7c2513f752b3a4cbd7edf6b1de1e6cd67327473186735147b5d4",
+  "sklep_manekiny_02/_tekstury/sklep_manekiny_02_mr.png": "e5e57ea20ad7965071a4a1c95d45d11246e6c7c3fd2aaa4545668126f363775d",
+  "sklep_manekiny_02/_tekstury/sklep_manekiny_02_normal.png": "a40e1753a4506339a3e7ace2eac1c7d85c168e8be53b614ca4e4d249b3e21c7b",
   "sklep_manekiny_02/katalog.json": "c4963bbcc34869dc935ccf65b113053c7a804556709a50bb4efc0ed6c64e60a0",
   "sklep_manekiny_02/manekin_dres_czarny_kaptur.glb": "597ebb23514a0be89f61394f500182415aca120a6db47aa7f6dc14379b1f7bdc",
   "sklep_manekiny_02/manekin_garnitur_czarny.glb": "9bba5d6bd73597b3bd51963a7505b956e0d96ad24ff6d76efa5d6c558ecfa18c",

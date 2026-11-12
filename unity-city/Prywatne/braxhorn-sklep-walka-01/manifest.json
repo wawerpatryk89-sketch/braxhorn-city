@@ -3,21 +3,21 @@
  "target": "sklep_walka_01",
  "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_walka_01 (BraxMiastoAssety.Model)",
  "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
- "tarSha256": "631d4b3a48d2c3fa7220413d7d26f1ed44a3d92cd709d1d117d5fca188aace43",
- "cmsSha256": "23593c2e1aa22b0db4f605347410e1c89011cb74b588a7ed6b62a8f59d324ad8",
+ "tarSha256": "cb257ec404fc5ded1cbe5e679ee4787d7c855c2ebabd51ee027be08221b869cd",
+ "cmsSha256": "5e76ee81dc480cdb2250a24ed6b3172653010e13e4efbcca88dcd9b236cc9bee",
  "parts": [
   {
    "name": "part-000.cms",
-   "bytes": 9112825,
-   "sha256": "23593c2e1aa22b0db4f605347410e1c89011cb74b588a7ed6b62a8f59d324ad8"
+   "bytes": 9984073,
+   "sha256": "5e76ee81dc480cdb2250a24ed6b3172653010e13e4efbcca88dcd9b236cc9bee"
   }
  ],
  "files": {
   "oryginal/spec.json": "f9677e96facfa6a2845001dd7250b7092e5d39c9ec63a663cdb7d5518e57b822",
   "oryginal/walka.glb": "682ed610ae86a636c6656c7ddb025ec8169d794d9d07b5a36f5ee493bf1b7b54",
-  "sklep_walka_01/_tekstury/sklep_walka_01_kolor.jpg": "4cc5b87c4e9c2fd68f328ae3373e95bb43d3b872a7f39a2cc72b51e8fe44ca9a",
-  "sklep_walka_01/_tekstury/sklep_walka_01_mr.png": "5315c80982eabaa555fcddd66efb3f5c30938847bbd7086621f514cc2f62c8fc",
-  "sklep_walka_01/_tekstury/sklep_walka_01_normal.png": "e5c2225a4ed592609ca5a3275c6f4b718c52ca6af00b56fea97085ef87a7d165",
+  "sklep_walka_01/_tekstury/sklep_walka_01_kolor.jpg": "3650663cba75d9158bc754de3e357ceeb2f6ceb6775861eb9bf537b1b3678942",
+  "sklep_walka_01/_tekstury/sklep_walka_01_mr.png": "f613c3771ee883347a566087e98c208015425efac4e0b0f96c1728b9d9128d4a",
+  "sklep_walka_01/_tekstury/sklep_walka_01_normal.png": "58f063f45bea5a93b1d21ee7d336414fdc7ea4cfbffe99c1c88b18d4d5fb9c57",
   "sklep_walka_01/buty_biegowe_biale_czerwone_braxhorn.glb": "d57855c3cd4d7160044dea21d402429cbc10ee4a2ac0094d6360cfaaf8858f10",
   "sklep_walka_01/buty_bokserskie_czarno_zlote.glb": "9709ad2e79978966aa79e65c242b7b8e554dbe36a3f652942db8b088241fc6a2",
   "sklep_walka_01/buty_bokserskie_czerwone.glb": "4eef2b2fd44fc6c1307002217909f712392b436c5ddc0d21b0210a9c896b1ad0",

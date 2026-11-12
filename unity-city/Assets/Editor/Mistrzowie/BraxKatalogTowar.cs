@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // BRAXHORN KATALOG — TOWAR (owner 11.11 19:52 "te sklepy są niewyposażone", 20:10 "wszystkie sklepy, które są potrzebne ...
@@ -324,19 +325,83 @@ public static partial class BraxKatalog
         RB(c, BlackMatt, k, .047f, .059f, .040f, .060f, -.060f, .030f, .004f);
     }
     /// <summary>A ball on its stand: kind 0 football (white, black patches as rings), 1 basketball (orange, black seams), 2 volleyball.</summary>
+    // A ball as it is sewn (owner 12.11 13:58 "i te piłki": the Tripo football and volleyball are right from one side only,
+    // their other sides are smeared - the same ball from every side comes from its real panels):
+    //   kind 0 a football: the 12 black pentagons and 20 white hexagons of a truncated icosahedron pressed onto the sphere;
+    //   kind 2 a volleyball: 6 faces of 3 long panels each (yellow, blue, white), the panels of neighbouring faces crossed;
+    //   kind 1 a basketball (only where the owner's own basketball is not in): orange with its black channels.
+    // Every panel swells between its seams: its rim sinks 1.2 mm, so the stitching reads in the light, not as painted lines.
     static void BallMesh(Ctx c, Vector3 p, int kind)
     {
         ClothesMaterials();
-        float r = kind == 1 ? .121f : kind == 0 ? .110f : .105f;
-        var body = kind == 1 ? S("ball_orange", new Color(.92f, .42f, .10f), .55f, 0f) : WhiteGloss;
+        float r = kind == 1 ? .121f : kind == 0 ? .110f : .105f; var o = p + Vector3.up * r;
+        if (kind == 0) { Football(c.m, o, r); return; }
+        if (kind != 1) { Volleyball(c.m, o, r); return; }
+        var body = S("ball_orange", new Color(.92f, .42f, .10f), .55f, 0f);
         var prof = new Vector2[9];
         for (int i = 0; i <= 8; i++) { float a = Mathf.PI * i / 8f; prof[i] = new Vector2(Mathf.Sin(a) * r, r - Mathf.Cos(a) * r); }
         c.m.Lathe(body, p, prof, 16, Quaternion.identity, false, false);
-        var seam = kind == 1 ? BlackMatt : kind == 0 ? BlackGloss : SportCols[3];
         foreach (var rot in new[] { Quaternion.Euler(90, 0, 0), Quaternion.Euler(0, 0, 90), Quaternion.Euler(90, 60, 0) })
         {
             var ring = new Vector2[] { new Vector2(r * .995f, -.004f), new Vector2(r + .003f, -.003f), new Vector2(r + .003f, .003f), new Vector2(r * .995f, .004f) };
-            c.m.Lathe(seam, p + Vector3.up * r, ring, 20, rot, false, false);
+            c.m.Lathe(BlackMatt, o, ring, 20, rot, false, false);
+        }
+    }
+    // one fan sector of a flat panel (its centre and one edge a-b) pressed onto the sphere of radius r about o; the last
+    // fifth toward the edge sinks into the seam
+    static void BallSector(BraxChampionsMeshBatch m, Material mat, Vector3 o, float r, Vector3 centre, Vector3 a, Vector3 b)
+    {
+        bool flip = Vector3.Dot(Vector3.Cross(b - a, (a + b) * .5f - centre), centre) < 0f;
+        m.Surface(mat, (u, v) =>
+        {
+            float w = v < .6667f ? v * 1.2f : .8f + (v - .6667f) * .6f, e = Mathf.Clamp01((w - .8f) / .2f);
+            return o + Vector3.Lerp(centre, Vector3.Lerp(a, b, u), w).normalized * (r - .0012f * e * e);
+        }, 2, 3, flip);
+    }
+    static void Football(BraxChampionsMeshBatch m, Vector3 o, float r)
+    {
+        var white = S("ball_white", new Color(.93f, .93f, .91f), .38f, 0f); var black = S("ball_black", new Color(.03f, .03f, .035f), .34f, 0f);
+        const float f = 1.618034f;
+        var v = new List<Vector3>();
+        foreach (float a in new[] { -1f, 1f }) foreach (float b in new[] { -f, f }) { v.Add(new Vector3(0, a, b)); v.Add(new Vector3(a, b, 0)); v.Add(new Vector3(b, 0, a)); }
+        bool Near(int i, int j) => i != j && (v[i] - v[j]).sqrMagnitude < 4.1f;                 // an edge of the icosahedron (length 2)
+        Vector3 Cut(int i, int j) => v[i] + (v[j] - v[i]) / 3f;                                  // the corner cut off vertex i toward j
+        for (int i = 0; i < 12; i++)
+        {
+            // the black pentagon in place of vertex i: its five cut corners in order round the vertex
+            var n = v[i].normalized; var x = Vector3.Cross(n, Mathf.Abs(n.y) < .9f ? Vector3.up : Vector3.right).normalized; var y = Vector3.Cross(n, x);
+            var ring = new List<Vector3>(); for (int j = 0; j < 12; j++) if (Near(i, j)) ring.Add(Cut(i, j));
+            ring.Sort((p1, p2) => Mathf.Atan2(Vector3.Dot(p1, y), Vector3.Dot(p1, x)).CompareTo(Mathf.Atan2(Vector3.Dot(p2, y), Vector3.Dot(p2, x))));
+            var c = Vector3.zero; foreach (var corner in ring) c += corner; c /= ring.Count;
+            for (int k = 0; k < ring.Count; k++) BallSector(m, black, o, r, c, ring[k], ring[(k + 1) % ring.Count]);
+            // the white hexagons: one per face of the icosahedron, counted once (i < j < k)
+            for (int j = i + 1; j < 12; j++) if (Near(i, j)) for (int k = j + 1; k < 12; k++) if (Near(i, k) && Near(j, k))
+            {
+                var h = new[] { Cut(i, j), Cut(j, i), Cut(j, k), Cut(k, j), Cut(k, i), Cut(i, k) }; var hc = (v[i] + v[j] + v[k]) / 3f;
+                for (int e = 0; e < 6; e++) BallSector(m, white, o, r, hc, h[e], h[(e + 1) % 6]);
+            }
+        }
+    }
+    static void Volleyball(BraxChampionsMeshBatch m, Vector3 o, float r)
+    {
+        var cols = new[] { S("ball_yellow", new Color(.98f, .80f, .08f), .40f, 0f), S("ball_blue", new Color(.06f, .20f, .62f), .40f, 0f), S("ball_white", new Color(.93f, .93f, .91f), .38f, 0f) };
+        // a cube's six faces: n = the face, a = along its panels, b = across them; the panels of neighbouring faces cross
+        var faces = new (Vector3 n, Vector3 a)[] { (Vector3.right, Vector3.up), (Vector3.left, Vector3.up), (Vector3.up, Vector3.forward), (Vector3.down, Vector3.forward),
+                                                    (Vector3.forward, Vector3.right), (Vector3.back, Vector3.right) };
+        float Seam(float t, float band) => Mathf.Clamp01((Mathf.Abs(2f * t - 1f) - (1f - band)) / band);
+        for (int fi = 0; fi < 6; fi++)
+        {
+            var n = faces[fi].n; var a = faces[fi].a; var b = Vector3.Cross(n, a);
+            for (int k = 0; k < 3; k++)
+            {
+                float t0 = -1f + k * .66667f, t1 = t0 + .66667f; var mat = cols[(k + fi / 2) % 3];
+                m.Surface(mat, (u, w) =>
+                {
+                    float e = Mathf.Max(Seam(u, .05f), Seam(w, .16f));
+                    // tan: equal angles, so the three panels of a face are equally wide on the ball
+                    return o + (n + a * Mathf.Tan(Mathf.PI * .25f * (2f * u - 1f)) + b * Mathf.Tan(Mathf.PI * .25f * Mathf.Lerp(t0, t1, w))).normalized * (r - .0012f * e * e);
+                }, 12, 4, Vector3.Dot(Vector3.Cross(a, b), n) < 0f);
+            }
         }
     }
     /// <summary>A rubber hex dumbbell: p = its centre on the rack, along = the handle's direction, kg sets the heads' size.</summary>

@@ -3,21 +3,21 @@
  "target": "sklep_sport_01",
  "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_sport_01 (BraxMiastoAssety.Model)",
  "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
- "tarSha256": "5f27bd850834cd75df776d52c643a1b85b03fdf11a45642dde933437de431adc",
- "cmsSha256": "a9bbe1ab5317c85bbdac8cd86561b6ef0b7d2f1e98825729ea8f3410b5359690",
+ "tarSha256": "5be6ed438e4cab6794841458e6487c2deb5fa31caa5d1575568a12ef2023a68a",
+ "cmsSha256": "cb534f956f732cbad074d06e19f57daee31ae10c6f2e78fea2ea21348518e8f3",
  "parts": [
   {
    "name": "part-000.cms",
-   "bytes": 8620825,
-   "sha256": "a9bbe1ab5317c85bbdac8cd86561b6ef0b7d2f1e98825729ea8f3410b5359690"
+   "bytes": 9174325,
+   "sha256": "cb534f956f732cbad074d06e19f57daee31ae10c6f2e78fea2ea21348518e8f3"
   }
  ],
  "files": {
   "oryginal/spec.json": "4d5a745c2679771d0c11a80c155e21c31c4f1181abf8317563a6df2937089f91",
   "oryginal/sport.glb": "562c3864c78d96139aaaa4a25c9157263986df52aa99529d4feb05faf8d9904f",
-  "sklep_sport_01/_tekstury/sklep_sport_01_kolor.jpg": "30d3c2194af3d93cdeffd4f4161725b0a6cd1498f7d6ea9a5995fd23d0d3d02a",
-  "sklep_sport_01/_tekstury/sklep_sport_01_mr.png": "0ae63ee193dd209973192aac6a7899b2ab1f01788f2b3f10fd61591867bfa03e",
-  "sklep_sport_01/_tekstury/sklep_sport_01_normal.png": "a116d05f6b2930385539b1ba804b859f46cb11fd89b2c857bcf99cd8dd70483a",
+  "sklep_sport_01/_tekstury/sklep_sport_01_kolor.jpg": "d1173fe2b6484b8d313cc8d6d4b0636a76678a36542dd2151b29eedb0627433c",
+  "sklep_sport_01/_tekstury/sklep_sport_01_mr.png": "0e81eb6742ee614c3d284caa8937ae12fee5f557b7e6b272a8e347ad7ae8516d",
+  "sklep_sport_01/_tekstury/sklep_sport_01_normal.png": "f05daf2f14b9d6cc2318781baac9eeba4df47298d993f11fffa034eab11e5b57",
   "sklep_sport_01/katalog.json": "33c3f511dbb29b48e7a6d246e5ac6ef6e18e2738b04e245c1d143a5758bd797c",
   "sklep_sport_01/sport_bluza_kaptur_czarna.glb": "ac18259ba9d076075110cb9406fd46e8024372cf54e72fce7189be341b126987",
   "sklep_sport_01/sport_bluza_kaptur_czarna_wieszak.glb": "7b573793aff4419104621240f923a3d2007b11e1f9f8cb03fe398e6192e08d77",

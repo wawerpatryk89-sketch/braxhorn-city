@@ -3,21 +3,21 @@
  "target": "sklep_manekiny_01",
  "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_manekiny_01 (BraxMiastoAssety.Model)",
  "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
- "tarSha256": "41e69b79869df834dd006bb47a0b6c51b44c1479cd11d983848b22d74d2e107b",
- "cmsSha256": "31554c58adfe90a583dd45e58b76bcc5750aa3957453beeb05c67950d7b2663c",
+ "tarSha256": "dbb6a623c268993d83f6ee99efa7cd155d8b4e887af34046c41be25670f521d2",
+ "cmsSha256": "b86811709d6dc176637952569f230d4419c9f6f7bc41d8d3458bce2edbc82bd1",
  "parts": [
   {
    "name": "part-000.cms",
-   "bytes": 8200573,
-   "sha256": "31554c58adfe90a583dd45e58b76bcc5750aa3957453beeb05c67950d7b2663c"
+   "bytes": 8866825,
+   "sha256": "b86811709d6dc176637952569f230d4419c9f6f7bc41d8d3458bce2edbc82bd1"
   }
  ],
  "files": {
   "oryginal/manekiny_a.glb": "35f66e5dddcf6de4206073aeb5d324be34469d6a1f2922b0cabeec48437356a2",
   "oryginal/spec.json": "a6c820c9aa9cebbf9a692853e0ae8abf90afe972ccadbf17c656bbe2b5d0130e",
-  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_kolor.jpg": "bd8c2f34cf7e34718615981a7e2a70e48e80bad193df055e5f34b2ee99ab1dd6",
-  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_mr.png": "47bede78e9ae5893a157ceaf44c6d00faffb80ce230bd4a280d8558ff9364ecd",
-  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_normal.png": "68dd4aa1e761756e7032290b88de3cce5120666ba4626f993df0a2cf6c74af51",
+  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_kolor.jpg": "4d778b4b3cb3c2af28b0618f23f8bb5b52dc7d772f34aabcda2476306d2c9196",
+  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_mr.png": "4116ce3268c7b54f5604e2b44b1980790e88da72487c66bd28df5f7fd8089115",
+  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_normal.png": "722848bbcb2fe1ae0645225573e5db861c00cb4bb21031ab8580264de2639159",
   "sklep_manekiny_01/katalog.json": "8170c36a1307e7d445406aeae5271ad88bb08c9911fa5b7ef5f979f3132e8342",
   "sklep_manekiny_01/manekin_bomberka_jeansy.glb": "abac85570a95a77316a38034b8da3ade90a24b513d9f728c97a65212c13720d8",
   "sklep_manekiny_01/manekin_dres_czarny.glb": "9c24c1a6783aa28166d56f3a263ca47fe7af5803e527f462a83571a149d26069",
