@@ -71,6 +71,24 @@ public static class BraxRejonBuildu
     public static string Klucz => Wartosc("klucz") ?? "";
     static bool PamiecWlaczona => Wartosc("pamiec") == "tak" && Klucz.Length > 10;
 
+    // ETAPY BUILDU (12.11, bolid 43195552389: start bez pamięci podręcznej — import 40 min, baza siłowni 70, generowanie 113,
+    // tekstury 82, kompilacja 29+ = więcej niż limit zadania 355 min; ucięty w Gradle, NIC się nie zapisało i cały dzień przepadł).
+    // Workflow dopisuje do rejon-ci.txt: termin=<sekundy Unix, do kiedy Unity ma skończyć, żeby zostało ~40 min na zapisy>
+    // i reszta_min=<ile minut potrzebują obróbka tekstur + kompilacja APK przy zimnej Library>. Gdy po wygenerowaniu rejonu
+    // do terminu zostaje mniej — build kończy ETAP 1 czysto (bez APK): znacznik świata + normalne wyjście Unity, a CI zapisuje
+    // miasto i Library. Następny przebieg rusza z zapisanej Library (jak bolid 42865354389: 2 h 14 min w Unity) i daje APK.
+    // Bez linii „termin” (lokalnie, inne workflowy) zawsze false — jeden przebieg jak dotąd.
+    public static bool KoniecEtapu(out string opis)
+    {
+        opis = null;
+        if (!long.TryParse(Wartosc("termin") ?? "", NumberStyles.Integer, CultureInfo.InvariantCulture, out long termin) || termin <= 0) return false;
+        if (!int.TryParse(Wartosc("reszta_min") ?? "", NumberStyles.Integer, CultureInfo.InvariantCulture, out int potrzeba) || potrzeba <= 0) return false;
+        double zostalo = (termin - DateTimeOffset.UtcNow.ToUnixTimeSeconds()) / 60.0;
+        opis = "do terminu kroku zostało " + Math.Round(zostalo).ToString(CultureInfo.InvariantCulture) + " min, a obróbka tekstur i kompilacja APK potrzebują do " + potrzeba.ToString(CultureInfo.InvariantCulture) + " min";
+        Debug.Log("BRAXHORN_ETAP po generowaniu: " + opis + (zostalo < potrzeba ? " — ETAP 1 kończy się tutaj (zapis miasta i Library)" : " — budujemy dalej w tym samym przebiegu"));
+        return zostalo < potrzeba;
+    }
+
     // Pomiar etapów do logu CI: BRAXHORN_CZAS etap=<nazwa> [rejon=… z_pamięci=…] s=<sekundy>
     public static void Czas(string etap, DateTime od, string dodatek = null) { Sekundy(etap, (DateTime.UtcNow - od).TotalSeconds, dodatek); }
     public static void Sekundy(string etap, double s, string dodatek = null)

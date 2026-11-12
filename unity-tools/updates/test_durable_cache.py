@@ -100,6 +100,32 @@ class DurableCacheTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             durable.download("owner/repo", "cache-tag", self.root / "restored.enc", self.expected)
 
+    # 12.11: trwała kopia Library poprzedniego profilu pakietów (ten sam rejon / Unity / wariant, zmieniony tylko manifest).
+    def test_earlier_profile_snapshot_requires_explicit_key_and_same_variant(self):
+        old = dict(schema=2, zone="miasto", unity="6000.0.58f2", platform="android", variant="arm64-il2cpp",
+                   inputs={"Packages/manifest.json": "a" * 64}, key="library-android-v2-miasto-" + "1" * 24)
+        new = {**old, "inputs": {"Packages/manifest.json": "b" * 64}, "key": "library-android-v2-miasto-" + "2" * 24}
+        self.expected = old
+        self.fake.body = dict(schema=1, profile=old, current=None, previous=None)
+        durable.upload("owner/repo", "old-tag", self.archive(b"library of the earlier profile"), old)
+        target = self.root / "restored.enc"
+        with self.assertRaises(ValueError):                       # bez wskazania — profil niezgodny
+            durable.download("owner/repo", "old-tag", target, new)
+        with self.assertRaises(ValueError):                       # wskazany inny klucz
+            durable.download("owner/repo", "old-tag", target, new, "library-android-v2-miasto-" + "3" * 24)
+        with self.assertRaises(ValueError):                       # inny wariant kompilacji — nigdy
+            durable.download("owner/repo", "old-tag", target, {**new, "variant": "x86"}, old["key"])
+        self.assertFalse(target.exists())
+        durable.download("owner/repo", "old-tag", target, new, old["key"])
+        self.assertEqual(target.read_bytes(), b"library of the earlier profile")
+
+    def test_earlier_profile_uses_its_own_release_tag_on_the_same_branch(self):
+        new = {"key": "library-android-v2-miasto-30deee51ef41bf0b90818095"}
+        ref = "refs/heads/claude/miasto-opus-20261031"
+        self.assertEqual(durable.release_tag(new, ref, "library-android-v2-miasto-2a1cb92dc336cbc2aebbffc0"),
+                         "unity-ci-cache-miasto-2a1cb92dc336cbc2aebbffc0-c0d662288568")
+        self.assertEqual(durable.release_tag(new, ref), "unity-ci-cache-miasto-30deee51ef41bf0b90818095-c0d662288568")
+
 
 if __name__ == "__main__":
     unittest.main()

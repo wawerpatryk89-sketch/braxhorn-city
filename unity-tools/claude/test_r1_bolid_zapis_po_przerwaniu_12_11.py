@@ -32,7 +32,8 @@ class ZapisPoPrzerwaniu(unittest.TestCase):
 
     def test_library_zapisywana_takze_po_przerwanej_kompilacji(self):
         k = krok("Pamiec Library Unity dla Androida - pelny zapis z Bee")
-        self.assertIn("steps.unity_android.outcome == 'failure' && steps.generation_checkpoint.outputs.valid == 'true'", k)
+        # po błędzie: gdy miasto gotowe ALBO gdy przebieg ruszał bez Library (zimny start) — patrz test_r1_build_etapy_12_11
+        self.assertIn("steps.unity_android.outcome == 'failure' && (steps.generation_checkpoint.outputs.valid == 'true' || steps.library_restore.outputs.restored != 'true')", k)
 
     def test_checkpoint_miasta_nie_wymaga_udanej_kompilacji(self):
         k = krok("Zaszyfruj kompletny checkpoint miasta")

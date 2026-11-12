@@ -15,7 +15,7 @@ import shutil
 import subprocess
 import tempfile
 import time
-from unity_cache import digest, output, profile
+from unity_cache import compatible, digest, output, profile
 
 PART_BYTES = 1536 * 1024 * 1024
 PART_NAME = re.compile(r"cache-[0-9]+-[0-9]+-[0-9a-f]{12}-[0-9]{4}\.enc\Z")
@@ -26,8 +26,10 @@ def gh(*args):
     return result.stdout
 
 
-def release_tag(expected, ref):
-    return "unity-ci-cache-" + expected["key"].removeprefix("library-android-v2-") + "-" + hashlib.sha256(ref.encode()).hexdigest()[:12]
+def release_tag(expected, ref, from_key=None):
+    # from_key: snapshot of an explicitly named earlier profile (package manifest changed), same branch.
+    key = from_key or expected["key"]
+    return "unity-ci-cache-" + key.removeprefix("library-android-v2-") + "-" + hashlib.sha256(ref.encode()).hexdigest()[:12]
 
 
 def view(repo, tag):
@@ -38,10 +40,12 @@ def view(repo, tag):
     return data
 
 
-def read_index(data, expected):
+def read_index(data, expected, from_key=None):
     body = json.loads(data.get("body") or "{}")
-    if body.get("schema") != 1 or body.get("profile") != expected:
+    if body.get("schema") != 1 or not compatible(body.get("profile"), expected, from_key):
         raise ValueError("Durable cache profile mismatch")
+    if from_key and body["profile"].get("key") != from_key:
+        raise ValueError("Durable cache is not the requested earlier profile")
     return body
 
 
@@ -65,9 +69,9 @@ def validate_snapshot(snapshot):
         raise ValueError("Invalid total size")
 
 
-def download(repo, tag, archive, expected):
+def download(repo, tag, archive, expected, from_key=None):
     data = view(repo, tag)
-    index = read_index(data, expected)
+    index = read_index(data, expected, from_key)
     archive = Path(archive)
     archive.parent.mkdir(parents=True, exist_ok=True)
     last_error = None
@@ -91,7 +95,8 @@ def download(repo, tag, archive, expected):
             if temp.stat().st_size != snapshot["bytes"] or digest(temp) != snapshot["sha256"]:
                 raise ValueError("Downloaded archive failed verification")
             temp.replace(archive)
-            print("BRAXHORN_CACHE_DURABLE restored=true snapshot=" + snapshot["sha256"])
+            print("BRAXHORN_CACHE_DURABLE restored=true snapshot=" + snapshot["sha256"]
+                  + (" earlier_profile=" + from_key if from_key else ""))
             output("downloaded", "true")
             return
         except (ValueError, OSError, subprocess.CalledProcessError) as exc:
@@ -177,11 +182,17 @@ def main():
     parser.add_argument("--project", type=Path, default=Path("unity-city"))
     parser.add_argument("--zone", required=True)
     parser.add_argument("--archive", type=Path, required=True)
+    parser.add_argument("--from-key", help="download only: snapshot of this earlier profile key (only package inputs differ)")
     args = parser.parse_args()
     expected = profile(args.project, args.zone, "6000.0.58f2")
     repo = os.environ["GITHUB_REPOSITORY"]
-    tag = release_tag(expected, os.environ["GITHUB_REF"])
-    (download if args.command == "download" else upload)(repo, tag, args.archive, expected)
+    if args.from_key and args.command != "download":
+        parser.error("--from-key is valid only with download")
+    tag = release_tag(expected, os.environ["GITHUB_REF"], args.from_key)
+    if args.command == "download":
+        download(repo, tag, args.archive, expected, args.from_key)
+    else:
+        upload(repo, tag, args.archive, expected)
 
 
 if __name__ == "__main__":

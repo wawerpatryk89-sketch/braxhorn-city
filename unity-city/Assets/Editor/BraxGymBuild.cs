@@ -576,6 +576,17 @@ public static class BraxGymBuild
             output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/WebGL"));Directory.CreateDirectory(output);
             location=output;
         }
+        // 12.11 ETAP 1 z 2 (bolid 43195552389): zimny start nie mieści się w limicie zadania. Gdy po generowaniu zostaje za mało
+        // czasu na tekstury + APK, kończymy TUTAJ: znacznik świata i czyste wyjście Unity (kod 0, bez APK) — CI zapisuje miasto
+        // i Library, a kolejny przebieg startuje z nich. Reguła i liczby: BraxRejonBuildu.KoniecEtapu (termin z workflow).
+        if(!zPamieci&&rejon!="oba"&&target==BuildTarget.Android&&BraxRejonBuildu.KoniecEtapu(out string etapOpis))
+        {
+            BraxRejonBuildu.ZapiszZnacznik(target,scenePaths,sourceCommit,t0);
+            File.WriteAllText(Path.Combine(output,"etap-1.txt"),"ETAP 1 z 2: rejon "+rejon+" wygenerowany w commicie "+sourceCommit+", APK nie powstało w tym przebiegu — "+etapOpis+"\n");
+            BraxRejonBuildu.Czas("unity_razem",t0,"rejon="+rejon+" z_pamięci=nie etap=1_bez_apk");
+            Debug.Log("BRAXHORN_ETAP_1 rejon="+rejon+" wygenerowany, znacznik zapisany, APK w następnym przebiegu — "+etapOpis);
+            return;
+        }
         // Budżet tekstur (decyzja właściciela 31.10): 2K tylko z bliska (rośliny, piasek, worki, tatami, skóra, mural),
         // elewacje, place i billboardy oglądane z daleka do 1K. Globalny override (overrideMaxTextureSize) reimportował
         // WSZYSTKIE ~1400 tekstur i build zdjęć przekroczył limit 2 h — dlatego per plik, tylko ~190 tekstur.

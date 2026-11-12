@@ -480,6 +480,8 @@ jobs:
         KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: |
         set -euo pipefail
+        # poczatek zadania (do terminu kroku Unity i reguly etapow nizej)
+        echo "START_ZADANIA=$(date +%s)" >> "$GITHUB_ENV"
         [ -n "$KS" ] && [ -n "$KP" ] || { echo '::error::Brak stalego klucza podpisu. Nie budujemy niezgodnego APK debug.'; exit 1; }
         umask 077
         printf '%s' "$KS" | base64 -d > unity-city/braxhorn.keystore
@@ -692,9 +694,23 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         ZONE: ${{ steps.rejon.outputs.rejon }}
       run: python3 unity-tools/updates/durable_cache.py download --zone "$ZONE" --archive "$RUNNER_TEMP/library-android.tar.zst.enc"
+    - name: Library z poprzedniego profilu pakietow (manifest zmieniony o jeden modul - bez importu od zera)
+      id: durable_migracja
+      # 12.11: klucz profilu Library zawiera skrot Packages/manifest.json. Dopisanie modulu Video (7f337c70) uniewaznilo cala
+      # zapisana Library miasta (11 GB, ta sama, z ktora bolid 42865354389 z 10.11 zbudowal APK w 2 h 33 min) i kazdy build
+      # od 12.11 ruszal od zera (5 h 40 min, ponad limit zadania). Roznice pakietow Unity doimportuje samo; rejon, wersja
+      # Unity, platforma i wariant musza sie zgadzac (unity_cache.compatible). Po udanym buildzie Library zapisuje sie juz
+      # pod nowym profilem i ten krok przestaje byc potrzebny.
+      if: ${{ !cancelled() && steps.rejon.outputs.rejon == 'miasto' && steps.bibl_and.outputs.cache-matched-key == '' && steps.durable_download.outputs.downloaded != 'true' }}
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ github.token }}
+        ZONE: ${{ steps.rejon.outputs.rejon }}
+        POPRZEDNI_PROFIL: library-android-v2-miasto-2a1cb92dc336cbc2aebbffc0
+      run: python3 unity-tools/updates/durable_cache.py download --zone "$ZONE" --archive "$RUNNER_TEMP/library-android.tar.zst.enc" --from-key "$POPRZEDNI_PROFIL"
     - name: Migracja starej pamieci tylko gdy nie ma nowej kopii
       id: legacy_cache
-      if: ${{ !cancelled() && steps.bibl_and.outputs.cache-matched-key == '' && steps.durable_download.outputs.downloaded != 'true' }}
+      if: ${{ !cancelled() && steps.bibl_and.outputs.cache-matched-key == '' && steps.durable_download.outputs.downloaded != 'true' && steps.durable_migracja.outputs.downloaded != 'true' }}
       continue-on-error: true
       uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
@@ -707,10 +723,16 @@ jobs:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         ZONE: ${{ steps.rejon.outputs.rejon }}
         MATCHED_KEY: ${{ steps.bibl_and.outputs.cache-matched-key || steps.legacy_cache.outputs.cache-matched-key }}
+        MIGRACJA: ${{ steps.durable_migracja.outputs.downloaded }}
+        POPRZEDNI_PROFIL: library-android-v2-miasto-2a1cb92dc336cbc2aebbffc0
       run: |
         P="$RUNNER_TEMP/library-android.tar.zst.enc"
         if [ -f "$P" ] && [ -n "$KLUCZ" ]; then
           EXTRA=()
+          if [ "$MIGRACJA" = true ]; then
+            EXTRA+=(--accept-key "$POPRZEDNI_PROFIL")
+            echo '::notice::Library z poprzedniego profilu pakietow (zmieniony tylko manifest) - Unity doimportuje roznice zamiast wszystkiego od zera.'
+          fi
           if [[ "$MATCHED_KEY" == library-android-v1-* ]]; then
             EXTRA+=(--legacy)
             echo '::notice::Migracja starej Library bez Bee; pełna pamięć kompilacji zostanie zapisana po buildzie.'
@@ -841,6 +863,24 @@ jobs:
         chmod +x "$RUNNER_TEMP/straznik.sh"
         nohup "$RUNNER_TEMP/straznik.sh" > "$RUNNER_TEMP/straznik.out" 2>&1 &
         echo "straznik uruchomiony"
+    - name: Termin kroku Unity i regula etapow (zimny start - etap 1 konczy sie czysto po generowaniu, zapis miasta i Library)
+      # 12.11 (bolidy 43195552389 i 43287609038): zimny start (bez Library) trwa dluzej niz limit zadania. Znacznik gotowego
+      # miasta Unity pisalo dopiero PO obrobce tekstur (~309. minuta kroku), czyli po limicie kroku 285 min - przerwany build
+      # nie zapisalby ani miasta, ani Library. Teraz Unity dostaje termin: gdy po generowaniu zostaje mniej niz RESZTA_MIN,
+      # konczy etap 1 normalnym wyjsciem (bez APK), a kroki nizej zapisuja miasto i Library. Kolejny przebieg daje APK.
+      env:
+        LIMIT_ZADANIA_MIN: 355
+        LIMIT_KROKU_MIN: 285
+        ZAPISY_MIN: 40
+        RESZTA_MIN: 130
+      run: |
+        teraz=$(date +%s)
+        a=$(( teraz + (LIMIT_KROKU_MIN - 3) * 60 ))
+        b=$(( ${START_ZADANIA:-$teraz} + (LIMIT_ZADANIA_MIN - ZAPISY_MIN) * 60 ))
+        termin=$(( a < b ? a : b ))
+        printf 'termin=%s\nreszta_min=%s\n' "$termin" "$RESZTA_MIN" >> unity-city/rejon-ci.txt
+        echo "BRAXHORN_ETAP termin Unity $(date -u -d "@$termin" +%H:%M:%SZ) (za $(( (termin - teraz) / 60 )) min); po generowaniu potrzeba $RESZTA_MIN min na tekstury i APK, inaczej etap 1 konczy sie zapisem"
+        grep -v '^klucz=' unity-city/rejon-ci.txt
     - name: Kompilacja aplikacji Android (APK) z tej samej sceny
       id: unity_android
       # 12.11 (bolid 43195552389: start bez pamięci, 5 h 40 min, ucięty limitem zadania 20 s po starcie Gradle — kroki zapisu
@@ -869,7 +909,19 @@ jobs:
       if: ${{ always() && steps.unity_android.outcome != 'success' }}
       run: |
         ids=$(docker ps -q || true)
-        if [ -n "$ids" ]; then echo "BRAXHORN_KONTENER zatrzymuje: $ids"; docker kill $ids || true; sleep 5; else echo "BRAXHORN_KONTENER brak dzialajacych"; fi
+        # najpierw lagodnie (SIGTERM, 45 s na domkniecie bazy importu Library), dopiero potem docker kill
+        if [ -n "$ids" ]; then echo "BRAXHORN_KONTENER zatrzymuje: $ids"; docker stop -t 45 $ids || docker kill $ids || true; sleep 5; else echo "BRAXHORN_KONTENER brak dzialajacych"; fi
+    - name: Etap 1 z 2 - miasto wygenerowane i zapisywane, APK w nastepnym przebiegu (tylko zimny start)
+      id: etap
+      if: always()
+      run: |
+        if [ -f build/Android/etap-1.txt ]; then
+          cat build/Android/etap-1.txt
+          echo 'etap1=true' >> "$GITHUB_OUTPUT"
+          echo '::notice::ETAP 1 z 2: miasto wygenerowane, APK nie powstalo w tym przebiegu (zimny start nie miesci sie w limicie zadania). Zapisuje miasto i Library - nastepny przebieg startuje z nich i daje APK.'
+        else
+          echo 'BRAXHORN_ETAP zwykly przebieg (bez znacznika etapu 1): APK z tego buildu albo blad kompilacji'
+        fi
     - name: Pamiec RAM i swap w czasie buildu (szczyt i ostatnie pomiary, takze przy awarii)
       if: always()
       run: |
@@ -918,7 +970,7 @@ jobs:
         cat unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json || echo 'BRAK raportu drzwi'
         cat unity-city/Assets/PlayableGenerated/ClaudeRegion/region.json || echo 'BRAK raportu regionu'
     - name: Wgraj APK do ukrytego wydania (instalacja na Androidzie)
-      if: always() && !cancelled()
+      if: always() && !cancelled() && steps.etap.outputs.etap1 != 'true'
       env:
         GH_TOKEN: ${{ github.token }}
         REL: claude-region-preview
@@ -994,9 +1046,10 @@ jobs:
         key: city-world-enc-v1-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}-${{ github.run_attempt }}
     - name: Pamiec Library Unity dla Androida - pelny zapis z Bee
       id: library_pack
-      # 12.11: zapis także po nieudanej / przerwanej limitem kompilacji, o ile miasto zostało w całości wygenerowane
-      # (checkpoint ważny = importy i generowanie przeszły) — inaczej następny przebieg znów importuje wszystko od zera
-      if: ${{ !cancelled() && (steps.unity_android.outcome == 'success' || (steps.unity_android.outcome == 'failure' && steps.generation_checkpoint.outputs.valid == 'true')) }}
+      # 12.11: zapis także po nieudanej / przerwanej limitem kompilacji, gdy miasto zostało w całości wygenerowane
+      # (checkpoint ważny) ALBO gdy przebieg ruszał bez Library (zimny start: nawet częściowy import jest lepszy niż
+      # kolejne 4 godziny od zera). Po błędzie z przywróconą Library i bez gotowego miasta nie nadpisujemy dobrej kopii.
+      if: ${{ !cancelled() && (steps.unity_android.outcome == 'success' || (steps.unity_android.outcome == 'failure' && (steps.generation_checkpoint.outputs.valid == 'true' || steps.library_restore.outputs.restored != 'true'))) }}
       continue-on-error: true
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -1009,7 +1062,9 @@ jobs:
         if [ -d "$RUNNER_TEMP/wyslane" ] && compgen -G "$RUNNER_TEMP/wyslane/*" > /dev/null; then
           while IFS= read -r marker; do
             tag=$(basename "$marker")
-            rm -f "build/Android/braxhorn-$tag.apk"
+            # build/Android zapisuje root z kontenera Unity: zwykle rm konczylo krok bledem „Permission denied” (bolid
+            # 42865354389, 10.11) i Library NIGDY nie byla zapisywana po udanym APK miasta - stad sudo i brak wyjscia z bledem.
+            sudo rm -f "build/Android/braxhorn-$tag.apk" || true
           done < <(find "$RUNNER_TEMP/wyslane" -maxdepth 1 -type f)
         fi
         sudo chown -R "$(id -u):$(id -g)" unity-city/Library unity-city/Assets
@@ -1039,8 +1094,10 @@ jobs:
         DURABLE: ${{ steps.durable_upload.outputs.saved }}
         WORLD: ${{ steps.world_restore.outputs.restored }}
         CHECKPOINT: ${{ steps.generation_checkpoint.outputs.valid }}
+        ETAP1: ${{ steps.etap.outputs.etap1 }}
       run: |
         {
+          [ "$ETAP1" != true ] || echo '### ETAP 1 z 2: miasto wygenerowane, APK powstanie w następnym przebiegu (zimny start bez Library)'
           echo '### Pamięć budowania'
           echo "- Przywrócona Library: ${RESTORED:-false}"
           echo "- Gotowy świat z identycznych źródeł: ${WORLD:-false}"

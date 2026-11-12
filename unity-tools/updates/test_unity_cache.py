@@ -173,6 +173,40 @@ class CacheTests(unittest.TestCase):
                 cache.restore(target, archive, self.expected)
         self.assertEqual(list(target.iterdir()), [])
 
+    # 12.11: dopisanie jednego modułu do Packages/manifest.json unieważniało całą zapisaną Library (zimny build 5 h 40 min).
+    def test_earlier_profile_is_restored_only_when_named_explicitly(self):
+        archive = self.root / "cache.enc"
+        cache.pack(self.project, archive, self.expected)
+        old_key = self.expected["key"]
+        self.write("Packages/manifest.json", '{"dependencies":{"com.unity.modules.video":"1.0.0"}}')
+        current = cache.profile(self.project, "osiedle", "6000.0.58f2")
+        self.assertNotEqual(old_key, current["key"])
+        target = self.target()
+        with self.assertRaises(ValueError):                       # bez wskazania poprzedniego profilu — jak dotąd odrzucone
+            cache.restore(target, archive, current)
+        self.assertEqual(list(target.iterdir()), [])
+        with self.assertRaises(ValueError):                       # inny klucz niż wskazany
+            cache.restore(target, archive, current, accept_key="library-android-v2-osiedle-" + "0" * 24)
+        self.assertEqual(list(target.iterdir()), [])
+        result = cache.restore(target, archive, current, accept_key=old_key)
+        self.assertEqual(result["accepted_earlier_profile"], old_key)
+        self.assertEqual((target / "Library/Bee/artifacts/compiled.o").read_text(), "already compiled")
+        self.assertEqual((target / "Assets/Source/model.fbx.meta").read_text(), "guid: stable-model")
+
+    def test_earlier_profile_never_crosses_zone_unity_or_variant(self):
+        archive = self.root / "cache.enc"
+        cache.pack(self.project, archive, self.expected)
+        old_key = self.expected["key"]
+        for other in (cache.profile(self.project, "miasto", "6000.0.58f2"),
+                      cache.profile(self.project, "osiedle", "6000.0.59f1"),
+                      cache.profile(self.project, "osiedle", "6000.0.58f2", variant="different-renderer")):
+            target = self.root / ("target-" + other["key"][-6:])
+            target.mkdir()
+            with self.assertRaises(ValueError):
+                cache.restore(target, archive, other, accept_key=old_key)
+            self.assertEqual(list(target.iterdir()), [])
+        self.assertFalse(cache.compatible({**self.expected, "key": "not-a-profile-key"}, self.expected | {"inputs": {}}, "not-a-profile-key"))
+
 
 if __name__ == "__main__":
     unittest.main()

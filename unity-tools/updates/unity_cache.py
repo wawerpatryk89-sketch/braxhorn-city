@@ -43,6 +43,26 @@ def profile(project, zone, unity, platform="android", variant="arm64-il2cpp"):
     return data
 
 
+MIGRATION_KEY = __import__("re").compile(r"library-android-v2-(miasto|osiedle|oboz|oba)-[0-9a-f]{24}\Z")
+
+
+def compatible(found, expected, accept_key=None):
+    """Exact profile, or an explicitly named earlier profile that differs ONLY in inputs.
+
+    The profile key hashes Packages/manifest.json, so a one-line package change used to throw
+    away a complete Library (12.11: adding the Video module made every city build start cold,
+    5 h 40 min instead of 2 h 15 min). Unity itself re-imports what a package change affects;
+    zone, Unity version, platform, variant and schema must still match exactly.
+    """
+    if found == expected:
+        return True
+    if not accept_key or not isinstance(found, dict) or found.get("key") != accept_key:
+        return False
+    if not MIGRATION_KEY.fullmatch(accept_key):
+        return False
+    return all(found.get(k) == expected.get(k) for k in ("schema", "zone", "unity", "platform", "variant"))
+
+
 def output(name, value):
     if os.environ.get("GITHUB_OUTPUT"):
         with open(os.environ["GITHUB_OUTPUT"], "a") as f:
@@ -125,7 +145,7 @@ def pack(project, archive, expected):
     return receipt
 
 
-def extract(stream, stage, expected, legacy=False):
+def extract(stream, stage, expected, legacy=False, accept_key=None):
     """Validate every entry before installing any of it into the project."""
     header = None
     seen = set()
@@ -143,7 +163,7 @@ def extract(stream, stage, expected, legacy=False):
                 if entry.size > 16384:
                     raise ValueError("Oversized cache header")
                 header = json.load(tar.extractfile(entry))
-                if header.get("profile") != expected:
+                if not compatible(header.get("profile"), expected, accept_key):
                     raise ValueError("Cache profile mismatch")
                 continue
             if not header and not legacy:
@@ -194,7 +214,7 @@ def install(stage, project):
     return len(metadata)
 
 
-def restore(project, archive, expected, legacy=False, sha256=None):
+def restore(project, archive, expected, legacy=False, sha256=None, accept_key=None):
     require_key()
     project, archive = Path(project).resolve(), Path(archive).resolve()
     if sha256 and digest(archive) != sha256:
@@ -208,7 +228,7 @@ def restore(project, archive, expected, legacy=False, sha256=None):
             expand = subprocess.Popen(["zstd", "-q", "-d", "-c"],
                 stdin=decrypt.stdout, stdout=subprocess.PIPE)
             decrypt.stdout.close()
-            extract(expand.stdout, Path(tmp), expected, legacy)
+            extract(expand.stdout, Path(tmp), expected, legacy, accept_key)
             # Consume any remaining padding, then verify both process exit codes.
             while expand.stdout.read(1024 * 1024):
                 pass
@@ -224,6 +244,7 @@ def restore(project, archive, expected, legacy=False, sha256=None):
             if proc is not None and proc.stdout is not None:
                 proc.stdout.close()
     result = dict(profile=expected["key"], source="legacy" if legacy else "v2",
+        accepted_earlier_profile=accept_key or "",
         meta_restored=count, bee=(project / "Library/Bee").is_dir(),
         seconds=round(time.monotonic() - started, 2))
     print("BRAXHORN_CACHE_RESTORE " + json.dumps(result, sort_keys=True))
@@ -240,6 +261,7 @@ def main():
     parser.add_argument("--variant", default="arm64-il2cpp")
     parser.add_argument("--archive", type=Path)
     parser.add_argument("--legacy", action="store_true")
+    parser.add_argument("--accept-key", help="Also accept this earlier profile key (same zone/Unity/platform/variant; only package inputs differ)")
     args = parser.parse_args()
     expected = profile(args.project, args.zone, args.unity, variant=args.variant)
     if args.command == "profile":
@@ -250,7 +272,7 @@ def main():
     elif args.command == "pack":
         pack(args.project, args.archive, expected)
     else:
-        restore(args.project, args.archive, expected, args.legacy)
+        restore(args.project, args.archive, expected, args.legacy, accept_key=args.accept_key)
 
 
 if __name__ == "__main__":
