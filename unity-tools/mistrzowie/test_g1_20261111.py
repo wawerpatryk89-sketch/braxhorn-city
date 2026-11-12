@@ -89,7 +89,8 @@ class G1Tests(unittest.TestCase):
             i = fit.index('case ' + trade)
             j = fit.find('            case "', i + 10)
             j = j if j > 0 else fit.index('if(lib)BraxSklepyTowar.Zakoncz', i)
-            self.assertIn('SideWall(', fit[i:j], trade)
+            # the salon (12.11 16:05) clads its walls with the same battens on felt and stands its stations against them
+            self.assertTrue('SideWall(' in fit[i:j] or (trade == '"salon"' and 'Battens(' in fit[i:j]), trade)
 
     def test_furniture_is_built_properly(self):
         m = src('BraxChampionsG1Meble.cs')

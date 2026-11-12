@@ -110,6 +110,17 @@ class PrzegladModeli(unittest.TestCase):
         self.assertIn('if(!TabletModel(Tablety[(((int)d)%3+3)%3],p,face))', s)
         self.assertIn('return ShopModel(Elektronika,n,p,f,0f,.004f);', s)
 
+    def test_black_and_torn_mannequins_out(self):
+        # owner 15:47-15:50 "niektóre się nie nadają", "szczególnie te całe czarne"
+        s = src('BraxChampionsG1Sklepy.cs')
+        body = re.search(r'static string\[\] Manekiny\(string nm,bool sport\)=>(.*?);\n', s, re.S).group(1)
+        for n in ('manekin_dres_czarny', 'manekin_garnitur_czarny', 'manekin_zakiet_spodnica_bezowy', 'manekin_garnitur_granatowy'):
+            self.assertNotIn(n + '"', body, n)
+        rej = re.search(r'static readonly HashSet<string> Odrzucone=new HashSet<string>\{(.*?)\};', s, re.S).group(1)
+        for n in ('manekin_dres_czarny', 'manekin_dres_czarny_kaptur', 'manekin_garnitur_czarny', 'manekin_zakiet_spodnica_bezowy', 'manekin_garnitur_granatowy'):
+            self.assertIn('"' + n + '"', rej, n)
+        self.assertIn('if(set.Length==0)return false;', s)
+
     def test_unpacked_originals_are_archived(self):
         # owner 15:18 "mam nadzieję, że to nie przepadło": the sheets not cut yet are kept encrypted, never staged into a build
         d = PACKS / 'braxhorn-tripo-oryginaly-20261112'; m = json.loads((d / 'manifest.json').read_text(encoding='utf-8'))

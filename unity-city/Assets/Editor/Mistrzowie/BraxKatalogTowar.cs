@@ -325,6 +325,102 @@ public static partial class BraxKatalog
         RB(c, BlackMatt, k, .047f, .059f, .040f, .060f, -.060f, .030f, .004f);
     }
     /// <summary>A ball on its stand: kind 0 football (white, black patches as rings), 1 basketball (orange, black seams), 2 volleyball.</summary>
+    // ---------------------------------------------------------------- eyeglasses
+    // OPRAWKI Z KODU (owner 12.11.2026 15:38-15:41 "wszystkie sklepy masz uzupełnione?", "ktoś robił okulary, ty albo twój
+    // kolega"): the optician's frames after the R1 colleague's design (BraxUlicePierzeje.Okulary, 11.11) - the same 9 models,
+    // in real metres: 0 classic, 1 rectangular, 2 round metal, 3 browline (thick top, thin lower rim); sunglasses 4 aviators
+    // (metal, teardrop, double bridge), 5 cat-eye, 6 big butterfly, 7 sport wrap-around, 8 big square. The rim is a band round
+    // the lens outline (face, outer and inner edge, back), the lens a fan (clear, or tinted for sunglasses), the bridge an arch,
+    // the temples open and falling to the shelf at their tips; the frame leans back 7 degrees - it lies on its rims and its
+    // temple tips. Built once per model / colour / tint and shared (Place). p = the middle of the frame's lower edge on the
+    // shelf, f = where the lenses look (to the customer).
+    struct Oprawka { public float a, b, p, wr, gr, most, kropla, kot, brew, owin, rZaus; public bool podwojny, metal; }
+    static Oprawka MO(float a, float b, float p, float wr, float gr, float most, float rZaus, float kropla = 0f, float kot = 0f, float brew = 0f, float owin = 0f, bool podwojny = false, bool metal = false)
+        => new Oprawka { a = a, b = b, p = p, wr = wr, gr = gr, most = most, rZaus = rZaus, kropla = kropla, kot = kot, brew = brew, owin = owin, podwojny = podwojny, metal = metal };
+    static readonly Oprawka[] Oprawki =
+    {
+        MO(.026f, .020f, 2.8f, .005f, .0045f, .009f, .0026f), MO(.028f, .016f, 5.0f, .0055f, .005f, .009f, .0028f),
+        MO(.022f, .022f, 2.0f, .0028f, .0026f, .010f, .0017f, metal: true), MO(.026f, .018f, 3.6f, .0018f, .004f, .009f, .0026f, brew: .0075f),
+        MO(.029f, .023f, 2.2f, .0026f, .0026f, .008f, .0017f, kropla: .007f, podwojny: true, metal: true), MO(.027f, .019f, 3.0f, .006f, .005f, .009f, .003f, kot: .008f),
+        MO(.033f, .027f, 2.5f, .007f, .006f, .008f, .0034f, kropla: .006f, kot: .004f), MO(.034f, .019f, 3.4f, .007f, .006f, .007f, .0036f, owin: .014f),
+        MO(.031f, .026f, 4.2f, .0075f, .006f, .009f, .0034f),
+    };
+    public const int OprawkiKorekcyjne = 4, OprawkiWszystkie = 9;
+    static Material[] frameCols, metalCols, lensTints; static Material havanaDark, havanaLight, lensClear;
+    static void GlassesMaterials()
+    {
+        if (lensClear) return; Materials();
+        frameCols = new[] { S("frame_black", new Color(.045f, .045f, .05f), .2f, 0f), S("frame_navy", new Color(.11f, .15f, .35f), .22f, 0f),
+            S("frame_wine", new Color(.41f, .07f, .09f), .22f, 0f), S("frame_green", new Color(.19f, .27f, .20f), .22f, 0f),
+            S("frame_plum", new Color(.59f, .16f, .35f), .22f, 0f), S("frame_ivory", new Color(.92f, .91f, .88f), .24f, 0f) };
+        metalCols = new[] { Chrome, S("frame_gunmetal", new Color(.28f, .29f, .31f), .2f, 1f), S("frame_black_metal", new Color(.08f, .08f, .09f), .3f, 1f) };
+        havanaDark = S("frame_havana_dark", new Color(.22f, .11f, .05f), .2f, 0f); havanaLight = S("frame_havana_light", new Color(.62f, .38f, .14f), .2f, 0f);
+        lensClear = S("lens_clear", new Color(.80f, .86f, .90f, .14f), .03f, 0f, null, true);
+        lensTints = new[] { S("lens_grey", new Color(.17f, .18f, .19f, .82f), .03f, 0f, null, true), S("lens_brown", new Color(.36f, .21f, .09f, .80f), .03f, 0f, null, true),
+            S("lens_plum", new Color(.30f, .22f, .37f, .80f), .03f, 0f, null, true), S("lens_green", new Color(.18f, .28f, .23f, .80f), .03f, 0f, null, true) };
+    }
+    /// <summary>One frame: model 0-8 (0-3 prescription, clear lenses; 4-8 sunglasses), colour index (the model's metal or acetate
+    /// list; -1 = havana), tint 0 = clear, 1-4 = tinted.</summary>
+    public static void Glasses(Ctx c, Vector3 p, Vector3 f, int model, int colour, int tint)
+    {
+        GlassesMaterials(); model = Mathf.Clamp(model, 0, Oprawki.Length - 1); var M = Oprawki[model];
+        bool havana = colour < 0 && !M.metal; var cols = M.metal ? metalCols : frameCols;
+        var frame = havana ? null : cols[((colour % cols.Length) + cols.Length) % cols.Length];
+        var lens = tint <= 0 ? lensClear : lensTints[(tint - 1) % lensTints.Length];
+        Place(c, "okulary " + model + (havana ? " havana" : "") + " " + lens.name, cc => GlassesMesh(cc.m, M, havana, havana ? null : Slot, lens), p, f, frame);
+    }
+    static void GlassesMesh(BraxChampionsMeshBatch m, Oprawka M, bool havana, Material rim, Material lens)
+    {
+        const int N = 20; const float sT = .1219f, cT = .9925f;                       // 20 segments, leaning back 7 degrees
+        int q = 0; Material R() => havana ? ((q++ * 7 + (q * q) % 5) % 3 == 0 ? havanaLight : havanaDark) : rim;   // havana: dappled
+        Vector3 L(float x, float y, float z) => new Vector3(x, .001f + y * cT + z * sT, z * cT - y * sT);
+        void Q(Material mt, Vector3 a, Vector3 b, Vector3 cc, Vector3 d) { m.Quad(mt, a, b, cc, d); m.Quad(mt, d, cc, b, a); }
+        float Se(float x) => Mathf.Sign(x) * Mathf.Pow(Mathf.Abs(x), 2f / M.p);
+        Vector2 Obrys(float t, float off)
+        {
+            float co = Mathf.Cos(t), si = Mathf.Sin(t); float u = (M.a + off) * Se(co), v = (M.b + off) * Se(si);
+            if (M.kropla > 0f)
+            {
+                if (si > 0f) v *= 1f - .9f * M.kropla / M.b;
+                else { v *= 1f + M.kropla / M.b * (.5f + 1.1f * Mathf.Max(0f, co)); u += M.kropla * .8f * Mathf.Max(0f, co) * -si; }
+            }
+            if (si > 0f) v += M.kot * Mathf.Pow(Mathf.Max(0f, co), 2f) * si;
+            return new Vector2(u, v);
+        }
+        float Wr(float t) => M.wr + M.brew * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(t)), 1.5f);
+        float Zg(float u) => -M.owin * Mathf.Pow(Mathf.Max(0f, u / M.a), 2f);
+        float uMin = 0f, uMax = 0f, vMin = 0f, vMax = 0f;
+        for (int i = 0; i < N; i++) { float t = i * Mathf.PI * 2f / N; var o = Obrys(t, Wr(t) * .5f); uMin = Mathf.Min(uMin, o.x); uMax = Mathf.Max(uMax, o.x); vMin = Mathf.Min(vMin, o.y); vMax = Mathf.Max(vMax, o.y); }
+        float cy = -vMin, gr = M.gr;
+        foreach (float sg in new[] { -1f, 1f })
+        {
+            float cx = sg * (M.most - uMin);
+            Vector3 P(Vector2 o, float z) => L(cx + sg * o.x, cy + o.y, z + Zg(o.x));
+            var srodek = P(Vector2.zero, -gr * .5f);
+            for (int i = 0; i < N; i++)
+            {
+                float t0 = i * Mathf.PI * 2f / N, t1 = (i + 1) * Mathf.PI * 2f / N;
+                Vector2 o0 = Obrys(t0, Wr(t0) * .5f), o1 = Obrys(t1, Wr(t1) * .5f), w0 = Obrys(t0, -Wr(t0) * .5f), w1 = Obrys(t1, -Wr(t1) * .5f);
+                Q(R(), P(o0, 0f), P(o1, 0f), P(w1, 0f), P(w0, 0f));                 // the rim's face
+                Q(R(), P(o0, 0f), P(o1, 0f), P(o1, -gr), P(o0, -gr));               // outer edge
+                Q(R(), P(w0, 0f), P(w1, 0f), P(w1, -gr), P(w0, -gr));               // inner edge
+                Q(R(), P(o0, -gr), P(o1, -gr), P(w1, -gr), P(w0, -gr));             // back
+                var q0 = P(w0, -gr * .5f); var q1 = P(w1, -gr * .5f);
+                m.Triangle(lens, srodek, q0, q1); m.Triangle(lens, srodek, q1, q0);   // the lens, both sides
+            }
+            // temple: hinged at the rim's outer edge, opening a little, its tip falling to the shelf
+            float xz = sg * (M.most - uMin + uMax), yz = cy + vMax * .55f, zz = Zg(uMax);
+            Vector3 z0 = L(xz, yz, zz - gr), z1 = L(xz + sg * .008f, yz + .004f, -.11f), z2 = L(xz + sg * .01f, .004f + .145f * sT / cT, -.145f);
+            var tm = havana ? havanaDark : rim;
+            m.Tube(tm, L(xz - sg * .002f, yz, zz - .0005f), z0, M.rZaus * 1.1f, 6); m.Tube(tm, z0, z1, M.rZaus, 6); m.Tube(tm, z1, z2, M.rZaus, 6);
+        }
+        var bm = havana ? havanaDark : rim;
+        float ym = cy + vMax * .45f, rM = M.metal ? .0018f : .0026f;
+        Vector3 m0 = L(-M.most - .001f, ym, -gr * .5f), m1 = L(0f, ym + .004f, -gr * .5f), m2 = L(M.most + .001f, ym, -gr * .5f);
+        m.Tube(bm, m0, m1, rM, 6); m.Tube(bm, m1, m2, rM, 6);
+        if (M.podwojny) { float yp = cy + vMax * .96f; m.Tube(bm, L(-M.most - .014f, yp, -gr * .5f), L(M.most + .014f, yp, -gr * .5f), .0016f, 6); }
+    }
+
     // A ball as it is sewn (owner 12.11 13:58 "i te piłki": the Tripo football and volleyball are right from one side only,
     // their other sides are smeared - the same ball from every side comes from its real panels):
     //   kind 0 a football: the 12 black pentagons and 20 white hexagons of a truncated icosahedron pressed onto the sphere;

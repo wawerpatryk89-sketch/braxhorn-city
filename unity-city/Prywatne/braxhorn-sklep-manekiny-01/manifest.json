@@ -3,21 +3,21 @@
  "target": "sklep_manekiny_01",
  "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_manekiny_01 (BraxMiastoAssety.Model)",
  "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
- "tarSha256": "dbb6a623c268993d83f6ee99efa7cd155d8b4e887af34046c41be25670f521d2",
- "cmsSha256": "b86811709d6dc176637952569f230d4419c9f6f7bc41d8d3458bce2edbc82bd1",
+ "tarSha256": "5f7cd87d49385a3e52d6fcc5e06d5e2da0adfc40f58e1cdd3d0c683131e293c8",
+ "cmsSha256": "8064525f9ca38013cb84abc0794d55a89a554fafab8f9734d55be6cc1c8afeeb",
  "parts": [
   {
    "name": "part-000.cms",
    "bytes": 8866825,
-   "sha256": "b86811709d6dc176637952569f230d4419c9f6f7bc41d8d3458bce2edbc82bd1"
+   "sha256": "8064525f9ca38013cb84abc0794d55a89a554fafab8f9734d55be6cc1c8afeeb"
   }
  ],
  "files": {
   "oryginal/manekiny_a.glb": "35f66e5dddcf6de4206073aeb5d324be34469d6a1f2922b0cabeec48437356a2",
   "oryginal/spec.json": "a6c820c9aa9cebbf9a692853e0ae8abf90afe972ccadbf17c656bbe2b5d0130e",
-  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_kolor.jpg": "4d778b4b3cb3c2af28b0618f23f8bb5b52dc7d772f34aabcda2476306d2c9196",
-  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_mr.png": "4116ce3268c7b54f5604e2b44b1980790e88da72487c66bd28df5f7fd8089115",
-  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_normal.png": "722848bbcb2fe1ae0645225573e5db861c00cb4bb21031ab8580264de2639159",
+  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_kolor.jpg": "e68b07a2cb843eb8d9368b907612ab3c62165b36e4cbd56810ffc8e5c183b093",
+  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_mr.png": "f3c829ce622ade2ac462ed3508e27e35a7abe82091dc6189b54203b27a395068",
+  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_normal.png": "0e196f3baa74a43d17f703951ce2f2a1851f9986bfef2e5b7b09a3a867d3a274",
   "sklep_manekiny_01/katalog.json": "8170c36a1307e7d445406aeae5271ad88bb08c9911fa5b7ef5f979f3132e8342",
   "sklep_manekiny_01/manekin_bomberka_jeansy.glb": "abac85570a95a77316a38034b8da3ade90a24b513d9f728c97a65212c13720d8",
   "sklep_manekiny_01/manekin_dres_czarny.glb": "9c24c1a6783aa28166d56f3a263ca47fe7af5803e527f462a83571a149d26069",

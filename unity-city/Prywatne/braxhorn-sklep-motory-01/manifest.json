@@ -1,0 +1,29 @@
+{
+ "source": "Właściciel 12.11.2026 01:30: plansza Tripo (GLB) — motocykle globalnie do wszystkich miast i rejonów: sportowy czerwony, naked grafitowy, cruiser bordowy, adventure beżowy z kuframi, turystyczny granatowy (przód +Z, podstawa na dole, prawdziwe metry, dł. 1,96–2,15 m)",
+ "target": "pojazdy_motory_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/pojazdy_motory_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "1665a45fb8184582a473b05562bd959c57d0803ba939e6611bdd6c1a0c0ab1c7",
+ "cmsSha256": "6626a91ff713e0fed7cd6e85aae22960c70e3753f9074a7a5225d2be7573bda2",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 15514176,
+   "sha256": "6626a91ff713e0fed7cd6e85aae22960c70e3753f9074a7a5225d2be7573bda2"
+  }
+ ],
+ "files": {
+  "oryginal/motory.glb": "221d1adcbe48f397b4282fdefb27b4784a91d6094553a90cb798366fe263c632",
+  "oryginal/spec.json": "aafde99808614c75755d75e6ef24f41e2ce6a060b63da0f81913ca30ea9e4112",
+  "pojazdy_motory_01/_tekstury/pojazdy_motory_01_kolor.jpg": "9ec89ea89c8619c46fc8f75fe56ce0db9715591452f8f429d45fe624a3f64fd6",
+  "pojazdy_motory_01/_tekstury/pojazdy_motory_01_mr.png": "7e26b3354262bb293fe876c8e25e83854ec93dd93d793b8015be2df0063c790c",
+  "pojazdy_motory_01/_tekstury/pojazdy_motory_01_normal.png": "f7b28152119585fc2400b952d05e89452b79c451dcc8311d6fb66262e82a7abf",
+  "pojazdy_motory_01/katalog.json": "29a5e3986d408296f2adee1e5e9a94a6b0e1ba5c85b944d13c85c118dcb0c71e",
+  "pojazdy_motory_01/motor_adventure_bezowy_kufry.glb": "cb987a88063ae182b9f6a0c44c107b93101efa8db4acb91da3053601b21f8084",
+  "pojazdy_motory_01/motor_cruiser_bordowy.glb": "3fc85274aa1b5ad5df9ee8586b38d63b3b99f0c3bd51f095c0143990c7454576",
+  "pojazdy_motory_01/motor_naked_grafitowy.glb": "582d5f20c33d6f06f35af1cc176e60c9744f3a4eccd53ffab6d1864fd3baae93",
+  "pojazdy_motory_01/motor_sportowy_czerwony.glb": "0612d3d6d5f082a1b4589780cf80bd65b165d060e3c16a63b2f0a8b8e3da15dd",
+  "pojazdy_motory_01/motor_turystyczny_granatowy.glb": "82870f957e2f3182e9d488d1bab5cc7815c69c94322d9a48902d5ef2e5d79aec"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

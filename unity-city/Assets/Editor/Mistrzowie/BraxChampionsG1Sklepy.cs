@@ -305,7 +305,8 @@ public static partial class BraxChampionsD2
     // models that failed the review: never put out, whatever list still names them (the code-built piece takes the place)
     static readonly HashSet<string> Odrzucone=new HashSet<string>{"pilka_nozna","pilka_siatkowa","rekawice_bokserskie","buty_zapasnicze_czarno_zlote",
         "perfumy_bursztyn","perfumy_czerwone_zlota_szyjka","perfumy_zolta_kula","perfumy_lawendowe_motyl","kolczyki_kola_zlote","kolczyki_wiszace_brylant","ubranie_koszula_biala",
-        "sport_spodnie_dresowe_lampasy"};
+        "sport_spodnie_dresowe_lampasy","manekin_dres_czarny","manekin_dres_czarny_kaptur","manekin_garnitur_czarny","manekin_zakiet_spodnica_bezowy",
+        "manekin_garnitur_granatowy"};
     static bool Odrzucony(string pack,string name){return Odrzucone.Contains(name)||pack=="sklep_buty_01"||pack=="sklep_buty_02";}
     // the owner's BRAXHORN sports equipment (Tripo 23:34; the racket's torn string bed left out): the basketball, a kettlebell,
     // a punching bag, a skipping rope. Not put out: the pair of dumbbells (torn spikes and holes on the heads - the code
@@ -361,6 +362,56 @@ public static partial class BraxChampionsD2
     // a model from the owner's pack on a surface: its base centre at local (shelf top), its front toward faceLocal;
     // tilt 90 = a model that stands in its file laid on its back (a pair of gloves), lift = how far its base centre rises
     // then so that it rests on the surface
+    // a hydraulic styling chair at p, the sitter facing f (the salon's stations; recline > 0 lays the back down: the backwash
+    // chair; the optician's exam chair): black leather on a chrome disc base, arms, a footrest; a BraxSeat with its collider
+    static void SalonChair(Vector3 p,Vector3 f,float recline,string label)
+    {
+        BraxKatalog.Materials();var chromeS=BraxKatalog.Chrome;var blackS=BraxKatalog.BlackGloss;var leather=gLeatherBlack;
+        f.y=0;f.Normalize();var sd=Vector3.Cross(Vector3.up,f).normalized;var rot=Quaternion.LookRotation(f,Vector3.up);
+        m.Cylinder(chromeS,p,.29f,.025f,32,Quaternion.identity,true,false,.27f);                       // the disc base
+        m.Cylinder(blackS,p+Vector3.up*.025f,.075f,.10f,20,Quaternion.identity,true,false,.06f);      // the pump's boot
+        m.Cylinder(chromeS,p+Vector3.up*.125f,.042f,.30f,18,Quaternion.identity,false,false);         // the column
+        m.RoundedBox(blackS,p+Vector3.up*.44f,new Vector3(.40f,.03f,.38f),.012f,rot,2);               // the seat pan
+        m.RoundedBox(leather,p+Vector3.up*.52f+f*.02f,new Vector3(.52f,.12f,.50f),.05f,rot,3);        // the cushion
+        var back=rot*Quaternion.Euler(-(8f+recline),0f,0f);
+        m.RoundedBox(leather,p+Vector3.up*.60f-f*.25f+back*new Vector3(0f,.30f,0f),new Vector3(.50f,.60f,.10f),.045f,back,3);
+        if(recline>0f)m.RoundedBox(leather,p+Vector3.up*.60f-f*.25f+back*new Vector3(0f,.68f,0f),new Vector3(.26f,.16f,.09f),.04f,back,3);   // the neck rest
+        foreach(float sg in new[]{-1f,1f})
+        {
+            var a=p+sd*sg*.29f+Vector3.up*.72f;
+            m.RoundedBox(leather,a+f*.02f,new Vector3(.07f,.06f,.42f),.025f,rot,2);                    // the arm
+            m.Tube(chromeS,a-Vector3.up*.03f-f*.12f,p+sd*sg*.24f+Vector3.up*.47f-f*.12f,.012f,8);
+            m.Tube(chromeS,a-Vector3.up*.03f+f*.16f,p+sd*sg*.24f+Vector3.up*.47f+f*.16f,.012f,8);
+        }
+        m.Tube(chromeS,p+f*.24f+Vector3.up*.45f+sd*.16f,p+f*.36f+Vector3.up*.20f+sd*.16f,.011f,8);     // the footrest
+        m.Tube(chromeS,p+f*.24f+Vector3.up*.45f-sd*.16f,p+f*.36f+Vector3.up*.20f-sd*.16f,.011f,8);
+        m.Tube(chromeS,p+f*.36f+Vector3.up*.20f+sd*.20f,p+f*.36f+Vector3.up*.20f-sd*.20f,.014f,10);
+        Seat(p.x+f.x*.03f,p.y+.58f,p.z+f.z*.03f,f,label);
+        Col(p.x-.32f,p.x+.32f,p.y,p.y+.75f,p.z-.32f,p.z+.32f,label);
+    }
+    // the optician's eye chart (a lit board; row 0 of the picture at the bottom): rows of letters, each row smaller, from one
+    // big E at the top to six small letters, black on white, a red and a green field at the foot (the duochrome test)
+    static Color32[] TablicaWzroku(int w,int h)
+    {
+        var px=new Color32[w*h];for(int i=0;i<px.Length;i++)px[i]=new Color32(246,246,242,255);
+        string[] glyph={"E:11111,10000,11110,10000,11111","F:11111,10000,11110,10000,10000","P:11110,10001,11110,10000,10000","T:11111,00100,00100,00100,00100",
+            "O:01110,10001,10001,10001,01110","Z:11111,00010,00100,01000,11111","L:10000,10000,10000,10000,11111","D:11110,10001,10001,10001,11110","C:01111,10000,10000,10000,01111"};
+        var g=new Dictionary<char,string[]>();foreach(var s in glyph)g[s[0]]=s.Substring(2).Split(',');
+        string[] rows={"E","FP","TOZ","LPED","PECFD","EDFCZP"};int[] sc={6,4,3,2,1,1};int top=h-6;
+        for(int r=0;r<rows.Length;r++)
+        {
+            int k=sc[r],gap=Mathf.Max(1,k),wRow=rows[r].Length*5*k+(rows[r].Length-1)*gap*2,x0=(w-wRow)/2;
+            for(int c=0;c<rows[r].Length;c++)
+            {
+                var gl=g[rows[r][c]];
+                for(int gy=0;gy<5;gy++)for(int gx=0;gx<5;gx++)if(gl[gy][gx]=='1')
+                    for(int yy=0;yy<k;yy++)for(int xx=0;xx<k;xx++){int X=x0+c*(5*k+gap*2)+gx*k+xx,Y=top-gy*k-yy;if(X>=0&&X<w&&Y>=0&&Y<h)px[Y*w+X]=new Color32(12,12,14,255);}
+            }
+            top-=5*k+Mathf.Max(3,k+1);
+        }
+        for(int yy=2;yy<10;yy++)for(int xx=6;xx<w-6;xx++)px[yy*w+xx]=xx<w/2?new Color32(200,30,34,255):new Color32(30,160,60,255);
+        return px;
+    }
     static bool ShopModel(string pack,string name,Vector3 local,Vector3 faceLocal,float tilt=0f,float lift=0f)
     {
         int sl=name.IndexOf('/');if(sl>0){pack=name.Substring(0,sl);name=name.Substring(sl+1);}   // "pack/name" = a model from another pack
@@ -404,14 +455,19 @@ public static partial class BraxChampionsD2
     // the owner's dressed mannequins (Tripo 23:21, black mannequins in full outfits; 23:22 "te białe ... wypierdol": the white
     // ones cut away): packs sklep_manekiny_01/02, base on the floor or the window podium, front to faceLocal; per shop style
     const string Man1="sklep_manekiny_01/",Man2="sklep_manekiny_02/";
-    static string[] Manekiny(string nm,bool sport)=>sport?new[]{Man1+"manekin_dres_czarny",Man2+"manekin_dres_czarny_kaptur",Man1+"manekin_bomberka_jeansy"}
-        :nm.Contains("ELEGANCJA")?new[]{Man1+"manekin_garnitur_granatowy",Man1+"manekin_suknia_czerwona",Man2+"manekin_garnitur_czarny",Man1+"manekin_zakiet_spodnica_bezowy"}
+    // (owner 12.11 15:47-15:50 "a ten manekin to co to", "niektóre się nie nadają", "szczególnie te całe czarne": the all-black
+    // outfits on the black mannequins are one dark lump - the black tracksuit, the hooded tracksuit and the black suit are out;
+    // the beige suit is torn (the neck, the jacket's side, the skirt's back, the bag) and the navy suit has a hole in its back
+    // - out too. The red gown, the bomber, the denim jacket and the baseball jacket stay; where a style has none left the
+    // code mannequin in the shop's colours stands - the sports shops' ones in sports colours)
+    static string[] Manekiny(string nm,bool sport)=>sport?new string[0]
+        :nm.Contains("ELEGANCJA")?new[]{Man1+"manekin_suknia_czerwona"}
         :nm.Contains("DENIM")?new[]{Man2+"manekin_katana_jeansy",Man1+"manekin_bomberka_jeansy",Man2+"manekin_kurtka_baseballowa_bojowki"}
-        :nm.Contains("URBAN")?new[]{Man2+"manekin_kurtka_baseballowa_bojowki",Man2+"manekin_dres_czarny_kaptur",Man1+"manekin_bomberka_jeansy"}
-        :nm.Contains("BIELIZNA")?new[]{Man1+"manekin_suknia_czerwona",Man1+"manekin_zakiet_spodnica_bezowy"}
-        :new[]{Man1+"manekin_bomberka_jeansy",Man1+"manekin_zakiet_spodnica_bezowy",Man2+"manekin_katana_jeansy",Man1+"manekin_suknia_czerwona",Man1+"manekin_garnitur_granatowy",Man2+"manekin_kurtka_baseballowa_bojowki"};
+        :nm.Contains("URBAN")?new[]{Man2+"manekin_kurtka_baseballowa_bojowki",Man1+"manekin_bomberka_jeansy",Man2+"manekin_katana_jeansy"}
+        :new[]{Man1+"manekin_bomberka_jeansy",Man2+"manekin_katana_jeansy",Man1+"manekin_suknia_czerwona",Man2+"manekin_kurtka_baseballowa_bojowki"};
     static bool ModelMannequin(string[] set,int i,Vector3 local,Vector3 faceLocal)
     {
+        if(set.Length==0)return false;
         string n=set[((i%set.Length)+set.Length)%set.Length];int sl=n.IndexOf('/');
         return ShopModel(n.Substring(0,sl),n.Substring(sl+1),local,faceLocal);
     }   // the goods group being built: the catalogue's shared pieces are placed in it (culled with it)
@@ -470,6 +526,21 @@ public static partial class BraxChampionsD2
             RB(mat,x0_,x1_,y0,y1,z0_,z1_,Mathf.Clamp(th*.3f,.004f,.03f),col,th>.1f?2:1);
         }
         Vector3 toFront=Dir(0,-1),toBack=Dir(0,1),alongT=Dir(1,0);
+        // a small shop (u.back): a full-height wall across at u.back, the staff room behind it (a closed walnut door with a
+        // steel handle and a stone name plate); everything else is fitted to the sales floor in front of it
+        float Droom=0f;                                                                            // the depth behind the sales floor
+        if(u.back>0f&&u.back<D-1.5f)
+        {
+            var wm=ShopWall(u.trade);float yc=ShopCeil(u.level);float td=Wd-1.1f;bool open=u.trade=="optician";
+            void Wall(float t0,float t1,float y0,float y1,float d0,float d1){var a0=P(t0,y0,d0);var a1=P(t1,y1,d1);B(wm,Mathf.Min(a0.x,a1.x),Mathf.Max(a0.x,a1.x),y0,y1,Mathf.Min(a0.z,a1.z),Mathf.Max(a0.z,a1.z),true);}
+            if(open){Wall(0f,td-.51f,y,yc,u.back,u.back+.12f);Wall(td+.51f,Wd,y,yc,u.back,u.back+.12f);Wall(td-.51f,td+.51f,y+2.14f,yc,u.back,u.back+.12f);}
+            else Wall(0f,Wd,y,yc,u.back,u.back+.12f);
+            if(!open)Box(walnut,td-.47f,td+.47f,y+.005f,y+2.10f,u.back-.04f,u.back,false);           // the closed staff door
+            Box(frame,td-.51f,td+.51f,y+2.10f,y+2.14f,u.back-.05f,u.back);Box(frame,td-.51f,td-.47f,y,y+2.14f,u.back-.05f,u.back);Box(frame,td+.47f,td+.51f,y,y+2.14f,u.back-.05f,u.back);
+            if(!open){Box(frame,td-.40f,td-.25f,y+1.02f,y+1.05f,u.back-.09f,u.back-.04f);Box(frame,td-.40f,td-.37f,y+.98f,y+1.06f,u.back-.07f,u.back-.04f);}
+            Box(StoneTop(),td-.14f,td+.14f,y+2.20f,y+2.27f,u.back-.045f,u.back-.04f);                 // the name plate over the door
+            Droom=D-u.back-.12f;D=u.back;
+        }
         // a display table: a solid 5 cm top (rounded edges) on two black steel sled legs (posts, foot and head rails) and a
         // stretcher; h = the top's height
         void Table(Material top,float t0,float t1,float d0,float d1,float h)
@@ -537,8 +608,9 @@ public static partial class BraxChampionsD2
         }
         else
         {
-            Box(u.trade=="electronics"||u.trade=="phones"?gCinemaDark:gWood,.3f,Wd-.3f,y+.10f,y+3.6f,D-.16f,D-.12f);
-            Box(ledWarm,.3f,Wd-.3f,y+3.62f,y+3.65f,D-.20f,D-.12f);
+            float fw=u.back>0f?Wd-1.75f:Wd-.3f;                                                      // a small shop: clear of the door at the back
+            Box(u.trade=="electronics"||u.trade=="phones"?gCinemaDark:gWood,.3f,fw,y+.10f,y+3.6f,D-.16f,D-.12f);
+            Box(ledWarm,.3f,fw,y+3.62f,y+3.65f,D-.20f,D-.12f);
         }
         // the cash desk by one side near the front: walnut, white marble top, a POS terminal with its screen
         float ct=Wd-2.4f,cd=2.2f;
@@ -641,6 +713,62 @@ public static partial class BraxChampionsD2
                 }
                 break;
             }
+            case "moto":
+            {
+                // MOTO I ROWERY (owner 12.11 15:41-15:42 "rowery i motory są dobre ... trzeba wykorzystać", "sklep rowerowy masz zrobić
+                // z motocyklami"): the owner's Tripo motorbikes and bikes from the global packs of the R1 colleague (pojazdy_motory_01:
+                // sport, naked, cruiser, adventure with cases, touring; pojazdy_rowery_01: fat bike, electric trekking - real metres,
+                // front +Z, base centre at 0). Three motorbikes on black platforms along one wall, turned 30 degrees to the door,
+                // two side by side on the back platform facing the door; on the other wall a row of bikes in steel wheel stands,
+                // front wheels to the aisle. The middle stays an aisle; no platform at a column.
+                BraxKatalog.Materials();
+                const string MotP="pojazdy_motory_01",RowP="pojazdy_rowery_01";
+                string[] mot={"motor_sportowy_czerwony","motor_naked_grafitowy","motor_cruiser_bordowy","motor_adventure_bezowy_kufry","motor_turystyczny_granatowy"};
+                float sm=SideOpen(0f)?1f:0f,sr=1f-sm;                                     // the motorbikes' wall and the bikes' wall
+                Vector3 inM=sm==0f?alongT:-alongT;                                         // from the motorbikes' wall into the room
+                float TM(float o)=>sm==0f?o:Wd-o; float TR(float o)=>sr==0f?o:Wd-o;
+                void Cladding(float sd,float d0,float d1){if(SideOpen(sd))return;float w=sd==0f?0f:Wd,dr=sd==0f?1f:-1f;
+                    SB(gCinemaDark,w+dr*0f,w+dr*.02f,y+.10f,y+3.2f,d0,d1);for(float d=d0+.05f;d+.06f<d1-.04f;d+=.14f)SB(walnut,w+dr*.02f,w+dr*.05f,y+.12f,y+3.18f,d,d+.06f);}
+                Cladding(0f,2.6f,D-.4f);Cladding(1f,3.2f,D-.4f);
+                void Platform(Vector3 c,Vector3 f,string label)
+                {
+                    f.y=0;f.Normalize();var rot=Quaternion.LookRotation(f,Vector3.up);
+                    m.RoundedBox(gCinemaDark,c+Vector3.up*.055f,new Vector3(1.25f,.09f,2.75f),.03f,rot,2);
+                    m.RoundedBox(ledWarm,c+Vector3.up*.006f,new Vector3(1.15f,.012f,2.65f),.004f,rot,1);       // the light line under its edge
+                    var e=rot*new Vector3(.62f,0f,1.37f);var e2=rot*new Vector3(-.62f,0f,1.37f);
+                    float hx=Mathf.Max(Mathf.Abs(e.x),Mathf.Abs(e2.x)),hz=Mathf.Max(Mathf.Abs(e.z),Mathf.Abs(e2.z));
+                    Col(c.x-hx,c.x+hx,c.y,c.y+1.0f,c.z-hz,c.z+hz,label);
+                }
+                int mi=0;
+                Goods(nm+" | motocykle",()=>
+                {
+                    var fa=(toFront*Mathf.Cos(30f*Mathf.Deg2Rad)+inM*Mathf.Sin(30f*Mathf.Deg2Rad)).normalized;
+                    // the side wall: the first free places (every 20 cm), at least 2.75 m apart - the parallel platforms turned 30
+                    // degrees then clear each other by 13 cm - and never at a column (one of the mall's columns stands in this shop)
+                    for(float d=3.0f,next=0f;d+1.5f<D-2.8f&&mi<3;d+=.2f){if(d<next)continue;var c=P(TM(1.75f),y,d);if(NearColumn(c,1.75f))continue;
+                        if(ShopModel(MotP,mot[mi],c+Vector3.up*.10f,fa))Platform(c,fa,"podest motocykla");mi++;next=d+2.75f;}
+                    // the back wall: the rest side by side facing the door (all five are shown: three or more on the side when it
+                    // is long enough, otherwise more at the back), 1.5 m between their centres
+                    int rest=mot.Length-mi;
+                    for(int k=0;k<rest;k++){var c=P(Wd*.5f+(k-(rest-1)*.5f)*1.5f,y,D-1.75f);if(NearColumn(c,1.4f))continue;
+                        if(ShopModel(MotP,mot[mi],c+Vector3.up*.10f,toFront))Platform(c,toFront,"podest motocykla");mi++;}
+                });
+                Goods(nm+" | rowery",()=>
+                {
+                    if(SideOpen(sr))return;var inR=-inM;int i=0;
+                    for(float d=3.8f;d<D-3.3f;d+=1.0f,i++)                 // 1 m apart: the fat bikes' 78 cm bars clear each other
+                    {
+                        var c=P(TR(1.20f),y,d);if(NearColumn(c,1.15f))continue;
+                        if(!ShopModel(RowP,i%2==0?"rower_fatbike_czarny":"rower_trekking_elektryczny_czarny",c,inR))continue;
+                        // the steel wheel stand under the rear wheel (at the wall end): a floor bar and two uprights round the tyre
+                        var rw=c-inR*.62f;var side=Vector3.Cross(Vector3.up,inR).normalized;
+                        m.RoundedBox(BraxKatalog.Steel,rw+Vector3.up*.012f,new Vector3(.20f,.024f,.42f),.006f,Quaternion.LookRotation(inR,Vector3.up),1);
+                        foreach(float sg in new[]{-1f,1f})m.Tube(BraxKatalog.Steel,rw+side*sg*.075f,rw+side*sg*.075f+Vector3.up*.34f,.011f,8);
+                        Col(Mathf.Min(c.x-.5f,c.x+.5f),Mathf.Max(c.x-.5f,c.x+.5f),c.y,c.y+1.1f,Mathf.Min(c.z-.5f,c.z+.5f),Mathf.Max(c.z-.5f,c.z+.5f),"rower");
+                    }
+                });
+                break;
+            }
             case "shoes":
             {
                 // the shoe wall: white marble shelves on both walls with the owner's shoes (pack sklep_buty_03: 14 single
@@ -656,12 +784,17 @@ public static partial class BraxChampionsD2
                 // solid oak display tables on black steel sled legs; the goods built here: laptops and monitors / phones on stands / consoles and TVs /
                 // headphones and speakers (AUDIO) / cameras (FOTO); TVs on the back wall or the side walls
                 bool audio=nm.Contains("AUDIO"),foto=nm.Contains("FOTO"),phones=u.trade=="phones",games=u.trade=="games"||nm.Contains("GAMES");
+                // ŚWIAT RTV (the new shop beside the small florist, 12.11): TVs - on stands on the tables, in a row over the wall
+                // cabinets; every one a BraxTelewizor (WŁĄCZ / WYŁĄCZ, the owner's films; the two nearest play)
+                bool rtv=nm.Contains("RTV");
                 var tables=new List<float>();for(float d=3.5f;d<D-2.6f;d+=3.0f)tables.Add(d);
                 foreach(float d in tables)Table(gOak,Wd*.5f-1.5f,Wd*.5f+1.5f,d,d+1.0f,.90f);
                 Goods(nm+" | elektronika",()=>
                 {
+                    if(rtv)foreach(float d in tables){int k=(int)d;foreach(float t in new[]{Wd*.5f-.78f,Wd*.5f+.78f}){BraxKatalog.Tv(Kat(),P(t,y+.90f,d+.30f),toFront,50f,k++,true,nm+" TV");BraxKatalog.Tv(Kat(),P(t,y+.90f,d+.70f),toBack,43f,k++,true,nm+" TV");}}
                     foreach(float d in tables)
                     {
+                        if(rtv)continue;
                         for(int i=0;i<4;i++)
                         {
                             float t=Wd*.5f-1.12f+i*.75f;
@@ -685,8 +818,10 @@ public static partial class BraxChampionsD2
                     if(audio)foreach(float t in new[]{.8f,Wd-.8f})Speaker(P(t,y,D-1.0f),toFront,1.05f);
                 });
                 // both side walls finished: battens, the oak cabinet with the goods on it, lit shelves (façade units: the TVs over the cabinet)
-                foreach(float s in new[]{0f,1f})SideWall(s,2.6f,D-1.4f,!fac);
-                Goods(nm+" | ściany",()=>{foreach(float s in new[]{0f,1f})WallItems(s,2.6f,D-1.4f,!fac,(p,f,l)=>
+                foreach(float s in new[]{0f,1f})SideWall(s,2.6f,D-1.4f,!fac&&!rtv);
+                if(rtv)Goods(nm+" | telewizory na ścianach",()=>{foreach(float s in new[]{0f,1f})if(!SideOpen(s)){int k=3+(int)s*5;float w=s==0f?.05f:Wd-.05f;var f=s==0f?alongT:-alongT;
+                    for(float d=3.3f;d<D-2.0f;d+=1.75f){BraxKatalog.Tv(Kat(),P(w,y+1.95f,d),f,55f,k++,false,nm+" TV ściana");Speaker(P(s==0f?.30f:Wd-.30f,y+.90f,d),f,.18f);}}});
+                if(!rtv)Goods(nm+" | ściany",()=>{foreach(float s in new[]{0f,1f})WallItems(s,2.6f,D-1.4f,!fac,(p,f,l)=>
                 {
                     // the eye-level shelf (1.55 m): every second place one of the owner's four small pieces, in turn along the wall
                     int ix=(((int)Mathf.Round((p.x+p.z)/.6f))%8+8)%8;bool drobne=l==1&&ix%2==0&&DrobneModel(ix/2,p,f);
@@ -702,6 +837,7 @@ public static partial class BraxChampionsD2
             {
                 // white gondolas with glass shelves on both walls, a lit mirror counter; a perfumery: the owner's perfumes (Tripo
                 // 23:48-23:53, packs sklep_perfumy_01/02, 20 bottles, some with the BRAXHORN bull) on every shelf and the counter
+                bool booth=u.trade=="optician"&&Droom>=4.2f;                                           // the eye-test room behind the sales floor
                 var cshelves=WallShelves(gOak,4,.40f,3.0f,D-1.2f);
                 if(u.trade=="cosmetics")Goods(nm+" | perfumy",()=>
                 {
@@ -709,8 +845,93 @@ public static partial class BraxChampionsD2
                     foreach(var (t,yy,sd) in cshelves){var f=sd==0?alongT:-alongT;for(float d=3.15f;d<D-1.3f;d+=.17f)ShopModel(Perfumy0,Perfumy[i++%Perfumy.Length],P(t,yy,d),f);}
                     for(int k=0;k<9;k++)ShopModel(Perfumy0,Perfumy[(i+k*3)%Perfumy.Length],P(Wd*.5f-1.0f+k*.25f,y+1.0f,D*.5f-.2f),toFront);
                 });
+                // the optician: the frames on every shelf, 27 cm apart, facing the room - prescription frames (clear lenses) and
+                // sunglasses on alternate shelves, and a row of each on the counter (BraxKatalog.Glasses, after the R1 colleague's
+                // design; owner 12.11 15:41)
+                if(u.trade=="optician")Goods(nm+" | oprawki",()=>
+                {
+                    int i=nm.Length,row=0;
+                    foreach(var (t,yy,sd) in cshelves){var f=sd==0?alongT:-alongT;bool sl=row++%2==1;
+                        for(float d=3.15f;d<D-1.3f;d+=.27f,i++){int mo=sl?BraxKatalog.OprawkiKorekcyjne+i%5:i%4;BraxKatalog.Glasses(Kat(),P(t,yy,d),f,mo,(i%7==3)?-1:i*5/3,sl?1+i%4:0);}}
+                    for(int k=0;k<8;k++){int mo=k<4?k:BraxKatalog.OprawkiKorekcyjne+k%5;BraxKatalog.Glasses(Kat(),P(Wd*.5f-.95f+k*.27f,y+1.0f,D*.5f-.2f),toFront,mo,k==2?-1:k,k<4?0:1+k%4);}
+                });
                 Box(gCinemaDark,Wd*.5f-1.14f,Wd*.5f+1.14f,y,y+.08f,D*.5f-.34f,D*.5f+.34f);Box(walnut,Wd*.5f-1.2f,Wd*.5f+1.2f,y+.08f,y+.96f,D*.5f-.4f,D*.5f+.4f,true);Box(StoneTop(),Wd*.5f-1.23f,Wd*.5f+1.23f,y+.96f,y+1.0f,D*.5f-.43f,D*.5f+.43f);
                 Box(glassDark,Wd*.5f-1.0f,Wd*.5f+1.0f,y+1.2f,y+2.0f,D-.32f,D-.30f);Box(ledWarm,Wd*.5f-1.0f,Wd*.5f+1.0f,y+2.02f,y+2.05f,D-.33f,D-.29f);
+                // THE MIDDLE OF THE FLOOR (my own audit 12.11 16:05: shelves on the walls only, an empty floor of 60-150 m2 between):
+                // islands in one row (two rows in a unit 9 m and wider), 1.3 m long, 1.8 m apart, kept off the counter (the middle)
+                // and the columns. A perfumery / drugstore: a gondola - walnut plinth, a black spine, three glass shelves, the
+                // owner's perfumes on both faces. The optician: a low walnut table with an acrylic riser, frames on both faces, a
+                // small live table mirror on its end.
+                float[] rows=Wd>=9f?new[]{Wd*.30f,Wd*.70f}:new[]{Wd*.5f};
+                int isl=0;
+                foreach(float tr in rows)for(float d=3.1f;d+.65f<D-1.6f;d+=1.95f)
+                {
+                    if(Mathf.Abs(d-D*.5f)<1.25f&&Mathf.Abs(tr-Wd*.5f)<2.1f)continue;                        // the counter
+                    if(NearColumn(P(tr,y,d),1.25f))continue;
+                    isl++;var dd=d;var tt=tr;
+                    if(u.trade=="cosmetics")
+                    {
+                        Box(gCinemaDark,tr-.30f,tr+.30f,y,y+.06f,d-.62f,d+.62f);Box(walnut,tr-.34f,tr+.34f,y+.06f,y+.30f,d-.66f,d+.66f,true);
+                        Box(gCinemaDark,tr-.025f,tr+.025f,y+.30f,y+1.45f,d-.64f,d+.64f);
+                        foreach(float yy in new[]{.62f,.94f,1.26f})Box(glass,tr-.30f,tr+.30f,y+yy-.012f,y+yy,d-.62f,d+.62f);
+                        Box(ledWarm,tr-.30f,tr+.30f,y+1.45f,y+1.47f,d-.64f,d+.64f);
+                        var a=P(tr-.34f,y,d-.66f);var b=P(tr+.34f,y,d+.66f);Col(Mathf.Min(a.x,b.x),Mathf.Max(a.x,b.x),y,y+1.47f,Mathf.Min(a.z,b.z),Mathf.Max(a.z,b.z),"wyspa");
+                        Goods(nm+" | wyspa",()=>
+                        {
+                            int i=nm.Length+isl*7;
+                            foreach(float sg in new[]{-1f,1f})foreach(float yy in new[]{.30f,.62f,.94f,1.26f})
+                                for(float q=-.48f;q<=.49f;q+=.16f)ShopModel(Perfumy0,Perfumy[i++%Perfumy.Length],P(tt+sg*.17f,y+yy,dd+q),sg>0f?alongT:-alongT);
+                        });
+                    }
+                    else
+                    {
+                        Box(gCinemaDark,tr-.36f,tr+.36f,y,y+.06f,d-.60f,d+.60f);Box(walnut,tr-.40f,tr+.40f,y+.06f,y+.86f,d-.64f,d+.64f,true);
+                        Box(StoneTop(),tr-.42f,tr+.42f,y+.86f,y+.90f,d-.66f,d+.66f);
+                        Box(glass,tr-.10f,tr+.10f,y+.90f,y+1.06f,d-.58f,d+.58f);Box(glass,tr-.10f,tr+.10f,y+1.06f,y+1.08f,d-.58f,d+.58f);   // the acrylic riser
+                        var a=P(tr-.42f,y,d-.66f);var b=P(tr+.42f,y,d+.66f);Col(Mathf.Min(a.x,b.x),Mathf.Max(a.x,b.x),y,y+.90f,Mathf.Min(a.z,b.z),Mathf.Max(a.z,b.z),"stół z oprawkami");
+                        // the table mirror on the end facing the door: a 30 x 42 cm live mirror on a walnut stand
+                        Box(walnut,tr-.12f,tr+.12f,y+.90f,y+.93f,d-.62f,d-.50f);Box(frame,tr-.01f,tr+.01f,y+.93f,y+1.02f,d-.57f,d-.55f);
+                        G1Mirror("optyk "+nm+" lusterko "+isl,P(tr,y+1.24f,d-.58f),toFront,.30f,.42f);
+                        Goods(nm+" | stół z oprawkami",()=>
+                        {
+                            int i=nm.Length+isl*5;
+                            foreach(float sg in new[]{-1f,1f})
+                            {
+                                var f=sg>0f?alongT:-alongT;
+                                for(float q=-.40f;q<=.53f;q+=.24f,i++){int mo=i%2==0?i%4:BraxKatalog.OprawkiKorekcyjne+i%5;BraxKatalog.Glasses(Kat(),P(tt+sg*.28f,y+.90f,dd+q),f,mo,i%6==4?-1:i*3,i%2==0?1+i%4:0);}
+                                for(float q=-.40f;q<=.53f;q+=.24f,i++){int mo=i%2==0?BraxKatalog.OprawkiKorekcyjne+i%5:i%4;BraxKatalog.Glasses(Kat(),P(tt+sg*.05f,y+1.08f,dd+q),f,mo,i*5/2,i%2==1?1+i%4:0);}
+                            }
+                        });
+                    }
+                }
+                // the optician's eye test (the small optician, owner 16:19): the room behind the sales floor, through the open
+                // doorway by the right wall - 3.8 m deep, closed by a wall behind it. The patient's chair 4.9 m from the lit chart
+                // on the left wall (letters smaller row by row, the red-green field at the foot), the phoropter on its arm from
+                // the right wall in front of the eyes, the optometrist's desk with a monitor in the back right corner.
+                if(booth)
+                {
+                    float b0=D+.12f,b1=b0+3.8f,bw=Wd,bm=b0+1.9f;var wm=ShopWall(u.trade);
+                    {var a0=P(0f,y,b1);var a1=P(Wd,ShopCeil(u.level),b1+.12f);B(wm,Mathf.Min(a0.x,a1.x),Mathf.Max(a0.x,a1.x),y,ShopCeil(u.level),Mathf.Min(a0.z,a1.z),Mathf.Max(a0.z,a1.z),true);}
+                    var chart=BraxKatalog.Screen("optyk_tablica",88,128,TablicaWzroku(88,128));
+                    Box(frame,.02f,.05f,y+.85f,y+1.75f,bm-.32f,bm+.32f);
+                    {var cc=P(.055f,y+.88f,bm);var rr=Vector3.Cross(Vector3.up,-alongT).normalized;var qa=cc-rr*.29f;var qb=cc+rr*.29f;var up=Vector3.up*.84f;
+                     m.QuadUV(chart,qa+up,qb+up,qb,qa,new Vector2(0f,1f),new Vector2(1f,1f),new Vector2(1f,0f),new Vector2(0f,0f));}   // read from the chair: not mirrored
+                    // walnut battens on black felt behind the chart, the room's feature wall
+                    SB(gCinemaDark,0f,.02f,y+.10f,y+2.9f,b0+.3f,b1-.3f);for(float dd2=b0+.35f;dd2+.06f<b1-.34f;dd2+=.14f)if(Mathf.Abs(dd2+.03f-bm)>.36f)SB(walnut,.02f,.05f,y+.12f,y+2.88f,dd2,dd2+.06f);
+                    var chairP=P(bw-1.4f,y,bm);
+                    SalonChair(chairP,-alongT,0f,"fotel do badania wzroku");
+                    var ph=chairP-alongT*.42f+Vector3.up*1.18f;                                             // the phoropter in front of the eyes
+                    var phq=Quaternion.LookRotation(alongT,Vector3.up);
+                    m.RoundedBox(BraxKatalog.BlackMatt,ph,new Vector3(.34f,.16f,.08f),.03f,phq,2);
+                    foreach(float sg in new[]{-1f,1f})m.Cylinder(BraxKatalog.Graphite,ph+phq*new Vector3(sg*.08f,0f,-.04f),.045f,.012f,18,Quaternion.FromToRotation(Vector3.up,-alongT),true,true);
+                    var arm=P(bw-.05f,y+1.48f,bm+.45f);
+                    m.Tube(BraxKatalog.BlackMatt,ph+Vector3.up*.08f,ph+Vector3.up*.30f,.015f,8);m.Tube(BraxKatalog.BlackMatt,ph+Vector3.up*.30f,arm-alongT*.06f,.018f,8);
+                    m.Cylinder(BraxKatalog.BlackMatt,arm-alongT*.06f,.04f,.06f,12,Quaternion.FromToRotation(Vector3.up,alongT),true,true);
+                    Box(walnut,bw-.95f,bw-.05f,y+.72f,y+.76f,b1-.85f,b1-.05f,true);
+                    Box(frame,bw-.90f,bw-.86f,y,y+.72f,b1-.80f,b1-.76f);Box(frame,bw-.90f,bw-.86f,y,y+.72f,b1-.14f,b1-.10f);
+                    var mon=P(bw-.40f,y+.76f,b1-.45f);Goods(nm+" | gabinet",()=>Monitor(mon,-alongT));
+                    G1Chair(P(bw-1.25f,y,b1-.45f),alongT);                                                 // the optometrist's chair at the desk
+                }
                 break;
             }
             case "pharmacy":
@@ -826,6 +1047,35 @@ public static partial class BraxChampionsD2
             {
                 // the counter (walnut, marble) with the region's Poly Haven cakes, croissants, a tea set; tables and chairs
                 Box(walnut,.3f,Wd-.3f,y,y+1.05f,D-2.2f,D-1.5f,true);Box(StoneTop(),.25f,Wd-.25f,y+1.05f,y+1.09f,D-2.25f,D-1.45f);
+                if(nm.Contains("LODY"))
+                {
+                    // the gelato case (my own audit 12.11 16:40: the ice-cream bar's counter stood bare): a lit glass case on the
+                    // counter, two rows of steel pans with the flavours heaped high (pistachio, strawberry, chocolate, vanilla,
+                    // lemon, blueberry, mint, caramel, stracciatella, raspberry), a steel scoop in each; the cones in a stand
+                    Color[] fl={new Color(.62f,.80f,.42f),new Color(.96f,.64f,.72f),new Color(.36f,.22f,.14f),new Color(.97f,.93f,.78f),new Color(.98f,.88f,.42f),
+                                new Color(.46f,.32f,.62f),new Color(.70f,.92f,.82f),new Color(.80f,.56f,.30f),new Color(.96f,.95f,.92f),new Color(.86f,.22f,.30f)};
+                    float vw=Mathf.Min(3.2f,Wd-1.6f),vt0=Wd*.5f-vw*.5f,vt1=Wd*.5f+vw*.5f,vd0=D-2.17f,vd1=D-1.53f,yb=y+1.09f;
+                    Box(stainless,vt0,vt1,yb,yb+.03f,vd0,vd1);
+                    GlassCase(vt0,vt1,vd0,vd1,yb+.03f,.30f);SB(ledWarm,vt0+.05f,vt1-.05f,yb+.31f,yb+.32f,vd0+.05f,vd1-.05f);
+                    int np=Mathf.FloorToInt((vw-.10f)/.34f);
+                    Goods(nm+" | lody",()=>
+                    {
+                        for(int r=0;r<2;r++)for(int i=0;i<np;i++)
+                        {
+                            float t=vt0+.05f+.17f+i*.34f,dd=vd0+.17f+r*.30f;int k=(i+r*np)%fl.Length;
+                            var c=P(t,yb+.03f,dd);
+                            Box(stainless,t-.16f,t+.16f,yb+.03f,yb+.10f,dd-.13f,dd+.13f);
+                            var mat=Inside(S("g1_gelato_"+k,fl[k],.62f,0f),.9f);
+                            m.RoundedBox(mat,c+Vector3.up*.11f,new Vector3(.28f,.09f,.22f),.04f,Quaternion.LookRotation(toFront,Vector3.up),3);
+                            m.Lathe(mat,c+Vector3.up*.13f+alongT*.04f,new[]{new Vector2(0f,0f),new Vector2(.055f,0f),new Vector2(.05f,.025f),new Vector2(.035f,.045f),new Vector2(0f,.055f)},12,Quaternion.identity,false,false);   // a scoop on the heap
+                            m.Tube(stainless,c+Vector3.up*.16f-alongT*.07f,c+Vector3.up*.26f-alongT*.10f+toBack*.08f,.008f,6);
+                        }
+                        // the cones: a steel stand with a dozen wafer cones at the end of the counter
+                        var cs=P(vt1+.25f,yb,(vd0+vd1)*.5f);m.Cylinder(stainless,cs,.10f,.02f,16,Quaternion.identity,true,false);
+                        var wafer=Inside(S("g1_wafer",new Color(.86f,.66f,.38f),.7f,0f),.9f);
+                        for(int j=0;j<6;j++){var cp=cs+Quaternion.Euler(0f,j*60f,0f)*Vector3.forward*.06f;m.Cylinder(wafer,cp+Vector3.up*.02f,.003f,.13f,10,Quaternion.identity,true,false,.026f);m.Cylinder(stainless,cp+Vector3.up*.08f,.03f,.006f,10,Quaternion.identity,true,true);}
+                    });
+                }
                 if(!nm.Contains("LODY"))
                 {
                     string[] ids={"carrot_cake","croissant","strawberry_chocolate_cake","croissant","tea_set_01"};
@@ -838,8 +1088,95 @@ public static partial class BraxChampionsD2
             }
             case "salon":
             {
-                foreach(float s in new[]{0f,1f})SideWall(s,2.4f,D-1.6f,true);
-                for(int i=0;i<3;i++){float t=1.2f+i*1.8f;if(t>Wd-1f)break;Box(glassDark,t-.5f,t+.5f,y+.9f,y+2.0f,D-.32f,D-.30f);Box(walnut,t-.55f,t+.55f,y+.75f,y+.80f,D-.65f,D-.32f);G1Chair(P(t,y,D-1.2f),toFront);}
+                // SALON FRYZJERSKI (my own audit 12.11 16:05: the salon stood empty - three dark panes and three chairs): a real
+                // salon. Styling stations along both walls: a live mirror in a black frame (the owner's rule: a mirror is a mirror)
+                // over a floating walnut console with a stone top and a drawer, a hydraulic styling chair (black leather, chrome
+                // disc base, footrest) facing it, a black trolley with the tools between; three backwash units on a walnut
+                // partition at the back (black basins, the chair reclined under each, the tap with its hand shower runs while you
+                // stand there); the waiting corner by the door (two bouclé armchairs, a round table). Every chair is a seat.
+                BraxKatalog.Materials();HomeMaterials();
+                var chromeS=BraxKatalog.Chrome;var blackS=BraxKatalog.BlackGloss;var leather=gLeatherBlack;
+                void Battens(float sd,float d0,float d1){if(SideOpen(sd))return;float w=sd==0f?0f:Wd,dr=sd==0f?1f:-1f;
+                    SB(gCinemaDark,w,w+dr*.02f,y+.10f,y+3.2f,d0,d1);for(float d=d0+.05f;d+.06f<d1-.04f;d+=.14f)SB(walnut,w+dr*.02f,w+dr*.05f,y+.12f,y+3.18f,d,d+.06f);}
+                float dW=D-.55f;                                                                             // the backwash partition
+                float dEnd=dW-2.0f;                                                                          // the stations stop before the backwash zone
+                foreach(float sd in new[]{0f,1f})
+                {
+                    Battens(sd,1.0f,D-.3f);
+                    if(SideOpen(sd))continue;
+                    float w=sd==0f?0f:Wd,dr=sd==0f?1f:-1f;float T(float o)=>w+dr*o;var face=sd==0f?alongT:-alongT;
+                    for(float d=3.3f;d+.6f<dEnd;d+=1.75f)
+                    {
+                        var dd=d;
+                        Box(walnut,T(.05f),T(.45f),y+.70f,y+.80f,d-.55f,d+.55f,true);                         // the console
+                        Box(StoneTop(),T(.05f),T(.47f),y+.80f,y+.82f,d-.57f,d+.57f);
+                        Box(walnut,T(.06f),T(.42f),y+.56f,y+.70f,d-.25f,d+.25f);                               // its drawer
+                        Box(frame,T(.42f),T(.432f),y+.62f,y+.64f,d-.12f,d+.12f);
+                        G1Mirror("salon "+nm+" lustro "+(sd==0f?"L":"P")+(int)(d*10),P(T(.05f),y+1.52f,d),face,.86f,1.20f);
+                        SalonChair(P(T(1.05f),y,d),-face,0f,"fotel fryzjerski");
+                        Goods(nm+" | stanowisko",()=>
+                        {
+                            // on the console: a spray bottle, a bottle of styling cream, a comb; the trolley beside the station
+                            var top=P(T(.30f),y+.82f,dd+.30f);
+                            m.Cylinder(blackS,top,.03f,.17f,14,Quaternion.identity,true,false);m.Cylinder(chromeS,top+Vector3.up*.17f,.012f,.03f,10,Quaternion.identity,true,false);
+                            m.Lathe(BraxKatalog.WhiteGloss,P(T(.30f),y+.82f,dd+.18f),new[]{new Vector2(0f,0f),new Vector2(.035f,0f),new Vector2(.035f,.12f),new Vector2(.02f,.15f),new Vector2(.012f,.17f),new Vector2(0f,.17f)},14,Quaternion.identity,false,false);
+                            m.RoundedBox(blackS,P(T(.22f),y+.83f,dd-.25f),new Vector3(.03f,.006f,.20f),.002f,Quaternion.LookRotation(face,Vector3.up),1);
+                            var tr=P(T(.40f),y,dd+.85f);var tq=Quaternion.LookRotation(face,Vector3.up);
+                            foreach(float hh in new[]{.12f,.45f,.78f})m.RoundedBox(blackS,tr+Vector3.up*hh,new Vector3(.36f,.02f,.30f),.006f,tq,1);
+                            foreach(var (a,b) in new[]{(-1f,-1f),(-1f,1f),(1f,-1f),(1f,1f)})
+                            {var c=tr+tq*new Vector3(a*.16f,0f,b*.13f);m.Tube(blackS,c+Vector3.up*.05f,c+Vector3.up*.80f,.008f,6);m.Cylinder(BraxKatalog.Rubber,c,.025f,.05f,10,Quaternion.identity,true,false);}
+                            m.RoundedBox(blackS,tr+Vector3.up*.86f+tq*new Vector3(-.05f,0f,0f),new Vector3(.10f,.08f,.22f),.03f,tq,2);   // the hair dryer
+                            m.Cylinder(blackS,tr+Vector3.up*.86f+tq*new Vector3(-.05f,0f,.11f),.032f,.08f,12,tq*Quaternion.Euler(90f,0f,0f),true,false);
+                        });
+                    }
+                }
+                // a wide salon (10 m and more) gets an island down the middle: double-sided stations on a walnut spine 1.95 m high,
+                // a live mirror and a console on each face, a chair on each side; never at a column
+                if(Wd>=9.5f)
+                {
+                    int ni=0;
+                    for(float d=4.2f;d+.8f<dEnd-.6f&&ni<4;d+=2.1f)
+                    {
+                        float tc=Wd*.5f;if(NearColumn(P(tc,y,d),1.9f))continue;ni++;
+                        Box(walnut,tc-.07f,tc+.07f,y,y+1.95f,d-.62f,d+.62f,true);Box(StoneTop(),tc-.09f,tc+.09f,y+1.95f,y+1.98f,d-.64f,d+.64f);
+                        foreach(float sg in new[]{-1f,1f})
+                        {
+                            var face=sg>0f?alongT:-alongT;float T(float o)=>tc+sg*o;
+                            Box(walnut,T(.07f),T(.45f),y+.70f,y+.80f,d-.55f,d+.55f,true);Box(StoneTop(),T(.07f),T(.47f),y+.80f,y+.82f,d-.57f,d+.57f);
+                            G1Mirror("salon "+nm+" wyspa "+(sg>0f?"P":"L")+(int)(d*10),P(T(.07f),y+1.30f,d),face,.80f,.95f);
+                            SalonChair(P(T(1.05f),y,d),-face,0f,"fotel fryzjerski");
+                        }
+                    }
+                }
+                // the backwash: a walnut partition 1.25 m high across the back, three basins on its cabinet, the chairs under them
+                Box(walnut,.3f,Wd-.3f,y,y+1.25f,dW,dW+.12f,true);Box(StoneTop(),.28f,Wd-.28f,y+1.25f,y+1.28f,dW-.02f,dW+.14f);
+                int nw=Mathf.Clamp(Mathf.FloorToInt((Wd-1.2f)/1.5f),1,4);
+                for(int k=0;k<nw;k++)
+                {
+                    float t=Wd*.5f+(k-(nw-1)*.5f)*1.5f;
+                    Box(walnut,t-.36f,t+.36f,y,y+.82f,dW-.46f,dW,true);Box(blackS,t-.37f,t+.37f,y+.82f,y+.85f,dW-.47f,dW);
+                    var bc=P(t,y+.85f,dW-.25f);
+                    m.Lathe(blackS,bc,new[]{new Vector2(0f,0f),new Vector2(.16f,0f),new Vector2(.24f,.05f),new Vector2(.27f,.14f),new Vector2(.28f,.20f),new Vector2(.265f,.205f),new Vector2(.255f,.14f),new Vector2(.20f,.06f),new Vector2(.05f,.035f),new Vector2(0f,.03f)},32,Quaternion.identity,false,false);
+                    m.Cylinder(chromeS,bc+Vector3.up*.032f,.03f,.006f,16,Quaternion.identity,true,false);
+                    // the tap: a gooseneck from the partition over the bowl, the hand shower on its hook beside it
+                    var tb=P(t,y+1.28f,dW+.06f);var over=P(t,y+1.20f,dW-.22f);
+                    m.Cylinder(chromeS,tb,.03f,.012f,16,Quaternion.identity,true,false);m.Tube(chromeS,tb,tb+Vector3.up*.18f,.014f,10);
+                    m.Tube(chromeS,tb+Vector3.up*.18f,over+Vector3.up*.10f,.013f,10);m.Tube(chromeS,over+Vector3.up*.10f,over,.013f,10);
+                    var hs=P(t+.22f,y+1.28f,dW+.06f);m.Cylinder(chromeS,hs,.022f,.02f,12,Quaternion.identity,true,false);
+                    m.Cylinder(chromeS,hs+Vector3.up*.02f,.016f,.16f,12,Quaternion.identity,true,false,.022f);
+                    m.Tube(BraxKatalog.Steel,hs+Vector3.up*.02f,P(t+.12f,y+.86f,dW-.05f),.007f,8,6,.10f);
+                    if(waterJet)
+                    {
+                        var o=over-Vector3.up*.005f;
+                        BraxChampionsMeshBatch.FountainWater(root,"G1 "+nm+" | myjnia "+k+" — woda",o,K,new[]{Vector3.zero},new[]{new Vector3(.002f,bc.y+.04f-o.y,0f)},
+                            new[]{.004f},new[]{.014f},new[]{12},new[]{true},new[]{new Vector3(bc.x-o.x,bc.y+.05f-o.y,bc.z-o.z)},new[]{.09f},waterJet,1.6f);
+                    }
+                    SalonChair(P(t,y,dW-1.05f),toFront,32f,"fotel do mycia głowy");
+                }
+                // the waiting corner by the door, on the side away from the cash desk
+                if(!SideOpen(0f)){HCoffeeRound(P(1.25f,y+.012f,1.9f),.30f,.45f,gStoneTop,walnut);
+                    HSofa(P(.85f,y+.012f,1.25f),Dir(1,1),.92f,hBoucle,hVelvetRust,walnut,"fotel poczekalnia",0f,1,.17f);
+                    HSofa(P(.85f,y+.012f,2.55f),Dir(1,-1),.92f,hBoucle,hVelvetGreen,walnut,"fotel poczekalnia",0f,1,.17f);}
                 break;
             }
             case "service":

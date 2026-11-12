@@ -22,6 +22,17 @@
     0.54
    ],
    "caly": true
+  },
+  {
+   "model": "manekin_garnitur_czarny",
+   "view": "przod",
+   "rect": [
+    0.41,
+    0.8,
+    0.48,
+    0.89
+   ],
+   "caly": true
   }
  ]
 }

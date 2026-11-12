@@ -22,6 +22,28 @@
     0.54
    ],
    "caly": true
+  },
+  {
+   "model": "manekin_garnitur_granatowy",
+   "view": "tyl",
+   "rect": [
+    0.47,
+    0.42,
+    0.55,
+    0.5
+   ],
+   "caly": true
+  },
+  {
+   "model": "manekin_suknia_czerwona",
+   "view": "tyl",
+   "rect": [
+    0.45,
+    0.37,
+    0.52,
+    0.44
+   ],
+   "caly": true
   }
  ]
 }

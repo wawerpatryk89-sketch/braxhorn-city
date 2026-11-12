@@ -14,7 +14,7 @@ using UnityEngine;
 public static partial class BraxChampionsD2
 {
     // a shop unit: rectangle, the side its front faces ('N' +z, 'S' -z, 'E' +x, 'W' -x), the level, the trade
-    struct G1Unit{public string name,trade;public float x0,x1,z0,z1;public char face,face2;public int level;}
+    struct G1Unit{public string name,trade;public float x0,x1,z0,z1;public char face,face2;public int level;public float back;}   // back > 0: the sales floor ends that far in (a staff room behind)
     const float G1ServiceZ1=-51.85f;                       // the P0 service corridor's north wall line (z -54.7..-51.85, x 30..85)
     static readonly List<G1Unit> g1Units=new List<G1Unit>();
     static float LevelY(int l)=>l==0?G1F0:G1F1;
@@ -31,9 +31,11 @@ public static partial class BraxChampionsD2
     static void G1UnitPlan()
     {
         g1Units.Clear();
+        // (owner 12.11.2026 15:42 "sklep rowerowy masz zrobić z motocyklami": the lingerie unit - it only had the clothes of
+        // the other fashion shops - is the bike and motorbike shop MOTO I ROWERY, trade "moto")
         string[] p0={"MODA NOVA","URBAN STYLE","OBUWIE KROK","PERFUMERIA AURA","TECHNO SPOT","KSIĘGARNIA SŁOWO","JUBILER SREBRO","APTEKA ZDROWIE",
-                     "OPTYK WIZJA","GSM CENTRUM","ZABAWKI HOP","DOM I WNĘTRZA","BIELIZNA LUNA","ZEGARKI CZAS","TORBY I WALIZKI","KWIACIARNIA","DROGERIA LILA"};
-        string[] t0={"fashion","fashion","shoes","cosmetics","electronics","books","jewellery","pharmacy","optician","phones","toys","home","fashion","jewellery","bags","flowers","cosmetics"};
+                     "OPTYK WIZJA","GSM CENTRUM","ZABAWKI HOP","DOM I WNĘTRZA","MOTO I ROWERY","ZEGARKI CZAS","TORBY I WALIZKI","KWIACIARNIA","DROGERIA LILA"};
+        string[] t0={"fashion","fashion","shoes","cosmetics","electronics","books","jewellery","pharmacy","optician","phones","toys","home","moto","jewellery","bags","flowers","cosmetics"};
         string[] p1={"SPORT STYLE","DENIM 77","KIDS WORLD","GAMES ZONE","FOTO STUDIO","ELEGANCJA","BUTY MIEJSKIE","KOSMETYKI NATURA",
                      "AUDIO HIFI","PAPIERNIA","PRALNIA EXPRESS","BIURO PODRÓŻY","CAFÉ PANORAMA","TELEFONY PLUS","LODY GELATO","SALON FRYZJERSKI","BIURO CENTRUM"};
         string[] t1={"sport","fashion","toys","electronics","electronics","fashion","shoes","cosmetics","electronics","books","service","service","cafe","phones","cafe","salon","service"};
@@ -54,6 +56,22 @@ public static partial class BraxChampionsD2
             // the SE block (x 30..47) on the south mall: P0 behind it the service corridor (z -55..-51.85), P1 to the façade
             U(G1FoodX,G1EastX0,l==0?G1ServiceZ1:-G1HD+.3f,G1SouthMallZ0,'N');
         }
+        // SMALL SHOPS (owner 12.11.2026 16:18-16:19: "Optyk to ma hektar ... dla optyka przeznaczyć mały sklepik"): a wing unit is
+        // 17 x 19 m (323 m2) - an optician, a florist or an ice-cream bar does not take that in a real mall. Each of them gets
+        // 6.5 m of the frontage by the central block and a 9 m deep sales floor (about 58 m2, a staff room behind it); the
+        // other 10.5 m of the frontage is a shop of its own.
+        Small("OPTYK WIZJA","BUTIK BRAXHORN","fashion");
+        Small("KWIACIARNIA","ŚWIAT RTV","electronics");
+        Small("LODY GELATO","SPORT OUTDOOR","sport");
+    }
+    static void Small(string name,string other,string otherTrade)
+    {
+        int i=g1Units.FindIndex(q=>q.name==name);if(i<0)return;var u=g1Units[i];
+        bool atX0=Mathf.Abs(u.x0)<Mathf.Abs(u.x1);                                   // the end by the central block (|x| 30)
+        var a=u;var b=u;const float W=6.5f;
+        if(atX0){a.x1=u.x0+W;b.x0=a.x1;}else{a.x0=u.x1-W;b.x1=a.x0;}
+        a.back=9f;b.name=other;b.trade=otherTrade;b.back=0f;
+        g1Units[i]=a;g1Units.Insert(i+1,b);
     }
 
     static void G1Interior()

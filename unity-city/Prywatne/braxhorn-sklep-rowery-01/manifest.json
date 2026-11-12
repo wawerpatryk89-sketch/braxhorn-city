@@ -1,0 +1,26 @@
+{
+ "source": "Właściciel 12.11.2026 01:32: plansza Tripo (GLB) — rowery globalnie dla całej gry („bierz tylko te, które się nadają, coś złego wywalaj”): fatbike czarny, trekkingowy elektryczny czarny; odrzucone: MTB (rozerwana opona), szosowy (szprychy w błony), miejski (krzywe opony, koszyk)",
+ "target": "pojazdy_rowery_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/pojazdy_rowery_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "a3e561b0f9ed262d5d1e08700e971fd8a52878f1acc575210382a7d96dd8fec1",
+ "cmsSha256": "c0fde784e46662b7fbd0a63ef8ab30239bfdbfd81b88eda6f6545d73a3b125b7",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 13578816,
+   "sha256": "c0fde784e46662b7fbd0a63ef8ab30239bfdbfd81b88eda6f6545d73a3b125b7"
+  }
+ ],
+ "files": {
+  "oryginal/rowery.glb": "0941724bc4868650291e7c7a7cf446f4f9e81c2f9bf121baf427a4a6b21ca58b",
+  "oryginal/spec.json": "84699ceee910fe0195d5e4d785a87100c77b8dba709ec733601b590611fb4077",
+  "pojazdy_rowery_01/_tekstury/pojazdy_rowery_01_kolor.jpg": "402a907eac8dfefc6a09417d78004c85c33d3b21782a4d4416d30f6433c1a45f",
+  "pojazdy_rowery_01/_tekstury/pojazdy_rowery_01_mr.png": "0c702e3699a18b27e45f25988d187f6c18ea8b0e5090581943ecd3845d77e4c7",
+  "pojazdy_rowery_01/_tekstury/pojazdy_rowery_01_normal.png": "0db16659eeaa5565b13ef522ca5358e7f588c8cdbd2a2c33484fc7a7c997a039",
+  "pojazdy_rowery_01/katalog.json": "9543ecd4e64c7982080d6690776300537a8e668334d4a8210bf009a3e25ef324",
+  "pojazdy_rowery_01/rower_fatbike_czarny.glb": "8efd9fe3d973d5ebc9201ca02a3844724dc46ebfb13f286236e53ab1b81f96b3",
+  "pojazdy_rowery_01/rower_trekking_elektryczny_czarny.glb": "ff1c12942583cfb5a2ec76e818b973fa8c743b9954d95437b7eed3adc470cc94"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
