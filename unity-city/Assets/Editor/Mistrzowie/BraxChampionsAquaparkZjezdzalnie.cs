@@ -27,7 +27,7 @@ public static partial class BraxChampionsAquapark
         blueFrp = S("slide_blue_gelcoat", new Color(.04f, .30f, .86f), .14f, .02f);
         blueIn = S("slide_blue_inside", new Color(.22f, .55f, .98f), .10f, .02f);
         flange = S("slide_flange_black", new Color(.03f, .03f, .035f), .25f, .30f);
-        antiSlip = Tex("tower_antislip_deck", "anti_skid_tiles", 1.0f, new Color(.62f, .64f, .66f));
+        antiSlip = S("tower_deck_grey_antislip", new Color(.40f, .42f, .45f), .82f, 0f);
         bullSteel = S("tower_bull_polished_steel", new Color(.86f, .88f, .90f), .18f, .9f, new Color(.10f, .10f, .10f));
         bullGlow = S("tower_bull_green_led", new Color(.32f, .95f, .22f), .35f, 0f, new Color(.40f, 1.45f, .28f));
         signalRed = S("slide_signal_red", new Color(.9f, .1f, .1f), .3f, 0f, new Color(1.4f, .12f, .10f));

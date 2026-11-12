@@ -73,6 +73,28 @@ public static partial class BraxChampionsAquapark
         BraxChampionsMeshBatch.FountainWater(root, "grzybek (woda)", Vector3.zero, K, a.ToArray(), bb.ToArray(), Enumerable.Repeat(.04f, 12).ToArray(),
             Enumerable.Repeat(.5f, 12).ToArray(), Enumerable.Repeat(5, 12).ToArray(), Enumerable.Repeat(true, 12).ToArray(),
             new[] { new Vector3(mc.x, kidsPool.water, mc.z) }, new[] { 2.2f }, fountainWater, 0f);
+        // the SPLASH PAD east of the pool: 9 ground jets arching from flush stainless nozzles, three shade sails over the zone
+        var jets = new List<Vector3>(); var lands = new List<Vector3>();
+        for (int k = 0; k < 9; k++)
+        {
+            float ja = k * 40f * Mathf.Deg2Rad; var c = V(-60.8f, DY, 50f); var d = new Vector3(Mathf.Cos(ja), 0, Mathf.Sin(ja));
+            var p0 = c + d * .6f; jets.Add(p0); lands.Add(c + d * 2.4f);
+            m.Cylinder(steel, p0, .07f, .01f, 12);
+        }
+        BraxChampionsMeshBatch.FountainWater(root, "plac wodny dzieci (woda)", Vector3.zero, K, jets.ToArray(), lands.ToArray(), Enumerable.Repeat(1.3f, 9).ToArray(),
+            Enumerable.Repeat(.05f, 9).ToArray(), Enumerable.Repeat(3, 9).ToArray(), Enumerable.Repeat(true, 9).ToArray(), new Vector3[0], new float[0], fountainWater, 0f);
+        Fill(m, rubberYellow, Ccw(Circle(P(-60.8f, 50f), 2.8f, 36)), null, DY + .006f);
+        foreach (var (sa, sb, sc, col) in new[] { ((-94f, 30f), (-80f, 26f), (-90f, 42f), canvas), ((-70f, 58f), (-58f, 62f), (-63.5f, 46.5f), canvasRed), ((-94f, 62f), (-82f, 63f), (-92f, 50f), canvas) })
+        {
+            var pa = V(sa.Item1, DY + 3.6f, sa.Item2); var pb = V(sb.Item1, DY + 3.1f, sb.Item2); var pc = V(sc.Item1, DY + 3.9f, sc.Item2);
+            T(m, col, pa, pb, pc, Vector3.up); T(m, col, pa, pc, pb, Vector3.down);
+            foreach (var q in new[] { pa, pb, pc })
+            {
+                m.Cylinder(steel, new Vector3(q.x, DY, q.z), .06f, q.y - DY + .25f, 12);
+                Col(q.x - .08f, q.x + .08f, DY, q.y, q.z - .08f, q.z + .08f, "żagiel słup");
+            }
+            m.Tube(steel, pa, pb, .008f, 6); m.Tube(steel, pb, pc, .008f, 6); m.Tube(steel, pc, pa, .008f, 6);
+        }
         // yellow rubber islands, a low white fence with a gate round the zone, parents' benches and parasols
         foreach (var (x, z, r) in new[] { (-93f, 61f, 2.2f), (-60.5f, 27f, 2.0f) })
         {

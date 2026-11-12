@@ -104,7 +104,24 @@ public static partial class BraxChampionsAquapark
         var all = W(new[] { new Vector2(BX0, BZ0), new Vector2(BX1, BZ0), new Vector2(BX1, BZ1), new Vector2(BX0, BZ1) });
         Skin(m, render, Ccw(all), DY - .30f, FFL, false);                                            // slab edge (sides only)
         Fill(m, ceiling, all, null, CY, true);
-        Fill(m, black, all, null, RY);
+        // roof: light grey membrane (not a black slab seen from the tower and the hotels), three skylight ribbons over the
+        // lobby, the changing rooms and the SPA, rooftop air handlers on black frames
+        var roofMat = S("pavilion_roof_light_membrane", new Color(.66f, .68f, .71f), .86f, 0f);
+        var lights = new List<List<Vector2>>();
+        foreach (var (x0, x1) in new[] { (-10f, 10f), (-50f, -22f), (20f, 52f) }) lights.Add(W(new[] { new Vector2(x0, -86f), new Vector2(x1, -86f), new Vector2(x1, -74f), new Vector2(x0, -74f) }));
+        Fill(m, roofMat, all, lights, RY);
+        foreach (var l in lights)
+        {
+            Skin(m, black, Ccw(l), RY, RY + .45f, false);
+            var lo = l.Min(q => q.x); var hi = l.Max(q => q.x); var z0 = l.Min(q => q.y); var z1 = l.Max(q => q.y);
+            m.BoxMinMax(glass, lo + .05f, hi - .05f, RY + .40f, RY + .45f, z0 + .05f, z1 - .05f);
+            for (float x = lo + 2f; x < hi - .5f; x += 2f) m.BoxMinMax(black, x - .04f, x + .04f, RY + .38f, RY + .46f, z0, z1);
+        }
+        foreach (float x in new[] { -38f, -30f, 34f, 42f })
+        {
+            BL(black, x - 1.6f, x + 1.6f, RY, RY + .25f, -71f, -67f);
+            BL(S("roof_air_handler_grey", new Color(.55f, .57f, .60f), .5f, .6f), x - 1.5f, x + 1.5f, RY + .25f, RY + 1.85f, -70.8f, -67.2f);
+        }
         for (float x = BX0 + 2.5f; x < BX1; x += 4f) for (float z = BZ0 + 2f; z < BZ1; z += 4f) m.Cylinder(downlight, V(x, CY - .01f, z), .11f, .01f, 14);
         // ---------------- envelope: attic band, wings in white render with black fins, the glass lobby, glass to the pool
         float t = .30f;

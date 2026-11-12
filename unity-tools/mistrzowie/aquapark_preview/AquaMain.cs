@@ -62,7 +62,7 @@ public static class AquaProgram
         foreach (var go in GameObject.Registry.ToArray())
         {
             var r = go.GetComponent<MeshRenderer>(); var mm = r != null ? r.sharedMaterial : null;
-            if (mm != null && mm.name != null && mm.name.Contains("water") && !mm.name.Contains("fountain")) { mm.color = mm.name.Contains("kids") ? new Color(.30f, .78f, .90f, .62f) : new Color(.10f, .55f, .80f, .70f); mm.roughness = .08f; }
+            if (mm != null && mm.name != null && (mm.name.Contains("pool_water") || mm.name.Contains("kids_water") || mm.name.Contains("jacuzzi_water"))) { mm.color = mm.name.Contains("kids") ? new Color(.30f, .78f, .90f, .62f) : new Color(.10f, .55f, .80f, .70f); mm.roughness = .08f; }
         }
         var wm = new Material { name = "preview_fountain_water", color = new Color(.90f, .95f, 1f, .62f), roughness = .1f, emission = new Color(.30f, .32f, .34f) };
         foreach (var go in GameObject.Registry.ToArray())

@@ -58,7 +58,7 @@ public static partial class BraxChampionsAquapark
         rubber=S("kids_epdm_teal",new Color(.07f,.56f,.64f),.92f,0f);
         rubberYellow=S("kids_epdm_yellow",new Color(.98f,.76f,.10f),.92f,0f);
         rock=Tex("waterfall_rock","concrete_wall_008",2.4f,new Color(.86f,.80f,.72f));
-        stone=Tex("tower_column_stone","sandstone_blocks_08",2.2f,new Color(.40f,.40f,.42f));
+        stone=Tex("tower_column_stone","sandstone_blocks_08",2.2f,new Color(.30f,.34f,.40f));
         cushion=BraxChampionsPromenade.Fabric("aq_lounger_cushion_white","cotton_jersey",new Color(1.20f,1.36f,1.46f),.6f);
         towel=BraxChampionsPromenade.Fabric("aq_towel_red","cotton_jersey",new Color(.92f,.10f,.12f),.6f);
         canvas=BraxChampionsPromenade.Fabric("aq_parasol_white","terlenka",new Color(1.21f,1.36f,1.53f),.9f,new Color(.38f,.38f,.36f));
