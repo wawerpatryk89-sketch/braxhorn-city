@@ -27,8 +27,8 @@ public static partial class BraxChampionsAquapark
         render = Tex("pavilion_white_render", "white_stucco_02", 2.0f, new Color(1.06f, 1.06f, 1.08f));
         BraxChampionsInteriorLight.Facade(render);
         renderIn = Inside(Tex("pavilion_inside_render", "white_stucco_02", 2.0f, new Color(1.04f, 1.04f, 1.06f)), 1.05f);
-        terrazzo = Inside(Tex("lobby_terrazzo", "terrazzo_tiles", 1.4f, new Color(1.02f, 1.02f, 1.04f)), 1.0f);
-        wetTile = Inside(Tex("wet_antislip_tiles", "anti_skid_tiles", 1.0f, new Color(.92f, .94f, .96f)), 1.0f);
+        terrazzo = Inside(Tex("lobby_terrazzo", "terrazzo_tiles", 1.4f, new Color(1.10f, 1.38f, 1.74f)), 1.0f);      // the warm map neutralised: light grey
+        wetTile = Inside(Tex("wet_antislip_tiles", "anti_skid_tiles", 1.0f, new Color(1.05f, 1.31f, 1.68f)), 1.0f);
         marbleBlack = Inside(BraxChampionsFoundation.LibraryMarble("aq_lobby_black_marble", new Color(1f, 1f, 1f), 1.8f), 1.0f);
         marbleWhite = Inside(BraxChampionsFoundation.LibraryMarbleWhite("aq_spa_white_marble", new Color(1f, 1f, 1f), 1.6f), 1.0f);
         quartz = Inside(S("reception_white_quartz", new Color(.95f, .95f, .96f), .18f, 0f), 1.0f);
@@ -258,8 +258,16 @@ public static partial class BraxChampionsAquapark
                 }
         }
         float mx = (x0 + x1) * .5f;
-        foreach (float z in new[] { -82f, -76f })
-            Owner("lawka_szatnia", V(mx, FFL, z), 0f, true);
+        // a double-sided locker island in the middle, benches either side of it
+        BL(lockerMat, mx - .5f, mx + .5f, FFL, FFL + 1.75f, -86f, -78f, true);
+        for (float z = -86f; z < -78.01f; z += .5f)
+            foreach (float fx in new[] { mx - .5f, mx + .5f })
+            {
+                BL(lockerMat, fx - .01f, fx + .01f, FFL + .08f, FFL + 1.68f, z + .02f, z + .48f);
+                BL(plate, fx - .015f, fx + .015f, FFL + 1.40f, FFL + 1.48f, z + .18f, z + .32f);
+            }
+        foreach (float dx in new[] { -2.3f, 2.3f }) foreach (float z in new[] { -84f, -80f, -75f })
+            Owner("lawka_szatnia", V(mx + dx, FFL, z), 0f, true);
         // showers: four owner cabins on the north wall (two each side of the door to the deck)
         float door = mx;
         foreach (float dx in new[] { -6.2f, -4.6f, 4.6f, 6.2f }) Owner("prysznic_kabina", V(door + dx, FFL, BZ1 - .75f), 180f, true);
@@ -316,6 +324,17 @@ public static partial class BraxChampionsAquapark
         Massage("lezanka_masaz_tajski", V(55.2f, FFL, -75.6f), 0f, .40f);
         Massage("stol_masaz_skladany_zielony", V(51.6f, FFL, -75.6f), 0f, .80f);
         BraxChampionsLetters3D.Text(m, BraxChampionsHarbour.SignFace, BraxChampionsHarbour.SignDark, "SAUNA", V(49.25f, FFL + 2.7f, -90.09f), 180f, .22f, .03f, .1f, 3f);
+        // the massage rooms: a black marble wall with a warm LED line, flowers, a white cabinet with rolled towels
+        foreach (var (x0, x1) in new[] { (40f, 49f), (49f, 58f) })
+        {
+            BL(marbleBlack, x0 + .4f, x1 - .4f, FFL, CY - .5f, BZ1 - .45f, BZ1 - .16f, true);
+            BL(led, x0 + .4f, x1 - .4f, CY - .52f, CY - .48f, BZ1 - .48f, BZ1 - .45f);
+            BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + x0 + 1.1f, CZ + BZ1 - 1.3f, "flower_gazania");
+            BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + x1 - 1.1f, CZ + BZ1 - 1.3f, "flower_empodium");
+            BL(white, x0 + .3f, x0 + 1.5f, FFL, FFL + .86f, -79.6f, -79.0f, true);
+            for (int k = 0; k < 3; k++) m.Cylinder(towel, V(x0 + .55f + k * .35f, FFL + .98f, -79.55f), .11f, .5f, 14, Quaternion.Euler(90f, 0, 0), true, true);
+        }
+        foreach (float x in new[] { 52f, 55f }) BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + x, CZ - 81.4f, "flower_empodium");
     }
 
     static void Massage(string plik, Vector3 at, float yaw, float top)
