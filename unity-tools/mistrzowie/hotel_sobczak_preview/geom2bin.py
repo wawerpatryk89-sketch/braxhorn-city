@@ -15,6 +15,23 @@ import numpy as np
 TEMPLATE = "HOTEL SOBCZAK | GUEST FLOOR TEMPLATE"
 
 
+
+def unity_to_three_quat(q):
+    """Unity world rotation of a glTF model -> three.js quaternion. Unity space = three space with z flipped (S), and
+    glTFast flips the model's x on import (D): R_three = S R_unity D (a proper rotation). Pure yaw gives 180 - yaw."""
+    x, y, z, w = q
+    R = np.array([[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+                  [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+                  [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)]])
+    M = np.diag([1, 1, -1]) @ R @ np.diag([-1, 1, 1])
+    t = np.trace(M)
+    if t > 0:
+        s = np.sqrt(t + 1) * 2; return [(M[2, 1] - M[1, 2]) / s, (M[0, 2] - M[2, 0]) / s, (M[1, 0] - M[0, 1]) / s, s / 4]
+    i = int(np.argmax(np.diag(M))); j, k = (i + 1) % 3, (i + 2) % 3
+    s = np.sqrt(1 + M[i, i] - M[j, j] - M[k, k]) * 2
+    out = [0, 0, 0, 0]; out[i] = s / 4; out[j] = (M[j, i] + M[i, j]) / s; out[k] = (M[k, i] + M[i, k]) / s; out[3] = (M[k, j] - M[j, k]) / s
+    return [float(v) for v in out]
+
 def texture_of(name):
     """'id|slug|metres' (a textured material) -> (slug, metres); anything else -> (None, 1)."""
     parts = (name[5:] if name.startswith("mesh:") else name).split("|")
@@ -92,8 +109,11 @@ def main(src, out, ground=None):
         floors = [2] if mo["template"] else [None]
         for f in floors:
             yy = y + (lv[f] if f is not None else 0)
-            models.append(dict(path=mo["path"].replace("Assets/Source/Mistrzowie/", ""), pos=[x, yy, -z], rotY=(180 - mo["yaw"]) * np.pi / 180,
-                               scale=mo.get("scale", 1), material=mo.get("material"), map=mo.get("map")))
+            md = dict(path=mo["path"].replace("Assets/Source/Mistrzowie/", ""), pos=[x, yy, -z], rotY=(180 - mo["yaw"]) * np.pi / 180,
+                      scale=mo.get("scale", 1), material=mo.get("material"), map=mo.get("map"))
+            if "rot" in mo:
+                md["quat"] = unity_to_three_quat(mo["rot"])
+            models.append(md)
     lights = []
     for x, y, z, rng, inten, tmpl in d.get("lights", []):
         if tmpl:

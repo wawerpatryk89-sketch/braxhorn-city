@@ -105,7 +105,8 @@ public static class MeshDump
             var pos = root.InverseTransformPoint(g.transform.position) / scale;
             var f = g.transform.rotation * Vector3.forward; float yaw = (float)(Math.Atan2(f.x, f.z) * 180 / Math.PI);
             float size = g.transform.TransformVector(Vector3.up).magnitude / scale;   // nominal metres per model metre
-            models.Add("{\"path\":\"" + pm.path + "\",\"pos\":[" + V(pos) + "],\"yaw\":" + F(yaw) + ",\"scale\":" + F(size) + ",\"template\":false,\"name\":\"" + g.name.Replace("\"", "'") + "\"" + Override(g) + "}");
+            var q = g.transform.rotation;   // the full rotation (gear lying on its side): geom2bin turns it into three.js space
+            models.Add("{\"path\":\"" + pm.path + "\",\"pos\":[" + V(pos) + "],\"yaw\":" + F(yaw) + ",\"rot\":[" + F(q.x) + "," + F(q.y) + "," + F(q.z) + "," + F(q.w) + "],\"scale\":" + F(size) + ",\"template\":false,\"name\":\"" + g.name.Replace("\"", "'") + "\"" + Override(g) + "}");
         }
         sb.Write(string.Join(",", models) + "],\"palms\":[");
         // city palms (a model pack the preview does not have): positions only, drawn as plain stand-ins

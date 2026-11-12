@@ -114,7 +114,7 @@ window.setup=async function(w,h){
       if(cache[mo.path])cache[mo.path].traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(mt=>cityAmbient(mt,[.55,.63,.71,.23,.27,.22,1]));});
     }
     const src=cache[mo.path];if(!src)continue;
-    const o=src.clone(true);o.position.set(mo.pos[0],mo.pos[1],mo.pos[2]);o.rotation.y=mo.rotY;if(mo.scale&&mo.scale!==1)o.scale.setScalar(mo.scale);
+    const o=src.clone(true);o.position.set(mo.pos[0],mo.pos[1],mo.pos[2]);if(mo.quat)o.quaternion.set(mo.quat[0],mo.quat[1],mo.quat[2],mo.quat[3]);else o.rotation.y=mo.rotY;if(mo.scale&&mo.scale!==1)o.scale.setScalar(mo.scale);
     if(mo.map){const t=await tex('http://preview.local/pic/'+encodeURIComponent(mo.map),true);
       // clone() drops the city ambient hook: put it back, or the unlit sides of the repainted model render black
       if(t){t.flipY=false;o.traverse(n=>{if(n.isMesh){n.material=n.material.clone();cityAmbient(n.material,[.55,.63,.71,.23,.27,.22,1]);n.material.map=t;n.material.needsUpdate=true;}});}}
