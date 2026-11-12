@@ -80,7 +80,7 @@ class CacheTests(unittest.TestCase):
         marker='sudo chown -R "$(id -u):$(id -g)" unity-city/Assets/Plugins/Android'
         self.assertIn(marker, wf)
         self.assertLess(wf.index(marker),
-                        wf.index('      - name: Restore isolated encrypted Champions Library'))
+                        wf.index('      - name: Restore Champions import memory (durable encrypted release storage)'))   # 12.11: release storage
 
     def test_corrupt_cache_does_not_change_project(self):
         self.archive.write_bytes(b'broken-cache')

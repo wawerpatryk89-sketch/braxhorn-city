@@ -425,20 +425,17 @@ jobs:
           # reusable Library because cp of a GUID .meta returned EACCES.
           # Ownership only: no changes to JAR bytes, GUIDs or game artwork.
           sudo chown -R "$(id -u):$(id -g)" unity-city/Assets/Plugins/Android
-      - name: Restore isolated encrypted Champions Library
+      # Owner 12.11 21:20: the import memory never stayed. The Actions cache holds at most 10 GB for the whole repository
+      # (four regions); this Library is 6.2 GB and the PBR maps 5.6 GB, so it was evicted before every next build and since
+      # build 38 every build imported from zero (~1 h 40 min). It now lives as encrypted parts of the release
+      # mistrzowie-library-cache (library_store.sh): verified, profile-checked, a miss is a clean import as before.
+      - name: Restore Champions import memory (durable encrypted release storage)
         id: library
-        continue-on-error: true
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
-        with:
-          path: ${{ runner.temp }}/champions-library.tar.zst.enc
-          key: champions-library-android-${{ steps.preflight.outputs.unity }}-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            champions-library-android-${{ steps.preflight.outputs.unity }}-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-
-      - name: Restore imported assets and source GUIDs
         continue-on-error: true
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
-        run: bash unity-tools/mistrzowie/library_cache.sh restore unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
+          GH_TOKEN: ${{ github.token }}
+        run: bash unity-tools/mistrzowie/library_store.sh restore unity-city "${{ steps.preflight.outputs.unity }}"
       - name: Remove restored archive and report remaining space
         run: |
           rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
@@ -564,6 +561,20 @@ jobs:
         run: |
           export APK_RELEASE_TAG="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
           python3 unity-tools/mistrzowie/apk_delivery.py verify
+      # Saved right after the Unity step (APK or scene check, passed or failed) and BEFORE the optional photo player,
+      # which switches the project to Linux and would re-import for the wrong target.
+      - name: Save Champions import memory (durable encrypted release storage, before the photos)
+        id: library_store
+        if: always() && !cancelled() && (steps.unity_build.outcome == 'success' || steps.unity_build.outcome == 'failure')
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -d unity-city/Library
+          sudo chown -R "$(id -u):$(id -g)" unity-city/Library
+          df -h /
+          bash unity-tools/mistrzowie/library_store.sh save unity-city "${{ steps.preflight.outputs.unity }}"
       # All optional geometry/pathing diagnostics follow delivered APK.
       # Their warnings and execution time NEVER delay signed APK delivery.
       - name: Advisory geometry and code reports (non-blocking, NO Unity)
@@ -757,29 +768,6 @@ jobs:
           if 'INTEGRATION_FAIL' in status:
               print('::error::' + status); sys.exit(1)
           PYVERDICT
-      - name: Pack encrypted imports after delivery attempts or failed Unity validation
-        id: library_pack
-        if: always() && !cancelled() && !inputs.zdjecia && (steps.unity_build.outcome == 'success' || steps.unity_build.outcome == 'failure')
-        continue-on-error: true
-        env:
-          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
-        run: |
-          # A failed scene check still leaves reusable imports. Save after the
-          # APK/evidence steps; this is never a claim that the scene passed.
-          test -d unity-city/Library
-          sudo swapoff /swapfile-mistrzowie || true
-          sudo rm -f /swapfile-mistrzowie
-          sudo docker image prune --all --force
-          sudo chown -R "$(id -u):$(id -g)" unity-city/Library
-          bash unity-tools/mistrzowie/library_cache.sh save unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
-      - name: Save isolated encrypted Champions Library
-        if: always() && !cancelled() && steps.library_pack.outcome == 'success'
-        continue-on-error: true
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
-        with:
-          path: ${{ runner.temp }}/champions-library.tar.zst.enc
-          key: champions-library-android-${{ steps.preflight.outputs.unity }}-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
-
   recover-existing-apk:
     # Explicit manual recovery only. No Unity compilation, no generated key,
     # no unverified APK release. The original raw artifact is quarantined.
@@ -903,23 +891,15 @@ jobs:
           test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar
           test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar.meta
           echo BRAX_MISTRZOWIE_PICKER_FROM_SIGNED_BASELINE
-      - name: Restore encrypted previously-imported Unity Library for content updates
+      - name: Restore Champions import memory for content updates (durable encrypted release storage)
         id: content_library
-        continue-on-error: true
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
-        with:
-          path: ${{ runner.temp }}/champions-library.tar.zst.enc
-          key: champions-library-android-6000.0.85f2-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-content-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            champions-library-android-6000.0.85f2-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-
-      - name: Restore cached imports with stable GUIDs (optional)
         continue-on-error: true
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          bash unity-tools/mistrzowie/library_cache.sh restore unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
-          rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
-          du -sh unity-city/Library 2>/dev/null || echo 'Brak cache; Unity zaimportuje źródła jeszcze raz'
+          bash unity-tools/mistrzowie/library_store.sh restore unity-city 6000.0.85f2
+          du -sh unity-city/Library 2>/dev/null || echo 'Brak pamięci importu; Unity zaimportuje źródła jeszcze raz'
       - name: Cheap validation before Unity
         run: |
           python3 -m unittest discover -s unity-tools/updates -p 'test_content_snapshot.py' -v
@@ -997,20 +977,13 @@ jobs:
           test "$(find unity-city/BraxContentBuild -maxdepth 1 -name 'mistrzowie-*.braxupdate.zip' -type f | wc -l)" -eq 1
           python3 unity-tools/updates/content_snapshot.py publish-update --base "$BASE_ID"
           echo '### Miasto Mistrzów — gotowa prywatna paczka .braxupdate.zip (bez budowania APK)' >> "$GITHUB_STEP_SUMMARY"
-      - name: Preserve encrypted Unity import cache after content build
-        id: content_cache_pack
+      - name: Save Champions import memory after content build (durable encrypted release storage)
         if: ${{ always() && !cancelled() && (steps.content_build.outcome == 'success' || steps.content_build.outcome == 'failure') }}
         continue-on-error: true
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           test -d unity-city/Library
           sudo chown -R "$(id -u):$(id -g)" unity-city/Library
-          bash unity-tools/mistrzowie/library_cache.sh save unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
-      - name: Store encrypted import cache for subsequent content-only updates
-        if: ${{ always() && !cancelled() && steps.content_cache_pack.outcome == 'success' }}
-        continue-on-error: true
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
-        with:
-          path: ${{ runner.temp }}/champions-library.tar.zst.enc
-          key: champions-library-android-6000.0.85f2-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-content-${{ github.run_id }}-${{ github.run_attempt }}
+          bash unity-tools/mistrzowie/library_store.sh save unity-city 6000.0.85f2
