@@ -128,6 +128,7 @@ public static partial class BraxRegionMiastoB
         if (uv0.Count > 0) mesh.SetUVs(0, uv0); if (kol.Count > 0) mesh.SetColors(kol); mesh.SetUVs(1, uv2);
         foreach (var p in noweTri) mesh.SetTriangles(p.Value, p.Key, false);
         mesh.RecalculateBounds();
+        System.IO.Directory.CreateDirectory(BraxRegion.Out + "/Meshes");   // bolid 43141049997: „Parent directory must exist” (folder powstaje dopiero w PersistMeshes)
         BraxZapisAssetu.Utworz(mesh, BraxRegion.Out + "/Meshes/london_sciana_kurtynowa.asset");
         mf.sharedMesh = mesh;
 

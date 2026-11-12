@@ -187,7 +187,9 @@ internal static class BraxMiastoMotory
     static void Lod(GameObject o, float prog)
     {
         var rs = o.GetComponentsInChildren<Renderer>(true); if (rs.Length == 0) return;
-        var lod = o.GetComponent<LODGroup>() ?? o.AddComponent<LODGroup>();
+        // NIE „GetComponent ?? AddComponent”: w edytorze brak komponentu to fałszywy null (obiekt Unity, nie C# null) — „??” go
+        // przepuszcza i SetLODs rzuca MissingComponentException (bolid 43141049997: padły pierzeje ulicy i parking z ruchem aut)
+        var lod = o.GetComponent<LODGroup>(); if (!lod) lod = o.AddComponent<LODGroup>();
         lod.SetLODs(new[] { new LOD(prog, rs) }); lod.RecalculateBounds();
         foreach (var r in rs) r.shadowCastingMode = ShadowCastingMode.On;
     }

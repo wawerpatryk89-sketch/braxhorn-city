@@ -727,8 +727,26 @@ jobs:
       run: |
         df -h / | tail -1
         # /swapfile (2 GB) już istnieje na runnerze GitHuba („Text file busy”), więc osobny plik.
-        sudo fallocate -l 12G /swapfile-unity && sudo chmod 600 /swapfile-unity && sudo mkswap /swapfile-unity && sudo swapon /swapfile-unity || echo 'brak miejsca na swap'
+        # 12.11 (bolid 43141049997: exit 137 przy 15 GB RAM + 14 GB swap, pełny import Library po zmianie manifestu):
+        # 28 GB pliku wymiany (na dysku jest ~108 GB wolne po sprzątaniu), awaryjnie 12 GB jak dotąd.
+        sudo fallocate -l 28G /swapfile-unity || { sudo rm -f /swapfile-unity; sudo fallocate -l 12G /swapfile-unity; } || true
+        [ -f /swapfile-unity ] && sudo chmod 600 /swapfile-unity && sudo mkswap /swapfile-unity && sudo swapon /swapfile-unity || echo 'brak miejsca na swap'
         free -g
+        df -h / | tail -1
+        # pomiar pamięci co minutę przez cały build (raport w kroku po kompilacji): czas, RAM użyty, swap użyty, największy proces
+        cat > "$RUNNER_TEMP/pamiec.sh" <<'SH'
+        #!/bin/bash
+        while true; do
+          read -r _ mt mu _ < <(free -m | awk '/^Mem:/{print $1, $2, $3}')
+          su=$(free -m | awk '/^Swap:/{print $3}')
+          top=$(ps -eo rss=,comm= --sort=-rss | head -1 | awk '{printf "%s %d MB", $2, $1/1024}')
+          echo "$(date -u +%H:%M) RAM ${mu}/${mt} MB, swap ${su} MB, największy: ${top}" >> "$RUNNER_TEMP/pamiec.log"
+          sleep 60
+        done
+        SH
+        chmod +x "$RUNNER_TEMP/pamiec.sh"
+        nohup "$RUNNER_TEMP/pamiec.sh" > /dev/null 2>&1 &
+        echo "pomiar pamieci uruchomiony"
     - name: Narzedzie kontroli serializacji gotowego APK miasta
       run: |
         python3 -m pip install --disable-pip-version-check UnityPy==1.25.4
@@ -802,6 +820,15 @@ jobs:
         androidExportType: androidPackage
         versioning: None
         allowDirtyBuild: true
+    - name: Pamiec RAM i swap w czasie buildu (szczyt i ostatnie pomiary, takze przy awarii)
+      if: always()
+      run: |
+        f="$RUNNER_TEMP/pamiec.log"
+        [ -f "$f" ] || { echo 'brak pomiaru pamieci'; exit 0; }
+        echo "BRAXHORN_PAMIEC_RAM szczyt (RAM + swap):"
+        awk '{split($3,a,"/"); s=$6; if (a[1]+s > m) {m=a[1]+s; l=$0}} END {print l}' "$f"
+        echo "co 10 minut:"; awk 'NR % 10 == 1' "$f"
+        echo "ostatnie 15 minut:"; tail -15 "$f"
     - name: Zachowaj log Unity i pomiary etapow (takze przy awarii)
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
