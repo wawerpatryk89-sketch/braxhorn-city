@@ -54,6 +54,7 @@ Narzędzie robi kolejno:
 | `braxhorn-sklep-buty-02` | `sklep_buty_02` | sneakersy białe, biegowe czarne i białe, mokasyny, półbuty, trampki czerwone, trapery, szpilki czarne, wsuwane, zimowe z kożuszkiem |
 | `braxhorn-sklep-walka-01` | `sklep_walka_01` | sporty walki BRAXHORN: rękawice czarno-złote, kaski bokserskie (czerwony, niebieski, z kratą), ochraniacz na zęby w pudełku, buty bokserskie, zapaśnicze i treningowe (buty w rotacji sklepów sportowych i ściany butów SPORT ARENA, rękawice na stojaku; kaski i ochraniacz do rozstawienia) |
 | `braxhorn-sklep-silownia-01` | `silownia_sprzet_01` | **sprzęt na siłownie (globalnie, wszystkie siłownie w grze):** ławka płaska (wydłużona do 1,15 m: `stretch`), dwie ławki regulowane, hantle heksagonalne, stojak 3-poziomowy z kompletem hantli |
+| `braxhorn-sklep-silownia-02` | `silownia_sprzet_02` | **maszyny na siłownie (globalnie):** ławka olimpijska ze stojakiem, maszyna do prostowania nóg ze stosem, modlitewnik, ławka rzymska 45°, suwnica / hack (cięcie `cluster3d`: maszyny nachodzą na siebie w każdym widoku, ale w 3D się nie dotykają) |
 
 Buty leżą na planszy w rzędach na podłodze, więc tnie się je w widoku z góry (`"view": "top"`). Cała plansza ma jedną skalę (`"scale"`), dzięki czemu rozmiary sztuk zgadzają się między sobą. Na półkach stawiamy przez `ShopModel` (podstawa na półce, przód do klienta).
 

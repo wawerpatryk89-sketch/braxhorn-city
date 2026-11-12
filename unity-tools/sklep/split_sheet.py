@@ -131,7 +131,43 @@ def main(sheet, out_dir, spec_path):
     # the products stand apart on the sheet: the front view (x, y) rasterised at 2 mm, the separate silhouettes labelled;
     # the silhouettes sorted into rows (top to bottom) and columns (left to right); a component (a sleeve, a collar, a
     # button) goes to the silhouette most of its vertices fall in
-    if spec.get("rects"):
+    if spec.get("cluster3d"):
+        # machines that overlap in every 2D view but do not touch in 3D (owner's gym sheet 2, 12.11): components whose
+        # vertices come closer than "cluster3d" metres (sheet units) are one product; the rows*cols biggest clusters are
+        # the products (ordered by "order": a list of [x, z] sheet fractions, nearest cluster centre wins), every smaller
+        # cluster joins the big one with the nearest vertex
+        from scipy.spatial import cKDTree
+        tol = float(spec["cluster3d"]); ncomp = int(comp.max()) + 1
+        parent = list(range(ncomp))
+        def find(a):
+            while parent[a] != a: parent[a] = parent[parent[a]]; a = parent[a]
+            return a
+        tree = cKDTree(P)
+        for a, b_ in tree.query_pairs(tol, output_type="ndarray"):
+            ra, rb = find(comp[a]), find(comp[b_])
+            if ra != rb: parent[ra] = rb
+        root = np.array([find(c) for c in range(ncomp)]); vroot = root[comp]
+        roots, counts = np.unique(vroot, return_counts=True)
+        big = list(roots[np.argsort(-counts)[:rows * cols]])
+        cen = {r: P[vroot == r].mean(0) for r in big}
+        bigtree = {r: cKDTree(P[vroot == r]) for r in big}
+        label = {}
+        for r in roots:
+            if r in big: label[r] = r; continue
+            pts = P[vroot == r]
+            label[r] = min(big, key=lambda b: bigtree[b].query(pts[:200])[0].min())
+        def frac(c): return ((c[0] - lo[0]) / (hi[0] - lo[0]), (c[2] - lo[2]) / (hi[2] - lo[2]))
+        order = spec.get("order")
+        cell_of_root = {}
+        if order:
+            free = set(big)
+            for k, (ox, oz) in enumerate(order):
+                bst = min(free, key=lambda b: (frac(cen[b])[0] - ox) ** 2 + (frac(cen[b])[1] - oz) ** 2); cell_of_root[bst] = k; free.discard(bst)
+        else:
+            for k, b in enumerate(sorted(big, key=lambda b: cen[b][0])): cell_of_root[b] = k
+        print("cluster3d clusters", len(roots), "kept", len(big), [(round(frac(cen[b])[0], 2), round(frac(cen[b])[1], 2)) for b in big])
+        cell_of_comp = {int(c): cell_of_root[label[root[c]]] for c in np.unique(comp)}
+    elif spec.get("rects"):
         # free layout (owner's gym sheet 12.11: benches, dumbbells and a rack laid out on the floor, no grid): one
         # [x0, x1, r0, r1] rectangle per item in fractions of the sheet - x across, r = rows (front view: height from the
         # top; top view: depth from the back); every component goes to the rectangle its centre falls in

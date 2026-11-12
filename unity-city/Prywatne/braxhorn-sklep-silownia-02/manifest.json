@@ -1,0 +1,29 @@
+{
+ "source": "Właściciel 12.11.2026 01:06: plansza Tripo (GLB) — maszyny na siłownię (globalnie): ławka olimpijska ze stojakiem, maszyna do prostowania nóg, modlitewnik, ławka rzymska, suwnica",
+ "target": "silownia_sprzet_02",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/silownia_sprzet_02 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "3e1d8ca7e95784b0733e16d1f214e2dce4313befffc0f1473229feb0a5d47893",
+ "cmsSha256": "bbb4f4a518f58881d7d811c76012fd43bb8f4ed57a9ce5d2fd9a6fa35e55f4d2",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 10455573,
+   "sha256": "bbb4f4a518f58881d7d811c76012fd43bb8f4ed57a9ce5d2fd9a6fa35e55f4d2"
+  }
+ ],
+ "files": {
+  "oryginal/gym2.glb": "39f201f02f9fc069d88f2f7cf16fa098a8d6b7d15fa7de3f907be0581aac5e11",
+  "oryginal/spec.json": "523d51dc50267e8f3e7e7361820b7bc2626b0fa5f16c6933ecbae13284d4909d",
+  "silownia_sprzet_02/_tekstury/silownia_sprzet_02_kolor.jpg": "e3076ed14458ee2ee6b5fe9568ac826c3f35aab2db60310d2a046948245225b9",
+  "silownia_sprzet_02/_tekstury/silownia_sprzet_02_mr.png": "8a32791d61fc680f74facca1dd187148acbc607c8a47a90628e395c6e715edd4",
+  "silownia_sprzet_02/_tekstury/silownia_sprzet_02_normal.png": "e4ae570eefb1596cba94fc3d4cbd260af5491e8ecf1993dbe2d27d7c752c7421",
+  "silownia_sprzet_02/katalog.json": "cf924c5345c93e120851a7a52b776b0a13b225fa44bd68388072004ee46f015e",
+  "silownia_sprzet_02/lawka_do_prostownikow.glb": "8d8523f96cccca59c9e60a77212170e7a0c6d24bee06f7d6f9f7bf25f054fd38",
+  "silownia_sprzet_02/lawka_olimpijska_ze_stojakiem.glb": "f2857c18d8936336545f78b550fa4f8492d1213f04344a41c4714592364beb07",
+  "silownia_sprzet_02/maszyna_prostowanie_nog.glb": "e9572e5ccb1366e3d880e57dcb7b8349176b80ac63f74ef69090706da4f01f50",
+  "silownia_sprzet_02/modlitewnik.glb": "c122197f20de3b0bc1af94a1a61f69853f590242859fd0b5c475d77b924b1fba",
+  "silownia_sprzet_02/suwnica_hack.glb": "d3a51edeea852cc6c9774dd706b9451fa33e112e61917c7ff91094b8b209d38b"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
