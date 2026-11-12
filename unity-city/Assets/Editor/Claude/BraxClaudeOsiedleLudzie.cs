@@ -74,11 +74,16 @@ public static partial class BraxClaudeOsiedle
     // ---- pkt 19 / 52 (właściciel: „golasy w mieście — ZERO”): tylko w scenach miasta (BraxhornCity*), osiedle bez zmian ----
     // a) odcienie ubrań podobne do skóry (beż, łosoś, brąz, musztarda) dawały wrażenie nagości — w mieście pomijane;
     // b) postać z dużym udziałem skóry w teksturze ciała (stroje kąpielowe / sportowe skąpe) poza plażą → zamiana na ubraną,
-    //    a gdy brak ubranej w roli — osoba nie powstaje. Plaża: przy porcie (x 84…190, z 100…178) i wyspa (x > 900).
+    //    a gdy brak ubranej w roli — osoba nie powstaje. Plaża: przy porcie (x 84…190, z 100…178) i miejsca plażowe wyspy (strojPlazowy).
     const float ProgSkory = .45f;
     static bool WMiescie => UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.StartsWith("BraxhornCity", StringComparison.Ordinal);
-    static bool NaPlazy(Vector3 p) => (p.x > 84f && p.x < 190f && p.z > 100f && p.z < 178f) || p.x > 900f;
-    static int strojeZamienione, strojeUsuniete, strojePoza, odcienieSkory, miastoOsob; static float miastoWzrost;
+    // 12.11 (właściciel 16:34–16:36: „ludzi rozdzielić: golasy na plażę, a ubrani do areny”): wyspa NIE jest już w całości
+    // „plażą”. Obsada wyspy (LudzieZMiejsc) podaje wprost, czy miejsce jest plażowe (strojPlazowy): true → plaża (strój
+    // kąpielowy), false → arena, ośrodek, deptaki, bary przy arenie (zawsze ubrani). Bez wskazania: na wyspie ubrani.
+    static bool? strojPlazowy;
+    const float ProgKapielowy = .7f;      // udział skóry prawdziwego stroju kąpielowego (Sports_Male_01 .93, Sports_Female_01 .87)
+    static bool NaPlazy(Vector3 p) => strojPlazowy ?? (p.x > 84f && p.x < 190f && p.z > 100f && p.z < 178f);
+    static int strojeZamienione, strojeUsuniete, strojePoza, strojePlaza, odcienieSkory, miastoOsob; static float miastoWzrost;
     static readonly HashSet<string> skapoUbrane = new HashSet<string>();
     static bool PodobnyDoSkory(Color c)
     {
@@ -101,7 +106,7 @@ public static partial class BraxClaudeOsiedle
     public static string RaportStrojow()
     {
         var top = rbPostacie == null ? "" : string.Join(", ", rbPostacie.Where(q => q.skora >= 0f).OrderByDescending(q => q.skora).Take(8).Select(q => q.nazwa + " " + q.skora.ToString("F2")));
-        return "BRAXHORN_LUDZIE_STROJE poza_plaza=" + strojePoza + " zamienione=" + strojeZamienione + " usuniete=" + strojeUsuniete + " odcienie_skory_pominiete=" + odcienieSkory
+        return "BRAXHORN_LUDZIE_STROJE poza_plaza=" + strojePoza + " plaza_kapielowe=" + strojePlaza + " zamienione=" + strojeZamienione + " usuniete=" + strojeUsuniete + " odcienie_skory_pominiete=" + odcienieSkory
             + " prog_skory=" + ProgSkory.ToString("F2") + " skapo_ubrane_postacie=" + skapoUbrane.Count + (skapoUbrane.Count > 0 ? " [" + string.Join(", ", skapoUbrane.Take(12)) + "]" : "")
             + " najwiecej_skory: " + top;
     }
@@ -377,6 +382,14 @@ public static partial class BraxClaudeOsiedle
             p = ubrani[rnd.Next(ubrani.Count)]; strojeZamienione++;
         }
         if (miasto && !NaPlazy(pos) && p.skora > ProgSkory) strojePoza++;
+        // plaża wyspy: plażowicze, kąpiący się i spacerowicze brzegiem w strojach kąpielowych (tylko rola „przechodzień” —
+        // ratownik, barman i obsługa zostają w swoich strojach)
+        if (miasto && strojPlazowy == true && rola == RolaPrzechodzien && p.skora <= ProgKapielowy)
+        {
+            var kapielowi = rbPostacie.Where(q => q.skora > ProgKapielowy && q.kobieta == p.kobieta).ToList();
+            if (kapielowi.Count == 0) kapielowi = rbPostacie.Where(q => q.skora > ProgKapielowy).ToList();
+            if (kapielowi.Count > 0) { p = kapielowi[rnd.Next(kapielowi.Count)]; strojePlaza++; }
+        }
         // właściciel 2.11 10:43: każdy człowiek „mniej więcej jak Brax” (2.33 m), różnice kilku cm; kobiety trochę niżej
         float H = Mathf.Clamp(WzrostBohatera, 1.5f, 2.45f);
         float u = (float)rnd.NextDouble(), mnoz = p.kobieta ? Mathf.Lerp(.945f, .975f, u) : Mathf.Lerp(.97f, 1.0f, u);

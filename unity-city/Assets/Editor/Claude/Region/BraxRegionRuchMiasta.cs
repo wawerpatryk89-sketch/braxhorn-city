@@ -519,7 +519,7 @@ public static partial class BraxClaudeOsiedle
     {
         string[] stoi = { "idle_neutral_01", "idle_neutral_02", "idle_look_around_01" };
         string[] siedzi = { "sit_chair_breathe_01", "sit_chair_idle_neutral_02" };
-        int kibice = 0, inni = 0, obsada = 0, pominiete = 0;
+        int kibice = 0, inni = 0, obsada = 0, pominiete = 0, naPlazy = 0;
         var wyspa = cityRoot.Cast<Transform>().FirstOrDefault(t => t.name.StartsWith("CLAUDE wyspa", StringComparison.Ordinal));
         var miejsca = wyspa ? wyspa.Cast<Transform>().FirstOrDefault(t => t.name.StartsWith("Wyspa: miejsca ludzi", StringComparison.Ordinal)) : null;
         if (miejsca)
@@ -535,11 +535,21 @@ public static partial class BraxClaudeOsiedle
                 bool kib = rola == "kibic" && poza == "siedzi";
                 if (kib && (iKib++ % krokKib) != 0) continue;
                 var R = RolaDla(rola);
+                // 12.11 (właściciel: „golasy na plażę, a ubrani do areny”): strój kąpielowy tylko w miejscach plażowych — piasek,
+                // woda, brzeg, ratownik i goście baru stojącego na plaży (dalej niż 60 m od środka areny). Reszta wyspy: ubrani.
+                var odAreny = new Vector2(t.position.x - 1164f, t.position.z - 42f).magnitude;
+                bool plazowe = gdzie.StartsWith("Plaża wyspy", StringComparison.Ordinal) || gdzie.StartsWith("Woda przy plaży", StringComparison.Ordinal) ||
+                               gdzie.StartsWith("Brzeg plaży", StringComparison.Ordinal) || (gdzie.StartsWith("Bar plażowy", StringComparison.Ordinal) && rola == "gość baru" && odAreny > 60f);
                 BraxMieszkaniec m = null;
-                if (poza == "siedzi" || poza == "leży") m = Siedzacy(R, gW, gdzie + " — " + rola, t.position, t.forward, rnd, siedzi);
-                else m = NowyMieszkaniec(R, gW, gdzie + " — " + rola, t.position, t.eulerAngles.y, rnd, stoi);
+                strojPlazowy = plazowe;
+                try
+                {
+                    if (poza == "siedzi" || poza == "leży") m = Siedzacy(R, gW, gdzie + " — " + rola, t.position, t.forward, rnd, siedzi);
+                    else m = NowyMieszkaniec(R, gW, gdzie + " — " + rola, t.position, t.eulerAngles.y, rnd, stoi);
+                }
+                finally { strojPlazowy = null; }
                 if (!m) { pominiete++; continue; }
-                if (kib) kibice++; else inni++;
+                if (kib) kibice++; else inni++; if (plazowe) naPlazy++;
             }
         }
         // miejsca obsady z wnętrz (metro, fitness Nyxy) — stoją, przodem jak znacznik
@@ -551,7 +561,7 @@ public static partial class BraxClaudeOsiedle
                                           : NowyMieszkaniec(RolaDla(rola), gO, rola, t.position, t.eulerAngles.y, rnd, stoi);
             if (m) obsada++; else pominiete++;
         }
-        Debug.Log("BRAXHORN_LUDZIE_WYSPA kibice=" + kibice + " inni=" + inni + " obsada_wnetrz=" + obsada + " pominiete=" + pominiete + (miejsca ? "" : " (brak miejsc wyspy)"));
+        Debug.Log("BRAXHORN_LUDZIE_WYSPA kibice=" + kibice + " inni=" + inni + " w_tym_plaza_stroje_kapielowe=" + naPlazy + " obsada_wnetrz=" + obsada + " pominiete=" + pominiete + (miejsca ? "" : " (brak miejsc wyspy)"));
     }
 
     // ---- AUDYT WYSPY (właściciel: „sprawdź ją 10 razy”): lista kontrolna z nazw obiektów i materiałów pod korzeniem wyspy ----
