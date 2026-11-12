@@ -66,5 +66,29 @@ class FittedShops(unittest.TestCase):
             self.assertTrue((ROOT / 'unity-city/Prywatne' / pack / 'manifest.json').exists(), pack)
 
 
+class SecondPass(unittest.TestCase):
+    """the owner's 16:40 photo crops: the bikes on both wheels, the optician's aisles, then the rest of my list"""
+    def test_vehicles_on_both_wheels_and_clear_of_columns(self):
+        fit = src('BraxChampionsG1Sklepy.cs')
+        self.assertIn('static void NaKolach(GameObject o)', fit)
+        self.assertEqual(fit.count('NaKolach(LastShopModel)'), 3)
+        self.assertIn('NearColumn(c,2.25f)', case(fit, 'moto'))
+
+    def test_small_optician_has_aisles(self):
+        s = case(src('BraxChampionsG1Sklepy.cs'), 'cosmetics')
+        self.assertIn('float kd=u.back>0f?D-1.7f:D*.5f;', s)
+        self.assertIn('Mathf.Abs(d-kd)<1.6f', s)
+        self.assertIn('u.back>0f?Wd*.40f:Wd*.5f', s)
+
+    def test_shoes_toys_laundry_home(self):
+        fit = src('BraxChampionsG1Sklepy.cs')
+        self.assertIn('nm+" | podest"', case(fit, 'shoes'))
+        self.assertIn('toyTables', case(fit, 'toys'))
+        self.assertIn('nm+" | gotowe ubrania"', case(fit, 'service'))
+        self.assertIn('Clad(s,D*.32f+.05f,D-.3f)', case(fit, 'home'))
+        self.assertIn('g1_wall_home_greige', src('BraxChampionsG1Wnetrze.cs'))
+        self.assertNotIn('g1_wall_home_white', src('BraxChampionsG1Wnetrze.cs'))
+
+
 if __name__ == '__main__':
     unittest.main()

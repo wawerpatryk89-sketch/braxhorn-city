@@ -138,7 +138,7 @@ public static partial class BraxChampionsD2
             case "toys":return Inside(Tex("g1_wall_toys_yellow",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.41f,1.18f,.44f))),.9f);
             case "pharmacy":return Inside(Tex("g1_wall_pharmacy_green",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.18f,1.35f,1.24f))),.9f);
             case "sport":return Inside(Tex("g1_wall_sport_navy",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(.15f,.24f,.47f))),.9f);
-            case "home":return Inside(Tex("g1_wall_home_white",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.42f,1.40f,1.35f))),.9f);   // DOM I WNĘTRZA: light plaster, not bare brown
+            case "home":return Inside(Tex("g1_wall_home_greige",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.12f,1.00f,.86f))),.9f);   // DOM I WNĘTRZA: warm greige plaster (my audit 12.11: the white walls broke the no-white rule)
             default:return gWallWarm;
         }
     }
