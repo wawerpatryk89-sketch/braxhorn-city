@@ -307,8 +307,9 @@ public static partial class BraxChampionsD2
         "perfumy_bursztyn","perfumy_czerwone_zlota_szyjka","perfumy_zolta_kula","perfumy_lawendowe_motyl","kolczyki_kola_zlote","kolczyki_wiszace_brylant","ubranie_koszula_biala",
         "sport_spodnie_dresowe_lampasy"};
     static bool Odrzucony(string pack,string name){return Odrzucone.Contains(name)||pack=="sklep_buty_01"||pack=="sklep_buty_02";}
-    // the owner's BRAXHORN sports equipment (Tripo 23:34; the racket's torn string bed left out): the basketball, a pair of
-    // 10 kg dumbbells, a kettlebell, a punching bag, a skipping rope, a rolled mat
+    // the owner's BRAXHORN sports equipment (Tripo 23:34; the racket's torn string bed left out): the basketball, a kettlebell,
+    // a punching bag, a skipping rope. Not put out: the pair of dumbbells (torn spikes and holes on the heads - the code
+    // dumbbells are cleaner) and the rolled mat (the code rolls stand in the shop)
     static readonly string[] Pilki={"pilka_nozna","pilka_do_kosza","pilka_siatkowa"};       // 0 and 2: from code (Odrzucone), 1: the owner's
     // the owner's perfumes (two sheets) and electronics (Tripo 23:48-23:53)
     const string Perfumy0="sklep_perfumy_01",Elektronika="sklep_elektronika_01";
@@ -318,6 +319,21 @@ public static partial class BraxChampionsD2
         "sklep_perfumy_02/perfumy_czarne_kwadrat","sklep_perfumy_02/perfumy_oliwkowe","sklep_perfumy_02/perfumy_braxhorn_czarne_byk",
         "sklep_perfumy_02/perfumy_niebieskie","sklep_perfumy_02/perfumy_rozowe_kokarda"};
     static readonly string[] Laptopy={"laptop_gamingowy_czerwony","laptop_zloty","laptop_srebrny"},Tablety={"tablet_kolorowy","tablet_w_etui","tablet_z_klawiatura"};
+    // the rest of the owner's electronics sheet, whole from every side and so far not put out anywhere (owner 12.11 15:16
+    // "wykorzystać co najlepsze wszystko"): the smartwatch and the chronograph (5 cm, standing on their straps) and the two
+    // power banks - on the lit wall shelves of the phone shops and the general electronics shops
+    static readonly string[] Drobne={"smartwatch_czarny","powerbank_braxhorn","zegarek_chronograf","powerbank_solarny"};
+    // one place on the shelf: a power bank stands alone; a watch is 5 cm - three of them in a row on a black velvet step
+    // (one alone is lost on a 40 cm shelf)
+    static bool DrobneModel(int k,Vector3 p,Vector3 f)
+    {
+        string n=Drobne[k];if(!BraxMiastoAssety.Jest(Elektronika)||!BraxMiastoAssety.Model(Elektronika,n))return false;
+        if(k%2==1)return ShopModel(Elektronika,n,p,f);
+        f.y=0;f.Normalize();var side=Vector3.Cross(Vector3.up,f);
+        m.RoundedBox(gVelvetBlack,p+Vector3.up*.02f,new Vector3(.34f,.04f,.10f),.008f,Quaternion.LookRotation(f,Vector3.up),2);
+        for(int i=-1;i<=1;i++)ShopModel(Elektronika,n,p+Vector3.up*.04f+side*(i*.11f),f);
+        return true;
+    }
     // sports shoes: the single shoes of the third sheet + the owner's BRAXHORN fight sheet (23:45, sklep_walka_01)
     static readonly string[] SportButy={"but_czarny_biala_podeszwa","but_czarny_zolta_podeszwa","but_czarny_czerwony_pas","but_bialy_czerwone_wstawki","but_czarny_zlote_pasy",
         "sklep_walka_01/buty_bokserskie_czarno_zlote","sklep_walka_01/buty_biegowe_biale_czerwone_braxhorn","sklep_walka_01/buty_treningowe_czarne_braxhorn",
@@ -657,11 +673,13 @@ public static partial class BraxChampionsD2
                 foreach(float s in new[]{0f,1f})SideWall(s,2.6f,D-1.4f,!fac);
                 Goods(nm+" | ściany",()=>{foreach(float s in new[]{0f,1f})WallItems(s,2.6f,D-1.4f,!fac,(p,f,l)=>
                 {
-                    if(phones){if(l==0){Phone(p-Vector3.Cross(Vector3.up,f)*.13f,f);Phone(p+Vector3.Cross(Vector3.up,f)*.13f,f);}else Phone(p,f);}
+                    // the eye-level shelf (1.55 m): every second place one of the owner's four small pieces, in turn along the wall
+                    int ix=(((int)Mathf.Round((p.x+p.z)/.6f))%8+8)%8;bool drobne=l==1&&ix%2==0&&DrobneModel(ix/2,p,f);
+                    if(phones){if(l==0){Phone(p-Vector3.Cross(Vector3.up,f)*.13f,f);Phone(p+Vector3.Cross(Vector3.up,f)*.13f,f);}else if(!drobne)Phone(p,f);}
                     else if(audio){if(l==0)Speaker(p,f,.30f);else Headphones(p,f);}
                     else if(foto)Camera(p,f);
                     else if(games){if(l==0)Console(p,f);else Headphones(p,f);}
-                    else{if(l==0){if(!ShopModel(Elektronika,Laptopy[(((int)(p.x+p.z))%3+3)%3],p,f))BraxKatalog.Laptop(Kat(),p,f,(int)(p.x+p.z));}else if(l==1)Headphones(p,f);else Speaker(p,f,.24f);}
+                    else{if(l==0){if(!ShopModel(Elektronika,Laptopy[(((int)(p.x+p.z))%3+3)%3],p,f))BraxKatalog.Laptop(Kat(),p,f,(int)(p.x+p.z));}else if(l==1){if(!drobne)Headphones(p,f);}else Speaker(p,f,.24f);}
                 });});
                 break;
             }

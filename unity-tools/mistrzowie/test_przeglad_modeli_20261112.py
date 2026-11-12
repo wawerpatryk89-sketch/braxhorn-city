@@ -92,6 +92,22 @@ class PrzegladModeli(unittest.TestCase):
         # the jersey's big BRAXHORN is right and stays
         self.assertNotIn('sport_koszulka_braxhorn_czarno_zlota', (TOOLS / 'napisy' / 'sklep_sport_01.json').read_text())
 
+    def test_every_good_piece_is_put_out(self):
+        # owner 12.11 15:16: "wykorzystać co najlepsze wszystko"
+        s = src('BraxChampionsG1Sklepy.cs')
+        self.assertIn('static readonly string[] Drobne={"smartwatch_czarny","powerbank_braxhorn","zegarek_chronograf","powerbank_solarny"};', s)
+        self.assertIn('bool drobne=l==1&&ix%2==0&&DrobneModel(ix/2,p,f);', s)
+        self.assertIn('for(int i=-1;i<=1;i++)ShopModel(Elektronika,n,p+Vector3.up*.04f+side*(i*.11f),f);', s)
+        self.assertIn('ShopModel(Sprzet,"skakanka",new Vector3(rx+1.82f,y+.75f,rz-.12f),Vector3.back,-60f,-.040f);', src('BraxChampionsG1Wnetrze.cs'))
+
+    def test_unpacked_originals_are_archived(self):
+        # owner 15:18 "mam nadzieję, że to nie przepadło": the sheets not cut yet are kept encrypted, never staged into a build
+        d = PACKS / 'braxhorn-tripo-oryginaly-20261112'; m = json.loads((d / 'manifest.json').read_text(encoding='utf-8'))
+        self.assertEqual(len([k for k in m['files'] if k.endswith('.glb')]), 6)
+        self.assertEqual(m['target'], '')
+        self.assertFalse(any(x.suffix in ('.glb', '.png', '.jpg') for x in d.iterdir()))
+        self.assertIn('packs.glob("braxhorn-sklep-*")', (TOOLS / 'install_sklep_modele.py').read_text(encoding='utf-8'))
+
 
 if __name__ == '__main__':
     unittest.main()

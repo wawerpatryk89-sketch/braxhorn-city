@@ -1,0 +1,24 @@
+{
+ "source": "Właściciel 11-12.11.2026: plansze Tripo (GLB), które nie są jeszcze pocięte ani w żadnej paczce sklepowej: 5 aut, duże maszyny na siłownię (00:56), trzy plansze mebli (01:43, 01:47, 01:51), duża zjeżdżalnia (23:53). Zapis oryginałów, żeby nic nie przepadło (zasada: assety pakować od razu). Pozostałe plansze są w paczkach braxhorn-sklep-* tej gałęzi albo gałęzi R1 (motory, rowery, meble-01, muzeum, boks-01/02, wyciąg, ring-02).",
+ "target": "",
+ "staging": "archiwum oryginałów: nie jest rozpakowywane do buildu (install_sklep_modele.py bierze tylko braxhorn-sklep-*)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "fabf7754b389d64a2a73b56cef63ebbeea2a03e8b895508c718e20c15b3211cf",
+ "cmsSha256": "1e72edf2095219b157d62b6d630af314f451277c40317e46a2c982bb9bc08617",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 36326573,
+   "sha256": "1e72edf2095219b157d62b6d630af314f451277c40317e46a2c982bb9bc08617"
+  }
+ ],
+ "files": {
+  "oryginaly/auta_5_sztuk_20261111_2305.glb": "b4c0c71421a506eee9aea623555b73bc0c8a67f321ceb8c1c1e66058ee529f5a",
+  "oryginaly/meble_sofa_komoda_biurko_szafa_fotel_bujany_20261112_0143.glb": "60151a9a94f32ecf389b9f827f4f1ed045e2f7bd5d6cd32898a2612a6c6608da",
+  "oryginaly/meble_sofa_komoda_biurko_szafa_fotel_bujany_wersja2_20261112_0151.glb": "6f73ab6fee9ac2c660371d97c4a67f3294c9dbf0e7af0ceb5a84d9d9cbf57a13",
+  "oryginaly/meble_sofa_szafka_regal_biurko_lawka_20261112_0147.glb": "83014661a957cb03c4a4f74adde86dbef65c4174ec0f6afa81030244673d6580",
+  "oryginaly/silownia_maszyny_duze_20261112_0056.glb": "7753809949ddeddd5cea9576ea1b4c7d9ecab65a664cb1b0cc0d5648c3d44fec",
+  "oryginaly/zjezdzalnia_duza_20261111_2353.glb": "e1cc1f6560d4fb7b1f1c3faa3b30305ceffeb425243d444dc4cedb8181c364d6"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

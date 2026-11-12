@@ -457,6 +457,9 @@ public static partial class BraxChampionsD2
                 // (the red pair is out: two gloves grown into one leaning lump; the black-gold pair LIES on the shelf, cuffs to the
                 // wall, as in the changing room - owner 12:45 "jak te rękawice stoją")
                 for(int i=0;i<3;i++)ShopModel(Sprzet,"sklep_walka_01/rekawice_bokserskie_braxhorn_czarno_zlote",new Vector3(rx+.35f+i*.55f,y+.75f,rz+.15f),Vector3.back,90f,.118f);
+                // the owner's skipping rope, coiled, laid flat between the gloves and the rack's middle post (it leans 30 degrees
+                // in its file: -60 lays its coil on the shelf, its handles to the customer)
+                ShopModel(Sprzet,"skakanka",new Vector3(rx+1.82f,y+.75f,rz-.12f),Vector3.back,-60f,-.040f);
                 Material[] mats={BraxKatalog.SportCols[0],BraxKatalog.SportCols[1],BraxKatalog.SportCols[3]};
                 for(int i=0;i<9;i++)BraxKatalog.MatRoll(Kat(),new Vector3(65f+(i%3)*.16f,y,44.0f+(i/3)*.16f),Vector3.up,mats[i%3]);
             });

@@ -104,6 +104,9 @@ Każdy model z Tripo oglądamy z sześciu stron, zanim trafi do sklepu: `node un
 | kettlebell | luźny okruch przy uchwycie, wgnieciona tabliczka | okruch wycięty (`okruchy.py`), tabliczka wyrównana do kuli |
 | zegarki | brak tarczy od tyłu (gładka skorupa) | stoją owinięte na aksamitnej poduszce, tył jest w poduszce |
 | ubrania, torebki, elektronika, manekiny, kaski, sprzęt basenowy, siłownia | całe z każdej strony | zostają |
+| skakanka | cała; pokręcony napis na rączkach | napis zdjęty, leży zwinięta na stojaku w SPORT ARENA |
+| smartwatch, chronograf, 2 powerbanki | całe, dotąd nigdzie nie stały | półka na wysokości oczu w sklepach z telefonami i elektroniką |
+| para hantli 10 kg, zwinięta mata | hantle mają wyrwane kolce i dziury na głowicach | nie stawiamy; w sklepie stoją hantle i maty z kodu |
 
 **Napisy.** Tripo dobrze rysuje tylko duży napis (BRAXHORN na czarno-złotej koszulce meczowej). Każdy mały nadruk wychodzi jako pokręcone litery („DRAXRUNV” na piłce, „BRAJHUH” na mankiecie rękawicy). Takie nadruki zdejmujemy z tekstury bez śladu, byk zostaje: `unity-tools/sklep/napisy_precz.py <rozszyfrowana paczka> unity-tools/sklep/napisy/<paczka>.json`. Lista nadruków jest zapisana tak, jak widać je na arkuszu przeglądu: model, widok i prostokąt w kafelku.
 
@@ -113,4 +116,12 @@ Każdy model z Tripo oglądamy z sześciu stron, zanim trafi do sklepu: `node un
 - Najwyżej 8–10 sztuk na planszę. Przy 37 butach na jednej planszy każdy dostaje około 250 pikseli tekstury i wychodzi nieostry.
 - Bez małych napisów na obrazku. Sam byk wychodzi dobrze, duży napis też; małe litery zawsze się kręcą.
 - Bez nóg i stóp w butach.
+
+## Co jest gdzie (stan 12.11.2026, 15:30)
+
+Właściciel 15:18: „Mam nadzieję, że to nie przepadło.” Nic nie przepadło. Każda plansza z Tripo jest w zaszyfrowanej paczce:
+
+- **W paczkach tej gałęzi (Mistrzowie):** ubrania 01–02, buty 01–03, torebki, biżuteria, manekiny 01–02, sport, sprzęt, walka, perfumy 01–02, elektronika, siłownia 01–03, ring 01, basen (zjeżdżalnie dla dzieci, stoły do masażu), postacie, plakaty.
+- **W paczkach gałęzi R1:** motory, rowery, meble 01, muzeum, boks 01–02 (czarno-złoty i czerwony), końcówki wyciągu, ring 02.
+- **Jeszcze niepocięte, zapisane jako oryginały** (`braxhorn-tripo-oryginaly-20261112`, nie wchodzi do buildu): 5 aut, duże maszyny na siłownię (00:56), trzy plansze mebli (01:43, 01:47, 01:51), duża zjeżdżalnia.
 

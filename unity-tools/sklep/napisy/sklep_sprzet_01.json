@@ -35,6 +35,30 @@
     0.405
    ],
    "prog": 70
+  },
+  {
+   "model": "skakanka",
+   "view": "przod",
+   "rect": [
+    0.22,
+    0.56,
+    0.36,
+    0.76
+   ],
+   "tylko": "jasne",
+   "prog": 60
+  },
+  {
+   "model": "skakanka",
+   "view": "przod",
+   "rect": [
+    0.64,
+    0.56,
+    0.78,
+    0.76
+   ],
+   "tylko": "jasne",
+   "prog": 60
   }
  ]
 }
