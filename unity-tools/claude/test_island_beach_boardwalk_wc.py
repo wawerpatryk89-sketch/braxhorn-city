@@ -43,8 +43,9 @@ class IslandBeachAndResort(unittest.TestCase):
     def test_beach_deck_sits_on_joists_with_colliders_and_no_steps(self):
         # deptak plażowy ~38 m od wody, 25 cm nad piaskiem, wygładzony, na legarach i palach, z kolizją każdego odcinka
         self.assertIn("var p = new Vector3(CX, 0, CZ) + d * (rs - 38f);", SOURCE)
-        self.assertIn("p.y = yMax + .25f; pts.Add(p);", SOURCE)
-        self.assertIn("(pts[i - 1].y + pts[i + 1].y) * .5f", SOURCE)
+        # 12.11 (właściciel: „deptaki na koło plaży zjebane”): gładka oś, wysokość 25 cm nad piaskiem, wygładzona średnią
+        self.assertIn("y[i] = yMax + .25f;", SOURCE)
+        self.assertIn("(y[i - 1] + y[i] * 2f + y[i + 1]) * .25f", SOURCE)
         self.assertIn('BraxNabrzeze.KolRot(kol, "Deptak plażowy"', SOURCE)
         self.assertIn("plazaDeptak.AddRange(pts);", SOURCE)
 

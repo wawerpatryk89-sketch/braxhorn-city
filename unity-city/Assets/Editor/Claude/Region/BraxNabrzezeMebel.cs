@@ -99,7 +99,8 @@ public static class BraxNabrzezeMebel
             var c = start + dir * (run * i + run * .5f);
             var size = new Vector3(szer, top - fundament, run);
             var rot = Quaternion.LookRotation(dir);
-            z[m.beton].Box(new Vector3(c.x, (top + fundament) * .5f, c.z), size, rot);
+            // 12.11: beton stopnia kończy się pod płytą stopnicy (dawniej wierzch betonu = wierzch granitu → migotanie)
+            z[m.beton].Box(new Vector3(c.x, (top - .04f + fundament) * .5f, c.z), new Vector3(szer, top - .04f - fundament, run), rot);
             z[m.granit].Box(new Vector3(c.x, top - .02f, c.z) + dir * .01f, new Vector3(szer + .02f, .04f, run + .02f), rot);   // płyta stopnicy z noskiem
             if (kol) BraxNabrzeze.Kol(kol, "Schody stopień", new Vector3(c.x, (top + fundament) * .5f, c.z), size, Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg);
         }
@@ -263,7 +264,7 @@ public static class BraxNabrzezeMebel
                 z[m.bialy].Box(L(t, x, hs * .5f, zz), new Vector3(.035f * K, hs, .035f * K), rot);
         }
         for (int i = 0; i < 9; i++)
-            z[m.drewno].Box(L(t, 0, hs + .03f * K, -Lg * .5f + .06f * K + i * lieL / 9f), new Vector3(W * .9f, .02f * K, lieL / 9f * .78f), rot);
+            z[m.drewno].Box(L(t, 0, hs + .03f * K, -Lg * .5f + .08f * K + i * lieL / 9f), new Vector3(W * .9f, .02f * K, lieL / 9f * .78f), rot);   // 12.11: czoło 1. listwy 2.6 cm od czoła ramy (było 1 cm — migotanie)
         var back = rot * Quaternion.Euler(-40f, 0, 0);
         float bl = Lg - lieL;
         var bc = L(t, 0, hs, -Lg * .5f + lieL) + back * new Vector3(0, 0, bl * .5f);

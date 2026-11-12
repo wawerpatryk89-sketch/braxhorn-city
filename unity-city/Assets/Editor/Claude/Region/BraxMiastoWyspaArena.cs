@@ -132,13 +132,13 @@ internal static partial class BraxMiastoWyspa
     {
         apSzklo = BraxMiastoA.Mat("Arena premium: szyba fasady (przezroczysta)", new Color(.70f, .80f, .84f, .22f), .06f, .1f);
         apAlu = BraxMiastoA.Mat("Arena premium: aluminium lizen (anodowane)", new Color(.56f, .58f, .60f), .35f, .8f);
-        apGranit = BraxMiastoA.Tex("Arena premium: granit cokołu", 1.2f, new Color(.55f, .55f, .54f), new Color(.45f, .45f, .45f), .7f, "granite_tile_02", "rough_block_wall");
+        apGranit = BraxMiastoA.Tex("Arena premium: granit cokołu (grafit)", 1.6f, new Color(.9f, .9f, .9f), new Color(.45f, .45f, .45f), .7f, "granite_tile", "granite_tile_04");   // 12.11: bez brązowych płytek granite_tile_02
         apPanel = BraxMiastoA.Mat("Arena premium: szkło emaliowane grafit (pas, attyka)", new Color(.16f, .19f, .22f), .3f, .3f);
         apAkust = BraxMiastoA.Mat("Arena premium: panele akustyczne ścian (grafit)", new Color(.12f, .125f, .13f), .9f);
         apStrop = BraxMiastoA.Mat("Arena premium: strop hali (czarny akustyczny)", new Color(.035f, .035f, .04f), .95f);
         apBeton = BraxMiastoA.Tex("Arena premium: beton prefabrykatów trybun", 2.4f, new Color(.80f, .80f, .78f), new Color(.55f, .55f, .54f), .85f, "concrete_wall_008", "concrete_floor_02");
         apPosadzka = BraxMiastoA.Mat("Arena premium: posadzka hali (żywica grafit)", new Color(.15f, .15f, .16f), .5f);
-        apKamien = BraxMiastoA.Tex("Arena premium: posadzka holu (kamień)", 1.0f, new Color(.86f, .85f, .83f), new Color(.75f, .74f, .72f), .5f, "marble_01", "large_grey_tiles", "granite_tile_02");
+        apKamien = BraxMiastoA.Tex("Arena premium: posadzka holu (płyty wielkoformatowe)", 2.4f, new Color(1.0f, 1.0f, 1.0f), new Color(.75f, .74f, .72f), .45f, "large_floor_tiles_02", "marble_01", "granite_tile_04");
         apStal = BraxMiastoA.Mat("Arena premium: stal kratownic (grafit)", new Color(.17f, .18f, .19f), .45f, .7f);
         apCzarny = BraxMiastoA.Mat("Arena premium: czarny mat (klatka, obudowy)", new Color(.04f, .04f, .045f), .5f, .3f);
         apBialy = BraxMiastoA.Mat("Arena premium: biel (osprzęt)", new Color(.93f, .93f, .91f), .4f);
@@ -147,7 +147,7 @@ internal static partial class BraxMiastoWyspa
         apBoki = BraxMiastoA.Mat("Arena: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f);
         apZnak = BraxMiastoA.Swieci("Arena premium: znak wyjścia (zielony)", new Color(.05f, .7f, .25f), new Color(.1f, 1.4f, .45f));
         apTynk = BraxMiastoA.Mat("Arena premium: ściany wnętrz (farba biała)", new Color(.9f, .9f, .88f), .9f);
-        apPlytki = BraxMiastoA.Tex("Arena WC: płytki ścian", .6f, new Color(.96f, .96f, .95f), new Color(.92f, .92f, .9f), .3f, "square_tiles", "rectangular_facade_tiles", "granite_tile");
+        apPlytki = BraxMiastoA.Tex("Arena WC: płytki ścian (białe, długie — long_white_tiles)", 1.0f, new Color(1.05f, 1.05f, 1.05f), new Color(.92f, .92f, .9f), .25f, "long_white_tiles", "floor_tiles_02");
         apCeram = BraxMiastoA.Mat("Arena premium: ceramika sanitarna", new Color(.96f, .96f, .95f), .15f);
         apChrom = BraxMiastoA.Mat("Arena premium: chrom", new Color(.84f, .85f, .87f), .12f, .95f);
         apHpl = BraxMiastoA.Mat("Arena premium: płyty HPL kabin (grafit)", new Color(.16f, .17f, .18f), .5f, .1f);
@@ -252,8 +252,9 @@ internal static partial class BraxMiastoWyspa
             BraxUliceKit.S(apStrop).Tri(apC + Vector3.up * yC, Pk(i, -ApWew) + Vector3.up * yC, Pk(i + 1, -ApWew) + Vector3.up * yC, Vector3.down);
             // DRZWI
             if (wej) ApWejscie(a, Rr, N, dl, S(3) + lzW * .5f, S(6) - lzW * .5f);
-            if (ewak || sluz) ApDrzwiZamkniete(P((S(4) + S(5)) * .5f, F, -g - .01f), Rr, N, S(5) - S(4) - lzW, hd, sluz ? "DRZWI SŁUŻBOWE (tunel zawodników)" : "WYJŚCIE EWAKUACYJNE",
-                Pk(i, -ApWew) + Rr * sIn((S(4) + S(5)) * .5f) + Vector3.up * (F + hd + .25f), -N, !sluz);
+            if (ewak) ApDrzwiZamkniete(P((S(4) + S(5)) * .5f, F, -g - .01f), Rr, N, S(5) - S(4) - lzW, hd, "WYJŚCIE EWAKUACYJNE",
+                Pk(i, -ApWew) + Rr * sIn((S(4) + S(5)) * .5f) + Vector3.up * (F + hd + .25f), -N, true);
+            if (sluz) ApWejscieZawodnikow(a, Rr, N, S(4) + lzW * .5f, S(5) - lzW * .5f);
             apElem++;
         }
         // kolizja posadzki (wypukły ośmiobok), stropu
@@ -314,6 +315,112 @@ internal static partial class BraxMiastoWyspa
         foreach (float s in new[] { p0 - 1.1f, p1 + 1.1f }) Czlowiek("Wejście ARENY", "ochrona", "stoi", P(s, y0, 2.2f), N, KlStoi);
     }
     static float lzFace() => .14f * K;
+
+    // WEJŚCIE ZAWODNIKÓW od tyłu areny (12.11, właściciel 13:35: „szatnie… od tyłu wejście, tak jak powinno być”): drzwi
+    // automatyczne (szkło w czarnych ramach, jak główne wejście), podjazd 1:12 z granitu do posadzki hali, zadaszenie ze szkła na
+    // czarnych wspornikach z pasem LED, napis 3D „WEJŚCIE ZAWODNIKÓW” na płycie zadaszenia, kinkiety, ochrona, wycieraczka.
+    // Za drzwiami: przejście w ścianie areny → korytarz tunelu → drzwi szatni Braxa i gości → tunel do klatki.
+    static void ApWejscieZawodnikow(Vector3 a, Vector3 Rr, Vector3 N, float p0, float p1)
+    {
+        float y0 = apY0, F = apF, g = ApG, hd = 2.81f, sm = (p0 + p1) * .5f;
+        Vector3 P(float s, float y, float d) => a + Rr * s + Vector3.up * y + N * d;
+        var drzwi = BraxMiastoA.DrzwiPrzesuwne(root, "ARENA — wejście zawodników", P(sm, F, -g - .01f), Rr, p1 - p0, hd, BraxUliceKit.SzkloPrzezroczyste, apCzarny);
+        drzwi.promien = 4.5f; drzwi.czasRuchu = .6f;
+        var ramp = new UlSiatka(); const float length = 1.8f;
+        var lowL = P(p0, y0, length - .25f); var lowR = P(p1, y0, length - .25f); var highL = P(p0, F, -.25f); var highR = P(p1, F, -.25f);
+        ramp.Quad(lowL, lowR, highR, highL, (Vector3.up * length + N * .15f).normalized);
+        var ro = BraxMiastoA.Obiekt(root, "Arena: podjazd wejścia zawodników (wspólna geometria i kolizja)", ramp, apGranit);
+        ro.AddComponent<MeshCollider>().sharedMesh = ro.GetComponent<MeshFilter>().sharedMesh; apKol++;
+        // boki podjazdu (granit) do terenu
+        foreach (float e in new[] { p0, p1 })
+        {
+            var s0 = P(e, y0, -.25f); var s1 = P(e, y0, length - .25f); var s2 = P(e, F, -.25f);
+            BraxUliceKit.S(apGranit).Tri(s0, s1, s2, Rr * (e == p0 ? -1f : 1f));
+        }
+        // zadaszenie: szkło na 3 czarnych wspornikach (profil zbieżny) z cięgnami, pas LED, płyta z literami
+        float yd = y0 + 3.5f, wD = p1 - p0 + 2.4f, wys = 2.6f;
+        for (int q = 0; q <= 2; q++)
+        {
+            float s = sm - wD * .5f + .3f + q * (wD - .6f) / 2f;
+            Wyciag(D(apCzarny), new[] { new Vector2(0f, -.26f), new Vector2(wys, -.06f), new Vector2(wys, 0f), new Vector2(0f, 0f) }, P(s - .05f, yd, lzFace()), Rr, Vector3.up, N, .1f);
+            D(apCzarny).Rura(P(s, yd + 2.0f, lzFace()), P(s, yd + .02f, wys - .2f + lzFace()), .02f, 8);
+        }
+        D(BraxUliceKit.SzkloPrzezroczyste).OBox(P(sm, yd + .012f, wys * .5f + lzFace() + .02f), Rr, Vector3.up, N, wD, .024f, wys - .04f);
+        D(apLed).OBox(P(sm, yd - .17f, wys + lzFace() + .021f), Rr, Vector3.up, N, wD - .5f, .05f, .04f, true);
+        const string NAPIS = "WEJŚCIE ZAWODNIKÓW";
+        float cap = .26f, w = BraxUliceKit.SzerokoscNapisu(NAPIS, cap); if (w > wD - .4f) cap *= (wD - .4f) / w;
+        float dL = wys - .3f + lzFace();
+        D(apCzarny).OBox(P(sm, yd + .024f + (cap + .12f) * .5f, dL - .012f), Rr, Vector3.up, N, BraxUliceKit.SzerokoscNapisu(NAPIS, cap) + .24f, cap + .12f, .024f);
+        BraxUliceKit.Napis3D(NAPIS, P(sm, yd + .024f + .06f, dL), N, cap, .05f, apLit, apBoki);
+        // kinkiety po bokach drzwi (czarne, ciepłe światło w dół), wycieraczka wpuszczona w podjazd nie — leży na posadzce za drzwiami
+        foreach (float e in new[] { p0 - .45f, p1 + .45f })
+        {
+            { var k0 = P(e, y0 + 2.45f, .02f) - Rr * .07f; var k1 = P(e, y0 + 2.75f, .16f) + Rr * .07f; D(apCzarny).Poducha(Vector3.Min(k0, k1), Vector3.Max(k0, k1), .02f, 0f, 2); }
+            D(apLedSufit).OBox(P(e, y0 + 2.44f, .09f), Rr, N, Vector3.down, .1f, .1f, .004f, true);
+        }
+        BraxRegion.Warm(root, "Arena: światło wejścia zawodników", P(sm, y0 + 3.2f, 1.6f), .9f, 7f);
+        Miejsca["arena_wejscie_zawodnikow"] = P(sm, y0, 3.2f); Miejsca["arena_wejscie_zawodnikow_prog"] = P(sm, F, -.6f); apMiejsc += 2;
+        Czlowiek("Wejście zawodników", "ochrona", "stoi", P(p1 + 1.1f, y0, 1.6f), N, KlStoi);
+        BraxMiastoA.Akcja(root, "arena_wejscie_zawodnikow", "WEJŚCIE ZAWODNIKÓW", "Tylne wejście ARENY BRAXHORN: korytarz do szatni Braxa i gości, dalej tunel do klatki.", P(sm, y0, 2.2f), 1.8f);
+        apElem += 6;
+    }
+
+    // STREFA MOKRA szatni (sg: +1 Braxa, −1 gości): x xM…x1, z zIn (lico ściany szatni) … zOut (lico ściany dalekiej). Ściany
+    // z płytek (long_white_tiles) od środka, grafit od zewnątrz; posadzka antypoślizgowa 2.5 cm nad posadzką hali; 2 natryski za
+    // szkłem w czarnych ramach (deszczownica, bateria, odpływ), kabina WC (HPL dąb, miska wisząca), wieszaki na ręczniki, LED.
+    static void ApStrefaMokra(float sg, float F, float h, float t, float xM, float x1, float zIn, float zOut, float x0)
+    {
+        float zA = Mathf.Min(zIn, zOut), zB = Mathf.Max(zIn, zOut);
+        // lica równoległe bez nakładania: ściana zachodnia kończy się na licu ściany dalekiej, ściany poprzeczne kończą się na x1
+        // (dalej okładzina tylna 9.5 cm do ściany areny — jej czoło styka się licem przeciwnym z okładziną tunelu)
+        ApSciana(false, xM - t * .5f, zA, zB, t, F, F + h, null, apAkust, apPlytki);
+        ApSciana(true, zOut + sg * t * .5f, xM - t, x1, t, F, F + h, null, sg > 0 ? apPlytki : apAkust, sg > 0 ? apAkust : apPlytki);
+        float zt0 = zIn - sg * t, zt1 = zOut + sg * t;
+        ApSciana(false, x1 + .0475f, Mathf.Min(zt0, zt1), Mathf.Max(zt0, zt1), .095f, F, F + h, null, apPlytki, apAkust, false);
+        ApSufitPom(xM, x1, zA, zB, F + h, F + h + .15f, new List<Rect> { Rect.MinMaxRect(xM + .3f, (zA + zB) * .5f - .25f, xM + 1.6f, (zA + zB) * .5f + .25f) }, xM - t, x1 + .095f, zA - (sg < 0 ? t : 0f), zB + (sg > 0 ? t : 0f));
+        var podl = BraxMiastoA.Tex("Arena: posadzka natrysków (płytki antypoślizgowe)", .6f, new Color(.9f, .9f, .92f), new Color(.6f, .6f, .62f), .7f, "anti_skid_tiles", "large_floor_tiles_02");
+        BraxUliceKit.S(podl).Quad(new Vector3(xM, F + .025f, zA), new Vector3(x1, F + .025f, zA), new Vector3(x1, F + .025f, zB), new Vector3(xM, F + .025f, zB), Vector3.up);
+        float yP = F + .025f; var ws = new Vector3(0, 0, -sg);
+        // natryski: 2 × 0.9 m przy ścianie dalekiej, przegrody szklane 0.95 m w czarnych profilach
+        for (int k = 0; k < 2; k++)
+        {
+            float xa = xM + k * .92f, xb = xa + .9f, xc = (xa + xb) * .5f;
+            var glowica = new Vector3(xc, F + 2.18f, zOut + ws.z * .38f);
+            D(apChrom).Rura(new Vector3(xc, F + 2.22f, zOut), new Vector3(xc, F + 2.22f, zOut + ws.z * .38f), .012f, 8);
+            Toczenie(D(apChrom), new[] { new Vector2(0f, 0f), new Vector2(.12f, 0f), new Vector2(.125f, .012f), new Vector2(.03f, .03f), new Vector2(0f, .03f) }, glowica, 24);
+            { var m0 = new Vector3(xc - .09f, F + 1.0f, zOut + ws.z * .002f); var m1 = new Vector3(xc + .09f, F + 1.18f, zOut + ws.z * .03f); D(apChrom).Poducha(Vector3.Min(m0, m1), Vector3.Max(m0, m1), .01f, 0f, 2); }
+            D(apChrom).Rura(new Vector3(xc, F + 1.09f, zOut + ws.z * .03f), new Vector3(xc + .08f, F + 1.09f, zOut + ws.z * .09f), .009f, 6);
+            Toczenie(D(apChrom), new[] { new Vector2(.06f, 0f), new Vector2(0f, .005f) }, new Vector3(xc, yP, zOut + ws.z * .45f), 16);
+            float xg = xb + .01f;   // szkło między natryskami / przed WC
+            D(BraxUliceKit.SzkloPrzezroczyste).OBox(new Vector3(xg, F + 1.1f, zOut + ws.z * .475f), Vector3.forward, Vector3.up, Vector3.right, .95f, 2.0f, .01f);
+            D(apCzarny).OBox(new Vector3(xg, F + 2.115f, zOut + ws.z * .475f), Vector3.forward, Vector3.up, Vector3.right, .95f, .03f, .03f);
+            D(apCzarny).OBox(new Vector3(xg, F + .085f, zOut + ws.z * .475f), Vector3.forward, Vector3.up, Vector3.right, .95f, .03f, .03f);
+            D(apCzarny).OBox(new Vector3(xg, F + 1.1f, zOut + ws.z * .965f), Vector3.forward, Vector3.up, Vector3.right, .03f, 2.06f, .03f);
+            KolAA("szkło natrysku", new Vector3(xg - .02f, F, Mathf.Min(zOut, zOut + ws.z * .95f)), new Vector3(xg + .02f, F + 2.13f, Mathf.Max(zOut, zOut + ws.z * .95f)));
+            BraxRegion.Warm(root, "Arena: światło natrysku", glowica + Vector3.up * .5f, .35f, 2.5f);
+        }
+        // kabina WC (HPL dąb) w narożniku przy ścianie tylnej areny
+        var hplDab = BraxMiastoA.Tex("Arena WC: płyty HPL kabin (dąb)", 1.2f, new Color(1f, .97f, .92f), new Color(.62f, .48f, .32f), .5f, "oak_veneer_01", "wood_floor");
+        float wx0 = xM + 1.86f, wx1 = x1, wc = (wx0 + wx1) * .5f, kd = 1.4f;
+        D(hplDab).OBox(new Vector3(wx0 + .02f, F + 1.15f, zOut + ws.z * kd * .5f), Vector3.forward, Vector3.up, Vector3.right, kd - .01f, 2.0f, .03f);
+        var front = zOut + ws.z * kd;
+        D(hplDab).OBox(new Vector3(wx1 - .07f, F + 1.15f, front), Vector3.right, Vector3.up, ws, .12f, 2.0f, .03f);
+        var kier = Quaternion.AngleAxis(sg * 30f, Vector3.up) * Vector3.right; var zaw = new Vector3(wx0 + .04f, F + .15f, front);
+        float dwid = (wx1 - .13f) - (wx0 + .04f);
+        D(hplDab).OBox(zaw + kier * (dwid * .5f) + Vector3.up * 1.0f, kier, Vector3.up, Vector3.Cross(kier, Vector3.up), dwid - .01f, 2.0f, .028f);
+        KolA("drzwi kabiny", zaw + kier * (dwid * .5f) + Vector3.up * 1.0f, kier, new Vector3(dwid, 2.0f, .03f));
+        BraxCeramika.MiskaWiszaca(new Vector3(wc, yP, zOut), Vector3.right, ws);
+        KolAA("miska WC", new Vector3(wc - .22f, F, Mathf.Min(zOut, zOut + ws.z * .6f)), new Vector3(wc + .22f, F + .45f, Mathf.Max(zOut, zOut + ws.z * .6f)));
+        // wieszaki na ręczniki na ścianie od strony szatni (płytki), ręczniki
+        for (int k = 0; k < 3; k++)
+        {
+            var hp = new Vector3(xM + .35f + k * .3f, F + 1.65f, zIn - sg * .0f);
+            D(apChrom).Rura(hp, hp + ws * -.0f + new Vector3(0, 0, sg * .07f), .01f, 6);
+        }
+        BraxRegion.Warm(root, "Arena: światło strefy mokrej", new Vector3((xM + x1) * .5f, F + h - .4f, (zA + zB) * .5f), .6f, 4f);
+        Miejsca[sg > 0 ? "arena_natryski_braxa" : "arena_natryski_gosci"] = new Vector3(xM + 1.0f, yP, zIn + sg * .7f); apMiejsc++;
+        apElem += 8;
+    }
 
     // drzwi zamknięte (ewakuacyjne / służbowe): dwa skrzydła stalowe w ościeżnicy, pochwyt antypaniczny od środka, kolizja, znak
     static void ApDrzwiZamkniete(Vector3 c, Vector3 Rr, Vector3 N, float w, float h, string nazwa, Vector3 znak, Vector3 znakN, bool zZnakiem)
@@ -381,17 +488,17 @@ internal static partial class BraxMiastoWyspa
             if (o.Item1 - k0 > .05f)
             {
                 KolAA("ściana pomieszczenia", W(k0, y0, -t * .5f), W(o.Item1, y1, t * .5f));
-                if (listwy) foreach (float sd in new[] { -1f, 1f }) lst.OBox(W((k0 + o.Item1) * .5f, y0 + .04f, sd * (t * .5f + .006f)), R, Vector3.up, Nn * sd, o.Item1 - k0, .08f, .012f, true);
+                if (listwy) foreach (float sd in new[] { -1f, 1f }) lst.OBox(W((k0 + o.Item1) * .5f, y0 + .04f, sd * (t * .5f + .011f)), R, Vector3.up, Nn * sd, o.Item1 - k0, .08f, .022f, true);   // listwa 2.2 cm (lico ≥ 2 cm od ściany — zero migotania)
             }
             if (o.Item2 - o.Item1 > .05f)
             {
                 KolAA("nadproże", W(o.Item1, y0 + o.Item3, -t * .5f), W(o.Item2, y1, t * .5f));
                 foreach (float sd in new[] { -1f, 1f })   // ościeżnica: opaski na obu licach (nie w płaszczyźnie ściany — 1 cm przed nią)
                 {
-                    var nn = Nn * sd; float dd = sd * (t * .5f + .006f);
-                    osc.OBox(W(o.Item1 - .03f, y0 + o.Item3 * .5f, dd), R, Vector3.up, nn, .06f, o.Item3, .012f, true);
-                    osc.OBox(W(o.Item2 + .03f, y0 + o.Item3 * .5f, dd), R, Vector3.up, nn, .06f, o.Item3, .012f, true);
-                    osc.OBox(W((o.Item1 + o.Item2) * .5f, y0 + o.Item3 + .03f, dd), R, Vector3.up, nn, o.Item2 - o.Item1 + .12f, .06f, .012f, true);
+                    var nn = Nn * sd; float dd = sd * (t * .5f + .011f);   // opaska 2.2 cm (lico ≥ 2 cm od ściany)
+                    osc.OBox(W(o.Item1 - .03f, y0 + o.Item3 * .5f, dd), R, Vector3.up, nn, .06f, o.Item3, .022f, true);
+                    osc.OBox(W(o.Item2 + .03f, y0 + o.Item3 * .5f, dd), R, Vector3.up, nn, .06f, o.Item3, .022f, true);
+                    osc.OBox(W((o.Item1 + o.Item2) * .5f, y0 + o.Item3 + .03f, dd), R, Vector3.up, nn, o.Item2 - o.Item1 + .12f, .06f, .022f, true);
                 }
             }
             k0 = Mathf.Max(k0, o.Item2);
@@ -938,74 +1045,94 @@ internal static partial class BraxMiastoWyspa
         apElem += 6;
     }
 
-    // TOALETY damska (+z) i męska (−z) w narożnikach holu: ściany z płytek, drzwi otwarte, kabiny HPL, misy, pisuary, umywalki
+    // TOALETY damska (+z) i męska (−z) w narożnikach holu — OD NOWA (12.11, właściciel 13:35: „kible w arenie… tragedia”).
+    // Dawniej 3 × 3 m: brązowe płytki w kratkę, ciemne przegrody, miska toczona i „lustro” z płaskiej płyty. Teraz jak w prawdziwej
+    // hali: pomieszczenie 4.2 × 5.0 m (od ściany areny do 25 cm przed kasami, do skosu ściany), płytki wielkoformatowe jasny
+    // marmur (Poly Haven floor_tiles_02) do sufitu, kabiny z płyt HPL w dębie (oak_veneer_01) na nóżkach chrom, z drzwiami
+    // uchylonymi do środka, zamkiem i wieszakiem; w każdej kabinie miska WC wisząca z przyciskiem spłuczki i uchwyt papieru;
+    // w męskiej 2 pisuary z przegrodą z HPL; umywalki nablatowe na blacie dębowym z baterią (woda leci — BraxKran) i lustrami
+    // z prawdziwym odbiciem (BraxCeramika — wspólne R1), suszarka do rąk, kosz, dozownik mydła; sufit z panelami LED.
     static void ApToalety()
     {
         BraxUliceKit.UstawGrupe("Wyspa: arena premium — toalety");
         float F = apF, t = .12f, h = 3.0f;
+        var hplDab = BraxMiastoA.Tex("Arena WC: płyty HPL kabin (dąb)", 1.2f, new Color(1f, .97f, .92f), new Color(.62f, .48f, .32f), .5f, "oak_veneer_01", "wood_floor");
         foreach (float su in new[] { 1f, -1f })
         {
             bool dam = su > 0; string nz = dam ? "WC DAMSKA" : "WC MĘSKA";
-            float xi0 = apC.x - 21.38f, xi1 = apC.x - 18.3f;
-            float zN = apC.z + su * 3.72f, zF = apC.z + su * 6.88f, zi0 = Mathf.Min(zN, zF), zi1 = Mathf.Max(zN, zF);
-            float dA = xi1 - 1.45f, dB = xi1 - .3f;   // drzwi (od strony środka hali)
+            float xi0 = apC.x - 21.38f, xi1 = apC.x - 18.75f;   // do x −18.75: dalej narożnik trybuny (ściana boczna sektora wchodzi w pomieszczenie)
+            float zN = apC.z + su * 3.72f, zF = apC.z + su * 8.75f, zi0 = Mathf.Min(zN, zF), zi1 = Mathf.Max(zN, zF);
+            float dA = xi1 - 1.45f, dB = xi1 - .3f;   // drzwi w ścianie od wejścia (przy ścianie wschodniej)
             var wewn = apPlytki; var zew = apAkust;
-            // ściana z drzwiami (zN) i pozostałe; lico „+” to +z / +x
-            ApSciana(true, zN - su * t * .5f, xi0 - t, xi1 + t, t, F, h + F, new[] { (dA, dB, 2.75f) }, su > 0 ? zew : wewn, su > 0 ? wewn : zew);
+            ApSciana(true, zN - su * t * .5f, xi0 - t, xi1 + t, t, F, h + F, new[] { (dA, dB, 2.3f) }, su > 0 ? zew : wewn, su > 0 ? wewn : zew);
             ApSciana(true, zF + su * t * .5f, xi0 - t, xi1 + t, t, F, h + F, null, su > 0 ? wewn : zew, su > 0 ? zew : wewn);
             ApSciana(false, xi0 - t * .5f, zi0, zi1, t, F, h + F, null, zew, wewn);
             ApSciana(false, xi1 + t * .5f, zi0, zi1, t, F, h + F, null, wewn, zew);
-            ApSkrzydlo(true, zN, dA, dB - dA, 2.75f, su, 1f, apHpl);
-            ApSufitPom(xi0, xi1, zi0, zi1, F + h, F + h + .15f, new List<Rect> { Rect.MinMaxRect(xi0 + .8f, zi0 + 1.0f, xi0 + 2.0f, zi0 + 1.6f), Rect.MinMaxRect(xi1 - 1.3f, zi0 + 1.0f, xi1 - .7f, zi0 + 2.2f) }, xi0 - t, xi1 + t, zi0 - t, zi1 + t);
-            BraxUliceKit.Napis3D(nz, new Vector3((dA + dB) * .5f, F + 2.95f, zN - su * (t + .005f)), new Vector3(0, 0, -su), .14f, .015f, apLit, apBoki);
-            // kabiny przy ścianie zachodniej (xi0): przegrody HPL na nóżkach, drzwi uchylone, misa ustępowa toczona
-            int nk = dam ? 2 : 1; float kw = .95f, kd = 1.45f;
-            var hpl = D(apHpl);
+            ApSkrzydlo(true, zN, dA, dB - dA, 2.3f, su, 1f, hplDab);
+            var led = new List<Rect>();
+            for (int i = 0; i < 2; i++) for (int j = 0; j < 3; j++) { float cx = xi0 + (i + .5f) * (xi1 - xi0) / 2f, cz = zi0 + (j + .5f) * (zi1 - zi0) / 3f; led.Add(Rect.MinMaxRect(cx - .3f, cz - .3f, cx + .3f, cz + .3f)); }
+            ApSufitPom(xi0, xi1, zi0, zi1, F + h, F + h + .15f, led, xi0 - t, xi1 + t, zi0 - t, zi1 + t);
+            BraxUliceKit.Napis3D(nz, new Vector3((dA + dB) * .5f, F + 2.55f, zN - su * (t + .005f)), new Vector3(0, 0, -su), .14f, .015f, apLit, apBoki);
+            var ex = Vector3.right; var en = new Vector3(0, 0, -su);    // wzdłuż ściany dalekiej / od ściany dalekiej do środka
+            // KABINY przy ścianie dalekiej, od ściany zachodniej: HPL dąb 3 cm, 15 cm nad posadzką do 2.15 m, nóżki chrom, front z drzwiami
+            int nk = dam ? 3 : 2; float kw = dam ? (xi1 - xi0) / 3f : .95f, kd = 1.5f, zK = zF - su * kd;   // zK: lico frontów kabin
+            var hpl = D(hplDab);
+            for (int k = 0; k <= nk; k++)
+            {
+                float xp = xi0 + k * kw;
+                if (k > 0 && xp < xi1 - .05f) { hpl.OBox(new Vector3(xp, F + 1.15f, zF - su * kd * .5f), Vector3.forward, Vector3.up, Vector3.right, kd - .01f, 2.0f, .03f); KolAA("przegroda kabiny", new Vector3(xp - .02f, F, Mathf.Min(zF, zK)), new Vector3(xp + .02f, F + 2.15f, Mathf.Max(zF, zK))); }
+                if (k > 0) D(apChrom).Rura(new Vector3(xp, F, zK + su * .04f), new Vector3(xp, F + .15f, zK + su * .04f), .016f, 8);
+            }
             for (int k = 0; k < nk; k++)
             {
-                float z0 = dam ? zi0 + .2f + k * kw : zi0 + .2f, z1 = z0 + kw; if (!dam && su < 0) { z0 = zi1 - .2f - kw; z1 = zi1 - .2f; } else if (su < 0) { z0 = zi1 - .2f - (k + 1) * kw; z1 = z0 + kw; }
-                float xf = xi0 + kd;
-                foreach (float zz in new[] { z0, z1 }) { hpl.OBox(new Vector3(xi0 + kd * .5f, F + .15f + 1.0f, zz), Vector3.right, Vector3.up, Vector3.forward, kd, 2.0f, .025f); KolAA("przegroda kabiny", new Vector3(xi0, F, zz - .02f), new Vector3(xf, F + 2.15f, zz + .02f)); }
-                var dz = (Quaternion.AngleAxis(su * 30f, Vector3.up) * Vector3.forward) * (kw - .1f) * su;
-                hpl.OBox(new Vector3(xf, F + 1.15f, z0 + .05f) + dz * .5f, dz.normalized, Vector3.up, Vector3.Cross(dz.normalized, Vector3.up), kw - .1f, 2.0f, .025f);
-                foreach (float zz in new[] { z0, z1 }) D(apChrom).Rura(new Vector3(xf, F, zz), new Vector3(xf, F + .15f, zz), .015f, 6);
-                D(apChrom).Rura(new Vector3(xf, F + 2.15f, z0), new Vector3(xf, F + 2.15f, z1), .018f, 6);
-                var wc = new Vector3(xi0 + .38f, F, (z0 + z1) * .5f);
-                Toczenie(D(apCeram), new[] { new Vector2(0, 0), new Vector2(.13f, 0), new Vector2(.14f, .05f), new Vector2(.17f, .3f), new Vector2(.19f, .39f), new Vector2(.18f, .41f), new Vector2(.15f, .41f), new Vector2(.13f, .37f), new Vector2(0, .3f) }, wc + Vector3.right * .12f, 16, .8f, 1.15f, Vector3.right);
-                Wyciag(D(apCeram), PZ(.18f, .42f, .04f, new Vector2(-.0f, .62f)), wc + Vector3.left * .2f + Vector3.back * .2f + Vector3.right * .02f, Vector3.forward, Vector3.up, Vector3.right, .4f);
-                KolAA("misa ustępowa", wc + new Vector3(-.25f, 0, -.2f), wc + new Vector3(.45f, .45f, .2f));
+                float x0 = xi0 + k * kw, x1 = x0 + kw, xc = (x0 + x1) * .5f, dw = .64f;
+                // front: słupki boczne obok drzwi, nadświetle otwarte (jak w prawdziwych kabinach — 15 cm pod drzwiami)
+                float sl = (kw - dw) * .5f;
+                foreach (float sx in new[] { x0 + sl * .5f, x1 - sl * .5f }) hpl.OBox(new Vector3(sx, F + 1.15f, zK), Vector3.right, Vector3.up, new Vector3(0, 0, -su), sl - .012f, 2.0f, .03f);
+                // drzwi uchylone 35° do kabiny (zawias po lewej), zamek z wskaźnikiem, wieszak
+                var zaw = new Vector3(x0 + sl, F + .15f, zK);
+                var kier = Quaternion.AngleAxis(su * 35f, Vector3.up) * Vector3.right;
+                var dc = zaw + kier * (dw * .5f) + Vector3.up * 1.0f;
+                hpl.OBox(dc, kier, Vector3.up, Vector3.Cross(kier, Vector3.up), dw - .01f, 2.0f, .028f);
+                KolA("drzwi kabiny", dc, kier, new Vector3(dw, 2.0f, .03f));
+                D(apChrom).Rura(dc + kier * (dw * .4f) + Vector3.up * .05f + Vector3.Cross(kier, Vector3.up) * .02f, dc + kier * (dw * .4f) + Vector3.up * .05f + Vector3.Cross(kier, Vector3.up) * .07f, .012f, 8);
+                // miska wisząca z przyciskiem (BraxCeramika), uchwyt papieru na przegrodzie, szczotka
+                BraxCeramika.MiskaWiszaca(new Vector3(xc, F, zF), ex, en);
+                var up0 = new Vector3(x0 + .02f, F + .75f, zF - su * .55f);
+                D(apChrom).Rura(up0, up0 + Vector3.right * .09f, .008f, 6); D(apBialy).Rura(up0 + Vector3.right * .015f, up0 + Vector3.right * .085f, .055f, 14);
+                KolAA("miska WC", new Vector3(xc - .22f, F, Mathf.Min(zF, zF - su * .6f)), new Vector3(xc + .22f, F + .45f, Mathf.Max(zF, zF - su * .6f)));
+                apElem += 3;
             }
-            if (!dam)   // pisuary z przegrodą
-                for (int k = 0; k < 2; k++)
-                {
-                    float zc = su < 0 ? zi1 - .2f - kw - .5f - k * .75f : zi0 + .2f + kw + .5f + k * .75f; var p = new Vector3(xi0, F, zc);
-                    Wyciag(D(apCeram), new[] { new Vector2(.0f, .5f), new Vector2(.28f, .55f), new Vector2(.36f, .72f), new Vector2(.3f, 1.05f), new Vector2(.02f, 1.2f) }, p + Vector3.back * .19f, Vector3.forward, Vector3.up, Vector3.right, .38f);
-                    if (k == 0) hpl.OBox(new Vector3(xi0 + .3f, F + 1.0f, zc + .375f * (su < 0 ? -1 : 1) * -1f), Vector3.right, Vector3.up, Vector3.forward, .55f, .9f, .02f);
-                }
-            // umywalki: blat na ścianie wschodniej (xi1 strona) — nie; przy ścianie zF: blat, misy nablatowe, baterie, lustro
-            float zb = zF - su * .28f; var bl = D(BraxMiastoA.Mat("Arena WC: blat umywalek (konglomerat)", new Color(.2f, .2f, .21f), .35f, .1f));
-            float bx0 = xi1 - 1.8f, bx1 = xi1 - .1f;
-            Wyciag(bl, PZ(.55f, .05f, .012f, new Vector2(0, .85f)), new Vector3(bx0, F, zb), Vector3.right, Vector3.up, new Vector3(0, 0, -su), bx1 - bx0);
-            KolAA("blat umywalek", new Vector3(bx0, F, Mathf.Min(zb - .3f, zb + .3f)), new Vector3(bx1, F + .88f, Mathf.Max(zb - .3f, zb + .3f)));
-            for (int k = 0; k < 2; k++)
+            if (!dam)   // 2 pisuary (BraxCeramika) na ścianie wschodniej (lico xi1, przodem do zachodu) z przegrodą HPL między nimi
             {
-                var um = new Vector3(bx0 + .45f + k * .8f, F + .875f, zb - su * .05f);
-                Toczenie(D(apCeram), new[] { new Vector2(0, 0), new Vector2(.14f, 0), new Vector2(.2f, .1f), new Vector2(.2f, .13f), new Vector2(.18f, .13f), new Vector2(.17f, .04f), new Vector2(0, .03f) }, um, 18);
-                var bt = um + new Vector3(0, 0, su * .22f); D(apChrom).Rura(bt, bt + Vector3.up * .3f, .015f, 8); D(apChrom).Rura(bt + Vector3.up * .3f, bt + Vector3.up * .3f - new Vector3(0, 0, su * .16f), .012f, 8);
+                foreach (float dz in new[] { 1.75f, 2.5f }) { float zc = zN + su * dz; BraxCeramika.Pisuar(new Vector3(xi1, F, zc), Vector3.forward, Vector3.left); KolAA("pisuar", new Vector3(xi1 - .4f, F + .4f, zc - .2f), new Vector3(xi1, F + 1.1f, zc + .2f)); }
+                float zp = zN + su * 2.125f;
+                hpl.OBox(new Vector3(xi1 - .3f, F + 1.05f, zp), Vector3.right, Vector3.up, Vector3.forward, .58f, 1.0f, .025f);
             }
-            D(apLustro).OBox(new Vector3((bx0 + bx1) * .5f, F + 1.65f, zF - su * .012f), Vector3.right, Vector3.up, new Vector3(0, 0, -su), bx1 - bx0 - .1f, 1.0f, .012f, true);
-            D(apChrom).OBox(new Vector3((bx0 + bx1) * .5f, F + 1.13f, zF - su * .015f), Vector3.right, Vector3.up, new Vector3(0, 0, -su), bx1 - bx0 - .06f, .02f, .03f, true);
-            ApGniazdko(new Vector3(bx1 - .2f, F + 1.1f, zF - su * .001f), new Vector3(0, 0, -su));
-            BraxRegion.Warm(root, "Arena WC: światło (" + nz + ")", new Vector3((xi0 + xi1) * .5f, F + h - .4f, (zi0 + zi1) * .5f), .6f, 5f);
-            Miejsca[dam ? "arena_wc_damska" : "arena_wc_meska"] = new Vector3(xi1 - .6f, F, zN - su * 1.2f); apMiejsc++;
+            // UMYWALKI przy ścianie zachodniej (lico xi0): 2 zestawy (blat dębowy, umywalka nablatowa, bateria z wodą, lustro z odbiciem)
+            float zU0 = zN + su * .2f, zU1 = zK - su * .9f; float lU = Mathf.Abs(zU1 - zU0); int nu = lU > 2.1f ? 2 : 1; float szU = Mathf.Min(1.0f, lU / nu - .05f);
+            for (int k = 0; k < nu; k++)
+            {
+                float zc = zU0 + su * (lU / nu) * (k + .5f);
+                BraxCeramika.ZestawUmywalkowy(root, "Arena " + nz + " umywalka " + (k + 1), new Vector3(xi0, F, zc), Vector3.forward * su, Vector3.right, szU);
+                KolAA("blat umywalki", new Vector3(xi0, F, zc - szU * .5f), new Vector3(xi0 + .5f * K, F + .85f * K, zc + szU * .5f));
+            }
+            // suszarka do rąk (obudowa zaokrąglona, stal szczotkowana) i dozownik mydła, kosz na ręczniki — przy umywalkach
+            var sz = new Vector3(xi0, F + 1.1f * K, zU1 + su * .45f);
+            D(apChrom).Poducha(sz + new Vector3(.005f, -.13f, -.14f), sz + new Vector3(.2f, .13f, .14f), .04f, 0f, 4);
+            D(apCzarny).Poducha(sz + new Vector3(.04f, -.18f, -.06f), sz + new Vector3(.16f, -.13f, .06f), .015f, 0f, 2);
+            Toczenie(D(apChrom), new[] { new Vector2(0, 0), new Vector2(.16f, 0), new Vector2(.165f, .02f), new Vector2(.17f, .62f), new Vector2(0, .62f) }, new Vector3(xi0 + .25f, F, zU1 + su * .1f), 18);
+            KolAA("kosz", new Vector3(xi0 + .08f, F, zU1 + su * .1f - .17f), new Vector3(xi0 + .42f, F + .62f, zU1 + su * .1f + .17f));
+            BraxRegion.Warm(root, "Arena WC: światło (" + nz + ")", new Vector3((xi0 + xi1) * .5f, F + h - .4f, (zi0 + zi1) * .5f), .7f, 6f);
+            Miejsca[dam ? "arena_wc_damska" : "arena_wc_meska"] = new Vector3(xi1 - .6f, F, zN + su * 1.2f); apMiejsc++;
             string wcId = dam ? "arena_wc_damska" : "arena_wc_meska";
             Miejsca[wcId + "_prog"] = new Vector3((dA + dB) * .5f, F, zN - su * .6f);
             Miejsca[wcId + "_wnetrze"] = new Vector3((dA + dB) * .5f, F, zN + su * 1f);
             ApGasnica(new Vector3(xi1 + t + .002f, F + 1.2f, zN + su * .9f), Vector3.right);
             ApGniazdko(new Vector3(xi1 + t + .001f, F + .3f * K, zN + su * 2.2f), Vector3.right);
-            apElem += 4;
+            apElem += 6;
         }
-        BraxMiastoA.Log("WYSPA arena premium: toalety damska (2 kabiny) i męska (kabina, 2 pisuary), umywalki, lustra, sufit z LED");
+        BraxMiastoA.Log("WYSPA arena premium: toalety od nowa — damska 3 kabiny, męska 2 kabiny + 2 pisuary, umywalki z wodą, lustra z odbiciem, płytki jasny marmur, HPL dąb");
     }
 
     // TUNEL ZAWODNIKÓW i 2 SZATNIE (blok przy ścianie wschodniej): sufit z wnękami LED, szafki z drzwiczkami, ławki, stół do masażu
@@ -1013,12 +1140,20 @@ internal static partial class BraxMiastoWyspa
     {
         BraxUliceKit.UstawGrupe("Wyspa: arena premium — tunel i szatnie");
         float F = apF, t = .15f, h = 3.2f, x0 = apC.x + 15.97f, xW = apC.x + apAp - ApWew, x1 = xW - .1f, zt = 1.3f, zs = 6.4f, cz = apC.z;
+        // 12.11 (właściciel 13:35: „szatnie dla zawodników… od tyłu wejście, tak jak powinno być… jak w normalnym życiu”):
+        // strefa mokra za każdą szatnią (2 natryski za szkłem w czarnych ramach + kabina WC) między trybuną a ścianą areny,
+        // drzwi z szatni; wejście zawodników od tyłu areny (ApWejscieZawodnikow: drzwi automatyczne, podjazd, zadaszenie)
+        float xM = apC.x + 18.75f, zs2 = 8.7f, xD0 = apC.x + 19.2f;
         var graf = apAkust;
         // front (z otworem tunelu), boki zewnętrzne, ściany tunelu z drzwiami do szatni, okładzina tylna (z drzwiami służbowymi w tunelu)
         ApSciana(false, x0 + t * .5f, cz - zs - t, cz + zs + t, t, F, F + h, new[] { (cz - zt, cz + zt, 2.85f) }, graf, apTynk);
         foreach (float sg in new[] { -1f, 1f })
         {
-            ApSciana(true, cz + sg * (zs + t * .5f), x0 + t, x1 + .095f, t, F, F + h, null, sg > 0 ? apTynk : graf, sg > 0 ? graf : apTynk);
+            // ściana zewnętrzna szatni: do strefy mokrej (natryski + WC) — od xM płytki od strony natrysków, drzwi 1.0 m
+            ApSciana(true, cz + sg * (zs + t * .5f), x0 + t, xM - t, t, F, F + h, null, sg > 0 ? apTynk : graf, sg > 0 ? graf : apTynk);
+            ApSciana(true, cz + sg * (zs + t * .5f), xM - t, x1, t, F, F + h, new[] { (xD0, xD0 + 1.0f, 2.3f) }, sg > 0 ? apTynk : apPlytki, sg > 0 ? apPlytki : apTynk);
+            ApSkrzydlo(true, cz + sg * (zs + t * .5f), xD0, 1.0f, 2.3f, -sg, 1f, BraxMiastoA.Mat("Arena premium: drzwi szatni (laminat dąb)", new Color(.6f, .47f, .32f), .5f));   // otwarte do szatni (natryski wolne)
+            ApStrefaMokra(sg, F, h, t, xM, x1, cz + sg * (zs + t), cz + sg * zs2, x0);
             ApSciana(true, cz + sg * (zt + t * .5f), x0 + t, x1, t, F, F + h, new[] { (apC.x + 17.0f, apC.x + 18.15f, 2.75f) }, sg > 0 ? graf : apTynk, sg > 0 ? apTynk : graf);
             ApSkrzydlo(true, cz + sg * (zt + t * .5f), apC.x + 17.0f, 1.15f, 2.75f, sg, 1f, BraxMiastoA.Mat("Arena premium: drzwi szatni (laminat dąb)", new Color(.6f, .47f, .32f), .5f));
         }
@@ -1054,17 +1189,21 @@ internal static partial class BraxMiastoWyspa
             var ws = new Vector3(0, 0, -sg);
             var lakD = D(brax ? BraxMiastoA.Mat("Arena premium: drzwiczki szafek Braxa (czerwień)", new Color(.55f, .07f, .06f), .4f, .3f) : BraxMiastoA.Mat("Arena premium: drzwiczki szafek gości (granat)", new Color(.08f, .15f, .42f), .4f, .3f));
             // szafki: korpus z daszkiem skośnym (profil), drzwiczki osobno ze szczelinami, uchwyty
-            float lx0 = x0 + t + .5f, lx1 = x1 - .3f, dp = .5f, hl = 1.8f * K; int nl = Mathf.FloorToInt((lx1 - lx0) / .5f); float lw = (lx1 - lx0) / nl;
-            Wyciag(lak, new[] { new Vector2(0, 0), new Vector2(dp - .06f, 0), new Vector2(dp - .06f, .1f), new Vector2(dp, .1f), new Vector2(dp, hl), new Vector2(0, hl + .18f) }, new Vector3(lx0, F + .02f, zw), Vector3.right, Vector3.up, ws, lx1 - lx0);
-            for (int k = 0; k < nl; k++)
+            float dp = .5f, hl = 1.8f * K;
+            foreach (var (lx0, lx1) in new[] { (x0 + t + .5f, xD0 - .15f), (xD0 + 1.15f, x1 - .3f) })   // dwa rzędy — przerwa na drzwi do natrysków
             {
-                var dc = new Vector3(lx0 + (k + .5f) * lw, F + .02f + (.1f + hl) * .5f, zw - sg * (dp + .011f));
-                lakD.OBox(dc, Vector3.right, Vector3.up, ws, lw - .006f, hl - .12f, .018f);
-                D(apChrom).Rura(dc + ws * .01f + Vector3.right * (lw * .35f) + Vector3.up * .05f, dc + ws * .01f + Vector3.right * (lw * .35f) - Vector3.up * .08f, .009f, 6);
+                int nl = Mathf.FloorToInt((lx1 - lx0) / .5f); if (nl < 1) continue; float lw = (lx1 - lx0) / nl;
+                Wyciag(lak, new[] { new Vector2(0, 0), new Vector2(dp - .06f, 0), new Vector2(dp - .06f, .1f), new Vector2(dp, .1f), new Vector2(dp, hl), new Vector2(0, hl + .18f) }, new Vector3(lx0, F + .02f, zw), Vector3.right, Vector3.up, ws, lx1 - lx0);
+                for (int k = 0; k < nl; k++)
+                {
+                    var dc = new Vector3(lx0 + (k + .5f) * lw, F + .02f + (.1f + hl) * .5f, zw - sg * (dp + .011f));
+                    lakD.OBox(dc, Vector3.right, Vector3.up, ws, lw - .006f, hl - .12f, .018f);
+                    D(apChrom).Rura(dc + ws * .01f + Vector3.right * (lw * .35f) + Vector3.up * .05f, dc + ws * .01f + Vector3.right * (lw * .35f) - Vector3.up * .08f, .009f, 6);
+                }
+                KolAA("szafki szatni", new Vector3(lx0, F, Mathf.Min(zw, zw - sg * dp)), new Vector3(lx1, F + hl + .2f, Mathf.Max(zw, zw - sg * dp)));
             }
-            KolAA("szafki szatni", new Vector3(lx0, F, Mathf.Min(zw, zw - sg * dp)), new Vector3(lx1, F + hl + .2f, Mathf.Max(zw, zw - sg * dp)));
             // ławka: 3 listwy dębowe na stalowej ramie (rury)
-            float zl = zw - sg * 1.25f, bx0 = x0 + 1.0f, bx1 = x1 - .8f, hb = .45f * K;
+            float zl = zw - sg * 1.25f, bx0 = x0 + 1.0f, bx1 = xD0 - .35f, hb = .45f * K;   // ławka kończy się przed drzwiami do natrysków
             for (int k = 0; k < 3; k++) Wyciag(D(apDab), PZ(.11f, .035f, .012f, new Vector2(0, hb - .018f)), new Vector3(bx0, F, zl + (k - 1) * .125f), Vector3.right, Vector3.up, Vector3.forward, bx1 - bx0);
             for (float x = bx0 + .2f; x < bx1; x += (bx1 - bx0 - .4f) / 2f)
             {
@@ -1080,8 +1219,12 @@ internal static partial class BraxMiastoWyspa
             D(apChrom).Rura(new Vector3(tx0 + .12f, F + .25f, tz), new Vector3(tx1 - .12f, F + .25f, tz), .018f, 6);
             KolAA("stół do masażu", new Vector3(tx0, F, tz - .35f), new Vector3(tx1, F + th, tz + .35f));
             // lustro z ramą na froncie (od środka), gaśnica, gniazdka
-            D(apLustro).OBox(new Vector3(x0 + t + .008f, F + 1.5f, cz + sg * 4.4f), Vector3.forward, Vector3.up, Vector3.right, 1.1f, 1.5f, .012f, true);
-            foreach (float e in new[] { -1f, 1f }) { D(apAlu).OBox(new Vector3(x0 + t + .012f, F + 1.5f, cz + sg * 4.4f + e * .57f), Vector3.forward, Vector3.up, Vector3.right, .04f, 1.58f, .02f, true); D(apAlu).OBox(new Vector3(x0 + t + .012f, F + 1.5f + e * .77f, cz + sg * 4.4f), Vector3.forward, Vector3.up, Vector3.right, 1.18f, .04f, .02f, true); }
+            // lustro z prawdziwym odbiciem (BraxCeramika.Lustro — zasada „lustro to lustro”) w czarnej ramie 4.5 cm (szkło 3 cm od ściany, w ramie)
+            BraxCeramika.Lustro(root, kto + " lustro", new Vector3(x0 + t + .03f, F + 1.5f, cz + sg * 4.4f), Vector3.right, 1.04f, 1.44f);
+            foreach (float e in new[] { -1f, 1f }) { D(apCzarny).OBox(new Vector3(x0 + t + .0225f, F + 1.5f, cz + sg * 4.4f + e * .55f), Vector3.forward, Vector3.up, Vector3.right, .06f, 1.56f, .045f, true); D(apCzarny).OBox(new Vector3(x0 + t + .0225f, F + 1.5f + e * .75f, cz + sg * 4.4f), Vector3.forward, Vector3.up, Vector3.right, 1.04f, .06f, .045f, true); }
+            // telewizor na ścianie frontowej (analiza walki) — czarne szkło w ramie, wspornik
+            D(apCzarny).Poducha(new Vector3(x0 + t + .06f, F + 1.75f, cz + sg * 2.0f - .62f), new Vector3(x0 + t + .1f, F + 2.45f, cz + sg * 2.0f + .62f), .01f, 0f, 2);
+            D(apCzarny).Rura(new Vector3(x0 + t, F + 2.1f, cz + sg * 2.0f), new Vector3(x0 + t + .07f, F + 2.1f, cz + sg * 2.0f), .03f, 8);
             ApGasnica(new Vector3(apC.x + 18.6f, F + 1.2f, cz + sg * (zt + t + .002f)), new Vector3(0, 0, sg));
             ApGniazdko(new Vector3(x0 + t + .001f, F + .3f * K, cz + sg * 2.0f), Vector3.right);
             ApGniazdko(new Vector3(x1 - .001f, F + .3f * K, cz + sg * 2.4f), Vector3.left);

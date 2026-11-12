@@ -80,8 +80,9 @@ class ArenaIslandFinish(unittest.TestCase):
         self.assertIn("mesh.subMeshCount = 3;", ISLAND)
         self.assertIn("mesh.SetTriangles(tChodnik, 2);", ISLAND)
         self.assertIn("r.sharedMaterials = new[] { mT, mP, mCh };", ISLAND)
-        self.assertIn("const int fine = 5;", ISLAND)
-        self.assertIn("tSub.Add(aa)", ISLAND)
+        # 12.11: drobna siatka 6 × 6 i klasyfikacja po środku każdego trójkąta (gładka krawędź placu i pierścienia)
+        self.assertIn("const int fine = 6;", ISLAND)
+        self.assertIn("t1.Add(aa)", ISLAND)
         self.assertIn("concrete_pavers_03", ISLAND)
         # maska piasku: kostka (trzeci submesh) nie jest piaskiem
         self.assertIn("tT.Concat(tP).Concat(tChodnik)", ISLAND)

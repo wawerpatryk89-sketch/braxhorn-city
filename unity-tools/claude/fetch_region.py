@@ -50,6 +50,7 @@ TEXTURES_DWORZEC = [
 TEXTURES_WYSPA = [
     "white_planks_clean", "hinoki_planks", "oak_wood_planks", "roof_slates_02", "waffle_pique_cotton", "wool_boucle", "hessian_230",
     "coast_sand_02",   # piaskownica placu zabaw (dotąd kolor bez tekstury)
+    "long_white_tiles", "large_floor_tiles_02",   # WC areny i plaży: płytki ścian (białe długie) i posadzki (wielki format)
 ]
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).

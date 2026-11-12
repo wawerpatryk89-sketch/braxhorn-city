@@ -37,7 +37,8 @@ class IslandPierWalkwayBoundary(unittest.TestCase):
 
     def test_original_structure_and_materials_untouched(self):
         self.assertIn("float x0 = xs - 52f, x1 = xs + 1f, hw = 1.6f * K;",SOURCE)
-        self.assertIn("float tx0 = x0 - 4.0f * K, tz0 = pz - 17f, tz1 = pz + 17f;",SOURCE)
+        # 12.11 (właściciel: „pomościk… powiększyć… motorówką i skuterami”): głowica 44 × 5 m × k
+        self.assertIn("float tx0 = x0 - 5.0f * K, tz0 = pz - 22f, tz1 = pz + 22f;",SOURCE)
         self.assertIn("BraxMiastoA.Kol(kol, \"pomost wyspy\"",SOURCE)
         self.assertIn("BraxMiastoA.Kol(kol, \"głowica pomostu\"",SOURCE)
         self.assertIn('Miejsca["wyspa_przystan"] = new Vector3(x0 + 1f, deck, pz);',SOURCE)
