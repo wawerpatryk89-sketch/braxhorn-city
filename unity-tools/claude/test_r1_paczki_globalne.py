@@ -11,6 +11,19 @@ WF = (ROOT / ".github" / "workflows" / "claude-region-build.yml").read_text()
 
 
 class PaczkiGlobalne(unittest.TestCase):
+    def test_vehicle_packs_owner_12_11(self):
+        # 01:30 „motory globalnie do wszystkich miast, rejonów”; 01:32 „rowery globalnie… bierz tylko te, które się nadają”
+        for nazwa, target, sztuki in [("braxhorn-sklep-motory-01", "pojazdy_motory_01", 5), ("braxhorn-sklep-rowery-01", "pojazdy_rowery_01", 2)]:
+            m = json.loads((PRYW / nazwa / "manifest.json").read_text())
+            self.assertEqual(m["target"], target)
+            glb = [f for f in m["files"] if f.startswith(target + "/") and f.endswith(".glb")]
+            self.assertEqual(len(glb), sztuki, nazwa)
+            self.assertIn("oryginal/spec.json", m["files"])
+        spec = (ROOT / "unity-tools/claude/pakuj_tripo.py").read_text()
+        self.assertIn('"openssl", "cms", "-encrypt"', spec)
+        self.assertNotIn("env:KLUCZ", spec); self.assertNotIn("-decrypt", spec)   # pakowanie tylko kluczem publicznym
+        self.assertTrue((ROOT / "unity-tools/claude/obroc_arkusz.py").is_file())
+
     def test_tools_copied(self):
         for f in ["unity-tools/sklep/install_sklep_modele.py", "unity-tools/sklep/split_sheet.py", "unity-tools/wideo/install_braxhorn_wideo.py"]:
             self.assertTrue((ROOT / f).is_file(), f)
