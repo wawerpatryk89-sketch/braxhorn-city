@@ -1,0 +1,29 @@
+{
+ "source": "Właściciel 11.11.2026 23:21: plansza Tripo (GLB) — czarne manekiny w pełnych strojach",
+ "target": "sklep_manekiny_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_manekiny_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "41e69b79869df834dd006bb47a0b6c51b44c1479cd11d983848b22d74d2e107b",
+ "cmsSha256": "31554c58adfe90a583dd45e58b76bcc5750aa3957453beeb05c67950d7b2663c",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 8200573,
+   "sha256": "31554c58adfe90a583dd45e58b76bcc5750aa3957453beeb05c67950d7b2663c"
+  }
+ ],
+ "files": {
+  "oryginal/manekiny_a.glb": "35f66e5dddcf6de4206073aeb5d324be34469d6a1f2922b0cabeec48437356a2",
+  "oryginal/spec.json": "a6c820c9aa9cebbf9a692853e0ae8abf90afe972ccadbf17c656bbe2b5d0130e",
+  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_kolor.jpg": "bd8c2f34cf7e34718615981a7e2a70e48e80bad193df055e5f34b2ee99ab1dd6",
+  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_mr.png": "47bede78e9ae5893a157ceaf44c6d00faffb80ce230bd4a280d8558ff9364ecd",
+  "sklep_manekiny_01/_tekstury/sklep_manekiny_01_normal.png": "68dd4aa1e761756e7032290b88de3cce5120666ba4626f993df0a2cf6c74af51",
+  "sklep_manekiny_01/katalog.json": "8170c36a1307e7d445406aeae5271ad88bb08c9911fa5b7ef5f979f3132e8342",
+  "sklep_manekiny_01/manekin_bomberka_jeansy.glb": "abac85570a95a77316a38034b8da3ade90a24b513d9f728c97a65212c13720d8",
+  "sklep_manekiny_01/manekin_dres_czarny.glb": "9c24c1a6783aa28166d56f3a263ca47fe7af5803e527f462a83571a149d26069",
+  "sklep_manekiny_01/manekin_garnitur_granatowy.glb": "0e0eb10cff8dc557f9a37a81b14a3d8e00f13ed67819ceb4a324fd5504b86980",
+  "sklep_manekiny_01/manekin_suknia_czerwona.glb": "1a53af976c9fa537e8ba664279681f260ca8b81b4b323f80262cf50492d03546",
+  "sklep_manekiny_01/manekin_zakiet_spodnica_bezowy.glb": "03033d91d109dfc23e1ec61f7d145c736215806bb3f483c7e75b174e12a95007"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

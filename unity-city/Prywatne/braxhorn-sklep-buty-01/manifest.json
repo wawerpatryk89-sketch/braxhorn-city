@@ -1,0 +1,34 @@
+{
+ "source": "owner Tripo sheet 11.11.2026 23:07 (10 pairs: runners, sneakers, canvas high-tops, basketball, football boots, trekking, chelsea, work boots, stilettos, heeled sandals), cut by unity-tools/sklep/split_sheet.py (view top, scale 1.1)",
+ "target": "sklep_buty_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_buty_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "d0049911ad69502a0fd83f957c13104da707536516e6ef80b6bd26ea4fd2f189",
+ "cmsSha256": "06f7de746bd26019f0baae7ddcec0c7b820336bf89c49bb6582ebe485ebc41a8",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 9697073,
+   "sha256": "06f7de746bd26019f0baae7ddcec0c7b820336bf89c49bb6582ebe485ebc41a8"
+  }
+ ],
+ "files": {
+  "oryginal/spec.json": "f18757630e3d4193f6f3cad3e3cd54b9530981c2b08cd6aaf30b3d176e83db4e",
+  "oryginal/tripo_convert_9f254bfb-0e30-4705-b053-6708ab7a87c6.glb": "4c3417dd91676a7c5425a7d9e784e847e0c0538b61b63c81378a3eda15253d6c",
+  "sklep_buty_01/_tekstury/sklep_buty_01_kolor.jpg": "ec42eeec0d9b87788f4ece820195887d3baee2d92b172acacff181e51696f8bf",
+  "sklep_buty_01/_tekstury/sklep_buty_01_mr.png": "e8d19d04a6ba76c1fe32a75413e7e97c468c465f3946b69a1ff83cf112f61188",
+  "sklep_buty_01/_tekstury/sklep_buty_01_normal.png": "6d29a71a627be2c0a585e3080941264f105c9b7dab643977c01d580a5225e25a",
+  "sklep_buty_01/buty_biegowe_szare.glb": "c1059b80560d67f17bdbd2c97f45596b932ffa68efb7447d7332864966de0f7a",
+  "sklep_buty_01/buty_korki_neonowe.glb": "568f8ab24989a63e7e08376c9eb60278fb289b221afe6fd71763d90455fdd576",
+  "sklep_buty_01/buty_koszykarskie_czerwone.glb": "aab5a84d13db81fa96fce95f7f15c2ecd990e0cd4eb965b5dd4ad43f13c52910",
+  "sklep_buty_01/buty_sandaly_na_obcasie_bezowe.glb": "8f762a98ce1c9d5194c32120f0b45b90817c5b1027bf052819703fccfb0d5c7f",
+  "sklep_buty_01/buty_sneakersy_bezowe.glb": "aab0169215686adc3b0b9ce593b1838fa2dba7addeb8c89c933a777b5679d01b",
+  "sklep_buty_01/buty_szpilki_czerwone.glb": "091b46627bf0dd12e7301c92ec2512c12c45365efd694c618fd150ce06c7ece0",
+  "sklep_buty_01/buty_sztyblety_brazowe.glb": "055d215a9774d41763c76542bd9d1b732274d6fde5e636b6f52577814a35fe27",
+  "sklep_buty_01/buty_trampki_wysokie_czarne.glb": "a58ee82ab88f382b60db7d5435da6713479d734ed9b6ecf68d78501880fb8c07",
+  "sklep_buty_01/buty_trekkingowe.glb": "af4ac3ed6f73c6ee3518b86028d0ab79dc46b354814db85c848fc13a4ea21241",
+  "sklep_buty_01/buty_workery_miodowe.glb": "2e001560d6879b766bf583023c145918fc278142ab3b1ad88dc6bce6b0c586d5",
+  "sklep_buty_01/katalog.json": "36cddf777c9eef8f7015bb68ada3b0337afc0578a1f7fb53be75dad4f16daea0"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

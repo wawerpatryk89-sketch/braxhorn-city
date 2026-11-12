@@ -1,0 +1,29 @@
+{
+ "source": "Właściciel 12.11.2026 01:02: plansza Tripo (GLB) — sprzęt na siłownię, GLOBALNIE dla wszystkich siłowni w grze: ławka płaska, 2 ławki regulowane, hantle heksagonalne, stojak 3-poziomowy z kompletem hantli",
+ "target": "silownia_sprzet_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/silownia_sprzet_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "f43b45d9f612a6a6448afbfe0217ec311d4ece0027d9c4b4fe65e24b017d267f",
+ "cmsSha256": "07c1e574d587f70275a659be4cfaabe253168cf43ed6768146c4787db1aaa614",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 8959073,
+   "sha256": "07c1e574d587f70275a659be4cfaabe253168cf43ed6768146c4787db1aaa614"
+  }
+ ],
+ "files": {
+  "oryginal/gym.glb": "c0c7028d819a8893f6e2879b7a218655bc81fd8f058ab2593579ba31a7bcae60",
+  "oryginal/spec.json": "b459d92795b11cca2f2cde46cdc2393047d53fe315239c44891ce3d716be6d41",
+  "silownia_sprzet_01/_tekstury/silownia_sprzet_01_kolor.jpg": "955429f4fcabcf125dff6fcc0539118587ef29fa4ab9745490ae2febe84614c4",
+  "silownia_sprzet_01/_tekstury/silownia_sprzet_01_mr.png": "0366aee1b12855eaf214767e4a99632bdb792ee2ef8b23b9147775951e7d0d69",
+  "silownia_sprzet_01/_tekstury/silownia_sprzet_01_normal.png": "a6c830bdf5683fad1faa966a0c55bc54696d593d9da6b60bcdfbc2539046c6b9",
+  "silownia_sprzet_01/hantle_heksagonalne_para.glb": "88ce7436f2e47976f8b88618bb0a40b0b53a07cb6e3eaf70e0e4829a263cd19f",
+  "silownia_sprzet_01/katalog.json": "67ac7ae470e08bbf1a2cddb8ad37a917f28d0b61df5a42a10c8f99b573dc29d6",
+  "silownia_sprzet_01/lawka_plaska.glb": "d4e3e9a499e220c9996484242509067c5d67f00f2917e5a55b489573a4814711",
+  "silownia_sprzet_01/lawka_regulowana.glb": "54e673808fe4d9c3c61e5e61cb43d342ccdb82e83652a53d6215c17c50f9ba17",
+  "silownia_sprzet_01/lawka_regulowana_2.glb": "dce2d3ab5f1f9a816596c6ef08cb8ec2bb2a8f516a040564bf7216afadb9e163",
+  "silownia_sprzet_01/stojak_hantli_3_poziomy.glb": "c6b398e782d56a5ecaf18df1bac363c8709111fb8e3e213502e9122dbac7893a"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

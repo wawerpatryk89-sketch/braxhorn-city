@@ -238,6 +238,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/r1_reklamy_tv.py
+    - name: Towar i sprzet wlasciciela z Tripo - paczki globalne braxhorn-sklep-* (zaszyfrowane, te same co w Miescie Mistrzow; klucz tylko w sekretach, bez niego zastepstwa z kodu)
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/sklep/install_sklep_modele.py
     - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
       env:
         GH_TOKEN: ${{ github.token }}
@@ -585,6 +589,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/r1_reklamy_tv.py
+    - name: Towar i sprzet wlasciciela z Tripo - paczki globalne braxhorn-sklep-* (zaszyfrowane, te same co w Miescie Mistrzow; klucz tylko w sekretach, bez niego zastepstwa z kodu)
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/sklep/install_sklep_modele.py
     - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
       env:
         GH_TOKEN: ${{ github.token }}
@@ -1127,6 +1135,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/r1_reklamy_tv.py
+    - name: Towar i sprzet wlasciciela z Tripo - paczki globalne braxhorn-sklep-* (zaszyfrowane, te same co w Miescie Mistrzow; klucz tylko w sekretach, bez niego zastepstwa z kodu)
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/sklep/install_sklep_modele.py
     - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
       env:
         GH_TOKEN: ${{ github.token }}

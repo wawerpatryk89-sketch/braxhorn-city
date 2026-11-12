@@ -1,0 +1,34 @@
+{
+ "source": "owner Tripo sheet 11.11.2026 23:07 (10 bags: croc tote, patent shoulder bag, denim tote, straw basket, silver frame bag, studded hobo, taupe hobo, chain clutch, vanity case, crossbody), cut by unity-tools/sklep/split_sheet.py (scale 1.6)",
+ "target": "sklep_torebki_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_torebki_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "2c8a08937fe7a58a2e19d093db53bdded043f06db1b34cfe1a6902a720639029",
+ "cmsSha256": "c374dbd0b8df577fcd3a2f8d5f6194a374d0aea4a180c24b8cb85118bdfa62df",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 9143573,
+   "sha256": "c374dbd0b8df577fcd3a2f8d5f6194a374d0aea4a180c24b8cb85118bdfa62df"
+  }
+ ],
+ "files": {
+  "oryginal/spec.json": "8a7650ccb52b133384e1c49fad5ab888503fe90226e04149606ce6a30fec3250",
+  "oryginal/tripo_convert_fd600f83-9606-4d21-8377-96698ed94657.glb": "097e498735914ddef3f74a5b697ab02b931fe34a9f2e1fcebe98d89d1d00516a",
+  "sklep_torebki_01/_tekstury/sklep_torebki_01_kolor.jpg": "58df5c2ad9ed64736c74731cdc28287fdf82ed660700ad77c8b7667bbdd4dd5f",
+  "sklep_torebki_01/_tekstury/sklep_torebki_01_mr.png": "e8d19d04a6ba76c1fe32a75413e7e97c468c465f3946b69a1ff83cf112f61188",
+  "sklep_torebki_01/_tekstury/sklep_torebki_01_normal.png": "c22787e2e21ae88c33e17e38eb43fa14845cd32d97efee7addaee36d70ef713c",
+  "sklep_torebki_01/katalog.json": "8b794cb6679a354c3562ac44c846f6f4ac0d3b846463f361a93a335c05fd71dd",
+  "sklep_torebki_01/torebka_hobo_czarna_cwieki.glb": "8c6c8d9e2d4ae0c261ba49f760733f7a664c07d4cf53d27bb67e57964b62abb2",
+  "sklep_torebki_01/torebka_hobo_taupe.glb": "96705c0d6d83e3eb3296528a43fe26b9659c3b7b88962c11cd766c8e9ced6620",
+  "sklep_torebki_01/torebka_jeansowa.glb": "0590c8d841ef951159b27169e53c3b221575264c1adc0d745b4eab078a18e8d6",
+  "sklep_torebki_01/torebka_kopertowa_kremowa.glb": "9a396023a9397817c6c4e515d7b102701cf4dd14899bb147631d1ac6ad404547",
+  "sklep_torebki_01/torebka_koszyk_slomkowy.glb": "fef2efb9c8fe80156688733df6188a1c569985183ffbe6a13ec56ad44c73aa9d",
+  "sklep_torebki_01/torebka_kuferek_bordo_kroko.glb": "e8242a4216e671c21276c59067699a97f222eaec8289dcf4ed6d070c9ff986f5",
+  "sklep_torebki_01/torebka_kuferek_rozowy.glb": "766adfe53de28e4f58903c9f0594246602550d174ecdf3c5ab3be9997d9fb112",
+  "sklep_torebki_01/torebka_lakierowana_czarna.glb": "1a22ac11af78e517f172652b5cc4022681623f2a5b302ec19e24b84acc96b41f",
+  "sklep_torebki_01/torebka_listonoszka_koniak.glb": "2cc26b74bf14075014a03ed336ca1f370ca2a216b399af8040509ec5de82211b",
+  "sklep_torebki_01/torebka_srebrna_z_bigielkiem.glb": "eebb6f0e6c3a4656d6f2a29701744788381ce48785e64ff1bfb044777bb9042c"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

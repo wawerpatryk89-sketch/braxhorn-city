@@ -1,0 +1,33 @@
+{
+ "source": "Właściciel 11.11.2026 23:34: plansza Tripo (GLB) — sprzęt sportowy BRAXHORN: piłki nożna, do kosza, siatkowa, hantle, kettlebell, rękawice bokserskie, worek, skakanka, mata (rakieta z zniszczonym naciągiem odrzucona)",
+ "target": "sklep_sprzet_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_sprzet_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "1c3114f9b8234b0d06c5d94113f81f0a2e80b23291a4ac8e43c04ce5c54b663e",
+ "cmsSha256": "267a7403450d9feca6a74f070daf77af630c92e9db330884fa4630351bd4c26a",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 9543325,
+   "sha256": "267a7403450d9feca6a74f070daf77af630c92e9db330884fa4630351bd4c26a"
+  }
+ ],
+ "files": {
+  "oryginal/spec.json": "7850b7b09871f817b37653ec923861a8bf50a1dc7b97166973ae801dbe6fb52f",
+  "oryginal/sprzet.glb": "799bedf4f4ec820844875127ba6f264fd72c0c1a4f034db2aa0d21ee3a4507c0",
+  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_kolor.jpg": "d7492fb5965417122e77e4cc8284d6a15eb09d4f250ed9e24a04e9b75256c101",
+  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_mr.png": "8d9a0ade1c3ed441805cdc01f16c323172c23880393227695ff2cd1b9a259045",
+  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_normal.png": "a98d989600c33b69d6fea9d9f3e9787ae87c4369a5729b64585107b5e457b225",
+  "sklep_sprzet_01/hantle_para_10kg.glb": "ad31df822737c6e700d5b725353d0524c26cddbdbff2d8477296dd6309e8bbdb",
+  "sklep_sprzet_01/katalog.json": "c2dec8762f315362881968b74a2f318bcb8f3fc437a7feafdb9fb8cff2f27306",
+  "sklep_sprzet_01/kettlebell_16kg.glb": "a29f709d08e9a038a3c0550353bd78420ac5fe4a3fd0ca5657e9713b15e9bfb7",
+  "sklep_sprzet_01/mata_zwinieta_fioletowa.glb": "cb226b0230e1747cd849daf60760c7420a5f21eba05f8a644fecc8b9ee38e85b",
+  "sklep_sprzet_01/pilka_do_kosza.glb": "65265946f9436b0721f559d40fd12ff6acca85b17331d9a65e2700d05a86d2a6",
+  "sklep_sprzet_01/pilka_nozna.glb": "84d0f94b5d2a7c9bded23f591a281480cb7044e5f846afb42b7c9f6115aa82f2",
+  "sklep_sprzet_01/pilka_siatkowa.glb": "1751c017fce13d81f109cf1491a89ec72b7d1ccd3714b5fa81a254910131e225",
+  "sklep_sprzet_01/rekawice_bokserskie.glb": "ba9d2a2b2efd7593896e5faae98ae507a9766b59ef3fa5e748e7f8330e697ba7",
+  "sklep_sprzet_01/skakanka.glb": "3bb9b9a6001ec9bebe21be194853b63126a75f597791a4deb58b199eac11e213",
+  "sklep_sprzet_01/worek_bokserski.glb": "f4ead502d78cf284343a0042713c02a2337ef589af7629916f4c703832b06559"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

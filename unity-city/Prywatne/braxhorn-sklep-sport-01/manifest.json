@@ -1,0 +1,44 @@
+{
+ "source": "Właściciel 11.11.2026 23:28: plansza Tripo (GLB) — odzież sportowa BRAXHORN (koszulka meczowa, koszulka, bluza z kapturem, bluza dresowa, spodnie dresowe, spodenki, legginsy, kurtka puchowa, wiatrówka, koszulka bez rękawów)",
+ "target": "sklep_sport_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_sport_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "5f27bd850834cd75df776d52c643a1b85b03fdf11a45642dde933437de431adc",
+ "cmsSha256": "a9bbe1ab5317c85bbdac8cd86561b6ef0b7d2f1e98825729ea8f3410b5359690",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 8620825,
+   "sha256": "a9bbe1ab5317c85bbdac8cd86561b6ef0b7d2f1e98825729ea8f3410b5359690"
+  }
+ ],
+ "files": {
+  "oryginal/spec.json": "4d5a745c2679771d0c11a80c155e21c31c4f1181abf8317563a6df2937089f91",
+  "oryginal/sport.glb": "562c3864c78d96139aaaa4a25c9157263986df52aa99529d4feb05faf8d9904f",
+  "sklep_sport_01/_tekstury/sklep_sport_01_kolor.jpg": "30d3c2194af3d93cdeffd4f4161725b0a6cd1498f7d6ea9a5995fd23d0d3d02a",
+  "sklep_sport_01/_tekstury/sklep_sport_01_mr.png": "0ae63ee193dd209973192aac6a7899b2ab1f01788f2b3f10fd61591867bfa03e",
+  "sklep_sport_01/_tekstury/sklep_sport_01_normal.png": "a116d05f6b2930385539b1ba804b859f46cb11fd89b2c857bcf99cd8dd70483a",
+  "sklep_sport_01/katalog.json": "33c3f511dbb29b48e7a6d246e5ac6ef6e18e2738b04e245c1d143a5758bd797c",
+  "sklep_sport_01/sport_bluza_kaptur_czarna.glb": "ac18259ba9d076075110cb9406fd46e8024372cf54e72fce7189be341b126987",
+  "sklep_sport_01/sport_bluza_kaptur_czarna_wieszak.glb": "7b573793aff4419104621240f923a3d2007b11e1f9f8cb03fe398e6192e08d77",
+  "sklep_sport_01/sport_koszulka_bez_rekawow.glb": "caafee9f9f288942a9b68159d940b6da9dfafeaad464031c08a95532c3a4b2c0",
+  "sklep_sport_01/sport_koszulka_bez_rekawow_wieszak.glb": "f09930ee4df2df5f8ac4e2e55b5beb0587909041ffc9e5c0d01c8409b5488891",
+  "sklep_sport_01/sport_koszulka_braxhorn_czarno_zlota.glb": "4cd83f9a8f4b52287bd51a3b9c45dbf7b17252184a54aa98a4f298878998db05",
+  "sklep_sport_01/sport_koszulka_braxhorn_czarno_zlota_wieszak.glb": "3fe097a23275f152ea60c33f7d15c61fae6f6ce6febe621b193884437897b009",
+  "sklep_sport_01/sport_koszulka_czerwona.glb": "1fc58b116d1b97eacc2f3f7c71963b28b6ec6e0943be428cb07e4d2eb8d5f19f",
+  "sklep_sport_01/sport_koszulka_czerwona_wieszak.glb": "fb287e43765a45ee875617998763ea0f8bfb187f959368e18933f508893e90e8",
+  "sklep_sport_01/sport_kurtka_dresowa_zlote_lampasy.glb": "2df9c06b2a6651b210466a53a9a0b680866befd626f29021d933ee3fe5553bc8",
+  "sklep_sport_01/sport_kurtka_dresowa_zlote_lampasy_wieszak.glb": "f1ab14ea70670d4be69e5599d157558df611fa9ced832663226135b767e481c6",
+  "sklep_sport_01/sport_kurtka_puchowa_czarna.glb": "aeb79bf9f268fb9558d3b07fc0a7baa107be143c9d78a3646095f8ca57074d4a",
+  "sklep_sport_01/sport_kurtka_puchowa_czarna_wieszak.glb": "806198eec2b6b06ba1c6d6e8d5cb711fedc0737931ce353f85abe2bf675a38b9",
+  "sklep_sport_01/sport_legginsy_czarne.glb": "e6fc0d92b34203fb4d347d3e47ec5cb9cd67acb60e4e5e2c57b7c45f59e5d500",
+  "sklep_sport_01/sport_legginsy_czarne_wieszak.glb": "5d51aecd97b1a12b10124e3332a545953810c79b4f5d9f9616e538dcb59c8cf5",
+  "sklep_sport_01/sport_spodenki_czarne.glb": "8e59f64e5ab3d95532e518442bef70688f1de1dbe4b2616ad883622a508bfb3b",
+  "sklep_sport_01/sport_spodenki_czarne_wieszak.glb": "5afcc142ac30b3c7d6d685ab883586f9583a6c5b391d1056256538c0e4f35bef",
+  "sklep_sport_01/sport_spodnie_dresowe_lampasy.glb": "1b9f832a6d435be2366e9c019f505bbe2312140f12e7c5eb6a755399ae6c54b7",
+  "sklep_sport_01/sport_spodnie_dresowe_lampasy_wieszak.glb": "2d9cfd63f0f7ec05e2c0c51945cb7c8aa6a351a6778b4e6b8ce8661467b817dc",
+  "sklep_sport_01/sport_wiatrowka_szara.glb": "c3a634c9a96e8ef12206487272beff87e94d7bfd70f52a811511d2680b2d64f2",
+  "sklep_sport_01/sport_wiatrowka_szara_wieszak.glb": "a6fc1fa80135ec02e8f22fc74c717c31417d9f687ac4338f426464dca3640dd8"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
