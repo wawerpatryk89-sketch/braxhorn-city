@@ -8,7 +8,7 @@ using UnityEngine;
 //   every 13.3 m (x +-6.65 + 13.3 n) - the paved arcade under it is the passage from the hall to the platforms.
 // * PLATFORMS P1 / P2 (side platforms, 260 m, +7.26 = .76 over the rail head, edges 1.725 m from the track centres):
 //   granite coping, white line, yellow tactile strip, light granite paving, glass balustrades on the outer edges, gates
-//   at the ends; three accesses (x -95, 0, 95): stairs 2.6 m in two flights + a glass lift each; canopies on navy columns
+//   at the ends; three accesses (x -95, 0, 95): stairs 2.6 m in two flights each (no lifts on the platforms: owner 12.11); canopies on navy columns
 //   (12 m) with larch soffits, LED lines, the platform numbers and the station name.
 // * TRACK: ballast bed (1:1.5 shoulders), B03 concrete sleepers every .6 m, UIC60 rails (foot / web / head), friction
 //   buffer stops at the east end; catenary: contact wire 5.3 m over the rail head on cross-span beams / portals.
@@ -28,8 +28,11 @@ public static partial class BraxChampionsD2
     // the opening in the deck / platform for the access at xa: from where the stair is 2.1 m under the soffit to the top,
     // then the lift shaft beyond the top of the stair
     static (float x0,float x1) Opening(float xa)=>(xa-2.4f,xa+7.0f+.6f+LiftW+.3f);
-    // the holes in the deck / platform: the stair's (to its top at xa+7) and the lift shaft's (xa+7.6..9.9), a .6 m landing between
-    static IEnumerable<(float x0,float x1)> Holes(float xa){yield return (xa-2.4f,xa+7.0f);yield return (xa+7.6f,xa+7.6f+LiftW);}
+    // the holes in the deck / platform: the stair's only (to its top at xa+7). Owner 12.11 11:39 ("windy mają być z peronu
+    // całego usunięte"): the glass lift that stood .6 m beyond the top of every stair (xa+7.6..9.9), in the way of everyone
+    // coming up, is gone with its shaft hole; the platform is paved there. The opening's extent stays (columns and benches
+    // keep their places).
+    static IEnumerable<(float x0,float x1)> Holes(float xa){yield return (xa-2.4f,xa+7.0f);}
     // transverse frames on the 13.3 m grid, moved out of the access zones (xa-8..xa+11: stairs, lift, their cap beams)
     static List<float> FrameXs()
     {
@@ -127,10 +130,15 @@ public static partial class BraxChampionsD2
         var holes=new List<(float,float,float,float)>();var (b0,b1)=Band(p);foreach(float xa in Accesses)foreach(var (o0,o1) in Holes(xa))holes.Add((o0,o1,b0,b1));
         float c1=edge-s*.40f,w1=c1-s*.10f,t0=edge-s*.90f,t1=edge-s*1.30f;
         B(granite,PlatX0,PlatX1,PlatformTop-.20f,PlatformTop,Mathf.Min(edge,c1),Mathf.Max(edge,c1),true);
-        Flat(paintWhite,PlatX0+.3f,PlatX1-.3f,Mathf.Min(c1,w1),Mathf.Max(c1,w1),PlatformTop+.012f);
-        Flat(tactile,PlatX0+.3f,PlatX1-.3f,Mathf.Min(t0,t1),Mathf.Max(t0,t1),PlatformTop+.012f);
-        // paving from the coping to the outer edge (top at PlatformTop), body below it
-        float pa=c1,pb=outer;
+        // owner 12.11 11:39 ("wszystkie białe linie pasy migotają, nic nie ma migotać"): the white line and the yellow tactile
+        // strip are no longer paint lying 12 mm over the paving (from 100 m on a phone the depth buffer cannot tell them
+        // apart: they flickered the whole platform long) - they are strips of the paving itself, edge to edge with the
+        // granite, one top plane, nothing over anything
+        B(paintWhite,PlatX0,PlatX1,PlatformTop-.25f,PlatformTop,Mathf.Min(c1,w1),Mathf.Max(c1,w1),true);
+        B(granite,PlatX0,PlatX1,PlatformTop-.25f,PlatformTop,Mathf.Min(w1,t0),Mathf.Max(w1,t0),true);
+        B(tactile,PlatX0,PlatX1,PlatformTop-.25f,PlatformTop,Mathf.Min(t0,t1),Mathf.Max(t0,t1),true);
+        // paving from the tactile strip to the outer edge (top at PlatformTop), body below it
+        float pa=t1,pb=outer;
         Slab(granite,PlatX0,PlatX1,Mathf.Min(pa,pb),Mathf.Max(pa,pb),PlatformTop-.25f,PlatformTop,holes,true);
         Slab(concrete,PlatX0+.02f,PlatX1-.02f,Mathf.Min(wall-s*.25f,pb),Mathf.Max(wall-s*.25f,pb),DeckTop,PlatformTop-.25f,holes,false);
         // outer edge: glass balustrade 1.1 m in separate 1.5 m panes between black posts, black handrail cap and shoe
@@ -340,7 +348,7 @@ public static partial class BraxChampionsD2
     static Material deckFelt;
     static Material acousticDeck(){if(!deckFelt)deckFelt=Tex("deck_soffit_felt_black","poly_wool_herringbone",.8f,new Color(.13f,.13f,.15f));return deckFelt;}
     // two flights (20 risers each) rising toward +x from xa-7 (passage .30) to xa+7 (platform 7.26), landing at xa-1..xa+1;
-    // the lift (glass shaft, navy frame) beyond the top; glass balustrade round the opening on the platform
+    // glass balustrade round the opening on the platform
     static void Stair(float xa,int p)
     {
         var (z0,z1)=Band(p);float rise=(PlatformTop-WalkY)/(2*StairRisers);
@@ -350,9 +358,10 @@ public static partial class BraxChampionsD2
             for(int i=0;i<StairRisers;i++)
             {
                 float x=xs+i*StairRun,y=ys+(i+1)*rise;
-                B(granite,x,x+StairRun+(i<StairRisers-1?.02f:0f),y-.05f,y,z0+.115f,z1-.115f);
+                // contrast nosing: a 5 cm yellow strip OF the tread (inlaid, its own block), not paint lying on it (flicker)
+                B(paintYellow,x,x+.05f,y-.05f,y,z0+.115f,z1-.115f);
+                B(granite,x+.05f,x+StairRun+(i<StairRisers-1?.02f:0f),y-.05f,y,z0+.115f,z1-.115f);
                 B(concrete,x,x+StairRun,ys-.25f+i*rise,y-.05f,z0+.135f,z1-.135f);
-                Flat(paintYellow,x,x+.05f,z0+.13f,z1-.13f,y+.012f);                 // contrast nosing
             }
             // collider as a ramp
             float len=StairRisers*StairRun,h=StairRisers*rise;
@@ -383,49 +392,9 @@ public static partial class BraxChampionsD2
         }
         // (on the paving round the hole, 5 cm back from its edge)
         Rail(new Vector3(o0-.05f,y,z0-.05f),new Vector3(xa+7f,y,z0-.05f));Rail(new Vector3(o0-.05f,y,z1+.05f),new Vector3(xa+7f,y,z1+.05f));Rail(new Vector3(o0-.05f,y,z0-.05f),new Vector3(o0-.05f,y,z1+.05f),false);
-        // lift: glass shaft from the passage to the platform + 2.6 m, navy corner posts, cabin at the platform
-        float lx0=xa+7.6f,lx1=lx0+LiftW;
-        Lift(lx0,lx1,z0,z1,p,xa);
         // the holes' sides in the deck: concrete reveals
         foreach(var (h0,h1) in Holes(xa)){B(concrete,h0,h1,DeckSoffit,DeckTop,z0-.02f,z0);B(concrete,h0,h1,DeckSoffit,DeckTop,z1,z1+.02f);}
     }
-    // glass lift (BraxWinda, the city's lift): shaft x0..x1 in the band z0..z1 from the passage (.30) to 2.7 m over the
-    // platform, the doors on the track side (P1 +z, P2 -z) at both stops, the cabin rides between them
-    static void Lift(float x0,float x1,float z0,float z1,int p,float xa)
-    {
-        float yb=WalkY,yt=PlatformTop+2.7f,dz=p==0?z1:z0,back=p==0?z0:z1,f=p==0?1f:-1f;
-        // black frame (owner 11.11: nothing grey at glass): corner posts, the head, transoms dividing the panes every floor
-        foreach(float x in new[]{x0,x1})foreach(float z in new[]{z0,z1})B(frame,x-.06f,x+.06f,yb,yt+.2f,z-.06f,z+.06f);
-        B(frame,x0-.06f,x1+.06f,yt,yt+.25f,z0-.06f,z1+.06f);
-        foreach(float ty in new[]{yb+.06f,WalkY+2.6f,DeckSoffit-.05f,PlatformTop+.06f})
-        {
-            B(frame,x0+.06f,x1-.06f,ty-.04f,ty+.04f,back-.035f,back+.035f);
-            foreach(float x in new[]{x0,x1})B(frame,x-.035f,x+.035f,ty-.04f,ty+.04f,z0+.06f,z1-.06f);
-        }
-        // glass: the back (outer) side and both x sides; the door side has the landing door frames + glass above the doors
-        void Glass(Vector3 a,Vector3 b,Vector3 c,Vector3 d,Vector3 n){Q(glass,a,b,c,d,n);Q(glass,a,b,c,d,-n);}
-        Glass(new Vector3(x0,yb,back),new Vector3(x1,yb,back),new Vector3(x1,yt,back),new Vector3(x0,yt,back),Vector3.forward);
-        foreach(float x in new[]{x0,x1})Glass(new Vector3(x,yb,z0),new Vector3(x,yb,z1),new Vector3(x,yt,z1),new Vector3(x,yt,z0),Vector3.right);
-        float xc=(x0+x1)*.5f,hd=.55f;
-        foreach(float y in new[]{yb,PlatformTop})
-        {
-            float top=y==yb?DeckSoffit-.05f:yt;
-            B(frame,x0+.06f,xc-hd,y,y+2.2f,dz-.04f,dz+.04f,true);B(frame,xc+hd,x1-.06f,y,y+2.2f,dz-.04f,dz+.04f,true);
-            B(frame,x0+.06f,x1-.06f,y+2.2f,y+2.35f,dz-.04f,dz+.04f);
-            Glass(new Vector3(x0,y+2.35f,dz),new Vector3(x1,y+2.35f,dz),new Vector3(x1,top,dz),new Vector3(x0,top,dz),Vector3.forward);
-            Col(x0,x1,y+2.2f,top,dz-.05f,dz+.05f,"szyb nad drzwiami");
-        }
-        Col(x0,x1,yb,yt,back-.1f,back+.1f,"szyb windy");Col(x0-.1f,x0+.1f,yb,yt,z0,z1,"szyb windy");Col(x1-.1f,x1+.1f,yb,yt,z0,z1,"szyb windy");
-        // the call panel beside the door at each stop (stainless plate, a lit button)
-        foreach(float y in new[]{yb,PlatformTop})
-        {
-            B(frame,x1+.15f,x1+.35f,y+.95f,y+1.25f,dz+f*.02f-.01f,dz+f*.02f+.01f);
-            m.Cylinder(led,new Vector3(x1+.25f,y+1.10f,dz+f*.035f),.035f,.012f,12,Quaternion.Euler(f*90f,0,0),true,true);
-        }
-        Lifts++;
-        LiftCar(x0,x1,z0,z1,p,xa);
-    }
-
     // ================================================================ bridge over X70: steel tied arch
     static void Bridge()
     {

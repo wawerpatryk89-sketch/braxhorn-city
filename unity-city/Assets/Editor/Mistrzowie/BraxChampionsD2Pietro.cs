@@ -26,9 +26,11 @@ public static partial class BraxChampionsD2
             {
                 float z0=zStart+dir*i*run,z1=z0+dir*(run+(i<12?.02f:0f)),y=yStart+(i+1)*rise;
                 // treads clear of the balustrade shoes (glass on the stringers at lo+.03 / hi-.03) by 15 mm
-                B(granite,lo+.075f,hi-.075f,y-.05f,y,Mathf.Min(z0,z1),Mathf.Max(z0,z1));
+                // the yellow nosing is a 5 cm strip of the tread itself (inlaid, owner 12.11: nothing may flicker)
+                float zn=z0+dir*.05f;
+                B(paintYellow,lo+.075f,hi-.075f,y-.05f,y,Mathf.Min(z0,zn),Mathf.Max(z0,zn));
+                B(granite,lo+.075f,hi-.075f,y-.05f,y,Mathf.Min(zn,z1),Mathf.Max(zn,z1));
                 B(concrete,lo+.08f,hi-.08f,yStart-.25f+i*rise,y-.05f,Mathf.Min(z0,z0+dir*run),Mathf.Max(z0,z0+dir*run));
-                float zn=z0+dir*.0f;Flat(paintYellow,lo+.10f,hi-.10f,Mathf.Min(zn,zn+dir*.05f),Mathf.Max(zn,zn+dir*.05f),y+.012f);
             }
             float len=13*run,h=13*rise,zc=zStart+dir*len*.5f;
             var o=new GameObject("schody piętro | kolizja");o.transform.SetParent(cols,false);

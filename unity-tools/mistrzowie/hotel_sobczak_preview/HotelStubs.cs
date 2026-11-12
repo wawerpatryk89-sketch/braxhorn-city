@@ -47,5 +47,6 @@ public static class BraxChampionsHarbour
 {
     public static Material Surface(string id, Color c, float rough, float metal, Color? emission = null, bool transparent = false)
         => new Material { name = "Champions harbour " + id, color = c, roughness = rough, metallic = metal, emission = emission ?? Color.black };
+    public static Material Nakladka(Material m) => m;     // the depth offset of paint: nothing to draw differently in the preview
 }
 public sealed class BraxTelewizor : MonoBehaviour { public bool wlaczony = true, pion; public float zasieg = 26f, zasiegPrzycisku = 2.8f; public Material obraz, wylaczony; public int start; }

@@ -110,10 +110,11 @@ public static partial class BraxChampionsD2
         sleeper=S("sleeper_concrete",new Color(.62f,.62f,.60f),.85f,0f);
         railHead=S("rail_head_bright",new Color(.70f,.72f,.75f),.25f,.95f);
         railWeb=S("rail_web_rust",new Color(.30f,.22f,.18f),.80f,.35f);
-        paintWhite=S("paint_white",new Color(.93f,.93f,.91f),.55f,0f);
-        paintYellow=S("paint_yellow",new Color(.96f,.78f,.10f),.55f,0f);
-        paintBlue=S("paint_accessible_blue",new Color(.07f,.29f,.66f),.6f,0f);
-        tactile=S("tactile_yellow",new Color(.95f,.75f,.08f),.7f,0f);
+        // paint: depth offset (owner 12.11 "nic nie ma migotać" - BraxChampionsHarbour.Nakladka)
+        paintWhite=BraxChampionsHarbour.Nakladka(S("paint_white",new Color(.93f,.93f,.91f),.55f,0f));
+        paintYellow=BraxChampionsHarbour.Nakladka(S("paint_yellow",new Color(.96f,.78f,.10f),.55f,0f));
+        paintBlue=BraxChampionsHarbour.Nakladka(S("paint_accessible_blue",new Color(.07f,.29f,.66f),.6f,0f));
+        tactile=BraxChampionsHarbour.Nakladka(S("tactile_yellow",new Color(.95f,.75f,.08f),.7f,0f));
         led=S("led_cool",Color.white,.3f,0f,new Color(1.15f,1.15f,1.20f));
         ledWarm=S("led_warm",new Color(1f,.95f,.86f),.3f,0f,new Color(1.30f,1.12f,.88f));
         whiteLetters=S("letters_white_backlit",new Color(.96f,.96f,.97f),.3f,0f,new Color(.85f,.85f,.88f));
@@ -280,7 +281,7 @@ public static partial class BraxChampionsD2
         StationDeck();Flush("D2 railway | station deck, piers, platforms");
         Canopies();Flush("D2 railway | platform canopies, catenary");
         Track();Flush("D2 railway | track: ballast, sleepers, rails, buffer stops");
-        Access();Flush("D2 railway | stairs, escalators, lift shafts, passage under the tracks");
+        Access();Flush("D2 railway | stairs, escalators, passage under the tracks");
         Bridge();Flush("D2 railway | steel tied-arch bridge over X70");
         LineWest();Flush("D2 railway | viaduct to the region edge, embankment, cutting, tunnel portal");
         BusTerminal();Flush("D2 bus terminal | island, canopy, stands, terminal building");

@@ -84,8 +84,8 @@ public static partial class BraxChampionsCasinoT11
         steel.SetFloat("_Metallic",.83f);steel.SetFloat("_Roughness",.38f);
         roof=BraxChampionsCasinoPbr2K.Create(output,"t11_roof","concrete_floor_02",2.1f,new Color(.27f,.29f,.32f));
         redCarpet=BraxChampionsCasinoPbr2K.Create(output,"t11_casino_red_carpet","fabric_pattern_05",.55f,new Color(.64f,.028f,.038f));
-        parkingPaint=Surface("painted_parking_stripes",new Color(.97f,.97f,.93f),false,false);
-        garageParkingPaint=Surface("B1_brilliant_white_floor_stripes",new Color(.99f,.99f,.99f),false,false);
+        parkingPaint=BraxChampionsHarbour.Nakladka(Surface("painted_parking_stripes",new Color(.97f,.97f,.93f),false,false));          // no flicker
+        garageParkingPaint=BraxChampionsHarbour.Nakladka(Surface("B1_brilliant_white_floor_stripes",new Color(.99f,.99f,.99f),false,false));
         garageParkingPaint.SetFloat("_Roughness",.70f);
         // Washable matte white walls, white structural columns and a white
         // reinforced ceiling ONLY below grade. The casino facade remains cream,

@@ -15,6 +15,12 @@
     <Compile Include="../casino_preview/CasinoStubs.cs" />
     <Compile Include="../casino_preview/RuntimeStubs.cs" />
     <Compile Include="ArenaStubs.cs" />
+    <Compile Include="RegionGeneratorStubs.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsPiksele.cs" />
+    <Compile Include="../apartments_preview/KatalogStubs.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxKatalog.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxKatalogTowar.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxKatalogDom.cs" />
     <Compile Include="ArenaMain.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPalmTrunk.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs" />

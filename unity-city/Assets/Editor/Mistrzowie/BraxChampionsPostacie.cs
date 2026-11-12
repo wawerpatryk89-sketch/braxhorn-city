@@ -8,8 +8,7 @@ using UnityEngine.Rendering;
 
 // Owner 12.11 01:59-02:33 (Tripo characters): "mają stać pod klubem ... między nimi chodzi. Pod każdym klubem" and "ma się
 // ruszać po mieście ... chodziła, biegała, gesty miała". Global pack braxhorn-sklep-postacie-01 (postacie_01):
-//  * five club girls (one Tripo rig cut into five static figures, real 1.71-1.75 m) stand in two groups on both sides of
-//    the door of every club of the region - E1 CENTRUM ROZRYWKI and KASYNO WAWER T11 - so the player walks between them;
+//  * (the five static club girls at the club doors were removed on the owner's word 12.11 11:45: nothing standing still)
 //  * four rigged walkers carry their own baked clips (unity-tools/sklep/postac_animacja.py: Walking, Running, Idle, Taunt,
 //    Warming Up, Head Hit, Hit To Body on their own Mixamo bones) and walk the promenade with the city's pedestrian brain
 //    (BraxPieszy: right side of the walkway, stops, gestures, greets, reacts to a hit and runs, turns at the ends), each
@@ -18,7 +17,6 @@ public static class BraxChampionsPostacie
 {
     const string Paczka = "postacie_01", Out = "Assets/PlayableGenerated/Mistrzowie/Postacie";
     static float K => BraxClaudeOsiedle.K;
-    static readonly string[] Klub = { "klub_czarna_sukienka", "klub_czerwona_sukienka", "klub_biala_sukienka", "klub_panterka", "klub_rozowa_sukienka" };
     static readonly string[] Chodzace = { "chodzi_czerwona_bluzka", "chodzi_niebieska_bluzka", "chodzi_czarne_bikini", "chodzi_biale_bikini" };
     static readonly float[] Wzrost = { 1.68f, 1.66f, 1.70f, 1.72f };
 
@@ -30,12 +28,10 @@ public static class BraxChampionsPostacie
         if (!BraxMiastoAssety.Jest(Paczka)) { BraxBuildQuality.Warn("MISTRZOWIE_POSTACIE brak paczki " + Paczka + " (braxhorn-sklep-postacie-01)"); return 0; }
         Directory.CreateDirectory(Out);
         Physics.SyncTransforms();
-        var root = new GameObject("MIASTO MISTRZÓW | postacie (pod klubami, na promenadzie)").transform;
+        var root = new GameObject("MIASTO MISTRZÓW | postacie (chodzące po promenadzie)").transform;
+        // owner 12.11 11:45 ("te ... nieruchome mają usunięte być, nie ma ich w ogóle być"): the five static club girls that
+        // stood at the doors of E1 and KASYNO WAWER are gone - only the walking, animated figures stay
         int stoja = 0, chodza = 0;
-        // E1: door in the portal (local x 5 of the 530/-13 site), facade z -38, the forecourt to the road z -60
-        stoja += PodKlubem(root, "E1 CENTRUM ROZRYWKI", new Vector3(535f, 0f, -38f), Vector3.back, 4.2f);
-        // KASYNO WAWER T11: door on the axis of the 495/465 lot, face z 428.4, canopy and gold lanterns to z 425.3
-        stoja += PodKlubem(root, "KASYNO WAWER", new Vector3(495f, 0f, 428.4f), Vector3.back, 4.6f);
         // the promenade walkway (z -145.5..-125, palms at -143), x 110..1090: four lanes, every walker twice
         float[] tory = { -128.6f, -131.8f, -135.0f, -138.2f };
         var rnd = new System.Random(1211);
@@ -76,32 +72,6 @@ public static class BraxChampionsPostacie
         var p = new Vector3(nominal.x, 0f, nominal.z) * K;
         if (Physics.Raycast(p + Vector3.up * 30f * K, Vector3.down, out var hit, 40f * K, ~0, QueryTriggerInteraction.Ignore)) return hit.point;
         return p + Vector3.up * .16f * K;
-    }
-
-    // two groups of the five, 3-4.6 m either side of the door axis, 3.6 m out from the facade, half-turned to the path
-    static int PodKlubem(Transform root, string klub, Vector3 drzwi, Vector3 naZewnatrz, float odOsi)
-    {
-        var g = new GameObject(klub + " | dziewczyny przy wejściu").transform; g.SetParent(root, false);
-        var bok = Vector3.Cross(Vector3.up, naZewnatrz).normalized;
-        int n = 0;
-        for (int i = 0; i < Klub.Length; i++)
-        {
-            var src = BraxMiastoAssety.Model(Paczka, Klub[i]); if (!src) continue;
-            float s = i < 2 ? -1f : 1f; int w = i < 2 ? i : i - 2;
-            var at = drzwi + naZewnatrz * (3.6f + w * .55f) + bok * s * (odOsi * .78f + w * .95f);
-            // facing: toward the path, a little toward the street
-            var f = (-bok * s + naZewnatrz * .8f).normalized;
-            float yaw = Mathf.Atan2(f.x, f.z) * Mathf.Rad2Deg + (w - 1) * 9f;
-            var o = BraxMiastoAssety.Postaw(g, src, klub + " | " + Klub[i], Grunt(at), yaw, 1f, true, true);
-            if (o) { Kolizja(o, 1.72f); n++; }
-        }
-        return n;
-    }
-
-    static void Kolizja(GameObject o, float h)
-    {
-        var c = o.AddComponent<CapsuleCollider>();
-        c.direction = 1; c.height = h; c.radius = .24f; c.center = new Vector3(0f, h * .5f, 0f);   // local = metres (scale K on the object)
     }
 
     static bool Chodzaca(Transform root, string nazwa, float wzrost, Vector3[] trasa, System.Random rnd)

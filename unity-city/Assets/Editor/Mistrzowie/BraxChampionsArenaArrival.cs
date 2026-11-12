@@ -1221,7 +1221,7 @@ public static partial class BraxChampionsArenaArrival
             "arena_athlete_floor_stone_tiles_owner", "stone_tiles", 3.2f, Color.white);
         var athleteWoodWall = BraxChampionsFoundation.SourceMaterial(
             "arena_athlete_walls_wooden_panels_owner", "wooden_panels", 2.1f, Color.white);
-        var paint = Paint("arena_parking_markings", new Color(.93f, .92f, .85f));
+        var paint = BraxChampionsHarbour.Nakladka(Paint("arena_parking_markings", new Color(.93f, .92f, .85f)));   // no flicker
         Parking(root, asphalt, paint, sidewalk, exterior["dark_stone"], exterior["steel"]);
         ParkingLights(root, exterior["steel"], exterior["light"]);
         // Architectural PBR finish is generated independently of source signs,

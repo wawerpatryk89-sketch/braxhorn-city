@@ -130,7 +130,7 @@ public static class BraxChampionsBuildings
         });
         // Owner 12.11 01:59-02:33: the girls at the doors of E1 and the casino, the walkers on the promenade (after E1/T11:
         // they stand on their real forecourts)
-        BraxChampionsFoundation.Optional("postacie: pod klubami i na promenadzie",()=>BraxChampionsPostacie.Generate());
+        BraxChampionsFoundation.Optional("postacie: chodzące po promenadzie",()=>BraxChampionsPostacie.Generate());
         // Owner 12.11 02:25-02:37: BRAXHORN NUTRITION posters with his two friends - G1 SPORT ARENA, promenade, E1
         BraxChampionsFoundation.Optional("plakaty BRAXHORN NUTRITION",()=>BraxChampionsPlakaty.Generate());
         // 12.11 owner (02:47-02:56): AQUAPARK BRAXHORN on the old P1 lot - lagoon, the slide tower with rides, kids, SPA

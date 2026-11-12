@@ -110,9 +110,9 @@ public static partial class BraxChampionsE1
         garageFloor=Inside(Tex("garage_floor","garage_floor",3f,new Color(1.0f,1.14f,1.43f)),.85f);              // (124,109,87) -> neutral grey
         // clean cool white (white_stucco_02 neutralised, as the hotel garage): no beige under the LED lines
         garageWhite=Inside(Tex("garage_white","white_stucco_02",2f,new Color(1.10f,1.14f,1.20f)),BraxChampionsInteriorLight.Ceilings);
-        lineWhite=Inside(S("paint_white",new Color(.93f,.93f,.92f),.6f,0f),.85f);
-        lineYellow=Inside(S("paint_yellow",new Color(.95f,.76f,.08f),.6f,0f),.85f);
-        lineBlue=Inside(S("paint_accessible_blue",new Color(.10f,.32f,.72f),.6f,0f),.85f);
+        lineWhite=BraxChampionsHarbour.Nakladka(Inside(S("paint_white",new Color(.93f,.93f,.92f),.6f,0f),.85f));     // depth offset: no flicker
+        lineYellow=BraxChampionsHarbour.Nakladka(Inside(S("paint_yellow",new Color(.95f,.76f,.08f),.6f,0f),.85f));
+        lineBlue=BraxChampionsHarbour.Nakladka(Inside(S("paint_accessible_blue",new Color(.10f,.32f,.72f),.6f,0f),.85f));
         ledCool=S("led_cool",new Color(1f,1f,1f),.3f,0f,new Color(1.15f,1.15f,1.20f));
         marbleWhite=Inside(BraxChampionsFoundation.LibraryMarbleWhite("e1_white_marble",new Color(.96f,.96f,.97f),2.0f),.8f);
         roofMembrane=S("roof_membrane_grey",new Color(.43f,.44f,.46f),.85f,0f);

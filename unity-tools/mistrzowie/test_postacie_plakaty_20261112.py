@@ -27,9 +27,12 @@ class PostaciePlakaty(unittest.TestCase):
         self.assertIn('BraxChampionsPostacie.Generate()', b)
         self.assertIn('BraxChampionsPlakaty.Generate()', b)
         p = (ED / 'BraxChampionsPostacie.cs').read_text()
-        for s in ('"E1 CENTRUM ROZRYWKI"', '"KASYNO WAWER"', 'AddComponent<BraxPieszy>()', 'updateWhenOffscreen = true',
+        for s in ('AddComponent<BraxPieszy>()', 'updateWhenOffscreen = true',
                   'Kl("Taunt")', 'Kl("Warming Up")', 'Kl("Head Hit")', 'speed_units_per_s', 'legacy = true'):
             self.assertIn(s, p)
+        # owner 12.11 11:45: no standing (static) figures anywhere - only the walking ones
+        self.assertNotIn('PodKlubem(', p)
+        self.assertNotIn('klub_czarna_sukienka', p)
         q = (ED / 'BraxChampionsPlakaty.cs').read_text()
         self.assertIn('public static void Plakat(', q)
         self.assertIn('plakat_braxhorn_nutrition_whey', q)

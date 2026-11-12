@@ -100,8 +100,11 @@ public static class BraxChampionsInfrastructure
         glass.SetFloat("_Transparent",1);glass.SetFloat("_SrcBlend",(float)BlendMode.One);glass.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);
         glass.SetFloat("_ZWrite",0);glass.SetFloat("_Cull",0);glass.renderQueue=3000;glass.SetOverrideTag("RenderType","Transparent");
         var yellow=Surface("tactile",new Color(.85f,.68f,.12f),.7f,0);
-        return new Dictionary<string,Material>{{"paving",paving},{"curb",stone},{"paint",Surface("paint",new Color(.88f,.88f,.84f),.7f,0)},
-            {"tactile",yellow},{"steel",steel},{"rail",rail},{"rail_web",rail},{"glass",glass},{"bench",wood},{"sign",Surface("sign",new Color(.04f,.07f,.12f),.45f,.2f)},
+        // the road paint (lane lines, centre lines, zebras) and the tactile strips lie ~1 cm over the asphalt / paving: depth
+        // offset, so they never flicker from afar (owner 12.11 11:39 "wszystkie białe linie pasy migotają")
+        var tactileTop=BraxChampionsHarbour.Nakladka(Surface("tactile_strip",new Color(.85f,.68f,.12f),.7f,0));
+        return new Dictionary<string,Material>{{"paving",paving},{"curb",stone},{"paint",BraxChampionsHarbour.Nakladka(Surface("paint",new Color(.88f,.88f,.84f),.7f,0))},
+            {"tactile",tactileTop},{"steel",steel},{"rail",rail},{"rail_web",rail},{"glass",glass},{"bench",wood},{"sign",Surface("sign",new Color(.04f,.07f,.12f),.45f,.2f)},
             {"metro_rail",rail},{"metro_concrete",concrete},{"metro_third",yellow},{"metro_steel",steel},{"metro_light",TunnelLight()}};
     }
     static Material Surface(string id,Color color,float roughness,float metal)

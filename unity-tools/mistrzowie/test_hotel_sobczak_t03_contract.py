@@ -91,7 +91,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         site = self.gen[self.gen.index("static void Site()"):self.gen.index("static void Planter(")]
         code = re.sub(r"//[^\n]*", "", site).lower()                      # comments may say "no trees"
         self.assertNotRegex(code, r"tree|palm|foliage|trunk|crown")
-        for needle in ("M.paving", "M.kerb", "M.asphalt", "Wedge(M.paving", "M.whitePaint"):
+        for needle in ("M.paving", "M.kerb", "M.asphalt", "Wedge(M.paving", "Box(zebra,", "Nakladka("):
             self.assertIn(needle, site)
         self.assertIn("PlazaY=.30f", self.gen)
         self.assertEqual(const(self.gen, "Ffl0"), const(self.gen, "PlazaY"))  # plaza flush with the lobby floor

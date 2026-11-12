@@ -373,7 +373,9 @@ public static class BraxChampionsHotelSobczakT03
                     u0=u0,u1=u1,R=3f,depth=edge+50f,topEnd=DriveY,unit=1f,assetDir=Out+"/Meshes"},M.asphalt,cityWalk?cityWalk:M.paving,cityKerb);
         }
         // zebra crossing (stripes run with the traffic)
-        for(float z=-33.55f;z<=-30.4f;z+=.9f)Box(M.whitePaint,-1.7f,1.7f,DriveY,DriveY+.004f,z,z+.45f);
+        // (its own paint material with the depth offset, 12 mm thick: 4 mm of sanitary porcelain flickered - owner 12.11)
+        var zebra=BraxChampionsHarbour.Nakladka(BraxChampionsHarbour.Surface("t03_zebra_road_paint",new Color(.93f,.93f,.91f),.55f,0f));
+        for(float z=-33.55f;z<=-30.4f;z+=.9f)Box(zebra,-1.7f,1.7f,DriveY,DriveY+.012f,z,z+.45f);
         // raised lawn beds with granite edges on the sides and the back (no trees: owner 9.11)
         Planter(23.2f,29.6f,GaragePortalZ+.6f,27f);                                           // east: beside the ramp trench
         Planter(-29.6f,-23.2f,-26f,CoreOuterZ0-.6f);Planter(-29.6f,-23.2f,CoreOuterZ1+.6f,27f); // west: round the garage pavilion

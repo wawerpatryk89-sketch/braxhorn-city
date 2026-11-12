@@ -63,6 +63,19 @@ public static class BraxChampionsHarbour
         return Save(m,Out+"/Materials/harbour_"+id+".mat");
     }
 
+    /// <summary>Owner 12.11 11:39 ("wszystkie białe linie pasy migotają, nic nie ma migotać"): paint lying on a surface (road
+    /// lane lines, zebras, parking bays, garage stripes) stands ~1 cm over it - on a phone, from 100 m on, the depth buffer
+    /// cannot tell 1 cm apart and the line flickers. Its material gets CityStaticPBR's depth offset (polygon offset -1/-1, the
+    /// same the city uses for its renovation): the paint is always drawn in front of the surface it lies on, at any distance.
+    /// Only for materials used as paint (nothing else shares them).</summary>
+    public static Material Nakladka(Material m)
+    {
+        if(!m||!m.HasProperty("_OffsetFactor"))return m;
+        m.SetFloat("_OffsetFactor",-1f);m.SetFloat("_OffsetUnits",-1f);
+        EditorUtility.SetDirty(m);
+        return m;
+    }
+
     public static void Materials()
     {
         Directory.CreateDirectory(Out+"/Materials");Directory.CreateDirectory(Out+"/Meshes/Harbour");

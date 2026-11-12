@@ -734,7 +734,7 @@ public static class BraxChampionsApartments
         W.Grupa=outside;W.Wnetrze=false;
         asphalt=Region("asphalt.mat",()=>M("apt_parking_asphalt","clean_asphalt",2.1f,Color.white,1f));
         kerbStone=M("apt_parking_kerb","granite_tile",.9f,new Color(.78f,.79f,.80f),.8f);
-        if(!parkPaint)parkPaint=W.Mat.Plain("apt parking line white",new Color(.90f,.90f,.87f),.65f);
+        if(!parkPaint)parkPaint=BraxChampionsHarbour.Nakladka(W.Mat.Plain("apt parking line white",new Color(.90f,.90f,.87f),.65f));
         if(!rubber)rubber=W.Mat.Plain("apt parking wheel stop rubber",new Color(.05f,.05f,.055f),.85f);
         float y0=PlotBaseY,top=SiteY,kt=SiteY+KerbRise,lotZ1=BayZ0+Bays*BayW,lotZ0=BayZ0-ParkKerb;
         float k0=AisleX0-ParkKerb,k1=AisleX1+ParkKerb,inner=SidewalkInner,road=RoadEdge,gradeEnd=road+DriveR;
