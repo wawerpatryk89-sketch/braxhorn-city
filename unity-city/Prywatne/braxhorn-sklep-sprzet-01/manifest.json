@@ -1,23 +1,23 @@
 {
- "source": "Właściciel 11.11.2026 23:34: plansza Tripo (GLB) — sprzęt sportowy BRAXHORN: piłki nożna, do kosza, siatkowa, hantle, kettlebell, rękawice bokserskie, worek, skakanka, mata (rakieta z zniszczonym naciągiem odrzucona)",
+ "source": "Właściciel 11.11.2026 23:34: plansza Tripo (GLB) — sprzęt sportowy BRAXHORN: piłki nożna, do kosza, siatkowa, hantle, kettlebell, rękawice bokserskie, worek, skakanka, mata (rakieta z zniszczonym naciągiem odrzucona) | 12.11.2026 13:41 (właściciel: napis 3D z worka wyciąć bez śladu): w atlasie tekstur zamalowany napis i tabliczka na worku (kolor, normal, metal/chropowatość -> skóra worka), unity-tools/sklep/worek_bez_napisu.py; oryginal/ bez zmian",
  "target": "sklep_sprzet_01",
  "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_sprzet_01 (BraxMiastoAssety.Model)",
  "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
- "tarSha256": "1c3114f9b8234b0d06c5d94113f81f0a2e80b23291a4ac8e43c04ce5c54b663e",
- "cmsSha256": "267a7403450d9feca6a74f070daf77af630c92e9db330884fa4630351bd4c26a",
+ "tarSha256": "9bc71e9054813749a934a138194cd79433d926b5ed163acdf731cd89af37d548",
+ "cmsSha256": "7cf4790a5236fa06aa90151c25e7eac26486aaf834ef98aff3293e7a65ee5360",
  "parts": [
   {
    "name": "part-000.cms",
-   "bytes": 9543325,
-   "sha256": "267a7403450d9feca6a74f070daf77af630c92e9db330884fa4630351bd4c26a"
+   "bytes": 10179136,
+   "sha256": "7cf4790a5236fa06aa90151c25e7eac26486aaf834ef98aff3293e7a65ee5360"
   }
  ],
  "files": {
   "oryginal/spec.json": "7850b7b09871f817b37653ec923861a8bf50a1dc7b97166973ae801dbe6fb52f",
   "oryginal/sprzet.glb": "799bedf4f4ec820844875127ba6f264fd72c0c1a4f034db2aa0d21ee3a4507c0",
-  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_kolor.jpg": "d7492fb5965417122e77e4cc8284d6a15eb09d4f250ed9e24a04e9b75256c101",
-  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_mr.png": "8d9a0ade1c3ed441805cdc01f16c323172c23880393227695ff2cd1b9a259045",
-  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_normal.png": "a98d989600c33b69d6fea9d9f3e9787ae87c4369a5729b64585107b5e457b225",
+  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_kolor.jpg": "d5b425cadc7e361731f07734a3bbb15d5c68ba9a564d71662e9bc05257f20773",
+  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_mr.png": "388237009fab5f32c4bec5f904380635bc5ca8d45c89f69dd85db4f95a25c2a7",
+  "sklep_sprzet_01/_tekstury/sklep_sprzet_01_normal.png": "40573758b1d90549bbe7faf644add76da50da00696b3566ae279362eccb5f90f",
   "sklep_sprzet_01/hantle_para_10kg.glb": "ad31df822737c6e700d5b725353d0524c26cddbdbff2d8477296dd6309e8bbdb",
   "sklep_sprzet_01/katalog.json": "c2dec8762f315362881968b74a2f318bcb8f3fc437a7feafdb9fb8cff2f27306",
   "sklep_sprzet_01/kettlebell_16kg.glb": "a29f709d08e9a038a3c0550353bd78420ac5fe4a3fd0ca5657e9713b15e9bfb7",

@@ -9,6 +9,7 @@ const PALMS_ON = process.env.PREVIEW_PALMS === '1';
 // PREVIEW_PALM_GLB=<path under the models dir>: the owner's own palm pack (meshopt + KTX2 glTF) drawn at every
 // palm the generator places - the real model, never a stand-in.
 const PALM_GLB = process.env.PREVIEW_PALM_GLB || '';
+const MODELS_NEAR = process.env.PREVIEW_MODELS_NEAR || '';
 // PREVIEW_PALM_SCALE: 1/K when the scene is in nominal metres (the game places the real-metre palm in K-scaled world)
 const PALM_SCALE = parseFloat(process.env.PREVIEW_PALM_SCALE || '1');
 // PREVIEW_PALM_HALF=1: the preview palm file is a cluster of palms; keep one (the game plants one per bed)
@@ -29,7 +30,7 @@ import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
-const process_flat=${FLAT};const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const PALM_SCALE=${PALM_SCALE};const PALM_HALF=${PALM_HALF};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};
+const process_flat=${FLAT};const MODELS_NEAR=${JSON.stringify(MODELS_NEAR)};const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const PALM_SCALE=${PALM_SCALE};const PALM_HALF=${PALM_HALF};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};
 async function bin(n){const r=await fetch('http://preview.local/bin/'+n);return new Float32Array(await r.arrayBuffer());}
 const tl=new THREE.TextureLoader();
 function tex(url,srgb){return new Promise(res=>tl.load(url,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(srgb)t.colorSpace=THREE.SRGBColorSpace;res(t);},undefined,()=>res(null)));}
@@ -108,7 +109,11 @@ window.setup=async function(w,h){
       const bp=new THREE.Mesh(new THREE.PlaneGeometry(w,d),bm);bp.rotation.x=-Math.PI/2;bp.position.set((b[0]+b[1])/2,scene.ground+.02,-(b[2]+b[3])/2);S.add(bp);}}
   // glTF models use glTFast's shader in Unity: RenderSettings trilight ambient (BraxChampionsExplorer), not CityStaticPBR's
   const loader=new GLTFLoader();const cache={};
+  // PREVIEW_MODELS_NEAR="x,y,z,r" (three.js space: z = -Unity z): only the models within r of that point (a gallery
+  // with 5 000 goods models does not fit the page's memory at once)
+  const near=MODELS_NEAR?MODELS_NEAR.split(',').map(Number):null;
   for(const mo of scene.models){
+    if(near&&Math.hypot(mo.pos[0]-near[0],mo.pos[1]-near[1],mo.pos[2]-near[2])>near[3])continue;
     if(!(mo.path in cache)){
       cache[mo.path]=await new Promise(res=>loader.load('http://preview.local/models/'+mo.path,gl=>res(gl.scene),undefined,()=>res(null)));
       if(cache[mo.path])cache[mo.path].traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(mt=>cityAmbient(mt,[.55,.63,.71,.23,.27,.22,1]));});
@@ -191,7 +196,8 @@ window.shot=function(v,w,h){
 window.ready=true;
 </script></body></html>`;
 (async () => {
-  const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+  // big scenes (the gallery with 5 000 goods models) need the page's memory off /dev/shm and a larger JS heap
+  const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-dev-shm-usage', '--js-flags=--max-old-space-size=6144'] });
   const p = await b.newPage({ viewport: { width: 1600, height: 900 } });
   p.on('console', m => { if (!/GPU stall|deprecated/.test(m.text())) console.log('page:', m.text()); });
   await p.route('http://preview.local/**', r => {
