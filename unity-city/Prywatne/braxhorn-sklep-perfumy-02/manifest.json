@@ -1,0 +1,34 @@
+{
+ "source": "Właściciel 11.11.2026 23:48–23:53: plansza Tripo (GLB) — perfumy, 10 flakonów (część z bykiem BRAXHORN)",
+ "target": "sklep_perfumy_02",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_perfumy_02 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "d913fda6f4c363a0dad4f407d1599acfbbe92bd33acc45dbe27496945dfc18f1",
+ "cmsSha256": "0907ded1a901c5cc442bfe0672ea92a547f7e61e2caa3b30810aa345959fe225",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 9738073,
+   "sha256": "0907ded1a901c5cc442bfe0672ea92a547f7e61e2caa3b30810aa345959fe225"
+  }
+ ],
+ "files": {
+  "oryginal/perfumy_b.glb": "9949366cb5ce5a32c83e1460aebb98cd590665402f090ceaae17dd007c746f8e",
+  "oryginal/spec.json": "2fad2cbcd50be7cbb57463a99684fd8f5b41bc33eb9d0d2b6b6c67301f909f75",
+  "sklep_perfumy_02/_tekstury/sklep_perfumy_02_kolor.jpg": "35434bdb6a5942ee06df9186229b8ba99839dd854a3b1e5a51b0b60d6898cf66",
+  "sklep_perfumy_02/_tekstury/sklep_perfumy_02_mr.png": "0e56eabed53fa3e930237278ca2e795e7fade9a851a3a87a333ebab6ac817a5e",
+  "sklep_perfumy_02/_tekstury/sklep_perfumy_02_normal.png": "574167821626b99aaf373a1d0b920d9747d84e8d4f34d886a3677d617b310a9f",
+  "sklep_perfumy_02/katalog.json": "aa2d4cf45d4460543d9e5d61d01df4110bc09f702953734d74113757385be172",
+  "sklep_perfumy_02/perfumy_braxhorn_czarne_byk.glb": "1e48d0e507874f4ac0dc76a616978a312ea1d7a73d934d4e90aad70154953914",
+  "sklep_perfumy_02/perfumy_braxhorn_dymione.glb": "37f060f9c2691f35c2051ff67fbce1cd5dcea1646563692032fc7844c6bae3a1",
+  "sklep_perfumy_02/perfumy_czarne_kwadrat.glb": "bf08cbe3860f5ab0c98ad49aee687a4f55c5b7ea424e2e16f6d036d7a46e2d85",
+  "sklep_perfumy_02/perfumy_czerwone_kwadrat.glb": "b2a5b5b310a9e6037427efb2a2a99cc57045e3486bf3cb1659d0ba7f8d523d36",
+  "sklep_perfumy_02/perfumy_lawendowe_motyl.glb": "798f4e80c0330e8b554b7961801708922cd8367f594e9de361a070283ccd622e",
+  "sklep_perfumy_02/perfumy_niebieskie.glb": "477c5695a5037055e3078296030a5b1241a539dd3a4b1ab9afa8092b45abc793",
+  "sklep_perfumy_02/perfumy_oliwkowe.glb": "7bdf94cb149c8bdb7863eb6b680c7f7c830e851f90b6d74ae7ec640c48e5aa93",
+  "sklep_perfumy_02/perfumy_rozowa_kula.glb": "13f95184e511842430d51f476e58579ce13a8aed569ab9b7af450a3abfb59cbf",
+  "sklep_perfumy_02/perfumy_rozowe_kokarda.glb": "557f9d14fad02b3a20ce099283f69b93cf46225f368d331b4ee21422f71bd189",
+  "sklep_perfumy_02/perfumy_zlota_kula.glb": "182eb9b4624d92caed342eaa308bb4634548e8378347b053493ed474995cba3c"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

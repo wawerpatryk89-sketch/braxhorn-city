@@ -156,7 +156,8 @@ def main(sheet, out_dir, spec_path):
             if r in big: label[r] = r; continue
             pts = P[vroot == r]
             label[r] = min(big, key=lambda b: bigtree[b].query(pts[:200])[0].min())
-        def frac(c): return ((c[0] - lo[0]) / (hi[0] - lo[0]), (c[2] - lo[2]) / (hi[2] - lo[2]))
+        topv = spec.get("view", "front") == "top"
+        def frac(c): return ((c[0] - lo[0]) / (hi[0] - lo[0]), (c[2] - lo[2]) / (hi[2] - lo[2]) if topv else (hi[1] - c[1]) / (hi[1] - lo[1]))
         order = spec.get("order")
         cell_of_root = {}
         if order:

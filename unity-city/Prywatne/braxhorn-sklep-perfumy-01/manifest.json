@@ -1,0 +1,34 @@
+{
+ "source": "Właściciel 11.11.2026 23:48–23:53: plansza Tripo (GLB) — perfumy, 10 flakonów (część z bykiem BRAXHORN)",
+ "target": "sklep_perfumy_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/sklep_perfumy_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "64bb1d1bfbc46c18de4326625ee90585423bfb2df8efb2b0a9232667ea0c84c0",
+ "cmsSha256": "cfcf238fcf0ceffeecac60cac2e832bf1d1bca08e5cfbaa3f49bcf9e5501be0d",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 9020573,
+   "sha256": "cfcf238fcf0ceffeecac60cac2e832bf1d1bca08e5cfbaa3f49bcf9e5501be0d"
+  }
+ ],
+ "files": {
+  "oryginal/perfumy_a.glb": "c88518b9138ef598d6b81635d6a850bd7dfefb71e469d8b367785f06866607ed",
+  "oryginal/spec.json": "1bc10f0925b3e0dc0e4eb299b6344d03093ad420193624ba1c3a2d411054ec8a",
+  "sklep_perfumy_01/_tekstury/sklep_perfumy_01_kolor.jpg": "e63baf7d4a33867f40f329608bbada45c8eb423dd4c18b6300b4e651c0f81bb1",
+  "sklep_perfumy_01/_tekstury/sklep_perfumy_01_mr.png": "63abe6841bbc21b6b7b77e3da8b5fa3068b582cfd8492e3d34fce1b4fcb2826b",
+  "sklep_perfumy_01/_tekstury/sklep_perfumy_01_normal.png": "e35a856b2a63444aa1676c051da3cd00f67ff0981781aa76a0eac22c66e6558a",
+  "sklep_perfumy_01/katalog.json": "419c45c79421fe26168b666e6ead62857b9bf5a5df76dc782e917168b3ccf575",
+  "sklep_perfumy_01/perfumy_braxhorn_czarno_zlote.glb": "baccfa9ee5850f6ab8d9a07f641d86945603dd0d72c2e81d998118aba6033c2e",
+  "sklep_perfumy_01/perfumy_braxhorn_kremowe.glb": "6b5d52e35297cc17ae02f6d5cc3df7912796355a8ad824063e2788162f008826",
+  "sklep_perfumy_01/perfumy_bursztyn.glb": "59bd249004723c2786f58ff821d4fe055ee5670956148091a7e5d546a6f1f89e",
+  "sklep_perfumy_01/perfumy_czarne_z_tabliczka.glb": "e557c86c23d6f1ffdef94cc36d434f74cef3f181b02be4effb2c51e85e2c0d74",
+  "sklep_perfumy_01/perfumy_czarne_zlote_obszycie.glb": "36bbcc1227b15e23dc67aaa1cc25c578a20eb792153f49441091690041eed286",
+  "sklep_perfumy_01/perfumy_czerwone_zlota_szyjka.glb": "dd8aa46f4f542bbbb87a6ce3c838996d5cae9c7e3adf93b893330ca0a2628795",
+  "sklep_perfumy_01/perfumy_fioletowy_krysztal.glb": "1697c9bc92f94125ea2e0ab068cb4a7e336193499e009ea133699b8006127974",
+  "sklep_perfumy_01/perfumy_granatowe.glb": "9408dcdd18495424bd24a0755072b856c3e9fc3ef3e3fa665c61a64eb4cbaf0b",
+  "sklep_perfumy_01/perfumy_rubin_kula.glb": "a0c2791f4f7f23af9d004c2c1865ce831f2b7e73ffc2ed55bef1dde82e0d6477",
+  "sklep_perfumy_01/perfumy_zolta_kula.glb": "4d6c2becd13026e51733e7d165888b52b660706362364926a9b016758a68ebfd"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

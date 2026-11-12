@@ -1,0 +1,28 @@
+{
+ "source": "Właściciel 12.11.2026 01:15: plansza Tripo (GLB) — talerze obciążeniowe BRAXHORN z uchwytami 5/10/20/20 kg (globalnie na wszystkie siłownie)",
+ "target": "silownia_sprzet_03",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/silownia_sprzet_03 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "0e1844b539d54c9e2cbb4c2c334197bfac917b3a57fd527c0fffe9b2b6c6c2c6",
+ "cmsSha256": "bc3e70b760103f856b7bd687e1285546fabb4f35c8d7d95713a953fb05f9de09",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 6693825,
+   "sha256": "bc3e70b760103f856b7bd687e1285546fabb4f35c8d7d95713a953fb05f9de09"
+  }
+ ],
+ "files": {
+  "oryginal/n17.glb": "33f9c30839cb92e76398bcb233269d3b253f66e696535fa962a44beaf14b9aae",
+  "oryginal/spec.json": "697aa15dca8470a2646a1e936f7af51ae7db5ba02e8e266903d71ed83643dd6d",
+  "silownia_sprzet_03/_tekstury/silownia_sprzet_03_kolor.jpg": "f3deb6501ba9c96dc5e7fab2acba5e7b08a27cb20274ebef92bed25a5350b88b",
+  "silownia_sprzet_03/_tekstury/silownia_sprzet_03_mr.png": "a5f225a946823cd6d3e6a6e39adfdb163c3dabc71b34285946b09fc49164a2c4",
+  "silownia_sprzet_03/_tekstury/silownia_sprzet_03_normal.png": "141e42d074f5bc79cd8f37c34ae85306af15aecb0f03ecf4342f183c1c0b784c",
+  "silownia_sprzet_03/katalog.json": "b8558eddbe083c366553a395995002e2daaeff084c75189468c324c3ccdd8589",
+  "silownia_sprzet_03/talerz_10kg.glb": "69f9888c053c532da0ecc7a15e7ed189ef1b46ff38439ef512693dd079f96c80",
+  "silownia_sprzet_03/talerz_20kg.glb": "bc2fcbf5c5905ff3c375e656f286c26e7f878670ed5de15e012d6ad346f5ee3b",
+  "silownia_sprzet_03/talerz_20kg_wariant.glb": "517b14f93343019b27efec2dd83a060f5432210f92d615002c2a77908d102b68",
+  "silownia_sprzet_03/talerz_5kg.glb": "ad6e802ea9a8b3c03866fa3756eb71fb9d0aa40e7b5d58794ad65f0a31070f99"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

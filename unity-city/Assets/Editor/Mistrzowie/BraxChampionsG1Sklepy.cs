@@ -281,6 +281,14 @@ public static partial class BraxChampionsD2
     // the owner's BRAXHORN sports equipment (Tripo 23:34; the racket's torn string bed left out): balls, a pair of 10 kg
     // dumbbells, a kettlebell, boxing gloves, a punching bag, a skipping rope, a rolled mat
     static readonly string[] Pilki={"pilka_nozna","pilka_do_kosza","pilka_siatkowa"};
+    // the owner's perfumes (two sheets) and electronics (Tripo 23:48-23:53)
+    const string Perfumy0="sklep_perfumy_01",Elektronika="sklep_elektronika_01";
+    static readonly string[] Perfumy={"perfumy_braxhorn_czarno_zlote","perfumy_bursztyn","perfumy_rubin_kula","perfumy_czerwone_zlota_szyjka","perfumy_czarne_zlote_obszycie",
+        "perfumy_braxhorn_kremowe","perfumy_granatowe","perfumy_zolta_kula","perfumy_czarne_z_tabliczka","perfumy_fioletowy_krysztal",
+        "sklep_perfumy_02/perfumy_braxhorn_dymione","sklep_perfumy_02/perfumy_rozowa_kula","sklep_perfumy_02/perfumy_czerwone_kwadrat","sklep_perfumy_02/perfumy_zlota_kula",
+        "sklep_perfumy_02/perfumy_czarne_kwadrat","sklep_perfumy_02/perfumy_oliwkowe","sklep_perfumy_02/perfumy_braxhorn_czarne_byk","sklep_perfumy_02/perfumy_lawendowe_motyl",
+        "sklep_perfumy_02/perfumy_niebieskie","sklep_perfumy_02/perfumy_rozowe_kokarda"};
+    static readonly string[] Laptopy={"laptop_gamingowy_czerwony","laptop_zloty","laptop_srebrny"},Tablety={"tablet_kolorowy","tablet_w_etui","tablet_z_klawiatura"};
     // sports shoes: the first sheet's runners / sneakers / basketball / boots + the owner's BRAXHORN fight sheet (23:45, sklep_walka_01)
     static readonly string[] SportButy={"buty_biegowe_szare","buty_sneakersy_bezowe","buty_trampki_wysokie_czarne","buty_koszykarskie_czerwone","buty_korki_neonowe",
         "sklep_walka_01/buty_bokserskie_czarno_zlote","sklep_walka_01/buty_biegowe_biale_czerwone_braxhorn","sklep_walka_01/buty_treningowe_czarne_braxhorn",
@@ -604,7 +612,9 @@ public static partial class BraxChampionsD2
                                 else if(audio){if(i%2==0)Headphones(p,face);else Speaker(p,face,.30f);}
                                 else if(foto)Camera(p,face);
                                 else if(games){if(i%2==0)Console(p,face);else Headphones(p,face);}
-                                else if(i%2==0)BraxKatalog.Laptop(Kat(),p,face,i+(int)d);else BraxKatalog.Monitor(Kat(),p,face,i+1);   // owner 20:07-20:12: the catalogue's BRAXHORN laptops / monitors
+                                else if(i%2==0){if(!ShopModel(Elektronika,Laptopy[((i/2+(int)d)%3+3)%3],p,face))BraxKatalog.Laptop(Kat(),p,face,i+(int)d);}
+                                else if(i==1){if(!ShopModel(Elektronika,Tablety[(((int)d)%3+3)%3],p,face))BraxKatalog.Monitor(Kat(),p,face,i+1);}
+                                else BraxKatalog.Monitor(Kat(),p,face,i+1);   // owner 20:07-20:12: the catalogue's BRAXHORN monitors; laptops / tablets: the owner's Tripo sheet
                             }
                         }
                     }
@@ -622,14 +632,21 @@ public static partial class BraxChampionsD2
                     else if(audio){if(l==0)Speaker(p,f,.30f);else Headphones(p,f);}
                     else if(foto)Camera(p,f);
                     else if(games){if(l==0)Console(p,f);else Headphones(p,f);}
-                    else{if(l==0)BraxKatalog.Laptop(Kat(),p,f,(int)(p.x+p.z));else if(l==1)Headphones(p,f);else Speaker(p,f,.24f);}
+                    else{if(l==0){if(!ShopModel(Elektronika,Laptopy[(((int)(p.x+p.z))%3+3)%3],p,f))BraxKatalog.Laptop(Kat(),p,f,(int)(p.x+p.z));}else if(l==1)Headphones(p,f);else Speaker(p,f,.24f);}
                 });});
                 break;
             }
             case "cosmetics":case "optician":
             {
-                // white gondolas with glass shelves on both walls, a lit mirror counter (the goods: empty for now)
-                WallShelves(gOak,4,.40f,3.0f,D-1.2f);
+                // white gondolas with glass shelves on both walls, a lit mirror counter; a perfumery: the owner's perfumes (Tripo
+                // 23:48-23:53, packs sklep_perfumy_01/02, 20 bottles, some with the BRAXHORN bull) on every shelf and the counter
+                var cshelves=WallShelves(gOak,4,.40f,3.0f,D-1.2f);
+                if(u.trade=="cosmetics")Goods(nm+" | perfumy",()=>
+                {
+                    int i=nm.Length;
+                    foreach(var (t,yy,sd) in cshelves){var f=sd==0?alongT:-alongT;for(float d=3.15f;d<D-1.3f;d+=.17f)ShopModel(Perfumy0,Perfumy[i++%Perfumy.Length],P(t,yy,d),f);}
+                    for(int k=0;k<9;k++)ShopModel(Perfumy0,Perfumy[(i+k*3)%Perfumy.Length],P(Wd*.5f-1.0f+k*.25f,y+1.0f,D*.5f-.2f),toFront);
+                });
                 Box(gCinemaDark,Wd*.5f-1.14f,Wd*.5f+1.14f,y,y+.08f,D*.5f-.34f,D*.5f+.34f);Box(walnut,Wd*.5f-1.2f,Wd*.5f+1.2f,y+.08f,y+.96f,D*.5f-.4f,D*.5f+.4f,true);Box(StoneTop(),Wd*.5f-1.23f,Wd*.5f+1.23f,y+.96f,y+1.0f,D*.5f-.43f,D*.5f+.43f);
                 Box(glassDark,Wd*.5f-1.0f,Wd*.5f+1.0f,y+1.2f,y+2.0f,D-.32f,D-.30f);Box(ledWarm,Wd*.5f-1.0f,Wd*.5f+1.0f,y+2.02f,y+2.05f,D-.33f,D-.29f);
                 break;

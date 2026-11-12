@@ -7,6 +7,8 @@
 
 Obowiązuje w całej grze, u wszystkich wykonawców.
 
+> „Tylko i wyłącznie jakość premium. Resztę dyskwalifikujesz.” (właściciel 12.11, 01:20): słabe sztuki z planszy (zniszczona siatka, zlane kolory, połamane) nie wchodzą do paczki (`"skip": true`), a właściciel dostaje informację, co odrzucono i dlaczego.
+
 - **Podział ról.** Właściciel robi w Tripo plansze towaru: ubrania, torebki, buty, sprzęt. Wykonawca tnie je, skaluje, pakuje i rozstawia w sklepach, szafach i pokojach całej gry.
 - **Jedna paczka dla wszystkich.** Żadnych kopii w rejonach. Te same modele biorą: galeria Mistrzów, sklepy miasta, szafy w mieszkaniach i hotelach.
 - **Jak czegoś nie wiemy (wygląd, fason, kolor), pytamy właściciela o zdjęcie.** Nie robimy na oko.
@@ -55,6 +57,9 @@ Narzędzie robi kolejno:
 | `braxhorn-sklep-walka-01` | `sklep_walka_01` | sporty walki BRAXHORN: rękawice czarno-złote, kaski bokserskie (czerwony, niebieski, z kratą), ochraniacz na zęby w pudełku, buty bokserskie, zapaśnicze i treningowe (buty w rotacji sklepów sportowych i ściany butów SPORT ARENA, rękawice na stojaku; kaski i ochraniacz do rozstawienia) |
 | `braxhorn-sklep-silownia-01` | `silownia_sprzet_01` | **sprzęt na siłownie (globalnie, wszystkie siłownie w grze):** ławka płaska (wydłużona do 1,15 m: `stretch`), dwie ławki regulowane, hantle heksagonalne, stojak 3-poziomowy z kompletem hantli |
 | `braxhorn-sklep-silownia-02` | `silownia_sprzet_02` | **maszyny na siłownie (globalnie):** ławka olimpijska ze stojakiem, maszyna do prostowania nóg ze stosem, modlitewnik, ławka rzymska 45°, suwnica / hack (cięcie `cluster3d`: maszyny nachodzą na siebie w każdym widoku, ale w 3D się nie dotykają) |
+| `braxhorn-sklep-silownia-03` | `silownia_sprzet_03` | talerze obciążeniowe BRAXHORN z uchwytami: 5, 10, 20 kg (dwa rozmiary) |
+| `braxhorn-sklep-perfumy-01` / `-02` | `sklep_perfumy_01` / `_02` | 20 flakonów perfum (część z bykiem BRAXHORN): półki i lada perfumerii (G1: sklepy „cosmetics”) |
+| `braxhorn-sklep-elektronika-01` | `sklep_elektronika_01` | laptopy (gamingowy czerwony, złoty, srebrny), tablety (3), zegarek chronograf, smartwatch, powerbanki: stoły i ściany sklepów RTV |
 
 Buty leżą na planszy w rzędach na podłodze, więc tnie się je w widoku z góry (`"view": "top"`). Cała plansza ma jedną skalę (`"scale"`), dzięki czemu rozmiary sztuk zgadzają się między sobą. Na półkach stawiamy przez `ShopModel` (podstawa na półce, przód do klienta).
 
