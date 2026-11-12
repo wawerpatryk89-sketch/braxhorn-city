@@ -90,5 +90,25 @@ class SecondPass(unittest.TestCase):
         self.assertNotIn('g1_wall_home_white', src('BraxChampionsG1Wnetrze.cs'))
 
 
+class MirrorsAndBasins(unittest.TestCase):
+    """owner 15:58 (the basins from the places where they are done) and 16:58 (the salon: two mirrors, the rest blank)"""
+    def test_every_near_mirror_keeps_its_picture(self):
+        w = (ROOT / 'unity-city/Assets/Mistrzowie/BraxChampionsWydajnosc.cs').read_text(encoding='utf-8')
+        for k in ('void Zrob(BraxGymPlanarMirror m)', 'void Wylacz(BraxGymPlanarMirror m)', 'MaxKopii = 40', 'BudzNaRaz = 2',
+                  'Graphics.Blit(m.ReflectionTexture, k.rt)', 'mpb.SetFloat(GotoweId, 1f)', 'GeometryUtility.TestPlanesAABB'):
+            self.assertIn(k, w)
+        self.assertNotIn('if (czynne) czynne.enabled = false;', w)            # switched off only through Wylacz (copy first)
+
+    def test_one_washbasin_everywhere(self):
+        self.assertIn('public static void Postaw(', src('BraxUmywalka.cs'))
+        self.assertIn('BraxUmywalka.Postaw(W.Quad', src('BraxChampionsArenaAthletes.cs'))
+        self.assertEqual(src('BraxChampionsHotelSobczakT03.cs').count('BraxUmywalka.Postaw('), 2)
+        d2 = src('BraxChampionsD2Budynek.cs')
+        self.assertIn('BasinSet(new Vector3(bx,.88f,.55f)', d2)
+        self.assertIn('WcPanReal(', d2)
+        for p in ('arena_preview', 'hotel_sobczak_preview'):
+            self.assertIn('BraxUmywalka.cs', (ROOT / 'unity-tools/mistrzowie' / p / (p + '.csproj')).read_text())
+
+
 if __name__ == '__main__':
     unittest.main()

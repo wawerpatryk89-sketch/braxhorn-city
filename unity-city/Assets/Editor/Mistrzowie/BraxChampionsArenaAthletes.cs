@@ -171,17 +171,9 @@ public static partial class BraxChampionsArenaArrival
                 for (int i = 0; i < 4; i++)
                 {
                     float bx = s * (8.875f + i * 1.75f), bz = wall + .34f;
-                    // round vessel basin 44 cm on the granite: rounded foot, belly, rim; glazed bowl inside, chrome waste
-                    W.Walec(ceramic, new Vector3(bx, .88f, bz), .15f, .025f, 24);
-                    W.Walec(ceramic, new Vector3(bx, .905f, bz), .195f, .045f, 24);
-                    W.Walec(ceramic, new Vector3(bx, .95f, bz), .22f, .085f, 24);
-                    W.Walec(basinInside, new Vector3(bx, 1.033f, bz), .195f, .004f, 24);
-                    W.Walec(chrome, new Vector3(bx, 1.036f, bz), .032f, .003f, 16);
-                    // gold mixer: column from the top, spout over the bowl, lever
-                    W.Rura(gold, new Vector3(bx, .88f, wall + .07f), new Vector3(bx, 1.20f, wall + .07f), .016f, 12);
-                    W.Rura(gold, new Vector3(bx, 1.20f, wall + .07f), new Vector3(bx, 1.20f, wall + .24f), .013f, 12);
-                    W.Rura(gold, new Vector3(bx, 1.20f, wall + .24f), new Vector3(bx, 1.17f, wall + .25f), .013f, 12);
-                    W.Rura(gold, new Vector3(bx, 1.21f, wall + .07f), new Vector3(bx + s * .09f, 1.25f, wall + .07f), .008f, 8);
+                    // the region's one washbasin (BraxUmywalka, owner 12.11 15:58): the G1 vessel bowl on the granite, a tall gold
+                    // tap with its arc spout over the bowl, a soap dispenser (the stacked cylinders before it were not a basin)
+                    BraxUmywalka.Postaw(W.Quad, (mm, a, b, rr) => W.Rura(mm, a, b, rr, 12, true), ceramic, gold, new Vector3(bx, .88f, bz), Vector3.back, .27f);
                 }
                 BraxChampionsMirror.Wall("A1 athletes vanity " + room, new Vector3((va + vb) * .5f, 1.62f, wall), Vector3.forward,
                     vb - va - .10f, 1.0f, gold, 10f, 16f, 1024, 160);

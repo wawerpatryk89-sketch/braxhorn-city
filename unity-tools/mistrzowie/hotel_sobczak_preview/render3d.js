@@ -187,10 +187,12 @@ window.shot=function(v,w,h){
   window.lights.map(L=>[L,L.position.distanceTo(eye)]).sort((a,b)=>a[1]-b[1]).slice(0,v.lights??4).forEach(([L,d])=>{if(d<L.distance+2)L.visible=true;});
   const C=new THREE.PerspectiveCamera(v.fov,w/h,v.near||.05,2000);
   C.position.copy(eye);C.lookAt(v.target[0],v.target[1],-v.target[2]);
-  // only the nearest live mirrors render (as in the game: each mirror has its range), at most 4 within 40 m
+  // the mirrors within 40 m show the room: in the game one renders live and the others keep the picture they took
+  // (BraxChampionsWydajnosc, 12.11: at most 40 copies), so the preview draws up to 24 of the nearest as reflections
+  // (a view's "mirrors": n draws fewer: each reflection draws the scene once more)
   const near=window.mirrors.map(r=>[r,r.userData.c.distanceTo(eye)]).sort((a,b)=>a[1]-b[1]);
   near.forEach(([r,d],i)=>{const {c,n}=r.userData;const toEye=eye.clone().sub(c);
-    r.visible=i<4&&d<40;const side=toEye.dot(n)>=0?1:-1;r.lookAt(c.clone().add(n.clone().multiplyScalar(side)));});
+    r.visible=i<(v.mirrors??24)&&d<40;const side=toEye.dot(n)>=0?1:-1;r.lookAt(c.clone().add(n.clone().multiplyScalar(side)));});
   R.render(S,C);return R.domElement.toDataURL('image/png');
 };
 window.ready=true;

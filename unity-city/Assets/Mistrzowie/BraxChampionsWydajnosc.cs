@@ -9,6 +9,10 @@ using UnityEngine;
 //  - MIRRORS: only one live mirror renders at a time - the nearest one the camera really sees (in front of it, in its
 //    range, no wall, door or floor on the line). Each rendering mirror draws the scene once more: mirrors of the rooms
 //    behind the wall and on the floors above and below were all doing it;
+//    FROZEN PICTURES (owner 12.11 16:58 "u fryzjera są lustra a połowa nie ma luster ... są dwa lustra, reszta bez"): the
+//    other mirrors near the player keep the last picture they rendered (a 384 x 192 copy with its own projection), so a
+//    salon wall of mirrors shows the room in every one of them, not the dark backing. A mirror in view that has never
+//    rendered is woken for a quarter of a second (two at a time) to take its picture. At most 40 copies (the farthest let go).
 //  - SMALL THINGS: layers 20 / 21 (set at build time on objects under 4 m / 1.2 m, BraxChampionsExplorer) are drawn to
 //    260 / 90 world units, a sphere round the camera; buildings, ground, trees and the horizon keep the full view.
 [DisallowMultipleComponent]
@@ -19,6 +23,14 @@ public sealed class BraxChampionsWydajnosc : MonoBehaviour
     public Camera kamera;
 
     Light[] lampy; BraxGymPlanarMirror[] lustra; BraxGymPlanarMirror czynne;
+    sealed class Kopia { public RenderTexture rt; public Matrix4x4 mac; public Vector4 plaszczyzna; }
+    readonly Dictionary<BraxGymPlanarMirror, Kopia> kopie = new Dictionary<BraxGymPlanarMirror, Kopia>();
+    readonly List<BraxGymPlanarMirror> budzone = new List<BraxGymPlanarMirror>();
+    readonly Plane[] stozek = new Plane[6];
+    MaterialPropertyBlock mpb;
+    const int MaxKopii = 40, BudzNaRaz = 2;
+    static readonly int TexId = Shader.PropertyToID("_ReflectionTex"), MacId = Shader.PropertyToID("_ReflectionTextureMatrix"),
+        GotoweId = Shader.PropertyToID("_ReflectionReady"), PlaszczyznaId = Shader.PropertyToID("_MirrorPlane");
     float nastepneLampy, nastepneLustra; int kursor;
     static readonly RaycastHit[] trafienia = new RaycastHit[16];
 
@@ -68,21 +80,73 @@ public sealed class BraxChampionsWydajnosc : MonoBehaviour
 
     void Lustra(Vector3 p)
     {
+        // the mirrors woken last time: their picture is taken, they go back to sleep showing it
+        foreach (var b in budzone) if (b && b != czynne) Wylacz(b);
+        budzone.Clear();
+        if (czynne) Zrob(czynne);                                           // the live one's copy kept fresh
+        GeometryUtility.CalculateFrustumPlanes(kamera, stozek);
         BraxGymPlanarMirror najlepsze = null; float bd = float.MaxValue;
         foreach (var m in lustra)
         {
             if (!m || !m.sourceCamera || !m.gameObject.activeInHierarchy) continue;
             var tr = m.transform; var d = p - tr.position; float d2 = d.sqrMagnitude;
-            if (d2 > m.maximumViewDistance * m.maximumViewDistance || d2 >= bd) continue;
+            if (d2 > m.maximumViewDistance * m.maximumViewDistance) continue;
             if (Vector3.Dot(tr.forward, d) <= .03f) continue;                 // behind the glass
+            bool maKopie = kopie.ContainsKey(m);
+            if (d2 >= bd && maKopie) continue;                                 // neither nearer nor in need of a picture
             if (!Widac(p, tr.position + tr.forward * .06f)) continue;
-            najlepsze = m; bd = d2;
+            if (d2 < bd) { najlepsze = m; bd = d2; }
+            if (!maKopie && budzone.Count < BudzNaRaz && m.mirrorRenderer && GeometryUtility.TestPlanesAABB(stozek, m.mirrorRenderer.bounds)) budzone.Add(m);
         }
-        if (najlepsze == czynne) return;
-        if (czynne) czynne.enabled = false;
-        czynne = najlepsze;
-        if (czynne) czynne.enabled = true;
+        budzone.Remove(najlepsze);
+        if (najlepsze != czynne)
+        {
+            if (czynne) Wylacz(czynne);
+            czynne = najlepsze;
+            if (czynne) czynne.enabled = true;
+        }
+        foreach (var b in budzone) b.enabled = true;
+        if (kopie.Count > MaxKopii) Sprzataj(p);
     }
+
+    // a copy of the mirror's live picture with its projection (taken only once it has really rendered)
+    void Zrob(BraxGymPlanarMirror m)
+    {
+        if (!m || !m.Ready || !m.mirrorRenderer) return;
+        if (mpb == null) mpb = new MaterialPropertyBlock();
+        if (!kopie.TryGetValue(m, out var k)) { k = new Kopia(); kopie[m] = k; }
+        if (!k.rt) { k.rt = new RenderTexture(384, 192, 0, RenderTextureFormat.ARGB32) { name = "BRAXHORN lustro kopia" }; k.rt.Create(); }
+        Graphics.Blit(m.ReflectionTexture, k.rt);
+        m.mirrorRenderer.GetPropertyBlock(mpb); k.mac = mpb.GetMatrix(MacId); k.plaszczyzna = mpb.GetVector(PlaszczyznaId);
+    }
+
+    // switched off: the copy goes on the glass instead of the dark backing the mirror clears to
+    void Wylacz(BraxGymPlanarMirror m)
+    {
+        if (!m) return;
+        if (mpb == null) mpb = new MaterialPropertyBlock();
+        Zrob(m); m.enabled = false;
+        if (!kopie.TryGetValue(m, out var k) || !k.rt || !m.mirrorRenderer) return;
+        m.mirrorRenderer.GetPropertyBlock(mpb);
+        mpb.SetTexture(TexId, k.rt); mpb.SetMatrix(MacId, k.mac); mpb.SetVector(PlaszczyznaId, k.plaszczyzna); mpb.SetFloat(GotoweId, 1f);
+        m.mirrorRenderer.SetPropertyBlock(mpb);
+    }
+
+    // too many copies: the farthest ones let go (their glass back to the backing)
+    void Sprzataj(Vector3 p)
+    {
+        if (mpb == null) mpb = new MaterialPropertyBlock();
+        var lista = new List<BraxGymPlanarMirror>(kopie.Keys);
+        lista.Sort((a, b) => (a ? (a.transform.position - p).sqrMagnitude : 0f).CompareTo(b ? (b.transform.position - p).sqrMagnitude : 0f));
+        for (int i = MaxKopii; i < lista.Count; i++)
+        {
+            var m = lista[i]; var k = kopie[m]; kopie.Remove(m);
+            if (m && m != czynne && m.mirrorRenderer) { m.mirrorRenderer.GetPropertyBlock(mpb); mpb.SetFloat(GotoweId, 0f); mpb.SetTexture(TexId, Texture2D.blackTexture); m.mirrorRenderer.SetPropertyBlock(mpb); }
+            if (k.rt) { k.rt.Release(); Destroy(k.rt); }
+        }
+    }
+
+    void OnDestroy() { foreach (var k in kopie.Values) if (k.rt) { k.rt.Release(); Destroy(k.rt); } kopie.Clear(); }
 
     // nothing solid and still on the line (people, the player, cars and triggers do not count)
     static bool Widac(Vector3 oko, Vector3 cel)

@@ -609,13 +609,16 @@ public static partial class BraxChampionsD2
         // WC fittings: basins on a marble counter, cubicles (doors), the accessible WC with grab rails
         float cx=X(35f);
         B(counterTop,Mathf.Min(X(30.3f),X(34.5f)),Mathf.Max(X(30.3f),X(34.5f)),.82f,.88f,.25f,.85f,true);
-        for(int i=0;i<3;i++){float bx=X(31.2f+i*1.3f);m.Cylinder(porcelainMat(),new Vector3(bx,.70f,.55f),.20f,.18f,20,Quaternion.identity,false,false,.24f);}
+        // the G1 toilets' basin set (owner 12.11 15:58 "umywalek ... przenosisz z miejsc, gdzie masz zrobione"): the vessel bowl, the
+        // sensor tap whose water runs while you stand at it, the soap dispenser - instead of a sunk porcelain cylinder with no tap
+        if(!wcTile)WcMaterials();
+        for(int i=0;i<3;i++){float bx=X(31.2f+i*1.3f);BasinSet(new Vector3(bx,.88f,.55f),Vector3.back,"D2 WC umywalka "+(i+1));}
         for(int i=0;i<3;i++)
         {
             float z0=1.2f+i*1.45f;
             B(plaster,Mathf.Min(X(37.5f),X(37.55f)),Mathf.Max(X(37.5f),X(37.55f)),FFL+.15f,2.2f,z0,z0+1.4f);
             B(plaster,Mathf.Min(X(37.5f),X(39.9f)),Mathf.Max(X(37.5f),X(39.9f)),FFL+.15f,2.2f,z0+1.40f,z0+1.45f);
-            m.Cylinder(porcelainMat(),new Vector3(X(39.4f),FFL,z0+.7f),.20f,.42f,18,Quaternion.identity,true);
+            WcPanReal(new Vector3(X(39.9f),FFL,z0+.7f),new Vector3(Mathf.Sign(X(37.5f)-X(39.9f)),0f,0f));   // the G1 wall-hung WC (it had been a cylinder)
         }
         // waiting room: 4 rows of benches facing the departure board on the z 24 wall
         for(int r=0;r<4;r++)for(int k=0;k<3;k++)

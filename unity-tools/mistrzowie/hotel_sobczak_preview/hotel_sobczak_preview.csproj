@@ -23,6 +23,7 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsInteriorDoor.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsLetters3D.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxKatalog.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxUmywalka.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxKatalogTowar.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxKatalogDom.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsPiksele.cs" />

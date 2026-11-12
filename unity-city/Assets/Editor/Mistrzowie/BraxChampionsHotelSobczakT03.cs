@@ -1435,12 +1435,10 @@ public static class BraxChampionsHotelSobczakT03
         float v0=Lo(sx*4.35f,sx*8.4f),v1=Hi(sx*4.35f,sx*8.4f);
         Box(M.marble,v0,v1,y0+.82f,y0+.88f,z0,z0+.55f,true);
         Box(M.walnut,v0+.05f,v1-.05f,y0+.3f,y0+.82f,z0,z0+.5f);
+        // the region's one washbasin (BraxUmywalka, owner 12.11 15:58 - the white cylinders were not basins): the G1 vessel bowl
+        // on the marble, the tall chrome tap with its arc spout, a soap dispenser
         for(float x=v0+1.0f;x<v1-.5f;x+=2.0f)
-        {
-            W.Walec(M.whitePaint,new Vector3(x,y0+.88f,z0+.3f),.2f,.13f,20);
-            Rod(M.chrome,new Vector3(x,y0+.88f,z0+.06f),new Vector3(x,y0+1.16f,z0+.06f),.014f);
-            Rod(M.chrome,new Vector3(x,y0+1.16f,z0+.06f),new Vector3(x,y0+1.16f,z0+.22f),.012f);
-        }
+            BraxUmywalka.Postaw(W.Quad,(mm,pa,pb,rr)=>W.Rura(mm,pa,pb,rr,12,true),M.whitePaint,M.chrome,new Vector3(x,y0+.88f,z0+.3f),Vector3.back,.24f);
         BraxChampionsMirror.Wall("T03 guest toilets vanity",new Vector3((v0+v1)*.5f,y0+1.7f,z0+.01f),Vector3.forward,v1-v0-.24f,.96f,M.chrome,8f,12f,768,192);
         Box(M.ledCool,v0+.12f,v1-.12f,y0+1.18f,y0+1.2f,z0+.01f,z0+.025f);
         Ceil(x0,x1,z0,z1,ty);
@@ -1941,10 +1939,7 @@ public static class BraxChampionsHotelSobczakT03
         Box(M.walnut,a+1.8f,a+3.2f,.22f,.82f,Z(.02f),Z(.56f),true);
         Box(M.walnutDark,a+1.8f,a+3.2f,.515f,.525f,Z(.56f),Z(.565f));
         Box(M.marble,a+1.75f,a+3.25f,.82f,.87f,Z(.02f),Z(.60f),true);
-        W.Walec(M.whitePaint,new Vector3(a+2.5f,.87f,Z(.33f)),.2f,.13f,20);
-        W.Walec(M.chrome,new Vector3(a+2.5f,.87f,Z(.33f)),.022f,.006f,8);
-        Rod(M.chrome,new Vector3(a+2.5f,.87f,Z(.07f)),new Vector3(a+2.5f,1.16f,Z(.07f)),.014f);
-        Rod(M.chrome,new Vector3(a+2.5f,1.16f,Z(.07f)),new Vector3(a+2.5f,1.16f,Z(.24f)),.012f);
+        BraxUmywalka.Postaw(W.Quad,(mm,pa,pb,rr)=>W.Rura(mm,pa,pb,rr,12,true),M.whitePaint,M.chrome,new Vector3(a+2.5f,.87f,Z(.33f)),new Vector3(0f,0f,Z(.02f)-Z(.33f)),.26f);   // the region's one washbasin (BraxUmywalka)
         BraxChampionsMirror.Wall("T03 room "+number+" bathroom",new Vector3(a+2.5f,1.50f,Z(.012f)),new Vector3(0,0,s),1.26f,.86f,M.chrome,5f,6f,384,256);
         Box(M.ledCool,a+1.87f,a+3.13f,1.03f,1.05f,Z(.012f),Z(.025f));
         Box(M.marble,a+3.62f,a+4.18f,0,1.1f,Z(.02f),Z(.20f),true);
