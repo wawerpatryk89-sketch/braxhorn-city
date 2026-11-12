@@ -246,32 +246,6 @@ public static partial class BraxChampionsAquapark
             Enumerable.Repeat(.016f, k).ToArray(), Enumerable.Repeat(3, k).ToArray(), Enumerable.Repeat(true, k).ToArray(), new Vector3[0], new float[0], fountainWater, 5.5f);
     }
 
-    // the strolling routes: the lagoon's outline 3.2 m / 5.0 m out from the coping, its south half from the west shore round to
-    // the east one (the north is the tower, the slides and the rocks), each walked both ways
-    static List<Vector3[]> WalkRoutes()
-    {
-        var o = new List<Vector3[]>();
-        foreach (float off in new[] { 3.2f, 5.0f })
-        {
-            var ring = Offset(lagoon.cop, off);
-            int Near(Vector2 q) { int bi = 0; float bd = float.MaxValue; for (int i = 0; i < ring.Count; i++) { float d = (ring[i] - q).sqrMagnitude; if (d < bd) { bd = d; bi = i; } } return bi; }
-            int a = Near(P(-44f, 16f)), b = Near(P(52f, 16f));
-            var pts = new List<Vector3>(); float run = 99f; Vector2 last = ring[a];
-            for (int i = a; ; i = (i + 1) % ring.Count)
-            {
-                run += (ring[i] - last).magnitude; last = ring[i];
-                if (run >= 7.5f || i == b) { pts.Add(new Vector3(ring[i].x, 0f, ring[i].y)); run = 0f; }
-                if (i == b) break;
-            }
-            o.Add(pts.ToArray()); var rev = pts.ToArray(); System.Array.Reverse(rev); o.Add(rev);
-        }
-        // the lazy river's east bank (between the river's sign and the west loungers), north to south and back
-        var bankWalk = new List<Vector3>();
-        for (float z = 4f; z >= -50f; z -= 7.5f) bankWalk.Add(V(-59f, 0f, z));
-        o.Add(bankWalk.ToArray()); var back = bankWalk.ToArray(); System.Array.Reverse(back); o.Add(back);
-        return o;
-    }
-
     // round pool bar north-west of the lagoon: white quartz counter on a teak-clad drum, a ring canopy on six columns with a
     // warm LED ring, eight stools you sit on, the BRAXHORN POOL BAR name on the fascia
     static void PoolBar()

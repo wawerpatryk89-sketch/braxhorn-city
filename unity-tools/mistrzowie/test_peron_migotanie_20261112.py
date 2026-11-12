@@ -1,5 +1,5 @@
-"""Owner 12.11 11:39-11:45: no lifts on the D2 platforms (they stood in front of every stair), nothing may flicker (all
-white lines / stripes), no static figures."""
+"""Owner 12.11 11:39-11:56: no lifts on the D2 platforms (they stood in front of every stair), nothing may flicker (all
+white lines / stripes), no static figures, the rigged girls walk only in the casino and on the beach, no 9:16 films."""
 import pathlib
 import re
 import unittest
@@ -50,6 +50,24 @@ class PeronMigotanie(unittest.TestCase):
         p = src('BraxChampionsPostacie.cs')
         self.assertNotIn('PodKlubem(', p)
         self.assertIn('AddComponent<BraxPieszy>()', p)
+
+    def test_walkers_only_casino_and_beach(self):
+        p = src('BraxChampionsPostacie.cs')
+        self.assertIn('465f + salaZ[k]', p)                       # inside the casino hall (plot 495/465)
+        self.assertIn('(112f, 222f), (238f, 522f), (538f, 640f)', p)  # the beach stretches between the club decks
+        self.assertNotIn('public static int Aquapark(', p)
+        self.assertNotIn('-128.6f', p)                            # no promenade lanes
+        self.assertNotIn('BraxChampionsPostacie.Aquapark', src('BraxChampionsAquapark.cs'))
+
+    def test_no_portrait_films(self):
+        tv = (ED.parents[1] / 'BraxhornWideo' / 'BraxTelewizor.cs').read_text(encoding='utf-8')
+        self.assertIn('public static readonly string[] Pion = { };', tv)
+        lista = re.search(r'public static readonly string\[\] Tv =\s*\{(.*?)\};', tv, re.S).group(1)
+        self.assertEqual(re.findall(r'"([^"]+)"', lista), ['tv_01_puma.mp4', 'tv_02_alpy.mp4', 'tv_03_roboty.mp4',
+                                                          'tv_04_gangsterzy.mp4', 'tv_05_fabryka.mp4'])
+        self.assertNotIn('G1AdTotem', src('BraxChampionsG1Wnetrze.cs'))
+        for f in ED.glob('*.cs'):
+            self.assertIsNone(re.search(r'WorkingScreen\([^;]*,\s*true\s*,', f.read_text(encoding='utf-8')), f.name)
 
 
 if __name__ == '__main__':

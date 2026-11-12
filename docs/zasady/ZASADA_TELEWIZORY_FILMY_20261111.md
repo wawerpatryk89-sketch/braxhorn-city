@@ -18,6 +18,22 @@ sklepy i salony w budynkach, biura. Kino ma własne filmy. Na ulicach, placach, 
 z filmami (tablice informacyjne, repertuar i menu zostają). Obowiązuje do odwołania przez właściciela. Dotyczy każdego nowego i poprawianego telewizora, monitora reklamowego i totemu.
 Telewizor z samym obrazkiem nie jest skończony (ZASADA_FUNKCJONALNE_JAK_W_ZYCIU_20261111).
 
+## 0. DECYZJA WŁAŚCICIELA 12.11.2026, 11:54 — NADRZĘDNA
+
+> „Wszystkie filmy, które ci dałem, 9/16 … nie ma tego być. Tylko mają być filmy w kinie i w telewizorach te krótkie
+> reklamy, co ci wysłałem. 16/9. Te 9/16 wszystkie wypierdalasz, wszystkie.”
+
+- Telewizory grają **tylko pięć reklam 16:9**: `tv_01_puma`, `tv_02_alpy`, `tv_03_roboty`, `tv_04_gangsterzy`, `tv_05_fabryka`.
+- Filmy, które przyszły jako 9:16 (`korytarz`, `auto`, `basen`, `hala`, `teledysk`), są wycofane w obu wersjach:
+  `pion_06..10` oraz `tv_06..10` (te miały rozmyte boki). Lista `BraxWideo.Pion` jest pusta, więc instalator nie wkłada
+  ich do APK.
+- **Żadnych ekranów pionowych.** Totemy reklamowe 9:16 w galerii G1 zostały usunięte. Nie stawiamy nowych.
+- W kinie G1 zostają filmy kinowe i reklamy przed seansem (sekcja 7).
+- Paczka `braxhorn-wideo-20261111` zostaje w repo bez zmian. Starych paczek nie usuwamy bez listy i zgody właściciela.
+  Do gry trafia tylko to, co jest na listach w `BraxTelewizor.cs`.
+
+Sekcje poniżej opisują mechanizm. Tam, gdzie mówią o filmach 9:16 i ekranach pionowych, obowiązuje sekcja 0.
+
 ## 1. Każdy telewizor
 
 - Ma przycisk **AKCJA**, który pokazuje „WŁĄCZ TV” albo „WYŁĄCZ TV”. Działa w zasięgu ok. 2,6 m × K od ekranu, przez wspólny rejestr `BraxInterakcje`.

@@ -342,8 +342,7 @@ public static partial class BraxChampionsAquapark
             var g=new GameObject("woda "+x.ToString("0")+"/"+z.ToString("0"));g.transform.SetParent(snd,false);g.transform.localPosition=V(x,DY+y,z)*K;
             var z0=g.AddComponent<BraxZrodloPetli>();z0.rodzaj="woda";z0.glosnosc=vol;z0.zasieg=range*K;
         }
-        // life: the owner's girls in bikinis stroll the deck round the lagoon's south half (there and back)
-        BraxChampionsFoundation.Optional("aquapark: spacerowiczki", () => { Walkers = BraxChampionsPostacie.Aquapark(Group(root, "spacerowiczki (BraxPieszy)"), WalkRoutes()); });
+        // (no walking girls here any more: owner 12.11 11:56 "mają chodzić tylko w kasynie i na plaży")
         Debug.Log("MISTRZOWIE_AQUAPARK walkers="+Walkers+" rings="+Rings+" cabanas="+Cabanas+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+
                   " seats="+Seats+" palms="+Palms+" lamps="+Lamps+" ownerModels="+OwnerModels+" ownerMissing="+OwnerMissing+" colliders="+Colliders+
                   " site=x"+X0+".."+X1+" z"+Z0+".."+Z1);

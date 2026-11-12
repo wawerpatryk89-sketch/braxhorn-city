@@ -18,15 +18,14 @@ using UnityEngine.Video;
 // marked missing for the session and the TVs keep their still pictures (no retry loop).
 public static class BraxWideo
 {
+    // owner 12.11 11:54: "wszystkie filmy, które ci dałem, 9/16, wypierdalasz ... tylko mają być filmy w kinie i w
+    // telewizorach te krótkie reklamy, co ci wysłałem. 16/9" - the TVs play only his five 16:9 ads (the films that came as
+    // 9:16 - korytarz, auto, basen, hala, teledysk - are out in both versions, and no portrait screen plays anything)
     public static readonly string[] Tv =
     {
         "tv_01_puma.mp4", "tv_02_alpy.mp4", "tv_03_roboty.mp4", "tv_04_gangsterzy.mp4", "tv_05_fabryka.mp4",
-        "tv_06_korytarz.mp4", "tv_07_auto.mp4", "tv_08_basen.mp4", "tv_09_hala.mp4", "tv_10_teledysk.mp4",
     };
-    public static readonly string[] Pion =
-    {
-        "pion_06_korytarz.mp4", "pion_07_auto.mp4", "pion_08_basen.mp4", "pion_09_hala.mp4", "pion_10_teledysk.mp4",
-    };
+    public static readonly string[] Pion = { };
     public static string Sciezka(bool pion, string plik) =>
         Application.streamingAssetsPath.TrimEnd('/') + "/BraxhornWideo/" + (pion ? "pion/" : "tv/") + plik;
 }
@@ -131,6 +130,7 @@ public sealed class BraxTelewizor : MonoBehaviour, IBraxInterakcja
     {
         if (slot == null) return;
         var lista = pion ? BraxWideo.Pion : BraxWideo.Tv;
+        if (lista.Length == 0) return;                                    // an empty list (no portrait films any more)
         slot.vp.url = BraxWideo.Sciezka(pion, lista[((nr % lista.Length) + lista.Length) % lista.Length]);
         slot.vp.Prepare();
     }

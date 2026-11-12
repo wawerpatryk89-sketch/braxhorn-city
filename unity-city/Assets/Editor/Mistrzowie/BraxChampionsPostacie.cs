@@ -10,9 +10,10 @@ using UnityEngine.Rendering;
 // ruszać po mieście ... chodziła, biegała, gesty miała". Global pack braxhorn-sklep-postacie-01 (postacie_01):
 //  * (the five static club girls at the club doors were removed on the owner's word 12.11 11:45: nothing standing still)
 //  * four rigged walkers carry their own baked clips (unity-tools/sklep/postac_animacja.py: Walking, Running, Idle, Taunt,
-//    Warming Up, Head Hit, Hit To Body on their own Mixamo bones) and walk the promenade with the city's pedestrian brain
-//    (BraxPieszy: right side of the walkway, stops, gestures, greets, reacts to a hit and runs, turns at the ends), each
-//    twice, in different lanes. Legacy Animation, nothing retargeted at runtime.
+//    Warming Up, Head Hit, Hit To Body on their own Mixamo bones) and walk with the city's pedestrian brain
+//    (BraxPieszy: right side of the walkway, stops, gestures, greets, reacts to a hit and runs, turns at the ends) - since
+//    12.11 11:56 only INSIDE THE CASINO (the two in blouses) and ON THE BEACH (the two in bikinis). Legacy Animation,
+//    nothing retargeted at runtime.
 public static class BraxChampionsPostacie
 {
     const string Paczka = "postacie_01", Out = "Assets/PlayableGenerated/Mistrzowie/Postacie";
@@ -28,58 +29,54 @@ public static class BraxChampionsPostacie
         if (!BraxMiastoAssety.Jest(Paczka)) { BraxBuildQuality.Warn("MISTRZOWIE_POSTACIE brak paczki " + Paczka + " (braxhorn-sklep-postacie-01)"); return 0; }
         Directory.CreateDirectory(Out);
         Physics.SyncTransforms();
-        var root = new GameObject("MIASTO MISTRZÓW | postacie (chodzące po promenadzie)").transform;
-        // owner 12.11 11:45 ("te ... nieruchome mają usunięte być, nie ma ich w ogóle być"): the five static club girls that
-        // stood at the doors of E1 and KASYNO WAWER are gone - only the walking, animated figures stay
-        int stoja = 0, chodza = 0;
-        // the promenade walkway (z -145.5..-125, palms at -143), x 110..1090: four lanes, every walker twice
-        float[] tory = { -128.6f, -131.8f, -135.0f, -138.2f };
+        var root = new GameObject("MIASTO MISTRZÓW | postacie (w kasynie i na plaży)").transform;
+        // owner 12.11 11:45-11:56: no standing figures at all; his rigged girls walk ONLY inside the casino and on the beach
+        // ("mają chodzić tylko w kasynie i na plaży") - not on the promenade, not in the aquapark
         var rnd = new System.Random(1211);
-        for (int k = 0; k < Chodzace.Length * 2; k++)
+        int kasyno = 0, plaza = 0;
+        // KASYNO WAWER T11 (plot centre 495/465, no rotation): the hall x -37.8..37.8, z -27.8..27.6, twelve gold columns at
+        // x +-14.1/+-28.2, z -14/0/14 - four lanes between the column rows, the two girls in blouses twice each
+        float[] salaZ = { -21f, -7f, 7f, 21f };
+        for (int k = 0; k < salaZ.Length; k++)
         {
-            int m = k % Chodzace.Length;
-            float z = tory[(k + k / Chodzace.Length) % tory.Length];
-            float x0 = 110f + (float)rnd.NextDouble() * 90f, x1 = 1090f - (float)rnd.NextDouble() * 90f;
+            int m = k % 2;                                                 // chodzi_czerwona_bluzka / chodzi_niebieska_bluzka
             var trasa = new List<Vector3>();
-            for (int i = 0; i <= 12; i++) { float x = Mathf.Lerp(x0, x1, i / 12f); trasa.Add(Grunt(new Vector3(x, 0f, z + (i % 2 == 0 ? 0f : .6f)))); }
-            if (Chodzaca(root, Chodzace[m], Wzrost[m] + (k >= Chodzace.Length ? .02f : 0f), trasa.ToArray(), rnd)) chodza++;
+            for (int i = 0; i <= 12; i++) trasa.Add(Grunt(new Vector3(495f - 33f + i * 5.5f, 0f, 465f + salaZ[k] + (i % 2 == 0 ? 0f : .5f)), 3f));
+            if (Chodzaca(root, Chodzace[m], Wzrost[m] + (k >= 2 ? .02f : 0f), trasa.ToArray(), rnd, "kasyno")) kasyno++;
         }
-        Debug.Log("MISTRZOWIE_POSTACIE pod klubami=" + stoja + " chodzące=" + chodza + " paczka=" + Paczka);
-        return stoja + chodza;
-    }
-
-    /// <summary>The aquapark (owner 12.11): the rigged girls in bikinis stroll the given routes (world nominal x/z) - each
-    /// route is walked there and back by BraxPieszy, gestures and reactions as on the promenade.</summary>
-    public static int Aquapark(Transform root, IList<Vector3[]> trasy)
-    {
-        if (!BraxMiastoAssety.Jest(Paczka)) return 0;
-        Directory.CreateDirectory(Out);
-        Physics.SyncTransforms();
-        var rnd = new System.Random(1212); int n = 0;
-        for (int k = 0; k < trasy.Count; k++)
+        // the BEACH (BraxChampionsBeachFurnishings: dry sand from the planted bed at z -161 to the lounger rows beyond
+        // z -185): two lanes on the dry sand, three stretches between the beach-club decks at x 230 and 530 (never across a
+        // deck or a boardwalk), the two girls in bikinis
+        var odcinki = new[] { (112f, 222f), (238f, 522f), (538f, 640f) };
+        float[] plazaZ = { -168.5f, -175.5f };
+        for (int k = 0; k < odcinki.Length * plazaZ.Length; k++)
         {
+            var (x0, x1) = odcinki[k % odcinki.Length]; float z = plazaZ[(k + k / odcinki.Length) % plazaZ.Length];
             int m = 2 + (k % 2);                                           // chodzi_czarne_bikini / chodzi_biale_bikini
-            var t = trasy[k].Select(p => Grunt(p)).ToArray();
-            if (Chodzaca(root, Chodzace[m], Wzrost[m] + .01f * (k / 2), t, rnd)) n++;
+            int n = Mathf.Max(2, Mathf.CeilToInt((x1 - x0) / 6f));
+            var trasa = new List<Vector3>();
+            for (int i = 0; i <= n; i++) trasa.Add(Grunt(new Vector3(Mathf.Lerp(x0, x1, i / (float)n), 0f, z + (i % 2 == 0 ? 0f : .7f))));
+            if (Chodzaca(root, Chodzace[m], Wzrost[m] + .01f * (k / 2), trasa.ToArray(), rnd, "plaża")) plaza++;
         }
-        Debug.Log("MISTRZOWIE_POSTACIE aquapark chodzące=" + n);
-        return n;
+        Debug.Log("MISTRZOWIE_POSTACIE kasyno=" + kasyno + " plaża=" + plaza + " stojące=0 paczka=" + Paczka);
+        return kasyno + plaza;
     }
 
     // world point (nominal x,z) on the real ground: the first collider under it, else the paving height
-    static Vector3 Grunt(Vector3 nominal)
+    // (from: the height the ray starts at - inside a building under its roof, e.g. 3 m over the casino hall's floor)
+    static Vector3 Grunt(Vector3 nominal, float from = 30f)
     {
         var p = new Vector3(nominal.x, 0f, nominal.z) * K;
-        if (Physics.Raycast(p + Vector3.up * 30f * K, Vector3.down, out var hit, 40f * K, ~0, QueryTriggerInteraction.Ignore)) return hit.point;
+        if (Physics.Raycast(p + Vector3.up * from * K, Vector3.down, out var hit, (from + 10f) * K, ~0, QueryTriggerInteraction.Ignore)) return hit.point;
         return p + Vector3.up * .16f * K;
     }
 
-    static bool Chodzaca(Transform root, string nazwa, float wzrost, Vector3[] trasa, System.Random rnd)
+    static bool Chodzaca(Transform root, string nazwa, float wzrost, Vector3[] trasa, System.Random rnd, string gdzie)
     {
         var src = BraxMiastoAssety.Model(Paczka, nazwa); if (!src) return false;
         string glb = BraxMiastoAssety.Baza + Paczka + "/" + nazwa + ".glb";
         var o = (GameObject)UnityEngine.Object.Instantiate(src, root, false);
-        o.name = "Przechodzień (promenada) · " + nazwa;
+        o.name = "Spacerująca (" + gdzie + ") · " + nazwa;
         o.transform.position = trasa[0]; o.transform.rotation = Quaternion.identity; o.transform.localScale = Vector3.one;
         var skin = o.GetComponentsInChildren<SkinnedMeshRenderer>(true).Where(r => r.sharedMesh).OrderByDescending(r => r.sharedMesh.vertexCount).FirstOrDefault();
         if (!skin) { BraxBuildQuality.Warn("MISTRZOWIE_POSTACIE " + nazwa + ": brak siatki ze szkieletem"); UnityEngine.Object.DestroyImmediate(o); return false; }
@@ -129,7 +126,7 @@ public static class BraxChampionsPostacie
         p2.mowi = new[] { Kl("Taunt"), stoi }.Where(x => x != null).ToArray(); p2.slucha = new[] { stoi };
         p2.reakcje = new[] { Kl("Head Hit"), Kl("Hit To Body") }.Where(x => x != null).ToArray();
         p2.predkoscKlipu = vWalk * world;
-        p2.predkosc = p2.predkoscKlipu * Mathf.Lerp(.74f, .84f, (float)rnd.NextDouble());   // a stroll on the seafront
+        p2.predkosc = p2.predkoscKlipu * Mathf.Lerp(.74f, .84f, (float)rnd.NextDouble());   // a stroll
         p2.predkoscKlipuBiegu = vRun * world;
         p2.bok = Mathf.Lerp(.25f, .6f, (float)rnd.NextDouble());
         p2.glowa = BraxMiastoAssety.Znajdz(o.transform, "mixamorig:Head"); p2.szyja = BraxMiastoAssety.Znajdz(o.transform, "mixamorig:Neck");
