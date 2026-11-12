@@ -1,0 +1,24 @@
+{
+ "source": "Właściciel 12.11.2026 02:38: plakaty BRAXHORN NUTRITION z jego kolegami („na siłowniach, na sklepach z odżywkami mają być oni… masz zdjęcia, możesz zrobić ich sam”) — 2 grafiki właściciela bez zmian treści (JPEG 1280 px)",
+ "target": "plakaty_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/plakaty_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "25fe54ada42ebfbf79ad939a9f5fbc8e3e96d852a6bb90cac71cd2b62a505255",
+ "cmsSha256": "93b18b163337f0d2114eb03685b44071caf8ac2e0e381fe046d4456a3ff006ba",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 6124096,
+   "sha256": "93b18b163337f0d2114eb03685b44071caf8ac2e0e381fe046d4456a3ff006ba"
+  }
+ ],
+ "files": {
+  "oryginal/plakat_01_oryginal.png": "84dd435214a60ea08972dbaf46b29691b8e774a06a22c7f9a43106b38659d4fb",
+  "oryginal/plakat_02_oryginal.png": "529af833b3d750bf2330c20f017be3dd510f3e6494bec2ed0de15302048ad4ec",
+  "oryginal/spec.json": "7c40432e00d8011d2a3409d658a5cdc298d02f226ecd809c24a2263358ce8b88",
+  "plakaty_01/katalog.json": "6e1fb5643ae554c73b3e8181c88f503525c4948ae003741f42a87b8360934c53",
+  "plakaty_01/plakat_01.jpg": "dc7051d042c64e2a1c98cfd14917522310f6a5c54fd5c130ca5726ac260475f7",
+  "plakaty_01/plakat_02.jpg": "691d54bff9374555fb9e9de4e6334ffe95532bc6e9bb7b515bd708c99746ae3c"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

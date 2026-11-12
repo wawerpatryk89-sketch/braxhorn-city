@@ -213,6 +213,29 @@ public static class BraxRegionGym
             { o.transform.position = wall.point + Vector3.back * .06f - b.center + new Vector3(0, 0, 0); rep.props++; }
             else UnityEngine.Object.DestroyImmediate(o);
         }
+        // 3) 12.11 (właściciel 02:34–02:38: „moich kolegów z plakatów — na siłowniach… mają być oni”): plakaty BRAXHORN NUTRITION
+        // z jego kolegami na ścianie od wyjścia (z sali widać je od razu), tylko na płaskim, wolnym kawałku ściany (4 promienie
+        // w narożniki plakatu trafiają w tę samą płaszczyznę, przed ścianą nic nie stoi)
+        if (BraxPlakaty.Jest)
+        {
+            int pl = 0;
+            foreach (var (x, nr) in new[] { (-4.0f, 1), (13.5f, 2), (-10.0f, 2), (16.0f, 1) })
+            {
+                if (pl >= 2) break;
+                float hp = 1.6f, wp = hp * BraxPlakaty.Aspekt, yc = 2.1f;
+                bool ok = true; float zSc = 0f; Vector3 nSc = Vector3.back;
+                foreach (var (dx, dy) in new[] { (0f, 0f), (-.5f, -.5f), (.5f, -.5f), (-.5f, .5f), (.5f, .5f) })
+                {
+                    RaycastHit sc;
+                    if (!Physics.Raycast(new Vector3(x + dx * (wp + .1f), yc + dy * (hp + .1f), 6f), Vector3.forward, out sc, 9f, ~0, QueryTriggerInteraction.Ignore) || sc.normal.z > -.9f) { ok = false; break; }
+                    if (dx == 0f) { zSc = sc.point.z; nSc = sc.normal; }
+                    else if (zSc != 0f && Mathf.Abs(sc.point.z - zSc) > .03f) { ok = false; break; }
+                }
+                if (!ok || !BraxRegion.Free(new Vector3(x, yc, zSc - .35f), new Vector3(wp + .2f, hp + .2f, .5f))) continue;
+                if (BraxPlakaty.Plakat(root, "siłownia BRAXHORN — kolega właściciela " + nr, nr, new Vector3(x, yc, zSc), Vector3.back, hp)) { pl++; rep.props++; }
+            }
+            rep.notes.Add("plakaty kolegów właściciela: " + pl);
+        }
         foreach (var (model, label, at, h) in new[] { (ext, "Siłownia: gaśnica", new Vector3(8.8f, 0, 10.6f), .7f), (bin, "Siłownia: kosz", new Vector3(3.2f, 0, 10.6f), .95f), (pot, "Siłownia: roślina przy wyjściu", new Vector3(9.6f, 0, 10.2f), 1.6f) })
         {
             if (!model) continue;

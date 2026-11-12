@@ -129,6 +129,10 @@ internal static class BraxMiastoNutrition
         var otwFrontOdSrodka = new[] { Rect.MinMaxRect(DX0 - X0, F, DX1 - X0, F + 2.85f), Rect.MinMaxRect(15.25f - X0, .62f, 19.35f - X0, 3.35f), Rect.MinMaxRect(22.65f - X0, .62f, 25.4f - X0, 3.35f) };
         BraxMiastoA.Pokoj(posadzka, sciany, sufit, X0, X1, Z0, Z1, F, C, new[] { new[] { otwMural }, null, otwFrontOdSrodka, null });
         BraxMiastoA.Obraz(root, "MURAL BRAXHORN (byk) na ścianie", "Assets/CityRebuild/Brand/nutrition-mural.jpg", new Vector3(mx0, my0, Z0), Vector3.right, mw, mh, Vector3.forward, 0f, .85f);
+        // 12.11 (właściciel 02:34–02:38: „moich kolegów z plakatów… na sklepach z odżywkami mają być oni”): dwa plakaty BRAXHORN
+        // NUTRITION z jego kolegami na ścianie zachodniej (wolnej od regałów), środek 1.75 m nad posadzką, w ramach z aluminium
+        foreach (var (zp, nr) in new[] { (Z0 + 3.0f, 1), (Z0 + 5.3f, 2) })
+            BraxPlakaty.Plakat(root, "Nutrition — kolega właściciela " + nr, nr, new Vector3(X0, F + 1.75f, zp), Vector3.right, 1.45f);
         // posadzka pod drzwiami do lica fasady (wejście równo z chodnikiem)
         BraxUliceKit.S(posadzka).Quad(new Vector3(DX0, F, Z1), new Vector3(DX1, F, Z1), new Vector3(DX1, F, Front), new Vector3(DX0, F, Front), Vector3.up);   // do linii zabudowy — dalej chodnik
         BraxMiastoA.Kol(kol, "posadzka sklepu", new Vector3(X0, F - .3f, Z0), new Vector3(X1, F, Front + .15f));

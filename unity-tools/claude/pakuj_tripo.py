@@ -2,7 +2,7 @@
 """BRAXHORN — paczka globalna z planszy Tripo właściciela (pojazdy, sprzęt, eksponaty) w formacie paczek sklepowych kolegi
 (unity-city/Prywatne/braxhorn-sklep-*/, rozpakowuje unity-tools/sklep/install_sklep_modele.py w CI):
 
-    pakuj_tripo.py <nazwa paczki> <target> <oryginał.glb> <spec.json> <katalog pociętych modeli> "<źródło: kto, kiedy, co>"
+    pakuj_tripo.py <nazwa paczki> <target> <oryginał.glb | katalog oryginałów> <spec.json> <katalog pociętych modeli> "<źródło: kto, kiedy, co>"
 
   tar (oryginal/<plik>.glb, oryginal/spec.json, <target>/*.glb, <target>/_tekstury/*, <target>/katalog.json)
   -> openssl cms -encrypt -aes256 (DER) do recipient.crt (certyfikat transferowy CI „Braxhorn camp input transfer”,
@@ -42,7 +42,9 @@ def pakuj(nazwa, target, oryginal, spec, pociete, zrodlo):
     with tempfile.TemporaryDirectory() as tmp:
         st = Path(tmp) / "staging"
         (st / "oryginal").mkdir(parents=True)
-        shutil.copy(oryginal, st / "oryginal" / Path(oryginal).name)
+        if Path(oryginal).is_dir():                                    # kilka plików źródłowych (np. plakaty)
+            for f in sorted(Path(oryginal).iterdir()): shutil.copy(f, st / "oryginal" / f.name)
+        else: shutil.copy(oryginal, st / "oryginal" / Path(oryginal).name)
         shutil.copy(spec, st / "oryginal" / "spec.json")
         shutil.copytree(pociete, st / target)
         files = {str(p.relative_to(st)): sha(p) for p in sorted(st.rglob("*")) if p.is_file()}

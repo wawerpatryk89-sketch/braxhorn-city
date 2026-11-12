@@ -117,5 +117,19 @@ class NovaChlodziarki(unittest.TestCase):
         self.assertNotIn("xa - .004f", n)                                     # kratka w licu cokołu, nie 4 mm przed nim
 
 
+class Plakaty(unittest.TestCase):
+    # 12.11 02:34–02:38: „moich kolegów z plakatów — na siłowniach, na sklepach z odżywkami mają być oni… możesz zrobić ich sam”
+    def test_owner_posters_packed_and_hung(self):
+        m = json.loads((PRYW / "braxhorn-sklep-plakaty-01" / "manifest.json").read_text())
+        self.assertEqual(m["target"], "plakaty_01")
+        for f in ["plakaty_01/plakat_01.jpg", "plakaty_01/plakat_02.jpg"]: self.assertIn(f, m["files"])
+        self.assertEqual([q.name for q in (PRYW / "braxhorn-sklep-plakaty-01").iterdir() if q.suffix in (".jpg", ".png")], [])   # tylko zaszyfrowane
+        p = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxPlakaty.cs").read_text()
+        self.assertIn("srodek + n * .025f", p)                               # grafika 2.5 cm przed licem ściany (zero migotania)
+        self.assertIn("BraxPlakaty.Plakat(root,", (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxMiastoNutrition.cs").read_text())
+        g = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxRegionGym.cs").read_text()
+        self.assertIn("BraxPlakaty.Plakat(root,", g); self.assertIn("BraxRegion.Free(new Vector3(x, yc, zSc - .35f)", g)
+
+
 if __name__ == "__main__":
     unittest.main()
