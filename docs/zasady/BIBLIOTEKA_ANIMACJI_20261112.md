@@ -11,6 +11,7 @@ Wszystkie źródła animacji gry w jednym miejscu. **Przed ściąganiem czegokol
 | `unity-city/Prywatne/braxhorn-animacje-20261112-2/` | 4 | 12.11 23:25: Waving ×2, Talking At Watercooler, Watering |
 | `unity-city/Prywatne/braxhorn-animacje-20261112-3/` | 7 | 12.11 23:29: Carrying (1), Carrying Turn, Box Walk Arc (1), Box Turn (1), Jogging With Box, Walk To Stop, Walking (kelnerka z tacą: chód, obrót, zatrzymanie) |
 | `unity-city/Prywatne/braxhorn-animacje-20261112-4/` | 4 | 12.11 23:32: Pointing ×3, Pointing Gesture (wskazywanie na stojąco) |
+| `unity-city/Prywatne/braxhorn-animacje-20261112-5/` | 3 | 12.11 23:36: Walking With Shopping Bag, Picking Up, Picking Up Object (zakupy) |
 | Biblioteka A/T: wydanie DRAFT `global-animation-library-at-20261107` (gałąź `codex/global-animation-library-20261107`, `asset-library/animations/catalog.json`) | A 118 + T 119 | walka (komplet), golf (12), Treading Water, Swimming To Edge, Shaking Hands, Driving/Entering/Exiting Car, piłka, Speedbag, Victory/Defeat |
 | Patryk, 22 animacje: gałąź `claude/osiedle-42-poprawka`, `unity-tools/claude/patryk-owner-22-manifest.json`, `unity-city/Prywatne/import-patryk-animations-20261106` | 22 | Swimming, Treading Water, Drinking, Typing, Sitting, Male/Female Sitting Pose, Angry Gesture, piłka, bramkarz, auto |
 | `unity-city/Assets/Source/Mistrzowie/Brax/CarAnimations` | 3 | Entering Car, Driving, Exiting Car |

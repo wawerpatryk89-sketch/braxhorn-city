@@ -1,0 +1,22 @@
+{
+ "source": "Owner Mixamo animations 12.11.2026 23:36 (Walking With Shopping Bag, Picking Up, Picking Up Object); list: animacje_20261112_5/katalog.json",
+ "target": "animacje_20261112_5",
+ "staging": "not staged by any build yet; kept so nothing is lost",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (same recipient as braxhorn-sklep-*) -> one part",
+ "tarSha256": "d00e572aa71faabeebac46eb428471b1ee721f835c4bb8611284d2a6c23e2670",
+ "cmsSha256": "9ad22c4f5e90e7d627f303aeec02846f60cf9833a1002d3de3cc434c7a51346d",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 2959936,
+   "sha256": "9ad22c4f5e90e7d627f303aeec02846f60cf9833a1002d3de3cc434c7a51346d"
+  }
+ ],
+ "files": {
+  "animacje_20261112_5/Picking Up Object.fbx": "469d1fb31fc0054ff53b6bbf03ca6dea8fdf45ba2133f592f5b9eefb03814c2f",
+  "animacje_20261112_5/Picking Up.fbx": "cd3f0755af610fa6615678c74d09c720445300ccf8df12b581c2b7b504abece3",
+  "animacje_20261112_5/Walking With Shopping Bag.fbx": "6e65b26a4f117323f2cb365e69bdd32b1bdb534b7e519e362620322c632938bc",
+  "animacje_20261112_5/katalog.json": "b1c61cc74b269f606cf1c3a9a43b75ca4e1a5715dbad3005abe79e7050b73ff0"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
