@@ -1,0 +1,26 @@
+{
+ "source": "Owner Mixamo animations 12.11.2026 23:27-23:29 (Box_Walk_Arc_1.zip: carrying / box walking, Walk To Stop, Walking); list: animacje_20261112_3/katalog.json",
+ "target": "animacje_20261112_3",
+ "staging": "not staged by any build yet; kept so nothing is lost",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (same recipient as braxhorn-sklep-*) -> one part",
+ "tarSha256": "6138d0b770207a09fa8b40c30c2a30e0b86b7872b0c0dcbd89c99850fa1af0d4",
+ "cmsSha256": "6702feede0e295459d079b0f959438cd8b6c011fcd4376ac251d9840ed989dcf",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 5530176,
+   "sha256": "6702feede0e295459d079b0f959438cd8b6c011fcd4376ac251d9840ed989dcf"
+  }
+ ],
+ "files": {
+  "animacje_20261112_3/Box Turn (1).fbx": "4a80b9882a019208e871e580584fb6852be95acab5ad92f38b2ade2dabc2dd48",
+  "animacje_20261112_3/Box Walk Arc (1).fbx": "5aeae6887dfb72d4705fbfee21793f85454526b9d16606310aedf51e473347bf",
+  "animacje_20261112_3/Carrying (1).fbx": "2d36a2a3a99973ab227a76782deeea4f9e8a94ce37db679cf3bd06cf52365c9a",
+  "animacje_20261112_3/Carrying Turn.fbx": "0eb2aefff6d2e6b0d35117f9b3987997ced9165ba5a878f344c899f242971991",
+  "animacje_20261112_3/Jogging With Box.fbx": "0069df219214d7ab8332c6ca9f18c951dd7c5afe7558b75b8f45889e670f540e",
+  "animacje_20261112_3/Walk To Stop.fbx": "59cf3444400a88f32376a903d9639053ee9a37a87a05018e19af05a47137c197",
+  "animacje_20261112_3/Walking.fbx": "e13fe56a1234bd41ea1d89eb9aac5eb5409d7783663ca68b7c45d14f9b85665e",
+  "animacje_20261112_3/katalog.json": "493282326f8160c54f363114ee8b80ef93cc0a69ded1dec939dad593d867ade0"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
