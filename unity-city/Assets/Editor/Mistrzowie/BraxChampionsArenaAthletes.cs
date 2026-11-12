@@ -147,7 +147,7 @@ public static partial class BraxChampionsArenaArrival
         var basinInside = LuxSolid("porcelain_bowl_inside", new Color(.86f, .87f, .87f), .05f, 0f);
         var chrome = LuxSolid("polished_chrome_waste", new Color(.86f, .88f, .90f), .06f, 1f);
         var plaque = LuxSolid("black_sign_plate", new Color(.035f, .037f, .042f), .30f, .2f);
-        int lockers = 0, seats = 0;
+        int lockers = 0, seats = 0, gear = 0;
         var roomNames = new BraxChampionsMeshBatch();      // SZATNIA A / B: gold 3D letters on the black plaques
         var g = BeginNominalGroup("A1 ATHLETES | lux changing rooms A+B | teak lockers, black leather, gold");
         try
@@ -196,6 +196,12 @@ public static partial class BraxChampionsArenaArrival
                     W.Siedzisko(new Vector3(bx, RoomFloorTop + SeatTop, 45.85f), Vector3.forward, "ŁAWKA SZATNIA " + room); seats++;
                 }
 
+                // Owner 12.11 12:07 ("w szatniach zawodników worek ma jeden wisieć do treningu, mają leżeć rękawice, tarczki ...
+                // masz uzupełniać"): the owner's own gear models (global shop packs sklep_sprzet_01 / sklep_walka_01, real
+                // metres) - a heavy bag on a chain from the ceiling in the free floor between the vanity and the bench,
+                // gloves, head guards and a mouthguard box on the leather bench, a rope, kettlebells and dumbbells on the
+                // floor by the outer lockers. (No focus pads exist in his packs yet.)
+                gear += AthleteGear(g, s, mid, chrome);
                 // Ceiling: six recessed warm downlights + two vertex lamps.
                 foreach (float dx in new[] { -4.5f, 0f, 4.5f })
                 foreach (float z in new[] { 42f, 49f })
@@ -224,7 +230,50 @@ public static partial class BraxChampionsArenaArrival
         EndNominalGroup(g, arrivalRoot, "mistrzowie_a1_athlete_rooms_lux");
         Debug.Log("A1_ATHLETE_ROOMS_LUX rooms=2 lockers=" + lockers + " lockerSize=" + LockerW + "x" + LockerH + "x" + LockerD +
             " seats=" + seats + " vanity=7m_granite_4basins_mirror island=6m_leather floor=stone_tiles walls=wooden_panels" +
-            " interiorLightMarker=true scale=K_once");
+            " interiorLightMarker=true scale=K_once gear=" + gear);
+    }
+
+    // One owner model (real metres, base at its pivot) under the nominal group g at p (nominal), yaw; g carries K later.
+    static bool GearModel(Transform g, string pack, string name, Vector3 p, float yaw)
+    {
+        var src = BraxMiastoAssety.Model(pack, name); if (!src) return false;
+        var o = BraxMiastoAssety.Postaw(g, src, "A1 szatnia | " + name, Vector3.zero, yaw, 1f, true, true);
+        if (!o) return false;
+        o.transform.localPosition = p; o.transform.localRotation = Quaternion.Euler(0, yaw, 0); o.transform.localScale = Vector3.one;
+        return true;
+    }
+
+    static int AthleteGear(Transform g, float s, float mid, Material steelDark)
+    {
+        int n = 0;
+        float seat = RoomFloorTop + SeatTop;
+        // the heavy bag: 1.25 m, its bottom 0.60 m over the floor, a chain and a swivel to a ceiling plate (3.62)
+        var bag = new Vector3(s * 10.6f, RoomFloorTop + .60f, 41.9f);
+        if (GearModel(g, "sklep_sprzet_01", "worek_bokserski", bag, s * 20f))
+        {
+            n++;
+            float topY = bag.y + 1.25f;
+            W.Rura(steelDark, new Vector3(bag.x, topY - .02f, bag.z), new Vector3(bag.x, 3.40f, bag.z), .012f, 8);   // chain
+            W.Walec(steelDark, new Vector3(bag.x, 3.40f, bag.z), .045f, .06f, 12);                                   // swivel
+            W.Walec(steelDark, new Vector3(bag.x, 3.60f, bag.z), .12f, .02f, 16);                                    // ceiling plate
+            W.Kolizja(new Vector3(bag.x, bag.y + .62f, bag.z), new Vector3(.38f, 1.25f, .42f), Quaternion.identity);
+        }
+        // on the island bench (top at the seat height, z 45.2..46.0): gloves, head guards, the mouthguard box
+        foreach (var (pack, name, dx, dz, yaw) in new[] {
+            ("sklep_walka_01", "rekawice_bokserskie_braxhorn_czarno_zlote", -2.45f, 45.45f, 20f),
+            ("sklep_sprzet_01", "rekawice_bokserskie", -1.95f, 45.75f, -35f),
+            ("sklep_walka_01", "kask_z_krata_czarno_zloty", 2.0f, 45.6f, 160f),
+            ("sklep_walka_01", s < 0 ? "kask_bokserski_czerwony" : "kask_bokserski_niebieski", 2.55f, 45.45f, 200f),
+            ("sklep_walka_01", "ochraniacz_szczeki_w_pudelku", .35f, 45.6f, 10f) })
+            if (GearModel(g, pack, name, new Vector3(mid + s * dx, seat + .002f, dz), yaw)) n++;
+        // on the floor by the outer lockers (|x| 17.3..20.5, z 41..43.6): a rope, two kettlebells, a pair of dumbbells
+        foreach (var (pack, name, ax, z, yaw) in new[] {
+            ("sklep_sprzet_01", "skakanka", 17.6f, 41.4f, 30f),
+            ("sklep_sprzet_01", "kettlebell_16kg", 19.6f, 41.3f, 0f),
+            ("sklep_sprzet_01", "kettlebell_16kg", 20.1f, 41.7f, 40f),
+            ("sklep_sprzet_01", "hantle_para_10kg", 19.8f, 42.6f, 90f) })
+            if (GearModel(g, pack, name, new Vector3(s * ax, RoomFloorTop + .002f, z), yaw)) n++;
+        return n;
     }
 
     // Behind the arena (+Z): granite walk from the athletes' glass door to a

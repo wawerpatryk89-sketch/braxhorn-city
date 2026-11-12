@@ -24,4 +24,4 @@ public sealed class BraxChampionsKino : MonoBehaviour
 }
 
 // a working TV screen (runtime BraxTelewizor, global): the preview keeps its fields only
-public sealed class BraxTelewizor : MonoBehaviour { public bool wlaczony = true, pion; public float zasieg = 26f, zasiegPrzycisku = 2.8f; public Material obraz, wylaczony; public int start; }
+public sealed class BraxTelewizor : MonoBehaviour { public bool wlaczony = true, pion, maMiejsce; public float zasieg = 14f, zasiegPrzycisku = 3.2f; public Material obraz, wylaczony; public int start; public Vector3 srodekLokalny, przodLokalny = Vector3.forward; }

@@ -96,10 +96,10 @@ public static class BraxChampionsArenaSideMurals
             BraxBuildQuality.Warn("CHAMPIONS_A1_SIDE_MURAL_MISSING: " + sourcePath + "; no substitute image");
             return false;
         }
-        BraxChampionsArenaMuralPrint.Frame(group, "Side_" + side,
-            new Vector3(x, BottomY + ImageHeight * .5f, (WallNearZ + WallFarZ) * .5f), right, facing, WallSpan - .34f, ImageHeight);
+        // owner 12.11 12:06: "murale bez żadnych ramek, mają wisieć na ścianie. Prawa, lewa, nic więcej" - no gold frame, no
+        // light lines: the picture alone on the left and the right wall
         Debug.Log("CHAMPIONS_A1_SIDE_MURAL_APPLIED " + side + " source=" + sourcePath + " panels=" + hung +
-            " sourcePixels=6144x2048 wall=70x27.945 originalArt=70x23.333 backlit=true frame=gold");
+            " sourcePixels=6144x2048 wall=70x27.945 originalArt=70x23.333 backlit=true frame=NONE");
         return true;
     }
 

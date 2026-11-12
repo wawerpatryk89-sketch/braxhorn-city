@@ -125,7 +125,11 @@ public static partial class BraxKatalog
         {
             GameObjectUtility.SetStaticEditorFlags(r.gameObject, 0); screen = r.gameObject;
             var tv = r.gameObject.AddComponent<BraxTelewizor>();
-            tv.obraz = still; tv.wylaczony = GlassDark; tv.pion = pion; tv.zasieg = 26f * c.unit; tv.zasiegPrzycisku = 2.6f * c.unit; tv.start = start;
+            tv.obraz = still; tv.wylaczony = GlassDark; tv.pion = pion; tv.zasieg = 14f * c.unit; tv.zasiegPrzycisku = 3.2f * c.unit; tv.start = start;
+            // the picture's real centre and facing (the quad is baked in the parent's space, so the object sits at the
+            // building's origin - owner 12.11 12:21: the sound came from the corridor and no TV showed the film)
+            float u = c.unit > 0f ? c.unit : BraxClaudeOsiedle.K;
+            tv.maMiejsce = true; tv.srodekLokalny = centre * u; tv.przodLokalny = new Vector3(n.x, 0f, n.z).normalized;
         }
         return screen;
     }

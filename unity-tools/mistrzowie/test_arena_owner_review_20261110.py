@@ -86,7 +86,8 @@ class ArenaOwnerReview20261110(unittest.TestCase):
         self.assertLess(b + h + .16, 27.35 - .30 - .165)        # under the lobby roof
         self.assertIn("WHOLE_ABOVE_DOOR=true doorCut=false", self.mural)
         self.assertNotIn("atmospheric edge", self.mural)
-        self.assertIn("BraxChampionsArenaMuralPrint.Frame(walls,\"Entrance\"", self.mural)
+        # owner 12.11 12:06: "murale bez żadnych ramek" - no frame round any mural
+        self.assertNotIn("BraxChampionsArenaMuralPrint.Frame(", self.mural)
 
     def test_every_wall_ceiling_and_stand_side_is_finished(self):
         for needle in ("BoxMinMax(marble,a0,a1,yF,WallPlinthTop,g0,g1,true);",

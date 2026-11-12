@@ -18,7 +18,22 @@ sklepy i salony w budynkach, biura. Kino ma własne filmy. Na ulicach, placach, 
 z filmami (tablice informacyjne, repertuar i menu zostają). Obowiązuje do odwołania przez właściciela. Dotyczy każdego nowego i poprawianego telewizora, monitora reklamowego i totemu.
 Telewizor z samym obrazkiem nie jest skończony (ZASADA_FUNKCJONALNE_JAK_W_ZYCIU_20261111).
 
-## 0. DECYZJA WŁAŚCICIELA 12.11.2026, 11:54 — NADRZĘDNA
+## 00. DECYZJA WŁAŚCICIELA 12.11.2026, 12:21–12:25 — NADRZĘDNA (zmienia sekcję 0)
+
+> „na korytarzu w apartamencie słychać coś z mojego filmika, ale nie ma nigdzie mojego filmika na żadnym telewizorze.
+> Nie ma przycisku włącz, wybierz se filmik” (12:21)
+> „Tylko ten jeden, ten teledysk … to możesz zostawić 9:16, tam gdzie ten teledysk jest … resztę 9:16 usuwasz, tylko
+> 16:9 zostawiasz do oglądania w telewizorach. I nie ma być w żadnym korytarzu słychać żadnego telewizora … tylko w pokojach” (12:25)
+
+- Telewizory: pięć reklam 16:9 (`tv_01..05`). Jedyny film 9:16 to **teledysk** (`pion_10_teledysk`) na totemach w galerii G1, tam gdzie był.
+- Przyczyna braku obrazu i dźwięku z korytarza: ekran był „wypieczony” w przestrzeni budynku, więc jego obiekt stał w środku
+  budynku (na korytarzu). Stamtąd szedł dźwięk, według tego punktu wybierano „najbliższe” telewizory (w innych mieszkaniach)
+  i tylko tam pojawiał się przycisk. Teraz generator zapisuje prawdziwy środek i kierunek obrazu (`maMiejsce`, `srodekLokalny`, `przodLokalny`).
+- Film i dźwięk grają **tylko w zasięgu wzroku**: przed ekranem, bez ściany, zamkniętych drzwi ani stropu na linii od kamery
+  albo od gracza. Gdy gracz wyjdzie z pokoju, film staje i nie słychać go na korytarzu. Dźwięk 3D cichnie do zera po 7 m.
+- Przycisk AKCJA (do 3,2 m × K przed ekranem): `WŁĄCZ TV` → `NASTĘPNY FILM · <nazwa> (k/5)` dla każdego filmu → po ostatnim `WYŁĄCZ TV`.
+
+## 0. DECYZJA WŁAŚCICIELA 12.11.2026, 11:54 (lista 9:16 zmieniona w sekcji 00)
 
 > „Wszystkie filmy, które ci dałem, 9/16 … nie ma tego być. Tylko mają być filmy w kinie i w telewizorach te krótkie
 > reklamy, co ci wysłałem. 16/9. Te 9/16 wszystkie wypierdalasz, wszystkie.”

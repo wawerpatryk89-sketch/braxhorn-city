@@ -63,6 +63,36 @@ public static class BraxChampionsArena
         if(SeatCount<600)BraxBuildQuality.Issue(new InvalidOperationException("Arena seating fell below the source estate arena"));
         return SeatCount;
     }
+    // The owner's ring (pack braxhorn-sklep-ring-01 -> silownia_ring_01/ring_bokserski_braxhorn: 7.85 x 7.79 m, canvas at
+    // .862 m, black and gold posts with the bull, the BRAXHORN mark on the canvas and the aprons, real ropes at .31/.66/1.0/
+    // 1.32 m, corner steps) in the hall's centre, its BRAXHORN front (+z) to the public entrance. Walkable: the platform
+    // collider, the ropes as walls on three sides; the fighters' side (-z, their red-carpet walkout and door Z0) is open
+    // over a step ramp. Real metres under the bowl root (K applied once by the root).
+    static bool OwnerRing(float cx, float yF, float cz)
+    {
+        var src = BraxMiastoAssety.Model("silownia_ring_01", "ring_bokserski_braxhorn");
+        if (!src) { BraxBuildQuality.Warn("A1_RING owner ring missing (pack braxhorn-sklep-ring-01): the code-built octagon stays"); return false; }
+        var o = BraxMiastoAssety.Postaw(colliders.parent, src, "A1 | RING BRAXHORN (model właściciela)", Vector3.zero, 0f, 1f, true, true);
+        if (!o) return false;
+        o.transform.localPosition = new Vector3(cx, yF, cz); o.transform.localRotation = Quaternion.identity; o.transform.localScale = Vector3.one;
+        const float canvas = .862f, hx = 3.045f, hz = 2.695f, half = 3.75f;
+        float top = yF + canvas;
+        void Box(string name, Vector3 c, Vector3 size, Quaternion r)
+        {
+            var g = new GameObject(name); g.transform.SetParent(colliders, false); g.transform.localPosition = c; g.transform.localRotation = r;
+            g.AddComponent<BoxCollider>().size = size;
+        }
+        Box("kolizja podestu ringu", new Vector3(cx, (yF + top) * .5f, cz), new Vector3(2f * half, canvas, 2f * half), Quaternion.identity);
+        Box("kolizja lin ringu (wschód)", new Vector3(cx + hx, top + .7f, cz), new Vector3(.12f, 1.4f, 2f * hz), Quaternion.identity);
+        Box("kolizja lin ringu (zachód)", new Vector3(cx - hx, top + .7f, cz), new Vector3(.12f, 1.4f, 2f * hz), Quaternion.identity);
+        Box("kolizja lin ringu (północ)", new Vector3(cx, top + .7f, cz + hz), new Vector3(2f * hx, 1.4f, .12f), Quaternion.identity);
+        // the fighters' side: a ramp from the hall floor up to the apron (2.6 m run), under the ropes' opening
+        float run = 2.6f, ang = Mathf.Atan2(canvas, run) * Mathf.Rad2Deg, len = Mathf.Sqrt(run * run + canvas * canvas);
+        Box("rampa wejścia na ring (strona zawodników)", new Vector3(cx, (yF + top) * .5f - .05f, cz - half - run * .5f), new Vector3(2.4f, .1f, len), Quaternion.Euler(-ang, 0, 0));
+        Debug.Log("A1_RING owner model ring_bokserski_braxhorn at " + cx + "/" + cz + " canvas=" + canvas + " octagon=REPLACED");
+        return true;
+    }
+
     static void CopiedEstateArena()
     {
         // yC: top of the hall walls and of the plate over the designed ceiling. It was 28 (bowl) = 28.165 m outside, 0.8 m
@@ -198,6 +228,12 @@ public static class BraxChampionsArena
         // kibice, a tu jest wejście na ring. Wejście na ring powinno być z drugiej strony, tam gdzie wchodzą zawodnicy.
         // Sens, logika zachowana wszędzie." The gate and its steps face -z (bok i=5, V5-V6): the fighters' door (Z0),
         // their red-carpet walkout and the gate are one line; the public (Z1) goes to the stands, never to the cage.
+        // Owner 12.11 12:07 ("ja ci wczoraj wygenerowałem klatkę. Jeżeli ta klatka jest lepsza od tej, co jest w arenie, to jest
+        // do wymiany"): his ring (OwnerRing) stands where the code-built octagon stood; the octagon only without the pack
+        // zs: the foot line of the fighters' access (the walkout carpet ends 1.35 m before it): the ring's ramp foot
+        // (cz - 3.75 - 2.6) + 1.35, or the octagon's gate
+        float zs = cz - 3.75f - 2.6f + 1.35f;
+        if (!OwnerRing(cx, yF, cz)) {
         const float P = .6f, Rv = 4.6f; float ap = Rv * Mathf.Cos(Mathf.PI / 8f), yT = yF + P;
         Vector3 V(int i, float y) { float a = Mathf.PI / 8f + i * Mathf.PI / 4f; return new Vector3(cx + Rv * Mathf.Cos(a), y, cz + Rv * Mathf.Sin(a)); }
         Vector2 MatUV(Vector3 p) => new Vector2((cx + Rv - p.x) / (2f * Rv), (cz + Rv - p.z) / (2f * Rv));   // logo czytelne od wejścia (+z)
@@ -252,7 +288,7 @@ public static class BraxChampionsArena
         BraxZapisAssetu.Utworz(pm, Out + "/oktagon_podest_kolizja.asset");
         var pg = new GameObject("kolizja podestu oktagonu"); pg.transform.SetParent(colliders, false); pg.AddComponent<MeshCollider>().sharedMesh = pm;
         // schody do furtki (3 × 0.2 m) + rampa kolizji, od strony zawodników (-z, ku drzwiom Z0)
-        float zs = cz - ap;
+        zs = cz - ap;
         for (int k = 0; k < 3; k++)
         {
             float z0 = zs - (3 - k) * .45f, top = yF + P * (k + 1) / 3f;
@@ -271,6 +307,7 @@ public static class BraxChampionsArena
             Cylinder(chrome, new Vector3(sx, yF + .2f, zs - 1.25f), .025f, .9f, 8, true, false);
             Cylinder(chrome, new Vector3(sx, yT, zs - .1f), .025f, .9f, 8, true, false);
             OBoxQ(chrome, new Vector3(sx, (yF + .2f + yT) * .5f + .9f, zs - .675f), new Vector3(.04f, .04f, 1.3f), Quaternion.Euler(-Mathf.Atan2(yT - yF - .2f, 1.15f) * Mathf.Rad2Deg, 0, 0));
+        }
         }
 
         // trybuny: rząd 0.9 m głębokości, 0.4 m wyżej; krzesełko (stopka, siedzisko, oparcie) co 0.56 m

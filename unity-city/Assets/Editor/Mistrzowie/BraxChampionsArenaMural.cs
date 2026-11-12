@@ -148,8 +148,7 @@ public static class BraxChampionsArenaMural
             BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: Unity did not import the required owner HD source: "+HdImage);
             return false;
         }
-        BraxChampionsArenaMuralPrint.Frame(walls,"Entrance",new Vector3(cx,MuralBottom+MuralHeight*.5f,WallImageZ),
-            Vector3.left,Vector3.forward,MuralWidth,MuralHeight);
+        // (no frame round the picture: owner 12.11 12:06 "murale bez żadnych ramek")
         PremiumEntrancePortal(walls);
         if(FrameTop>=LobbyRoofUndersideBowlY||FrameBottom<=DoorTop+.18f)
             BraxBuildQuality.Warn("ENTRANCE_MURAL = FAIL: frame "+FrameBottom+".."+FrameTop+" must sit between the gold portal ("+
@@ -157,7 +156,7 @@ public static class BraxChampionsArenaMural
         Debug.Log("ENTRANCE_MURAL = PASS");
         Debug.Log("CHAMPION_A1_MURAL_ORIGINAL_APPLIED hd=true source="+HdImage+" sourcePixels=6144x2048 panels="+hung+
                   " mural="+MuralWidth+"x"+MuralHeight+"m bottom="+MuralBottom+" top="+(MuralBottom+MuralHeight)+
-                  " WHOLE_ABOVE_DOOR=true doorCut=false frame=gold backlit=true roofUnderside="+LobbyRoofUndersideBowlY+
+                  " WHOLE_ABOVE_DOOR=true doorCut=false frame=NONE backlit=true roofUnderside="+LobbyRoofUndersideBowlY+
                   " door=4.10x4.20m open noMirror=true noStretch=true sourcePixelsUnmodified=true");
         return true;
     }

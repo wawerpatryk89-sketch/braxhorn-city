@@ -69,13 +69,29 @@ class PeronMigotanie(unittest.TestCase):
 
     def test_no_portrait_films(self):
         tv = (ED.parents[1] / 'BraxhornWideo' / 'BraxTelewizor.cs').read_text(encoding='utf-8')
-        self.assertIn('public static readonly string[] Pion = { };', tv)
+        # owner 12.11 12:25: only his music video stays 9:16, on the G1 totems where it played
+        self.assertIn('public static readonly string[] Pion = { "pion_10_teledysk.mp4" };', tv)
         lista = re.search(r'public static readonly string\[\] Tv =\s*\{(.*?)\};', tv, re.S).group(1)
         self.assertEqual(re.findall(r'"([^"]+)"', lista), ['tv_01_puma.mp4', 'tv_02_alpy.mp4', 'tv_03_roboty.mp4',
                                                           'tv_04_gangsterzy.mp4', 'tv_05_fabryka.mp4'])
-        self.assertNotIn('G1AdTotem', src('BraxChampionsG1Wnetrze.cs'))
+        g1 = src('BraxChampionsG1Wnetrze.cs')
+        self.assertIn('G1AdTotem(x,y,z);', g1)
         for f in ED.glob('*.cs'):
-            self.assertIsNone(re.search(r'WorkingScreen\([^;]*,\s*true\s*,', f.read_text(encoding='utf-8')), f.name)
+            if f.name != 'BraxChampionsG1Wnetrze.cs':      # the only portrait screens: the G1 totems (the teledysk)
+                self.assertIsNone(re.search(r'WorkingScreen\([^;]*,\s*true\s*,', f.read_text(encoding='utf-8')), f.name)
+
+    def test_tv_plays_where_it_stands_and_only_in_sight(self):
+        tv = (ED.parents[1] / 'BraxhornWideo' / 'BraxTelewizor.cs').read_text(encoding='utf-8')
+        # owner 12.11 12:21/12:25: sound in the corridor, no film on any TV, no button, no choice of film
+        self.assertIn('srodek = transform.TransformPoint(srodekLokalny)', tv)
+        self.assertIn('s.glos.transform.position = srodek;', tv)
+        self.assertIn('if (!t.Widac(p) && !(zGracza && t.Widac(oko))) continue;', tv)
+        self.assertIn('"NASTĘPNY FILM · "', tv)
+        self.assertIn('"WŁĄCZ TV"', tv)
+        self.assertIn('"WYŁĄCZ TV"', tv)
+        self.assertNotIn('s.glos.transform.position = transform.position', tv)
+        kat = src('BraxKatalog.cs')
+        self.assertIn('tv.maMiejsce = true; tv.srodekLokalny = centre * u;', kat)
 
 
 if __name__ == '__main__':

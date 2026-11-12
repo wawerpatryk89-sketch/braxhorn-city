@@ -37,7 +37,8 @@ class ChampionSideMuralsTests(unittest.TestCase):
         self.assertNotIn('mesh.SetUVs(3, interior);',self.m)
         # 9.11 23:43 (APK 35: still black on the phone): three 2048 tiles, back-lit, gold frame.
         self.assertIn('BraxChampionsArenaMuralPrint.Hang(bowl, name, "Side_" + side, sourcePath,',self.m)
-        self.assertIn('BraxChampionsArenaMuralPrint.Frame(group, "Side_" + side,',self.m)
+        # owner 12.11 12:06: "bez żadnych ramek ... prawa, lewa, nic więcej"
+        self.assertNotIn('BraxChampionsArenaMuralPrint.Frame(',self.m)
         z_entry,z_rear=98.3,28.3
         w=z_entry-z_rear
         h=w/3.0

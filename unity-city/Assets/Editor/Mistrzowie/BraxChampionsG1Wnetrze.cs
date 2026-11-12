@@ -672,8 +672,29 @@ public static partial class BraxChampionsD2
         G1Directory(-10.5f,G1F1,G1NorthMallZ0+2.5f,"PIĘTRO · PÓŁNOC");G1Directory(10.5f,G1F1,G1SouthMallZ1-2.5f,"PIĘTRO · POŁUDNIE");
         G1Directory(0f,G1F0,G1NorthMallZ1+2.0f,"HOL GŁÓWNY");
         G1Hall();
-        // (the portrait advertising totems with the owner's 9:16 films are gone: owner 12.11 11:54 "wszystkie filmy 9/16
-        // wypierdalasz ... tylko filmy w kinie i w telewizorach krótkie reklamy 16/9")
+        // portrait advertising totems: owner 12.11 12:25 "tylko ten jeden, ten teledysk ... to możesz zostawić 9:16, tam gdzie
+        // ten teledysk jest ... resztę 9:16 usuwasz" - the totems stand where they stood and play only his music video
+        // (BraxWideo.Pion = the one teledysk); on / off with AKCJA, sound only in sight of the screen (BraxTelewizor)
+        foreach(var (x,y,z) in new[]{(-30f,G1F0,34f),(30f,G1F0,34f),(-30f,G1F0,-19f),(30f,G1F0,-19f),(-12.5f,G1F0,47.5f),(-30f,G1F1,34f),(30f,G1F1,-19f)})G1AdTotem(x,y,z);
+    }
+
+    static Material[] totemMats;
+    static void G1AdTotem(float x,float y,float z)
+    {
+        if(totemMats==null)
+        {
+            totemMats=new Material[3];
+            for(int k=0;k<3;k++){var px=new Color32[BraxChampionsKinoEkrany.VW*BraxChampionsKinoEkrany.VH];BraxChampionsKinoEkrany.ReklamaPion(px,k);totemMats[k]=ScreenMaterial("g1_reklama_pion_"+k,BraxChampionsKinoEkrany.VW,BraxChampionsKinoEkrany.VH,px);}
+        }
+        RB(gCinemaDark,x-.55f,x+.55f,y,y+2.25f,z-.15f,z+.15f,.05f,true,3);
+        B(gRedLit,x-.575f,x-.55f,y+.05f,y+2.20f,z-.06f,z+.06f);B(gRedLit,x+.55f,x+.575f,y+.05f,y+2.20f,z-.06f,z+.06f);   // the LED fins, 25 mm proud of the sides
+        int i=0;
+        foreach(float f in new[]{-1f,1f})
+        {
+            var c=new Vector3(x,y+1.25f,z+f*(.15f+.016f));var mat=totemMats[(i+(int)Mathf.Abs(x+z))%3];
+            ScreenPanel(mat,c,new Vector3(0,0,f),.90f,1.60f,.02f,false);                            // the bezel
+            BraxKatalog.WorkingScreen(Kat(),mat,c,new Vector3(0,0,f),.90f,1.60f,true,"G1 totem reklamowy "+x+" "+z,i++);   // the picture: the teledysk (9:16), on / off
+        }
     }
     static readonly Dictionary<string,Material> g1Plans=new Dictionary<string,Material>();
     static Material PlanMat(string tu)
