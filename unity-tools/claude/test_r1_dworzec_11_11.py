@@ -65,11 +65,13 @@ class OdsuniecieFaweli(unittest.TestCase):
         self.assertIn("new Vector2(BraxMiastoDworzec.LacznikX, BraxMiastoGranice.Z0)", faw)
         self.assertIn("new Vector2(BraxMiastoDworzec.C0X, BraxMiastoGranice.Z0)", faw)
 
-    def test_tunnel_hill_moved_to_corridor(self):
+    def test_tunnel_hill_removed_with_tunnel(self):
+        # 11.11: wzgórze nad tunelem osiedla przeniesione z faweli do pasa dworca; 12.11: usunięte razem z tunelem (las)
         faw = code("BraxRegionFawela.cs")
         self.assertNotIn("float garb = 13.65f", faw)
-        self.assertIn("float garb = 13.65f - 3.4f * S01(0f, 60f, dz);", DW)
-        self.assertIn("if (x > GarbX1 || z < GarbZ1) return 0f;", DW)
+        self.assertNotIn("float garb = 13.65f", DW)
+        self.assertNotIn("Garb(", DW)
+        self.assertNotIn("MuryGarbu", DW)
 
     def test_step_order(self):
         reg = code("BraxRegion.cs")

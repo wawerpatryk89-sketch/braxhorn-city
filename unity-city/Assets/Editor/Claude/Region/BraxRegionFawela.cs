@@ -92,8 +92,8 @@ public static partial class BraxRegionFawela
         float h = YC + .045f * Mathf.Min(d, Pas1) + .12f * Mathf.Clamp(d - Pas1, 0f, Pas2 - Pas1) + .19f * Mathf.Max(0f, d - Pas2);
         h += ((Szum(x / 95f + 1.7f, z / 95f + 4.2f) - .5f) * 10f + (Szum(x / 31f + 7.1f, z / 31f + 2.3f) - .5f) * 2.4f) * S01(40f, 160f, d);
         h = YC + (h - YC) * (1f - .85f * S01(20f, 70f, x));                         // wschód: stok schodzi ku morzu
-        // (11.11: wzgórze nad tunelem na osiedle — garb 13.65 m za murem portalu — jest teraz w pasie dworca, w świecie:
-        // BraxMiastoDworzec.GarbTunelu; fawela odsunięta o Odsuniecie, jej plan zaczyna się za lasem)
+        // (11.11: wzgórze nad tunelem na osiedle przeniesione do pasa dworca; 12.11: usunięte razem z tunelem — tam las.
+        // Fawela odsunięta o Odsuniecie, jej plan zaczyna się za lasem)
         return h;
     }
 

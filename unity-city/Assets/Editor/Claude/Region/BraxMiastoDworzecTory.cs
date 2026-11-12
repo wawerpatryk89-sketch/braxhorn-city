@@ -65,7 +65,6 @@ internal static partial class BraxMiastoDworzec
         B(betonMur, PX1, Formacja - .2f, P2Kraw - .4f, KoniecTorow, YP, P2Kraw);
         Zajmij(XToruOd, LozeS - Skarpa - 1f, KoniecTorow + 1f, LozeN + Skarpa + 1f);
         Portal();
-        MuryGarbu();
         Opis("tory: 2 × " + (KozlyX - xa).ToString("F0") + " m, osie z " + T1.ToString("F3") + " / " + T2.ToString("F3") + " (" + OsieTorow + " m), główka szyny y " + GlowkaY.ToString("F3") + ", podkładów " + podkladow + ", kozły x " + KozlyX);
     }
 
@@ -99,30 +98,6 @@ internal static partial class BraxMiastoDworzec
         Kol("tunel kolejowy: ściana płd.", V(xe, Formacja, zs - .5f), V(xa, yo, zs));
         Kol("tunel kolejowy: koniec", V(xe - .5f, Formacja, zs), V(xe, yo, zn));
         Opis("portal zachodni x " + PortalX + ", otwór " + (zn - zs).ToString("F1") + " × " + (yo - Formacja).ToString("F1") + " m, tunel " + TunelDl + " m");
-    }
-
-    // mury oporowe wzgórza nad tunelem osiedla: wschód (wzdłuż łącznika) i południe (wzdłuż toru 1), filar przy murze portalu
-    static void MuryGarbu()
-    {
-        Grupa("mury oporowe", 260f);
-        float z0 = BraxMiastoGranice.Z0;
-        for (float z = z0; z > GarbZ1b + .01f; z -= 2f)
-        {
-            float z1 = Mathf.Max(z - 2f, GarbZ1b);
-            float top = Mathf.Max(Garb(GarbX1b - .05f, z), Garb(GarbX1b - .05f, z1)) + .5f;
-            B(kamienMur, GarbX1b, YC - .4f, z1, GarbX1, Mathf.Max(top, YC + .8f), z);
-        }
-        for (float x = -168f; x < GarbX1 - .01f; x += 2f)
-        {
-            float x1 = Mathf.Min(x + 2f, GarbX1);
-            float top = Mathf.Max(Garb(x, GarbZ1b + .05f), Garb(x1, GarbZ1b + .05f)) + .5f;
-            if (top < YC + .8f) top = YC + .8f;
-            B(kamienMur, x, Formacja - .3f, GarbZ1, x1, top, GarbZ1b);
-        }
-        B(kamienMur, -104f, YC - .4f, z0, GarbX1, 13.5f, -84f);   // filar: przedłużenie muru portalu tunelu osiedla
-        Kol("mur oporowy wzgórza (wschód)", V(GarbX1b, YC, GarbZ1b), V(GarbX1, 14f, z0));
-        Kol("mur oporowy wzgórza (południe)", V(-168f, Formacja, GarbZ1), V(GarbX1, 12f, GarbZ1b));
-        Zajmij(GarbX1b - .5f, GarbZ1 - 1f, GarbX1 + 3f, z0);
     }
 
     // ============================================================================ PRZEJAZD (krzyże św. Andrzeja, sygnalizatory, rogatki podniesione)

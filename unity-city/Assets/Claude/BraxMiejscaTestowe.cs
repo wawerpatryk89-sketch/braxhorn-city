@@ -63,7 +63,7 @@ public static class BraxMiejscaTestowe
         }
         // miasto: wjazd do tunelu na osiedle (koniec Alei Południowej, jak przyjazd z osiedla — BraxCityWorld.CityPortal; wiadukt usunięty 2.11)
         if (w != null && w.area == "city" && kat[9].Count == 0)
-            kat[9].Add(new Miejsce { kategoria = "tunel", nazwa = "Tunel na osiedle (koniec Alei Południowej)", pozycja = new Vector3(-126f, .3f, -78f), yaw = 180f });
+            kat[9].Add(new Miejsce { kategoria = "tunel", nazwa = "Koniec Alei Południowej (dawny tunel, ul. Dworcowa)", pozycja = new Vector3(-126f, .3f, -78f), yaw = 180f });
         foreach (var l in kat) wynik.AddRange(l);
         wynik.AddRange(reszta);
         foreach (var m in wynik) m.klucz = "miejsce." + m.kategoria;   // klucz tłumaczenia raz (bez sklejania napisów co klatkę)

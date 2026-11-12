@@ -21,8 +21,8 @@ using UnityEngine.Rendering;
 // łuki R 14 do z −103.53), zatoki BUS (2 stanowiska po 18.5 m) i TAXI/K+R, pętla autobusowa (R 16.8 / wyspa 6.0), plac,
 // budynek (hala z wieżą zegarową, skrzydła KOLEJ i AUTOBUSY), peron 1 przy budynku, tory 1 i 2, peron 2, kładka do faweli,
 // las lekki od faweli. Tory: na zachód do portalu tunelu (x −440, wzgórze w pasie), na wschód kozły (x 65.2). Przejazdy
-// kolejowe: łącznik do faweli (x −96) i ul. C0 (x −300). Wzgórze nad tunelem na osiedle (garb) przeniesione z terenu faweli
-// i oparte murem oporowym (wschód x −101, południe z −146.5).
+// kolejowe: łącznik do faweli (x −96) i ul. C0 (x −300). Wzgórze nad tunelem na osiedle (garb z murami oporowymi) usunięte
+// 12.11 razem z tunelem (właściciel: „ten tunel trzeba wyjebać, nawet drzewa w nim rosną”) — za końcem Alei Płd. las.
 // POZIOMY: grunt YC 0.15, jezdnia 0.17 (2 cm nad gruntem), chodnik/plac/peron/hala 0.32 (krawężnik 15 cm); główka szyny
 // 0.32 − 0.984 = −0.664 (tory w płytkim przekopie — z placu na peron 1 bez schodów).
 // MATERIAŁY: wyłącznie fotoskany Poly Haven (fetch_region.py — TEXTURES_DWORZEC); bez koloru gładkiego poza źródłami światła
@@ -61,7 +61,6 @@ internal static partial class BraxMiastoDworzec
     public const float BusX0 = -12f, BusX1 = 33f, TaxiX0 = -46f, TaxiX1 = -16f, ZatokaSz = 4.53f;   // BUS: wjazd 4 + 2 × 18.5 + wyjazd 4 m; TAXI/K+R 30 m; między nimi przejście (x −14)
     public const float StanowiskoDl = 18.5f;                           // autobus 15.5 m + 3 m
     public const float BudX0 = -52.6f, BudX1 = 14.6f, BudZ0 = -124f, BudZ1 = -140f;
-    public const float GarbX1 = -101f, GarbX1b = -102.5f, GarbZ1 = LozeN, GarbZ1b = -145f;
     public const float RampaN = -137f, RampaS = LozeS - 9.5f;          // początek / koniec zjazdu do przejazdu (spadek ok. 9 %)
 
     /// <summary>Stanowiska obsługi (kasy, informacja, kawiarnia) — ludzi stawia krok ludzi miasta B.</summary>
@@ -122,18 +121,7 @@ internal static partial class BraxMiastoDworzec
     // ============================================================================ TEREN PASA (świat)
     static float S01(float a, float b, float v) { float t = Mathf.Clamp01((v - a) / (b - a)); return t * t * (3f - 2f * t); }
 
-    /// <summary>Wzgórze nad tunelem na osiedle (dawniej w terenie faweli): portal x −148…−104 (mur do 13.5 m) na z −85.45, rura
-    /// x −132…−120 do z −146.4 (strop 7.6 m). Oparte murem: wschód lico x −101, południe lico z −146.5 (tory).</summary>
-    public static float Garb(float x, float z)
-    {
-        if (x > GarbX1 || z < GarbZ1) return 0f;
-        float ax = Mathf.Abs(x + 126f), dz = BraxMiastoGranice.Z0 - z;
-        if (ax >= 40f || dz < 0f) return 0f;
-        float przyPortalu = 1f - S01(22f, 24f, ax);
-        float w = (1f - S01(22f, 40f, ax)) * Mathf.Lerp(S01(0f, 18f, dz), 1f, przyPortalu);
-        float garb = 13.65f - 3.4f * S01(0f, 60f, dz);
-        return Mathf.Lerp(YC, garb, w);
-    }
+    // 12.11: wzgórze nad tunelem na osiedle (Garb, mury oporowe) usunięte razem z tunelem (właściciel 12:54) — w tym miejscu las.
 
     /// <summary>Wzgórze zachodniego portalu tunelu kolejowego (x ≤ PortalX − 2); dalej teren horyzontu przedłuża je w góry.</summary>
     public static float WzgorzePortalu(float x, float z)
@@ -162,15 +150,17 @@ internal static partial class BraxMiastoDworzec
         if (z <= n && z >= s) return Formacja;
         if (stacja || x > PX1) return 1e9f;
         float d = z > n ? z - n : s - z;
+        // UWAGA (12.11): poza skarpą zwraca YC, a WysKorytarza bierze minimum — każde wzniesienie pasa poza przekopem (x PortalX…
+        // KoniecTorow) byłoby spłaszczone do YC (tak zniknął garb nad dawnym tunelem osiedla). Nowe wzniesienie tu = najpierw
+        // zwrócić 1e9 dla d ≥ Skarpa (i sprawdzić grunt pod jezdniami: dziś grunt pod łukami ul. Dworcowej leży dokładnie 2 cm niżej).
         return Formacja + (YC - Formacja) * Mathf.Clamp01(d / Skarpa);
     }
 
     /// <summary>Wysokość terenu w pasie dworca (od linii miasta do krawędzi faweli). Nawierzchnie (jezdnie 0.17, place 0.32)
-    /// leżą nad nim; przekop torów, zjazdy przejazdów, wzgórza (garb nad tunelem osiedla, portal zachodni) w nim.</summary>
+    /// leżą nad nim; przekop torów, zjazdy przejazdów, wzgórze portalu zachodniego w nim (garb nad tunelem osiedla usunięty 12.11).</summary>
     public static float WysKorytarza(float x, float z)
     {
         float h = YC;
-        float g = Garb(x, z); if (g > h) h = g;
         float w = WzgorzePortalu(x, z); if (w > h) h = w;
         float p = Przekop(x, z); if (p < h) h = p;
         foreach (float xc in new[] { LacznikX, C0X })
@@ -314,9 +304,9 @@ internal static partial class BraxMiastoDworzec
     static void Teren()
     {
         Grupa("teren");
-        var xsSpec = new List<float> { PortalX - 2f, PortalX, GarbX1b, GarbX1, PX0, PX1, KoniecTorow, KoniecTorow + 1f, -61.4f };
+        var xsSpec = new List<float> { PortalX - 2f, PortalX, PX0, PX1, KoniecTorow, KoniecTorow + 1f, -61.4f };
         foreach (float xc in new[] { LacznikX, C0X }) { xsSpec.Add(xc - LacznikH - .6f); xsSpec.Add(xc + LacznikH + .6f); xsSpec.Add(xc - LacznikH); xsSpec.Add(xc + LacznikH); }
-        var zsSpec = new List<float> { GarbZ1b, GarbZ1, LozeN + Skarpa, LozeS, LozeS - Skarpa, P1Kraw, P2Kraw, P1Tyl, P2Tyl, RampaN, RampaS, T1 + 3.73f, T2 - 3.73f };
+        var zsSpec = new List<float> { LozeN + Skarpa, LozeS, LozeS - Skarpa, P1Kraw, P2Kraw, P1Tyl, P2Tyl, RampaN, RampaS, T1 + 3.73f, T2 - 3.73f };
         // krawędzie prostych nawierzchni (komórki pod nimi w całości pokryte — teren tam nie powstaje)
         foreach (float zc in new[] { DworcowaZ, DrogaZ }) foreach (float d in new[] { Pas, Pas + Kr, Pas + Kr + 3f }) { zsSpec.Add(zc + d); zsSpec.Add(zc - d); }
         zsSpec.AddRange(new[] { DrogaZ - Pas - ZatokaSz, DrogaZ - Pas - ZatokaSz - Kr, BudZ0, BudZ1, PetlaZ + PetlaR + Kr, PetlaZ + PetlaR + Kr + 3f, PetlaZ - PetlaR - Kr });

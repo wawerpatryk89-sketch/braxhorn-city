@@ -23,7 +23,7 @@ internal static partial class BraxMiastoDworzec
         foreach (var r in Zajete) if (x > r.xMin - 1.2f && x < r.xMax + 1.2f && z > r.yMin - 1.2f && z < r.yMax + 1.2f) return 0f;
         foreach (var (c, rr) in ZajeteKola) { float dx = x - c.x, dz = z - c.y; if (dx * dx + dz * dz < (rr + 1.2f) * (rr + 1.2f)) return 0f; }
         if (x < PortalX - 2f) return 1f;                                   // wzgórze portalu zachodniego — gęsto
-        if (z > T1 + 6f) return 1f;                                        // od miasta — gęsto (także wzgórze nad tunelem osiedla)
+        if (z > T1 + 6f) return 1f;                                        // od miasta — gęsto (12.11: także za końcem Alei Płd., gdzie był tunel)
         return .36f * Mathf.Lerp(.7f, 1f, Mathf.Clamp01((z - zBot) / 20f));  // od faweli — lekko, przy samej fawelii rzadziej
     }
 

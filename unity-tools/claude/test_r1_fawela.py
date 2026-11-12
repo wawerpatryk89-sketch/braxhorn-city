@@ -70,7 +70,8 @@ class Kolejnosc(unittest.TestCase):
         self.assertIn("if (WFaweli(x, z)) return true;", GRANICE)
 
     def test_old_hill_replaced_and_lawn_corridor_cut(self):
-        self.assertIn("if (BraxRegionFawela.Wlaczona) return;", MIASTOB)
+        # dawne zbocze nad tunelem (Zbocze, wyłączane przy faweli) — 12.11 usunięte razem z tunelem na osiedle
+        self.assertNotIn("static void Zbocze(", MIASTOB)
         self.assertIn('TrawaBez("L9 za warsztatami (do skarpy)", Rect.MinMaxRect(-112f, ZboczeZ, -61.4f, ParkZ0), true, korytarzFaweli);', MIASTOB)
         self.assertIn('TrawaBez("L9 na wschód od parkingu", Rect.MinMaxRect(ParkX1, ParkZ0, -61.4f, ParkZ1), true, korytarzFaweli);', MIASTOB)
         # korytarz = jezdnia 5.5 m + krawężniki 2 × 0.25 m wokół osi x −66.5

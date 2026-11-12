@@ -30,7 +30,8 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     public const float Kr = .25f, Ziel = 2.25f, Chod = 5f; // krawężnik, pas zieleni, chodnik → lico pierzei 12 m od osi
     public const float AN1 = 96f;                          // koniec 1. kwartału Alei Północnej (dalej pętla)
     public const float PetlaZ = 104f, PetlaR = RJezdnia, PetlaWyspa = RWyspa, PetlaPlac = RPlac;   // pętla = rondo tej samej wielkości (zawracanie aut i autobusu)
-    public const float AS1 = -84f;                         // portal tunelu (wyjazd na osiedle)
+    public const float AS1 = -84f;                         // koniec pasa alei (dawny portal tunelu na osiedle — usunięty 12.11)
+    public static float AlejaKoniecZ = AS1;                // koniec jezdni Alei Południowej (zakręt w ul. Dworcową)
     // 10.11 (właściciel: „auta się korkują”; test ruchu: Wiaduktowa 4,6 m w obie strony = zakleszczenia): jezdnia 2 × 2,9 m × K,
     // oś 0,7 m na zachód — miejsce z bocznej ściany WARSZTATU (BraxCityArchitecture „workshop” x1 −71 → −72.5), plac wieżowców bez zmian
     public const float WX = -66.9f, WH = 3.75f;            // ul. Wiaduktowa
@@ -129,12 +130,10 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         Krok("2. budynki: CENTRUM — 6 wieżowców i GALERIA (ETAP 3)", () => BraxRegionTylyB.Centrum(world, cityRoot, WiezeCentrum, Galeria));
         Krok("2. budynki: NOWE DZIELNICE (modele Sketchfab: centrum city5, kamienice city3, ATLANTA, LONDON, KINNAIRD)", () => NoweDzielniceBudynki(cityRoot));
         Krok("2. budynki: MUZEUM BRAXHORN w zabytku KINNAIRD (wejście, sala, eksponaty)", Muzeum);
-        Krok("2. budowle: portal tunelu i zbocze", WyjazdNaOsiedle);
         Krok("3. wyposażenie na gotowym podłożu (drzewa, latarnie, ławki, słupki, rzeźba)", Wyposazenie);
         Krok("3. sygnalizacja na wysięgnikach i znaki", Sygnalizacja);
         Krok("3. NOWE DZIELNICE: sygnalizacja alei, przystanki (autobus, tramwaj), wyposażenie", NoweDzielniceWyposazenie);
         Krok("3. przystanek autobusowy", Przystanek);
-        Krok("3. szlaban i znak OSIEDLE", SzlabanIZnak);
         Krok("4. rejestracja jezdni dla ruchu (RUCH_API)", RejestracjaRuchu);
         Krok("4. NOWE DZIELNICE: rejestracja jezdni", NoweDzielniceRejestracja);
         BraxRegionKamienica.Raport();
@@ -855,13 +854,45 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         float zebraDo = SH + Kr + .6f + Mathf.Max(0f, RLuku - ZebraPrzedLukiem) + 4f * K + .5f;
         // od ronda do Warsztatowej (z −12.5 … 6.5) i od Warsztatowej do tunelu (z −84 … −25.5)
         PrzekrojZ("Aleja Południowa", AX, AH, Ziel, Chod, zW1, z1, true, (z1 - 6f, z1), (zW1, Mathf.Max(zW1 + 4.5f, SZ + zebraDo)));
-        Asfalt("tunel", AX - 5.6f, AX + 5.6f, AS1 - 20f, AS1);   // jezdnia w tunelu (portal i ściany: etap 2)
         zjazdy.Add((1, ParkAleja0, ParkAleja1));   // wjazd na parking przy warsztatach
         // 11.11 (MIASTO R1): wjazd w ul. Dworcową do dworca autobusowo-kolejowego (BraxMiastoDworzec) — zjazd przez pas zieleni
         // wschodni; przerwa zieleni przy portalu kończy się przed nim
         bool dworzec = BraxMiastoDworzec.Wlaczony && BraxRegionFawela.Wlaczona;
         if (dworzec) zjazdy.Add((1, BraxMiastoDworzec.DworcowaZ - BraxMiastoDworzec.Pas, BraxMiastoDworzec.DworcowaZ + BraxMiastoDworzec.Pas));
-        PrzekrojZ("Aleja Południowa (do tunelu)", AX, AH, Ziel, Chod, AS1, zW0, true, (Mathf.Min(zW0 - 6f, SZ - zebraDo), zW0), (AS1, dworzec ? BraxMiastoDworzec.DworcowaZ - BraxMiastoDworzec.Pas - .01f : AS1 + 14f), (PrzystanekZ - 10f, PrzystanekZ + 6f));
+        // 12.11 (właściciel 12:54: tunel na osiedle usunięty): aleja kończy się ZAKRĘTEM w ul. Dworcową — łuk zewnętrzny na
+        // narożniku pd.-zach. (LukZew, promień = szerokość wylotu ul. Dworcowej 2 × Pas, środek na jej pn. krawędzi), pełny przekrój
+        // alei do początku łuku; poniżej ręcznie: koniec alei (chodnik — wielokąt pod łukiem, bez nakładania na krawężnik łuku
+        // i wachlarz chodnika LukiBuduj), zjazd w ul. Dworcową po wsch. stronie, pas zieleni i chodnik zach., trawnik do lasu (Z0).
+        if (!dworzec)
+        {
+            PrzekrojZ("Aleja Południowa (koniec)", AX, AH, Ziel, Chod, AS1, zW0, true, (Mathf.Min(zW0 - 6f, SZ - zebraDo), zW0), (PrzystanekZ - 10f, PrzystanekZ + 6f));
+            Kraweznik(AX - AH, AX + AH, AS1, AS1 + Kr);
+        }
+        else
+        {
+            float zK = BraxMiastoDworzec.DworcowaZ - BraxMiastoDworzec.Pas, rL = 2f * BraxMiastoDworzec.Pas;   // −80.03, 9.06
+            float px = AX - AH, cx = px + rL, cy = zK + rL;                                                         // P −130.5, C (−121.44, −70.97)
+            AlejaKoniecZ = zK;
+            PrzekrojZ("Aleja Południowa (do ul. Dworcowej)", AX, AH, Ziel, Chod, cy, zW0, true, (Mathf.Min(zW0 - 6f, SZ - zebraDo), zW0), (PrzystanekZ - 10f, PrzystanekZ + 6f));
+            LukZew("Aleja Płd. → ul. Dworcowa (łuk zewnętrzny, koniec alei)", px, zK, 1, 1, rL);
+            float xe0 = AX + AH, xe1 = xe0 + Kr, xz1 = xe1 + Ziel, xc1 = xz1 + Chod;     // wsch.: krawężnik, pas zieleni, chodnik (do LicoE)
+            float xw1 = px - Kr, xw0 = xw1 - Ziel, xwc = xw0 - Chod;                      // zach.: krawężnik, pas zieleni, chodnik (od LicoW)
+            // koniec alei: chodnik od krawężnika zach. do krawężnika wsch.; górna krawędź = przekątna wachlarza łuku (P → koniec R + Kr)
+            // i bok wachlarza (P → początek R + Kr) — styk krawędzią, bez nakładania płyt na tej samej wysokości (zero migotania)
+            PlytaWielokat("Chodnik: koniec Alei Południowej (dawny wjazd do tunelu)", plyty, new List<Vector2> {
+                new Vector2(xw1, AS1), new Vector2(xe1, AS1), new Vector2(xe1, zK), new Vector2(cx, zK), new Vector2(cx, zK - Kr),
+                new Vector2(px, zK), new Vector2(xw1, cy) }, YC, .3f - YA, true);
+            // wsch.: zjazd w ul. Dworcową (krawężnik obniżony + rampa przez pas zieleni), chodnik ciągły; niżej przejście (chodnik)
+            Plyta("Krawężnik obniżony (zjazd ul. Dworcowa)", krawMat, xe0, xe1, zK, cy, YA + .04f, .3f - YA);
+            Rampa("Aleja Południowa zjazd w ul. Dworcową", xe1, xz1, zK, cy, 1);
+            Chodnik("Aleja Południowa koniec — pas zieleni wsch.", xe1, xz1, AS1, zK);
+            Chodnik("Aleja Południowa koniec — wsch.", xz1, xc1, AS1, cy);
+            // zach.: pas zieleni i chodnik do końca alei
+            Trawa("Aleja Południowa koniec — pas zieleni zach.", xw0, xw1, AS1, cy);
+            Chodnik("Aleja Południowa koniec — zach.", xwc, xw0, AS1, cy);
+        }
+        // pas po dawnym murze portalu (z Z0 … AS1) między pierzejami: trawnik do lasu pasa dworca
+        Trawa("Koniec Alei Płd. — trawnik do lasu", LicoW, LicoE, ZboczeZ, AS1);
         // skrzyżowanie z Warsztatową: jezdnia alei przez wylot, krawężniki po zachodniej stronie, po wschodniej wylot ulicy
         Asfalt("Aleja Południowa × Warsztatowa", AX - AH, AX + AH, zW0, zW1);
         Kraweznik(AX - AH - Kr, AX - AH, zW0, zW1);
@@ -1144,127 +1175,12 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     }
 
     // =====================================================================================================================
-    // 8) wyjazd na osiedle: znak kierunku, szlaban z budką, portal tunelu w zboczu (wzgórze = teren za granicą, portal tutaj)
-    static void SzlabanIZnak()
-    {
-        Physics.SyncTransforms();
-        var g = new GameObject("Wyjazd na osiedle: szlaban i znak OSIEDLE").transform; g.SetParent(root, false);
-        // znak drogowskazowy E-2 (niebieski) „OSIEDLE ↓” na chodniku wsch. przy z −58
-        // 11.11 (lista ze zdjęć właściciela, pkt 1; 21:52 „wszystko ma być dopieszczone”): drogowskaz z kodu jak prawdziwy E-2 —
-        // słup ocynkowany z kapslem, obejmy, tablica dwuwarstwowa (tył aluminium, lico niebieskie, krawędzie zaokrąglone), biała
-        // obwódka i strzałka „prosto” w 3D (2.1 cm nad licem), litery 3D OSIEDLE / TUNEL (Bebas); wymiary × K, tablica przed słupem
-        var p0 = NaPodlozu(new Vector3(AX + AH + Kr + .6f, YC, -58f));
-        var znak = BraxChlodnie.Wez("znak_E2_osiedle_tunel", q =>
-        {
-            var ocynk = BraxCityMaterials.Surface("Znak: słup ocynk", new Color(.62f, .64f, .66f), .45f, .8f);
-            var aluT = BraxCityMaterials.Surface("Znak: tył tablicy (aluminium)", new Color(.70f, .72f, .74f), .5f, .7f);
-            var nieb = BraxCityMaterials.Surface("Znak: niebieski E-2 (folia odblaskowa)", new Color(.04f, .2f, .55f), .3f);
-            var bialyZ = BraxCityMaterials.Surface("Znak: biel odblaskowa", new Color(.95f, .95f, .94f), .3f);
-            q[ocynk].Rura(Vector3.zero, Vector3.up * 3.2f, .038f, 12);
-            float x0 = -1.5f, x1 = .2f, y0 = 2.3f, y1 = 3.1f, zt = .06f;                        // tablica 1.7 × 0.8 m, 6 cm przed osią słupa
-            foreach (float yc in new[] { y0 + .15f, y1 - .15f }) q[aluT].Box(new Vector3(-.05f, yc - .025f, .03f), new Vector3(.05f, yc + .025f, zt));   // obejmy
-            q[aluT].Poducha(new Vector3(x0, y0, zt), new Vector3(x1, y1, zt + .016f), .008f, 0f, 3);
-            q[nieb].Poducha(new Vector3(x0, y0, zt + .018f), new Vector3(x1, y1, zt + .03f), .006f, 0f, 3);
-            float zl = zt + .03f, b = .035f, m = .04f, zb = zl + .021f;                       // obwódka 3.5 cm, 4 cm od krawędzi
-            q[bialyZ].Box(new Vector3(x0 + m, y1 - m - b, zl), new Vector3(x1 - m, y1 - m, zb)); q[bialyZ].Box(new Vector3(x0 + m, y0 + m, zl), new Vector3(x1 - m, y0 + m + b, zb));
-            q[bialyZ].Box(new Vector3(x0 + m, y0 + m + b, zl), new Vector3(x0 + m + b, y1 - m - b, zb)); q[bialyZ].Box(new Vector3(x1 - m - b, y0 + m + b, zl), new Vector3(x1 - m, y1 - m - b, zb));
-            // strzałka „prosto” (po prawej patrzącego = −x): trzon i grot
-            float ax = x0 + .32f, ay0 = y0 + .16f, ay1 = y1 - .34f;
-            q[bialyZ].Box(new Vector3(ax - .045f, ay0, zl), new Vector3(ax + .045f, ay1, zb));
-            Vector3 g0 = new Vector3(ax - .14f, ay1, zb), g1 = new Vector3(ax + .14f, ay1, zb), g2 = new Vector3(ax, y1 - .14f, zb);
-            q[bialyZ].Tri(g0, g1, g2, Vector3.forward);
-            foreach (var (a, c) in new[] { (g0, g1), (g1, g2), (g2, g0) })
-            { var nn = Vector3.Cross(Vector3.forward, c - a).normalized; if (Vector3.Dot(nn, a - (g0 + g1 + g2) / 3f) < 0f) nn = -nn; q[bialyZ].Quad(a, c, c - Vector3.forward * .021f, a - Vector3.forward * .021f, nn); }
-            BraxLiteryBebas.Napis(q[bialyZ], q[bialyZ], "OSIEDLE", new Vector3(-.58f, y0 + .43f, zl), Vector3.left, Vector3.up, Vector3.forward, .2f, .02f, .05f, .002f);
-            BraxLiteryBebas.Napis(q[bialyZ], q[bialyZ], "TUNEL", new Vector3(-.58f, y0 + .13f, zl), Vector3.left, Vector3.up, Vector3.forward, .2f, .02f, .05f, .002f);
-        });
-        var zt0 = BraxChlodnie.Korzen(g, "Znak OSIEDLE · TUNEL (E-2)", p0, Vector3.forward);
-        BraxChlodnie.Wstaw(zt0, "znak E-2", znak, Vector3.zero, true);
-        BraxRegionMeble.Kolizja(g, "Znak kolizja", p0 + Vector3.up * 1.6f * K, new Vector3(.12f, 3.2f * K, .12f));
-        // pkt 42 (właściciel): szlaban „WJAZD ZAMKNIĘTY” w poprzek jezdni = błąd — usunięty razem z budką i kolizją; droga do tunelu
-        // otwarta. Za portalem tunel długi i oświetlony; bez osiedla w aplikacji BraxTunelZawrot zawraca gracza z komunikatem.
-    }
-
-    static void WyjazdNaOsiedle()
-    {
-        var g = new GameObject("Wyjazd na osiedle: portal tunelu i zbocze").transform; g.SetParent(root, false);
-        // portal tunelu (lico z = AS1): kamienny mur z łukiem, nadproże, czarne wnętrze 18 m z jezdnią, ściany zbocza
-        var kam = BraxRegionMeble.Tex("Tunel: kamień portalu", 1.2f, new Color(.78f, .76f, .72f), .9f, "rough_block_wall", "white_sandstone_blocks_02", "rock_boulder_dry");
-        var mur = new BraxRegionMeble.Bud();
-        float zp = AS1, W = 12f, Hs = 7.2f;
-        mur.MinMax(new Vector3(AX - 22f, -.5f, zp - 1.4f), new Vector3(AX - W * .5f, 13f, zp));
-        mur.MinMax(new Vector3(AX + W * .5f, -.5f, zp - 1.4f), new Vector3(AX + 22f, 13f, zp));
-        mur.MinMax(new Vector3(AX - W * .5f, Hs, zp - 1.4f), new Vector3(AX + W * .5f, 13f, zp));
-        mur.MinMax(new Vector3(AX - 22.4f, 13f, zp - 1.6f), new Vector3(AX + 22.4f, 13.5f, zp + .2f));   // gzyms portalu
-        mur.Obiekt("Tunel: portal kamienny", g, kam, false, true);
-        BraxRegionMeble.Kolizja(g, "Portal kolizja L", new Vector3(AX - 14f, 6f, zp - .7f), new Vector3(16f, 13f, 1.4f));
-        BraxRegionMeble.Kolizja(g, "Portal kolizja P", new Vector3(AX + 14f, 6f, zp - .7f), new Vector3(16f, 13f, 1.4f));
-        // pkt 42: bez czarnej ściany — wnętrze z betonu (jasne lico), 62 m z oprawami co 4 m, jezdnia za dawnym końcem (z −20…−62),
-        // chodniki techniczne z krawężnikiem, odboje; koniec daleko (zawrót gracza przy 6 m: BraxTunelZawrot)
-        var beton = BraxRegionMeble.Tex("Tunel: beton ścian (płyty)", 2.4f, new Color(.62f, .61f, .58f), .85f, "concrete_wall_008", "concrete_wall_004", "rough_block_wall");
-        float Lt = 62f;
-        var tun = new BraxRegionMeble.Bud();
-        tun.MinMax(new Vector3(AX - W * .5f, -.3f, zp - Lt), new Vector3(AX - W * .5f + .4f, Hs, zp - 1.4f));
-        tun.MinMax(new Vector3(AX + W * .5f - .4f, -.3f, zp - Lt), new Vector3(AX + W * .5f, Hs, zp - 1.4f));
-        tun.MinMax(new Vector3(AX - W * .5f, Hs, zp - Lt), new Vector3(AX + W * .5f, Hs + .4f, zp - 1.4f));
-        tun.MinMax(new Vector3(AX - W * .5f, -.3f, zp - Lt - .4f), new Vector3(AX + W * .5f, Hs, zp - Lt));
-        tun.Obiekt("Tunel: wnętrze", g, beton, false, false);
-        var jezd = new BraxRegionMeble.Bud(); jezd.MinMax(new Vector3(AX - W * .5f + .4f, YA - .3f, zp - Lt), new Vector3(AX + W * .5f - .4f, YA, zp - 20f));
-        jezd.Obiekt("Tunel: jezdnia (za dawnym końcem)", g, BraxCityMaterials.Surface("Tunel: asfalt", new Color(.16f, .16f, .17f), .9f), false, true);
-        var odb = new BraxRegionMeble.Bud();
-        foreach (float sx in new[] { -1f, 1f })
-        {
-            float xw = AX + sx * (W * .5f - .4f);
-            odb.MinMax(new Vector3(Mathf.Min(xw, xw - sx * .9f), YA, zp - Lt), new Vector3(Mathf.Max(xw, xw - sx * .9f), YA + .2f, zp - 20f));   // chodnik techniczny
-            odb.MinMax(new Vector3(Mathf.Min(xw, xw - sx * .06f), YA + .2f, zp - Lt), new Vector3(Mathf.Max(xw, xw - sx * .06f), YA + .55f, zp - 1.4f));   // odbój przy ścianie
-        }
-        odb.Obiekt("Tunel: chodniki techniczne i odboje", g, BraxRegionMeble.Tex("Tunel: beton chodnika", 1.2f, new Color(.7f, .69f, .66f), .9f, "concrete_floor_02", "concrete_wall_004"), false, true);
-        BraxRegionMeble.Kolizja(g, "Tunel kolizja koniec", new Vector3(AX, 3f, zp - Lt + .3f), new Vector3(W, 6f, .6f));
-        var zaw = new GameObject("Tunel: zawrót bez osiedla (BraxTunelZawrot)").AddComponent<BraxTunelZawrot>(); zaw.transform.SetParent(g, false);
-        zaw.portal = new Vector3(AX, YA, zp); zaw.polSzer = W * .5f - .2f; zaw.glebokosc = 6f; zaw.dlugosc = Lt; zaw.powrot = new Vector3(AX, YA + .14f, zp + 3.5f); zaw.yawPowrotu = 180f;
-        var opr = new BraxRegionMeble.Bud(); for (float z = zp - 3f; z > zp - Lt + 1f; z -= 4f) opr.MinMax(new Vector3(AX - .6f, Hs - .12f, z - .4f), new Vector3(AX + .6f, Hs - .02f, z + .4f));
-        opr.Obiekt("Tunel: oprawy", g, BraxRegionMeble.Swiecacy("Tunel: oprawa sodowa", new Color(1f, .78f, .45f), .9f), false, false);
-        BraxRegionMeble.Napis(g, "TUNEL · OSIEDLE", new Vector3(AX, Hs + 2.6f, zp + .05f), Vector3.forward, .6f * K, new Color(.92f, .9f, .85f));
-        // zbocze nad portalem: siatka terenu (łąka) od z = AS1 w głąb, do 26 m, szer. ±60 m — zakrywa koniec (dalej teren horyzontu)
-        Zbocze(g, zp);
-    }
-
-    // zbocze nad tunelem: siatka terenu od linii z = AS1 − 1.45 (tył muru portalu) w głąb na płd.; przy portalu stromo (mur
-    // oporowy portalu je zakrywa), poza portalem łagodnie (skarpa z łąką) — dalej teren horyzontu (BraxMiastoGranice.WzgorzeTylow)
+    // 8) koniec Alei Południowej — TUNEL NA OSIEDLE USUNIĘTY (właściciel 12.11, 12:54: „ten tunel trzeba wyjebać, nawet drzewa
+    // w nim rosną… a potem się pomyśli, jak połączyć osiedle z miastem”). Usunięte: portal z napisem TUNEL · OSIEDLE, wnętrze
+    // 62 m (jezdnia, chodniki techniczne, oprawy), zawrót gracza (BraxTunelZawrot), drogowskaz E-2 OSIEDLE · TUNEL, zbocze/wzgórze
+    // nad tunelem z murami oporowymi (BraxMiastoDworzec). Aleja kończy się łukiem w ul. Dworcową (AlejaPoludniowa).
+    // Południowa krawędź trawników miasta B (dawniej tył muru portalu) — styk z pasem dworca (BraxMiastoGranice.Z0).
     public static float ZboczeZ => AS1 - 1.45f;
-    static void Zbocze(Transform g, float zp)
-    {
-        if (BraxRegionFawela.Wlaczona) return;   // 9.11: wzgórze nad tunelem jest częścią terenu faweli (BraxRegionFawela.WysBazowa — garb 13.65 m za murem portalu)
-        int nx = 60, nz = 30; float x0 = AX - 80f, x1 = AX + 66f, z1 = ZboczeZ, z0 = z1 - 72f;
-        var v = new List<Vector3>(); var uv = new List<Vector2>(); var t = new List<int>();
-        for (int i = 0; i <= nx; i++) for (int j = 0; j <= nz; j++)
-        {
-            float x = Mathf.Lerp(x0, x1, i / (float)nx), z = Mathf.Lerp(z0, z1, j / (float)nz);
-            float dz = z1 - z;
-            bool portal = Mathf.Abs(x - AX) < 22f;
-            float ramp = portal ? Mathf.Clamp01((dz + 3f) / 5f) : Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(dz / 18f));
-            float boki = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((x - x0) / 30f)) * Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((x1 - x) / 30f));   // zbocze schodzi do łąki na końcach
-            float h = (YC - .03f) + (13.5f + 10f * Mathf.Clamp01(dz / 60f) + 3f * (Mathf.PerlinNoise(x * .05f, z * .05f) - .5f)) * ramp * (portal ? 1f : boki);
-            v.Add(new Vector3(x, h, z)); uv.Add(new Vector2(x * .2f, z * .2f));
-        }
-        for (int i = 0; i < nx; i++) for (int j = 0; j < nz; j++) { int a = i * (nz + 1) + j, b = a + 1, c = a + nz + 1, d = c + 1; t.AddRange(new[] { a, b, c, b, d, c }); }
-        var m = new Mesh { name = "Zbocze nad tunelem" }; m.SetVertices(v); m.SetUVs(0, uv); m.SetTriangles(t, 0); m.RecalculateNormals(); m.RecalculateBounds(); m.RecalculateTangents();
-        // normalne w górę (kolejność wierzchołków liczona z siatki x/z — sprawdzenie i odwrócenie, gdy w dół)
-        if (m.normals.Length > 0 && m.normals[m.normals.Length / 2].y < 0) { var tt = m.triangles; for (int q = 0; q < tt.Length; q += 3) { var x = tt[q + 1]; tt[q + 1] = tt[q + 2]; tt[q + 2] = x; } m.triangles = tt; m.RecalculateNormals(); m.RecalculateTangents(); }
-        var go = new GameObject("Zbocze nad tunelem (łąka)"); go.transform.SetParent(g, false);
-        go.AddComponent<MeshFilter>().sharedMesh = m; var mr = go.AddComponent<MeshRenderer>(); mr.shadowCastingMode = ShadowCastingMode.Off;
-        go.AddComponent<MeshCollider>().sharedMesh = m;
-        BraxRegionTrawa.Teren(mr, false, true);
-        Physics.SyncTransforms();
-        var src = BraxRegion.Model("drzewo_verdant");
-        for (int i = 0; i < 22 && src; i++)
-        {
-            float x = x0 + 8f + (i * 37 % 13) * 10.5f, z = z1 - 10f - (i * 17 % 6) * 9.5f;
-            if (Mathf.Abs(x - AX) < 12f && z > z1 - 26f) continue;   // nad tunelem bez drzew przy portalu
-            if (!Physics.Raycast(new Vector3(x, 80f, z), Vector3.down, out var h, 120f)) continue;
-            if (BraxRegion.Put(g, src, "Zbocze: drzewo", h.point, (i * 53) % 360, 1f, false, 12f)) drzewa++;
-        }
-    }
 
     // =====================================================================================================================
     // 9) sygnalizacja na wysięgnikach (skrzyżowania T), zebry, linie zatrzymania, znaki ronda
@@ -1733,7 +1649,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     {
         void J(string id, Vector3 a, Vector3 b, float pol) => BraxClaudeOsiedle.OsieJezdni.Add(new BraxClaudeOsiedle.OsJezdni { id = id, a = a, b = b, polowaJezdni = pol });
         J("MIASTO Aleja Północna; chodniki " + Chod + " " + Chod, new Vector3(AX, YA, RZ + RJezdnia), new Vector3(AX, YA, PetlaZ - PetlaR), AH);
-        J("MIASTO Aleja Południowa; chodniki " + Chod + " " + Chod + "; ukryty B", new Vector3(AX, YA, RZ - RJezdnia), new Vector3(AX, YA, AS1 - 18f), AH);
+        J("MIASTO Aleja Południowa; chodniki " + Chod + " " + Chod + "; ukryty B", new Vector3(AX, YA, RZ - RJezdnia), new Vector3(AX, YA, AlejaKoniecZ), AH);   // 12.11: koniec alei (zakręt w ul. Dworcową), tunel usunięty
         J("MIASTO Główna (do ronda); chodniki 3.1 3.4", new Vector3(-104f, YA, GZ), new Vector3(RX + RJezdnia, YA, GZ), GH);
         J("MIASTO Wiaduktowa; chodniki 1.55 1.55", new Vector3(WX, YA, GZ), new Vector3(WX, YA, SZ), WH);
         J("MIASTO Warsztatowa; chodniki 2.5 2.5", new Vector3(AX, YA, SZ), new Vector3(WX, YA, SZ), SH);   // 10.11: koniec na Wiaduktowej (zakręt L)

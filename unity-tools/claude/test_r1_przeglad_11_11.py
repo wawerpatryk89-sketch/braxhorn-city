@@ -185,11 +185,11 @@ class Telewizory(unittest.TestCase):
 
 
 class Drogowskaz(unittest.TestCase):
-    def test_tunnel_sign_premium_3d(self):
-        # lista ze zdjęć pkt 1: płaski napis drogowskazu do tunelu → tablica E-2 z kodu, obwódka i strzałka 3D, litery Bebas
+    def test_tunnel_sign_removed_with_tunnel(self):
+        # 11.11: drogowskaz E-2 OSIEDLE · TUNEL z kodu; 12.11 (właściciel 12:54): tunel na osiedle usunięty — drogowskaz też
         b = src(R / "BraxRegionMiastoB.cs")
-        self.assertIn('BraxChlodnie.Wez("znak_E2_osiedle_tunel"', b)
-        self.assertIn('BraxLiteryBebas.Napis(q[bialyZ], q[bialyZ], "OSIEDLE"', b)
+        self.assertNotIn('BraxChlodnie.Wez("znak_E2_osiedle_tunel"', b)
+        self.assertNotIn('Krok("3. szlaban i znak OSIEDLE"', b)
         self.assertNotIn('BraxRegionMeble.Napis(g, "OSIEDLE  ↓  TUNEL"', b)
 
 
