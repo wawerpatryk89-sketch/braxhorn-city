@@ -7,3 +7,9 @@ public sealed class BraxChampionsZjezdzalnia : MonoBehaviour
     public string nazwa; public Vector3[] trasa = new Vector3[0], normalne = new Vector3[0]; public Vector3 start, wyjscie;
     public float zasieg, g, tarcie, vStart, vMin, vMax, lezenie; public BraxSeat siedzisko; public Transform plusk;
 }
+// the rigged walkers are Unity-only (skinned meshes, legacy clips): the preview keeps their routes
+public static class BraxChampionsPostacie
+{
+    public static readonly System.Collections.Generic.List<Vector3[]> Routes = new System.Collections.Generic.List<Vector3[]>();
+    public static int Aquapark(Transform root, System.Collections.Generic.IList<Vector3[]> trasy) { Routes.AddRange(trasy); return trasy.Count; }
+}

@@ -52,6 +52,24 @@ public static class BraxChampionsPostacie
         return stoja + chodza;
     }
 
+    /// <summary>The aquapark (owner 12.11): the rigged girls in bikinis stroll the given routes (world nominal x/z) - each
+    /// route is walked there and back by BraxPieszy, gestures and reactions as on the promenade.</summary>
+    public static int Aquapark(Transform root, IList<Vector3[]> trasy)
+    {
+        if (!BraxMiastoAssety.Jest(Paczka)) return 0;
+        Directory.CreateDirectory(Out);
+        Physics.SyncTransforms();
+        var rnd = new System.Random(1212); int n = 0;
+        for (int k = 0; k < trasy.Count; k++)
+        {
+            int m = 2 + (k % 2);                                           // chodzi_czarne_bikini / chodzi_biale_bikini
+            var t = trasy[k].Select(p => Grunt(p)).ToArray();
+            if (Chodzaca(root, Chodzace[m], Wzrost[m] + .01f * (k / 2), t, rnd)) n++;
+        }
+        Debug.Log("MISTRZOWIE_POSTACIE aquapark chodzące=" + n);
+        return n;
+    }
+
     // world point (nominal x,z) on the real ground: the first collider under it, else the paving height
     static Vector3 Grunt(Vector3 nominal)
     {

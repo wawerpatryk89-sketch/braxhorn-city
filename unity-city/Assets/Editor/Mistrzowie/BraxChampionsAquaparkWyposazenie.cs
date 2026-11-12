@@ -207,10 +207,10 @@ public static partial class BraxChampionsAquapark
         foreach (var (x, z) in new[] { (61f, 12.6f), (61f, 14.2f), (90.5f, -9f), (90.5f, -7.4f), (90.5f, 17f), (90.5f, 18.6f) }) Lounger(V(x, DY, z), 90f);
         foreach (var (x, z) in new[] { (61.6f, 16.6f), (92.4f, -5.2f), (92.4f, 20.6f) }) Parasol(V(x, DY, z), 0);
         // lifeguard chairs (the owner's model) on both shores
-        Owner("ratownik_krzeslo", V(-38f, DY, -12.4f), 60f, false);
+        Owner("ratownik_krzeslo", V(-30f, DY, 21.6f), 150f, false);
         Owner("ratownik_krzeslo", V(47.2f, DY, 18f), 250f, false);
         // pool showers at the stairs and the kids' gate: stainless post, rain head, push button, a grate in the deck
-        foreach (var (x, z) in new[] { (-6f, -24.6f), (6f, -24.6f), (-43.5f, -5f), (-77f, 18.5f), (60f, 25f), (36f, 46f) }) Shower(V(x, DY, z));
+        foreach (var (x, z) in new[] { (-6f, -27.2f), (6f, -27.2f), (-44.5f, -5f), (-77f, 18.5f), (60f, 25f), (36f, 46f) }) Shower(V(x, DY, z));
         // lamps round the deck (the promenade's lamp)
         foreach (var (x, z) in new[] { (-55f, -58f), (-30f, -58f), (0f, -58f), (30f, -58f), (55f, -58f), (-52f, -30f), (-52f, 0f), (-52f, 20f), (57f, -30f),
                      (57f, 0f), (-40f, 46f), (-10f, 50f), (10f, 52f), (52f, 47f), (-20f, 70f), (20f, 70f), (60f, 74f), (-60f, 72f), (-96f, -70f), (96f, -70f) })
@@ -229,6 +229,28 @@ public static partial class BraxChampionsAquapark
         m.Cylinder(steel, b + Vector3.up * 2.28f + Vector3.forward * .45f, .14f, .03f, 16);
         m.Box(steel, b + Vector3.up * 1.1f + Vector3.back * .05f, new Vector3(.08f, .08f, .04f));
         Col(b.x - .06f, b.x + .06f, b.y, b.y + 2.3f, b.z - .06f, b.z + .06f, "prysznic");
+    }
+
+    // the strolling routes: the lagoon's outline 3.2 m / 5.0 m out from the coping, its south half from the west shore round to
+    // the east one (the north is the tower, the slides and the rocks), each walked both ways
+    static List<Vector3[]> WalkRoutes()
+    {
+        var o = new List<Vector3[]>();
+        foreach (float off in new[] { 3.2f, 5.0f })
+        {
+            var ring = Offset(lagoon.cop, off);
+            int Near(Vector2 q) { int bi = 0; float bd = float.MaxValue; for (int i = 0; i < ring.Count; i++) { float d = (ring[i] - q).sqrMagnitude; if (d < bd) { bd = d; bi = i; } } return bi; }
+            int a = Near(P(-44f, 16f)), b = Near(P(52f, 16f));
+            var pts = new List<Vector3>(); float run = 99f; Vector2 last = ring[a];
+            for (int i = a; ; i = (i + 1) % ring.Count)
+            {
+                run += (ring[i] - last).magnitude; last = ring[i];
+                if (run >= 7.5f || i == b) { pts.Add(new Vector3(ring[i].x, 0f, ring[i].y)); run = 0f; }
+                if (i == b) break;
+            }
+            o.Add(pts.ToArray()); var rev = pts.ToArray(); System.Array.Reverse(rev); o.Add(rev);
+        }
+        return o;
     }
 
     // round pool bar north-west of the lagoon: white quartz counter on a teak-clad drum, a ring canopy on six columns with a
