@@ -1,0 +1,24 @@
+{
+ "source": "Owner Mixamo animations 12.11.2026 23:32 (Pointing_Gesture.zip: Buldog.fbx, Pointing (1).fbx, Pointing (2).fbx, Pointing Gesture.fbx, Pointing.fbx); list: animacje_20261112_4/katalog.json",
+ "target": "animacje_20261112_4",
+ "staging": "not staged by any build yet; kept so nothing is lost",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (same recipient as braxhorn-sklep-*) -> one part",
+ "tarSha256": "a3f905be2c9309aeabb16a124815c10af965019336d52aa8bbc8e55f9a9caf6f",
+ "cmsSha256": "4932386e8de9fb2bcf9e64a104b7a4ea9dbfe55474a20c981d0f3578348e527f",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 4598336,
+   "sha256": "4932386e8de9fb2bcf9e64a104b7a4ea9dbfe55474a20c981d0f3578348e527f"
+  }
+ ],
+ "files": {
+  "animacje_20261112_4/Buldog.fbx": "6b7d5511e8b64eca5436d015e3bbc12584c716c5f54fecbdf01c9c05bd94f92d",
+  "animacje_20261112_4/Pointing (1).fbx": "cbf451e27babd8ab613119e01ce06f5c7ab6c8f81f81b6b8a58a1736f5494183",
+  "animacje_20261112_4/Pointing (2).fbx": "4b4287b76924c42b8c091a7c7cf8b732f0fef4fafdb501d6cd174d022f618b86",
+  "animacje_20261112_4/Pointing Gesture.fbx": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+  "animacje_20261112_4/Pointing.fbx": "19324a681352e95618345f4d179b3cfa2f1ea5aed3d2ec0492f822d14bc68344",
+  "animacje_20261112_4/katalog.json": "24d735bef727dc6258f1d141e356c6aa8909774a47c4172c3cd8c6685e15e223"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
