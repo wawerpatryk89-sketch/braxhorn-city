@@ -702,6 +702,14 @@ public static class BraxRegionTylyB
 
     // ---------------- wyposażenie
     static void Model(Transform F, string n, Vector3 p, float yaw, float h, bool kol, params string[] ids) => BraxRegionMeble.Model(F, n, p, yaw, h, kol, ids);
+    // 12.11 01:51 (właściciel: „tobie wysyłam te meble. Uzupełnij, gdzie potrzeba takie meble i daj na repo dla wszystkich”): meble
+    // z Tripo z paczki globalnej meble_01 (fotel relaks, stół okrągły z marmurem, witryna, biurko kreślarskie, konsola), prawdziwe
+    // metry × K, przód +Z; false = brak paczki (klucz w CI) → miejsce zostaje dla zastępstwa
+    static bool Tripo(Transform F, string n, Vector3 p, float yaw, string plik)
+    {
+        var m = BraxMiastoAssety.Model("meble_01", plik);
+        return m && BraxRegion.Put(F, m, n + " (Tripo właściciela)", p, yaw, 1f, true);
+    }
 
     static void Lobby(Transform F, Def d, float y0, bool kawiarnia)
     {
@@ -782,6 +790,10 @@ public static class BraxRegionTylyB
         BraxRegionMeble.Biurko(F, new Vector3(gx + 4.5f, y0, (fz0 + fz1) * .5f), -90f, 2.0f, "Gabinet szefa: biurko");
         BraxRegionMeble.KrzesloBiurowe(F, new Vector3(gx + 5.5f, y0, (fz0 + fz1) * .5f), -90f);
         Model(F, "Gabinet: sofa", new Vector3(gx + 2f, y0, fz1 - .9f * K), 180f, .82f, true, "sofa_02", "sofa_03");
+        // za fotelem szefa przy ścianie wsch.: konsola z czarnym marmurem, po bokach witryny z orzecha (meble właściciela, 12.11)
+        float zm = (fz0 + fz1) * .5f;
+        if (fz1 - fz0 > 9.5f && Tripo(F, "Gabinet: konsola z marmurem", new Vector3(ix1 - .26f * K - .06f, y0, zm), -90f, "konsola_marmur_czarny"))
+            foreach (float s2 in new[] { -1f, 1f }) Tripo(F, "Gabinet: witryna z orzecha", new Vector3(ix1 - .33f * K - .06f, y0, zm + s2 * 1.85f * K), -90f, "witryna_orzech_szklo");
         var sejf = BraxRegionMeble.Sejf(F, new Vector3(ix1 - .6f * K, y0, fz0 + .2f), -90f);
         Model(F, "Gabinet: roślina", new Vector3(ix1 - .8f, y0, fz1 - .6f), 0f, 1.7f, true, "potted_plant_04", "potted_plant_02");
         // biurka asystentów (zachód) i stanowisko ochrony przy windzie
@@ -1050,7 +1062,9 @@ public static class BraxRegionTylyB
         Drzwi(A, "TOWER_APT_LAZIENKA", "ŁAZIENKA", new Vector3(d2, y, zw), dW, dH);
         // salon (zach.): sofa, fotel, stolik, szafka RTV z telewizorem, dywan (2.5 cm nad podłogą — nie w jej płaszczyźnie)
         Model(A, "Salon: sofa", new Vector3(ix0 + 1.3f, y, 42.5f), 90f, .82f, true, "sofa_02", "Sofa_01");
-        Model(A, "Salon: fotel", new Vector3(ix0 + 3.6f, y, 39.2f), 20f, .9f, true, "mid_century_lounge_chair", "modern_arm_chair_01");
+        // fotel relaks ze skóry (meble właściciela, 12.11) przodem do telewizora; bez paczki fotel Poly Haven
+        if (!Tripo(A, "Salon: fotel relaks", new Vector3(ix0 + 3.5f, y, 39.0f), 34f, "fotel_relaks_skora_czarna"))
+            Model(A, "Salon: fotel", new Vector3(ix0 + 3.6f, y, 39.2f), 20f, .9f, true, "mid_century_lounge_chair", "modern_arm_chair_01");
         Model(A, "Salon: stolik", new Vector3(ix0 + 3.3f, y, 42.5f), 0f, .42f, true, "modern_coffee_table_01");
         var dyw = new BraxRegionMeble.Bud(); dyw.MinMax(new Vector3(ix0 + 2.0f, y, 40.3f), new Vector3(ix0 + 4.8f, y + .025f, 44.7f));
         dyw.Obiekt("Salon: dywan wełniany", A, BraxCityMaterials.Surface("Apartament: dywan (wełna szaro-beżowa)", new Color(.62f, .58f, .52f), .98f), false, false);

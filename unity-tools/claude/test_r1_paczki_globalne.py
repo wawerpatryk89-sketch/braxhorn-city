@@ -13,7 +13,8 @@ WF = (ROOT / ".github" / "workflows" / "claude-region-build.yml").read_text()
 class PaczkiGlobalne(unittest.TestCase):
     def test_vehicle_packs_owner_12_11(self):
         # 01:30 „motory globalnie do wszystkich miast, rejonów”; 01:32 „rowery globalnie… bierz tylko te, które się nadają”
-        for nazwa, target, sztuki in [("braxhorn-sklep-motory-01", "pojazdy_motory_01", 5), ("braxhorn-sklep-rowery-01", "pojazdy_rowery_01", 2)]:
+        for nazwa, target, sztuki in [("braxhorn-sklep-motory-01", "pojazdy_motory_01", 5), ("braxhorn-sklep-rowery-01", "pojazdy_rowery_01", 2),
+                                      ("braxhorn-sklep-meble-01", "meble_01", 5), ("braxhorn-sklep-muzeum-01", "muzeum_eksponaty_01", 9)]:
             m = json.loads((PRYW / nazwa / "manifest.json").read_text())
             self.assertEqual(m["target"], target)
             glb = [f for f in m["files"] if f.startswith(target + "/") and f.endswith(".glb")]
@@ -23,6 +24,12 @@ class PaczkiGlobalne(unittest.TestCase):
         self.assertIn('"openssl", "cms", "-encrypt"', spec)
         self.assertNotIn("env:KLUCZ", spec); self.assertNotIn("-decrypt", spec)   # pakowanie tylko kluczem publicznym
         self.assertTrue((ROOT / "unity-tools/claude/obroc_arkusz.py").is_file())
+        # 01:51 meble: fotel relaks w apartamencie Tower, konsola i witryny w gabinecie szefa (z zastępstwem bez paczki)
+        t = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxRegionTylyB.cs").read_text()
+        self.assertIn('BraxMiastoAssety.Model("meble_01", plik)', t)
+        for n in ["fotel_relaks_skora_czarna", "konsola_marmur_czarny", "witryna_orzech_szklo"]:
+            self.assertIn('"' + n + '"', t)
+        self.assertIn('if (!Tripo(A, "Salon: fotel relaks"', t)
 
     def test_tools_copied(self):
         for f in ["unity-tools/sklep/install_sklep_modele.py", "unity-tools/sklep/split_sheet.py", "unity-tools/wideo/install_braxhorn_wideo.py"]:

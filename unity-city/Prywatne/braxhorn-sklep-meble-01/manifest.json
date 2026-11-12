@@ -1,0 +1,29 @@
+{
+ "source": "Właściciel 12.11.2026 01:51: plansza Tripo (GLB) — meble globalnie dla wszystkich („uzupełnij, gdzie potrzeba takie meble i daj na repo dla wszystkich”): fotel relaks ze skóry czarnej, stół okrągły z czarnym marmurem, witryna z orzecha z szybami, biurko kreślarskie z lampą, konsola z czarnym marmurem",
+ "target": "meble_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/meble_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "acf217a549d8daba2ceb80439d317e3c1f4dd41b6e369939868683916dd39964",
+ "cmsSha256": "70364c640f6548f9f5a9ae272118a40a46c44149ba245d6489c1dfdf63cca30f",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 7322176,
+   "sha256": "70364c640f6548f9f5a9ae272118a40a46c44149ba245d6489c1dfdf63cca30f"
+  }
+ ],
+ "files": {
+  "meble_01/_tekstury/meble_01_kolor.jpg": "7db6619f259bbf773a978bc78f3cfbee18b21ad21188dd9962755769aeec0deb",
+  "meble_01/_tekstury/meble_01_mr.png": "c1420bd3463b07be20b41ae162e4ea6bd2e0d6952d1ac4f1a900d528b2085722",
+  "meble_01/_tekstury/meble_01_normal.png": "662241d1043ee64b4618048d9771c0911832f62d492b23e1d88fff0be66ff020",
+  "meble_01/biurko_kreslarskie_z_lampa.glb": "7606f9804e63238f0c46d0a5851df5c3313029be7bc5fac56083a5c8f8db8ab0",
+  "meble_01/fotel_relaks_skora_czarna.glb": "896959ed2646605630cd7fc3701d896d88b17ba6073eef57ba54c440c3e9fbb0",
+  "meble_01/katalog.json": "32f2815591318bf178f91969037eb9fb7b49f1fda1a443ce3ef7a51c7c44389f",
+  "meble_01/konsola_marmur_czarny.glb": "b7febb35217e233170f046ccaca25d35b809c254bf677687c0e548c8a78b32ba",
+  "meble_01/stol_okragly_marmur_czarny.glb": "ed8e7244755a4e3623dd4951550926d602b4feaf1f61a3a9d6037f9f53e57b3f",
+  "meble_01/witryna_orzech_szklo.glb": "869532c359aa7ce8aebaadb8440cd006d7a2cc5d563e6df8bad9acdbc4ee9b32",
+  "oryginal/meble.glb": "3972e5260521faa8b80e7bd6192e96a556ff0270c5ac250e1212c3076d8944bc",
+  "oryginal/spec.json": "dc8f6504e4f29ea77f9012d263fbb3df1d3e2445d5be95a7d3b74d948ce09896"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
