@@ -39,6 +39,21 @@ public sealed class BraxVessel : MonoBehaviour
     public float moorYaw;
     public Vector3 wejscie;               // miejsce wejścia (lokalnie): przy burcie od pomostu albo za rufą; zero = środek
     public Renderer[] fale = new Renderer[0];   // fala dziobowa i ślad za rufą (siatki z pianą)
+    // JEDNOŚLADY NA LĄDZIE (właściciel 12.11 02:32: „Zrób tak, żeby Brax mógł nim jeździć. Żeby nie musiał chodzić pieszo.
+    // Hulajnogi, motory, rowery”): ten sam układ WSIĄDŹ / jazda joystickiem / ZEJDŹ co na wodzie, ale po nawierzchni — promienie
+    // w dół pod kołami (krawężnik do 38 cm wjeżdża, ściana, auto, słupek zatrzymują), przechył w zakręcie z fizyki (tg = v·ω/g),
+    // przód w górę przy gazie i w dół przy hamowaniu, po zejściu pojazd stoi przechylony na stopce. Rower — cisza, hulajnoga —
+    // cichy silnik elektryczny, motor — czterosuw (syntezowany).
+    public bool lad;
+    public float rozstaw = 1.4f;          // rozstaw osi (promienie pod kołami)
+    public float maxPrzechyl = 38f;
+    public float stopka = 6f;             // przechył na stopce po zejściu (stopnie, w lewo)
+    public string dzwiek = "";            // "MOTOR", "ELEKTRYK", "" = bez silnika
+    public Transform kolP, kolT, przod;   // koła (obrót wokół lokalnego X) i kierownica z widelcem (obrót wokół lokalnego Y)
+    public float rKola = .3f;
+    float ladY, skretS; bool ladOk;
+    static readonly RaycastHit[] bufor = new RaycastHit[16];
+    const int MaskaLad = ~((1 << 8) | (1 << 29));
 
     public bool Occupied { get { return rider; } }
     public float Speed { get { return speed; } }
@@ -104,8 +119,8 @@ public sealed class BraxVessel : MonoBehaviour
         // Kość Hips po ustawieniu parent na obracającym się pojeździe
         // niekoniecznie jest w osi świata. Ustawiamy lokalny punkt oparcia
         // tak, żeby biodra były ~8 cm ponad realną powierzchnią fotela.
-        player.transform.localPosition = seat +
-            Vector3.up * (.08f * Mathf.Max(1f, transform.lossyScale.y) - hip);
+        player.transform.localPosition = lad && !sit ? seat : seat +
+            Vector3.up * (.08f * Mathf.Max(1f, transform.lossyScale.y) - hip);   // hulajnoga: stopy na desce
         player.transform.localRotation = Quaternion.identity;
         // Właściciel 10.11 17:37: „siedzieć i mieć ręce na kierownicy — jest animacja driver”. Klip „Jazda” = jego Driving.fbx
         // (Mixamo, przepięty na kości Braxa w buildzie). Brak klipu → dawna poza z kodu.
@@ -123,8 +138,14 @@ public sealed class BraxVessel : MonoBehaviour
         if (sit)
         {
             var pose = BraxPose.Get(player);
-            pose.Set(label == "SKUTER" ? BraxPose.Mode.Ride : (jazda ? BraxPose.Mode.Kierowca : BraxPose.Mode.Ster), transform);
+            pose.Set(label == "SKUTER" || lad ? BraxPose.Mode.Ride : (jazda ? BraxPose.Mode.Kierowca : BraxPose.Mode.Ster), transform);
             pose.klip = jazda;
+            pose.SetGrips(leftGrip, rightGrip);
+        }
+        else if (lad)
+        {   // hulajnoga: stoi na desce, tułów lekko do przodu, dłonie na kierownicy
+            var pose = BraxPose.Get(player);
+            pose.Set(BraxPose.Mode.Hulajnoga, transform); pose.klip = false;
             pose.SetGrips(leftGrip, rightGrip);
         }
         Debug.Log("BRAXHORN_LODZ_FOTEL " + label + (jazda ? " klip=Jazda" : " klip=BRAK(poza z kodu)") + " hip=" +
@@ -327,6 +348,7 @@ public sealed class BraxVessel : MonoBehaviour
     /// <summary>Jazda: move.y = gaz (ujemny = wstecz, wolniej), move.x = ster. Wywołuje gracz w Update.</summary>
     public void Drive(Vector2 move, float dt)
     {
+        if (lad) { JedzLad(move, dt); return; }
         float target = move.y > 0 ? move.y * maxSpeed : move.y * maxSpeed * .3f;
         float a = Mathf.Abs(target) > Mathf.Abs(speed) ? accel : accel * 1.4f;      // zdejmowanie gazu: opór wody hamuje szybciej
         float before = speed;
@@ -400,6 +422,74 @@ public sealed class BraxVessel : MonoBehaviour
         Fale(v01, speed > 0);
     }
 
+    /// <summary>Najbliższa nawierzchnia pod punktem (bez własnych kolizji i gracza): promień z wys. y0 + 1 m.</summary>
+    bool Grunt(Vector3 p, float y0, out float y)
+    {
+        y = y0; float best = float.MaxValue; bool ok = false;
+        int c = Physics.RaycastNonAlloc(new Vector3(p.x, y0 + 1f, p.z), Vector3.down, bufor, 3.5f, MaskaLad, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < c; i++)
+        {
+            var h = bufor[i]; if (!h.collider || h.collider.transform.IsChildOf(transform)) continue;
+            if (h.distance < best) { best = h.distance; y = h.point.y; ok = true; }
+        }
+        return ok;
+    }
+
+    /// <summary>Jazda po lądzie: move.y = gaz (do tyłu = hamulec, z miejsca wolno wstecz), move.x = kierownica.</summary>
+    void JedzLad(Vector2 move, float dt)
+    {
+        if (!ladOk) { ladY = transform.position.y; ladOk = true; }
+        float target = move.y > .05f ? move.y * maxSpeed : move.y < -.05f ? (speed > .6f ? 0f : move.y * maxSpeed * .15f) : 0f;
+        float a = move.y < -.05f && speed > .6f ? accel * 2.4f : (Mathf.Abs(target) > Mathf.Abs(speed) ? accel : accel * .55f);
+        float before = speed;
+        speed = Mathf.MoveTowards(speed, target, dt * a);
+        float acc = (speed - before) / Mathf.Max(dt, 1e-4f);
+        float v01 = Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.1f, maxSpeed));
+        // kierownica: przy małej prędkości ostro, przy dużej łagodnie (skręca przechył)
+        float steerEff = Mathf.Clamp01(Mathf.Abs(speed) / 1.2f) * Mathf.Lerp(1f, .42f, v01);
+        yawVel = Mathf.Lerp(yawVel, move.x * turnRate * steerEff * (speed < 0 ? -1f : 1f), 1f - Mathf.Exp(-dt * 6f));
+        float yaw = transform.eulerAngles.y + yawVel * dt;
+        var fwd = Quaternion.Euler(0, yaw, 0) * Vector3.forward;
+        var pos = transform.position; pos.y = ladY;
+        var next = pos + fwd * speed * dt;
+        if (Mathf.Abs(speed) > .01f)
+        {   // przeszkoda przed przodem (kula na wys. 0.55 m): ściana, auto, słupek, ławka — stop; podjazd i krawężnik nie
+            var dir = fwd * Mathf.Sign(speed); float zasieg = length * .5f + Mathf.Abs(speed) * dt + .15f;
+            int c = Physics.SphereCastNonAlloc(pos + Vector3.up * .55f - dir * .2f, .22f, dir, bufor, zasieg + .2f, MaskaLad, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < c; i++)
+            {
+                var h = bufor[i]; if (!h.collider || h.collider.transform.IsChildOf(transform) || h.distance <= 0f || h.normal.y > .7f) continue;
+                if (Mathf.Abs(speed) > 4f) Debug.Log("BRAXHORN_JEDNOSLAD uderzenie: " + label + " v=" + speed.ToString("F1") + " w " + h.collider.name);
+                speed = 0f; next = pos; break;
+            }
+            if (speed != 0f && Lodz(next + dir * (length * .5f))) { speed = 0f; next = pos; }
+        }
+        // nawierzchnia pod kołami: krawężnik do 38 cm w górę, zjazd do 1.2 m w dół; dalej (woda, przepaść, mur) — stop
+        float half = rozstaw * .5f;
+        bool okP = Grunt(next + fwd * half, ladY, out float yP), okT = Grunt(next - fwd * half, ladY, out float yT);
+        if (!okP || !okT || yP > ladY + .38f || yT > ladY + .38f || yP < ladY - 1.2f || yT < ladY - 1.2f)
+        {
+            speed = 0f; next = pos;
+            if (!Grunt(pos + fwd * half, ladY, out yP)) yP = ladY;
+            if (!Grunt(pos - fwd * half, ladY, out yT)) yT = ladY;
+        }
+        ladY = Mathf.MoveTowards(ladY, (yP + yT) * .5f, dt * 4f);   // zawieszenie: łagodnie na krawężnik i z niego
+        float spadek = Mathf.Atan2(yP - yT, rozstaw) * Mathf.Rad2Deg;
+        float wantRoll = Mathf.Clamp(-Mathf.Atan(speed * yawVel * Mathf.Deg2Rad / 9.81f) * Mathf.Rad2Deg, -maxPrzechyl, maxPrzechyl);
+        rollS = Mathf.Lerp(rollS, wantRoll, 1f - Mathf.Exp(-dt * 5f));
+        pitchS = Mathf.Lerp(pitchS, spadek + Mathf.Clamp(acc, -8f, 6f) * (dzwiek == "MOTOR" ? .3f : .12f), 1f - Mathf.Exp(-dt * 6f));
+        transform.position = new Vector3(next.x, ladY, next.z);
+        transform.rotation = Quaternion.Euler(-pitchS, yaw, rollS);
+        float obrot = speed * dt / Mathf.Max(.05f, rKola) * Mathf.Rad2Deg;
+        if (kolP) kolP.localRotation *= Quaternion.AngleAxis(obrot, Vector3.right);
+        if (kolT) kolT.localRotation *= Quaternion.AngleAxis(obrot, Vector3.right);
+        if (przod)
+        {
+            skretS = Mathf.Lerp(skretS, move.x * 24f * Mathf.Lerp(1f, .3f, v01), 1f - Mathf.Exp(-dt * 8f));
+            przod.localRotation = Quaternion.AngleAxis(skretS, Vector3.up);
+        }
+    }
+
     void Fale(float v01, bool naprzod)
     {
         if (fale == null || fale.Length == 0) return;
@@ -440,14 +530,14 @@ public sealed class BraxVessel : MonoBehaviour
     {
         if (klipySilnika.TryGetValue(typ, out var c) && c) return c;
         const int SR = 22050; const float DL = 2f; int n = (int)(SR * DL);
-        float f0 = typ == "SKUTER" ? 95f : typ == "MOTORÓWKA" ? 62f : 38f;   // f0 × 2 s = całe okresy (pętla bez trzasku)
-        float ostrosc = typ == "SKUTER" ? 10f : typ == "MOTORÓWKA" ? 6f : 4f, szum = typ == "SKUTER" ? .45f : .3f;
+        float f0 = typ == "SKUTER" ? 95f : typ == "MOTORÓWKA" ? 62f : typ == "MOTOR" ? 48f : typ == "ELEKTRYK" ? 210f : 38f;   // f0 × 2 s = całe okresy (pętla bez trzasku)
+        float ostrosc = typ == "SKUTER" ? 10f : typ == "MOTORÓWKA" ? 6f : typ == "MOTOR" ? 9f : 4f, szum = typ == "SKUTER" ? .45f : typ == "ELEKTRYK" ? .05f : .3f;
         var x = new float[n]; var rnd = new System.Random(typ.GetHashCode()); float lp = 0f;
         for (int i = 0; i < n; i++)
         {
             float t = i / (float)SR, w = 2f * Mathf.PI * f0 * t;
             float ton = Mathf.Sin(w) * .45f + Mathf.Sin(2f * w) * .25f + Mathf.Sin(3f * w) * .12f + Mathf.Sin(.5f * w) * (typ == "JACHT" ? .3f : .08f);
-            float zaplon = Mathf.Pow(Mathf.Max(0f, Mathf.Sin(w)), ostrosc) * .55f;
+            float zaplon = typ == "ELEKTRYK" ? 0f : Mathf.Pow(Mathf.Max(0f, Mathf.Sin(w)), ostrosc) * .55f;   // silnik elektryczny: czysty ton
             lp += ((float)(rnd.NextDouble() * 2.0 - 1.0) - lp) * .09f;
             x[i] = Mathf.Clamp((ton * .55f + zaplon + lp * szum) * .55f, -1f, 1f);
         }
@@ -456,16 +546,17 @@ public sealed class BraxVessel : MonoBehaviour
     }
     void DzwiekSilnika()
     {
+        if (lad && string.IsNullOrEmpty(dzwiek)) return;   // rower: bez silnika
         bool plynie = rider || Mathf.Abs(speed) > .3f;
         if (!plynie) { if (silnikA && silnikA.isPlaying) silnikA.Pause(); return; }
         if (!silnikA)
         {
-            silnikA = gameObject.AddComponent<AudioSource>(); silnikA.clip = KlipSilnika(label); silnikA.loop = true; silnikA.spatialBlend = 1f;
+            silnikA = gameObject.AddComponent<AudioSource>(); silnikA.clip = KlipSilnika(lad ? dzwiek : label); silnikA.loop = true; silnikA.spatialBlend = 1f;
             silnikA.rolloffMode = AudioRolloffMode.Logarithmic; silnikA.minDistance = 4f; silnikA.maxDistance = 120f; silnikA.dopplerLevel = .3f; silnikA.priority = 90;
         }
         float v01 = Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.1f, maxSpeed));
-        silnikA.pitch = Mathf.Lerp(.75f, label == "SKUTER" ? 1.9f : 1.5f, v01);
-        silnikA.volume = Mathf.Lerp(.35f, .95f, v01);
+        silnikA.pitch = Mathf.Lerp(.75f, label == "SKUTER" || dzwiek == "MOTOR" ? 1.9f : 1.5f, v01);
+        silnikA.volume = Mathf.Lerp(.35f, .95f, v01) * (dzwiek == "ELEKTRYK" ? .3f : 1f);
         if (!silnikA.isPlaying) silnikA.Play();
     }
 
@@ -476,6 +567,12 @@ public sealed class BraxVessel : MonoBehaviour
         DzwiekSilnika();
         if (rider) return;
         if (speed != 0) speed = 0;
+        if (lad)
+        {   // zaparkowany: stoi tam, gdzie go zostawiono, przechylony na stopce
+            rollS = 0f; pitchS = 0f; ladOk = false;
+            transform.SetPositionAndRotation(home, Quaternion.Euler(0f, baseYaw, stopka));
+            return;
+        }
         Fale(0, false);
         var p = home; p.y = waterY + Wave(home.x, home.z, Time.time) - draft;
         transform.position = p;

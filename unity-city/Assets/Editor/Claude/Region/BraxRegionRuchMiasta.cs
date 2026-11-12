@@ -80,6 +80,24 @@ public static partial class BraxClaudeOsiedle
             }
             Debug.Log("BRAXHORN_RUCH_MIASTO_B motocykle właściciela na parkingu: " + motorow + " na " + dlaMotorow.Count + " stanowiskach");
         }
+        // 12.11 02:32 (właściciel: „żeby nie musiał chodzić pieszo — hulajnogi, motory, rowery”): jednoślady DO JAZDY —
+        // 2 stanowiska parkingu (hulajnoga + rower obok siebie) i stacja przy siłowni BRAXHORN (przejście na wschód od siłowni,
+        // nawierzchnia podwórza — nie chodnik): 2 hulajnogi i 2 rowery przodem do ulicy. Hulajnogi z kodu są zawsze.
+        {
+            var gj = new GameObject("CLAUDE miasto: jednoślady do jazdy").transform; gj.SetParent(root.parent ? root.parent : root, false); gj.position = Vector3.zero;
+            int jedn = 0;
+            if (miejsca.Count >= 8)
+                foreach (int i in new[] { miejsca.Count / 4, miejsca.Count * 3 / 4 })
+                {
+                    if (!dlaMotorow.Add(i)) continue;
+                    var m = miejsca[i]; var pr = m.przod; pr.y = 0f; pr.Normalize(); var bok = Vector3.Cross(Vector3.up, pr).normalized;
+                    float yaw = Quaternion.LookRotation(-pr, Vector3.up).eulerAngles.y;
+                    if (BraxMiastoMotory.Hulajnoga(gj, m.c - bok * (m.rozmiar.x * .25f), yaw, i)) jedn++;
+                    if (BraxMiastoMotory.RowerJazda(gj, i, m.c + bok * (m.rozmiar.x * .25f), yaw) || BraxMiastoMotory.Hulajnoga(gj, m.c + bok * (m.rozmiar.x * .25f), yaw, i + 1)) jedn++;
+                }
+            jedn += BraxMiastoMotory.Stacja(gj, "przy siłowni BRAXHORN", new Vector3(19.7f, 0f, 8.6f), Vector3.right, Vector3.forward);
+            Debug.Log("BRAXHORN_JEDNOSLADY do jazdy w mieście: " + jedn);
+        }
         try
         {
             MiejscaParkingowe.Clear();

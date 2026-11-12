@@ -62,7 +62,7 @@ class Siedzenie(unittest.TestCase):
     def test_skuter_nogi_okrakiem_reka_z_klipu(self):
         ride = P[P.index("case Mode.Ride:"):P.index("case Mode.Kierowca:")]
         self.assertIn("if (!klip)", ride)                                   # ręce z klipu + IK, nie z celowania
-        self.assertIn("mode == Mode.Kierowca)", P)                          # dłonie na kole także w trybie kierowcy
+        self.assertIn("mode == Mode.Kierowca || mode == Mode.Hulajnoga)", P)   # dłonie na kole także w trybie kierowcy (i na hulajnodze, 12.11)
         self.assertIn("iter < 8", metoda(P, "static void DlonNaUchwyt("))
 
     def test_motorowka_prawdziwe_kolo(self):

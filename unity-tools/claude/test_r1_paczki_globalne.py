@@ -131,5 +131,22 @@ class Plakaty(unittest.TestCase):
         self.assertIn("BraxPlakaty.Plakat(root,", g); self.assertIn("BraxRegion.Free(new Vector3(x, yc, zSc - .35f)", g)
 
 
+class JazdaJednosladami(unittest.TestCase):
+    # 12.11 02:32: „Zrób tak, żeby Brax mógł nim jeździć. Żeby nie musiał chodzić pieszo. Hulajnogi, motory, rowery. Zrób to i puszczamy.”
+    def test_land_riding_mode(self):
+        v = (ROOT / "unity-city/Assets/Claude/BraxVessel.cs").read_text()
+        for n in ["public bool lad;", "void JedzLad(Vector2 move, float dt)", "if (lad) { JedzLad(move, dt); return; }", "Mathf.Atan(speed * yawVel * Mathf.Deg2Rad / 9.81f)",
+                  "yP > ladY + .38f", "Quaternion.Euler(0f, baseYaw, stopka)", '"ELEKTRYK"', '"MOTOR"']:
+            self.assertIn(n, v)
+        p = (ROOT / "unity-city/Assets/Claude/BraxPose.cs").read_text()
+        self.assertIn("Kierowca, Hulajnoga }", p)                             # nowa poza na końcu enuma (stare wartości bez zmian)
+        m = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxMiastoMotory.cs").read_text()
+        for n in ["public static BraxVessel Motor(", "public static BraxVessel RowerJazda(", "public static BraxVessel Hulajnoga(", "public static int Stacja(",
+                  "v.lad = true", 'v.waterY = -1000f']:
+            self.assertIn(n, m)
+        r = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxRegionRuchMiasta.cs").read_text()
+        self.assertIn('BraxMiastoMotory.Stacja(gj, "przy siłowni BRAXHORN"', r)
+
+
 if __name__ == "__main__":
     unittest.main()

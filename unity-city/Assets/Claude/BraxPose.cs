@@ -12,7 +12,7 @@ public sealed class BraxPose : MonoBehaviour
 {
     // Kierowca (10.11, właściciel 17:37: „ręce na kierownicy — jest animacja driver”): postawę daje klip właściciela „Jazda”
     // (Mixamo Driving.fbx), poza dokłada tylko dłonie na prawdziwym kole / kierownicy.
-    public enum Mode { None, Ride, Sit, Lie, Drink, Ster, Kierowca }
+    public enum Mode { None, Ride, Sit, Lie, Drink, Ster, Kierowca, Hulajnoga }
     public Mode mode;
     public Transform anchor;         // obiekt, względem którego liczona jest poza (pojazd, siedzisko)
     public float weight;             // 0..1 — płynne wejście/wyjście z pozy
@@ -150,6 +150,11 @@ public sealed class BraxPose : MonoBehaviour
                 Aim(lArm, lFore, F * .6f - U * .55f + R * -.18f, w); Aim(rArm, rFore, F * .6f - U * .55f + R * .18f, w);
                 Aim(lFore, lHand, F * .9f + U * .1f + R * .15f, w); Aim(rFore, rHand, F * .9f + U * .1f + R * -.15f, w);
                 break;
+            case Mode.Hulajnoga:   // 12.11: stoi na desce hulajnogi — nogi z klipu stania, tułów lekko do przodu, ręce do kierownicy
+                Aim(spine, chest ? chest : head, U * .95f + F * .24f, w);
+                Aim(lArm, lFore, F * .5f - U * .55f + R * -.2f, w); Aim(rArm, rFore, F * .5f - U * .55f + R * .2f, w);
+                Aim(lFore, lHand, F * .9f - U * .1f, w); Aim(rFore, rHand, F * .9f - U * .1f, w);
+                break;
             case Mode.Sit:    // sofa / ławka / hoker: wyprostowany, uda w przód, łydki w dół, dłonie na udach
                 Aim(spine, chest ? chest : head, U * .97f + F * .12f, w);
                 Aim(lUp, lLeg, F * .98f - U * .08f + R * -.14f, w); Aim(rUp, rLeg, F * .98f - U * .08f + R * .14f, w);
@@ -190,7 +195,7 @@ public sealed class BraxPose : MonoBehaviour
                 }
                 break;
         }
-        if (mode == Mode.Ride || mode == Mode.Ster || mode == Mode.Kierowca)
+        if (mode == Mode.Ride || mode == Mode.Ster || mode == Mode.Kierowca || mode == Mode.Hulajnoga)
         {
             // Oryginalny Mixamo rig, prawdziwe punkty na kierownicy:
             // ręce poruszają się razem ze sterem przy przechyle na falach.
