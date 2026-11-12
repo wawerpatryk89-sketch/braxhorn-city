@@ -617,6 +617,307 @@ internal static partial class BraxMiastoWyspa
         new Paleta { sciana = new Color(.85f, .72f, .38f), obrobki = new Color(.95f, .95f, .93f), dach = new Color(.2f, .3f, .27f), okiennice = new Color(.2f, .38f, .32f) },     // ochra
     };
 
+    /// <summary>Balustrada tarasu domku (jak BraxNabrzezeMebel.Balustrada, ale słupki bez płaskich stopek — na deskach tarasu
+    /// stopka 1.5 cm dawała równoległe lica &lt; 2 cm z deskami; słupek kończy się dnem rury na licu desek).</summary>
+    static void BalustradaTarasu(BraxNabrzeze.Zbior z, Vector3 a, Vector3 b, Material kolor)
+    {
+        float h = 1.10f * K, len = Vector3.Distance(new Vector3(a.x, 0, a.z), new Vector3(b.x, 0, b.z));
+        if (len < .2f) return;
+        var dir = (new Vector3(b.x, 0, b.z) - new Vector3(a.x, 0, a.z)).normalized;
+        int nPost = Mathf.Max(1, Mathf.CeilToInt(len / (1.5f * K)));
+        var s = z[kolor];
+        for (int i = 0; i <= nPost; i++) { var p = Vector3.Lerp(a, b, (float)i / nPost); s.Rura(p, p + Vector3.up * h, .024f * K, 8); }
+        s.Rura(a + Vector3.up * h, b + Vector3.up * h, .026f * K, 10);
+        s.Rura(a + Vector3.up * (h * .52f), b + Vector3.up * (h * .52f), .012f * K, 6);
+        s.Rura(a + Vector3.up * .1f * K, b + Vector3.up * .1f * K, .012f * K, 6);
+        int nBar = Mathf.FloorToInt(len / (.115f * K));
+        for (int i = 1; i < nBar; i++) { var p = Vector3.Lerp(a, b, (float)i / nBar); s.Rura(p + Vector3.up * .1f * K, p + Vector3.up * (h - .03f), .008f * K, 5, -1, false); }
+        var c = (a + b) * .5f; float yaw = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
+        BraxNabrzeze.Kol(kol, "Balustrada tarasu", new Vector3(c.x, (a.y + b.y) * .5f + 1.1f, c.z), new Vector3(.25f, 2.2f, len), yaw);
+    }
+
+    // =================================================================================================================
+    // WNĘTRZE DOMKU (12.11, właściciel: „wchodzisz do środka i jakby domka nie było”). Dotąd ściany miały tylko lico zewnętrzne
+    // (od środka niewidoczne — backface), bez sufitu i bez mebli. Teraz: wewnętrzne lica ścian (deski malowane, 14 cm za licem
+    // zewnętrznym, z tymi samymi otworami), sufit z desek, listwy przypodłogowe, oprawa wisząca ze światłem, umeblowanie
+    // jak w prawdziwym domku letniskowym (łóżko podwójne z szafkami nocnymi, aneks kuchenny ze zlewem i płytą, stół z krzesłami,
+    // komoda, dywan), w recepcji lada z tablicą kluczy i kącik wypoczynkowy, w sklepie regały z towarem i zamrażarka z lodami.
+    // Wymiary rzeczywiste × K. Każde lico równoległe do innego co najmniej 2 cm od niego albo lico przeciwne (zero migotania).
+    static void Wnetrze(BraxNabrzeze.Zbior z, BraxNabrzezeMebel.Mat m, System.Func<float, float, float, Vector3> P, Quaternion rot,
+        Vector3 rg, Vector3 fw, float w, float d, float h, int paleta, string tabliczka, float ow, float oh, float oy, float dw, float dh)
+    {
+        const float t = .14f, yF = .04f;                      // grubość ściany (ościeże), lico podłogi
+        float yC = h - .02f, iw = w * .5f - t, id = d * .5f - t;
+        var pal = Palety[paleta % Palety.Length];
+        // 12.11 14:05 (właściciel: „domki drewniane, w środku lamele”): boazeria sosnowa na ścianach (Poly Haven hinoki_planks),
+        // sufit z białych desek (white_planks_clean), podłoga z szerokiej deski dębowej (oak_wood_planks, w Domek), za łóżkiem
+        // lamele dębowe na czarnym filcu; tkaniny: bawełna (cotton_jersey), pled waflowy (waffle_pique_cotton), dywan bouclé
+        // (wool_boucle), zasłony lniane (hessian_230). Meble z BraxMeble (kopia rozwiązań kolegi: miękkie, zaokrąglone).
+        var scW = BraxMiastoA.Tex("Wyspa: domek wnętrze — boazeria sosnowa", 1.6f, new Color(1f, .97f, .92f), new Color(.86f, .74f, .56f), .7f, "hinoki_planks", "wood_planks", "wooden_planks");
+        var sufM = BraxMiastoA.Tex("Wyspa: domek wnętrze — sufit z białych desek", 1.4f, Farba(new Color(.97f, .97f, .96f)), new Color(.95f, .95f, .93f), .8f, "white_planks_clean", "white_plaster_02");
+        var drewno = BraxMiastoA.Tex("Wyspa: domek meble — dąb olejowany", .9f, new Color(.78f, .62f, .45f), new Color(.6f, .45f, .3f), .55f, "oak_veneer_01", "wood_table_001", "fine_grained_wood");
+        var bialyM = BraxMiastoA.Mat("Wyspa: domek meble — biały lakier mat", new Color(.93f, .93f, .91f), .45f);
+        var poscielM = BraxMiastoA.Tex("Wyspa: domek pościel — bawełna biała", .5f, new Color(1.22f, 1.38f, 1.5f), new Color(.96f, .95f, .93f), .9f, "cotton_jersey", "rough_linen");
+        var narzutaM = BraxMiastoA.Tex("Wyspa: domek tkanina w kolorze okiennic " + paleta, .5f, Jasn(Color.Lerp(pal.okiennice, Color.white, .1f), 1.25f), pal.okiennice, .85f, "cotton_jersey", "rough_linen");
+        var pledM = BraxMiastoA.Tex("Wyspa: domek pled waflowy (musztarda)", .4f, new Color(.9f, .86f, .8f), new Color(.85f, .65f, .25f), .9f, "waffle_pique_cotton", "rough_linen");
+        var dywanM = BraxMiastoA.Tex("Wyspa: domek dywan — bouclé", 1.0f, new Color(1.05f, 1.02f, .97f), new Color(.7f, .62f, .48f), .95f, "wool_boucle", "rough_linen");
+        var zaslonaLen = BraxMiastoA.Tex("Wyspa: domek zasłony — len naturalny", .6f, new Color(1.15f, 1.12f, 1.06f), new Color(.9f, .86f, .78f), .9f, "hessian_230", "rough_linen");
+        var czarnyMat = BraxMiastoA.Mat("Wyspa: domek — czarny mat (nóżki, uchwyty, karnisz)", new Color(.035f, .035f, .04f), .55f, .3f);
+        var ceramika = BraxMiastoA.Mat("Wyspa: domek — ceramika lampki (biel)", new Color(.92f, .91f, .88f), .35f);
+        var filc = BraxMiastoA.Mat("Wyspa: domek — filc pod lamelami (czarny)", new Color(.03f, .03f, .035f), .95f);
+        var plytkiM = BraxMiastoA.Tex("Wyspa: domek kuchnia — płytki nad blatem (marmur jasny)", .6f, Farba(new Color(.95f, .95f, .94f)), new Color(.92f, .92f, .9f), .3f, "floor_tiles_02", "marble_01");
+        System.Func<Material, BraxNabrzeze.Siatka> S = mm => z[mm];
+        var blatM = BraxMiastoA.Tex("Wyspa: domek blat — kamień jasny", .8f, new Color(.9f, .89f, .86f), new Color(.85f, .84f, .8f), .35f, "marble_01", "granite_tile_04");
+        var stal = m.stal; var czarny = BraxMiastoA.Mat("Wyspa: domek — czarne szkło płyty / grafit", new Color(.04f, .04f, .045f), .15f, .2f);
+        var klosz = zaslonaLen;
+        float yaw = rot.eulerAngles.y;
+        void B(Material mat, float lx, float ly0, float lz, float sx, float sy, float sz) => z[mat].Box(P(lx, ly0 + sy * .5f, lz), new Vector3(sx, sy, sz), rot);
+        void Kl(string n, float lx, float ly0, float lz, float sx, float sy, float sz) => BraxNabrzeze.Kol(kol, "Domek " + tabliczka + " " + n, P(lx, ly0 + sy * .5f, lz), new Vector3(sx, sy, sz), yaw);
+
+        // 1) wewnętrzne lica ścian z otworami (wstawione 14 cm od narożników — zamknięte pudło bez wystających lic)
+        var sIn = BraxUliceKit.S(scW);
+        var front = new List<Rect> { new Rect(w * .5f - dw * .5f, 0f, dw, dh), new Rect(w * .18f - ow * .5f, oy, ow, oh), new Rect(w * .82f - ow * .5f, oy, ow, oh) };
+        var tyl = new List<Rect> { new Rect(w * .3f - ow * .5f, oy, ow, oh), new Rect(w * .7f - ow * .5f, oy, ow, oh) };
+        var bok = new List<Rect> { new Rect(d * .5f - ow * .5f, oy, ow, oh) };
+        var sciany = new (Vector3 A, Vector3 R, Vector3 N, float W, List<Rect> o)[]
+        {
+            (P(-w * .5f, 0, d * .5f), rg, fw, w, front), (P(w * .5f, 0, -d * .5f), -rg, -fw, w, tyl),
+            (P(-w * .5f, 0, -d * .5f), fw, -rg, d, bok), (P(w * .5f, 0, d * .5f), -fw, rg, d, bok),
+        };
+        var listwaM = BraxMiastoA.Mat("Wyspa: domek listwa przypodłogowa (biel)", new Color(.96f, .96f, .95f), .5f);
+        foreach (var sc in sciany)
+        {
+            var oIn = sc.o.Select(o => new Rect(o.xMin - t, o.yMin, o.width, o.height)).ToList();
+            var Ain = sc.A + sc.R * t - sc.N * t;
+            BraxMiastoA.Sciana(sIn, Ain, sc.R, -sc.N, sc.W - 2f * t, yF, yC, oIn);
+            // listwa przypodłogowa 8 cm, 2.5 cm od lica (przerwana w drzwiach)
+            float x0 = 0f, W2 = sc.W - 2f * t;
+            foreach (var o in oIn.Where(o => o.yMin < .01f).OrderBy(o => o.xMin).Concat(new[] { new Rect(W2, 0, 0, 0) }))
+            {
+                float x1 = Mathf.Clamp(o.xMin, 0f, W2);
+                if (x1 - x0 > .05f) z[listwaM].Box(Ain + sc.R * ((x0 + x1) * .5f) + Vector3.up * (yF + .04f) - sc.N * .0125f, new Vector3(x1 - x0, .08f, .025f), Quaternion.LookRotation(-sc.N, Vector3.up));
+                x0 = Mathf.Max(x0, o.xMax);
+            }
+        }
+        // 2) sufit z desek (pod okapem, nad oknami)
+        BraxUliceKit.S(sufM).Quad(P(-iw, yC, -id), P(iw, yC, -id), P(iw, yC, id), P(-iw, yC, id), Vector3.down);
+        // 3) oprawa wisząca nad środkiem + światło (ciepła biel, nie złote)
+        float yL = yC - .55f * K;
+        z[stal].Rura(P(0, yC, 0), P(0, yL + .18f, 0), .006f, 6);
+        z[klosz].Rura(P(0, yL, 0), P(0, yL + .2f, 0), .2f * K, 16, .12f * K);
+        BraxRegion.Warm(root, "Wyspa: światło w domku " + tabliczka, P(0, yL - .1f, 0), .75f, Mathf.Max(w, d) * .9f);
+
+        if (tabliczka == "RECEPCJA")
+        {
+            // lada recepcji przodem do drzwi, za nią tablica kluczy; po lewej kącik wypoczynkowy (sofa, stolik, fotel), regał z ulotkami
+            float lz = -id + 1.6f * K, lw = 3.0f * K, lg = .65f * K, lh = 1.1f * K;
+            // lada: korpus dębowy z lamelami na froncie (pionowe listwy 3 cm), cokół czarny cofnięty, blat kamienny z zaokrąglonym
+            // brzegiem i nawisem, monitor na nóżce (zaokrąglone — zero klocków)
+            BraxMeble.Zaokr(z[drewno], P(0, yF + .1f + (lh - .14f) * .5f, lz - .015f), new Vector3(lw, lh - .14f, lg - .03f), .012f, rot, 2);
+            BraxMeble.Zaokr(z[czarnyMat], P(0, yF + .05f, lz - .03f), new Vector3(lw - .1f, .1f, lg - .14f), .004f, rot, 1);
+            for (float xx = -lw * .5f + .03f; xx < lw * .5f - .02f; xx += .045f)
+                BraxMeble.Zaokr(z[drewno], P(xx, yF + .1f + (lh - .14f) * .5f, lz + lg * .5f - .015f), new Vector3(.03f, lh - .16f, .03f), .004f, rot, 1);
+            BraxMeble.Zaokr(z[blatM], P(0, yF + lh - .02f, lz + .03f), new Vector3(lw + .06f, .04f, lg + .1f), .012f, rot, 2);
+            BraxMeble.Zaokr(z[czarny], P(.55f * K, yF + lh + .2f + .05f, lz - .1f), new Vector3(.55f * K, .34f * K, .025f), .01f, rot, 2);   // monitor
+            z[czarnyMat].Rura(P(.55f * K, yF + lh, lz - .085f), P(.55f * K, yF + lh + .2f, lz - .085f), .015f, 10);
+            BraxMeble.Toczenie(z[czarnyMat], new[] { new Vector2(.09f, 0f), new Vector2(.06f, .02f), new Vector2(0f, .026f) }, P(.55f * K, yF + lh, lz - .085f), 20);
+            Kl("lada recepcji", 0, yF, lz, lw + .06f, lh, lg + .1f);
+            // tablica kluczy na ścianie tylnej (między oknami): deska z haczykami i brelokami
+            float zk = -id;
+            z[drewno].Box(P(0, 1.45f * K, zk + .05f), new Vector3(1.1f * K, .6f * K, .04f), rot);
+            for (int r2 = 0; r2 < 3; r2++) for (int k2 = 0; k2 < 6; k2++)
+            {
+                var pk = P(-.45f * K + k2 * .18f * K, 1.62f * K - r2 * .18f * K, zk + .1f);
+                z[stal].Rura(pk, pk + fw * .04f, .006f, 6);
+                z[(k2 + r2) % 2 == 0 ? narzutaM : bialyM].Box(pk + fw * .035f + Vector3.down * .07f, new Vector3(.05f, .09f, .03f), rot);
+            }
+            // kącik wypoczynkowy: sofa przy lewej ścianie, stolik, fotel
+            float sx = -iw + .03f + .5f * K;
+            // sofa trzyosobowa (BraxMeble.Sofa: wałki podłokietników, poduchy miękkie), stolik kawowy dębowy, dywan bouclé
+            BraxMeble.Sofa(S, new BraxMeble.Rama(P(-iw + .03f + .98f * K, yF, id - 1.6f * K), rg, K), 2.1f, narzutaM, pledM, drewno);
+            Kl("sofa", -iw + .03f + .49f * K, yF, id - 1.6f * K, .98f * K, .88f * K, 2.1f * K);
+            BraxMeble.StolikKawowy(S, new BraxMeble.Rama(P(-iw + .03f + 1.45f * K + .6f * K, yF, id - 1.6f * K), rg, K), 1.1f, .6f, .42f, drewno, czarnyMat);
+            Kl("stolik", -iw + .03f + 1.75f * K, yF, id - 1.6f * K, .6f * K, .42f * K, 1.1f * K);
+            BraxMeble.Zaokr(z[dywanM], P(sx + .9f * K, yF + .01f, id - 1.6f * K), new Vector3(2.0f * K, .03f, 2.6f * K), .01f, rot, 1);   // dywan
+            // regał z ulotkami przy prawej ścianie
+            float rx = iw - .03f - .2f * K;
+            B(drewno, rx, yF, id - 1.2f * K, .4f * K, 1.6f * K, .9f * K);
+            for (int k2 = 0; k2 < 3; k2++) B(k2 % 2 == 0 ? narzutaM : bialyM, rx - .21f * K, yF + .5f * K + k2 * .35f * K, id - 1.2f * K, .03f, .24f * K, .7f * K);
+            Kl("regał", rx, yF, id - 1.2f * K, .4f * K, 1.6f * K, .9f * K);
+            BraxMiastoA.Siedzisko(root, "Sofa w recepcji ośrodka", P(sx + .1f * K, yF + .42f * K, id - 1.6f * K), rg);
+            return;
+        }
+        if (tabliczka == "SKLEP")
+        {
+            // regały przyścienne z towarem (ściana tylna i lewa), zamrażarka z lodami, kosz z owocami
+            var towar = new[]
+            {
+                BraxMiastoA.Mat("Wyspa sklep: towar — czerwony karton", new Color(.72f, .12f, .1f), .55f), BraxMiastoA.Mat("Wyspa sklep: towar — żółty karton", new Color(.93f, .76f, .18f), .55f),
+                BraxMiastoA.Mat("Wyspa sklep: towar — niebieski karton", new Color(.14f, .32f, .62f), .55f), BraxMiastoA.Mat("Wyspa sklep: towar — zielony karton", new Color(.2f, .5f, .28f), .55f),
+                BraxMiastoA.Mat("Wyspa sklep: towar — biały karton", new Color(.94f, .94f, .92f), .55f),
+            };
+            void Regal(float lx, float lz, float szer, bool przyTyle)
+            {
+                float gl = .45f * K, hR = 1.9f * K;
+                var Rr = przyTyle ? rg : fw;   // wzdłuż ściany
+                float sxR = przyTyle ? szer : gl, szR = przyTyle ? gl : szer;
+                B(drewno, lx, yF, lz, sxR, .1f, szR);                                        // cokół
+                foreach (float ss in new[] { -1f, 1f }) B(drewno, lx + (przyTyle ? ss * (szer * .5f - .015f) : 0f), yF, lz + (przyTyle ? 0f : ss * (szer * .5f - .015f)), przyTyle ? .03f : gl, hR, przyTyle ? gl : .03f);   // boki
+                for (int k2 = 0; k2 < 5; k2++)
+                {
+                    float yy = yF + .1f + k2 * .42f * K;
+                    B(drewno, lx, yy, lz, przyTyle ? szer - .06f : gl, .025f, przyTyle ? gl : szer - .06f);   // półka
+                    if (k2 == 4) break;
+                    int n = Mathf.Max(2, Mathf.FloorToInt((szer - .1f) / (.16f * K)));
+                    for (int j = 0; j < n; j++)
+                    {
+                        float u = -szer * .5f + .08f + (j + .5f) * (szer - .16f) / n;
+                        float hh = (.18f + .06f * ((j * 7 + k2 * 3) % 3)) * K;
+                        var pos = przyTyle ? new Vector2(lx + u, lz + .02f) : new Vector2(lx + .02f, lz + u);
+                        B(towar[(j + k2 * 2) % towar.Length], pos.x, yy + .025f, pos.y, przyTyle ? .12f * K : .3f * K, hh, przyTyle ? .3f * K : .12f * K);
+                    }
+                }
+                Kl("regał", lx, yF, lz, sxR, hR, szR);
+            }
+            Regal(-iw * .45f, -id + .225f * K + .03f, iw * .9f, true);
+            Regal(-iw + .225f * K + .03f, .2f * K, id * .9f, false);
+            // zamrażarka z lodami (biała skrzynia, szklana pokrywa 2.5 cm nad krawędzią)
+            float fx = iw * .45f, fz = -id + .9f * K;
+            B(bialyM, fx, yF, fz, 1.3f * K, .85f * K, .65f * K);
+            z[BraxMiastoA.Mat("Wyspa sklep: szkło pokrywy zamrażarki", new Color(.55f, .65f, .7f, .35f), .05f)].Box(P(fx, yF + .85f * K + .0125f, fz), new Vector3(1.24f * K, .025f, .59f * K), rot);
+            Kl("zamrażarka", fx, yF, fz, 1.3f * K, .9f * K, .65f * K);
+            return;
+        }
+
+        // ---------------- DOMEK: łóżko z lamelami za wezgłowiem, szafki nocne z lampkami, aneks kuchenny, stół z krzesłami, komoda, dywan
+        // Wszystko z BraxMeble (zaokrąglone, miękkie — zero klocków), wymiary nominalne × K.
+        var fwN = fw; var rgN = rg;
+        Vector3 Pf(float lx, float lz) => P(lx, yF, lz);
+        // łóżko 160 × 200: zagłówek pod lewym oknem tylnym (wierzch 6 cm pod parapetem), 12 cm od ściany (2 cm przed lamelami)
+        float bwN = 1.6f, hwK = (bwN + .30f) * K, bLen = (2.0f + .17f) * K, zTyl = -id;
+        float bx = Mathf.Max(-iw + .03f + .62f * K + .03f * K + hwK * .5f, -w * .2f);
+        float zStopa = zTyl + .12f + bLen;
+        float hZ = Mathf.Min(1.16f, (oy - .06f) / K - .02f);
+        // lamele: czarny filc 2.2 cm (4.6 cm od boazerii — przed listwą przypodłogową), listwy dębowe 3 × 3 cm co 4.2 cm,
+        // od podłogi do 5 cm pod parapetem (lica równoległe ≥ 2 cm od siebie albo przeciwne)
+        float lx0 = Mathf.Max(-iw + .02f, bx - hwK * .5f - .70f * K), lx1 = Mathf.Min(iw - .02f, bx + hwK * .5f + .70f * K), lyT = oy - .05f;
+        z[filc].Box(P((lx0 + lx1) * .5f, yF + (lyT - yF) * .5f, zTyl + .057f), new Vector3(lx1 - lx0, lyT - yF, .022f), rot);
+        for (float xx = lx0 + .021f; xx < lx1 - .02f; xx += .042f)
+            BraxMeble.Zaokr(z[drewno], P(xx, yF + (lyT - yF) * .5f, zTyl + .083f), new Vector3(.03f, lyT - yF - .004f, .03f), .004f, rot, 1);
+        BraxMeble.Lozko(S, new BraxMeble.Rama(Pf(bx, zStopa), fwN, K), bwN, hZ, narzutaM, narzutaM, poscielM, pledM, narzutaM, drewno);
+        Kl("łóżko", bx, yF, zStopa - bLen * .5f, (bwN + .16f) * K, .62f * K, bLen);
+        BraxMiastoA.Siedzisko(root, "Łóżko w domku " + tabliczka, P(bx, yF + .57f * K, zStopa - 1.0f * K), fw, true);
+        foreach (float ss in new[] { -1f, 1f })
+        {
+            float nx = bx + ss * (hwK * .5f + .03f * K + .25f * K);
+            if (Mathf.Abs(nx) + .26f * K > iw) continue;
+            float nz = zTyl + .12f + .42f * K;
+            BraxMeble.SzafkaNocna(S, new BraxMeble.Rama(Pf(nx, nz), fwN, K), drewno, czarnyMat, ceramika, zaslonaLen);
+            Kl("szafka nocna", nx, yF, nz - .21f * K, .5f * K, .56f * K, .42f * K);
+        }
+        // dywan bouclé pod dolną częścią łóżka (2.5 cm nad podłogą, spód 5 mm w desce)
+        BraxMeble.Zaokr(z[dywanM], P(bx, yF + .01f, zStopa - .55f * K), new Vector3((bwN + 1.0f) * K, .03f, 1.9f * K), .01f, rot, 1);
+        // aneks kuchenny przy prawej ścianie bocznej (od ściany tylnej do 12 cm przed oknem bocznym): cokół cofnięty, korpusy,
+        // fronty z fugami 3 mm i czarnymi uchwytami, blat z kamienia z wycięciami na zlew podwieszany i płytę, bateria, płytki,
+        // szafki górne z frontami
+        float kz0 = -id + .03f, kz1 = -ow * .5f - .12f, kl = kz1 - kz0;
+        if (kl > .9f) Aneks(z, S, new BraxMeble.Rama(P(iw - .002f - .60f * K, yF, (kz0 + kz1) * .5f), -rgN, K), kl / K, bialyM, blatM, czarnyMat, stal, czarny, plytkiM);
+        if (kl > .9f) Kl("aneks kuchenny", iw - .03f - .30f * K, yF, (kz0 + kz1) * .5f, .62f * K, .9f * K, kl);
+        // stół 100 × 80 z dwoma krzesłami tapicerowanymi przy prawym oknie frontowym
+        float tx = Mathf.Min(w * .28f, iw - .95f * K), tz = id - 1.05f * K;
+        BraxMeble.Stol(S, new BraxMeble.Rama(Pf(tx, tz + .4f * K), fwN, K), 1.0f, .8f, drewno, drewno);
+        Kl("stół", tx, yF, tz, 1.0f * K, .76f * K, .8f * K);
+        foreach (float ss in new[] { -1f, 1f })
+        {
+            float cx = tx + ss * (.5f + .26f) * K;
+            if (Mathf.Abs(cx) + .27f * K > iw) continue;
+            var twarz = -rgN * ss;   // krzesło przodem do stołu
+            BraxMeble.Krzeslo(S, new BraxMeble.Rama(Pf(cx, tz) + twarz * (.23f * K), twarz, K), narzutaM, drewno);
+            Kl("krzesło", cx, yF, tz, .48f * K, .95f * K, .48f * K);
+            BraxMiastoA.Siedzisko(root, "Krzesło przy stole w domku " + tabliczka, P(cx, yF + .47f * K, tz), twarz);
+        }
+        // komoda przy lewej ścianie bocznej (między oknem bocznym a frontem, pod parapetem)
+        float cz0 = ow * .5f + .12f, cz1 = id - .05f;
+        if (cz1 - cz0 > .8f)
+        {
+            float cc = (cz0 + cz1) * .5f, cl = Mathf.Min(cz1 - cz0, 1.6f * K);
+            BraxMeble.Komoda(S, new BraxMeble.Rama(Pf(-iw + .03f + .46f * K, cc), rgN, K), cl / K, drewno, blatM, czarnyMat);
+            Kl("komoda", -iw + .03f + .23f * K, yF, cc, .46f * K, .8f * K, cl);
+        }
+    }
+
+    static Color Jasn(Color c, float k) => new Color(c.r * k, c.g * k, c.b * k, 1f);
+    /// <summary>Odcień farby na jasnej desce Poly Haven (white_planks_clean / marmur — ciepła szarość ok. 0.4 liniowo): kolor
+    /// palety × (1.30, 1.40, 1.48), żeby biel wyszła bielą (bez beżu), a kolory palety nasycone jak farba.</summary>
+    static Color Farba(Color c) => new Color(c.r * 1.30f, c.g * 1.40f, c.b * 1.48f, 1f);
+
+    /// <summary>Aneks kuchenny (rama: c = podłoga na środku frontu, przód do pokoju; L nominalnie): cokół czarny cofnięty
+    /// 5 cm, korpus, fronty 18 mm z fugami 3 mm i czarnymi uchwytami, blat kamienny 3 cm z wycięciami (zlew podwieszany
+    /// ze stali — ścianki pod blatem, bez wspólnych lic; płyta indukcyjna z czarnego szkła w wycięciu, pierścienie pól),
+    /// bateria łukowa, płytki 1.2 cm od ściany między blatem a szafkami górnymi, szafki górne z frontami.</summary>
+    static void Aneks(BraxNabrzeze.Zbior z, System.Func<Material, BraxNabrzeze.Siatka> S, BraxMeble.Rama k, float L, Material bialy, Material blat, Material czarny, Material stal, Material szklo, Material plytki)
+    {
+        float s = k.s, hB = .86f, Dp = .60f;
+        BraxMeble.Zaokr(S(czarny), k.P(0f, .05f, (.07f + Dp - .02f) * .5f), k.V(L - .04f, .10f, Dp - .09f), .004f * s, k.rot, 1);
+        BraxMeble.Zaokr(S(bialy), k.P(0f, (.10f + hB) * .5f, (.02f + Dp) * .5f), k.V(L, hB - .10f, Dp - .02f), .004f * s, k.rot, 1);
+        int nf = Mathf.Max(1, Mathf.RoundToInt(L / .6f)); float fwid = L / nf;
+        for (int i = 0; i < nf; i++)
+        {
+            float a = -L * .5f + (i + .5f) * fwid;
+            BraxMeble.Zaokr(S(bialy), k.P(a, (.10f + hB) * .5f, .01f), k.V(fwid - .003f, hB - .10f - .006f, .02f), .003f * s, k.rot, 1);
+            BraxMeble.Zaokr(S(czarny), k.P(a, hB - .07f, -.0115f), k.V(Mathf.Min(.32f, fwid * .6f), .012f, .027f), .005f * s, k.rot, 1);
+        }
+        // blat z wycięciami: zlew (a = −L/4) i płyta (a = +L/4, gdy blat ≥ 1.4 m)
+        float yb = hB + .015f, d0 = -.02f, d1 = Dp;
+        var wyc = new List<(float a0, float a1, float e0, float e1, bool zlew)> { (-L * .25f - .25f, -L * .25f + .25f, .10f, .50f, true) };
+        if (L >= 1.4f) wyc.Add((L * .25f - .29f, L * .25f + .29f, .06f, .55f, false));
+        float aPrev = -L * .5f;
+        foreach (var w in wyc)
+        {
+            if (w.a0 - aPrev > .005f) BraxMeble.Zaokr(S(blat), k.P((aPrev + w.a0) * .5f, yb, (d0 + d1) * .5f), k.V(w.a0 - aPrev, .03f, d1 - d0), .004f * s, k.rot, 1);
+            BraxMeble.Zaokr(S(blat), k.P((w.a0 + w.a1) * .5f, yb, (d0 + w.e0) * .5f), k.V(w.a1 - w.a0, .03f, w.e0 - d0), .004f * s, k.rot, 1);
+            BraxMeble.Zaokr(S(blat), k.P((w.a0 + w.a1) * .5f, yb, (w.e1 + d1) * .5f), k.V(w.a1 - w.a0, .03f, d1 - w.e1), .004f * s, k.rot, 1);
+            if (w.zlew)
+            {   // komora zlewu pod blatem (ścianki od dna do spodu blatu — krawędź wycięcia to kamień), dno, bateria
+                var sz = S(stal); float y0 = hB - .19f, y1 = hB;
+                Vector3 Q(float a, float y, float d) => k.P(a, y, d);
+                sz.Quad(Q(w.a0, y0, w.e0), Q(w.a1, y0, w.e0), Q(w.a1, y0, w.e1), Q(w.a0, y0, w.e1));
+                if (Vector3.Dot(sz.n[sz.n.Count - 1], Vector3.up) < 0) { sz.v.RemoveRange(sz.v.Count - 4, 4); sz.n.RemoveRange(sz.n.Count - 4, 4); sz.uv.RemoveRange(sz.uv.Count - 4, 4); sz.c.RemoveRange(sz.c.Count - 4, 4); sz.t.RemoveRange(sz.t.Count - 6, 6); sz.Quad(Q(w.a0, y0, w.e1), Q(w.a1, y0, w.e1), Q(w.a1, y0, w.e0), Q(w.a0, y0, w.e0)); }
+                var sr = Q((w.a0 + w.a1) * .5f, (y0 + y1) * .5f, (w.e0 + w.e1) * .5f);
+                void Scianka(Vector3 p0, Vector3 p1)
+                {
+                    var A = p0; var B = p1; var C2 = p1 + Vector3.up * (y1 - y0) * s; var D = p0 + Vector3.up * (y1 - y0) * s;
+                    if (Vector3.Dot(Vector3.Cross(B - A, C2 - A), sr - (A + C2) * .5f) > 0) sz.Quad(A, B, C2, D); else sz.Quad(B, A, D, C2);
+                }
+                Scianka(Q(w.a0, y0, w.e0), Q(w.a1, y0, w.e0)); Scianka(Q(w.a1, y0, w.e0), Q(w.a1, y0, w.e1));
+                Scianka(Q(w.a1, y0, w.e1), Q(w.a0, y0, w.e1)); Scianka(Q(w.a0, y0, w.e1), Q(w.a0, y0, w.e0));
+                float ac = (w.a0 + w.a1) * .5f; var bb = k.P(ac, hB + .03f, .555f);
+                BraxMeble.Toczenie(S(stal), new[] { new Vector2(.028f * s, 0f), new Vector2(.026f * s, .02f * s), new Vector2(.018f * s, .03f * s), new Vector2(0f, .03f * s) }, bb, 16);
+                S(stal).Rura(bb, bb + Vector3.up * .30f * s, .014f * s, 10);
+                S(stal).Rura(bb + Vector3.up * .30f * s, k.P(ac, hB + .30f, .44f), .013f * s, 10);
+                S(stal).Rura(k.P(ac, hB + .30f, .44f), k.P(ac, hB + .22f, .38f), .012f * s, 10);
+            }
+            else
+            {   // płyta indukcyjna: czarne szkło w wycięciu (6 mm nad blatem), 4 pola — pierścienie toczone
+                BraxMeble.Zaokr(S(szklo), k.P((w.a0 + w.a1) * .5f, hB + .018f, (w.e0 + w.e1) * .5f), k.V(w.a1 - w.a0, .036f, w.e1 - w.e0), .003f * s, k.rot, 1);
+                foreach (var (pa, pd, r) in new[] { (-.14f, .17f, .09f), (.14f, .17f, .07f), (-.14f, .40f, .07f), (.14f, .40f, .09f) })
+                    BraxMeble.Toczenie(S(stal), new[] { new Vector2((r - .004f) * s, 0f), new Vector2(r * s, .0015f * s), new Vector2((r + .004f) * s, 0f) }, k.P((w.a0 + w.a1) * .5f + pa, hB + .0362f, w.e0 + pd), 28);
+            }
+            aPrev = w.a1;
+        }
+        if (L * .5f - aPrev > .005f) BraxMeble.Zaokr(S(blat), k.P((aPrev + L * .5f) * .5f, yb, (d0 + d1) * .5f), k.V(L * .5f - aPrev, .03f, d1 - d0), .004f * s, k.rot, 1);
+        // płytki nad blatem (1.2 cm od ściany), szafki górne 35 cm z frontami i uchwytami na dolnej krawędzi
+        float yG0 = 1.42f, yG1 = 2.12f, dG = .35f;
+        z[plytki].Box(k.P(0f, (hB + .03f + yG0) * .5f, Dp + .002f / s - .011f), k.V(L, yG0 - hB - .03f, .022f), k.rot);   // płytki na ścianie 2.8 cm (tył przy licu boazerii)
+        BraxMeble.Zaokr(S(bialy), k.P(0f, (yG0 + yG1) * .5f, Dp - dG * .5f + .01f), k.V(L, yG1 - yG0, dG - .02f), .004f * s, k.rot, 1);
+        for (int i = 0; i < nf; i++)
+        {
+            float a = -L * .5f + (i + .5f) * fwid;
+            BraxMeble.Zaokr(S(bialy), k.P(a, (yG0 + yG1) * .5f, Dp - dG - .01f + .01f), k.V(fwid - .003f, yG1 - yG0 - .006f, .02f), .003f * s, k.rot, 1);
+            BraxMeble.Zaokr(S(czarny), k.P(a, yG0 + .05f, Dp - dG - .0215f), k.V(Mathf.Min(.32f, fwid * .6f), .012f, .027f), .005f * s, k.rot, 1);
+        }
+    }
+
     /// <summary>Domek letniskowy: c = środek bryły (lokalnie x, z), fw = kierunek frontu (do chodnika), w × d (m × k).
     /// Cokół kamienny do terenu, ściany z deskowania z otworami (ościeża), okna z ramą, szprosem, parapetem i okiennicami, drzwi
     /// z klamką i tabliczką, taras z deską, balustradą i schodami, dach dwuspadowy z okapem, deską czołową, rynnami i rurą
@@ -639,15 +940,22 @@ internal static partial class BraxMiastoWyspa
         var P = new System.Func<float, float, float, Vector3>((lx, ly, lz) => C + rg * lx + Vector3.up * ly + fw * lz);
         var rot = Quaternion.LookRotation(fw, Vector3.up);
         var pal = Palety[paleta % Palety.Length];
-        var sciana = BraxMiastoA.Tex("Wyspa: domek deskowanie " + paleta, 1.1f, pal.sciana, pal.sciana, .82f, "wood_plank_wall", "wood_planks_grey", "wooden_planks");
+        // 12.11 14:05 (właściciel: „domki powinny być drewniane”): elewacja z pionowej deski malowanej (Poly Haven
+        // white_planks_clean — jasna deska, kolor palety daje farba), dach z łupka (roof_slates_02), okna: przezroczysta szyba
+        // (przez okno widać pokój i morze), ramy czarne (zasada: przy szkle tylko czerń), parapet wewnętrzny, klamki, zasłony
+        var sciana = BraxMiastoA.Tex("Wyspa: domek elewacja — deska malowana " + paleta, 1.2f, Farba(pal.sciana), pal.sciana, .82f, "white_planks_clean", "wood_plank_wall", "wooden_planks");
         var obrob = BraxMiastoA.Mat("Wyspa: domek obróbki " + paleta, pal.obrobki, .6f);
-        var dachM = BraxMiastoA.Tex("Wyspa: domek dach " + paleta, 1.4f, pal.dach, pal.dach, .75f, "roof_tiles", "clay_roof_tiles_02", "roof_slates_02");
+        var dachM = BraxMiastoA.Tex("Wyspa: domek dach " + paleta, 1.4f, pal.dach, pal.dach, .75f, "roof_slates_02", "roof_tiles", "clay_roof_tiles_02");
         var okien = BraxMiastoA.Mat("Wyspa: domek okiennice " + paleta, pal.okiennice, .6f);
-        var szyba = BraxMiastoA.Mat("Wyspa: szyba domku (przydymiona, odbicie)", new Color(.12f, .16f, .19f), .08f, .35f);
+        var szyba = BraxUliceKit.SzkloPrzezroczyste;
+        var ramaOkna = BraxMiastoA.Mat("Wyspa: domek ramy okien (czarne aluminium)", new Color(.075f, .075f, .085f), .35f, .6f);
+        var czarnyMat = BraxMiastoA.Mat("Wyspa: domek — czarny mat (nóżki, uchwyty, karnisz)", new Color(.035f, .035f, .04f), .55f, .3f);
+        var dabM = BraxMiastoA.Tex("Wyspa: domek meble — dąb olejowany", .9f, new Color(.78f, .62f, .45f), new Color(.6f, .45f, .3f), .55f, "oak_veneer_01", "wood_table_001", "fine_grained_wood");
+        var zaslonaM = BraxMiastoA.Tex("Wyspa: domek zasłony — len naturalny", .6f, new Color(1.15f, 1.12f, 1.06f), new Color(.9f, .86f, .78f), .9f, "hessian_230", "rough_linen");
         var kamien = BraxMiastoA.Tex("Wyspa: cokół domku (kamień)", 1.2f, new Color(.78f, .76f, .72f), new Color(.55f, .53f, .5f), .9f, "white_sandstone_blocks_02", "concrete_wall_008");
         var deskaT = BraxNabrzeze.Mat("Wyspa: deska tarasowa", 1.4f, new Color(.82f, .7f, .55f), "wood_planks_grey", "wooden_planks", "wood_planks");
         // 1) cokół (pełny, do terenu) pod bryłą i pod tarasem
-        z[kamien].Box((P(0, 0, 0) + new Vector3(0, (yMin - y0) * .5f, 0)), new Vector3(w + .1f, y0 - yMin, d + .1f), rot);
+        z[kamien].Box((P(0, 0, -.025f) + new Vector3(0, (yMin - y0) * .5f, 0)), new Vector3(w + .1f, y0 - yMin, d + .05f), rot);   // od frontu kończy się na licu ściany (dalej cokół tarasu — bez wspólnego wierzchu z deskami)
         z[kamien].Box(P(0, 0, d * .5f + tD * .5f) + new Vector3(0, (yMin - y0 - .06f) * .5f, 0), new Vector3(w + .1f, y0 - .06f - yMin, tD), rot);
         // 2) ściany z otworami (ościeża 14 cm), narożniki
         var s = BraxUliceKit.S(sciana); var so = BraxUliceKit.S(obrob);
@@ -713,29 +1021,61 @@ internal static partial class BraxMiastoWyspa
                     if (!string.IsNullOrEmpty(tabliczka))
                     {
                         z[obrob].Box(L(o.center.x, dh + .25f, .015f), new Vector3(.5f, .16f, .03f), ro);
-                        BraxUliceKit.Napis3D(tabliczka, L(o.center.x, dh + .2f, .032f), sc.N, .085f, .01f, BraxMiastoA.Mat("Wyspa: litery tabliczki (grafit)", new Color(.1f, .1f, .11f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
+                        BraxUliceKit.Napis3D(tabliczka, L(o.center.x, dh + .2f, .03f), sc.N, .085f, .025f, BraxMiastoA.Mat("Wyspa: litery tabliczki (grafit)", new Color(.1f, .1f, .11f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
                     }
                     continue;
                 }
-                // okno: rama 6 cm, szpros, szyba w głębi ościeża, parapet zewnętrzny, okiennice 1 cm od ściany
-                float g = -.1f;
-                z[obrob].Box(L(o.center.x, o.yMin + .03f, g), new Vector3(o.width, .06f, .06f), ro);
-                z[obrob].Box(L(o.center.x, o.yMax - .03f, g), new Vector3(o.width, .06f, .06f), ro);
-                z[obrob].Box(L(o.xMin + .03f, o.center.y, g), new Vector3(.06f, o.height, .06f), ro);
-                z[obrob].Box(L(o.xMax - .03f, o.center.y, g), new Vector3(.06f, o.height, .06f), ro);
-                z[obrob].Box(L(o.center.x, o.center.y, g), new Vector3(.045f, o.height - .1f, .05f), ro);
-                z[szyba].Box(L(o.center.x, o.center.y, g - .01f), new Vector3(o.width - .1f, o.height - .1f, .012f), ro);
-                z[obrob].Box(L(o.center.x, o.yMin - .025f, .03f), new Vector3(o.width + .12f, .05f, .2f), ro);
+                // okno (12.11, audyt migotania wyspy — każda warstwa w innej głębokości, styki tylko licami przeciwnymi):
+                // rama 6 cm w głębi ościeża (głębokość −.11…−.04), boki ramy między listwą górną i dolną, szpros −.105…−.045,
+                // szyba 12 mm w osi ramy między listwami, parapet 2.5 cm nad dnem ościeża, okiennice 1.5 cm od lica ściany,
+                // listewki żaluzji wystają 2.5 cm (dawniej 1.2 cm — równoległe lica < 2 cm)
+                float g = -.075f, gr = .07f;
+                z[ramaOkna].Box(L(o.center.x, o.yMin + .03f, g), new Vector3(o.width, .06f, gr), ro);
+                z[ramaOkna].Box(L(o.center.x, o.yMax - .03f, g), new Vector3(o.width, .06f, gr), ro);
+                z[ramaOkna].Box(L(o.xMin + .03f, o.center.y, g), new Vector3(.06f, o.height - .12f, gr), ro);
+                z[ramaOkna].Box(L(o.xMax - .03f, o.center.y, g), new Vector3(.06f, o.height - .12f, gr), ro);
+                z[ramaOkna].Box(L(o.center.x, o.center.y, g), new Vector3(.044f, o.height - .12f, .06f), ro);
+                // od środka: parapet dębowy (5 mm za ramą, wierzch 2.5 cm nad dnem ościeża, wystaje 5.5 cm z lica boazerii), klamki obu
+                // skrzydeł przy słupku, karnisz czarny 10 cm od ściany i dwie zasłony lniane w fałdach (rozsunięte na boki)
+                BraxMeble.Zaokr(z[dabM], L(o.center.x, o.yMin + .01f, -.155f), new Vector3(o.width + .10f, .03f, .08f), .008f, ro, 2);
+                foreach (float sg in new[] { -1f, 1f })
+                {
+                    BraxMeble.Zaokr(z[czarnyMat], L(o.center.x + sg * .055f, o.center.y, -.117f), new Vector3(.03f, .065f, .012f), .005f, ro, 1);
+                    BraxMeble.Zaokr(z[czarnyMat], L(o.center.x + sg * .055f, o.center.y - .045f, -.135f), new Vector3(.018f, .13f, .016f), .007f, ro, 1);
+                }
+                float yKar = Mathf.Min(o.yMax + .12f, h - .12f), dKar = -.24f;
+                z[czarnyMat].Rura(L(o.xMin - .14f, yKar, dKar), L(o.xMax + .14f, yKar, dKar), .011f, 10);
+                foreach (float xx in new[] { o.xMin - .1f, o.xMax + .1f }) z[czarnyMat].Rura(L(xx, yKar, -.14f), L(xx, yKar, dKar - .015f), .008f, 8);
+                foreach (float xx in new[] { o.xMin - .14f, o.xMax + .14f }) BraxMeble.Toczenie(z[czarnyMat], new[] { new Vector2(.0f, -.018f), new Vector2(.016f, -.012f), new Vector2(.02f, 0f), new Vector2(.016f, .012f), new Vector2(0f, .018f) }, L(xx, yKar, dKar), 12);
+                float wysZ = yKar - .03f - (o.yMin - .05f);
+                BraxMeble.Zaslona(z[zaslonaM], L(o.xMin - .08f, yKar - .03f, dKar), sc.R, -sc.N, .34f, wysZ);
+                BraxMeble.Zaslona(z[zaslonaM], L(o.xMax - .26f, yKar - .03f, dKar), sc.R, -sc.N, .34f, wysZ);
+                foreach (float sg in new[] { -1f, 1f })   // dwie tafle po bokach szprosu (szyba nie przechodzi przez szpros — bez wspólnych lic)
+                {
+                    float xa = sg < 0 ? o.xMin + .06f : o.center.x + .022f, xb = sg < 0 ? o.center.x - .022f : o.xMax - .06f;
+                    z[szyba].Box(L((xa + xb) * .5f, o.center.y, g), new Vector3(xb - xa, o.height - .12f, .012f), ro);
+                }
+                z[obrob].Box(L(o.center.x, o.yMin - .0075f, .06f), new Vector3(o.width + .12f, .065f, .2f), ro);
                 foreach (float sgn in new[] { -1f, 1f })
                 {
-                    float x = sgn < 0 ? o.xMin - o.width * .25f - .02f : o.xMax + o.width * .25f + .02f;
-                    z[okien].Box(L(x, o.center.y, .03f), new Vector3(o.width * .5f, o.height + .04f, .04f), ro);
-                    for (float yy = o.yMin + .15f; yy < o.yMax - .1f; yy += .16f) z[okien].Box(L(x, yy, .055f), new Vector3(o.width * .44f, .025f, .012f), ro);   // żaluzja okiennicy
+                    float wol = sgn < 0 ? o.xMin - .02f - .2f : sc.W - .2f - (o.xMax + .02f);   // miejsce do narożnika (słupek 7 cm + 13 cm)
+                    float ws = Mathf.Min(o.width * .5f, wol); if (ws < .25f) continue;
+                    float x = sgn < 0 ? o.xMin - .02f - ws * .5f : o.xMax + .02f + ws * .5f;
+                    z[okien].Box(L(x, o.center.y + .01f, .03f), new Vector3(ws, o.height + .02f, .03f), ro);
+                    for (float yy = o.yMin + .15f; yy < o.yMax - .1f; yy += .16f) z[okien].Box(L(x, yy, .0575f), new Vector3(ws * .88f, .025f, .025f), ro);   // żaluzja okiennicy
                 }
             }
         }
-        foreach (var (a, b) in new[] { (-1f, -1f), (1f, -1f), (-1f, 1f), (1f, 1f) }) z[obrob].Box(P(a * (w * .5f - .02f), h * .5f, b * (d * .5f - .02f)), new Vector3(.14f, h, .14f), rot);   // narożniki
-        z[obrob].Box(P(0, .07f, 0), new Vector3(w + .06f, .14f, d + .06f), rot);   // listwa cokołowa
+        foreach (var (a, b) in new[] { (-1f, -1f), (1f, -1f), (-1f, 1f), (1f, 1f) }) z[obrob].Box(P(a * (w * .5f - .02f), .14f + (h - .14f) * .5f, b * (d * .5f - .02f)), new Vector3(.14f, h - .14f, .14f), rot);   // narożniki (nad listwą cokołową — bez wspólnego dna)
+        // listwa cokołowa: PIERŚCIEŃ 3 cm na zewnątrz ścian (dawniej pełna płyta w + 6 cm × d + 6 cm — jej wierzch 14 cm nad
+        // cokołem przykrywał od środka całą podłogę domku), z przerwą w drzwiach (próg bez 14-centymetrowego garbu)
+        {
+            float dl = w * .5f - dw * .5f, dp = w * .5f + dw * .5f;
+            z[obrob].Box(P(-w * .5f - .03f + (dl + .03f) * .5f, .07f, d * .5f + .015f), new Vector3(dl + .03f, .14f, .03f), rot);
+            z[obrob].Box(P(dp - w * .5f + (w - dp + .03f) * .5f, .07f, d * .5f + .015f), new Vector3(w - dp + .03f, .14f, .03f), rot);
+            z[obrob].Box(P(0, .07f, -d * .5f - .015f), new Vector3(w + .06f, .14f, .03f), rot);
+            foreach (float sx in new[] { -1f, 1f }) z[obrob].Box(P(sx * (w * .5f + .015f), .07f, 0), new Vector3(.03f, .14f, d), rot);
+        }
         // 3) dach dwuspadowy (kalenica równoległa do frontu), szczyty, okap 0.5 m, deski czołowe, rynny i rura spustowa
         float kat = 32f * Mathf.Deg2Rad, ovE = .5f, ovG = .4f, hr = d * .5f * Mathf.Tan(kat);
         var ss = BraxUliceKit.S(sciana);
@@ -751,7 +1091,7 @@ internal static partial class BraxMiastoWyspa
             var cen = P(0, h + hr - (d * .5f + ovE) * .5f * Mathf.Tan(kat), sz * (d * .5f + ovE) * .5f) + Vector3.up * .08f;
             z[dachM].Box(cen, new Vector3(w + ovG * 2f, .1f, sl), pr);
             var eave = P(0, h - ovE * Mathf.Tan(kat), sz * (d * .5f + ovE)) + Vector3.up * .05f;
-            z[obrob].Box(eave + fw * sz * .03f, new Vector3(w + ovG * 2f, .2f, .04f), rot);                                                       // deska czołowa
+            z[obrob].Box(eave + fw * sz * .03f, new Vector3(w + ovG * 2f - .06f, .2f, .04f), rot);   // deska czołowa 3 cm krótsza z każdej strony niż połać                                                       // deska czołowa
             z[m.stal].Rura(eave + fw * sz * .12f - rg * (w * .5f + ovG) + Vector3.down * .08f, eave + fw * sz * .12f + rg * (w * .5f + ovG) + Vector3.down * .08f, .07f, 8);   // rynna
             if (sz > 0)
             {
@@ -760,23 +1100,36 @@ internal static partial class BraxMiastoWyspa
                 z[m.stal].Rura(new Vector3(rs0.x, yMin + .5f, rs0.z), new Vector3(rs0.x, yMin + .5f, rs0.z) + fw * .25f + Vector3.down * .15f, .045f, 8);
             }
         }
-        z[obrob].Rura(P(-w * .5f - ovG, h + hr + .16f, 0), P(w * .5f + ovG, h + hr + .16f, 0), .08f, 8);   // gąsior kalenicy
+        z[obrob].Rura(P(-w * .5f - ovG + .03f, h + hr + .16f, 0), P(w * .5f + ovG - .03f, h + hr + .16f, 0), .08f, 8);   // gąsior kalenicy (końce 3 cm przed czołem dachu)
         // 4) taras: deski z fugą, legary, balustrada (bez frontu przy schodach), schody do terenu
-        for (float t = .07f; t < w - .05f; t += .15f) z[deskaT].Box(P(-w * .5f + t, -.03f, d * .5f + tD * .5f), new Vector3(.135f, .05f, tD), rot);
+        for (float t = .07f; t < w - .05f; t += .15f) z[deskaT].Box(P(-w * .5f + t, -.035f, d * .5f + tD * .5f), new Vector3(.135f, .05f, tD), rot);   // lico desek y0 − 1 cm
         var bal = BraxMiastoA.Mat("Wyspa: balustrada tarasu " + paleta, pal.obrobki, .6f);
-        var tA = P(-w * .5f + .05f, 0, d * .5f + .05f); var tB = P(-w * .5f + .05f, 0, d * .5f + tD - .05f); var tC = P(w * .5f - .05f, 0, d * .5f + tD - .05f); var tDd = P(w * .5f - .05f, 0, d * .5f + .05f);
-        BraxNabrzezeMebel.Balustrada(z, kol, m, tA, tB, bal, true); BraxNabrzezeMebel.Balustrada(z, kol, m, tC, tDd, bal, true);
-        var sL = P(-.7f * K, 0, d * .5f + tD - .05f); var sR = P(.7f * K, 0, d * .5f + tD - .05f);
-        BraxNabrzezeMebel.Balustrada(z, kol, m, tB, sL, bal, true); BraxNabrzezeMebel.Balustrada(z, kol, m, sR, tC, bal, true);
+        const float yBal = -.01f;    // słupki balustrady prosto na deskach tarasu (BalustradaTarasu — bez płaskich stopek, zero migotania)
+        var tA = P(-w * .5f + .05f, yBal, d * .5f + .09f); var tB = P(-w * .5f + .05f, yBal, d * .5f + tD - .05f); var tC = P(w * .5f - .05f, yBal, d * .5f + tD - .05f); var tDd = P(w * .5f - .05f, yBal, d * .5f + .09f);
+        BalustradaTarasu(z, tA, tB, bal); BalustradaTarasu(z, tC, tDd, bal);
+        var sL = P(-.7f * K, yBal, d * .5f + tD - .05f); var sR = P(.7f * K, yBal, d * .5f + tD - .05f);
+        BalustradaTarasu(z, tB, sL, bal); BalustradaTarasu(z, sR, tC, bal);
         var stopa = c + fw2.normalized * (d * .5f + tD);
         float yStopa = W + H(stopa.x + fw2.normalized.x * 1.5f, stopa.y + fw2.normalized.y * 1.5f);
         BraxNabrzezeMebel.Schody(z, kol, m, P(0, 0, d * .5f + tD), fw, 1.3f * K, yStopa, true);
         int nSt = Mathf.Max(1, Mathf.RoundToInt((y0 - yStopa) / (.15f * K)));
         stopa += fw2.normalized * (nSt * .30f * K + .05f);                          // stopa schodów (tu zaczyna się dojście)
-        // meble tarasu: stolik i dwa krzesła (proste, drewno)
-        var stol = P(w * .25f, 0, d * .5f + tD * .5f);
-        z[deskaT].Box(stol + Vector3.up * .72f, new Vector3(.8f, .04f, .8f), rot); z[m.stalCiemna].Rura(stol, stol + Vector3.up * .7f, .03f, 6);
-        foreach (float o in new[] { -.75f, .75f }) { var kp = stol + rg * o; z[deskaT].Box(kp + Vector3.up * .45f, new Vector3(.45f, .04f, .45f), rot); z[deskaT].Box(kp + Vector3.up * .7f + rg * Mathf.Sign(o) * .2f, new Vector3(.04f, .5f, .45f), rot); foreach (var (a, b) in new[] { (-.2f, -.2f), (.2f, -.2f), (-.2f, .2f), (.2f, .2f) }) z[m.stalCiemna].Rura(kp + rg * a + fw * b, kp + rg * a + fw * b + Vector3.up * .43f, .015f, 5); }
+        // meble tarasu (12.11, zero klocków): stół z teku z zaokrąglonym blatem i toczonymi nogami, dwa krzesła z poduchami
+        {
+            var teak = BraxMiastoA.Tex("Wyspa: meble tarasu — tek olejowany", .9f, new Color(1f, .95f, .88f), new Color(.6f, .42f, .26f), .6f, "teak_veneer", "oak_veneer_01");
+            var poducha = BraxMiastoA.Tex("Wyspa: poduchy tarasu — bawełna w kolorze okiennic " + paleta, .5f, Jasn(Color.Lerp(pal.okiennice, Color.white, .1f), 1.25f), pal.okiennice, .85f, "cotton_jersey", "rough_linen");
+            System.Func<Material, BraxNabrzeze.Siatka> St = mm => z[mm];
+            var stol = P(w * .25f, -.01f, d * .5f + tD * .5f);
+            BraxMeble.Stol(St, new BraxMeble.Rama(stol + fw * (.35f * K), fw, K), .8f, .7f, teak, teak);
+            BraxNabrzeze.Kol(kol, "Domek " + tabliczka + " stół tarasu", stol + Vector3.up * .38f * K, new Vector3(.8f * K, .76f * K, .7f * K), rot.eulerAngles.y);
+            foreach (float o in new[] { -1f, 1f })
+            {
+                var twarz = -rg * o; var kp = stol + rg * (o * (.4f + .26f) * K);
+                BraxMeble.Krzeslo(St, new BraxMeble.Rama(kp + twarz * (.23f * K), twarz, K), poducha, teak);
+                BraxNabrzeze.Kol(kol, "Domek " + tabliczka + " krzesło tarasu", kp + Vector3.up * .47f * K, new Vector3(.48f * K, .95f * K, .48f * K), rot.eulerAngles.y);
+                BraxMiastoA.Siedzisko(root, "Krzesło na tarasie domku " + tabliczka, kp + Vector3.up * .47f * K, twarz);
+            }
+        }
         // SKLEP · KAWIARNIA (audyt wyspy: „sklep z obsługą i wyposażeniem”): stoisko na tarasie — lada z blatem i kasą,
         // lodówka z napojami (szklane drzwi, półki, butelki), skrzynki z owocami przy balustradzie, sprzedawca za ladą, klient
         if (tabliczka == "SKLEP")
@@ -803,7 +1156,9 @@ internal static partial class BraxMiastoWyspa
         }
         // 5) prawdziwa podloga i wejscie (bez pelnego BoxCollidera przez srodek
         // domku). Fizyka scian z zachowanym przejsciem powstala powyzej.
-        z[deskaT].Box(P(0, .02f, 0), new Vector3(w - .30f, .04f, d - .30f), rot);
+        var podlogaM = BraxMiastoA.Tex("Wyspa: domek podłoga — deska dębowa szeroka", 2.4f, new Color(1.0f, .96f, .9f), new Color(.7f, .55f, .38f), .6f, "oak_wood_planks", "wood_floor", "plank_flooring_02");
+        z[podlogaM].Box(P(0, .02f, 0), new Vector3(w - .30f, .04f, d - .30f), rot);   // podłoga y0…y0 + 4 cm (dąb)
+        Wnetrze(z, m, P, rot, rg, fw, w, d, h, paleta, tabliczka, ow, oh, oy, dw, dh);
         BraxNabrzeze.Kol(kol, "Domek " + tabliczka + " podloga", P(0, 0f, 0),
             new Vector3(w, .08f, d), rot.eulerAngles.y);
         BraxNabrzeze.Kol(kol, "Taras domku " + tabliczka, P(0, -.25f, d * .5f + tD * .5f), new Vector3(w, .5f, tD), rot.eulerAngles.y);

@@ -44,6 +44,13 @@ TEXTURES_DWORZEC = [
     "oak_veneer_01", "leafy_grass", "blue_metal_plate", "metal_plate_02", "corrugated_iron", "brown_leather",
     "floor_tiles_02",   # płytki ścienne WC dworca (marmur jasny)
 ]
+# WYSPA R1 (12.11, właściciel 14:04–14:05: „domki powinny być drewniane, w środku lamele”, „zakaz poduszek kwadratowych”,
+# „okno ma być oknem”): elewacja z deski malowanej, boazeria sosnowa, sufit z białych desek, podłoga z szerokiej deski dębowej,
+# dach z łupka, tkaniny (pled waflowy, dywan bouclé, zasłony lniane). Lista = BraxMiastoWyspaDomki (Domek, Wnetrze, Aneks).
+TEXTURES_WYSPA = [
+    "white_planks_clean", "hinoki_planks", "oak_wood_planks", "roof_slates_02", "waffle_pique_cotton", "wool_boucle", "hessian_230",
+    "coast_sand_02",   # piaskownica placu zabaw (dotąd kolor bez tekstury)
+]
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
 # W 1K (telefon): 38 zestawów w 2K to ok. 0,5 GB tekstur w pamięci naraz — ściany dostają kolor + normalną 1024, drobne
@@ -187,7 +194,7 @@ def model(mid: str, res: str, report: dict) -> None:
 
 def main() -> int:
     report = {"source": "Poly Haven (CC0), wpisy opcjonalne", "textures": {}, "models": {}, "missing": []}
-    for t in TEXTURES + [x for x in TEXTURES_DWORZEC if x not in TEXTURES]:
+    for t in TEXTURES + [x for x in TEXTURES_DWORZEC + TEXTURES_WYSPA if x not in TEXTURES]:
         try:
             texture(t, report)
         except Exception as exc:  # noqa: BLE001

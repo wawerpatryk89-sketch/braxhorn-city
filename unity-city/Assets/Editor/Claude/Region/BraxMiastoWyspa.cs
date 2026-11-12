@@ -71,7 +71,12 @@ internal static partial class BraxMiastoWyspa
             float wzg = Mathf.Max(0f, u - .55f) / .45f; wzg = 7f * wzg * wzg;              // łagodne wzgórze w środku (punkt widokowy)
             y = Mathf.Lerp(domki, plaza, s) + wzg;
             float land = Mathf.Clamp01(u / .15f);
-            y += Fbm(x * .021f, z * .021f, 4, .5f) * Mathf.Lerp(.9f, .3f, s) * land + Fbm(x * .07f, z * .07f, 3, .5f) * .12f * land;
+            // 12.11 (właściciel: „wyspę poprawić — wszystko idealnie”): w ośrodku domków i w korytarzu alei A2 do plaży teren
+            // wyrównany jak wyprofilowany teren rekreacyjny (szum ×0.15) — chodniki leżą na gruncie z niskim krawężnikiem,
+            // domki na niskich cokołach; dalej łagodne fale (3 oktawy). Uwaga: poszarpany teren na podglądzie z 12.11 rano był
+            // błędem narzędzia podglądu (zastępczy PerlinNoise = biały szum), nie gry — w Unity szum był gładki.
+            float wR = MaskaOsrodka(x, z);
+            y += Fbm(x * .021f, z * .021f, 3, .5f) * Mathf.Lerp(.75f, .2f, s) * land * (1f - .85f * wR) + Fbm(x * .07f, z * .07f, 2, .5f) * .08f * land * (1f - .75f * wR);
         }
         else { float v = rr - Shore; y = -MaxDepth * Mathf.Pow(1f - Mathf.Exp(-v / Shelf), 1.2f); }
         y += Fbm(x * .018f, z * .018f, 3, .5f) * .6f * Mathf.Clamp01(-y / 4f);
@@ -82,6 +87,14 @@ internal static partial class BraxMiastoWyspa
         return y;
     }
     public static float Y(float wx, float wz) => W + H(wx - CX, wz - CZ);
+    /// <summary>Maska ośrodka domków (lokalnie): 1 w prostokącie alej A1–A3 z domkami i w korytarzu alei A2 do plaży, 0 dalej (12 m łagodnie).</summary>
+    static float MaskaOsrodka(float x, float z)
+    {
+        float Pr(float x0, float x1, float z0, float z1, float m) =>
+            Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((x - x0 + m) / m)) * Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((x1 - x + m) / m)) *
+            Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((z - z0 + m) / m)) * Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((z1 - z + m) / m));
+        return Mathf.Max(Pr(-36f, 118f, 18f, 112f, 12f), Pr(37f, 53f, -95f, 20f, 8f));
+    }
 
     const bool ArenaWlaczona = false;   // właściciel 3.11 10:11 — patrz Apply
     public static void Apply(Transform cityRoot)
