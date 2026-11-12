@@ -85,8 +85,9 @@ public static class BraxChampionsHotelSobczakMaterials
         s.carpetRoom=P("room_rug_charcoal","poly_wool_herringbone",.40f,new Color(.42f,.43f,.47f),1f);
         s.terrazzo=P("spa_terrazzo","terrazzo_tiles",1.6f,new Color(.97f,.96f,.94f),.40f);
         s.tile=P("kitchen_tile","tiled_floor_001",.8f,new Color(.90f,.90f,.90f),.45f);
-        // owner 10.11 12:54 (beige rooms on the phone): white mineral plaster instead of beige_wall_001
-        s.paint=P("wall_paint_white","white_stucco_02",2.0f,new Color(1.10f,1.10f,1.09f),.95f);
+        // owner 10.11 12:54 (beige rooms on the phone) -> white; owner 12.11 12:21 ("ściany niewykończone są wszędzie": the white
+        // stucco read as raw concrete) -> smooth rolled paint (beige_wall_001 with its beige neutralised to warm white)
+        s.paint=P("wall_paint_white",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.22f,1.22f,1.21f)),.80f);
         if(s.paint.HasProperty("_BumpScale"))s.paint.SetFloat("_BumpScale",.20f);
         // owner 10.11 22:43 (photo from the game: "sufity beton"): the stucco grain read as raw concrete on the ceilings -
         // smooth matte white ceiling paint, no texture grain; a neutral ground ambient below (white stays white)

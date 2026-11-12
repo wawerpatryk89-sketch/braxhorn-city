@@ -187,19 +187,44 @@ public static partial class BraxKatalog
         var k = new Fr(p, Vector3.forward); Col(c, k, -.16f, .16f, 0f, 1.65f, -.16f, .16f, "lampa");
     }
     // ---------------------------------------------------------------- WC
+    /// <summary>The porcelain of a wall-hung WC as one real shape (owner 12.11 13:27: "dziwny kibel"; it was a rounded box with a
+    /// square slab for a lid): an egg-shaped pan tapering back to the wall under an oval rim (36 x 47 cm, rim 40 cm over the
+    /// floor), a rounded seat ring, a closed oval lid domed 14 mm, the block to the wall, two chrome hinges. wall = the wall
+    /// point at the floor on the pan's axis, f = out of the wall.</summary>
+    public static void WcBody(BraxChampionsMeshBatch m, Material porcelain, Material chrome, Vector3 wall, Vector3 f)
+    {
+        f.y = 0; f.Normalize(); var r = Vector3.Cross(Vector3.up, f).normalized; var rot = Quaternion.LookRotation(f, Vector3.up);
+        const float A = .18f, B = .235f, C = .33f, Rim = .40f;
+        Vector3 E(float t, float s, float cf, float y) => wall + f * (cf + B * s * Mathf.Cos(t)) + r * (A * s * Mathf.Sin(t)) + Vector3.up * y;
+        // the pan: v 0 = the rim, v 1 = the lowest point (11 cm over the floor), its axis moving 10 cm back to the wall
+        Vector3 Pan(float u, float v)
+        {
+            float ph = v * Mathf.PI * .5f, sc = Mathf.Pow(Mathf.Max(0f, Mathf.Cos(ph)), .45f);
+            return E(u * Mathf.PI * 2f, sc, C - .10f * v, Rim - .29f * Mathf.Pow(Mathf.Sin(ph), 1.3f));
+        }
+        m.Surface(porcelain, Pan, 32, 10);
+        m.Surface(porcelain, Pan, 32, 10, true);
+        // the lid: flat on top, rounded down to the seat ring at its edge
+        Vector3 Lid(float u, float v) => E(u * Mathf.PI * 2f, v * 1.02f, C, Rim + .030f + .014f * Mathf.Sqrt(Mathf.Max(0f, 1f - v * v * v * v)));
+        m.Surface(porcelain, Lid, 32, 6);
+        m.Surface(porcelain, Lid, 32, 6, true);
+        // the seat ring under the lid's edge (a 32 mm round section)
+        Vector3 Ring(float u, float v) { float ph = v * Mathf.PI * 2f; return E(u * Mathf.PI * 2f, 1f + .016f * Mathf.Cos(ph) / .20f, C, Rim + .014f + .016f * Mathf.Sin(ph)); }
+        m.Surface(porcelain, Ring, 40, 8);
+        m.Surface(porcelain, Ring, 40, 8, true);
+        m.RoundedBox(porcelain, wall + f * .07f + Vector3.up * .27f, new Vector3(.38f, .36f, .14f), .04f, rot, 2);   // the block to the wall
+        foreach (float sx in new[] { -.09f, .09f })
+            m.Cylinder(chrome, wall + f * .125f + Vector3.up * (Rim + .030f) + r * (sx - .015f), .011f, .03f, 10, Quaternion.FromToRotation(Vector3.up, r), true, true);
+    }
     static void WcMesh(Ctx c)
     {
         var f = Vector3.forward; var rot = Quaternion.identity; var r = Vector3.right; var wall = Vector3.zero;
-        c.m.RoundedBox(Porcelain, wall + f * .28f + Vector3.up * .27f, new Vector3(.36f, .28f, .54f), .13f, rot, 3);
-        c.m.RoundedBox(Porcelain, wall + f * .06f + Vector3.up * .27f, new Vector3(.40f, .34f, .10f), .04f, rot, 2);
-        var ring = new List<Vector3>();
-        for (int k = 0; k <= 28; k++) { float t = k * Mathf.PI * 2f / 28f; ring.Add(wall + f * (.31f + .22f * Mathf.Sin(t)) + r * (.165f * Mathf.Cos(t)) + Vector3.up * .428f); }
-        for (int k = 0; k + 1 < ring.Count; k++) c.m.Tube(Porcelain, ring[k], ring[k + 1], .016f, 8);
-        c.m.RoundedBox(Porcelain, wall + f * .31f + Vector3.up * .452f, new Vector3(.35f, .022f, .46f), .010f, rot, 2);
+        WcBody(c.m, Porcelain, Chrome, wall, f);
         c.m.RoundedBox(Chrome, wall + f * .008f + Vector3.up * 1.02f, new Vector3(.25f, .16f, .016f), .008f, rot, 2);
         c.m.RoundedBox(Chrome, wall + f * .022f + Vector3.up * 1.02f - r * .035f, new Vector3(.10f, .12f, .014f), .006f, rot, 2);
         c.m.RoundedBox(Chrome, wall + f * .022f + Vector3.up * 1.02f + r * .06f, new Vector3(.06f, .12f, .014f), .006f, rot, 2);
-        var rh = wall + r * .42f + Vector3.up * .70f;
+        // the roll holder beside the pan, 36 cm off its axis and 66 cm over the floor (within reach of the seat)
+        var rh = wall + r * .36f + Vector3.up * .66f;
         c.m.Tube(Chrome, rh + f * .012f, rh + f * .10f, .008f, 8); c.m.Tube(Chrome, rh + f * .10f, rh + f * .10f - r * .13f, .008f, 8);
         c.m.Cylinder(Porcelain, rh + f * .10f - r * .005f, .055f, .11f, 18, Quaternion.FromToRotation(Vector3.up, -r), true, true);
     }

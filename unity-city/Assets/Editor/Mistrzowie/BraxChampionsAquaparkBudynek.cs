@@ -26,7 +26,7 @@ public static partial class BraxChampionsAquapark
     {
         render = Tex("pavilion_white_render", "white_stucco_02", 2.0f, new Color(1.06f, 1.06f, 1.08f));
         BraxChampionsInteriorLight.Facade(render);
-        renderIn = Inside(Tex("pavilion_inside_render", "white_stucco_02", 2.0f, new Color(1.04f, 1.04f, 1.06f)), 1.05f);
+        renderIn = Inside(Tex("pavilion_inside_render", BraxChampionsFoundation.InteriorPaintSlug, 2.0f, BraxChampionsFoundation.PaintTint(new Color(1.04f, 1.04f, 1.06f))), 1.05f);
         terrazzo = Inside(Tex("lobby_terrazzo", "terrazzo_tiles", 1.4f, new Color(1.10f, 1.38f, 1.74f)), 1.0f);      // the warm map neutralised: light grey
         wetTile = Inside(Tex("wet_antislip_tiles", "anti_skid_tiles", 1.0f, new Color(1.05f, 1.31f, 1.68f)), 1.0f);
         marbleBlack = Inside(BraxChampionsFoundation.LibraryMarble("aq_lobby_black_marble", new Color(1f, 1f, 1f), 1.8f), 1.0f);

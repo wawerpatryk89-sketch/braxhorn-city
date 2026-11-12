@@ -425,6 +425,13 @@ public static class BraxChampionsFoundation
         foreach(string property in new[]{"_MainTex","_BumpMap","_ARM"})m.SetTextureScale(property,Vector2.one/source.tile);
         var saved=Save(m,Output+"/Materials/"+id+".mat");textureSets[source.color]=saved;return saved;
     }
+    // Owner 12.11 12:21 / 12:48: "ściany niewykończone są wszędzie", "sufity ... betony nadal w apartamentach". The interior
+    // walls and ceilings were Poly Haven white_stucco_02 - a pitted grey mineral render that reads as raw concrete on the
+    // phone. Inside, a wall is smooth painted plaster: Poly Haven beige_wall_001 (a rolled paint finish). PaintTint turns a
+    // tint written for the stucco into the tint for the paint texture: its beige is neutralised to the grey level of the
+    // stucco (mean linear colour .34/.26/.19 -> .42 each, as gamma factors), so the tint alone gives the wall's hue.
+    public const string InteriorPaintSlug="beige_wall_001";
+    public static Color PaintTint(Color stuccoTint)=>new Color(stuccoTint.r*1.100f,stuccoTint.g*1.239f,stuccoTint.b*1.442f,stuccoTint.a);
     public static Material SourceMaterial(string id,string slug,float metres,Color tint)
     {
         string tex=Source+"/Textures";

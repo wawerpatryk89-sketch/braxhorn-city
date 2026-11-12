@@ -100,13 +100,13 @@ class Apartments20261109(unittest.TestCase):
             self.assertGreaterEqual(level(f + 1) - level(f) - .20, 2.0)
 
     def test_finished_and_empty_interiors(self):
-        for finish in ('"laminate_floor_02"', '"marble_01"', '"terlenka"', '"smoked_walnut_veneer"', '"white_stucco_02"', "LibraryMarbleWhite("):
+        for finish in ('"laminate_floor_02"', '"marble_01"', '"terlenka"', '"smoked_walnut_veneer"', "BraxChampionsFoundation.InteriorPaintSlug", "LibraryMarbleWhite("):
             self.assertIn(finish, SRC)
         for part in ("static float Apartment(", "static void Stair(", "WallX(grasscloth,LiftZ", "Leaf(true,zs",
                      "Leaf(false,X(uHall)", "Ceiling(Lo(X(lu),X(w)),Hi(X(lu),X(w)),az0,az1,cy)", "W.Lampa(\"corridor light floor \""):
             self.assertIn(part, SRC)
-        # Owner: "Bez wyposażenia" - no furniture, kitchens or bathroom fittings.
-        for banned in ("PlaceLobbyModel", "sofa", "bed_", "kitchen_unit", "toilet", "BraxMeble", "Siedzisko("):
+        # Owner 11.11 20:02: the flats are furnished from the catalogue; owner 12.11 12:21/12:25: no kitchen run in them.
+        for banned in ("PlaceLobbyModel", "kitchen_unit", "BraxMeble", "BraxKatalog.Kitchen("):
             self.assertNotIn(banned, SRC)
         # four apartments per floor, ground + 3
         self.assertEqual(SRC.count("Apartment(f,") + SRC.count("Apartment(0,"), 6)
@@ -136,7 +136,7 @@ class Apartments20261109(unittest.TestCase):
         self.assertIn('var vis=lamps.gameObject.AddComponent<BraxWidocznoscWnetrza>();', SRC)
         self.assertIn("static void Lobby(float y0,float zFrontIn)", SRC)
         self.assertIn('stoneFloor=BraxChampionsFoundation.LibraryMarbleWhite("apt_white_marble_floor"', SRC)
-        self.assertIn('paint=M("apt_wall_white","white_stucco_02"', SRC)          # owner 23:01: same beige everywhere
+        self.assertIn('paint=M("apt_wall_white",BraxChampionsFoundation.InteriorPaintSlug', SRC)          # owner 23:01: same beige everywhere
         self.assertNotIn('"beige_wall_001"', SRC)
         self.assertNotIn('"oak_wood_planks"', SRC)
         self.assertNotIn('"terrazzo_tiles"', SRC)

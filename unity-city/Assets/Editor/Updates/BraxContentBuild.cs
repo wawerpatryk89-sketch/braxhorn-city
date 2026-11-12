@@ -44,16 +44,25 @@ public static class BraxContentBuild
         }
         // Explicit separate dependencies prevent a shared model/texture being
         // duplicated into every scene bundle. Sub-assets stay with their source.
+        // Owner 12.11 12:23: "z 5 minut się ładuje gra ... wyjdę z tej gry i już od nowa znowu się ładuje 5 minut". One bundle
+        // per asset (PackSeparately) gave 10 038 bundles in APK 39: the scene opened ten thousand files at start (minutes of
+        // loading) and kept ten thousand bundle headers in memory (the 1.8 GB that makes Android kill the game when it is
+        // put away). Now one bundle per asset folder (PackTogether): a few dozen bundles, the same assets, each still once.
         var shared = Group(settings, zone + "-shared");
         settings.DefaultGroup = shared;
+        var buckets = new Dictionary<string, AddressableAssetGroup>(StringComparer.Ordinal);
         foreach (string path in AssetDatabase.GetDependencies(scenes, true).OrderBy(p => p, StringComparer.Ordinal))
         {
             if (!path.StartsWith("Assets/", StringComparison.Ordinal) || scenes.Contains(path) ||
                 path.Contains("/Resources/") || path.Contains("/Editor/") ||
                 path.EndsWith(".cs") || path.EndsWith(".dll") || AssetDatabase.IsValidFolder(path)) continue;
             string guid = AssetDatabase.AssetPathToGUID(path);
-            if (!string.IsNullOrEmpty(guid)) settings.CreateOrMoveEntry(guid, shared).address = "asset/" + guid;
+            if (string.IsNullOrEmpty(guid)) continue;
+            string bucket = zone + "-shared-" + Bucket(path);
+            if (!buckets.TryGetValue(bucket, out var group)) buckets[bucket] = group = Group(settings, bucket, true);
+            settings.CreateOrMoveEntry(guid, group).address = "asset/" + guid;
         }
+        Debug.Log("BRAX_CONTENT_BUCKETS groups=" + buckets.Count + " (PackTogether; was one bundle per asset)");
         AssetDatabase.SaveAssets();
         AddressableAssetSettings.BuildPlayerContent(out AddressablesPlayerBuildResult result);
         Check(result);
@@ -74,13 +83,25 @@ public static class BraxContentBuild
         Debug.Log("BRAX_CONTENT_BASE " + id + " files=" + m.files.Length + " bytes=" + m.files.Sum(f => f.bytes));
     }
 
-    static AddressableAssetGroup Group(AddressableAssetSettings settings, string name)
+    // the asset's folder, up to three levels below Assets/ (Assets/PlayableGenerated/Mistrzowie/Meshes/x.asset ->
+    // playablegenerated-mistrzowie-meshes): a stable name, so a rebuild puts an asset in the same bundle
+    public static string Bucket(string path)
+    {
+        var dirs = path.Split('/'); int folders = Math.Min(dirs.Length - 2, 3);   // the folders between Assets/ and the file
+        if (folders <= 0) return "root";
+        var key = string.Join("-", dirs.Skip(1).Take(folders)).ToLowerInvariant();
+        var sb = new StringBuilder();
+        foreach (char ch in key) sb.Append(ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9' ? ch : '-');
+        return sb.Length > 0 ? sb.ToString() : "assets";
+    }
+
+    static AddressableAssetGroup Group(AddressableAssetSettings settings, string name, bool together = false)
     {
         var group = settings.FindGroup(name) ?? settings.CreateGroup(name, false, false, false, null, typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
         var schema = group.GetSchema<BundledAssetGroupSchema>();
         schema.BuildPath.SetVariableByName(settings, AddressableAssetSettings.kRemoteBuildPath);
         schema.LoadPath.SetVariableByName(settings, AddressableAssetSettings.kRemoteLoadPath);
-        schema.BundleMode = BundledAssetGroupSchema.BundlePackingMode.PackSeparately;
+        schema.BundleMode = together ? BundledAssetGroupSchema.BundlePackingMode.PackTogether : BundledAssetGroupSchema.BundlePackingMode.PackSeparately;
         schema.BundleNaming = BundledAssetGroupSchema.BundleNamingStyle.AppendHash;
         schema.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZ4;
         group.GetSchema<ContentUpdateGroupSchema>().StaticContent = false;

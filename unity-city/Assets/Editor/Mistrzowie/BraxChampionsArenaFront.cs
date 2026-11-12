@@ -77,7 +77,7 @@ public static partial class BraxChampionsArenaArrival
     static void LobbyCeiling(Transform arenaRoot,Dictionary<string,Material> exterior)
     {
         var root=Group(arenaRoot,"A1 LOBBY | lit ceiling under the roof (owner render)",Vector3.zero);
-        var plaster=BraxChampionsFoundation.SourceMaterial("A1_lobby_ceiling_warm_white_plaster","white_stucco_02",2.0f,new Color(.93f,.92f,.90f));
+        var plaster=BraxChampionsFoundation.SourceMaterial("A1_lobby_ceiling_warm_white_plaster",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(.93f,.92f,.90f)));
         var led=ArenaLed(exterior);
         const float rx=96f-.25f,rz=59f-.25f,step=1f;
         float HalfWidth(float z)=>rx*Mathf.Sqrt(Mathf.Max(0f,1f-z*z/(rz*rz)));

@@ -237,7 +237,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
             self.assertIn("'%s'" % slug, self.prepare)
         self.assertNotIn("W.Mat.Plain(", self.gen + self.materials)
         apartments = (EDITOR / "BraxChampionsApartments.cs").read_text(encoding="utf-8")
-        self.assertIn('ceiling=M("apt_ceiling_stucco","white_stucco_02"', apartments)
+        self.assertIn('ceiling=M("apt_ceiling_white_paint",BraxChampionsFoundation.InteriorPaintSlug', apartments)
 
     def test_room_furniture_is_streamed_per_room_and_shell_stays_on_the_floor(self):
         room = self.gen[self.gen.index("static void Room(Transform t"):self.gen.index("static void Renumber(")]
@@ -284,7 +284,7 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('"roof bar stool, leather"', self.gen)
         # owner 9.11 23:29 travertine -> 10.11 12:48 (beige on the phone): white marble podium; 3D sign on the roof
         self.assertIn('LibraryMarbleWhite("t03_podium_white_marble"', self.materials)
-        self.assertIn('s.paint=P("wall_paint_white","white_stucco_02"', self.materials)   # 12:54: no beige walls
+        self.assertIn('s.paint=P("wall_paint_white",BraxChampionsFoundation.InteriorPaintSlug', self.materials)   # 12:54: no beige walls
         self.assertIn("('Travertine009',['Color','NormalGL','Roughness','AmbientOcclusion'])", self.prepare)
         # owner 10.11 20:09: "ten u góry jest niepotrzebny w ogóle, z obu stron" - facade + reception signs only
         self.assertNotIn('roof front', self.gen)

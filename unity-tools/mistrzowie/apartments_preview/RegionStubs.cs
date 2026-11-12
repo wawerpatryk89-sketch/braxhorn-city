@@ -10,6 +10,8 @@ public sealed class BraxSeat : MonoBehaviour { public float surfaceY; public str
 public sealed class BraxWidocznoscWnetrza : MonoBehaviour { public Bounds[] strefy = new Bounds[0]; public string nazwa = ""; }
 public static partial class BraxChampionsFoundation
 {
+    public const string InteriorPaintSlug = "beige_wall_001";
+    public static Color PaintTint(Color t) => new Color(t.r * 1.100f, t.g * 1.239f, t.b * 1.442f, t.a);
     public static Material SourceMaterial(string id, string slug, float metres, Color tint) => new Material { name = id + "|" + slug + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryMarble(string id, Color tint, float metres) => new Material { name = id + "|Marble016|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryAcg(string id, string asset, Color tint, float metres) => new Material { name = id + "|" + asset + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };

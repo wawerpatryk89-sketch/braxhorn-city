@@ -80,9 +80,47 @@ public static class BraxChampionsExplorer
         review.targets=new[]{new Vector3(600,0,450)*K,new Vector3(600,25,800)*K,
             new Vector3(885,22,815)*K,new Vector3(plant.x,.16f,plant.z)*K,
             new Vector3(plant.x,.16f,plant.z)*K};
+        SeatsOnTheirSurfaces(scene);
+        SmallThingsLayers(scene);
+        rig.AddComponent<BraxChampionsWydajnosc>().kamera = camera;
         Physics.SyncTransforms(); Validate(scene);
         AssetDatabase.SaveAssets();
         if (!EditorSceneManager.SaveScene(scene, ScenePath)) throw new IOException("Exploration scene save failed.");
+    }
+
+    // Owner 12.11 12:21 / 12:55 (photo: Brax "sits" under the ceiling of a flat, "siedziałem na suficie"): the interior kit
+    // writes a seat's height (BraxSeat.surfaceY, a world height) when the piece is built - before the building's root is
+    // scaled by K, turned and put on its ground datum, and before a floor is copied to its storey. A seat on an upper floor
+    // kept the height of the unscaled plan: the player was put a storey lower, under that flat's ceiling. Every kit seat
+    // stands exactly on its surface, so its height is read back from where it finally is.
+    static void SeatsOnTheirSurfaces(Scene scene)
+    {
+        int all = 0, moved = 0; float worst = 0f;
+        foreach (var s in All<BraxSeat>(scene))
+        {
+            if (!s.name.StartsWith("Siedzisko: ", StringComparison.Ordinal)) continue;      // W.Siedzisko: the object is the surface point
+            all++; float y = s.transform.position.y, d = Mathf.Abs(s.surfaceY - y);
+            if (d > .02f) { moved++; worst = Mathf.Max(worst, d); s.surfaceY = y; EditorUtility.SetDirty(s); }
+        }
+        Debug.Log("A1_SEATS kit seats=" + all + " heightCorrected=" + moved + " worstError=" + worst.ToString("F2") + " m");
+    }
+
+    // Small things are not drawn to the 18 km far plane (BraxChampionsWydajnosc): a renderer under 4 m (K) goes to layer
+    // 20 (drawn to 260 world units), under 1.2 m to layer 21 (90 units). Only plain renderers on the default layer with
+    // no collider of their own - buildings, ground, big merged meshes, trees, the player, mirrors and vehicles stay.
+    static void SmallThingsLayers(Scene scene)
+    {
+        int small = 0, tiny = 0;
+        foreach (var r in All<MeshRenderer>(scene))
+        {
+            var g = r.gameObject;
+            if (g.layer != 0 || g.GetComponent<Collider>() || g.GetComponentInParent<Rigidbody>() || g.GetComponentInParent<LODGroup>()) continue;
+            var size = r.bounds.size; float m = Mathf.Max(size.x, Mathf.Max(size.y, size.z));
+            if (m <= 0f) continue;
+            if (m < 1.2f * K) { g.layer = BraxChampionsWydajnosc.WarstwaDrobne; tiny++; }
+            else if (m < 4f * K) { g.layer = BraxChampionsWydajnosc.WarstwaMale; small++; }
+        }
+        Debug.Log("A1_SMALL_LAYERS under4m=" + small + " (to " + BraxChampionsWydajnosc.ZasiegMale + ") under1.2m=" + tiny + " (to " + BraxChampionsWydajnosc.ZasiegDrobne + ")");
     }
 
     static void AddDaylight(Transform rig)

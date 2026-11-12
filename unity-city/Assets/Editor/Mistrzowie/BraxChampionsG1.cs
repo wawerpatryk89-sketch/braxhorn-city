@@ -74,8 +74,8 @@ public static partial class BraxChampionsD2
         gMarketFloor=Inside(Tex("g1_market_floor_granite","granite_tile_04",2.0f,new Color(1.55f,1.53f,1.52f)),.85f);
         gMallBand=Inside(Tex("g1_mall_floor_band","granite_tile_03",1.2f,new Color(.40f,.42f,.46f)),.85f);
         // walls and ceilings: white plaster (white_stucco_02); wood: walnut veneer; tops: the light limestone
-        gWhitePanel=Inside(Tex("g1_white_plaster","white_stucco_02",2.0f,new Color(1.06f,1.06f,1.05f)),.9f);
-        ceilWhite=Inside(Tex("g1_ceiling_plaster","white_stucco_02",2.4f,new Color(1.08f,1.08f,1.07f)),BraxChampionsInteriorLight.Ceilings);
+        gWhitePanel=Inside(Tex("g1_white_plaster",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.06f,1.06f,1.05f))),.9f);
+        ceilWhite=Inside(Tex("g1_ceiling_plaster",BraxChampionsFoundation.InteriorPaintSlug,2.4f,BraxChampionsFoundation.PaintTint(new Color(1.08f,1.08f,1.07f))),BraxChampionsInteriorLight.Ceilings);
         plaster=gWhitePanel;
         gWood=Inside(Tex("g1_walnut_lining","smoked_walnut_veneer",1.4f,new Color(1.05f,.98f,.92f)),.85f);
         // owner 11.11 18:28 ("takie białe ... słabo wygląda. Całe białe"): the shops' fixtures in light oak, the walls in oak

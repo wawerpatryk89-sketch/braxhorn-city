@@ -85,7 +85,7 @@ window.setup=async function(w,h){
     // their normals, sharper edges stay hard (PREVIEW_FLAT=1: the old flat facets)
     let gg=g;if(process_flat)g.computeVertexNormals();else{gg=toCreasedNormals(g,35*Math.PI/180);}
     const g2=gg;
-    const p={color:S2L([Math.min(c[0],1.6),Math.min(c[1],1.6),Math.min(c[2],1.6)]),side:THREE.FrontSide,roughness:.75,metalness:0};
+    const p={color:S2L([Math.min(c[0],2.2),Math.min(c[1],2.2),Math.min(c[2],2.2)]),side:THREE.FrontSide,roughness:.75,metalness:0};
     if(m.slug){p.map=await tex('http://preview.local/tex/'+m.slug+'_diff_1k.jpg',true);p.normalMap=await tex('http://preview.local/tex/'+m.slug+'_nor_gl_1k.jpg',false);
       if(/ceiling|wall_white/.test(n))p.normalScale=new THREE.Vector2(.18,.18);}   // same _BumpScale as the Unity ceiling / white wall materials
     if(/brass|chrome|stainless|bronze|mirror/.test(n)){p.metalness=.9;p.roughness=/mirror|chrome/.test(n)?.08:.3;}

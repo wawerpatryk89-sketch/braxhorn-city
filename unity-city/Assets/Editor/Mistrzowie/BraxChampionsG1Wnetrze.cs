@@ -116,11 +116,11 @@ public static partial class BraxChampionsD2
         {
             case "fashion":case "bags":return gWallPanels;
             case "shoes":case "books":case "cafe":return gWood;
-            case "electronics":case "phones":case "games":return Inside(Tex("g1_wall_graphite","white_stucco_02",2.0f,new Color(.30f,.31f,.34f)),.9f);
-            case "toys":return Inside(Tex("g1_wall_toys_yellow","white_stucco_02",2.0f,new Color(1.41f,1.18f,.44f)),.9f);
-            case "pharmacy":return Inside(Tex("g1_wall_pharmacy_green","white_stucco_02",2.0f,new Color(1.18f,1.35f,1.24f)),.9f);
-            case "sport":return Inside(Tex("g1_wall_sport_navy","white_stucco_02",2.0f,new Color(.15f,.24f,.47f)),.9f);
-            case "home":return Inside(Tex("g1_wall_home_white","white_stucco_02",2.0f,new Color(1.42f,1.40f,1.35f)),.9f);   // DOM I WNĘTRZA: light plaster, not bare brown
+            case "electronics":case "phones":case "games":return Inside(Tex("g1_wall_graphite",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(.30f,.31f,.34f))),.9f);
+            case "toys":return Inside(Tex("g1_wall_toys_yellow",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.41f,1.18f,.44f))),.9f);
+            case "pharmacy":return Inside(Tex("g1_wall_pharmacy_green",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.18f,1.35f,1.24f))),.9f);
+            case "sport":return Inside(Tex("g1_wall_sport_navy",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(.15f,.24f,.47f))),.9f);
+            case "home":return Inside(Tex("g1_wall_home_white",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.42f,1.40f,1.35f))),.9f);   // DOM I WNĘTRZA: light plaster, not bare brown
             default:return gWallWarm;
         }
     }
@@ -568,9 +568,7 @@ public static partial class BraxChampionsD2
     static void WcPan(Vector3 wall,Vector3 f)
     {
         f.y=0;f.Normalize();var rot=Quaternion.LookRotation(f,Vector3.up);var y=wall.y;
-        m.RoundedBox(porcelainMat(),wall+f*.30f+Vector3.up*(y*0f+.30f),new Vector3(.37f,.30f,.55f),.14f,rot,3);
-        m.RoundedBox(porcelainMat(),wall+f*.31f+Vector3.up*.465f,new Vector3(.38f,.03f,.47f),.012f,rot,2);
-        m.RoundedBox(porcelainMat(),wall+f*.06f+Vector3.up*.30f,new Vector3(.40f,.42f,.12f),.04f,rot,2);
+        BraxKatalog.WcBody(m,porcelainMat(),stainless,wall,f);   // the real pan, seat and lid (owner 12.11 13:27)
         m.RoundedBox(stainless,wall+f*.012f+Vector3.up*1.05f,new Vector3(.25f,.16f,.024f),.01f,rot,1);
         var c0=wall+f*.04f;var c1=wall+f*.58f;Col(Mathf.Min(c0.x,c1.x)-.2f,Mathf.Max(c0.x,c1.x)+.2f,y,y+.48f,Mathf.Min(c0.z,c1.z)-.2f,Mathf.Max(c0.z,c1.z)+.2f,"WC");
     }

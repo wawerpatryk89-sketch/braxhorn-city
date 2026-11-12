@@ -56,7 +56,7 @@ public static partial class BraxChampionsCasinoT11
             // No carpet: polished RED marble tiles (the white-marble maps, tinted), 3 m slabs set in gold joints.
             var carpet=BraxChampionsFoundation.LibraryMarbleWhite("t11_hall_red_marble_tiles",new Color(.74f,.10f,.09f),2.4f);
             carpet.SetFloat("_Roughness",.22f);
-            var ceiling=BraxChampionsFoundation.SourceMaterial("t11_hall_cream_coffered_ceiling","white_stucco_02",2.0f,new Color(1.0f,.96f,.88f));
+            var ceiling=BraxChampionsFoundation.SourceMaterial("t11_hall_cream_coffered_ceiling",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.0f,.96f,.88f)));
             var wall=BraxChampionsFoundation.SourceMaterial("t11_hall_walnut_wall_panelling","smoked_walnut_veneer",1.6f,new Color(.86f,.74f,.62f));
             foreach(var m in new[]{marble,white,carpet,wall})BraxChampionsInteriorLight.Apply(m,BraxChampionsInteriorLight.Walls);
             BraxChampionsInteriorLight.Apply(ceiling,BraxChampionsInteriorLight.Ceilings);

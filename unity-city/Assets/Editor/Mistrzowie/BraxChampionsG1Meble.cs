@@ -37,7 +37,7 @@ public static partial class BraxChampionsD2
         // owner 11.11 23:46 ("nie wygląda premium ... podłoga zjebana, ściany zjebane"): the store floor in wide light oak planks
         // (calm, no small tiles, no stains), the walls bright warm-white plaster to the black ceiling
         hMarbleFloor=Inside(Tex("g1_home_oak_wide_planks","laminate_floor_02",2.2f,new Color(1.40f,1.34f,1.26f)),.92f);
-        hWallWhite=Inside(Tex("g1_home_wall_white","white_stucco_02",2.0f,new Color(1.40f,1.38f,1.33f)),.92f);
+        hWallWhite=Inside(Tex("g1_home_wall_white",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.40f,1.38f,1.33f))),.92f);
         // owner 11.11 19:31-19:32 ("wszystko w jednym kolorze ... się zlewa", "zmień teksturę na słupy"): the columns in grey
         // polished microcement (not wood), the ceiling black
         hConcrete=Inside(Tex("g1_home_polished_concrete","concrete_floor_02",3.0f,new Color(.92f,.92f,.94f)),.85f);

@@ -98,20 +98,12 @@ public static partial class BraxChampionsD2
     static void WcPanReal(Vector3 wall,Vector3 f)
     {
         f.y=0;f.Normalize();var rot=Quaternion.LookRotation(f,Vector3.up);var r=Vector3.Cross(Vector3.up,f).normalized;
-        m.RoundedBox(porcelainMat(),wall+f*.28f+Vector3.up*.27f,new Vector3(.36f,.28f,.54f),.13f,rot,3);   // the bowl, 41 cm top
-        m.RoundedBox(porcelainMat(),wall+f*.06f+Vector3.up*.27f,new Vector3(.40f,.34f,.10f),.04f,rot,2);  // the back to the wall
-        // the seat ring and the closed lid (white, a hair over the rim)
-        var ring=new List<Vector3>();
-        for(int k=0;k<=36;k++){float t=k*Mathf.PI*2f/36f;ring.Add(wall+f*(.31f+.22f*Mathf.Sin(t))+r*(.165f*Mathf.Cos(t))+Vector3.up*.428f);}
-        for(int k=0;k+1<ring.Count;k++)m.Tube(porcelainMat(),ring[k],ring[k+1],.016f,8);
-        m.RoundedBox(porcelainMat(),wall+f*.31f+Vector3.up*.452f,new Vector3(.35f,.022f,.46f),.010f,rot,2);
-        m.Cylinder(chrome,wall+f*.105f+Vector3.up*.44f+r*.12f,.012f,.03f,10,Quaternion.FromToRotation(Vector3.up,r),true);   // hinges
-        m.Cylinder(chrome,wall+f*.105f+Vector3.up*.44f-r*.15f,.012f,.03f,10,Quaternion.FromToRotation(Vector3.up,r),true);
+        BraxKatalog.WcBody(m,porcelainMat(),chrome,wall,f);   // the real pan, seat and lid (owner 12.11 13:27)
         // the flush plate (chrome) with its two buttons, the roll holder with a roll, a hook on the door side
         m.RoundedBox(chrome,wall+f*.008f+Vector3.up*1.02f,new Vector3(.25f,.16f,.016f),.008f,rot,2);
         m.RoundedBox(chrome,wall+f*.022f+Vector3.up*1.02f-r*.035f,new Vector3(.10f,.12f,.014f),.006f,rot,2);
         m.RoundedBox(chrome,wall+f*.022f+Vector3.up*1.02f+r*.06f,new Vector3(.06f,.12f,.014f),.006f,rot,2);
-        var rh=wall+r*.42f+Vector3.up*.70f;
+        var rh=wall+r*.36f+Vector3.up*.66f;
         m.Tube(chrome,rh+f*.012f,rh+f*.10f,.008f,8);m.Tube(chrome,rh+f*.10f,rh+f*.10f-r*.13f,.008f,8);
         m.Cylinder(porcelainMat(),rh+f*.10f-r*.005f,.055f,.11f,18,Quaternion.FromToRotation(Vector3.up,-r),true,true);
         var c0=wall+f*.02f-r*.2f;var c1=wall+f*.58f+r*.2f;Col(Mathf.Min(c0.x,c1.x),Mathf.Max(c0.x,c1.x),wall.y,wall.y+.46f,Mathf.Min(c0.z,c1.z),Mathf.Max(c0.z,c1.z),"WC");

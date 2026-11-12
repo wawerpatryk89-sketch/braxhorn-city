@@ -104,7 +104,7 @@ public static class BraxChampionsApartments
         // owner 9.11 23:01: "kolory takie same praktycznie wszędzie" (beige walls, orange oak, beige marble,
         // tan corridors). Palette now: white walls, pale oak, walnut, white and black marble, linen, charcoal.
         oak=M("apt_floor_pale_oak","laminate_floor_02",1.8f,new Color(1f,.98f,.95f),.55f);
-        paint=M("apt_wall_white","white_stucco_02",2.0f,new Color(1.10f,1.10f,1.09f),.95f);
+        paint=M("apt_wall_white",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.22f,1.22f,1.21f)),.80f);   // smooth white paint
         if(paint.HasProperty("_BumpScale"))paint.SetFloat("_BumpScale",.20f);
         try
         {
@@ -125,7 +125,7 @@ public static class BraxChampionsApartments
         veneer=M("apt_walnut_veneer","smoked_walnut_veneer",1.2f,new Color(.92f,.86f,.80f),.55f);
         deck=M("apt_balcony_stone","granite_tile_04",1.0f,new Color(1.02f,.95f,.84f),.60f);       // warm light granite
         // owner 9.11 21:03: every surface finished with Poly Haven maps (was a plain white colour)
-        ceiling=M("apt_ceiling_stucco","white_stucco_02",2.0f,new Color(.98f,.98f,.97f),.95f);
+        ceiling=M("apt_ceiling_white_paint",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.24f,1.24f,1.23f)),.85f);   // a painted white ceiling, not grey render
         if(ceiling.HasProperty("_BumpScale"))ceiling.SetFloat("_BumpScale",.15f);
         try{marbleBlack=BraxChampionsFoundation.LibraryMarble("apt_black_marble",new Color(.86f,.80f,.78f),2.5f);BraxChampionsInteriorLight.Facade(marbleBlack);}
         catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI APT_BLACK_MARBLE_MISSING "+e.Message);marbleBlack=granite;}
@@ -542,15 +542,9 @@ public static class BraxChampionsApartments
         BraxKatalog.CoffeeTable(c,new Vector3(X(lu-1.3f),yF+.012f,zTV),toU,1.1f,.6f);
         BraxKatalog.Sofa(c,new Vector3(X(lu-2.3f),yF+.012f,zTV),toU,2.4f,hsh/4%2,"sofa");   // 1.8 m from the screen
         BraxKatalog.FloorLamp(c,new Vector3(X(lu-2.85f),yF,zTV+s*1.45f));
-        // the kitchen along the corridor wall (the run from the window side to the hall opening), the dining set by the window
-        int nm=Mathf.Clamp(Mathf.FloorToInt((lu-.6f)/.6f),5,9);
-        string[] all={"lodowka","szuflady","zlew","zmywarka","szuflady","plyta","szuflady","slupek","drzwi"};
-        var mods=new string[nm];for(int i=0;i<nm;i++)mods[i]=all[i];
-        var kf=new Vector3(0,0,-s);var run=Vector3.Cross(Vector3.up,kf);bool fromWindow=run.x*dirU>0f;
-        var kp=new Vector3(fromWindow?X(.25f):X(.25f+nm*.6f),yF,zc-s*.005f);
-        bool dark=(hsh/8)%2==1;
-        BraxKatalog.Place(c,"kuchnia "+nm+(dark?" grafit":" orzech"),cc=>BraxKatalog.Kitchen(cc,Vector3.zero,Vector3.right,Vector3.forward,mods,dark?BraxKatalog.Graphite:BraxKatalog.Walnut,dark?BraxKatalog.Steel:BraxKatalog.BlackMatt,dark?BraxKatalog.StoneDark:BraxKatalog.Stone,"kuchnia",true),kp,kf,null);
-        {var a=kp;var b2=kp+run*(nm*.6f)+kf*.60f;W.KolizjaMM(Mathf.Min(a.x,b2.x),Mathf.Max(a.x,b2.x),yF,yF+.92f,Mathf.Min(a.z,b2.z),Mathf.Max(a.z,b2.z));}
+        // owner 12.11 12:21 / 12:25: "te kuchnie wielkie z apartamentów ... to ma zniknąć", "te kuchnie wielkie wypierdalasz,
+        // nie chcę tego w ogóle widzieć, tam nawet to nie pasuje" - no kitchen run in the living room (it was 5-9 modules of
+        // tall graphite / walnut fronts along the corridor wall); the dining set by the window stays
         BraxKatalog.DiningSet(c,new Vector3(X(1.0f),yF+.012f,zTV-s*.45f),new Vector3(0,0,-s),"krzesło");   // by the side window, .5 m behind the sofa
         // bedrooms: a double bed with its head on the partition, bedside tables with lamps
         float zB=(zGlass+zs)*.5f;

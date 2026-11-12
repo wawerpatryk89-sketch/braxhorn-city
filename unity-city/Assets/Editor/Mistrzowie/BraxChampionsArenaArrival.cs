@@ -1021,7 +1021,7 @@ public static partial class BraxChampionsArenaArrival
         {
             var led=ArenaLed(exterior);
             Box(root,"UPPER lounge slab | warm white plaster soffit over the lobby",
-                BraxChampionsFoundation.SourceMaterial("A1_lobby_soffit_warm_white_plaster","white_stucco_02",2.0f,new Color(.93f,.92f,.90f)),
+                BraxChampionsFoundation.SourceMaterial("A1_lobby_soffit_warm_white_plaster",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(.93f,.92f,.90f))),
                 new Vector3(0,17.997f,-48.05f),new Vector3(83.9f,.004f,6.88f),false);
             for(float x=-40.5f;x<=40.51f;x+=3f)
                 Box(root,"UPPER lounge slab | warm LED line in the lobby ceiling",led,
