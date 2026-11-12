@@ -265,6 +265,10 @@ public static partial class BraxChampionsAquapark
             }
             o.Add(pts.ToArray()); var rev = pts.ToArray(); System.Array.Reverse(rev); o.Add(rev);
         }
+        // the lazy river's east bank (between the river's sign and the west loungers), north to south and back
+        var bankWalk = new List<Vector3>();
+        for (float z = 4f; z >= -50f; z -= 7.5f) bankWalk.Add(V(-59f, 0f, z));
+        o.Add(bankWalk.ToArray()); var back = bankWalk.ToArray(); System.Array.Reverse(back); o.Add(back);
         return o;
     }
 

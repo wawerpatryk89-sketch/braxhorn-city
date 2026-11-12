@@ -23,6 +23,16 @@ Stara rezerwa P1 między drogą X400 a parkiem: x 426–632, z 87–313 (206 × 
 - **Strefa dzieci** (turkusowa nawierzchnia EPDM): brodzik 35 cm z 2 zjeżdżalniami właściciela i grzybkiem-fontanną, płotek, ławki.
 - **2 jacuzzi** zewnętrzne na tekowym pokładzie, **bar przy basenie** (BRAXHORN POOL BAR, hokery), **139 leżaków** (leżenie),
   61 parasoli, prysznice, ratownicy, latarnie, palmy, donice z kwiatami, szklane ogrodzenie z bramą od tramwaju.
+- **Leniwa rzeka** (dopisana w nocy 12.11, `BraxChampionsAquaparkRzeka.cs` + `BraxChampionsLeniwaRzeka.cs`): kanał 6,5 m szerokości
+  i 1,3 m głębokości dookoła wyspy z palmami i głazami, w miejscu dużego zachodniego trawnika. Ma muszlę basenu, światła pod wodą i pływanie.
+  12 kół BRAXHORN (czerwone, żółte, turkusowe, białe) płynie z nurtem przez cały czas. AKCJA przy kole = „WSIĄDŹ DO KOŁA”: Brax siada
+  i płynie dookoła wyspy. Joystick albo AKCJA = zejście na brzeg. Trzy łuki wodne z wyspy nad kanałem, schody z poręczami od wschodu
+  i od północy, 3 drabinki, tablica LENIWA RZEKA.
+- **4 cabany VIP** na wschodnim trawniku (`BraxChampionsAquaparkVip.cs`): podest z tekowych desek, płócienny dach z numerem, zasłony
+  związane czerwoną taśmą, łoże dla dwojga (leżenie, 2 miejsca), poduszki, stolik ze stali z kubełkiem i ręcznikami.
+- **Byk BRAXHORN jako mozaika na dnie laguny** (granatowe płytki, białe obrysy). Prosto czyta się z tarasu, z wieży widać go w całości.
+- **Szum wody** (`BraxZrodloPetli`): wodospad, grzybek, plac wodny, jacuzzi, SPA i łuki rzeki.
+- **Spacerowiczki** właściciela (bikini): dwie trasy wokół laguny i brzeg rzeki, tam i z powrotem.
 
 ## Kontrola
 - Podgląd bez Unity: `unity-tools/mistrzowie/aquapark_preview` (prawdziwy kod generatora + `hotel_sobczak_preview/render3d.js`).
