@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 ED = ROOT / 'unity-city/Assets/Editor/Mistrzowie'
 FILES = ['BraxChampionsAquapark', 'BraxChampionsAquaparkTeren', 'BraxChampionsAquaparkWyposazenie', 'BraxChampionsAquaparkZjezdzalnie', 'BraxChampionsAquaparkBudynek',
-         'BraxChampionsAquaparkRzeka']
+         'BraxChampionsAquaparkRzeka', 'BraxChampionsAquaparkVip']
 
 
 def src():
@@ -72,6 +72,7 @@ class Aquapark(unittest.TestCase):
         self.assertIn('SetStaticEditorFlags(t.gameObject, 0)', s)          # moving rings: never static-batched
         self.assertIn('river.cop', s)                                        # cut out of the deck
         self.assertIn('FloorBull(P(', s)                                    # the BRAXHORN bull mosaic on the lagoon floor
+        self.assertIn('s.label = "CABANA VIP"', s)                            # the VIP cabanas' daybeds you lie on
         r = (ROOT / 'unity-city/Assets/Mistrzowie/BraxChampionsLeniwaRzeka.cs').read_text(encoding='utf8')
         self.assertIn('"LENIWA RZEKA · WSIĄDŹ DO KOŁA"', r)
         self.assertIn('Zejdz()', r)

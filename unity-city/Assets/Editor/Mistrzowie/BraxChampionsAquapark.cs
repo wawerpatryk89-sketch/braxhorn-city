@@ -315,7 +315,7 @@ public static partial class BraxChampionsAquapark
     public static int Generate()
     {
         System.IO.Directory.CreateDirectory(Folder);
-        Colliders=Loungers=Parasols=Seats=SwimZones=Slides=Palms=Lamps=OwnerModels=OwnerMissing=Pools=Walkers=Rings=0;
+        Colliders=Loungers=Parasols=Seats=SwimZones=Slides=Palms=Lamps=OwnerModels=OwnerMissing=Pools=Walkers=Rings=Cabanas=0;
         Materials();
         var go=new GameObject("AQUAPARK BRAXHORN | laguna, wieża ze zjeżdżalniami, strefa dzieci, SPA, jacuzzi (owner 12.11 02:47)");
         root=go.transform;root.position=Vector3.zero;
@@ -331,6 +331,7 @@ public static partial class BraxChampionsAquapark
         SlidesAll();Flush("aquapark | zjeżdżalnie: rury, tor wyścigowy, podpory");
         Kids();Flush("aquapark | strefa dzieci: zjeżdżalnie, grzybek, ogrodzenie");
         Furniture();Flush("aquapark | leżaki, parasole, bar, ratownicy, prysznice, latarnie");
+        VipCabanas();FlushWalk("aquapark | cabany VIP: podesty (kolizje)");Flush("aquapark | cabany VIP: namioty, łóżka");
         Fence();Flush("aquapark | ogrodzenie szklane, bramy");
         Building();FlushWalk("aquapark | pawilon wejściowy: posadzki (kolizje)");Flush("aquapark | pawilon wejściowy: bryła");
         FlushWalk("aquapark | reszta nawierzchni (kolizje)");Flush("aquapark | reszta");
@@ -343,7 +344,7 @@ public static partial class BraxChampionsAquapark
         }
         // life: the owner's girls in bikinis stroll the deck round the lagoon's south half (there and back)
         BraxChampionsFoundation.Optional("aquapark: spacerowiczki", () => { Walkers = BraxChampionsPostacie.Aquapark(Group(root, "spacerowiczki (BraxPieszy)"), WalkRoutes()); });
-        Debug.Log("MISTRZOWIE_AQUAPARK walkers="+Walkers+" rings="+Rings+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+
+        Debug.Log("MISTRZOWIE_AQUAPARK walkers="+Walkers+" rings="+Rings+" cabanas="+Cabanas+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+
                   " seats="+Seats+" palms="+Palms+" lamps="+Lamps+" ownerModels="+OwnerModels+" ownerMissing="+OwnerMissing+" colliders="+Colliders+
                   " site=x"+X0+".."+X1+" z"+Z0+".."+Z1);
         return 1;
