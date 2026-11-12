@@ -1409,12 +1409,25 @@ internal static class BraxMuzeumKod
     /// przy ścianie (lico), przod = do sali.</summary>
     public static Transform Sklepik(Transform rodzic, string nazwa, Vector3 punktSciany, Vector3 przod)
     {
-        var g = Postaw2(rodzic, "Sklep muzealny · " + nazwa, "muzeum_sklepik", BudujSklepik, punktSciany, przod, new Vector3(-2.3f, 0f, 0f), new Vector3(2.3f, 2.2f, .42f));
+        // 12.11 00:53 (właściciel: „Oryginalne książki mamy w bibliotece… dołączyłeś oryginalne, czy te podróby twoje?”): na regałach
+        // i stole ORYGINALNE książki z paczki właściciela miasto_sklepy (ksiazki_01–08: rzędy z grzbietami z grafik właściciela,
+        // okładki na stole — jak w księgarni); książki z kodu tylko gdy paczki brak (build bez klucza), żeby regały nie stały puste
+        bool oryg = BraxSklepyTowar.Ma("ksiegarnia");
+        var g = Postaw2(rodzic, "Sklep muzealny · " + nazwa, "muzeum_sklepik" + (oryg ? "_oryginaly" : "_kod"), q => BudujSklepik(q, !oryg), punktSciany, przod, new Vector3(-2.3f, 0f, 0f), new Vector3(2.3f, 2.2f, .42f));
+        if (oryg)
+        {
+            var t = BraxSklepyTowar.Korzen(g, "SKLEP MUZEALNY"); var rng = new System.Random(5);
+            Vector3 W(float x, float y, float z) => g.position + g.rotation * (new Vector3(x, y, z) * K);
+            foreach (float xs in new[] { -1.15f, 1.15f })
+                for (int l = 0; l < 5; l++) BraxSklepyTowar.Polka("ksiegarnia", t, W(xs - 1.04f, .05f + l * .4f, .22f), g.right, -g.forward, 2.08f * K, rng, .36f * K);
+            BraxSklepyTowar.Lada("ksiegarnia", t, W(-.75f, .74f, 2.0f), g.right, -g.forward, 1.5f * K, rng);
+            BraxSklepyTowar.Zakoncz(t, "SKLEP MUZEALNY");
+        }
         BraxChlodnie.Kolizja(g, "stół sklepu", new Vector3(-.8f, 0f, 1.6f), new Vector3(.8f, .78f, 2.4f));
         BraxRegionMeble.Napis(rodzic, "SKLEP MUZEALNY", g.position + g.rotation * (new Vector3(0f, 2.55f, 0f) * K), g.forward, .22f * K / .72f, new Color(.13f, .13f, .14f), .05f);
         return g;
     }
-    static void BudujSklepik(BraxChlodnie.Partie q)
+    static void BudujSklepik(BraxChlodnie.Partie q, bool ksiazkiZKodu)
     {
         var dk = q[dab]; var ks = q[ksiazki]; var rnd = new System.Random(11);
         Color32[] kol = { C(.45f, .1f, .1f), C(.1f, .2f, .4f), C(.15f, .3f, .2f), C(.6f, .55f, .45f), C(.1f, .1f, .12f), C(.5f, .3f, .15f), C(.75f, .72f, .65f) };
@@ -1425,7 +1438,7 @@ internal static class BraxMuzeumKod
             for (int l = 0; l < 6; l++)
             {
                 float y = .05f + l * .4f; dk.Box(new Vector3(xs - 1.07f, y - .025f, .04f), new Vector3(xs + 1.07f, y, .4f));       // półka
-                if (l == 5) continue;
+                if (l == 5 || !ksiazkiZKodu) continue;
                 float x = xs - 1.04f;
                 while (x < xs + .95f)
                 {   // książki: grzbiety od sali, różne wysokości i kolory
@@ -1435,11 +1448,41 @@ internal static class BraxMuzeumKod
             }
         }
         dk.Poducha(new Vector3(-.8f, 0f, 1.6f), new Vector3(.8f, .74f, 2.4f), .012f, 0f, 3);                                // stół
+        if (!ksiazkiZKodu) return;
         for (int i = 0; i < 8; i++)
         {   // stosy książek na stole
             float x = -.6f + (i % 4) * .4f, z = 1.8f + (i / 4) * .4f; int n = 2 + rnd.Next(3); float y = .74f;
             for (int j = 0; j < n; j++) { ks.kolor = kol[rnd.Next(kol.Length)]; float th = .03f + (float)rnd.NextDouble() * .02f; ks.Box(new Vector3(x - .11f, y, z - .14f), new Vector3(x + .11f, y + th, z + .14f)); y += th + .002f; }
         }
         ks.kolor = Bl[0];
+    }
+
+    // ---------------------------------------------------------------- gabloty na modele Poly Haven
+    /// <summary>Duża gablota (szafka z orzecha + klosz 1.9 × 0.8 × 1.2 m) — blat = środek blatu w świecie, wysWnetrza = wysokość pod
+    /// kloszem (świat). Na modele statków i duże eksponaty.</summary>
+    public static Transform GablotaDuza(Transform rodzic, string nazwa, Vector3 p, Vector3 przod, out Vector3 blat, out float wysWnetrza)
+    {
+        var g = Postaw(rodzic, "Gablota duża · " + nazwa, "muzeum_gablota_duza", q =>
+        {
+            const float A = 1.0f, Bz = .45f, Hs = .85f, Hk = 1.22f;
+            q[drewno].Poducha(new Vector3(-A, 0f, -Bz), new Vector3(A, Hs - .03f, Bz), .02f, 0f, 3);
+            q[drewno].Poducha(new Vector3(-A - .03f, Hs - .03f, -Bz - .03f), new Vector3(A + .03f, Hs, Bz + .03f), .012f, 0f, 3);
+            Klosz(q, new Vector3(-A + .02f, Hs, -Bz + .02f), new Vector3(A - .02f, Hs + Hk, Bz - .02f));
+        }, p, przod);
+        BraxChlodnie.Kolizja(g, "gablota duża", new Vector3(-1.03f, 0f, -.48f), new Vector3(1.03f, 2.07f, .48f));
+        blat = g.position + Vector3.up * (.85f * K); wysWnetrza = 1.1f * K;
+        return g;
+    }
+    /// <summary>Wysoka gablota (cokół 0.2 m z grafitu, klosz 1.26 × 0.52 × 1.9 m) — na broń, tarcze, wysokie eksponaty stojące.</summary>
+    public static Transform GablotaWysoka(Transform rodzic, string nazwa, Vector3 p, Vector3 przod, out Vector3 dno, out float wysWnetrza)
+    {
+        var g = Postaw(rodzic, "Gablota wysoka · " + nazwa, "muzeum_gablota_wysoka", q =>
+        {
+            q[czern].Poducha(new Vector3(-.65f, 0f, -.28f), new Vector3(.65f, .2f, .28f), .015f, 0f, 3);
+            Klosz(q, new Vector3(-.63f, .2f, -.26f), new Vector3(.63f, 2.1f, .26f));
+        }, p, przod);
+        BraxChlodnie.Kolizja(g, "gablota wysoka", new Vector3(-.66f, 0f, -.29f), new Vector3(.66f, 2.1f, .29f));
+        dno = g.position + Vector3.up * (.2f * K); wysWnetrza = 1.82f * K;
+        return g;
     }
 }

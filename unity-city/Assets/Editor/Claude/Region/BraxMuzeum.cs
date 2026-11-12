@@ -300,9 +300,10 @@ public static partial class BraxRegionMiastoB
         BraxMuzeumKod.Luneta(g, "hol", new Vector3(cx + 12f, y0 + .02f, zk1 + 4.5f), Vector3.left); muzEksponatow++;
         Pulpit(cx + 13.3f, zk1 + 5.4f, Vector3.forward, "LUNETA");
         string[] rzezby = { "RZEŹBA · PIERŚCIEŃ", "RZEŹBA · SPIRALA", "RZEŹBA · TRZY KULE", "RZEŹBA · ŁUK" };
+        bool gotycka = BraxRegion.Model("gothic_statue");
         foreach (var (x, z, w) in new[] { (cx - 6f, zk1 + 2.6f, 1), (cx + 6f, zk1 + 2.6f, 3), (cx - 9.5f, zg + 2.8f, 2), (cx + 9.5f, zg + 2.8f, 0), (cx, zS, 1) })
         {
-            if (Mathf.Abs(x - cx) > sw - 1f) continue;
+            if (Mathf.Abs(x - cx) > sw - 1f || (z == zS && gotycka)) continue;   // między ściankami rzeźba gotycka (Poly Haven), gdy jest
             BraxMuzeumKod.Rzezba(g, "dział SZTUKA", new Vector3(x, y0 + .02f, z), Vector3.forward, w); muzEksponatow++;
             if (z != zS) Pulpit(x + 1.05f, z + .8f, Vector3.forward, rzezby[w]);
         }
@@ -327,6 +328,79 @@ public static partial class BraxRegionMiastoB
         BraxMuzeumKod.MaszynaParowa(g, "dział TECHNIKA", new Vector3(xT, y0 + .02f, zi0 + 6.6f), Vector3.forward); muzEksponatow++;
         { float zM = zi0 + 6.6f; Barierka(new Vector3(xT - 2.75f, 0f, zM - 1.65f), new Vector3(xT + 3.25f, 0f, zM - 1.65f), new Vector3(xT + 3.25f, 0f, zM + 1.65f), new Vector3(xT - 2.75f, 0f, zM + 1.65f), new Vector3(xT - 2.75f, 0f, zM - 1.65f)); }
         Pulpit(xT - 3.4f, zi0 + 8.1f, Vector3.forward, "MASZYNA PAROWA");
+        // ---- 12.11 00:53 (właściciel: „jak coś możesz ściągnąć z Polyheaven zabytkowego, to ściągnij do tej muzeum”): zabytki Poly Haven
+        // (fetch_region.py); brak modelu = brak eksponatu (bez pustych gablot i postumentów)
+        GameObject M(params string[] ids) => BraxRegion.Model(ids);
+        void NaPostumencie(GameObject m, float x, float z, float yaw, float maxH, float a, float hc, string opis, Vector3 pn, float px, float pz)
+        {   // model na postumencie z marmuru, kolizja, pulpit z opisem
+            if (!m) return;
+            BraxUliceKit.S(marmur).Poducha(new Vector3(x - a, y0 + .02f, z - a), new Vector3(x + a, y0 + .02f + hc, z + a), .02f, 0f, 3);
+            BraxRegionMeble.Kolizja(g, "Muzeum kolizja: postument", new Vector3(x, y0 + hc * .5f, z), new Vector3(2f * a, hc, 2f * a));
+            if (BraxRegion.Put(g, m, "Muzeum: " + opis.ToLowerInvariant() + " (Poly Haven)", new Vector3(x, y0 + .02f + hc, z), yaw, 1f, true, maxH)) muzEksponatow++;
+            Pulpit(px, pz, pn, opis);
+        }
+        // PORT: model statku holenderskiego w dużej gablocie, armata na drewnianym podeście, latarnie w gablotach
+        var sh = M("dutch_ship_medium");
+        if (sh)
+        {
+            BraxMuzeumKod.GablotaDuza(g, "statek holenderski", new Vector3(cx - 12.6f, y0 + .02f, zi0 + 6.6f), Vector3.forward, out var blat, out float hW);
+            if (BraxRegion.Put(g, sh, "Muzeum: model statku holenderskiego (Poly Haven)", blat, 0f, 1f, false, (hW - .05f) / k)) muzEksponatow++;   // kadłub wzdłuż gabloty (sprawdzone na podglądzie)
+            Pulpit(cx - 10.85f, zi0 + 7.6f, Vector3.forward, "STATEK HOLENDERSKI");
+        }
+        // (12.11 01:10 właściciel: „jeżeli coś się nie nadaje, to eliminuj od razu, wyrzucaj” — armata cannon_01 z Poly Haven ma szkielet
+        // i nie wyświetla się poprawnie: wyrzucona; dział PORT ma własną armatę okrętową z kodu)
+        Gablota(g, new Vector3(cx - 12f, y0 + .02f, zk1 + 7.4f), marmur, mosiadz, szklo, M("Lantern_01"), "latarnia");
+        Gablota(g, new Vector3(cx - 9f, y0 + .02f, zk1 + 7.4f), marmur, mosiadz, szklo, M("wooden_lantern_01"), "latarnia drewniana");
+        // SZTUKA: rzeźba gotycka między ściankami (zamiast spirali), wieloryb z brązu, rekin w gablocie, głowy konia i byka
+        var got = M("gothic_statue");
+        if (got) NaPostumencie(got, cx, zS, 180f, 1.9f, .85f, .3f, "RZEŹBA GOTYCKA", Vector3.forward, cx + 1.6f, zS + 1.4f);
+        NaPostumencie(M("bronze_whale_statue"), cx - 6f, zg + 5.5f, 180f, 1.1f, .6f, .55f, "WIELORYB Z BRĄZU", Vector3.forward, cx - 4.8f, zg + 6.4f);
+        Gablota(g, new Vector3(cx + 6f, y0 + .02f, zg + 5.5f), marmur, mosiadz, szklo, M("bronze_shark_statue"), "rekin z brązu");
+        Gablota(g, new Vector3(cx - 2.5f, y0 + .02f, zi0 + 3.6f), marmur, mosiadz, szklo, M("horse_head"), "głowa konia");
+        Gablota(g, new Vector3(cx + 2.5f, y0 + .02f, zi0 + 3.6f), marmur, mosiadz, szklo, M("bull_head"), "głowa byka");
+        // BROŃ DAWNA (hol, strona portu): dwie wysokie gabloty — miecz, katana, młot bojowy | tarcza rycerska, buzdygan, sztylet
+        string[][] bron = { new[] { "antique_estoc", "antique_katana_01", "ornate_war_hammer" }, new[] { "kite_shield", "ornate_medieval_mace", "ornate_medieval_dagger" } };
+        float[] dxB = { -.4f, 0f, .4f }; int ileBroni = 0;
+        for (int i = 0; i < 2; i++)
+        {
+            var ms = bron[i].Select(id => M(id)).ToArray(); if (ms.All(q => !q)) continue;
+            var pg = new Vector3(cx - 18.6f + i * 2.4f, y0 + .02f, zk1 + 5.2f);
+            BraxMuzeumKod.GablotaWysoka(g, "broń dawna " + (i + 1), pg, Vector3.forward, out var dno, out float hB);
+            for (int j = 0; j < 3; j++)
+                if (ms[j] && BraxRegion.Put(g, ms[j], "Muzeum: broń dawna (" + bron[i][j] + ", Poly Haven)", dno + Vector3.right * (dxB[j] * k), 180f, 1f, false, (hB - .1f) / k)) { muzEksponatow++; ileBroni++; }
+        }
+        if (ileBroni > 0) Pulpit(cx - 17.4f, zk1 + 3.5f, Vector3.back, "BROŃ DAWNA");
+        // TECHNIKA: gabloty z aparatem, projektorem, kamerą, maską gazową, lornetką i radiostacją (część południowa), telefon na ścianie
+        string[][] techStara = { new[] { "Camera_01" }, new[] { "filmstrip_projector_8mm" }, new[] { "vintage_video_camera" }, new[] { "old_gas_mask" }, new[] { "binoculars" }, new[] { "vintage_radio_transceiver" } };
+        float[] zTS = { zi0 + 3.0f, zi0 + 6.6f, zi0 + 9.6f };
+        for (int i = 0; i < techStara.Length; i++)
+            Gablota(g, new Vector3(xT + (i < 3 ? -4.6f : 4.6f), y0 + .02f, zTS[i % 3]), marmur, mosiadz, szklo, M(techStara[i]), "technika dawna " + (i + 1), null, null, .45f, .3f, .6f, i == 1 ? 90f : 180f);
+        var tel = M("vintage_telephone_wall_clock"); if (tel && BraxRegion.Put(g, tel, "Muzeum: telefon ścienny (Poly Haven)", new Vector3(xi1 - .14f, y0 + 1.5f, zg), -90f, 1f, false, .7f)) muzEksponatow++;
+        // SALON MIESZCZAŃSKI (hol, strona techniki): podest z parkietu, ściana z tapetą, szafa gotycka, konsola z zegarem i lustrem,
+        // fotel, kołowrotek; barierka z linką (12.11 01:10 „jeżeli coś się nie nadaje… wyrzucaj”: mosiężny żyrandol i mosiężna lampa
+        // naftowa z Poly Haven wyrzucone — zasada 10.11 bez złota i mosiądzu)
+        var meble = new[] { M("GothicCabinet_01"), M("ClassicConsole_01"), M("ArmChair_01") };
+        if (meble.Any(q => q))
+        {
+            float sx = cx + 17.5f, sz = zk1 + 5.2f;
+            var tapeta = BraxUliceKit.Tex("muzeum: salon — ściana malowana (zieleń)", 2.0f, new Color(.55f, .66f, .56f), new Color(.4f, .5f, .42f), .85f, "painted_plaster_wall", "white_stucco");
+            BraxUliceKit.S(dab).Box(new Vector3(sx - 2.1f, y0 + .02f, sz - 1.6f), new Vector3(sx + 2.1f, y0 + .14f, sz + 1.45f), 4);                // podest (parkiet)
+            BraxUliceKit.S(tapeta).Box(new Vector3(sx - 2.1f, y0 + .02f, sz + 1.45f), new Vector3(sx + 2.1f, y0 + 2.9f, sz + 1.65f), 4);            // ściana salonu
+            BraxRegionMeble.Kolizja(g, "Muzeum kolizja: salon", new Vector3(sx, y0 + 1.45f, sz), new Vector3(4.2f, 2.9f, 3.3f));
+            float yp = y0 + .14f;
+            if (meble[0] && BraxRegion.Put(g, meble[0], "Muzeum: szafa gotycka (Poly Haven)", new Vector3(sx - 1.1f, yp, sz + .85f), 180f, 1f, false, 2.2f)) muzEksponatow++;
+            var kons = meble[1] ? BraxRegion.Put(g, meble[1], "Muzeum: konsola (Poly Haven)", new Vector3(sx + 1.0f, yp, sz + 1.15f), 180f, 1f, false, 1.0f) : null;
+            if (kons)
+            {
+                muzEksponatow++; var bk = BraxRegion.Bounds(kons);
+                var zeg = M("mantel_clock_01"); if (zeg && BraxRegion.Put(g, zeg, "Muzeum: zegar kominkowy (Poly Haven)", new Vector3(bk.center.x, bk.max.y, bk.center.z), 180f, 1f, false, .4f)) muzEksponatow++;
+                var lus = M("ornate_mirror_01"); if (lus && BraxRegion.Put(g, lus, "Muzeum: lustro (Poly Haven)", new Vector3(bk.center.x, bk.max.y + .55f, sz + 1.45f - .05f), 180f, 1f, false, .8f)) muzEksponatow++;
+            }
+            if (meble[2] && BraxRegion.Put(g, meble[2], "Muzeum: fotel (Poly Haven)", new Vector3(sx + .1f, yp, sz - .4f), 200f, 1f, false, 1.2f)) muzEksponatow++;
+            var kolow = M("spinning_wheel_01"); if (kolow && BraxRegion.Put(g, kolow, "Muzeum: kołowrotek (Poly Haven)", new Vector3(sx + 1.5f, yp, sz - .6f), 120f, 1f, false, 1.0f)) muzEksponatow++;
+            Barierka(new Vector3(sx - 2.35f, 0f, sz + 1.6f), new Vector3(sx - 2.35f, 0f, sz - 1.9f), new Vector3(sx + 2.35f, 0f, sz - 1.9f), new Vector3(sx + 2.35f, 0f, sz + 1.6f));
+            Pulpit(sx - 3.0f, sz - 2.2f, Vector3.back, "SALON MIESZCZAŃSKI");
+        }
         // ściana południowa: obrazy z kodu na przemian z obrazami w ramach (Poly Haven), barierka z linką
         string[] ramy = { "hanging_picture_frame_01", "hanging_picture_frame_02", "hanging_picture_frame_03" };
         int[] poludnie = { 2, 9, 12, 5, 13, 0, 7, 6, 8, 14, 1, 15 }; int ir = 0, io = 0;
@@ -339,7 +413,11 @@ public static partial class BraxRegionMiastoB
         Barierka(new Vector3(xi0 + 2f, 0f, zi0 + 1.4f), new Vector3(xi1 - 1.5f, 0f, zi0 + 1.4f));
         // ściana od wejścia (od strony sali): obrazy po obu stronach holu
         int[] polnoc = { 1, 13, 5, 15 }; float[] xN = { -15f, -9f, 9f, 15f };
-        for (int i = 0; i < 4; i++) { float x = cx + xN[i]; if (x > xi0 + 2f && x < xi1 - 2f && Mathf.Abs(x - rx) > 3f) ObrazNaScianie(new Vector3(x, 0f, zi1), Vector3.back, polnoc[i]); }
+        for (int i = 0; i < 4; i++)   // (obrazy olejne Poly Haven w złotych ramach wyrzucone 12.11 01:10 — bez złota)
+        {
+            float x = cx + xN[i]; if (x < xi0 + 2f || x > xi1 - 2f || Mathf.Abs(x - rx) < 3f) continue;
+            ObrazNaScianie(new Vector3(x, 0f, zi1), Vector3.back, polnoc[i]);
+        }
         // eksponat centralny: kotwica portowa (miasto portowe — ul. Portowa) na kamiennym cokole, z kodu: trzon, poprzeczka, ramiona
         // z łapami, pierścień; tablice działów na ścianach (litery 3D): PORT · SZTUKA · TECHNIKA
         {
@@ -371,6 +449,17 @@ public static partial class BraxRegionMiastoB
     {
         n = (n ?? "").ToLowerInvariant();
         if (n.Contains("bust")) return "POPIERSIE MARMUROWE";
+        if (n.Contains("horse_head")) return "GŁOWA KONIA";
+        if (n.Contains("bull_head")) return "GŁOWA BYKA";
+        if (n.Contains("shark")) return "REKIN Z BRĄZU";
+        if (n.Contains("video_camera")) return "KAMERA AMATORSKA";
+        if (n.Contains("camera")) return "APARAT FOTOGRAFICZNY";
+        if (n.Contains("projector")) return "PROJEKTOR FILMOWY";
+        if (n.Contains("gas_mask")) return "MASKA GAZOWA";
+        if (n.Contains("binocular")) return "LORNETKA";
+        if (n.Contains("radio_transceiver")) return "RADIOSTACJA";
+        if (n.Contains("wooden_lantern")) return "LATARNIA DREWNIANA";
+        if (n.Contains("lantern")) return "LATARNIA";
         if (n.Contains("horse")) return "RZEŹBA KONIA";
         if (n.Contains("tea_set")) return "SERWIS DO HERBATY";
         if (n.Contains("plate")) return "TALERZ RZEŹBIONY";
@@ -384,7 +473,7 @@ public static partial class BraxRegionMiastoB
 
     // gablota: postument z marmuru (0.9 m × K), szklany klosz z chromowaną ramą, eksponat w środku (model Poly Haven albo z kodu),
     // tabliczka; bez eksponatu gablota nie powstaje (żadnych pustych gablot)
-    static void Gablota(Transform g, Vector3 p, Material marmur, Material chrom, Material szklo, GameObject model, string nazwa, string opis = null, System.Action<Vector3> kod = null, float a = .45f, float c = .3f, float hgM = .6f)
+    static void Gablota(Transform g, Vector3 p, Material marmur, Material chrom, Material szklo, GameObject model, string nazwa, string opis = null, System.Action<Vector3> kod = null, float a = .45f, float c = .3f, float hgM = .6f, float yawModelu = 180f)
     {
         if (!model && kod == null) return;
         float k = K, hp = .9f * k, hg = hgM * k;
@@ -402,7 +491,7 @@ public static partial class BraxRegionMiastoB
         foreach (float z in new[] { p.z - c, p.z + c - .02f }) r.Box(new Vector3(p.x - a + .02f, y2, z), new Vector3(p.x + a - .02f, y2 + .02f, z + .02f));
         foreach (float x in new[] { p.x - a, p.x + a - .02f }) r.Box(new Vector3(x, y2, p.z - c + .02f), new Vector3(x + .02f, y2 + .02f, p.z + c - .02f));
         BraxRegionMeble.Kolizja(g, "Muzeum kolizja: gablota", new Vector3(p.x, p.y + (hp + hg) * .5f, p.z), new Vector3(2f * a, hp + hg, 2f * c));
-        if (model) { if (BraxRegion.Put(g, model, "Muzeum: " + nazwa + " (" + model.name + ")", new Vector3(p.x, y1 + .004f, p.z), 180f, 1f, false, hg - .08f)) muzEksponatow++; }
+        if (model) { if (BraxRegion.Put(g, model, "Muzeum: " + nazwa + " (" + model.name + ")", new Vector3(p.x, y1 + .004f, p.z), yawModelu, 1f, false, (hg - .08f) / k)) muzEksponatow++; }   // Put mnoży limit przez K
         else { kod(new Vector3(p.x, y1, p.z)); muzEksponatow++; }
         // tabliczka opisowa na postumencie (od zwiedzającego, +z), litery grafitowe na marmurze
         BraxRegionMeble.Napis(g, opis ?? OpisEksponatu(model ? model.name : null), new Vector3(p.x, p.y + hp * .78f, p.z + c + .01f), Vector3.forward, .05f * k, new Color(.13f, .13f, .14f));

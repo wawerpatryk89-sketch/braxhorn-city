@@ -84,6 +84,13 @@ MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     # MUZEUM w zabytku KINNAIRD (11.11, właściciel 20:06: „muzeum… ta Poly Haven pod to”) — eksponaty w gablotach (wpisy opcjonalne)
     # (wazy, serwis, talerz, telewizor, radio, okulary, lupa, zegar, kasa — już w liście niżej / wyżej)
     "marble_bust_01", "horse_statue_01", "antique_ceramic_vase_01",   # bez mosiężnych waz (zasada 10.11 — bez złota)
+    # 12.11 00:53 (właściciel: „jak coś możesz ściągnąć z Polyheaven zabytkowego, to ściągnij do tej muzeum”) — zabytki CC0 bez złota
+    # i mosiądzu (bez zegarków kieszonkowych, mikroskopu, kompasu, skrzyni ze złotem, złotych ram, mosiężnego żyrandola i lampy) i bez najcięższych siatek (książki, szachy, galeony)
+    "dutch_ship_medium", "Lantern_01", "wooden_lantern_01",
+    "gothic_statue", "bronze_whale_statue", "bronze_shark_statue", "horse_head", "bull_head",
+    "antique_estoc", "antique_katana_01", "ornate_medieval_dagger", "ornate_medieval_mace", "ornate_war_hammer", "kite_shield",
+    "Camera_01", "filmstrip_projector_8mm", "vintage_video_camera", "old_gas_mask", "binoculars", "vintage_radio_transceiver", "vintage_telephone_wall_clock",
+    "GothicCabinet_01", "ClassicConsole_01", "mantel_clock_01", "ornate_mirror_01", "spinning_wheel_01",
     "industrial_wall_lamp", "industrial_wall_sconce", "security_camera_01",
     # tyły siłowni: biura w wieżowcu A, warsztaty pod wiaduktem, wzgórze
     "rollershutter_door", "metal_office_desk", "classic_laptop", "desk_lamp_arm_01", "office_notepads", "stationery_supplies",

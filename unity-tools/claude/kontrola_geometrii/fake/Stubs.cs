@@ -47,6 +47,7 @@ public static class BraxRegion
     public static void Note(string t) => Rejestr.Notatki.Add(t);
     public static Transform Root(Transform parent, string name) { var g = new GameObject(name); g.transform.SetParent(parent, false); return g.transform; }
     static readonly Dictionary<string, GameObject> modele = new Dictionary<string, GameObject>();
+    public static Bounds Bounds(GameObject o) => new Bounds(o ? o.transform.position + Vector3.up * .5f : Vector3.zero, Vector3.one);   // podgląd: modele Poly Haven nie mają siatek
     public static GameObject Model(params string[] ids)
     {
         foreach (var id in ids)
@@ -194,5 +195,8 @@ public static class BraxSklepyTowar
 {
     public static bool Ma(string typ) => false;
     public static void Polka(string typ, Transform parent, Vector3 start, Vector3 wzdl, Vector3 wglab, float dl, System.Random rng, float maxWys = 99f) { }
+    public static void Lada(string typ, Transform parent, Vector3 start, Vector3 wzdl, Vector3 wglab, float dl, System.Random rng) { }
+    public static Transform Korzen(Transform bg, string szyld) { var t = new GameObject("Towar: " + szyld).transform; t.SetParent(bg, false); return t; }
+    public static void Zakoncz(Transform t, string szyld) { }
 }
 namespace UnityEngine { public static class ColorUtility { public static string ToHtmlStringRGB(Color c) => ((int)(Mathf.Clamp01(c.r) * 255)).ToString("X2") + ((int)(Mathf.Clamp01(c.g) * 255)).ToString("X2") + ((int)(Mathf.Clamp01(c.b) * 255)).ToString("X2"); } }

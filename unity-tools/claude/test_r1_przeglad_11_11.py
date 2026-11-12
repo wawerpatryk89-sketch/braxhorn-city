@@ -257,6 +257,36 @@ class Muzeum(unittest.TestCase):
         self.assertNotIn("Mathf.Pow(Mathf.Cos(a)", k)                      # bez NaN w kadłubach (cos < 0 na burcie)
         self.assertIn("wierzchołki NaN", src(ROOT / "unity-tools" / "claude" / "kontrola_geometrii" / "Program.cs"))
 
+    def test_original_books_in_museum_shop(self):
+        # 12.11 00:53 „oryginalne książki mamy w bibliotece… dołączyłeś oryginalne, czy te podróby twoje?” — paczka miasto_sklepy
+        k = src(R / "BraxMuzeumKod.cs")
+        self.assertIn('BraxSklepyTowar.Ma("ksiegarnia")', k)
+        self.assertIn('BraxSklepyTowar.Polka("ksiegarnia"', k)
+        self.assertIn("BraxSklepyTowar.Lada(", k)
+
+    def test_poly_haven_antiques(self):
+        # 12.11 00:53 „jak coś możesz ściągnąć z Polyheaven zabytkowego, to ściągnij do tej muzeum” + 01:10 „jeżeli coś się nie nadaje… wyrzucaj”
+        m, k = src(R / "BraxMuzeum.cs"), src(R / "BraxMuzeumKod.cs")
+        f = src(ROOT / "unity-tools" / "claude" / "fetch_region.py")
+        ids = ["dutch_ship_medium", "Lantern_01", "wooden_lantern_01", "gothic_statue", "bronze_whale_statue", "bronze_shark_statue",
+               "horse_head", "bull_head", "antique_estoc", "antique_katana_01", "ornate_war_hammer", "kite_shield", "ornate_medieval_mace",
+               "ornate_medieval_dagger", "Camera_01", "filmstrip_projector_8mm", "vintage_video_camera", "old_gas_mask", "binoculars",
+               "vintage_radio_transceiver", "vintage_telephone_wall_clock", "GothicCabinet_01", "ClassicConsole_01", "mantel_clock_01",
+               "ornate_mirror_01", "spinning_wheel_01"]
+        for i in ids:
+            self.assertIn('"' + i + '"', f, i)
+            self.assertIn('"' + i + '"', m, i)
+        for wyrzucone in ["cannon_01", "fancy_picture_frame_01", "fancy_picture_frame_02", "Chandelier_02", "vintage_oil_lamp"]:
+            self.assertNotIn('"' + wyrzucone + '"', f, wyrzucone)          # szkieletowa armata, złote ramy, mosiężny żyrandol i lampa
+            self.assertNotIn('"' + wyrzucone + '"', m, wyrzucone)
+        self.assertEqual(f.count('"ArmChair_01"'), 1)
+        for f2 in ["GablotaDuza(", "GablotaWysoka("]:
+            self.assertIn("public static Transform " + f2, k)
+            self.assertIn("BraxMuzeumKod." + f2, m)
+        self.assertIn("(hg - .08f) / k", m)                                  # limit wysokości w metrach realnych (bez podwójnego K)
+        for zakaz in ["brass", "gold", "pocket_watch"]:                       # zasada 10.11 — bez złota i mosiądzu
+            self.assertNotIn(zakaz, m.lower())
+
 
 class Narzedzia(unittest.TestCase):
     def test_compile_check_tool_present(self):
