@@ -64,13 +64,15 @@ class IslandBeachAndResort(unittest.TestCase):
         self.assertIn("PunktWidokowy()", BASE)
 
     def test_wc_has_real_walls_doors_and_recorded_entrances(self):
-        # WC murowane: cztery ściany z ościeżami, przegroda, podłoga, dwoje drzwi 0.9 × 2.1 m × K otwartych na zewnątrz
-        self.assertIn("float szerWC = .9f * K, wysWC = 2.1f * K", SOURCE)
-        self.assertIn('ScianaWC("tyl"', SOURCE)
-        self.assertIn('ScianaWC("przegroda"', SOURCE)
-        self.assertIn('BraxNabrzeze.Kol(kol, "WC plazy podloga"', SOURCE)
-        self.assertIn('BraxNabrzeze.KolRot(kol, "WC plazy otwarte drzwi"', SOURCE)
-        self.assertIn('wejsciaDomkow.Add((o < 0 ? "WC DAMSKI" : "WC MESKI"', SOURCE)
+        # 12.11: WC plażowe premium (pawilon za deptakiem) — ściany z kolizją, przegroda, posadzka, dwoje drzwi 0.9 × 2.1 m × K
+        # na zawiasach (zamknięte, otwierają się przy podejściu — BraxCityDoor), wejścia zapisane
+        self.assertIn("float dW = .9f * K, dH = 2.1f * K;", SOURCE)
+        self.assertIn('KolW("tyl"', SOURCE)
+        self.assertIn('KolW("przegroda"', SOURCE)
+        self.assertIn('KolW("podloga"', SOURCE)
+        self.assertIn('DrzwiObrotowe("WC plażowe " + (dx < 0 ? "damskie" : "męskie") + " — wejście"', SOURCE)
+        self.assertNotIn('"WC plazy otwarte drzwi"', SOURCE)
+        self.assertIn('wejsciaDomkow.Add((dam ? "WC DAMSKI" : "WC MESKI"', SOURCE)
         self.assertGreater(2.1 * 1.294, 2.25)  # Brax controller height
 
     def test_resort_paths_are_slabs_with_plinth_grade_limit_and_physics(self):

@@ -319,62 +319,105 @@ internal static partial class BraxMiastoWyspa
             // prysznic obok przebieralni
             var pr = c + rg * 3.6f * K; pr.y = Y(pr.x, pr.z); BraxNabrzezeMebel.Prysznic(z, str, m, pr, rot.eulerAngles.y); Zajmij(pr, 1f);
         }
-        // WC (budynek murowany z dwojgiem drzwi)
+        // WC PLAŻOWE PREMIUM (12.11, właściciel 13:51: „WC stoją na chodnikach… wszystko przejrzyj”): pawilon 7.8 × 4.9 m za
+        // deptakiem (50 m od wody, deptak 38 m — 8 m piasku), z WŁASNYM dojściem z desek od deptaku do drzwi (nie stoi na żadnym
+        // chodniku). Cokół z granitu, ściany tynk biały + lamele z teku na froncie (3 cm od ściany), dach płaski z okapem 0.6 m,
+        // pas LED pod okapem, litery 3D. W środku: płytki long_white_tiles na całą wysokość (panel 2.5 cm), posadzka z płyt, sufit,
+        // kabiny HPL dąb, miski wiszące, pisuary, umywalki z wodą i lustra z odbiciem (BraxCeramika — wspólne R1), światło.
         {
-            float ang = 270f; var c = Zaplecze(ang, 48f); var rot = KuMorzu(ang); var fw = rot * Vector3.forward; var rg = rot * Vector3.right;
-            float w = 5f * K, d = 3.5f * K, h = 2.8f * K;
-            float y0 = W; for (float a = -1; a <= 1; a += 1) for (float b = -1; b <= 1; b += 1) { var q = c + rg * a * w * .5f + fw * b * d * .5f; y0 = Mathf.Max(y0, Y(q.x, q.z)); }
-            y0 += .15f; float yMin = Mathf.Min(Y(c.x - w, c.z - d), Y(c.x + w, c.z + d), Y(c.x, c.z)) - .3f;
-            z[BraxNabrzeze.Kolor("Wyspa: cokół WC (beton)", new Color(.6f, .6f, .58f), .9f)].Box(new Vector3(c.x, (yMin + y0) * .5f, c.z), new Vector3(w + .1f, y0 - yMin, d + .1f), rot);
-            Vector3 Wc(float x, float y, float zz) => new Vector3(c.x, y0, c.z) + rg * x + Vector3.up * y + fw * zz;
-            void ScianaWC(string nazwa, Vector3 srodek, Vector3 rozmiar)
+            float ang = 270f; var c = Zaplecze(ang, 50f); var rot = KuMorzu(ang); var fw = rot * Vector3.forward; var rg = rot * Vector3.right;
+            float w = 6.0f * K, d = 3.8f * K, h = 2.9f * K, tw = .15f;
+            float y0 = W; for (float a = -1; a <= 1; a += .5f) for (float b = -1; b <= 1; b += .5f) { var q = c + rg * a * w * .5f + fw * b * d * .5f; y0 = Mathf.Max(y0, Y(q.x, q.z)); }
+            y0 += .2f; float yMin = W; { yMin = 99f; for (float a = -1; a <= 1; a += .5f) for (float b = -1; b <= 1; b += .5f) { var q = c + rg * a * w * .5f + fw * b * d * .5f; yMin = Mathf.Min(yMin, Y(q.x, q.z)); } yMin -= .3f; }
+            var granitW = BraxMiastoA.Tex("Wyspa WC plażowe: cokół (granit szary)", 1.6f, new Color(1f, 1f, 1f), new Color(.55f, .55f, .55f), .7f, "granite_tile", "granite_tile_04");
+            var tynkW = BraxMiastoA.Tex("Wyspa WC plażowe: tynk biały", 2f, Farba(new Color(.96f, .96f, .95f)), new Color(.93f, .93f, .91f), .85f, "white_plaster_02", "white_stucco");
+            var plytW = BraxMiastoA.Tex("Wyspa WC plażowe: płytki ścian (białe, długie)", 1.0f, new Color(1.05f, 1.05f, 1.05f), new Color(.93f, .93f, .92f), .25f, "long_white_tiles", "floor_tiles_02");
+            var posW = BraxMiastoA.Tex("Wyspa WC plażowe: posadzka (płyty wielkoformatowe)", 2.0f, new Color(1f, 1f, 1f), new Color(.6f, .6f, .62f), .5f, "large_floor_tiles_02", "granite_tile_04");
+            var teakW = BraxMiastoA.Tex("Wyspa WC plażowe: lamele z teku", 1.2f, new Color(1f, .95f, .88f), new Color(.6f, .42f, .26f), .6f, "teak_veneer", "oak_veneer_01");
+            var hplW = BraxMiastoA.Tex("Wyspa WC plażowe: płyty HPL kabin (dąb)", 1.2f, new Color(1f, .97f, .92f), new Color(.62f, .48f, .32f), .5f, "oak_veneer_01", "wood_floor");
+            var czarnyW = BraxMiastoA.Mat("Wyspa WC plażowe: czarny mat (okap, ramy)", new Color(.035f, .035f, .04f), .5f, .3f);
+            var ledW = BraxMiastoA.Swieci("Wyspa WC plażowe: pas LED pod okapem", new Color(.98f, .96f, .9f), new Color(1.5f, 1.45f, 1.35f));
+            Vector3 L(float x, float y, float zz) => new Vector3(c.x, y0, c.z) + rg * x + Vector3.up * y + fw * zz;
+            void Bx(Material mat, float x0, float x1, float ya, float yb, float z0, float z1) => z[mat].Box(L((x0 + x1) * .5f, (ya + yb) * .5f, (z0 + z1) * .5f), new Vector3(Mathf.Abs(x1 - x0), Mathf.Abs(yb - ya), Mathf.Abs(z1 - z0)), rot);
+            void KolW(string n, float x0, float x1, float ya, float yb, float z0, float z1) => BraxNabrzeze.Kol(kol, "WC plazy " + n, L((x0 + x1) * .5f, (ya + yb) * .5f, (z0 + z1) * .5f), new Vector3(Mathf.Abs(x1 - x0), Mathf.Abs(yb - ya), Mathf.Abs(z1 - z0)), rot.eulerAngles.y);
+            float hw2 = w * .5f, hd2 = d * .5f;
+            // cokół i posadzka (płyty 2.5 cm nad cokołem)
+            z[granitW].Box(new Vector3(c.x, (yMin + y0) * .5f, c.z), new Vector3(w + .1f, y0 - yMin, d + .1f), rot);
+            Bx(posW, -hw2 + tw, hw2 - tw, -.03f, .025f, -hd2 + tw, hd2 + .03f);   // posadzka wychodzi 3 cm przed front (próg), spód 3 cm w cokole — bez wspólnych lic ze ścianami
+            KolW("podloga", -hw2, hw2, -.1f, .025f, -hd2, hd2);
+            // ściany: tył, boki, przegroda w osi, front z dwojgiem drzwi (0.9 × 2.1 m × k) — bryły z tynku, kolizje
+            float dW = .9f * K, dH = 2.1f * K; float[] dX = { -w * .25f, w * .25f };
+            Bx(tynkW, -hw2, hw2, 0f, h, -hd2, -hd2 + tw); KolW("tyl", -hw2, hw2, 0f, h, -hd2, -hd2 + tw);
+            // boki i przegroda wchodzą 5 cm w ścianę tylną (czoła w środku bryły — bez wspólnych lic z posadzką)
+            foreach (float sx in new[] { -1f, 1f }) { Bx(tynkW, sx * hw2 - (sx > 0 ? tw : 0f), sx * hw2 + (sx < 0 ? tw : 0f), 0f, h, -hd2 + .05f, hd2); KolW("bok", sx * hw2 - (sx > 0 ? tw : 0f), sx * hw2 + (sx < 0 ? tw : 0f), 0f, h, -hd2 + tw, hd2); }
+            Bx(tynkW, -.08f, .08f, 0f, h, -hd2 + .05f, hd2 - tw); KolW("przegroda", -.08f, .08f, 0f, h, -hd2 + tw, hd2 - tw);   // ściana instalacyjna 16 cm (przyłącza pisuarów i misek w środku)
+            float fx = -hw2 + .05f;   // front wchodzi 5 cm w boki (czoła w środku bryły)
+            foreach (float dx in dX)
             {
-                z[tynk].Box(srodek, rozmiar, rot);
-                BraxNabrzeze.Kol(kol, "WC plazy " + nazwa, srodek, rozmiar, rot.eulerAngles.y);
+                if (dx - dW * .5f - fx > .01f) { Bx(tynkW, fx, dx - dW * .5f, 0f, h, hd2 - tw, hd2); KolW("front", fx, dx - dW * .5f, 0f, h, hd2 - tw, hd2); }
+                Bx(tynkW, dx - dW * .5f, dx + dW * .5f, dH, h, hd2 - tw, hd2); KolW("nadproze", dx - dW * .5f, dx + dW * .5f, dH, h, hd2 - tw, hd2);
+                fx = dx + dW * .5f;
             }
-            // Cztery realne sciany zamiast pelnej bryly. Dwa przejscia w scianie
-            // frontowej maja rzeczywiste oscieza, a nie tylko namalowane drzwi.
-            ScianaWC("tyl", Wc(0f, h * .5f, -d * .5f), new Vector3(w, h, .12f));
-            foreach (float o in new[] { -1f, 1f })
-                ScianaWC("bok", Wc(o * w * .5f, h * .5f, 0f), new Vector3(.12f, h, d));
-            float szerWC = .9f * K, wysWC = 2.1f * K, poczWC = -w * .5f;
-            foreach (float x in new[] { -w * .25f, w * .25f })
+            if (hw2 - .05f - fx > .01f) { Bx(tynkW, fx, hw2 - .05f, 0f, h, hd2 - tw, hd2); KolW("front", fx, hw2 - tw, 0f, h, hd2 - tw, hd2); }
+            // lamele z teku na froncie (między drzwiami i na skrajach), 3 cm od tynku, 4 × 4 cm co 9 cm, od 0.3 m do okapu
+            foreach (var (la, lb) in new[] { (-hw2 + .25f, dX[0] - dW * .5f - .25f), (dX[0] + dW * .5f + .25f, dX[1] - dW * .5f - .25f), (dX[1] + dW * .5f + .25f, hw2 - .25f) })
+                for (float xx = la; xx <= lb + .001f; xx += .09f) Bx(teakW, xx - .02f, xx + .02f, .3f, h - .05f, hd2 + .03f, hd2 + .07f);
+            // dach płaski z okapem 0.6 m, opaska czarna, pas LED pod okapem z przodu
+            Bx(tynkW, -hw2 - .6f, hw2 + .6f, h, h + .2f, -hd2 - .6f, hd2 + .6f);
+            Bx(czarnyW, -hw2 - .62f, hw2 + .62f, h - .02f, h + .24f, hd2 + .6f, hd2 + .63f);   // opaska 3 cm (lico ≥ 2 cm przed płytą)
+            Bx(ledW, -hw2 + .3f, hw2 - .3f, h - .03f, h - .005f, hd2 + .32f, hd2 + .38f);
+            // ościeżnice czarne (2.5 cm przed tynkiem) i skrzydła drzwi (HPL dąb) — zamknięte, na zawiasach
+            foreach (float dx in dX)
             {
-                float x0 = x - szerWC * .5f, x1 = x + szerWC * .5f;
-                if (x0 > poczWC + .01f)
-                    ScianaWC("front", Wc((poczWC + x0) * .5f, h * .5f, d * .5f),
-                        new Vector3(x0 - poczWC, h, .12f));
-                ScianaWC("nad drzwiami", Wc(x, (wysWC + h) * .5f, d * .5f),
-                    new Vector3(szerWC, h - wysWC, .12f));
-                poczWC = x1;
+                foreach (float e in new[] { -1f, 1f }) Bx(czarnyW, dx + e * (dW * .5f + .01f) - .03f, dx + e * (dW * .5f + .01f) + .03f, .025f, dH + .06f, hd2, hd2 + .025f);   // ościeżnica obejmuje krawędź otworu (2 cm w świetle)
+                Bx(czarnyW, dx - dW * .5f - .06f, dx + dW * .5f + .06f, dH, dH + .06f, hd2, hd2 + .025f);
+                // drzwi ZAMKNIĘTE w otworze (oś ściany frontowej), otwierają się przy podejściu (BraxCityDoor), klamki po obu stronach
+                DrzwiObrotowe("WC plażowe " + (dx < 0 ? "damskie" : "męskie") + " — wejście", L(dx - dW * .5f + .015f, 0f, hd2 - tw * .5f), rg, fw, dW - .03f, dH - .02f, .03f, hplW);
             }
-            if (poczWC < w * .5f - .01f)
-                ScianaWC("front", Wc((poczWC + w * .5f) * .5f, h * .5f, d * .5f),
-                    new Vector3(w * .5f - poczWC, h, .12f));
-            // Podloga obu pomieszczen, bez pudelkowego collidera zaslaniajacego drzwi.
-            z[tynk].Box(Wc(0f, .02f, 0f), new Vector3(w - .2f, .04f, d - .2f), rot);
-            BraxNabrzeze.Kol(kol, "WC plazy podloga", Wc(0f, 0f, 0f),
-                new Vector3(w, .08f, d), rot.eulerAngles.y);
-            ScianaWC("przegroda", Wc(0f, h * .5f, -.16f),
-                new Vector3(.10f, h, d - .32f));
-            z[dach].Box(Wc(0f, h + .08f, 0f), new Vector3(w + .6f, .16f, d + .6f), rot);
-            foreach (float o in new[] { -1f, 1f })
+            // każda połowa: płytki od środka (panel 2.5 cm na całą wysokość), sufit, kabina/kabiny, ceramika, umywalka z lustrem, światło
+            foreach (float sx in new[] { -1f, 1f })
             {
-                var dp = Wc(o * w * .25f, 0f, d * .5f + .025f);
-                var zawiasWC = dp - rg * (szerWC * .5f - .02f);
-                var otwarteWC = zawiasWC + fw * (szerWC * .5f);
-                var obrotWC = Quaternion.LookRotation(rg, Vector3.up);
-                z[drzwi].Box(otwarteWC + Vector3.up * (wysWC * .5f),
-                    new Vector3(szerWC, wysWC, .05f), obrotWC);
-                BraxNabrzeze.KolRot(kol, "WC plazy otwarte drzwi",
-                    otwarteWC + Vector3.up * (wysWC * .5f),
-                    new Vector3(szerWC, wysWC, .05f), obrotWC);
-                BraxUliceKit.Napis3D(o < 0 ? "WC DAMSKI" : "WC MĘSKI", dp + Vector3.up * (2.1f * K + .25f) + fw * .02f, fw, .16f, .015f, BraxMiastoA.Mat("Wyspa: litery granat", new Color(.1f, .16f, .3f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
-                wejsciaDomkow.Add((o < 0 ? "WC DAMSKI" : "WC MESKI",
-                    dp + fw * .7f, dp - fw * .85f));
+                bool dam = sx < 0;
+                float xa = sx < 0 ? -hw2 + tw : .08f, xb = sx < 0 ? -.08f : hw2 - tw, za = -hd2 + tw, zb = hd2 - tw;   // wnętrze połowy
+                float yT = h - .03f, tT = .025f;   // płytki na całą wysokość, do spodu sufitu — lustro nie wisi nad uskokiem
+                Bx(plytW, xa, xb, .025f, yT, za, za + tT);                                                                  // tył
+                Bx(plytW, sx < 0 ? xa : xb - tT, sx < 0 ? xa + tT : xb, .025f, yT, za + tT, zb - tT);                        // ściana zewnętrzna boku
+                Bx(plytW, sx < 0 ? xb - tT : xa, sx < 0 ? xb : xa + tT, .025f, yT, za + tT, zb - tT);                        // przegroda
+                Bx(tynkW, xa, xb, h - .03f, h - .005f, za, zb);                                                             // sufit
+                float xIn = sx < 0 ? xa + tT : xb - tT, xPr = sx < 0 ? xb - tT : xa + tT;   // lica płytek: ściana boczna / przegroda
+                var enB = rg * (sx < 0 ? 1f : -1f);   // od ściany bocznej do środka połowy
+                // kabina WC przy ścianie tylnej, od strony przegrody: HPL na nóżkach, drzwi na zawiasach (zamknięte), miska wisząca
+                float kw = 1.0f, kd = 1.55f, kx0 = sx < 0 ? xPr - kw : xPr, kx1 = sx < 0 ? xPr : xPr + kw, kz1 = za + tT + kd;
+                z[hplW].Box(L(sx < 0 ? kx0 : kx1, 1.15f, za + tT + kd * .5f), new Vector3(.03f, 2.0f, kd - .01f), rot);
+                z[hplW].Box(L(sx < 0 ? kx0 + .08f : kx1 - .08f, 1.15f, kz1), new Vector3(.16f, 2.0f, .03f), rot);
+                DrzwiObrotowe("WC plażowe " + (dam ? "damskie" : "męskie") + " — kabina", L(sx < 0 ? kx1 - .02f : kx0 + .02f, 0f, kz1), -enB, fw, kw - .2f, 2.0f, .15f, hplW);
+                BraxCeramika.MiskaWiszaca(L((kx0 + kx1) * .5f, .025f, za + tT), rg, fw);
+                KolW("miska", (kx0 + kx1) * .5f - .22f, (kx0 + kx1) * .5f + .22f, 0f, .45f, za + tT, za + tT + .6f);
+                if (!dam) for (int k = 0; k < 2; k++) { float zc = za + tT + kd + .55f + k * .75f; BraxCeramika.Pisuar(L(xPr, .025f, zc), fw, enB * -1f); KolW("pisuar", sx < 0 ? xPr - .4f : xPr, sx < 0 ? xPr : xPr + .4f, .4f, 1.1f, zc - .2f, zc + .2f); }
+                // umywalka z lustrem na ścianie bocznej (zewnętrznej), bliżej wejścia
+                float zU = zb - 1.2f;
+                BraxCeramika.ZestawUmywalkowy(root, "WC plażowe " + (dam ? "damskie" : "męskie"), L(xIn, .025f, zU), fw, enB, .9f);
+                KolW("blat umywalki", sx < 0 ? xIn : xIn - .5f * K, sx < 0 ? xIn + .5f * K : xIn, 0f, .85f * K, zU - .45f, zU + .45f);
+                BraxRegion.Warm(root, "Wyspa: światło WC plażowego " + (dam ? "damskiego" : "męskiego"), L((xa + xb) * .5f, h - .5f, 0f), .6f, 4.5f);
+                BraxUliceKit.Napis3D(dam ? "WC DAMSKIE" : "WC MĘSKIE", L(dX[dam ? 0 : 1], dH + .3f, hd2 + .075f), fw, .16f, .015f, BraxMiastoA.Mat("Wyspa: litery granat", new Color(.1f, .16f, .3f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
+                var dp = L(dX[dam ? 0 : 1], 0f, hd2);
+                wejsciaDomkow.Add((dam ? "WC DAMSKI" : "WC MESKI", dp + fw * .7f, dp - fw * .85f));
             }
             Zajmij(c, Mathf.Max(w, d) * .7f);
-            Miejsca["wyspa_wc"] = c + fw * (d * .5f + 1.2f);
+            Miejsca["wyspa_wc"] = L(0f, 0f, hd2 + 1.2f);
+            // DOJŚCIE z desek od deptaku do drzwi (szerokość = cały front, deski poprzeczne, legary, kolizja) — WC obok deptaku, nie na nim
+            {
+                float rsW = LiniaWody(ang); var dd = new Vector3(Mathf.Cos(ang * Mathf.Deg2Rad), 0, Mathf.Sin(ang * Mathf.Deg2Rad));
+                var a0 = L(0f, 0f, hd2 + .05f); var a1 = new Vector3(CX, 0, CZ) + dd * (rsW - 38f - hw - .1f);   // kończy się 6 cm przed deską czołową deptaku
+                float yA = y0 + .025f, yB = yA; float bestD = 1e9f; foreach (var q in plazaDeptak) { float dq = (new Vector2(q.x - a1.x, q.z - a1.z)).sqrMagnitude; if (dq < bestD) { bestD = dq; yB = q.y; } }
+                var kier = a1 - a0; kier.y = 0; float len = kier.magnitude; if (len > .5f)
+                {
+                    kier /= len; var rk = Quaternion.LookRotation(kier, Vector3.up); float sz = w * .5f - .2f;
+                    for (float t = .08f; t < len - .05f; t += .16f) { var q = Vector3.Lerp(new Vector3(a0.x, yA, a0.z), new Vector3(a1.x, yB, a1.z), t / len); z[deski].Box(q + Vector3.down * .025f, new Vector3(sz * 2f, .05f, .14f), rk); }
+                    foreach (float o in new[] { -sz + .25f, 0f, sz - .25f }) { var p0 = new Vector3(a0.x, yA - .13f, a0.z) + rk * Vector3.right * o; var p1 = new Vector3(a1.x, yB - .13f, a1.z) + rk * Vector3.right * o; z[legar].Box((p0 + p1) * .5f, new Vector3(.12f, .16f, len), Quaternion.LookRotation((p1 - p0).normalized, Vector3.up)); }
+                    BraxNabrzeze.KolRot(kol, "Dojście do WC plażowego", (new Vector3(a0.x, yA, a0.z) + new Vector3(a1.x, yB, a1.z)) * .5f + Vector3.down * .1f, new Vector3(sz * 2f, .2f, len + .05f), Quaternion.LookRotation((new Vector3(a1.x, yB, a1.z) - new Vector3(a0.x, yA, a0.z)).normalized, Vector3.up));
+                }
+            }
         }
         // WYPOŻYCZALNIA: kiosk z ladą, stojak z deskami SUP, rowerki wodne przy wodzie
         {

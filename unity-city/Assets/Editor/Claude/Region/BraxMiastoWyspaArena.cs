@@ -378,7 +378,7 @@ internal static partial class BraxMiastoWyspa
         float zt0 = zIn - sg * t, zt1 = zOut + sg * t;
         ApSciana(false, x1 + .0475f, Mathf.Min(zt0, zt1), Mathf.Max(zt0, zt1), .095f, F, F + h, null, apPlytki, apAkust, false);
         ApSufitPom(xM, x1, zA, zB, F + h, F + h + .15f, new List<Rect> { Rect.MinMaxRect(xM + .3f, (zA + zB) * .5f - .25f, xM + 1.6f, (zA + zB) * .5f + .25f) }, xM - t, x1 + .095f, zA - (sg < 0 ? t : 0f), zB + (sg > 0 ? t : 0f));
-        var podl = BraxMiastoA.Tex("Arena: posadzka natrysków (płytki antypoślizgowe)", .6f, new Color(.9f, .9f, .92f), new Color(.6f, .6f, .62f), .7f, "anti_skid_tiles", "large_floor_tiles_02");
+        var podl = BraxMiastoA.Tex("Arena: posadzka natrysków (płyty szare, antypoślizgowe)", 1.2f, new Color(.92f, .92f, .94f), new Color(.6f, .6f, .62f), .7f, "large_floor_tiles_02", "anti_skid_tiles");
         BraxUliceKit.S(podl).Quad(new Vector3(xM, F + .025f, zA), new Vector3(x1, F + .025f, zA), new Vector3(x1, F + .025f, zB), new Vector3(xM, F + .025f, zB), Vector3.up);
         float yP = F + .025f; var ws = new Vector3(0, 0, -sg);
         // natryski: 2 × 0.9 m przy ścianie dalekiej, przegrody szklane 0.95 m w czarnych profilach
@@ -405,10 +405,8 @@ internal static partial class BraxMiastoWyspa
         D(hplDab).OBox(new Vector3(wx0 + .02f, F + 1.15f, zOut + ws.z * kd * .5f), Vector3.forward, Vector3.up, Vector3.right, kd - .01f, 2.0f, .03f);
         var front = zOut + ws.z * kd;
         D(hplDab).OBox(new Vector3(wx1 - .07f, F + 1.15f, front), Vector3.right, Vector3.up, ws, .12f, 2.0f, .03f);
-        var kier = Quaternion.AngleAxis(sg * 30f, Vector3.up) * Vector3.right; var zaw = new Vector3(wx0 + .04f, F + .15f, front);
         float dwid = (wx1 - .13f) - (wx0 + .04f);
-        D(hplDab).OBox(zaw + kier * (dwid * .5f) + Vector3.up * 1.0f, kier, Vector3.up, Vector3.Cross(kier, Vector3.up), dwid - .01f, 2.0f, .028f);
-        KolA("drzwi kabiny", zaw + kier * (dwid * .5f) + Vector3.up * 1.0f, kier, new Vector3(dwid, 2.0f, .03f));
+        DrzwiObrotowe((sg > 0 ? "szatnia Braxa" : "szatnia gości") + " WC kabina", new Vector3(wx0 + .04f, F, front), Vector3.right, ws, dwid - .01f, 2.0f, .15f, hplDab);
         BraxCeramika.MiskaWiszaca(new Vector3(wc, yP, zOut), Vector3.right, ws);
         KolAA("miska WC", new Vector3(wc - .22f, F, Mathf.Min(zOut, zOut + ws.z * .6f)), new Vector3(wc + .22f, F + .45f, Mathf.Max(zOut, zOut + ws.z * .6f)));
         // wieszaki na ręczniki na ścianie od strony szatni (płytki), ręczniki
@@ -505,16 +503,41 @@ internal static partial class BraxMiastoWyspa
         }
         apElem++;
     }
-    // drzwi wewnętrzne otwarte 90° (skrzydło przy ścianie, klamka), zawias w a, skrzydło w stronę sd (±1 wzdłuż normalnej)
+    // DRZWI DZIAŁAJĄCE (12.11, właściciel 15:27: „co z tymi drzwiami do WC — rozpierdolone”): dawniej skrzydła stały na sztywno
+    // uchylone pod kątem (wyglądały jak wyrwane). Teraz każde skrzydło jest ZAMKNIĘTE w otworze i otwiera się samo przy podejściu
+    // (BraxCityDoor — jak drzwi lokali R1: od gracza, zamyka się samo po 3 s, AKCJA), z klamkami po obu stronach i kolizją
+    // jadącą ze skrzydłem. zawias = punkt na posadzce w osi zawiasu, wzdluz = od zawiasu wzdłuż zamkniętego skrzydła, n = normalna
+    // ściany; skrzydło w = szerokość, h = wysokość, yDol = prześwit pod skrzydłem (kabiny 15 cm).
+    internal static void DrzwiObrotowe(string label, Vector3 zawias, Vector3 wzdluz, Vector3 n, float w, float h, float yDol, Material m, Material klamkaM = null)
+    {
+        n.y = 0f; n.Normalize(); wzdluz.y = 0f; wzdluz.Normalize();
+        var r = new GameObject("Drzwi: " + label).transform; r.SetParent(root, false);
+        r.position = zawias; r.rotation = Quaternion.LookRotation(n, Vector3.up);
+        float dir = Vector3.Dot(wzdluz, Vector3.Cross(Vector3.up, n)) >= 0f ? 1f : -1f;
+        var z = new GameObject(label + " — skrzydło (zawias)").transform; z.SetParent(r, false);
+        var sk = new UlSiatka(); var kl = new UlSiatka();
+        Vector3 A = new Vector3(dir * .005f, yDol, -.02f), B = new Vector3(dir * (w - .005f), yDol + h, .02f);
+        sk.Poducha(Vector3.Min(A, B), Vector3.Max(A, B), .006f, 0f, 2);
+        float xk = dir * (w - .09f), yk = 1.0f * K;
+        foreach (float sz in new[] { -1f, 1f })
+        {
+            var rz = new Vector3(xk, yk, sz * .02f);
+            kl.Rura(rz, rz + new Vector3(0, 0, sz * .05f), .009f, 8);
+            kl.Rura(rz + new Vector3(0, 0, sz * .05f), rz + new Vector3(-dir * .12f, 0, sz * .05f), .009f, 8);
+        }
+        BraxMiastoA.Obiekt(z, label + " — skrzydło", sk, m, true);
+        BraxMiastoA.Obiekt(z, label + " — klamki", kl, klamkaM ? klamkaM : (apChrom ? apChrom : BraxMiastoA.Mat("Arena premium: chrom", new Color(.84f, .85f, .87f), .12f, .95f)), true);
+        var col = z.gameObject.AddComponent<BoxCollider>(); col.center = new Vector3(dir * w * .5f, yDol + h * .5f, 0f); col.size = new Vector3(w - .01f, h, .04f);
+        var d = r.gameObject.AddComponent<BraxCityDoor>(); d.id = "wyspa_drzwi_" + BraxUliceKit.Bezpieczna(label); d.label = label; d.leaves = new[] { z }; d.sides = new[] { dir };
+        apElem++;
+    }
+    // drzwi wewnętrzne w otworze ściany osiowej (wzdX — ściana wzdłuż x na z = cc, inaczej wzdłuż z na x = cc), zawias w a,
+    // skrzydło szerokości w; zamknięte w osi ściany, otwierają się przy podejściu (DrzwiObrotowe). sd i kier — zgodność wywołań.
     static void ApSkrzydlo(bool wzdX, float cc, float a, float w, float h, float sd, float kier, Material m)
     {
         Vector3 R = wzdX ? Vector3.right : Vector3.forward, Nn = wzdX ? Vector3.forward : Vector3.right;
-        var zaw = wzdX ? new Vector3(a, apF, cc) : new Vector3(cc, apF, a);
-        var c = zaw + R * (kier * .03f) + Nn * (sd * (w * .5f + .05f)) + Vector3.up * (h * .5f);
-        D(m).OBox(c, Nn, Vector3.up, R, w - .02f, h - .02f, .04f);
-        var kl = c + Nn * (sd * (w * .5f - .1f)) + Vector3.down * (h * .5f - 1.05f * K);
-        foreach (float e in new[] { -1f, 1f }) { D(apChrom).Rura(kl, kl + R * (e * .06f), .01f, 6); D(apChrom).Rura(kl + R * (e * .06f), kl + R * (e * .06f) - Nn * (sd * .11f), .009f, 6); }
-        KolA("skrzydło drzwi", c, R, new Vector3(w - .02f, h, .05f));
+        var zaw = (wzdX ? new Vector3(a, apF, cc) : new Vector3(cc, apF, a)) + R * .01f;
+        DrzwiObrotowe("drzwi " + (wzdX ? "z" : "x") + cc.ToString("F2") + "_" + a.ToString("F2"), zaw, R, Nn, w - .02f, h - .02f, .005f, m);
     }
     // sufit z wnękami na panele LED (płaszczyzna sufitu wycięta, panel 3 cm wyżej, ościeża wnęki) + daszek pomieszczenia (wierzch i opaska)
     static void ApSufitPom(float x0, float x1, float z0, float z1, float y, float yTop, List<Rect> panele, float ox0, float ox1, float oz0, float oz1)
@@ -1089,13 +1112,8 @@ internal static partial class BraxMiastoWyspa
                 // front: słupki boczne obok drzwi, nadświetle otwarte (jak w prawdziwych kabinach — 15 cm pod drzwiami)
                 float sl = (kw - dw) * .5f;
                 foreach (float sx in new[] { x0 + sl * .5f, x1 - sl * .5f }) hpl.OBox(new Vector3(sx, F + 1.15f, zK), Vector3.right, Vector3.up, new Vector3(0, 0, -su), sl - .012f, 2.0f, .03f);
-                // drzwi uchylone 35° do kabiny (zawias po lewej), zamek z wskaźnikiem, wieszak
-                var zaw = new Vector3(x0 + sl, F + .15f, zK);
-                var kier = Quaternion.AngleAxis(su * 35f, Vector3.up) * Vector3.right;
-                var dc = zaw + kier * (dw * .5f) + Vector3.up * 1.0f;
-                hpl.OBox(dc, kier, Vector3.up, Vector3.Cross(kier, Vector3.up), dw - .01f, 2.0f, .028f);
-                KolA("drzwi kabiny", dc, kier, new Vector3(dw, 2.0f, .03f));
-                D(apChrom).Rura(dc + kier * (dw * .4f) + Vector3.up * .05f + Vector3.Cross(kier, Vector3.up) * .02f, dc + kier * (dw * .4f) + Vector3.up * .05f + Vector3.Cross(kier, Vector3.up) * .07f, .012f, 8);
+                // drzwi kabiny ZAMKNIĘTE w froncie, otwierają się przy podejściu (DrzwiObrotowe), 15 cm prześwitu pod skrzydłem
+                DrzwiObrotowe(nz + " kabina " + (k + 1), new Vector3(x0 + sl + .005f, F, zK), Vector3.right, new Vector3(0, 0, -su), dw - .01f, 2.0f, .15f, hplDab);
                 // miska wisząca z przyciskiem (BraxCeramika), uchwyt papieru na przegrodzie, szczotka
                 BraxCeramika.MiskaWiszaca(new Vector3(xc, F, zF), ex, en);
                 var up0 = new Vector3(x0 + .02f, F + .75f, zF - su * .55f);
