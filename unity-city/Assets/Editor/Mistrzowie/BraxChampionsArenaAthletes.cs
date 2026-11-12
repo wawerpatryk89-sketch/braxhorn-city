@@ -234,14 +234,15 @@ public static partial class BraxChampionsArenaArrival
     }
 
     // One owner model (real metres, base at its pivot) under the nominal group g at p (nominal), yaw; g carries K later.
-    // tilt: the model turned about its own x after the yaw (90 = a standing pair of gloves laid down on its side);
+    // tilt / roll: the model turned about its own x / z after the yaw (90 = a standing pair of gloves laid down; about the
+    // axis the two gloves stand along, so they stay side by side on the bench and neither ends up in the air);
     // lift: how far its pivot (the base of the standing model) rises so the laid-down model rests on the surface
-    static bool GearModel(Transform g, string pack, string name, Vector3 p, float yaw, float tilt = 0f, float lift = 0f)
+    static bool GearModel(Transform g, string pack, string name, Vector3 p, float yaw, float tilt = 0f, float lift = 0f, float roll = 0f)
     {
         var src = BraxMiastoAssety.Model(pack, name); if (!src) return false;
         var o = BraxMiastoAssety.Postaw(g, src, "A1 szatnia | " + name, Vector3.zero, yaw, 1f, true, true);
         if (!o) return false;
-        o.transform.localPosition = p + Vector3.up * lift; o.transform.localRotation = Quaternion.Euler(0, yaw, 0) * Quaternion.Euler(tilt, 0, 0);
+        o.transform.localPosition = p + Vector3.up * lift; o.transform.localRotation = Quaternion.Euler(0, yaw, 0) * Quaternion.Euler(tilt, 0, roll);
         o.transform.localScale = Vector3.one;
         return true;
     }
@@ -250,36 +251,54 @@ public static partial class BraxChampionsArenaArrival
     {
         int n = 0;
         float seat = RoomFloorTop + SeatTop;
-        // the heavy bag (1.25 m with its straps and ring, bottom 0.60 m over the floor). Owner 12.11 12:45-12:48 ("popatrz w tej
-        // szatni, co jest nie tak", "ten worek na czym powiesiłeś? na czym to wisi?"): it hung on a thin rod from a ceiling disc
-        // in the walking line from the door. Now on a real wall bracket in the free front corner by the outer lockers: a black
-        // steel plate bolted to the front wall, a 60 x 60 mm boom 1.1 m out, a diagonal strut under it, a swivel and a shackle
-        // to the bag's ring (2.9 m from the lockers' fronts, 3.4 m from the vanity's end)
+        // the heavy bag (the owner's model: 1.0 m body + straps to a ring, 1.25 m in all). Owner 12.11 12:45-12:55 ("na czym to
+        // wisi?", "czy to wisi na dobrej wysokości?"): hung as in a boxing gym - the body's top at head height (1.85 m, bottom
+        // 0.85 m over the floor), on five real chain links from the eye of a welded wall bracket: a 10 mm steel plate
+        // 0.22 x 0.95 m on six anchor bolts, an 80 x 80 mm box arm 1.0 m out, a 60 mm tubular brace under it, an end cap,
+        // an eye plate and a swivel. In the free front corner by the outer lockers (2.9 m from their fronts), out of the
+        // walking line from the door.
         float wall = RoomFront + RoomWallHalf;
-        var bag = new Vector3(s * 18.4f, RoomFloorTop + .60f, wall + 1.05f);
+        var bag = new Vector3(s * 18.4f, RoomFloorTop + .85f, wall + 1.0f);
         if (GearModel(g, "sklep_sprzet_01", "worek_bokserski", bag, s * 20f))
         {
             n++;
-            float topY = bag.y + 1.25f, x = bag.x;
-            W.MM(steelDark, x - .11f, x + .11f, topY - .58f, topY + .26f, wall, wall + .012f);                       // wall plate
-            foreach (float bx in new[] { -.075f, .075f }) foreach (float by in new[] { -.52f, .20f })
-                W.Rura(bolt, new Vector3(x + bx, topY + by, wall + .012f), new Vector3(x + bx, topY + by, wall + .024f), .012f, 8);   // anchor bolts
-            W.MM(steelDark, x - .03f, x + .03f, topY + .10f, topY + .16f, wall + .012f, bag.z + .10f);              // boom
-            W.Rura(steelDark, new Vector3(x, topY - .52f, wall + .02f), new Vector3(x, topY + .10f, bag.z - .16f), .02f, 10);   // strut
-            W.Walec(bolt, new Vector3(x, topY + .055f, bag.z), .022f, .045f, 12);                                    // swivel
-            W.Rura(bolt, new Vector3(x, topY - .03f, bag.z), new Vector3(x, topY + .06f, bag.z), .007f, 8);          // shackle
+            float ring = bag.y + 1.25f, x = bag.x, arm = ring + .34f;          // the arm's underside: 5 links + swivel over the ring
+            W.MM(steelDark, x - .11f, x + .11f, arm - .78f, arm + .17f, wall, wall + .010f);                             // wall plate
+            foreach (float bx in new[] { -.075f, .075f }) foreach (float by in new[] { -.72f, -.32f, .12f })
+            {
+                W.Rura(bolt, new Vector3(x + bx, arm + by, wall + .010f), new Vector3(x + bx, arm + by, wall + .014f), .016f, 12);   // washer
+                W.Rura(bolt, new Vector3(x + bx, arm + by, wall + .014f), new Vector3(x + bx, arm + by, wall + .026f), .010f, 6);    // hex head
+            }
+            W.MM(steelDark, x - .04f, x + .04f, arm, arm + .08f, wall + .010f, bag.z + .12f);                           // box arm 80 x 80
+            W.MM(bolt, x - .042f, x + .042f, arm - .002f, arm + .082f, bag.z + .12f, bag.z + .124f);                    // end cap
+            W.Rura(steelDark, new Vector3(x, arm - .70f, wall + .03f), new Vector3(x, arm + .01f, bag.z - .14f), .03f, 12);   // brace
+            W.MM(steelDark, x - .005f, x + .005f, arm - .06f, arm, bag.z - .035f, bag.z + .035f);                      // eye plate
+            W.Walec(bolt, new Vector3(x, arm - .095f, bag.z), .016f, .04f, 12);                                          // swivel
+            // chain: five 54 x 26 mm links of 6 mm round bar, every other one turned a quarter
+            float top = arm - .095f;
+            for (int i = 0; i < 5; i++)
+            {
+                float y1 = top - i * .046f + .004f, y0 = y1 - .054f; bool turn = i % 2 == 1;
+                var d = turn ? new Vector3(.010f, 0, 0) : new Vector3(0, 0, .010f);
+                var c = new Vector3(x, 0, bag.z);
+                W.Rura(bolt, c + d + Vector3.up * y0, c + d + Vector3.up * y1, .003f, 6);
+                W.Rura(bolt, c - d + Vector3.up * y0, c - d + Vector3.up * y1, .003f, 6);
+                W.Rura(bolt, c - d * 1.3f + Vector3.up * y0, c + d * 1.3f + Vector3.up * y0, .003f, 6);
+                W.Rura(bolt, c - d * 1.3f + Vector3.up * y1, c + d * 1.3f + Vector3.up * y1, .003f, 6);
+            }
             W.Kolizja(new Vector3(x, bag.y + .62f, bag.z), new Vector3(.38f, 1.25f, .42f), Quaternion.identity);
         }
         // on the island bench (top at the seat height, z 45.2..46.0): gloves, head guards, the mouthguard box. Owner 12.11 12:45
         // "jak te rękawice stoją": the glove models stand on their cuffs (a shop display) - on the bench they lie on their side,
         // put down after training (turned 90 deg about their own x, lifted by half their depth so they rest on the leather)
-        foreach (var (pack, name, dx, dz, yaw, tilt, lift) in new[] {
-            ("sklep_walka_01", "rekawice_bokserskie_braxhorn_czarno_zlote", -2.35f, 45.40f, 75f, 90f, .118f),
-            ("sklep_sprzet_01", "rekawice_bokserskie", -1.55f, 45.75f, 110f, 90f, .141f),
-            ("sklep_walka_01", "kask_z_krata_czarno_zloty", 2.0f, 45.6f, 160f, 0f, 0f),
-            ("sklep_walka_01", s < 0 ? "kask_bokserski_czerwony" : "kask_bokserski_niebieski", 2.55f, 45.45f, 200f, 0f, 0f),
-            ("sklep_walka_01", "ochraniacz_szczeki_w_pudelku", .35f, 45.6f, 10f, 0f, 0f) })
-            if (GearModel(g, pack, name, new Vector3(mid + s * dx, seat + .002f, dz), yaw, tilt, lift)) n++;
+        foreach (var (pack, name, dx, dz, yaw, tilt, roll, lift) in new[] {
+            ("sklep_walka_01", "rekawice_bokserskie_braxhorn_czarno_zlote", -2.35f, 45.40f, 75f, 90f, 0f, .118f),   // the pair stands along x
+            // (the red pair of sklep_sprzet_01 is one rigid model of two leaning gloves: laid down, one glove hangs in the
+            // air - owner 12.11 12:55 "rękawiczki wiszą w powietrzu" - so it is not put here)
+            ("sklep_walka_01", "kask_z_krata_czarno_zloty", 2.0f, 45.6f, 160f, 0f, 0f, 0f),
+            ("sklep_walka_01", s < 0 ? "kask_bokserski_czerwony" : "kask_bokserski_niebieski", 2.55f, 45.45f, 200f, 0f, 0f, 0f),
+            ("sklep_walka_01", "ochraniacz_szczeki_w_pudelku", .35f, 45.6f, 10f, 0f, 0f, 0f) })
+            if (GearModel(g, pack, name, new Vector3(mid + s * dx, seat + .002f, dz), yaw, tilt, lift, roll)) n++;
         // on the floor by the outer lockers (lockers' fronts at |x| 21.3), clear of the bag: a rope, two kettlebells, dumbbells
         foreach (var (pack, name, ax, z, yaw) in new[] {
             ("sklep_sprzet_01", "skakanka", 19.4f, 43.4f, 30f),

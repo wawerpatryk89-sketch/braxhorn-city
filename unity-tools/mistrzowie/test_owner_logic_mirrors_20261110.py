@@ -18,7 +18,7 @@ class WalkoutLogic(unittest.TestCase):
         self.assertIn("public const int GateSide=5;", self.arena)             # V5-V6 faces -z, the fighters' door Z0
         self.assertIn("if (i == GateSide)", self.arena)
         self.assertIn("zs = cz - ap;", self.arena)                           # the octagon (fallback without the owner ring pack)
-        self.assertIn("if (!OwnerRing(cx, yF, cz)) {", self.arena)           # owner 12.11 12:07: his ring replaces the cage
+        self.assertNotIn("OwnerRing", self.arena)                            # owner 12.11 13:01: "ring, to nie jest klatka"
         self.assertNotIn("float zs = cz + ap;", self.arena)
 
     def test_public_carpet_never_reaches_the_cage(self):
