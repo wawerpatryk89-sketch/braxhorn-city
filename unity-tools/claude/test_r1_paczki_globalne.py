@@ -109,5 +109,13 @@ class SportTowar(unittest.TestCase):
         self.assertNotIn("manekin_bialy", s)                                 # białe manekiny odrzucone (11.11 23:22)
 
 
+class NovaChlodziarki(unittest.TestCase):
+    def test_nova_bar_fridges_from_code_not_glowing_block(self):
+        n = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxMiastoNova.cs").read_text()
+        self.assertIn("ChlodziarkiBarowe(bx, HX1 - .02f, BZ0, BZ1, lodowka, butelki, chrom);", n)
+        self.assertNotIn("BraxUliceKit.S(lodowka).Box(new Vector3(bx, F, BZ0)", n)   # koniec świecącej bryły
+        self.assertNotIn("xa - .004f", n)                                     # kratka w licu cokołu, nie 4 mm przed nim
+
+
 if __name__ == "__main__":
     unittest.main()

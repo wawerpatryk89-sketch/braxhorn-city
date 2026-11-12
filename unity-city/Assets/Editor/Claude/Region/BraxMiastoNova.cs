@@ -550,6 +550,69 @@ internal static class BraxMiastoNova
         BraxMiastoA.Akcja(root, "nova_parkiet", "TAŃCZ", "Parkiet: rezydent gra do rana.", new Vector3((DX0 + DX1) * .5f, F, (DZ0 + DZ1) * .5f), 3.0f);
     }
 
+    // CHŁODZIARKI PODBLATOWE BARU TYLNEGO (12.11, właściciel 02:05: „dokończ to, co masz”; zamiast świecącej bryły — zasada „zero
+    // klocków”): rząd szaf barowych ze stali czarnej, front do barmana (−x): cokół z kratką wentylacyjną, belka górna z listwą LED,
+    // słupki między drzwiami, drzwi przeszklone (szkło tylko w otworze ramy — bez nakładania lic), pionowe uchwyty ze stali;
+    // w środku podświetlone plecy, przegrody, dwie półki ze stali i towar: piwo w butelkach (brąz, zieleń), tonik i woda,
+    // na górnej półce puszki. Wysokość 0.95 m pod blatem roboczym, głębokość do ściany.
+    static void ChlodziarkiBarowe(float xa, float xb, float z0, float z1, Material wnetrze, Material butelki, Material stal)
+    {
+        var korpus = BraxUliceKit.S(BraxMiastoA.Mat("NOVA: chłodziarki barowe — stal czarna szczotkowana", new Color(.05f, .05f, .055f), .35f, .7f));
+        var kratka = BraxUliceKit.S(BraxMiastoA.Mat("NOVA: chłodziarki — kratka wentylacyjna", new Color(.012f, .012f, .014f), .8f, .2f));
+        var szyba = BraxUliceKit.S(BraxUliceKit.SzkloPrzezroczyste);
+        var st = BraxUliceKit.S(stal); var pl = BraxUliceKit.S(wnetrze); var bu = BraxUliceKit.S(butelki);
+        var led = BraxUliceKit.S(BraxMiastoA.Swieci("NOVA: chłodziarki — LED wnętrza", new Color(.9f, .95f, 1f), new Color(1.2f, 1.35f, 1.5f)));
+        float F0 = F, hC = .1f, hG = .82f, hT = .95f, fr = .03f, xp = xb - .05f;   // xp: plecy wnętrza (podświetlone)
+        int n = Mathf.Max(1, Mathf.RoundToInt((z1 - z0) / .9f)); float wu = (z1 - z0) / n;
+        // cokół z kratką, belka górna, plecy, dno wnętrza
+        // cokół: pas dolny i górny ze stali, między nimi kratka wentylacyjna (pasy obok siebie w jednym licu — bez nakładania)
+        korpus.Box(new Vector3(xa, F0, z0), new Vector3(xa + fr, F0 + .025f, z1), 2 | 8);
+        kratka.Box(new Vector3(xa, F0 + .025f, z0 + .04f), new Vector3(xa + fr, F0 + .075f, z1 - .04f), 2 | 4 | 8);
+        korpus.Box(new Vector3(xa, F0 + .025f, z0), new Vector3(xa + fr, F0 + .075f, z0 + .04f), 2 | 4 | 8 | 32);
+        korpus.Box(new Vector3(xa, F0 + .025f, z1 - .04f), new Vector3(xa + fr, F0 + .075f, z1), 2 | 4 | 8 | 16);
+        korpus.Box(new Vector3(xa, F0 + .075f, z0), new Vector3(xa + fr, F0 + hC, z1), 2 | 4);
+        korpus.Box(new Vector3(xa, F0 + hG, z0), new Vector3(xa + fr, F0 + hT, z1), 2);
+        led.Box(new Vector3(xa + fr, F0 + hG - .012f, z0 + .02f), new Vector3(xa + fr + .02f, F0 + hG, z1 - .02f), 1 | 2);
+        pl.Box(new Vector3(xp, F0 + hC, z0), new Vector3(xp + .01f, F0 + hG, z1), 2);
+        korpus.Box(new Vector3(xa + fr, F0, z0), new Vector3(xp, F0 + hC, z1), 1 | 2 | 4);
+        korpus.Box(new Vector3(xa + fr, F0 + hG, z0), new Vector3(xp, F0 + hT, z1), 1 | 2 | 8);
+        var rng = new System.Random(707);
+        Color32[] piwo = { BraxUliceKit.C(.32f, .16f, .04f), BraxUliceKit.C(.08f, .3f, .1f), BraxUliceKit.C(.32f, .16f, .04f), BraxUliceKit.C(.8f, .86f, .9f) };
+        Color32[] puszki = { BraxUliceKit.C(.65f, .06f, .05f), BraxUliceKit.C(.75f, .76f, .78f), BraxUliceKit.C(.05f, .05f, .06f), BraxUliceKit.C(.1f, .3f, .65f) };
+        for (int i = 0; i <= n; i++)
+        {   // słupki frontu (skrajne pełne) i przegrody wnętrza
+            float zc = z0 + i * wu, zs0 = i == 0 ? z0 : zc - .02f, zs1 = i == n ? z1 : zc + .02f;
+            korpus.Box(new Vector3(xa, F0 + hC, zs0), new Vector3(xa + fr, F0 + hG, zs1), 4 | 8 | 2);
+            korpus.Box(new Vector3(xa + fr, F0 + hC, zs0), new Vector3(xp, F0 + hG, zs1), 1 | 2 | 4 | 8);
+        }
+        for (int i = 0; i < n; i++)
+        {
+            float za = z0 + i * wu + .02f, zb = z0 + (i + 1) * wu - .02f;
+            // szyba drzwi dokładnie w otworze ramy (cofnięta 1.5 cm od lica), uchwyt pionowy przy krawędzi otwierania
+            szyba.Box(new Vector3(xa + .012f, F0 + hC, za), new Vector3(xa + .018f, F0 + hG, zb), 0);
+            float zu = i % 2 == 0 ? zb - .07f : za + .07f;
+            st.Rura(new Vector3(xa - .035f, F0 + hC + .12f, zu), new Vector3(xa - .035f, F0 + hG - .1f, zu), .009f, 8);
+            foreach (float y in new[] { F0 + hC + .14f, F0 + hG - .12f }) st.Rura(new Vector3(xa, y, zu), new Vector3(xa - .035f, y, zu), .006f, 6);
+            // półki ze stali (ażurowe — cienka płyta) i towar w rzędach: dno, środek (butelki), góra (puszki)
+            foreach (float yp in new[] { F0 + .38f, F0 + .62f }) st.Box(new Vector3(xa + fr + .02f, yp - .008f, za + .005f), new Vector3(xp - .01f, yp, zb - .005f));
+            foreach (var (yb, puszka) in new[] { (F0 + hC + .002f, false), (F0 + .38f + .002f, false), (F0 + .62f + .002f, true) })
+                for (float z = za + .07f; z < zb - .05f; z += puszka ? .085f : .095f)
+                    for (int r = 0; r < 2; r++)
+                    {
+                        float x = xa + fr + .09f + r * .14f;
+                        if (puszka) { bu.kolor = puszki[rng.Next(puszki.Length)]; bu.Rura(new Vector3(x, yb, z), new Vector3(x, yb + .12f, z), .032f, 10); }
+                        else
+                        {
+                            bu.kolor = piwo[rng.Next(piwo.Length)];
+                            bu.Rura(new Vector3(x, yb, z), new Vector3(x, yb + .15f, z), .031f, 10);
+                            bu.Rura(new Vector3(x, yb + .15f, z), new Vector3(x, yb + .19f, z), .016f, 8, false);
+                            bu.Rura(new Vector3(x, yb + .19f, z), new Vector3(x, yb + .225f, z), .013f, 8);
+                        }
+                    }
+        }
+        bu.kolor = BraxUliceKit.Bialy;
+    }
+
     // ================= BAR =================
     static void Bar()
     {
@@ -583,7 +646,7 @@ internal static class BraxMiastoNova
         }
         // bar tylny: lodówki pod blatem roboczym, blat, lustro, 3 półki szklane z podświetleniem i butelkami
         float bx = HX1 - .45f;
-        BraxUliceKit.S(lodowka).Box(new Vector3(bx, F, BZ0), new Vector3(HX1 - .02f, F + .95f, BZ1), 2 | 4 | 8);
+        ChlodziarkiBarowe(bx, HX1 - .02f, BZ0, BZ1, lodowka, butelki, chrom);
         BraxUliceKit.S(blat).Box(new Vector3(bx - .05f, F + .95f, BZ0), new Vector3(HX1 - .01f, F + 1.0f, BZ1), 2);
         BraxUliceKit.S(lustro).Box(new Vector3(HX1 - .04f, F + 1.0f, BZ0 + .1f), new Vector3(HX1 - .02f, C - .4f, BZ1 - .1f), 2);
         var bu = BraxUliceKit.S(butelki); var rng = new System.Random(124);
