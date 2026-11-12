@@ -26,28 +26,33 @@ class ChampionSideMuralsTests(unittest.TestCase):
         self.assertIn('NO FALLBACK',self.m)
         self.assertNotIn('Texture2D.EncodeTo',self.m)
 
-    def test_both_murals_hang_left_and_right_of_the_fighters_door_facing_the_hall(self):
-        # owner 12.11 00:30-01:55: "W arenie. Po prawej i po lewej", "między nimi chodzi" - on the wall every visitor faces
-        self.assertIn('public const float DoorWallZ = 28.3f, DoorCentreX = -86f;',self.m)
-        self.assertIn('float z = DoorWallZ + .045f + MuralStandOff;',self.m)
+    def test_both_side_walls_use_true_panorama_dimensions_and_face_the_aisle(self):
+        # 9.11: 12.5 cm stand-off from the wall's inner face (-26.045/-145.955).
+        self.assertIn('float x = left ? HallLeftX - MuralStandOff : HallRightX + MuralStandOff;',self.m)
         self.assertIn('public const float MuralStandOff = .12f;',self.m)
-        self.assertIn('var facing = Vector3.forward;',self.m)
-        self.assertIn('var right = Vector3.left;',self.m)
-        self.assertIn('float xc = DoorCentreX + (left ? WallMuralCentreOffset : -WallMuralCentreOffset);',self.m)
+        x_left,x_right=-26-.17,-146+.17
+        self.assertLess(x_left,-26.045-.1)
+        self.assertGreater(x_right,-145.955+.1)
+        # b33 black walls: proven entrance path, two-sided, line-of-sight log.
+        self.assertNotIn('mesh.SetUVs(3, interior);',self.m)
+        # 9.11 23:43 (APK 35: still black on the phone): three 2048 tiles, back-lit, gold frame.
         self.assertIn('BraxChampionsArenaMuralPrint.Hang(bowl, name, "Side_" + side, sourcePath,',self.m)
         self.assertIn('BraxChampionsArenaMuralPrint.Frame(group, "Side_" + side,',self.m)
-        w,h,y0,off=52.5,17.5,8.0,28.5
-        self.assertAlmostEqual(w,3*h)                       # the owner's 6144 x 2048 untouched
-        x0,x1=-146,-26                                       # hall side walls
-        dA,dB=-88.05,-83.95                                  # fighters' door
-        for xc in (-86+off,-86-off):
-            lo,hi=xc-w/2-.16,xc+w/2+.16                      # with the gold frame
-            self.assertGreater(lo,x0); self.assertLess(hi,x1)
-            self.assertTrue(hi<dA or lo>dB)                  # never over the door
-        self.assertGreater(y0-.16,4.2+.35+1.8)               # over the door frame and the HALA WALK sign (4.75 +- .9)
-        self.assertGreater(y0-.16,16*.4+.055+.95)            # over the top row of the end stands and its rail
-        self.assertLess(y0+h+.16,26.62-.62+.6)               # under the ceiling beams
-        self.assertNotIn('HallLeftX',self.m)                 # the short walls keep their leather (each mural once)
+        z_entry,z_rear=98.3,28.3
+        w=z_entry-z_rear
+        h=w/3.0
+        self.assertAlmostEqual(w,70.0)
+        self.assertAlmostEqual(h,23.3333333333333)
+        self.assertLess(2.65+h,28)       # does not touch the original 28m roof
+        self.assertGreater(2.65,2.56)    # does not cover the original 2.4m red band
+        self.assertLess(x_left,-26)      # left wall material toward centre
+        self.assertGreater(x_right,-146) # right wall material toward centre
+        self.assertIn('const float ImageHeight = WallSpan / 3f',self.m)
+        # Not mirrored: the left wall is read along +X (viewer-right = -Z), the right wall along -X.
+        self.assertIn('var facing = left ? Vector3.left : Vector3.right;',self.m)
+        self.assertIn('var right = left ? Vector3.back : Vector3.forward;',self.m)
+        self.assertIn('float startZ = left ? WallNearZ : WallFarZ;',self.m)
+        self.assertIn('new Vector3(x, BottomY, startZ), right, facing, WallSpan, ImageHeight, out var group);',self.m)
 
     def test_doorway_central_mural_and_existing_wall_are_unchanged(self):
         self.assertIn('BraxChampionsArenaMural.Generate(root)',self.h)
