@@ -332,6 +332,13 @@ public static partial class BraxChampionsAquapark
         Fence();Flush("aquapark | ogrodzenie szklane, bramy");
         Building();FlushWalk("aquapark | pawilon wejściowy: posadzki (kolizje)");Flush("aquapark | pawilon wejściowy: bryła");
         FlushWalk("aquapark | reszta nawierzchni (kolizje)");Flush("aquapark | reszta");
+        // the sound of water (the region's looping water source): the waterfall, the mushroom, the splash pad, the jacuzzi
+        var snd=Group(root,"dźwięk wody (BraxZrodloPetli)");
+        foreach(var (x,y,z,vol,range) in new[]{(17.8f,1.6f,35.2f,.75f,45f),(-76.5f,1.2f,43f,.45f,22f),(-60.8f,.5f,50f,.35f,16f),(68f,.4f,0f,.30f,12f),(82f,.4f,10f,.30f,12f),(27f,1.0f,-80.5f,.30f,16f)})
+        {
+            var g=new GameObject("woda "+x.ToString("0")+"/"+z.ToString("0"));g.transform.SetParent(snd,false);g.transform.localPosition=V(x,DY+y,z)*K;
+            var z0=g.AddComponent<BraxZrodloPetli>();z0.rodzaj="woda";z0.glosnosc=vol;z0.zasieg=range*K;
+        }
         // life: the owner's girls in bikinis stroll the deck round the lagoon's south half (there and back)
         BraxChampionsFoundation.Optional("aquapark: spacerowiczki", () => { Walkers = BraxChampionsPostacie.Aquapark(Group(root, "spacerowiczki (BraxPieszy)"), WalkRoutes()); });
         Debug.Log("MISTRZOWIE_AQUAPARK walkers="+Walkers+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+

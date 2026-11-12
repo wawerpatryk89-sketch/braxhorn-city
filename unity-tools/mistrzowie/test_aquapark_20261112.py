@@ -42,6 +42,7 @@ class Aquapark(unittest.TestCase):
         self.assertIn('s.label = "STÓŁ DO MASAŻU"', s)
         self.assertIn('AddComponent<BraxCityDoor>()', s)
         self.assertIn('MeshCollider', s)                                              # walkable decks, shells, stairs
+        self.assertIn('AddComponent<BraxZrodloPetli>()', s)                           # the sound of the waterfall and fountains
         r = (ROOT / 'unity-city/Assets/Mistrzowie/BraxChampionsZjezdzalnia.cs').read_text(encoding='utf8')
         for k in ('IBraxInterakcja', 'BraxInterakcje.Dodaj(this)', '"ZJEDŹ · "', 'siedzisko.Use(gracz)', 'siedzisko.Leave()'):
             self.assertIn(k, r)

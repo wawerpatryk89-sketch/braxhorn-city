@@ -13,3 +13,5 @@ public static class BraxChampionsPostacie
     public static readonly System.Collections.Generic.List<Vector3[]> Routes = new System.Collections.Generic.List<Vector3[]>();
     public static int Aquapark(Transform root, System.Collections.Generic.IList<Vector3[]> trasy) { Routes.AddRange(trasy); return trasy.Count; }
 }
+// the region's looping 3D water sound (R1 runtime): the preview records only its settings
+public sealed class BraxZrodloPetli : MonoBehaviour { public string rodzaj = "woda"; public float glosnosc = .5f, zasieg = 30f; }
