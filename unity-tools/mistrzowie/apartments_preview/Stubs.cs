@@ -12,6 +12,12 @@ namespace UnityEngine
         public static Vector2 operator +(Vector2 a, Vector2 b) => new Vector2(a.x + b.x, a.y + b.y);
         public static Vector2 operator -(Vector2 a, Vector2 b) => new Vector2(a.x - b.x, a.y - b.y);
         public static Vector2 operator *(Vector2 a, float d) => new Vector2(a.x * d, a.y * d);
+        public static Vector2 operator *(float d, Vector2 a) => new Vector2(a.x * d, a.y * d);
+        public static float Dot(Vector2 a, Vector2 b) => a.x * b.x + a.y * b.y;
+        public static bool operator ==(Vector2 a, Vector2 b) { float dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy < 9.99999944E-11f; }
+        public static bool operator !=(Vector2 a, Vector2 b) => !(a == b);
+        public override bool Equals(object o) => o is Vector2 v && v.x == x && v.y == y;
+        public override int GetHashCode() => x.GetHashCode() ^ (y.GetHashCode() << 2);
         public static Vector2 operator /(Vector2 a, float d) => new Vector2(a.x / d, a.y / d);
         public float sqrMagnitude => x * x + y * y; public float magnitude => (float)Math.Sqrt(sqrMagnitude);
         public Vector2 normalized => this / magnitude; }
@@ -28,6 +34,8 @@ namespace UnityEngine
         public static Vector3 operator *(float d, Vector3 a) => a * d;
         public static Vector3 operator /(Vector3 a, float d) => new Vector3(a.x / d, a.y / d, a.z / d);
         public static float Dot(Vector3 a, Vector3 b) => a.x * b.x + a.y * b.y + a.z * b.z;
+        public static Vector3 ProjectOnPlane(Vector3 v, Vector3 n) { float m2 = Dot(n, n); return m2 < 1e-12f ? v : v - n * (Dot(v, n) / m2); }
+        public static Vector3 Slerp(Vector3 a, Vector3 b, float t) { t = Mathf.Clamp(t, 0, 1); float la = a.magnitude, lb = b.magnitude; if (la < 1e-9f || lb < 1e-9f) return Lerp(a, b, t); var ua = a * (1f / la); var ub = b * (1f / lb); float d = Mathf.Clamp(Dot(ua, ub), -1f, 1f); float th = (float)Math.Acos(d) * t; var rel = (ub - ua * d); float rl = rel.magnitude; var dir = rl < 1e-6f ? ua : ua * (float)Math.Cos(th) + rel * ((float)Math.Sin(th) / rl); return dir * (la + (lb - la) * t); }
         public static Vector3 Cross(Vector3 a, Vector3 b) => new Vector3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
         public static Vector3 Scale(Vector3 a, Vector3 b) => new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
         public static float Distance(Vector3 a, Vector3 b) => (a - b).magnitude; public static Vector3 Lerp(Vector3 a, Vector3 b, float t) => a + (b - a) * Mathf.Clamp(t, 0, 1);
@@ -146,7 +154,8 @@ namespace UnityEngine
     public class Component : Object { public GameObject gameObject; public Transform transform => gameObject.transform;
         public override string name { get => gameObject.name; set => gameObject.name = value; }
         public T GetComponent<T>() where T : Component => gameObject.GetComponent<T>();
-        public T[] GetComponentsInChildren<T>(bool inactive) where T : Component => gameObject.All<T>(); }
+        public T[] GetComponentsInChildren<T>(bool inactive) where T : Component => gameObject.All<T>();
+        public T[] GetComponentsInChildren<T>() where T : Component => gameObject.All<T>(); }
     public class Transform : Component { public Transform parent; public readonly List<Transform> children = new List<Transform>();
         public Vector3 localPosition; public Quaternion localRotation = Quaternion.identity; public Vector3 localScale = Vector3.one;
         public Vector3 position { get => parent == null ? localPosition : parent.TransformPoint(localPosition); set => localPosition = parent == null ? value : parent.InverseTransformPoint(value); }
@@ -206,6 +215,7 @@ namespace UnityEngine
         }
         public T GetComponent<T>() where T : Component => comps.OfType<T>().FirstOrDefault();
         public T[] GetComponentsInChildren<T>(bool inactive) where T : Component => All<T>();
+        public T[] GetComponentsInChildren<T>() where T : Component => All<T>();
         public T[] All<T>() where T : Component { var r = new List<T>(); void Walk(Transform t) { r.AddRange(t.gameObject.comps.OfType<T>()); foreach (var c in t.children.ToArray()) Walk(c); } Walk(transform); return r.ToArray(); } }
     public class Behaviour : Component { public bool enabled = true; } public class MonoBehaviour : Behaviour { }
     public enum Space { World, Self }

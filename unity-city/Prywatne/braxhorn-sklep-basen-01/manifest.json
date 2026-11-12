@@ -1,0 +1,40 @@
+{
+ "source": "Basen, spa i aquapark BRAXHORN (właściciel 12.11 02:47-02:54): zjeżdżalnie dla dzieci i stoły do masażu z Tripo właściciela + wyposażenie z jego biblioteki P1 (jacuzzi, sauna, prysznic, krzesło ratownika, ławka, umywalka, stół)",
+ "target": "basen_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/basen_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "f4704135dfcfa9654cac9c50229e1d8ee49179feb9315aa1c01edf98336906d8",
+ "cmsSha256": "0fe09d10e150ddee9ff7a80f6a10d6fda87e9dba510b99a8748b51456144d60d",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 53413325,
+   "sha256": "0fe09d10e150ddee9ff7a80f6a10d6fda87e9dba510b99a8748b51456144d60d"
+  }
+ ],
+ "files": {
+  "basen_01/_tekstury/basen_masaz_kolor.jpg": "d17b5400c5476109a92d3a56de9489186af465f32f5530c0953557da053469c7",
+  "basen_01/_tekstury/basen_masaz_mr.png": "9ce1fbb0e4c72f6907b459e8c091bfc0480d00bca6f6829b2f90d052bb5b5844",
+  "basen_01/_tekstury/basen_masaz_normal.png": "d07e5be0b1ffd0afb1a4e3c52e849e6f5785d5854a4112d33af935a21b5da2e5",
+  "basen_01/_tekstury/basen_zjezdzalnie_kolor.jpg": "9659858d1193a2f62129a56cc0f023d61eab51d671db6005d0f788e8125595a1",
+  "basen_01/_tekstury/basen_zjezdzalnie_mr.png": "1f5e24a8b42beb18040840c316cc7d1402d8fbc77ced9f4f08a645aede1b99bf",
+  "basen_01/_tekstury/basen_zjezdzalnie_normal.png": "b1031e9921d89370e226b569e9b1f8a2aa209e87499517f652fb9ec5e436d90c",
+  "basen_01/jacuzzi_wanna.glb": "fe130fdb9bcc0b04212c44bbe6fe68fd8881fb061832828f46625977758f6c4f",
+  "basen_01/katalog.json": "fd31719465a534f46553ee4336a37cf8747bdd7b791e951b3b4e9450382e5f42",
+  "basen_01/lawka_szatnia.glb": "53430d8d13138b6ea0a282b6d302da0bc7d6a504b230bcb6356d64f556b1310c",
+  "basen_01/lezanka_masaz_tajski.glb": "6be8a75ecb9ad68ce4ee12f3ae690036ab810deda37543599d8fc750da4f8051",
+  "basen_01/prysznic_kabina.glb": "0b5ce650f2273764a0acf9231798a6da164f2136d1e723aa022abd877bcb6444",
+  "basen_01/ratownik_krzeslo.glb": "255a40ae15f62f7efaf5b27561908c48bbc7e7b2e18398be3a2b1cc0555d667d",
+  "basen_01/sauna_kabina.glb": "c2a2be8f563953ab51a697e697e5fd4e8b70d2c599d0dd856acee24de0621227",
+  "basen_01/stol_masaz_drewno.glb": "d7f3187d2a7c58e70d426ee5de30a0d27c902c31ee49b25e73667098b6beb3f5",
+  "basen_01/stol_masaz_kosmetyczny.glb": "5e89a503cfa73ab384c6cb9480462b8b11fc5052a7e2cacbaf5451d204e29d81",
+  "basen_01/stol_masaz_skladany_czarny.glb": "e8ebce878790be788e5c34ec990b5fec9ccadb042773a9df895ab4319026a1d4",
+  "basen_01/stol_masaz_skladany_zielony.glb": "d7079f3d71a896b0a23a857a1991683b0a31c73958012c683791b5c09addb45c",
+  "basen_01/umywalka_podwojna.glb": "0b7b6bf660e5d1353f7e64dc43e8918c725203886fc5c6f32ab0be6ffd16a8e5",
+  "basen_01/zjezdzalnia_dzieci_palma.glb": "e835ed968170cf557944996514d7932f2ef9aa4e3c3d151f94aa9bacfb73396a",
+  "basen_01/zjezdzalnia_dzieci_wieza.glb": "3c6ab0220067d01df0b2f3d2176d6367b8d8c7658ebdceeb4ca702705c4830de",
+  "oryginal/basen_orig.tar": "c2744b8af1839b59d3d6ad57544f797442f6e81590b72890f3cba26c0ff3fe7b",
+  "oryginal/spec.json": "acf3fbc95e8ececd9517267dfa8ddc31f3ab4b7adcc4ef7b9fbc112c48cfac51"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

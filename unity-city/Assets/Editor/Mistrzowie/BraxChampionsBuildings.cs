@@ -133,6 +133,8 @@ public static class BraxChampionsBuildings
         BraxChampionsFoundation.Optional("postacie: pod klubami i na promenadzie",()=>BraxChampionsPostacie.Generate());
         // Owner 12.11 02:25-02:37: BRAXHORN NUTRITION posters with his two friends - G1 SPORT ARENA, promenade, E1
         BraxChampionsFoundation.Optional("plakaty BRAXHORN NUTRITION",()=>BraxChampionsPlakaty.Generate());
+        // 12.11 owner (02:47-02:56): AQUAPARK BRAXHORN on the old P1 lot - lagoon, the slide tower with rides, kids, SPA
+        BraxChampionsFoundation.Optional("aquapark BRAXHORN",()=>BraxChampionsAquapark.Generate());
         // 9.11 owner: "Ten basen usuń całkowicie" - P1 removed from the game.
         // 9.11 owner: apartment buildings on the rental plots, one at a time,
         // each finished A-Z inside and out (empty, no furniture).

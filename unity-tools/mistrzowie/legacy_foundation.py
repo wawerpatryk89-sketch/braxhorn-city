@@ -39,6 +39,11 @@ T11_STREET_ENTRANCE_LAWN=(417.0,417.0,18.0,11.0)
 # -23.5..-16.5): across the Z330 south sidewalk (z 340..347) and the lawn to the plot line z 415.
 T11_SOUTH_DRIVE=(471.5,340.0,7.0,75.0)
 # 9.11 owner: pool P1 removed completely - no excavations, the lot is ordinary ground.
+# 12.11 owner (02:47-02:56 "zrób basen ... zajebisty", his aquapark picture): AQUAPARK BRAXHORN on the old P1 lot between road
+# X400 and the park. The whole lot is cut out of the region's ground: BraxChampionsAquapark lays every surface inside (deck,
+# lawns, pools, the pavilion), flush with the sidewalks at .16 - the Z70 sidewalk ends at z 87, the Z330 one at 313, the
+# street trees at x 421 stay outside, the park's trees start at x 640. Must match BraxChampionsAquapark.X0/X1/Z0/Z1.
+AQUAPARK_SITE=(426.0,87.0,206.0,226.0)
 XROAD=[70,400,800,1130];ZROAD=[-70,70,330,650,935]
 walks=[(x-4,-180,8,93) for x in (230,530,700,1080)]
 # Preserve the original seafront promenade and its inland planting.
@@ -70,6 +75,7 @@ def zone(x,z):
  if inside((x,z),T11_STREET_ENTRANCE):return None
  if inside((x,z),T11_STREET_ENTRANCE_LAWN) or inside((x,z),T11_SOUTH_DRIVE):return None
  if any(inside((x,z),r) for r in MOUTH_CUTS):return None            # street mouths: casino, arena, hotel
+ if inside((x,z),AQUAPARK_SITE):return None                       # the aquapark lays its own ground
  # owner 10.11 18:12 (promenade board): recreation zones and their paths (BraxChampionsPromenadeZones builds them)
  if any(inside((x,z),r) for r in ZONE_RECTS+ZONE_PATHS):return None
  # owner 10.11 18:31: public car parks by the marina and the beach (BraxChampionsPromenadeParking builds them)
@@ -165,6 +171,7 @@ for a in ZROAD:
 rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP,T11_STREET_ENTRANCE,T11_STREET_ENTRANCE_LAWN,T11_SOUTH_DRIVE]+MOUTH_CUTS+A1_PARKING_ENTRANCES+APT_DRIVE_CUTS+HOTEL_GARAGE_CUTS+JUNCTION_CORNER_RECTS+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]+PALM_BED_RECTS+DINING_BED_RECTS+QUAY_APRONS+QUAY_BED_RECTS
 # owner 10.11 18:12 / 18:31: the promenade's recreation zones, their paths and the two public car parks
 rects+=ZONE_RECTS+ZONE_PATHS+PARKING_RECTS+PARKING_DRIVES+PARKING_PATHS
+rects+=[AQUAPARK_SITE]
 # rounded: 4.4 / 3.6 m beds gave -219.8+3.6 = -216.20000000000002 next to -216.2 -> zero-length quay-wall edges
 for x,z,w,d in rects:xs.update([round(x,6),round(x+w,6)]);zs.update([round(z,6),round(z+d,6)])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
