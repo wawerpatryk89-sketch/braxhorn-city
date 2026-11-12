@@ -246,6 +246,9 @@ public static partial class BraxChampionsAquapark
                 Vector3 db0 = b.u * Mathf.Cos(a0) + b.r * Mathf.Sin(a0), db1 = b.u * Mathf.Cos(a1) + b.r * Mathf.Sin(a1);
                 Q(m, shell, a.p + da0 * rout, b.p + db0 * rout, b.p + db1 * rout, a.p + da1 * rout, (da0 + da1 + db0 + db1).normalized);
                 Q(m, inside, a.p + da0 * rin, b.p + db0 * rin, b.p + db1 * rin, a.p + da1 * rin, -(da0 + da1 + db0 + db1).normalized);
+                // the camera's own copy of the inside (faces toward the axis), see CameraShell
+                int c0 = camV.Count; camV.Add(a.p + da0 * rin); camV.Add(b.p + db0 * rin); camV.Add(b.p + db1 * rin); camV.Add(a.p + da1 * rin);
+                camT.AddRange(new[] { c0, c0 + 2, c0 + 1, c0, c0 + 3, c0 + 2, c0, c0 + 1, c0 + 2, c0, c0 + 2, c0 + 3 });   // both sides
             }
             // the running water: a 50 cm film 1 cm above the inner floor
             Vector3 wa = a.p - a.u * (rin - .012f), wb = b.p - b.u * (rin - .012f);
@@ -254,6 +257,22 @@ public static partial class BraxChampionsAquapark
         // the open ends: a rolled lip ring
         foreach (var e in new[] { f[0], f[f.Count - 1] }) Flange(e, rout + .02f);
     }
+    // the inside of a tube as a collider on layer 29 (camera only - the player never touches it, IgnoreLayerCollision 8/29):
+    // while you ride, the third-person camera is pulled in close behind you, so the ride is seen from inside the tube
+    static readonly List<Vector3> camV = new List<Vector3>(); static readonly List<int> camT = new List<int>();
+    static void CameraShell(string name)
+    {
+        if (camT.Count == 0) return;
+        var mesh = new Mesh { name = "aquapark kamera " + name, indexFormat = camV.Count > 65535 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16 };
+        mesh.vertices = camV.Select(v => v * K).ToArray(); mesh.triangles = camT.ToArray(); mesh.RecalculateNormals(); mesh.RecalculateBounds();
+        string path = Folder + "/kamera_" + name.Replace(' ', '_').Replace('Ż', 'Z').Replace('Ó', 'O').Replace('Ł', 'L') + ".asset";
+        var old = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+        if (old) { EditorUtility.CopySerialized(mesh, old); UnityEngine.Object.DestroyImmediate(mesh); mesh = old; } else BraxZapisAssetu.Utworz(mesh, path);
+        var g = new GameObject(name + " | wnętrze rury dla kamery (warstwa 29)"); g.transform.SetParent(cols, false); g.layer = 29;
+        g.AddComponent<MeshCollider>().sharedMesh = mesh; Colliders++;
+        camV.Clear(); camT.Clear();
+    }
+
     static void Flange(Frame e, float r)
     {
         var rot = Quaternion.LookRotation(e.t, e.u);
@@ -335,7 +354,7 @@ public static partial class BraxChampionsAquapark
             pts.AddRange(Helix(c, r, 0f, 5f * Mathf.PI, L4 - .15f, DY + 3.6f, ds).Skip(1));
             pts.AddRange(Spline(new List<Vector3> { new Vector3(c.x - r, DY + 3.6f, c.z), V(3.5f, DY + 3.2f, 56.0f), V(3.6f, DY + 2.3f, 46.0f), V(3.7f, DY + 1.5f, 37.0f), V(3.8f, lagoon.water + .78f, 30.6f) }, ds).Skip(1));
             var f = Frames(Resample(pts, ds));
-            Tube(f, redFrp, flange, redIn, ri, ro);
+            Tube(f, redFrp, flange, redIn, ri, ro); CameraShell("CZERWONY BYK");
             // the central mast and the arms every quarter turn, posts under the run
             B(black, c.x - .25f, c.x + .25f, DY, L4 + .5f, c.z - .25f, c.z + .25f, true);
             foreach (var e in f.Where((x, i) => i % 18 == 0))
@@ -361,7 +380,7 @@ public static partial class BraxChampionsAquapark
             pts.AddRange(Helix(c, r, Mathf.PI, -2f * Mathf.PI, L3 - .1f, DY + 3.4f, ds).Skip(1));
             pts.AddRange(Spline(new List<Vector3> { new Vector3(c.x + r, DY + 3.4f, c.z), V(48.4f, DY + 3.0f, 54.0f), V(46.4f, DY + 2.2f, 44.0f), V(42.2f, DY + 1.3f, 34.5f), V(40.0f, lagoon.water + .78f, 27.6f) }, ds).Skip(1));
             var f = Frames(Resample(pts, ds));
-            Tube(f, yellowFrp, flange, yellowIn, ri, ro);
+            Tube(f, yellowFrp, flange, yellowIn, ri, ro); CameraShell("ZOLTY WIR");
             B(black, c.x - .25f, c.x + .25f, DY, L3 + .5f, c.z - .25f, c.z + .25f, true);
             foreach (var e in f.Where((x, i) => i % 16 == 0))
             {
