@@ -171,6 +171,33 @@ internal static class BraxMiastoSport
         bl.Rura(new Vector3(x0 + .1f, H + .52f, z1 + .12f), new Vector3(x1 - .1f, H + .52f, z1 + .12f), .07f, 10);
     }
 
+    // ---- TOWAR WŁAŚCICIELA Z TRIPO (paczki globalne kolegi i R1; właściciel 11.11 22:44 „robimy to globalnie na całą grę do
+    // sklepów”, 12.11 02:06: „jak kolega dostarczył zasoby w 3D, to wykorzystaj je, gdzie potrzeba. Premium max”): odzież sportowa
+    // BRAXHORN na wieszakach (wersje _wieszak, po 3 sztuki jednego modelu obok siebie), buty sportowe i bokserskie na ścianie
+    // butów, rękawice, kaski, łapy, ochraniacz, skakanka na półkach ściany sprzętu, piłki w koszu, maty, manekiny w dresach
+    // w witrynie. Bez paczek (brak klucza w CI) — towar z kodu jak dotąd. Towar bez cieni, w grupie znikającej dalej niż 25 m.
+    static Transform towarT;
+    static bool TowarT(string paczka, string plik, Vector3 lokalnie, Vector3 przodLok)
+    {
+        int sl = plik.IndexOf('/'); if (sl > 0) { paczka = plik.Substring(0, sl); plik = plik.Substring(sl + 1); }
+        if (!BraxMiastoAssety.Jest(paczka)) return false;
+        var src = BraxMiastoAssety.Model(paczka, plik); if (!src) return false;
+        if (!towarT) { towarT = new GameObject("BRAXHORN SPORT: towar właściciela (Tripo)").transform; towarT.SetParent(root, false); }
+        var w = root.rotation * przodLok; float yaw = Mathf.Atan2(w.x, w.z) * Mathf.Rad2Deg;
+        return BraxMiastoAssety.Postaw(towarT, src, plik, root.TransformPoint(lokalnie), yaw, 1f, false, false);
+    }
+    static readonly string[] SportGora = { "sport_koszulka_braxhorn_czarno_zlota", "sport_bluza_kaptur_czarna", "sport_koszulka_czerwona", "sport_kurtka_dresowa_zlote_lampasy", "sport_koszulka_bez_rekawow", "sport_wiatrowka_szara", "sport_kurtka_puchowa_czarna" };
+    static readonly string[] SportDol = { "sport_spodnie_dresowe_lampasy", "sport_legginsy_czarne", "sport_spodenki_czarne" };
+    static readonly string[] SportButy = { "sklep_walka_01/buty_bokserskie_czarno_zlote", "sklep_buty_01/buty_biegowe_szare", "sklep_walka_01/buty_biegowe_biale_czerwone_braxhorn", "sklep_buty_01/buty_koszykarskie_czerwone",
+        "sklep_walka_01/buty_treningowe_czarne_braxhorn", "sklep_buty_02/buty_sneakersy_biale_skora", "sklep_walka_01/buty_bokserskie_czerwone", "sklep_buty_01/buty_korki_neonowe",
+        "sklep_walka_01/buty_zapasnicze_czarno_zlote", "sklep_buty_02/buty_biegowe_czarne", "sklep_buty_01/buty_trampki_wysokie_czarne", "sklep_buty_02/buty_biegowe_biale" };
+    static void TowarLod()
+    {
+        if (!towarT) return;
+        var rs = towarT.GetComponentsInChildren<Renderer>(true); if (rs.Length == 0) return;
+        var lod = towarT.gameObject.AddComponent<LODGroup>(); lod.SetLODs(new[] { new LOD(Mathf.Clamp(2.4f / (2f * 25f * .52f), .01f, .5f), rs) }); lod.RecalculateBounds();
+    }
+
     static void Wnetrze()
     {
         float F = .15f, x0 = -L * .5f + T, x1 = SX1, z0 = -W * .5f + T, z1 = W * .5f - T;
@@ -190,11 +217,23 @@ internal static class BraxMiastoSport
         // linie LED w suficie
         for (float x = x0 + 1.5f; x < x1 - 1f; x += 3f) BraxUliceKit.S(led).Box(new Vector3(x - .03f, H - .05f, z0 + 1f), new Vector3(x + .03f, H - .02f, z1 - 1f));
         // wieszaki okrągłe z koszulkami i bluzami (6 szt., środek sali)
+        towarT = null;
+        bool odziezT = BraxMiastoAssety.Jest("sklep_sport_01");
+        int nrW = 0;
         foreach (var c in new[] { new Vector3(-7.6f, F, -1.0f), new Vector3(-4.6f, F, -1.0f), new Vector3(-1.4f, F, -1.0f), new Vector3(-7.6f, F, 1.8f), new Vector3(-4.6f, F, 1.8f), new Vector3(-1.4f, F, 1.8f) })
         {
             float hr = 1.45f * K, rr = .5f * K;
             ch.Walec(c, .3f * K, .03f, 18); ch.Rura(c, c + Vector3.up * hr, .025f, 8); ch.Pierscien(c + Vector3.up * hr, rr - .015f, rr + .015f, 0, 360, 28);
-            for (int i = 0; i < 18; i++)
+            bool dol = nrW == 2 || nrW == 5; int postawione = 0;
+            if (odziezT)
+                for (int i = 0; i < 12; i++)
+                {   // wieszaki właściciela: po 3 sztuki jednego modelu obok siebie, przodem wzdłuż obręczy
+                    float a = i * 30f * Mathf.Deg2Rad; var d = new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)); var t = new Vector3(-d.z, 0, d.x);
+                    var lista = dol ? SportDol : SportGora; string n = lista[(nrW * 2 + i / 3) % lista.Length] + "_wieszak";
+                    if (TowarT("sklep_sport_01", n, c + d * rr + Vector3.up * (hr - .06f), t)) postawione++;
+                }
+            nrW++;
+            for (int i = 0; i < 18 && postawione == 0; i++)
             {
                 float a = i * 20f * Mathf.Deg2Rad; var d = new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)); var t = new Vector3(-d.z, 0, d.x);
                 ub.kolor = kol[rng.Next(kol.Length)];
@@ -211,6 +250,10 @@ internal static class BraxMiastoSport
         {
             float y = F + .35f + p * .45f;
             BraxUliceKit.S(dab).Box(new Vector3(x0 + .05f, y - .025f, z0 + 1.05f), new Vector3(x0 + .4f, y, z1 - 1.05f), 1);
+            int butyT = 0;
+            for (float z = z0 + 1.35f; z < z1 - 1.35f; z += .62f)   // pary właściciela czubkami do klienta (+x), co 0.62 m
+                if (TowarT("sklep_walka_01", SportButy[(p * 5 + butyT) % SportButy.Length], new Vector3(x0 + .25f, y + .002f, z), Vector3.right)) butyT++;
+            if (butyT > 0) continue;
             for (float z = z0 + 1.2f; z < z1 - 1.3f; z += .42f)
             {
                 tw.kolor = kol[rng.Next(kol.Length)];
@@ -225,7 +268,23 @@ internal static class BraxMiastoSport
         KolL("ściana butów", new Vector3(x0, F, z0 + 1f), new Vector3(x0 + .4f, F + 2.4f * K, z1 - 1f));
         // ŚCIANA SPRZĘTU (tył): rękawice bokserskie, ochraniacze, skakanki na panelu z hakami; stojak z hantlami; kosz z piłkami
         BraxUliceKit.S(czern).Box(new Vector3(-8.5f, F + .6f, z1 - .05f), new Vector3(-1.5f, F + 2.8f, z1), 32);
-        for (float x = -8.2f; x < -1.7f; x += .45f)
+        // półki ze sprzętem właściciela (3 poziomy na panelu): rękawice | kaski, łapy, ochraniacz szczęki | skakanki, kask, łapa
+        string[][] sprzetT = {
+            new[] { "sklep_walka_01/rekawice_bokserskie_braxhorn_czarno_zlote", "silownia_boks_02/rekawica_czerwona_1", "sklep_sprzet_01/rekawice_bokserskie", "silownia_boks_01/rekawica_czarno_zlota_1", "silownia_boks_02/rekawica_czerwona_2", "sklep_walka_01/rekawice_bokserskie_braxhorn_czarno_zlote", "silownia_boks_01/rekawica_czarno_zlota_2", "sklep_sprzet_01/rekawice_bokserskie" },
+            new[] { "sklep_walka_01/kask_bokserski_czerwony", "silownia_boks_01/lapa_bokserska_czarno_zlota_1", "sklep_walka_01/kask_z_krata_czarno_zloty", "sklep_walka_01/ochraniacz_szczeki_w_pudelku", "sklep_walka_01/kask_bokserski_niebieski", "silownia_boks_01/lapa_bokserska_czarno_zlota_2", "sklep_walka_01/ochraniacz_szczeki_w_pudelku" },
+            new[] { "sklep_sprzet_01/skakanka", "sklep_walka_01/kask_z_krata_czarno_zloty", "sklep_sprzet_01/skakanka", "silownia_boks_01/lapa_bokserska_czarno_zlota_1", "sklep_sprzet_01/skakanka" } };   // wysokie (tarcze, ochraniacz) nie mieszczą się między półkami
+        int sprzetN = 0;
+        for (int r = 0; r < 3; r++)
+        {
+            float yS = F + .75f + r * .72f; var lista = sprzetT[r];
+            int ile = 0; float dx = 6.6f / lista.Length;
+            for (int i = 0; i < lista.Length; i++) if (TowarT("sklep_walka_01", lista[i], new Vector3(-8.2f + dx * (i + .5f), yS + .002f, z1 - .21f), Vector3.back)) ile++;
+            if (ile == 0) continue;
+            sprzetN += ile;
+            BraxUliceKit.S(dab).Box(new Vector3(-8.4f, yS - .03f, z1 - .38f), new Vector3(-1.6f, yS, z1 - .05f), 1);                       // półka
+            foreach (float xb in new[] { -8.1f, -5f, -1.9f }) BraxUliceKit.S(chrom).Box(new Vector3(xb - .015f, yS - .2f, z1 - .3f), new Vector3(xb + .015f, yS - .03f, z1 - .05f));   // wspornik
+        }
+        for (float x = -8.2f; x < -1.7f && sprzetN == 0; x += .45f)
             for (int r = 0; r < 3; r++)
             {
                 tw.kolor = r == 0 ? kol[4] : r == 1 ? kol[0] : kol[3];
@@ -251,7 +310,9 @@ internal static class BraxMiastoSport
         // kosz z piłkami
         var ko = new Vector3(.9f, F, -3.0f);
         ch.Pierscien(ko + Vector3.up * .8f, .5f, .53f, 0, 360, 24); for (int i = 0; i < 8; i++) { float a = i * 45f * Mathf.Deg2Rad; ch.Rura(ko + new Vector3(Mathf.Cos(a) * .52f, 0, Mathf.Sin(a) * .52f), ko + new Vector3(Mathf.Cos(a) * .52f, .8f, Mathf.Sin(a) * .52f), .015f, 6); }
-        for (int i = 0; i < 9; i++) { var p = ko + new Vector3(((i % 3) - 1) * .28f, .45f + (i / 3) * .2f, ((i / 3) - 1) * .22f); tw.kolor = i % 2 == 0 ? BraxUliceKit.C(.85f, .45f, .15f) : BraxUliceKit.C(.95f, .95f, .95f); tw.Walec(p - Vector3.up * .12f * K, .12f * K, .24f * K, 12); }
+        string[] pilki = { "pilka_nozna", "pilka_do_kosza", "pilka_siatkowa" }; int pilkiT = 0;
+        for (int i = 0; i < 9; i++) { var p = ko + new Vector3(((i % 3) - 1) * .28f, .1f + (i / 3) * .2f, ((i / 3) - 1) * .22f); if (TowarT("sklep_sprzet_01", pilki[i % 3], p, Quaternion.Euler(0, i * 47f, 0) * Vector3.forward)) pilkiT++; }
+        for (int i = 0; i < 9 && pilkiT == 0; i++) { var p = ko + new Vector3(((i % 3) - 1) * .28f, .45f + (i / 3) * .2f, ((i / 3) - 1) * .22f); tw.kolor = i % 2 == 0 ? BraxUliceKit.C(.85f, .45f, .15f) : BraxUliceKit.C(.95f, .95f, .95f); tw.Walec(p - Vector3.up * .12f * K, .12f * K, .24f * K, 12); }
         tw.kolor = BraxUliceKit.Bialy;
         KolL("kosz z piłkami", ko + new Vector3(-.55f, 0, -.55f), ko + new Vector3(.55f, .8f, .55f));
         // PRZYMIERZALNIE (wschód, 3 kabiny): ścianki, zasłony, lustro, ławeczka, haczyki
@@ -279,10 +340,18 @@ internal static class BraxMiastoSport
         BraxUliceKit.S(zielone).Box(lc + new Vector3(-.38f, .08f, -1.4f), lc + new Vector3(-.35f, .12f, 1.4f));
         KolL("lada", lc + new Vector3(-.4f, 0, -1.45f), lc + new Vector3(.4f, 1.05f * K, 1.45f));
         // maty do ćwiczeń w rolkach (stojak)
-        for (int i = 0; i < 6; i++) { var p = new Vector3(-11.2f + i * .22f, F, -3.4f); tw.kolor = kol[2 + i % 4]; tw.Walec(p, .07f, .62f * K, 10); }
+        int matyT = 0;
+        for (int i = 0; i < 4; i++) if (TowarT("sklep_sprzet_01", "mata_zwinieta_fioletowa", new Vector3(-11.1f + i * .7f, F, -3.4f), Vector3.right)) matyT++;
+        for (int i = 0; i < 6 && matyT == 0; i++) { var p = new Vector3(-11.2f + i * .22f, F, -3.4f); tw.kolor = kol[2 + i % 4]; tw.Walec(p, .07f, .62f * K, 10); }
+        // manekiny właściciela w dresach w witrynie (czarne; białe odrzucone przez właściciela 11.11 23:22), przodem do ulicy
+        int man = 0;
+        foreach (var (mx, mn) in new[] { (-9.6f, "sklep_manekiny_01/manekin_dres_czarny"), (-6.4f, "sklep_manekiny_02/manekin_dres_czarny_kaptur") })
+            if (TowarT("sklep_manekiny_01", mn, new Vector3(mx, F, z0 + 1.2f), Vector3.back)) { man++; KolL("manekin", new Vector3(mx - .35f, F, z0 + .85f), new Vector3(mx + .35f, F + 2.3f, z0 + 1.55f)); }
         tw.kolor = BraxUliceKit.Bialy;
         var w = root.TransformPoint(new Vector3(-3f, 3.4f, 0)); BraxRegion.Warm(root, "Sport światło", w, 1.3f, 10f);
         BraxRegion.Warm(root, "Sport światło", root.TransformPoint(new Vector3(-8.5f, 3.4f, 1f)), 1.1f, 9f);
+        TowarLod();
+        Debug.Log("BRAXHORN_SPORT towar właściciela (Tripo): " + (towarT ? towarT.childCount : 0) + " sztuk; manekinów " + man + "; ze ściany sprzętu " + sprzetN);
         Szatnia();
         BraxMiastoA.Akcja(root, "sport_kasa", "KUP", "Sprzedawca: Rękawice, buty, odzież — wszystko z linii BRAXHORN.", root.TransformPoint(lc + new Vector3(-1.2f, 0, 0)), 1.7f);
         BraxMiastoA.Akcja(root, "sport_przymierzalnia", "PRZYMIERZ", "Przymierzalnia wolna — weź rzeczy z wieszaka.", root.TransformPoint(new Vector3(px0 - .9f, F, z0 + 2.5f)), 1.6f);

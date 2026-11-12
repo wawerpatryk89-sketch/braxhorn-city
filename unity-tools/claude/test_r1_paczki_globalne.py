@@ -98,5 +98,16 @@ class MotoryRowery(unittest.TestCase):
         self.assertNotIn("Rower(", u.split("ZASADA")[0][:0])
 
 
+class SportTowar(unittest.TestCase):
+    # 12.11 02:06: „jak kolega dostarczył zasoby w 3D, to wykorzystaj je, gdzie potrzeba. Premium, max”
+    def test_braxhorn_sport_uses_owner_goods_with_fallback(self):
+        s = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxMiastoSport.cs").read_text()
+        for n in ["sklep_sport_01", "_wieszak", "sklep_walka_01/buty_bokserskie_czarno_zlote", "sklep_buty_02/", "sklep_walka_01/kask_bokserski_czerwony",
+                  "sklep_walka_01/ochraniacz_szczeki_w_pudelku", '"pilka_nozna"', '"mata_zwinieta_fioletowa"', "sklep_manekiny_02/manekin_dres_czarny_kaptur"]:
+            self.assertIn(n, s)
+        self.assertIn("postawione == 0", s); self.assertIn("if (butyT > 0) continue;", s); self.assertIn("sprzetN == 0", s)   # z kodu tylko bez paczek
+        self.assertNotIn("manekin_bialy", s)                                 # białe manekiny odrzucone (11.11 23:22)
+
+
 if __name__ == "__main__":
     unittest.main()
