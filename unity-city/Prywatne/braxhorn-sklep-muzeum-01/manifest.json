@@ -1,0 +1,33 @@
+{
+ "source": "Właściciel 12.11.2026 01:42: plansza Tripo (z obrazu ChatGPT, prompt R1 01:26) — eksponaty MUZEUM BRAXHORN: model fregaty, hełm nurka, koło sterowe, soczewka Fresnela, galion, marmurowy bokser, gramofon, globus, pas mistrzowski BRAXHORN; bicykl odrzucony (porwane szprychy)",
+ "target": "muzeum_eksponaty_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/muzeum_eksponaty_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "d870f35f95e40d3c185c4c5ab6b980ff9ad3f22d9209e4ecbb528852dc5c181f",
+ "cmsSha256": "3edad3d1d0b5da4527fe0b79384fa477a6274a1250fe627264aa28446a602fd9",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 11786816,
+   "sha256": "3edad3d1d0b5da4527fe0b79384fa477a6274a1250fe627264aa28446a602fd9"
+  }
+ ],
+ "files": {
+  "muzeum_eksponaty_01/_tekstury/muzeum_eksponaty_01_kolor.jpg": "c31d52d05c216d8d6eead332e381a0f25b14d54c843413e4767c723cb8275002",
+  "muzeum_eksponaty_01/_tekstury/muzeum_eksponaty_01_mr.png": "8cf7b55bf0bf924a82c391fca5bbf9057f6b7b04ad8d4d649a423540d4882b60",
+  "muzeum_eksponaty_01/_tekstury/muzeum_eksponaty_01_normal.png": "167487db2b58b367c7503538d0f400072b3c5808c4b6fdd318f3d968011e699c",
+  "muzeum_eksponaty_01/bokser_marmur.glb": "3c1c5bfb56fb52d1d02dc7cccccfef9d8b82c12483393857f3fcbc978852c18e",
+  "muzeum_eksponaty_01/fregata_model.glb": "bf2511212425bfd19077b8ddc54ce8a7644bbf755c6de01e33a899b0e1545c29",
+  "muzeum_eksponaty_01/galion.glb": "1228023d22c5f845cc6d31ed72c52c75d742e3ec049ca0bf64b6025bd2ed71d2",
+  "muzeum_eksponaty_01/globus.glb": "c8a85297cb4e9d5de830167da7c227a7c41e2228fa0597675b4b06373539302b",
+  "muzeum_eksponaty_01/gramofon.glb": "750ca8c38979d06baa7ad0328540c5f2591988d9960e179c3a27b526aece900a",
+  "muzeum_eksponaty_01/helm_nurka.glb": "0c1a6ab9cbdf8fb6a3d6e22b9f13f09185480204325edd48e2a351c714af6934",
+  "muzeum_eksponaty_01/katalog.json": "65014958f225d3be40d898b086529e08eca2a17a5e4f14651cc4cc41f33dea3b",
+  "muzeum_eksponaty_01/kolo_sterowe.glb": "1dcbb5275c6323c27e2facb8097fe8aeb914319c5af4c033fffe714d07bb4dcb",
+  "muzeum_eksponaty_01/pas_mistrzowski.glb": "219d0da86c1e0f6e24bb8c4d6fc6d1e49fb6dc71ffdfa971e3dce015b70ae9c5",
+  "muzeum_eksponaty_01/soczewka_fresnela.glb": "b1f13203d44d2436ff2a26752643236df90921a0649904397a2bb3dd4474a4f6",
+  "oryginal/muzeum.glb": "90c613a56bad1d259132ecf8ee47ee030479068b663c3c8c093ba10c94c9153b",
+  "oryginal/spec.json": "9f03675de895a1ba1c164c6d0e94fd572299f00803f3326f64e179578facc09a"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

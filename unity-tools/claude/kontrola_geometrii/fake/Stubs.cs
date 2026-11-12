@@ -41,6 +41,18 @@ public static class Rejestr
     public static readonly List<string> Notatki = new List<string>();
 }
 
+// paczki właściciela z Tripo (BraxMiastoAssety w grze): w podglądzie model = „tripo:<paczka>/<plik>”, przeglądarka bierze
+// tripo/<paczka>/<plik>.glb (pocięte modele leżą tylko w scratchpadzie — nigdy w repo)
+public static class BraxMiastoAssety
+{
+    public static bool Jest(string paczka) => Harness.MaModel("tripo:" + paczka + "/");
+    public static GameObject Model(string paczka, string plik)
+    {
+        var id = "tripo:" + paczka + "/" + plik; if (!Harness.MaModel(id)) return null;
+        var g = new GameObject(id); g.SetActive(false); return g;
+    }
+}
+
 public static class BraxRegion
 {
     public const string Out = "Assets/Claude/Region";

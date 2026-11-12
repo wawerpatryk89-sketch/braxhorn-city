@@ -240,16 +240,29 @@ public static partial class BraxRegionMiastoB
             BraxMuzeumKod.Obraz(g, "ściana", new Vector3(lico.x, y0 + 1.55f + h * .5f, lico.z), n, nr, sz); muzEksponatow++;
         }
 
+        // 12.11 01:42 — eksponaty właściciela z Tripo (plansza z promptu R1, paczka globalna braxhorn-sklep-muzeum-01): fregata,
+        // hełm nurka, koło sterowe, soczewka Fresnela, galion, marmurowy bokser, gramofon, globus, pas mistrzowski BRAXHORN;
+        // bez paczki (brak klucza w CI) — eksponaty z kodu jak dotąd (bicykl z planszy odrzucony: porwane szprychy)
+        GameObject TR(string plik) => BraxMiastoAssety.Model("muzeum_eksponaty_01", plik);
         // ---- działy: PORT (zachód) · SZTUKA (środek, oś wejścia) · TECHNIKA (wschód)
         float sw = Mathf.Min(12f, W * .23f), xP = (xi0 + cx - sw) * .5f, xT = (xi1 + cx + sw) * .5f, dz = Mathf.Min(4.5f, (zk1 - zk0) * .3f);
         // PORT: model żaglowca w gablocie, armata za barierką, hełm nurka w gablocie, koło sterowe na ścianie, plansze, marynistyka
-        BraxMuzeumKod.Zaglowiec(g, "dział PORT", new Vector3(xP, y0 + .02f, zg), Vector3.forward); muzEksponatow++;
-        Pulpit(xP + 1.75f, zg + 1.0f, Vector3.forward, "MODEL ŻAGLOWCA");
+        var fregata = TR("fregata_model");
+        if (fregata)
+        {   // model fregaty właściciela w dużej gablocie, burtą do zwiedzających (kadłub modelu wzdłuż z → obrót 90°)
+            BraxMuzeumKod.GablotaDuza(g, "fregata", new Vector3(xP, y0 + .02f, zg), Vector3.forward, out var blatF, out float hF);
+            if (BraxRegion.Put(g, fregata, "Muzeum: model fregaty (Tripo właściciela)", blatF, 90f, 1f, false, (hF - .05f) / k)) muzEksponatow++;
+            Pulpit(xP + 1.75f, zg + 1.0f, Vector3.forward, "MODEL FREGATY");
+        }
+        else { BraxMuzeumKod.Zaglowiec(g, "dział PORT", new Vector3(xP, y0 + .02f, zg), Vector3.forward); muzEksponatow++; Pulpit(xP + 1.75f, zg + 1.0f, Vector3.forward, "MODEL ŻAGLOWCA"); }
         BraxMuzeumKod.Armata(g, "dział PORT", new Vector3(xP, y0 + .02f, zg - dz), Vector3.right); muzEksponatow++;
         { float zA = zg - dz; Barierka(new Vector3(xP - 1.85f, 0f, zA - 1.85f), new Vector3(xP + 2.15f, 0f, zA - 1.85f), new Vector3(xP + 2.15f, 0f, zA + 1.45f), new Vector3(xP - 1.85f, 0f, zA + 1.45f), new Vector3(xP - 1.85f, 0f, zA - 1.85f)); }
         Pulpit(xP + 2.75f, zg - dz + 1.0f, Vector3.right, "ARMATA OKRĘTOWA");
-        Gablota(g, new Vector3(xP, y0 + .02f, zg + dz), marmur, mosiadz, szklo, null, "hełm nurka", "HEŁM NURKA", q => BraxMuzeumKod.HelmNurka(g, "dział PORT", q, Vector3.forward), .5f, .5f, .66f);
-        BraxMuzeumKod.KoloSterowe(g, "dział PORT", new Vector3(xi0, y0 + 1.95f, zg), Vector3.right); muzEksponatow++;
+        var helm = TR("helm_nurka");
+        Gablota(g, new Vector3(xP, y0 + .02f, zg + dz), marmur, mosiadz, szklo, helm, "hełm nurka", "HEŁM NURKA", helm ? null : (System.Action<Vector3>)(q => BraxMuzeumKod.HelmNurka(g, "dział PORT", q, Vector3.forward)), .5f, .5f, .66f, 0f);
+        var kolo = TR("kolo_sterowe");
+        if (kolo) { if (BraxRegion.Put(g, kolo, "Muzeum: koło sterowe na stojaku (Tripo właściciela)", new Vector3(xi0 + .75f, y0 + .02f, zg), 90f, 1f, true, 1.3f)) muzEksponatow++; }
+        else { BraxMuzeumKod.KoloSterowe(g, "dział PORT", new Vector3(xi0, y0 + 1.95f, zg), Vector3.right); muzEksponatow++; }
         Pulpit(xi0 + 1.4f, zg + 1.3f, Vector3.right, "KOŁO STEROWE");
         BraxMuzeumKod.Plansza(g, "dział PORT", new Vector3(xi0, y0 + 2.2f, zg - 3.2f), Vector3.right, 0);
         BraxMuzeumKod.Plansza(g, "dział PORT", new Vector3(xi0, y0 + 2.2f, zg + 3.2f), Vector3.right, 1);
@@ -257,12 +270,15 @@ public static partial class BraxRegionMiastoB
         for (int i = 0; i < 4; i++)
             if (zSciany[i] > zi0 + 1.6f && zSciany[i] < zi1 - 1.6f) { ObrazNaScianie(new Vector3(xi0, 0f, zSciany[i]), Vector3.right, zachod[i]); ObrazNaScianie(new Vector3(xi1, 0f, zSciany[i]), Vector3.left, wschod[i]); }
         // TECHNIKA: gramofon z tubą, bicykl za barierką, globus, gabloty z techniką (Poly Haven), zegar stojący, plansze
-        BraxMuzeumKod.Gramofon(g, "dział TECHNIKA", new Vector3(xT, y0 + .02f, zg + dz), Vector3.left); muzEksponatow++;
-        Pulpit(xT - 1.2f, zg + dz + .9f, Vector3.left, "GRAMOFON Z TUBĄ");
+        var gramofon = TR("gramofon");
+        if (gramofon) NaPostumencie(gramofon, xT, zg + dz, -90f, .8f, .42f, .62f, "GRAMOFON Z TUBĄ", Vector3.left, xT - 1.2f, zg + dz + .9f);
+        else { BraxMuzeumKod.Gramofon(g, "dział TECHNIKA", new Vector3(xT, y0 + .02f, zg + dz), Vector3.left); muzEksponatow++; Pulpit(xT - 1.2f, zg + dz + .9f, Vector3.left, "GRAMOFON Z TUBĄ"); }
         BraxMuzeumKod.Bicykl(g, "dział TECHNIKA", new Vector3(xT, y0 + .02f, zg), Vector3.left); muzEksponatow++;
         Barierka(new Vector3(xT - .95f, 0f, zg - 1.9f), new Vector3(xT + .95f, 0f, zg - 1.9f), new Vector3(xT + .95f, 0f, zg + 2.1f), new Vector3(xT - .95f, 0f, zg + 2.1f), new Vector3(xT - .95f, 0f, zg - 1.9f));
         Pulpit(xT - 1.55f, zg - 1.3f, Vector3.left, "BICYKL");
-        BraxMuzeumKod.Globus(g, "dział TECHNIKA", new Vector3(xT, y0 + .02f, zg - dz), Vector3.left); muzEksponatow++;
+        var globus = TR("globus");
+        if (globus) { if (BraxRegion.Put(g, globus, "Muzeum: globus na stojaku (Tripo właściciela)", new Vector3(xT, y0 + .02f, zg - dz), -90f, 1f, true, 1.2f)) muzEksponatow++; }
+        else { BraxMuzeumKod.Globus(g, "dział TECHNIKA", new Vector3(xT, y0 + .02f, zg - dz), Vector3.left); muzEksponatow++; }
         Pulpit(xT - 1.2f, zg - dz + .9f, Vector3.left, "GLOBUS");
         float xG = Mathf.Min(xT + 3.6f, xi1 - 2.2f);
         string[][] technika = { new[] { "television_02" }, new[] { "boombox" }, new[] { "round_spectacles", "magnifying_glass_01" } };
@@ -304,6 +320,7 @@ public static partial class BraxRegionMiastoB
         foreach (var (x, z, w) in new[] { (cx - 6f, zk1 + 2.6f, 1), (cx + 6f, zk1 + 2.6f, 3), (cx - 9.5f, zg + 2.8f, 2), (cx + 9.5f, zg + 2.8f, 0), (cx, zS, 1) })
         {
             if (Mathf.Abs(x - cx) > sw - 1f || (z == zS && gotycka)) continue;   // między ściankami rzeźba gotycka (Poly Haven), gdy jest
+            if ((w == 1 || w == 2) && z != zS && BraxMiastoAssety.Jest("muzeum_eksponaty_01")) continue;   // spirala → marmurowy bokser, trzy kule → galion (Tripo)
             BraxMuzeumKod.Rzezba(g, "dział SZTUKA", new Vector3(x, y0 + .02f, z), Vector3.forward, w); muzEksponatow++;
             if (z != zS) Pulpit(x + 1.05f, z + .8f, Vector3.forward, rzezby[w]);
         }
@@ -355,6 +372,13 @@ public static partial class BraxRegionMiastoB
         var got = M("gothic_statue");
         if (got) NaPostumencie(got, cx, zS, 180f, 1.9f, .85f, .3f, "RZEŹBA GOTYCKA", Vector3.forward, cx + 1.6f, zS + 1.4f);
         NaPostumencie(M("bronze_whale_statue"), cx - 6f, zg + 5.5f, 180f, 1.1f, .6f, .55f, "WIELORYB Z BRĄZU", Vector3.forward, cx - 4.8f, zg + 6.4f);
+        // eksponaty właściciela (Tripo, 01:42; „jeżeli coś, co ci wysłałem, jest lepsze od tego, co mamy, zastępuj”): marmurowy bokser
+        // i galion zamiast abstrakcji z kodu, soczewka latarni morskiej w PORCIE, pas mistrzowski BRAXHORN w gablocie na osi wejścia
+        NaPostumencie(TR("bokser_marmur"), cx - 6f, zk1 + 2.6f, 0f, 1.4f, .6f, .35f, "BOKSER · MARMUR", Vector3.forward, cx - 4.95f, zk1 + 3.4f);
+        NaPostumencie(TR("galion"), cx - 9.5f, zg + 2.8f, 0f, 1.75f, .55f, .3f, "GALION OKRĘTOWY", Vector3.forward, cx - 8.45f, zg + 3.6f);
+        NaPostumencie(TR("soczewka_fresnela"), xP + 4.8f, zg, 0f, 1.85f, .62f, .25f, "SOCZEWKA LATARNI MORSKIEJ", Vector3.forward, xP + 3.4f, zg + .95f);
+        var pas = TR("pas_mistrzowski");
+        if (pas) Gablota(g, new Vector3(cx, y0 + .02f, zk1 + 4.0f), marmur, mosiadz, szklo, pas, "pas mistrzowski", "PAS MISTRZOWSKI BRAXHORN", null, .5f, .32f, .7f, 0f);
         Gablota(g, new Vector3(cx + 6f, y0 + .02f, zg + 5.5f), marmur, mosiadz, szklo, M("bronze_shark_statue"), "rekin z brązu");
         Gablota(g, new Vector3(cx - 2.5f, y0 + .02f, zi0 + 3.6f), marmur, mosiadz, szklo, M("horse_head"), "głowa konia");
         Gablota(g, new Vector3(cx + 2.5f, y0 + .02f, zi0 + 3.6f), marmur, mosiadz, szklo, M("bull_head"), "głowa byka");

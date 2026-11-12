@@ -1,5 +1,6 @@
 """MIASTO R1 — przegląd miasta na gotowo (właściciel 11.11.2026, 19:33–20:11). Kontrole kodu generatorów."""
 import pathlib
+import json
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -286,6 +287,22 @@ class Muzeum(unittest.TestCase):
         self.assertIn("(hg - .08f) / k", m)                                  # limit wysokości w metrach realnych (bez podwójnego K)
         for zakaz in ["brass", "gold", "pocket_watch"]:                       # zasada 10.11 — bez złota i mosiądzu
             self.assertNotIn(zakaz, m.lower())
+
+
+class MuzeumTripo(unittest.TestCase):
+    def test_owner_tripo_exhibits_with_code_fallback(self):
+        # 12.11 01:24 „daj mi prompty… wygeneruję”, 01:42 plansza; 01:48 „jeżeli coś… jest lepsze od tego, co mamy, zastępuj”
+        m = src(R / "BraxMuzeum.cs")
+        self.assertIn('BraxMiastoAssety.Model("muzeum_eksponaty_01", plik)', m)
+        for n in ["fregata_model", "helm_nurka", "kolo_sterowe", "soczewka_fresnela", "galion", "bokser_marmur", "gramofon", "globus", "pas_mistrzowski"]:
+            self.assertIn('TR("' + n + '")', m, n)
+        self.assertNotIn('TR("bicykl")', m)                                  # bicykl z planszy odrzucony (porwane szprychy)
+        for kod in ["BraxMuzeumKod.Zaglowiec(g, \"dział PORT\", new Vector3(xP", "BraxMuzeumKod.HelmNurka(", "BraxMuzeumKod.KoloSterowe(", "BraxMuzeumKod.Gramofon(", "BraxMuzeumKod.Globus("]:
+            self.assertIn(kod, m)                                            # bez paczki — eksponaty z kodu
+        self.assertIn('"PAS MISTRZOWSKI BRAXHORN"', m)
+        man = json.loads((ROOT / "unity-city/Prywatne/braxhorn-sklep-muzeum-01/manifest.json").read_text())
+        self.assertEqual(man["target"], "muzeum_eksponaty_01")
+        self.assertEqual(len([f for f in man["files"] if f.endswith(".glb") and f.startswith("muzeum_eksponaty_01/")]), 9)
 
 
 class BezMosiadzu(unittest.TestCase):
