@@ -16,8 +16,10 @@ public sealed class BraxChampionsLeniwaRzeka : MonoBehaviour, IBraxInterakcja
     public float zasieg = 3.4f;                  // world: reach to a ring
     public float siedzenie = .10f;               // world: the seat over the ring's centre (the rider's hips in the hole)
     public float kolysanie = .035f;              // world: the bob
+    public string basen = "LENIWA RZEKA";        // the river's swimming volumes (BraxSwimmingZone.basinId)
 
     float[] L; float dl; float[] s, obrot; int jedzie = -1; BraxGymPlayer gracz; Vector3 lokalnie; bool blisko = true; float sprawdz;
+    readonly System.Collections.Generic.List<BraxSwimmingZone> strefy = new System.Collections.Generic.List<BraxSwimmingZone>();
 
     void OnEnable() { BraxInterakcje.Dodaj(this); }
     void OnDisable() { BraxInterakcje.Usun(this); }
@@ -31,6 +33,7 @@ public sealed class BraxChampionsLeniwaRzeka : MonoBehaviour, IBraxInterakcja
         s = new float[kola.Length]; obrot = new float[kola.Length];
         for (int i = 0; i < kola.Length; i++) { s[i] = dl * i / kola.Length; obrot[i] = i * 47f; }
         foreach (var x in siedziska) if (x) x.gameObject.SetActive(false);
+        foreach (var z in FindObjectsByType<BraxSwimmingZone>(FindObjectsSortMode.None)) if (z && z.basinId == basen) strefy.Add(z);
         Ustaw(0f);
     }
 
@@ -134,6 +137,9 @@ public sealed class BraxChampionsLeniwaRzeka : MonoBehaviour, IBraxInterakcja
             Punkt(s[i], out _, out var t, out int k);
             var b = brzeg[Mathf.Clamp(k, 0, brzeg.Length - 1)];
             var w = Vector3.ProjectOnPlane(kola[i].position - b, Vector3.up);
+            // boarded from the water: the swimming state of the river must not follow him onto the dry bank (the collider was
+            // off while he rode, so no trigger exit came)
+            foreach (var z in strefy) if (z) gracz.ExitSwimmingZone(z.GetInstanceID());
             gracz.body.enabled = false;
             gracz.transform.position = b;
             gracz.transform.rotation = Quaternion.LookRotation(w.sqrMagnitude > 1e-4f ? w.normalized : t);
