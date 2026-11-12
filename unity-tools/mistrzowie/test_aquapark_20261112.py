@@ -71,6 +71,7 @@ class Aquapark(unittest.TestCase):
         self.assertIn('rz.brzeg = bank', s)
         self.assertIn('SetStaticEditorFlags(t.gameObject, 0)', s)          # moving rings: never static-batched
         self.assertIn('river.cop', s)                                        # cut out of the deck
+        self.assertIn('FloorBull(P(', s)                                    # the BRAXHORN bull mosaic on the lagoon floor
         r = (ROOT / 'unity-city/Assets/Mistrzowie/BraxChampionsLeniwaRzeka.cs').read_text(encoding='utf8')
         self.assertIn('"LENIWA RZEKA · WSIĄDŹ DO KOŁA"', r)
         self.assertIn('Zejdz()', r)

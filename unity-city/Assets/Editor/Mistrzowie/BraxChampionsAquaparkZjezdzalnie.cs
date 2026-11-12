@@ -179,6 +179,46 @@ public static partial class BraxChampionsAquapark
         }
     }
 
+    // the bull as a MOSAIC on a pool floor (navy tiles, the outline in white marble): the relief's front faces laid flat,
+    // 2.5 cm proud of the floor (no z-fight), its head to +z (north: upright for the south terrace)
+    static void FloorBull(Vector2 centre, float y, float width)
+    {
+        string src = "Assets/Source/Mistrzowie/ArenaRoofBull.bytes";
+        MarkFile data = null;
+        try
+        {
+            if (System.IO.File.Exists(src))
+                using (var f = System.IO.File.OpenRead(src)) using (var zip = new System.IO.Compression.GZipStream(f, System.IO.Compression.CompressionMode.Decompress)) using (var r = new System.IO.StreamReader(zip))
+                    data = JsonUtility.FromJson<MarkFile>(r.ReadToEnd());
+        }
+        catch (System.Exception e) { BraxBuildQuality.Warn("AQUAPARK_BULL_MOSAIC " + e.Message); }
+        if (data?.signs == null || data.signs.Length == 0) return;
+        var all = data.signs[0].meshes.Where(x => x.positions != null && x.positions.Length >= 3).ToList();
+        float minx = float.MaxValue, maxx = float.MinValue, miny = float.MaxValue, maxy = float.MinValue;
+        foreach (var mm in all) for (int i = 0; i < mm.positions.Length; i += 3) { minx = Mathf.Min(minx, mm.positions[i]); maxx = Mathf.Max(maxx, mm.positions[i]); miny = Mathf.Min(miny, mm.positions[i + 1]); maxy = Mathf.Max(maxy, mm.positions[i + 1]); }
+        float s = width / Mathf.Max(.01f, maxx - minx); float cxm = (minx + maxx) * .5f, cym = (miny + maxy) * .5f;
+        int tris = 0;
+        foreach (var mm in all)
+        {
+            var mat = mm.role == "led" ? coping : waterline;
+            float lift = mm.role == "led" ? .030f : .025f;
+            Vector3 Pt(int i) => new Vector3(centre.x + (mm.positions[3 * i] - cxm) * s, y + lift, centre.y + (mm.positions[3 * i + 1] - cym) * s);
+            for (int t = 0; t + 2 < mm.triangles.Length; t += 3)
+            {
+                int a = mm.triangles[t], b = mm.triangles[t + 1], c = mm.triangles[t + 2];
+                // only the faces that look out of the mark (its front, +z): the side walls of the relief stay out
+                var ma = new Vector3(mm.positions[3 * a], mm.positions[3 * a + 1], mm.positions[3 * a + 2]);
+                var mb = new Vector3(mm.positions[3 * b], mm.positions[3 * b + 1], mm.positions[3 * b + 2]);
+                var mc = new Vector3(mm.positions[3 * c], mm.positions[3 * c + 1], mm.positions[3 * c + 2]);
+                var nz = Vector3.Cross(mb - ma, mc - ma); if (nz.sqrMagnitude < 1e-12f || nz.normalized.z < .7f) continue;
+                Vector3 p0 = Pt(a), p1 = Pt(b), p2 = Pt(c);
+                if (Vector3.Cross(p1 - p0, p2 - p0).y < 0f) { var x = p1; p1 = p2; p2 = x; }
+                m.Triangle(mat, p0, p1, p2); tris++;
+            }
+        }
+        if (tris == 0) BraxBuildQuality.Warn("AQUAPARK_BULL_MOSAIC no front faces in the mark");
+    }
+
     // ================================================================ SLIDES
     sealed class Frame { public Vector3 p, t, u, r; }
     // centre line -> parallel-transport frames (u: the tube's "up", r: right)

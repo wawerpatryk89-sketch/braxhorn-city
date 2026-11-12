@@ -64,6 +64,7 @@ public static partial class BraxChampionsAquapark
     static void Pools3()
     {
         MakePool(lagoon, poolTile, poolFloor, water, true, true);
+        FloorBull(P(-15.5f, 3.5f), lagoon.floor, 15f);          // the BRAXHORN bull in navy mosaic on the lagoon's floor
         Steps(lagoon, P(0f, -19.6f), 6.0f, 7);
         Steps(lagoon, P(-37.6f, 2f), 4.0f, 7);
         foreach (var l in new[] { P(-24f, -17.7f), P(24f, -16.5f), P(44.6f, 8f), P(-35f, 12f), P(-8f, 27.3f) }) Ladder(lagoon, l);
