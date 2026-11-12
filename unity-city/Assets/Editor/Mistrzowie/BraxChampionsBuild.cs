@@ -341,6 +341,11 @@ public static class BraxChampionsBuild
             QualitySettings.streamingMipmapsMemoryBudget=768;
             QualitySettings.streamingMipmapsMaxLevelReduction=2;
             QualitySettings.streamingMipmapsAddAllCameras=true;
+            // Owner 12.11 12:10-13:38: "żaden biały pas nie ma migotać ... wszystkie paski cienkie migotają". Besides the
+            // surfaces that fought for depth (fixed with inlays and depth offsets), a thin white line shimmers when it is
+            // narrower than a pixel and the picture has no anti-aliasing: the phone's levels had none (the graphics modes do
+            // not set it on a phone). 2x MSAA on every level of this APK (the region camera allows it; cheap on a tile GPU).
+            QualitySettings.antiAliasing=2;
         }
         QualitySettings.SetQualityLevel(previousQuality,false);
         var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=new[]{startPath},target=BuildTarget.Android,

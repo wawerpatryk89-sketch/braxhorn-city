@@ -680,7 +680,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes xvfb libgl1 libasound2t64
           chmod +x build/VisualReview/Mistrzowie.x86_64
-          timeout 300s xvfb-run -a -s '-screen 0 1280x720x24' build/VisualReview/Mistrzowie.x86_64 --champions-review -force-glcore -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -logFile "$GITHUB_WORKSPACE/mistrzowie-visual-player.log"
+          timeout 900s xvfb-run -a -s '-screen 0 1280x720x24' build/VisualReview/Mistrzowie.x86_64 --champions-review -force-glcore -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -logFile "$GITHUB_WORKSPACE/mistrzowie-visual-player.log"
           test -s mistrzowie-visual-review/complete.txt
           python3 - <<'PYIMAGES'
           from pathlib import Path
@@ -700,7 +700,12 @@ jobs:
               '16-bathroom.png','17-elevators.png','18-stair.png','19-podium-terrace.png','20-top-floor-view.png','21-roof-terrace.png'}
           murals={'22-arena-mural-lewy-zawodnicy.png','23-arena-mural-prawy-pas.png'}
           print('BRAX_REVIEW_ARENA_MURAL_FRAMES '+','.join(sorted(names & murals)))
-          base=names-murals
+          # owner 12.11: the region frames after the murals (24-..: cage, changing room, flat, train, gallery, promenade, open air)
+          region={n for n in names if n[:2].isdigit() and int(n[:2])>=24}
+          print('BRAX_REVIEW_REGION_FRAMES '+','.join(sorted(region)))
+          stats=Path('mistrzowie-visual-review/statystyki.txt')
+          if stats.exists(): print(stats.read_text())
+          base=names-murals-region
           if '21-roof-mansard.png' in names or '21-roof-terrace.png' in names:
               assert base in (hotel_required, hotel_now), 'HOTEL SOBCZAK requires exactly the 21 owner acceptance frames'
           else:

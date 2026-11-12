@@ -67,6 +67,10 @@ class PlynnoscWykonczenie(unittest.TestCase):
         self.assertIn('sun.transform.rotation = Quaternion.LookRotation(-BraxCityMaterials.SunDirection);', e)
         self.assertIn('UnityEngine.Object.DestroyImmediate(mc);', e)             # the test colliders do not stay in the scene
 
+    def test_thin_lines_get_antialiasing_on_the_phone(self):
+        self.assertIn('QualitySettings.antiAliasing=2;', src('Editor/Mistrzowie/BraxChampionsBuild.cs'))
+        self.assertIn('camera.allowMSAA = true;', src('Editor/Mistrzowie/BraxChampionsExplorer.cs'))
+
 
 if __name__ == '__main__':
     unittest.main()

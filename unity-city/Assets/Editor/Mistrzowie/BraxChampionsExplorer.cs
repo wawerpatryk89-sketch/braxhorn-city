@@ -81,6 +81,7 @@ public static class BraxChampionsExplorer
             new Vector3(885,22,815)*K,new Vector3(plant.x,.16f,plant.z)*K,
             new Vector3(plant.x,.16f,plant.z)*K};
         SeatsOnTheirSurfaces(scene);
+        DoorwaysClear(scene);
         SunShadows(scene);
         SmallThingsLayers(scene);
         rig.AddComponent<BraxChampionsWydajnosc>().kamera = camera;
@@ -104,6 +105,62 @@ public static class BraxChampionsExplorer
             if (d > .02f) { moved++; worst = Mathf.Max(worst, d); s.surfaceY = y; EditorUtility.SetDirty(s); }
         }
         Debug.Log("A1_SEATS kit seats=" + all + " heightCorrected=" + moved + " worstError=" + worst.ToString("F2") + " m");
+    }
+
+    // Owner 12.11 11:39 / 13:42: "słupy stoją przy wejściach", "posprawdzać, czy gdzieś słupy nie stoją w jakichś przejściach
+    // ... to jest globalny problem wasz, zastawianie czegokolwiek". Every door of the region (swing, automatic, sliding) is
+    // tested in the finished scene: the space a person needs before and behind it (the leaf's width less 10 cm, from 0.3 to
+    // 1.2 m off the door, from 0.3 to 1.9 m over its sill) must hold no solid collider but the door's own. Each find is one
+    // A1_DOORWAY_BLOCKED line in the build log with the door, the side and what stands there - a list to repair from.
+    static void DoorwaysClear(Scene scene)
+    {
+        Physics.SyncTransforms();
+        var doors = new List<(Transform root, Transform[] leaves, string name)>();
+        foreach (var d in All<BraxCityDoor>(scene)) if (d.leaves != null) doors.Add((d.transform, d.leaves, d.label + " (" + d.name + ")"));
+        foreach (var d in All<BraxDrzwiAutomatyczne>(scene)) doors.Add((d.transform, new[] { d.skrzydloL, d.skrzydloP }, d.nazwa + " (" + d.name + ")"));
+        foreach (var d in All<BraxDrzwiPrzesuwne>(scene)) if (d.skrzydla != null) doors.Add((d.transform, d.skrzydla, d.etykieta + " (" + d.name + ")"));
+        int tested = 0, blocked = 0; var hits = new Collider[24];
+        foreach (var (root, leaves, name) in doors)
+        {
+            if (!root.gameObject.activeInHierarchy) continue;             // streamed floors are copies of a tested floor
+            Bounds? box = null; Transform first = null; Bounds local = default;
+            foreach (var leaf in leaves)
+            {
+                if (!leaf) continue;
+                foreach (var r in leaf.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    if (box == null) box = r.bounds; else { var b = box.Value; b.Encapsulate(r.bounds); box = b; }
+                    var mf = r.GetComponent<MeshFilter>();
+                    if (!first && mf && mf.sharedMesh) { first = r.transform; local = mf.sharedMesh.bounds; }
+                }
+            }
+            if (box == null || !first) continue;
+            // the door's plane: the thinnest axis of the leaf's own mesh
+            var ls = Vector3.Scale(local.size, first.lossyScale);
+            Vector3 normal = ls.x <= ls.z ? first.right : first.forward; normal.y = 0;
+            if (normal.sqrMagnitude < .01f) continue;
+            normal.Normalize(); var along = Vector3.Cross(Vector3.up, normal);
+            var w = box.Value; float width = Mathf.Abs(Vector3.Dot(w.size, new Vector3(Mathf.Abs(along.x), 0, Mathf.Abs(along.z))));
+            if (width < .5f * K || w.size.y < 1.5f * K) continue;        // wardrobe and cabinet leaves are not doorways
+            tested++;
+            var rot = Quaternion.LookRotation(normal, Vector3.up);
+            var half = new Vector3(Mathf.Max(.15f, width * .5f - .05f * K), .8f * K, .45f * K);
+            foreach (float side in new[] { -1f, 1f })
+            {
+                var centre = new Vector3(w.center.x, w.min.y + 1.1f * K, w.center.z) + normal * (side * .75f * K);
+                int n = Physics.OverlapBoxNonAlloc(centre, half, hits, rot, ~0, QueryTriggerInteraction.Ignore);
+                for (int i = 0; i < n; i++)
+                {
+                    var c = hits[i]; if (!c || c.transform.IsChildOf(root) || root.IsChildOf(c.transform)) continue;
+                    bool own = false; foreach (var leaf in leaves) if (leaf && c.transform.IsChildOf(leaf)) own = true;
+                    if (own || c is CharacterController || c.attachedRigidbody) continue;
+                    blocked++;
+                    if (blocked <= 300) Debug.Log("A1_DOORWAY_BLOCKED door='" + name + "' at " + w.center.ToString("F1") + " side=" + (side > 0 ? "front" : "back") + " by='" + c.name + "' under '" + (c.transform.parent ? c.transform.parent.name : "-") + "' size=" + c.bounds.size.ToString("F2"));
+                    break;
+                }
+            }
+        }
+        Debug.Log("A1_DOORWAYS tested=" + tested + " of " + doors.Count + " blockedSides=" + blocked);
     }
 
     // Owner 12.11 12:22-13:37: "na średnim nie ma cieni ... w mieście R1 cienie, drzewa, wszystko", "ma być tak jak w R1 ...

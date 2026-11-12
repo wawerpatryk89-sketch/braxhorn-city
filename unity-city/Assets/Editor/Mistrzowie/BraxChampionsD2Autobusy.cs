@@ -127,8 +127,10 @@ public static partial class BraxChampionsD2
         {BraxChampionsPromenadeFurniture.Lamp(m,cols,x,z);Lamps++;}
         for(int i=0;i<4;i++){BraxChampionsPromenadeFurniture.Lamp(m,cols,ParkX0+.5f,ParkZ0+8f+i*20f);BraxChampionsPromenadeFurniture.Lamp(m,cols,(ParkWalkX+ParkX1)*.5f,ParkZ0+12f+i*14f);Lamps+=2;}
         for(int i=0;i<3;i++){BraxChampionsPromenadeFurniture.Lamp(m,cols,BusX1-.6f,BusZ0+8f+i*18f);Lamps++;}
-        // bollards on the zebra table's ends (stainless, 90 cm), the plaza side and the walk side
-        for(float x=-5.25f;x<=5.3f;x+=1.5f)foreach(float z in new[]{FrontZ-LaneHalf-.45f,FrontZ+LaneHalf+.45f})
+        // owner 12.11 13:42 ("posprawdzać, czy gdzieś słupy nie stoją w jakichś przejściach ... zastawianie czegokolwiek"): two
+        // rows of eight bollards stood ACROSS the zebra in front of the main doors. Only the crossing's four corners keep one
+        // (stainless, 90 cm): the 10.5 m between them is free
+        foreach(float x in new[]{-5.25f,5.25f})foreach(float z in new[]{FrontZ-LaneHalf-.45f,FrontZ+LaneHalf+.45f})
         {m.Cylinder(stainless,new Vector3(x,WalkY,z),.10f,.90f,16,Quaternion.identity,true);B(frame,x-.105f,x+.105f,WalkY+.70f,WalkY+.76f,z-.105f,z+.105f);Col(x-.11f,x+.11f,WalkY,WalkY+.9f,z-.11f,z+.11f,"słupek");}
         Pylon(-44f,-44.5f);
         TaxiSign(TaxiX0+1.5f,-5.6f,"TAXI");TaxiSign(KissX0+1.5f,-5.6f,"K+R");

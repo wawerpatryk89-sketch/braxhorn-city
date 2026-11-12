@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using Unity.Profiling;
 using UnityEngine;
 
 // Explicit command-line review only. Ordinary Android play never enters this mode.
@@ -84,11 +85,88 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
         Debug.Log("CHAMPIONS_REVIEW_ARENA_MURALS left="+a.center+" right="+b.center+" eye="+eye);
     }
 
+    // owner 12.11 ("na wszystko chcę dowody, zdjęcia", "uruchom to, co chciałeś ... żebyś zrobił to wszystko dobrze"): frames
+    // from the real player of what was repaired on 12.11 - the cage, a changing room with the bag, a flat's living room
+    // from both ends (the TV, the painted walls and ceiling, no kitchen run), the station's train from both sides, the
+    // gallery G1 inside and outside, the promenade - and the region's five open-air frames (the sun's shadows).
+    // Every place is found in the scene by what stands there, so the frames follow the generators.
+    void Add(string label,Vector3 eye,Vector3 target)
+    {
+        int n=labels.Length;
+        Array.Resize(ref positions,n+1);Array.Resize(ref targets,n+1);Array.Resize(ref labels,n+1);
+        positions[n]=eye;targets[n]=target;labels[n]=(n+1).ToString("D2")+"-"+label;
+        if(nightFrames!=null&&nightFrames.Length==n)Array.Resize(ref nightFrames,n+1);
+    }
+    static Bounds? BoundsOf(Transform t)
+    {
+        if(!t)return null;
+        Bounds? b=null;
+        foreach(var r in t.GetComponentsInChildren<Renderer>(true)){if(b==null)b=r.bounds;else{var x=b.Value;x.Encapsulate(r.bounds);b=x;}}
+        return b;
+    }
+    void AddRegionFrames(Vector3[] basePositions,Vector3[] baseTargets,string[] baseLabels)
+    {
+        var all=FindObjectsByType<Transform>(FindObjectsInactive.Include,FindObjectsSortMode.None);
+        Transform Named(Func<string,bool> ok){foreach(var t in all)if(ok(t.name))return t;return null;}
+        int before=labels.Length;
+        // the arena: the cage from the hall floor, a changing room with the bag on its bracket
+        var cage=Named(n=>n=="kolizja podestu oktagonu");
+        if(cage){var c=cage.position;Add("arena-klatka",c+new Vector3(13f,4.2f,-13f),c+Vector3.up*2.2f);}
+        var bag=Named(n=>n.StartsWith("A1 szatnia | worek_bokserski",StringComparison.Ordinal));
+        var gloves=Named(n=>n.StartsWith("A1 szatnia | rekawice",StringComparison.Ordinal));
+        if(bag&&gloves)
+        {
+            var c=bag.position+Vector3.up*1.6f;var d=gloves.position-bag.position;d.y=0;d.Normalize();
+            Add("arena-szatnia-worek",c+d*4.6f+Vector3.up*.3f,c);
+            Add("arena-szatnia-lawka",gloves.position-d*2.6f+Vector3.up*1.4f,gloves.position);
+        }
+        // a flat: the living room seen from the sofa toward the TV, and from the TV into the room
+        BraxTelewizor flat=null,totem=null;
+        foreach(var tv in FindObjectsByType<BraxTelewizor>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+        {
+            if(!tv.maMiejsce)continue;
+            if(!flat&&tv.name.StartsWith("APT ",StringComparison.Ordinal)&&tv.gameObject.activeInHierarchy)flat=tv;
+            if(!totem&&tv.name.StartsWith("G1 totem",StringComparison.Ordinal))totem=tv;
+        }
+        if(flat)
+        {
+            var c=flat.transform.TransformPoint(flat.srodekLokalny);var n=flat.transform.TransformDirection(flat.przodLokalny).normalized;
+            Add("apartament-salon-telewizor",c+n*4.2f+Vector3.up*.7f,c-Vector3.up*.2f);
+            Add("apartament-salon-sciany-sufit",c+n*.5f+Vector3.up*.7f,c+n*6f+Vector3.up*.9f);
+        }
+        // the station: the train from both sides of the platform track
+        var train=BoundsOf(Named(n=>n.StartsWith("D2 pociąg | lokomotywa",StringComparison.Ordinal)));
+        if(train!=null)
+        {
+            var b=train.Value;bool alongX=b.size.x>=b.size.z;
+            var along=alongX?Vector3.right:Vector3.forward;var side=alongX?Vector3.forward:Vector3.right;
+            float half=alongX?b.extents.x:b.extents.z;
+            Add("dworzec-pociag-peron-a",b.center-along*(half*.8f)-side*9f+Vector3.up*1.5f,b.center-along*(half*.2f));
+            Add("dworzec-pociag-peron-b",b.center+along*(half*.8f)+side*9f+Vector3.up*1.5f,b.center+along*(half*.2f));
+        }
+        // the gallery G1: at a totem in the mall, and the building from outside
+        if(totem)
+        {
+            var c=totem.transform.TransformPoint(totem.srodekLokalny);var n=totem.transform.TransformDirection(totem.przodLokalny).normalized;
+            Add("galeria-pasaz-totem",c+n*8f+Vector3.up*.6f,c);
+        }
+        var g1=BoundsOf(Named(n=>n.StartsWith("G1 |",StringComparison.Ordinal)));
+        if(g1!=null){var b=g1.Value;Add("galeria-z-zewnatrz",b.center+new Vector3(b.extents.x+55f,22f,-(b.extents.z+55f)),b.center);}
+        var prom=BoundsOf(Named(n=>n.Contains("PROMENADA")&&n.Contains("SHOPS")));
+        if(prom!=null){var b=prom.Value;Add("promenada-sklepy",new Vector3(b.center.x-b.extents.x*.25f,b.min.y+7f,b.center.z-18f),b.center);}
+        // the open air (shadows): the generators' own five frames
+        if(basePositions!=null&&baseTargets!=null&&baseLabels!=null&&basePositions.Length==baseTargets.Length&&basePositions.Length==baseLabels.Length)
+            for(int i=0;i<basePositions.Length;i++)Add("rejon-"+baseLabels[i],basePositions[i],baseTargets[i]);
+        Debug.Log("CHAMPIONS_REVIEW_REGION_FRAMES added="+(labels.Length-before)+" cage="+(cage!=null)+" bag="+(bag!=null)+" flat="+(flat!=null)+" train="+(train!=null)+" totem="+(totem!=null)+" g1="+(g1!=null)+" promenade="+(prom!=null));
+    }
+
     IEnumerator Start()
     {
         if(Array.IndexOf(Environment.GetCommandLineArgs(),"--champions-review")<0)yield break;
+        var basePositions=positions;var baseTargets=targets;var baseLabels=labels;
         ConfigureHotelIfPresent();
         if(positions!=null&&targets!=null&&labels!=null)AddArenaMuralFrames();
+        if(positions!=null&&targets!=null&&labels!=null&&!ReferenceEquals(labels,baseLabels))AddRegionFrames(basePositions,baseTargets,baseLabels);
         if(!view||!player||positions==null||targets==null||labels==null||positions.Length!=targets.Length||positions.Length!=labels.Length)
         { Debug.LogError("Champions visual review setup invalid");Application.Quit(2);yield break; }
         if(nightFrames!=null&&nightFrames.Length!=0&&nightFrames.Length!=labels.Length)
@@ -108,6 +186,13 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
         Color daySky=RenderSettings.ambientSkyColor,dayEq=RenderSettings.ambientEquatorColor,dayGround=RenderSettings.ambientGroundColor;
         Time.timeScale=0;
 
+        // what each frame costs to draw (the owner's "gra zacina"): batches, set-pass calls, triangles and shadow casters
+        // of the last rendered frame, written beside the pictures (statystyki.txt)
+        var batches=ProfilerRecorder.StartNew(ProfilerCategory.Render,"Batches Count");
+        var setPass=ProfilerRecorder.StartNew(ProfilerCategory.Render,"SetPass Calls Count");
+        var triangles=ProfilerRecorder.StartNew(ProfilerCategory.Render,"Triangles Count");
+        var casters=ProfilerRecorder.StartNew(ProfilerCategory.Render,"Shadow Casters Count");
+        var stats=new System.Text.StringBuilder("klatka\tbatches\tsetpass\ttrojkaty\trzucajace_cien\tjakosc="+QualitySettings.names[QualitySettings.GetQualityLevel()]+" cienie="+QualitySettings.shadows+" do "+QualitySettings.shadowDistance+"\n");
         for(int i=0;i<positions.Length;i++)
         {
             bool night=nightFrames!=null&&nightFrames.Length==labels.Length&&nightFrames[i];
@@ -129,7 +214,10 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
             frame.Apply(false,false);
             File.WriteAllBytes(Path.Combine(output,labels[i]+".png"),frame.EncodeToPNG());
             Destroy(frame);
+            stats.Append(labels[i]).Append('\t').Append(batches.LastValue).Append('\t').Append(setPass.LastValue).Append('\t').Append(triangles.LastValue).Append('\t').Append(casters.LastValue).Append('\n');
         }
+        File.WriteAllText(Path.Combine(output,"statystyki.txt"),stats.ToString());
+        batches.Dispose();setPass.Dispose();triangles.Dispose();casters.Dispose();
 
         if(sun)sun.intensity=daySun;
         RenderSettings.ambientSkyColor=daySky;RenderSettings.ambientEquatorColor=dayEq;RenderSettings.ambientGroundColor=dayGround;
