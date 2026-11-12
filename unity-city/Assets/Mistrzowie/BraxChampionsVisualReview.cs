@@ -57,10 +57,38 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
         nightFrames=new bool[labels.Length];nightFrames[1]=true;
     }
 
+    // owner 12.11 00:30 ("jak mi nie potwierdzicie, że są, to ci nie puszczę"): two extra frames from the real player in
+    // the arena hall, one at each owner mural (left FIGHTERS, right BELT), from the floor beside the cage
+    void AddArenaMuralFrames()
+    {
+        Bounds? Find(string prefix)
+        {
+            foreach(var r in FindObjectsByType<Renderer>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+                if(r.transform.parent&&r.transform.parent.name.StartsWith(prefix,StringComparison.Ordinal)&&r.name.Contains("tile"))
+                {
+                    var b=r.bounds;
+                    foreach(Transform t in r.transform.parent){var rr=t.GetComponent<Renderer>();if(rr)b.Encapsulate(rr.bounds);}
+                    return b;
+                }
+            return null;
+        }
+        var left=Find("A1 MURAL LEFT_FIGHTERS");var right=Find("A1 MURAL RIGHT_BELT");
+        if(left==null||right==null){Debug.LogWarning("CHAMPIONS_REVIEW_ARENA_MURALS missing left="+(left!=null)+" right="+(right!=null));return;}
+        var a=left.Value;var b=right.Value;
+        var mid=(a.center+b.center)*.5f;var eye=new Vector3(mid.x,Mathf.Min(a.min.y,b.min.y)-1.2f,mid.z);
+        Array.Resize(ref positions,positions.Length+2);Array.Resize(ref targets,targets.Length+2);Array.Resize(ref labels,labels.Length+2);
+        int n=labels.Length;
+        positions[n-2]=eye+(a.center-eye).normalized*20f;positions[n-2].y=eye.y;targets[n-2]=a.center;labels[n-2]="22-arena-mural-lewy-zawodnicy";
+        positions[n-1]=eye+(b.center-eye).normalized*20f;positions[n-1].y=eye.y;targets[n-1]=b.center;labels[n-1]="23-arena-mural-prawy-pas";
+        if(nightFrames!=null&&nightFrames.Length==n-2)Array.Resize(ref nightFrames,n);
+        Debug.Log("CHAMPIONS_REVIEW_ARENA_MURALS left="+a.center+" right="+b.center+" eye="+eye);
+    }
+
     IEnumerator Start()
     {
         if(Array.IndexOf(Environment.GetCommandLineArgs(),"--champions-review")<0)yield break;
         ConfigureHotelIfPresent();
+        if(positions!=null&&targets!=null&&labels!=null)AddArenaMuralFrames();
         if(!view||!player||positions==null||targets==null||labels==null||positions.Length!=targets.Length||positions.Length!=labels.Length)
         { Debug.LogError("Champions visual review setup invalid");Application.Quit(2);yield break; }
         if(nightFrames!=null&&nightFrames.Length!=0&&nightFrames.Length!=labels.Length)
@@ -105,7 +133,7 @@ public sealed class BraxChampionsVisualReview : MonoBehaviour
 
         if(sun)sun.intensity=daySun;
         RenderSettings.ambientSkyColor=daySky;RenderSettings.ambientEquatorColor=dayEq;RenderSettings.ambientGroundColor=dayGround;
-        bool hotelReview=labels.Length==21&&labels[0]=="01-front-day"&&labels[20]=="21-roof-terrace";
+        bool hotelReview=labels.Length>=21&&labels[0]=="01-front-day"&&labels[20]=="21-roof-terrace";
         File.WriteAllText(Path.Combine(output,"complete.txt"),
             hotelReview
             ?"HOTEL SOBCZAK: 21 real standalone-player acceptance screenshots captured; owner visual PASS still pending. APK NOT BUILT.\n"

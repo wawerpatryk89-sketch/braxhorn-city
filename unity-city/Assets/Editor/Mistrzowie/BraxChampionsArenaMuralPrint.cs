@@ -32,6 +32,9 @@ public static class BraxChampionsArenaMuralPrint
         m.SetColor("_EmissionColor",new Color(Glow,Glow,Glow));
         m.SetFloat("_Metallic",0f);m.SetFloat("_Roughness",.90f);m.SetFloat("_VertexTint",0f);
         m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        // owner 12.11 00:30-00:55 (APK 38: "dwa murale ... po prawej i po lewej ... ich nie ma"): the print is drawn from both
+        // sides, so no winding / camera side can ever drop it; it stays self-lit (emission = the picture)
+        m.SetFloat("_Cull",0f);
         AssetDatabase.CreateAsset(m,asset);
         return m;
     }
