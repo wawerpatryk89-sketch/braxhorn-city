@@ -308,7 +308,7 @@ public static partial class BraxClaudeOsiedle
     }
 
     // podloga = wysokość stóp Patryka (najniższy wierzchołek w spoczynku) w układzie obiektu Patryka (instancja w (0,0,0), skala 1).
-    static AnimationClip PatrykPrzenies(GameObject hero, Transform hipsT, List<Transform> kosci, List<PatrykStan> spoczynek, float podloga, string sciezka, PatrykKlip k, out string uwagi)
+    static AnimationClip PatrykPrzenies(GameObject hero, Transform hipsT, List<Transform> kosci, List<PatrykStan> spoczynek, float podloga, string sciezka, PatrykKlip k, out string uwagi, string katalogWyniku = null)
     {
         var wzor = AssetDatabase.LoadAssetAtPath<GameObject>(sciezka); if (!wzor) throw new Exception("nie zaimportowany");
         var zrodlo = AssetDatabase.LoadAllAssetsAtPath(sciezka).OfType<AnimationClip>().Where(c => !c.name.StartsWith("__preview__")).OrderByDescending(c => c.length).FirstOrDefault();
@@ -403,7 +403,7 @@ public static partial class BraxClaudeOsiedle
             string sh = AnimationUtility.CalculateTransformPath(hipsT, hero.transform);
             for (int o = 0; o < 3; o++) klip.SetCurve(sh, typeof(Transform), "localPosition." + "xyz"[o], PatrykKrzywaZ(czasy, biodra.Select(x => x[o]).ToArray(), false));
             klip.EnsureQuaternionContinuity();
-            string cel = PatrykWynik + "/" + k.nazwa + ".anim";
+            string cel = (katalogWyniku ?? PatrykWynik) + "/" + k.nazwa + ".anim";   // 12.11: postacie globalne zapisują klipy we własnym katalogu (BraxPostacieGlobalne)
             if (AssetDatabase.LoadAssetAtPath<AnimationClip>(cel)) AssetDatabase.DeleteAsset(cel);
             BraxZapisAssetu.Utworz(klip, cel);
             uwagi = (reczne != null ? " (krzywe ręcznie)" : "") + (k.wMiejscu && dryf.magnitude > .05f ? " (w miejscu, dryf " + dryf.magnitude.ToString("F2") + " m)" : "")

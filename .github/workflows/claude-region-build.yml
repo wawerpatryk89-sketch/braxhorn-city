@@ -242,6 +242,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/sklep/install_sklep_modele.py
+    - name: Postacie globalne wlasciciela - paczki braxhorn-postacie-* (zaszyfrowane; zawodnicy i klipy walki dla wszystkich rejonow; bez klucza klatka bez zawodnikow)
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/postacie/install_postacie.py
     - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
       env:
         GH_TOKEN: ${{ github.token }}
@@ -593,6 +597,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/sklep/install_sklep_modele.py
+    - name: Postacie globalne wlasciciela - paczki braxhorn-postacie-* (zaszyfrowane; zawodnicy i klipy walki dla wszystkich rejonow; bez klucza klatka bez zawodnikow)
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/postacie/install_postacie.py
     - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
       env:
         GH_TOKEN: ${{ github.token }}
@@ -807,6 +815,11 @@ jobs:
         echo "straznik uruchomiony"
     - name: Kompilacja aplikacji Android (APK) z tej samej sceny
       id: unity_android
+      # 12.11 (bolid 43195552389: start bez pamięci, 5 h 40 min, ucięty limitem zadania 20 s po starcie Gradle — kroki zapisu
+      # pamięci zostały POMINIĘTE i cały dzień przepadł). Krok ma własny limit krótszy niż zadanie (355 min): gdy zimny build
+      # nie zdąży, krok kończy się błędem po 285 min, a pozostałe ~55 min idzie na zapis checkpointu miasta i Library —
+      # następny przebieg rusza z zapisanego miasta zamiast od zera.
+      timeout-minutes: 285
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
       env:
         UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -824,6 +837,11 @@ jobs:
         # pozwala wtedy na RAM + tyle samo swapu = ~30 GB — Unity zabity (137) przy 14,7 GB RAM + 15,5 GB swap, choć na hoście
         # było 30 GB pliku wymiany. 22g → limit kontenera ~44 GB (RAM 16 GB + swap hosta 30 GB).
         dockerMemoryLimit: 22g
+    - name: Zatrzymaj kontener Unity po przerwanej kompilacji (zeby nie pisal do Library w czasie zapisu pamieci)
+      if: ${{ always() && steps.unity_android.outcome != 'success' }}
+      run: |
+        ids=$(docker ps -q || true)
+        if [ -n "$ids" ]; then echo "BRAXHORN_KONTENER zatrzymuje: $ids"; docker kill $ids || true; sleep 5; else echo "BRAXHORN_KONTENER brak dzialajacych"; fi
     - name: Pamiec RAM i swap w czasie buildu (szczyt i ostatnie pomiary, takze przy awarii)
       if: always()
       run: |
@@ -948,7 +966,9 @@ jobs:
         key: city-world-enc-v1-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}-${{ github.run_attempt }}
     - name: Pamiec Library Unity dla Androida - pelny zapis z Bee
       id: library_pack
-      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      # 12.11: zapis także po nieudanej / przerwanej limitem kompilacji, o ile miasto zostało w całości wygenerowane
+      # (checkpoint ważny = importy i generowanie przeszły) — inaczej następny przebieg znów importuje wszystko od zera
+      if: ${{ !cancelled() && (steps.unity_android.outcome == 'success' || (steps.unity_android.outcome == 'failure' && steps.generation_checkpoint.outputs.valid == 'true')) }}
       continue-on-error: true
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -1170,6 +1190,10 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/sklep/install_sklep_modele.py
+    - name: Postacie globalne wlasciciela - paczki braxhorn-postacie-* (zaszyfrowane; zawodnicy i klipy walki dla wszystkich rejonow; bez klucza klatka bez zawodnikow)
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/postacie/install_postacie.py
     - name: Brax - animacja jazdy wlasciciela (Driving.fbx z jego wydania, SHA sprawdzane; bez niej poza z kodu)
       env:
         GH_TOKEN: ${{ github.token }}

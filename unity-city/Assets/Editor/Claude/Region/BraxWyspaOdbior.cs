@@ -154,7 +154,15 @@ public static class BraxWyspaOdbior
             if (!terrain || !terrain.GetComponent<MeshCollider>() || !terrain.GetComponent<BraxPiasekPowierzchnia>()) errors.Add("brak terenu/kolizji/maski piasku");
             else { var rt = terrain.GetComponent<Renderer>(); if (rt && rt.sharedMaterials.Length > 0) errors.AddRange(BrakiTekstur(rt.sharedMaterials[0])); }
             var show = root.GetComponentInChildren<BraxArenaPokaz>(true);
-            if (!show || !show.zawodnikA || !show.zawodnikB || !show.animacjaA || !show.animacjaB)
+            // 12.11: walka z paczki globalnej postaci (BraxArenaWalka) zastępuje pokaz z obozu — komplet = obaj zawodnicy z animacją
+            var walka = root.GetComponentInChildren<BraxArenaWalka>(true);
+            if (walka && walka.zawodnikA && walka.zawodnikB && walka.animacjaA && walka.animacjaB)
+            {
+                if (raport == null) Rozpocznij();
+                raport.kroki.Add("walka w klatce: postacie globalne " + walka.zawodnikA.name + " / " + walka.zawodnikB.name + " (klipy A " + walka.animacjaA.GetClipCount() + ", B " + walka.animacjaB.GetClipCount() + ")");
+                Debug.Log("BRAXHORN_WYSPA_WALKA_GLOBALNA A=" + walka.zawodnikA.name + " B=" + walka.zawodnikB.name + " klipy=" + walka.animacjaA.GetClipCount() + "/" + walka.animacjaB.GetClipCount());
+            }
+            else if (!show || !show.zawodnikA || !show.zawodnikB || !show.animacjaA || !show.animacjaB)
             {
                 // Pokaz walki kopiuje zawodników Z OBOZU (BraxObozCharacters) — w gałęzi miasta ich nie ma, pokaz jest
                 // świadomie pominięty (BRAXHORN_ARENA_POKAZ w BraxMiastoWyspaWykonczenie.cs); to nie jest błąd geometrii wyspy.

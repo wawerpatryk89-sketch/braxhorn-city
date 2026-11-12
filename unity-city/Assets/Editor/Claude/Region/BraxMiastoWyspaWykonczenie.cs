@@ -124,6 +124,15 @@ internal static partial class BraxMiastoWyspa
 
     static void ApWalkaPokazowa()
     {
+        // 12.11 (właściciel 16:34–16:57: „trzeba ich tam zrobić, żeby się napierdalali, a nie stoją w miejscu … Pitbull, Doberman —
+        // w obozie zdeformowani, do naprawy od zera … postacie globalnie, te same pod całą grę”): walka z paczki GLOBALNEJ postaci
+        // (BraxPostacieGlobalne: modele właściciela + klipy „pozycja T” wprost na szkielet, test kości). Mata klatki: apF + 0.9 m × K,
+        // promień wewnętrzny klatki 4.55 m × K — zawodnicy trzymają się 1.6 m od siatki (sędzia i drzwiczki zostają wolne).
+        try
+        {
+            if (BraxClaudeOsiedle.WalkaNaMacie(root, apC + Vector3.up * (apF + .9f * K), 4.55f * K - 1.6f, K, "pitbul", "PITBULL", "doberman", "DOBERMAN")) return;
+        }
+        catch (Exception e) { Ostrzez("BRAXHORN_ARENA_WALKA DO POPRAWKI (klatka bez zawodników): " + e); }
         // Właściciel 9.11 11:39: „Zawodników na razie zostaw … na razie architektura podstawa”. Zawodnicy pokazu to kopie
         // Z OBOZU (BraxObozCharacters, CharacterManifest.json, unity-tools/oboz, prepare_fighters.py) — pliki innego rejonu,
         // nie wolno ich przenosić do gałęzi miasta. Pokaz wraca dopiero po decyzji właściciela o połączeniu rejonów:
