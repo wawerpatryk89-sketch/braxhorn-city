@@ -80,7 +80,7 @@ public static partial class BraxChampionsAquapark
         BraxChampionsMeshBatch.FountainWater(root, "leniwa rzeka: łuki wodne (woda)", Vector3.zero, K, a.ToArray(), b.ToArray(), Enumerable.Repeat(1.7f, a.Count).ToArray(),
             Enumerable.Repeat(.05f, a.Count).ToArray(), Enumerable.Repeat(3, a.Count).ToArray(), Enumerable.Repeat(true, a.Count).ToArray(), new Vector3[0], new float[0], fountainWater, 0f);
         // the sign by the east stairs: a black granite plinth, LENIWA RZEKA in the region's 3D letters, facing the lagoon
-        var sc = V(RX1 + 2.6f, DY, -31.5f);
+        var sc = V(RX1 + 3.2f, DY, -31.5f);                                                // clear of the bank's step-off points (1.55 m out)
         m.BoxMinMax(blackGloss, sc.x - .22f, sc.x + .22f, DY, DY + .62f, sc.z - 1.85f, sc.z + 1.85f);
         Col(sc.x - .22f, sc.x + .22f, DY, DY + .62f, sc.z - 1.85f, sc.z + 1.85f, "tablica leniwej rzeki");
         BraxChampionsLetters3D.Text(m, BraxChampionsHarbour.SignFace, BraxChampionsHarbour.SignDark, "LENIWA RZEKA", new Vector3(sc.x + .23f, DY + .22f, sc.z), 90f, .24f, .04f, .10f, 3.4f);

@@ -61,7 +61,6 @@ public static partial class BraxChampionsAquapark
         }
         // the daybed: teak base, a deep white mattress, three cushions at the back (red in the middle), feet to the lagoon
         m.BoxMinMax(teak, cx - .95f, cx + 1.9f, deck, deck + .32f, cz - 1.2f, cz + 1.2f);
-        m.BoxMinMax(graphite, cx - .93f, cx + 1.88f, deck, deck + .05f, cz - 1.18f, cz + 1.18f);
         m.RoundedBox(cushion, new Vector3(cx + .47f, deck + .40f, cz), new Vector3(2.78f, .17f, 2.32f), .06f, 3);
         foreach (var (z, red) in new[] { (-.74f, false), (0f, true), (.74f, false) })
             m.RoundedBox(red ? towel : cushion, new Vector3(cx + 1.66f, deck + .70f, cz + z), new Vector3(.22f, .44f, .64f), .08f, Quaternion.Euler(0, 0, 14f), 3);
