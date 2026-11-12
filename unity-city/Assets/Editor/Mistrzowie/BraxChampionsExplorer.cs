@@ -81,6 +81,7 @@ public static class BraxChampionsExplorer
             new Vector3(885,22,815)*K,new Vector3(plant.x,.16f,plant.z)*K,
             new Vector3(plant.x,.16f,plant.z)*K};
         SeatsOnTheirSurfaces(scene);
+        SunShadows(scene);
         SmallThingsLayers(scene);
         rig.AddComponent<BraxChampionsWydajnosc>().kamera = camera;
         Physics.SyncTransforms(); Validate(scene);
@@ -103,6 +104,67 @@ public static class BraxChampionsExplorer
             if (d > .02f) { moved++; worst = Mathf.Max(worst, d); s.surfaceY = y; EditorUtility.SetDirty(s); }
         }
         Debug.Log("A1_SEATS kit seats=" + all + " heightCorrected=" + moved + " worstError=" + worst.ToString("F2") + " m");
+    }
+
+    // Owner 12.11 12:22-13:37: "na średnim nie ma cieni ... w mieście R1 cienie, drzewa, wszystko", "ma być tak jak w R1 ...
+    // mają być cienie". The region's materials move from the city's CityStaticPBR (no shadow passes) to the region's own
+    // Braxhorn/ChampionsPBR (the same shader + the sun's shadows; the same properties, so nothing else changes). What is in
+    // the open casts and takes the sun's shadow; what stands under a roof neither casts nor takes it - interiors keep their
+    // light as it is (their own walls and roof would otherwise shadow every room). Under a roof = at least four of five
+    // points over the renderer's top have something above them within 150 m: a collider, or the drawn geometry of any
+    // large object (roofs and slabs have no colliders of their own, so every renderer over 6 m gets a mesh collider for the
+    // length of this test only). Flat ground and paint (under 0.5 m high) take shadows but do not cast; blended glass
+    // neither. The graphics modes decide the rest as in R1 (BraxGrafika: ŚREDNIA hard shadows to 35 m, WYSOKA soft further).
+    public const string ShadowShader = "Braxhorn/ChampionsPBR";
+    static void SunShadows(Scene scene)
+    {
+        var from = Shader.Find(BraxCityMaterials.ShaderName); var to = Shader.Find(ShadowShader);
+        if (!from || !to || ShaderUtil.ShaderHasError(to))
+        {
+            BraxBuildQuality.Warn("DO POPRAWKI A1_SUN_SHADOWS shader " + ShadowShader + (to ? " has errors" : " missing") + ": the region keeps CityStaticPBR (no shadows)");
+            return;
+        }
+        var all = All<MeshRenderer>(scene);
+        var temp = new List<MeshCollider>();
+        foreach (var r in all)
+        {
+            if (!r.gameObject.activeInHierarchy || r.GetComponent<Collider>()) continue;
+            var size = r.bounds.size; if (Mathf.Max(size.x, Mathf.Max(size.y, size.z)) < 6f * K) continue;
+            var mf = r.GetComponent<MeshFilter>(); if (!mf || !mf.sharedMesh || mf.sharedMesh.vertexCount < 3) continue;
+            var mc = r.gameObject.AddComponent<MeshCollider>(); mc.sharedMesh = mf.sharedMesh; temp.Add(mc);
+        }
+        bool backfaces = Physics.queriesHitBackfaces; Physics.queriesHitBackfaces = true; Physics.SyncTransforms();
+        int moved = 0, open = 0, casters = 0, covered = 0; var seen = new HashSet<Material>();
+        try
+        {
+            foreach (var r in all)
+            {
+                bool region = false, opaque = true;
+                foreach (var m in r.sharedMaterials)
+                {
+                    if (!m) continue;
+                    if (m.shader == from && seen.Add(m)) { int queue = m.renderQueue; m.shader = to; m.renderQueue = queue; EditorUtility.SetDirty(m); moved++; }
+                    region |= m.shader == to; opaque &= m.renderQueue < 3000;
+                }
+                if (!region) continue;
+                var b = r.bounds; int over = 0;
+                if (r.gameObject.activeInHierarchy)
+                    foreach (var (dx, dz) in new[] { (0f, 0f), (-.25f, -.25f), (.25f, -.25f), (-.25f, .25f), (.25f, .25f) })
+                        if (Physics.Raycast(new Vector3(b.center.x + dx * b.size.x, b.max.y + .05f, b.center.z + dz * b.size.z), Vector3.up, 150f * K, ~0, QueryTriggerInteraction.Ignore)) over++;
+                bool roofed = !r.gameObject.activeInHierarchy || over >= 4;      // streamed floors and rooms are interiors
+                if (roofed || !opaque) { r.receiveShadows = false; r.shadowCastingMode = ShadowCastingMode.Off; covered++; continue; }
+                r.receiveShadows = true; open++;
+                bool flat = b.size.y < .5f * K;
+                r.shadowCastingMode = flat ? ShadowCastingMode.Off : ShadowCastingMode.On; if (!flat) casters++;
+            }
+        }
+        finally
+        {
+            Physics.queriesHitBackfaces = backfaces;
+            foreach (var mc in temp) if (mc) UnityEngine.Object.DestroyImmediate(mc);
+            Physics.SyncTransforms();
+        }
+        Debug.Log("A1_SUN_SHADOWS shader=" + ShadowShader + " materials=" + moved + " open=" + open + " casters=" + casters + " underRoofOrGlass=" + covered + " testColliders=" + temp.Count);
     }
 
     // Small things are not drawn to the 18 km far plane (BraxChampionsWydajnosc): a renderer under 4 m (K) goes to layer
@@ -148,7 +210,9 @@ public static class BraxChampionsExplorer
         BraxChampionsHorizon.Generate();
         var sun = new GameObject("Champions exploration daylight").AddComponent<Light>(); sun.transform.SetParent(rig, false);
         sun.type = LightType.Directional; sun.intensity = 1.08f; sun.color = new Color(1,.97f,.92f);
-        sun.transform.rotation = Quaternion.Euler(48,-35,0); sun.shadows = LightShadows.Soft;
+        // the sun stands where the region's surfaces are lit from (BraxCityMaterials.SunDirection, the _SunDirection of every
+        // material): its real shadows (Braxhorn/ChampionsPBR) then fall away from the lit faces, not across them
+        sun.transform.rotation = Quaternion.LookRotation(-BraxCityMaterials.SunDirection); sun.shadows = LightShadows.Soft;
         sun.shadowStrength = .67f; sun.shadowBias = .04f; sun.shadowNormalBias = .25f; RenderSettings.sun = sun;
         QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowDistance = 60;
         QualitySettings.shadowResolution = ShadowResolution.Medium; QualitySettings.shadowCascades = 2;

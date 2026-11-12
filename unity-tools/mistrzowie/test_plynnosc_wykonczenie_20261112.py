@@ -46,6 +46,27 @@ class PlynnoscWykonczenie(unittest.TestCase):
     def test_no_kitchen_run_in_the_flats(self):
         self.assertNotIn('BraxKatalog.Kitchen(', src('Editor/Mistrzowie/BraxChampionsApartments.cs'))
 
+    def test_region_surfaces_cast_and_take_the_suns_shadow_like_r1(self):
+        # owner 12.11 13:37: "ma być tak jak w R1 ... to jest jedna i ta sama gra ... mają być cienie"
+        sh = src('Mistrzowie/BraxChampionsPBR.shader')
+        city = src('CityRebuild/Shaders/CityStaticPBR.shader')
+        self.assertIn('Shader "Braxhorn/ChampionsPBR"', sh)
+        self.assertNotIn('ShadowCaster', city)                                   # R1's shader stays as it is
+        for needle in ('#pragma multi_compile _ SHADOWS_SCREEN', '#include "AutoLight.cginc"', 'SHADOW_COORDS(5)',
+                       'TRANSFER_SHADOW(o);', 'sunShadow = SHADOW_ATTENUATION(i);', '* sunShadow);',
+                       'Tags { "LightMode"="ShadowCaster" }', 'SHADOW_CASTER_FRAGMENT(i)'):
+            self.assertIn(needle, sh)
+        # the same properties as the city's shader: a material moved over keeps every value
+        import re
+        props = lambda t: set(re.findall(r'^\s*(?:\[[^\]]+\]\s*)*(_\w+)\(', t.split('SubShader')[0], re.M))
+        self.assertEqual(props(sh), props(city))
+        self.assertTrue((ASSETS / 'Mistrzowie' / 'BraxChampionsPBR.shader.meta').exists())
+        e = src('Editor/Mistrzowie/BraxChampionsExplorer.cs')
+        self.assertIn('SunShadows(scene);', e)
+        self.assertIn('ShaderUtil.ShaderHasError(to)', e)                         # a broken shader never reaches the materials
+        self.assertIn('sun.transform.rotation = Quaternion.LookRotation(-BraxCityMaterials.SunDirection);', e)
+        self.assertIn('UnityEngine.Object.DestroyImmediate(mc);', e)             # the test colliders do not stay in the scene
+
 
 if __name__ == '__main__':
     unittest.main()
