@@ -247,46 +247,51 @@ public static partial class BraxChampionsArenaArrival
         return true;
     }
 
+    // one welded oval chain link, 88 x 40 mm outside, of 10 mm round bar (a lifting chain for a 40 kg bag), standing in the plane of `across` and up:
+    // two straight sides and two half-round ends (twelve short pieces of bar)
+    static void ChainLink(Material m, Vector3 c, Vector3 across)
+    {
+        const float half = .024f, r = .015f, bar = .005f;
+        var pts = new List<Vector3>();
+        for (int i = 0; i <= 5; i++) { float a = Mathf.PI * i / 5f; pts.Add(c + across * (r * Mathf.Cos(a)) + Vector3.up * (half + r * Mathf.Sin(a))); }
+        for (int i = 0; i <= 5; i++) { float a = Mathf.PI + Mathf.PI * i / 5f; pts.Add(c + across * (r * Mathf.Cos(a)) + Vector3.up * (-half + r * Mathf.Sin(a))); }
+        for (int i = 0; i < pts.Count; i++) W.Rura(m, pts[i], pts[(i + 1) % pts.Count], bar, 8);
+    }
+
     static int AthleteGear(Transform g, float s, float mid, Material steelDark, Material bolt)
     {
         int n = 0;
         float seat = RoomFloorTop + SeatTop;
-        // the heavy bag (the owner's model: 1.0 m body + straps to a ring, 1.25 m in all). Owner 12.11 12:45-12:55 ("na czym to
-        // wisi?", "czy to wisi na dobrej wysokości?"): hung as in a boxing gym - the body's top at head height (1.85 m, bottom
-        // 0.85 m over the floor), on five real chain links from the eye of a welded wall bracket: a 10 mm steel plate
-        // 0.22 x 0.95 m on six anchor bolts, an 80 x 80 mm box arm 1.0 m out, a 60 mm tubular brace under it, an end cap,
-        // an eye plate and a swivel. In the free front corner by the outer lockers (2.9 m from their fronts), out of the
-        // walking line from the door.
+        // the heavy bag (the owner's model: 1.0 m body + four straps to a top swivel, 1.25 m in all). Owner 12.11 12:45-13:11
+        // ("na czym to wisi?", "czy to wisi na dobrej wysokości?", "co to za łańcuch?"): hung as in a boxing gym - the body
+        // from 0.85 to 1.85 m, on a steel chain (four welded oval links of 10 mm bar, each turned a quarter to the
+        // next) from the eye of a welded wall bracket: a 10 mm plate 0.22 x 0.95 m on six anchor bolts, an 80 x 80 mm box
+        // arm 1.0 m out, a 60 mm tubular brace meeting the arm 0.4 m before the eye. The model stands 5.5 deg off plumb with
+        // its swivel off its axis: it is turned upright and placed so the swivel is exactly under the chain. In the free
+        // front corner by the outer lockers, out of the walking line from the door.
         float wall = RoomFront + RoomWallHalf;
-        var bag = new Vector3(s * 18.4f, RoomFloorTop + .85f, wall + 1.0f);
-        if (GearModel(g, "sklep_sprzet_01", "worek_bokserski", bag, s * 20f))
+        const float bagYaw = 0f, bagTilt = 5.48f;
+        var hook = new Vector3(s * 18.4f, RoomFloorTop + .85f + 1.25f, wall + 1.0f);          // the top of the bag's swivel
+        var knob = Quaternion.Euler(bagTilt, 0, 0) * new Vector3(-.002f, 1.25f, -.078f);         // where the model has it
+        var bag = hook - Quaternion.Euler(0, bagYaw, 0) * knob;
+        if (GearModel(g, "sklep_sprzet_01", "worek_bokserski", bag, bagYaw, bagTilt))
         {
             n++;
-            float ring = bag.y + 1.25f, x = bag.x, arm = ring + .34f;          // the arm's underside: 5 links + swivel over the ring
+            float x = hook.x, z = hook.z, arm = hook.y + .273f;                 // the arm's underside: four links over the swivel
             W.MM(steelDark, x - .11f, x + .11f, arm - .78f, arm + .17f, wall, wall + .010f);                             // wall plate
             foreach (float bx in new[] { -.075f, .075f }) foreach (float by in new[] { -.72f, -.32f, .12f })
             {
                 W.Rura(bolt, new Vector3(x + bx, arm + by, wall + .010f), new Vector3(x + bx, arm + by, wall + .014f), .016f, 12);   // washer
                 W.Rura(bolt, new Vector3(x + bx, arm + by, wall + .014f), new Vector3(x + bx, arm + by, wall + .026f), .010f, 6);    // hex head
             }
-            W.MM(steelDark, x - .04f, x + .04f, arm, arm + .08f, wall + .010f, bag.z + .12f);                           // box arm 80 x 80
-            W.MM(bolt, x - .042f, x + .042f, arm - .002f, arm + .082f, bag.z + .12f, bag.z + .124f);                    // end cap
-            W.Rura(steelDark, new Vector3(x, arm - .70f, wall + .03f), new Vector3(x, arm + .01f, bag.z - .14f), .03f, 12);   // brace
-            W.MM(steelDark, x - .005f, x + .005f, arm - .06f, arm, bag.z - .035f, bag.z + .035f);                      // eye plate
-            W.Walec(bolt, new Vector3(x, arm - .095f, bag.z), .016f, .04f, 12);                                          // swivel
-            // chain: five 54 x 26 mm links of 6 mm round bar, every other one turned a quarter
-            float top = arm - .095f;
-            for (int i = 0; i < 5; i++)
-            {
-                float y1 = top - i * .046f + .004f, y0 = y1 - .054f; bool turn = i % 2 == 1;
-                var d = turn ? new Vector3(.010f, 0, 0) : new Vector3(0, 0, .010f);
-                var c = new Vector3(x, 0, bag.z);
-                W.Rura(bolt, c + d + Vector3.up * y0, c + d + Vector3.up * y1, .003f, 6);
-                W.Rura(bolt, c - d + Vector3.up * y0, c - d + Vector3.up * y1, .003f, 6);
-                W.Rura(bolt, c - d * 1.3f + Vector3.up * y0, c + d * 1.3f + Vector3.up * y0, .003f, 6);
-                W.Rura(bolt, c - d * 1.3f + Vector3.up * y1, c + d * 1.3f + Vector3.up * y1, .003f, 6);
-            }
-            W.Kolizja(new Vector3(x, bag.y + .62f, bag.z), new Vector3(.38f, 1.25f, .42f), Quaternion.identity);
+            W.MM(steelDark, x - .04f, x + .04f, arm, arm + .08f, wall + .010f, z + .10f);                               // box arm 80 x 80
+            W.MM(steelDark, x - .042f, x + .042f, arm - .002f, arm + .082f, z + .10f, z + .106f);                       // black end cap
+            W.Rura(steelDark, new Vector3(x, arm - .70f, wall + .03f), new Vector3(x, arm + .01f, z - .40f), .03f, 12);   // brace
+            W.MM(steelDark, x - .004f, x + .004f, arm - .05f, arm, z - .03f, z + .03f);                                 // eye plate
+            // the chain: link k hangs in the eye / in the link above, the last one holds the bag's swivel
+            for (int k = 0; k < 4; k++)
+                ChainLink(bolt, new Vector3(x, arm - .03f - .039f - k * .058f, z), k % 2 == 0 ? Vector3.right : Vector3.forward);
+            W.Kolizja(new Vector3(x, hook.y - .62f, z + .04f), new Vector3(.38f, 1.25f, .42f), Quaternion.identity);
         }
         // on the island bench (top at the seat height, z 45.2..46.0): gloves, head guards, the mouthguard box. Owner 12.11 12:45
         // "jak te rękawice stoją": the glove models stand on their cuffs (a shop display) - on the bench they lie on their side,
@@ -299,13 +304,8 @@ public static partial class BraxChampionsArenaArrival
             ("sklep_walka_01", s < 0 ? "kask_bokserski_czerwony" : "kask_bokserski_niebieski", 2.55f, 45.45f, 200f, 0f, 0f, 0f),
             ("sklep_walka_01", "ochraniacz_szczeki_w_pudelku", .35f, 45.6f, 10f, 0f, 0f, 0f) })
             if (GearModel(g, pack, name, new Vector3(mid + s * dx, seat + .002f, dz), yaw, tilt, lift, roll)) n++;
-        // on the floor by the outer lockers (lockers' fronts at |x| 21.3), clear of the bag: a rope, two kettlebells, dumbbells
-        foreach (var (pack, name, ax, z, yaw) in new[] {
-            ("sklep_sprzet_01", "skakanka", 19.4f, 43.4f, 30f),
-            ("sklep_sprzet_01", "kettlebell_16kg", 20.3f, 43.9f, 0f),
-            ("sklep_sprzet_01", "kettlebell_16kg", 20.4f, 44.5f, 40f),
-            ("sklep_sprzet_01", "hantle_para_10kg", 20.3f, 45.4f, 90f) })
-            if (GearModel(g, pack, name, new Vector3(s * ax, RoomFloorTop + .002f, z), yaw)) n++;
+        // (owner 12.11 13:13 "hantelki leżą, miniaturki": the rope, kettlebells and dumbbells lay loose on the floor of a 16 m
+        // room - real size, but lost and careless there; a changing room keeps the bag and the fight gear on the bench)
         return n;
     }
 

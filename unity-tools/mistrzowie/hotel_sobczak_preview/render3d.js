@@ -92,7 +92,7 @@ window.setup=async function(w,h){
     if(m.pbr){   // plain-mesh generators (casino, arena) record the real _Metallic / _Roughness / _EmissionColor
       p.metalness=m.pbr.metallic;p.roughness=Math.max(m.pbr.roughness,.04);
       const e=m.pbr.emission;if(e[0]+e[1]+e[2]>0){p.emissive=S2L(e.map(x=>Math.min(x,1)));p.emissiveIntensity=Math.max(1,Math.max(...e));}
-      if(m.pbr.picture){p.map=await tex('http://preview.local/pic/'+encodeURIComponent(m.pbr.picture),true);if(p.map){p.map.wrapS=p.map.wrapT=THREE.ClampToEdgeWrapping;p.alphaTest=.08;if(e[0]+e[1]+e[2]>0)p.emissiveMap=p.map;}}
+      if(m.pbr.picture){p.map=await tex('http://preview.local/pic/'+encodeURIComponent(m.pbr.picture),true);if(p.map){const net=/siatka/.test(m.pbr.picture);p.map.wrapS=p.map.wrapT=net?THREE.RepeatWrapping:THREE.ClampToEdgeWrapping;p.alphaTest=net?.5:.08;if(net)p.side=THREE.DoubleSide;if(e[0]+e[1]+e[2]>0)p.emissiveMap=p.map;}}
     }else if(/light|led|frosted/.test(n)){p.emissive=p.color.clone();p.emissiveIntensity=1.0;}
     const transparent=c[3]<.99;
     if(transparent){p.transparent=true;p.opacity=Math.max(c[3],.18);p.depthWrite=false;p.roughness=.05;}

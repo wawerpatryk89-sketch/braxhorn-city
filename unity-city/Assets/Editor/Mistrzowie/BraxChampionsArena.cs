@@ -234,7 +234,9 @@ public static class BraxChampionsArena
             OBox(black, mid + Vector3.up * .11f, new Vector3(len - .3f, .22f, .1f), yw);                            // dolne obicie
             if (wire)
             {
-                Vector3 a1 = a + d * .17f, b1 = b - d * .17f; float L = len - .34f, h0 = .22f, h1 = 1.81f;
+                // owner 12.11 13:10: light slits beside the posts and over the bottom pad - the net now runs 7 cm into the posts'
+                // padding and 3 cm behind the bottom pad and the top rail
+                Vector3 a1 = a + d * .10f, b1 = b - d * .10f; float L = len - .20f, h0 = .19f, h1 = 1.84f;
                 foreach (var nn in new[] { n, -n })
                     QuadUV(wire, a1 + Vector3.up * h0, b1 + Vector3.up * h0, b1 + Vector3.up * h1, a1 + Vector3.up * h1,
                            new Vector2(0, h0 / .3f), new Vector2(L / .3f, h0 / .3f), new Vector2(L / .3f, h1 / .3f), new Vector2(0, h1 / .3f), nn);
