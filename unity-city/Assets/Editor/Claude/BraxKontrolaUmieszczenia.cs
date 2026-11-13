@@ -236,6 +236,9 @@ public static class BraxKontrolaUmieszczenia
                 var mf = r.GetComponent<MeshFilter>(); if (!mf || !mf.sharedMesh) continue;
                 string n = BraxKontrola.Norm(r.name) + BraxKontrola.Norm(r.sharedMaterial ? r.sharedMaterial.name : "");
                 if (!Szyld.IsMatch(n) || NieSzyld.IsMatch(n)) continue;
+                // W Osiedlu fronty kasetonów i ich ramy mają osobne siatki. Wspornik oglądany
+                // od tyłu wskazywał ścianę komisariatu lub szpitala jako przeszkodę przed napisem.
+                if (BraxKontrola.Obszar == "osiedle" && n.Contains(" kasetony wsporniki ")) continue;
                 if (!BraxKontrola.Dane(mf.sharedMesh, out var v, out var t) || t.Length > 60000) continue;
                 var m = r.transform.localToWorldMatrix;
                 // lica: trójkąty pionowe ≥ 0.02 m², grupowane po komórce 0.5 m i kierunku

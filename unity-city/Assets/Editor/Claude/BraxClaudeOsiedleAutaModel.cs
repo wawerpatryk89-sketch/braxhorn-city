@@ -292,6 +292,8 @@ public static partial class BraxClaudeOsiedle
         float metallic = source.HasProperty("metallicFactor") ? source.GetFloat("metallicFactor") : 0f;
         var albedo = Tex("baseColorTexture", "_BaseMap", "_MainTex");
         var normal = Tex("normalTexture", "_BumpMap");
+        string mapaKoloru = source.HasProperty("baseColorTexture") && source.GetTexture("baseColorTexture") ? "baseColorTexture"
+            : source.HasProperty("_BaseMap") && source.GetTexture("_BaseMap") ? "_BaseMap" : "_MainTex";
         var packedStandard = Tex("_MetallicGlossMap");
         if (packedStandard || (source.HasProperty("_WorkflowMode") && source.GetFloat("_WorkflowMode") == 0f))
         {
@@ -313,12 +315,17 @@ public static partial class BraxClaudeOsiedle
                     if (source.HasProperty(colour) && material.HasProperty(colour)) material.SetColor(colour, source.GetColor(colour));
                 material.color = baseColor;
                 material.mainTexture = albedo;
-                if (source.HasProperty("_BaseMap"))
+                if (albedo)
                 {
-                    material.mainTextureScale = source.GetTextureScale("_BaseMap");
-                    material.mainTextureOffset = source.GetTextureOffset("_BaseMap");
+                    material.mainTextureScale = source.GetTextureScale(mapaKoloru);
+                    material.mainTextureOffset = source.GetTextureOffset(mapaKoloru);
                 }
-                if (source.HasProperty("_Smoothness")) material.SetFloat("_Glossiness", source.GetFloat("_Smoothness"));
+                if (source.HasProperty("_Smoothness"))
+                {
+                    float gladkosc = source.GetFloat("_Smoothness");
+                    material.SetFloat("_Glossiness", gladkosc);
+                    if (specular ? Tex("_SpecGlossMap") : packedStandard) material.SetFloat("_GlossMapScale", gladkosc);
+                }
                 if (normal) material.EnableKeyword("_NORMALMAP");
                 if (specular && Tex("_SpecGlossMap")) material.EnableKeyword("_SPECGLOSSMAP");
                 if (!specular && packedStandard) material.EnableKeyword("_METALLICGLOSSMAP");
@@ -348,13 +355,28 @@ public static partial class BraxClaudeOsiedle
         if (albedo)
         {
             converted.SetColor("_Color", baseColor); converted.SetFloat("_Roughness", rough); converted.SetFloat("_Metallic", metallic);
-            string srcMap = source.HasProperty("baseColorTexture") ? "baseColorTexture" : source.HasProperty("_BaseMap") ? "_BaseMap" : "_MainTex";
-            converted.SetTextureScale("_MainTex", source.GetTextureScale(srcMap)); converted.SetTextureOffset("_MainTex", source.GetTextureOffset(srcMap));
+            converted.SetTextureScale("_MainTex", source.GetTextureScale(mapaKoloru));
+            converted.SetTextureOffset("_MainTex", source.GetTextureOffset(mapaKoloru));
         }
-        if (normal && !albedo)
+        if (normal)
         {
-            converted.SetTexture("_BumpMap", normal);
-            converted.SetFloat("_NormalEncoding", source.HasProperty("_BumpMap") ? 1f : 0f);
+            if (!albedo)
+            {
+                converted.SetTexture("_BumpMap", normal);
+                var imp = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(normal)) as TextureImporter;
+                converted.SetFloat("_NormalEncoding", imp && imp.textureType == TextureImporterType.NormalMap ? 1f : 0f);
+            }
+            string slot = Tex("normalTexture") ? "normalTexture" : "_BumpMap";
+            converted.SetTextureScale("_BumpMap", source.GetTextureScale(slot));
+            converted.SetTextureOffset("_BumpMap", source.GetTextureOffset(slot));
+        }
+        if (arm)
+        {
+            string slot = Tex("metallicRoughnessTexture") ? "metallicRoughnessTexture" : "_ARM";
+            if (!albedo) converted.SetTexture("_ARM", arm);
+            converted.SetTextureScale("_ARM", source.GetTextureScale(slot));
+            converted.SetTextureOffset("_ARM", source.GetTextureOffset(slot));
+            converted.SetFloat("_UseARMForAO", slot == "_ARM" && !Tex("_OcclusionMap") ? 1f : 0f);
         }
         if (source.HasProperty("_BumpScale")) converted.SetFloat("_BumpScale", source.GetFloat("_BumpScale"));
         foreach (string slot in new[] { "_OcclusionMap", "_EmissionMap" })

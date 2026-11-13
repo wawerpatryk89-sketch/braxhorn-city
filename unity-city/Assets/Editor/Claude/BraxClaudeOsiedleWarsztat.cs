@@ -3,7 +3,7 @@ using UnityEngine;
 
 // WARSZTAT (build 45b, E32; właściciel 21:16 o blaszanych garażach „POZNAŃSKA · GARAŻE”: „te kontenery rozjebane — nie pasują”).
 // 4 garaże-kontenery Codexa (x 23.5…46.5, z −43.9…−34.1) i tablica na chodniku B1 (x 24…28, z −24.8) ZWALONE; na działce
-// x 21.5…48.5, z −58…−25.5 murowany warsztat 24 × 12 m (3 stanowiska z bramami segmentowymi 3 × 3.5 m × K: jedna podniesiona,
+// x 21.5…48.5, z −58…−25.5 murowany warsztat 24 × 12 m (3 stanowiska z bramami segmentowymi 3 × 3.5 m × K: dwie podniesione,
 // podnośnik dwukolumnowy z ramionami, opony w stojaku, wózek narzędziowy, stół warsztatowy; biuro przyjęć z jednymi drzwiami,
 // ladą, regałem, gaśnicą i znakiem WYJŚCIE), plac: wjazd z B1, alejka manewrowa 7 m, 4 miejsca postojowe (dane dla aut
 // zaparkowanych), mechanicy NPC (2). Detale: cokół, attyka z obróbką, gzyms, opaski i parapety okien, rynny z rurami spustowymi,
@@ -105,7 +105,8 @@ public static partial class BraxClaudeOsiedle
             BoxMinMax(pas, f - .03f, f, okY0, okY1 + .12f, wz0 - .12f, wz0, false); BoxMinMax(pas, f - .03f, f, okY0, okY1 + .12f, wz1, wz1 + .12f, false); BoxMinMax(pas, f - .03f, f, okY1, okY1 + .12f, wz0, wz1, false);   // opaska
         }
         StDetal("warsztat", "okno biura: rama, parapet, opaska");
-        // bramy segmentowe: 1. podniesiona (pakiet pod stropem), 2. i 3. zamknięte — segmenty 0.5 m × K z fugą (podkład z tyłu)
+        // Stanowiska 1 i 3 otwarte; druga brama ma podkład z kolizją za segmentami.
+        int otwarteBramy = 0;
         var seg = StMat("segment bramy", new Color(.88f, .89f, .9f), .55f, .3f); var pod = StMat("podkład paneli", new Color(.12f, .12f, .13f), .2f);
         for (int k = 0; k < 3; k++)
         {
@@ -115,7 +116,8 @@ public static partial class BraxClaudeOsiedle
             BoxMinMax(Concrete, a, b, 0, .15f, z1 - t, z1, true);                                                           // próg bramy w grubości muru (bez dziury do trawy)
             if (k == 0 || k == 2)   // 1: warsztat (podnośnik), 3: wulkanizacja — podniesione
             {
-                BoxMinMax(seg, a, b, gh - .05f, gh, z1 - t - 4.2f, z1 - t - .1f, false, true);                              // pakiet pod stropem
+                otwarteBramy++;
+                BoxMinMax(seg, a, b, gh - .05f, gh, z1 - t - 4.2f, z1 - t - .1f, true, true);                              // pakiet pod stropem
                 BoxMinMax(Steel, a + .3f, a + .4f, gh, yE, z1 - t - 4.3f, z1 - t - 4.2f, false);
             }
             else
@@ -190,7 +192,7 @@ public static partial class BraxClaudeOsiedle
             if (w.points != null) foreach (var p in w.points) if (p != null && p.id == "garages") { p.label = "Warsztat (Poznańska)"; p.position = new Vector3((dzA + dzB) * .5f, .1f, z1 + 1.5f); }
         var pk = new GameObject("BRAXHORN punkt interakcji: warsztat (przyjęcie auta)"); pk.transform.SetParent(Group(group), false); pk.transform.position = new Vector3((dzA + dzB) * .5f, YS, z1 + 1.5f);
         group = g0;
-        Debug.Log("BRAXHORN_WARSZTAT obrys x " + WX0 + "…" + WX1 + " z " + WZ0 + "…" + WZ1 + " budynek=24.0×12.0 m stanowiska=3 bramy_segmentowe=3 (1 otwarta) brama=" + gw.ToString("F2") + "×" + gh.ToString("F2") + " m podnośnik=1 opony=10 biuro_drzwi=1 miejsca_postojowe=4 mechanicy=" + warsztatMechanicy.Count + " (auto na podnośniku: brak — szablony aut z etapu ruchu)");
+        Debug.Log("BRAXHORN_WARSZTAT obrys x " + WX0 + "…" + WX1 + " z " + WZ0 + "…" + WZ1 + " budynek=24.0×12.0 m stanowiska=3 bramy_segmentowe=3 otwarte=" + otwarteBramy + " brama=" + gw.ToString("F2") + "×" + gh.ToString("F2") + " j. świata (projekt 3 × 3,5 m) biuro_drzwi=1 miejsca_postojowe=" + miejsca + " mechanicy=" + warsztatMechanicy.Count);
         Debug.Log("BRAXHORN_DETALE obiekt=warsztat razem=" + (stDetale - detale0) + " [" + string.Join(", ", stDetaleOpis) + "]");
         Debug.Log("BRAXHORN_WARSZTAT_STREFY warsztat=stanowiska 1–2 (podnośnik dwukolumnowy z autem, kanał " + (1f * K).ToString("F2") + "×6.5 m głęb. " + (1.6f * K).ToString("F2") + ", narzędzia, olej, części, biuro przyjęć) wulkanizacja=stanowisko 3 (montażownica, wyważarka, podnośnik nożycowy, klucz pneumatyczny, stojaki, wanienka) mechanicy=" + warsztatMechanicy.Count);
         Debug.Log("BRAXHORN_KOLA rozmiar=205/55 R16 średnica=" + (2f * KoloRo).ToString("F3") + " m (0.632 × K) szerokość=" + KoloW.ToString("F3") + " koła_na_feldze=" + wkKola + " opony=" + wkOpony + " napisy_rozmiaru=" + wkNapisy + " (bieżnik: 3 rowki obwodowe + poprzeczne co 30°, felga 5 ramion, 5 nakrętek, piasta, rant)");

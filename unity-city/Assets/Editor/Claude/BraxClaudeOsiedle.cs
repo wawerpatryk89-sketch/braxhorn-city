@@ -1135,7 +1135,12 @@ public static partial class BraxClaudeOsiedle
             Box(Plinth, P(mid, .3f), S(len, .6f, .36f), true);
             Box(Plinth, P(mid, .63f), S(len + .04f, .06f, .42f), false);
             int bays = Mathf.Max(1, Mathf.RoundToInt(len / 3.2f)); float step = len / bays;
-            for (int k = 0; k <= bays; k++) Box(Plinth, P(s0 + k * step, h * .5f), S(.46f, h, .46f), false);
+            for (int k = 0; k <= bays; k++)
+            {
+                // Skrajny słup wchodzi 0,23 jednostki w światło furtki.
+                bool przyOtwarciu = (k == 0 && s0 > a0) || (k == bays && s1 < a1);
+                Box(Plinth, P(s0 + k * step, h * .5f), S(.46f, h, .46f), przyOtwarciu);
+            }
             for (int sl = 0; sl < 6; sl++)
             {
                 float y = .78f + sl * (h - .95f) / 5f;
@@ -2742,8 +2747,10 @@ public static partial class BraxClaudeOsiedle
     {
         group = "Osiedle B / pierzeja sklepów";
         float zf = front + 6f, zb = zf + 14f, H0 = 4.2f, H1 = 7.6f, PY = .14f;
-        BoxMinMax(Slabs, x0 - .55f, x1, 0, PY, front, zf, false);                     // placyk na wysokości chodnika
-        BoxMinMax(Slabs, x0 - .55f, x0, 0, PY, zf, zb + 1.5f, false);                  // przejście wzdłuż ściany od ulicy N-S
+        BoxMinMax(Slabs, x0 - .55f, x1, 0, PY, front, zf, true);                      // placyk na wysokości chodnika
+        BoxMinMax(Slabs, x0 - .55f, x0, 0, PY, zf, zb + 1.5f, true);                   // przejście wzdłuż ściany od ulicy N-S
+        // Wspólna posadzka parteru od progu przez wszystkie lokale, na poziomie widocznej nawierzchni.
+        Collider(new Vector3((x0 + x1) * .5f, PY * .5f, (zf + zb) * .5f), new Vector3(x1 - x0, PY, zb - zf));
         // parter do wejścia: ściany z klinkieru (tył, boki), front z filarów i witryn, ściany działowe między lokalami
         const float wt = .3f;
         BoxMinMax(Clinker, x0, x1, 0, H0, zb - wt, zb);

@@ -206,7 +206,10 @@ public static partial class BraxClaudeOsiedle
             // Eksport Chesterfield: największa gałąź to ZESTAW, druga to pojedyncza sofa.
             // Fotel jest mniejszą z dwóch siatek zestawu. Nie ustawiamy całego zestawu jako jednego siedziska.
             if (cz.Count != 3 || cz[0].GetComponentsInChildren<MeshFilter>(true).Length != 2)
-                throw new InvalidOperationException("Zmieniona struktura paczki Chesterfield — wymagany pomiar mebli");
+            {
+                UnityEngine.Object.DestroyImmediate(o);
+                return null;
+            }
             var sofa = cz[1];
             var fotel = cz[0].GetComponentsInChildren<MeshFilter>(true)
                 .OrderBy(m => { var bb = BraxOsiedleAssety.Granice(m.transform); return Mathf.Max(bb.size.x, bb.size.z); }).First().transform;
@@ -229,7 +232,11 @@ public static partial class BraxClaudeOsiedle
             o.transform.localScale *= toFotel ? .8f * K / Mathf.Max(.0001f, b.size.y) : szerokoscRealna * K / Mathf.Max(.0001f, szer);
             b = BraxOsiedleAssety.Granice(o);
             if (b.size.y < .65f * K || b.size.y > 1.15f * K)
-                throw new InvalidOperationException(nazwa + ": niewłaściwa orientacja/wysokość " + b.size.y);
+            {
+                BraxOsiedleAssety.Log(nazwa + ": wysokość " + b.size.y + " poza zakresem, użyto mebla z kodu");
+                UnityEngine.Object.DestroyImmediate(o);
+                return null;
+            }
         }
         o.transform.position += new Vector3(p.x - b.center.x, p.y - b.min.y, p.z - b.center.z);
         BraxOsiedleAssety.Przygotuj(o, true);
@@ -436,23 +443,7 @@ public static partial class BraxClaudeOsiedle
         var zestaw = BraxOsiedleAssety.ModelWnetrz("loze_chesterfield_moet");
         var stolik = BraxOsiedleAssety.ModelWnetrz("loze_stolik_marmur_3dtech");
         if (!zestaw) modeleBrak++; if (!stolik) modeleBrak++;
-        float skalaZ = zestaw ? 1f : 0f; int idxSofa = 0, idxFotel = 1;
-        if (zestaw)
-        {
-            try
-            {
-                var tmp = (GameObject)UnityEngine.Object.Instantiate(zestaw); tmp.transform.position = Vector3.zero; tmp.transform.rotation = zestaw.transform.localRotation;
-                var cz = BraxOsiedleAssety.Czesci(tmp);
-                if (cz.Count == 3)
-                {
-                    skalaZ = 1f; // każda pojedyncza siatka jest skalowana osobno w Czesc
-                }
-                else throw new InvalidOperationException("Nieprawidłowy zestaw Chesterfield");
-                BraxOsiedleAssety.Log("loże: zestaw chesterfield części=" + cz.Count + " sofa=0 fotel=" + idxFotel + " skala=" + skalaZ.ToString("F3"));
-                UnityEngine.Object.DestroyImmediate(tmp);
-            }
-            catch (Exception e) { BraxOsiedleAssety.Blad("loże: podział zestawu", e); skalaZ = 0f; }
-        }
+        bool maSofe = zestaw, maFotel = zestaw;
         float sofaW = 2.0f * K, sofaD = .9f * K, armW = .9f * K, armD = .85f * K, tR = .25f * K, gap = .4f * K, seatH = .45f * K, tH = .5f * K;
         var panel = Plain("klub panel tapicerowany bordo", new Color(.25f, .03f, .07f), .35f);
         void SofaKod(Vector3 c, Vector3 f, float w, float d)
@@ -472,7 +463,8 @@ public static partial class BraxClaudeOsiedle
             var cs = sciana + f * (sofaD * .5f);
             if (panelSciana) OBox(panel, sciana - f * .03f + Vector3.up * (yF + .6f * K + .55f), new Vector3(sofaW + .4f, 1.1f + .2f * K, .06f), Quaternion.LookRotation(f).eulerAngles.y);
             // sofa
-            GameObject so = skalaZ > 0f ? Czesc(zestaw, idxSofa, "loża " + lozeN + ": sofa chesterfield", cs + Vector3.up * yF, f, skalaZ, 2f) : null;
+            GameObject so = maSofe ? Czesc(zestaw, 0, "loża " + lozeN + ": sofa chesterfield", cs + Vector3.up * yF, f, 1f, 2f) : null;
+            if (maSofe && !so) { maSofe = false; modeleBrak++; BraxOsiedleAssety.Log("loże: użyto sofy z kodu"); }
             Bounds bS;
             float glS = sofaD;
             if (so)
@@ -491,7 +483,8 @@ public static partial class BraxClaudeOsiedle
             foreach (int sgn in new[] { -1, 1 })
             {
                 var ca = ct + r * sgn * (tR + gap + armD * .5f); var fa = -r * sgn;
-                GameObject fo = skalaZ > 0f && idxFotel > 0 ? Czesc(zestaw, idxFotel, "loża " + lozeN + ": fotel", ca + Vector3.up * yF, fa, skalaZ, .95f) : null;
+                GameObject fo = maFotel ? Czesc(zestaw, 1, "loża " + lozeN + ": fotel", ca + Vector3.up * yF, fa, 1f, .95f) : null;
+                if (maFotel && !fo) { maFotel = false; modeleBrak++; BraxOsiedleAssety.Log("loże: użyto fotela z kodu"); }
                 Bounds bA;
                 if (fo)
                 {

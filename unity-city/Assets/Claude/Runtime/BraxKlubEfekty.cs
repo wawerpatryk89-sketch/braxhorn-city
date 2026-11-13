@@ -32,7 +32,7 @@ public sealed class BraxKlubEfekty : MonoBehaviour
         }
         bazaL = Baza(lasery); bazaG = Baza(glowice);
         strob = new BraxStrob();
-        if (lasery != null) foreach (var x in lasery) strob.Dodaj(BraxStrob.Wiazki(x, "wiązka", "stożek"));
+        if (lasery != null) foreach (var x in lasery) strob.Dodaj(BraxStrob.Wiazki(x, "wiązk", "stożek"));
         if (glowice != null) foreach (var x in glowice) strob.Dodaj(BraxStrob.Wiazki(x, "wiązka", "stożek"));
     }
     static Quaternion[] Baza(Transform[] t)
