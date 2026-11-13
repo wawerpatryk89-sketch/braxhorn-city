@@ -881,7 +881,32 @@ public static partial class BraxClaudeOsiedle
             }
             r.sharedMaterials = ms;
         }
-        Collider(at + Vector3.up * 1.9f, new Vector3(.3f, 3.8f, .3f)); Hard(at.x - .3f, at.x + .3f, at.z - .3f, at.z + .3f);
+        // Środek całego modelu uwzględnia wysięgnik. Przekrój przy ziemi wskazuje położenie słupa.
+        var obrys = RB(o);
+        Bounds stopa = default;
+        bool zmierzona = false;
+        foreach (var mf in o.GetComponentsInChildren<MeshFilter>(true))
+        {
+            var mesh = mf.sharedMesh;
+            if (!mesh || !mesh.isReadable) continue;
+            var macierz = mf.transform.localToWorldMatrix;
+            foreach (var v in mesh.vertices)
+            {
+                var p = macierz.MultiplyPoint3x4(v);
+                if (p.y > obrys.min.y + obrys.size.y * .08f) continue;
+                if (zmierzona) stopa.Encapsulate(p);
+                else { stopa = new Bounds(p, Vector3.zero); zmierzona = true; }
+            }
+        }
+        bool maPodstawe = zmierzona && stopa.size.x > .01f && stopa.size.z > .01f;
+        float wysokosc = Mathf.Min(obrys.size.y, 3.8f);
+        var szer = maPodstawe ? stopa.size : new Vector3(.3f, 0, .3f);
+        var srodek = maPodstawe ? stopa.center : at;
+        var podstawa = new GameObject("kolizja podstawy latarni");
+        podstawa.transform.position = new Vector3(srodek.x, obrys.min.y + wysokosc * .5f, srodek.z);
+        podstawa.transform.SetParent(o.transform, true);
+        podstawa.AddComponent<BoxCollider>().size = new Vector3(szer.x, wysokosc, szer.z);
+        Hard(srodek.x - szer.x * .5f, srodek.x + szer.x * .5f, srodek.z - szer.z * .5f, srodek.z + szer.z * .5f);
         rep.lamps++;
     }
     static Material LampGlass => Plain("klosz latarni mleczny", new Color(.86f, .87f, .86f), .7f);
@@ -926,19 +951,14 @@ public static partial class BraxClaudeOsiedle
         lod.SetLODs(lods.ToArray());
         lod.RecalculateBounds();
         treeSpots.Add(new Vector3(at.x, height, at.z));
-        GameObject trunkGo = null;
-        if (trunkCollider)
-        {
-            trunkGo = new GameObject("pień kolizja"); trunkGo.transform.SetParent(colliders, false); trunkGo.transform.position = at + Vector3.up * 1.4f;
-            var cap = trunkGo.AddComponent<CapsuleCollider>(); cap.radius = .3f; cap.height = 2.8f;
-        }
+        var trunkGo = trunkCollider ? KolizjaPnia(t) : null;
         trees.Add(new TreeRec { go = t, trunk = trunkGo, leaves = l0, at = at, height = height, group = group });
         return t;
     }
     static readonly System.Random treeRnd = new System.Random(909);
     sealed class TreeRec { public GameObject go, trunk; public Renderer leaves; public Vector3 at; public float height; public string group; }
     static readonly List<TreeRec> trees = new List<TreeRec>();
-    static readonly List<Bounds> roofBounds = new List<Bounds>();     // dachy pochyłe (bez kolizji) — do sprawdzania koron
+    static readonly List<Bounds> roofBounds = new List<Bounds>();     // obrysy dachów do sprawdzania koron
     // Korona nie może wchodzić w budynek: po zbudowaniu wszystkiego sprawdzamy każdą koronę (elipsoida z granic liści,
     // 25 punktów na 85% promieni) z kolizjami sceny (ściany, dachy płaskie, latarnie; bez pni drzew) i z bryłami dachów.
     // Kolizja → drzewo zmniejszane (×0.9, ×0.8, ×0.7, nie niżej niż 4.5 m), a jeśli dalej koliduje — usuwane.
@@ -1504,6 +1524,41 @@ public static partial class BraxClaudeOsiedle
     //   1 — parter kamień, piętro biały tynk, dach dwuspadowy z łupka („nowoczesna stodoła”, szczyt do ulicy);
     //   2 — parter klinkier, piętro tynk piaskowy, dach kopertowy z dachówki ceramicznej, komin.
     // Wszystkie: okna z ramami, parapety, drzwi, rynny i rury spustowe, cokół, okna w bocznych ścianach.
+    static void KolizjaPolaci(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float grubosc)
+    {
+        // Osobna wypukła płyta na każdą połać. Te same naroża i spód co w modelu.
+        var rog = c == d ? new[] { a, b, c } : new[] { a, b, c, d };
+        int n = rog.Length;
+        var srodek = (a + b + c + (n == 4 ? d : Vector3.zero)) / n;
+        var v = new Vector3[n * 2];
+        var t = new List<int>(36);
+        for (int i = 0; i < n; i++)
+        {
+            v[i] = rog[i] - srodek;
+            v[n + i] = v[i] - Vector3.up * grubosc;
+        }
+        void Trojkat(int i, int j, int k)
+        {
+            var odSrodka = (v[i] + v[j] + v[k]) / 3f + Vector3.up * (grubosc * .5f);
+            bool naZewnatrz = Vector3.Dot(Vector3.Cross(v[j] - v[i], v[k] - v[i]), odSrodka) > 0f;
+            t.Add(i); t.Add(naZewnatrz ? j : k); t.Add(naZewnatrz ? k : j);
+        }
+        for (int i = 1; i < n - 1; i++) { Trojkat(0, i, i + 1); Trojkat(n, n + i, n + i + 1); }
+        for (int i = 0; i < n; i++)
+        {
+            int j = (i + 1) % n;
+            Trojkat(i, j, n + j); Trojkat(i, n + j, n + i);
+        }
+        var mesh = new Mesh { name = "połać dachu", vertices = v };
+        mesh.SetTriangles(t, 0);
+        string plik = "kolizja_dach_" + (numerPolaci++) + ".asset";
+        AssetDatabase.CreateAsset(mesh, Out + "/" + plik);
+        var g = new GameObject("kolizja połaci dachu"); g.transform.SetParent(colliders, false);
+        g.transform.position = srodek;
+        var mc = g.AddComponent<MeshCollider>(); mc.convex = true; mc.sharedMesh = mesh;
+    }
+    static int numerPolaci;
+
     static void Villa(int index, float u0, float u1, float front, float dir, bool swap = false, float depthOverride = 0f,
                       bool garageOn = true, bool fencesOn = true, string label = null, bool forSale = false, bool leftFence = true)
     {
@@ -2146,6 +2201,7 @@ public static partial class BraxClaudeOsiedle
         // płyta dachu pochyłego: wierzch (pokrycie), spód (podbitka) i krawędzie (obróbka)
         void Plane(Material top, Vector3 a, Vector3 b, Vector3 c, Vector3 d)
         {
+            KolizjaPolaci(a, b, c, d, .16f);
             var n = Normal(a, b, c, Vector3.up); var t = Vector3.down * .16f;
             Quad(top, a, b, c, d, n); Quad(WoodDark, a + t, b + t, c + t, d + t, -n);
             Quad(Frame, a, b, b + t, a + t, Normal(a, b, b + t, ((a + b) * .5f - (a + b + c + d) * .25f)));
@@ -2155,9 +2211,9 @@ public static partial class BraxClaudeOsiedle
         }
         if (variant == 0)
         {
-            BoxL(wallU, uA, uB, yTop, yTop + .25f, e0, e1, false);
-            BoxL(Frame, uA - .55f, uB + .55f, yTop + .25f, yTop + .47f, e0 - .55f, e1 + .55f, false, true);
-            BoxL(Gravel, uA - .4f, uB + .4f, yTop + .47f, yTop + .5f, e0 - .4f, e1 + .4f, false);
+            BoxL(wallU, uA, uB, yTop, yTop + .25f, e0, e1, true);
+            BoxL(Frame, uA - .55f, uB + .55f, yTop + .25f, yTop + .47f, e0 - .55f, e1 + .55f, true, true);
+            BoxL(Gravel, uA - .4f, uB + .4f, yTop + .47f, yTop + .5f, e0 - .4f, e1 + .4f, true);
             Downpipe(Pw(uA - .12f, 0, e1 - .3f), 3.8f, yTop + .25f); Downpipe(Pw(uB + .12f, 0, e1 - .3f), 3.8f, yTop + .25f);
             rep.roofs++;
         }
@@ -2188,8 +2244,8 @@ public static partial class BraxClaudeOsiedle
             Plane(ClayRoof, Pw(aL, yE, wa), Pw(aL, yE, wb), Pw(r0, yR, wm), Pw(r0, yR, wm));
             Plane(ClayRoof, Pw(aR, yE, wa), Pw(aR, yE, wb), Pw(r1, yR, wm), Pw(r1, yR, wm));
             if (r1 > r0) BoxL(Frame, r0, r1, yR - .02f, yR + .1f, wm - .09f, wm + .09f, false);
-            BoxL(Clinker, am + uw * .18f - .35f, am + uw * .18f + .35f, yTop, yR + .8f, wm + .7f, wm + 1.4f, false);
-            BoxL(Frame, am + uw * .18f - .42f, am + uw * .18f + .42f, yR + .8f, yR + .9f, wm + .63f, wm + 1.47f, false);
+            BoxL(Clinker, am + uw * .18f - .35f, am + uw * .18f + .35f, yTop, yR + .8f, wm + .7f, wm + 1.4f, true);
+            BoxL(Frame, am + uw * .18f - .42f, am + uw * .18f + .42f, yR + .8f, yR + .9f, wm + .63f, wm + 1.47f, true);
             Gutter(Pw(aL, yE, wa), Pw(aR, yE, wa)); Gutter(Pw(aL, yE, wb), Pw(aR, yE, wb));
             Downpipe(Pw(aL + .1f, 0, wb - .1f), 3.8f, yE); Downpipe(Pw(aR - .1f, 0, wb - .1f), 3.8f, yE);
             rep.roofs++;
@@ -2530,7 +2586,18 @@ public static partial class BraxClaudeOsiedle
                 foreach (float tz in new[] { zf + 3.2f, zf + 5.6f, zf + 8.0f })
                 {
                     Cylinder(Frame, new Vector3(tx, FY, tz), .05f, .72f, 10, false, false); Cylinder(wood, new Vector3(tx, .72f, tz), .38f, .04f, 16, true, false);
-                    Collider(new Vector3(tx, .38f, tz), new Vector3(.76f, .76f, .76f));
+                    // Prostokąt dawnego stołu blokował również powietrze poza obrysem okrągłego blatu.
+                    var blatKol = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    blatKol.name = "kolizja okrągłego stolika kawiarni";
+                    var ksztalt = blatKol.GetComponent<MeshFilter>().sharedMesh;
+                    UnityEngine.Object.DestroyImmediate(blatKol.GetComponent<Collider>());
+                    UnityEngine.Object.DestroyImmediate(blatKol.GetComponent<MeshRenderer>());
+                    UnityEngine.Object.DestroyImmediate(blatKol.GetComponent<MeshFilter>());
+                    blatKol.transform.SetParent(colliders, false);
+                    blatKol.transform.position = new Vector3(tx, .74f, tz);
+                    blatKol.transform.localScale = new Vector3(.76f, .02f, .76f);
+                    blatKol.AddComponent<MeshCollider>().sharedMesh = ksztalt;
+                    Collider(new Vector3(tx, FY + .36f, tz), new Vector3(.10f, .72f, .10f));
                     if (offChair) { Put(offChair, new Vector3(tx, FY, tz - .62f), 0f, .03f, true); Put(offChair, new Vector3(tx, FY, tz + .62f), 180f, .03f, true); }
                 }
             Planter(new Vector3(a + .8f, FY, zf + .8f), .8f, .8f, 811, 2, 3); Planter(new Vector3(b - .8f, FY, zf + .8f), .8f, .8f, 812, 0, 1);
@@ -2550,7 +2617,9 @@ public static partial class BraxClaudeOsiedle
                 var tyl = p0 + wglab * gl;   // plecy przy ścianie
                 BoxMinMax(lak, Mathf.Min(tyl.x, (tyl + wzdl * dl).x) - (Mathf.Abs(wglab.x) > .5f ? .01f : 0f), Mathf.Max(tyl.x, (tyl + wzdl * dl).x) + (Mathf.Abs(wglab.x) > .5f ? .01f : 0f),
                           FY, FY + h0 + dh * poz, Mathf.Min(tyl.z, (tyl + wzdl * dl).z) - (Mathf.Abs(wglab.z) > .5f ? .01f : 0f), Mathf.Max(tyl.z, (tyl + wzdl * dl).z) + (Mathf.Abs(wglab.z) > .5f ? .01f : 0f), false);
-                BoxMinMax(zielen, x0, x1, FY, FY + .12f, z0, z1, true);                                   // cokół
+                BoxMinMax(zielen, x0, x1, FY, FY + .12f, z0, z1, false);
+                float wysokosc = h0 + dh * poz;
+                Collider(new Vector3((x0 + x1) * .5f, FY + wysokosc * .5f, (z0 + z1) * .5f), new Vector3(x1 - x0, wysokosc, z1 - z0));
                 for (int i = 0; i <= poz; i++) { float y = FY + h0 + i * dh; BoxMinMax(lak, x0, x1, y - .025f, y, z0, z1, false); }
                 int nb = Mathf.Max(1, Mathf.RoundToInt(dl / 1.2f));
                 for (int j = 0; j <= nb; j++)
@@ -3322,6 +3391,8 @@ public static partial class BraxClaudeOsiedle
                 BoxMinMax(Deck, px - 8.03f, px - 7.97f, y, y + .07f, pz - 6f, pz + 6f, false); BoxMinMax(Deck, px + 7.97f, px + 8.03f, y, y + .07f, pz - 6f, pz + 6f, false);
             }
             Collider(new Vector3(px, .45f, pz - 6f), new Vector3(16f, .9f, .1f)); Collider(new Vector3(px - 8f, .45f, pz), new Vector3(.1f, .9f, 12f)); Collider(new Vector3(px + 8f, .45f, pz), new Vector3(.1f, .9f, 12f));
+            foreach (float strona in new[] { -1f, 1f })
+                Collider(new Vector3(px + strona * 4.6f, .45f, pz + 6f), new Vector3(6.8f, .9f, .1f));
             // huśtawka: dwie ramy A z pochylonych słupów, belka, dwa siedziska na łańcuchach
             float sz = pz - 2.8f;
             foreach (float sx in new[] { -5.6f, -1.4f })
@@ -3336,11 +3407,11 @@ public static partial class BraxClaudeOsiedle
             // wieża z daszkiem dwuspadowym, drabinka i zjeżdżalnia
             float tx = px + 3.6f, tz = pz - 1.0f;
             foreach (float ox in new[] { -.9f, .9f }) foreach (float oz in new[] { -.9f, .9f }) Box(Deck, new Vector3(tx + ox, 1.6f, tz + oz), new Vector3(.12f, 3.2f, .12f));
-            Box(Deck, new Vector3(tx, 1.25f, tz), new Vector3(2.0f, .1f, 2.0f), false);
+            Box(Deck, new Vector3(tx, 1.25f, tz), new Vector3(2.0f, .1f, 2.0f), true);
             foreach (float s in new[] { -1f, 1f }) OBoxQ(red, new Vector3(tx + s * .55f, 3.45f, tz), new Vector3(1.25f, .07f, 2.3f), Quaternion.Euler(0, 0, -s * 32f));
-            BoxMinMax(Deck, tx - .95f, tx + .95f, 1.3f, 1.95f, tz - .97f, tz - .93f, false); BoxMinMax(Deck, tx + .93f, tx + .97f, 1.3f, 1.95f, tz - .95f, tz + .95f, false);
-            for (int k = 0; k < 5; k++) Box(Deck, new Vector3(tx - .5f, .25f + k * .25f, tz + 1.15f + k * .02f), new Vector3(.6f, .05f, .08f), false);   // drabinka
-            OBoxQ(yellow, new Vector3(tx - 2.0f, .68f, tz - .2f), new Vector3(2.7f, .05f, .62f), Quaternion.Euler(0, 0, 25f));                  // ześlizg
+            BoxMinMax(Deck, tx - .95f, tx + .95f, 1.3f, 1.95f, tz - .97f, tz - .93f, true); BoxMinMax(Deck, tx + .93f, tx + .97f, 1.3f, 1.95f, tz - .95f, tz + .95f, true);
+            for (int k = 0; k < 5; k++) Box(Deck, new Vector3(tx - .5f, .25f + k * .25f, tz + 1.15f + k * .02f), new Vector3(.6f, .05f, .08f), true);   // drabinka
+            OBoxQ(yellow, new Vector3(tx - 2.0f, .68f, tz - .2f), new Vector3(2.7f, .05f, .62f), Quaternion.Euler(0, 0, 25f), true);                  // ześlizg
             foreach (float s in new[] { -.31f, .31f }) OBoxQ(yellow, new Vector3(tx - 2.0f, .78f, tz - .2f + s), new Vector3(2.7f, .2f, .04f), Quaternion.Euler(0, 0, 25f));
             // piaskownica z drewnianym obrzeżem
             float bx0 = px - 6.8f, bz0 = pz + 1.4f;
@@ -3664,6 +3735,54 @@ public static partial class BraxClaudeOsiedle
     // ---------------- remont osiedla A ----------------
     // Źródło: dev/osiedle/world.js i civic.js (współrzędne three.js; Unity X = -X, układ symetryczny).
     static readonly (float x, float z, float hd)[] Houses = { (-28, 27, 10), (27, 28, 10), (-29, 0, 12), (28, 0, 12), (-28, 59, 10), (28, 59, 10) };
+    // Dom-04: eksporter starej sceny zapisał UUID sprzed scalenia 34 elementów GLB.
+    // Przywracamy istniejące powierzchnie konstrukcyjne; otwory pozostają otworami.
+    static void KolizjeDomow03i04(Transform estate)
+    {
+        var dzialka03 = MinMax(17f, 41f, -3f, 16f, -13f, 13f);
+        var dzialka04 = MinMax(-40f, -16f, -3f, 16f, -13f, 13f);
+        var konstrukcja04 = new HashSet<int> { 312, 315, 316, 317, 318, 319, 320, 321, 322, 326, 327, 328, 329 };
+        int przywrocone = 0, odwrocone = 0;
+        foreach (var mf in estate.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if (!mf.name.StartsWith("EstateMesh_") || !int.TryParse(mf.name.Substring(11), out int id)) continue;
+            var mr = mf.GetComponent<MeshRenderer>();
+            if (!mr || !mr.enabled || !mf.sharedMesh) continue;
+            var b = mr.bounds;
+            if (konstrukcja04.Contains(id) && dzialka04.Contains(b.min) && dzialka04.Contains(b.max))
+            {
+                var mc = mf.GetComponent<MeshCollider>();
+                if (mc && mc.enabled && mc.sharedMesh) continue;
+                if (!mc) mc = mf.gameObject.AddComponent<MeshCollider>();
+                mc.sharedMesh = mf.sharedMesh; mc.enabled = true; przywrocone++;
+            }
+            // Ściana domu (309) i garażu (311) są jednostronne. Od wnętrza dokładamy
+            // wyłącznie odwrotne strony pionowych trójkątów w pasie wskazanym przez robota.
+            if ((id != 309 && id != 311) || !dzialka03.Contains(b.min) || !dzialka03.Contains(b.max)) continue;
+            if (!BraxKontrola.Dane(mf.sharedMesh, out var v, out var tri)) continue;
+            var indeksy = new List<int>();
+            var macierz = mf.transform.localToWorldMatrix;
+            float od = id == 309 ? 32.75f : 37.30f, doX = id == 309 ? 33.55f : 37.55f;
+            for (int i = 0; i < tri.Length; i += 3)
+            {
+                var p = macierz.MultiplyPoint3x4(v[tri[i]]);
+                var q = macierz.MultiplyPoint3x4(v[tri[i + 1]]);
+                var a = macierz.MultiplyPoint3x4(v[tri[i + 2]]);
+                float x = (p.x + q.x + a.x) / 3f;
+                if (x < od || x > doX || Mathf.Abs(Vector3.Cross(q - p, a - p).normalized.x) < .95f) continue;
+                indeksy.Add(tri[i]); indeksy.Add(tri[i + 2]); indeksy.Add(tri[i + 1]);
+            }
+            if (indeksy.Count == 0) continue;
+            var strona = new Mesh { name = "Dom-03 wnętrze " + id, indexFormat = mf.sharedMesh.indexFormat };
+            strona.vertices = v; strona.SetTriangles(indeksy, 0);
+            AssetDatabase.CreateAsset(strona, Out + "/dom03_sciana_" + id + ".asset");
+            var g = new GameObject("Dom-03 kolizja od wnętrza " + id);
+            g.transform.SetParent(mf.transform, false); g.AddComponent<MeshCollider>().sharedMesh = strona;
+            odwrocone += indeksy.Count / 3;
+        }
+        rep.notes.Add("dom-03: trójkąty ścian od wnętrza " + odwrocone + "; dom-04: przywrócone siatki kolizji " + przywrocone);
+    }
+
     static void RenovateA(Transform estate, Transform physics)
     {
         // 1) bryły do wycięcia: obwodowe żywopłoty (bez bramy północnej), płoty działek
@@ -3697,12 +3816,13 @@ public static partial class BraxClaudeOsiedle
         rep.notes.Add("dom-07: szara bryła usunięta, nowa willa na działce");
 
         // 1b) „kulkowe” drzewa (zielone sfery na brązowym walcu) -> drzewo Verdant w tym samym miejscu.
-        //     Kolizja pnia zostaje oryginalna (okrągły collider w fizyce osiedla).
+        //     Podmieniamy kolizję starego walca dopiero po utworzeniu pnia nowego drzewa.
         var rends = estate.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.enabled && r.sharedMaterial).ToArray();
         bool Mat(MeshRenderer r, string n) => r.sharedMaterial.name.Replace(" (Instance)", "") == n;
         var trunks = rends.Where(r => Mat(r, "estate_lit_1") && r.bounds.size.x < .7f && r.bounds.size.z < .7f && r.bounds.size.y > 2.5f && r.bounds.size.y < 8f).ToList();
         var crowns = rends.Where(r => (Mat(r, "estate_lit_2") || Mat(r, "estate_lit_3")) && Mathf.Max(r.bounds.size.x, r.bounds.size.y, r.bounds.size.z) < 5f && r.bounds.min.y > .8f).ToList();
         group = "Osiedle A / drzewa zamiast kulek";
+        var starePnie = physics ? physics.GetComponentsInChildren<BoxCollider>(true) : Array.Empty<BoxCollider>();
         foreach (var tr in trunks)
         {
             if (!tr) continue;                                   // mógł zniknąć razem z rodzicem usuniętej korony
@@ -3711,10 +3831,13 @@ public static partial class BraxClaudeOsiedle
             var mine = crowns.Where(k => k && Mathf.Abs(k.bounds.center.x - c.x) < 2.2f && Mathf.Abs(k.bounds.center.z - c.z) < 2.2f).ToList();
             if (mine.Count == 0) continue;
             float top = mine.Max(k => k.bounds.max.y);
-            foreach (var k in mine) if (k) UnityEngine.Object.DestroyImmediate(k.gameObject);   // nie pakować ukrytych
-            if (tr) UnityEngine.Object.DestroyImmediate(tr.gameObject);
+            if (!Tree(new Vector3(c.x, 0, c.z), Mathf.Clamp(top * 1.15f, 6.5f, 10f), (c.x * 37f + c.z * 11f) % 360f)) continue;
+            // world.js: tree(x,z,h) zapisuje prostokąt o podstawie 0,50 × 0,50 i wysokości walca.
+            WylaczDawnyPien(starePnie, c, .50f, tr.bounds.size.y, .07f);
+            foreach (var k in mine) if (k) UnityEngine.Object.DestroyImmediate(k.gameObject);
+            UnityEngine.Object.DestroyImmediate(tr.gameObject);
             crowns.RemoveAll(k => !k);
-            if (Tree(new Vector3(c.x, 0, c.z), Mathf.Clamp(top * 1.15f, 6.5f, 10f), (c.x * 37f + c.z * 11f) % 360f, false)) rep.ballTreesReplaced++;
+            rep.ballTreesReplaced++;
         }
 
         // 2) nowe ogrodzenie obwodowe (kamień + stal) i płoty działek
@@ -3978,9 +4101,8 @@ public static partial class BraxClaudeOsiedle
     // Drzewa nie stoją na chodnikach (właściciel 31.10, galeria: drzewa na rogu chodnika przy kasynie, na placach przed
     // komisariatem / szpitalem / halą): pień na nawierzchni (z zapasem 0.5 m) → przesunięcie na najbliższy trawnik do 3.5 m
     // (pień ≥ 0.9 m od krawędzi nawierzchni, nie w budynku, płocie ani w innym drzewie); bez miejsca — drzewo usuwane.
-    // Drzewa po „kulkach” Codexa nie mają własnej kolizji pnia (została oryginalna) — przy przesunięciu stara kolizja
-    // wyłączana, nowa (kapsuła) stawiana pod pniem.
-    static void TreesOffPaving(Transform physics)
+    // Kolizja jest dzieckiem pnia; obrót, przesunięcie i zmiana wielkości drzewa obejmują również fizykę.
+    static void TreesOffPaving()
     {
         foreach (var tr in trees.ToList())
         {
@@ -3998,22 +4120,10 @@ public static partial class BraxClaudeOsiedle
                     best = p; found = true;
                 }
             treeSpots.RemoveAll(q => Mathf.Abs(q.x - old.x) < .01f && Mathf.Abs(q.z - old.z) < .01f);
-            if (physics && !tr.trunk)
-                foreach (var c in physics.GetComponentsInChildren<Collider>(true))
-                {
-                    var b = c.bounds;
-                    if (c.enabled && b.size.x < .9f && b.size.z < .9f && b.size.y < 4f && Mathf.Abs(b.center.x - old.x) < .45f && Mathf.Abs(b.center.z - old.z) < .45f) c.enabled = false;
-                }
             if (found)
             {
                 var d = best - old; d.y = 0;
                 tr.go.transform.position += d;
-                if (tr.trunk) tr.trunk.transform.position += d;
-                else
-                {
-                    tr.trunk = new GameObject("pień kolizja"); tr.trunk.transform.SetParent(colliders, false); tr.trunk.transform.position = new Vector3(best.x, 1.4f, best.z);
-                    var cap = tr.trunk.AddComponent<CapsuleCollider>(); cap.radius = .3f; cap.height = 2.8f;
-                }
                 tr.at = new Vector3(best.x, old.y, best.z); treeSpots.Add(new Vector3(best.x, tr.height, best.z)); rep.treesMovedOffPaving++;
             }
             else
@@ -4513,6 +4623,8 @@ public static partial class BraxClaudeOsiedle
         if (spruce)
         {
             Cylinder(Plain("pień świerka", new Color(.22f, .15f, .10f), .2f), at, .16f, 1.2f, 10, false, false);
+            var kolizja = root.AddComponent<CapsuleCollider>();
+            kolizja.radius = .16f; kolizja.height = 1.2f; kolizja.center = Vector3.up * .6f;
             Layer(.5f, height * .45f, width); Layer(height * .32f, height * .4f, width * .7f); Layer(height * .6f, height * .4f, width * .42f);
         }
         else Layer(0f, height, width);
@@ -4629,13 +4741,15 @@ public static partial class BraxClaudeOsiedle
         Vector3 A = new Vector3(rx0, yE, rz0), Bc = new Vector3(rx1, yE, rz0), C = new Vector3(rx1, yE, rz1), D = new Vector3(rx0, yE, rz1), R0 = new Vector3(xm, yR, rz0 + half), R1 = new Vector3(xm, yR, rz1 - half);
         Quad(roof, Bc, C, R1, R0, Normal(Bc, C, R1, Vector3.up)); Quad(roof, D, A, R0, R1, Normal(D, A, R0, Vector3.up));
         Tri(roof, A, Bc, R0, Normal(A, Bc, R0, Vector3.up)); Tri(roof, C, D, R1, Normal(C, D, R1, Vector3.up));
+        KolizjaPolaci(Bc, C, R1, R0, .06f); KolizjaPolaci(D, A, R0, R1, .06f);
+        KolizjaPolaci(A, Bc, R0, R0, .06f); KolizjaPolaci(C, D, R1, R1, .06f);
         BoxMinMax(soffit, rx0, rx1, yE - .06f, yE, rz0, rz1, false, true);
         roofBounds.Add(MinMax(rx0, rx1, yE - .2f, yR, rz0, rz1));                                   // korony drzew nie przez dach (PruneCrowns)
         foreach (var (a0, a1, b0, b1) in new[] { (rx0, rx1, rz0 - .12f, rz0), (rx0, rx1, rz1, rz1 + .12f), (rx0 - .12f, rx0, rz0, rz1), (rx1, rx1 + .12f, rz0, rz1) })
             BoxMinMax(brown, a0, a1, yE - .16f, yE - .02f, b0, b1, false, true);                                    // rynny
         foreach (var (cx, cz) in new[] { (x1 + .1f, z0 - .1f), (x1 + .1f, z1 + .1f), (x0 - .1f, z0 - .1f), (x0 - .1f, z1 + .1f) })
             Cylinder(brown, new Vector3(cx, 0f, cz), .055f, yE - .1f, 8, false, false);                                // rury spustowe
-        BoxMinMax(brick, -31.9f, -31.2f, yE + 1.0f, yR + 1.0f, 55.2f, 55.9f, false); BoxMinMax(sill, -32.0f, -31.1f, yR + 1.0f, yR + 1.08f, 55.1f, 56.0f, false, true);
+        BoxMinMax(brick, -31.9f, -31.2f, yE + 1.0f, yR + 1.0f, 55.2f, 55.9f, true); BoxMinMax(sill, -32.0f, -31.1f, yR + 1.0f, yR + 1.08f, 55.1f, 56.0f, true, true);
         // płot od ulicy (x −16.5): słupy z daszkami, podmurówka, przęsła z prętów; brama 3.6 m otwarta do środka
         const float fxp = -16.5f; float[] posts = { 49.25f, 52.0f, 54.75f, 57.2f, 60.8f, 63.5f, 66.2f, 68.75f };
         foreach (float z in posts)
@@ -5702,6 +5816,7 @@ public static partial class BraxClaudeOsiedle
     {
         ruchZweryfikowany = false; bladRuchu = null;
         try { BraxTestNaprawOsiedla.Wykonaj(); } catch (Exception e) { Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE DO POPRAWKI regresja: " + e.Message); }
+        numerPolaci = 0;
         rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); WyczyscWspolne14(); WyczyscElewacje(); ZmierzBohatera(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
         pavedCells.Clear(); pavingSet = null; CodexPaving();
         try { Build(); rep.status = "ZBUDOWANO"; }
@@ -5764,6 +5879,7 @@ public static partial class BraxClaudeOsiedle
 
         // 2) stary płot -> nowy, z bramami do parku
         RenovateA(estate, physics);
+        Guard("ściany domów 03 i 04", () => KolizjeDomow03i04(estate));
         Guard("dom rodziny Wawerów (Poznańska 2)", () => WawerHouse(estate, physics));
         CivicFacades();
         Guard("kasyno — bogate wejście", () => CasinoEntrance(estate, physics));
@@ -5839,7 +5955,7 @@ public static partial class BraxClaudeOsiedle
         Guard("korony starych drzew A", () => FixOldLeaves(estate));
         Guard("okna z pokojami w starych domach A", () => FakeRoomsA(estate));
         Guard("komisariat — nowe wnętrze", () => PoliceInterior(estate, physics));
-        Guard("drzewa z chodników", () => TreesOffPaving(physics));
+        Guard("drzewa z chodników", TreesOffPaving);
         Guard("ulice: parking i przejścia B, wyposażenie, strefy zatrzymania, kontrola (BraxClaudeOsiedleUlice)", UliceOsiedla);   // build 14 „drogi”
         Guard("korony drzew z dala od budynków", PruneCrowns);
         Guard("kraniec mapy: teren dookoła zamiast pustki", KraniecMapy);

@@ -24,6 +24,37 @@ public static partial class BraxClaudeOsiedle
 
     static Mesh[] klasterLiscie;
     static Mesh klasterPien;
+    static void WylaczDawnyPien(BoxCollider[] kolizje, Vector3 pozycja, float szerokosc, float wysokosc, float promien)
+    {
+        BoxCollider najblizszy = null;
+        float odleglosc = promien * promien;
+        foreach (var c in kolizje)
+        {
+            if (!c.enabled || c.name != "Source estate") continue;
+            var b = c.bounds;
+            if (Mathf.Abs(b.size.x - szerokosc) > .02f || Mathf.Abs(b.size.z - szerokosc) > .02f ||
+                Mathf.Abs(b.size.y - wysokosc) > .07f || Mathf.Abs(b.min.y) > .03f) continue;
+            float dx = b.center.x - pozycja.x, dz = b.center.z - pozycja.z, d = dx * dx + dz * dz;
+            if (d < odleglosc) { odleglosc = d; najblizszy = c; }
+        }
+        if (najblizszy) najblizszy.enabled = false;
+    }
+
+    static GameObject KolizjaPnia(GameObject drzewo)
+    {
+        var pien = drzewo.GetComponentsInChildren<MeshFilter>(true).FirstOrDefault(m => m.name == "pien");
+        if (!pien || !pien.sharedMesh) return null;
+        if (!klasterPien)
+        {
+            var src = Model("drzewo_klaster");
+            if (src) klasterPien = src.GetComponentsInChildren<MeshFilter>(true).FirstOrDefault(m => m.name == "pien_lod")?.sharedMesh;
+        }
+        var g = new GameObject("pień kolizja");
+        g.transform.SetParent(pien.transform, false);
+        g.AddComponent<MeshCollider>().sharedMesh = klasterPien ? klasterPien : pien.sharedMesh;
+        return g;
+    }
+
     static Material klasterMat;
 
     static bool KlasterWczytaj()
@@ -115,10 +146,14 @@ public static partial class BraxClaudeOsiedle
             foreach (var r in codex) if (r) UnityEngine.Object.DestroyImmediate(r.gameObject);
         }
         int kodeks = 0;
+        var starePnie = physics ? physics.GetComponentsInChildren<BoxCollider>(true) : Array.Empty<BoxCollider>();
         foreach (var p in stare)
         {
-            // nowe drzewo z kolizją pnia (w tym samym miejscu co pień oryginału)
-            if (Tree(new Vector3(p.x, 0, p.z), 8.6f + Mathf.Abs(p.x * 1.7f + p.z) % 1.4f, (p.x * 37f + p.z * 11f) % 360f)) kodeks++;
+            if (!Tree(new Vector3(p.x, 0, p.z), 8.6f + Mathf.Abs(p.x * 1.7f + p.z) % 1.4f, (p.x * 37f + p.z * 11f) % 360f)) continue;
+            // W źródle siedem drzew Verdant ma prostokąty 0,44 × 3 × 0,44.
+            // Środek obrysu pochylonego pnia może być odsunięty od punktu sadzenia.
+            WylaczDawnyPien(starePnie, p, .44f, 3f, 3f);
+            kodeks++;
         }
         // 1) gałązki zamiast trójkątów: wszystkie drzewa z rejestru (park, ulice, działki, aleje, za płotem, Codexa)
         int zamienione = 0;
@@ -141,7 +176,7 @@ public static partial class BraxClaudeOsiedle
                 krzewy++;
             }
         // 3) korony z dala od budynków (min. 1 m od ściany i dachu)
-        var (przes, zmn, usun, mapa) = KoronyOdBudynkow(estate, physics);
+        var (przes, zmn, usun, mapa) = KoronyOdBudynkow(estate);
         rep.notes.Add("drzewa: " + zamienione + " koron z gałązek (było: trójkąty), " + krzewy + " krzewów, " + kodeks + " drzew zamiast starych Codexa; korony przy budynkach: przesunięte " + przes + ", zmniejszone " + zmn + ", usunięte " + usun);
         Debug.Log("BRAXHORN_DRZEWA zamienione=" + zamienione + " usunięte_z_dachów=" + usun + " przesunięte=" + przes + " zmniejszone=" + zmn +
                   " krzewy=" + krzewy + " stare_codexa=" + stare.Count + "→" + kodeks + " komórek_budynków=" + mapa + " (liście: gałązki, LOD0 " + klasterLiscie[0].GetIndexCount(0) / 3 + " trójkątów)");
@@ -232,7 +267,7 @@ public static partial class BraxClaudeOsiedle
         return n;
     }
 
-    static (int, int, int, int) KoronyOdBudynkow(Transform estate, Transform physics)
+    static (int, int, int, int) KoronyOdBudynkow(Transform estate)
     {
         int mapa = ZbudujMapeBudynkow(estate);
         int przes = 0, zmn = 0, usun = 0;
@@ -257,26 +292,9 @@ public static partial class BraxClaudeOsiedle
                     tr.go.transform.position = p;
                     if (KoronaWBudynku(Korona(tr)) < 4) ok = true; else tr.go.transform.position = start;
                 }
-            // drzewo bez własnej kolizji pnia (po „kulkach” Codexa) ma okrąg w fizyce oryginału — wyłączany przy przesunięciu/usunięciu
-            void StaryPien()
-            {
-                if (!physics || tr.trunk) return;
-                foreach (var c in physics.GetComponentsInChildren<Collider>(true))
-                {
-                    var b = c.bounds;
-                    if (c.enabled && b.size.x < .9f && b.size.z < .9f && b.size.y < 4f && Mathf.Abs(b.center.x - start.x) < .45f && Mathf.Abs(b.center.z - start.z) < .45f) c.enabled = false;
-                }
-            }
             if (ok)
             {
                 var d = tr.go.transform.position - start;
-                if (!tr.trunk && physics)
-                {
-                    StaryPien();
-                    tr.trunk = new GameObject("pień kolizja"); tr.trunk.transform.SetParent(colliders, false); tr.trunk.transform.position = start + Vector3.up * 1.4f;
-                    var cap = tr.trunk.AddComponent<CapsuleCollider>(); cap.radius = .3f; cap.height = 2.8f;
-                }
-                if (tr.trunk) tr.trunk.transform.position += d;
                 treeSpots.RemoveAll(q => Mathf.Abs(q.x - tr.at.x) < .01f && Mathf.Abs(q.z - tr.at.z) < .01f);
                 tr.at += d; treeSpots.Add(new Vector3(tr.at.x, tr.height, tr.at.z)); przes++; continue;
             }
@@ -289,7 +307,6 @@ public static partial class BraxClaudeOsiedle
             }
             if (ok) { zmn++; continue; }
             // c) usunięte
-            StaryPien();
             UnityEngine.Object.DestroyImmediate(tr.go); if (tr.trunk) UnityEngine.Object.DestroyImmediate(tr.trunk);
             treeSpots.RemoveAll(q => Mathf.Abs(q.x - tr.at.x) < .01f && Mathf.Abs(q.z - tr.at.z) < .01f);
             trees.Remove(tr); usun++;

@@ -661,17 +661,18 @@ public static partial class BraxClaudeOsiedle
         {
             float cx = (x0 + x1) * .5f;
             var pr = new GameObject("Myjnia: portal (ruchomy)").transform; pr.SetParent(Group(group), false); pr.position = new Vector3(cx, 0f, z1 - 2.2f);
-            Transform Bryla(PrimitiveType t, string n, Material m, Vector3 lp, Vector3 sc, Vector3 eul)
+            Transform Bryla(PrimitiveType t, string n, Material m, Vector3 lp, Vector3 sc, Vector3 eul, bool sztywna = false)
             {
-                var g = GameObject.CreatePrimitive(t); g.name = n; UnityEngine.Object.DestroyImmediate(g.GetComponent<Collider>());
+                var g = GameObject.CreatePrimitive(t); g.name = n;
+                if (!sztywna) UnityEngine.Object.DestroyImmediate(g.GetComponent<Collider>());
                 g.transform.SetParent(pr, false); g.transform.localPosition = lp; g.transform.localRotation = Quaternion.Euler(eul); g.transform.localScale = sc;
                 var r = g.GetComponent<MeshRenderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 return g.transform;
             }
             float hN = yH - .4f - YS;
-            Bryla(PrimitiveType.Cube, "noga lewa", nieb, new Vector3(x0 + .9f - cx, YS + hN * .5f, 0f), new Vector3(.4f, hN, pw * 2f), Vector3.zero);
-            Bryla(PrimitiveType.Cube, "noga prawa", nieb, new Vector3(x1 - .9f - cx, YS + hN * .5f, 0f), new Vector3(.4f, hN, pw * 2f), Vector3.zero);
-            Bryla(PrimitiveType.Cube, "belka", nieb, new Vector3(0f, yH - .6f, 0f), new Vector3(x1 - x0 - 1.4f, .4f, pw * 2f), Vector3.zero);
+            Bryla(PrimitiveType.Cube, "noga lewa", nieb, new Vector3(x0 + .9f - cx, YS + hN * .5f, 0f), new Vector3(.4f, hN, pw * 2f), Vector3.zero, true);
+            Bryla(PrimitiveType.Cube, "noga prawa", nieb, new Vector3(x1 - .9f - cx, YS + hN * .5f, 0f), new Vector3(.4f, hN, pw * 2f), Vector3.zero, true);
+            Bryla(PrimitiveType.Cube, "belka", nieb, new Vector3(0f, yH - .6f, 0f), new Vector3(x1 - x0 - 1.4f, .4f, pw * 2f), Vector3.zero, true);
             Bryla(PrimitiveType.Cube, "lampki", StSwiatlo("lampki portalu", new Color(.2f, 1f, .4f)), new Vector3(0f, yH - .725f, pw + .01f), new Vector3(x1 - x0 - 2.4f, .05f, .02f), Vector3.zero);
             float hS = 2.6f * K;
             var p1 = Bryla(PrimitiveType.Cylinder, "szczotka pionowa lewa", szcz, new Vector3(x0 + 1.8f - cx, YS + .1f + hS * .5f, .9f), new Vector3(1.1f, hS * .5f, 1.1f), Vector3.zero);

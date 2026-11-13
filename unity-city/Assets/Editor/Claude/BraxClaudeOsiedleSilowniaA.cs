@@ -350,6 +350,7 @@ public static partial class BraxClaudeOsiedle
             sb.Walec(0, new Vector3(sd * .665f, 0, 0), new Vector3(sd * .7f, 0, 0), .035f, 12);   // zacisk
         }
         var sztanga = Wstaw(sb, "sztanga w klatce", new[] { Chrom, GumaCzarna }, Group(group), new Vector3(bcx, by, bz));
+        sztanga.AddComponent<MeshCollider>().sharedMesh = sztanga.GetComponent<MeshFilter>().sharedMesh;
         // STANOWISKA ĆWICZEŃ (AKCJA: BraxCwiczenie przez rejestr BraxInterakcje): przysiad w klatce, wyciskanie na ławkach, uginanie przy hantlach
         void Stanowisko(Vector3 at, float yaw, BraxCwiczenie.Rodzaj r, GameObject ukryj)
         {
@@ -478,6 +479,7 @@ public static partial class BraxClaudeOsiedle
             }
         }
         Wstaw(kb, "kettle na regale", new[] { GumaCzarna, Steel }, Group(group), W(0, 0, 0));
+        Collider(new Vector3((kx0 + kx1) * .5f, .475f, (kz0 + kz1) * .5f), new Vector3(kx1 - kx0 + .06f, .95f, kz1 - kz0));
         // skrzynie plyo (sklejka) pod ścianą wschodnią, poza strefą przed drzwiami szatni
         foreach (var (z, h) in new[] { (8.35f, .75f), (9.05f, .6f) })
         {
