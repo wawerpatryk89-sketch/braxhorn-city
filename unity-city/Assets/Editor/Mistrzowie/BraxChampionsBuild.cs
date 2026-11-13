@@ -131,6 +131,7 @@ public static class BraxChampionsBuild
             {
                 // Read-only metrics only for explicitly requested scenes, never for APK.
                 BraxSceneAudit.Run(scene, report.sourceCommit);
+                CompressGlbTextures(scene,report);
                 SplitIntoAreas(report);
                 report.status=gateFails.Count==0?"UNITY_SCENES_GENERATED_APK_NOT_BUILT_DEVICE_REVIEW_PENDING"
                     :"UNITY_SCENES_GENERATED_INTEGRATION_FAIL: "+string.Join(" | ",gateFails);
@@ -138,6 +139,7 @@ public static class BraxChampionsBuild
             }
             if(apk)
             {
+                CompressGlbTextures(scene,report);
                 SplitIntoAreas(report);
                 BuildExplorationApk();
                 report.status="ANDROID_APK_COMPILED_DEVICE_AND_VISUAL_REVIEW_PENDING";
@@ -303,6 +305,23 @@ public static class BraxChampionsBuild
     // Owner 12.11 20:46 ("jak miasto R1 ... jedna ta sama gra, tylko że podzielona"): the finished, checked exploration
     // scene is split into area scenes read on approach (BraxChampionsPodzial). A failure of the split as a whole leaves
     // the region in one scene, as it was built and checked - it never costs the build.
+    // Owner 13.11 09:54 ("dlaczego to tak dużo waży"): APK 43 carried ~2 GB of uncompressed textures embedded in .glb
+    // files (glTFast imports them RGBA32). They are swapped for ASTC copies of the same images before the split
+    // (BraxChampionsTeksturyGlb). A failure leaves the scene as it was built and checked - it never costs the build.
+    static void CompressGlbTextures(Scene scene,Report report)
+    {
+        try
+        {
+            int n=BraxChampionsTeksturyGlb.Zastosuj(scene);
+            report.checks.Add("Uncompressed .glb textures swapped for ASTC 6x6 copies of the same images: "+n);
+        }
+        catch(Exception e)
+        {
+            Debug.LogError("BRAX_GLB_TEXTURES_FAILED scene left with the original textures: "+e);
+            report.checks.Add("GLB TEXTURE COMPRESSION FAILED - original textures kept: "+e.Message);
+        }
+    }
+
     static void SplitIntoAreas(Report report)
     {
         try
