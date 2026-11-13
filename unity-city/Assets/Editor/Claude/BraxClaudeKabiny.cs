@@ -115,7 +115,7 @@ public static partial class BraxClaudeOsiedle
                 ZapasPozy(skora, akcesoria, fotel, kab, ref w); klatki++;
             }
         }
-        if (klatki == 0) w.zapas = 0f;
+        if (klatki == 0 || float.IsPositiveInfinity(w.zapas)) w.zapas = float.NegativeInfinity;
         return w;
     }
 
@@ -131,21 +131,28 @@ public static partial class BraxClaudeOsiedle
         var start = osoba.transform.position;
         string nazwaAuta = "?";
         for (var t = fotel; t; t = t.parent) if (t.name.StartsWith("Auto")) { nazwaAuta = t.name; break; }
-        WynikKabiny wynik = default; bool miesci = false;
+        var wynik = new WynikKabiny { zapas = float.NegativeInfinity }; bool miesci = false;
         foreach (var (odch, zagl, poch) in KabinaProby(kab.odchylenieBaza, kab.odchylenieMax, K))
         {
             osoba.transform.position = start - fotel.up * zagl;
-            wynik = ZmierzKabine(osoba, fotel, kab, kreg, glowa, skora, akcesoria, odch, poch);
-            wynik.zaglebienie = zagl;
-            if (wynik.zapas >= 0f) { miesci = true; break; }
+            var proba = ZmierzKabine(osoba, fotel, kab, kreg, glowa, skora, akcesoria, odch, poch);
+            proba.zaglebienie = zagl;
+            if (proba.zapas > wynik.zapas) wynik = proba;
+            if (proba.zapas >= 0f) { miesci = true; break; }
         }
-        // wynik = ostatnia (maksymalna) próba, gdy żadna się nie zmieściła — osoba zostaje, skala 1.0
+        // Po wyczerpaniu prób zachowaj największy zmierzony prześwit.
         osoba.transform.position = start - fotel.up * wynik.zaglebienie;
         osoba.kregoslupDol = kreg; osoba.odchylenie = wynik.odchylenie; osoba.pochylenieGlowy = KabinaWzrok * wynik.odchylenie + wynik.pochylenie;
         // poza zapisana w scenie (daleko od kamery animacja jest zamrożona): pierwszy klip, klatka 0 + odchylenie
         var first = osoba.anim.GetClip(osoba.klipy[0]); if (first) first.SampleAnimation(osoba.anim.gameObject, 0);
         BraxMieszkaniec.PozaWAucie(kreg, glowa, osoba.transform.right, osoba.odchylenie, osoba.pochylenieGlowy);
         var lod = osoba.GetComponent<LODGroup>(); if (lod) lod.RecalculateBounds();
+        if (float.IsNegativeInfinity(wynik.zapas))
+        {
+            var brak = "BRAXHORN_KABINA: brak próbek głowy lub dachu " + nazwaAuta + " / " + fotel.name;
+            Debug.LogWarning(brak); rep.notes.Add(brak);
+            return;
+        }
         kabMiejsc++; kabZapasMin = Mathf.Min(kabZapasMin, wynik.zapas);
         if (wynik.odchylenie >= kab.odchylenieMax - .01f) kabOdchylenieMax++;
         string opis = "BRAXHORN_KABINA " + nazwaAuta + " / " + fotel.name.Replace("BRAXHORN ", "") + " osoba=" + osoba.name + " kabina=" + kab.kabina

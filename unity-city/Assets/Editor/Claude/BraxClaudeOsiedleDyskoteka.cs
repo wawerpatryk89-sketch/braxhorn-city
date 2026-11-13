@@ -117,6 +117,37 @@ public static partial class BraxClaudeOsiedle
         var m = new Mesh(); m.SetVertices(v); m.SetColors(c); m.SetTriangles(tr, 0); m.RecalculateNormals();
         return ZapiszSiatke(nazwa, m);
     }
+    // Osobne płytki nad powierzchnią modelu; jeden renderer, płaskie normalne jak w lustrzanej mozaice.
+    static Mesh PlytkiKuli()
+    {
+        const string key = "lustrzane płytki PULS";
+        if (klubSiatki.TryGetValue(key, out var gotowa) && gotowa) return gotowa;
+        var v = new List<Vector3>(); var n = new List<Vector3>();
+        var uv = new List<Vector2>(); var tri = new List<int>();
+        const int pasy = 14;
+        for (int j = 0; j < pasy; j++)
+        {
+            float lat = ((j + .5f) / pasy - .5f) * Mathf.PI;
+            int ile = Mathf.Max(4, Mathf.RoundToInt(28 * Mathf.Cos(lat)));
+            for (int k = 0; k < ile; k++)
+            {
+                float a = (k + .5f * (j % 2)) * 2f * Mathf.PI / ile;
+                var normalna = new Vector3(Mathf.Cos(lat) * Mathf.Cos(a), Mathf.Sin(lat), Mathf.Cos(lat) * Mathf.Sin(a));
+                var bok = new Vector3(-Mathf.Sin(a), 0, Mathf.Cos(a));
+                var gora = Vector3.Cross(normalna, bok);
+                int i = v.Count;
+                foreach (var rog in new[] { new Vector2(-1,-1), new Vector2(1,-1), new Vector2(1,1), new Vector2(-1,1) })
+                {
+                    v.Add(normalna * 1.006f + .084f * (bok * rog.x + gora * rog.y));
+                    n.Add(normalna); uv.Add(rog);
+                }
+                tri.AddRange(new[] { i, i + 1, i + 2, i, i + 2, i + 3 });
+            }
+        }
+        var m = new Mesh(); m.SetVertices(v); m.SetNormals(n); m.SetUVs(0, uv); m.SetTriangles(tri, 0);
+        return ZapiszSiatke(key, m);
+    }
+
     static Mesh Stozek(string nazwa, int seg)
     {
         if (klubSiatki.TryGetValue(nazwa, out var have) && have) return have;
@@ -235,7 +266,7 @@ public static partial class BraxClaudeOsiedle
 
         // ================= BAR PREMIUM =================
         const float bx0 = 68.6f, bx1 = 81.4f;
-        float zB1 = Z0 + .5f * K, zL1 = zB1 + 1.0f * K, zC1 = zL1 + .65f * K, hB = .95f * K, hC = 1.1f * K, kick = .1f * K, xs = bx0 + 1.0f;
+        float zB1 = Z0 + .5f * K, zL1 = zB1 + 1.38f * K, zC1 = zL1 + .65f * K, hB = .95f * K, hC = 1.1f * K, kick = .1f * K, xs = bx0 + 1.10f * K;
         // zaplecze: cokół cofnięty 6 cm, szafki orzech, blat marmur
         BoxMinMax(black, bx0, bx1, yF, yF + kick, Z0 + .02f, zB1 - .06f, false);
         BoxMinMax(walnut, bx0, bx1, yF + kick, yF + hB, Z0 + .02f, zB1, false);
@@ -500,6 +531,24 @@ public static partial class BraxClaudeOsiedle
         foreach (float z in new[] { 8.2f, 15.4f, 22.6f }) { Loza(new Vector3(76.3f, 0, z), Vector3.left, false); Loza(new Vector3(76.7f, 0, z), Vector3.right, false); }
         foreach (float x in new[] { 91.5f, 99f }) Loza(new Vector3(x, 0, Z0 + .09f), Vector3.forward, false);
         klub.loze = lozeN;
+        // Stałe, ciepłe światło nad stolikami. Promień każdej lampy kończy się przed parkietem.
+        void LampaLoz(float x, float z, float promienRealny)
+        {
+            float spod = yF + 2.72f * K;
+            var p = new Vector3(x, spod, z);
+            Tube(brass, p + Vector3.up * .10f * K, new Vector3(x, yC, z), .008f * K, 8);
+            Cylinder(brass, p, .105f * K, .10f * K, 16, true, false);
+            DyskDol(lens, p - Vector3.up * .003f * K, .085f * K, 16);
+            PointLamp(p - Vector3.up * .08f * K, promienRealny * K, 2.35f,
+                new Color(1f, .83f, .64f), "PULS: ciepłe światło lóż");
+        }
+        foreach (float z in new[] { 8.2f, 15.4f, 22.6f })
+        {
+            LampaLoz(69.4f, z, 4.6f);
+            LampaLoz(77.0f, z, 4.6f);
+        }
+        LampaLoz(77.5f, 26.8f, 5.2f);
+        foreach (float x in new[] { 91.5f, 99f }) LampaLoz(x, .8f, 3.55f);
 
         // ================= DJ PREMIUM =================
         const float cx0 = 101.55f, cx1 = 102.45f, cz0 = 9.9f, cz1 = 14.1f;
@@ -553,7 +602,7 @@ public static partial class BraxClaudeOsiedle
         // Mural jest wykończeniem całej ściany, bez ramy ekranu.
         // lasery na kolumnach sceny (model laser_light.glb bez jego wiązek — wiązki z kodu, addytywne, wygasające)
         var laser = Nova("laser_light.glb");
-        var mWiazki = Wachlarz("wachlarz lasera", 16f, .012f, new[] { -18f, -12f, -6f, 0f, 6f, 12f, 18f });
+        var mWiazki = Wachlarz("wachlarz lasera", 12f * K, .012f * K, new[] { -15f, -10f, -5f, 0f, 5f, 10f, 15f });
         var lasery = new List<Transform>(); var tylkoOtwarte = new List<GameObject>();
         foreach (var (kz, kol) in new[] { (7.8f, new Color(.1f, 1f, .2f, .5f)), (16.2f, new Color(1f, .1f, .15f, .5f)) })
         {
@@ -576,13 +625,13 @@ public static partial class BraxClaudeOsiedle
             if (mat)
             {
                 var piv = new GameObject("DJ: wachlarz lasera").transform; piv.SetParent(root, false);
-                piv.position = baza + Vector3.up * .22f * K; piv.rotation = Quaternion.LookRotation(new Vector3(-1f, .06f, kz < 12f ? .18f : -.18f).normalized, Vector3.up);
+                piv.position = baza + Vector3.up * .22f * K; piv.rotation = Quaternion.LookRotation(new Vector3(-1f, .13f, kz < 12f ? .24f : -.24f).normalized, Vector3.up);
                 Obiekt(piv, "wiązki", mWiazki, mat, piv.position, piv.rotation, Vector3.one);
                 lasery.Add(piv); tylkoOtwarte.Add(piv.gameObject);
             }
         }
         // kula dyskotekowa pod sufitem nad środkiem parkietu, na łańcuchu
-        var kulaM = Nova("disco_ball.glb"); Transform kula = null;
+        var kulaM = Nova("disco_ball.glb"); Transform kula = null; Renderer refleksy = null;
         if (kulaM)
         {
             var o = BraxOsiedleAssety.Postaw(root, kulaM, "DJ: kula dyskotekowa (disco_ball.glb, NOVA)", new Vector3(93f, 4.6f, 12f), 0f, .55f, null, false);
@@ -591,7 +640,18 @@ public static partial class BraxClaudeOsiedle
                 var b = BraxOsiedleAssety.Granice(o);
                 var piv = new GameObject("kula — oś obrotu").transform; piv.SetParent(root, false); piv.position = new Vector3(b.center.x, b.max.y, b.center.z);
                 o.transform.SetParent(piv, true); kula = piv;
-                Tube(chromeK, new Vector3(93f, b.max.y, 12f), new Vector3(93f, yC, 12f), .008f, 6);
+                Tube(chromeK, new Vector3(93f, b.max.y, 12f), new Vector3(93f, yC, 12f), .008f * K, 6);
+                var sh = Shader.Find("Braxhorn/PulsMirrorGlints");
+                if (sh)
+                {
+                    var mat = SalonZapisz(new Material(sh), "puls_refleksy_kuli");
+                    // Model może mieć uchwyt nad kulą. Średnica pochodzi z szerokości, dół z obrysu.
+                    float promien = .5f * Mathf.Max(b.size.x, b.size.z);
+                    var srodek = new Vector3(b.center.x, b.min.y + promien, b.center.z);
+                    refleksy = Obiekt(piv, "PULS: błyski lustrzanych płytek", PlytkiKuli(), mat,
+                        srodek, Quaternion.identity, Vector3.one * promien).GetComponent<Renderer>();
+                    tylkoOtwarte.Add(refleksy.gameObject);
+                }
             }
         }
         // stożki świateł ruchomych głów z kratownicy (addytywne, wygasają ku podłodze)
@@ -605,7 +665,7 @@ public static partial class BraxClaudeOsiedle
             glowice.Add(piv); tylkoOtwarte.Add(piv.gameObject);
         }
         var ef = new GameObject("dyskoteka: efekty klubu (BraxKlubEfekty)").AddComponent<BraxKlubEfekty>(); ef.transform.SetParent(root, false);
-        ef.ekranLed = mural ? null : led.GetComponent<Renderer>(); ef.kula = kula; ef.lasery = lasery.ToArray(); ef.glowice = glowice.ToArray(); ef.tylkoGdyOtwarte = tylkoOtwarte.ToArray();
+        ef.ekranLed = mural ? null : led.GetComponent<Renderer>(); ef.kula = kula; ef.refleksy = refleksy; ef.lasery = lasery.ToArray(); ef.glowice = glowice.ToArray(); ef.tylkoGdyOtwarte = tylkoOtwarte.ToArray();
         ef.srodek = new Vector3((X0 + X1) * .5f, 2f, (Z0 + Z1) * .5f); ef.promien = 34f;
         // ochrona w sali przy wejściu (poza strefą 2.5 m za drzwiami)
         klub.ochrona = new Vector3(dB + 2.8f, yF, Z1 - 2.6f);

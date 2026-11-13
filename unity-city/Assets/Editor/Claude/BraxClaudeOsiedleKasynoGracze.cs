@@ -65,12 +65,18 @@ public static partial class BraxClaudeOsiedle
                     var m = Siedzacy(RolaImpreza, g, "Kasyno: gracz", p, -bok * strona, rnd, new[] { "sit_chair_idle_neutral_02", "sit_chair_breathe_01" });
                     if (m) { m.wnetrze = true; siedzi++; ile++; }
                 }
-            var pk = st.c + os * (dl * .5f + .45f); pk.y = 0f;
-            if (Wolne(pk))
+            bool obsadzony = false;
+            foreach (int strona in new[] { 1, -1 })
             {
-                var kr = Obsada("kasyno — krupier", RolaRecepcja, "kasyno", pk, Quaternion.LookRotation(-os).eulerAngles.y, rnd, new[] { "idle_neutral_01", "gestic_talk_neutral_01" }, .062f);
-                if (kr) { kr.wnetrze = true; krupierzy++; }
+                var kier = os * strona;
+                var pk = st.c + kier * (dl * .5f + .55f * K); pk.y = .062f;
+                if (!Miejsce(pk).HasValue) continue;
+                var kr = Obsada("kasyno — krupier", RolaRecepcja, "kasyno", pk, Quaternion.LookRotation(-kier).eulerAngles.y,
+                    rnd, new[] { "idle_neutral_01", "gestic_talk_neutral_01" }, pk.y);
+                if (!kr) continue;
+                kr.wnetrze = true; krupierzy++; obsadzony = true; break;
             }
+            if (!obsadzony) rep.notes.Add("DO POPRAWKI: brak miejsca krupiera przy stole " + st.c.ToString("F1"));
         }
         Debug.Log("BRAXHORN_KASYNO_GRACZE stoły=" + stoly.Count + " gracze_siedzą=" + siedzi + " krupierzy=" + krupierzy + " [" + string.Join("; ", stoly.Take(12).Select(s => s.c.ToString("F1") + " " + s.roz.x.ToString("F1") + "×" + s.roz.z.ToString("F1") + " y" + s.y.ToString("F2"))) + "]");
     }

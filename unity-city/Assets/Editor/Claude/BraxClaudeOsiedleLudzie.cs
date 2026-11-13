@@ -195,13 +195,11 @@ public static partial class BraxClaudeOsiedle
                 var clip = AssetDatabase.LoadAllAssetsAtPath(plik).OfType<AnimationClip>().FirstOrDefault(c => !c.name.StartsWith("__preview__"));
                 if (!clip) { rep.notes.Add("DO POPRAWKI: ludzie — klip " + key + " bez animacji"); continue; }
                 bool lok = key.Contains("_walk_") || key.Contains("_run_");
-                bool bip02 = AnimationUtility.GetCurveBindings(clip).Any(q => q.path.StartsWith("Bip02"));
-                if (lok || bip02 || !clip.legacy)
-                {
-                    var d = KlipPochodny(clip, key, lok, out float v);
-                    if (!d) continue;
-                    clip = d; if (lok) rbPredkosc[key] = v * skalaPliku;
-                }
+                // Wszystkie modele korzystają z własnych długości kończyn; przenosimy obroty i ruch korzenia.
+                var d = KlipPochodny(clip, key, lok, out float v);
+                if (!d) continue;
+                clip = d;
+                if (lok) rbPredkosc[key] = v * skalaPliku;
                 rbKlipy[key] = clip;
             }
         }
@@ -242,6 +240,7 @@ public static partial class BraxClaudeOsiedle
             if (b.type != typeof(Transform) || b.propertyName.StartsWith("m_LocalScale")) continue;
             string path = b.path.Replace("Bip02", "Bip01"), last = path.Substring(path.LastIndexOf('/') + 1);
             if (last.EndsWith("Nub") || last.Contains("Footsteps") || last.Contains("MotionExtraction")) continue;
+            if (b.propertyName.StartsWith("m_LocalPosition") && path != "Bip01" && path.Length != 0 && last != "Bip01 Pelvis") continue;
             var c = AnimationUtility.GetEditorCurve(src, b); if (c == null || c.length == 0) continue;
             if (wMiejscu && path == "Bip01" && (b.propertyName == "m_LocalPosition.x" || b.propertyName == "m_LocalPosition.z"))
             {
@@ -266,6 +265,7 @@ public static partial class BraxClaudeOsiedle
 
     static void TestKosci()
     {
+        var odrzucone = new List<string>();
         var bledy = new List<string>(); int naruszen = 0, sprawdzone = 0;
         foreach (bool kobieta in new[] { false, true })
         {
@@ -290,11 +290,11 @@ public static partial class BraxClaudeOsiedle
             {
                 var clip = kv.Value; bool zle = false, chod = kv.Key.Contains("_walk_") || kv.Key.Contains("_run_");
                 foreach (var t in all) { t.localRotation = spocz[t]; t.localPosition = spoczP[t]; }   // poza spoczynkowa przed każdym klipem
+                bool rusza = false;
                 for (int k = 0; k < 8; k++)
                 {
                     clip.SampleAnimation(inst, clip.length * k / 8f);
-                    if (k == 0 && all.Where(t => !KoscTwarzy(t.name)).All(t => Quaternion.Angle(t.localRotation, spocz[t]) < .5f))
-                    { bledy.Add(kv.Key + ": klip nie rusza kośćmi (ścieżki nie pasują)"); zle = true; break; }
+                    if (!rusza) rusza = all.Any(t => !KoscTwarzy(t.name) && Quaternion.Angle(t.localRotation, spocz[t]) >= .5f);
                     foreach (var (kk, r, L0) in pary)
                     {
                         float L = Vector3.Distance(kk.position, r.position), dev = Mathf.Abs(L / L0 - 1f);
@@ -304,10 +304,13 @@ public static partial class BraxClaudeOsiedle
                         foreach (var (u, f) in new[] { (uL, fL), (uR, fR) })
                             if (Vector3.Angle(f.position - u.position, Vector3.down) > 60f) { rbTpoza++; if (bledy.Count < 12) bledy.Add(kv.Key + ": ręka poziomo (T-poza) " + u.name); }
                 }
-                sprawdzone++; if (zle) rbBledyKosci++;
+                if (!rusza) { zle = true; bledy.Add(kv.Key + ": klip nie rusza kośćmi przez 8 próbek"); }
+                sprawdzone++;
+                if (zle) { rbBledyKosci++; odrzucone.Add(kv.Key); }
             }
             UnityEngine.Object.DestroyImmediate(inst);
         }
+        foreach (string key in odrzucone) rbKlipy.Remove(key);
         Debug.Log("BRAXHORN_LUDZIE_KOSCI bledy=" + rbBledyKosci + " naruszen=" + naruszen + " tpoza=" + rbTpoza + " klipow=" + sprawdzone + (bledy.Count > 0 ? " | " + string.Join(" | ", bledy) : ""));
         rep.notes.Add("ludzie: test kości — klipów " + sprawdzone + ", z błędem " + rbBledyKosci + ", T-poza " + rbTpoza);
     }
@@ -317,7 +320,13 @@ public static partial class BraxClaudeOsiedle
     static string Klip(Osoba o, string baza)
     {
         string k = o.pl + baza;
-        return rbKlipy.ContainsKey(k) ? k : null;
+        if (rbKlipy.ContainsKey(k)) return k;
+        if (baza.StartsWith("walk_") || baza.StartsWith("run_"))
+        {
+            string rodzaj = o.pl + (baza.StartsWith("run_") ? "run_" : "walk_");
+            return rbKlipy.Keys.FirstOrDefault(n => n.StartsWith(rodzaj)) ?? rbKlipy.Keys.FirstOrDefault(n => n.StartsWith(o.pl + "walk_"));
+        }
+        return null;
     }
     static string[] Klipy(Osoba o, params string[] bazy) => bazy.Select(b => Klip(o, b)).Where(k => k != null).Distinct().ToArray();
     // AddClip(klip, nazwa) z nazwą INNĄ niż klip.name = pełna kopia klipu zapisana w scenie przy KAŻDEJ osobie (build 14:

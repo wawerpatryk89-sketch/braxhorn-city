@@ -264,7 +264,7 @@ public static partial class BraxClaudeOsiedle
         Debug.Log(wynik); rep.notes.Add(wynik.Replace("BRAXHORN_RUCH_TEST ", "test ruchu: "));
         ruchZweryfikowany = true;
         bladRuchu = wt.nachodzenia > 0 || wt.pozaDroga > 0 || wt.zakleszczenia > 0 ? wynik : null;
-        foreach (var z in zdarz) Debug.Log("BRAXHORN_RUCH_TEST_ZDARZENIE " + z);
+        foreach (var z in zdarz) { Debug.Log("BRAXHORN_RUCH_TEST_ZDARZENIE " + z); rep.notes.Add("ruch: zakleszczenie " + z); }
         if(wt.nachodzenia>0)Debug.LogError("BRAXHORN_RUCH_TEST DO POPRAWKI: test wykrył "+wt.nachodzenia+" przecięć samochodów");
     }
 

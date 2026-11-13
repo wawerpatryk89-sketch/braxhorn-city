@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
@@ -16,9 +17,13 @@ public static class BraxKontrolaMaterialow
 {
     static readonly Regex Dozwolone = new Regex(@"\b(szkl\w*|szyb\w*|glass\w*|woda|wody|wodz\w*|water\w*|morz\w*|sea|ocean\w*|basen\w*|pool\w*|lod|lodu|ice|lustr\w*|mirror\w*|kaluz\w*|puddle\w*|chrom\w*|neon\w*|ekran\w*|screen\w*)\b");
 
+    static readonly Regex Nawierzchnia = new Regex(@"\b(posadzk\w*|podlog\w*|chodnik\w*|asfalt\w*|parkiet\w*|jezdni\w*|bruk\w*|kostka placu|floor\w*|pavement\w*)\b");
+
     public static void Wykonaj(Scene scena)
     {
         int lustra = 0, poprawione = 0; var lista = new List<string>(); var zrobione = new HashSet<Material>();
+        var posadzki = new Dictionary<Material, Material>();
+        bool osiedle = BraxKontrola.Obszar == "osiedle";
         foreach (var root in scena.GetRootGameObjects())
             foreach (var r in root.GetComponentsInChildren<MeshRenderer>(false))
             {
@@ -27,18 +32,35 @@ public static class BraxKontrolaMaterialow
                 if (b.size.y > .3f || b.size.x * b.size.z < 4f) continue;            // tylko duże płaskie (podłogi, place)
                 if (BraxKontrola.WChronionym(r.transform)) continue;
                 string nr = BraxKontrola.Norm(r.name);
-                foreach (var m in r.sharedMaterials)
+                var sloty = r.sharedMaterials;
+                bool podmieniono = false;
+                for (int i = 0; i < sloty.Length; i++)
                 {
+                    var m = sloty[i];
                     if (!m || zrobione.Contains(m)) continue;
+                    if (osiedle)
+                    {
+                        if (!Nawierzchnia.IsMatch(nr) || !Nawierzchnia.IsMatch(BraxKontrola.Norm(m.name))) continue;
+                        if (posadzki.TryGetValue(m, out var kopia)) { sloty[i] = kopia; podmieniono = true; continue; }
+                    }
                     string n = nr + BraxKontrola.Norm(m.name) + BraxKontrola.Norm(m.shader ? m.shader.name : "");
                     if (Dozwolone.IsMatch(n)) continue;
                     float g = m.HasProperty("_Glossiness") ? m.GetFloat("_Glossiness") : m.HasProperty("_Smoothness") ? m.GetFloat("_Smoothness") : 0f;
                     float met = m.HasProperty("_Metallic") ? m.GetFloat("_Metallic") : 0f;
                     if (g < .85f && met < .8f) continue;
-                    lustra++; zrobione.Add(m);
+                    lustra++; if (!osiedle) zrobione.Add(m);
                     string opis = "„" + m.name + "” (gładkość " + g.ToString("F2") + ", metal " + met.ToString("F2") + ") na " + BraxKontrola.Sciezka(r.transform) + " " + BraxKontrola.F(b.center) + " " + b.size.x.ToString("F0") + "×" + b.size.z.ToString("F0") + " m";
                     try
                     {
+                        if (osiedle)
+                        {
+                            var oryginal = m;
+                            string folder = "Assets/PlayableGenerated/ClaudeOsiedle";
+                            var kopia = new Material(m) { name = m.name + " (posadzka)" };
+                            string path = AssetDatabase.GenerateUniqueAssetPath(folder + "/posadzka.mat");
+                            AssetDatabase.CreateAsset(kopia, path);
+                            m = kopia; posadzki[oryginal] = m; sloty[i] = m; podmieniono = true; zrobione.Add(m);
+                        }
                         if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", .3f);
                         if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", .3f);
                         if (m.HasProperty("_Metallic")) m.SetFloat("_Metallic", 0f);
@@ -49,6 +71,7 @@ public static class BraxKontrolaMaterialow
                     if (lista.Count < 60) lista.Add(opis);
                     BraxKontrola.Zapisz("materiały: lustro na podłodze " + opis);
                 }
+                if (podmieniono) r.sharedMaterials = sloty;
             }
         var sb = new StringBuilder("BRAXHORN_MATERIALY " + BraxKontrola.Obszar + ": lustra=" + lustra + " poprawione=" + poprawione + " (płaskie ≥ 4 m², gładkość ≥ 0.85 lub metal ≥ 0.8, bez szkła/wody/basenu)");
         foreach (var l in lista.Take(25)) sb.Append("\n  ").Append(l);

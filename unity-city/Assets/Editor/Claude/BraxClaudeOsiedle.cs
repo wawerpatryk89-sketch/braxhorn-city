@@ -749,9 +749,19 @@ public static partial class BraxClaudeOsiedle
         o.name = src.name; o.transform.position = Vector3.zero;
         o.transform.rotation = Quaternion.Euler(0, yaw, 0) * o.transform.rotation;
         if (o.GetComponentsInChildren<Renderer>(true).Length == 0) { UnityEngine.Object.DestroyImmediate(o); return null; }
+        var rs = o.GetComponentsInChildren<Renderer>(true);
+        if (src == lounge || src == outdoorSet)
+        {
+            // Pomiar poziomej powierzchni przed wyznaczeniem kolizji. Podstawa zostaje na posadzce.
+            var mebel = new BraxKontrola.Jednostka { t = o.transform, rs = rs.ToList() };
+            mebel.Odswiez();
+            bool stol = src == outdoorSet;
+            float poziom = BraxKontrolaSkali.Poziom(mebel, stol ? .35f : .20f, stol);
+            if (!float.IsNaN(poziom) && poziom > .1f)
+                o.transform.localScale *= (stol ? .75f : .43f) * K / poziom;
+        }
         var b = RB(o);
         o.transform.position += new Vector3(at.x - b.center.x, at.y - b.min.y, at.z - b.center.z);
-        var rs = o.GetComponentsInChildren<Renderer>(true);
         foreach (var r in rs) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
         var lod = o.AddComponent<LODGroup>(); lod.SetLODs(new[] { new LOD(cull, rs) }); lod.RecalculateBounds();
         if (solid) { b = RB(o); Collider(b.center, b.size); Hard(b.min.x, b.max.x, b.min.z, b.max.z); }
@@ -2098,7 +2108,8 @@ public static partial class BraxClaudeOsiedle
                 hifi.transform.position = Pw(am2 - .6f, cabTop, aw);
                 var gr = hifi.AddComponent<BraxClaudeGrajek>();
                 // piosenka właściciela tylko w willi z różami i karteczką (sn == 0; plik prywatny, odszyfrowany w buildzie), w pozostałych Industrial Pulse
-                gr.utwor = sn == 0 ? AudioAsset("willa_muzyka.ogg") : null; if (!gr.utwor) gr.utwor = AudioAsset("industrial_pulse_petla.ogg");
+                gr.utwor = AudioAsset(sn == 0 ? "willa_muzyka.ogg" : "industrial_pulse_petla.ogg");
+                if (sn == 0 && !gr.utwor) rep.notes.Add("DO POPRAWKI: willa z różami — brak odszyfrowanego willa_muzyka.ogg");
                 Vector3 da2 = Pw(h0, 0, e0), db2 = Pw(h1, 6.7f, f1 + 4.2f);
                 gr.dom = MinMax(Mathf.Min(da2.x, db2.x), Mathf.Max(da2.x, db2.x), 0f, 6.7f, Mathf.Min(da2.z, db2.z), Mathf.Max(da2.z, db2.z));
                 rep.notes.Add("wieża w willi " + (sn + 1) + ": " + (gr.utwor ? gr.utwor.name : "BRAK muzyki"));
@@ -2580,7 +2591,8 @@ public static partial class BraxClaudeOsiedle
                 else if (kasaX1 - kasaX0 >= 3.97f * K) { kasaYaw = 90f; kasaD = 3.2f * K; }
                 else kasaM = null;
             }
-            float gStart = kasaM ? zf + .5f + kasaD + 1.3f : zf + 3.2f;
+            float frontKasy = zf + 1.12f * K; // przejście personelu od witryny
+            float gStart = kasaM ? frontKasy + kasaD + 1.0f * K : zf + 3.2f;
             foreach (float gx in new[] { cx - 3.6f, cx, cx + 3.6f })
             {
                 float g0 = gStart, g1 = zb - 3f;
@@ -2643,8 +2655,8 @@ public static partial class BraxClaudeOsiedle
             {
                 var tk = new GameObject("Market: kasa (paczka miasto_sklepy)").transform; tk.SetParent(Group(group), true);
                 float kw = kasaYaw == 0f ? 3.2f * K : 3.97f * K;
-                BraxOsiedleTowar.Postaw(tk, "kasa", "Market: kasa", new Vector3(kasaX1 - kw * .5f, FY, zf + .5f + kasaD * .5f), kasaYaw, true);
-                Collider(new Vector3(kasaX1 - kw * .5f, FY + .7f * K, zf + .5f + kasaD * .5f), new Vector3(kw, 1.35f * K, kasaD));
+                BraxOsiedleTowar.Postaw(tk, "kasa", "Market: kasa", new Vector3(kasaX1 - kw * .5f, FY, frontKasy + kasaD * .5f), kasaYaw, true);
+                Collider(new Vector3(kasaX1 - kw * .5f, FY + .7f * K, frontKasy + kasaD * .5f), new Vector3(kw, 1.35f * K, kasaD));
             }
             else
             {
@@ -2974,6 +2986,7 @@ public static partial class BraxClaudeOsiedle
             if (!clip || b.size == Vector3.zero) { rep.notes.Add("muzyka " + name + ": BRAK (" + file + ")"); continue; }
             var go = new GameObject("muzyka: " + name); go.transform.SetParent(Group(group), false); go.transform.position = b.center;
             var mz = go.AddComponent<BraxClaudeMuzyka>(); mz.utwor = clip; mz.wnetrze = b; mz.glosnosc = vol; mz.wygaszenie = 3f;
+            if (name == "siłownia A") mz.otwory = new[] { new Vector3(gymDoorX, 1.5f * K, gymDoorZ) };
             // 1.11, 18:06: głośniki w górnych narożnikach sali; na zewnątrz muzyka słyszalna zza ścian (BraxClaudeMuzyka)
             try { mz.glosniki = BraxClaudeGlosniki.WNarozach(go.transform, b); } catch (System.Exception e) { rep.notes.Add("głośniki " + name + ": " + e.Message); }
             rep.notes.Add("muzyka " + name + ": " + clip.name + " (" + clip.length.ToString("F0") + " s)");
@@ -4072,9 +4085,9 @@ public static partial class BraxClaudeOsiedle
         m.SetFloat("_Glossiness", .45f); m.SetFloat("_Metallic", .6f);
         AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = metres; return m;
     }
-    static void PointLamp(Vector3 p, float range, float intensity, Color c)
+    static void PointLamp(Vector3 p, float range, float intensity, Color c, string nazwa = "światło wnętrza")
     {
-        var lg = new GameObject("światło wnętrza"); lg.transform.SetParent(Group(group), false); lg.transform.position = p;
+        var lg = new GameObject(nazwa); lg.transform.SetParent(Group(group), false); lg.transform.position = p;
         var l = lg.AddComponent<Light>(); l.type = LightType.Point; l.range = range; l.intensity = intensity; l.color = c; l.shadows = LightShadows.None; l.renderMode = LightRenderMode.ForceVertex;
     }
     // Lampa wisząca (audyt 1.11: kule na wysokości głowy, Brax z rogami ma 2.3–2.4 m): dół klosza min. 2.55 m nad podłogą.
@@ -4273,6 +4286,13 @@ public static partial class BraxClaudeOsiedle
                 BoxMinMax(steel, pc - .08f, pc + .08f, y, y + .38f, a - .05f, a + .05f, false);
                 BoxMinMax(m, p0, p1, y + .38f, y + .46f, a - .23f, a + .23f, false);
                 BoxMinMax(m, bk0, bk1, y + .46f, y + .88f, a - .23f, a + .23f, false);
+            }
+            if (m == leather)
+            {
+                float przod = Mathf.Min(p0, bk0), tyl = Mathf.Max(p1, bk1);
+                var srodek = alongX ? new Vector3(a, y + .44f, (przod + tyl) * .5f) : new Vector3((przod + tyl) * .5f, y + .44f, a);
+                var rozmiar = alongX ? new Vector3(.46f, .88f, tyl - przod) : new Vector3(tyl - przod, .88f, .46f);
+                Collider(srodek, rozmiar);
             }
             rep.arenaSeats++;
         }
@@ -5249,7 +5269,10 @@ public static partial class BraxClaudeOsiedle
     {
         const float sx0 = 96f, sz0 = 23.5f, lz0 = 24.6f, lz1 = 28.0f, okno = 2.3f;
         // ściany do sufitu: od sceny (z 23.35–23.5) i od sali (x 95.85–96.0) z okienkiem nad ladą
-        BoxMinMax(wallM, sx0 - .15f, X1, yF, yC, sz0 - .15f, sz0);
+        float wej0 = sx0 + .55f * K, wej1 = wej0 + 1.05f * K;
+        BoxMinMax(wallM, sx0 - .15f, wej0, yF, yC, sz0 - .15f, sz0);
+        BoxMinMax(wallM, wej1, X1, yF, yC, sz0 - .15f, sz0);
+        BoxMinMax(wallM, wej0, wej1, yF + 2.15f * K, yC, sz0 - .15f, sz0);
         BoxMinMax(wallM, sx0 - .15f, sx0, yF, yC, sz0, lz0 - .05f);
         BoxMinMax(wallM, sx0 - .15f, sx0, yF, yC, lz1 + .05f, Z1);
         BoxMinMax(wallM, sx0 - .15f, sx0, okno, yC, lz0 - .05f, lz1 + .05f);
@@ -5468,7 +5491,7 @@ public static partial class BraxClaudeOsiedle
         PointLamp(new Vector3(103.5f, 3.6f, 12f), 7f, 1.0f, new Color(.35f, .45f, 1f));
         PointLamp(new Vector3(100.5f, 3.4f, 26f), 6f, .8f, new Color(1f, .92f, .8f));
         foreach (var p in new[] { new Vector3(70.5f, 3.4f, 15f), new Vector3(76.5f, 3.6f, 12.5f), new Vector3(74f, 3.4f, 25.5f), new Vector3(94.7f, 3.4f, 2.2f) }) PointLamp(p, 7.5f, .85f, new Color(1f, .55f, .75f));
-        rep.notes.Add("dyskoteka: klub od nowa (parkiet 14 × 12 m, scena DJ premium, bar premium pod ścianą S, " + (klub != null ? klub.loze : 0) + " lóż, szatnia, 12 świateł ForceVertex), stare wnętrze wycięte, kolizji wyłączonych: " + offCols);
+        rep.notes.Add("dyskoteka: klub od nowa (parkiet 14 × 12 m, scena DJ premium, bar premium pod ścianą S, " + (klub != null ? klub.loze : 0) + " lóż, szatnia, 9 nowych lamp nad lożami; światła parkietu jak wcześniej), stare wnętrze wycięte, kolizji wyłączonych: " + offCols);
     }
 
     // ---------------- osiedle A: zastępcze klocki, manekiny, okna budynków-klocków ----------------

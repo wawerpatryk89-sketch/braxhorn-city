@@ -354,7 +354,9 @@ public sealed class BraxRuchAutSym
             {
                 var z = zd[e];
                 float rel0 = Rel(a.trasa, z.s0 - sF), relW = Rel(a.trasa, z.s1 + (z.typ == Z_WEZEL ? 1.5f : 0f) - sT);   // +1,5 m: tył w pełni poza skrzyżowaniem
-                if (rel0 < -.02f && relW > 0f && relW < (z.s1 - z.s0) + a.dl + 2f)
+                float dlStrefy = z.s1 - z.s0;
+                if (tr[a.trasa].petla && dlStrefy < 0f) dlStrefy += tr[a.trasa].dl;
+                if (rel0 < -.02f && relW > 0f && relW < dlStrefy + a.dl + 2f)
                 {
                     wSrodku[z.wezel].Add(a.id); wSrodkuZd[z.wezel].Add(e); if (a.rez == e) { a.rez = -1; przejazdyWezlow++; }
                     if (z.typ == Z_RONDO) { a.rondo = z.wezel; a.katWj = z.katWjazdu; a.katZj = z.katZjazdu; }
@@ -496,7 +498,11 @@ public sealed class BraxRuchAutSym
                 // przyznany wjazd trwa (do 3 s): na skrzyżowaniu zawsze, na rondzie tuż przed linią — bez „pełzania” na zmianę
                 bool trwa = a.rez == a.bramka && czas - a.tRez < 3f && (z.typ == Z_WEZEL || rel0 < 1.5f);
                 bool ok = trwa || Pozwolenie(a, a.bramka, sF, wolneAuto, lid);
-                if (ok && !trwa) { a.rez = a.bramka; a.tRez = czas; wSrodku[z.wezel].Add(a.id); wSrodkuZd[z.wezel].Add(a.bramka); }
+                // Dojazd spod czerwonego światła lub z końca kolejki nie zajmuje węzła.
+                // Rezerwuj dopiero przed linią; zatrzymany pojazd sprawdzi kolejny krok.
+                if (ok && !trwa && rel0 <= Mathf.Max(1.5f, a.v * .6f)
+                    && (!pytajStrefy || a.zolte || !BraxStrefyZatrzymania.CzyStop(P(a.trasa, sF), T(a.trasa, sF), false))
+                    && (lid < 0 || wolneAuto >= rel0 + a.dl + 1.5f)) { a.rez = a.bramka; a.tRez = czas; wSrodku[z.wezel].Add(a.id); wSrodkuZd[z.wezel].Add(a.bramka); }
                 if (!ok)
                 {
                     if (a.rez == a.bramka) a.rez = -1;
@@ -508,7 +514,7 @@ public sealed class BraxRuchAutSym
             }
         }
         if (czekaNaLinii) a.tCzeka += t; else if (a.v > 1f || a.bramka < 0) a.tCzeka = 0f;
-        // b2) na rondzie: przepuść auto, które długo czeka na wlocie przed nami (jak uprzejmy kierowca)
+        // Na pierścieniu ustąp tylko autu, które już przekroczyło linię wjazdu.
         if (a.rondo >= 0)
         {
             var c = wz[a.rondo].srodek; var dc = a.poz - c;
@@ -525,10 +531,7 @@ public sealed class BraxRuchAutSym
                         if (d > 12f && d < 110f && doZj > d) Przeszkoda(Mathf.Max(0f, (d - 40f) * Mathf.Deg2Rad * 9.4f), .3f, P_USTEP, true, .2f);
                         continue;
                     }
-                    if (b.bramka < 0 || b.tCzeka < 6f || !b.czekaPierwsz) continue;
-                    var zb = zd[b.bramka]; if (zb.typ != Z_RONDO || zb.wezel != a.rondo) continue;
-                    float d2 = Rep(zb.katWjazdu - thA, 360f);
-                    if (d2 > 50f && d2 < 95f && doZj > d2) Przeszkoda((d2 - 50f) * Mathf.Deg2Rad * 9.4f, .3f, P_USTEP, true, .2f);
+
                 }
             }
         }
@@ -706,7 +709,9 @@ public sealed class BraxRuchAutSym
             if (ZajeteZewnetrznie(p,k,a.szer*.5f+.4f,a.dl*.5f+3f)) continue;
             a.trasa = r; a.s = s; a.poz = p; a.kier = k; a.obszar = tr[r].obszar;
             a.v = ukryty ? Mathf.Min(a.vmax, 6f) : 0f; a.vPrev = a.v; a.a = 0f; a.vCel = a.v; a.zapas = 0f;
-            a.rez = -1; a.bramka = -1; a.tStoi = a.tCzeka = a.tGracz = 0f; a.przestawiony = true; a.powod = P_WOLNA;
+            a.rez = a.bramka = a.blokada = a.lider = a.czekaNa = a.rondo = -1;
+            a.uprawnione = a.czekaPierwsz = a.zolte = false; a.tStrefa = 0f;
+            a.tStoi = a.tCzeka = a.tGracz = 0f; a.przestawiony = true; a.powod = P_WOLNA;
             przestawienia++;
             return true;
         }

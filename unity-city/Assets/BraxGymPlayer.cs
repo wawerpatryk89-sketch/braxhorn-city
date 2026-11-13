@@ -146,9 +146,21 @@ public sealed class BraxGymPlayer : MonoBehaviour
         else if(key=="kick")StartAction("Kick",1.2f,.60f);
         else if(key=="jump" && body.isGrounded && !jumpPending){StartAction("Jump",1.35f,-1);jumpPending=true;jumpDeadline=Time.time+.30f;hipsPrevY=float.NaN;}
     }
+    public bool SportPunchPending => hitPending && action == "Punch" && BraxSport.Aktywne;
+    public float SportContactTime => hitAt;
+
     private void StartAction(string name,float rate,float contact)
     {
-        if(clips[name]==null)return;
+        if (clips[name] == null)
+        {
+            if (!BraxSport.Aktywne || (name != "Punch" && name != "Kick")) return;
+            action = name;
+            hitAt = Time.time + contact / rate;
+            actionEnd = hitAt + .3f;
+            hitPending = true;
+            Report();
+            return;
+        }
         if ((name=="Punch" || name=="Kick") && clips["CombatIdle"]!=null && !BraxSport.Aktywne) combatUntil=Time.time+8f;
         action=name;clips[name].wrapMode=WrapMode.Once;clips[name].speed=rate;
         clips.CrossFade(name,.10f,PlayMode.StopAll);

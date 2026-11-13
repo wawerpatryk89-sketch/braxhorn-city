@@ -237,19 +237,24 @@ def kasyno_extra(out_path):
 def main() -> int:
     report = {"source": "Poly Haven + ambientCG (CC0)", "textures": {}, "models": {}}
     for t, role in TEXTURES.items():
-        f = files(t)
-        def m(key):
-            # build 5: leather_red_02 nie ma klucza „Diffuse” (Poly Haven: „diff” / „Color”) — ten sam zapas co fetch_region.py
-            if key not in f and key == "Diffuse":
-                key = next((k for k in ("diff", "Color", "diffuse") if k in f), key)
-            return img(get(pick(f[key], "2k")["jpg"]["url"]))
         try:
-            arm = m("arm") if "arm" in f else None
+            maps = {name.lower(): data for name, data in files(t).items()}
+
+            def m(*names):
+                channel = pick(maps, *names)
+                for resolution in ("2k", "1k"):
+                    formats = channel.get(resolution, {})
+                    for fmt in ("jpg", "png"):
+                        if fmt in formats:
+                            return img(get(formats[fmt]["url"]))
+                raise ValueError(f"{t}: brak mapy {names} w JPG/PNG 2K lub 1K")
+
+            arm = m("arm") if "arm" in maps else None
             if arm is not None:
                 ao_c, rough_c, metal_c = arm.convert("RGB").split()
             else:
-                ao_c, rough_c, metal_c = (m("AO") if "AO" in f else None), m("Rough"), None
-            save_set(ROOT / "textures" / t, m("Diffuse"), m("nor_gl"), rough_c, metal_c, ao_c)
+                ao_c, rough_c, metal_c = (m("ao") if "ao" in maps else None), m("rough", "roughness"), None
+            save_set(ROOT / "textures" / t, m("diffuse", "diff", "color", "albedo"), m("nor_gl"), rough_c, metal_c, ao_c)
         except Exception as e:   # jedna tekstura nie może zatrzymać 2-godzinnego buildu (build 5: KeyError 'Diffuse')
             report["textures"][t] = "BRAK: " + repr(e)
             print("TEX", t, "BRAK", repr(e), "— materiał bez tej tekstury")

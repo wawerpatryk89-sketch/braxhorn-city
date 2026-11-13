@@ -202,6 +202,11 @@ public static partial class BraxClaudeOsiedle
         bool firmaOk = firma != null && SzyldPanel(firma, new Vector3(cx, 3.825f, zf - .075f) + n * .01f, n, 2.45f, .49f);
         if (firmaOk) szM = null;
         var szO = szM ? BraxOsiedleAssety.Postaw(Group(group), szM, "szyld " + plikSz + " (grafika właściciela)", new Vector3(cx, 3.6f, zf - .075f - .07f), Quaternion.LookRotation(n).eulerAngles.y, 2.55f / K, null, false) : null;
+        if (szO)
+        {
+            var obrys = BraxOsiedleAssety.Granice(szO);
+            szO.transform.position += Vector3.forward * (zf - .075f - .005f * K - obrys.max.z);
+        }
         if (!szO && !firmaOk) SzyldLitery(bud, tekst, tekst, new Vector3(cx, 3.63f, zf - .075f), n, cap, lico, boki, .07f, .015f, kind == "nutrition" ? MatLico("zielone BRAXHORN", new Color(.36f, .78f, .18f)) : null, .17f);
         // kaseton na wysięgniku przy pilastrze lewej krawędzi lokalu (lico pilastra z = zf − 0.1)
         float xb = k == 0 ? x0 + .3f : a;

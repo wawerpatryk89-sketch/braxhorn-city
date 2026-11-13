@@ -221,10 +221,11 @@ jobs:
         KLUCZ: ${{ secrets.WILLA_MUZYKA_KLUCZ }}
       run: |
         if [ -n "$KLUCZ" ] && [ -f unity-tools/claude/prywatne/willa_muzyka.ogg.enc ]; then
+          mkdir -p unity-city/Assets/Claude/Audio
           openssl enc -d -aes-256-cbc -pbkdf2 -in unity-tools/claude/prywatne/willa_muzyka.ogg.enc -out unity-city/Assets/Claude/Audio/willa_muzyka.ogg -pass env:KLUCZ \
-            && echo "muzyka willi z rozami: OK" || { rm -f unity-city/Assets/Claude/Audio/willa_muzyka.ogg; echo "muzyka willi: zly klucz - gra Industrial Pulse"; }
+            && echo "muzyka willi z rozami: OK" || { rm -f unity-city/Assets/Claude/Audio/willa_muzyka.ogg; echo "muzyka willi: zly klucz - wieza pozostaje cicha"; }
         else
-          echo "muzyka willi: brak sekretu WILLA_MUZYKA_KLUCZ - gra Industrial Pulse"
+          echo "muzyka willi: brak sekretu WILLA_MUZYKA_KLUCZ - wieza pozostaje cicha"
         fi
     - name: Prywatne zasoby wlasciciela - Patryk i ruchy Mixamo (paczki zaszyfrowane, klucz tylko w sekretach; bez klucza gra Brax)
       env:
@@ -536,10 +537,11 @@ jobs:
         KLUCZ: ${{ secrets.WILLA_MUZYKA_KLUCZ }}
       run: |
         if [ -n "$KLUCZ" ] && [ -f unity-tools/claude/prywatne/willa_muzyka.ogg.enc ]; then
+          mkdir -p unity-city/Assets/Claude/Audio
           openssl enc -d -aes-256-cbc -pbkdf2 -in unity-tools/claude/prywatne/willa_muzyka.ogg.enc -out unity-city/Assets/Claude/Audio/willa_muzyka.ogg -pass env:KLUCZ \
-            && echo "muzyka willi z rozami: OK" || { rm -f unity-city/Assets/Claude/Audio/willa_muzyka.ogg; echo "muzyka willi: zly klucz - gra Industrial Pulse"; }
+            && echo "muzyka willi z rozami: OK" || { rm -f unity-city/Assets/Claude/Audio/willa_muzyka.ogg; echo "muzyka willi: zly klucz - wieza pozostaje cicha"; }
         else
-          echo "muzyka willi: brak sekretu WILLA_MUZYKA_KLUCZ - gra Industrial Pulse"
+          echo "muzyka willi: brak sekretu WILLA_MUZYKA_KLUCZ - wieza pozostaje cicha"
         fi
     - name: Prywatne zasoby wlasciciela - Patryk i ruchy Mixamo (paczki zaszyfrowane, klucz tylko w sekretach; bez klucza gra Brax)
       env:

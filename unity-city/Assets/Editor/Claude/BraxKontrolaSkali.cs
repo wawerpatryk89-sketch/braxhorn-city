@@ -71,7 +71,11 @@ public static class BraxKontrolaSkali
         var typ = j.typ;
         float lo = typ.lo1, hi = typ.hi1; var p = typ.p1;
         if (typ.kosz && (j.wewnatrz = Wewnatrz(j))) { lo = .30f; hi = .75f; }      // kosz w pomieszczeniu: 30–75 cm (biurowy … kuchenny)
-        if (typ.nazwa == "zestaw") { p = BraxKontrola.Pomiar.Wysokosc; lo = .72f; hi = .78f; }
+        if (typ.nazwa == "zestaw")
+        {
+            p = BraxKontrola.Obszar == "osiedle" ? BraxKontrola.Pomiar.Blat : BraxKontrola.Pomiar.Wysokosc;
+            lo = .72f; hi = .78f;
+        }
         float m = Zmierz(j, p, out string opisPomiaru);
         if (float.IsNaN(m) && typ.p2 != BraxKontrola.Pomiar.Brak) { p = typ.p2; lo = typ.lo2; hi = typ.hi2; m = Zmierz(j, p, out opisPomiaru); }
         if (float.IsNaN(m) || m <= .01f) return null;

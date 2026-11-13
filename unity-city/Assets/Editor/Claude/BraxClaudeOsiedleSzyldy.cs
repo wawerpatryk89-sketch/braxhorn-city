@@ -381,6 +381,7 @@ public static partial class BraxClaudeOsiedle
     {
         if (!estate) return;
         int n = UsunTablice(estate, b => b.size.x > 3.3f && b.size.x < 3.9f && b.size.y > .55f && b.size.y < .8f && b.size.z < .2f && Mathf.Abs(b.center.x + 5.9f) < .6f && Mathf.Abs(b.center.y - 1.85f) < .3f && Mathf.Abs(b.center.z + 29.8f) < .4f);
+        if (StacjaWlaczona) return;
         var g0 = group; Grupa("Elewacje / A willa Wiśniowa 4", 60f);
         Napis3D("4", new Vector3(-3.2f, 1.82f, -29.74f), Vector3.forward, .34f, .04f, MatBokiStal, MatBokiStal, .16f);
         Kinkiet(new Vector3(-3.2f, 2.42f, -29.76f), Vector3.forward);

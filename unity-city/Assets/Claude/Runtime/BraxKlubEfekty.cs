@@ -8,6 +8,7 @@ public sealed class BraxKlubEfekty : MonoBehaviour
 {
     public Renderer ekranLed;
     public Transform kula;
+    public Renderer refleksy;
     public Transform[] lasery, glowice;
     public GameObject[] tylkoGdyOtwarte;
     public Vector3 srodek;
@@ -43,19 +44,25 @@ public sealed class BraxKlubEfekty : MonoBehaviour
     void Update()
     {
         bool otwarte = BraxGodzinyOtwarcia.Otwarte("dyskoteka");
-        if (otwarte != widoczne)
-        {
-            widoczne = otwarte;
-            if (tylkoGdyOtwarte != null) foreach (var g in tylkoGdyOtwarte) if (g) g.SetActive(otwarte);
-        }
-        if (!otwarte) return;
         var kam = BraxLudzie.Kamera;
-        if (kam && (kam.position - srodek).sqrMagnitude > promien * promien) return;
+        bool pokaz = otwarte && (!kam || (kam.position - srodek).sqrMagnitude <= promien * promien);
+        if (pokaz != widoczne)
+        {
+            widoczne = pokaz;
+            if (tylkoGdyOtwarte != null) foreach (var g in tylkoGdyOtwarte) if (g) g.SetActive(pokaz);
+        }
+        if (!pokaz) return;
         float t = Time.time, dt = Time.deltaTime;
         if (kula) kula.Rotate(0f, 24f * dt, 0f, Space.World);
         if (lasery != null)
             for (int i = 0; i < lasery.Length; i++)
-                if (lasery[i]) lasery[i].localRotation = bazaL[i] * Quaternion.Euler(Mathf.Sin(t * .9f + i * 1.7f) * 6f, Mathf.Sin(t * .55f + i * 2.3f) * 28f, 0f);
+                if (lasery[i])
+                {
+                    float strona = (i % 2 == 0) ? 1f : -1f;
+                    float skan = Mathf.Sin(t * .72f) * 10f + Mathf.Sin(t * .28f) * 3f;
+                    lasery[i].localRotation = bazaL[i] * Quaternion.Euler(Mathf.Sin(t * .61f + i) * 4f,
+                        strona * skan, strona * Mathf.Sin(t * .42f) * 12f);
+                }
         if (glowice != null)
             for (int i = 0; i < glowice.Length; i++)
                 if (glowice[i]) glowice[i].localRotation = bazaG[i] * Quaternion.Euler(Mathf.Sin(t * .7f + i * 2.1f) * 24f, 0f, Mathf.Cos(t * .5f + i * 1.3f) * 24f);

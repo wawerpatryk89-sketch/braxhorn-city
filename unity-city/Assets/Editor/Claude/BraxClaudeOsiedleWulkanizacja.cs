@@ -235,6 +235,14 @@ public static partial class BraxClaudeOsiedle
             {   // ramiona teleskopowe (dwa stopnie) i talerze gumowe
                 var a = new Vector3(kx, 1.5f, lz + q * .14f); var m = new Vector3(c1 + s * 1.2f, 1.5f, lz + q * .8f); var e = new Vector3(c1 + s * .7f, 1.5f, lz + q * 1.25f);
                 Tube(czerw, a, m, .06f, 8); Tube(Steel, m, e, .045f, 8);
+                foreach (var (od, koniec, promien) in new[] { (a, m, .06f), (m, e, .045f) })
+                {
+                    var os = koniec - od;
+                    var ramie = new GameObject("Kolizja ramienia podnośnika").AddComponent<CapsuleCollider>();
+                    ramie.transform.SetParent(rodz, false);
+                    ramie.transform.SetPositionAndRotation((od + koniec) * .5f, Quaternion.FromToRotation(Vector3.up, os));
+                    ramie.direction = 1; ramie.radius = promien; ramie.height = os.magnitude + 2f * promien;
+                }
                 Cylinder(Steel, e - Vector3.up * .02f, .06f, .08f, 12, true, false); Cylinder(StMat("talerz gumowy", new Color(.08f, .08f, .08f), .3f), e + Vector3.up * .06f, .09f, .03f, 14, true, false);
             }
             if (s < 0)

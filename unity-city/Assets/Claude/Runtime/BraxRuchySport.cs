@@ -81,11 +81,11 @@ public sealed class BraxRuchySport : MonoBehaviour
         biodraLok = Vector3.zero; biodra = Vector3.zero;
         // ---- start ciosu: jaki ruch sportowy zagrać ----
         var clips = p.clips; AnimationState st = clips ? clips["Punch"] : null;
-        bool cios = st != null && clips.IsPlaying("Punch") && st.time < .3f && st.weight > .01f;
+        bool cios = st != null ? clips.IsPlaying("Punch") && st.time < .3f && st.weight > .01f : p.SportPunchPending;
         if (cios && !bylo)
         {
             ruch = BraxSport.Zamiar(p.transform.position, p.transform.forward);
-            t0 = now; tK = now + Mathf.Max(0f, .43f - st.time) / Mathf.Max(.05f, st.speed);
+            t0 = now; tK = st != null ? now + Mathf.Max(0f, .43f - st.time) / Mathf.Max(.05f, st.speed) : p.SportContactTime;
             if (ruch == BraxRuch.Podanie)   // podanie = krótszy kop, kontakt w tej samej chwili co cios
             {
                 var k = clips["Kick"];

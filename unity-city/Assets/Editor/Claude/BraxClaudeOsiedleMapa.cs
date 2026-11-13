@@ -99,8 +99,10 @@ public static partial class BraxClaudeOsiedle
         var lista = new List<BraxMapa.Miejsce>();
         void M(string n, float x, float z) => lista.Add(new BraxMapa.Miejsce { nazwa = n, xz = new Vector2(x, z) });
         M("KASYNO", 86, -42); M("PULS CLUB", 86, 14); M("KOMISARIAT", -86, -42); M("SZPITAL", -86, 14); M("SALA BOKSERSKA", 86, 64); M("HALA WALK", -86, 64);
-        M("SIŁOWNIA", 86, -69); M("DOM WAWERÓW", -28, 59); M("WILLA", 0, -38); M("RONDO", 0, 39); M("TUNEL DO MIASTA", 0, 104);
-        M("PARK WIŚNIOWY", 0, -83); M("PARK", AxisX - 18f, -122f); M("FONTANNA", AxisX + 6f, -138f);
+        M("SIŁOWNIA", 86, -69); M("DOM WAWERÓW", -28, 59);
+        if (StacjaWlaczona) M("STACJA PALIW", -16f, -35.75f); else M("WILLA", 0, -38);
+        M("RONDO", 0, 42); M("TUNEL DO MIASTA", 0, 104);
+        M("PARK WIŚNIOWY", 0, -83); M("PARK", AxisX - 18f, -122f); M("FONTANNA", AxisX + 6f, -132f);
         M("SKLEPY", AxisX + Half + 31f, StreetZ + 14f); M("WILLE", 55f, StreetZ - 24f); M("WILLE", -70f, StreetZ + 24f);
         M("ul. POZNAŃSKA", 9f, 70f); M("ul. WIŚNIOWA", -66f, 2f); M("ul. BYDGOSKA", 66f, 2f);
         m.miejsca = lista.ToArray();

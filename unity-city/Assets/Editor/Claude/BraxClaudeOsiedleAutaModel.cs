@@ -276,11 +276,9 @@ public static partial class BraxClaudeOsiedle
         if (source.HasProperty("baseColorFactor") && source.HasProperty("roughnessFactor") && source.HasProperty("metallicFactor"))
             return BraxCityMaterials.Imported(source);
         string shader = source.shader ? source.shader.name : "";
-        bool niezgodny = !source.shader || !source.shader.isSupported
-            || shader.IndexOf("gltf", StringComparison.OrdinalIgnoreCase) >= 0
-            || shader.IndexOf("Universal Render Pipeline", StringComparison.OrdinalIgnoreCase) >= 0
-            || shader.IndexOf("Shader Graphs/", StringComparison.OrdinalIgnoreCase) >= 0;
-        if (!niezgodny) return source;
+        bool znanyBuiltIn = shader == "Standard" || shader == "Standard (Specular setup)" || shader.StartsWith("Unlit/", StringComparison.Ordinal);
+        // Materiały gltf, Universal Render Pipeline oraz Shader Graphs/ trafiają do konwersji również gdy działają w edytorze.
+        if (znanyBuiltIn && source.shader && source.shader.isSupported) return source;
         Texture Tex(params string[] names)
         {
             foreach (string key in names)
@@ -294,11 +292,90 @@ public static partial class BraxClaudeOsiedle
         float metallic = source.HasProperty("metallicFactor") ? source.GetFloat("metallicFactor") : 0f;
         var albedo = Tex("baseColorTexture", "_BaseMap", "_MainTex");
         var normal = Tex("normalTexture", "_BumpMap");
-        var arm = Tex("metallicRoughnessTexture", "_ARM", "_MetallicGlossMap");
+        var packedStandard = Tex("_MetallicGlossMap");
+        if (packedStandard || (source.HasProperty("_WorkflowMode") && source.GetFloat("_WorkflowMode") == 0f))
+        {
+            bool specular = source.HasProperty("_WorkflowMode") && source.GetFloat("_WorkflowMode") == 0f;
+            var standard = Shader.Find(specular ? "Standard (Specular setup)" : "Standard");
+            if (standard && standard.isSupported)
+            {
+                var material = new Material(standard);
+                foreach (string map in new[] { "_BumpMap", "_MetallicGlossMap", "_SpecGlossMap", "_OcclusionMap", "_EmissionMap" })
+                {
+                    if (!material.HasProperty(map) || !source.HasProperty(map) || !source.GetTexture(map)) continue;
+                    material.SetTexture(map, source.GetTexture(map));
+                    material.SetTextureScale(map, source.GetTextureScale(map));
+                    material.SetTextureOffset(map, source.GetTextureOffset(map));
+                }
+                foreach (string scalar in new[] { "_BumpScale", "_Cutoff", "_Metallic", "_GlossMapScale", "_OcclusionStrength" })
+                    if (source.HasProperty(scalar) && material.HasProperty(scalar)) material.SetFloat(scalar, source.GetFloat(scalar));
+                foreach (string colour in new[] { "_EmissionColor", "_SpecColor" })
+                    if (source.HasProperty(colour) && material.HasProperty(colour)) material.SetColor(colour, source.GetColor(colour));
+                material.color = baseColor;
+                material.mainTexture = albedo;
+                if (source.HasProperty("_BaseMap"))
+                {
+                    material.mainTextureScale = source.GetTextureScale("_BaseMap");
+                    material.mainTextureOffset = source.GetTextureOffset("_BaseMap");
+                }
+                if (source.HasProperty("_Smoothness")) material.SetFloat("_Glossiness", source.GetFloat("_Smoothness"));
+                if (normal) material.EnableKeyword("_NORMALMAP");
+                if (specular && Tex("_SpecGlossMap")) material.EnableKeyword("_SPECGLOSSMAP");
+                if (!specular && packedStandard) material.EnableKeyword("_METALLICGLOSSMAP");
+                if (source.IsKeywordEnabled("_EMISSION")) material.EnableKeyword("_EMISSION");
+                bool clip = source.IsKeywordEnabled("_ALPHATEST_ON") || (source.HasProperty("_AlphaClip") && source.GetFloat("_AlphaClip") > .5f);
+                bool alpha = !clip && (baseColor.a < .999f || source.renderQueue >= 3000 || source.GetTag("RenderType", false) == "Transparent");
+                material.SetFloat("_Mode", clip ? 1f : alpha ? 2f : 0f);
+                material.SetFloat("_SrcBlend", (float)(alpha ? BlendMode.SrcAlpha : BlendMode.One));
+                material.SetFloat("_DstBlend", (float)(alpha ? BlendMode.OneMinusSrcAlpha : BlendMode.Zero));
+                material.SetFloat("_ZWrite", alpha ? 0f : 1f);
+                if (clip) material.EnableKeyword("_ALPHATEST_ON");
+                if (alpha) material.EnableKeyword("_ALPHABLEND_ON");
+                material.renderQueue = alpha ? 3000 : clip ? 2450 : 2000;
+                material.SetOverrideTag("RenderType", alpha ? "Transparent" : clip ? "TransparentCutout" : "Opaque");
+                material.name = source.name; material.enableInstancing = true;
+                return SalonZapisz(material, "auto standard " + BraxCityMaterials.Identity(source));
+            }
+        }
+        var arm = Tex("metallicRoughnessTexture", "_ARM");  // Standard R/A nie jest mapą ARM.
+        if (source.HasProperty("_Metallic")) metallic = source.GetFloat("_Metallic");
+        if (source.HasProperty("_Smoothness")) rough = 1f - source.GetFloat("_Smoothness");
+        else if (source.HasProperty("_Glossiness")) rough = 1f - source.GetFloat("_Glossiness");
+        string nazwa = "Auto Android / " + source.name + " " + BraxCityMaterials.Identity(source);
         var converted = albedo
-            ? BraxCityMaterials.Textured("Auto Android / " + source.name, albedo, normal, arm)
-            : BraxCityMaterials.Surface("Auto Android / " + source.name, baseColor, rough, metallic);
-        if (albedo && converted.HasProperty("_Color")) converted.SetColor("_Color", baseColor);
+            ? BraxCityMaterials.Textured(nazwa, albedo, normal, arm)
+            : BraxCityMaterials.Surface(nazwa, baseColor, rough, metallic);
+        if (albedo)
+        {
+            converted.SetColor("_Color", baseColor); converted.SetFloat("_Roughness", rough); converted.SetFloat("_Metallic", metallic);
+            string srcMap = source.HasProperty("baseColorTexture") ? "baseColorTexture" : source.HasProperty("_BaseMap") ? "_BaseMap" : "_MainTex";
+            converted.SetTextureScale("_MainTex", source.GetTextureScale(srcMap)); converted.SetTextureOffset("_MainTex", source.GetTextureOffset(srcMap));
+        }
+        if (normal && !albedo)
+        {
+            converted.SetTexture("_BumpMap", normal);
+            converted.SetFloat("_NormalEncoding", source.HasProperty("_BumpMap") ? 1f : 0f);
+        }
+        if (source.HasProperty("_BumpScale")) converted.SetFloat("_BumpScale", source.GetFloat("_BumpScale"));
+        foreach (string slot in new[] { "_OcclusionMap", "_EmissionMap" })
+        {
+            if (!source.HasProperty(slot) || !source.GetTexture(slot)) continue;
+            converted.SetTexture(slot, source.GetTexture(slot));
+            converted.SetTextureScale(slot, source.GetTextureScale(slot));
+            converted.SetTextureOffset(slot, source.GetTextureOffset(slot));
+        }
+        if (source.IsKeywordEnabled("_EMISSION") && source.HasProperty("_EmissionColor"))
+            converted.SetColor("_EmissionColor", source.GetColor("_EmissionColor"));
+        bool maska = source.IsKeywordEnabled("_ALPHATEST_ON") || (source.HasProperty("_AlphaClip") && source.GetFloat("_AlphaClip") > .5f);
+        bool szklo = !maska && (source.renderQueue >= 3000 || baseColor.a < .999f || source.GetTag("RenderType", false) == "Transparent");
+        converted.SetFloat("_AlphaClip", maska ? 1f : 0f);
+        converted.SetFloat("_Cutoff", maska && source.HasProperty("_Cutoff") ? source.GetFloat("_Cutoff") : maska ? .5f : 0f);
+        converted.SetFloat("_Transparent", szklo ? 1f : 0f);
+        converted.SetFloat("_SrcBlend", (float)(szklo ? BlendMode.SrcAlpha : BlendMode.One));
+        converted.SetFloat("_DstBlend", (float)(szklo ? BlendMode.OneMinusSrcAlpha : BlendMode.Zero));
+        converted.SetFloat("_ZWrite", szklo ? 0f : 1f); converted.renderQueue = szklo ? 3000 : maska ? 2450 : 2000;
+        converted.SetOverrideTag("RenderType", szklo ? "Transparent" : maska ? "TransparentCutout" : "Opaque");
+        EditorUtility.SetDirty(converted);
         Debug.Log("BRAXHORN_AUTO_MATERIAL naprawiony shader " + shader + " -> " + BraxCityMaterials.ShaderName
             + " materiał=" + source.name + " albedo=" + (albedo ? albedo.name : "brak"));
         return converted;
@@ -446,9 +523,27 @@ public static partial class BraxClaudeOsiedle
         foreach (var seat in new[] { fk, fp })
         {
             var fa = seat.gameObject.AddComponent<BraxFotelAuta>();
-            fa.przeswit = PrzeswitKabiny(A, seat.localPosition, hSiedz);
+            // Zachowaj fabryczną pozycję, o ile jest dość miejsca. Ogranicz regulację
+            // do szyn fotela i minimalnej wysokości siedziska, bez skalowania auta czy osoby.
+            var punkt = seat.localPosition;
+            float zapas = PrzeswitKabiny(A, punkt, punkt.y);
+            float celNadFotelem = .91f * K;
+            if (zapas < celNadFotelem)
+            {
+                var najlepszy = punkt;
+                foreach (float przesuw in new[] { -.06f, .06f, -.12f, .12f })
+                {
+                    var proba = punkt + Vector3.forward * (przesuw * K);
+                    float wynik = PrzeswitKabiny(A, proba, proba.y);
+                    if (wynik > zapas + .01f * K) { najlepszy = proba; zapas = wynik; }
+                }
+                float minY = (rodzajKabiny == "sportowe" ? .20f : rodzajKabiny == "dostawcze" ? .42f : .28f) * K;
+                float regulacja = Mathf.Clamp(celNadFotelem - zapas, 0f, Mathf.Max(0f, najlepszy.y - minY));
+                seat.localPosition = najlepszy - Vector3.up * regulacja;
+            }
+            fa.przeswit = PrzeswitKabiny(A, seat.localPosition, seat.localPosition.y);
             fa.kabina = rodzajKabiny; fa.odchylenieBaza = odchB; fa.odchylenieMax = odchM;
-            MapaDachu(A, seat.localPosition, hSiedz, fa);   // build 45: dach nad konkretnym miejscem (głowa odchylonej osoby)
+            MapaDachu(A, seat.localPosition, seat.localPosition.y, fa);   // build 45: dach nad konkretnym miejscem (głowa odchylonej osoby)
         }
         // 7) światła i spaliny
         Swiatla(A, sz, nad);

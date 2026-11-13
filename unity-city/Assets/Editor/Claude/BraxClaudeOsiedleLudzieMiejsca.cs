@@ -234,14 +234,15 @@ public static partial class BraxClaudeOsiedle
 
     static int NajblizszyPoStronie(SiecPieszych s, Vector3 c, Vector3 srodek, Vector3 strona, float half)
     {
-        int best = -1; float bd = 5.5f * 5.5f;
+        int best = -1; float bd = 5.5f * K * (5.5f * K);
         for (int j = 0; j < s.w.Count; j++)
         {
             if (s.segOd[j] < 0) continue;
             var d = s.w[j] - c; d.y = 0f; float m = d.sqrMagnitude; if (m > bd) continue;
             var o = s.w[j] - srodek; o.y = 0f; if (Vector3.Dot(o, strona) < half - .3f) continue;     // ta sama strona jezdni
             if ((s.w[j].z - GranicaObszarow) * (c.z - GranicaObszarow) < 0f) continue;
-            if (PrzezJezdnie(s.w[j], c + (c - srodek).normalized * .35f)) continue;
+            var koniecChodnika = c + (c - srodek).normalized * .35f;
+            if (PrzezJezdnie(s.w[j], koniecChodnika) || !CzystyOdcinek(s.w[j], koniecChodnika)) continue;
             best = j; bd = m;
         }
         return best;
@@ -477,11 +478,11 @@ public static partial class BraxClaudeOsiedle
         }
         {   // market: kasjer między witryną a ladą kasy, przodem do sali
             float b = x0 + 5f * u - .3f;
-            Obsada("market — kasa", RolaObsluga, "kasjer", new Vector3(b - 1.25f, 0, zf + .9f), 0f, rnd, lada, .14f);
+            Obsada("market — kasa", RolaObsluga, "kasjer", new Vector3(b - 1.25f, 0, zf + .55f * K), 0f, rnd, lada, .14f);
         }
-        rep.notes.Add("ludzie: butik zamknięty (WKRÓTCE OTWARCIE, brak lady i wejścia) — bez obsady");
+        if (!BraxOsiedleTowar.Jest) rep.notes.Add("ludzie: butik zamknięty (WKRÓTCE OTWARCIE, brak lady i wejścia) — bez obsady");
         // siłownia A: recepcja (za ladą, przodem do sali)
-        Obsada("siłownia — recepcja", RolaRecepcja, "recepcja", new Vector3(85.0f, 0, -68.05f), 180f, rnd, lada);
+        Obsada("siłownia — recepcja", RolaRecepcja, "recepcja", new Vector3(86.15f, 0, -68.0f), 180f, rnd, lada);
         // kasyno: KASA · ŻETONY i ZAKŁADY (między ladą a ścianą z drzwiami do sali, przodem do wejścia)
         Obsada("kasyno — kasa", RolaRecepcja, "kasyno", new Vector3(72f, 0, -34.12f), 0f, rnd, lada, .062f);
         Obsada("kasyno — zakłady", RolaRecepcja, "kasyno", new Vector3(100f, 0, -34.12f), 0f, rnd, lada, .062f);

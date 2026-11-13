@@ -245,6 +245,8 @@ public static class BraxKontrolaUmieszczenia
                     Vector3 a = m.MultiplyPoint3x4(v[t[i]]), b = m.MultiplyPoint3x4(v[t[i + 1]]), c = m.MultiplyPoint3x4(v[t[i + 2]]);
                     var nn = Vector3.Cross(b - a, c - a); float p2 = nn.magnitude; if (p2 < .04f) continue;
                     nn /= p2; if (Mathf.Abs(nn.y) > .5f) continue;
+                    // W pierzei front lokali jest od ulicy (−Z); tył płaskiego szyldu przylega do muru.
+                    if (BraxKontrola.Obszar == "osiedle" && (n.Contains(" pas szyldowy lokalu ") || n.Contains(" szyld nutrition ")) && nn.z > .9f) continue;
                     var cc = (a + b + c) / 3f;
                     var key = (Mathf.FloorToInt(cc.x * 2f), Mathf.FloorToInt(cc.y * 2f), Mathf.FloorToInt(cc.z * 2f), Mathf.RoundToInt(Mathf.Atan2(nn.x, nn.z) * 4f / Mathf.PI));
                     lica.TryGetValue(key, out var acc); acc.s += cc * p2; acc.n += nn * p2; acc.pole += p2; lica[key] = acc;

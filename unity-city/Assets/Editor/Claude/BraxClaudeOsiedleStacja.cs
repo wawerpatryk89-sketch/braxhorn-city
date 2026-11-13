@@ -592,7 +592,9 @@ public static partial class BraxClaudeOsiedle
     {
         var st = StMat("regał stal", new Color(.75f, .76f, .78f), .5f, .5f);
         float h = 1.6f * K;
-        BoxMinMax(st, x0, x1, yF, yF + .1f, z0, z1, true);
+        BoxMinMax(st, x0, x1, yF, yF + .1f, z0, z1, false);
+        Collider(new Vector3((x0 + x1) * .5f, yF + h * .5f, (z0 + z1) * .5f),
+                 new Vector3(x1 - x0, h, z1 - z0));
         BoxMinMax(st, x0, x1, yF + .1f, yF + h, (z0 + z1) * .5f - .02f, (z0 + z1) * .5f + .02f, false);
         var kol = new[] { new Color(.85f, .3f, .1f), new Color(.2f, .5f, .8f), new Color(.9f, .85f, .2f), new Color(.3f, .65f, .3f), new Color(.75f, .2f, .5f) };
         // 3.11 („żadnych kolorowych klocków”): z paczką towaru — prawdziwe produkty BRAXHORN na półkach (jak w markecie)

@@ -226,9 +226,18 @@ public static partial class BraxClaudeOsiedle
         bool PrzystanekLinii(string nazwa, Vector3 c, Vector3 f, Vector3 znak, Vector3 znakLico, float d0, float d1, float s0, float s1, bool wzdluzX, Vector3 ruch)
         {
             int n0 = przystankiN;
-            Przystanek(c, f, znak, znakLico, d0, d1, s0, s1, wzdluzX);
-            if (przystankiN == n0) return false;
-            NazwaPrzystanku(c, f, nazwa); przystankiLinii.Add((nazwa, c, ruch, wzdluzX)); return true;
+            foreach (float metry in new[] { 0f, 2f, -2f, 4f, -4f })
+            {
+                float przes = metry * K;
+                var delta = (wzdluzX ? Vector3.right : Vector3.forward) * przes;
+                var pkt = c + delta;
+                if (Przejscia.Any(z => (z.srodek - (znak + delta)).sqrMagnitude < 16f * K * K)) continue;
+                Przystanek(pkt, f, znak + delta, znakLico, d0, d1, s0 + przes, s1 + przes, wzdluzX);
+                if (przystankiN == n0) continue;
+                NazwaPrzystanku(pkt, f, nazwa); przystankiLinii.Add((nazwa, pkt, ruch, wzdluzX)); return true;
+            }
+            rep.notes.Add("DO POPRAWKI: brak bezpiecznego miejsca na przystanek " + nazwa);
+            return false;
         }
         PrzystanekLinii("OSIEDLE A 1", new Vector3(8.4f, 0, 9.8f), Vector3.left, new Vector3(4.85f, 0, 15.6f), Vector3.back, 3.8f, 4.45f, 2f, 17f, false, Vector3.forward);
         PrzystanekLinii("OSIEDLE A 2", new Vector3(-8.4f, 0, 2.6f), Vector3.right, new Vector3(-4.85f, 0, -3.2f), Vector3.forward, -4.45f, -3.8f, -6f, 9f, false, Vector3.back);
@@ -359,7 +368,7 @@ public static partial class BraxClaudeOsiedle
         float k = Ks, w = 3.2f * k, d = 1.5f * k, h = 2.45f * k;
         c.y = 0f; var R = Vector3.Cross(Vector3.up, f).normalized; float yaw = Mathf.Atan2(f.x, f.z) * Mathf.Rad2Deg;
         var test = c + Vector3.up * 1.3f;
-        if (Physics.CheckBox(test, new Vector3(w * .5f, .9f, d * .5f), Quaternion.Euler(0, yaw, 0), ~0, QueryTriggerInteraction.Ignore)) { rep.notes.Add("przystanek przy " + c.ToString("F1") + ": miejsce zajęte — pominięty"); return; }
+        if (Physics.CheckBox(test, new Vector3(w * .5f, .9f, d * .5f), Quaternion.Euler(0, yaw, 0), ~0, QueryTriggerInteraction.Ignore)) return;
         var g = group; group = GrupaWyposazenia(c);
         OBox(Pavers, c + f * .25f + Vector3.up * .06f, new Vector3(w + 1.6f * k, .12f, d + .5f), yaw);   // 2 cm pod chodnikiem tam, gdzie się z nim styka
         foreach (int sx in new[] { -1, 1 }) foreach (int sz in new[] { -1, 1 })

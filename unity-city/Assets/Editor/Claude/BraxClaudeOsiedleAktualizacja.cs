@@ -57,6 +57,17 @@ public static partial class BraxClaudeOsiedle
         if (!mural || mural.bounds.size.z < 29f || mural.bounds.size.y < 5f) bledy.Add("Mural nie pokrywa całej ściany Puls");
         var sofy = renderery.Where(r => r.transform.GetComponentsInParent<Transform>(true).Any(t => t.name.Contains(": sofa chesterfield"))).ToArray();
         if (sofy.Length != 13) bledy.Add("Niekompletny układ pojedynczych sof Puls: " + sofy.Length + "/13");
+        var efekty = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<BraxKlubEfekty>(true)).FirstOrDefault();
+        if (!efekty || !efekty.kula || !efekty.refleksy || !efekty.refleksy.sharedMaterial || !efekty.refleksy.sharedMaterial.shader
+            || efekty.refleksy.sharedMaterial.shader.name != "Braxhorn/PulsMirrorGlints"
+            || efekty.lasery == null || efekty.lasery.Length != 2 || efekty.lasery.Any(t => !t))
+            bledy.Add("PULS: brak kuli, lustrzanych błysków lub dwóch wachlarzy laserowych");
+        var lampyLoz = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Light>(true))
+            .Where(l => l.name == "PULS: ciepłe światło lóż").ToArray();
+        var parkiet = new Bounds(new Vector3(93f, .11f, 12f), new Vector3(14f, .1f, 12f));
+        if (lampyLoz.Length != 9 || sofy.Any(s => !lampyLoz.Any(l => (s.bounds.center - l.transform.position).sqrMagnitude < l.range * l.range))
+            || lampyLoz.Any(l => parkiet.SqrDistance(l.transform.position) <= l.range * l.range))
+            bledy.Add("PULS: sprawdź zasięg lamp nad sofami i izolację parkietu");
         var gracz = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<BraxGymPlayer>(true)).FirstOrDefault();
         if (!gracz || !gracz.visual || gracz.visual.name != "Patryk") bledy.Add("Brak nowego Patryka");
         if (!scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<BraxAutoGracza>(true)).Any()) bledy.Add("Brak dostępnego auta Patryka");

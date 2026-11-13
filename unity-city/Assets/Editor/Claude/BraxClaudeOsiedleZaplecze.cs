@@ -80,7 +80,19 @@ public static partial class BraxClaudeOsiedle
         {
             float a = i * Mathf.PI * 2f / 8f; var p = tc + new Vector3(Mathf.Cos(a) * (tL * .5f + tR + .5f), 0, Mathf.Sin(a) * (tR + .5f));
             float yaw = Mathf.Atan2(tc.x - p.x, tc.z - p.z) * Mathf.Rad2Deg;
-            if (offChair && Put(offChair, p, yaw, .03f, true)) krzesel++;
+            var fotel = offChair ? Put(offChair, p, yaw, .03f, false) : null;
+            if (fotel)
+            {
+                // Kolizja stołu obejmuje również narożniki prostokąta wokół owalnego blatu.
+                var b = RB(fotel); var dir = (p - tc).normalized;
+                float dx = tL * .5f + tR + b.extents.x + .04f * K;
+                float dz = tR + b.extents.z + .04f * K;
+                float dystans = Mathf.Min(Mathf.Abs(dir.x) > .001f ? dx / Mathf.Abs(dir.x) : float.PositiveInfinity,
+                    Mathf.Abs(dir.z) > .001f ? dz / Mathf.Abs(dir.z) : float.PositiveInfinity);
+                fotel.transform.position += dir * Mathf.Max(0f, dystans - (p - tc).magnitude);
+                b = RB(fotel); Collider(b.center, b.size); Hard(b.min.x, b.max.x, b.min.z, b.max.z);
+                krzesel++;
+            }
             var on = tc + (p - tc) * .62f; on.y = FY + tH + .012f;
             for (int k = 0; k < 3; k++) Cylinder(chip[(i + k) % 3], on + new Vector3((k - 1) * .05f, 0, 0), .02f, .02f + .015f * ((i + k) % 3), 12, true, false);
         }
