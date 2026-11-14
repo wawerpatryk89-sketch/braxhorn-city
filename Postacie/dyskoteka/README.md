@@ -7,3 +7,4 @@ Postacie, które można spotkać na imprezie.
 - [Kamil](../glowne-poza-liga/kamil/)
 - [Mateusz](../glowne-poza-liga/mateusz/)
 - [Aneta](../uslugi/fitness/aneta/)
+- [Monika](../uslugi/monika/)

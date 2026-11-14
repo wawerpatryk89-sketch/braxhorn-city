@@ -38,6 +38,16 @@ internal static class BraxGitaraSetup
     [MenuItem("Braxhorn/Postacie/Przygotuj Anetę")]
     internal static void CreateAneta() => Prepare("aneta", "Aneta", FitnessActions, Array.Empty<string>());
 
+    [MenuItem("Braxhorn/Postacie/Przygotuj Monikę")]
+    internal static void CreateMonika()
+    {
+        string[] actions = {
+            "Idle", "Walk", "Run", "Jump", "SitDown", "SeatedIdle", "StandUp", "Talk", "Wave", "Point",
+            "Drink", "DanceHouse", "DanceHipHop"
+        };
+        Prepare("monika", "Monika", actions, Array.Empty<string>());
+    }
+
     static void Prepare(string characterId, string displayName) => Prepare(characterId, displayName, Actions, Attacks);
 
     static void Prepare(string characterId, string displayName, string[] actions, string[] attacks)

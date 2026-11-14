@@ -146,6 +146,14 @@
         "Snatch",
         "KettlebellSwing"
       ]
+    },
+    {
+      "id": "monika",
+      "exercises": [
+        "JumpingJacks",
+        "FrontRaises",
+        "KettlebellSwing"
+      ]
     }
   ]
 }
