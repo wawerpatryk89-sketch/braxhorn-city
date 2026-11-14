@@ -6,3 +6,4 @@ Postacie uczestniczące w bójkach ulicznych.
 - [Kiler](../glowne-poza-liga/kiler/)
 - [Kamil](../glowne-poza-liga/kamil/)
 - [Mateusz](../glowne-poza-liga/mateusz/)
+- [Zadymiarz z głową psa](zadymiarz_021fef69/)

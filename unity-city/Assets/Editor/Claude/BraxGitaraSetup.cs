@@ -16,7 +16,7 @@ internal static class BraxGitaraSetup
         "DanceHouse", "DanceHipHop", "Drink", "DrunkIdle", "DrunkWalk", "DrunkTurn"
     };
     static readonly string[] Attacks = { "Jab", "Cross", "Hook", "SideKick", "Knee" };
-    internal static readonly HashSet<string> Loops = new HashSet<string> { "Idle", "Walk", "Run", "SeatedIdle", "CombatIdle", "DanceHouse", "DanceHipHop", "DrunkIdle", "DrunkWalk", "TrainingJog" };
+    internal static readonly HashSet<string> Loops = new HashSet<string> { "Idle", "Walk", "Run", "SeatedIdle", "CombatIdle", "DanceHouse", "DanceHipHop", "DrunkIdle", "DrunkWalk", "TrainingJog", "Swim", "TreadWater", "Helm", "LoungerRest" };
 
     [MenuItem("Braxhorn/Postacie/Przygotuj Gitarę")]
     internal static void Create() => Prepare("gitara", "Gitara");
@@ -54,6 +54,24 @@ internal static class BraxGitaraSetup
 
     [MenuItem("Braxhorn/Postacie/Przygotuj Martynę")]
     internal static void CreateMartyna() => Prepare("martyna", "Martyna", EverydayAndDance, Array.Empty<string>());
+
+    static readonly string[] ResidentBasics = { "Idle", "Walk", "SitDown", "SeatedIdle", "StandUp", "Talk", "Wave", "Point" };
+
+    [MenuItem("Braxhorn/Postacie/Chłopiec w okularach")]
+    internal static void CreateChlopiec003f4e46() => Prepare("dziecko_003f4e46", "Chlopiec003f4e46",
+        ResidentBasics.Concat(new[] { "Run", "Jump", "KickBall" }).ToArray(), Array.Empty<string>());
+
+    [MenuItem("Braxhorn/Postacie/Kapitan w białym mundurze")]
+    internal static void CreateKapitan02d85d24() => Prepare("kapitan_02d85d24", "Kapitan02d85d24",
+        ResidentBasics.Concat(new[] { "Helm", "TrainingJog" }).ToArray(), Array.Empty<string>());
+
+    [MenuItem("Braxhorn/Postacie/Plażowicz w granatowych kąpielówkach")]
+    internal static void CreatePlazowicz0493f781() => Prepare("plazowicz_0493f781", "Plazowicz0493f781",
+        ResidentBasics.Concat(new[] { "Swim", "TreadWater", "SwimToEdge", "LoungerRest" }).ToArray(), Array.Empty<string>());
+
+    [MenuItem("Braxhorn/Postacie/Zadymiarz z głową psa")]
+    internal static void CreateZadymiarz021fef69() => Prepare("zadymiarz_021fef69", "Zadymiarz021fef69",
+        ResidentBasics.Concat(new[] { "Run", "Jump", "CombatIdle", "Jab", "Cross", "Hook", "SideKick", "Knee", "Dodge", "Block", "HitHead", "HitBody" }).ToArray(), Attacks);
 
     static void Prepare(string characterId, string displayName) => Prepare(characterId, displayName, Actions, Attacks);
 
@@ -95,6 +113,7 @@ internal static class BraxGitaraSetup
                 states.Add(id, state);
                 added.Add(id);
             }
+            if (characterId == "kapitan_02d85d24" && id == "TrainingJog") state.speed = 0.80f;
             state.motion = clips[id];
         }
         machine.defaultState = states["Idle"];
@@ -102,6 +121,7 @@ internal static class BraxGitaraSetup
         {
             if (Loops.Contains(id)) continue;
             if (id == "SitDown") AddExit(states[id], states["SeatedIdle"]);
+            else if (id == "SwimToEdge") AddExit(states[id], states["TreadWater"]);
             else if (id == "DrunkTurn") AddExit(states[id], states["DrunkIdle"]);
             else if (attacks.Contains(id) || id == "Dodge" || id == "Block" || id.StartsWith("Hit", StringComparison.Ordinal))
             {
@@ -182,6 +202,7 @@ internal static class BraxGitaraSetup
         if (!importer) throw new FileNotFoundException(path);
         importer.textureType = type;
         importer.sRGBTexture = srgb;
+        importer.maxTextureSize = Math.Min(importer.maxTextureSize, 2048);
         importer.mipmapEnabled = true;
         importer.streamingMipmaps = true;
         var android = importer.GetPlatformTextureSettings("Android");

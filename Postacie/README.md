@@ -11,6 +11,10 @@
 
 Każda postać ma osobną kartę i komplet plików. Karty w działach głównych są wspólne dla całej gry. Listy ról i miejsc prowadzą do tych samych kart.
 
+Globalna podstawa każdej postaci obejmuje spoczynek, chód, siadanie, siedzenie, wstawanie, rozmowę i gesty. Dodatki dobieramy do roli. Pierwszoplanowe postacie dostają więcej ruchów, gdy wymaga tego misja. Obsada rejonu wybiera gotową postać po identyfikatorze. Role i możliwe miejsca spotkań można zapisać przed umieszczeniem jej w scenie.
+
+Każdy model ma podgląd do identyfikacji. Przy niejednoznacznej roli właściciel potwierdza ją na podstawie modelu. Postać z głową psa może trafić do ochrony, ligi albo ulicznych zadymiarzy. Dla policji i jednostki antyterrorystycznej właściciel dobiera osobną paczkę. Tekstury użytkowe nowych postaci mają do 2048 px, z limitem importu 1024 px na Androidzie.
+
 [Pełne paczki i źródła — szkic „Postacie”](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/tag/untagged-902b93da9489923d352d)
 
 Pliki w szkicu są dostępne po zalogowaniu na konto z uprawnieniami do tego wydania. Po zmianie adresu szkicu znajdziesz go pod nazwą „Postacie” na [liście wydań](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases). Numer wydania i sumy kontrolne zapisano w każdej karcie.

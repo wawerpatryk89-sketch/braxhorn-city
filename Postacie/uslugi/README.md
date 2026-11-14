@@ -8,3 +8,4 @@ Postacie według wykonywanego zawodu.
 - [Ratownicy](ratownicy/)
 - [Fitness](fitness/)
 - [Monika](monika/)
+- [Kapitan w białym mundurze](zegluga/kapitan_02d85d24/)
