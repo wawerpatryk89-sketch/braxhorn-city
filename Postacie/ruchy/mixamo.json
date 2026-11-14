@@ -3272,6 +3272,23 @@
       "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
       "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
       "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
+    },
+    "imprezowiczka_0dbe3922": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+      "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+      "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
     }
   },
   "pending": {
