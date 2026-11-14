@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
-      contents: write # Odczyt zasobów prywatnego szkicu wydania.
+      contents: write # Odczyt modeli i zapis renderów w tym samym szkicu.
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -46,8 +46,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          if [ -d KontrolaPostaciT ]; then
-            test "$(gh api "repos/$GITHUB_REPOSITORY/releases/443180649" --jq .draft)" = true
-            zip -q -r "Podglady_Unity_T_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}.zip" KontrolaPostaciT
-            gh release upload postacie-globalne-20261112 "Podglady_Unity_T_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}.zip" --repo "$GITHUB_REPOSITORY"
-          fi
+          test -f KontrolaPostaciT/bledy.txt
+          test "$(gh api "repos/$GITHUB_REPOSITORY/releases/443180649" --jq .draft)" = true
+          archive="Podglady_Unity_T_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}.zip"
+          zip -q -r "$archive" KontrolaPostaciT
+          gh api -X POST -H 'Content-Type: application/zip' \
+            "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/443180649/assets?name=$archive" \
+            --input "$archive" --jq '.name'
