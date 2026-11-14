@@ -30,6 +30,11 @@ namespace Braxhorn.Characters
             return Play(action.ToString(), false);
         }
 
+        public bool TryGym(string exerciseId)
+        {
+            return !InCombat && !string.IsNullOrEmpty(exerciseId) && Play("Gym" + exerciseId, false);
+        }
+
         public bool TryAttack(int index)
         {
             if (index < 0 || index >= attackStates.Length) return false;

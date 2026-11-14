@@ -10,7 +10,8 @@
   "zasieg_spotkan": "cala-gra",
   "miejsca_spotkan": [
     "fitness",
-    "dyskoteka"
+    "dyskoteka",
+    "silownia"
   ],
   "walka": false,
   "liczba_klipow": 15,
@@ -45,5 +46,13 @@
       "bajty": 126405,
       "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Aneta_15_ruchow.jpg"
     }
+  },
+  "gym": {
+    "profil": "../../../silownia/gym.json",
+    "cwiczenia": [
+      "JumpingJacks",
+      "PistolSquat",
+      "Burpee"
+    ]
   }
 }

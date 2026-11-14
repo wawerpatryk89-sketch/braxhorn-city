@@ -10,7 +10,8 @@
   "zasieg_spotkan": "cala-gra",
   "miejsca_spotkan": [
     "ulica",
-    "dyskoteka"
+    "dyskoteka",
+    "silownia"
   ],
   "liczba_klipow": 26,
   "wydanie": {
@@ -44,5 +45,13 @@
       "bajty": 250185,
       "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Gitara_26_ruchow.jpg"
     }
+  },
+  "gym": {
+    "profil": "../../silownia/gym.json",
+    "cwiczenia": [
+      "KettlebellSwing",
+      "FrontRaises",
+      "JumpingJacks"
+    ]
   }
 }

@@ -5,6 +5,7 @@
 - [Liga](liga/)
 - [Uliczni zadymiarze](uliczni-zadymiarze/)
 - [Dyskoteka](dyskoteka/)
+- [Siłownia](silownia/)
 - [Mieszkańcy](mieszkancy/)
 - [Usługi](uslugi/)
 

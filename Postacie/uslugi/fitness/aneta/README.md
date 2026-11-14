@@ -17,3 +17,5 @@ Po rozpakowaniu paczki na gałęzi z kartą Anety wybierz w edytorze Unity **Bra
 - [Model z animacjami w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Aneta_15_ruchow.blend)
 - [Oryginalna paczka modelu](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/aneta.zip)
 - [Karta i sumy plików](karta.json)
+
+**Siłownia.** pajacyki, przysiad na jednej nodze, burpees. [Wspólna paczka i obsada siłowni](../../../silownia/).

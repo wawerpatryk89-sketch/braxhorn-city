@@ -33,7 +33,7 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
             mi.isReadable = true;                                   // pomiar wzrostu z wierzchołków (10 tys. — ~1 MB, bez znaczenia)
             mi.importTangents = ModelImporterTangents.CalculateMikk;  // mapa normalnych w Braxhorn/HeroPremium
         }
-        else if (assetPath.StartsWith(Katalog + "Postacie/patryk/Ruchy/") || assetPath.StartsWith(Katalog + "ruchy/patryk_owner/"))
+        else if (assetPath.StartsWith(BraxGymProfiles.PlayerClips) || assetPath.StartsWith(Katalog + "Postacie/patryk/Ruchy/") || assetPath.StartsWith(Katalog + "ruchy/patryk_owner/"))
         {
             mi.animationType = ModelImporterAnimationType.Generic;
             mi.avatarSetup = ModelImporterAvatarSetup.NoAvatar;

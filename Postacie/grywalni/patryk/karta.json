@@ -36,5 +36,13 @@
       "bajty": 371422,
       "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Patryk_31_ruchow.jpg"
     }
+  },
+  "gym": {
+    "profil": "../../silownia/gym.json",
+    "cwiczenia": [
+      "BackSquat",
+      "BicepCurl",
+      "FrontRaises"
+    ]
   }
 }

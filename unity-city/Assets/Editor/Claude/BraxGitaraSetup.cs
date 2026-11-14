@@ -47,9 +47,13 @@ internal static class BraxGitaraSetup
         var clips = new Dictionary<string, AnimationClip>();
         var model = prefix + ".fbx";
         ConfigureModel(model, null);
-        foreach (string id in actions)
+        var gym = BraxGymProfiles.For(characterId);
+        var allActions = actions.Concat(gym.Select(id => "Gym" + id)).ToArray();
+        foreach (string id in allActions)
         {
-            string path = root + "Ruchy/" + id + ".fbx";
+            string path = id.StartsWith("Gym", StringComparison.Ordinal)
+                ? BraxGymProfiles.ResidentClips + id.Substring(3) + ".fbx"
+                : root + "Ruchy/" + id + ".fbx";
             ConfigureModel(path, id);
             var clip = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>()
                 .SingleOrDefault(c => c.name == id);
@@ -66,7 +70,7 @@ internal static class BraxGitaraSetup
         var machine = controller.layers[0].stateMachine;
         var states = machine.states.ToDictionary(s => s.state.name, s => s.state);
         var added = new List<string>();
-        foreach (string id in actions)
+        foreach (string id in allActions)
         {
             if (!states.TryGetValue(id, out var state))
             {
@@ -108,7 +112,7 @@ internal static class BraxGitaraSetup
         }
         finally { UnityEngine.Object.DestroyImmediate(instance); }
         AssetDatabase.SaveAssets();
-        Debug.Log(displayName + ": " + actions.Length + " klipów Humanoid. " + prefabPath);
+        Debug.Log(displayName + ": " + allActions.Length + " klipów Humanoid. " + prefabPath);
     }
 
     static AnimatorStateTransition AddExit(AnimatorState from, AnimatorState to)

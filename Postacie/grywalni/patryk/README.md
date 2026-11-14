@@ -8,3 +8,5 @@ Gracz Osiedla. Zestaw obejmuje 31 klipów.
 - [Model i ruchy w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Patryk_13-11_Mixamo_31.blend)
 
 [Karta z rozmiarami i sumami SHA-256](karta.json)
+
+**Siłownia.** przysiad ze sztangą na plecach, uginanie przedramion, unoszenie ramion w przód. [Wspólna paczka i obsada siłowni](../../silownia/).

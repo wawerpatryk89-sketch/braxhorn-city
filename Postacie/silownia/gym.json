@@ -1,0 +1,151 @@
+{
+  "archive": {
+    "name": "gym.zip",
+    "sha256": "f6e8f1e907830c2319b582870517629f1fea1edae07a2fccaf26892d32910502",
+    "release_id": 443180649,
+    "tag": "postacie-globalne-20261112"
+  },
+  "clips": [
+    {
+      "id": "BackSquatB",
+      "label": "Przysiad ze sztangą na plecach II",
+      "entry": "Back Squat (1).fbx",
+      "sha256": "de72e3354412dc56ddf585ec2b5758f4576dee1157aa0843b405fb7b6e69a894",
+      "curves_sha256": "12eea706e53590beb6a895b0f7ae8a06d40633784f17ae60d3ae228e5326edcc"
+    },
+    {
+      "id": "BackSquat",
+      "label": "Przysiad ze sztangą na plecach",
+      "entry": "Back Squat.fbx",
+      "sha256": "aa45ae073f1744e5b21aae5df5081b3a33ddecd1345b1e84e1d6b7e49bff6c16",
+      "curves_sha256": "563e22bf8663860b6309474fe6152ae29e7be9517973e796a454b5f18a874431"
+    },
+    {
+      "id": "BicepCurl",
+      "label": "Uginanie przedramion",
+      "entry": "Bicep Curl.fbx",
+      "sha256": "7672ba471289139c7c7b70bc7bcc17801086373e5aed02d8c03f91d9a105b2d4",
+      "curves_sha256": "8c03d55ee02c8cc7de2424ee340a14999b27e8acc481c493b4ff1b5759979a65"
+    },
+    {
+      "id": "Burpee",
+      "label": "Burpees",
+      "entry": "Burpee.fbx",
+      "sha256": "724a142b3793f051524561c4437ed3ff1ff36556ca731add2cff74eea3fb460a",
+      "curves_sha256": "2eb31ae1d601aeff45b2578ffdce05122d974d669a1929292e7b6c40122dbf9b"
+    },
+    {
+      "id": "FrontRaises",
+      "label": "Unoszenie ramion w przód",
+      "entry": "Front Raises.fbx",
+      "sha256": "e798330a8ae0e0176a2254079e4181618d6ab4da17d89cea7e21da7ceeefcc10",
+      "curves_sha256": "bd6ada676b65b1432cdec4163875dd4326c7ece93ee18a368ff62ebd3643260f"
+    },
+    {
+      "id": "JumpingJacks",
+      "label": "Pajacyki",
+      "entry": "Jumping Jacks.fbx",
+      "sha256": "8a14789ff4420a74cb2e9601f331d490317635e51d1f0a04c69373f3925fb5a0",
+      "curves_sha256": "9a48f190ad4ea5f358666da13837d8ef0bde5f787b96774205f78653a427df70"
+    },
+    {
+      "id": "KettlebellSwing",
+      "label": "Wymach odważnikiem",
+      "entry": "Kettlebell Swing.fbx",
+      "sha256": "9e419fb99cf4b469172e97b3ddb40e2b25308ae3efb2abf42a6e8fb88e177c67",
+      "curves_sha256": "aeb50c5b4c95566f821da1a20bf569dcbd7b91d0c9361fa34976c81cadc864bb"
+    },
+    {
+      "id": "OverheadSquat",
+      "label": "Przysiad ze sztangą nad głową",
+      "entry": "Overhead Squat.fbx",
+      "sha256": "d70ddc3a794c435991ae9d4e9d6c2c2db3eec6cb23a3383b3f5a932c856aa8d6",
+      "curves_sha256": "1bdad288a7aa2a81697a5eff346a37a1e4090cbadcc2442e4e76077dd3731c7d"
+    },
+    {
+      "id": "PistolSquat",
+      "label": "Przysiad na jednej nodze",
+      "entry": "Pistol.fbx",
+      "sha256": "9823f0cfc4eacf74e261337dedb057642e468f015b1f4d5c9b68733022c5fdbc",
+      "curves_sha256": "674769509c47fec52af002350c005a3b7973ad6a6cb1c9e370cd5c3b7f9877a9"
+    },
+    {
+      "id": "SnatchB",
+      "label": "Rwanie II",
+      "entry": "Snatch (1).fbx",
+      "sha256": "fc35509464fd4ec0fbe04f0f1245c42cae72f2285b3e1de96354bdbeec82b3bc",
+      "curves_sha256": "a58cbf3e323c78155ebd9aa61dfedfa3f0d38341c918218f8808e6a8243145cb"
+    },
+    {
+      "id": "Snatch",
+      "label": "Rwanie",
+      "entry": "Snatch.fbx",
+      "sha256": "b3cbd2583653787a303c04c6c661762e569b4735a102c9168079172ea666600f",
+      "curves_sha256": "eb17dc488cd13d08f6cacf9ba580f32e6850bdb815731de2067519ae32f9013a"
+    },
+    {
+      "id": "StartBicycleSitUp",
+      "label": "Przejście do rowerka na macie",
+      "entry": "Start Bicycle Sit Up.fbx",
+      "sha256": "b6f376c64368f365ee6e622334077d5ed51e7bd561d2cac666fae3d5e349de00",
+      "curves_sha256": "616dde2da8e42f4a9bf04a9101e1b57a1d2150bfab3bee5e658fe90fd39ec2ca"
+    },
+    {
+      "id": "SumoHighPull",
+      "label": "Wysokie podciąganie w pozycji sumo",
+      "entry": "Sumo High Pull.fbx",
+      "sha256": "f244a15dc370f8d995f143cdbefc93804e0769a91b218c5c370e57995901a404",
+      "curves_sha256": "85153c2ee80c0996513f63150882d6bae255a9be9f7b27b5f9e41931938daf0b"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "aneta",
+      "exercises": [
+        "JumpingJacks",
+        "PistolSquat",
+        "Burpee"
+      ]
+    },
+    {
+      "id": "patryk",
+      "exercises": [
+        "BackSquat",
+        "BicepCurl",
+        "FrontRaises"
+      ]
+    },
+    {
+      "id": "gitara",
+      "exercises": [
+        "KettlebellSwing",
+        "FrontRaises",
+        "JumpingJacks"
+      ]
+    },
+    {
+      "id": "kiler",
+      "exercises": [
+        "BackSquatB",
+        "SnatchB",
+        "SumoHighPull"
+      ]
+    },
+    {
+      "id": "kamil",
+      "exercises": [
+        "Burpee",
+        "BicepCurl",
+        "PistolSquat"
+      ]
+    },
+    {
+      "id": "mateusz",
+      "exercises": [
+        "OverheadSquat",
+        "Snatch",
+        "KettlebellSwing"
+      ]
+    }
+  ]
+}

@@ -8,3 +8,5 @@ Główna postać spoza ligi. Uliczny zadymiarz, którego można obsadzić równi
 - [Model i ruchy w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Kamil_26_ruchow.blend)
 
 [Karta z rozmiarami i sumami SHA-256](karta.json)
+
+**Siłownia.** burpees, uginanie przedramion, przysiad na jednej nodze. [Wspólna paczka i obsada siłowni](../../silownia/).

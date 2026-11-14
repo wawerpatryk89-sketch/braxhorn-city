@@ -58,7 +58,8 @@ def przygotuj():
     region = wybierz_rejon(ROOT / "unity-city")[0]
     if region not in ("osiedle", "oba"):
         return
-    for selection in json.loads((REGIONS / "osiedle.json").read_text())["characters"]:
+    characters = json.loads((REGIONS / "osiedle.json").read_text())["characters"]
+    for selection in characters:
         target = CEL / "Postacie" / selection["id"]
         if valid(target, selection) or (PACZKI / (selection["package"] + ".tar.gz.enc")).is_file():
             continue
@@ -72,6 +73,9 @@ def przygotuj():
             odczytaj(archive, selection, staged)
             zainstaluj(staged, target)
             print(f"Sprawdzono model i animacje: {selection['id']} {selection['version']}")
+
+    from gym import przygotuj_gym
+    przygotuj_gym([character["id"] for character in characters])
 
 
 if __name__ == "__main__":

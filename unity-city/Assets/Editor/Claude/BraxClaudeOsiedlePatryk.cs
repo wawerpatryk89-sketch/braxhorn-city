@@ -131,9 +131,12 @@ public static partial class BraxClaudeOsiedle
             // --- klipy przeniesione na kości Patryka ---
             var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek) };
             var opis = new List<string>();
-            foreach (var k in KlipyPatryka)
+            var gym = BraxGymProfiles.For("patryk").Select(id =>
+                PK("Gym" + id, false, true, BraxGymProfiles.PlayerClips + id + ".fbx"));
+            foreach (var k in KlipyPatryka.Concat(gym))
             {
-                string sciezka = PatrykRuchy + "/" + k.zrodla[0];
+                string sciezka = k.zrodla[0].StartsWith("Assets/", StringComparison.Ordinal)
+                    ? k.zrodla[0] : PatrykRuchy + "/" + k.zrodla[0];
                 var gotowy = PatrykBezposrednio(hero, hips, kosci, spoczynek, sciezka, k, out string uwagi);
                 if (!gotowy) throw new InvalidOperationException("Brak wymaganego ruchu Patryka: " + k.nazwa);
                 klipy.Add(gotowy);
