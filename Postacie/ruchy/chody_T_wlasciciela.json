@@ -1,0 +1,38 @@
+{
+  "zakres": "Chód codzienny postaci T",
+  "source": "Chody_T_wlasciciela_5.zip",
+  "release_id": 443180649,
+  "archive_sha256": "ec7b209d00a6a8a3607f8c706dd5f7b4e68c04130f8f671215e0350b6b96848e",
+  "clips": [
+    {
+      "file": "Walking (1).fbx",
+      "sha256": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+      "fps": 60.0,
+      "duration_seconds": 1.033333
+    },
+    {
+      "file": "Walking (2).fbx",
+      "sha256": "f3f0e33e19c4352df69879b78190e4ecbb55d2e51c2b4e1e9ee463b771d17322",
+      "fps": 60.0,
+      "duration_seconds": 0.95
+    },
+    {
+      "file": "Walking (3).fbx",
+      "sha256": "4f44bf894d84111087add8a7203d1d4716d68b30bb627189060625823bc16f1c",
+      "fps": 60.0,
+      "duration_seconds": 1.033333
+    },
+    {
+      "file": "Walking (4).fbx",
+      "sha256": "e108ae5fcdcdff101776c23420a6ae9e2d73785cb6f03337699bb798e1c869b5",
+      "fps": 60.0,
+      "duration_seconds": 1.016667
+    },
+    {
+      "file": "Strut Walking.fbx",
+      "sha256": "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+      "fps": 60.0,
+      "duration_seconds": 1.433333
+    }
+  ]
+}

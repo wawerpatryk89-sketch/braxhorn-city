@@ -4,7 +4,19 @@
 
 Dziewięć dzisiejszych dostaw rozszerza bazę T ze 110 do 197 różnych ruchów. Archiwum zawiera też trzy starsze klipy w referencyjnej pozie T użyte w obsadzie (spoczynek, wstawanie oraz piłka). Każdy plik zawiera animowany szkielet. Wydzielanie animacji zachowuje klucze i ustawienia kości. W katalogu zapisano pochodzenie każdego wariantu. Paczka A jest przechowywana osobno.
 
-## Próba w Blenderze na Gitarze
+## Chód codzienny postaci T
+
+Do chodu codziennego właściciel wybrał pięć plików z dostawy 14 listopada o 19:49. Źródła i ich sumy SHA-256 są w [katalogu dozwolonych chodów](chody_T_wlasciciela.json). Używaj tego katalogu przy przygotowywaniu kolejnych postaci. Starszy plik o nazwie Walking (3) ma inny ruch i inną sumę. W nowej dostawie Walking (1) i Walking (3) mają jednakowe klucze animacji i trajektorię bioder. Zostały zachowane pod dwiema nazwami właściciela.
+
+[Oryginalne FBX](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Chody_T_wlasciciela_5.zip) · [Pięć chodów na Gitarze w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Gitara_5_chodow_T.blend) · [Film z przodu i z boku](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Gitara_5_chodow_T.mp4)
+
+Poniższe polecenie odtwarza próbę na jednym modelu. Wybór domyślnego wariantu dla danej postaci należy do właściciela. Próbę renderowano w Blenderze 4.3.2.
+
+```sh
+blender -b --python-exit-code 1 -P unity-tools/claude/proba_chodow_t.py -- Gitara.blend Chody_T_wlasciciela_5.zip Gitara_5_chodow_T.blend
+```
+
+## Archiwalna próba Rokoko na Gitarze
 
 Właściciel odrzucił wygląd postaci na dotychczasowych podglądach Unity. Liczba odtworzonych klipów poniżej opisuje zakres testu. Odbiór wizualny 14 postaci pozostaje otwarty.
 

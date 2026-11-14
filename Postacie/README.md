@@ -1,6 +1,6 @@
 # Postacie BRAXHORN CITY
 
-Najnowsza próba na Gitarze obejmuje chód, rozmowę i machanie. [Projekt 2K, zdjęcia i film z Blendera](ruchy/#próba-w-blenderze-na-gitarze)
+[Pięć chodów wskazanych przez właściciela, projekt Gitary i film](ruchy/#chód-codzienny-postaci-t)
 
 Właściciel odrzucił wcześniejsze podglądy Unity. [Archiwalne zdjęcia 14 postaci (PDF)](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Braxhorn_Postacie_T_role_14.pdf) · [Pełne klatki i rejestr odtworzonych ruchów](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Podglady_Unity_T_43620556579_1.zip)
 
