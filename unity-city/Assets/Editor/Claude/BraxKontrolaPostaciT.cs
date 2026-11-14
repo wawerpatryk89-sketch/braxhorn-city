@@ -144,6 +144,7 @@ public static class BraxKontrolaPostaciT
             var rows = new List<string> {"sekunda,strona,kierunek_dloni_stopnie,normalna_dloni_stopnie,udo_stopnie,lydka_stopnie,stopa_stopnie"};
             var first = dst.ToDictionary(pair => pair.Key, pair => pair.Value.localRotation);
             float maxChange = 0f;
+            var vectors = new List<string> {"faza,strona,odcinek,postac_prawo,postac_gora,postac_przod,humanoid_prawo,humanoid_gora,humanoid_przod"};
             for (int i = 0; i < 32; i++)
             {
                 float t = source.length * i / 32f;
@@ -156,7 +157,9 @@ public static class BraxKontrolaPostaciT
                     float Angle(string a, string b)
                     {
                         Vector3 Direction(Dictionary<string, Transform> m) => InBodySpace(m[side + b].position - m[side + a].position, m);
-                        return Vector3.Angle(Direction(src), Direction(dst));
+                        Vector3 u = Direction(dst), v = Direction(src);
+                        vectors.Add(FormattableString.Invariant($"{i},{side},{b},{u.x:F5},{u.y:F5},{u.z:F5},{v.x:F5},{v.y:F5},{v.z:F5}"));
+                        return Vector3.Angle(v, u);
                     }
                     float thigh = Angle("UpLeg", "Leg"), shin = Angle("Leg", "Foot"), foot = Angle("Foot", "ToeBase");
                     var leg = side + "UpLeg";
@@ -166,6 +169,7 @@ public static class BraxKontrolaPostaciT
                 }
             }
             File.WriteAllLines(Path.Combine(output, id + "_" + action + ".csv"), rows);
+            File.WriteAllLines(Path.Combine(output, id + "_" + action + "_wektory.csv"), vectors);
             if (maxChange < 1f) throw new InvalidDataException(id + "/" + action + ": nieruchome nogi");
         }
         finally { graph.Destroy(); Object.DestroyImmediate(reference); }
