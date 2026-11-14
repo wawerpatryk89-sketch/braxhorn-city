@@ -4,7 +4,24 @@
 
 Dziewięć dzisiejszych dostaw rozszerza bazę T ze 110 do 197 różnych ruchów. Archiwum zawiera też trzy starsze klipy w referencyjnej pozie T użyte w obsadzie (spoczynek, wstawanie oraz piłka). Każdy plik zawiera animowany szkielet. Wydzielanie animacji zachowuje klucze i ustawienia kości. W katalogu zapisano pochodzenie każdego wariantu. Paczka A jest przechowywana osobno.
 
-## Przygotowanie postaci
+## Próba w Blenderze na Gitarze
+
+Właściciel odrzucił wygląd postaci na dotychczasowych podglądach Unity. Liczba odtworzonych klipów poniżej opisuje zakres testu. Odbiór wizualny 14 postaci pozostaje otwarty.
+
+W Blenderze 4.3.2 z oficjalnym dodatkiem Rokoko Studio Live 1.4.4 sprawdzono na oryginalnym modelu Gitary trzy klipy z paczki T, wybrane z jej profilu. Powstały zdjęcia rozmowy i machania oraz film z chodem z dwóch stron. Projekt do sprawdzenia zawiera trzy osobne akcje i osadzone tekstury do 2048 px. Otwórz wersję z przyrostkiem **2K**. Zachowuje czas trwania wszystkich trzech źródeł przy wspólnej osi czasu 60 kl./s. Oglądane pozy pochodzą z Blendera. Ta próba wymaga jeszcze sprawdzenia po imporcie do gry.
+
+[Projekt Gitary 2K](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Gitara_Rokoko_3_ruchy_2K.blend) · [Film](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Gitara_Rokoko_chod.mp4) · [Gesty](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Gitara_Rokoko_gesty.jpg) · [Fazy chodu](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Gitara_Rokoko_chod.jpg)
+
+[Skrypt wsadowy Blendera](../../unity-tools/claude/rokoko_postacie_t.py) odczytuje model i profil roli. Weryfikuje SHA-256 klipu, mapuje kości względem pozy referencyjnej T i korzysta z dodatku na roboczej kopii szkieletu. Zapisuje rotacje i przemieszczenie bioder jako oddzielną akcję. Dla każdego ruchu porównuje współrzędne wierzchołków, wagi skóry i macierze kości w pozie wiązania przed przeniesieniem ruchu i po nim. Spójność tych danych i wygląd animowanego modelu to dwie osobne kontrole. [Instrukcja producenta](https://support.rokoko.com/hc/en-us/articles/4410463481489-Retarget-an-animation-in-Blender)
+
+Przykład dla Blendera z włączonym dodatkiem. Podaj rozpakowany FBX modelu, wspólną paczkę T, katalog ruchów, identyfikator postaci i nową ścieżkę wyjściową. Opcja `--ruchy` ogranicza wybór do wskazanych stanów. Bez tej opcji skrypt przetwarza wpisy w profilu tej postaci.
+
+```sh
+blender -b --python-exit-code 1 -P unity-tools/claude/rokoko_postacie_t.py -- \
+  Gitara.fbx Pozycja_T_animacje_20261114.zip Postacie/ruchy/mixamo.json gitara Gitara_2K.blend --ruchy Walk Talk Wave
+```
+
+## Przygotowanie postaci w Unity
 
 Po rozpakowaniu modelu użyj z katalogu głównego repozytorium polecenia poniżej. Podaj identyfikatory postaci i lokalną wspólną paczkę. Przygotowanie Osiedla wykonuje ten krok również w CI.
 
