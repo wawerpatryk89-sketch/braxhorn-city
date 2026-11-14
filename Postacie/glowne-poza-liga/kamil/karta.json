@@ -1,0 +1,48 @@
+{
+  "id": "kamil",
+  "nazwa": "Kamil",
+  "wersja": "2026-11-14.2",
+  "paczka": "Kamil_globalny_Unity.zip",
+  "podglad": "Kamil_26_ruchow.jpg",
+  "role": [
+    "uliczny-zadymiarz"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "ulica",
+    "dyskoteka"
+  ],
+  "liczba_klipow": 26,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "1ba488c4af48213f32fd752d988dc1bffa421080b9b1ac0d1dd260396010f6bc",
+  "pliki": {
+    "unity": {
+      "nazwa": "Kamil_globalny_Unity.zip",
+      "sha256": "c9c81d2d1a059a3e7a6d777b71fbb1d07088cce53c22997d6a6fb873e608652b",
+      "bajty": 36511652,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Kamil_globalny_Unity.zip"
+    },
+    "model_zrodlowy": {
+      "nazwa": "kamil2.zip",
+      "sha256": "95814772d60e88542648dbd034ac10d6604044f89a006f49183437c636fb36ee",
+      "bajty": 40663277,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/kamil2.zip"
+    },
+    "blender": {
+      "nazwa": "Kamil_26_ruchow.blend",
+      "sha256": "25bad4cb2c0d8889d6c23681b8beb297e6bf59f33544225305f78e185ed7a222",
+      "bajty": 42424373,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Kamil_26_ruchow.blend"
+    },
+    "podglad": {
+      "nazwa": "Kamil_26_ruchow.jpg",
+      "sha256": "1bbe6c6bfc0398dc3983345caccbe80e636e531aee824ca34c3fb4ed043e9e8c",
+      "bajty": 221040,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Kamil_26_ruchow.jpg"
+    }
+  }
+}

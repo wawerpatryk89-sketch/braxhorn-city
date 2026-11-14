@@ -34,8 +34,14 @@ def odczytaj(zip_path, selection, target):
         if hashlib.file_digest(source, "sha256").hexdigest() != selection["draft_asset"]["sha256"]:
             raise ValueError("Niepoprawna suma ZIP-a " + selection["id"])
     prefix = f"unity-city/Assets/Source/Prywatne/Postacie/{selection['id']}/"
+    # Complete Unity downloads also contain installation notes and shared scripts already tracked in Git.
+    extras = {"CZYTAJ.txt"}
+    for script in ("Claude/Runtime/BraxResidentMotion.cs", "Editor/Claude/BraxGitaraSetup.cs"):
+        extras.update(("unity-city/Assets/" + script, "unity-city/Assets/" + script + ".meta"))
     with ZipFile(zip_path) as z:
         for item in z.infolist():
+            if item.filename in extras:
+                continue
             if not item.filename.startswith(prefix):
                 raise ValueError("Plik spoza katalogu postaci")
             out = target / item.filename[len(prefix):]

@@ -1,16 +1,6 @@
 # Postacie BRAXHORN CITY
 
-## Katalog postaci według roli
-
-| Dział | Obsada |
-| --- | --- |
-| [Liga](postacie/liga/) | Zawodnicy ligi z indywidualnymi stylami walki. |
-| [Główne poza ligą](postacie/glowne-poza-liga/) | [Gitara](postacie/glowne-poza-liga/gitara/karta.json) i [Kiler](postacie/glowne-poza-liga/kiler/karta.json). |
-| [Uliczni zadymiarze](postacie/uliczni-zadymiarze/) | Postacie do bójek ulicznych; do tej roli należą też Gitara i Kiler. |
-| [Dyskoteka](postacie/dyskoteka/) | Goście parkietu i postacie spotykane na imprezach. |
-| [Mieszkańcy](postacie/mieszkancy/) | Przechodnie i mieszkańcy z codziennymi czynnościami. |
-| [Usługi](postacie/uslugi/) | [Barmani](postacie/uslugi/barmani/), [kelnerzy](postacie/uslugi/kelnerzy/), [recepcja](postacie/uslugi/recepcja/) i [ratownicy](postacie/uslugi/ratownicy/). |
-| [Grywalni](postacie/grywalni/) | [Patryk](postacie/grywalni/patryk/karta.json) — gracz Osiedla. |
+[Katalog postaci z podkategoriami i plikami](../../../Postacie/)
 
 Kolejną postać wpisuj do osobnego folderu w dziale odpowiadającym roli podanej przez właściciela. Jedna postać ma jedną kartę i stały identyfikator. Przy zmianie kategorii przenosi się kartę. Obsadę rejonu określa osobny plik, np. [Osiedle](osiedle.json).
 
@@ -26,6 +16,6 @@ Dla każdego modelu prywatny pakiet ma katalog postaci z plikiem postac.json. We
 
 Dla Patryka z 13 listopada CI przyjmuje również oryginalny plik `Patryk_globalny_13-11_Unity.zip` dodany jako załącznik do prywatnego szkicu `postacie-globalne-20261112`. Wydanie musi pozostać szkicem. Przed importem sprawdzane są SHA-256 ZIP-a, manifestu oraz plików modelu, tekstur i ruchów. Identyfikator wydania i oczekiwane sumy zapisuje obsada Osiedla.
 
-Gitara i Kiler należą do głównych postaci spoza ligi. Są dostępni do obsadzenia w całej grze, m.in. na ulicy i na imprezach. Rejon wybiera postać po jej stałym identyfikatorze. Miejsce i moment konkretnego spotkania określa się przy obsadzaniu rejonu.
+Gitara, Kiler i Kamil należą do głównych postaci spoza ligi. Są dostępni do obsadzenia w całej grze, m.in. na ulicy i na imprezach. Rejon wybiera postać po jej stałym identyfikatorze. Miejsce i moment konkretnego spotkania określa się przy obsadzaniu rejonu.
 
-Obie postacie mają po 26 ruchów w osobnych kontrolerach, w tym pięć ciosów, dwa tańce, picie, chwianie, chód i obrót po alkoholu. Kolejne ruchy indywidualne dopisuje się do kontrolera wybranej postaci. Inne postacie nadal korzystają z dotychczasowych klipów.
+Wszystkie trzy postacie mają po 26 ruchów w osobnych kontrolerach, w tym pięć ciosów, dwa tańce, picie, chwianie, chód i obrót po alkoholu. Kolejne ruchy indywidualne dopisuje się do kontrolera wybranej postaci. Inne postacie nadal korzystają z dotychczasowych klipów.

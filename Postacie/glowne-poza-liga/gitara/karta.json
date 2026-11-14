@@ -1,0 +1,48 @@
+{
+  "id": "gitara",
+  "nazwa": "Gitara",
+  "wersja": "2026-11-14.2",
+  "paczka": "Gitara_globalny_Unity.zip",
+  "podglad": "Gitara_26_ruchow.jpg",
+  "role": [
+    "uliczny-zadymiarz"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "ulica",
+    "dyskoteka"
+  ],
+  "liczba_klipow": 26,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "01dfb964cd20fe2153b774600d7d789adbef6a63ae9413f892888561592de468",
+  "pliki": {
+    "unity": {
+      "nazwa": "Gitara_globalny_Unity.zip",
+      "sha256": "b02f60105b80cf68c2064378f5a4c644aabd5984a7df6bdc31da6f5656bb30ff",
+      "bajty": 68736009,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Gitara_globalny_Unity.zip"
+    },
+    "model_zrodlowy": {
+      "nazwa": "gitara.zip",
+      "sha256": "4fe297089ff7f3e7550c84f89c967d8317f5004d118a31fcd72ad3cc0b61b9ec",
+      "bajty": 63843549,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/gitara.zip"
+    },
+    "blender": {
+      "nazwa": "Gitara_26_ruchow.blend",
+      "sha256": "3e3c77c99ac9c69741c31c13f319fef0695a2a3551333fecead8f94d98c6173d",
+      "bajty": 73734271,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Gitara_26_ruchow.blend"
+    },
+    "podglad": {
+      "nazwa": "Gitara_26_ruchow.jpg",
+      "sha256": "0f705e7696090bba7dfcb1a5bcd25ce7ea011b19f0efb1be14610a84b99b8897",
+      "bajty": 250185,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Gitara_26_ruchow.jpg"
+    }
+  }
+}
