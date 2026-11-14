@@ -7,3 +7,5 @@ Właściciel przekazuje po jednej postaci, określa jej rolę oraz rejony. Kolej
 Wspólne archiwa źródeł A/T służą do doboru ruchów. Przed użyciem sprawdza się pozę, nazwy kości, oryginalne wiązanie siatki i przebieg ruchu na konkretnej postaci. Podgląd w Blenderze i odbiór w scenie Unity zapisuje się oddzielnie. Czynności z brakującym źródłem są otwarte.
 
 Dla każdego modelu prywatny pakiet ma katalog postaci z plikiem postac.json. Wersję oraz sumę SHA-256 manifestu zapisuje się w obsadzie. Lokalne źródła Unity znajdują się pod Assets/Source/Prywatne/Postacie/<id>. W CI służy do tego zaszyfrowana paczka postaci. Surowe FBX pozostają prywatne.
+
+Dla Patryka z 13 listopada CI przyjmuje również oryginalny plik `Patryk_globalny_13-11_Unity.zip` dodany jako załącznik do prywatnego szkicu `postacie-globalne-20261112`. Wydanie musi pozostać szkicem. Przed importem sprawdzane są SHA-256 ZIP-a, manifestu oraz plików modelu, tekstur i ruchów. Identyfikator wydania i oczekiwane sumy zapisuje obsada Osiedla.

@@ -22,6 +22,18 @@ def valid(directory, selection):
                     for path, expected in model["files"].items()))
 
 
+def zainstaluj(staged, directory):
+    previous = staged.parent / "previous"
+    if directory.exists():
+        directory.rename(previous)
+    try:
+        staged.rename(directory)
+    except OSError:
+        if previous.exists():
+            previous.rename(directory)
+        raise
+
+
 def przygotuj_obsade(region, target, decrypt):
     cast = json.loads((REGIONS / (region + ".json")).read_text())
     if cast["player"] not in {c["id"] for c in cast["characters"]}:
@@ -47,12 +59,4 @@ def przygotuj_obsade(region, target, decrypt):
                     shutil.copyfileobj(src, dst)
             if not valid(staged, selection):
                 raise ValueError("Paczka nie odpowiada obsadzie rejonu: " + selection["id"])
-            previous = Path(tmp) / "previous"
-            if directory.exists():
-                directory.rename(previous)
-            try:
-                staged.rename(directory)
-            except OSError:
-                if previous.exists():
-                    previous.rename(directory)
-                raise
+            zainstaluj(staged, directory)

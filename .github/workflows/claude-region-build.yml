@@ -126,6 +126,11 @@ jobs:
       run: |
         python3 unity-tools/check_webgl_bridges.py
         python3 unity-tools/kickboxing/package.py --check-template
+    - name: Sprawdź i przygotuj prywatne postacie wybranego rejonu
+      env:
+        GH_TOKEN: ${{ github.token }}
+        WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
+      run: python3 unity-tools/claude/pobierz_obsade.py
     - name: Receive durable SHA-verified original Unity imports
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
@@ -442,6 +447,11 @@ jobs:
       run: |
         python3 unity-tools/check_webgl_bridges.py
         python3 unity-tools/kickboxing/package.py --check-template
+    - name: Sprawdź i przygotuj prywatne postacie wybranego rejonu
+      env:
+        GH_TOKEN: ${{ github.token }}
+        WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
+      run: python3 unity-tools/claude/pobierz_obsade.py
     - name: Receive durable SHA-verified original Unity imports
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:

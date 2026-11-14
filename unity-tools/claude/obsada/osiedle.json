@@ -5,7 +5,13 @@
       "id": "patryk",
       "version": "2026-11-13",
       "package": "postac_patryk_20261113",
-      "manifest_sha256": "22350070cc2d0537cbc94937d68c8b41eb1480e3a457aad639cc5ac407a275c7"
+      "manifest_sha256": "22350070cc2d0537cbc94937d68c8b41eb1480e3a457aad639cc5ac407a275c7",
+      "draft_asset": {
+        "release_id": 443180649,
+        "tag": "postacie-globalne-20261112",
+        "name": "Patryk_globalny_13-11_Unity.zip",
+        "sha256": "30ff44d34c5c45b1a8876e1266396b57faca6537e6d6f73600f152f6cea06887"
+      }
     }
   ]
 }
