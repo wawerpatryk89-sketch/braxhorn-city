@@ -1,0 +1,65 @@
+{
+  "id": "zadymiarz_163dca80",
+  "nazwa": "Uliczny zadymiarz w skórzanej kurtce",
+  "wersja": "2026-11-14.1",
+  "paczka": "Zadymiarz163dca80_T_Unity_20261114.zip",
+  "role": [
+    "uliczny_zadymiarz"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "ulica"
+  ],
+  "rejony": [],
+  "walka": true,
+  "ataki": [
+    "Jab",
+    "Cross",
+    "Hook",
+    "SideKick",
+    "Knee"
+  ],
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "Jump",
+    "CombatIdle",
+    "Jab",
+    "Cross",
+    "Hook",
+    "SideKick",
+    "Knee",
+    "Dodge",
+    "Block",
+    "HitHead",
+    "HitBody"
+  ],
+  "liczba_klipow_T": 20,
+  "limit_tekstur": 2048,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#zadymiarz_163dca80",
+  "zrodlo": "tripo_convert_163dca80-d777-46e0-884f-24d4b26ac9e0.fbx",
+  "model_sha256": "13eb66878194fa46f6da66dced401aa725fbad66256e2e9ffd750daf5237a7fb",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "c1b3bc914d5431bfc6e498d13506119c13d4fd4333ec8ecee50c3938cefe9888",
+  "pliki": {
+    "unity": {
+      "nazwa": "Zadymiarz163dca80_T_Unity_20261114.zip",
+      "bajty": 30373443,
+      "sha256": "c838774716b4cc8504dafcd5e23477d1d992dcf0c8a6be564f36103c483b9cd9",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Zadymiarz163dca80_T_Unity_20261114.zip"
+    }
+  }
+}
