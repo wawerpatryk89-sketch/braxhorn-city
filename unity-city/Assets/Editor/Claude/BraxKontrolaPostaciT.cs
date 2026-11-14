@@ -45,13 +45,18 @@ public static class BraxKontrolaPostaciT
                 }
                 var legacy = instance.GetComponent<Animation>();
                 var profileClips = BraxMixamoT.Read(id);
-                var actions = new[] { "Idle", "Walk", "Run", "Wave", "Jab", "Punch" }.Where(profileClips.ContainsKey);
+                var visible = new HashSet<string> { "Idle", "Walk", "Run", "TrainingJog", "Wave", "Jab", "Punch",
+                    "Talk", "SitDown", "StandUp", "Helm", "Swim", "KickBall", "DanceHouse" };
+                var actions = profileClips.Keys.Concat(BraxGymProfiles.For(id).Select(n => "Gym" + n)).ToArray();
+                var previewDirection = PreviewDirection(AssetDatabase.LoadAssetAtPath<GameObject>(path));
+                var checkedClips = new List<string>();
                 var skins = instance.GetComponentsInChildren<SkinnedMeshRenderer>();
                 if (skins.Length == 0) throw new InvalidDataException("Brak skóry");
                 foreach (string action in actions)
                 {
                     AnimationClip clip = legacy ? legacy.GetClip(action) :
-                        animator.runtimeAnimatorController.animationClips.First(c => c.name.StartsWith(action + "_", StringComparison.Ordinal));
+                        ((UnityEditor.Animations.AnimatorController)animator.runtimeAnimatorController).layers[0].stateMachine.states
+                            .Single(s => s.state.name == action).state.motion as AnimationClip;
                     if (!clip || clip.length <= 0) throw new InvalidDataException(action);
                     var graph = PlayableGraph.Create("QA");
                     try
@@ -75,16 +80,28 @@ public static class BraxKontrolaPostaciT
                             var source = BraxMixamoT.Load(profileClips[action], action, true);
                             MeasureHands(instance, profileClips[action], source, id, action, Sample, output);
                         }
-                        for (int i = 0; i < 5; i++)
+                        bool full = visible.Contains(action);
+                        int samples = full ? 5 : 3;
+                        bool finite = true;
+                        foreach (var skin in skins) skin.updateWhenOffscreen = true;
+                        for (int i = 0; i < samples; i++)
                         {
-                            float t = clip.length * i / 5f;
+                            float t = clip.length * i / samples;
                             Sample(t);
-                            Capture(instance, skins, output, id, action, i);
+                            foreach (var skin in skins)
+                                foreach (var bone in skin.bones)
+                                    if (!bone || float.IsNaN(bone.position.sqrMagnitude) || float.IsInfinity(bone.position.sqrMagnitude))
+                                        finite = false;
+                            if (full || i == 1)
+                                Capture(skins, previewDirection, output, id, action, i);
                         }
+                        if (!finite) throw new InvalidDataException(id + "/" + action + ": błędne położenie kości");
+                        checkedClips.Add(action);
                     }
                     finally { graph.Destroy(); }
                 }
-                Debug.Log("POSTAC_T_RENDER " + id);
+                File.WriteAllLines(Path.Combine(output, id + "_sprawdzone.txt"), checkedClips);
+                Debug.Log("POSTAC_T_RENDER " + id + " klipy=" + checkedClips.Count);
             }
             catch (Exception e) { errors.Add(id + " " + e.Message); Debug.LogError(id + " " + e); }
             finally { if (instance) Object.DestroyImmediate(instance); if (player) Object.DestroyImmediate(player); }
@@ -175,7 +192,20 @@ public static class BraxKontrolaPostaciT
         finally { graph.Destroy(); Object.DestroyImmediate(reference); }
     }
 
-    static void Capture(GameObject actor, SkinnedMeshRenderer[] skins, string output, string id, string action, int index)
+    // The source model supplies one stable camera angle for every phase, even when
+    // a sprinter's airborne toes point behind the body.
+    static Vector3 PreviewDirection(GameObject model)
+    {
+        var bones = BoneMap(model);
+        Vector3 across = Vector3.ProjectOnPlane(bones["RightUpLeg"].position - bones["LeftUpLeg"].position, Vector3.up).normalized;
+        Vector3 front = Vector3.Cross(across, Vector3.up);
+        Vector3 toes = (bones["LeftToeBase"].position - bones["LeftFoot"].position) +
+            (bones["RightToeBase"].position - bones["RightFoot"].position);
+        if (Vector3.Dot(front, toes) < 0) front = -front;
+        return (front + across * .4f + Vector3.up * .08f).normalized;
+    }
+
+    static void Capture(SkinnedMeshRenderer[] skins, Vector3 direction, string output, string id, string action, int index)
     {
         var meshes = new List<Mesh>();
         var preview = new PreviewRenderUtility();
@@ -206,15 +236,6 @@ public static class BraxKontrolaPostaciT
             camera.orthographicSize = bounds.extents.y * 1.18f;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(.26f, .29f, .32f);
-            Vector3 direction = new Vector3(.4f, .08f, 1).normalized;
-            var landmarks = BoneMap(actor);
-            Vector3 across = landmarks["RightUpLeg"].position - landmarks["LeftUpLeg"].position;
-            Vector3 front = Vector3.Cross(across.normalized, Vector3.up);
-            Vector3 toes = (landmarks["LeftToeBase"].position - landmarks["LeftFoot"].position) +
-                (landmarks["RightToeBase"].position - landmarks["RightFoot"].position);
-            if (Vector3.Dot(front, toes) < 0) front = -front;
-            if (front.sqrMagnitude > .0001f)
-                direction = (front.normalized + across.normalized * .4f + Vector3.up * .08f).normalized;
             camera.transform.position = bounds.center + direction * bounds.size.magnitude * 2f;
             camera.transform.LookAt(bounds.center);
             camera.nearClipPlane = .001f;
