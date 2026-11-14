@@ -45,7 +45,7 @@ class Bezposrednio(unittest.TestCase):
 
     def test_zly_szkielet_nie_daje_klipu(self):
         m = metoda(B, "static AnimationClip PatrykBezposrednio(")
-        self.assertIn("if (dopasowane < 40) throw", m)                 # wtedy zapasowy ruch, nie T-poza
+        self.assertIn("if (dopasowane != bones.Count) throw", m)                 # wtedy zapasowy ruch, nie T-poza
         self.assertIn("if (clip.humanMotion) throw", m)
 
     def test_bez_latania_skutkow_humanoid(self):

@@ -348,30 +348,19 @@ def patryk_i_ruchy():
         print("BRAXHORN_PRYWATNE brak klucza — prywatne postacie niezaimportowane")
         return
     if osiedle_build:
-        from import_patryk_transfer import restore
-        restore()
-        # 10.11 (właściciel): ruchy Patryka z jego paczki „Patryk anima(6).zip” (22 FBX, SHA-256 z manifestu,
-        # szyfr RSA+AES w unity-city/Prywatne/import-patryk-animations-20261106) → ruchy/patryk_owner.
-        # Klipy Walk/Run/Jump/EnteringCar biorą je jako pierwsze (BraxClaudeOsiedlePatryk.KlipyPatryka);
-        # brak paczki = głośna uwaga w logu i stare ruchy jako zapas, build idzie dalej.
-        try:
-            from import_patryk_owner_22 import install as install_patryk_owner_22
-            n = len(install_patryk_owner_22(CEL / "ruchy"))
-            print(f"BRAXHORN_PATRYK_OWNER_22 ruchy właściciela w ruchy/patryk_owner: {n}/22")
-        except Exception as e:
-            shutil.rmtree(CEL / "ruchy" / "patryk_owner", ignore_errors=True)
-            print(f"BRAXHORN_PATRYK_OWNER_22 DO POPRAWKI: {type(e).__name__}: {e} — Patryk na starych ruchach")
+        from postacie_rejonu import przygotuj_obsade
+        przygotuj_obsade("osiedle", CEL, odszyfruj)
     staging = pathlib.Path(tempfile.mkdtemp(prefix="braxhorn-prywatne-", dir=os.environ.get("RUNNER_TEMP") or None))
     ok = []
     try:
-        for nazwa in ("patryk", "ruchy_brax", "ruchy_wlasciciela"):
+        for nazwa in (("ruchy_brax", "ruchy_wlasciciela") if osiedle_build else ("patryk", "ruchy_brax", "ruchy_wlasciciela")):
             tar = odszyfruj(nazwa)
             if tar is None:
                 continue
             with tar:
                 n = rozpakuj(tar, staging)
             ok.append(f"{nazwa}({n})")
-        patryk = przygotuj_patryka(staging) if osiedle_build else przygotuj_patryka_miasto(staging)
+        patryk = osiedle_build or przygotuj_patryka_miasto(staging)
         ruchy = 0
         if patryk:
             for grupa, pliki in RUCHY_DO_UNITY.items():

@@ -1,0 +1,11 @@
+{
+  "player": "patryk",
+  "characters": [
+    {
+      "id": "patryk",
+      "version": "2026-11-13",
+      "package": "postac_patryk_20261113",
+      "manifest_sha256": "22350070cc2d0537cbc94937d68c8b41eb1480e3a457aad639cc5ac407a275c7"
+    }
+  ]
+}

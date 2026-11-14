@@ -81,7 +81,7 @@ public static partial class BraxClaudeOsiedle
                 }
                 positions[i] = hips.localPosition;
             }
-            if (dopasowane < 40) throw new InvalidOperationException("Szkielet źródła nie pasuje do Patryka: " + dopasowane + " kości wspólnych (" + path + ")");
+            if (dopasowane != bones.Count) throw new InvalidOperationException("Szkielet źródła nie pasuje do Patryka: " + dopasowane + " kości wspólnych (" + path + ")");
             var result = new AnimationClip { name = spec.nazwa, legacy = true, frameRate = 30, wrapMode = spec.petla ? WrapMode.Loop : WrapMode.Once };
             for (int b = 0; b < bones.Count; b++)
             {

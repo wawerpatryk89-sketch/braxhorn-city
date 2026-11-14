@@ -13,7 +13,7 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
 {
     const string Katalog = "Assets/Source/Prywatne/";
 
-    public override uint GetVersion() { return 6; }
+    public override uint GetVersion() { return 7; }
 
     void OnPreprocessModel()
     {
@@ -24,7 +24,7 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
         mi.materialImportMode = ModelImporterMaterialImportMode.None;
         mi.importCameras = false; mi.importLights = false; mi.importBlendShapes = false; mi.importVisibility = false;
         mi.useFileScale = true; mi.globalScale = 1f;
-        if (assetPath.StartsWith(Katalog + "patryk/"))
+        if (assetPath == Katalog + "Postacie/patryk/Patryk.fbx" || assetPath.StartsWith(Katalog + "patryk/"))
         {
             mi.animationType = ModelImporterAnimationType.Human;
             mi.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
@@ -33,7 +33,7 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
             mi.isReadable = true;                                   // pomiar wzrostu z wierzchołków (10 tys. — ~1 MB, bez znaczenia)
             mi.importTangents = ModelImporterTangents.CalculateMikk;  // mapa normalnych w Braxhorn/HeroPremium
         }
-        else if (assetPath.StartsWith(Katalog + "ruchy/patryk_owner/"))
+        else if (assetPath.StartsWith(Katalog + "Postacie/patryk/Ruchy/") || assetPath.StartsWith(Katalog + "ruchy/patryk_owner/"))
         {
             mi.animationType = ModelImporterAnimationType.Generic;
             mi.avatarSetup = ModelImporterAvatarSetup.NoAvatar;

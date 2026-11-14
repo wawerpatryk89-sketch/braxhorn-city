@@ -7,43 +7,52 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
-// Patryk: wymagany gracz osiedla. Wysokość na ekranie pozostaje taka jak w buildzie 41.
-// Prywatne modele i animacje są odszyfrowywane wyłącznie przez istniejący krok CI.
-// Źródła i model są Humanoid; Unity przenosi anatomiczną pozę i zapisuje klipy Legacy
-// dla BraxGymPlayer. Oryginalna hierarchia i bindposes zostają zachowane.
-// Idle = spokojna poza modelu (bez gardy — ruchów walki w paczce Patryka nie ma). Błąd zatrzymuje build.
+// Patryk z globalnej biblioteki postaci, obsadzony jako gracz Osiedla.
 public static partial class BraxClaudeOsiedle
 {
     public const string PrywatneZrodla = "Assets/Source/Prywatne";
-    const string PatrykKatalog = PrywatneZrodla + "/patryk", PatrykRuchy = PrywatneZrodla + "/ruchy", PatrykWynik = "Assets/PlayableGenerated/Patryk";
+    const string PatrykKatalog = PrywatneZrodla + "/Postacie/patryk", PatrykRuchy = PatrykKatalog, PatrykWynik = "Assets/PlayableGenerated/Patryk_20261113";
     // Dokładny wzrost postaci gracza (siatka w pozie spoczynkowej × skala) — ZmierzBohatera bierze go zamiast bounds.
     public static float WzrostZModelu = float.NaN;
     public const float WzrostPatrykaWGrze = 2.33f;   // właściciel 3.11: Patryk 1,80 m = Brax 1,80 m = 2,33 w grze (K = 1,294), wyglądają tak samo
 
     struct PatrykKlip { public string nazwa; public bool petla, wMiejscu; public string[] zrodla; }
     static PatrykKlip PK(string n, bool petla, bool wMiejscu, params string[] z) => new PatrykKlip { nazwa = n, petla = petla, wMiejscu = wMiejscu, zrodla = z };
-    // Kolejność kandydatów = pierwszeństwo (pierwszy = ten sam ruch co u Braxa). Pliki muszą być na liście RUCHY_DO_UNITY
-    // w unity-tools/claude/prywatne.py. wMiejscu = bez dryfu bioder w poziomie (Mixamo bez „In Place”; u Braxa chód, bieg
-    // i Kicking były w miejscu — przesuwa gracza fizyka BraxGymPlayer).
-    // 10.11 (właściciel): Patryk ma chodzić, biegać, skakać i wsiadać do auta ruchami z JEGO paczki „Patryk anima(6).zip”
-    // (22 FBX, import_patryk_owner_22.py → ruchy/patryk_owner). Źródła Humanoid przenoszone przez Unity (HumanPoseHandler)
-    // na oryginalne kości Patryka — nie surowe krzywe Mixamo (build Codexa 5.11: „brak krzywych Hips” → T-poza i drganie).
-    // Stare ruchy zostają tylko jako zapas, gdy paczki właściciela nie ma.
-    const string RuchyWlasciciela = "patryk_owner/";
-    // 10.11 19:58 (właściciel): „Wypierdalaj te ruchy Braxa … puść od nowa z jego animacjami, się żegnamy!” — Brax to poza A,
-    // Patryk poza T. Patryk dostaje WYŁĄCZNIE ruchy ze swojej paczki (prosto na kości, BraxClaudePatrykBezposrednio). Bez ruchów
-    // Braxa i bez cudzych zapasów (extra/nyxa/xd): ciosu, kopnięcia i gardy w paczce Patryka nie ma — gra pomija brakujący
-    // klip (BraxGymPlayer.StartAction: clips[name]==null → return), nie podstawia cudzego ruchu.
+    const string RuchyWlasciciela = "Ruchy/";
     static readonly PatrykKlip[] KlipyPatryka =
     {
-        PK("Walk", true, true, RuchyWlasciciela + "Strut Walking.fbx"),
-        PK("Run", true, true, RuchyWlasciciela + "Fast Run.fbx"),
+        PK("Walk", true, true, RuchyWlasciciela + "Walk.fbx"),
+        PK("Run", true, true, RuchyWlasciciela + "Run.fbx"),
         PK("Jump", false, true, RuchyWlasciciela + "Jump.fbx"),
-        // Wsiadanie do auta (BraxAutoGracza.Wejdz; wysiadanie = ten sam klip od końca). Bez dryfu bioder w poziomie —
-        // drogę od drzwi do fotela prowadzi auto, klip daje ruch ciała (sięgnięcie, krok, siadanie).
-        PK("EnteringCar", false, true, RuchyWlasciciela + "Entering Car.fbx"),
+        PK("EnteringCar", false, true, RuchyWlasciciela + "EnteringCar.fbx"),
+        PK("CarIdle", true, true, RuchyWlasciciela + "CarIdle.fbx"),
+        PK("ExitingCar", false, true, RuchyWlasciciela + "ExitingCar.fbx"),
+        PK("CombatIdle", true, true, RuchyWlasciciela + "CombatIdle.fbx"),
+        PK("CombatForward", true, true, RuchyWlasciciela + "CombatForward.fbx"),
+        PK("CombatBackward", true, true, RuchyWlasciciela + "CombatBackward.fbx"),
+        PK("CombatLeft", true, true, RuchyWlasciciela + "CombatLeft.fbx"),
+        PK("Punch", false, true, RuchyWlasciciela + "Punch.fbx"),
+        PK("Punch2", false, true, RuchyWlasciciela + "Punch2.fbx"),
+        PK("Punch3", false, true, RuchyWlasciciela + "Punch3.fbx"),
+        PK("Kick", false, true, RuchyWlasciciela + "Kick.fbx"),
+        PK("Kick2", false, true, RuchyWlasciciela + "Kick2.fbx"),
+        PK("Kick3", false, true, RuchyWlasciciela + "Kick3.fbx"),
+        PK("Dodge", false, true, RuchyWlasciciela + "Dodge.fbx"),
+        PK("Block", false, true, RuchyWlasciciela + "Block.fbx"),
+        PK("HitHead", false, true, RuchyWlasciciela + "HitHead.fbx"),
+        PK("HitBody", false, true, RuchyWlasciciela + "HitBody.fbx"),
+        PK("Knockdown", false, true, RuchyWlasciciela + "Knockdown.fbx"),
+        PK("GetUp", false, true, RuchyWlasciciela + "GetUp.fbx"),
+        PK("Bow", false, true, RuchyWlasciciela + "Bow.fbx"),
+        PK("Taunt", false, true, RuchyWlasciciela + "Taunt.fbx"),
+        PK("Victory", false, true, RuchyWlasciciela + "Victory.fbx"),
+        PK("Defeat", false, true, RuchyWlasciciela + "Defeat.fbx"),
+        PK("WarmUp", false, true, RuchyWlasciciela + "WarmUp.fbx"),
+        PK("Roll", false, true, RuchyWlasciciela + "Roll.fbx"),
+        PK("GolfDrive", false, true, RuchyWlasciciela + "GolfDrive.fbx"),
+        PK("GolfPutt", false, true, RuchyWlasciciela + "GolfPutt.fbx"),
+        PK("Speedbag", true, true, RuchyWlasciciela + "Speedbag.fbx"),
     };
-    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "Walk", "Run", "Jump" };
 
     // „mixamorig:LeftArm”, „mixamorig1:LeftArm”, „mixamorigLeftArm” → „LeftArm”
     static string PatrykKosc(string n)
@@ -72,18 +81,16 @@ public static partial class BraxClaudeOsiedle
 
     static GameObject PatrykZbuduj(Transform gracz, CharacterController cialo)
     {
-        string model = Directory.Exists(PatrykKatalog) ? Directory.GetFiles(PatrykKatalog, "*.fbx").Select(p => p.Replace('\\', '/')).OrderBy(p => p).FirstOrDefault() : null;
-        if (model == null) throw new InvalidOperationException("Brak odszyfrowanego nowego Patryka");
+        string model = PatrykKatalog + "/Patryk.fbx";
         using (var hash = System.Security.Cryptography.SHA256.Create())
         using (var stream = File.OpenRead(model))
-            if (BitConverter.ToString(hash.ComputeHash(stream)).Replace("-", "").ToLowerInvariant() != "fb8e2630bc7f835a743d917c35c378c7d074f0fde993a0bbf864b31ab67e1d97")
-                throw new InvalidOperationException("Nieprawidłowy model: wymagany Patryk.zip z 3.11.2026");
+            if (BitConverter.ToString(hash.ComputeHash(stream)).Replace("-", "").ToLowerInvariant() != "eacee0beb02fac53587337edee09f790577a700464448bf797d2ed65a2c66d1f")
+                throw new InvalidOperationException("Nieprawidłowy model: wymagany Patryk z 13.11.2026");
         var wzor = AssetDatabase.LoadAssetAtPath<GameObject>(model);
         if (!wzor) throw new InvalidOperationException("Nie zaimportowano modelu Patryka: " + model);
         var avatar = AssetDatabase.LoadAllAssetsAtPath(model).OfType<Avatar>().FirstOrDefault();
 
         var hero = Object.Instantiate(wzor); hero.name = "Patryk";
-        Avatar tPoza = null;
         try
         {
             hero.transform.position = Vector3.zero; hero.transform.rotation = Quaternion.identity; hero.transform.localScale = Vector3.one;
@@ -110,7 +117,7 @@ public static partial class BraxClaudeOsiedle
             // --- materiał jak u Braxa (Braxhorn/HeroPremium, ORM) ---
             if (!AssetDatabase.IsValidFolder(PatrykWynik))
             {
-                if (AssetDatabase.IsValidFolder("Assets/PlayableGenerated")) AssetDatabase.CreateFolder("Assets/PlayableGenerated", "Patryk");
+                if (AssetDatabase.IsValidFolder("Assets/PlayableGenerated")) AssetDatabase.CreateFolder("Assets/PlayableGenerated", Path.GetFileName(PatrykWynik));
                 else { Directory.CreateDirectory(PatrykWynik); AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport); }
             }
             var mat = PatrykMaterial();
@@ -122,49 +129,17 @@ public static partial class BraxClaudeOsiedle
             }
 
             // --- klipy przeniesione na kości Patryka ---
-            var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek), PatrykPozaStala(hero,spoczynek,"CarIdle",true) }; var opis = new List<string>();
-            if (!avatar || !avatar.isValid || !avatar.isHuman)
-                throw new InvalidOperationException("Nowy Patryk: nieprawidłowy awatar Humanoid");
-            // Rig mismatch was logged in build #63. Compare the imported Humanoid
-            // and a rebuilt anatomical T-pose against BOTH Walk and Run before
-            // baking Legacy clips; preserve the original mesh and bindposes.
-            Avatar awatarRuchu = avatar;
-            try
-            {
-                tPoza = PatrykAwatarTPoza(wzor, avatar, model, out string opisTPozy);
-                awatarRuchu = PatrykWybierzAwatar(hero, avatar, tPoza, hips, kosci, spoczynek, out string porownanie);
-                Debug.Log("BRAXHORN_PATRYK_RETARGET " + opisTPozy + " | " + porownanie);
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning("BRAXHORN_PATRYK_RETARGET T-poza niedostępna, importowany awatar: " + e.Message);
-                if (tPoza) { Object.DestroyImmediate(tPoza); tPoza = null; }
-            }
-            PatrykSpoczynek(spoczynek);
+            var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek) };
+            var opis = new List<string>();
             foreach (var k in KlipyPatryka)
             {
-                AnimationClip gotowy = null;
-                foreach (var z in k.zrodla)
-                {
-                    string sciezka = PatrykRuchy + "/" + z;
-                    if (!File.Exists(sciezka)) continue;
-                    try
-                    {
-                        string uwagi;
-                        gotowy = PatrykRuchWlasciciela(sciezka)
-                            ? PatrykBezposrednio(hero, hips, kosci, spoczynek, sciezka, k, out uwagi)          // 10.11: ruchy właściciela bez Humanoid
-                            : PatrykHumanoid(hero, awatarRuchu, hips, kosci, spoczynek, sciezka, k, out uwagi);
-                        opis.Add(k.nazwa + "←" + z + uwagi);
-                        break;
-                    }
-                    catch (Exception e) { Debug.LogWarning("BRAXHORN_PATRYK klip " + k.nazwa + " z " + z + ": " + e.Message); }
-                    finally { PatrykSpoczynek(spoczynek); }
-                }
-                if (gotowy) klipy.Add(gotowy);
-                else Debug.LogWarning("BRAXHORN_PATRYK brak klipu " + k.nazwa);
+                string sciezka = PatrykRuchy + "/" + k.zrodla[0];
+                var gotowy = PatrykBezposrednio(hero, hips, kosci, spoczynek, sciezka, k, out string uwagi);
+                if (!gotowy) throw new InvalidOperationException("Brak wymaganego ruchu Patryka: " + k.nazwa);
+                klipy.Add(gotowy);
+                opis.Add(k.nazwa + uwagi);
+                PatrykSpoczynek(spoczynek);
             }
-            var brak = PatrykWymagane.Where(n => !klipy.Any(c => c.name == n)).ToArray();
-            if (brak.Length > 0) throw new Exception("brak wymaganych klipów: " + string.Join(", ", brak));
 
             var anim = hero.AddComponent<Animation>(); anim.playAutomatically = false; anim.cullingType = AnimationCullingType.AlwaysAnimate;
             foreach (var c in klipy) anim.AddClip(c, c.name);
@@ -177,10 +152,10 @@ public static partial class BraxClaudeOsiedle
             {
                 var w = PatrykTestNog(hero, kosci, spoczynek, c);
                 bool ok = w.stopaPonad == 0 && w.koloTyl == 0 && w.przeprost == 0 && w.wBok == 0;
-                string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=" + (awatarRuchu == tPoza ? "T-poza" : "import") + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
+                string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " Mixamo T" + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
                 if (ok) Debug.Log(l); else Debug.LogWarning(l + " — DO SPRAWDZENIA W APK");
             }
-            if (bledy > 0) Debug.LogWarning("BRAXHORN_PATRYK_KOSCI DO SPRAWDZENIA: " + bledy + " błędów — " + raportTestu);
+            if (bledy > 0) throw new InvalidOperationException("Patryk: błędy kości przy odtwarzaniu: " + raportTestu);
 
             var idleTest = anim.GetClip("Idle");
             idleTest.SampleAnimation(hero, 0f);
@@ -212,10 +187,9 @@ public static partial class BraxClaudeOsiedle
                 + " wzrost=" + wzrost.ToString("F2") + " m" + " (model " + h0.ToString("F2") + " m ×" + skala.ToString("F3") + " → skala Braxa: Patryk " + WzrostPatrykaWGrze.ToString("F2") + " m, Brax " + WzrostBraxa.ToString("F2") + " m)"
                 + " kapsuła=" + (cialo ? cialo.height.ToString("F2") + "×" + cialo.radius.ToString("F2") : "—")
                 + " klipy=" + klipy.Count + " [" + string.Join(", ", opis) + "] bledy_kosci=" + bledy);
-            if (tPoza) { Object.DestroyImmediate(tPoza); tPoza = null; }
             return hero;
         }
-        catch { if (tPoza) Object.DestroyImmediate(tPoza); Object.DestroyImmediate(hero); throw; }
+        catch { Object.DestroyImmediate(hero); throw; }
     }
 
     static void PatrykSpoczynek(List<PatrykStan> s) { foreach (var x in s) { x.t.localRotation = x.r; x.t.localPosition = x.p; } }
@@ -240,7 +214,7 @@ public static partial class BraxClaudeOsiedle
         var imp = AssetImporter.GetAtPath(p) as TextureImporter;
         if (imp == null) throw new InvalidOperationException("Brak tekstury nowego Patryka: " + p);
         var typ = normalna ? TextureImporterType.NormalMap : TextureImporterType.Default; bool srgb = !(liniowa || normalna);
-        int limit = normalna || !liniowa ? 4096 : 2048;
+        int limit = 2048;
         var android = imp.GetPlatformTextureSettings("Android");
         bool wrongAndroid = !android.overridden || android.maxTextureSize != limit || android.format != TextureImporterFormat.ASTC_4x4 || android.compressionQuality != 50;
         if (imp.textureType != typ || imp.sRGBTexture != srgb || imp.maxTextureSize != limit || !imp.mipmapEnabled

@@ -41,18 +41,13 @@ def klipy_patryka():
 class RuchyWlasciciela(unittest.TestCase):
     def test_chod_bieg_skok_z_paczki_wlasciciela_najpierw(self):
         k = klipy_patryka()
-        katalog = json.loads(czytaj(TU / "patryk-owner-22-manifest.json"))
-        pliki = {c["action"]: c["file"] for c in katalog["clips"]}
-        for akcja in ("Walk", "Run", "Jump", "EnteringCar"):
-            self.assertIn(akcja, k, akcja)
-            self.assertEqual(k[akcja]["zrodla"][0], "patryk_owner/" + pliki[akcja], akcja)
-            self.assertTrue(k[akcja]["wMiejscu"], akcja + ": bez dryfu bioder (ruch prowadzi fizyka/auto)")
-        # 10.11 19:58 (właściciel): tylko ruchy Patryka — bez ruchów Braxa (poza A) i bez cudzych zapasów
+        self.assertEqual(len(k), 31)
         for akcja, wpis in k.items():
-            self.assertEqual(len(wpis["zrodla"]), 1, akcja)
-            self.assertTrue(wpis["zrodla"][0].startswith("patryk_owner/"), akcja)
-        for akcja in ("CombatIdle", "Punch", "Kick"):
-            self.assertNotIn(akcja, k)
+            self.assertEqual(wpis["zrodla"], ["Ruchy/" + akcja + ".fbx"])
+            self.assertTrue(wpis["wMiejscu"])
+        for akcja in ("Walk", "Run", "Jump", "EnteringCar", "CarIdle", "ExitingCar",
+                      "CombatIdle", "Punch", "Punch2", "Punch3", "Kick", "Kick2", "Kick3"):
+            self.assertIn(akcja, k)
         self.assertFalse(k["EnteringCar"]["petla"])
 
     def test_ruchy_wlasciciela_prosto_na_kosci_reszta_humanoid(self):
@@ -66,20 +61,19 @@ class RuchyWlasciciela(unittest.TestCase):
         self.assertIn("b.rotation = s.rotation * Quaternion.Inverse(s0) * T0[b];", b)
         self.assertIn("PatrykKosciPoNazwie(source.GetComponentsInChildren<Transform>(true))", b)
         p = czytaj(ED / "BraxClaudeOsiedlePatryk.cs")
-        self.assertIn("PatrykRuchWlasciciela(sciezka)", p)
-        self.assertIn("PatrykBezposrednio(hero, hips, kosci, spoczynek, sciezka, k, out uwagi)", p)
-        self.assertIn("PatrykHumanoid(hero, awatarRuchu", p)
-        self.assertIn("PatrykWybierzAwatar", p)
+        self.assertIn("PatrykKatalog + \"/Patryk.fbx\"", p)
+        self.assertIn("PatrykBezposrednio(hero, hips, kosci, spoczynek, sciezka, k, out string uwagi)", p)
+        self.assertNotIn("PatrykHumanoid(hero,", p)
+        self.assertNotIn("PatrykWybierzAwatar", p)
         imp = czytaj(ED / "BraxPrywatneImport.cs")
         self.assertIn("ModelImporterAnimationType.Human", imp)
-        self.assertIn('assetPath.StartsWith(Katalog + "ruchy/patryk_owner/")', imp)
+        self.assertIn('assetPath.StartsWith(Katalog + "Postacie/patryk/Ruchy/")', imp)
         self.assertIn("ModelImporterAnimationType.Generic", imp)
 
-    def test_wsiadanie_nie_jest_wymagane_do_startu(self):
+    def test_kazdy_ruch_wymagany(self):
         p = czytaj(ED / "BraxClaudeOsiedlePatryk.cs")
-        wym = re.search(r"PatrykWymagane = \{([^}]*)\}", p).group(1)
-        self.assertNotIn("EnteringCar", wym)
-        self.assertIn('"CarIdle"', wym)
+        self.assertIn("foreach (var k in KlipyPatryka)", p)
+        self.assertIn("if (!gotowy) throw", p)
 
     def test_paczka_22_spojna_z_katalogiem(self):
         katalog = json.loads(czytaj(TU / "patryk-owner-22-manifest.json"))
@@ -95,14 +89,12 @@ class RuchyWlasciciela(unittest.TestCase):
         for f in transfer.iterdir():
             self.assertNotIn(f.suffix.lower(), (".fbx", ".zip"), f.name)
 
-    def test_prywatne_instaluje_paczke_dla_osiedla_bez_zatrzymania_buildu(self):
+    def test_osiedle_wybiera_globalna_postac(self):
         src = czytaj(TU / "prywatne.py")
         fn = src[src.index("def patryk_i_ruchy"):src.index("def sprawdz")]
-        self.assertIn("install_patryk_owner_22(CEL / \"ruchy\")", fn)
-        blok = fn[fn.index("if osiedle_build:\n        from import_patryk_transfer"):fn.index("staging =")]
-        self.assertIn("try:", blok)
-        self.assertIn("except Exception", blok)
-        self.assertIn("BRAXHORN_PATRYK_OWNER_22 DO POPRAWKI", blok)
+        self.assertIn('przygotuj_obsade("osiedle", CEL, odszyfruj)', fn)
+        self.assertNotIn("import_patryk_transfer", fn)
+        self.assertNotIn("install_patryk_owner_22", fn)
 
     def test_bez_klucza_instalator_nie_wypakowuje(self):
         import import_patryk_owner_22 as imp
