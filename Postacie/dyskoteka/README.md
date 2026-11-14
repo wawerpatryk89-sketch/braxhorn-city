@@ -6,3 +6,4 @@ Postacie, które można spotkać na imprezie.
 - [Kiler](../glowne-poza-liga/kiler/)
 - [Kamil](../glowne-poza-liga/kamil/)
 - [Mateusz](../glowne-poza-liga/mateusz/)
+- [Aneta](../uslugi/fitness/aneta/)

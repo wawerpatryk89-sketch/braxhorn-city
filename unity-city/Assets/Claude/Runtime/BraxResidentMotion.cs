@@ -6,7 +6,7 @@ namespace Braxhorn.Characters
     [RequireComponent(typeof(Animator)), DisallowMultipleComponent]
     public sealed class BraxResidentMotion : MonoBehaviour
     {
-        public enum Everyday { Idle, Walk, Run, Jump, SitDown, SeatedIdle, StandUp, Talk, Wave, Point, DanceHouse, DanceHipHop, Drink, DrunkIdle, DrunkWalk, DrunkTurn }
+        public enum Everyday { Idle, Walk, Run, Jump, SitDown, SeatedIdle, StandUp, Talk, Wave, Point, DanceHouse, DanceHipHop, Drink, DrunkIdle, DrunkWalk, DrunkTurn, WarmUp, TrainingJog }
         [SerializeField] private string[] attackStates = Array.Empty<string>();
         private static readonly int Combat = Animator.StringToHash("Combat");
         private Animator animator;
@@ -20,7 +20,7 @@ namespace Braxhorn.Characters
         {
             InCombat = false;
             if (!animator.runtimeAnimatorController) return;
-            animator.SetBool(Combat, false);
+            if (attackStates.Length > 0) animator.SetBool(Combat, false);
             animator.Play("Base Layer.Idle", 0, 0f);
         }
 

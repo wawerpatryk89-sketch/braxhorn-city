@@ -16,7 +16,7 @@ internal static class BraxGitaraSetup
         "DanceHouse", "DanceHipHop", "Drink", "DrunkIdle", "DrunkWalk", "DrunkTurn"
     };
     static readonly string[] Attacks = { "Jab", "Cross", "Hook", "SideKick", "Knee" };
-    internal static readonly HashSet<string> Loops = new HashSet<string> { "Idle", "Walk", "Run", "SeatedIdle", "CombatIdle", "DanceHouse", "DanceHipHop", "DrunkIdle", "DrunkWalk" };
+    internal static readonly HashSet<string> Loops = new HashSet<string> { "Idle", "Walk", "Run", "SeatedIdle", "CombatIdle", "DanceHouse", "DanceHipHop", "DrunkIdle", "DrunkWalk", "TrainingJog" };
 
     [MenuItem("Braxhorn/Postacie/Przygotuj Gitarę")]
     internal static void Create() => Prepare("gitara", "Gitara");
@@ -30,14 +30,24 @@ internal static class BraxGitaraSetup
     [MenuItem("Braxhorn/Postacie/Przygotuj Mateusza")]
     internal static void CreateMateusz() => Prepare("mateusz", "Mateusz");
 
-    static void Prepare(string characterId, string displayName)
+    static readonly string[] FitnessActions = {
+        "Idle", "Walk", "Run", "Jump", "SitDown", "SeatedIdle", "StandUp", "Talk", "Wave", "Point",
+        "Drink", "WarmUp", "TrainingJog", "DanceHouse", "DanceHipHop"
+    };
+
+    [MenuItem("Braxhorn/Postacie/Przygotuj Anetę")]
+    internal static void CreateAneta() => Prepare("aneta", "Aneta", FitnessActions, Array.Empty<string>());
+
+    static void Prepare(string characterId, string displayName) => Prepare(characterId, displayName, Actions, Attacks);
+
+    static void Prepare(string characterId, string displayName, string[] actions, string[] attacks)
     {
         string root = Characters + characterId + "/";
         string prefix = root + displayName;
         var clips = new Dictionary<string, AnimationClip>();
         var model = prefix + ".fbx";
         ConfigureModel(model, null);
-        foreach (string id in Actions)
+        foreach (string id in actions)
         {
             string path = root + "Ruchy/" + id + ".fbx";
             ConfigureModel(path, id);
@@ -51,12 +61,12 @@ internal static class BraxGitaraSetup
         string controllerPath = prefix + ".controller";
         var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(controllerPath);
         if (!controller) controller = AnimatorController.CreateAnimatorControllerAtPath(controllerPath);
-        if (!controller.parameters.Any(p => p.name == "Combat"))
+        if (attacks.Length > 0 && !controller.parameters.Any(p => p.name == "Combat"))
             controller.AddParameter("Combat", AnimatorControllerParameterType.Bool);
         var machine = controller.layers[0].stateMachine;
         var states = machine.states.ToDictionary(s => s.state.name, s => s.state);
         var added = new List<string>();
-        foreach (string id in Actions)
+        foreach (string id in actions)
         {
             if (!states.TryGetValue(id, out var state))
             {
@@ -72,7 +82,7 @@ internal static class BraxGitaraSetup
             if (Loops.Contains(id)) continue;
             if (id == "SitDown") AddExit(states[id], states["SeatedIdle"]);
             else if (id == "DrunkTurn") AddExit(states[id], states["DrunkIdle"]);
-            else if (Attacks.Contains(id) || id == "Dodge" || id == "Block" || id.StartsWith("Hit", StringComparison.Ordinal))
+            else if (attacks.Contains(id) || id == "Dodge" || id == "Block" || id.StartsWith("Hit", StringComparison.Ordinal))
             {
                 AddExit(states[id], states["CombatIdle"]).AddCondition(AnimatorConditionMode.If, 0, "Combat");
                 AddExit(states[id], states["Idle"]).AddCondition(AnimatorConditionMode.IfNot, 0, "Combat");
@@ -90,7 +100,7 @@ internal static class BraxGitaraSetup
             animator.avatar = avatar;
             animator.runtimeAnimatorController = controller;
             animator.applyRootMotion = false;
-            instance.AddComponent<BraxResidentMotion>().SetAttackList(Attacks);
+            instance.AddComponent<BraxResidentMotion>().SetAttackList(attacks);
             foreach (var skin in instance.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 skin.sharedMaterials = Enumerable.Repeat(mat, skin.sharedMaterials.Length).ToArray();
             if (!PrefabUtility.SaveAsPrefabAsset(instance, prefabPath))
@@ -98,7 +108,7 @@ internal static class BraxGitaraSetup
         }
         finally { UnityEngine.Object.DestroyImmediate(instance); }
         AssetDatabase.SaveAssets();
-        Debug.Log(displayName + ": " + Actions.Length + " klipów Humanoid. " + prefabPath);
+        Debug.Log(displayName + ": " + actions.Length + " klipów Humanoid. " + prefabPath);
     }
 
     static AnimatorStateTransition AddExit(AnimatorState from, AnimatorState to)

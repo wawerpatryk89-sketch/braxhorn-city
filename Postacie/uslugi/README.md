@@ -6,3 +6,4 @@ Postacie według wykonywanego zawodu.
 - [Kelnerzy](kelnerzy/)
 - [Recepcja](recepcja/)
 - [Ratownicy](ratownicy/)
+- [Fitness](fitness/)

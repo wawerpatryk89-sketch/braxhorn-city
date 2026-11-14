@@ -1,0 +1,49 @@
+{
+  "id": "aneta",
+  "nazwa": "Aneta",
+  "wersja": "2026-11-14.1",
+  "paczka": "Aneta_globalna_Unity.zip",
+  "podglad": "Aneta_15_ruchow.jpg",
+  "role": [
+    "fitness"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "fitness",
+    "dyskoteka"
+  ],
+  "walka": false,
+  "liczba_klipow": 15,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "1b69dc632b4cdddc5b23dbcea6446b9741934ec14e5bf90c383c83b9cbac877d",
+  "pliki": {
+    "unity": {
+      "nazwa": "Aneta_globalna_Unity.zip",
+      "sha256": "483352d3e409480c1cef8db36c0f830d3e60cb0153f7527bd9eab9027adfdf2e",
+      "bajty": 47655703,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Aneta_globalna_Unity.zip"
+    },
+    "model_zrodlowy": {
+      "nazwa": "aneta.zip",
+      "sha256": "3ba65af9e8bb668fd25fcddde33acc6e1eb5098e39ea1f60d40c1e08d0c91028",
+      "bajty": 43604492,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/aneta.zip"
+    },
+    "blender": {
+      "nazwa": "Aneta_15_ruchow.blend",
+      "sha256": "86ba456ecfaee8df53c91c0d583af30145e65118b32b370aa8fb740ec0624b6c",
+      "bajty": 54442303,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Aneta_15_ruchow.blend"
+    },
+    "podglad": {
+      "nazwa": "Aneta_15_ruchow.jpg",
+      "sha256": "9ca9e138ff3a3c167a85ab81beb437b3d60dedb4816b3a21cd2caf6b2d4a052d",
+      "bajty": 126405,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Aneta_15_ruchow.jpg"
+    }
+  }
+}
