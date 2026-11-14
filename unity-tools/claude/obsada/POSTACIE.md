@@ -5,7 +5,9 @@
 | Dział | Obsada |
 | --- | --- |
 | [Liga](postacie/liga/) | Zawodnicy ligi z indywidualnymi stylami walki. |
-| [Uliczni zadymiarze](postacie/uliczni-zadymiarze/) | [Gitara](postacie/uliczni-zadymiarze/gitara/karta.json) — bójki uliczne. |
+| [Główne poza ligą](postacie/glowne-poza-liga/) | [Gitara](postacie/glowne-poza-liga/gitara/karta.json) i [Kiler](postacie/glowne-poza-liga/kiler/karta.json). |
+| [Uliczni zadymiarze](postacie/uliczni-zadymiarze/) | Postacie do bójek ulicznych; do tej roli należą też Gitara i Kiler. |
+| [Dyskoteka](postacie/dyskoteka/) | Goście parkietu i postacie spotykane na imprezach. |
 | [Mieszkańcy](postacie/mieszkancy/) | Przechodnie i mieszkańcy z codziennymi czynnościami. |
 | [Usługi](postacie/uslugi/) | [Barmani](postacie/uslugi/barmani/), [kelnerzy](postacie/uslugi/kelnerzy/), [recepcja](postacie/uslugi/recepcja/) i [ratownicy](postacie/uslugi/ratownicy/). |
 | [Grywalni](postacie/grywalni/) | [Patryk](postacie/grywalni/patryk/karta.json) — gracz Osiedla. |
@@ -24,4 +26,6 @@ Dla każdego modelu prywatny pakiet ma katalog postaci z plikiem postac.json. We
 
 Dla Patryka z 13 listopada CI przyjmuje również oryginalny plik `Patryk_globalny_13-11_Unity.zip` dodany jako załącznik do prywatnego szkicu `postacie-globalne-20261112`. Wydanie musi pozostać szkicem. Przed importem sprawdzane są SHA-256 ZIP-a, manifestu oraz plików modelu, tekstur i ruchów. Identyfikator wydania i oczekiwane sumy zapisuje obsada Osiedla.
 
-Gitara (gitara, 2026-11-14) ma 20 klipów i pięć ciosów. Szablon ruchów dla tej postaci tworzy polecenie edytora `Braxhorn/Postacie/Przygotuj Gitarę` po instalacji prywatnej paczki `Gitara_globalny_Unity.zip`. Rejon wybiera właściciel.
+Gitara i Kiler należą do głównych postaci spoza ligi. Są dostępni do obsadzenia w całej grze, m.in. na ulicy i na imprezach. Rejon wybiera postać po jej stałym identyfikatorze. Miejsce i moment konkretnego spotkania określa się przy obsadzaniu rejonu.
+
+Obie postacie mają po 26 ruchów w osobnych kontrolerach, w tym pięć ciosów, dwa tańce, picie, chwianie, chód i obrót po alkoholu. Kolejne ruchy indywidualne dopisuje się do kontrolera wybranej postaci. Inne postacie nadal korzystają z dotychczasowych klipów.

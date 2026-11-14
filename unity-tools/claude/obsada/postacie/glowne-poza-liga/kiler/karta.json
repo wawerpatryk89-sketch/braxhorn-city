@@ -1,0 +1,15 @@
+{
+  "id": "kiler",
+  "nazwa": "Kiler",
+  "wersja": "2026-11-14.2",
+  "paczka": "Kiler_globalny_Unity.zip",
+  "podglad": "Kiler_26_ruchow.jpg",
+  "role": [
+    "uliczny-zadymiarz"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "ulica",
+    "dyskoteka"
+  ]
+}
