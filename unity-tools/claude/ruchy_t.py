@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
-from zipfile import ZipFile
+from paczki_ruchow_t import open_clips
 
 from prywatne import CEL, ROOT
 
@@ -38,25 +38,11 @@ def install(characters, archive=None, root=CEL, catalog=CATALOG):
             entries.append({"state": state, "file": Path(clip["path"]).name})
         plans[character] = entries
     dest = root / "MixamoT"
-    with tempfile.TemporaryDirectory() as tmp:
-        pending = {}
+    with open_clips(data, archive) as read:
         for key, clip in needed.items():
             output = dest / Path(clip["path"]).name
             if not output.is_file() or hashlib.sha256(output.read_bytes()).hexdigest() != clip["sha256"]:
-                pending[key] = clip
-        if pending:
-            if archive is None:
-                from pobierz_obsade import pobierz
-                archive = Path(tmp) / "T.zip"
-                pobierz(data["archive"], os.environ["GITHUB_REPOSITORY"], archive)
-            if hashlib.sha256(Path(archive).read_bytes()).hexdigest() != data["archive"]["sha256"]:
-                raise ValueError("Niepoprawna suma paczki T")
-            with ZipFile(archive) as z:
-                for key, clip in pending.items():
-                    content = z.read(clip["path"])
-                    if hashlib.sha256(content).hexdigest() != clip["sha256"]:
-                        raise ValueError("Uszkodzony klip " + clip["path"])
-                    save(dest / Path(clip["path"]).name, content)
+                save(output, read(clip))
         for character, entries in plans.items():
             save(dest / (character + ".json"), json.dumps({"clips": entries}, indent=2).encode())
 

@@ -8,6 +8,8 @@ Dziewięć dzisiejszych dostaw rozszerza bazę T ze 110 do 197 różnych ruchów
 
 Do chodu codziennego właściciel wybrał pięć plików z dostawy 14 listopada o 19:49. Źródła i ich sumy SHA-256 są w [katalogu dozwolonych chodów](chody_T_wlasciciela.json). Używaj tego katalogu przy przygotowywaniu kolejnych postaci. Starszy plik o nazwie Walking (3) ma inny ruch i inną sumę. W nowej dostawie Walking (1) i Walking (3) mają jednakowe klucze animacji i trajektorię bioder. Zostały zachowane pod dwiema nazwami właściciela.
 
+W profilach tej partii Gitara ma przypisany `Strut Walking`, a pozostałe 13 postaci ma `Walking (1)`. Instalator pobiera wskazane oryginalne FBX ze szkicu wydania. Do pracy offline umieść oba archiwa T w jednym katalogu.
+
 [Oryginalne FBX](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Chody_T_wlasciciela_5.zip) · [Pięć chodów na Gitarze w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Gitara_5_chodow_T.blend) · [Film z przodu i z boku](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Gitara_5_chodow_T.mp4)
 
 Poniższe polecenie odtwarza próbę na jednym modelu. Wybór domyślnego wariantu dla danej postaci należy do właściciela. Próbę renderowano w Blenderze 4.3.2.

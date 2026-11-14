@@ -2865,12 +2865,42 @@
         }
       ],
       "path": "Ruchy/Regular_Light_mixamo_a2d488d_fb2ab37c561a82bb.fbx"
+    },
+    "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb": {
+      "name": "Walking (1)",
+      "sha256": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+      "curves_sha256": "f0f168fd69698f2e232ba4e607504f9e49507456dbbc21772146a778dfb0a7ae",
+      "reference_sha256": "17bc88673671443169c5f9ed6d44f9d5cd6126c4ea36e0002a86c802ff6d9485",
+      "sources": [
+        {
+          "archive": "Chody_T_wlasciciela_5.zip",
+          "entry": "Walking (1).fbx",
+          "source_sha256": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb"
+        }
+      ],
+      "path": "Walking (1).fbx",
+      "archive": "Chody_T_wlasciciela_5.zip"
+    },
+    "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2": {
+      "name": "Strut Walking",
+      "sha256": "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+      "curves_sha256": "e9800e354381ba79e84bbc882d4ad15ed8fc0de7813d935b6747c841826af86c",
+      "reference_sha256": "17bc88673671443169c5f9ed6d44f9d5cd6126c4ea36e0002a86c802ff6d9485",
+      "sources": [
+        {
+          "archive": "Chody_T_wlasciciela_5.zip",
+          "entry": "Strut Walking.fbx",
+          "source_sha256": "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2"
+        }
+      ],
+      "path": "Strut Walking.fbx",
+      "archive": "Chody_T_wlasciciela_5.zip"
     }
   },
   "profiles": {
     "aneta": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
       "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
@@ -2887,7 +2917,7 @@
     },
     "dziecko_003f4e46": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
       "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
       "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
@@ -2900,7 +2930,7 @@
     },
     "ewa": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
       "Jump": "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
@@ -2915,7 +2945,7 @@
     },
     "gitara": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
       "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
       "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
@@ -2943,7 +2973,7 @@
     },
     "kamil": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
       "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
@@ -2971,7 +3001,7 @@
     },
     "kapitan_02d85d24": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
       "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
       "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
@@ -2983,7 +3013,7 @@
     },
     "kiler": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
       "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
@@ -3011,7 +3041,7 @@
     },
     "martyna": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
       "Jump": "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
@@ -3026,7 +3056,7 @@
     },
     "mateusz": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
       "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
@@ -3054,7 +3084,7 @@
     },
     "monika": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
       "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
@@ -3068,7 +3098,7 @@
       "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17"
     },
     "patryk": {
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
       "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
       "EnteringCar": "4e495d89f30b1f47b0d160078fe6df6a1bcfe233ddb8ef64803c1adfdcb28235",
@@ -3118,7 +3148,7 @@
     },
     "plazowicz_0493f781": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
       "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
       "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
@@ -3130,7 +3160,7 @@
     },
     "wiechu": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
       "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
@@ -3145,7 +3175,7 @@
     },
     "zadymiarz_021fef69": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
       "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
       "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
@@ -3245,5 +3275,13 @@
     ]
   ],
   "source_motion_count": 197,
-  "profiles_reference_only": 3
+  "profiles_reference_only": 3,
+  "extra_archives": {
+    "Chody_T_wlasciciela_5.zip": {
+      "release_id": 443180649,
+      "tag": "postacie-globalne-20261112",
+      "name": "Chody_T_wlasciciela_5.zip",
+      "sha256": "ec7b209d00a6a8a3607f8c706dd5f7b4e68c04130f8f671215e0350b6b96848e"
+    }
+  }
 }

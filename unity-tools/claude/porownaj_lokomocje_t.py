@@ -3,13 +3,13 @@
 blender -b -P unity-tools/claude/porownaj_lokomocje_t.py -- KontrolaPostaciT Pozycja_T_animacje_20261114.zip
 """
 import csv
-import hashlib
 import json
 import math
 import sys
 import tempfile
 from pathlib import Path
-from zipfile import ZipFile
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from paczki_ruchow_t import open_clips
 
 import bpy
 from mathutils import Vector
@@ -63,7 +63,7 @@ def compare(folder, archive):
         raise ValueError("Brak pomiarów kończyn z Unity")
     cache = {}
     summary = []
-    with ZipFile(archive) as z, tempfile.TemporaryDirectory() as temp:
+    with open_clips(catalog, archive) as read, tempfile.TemporaryDirectory() as temp:
         for file in groups:
             character, state, _ = file.stem.rsplit("_", 2)
             source = catalog["profiles"][character][state]
@@ -73,9 +73,7 @@ def compare(folder, archive):
             phases = max(int(row["faza"]) for row in rows) + 1
             key = (source, phases)
             if key not in cache:
-                data = z.read(clip["path"])
-                if hashlib.sha256(data).hexdigest() != clip["sha256"]:
-                    raise ValueError("Niepoprawna suma źródła " + clip["path"])
+                data = read(clip)
                 path = Path(temp) / Path(clip["path"]).name
                 path.write_bytes(data)
                 cache[key] = source_directions(path, phases)

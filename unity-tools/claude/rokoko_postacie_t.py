@@ -7,7 +7,8 @@ from pathlib import Path
 import struct
 import sys
 from tempfile import TemporaryDirectory
-from zipfile import ZipFile
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from paczki_ruchow_t import open_clips
 
 import bpy
 
@@ -194,12 +195,10 @@ def main():
         raise ValueError('Brak modelu ze skórą')
     original = signature(rig, meshes)
     actions = []
-    with ZipFile(args.paczka_t) as archive, TemporaryDirectory() as tmp:
+    with open_clips(catalog, args.paczka_t) as read, TemporaryDirectory() as tmp:
         for state in args.ruchy or profile.keys():
             clip = catalog['clips'][profile[state]]
-            data = archive.read(clip['path'])
-            if sha256(data).hexdigest() != clip['sha256']:
-                raise ValueError('Błędna suma kontrolna ' + state)
+            data = read(clip)
             clone = Path(tmp) / 'source.fbx'
             clone.write_bytes(data)
             action = retarget(rig, clone, state)
