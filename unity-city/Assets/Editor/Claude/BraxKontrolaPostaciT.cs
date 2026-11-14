@@ -60,7 +60,7 @@ public static class BraxKontrolaPostaciT
                         if (animator)
                         {
                             playable = AnimationClipPlayable.Create(graph, clip);
-                            playable.SetApplyFootIK(false);
+                            playable.SetApplyFootIK(BraxMixamoT.FootIK(action));
                             AnimationPlayableOutput.Create(graph, "test", animator).SetSourcePlayable(playable);
                             graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
                             graph.Play();

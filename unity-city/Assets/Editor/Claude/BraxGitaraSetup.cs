@@ -87,6 +87,7 @@ internal static class BraxGitaraSetup
         string prefix = root + displayName;
         var clips = new Dictionary<string, AnimationClip>();
         var model = prefix + ".fbx";
+        BraxMixamoT.PrepareModel(model);
         var profile = BraxMixamoT.Read(characterId);
         if (!new HashSet<string>(actions).SetEquals(profile.Keys))
             throw new InvalidDataException("Niezgodny profil ruchów: " + characterId);
@@ -118,6 +119,7 @@ internal static class BraxGitaraSetup
                 states.Add(id, state);
             }
             if (characterId == "kapitan_02d85d24" && id == "TrainingJog") state.speed = 0.80f;
+            state.iKOnFeet = BraxMixamoT.FootIK(id);
             state.motion = clips[id];
         }
         machine.defaultState = states["Idle"];

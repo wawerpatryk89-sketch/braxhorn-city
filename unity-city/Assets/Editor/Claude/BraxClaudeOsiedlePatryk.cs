@@ -87,6 +87,7 @@ public static partial class BraxClaudeOsiedle
         using (var stream = File.OpenRead(model))
             if (BitConverter.ToString(hash.ComputeHash(stream)).Replace("-", "").ToLowerInvariant() != "eacee0beb02fac53587337edee09f790577a700464448bf797d2ed65a2c66d1f")
                 throw new InvalidOperationException("Nieprawidłowy model: wymagany Patryk z 13.11.2026");
+        BraxMixamoT.PrepareModel(model);
         var wzor = AssetDatabase.LoadAssetAtPath<GameObject>(model);
         if (!wzor) throw new InvalidOperationException("Nie zaimportowano modelu Patryka: " + model);
 

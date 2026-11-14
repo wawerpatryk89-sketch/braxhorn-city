@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [codex/kontrola-postaci-t-20261114]
-    paths: ['.github/workflows/postacie-t-qa.yml']
+    paths: ['.github/workflows/postacie-t-qa.yml', 'unity-city/Assets/Editor/Claude/BraxMixamoT.cs', 'unity-city/Assets/Editor/Claude/BraxKontrolaPostaciT.cs']
 permissions:
   contents: read
 jobs:

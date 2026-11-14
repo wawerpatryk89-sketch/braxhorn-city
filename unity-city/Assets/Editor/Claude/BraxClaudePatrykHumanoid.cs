@@ -58,7 +58,7 @@ public static partial class BraxClaudeOsiedle
             graph = PlayableGraph.Create("Patryk Humanoid");
             graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
             var playable = AnimationClipPlayable.Create(graph, clip);
-            playable.SetApplyFootIK(false);
+            playable.SetApplyFootIK(BraxMixamoT.FootIK(spec.nazwa));
             AnimationPlayableOutput.Create(graph, "pose", animator).SetSourcePlayable(playable);
             graph.Play();
             int count = Mathf.Max(2, Mathf.CeilToInt(clip.length * clip.frameRate) + 1);
