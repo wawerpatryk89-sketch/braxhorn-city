@@ -1,5 +1,17 @@
 # Postacie BRAXHORN CITY
 
+## Katalog postaci według roli
+
+| Dział | Obsada |
+| --- | --- |
+| [Liga](postacie/liga/) | Zawodnicy ligi z indywidualnymi stylami walki. |
+| [Uliczni zadymiarze](postacie/uliczni-zadymiarze/) | [Gitara](postacie/uliczni-zadymiarze/gitara/karta.json) — bójki uliczne. |
+| [Mieszkańcy](postacie/mieszkancy/) | Przechodnie i mieszkańcy z codziennymi czynnościami. |
+| [Usługi](postacie/uslugi/) | [Barmani](postacie/uslugi/barmani/), [kelnerzy](postacie/uslugi/kelnerzy/), [recepcja](postacie/uslugi/recepcja/) i [ratownicy](postacie/uslugi/ratownicy/). |
+| [Grywalni](postacie/grywalni/) | [Patryk](postacie/grywalni/patryk/karta.json) — gracz Osiedla. |
+
+Kolejną postać wpisuj do osobnego folderu w dziale odpowiadającym roli podanej przez właściciela. Jedna postać ma jedną kartę i stały identyfikator. Przy zmianie kategorii przenosi się kartę. Obsadę rejonu określa osobny plik, np. [Osiedle](osiedle.json).
+
 Jedna postać ma stały identyfikator i osobny pakiet z modelem, teksturami i ruchami dopasowanymi do jej szkieletu. Kolejne wersje zachowują identyfikator. Rejon wskazuje wersję w swojej obsadzie. Postać pojawia się tylko w wybranych rejonach. Patryk z 13 listopada jest przeznaczony do Osiedla.
 
 Właściciel przekazuje po jednej postaci, określa jej rolę i rejony. Każda postać ma spokojne stanie, chód, bieg, siadanie, odpoczynek na siedząco, wstawanie, rozmowę i gesty. Dalsze czynności dobiera się do roli, m.in. picie, taniec, pływanie, przejścia między wodą a lądem, obsługę auta, łodzi lub skutera, obsługę baru, tacę kelnerską i recepcję. Właściciel wskazuje postacie uczestniczące w bójkach. Zwykli mieszkańcy dostają podstawowy zestaw uliczny. Zawodnicy ligi otrzymują indywidualne style.
