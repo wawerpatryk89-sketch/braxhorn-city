@@ -33,6 +33,8 @@ public static partial class BraxClaudeOsiedle
             new Vector3(-22.8f, .045f, 62.3f), 120f, WzrostBazaLudzi, BraxGitaraSetup.CreateWiechu));
         Guard("Ewa przy domu Wawerów", () => MieszkaniecPrzyDomuWawerow("ewa", "Ewa",
             new Vector3(-21.6f, .045f, 59.7f), -25f, .96f * WzrostBazaLudzi, BraxGitaraSetup.CreateEwa));
+        Guard("Martyna przy domu Wawerów", () => MieszkaniecPrzyDomuWawerow("martyna", "Martyna",
+            new Vector3(-19.3f, .045f, 58.4f), -60f, .96f * WzrostBazaLudzi, BraxGitaraSetup.CreateMartyna));
         if (!LadujRocketbox())
         {
             rep.notes.Add("ludzie Rocketbox: brak paczki (unity-tools/claude/fetch_rocketbox.py) — zostają przechodnie z build 13");

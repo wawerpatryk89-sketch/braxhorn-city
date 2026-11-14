@@ -52,6 +52,9 @@ internal static class BraxGitaraSetup
     [MenuItem("Braxhorn/Postacie/Przygotuj Ewę")]
     internal static void CreateEwa() => Prepare("ewa", "Ewa", EverydayAndDance, Array.Empty<string>());
 
+    [MenuItem("Braxhorn/Postacie/Przygotuj Martynę")]
+    internal static void CreateMartyna() => Prepare("martyna", "Martyna", EverydayAndDance, Array.Empty<string>());
+
     static void Prepare(string characterId, string displayName) => Prepare(characterId, displayName, Actions, Attacks);
 
     static void Prepare(string characterId, string displayName, string[] actions, string[] attacks)

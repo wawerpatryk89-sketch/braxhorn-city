@@ -10,3 +10,4 @@ Postacie, które można spotkać na imprezie.
 - [Monika](../uslugi/monika/)
 - [Wiechu](../mieszkancy/wiechu/)
 - [Ewa](../mieszkancy/ewa/)
+- [Martyna](../mieszkancy/martyna/)
