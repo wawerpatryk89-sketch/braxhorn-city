@@ -27,33 +27,27 @@ def metoda(src, sygn):
     raise AssertionError(sygn)
 
 
-B = czytaj(ED / "BraxClaudePatrykBezposrednio.cs")
 H = czytaj(ED / "BraxClaudePatrykHumanoid.cs")
 P = czytaj(ED / "BraxClaudeOsiedlePatryk.cs")
+T = czytaj(ED / "BraxMixamoT.cs")
 
 
-class Bezposrednio(unittest.TestCase):
-    def test_poza_spoczynkowa_zrodla_przed_probkowaniem(self):
-        m = metoda(B, "static AnimationClip PatrykBezposrednio(")
-        self.assertLess(m.index("var S0 = src.ToDictionary"), m.index("clip.SampleAnimation(source, t);"))
-        self.assertLess(m.index("var T0 = bones.ToDictionary"), m.index("clip.SampleAnimation(source, t);"))
+class Humanoid(unittest.TestCase):
+    def test_sample_na_modelu_gracza(self):
+        m = metoda(H, "static AnimationClip PatrykHumanoid(")
+        self.assertIn("var animator = hero.AddComponent<Animator>()", m)
+        self.assertLess(m.index("graph.Evaluate(0)"), m.index("var q = bones[b].localRotation"))
+        self.assertIn("positions[i] = hips.localPosition", m)
+        self.assertNotIn("SetHumanPose", m)
 
-    def test_biodra_skala_wysokosci_i_bez_dryfu(self):
-        m = metoda(B, "static AnimationClip PatrykBezposrednio(")
-        self.assertIn("float skala = hSrc > 1e-5f ? hTgt / hSrc : 1f;", m)
-        self.assertIn("if (spec.wMiejscu) { d.x = 0f; d.z = 0f; }", m)
+    def test_biodra_i_kierunek_ruchu(self):
+        self.assertIn("desired.lockRootHeightY = desired.keepOriginalPositionY = true", T)
+        self.assertIn("animator.applyRootMotion = false", H)
 
-    def test_zly_szkielet_nie_daje_klipu(self):
-        m = metoda(B, "static AnimationClip PatrykBezposrednio(")
-        self.assertIn("if (dopasowane != bones.Count) throw", m)                 # wtedy zapasowy ruch, nie T-poza
-        self.assertIn("if (clip.humanMotion) throw", m)
-
-    def test_bez_latania_skutkow_humanoid(self):
-        for s in ("PatrykSymetriaNog", "PatrykKolanoDoPrzodu", "PatrykPoprawkiRuchu"):
-            self.assertNotIn(s, B + H + P)
-
-    def test_wybor_awatara_pomija_ruchy_wlasciciela(self):
-        self.assertIn("if (PatrykRuchWlasciciela(zr))", metoda(H, "static Avatar PatrykWybierzAwatar("))
+    def test_kosci_dloni_wymagane_na_modelu(self):
+        for bone in ("LeftIndexProximal", "RightIndexProximal", "LeftLittleProximal", "RightLittleProximal"):
+            self.assertIn("HumanBodyBones." + bone, T)
+        self.assertIn("if (!animator.GetBoneTransform(bone))", T)
 
 
 class Wyglad(unittest.TestCase):
@@ -64,7 +58,8 @@ class Wyglad(unittest.TestCase):
         self.assertIn('mat.SetTexture("_MainTex", kolor)', m)      # tekstury właściciela bez zmian
 
     def test_spokojna_poza_dlonie_do_ciala(self):
-        self.assertIn("PatrykRece(rest.Select(s=>s.t).ToList(),forward);", metoda(H, "static AnimationClip PatrykPozaStala("))
+        self.assertIn('PK("Idle", true, true,', P)
+        self.assertNotIn("PatrykRece(", H + P)
 
     def test_stopa_mierzona_na_nodze_podporowej(self):
         k = metoda(H, "static void PatrykNogiKlatka(")

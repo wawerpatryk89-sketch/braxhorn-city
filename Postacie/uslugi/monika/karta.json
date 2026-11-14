@@ -27,25 +27,25 @@
       "nazwa": "Monika_globalna_Unity_20261114.zip",
       "sha256": "711f63584c2da685f4eda2650eb773027252717aa099b6821b21e9ceef93257b",
       "bajty": 38170821,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Monika_globalna_Unity_20261114.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Monika_globalna_Unity_20261114.zip"
     },
     "model_zrodlowy": {
       "nazwa": "Monika_oryginal_20261114.zip",
       "sha256": "3650ceb9f0adc1e0a42159d28d1c08f070895282963ec3b2ca57400057d37963",
       "bajty": 43952681,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Monika_oryginal_20261114.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Monika_oryginal_20261114.zip"
     },
     "blender": {
       "nazwa": "Monika_16_ruchow.blend",
       "sha256": "62e763aa563d9c5e8a511383e43f293c0f68564d7067e11301e81eab124010fa",
       "bajty": 42154577,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Monika_16_ruchow.blend"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Monika_16_ruchow.blend"
     },
     "podglad": {
       "nazwa": "Monika_16_ruchow.jpg",
       "sha256": "f6f7772b6523118d847f7a1378a51a6bfc9f47c6bba87cfb73962e7e6873ce8c",
       "bajty": 139075,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Monika_16_ruchow.jpg"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Monika_16_ruchow.jpg"
     }
   },
   "gym": {
@@ -55,5 +55,8 @@
       "FrontRaises",
       "KettlebellSwing"
     ]
-  }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#monika",
+  "liczba_klipow_T": 13,
+  "podglad_T": "oczekuje na odbiór w Unity"
 }

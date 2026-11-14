@@ -74,6 +74,9 @@ def przygotuj():
             zainstaluj(staged, target)
             print(f"Sprawdzono model i animacje: {selection['id']} {selection['version']}")
 
+    from ruchy_t import install
+    install([character["id"] for character in characters])
+
     from gym import przygotuj_gym
     przygotuj_gym([character["id"] for character in characters])
 

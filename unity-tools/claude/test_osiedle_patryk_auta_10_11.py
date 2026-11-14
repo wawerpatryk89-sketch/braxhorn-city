@@ -41,7 +41,7 @@ def klipy_patryka():
 class RuchyWlasciciela(unittest.TestCase):
     def test_chod_bieg_skok_z_paczki_wlasciciela_najpierw(self):
         k = klipy_patryka()
-        self.assertEqual(len(k), 31)
+        self.assertEqual(set(k), set(json.loads(czytaj(ROOT / "Postacie/ruchy/mixamo.json"))["profiles"]["patryk"]))
         for akcja, wpis in k.items():
             self.assertEqual(wpis["zrodla"], ["Ruchy/" + akcja + ".fbx"])
             self.assertTrue(wpis["wMiejscu"])
@@ -50,29 +50,20 @@ class RuchyWlasciciela(unittest.TestCase):
             self.assertIn(akcja, k)
         self.assertFalse(k["EnteringCar"]["petla"])
 
-    def test_ruchy_wlasciciela_prosto_na_kosci_reszta_humanoid(self):
-        # build Codexa 5.11: surowe krzywe po ścieżkach → „brak krzywych Hips” → T-poza. 10.11 (APK dd490e9): Humanoid wykrzywia
-        # ruchy zrobione pod Patryka. Ruchy właściciela: obrót kości w świecie po NAZWIE kości (nie ścieżki krzywych), bez Humanoid;
-        # ruchy Braxa (inny szkielet) nadal przez HumanPoseHandler.
+    def test_ruchy_na_avatarze_docelowym(self):
         h = czytaj(ED / "BraxClaudePatrykHumanoid.cs")
-        self.assertIn("new HumanPoseHandler(animator.avatar, source.transform)", h)
-        self.assertIn("writer.SetHumanPose(ref pose)", h)
-        b = czytaj(ED / "BraxClaudePatrykBezposrednio.cs")
-        self.assertIn("b.rotation = s.rotation * Quaternion.Inverse(s0) * T0[b];", b)
-        self.assertIn("PatrykKosciPoNazwie(source.GetComponentsInChildren<Transform>(true))", b)
         p = czytaj(ED / "BraxClaudeOsiedlePatryk.cs")
-        self.assertIn("PatrykKatalog + \"/Patryk.fbx\"", p)
-        self.assertIn("PatrykBezposrednio(hero, hips, kosci, spoczynek, sciezka, k, out string uwagi)", p)
-        self.assertNotIn("PatrykHumanoid(hero,", p)
+        self.assertIn("BraxMixamoT.CheckAvatar(hero)", p)
+        self.assertIn("PatrykHumanoid(hero, avatar, hips", p)
+        self.assertIn("animator.avatar = avatar;", h)
+        self.assertIn("playable.SetApplyFootIK(false);", h)
+        self.assertNotIn("PatrykBezposrednio(hero,", p)
         self.assertNotIn("PatrykWybierzAwatar", p)
-        imp = czytaj(ED / "BraxPrywatneImport.cs")
-        self.assertIn("ModelImporterAnimationType.Human", imp)
-        self.assertIn('assetPath.StartsWith(Katalog + "Postacie/patryk/Ruchy/")', imp)
-        self.assertIn("ModelImporterAnimationType.Generic", imp)
+        self.assertNotIn("ModelImporterAnimationType.Generic", czytaj(ED / "BraxPrywatneImport.cs"))
 
     def test_kazdy_ruch_wymagany(self):
         p = czytaj(ED / "BraxClaudeOsiedlePatryk.cs")
-        self.assertIn("foreach (var k in KlipyPatryka)", p)
+        self.assertIn("foreach (var k in KlipyPatryka.Concat(gym))", p)
         self.assertIn("if (!gotowy) throw", p)
 
     def test_paczka_22_spojna_z_katalogiem(self):

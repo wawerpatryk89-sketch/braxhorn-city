@@ -25,25 +25,25 @@
       "nazwa": "Gitara_globalny_Unity.zip",
       "sha256": "b02f60105b80cf68c2064378f5a4c644aabd5984a7df6bdc31da6f5656bb30ff",
       "bajty": 68736009,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Gitara_globalny_Unity.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Gitara_globalny_Unity.zip"
     },
     "model_zrodlowy": {
       "nazwa": "gitara.zip",
       "sha256": "4fe297089ff7f3e7550c84f89c967d8317f5004d118a31fcd72ad3cc0b61b9ec",
       "bajty": 63843549,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/gitara.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/gitara.zip"
     },
     "blender": {
       "nazwa": "Gitara_26_ruchow.blend",
       "sha256": "3e3c77c99ac9c69741c31c13f319fef0695a2a3551333fecead8f94d98c6173d",
       "bajty": 73734271,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Gitara_26_ruchow.blend"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Gitara_26_ruchow.blend"
     },
     "podglad": {
       "nazwa": "Gitara_26_ruchow.jpg",
       "sha256": "0f705e7696090bba7dfcb1a5bcd25ce7ea011b19f0efb1be14610a84b99b8897",
       "bajty": 250185,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Gitara_26_ruchow.jpg"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Gitara_26_ruchow.jpg"
     }
   },
   "gym": {
@@ -53,5 +53,8 @@
       "FrontRaises",
       "JumpingJacks"
     ]
-  }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#gitara",
+  "liczba_klipow_T": 26,
+  "podglad_T": "oczekuje na odbiór w Unity"
 }

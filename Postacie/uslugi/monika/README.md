@@ -10,8 +10,8 @@ Globalna postać usługowa z najnowszego modelu właściciela. Dostępna do obsa
 
 Model zachowuje oryginalny szkielet Mixamo. Kontroler zaczyna w stanie Idle. Bazowe 13 klipów jest w archiwum Moniki. Trzy ćwiczenia pochodzą ze [wspólnej paczki siłowni](../../silownia/). Po rozpakowaniu paczki bazowej przygotuj ćwiczenia poleceniem `python3 unity-tools/claude/gym.py /sciezka/do/gym.zip monika` z katalogu głównego repozytorium. W Unity wybierz **Braxhorn → Postacie → Przygotuj Monikę**. Postać korzysta z osobnego prefabu i kontrolera. Sprawdzono 16 ruchów i zgodność siatki, UV, wag i szkieletu w Blenderze.
 
-- [Paczka Unity](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Monika_globalna_Unity_20261114.zip)
-- [Podgląd 16 ruchów](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Monika_16_ruchow.jpg)
-- [Oryginał właściciela](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Monika_oryginal_20261114.zip)
-- [Model i ruchy w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Monika_16_ruchow.blend)
+- [Paczka Unity](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Monika_globalna_Unity_20261114.zip)
+- [Podgląd 16 ruchów](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Monika_16_ruchow.jpg)
+- [Oryginał właściciela](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Monika_oryginal_20261114.zip)
+- [Model i ruchy w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Monika_16_ruchow.blend)
 - [Karta i sumy plików](karta.json)

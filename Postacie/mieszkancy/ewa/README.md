@@ -11,8 +11,8 @@ W Blenderze sprawdzono siatkę, wagi i szkielet Ewy oraz 13 ruchów. W głęboki
 
 Obsada Osiedla pobiera paczkę przed importem. Aby użyć Ewy w innym rejonie, po rozpakowaniu paczki do repozytorium wybierz w Unity **Braxhorn → Postacie → Przygotuj Ewę**. Prefab znajduje się w `Assets/Source/Prywatne/Postacie/ewa/Ewa.prefab`.
 
-- [Paczka Unity](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Ewa_globalna_Unity_20261114.zip)
-- [Podgląd 13 ruchów](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Ewa_13_ruchow.jpg)
-- [Oryginał właściciela](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Ewa_oryginal_20261114.zip)
-- [Model z animacjami w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Ewa_13_ruchow.blend)
+- [Paczka Unity](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Ewa_globalna_Unity_20261114.zip)
+- [Podgląd 13 ruchów](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Ewa_13_ruchow.jpg)
+- [Oryginał właściciela](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Ewa_oryginal_20261114.zip)
+- [Model z animacjami w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Ewa_13_ruchow.blend)
 - [Karta postaci i sumy plików](karta.json)

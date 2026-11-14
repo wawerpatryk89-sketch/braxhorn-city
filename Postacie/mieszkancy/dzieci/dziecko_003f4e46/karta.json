@@ -43,25 +43,28 @@
       "nazwa": "Chlopiec003f4e46_Unity_20261114.zip",
       "sha256": "a64036fd64dcc9a01b8ae61cedfd1348fa9dcd912f536a8745de890616f242c6",
       "bajty": 32727777,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Chlopiec003f4e46_Unity_20261114.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Chlopiec003f4e46_Unity_20261114.zip"
     },
     "model_zrodlowy": {
       "nazwa": "tripo_convert_003f4e46-b7cc-4a35-93fb-b73bed881e0b.zip",
       "sha256": "64c14cbf82aea6bf57108dc7ba3449302ba5d655af7ef3885ccde9b788eda1cb",
       "bajty": 30962207,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/tripo_convert_003f4e46-b7cc-4a35-93fb-b73bed881e0b.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/tripo_convert_003f4e46-b7cc-4a35-93fb-b73bed881e0b.zip"
     },
     "podglad": {
       "nazwa": "Role_4_postaci_20261114.jpg",
       "sha256": "ce791bb89ed87d05f9e293ae7e63e171fe735bec3937ae9c5a5e33e2d7f370ce",
       "bajty": 134590,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Role_4_postaci_20261114.jpg"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Role_4_postaci_20261114.jpg"
     },
     "widok_modeli": {
       "nazwa": "Obsada_4_modele_20261114.jpg",
       "sha256": "311f9b26ffa8ac2e1285b444976865161982d48ea141bbb29e7d96fff05cf745",
       "bajty": 135062,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Obsada_4_modele_20261114.jpg"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Obsada_4_modele_20261114.jpg"
     }
-  }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#dziecko_003f4e46",
+  "liczba_klipow_T": 11,
+  "podglad_T": "oczekuje na odbiór w Unity"
 }

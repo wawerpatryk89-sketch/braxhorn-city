@@ -25,25 +25,25 @@
       "nazwa": "Mateusz_globalny_Unity.zip",
       "sha256": "40b22e5a8cd75875c1183cf85d0bef8e10985f5762857290d170629ecde1e9a6",
       "bajty": 36444217,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Mateusz_globalny_Unity.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Mateusz_globalny_Unity.zip"
     },
     "model_zrodlowy": {
       "nazwa": "mateusz.zip",
       "sha256": "ffc2ecdf80af2ccfafa8a12c3ae507426322df192099257240d0016d95f23f1a",
       "bajty": 39089083,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/mateusz.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/mateusz.zip"
     },
     "blender": {
       "nazwa": "Mateusz_26_ruchow.blend",
       "sha256": "c0e21d2f7258207a072b23b1eca7a3c0ea22d2b127cd477bbd4780f4853f7e03",
       "bajty": 43885257,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Mateusz_26_ruchow.blend"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Mateusz_26_ruchow.blend"
     },
     "podglad": {
       "nazwa": "Mateusz_26_ruchow.jpg",
       "sha256": "fb34e85bcae254a8c9da0111f6f6f1ff82f422a19ae38fd40cfa018ff2780391",
       "bajty": 231256,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Mateusz_26_ruchow.jpg"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Mateusz_26_ruchow.jpg"
     }
   },
   "gym": {
@@ -53,5 +53,8 @@
       "Snatch",
       "KettlebellSwing"
     ]
-  }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#mateusz",
+  "liczba_klipow_T": 26,
+  "podglad_T": "oczekuje na odbiór w Unity"
 }

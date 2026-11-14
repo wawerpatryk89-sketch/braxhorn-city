@@ -33,25 +33,28 @@
       "nazwa": "Wiechu_globalny_Unity_20261114.zip",
       "sha256": "cb91eea76b1061381af3af7773ed26fc1e0863cb20899f384d6bf29b31f465b6",
       "bajty": 44320035,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Wiechu_globalny_Unity_20261114.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Wiechu_globalny_Unity_20261114.zip"
     },
     "model_zrodlowy": {
       "nazwa": "Wiechu_oryginal_20261114.zip",
       "sha256": "eeddec121e9e775451a39b6acfb2c270db3b40f194d58473211e60c37bd4b6ac",
       "bajty": 48835107,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Wiechu_oryginal_20261114.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Wiechu_oryginal_20261114.zip"
     },
     "blender": {
       "nazwa": "Wiechu_13_ruchow.blend",
       "sha256": "b1844867e6f989a3e2bd74975294e9a9fd062b8608e5b1bfe2a18c9264f054a9",
       "bajty": 46255267,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Wiechu_13_ruchow.blend"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Wiechu_13_ruchow.blend"
     },
     "podglad": {
       "nazwa": "Wiechu_13_ruchow.jpg",
       "sha256": "b711b8a07f646b82f243785df1e8105a4790b185fae3ea1cf147e91562ea3c1c",
       "bajty": 117123,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Wiechu_13_ruchow.jpg"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Wiechu_13_ruchow.jpg"
     }
-  }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#wiechu",
+  "liczba_klipow_T": 13,
+  "podglad_T": "oczekuje na odbiór w Unity"
 }

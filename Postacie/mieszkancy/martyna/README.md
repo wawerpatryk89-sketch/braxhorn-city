@@ -11,8 +11,8 @@ W Blenderze sprawdzono siatkę, wagi i szkielet Martyny oraz 13 ruchów.
 
 Obsada Osiedla pobiera paczkę przed importem. Aby użyć Martyny w innym rejonie, po rozpakowaniu paczki do repozytorium wybierz w Unity **Braxhorn → Postacie → Przygotuj Martynę**. Prefab znajduje się w `Assets/Source/Prywatne/Postacie/martyna/Martyna.prefab`.
 
-- [Paczka Unity](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Martyna_globalna_Unity_20261114.zip)
-- [Podgląd 13 ruchów](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Martyna_13_ruchow.jpg)
-- [Oryginał właściciela](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Martyna_oryginal_20261114.zip)
-- [Model z animacjami w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Martyna_13_ruchow.blend)
+- [Paczka Unity](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Martyna_globalna_Unity_20261114.zip)
+- [Podgląd 13 ruchów](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Martyna_13_ruchow.jpg)
+- [Oryginał właściciela](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Martyna_oryginal_20261114.zip)
+- [Model z animacjami w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Martyna_13_ruchow.blend)
 - [Karta postaci i sumy plików](karta.json)

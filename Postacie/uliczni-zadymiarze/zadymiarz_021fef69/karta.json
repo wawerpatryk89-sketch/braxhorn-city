@@ -57,25 +57,28 @@
       "nazwa": "Zadymiarz021fef69_Unity_20261114.zip",
       "sha256": "eb6d574473054c26ad4e36ac00091e81a0e28ca305c83b904038d43d1ba51051",
       "bajty": 27134712,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Zadymiarz021fef69_Unity_20261114.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Zadymiarz021fef69_Unity_20261114.zip"
     },
     "model_zrodlowy": {
       "nazwa": "tripo_convert_021fef69-c359-4653-b265-70e5332ceb46.zip",
       "sha256": "b1617eaa61c6106af2f2bfd3fb11c20cce4f33fe2513fd1dbcf3a7b4de39d42e",
       "bajty": 24367314,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/tripo_convert_021fef69-c359-4653-b265-70e5332ceb46.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/tripo_convert_021fef69-c359-4653-b265-70e5332ceb46.zip"
     },
     "podglad": {
       "nazwa": "Role_4_postaci_20261114.jpg",
       "sha256": "ce791bb89ed87d05f9e293ae7e63e171fe735bec3937ae9c5a5e33e2d7f370ce",
       "bajty": 134590,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Role_4_postaci_20261114.jpg"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Role_4_postaci_20261114.jpg"
     },
     "widok_modeli": {
       "nazwa": "Obsada_4_modele_20261114.jpg",
       "sha256": "311f9b26ffa8ac2e1285b444976865161982d48ea141bbb29e7d96fff05cf745",
       "bajty": 135062,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Obsada_4_modele_20261114.jpg"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Obsada_4_modele_20261114.jpg"
     }
-  }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#zadymiarz_021fef69",
+  "liczba_klipow_T": 20,
+  "podglad_T": "oczekuje na odbiór w Unity"
 }

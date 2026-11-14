@@ -25,25 +25,25 @@
       "nazwa": "Kiler_globalny_Unity.zip",
       "sha256": "6fd52240f2c428d1f8c12f5d31491c77c38374a920298a82f00f00a25a323200",
       "bajty": 68021585,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Kiler_globalny_Unity.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Kiler_globalny_Unity.zip"
     },
     "model_zrodlowy": {
       "nazwa": "kiler.zip",
       "sha256": "07dcf07a172e3fdc8933b7d652c72b8f3cb82d508104a6a0b296c1e36aa7cfa9",
       "bajty": 63254747,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/kiler.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/kiler.zip"
     },
     "blender": {
       "nazwa": "Kiler_26_ruchow.blend",
       "sha256": "60703e59f42012975114d5e63321bd5d530ad99faad3a6a199438d6bf62c6678",
       "bajty": 72848578,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Kiler_26_ruchow.blend"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Kiler_26_ruchow.blend"
     },
     "podglad": {
       "nazwa": "Kiler_26_ruchow.jpg",
       "sha256": "30e44e0b1bedd7540bd050bd907fa034f2f7d373ee4679cb5bd9ab904e9b39cc",
       "bajty": 244396,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Kiler_26_ruchow.jpg"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Kiler_26_ruchow.jpg"
     }
   },
   "gym": {
@@ -53,5 +53,8 @@
       "SnatchB",
       "SumoHighPull"
     ]
-  }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#kiler",
+  "liczba_klipow_T": 26,
+  "podglad_T": "oczekuje na odbiór w Unity"
 }

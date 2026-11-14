@@ -21,6 +21,7 @@ public static partial class BraxClaudeOsiedle
     const string RuchyWlasciciela = "Ruchy/";
     static readonly PatrykKlip[] KlipyPatryka =
     {
+        PK("Idle", true, true, RuchyWlasciciela + "Idle.fbx"),
         PK("Walk", true, true, RuchyWlasciciela + "Walk.fbx"),
         PK("Run", true, true, RuchyWlasciciela + "Run.fbx"),
         PK("Jump", false, true, RuchyWlasciciela + "Jump.fbx"),
@@ -88,12 +89,13 @@ public static partial class BraxClaudeOsiedle
                 throw new InvalidOperationException("Nieprawidłowy model: wymagany Patryk z 13.11.2026");
         var wzor = AssetDatabase.LoadAssetAtPath<GameObject>(model);
         if (!wzor) throw new InvalidOperationException("Nie zaimportowano modelu Patryka: " + model);
-        var avatar = AssetDatabase.LoadAllAssetsAtPath(model).OfType<Avatar>().FirstOrDefault();
+
 
         var hero = Object.Instantiate(wzor); hero.name = "Patryk";
         try
         {
             hero.transform.position = Vector3.zero; hero.transform.rotation = Quaternion.identity; hero.transform.localScale = Vector3.one;
+            var avatar = BraxMixamoT.CheckAvatar(hero);
             foreach (var a in hero.GetComponentsInChildren<Animator>(true)) Object.DestroyImmediate(a);    // gra: Legacy Animation jak Brax
             foreach (var a in hero.GetComponentsInChildren<Animation>(true)) Object.DestroyImmediate(a);
             var smr = hero.GetComponentsInChildren<SkinnedMeshRenderer>(true).Where(r => r.sharedMesh).OrderByDescending(r => r.sharedMesh.vertexCount).FirstOrDefault();
@@ -129,15 +131,17 @@ public static partial class BraxClaudeOsiedle
             }
 
             // --- klipy przeniesione na kości Patryka ---
-            var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek) };
+            var klipy = new List<AnimationClip>();
+            var profile = BraxMixamoT.Read("patryk");
             var opis = new List<string>();
             var gym = BraxGymProfiles.For("patryk").Select(id =>
                 PK("Gym" + id, false, true, BraxGymProfiles.PlayerClips + id + ".fbx"));
             foreach (var k in KlipyPatryka.Concat(gym))
             {
                 string sciezka = k.zrodla[0].StartsWith("Assets/", StringComparison.Ordinal)
-                    ? k.zrodla[0] : PatrykRuchy + "/" + k.zrodla[0];
-                var gotowy = PatrykBezposrednio(hero, hips, kosci, spoczynek, sciezka, k, out string uwagi);
+                    ? k.zrodla[0] : profile[k.nazwa];
+                var sourceClip = BraxMixamoT.Load(sciezka, k.nazwa, k.petla);
+                var gotowy = PatrykHumanoid(hero, avatar, hips, kosci, spoczynek, sourceClip, k, out string uwagi);
                 if (!gotowy) throw new InvalidOperationException("Brak wymaganego ruchu Patryka: " + k.nazwa);
                 klipy.Add(gotowy);
                 opis.Add(k.nazwa + uwagi);

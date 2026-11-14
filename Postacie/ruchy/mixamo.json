@@ -1,0 +1,3234 @@
+{
+  "archive": {
+    "release_id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "name": "Pozycja_T_animacje_20261114.zip",
+    "sha256": "a4b9b57cd211f0362ee3da7882f21fef1a716ecf5226a3bfe49da933d608b7a5"
+  },
+  "clips": {
+    "25925eccf825a6589654c343cc975939c437fbb764109b935aae89c301ae86ec": {
+      "name": "Armada",
+      "sha256": "25925eccf825a6589654c343cc975939c437fbb764109b935aae89c301ae86ec",
+      "curves_sha256": "d08dae47e9483cd16d2baaada9abef5ca5ce05f68bd778ff8b085f33be55761f",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Armada.fbx",
+          "source_sha256": "25925eccf825a6589654c343cc975939c437fbb764109b935aae89c301ae86ec"
+        }
+      ],
+      "path": "Ruchy/Armada_25925eccf825a658.fbx"
+    },
+    "1c7d70508cc51890f4fad93a80587d661853bf693e9665bca1b5d8834f8a2446": {
+      "name": "Bencao",
+      "sha256": "4d9a84a5e1cdc5eaa1438209d2996a6afc67f18ff66ffae637449c373f6ed208",
+      "curves_sha256": "c2702ab79ab0e7a7a8f374653903c85e184c664ace2bb4aa62e2d6134da24f5c",
+      "reference_sha256": "70469800ffa6ece1bdf0c28d1b317e253e27d266f37b11865cce935f00b7918b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Bencao.fbx",
+          "source_sha256": "1c7d70508cc51890f4fad93a80587d661853bf693e9665bca1b5d8834f8a2446"
+        }
+      ],
+      "path": "Ruchy/Bencao_1c7d70508cc51890.fbx"
+    },
+    "15ac0dd7925a75e268f5ecb83e78789a00aee0d01e538bab4fc32af2064726e8": {
+      "name": "Big Jump",
+      "sha256": "15ac0dd7925a75e268f5ecb83e78789a00aee0d01e538bab4fc32af2064726e8",
+      "curves_sha256": "6196ca3269a1ec25516b347cffed145e29ff34a580eee829aa4da21fb4cc626a",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Big Jump.fbx",
+          "source_sha256": "15ac0dd7925a75e268f5ecb83e78789a00aee0d01e538bab4fc32af2064726e8"
+        }
+      ],
+      "path": "Ruchy/Big_Jump_15ac0dd7925a75e2.fbx"
+    },
+    "e128da8bd1bd8abe9936d52284ac7b9b5ae81cf978424438cbded30415120235": {
+      "name": "Big Side Hit",
+      "sha256": "e128da8bd1bd8abe9936d52284ac7b9b5ae81cf978424438cbded30415120235",
+      "curves_sha256": "6bb12e3d1c916241703705d373a0bd551ab39675c93ca9375d47c6cc1836dd45",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Big Side Hit.fbx",
+          "source_sha256": "e128da8bd1bd8abe9936d52284ac7b9b5ae81cf978424438cbded30415120235"
+        }
+      ],
+      "path": "Ruchy/Big_Side_Hit_e128da8bd1bd8abe.fbx"
+    },
+    "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c": {
+      "name": "Big Stomach Hit",
+      "sha256": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+      "curves_sha256": "713937118672472bd4fe78dd6b0c512e72142f7b187b45c0fe1d4b296655b89d",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Big Stomach Hit.fbx",
+          "source_sha256": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c"
+        }
+      ],
+      "path": "Ruchy/Big_Stomach_Hit_ddee9edeffdcab5c.fbx"
+    },
+    "2c45156d9dcd5b9f440937ce9523e54e678f14833f2abfa27fc73f5fe361aab2": {
+      "name": "Block",
+      "sha256": "2c45156d9dcd5b9f440937ce9523e54e678f14833f2abfa27fc73f5fe361aab2",
+      "curves_sha256": "d8339f3980042b89287c640510efaa73351d0cfd8ebf41693c204830972885dc",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Block.fbx",
+          "source_sha256": "2c45156d9dcd5b9f440937ce9523e54e678f14833f2abfa27fc73f5fe361aab2"
+        }
+      ],
+      "path": "Ruchy/Block_2c45156d9dcd5b9f.fbx"
+    },
+    "565ff69c576ddfd94076de7b0e62d85876f0365b4ac99879534ede3bf2c7f233": {
+      "name": "Body Jab Cross",
+      "sha256": "565ff69c576ddfd94076de7b0e62d85876f0365b4ac99879534ede3bf2c7f233",
+      "curves_sha256": "2f8713494ea540e68a94481b776665465909b82f2074019405251026549e0c55",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Body Jab Cross.fbx",
+          "source_sha256": "565ff69c576ddfd94076de7b0e62d85876f0365b4ac99879534ede3bf2c7f233"
+        }
+      ],
+      "path": "Ruchy/Body_Jab_Cross_565ff69c576ddfd9.fbx"
+    },
+    "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc": {
+      "name": "Boxing (1)",
+      "sha256": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+      "curves_sha256": "faa35ac38842715f7c98bce4b53ee0ed77f7aef6d6cefdac4fffdd33e7fc43e0",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Boxing (1).fbx",
+          "source_sha256": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc"
+        }
+      ],
+      "path": "Ruchy/Boxing_1_06dc7d7a149bbdaa.fbx"
+    },
+    "8203e7c72a9429f8aee3d6c38432a999cad2e349f775a72042d900e7ded3e7ea": {
+      "name": "Boxing (2)",
+      "sha256": "8203e7c72a9429f8aee3d6c38432a999cad2e349f775a72042d900e7ded3e7ea",
+      "curves_sha256": "87303db2916940b9d93f08f5bd14d8ec2e123fb87c3cb799b1832f0438cc414d",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Boxing (2).fbx",
+          "source_sha256": "8203e7c72a9429f8aee3d6c38432a999cad2e349f775a72042d900e7ded3e7ea"
+        }
+      ],
+      "path": "Ruchy/Boxing_2_8203e7c72a9429f8.fbx"
+    },
+    "0ab067fd20214f08172981460c9b0593a54c5d81d14494fc50888df35b1739b0": {
+      "name": "Boxing (3)",
+      "sha256": "0ab067fd20214f08172981460c9b0593a54c5d81d14494fc50888df35b1739b0",
+      "curves_sha256": "d8b45634a9d6e758823a88d185d285c225078121279673df63b05f1c842de64d",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Boxing (3).fbx",
+          "source_sha256": "0ab067fd20214f08172981460c9b0593a54c5d81d14494fc50888df35b1739b0"
+        }
+      ],
+      "path": "Ruchy/Boxing_3_0ab067fd20214f08.fbx"
+    },
+    "9c0b69efc00f127d66db1d2ade9714b587270dde95859e5f18f14e467bc78129": {
+      "name": "Boxing (4)",
+      "sha256": "9c0b69efc00f127d66db1d2ade9714b587270dde95859e5f18f14e467bc78129",
+      "curves_sha256": "c451c7943116d6b5b50de5d57518c493d4746174f0d1b3eaffdbc088108bcdc7",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Boxing (4).fbx",
+          "source_sha256": "9c0b69efc00f127d66db1d2ade9714b587270dde95859e5f18f14e467bc78129"
+        }
+      ],
+      "path": "Ruchy/Boxing_4_9c0b69efc00f127d.fbx"
+    },
+    "b7b7e1019afee2fed6dbfd9ce57253d370edcb1af3a7dea1cdfd01e4a76a95ab": {
+      "name": "Boxing (5)",
+      "sha256": "b7b7e1019afee2fed6dbfd9ce57253d370edcb1af3a7dea1cdfd01e4a76a95ab",
+      "curves_sha256": "9f82fd292c7a36c166c692b6f7fe8bce3c928246918f24da7e69e82ba01f85e1",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Boxing (5).fbx",
+          "source_sha256": "b7b7e1019afee2fed6dbfd9ce57253d370edcb1af3a7dea1cdfd01e4a76a95ab"
+        }
+      ],
+      "path": "Ruchy/Boxing_5_b7b7e1019afee2fe.fbx"
+    },
+    "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83": {
+      "name": "Brutal To Happy Walking",
+      "sha256": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "curves_sha256": "e8f2704400782eb52180aa4fc6fc11f9f755b2a2d66b06353633c236b5c424b0",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Brutal To Happy Walking.fbx",
+          "source_sha256": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83"
+        }
+      ],
+      "path": "Ruchy/Brutal_To_Happy_Walking_61b00f9239c4d979.fbx"
+    },
+    "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f": {
+      "name": "Center Block (1)",
+      "sha256": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+      "curves_sha256": "0d986070e5ba53bac52cc9035694bc54ee522a1aa608e237ae49138aa5ae3179",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Center Block (1).fbx",
+          "source_sha256": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f"
+        },
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Center Block (2).fbx",
+          "source_sha256": "f98b919681f32f7fe07ab76bd124f7f2203f4678e17d90b7992e32c8d365eaa5"
+        }
+      ],
+      "path": "Ruchy/Center_Block_1_6e52b33f83b55814.fbx"
+    },
+    "df63da14bc7cc776444d20456b0d31a52ca0efa30caf6069afe73e60265289f9": {
+      "name": "Center Block (3)",
+      "sha256": "df63da14bc7cc776444d20456b0d31a52ca0efa30caf6069afe73e60265289f9",
+      "curves_sha256": "1527e809a2fe58286d20a0c4e6671eb3bccf5170ccc7d6ee1b067cb2e291d072",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Center Block (3).fbx",
+          "source_sha256": "df63da14bc7cc776444d20456b0d31a52ca0efa30caf6069afe73e60265289f9"
+        }
+      ],
+      "path": "Ruchy/Center_Block_3_df63da14bc7cc776.fbx"
+    },
+    "376d14096d77c74afc77e6dce508aa3352497cd5d3e64bcd5a14cbdb1da98f17": {
+      "name": "Chapa 2",
+      "sha256": "376d14096d77c74afc77e6dce508aa3352497cd5d3e64bcd5a14cbdb1da98f17",
+      "curves_sha256": "43cb0cce9260e63472013ca3ea8bac680c4ac516844e522961f154b7d4acdd9e",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Chapa 2.fbx",
+          "source_sha256": "376d14096d77c74afc77e6dce508aa3352497cd5d3e64bcd5a14cbdb1da98f17"
+        }
+      ],
+      "path": "Ruchy/Chapa_2_376d14096d77c74a.fbx"
+    },
+    "a3a0ab06341e1b95d92fbde2ab671c49a6956590e81ba42a740e16b4ca6375eb": {
+      "name": "Chapa-Giratoria",
+      "sha256": "a3a0ab06341e1b95d92fbde2ab671c49a6956590e81ba42a740e16b4ca6375eb",
+      "curves_sha256": "b7b4225686cbbef5966da73da564d9d5db69b2ae00051acc8359e69b903d8b84",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Chapa-Giratoria.fbx",
+          "source_sha256": "a3a0ab06341e1b95d92fbde2ab671c49a6956590e81ba42a740e16b4ca6375eb"
+        }
+      ],
+      "path": "Ruchy/Chapa-Giratoria_a3a0ab06341e1b95.fbx"
+    },
+    "5eaea12e4768a6ad831bb4c47911fdb69bf599a35ddb100568012232d22f3554": {
+      "name": "Combo Punch",
+      "sha256": "5eaea12e4768a6ad831bb4c47911fdb69bf599a35ddb100568012232d22f3554",
+      "curves_sha256": "245b1c40e648fc7a6614292dde63d433feab8a28f3fb93a08b4ed35e577ac54d",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Combo Punch.fbx",
+          "source_sha256": "5eaea12e4768a6ad831bb4c47911fdb69bf599a35ddb100568012232d22f3554"
+        }
+      ],
+      "path": "Ruchy/Combo_Punch_5eaea12e4768a6ad.fbx"
+    },
+    "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90": {
+      "name": "Cross Punch",
+      "sha256": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+      "curves_sha256": "2d7c552f856df40f4945511580c90ecf9681aaf3e20c2d4f9e852c9bc7eef0ab",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Cross Punch.fbx",
+          "source_sha256": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90"
+        }
+      ],
+      "path": "Ruchy/Cross_Punch_6663ca725b158acc.fbx"
+    },
+    "fc83ed358b9cf02bd7e117a36d14d2d1d6a06b6c9cc442ccc43817a23a0bf7b4": {
+      "name": "Defeat (1)",
+      "sha256": "fc83ed358b9cf02bd7e117a36d14d2d1d6a06b6c9cc442ccc43817a23a0bf7b4",
+      "curves_sha256": "abcf850d83b4cf6f4e1ea67c795da940c570d502a8478fc082ffde17d1b05108",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Defeat (1).fbx",
+          "source_sha256": "fc83ed358b9cf02bd7e117a36d14d2d1d6a06b6c9cc442ccc43817a23a0bf7b4"
+        }
+      ],
+      "path": "Ruchy/Defeat_1_fc83ed358b9cf02b.fbx"
+    },
+    "024797ce3c7001a6c55757dd9c46dd9430aa4475a0093603868f941a15f1a7c8": {
+      "name": "Defeated",
+      "sha256": "024797ce3c7001a6c55757dd9c46dd9430aa4475a0093603868f941a15f1a7c8",
+      "curves_sha256": "c14d12ef2110d4074f4d15ed29164281a7809bfa3d2807f31cf191694cabca7c",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Defeated.fbx",
+          "source_sha256": "024797ce3c7001a6c55757dd9c46dd9430aa4475a0093603868f941a15f1a7c8"
+        }
+      ],
+      "path": "Ruchy/Defeated_024797ce3c7001a6.fbx"
+    },
+    "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff": {
+      "name": "Dodging",
+      "sha256": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+      "curves_sha256": "6a0be1d176a179fb9b9e9405297edd0c1f8bed159329ff4bd22dcff88d33f7c7",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Dodging.fbx",
+          "source_sha256": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff"
+        }
+      ],
+      "path": "Ruchy/Dodging_8cf5158b9b8851ff.fbx"
+    },
+    "41a3ccff2c70c9c3a5a7525437380e3af4aa51b724a18f1fb58e07d2e869e6ca": {
+      "name": "Driving (3)",
+      "sha256": "41a3ccff2c70c9c3a5a7525437380e3af4aa51b724a18f1fb58e07d2e869e6ca",
+      "curves_sha256": "fc5162965ea1675a524c6879a63102398f296c8a416de182511119263dddab13",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Driving (3).fbx",
+          "source_sha256": "41a3ccff2c70c9c3a5a7525437380e3af4aa51b724a18f1fb58e07d2e869e6ca"
+        }
+      ],
+      "path": "Ruchy/Driving_3_41a3ccff2c70c9c3.fbx"
+    },
+    "84f2d80d12c9d1c1877d9a510b03cf33a0aa3a7335c294e376b4c9a8bd455740": {
+      "name": "Dying (1)",
+      "sha256": "84f2d80d12c9d1c1877d9a510b03cf33a0aa3a7335c294e376b4c9a8bd455740",
+      "curves_sha256": "b9ce22e97b6d7f488fbe2b5236ad5f640b37b2382799ee329e0c7d304754966f",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Dying (1).fbx",
+          "source_sha256": "84f2d80d12c9d1c1877d9a510b03cf33a0aa3a7335c294e376b4c9a8bd455740"
+        }
+      ],
+      "path": "Ruchy/Dying_1_84f2d80d12c9d1c1.fbx"
+    },
+    "4e495d89f30b1f47b0d160078fe6df6a1bcfe233ddb8ef64803c1adfdcb28235": {
+      "name": "Entering Car (3)",
+      "sha256": "4e495d89f30b1f47b0d160078fe6df6a1bcfe233ddb8ef64803c1adfdcb28235",
+      "curves_sha256": "91653abd6cafaacd40ffc212cf3c431ddafb7fbf11cdc6527f86d630e6bbd344",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Entering Car (3).fbx",
+          "source_sha256": "4e495d89f30b1f47b0d160078fe6df6a1bcfe233ddb8ef64803c1adfdcb28235"
+        }
+      ],
+      "path": "Ruchy/Entering_Car_3_4e495d89f30b1f47.fbx"
+    },
+    "982d796c4bc5b5469526b5e1b5e6995b2c2b5d6fe723ad1f9de1d037bbb4a722": {
+      "name": "Exiting Car (3)",
+      "sha256": "982d796c4bc5b5469526b5e1b5e6995b2c2b5d6fe723ad1f9de1d037bbb4a722",
+      "curves_sha256": "0ce738f1e93791e4264550097e2cc8c6165b90fdd60bb65fcb5807b43f58ee0f",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Exiting Car (3).fbx",
+          "source_sha256": "982d796c4bc5b5469526b5e1b5e6995b2c2b5d6fe723ad1f9de1d037bbb4a722"
+        }
+      ],
+      "path": "Ruchy/Exiting_Car_3_982d796c4bc5b546.fbx"
+    },
+    "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30": {
+      "name": "Fast Run",
+      "sha256": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "curves_sha256": "fc83cdb0c9c30b7fb9951803a088fda4adb4ccb4831c636c9d50eb59565a1dfe",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Fast Run.fbx",
+          "source_sha256": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30"
+        }
+      ],
+      "path": "Ruchy/Fast_Run_b3d6070085efc667.fbx"
+    },
+    "c3f67fe0ed2bfab88fef997bf97ce59cd633eb3b138e0e8a71d62e791ffeba49": {
+      "name": "Fist Fight A",
+      "sha256": "c3f67fe0ed2bfab88fef997bf97ce59cd633eb3b138e0e8a71d62e791ffeba49",
+      "curves_sha256": "82a6af1ae2af8c454238ca57dd26d55fecb21a3ebfac8e10d844ce40b6ca0943",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Fist Fight A.fbx",
+          "source_sha256": "c3f67fe0ed2bfab88fef997bf97ce59cd633eb3b138e0e8a71d62e791ffeba49"
+        }
+      ],
+      "path": "Ruchy/Fist_Fight_A_c3f67fe0ed2bfab8.fbx"
+    },
+    "6eb834de7caec1e7ca74a5e0fe44cee94c4f20ffb5f5279ec9aba7639cb6e7b8": {
+      "name": "Flip Kick",
+      "sha256": "6eb834de7caec1e7ca74a5e0fe44cee94c4f20ffb5f5279ec9aba7639cb6e7b8",
+      "curves_sha256": "e11693c9461dbc0ea2b4fe7b0c8c9319d0adae33c03b47a39d9016643cc3d6c1",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Flip Kick.fbx",
+          "source_sha256": "6eb834de7caec1e7ca74a5e0fe44cee94c4f20ffb5f5279ec9aba7639cb6e7b8"
+        }
+      ],
+      "path": "Ruchy/Flip_Kick_6eb834de7caec1e7.fbx"
+    },
+    "f54bb11d6ca24862b3a68c329d9323a35ca94fdf0ca58a2f605ae96d6e9176a6": {
+      "name": "Flying Kick (1)",
+      "sha256": "f54bb11d6ca24862b3a68c329d9323a35ca94fdf0ca58a2f605ae96d6e9176a6",
+      "curves_sha256": "4bf992db13e1eb14175574a88bb5b030c2caed7f939b6d2075d1757894023035",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Flying Kick (1).fbx",
+          "source_sha256": "f54bb11d6ca24862b3a68c329d9323a35ca94fdf0ca58a2f605ae96d6e9176a6"
+        },
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Flying Kick.fbx",
+          "source_sha256": "955b3024c01b6a303f65cd5e515fb4426f7154f5d73dc8ddf558d12b619111f1"
+        }
+      ],
+      "path": "Ruchy/Flying_Kick_1_f54bb11d6ca24862.fbx"
+    },
+    "b7719e99df87774290dcbee8121c16f46eb61d597cd861d27580fb1982657d82": {
+      "name": "Golf Chip",
+      "sha256": "b7719e99df87774290dcbee8121c16f46eb61d597cd861d27580fb1982657d82",
+      "curves_sha256": "215cc5a8ba256db36b20d5c447e24c84952efe3f8e139fd0862e815bbb621574",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Chip.fbx",
+          "source_sha256": "b7719e99df87774290dcbee8121c16f46eb61d597cd861d27580fb1982657d82"
+        }
+      ],
+      "path": "Ruchy/Golf_Chip_b7719e99df877742.fbx"
+    },
+    "5f6fe30a2b07f5efd081edb9cdf6fc5ccf2c7ac080dca610f0e852b01d2d8045": {
+      "name": "Golf Drive (1)",
+      "sha256": "5f6fe30a2b07f5efd081edb9cdf6fc5ccf2c7ac080dca610f0e852b01d2d8045",
+      "curves_sha256": "5c94d8d2ce7ad2ffe8e17aad90ef4adb68c64008ee978a58bed5ddce60bbda7c",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Drive (1).fbx",
+          "source_sha256": "5f6fe30a2b07f5efd081edb9cdf6fc5ccf2c7ac080dca610f0e852b01d2d8045"
+        }
+      ],
+      "path": "Ruchy/Golf_Drive_1_5f6fe30a2b07f5ef.fbx"
+    },
+    "d17bcf607847ac12563518ab7e6d15198e8babaf55516ffe88dfc4741e298b6b": {
+      "name": "Golf Drive (2)",
+      "sha256": "d17bcf607847ac12563518ab7e6d15198e8babaf55516ffe88dfc4741e298b6b",
+      "curves_sha256": "f4390ea0dabe3eb7fd582d5d9ae7872b1d29deafa732da6a1c693dd070b302ec",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Drive (2).fbx",
+          "source_sha256": "d17bcf607847ac12563518ab7e6d15198e8babaf55516ffe88dfc4741e298b6b"
+        }
+      ],
+      "path": "Ruchy/Golf_Drive_2_d17bcf607847ac12.fbx"
+    },
+    "13709eb73ddc33897a61af010ea2c97118cde98a98d8521addd8b424f9dc54f1": {
+      "name": "Golf Drive (3)",
+      "sha256": "13709eb73ddc33897a61af010ea2c97118cde98a98d8521addd8b424f9dc54f1",
+      "curves_sha256": "1280f1335e77a8084669cc4b072927bd713cf10d79951027654e52c755ef4a63",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Drive (3).fbx",
+          "source_sha256": "13709eb73ddc33897a61af010ea2c97118cde98a98d8521addd8b424f9dc54f1"
+        }
+      ],
+      "path": "Ruchy/Golf_Drive_3_13709eb73ddc3389.fbx"
+    },
+    "4714698c582070221acc178fb5dba70e43dd79d5c20bf8c48b7956f88aa284fd": {
+      "name": "Golf Drive",
+      "sha256": "4714698c582070221acc178fb5dba70e43dd79d5c20bf8c48b7956f88aa284fd",
+      "curves_sha256": "1bcfe96f9c3e875b7d3476090c7f887bcbc144a69f97dafe7deb5e048613ccef",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Drive.fbx",
+          "source_sha256": "4714698c582070221acc178fb5dba70e43dd79d5c20bf8c48b7956f88aa284fd"
+        }
+      ],
+      "path": "Ruchy/Golf_Drive_4714698c58207022.fbx"
+    },
+    "8fa1e46e5a9e7f426a0a531f4bdb94476b058bddf22bf9c3ca4bdd71c22638c5": {
+      "name": "Golf Post Shot",
+      "sha256": "8fa1e46e5a9e7f426a0a531f4bdb94476b058bddf22bf9c3ca4bdd71c22638c5",
+      "curves_sha256": "eaf3e7131a0417acf6e66160f62c287ac867d3b36b0c67a94d747d780bbfe700",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Post Shot.fbx",
+          "source_sha256": "8fa1e46e5a9e7f426a0a531f4bdb94476b058bddf22bf9c3ca4bdd71c22638c5"
+        }
+      ],
+      "path": "Ruchy/Golf_Post_Shot_8fa1e46e5a9e7f42.fbx"
+    },
+    "817497688f681249f9c4723441fe465edb30c6e8954f63e638ac259bee373b3b": {
+      "name": "Golf Pre-Putt",
+      "sha256": "817497688f681249f9c4723441fe465edb30c6e8954f63e638ac259bee373b3b",
+      "curves_sha256": "d95ae8eb0c127cca439717c96e9733bfd888f055855915d628d4a17a7ed644bb",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Pre-Putt.fbx",
+          "source_sha256": "817497688f681249f9c4723441fe465edb30c6e8954f63e638ac259bee373b3b"
+        }
+      ],
+      "path": "Ruchy/Golf_Pre-Putt_817497688f681249.fbx"
+    },
+    "d8370cd0b1eb095b5b2f60ee30dcefabf440655282c82e3d1fd0c58cf681cfec": {
+      "name": "Golf Putt Failure",
+      "sha256": "d8370cd0b1eb095b5b2f60ee30dcefabf440655282c82e3d1fd0c58cf681cfec",
+      "curves_sha256": "d34636091e9f41e18e6107d88b8bdee4c7a1d21f1a0e4a6ef70e8749a91efdfd",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Putt Failure.fbx",
+          "source_sha256": "d8370cd0b1eb095b5b2f60ee30dcefabf440655282c82e3d1fd0c58cf681cfec"
+        }
+      ],
+      "path": "Ruchy/Golf_Putt_Failure_d8370cd0b1eb095b.fbx"
+    },
+    "40e882efab531b5f2325b4b75ee93f2d6fdabb7f6630cb37eb215a5042bdabf8": {
+      "name": "Golf Putt Victory",
+      "sha256": "40e882efab531b5f2325b4b75ee93f2d6fdabb7f6630cb37eb215a5042bdabf8",
+      "curves_sha256": "8766d4bd752f52dfb08d41638d290fd1a156b45dc6a5534bfb86c7b7993e711d",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Putt Victory.fbx",
+          "source_sha256": "40e882efab531b5f2325b4b75ee93f2d6fdabb7f6630cb37eb215a5042bdabf8"
+        }
+      ],
+      "path": "Ruchy/Golf_Putt_Victory_40e882efab531b5f.fbx"
+    },
+    "4b2ae4503b06d15f8e93407a33be8b793617c43910fe714895250f330bec4f65": {
+      "name": "Golf Putt",
+      "sha256": "4b2ae4503b06d15f8e93407a33be8b793617c43910fe714895250f330bec4f65",
+      "curves_sha256": "f28276985be7e35a5d0703bd865626d9178bf578fefdd88fc4ab4167ebf75a17",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Putt.fbx",
+          "source_sha256": "4b2ae4503b06d15f8e93407a33be8b793617c43910fe714895250f330bec4f65"
+        }
+      ],
+      "path": "Ruchy/Golf_Putt_4b2ae4503b06d15f.fbx"
+    },
+    "5d0797219eefcdfa70de3344891d0609d4feaca38a629baeeaabff0daa6104e1": {
+      "name": "Golf Putting Victory",
+      "sha256": "5d0797219eefcdfa70de3344891d0609d4feaca38a629baeeaabff0daa6104e1",
+      "curves_sha256": "f371927e47b49b95eb5fe5f336664bb843d14d9831928f603b86291a29c75d70",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Putting Victory.fbx",
+          "source_sha256": "5d0797219eefcdfa70de3344891d0609d4feaca38a629baeeaabff0daa6104e1"
+        }
+      ],
+      "path": "Ruchy/Golf_Putting_Victory_5d0797219eefcdfa.fbx"
+    },
+    "443607ff3ef7e0755d5f941d58b90b28c4c667080e3784146c48932bf6e48ffb": {
+      "name": "Golf Tee Up",
+      "sha256": "443607ff3ef7e0755d5f941d58b90b28c4c667080e3784146c48932bf6e48ffb",
+      "curves_sha256": "5f43265ef920ec834b444d3e8d30754f8a5abfa28d2d99c2c84483742c30497e",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Golf Tee Up.fbx",
+          "source_sha256": "443607ff3ef7e0755d5f941d58b90b28c4c667080e3784146c48932bf6e48ffb"
+        }
+      ],
+      "path": "Ruchy/Golf_Tee_Up_443607ff3ef7e075.fbx"
+    },
+    "83698da5e732d8c8665d2ab776ab6beb31be8af1470788147fcdce7f06002bf0": {
+      "name": "Head Hit (2)",
+      "sha256": "83698da5e732d8c8665d2ab776ab6beb31be8af1470788147fcdce7f06002bf0",
+      "curves_sha256": "bbdcd4df1f49c2f33aac880cefd0895f4d7f5e981c00fd93d01675fdc56e5721",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Head Hit (2).fbx",
+          "source_sha256": "83698da5e732d8c8665d2ab776ab6beb31be8af1470788147fcdce7f06002bf0"
+        }
+      ],
+      "path": "Ruchy/Head_Hit_2_83698da5e732d8c8.fbx"
+    },
+    "5d1c19cbe68e1787a8de18b80b10edee2443f60673974317c0c8dec2d119a388": {
+      "name": "Head Hit (3)",
+      "sha256": "5d1c19cbe68e1787a8de18b80b10edee2443f60673974317c0c8dec2d119a388",
+      "curves_sha256": "5e0e51ff91a5195bf1fe220b39afca230812a31804a5f9635fdbf03cfb4eb77d",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Head Hit (3).fbx",
+          "source_sha256": "5d1c19cbe68e1787a8de18b80b10edee2443f60673974317c0c8dec2d119a388"
+        }
+      ],
+      "path": "Ruchy/Head_Hit_3_5d1c19cbe68e1787.fbx"
+    },
+    "5f271f2f555c4728b58799a4517171ae676feaa02e735b8f02e3d9920b7a7bb8": {
+      "name": "Head Hit (4)",
+      "sha256": "5f271f2f555c4728b58799a4517171ae676feaa02e735b8f02e3d9920b7a7bb8",
+      "curves_sha256": "9ad7a23469cc9179e7e0699bbcd7d5d427c40f21f3846e1da8f84903bbfc0313",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Head Hit (4).fbx",
+          "source_sha256": "5f271f2f555c4728b58799a4517171ae676feaa02e735b8f02e3d9920b7a7bb8"
+        }
+      ],
+      "path": "Ruchy/Head_Hit_4_5f271f2f555c4728.fbx"
+    },
+    "ed34a731beee669245356c8187e8acb04c5ff01018d96d1bd94cd8fe85e36d59": {
+      "name": "Hook (3)",
+      "sha256": "ed34a731beee669245356c8187e8acb04c5ff01018d96d1bd94cd8fe85e36d59",
+      "curves_sha256": "1e59f6651240420c9b62a28c07af0cb74cc40fb23bf9f9dadad727db35bcd14e",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Hook (3).fbx",
+          "source_sha256": "ed34a731beee669245356c8187e8acb04c5ff01018d96d1bd94cd8fe85e36d59"
+        }
+      ],
+      "path": "Ruchy/Hook_3_ed34a731beee6692.fbx"
+    },
+    "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89": {
+      "name": "Hook (4)",
+      "sha256": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+      "curves_sha256": "72b933ee4709b2e43ecd6150509ef4b5498c9f4b71d144c0a1c2566bed5ace21",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Hook (4).fbx",
+          "source_sha256": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89"
+        },
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Hook (5).fbx",
+          "source_sha256": "2e004d4d92124e95ae09055984ad79de45b820fea9d9bc559659b21cd6f892b9"
+        }
+      ],
+      "path": "Ruchy/Hook_4_32231bb0e8ee87d4.fbx"
+    },
+    "9c7a13798bbe01f2b166e5fa3f67c050f38380a538aef9e44b8c74ac24fed3a8": {
+      "name": "Hook (6)",
+      "sha256": "9c7a13798bbe01f2b166e5fa3f67c050f38380a538aef9e44b8c74ac24fed3a8",
+      "curves_sha256": "81bccd456bd99cb32f2b23cb119539bb6cf2228e23da3da7d7e72797d76b00b5",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Hook (6).fbx",
+          "source_sha256": "9c7a13798bbe01f2b166e5fa3f67c050f38380a538aef9e44b8c74ac24fed3a8"
+        }
+      ],
+      "path": "Ruchy/Hook_6_9c7a13798bbe01f2.fbx"
+    },
+    "2743abd36e61169e9b936a17a4e045d22988dc61eaf10ca30a29a350a43e8496": {
+      "name": "Illegal Elbow Punch",
+      "sha256": "2743abd36e61169e9b936a17a4e045d22988dc61eaf10ca30a29a350a43e8496",
+      "curves_sha256": "90e13ba5cb22c249a568a0caebff9316a3a846f2d0009ecd52447e3547f7b3be",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Illegal Elbow Punch.fbx",
+          "source_sha256": "2743abd36e61169e9b936a17a4e045d22988dc61eaf10ca30a29a350a43e8496"
+        }
+      ],
+      "path": "Ruchy/Illegal_Elbow_Punch_2743abd36e61169e.fbx"
+    },
+    "dc468c477299d784866ab251c2617b677cf6d0e3e6e03061494b6faa8a2d5609": {
+      "name": "Illegal Headbutt",
+      "sha256": "dc468c477299d784866ab251c2617b677cf6d0e3e6e03061494b6faa8a2d5609",
+      "curves_sha256": "d451834962a8e55eeb8ecb66b30e2a3eca439666abc54c0bdb1c6467c958fee6",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Illegal Headbutt.fbx",
+          "source_sha256": "dc468c477299d784866ab251c2617b677cf6d0e3e6e03061494b6faa8a2d5609"
+        }
+      ],
+      "path": "Ruchy/Illegal_Headbutt_dc468c477299d784.fbx"
+    },
+    "733fa119d6b2491fd21739ed12cd0a518304fce5b6fde151ee852fb917a75427": {
+      "name": "Illegal Knee",
+      "sha256": "733fa119d6b2491fd21739ed12cd0a518304fce5b6fde151ee852fb917a75427",
+      "curves_sha256": "ebefa1742b266862a247d72c2bf635c8851ea59196a36ec277bdb7ad34381deb",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Illegal Knee.fbx",
+          "source_sha256": "733fa119d6b2491fd21739ed12cd0a518304fce5b6fde151ee852fb917a75427"
+        }
+      ],
+      "path": "Ruchy/Illegal_Knee_733fa119d6b2491f.fbx"
+    },
+    "aa461c302cf3c775b53a59f92be0e0534f5aaac84028090ca2dd1f9b3c03e14b": {
+      "name": "Inverted Double Kick To Kip Up (1)",
+      "sha256": "aa461c302cf3c775b53a59f92be0e0534f5aaac84028090ca2dd1f9b3c03e14b",
+      "curves_sha256": "b43d1b2623a283cec913b9c0006e00ff3e4ca17482caced38f1d51ba4e41a362",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Inverted Double Kick To Kip Up (1).fbx",
+          "source_sha256": "aa461c302cf3c775b53a59f92be0e0534f5aaac84028090ca2dd1f9b3c03e14b"
+        },
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Inverted Double Kick To Kip Up.fbx",
+          "source_sha256": "6ca791f883db3972d99c3ddfc91fe368b76bd829b0fd6c2200f68fb0d3d9d525"
+        }
+      ],
+      "path": "Ruchy/Inverted_Double_Kick_To_Kip_Up_1_aa461c302cf3c775.fbx"
+    },
+    "de39c847738eb8dda9f28d954f2e52d0956f2c5b947dd3326d566eb147a0147f": {
+      "name": "Jab Cross (1)",
+      "sha256": "de39c847738eb8dda9f28d954f2e52d0956f2c5b947dd3326d566eb147a0147f",
+      "curves_sha256": "4fb187d506f06537f6d7e4b677bb0ca9bf519590f02ec6f2744123d686547349",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Jab Cross (1).fbx",
+          "source_sha256": "de39c847738eb8dda9f28d954f2e52d0956f2c5b947dd3326d566eb147a0147f"
+        }
+      ],
+      "path": "Ruchy/Jab_Cross_1_de39c847738eb8dd.fbx"
+    },
+    "d319200a306bb50ddc53c406cf6c16422496a441b7f681aa329acc9d4f9c937e": {
+      "name": "Jab Cross",
+      "sha256": "d319200a306bb50ddc53c406cf6c16422496a441b7f681aa329acc9d4f9c937e",
+      "curves_sha256": "65ef6d93a9321f4f617837c92ac6ae2eb18282fd0b2a98b728b62d4b23aae9bf",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Jab Cross.fbx",
+          "source_sha256": "d319200a306bb50ddc53c406cf6c16422496a441b7f681aa329acc9d4f9c937e"
+        }
+      ],
+      "path": "Ruchy/Jab_Cross_d319200a306bb50d.fbx"
+    },
+    "0b65d5a5757e80c049adff05025fa33513a9601dbe88f21561b2530db9453b8f": {
+      "name": "Jump (1)",
+      "sha256": "0b65d5a5757e80c049adff05025fa33513a9601dbe88f21561b2530db9453b8f",
+      "curves_sha256": "246f9ce21dc4a505500aaad717a64d692447a2ea14c1e27989296bb25c8d2302",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Jump (1).fbx",
+          "source_sha256": "0b65d5a5757e80c049adff05025fa33513a9601dbe88f21561b2530db9453b8f"
+        }
+      ],
+      "path": "Ruchy/Jump_1_0b65d5a5757e80c0.fbx"
+    },
+    "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12": {
+      "name": "Jump (2)",
+      "sha256": "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12",
+      "curves_sha256": "27288c8f0d0c5bc0e8a9e6db64abc45e237632f421ba5f9ffeb9500eeb782d1c",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Jump (2).fbx",
+          "source_sha256": "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12"
+        }
+      ],
+      "path": "Ruchy/Jump_2_cf7323e98372ec98.fbx"
+    },
+    "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843": {
+      "name": "Jump",
+      "sha256": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "curves_sha256": "dcd67101e29eeb2b4d47bb6b0081c1ce4beb9247ecaa3a134b7f6b526cc26861",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Jump.fbx",
+          "source_sha256": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843"
+        }
+      ],
+      "path": "Ruchy/Jump_42b4a316a6c17fb5.fbx"
+    },
+    "d54d3afc19c17ae62c3fee93c2050b1e162fd7f4d373f17e2e8dd6145922e4d3": {
+      "name": "Kicking (2)",
+      "sha256": "d54d3afc19c17ae62c3fee93c2050b1e162fd7f4d373f17e2e8dd6145922e4d3",
+      "curves_sha256": "1b55b0317739b57173a7d385f26155b3de697b29e4e574b65ffb52c4b5bf4c9b",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Kicking (2).fbx",
+          "source_sha256": "d54d3afc19c17ae62c3fee93c2050b1e162fd7f4d373f17e2e8dd6145922e4d3"
+        }
+      ],
+      "path": "Ruchy/Kicking_2_d54d3afc19c17ae6.fbx"
+    },
+    "329d8ae31d64d69d46aba4d375ca04258cc7cba93a9aa880c80528c3b01fc87f": {
+      "name": "Kicking (3)",
+      "sha256": "329d8ae31d64d69d46aba4d375ca04258cc7cba93a9aa880c80528c3b01fc87f",
+      "curves_sha256": "a1aebfe52f56347b6be6858e9080a52e2b2f29638253c1cf2bfc5ad428ac4568",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Kicking (3).fbx",
+          "source_sha256": "329d8ae31d64d69d46aba4d375ca04258cc7cba93a9aa880c80528c3b01fc87f"
+        },
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Kicking (4).fbx",
+          "source_sha256": "8348d74b0ec1b4d4d26b6654cc9031a02c2d8d7bb705fe94c159f579a5727910"
+        }
+      ],
+      "path": "Ruchy/Kicking_3_329d8ae31d64d69d.fbx"
+    },
+    "db53103523fa7344d2886dc6124428ea7ebcae759a9f7c102a6a92207dd0769f": {
+      "name": "Kicking (5)",
+      "sha256": "db53103523fa7344d2886dc6124428ea7ebcae759a9f7c102a6a92207dd0769f",
+      "curves_sha256": "718acd46d79ce5a02cf90d23c07a5674862990de9924494009cf8ccb82a5942c",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Kicking (5).fbx",
+          "source_sha256": "db53103523fa7344d2886dc6124428ea7ebcae759a9f7c102a6a92207dd0769f"
+        }
+      ],
+      "path": "Ruchy/Kicking_5_db53103523fa7344.fbx"
+    },
+    "1e4329b36366fcbd126d2b64a9e013a1f3541bdd236e37fbc7e47d6f29816c6e": {
+      "name": "Kicking (6)",
+      "sha256": "2e27792ba0b05417706298534cc5c48fc91b483c59390ba7494583900aeb83f9",
+      "curves_sha256": "bc7a583936209f07073d55fb19df1baee845df57481effa03d7fa0044e417f0b",
+      "reference_sha256": "70469800ffa6ece1bdf0c28d1b317e253e27d266f37b11865cce935f00b7918b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Kicking (6).fbx",
+          "source_sha256": "1e4329b36366fcbd126d2b64a9e013a1f3541bdd236e37fbc7e47d6f29816c6e"
+        }
+      ],
+      "path": "Ruchy/Kicking_6_1e4329b36366fcbd.fbx"
+    },
+    "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b": {
+      "name": "Knee Kick Lead (1)",
+      "sha256": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+      "curves_sha256": "d00551e912be6bf30bf32075793dccc452aa9596ebd70b0df3a82dd825783153",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Knee Kick Lead (1).fbx",
+          "source_sha256": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b"
+        },
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Knee Kick Lead.fbx",
+          "source_sha256": "c340ad84eedffa9c490fbe9009d211179fc6e4cd5f6accc8e034f2b468f45375"
+        }
+      ],
+      "path": "Ruchy/Knee_Kick_Lead_1_04bf957ba375394d.fbx"
+    },
+    "a5007f3098fb0a5bea937aa4f29932cc9ff3873c135fc9d40adaac0f4072260f": {
+      "name": "Lead Jab (1)",
+      "sha256": "a5007f3098fb0a5bea937aa4f29932cc9ff3873c135fc9d40adaac0f4072260f",
+      "curves_sha256": "b81a65d2c407ef38ac9dc3a91ff252e9d3cc3afd45a0935563b5935baa0e4964",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Lead Jab (1).fbx",
+          "source_sha256": "a5007f3098fb0a5bea937aa4f29932cc9ff3873c135fc9d40adaac0f4072260f"
+        }
+      ],
+      "path": "Ruchy/Lead_Jab_1_a5007f3098fb0a5b.fbx"
+    },
+    "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5": {
+      "name": "Lead Jab (2)",
+      "sha256": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+      "curves_sha256": "1a0f5f94d6bc783978f84d48b34910eff9a15f163535f2d323991378c96f4d77",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Lead Jab (2).fbx",
+          "source_sha256": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5"
+        }
+      ],
+      "path": "Ruchy/Lead_Jab_2_dc4d75012eb34c2a.fbx"
+    },
+    "5b2ecbad1f73d8c5200a03e1f65e8f376e8d2ed662d1647cdab61db6a78730d9": {
+      "name": "Left Block",
+      "sha256": "5b2ecbad1f73d8c5200a03e1f65e8f376e8d2ed662d1647cdab61db6a78730d9",
+      "curves_sha256": "e7f5ac6229f07ed3ea9a11c69c64a88757be9605521dc9445607ceb27b9f7d71",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Left Block.fbx",
+          "source_sha256": "5b2ecbad1f73d8c5200a03e1f65e8f376e8d2ed662d1647cdab61db6a78730d9"
+        }
+      ],
+      "path": "Ruchy/Left_Block_5b2ecbad1f73d8c5.fbx"
+    },
+    "4b87c18ccc192ff38c46faede38580165d4daf2dba6e509bde28b1802643e0e9": {
+      "name": "Left Pivot (1)",
+      "sha256": "4b87c18ccc192ff38c46faede38580165d4daf2dba6e509bde28b1802643e0e9",
+      "curves_sha256": "b9ef603f5c049f6248f2d5d15631002a4612e2be87f3b10132c8b5794801df2b",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Left Pivot (1).fbx",
+          "source_sha256": "4b87c18ccc192ff38c46faede38580165d4daf2dba6e509bde28b1802643e0e9"
+        }
+      ],
+      "path": "Ruchy/Left_Pivot_1_4b87c18ccc192ff3.fbx"
+    },
+    "89b30c27f6a1364b8a869178513c6b55959aeb4a82b99642875b0c97604c403e": {
+      "name": "Leg Sweep (1)",
+      "sha256": "89b30c27f6a1364b8a869178513c6b55959aeb4a82b99642875b0c97604c403e",
+      "curves_sha256": "48963e745e7e277a63606ba06cee34160548688a47bc07f1ef5527cfad7643f1",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Leg Sweep (1).fbx",
+          "source_sha256": "89b30c27f6a1364b8a869178513c6b55959aeb4a82b99642875b0c97604c403e"
+        },
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Leg Sweep (2).fbx",
+          "source_sha256": "777047a1dfd77268cbb23367c557dcba4f8014018d96f86f11ad58ba5c36aa2c"
+        }
+      ],
+      "path": "Ruchy/Leg_Sweep_1_89b30c27f6a1364b.fbx"
+    },
+    "265710f3abf4c802648d47c7faa9c9111d5c0cb701671f8721c2cd2992fcfea6": {
+      "name": "Leg Sweep (3)",
+      "sha256": "265710f3abf4c802648d47c7faa9c9111d5c0cb701671f8721c2cd2992fcfea6",
+      "curves_sha256": "a80bdb9553ceeff08d2ef3edd5a25840623a4c8811e2e6b405f18f3f5dcbf2d4",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Leg Sweep (3).fbx",
+          "source_sha256": "265710f3abf4c802648d47c7faa9c9111d5c0cb701671f8721c2cd2992fcfea6"
+        }
+      ],
+      "path": "Ruchy/Leg_Sweep_3_265710f3abf4c802.fbx"
+    },
+    "73da9cbb0cafa2e2e4213436898726310acf6999302503885e677007b1d80bc0": {
+      "name": "Light Hit To Head (1)",
+      "sha256": "73da9cbb0cafa2e2e4213436898726310acf6999302503885e677007b1d80bc0",
+      "curves_sha256": "454ea3151bdb42ceda849eacb3c99473c17f02fe05cb848a7074e2e09bb39532",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Light Hit To Head (1).fbx",
+          "source_sha256": "73da9cbb0cafa2e2e4213436898726310acf6999302503885e677007b1d80bc0"
+        }
+      ],
+      "path": "Ruchy/Light_Hit_To_Head_1_73da9cbb0cafa2e2.fbx"
+    },
+    "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8": {
+      "name": "Light Hit To Head",
+      "sha256": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+      "curves_sha256": "5e99822a05d3d2f6a018367e831006194d04b9ee008e942be1ad6e6f07fdff56",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Light Hit To Head.fbx",
+          "source_sha256": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8"
+        }
+      ],
+      "path": "Ruchy/Light_Hit_To_Head_1ba59425238b62c1.fbx"
+    },
+    "9ab2b60c2165bf42f97c6f32ec558c76978c8de719f42e83516daac128f2c9a9": {
+      "name": "Long Left Side Step",
+      "sha256": "9ab2b60c2165bf42f97c6f32ec558c76978c8de719f42e83516daac128f2c9a9",
+      "curves_sha256": "0e64b7fb7fc8e0f89d67c4a2e749dd6272913261ef46a83b918c79cd3f2ea087",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Long Left Side Step.fbx",
+          "source_sha256": "9ab2b60c2165bf42f97c6f32ec558c76978c8de719f42e83516daac128f2c9a9"
+        }
+      ],
+      "path": "Ruchy/Long_Left_Side_Step_9ab2b60c2165bf42.fbx"
+    },
+    "022986d95d12bf07ba082b2fe7b3a494e2c1bd84c5e45151c8972e8be9c85522": {
+      "name": "Martelo 2",
+      "sha256": "022986d95d12bf07ba082b2fe7b3a494e2c1bd84c5e45151c8972e8be9c85522",
+      "curves_sha256": "7ecb5872a6c66c10c71afe00a8d949d168f68f2b0177a90b20feaa2e7b83e591",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Martelo 2.fbx",
+          "source_sha256": "022986d95d12bf07ba082b2fe7b3a494e2c1bd84c5e45151c8972e8be9c85522"
+        }
+      ],
+      "path": "Ruchy/Martelo_2_022986d95d12bf07.fbx"
+    },
+    "7838381e5bec0289d64405685499cffd266e1a570377b53fbe773e8cd5940845": {
+      "name": "Martelo Do Chau",
+      "sha256": "2747bfbcb77dfd7b584c773289d156bea9eac5b447f12818837b435ef5a6f016",
+      "curves_sha256": "15e79806f06f05f159d1ce116aa383252612156bbb3bef46fdff44ab797584a3",
+      "reference_sha256": "70469800ffa6ece1bdf0c28d1b317e253e27d266f37b11865cce935f00b7918b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Martelo Do Chau.fbx",
+          "source_sha256": "7838381e5bec0289d64405685499cffd266e1a570377b53fbe773e8cd5940845"
+        }
+      ],
+      "path": "Ruchy/Martelo_Do_Chau_7838381e5bec0289.fbx"
+    },
+    "64694bc4b5ebbaa1d4ca1caa05e7a49268943419577113afef07b2f6226fe3f0": {
+      "name": "Medium Hit To Head (1)",
+      "sha256": "64694bc4b5ebbaa1d4ca1caa05e7a49268943419577113afef07b2f6226fe3f0",
+      "curves_sha256": "5944f3bce04726d1b08db4939cfb19bef7273608ab7c9a9f0a388e78eb176662",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Medium Hit To Head (1).fbx",
+          "source_sha256": "64694bc4b5ebbaa1d4ca1caa05e7a49268943419577113afef07b2f6226fe3f0"
+        }
+      ],
+      "path": "Ruchy/Medium_Hit_To_Head_1_64694bc4b5ebbaa1.fbx"
+    },
+    "4849b647922abf59ad19c6a953f1d79fe133ffd229e38a3a5ea8ccf83f43158f": {
+      "name": "Medium Left Side Step",
+      "sha256": "4849b647922abf59ad19c6a953f1d79fe133ffd229e38a3a5ea8ccf83f43158f",
+      "curves_sha256": "e6b1807a9447a87f87d43f37c767c2f4a090b76b3e3b62384ba2e32b595cbe38",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Medium Left Side Step.fbx",
+          "source_sha256": "4849b647922abf59ad19c6a953f1d79fe133ffd229e38a3a5ea8ccf83f43158f"
+        }
+      ],
+      "path": "Ruchy/Medium_Left_Side_Step_4849b647922abf59.fbx"
+    },
+    "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f": {
+      "name": "Medium Run",
+      "sha256": "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f",
+      "curves_sha256": "5fd109775e7c83d7922a06c86d4d8974c667dd13400a6ab609eba488cbde7a1c",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Medium Run.fbx",
+          "source_sha256": "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f"
+        }
+      ],
+      "path": "Ruchy/Medium_Run_c7fb699a65393704.fbx"
+    },
+    "9e94773d95781261ec2df224269abc2fef87fee0842d3d23c4d2e924cefe3aa0": {
+      "name": "Mma Kick (1)",
+      "sha256": "9e94773d95781261ec2df224269abc2fef87fee0842d3d23c4d2e924cefe3aa0",
+      "curves_sha256": "8a40d714cb21f0e1c938ca4227a108e2fb8a7ed2fffcd2f22915fc4dee8470d4",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Mma Kick (1).fbx",
+          "source_sha256": "9e94773d95781261ec2df224269abc2fef87fee0842d3d23c4d2e924cefe3aa0"
+        }
+      ],
+      "path": "Ruchy/Mma_Kick_1_9e94773d95781261.fbx"
+    },
+    "acce679aa40ece3e29105bfe2327c190d4321fcdf5b99b50f052bbaeb9624d0c": {
+      "name": "Mma Kick (2)",
+      "sha256": "acce679aa40ece3e29105bfe2327c190d4321fcdf5b99b50f052bbaeb9624d0c",
+      "curves_sha256": "cfcd5d293ef5b391bec53e5a8e4f19a65ad80fe2d12ecf8c1b550eb7e2372317",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Mma Kick (2).fbx",
+          "source_sha256": "acce679aa40ece3e29105bfe2327c190d4321fcdf5b99b50f052bbaeb9624d0c"
+        }
+      ],
+      "path": "Ruchy/Mma_Kick_2_acce679aa40ece3e.fbx"
+    },
+    "e0f032e911a3bc1f2b941a5775e5066b1585af6b65b9b05152e363daeef83747": {
+      "name": "Mma Kick (3)",
+      "sha256": "e0f032e911a3bc1f2b941a5775e5066b1585af6b65b9b05152e363daeef83747",
+      "curves_sha256": "68ad69954f819bc42132ccd32be58ab00c835e0f640ac6393c49a89c61661461",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Mma Kick (3).fbx",
+          "source_sha256": "e0f032e911a3bc1f2b941a5775e5066b1585af6b65b9b05152e363daeef83747"
+        }
+      ],
+      "path": "Ruchy/Mma_Kick_3_e0f032e911a3bc1f.fbx"
+    },
+    "f09e2e8ff8cfa8f7ed8673f64451f4a2efa4db87e59b5f6fd421a8c922075e3f": {
+      "name": "Mma Kick (4)",
+      "sha256": "f09e2e8ff8cfa8f7ed8673f64451f4a2efa4db87e59b5f6fd421a8c922075e3f",
+      "curves_sha256": "2bcc88a91302d9d5b66e0cfccac3066f7d1b71c196d1e64a6af14de43e3e6854",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Mma Kick (4).fbx",
+          "source_sha256": "f09e2e8ff8cfa8f7ed8673f64451f4a2efa4db87e59b5f6fd421a8c922075e3f"
+        }
+      ],
+      "path": "Ruchy/Mma_Kick_4_f09e2e8ff8cfa8f7.fbx"
+    },
+    "f499a5f55debba36708a5976a034710e62cf5f13542cbda4d5e923085f94b2d7": {
+      "name": "Mma Kick",
+      "sha256": "f499a5f55debba36708a5976a034710e62cf5f13542cbda4d5e923085f94b2d7",
+      "curves_sha256": "022e253dfa7deb96e298bfe6b0f2227cb1a0e498eb6a98cd598c1b0ecdee87fc",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Mma Kick.fbx",
+          "source_sha256": "f499a5f55debba36708a5976a034710e62cf5f13542cbda4d5e923085f94b2d7"
+        }
+      ],
+      "path": "Ruchy/Mma_Kick_f499a5f55debba36.fbx"
+    },
+    "6ebbf19286ea2b8da09cb71af62732f380fad4d17944b3822fd96db941cf32bb": {
+      "name": "Opening",
+      "sha256": "6ebbf19286ea2b8da09cb71af62732f380fad4d17944b3822fd96db941cf32bb",
+      "curves_sha256": "8e58902830d1c4807b1f7b1bde5240214f558301a23b865b7183a71a1310b28e",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Opening.fbx",
+          "source_sha256": "6ebbf19286ea2b8da09cb71af62732f380fad4d17944b3822fd96db941cf32bb"
+        }
+      ],
+      "path": "Ruchy/Opening_6ebbf19286ea2b8d.fbx"
+    },
+    "d9fa053d79945d3ccc2f20b4e8be158ec5a728da5aa0da391f568887a12f234e": {
+      "name": "Pontera (1)",
+      "sha256": "d9fa053d79945d3ccc2f20b4e8be158ec5a728da5aa0da391f568887a12f234e",
+      "curves_sha256": "e90172854af4d687624c480dd8350c8b352e28d8caa663b69c56563359712948",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Pontera (1).fbx",
+          "source_sha256": "d9fa053d79945d3ccc2f20b4e8be158ec5a728da5aa0da391f568887a12f234e"
+        },
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Pontera.fbx",
+          "source_sha256": "dc9b61c0aaaf6be509239d73c60e5959b3ac62bd2327dcee2258a1557f9a0efd"
+        }
+      ],
+      "path": "Ruchy/Pontera_1_d9fa053d79945d3c.fbx"
+    },
+    "f4bf42ae7879557fcdf922aa11cdec5fa035299763b2ac9587c29a36f3be6303": {
+      "name": "Punch Combo (1)",
+      "sha256": "f4bf42ae7879557fcdf922aa11cdec5fa035299763b2ac9587c29a36f3be6303",
+      "curves_sha256": "dd34252151ee1bb3ce3707585202f293656a5530d0be433c70a4986d07969232",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Punch Combo (1).fbx",
+          "source_sha256": "f4bf42ae7879557fcdf922aa11cdec5fa035299763b2ac9587c29a36f3be6303"
+        }
+      ],
+      "path": "Ruchy/Punch_Combo_1_f4bf42ae7879557f.fbx"
+    },
+    "bb4e8982aa450595ff570452b5aa79f9911aa0e394561b3a973765c8f6274ed1": {
+      "name": "Punching (1)",
+      "sha256": "bb4e8982aa450595ff570452b5aa79f9911aa0e394561b3a973765c8f6274ed1",
+      "curves_sha256": "533e160089c01244c341f566cffc6f14d98a56aac3962c6fff6fe430eca39208",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Punching (1).fbx",
+          "source_sha256": "bb4e8982aa450595ff570452b5aa79f9911aa0e394561b3a973765c8f6274ed1"
+        }
+      ],
+      "path": "Ruchy/Punching_1_bb4e8982aa450595.fbx"
+    },
+    "ac6348d7bdf2f95e581958ca790c4f040f2774163c6fe7ef8145ea36eff67b3b": {
+      "name": "Put Back Rifle Behind Shoulder",
+      "sha256": "ac6348d7bdf2f95e581958ca790c4f040f2774163c6fe7ef8145ea36eff67b3b",
+      "curves_sha256": "cf54f46bdf73ee28971f20705c5f088bd5be76f8e3e9f48b15320f18a2873463",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Put Back Rifle Behind Shoulder.fbx",
+          "source_sha256": "ac6348d7bdf2f95e581958ca790c4f040f2774163c6fe7ef8145ea36eff67b3b"
+        }
+      ],
+      "path": "Ruchy/Put_Back_Rifle_Behind_Shoulder_ac6348d7bdf2f95e.fbx"
+    },
+    "3c8f3a9ef77e7469477af4539545fd0a38a6b2e0ad9e9573e2673a18276de610": {
+      "name": "Queshada 2 (1)",
+      "sha256": "3c8f3a9ef77e7469477af4539545fd0a38a6b2e0ad9e9573e2673a18276de610",
+      "curves_sha256": "bde9bd11c8889ffbff7b15fe1bac62ef6a4c8de9414d6b74bc68104b5c2e99bb",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Queshada 2 (1).fbx",
+          "source_sha256": "3c8f3a9ef77e7469477af4539545fd0a38a6b2e0ad9e9573e2673a18276de610"
+        },
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Queshada 2.fbx",
+          "source_sha256": "2a9530daa009f7f2f22ae60e6174c287993afbe4178e7a2d1320352c39f508fc"
+        }
+      ],
+      "path": "Ruchy/Queshada_2_1_3c8f3a9ef77e7469.fbx"
+    },
+    "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122": {
+      "name": "Quick Formal Bow",
+      "sha256": "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122",
+      "curves_sha256": "f6fd47f4fae533f1cd3ba5422afe70d283bbc325482710fab67aa5ad74ce2761",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Quick Formal Bow.fbx",
+          "source_sha256": "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122"
+        }
+      ],
+      "path": "Ruchy/Quick_Formal_Bow_14e2b621e520aead.fbx"
+    },
+    "4d0b74944f53724c73bbf07ff2d8dd44a94e78f455697f5823f3a8dd28f1d0a7": {
+      "name": "Receive Uppercut To The Face",
+      "sha256": "4d0b74944f53724c73bbf07ff2d8dd44a94e78f455697f5823f3a8dd28f1d0a7",
+      "curves_sha256": "53dd479b4f36f79b3d61fff66feab9218625adee9d49f532eacf8f46c1ae774b",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Receive Uppercut To The Face.fbx",
+          "source_sha256": "4d0b74944f53724c73bbf07ff2d8dd44a94e78f455697f5823f3a8dd28f1d0a7"
+        }
+      ],
+      "path": "Ruchy/Receive_Uppercut_To_The_Face_4d0b74944f53724c.fbx"
+    },
+    "0247c94298c7f9a7f3f4bf393d96efe2e8b02520bae24290d3a9d9df934af273": {
+      "name": "Receiving An Uppercut",
+      "sha256": "0247c94298c7f9a7f3f4bf393d96efe2e8b02520bae24290d3a9d9df934af273",
+      "curves_sha256": "a4919b95bf8a4f62327f21ac38a98cdb95ca31de4b31c0bb885120f8d7a29e81",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Receiving An Uppercut.fbx",
+          "source_sha256": "0247c94298c7f9a7f3f4bf393d96efe2e8b02520bae24290d3a9d9df934af273"
+        }
+      ],
+      "path": "Ruchy/Receiving_An_Uppercut_0247c94298c7f9a7.fbx"
+    },
+    "09710542257488864071c0b2f353fc1f1f25d80ea8e5547915e37d1566acdb5b": {
+      "name": "Removing Driver",
+      "sha256": "09710542257488864071c0b2f353fc1f1f25d80ea8e5547915e37d1566acdb5b",
+      "curves_sha256": "a26c6a37d086eba99e7b6459bf80882d7d4f1b4756669f87c62c371d494b6b75",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Removing Driver.fbx",
+          "source_sha256": "09710542257488864071c0b2f353fc1f1f25d80ea8e5547915e37d1566acdb5b"
+        }
+      ],
+      "path": "Ruchy/Removing_Driver_0971054225748886.fbx"
+    },
+    "b947ccc9eb7b171eb1063e4e5539be9d0b0de4d1a0c331cbd6b234a4e7548655": {
+      "name": "Right Block",
+      "sha256": "b947ccc9eb7b171eb1063e4e5539be9d0b0de4d1a0c331cbd6b234a4e7548655",
+      "curves_sha256": "51b3fc65b4b83d34b1a1c84b58093a9a941b31d02dfd67fafd1baf9a829411b4",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Right Block.fbx",
+          "source_sha256": "b947ccc9eb7b171eb1063e4e5539be9d0b0de4d1a0c331cbd6b234a4e7548655"
+        }
+      ],
+      "path": "Ruchy/Right_Block_b947ccc9eb7b171e.fbx"
+    },
+    "44ec652d013b3e903ca90b7bd9dbc517fd1c20c925d5fac2d7075970e50d6493": {
+      "name": "Roll Kicking",
+      "sha256": "44ec652d013b3e903ca90b7bd9dbc517fd1c20c925d5fac2d7075970e50d6493",
+      "curves_sha256": "2d5bc4e75bfbf263d22759124ba122a5df981b2891e01beda3115b70bab2272b",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Roll Kicking.fbx",
+          "source_sha256": "44ec652d013b3e903ca90b7bd9dbc517fd1c20c925d5fac2d7075970e50d6493"
+        }
+      ],
+      "path": "Ruchy/Roll_Kicking_44ec652d013b3e90.fbx"
+    },
+    "a9c98e86a9ff9b38b1d830ecfdfc0af140558a80b92885da5581002dc8bd3fb4": {
+      "name": "Roundhouse Kick (1)",
+      "sha256": "a9c98e86a9ff9b38b1d830ecfdfc0af140558a80b92885da5581002dc8bd3fb4",
+      "curves_sha256": "4a54669c8eaa9bd88040d49b8c8e21202230a0ae00fe73a89a9dd7b7d561a207",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Roundhouse Kick (1).fbx",
+          "source_sha256": "a9c98e86a9ff9b38b1d830ecfdfc0af140558a80b92885da5581002dc8bd3fb4"
+        }
+      ],
+      "path": "Ruchy/Roundhouse_Kick_1_a9c98e86a9ff9b38.fbx"
+    },
+    "b94fe23681a3ce1791781f376757e9c9dd1a5c27e757e9b5a82fe21889a3ecd3": {
+      "name": "Roundhouse Kick (2)",
+      "sha256": "b94fe23681a3ce1791781f376757e9c9dd1a5c27e757e9b5a82fe21889a3ecd3",
+      "curves_sha256": "17f58ed42d68cc6bca13b5da5600ca7e7fc918be50bbea9dc97a23f43d4882cc",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Roundhouse Kick (2).fbx",
+          "source_sha256": "b94fe23681a3ce1791781f376757e9c9dd1a5c27e757e9b5a82fe21889a3ecd3"
+        }
+      ],
+      "path": "Ruchy/Roundhouse_Kick_2_b94fe23681a3ce17.fbx"
+    },
+    "6d06cae46042c086ccc055734fb72ef6ee7cd5a2c8a043f1f8c9bdd346f25a90": {
+      "name": "Run Forward",
+      "sha256": "6d06cae46042c086ccc055734fb72ef6ee7cd5a2c8a043f1f8c9bdd346f25a90",
+      "curves_sha256": "b363e8b712cd1cf4bcd69e57dc53db852e2bcec9d47a939c08c97f663a91dd0f",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Run Forward.fbx",
+          "source_sha256": "6d06cae46042c086ccc055734fb72ef6ee7cd5a2c8a043f1f8c9bdd346f25a90"
+        }
+      ],
+      "path": "Ruchy/Run_Forward_6d06cae46042c086.fbx"
+    },
+    "393ca7ec8e0409c5eea0fe44075d74ae5ce2c825ded47782ff6f85df58edd434": {
+      "name": "Run To Rolling",
+      "sha256": "393ca7ec8e0409c5eea0fe44075d74ae5ce2c825ded47782ff6f85df58edd434",
+      "curves_sha256": "d5e96628fd71df9a32eb3dfabe59af90d25cb2eb620842eb189c207544bd3590",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Run To Rolling.fbx",
+          "source_sha256": "393ca7ec8e0409c5eea0fe44075d74ae5ce2c825ded47782ff6f85df58edd434"
+        }
+      ],
+      "path": "Ruchy/Run_To_Rolling_393ca7ec8e0409c5.fbx"
+    },
+    "cfb69c075771a7d74dfa674636a61ab17e1874bfebbf7ec7e48921e7337e10a7": {
+      "name": "Running (1)",
+      "sha256": "cfb69c075771a7d74dfa674636a61ab17e1874bfebbf7ec7e48921e7337e10a7",
+      "curves_sha256": "d93051015dd19721428c017a06bb3032494ad8759ffbc5d94fb3bfb453c09783",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Running (1).fbx",
+          "source_sha256": "cfb69c075771a7d74dfa674636a61ab17e1874bfebbf7ec7e48921e7337e10a7"
+        }
+      ],
+      "path": "Ruchy/Running_1_cfb69c075771a7d7.fbx"
+    },
+    "fc73af8c7debec0570d0d761aa53e6b0a6af19ce25e7381e71563d4178e872c8": {
+      "name": "Short Step Forward",
+      "sha256": "fc73af8c7debec0570d0d761aa53e6b0a6af19ce25e7381e71563d4178e872c8",
+      "curves_sha256": "fa7013e972335778f643825b04374eb15bfa0ff1dcaed79ab524b142f243cb70",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Short Step Forward.fbx",
+          "source_sha256": "fc73af8c7debec0570d0d761aa53e6b0a6af19ce25e7381e71563d4178e872c8"
+        }
+      ],
+      "path": "Ruchy/Short_Step_Forward_fc73af8c7debec05.fbx"
+    },
+    "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5": {
+      "name": "Side Kick",
+      "sha256": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+      "curves_sha256": "9cb533f5e16b7ab9023753519bf2346cf6b8efc247e34a3490452202866000fd",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Side Kick.fbx",
+          "source_sha256": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5"
+        }
+      ],
+      "path": "Ruchy/Side_Kick_40ba86f510f1064e.fbx"
+    },
+    "5fa3cdd7edb60c256255bb238686e87ddea3cd270eb1f9ae4ab965959b4660e7": {
+      "name": "Speedbag",
+      "sha256": "5fa3cdd7edb60c256255bb238686e87ddea3cd270eb1f9ae4ab965959b4660e7",
+      "curves_sha256": "630635e8f18500fcd4c0391f462f1ad74eb8474f9a359c2f2c695c0020a87025",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Speedbag.fbx",
+          "source_sha256": "5fa3cdd7edb60c256255bb238686e87ddea3cd270eb1f9ae4ab965959b4660e7"
+        }
+      ],
+      "path": "Ruchy/Speedbag_5fa3cdd7edb60c25.fbx"
+    },
+    "815d8b2fb7cf5f935a501e585c02fbc750bd38afd7e6964805239c846d985e4c": {
+      "name": "Spin Flip Kick",
+      "sha256": "815d8b2fb7cf5f935a501e585c02fbc750bd38afd7e6964805239c846d985e4c",
+      "curves_sha256": "6feedad9f47a6735ed6e32a769913708eb93c40abe7b389ff370177ce08187e3",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Spin Flip Kick.fbx",
+          "source_sha256": "815d8b2fb7cf5f935a501e585c02fbc750bd38afd7e6964805239c846d985e4c"
+        }
+      ],
+      "path": "Ruchy/Spin_Flip_Kick_815d8b2fb7cf5f93.fbx"
+    },
+    "0901cda64b78eb041463479a5a0234a69f318849f781a8ada29a978efcbf17d2": {
+      "name": "Standard Run",
+      "sha256": "0901cda64b78eb041463479a5a0234a69f318849f781a8ada29a978efcbf17d2",
+      "curves_sha256": "1986f7189a745cae9f14192dda61076ee402057ca3665880e24544e6580c5c3a",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Standard Run.fbx",
+          "source_sha256": "0901cda64b78eb041463479a5a0234a69f318849f781a8ada29a978efcbf17d2"
+        }
+      ],
+      "path": "Ruchy/Standard_Run_0901cda64b78eb04.fbx"
+    },
+    "7c26ff8b3dee2163b998858acf64047ba0d2413a9cb499f78dee042b27610355": {
+      "name": "Step Backward",
+      "sha256": "7c26ff8b3dee2163b998858acf64047ba0d2413a9cb499f78dee042b27610355",
+      "curves_sha256": "179fa7103a4cff214e20907fdd9dc774f353db4f5113ae573bf463420c345f7c",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Step Backward.fbx",
+          "source_sha256": "7c26ff8b3dee2163b998858acf64047ba0d2413a9cb499f78dee042b27610355"
+        }
+      ],
+      "path": "Ruchy/Step_Backward_7c26ff8b3dee2163.fbx"
+    },
+    "1ba718194ba0ddec65cfde1b9a1400e47ebf4bf33436b9f2edad7d275b4247d9": {
+      "name": "Taunt (1)",
+      "sha256": "1ba718194ba0ddec65cfde1b9a1400e47ebf4bf33436b9f2edad7d275b4247d9",
+      "curves_sha256": "448a07749c521a4990ecdd6a8be8e4569def843a6dc995b317d041d480537bb8",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Taunt (1).fbx",
+          "source_sha256": "1ba718194ba0ddec65cfde1b9a1400e47ebf4bf33436b9f2edad7d275b4247d9"
+        }
+      ],
+      "path": "Ruchy/Taunt_1_1ba718194ba0ddec.fbx"
+    },
+    "382372b9fb0a1ce1eda1ebbc705feec5028eba59a2bd5900cd2e6424d7b1199f": {
+      "name": "Victory",
+      "sha256": "382372b9fb0a1ce1eda1ebbc705feec5028eba59a2bd5900cd2e6424d7b1199f",
+      "curves_sha256": "c1e7439f89c65eb331bbf94e41d9389b839f4ddf4cf19bfc06727f543bcc8e62",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Victory.fbx",
+          "source_sha256": "382372b9fb0a1ce1eda1ebbc705feec5028eba59a2bd5900cd2e6424d7b1199f"
+        }
+      ],
+      "path": "Ruchy/Victory_382372b9fb0a1ce1.fbx"
+    },
+    "f4d757557f8c798d4c316e2f84f6877586bcbe3c372028979d33d7b4a14d98cd": {
+      "name": "Walking (3)",
+      "sha256": "f4d757557f8c798d4c316e2f84f6877586bcbe3c372028979d33d7b4a14d98cd",
+      "curves_sha256": "72a63c7704ba1104716f5dfecec3cb7bd48f185c8c4cb6e1cfc676dfea72f315",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Walking (3).fbx",
+          "source_sha256": "f4d757557f8c798d4c316e2f84f6877586bcbe3c372028979d33d7b4a14d98cd"
+        }
+      ],
+      "path": "Ruchy/Walking_3_f4d757557f8c798d.fbx"
+    },
+    "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439": {
+      "name": "Warming Up",
+      "sha256": "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439",
+      "curves_sha256": "a41924ace553bffd7c09a2abbe406b7b44d50a0b7745647a94560cd27f03b2b7",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Warming Up.fbx",
+          "source_sha256": "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439"
+        }
+      ],
+      "path": "Ruchy/Warming_Up_8d6235835f2d497c.fbx"
+    },
+    "b84925120de5c66952df5f7a4df31df7a0c455ade34666764a592fad294a016c": {
+      "name": "Wheelbarrow Dump",
+      "sha256": "b84925120de5c66952df5f7a4df31df7a0c455ade34666764a592fad294a016c",
+      "curves_sha256": "bd6f2a9a3b62a68c1c38041dce7493abc2972da256097005b35cfafca2270a23",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Wheelbarrow Dump.fbx",
+          "source_sha256": "b84925120de5c66952df5f7a4df31df7a0c455ade34666764a592fad294a016c"
+        }
+      ],
+      "path": "Ruchy/Wheelbarrow_Dump_b84925120de5c669.fbx"
+    },
+    "64fa0742fbe0ddf9a5d1fd5737444b4cab8cf06c6878228eb4daff728f57bb04": {
+      "name": "Zombie Stand Up",
+      "sha256": "64fa0742fbe0ddf9a5d1fd5737444b4cab8cf06c6878228eb4daff728f57bb04",
+      "curves_sha256": "cd9d7059f6062bee0457cbf9f04eb3e44aa151ccc57a0560a3d1956c686da1db",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "pozycja T animacje.zip",
+          "entry": "pozycja T animacje/Zombie Stand Up.fbx",
+          "source_sha256": "64fa0742fbe0ddf9a5d1fd5737444b4cab8cf06c6878228eb4daff728f57bb04"
+        }
+      ],
+      "path": "Ruchy/Zombie_Stand_Up_64fa0742fbe0ddf9.fbx"
+    },
+    "051ceef7522b74d7d20f2c6392b9e1b08b5aad100349b6b570bf3c212a690929": {
+      "name": "Talking At Watercooler",
+      "sha256": "051ceef7522b74d7d20f2c6392b9e1b08b5aad100349b6b570bf3c212a690929",
+      "curves_sha256": "b8b9e6dcf31d7307a08d9dd042bd775080b4ea3110a7256c2b6a92deb78be76e",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Waving (1).zip",
+          "entry": "Talking At Watercooler.fbx",
+          "source_sha256": "051ceef7522b74d7d20f2c6392b9e1b08b5aad100349b6b570bf3c212a690929"
+        }
+      ],
+      "path": "Ruchy/Talking_At_Watercooler_051ceef7522b74d7.fbx"
+    },
+    "b87b47c82fdfb2cded7aef0a697b5592e6f291bd838dbfe2124face5753fd759": {
+      "name": "Watering",
+      "sha256": "b87b47c82fdfb2cded7aef0a697b5592e6f291bd838dbfe2124face5753fd759",
+      "curves_sha256": "bf72fb384068a23704198d7210122e421cbc178c86bfceeccb6ba91ff2b8d0c7",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Waving (1).zip",
+          "entry": "Watering.fbx",
+          "source_sha256": "b87b47c82fdfb2cded7aef0a697b5592e6f291bd838dbfe2124face5753fd759"
+        }
+      ],
+      "path": "Ruchy/Watering_b87b47c82fdfb2cd.fbx"
+    },
+    "95561882e402755ff94bce37d8755998c6785218bdb61682ed9bfa9a4cc82850": {
+      "name": "Waving (1)",
+      "sha256": "95561882e402755ff94bce37d8755998c6785218bdb61682ed9bfa9a4cc82850",
+      "curves_sha256": "9f1ad94017371a475ffec105eecbec25866ea5cdf5d130a9a52e90fd66cca5e6",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Waving (1).zip",
+          "entry": "Waving (1).fbx",
+          "source_sha256": "95561882e402755ff94bce37d8755998c6785218bdb61682ed9bfa9a4cc82850"
+        }
+      ],
+      "path": "Ruchy/Waving_1_95561882e402755f.fbx"
+    },
+    "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8": {
+      "name": "Waving",
+      "sha256": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "curves_sha256": "a0cdd8ef1a3fc27be16a719ed481d96f42c8a7a8c40cd2a54ae0704766be27e3",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Waving (1).zip",
+          "entry": "Waving.fbx",
+          "source_sha256": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8"
+        }
+      ],
+      "path": "Ruchy/Waving_a461701d1ac04b18.fbx"
+    },
+    "cbf451e27babd8ab613119e01ce06f5c7ab6c8f81f81b6b8a58a1736f5494183": {
+      "name": "Pointing (1)",
+      "sha256": "cbf451e27babd8ab613119e01ce06f5c7ab6c8f81f81b6b8a58a1736f5494183",
+      "curves_sha256": "0d146614e37525cbe0c24cadc019f6d1cf17244c1b5245b0329c20b19123fbc4",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Pointing Gesture.zip",
+          "entry": "Pointing (1).fbx",
+          "source_sha256": "cbf451e27babd8ab613119e01ce06f5c7ab6c8f81f81b6b8a58a1736f5494183"
+        }
+      ],
+      "path": "Ruchy/Pointing_1_cbf451e27babd8ab.fbx"
+    },
+    "4b4287b76924c42b8c091a7c7cf8b732f0fef4fafdb501d6cd174d022f618b86": {
+      "name": "Pointing (2)",
+      "sha256": "4b4287b76924c42b8c091a7c7cf8b732f0fef4fafdb501d6cd174d022f618b86",
+      "curves_sha256": "d1e1aabcacb39c19099cbd910e2a6c8eaf49ef48a24317acdbc54cefdf00187a",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Pointing Gesture.zip",
+          "entry": "Pointing (2).fbx",
+          "source_sha256": "4b4287b76924c42b8c091a7c7cf8b732f0fef4fafdb501d6cd174d022f618b86"
+        }
+      ],
+      "path": "Ruchy/Pointing_2_4b4287b76924c42b.fbx"
+    },
+    "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983": {
+      "name": "Pointing Gesture",
+      "sha256": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "curves_sha256": "23dc4016188a309d2ea8f267e5e91b173d4c0e7aa8e252446c35c8875f34afec",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Pointing Gesture.zip",
+          "entry": "Pointing Gesture.fbx",
+          "source_sha256": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983"
+        }
+      ],
+      "path": "Ruchy/Pointing_Gesture_3ff1aa0620cf1cbf.fbx"
+    },
+    "19324a681352e95618345f4d179b3cfa2f1ea5aed3d2ec0492f822d14bc68344": {
+      "name": "Pointing",
+      "sha256": "19324a681352e95618345f4d179b3cfa2f1ea5aed3d2ec0492f822d14bc68344",
+      "curves_sha256": "ae58e46b4bfcebb82a92751f0a5ae4390c2394901d3f862f1b3120afed61950a",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Pointing Gesture.zip",
+          "entry": "Pointing.fbx",
+          "source_sha256": "19324a681352e95618345f4d179b3cfa2f1ea5aed3d2ec0492f822d14bc68344"
+        }
+      ],
+      "path": "Ruchy/Pointing_19324a681352e956.fbx"
+    },
+    "38825b27b4ddea2f2281bf71fdd1ac90f708885ab1666d479fa4a217c2aeec43": {
+      "name": "Bartending (1)",
+      "sha256": "38825b27b4ddea2f2281bf71fdd1ac90f708885ab1666d479fa4a217c2aeec43",
+      "curves_sha256": "c23b712ac18dfdf63c0366b74b60011352dc8610fd3e49399f1beca8d1a0f24d",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Bartending (1).fbx",
+          "source_sha256": "38825b27b4ddea2f2281bf71fdd1ac90f708885ab1666d479fa4a217c2aeec43"
+        }
+      ],
+      "path": "Ruchy/Bartending_1_38825b27b4ddea2f.fbx"
+    },
+    "009fd7f5b9aa11c61f325437e880f8879e0ff791d259fa2f358bd48775e46812": {
+      "name": "Disappointed",
+      "sha256": "009fd7f5b9aa11c61f325437e880f8879e0ff791d259fa2f358bd48775e46812",
+      "curves_sha256": "dccea98404d575d74b87f3461085b4af8ae3b15edf93003a1cb781293d40edc3",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Disappointed.fbx",
+          "source_sha256": "009fd7f5b9aa11c61f325437e880f8879e0ff791d259fa2f358bd48775e46812"
+        }
+      ],
+      "path": "Ruchy/Disappointed_009fd7f5b9aa11c6.fbx"
+    },
+    "1709e537c7254fb9f90fff633b09ebedd393d6b4f270691cd0da814fb2ed23b1": {
+      "name": "Laying Breathless (1)",
+      "sha256": "1709e537c7254fb9f90fff633b09ebedd393d6b4f270691cd0da814fb2ed23b1",
+      "curves_sha256": "85164d9633bf13df37b46af2353e4d894ce97124f927c8f6140a7b9a7d39c336",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Laying Breathless (1).fbx",
+          "source_sha256": "1709e537c7254fb9f90fff633b09ebedd393d6b4f270691cd0da814fb2ed23b1"
+        }
+      ],
+      "path": "Ruchy/Laying_Breathless_1_1709e537c7254fb9.fbx"
+    },
+    "29ead16b898dec1cf86468b787d3b0a60dd4ff1bdd234b4021c2d11cd82c93bf": {
+      "name": "Laying Breathless",
+      "sha256": "25ae7297b0b94fba936315cedc09db0560dd81fe9508ab03c20d35545fd78583",
+      "curves_sha256": "85164d9633bf13df37b46af2353e4d894ce97124f927c8f6140a7b9a7d39c336",
+      "reference_sha256": "70469800ffa6ece1bdf0c28d1b317e253e27d266f37b11865cce935f00b7918b",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Laying Breathless.fbx",
+          "source_sha256": "29ead16b898dec1cf86468b787d3b0a60dd4ff1bdd234b4021c2d11cd82c93bf"
+        }
+      ],
+      "path": "Ruchy/Laying_Breathless_29ead16b898dec1c.fbx"
+    },
+    "f1c2b131f92b5b703c846e4610b6332c38a45eaf8a9610b920ff6e016cc70287": {
+      "name": "Laying Hand Gesture",
+      "sha256": "f1c2b131f92b5b703c846e4610b6332c38a45eaf8a9610b920ff6e016cc70287",
+      "curves_sha256": "f5baa42deeef2fe28178fb8af284a8dc3e4ee81f9a0d7b4726920b0f8f9dceb1",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Laying Hand Gesture.fbx",
+          "source_sha256": "f1c2b131f92b5b703c846e4610b6332c38a45eaf8a9610b920ff6e016cc70287"
+        }
+      ],
+      "path": "Ruchy/Laying_Hand_Gesture_f1c2b131f92b5b70.fbx"
+    },
+    "e9a4f471d06215f00244188757f5f29fcee9ecb4cffdeb85890398f1f2a9e2d8": {
+      "name": "Laying Vomiting",
+      "sha256": "e9a4f471d06215f00244188757f5f29fcee9ecb4cffdeb85890398f1f2a9e2d8",
+      "curves_sha256": "569846c5d5be3c41581be387a4b8427e3ad4e3fe9833f77b3058d8235d3a7bdc",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Laying Vomiting.fbx",
+          "source_sha256": "e9a4f471d06215f00244188757f5f29fcee9ecb4cffdeb85890398f1f2a9e2d8"
+        }
+      ],
+      "path": "Ruchy/Laying_Vomiting_e9a4f471d06215f0.fbx"
+    },
+    "b52940a08002c323b61dbb5038eaaae4effd197e08aa34007ec815d589024a20": {
+      "name": "Sitting Laughing (1)",
+      "sha256": "093ffd0bc87079c1d06eda547a6568eb16b181de1461b663e72292195bf55b48",
+      "curves_sha256": "b2c56d64bdfd2059a0284a8040f07e888af6af9c62dc7496aab6d4db26a5d826",
+      "reference_sha256": "70469800ffa6ece1bdf0c28d1b317e253e27d266f37b11865cce935f00b7918b",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Sitting Laughing (1).fbx",
+          "source_sha256": "b52940a08002c323b61dbb5038eaaae4effd197e08aa34007ec815d589024a20"
+        },
+        {
+          "archive": "Sitting Laughing.zip",
+          "entry": "Sitting Laughing.fbx",
+          "source_sha256": "75e1c3ee9a86d5d3cfe6d5fcea41e2dcd5e1ed296d00206ee7d4eceb9fe3b3e6"
+        }
+      ],
+      "path": "Ruchy/Sitting_Laughing_1_b52940a08002c323.fbx"
+    },
+    "83b02642f8f94338d5960be06e2410759db319d32ad58d507551c3a23a913de2": {
+      "name": "Standing Arguing (1)",
+      "sha256": "83b02642f8f94338d5960be06e2410759db319d32ad58d507551c3a23a913de2",
+      "curves_sha256": "169352e04f536423ef588a7a732190a7ea3d38952e45da79cf45381f923c10f5",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Standing Arguing (1).fbx",
+          "source_sha256": "83b02642f8f94338d5960be06e2410759db319d32ad58d507551c3a23a913de2"
+        }
+      ],
+      "path": "Ruchy/Standing_Arguing_1_83b02642f8f94338.fbx"
+    },
+    "bb614693c3c3b80b9a3d381ad13d1d3e4859a115d205a96b265f5b7dcef19bea": {
+      "name": "Standing Arguing",
+      "sha256": "bb614693c3c3b80b9a3d381ad13d1d3e4859a115d205a96b265f5b7dcef19bea",
+      "curves_sha256": "a356bdaf5421a47479cd3195c182ef61c7c4fd89ed1c12b06f6644bc8ffa67f2",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Standing Arguing.fbx",
+          "source_sha256": "bb614693c3c3b80b9a3d381ad13d1d3e4859a115d205a96b265f5b7dcef19bea"
+        }
+      ],
+      "path": "Ruchy/Standing_Arguing_bb614693c3c3b80b.fbx"
+    },
+    "38cec51310bd099bb65b369fad8523de91540facdc21589a540719a1ae594b96": {
+      "name": "Swimming To Edge",
+      "sha256": "38cec51310bd099bb65b369fad8523de91540facdc21589a540719a1ae594b96",
+      "curves_sha256": "e2d57f841c4b2473fb2d92bbc7eb34db7f5d4d7ec2ad133ecbaf7afa74ec6899",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Swimming To Edge.fbx",
+          "source_sha256": "38cec51310bd099bb65b369fad8523de91540facdc21589a540719a1ae594b96"
+        }
+      ],
+      "path": "Ruchy/Swimming_To_Edge_38cec51310bd099b.fbx"
+    },
+    "8642d8f9401205f7a48e727f4a41e7ba83377fe47c0922f6b78bec6d2a9726b6": {
+      "name": "Swimming",
+      "sha256": "8642d8f9401205f7a48e727f4a41e7ba83377fe47c0922f6b78bec6d2a9726b6",
+      "curves_sha256": "a132153e0e3ef8189e278e9ffed29ea265daaeac15b089d5668640fa5bbc5e22",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Swimming.fbx",
+          "source_sha256": "8642d8f9401205f7a48e727f4a41e7ba83377fe47c0922f6b78bec6d2a9726b6"
+        }
+      ],
+      "path": "Ruchy/Swimming_8642d8f9401205f7.fbx"
+    },
+    "6fba15500c2ee3b1ec9b05ebec9d80c6805b852e70a9a627c3b86fae81a557a1": {
+      "name": "Talking (1)",
+      "sha256": "6fba15500c2ee3b1ec9b05ebec9d80c6805b852e70a9a627c3b86fae81a557a1",
+      "curves_sha256": "0af5792876540b29600ce8262ac6cfc0de2a173f0f7fc7d17ec4797f8737fa46",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Talking (1).fbx",
+          "source_sha256": "6fba15500c2ee3b1ec9b05ebec9d80c6805b852e70a9a627c3b86fae81a557a1"
+        },
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Talking (2).fbx",
+          "source_sha256": "4a007d8bb57645fad391d21de2e0fc449ebd49b1fc9d814372aec1f9bb2ba8e2"
+        }
+      ],
+      "path": "Ruchy/Talking_1_6fba15500c2ee3b1.fbx"
+    },
+    "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567": {
+      "name": "Talking (3)",
+      "sha256": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "curves_sha256": "60d3fdd26a2985e8e5ec1ea3da646cdeeb2d7c9cc249eccfe958a8d0979a1ca1",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Talking (3).fbx",
+          "source_sha256": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567"
+        }
+      ],
+      "path": "Ruchy/Talking_3_1253544b18442feb.fbx"
+    },
+    "a89bfa49f93edcae506f45e3138063a10b33c2d1701c73632f3763cee722798e": {
+      "name": "Talking (4)",
+      "sha256": "a89bfa49f93edcae506f45e3138063a10b33c2d1701c73632f3763cee722798e",
+      "curves_sha256": "6ed367f35bfb4f15531653f7b3a3345788a0c82f4cc7eebaa91abc19109fac3e",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Talking (4).fbx",
+          "source_sha256": "a89bfa49f93edcae506f45e3138063a10b33c2d1701c73632f3763cee722798e"
+        }
+      ],
+      "path": "Ruchy/Talking_4_a89bfa49f93edcae.fbx"
+    },
+    "55c7299857c8439242089adca10333b6f9f5458c2c9a1c0feeff78cf4d16d0e5": {
+      "name": "Talking (5)",
+      "sha256": "55c7299857c8439242089adca10333b6f9f5458c2c9a1c0feeff78cf4d16d0e5",
+      "curves_sha256": "b31b4c73ed68e9033fd213fe560ca8f8f732fa34c5a4cb8e8d8f5f1d221cdb05",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Talking (5).fbx",
+          "source_sha256": "55c7299857c8439242089adca10333b6f9f5458c2c9a1c0feeff78cf4d16d0e5"
+        }
+      ],
+      "path": "Ruchy/Talking_5_55c7299857c84392.fbx"
+    },
+    "1c18022802b2e357a1a342439e5dc2b1b2f24a8ac4e62e4433bf98c4260500f1": {
+      "name": "Talking On Phone",
+      "sha256": "1c18022802b2e357a1a342439e5dc2b1b2f24a8ac4e62e4433bf98c4260500f1",
+      "curves_sha256": "37652704f75858885abbbc4e0afbb9e92fe41bbbeef4af04ebb4ed782fcaeb76",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Talking On Phone.fbx",
+          "source_sha256": "1c18022802b2e357a1a342439e5dc2b1b2f24a8ac4e62e4433bf98c4260500f1"
+        }
+      ],
+      "path": "Ruchy/Talking_On_Phone_1c18022802b2e357.fbx"
+    },
+    "8279fcaa17f7f152436bea5be5ffd08989ac518bf8f60c3d6bf0f08bf5cd3a3e": {
+      "name": "Talking Phone Pacing",
+      "sha256": "8279fcaa17f7f152436bea5be5ffd08989ac518bf8f60c3d6bf0f08bf5cd3a3e",
+      "curves_sha256": "9b6dad296486e2e7037a908ebe692a3fc46c7f82b43fbb6a6b317fcb5eb58ee8",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Talking Phone Pacing.fbx",
+          "source_sha256": "8279fcaa17f7f152436bea5be5ffd08989ac518bf8f60c3d6bf0f08bf5cd3a3e"
+        }
+      ],
+      "path": "Ruchy/Talking_Phone_Pacing_8279fcaa17f7f152.fbx"
+    },
+    "dda62e4152fe120afb70d38bd494d3fd8d5549c9624818d95505b974a25200a6": {
+      "name": "Talking",
+      "sha256": "dda62e4152fe120afb70d38bd494d3fd8d5549c9624818d95505b974a25200a6",
+      "curves_sha256": "2fe8c8719a0f4743f4a069781e9e27bba2e327e225e08a2ec6f68be20cecf598",
+      "reference_sha256": "2021865e01ca6ec833ea1cb7771bc4af3032ae712e94f6d6f3695a2f30a42982",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Talking.fbx",
+          "source_sha256": "dda62e4152fe120afb70d38bd494d3fd8d5549c9624818d95505b974a25200a6"
+        }
+      ],
+      "path": "Ruchy/Talking_dda62e4152fe120a.fbx"
+    },
+    "d22b71e5cfb92c5c4badc22282e0e53f5b95c5391b875b40a5f3162360045a63": {
+      "name": "Yelling",
+      "sha256": "d22b71e5cfb92c5c4badc22282e0e53f5b95c5391b875b40a5f3162360045a63",
+      "curves_sha256": "d0a93d64235ef295ce6a8d7a71c67f7813ee3f67a1ae387f7b4015d87c81cc4a",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Disappointed.zip",
+          "entry": "Yelling.fbx",
+          "source_sha256": "d22b71e5cfb92c5c4badc22282e0e53f5b95c5391b875b40a5f3162360045a63"
+        }
+      ],
+      "path": "Ruchy/Yelling_d22b71e5cfb92c5c.fbx"
+    },
+    "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf": {
+      "name": "Drinking",
+      "sha256": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "curves_sha256": "582c4a17b599603a248577e597c7eae585bfb635d63d97bbbb5301606eb00999",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Drunk Idle Variation.zip",
+          "entry": "Drinking.fbx",
+          "source_sha256": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf"
+        }
+      ],
+      "path": "Ruchy/Drinking_ec9365dab674b16d.fbx"
+    },
+    "b7bad82ac3e36a84734de3d2030772fae190532204e32f94faa1eabbda911322": {
+      "name": "Drunk Idle Variation",
+      "sha256": "1d984bcf6d37764caca4cec5ecd4d15859cb77c7412dfd082d6ece8d1a979891",
+      "curves_sha256": "59ff2a2488f39b27a45210225c053bbf30243927c2e2170d55a14f9dd967d4af",
+      "reference_sha256": "e4313d8a5e82bbca31854ba8b59d59e371605624b80d2a9a65831bf178808994",
+      "sources": [
+        {
+          "archive": "Drunk Idle Variation.zip",
+          "entry": "Drunk Idle Variation.fbx",
+          "source_sha256": "b7bad82ac3e36a84734de3d2030772fae190532204e32f94faa1eabbda911322"
+        }
+      ],
+      "path": "Ruchy/Drunk_Idle_Variation_b7bad82ac3e36a84.fbx"
+    },
+    "87e6c14d8f4de50cfcf1d4bb459f2731f8ebe9b59261e6f726059cc2392aa8b6": {
+      "name": "Drunk Idle",
+      "sha256": "8feec1d0b5724bd0c2580bf561d6f460f615c3fc58d2cd3eef5bbc13f1dabe81",
+      "curves_sha256": "502cd7533fc646baa1d1364207b79bb4637c411a61519abe2d7302e4dc24cf29",
+      "reference_sha256": "e4313d8a5e82bbca31854ba8b59d59e371605624b80d2a9a65831bf178808994",
+      "sources": [
+        {
+          "archive": "Drunk Idle Variation.zip",
+          "entry": "Drunk Idle.fbx",
+          "source_sha256": "87e6c14d8f4de50cfcf1d4bb459f2731f8ebe9b59261e6f726059cc2392aa8b6"
+        }
+      ],
+      "path": "Ruchy/Drunk_Idle_87e6c14d8f4de50c.fbx"
+    },
+    "a23acd33568f7403d17857b4ed6c9354023f09f8cfaf96be3ae56c7265d192fb": {
+      "name": "Drunk Run Backward",
+      "sha256": "04be43c659bca752415dd75454093f5b36f346539b485973f6463fe0f46294ea",
+      "curves_sha256": "df84f440a095e60af810c4644d167c36a8b248fdd7b15291798b77537f048689",
+      "reference_sha256": "e4313d8a5e82bbca31854ba8b59d59e371605624b80d2a9a65831bf178808994",
+      "sources": [
+        {
+          "archive": "Drunk Idle Variation.zip",
+          "entry": "Drunk Run Backward.fbx",
+          "source_sha256": "a23acd33568f7403d17857b4ed6c9354023f09f8cfaf96be3ae56c7265d192fb"
+        }
+      ],
+      "path": "Ruchy/Drunk_Run_Backward_a23acd33568f7403.fbx"
+    },
+    "993299b5924ad10bc414b2dc0f92b2de0ce2b040f1d9527e3bf4a8b8c0bc92b7": {
+      "name": "Drunk Walk",
+      "sha256": "993299b5924ad10bc414b2dc0f92b2de0ce2b040f1d9527e3bf4a8b8c0bc92b7",
+      "curves_sha256": "0b76cdc95efb2b990cb0354e5ae9321f0f2f86fc1ba8d7d81025d61f77b0c6e5",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Drunk Idle Variation.zip",
+          "entry": "Drunk Walk.fbx",
+          "source_sha256": "993299b5924ad10bc414b2dc0f92b2de0ce2b040f1d9527e3bf4a8b8c0bc92b7"
+        }
+      ],
+      "path": "Ruchy/Drunk_Walk_993299b5924ad10b.fbx"
+    },
+    "376b615928c0a8eb451f65ce6e7672adeaf5b5ad9693763e74317224d4b47c3f": {
+      "name": "Sitting Drinking",
+      "sha256": "376b615928c0a8eb451f65ce6e7672adeaf5b5ad9693763e74317224d4b47c3f",
+      "curves_sha256": "abe9d1df9cb3e2f072f82f4e6c49da84e166cd8542539b12dd158c65d1e1ed2e",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "Drunk Idle Variation.zip",
+          "entry": "Sitting Drinking.fbx",
+          "source_sha256": "376b615928c0a8eb451f65ce6e7672adeaf5b5ad9693763e74317224d4b47c3f"
+        }
+      ],
+      "path": "Ruchy/Sitting_Drinking_376b615928c0a8eb.fbx"
+    },
+    "12807609c3b8d0d3c1b6eab36123882c172486bb414aa4fa3c1279b813ec4c2e": {
+      "name": "Bartending",
+      "sha256": "093c0b55d63a4adb8c42eb441479ed1f70bf9cebc5b56d50dc79dd539ae8c131",
+      "curves_sha256": "51ef423afbfe6e0fe6ce0d6fa5303985a9e4e00d9558a8cf506de28b3de9e190",
+      "reference_sha256": "e4313d8a5e82bbca31854ba8b59d59e371605624b80d2a9a65831bf178808994",
+      "sources": [
+        {
+          "archive": "Sitting Laughing.zip",
+          "entry": "Bartending.fbx",
+          "source_sha256": "12807609c3b8d0d3c1b6eab36123882c172486bb414aa4fa3c1279b813ec4c2e"
+        }
+      ],
+      "path": "Ruchy/Bartending_12807609c3b8d0d3.fbx"
+    },
+    "cc3605ed1a446c7c52db287c89b3e1f1bec82d569878cea00e969e6af2c91efa": {
+      "name": "Cheering While Sitting",
+      "sha256": "723d56c698b75893024faf7586b72748533e9ceb143da09f83b3438bbf69f9d4",
+      "curves_sha256": "6000408231af284642740d59f61c3de0d9042642990cf1478d76d5bb6bcff196",
+      "reference_sha256": "e4313d8a5e82bbca31854ba8b59d59e371605624b80d2a9a65831bf178808994",
+      "sources": [
+        {
+          "archive": "Sitting Laughing.zip",
+          "entry": "Cheering While Sitting.fbx",
+          "source_sha256": "cc3605ed1a446c7c52db287c89b3e1f1bec82d569878cea00e969e6af2c91efa"
+        }
+      ],
+      "path": "Ruchy/Cheering_While_Sitting_cc3605ed1a446c7c.fbx"
+    },
+    "42c0973017793b8827c58e7f7d0738c76e395bc744969a1ff3f493ba717b83c7": {
+      "name": "Sitting Talking",
+      "sha256": "81e6ea9e6216d6dd89ab4bef41e9acf783614d2d88170ad1c7706b7ea482e8b3",
+      "curves_sha256": "8b9f3039ad356ce1d0f8ea35f146c4f92996d7e81edc15515234a522fe337766",
+      "reference_sha256": "e4313d8a5e82bbca31854ba8b59d59e371605624b80d2a9a65831bf178808994",
+      "sources": [
+        {
+          "archive": "Sitting Laughing.zip",
+          "entry": "Sitting Talking.fbx",
+          "source_sha256": "42c0973017793b8827c58e7f7d0738c76e395bc744969a1ff3f493ba717b83c7"
+        }
+      ],
+      "path": "Ruchy/Sitting_Talking_42c0973017793b88.fbx"
+    },
+    "a6a9ed8c08c7b95c9134a18e53919dc935339a94967ec352dbe9c98cb56c7ca5": {
+      "name": "Sitting Clap",
+      "sha256": "19aa81ede07e865215246bcc79fa6be3752d3b2c326884be88dc8add5442a529",
+      "curves_sha256": "9e69e5687e33b570b6e6a5bc4cecd477a544841110c995e8c409cd2b68e46daf",
+      "reference_sha256": "70469800ffa6ece1bdf0c28d1b317e253e27d266f37b11865cce935f00b7918b",
+      "sources": [
+        {
+          "archive": "Standing Clap (2).zip",
+          "entry": "Sitting Clap.fbx",
+          "source_sha256": "a6a9ed8c08c7b95c9134a18e53919dc935339a94967ec352dbe9c98cb56c7ca5"
+        }
+      ],
+      "path": "Ruchy/Sitting_Clap_a6a9ed8c08c7b95c.fbx"
+    },
+    "b5b7658bebb75a54329640fdd143667612e67e4461d2b438f6bb44c8310bc311": {
+      "name": "Standing Clap (1)",
+      "sha256": "ac051d2618523a1f291ebe9e32e09d513f504531c5766543e968dab20ca14012",
+      "curves_sha256": "942a8fdda953b102494f6b6c9b90a5b39142f91f60f52515918f5acf1ec9fe1c",
+      "reference_sha256": "70469800ffa6ece1bdf0c28d1b317e253e27d266f37b11865cce935f00b7918b",
+      "sources": [
+        {
+          "archive": "Standing Clap (2).zip",
+          "entry": "Standing Clap (1).fbx",
+          "source_sha256": "b5b7658bebb75a54329640fdd143667612e67e4461d2b438f6bb44c8310bc311"
+        }
+      ],
+      "path": "Ruchy/Standing_Clap_1_b5b7658bebb75a54.fbx"
+    },
+    "a61428be620be806ea31954d52a83446fdb08b77766bb9bd08fa13a4a6da66e4": {
+      "name": "Standing Clap (2)",
+      "sha256": "e4df07915031a79774fe203ccb0406edc931b9287d46515b97b326915b0730b6",
+      "curves_sha256": "1018172ba02e97daf37fb3bd73f9bb5cb01e7998c418b5d2d2f6a74713509b00",
+      "reference_sha256": "70469800ffa6ece1bdf0c28d1b317e253e27d266f37b11865cce935f00b7918b",
+      "sources": [
+        {
+          "archive": "Standing Clap (2).zip",
+          "entry": "Standing Clap (2).fbx",
+          "source_sha256": "a61428be620be806ea31954d52a83446fdb08b77766bb9bd08fa13a4a6da66e4"
+        }
+      ],
+      "path": "Ruchy/Standing_Clap_2_a61428be620be806.fbx"
+    },
+    "5c535204154c7e7cfe3b4dd544f2db86b80f6b7568dd506438caa8c5aee1b21a": {
+      "name": "Standing Clap",
+      "sha256": "f24c646c5496bc683b9c8e729cee7ead9e0d2be6d49536fe98b1087510592fd5",
+      "curves_sha256": "9f1d5030e23eb1f406cf7fa082ad04da3094dbfa567e2c4fab2143b85a80c13b",
+      "reference_sha256": "70469800ffa6ece1bdf0c28d1b317e253e27d266f37b11865cce935f00b7918b",
+      "sources": [
+        {
+          "archive": "Standing Clap (2).zip",
+          "entry": "Standing Clap.fbx",
+          "source_sha256": "5c535204154c7e7cfe3b4dd544f2db86b80f6b7568dd506438caa8c5aee1b21a"
+        }
+      ],
+      "path": "Ruchy/Standing_Clap_5c535204154c7e7c.fbx"
+    },
+    "8cc08c4e9eea387de66c0cd61a75c003c3de133ed1e1c97385167e48427f48b7": {
+      "name": "backward walking turn",
+      "sha256": "8cc08c4e9eea387de66c0cd61a75c003c3de133ed1e1c97385167e48427f48b7",
+      "curves_sha256": "5ef1973f10f692b65c0978aaeb6e46cda92926d09f5d7a950fbcb61a28360508",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "backward walking turn.fbx",
+          "source_sha256": "8cc08c4e9eea387de66c0cd61a75c003c3de133ed1e1c97385167e48427f48b7"
+        }
+      ],
+      "path": "Ruchy/backward_walking_turn_8cc08c4e9eea387d.fbx"
+    },
+    "df3b84a6761d3a9765727390ffe847f6ad5c7a193f3c08c6d62607713d54be79": {
+      "name": "drunk idle variation (2)",
+      "sha256": "df3b84a6761d3a9765727390ffe847f6ad5c7a193f3c08c6d62607713d54be79",
+      "curves_sha256": "8f8120e0cff7513444384faaa82de740a89782e487550d46dff7643110cd3b01",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "drunk idle variation (2).fbx",
+          "source_sha256": "df3b84a6761d3a9765727390ffe847f6ad5c7a193f3c08c6d62607713d54be79"
+        }
+      ],
+      "path": "Ruchy/drunk_idle_variation_2_df3b84a6761d3a97.fbx"
+    },
+    "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0": {
+      "name": "drunk idle variation",
+      "sha256": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+      "curves_sha256": "f89043700cad8fa681cd9077de3e1c317f5b6d54ff5e757991bee89635b0b78f",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "drunk idle variation.fbx",
+          "source_sha256": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0"
+        }
+      ],
+      "path": "Ruchy/drunk_idle_variation_bb673cef1ecbc3d9.fbx"
+    },
+    "3eeee54f2104e01e833390aab9b224add481d6d13c946a1d67f8e7d348116eee": {
+      "name": "drunk idle",
+      "sha256": "3eeee54f2104e01e833390aab9b224add481d6d13c946a1d67f8e7d348116eee",
+      "curves_sha256": "155200a9512322a95fff522c0e73cf694d8ca6facfb3d645d95593129fffd4a5",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "drunk idle.fbx",
+          "source_sha256": "3eeee54f2104e01e833390aab9b224add481d6d13c946a1d67f8e7d348116eee"
+        }
+      ],
+      "path": "Ruchy/drunk_idle_3eeee54f2104e01e.fbx"
+    },
+    "c257ce9bd4357e99b4da9300c5da13c6a94c3e49f8d829cbf98f1b59c0881b7b": {
+      "name": "drunk run backward",
+      "sha256": "c257ce9bd4357e99b4da9300c5da13c6a94c3e49f8d829cbf98f1b59c0881b7b",
+      "curves_sha256": "5cf0a35029901290f02ff5d10efa43770936e182adc8d4c85f1d74d6542f4e2c",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "drunk run backward.fbx",
+          "source_sha256": "c257ce9bd4357e99b4da9300c5da13c6a94c3e49f8d829cbf98f1b59c0881b7b"
+        }
+      ],
+      "path": "Ruchy/drunk_run_backward_c257ce9bd4357e99.fbx"
+    },
+    "f18a6710ccd57955f73234f2125c45d5a8680d1294bf4d83c3a976a91e780bc7": {
+      "name": "drunk run forward",
+      "sha256": "f18a6710ccd57955f73234f2125c45d5a8680d1294bf4d83c3a976a91e780bc7",
+      "curves_sha256": "5fb19ccfc6fe0dd51a66bca82b8c4b4f8320ccdc5fbef7b997b765169daba4a5",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "drunk run forward.fbx",
+          "source_sha256": "f18a6710ccd57955f73234f2125c45d5a8680d1294bf4d83c3a976a91e780bc7"
+        }
+      ],
+      "path": "Ruchy/drunk_run_forward_f18a6710ccd57955.fbx"
+    },
+    "e49fad0f9e80b23f44cf3dd17810e267701f02b6f6da919eed98efa2849ffcd1": {
+      "name": "drunk running left turn",
+      "sha256": "e49fad0f9e80b23f44cf3dd17810e267701f02b6f6da919eed98efa2849ffcd1",
+      "curves_sha256": "44a8fde04d28ef396a245af0ba4385fc10b98c1e416a7c44e6b80041c0fc1c27",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "drunk running left turn.fbx",
+          "source_sha256": "e49fad0f9e80b23f44cf3dd17810e267701f02b6f6da919eed98efa2849ffcd1"
+        }
+      ],
+      "path": "Ruchy/drunk_running_left_turn_e49fad0f9e80b23f.fbx"
+    },
+    "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24": {
+      "name": "drunk turn",
+      "sha256": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24",
+      "curves_sha256": "913d465af48fad223acccafd3ce1f217832d29dde1e5e9981cbec406681a886a",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "drunk turn.fbx",
+          "source_sha256": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
+        }
+      ],
+      "path": "Ruchy/drunk_turn_6d86067fb4533963.fbx"
+    },
+    "8799134a825ad2e5cab53670f4b7ef767eacc3b4c29f2b35aee9ded69506316a": {
+      "name": "drunk walk backwards",
+      "sha256": "8799134a825ad2e5cab53670f4b7ef767eacc3b4c29f2b35aee9ded69506316a",
+      "curves_sha256": "63493b94e99e388bb1d9ce3ce1399fc3963b1603bc46d9634e86f94b78930396",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "drunk walk backwards.fbx",
+          "source_sha256": "8799134a825ad2e5cab53670f4b7ef767eacc3b4c29f2b35aee9ded69506316a"
+        }
+      ],
+      "path": "Ruchy/drunk_walk_backwards_8799134a825ad2e5.fbx"
+    },
+    "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40": {
+      "name": "drunk walk",
+      "sha256": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+      "curves_sha256": "cf848a3591fddfa3e63379d1a83353d1d43539984f66bd368b366a773f61b10a",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "drunk walk.fbx",
+          "source_sha256": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40"
+        }
+      ],
+      "path": "Ruchy/drunk_walk_c45c2ff600d63274.fbx"
+    },
+    "ed671e9c1e19f16b1c57b57a3c61d61bbbb8fe8837880c2b60c9426c54a51f44": {
+      "name": "drunk walking turn",
+      "sha256": "ed671e9c1e19f16b1c57b57a3c61d61bbbb8fe8837880c2b60c9426c54a51f44",
+      "curves_sha256": "4bc2de3a2102bc6774e744fc3dd619082970ac4d07ccb5e6fd4b934761ddc97c",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "drunk walking turn.fbx",
+          "source_sha256": "ed671e9c1e19f16b1c57b57a3c61d61bbbb8fe8837880c2b60c9426c54a51f44"
+        }
+      ],
+      "path": "Ruchy/drunk_walking_turn_ed671e9c1e19f16b.fbx"
+    },
+    "789d2a3b1f4042835e5b8390c242c6c9c234ee08f06ed5e98066e1816a73f280": {
+      "name": "run backward arc right",
+      "sha256": "789d2a3b1f4042835e5b8390c242c6c9c234ee08f06ed5e98066e1816a73f280",
+      "curves_sha256": "260346b2b0538b95f214b0c110d86e278acd297d0ae29577027ee1974e5bbec6",
+      "reference_sha256": "d132150b290da6dc04ce4966ba420f3f11aa5b645cbc2c62334cf4c0d9473b0c",
+      "sources": [
+        {
+          "archive": "Male Drunk Pack.zip",
+          "entry": "run backward arc right.fbx",
+          "source_sha256": "789d2a3b1f4042835e5b8390c242c6c9c234ee08f06ed5e98066e1816a73f280"
+        }
+      ],
+      "path": "Ruchy/run_backward_arc_right_789d2a3b1f404283.fbx"
+    },
+    "bece824097d0fed7b424ee6c0de3ac18aeeaf66d47ba9acf990f462c511c7370": {
+      "name": "Box Walk Arc",
+      "sha256": "600232652bd0e03f49fc7b9b3625b4b33c00a18c826e2ab8a9661f2554407184",
+      "curves_sha256": "bd7d643e29976848942a40206805bb0a522735e94b7ec528a3a7be53dc1a54d0",
+      "reference_sha256": "70469800ffa6ece1bdf0c28d1b317e253e27d266f37b11865cce935f00b7918b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Box Walk Arc.fbx",
+          "source_sha256": "bece824097d0fed7b424ee6c0de3ac18aeeaf66d47ba9acf990f462c511c7370"
+        }
+      ],
+      "path": "Ruchy/Box_Walk_Arc_bece824097d0fed7.fbx"
+    },
+    "1c339cea7575752dc42f982483d5c8ea523b20034ee8ec47ed1eff9afe00d02b": {
+      "name": "Cards (1)",
+      "sha256": "1c339cea7575752dc42f982483d5c8ea523b20034ee8ec47ed1eff9afe00d02b",
+      "curves_sha256": "8fb09c367004a04c1deff94ca9d5b9c094b2a9a78d42ff5422538edc8c60db57",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Cards (1).fbx",
+          "source_sha256": "1c339cea7575752dc42f982483d5c8ea523b20034ee8ec47ed1eff9afe00d02b"
+        }
+      ],
+      "path": "Ruchy/Cards_1_1c339cea7575752d.fbx"
+    },
+    "cd1bb5168da85c738796870c3b0ae3b443833fbad3227edfe99f0893b772ea9d": {
+      "name": "Cards",
+      "sha256": "cd1bb5168da85c738796870c3b0ae3b443833fbad3227edfe99f0893b772ea9d",
+      "curves_sha256": "35612b3d5f627d5083cb31acfe172ad61ac91d8033548fc6fdb8ca0411574146",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Cards.fbx",
+          "source_sha256": "cd1bb5168da85c738796870c3b0ae3b443833fbad3227edfe99f0893b772ea9d"
+        }
+      ],
+      "path": "Ruchy/Cards_cd1bb5168da85c73.fbx"
+    },
+    "2fd18e423c94c81eef764eb90f8de8a9b034da7eb87ef339494c7e08a200fb1b": {
+      "name": "Carrying",
+      "sha256": "2fd18e423c94c81eef764eb90f8de8a9b034da7eb87ef339494c7e08a200fb1b",
+      "curves_sha256": "261d7e12d08e76bbd4aeb2470569029d922a22c43aec04bc18522095f0a68196",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Carrying.fbx",
+          "source_sha256": "2fd18e423c94c81eef764eb90f8de8a9b034da7eb87ef339494c7e08a200fb1b"
+        }
+      ],
+      "path": "Ruchy/Carrying_2fd18e423c94c81e.fbx"
+    },
+    "df9458a4e34842c44e50c45cb6fb7998e12c474875801800fcf8f5004d0e29c4": {
+      "name": "Casting Spell",
+      "sha256": "df9458a4e34842c44e50c45cb6fb7998e12c474875801800fcf8f5004d0e29c4",
+      "curves_sha256": "0ef67317239eb5fc0cdbebee1ce83e068f0aa010593027b63e06fc7d21bdb2a7",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Casting Spell.fbx",
+          "source_sha256": "df9458a4e34842c44e50c45cb6fb7998e12c474875801800fcf8f5004d0e29c4"
+        }
+      ],
+      "path": "Ruchy/Casting_Spell_df9458a4e34842c4.fbx"
+    },
+    "f7ac162ac91898e38932fdbc7e1a63ff57116c862d3a4025bb63bd5c91921552": {
+      "name": "Dancing (1)",
+      "sha256": "f7ac162ac91898e38932fdbc7e1a63ff57116c862d3a4025bb63bd5c91921552",
+      "curves_sha256": "3eec62bc17e11962616766290cf0e0f68dcc022467f4bdad0fd18e59b45dd98d",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Dancing (1).fbx",
+          "source_sha256": "f7ac162ac91898e38932fdbc7e1a63ff57116c862d3a4025bb63bd5c91921552"
+        }
+      ],
+      "path": "Ruchy/Dancing_1_f7ac162ac91898e3.fbx"
+    },
+    "ee8c91a3f07d164aa58f788d1ce95cd0bff77aaac9edf55f88f5a66de35ec615": {
+      "name": "Dancing",
+      "sha256": "ee8c91a3f07d164aa58f788d1ce95cd0bff77aaac9edf55f88f5a66de35ec615",
+      "curves_sha256": "a930953114db5bd5f236dce67017bf0588f85823be073ce75d992641f235bb96",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Dancing.fbx",
+          "source_sha256": "ee8c91a3f07d164aa58f788d1ce95cd0bff77aaac9edf55f88f5a66de35ec615"
+        }
+      ],
+      "path": "Ruchy/Dancing_ee8c91a3f07d164a.fbx"
+    },
+    "ffd34bfd72007bb8ee87e0616e06a47d0b97f7483822a42940d0a628f32c4373": {
+      "name": "Flair",
+      "sha256": "ffd34bfd72007bb8ee87e0616e06a47d0b97f7483822a42940d0a628f32c4373",
+      "curves_sha256": "417fb208bc5e41222eab7f2b25b7e6fb77f62b699d3a3994531df0d4e7ea1d21",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Flair.fbx",
+          "source_sha256": "ffd34bfd72007bb8ee87e0616e06a47d0b97f7483822a42940d0a628f32c4373"
+        }
+      ],
+      "path": "Ruchy/Flair_ffd34bfd72007bb8.fbx"
+    },
+    "50de995d19ac34232dd6cba4b5ce3fb4c683e1ed9e48cbcc2cf78b36e340dbbe": {
+      "name": "Frisbee Throw",
+      "sha256": "50de995d19ac34232dd6cba4b5ce3fb4c683e1ed9e48cbcc2cf78b36e340dbbe",
+      "curves_sha256": "32ea02dcb7b74b5173ad571cf17d827ba178acad399c9e85b475e674c58cf9cb",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Frisbee Throw.fbx",
+          "source_sha256": "50de995d19ac34232dd6cba4b5ce3fb4c683e1ed9e48cbcc2cf78b36e340dbbe"
+        }
+      ],
+      "path": "Ruchy/Frisbee_Throw_50de995d19ac3423.fbx"
+    },
+    "b284d09acbfc513eab7f76f38ec1ba4f07c5c4de4fa0c2de505a0bbbcffe37c5": {
+      "name": "Goalkeeper Pass",
+      "sha256": "b284d09acbfc513eab7f76f38ec1ba4f07c5c4de4fa0c2de505a0bbbcffe37c5",
+      "curves_sha256": "03d630b4a70ac1cf3cb076a999fd1ba3512bdd46fe11804243e94ad696c8ab97",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Goalkeeper Pass.fbx",
+          "source_sha256": "b284d09acbfc513eab7f76f38ec1ba4f07c5c4de4fa0c2de505a0bbbcffe37c5"
+        }
+      ],
+      "path": "Ruchy/Goalkeeper_Pass_b284d09acbfc513e.fbx"
+    },
+    "8596351385d02c53e74d02e8c56d82df5563280b2d7734b8cecab40dbea175e7": {
+      "name": "Hip Hop Dancing (1)",
+      "sha256": "8596351385d02c53e74d02e8c56d82df5563280b2d7734b8cecab40dbea175e7",
+      "curves_sha256": "94d5d32b7abcc925fe92581f90f91654e42288fcadd7d3f95910b686a50a5afe",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Hip Hop Dancing (1).fbx",
+          "source_sha256": "8596351385d02c53e74d02e8c56d82df5563280b2d7734b8cecab40dbea175e7"
+        }
+      ],
+      "path": "Ruchy/Hip_Hop_Dancing_1_8596351385d02c53.fbx"
+    },
+    "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17": {
+      "name": "Hip Hop Dancing",
+      "sha256": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+      "curves_sha256": "fb83dc81213433f8946da330e14256464330af26f5e9dcfb5d06968d7f31142e",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Hip Hop Dancing.fbx",
+          "source_sha256": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17"
+        }
+      ],
+      "path": "Ruchy/Hip_Hop_Dancing_ea4048ba509eac40.fbx"
+    },
+    "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18": {
+      "name": "House Dancing",
+      "sha256": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "curves_sha256": "ebd796e63fef6eb790e96f0c8b9f45f522ec91c1f5c9e729ffa023e0305cba02",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "House Dancing.fbx",
+          "source_sha256": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18"
+        }
+      ],
+      "path": "Ruchy/House_Dancing_ce5145ac0b021488.fbx"
+    },
+    "841d626751c96ea2632ac25eb67e7eb1c82c15cdf8ed3fda514f2c270a0b5d46": {
+      "name": "Salsa Dancing",
+      "sha256": "841d626751c96ea2632ac25eb67e7eb1c82c15cdf8ed3fda514f2c270a0b5d46",
+      "curves_sha256": "ac3da78dd561255ecf5a72eec6272473fd21b02c82f4cdf61ea581e1f12f79c1",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Salsa Dancing.fbx",
+          "source_sha256": "841d626751c96ea2632ac25eb67e7eb1c82c15cdf8ed3fda514f2c270a0b5d46"
+        }
+      ],
+      "path": "Ruchy/Salsa_Dancing_841d626751c96ea2.fbx"
+    },
+    "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680": {
+      "name": "Seated Idle",
+      "sha256": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "curves_sha256": "1f9204f8a0dde4193c5042c8bd09939adc3dd68ff226e001ef84cb2a28706887",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Seated Idle.fbx",
+          "source_sha256": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680"
+        }
+      ],
+      "path": "Ruchy/Seated_Idle_ca846248da90e9b9.fbx"
+    },
+    "8282707f1e49556d252373a608b325e2bb00a6b4448132bcc830b80d276e3dc5": {
+      "name": "Shaking Dice",
+      "sha256": "8282707f1e49556d252373a608b325e2bb00a6b4448132bcc830b80d276e3dc5",
+      "curves_sha256": "3de4e3d0dc8c614866f235656d4bdbb5f23c3892273c1f664116068ebc55286c",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Shaking Dice.fbx",
+          "source_sha256": "8282707f1e49556d252373a608b325e2bb00a6b4448132bcc830b80d276e3dc5"
+        }
+      ],
+      "path": "Ruchy/Shaking_Dice_8282707f1e49556d.fbx"
+    },
+    "240c161705375f38d0e34b7bc1bd991da279884fd28cea834b98a9b1d8cd974f": {
+      "name": "Silly Dancing (1)",
+      "sha256": "240c161705375f38d0e34b7bc1bd991da279884fd28cea834b98a9b1d8cd974f",
+      "curves_sha256": "5a2e9a4b3077117753094ec63262d15b5a97e1fb247ebb6702a5a7564ac59d56",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Silly Dancing (1).fbx",
+          "source_sha256": "240c161705375f38d0e34b7bc1bd991da279884fd28cea834b98a9b1d8cd974f"
+        },
+        {
+          "archive": "animacje.zip",
+          "entry": "Silly Dancing.fbx",
+          "source_sha256": "75fa6fd4e02df963c96841c6ea96d8cafb368651d05898817a7d1e53db4e8f91"
+        }
+      ],
+      "path": "Ruchy/Silly_Dancing_1_240c161705375f38.fbx"
+    },
+    "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a": {
+      "name": "Sitting (1)",
+      "sha256": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "curves_sha256": "2c05c60ecb78208db0eb48170ec439e38f5d164a99a85815b22543db65dba83e",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Sitting (1).fbx",
+          "source_sha256": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a"
+        }
+      ],
+      "path": "Ruchy/Sitting_1_24082b3ca22003fc.fbx"
+    },
+    "975111dcdaf59974ea7d81b1f788592ef91e837179570afae57e1fa8805bdb11": {
+      "name": "Sitting Victory",
+      "sha256": "975111dcdaf59974ea7d81b1f788592ef91e837179570afae57e1fa8805bdb11",
+      "curves_sha256": "0f38f54cdf719c285bf11a8c8dbb531021f40b0fd1f0ee6923a83925d106de8f",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Sitting Victory.fbx",
+          "source_sha256": "975111dcdaf59974ea7d81b1f788592ef91e837179570afae57e1fa8805bdb11"
+        }
+      ],
+      "path": "Ruchy/Sitting_Victory_975111dcdaf59974.fbx"
+    },
+    "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06": {
+      "name": "Sitting",
+      "sha256": "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06",
+      "curves_sha256": "14ebe8cc1bcc0f066228500d055d2938318ca03a3de2e3e715f9dd85c833759b",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Sitting.fbx",
+          "source_sha256": "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06"
+        }
+      ],
+      "path": "Ruchy/Sitting_513db4532dc710a0.fbx"
+    },
+    "b04064ecbaf1ff9cf4d7c6d6a40cb96e73df26181c38577ab5c360d39e36597e": {
+      "name": "Swing Dancing",
+      "sha256": "b04064ecbaf1ff9cf4d7c6d6a40cb96e73df26181c38577ab5c360d39e36597e",
+      "curves_sha256": "66695b6aa584b2a2dfd93778084d68ef4275b99c4336f25ffa7b3702240b53cb",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Swing Dancing.fbx",
+          "source_sha256": "b04064ecbaf1ff9cf4d7c6d6a40cb96e73df26181c38577ab5c360d39e36597e"
+        }
+      ],
+      "path": "Ruchy/Swing_Dancing_b04064ecbaf1ff9c.fbx"
+    },
+    "919abd06256e00543fcd8d3e863e2a5f72769a264b41a5f2c18b3d571ba73107": {
+      "name": "Throwing",
+      "sha256": "919abd06256e00543fcd8d3e863e2a5f72769a264b41a5f2c18b3d571ba73107",
+      "curves_sha256": "d817cbb176038c7498e07de631d54831dbbe77fc878324c21a909cce5e657340",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "animacje.zip",
+          "entry": "Throwing.fbx",
+          "source_sha256": "919abd06256e00543fcd8d3e863e2a5f72769a264b41a5f2c18b3d571ba73107"
+        }
+      ],
+      "path": "Ruchy/Throwing_919abd06256e0054.fbx"
+    },
+    "de72e3354412dc56ddf585ec2b5758f4576dee1157aa0843b405fb7b6e69a894": {
+      "name": "Back Squat (1)",
+      "sha256": "de72e3354412dc56ddf585ec2b5758f4576dee1157aa0843b405fb7b6e69a894",
+      "curves_sha256": "12eea706e53590beb6a895b0f7ae8a06d40633784f17ae60d3ae228e5326edcc",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Back Squat (1).fbx",
+          "source_sha256": "de72e3354412dc56ddf585ec2b5758f4576dee1157aa0843b405fb7b6e69a894"
+        }
+      ],
+      "path": "Ruchy/Back_Squat_1_de72e3354412dc56.fbx"
+    },
+    "aa45ae073f1744e5b21aae5df5081b3a33ddecd1345b1e84e1d6b7e49bff6c16": {
+      "name": "Back Squat",
+      "sha256": "aa45ae073f1744e5b21aae5df5081b3a33ddecd1345b1e84e1d6b7e49bff6c16",
+      "curves_sha256": "563e22bf8663860b6309474fe6152ae29e7be9517973e796a454b5f18a874431",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Back Squat.fbx",
+          "source_sha256": "aa45ae073f1744e5b21aae5df5081b3a33ddecd1345b1e84e1d6b7e49bff6c16"
+        }
+      ],
+      "path": "Ruchy/Back_Squat_aa45ae073f1744e5.fbx"
+    },
+    "7672ba471289139c7c7b70bc7bcc17801086373e5aed02d8c03f91d9a105b2d4": {
+      "name": "Bicep Curl",
+      "sha256": "7672ba471289139c7c7b70bc7bcc17801086373e5aed02d8c03f91d9a105b2d4",
+      "curves_sha256": "8c03d55ee02c8cc7de2424ee340a14999b27e8acc481c493b4ff1b5759979a65",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Bicep Curl.fbx",
+          "source_sha256": "7672ba471289139c7c7b70bc7bcc17801086373e5aed02d8c03f91d9a105b2d4"
+        }
+      ],
+      "path": "Ruchy/Bicep_Curl_7672ba471289139c.fbx"
+    },
+    "724a142b3793f051524561c4437ed3ff1ff36556ca731add2cff74eea3fb460a": {
+      "name": "Burpee",
+      "sha256": "724a142b3793f051524561c4437ed3ff1ff36556ca731add2cff74eea3fb460a",
+      "curves_sha256": "2eb31ae1d601aeff45b2578ffdce05122d974d669a1929292e7b6c40122dbf9b",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Burpee.fbx",
+          "source_sha256": "724a142b3793f051524561c4437ed3ff1ff36556ca731add2cff74eea3fb460a"
+        }
+      ],
+      "path": "Ruchy/Burpee_724a142b3793f051.fbx"
+    },
+    "e798330a8ae0e0176a2254079e4181618d6ab4da17d89cea7e21da7ceeefcc10": {
+      "name": "Front Raises",
+      "sha256": "e798330a8ae0e0176a2254079e4181618d6ab4da17d89cea7e21da7ceeefcc10",
+      "curves_sha256": "bd6ada676b65b1432cdec4163875dd4326c7ece93ee18a368ff62ebd3643260f",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Front Raises.fbx",
+          "source_sha256": "e798330a8ae0e0176a2254079e4181618d6ab4da17d89cea7e21da7ceeefcc10"
+        }
+      ],
+      "path": "Ruchy/Front_Raises_e798330a8ae0e017.fbx"
+    },
+    "8a14789ff4420a74cb2e9601f331d490317635e51d1f0a04c69373f3925fb5a0": {
+      "name": "Jumping Jacks",
+      "sha256": "8a14789ff4420a74cb2e9601f331d490317635e51d1f0a04c69373f3925fb5a0",
+      "curves_sha256": "9a48f190ad4ea5f358666da13837d8ef0bde5f787b96774205f78653a427df70",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Jumping Jacks.fbx",
+          "source_sha256": "8a14789ff4420a74cb2e9601f331d490317635e51d1f0a04c69373f3925fb5a0"
+        }
+      ],
+      "path": "Ruchy/Jumping_Jacks_8a14789ff4420a74.fbx"
+    },
+    "9e419fb99cf4b469172e97b3ddb40e2b25308ae3efb2abf42a6e8fb88e177c67": {
+      "name": "Kettlebell Swing",
+      "sha256": "9e419fb99cf4b469172e97b3ddb40e2b25308ae3efb2abf42a6e8fb88e177c67",
+      "curves_sha256": "aeb50c5b4c95566f821da1a20bf569dcbd7b91d0c9361fa34976c81cadc864bb",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Kettlebell Swing.fbx",
+          "source_sha256": "9e419fb99cf4b469172e97b3ddb40e2b25308ae3efb2abf42a6e8fb88e177c67"
+        }
+      ],
+      "path": "Ruchy/Kettlebell_Swing_9e419fb99cf4b469.fbx"
+    },
+    "d70ddc3a794c435991ae9d4e9d6c2c2db3eec6cb23a3383b3f5a932c856aa8d6": {
+      "name": "Overhead Squat",
+      "sha256": "d70ddc3a794c435991ae9d4e9d6c2c2db3eec6cb23a3383b3f5a932c856aa8d6",
+      "curves_sha256": "1bdad288a7aa2a81697a5eff346a37a1e4090cbadcc2442e4e76077dd3731c7d",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Overhead Squat.fbx",
+          "source_sha256": "d70ddc3a794c435991ae9d4e9d6c2c2db3eec6cb23a3383b3f5a932c856aa8d6"
+        }
+      ],
+      "path": "Ruchy/Overhead_Squat_d70ddc3a794c4359.fbx"
+    },
+    "9823f0cfc4eacf74e261337dedb057642e468f015b1f4d5c9b68733022c5fdbc": {
+      "name": "Pistol",
+      "sha256": "9823f0cfc4eacf74e261337dedb057642e468f015b1f4d5c9b68733022c5fdbc",
+      "curves_sha256": "674769509c47fec52af002350c005a3b7973ad6a6cb1c9e370cd5c3b7f9877a9",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Pistol.fbx",
+          "source_sha256": "9823f0cfc4eacf74e261337dedb057642e468f015b1f4d5c9b68733022c5fdbc"
+        }
+      ],
+      "path": "Ruchy/Pistol_9823f0cfc4eacf74.fbx"
+    },
+    "fc35509464fd4ec0fbe04f0f1245c42cae72f2285b3e1de96354bdbeec82b3bc": {
+      "name": "Snatch (1)",
+      "sha256": "fc35509464fd4ec0fbe04f0f1245c42cae72f2285b3e1de96354bdbeec82b3bc",
+      "curves_sha256": "a58cbf3e323c78155ebd9aa61dfedfa3f0d38341c918218f8808e6a8243145cb",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Snatch (1).fbx",
+          "source_sha256": "fc35509464fd4ec0fbe04f0f1245c42cae72f2285b3e1de96354bdbeec82b3bc"
+        }
+      ],
+      "path": "Ruchy/Snatch_1_fc35509464fd4ec0.fbx"
+    },
+    "b3cbd2583653787a303c04c6c661762e569b4735a102c9168079172ea666600f": {
+      "name": "Snatch",
+      "sha256": "b3cbd2583653787a303c04c6c661762e569b4735a102c9168079172ea666600f",
+      "curves_sha256": "eb17dc488cd13d08f6cacf9ba580f32e6850bdb815731de2067519ae32f9013a",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Snatch.fbx",
+          "source_sha256": "b3cbd2583653787a303c04c6c661762e569b4735a102c9168079172ea666600f"
+        }
+      ],
+      "path": "Ruchy/Snatch_b3cbd2583653787a.fbx"
+    },
+    "b6f376c64368f365ee6e622334077d5ed51e7bd561d2cac666fae3d5e349de00": {
+      "name": "Start Bicycle Sit Up",
+      "sha256": "b6f376c64368f365ee6e622334077d5ed51e7bd561d2cac666fae3d5e349de00",
+      "curves_sha256": "616dde2da8e42f4a9bf04a9101e1b57a1d2150bfab3bee5e658fe90fd39ec2ca",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Start Bicycle Sit Up.fbx",
+          "source_sha256": "b6f376c64368f365ee6e622334077d5ed51e7bd561d2cac666fae3d5e349de00"
+        }
+      ],
+      "path": "Ruchy/Start_Bicycle_Sit_Up_b6f376c64368f365.fbx"
+    },
+    "f244a15dc370f8d995f143cdbefc93804e0769a91b218c5c370e57995901a404": {
+      "name": "Sumo High Pull",
+      "sha256": "f244a15dc370f8d995f143cdbefc93804e0769a91b218c5c370e57995901a404",
+      "curves_sha256": "85153c2ee80c0996513f63150882d6bae255a9be9f7b27b5f9e41931938daf0b",
+      "reference_sha256": "fe2760319a5e79d1f5edd39378fd4d4dc4216eedc8d820c1768663502b07083b",
+      "sources": [
+        {
+          "archive": "gym.zip",
+          "entry": "Sumo High Pull.fbx",
+          "source_sha256": "f244a15dc370f8d995f143cdbefc93804e0769a91b218c5c370e57995901a404"
+        }
+      ],
+      "path": "Ruchy/Sumo_High_Pull_f244a15dc370f8d9.fbx"
+    },
+    "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d": {
+      "name": "SitDown_UseLaptop_mixamo_57de780",
+      "sha256": "dbd4b1ad89f70a18ef8dd75f888f39a4a4267401a7393ac2fcbfba86e6c956bf",
+      "curves_sha256": "1f46cf6c676694432a891ca748eee8ff5cc0cb9dad3ba90883617837f72ed04a",
+      "reference_sha256": "896a9b8c2753354754684ee44f55494d46d558d4cfe9e3221a455dc190d41a1d",
+      "sources": [
+        {
+          "archive": "BRAXHORN_ANIMACJE_04_DODATKI_CZESC_2.zip",
+          "entry": "17_SPORT_I_CODZIENNE/Rokoko_Studio_Mocap_2/SitDown_UseLaptop_mixamo_57de780.fbx",
+          "source_sha256": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d"
+        }
+      ],
+      "path": "Ruchy/SitDown_UseLaptop_mixamo_57de780_a282e334d67ded69.fbx"
+    },
+    "d9c58808d28367dcbebe935171bc4cd45bc541a9ba8fd8bb888b76900b4a5ff1": {
+      "name": "Soccer_PenaltyKick_mixamo_37ebf35",
+      "sha256": "a2244c4e44acf5b71f25f492c493dbd7be4a036e63fba89d49ad7a8627884c83",
+      "curves_sha256": "3a7d513135541520b87c58bd4a7ad8ee3091705651a54c2ea1543adb03827b2e",
+      "reference_sha256": "1855083996d82d19335b8e7765fb241989af444b5c0db995941e00093b815157",
+      "sources": [
+        {
+          "archive": "BRAXHORN_ANIMACJE_04_DODATKI_CZESC_2.zip",
+          "entry": "17_SPORT_I_CODZIENNE/Rokoko_Studio_Mocap_2/Soccer_PenaltyKick_mixamo_37ebf35.fbx",
+          "source_sha256": "d9c58808d28367dcbebe935171bc4cd45bc541a9ba8fd8bb888b76900b4a5ff1"
+        }
+      ],
+      "path": "Ruchy/Soccer_PenaltyKick_mixamo_37ebf35_d9c58808d28367dc.fbx"
+    },
+    "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d": {
+      "name": "Regular_Light_mixamo_a2d488d",
+      "sha256": "5e1ca321566a6b127f94cdc1c5f1c82cf67f36e656c1bae67a878ea6cfd576b2",
+      "curves_sha256": "8cbfedc1f34d5c3ab640f6fc60b4cade816ff995d65f85fac0831b8b23eaa8a0",
+      "reference_sha256": "2d33b0876b99f700a6c549e81781a5a46988a78000703ce62dd9691d313f69a6",
+      "sources": [
+        {
+          "archive": "BRAXHORN_ANIMACJE_03_RUCH.zip",
+          "entry": "08_POSTAWY_IDLE_ROZGRZEWKA/Rokoko_Studio_Mocap_2/Regular_Light_mixamo_a2d488d.fbx",
+          "source_sha256": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d"
+        }
+      ],
+      "path": "Ruchy/Regular_Light_mixamo_a2d488d_fb2ab37c561a82bb.fbx"
+    }
+  },
+  "profiles": {
+    "aneta": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "WarmUp": "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439",
+      "TrainingJog": "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17"
+    },
+    "dziecko_003f4e46": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "KickBall": "d9c58808d28367dcbebe935171bc4cd45bc541a9ba8fd8bb888b76900b4a5ff1"
+    },
+    "ewa": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17"
+    },
+    "gitara": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+      "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+      "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+      "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+      "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+      "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+      "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+      "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+      "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+      "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+      "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+      "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
+    },
+    "kamil": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+      "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+      "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+      "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+      "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+      "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+      "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+      "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+      "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+      "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+      "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+      "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
+    },
+    "kapitan_02d85d24": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "Helm": "41a3ccff2c70c9c3a5a7525437380e3af4aa51b724a18f1fb58e07d2e869e6ca",
+      "TrainingJog": "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f"
+    },
+    "kiler": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+      "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+      "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+      "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+      "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+      "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+      "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+      "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+      "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+      "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+      "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+      "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
+    },
+    "martyna": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17"
+    },
+    "mateusz": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+      "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+      "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+      "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+      "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+      "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+      "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+      "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+      "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+      "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+      "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+      "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
+    },
+    "monika": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17"
+    },
+    "patryk": {
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "EnteringCar": "4e495d89f30b1f47b0d160078fe6df6a1bcfe233ddb8ef64803c1adfdcb28235",
+      "CarIdle": "41a3ccff2c70c9c3a5a7525437380e3af4aa51b724a18f1fb58e07d2e869e6ca",
+      "ExitingCar": "982d796c4bc5b5469526b5e1b5e6995b2c2b5d6fe723ad1f9de1d037bbb4a722",
+      "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+      "CombatForward": "f4d757557f8c798d4c316e2f84f6877586bcbe3c372028979d33d7b4a14d98cd",
+      "CombatBackward": "7c26ff8b3dee2163b998858acf64047ba0d2413a9cb499f78dee042b27610355",
+      "CombatLeft": "4849b647922abf59ad19c6a953f1d79fe133ffd229e38a3a5ea8ccf83f43158f",
+      "Punch": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+      "Punch2": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+      "Punch3": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+      "Kick": "f499a5f55debba36708a5976a034710e62cf5f13542cbda4d5e923085f94b2d7",
+      "Kick2": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+      "Kick3": "a9c98e86a9ff9b38b1d830ecfdfc0af140558a80b92885da5581002dc8bd3fb4",
+      "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+      "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+      "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+      "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+      "Knockdown": "84f2d80d12c9d1c1877d9a510b03cf33a0aa3a7335c294e376b4c9a8bd455740",
+      "GetUp": "64fa0742fbe0ddf9a5d1fd5737444b4cab8cf06c6878228eb4daff728f57bb04",
+      "Bow": "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122",
+      "Taunt": "1ba718194ba0ddec65cfde1b9a1400e47ebf4bf33436b9f2edad7d275b4247d9",
+      "Victory": "382372b9fb0a1ce1eda1ebbc705feec5028eba59a2bd5900cd2e6424d7b1199f",
+      "Defeat": "024797ce3c7001a6c55757dd9c46dd9430aa4475a0093603868f941a15f1a7c8",
+      "WarmUp": "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439",
+      "Roll": "393ca7ec8e0409c5eea0fe44075d74ae5ce2c825ded47782ff6f85df58edd434",
+      "GolfDrive": "4714698c582070221acc178fb5dba70e43dd79d5c20bf8c48b7956f88aa284fd",
+      "GolfPutt": "4b2ae4503b06d15f8e93407a33be8b793617c43910fe714895250f330bec4f65",
+      "Speedbag": "5fa3cdd7edb60c256255bb238686e87ddea3cd270eb1f9ae4ab965959b4660e7",
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d"
+    },
+    "plazowicz_0493f781": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "Swim": "8642d8f9401205f7a48e727f4a41e7ba83377fe47c0922f6b78bec6d2a9726b6",
+      "SwimToEdge": "38cec51310bd099bb65b369fad8523de91540facdc21589a540719a1ae594b96"
+    },
+    "wiechu": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17"
+    },
+    "zadymiarz_021fef69": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "61b00f9239c4d979f1e3caf8ac486845cca07e3102fefd243550b1913632fb83",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+      "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+      "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+      "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+      "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+      "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+      "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+      "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+      "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+      "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c"
+    }
+  },
+  "pending": {
+    "plazowicz_0493f781": {
+      "LoungerRest": "Brak oryginalnego klipu leżenia na leżaku.",
+      "TreadWater": "Dostarczony klip jest identyczny z plikiem z kolekcji A."
+    }
+  },
+  "deliveries": [
+    [
+      "pozycja T animacje.zip",
+      119,
+      119,
+      110
+    ],
+    [
+      "Waving (1).zip",
+      4,
+      4,
+      4
+    ],
+    [
+      "Pointing Gesture.zip",
+      5,
+      4,
+      4
+    ],
+    [
+      "Disappointed.zip",
+      20,
+      20,
+      19
+    ],
+    [
+      "Drunk Idle Variation.zip",
+      6,
+      6,
+      6
+    ],
+    [
+      "Sitting Laughing.zip",
+      4,
+      4,
+      3
+    ],
+    [
+      "Standing Clap (2).zip",
+      4,
+      4,
+      4
+    ],
+    [
+      "Male Drunk Pack.zip",
+      13,
+      12,
+      12
+    ],
+    [
+      "animacje.zip",
+      23,
+      23,
+      22
+    ],
+    [
+      "gym.zip",
+      13,
+      13,
+      13
+    ]
+  ],
+  "static_models": [
+    [
+      "Pointing Gesture.zip",
+      "Buldog.fbx"
+    ],
+    [
+      "Male Drunk Pack.zip",
+      "Buldog.fbx"
+    ]
+  ],
+  "source_motion_count": 197,
+  "profiles_reference_only": 3
+}

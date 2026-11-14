@@ -5,6 +5,7 @@
 - [Liga](liga/)
 - [Uliczni zadymiarze](uliczni-zadymiarze/)
 - [Dyskoteka](dyskoteka/)
+- [Wspólne animacje T i profile postaci](ruchy/)
 - [Siłownia](silownia/)
 - [Mieszkańcy](mieszkancy/)
 - [Usługi](uslugi/)
@@ -15,6 +16,6 @@ Globalna podstawa każdej postaci obejmuje spoczynek, chód, siadanie, siedzenie
 
 Każdy model ma podgląd do identyfikacji. Przy niejednoznacznej roli właściciel potwierdza ją na podstawie modelu. Postać z głową psa może trafić do ochrony, ligi albo ulicznych zadymiarzy. Dla policji i jednostki antyterrorystycznej właściciel dobiera osobną paczkę. Tekstury użytkowe nowych postaci mają do 2048 px, z limitem importu 1024 px na Androidzie.
 
-[Pełne paczki i źródła — szkic „Postacie”](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/tag/untagged-902b93da9489923d352d)
+[Pełne paczki i źródła — szkic „Postacie”](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/tag/untagged-4487374c3ba5c1e097f9)
 
 Pliki w szkicu są dostępne po zalogowaniu na konto z uprawnieniami do tego wydania. Po zmianie adresu szkicu znajdziesz go pod nazwą „Postacie” na [liście wydań](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases). Numer wydania i sumy kontrolne zapisano w każdej karcie.

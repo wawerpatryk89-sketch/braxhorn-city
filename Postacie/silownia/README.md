@@ -12,7 +12,7 @@ Wspólna paczka Mixamo zawiera 13 klipów. Każdy profil wybiera trzy ćwiczenia
 | [Mateusz](../glowne-poza-liga/mateusz/) | Przysiad ze sztangą nad głową | Rwanie | Wymach odważnikiem |
 | [Monika](../uslugi/monika/) | Pajacyki | Unoszenie ramion w przód | Wymach odważnikiem |
 
-[Oryginalna paczka gym.zip](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/gym.zip) · [Pierwsze sześć postaci – 18 przypisań](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Silownia_6_postaci_18_ruchow.jpg) · [Podgląd Moniki](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Monika_16_ruchow.jpg) · [Katalog klipów i profili](gym.json)
+[Oryginalna paczka gym.zip](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/gym.zip) · [Pierwsze sześć postaci – 18 przypisań](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Silownia_6_postaci_18_ruchow.jpg) · [Podgląd Moniki](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Monika_16_ruchow.jpg) · [Katalog klipów i profili](gym.json)
 
 ## Użycie w grze
 
