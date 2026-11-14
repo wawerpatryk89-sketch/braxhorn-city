@@ -1,5 +1,7 @@
 # Wiechu
 
+[Aktualny podgląd ruchu w Unity, wszystkie 14 postaci](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Braxhorn_Postacie_T_role_14.pdf)
+
 Tata w rodzinie Wawerów. Jego globalny prefab jest dostępny dla całej gry. Obecnie Wiechu mieszka na Osiedlu, przy Poznańskiej 2. Generator ustawia go w spoczynku na dojściu do ganku, twarzą w stronę bramy.
 
 | Zastosowanie | Ruchy |
@@ -10,7 +12,7 @@ Tata w rodzinie Wawerów. Jego globalny prefab jest dostępny dla całej gry. Ob
 W Unity opcja **Braxhorn → Postacie → Przygotuj Wiecha** tworzy prefab i kontroler na oryginalnym szkielecie Mixamo. Stan domyślny to `Idle`. Generator Osiedla korzysta z tej samej paczki i tego samego prefabu. Scenariusz spotkania w klubie może uruchomić na nim `DanceHouse` lub `DanceHipHop`.
 
 - [Paczka Unity](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Wiechu_globalny_Unity_20261114.zip)
-- [Podgląd 13 ruchów](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Wiechu_13_ruchow.jpg)
+- [Archiwalny podgląd z Blendera](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Wiechu_13_ruchow.jpg)
 - [Oryginalny model właściciela](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Wiechu_oryginal_20261114.zip)
 - [Model z ruchami w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Wiechu_13_ruchow.blend)
 - [Karta postaci i sumy plików](karta.json)

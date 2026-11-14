@@ -1,5 +1,6 @@
 """Przygotuj postacie z prywatnego szkicu wydania przed importem Unity."""
 import hashlib
+from functools import lru_cache
 import json
 import os
 from pathlib import Path
@@ -13,15 +14,32 @@ from prywatne import CEL, PACZKI, ROOT
 from rejon_buildu import wybierz_rejon
 
 
+@lru_cache(maxsize=4)
+def aktywa_szkicu(repo, release_id, tag):
+    endpoint = f"repos/{repo}/releases/{release_id}"
+    release = json.loads(subprocess.check_output(["gh", "api", endpoint]))
+    if release["draft"] is not True or release["tag_name"] != tag:
+        raise ValueError("Oczekiwano prywatnego szkicu wydania " + tag)
+    pages = json.loads(subprocess.check_output([
+        "gh", "api", "--paginate", "--slurp", endpoint + "/assets?per_page=100"
+    ]))
+    entries = {}
+    for page in pages:
+        for asset in page:
+            if asset["state"] != "uploaded":
+                continue
+            if asset["name"] in entries:
+                raise ValueError("Powtórzona nazwa załącznika: " + asset["name"])
+            entries[asset["name"]] = asset
+    return entries
+
+
 def pobierz(plik, repo, cel):
     api = f"repos/{repo}/releases"
-    release = json.loads(subprocess.check_output(["gh", "api", f"{api}/{plik['release_id']}"]))
-    if release["draft"] is not True or release["tag_name"] != plik["tag"]:
-        raise ValueError("Oczekiwano prywatnego szkicu wydania " + plik["tag"])
-    matches = [a for a in release["assets"] if a["name"] == plik["name"] and a["state"] == "uploaded"]
-    if len(matches) != 1:
+    assets = aktywa_szkicu(repo, plik["release_id"], plik["tag"])
+    if plik["name"] not in assets:
         raise FileNotFoundError(f"Brak {plik['name']} w szkicu {plik['tag']}")
-    asset = matches[0]
+    asset = assets[plik["name"]]
     if asset.get("digest") and asset["digest"] != "sha256:" + plik["sha256"]:
         raise ValueError("Suma archiwum w szkicu różni się od zatwierdzonej")
     with cel.open("wb") as out:

@@ -1,5 +1,7 @@
 # Postacie BRAXHORN CITY
 
+[Zdjęcia 14 postaci w ruchu z edytora Unity 6 (PDF)](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Braxhorn_Postacie_T_role_14.pdf) · [Pełne klatki i rejestr odtworzonych ruchów](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Podglady_Unity_T_43620556579_1.zip)
+
 - [Główne poza ligą](glowne-poza-liga/)
 - [Grywalni](grywalni/)
 - [Liga](liga/)

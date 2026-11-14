@@ -1,5 +1,7 @@
 # Zadymiarz z głową psa
 
+[Aktualny podgląd ruchu w Unity, wszystkie 14 postaci](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Braxhorn_Postacie_T_role_14.pdf)
+
 Globalna postać do późniejszego przypisania przez obsadę rejonu.
 
 Spoczynek, chód, siadanie, siedzenie, wstawanie, rozmowa, machanie i wskazywanie. Bieg, skok i bójka uliczna. Pięć ataków obejmuje trzy uderzenia ręką, kopnięcie boczne i uderzenie kolanem. Dostępne są unik, blok i dwie reakcje na trafienie. Pozycja bojowa włącza się przy pierwszym własnym ataku lub otrzymanym trafieniu.
@@ -8,6 +10,6 @@ Własny model Mixamo, 65 kości, limit tekstur do 2048 px. Po rozpakowaniu paczk
 
 - [Paczka Unity](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Zadymiarz021fef69_Unity_20261114.zip)
 - [Model źródłowy](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/tripo_convert_021fef69-c359-4653-b265-70e5332ceb46.zip)
-- [Podgląd ruchów](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Role_4_postaci_20261114.jpg)
+- [Archiwalny podgląd z Blendera](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Role_4_postaci_20261114.jpg)
 - [Modele z przodu i z tyłu](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Obsada_4_modele_20261114.jpg)
 - [Karta, lista klipów i sumy SHA-256](karta.json)

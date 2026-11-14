@@ -1,5 +1,7 @@
 # Ewa
 
+[Aktualny podgląd ruchu w Unity, wszystkie 14 postaci](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Braxhorn_Postacie_T_role_14.pdf)
+
 Mama w rodzinie Wawerów. Ewa jest globalną postacią z własnym modelem Mixamo i kontrolerem. Na Osiedlu generator umieszcza ją na podjeździe przy ganku domu Wawerów przy Poznańskiej 2. Zaczyna w spoczynku. Scena klubowa może uruchomić na tej samej postaci jeden z dwóch tańców.
 
 | Zastosowanie | Ruchy |
@@ -12,7 +14,7 @@ W Blenderze sprawdzono siatkę, wagi i szkielet Ewy oraz 13 ruchów. W głęboki
 Obsada Osiedla pobiera paczkę przed importem. Aby użyć Ewy w innym rejonie, po rozpakowaniu paczki do repozytorium wybierz w Unity **Braxhorn → Postacie → Przygotuj Ewę**. Prefab znajduje się w `Assets/Source/Prywatne/Postacie/ewa/Ewa.prefab`.
 
 - [Paczka Unity](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Ewa_globalna_Unity_20261114.zip)
-- [Podgląd 13 ruchów](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Ewa_13_ruchow.jpg)
+- [Archiwalny podgląd z Blendera](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Ewa_13_ruchow.jpg)
 - [Oryginał właściciela](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Ewa_oryginal_20261114.zip)
 - [Model z animacjami w Blenderze](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Ewa_13_ruchow.blend)
 - [Karta postaci i sumy plików](karta.json)
