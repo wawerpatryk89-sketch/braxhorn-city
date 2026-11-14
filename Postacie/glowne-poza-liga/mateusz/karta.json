@@ -1,0 +1,48 @@
+{
+  "id": "mateusz",
+  "nazwa": "Mateusz",
+  "wersja": "2026-11-14.2",
+  "paczka": "Mateusz_globalny_Unity.zip",
+  "podglad": "Mateusz_26_ruchow.jpg",
+  "role": [
+    "uliczny-zadymiarz"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "ulica",
+    "dyskoteka"
+  ],
+  "liczba_klipow": 26,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "114da5cdcbbbc37f743434820f2980883a7230d04fcf00cd3e4585b5404d2369",
+  "pliki": {
+    "unity": {
+      "nazwa": "Mateusz_globalny_Unity.zip",
+      "sha256": "40b22e5a8cd75875c1183cf85d0bef8e10985f5762857290d170629ecde1e9a6",
+      "bajty": 36444217,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Mateusz_globalny_Unity.zip"
+    },
+    "model_zrodlowy": {
+      "nazwa": "mateusz.zip",
+      "sha256": "ffc2ecdf80af2ccfafa8a12c3ae507426322df192099257240d0016d95f23f1a",
+      "bajty": 39089083,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/mateusz.zip"
+    },
+    "blender": {
+      "nazwa": "Mateusz_26_ruchow.blend",
+      "sha256": "c0e21d2f7258207a072b23b1eca7a3c0ea22d2b127cd477bbd4780f4853f7e03",
+      "bajty": 43885257,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Mateusz_26_ruchow.blend"
+    },
+    "podglad": {
+      "nazwa": "Mateusz_26_ruchow.jpg",
+      "sha256": "fb34e85bcae254a8c9da0111f6f6f1ff82f422a19ae38fd40cfa018ff2780391",
+      "bajty": 231256,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-902b93da9489923d352d/Mateusz_26_ruchow.jpg"
+    }
+  }
+}

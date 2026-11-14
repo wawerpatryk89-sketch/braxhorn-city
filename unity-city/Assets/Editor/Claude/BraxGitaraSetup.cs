@@ -27,6 +27,9 @@ internal static class BraxGitaraSetup
     [MenuItem("Braxhorn/Postacie/Przygotuj Kamila")]
     internal static void CreateKamil() => Prepare("kamil", "Kamil");
 
+    [MenuItem("Braxhorn/Postacie/Przygotuj Mateusza")]
+    internal static void CreateMateusz() => Prepare("mateusz", "Mateusz");
+
     static void Prepare(string characterId, string displayName)
     {
         string root = Characters + characterId + "/";

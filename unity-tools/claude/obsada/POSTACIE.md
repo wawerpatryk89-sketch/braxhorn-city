@@ -16,6 +16,6 @@ Dla każdego modelu prywatny pakiet ma katalog postaci z plikiem postac.json. We
 
 Dla Patryka z 13 listopada CI przyjmuje również oryginalny plik `Patryk_globalny_13-11_Unity.zip` dodany jako załącznik do prywatnego szkicu `postacie-globalne-20261112`. Wydanie musi pozostać szkicem. Przed importem sprawdzane są SHA-256 ZIP-a, manifestu oraz plików modelu, tekstur i ruchów. Identyfikator wydania i oczekiwane sumy zapisuje obsada Osiedla.
 
-Gitara, Kiler i Kamil należą do głównych postaci spoza ligi. Są dostępni do obsadzenia w całej grze, m.in. na ulicy i na imprezach. Rejon wybiera postać po jej stałym identyfikatorze. Miejsce i moment konkretnego spotkania określa się przy obsadzaniu rejonu.
+Gitara, Kiler, Kamil i Mateusz należą do głównych postaci spoza ligi. Są dostępni do obsadzenia w całej grze, m.in. na ulicy i na imprezach. Rejon wybiera postać po jej stałym identyfikatorze. Miejsce i moment konkretnego spotkania określa się przy obsadzaniu rejonu.
 
-Wszystkie trzy postacie mają po 26 ruchów w osobnych kontrolerach, w tym pięć ciosów, dwa tańce, picie, chwianie, chód i obrót po alkoholu. Kolejne ruchy indywidualne dopisuje się do kontrolera wybranej postaci. Inne postacie nadal korzystają z dotychczasowych klipów.
+Każda z tych postaci ma 26 ruchów we własnym kontrolerze, w tym pięć ciosów, dwa tańce, picie, chwianie, chód i obrót po alkoholu. Kolejne ruchy indywidualne dopisuje się do kontrolera wybranej postaci. Inne postacie nadal korzystają z dotychczasowych klipów.
