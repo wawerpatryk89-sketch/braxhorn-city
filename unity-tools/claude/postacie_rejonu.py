@@ -5,7 +5,7 @@ from pathlib import Path
 import shutil
 import tempfile
 
-ROOT = Path(__file__).resolve().parents[2]
+REGIONS = Path(__file__).resolve().parent / "obsada"
 
 
 def digest(file):
@@ -23,7 +23,7 @@ def valid(directory, selection):
 
 
 def przygotuj_obsade(region, target, decrypt):
-    cast = json.loads((ROOT / "asset-library/characters/regions" / (region + ".json")).read_text())
+    cast = json.loads((REGIONS / (region + ".json")).read_text())
     if cast["player"] not in {c["id"] for c in cast["characters"]}:
         raise ValueError("Brak gracza w obsadzie rejonu: " + region)
     destination = target / "Postacie"
