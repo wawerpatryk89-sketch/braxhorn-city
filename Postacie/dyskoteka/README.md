@@ -8,3 +8,4 @@ Postacie, które można spotkać na imprezie.
 - [Mateusz](../glowne-poza-liga/mateusz/)
 - [Aneta](../uslugi/fitness/aneta/)
 - [Monika](../uslugi/monika/)
+- [Wiechu](../mieszkancy/wiechu/)

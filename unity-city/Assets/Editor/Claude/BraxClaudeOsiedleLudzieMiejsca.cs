@@ -29,6 +29,7 @@ public static partial class BraxClaudeOsiedle
     // Hak w Build (jedna linia): wszystko o ludziach Rocketbox.
     static void LudzieNaOsiedlu()
     {
+        Guard("Wiechu przy domu Wawerów", WiechuPrzyDomu);
         if (!LadujRocketbox())
         {
             rep.notes.Add("ludzie Rocketbox: brak paczki (unity-tools/claude/fetch_rocketbox.py) — zostają przechodnie z build 13");
@@ -85,6 +86,54 @@ public static partial class BraxClaudeOsiedle
     }
     static readonly List<float> wzrostyM = new List<float>(), wzrostyK = new List<float>();
     static List<float> WzrostyLudzi(bool kobieta) => kobieta ? wzrostyK : wzrostyM;
+
+    static void WiechuPrzyDomu()
+    {
+        const string name = "Wiechu";
+        const string prefabPath = "Assets/Source/Prywatne/Postacie/wiechu/Wiechu.prefab";
+        if (root.Find(name)) return;
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (!prefab)
+        {
+            BraxGitaraSetup.CreateWiechu();
+            prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        }
+        if (!prefab) throw new FileNotFoundException(prefabPath);
+
+        var resident = (GameObject)PrefabUtility.InstantiatePrefab(prefab, root);
+        var sample = new Mesh();
+        try
+        {
+            resident.name = name;
+            var t = resident.transform;
+            var paving = new Vector3(-22.8f, .045f, 62.3f);
+            t.position = paving;
+            t.rotation = Quaternion.AngleAxis(120f, Vector3.up) * t.rotation;
+            float bottom = float.PositiveInfinity, top = float.NegativeInfinity;
+            foreach (var skin in resident.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                skin.BakeMesh(sample);
+                var localToWorld = skin.transform.localToWorldMatrix;
+                foreach (var vertex in sample.vertices)
+                {
+                    float y = localToWorld.MultiplyPoint3x4(vertex).y;
+                    bottom = Mathf.Min(bottom, y);
+                    top = Mathf.Max(top, y);
+                }
+            }
+            if (!(top > bottom)) throw new InvalidDataException("Brak siatki Wiecha do pomiaru wzrostu");
+            float factor = WzrostBazaLudzi / (top - bottom);
+            t.localScale *= factor;
+            t.position += Vector3.up * ((paving.y - bottom) * factor);
+            rep.notes.Add("Wiechu: dom rodziny Wawerów, Poznańska 2, dojście do ganku");
+        }
+        catch
+        {
+            UnityEngine.Object.DestroyImmediate(resident);
+            throw;
+        }
+        finally { UnityEngine.Object.DestroyImmediate(sample); }
+    }
 
     // ---------------- sieć chodników ----------------
     sealed class SiecPieszych
