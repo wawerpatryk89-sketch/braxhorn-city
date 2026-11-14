@@ -205,7 +205,7 @@ public static class BraxKontrolaPostaciT
         return (front + across * .4f + Vector3.up * .08f).normalized;
     }
 
-    static void Capture(SkinnedMeshRenderer[] skins, Vector3 direction, string output, string id, string action, int index)
+    internal static void Capture(SkinnedMeshRenderer[] skins, Vector3 direction, string output, string id, string action, int index)
     {
         var meshes = new List<Mesh>();
         var preview = new PreviewRenderUtility();

@@ -1,0 +1,55 @@
+name: Kontakt butów z podłożem w ruchu Patryka
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/podparcie-patryk-20261114]
+    paths: ['.github/workflows/postacie-t-podparcie.yml', 'unity-city/Assets/Editor/Claude/BraxPodparcieObuwia.cs']
+permissions:
+  contents: read
+jobs:
+  editor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write # Odczyt modeli i zapis renderów w tym samym szkicu.
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            Postacie
+            unity-city/Assets
+            unity-city/Packages
+            unity-city/ProjectSettings
+            unity-tools/claude
+          persist-credentials: false
+      - name: Pobierz modele i wybrane ruchy z prywatnego szkicu
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 unity-tools/claude/postacie_do_kontroli.py patryk
+      - name: Odtwórz klipy w Unity 6 i zapisz obrazy
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: StandaloneLinux64
+          buildMethod: BraxPodparcieObuwia.Run
+          versioning: None
+          allowDirtyBuild: true
+          customParameters: -force-glcore
+      - name: Zachowaj podglądy w istniejącym prywatnym szkicu
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          test -s KontrolaPodparcia/patryk_podeszwy.csv
+          test "$(gh api "repos/$GITHUB_REPOSITORY/releases/443180649" --jq .draft)" = true
+          archive="Patryk_Podparcie_Unity_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}.zip"
+          zip -q -r "$archive" KontrolaPodparcia
+          gh api -X POST -H 'Content-Type: application/zip' \
+            "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/443180649/assets?name=$archive" \
+            --input "$archive" --jq '.name'

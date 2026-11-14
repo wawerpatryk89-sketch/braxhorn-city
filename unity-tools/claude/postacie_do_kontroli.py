@@ -1,4 +1,5 @@
 """Restore only the models, textures and shared clips needed for the Editor review."""
+import argparse
 import json
 import os
 from pathlib import Path
@@ -11,11 +12,13 @@ from prywatne import CEL, ROOT
 from ruchy_t import install, save
 
 
-def prepare():
+def prepare(selected=None):
     actors = []
     for path in sorted((ROOT / "Postacie").rglob("karta.json")):
         card = json.loads(path.read_text())
         cid = card["id"]
+        if selected and cid not in selected:
+            continue
         actors.append(cid)
         packaged = card["pliki"]["unity"]
         descriptor = {"release_id": card["wydanie"]["id"], "tag": card["wydanie"]["tag"],
@@ -38,10 +41,14 @@ def prepare():
                     if sha256(content).hexdigest() != digest:
                         raise ValueError(cid + "/" + name)
                     save(CEL / "Postacie" / cid / name, content)
+    if selected and set(actors) != set(selected):
+        raise ValueError("Nieznany identyfikator postaci")
     install(actors)
     from gym import przygotuj_gym
     przygotuj_gym(actors)
 
 
 if __name__ == "__main__":
-    prepare()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("postacie", nargs="*")
+    prepare(parser.parse_args().postacie)
