@@ -25,6 +25,19 @@
         "name": "Wiechu_globalny_Unity_20261114.zip",
         "sha256": "cb91eea76b1061381af3af7773ed26fc1e0863cb20899f384d6bf29b31f465b6"
       }
+    },
+    {
+      "id": "ewa",
+      "version": "2026-11-14.1",
+      "package": "postac_ewa_20261114",
+      "manifest_sha256": "3a91d10a8d36cc0bd41fd7f9cf4f2b85ad9f2be84fd7fa3d5caab11d9e6b3c34",
+      "home": "dom_wawerow",
+      "draft_asset": {
+        "release_id": 443180649,
+        "tag": "postacie-globalne-20261112",
+        "name": "Ewa_globalna_Unity_20261114.zip",
+        "sha256": "8a881bb21c51d6d51d7ad5c6ed572bf36a8fbcc7fe6d5ca174c2f10ce93c758f"
+      }
     }
   ]
 }

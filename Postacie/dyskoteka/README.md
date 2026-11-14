@@ -9,3 +9,4 @@ Postacie, które można spotkać na imprezie.
 - [Aneta](../uslugi/fitness/aneta/)
 - [Monika](../uslugi/monika/)
 - [Wiechu](../mieszkancy/wiechu/)
+- [Ewa](../mieszkancy/ewa/)

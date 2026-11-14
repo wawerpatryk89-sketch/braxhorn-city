@@ -29,7 +29,10 @@ public static partial class BraxClaudeOsiedle
     // Hak w Build (jedna linia): wszystko o ludziach Rocketbox.
     static void LudzieNaOsiedlu()
     {
-        Guard("Wiechu przy domu Wawerów", WiechuPrzyDomu);
+        Guard("Wiechu przy domu Wawerów", () => MieszkaniecPrzyDomuWawerow("wiechu", "Wiechu",
+            new Vector3(-22.8f, .045f, 62.3f), 120f, WzrostBazaLudzi, BraxGitaraSetup.CreateWiechu));
+        Guard("Ewa przy domu Wawerów", () => MieszkaniecPrzyDomuWawerow("ewa", "Ewa",
+            new Vector3(-21.6f, .045f, 59.7f), -25f, .96f * WzrostBazaLudzi, BraxGitaraSetup.CreateEwa));
         if (!LadujRocketbox())
         {
             rep.notes.Add("ludzie Rocketbox: brak paczki (unity-tools/claude/fetch_rocketbox.py) — zostają przechodnie z build 13");
@@ -87,15 +90,14 @@ public static partial class BraxClaudeOsiedle
     static readonly List<float> wzrostyM = new List<float>(), wzrostyK = new List<float>();
     static List<float> WzrostyLudzi(bool kobieta) => kobieta ? wzrostyK : wzrostyM;
 
-    static void WiechuPrzyDomu()
+    static void MieszkaniecPrzyDomuWawerow(string id, string name, Vector3 paving, float yaw, float height, Action prepare)
     {
-        const string name = "Wiechu";
-        const string prefabPath = "Assets/Source/Prywatne/Postacie/wiechu/Wiechu.prefab";
+        string prefabPath = $"Assets/Source/Prywatne/Postacie/{id}/{name}.prefab";
         if (root.Find(name)) return;
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
         if (!prefab)
         {
-            BraxGitaraSetup.CreateWiechu();
+            prepare();
             prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
         }
         if (!prefab) throw new FileNotFoundException(prefabPath);
@@ -106,9 +108,8 @@ public static partial class BraxClaudeOsiedle
         {
             resident.name = name;
             var t = resident.transform;
-            var paving = new Vector3(-22.8f, .045f, 62.3f);
             t.position = paving;
-            t.rotation = Quaternion.AngleAxis(120f, Vector3.up) * t.rotation;
+            t.rotation = Quaternion.AngleAxis(yaw, Vector3.up) * t.rotation;
             float bottom = float.PositiveInfinity, top = float.NegativeInfinity;
             foreach (var skin in resident.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
@@ -121,11 +122,11 @@ public static partial class BraxClaudeOsiedle
                     top = Mathf.Max(top, y);
                 }
             }
-            if (!(top > bottom)) throw new InvalidDataException("Brak siatki Wiecha do pomiaru wzrostu");
-            float factor = WzrostBazaLudzi / (top - bottom);
+            if (!(top > bottom)) throw new InvalidDataException("Brak siatki do pomiaru wzrostu: " + name);
+            float factor = height / (top - bottom);
             t.localScale *= factor;
             t.position += Vector3.up * ((paving.y - bottom) * factor);
-            rep.notes.Add("Wiechu: dom rodziny Wawerów, Poznańska 2, dojście do ganku");
+            rep.notes.Add(name + ": dom rodziny Wawerów, Poznańska 2");
         }
         catch
         {
