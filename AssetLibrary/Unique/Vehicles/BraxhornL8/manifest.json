@@ -1,9 +1,9 @@
 {
   "id": "braxhorn.vehicle.l8limousine",
   "displayName": "Braxhorn L8",
-  "version": "0.2.0-review",
+  "version": "0.3.0-review",
   "scope": "shared, all city regions",
-  "description": "New long-bonnet coachwork in metallic oxblood, four individual diamond-stitched seats, walnut trim and hand-laced wire wheels.",
+  "description": "Oxblood four-door saloon with reinforced A/B/C pillar sections, a low angular front, recessed swept headlamps and four independently modelled treaded tyres on 72-spoke wheels.",
   "forward": "+Z",
   "sourceUnit": "metre",
   "privateSourceFiles": [
@@ -12,10 +12,10 @@
   ],
   "geometry": {
     "hero": {
-      "triangles": 330613,
+      "triangles": 387027,
       "sizeM": [
         2.214,
-        5.74,
+        5.739,
         1.517
       ],
       "wheelbaseM": 3.43,
@@ -33,18 +33,18 @@
       },
       "lampInsetSamplesMm": {
         "headlamp L": [
-          5.49,
-          5.55,
-          5.63,
-          5.68,
-          5.8
+          8.99,
+          8.9,
+          8.89,
+          8.9,
+          8.98
         ],
         "headlamp R": [
-          5.47,
-          5.55,
-          5.62,
-          5.68,
-          5.82
+          8.94,
+          8.86,
+          8.85,
+          8.95,
+          8.97
         ],
         "tail lamp L": [
           14.14,
@@ -61,35 +61,107 @@
           14.02
         ]
       },
-      "bytes": 16885792,
-      "sha256": "40ca9abb92c7b4cbaaeb441f012e8ee23def090cc1a9648b3ea97a318c1be400",
+      "pillarSections": {
+        "Pillar A | L": {
+          "projectedWidthMm": 179.0,
+          "medianSectionDepthMm": 38.1
+        },
+        "Pillar A | R": {
+          "projectedWidthMm": 179.0,
+          "medianSectionDepthMm": 38.1
+        },
+        "Pillar B | L": {
+          "projectedWidthMm": 146.8,
+          "medianSectionDepthMm": 43.2
+        },
+        "Pillar B | R": {
+          "projectedWidthMm": 146.8,
+          "medianSectionDepthMm": 43.2
+        },
+        "Pillar C | L": {
+          "projectedWidthMm": 313.0,
+          "medianSectionDepthMm": 42.6
+        },
+        "Pillar C | R": {
+          "projectedWidthMm": 313.0,
+          "medianSectionDepthMm": 42.6
+        }
+      },
+      "tyreTread": {
+        "Wheel_FL": {
+          "longitudinalChannels": 4,
+          "medianDepthMm": [
+            7.04,
+            7.19,
+            7.18,
+            6.98
+          ],
+          "shoulderCrossGrooves": 56
+        },
+        "Wheel_FR": {
+          "longitudinalChannels": 4,
+          "medianDepthMm": [
+            6.96,
+            7.2,
+            7.24,
+            7.07
+          ],
+          "shoulderCrossGrooves": 56
+        },
+        "Wheel_RL": {
+          "longitudinalChannels": 4,
+          "medianDepthMm": [
+            7.04,
+            7.19,
+            7.18,
+            6.98
+          ],
+          "shoulderCrossGrooves": 56
+        },
+        "Wheel_RR": {
+          "longitudinalChannels": 4,
+          "medianDepthMm": [
+            6.96,
+            7.2,
+            7.24,
+            7.07
+          ],
+          "shoulderCrossGrooves": 56
+        }
+      },
+      "headlampOuterRiseMm": {
+        "L": 145.0,
+        "R": 145.0
+      },
+      "bytes": 20648824,
+      "sha256": "d009ce3ec805034bcbdf8c846cd1267b2d3f390cd0b33d98bd0db02219da791f",
       "hoodClearanceMm": {
         "muzzle": [
           459,
-          -0.044,
+          -0.039,
           -0.035,
-          -0.004
+          0.031
         ],
         "roots": [
           208,
-          -0.051,
-          -0.03,
-          0.014
+          -0.039,
+          -0.034,
+          0.004
         ],
         "horn_tips": [
           49,
           2.34,
-          2.706,
-          2.719
+          2.707,
+          2.718
         ]
       }
     },
     "distance": {
-      "triangles": 48165,
+      "triangles": 47833,
       "sizeM": [
         2.213,
-        5.743,
-        1.517
+        5.741,
+        1.516
       ],
       "wheelbaseM": 3.43,
       "seats": 4,
@@ -106,42 +178,114 @@
       },
       "lampInsetSamplesMm": {
         "headlamp L": [
-          5.72,
-          5.63,
-          5.55,
-          5.46,
-          5.37
+          7.45,
+          7.21,
+          7.24,
+          7.32,
+          7.4
         ],
         "headlamp R": [
-          5.43,
-          5.11,
-          5.2,
-          5.42,
-          5.64
+          7.11,
+          6.98,
+          6.84,
+          6.7,
+          7.34
         ],
         "tail lamp L": [
-          13.32,
-          13.39,
-          13.45,
-          13.52,
-          13.59
+          12.98,
+          12.89,
+          12.79,
+          12.7,
+          12.61
         ],
         "tail lamp R": [
-          13.61,
-          13.55,
-          13.48,
-          13.41,
-          13.34
+          14.0,
+          13.93,
+          13.86,
+          13.78,
+          13.71
         ]
       },
-      "bytes": 7918756,
-      "sha256": "8c9eb3d42f166c4f590dc675f8f5c03cd01b3b671fe9304805285c44c264e7aa",
+      "pillarSections": {
+        "Pillar A | L": {
+          "projectedWidthMm": 179.0,
+          "medianSectionDepthMm": 38.1
+        },
+        "Pillar A | R": {
+          "projectedWidthMm": 179.0,
+          "medianSectionDepthMm": 38.1
+        },
+        "Pillar B | L": {
+          "projectedWidthMm": 147.2,
+          "medianSectionDepthMm": 43.2
+        },
+        "Pillar B | R": {
+          "projectedWidthMm": 146.4,
+          "medianSectionDepthMm": 43.2
+        },
+        "Pillar C | L": {
+          "projectedWidthMm": 315.0,
+          "medianSectionDepthMm": 42.9
+        },
+        "Pillar C | R": {
+          "projectedWidthMm": 315.4,
+          "medianSectionDepthMm": 42.9
+        }
+      },
+      "tyreTread": {
+        "Wheel_FL": {
+          "longitudinalChannels": 4,
+          "medianDepthMm": [
+            7.9,
+            7.35,
+            7.3,
+            7.56
+          ],
+          "shoulderCrossGrooves": 34
+        },
+        "Wheel_FR": {
+          "longitudinalChannels": 4,
+          "medianDepthMm": [
+            7.53,
+            7.34,
+            7.58,
+            7.92
+          ],
+          "shoulderCrossGrooves": 34
+        },
+        "Wheel_RL": {
+          "longitudinalChannels": 4,
+          "medianDepthMm": [
+            7.9,
+            7.35,
+            7.3,
+            7.56
+          ],
+          "shoulderCrossGrooves": 34
+        },
+        "Wheel_RR": {
+          "longitudinalChannels": 4,
+          "medianDepthMm": [
+            7.53,
+            7.34,
+            7.58,
+            7.92
+          ],
+          "shoulderCrossGrooves": 34
+        }
+      },
+      "headlampOuterRiseMm": {
+        "L": 145.0,
+        "R": 143.8
+      },
+      "bytes": 8871004,
+      "sha256": "ad7ffd02b799c82bcc700af55807a6f4d4dc6bcc86b154250382b93004ece43b",
       "hoodClearanceMm": {
         "muzzle": [
           459,
           -0.035,
           -0.035,
-          0.038
+          -0.035
         ],
         "roots": [
           208,
@@ -166,8 +310,8 @@
     "rearWordmark": "BRAXHORN"
   },
   "unityPackage": {
-    "sha256": "f4d498a86886b5c06712498f138771f596ba3292d9ac923fbb4eab486af50691",
-    "bytes": 17946681,
+    "sha256": "1010cd72c7b33e5a6fc3cfe52c862f6bcb3ab69ebd0df1a1012e82f9bdc26f16",
+    "bytes": 19808990,
     "importer": "com.unity.cloud.gltfast",
     "paths": [
       "Assets/Braxhorn/Shared/Vehicles/BraxhornL8.glb",
@@ -198,6 +342,6 @@
     "type": "private owner library",
     "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
     "sourceFile": "Braxhorn_L8_Model.zip",
-    "sourceSHA256": "d8d25d01a3bdd0b2a91b52a68e116bc26ecb87bba489b468bde70da94472745a"
+    "sourceSHA256": "ebd43877e7cd500fb21f4a3ec51a8f041ca6eb39b1c8524be58ea5d0508764c6"
   }
 }
