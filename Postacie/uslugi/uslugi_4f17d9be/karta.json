@@ -1,0 +1,89 @@
+{
+  "id": "uslugi_4f17d9be",
+  "nazwa": "Pracownik usług w złotej kamizelce",
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_4f17d9be_T_20261115.zip",
+  "podglad": "Braxhorn_kolejne_szesc_postaci.jpg",
+  "role": [
+    "uslugi"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [],
+  "rejony": [],
+  "walka": false,
+  "liczba_klipow": 13,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "GreetGuest",
+    "Carry",
+    "TalkOnPhone",
+    "SeatedTalk"
+  ],
+  "ataki": [],
+  "limit_tekstur": 2048,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "98f8d51bda830c8aee90e97c671cd8ed9795cd9e83df5b9d284bb744a07febbe",
+  "model_sha256": "494b390e0b9a0ca969d3e7cd8a9fc79fa319870e6ed19becc4ae16cf72b3b0fa",
+  "animowany_fbx_sha256": "e9f03eb4a7f36d46ab70484e41aacd666ab82f447e1bc9304dfa03539d14aa95",
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_4f17d9be_T_20261115.zip",
+      "bajty": 27716936,
+      "sha256": "3e4a8f705cbcbb3ea003896ff1000282e840ec5ebcc729fbddafce5a0d9fd6a6",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_4f17d9be_T_20261115.zip",
+      "asset_id": 751471496
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_4f17d9be-99ea-42c4-a522-66ac737eabca.zip",
+      "bajty": 26384620,
+      "sha256": "f8c2f02ebc64b2259efe101d2bd9b71be092e39607649123e568a770708645ba",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_4f17d9be-99ea-42c4-a522-66ac737eabca.zip",
+      "asset_id": 751471908
+    },
+    "podglad": {
+      "nazwa": "Braxhorn_kolejne_szesc_postaci.jpg",
+      "bajty": 434617,
+      "sha256": "b46d3d3aaab874cf4daf8ed552017e2bf0427947c8a8e25dd6a22ff457d85a59",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_kolejne_szesc_postaci.jpg",
+      "asset_id": 751471281
+    },
+    "film": {
+      "nazwa": "Braxhorn_imprezowicze_i_uslugi_T.mp4",
+      "bajty": 9120721,
+      "sha256": "af3be460d7b67a9b2e29b259aeea9055520cf79d32cf9d48cf1583a7d3d7eb3c",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_imprezowicze_i_uslugi_T.mp4",
+      "asset_id": 751471130
+    }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#uslugi_4f17d9be",
+  "liczba_klipow_T": 13,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 13,
+    "do_oceny_rozciagniecia": [
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Point",
+      "SeatedTalk"
+    ],
+    "odbior_Unity": "oczekuje"
+  },
+  "szczegoly_roli": "Usługi. Stanowisko i miejsce pracy do ustalenia.",
+  "wzor_stroju": "Złota kamizelka na czarnej koszuli. Porównać z kolejnymi pracownikami w podobnym stroju."
+}

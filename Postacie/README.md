@@ -31,8 +31,3 @@ Pliki w szkicu są dostępne po zalogowaniu na konto z uprawnieniami do tego wyd
 | `postac_2b111236` | Czerwony strój z żółtymi wstawkami | Kandydat do roli ratownika. Ostateczny wybór po porównaniu z kolejnymi postaciami. |
 | `postac_29e53e84` | Mężczyzna w błękitnym polo i beżowych szortach | Rola otwarta. |
 | `50269b85` | Rudy mężczyzna w pomarańczowej kamizelce i granatowym ubraniu z odblaskami | Rola otwarta. |
-| `52120ed0` | Mężczyzna w bordowej koszuli i ciemnych spodniach | Rola otwarta. |
-| `4bcf39de` | Kobieta w złotym topie i czarnych spodniach z szerokimi nogawkami | Rola otwarta. |
-| `4f17d9be` | Siwy mężczyzna w złotej kamizelce, czarnej koszuli i czarnych spodniach | Rola otwarta. |
-| `4835b56f` | Mężczyzna w beżowej kamizelce, czarnym topie i brązowych spodniach | Rola otwarta. |
-| `5117892a` | Kobieta w czarnym topie i błyszczących fioletowych spodniach | Rola otwarta. |

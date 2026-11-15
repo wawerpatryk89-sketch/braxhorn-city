@@ -1,0 +1,93 @@
+{
+  "id": "imprezowicz_4835b56f",
+  "nazwa": "Imprezowicz w beżowej kamizelce",
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_4835b56f_T_20261115.zip",
+  "podglad": "Braxhorn_kolejne_szesc_postaci.jpg",
+  "role": [
+    "imprezowicz"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "dyskoteka"
+  ],
+  "rejony": [],
+  "walka": false,
+  "liczba_klipow": 16,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "DanceHouse",
+    "DanceHipHop",
+    "Drink",
+    "DrunkIdle",
+    "DrunkWalk",
+    "DrunkTurn",
+    "DanceSilly"
+  ],
+  "ataki": [],
+  "limit_tekstur": 2048,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "f461788c5c400a5246648078a72c61fc20309d3c6fa22ed8a52f11dae145d52e",
+  "model_sha256": "d9cdf64b560c671113b8a1f4d3ffbee276c3a2a749b63a05c1a629afc9d62cad",
+  "animowany_fbx_sha256": "1dce7c3e4508772724dd62e58d59efb9dc90b9fc43ffe0ac0b583788a83f7231",
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_4835b56f_T_20261115.zip",
+      "bajty": 23447743,
+      "sha256": "3a059a279899139fbeaf52dec5e3b2eea59bee2f7ab9e12853de463feefe56eb",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_4835b56f_T_20261115.zip",
+      "asset_id": 751471343
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_4835b56f-fb40-4f5d-bdd5-5dc43cee7480.zip",
+      "bajty": 22060623,
+      "sha256": "b9c4184a65ff170916c9b57bf1abec1a5fbb9d3298dfb49e4b0eafd19856571e",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_4835b56f-fb40-4f5d-bdd5-5dc43cee7480.zip",
+      "asset_id": 751471720
+    },
+    "podglad": {
+      "nazwa": "Braxhorn_kolejne_szesc_postaci.jpg",
+      "bajty": 434617,
+      "sha256": "b46d3d3aaab874cf4daf8ed552017e2bf0427947c8a8e25dd6a22ff457d85a59",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_kolejne_szesc_postaci.jpg",
+      "asset_id": 751471281
+    },
+    "film": {
+      "nazwa": "Braxhorn_imprezowicze_i_uslugi_T.mp4",
+      "bajty": 9120721,
+      "sha256": "af3be460d7b67a9b2e29b259aeea9055520cf79d32cf9d48cf1583a7d3d7eb3c",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_imprezowicze_i_uslugi_T.mp4",
+      "asset_id": 751471130
+    }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#imprezowicz_4835b56f",
+  "liczba_klipow_T": 16,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 16,
+    "do_oceny_rozciagniecia": [
+      "Run",
+      "SitDown",
+      "StandUp",
+      "Talk",
+      "DanceHouse",
+      "DanceHipHop",
+      "DanceSilly"
+    ],
+    "odbior_Unity": "oczekuje"
+  }
+}

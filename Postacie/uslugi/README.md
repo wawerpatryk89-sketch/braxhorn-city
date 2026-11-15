@@ -14,3 +14,4 @@ Postacie według wykonywanego zawodu.
 - [Pracownica hotelu w zielonej koszuli](hotel/hotel_38f68cb1/karta.json)
 - [Lekarz w zielonym stroju i czepku](lekarze/lekarz_34571d97/karta.json)
 - [Lekarka w śliwkowym stroju](lekarze/lekarka_45b3c59b/karta.json)
+- [Pracownik usług w złotej kamizelce](uslugi_4f17d9be/karta.json) — stanowisko do ustalenia.

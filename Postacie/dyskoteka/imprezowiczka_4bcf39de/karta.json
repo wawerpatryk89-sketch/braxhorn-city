@@ -1,0 +1,106 @@
+{
+  "id": "imprezowiczka_4bcf39de",
+  "nazwa": "Imprezowiczka w złotym topie",
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_4bcf39de_T_20261115.zip",
+  "podglad": "Braxhorn_kolejne_szesc_postaci.jpg",
+  "role": [
+    "imprezowiczka"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "dyskoteka"
+  ],
+  "rejony": [],
+  "walka": false,
+  "liczba_klipow": 16,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "DanceHouse",
+    "DanceHipHop",
+    "Drink",
+    "DrunkIdle",
+    "DrunkWalk",
+    "DrunkTurn",
+    "DanceSalsa"
+  ],
+  "ataki": [],
+  "limit_tekstur": 2048,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "bc81fbefbf1e06a02e0e995bcdde9f63d962b0573b1701c15759af5555164d53",
+  "model_sha256": "7f991f8a415e4daf7dd4ded566c8c8dc21c69284c1038c5aae06ef205617e430",
+  "animowany_fbx_sha256": "139244e86928316cec20932d04bf1980c01d34f8e938e9df40fa6affaed9214f",
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_4bcf39de_T_20261115.zip",
+      "bajty": 23282167,
+      "sha256": "b9f215e0d5179bf9ad26c336b74dc51c784d403f86de7d3657572293f715c514",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_4bcf39de_T_20261115.zip",
+      "asset_id": 751471416
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_4bcf39de-c8ab-4e00-bd4b-584ef32f289c.zip",
+      "bajty": 22592036,
+      "sha256": "69f778ba59ef4e93c36eed52009b31d9fb24265ea135ebff899ea0c2824f9841",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_4bcf39de-c8ab-4e00-bd4b-584ef32f289c.zip",
+      "asset_id": 751471801
+    },
+    "podglad": {
+      "nazwa": "Braxhorn_kolejne_szesc_postaci.jpg",
+      "bajty": 434617,
+      "sha256": "b46d3d3aaab874cf4daf8ed552017e2bf0427947c8a8e25dd6a22ff457d85a59",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_kolejne_szesc_postaci.jpg",
+      "asset_id": 751471281
+    },
+    "film": {
+      "nazwa": "Braxhorn_imprezowicze_i_uslugi_T.mp4",
+      "bajty": 9120721,
+      "sha256": "af3be460d7b67a9b2e29b259aeea9055520cf79d32cf9d48cf1583a7d3d7eb3c",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_imprezowicze_i_uslugi_T.mp4",
+      "asset_id": 751471130
+    },
+    "porownanie": {
+      "nazwa": "Braxhorn_porownanie_zloty_top_4bcf39de.jpg",
+      "bajty": 53332,
+      "sha256": "e17fc79b5b21d5477767ac431d8d34d91bc8cd90e73d9cb8b10d986a8ab5fe8a",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_porownanie_zloty_top_4bcf39de.jpg",
+      "asset_id": 751471309
+    }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#imprezowiczka_4bcf39de",
+  "liczba_klipow_T": 16,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 16,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Point",
+      "DanceHouse",
+      "DanceHipHop",
+      "DrunkIdle",
+      "DrunkWalk",
+      "DanceSalsa"
+    ],
+    "odbior_Unity": "oczekuje"
+  },
+  "wariant_wizualny_postaci": "imprezowiczka_13e8d41d"
+}
