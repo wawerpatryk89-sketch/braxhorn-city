@@ -1,0 +1,85 @@
+{
+  "id": "gosc_vip_f94492be",
+  "nazwa": "Gościni kasyna i strefy VIP",
+  "wersja": "2026-11-15.1",
+  "role": [
+    "gosc_kasyna_vip"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "kasyno",
+    "strefa_vip"
+  ],
+  "rejony": [],
+  "walka": false,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "DanceMain",
+    "GreetGuest",
+    "PlayCards",
+    "SeatedDrink",
+    "SeatedTalk",
+    "ShakeDice",
+    "VipStroll"
+  ],
+  "liczba_klipow": 16,
+  "liczba_klipow_T": 16,
+  "liczba_klipow_autorskich": 0,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#gosc_vip_f94492be",
+  "zrodlo": "tripo_convert_f94492be-9013-4ae0-9032-9bf1ca2313de.fbx",
+  "model_sha256": "af06d9ce26b840497dfb817bd8ba1510b7978fc324aec9a6c1346bbf65657b01",
+  "model_z_rigiem_sha256": "af06d9ce26b840497dfb817bd8ba1510b7978fc324aec9a6c1346bbf65657b01",
+  "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_f94492be_T_20261115.zip",
+  "animowany_fbx_sha256": "a4c4c573bbdef72842f8853663e15fa1ad486d0245f71dfd03b77a11d276ab6c",
+  "manifest_sha256": "324393719a4060ef12d098726f5e68ec8d80ce923410b8623555b52c56d133e1",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_f94492be_T_20261115.zip",
+      "sha256": "80aed2cfede38140e8850c6e5607f4ce0bfbbeb4216859eb2e058171a7854122",
+      "bajty": 21140956,
+      "asset_id": 752026960,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f94492be_T_20261115.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 16,
+    "do_oceny_rozciagniecia": [
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "ShakeDice",
+      "DanceMain",
+      "SeatedDrink",
+      "SeatedTalk"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 17573,
+      "faces": 17451,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 2.8286744748125955e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje"
+  }
+}

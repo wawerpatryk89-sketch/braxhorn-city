@@ -1,0 +1,55 @@
+{
+  "id": "imprezowiczka_f8ecb176",
+  "model": "f8ecb176",
+  "nazwa": "Imprezowiczka w srebrnej sukience",
+  "role": [
+    "imprezowiczka"
+  ],
+  "miejsca": [
+    "dyskoteka_nova"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "Applaud",
+    "Celebrate",
+    "DanceAlt",
+    "DanceMain",
+    "Drink",
+    "GreetFriends",
+    "Idle",
+    "Point",
+    "Run",
+    "SeatedDrink",
+    "SeatedIdle",
+    "SeatedTalk",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "Walk",
+    "Wave"
+  ],
+  "zrodla_stanow": {
+    "Idle": "Regular_Light_mixamo_a2d488d",
+    "Walk": "Strut Walking",
+    "Run": "Running (1)",
+    "SitDown": "Sitting (1)",
+    "SeatedIdle": "Sitting",
+    "StandUp": "SitDown_UseLaptop_mixamo_57de780",
+    "Talk": "Talking (5)",
+    "Wave": "Waving (1)",
+    "Point": "Pointing Gesture",
+    "DanceMain": "House Dancing",
+    "DanceAlt": "Hip Hop Dancing (1)",
+    "GreetFriends": "Waving",
+    "Drink": "Drinking",
+    "Applaud": "Standing Clap (2)",
+    "SeatedDrink": "Sitting Drinking",
+    "SeatedTalk": "Sitting Talking",
+    "Celebrate": "Victory"
+  },
+  "sprawdzono": "Ponowny import FBX w Blenderze, 13 próbek na stan",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_f8ecb176_T_20261115.zip",
+  "sha256_paczki": "986ec5ed13badb5c8dbfbc55b71e59d3d243e0d85e9ada995294098331869820",
+  "sha256_modelu_zrodlowego": "cad1942aa9fa3c8acdb83f9f0328ff12600c8a30acecd4d1ec3a4ffae026ce48"
+}

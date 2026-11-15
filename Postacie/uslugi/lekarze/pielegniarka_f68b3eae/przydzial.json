@@ -1,0 +1,54 @@
+{
+  "id": "pielegniarka_f68b3eae",
+  "model": "f68b3eae",
+  "nazwa": "Pielęgniarka",
+  "role": [
+    "pielegniarka"
+  ],
+  "miejsca": [
+    "przychodnia",
+    "szpital"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "ApproachBed",
+    "CarrySupplies",
+    "ExplainCare",
+    "Idle",
+    "PatientExam",
+    "Phone",
+    "Point",
+    "PulseCheck",
+    "Run",
+    "SeatedIdle",
+    "SeatedTalk",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "Walk",
+    "Wave"
+  ],
+  "zrodla_stanow": {
+    "Idle": "Regular_Light_mixamo_a2d488d",
+    "Walk": "Walking (1)",
+    "Run": "Run Forward",
+    "SitDown": "Sitting (1)",
+    "SeatedIdle": "Seated Idle",
+    "StandUp": "SitDown_UseLaptop_mixamo_57de780",
+    "Talk": "Talking (3)",
+    "Wave": "Waving (1)",
+    "Point": "Pointing Gesture",
+    "ApproachBed": "Walking (2)",
+    "CarrySupplies": "Carrying",
+    "Phone": "Talking On Phone",
+    "ExplainCare": "Talking (5)",
+    "SeatedTalk": "Sitting Talking",
+    "PulseCheck": "Blender – PulseCheck",
+    "PatientExam": "Blender – PatientExam"
+  },
+  "sprawdzono": "Ponowny import FBX w Blenderze, 13 próbek na stan",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_f68b3eae_T_20261115.zip",
+  "sha256_paczki": "826a759c204336ba2aefa582b730de4ef0d508ec30e2a6e9e433c746499b545b",
+  "sha256_modelu_zrodlowego": "3eba8cb65e905c5d3adc425cf4ef99c3753b0f490cbaaa21b08f2e97a367b9d6"
+}

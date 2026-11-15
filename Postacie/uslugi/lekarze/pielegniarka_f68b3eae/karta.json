@@ -1,0 +1,82 @@
+{
+  "id": "pielegniarka_f68b3eae",
+  "nazwa": "Pielęgniarka",
+  "wersja": "2026-11-15.1",
+  "role": [
+    "pielegniarka"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "przychodnia",
+    "szpital"
+  ],
+  "rejony": [],
+  "walka": false,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "ApproachBed",
+    "CarrySupplies",
+    "ExplainCare",
+    "PatientExam",
+    "Phone",
+    "PulseCheck",
+    "SeatedTalk"
+  ],
+  "liczba_klipow": 16,
+  "liczba_klipow_T": 14,
+  "liczba_klipow_autorskich": 2,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#pielegniarka_f68b3eae",
+  "zrodlo": "tripo_convert_f68b3eae-aa63-479f-9b54-46db41b68a2d.fbx",
+  "model_sha256": "3eba8cb65e905c5d3adc425cf4ef99c3753b0f490cbaaa21b08f2e97a367b9d6",
+  "model_z_rigiem_sha256": "3eba8cb65e905c5d3adc425cf4ef99c3753b0f490cbaaa21b08f2e97a367b9d6",
+  "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_f68b3eae_T_20261115.zip",
+  "animowany_fbx_sha256": "48706f78345f2be7c5319d1f2dfc878130f38e8b0afbeeab876c489459c2df8c",
+  "manifest_sha256": "b6342428238c130fbd0e377b87df7208170d86202af5844eee621c34ab81fe83",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_f68b3eae_T_20261115.zip",
+      "sha256": "826a759c204336ba2aefa582b730de4ef0d508ec30e2a6e9e433c746499b545b",
+      "bajty": 17695137,
+      "asset_id": 752027015,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f68b3eae_T_20261115.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 16,
+    "do_oceny_rozciagniecia": [
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "SeatedTalk"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 16046,
+      "faces": 16021,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 2.894225060336512e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje"
+  }
+}

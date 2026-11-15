@@ -50,3 +50,15 @@ Modele wyeksportowano z animacjami T i sprawdzono po ponownym imporcie do Blende
 | 8 | [Obsługa sali kasyna w czerwonej kamizelce](uslugi/kasyno/obsluga_kasyna_7a324450/karta.json) | 16 |
 
 Przed pokazaniem kolejnej postaci porównaj model spoczynkowy, UV i tekstury z dostawą właściciela. Odtwórz przypisane ruchy na wyeksportowanym FBX. Sprawdź gesty w kontekście roli oraz chwyt i kolizje z używanym sprzętem w całym ruchu. Po poprawce powtórz kontrolę i przygotuj film do odbioru.
+
+## Role partii z 15 listopada, godz. 19.38
+
+| Nr | Postać i rola | Animacje w FBX |
+|---:|---|---:|
+| 1 | [Pracownik ekipy plażowej](mieszkancy/plaza/plazowicz_fd5367ad/karta.json) | 21 |
+| 2 | [Członkini załogi promu](uslugi/zegluga/zaloga_f2d97b64/karta.json) | 16 |
+| 3 | [Imprezowiczka w srebrnej sukience](dyskoteka/imprezowiczka_f8ecb176/karta.json) | 17 |
+| 4 | [Gościni kasyna i strefy VIP](mieszkancy/gosc_vip_f94492be/karta.json) | 16 |
+| 5 | [Pielęgniarka](uslugi/lekarze/pielegniarka_f68b3eae/karta.json) | 16 |
+| 6 | [Recepcjonistka Hotelu Sobczak](uslugi/recepcja/recepcjonistka_f2a98234/karta.json) | 16 |
+| 7 | [Pracownica sali supermarketu BRAXHORN](uslugi/sklepy/pracownica_sklepu_fffa1d79/karta.json) | 16 |

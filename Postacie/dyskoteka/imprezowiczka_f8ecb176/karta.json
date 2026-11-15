@@ -1,0 +1,85 @@
+{
+  "id": "imprezowiczka_f8ecb176",
+  "nazwa": "Imprezowiczka w srebrnej sukience",
+  "wersja": "2026-11-15.1",
+  "role": [
+    "imprezowiczka"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "dyskoteka_nova"
+  ],
+  "rejony": [],
+  "walka": false,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "Applaud",
+    "Celebrate",
+    "DanceAlt",
+    "DanceMain",
+    "Drink",
+    "GreetFriends",
+    "SeatedDrink",
+    "SeatedTalk"
+  ],
+  "liczba_klipow": 17,
+  "liczba_klipow_T": 17,
+  "liczba_klipow_autorskich": 0,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#imprezowiczka_f8ecb176",
+  "zrodlo": "tripo_convert_f8ecb176-f52d-4d6c-aeb1-47dd3b16a81f.fbx",
+  "model_sha256": "cad1942aa9fa3c8acdb83f9f0328ff12600c8a30acecd4d1ec3a4ffae026ce48",
+  "model_z_rigiem_sha256": "cad1942aa9fa3c8acdb83f9f0328ff12600c8a30acecd4d1ec3a4ffae026ce48",
+  "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_f8ecb176_T_20261115.zip",
+  "animowany_fbx_sha256": "facca58667c0f3f01034c2be5fcf7fdd1698eddfb0501f46955d006737da3d0c",
+  "manifest_sha256": "64180df3b4eb7aa0a0263ab0fc9ed30655c429a6bd4528769a88c38b1fe70635",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_f8ecb176_T_20261115.zip",
+      "sha256": "986ec5ed13badb5c8dbfbc55b71e59d3d243e0d85e9ada995294098331869820",
+      "bajty": 21392410,
+      "asset_id": 752026887,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f8ecb176_T_20261115.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 17,
+    "do_oceny_rozciagniecia": [
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "DanceMain",
+      "Applaud",
+      "SeatedDrink",
+      "SeatedTalk",
+      "Celebrate"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 17277,
+      "faces": 17225,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 1.6157684416922986e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje"
+  }
+}

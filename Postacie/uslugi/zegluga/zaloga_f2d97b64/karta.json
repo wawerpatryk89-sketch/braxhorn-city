@@ -1,0 +1,86 @@
+{
+  "id": "zaloga_f2d97b64",
+  "nazwa": "Członkini załogi promu",
+  "wersja": "2026-11-15.1",
+  "role": [
+    "zaloga_promu"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "prom",
+    "port"
+  ],
+  "rejony": [],
+  "walka": false,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "CarryCargo",
+    "DeckWalk",
+    "GuideBoarding",
+    "Phone",
+    "SeatedTalk",
+    "Signal",
+    "Warn"
+  ],
+  "liczba_klipow": 16,
+  "liczba_klipow_T": 15,
+  "liczba_klipow_autorskich": 1,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#zaloga_f2d97b64",
+  "zrodlo": "tripo_convert_f2d97b64-8b10-42b3-9a9d-af1e80f53438.fbx",
+  "model_sha256": "c2f14ded940cafb88454eb959fd75496d06d487ffe03a9224966103f485ff748",
+  "model_z_rigiem_sha256": "c2f14ded940cafb88454eb959fd75496d06d487ffe03a9224966103f485ff748",
+  "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_f2d97b64_T_20261115.zip",
+  "animowany_fbx_sha256": "4f0144e070e341a824cd2538a2001d0ed70a0e5f7c93d488e10384a5bfaa7357",
+  "manifest_sha256": "5c07916a27597f0fac9d88f46dc0119e7a46b8916553bb26c70beb64c0b2e9b9",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_f2d97b64_T_20261115.zip",
+      "sha256": "4ec8ce5bc088471f667e8e185fee1ddedca843a9c40ef8035fe17a7515566ed5",
+      "bajty": 19402285,
+      "asset_id": 752026819,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f2d97b64_T_20261115.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 16,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Point",
+      "Signal",
+      "SeatedTalk"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 16824,
+      "faces": 16825,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 2.794357763198446e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje"
+  },
+  "komplet_stroju_z": "postac_50269b85"
+}

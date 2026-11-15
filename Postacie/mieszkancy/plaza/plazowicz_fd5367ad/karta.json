@@ -1,0 +1,95 @@
+{
+  "id": "plazowicz_fd5367ad",
+  "nazwa": "Pracownik ekipy plażowej",
+  "wersja": "2026-11-15.1",
+  "role": [
+    "ekipa_plazowa"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "plaza",
+    "promenada"
+  ],
+  "rejony": [],
+  "walka": false,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "BeachStroll",
+    "Drink",
+    "Jump",
+    "LoungerRest",
+    "SeatedTalk",
+    "Swim",
+    "SwimToEdge",
+    "ThrowFrisbee",
+    "TreadWater",
+    "VolleyBump",
+    "VolleySet",
+    "WarmUp"
+  ],
+  "liczba_klipow": 21,
+  "liczba_klipow_T": 17,
+  "liczba_klipow_autorskich": 4,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#plazowicz_fd5367ad",
+  "zrodlo": "tripo_convert_fd5367ad-06af-449b-9af2-28096cac3151.fbx",
+  "model_sha256": "131aeabe2be6f1977c7c92e46df0d10648c162363cf637f8d7d27526d77893df",
+  "model_z_rigiem_sha256": "131aeabe2be6f1977c7c92e46df0d10648c162363cf637f8d7d27526d77893df",
+  "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_fd5367ad_T_20261115.zip",
+  "animowany_fbx_sha256": "0abeb954b56dc18b830fae7e75e6bb04cf23b2f2a05442f9fb3f7219e3d7eb4a",
+  "manifest_sha256": "650cdd614a8d6e600189f58e350eda7072f41631d26b324ada7e8e25f925ef90",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_fd5367ad_T_20261115.zip",
+      "sha256": "ad6c7a6c38c3e4aab446c9b952b62f42e34d8d92290745da0a4935b38b486541",
+      "bajty": 17258450,
+      "asset_id": 752026688,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_fd5367ad_T_20261115.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 21,
+    "do_oceny_rozciagniecia": [
+      "Run",
+      "SitDown",
+      "StandUp",
+      "Swim",
+      "SwimToEdge",
+      "ThrowFrisbee",
+      "Jump",
+      "SeatedTalk",
+      "VolleySet",
+      "VolleyBump",
+      "LoungerRest",
+      "TreadWater"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 15877,
+      "faces": 15852,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 2.891099805177331e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje"
+  },
+  "komplet_stroju_z": "postac_2b111236"
+}

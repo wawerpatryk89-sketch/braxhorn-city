@@ -14,3 +14,6 @@ Mieszkańcy i przechodnie z codziennymi czynnościami.
 ## Przydzielone role z 15 listopada, godz. 18.34
 
 - [Plażowiczka w czerwonym bikini](plaza/plazowiczka_790a1e43/karta.json)
+
+- [Pracownik ekipy plażowej](plaza/plazowicz_fd5367ad/karta.json)
+- [Gościni kasyna i strefy VIP](gosc_vip_f94492be/karta.json)

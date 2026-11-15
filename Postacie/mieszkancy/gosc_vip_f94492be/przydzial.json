@@ -1,0 +1,55 @@
+{
+  "id": "gosc_vip_f94492be",
+  "model": "f94492be",
+  "nazwa": "Gościni kasyna i strefy VIP",
+  "role": [
+    "gosc_kasyna_vip"
+  ],
+  "miejsca": [
+    "kasyno",
+    "strefa_vip"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "DanceMain",
+    "GreetGuest",
+    "Idle",
+    "PlayCards",
+    "Point",
+    "Run",
+    "SeatedDrink",
+    "SeatedIdle",
+    "SeatedTalk",
+    "ShakeDice",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "VipStroll",
+    "Walk",
+    "Wave"
+  ],
+  "zrodla_stanow": {
+    "Idle": "Regular_Light_mixamo_a2d488d",
+    "Walk": "Strut Walking",
+    "Run": "Medium Run",
+    "SitDown": "Sitting (1)",
+    "SeatedIdle": "Sitting",
+    "StandUp": "SitDown_UseLaptop_mixamo_57de780",
+    "Talk": "Talking (4)",
+    "Wave": "Waving",
+    "Point": "Pointing Gesture",
+    "PlayCards": "Cards",
+    "ShakeDice": "Shaking Dice",
+    "VipStroll": "Walking (1)",
+    "DanceMain": "Swing Dancing",
+    "GreetGuest": "Quick Formal Bow",
+    "SeatedDrink": "Sitting Drinking",
+    "SeatedTalk": "Sitting Talking"
+  },
+  "tempo_swing_wzgledem_zrodla": 0.6944,
+  "sprawdzono": "Ponowny import FBX w Blenderze, 13 próbek na stan",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_f94492be_T_20261115.zip",
+  "sha256_paczki": "80aed2cfede38140e8850c6e5607f4ce0bfbbeb4216859eb2e058171a7854122",
+  "sha256_modelu_zrodlowego": "af06d9ce26b840497dfb817bd8ba1510b7978fc324aec9a6c1346bbf65657b01"
+}

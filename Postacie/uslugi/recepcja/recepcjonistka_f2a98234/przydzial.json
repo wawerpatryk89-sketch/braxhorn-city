@@ -1,0 +1,54 @@
+{
+  "id": "recepcjonistka_f2a98234",
+  "model": "f2a98234",
+  "nazwa": "Recepcjonistka Hotelu Sobczak",
+  "role": [
+    "recepcjonistka"
+  ],
+  "miejsca": [
+    "hotel_sobczak",
+    "recepcja"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "ExplainStay",
+    "GreetGuest",
+    "HandKeycard",
+    "Idle",
+    "LobbyWalk",
+    "Phone",
+    "Point",
+    "Run",
+    "SeatedIdle",
+    "SeatedTalk",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "UseLaptop",
+    "Walk",
+    "Wave"
+  ],
+  "zrodla_stanow": {
+    "Idle": "Regular_Light_mixamo_a2d488d",
+    "Walk": "Walking (4)",
+    "Run": "Medium Run",
+    "SitDown": "Sitting (1)",
+    "SeatedIdle": "Sitting",
+    "StandUp": "SitDown_UseLaptop_mixamo_57de780",
+    "Talk": "Talking (3)",
+    "Wave": "Waving",
+    "Point": "Pointing Gesture",
+    "GreetGuest": "Quick Formal Bow",
+    "LobbyWalk": "Walking (2)",
+    "Phone": "Talking On Phone",
+    "ExplainStay": "Talking (4)",
+    "SeatedTalk": "Sitting Talking",
+    "UseLaptop": "Blender – UseLaptop",
+    "HandKeycard": "Blender – HandKeycard"
+  },
+  "sprawdzono": "Ponowny import FBX w Blenderze, 13 próbek na stan",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_f2a98234_T_20261115.zip",
+  "sha256_paczki": "1998fb18bd4446897bd16b8a89ec84d0a1bf1c830fadcdc07a0ed4a23050e9f4",
+  "sha256_modelu_zrodlowego": "4bd5a30bde8ae39ea877d4a00c1bd5125e745eabe52ddb4729b279486d49f259"
+}

@@ -1,0 +1,53 @@
+{
+  "id": "pracownica_sklepu_fffa1d79",
+  "model": "fffa1d79",
+  "nazwa": "Pracownica sali supermarketu BRAXHORN",
+  "role": [
+    "pracownica_sali"
+  ],
+  "miejsca": [
+    "supermarket_braxhorn"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "AisleWalk",
+    "CarryBox",
+    "ExplainProduct",
+    "GreetCustomer",
+    "GuideAisle",
+    "Idle",
+    "Point",
+    "Run",
+    "SeatedIdle",
+    "SeatedTalk",
+    "ShelfStock",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "Walk",
+    "Wave"
+  ],
+  "zrodla_stanow": {
+    "Idle": "Regular_Light_mixamo_a2d488d",
+    "Walk": "Walking (2)",
+    "Run": "Running (1)",
+    "SitDown": "Sitting (1)",
+    "SeatedIdle": "Seated Idle",
+    "StandUp": "SitDown_UseLaptop_mixamo_57de780",
+    "Talk": "Talking (5)",
+    "Wave": "Waving (1)",
+    "Point": "Pointing Gesture",
+    "CarryBox": "Carrying",
+    "GreetCustomer": "Waving",
+    "ExplainProduct": "Talking (1)",
+    "AisleWalk": "Walking (4)",
+    "SeatedTalk": "Sitting Talking",
+    "ShelfStock": "Blender – ShelfStock",
+    "GuideAisle": "Blender – GuideAisle"
+  },
+  "sprawdzono": "Ponowny import FBX w Blenderze, 13 próbek na stan",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_fffa1d79_T_20261115.zip",
+  "sha256_paczki": "371e05ee6b199983725a62c2c84128928bef8821406efd8b68f7af94649f7879",
+  "sha256_modelu_zrodlowego": "d7d71388818410e4fc7895c6030c1d9bdc1007952135416f5923f5dd062aa21f"
+}

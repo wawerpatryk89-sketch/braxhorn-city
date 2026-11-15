@@ -1,0 +1,82 @@
+{
+  "id": "pracownica_sklepu_fffa1d79",
+  "nazwa": "Pracownica sali supermarketu BRAXHORN",
+  "wersja": "2026-11-15.1",
+  "role": [
+    "pracownica_sali"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "supermarket_braxhorn"
+  ],
+  "rejony": [],
+  "walka": false,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "AisleWalk",
+    "CarryBox",
+    "ExplainProduct",
+    "GreetCustomer",
+    "GuideAisle",
+    "SeatedTalk",
+    "ShelfStock"
+  ],
+  "liczba_klipow": 16,
+  "liczba_klipow_T": 14,
+  "liczba_klipow_autorskich": 2,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#pracownica_sklepu_fffa1d79",
+  "zrodlo": "tripo_convert_fffa1d79-668a-420b-8df2-62ca1b1a5e5d.fbx",
+  "model_sha256": "d7d71388818410e4fc7895c6030c1d9bdc1007952135416f5923f5dd062aa21f",
+  "model_z_rigiem_sha256": "d7d71388818410e4fc7895c6030c1d9bdc1007952135416f5923f5dd062aa21f",
+  "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_fffa1d79_T_20261115.zip",
+  "animowany_fbx_sha256": "e6c4a1f0478cfea060313c24d7947cca450d83bf234aa7e1adcc10add8f4a8f9",
+  "manifest_sha256": "fc962266bc7de682baf73a32dd9da53bb0c9b00dac39a856abf2766dbdf7c262",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_fffa1d79_T_20261115.zip",
+      "sha256": "371e05ee6b199983725a62c2c84128928bef8821406efd8b68f7af94649f7879",
+      "bajty": 16763668,
+      "asset_id": 752027186,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_fffa1d79_T_20261115.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 16,
+    "do_oceny_rozciagniecia": [
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Wave",
+      "SeatedTalk"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 16583,
+      "faces": 16463,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 2.72823327660178e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje"
+  }
+}

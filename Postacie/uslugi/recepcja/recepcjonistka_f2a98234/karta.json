@@ -1,0 +1,93 @@
+{
+  "id": "recepcjonistka_f2a98234",
+  "nazwa": "Recepcjonistka Hotelu Sobczak",
+  "wersja": "2026-11-15.1",
+  "role": [
+    "recepcjonistka"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "hotel_sobczak",
+    "recepcja"
+  ],
+  "rejony": [],
+  "walka": false,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "ExplainStay",
+    "GreetGuest",
+    "HandKeycard",
+    "LobbyWalk",
+    "Phone",
+    "SeatedTalk",
+    "UseLaptop"
+  ],
+  "liczba_klipow": 16,
+  "liczba_klipow_T": 14,
+  "liczba_klipow_autorskich": 2,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#recepcjonistka_f2a98234",
+  "zrodlo": "tripo_convert_f2a98234-1169-4e42-91f4-fca57c1f4853.fbx",
+  "model_sha256": "4bd5a30bde8ae39ea877d4a00c1bd5125e745eabe52ddb4729b279486d49f259",
+  "model_z_rigiem_sha256": "4bd5a30bde8ae39ea877d4a00c1bd5125e745eabe52ddb4729b279486d49f259",
+  "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_f2a98234_T_20261115.zip",
+  "animowany_fbx_sha256": "38da291254661ab2f84a9d12655627ee7795ef7599589570588829148ac2ab25",
+  "manifest_sha256": "a63162360f9d4b902829afbe5b39a04da9048088b78cf25adef2f05b7895b7e7",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_f2a98234_T_20261115.zip",
+      "sha256": "1998fb18bd4446897bd16b8a89ec84d0a1bf1c830fadcdc07a0ed4a23050e9f4",
+      "bajty": 20648999,
+      "asset_id": 752027093,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f2a98234_T_20261115.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 16,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Talk",
+      "Wave",
+      "Point",
+      "GreetGuest",
+      "LobbyWalk",
+      "Phone",
+      "ExplainStay",
+      "SeatedTalk",
+      "UseLaptop",
+      "HandKeycard"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 17500,
+      "faces": 17376,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 2.964617669838542e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje"
+  }
+}

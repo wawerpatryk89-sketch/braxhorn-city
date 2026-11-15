@@ -1,0 +1,54 @@
+{
+  "id": "zaloga_f2d97b64",
+  "model": "f2d97b64",
+  "nazwa": "Członkini załogi promu",
+  "role": [
+    "zaloga_promu"
+  ],
+  "miejsca": [
+    "prom",
+    "port"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "CarryCargo",
+    "DeckWalk",
+    "GuideBoarding",
+    "Idle",
+    "Phone",
+    "Point",
+    "Run",
+    "SeatedIdle",
+    "SeatedTalk",
+    "Signal",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "Walk",
+    "Warn",
+    "Wave"
+  ],
+  "zrodla_stanow": {
+    "Idle": "Regular_Light_mixamo_a2d488d",
+    "Walk": "Walking (2)",
+    "Run": "Run Forward",
+    "SitDown": "Sitting (1)",
+    "SeatedIdle": "Seated Idle",
+    "StandUp": "SitDown_UseLaptop_mixamo_57de780",
+    "Talk": "Talking (3)",
+    "Wave": "Waving",
+    "Point": "Pointing Gesture",
+    "DeckWalk": "Walking (4)",
+    "Signal": "Waving (1)",
+    "CarryCargo": "Carrying",
+    "Warn": "Yelling",
+    "SeatedTalk": "Sitting Talking",
+    "Phone": "Talking On Phone",
+    "GuideBoarding": "Blender – GuideBoarding"
+  },
+  "sprawdzono": "Ponowny import FBX w Blenderze, 13 próbek na stan",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_f2d97b64_T_20261115.zip",
+  "sha256_paczki": "4ec8ce5bc088471f667e8e185fee1ddedca843a9c40ef8035fe17a7515566ed5",
+  "sha256_modelu_zrodlowego": "c2f14ded940cafb88454eb959fd75496d06d487ffe03a9224966103f485ff748"
+}

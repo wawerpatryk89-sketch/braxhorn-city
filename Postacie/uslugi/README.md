@@ -29,3 +29,8 @@ Postacie według wykonywanego zawodu.
 - [Sprzedawczyni w salonie odzieżowym](sklepy/sprzedawczyni_71f0a7dc/karta.json)
 - [Marynarz z obsługi promu](zegluga/marynarz_73f43eee/karta.json)
 - [Obsługa sali kasyna w czerwonej kamizelce](kasyno/obsluga_kasyna_7a324450/karta.json)
+
+- [Członkini załogi promu](zegluga/zaloga_f2d97b64/karta.json)
+- [Pielęgniarka](lekarze/pielegniarka_f68b3eae/karta.json)
+- [Recepcjonistka Hotelu Sobczak](recepcja/recepcjonistka_f2a98234/karta.json)
+- [Pracownica sali supermarketu BRAXHORN](sklepy/pracownica_sklepu_fffa1d79/karta.json)

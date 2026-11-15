@@ -18,3 +18,5 @@ Postacie, które można spotkać na imprezie.
 - [Imprezowiczka w fioletowych spodniach](imprezowiczka_5117892a/karta.json)
 - [Imprezowiczka w bordowej sukience](imprezowiczka_63960880/karta.json)
 - [Imprezowiczka w ciemnozielonej sukience](imprezowiczka_0dbe3922/karta.json)
+
+- [Imprezowiczka w srebrnej sukience](imprezowiczka_f8ecb176/karta.json)
