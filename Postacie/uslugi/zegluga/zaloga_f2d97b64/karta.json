@@ -1,7 +1,7 @@
 {
   "id": "zaloga_f2d97b64",
   "nazwa": "Członkini załogi promu",
-  "wersja": "2026-11-15.1",
+  "wersja": "2026-11-15.2",
   "role": [
     "zaloga_promu"
   ],
@@ -40,9 +40,9 @@
   "model_sha256": "c2f14ded940cafb88454eb959fd75496d06d487ffe03a9224966103f485ff748",
   "model_z_rigiem_sha256": "c2f14ded940cafb88454eb959fd75496d06d487ffe03a9224966103f485ff748",
   "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
-  "paczka": "Postac_f2d97b64_T_20261115.zip",
-  "animowany_fbx_sha256": "4f0144e070e341a824cd2538a2001d0ed70a0e5f7c93d488e10384a5bfaa7357",
-  "manifest_sha256": "5c07916a27597f0fac9d88f46dc0119e7a46b8916553bb26c70beb64c0b2e9b9",
+  "paczka": "Postac_f2d97b64_T_20261115_ruch_v2.zip",
+  "animowany_fbx_sha256": "3af30880a51ea3e181309d19720c2850b03462d3e4787f2cfd240252fe3727d8",
+  "manifest_sha256": "53620d78097c2c00ee731dce051d3855cbf30b014f5c2047cb369b5f2ea23330",
   "wydanie": {
     "id": 443180649,
     "tag": "postacie-globalne-20261112",
@@ -50,11 +50,11 @@
   },
   "pliki": {
     "unity": {
-      "nazwa": "Postac_f2d97b64_T_20261115.zip",
-      "sha256": "4ec8ce5bc088471f667e8e185fee1ddedca843a9c40ef8035fe17a7515566ed5",
-      "bajty": 19402285,
-      "asset_id": 752026819,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f2d97b64_T_20261115.zip"
+      "nazwa": "Postac_f2d97b64_T_20261115_ruch_v2.zip",
+      "sha256": "ee5ede94264f5a02d22f98872550f77ed1940b9d7a77f37d640e2c265e83bc53",
+      "bajty": 17606095,
+      "asset_id": 752117178,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f2d97b64_T_20261115_ruch_v2.zip"
     }
   },
   "limit_tekstur": 2048,
@@ -63,24 +63,37 @@
     "szkielet_kosci": 65,
     "ponowny_import_FBX_w_Blenderze": 16,
     "do_oceny_rozciagniecia": [
-      "Idle",
+      "Phone",
       "Run",
-      "SitDown",
-      "SeatedIdle",
-      "StandUp",
-      "Point",
+      "SeatedTalk",
       "Signal",
-      "SeatedTalk"
+      "SitDown",
+      "StandUp"
     ],
     "geometria_i_tekstury": {
       "vertices": 16824,
       "faces": 16825,
       "same_topology": true,
-      "max_relative_rest_vertex_difference": 2.794357763198446e-7,
+      "max_relative_rest_vertex_difference": 2.835017848394391e-7,
       "max_uv_delta": 0,
       "source_pixels_color_normal_metal_roughness": true
     },
-    "odbior_Unity": "oczekuje"
+    "odbior_Unity": "oczekuje",
+    "probki_na_klip": 42,
+    "korekta_rak_i_chodu": {
+      "hand_p99": [
+        1.5217,
+        1.3703
+      ],
+      "arm_p99": [
+        1.5819,
+        1.5202
+      ],
+      "mesh_p99": [
+        1.5137,
+        1.4457
+      ]
+    }
   },
   "komplet_stroju_z": "postac_50269b85"
 }

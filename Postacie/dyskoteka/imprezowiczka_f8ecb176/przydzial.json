@@ -30,7 +30,7 @@
   ],
   "zrodla_stanow": {
     "Idle": "Regular_Light_mixamo_a2d488d",
-    "Walk": "Strut Walking",
+    "Walk": "Strut Walking + Walking (1) (Blender)",
     "Run": "Running (1)",
     "SitDown": "Sitting (1)",
     "SeatedIdle": "Sitting",
@@ -47,9 +47,21 @@
     "SeatedTalk": "Sitting Talking",
     "Celebrate": "Victory"
   },
-  "sprawdzono": "Ponowny import FBX w Blenderze, 13 próbek na stan",
+  "sprawdzono": "Ponowny import FBX w Blenderze, 42 próbki każdego stanu oraz osobne ujęcia całej postaci i ręki.",
   "test_w_Unity": false,
-  "paczka_modelu": "Postac_f8ecb176_T_20261115.zip",
-  "sha256_paczki": "986ec5ed13badb5c8dbfbc55b71e59d3d243e0d85e9ada995294098331869820",
-  "sha256_modelu_zrodlowego": "cad1942aa9fa3c8acdb83f9f0328ff12600c8a30acecd4d1ec3a4ffae026ce48"
+  "paczka_modelu": "Postac_f8ecb176_T_20261115_ruch_v2.zip",
+  "sha256_paczki": "0d5c664ad009dd726147f1eb250e0d7ca1ea89bf83af524135953dbec8837fe5",
+  "sha256_modelu_zrodlowego": "cad1942aa9fa3c8acdb83f9f0328ff12600c8a30acecd4d1ec3a4ffae026ce48",
+  "chody": {
+    "Walk": {
+      "sources": [
+        "Strut Walking",
+        "Walking (1)"
+      ],
+      "secondary_weight": 0.2,
+      "cycle_frames": 36,
+      "stride_scale": 0.89,
+      "lane_scale": 0.8
+    }
+  }
 }

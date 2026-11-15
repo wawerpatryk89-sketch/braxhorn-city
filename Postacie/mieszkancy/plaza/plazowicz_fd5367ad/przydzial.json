@@ -35,7 +35,7 @@
   ],
   "zrodla_stanow": {
     "Idle": "Regular_Light_mixamo_a2d488d",
-    "Walk": "Walking (1)",
+    "Walk": "Walking (1) + Walking (4) (Blender)",
     "Run": "Standard Run",
     "SitDown": "Sitting (1)",
     "SeatedIdle": "Seated Idle",
@@ -43,7 +43,7 @@
     "Talk": "Talking (1)",
     "Wave": "Waving",
     "Point": "Pointing Gesture",
-    "BeachStroll": "Walking (4)",
+    "BeachStroll": "Walking (1) + Walking (4) (Blender)",
     "Swim": "Swimming",
     "SwimToEdge": "Swimming To Edge",
     "ThrowFrisbee": "Frisbee Throw",
@@ -56,9 +56,31 @@
     "LoungerRest": "Blender – LoungerRest",
     "TreadWater": "Blender – TreadWater"
   },
-  "sprawdzono": "Ponowny import FBX w Blenderze, 13 próbek na stan",
+  "sprawdzono": "Ponowny import FBX w Blenderze, 42 próbki każdego stanu oraz osobne ujęcia całej postaci i ręki.",
   "test_w_Unity": false,
-  "paczka_modelu": "Postac_fd5367ad_T_20261115.zip",
-  "sha256_paczki": "ad6c7a6c38c3e4aab446c9b952b62f42e34d8d92290745da0a4935b38b486541",
-  "sha256_modelu_zrodlowego": "131aeabe2be6f1977c7c92e46df0d10648c162363cf637f8d7d27526d77893df"
+  "paczka_modelu": "Postac_fd5367ad_T_20261115_ruch_v2.zip",
+  "sha256_paczki": "595eb41468ed5835c76ef369acb086af1b5eb8a69cebd851fd9872fbb09fa1c3",
+  "sha256_modelu_zrodlowego": "131aeabe2be6f1977c7c92e46df0d10648c162363cf637f8d7d27526d77893df",
+  "chody": {
+    "BeachStroll": {
+      "sources": [
+        "Walking (1)",
+        "Walking (4)"
+      ],
+      "secondary_weight": 0.42000000000000004,
+      "cycle_frames": 35,
+      "stride_scale": 0.94,
+      "lane_scale": 0.95
+    },
+    "Walk": {
+      "sources": [
+        "Walking (1)",
+        "Walking (4)"
+      ],
+      "secondary_weight": 0.25,
+      "cycle_frames": 32,
+      "stride_scale": 1,
+      "lane_scale": 0.95
+    }
+  }
 }

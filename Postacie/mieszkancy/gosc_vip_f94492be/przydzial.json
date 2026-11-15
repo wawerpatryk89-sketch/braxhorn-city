@@ -30,7 +30,7 @@
   ],
   "zrodla_stanow": {
     "Idle": "Regular_Light_mixamo_a2d488d",
-    "Walk": "Strut Walking",
+    "Walk": "Strut Walking + Walking (4) (Blender)",
     "Run": "Medium Run",
     "SitDown": "Sitting (1)",
     "SeatedIdle": "Sitting",
@@ -40,16 +40,38 @@
     "Point": "Pointing Gesture",
     "PlayCards": "Cards",
     "ShakeDice": "Shaking Dice",
-    "VipStroll": "Walking (1)",
+    "VipStroll": "Strut Walking + Walking (4) (Blender)",
     "DanceMain": "Swing Dancing",
     "GreetGuest": "Quick Formal Bow",
     "SeatedDrink": "Sitting Drinking",
     "SeatedTalk": "Sitting Talking"
   },
   "tempo_swing_wzgledem_zrodla": 0.6944,
-  "sprawdzono": "Ponowny import FBX w Blenderze, 13 próbek na stan",
+  "sprawdzono": "Ponowny import FBX w Blenderze, 42 próbki każdego stanu oraz osobne ujęcia całej postaci i ręki.",
   "test_w_Unity": false,
-  "paczka_modelu": "Postac_f94492be_T_20261115.zip",
-  "sha256_paczki": "80aed2cfede38140e8850c6e5607f4ce0bfbbeb4216859eb2e058171a7854122",
-  "sha256_modelu_zrodlowego": "af06d9ce26b840497dfb817bd8ba1510b7978fc324aec9a6c1346bbf65657b01"
+  "paczka_modelu": "Postac_f94492be_T_20261115_ruch_v2.zip",
+  "sha256_paczki": "cb4e86470a77488e16d8b3e225650d59403c7160d3738660c404620fcd0e3208",
+  "sha256_modelu_zrodlowego": "af06d9ce26b840497dfb817bd8ba1510b7978fc324aec9a6c1346bbf65657b01",
+  "chody": {
+    "VipStroll": {
+      "sources": [
+        "Strut Walking",
+        "Walking (4)"
+      ],
+      "secondary_weight": 0.49,
+      "cycle_frames": 43,
+      "stride_scale": 0.7614,
+      "lane_scale": 0.82
+    },
+    "Walk": {
+      "sources": [
+        "Strut Walking",
+        "Walking (4)"
+      ],
+      "secondary_weight": 0.32,
+      "cycle_frames": 40,
+      "stride_scale": 0.81,
+      "lane_scale": 0.82
+    }
+  }
 }

@@ -1,7 +1,7 @@
 {
   "id": "pielegniarka_f68b3eae",
   "nazwa": "Pielęgniarka",
-  "wersja": "2026-11-15.1",
+  "wersja": "2026-11-15.2",
   "role": [
     "pielegniarka"
   ],
@@ -40,9 +40,9 @@
   "model_sha256": "3eba8cb65e905c5d3adc425cf4ef99c3753b0f490cbaaa21b08f2e97a367b9d6",
   "model_z_rigiem_sha256": "3eba8cb65e905c5d3adc425cf4ef99c3753b0f490cbaaa21b08f2e97a367b9d6",
   "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
-  "paczka": "Postac_f68b3eae_T_20261115.zip",
-  "animowany_fbx_sha256": "48706f78345f2be7c5319d1f2dfc878130f38e8b0afbeeab876c489459c2df8c",
-  "manifest_sha256": "b6342428238c130fbd0e377b87df7208170d86202af5844eee621c34ab81fe83",
+  "paczka": "Postac_f68b3eae_T_20261115_ruch_v2.zip",
+  "animowany_fbx_sha256": "a1636b8301d2703eb4e3db76582824d72858b6e14d36fdcf783ba98ce5e8e764",
+  "manifest_sha256": "59b918214677250a930483d472bfe7ace7a8b51b3298bb6600785efd4f571bf9",
   "wydanie": {
     "id": 443180649,
     "tag": "postacie-globalne-20261112",
@@ -50,11 +50,11 @@
   },
   "pliki": {
     "unity": {
-      "nazwa": "Postac_f68b3eae_T_20261115.zip",
-      "sha256": "826a759c204336ba2aefa582b730de4ef0d508ec30e2a6e9e433c746499b545b",
-      "bajty": 17695137,
-      "asset_id": 752027015,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f68b3eae_T_20261115.zip"
+      "nazwa": "Postac_f68b3eae_T_20261115_ruch_v2.zip",
+      "sha256": "485ff491cfde97c54d1a8ca9c0f5d8639727c84861faa093360129ae8baa56a4",
+      "bajty": 16086828,
+      "asset_id": 752117462,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f68b3eae_T_20261115_ruch_v2.zip"
     }
   },
   "limit_tekstur": 2048,
@@ -63,20 +63,34 @@
     "szkielet_kosci": 65,
     "ponowny_import_FBX_w_Blenderze": 16,
     "do_oceny_rozciagniecia": [
-      "Run",
-      "SitDown",
       "SeatedIdle",
-      "StandUp",
-      "SeatedTalk"
+      "SeatedTalk",
+      "SitDown",
+      "StandUp"
     ],
     "geometria_i_tekstury": {
       "vertices": 16046,
       "faces": 16021,
       "same_topology": true,
-      "max_relative_rest_vertex_difference": 2.894225060336512e-7,
+      "max_relative_rest_vertex_difference": 3.1183757731290103e-7,
       "max_uv_delta": 0,
       "source_pixels_color_normal_metal_roughness": true
     },
-    "odbior_Unity": "oczekuje"
+    "odbior_Unity": "oczekuje",
+    "probki_na_klip": 42,
+    "korekta_rak_i_chodu": {
+      "hand_p99": [
+        1.5194,
+        1.4379
+      ],
+      "arm_p99": [
+        1.4276,
+        1.4024
+      ],
+      "mesh_p99": [
+        1.4377,
+        1.3851
+      ]
+    }
   }
 }

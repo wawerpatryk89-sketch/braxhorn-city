@@ -1,7 +1,7 @@
 {
   "id": "gosc_vip_f94492be",
   "nazwa": "Gościni kasyna i strefy VIP",
-  "wersja": "2026-11-15.1",
+  "wersja": "2026-11-15.2",
   "role": [
     "gosc_kasyna_vip"
   ],
@@ -40,9 +40,9 @@
   "model_sha256": "af06d9ce26b840497dfb817bd8ba1510b7978fc324aec9a6c1346bbf65657b01",
   "model_z_rigiem_sha256": "af06d9ce26b840497dfb817bd8ba1510b7978fc324aec9a6c1346bbf65657b01",
   "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
-  "paczka": "Postac_f94492be_T_20261115.zip",
-  "animowany_fbx_sha256": "a4c4c573bbdef72842f8853663e15fa1ad486d0245f71dfd03b77a11d276ab6c",
-  "manifest_sha256": "324393719a4060ef12d098726f5e68ec8d80ce923410b8623555b52c56d133e1",
+  "paczka": "Postac_f94492be_T_20261115_ruch_v2.zip",
+  "animowany_fbx_sha256": "70afa0fc5d725decfc3bb2b2ef6a57f7d04d26a1a50c53b3b5951ba593a8a3d1",
+  "manifest_sha256": "5742198ea5d8449f6334dce9d96b5d0d5cb09dd17cfd0ceeef0e867cbb06f81e",
   "wydanie": {
     "id": 443180649,
     "tag": "postacie-globalne-20261112",
@@ -50,11 +50,11 @@
   },
   "pliki": {
     "unity": {
-      "nazwa": "Postac_f94492be_T_20261115.zip",
-      "sha256": "80aed2cfede38140e8850c6e5607f4ce0bfbbeb4216859eb2e058171a7854122",
-      "bajty": 21140956,
-      "asset_id": 752026960,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f94492be_T_20261115.zip"
+      "nazwa": "Postac_f94492be_T_20261115_ruch_v2.zip",
+      "sha256": "cb4e86470a77488e16d8b3e225650d59403c7160d3738660c404620fcd0e3208",
+      "bajty": 19499561,
+      "asset_id": 752117364,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f94492be_T_20261115_ruch_v2.zip"
     }
   },
   "limit_tekstur": 2048,
@@ -63,23 +63,38 @@
     "szkielet_kosci": 65,
     "ponowny_import_FBX_w_Blenderze": 16,
     "do_oceny_rozciagniecia": [
-      "Run",
-      "SitDown",
-      "SeatedIdle",
-      "StandUp",
-      "ShakeDice",
       "DanceMain",
+      "Run",
       "SeatedDrink",
-      "SeatedTalk"
+      "SeatedIdle",
+      "SeatedTalk",
+      "ShakeDice",
+      "SitDown",
+      "StandUp"
     ],
     "geometria_i_tekstury": {
       "vertices": 17573,
       "faces": 17451,
       "same_topology": true,
-      "max_relative_rest_vertex_difference": 2.8286744748125955e-7,
+      "max_relative_rest_vertex_difference": 2.9099084547162443e-7,
       "max_uv_delta": 0,
       "source_pixels_color_normal_metal_roughness": true
     },
-    "odbior_Unity": "oczekuje"
+    "odbior_Unity": "oczekuje",
+    "probki_na_klip": 42,
+    "korekta_rak_i_chodu": {
+      "hand_p99": [
+        1.4778,
+        1.3565
+      ],
+      "arm_p99": [
+        1.3619,
+        1.3498
+      ],
+      "mesh_p99": [
+        1.3903,
+        1.3702
+      ]
+    }
   }
 }

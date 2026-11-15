@@ -1,7 +1,7 @@
 {
   "id": "plazowicz_fd5367ad",
   "nazwa": "Pracownik ekipy plażowej",
-  "wersja": "2026-11-15.1",
+  "wersja": "2026-11-15.2",
   "role": [
     "ekipa_plazowa"
   ],
@@ -45,9 +45,9 @@
   "model_sha256": "131aeabe2be6f1977c7c92e46df0d10648c162363cf637f8d7d27526d77893df",
   "model_z_rigiem_sha256": "131aeabe2be6f1977c7c92e46df0d10648c162363cf637f8d7d27526d77893df",
   "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
-  "paczka": "Postac_fd5367ad_T_20261115.zip",
-  "animowany_fbx_sha256": "0abeb954b56dc18b830fae7e75e6bb04cf23b2f2a05442f9fb3f7219e3d7eb4a",
-  "manifest_sha256": "650cdd614a8d6e600189f58e350eda7072f41631d26b324ada7e8e25f925ef90",
+  "paczka": "Postac_fd5367ad_T_20261115_ruch_v2.zip",
+  "animowany_fbx_sha256": "49bd356d05194065bf8bb88a3a7588f9ef00f7490680b4d692922ac83c9ddf8a",
+  "manifest_sha256": "fc2723951c8f797e972edb26e2cf4b4f3023f3f58e8b815569da806c28f81805",
   "wydanie": {
     "id": 443180649,
     "tag": "postacie-globalne-20261112",
@@ -55,11 +55,11 @@
   },
   "pliki": {
     "unity": {
-      "nazwa": "Postac_fd5367ad_T_20261115.zip",
-      "sha256": "ad6c7a6c38c3e4aab446c9b952b62f42e34d8d92290745da0a4935b38b486541",
-      "bajty": 17258450,
-      "asset_id": 752026688,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_fd5367ad_T_20261115.zip"
+      "nazwa": "Postac_fd5367ad_T_20261115_ruch_v2.zip",
+      "sha256": "595eb41468ed5835c76ef369acb086af1b5eb8a69cebd851fd9872fbb09fa1c3",
+      "bajty": 15476577,
+      "asset_id": 752116918,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_fd5367ad_T_20261115_ruch_v2.zip"
     }
   },
   "limit_tekstur": 2048,
@@ -68,28 +68,38 @@
     "szkielet_kosci": 65,
     "ponowny_import_FBX_w_Blenderze": 21,
     "do_oceny_rozciagniecia": [
+      "Jump",
+      "LoungerRest",
       "Run",
-      "SitDown",
+      "SeatedTalk",
       "StandUp",
       "Swim",
-      "SwimToEdge",
-      "ThrowFrisbee",
-      "Jump",
-      "SeatedTalk",
-      "VolleySet",
-      "VolleyBump",
-      "LoungerRest",
-      "TreadWater"
+      "WarmUp"
     ],
     "geometria_i_tekstury": {
       "vertices": 15877,
       "faces": 15852,
       "same_topology": true,
-      "max_relative_rest_vertex_difference": 2.891099805177331e-7,
+      "max_relative_rest_vertex_difference": 2.855623995550152e-7,
       "max_uv_delta": 0,
       "source_pixels_color_normal_metal_roughness": true
     },
-    "odbior_Unity": "oczekuje"
+    "odbior_Unity": "oczekuje",
+    "probki_na_klip": 42,
+    "korekta_rak_i_chodu": {
+      "hand_p99": [
+        1.5824,
+        1.471
+      ],
+      "arm_p99": [
+        1.4824,
+        1.4259
+      ],
+      "mesh_p99": [
+        1.5397,
+        1.4672
+      ]
+    }
   },
   "komplet_stroju_z": "postac_2b111236"
 }

@@ -3192,115 +3192,362 @@
       "path": "plazowiczka_790a1e43.fbx",
       "sources": []
     },
-    "d3752180382b3b76da5444740d62ad259682ee70fcfc6fcba73c5f3721828edf": {
+    "eb1fc98d128dc56c22580ca891c95582a4a6768f625194089a571316209edbfb": {
       "name": "VolleySet",
-      "sha256": "d3752180382b3b76da5444740d62ad259682ee70fcfc6fcba73c5f3721828edf",
+      "sha256": "eb1fc98d128dc56c22580ca891c95582a4a6768f625194089a571316209edbfb",
       "model_take": true,
       "actor": "plazowicz_fd5367ad",
       "state": "VolleySet",
-      "digest_kind": "blender_curves",
+      "digest_kind": "fbx_curves",
       "path": "plazowicz_fd5367ad.fbx",
       "sources": []
     },
-    "f83bf0556fe5cab0295a4486e148c80fdcaa890f2eebe8a86b3fd89f17228e72": {
+    "b035dc21810c0951e5879542cd21d741071897dd53e8438049c5373750e6feae": {
       "name": "VolleyBump",
-      "sha256": "f83bf0556fe5cab0295a4486e148c80fdcaa890f2eebe8a86b3fd89f17228e72",
+      "sha256": "b035dc21810c0951e5879542cd21d741071897dd53e8438049c5373750e6feae",
       "model_take": true,
       "actor": "plazowicz_fd5367ad",
       "state": "VolleyBump",
-      "digest_kind": "blender_curves",
+      "digest_kind": "fbx_curves",
       "path": "plazowicz_fd5367ad.fbx",
       "sources": []
     },
-    "a053b41d8bfbebc78daf906745efb2c6bef1b86493af2cd4c1ce9b00b6cf0103": {
+    "6a80141100e58e87d5cc9fab3b684f5fba226a13992fbaf8797a0022a272468c": {
       "name": "LoungerRest",
-      "sha256": "a053b41d8bfbebc78daf906745efb2c6bef1b86493af2cd4c1ce9b00b6cf0103",
+      "sha256": "6a80141100e58e87d5cc9fab3b684f5fba226a13992fbaf8797a0022a272468c",
       "model_take": true,
       "actor": "plazowicz_fd5367ad",
       "state": "LoungerRest",
-      "digest_kind": "blender_curves",
+      "digest_kind": "fbx_curves",
       "path": "plazowicz_fd5367ad.fbx",
       "sources": []
     },
-    "0f92bc68dd87865a2c110e80e390aa86ce455ac686c8fd31fe4d098d244cd109": {
+    "219c0ef388e9a1fc34510b1832ba403cad8928d215581cd4c9340f513d8e26a3": {
       "name": "TreadWater",
-      "sha256": "0f92bc68dd87865a2c110e80e390aa86ce455ac686c8fd31fe4d098d244cd109",
+      "sha256": "219c0ef388e9a1fc34510b1832ba403cad8928d215581cd4c9340f513d8e26a3",
       "model_take": true,
       "actor": "plazowicz_fd5367ad",
       "state": "TreadWater",
-      "digest_kind": "blender_curves",
+      "digest_kind": "fbx_curves",
       "path": "plazowicz_fd5367ad.fbx",
       "sources": []
     },
-    "6aec42580c6705529baacffbdc4264b65e4c282db699c5986271167d755f4bc5": {
+    "edd6529b24b406a2154356d1933ea9bb106d333161f985f87d0f1019f2bf7add": {
+      "name": "BeachStroll",
+      "sha256": "edd6529b24b406a2154356d1933ea9bb106d333161f985f87d0f1019f2bf7add",
+      "model_take": true,
+      "actor": "plazowicz_fd5367ad",
+      "state": "BeachStroll",
+      "digest_kind": "fbx_curves",
+      "path": "plazowicz_fd5367ad.fbx",
+      "sources": [],
+      "source_names": [
+        "Walking (1)",
+        "Walking (4)"
+      ],
+      "source_clips": [
+        "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "e108ae5fcdcdff101776c23420a6ae9e2d73785cb6f03337699bb798e1c869b5"
+      ],
+      "secondary_weight": 0.42000000000000004
+    },
+    "58d40bbca9b9a42f39253e472b7482b114c32b7138f8d0e8ab76151e740b5ce4": {
+      "name": "Walk",
+      "sha256": "58d40bbca9b9a42f39253e472b7482b114c32b7138f8d0e8ab76151e740b5ce4",
+      "model_take": true,
+      "actor": "plazowicz_fd5367ad",
+      "state": "Walk",
+      "digest_kind": "fbx_curves",
+      "path": "plazowicz_fd5367ad.fbx",
+      "sources": [],
+      "source_names": [
+        "Walking (1)",
+        "Walking (4)"
+      ],
+      "source_clips": [
+        "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "e108ae5fcdcdff101776c23420a6ae9e2d73785cb6f03337699bb798e1c869b5"
+      ],
+      "secondary_weight": 0.25
+    },
+    "ca291b84c12c5d1653d25fc84f9bfd14f1d9b865a1d73fc09bcb27a99cec6454": {
       "name": "GuideBoarding",
-      "sha256": "6aec42580c6705529baacffbdc4264b65e4c282db699c5986271167d755f4bc5",
+      "sha256": "ca291b84c12c5d1653d25fc84f9bfd14f1d9b865a1d73fc09bcb27a99cec6454",
       "model_take": true,
       "actor": "zaloga_f2d97b64",
       "state": "GuideBoarding",
-      "digest_kind": "blender_curves",
+      "digest_kind": "fbx_curves",
       "path": "zaloga_f2d97b64.fbx",
       "sources": []
     },
-    "877ab9a25dc7d2a5c2d0295c6ca00af4d569fb8711c5683c652fa0c0b59fb9f2": {
+    "76a7530997e64059f42d2f696a1f894bc1a464f895b0df60ce0ce94d8f2b91e8": {
+      "name": "DeckWalk",
+      "sha256": "76a7530997e64059f42d2f696a1f894bc1a464f895b0df60ce0ce94d8f2b91e8",
+      "model_take": true,
+      "actor": "zaloga_f2d97b64",
+      "state": "DeckWalk",
+      "digest_kind": "fbx_curves",
+      "path": "zaloga_f2d97b64.fbx",
+      "sources": [],
+      "source_names": [
+        "Strut Walking",
+        "Walking (2)"
+      ],
+      "source_clips": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "f3f0e33e19c4352df69879b78190e4ecbb55d2e51c2b4e1e9ee463b771d17322"
+      ],
+      "secondary_weight": 0.63
+    },
+    "52f30f866777298c66432ce4ef4f0ee543c5bf38b510d46e9535154a5e5d9a30": {
+      "name": "Walk",
+      "sha256": "52f30f866777298c66432ce4ef4f0ee543c5bf38b510d46e9535154a5e5d9a30",
+      "model_take": true,
+      "actor": "zaloga_f2d97b64",
+      "state": "Walk",
+      "digest_kind": "fbx_curves",
+      "path": "zaloga_f2d97b64.fbx",
+      "sources": [],
+      "source_names": [
+        "Strut Walking",
+        "Walking (2)"
+      ],
+      "source_clips": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "f3f0e33e19c4352df69879b78190e4ecbb55d2e51c2b4e1e9ee463b771d17322"
+      ],
+      "secondary_weight": 0.46
+    },
+    "815347e863193827c5e7957e88fa08b308989da978ffd46d94fbbb8651c60329": {
+      "name": "Walk",
+      "sha256": "815347e863193827c5e7957e88fa08b308989da978ffd46d94fbbb8651c60329",
+      "model_take": true,
+      "actor": "imprezowiczka_f8ecb176",
+      "state": "Walk",
+      "digest_kind": "fbx_curves",
+      "path": "imprezowiczka_f8ecb176.fbx",
+      "sources": [],
+      "source_names": [
+        "Strut Walking",
+        "Walking (1)"
+      ],
+      "source_clips": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb"
+      ],
+      "secondary_weight": 0.2
+    },
+    "da62add310078b420e798333dc9acd7e1873af5c1123fe51779ee5b04b52ad7b": {
+      "name": "VipStroll",
+      "sha256": "da62add310078b420e798333dc9acd7e1873af5c1123fe51779ee5b04b52ad7b",
+      "model_take": true,
+      "actor": "gosc_vip_f94492be",
+      "state": "VipStroll",
+      "digest_kind": "fbx_curves",
+      "path": "gosc_vip_f94492be.fbx",
+      "sources": [],
+      "source_names": [
+        "Strut Walking",
+        "Walking (4)"
+      ],
+      "source_clips": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "e108ae5fcdcdff101776c23420a6ae9e2d73785cb6f03337699bb798e1c869b5"
+      ],
+      "secondary_weight": 0.49
+    },
+    "8e51daf70dcb34cae571127fc83ae91bf35d3cca05a889021284d0e547bd8b34": {
+      "name": "Walk",
+      "sha256": "8e51daf70dcb34cae571127fc83ae91bf35d3cca05a889021284d0e547bd8b34",
+      "model_take": true,
+      "actor": "gosc_vip_f94492be",
+      "state": "Walk",
+      "digest_kind": "fbx_curves",
+      "path": "gosc_vip_f94492be.fbx",
+      "sources": [],
+      "source_names": [
+        "Strut Walking",
+        "Walking (4)"
+      ],
+      "source_clips": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "e108ae5fcdcdff101776c23420a6ae9e2d73785cb6f03337699bb798e1c869b5"
+      ],
+      "secondary_weight": 0.32
+    },
+    "513e36b9e4861e47259049c0a7576d371a0cbfe472415c8f207a325579096525": {
       "name": "PulseCheck",
-      "sha256": "877ab9a25dc7d2a5c2d0295c6ca00af4d569fb8711c5683c652fa0c0b59fb9f2",
+      "sha256": "513e36b9e4861e47259049c0a7576d371a0cbfe472415c8f207a325579096525",
       "model_take": true,
       "actor": "pielegniarka_f68b3eae",
       "state": "PulseCheck",
-      "digest_kind": "blender_curves",
+      "digest_kind": "fbx_curves",
       "path": "pielegniarka_f68b3eae.fbx",
       "sources": []
     },
-    "994e0452fcc4e632bf4ae66a43ef3f97de616f06ab0fb23572072b570058fcd4": {
+    "2319eba573f28d6de747540a7af8cbad3c2e0bb430ebc7c87a59d850d0ab4afc": {
       "name": "PatientExam",
-      "sha256": "994e0452fcc4e632bf4ae66a43ef3f97de616f06ab0fb23572072b570058fcd4",
+      "sha256": "2319eba573f28d6de747540a7af8cbad3c2e0bb430ebc7c87a59d850d0ab4afc",
       "model_take": true,
       "actor": "pielegniarka_f68b3eae",
       "state": "PatientExam",
-      "digest_kind": "blender_curves",
+      "digest_kind": "fbx_curves",
       "path": "pielegniarka_f68b3eae.fbx",
       "sources": []
     },
-    "7128a824335f1b2f0441ec8ddb290e196bf0680b9e81c4bd632bda5500e07aae": {
+    "f284af7ac44f185f62f02b548a9e7094ea759e96503889a654d5145b405ad8be": {
+      "name": "ApproachBed",
+      "sha256": "f284af7ac44f185f62f02b548a9e7094ea759e96503889a654d5145b405ad8be",
+      "model_take": true,
+      "actor": "pielegniarka_f68b3eae",
+      "state": "ApproachBed",
+      "digest_kind": "fbx_curves",
+      "path": "pielegniarka_f68b3eae.fbx",
+      "sources": [],
+      "source_names": [
+        "Strut Walking",
+        "Walking (1)"
+      ],
+      "source_clips": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb"
+      ],
+      "secondary_weight": 0.6900000000000001
+    },
+    "a7ee260ab12c36e9f8055db99214ceb1fec2919825f4a3fa757b9754e864a0d4": {
+      "name": "Walk",
+      "sha256": "a7ee260ab12c36e9f8055db99214ceb1fec2919825f4a3fa757b9754e864a0d4",
+      "model_take": true,
+      "actor": "pielegniarka_f68b3eae",
+      "state": "Walk",
+      "digest_kind": "fbx_curves",
+      "path": "pielegniarka_f68b3eae.fbx",
+      "sources": [],
+      "source_names": [
+        "Strut Walking",
+        "Walking (1)"
+      ],
+      "source_clips": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb"
+      ],
+      "secondary_weight": 0.52
+    },
+    "1d789fe76af0477fac411429c684e585878bcfcdb072b8d539dc16793b755a43": {
       "name": "UseLaptop",
-      "sha256": "7128a824335f1b2f0441ec8ddb290e196bf0680b9e81c4bd632bda5500e07aae",
+      "sha256": "1d789fe76af0477fac411429c684e585878bcfcdb072b8d539dc16793b755a43",
       "model_take": true,
       "actor": "recepcjonistka_f2a98234",
       "state": "UseLaptop",
-      "digest_kind": "blender_curves",
+      "digest_kind": "fbx_curves",
       "path": "recepcjonistka_f2a98234.fbx",
       "sources": []
     },
-    "c805f94ff2a1bacc4c8f92a648000d1e430637436f707c8cf4794b83e102adfd": {
+    "0eedca270ee8901377c0cdb7b0ce94f33f0ffab8cedb9d08ad79d44c7491384a": {
       "name": "HandKeycard",
-      "sha256": "c805f94ff2a1bacc4c8f92a648000d1e430637436f707c8cf4794b83e102adfd",
+      "sha256": "0eedca270ee8901377c0cdb7b0ce94f33f0ffab8cedb9d08ad79d44c7491384a",
       "model_take": true,
       "actor": "recepcjonistka_f2a98234",
       "state": "HandKeycard",
-      "digest_kind": "blender_curves",
+      "digest_kind": "fbx_curves",
       "path": "recepcjonistka_f2a98234.fbx",
       "sources": []
     },
-    "ad45dabe715e61c45c2b57adf4883c3077ea0fdc17f618388ecc4a7958dc6099": {
+    "005804fc78849a43783accdf062e935db0bbd5721d3941895614c177c57c987d": {
+      "name": "LobbyWalk",
+      "sha256": "005804fc78849a43783accdf062e935db0bbd5721d3941895614c177c57c987d",
+      "model_take": true,
+      "actor": "recepcjonistka_f2a98234",
+      "state": "LobbyWalk",
+      "digest_kind": "fbx_curves",
+      "path": "recepcjonistka_f2a98234.fbx",
+      "sources": [],
+      "source_names": [
+        "Strut Walking",
+        "Walking (4)"
+      ],
+      "source_clips": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "e108ae5fcdcdff101776c23420a6ae9e2d73785cb6f03337699bb798e1c869b5"
+      ],
+      "secondary_weight": 0.75
+    },
+    "164ee0fec225999856835457ca2fb428c620c6f5b28a27dcbfb58b674e071ef1": {
+      "name": "Walk",
+      "sha256": "164ee0fec225999856835457ca2fb428c620c6f5b28a27dcbfb58b674e071ef1",
+      "model_take": true,
+      "actor": "recepcjonistka_f2a98234",
+      "state": "Walk",
+      "digest_kind": "fbx_curves",
+      "path": "recepcjonistka_f2a98234.fbx",
+      "sources": [],
+      "source_names": [
+        "Strut Walking",
+        "Walking (4)"
+      ],
+      "source_clips": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "e108ae5fcdcdff101776c23420a6ae9e2d73785cb6f03337699bb798e1c869b5"
+      ],
+      "secondary_weight": 0.58
+    },
+    "03e3f54cc560e0414584262adca17fdc838cd08a0ec94b14b93f9d3bf079e567": {
       "name": "ShelfStock",
-      "sha256": "ad45dabe715e61c45c2b57adf4883c3077ea0fdc17f618388ecc4a7958dc6099",
+      "sha256": "03e3f54cc560e0414584262adca17fdc838cd08a0ec94b14b93f9d3bf079e567",
       "model_take": true,
       "actor": "pracownica_sklepu_fffa1d79",
       "state": "ShelfStock",
-      "digest_kind": "blender_curves",
+      "digest_kind": "fbx_curves",
       "path": "pracownica_sklepu_fffa1d79.fbx",
       "sources": []
     },
-    "906f370e94e0706a74b86d0234d47cc999b269cc6f85e6280f2417767fb241f5": {
+    "5a47f801e987b78b15517e9af2987354cc41f603d339cdec5c77f35894551686": {
       "name": "GuideAisle",
-      "sha256": "906f370e94e0706a74b86d0234d47cc999b269cc6f85e6280f2417767fb241f5",
+      "sha256": "5a47f801e987b78b15517e9af2987354cc41f603d339cdec5c77f35894551686",
       "model_take": true,
       "actor": "pracownica_sklepu_fffa1d79",
       "state": "GuideAisle",
-      "digest_kind": "blender_curves",
+      "digest_kind": "fbx_curves",
       "path": "pracownica_sklepu_fffa1d79.fbx",
       "sources": []
+    },
+    "afa832af5f60529ec102671bfd64f0e80a1c21a711b421ea69f269c3833d8b24": {
+      "name": "AisleWalk",
+      "sha256": "afa832af5f60529ec102671bfd64f0e80a1c21a711b421ea69f269c3833d8b24",
+      "model_take": true,
+      "actor": "pracownica_sklepu_fffa1d79",
+      "state": "AisleWalk",
+      "digest_kind": "fbx_curves",
+      "path": "pracownica_sklepu_fffa1d79.fbx",
+      "sources": [],
+      "source_names": [
+        "Strut Walking",
+        "Walking (2)"
+      ],
+      "source_clips": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "f3f0e33e19c4352df69879b78190e4ecbb55d2e51c2b4e1e9ee463b771d17322"
+      ],
+      "secondary_weight": 0.53
+    },
+    "51408577c6c5e50a3083a114ddde98643a5ea278c8196c7ecd015bb1a4247d3d": {
+      "name": "Walk",
+      "sha256": "51408577c6c5e50a3083a114ddde98643a5ea278c8196c7ecd015bb1a4247d3d",
+      "model_take": true,
+      "actor": "pracownica_sklepu_fffa1d79",
+      "state": "Walk",
+      "digest_kind": "fbx_curves",
+      "path": "pracownica_sklepu_fffa1d79.fbx",
+      "sources": [],
+      "source_names": [
+        "Strut Walking",
+        "Walking (2)"
+      ],
+      "source_clips": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "f3f0e33e19c4352df69879b78190e4ecbb55d2e51c2b4e1e9ee463b771d17322"
+      ],
+      "secondary_weight": 0.36
     }
   },
   "profiles": {
@@ -4306,7 +4553,7 @@
     },
     "plazowicz_fd5367ad": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+      "Walk": "58d40bbca9b9a42f39253e472b7482b114c32b7138f8d0e8ab76151e740b5ce4",
       "Run": "0901cda64b78eb041463479a5a0234a69f318849f781a8ada29a978efcbf17d2",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
       "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
@@ -4314,7 +4561,7 @@
       "Talk": "6fba15500c2ee3b1ec9b05ebec9d80c6805b852e70a9a627c3b86fae81a557a1",
       "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
       "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
-      "BeachStroll": "e108ae5fcdcdff101776c23420a6ae9e2d73785cb6f03337699bb798e1c869b5",
+      "BeachStroll": "edd6529b24b406a2154356d1933ea9bb106d333161f985f87d0f1019f2bf7add",
       "Swim": "8642d8f9401205f7a48e727f4a41e7ba83377fe47c0922f6b78bec6d2a9726b6",
       "SwimToEdge": "38cec51310bd099bb65b369fad8523de91540facdc21589a540719a1ae594b96",
       "ThrowFrisbee": "50de995d19ac34232dd6cba4b5ce3fb4c683e1ed9e48cbcc2cf78b36e340dbbe",
@@ -4322,14 +4569,14 @@
       "Jump": "0b65d5a5757e80c049adff05025fa33513a9601dbe88f21561b2530db9453b8f",
       "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
       "SeatedTalk": "42c0973017793b8827c58e7f7d0738c76e395bc744969a1ff3f493ba717b83c7",
-      "VolleySet": "d3752180382b3b76da5444740d62ad259682ee70fcfc6fcba73c5f3721828edf",
-      "VolleyBump": "f83bf0556fe5cab0295a4486e148c80fdcaa890f2eebe8a86b3fd89f17228e72",
-      "LoungerRest": "a053b41d8bfbebc78daf906745efb2c6bef1b86493af2cd4c1ce9b00b6cf0103",
-      "TreadWater": "0f92bc68dd87865a2c110e80e390aa86ce455ac686c8fd31fe4d098d244cd109"
+      "VolleySet": "eb1fc98d128dc56c22580ca891c95582a4a6768f625194089a571316209edbfb",
+      "VolleyBump": "b035dc21810c0951e5879542cd21d741071897dd53e8438049c5373750e6feae",
+      "LoungerRest": "6a80141100e58e87d5cc9fab3b684f5fba226a13992fbaf8797a0022a272468c",
+      "TreadWater": "219c0ef388e9a1fc34510b1832ba403cad8928d215581cd4c9340f513d8e26a3"
     },
     "zaloga_f2d97b64": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "f3f0e33e19c4352df69879b78190e4ecbb55d2e51c2b4e1e9ee463b771d17322",
+      "Walk": "52f30f866777298c66432ce4ef4f0ee543c5bf38b510d46e9535154a5e5d9a30",
       "Run": "6d06cae46042c086ccc055734fb72ef6ee7cd5a2c8a043f1f8c9bdd346f25a90",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
       "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
@@ -4337,17 +4584,17 @@
       "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
       "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
       "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
-      "DeckWalk": "e108ae5fcdcdff101776c23420a6ae9e2d73785cb6f03337699bb798e1c869b5",
+      "DeckWalk": "76a7530997e64059f42d2f696a1f894bc1a464f895b0df60ce0ce94d8f2b91e8",
       "Signal": "95561882e402755ff94bce37d8755998c6785218bdb61682ed9bfa9a4cc82850",
       "CarryCargo": "2fd18e423c94c81eef764eb90f8de8a9b034da7eb87ef339494c7e08a200fb1b",
       "Warn": "d22b71e5cfb92c5c4badc22282e0e53f5b95c5391b875b40a5f3162360045a63",
       "SeatedTalk": "42c0973017793b8827c58e7f7d0738c76e395bc744969a1ff3f493ba717b83c7",
       "Phone": "1c18022802b2e357a1a342439e5dc2b1b2f24a8ac4e62e4433bf98c4260500f1",
-      "GuideBoarding": "6aec42580c6705529baacffbdc4264b65e4c282db699c5986271167d755f4bc5"
+      "GuideBoarding": "ca291b84c12c5d1653d25fc84f9bfd14f1d9b865a1d73fc09bcb27a99cec6454"
     },
     "imprezowiczka_f8ecb176": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+      "Walk": "815347e863193827c5e7957e88fa08b308989da978ffd46d94fbbb8651c60329",
       "Run": "cfb69c075771a7d74dfa674636a61ab17e1874bfebbf7ec7e48921e7337e10a7",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
       "SeatedIdle": "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06",
@@ -4366,7 +4613,7 @@
     },
     "gosc_vip_f94492be": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+      "Walk": "8e51daf70dcb34cae571127fc83ae91bf35d3cca05a889021284d0e547bd8b34",
       "Run": "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
       "SeatedIdle": "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06",
@@ -4376,7 +4623,7 @@
       "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
       "PlayCards": "cd1bb5168da85c738796870c3b0ae3b443833fbad3227edfe99f0893b772ea9d",
       "ShakeDice": "8282707f1e49556d252373a608b325e2bb00a6b4448132bcc830b80d276e3dc5",
-      "VipStroll": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+      "VipStroll": "da62add310078b420e798333dc9acd7e1873af5c1123fe51779ee5b04b52ad7b",
       "DanceMain": "b04064ecbaf1ff9cf4d7c6d6a40cb96e73df26181c38577ab5c360d39e36597e",
       "GreetGuest": "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122",
       "SeatedDrink": "376b615928c0a8eb451f65ce6e7672adeaf5b5ad9693763e74317224d4b47c3f",
@@ -4384,7 +4631,7 @@
     },
     "pielegniarka_f68b3eae": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+      "Walk": "a7ee260ab12c36e9f8055db99214ceb1fec2919825f4a3fa757b9754e864a0d4",
       "Run": "6d06cae46042c086ccc055734fb72ef6ee7cd5a2c8a043f1f8c9bdd346f25a90",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
       "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
@@ -4392,17 +4639,17 @@
       "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
       "Wave": "95561882e402755ff94bce37d8755998c6785218bdb61682ed9bfa9a4cc82850",
       "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
-      "ApproachBed": "f3f0e33e19c4352df69879b78190e4ecbb55d2e51c2b4e1e9ee463b771d17322",
+      "ApproachBed": "f284af7ac44f185f62f02b548a9e7094ea759e96503889a654d5145b405ad8be",
       "CarrySupplies": "2fd18e423c94c81eef764eb90f8de8a9b034da7eb87ef339494c7e08a200fb1b",
       "Phone": "1c18022802b2e357a1a342439e5dc2b1b2f24a8ac4e62e4433bf98c4260500f1",
       "ExplainCare": "55c7299857c8439242089adca10333b6f9f5458c2c9a1c0feeff78cf4d16d0e5",
       "SeatedTalk": "42c0973017793b8827c58e7f7d0738c76e395bc744969a1ff3f493ba717b83c7",
-      "PulseCheck": "877ab9a25dc7d2a5c2d0295c6ca00af4d569fb8711c5683c652fa0c0b59fb9f2",
-      "PatientExam": "994e0452fcc4e632bf4ae66a43ef3f97de616f06ab0fb23572072b570058fcd4"
+      "PulseCheck": "513e36b9e4861e47259049c0a7576d371a0cbfe472415c8f207a325579096525",
+      "PatientExam": "2319eba573f28d6de747540a7af8cbad3c2e0bb430ebc7c87a59d850d0ab4afc"
     },
     "recepcjonistka_f2a98234": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "e108ae5fcdcdff101776c23420a6ae9e2d73785cb6f03337699bb798e1c869b5",
+      "Walk": "164ee0fec225999856835457ca2fb428c620c6f5b28a27dcbfb58b674e071ef1",
       "Run": "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
       "SeatedIdle": "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06",
@@ -4411,16 +4658,16 @@
       "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
       "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
       "GreetGuest": "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122",
-      "LobbyWalk": "f3f0e33e19c4352df69879b78190e4ecbb55d2e51c2b4e1e9ee463b771d17322",
+      "LobbyWalk": "005804fc78849a43783accdf062e935db0bbd5721d3941895614c177c57c987d",
       "Phone": "1c18022802b2e357a1a342439e5dc2b1b2f24a8ac4e62e4433bf98c4260500f1",
       "ExplainStay": "a89bfa49f93edcae506f45e3138063a10b33c2d1701c73632f3763cee722798e",
       "SeatedTalk": "42c0973017793b8827c58e7f7d0738c76e395bc744969a1ff3f493ba717b83c7",
-      "UseLaptop": "7128a824335f1b2f0441ec8ddb290e196bf0680b9e81c4bd632bda5500e07aae",
-      "HandKeycard": "c805f94ff2a1bacc4c8f92a648000d1e430637436f707c8cf4794b83e102adfd"
+      "UseLaptop": "1d789fe76af0477fac411429c684e585878bcfcdb072b8d539dc16793b755a43",
+      "HandKeycard": "0eedca270ee8901377c0cdb7b0ce94f33f0ffab8cedb9d08ad79d44c7491384a"
     },
     "pracownica_sklepu_fffa1d79": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
-      "Walk": "f3f0e33e19c4352df69879b78190e4ecbb55d2e51c2b4e1e9ee463b771d17322",
+      "Walk": "51408577c6c5e50a3083a114ddde98643a5ea278c8196c7ecd015bb1a4247d3d",
       "Run": "cfb69c075771a7d74dfa674636a61ab17e1874bfebbf7ec7e48921e7337e10a7",
       "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
       "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
@@ -4431,10 +4678,10 @@
       "CarryBox": "2fd18e423c94c81eef764eb90f8de8a9b034da7eb87ef339494c7e08a200fb1b",
       "GreetCustomer": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
       "ExplainProduct": "6fba15500c2ee3b1ec9b05ebec9d80c6805b852e70a9a627c3b86fae81a557a1",
-      "AisleWalk": "e108ae5fcdcdff101776c23420a6ae9e2d73785cb6f03337699bb798e1c869b5",
+      "AisleWalk": "afa832af5f60529ec102671bfd64f0e80a1c21a711b421ea69f269c3833d8b24",
       "SeatedTalk": "42c0973017793b8827c58e7f7d0738c76e395bc744969a1ff3f493ba717b83c7",
-      "ShelfStock": "ad45dabe715e61c45c2b57adf4883c3077ea0fdc17f618388ecc4a7958dc6099",
-      "GuideAisle": "906f370e94e0706a74b86d0234d47cc999b269cc6f85e6280f2417767fb241f5"
+      "ShelfStock": "03e3f54cc560e0414584262adca17fdc838cd08a0ec94b14b93f9d3bf079e567",
+      "GuideAisle": "5a47f801e987b78b15517e9af2987354cc41f603d339cdec5c77f35894551686"
     }
   },
   "pending": {

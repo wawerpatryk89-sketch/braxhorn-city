@@ -30,7 +30,7 @@
   ],
   "zrodla_stanow": {
     "Idle": "Regular_Light_mixamo_a2d488d",
-    "Walk": "Walking (2)",
+    "Walk": "Strut Walking + Walking (2) (Blender)",
     "Run": "Run Forward",
     "SitDown": "Sitting (1)",
     "SeatedIdle": "Seated Idle",
@@ -38,7 +38,7 @@
     "Talk": "Talking (3)",
     "Wave": "Waving",
     "Point": "Pointing Gesture",
-    "DeckWalk": "Walking (4)",
+    "DeckWalk": "Strut Walking + Walking (2) (Blender)",
     "Signal": "Waving (1)",
     "CarryCargo": "Carrying",
     "Warn": "Yelling",
@@ -46,9 +46,31 @@
     "Phone": "Talking On Phone",
     "GuideBoarding": "Blender – GuideBoarding"
   },
-  "sprawdzono": "Ponowny import FBX w Blenderze, 13 próbek na stan",
+  "sprawdzono": "Ponowny import FBX w Blenderze, 42 próbki każdego stanu oraz osobne ujęcia całej postaci i ręki.",
   "test_w_Unity": false,
-  "paczka_modelu": "Postac_f2d97b64_T_20261115.zip",
-  "sha256_paczki": "4ec8ce5bc088471f667e8e185fee1ddedca843a9c40ef8035fe17a7515566ed5",
-  "sha256_modelu_zrodlowego": "c2f14ded940cafb88454eb959fd75496d06d487ffe03a9224966103f485ff748"
+  "paczka_modelu": "Postac_f2d97b64_T_20261115_ruch_v2.zip",
+  "sha256_paczki": "ee5ede94264f5a02d22f98872550f77ed1940b9d7a77f37d640e2c265e83bc53",
+  "sha256_modelu_zrodlowego": "c2f14ded940cafb88454eb959fd75496d06d487ffe03a9224966103f485ff748",
+  "chody": {
+    "DeckWalk": {
+      "sources": [
+        "Strut Walking",
+        "Walking (2)"
+      ],
+      "secondary_weight": 0.63,
+      "cycle_frames": 36,
+      "stride_scale": 0.8083999999999999,
+      "lane_scale": 0.88
+    },
+    "Walk": {
+      "sources": [
+        "Strut Walking",
+        "Walking (2)"
+      ],
+      "secondary_weight": 0.46,
+      "cycle_frames": 33,
+      "stride_scale": 0.86,
+      "lane_scale": 0.88
+    }
+  }
 }

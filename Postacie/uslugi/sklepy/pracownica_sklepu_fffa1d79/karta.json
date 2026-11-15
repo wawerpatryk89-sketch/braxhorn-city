@@ -1,7 +1,7 @@
 {
   "id": "pracownica_sklepu_fffa1d79",
   "nazwa": "Pracownica sali supermarketu BRAXHORN",
-  "wersja": "2026-11-15.1",
+  "wersja": "2026-11-15.2",
   "role": [
     "pracownica_sali"
   ],
@@ -39,9 +39,9 @@
   "model_sha256": "d7d71388818410e4fc7895c6030c1d9bdc1007952135416f5923f5dd062aa21f",
   "model_z_rigiem_sha256": "d7d71388818410e4fc7895c6030c1d9bdc1007952135416f5923f5dd062aa21f",
   "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
-  "paczka": "Postac_fffa1d79_T_20261115.zip",
-  "animowany_fbx_sha256": "e6c4a1f0478cfea060313c24d7947cca450d83bf234aa7e1adcc10add8f4a8f9",
-  "manifest_sha256": "fc962266bc7de682baf73a32dd9da53bb0c9b00dac39a856abf2766dbdf7c262",
+  "paczka": "Postac_fffa1d79_T_20261115_ruch_v2.zip",
+  "animowany_fbx_sha256": "cd0d0afb367449751fc5f502fcee09efcfbeab516c01cf1ae5ea4d9a0fa50c23",
+  "manifest_sha256": "fac966d4d8b688bf1dd9c58a3794c869166a27fbe208f64cb503306b9a40b075",
   "wydanie": {
     "id": 443180649,
     "tag": "postacie-globalne-20261112",
@@ -49,11 +49,11 @@
   },
   "pliki": {
     "unity": {
-      "nazwa": "Postac_fffa1d79_T_20261115.zip",
-      "sha256": "371e05ee6b199983725a62c2c84128928bef8821406efd8b68f7af94649f7879",
-      "bajty": 16763668,
-      "asset_id": 752027186,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_fffa1d79_T_20261115.zip"
+      "nazwa": "Postac_fffa1d79_T_20261115_ruch_v2.zip",
+      "sha256": "5d5bcf150ffe98ca3989a58e890da167d1d82f8a274dc02975b1f7d02a869ac1",
+      "bajty": 14542751,
+      "asset_id": 752117611,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_fffa1d79_T_20261115_ruch_v2.zip"
     }
   },
   "limit_tekstur": 2048,
@@ -62,21 +62,34 @@
     "szkielet_kosci": 65,
     "ponowny_import_FBX_w_Blenderze": 16,
     "do_oceny_rozciagniecia": [
-      "Run",
+      "SeatedTalk",
       "SitDown",
-      "SeatedIdle",
       "StandUp",
-      "Wave",
-      "SeatedTalk"
+      "Wave"
     ],
     "geometria_i_tekstury": {
       "vertices": 16583,
       "faces": 16463,
       "same_topology": true,
-      "max_relative_rest_vertex_difference": 2.72823327660178e-7,
+      "max_relative_rest_vertex_difference": 2.8525094535803694e-7,
       "max_uv_delta": 0,
       "source_pixels_color_normal_metal_roughness": true
     },
-    "odbior_Unity": "oczekuje"
+    "odbior_Unity": "oczekuje",
+    "probki_na_klip": 42,
+    "korekta_rak_i_chodu": {
+      "hand_p99": [
+        1.4962,
+        1.3716
+      ],
+      "arm_p99": [
+        1.4415,
+        1.4115
+      ],
+      "mesh_p99": [
+        1.4704,
+        1.3926
+      ]
+    }
   }
 }

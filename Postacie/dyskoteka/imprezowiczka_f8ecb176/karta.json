@@ -1,7 +1,7 @@
 {
   "id": "imprezowiczka_f8ecb176",
   "nazwa": "Imprezowiczka w srebrnej sukience",
-  "wersja": "2026-11-15.1",
+  "wersja": "2026-11-15.2",
   "role": [
     "imprezowiczka"
   ],
@@ -40,9 +40,9 @@
   "model_sha256": "cad1942aa9fa3c8acdb83f9f0328ff12600c8a30acecd4d1ec3a4ffae026ce48",
   "model_z_rigiem_sha256": "cad1942aa9fa3c8acdb83f9f0328ff12600c8a30acecd4d1ec3a4ffae026ce48",
   "status": "Sprawdzono po ponownym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
-  "paczka": "Postac_f8ecb176_T_20261115.zip",
-  "animowany_fbx_sha256": "facca58667c0f3f01034c2be5fcf7fdd1698eddfb0501f46955d006737da3d0c",
-  "manifest_sha256": "64180df3b4eb7aa0a0263ab0fc9ed30655c429a6bd4528769a88c38b1fe70635",
+  "paczka": "Postac_f8ecb176_T_20261115_ruch_v2.zip",
+  "animowany_fbx_sha256": "e5e2b46473004562660b94b79b63803963084d301119ec7f2f8d94d9a6208da8",
+  "manifest_sha256": "8cf8b9bbfa68e398f63f0aabf0f4edcc8558ee1e5d87fa4439319abb0f71a05e",
   "wydanie": {
     "id": 443180649,
     "tag": "postacie-globalne-20261112",
@@ -50,11 +50,11 @@
   },
   "pliki": {
     "unity": {
-      "nazwa": "Postac_f8ecb176_T_20261115.zip",
-      "sha256": "986ec5ed13badb5c8dbfbc55b71e59d3d243e0d85e9ada995294098331869820",
-      "bajty": 21392410,
-      "asset_id": 752026887,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f8ecb176_T_20261115.zip"
+      "nazwa": "Postac_f8ecb176_T_20261115_ruch_v2.zip",
+      "sha256": "0d5c664ad009dd726147f1eb250e0d7ca1ea89bf83af524135953dbec8837fe5",
+      "bajty": 19907843,
+      "asset_id": 752117277,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-63492465c60eeece743e/Postac_f8ecb176_T_20261115_ruch_v2.zip"
     }
   },
   "limit_tekstur": 2048,
@@ -63,23 +63,36 @@
     "szkielet_kosci": 65,
     "ponowny_import_FBX_w_Blenderze": 17,
     "do_oceny_rozciagniecia": [
-      "SitDown",
-      "SeatedIdle",
-      "StandUp",
-      "DanceMain",
       "Applaud",
+      "DanceMain",
       "SeatedDrink",
       "SeatedTalk",
-      "Celebrate"
+      "SitDown",
+      "StandUp"
     ],
     "geometria_i_tekstury": {
       "vertices": 17277,
       "faces": 17225,
       "same_topology": true,
-      "max_relative_rest_vertex_difference": 1.6157684416922986e-7,
+      "max_relative_rest_vertex_difference": 2.8198307624910337e-7,
       "max_uv_delta": 0,
       "source_pixels_color_normal_metal_roughness": true
     },
-    "odbior_Unity": "oczekuje"
+    "odbior_Unity": "oczekuje",
+    "probki_na_klip": 42,
+    "korekta_rak_i_chodu": {
+      "hand_p99": [
+        1.5981,
+        1.48
+      ],
+      "arm_p99": [
+        1.5308,
+        1.4463
+      ],
+      "mesh_p99": [
+        1.4763,
+        1.4198
+      ]
+    }
   }
 }
