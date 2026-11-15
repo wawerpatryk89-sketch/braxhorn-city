@@ -1,0 +1,54 @@
+{
+  "id": "braxhorn.vehicle.roadster_metalik",
+  "displayName": "Braxhorn Roadster Metalik",
+  "version": "1.0.0",
+  "scope": "shared, all city regions",
+  "sourceStorage": {
+    "type": "private owner library",
+    "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
+    "sourceFile": "Braxhorn_Roadster_Metalik.glb",
+    "sourceSHA256": "cb0e11c9661898742e362fbf5b678e52c124cb6299eafcf2f00c5b5bb3d4c1db",
+    "packageFile": "BraxhornRoadsterMetalik.unitypackage"
+  },
+  "model": {
+    "sha256": "d9e6ca1e78b702006eb4f923f7ed7783dd22579c76d00f10ebd04a256a37a6c5",
+    "bytes": 8719764,
+    "trianglesInstanced": 184532,
+    "widthIncludingMirrorsM": 1.97,
+    "lengthM": 4.5,
+    "wheelPivots": [
+      "Front left wheel assembly",
+      "Front right wheel assembly",
+      "Rear left wheel assembly",
+      "Rear right wheel assembly"
+    ],
+    "embeddedImages": 6,
+    "gltfForward": "+Z",
+    "sourceUnit": "metre",
+    "designLengthM": 4.5,
+    "designScale": "Assumed game length for the supplied normalized model",
+    "frontSeats": 2,
+    "heightM": 1.348
+  },
+  "unityPackage": {
+    "assetPath": "Assets/Braxhorn/Shared/Vehicles/BraxhornRoadsterMetalik.glb",
+    "assetGuid": "ac0d7dd2d5bf54598dd0ab6b40ff15a3",
+    "sha256": "fcd647ffb0654d0acee1e9e4f5e8d17194303aa653e10622cb1912bea7c0acd6",
+    "bytes": 5820201,
+    "importer": "com.unity.cloud.gltfast",
+    "targetImporterVersion": "6.20.0",
+    "worldScaleK": 1.294,
+    "applyWorldScaleOnce": true
+  },
+  "validation": {
+    "blenderReimport": true,
+    "unityPackageByteMatch": true,
+    "unityPlayMode": "untested",
+    "androidDevice": "untested",
+    "sharedGeometryAppliedToRegionScenes": false
+  },
+  "ownerApproval": {
+    "status": "approved for shared game assets",
+    "date": "2026-11-15"
+  }
+}
