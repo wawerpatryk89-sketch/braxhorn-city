@@ -3365,7 +3365,8 @@
       "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
       "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
       "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
-      "KickBall": "d9c58808d28367dcbebe935171bc4cd45bc541a9ba8fd8bb888b76900b4a5ff1"
+      "KickBall": "d9c58808d28367dcbebe935171bc4cd45bc541a9ba8fd8bb888b76900b4a5ff1",
+      "Celebrate": "382372b9fb0a1ce1eda1ebbc705feec5028eba59a2bd5900cd2e6424d7b1199f"
     },
     "zadymiarz_3bdfa236": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
@@ -3388,7 +3389,9 @@
       "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
       "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
       "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
-      "RoundhouseKick": "a9c98e86a9ff9b38b1d830ecfdfc0af140558a80b92885da5581002dc8bd3fb4"
+      "RoundhouseKick": "a9c98e86a9ff9b38b1d830ecfdfc0af140558a80b92885da5581002dc8bd3fb4",
+      "GuardStepForward": "fc73af8c7debec0570d0d761aa53e6b0a6af19ce25e7381e71563d4178e872c8",
+      "GuardStepBack": "7c26ff8b3dee2163b998858acf64047ba0d2413a9cb499f78dee042b27610355"
     },
     "kapitan_4005caea": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
@@ -3414,7 +3417,8 @@
       "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
       "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
       "Carry": "2fd18e423c94c81eef764eb90f8de8a9b034da7eb87ef339494c7e08a200fb1b",
-      "TalkOnPhone": "1c18022802b2e357a1a342439e5dc2b1b2f24a8ac4e62e4433bf98c4260500f1"
+      "TalkOnPhone": "1c18022802b2e357a1a342439e5dc2b1b2f24a8ac4e62e4433bf98c4260500f1",
+      "GreetGuest": "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122"
     },
     "lekarz_34571d97": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
@@ -3427,7 +3431,8 @@
       "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
       "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
       "SeatedTalk": "42c0973017793b8827c58e7f7d0738c76e395bc744969a1ff3f493ba717b83c7",
-      "TalkOnPhone": "1c18022802b2e357a1a342439e5dc2b1b2f24a8ac4e62e4433bf98c4260500f1"
+      "TalkOnPhone": "1c18022802b2e357a1a342439e5dc2b1b2f24a8ac4e62e4433bf98c4260500f1",
+      "UseLaptop": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d"
     },
     "lekarka_45b3c59b": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
@@ -3440,7 +3445,8 @@
       "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
       "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
       "SeatedTalk": "42c0973017793b8827c58e7f7d0738c76e395bc744969a1ff3f493ba717b83c7",
-      "Carry": "2fd18e423c94c81eef764eb90f8de8a9b034da7eb87ef339494c7e08a200fb1b"
+      "Carry": "2fd18e423c94c81eef764eb90f8de8a9b034da7eb87ef339494c7e08a200fb1b",
+      "UseLaptop": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d"
     }
   },
   "pending": {
@@ -3530,5 +3536,16 @@
       "name": "Chody_T_wlasciciela_5.zip",
       "sha256": "ec7b209d00a6a8a3607f8c706dd5f7b4e68c04130f8f671215e0350b6b96848e"
     }
+  },
+  "model_take_states": {
+    "zadymiarz_3bdfa236": [
+      "Idle"
+    ],
+    "lekarz_34571d97": [
+      "UseLaptop"
+    ],
+    "lekarka_45b3c59b": [
+      "UseLaptop"
+    ]
   }
 }

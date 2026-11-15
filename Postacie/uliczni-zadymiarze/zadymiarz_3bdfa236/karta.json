@@ -1,8 +1,8 @@
 {
   "id": "zadymiarz_3bdfa236",
   "nazwa": "Zadymiarz w zielonym T-shircie",
-  "wersja": "2026-11-15.1",
-  "paczka": "Postac_3bdfa236_T_20261115.zip",
+  "wersja": "2026-11-15.3",
+  "paczka": "Postac_3bdfa236_T_20261115_v3.zip",
   "podglad": "Braxhorn_szesc_postaci.jpg",
   "role": [
     "uliczny_zadymiarz"
@@ -11,7 +11,7 @@
   "miejsca_spotkan": [],
   "rejony": [],
   "walka": true,
-  "liczba_klipow": 21,
+  "liczba_klipow": 23,
   "podstawa": [
     "Idle",
     "Walk",
@@ -35,7 +35,9 @@
     "Block",
     "HitHead",
     "HitBody",
-    "RoundhouseKick"
+    "RoundhouseKick",
+    "GuardStepForward",
+    "GuardStepBack"
   ],
   "ataki": [
     "Jab",
@@ -51,16 +53,16 @@
     "tag": "postacie-globalne-20261112",
     "status": "draft"
   },
-  "manifest_sha256": "2bf4e9649edd30963f6a20a5278c37c29ede21566d9a51f0be2fd30ec145bcd5",
+  "manifest_sha256": "ff2a8fa590bbaa92c3d94768f72d618112829de09708fb3c2f18c3b7753cf8bd",
   "model_sha256": "54c531e8fedf1ff65daacf7bbe4d85152178a127c5ead168db2e9943bb7d27ba",
-  "animowany_fbx_sha256": "f1afb407259b9959f821df1cb97c322d04cb7e73831ca08cc9b47396be98fa10",
+  "animowany_fbx_sha256": "14528b5c91bc13af1e63ff3d1582aa811046171dc095cedc3b4364bd76c441d2",
   "pliki": {
     "unity": {
-      "nazwa": "Postac_3bdfa236_T_20261115.zip",
-      "bajty": 24160040,
-      "sha256": "1050b1e3ccb8e355481879b871701abe40a34901ad46bd84c0f2f9ea067a4aa0",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_3bdfa236_T_20261115.zip",
-      "asset_id": 751370368
+      "nazwa": "Postac_3bdfa236_T_20261115_v3.zip",
+      "bajty": 24311078,
+      "sha256": "bb3207f8cdd1770cd1f466e095ccf95f3d89bc5e45e187f741b3ad348521c66f",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_3bdfa236_T_20261115_v3.zip",
+      "asset_id": 751427074
     },
     "model_zrodlowy": {
       "nazwa": "tripo_convert_3bdfa236-3fac-4be4-8adf-f899a61a5f5e.zip",
@@ -77,20 +79,26 @@
       "asset_id": 751370084
     },
     "film": {
-      "nazwa": "Braxhorn_6_postaci_76_animacji.mp4",
-      "bajty": 12599414,
-      "sha256": "dd4404f64e4d12463d119a888eb13b0c12d197e08e045d1e49c7f83fdea22e22",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_6_postaci_76_animacji.mp4",
-      "asset_id": 751369929
+      "nazwa": "Braxhorn_szesc_postaci_spoczynek_v3.mp4",
+      "bajty": 3439066,
+      "sha256": "01cfe1d4fb8f91aa19613fb9d9f5569e5e068ae92bffb88ef50a933a786d89e3",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci_spoczynek_v3.mp4",
+      "asset_id": 751427253
+    },
+    "porownanie_barkow": {
+      "nazwa": "Zadymiarz_spoczynek_lopatki_v3.jpg",
+      "bajty": 194819,
+      "sha256": "800f0d2913f8832a956bcf4dfabb6534c5ced991db0992c26dae8e259dddeaea",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Zadymiarz_spoczynek_lopatki_v3.jpg",
+      "asset_id": 751427212
     }
   },
   "profil_ruchow_T": "Postacie/ruchy/mixamo.json#zadymiarz_3bdfa236",
-  "liczba_klipow_T": 21,
+  "liczba_klipow_T": 23,
   "kontrola": {
     "szkielet_kosci": 65,
-    "ponowny_import_FBX_w_Blenderze": 21,
+    "ponowny_import_FBX_w_Blenderze": 23,
     "do_oceny_rozciagniecia": [
-      "Idle",
       "Walk",
       "Run",
       "SitDown",
@@ -108,8 +116,18 @@
       "Block",
       "HitHead",
       "HitBody",
-      "RoundhouseKick"
+      "RoundhouseKick",
+      "GuardStepForward",
+      "GuardStepBack"
     ],
-    "odbior_Unity": "oczekuje"
+    "odbior_Unity": "oczekuje",
+    "korekta_spoczynku": {
+      "trim_start_samples": 2,
+      "source_fps": 30,
+      "clavicle_depression_deg": 11,
+      "clavicle_forward_deg": 24,
+      "upper_arm_forward_deg": 3,
+      "reference": "chest"
+    }
   }
 }

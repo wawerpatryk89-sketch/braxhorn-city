@@ -1,8 +1,8 @@
 {
   "id": "lekarz_34571d97",
   "nazwa": "Lekarz w zielonym stroju i czepku",
-  "wersja": "2026-11-15.1",
-  "paczka": "Postac_34571d97_T_20261115.zip",
+  "wersja": "2026-11-15.2",
+  "paczka": "Postac_34571d97_T_20261115_v2.zip",
   "podglad": "Braxhorn_szesc_postaci.jpg",
   "role": [
     "lekarz"
@@ -11,7 +11,7 @@
   "miejsca_spotkan": [],
   "rejony": [],
   "walka": false,
-  "liczba_klipow": 11,
+  "liczba_klipow": 12,
   "podstawa": [
     "Idle",
     "Walk",
@@ -25,7 +25,8 @@
   ],
   "ruchy_roli": [
     "SeatedTalk",
-    "TalkOnPhone"
+    "TalkOnPhone",
+    "UseLaptop"
   ],
   "ataki": [],
   "limit_tekstur": 2048,
@@ -34,16 +35,16 @@
     "tag": "postacie-globalne-20261112",
     "status": "draft"
   },
-  "manifest_sha256": "428874dd2371bddd1f9e18b05521aee40773c3ff3913e2ed84261ad6d24b06b0",
+  "manifest_sha256": "270f58b1eb6edfd094e5f226d5b8e9130c91583dc2d3cd32656ab7ce9182dc34",
   "model_sha256": "6de3948858f512ff2fcac1cf9ef8a4cdafd3268590267fbc7a41ab0a07305e66",
-  "animowany_fbx_sha256": "0ebb7fd4654834fca662e248651fed2b0d6d87f943e47c0c594352e51590e052",
+  "animowany_fbx_sha256": "4540bfd3fecf1be98038b0920d894d16be88faea250a84b6f3168df3a5ce7fea",
   "pliki": {
     "unity": {
-      "nazwa": "Postac_34571d97_T_20261115.zip",
-      "bajty": 21562317,
-      "sha256": "029aaa0b24f168c2b5b1c4979932b4aef2f67bbad59cb80a1f682872c7afdbba",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_34571d97_T_20261115.zip",
-      "asset_id": 751370126
+      "nazwa": "Postac_34571d97_T_20261115_v2.zip",
+      "bajty": 22008188,
+      "sha256": "3fc7112e5974da96865773a447ca805715b1c3f242b2ee9427e4e2dcfaa9d97c",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_34571d97_T_20261115_v2.zip",
+      "asset_id": 751405903
     },
     "model_zrodlowy": {
       "nazwa": "tripo_convert_34571d97-5cd5-4908-9185-e05196312c58.zip",
@@ -60,26 +61,33 @@
       "asset_id": 751370084
     },
     "film": {
-      "nazwa": "Braxhorn_6_postaci_76_animacji.mp4",
-      "bajty": 12599414,
-      "sha256": "dd4404f64e4d12463d119a888eb13b0c12d197e08e045d1e49c7f83fdea22e22",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_6_postaci_76_animacji.mp4",
-      "asset_id": 751369929
+      "nazwa": "Braxhorn_szesc_postaci_spoczynek_v3.mp4",
+      "bajty": 3439066,
+      "sha256": "01cfe1d4fb8f91aa19613fb9d9f5569e5e068ae92bffb88ef50a933a786d89e3",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci_spoczynek_v3.mp4",
+      "asset_id": 751427253
     }
   },
   "profil_ruchow_T": "Postacie/ruchy/mixamo.json#lekarz_34571d97",
-  "liczba_klipow_T": 11,
+  "liczba_klipow_T": 12,
   "kontrola": {
     "szkielet_kosci": 65,
-    "ponowny_import_FBX_w_Blenderze": 11,
+    "ponowny_import_FBX_w_Blenderze": 12,
     "do_oceny_rozciagniecia": [
       "Idle",
       "Run",
       "SitDown",
       "SeatedIdle",
       "StandUp",
-      "SeatedTalk"
+      "SeatedTalk",
+      "UseLaptop"
     ],
-    "odbior_Unity": "oczekuje"
+    "odbior_Unity": "oczekuje",
+    "UseLaptop": {
+      "window": [
+        0.35,
+        0.68
+      ]
+    }
   }
 }

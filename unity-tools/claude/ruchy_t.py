@@ -31,8 +31,12 @@ def install(characters, archive=None, root=CEL, catalog=CATALOG):
     needed = {}
     for character in sorted(set(characters)):
         profile = data["profiles"][character]
+        model_takes = set(data.get("model_take_states", {}).get(character, []))
         entries = []
         for state, key in profile.items():
+            if state in model_takes:
+                entries.append({"state": state, "modelTake": True})
+                continue
             clip = data["clips"][key]
             needed[key] = clip
             entries.append({"state": state, "file": Path(clip["path"]).name})

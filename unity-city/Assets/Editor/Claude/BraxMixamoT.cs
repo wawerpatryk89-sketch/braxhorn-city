@@ -9,13 +9,14 @@ internal static class BraxMixamoT
 {
     internal const string Root = "Assets/Source/Prywatne/MixamoT/";
     [Serializable] private sealed class Profile { public Entry[] clips; }
-    [Serializable] private sealed class Entry { public string state; public string file; }
+    [Serializable] private sealed class Entry { public string state; public string file; public bool modelTake; }
 
     internal static Dictionary<string, string> Read(string character)
     {
         string path = Root + character + ".json";
         var profile = JsonUtility.FromJson<Profile>(File.ReadAllText(path));
-        return profile.clips.ToDictionary(entry => entry.state, entry => Root + entry.file);
+        string model = "Assets/Source/Prywatne/Postacie/" + character + "/" + character + ".fbx";
+        return profile.clips.ToDictionary(entry => entry.state, entry => entry.modelTake ? model : Root + entry.file);
     }
 
     // Measure the reference pose configured by the Unity importer. The owner's
@@ -103,17 +104,21 @@ internal static class BraxMixamoT
         if (!importer || importer.animationType != ModelImporterAnimationType.Human)
             throw new InvalidDataException("Wymagany FBX Humanoid: " + path);
         var defaults = importer.defaultClipAnimations;
-        if (defaults.Length != 1) throw new InvalidDataException("Wymagane pojedyncze ujęcie: " + path);
+        bool modelTake = path.StartsWith("Assets/Source/Prywatne/Postacie/", StringComparison.Ordinal);
+        if (!modelTake && defaults.Length != 1) throw new InvalidDataException("Wymagane pojedyncze ujęcie: " + path);
         string name = state + (shortWarmUp ? "_Fitness" : "") + (loop ? "_Loop" : "_Once");
-        var desired = defaults[0];
+        var desired = modelTake
+            ? defaults.SingleOrDefault(t => t.takeName?.Split('|').Last() == state || t.name?.Split('|').Last() == state)
+            : defaults[0];
+        if (desired == null) throw new InvalidDataException("Brak ujęcia " + state + " w modelu " + path);
         desired.name = name;
         desired.loopTime = loop;
         desired.lockRootHeightY = desired.keepOriginalPositionY = true;
         desired.lockRootRotation = desired.keepOriginalOrientation = true;
         desired.lockRootPositionXZ = false;
         desired.keepOriginalPositionXZ = true;
-        if (state == "Idle" || state == "KickBall") desired.firstFrame += 1;
-        if (state == "StandUp")
+        if (!modelTake && (state == "Idle" || state == "KickBall")) desired.firstFrame += 1;
+        if (!modelTake && state == "StandUp")
         {
             desired.firstFrame = Mathf.Round(Mathf.Lerp(desired.firstFrame, desired.lastFrame, .82f));
             desired.lastFrame -= Mathf.Round(.025f * (desired.lastFrame - desired.firstFrame));
@@ -124,6 +129,7 @@ internal static class BraxMixamoT
             desired.lastFrame = Mathf.Min(desired.lastFrame, desired.firstFrame + Mathf.Round(2.1f * take.frameRate));
         }
         var configured = importer.clipAnimations.ToList();
+        if (modelTake && configured.Count == 0) configured.AddRange(importer.defaultClipAnimations);
         var existing = configured.Find(c => c.name == name);
         if (existing == null || existing.firstFrame != desired.firstFrame || existing.lastFrame != desired.lastFrame ||
             existing.loopTime != loop || !existing.lockRootHeightY || !existing.keepOriginalPositionY ||
