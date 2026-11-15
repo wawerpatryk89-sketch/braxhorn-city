@@ -30,9 +30,3 @@ Pliki w szkicu są dostępne po zalogowaniu na konto z uprawnieniami do tego wyd
 |---|---|---|
 | `postac_2b111236` | Czerwony strój z żółtymi wstawkami | Kandydat do roli ratownika. Ostateczny wybór po porównaniu z kolejnymi postaciami. |
 | `postac_29e53e84` | Mężczyzna w błękitnym polo i beżowych szortach | Rola otwarta. |
-| `4347020f` | Sweter w zielone pasy, okulary | Rola otwarta. |
-| `3bdfa236` | Zielony T-shirt, szorty, tatuaż na przedramieniu | Rola otwarta. |
-| `4005caea` | Granatowy mundur ze złotymi guzikami i czapka | Rola otwarta. |
-| `38f68cb1` | Zielona koszula z jasną lamówką, ciemne spodnie | Rola otwarta. |
-| `34571d97` | Zielony strój medyczny i czepek | Rola otwarta. |
-| `45b3c59b` | Śliwkowy strój medyczny | Rola otwarta. |

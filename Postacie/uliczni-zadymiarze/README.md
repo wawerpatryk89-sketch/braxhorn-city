@@ -8,3 +8,4 @@ Postacie uczestniczące w bójkach ulicznych.
 - [Mateusz](../glowne-poza-liga/mateusz/)
 - [Zadymiarz z głową psa](zadymiarz_021fef69/)
 - [Zadymiarz w czarnej kurtce z tatuażami](zadymiarz_22d44040/)
+- [Zadymiarz w zielonym T-shircie](zadymiarz_3bdfa236/karta.json)

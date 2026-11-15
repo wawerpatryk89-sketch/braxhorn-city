@@ -1,0 +1,84 @@
+{
+  "id": "dziecko_4347020f",
+  "nazwa": "Dzieciak w okularach i swetrze w pasy",
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_4347020f_T_20261115.zip",
+  "podglad": "Braxhorn_szesc_postaci.jpg",
+  "role": [
+    "dziecko"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [],
+  "rejony": [],
+  "walka": false,
+  "liczba_klipow": 11,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "Jump",
+    "KickBall"
+  ],
+  "ataki": [],
+  "limit_tekstur": 2048,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "6939eafbae7aa82bc53420ce7e2f992b6e3eff5b0d28b2597e91b4d0293af63d",
+  "model_sha256": "499d521730aa5ba3e773381d7c3a7efb8b20779cf3b4bfe25a42f7e7f3a71252",
+  "animowany_fbx_sha256": "9cba9e115bde1cd3b4ce63ae8e7f14fa6b9d0380b7ab539afae73aec0bcac665",
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_4347020f_T_20261115.zip",
+      "bajty": 25028727,
+      "sha256": "ef8225cdf65e866c5976bc5888cbaa5475e34bd959d4ad6ec07707568cab57b4",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_4347020f_T_20261115.zip",
+      "asset_id": 751370594
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_4347020f-e844-40c4-8427-8e94156ea973.zip",
+      "bajty": 25375726,
+      "sha256": "a5d4394f119a9ea879d4cfb3fe98ea672049a71f3543a3ec5886d69a3b61d641",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_4347020f-e844-40c4-8427-8e94156ea973.zip",
+      "asset_id": 751371303
+    },
+    "podglad": {
+      "nazwa": "Braxhorn_szesc_postaci.jpg",
+      "bajty": 429698,
+      "sha256": "8b134e9446d19f6ceaa85078923ee72f0bdc332e8dccabf33116481c2eab6032",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci.jpg",
+      "asset_id": 751370084
+    },
+    "film": {
+      "nazwa": "Braxhorn_6_postaci_76_animacji.mp4",
+      "bajty": 12599414,
+      "sha256": "dd4404f64e4d12463d119a888eb13b0c12d197e08e045d1e49c7f83fdea22e22",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_6_postaci_76_animacji.mp4",
+      "asset_id": 751369929
+    }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#dziecko_4347020f",
+  "liczba_klipow_T": 11,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 11,
+    "do_oceny_rozciagniecia": [
+      "Run",
+      "SitDown",
+      "StandUp",
+      "Jump",
+      "KickBall"
+    ],
+    "odbior_Unity": "oczekuje"
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "id": "zadymiarz_3bdfa236",
+  "nazwa": "Zadymiarz w zielonym T-shircie",
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_3bdfa236_T_20261115.zip",
+  "podglad": "Braxhorn_szesc_postaci.jpg",
+  "role": [
+    "uliczny_zadymiarz"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [],
+  "rejony": [],
+  "walka": true,
+  "liczba_klipow": 21,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "Jump",
+    "CombatIdle",
+    "Jab",
+    "Cross",
+    "Hook",
+    "SideKick",
+    "Knee",
+    "Dodge",
+    "Block",
+    "HitHead",
+    "HitBody",
+    "RoundhouseKick"
+  ],
+  "ataki": [
+    "Jab",
+    "Cross",
+    "Hook",
+    "SideKick",
+    "Knee",
+    "RoundhouseKick"
+  ],
+  "limit_tekstur": 2048,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "2bf4e9649edd30963f6a20a5278c37c29ede21566d9a51f0be2fd30ec145bcd5",
+  "model_sha256": "54c531e8fedf1ff65daacf7bbe4d85152178a127c5ead168db2e9943bb7d27ba",
+  "animowany_fbx_sha256": "f1afb407259b9959f821df1cb97c322d04cb7e73831ca08cc9b47396be98fa10",
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_3bdfa236_T_20261115.zip",
+      "bajty": 24160040,
+      "sha256": "1050b1e3ccb8e355481879b871701abe40a34901ad46bd84c0f2f9ea067a4aa0",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_3bdfa236_T_20261115.zip",
+      "asset_id": 751370368
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_3bdfa236-3fac-4be4-8adf-f899a61a5f5e.zip",
+      "bajty": 24146595,
+      "sha256": "3be48882b77af5e82b54c3e3938911132f3169956cfb89f1de171046fdd19e3b",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_3bdfa236-3fac-4be4-8adf-f899a61a5f5e.zip",
+      "asset_id": 751371056
+    },
+    "podglad": {
+      "nazwa": "Braxhorn_szesc_postaci.jpg",
+      "bajty": 429698,
+      "sha256": "8b134e9446d19f6ceaa85078923ee72f0bdc332e8dccabf33116481c2eab6032",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci.jpg",
+      "asset_id": 751370084
+    },
+    "film": {
+      "nazwa": "Braxhorn_6_postaci_76_animacji.mp4",
+      "bajty": 12599414,
+      "sha256": "dd4404f64e4d12463d119a888eb13b0c12d197e08e045d1e49c7f83fdea22e22",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_6_postaci_76_animacji.mp4",
+      "asset_id": 751369929
+    }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#zadymiarz_3bdfa236",
+  "liczba_klipow_T": 21,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 21,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Wave",
+      "Jump",
+      "CombatIdle",
+      "Jab",
+      "Cross",
+      "Hook",
+      "SideKick",
+      "Knee",
+      "Dodge",
+      "Block",
+      "HitHead",
+      "HitBody",
+      "RoundhouseKick"
+    ],
+    "odbior_Unity": "oczekuje"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "id": "lekarka_45b3c59b",
+  "nazwa": "Lekarka w śliwkowym stroju",
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_45b3c59b_T_20261115.zip",
+  "podglad": "Braxhorn_szesc_postaci.jpg",
+  "role": [
+    "lekarz"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [],
+  "rejony": [],
+  "walka": false,
+  "liczba_klipow": 11,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "SeatedTalk",
+    "Carry"
+  ],
+  "ataki": [],
+  "limit_tekstur": 2048,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "b25b53c114603fe27b07a24d39ad530a3f46ef72bc24e33632ca254e8a729b21",
+  "model_sha256": "13a8eed1765247175de662706a44a0c0fe729a38083ad323824cb9b14a6cec29",
+  "animowany_fbx_sha256": "06a93fdebd6f75c509f084fd7cb1e84dac49e3c016f4da24682e6c797088e4fe",
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_45b3c59b_T_20261115.zip",
+      "bajty": 20360572,
+      "sha256": "3bc802c724bb46e013d8fef7c3eff3b8d30345d3509df0e935de6954304311a7",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_45b3c59b_T_20261115.zip",
+      "asset_id": 751370684
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_45b3c59b-5385-416e-ad47-01aeaaa2f1c0.zip",
+      "bajty": 19323967,
+      "sha256": "c9796358708b8594a2fbee7a3a871c7ed2393c3624c6f27c70bc718525de9758",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_45b3c59b-5385-416e-ad47-01aeaaa2f1c0.zip",
+      "asset_id": 751371382
+    },
+    "podglad": {
+      "nazwa": "Braxhorn_szesc_postaci.jpg",
+      "bajty": 429698,
+      "sha256": "8b134e9446d19f6ceaa85078923ee72f0bdc332e8dccabf33116481c2eab6032",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci.jpg",
+      "asset_id": 751370084
+    },
+    "film": {
+      "nazwa": "Braxhorn_6_postaci_76_animacji.mp4",
+      "bajty": 12599414,
+      "sha256": "dd4404f64e4d12463d119a888eb13b0c12d197e08e045d1e49c7f83fdea22e22",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_6_postaci_76_animacji.mp4",
+      "asset_id": 751369929
+    }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#lekarka_45b3c59b",
+  "liczba_klipow_T": 11,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 11,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "SeatedTalk"
+    ],
+    "odbior_Unity": "oczekuje"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "id": "hotel_38f68cb1",
+  "nazwa": "Pracownica hotelu w zielonej koszuli",
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_38f68cb1_T_20261115.zip",
+  "podglad": "Braxhorn_szesc_postaci.jpg",
+  "role": [
+    "personel_hotelu"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "hotel"
+  ],
+  "rejony": [],
+  "walka": false,
+  "liczba_klipow": 11,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "Carry",
+    "TalkOnPhone"
+  ],
+  "ataki": [],
+  "limit_tekstur": 2048,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "feab1da4eeb459a6984152d0407fd30abd6da2bb052282a0e877333cd85ee8c0",
+  "model_sha256": "f58338fe27918c9d007fe6e47ad007e07f9dc0f7dd515c43c8b751fae7cbb6f3",
+  "animowany_fbx_sha256": "6d61adbb35b2fc1643f552ece002ee9c7d3ef601015e2d39f388a70b97d9c72c",
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_38f68cb1_T_20261115.zip",
+      "bajty": 19353364,
+      "sha256": "cc919f6006c99043a4249f33b32a8358889e1cc65ac2e43eef67e58656c8c637",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_38f68cb1_T_20261115.zip",
+      "asset_id": 751370233
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_38f68cb1-cb6f-4c3b-a66c-cca9a86fceab.zip",
+      "bajty": 18474432,
+      "sha256": "071d4bc0517880a679349b042457d4d037a5d62537e6113779c8325fea14ad3c",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_38f68cb1-cb6f-4c3b-a66c-cca9a86fceab.zip",
+      "asset_id": 751370961
+    },
+    "podglad": {
+      "nazwa": "Braxhorn_szesc_postaci.jpg",
+      "bajty": 429698,
+      "sha256": "8b134e9446d19f6ceaa85078923ee72f0bdc332e8dccabf33116481c2eab6032",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci.jpg",
+      "asset_id": 751370084
+    },
+    "film": {
+      "nazwa": "Braxhorn_6_postaci_76_animacji.mp4",
+      "bajty": 12599414,
+      "sha256": "dd4404f64e4d12463d119a888eb13b0c12d197e08e045d1e49c7f83fdea22e22",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_6_postaci_76_animacji.mp4",
+      "asset_id": 751369929
+    }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#hotel_38f68cb1",
+  "liczba_klipow_T": 11,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 11,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Talk",
+      "Wave",
+      "Point",
+      "Carry",
+      "TalkOnPhone"
+    ],
+    "odbior_Unity": "oczekuje"
+  }
+}

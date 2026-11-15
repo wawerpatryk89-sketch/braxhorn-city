@@ -1,0 +1,85 @@
+{
+  "id": "lekarz_34571d97",
+  "nazwa": "Lekarz w zielonym stroju i czepku",
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_34571d97_T_20261115.zip",
+  "podglad": "Braxhorn_szesc_postaci.jpg",
+  "role": [
+    "lekarz"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [],
+  "rejony": [],
+  "walka": false,
+  "liczba_klipow": 11,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "SeatedTalk",
+    "TalkOnPhone"
+  ],
+  "ataki": [],
+  "limit_tekstur": 2048,
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "manifest_sha256": "428874dd2371bddd1f9e18b05521aee40773c3ff3913e2ed84261ad6d24b06b0",
+  "model_sha256": "6de3948858f512ff2fcac1cf9ef8a4cdafd3268590267fbc7a41ab0a07305e66",
+  "animowany_fbx_sha256": "0ebb7fd4654834fca662e248651fed2b0d6d87f943e47c0c594352e51590e052",
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_34571d97_T_20261115.zip",
+      "bajty": 21562317,
+      "sha256": "029aaa0b24f168c2b5b1c4979932b4aef2f67bbad59cb80a1f682872c7afdbba",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_34571d97_T_20261115.zip",
+      "asset_id": 751370126
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_34571d97-5cd5-4908-9185-e05196312c58.zip",
+      "bajty": 19701514,
+      "sha256": "beb42d13890f8b430c72780ef6dd34e9c06fe17284bf3d573091da0a47445e54",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_34571d97-5cd5-4908-9185-e05196312c58.zip",
+      "asset_id": 751370833
+    },
+    "podglad": {
+      "nazwa": "Braxhorn_szesc_postaci.jpg",
+      "bajty": 429698,
+      "sha256": "8b134e9446d19f6ceaa85078923ee72f0bdc332e8dccabf33116481c2eab6032",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci.jpg",
+      "asset_id": 751370084
+    },
+    "film": {
+      "nazwa": "Braxhorn_6_postaci_76_animacji.mp4",
+      "bajty": 12599414,
+      "sha256": "dd4404f64e4d12463d119a888eb13b0c12d197e08e045d1e49c7f83fdea22e22",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_6_postaci_76_animacji.mp4",
+      "asset_id": 751369929
+    }
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#lekarz_34571d97",
+  "liczba_klipow_T": 11,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 11,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "SeatedTalk"
+    ],
+    "odbior_Unity": "oczekuje"
+  }
+}
