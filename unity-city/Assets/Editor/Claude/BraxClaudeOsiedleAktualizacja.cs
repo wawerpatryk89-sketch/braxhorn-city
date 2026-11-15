@@ -30,6 +30,14 @@ public static partial class BraxClaudeOsiedle
     public static void SprawdzAktualizacje(Scene scene)
     {
         var bledy = new List<string>();
+        var korzenie = scene.GetRootGameObjects();
+        int samochody = korzenie.SelectMany(g => g.GetComponentsInChildren<BraxRuchAut>(true))
+            .Sum(r => r.auta?.Count(a => a) ?? 0);
+        int autobusy = korzenie.Sum(g => g.GetComponentsInChildren<BraxAutobus>(true).Length);
+        string stanRuchu = $"samochody={samochody} autobusy={autobusy} razem={samochody + autobusy}/6";
+        Debug.Log("BRAXHORN_RUCH " + stanRuchu);
+        if (samochody != 4 || autobusy != 2)
+            bledy.Add("Obsada ruchu: " + stanRuchu + " (oczekiwano 4 samochodów i 2 autobusów)");
         if (!ruchZweryfikowany) bledy.Add("Nie wykonano testu ruchu");
         if (bladRuchu != null) bledy.Add(bladRuchu);
         bledy.AddRange(rep.notes.Where(n => n.StartsWith("BŁĄD w kroku")));
@@ -80,6 +88,7 @@ public static partial class BraxClaudeOsiedle
             "PARKING " + m.srodek.ToString("F2") + " szerokość=" + m.rozmiar.x.ToString("F3") + " długość=" + m.rozmiar.y.ToString("F3"))));
         System.IO.File.WriteAllLines("city-review/aktualizacja-osiedla.txt", new[] {
             "Kontrola sceny przed zapisem: szyldy=" + szyldy + ", sofy=" + sofy.Length + ", zatoki=" + MiejscaParkingowe.Count,
+            "Ruch: " + stanRuchu,
             "Wynik: " + (bledy.Count == 0 ? "PASS" : "FAIL"),
             "Obraz, animacje, autobus w ruchu i sterowanie: wymagany test APK na urządzeniu."
         }.Concat(bledy));

@@ -188,11 +188,6 @@ public static partial class BraxClaudeOsiedle
         if (Object.FindObjectsByType<BraxMieszkaniec>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length != 0 ||
             Object.FindObjectsByType<BraxPieszy>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length != 0)
             throw new InvalidOperationException("Pozostała tymczasowa postać");
-        var ruch = Object.FindFirstObjectByType<BraxRuchAut>();
-        int autobusy = Object.FindObjectsByType<BraxAutobus>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
-        if (!ruch || ruch.auta == null || ruch.auta.Length != 4 || ruch.auta.Length + autobusy > 6)
-            throw new InvalidOperationException("Niepoprawna liczba pojazdów w ruchu");
-        Debug.Log("BRAXHORN_RUCH samochody=" + ruch.auta.Length + " autobusy=" + autobusy);
         Debug.Log("BRAXHORN_OBSADA postacie=19 sterowanych=1 znajomych=18 animacje=" + klipy);
     }
 }

@@ -5,8 +5,7 @@ using UnityEngine;
 // E23 (runda 6): AUTOBUSY OSIEDLA. Drogi A↔B przez parki jeszcze nie ma (E17 — plan), więc linie są dwie:
 //  • linia A — pętla „A pętla Poznańska–Bydgoska (zgodnie)” z tras ruchu: przystanki OSIEDLE A 1 i OSIEDLE A 3 (kierunek
 //    północny Poznańskiej); OSIEDLE A 2 (kierunek przeciwny) stoi dla pary, bez autobusu w tę stronę;
-//  • linia B — ulica główna B w obie strony (osobny autobus na każdy kierunek, trasy otwarte jak auta B): OSIEDLE B 1
-//    (na wschód) i OSIEDLE B 2 (na zachód); na końcu ulicy autobus czeka poza kadrem i wjeżdża od nowa.
+//  • linia B — jeden autobus na zachód z przystankiem OSIEDLE B 2. Na końcu ulicy czeka poza kadrem i wjeżdża od nowa.
 // Model autobusu w kodzie (paczki aut nie mają autobusu): midi 8 × 2.4 × 2.9 m × K, nadwozie z fazowanymi narożnikami,
 // nadkola z wnękami, pas szyb z ciemnymi słupkami, okap dachu, klimatyzator, zderzaki, lusterka na wysięgnikach, reflektory,
 // lampy tylne, wyświetlacz linii, pas w kolorze linii, 2 drzwi dwuskrzydłowe po prawej (skrzydła ruchome, ciemny otwór),
@@ -205,7 +204,6 @@ public static partial class BraxClaudeOsiedle
         }
         var opis = new List<string>(); int poza = 0, probki = 0;
         foreach (var (nazwa, trasa, kolor) in new[] { ("Autobus linii A", "A pętla Poznańska–Bydgoska (zgodnie)", new Color(.1f, .3f, .7f)),
-                                                      ("Autobus linii B (na wschód)", "B zachód → wschód", new Color(.75f, .1f, .1f)),
                                                       ("Autobus linii B (na zachód)", "B wschód → zachód", new Color(.75f, .1f, .1f)) })
         {
             var pts = Sciezka(trasa, out bool petla); if (pts == null) { opis.Add(nazwa + ": brak trasy „" + trasa + "”"); continue; }

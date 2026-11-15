@@ -161,6 +161,13 @@ class WsiadanieDoAuta(unittest.TestCase):
         self.assertIn("public Vector3 korektaWsiadania; public float obrotWsiadania;", self.rt)
 
 
+class RuchOsiedla(unittest.TestCase):
+    def test_kursy_obsluguja_przystanki_z_proby_131(self):
+        generator = czytaj(ED / "BraxClaudeOsiedleAutobus.cs")
+        kursy = re.findall(r'\("Autobus linii [^"]+",\s*"([^"]+)"', generator)
+        self.assertCountEqual(kursy, ["A pętla Poznańska–Bydgoska (zgodnie)", "B wschód → zachód"])
+
+
 class AutaBezRozuIZKolami(unittest.TestCase):
     def setUp(self):
         self.src = czytaj(ED / "BraxClaudeOsiedleAutaModel.cs")
