@@ -1,0 +1,30 @@
+{
+  "id": "braxhorn.brand.automotive",
+  "displayName": "Braxhorn — wspólne emblematy samochodów",
+  "version": "1.1.0",
+  "scope": "all new Braxhorn cars, shared across all regions",
+  "ownerSource": "byk.glb",
+  "ownerOriginalSHA256": "aa794f33f7d20f6a3101173e9fe137accf219928a3b81b80f9a4c964766d3552",
+  "sourceStorage": {
+    "type": "private owner library",
+    "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
+    "file": "Braxhorn_Znaki_Aut.glb",
+    "bytes": 1130908,
+    "sha256": "c1d6fc5099c8151cc4adfc5fa7643daf4661618fc30dd14647336120452c10e8"
+  },
+  "nodes": {
+    "Bull": {
+      "mount": "follow the local bonnet surface, muzzle and horn roots seated, raised horn tips",
+      "widthM": 0.134,
+      "nominalHornTipClearanceM": 0.00275,
+      "finish": "graphite face, satin nickel horns"
+    },
+    "BRAXHORN": {
+      "mount": "rear body",
+      "widthM": 0.33,
+      "finish": "satin nickel"
+    }
+  },
+  "vehicleWorkflow": "Reuse both named meshes from the canonical private asset. Fit the bonnet-facing support to the actual body on each delivered level of detail and check clearances.",
+  "sourceUnit": "metre"
+}

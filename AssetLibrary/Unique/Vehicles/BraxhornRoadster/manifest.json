@@ -1,19 +1,19 @@
 {
   "id": "braxhorn.vehicle.roadster",
   "displayName": "Braxhorn Roadster",
-  "version": "0.1.0-review",
+  "version": "1.1.0",
   "scope": "shared, all city regions",
   "sourceStorage": {
     "type": "private owner library",
     "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
     "packageFile": "BraxhornRoadster.unitypackage",
     "sourceFile": "Braxhorn_Roadster_Model.zip",
-    "sourceSHA256": "1590fdbe7afb4f8f03005e2021f75faff42a2028598de4870976d6e59349a480"
+    "sourceSHA256": "c6abacb3ebc20939e7c5c5f4712c70a0272dff898340dab1911110d40e112b52"
   },
   "model": {
-    "bytes": 10460432,
-    "sha256": "29c486dca84983b133e6f7b5f48c7bed900fd4a1e6f3f79fcc937dba48ce315a",
-    "triangles": 146779,
+    "bytes": 11252072,
+    "sha256": "28ef156fbe36cfb50d8f4d33023ccd496d0613f588a43bbc2653d33953317a12",
+    "triangles": 157597,
     "forward": "+Z",
     "unit": "metre",
     "embeddedImages": {
@@ -45,6 +45,10 @@
         1024,
         1024
       ],
+      "bull_two_tone": [
+        1024,
+        1024
+      ],
       "suede_normal": [
         2048,
         2048
@@ -63,28 +67,84 @@
     "seats": 2
   },
   "distance": {
-    "bytes": 7106132,
-    "triangles": 34736,
-    "sha256": "35230ce411f6e93427fc5232896a75445224fdb061bd6685db02fd1d99859ed0",
+    "bytes": 7984064,
+    "triangles": 47642,
+    "sha256": "53d15eeee91f2f510d10c0ae6d98118d5dea7a2254203050696e284082378c86",
     "manualSelection": true
   },
   "unityPackage": {
     "assetPath": "Assets/Braxhorn/Shared/Vehicles/BraxhornRoadster.glb",
-    "sha256": "526ddcf64be46941aa22752f7c4c9b6663082eb2171c600012de00d697a545d1",
+    "sha256": "d9bf566243e37bd1e8180c437c638ae7fba93c753001c49cc2e198b397e35bd9",
     "gltfImporter": "com.unity.cloud.gltfast",
     "targetProjectVersion": "6.20.0",
-    "bytes": 13605601
+    "bytes": 14503312
+  },
+  "brand": {
+    "id": "braxhorn.brand.automotive",
+    "version": "1.1.0",
+    "bonnet": "Bull",
+    "rear": "BRAXHORN"
   },
   "validation": {
     "blenderReimport": "passed",
     "unityPackageByteMatch": "passed",
     "unityPlayMode": "untested",
-    "androidDevice": "untested"
+    "androidDevice": "untested",
+    "bonnetClearanceMillimetres": {
+      "columns": [
+        "samples",
+        "minimum",
+        "median",
+        "maximum"
+      ],
+      "meshes": {
+        "hero": {
+          "muzzle": [
+            459,
+            -0.06,
+            -0.032,
+            0.02
+          ],
+          "roots": [
+            208,
+            -0.057,
+            -0.028,
+            0.006
+          ],
+          "horn_tips": [
+            49,
+            2.321,
+            2.677,
+            2.756
+          ]
+        },
+        "distance": {
+          "muzzle": [
+            459,
+            -0.035,
+            -0.035,
+            -0.001
+          ],
+          "roots": [
+            208,
+            -0.048,
+            -0.035,
+            0.0
+          ],
+          "horn_tips": [
+            49,
+            2.34,
+            2.707,
+            2.715
+          ]
+        }
+      }
+    },
+    "sharedGeometryAppliedToRegionScenes": false
   },
   "ownerApproval": {
-    "status": "approved",
+    "status": "approved model with owner-requested badge seating correction",
     "scope": "global reusable vehicle model",
-    "version": "0.1.0-review",
     "date": "2026-11-15"
   }
 }

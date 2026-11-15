@@ -1,0 +1,150 @@
+{
+  "id": "braxhorn.vehicle.s2spider",
+  "displayName": "Braxhorn S2 Spider",
+  "version": "0.1.0-review",
+  "scope": "shared, all city regions",
+  "sourceStorage": {
+    "type": "private owner library",
+    "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
+    "packageFile": "BraxhornS2Spider.unitypackage",
+    "sourceFile": "Braxhorn_S2_Spider_Model.zip",
+    "sourceSHA256": "c3662dcc19c2143426ee82a88a073e8e3449a0bcc0b41228f4466073c22e378a"
+  },
+  "model": {
+    "bytes": 10994144,
+    "sha256": "5d930b764d49beac85cefa8c57332cfefaaa9632adb24c5be29b669191dc3296",
+    "triangles": 153265,
+    "forward": "+Z",
+    "unit": "metre",
+    "embeddedImages": {
+      "twill_normal": [
+        1536,
+        1536
+      ],
+      "twill_color": [
+        1536,
+        1536
+      ],
+      "saddle_normal": [
+        2048,
+        2048
+      ],
+      "s2_saddle": [
+        2048,
+        2048
+      ],
+      "instruments": [
+        1024,
+        400
+      ],
+      "navigation": [
+        800,
+        450
+      ],
+      "bull_nickel": [
+        1024,
+        1024
+      ],
+      "bull_two_tone": [
+        1024,
+        1024
+      ],
+      "suede_normal": [
+        2048,
+        2048
+      ],
+      "s2_suede": [
+        2048,
+        2048
+      ]
+    },
+    "wheelPivots": [
+      "Wheel_FL",
+      "Wheel_FR",
+      "Wheel_RL",
+      "Wheel_RR"
+    ],
+    "seats": 2
+  },
+  "distance": {
+    "bytes": 7964064,
+    "triangles": 47247,
+    "sha256": "a6b476f0a097612a85037414b12dc65be59bf24f0363ec83803fff46112701f5",
+    "manualSelection": true
+  },
+  "unityPackage": {
+    "assetPath": "Assets/Braxhorn/Shared/Vehicles/BraxhornS2Spider.glb",
+    "sha256": "0c06ca3951ab720498a6d1fe326be1ffe51d1e7c1d31935f0eae1c3e0608cd6e",
+    "gltfImporter": "com.unity.cloud.gltfast",
+    "targetProjectVersion": "6.20.0",
+    "bytes": 14732603
+  },
+  "brand": {
+    "id": "braxhorn.brand.automotive",
+    "version": "1.1.0",
+    "bonnet": "Bull",
+    "rear": "BRAXHORN"
+  },
+  "validation": {
+    "blenderReimport": "passed",
+    "unityPackageByteMatch": "passed",
+    "unityPlayMode": "untested",
+    "androidDevice": "untested",
+    "bonnetClearanceMillimetres": {
+      "columns": [
+        "samples",
+        "minimum",
+        "median",
+        "maximum"
+      ],
+      "meshes": {
+        "hero": {
+          "muzzle": [
+            459,
+            -0.129,
+            -0.077,
+            0.152
+          ],
+          "roots": [
+            208,
+            -0.113,
+            -0.081,
+            -0.038
+          ],
+          "horn_tips": [
+            49,
+            2.284,
+            2.643,
+            2.688
+          ]
+        },
+        "distance": {
+          "muzzle": [
+            459,
+            -0.085,
+            -0.085,
+            0.148
+          ],
+          "roots": [
+            208,
+            -0.085,
+            -0.085,
+            -0.049
+          ],
+          "horn_tips": [
+            49,
+            2.29,
+            2.659,
+            2.682
+          ]
+        }
+      }
+    },
+    "sharedGeometryAppliedToRegionScenes": false
+  },
+  "ownerApproval": {
+    "status": "awaiting visual review",
+    "scope": "global reusable vehicle model",
+    "date": "2026-11-15"
+  }
+}

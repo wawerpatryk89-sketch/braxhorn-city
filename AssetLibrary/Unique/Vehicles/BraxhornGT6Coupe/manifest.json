@@ -1,0 +1,150 @@
+{
+  "id": "braxhorn.vehicle.gt6coupe",
+  "displayName": "Braxhorn GT6 Coupé",
+  "version": "0.1.0-review",
+  "scope": "shared, all city regions",
+  "sourceStorage": {
+    "type": "private owner library",
+    "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
+    "packageFile": "BraxhornGT6Coupe.unitypackage",
+    "sourceFile": "Braxhorn_GT6_Coupe_Model.zip",
+    "sourceSHA256": "ebacedbcab94f49279d57544b1d8162f6b7ffaf279222bcd46eaaa836b534472"
+  },
+  "model": {
+    "bytes": 11739944,
+    "sha256": "bb4c00a3a543cee67c1c606837ad3b5ebae1f0ed39cbeba4c38f7571f1ea52c3",
+    "triangles": 178723,
+    "forward": "+Z",
+    "unit": "metre",
+    "embeddedImages": {
+      "twill_normal": [
+        1536,
+        1536
+      ],
+      "twill_color": [
+        1536,
+        1536
+      ],
+      "saddle_normal": [
+        2048,
+        2048
+      ],
+      "saddle_color": [
+        2048,
+        2048
+      ],
+      "instruments": [
+        1024,
+        400
+      ],
+      "navigation": [
+        800,
+        450
+      ],
+      "bull_nickel": [
+        1024,
+        1024
+      ],
+      "bull_two_tone": [
+        1024,
+        1024
+      ],
+      "suede_normal": [
+        2048,
+        2048
+      ],
+      "suede_color": [
+        2048,
+        2048
+      ]
+    },
+    "wheelPivots": [
+      "Wheel_FL",
+      "Wheel_FR",
+      "Wheel_RL",
+      "Wheel_RR"
+    ],
+    "seats": 2
+  },
+  "distance": {
+    "bytes": 7856680,
+    "triangles": 46262,
+    "sha256": "d068577abd1326cf645e85f0445dc8c2425ea2359898d81ada3a6a95e65fe9cd",
+    "manualSelection": true
+  },
+  "unityPackage": {
+    "assetPath": "Assets/Braxhorn/Shared/Vehicles/BraxhornGT6Coupe.glb",
+    "sha256": "16103c8b64acfe4b3de3637db008481bd5844d416cc62464c222ae31df120f04",
+    "gltfImporter": "com.unity.cloud.gltfast",
+    "targetProjectVersion": "6.20.0",
+    "bytes": 14987301
+  },
+  "brand": {
+    "id": "braxhorn.brand.automotive",
+    "version": "1.1.0",
+    "bonnet": "Bull",
+    "rear": "BRAXHORN"
+  },
+  "validation": {
+    "blenderReimport": "passed",
+    "unityPackageByteMatch": "passed",
+    "unityPlayMode": "untested",
+    "androidDevice": "untested",
+    "bonnetClearanceMillimetres": {
+      "columns": [
+        "samples",
+        "minimum",
+        "median",
+        "maximum"
+      ],
+      "meshes": {
+        "hero": {
+          "muzzle": [
+            459,
+            -0.048,
+            -0.033,
+            0.033
+          ],
+          "roots": [
+            208,
+            -0.044,
+            -0.032,
+            0.002
+          ],
+          "horn_tips": [
+            49,
+            2.338,
+            2.707,
+            2.719
+          ]
+        },
+        "distance": {
+          "muzzle": [
+            459,
+            -0.035,
+            -0.035,
+            0.022
+          ],
+          "roots": [
+            208,
+            -0.035,
+            -0.035,
+            0.0
+          ],
+          "horn_tips": [
+            49,
+            2.34,
+            2.707,
+            2.715
+          ]
+        }
+      }
+    },
+    "sharedGeometryAppliedToRegionScenes": false
+  },
+  "ownerApproval": {
+    "status": "awaiting visual review",
+    "scope": "global reusable vehicle model",
+    "date": "2026-11-15"
+  }
+}
