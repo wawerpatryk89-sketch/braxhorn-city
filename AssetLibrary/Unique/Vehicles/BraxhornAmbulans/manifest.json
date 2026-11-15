@@ -1,0 +1,60 @@
+{
+  "id": "braxhorn.vehicle.ambulans",
+  "displayName": "Braxhorn Ambulans",
+  "version": "1.0.0",
+  "scope": "shared, all city regions",
+  "sourceStorage": {
+    "type": "private owner library",
+    "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
+    "sourceFile": "Braxhorn_Ambulans.glb",
+    "sourceSHA256": "9d4fc0068675b693baa8beb950e3b9b7da6487bd1c3b9d67ee7d70e44f417da0",
+    "packageFile": "BraxhornAmbulans.unitypackage"
+  },
+  "model": {
+    "sha256": "9d4fc0068675b693baa8beb950e3b9b7da6487bd1c3b9d67ee7d70e44f417da0",
+    "bytes": 2306864,
+    "trianglesInstanced": 81108,
+    "widthIncludingMirrorsM": 2.498,
+    "heightIncludingAntennaM": 3.115,
+    "lengthM": 6.206,
+    "wheelPivots": [
+      "Wheel_FL",
+      "Wheel_FR",
+      "Wheel_RL",
+      "Wheel_RR"
+    ],
+    "embeddedImages": 4,
+    "gltfForward": "+Z",
+    "sourceUnit": "metre",
+    "designScale": "Estimated from orthographic reference, wheelbase 3.881 m",
+    "crewSeats": 2,
+    "designReference": "Owner-supplied side and front, rear design inferred",
+    "type": "static vehicle asset with independent wheels"
+  },
+  "unityPackage": {
+    "assetPath": "Assets/Braxhorn/Shared/Vehicles/BraxhornAmbulans.glb",
+    "assetGuid": "eb57656b69db5d02b690dee5460f28c4",
+    "sha256": "b11c3d86164824fc5f0449010990bd329443cddd78223af43fab2c86aa74659a",
+    "bytes": 1280171,
+    "importer": "com.unity.cloud.gltfast",
+    "targetImporterVersion": "6.20.0",
+    "worldScaleK": 1.294,
+    "applyWorldScaleOnce": true
+  },
+  "validation": {
+    "blenderReimport": true,
+    "unityPackageByteMatch": true,
+    "unityPlayMode": "untested",
+    "androidDevice": "untested",
+    "sharedGeometryAppliedToRegionScenes": false,
+    "wheelSetbackAtNarrowestArchMm": {
+      "front": 12,
+      "rear": 23
+    },
+    "wheelBodyIntersectionsAtFourRollAngles": 0
+  },
+  "ownerApproval": {
+    "status": "approved for shared game assets",
+    "date": "2026-11-15"
+  }
+}
