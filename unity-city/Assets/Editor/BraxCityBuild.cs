@@ -208,9 +208,9 @@ public static class BraxCityBuild
     public static string CreateEstate(string commit)
     {
         var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
-        var player=new GameObject("BraxhornPlayer");player.layer=8;player.transform.position=new Vector3(0,.08f,92);
+        var player=new GameObject("BraxhornPlayer");player.layer=8;player.transform.position=new Vector3(-15.2f,.10f,59f);
         var body=player.AddComponent<CharacterController>();body.height=2.25f;body.radius=.35f;body.center=new Vector3(0,1.125f,0);body.stepOffset=.36f;body.slopeLimit=48;body.skinWidth=.035f;
-        var hero=BraxClaudeOsiedle.PatrykBohater(player.transform,body);
+        var hero=BraxClaudeOsiedle.NowyPatrykOsiedla(player.transform,body);
         var animation=hero.GetComponent<Animation>();
         if(!animation)throw new Exception("New Patryk has no validated animations");
         var camera=new GameObject("Estate manual player camera").AddComponent<Camera>();camera.tag="MainCamera";camera.fieldOfView=55;camera.nearClipPlane=.15f;camera.farClipPlane=330;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.64f,.73f,.79f);camera.allowMSAA=true;BraxHeroRefinements.CharacterLights(camera);camera.allowHDR=false;camera.gameObject.AddComponent<AudioListener>();
@@ -226,6 +226,7 @@ public static class BraxCityBuild
         BraxEstateR2FacadeFinish.Apply();
         // Osiedle R2 (Opus): remont A, Park Centralny, osiedle B, wille, kasyno, komisariat, siłownia A, trawa, wylot tunelu z miasta.
         BraxClaudeOsiedle.Apply();
+        BraxClaudeOsiedle.SprawdzNowaObsade(runtime);
         {var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
         try{BraxClaudeBezSwiecenia.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (osiedle): "+e);}
         try{BraxClaudeSiatki.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}

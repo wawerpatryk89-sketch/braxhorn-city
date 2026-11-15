@@ -28,6 +28,7 @@ public static partial class BraxClaudeOsiedle
     sealed class KlubMiejsca
     {
         public readonly List<(Vector3 p, Vector3 przod)> siedziska = new List<(Vector3, Vector3)>(), barStoja = new List<(Vector3, Vector3)>();
+        public readonly List<(Vector3 p, Vector3 przod)> sofy = new List<(Vector3, Vector3)>();
         public readonly List<Vector3> barmani = new List<Vector3>();
         public Vector3 dj, ochrona; public float scena;
         public int loze;
@@ -478,7 +479,11 @@ public static partial class BraxClaudeOsiedle
             var ct = sciana + f * (glS + gap + tR);                                                   // stolik 0.4 m × K przed krawędzią siedziska
             Collider(bS.center, new Vector3(bS.size.x * .96f, bS.size.y, bS.size.z * .96f)); Mebel("loża " + lozeN + " sofa", bS);
             float yS = so ? bS.min.y + bS.size.y * .58f : yF + seatH;
-            foreach (int sgn in new[] { -1, 1 }) klub.siedziska.Add((cs + r * sgn * sofaW * .25f + f * .08f * K + Vector3.up * yS, f));
+            foreach (int sgn in new[] { -1, 1 })
+            {
+                var miejsce = (cs + r * sgn * sofaW * .25f + f * .08f * K + Vector3.up * yS, f);
+                klub.siedziska.Add(miejsce); klub.sofy.Add(miejsce);
+            }
             // fotele w U po bokach stolika, przodem do stolika
             foreach (int sgn in new[] { -1, 1 })
             {

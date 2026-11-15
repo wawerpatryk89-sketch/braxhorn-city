@@ -341,26 +341,23 @@ def ci():
 def patryk_i_ruchy():
     from rejon_buildu import wybierz_rejon
     rejon = wybierz_rejon(ROOT / "unity-city")[0]
-    osiedle_build = rejon in ("osiedle", "oba")
-    if not klucz():
-        if osiedle_build:
-            raise RuntimeError("Brak klucza do wymaganej postaci osiedla")
-        print("BRAXHORN_PRYWATNE brak klucza — prywatne postacie niezaimportowane")
+    if rejon == "osiedle":
+        # Pełna obsada jest już zainstalowana przed importem Unity.
         return
-    if osiedle_build:
-        from postacie_rejonu import przygotuj_obsade
-        przygotuj_obsade("osiedle", CEL, odszyfruj)
+    if not klucz():
+        print("BRAXHORN_PRYWATNE brak klucza dla pozostałych postaci")
+        return
     staging = pathlib.Path(tempfile.mkdtemp(prefix="braxhorn-prywatne-", dir=os.environ.get("RUNNER_TEMP") or None))
     ok = []
     try:
-        for nazwa in (("ruchy_brax", "ruchy_wlasciciela") if osiedle_build else ("patryk", "ruchy_brax", "ruchy_wlasciciela")):
+        for nazwa in ("patryk", "ruchy_brax", "ruchy_wlasciciela"):
             tar = odszyfruj(nazwa)
             if tar is None:
                 continue
             with tar:
                 n = rozpakuj(tar, staging)
             ok.append(f"{nazwa}({n})")
-        patryk = osiedle_build or przygotuj_patryka_miasto(staging)
+        patryk = przygotuj_patryka_miasto(staging)
         ruchy = 0
         if patryk:
             for grupa, pliki in RUCHY_DO_UNITY.items():

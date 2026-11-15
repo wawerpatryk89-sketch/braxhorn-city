@@ -213,7 +213,8 @@ public static partial class BraxClaudeOsiedle
         var auta = new List<BraxAuto>(); var opis = new Dictionary<string, int>();
         for (int r = 0; r < wy.trasy.Count; r++)
         {
-            int ile = BraxTrasyAut.AutNaTrasie(wy.trasy[r].nazwa);
+            // Cztery samochody i dwa istniejące autobusy na całe Osiedle.
+            int ile = (r + 1) * 4 / wy.trasy.Count - r * 4 / wy.trasy.Count;
             for (int k = 0; k < ile; k++)
             {
                 var sz = pula[rnd.Next(pula.Count)];

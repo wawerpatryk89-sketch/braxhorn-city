@@ -18,7 +18,6 @@ public static partial class BraxClaudeOsiedle
     static void RuchNaOsiedlu()
     {
         group = "Ruch: ludzie i auta";
-        Przechodnie();
         Auta();
     }
 

@@ -8,8 +8,8 @@ import subprocess
 import tempfile
 from zipfile import ZipFile
 
-from postacie_rejonu import REGIONS, valid, zainstaluj
-from prywatne import CEL, PACZKI, ROOT
+from postacie_rejonu import zainstaluj
+from prywatne import ROOT
 from rejon_buildu import wybierz_rejon
 
 
@@ -29,43 +29,47 @@ def pobierz(plik, repo, cel):
                        stdout=out, check=True)
 
 
-def odczytaj(zip_path, selection, target):
-    with zip_path.open("rb") as source:
-        if hashlib.file_digest(source, "sha256").hexdigest() != selection["draft_asset"]["sha256"]:
-            raise ValueError("Niepoprawna suma ZIP-a " + selection["id"])
-    prefix = f"unity-city/Assets/Source/Prywatne/Postacie/{selection['id']}/"
-    with ZipFile(zip_path) as z:
-        for item in z.infolist():
-            if not item.filename.startswith(prefix):
-                raise ValueError("Plik spoza katalogu postaci")
-            out = target / item.filename[len(prefix):]
-            if item.is_dir() or target.resolve() not in out.resolve().parents:
-                raise ValueError("Niepoprawna ścieżka w archiwum postaci")
+PACZKA = {
+    "release_id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "name": "Osiedle_19_postaci_20261115.zip",
+    "sha256": "94a34ab8d0635bd92dfec7e518185a2fda98f376ba4c9e74a6087fb0deaabd97",
+}
+
+
+def odczytaj(archive, target):
+    with archive.open("rb") as source:
+        if hashlib.file_digest(source, "sha256").hexdigest() != PACZKA["sha256"]:
+            raise ValueError("Niepoprawna suma paczki Osiedla")
+    with ZipFile(archive) as z:
+        models = {Path(n).parent.name for n in z.namelist() if n.endswith(".fbx")}
+        expected = {f"{k}/{file}" for k in models for file in (k + ".fbx", "Color.png", "Normal.png", "MetalSmooth.png")}
+        files = [n for n in z.namelist() if not n.endswith("/")]
+        if len(models) != 19 or len(files) != len(expected) or set(files) != expected:
+            raise ValueError("Niepełna obsada lub brak map materiałów")
+        for n in files:
+            out = (target / n).resolve()
+            if target.resolve() not in out.parents:
+                raise ValueError("Ścieżka poza katalogiem obsady")
             out.parent.mkdir(parents=True, exist_ok=True)
-            with z.open(item) as src, out.open("xb") as dst:
+            with z.open(n) as src, out.open("xb") as dst:
                 shutil.copyfileobj(src, dst)
-    if not valid(target, selection):
-        raise ValueError("Model lub klipy nie odpowiadają obsadzie rejonu")
 
 
 def przygotuj():
-    region = wybierz_rejon(ROOT / "unity-city")[0]
-    if region not in ("osiedle", "oba"):
+    if wybierz_rejon(ROOT / "unity-city")[0] not in ("osiedle", "oba"):
         return
-    for selection in json.loads((REGIONS / "osiedle.json").read_text())["characters"]:
-        target = CEL / "Postacie" / selection["id"]
-        if valid(target, selection) or (PACZKI / (selection["package"] + ".tar.gz.enc")).is_file():
-            continue
-        target.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(dir=target.parent) as tmp:
-            tmp = Path(tmp)
-            archive = tmp / "source.zip"
-            pobierz(selection["draft_asset"], os.environ["GITHUB_REPOSITORY"], archive)
-            staged = tmp / "postac"
-            staged.mkdir()
-            odczytaj(archive, selection, staged)
-            zainstaluj(staged, target)
-            print(f"Sprawdzono model i animacje: {selection['id']} {selection['version']}")
+    target = ROOT / "unity-city/Assets/Source/ObsadaOsiedla"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=target.parent) as tmp:
+        tmp = Path(tmp)
+        archive = tmp / "obsada.zip"
+        pobierz(PACZKA, os.environ["GITHUB_REPOSITORY"], archive)
+        staged = tmp / "postacie"
+        staged.mkdir()
+        odczytaj(archive, staged)
+        zainstaluj(staged, target)
+    print("BRAXHORN_OBSADA: 19 modeli, 57 map materiałów, SHA-256 zgodna")
 
 
 if __name__ == "__main__":
