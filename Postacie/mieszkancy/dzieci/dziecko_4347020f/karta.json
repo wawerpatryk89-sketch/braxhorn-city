@@ -1,8 +1,8 @@
 {
   "id": "dziecko_4347020f",
   "nazwa": "Dzieciak w okularach i swetrze w pasy",
-  "wersja": "2026-11-15.2",
-  "paczka": "Postac_4347020f_T_20261115_v2.zip",
+  "wersja": "2026-11-15.3",
+  "paczka": "Postac_4347020f_T_20261115_v3.zip",
   "podglad": "Braxhorn_szesc_postaci.jpg",
   "role": [
     "dziecko"
@@ -11,7 +11,7 @@
   "miejsca_spotkan": [],
   "rejony": [],
   "walka": false,
-  "liczba_klipow": 12,
+  "liczba_klipow": 14,
   "podstawa": [
     "Idle",
     "Walk",
@@ -24,9 +24,11 @@
     "Point"
   ],
   "ruchy_roli": [
+    "BallPass",
+    "Celebrate",
+    "CheerSeated",
     "Jump",
-    "KickBall",
-    "Celebrate"
+    "KickBall"
   ],
   "ataki": [],
   "limit_tekstur": 2048,
@@ -35,52 +37,63 @@
     "tag": "postacie-globalne-20261112",
     "status": "draft"
   },
-  "manifest_sha256": "a0e5109a6560900309bebcadbc0beda04dd36d714d9c28bcc99d802ef2798103",
+  "manifest_sha256": "f948445190efafd9149133852d4e8d391627bfe34ddaa4349f62c43694a53382",
   "model_sha256": "499d521730aa5ba3e773381d7c3a7efb8b20779cf3b4bfe25a42f7e7f3a71252",
-  "animowany_fbx_sha256": "29cf137845a54dad03c046427270c02f4281bb0f5e5b39f686c50de46d9c8e05",
+  "animowany_fbx_sha256": "b72895ef9730cd044d1aad04596eab74fda0052c37467dfc899c546fbf20ffe9",
   "pliki": {
     "unity": {
-      "nazwa": "Postac_4347020f_T_20261115_v2.zip",
-      "bajty": 25226971,
-      "sha256": "e5118bcea13acf6c633cc7ccae96e073cbe324aadca86030198f0465fdd3b4b8",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_4347020f_T_20261115_v2.zip",
-      "asset_id": 751406144
+      "nazwa": "Postac_4347020f_T_20261115_v3.zip",
+      "bajty": 16578074,
+      "sha256": "b29e4e1fa338210b93ead1e32d474768ecb268a3e7a9fa9ee3f82d5cb4c86a93",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_4347020f_T_20261115_v3.zip",
+      "asset_id": 751654328
     },
     "model_zrodlowy": {
       "nazwa": "tripo_convert_4347020f-e844-40c4-8427-8e94156ea973.zip",
       "bajty": 25375726,
       "sha256": "a5d4394f119a9ea879d4cfb3fe98ea672049a71f3543a3ec5886d69a3b61d641",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_4347020f-e844-40c4-8427-8e94156ea973.zip",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/tripo_convert_4347020f-e844-40c4-8427-8e94156ea973.zip",
       "asset_id": 751371303
     },
     "podglad": {
       "nazwa": "Braxhorn_szesc_postaci.jpg",
       "bajty": 429698,
       "sha256": "8b134e9446d19f6ceaa85078923ee72f0bdc332e8dccabf33116481c2eab6032",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci.jpg",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Braxhorn_szesc_postaci.jpg",
       "asset_id": 751370084
     },
     "film": {
       "nazwa": "Braxhorn_szesc_postaci_spoczynek_v3.mp4",
       "bajty": 3439066,
       "sha256": "01cfe1d4fb8f91aa19613fb9d9f5569e5e068ae92bffb88ef50a933a786d89e3",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci_spoczynek_v3.mp4",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Braxhorn_szesc_postaci_spoczynek_v3.mp4",
       "asset_id": 751427253
+    },
+    "audyt": {
+      "nazwa": "Audyt_43_postaci_T.pdf",
+      "bajty": 2134738,
+      "sha256": "a0f405dcba4fb55ffa3faf9c1dba6d5da19895a38dacfa1a91bdafd0397116bd",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Audyt_43_postaci_T.pdf",
+      "asset_id": 751748450
     }
   },
   "profil_ruchow_T": "Postacie/ruchy/mixamo.json#dziecko_4347020f",
-  "liczba_klipow_T": 12,
+  "liczba_klipow_T": 14,
   "kontrola": {
     "szkielet_kosci": 65,
-    "ponowny_import_FBX_w_Blenderze": 12,
+    "ponowny_import_FBX_w_Blenderze": 14,
     "do_oceny_rozciagniecia": [
       "Run",
       "SitDown",
       "StandUp",
       "Jump",
       "KickBall",
-      "Celebrate"
+      "Celebrate",
+      "BallPass",
+      "CheerSeated"
     ],
-    "odbior_Unity": "oczekuje"
-  }
+    "odbior_Unity": "oczekuje",
+    "status": "do_akceptacji"
+  },
+  "liczba_klipow_autorskich": 0
 }

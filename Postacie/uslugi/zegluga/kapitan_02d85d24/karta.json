@@ -1,8 +1,8 @@
 {
   "id": "kapitan_02d85d24",
   "nazwa": "Kapitan w białym mundurze",
-  "wersja": "2026-11-14.1",
-  "paczka": "Kapitan02d85d24_Unity_20261114.zip",
+  "wersja": "2026-11-15.3",
+  "paczka": "Postac_02d85d24_T_20261115_v3.zip",
   "podglad": "Role_4_postaci_20261114.jpg",
   "role": [
     "kapitan_operator"
@@ -14,10 +14,11 @@
   ],
   "rejony": [],
   "walka": false,
-  "liczba_klipow": 10,
+  "liczba_klipow": 13,
   "podstawa": [
     "Idle",
     "Walk",
+    "Run",
     "SitDown",
     "SeatedIdle",
     "StandUp",
@@ -26,6 +27,8 @@
     "Point"
   ],
   "ruchy_roli": [
+    "BoatBoard",
+    "BoatExit",
     "Helm",
     "TrainingJog"
   ],
@@ -36,36 +39,70 @@
     "tag": "postacie-globalne-20261112",
     "status": "draft"
   },
-  "manifest_sha256": "fd05c46f59bddef82f02fdd2d0596443e035d791c08197a9b8bb3e690ebb37a2",
+  "manifest_sha256": "49ccef75e1cda9616d62cf461b59e1b4715c639a5aa2747ecad0e227bd6e7b21",
   "pliki": {
     "unity": {
-      "nazwa": "Kapitan02d85d24_Unity_20261114.zip",
-      "sha256": "b0eb96fe25731490bfcdc8a8ef438a603fd00b8c0d464ae40a6a6622493a19e7",
-      "bajty": 22529256,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Kapitan02d85d24_Unity_20261114.zip"
+      "nazwa": "Postac_02d85d24_T_20261115_v3.zip",
+      "bajty": 20025558,
+      "sha256": "88b084479b76cabbf2d04f509a11dcf77da54651c00c77a4c97cb165afbd641b",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_02d85d24_T_20261115_v3.zip",
+      "asset_id": 751653681
     },
     "model_zrodlowy": {
       "nazwa": "tripo_convert_02d85d24-adbd-426b-92f9-09fc7b78be8a.zip",
       "sha256": "13c25b439b74b0591e47edeedb16328f03b070129bd25d8cb894440ff0c10565",
       "bajty": 20588794,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/tripo_convert_02d85d24-adbd-426b-92f9-09fc7b78be8a.zip"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/tripo_convert_02d85d24-adbd-426b-92f9-09fc7b78be8a.zip",
+      "asset_id": 747868548
     },
     "podglad": {
       "nazwa": "Role_4_postaci_20261114.jpg",
       "sha256": "ce791bb89ed87d05f9e293ae7e63e171fe735bec3937ae9c5a5e33e2d7f370ce",
       "bajty": 134590,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Role_4_postaci_20261114.jpg"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Role_4_postaci_20261114.jpg",
+      "asset_id": 747870955
     },
     "widok_modeli": {
       "nazwa": "Obsada_4_modele_20261114.jpg",
       "sha256": "311f9b26ffa8ac2e1285b444976865161982d48ea141bbb29e7d96fff05cf745",
       "bajty": 135062,
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Obsada_4_modele_20261114.jpg"
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Obsada_4_modele_20261114.jpg",
+      "asset_id": 747868810
+    },
+    "audyt": {
+      "nazwa": "Audyt_43_postaci_T.pdf",
+      "bajty": 2134738,
+      "sha256": "a0f405dcba4fb55ffa3faf9c1dba6d5da19895a38dacfa1a91bdafd0397116bd",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Audyt_43_postaci_T.pdf",
+      "asset_id": 751748450
     }
   },
   "profil_ruchow_T": "Postacie/ruchy/mixamo.json#kapitan_02d85d24",
-  "liczba_klipow_T": 10,
+  "liczba_klipow_T": 11,
   "podglad_T": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Braxhorn_Postacie_T_role_14.pdf",
   "stanow_z_cwiczeniami_T": 10,
-  "rendery_Unity_T": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Podglady_Unity_T_43620556579_1.zip"
+  "rendery_Unity_T": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Podglady_Unity_T_43620556579_1.zip",
+  "liczba_klipow_autorskich": 2,
+  "animowany_fbx_sha256": "6f05672faf19671b15d5e9288a571659befff524ae87dc4d598e0c7103287b0c",
+  "model_sha256": "17df5242d92c70701da52afc1b148359e1ee40b783b171ee88e36fdcba0247fa",
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 13,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Wave",
+      "Point",
+      "Helm",
+      "TrainingJog",
+      "Run",
+      "BoatBoard",
+      "BoatExit"
+    ],
+    "odbior_Unity": "oczekuje",
+    "status": "do_akceptacji"
+  }
 }

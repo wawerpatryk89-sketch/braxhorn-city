@@ -1,8 +1,8 @@
 {
   "id": "lekarka_45b3c59b",
   "nazwa": "Lekarka w śliwkowym stroju",
-  "wersja": "2026-11-15.2",
-  "paczka": "Postac_45b3c59b_T_20261115_v2.zip",
+  "wersja": "2026-11-15.3",
+  "paczka": "Postac_45b3c59b_T_20261115_v3.zip",
   "podglad": "Braxhorn_szesc_postaci.jpg",
   "role": [
     "lekarz"
@@ -11,7 +11,7 @@
   "miejsca_spotkan": [],
   "rejony": [],
   "walka": false,
-  "liczba_klipow": 12,
+  "liczba_klipow": 14,
   "podstawa": [
     "Idle",
     "Walk",
@@ -24,8 +24,10 @@
     "Point"
   ],
   "ruchy_roli": [
-    "SeatedTalk",
     "Carry",
+    "OperatingTable",
+    "PatientExam",
+    "SeatedTalk",
     "UseLaptop"
   ],
   "ataki": [],
@@ -35,44 +37,51 @@
     "tag": "postacie-globalne-20261112",
     "status": "draft"
   },
-  "manifest_sha256": "9634f04bfd678a9b4cbcadea4e96c4f7f75ecf6d3cf15e91315a146811333d8e",
+  "manifest_sha256": "a6543346410e755aa2984a808690c65f533e0936f5994c0f0718b70a19ba07c3",
   "model_sha256": "13a8eed1765247175de662706a44a0c0fe729a38083ad323824cb9b14a6cec29",
-  "animowany_fbx_sha256": "df3c92f74827d0cb2b1b6c29ebcade4b6c402f8812f845b998a6efb43df57330",
+  "animowany_fbx_sha256": "687ec6094bf5727c7c01cefa5d7396d62d72146481f39eef3c0c2333e3b92d5b",
   "pliki": {
     "unity": {
-      "nazwa": "Postac_45b3c59b_T_20261115_v2.zip",
-      "bajty": 20844021,
-      "sha256": "250b60f622dc21109bad2fb2e136dd29ca500df0b2c89176d8828764219cbf6c",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_45b3c59b_T_20261115_v2.zip",
-      "asset_id": 751406216
+      "nazwa": "Postac_45b3c59b_T_20261115_v3.zip",
+      "bajty": 21248774,
+      "sha256": "0f40b5f766fdf68c2a1df9e012d309db828f6f9dffd579cb713ee719b38eb60a",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_45b3c59b_T_20261115_v3.zip",
+      "asset_id": 751653562
     },
     "model_zrodlowy": {
       "nazwa": "tripo_convert_45b3c59b-5385-416e-ad47-01aeaaa2f1c0.zip",
       "bajty": 19323967,
       "sha256": "c9796358708b8594a2fbee7a3a871c7ed2393c3624c6f27c70bc718525de9758",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_45b3c59b-5385-416e-ad47-01aeaaa2f1c0.zip",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/tripo_convert_45b3c59b-5385-416e-ad47-01aeaaa2f1c0.zip",
       "asset_id": 751371382
     },
     "podglad": {
       "nazwa": "Braxhorn_szesc_postaci.jpg",
       "bajty": 429698,
       "sha256": "8b134e9446d19f6ceaa85078923ee72f0bdc332e8dccabf33116481c2eab6032",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci.jpg",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Braxhorn_szesc_postaci.jpg",
       "asset_id": 751370084
     },
     "film": {
       "nazwa": "Braxhorn_szesc_postaci_spoczynek_v3.mp4",
       "bajty": 3439066,
       "sha256": "01cfe1d4fb8f91aa19613fb9d9f5569e5e068ae92bffb88ef50a933a786d89e3",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci_spoczynek_v3.mp4",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Braxhorn_szesc_postaci_spoczynek_v3.mp4",
       "asset_id": 751427253
+    },
+    "audyt": {
+      "nazwa": "Audyt_43_postaci_T.pdf",
+      "bajty": 2134738,
+      "sha256": "a0f405dcba4fb55ffa3faf9c1dba6d5da19895a38dacfa1a91bdafd0397116bd",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Audyt_43_postaci_T.pdf",
+      "asset_id": 751748450
     }
   },
   "profil_ruchow_T": "Postacie/ruchy/mixamo.json#lekarka_45b3c59b",
   "liczba_klipow_T": 12,
   "kontrola": {
     "szkielet_kosci": 65,
-    "ponowny_import_FBX_w_Blenderze": 12,
+    "ponowny_import_FBX_w_Blenderze": 14,
     "do_oceny_rozciagniecia": [
       "Idle",
       "Run",
@@ -80,14 +89,12 @@
       "SeatedIdle",
       "StandUp",
       "SeatedTalk",
-      "UseLaptop"
+      "UseLaptop",
+      "PatientExam",
+      "OperatingTable"
     ],
     "odbior_Unity": "oczekuje",
-    "UseLaptop": {
-      "window": [
-        0.35,
-        0.68
-      ]
-    }
-  }
+    "status": "do_akceptacji"
+  },
+  "liczba_klipow_autorskich": 2
 }

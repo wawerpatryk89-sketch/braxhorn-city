@@ -1,8 +1,8 @@
 {
   "id": "kapitan_4005caea",
   "nazwa": "Kapitan w granatowym mundurze",
-  "wersja": "2026-11-15.1",
-  "paczka": "Postac_4005caea_T_20261115.zip",
+  "wersja": "2026-11-15.3",
+  "paczka": "Postac_4005caea_T_20261115_v3.zip",
   "podglad": "Braxhorn_szesc_postaci.jpg",
   "role": [
     "kapitan"
@@ -14,7 +14,7 @@
   ],
   "rejony": [],
   "walka": false,
-  "liczba_klipow": 11,
+  "liczba_klipow": 13,
   "podstawa": [
     "Idle",
     "Walk",
@@ -27,6 +27,8 @@
     "Point"
   ],
   "ruchy_roli": [
+    "BoatBoard",
+    "BoatExit",
     "Helm",
     "TalkOnPhone"
   ],
@@ -37,44 +39,51 @@
     "tag": "postacie-globalne-20261112",
     "status": "draft"
   },
-  "manifest_sha256": "618a7c14351f76b282fcaef8d07e89fc3b371892e17e6c994c4f583502563fb3",
+  "manifest_sha256": "a8dee530ba4b01cb48c8f7b06ecd0432a05b67a45d792ff6fef238763cb5915b",
   "model_sha256": "f929bd21f0c032ebdb0541a8ff6274a6946193b2e1b8b56c0be589688fa33699",
-  "animowany_fbx_sha256": "c99f981252cb027113d13fc8ec0c8e744d3482c32abeca9c1b1746b5816e1259",
+  "animowany_fbx_sha256": "b6268477348e1591a2fcffc020ed67d2c43a459fd7191d27eb80b051fd24f879",
   "pliki": {
     "unity": {
-      "nazwa": "Postac_4005caea_T_20261115.zip",
-      "bajty": 20629939,
-      "sha256": "6333f91e83b8d510ecdf3f41e4822ec8ab0271ab537cdd5f5a9aae961254a4ec",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_4005caea_T_20261115.zip",
-      "asset_id": 751370467
+      "nazwa": "Postac_4005caea_T_20261115_v3.zip",
+      "bajty": 21212230,
+      "sha256": "5d1520ba75f340d0f4dc18d10e4ace80fd1e23d754acb1c6a9044a74737a6042",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_4005caea_T_20261115_v3.zip",
+      "asset_id": 751653737
     },
     "model_zrodlowy": {
       "nazwa": "tripo_convert_4005caea-f2f7-4089-8207-e0c4e14c190c.zip",
       "bajty": 20289170,
       "sha256": "ecfbf7b487e675d2a2ce15cce20b8d3a844853109a948538a81b63bf58e5ac81",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_4005caea-f2f7-4089-8207-e0c4e14c190c.zip",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/tripo_convert_4005caea-f2f7-4089-8207-e0c4e14c190c.zip",
       "asset_id": 751371139
     },
     "podglad": {
       "nazwa": "Braxhorn_szesc_postaci.jpg",
       "bajty": 429698,
       "sha256": "8b134e9446d19f6ceaa85078923ee72f0bdc332e8dccabf33116481c2eab6032",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci.jpg",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Braxhorn_szesc_postaci.jpg",
       "asset_id": 751370084
     },
     "film": {
       "nazwa": "Braxhorn_6_postaci_76_animacji.mp4",
       "bajty": 12599414,
       "sha256": "dd4404f64e4d12463d119a888eb13b0c12d197e08e045d1e49c7f83fdea22e22",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_6_postaci_76_animacji.mp4",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Braxhorn_6_postaci_76_animacji.mp4",
       "asset_id": 751369929
+    },
+    "audyt": {
+      "nazwa": "Audyt_43_postaci_T.pdf",
+      "bajty": 2134738,
+      "sha256": "a0f405dcba4fb55ffa3faf9c1dba6d5da19895a38dacfa1a91bdafd0397116bd",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Audyt_43_postaci_T.pdf",
+      "asset_id": 751748450
     }
   },
   "profil_ruchow_T": "Postacie/ruchy/mixamo.json#kapitan_4005caea",
   "liczba_klipow_T": 11,
   "kontrola": {
     "szkielet_kosci": 65,
-    "ponowny_import_FBX_w_Blenderze": 11,
+    "ponowny_import_FBX_w_Blenderze": 13,
     "do_oceny_rozciagniecia": [
       "Idle",
       "Walk",
@@ -84,8 +93,12 @@
       "StandUp",
       "Talk",
       "Helm",
-      "TalkOnPhone"
+      "TalkOnPhone",
+      "BoatBoard",
+      "BoatExit"
     ],
-    "odbior_Unity": "oczekuje"
-  }
+    "odbior_Unity": "oczekuje",
+    "status": "do_akceptacji"
+  },
+  "liczba_klipow_autorskich": 2
 }

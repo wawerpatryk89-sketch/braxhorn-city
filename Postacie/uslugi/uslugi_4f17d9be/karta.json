@@ -62,18 +62,11 @@
       "asset_id": 751471281
     },
     "film": {
-      "nazwa": "Braxhorn_szesc_postaci_86_ruchow_T.mp4",
-      "bajty": 10661199,
-      "sha256": "31ad332c7fb9a6e24967458d9999e6b52ac2aca33e2e14997e1b6723c00351cb",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci_86_ruchow_T.mp4",
-      "asset_id": 751489823
-    },
-    "chod": {
-      "nazwa": "Braxhorn_szesc_postaci_chod.jpg",
-      "bajty": 85293,
-      "sha256": "8d58540642a590efda80b354cec544ed0e43d9aa63848e56edac418198dc8386",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci_chod.jpg",
-      "asset_id": 751489933
+      "nazwa": "Braxhorn_imprezowicze_i_uslugi_T.mp4",
+      "bajty": 9120721,
+      "sha256": "af3be460d7b67a9b2e29b259aeea9055520cf79d32cf9d48cf1583a7d3d7eb3c",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_imprezowicze_i_uslugi_T.mp4",
+      "asset_id": 751471130
     }
   },
   "profil_ruchow_T": "Postacie/ruchy/mixamo.json#uslugi_4f17d9be",
@@ -92,5 +85,6 @@
     "odbior_Unity": "oczekuje"
   },
   "szczegoly_roli": "Usługi. Stanowisko i miejsce pracy do ustalenia.",
-  "wzor_stroju": "Złota kamizelka na czarnej koszuli. Porównać z kolejnymi pracownikami w podobnym stroju."
+  "wzor_stroju": "Złota kamizelka na czarnej koszuli. Porównać z kolejnymi pracownikami w podobnym stroju.",
+  "grupa_stroju": "obsluga_zlota_kamizelka"
 }

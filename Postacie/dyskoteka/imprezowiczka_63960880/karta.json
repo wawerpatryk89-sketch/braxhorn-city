@@ -1,0 +1,112 @@
+{
+  "id": "imprezowiczka_63960880",
+  "nazwa": "Imprezowiczka w bordowej sukience",
+  "role": [
+    "imprezowiczka"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "dyskoteka",
+    "miasto"
+  ],
+  "rejony": [],
+  "walka": false,
+  "limit_tekstur": 2048,
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_63960880_T_20261115.zip",
+  "liczba_klipow": 18,
+  "liczba_klipow_T": 18,
+  "liczba_klipow_autorskich": 0,
+  "animowany_fbx_sha256": "55b36144b0ad01a6bd5fcaa306314d74145c748a6c3e1b707b536e83c3a9d0a3",
+  "manifest_sha256": "583e32e5b1b6989beaee7377c1ff88e8e67f3c71ccd436de8d42b9e447889d64",
+  "model_sha256": "6dcf75e1abfba63af458cbe7b29ad3e14ef0d32062fb9a0c193fa1734a582367",
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "Applaud",
+    "CallOnMove",
+    "Celebrate",
+    "CityStroll",
+    "DanceAlt",
+    "DanceMain",
+    "Drink",
+    "SeatedCheer",
+    "SeatedTalk"
+  ],
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#imprezowiczka_63960880",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_63960880_T_20261115.zip",
+      "bajty": 25806983,
+      "sha256": "2f32ab3500331f55a9e18b1f3b8542f60bf897c1f662d96b03bb89bdc819f527",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_63960880_T_20261115.zip",
+      "asset_id": 751653456
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_63960880-b682-43d2-bd4c-455a4a86b37e.zip",
+      "bajty": 21600138,
+      "sha256": "5811cae8abc4fe6c75515c2867931817275b001120a77ad10012da5bb7c03d18",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/tripo_convert_63960880-b682-43d2-bd4c-455a4a86b37e.zip",
+      "asset_id": 751638135
+    },
+    "audyt": {
+      "nazwa": "Audyt_43_postaci_T.pdf",
+      "bajty": 2134738,
+      "sha256": "a0f405dcba4fb55ffa3faf9c1dba6d5da19895a38dacfa1a91bdafd0397116bd",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Audyt_43_postaci_T.pdf",
+      "asset_id": 751748450
+    },
+    "film": {
+      "nazwa": "Osiem_postaci_ruch_i_role.mp4",
+      "bajty": 3446772,
+      "sha256": "0cf4552c1b084ba3501bd7efe66e55bfc63f07ccccbc1f887f4c18dfc16801e6",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Osiem_postaci_ruch_i_role.mp4",
+      "asset_id": 751729714
+    },
+    "podglad": {
+      "nazwa": "Braxhorn_osiem_postaci_do_rol.jpg",
+      "bajty": 360213,
+      "sha256": "8092bfb934d67cb41e043f43e672225d402ea130ef76689497a7184d049e1425",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Braxhorn_osiem_postaci_do_rol.jpg",
+      "asset_id": 751638263
+    }
+  },
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 18,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Point",
+      "DanceMain",
+      "DanceAlt",
+      "Applaud",
+      "SeatedTalk",
+      "CityStroll",
+      "CallOnMove",
+      "Celebrate",
+      "SeatedCheer"
+    ],
+    "odbior_Unity": "oczekuje",
+    "status": "do_akceptacji"
+  },
+  "podglad": "Braxhorn_osiem_postaci_do_rol.jpg"
+}

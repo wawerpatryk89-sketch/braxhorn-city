@@ -15,3 +15,8 @@ Postacie według wykonywanego zawodu.
 - [Lekarz w zielonym stroju i czepku](lekarze/lekarz_34571d97/karta.json)
 - [Lekarka w śliwkowym stroju](lekarze/lekarka_45b3c59b/karta.json)
 - [Pracownik usług w złotej kamizelce](uslugi_4f17d9be/karta.json) — stanowisko do ustalenia.
+- [Ochroniarz w czarnym polo](ochrona/ochroniarz_56f0f236/karta.json)
+- [Rottweiler — ochroniarz banku](ochrona/ochroniarz_banku_5cc1e1e1/karta.json)
+- [Pracownica obsługi w bordowej kamizelce](obsluga_61174851/karta.json)
+- [Pracownica biura w beżowym garniturze](biuro_592f7e58/karta.json)
+- [Pracownica usług w czarnym garniturze](uslugi_5fc5a54c/karta.json)

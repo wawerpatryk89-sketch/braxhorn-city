@@ -1,7 +1,7 @@
 {
   "id": "uslugi_27782fb9",
   "nazwa": "Mężczyzna w garniturze",
-  "wersja": "2026-11-15.1",
+  "wersja": "2026-11-15.3",
   "role": [
     "uslugi"
   ],
@@ -20,13 +20,61 @@
     "Point"
   ],
   "ruchy_roli": [
-    "TalkOnPhone",
-    "SeatedTalk"
+    "Carry",
+    "GreetVisitor",
+    "SeatedTalk",
+    "TalkOnPhone"
   ],
-  "liczba_klipow_T": 11,
+  "liczba_klipow_T": 13,
   "profil_ruchow_T": "Postacie/ruchy/mixamo.json#uslugi_27782fb9",
   "zrodlo": "tripo_convert_27782fb9-2216-48dd-aa33-fd435501683f.fbx",
-  "model_sha256": "8081cb5fcfa7592359045fd0a97d1264dcf056237874c2fd90d9d9468f014a8b",
+  "model_sha256": "9f95acf5ab0f8d2c665269665b0e7e187ddd74ee92179315fd867d6d134f6521",
   "status": "Przypisania robocze. Odbiór ruchu na modelu w toku.",
-  "model_z_rigiem_sha256": "9f95acf5ab0f8d2c665269665b0e7e187ddd74ee92179315fd867d6d134f6521"
+  "model_z_rigiem_sha256": "9f95acf5ab0f8d2c665269665b0e7e187ddd74ee92179315fd867d6d134f6521",
+  "paczka": "Postac_27782fb9_T_20261115_v3.zip",
+  "liczba_klipow": 13,
+  "liczba_klipow_autorskich": 0,
+  "animowany_fbx_sha256": "7b217e870bf8cff547406c7a8c763bbdd6db3e087011028279cb8f42f00327bd",
+  "manifest_sha256": "d8e20370a31386b4658be79280bb99b63267f528557b5a2b45305d72ad768cec",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_27782fb9_T_20261115_v3.zip",
+      "bajty": 16332679,
+      "sha256": "5e887aeb414b7aee606763a257cefa0be09eb742c46f01f8103297d5e01e2bc0",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_27782fb9_T_20261115_v3.zip",
+      "asset_id": 751654479
+    },
+    "audyt": {
+      "nazwa": "Audyt_43_postaci_T.pdf",
+      "bajty": 2134738,
+      "sha256": "a0f405dcba4fb55ffa3faf9c1dba6d5da19895a38dacfa1a91bdafd0397116bd",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Audyt_43_postaci_T.pdf",
+      "asset_id": 751748450
+    }
+  },
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 13,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Talk",
+      "Wave",
+      "Point",
+      "TalkOnPhone",
+      "SeatedTalk",
+      "Carry"
+    ],
+    "odbior_Unity": "oczekuje",
+    "status": "do_akceptacji"
+  }
 }

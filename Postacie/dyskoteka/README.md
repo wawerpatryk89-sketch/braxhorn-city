@@ -16,3 +16,5 @@ Postacie, które można spotkać na imprezie.
 - [Imprezowiczka w złotym topie](imprezowiczka_4bcf39de/karta.json) — [wariant wyglądu wcześniejszej imprezowiczki](imprezowiczka_13e8d41d/karta.json).
 - [Imprezowicz w beżowej kamizelce](imprezowicz_4835b56f/karta.json)
 - [Imprezowiczka w fioletowych spodniach](imprezowiczka_5117892a/karta.json)
+- [Imprezowiczka w bordowej sukience](imprezowiczka_63960880/karta.json)
+- [Imprezowiczka w ciemnozielonej sukience](imprezowiczka_0dbe3922/karta.json)

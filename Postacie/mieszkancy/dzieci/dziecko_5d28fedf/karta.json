@@ -1,0 +1,106 @@
+{
+  "id": "dziecko_5d28fedf",
+  "nazwa": "Dziecko w liliowej bluzie",
+  "role": [
+    "dziecko"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [],
+  "rejony": [],
+  "walka": false,
+  "limit_tekstur": 2048,
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_5d28fedf_T_20261115.zip",
+  "liczba_klipow": 16,
+  "liczba_klipow_T": 15,
+  "liczba_klipow_autorskich": 1,
+  "animowany_fbx_sha256": "1b999307d5452661ab049b738e96349eb3bd82e163366eb22284d05322bc31e7",
+  "manifest_sha256": "61716c0a4316f400f84231474f5902dc911b7517a4947a17046d64380743b386",
+  "model_sha256": "01e72da38915a910672f4f935230d0b7a7b0a4f427ecc4062cc2c20d46ac8545",
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "Cheer",
+    "Clap",
+    "Jump",
+    "KickBall",
+    "PlayCatch",
+    "SeatedCheer",
+    "ThrowFrisbee"
+  ],
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#dziecko_5d28fedf",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_5d28fedf_T_20261115.zip",
+      "bajty": 25535161,
+      "sha256": "56ee718dd495ba7c0dea566df5520bd708f9bdbdbc8ee924a6c3ab279b8f5f04",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_5d28fedf_T_20261115.zip",
+      "asset_id": 751653258
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_5d28fedf-ef08-4b4e-b81e-846edc6831a2.zip",
+      "bajty": 24307657,
+      "sha256": "0db6a65af9db3e408d3a93a3842c8c89dc0b4b00071a0324f25409ef8abaf9d1",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/tripo_convert_5d28fedf-ef08-4b4e-b81e-846edc6831a2.zip",
+      "asset_id": 751637814
+    },
+    "audyt": {
+      "nazwa": "Audyt_43_postaci_T.pdf",
+      "bajty": 2134738,
+      "sha256": "a0f405dcba4fb55ffa3faf9c1dba6d5da19895a38dacfa1a91bdafd0397116bd",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Audyt_43_postaci_T.pdf",
+      "asset_id": 751748450
+    },
+    "film": {
+      "nazwa": "Osiem_postaci_ruch_i_role.mp4",
+      "bajty": 3446772,
+      "sha256": "0cf4552c1b084ba3501bd7efe66e55bfc63f07ccccbc1f887f4c18dfc16801e6",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Osiem_postaci_ruch_i_role.mp4",
+      "asset_id": 751729714
+    },
+    "podglad": {
+      "nazwa": "Braxhorn_osiem_postaci_do_rol.jpg",
+      "bajty": 360213,
+      "sha256": "8092bfb934d67cb41e043f43e672225d402ea130ef76689497a7184d049e1425",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Braxhorn_osiem_postaci_do_rol.jpg",
+      "asset_id": 751638263
+    }
+  },
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 16,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Talk",
+      "Wave",
+      "Point",
+      "Jump",
+      "ThrowFrisbee",
+      "Clap",
+      "KickBall",
+      "PlayCatch",
+      "Cheer",
+      "SeatedCheer"
+    ],
+    "odbior_Unity": "oczekuje",
+    "status": "do_akceptacji"
+  },
+  "podglad": "Braxhorn_osiem_postaci_do_rol.jpg"
+}

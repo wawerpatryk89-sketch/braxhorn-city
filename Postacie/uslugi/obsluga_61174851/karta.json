@@ -1,0 +1,111 @@
+{
+  "id": "obsluga_61174851",
+  "nazwa": "Pracownica obsługi w bordowej kamizelce",
+  "role": [
+    "obsluga"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [],
+  "rejony": [],
+  "walka": false,
+  "limit_tekstur": 2048,
+  "grupa_stroju": "obsluga_bordowa_kamizelka",
+  "miejsca_mozliwe": [
+    "recepcja",
+    "dyskoteka",
+    "bar"
+  ],
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_61174851_T_20261115.zip",
+  "liczba_klipow": 16,
+  "liczba_klipow_T": 14,
+  "liczba_klipow_autorskich": 2,
+  "animowany_fbx_sha256": "c3b43ec52de97e266617bc3f96f5d2b10cfbe7a84e4d47c6bdeb9ddf8a096db0",
+  "manifest_sha256": "78d233ec40a1418a27f108956a12abc89140ff8686bce69f9d00066f9e9b1bda",
+  "model_sha256": "e2e63852e147dbded643090e363d05689776fc3f4a33c6f3eb62944f7a7863ce",
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "Carry",
+    "GreetGuest",
+    "Phone",
+    "SeatedTalk",
+    "ServeBar",
+    "ServeBarAlt",
+    "TalkToGuest"
+  ],
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#obsluga_61174851",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_61174851_T_20261115.zip",
+      "bajty": 24397205,
+      "sha256": "18625a632c15e3471cb8d09c375bfa7ccaac01bd79cdf564dfe02dca681d26f1",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_61174851_T_20261115.zip",
+      "asset_id": 751653363
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_61174851-eca1-4817-8ab9-3f95c11a3fea.zip",
+      "bajty": 21226034,
+      "sha256": "13bb8cc87757c260730f866bc957fce875138043db05e5fbe39284cf0131b7ab",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/tripo_convert_61174851-eca1-4817-8ab9-3f95c11a3fea.zip",
+      "asset_id": 751638045
+    },
+    "audyt": {
+      "nazwa": "Audyt_43_postaci_T.pdf",
+      "bajty": 2134738,
+      "sha256": "a0f405dcba4fb55ffa3faf9c1dba6d5da19895a38dacfa1a91bdafd0397116bd",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Audyt_43_postaci_T.pdf",
+      "asset_id": 751748450
+    },
+    "film": {
+      "nazwa": "Osiem_postaci_ruch_i_role.mp4",
+      "bajty": 3446772,
+      "sha256": "0cf4552c1b084ba3501bd7efe66e55bfc63f07ccccbc1f887f4c18dfc16801e6",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Osiem_postaci_ruch_i_role.mp4",
+      "asset_id": 751729714
+    },
+    "podglad": {
+      "nazwa": "Braxhorn_osiem_postaci_do_rol.jpg",
+      "bajty": 360213,
+      "sha256": "8092bfb934d67cb41e043f43e672225d402ea130ef76689497a7184d049e1425",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Braxhorn_osiem_postaci_do_rol.jpg",
+      "asset_id": 751638263
+    }
+  },
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 16,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Talk",
+      "Point",
+      "ServeBar",
+      "GreetGuest",
+      "SeatedTalk",
+      "ServeBarAlt",
+      "TalkToGuest",
+      "Phone"
+    ],
+    "odbior_Unity": "oczekuje",
+    "status": "do_akceptacji"
+  },
+  "podglad": "Braxhorn_osiem_postaci_do_rol.jpg"
+}

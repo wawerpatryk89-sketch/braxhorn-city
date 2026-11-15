@@ -1,0 +1,84 @@
+{
+  "id": "imprezowiczka_0dbe3922",
+  "nazwa": "Imprezowiczka w ciemnozielonej sukience",
+  "role": [
+    "imprezowiczka"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "dyskoteka",
+    "miasto"
+  ],
+  "rejony": [],
+  "walka": false,
+  "limit_tekstur": 2048,
+  "wersja": "2026-11-15.3",
+  "paczka": "Postac_0dbe3922_T_20261115_v3.zip",
+  "liczba_klipow": 17,
+  "liczba_klipow_T": 17,
+  "liczba_klipow_autorskich": 0,
+  "animowany_fbx_sha256": "e999e8f803dd85772b3935bfe5377785353f1f2cd26459c7d40bfef62c89dc1d",
+  "manifest_sha256": "b549bfb61639cccfe621bedd98cbbbb47eb30f7cfb1d53df5a342f9fbf1b86e7",
+  "model_sha256": "cc617b221c38abbb8034db230751be9ebcf70380b67d98cb1b8c9aed87a54e42",
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "CheerSeated",
+    "DanceHipHop",
+    "DanceHouse",
+    "DanceMain",
+    "Drink",
+    "DrunkIdle",
+    "DrunkTurn",
+    "DrunkWalk"
+  ],
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#imprezowiczka_0dbe3922",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_0dbe3922_T_20261115_v3.zip",
+      "bajty": 19493863,
+      "sha256": "b420d8b4147286c8e51dfcd38ffec357a3a80cd825f4e1d0935e0f37cf3be309",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_0dbe3922_T_20261115_v3.zip",
+      "asset_id": 751654084
+    },
+    "audyt": {
+      "nazwa": "Audyt_43_postaci_T.pdf",
+      "bajty": 2134738,
+      "sha256": "a0f405dcba4fb55ffa3faf9c1dba6d5da19895a38dacfa1a91bdafd0397116bd",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Audyt_43_postaci_T.pdf",
+      "asset_id": 751748450
+    }
+  },
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 17,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "DanceHouse",
+      "DrunkWalk",
+      "DanceMain",
+      "CheerSeated"
+    ],
+    "odbior_Unity": "oczekuje",
+    "status": "do_akceptacji"
+  }
+}

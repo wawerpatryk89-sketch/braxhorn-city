@@ -1,8 +1,8 @@
 {
   "id": "imprezowiczka_13e8d41d",
   "nazwa": "Imprezowiczka w kremowym topie",
-  "wersja": "2026-11-14.1",
-  "paczka": "Imprezowiczka13e8d41d_T_Unity_20261114.zip",
+  "wersja": "2026-11-15.3",
+  "paczka": "Postac_13e8d41d_T_20261115_v3.zip",
   "role": [
     "imprezowiczka"
   ],
@@ -25,14 +25,16 @@
     "Point"
   ],
   "ruchy_roli": [
-    "DanceHouse",
+    "CelebrateSeated",
     "DanceHipHop",
+    "DanceHouse",
+    "DanceMain",
     "Drink",
     "DrunkIdle",
-    "DrunkWalk",
-    "DrunkTurn"
+    "DrunkTurn",
+    "DrunkWalk"
   ],
-  "liczba_klipow_T": 15,
+  "liczba_klipow_T": 17,
   "limit_tekstur": 2048,
   "profil_ruchow_T": "Postacie/ruchy/mixamo.json#imprezowiczka_13e8d41d",
   "zrodlo": "tripo_convert_13e8d41d-4253-4f93-ae34-c6c9bdc1cabd.fbx",
@@ -42,16 +44,42 @@
     "tag": "postacie-globalne-20261112",
     "status": "draft"
   },
-  "manifest_sha256": "fa326d6e906cb11c1fc3852cc645259df5737875a1eb14c624eb7b1d988f0aee",
+  "manifest_sha256": "2019eda375208e85652bfe7b8ced7d0ab295e3018ac2f986b97415d08f4d5e99",
   "pliki": {
     "unity": {
-      "nazwa": "Imprezowiczka13e8d41d_T_Unity_20261114.zip",
-      "bajty": 22313669,
-      "sha256": "d903ffba34e5460f7dcdf5f58a339e3e7bb0decb8bcae6bc770373b79c2fae35",
-      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4487374c3ba5c1e097f9/Imprezowiczka13e8d41d_T_Unity_20261114.zip"
+      "nazwa": "Postac_13e8d41d_T_20261115_v3.zip",
+      "bajty": 17291421,
+      "sha256": "04c2b628220735af0beeb915b072f4115b8822a8dd80260b521e61297a68ca03",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_13e8d41d_T_20261115_v3.zip",
+      "asset_id": 751654190
+    },
+    "audyt": {
+      "nazwa": "Audyt_43_postaci_T.pdf",
+      "bajty": 2134738,
+      "sha256": "a0f405dcba4fb55ffa3faf9c1dba6d5da19895a38dacfa1a91bdafd0397116bd",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Audyt_43_postaci_T.pdf",
+      "asset_id": 751748450
     }
   },
   "warianty_wizualne": [
     "imprezowiczka_4bcf39de"
-  ]
+  ],
+  "liczba_klipow": 17,
+  "liczba_klipow_autorskich": 0,
+  "animowany_fbx_sha256": "c1dcd29a9881d5c1256d0f7071d09128c0179efdd6fed2d5b6818bea35fd58be",
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 17,
+    "do_oceny_rozciagniecia": [
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "DanceHouse",
+      "DrunkWalk",
+      "CelebrateSeated"
+    ],
+    "odbior_Unity": "oczekuje",
+    "status": "do_akceptacji"
+  }
 }

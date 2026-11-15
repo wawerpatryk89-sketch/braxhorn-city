@@ -1,0 +1,118 @@
+{
+  "id": "ochroniarz_banku_5cc1e1e1",
+  "nazwa": "Rottweiler — ochroniarz banku",
+  "role": [
+    "ochroniarz_banku"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "bank"
+  ],
+  "rejony": [],
+  "walka": true,
+  "limit_tekstur": 2048,
+  "wersja": "2026-11-15.1",
+  "paczka": "Postac_5cc1e1e1_T_20261115.zip",
+  "liczba_klipow": 21,
+  "liczba_klipow_T": 21,
+  "liczba_klipow_autorskich": 0,
+  "animowany_fbx_sha256": "012a9e4d4f1c7bec582420f94545144f8832f1216bbd9dc3943e2018cab46dc9",
+  "manifest_sha256": "d7c7405d1357d446285d3b04acb44acdc5473ef4b4d8e53d79ba94fae001dfae",
+  "model_sha256": "ff7ba35820a805fbc0077139b315f2e39f42177a0058e1304a9966ddf983a96b",
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "Block",
+    "CallOnMove",
+    "DirectVisitor",
+    "Dodge",
+    "GuardStance",
+    "HitHead",
+    "Hook",
+    "Jab",
+    "Patrol",
+    "SideStep",
+    "StepBack",
+    "Warn"
+  ],
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#ochroniarz_banku_5cc1e1e1",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_5cc1e1e1_T_20261115.zip",
+      "bajty": 26155678,
+      "sha256": "e8f0b2030ef960e87390bb65d93a301ced83069c5449ebe02ae8c54c063f220e",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_5cc1e1e1_T_20261115.zip",
+      "asset_id": 751653191
+    },
+    "model_zrodlowy": {
+      "nazwa": "tripo_convert_5cc1e1e1-667b-4ad8-b811-79328e2e0a11.zip",
+      "bajty": 24158090,
+      "sha256": "c35cf01ebb7d820e538bdacacd0d2009e5ef6b4ce12129e1d735f903c3117edc",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/tripo_convert_5cc1e1e1-667b-4ad8-b811-79328e2e0a11.zip",
+      "asset_id": 751637717
+    },
+    "audyt": {
+      "nazwa": "Audyt_43_postaci_T.pdf",
+      "bajty": 2134738,
+      "sha256": "a0f405dcba4fb55ffa3faf9c1dba6d5da19895a38dacfa1a91bdafd0397116bd",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Audyt_43_postaci_T.pdf",
+      "asset_id": 751748450
+    },
+    "film": {
+      "nazwa": "Osiem_postaci_ruch_i_role.mp4",
+      "bajty": 3446772,
+      "sha256": "0cf4552c1b084ba3501bd7efe66e55bfc63f07ccccbc1f887f4c18dfc16801e6",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Osiem_postaci_ruch_i_role.mp4",
+      "asset_id": 751729714
+    },
+    "podglad": {
+      "nazwa": "Rottweiler_ochroniarz_banku.jpg",
+      "bajty": 388243,
+      "sha256": "5254548312e318f5080769eb6f9d7932a8884b5468378ce79116a494c4431b94",
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Rottweiler_ochroniarz_banku.jpg",
+      "asset_id": 751638291
+    }
+  },
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 21,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Talk",
+      "Point",
+      "Warn",
+      "CallOnMove",
+      "Block",
+      "SideStep",
+      "StepBack",
+      "Jab",
+      "Hook",
+      "HitHead",
+      "Patrol",
+      "GuardStance",
+      "Dodge"
+    ],
+    "odbior_Unity": "oczekuje",
+    "status": "do_akceptacji"
+  },
+  "podglad": "Rottweiler_ochroniarz_banku.jpg"
+}
