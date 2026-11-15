@@ -1,9 +1,9 @@
 {
   "id": "braxhorn.vehicle.l8limousine",
   "displayName": "Braxhorn L8",
-  "version": "0.1.0-review",
+  "version": "0.2.0-review",
   "scope": "shared, all city regions",
-  "description": "Four-door long-wheelbase saloon, four individual seats. Midnight sapphire with warm ivory upholstery and walnut trim.",
+  "description": "New long-bonnet coachwork in metallic oxblood, four individual diamond-stitched seats, walnut trim and hand-laced wire wheels.",
   "forward": "+Z",
   "sourceUnit": "metre",
   "privateSourceFiles": [
@@ -12,114 +12,142 @@
   ],
   "geometry": {
     "hero": {
-      "triangles": 226753,
+      "triangles": 330613,
       "sizeM": [
-        2.245,
-        5.634,
-        1.561
+        2.214,
+        5.74,
+        1.517
       ],
-      "wheelbaseM": 3.4,
+      "wheelbaseM": 3.43,
       "seats": 4,
       "doors": 4,
       "wheels": 4,
       "hoodBadgeMm": 160,
       "wheelBadgeMm": 43,
       "rimSamples": 144,
+      "wireSpokes": {
+        "Wheel_FL": 72,
+        "Wheel_FR": 72,
+        "Wheel_RL": 72,
+        "Wheel_RR": 72
+      },
       "lampInsetSamplesMm": {
         "headlamp L": [
-          8.8,
-          8.55,
-          8.64
+          5.49,
+          5.55,
+          5.63,
+          5.68,
+          5.8
         ],
         "headlamp R": [
-          8.82,
-          8.57,
-          8.65
+          5.47,
+          5.55,
+          5.62,
+          5.68,
+          5.82
         ],
         "tail lamp L": [
-          8.89,
-          8.95,
-          9.15
+          14.14,
+          14.13,
+          14.09,
+          14.09,
+          13.92
         ],
         "tail lamp R": [
-          8.81,
-          8.88,
-          9.07
+          14.14,
+          14.19,
+          14.15,
+          14.11,
+          14.02
         ]
       },
-      "bytes": 12580040,
-      "sha256": "4f1d8dc379592c66042b04133b157bb321c45804ad0c66f803838b5a2921e83c",
+      "bytes": 16885792,
+      "sha256": "40ca9abb92c7b4cbaaeb441f012e8ee23def090cc1a9648b3ea97a318c1be400",
       "hoodClearanceMm": {
         "muzzle": [
           459,
           -0.044,
           -0.035,
-          -0.002
+          -0.004
         ],
         "roots": [
           208,
-          -0.037,
-          -0.034,
-          0.001
+          -0.051,
+          -0.03,
+          0.014
         ],
         "horn_tips": [
           49,
-          2.339,
-          2.707,
-          2.718
+          2.34,
+          2.706,
+          2.719
         ]
       }
     },
     "distance": {
-      "triangles": 46498,
+      "triangles": 48165,
       "sizeM": [
-        2.246,
-        5.634,
-        1.56
+        2.213,
+        5.743,
+        1.517
       ],
-      "wheelbaseM": 3.4,
+      "wheelbaseM": 3.43,
       "seats": 4,
       "doors": 4,
       "wheels": 4,
       "hoodBadgeMm": 160,
       "wheelBadgeMm": 43,
       "rimSamples": 144,
+      "wireSpokes": {
+        "Wheel_FL": 72,
+        "Wheel_FR": 72,
+        "Wheel_RL": 72,
+        "Wheel_RR": 72
+      },
       "lampInsetSamplesMm": {
         "headlamp L": [
-          9.12,
-          8.5,
-          8.83
+          5.72,
+          5.63,
+          5.55,
+          5.46,
+          5.37
         ],
         "headlamp R": [
-          9.32,
-          8.51,
-          8.61
+          5.43,
+          5.11,
+          5.2,
+          5.42,
+          5.64
         ],
         "tail lamp L": [
-          8.82,
-          8.9,
-          9.34
+          13.32,
+          13.39,
+          13.45,
+          13.52,
+          13.59
         ],
         "tail lamp R": [
-          8.65,
-          9.0,
-          9.42
+          13.61,
+          13.55,
+          13.48,
+          13.41,
+          13.34
         ]
       },
-      "bytes": 7199288,
-      "sha256": "32d081ec5a1b4072294d5997c2cfdda8e45a94b786673f92ec6e0e95227b4e83",
+      "bytes": 7918756,
+      "sha256": "8c9eb3d42f166c4f590dc675f8f5c03cd01b3b671fe9304805285c44c264e7aa",
       "hoodClearanceMm": {
         "muzzle": [
           459,
-          -0.042,
           -0.035,
-          -0.0
+          -0.035,
+          0.038
         ],
         "roots": [
           208,
-          -0.036,
           -0.035,
-          0.002
+          -0.035,
+          0.0
         ],
         "horn_tips": [
           49,
@@ -138,8 +166,8 @@
     "rearWordmark": "BRAXHORN"
   },
   "unityPackage": {
-    "sha256": "d3440d2fd7dd26712a3ec8889a3fc98650322520b8c3dda37433f06a4b5741e2",
-    "bytes": 14814896,
+    "sha256": "f4d498a86886b5c06712498f138771f596ba3292d9ac923fbb4eab486af50691",
+    "bytes": 17946681,
     "importer": "com.unity.cloud.gltfast",
     "paths": [
       "Assets/Braxhorn/Shared/Vehicles/BraxhornL8.glb",
@@ -148,6 +176,7 @@
   },
   "runtime": {
     "doors": "fixed body panels",
+    "wiresPerWheel": 72,
     "wheelPivots": 4,
     "steeringPivot": true,
     "selectionOfDistanceMesh": "manual",
@@ -169,6 +198,6 @@
     "type": "private owner library",
     "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
     "sourceFile": "Braxhorn_L8_Model.zip",
-    "sourceSHA256": "97bcce34fb141a76e69584078b30259388d845089e88289240a3dbcb75a54546"
+    "sourceSHA256": "d8d25d01a3bdd0b2a91b52a68e116bc26ecb87bba489b468bde70da94472745a"
   }
 }
