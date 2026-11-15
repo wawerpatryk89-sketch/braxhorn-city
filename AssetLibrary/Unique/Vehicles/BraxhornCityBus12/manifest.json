@@ -1,6 +1,6 @@
 {
   "id": "braxhorn.vehicle.citybus12",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "Braxhorn City — autobus miejski 12 m",
   "scope": "shared, all city regions",
   "sourceStorage": {
@@ -21,24 +21,37 @@
     "applyWorldScaleOnce": true
   },
   "package": {
-    "bytes": 17186592,
-    "sha256": "6fb50bf69657308336dc2d3664b89f7cccd351a575fff3c05bfaa2ab12b901ea"
+    "bytes": 17175968,
+    "sha256": "01e43d36e115583c5b1fb279ee36a9541aca60c46365a687e2ecc7e8754d72c0"
   },
   "model": {
     "format": "GLB 2.0",
-    "bytes": 19491904,
-    "sha256": "b4a7f611cb3d3e3c332aa23365f93d92d0aacbd940971a530ad864734229c0f9",
+    "bytes": 19437264,
+    "sha256": "86c9e0ff45d5fa320bd79c8c1f263b27e6f77a4229106de94ac269ed375245bb",
     "seatedPassengers": 33,
     "driverSeats": 1,
     "wheelsWithPivots": 4,
     "doorLeavesWithPivots": 4,
-    "trianglesInstanced": 113774,
+    "trianglesInstanced": 112682,
     "embeddedImageCount": 12,
     "surfaceTextureSize": 2048,
     "keyMaterials": [
       "Fabric Pattern 05",
       "Rubber Tiles"
-    ]
+    ],
+    "glazing": {
+      "mode": "BLEND",
+      "doubleSided": true,
+      "opacity": 0.045,
+      "roughness": 0.035,
+      "metallic": 0,
+      "singleSheetSidePanes": 16
+    },
+    "paint": {
+      "lowerBodySRGB": "#075254",
+      "stripeSRGB": "#009184",
+      "roofSRGB": "#E1EBE7"
+    }
   },
   "validation": {
     "glbBlenderReimport": true,
