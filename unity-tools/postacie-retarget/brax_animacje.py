@@ -474,6 +474,16 @@ def process_character(key, record, plan, args):
         try:
             with np.load(cache, allow_pickle=False) as cached:
                 src = dict(cached.items())
+            # This T clip stores its bind skeleton a quarter turn away from its animation.
+            # Align only the bind data. Sampled world rotations and hip motion are already upright.
+            if spec['sha256'] in (
+                '42c0973017793b8827c58e7f7d0738c76e395bc744969a1ff3f493ba717b83c7',
+                '81e6ea9e6216d6dd89ab4bef41e9acf783614d2d88170ad1c7706b7ea482e8b3',
+            ) and src['body'][1, 1] < -0.9:
+                align_bind = np.array([[1., 0., 0.], [0., 0., 1.], [0., -1., 0.]])
+                src['positions'] = src['positions'] @ align_bind.T
+                for field in ('rest', 'body', 'anatomy'):
+                    src[field] = align_bind @ src[field]
             action = bake(rig, target, src, state, window)
             action['source_name'] = spec.get('name', clip_id)
             stats = review(rig, action, state, edges, meshes, cam,
