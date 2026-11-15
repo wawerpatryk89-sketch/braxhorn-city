@@ -1,0 +1,32 @@
+{
+  "id": "uslugi_27782fb9",
+  "nazwa": "Mężczyzna w garniturze",
+  "wersja": "2026-11-15.1",
+  "role": [
+    "uslugi"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [],
+  "rejony": [],
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "TalkOnPhone",
+    "SeatedTalk"
+  ],
+  "liczba_klipow_T": 11,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#uslugi_27782fb9",
+  "zrodlo": "tripo_convert_27782fb9-2216-48dd-aa33-fd435501683f.fbx",
+  "model_sha256": "8081cb5fcfa7592359045fd0a97d1264dcf056237874c2fd90d9d9468f014a8b",
+  "status": "Przypisania robocze. Odbiór ruchu na modelu w toku.",
+  "model_z_rigiem_sha256": "9f95acf5ab0f8d2c665269665b0e7e187ddd74ee92179315fd867d6d134f6521"
+}

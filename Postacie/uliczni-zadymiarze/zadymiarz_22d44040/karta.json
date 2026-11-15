@@ -1,0 +1,45 @@
+{
+  "id": "zadymiarz_22d44040",
+  "nazwa": "Zadymiarz w czarnej kurtce z tatuażami",
+  "wersja": "2026-11-15.1",
+  "role": [
+    "uliczny_zadymiarz"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "dyskoteka"
+  ],
+  "rejony": [],
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "Jump",
+    "CombatIdle",
+    "Jab",
+    "Cross",
+    "Hook",
+    "SideKick",
+    "Knee",
+    "Dodge",
+    "Block",
+    "HitHead",
+    "HitBody",
+    "RoundhouseKick",
+    "DanceHouse",
+    "Drink"
+  ],
+  "liczba_klipow_T": 23,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#zadymiarz_22d44040",
+  "zrodlo": "tripo_convert_22d44040-1f5e-4f93-8b3b-c6e67bdcf7b7.fbx",
+  "model_sha256": "826bf9ab18030f49b9b065ad53da389f57e95190d4154863e086839c92361610",
+  "status": "Przypisania robocze. Odbiór ruchu na modelu w toku."
+}

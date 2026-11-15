@@ -7,3 +7,4 @@ Postacie uczestniczące w bójkach ulicznych.
 - [Kamil](../glowne-poza-liga/kamil/)
 - [Mateusz](../glowne-poza-liga/mateusz/)
 - [Zadymiarz z głową psa](zadymiarz_021fef69/)
+- [Zadymiarz w czarnej kurtce z tatuażami](zadymiarz_22d44040/)

@@ -11,3 +11,4 @@ Postacie, które można spotkać na imprezie.
 - [Wiechu](../mieszkancy/wiechu/)
 - [Ewa](../mieszkancy/ewa/)
 - [Martyna](../mieszkancy/martyna/)
+- [Zadymiarz w czarnej kurtce z tatuażami](../uliczni-zadymiarze/zadymiarz_22d44040/)
