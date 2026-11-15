@@ -70,7 +70,7 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
             BraxZnajomyPatryka najblizszy = this;
             foreach (var osoba in obecni)
             {
-                if (osoba == this) continue;
+                if (osoba == this || osoba.powitany || Time.time < osoba.nastepnaWizyta) continue;
                 float odleglosc = Vector3.Distance(osoba.transform.position, gracz.position);
                 if (odleglosc >= d || !osoba.Widzi(gracz)) continue;
                 d = odleglosc;

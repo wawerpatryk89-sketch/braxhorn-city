@@ -89,12 +89,25 @@ class RuchyWlasciciela(unittest.TestCase):
         for f in transfer.iterdir():
             self.assertNotIn(f.suffix.lower(), (".fbx", ".zip"), f.name)
 
-    def test_osiedle_wybiera_globalna_postac(self):
-        src = czytaj(TU / "prywatne.py")
-        fn = src[src.index("def patryk_i_ruchy"):src.index("def sprawdz")]
-        self.assertIn('przygotuj_obsade("osiedle", CEL, odszyfruj)', fn)
-        self.assertNotIn("import_patryk_transfer", fn)
-        self.assertNotIn("install_patryk_owner_22", fn)
+    def test_osiedle_instaluje_jedna_zatwierdzona_obsade(self):
+        import prywatne
+        import pobierz_obsade
+
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(os.environ, {"WEJSCIE_REJON": "osiedle"}):
+            root = pathlib.Path(tmp)
+            def archive(spec, repo, target):
+                self.assertEqual(spec["name"], "Osiedle_19_postaci_20261115.zip")
+                target.write_bytes(b"archiwum")
+            def extract(source, target):
+                self.assertEqual(source.read_bytes(), b"archiwum")
+                (target / "potwierdzenie").write_text("19")
+            with mock.patch.object(pobierz_obsade, "ROOT", root), mock.patch.dict(os.environ, {"GITHUB_REPOSITORY": "owner/repo"}), \
+                 mock.patch.object(pobierz_obsade, "pobierz", side_effect=archive), \
+                 mock.patch.object(pobierz_obsade, "odczytaj", side_effect=extract), \
+                 mock.patch.object(prywatne, "odszyfruj", side_effect=AssertionError("nadpisanie obsady")):
+                pobierz_obsade.przygotuj()
+                prywatne.patryk_i_ruchy()
+                self.assertEqual((root / "unity-city/Assets/Source/ObsadaOsiedla/potwierdzenie").read_text(), "19")
 
     def test_bez_klucza_instalator_nie_wypakowuje(self):
         import import_patryk_owner_22 as imp

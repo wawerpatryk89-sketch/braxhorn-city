@@ -137,7 +137,7 @@ public static partial class BraxClaudeOsiedle
         var mateusz = Osoba("mateusz", P(79.5f,32.8f), Vector3.right, "Talk", 1.79f, false, 7, "O, Patryk! Siema!", w(2)[0], w(2)[1], w(2)[2]);
         mateusz.partner = Osoba("dziecko_003f4e46", P(81.1f,32.8f), Vector3.left, "Talk", 1.36f, false, 10, "Hej!", w(12)[0], w(12)[1], w(12)[2]);
         if (klub == null || !klubBar || klub.sofy.Count < 3) throw new InvalidOperationException("Brak stanowisk w Club Puls");
-        Osoba("kamil", klub.dj, Vector3.left, "DanceHipHop", 1.80f, false, 2, "Elo! Co tam?", "W klubie w piątek gra nowy DJ. Ma być tłum.", "Brzmi nieźle.", "Wpadaj, kiedy chcesz!");
+        Osoba("kamil", klub.dj, Vector3.left, "Talk", 1.80f, false, 2, "Elo! Co tam?", "W klubie w piątek gra nowy DJ. Ma być tłum.", "Brzmi nieźle.", "Wpadaj, kiedy chcesz!");
         var barman = Osoba("bramkarz_1c96d333", klub.barmani[1], f, "Idle", 1.83f, false, 6, "Cześć, Patryk!", "Coś jeszcze?", "Dzięki, trzymaj się.", "Wpadaj, kiedy chcesz!");
         var st = klubBar.stanowiska[1];
         klubBar.odpowiedzi = new[] {"Zaraz podam, chwileczkę.", "Proszę, smacznego!", "Coś jeszcze?"};
@@ -176,7 +176,11 @@ public static partial class BraxClaudeOsiedle
 
     public static void SprawdzNowaObsade(BraxGymPlayer gracz)
     {
+        if (rep == null || rep.status != "ZBUDOWANO")
+            throw new InvalidOperationException("Generator nie ukończył Osiedla: " + rep?.error);
         var osoby = Object.FindObjectsByType<BraxZnajomyPatryka>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (!gracz || !gracz.clips || osoby.Any(o => !o.ruch || !o.glowa || !o.ruch.GetClip("Talk")))
+            throw new InvalidOperationException("Niekompletne powiązania postaci lub rozmów");
         int klipy = gracz.clips.GetClipCount() + osoby.Sum(o => o.ruch.GetClipCount());
         if (osoby.Length != 18 || osoby.Select(x => x.postac).Distinct().Count() != 18 || klipy != 375 ||
             gracz.clips.GetClipCount() != 50 || osoby.Any(o => o.gracz != gracz.transform || !o.ruch.GetClip(o.zajecie)))

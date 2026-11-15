@@ -122,6 +122,8 @@ jobs:
           '
         persist-credentials: false
         lfs: false
+    - name: Sprawdź dostępność i sumę Blendera przed importem świata
+      run: bash unity-tools/claude/blender_ci.sh
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
         python3 unity-tools/check_webgl_bridges.py
@@ -180,27 +182,13 @@ jobs:
         '
       env:
         BRAXHORN_RESTORE_REVIEWED_BAG: '1'
-    - name: Reproduce the reviewed CC0-derived bags with pinned Blender
-      run: 'curl --fail --location --retry 3 --output /tmp/blender-4.2.3-linux-x64.tar.xz https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
-
-        echo ''3a64efd1982465395abab4259b4091d5c8c56054c7267e9633e4f702a71ea3f4  /tmp/blender-4.2.3-linux-x64.tar.xz'' | sha256sum
-        --check --strict
-
-        tar -xJf /tmp/blender-4.2.3-linux-x64.tar.xz -C /tmp
-
-        /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend
-        --python unity-tools/export_library_sofa.py
-
-        /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec reviewed-gym-source/kickboxing-review/bag-source/bag-refined-before-export.blend
-        --python unity-tools/kickboxing/restore_reviewed_bag.py
-
+    - name: Eksport sprawdzonej sofy i worka
+      run: |
+        blender="$RUNNER_TEMP/blender-4.2.3-linux-x64/blender"
+        "$blender" --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python-exit-code 1 --python unity-tools/export_library_sofa.py
+        "$blender" --background --disable-autoexec reviewed-gym-source/kickboxing-review/bag-source/bag-refined-before-export.blend --python-exit-code 1 --python unity-tools/kickboxing/restore_reviewed_bag.py
         python3 unity-tools/kickboxing/externalize_models.py --remove-source
-
-        git diff --exit-code -- unity-city/Assets/BraxGymPlayer.cs unity-city/Assets/City unity-city/Assets/Editor/BraxCityBuild.cs
-        unity-city/Assets/Editor/BraxHeroRefinements.cs unity-tools/prepare_playable.py unity-tools/premium_refinements.py
-        unity-tools/city/prepare.py
-
-        '
+        git diff --exit-code -- unity-city/Assets/BraxGymPlayer.cs unity-city/Assets/City unity-city/Assets/Editor/BraxCityBuild.cs unity-city/Assets/Editor/BraxHeroRefinements.cs unity-tools/prepare_playable.py unity-tools/premium_refinements.py unity-tools/city/prepare.py
     - name: Materialy i modele CC0 z joba cc0-assets (bez pobierania w buildzie)
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
@@ -435,6 +423,13 @@ jobs:
           '
         persist-credentials: false
         lfs: false
+    - name: Szybkie testy kodu Osiedla i obsługi aktualizacji
+      if: github.event.inputs.rejon == 'osiedle'
+      run: |
+        python3 -m unittest discover -s unity-tools/claude -p 'test_*.py'
+        python3 -m unittest discover -s unity-tools/updates -p 'test_*.py'
+    - name: Sprawdź dostępność i sumę Blendera przed importem świata
+      run: bash unity-tools/claude/blender_ci.sh
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
         python3 unity-tools/check_webgl_bridges.py
@@ -493,27 +488,13 @@ jobs:
         '
       env:
         BRAXHORN_RESTORE_REVIEWED_BAG: '1'
-    - name: Reproduce the reviewed CC0-derived bags with pinned Blender
-      run: 'curl --fail --location --retry 3 --output /tmp/blender-4.2.3-linux-x64.tar.xz https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
-
-        echo ''3a64efd1982465395abab4259b4091d5c8c56054c7267e9633e4f702a71ea3f4  /tmp/blender-4.2.3-linux-x64.tar.xz'' | sha256sum
-        --check --strict
-
-        tar -xJf /tmp/blender-4.2.3-linux-x64.tar.xz -C /tmp
-
-        /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend
-        --python unity-tools/export_library_sofa.py
-
-        /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec reviewed-gym-source/kickboxing-review/bag-source/bag-refined-before-export.blend
-        --python unity-tools/kickboxing/restore_reviewed_bag.py
-
+    - name: Eksport sprawdzonej sofy i worka
+      run: |
+        blender="$RUNNER_TEMP/blender-4.2.3-linux-x64/blender"
+        "$blender" --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python-exit-code 1 --python unity-tools/export_library_sofa.py
+        "$blender" --background --disable-autoexec reviewed-gym-source/kickboxing-review/bag-source/bag-refined-before-export.blend --python-exit-code 1 --python unity-tools/kickboxing/restore_reviewed_bag.py
         python3 unity-tools/kickboxing/externalize_models.py --remove-source
-
-        git diff --exit-code -- unity-city/Assets/BraxGymPlayer.cs unity-city/Assets/City unity-city/Assets/Editor/BraxCityBuild.cs
-        unity-city/Assets/Editor/BraxHeroRefinements.cs unity-tools/prepare_playable.py unity-tools/premium_refinements.py
-        unity-tools/city/prepare.py
-
-        '
+        git diff --exit-code -- unity-city/Assets/BraxGymPlayer.cs unity-city/Assets/City unity-city/Assets/Editor/BraxCityBuild.cs unity-city/Assets/Editor/BraxHeroRefinements.cs unity-tools/prepare_playable.py unity-tools/premium_refinements.py unity-tools/city/prepare.py
     - name: Materialy i modele CC0 z joba cc0-assets (bez pobierania w buildzie)
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
@@ -608,7 +589,7 @@ jobs:
           ${{ steps.library_profile.outputs.prefix }}
     - name: Trwala kopia Library gdy Actions usunelo cache
       id: durable_download
-      if: ${{ !cancelled() && steps.bibl_and.outputs.cache-matched-key == '' }}
+      if: ${{ !cancelled() && steps.rejon.outcome == 'success' && steps.bibl_and.outputs.cache-matched-key == '' }}
       continue-on-error: true
       env:
         GH_TOKEN: ${{ github.token }}
@@ -616,7 +597,7 @@ jobs:
       run: python3 unity-tools/updates/durable_cache.py download --zone "$ZONE" --archive "$RUNNER_TEMP/library-android.tar.zst.enc"
     - name: Migracja starej pamieci tylko gdy nie ma nowej kopii
       id: legacy_cache
-      if: ${{ !cancelled() && steps.bibl_and.outputs.cache-matched-key == '' && steps.durable_download.outputs.downloaded != 'true' }}
+      if: ${{ !cancelled() && steps.rejon.outcome == 'success' && steps.bibl_and.outputs.cache-matched-key == '' && steps.durable_download.outputs.downloaded != 'true' }}
       continue-on-error: true
       uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
@@ -740,7 +721,7 @@ jobs:
         cat unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json || echo 'BRAK raportu drzwi'
         cat unity-city/Assets/PlayableGenerated/ClaudeRegion/region.json || echo 'BRAK raportu regionu'
     - name: Wgraj APK do ukrytego wydania (instalacja na Androidzie)
-      if: always() && !cancelled()
+      if: ${{ !cancelled() && steps.unity_android.outcome != 'skipped' && steps.unity_android.outcome != '' && hashFiles('build/Android/*.apk') != '' }}
       env:
         GH_TOKEN: ${{ github.token }}
         REL: claude-region-preview
