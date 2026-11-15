@@ -1,0 +1,61 @@
+{
+  "id": "braxhorn.vehicle.taxi",
+  "displayName": "Braxhorn Taxi",
+  "version": "1.0.0",
+  "scope": "shared, all city regions",
+  "sourceStorage": {
+    "type": "private owner library",
+    "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
+    "sourceFile": "Braxhorn_Taxi.glb",
+    "sourceSHA256": "f94ce52a8e0edd27db952e9bea8a2d16eff65410c7210861cb441cce3a401b63",
+    "packageFile": "BraxhornTaxi.unitypackage"
+  },
+  "model": {
+    "sha256": "f94ce52a8e0edd27db952e9bea8a2d16eff65410c7210861cb441cce3a401b63",
+    "bytes": 23962908,
+    "trianglesInstanced": 213272,
+    "widthIncludingMirrorsM": 2.134,
+    "heightIncludingAntennaM": 1.84,
+    "lengthM": 4.617,
+    "wheelPivots": [
+      "Wheel_FL",
+      "Wheel_FR",
+      "Wheel_RL",
+      "Wheel_RR"
+    ],
+    "embeddedImages": 21,
+    "gltfForward": "+Z",
+    "sourceUnit": "metre",
+    "wheelbaseM": 2.817,
+    "designReference": "Owner supplied front and side photograph. Rear estimated."
+  },
+  "previews": {
+    "fullVehicle": [
+      "Braxhorn_Taxi_Cale_auto.jpg",
+      "Braxhorn_Taxi_Prawy_bok.jpg",
+      "Braxhorn_Taxi_Przod.jpg",
+      "Braxhorn_Taxi_Tyl.jpg"
+    ],
+    "gallery": "Braxhorn_Taxi_12_zdjec.zip"
+  },
+  "unityPackage": {
+    "assetPath": "Assets/Braxhorn/Shared/Vehicles/BraxhornTaxi.glb",
+    "assetGuid": "380035a3793454dea61311de811eb2e5",
+    "sha256": "da5b67a7e62e5ec5336fc43044417732ac6110a6eccd247d4b8a5e2a20006955",
+    "bytes": 20414667,
+    "importer": "com.unity.cloud.gltfast",
+    "worldScaleK": 1.294,
+    "applyWorldScaleOnce": true
+  },
+  "validation": {
+    "blenderReimport": true,
+    "unityPackageByteMatch": true,
+    "unityPlayMode": "untested",
+    "androidDevice": "untested",
+    "sharedGeometryAppliedToRegionScenes": false
+  },
+  "ownerApproval": {
+    "status": "approved for shared game assets",
+    "date": "2026-11-15"
+  }
+}
