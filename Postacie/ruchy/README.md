@@ -4,6 +4,14 @@
 
 Dziewięć dzisiejszych dostaw rozszerza bazę T ze 110 do 197 różnych ruchów. Archiwum zawiera też trzy starsze klipy w referencyjnej pozie T użyte w obsadzie (spoczynek, wstawanie oraz piłka). Każdy plik zawiera animowany szkielet. Wydzielanie animacji zachowuje klucze i ustawienia kości. W katalogu zapisano pochodzenie każdego wariantu. Paczka A jest przechowywana osobno.
 
+## Dobór ruchów dla kolejnych postaci
+
+Każda postać dostaje podstawowe czynności potrzebne w grze. Dla każdej osobno dobierz chód, bieg, spoczynek, gesty rozmowy i powitania oraz sposób siadania, siedzenia i wstawania. Uwzględnij rolę, strój, obuwie i sytuację. Do chodu codziennego korzystaj z wariantów wskazanych przez właściciela poniżej.
+
+Przed zapisaniem profilu sprawdź, które klipy źródłowe mają już postacie tej roli oraz modele przygotowywane razem. Porównuj rzeczywisty ruch, uwzględniając pliki z identyczną animacją pod różnymi nazwami. Spośród wariantów pasujących do postaci wybieraj także te rzadziej używane. Każdemu imprezowiczowi z tej samej grupy dobierz inny główny taniec i osobno wybierz tańce dodatkowe. Podczas rozmowy gest powinien pasować do sytuacji, np. powitania gościa, swobodnej pogawędki lub rozmowy przy stole.
+
+Na docelowym modelu obejrzyj krok i podparcie stopy, ruch barków i dłoni oraz przejście od siadania przez siedzenie do wstawania. Dla pozy przy stole sprawdź oparcie przedramion o blat. Dla pozy z nogą na nodze sprawdź ułożenie kolan i przenikanie ubrania. Na wspólnym filmie podpisz postacie i dobrane klipy, żeby można było porównać ruch obok ruchu.
+
 ## Chód codzienny postaci T
 
 Do chodu codziennego właściciel wybrał pięć plików z dostawy 14 listopada o 19:49. Źródła i ich sumy SHA-256 są w [katalogu dozwolonych chodów](chody_T_wlasciciela.json). Używaj tego katalogu przy przygotowywaniu kolejnych postaci. Starszy plik o nazwie Walking (3) ma inny ruch i inną sumę. W nowej dostawie Walking (1) i Walking (3) mają jednakowe klucze animacji i trajektorię bioder. Zostały zachowane pod dwiema nazwami właściciela.
