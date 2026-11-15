@@ -1,19 +1,19 @@
 {
   "id": "braxhorn.vehicle.gt6coupe",
   "displayName": "Braxhorn GT6 Coupé",
-  "version": "0.1.0-review",
+  "version": "0.2.0-review",
   "scope": "shared, all city regions",
   "sourceStorage": {
     "type": "private owner library",
     "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
     "packageFile": "BraxhornGT6Coupe.unitypackage",
     "sourceFile": "Braxhorn_GT6_Coupe_Model.zip",
-    "sourceSHA256": "ebacedbcab94f49279d57544b1d8162f6b7ffaf279222bcd46eaaa836b534472"
+    "sourceSHA256": "da8b315276f5c8a6d28fcb5e18256d58da9b5f526b681a244481e21545343830"
   },
   "model": {
-    "bytes": 11739944,
-    "sha256": "bb4c00a3a543cee67c1c606837ad3b5ebae1f0ed39cbeba4c38f7571f1ea52c3",
-    "triangles": 178723,
+    "bytes": 13196728,
+    "sha256": "389e451136ea206a9a58f5e6a4ff27e406c6c0edd8f19718086f3feb0f66815f",
+    "triangles": 220659,
     "forward": "+Z",
     "unit": "metre",
     "embeddedImages": {
@@ -67,23 +67,26 @@
     "seats": 2
   },
   "distance": {
-    "bytes": 7856680,
-    "triangles": 46262,
-    "sha256": "d068577abd1326cf645e85f0445dc8c2425ea2359898d81ada3a6a95e65fe9cd",
+    "bytes": 8024528,
+    "triangles": 49337,
+    "sha256": "3e4fbed8a5b2c02d0ee9d4cb56d75fd0b697c682ee5e0efdaa14887960676b9a",
     "manualSelection": true
   },
   "unityPackage": {
     "assetPath": "Assets/Braxhorn/Shared/Vehicles/BraxhornGT6Coupe.glb",
-    "sha256": "16103c8b64acfe4b3de3637db008481bd5844d416cc62464c222ae31df120f04",
+    "sha256": "48b9fbd8191e57615fea867fe44a0fa0763bab8a34d72e56e692b2884f4dfd58",
     "gltfImporter": "com.unity.cloud.gltfast",
     "targetProjectVersion": "6.20.0",
-    "bytes": 14987301
+    "bytes": 15844921
   },
   "brand": {
     "id": "braxhorn.brand.automotive",
     "version": "1.1.0",
     "bonnet": "Bull",
-    "rear": "BRAXHORN"
+    "rear": "BRAXHORN",
+    "bonnetWidthMm": 160,
+    "steeringWheel": "Bull",
+    "steeringWheelBadgeWidthMm": 43
   },
   "validation": {
     "blenderReimport": "passed",
@@ -101,9 +104,9 @@
         "hero": {
           "muzzle": [
             459,
-            -0.048,
+            -0.045,
             -0.033,
-            0.033
+            0.043
           ],
           "roots": [
             208,
@@ -113,9 +116,9 @@
           ],
           "horn_tips": [
             49,
-            2.338,
-            2.707,
-            2.719
+            2.329,
+            2.706,
+            2.722
           ]
         },
         "distance": {
@@ -123,24 +126,90 @@
             459,
             -0.035,
             -0.035,
-            0.022
+            0.046
           ],
           "roots": [
             208,
             -0.035,
             -0.035,
-            0.0
+            0
           ],
           "horn_tips": [
             49,
             2.34,
             2.707,
-            2.715
+            2.728
           ]
         }
       }
     },
-    "sharedGeometryAppliedToRegionScenes": false
+    "sharedGeometryAppliedToRegionScenes": false,
+    "geometry": {
+      "hero": {
+        "rimSamples": 144,
+        "spokes": 3,
+        "bonnetWidthMm": 160,
+        "wheelBadgeWidthMm": 43,
+        "coverDepthMm": {
+          "headlamp L": [
+            12.9,
+            13.7
+          ],
+          "headlamp R": [
+            12.9,
+            13.7
+          ],
+          "indicator L": [
+            14.4,
+            15.4
+          ],
+          "indicator R": [
+            14.4,
+            15.4
+          ],
+          "tail lamp L": [
+            9.8,
+            10.4
+          ],
+          "tail lamp R": [
+            9.8,
+            10.4
+          ]
+        }
+      },
+      "distance": {
+        "rimSamples": 144,
+        "spokes": 3,
+        "bonnetWidthMm": 160,
+        "wheelBadgeWidthMm": 43,
+        "coverDepthMm": {
+          "headlamp L": [
+            12.7,
+            14
+          ],
+          "headlamp R": [
+            12.7,
+            14.1
+          ],
+          "indicator L": [
+            14.4,
+            15.4
+          ],
+          "indicator R": [
+            14.4,
+            15.4
+          ],
+          "tail lamp L": [
+            9.7,
+            10.4
+          ],
+          "tail lamp R": [
+            9.7,
+            10.4
+          ]
+        }
+      }
+    }
   },
   "ownerApproval": {
     "status": "awaiting visual review",
