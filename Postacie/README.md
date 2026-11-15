@@ -31,3 +31,11 @@ Pliki w szkicu są dostępne po zalogowaniu na konto z uprawnieniami do tego wyd
 | `postac_2b111236` | Czerwony strój z żółtymi wstawkami | Kandydat do roli ratownika. Ostateczny wybór po porównaniu z kolejnymi postaciami. |
 | `postac_29e53e84` | Mężczyzna w błękitnym polo i beżowych szortach | Rola otwarta. |
 | `postac_50269b85` | Rudy mężczyzna w pomarańczowej kamizelce i granatowym ubraniu z odblaskami | Rola otwarta. 9 podstaw T. [Model z ruchami](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Postac_50269b85_T_20261115.zip) · [Źródło](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/tripo_convert_50269b85-3b1b-4565-973d-91f76648009a.zip) · [Film](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-4fcff22a3d639b2a2589/Braxhorn_szesc_postaci_86_ruchow_T.mp4). |
+| `54de18b5` | Siwy mężczyzna bez koszulki, w czerwonych szortach | Rola otwarta. |
+| `56f0f236` | Mężczyzna z krótkimi ciemnymi włosami w czarnym polo | Rola otwarta. |
+| `592f7e58` | Kobieta w beżowym garniturze i brązowej koszuli | Rola otwarta. |
+| `5cc1e1e1` | Humanoidalny rottweiler w czarnej koszulce i czarnych spodniach z kieszeniami | Rola otwarta. |
+| `5d28fedf` | Postać w liliowej bluzie i ciemnych spodniach | Rola otwarta. |
+| `5fc5a54c` | Kobieta w czarnym garniturze z szerokimi nogawkami | Rola otwarta. |
+| `61174851` | Rudowłosa kobieta w bordowej kamizelce i jasnej koszuli | Rola otwarta. |
+| `63960880` | Kobieta w błyszczącej bordowej sukience z rozcięciem | Rola otwarta. |

@@ -10,6 +10,8 @@ Każda postać dostaje podstawowe czynności potrzebne w grze. Dla każdej osobn
 
 Przed zapisaniem profilu sprawdź, które klipy źródłowe mają już postacie tej roli oraz modele przygotowywane razem. Porównuj rzeczywisty ruch, uwzględniając pliki z identyczną animacją pod różnymi nazwami. Spośród wariantów pasujących do postaci wybieraj także te rzadziej używane. Każdemu imprezowiczowi z tej samej grupy dobierz inny główny taniec i osobno wybierz tańce dodatkowe. Podczas rozmowy gest powinien pasować do sytuacji, np. powitania gościa, swobodnej pogawędki lub rozmowy przy stole.
 
+Uliczni zadymiarze mogą dzielić podstawowe ruchy walki. Pozostałe ciosy, kopnięcia, uniki i reakcje dobieraj do postaci. Zawodnikom ligi dobieraj indywidualny zestaw pod ich rolę i styl walki. Przed przypisaniem porównaj go z zestawami innych zawodników.
+
 Na docelowym modelu obejrzyj krok i podparcie stopy, ruch barków i dłoni oraz przejście od siadania przez siedzenie do wstawania. Dla pozy przy stole sprawdź oparcie przedramion o blat. Dla pozy z nogą na nodze sprawdź ułożenie kolan i przenikanie ubrania. Na wspólnym filmie podpisz postacie i dobrane klipy, żeby można było porównać ruch obok ruchu.
 
 ## Chód codzienny postaci T
