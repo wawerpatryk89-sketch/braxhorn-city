@@ -23,3 +23,10 @@ Każdy model ma podgląd do identyfikacji. Przy niejednoznacznej roli właścici
 [Pełne paczki i źródła — szkic „Postacie”](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/tag/untagged-4487374c3ba5c1e097f9)
 
 Pliki w szkicu są dostępne po zalogowaniu na konto z uprawnieniami do tego wydania. Po zmianie adresu szkicu znajdziesz go pod nazwą „Postacie” na [liście wydań](https://github.com/wawerpatryk89-sketch/braxhorn-city/releases). Numer wydania i sumy kontrolne zapisano w każdej karcie.
+
+## Postacie oczekujące na rolę
+
+| Profil ruchów T | Wygląd | Status roli |
+|---|---|---|
+| `postac_2b111236` | Czerwony strój z żółtymi wstawkami | Kandydat do roli ratownika. Ostateczny wybór po porównaniu z kolejnymi postaciami. |
+| `postac_29e53e84` | Mężczyzna w błękitnym polo i beżowych szortach | Rola otwarta. |
