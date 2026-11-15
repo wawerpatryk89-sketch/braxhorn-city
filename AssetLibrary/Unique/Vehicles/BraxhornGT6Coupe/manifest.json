@@ -212,7 +212,7 @@
     }
   },
   "ownerApproval": {
-    "status": "awaiting visual review",
+    "status": "approved",
     "scope": "global reusable vehicle model",
     "date": "2026-11-15"
   }
