@@ -30,6 +30,8 @@ def prepare(selected=None):
                 raise ValueError(cid)
             with ZipFile(archive) as z:
                 prefix = f"unity-city/Assets/Source/Prywatne/Postacie/{cid}/"
+                if "postac.json" in z.namelist():
+                    prefix = ""
                 manifest = z.read(prefix + "postac.json")
                 if sha256(manifest).hexdigest() != card["manifest_sha256"]:
                     raise ValueError(cid + " manifest")
@@ -40,7 +42,11 @@ def prepare(selected=None):
                     content = z.read(prefix + name)
                     if sha256(content).hexdigest() != digest:
                         raise ValueError(cid + "/" + name)
-                    save(CEL / "Postacie" / cid / name, content)
+                    target = name
+                    if not prefix:
+                        target = {"Color.png": cid + "_BaseColor.png", "Normal.png": cid + "_Normal.png",
+                                  "MetalSmooth.png": cid + "_MetallicSmoothness.png"}.get(name, name)
+                    save(CEL / "Postacie" / cid / target, content)
     if selected and set(actors) != set(selected):
         raise ValueError("Nieznany identyfikator postaci")
     install(actors)

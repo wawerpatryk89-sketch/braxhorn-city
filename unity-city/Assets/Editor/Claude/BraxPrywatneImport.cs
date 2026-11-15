@@ -19,6 +19,16 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
         if (assetPath.StartsWith(Katalog + "Osiedle/")) return;   // modele osiedla ze Sketchfaba (glTF) — własne ustawienia
         var mi = assetImporter as ModelImporter;
         if (mi == null) return;
+        if (assetPath == Katalog + "Postacie/kulturysta_6e9de514/Hantla.fbx" ||
+            assetPath == Katalog + "Postacie/kulturysta_6e9de514/Sztanga.fbx")
+        {
+            mi.animationType = ModelImporterAnimationType.None;
+            mi.importAnimation = false;
+            mi.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
+            mi.importCameras = false;
+            mi.importLights = false;
+            return;
+        }
         mi.materialImportMode = ModelImporterMaterialImportMode.None;
         mi.importCameras = false; mi.importLights = false; mi.importBlendShapes = false; mi.importVisibility = false;
         mi.useFileScale = true; mi.globalScale = 1f;
@@ -36,7 +46,8 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
             mi.animationType = ModelImporterAnimationType.Human;
             mi.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
             mi.optimizeGameObjects = false;
-            mi.importAnimation = !assetPath.StartsWith(Katalog + "Postacie/") || assetPath.Contains("/Ruchy/");
+            mi.importAnimation = !assetPath.StartsWith(Katalog + "Postacie/") || assetPath.Contains("/Ruchy/")
+                || BraxMixamoT.HasEmbeddedClips(Path.GetFileNameWithoutExtension(assetPath));
             mi.resampleCurves = true;
             mi.animationCompression = ModelImporterAnimationCompression.Off;
         }

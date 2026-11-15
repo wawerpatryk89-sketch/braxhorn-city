@@ -1,0 +1,83 @@
+{
+  "id": "sprzedawczyni_71f0a7dc",
+  "nazwa": "Sprzedawczyni w salonie odzieżowym",
+  "wersja": "2026-11-15.1",
+  "role": [
+    "sprzedawczyni_odziezy"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "salon_odziezowy"
+  ],
+  "rejony": [],
+  "walka": false,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "CallOnMove",
+    "CarryStock",
+    "ExplainItem",
+    "GreetShopper",
+    "SeatedTalk",
+    "ShopWalk",
+    "UseRegister"
+  ],
+  "liczba_klipow": 16,
+  "liczba_klipow_T": 15,
+  "liczba_klipow_autorskich": 1,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#sprzedawczyni_71f0a7dc",
+  "zrodlo": "tripo_convert_71f0a7dc-60c8-4b34-8912-d2dba79027dd.fbx",
+  "model_sha256": "03f4fa30582219af66727e41fee1ec1b3a32be290f8f2697b4339962578f148f",
+  "model_z_rigiem_sha256": "03f4fa30582219af66727e41fee1ec1b3a32be290f8f2697b4339962578f148f",
+  "status": "Sprawdzono po powtórnym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_71f0a7dc_T_20261115.zip",
+  "animowany_fbx_sha256": "2f15787a323ddd9245d95cfb424f35a64a3d2713cfea7141a2b2309a731e5721",
+  "manifest_sha256": "1ae009cb023113a10914f9d00efb7e6279096b8187304c8ef21c8e49d1672681",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_71f0a7dc_T_20261115.zip",
+      "sha256": "a6f22740306848909803dd8e31c120695531a0a9a69f1636d5912df59ca904f6",
+      "bajty": 19093752,
+      "asset_id": 751864203,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_71f0a7dc_T_20261115.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 16,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "SeatedTalk",
+      "UseRegister"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 17639,
+      "faces": 17637,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 2.6947250120668574e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje"
+  }
+}

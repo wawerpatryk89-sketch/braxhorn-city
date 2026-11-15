@@ -48,7 +48,10 @@ def install(characters, archive=None, root=CEL, catalog=CATALOG):
             if not output.is_file() or hashlib.sha256(output.read_bytes()).hexdigest() != clip["sha256"]:
                 save(output, read(clip))
         for character, entries in plans.items():
-            save(dest / (character + ".json"), json.dumps({"clips": entries}, indent=2).encode())
+            profile = {"clips": entries}
+            if character in data.get("android_texture_size", {}):
+                profile["androidTextureSize"] = data["android_texture_size"][character]
+            save(dest / (character + ".json"), json.dumps(profile, indent=2).encode())
 
 
 if __name__ == "__main__":

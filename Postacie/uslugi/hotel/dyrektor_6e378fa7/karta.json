@@ -1,0 +1,87 @@
+{
+  "id": "dyrektor_6e378fa7",
+  "nazwa": "Dyrektor Hotelu Sobczak",
+  "wersja": "2026-11-15.2",
+  "role": [
+    "dyrektor_hotelu"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "hotel_sobczak",
+    "lobby"
+  ],
+  "rejony": [],
+  "walka": false,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "AttendMeeting",
+    "BriefStaff",
+    "GreetVIP",
+    "LobbyWalk",
+    "Phone",
+    "SeatedTalk"
+  ],
+  "liczba_klipow": 15,
+  "liczba_klipow_T": 15,
+  "liczba_klipow_autorskich": 0,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#dyrektor_6e378fa7",
+  "zrodlo": "tripo_convert_6e378fa7-795c-4710-868b-dc1548033eb3.fbx",
+  "model_sha256": "cac9c770b55f9b03ed2fe7d4fdd5b2294ec39111032949fdceebd9b866b89af3",
+  "model_z_rigiem_sha256": "cac9c770b55f9b03ed2fe7d4fdd5b2294ec39111032949fdceebd9b866b89af3",
+  "status": "Sprawdzono po powtórnym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_6e378fa7_T_20261115_v2.zip",
+  "animowany_fbx_sha256": "02d2720f3f58b361fbc514598a30ae35a3bd7090ba67f22002cca1feb7f165e5",
+  "manifest_sha256": "ad7331604d5cd84db7421e0c7b1eb5c2b9d223ec8e9c4adfbba4e2b48fc13c30",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_6e378fa7_T_20261115_v2.zip",
+      "bajty": 25178201,
+      "sha256": "51f62250e48217126483af422c352d8102a3b91bcdc6909f69341d8c955521a8",
+      "asset_id": 751918185,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_6e378fa7_T_20261115_v2.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 15,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Point",
+      "LobbyWalk",
+      "Phone",
+      "SeatedTalk",
+      "AttendMeeting"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 16399,
+      "faces": 16390,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 1.7796797346020425e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje"
+  }
+}

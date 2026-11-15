@@ -1,0 +1,93 @@
+{
+  "id": "marynarz_73f43eee",
+  "nazwa": "Marynarz z obsługi promu",
+  "wersja": "2026-11-15.1",
+  "role": [
+    "marynarz_promu"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "port",
+    "prom",
+    "trap"
+  ],
+  "rejony": [],
+  "walka": false,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "CallOnMove",
+    "CarryCargo",
+    "DeckWalk",
+    "Drink",
+    "SeatedTalk",
+    "Signal",
+    "Warn"
+  ],
+  "liczba_klipow": 16,
+  "liczba_klipow_T": 16,
+  "liczba_klipow_autorskich": 0,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#marynarz_73f43eee",
+  "zrodlo": "tripo_convert_73f43eee-d853-4805-b29d-e144cc9171e7.fbx",
+  "model_sha256": "1188cdff89276b22ead7170b533b03e323613526abd1c3f26fa9e3ddb949c9e1",
+  "model_z_rigiem_sha256": "1188cdff89276b22ead7170b533b03e323613526abd1c3f26fa9e3ddb949c9e1",
+  "status": "Sprawdzono po powtórnym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_73f43eee_T_20261115.zip",
+  "animowany_fbx_sha256": "23e0d1a4b7af45f6b1990e45ceaaa0eb2549778872700c11dc8e022dfffce5f6",
+  "manifest_sha256": "3ccc7ea25a673c3fd266746ec3306e2c41d67e688a10219a5315bc164ddda44d",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_73f43eee_T_20261115.zip",
+      "sha256": "66609f9840572f09a365580f3dc3eca614031678d3569719ef089e04a9f03457",
+      "bajty": 28562046,
+      "asset_id": 751864321,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_73f43eee_T_20261115.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 16,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Talk",
+      "Wave",
+      "Point",
+      "DeckWalk",
+      "Signal",
+      "CallOnMove",
+      "Warn",
+      "Drink",
+      "SeatedTalk"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 16893,
+      "faces": 16874,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 1.6238920419385793e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje"
+  }
+}

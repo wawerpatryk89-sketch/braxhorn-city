@@ -13,4 +13,4 @@ Mieszkańcy i przechodnie z codziennymi czynnościami.
 
 ## Przydzielone role z 15 listopada, godz. 18.34
 
-- [Plażowiczka w czerwonym bikini](plaza/plazowiczka_790a1e43/przydzial.json)
+- [Plażowiczka w czerwonym bikini](plaza/plazowiczka_790a1e43/karta.json)

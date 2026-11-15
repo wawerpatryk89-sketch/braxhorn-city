@@ -1,0 +1,98 @@
+{
+  "id": "plazowiczka_790a1e43",
+  "nazwa": "Plażowiczka w czerwonym bikini",
+  "wersja": "2026-11-15.2",
+  "role": [
+    "plazowiczka"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "plaza",
+    "promenada",
+    "kapielisko"
+  ],
+  "rejony": [],
+  "walka": false,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "BeachStroll",
+    "Cheer",
+    "Jump",
+    "LoungerRest",
+    "SeatedDrink",
+    "Swim",
+    "SwimToEdge",
+    "ThrowFrisbee",
+    "TreadWater",
+    "VolleyBump",
+    "VolleySet",
+    "WarmUp"
+  ],
+  "liczba_klipow": 21,
+  "liczba_klipow_T": 17,
+  "liczba_klipow_autorskich": 4,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#plazowiczka_790a1e43",
+  "zrodlo": "tripo_convert_790a1e43-f58f-45a3-84e2-d36268d050ff.fbx",
+  "model_sha256": "570f198458701390c6f1e1e3886ba74019df13b0321792b1a1cb016812b545fd",
+  "model_z_rigiem_sha256": "570f198458701390c6f1e1e3886ba74019df13b0321792b1a1cb016812b545fd",
+  "status": "Sprawdzono po powtórnym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_790a1e43_T_20261115_v2.zip",
+  "animowany_fbx_sha256": "75c3d9b4f0340deef6292b9e6ff8b4d843e5c784cbc73482dcac481e3252b01c",
+  "manifest_sha256": "aab13f3978f069ffe59233f63d2c9d8f5697db8fc64a12380d8d0a660a70f650",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_790a1e43_T_20261115_v2.zip",
+      "bajty": 15310672,
+      "sha256": "0467d95941e2b67ddf76cac08a49f879bfa16b20062ababf7830cd2e74a626ae",
+      "asset_id": 751918519,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_790a1e43_T_20261115_v2.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 21,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Talk",
+      "Wave",
+      "Point",
+      "Swim",
+      "Jump",
+      "SeatedDrink",
+      "Cheer",
+      "WarmUp",
+      "VolleySet",
+      "VolleyBump"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 9014,
+      "faces": 18040,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 2.7391048567320803e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje"
+  }
+}

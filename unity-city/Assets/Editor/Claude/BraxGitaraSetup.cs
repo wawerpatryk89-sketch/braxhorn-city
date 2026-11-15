@@ -9,6 +9,7 @@ using UnityEngine;
 
 internal static class BraxGitaraSetup
 {
+    private static readonly string[] BodybuilderAttacks = { "Jab", "Cross", "Hook", "PunchCombo", "SideKick", "Knee", "RoundhouseKick" };
     private const string Characters = "Assets/Source/Prywatne/Postacie/";
     internal static readonly string[] Actions = {
         "Idle", "Walk", "Run", "Jump", "SitDown", "SeatedIdle", "StandUp", "Talk", "Wave", "Point",
@@ -76,7 +77,8 @@ internal static class BraxGitaraSetup
     internal static void CreateFromProfile(string id, string model)
     {
         var actions = BraxMixamoT.Read(id).Keys.ToArray();
-        Prepare(id, model, actions, Attacks.Where(actions.Contains).ToArray());
+        var attacks = id == "kulturysta_6e9de514" ? BodybuilderAttacks : Attacks;
+        Prepare(id, model, actions, attacks.Where(actions.Contains).ToArray());
     }
 
     static void Prepare(string characterId, string displayName) => Prepare(characterId, displayName, Actions, Attacks);
@@ -92,11 +94,11 @@ internal static class BraxGitaraSetup
         if (!new HashSet<string>(actions).SetEquals(profile.Keys))
             throw new InvalidDataException("Niezgodny profil ruchów: " + characterId);
         var gym = BraxGymProfiles.For(characterId);
-        var allActions = actions.Concat(gym.Select(id => "Gym" + id)).ToArray();
+        var allActions = actions.Concat(gym.Select(id => "Gym" + id)).Distinct().ToArray();
         foreach (string id in allActions)
         {
-            string path = id.StartsWith("Gym", StringComparison.Ordinal)
-                ? BraxGymProfiles.ResidentClips + id.Substring(3) + ".fbx" : profile[id];
+            if (!profile.TryGetValue(id, out string path))
+                path = BraxGymProfiles.ResidentClips + id.Substring(3) + ".fbx";
             clips.Add(id, BraxMixamoT.Load(path, id, Loops.Contains(id), characterId == "aneta" && id == "WarmUp"));
         }
 
@@ -138,7 +140,7 @@ internal static class BraxGitaraSetup
             else AddExit(states[id], states["Idle"]);
         }
         EditorUtility.SetDirty(controller);
-        var mat = ConfigureMaterial(prefix);
+        var mat = ConfigureMaterial(prefix, BraxMixamoT.AndroidTextureSize(characterId));
         var instance = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(model));
         try
         {
@@ -147,6 +149,7 @@ internal static class BraxGitaraSetup
             animator.runtimeAnimatorController = controller;
             animator.applyRootMotion = false;
             instance.AddComponent<BraxResidentMotion>().SetAttackList(attacks);
+            if (characterId == "kulturysta_6e9de514") BindWeights(instance, root + "Hantla.fbx");
             foreach (var skin in instance.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 skin.sharedMaterials = Enumerable.Repeat(mat, skin.sharedMaterials.Length).ToArray();
             if (!PrefabUtility.SaveAsPrefabAsset(instance, prefabPath))
@@ -155,6 +158,50 @@ internal static class BraxGitaraSetup
         finally { UnityEngine.Object.DestroyImmediate(instance); }
         AssetDatabase.SaveAssets();
         Debug.Log(displayName + ": " + allActions.Length + " klipów Humanoid. " + prefabPath);
+    }
+
+    static void BindWeights(GameObject actor, string path)
+    {
+        Transform Weight(string file, string name, out Bounds bounds, out Vector3 axis, out float length)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(file);
+            if (!asset) throw new FileNotFoundException(file);
+            var filter = asset.GetComponentsInChildren<MeshFilter>(true).Single();
+            var mesh = filter.sharedMesh;
+            bounds = mesh.bounds;
+            var size = bounds.size;
+            int along = size.x > size.y ? 0 : 1;
+            if (size.z > size[along]) along = 2;
+            length = size[along];
+            if (length <= 0) throw new InvalidDataException(file);
+            axis = Vector3.zero;
+            axis[along] = 1f;
+            var obj = new GameObject(name);
+            obj.transform.SetParent(actor.transform, false);
+            obj.AddComponent<MeshFilter>().sharedMesh = mesh;
+            obj.AddComponent<MeshRenderer>().sharedMaterials = filter.GetComponent<MeshRenderer>().sharedMaterials;
+            obj.SetActive(false);
+            return obj.transform;
+        }
+        var joints = actor.GetComponentsInChildren<Transform>(true);
+        var grips = new List<BraxHantle.Grip>();
+        foreach (string side in new[] { "Left", "Right" })
+        {
+            Transform Joint(string suffix)
+            {
+                string name = side + "Hand" + suffix;
+                return joints.Single(t => t.name.Split(':').Last() == name || t.name == "mixamorig" + name);
+            }
+            var weight = Weight(path, "Hantla_" + side, out var bounds, out var axis, out var length);
+            grips.Add(new BraxHantle.Grip {
+                wrist = Joint(""), middle = Joint("Middle1"), middle2 = Joint("Middle2"), middle3 = Joint("Middle3"),
+                thumb3 = Joint("Thumb3"), index = Joint("Index1"), little = Joint("Pinky1"), weight = weight,
+                meshLength = length, meshCenter = bounds.center, meshAxis = axis,
+                relativePalm = side == "Left" ? .07046624f : .06201031f
+            });
+        }
+        var bar = Weight(path.Replace("Hantla.fbx", "Sztanga.fbx"), "Sztanga", out var barBounds, out var barAxis, out var barLength);
+        actor.AddComponent<BraxHantle>().Configure(grips.ToArray(), bar, barAxis, barBounds.center, barLength);
     }
 
     static AnimatorStateTransition AddExit(AnimatorState from, AnimatorState to)
@@ -167,7 +214,7 @@ internal static class BraxGitaraSetup
         return transition;
     }
 
-    static Texture2D Texture(string path, TextureImporterType type, bool srgb)
+    static Texture2D Texture(string path, TextureImporterType type, bool srgb, int androidSize)
     {
         var importer = AssetImporter.GetAtPath(path) as TextureImporter;
         if (!importer) throw new FileNotFoundException(path);
@@ -178,18 +225,18 @@ internal static class BraxGitaraSetup
         importer.streamingMipmaps = true;
         var android = importer.GetPlatformTextureSettings("Android");
         android.name = "Android";
-        android.maxTextureSize = 1024;
+        android.maxTextureSize = androidSize;
         android.overridden = true;
         importer.SetPlatformTextureSettings(android);
         importer.SaveAndReimport();
         return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
     }
 
-    static Material ConfigureMaterial(string prefix)
+    static Material ConfigureMaterial(string prefix, int androidSize)
     {
-        var color = Texture(prefix + "_BaseColor.png", TextureImporterType.Default, true);
-        var normal = Texture(prefix + "_Normal.png", TextureImporterType.NormalMap, false);
-        var packed = Texture(prefix + "_MetallicSmoothness.png", TextureImporterType.Default, false);
+        var color = Texture(prefix + "_BaseColor.png", TextureImporterType.Default, true, androidSize);
+        var normal = Texture(prefix + "_Normal.png", TextureImporterType.NormalMap, false, androidSize);
+        var packed = Texture(prefix + "_MetallicSmoothness.png", TextureImporterType.Default, false, androidSize);
         var path = prefix + ".mat";
         var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
         if (!mat)

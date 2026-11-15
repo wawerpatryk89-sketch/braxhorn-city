@@ -8,8 +8,22 @@ using UnityEngine;
 internal static class BraxMixamoT
 {
     internal const string Root = "Assets/Source/Prywatne/MixamoT/";
-    [Serializable] private sealed class Profile { public Entry[] clips; }
+    [Serializable] private sealed class Profile { public Entry[] clips; public int androidTextureSize; }
     [Serializable] private sealed class Entry { public string state; public string file; public bool modelTake; }
+
+    internal static bool HasEmbeddedClips(string character)
+    {
+        string path = Root + character + ".json";
+        if (!File.Exists(path)) return false;
+        var profile = JsonUtility.FromJson<Profile>(File.ReadAllText(path));
+        return profile?.clips != null && profile.clips.Any(entry => entry.modelTake);
+    }
+
+    internal static int AndroidTextureSize(string character)
+    {
+        var profile = JsonUtility.FromJson<Profile>(File.ReadAllText(Root + character + ".json"));
+        return profile.androidTextureSize == 2048 ? 2048 : 1024;
+    }
 
     internal static Dictionary<string, string> Read(string character)
     {
@@ -103,6 +117,11 @@ internal static class BraxMixamoT
         var importer = AssetImporter.GetAtPath(path) as ModelImporter;
         if (!importer || importer.animationType != ModelImporterAnimationType.Human)
             throw new InvalidDataException("Wymagany FBX Humanoid: " + path);
+        if (!importer.importAnimation)
+        {
+            importer.importAnimation = true;
+            importer.SaveAndReimport();
+        }
         var defaults = importer.defaultClipAnimations;
         bool modelTake = path.StartsWith("Assets/Source/Prywatne/Postacie/", StringComparison.Ordinal);
         if (!modelTake && defaults.Length != 1) throw new InvalidDataException("Wymagane pojedyncze ujęcie: " + path);

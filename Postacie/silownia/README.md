@@ -28,4 +28,4 @@ Aby dodać kolejną postać z dostępem do siłowni, dodaj profil z jej identyfi
 
 ## Przydzielone role z 15 listopada, godz. 18.34
 
-- [Kulturysta, trening i bójki uliczne](../uliczni-zadymiarze/kulturysta_6e9de514/przydzial.json)
+- [Kulturysta, trening i bójki uliczne](../uliczni-zadymiarze/kulturysta_6e9de514/karta.json)

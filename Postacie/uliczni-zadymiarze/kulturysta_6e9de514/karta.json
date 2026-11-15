@@ -1,0 +1,157 @@
+{
+  "id": "kulturysta_6e9de514",
+  "nazwa": "Kulturysta – siłownia i bójki uliczne",
+  "wersja": "2026-11-15.2",
+  "role": [
+    "kulturysta",
+    "uliczny_zadymiarz"
+  ],
+  "zasieg_spotkan": "cala-gra",
+  "miejsca_spotkan": [
+    "silownia",
+    "miasto"
+  ],
+  "rejony": [],
+  "walka": true,
+  "podstawa": [
+    "Idle",
+    "Walk",
+    "Run",
+    "SitDown",
+    "SeatedIdle",
+    "StandUp",
+    "Talk",
+    "Wave",
+    "Point"
+  ],
+  "ruchy_roli": [
+    "Block",
+    "CombatIdle",
+    "Cross",
+    "Dodge",
+    "Drink",
+    "FrontDoubleBiceps",
+    "GetUp",
+    "GuardStepBack",
+    "GuardStepForward",
+    "GymBackSquat",
+    "GymBicepCurl",
+    "GymFrontRaises",
+    "GymJumpingJacks",
+    "GymKettlebellSwing",
+    "HitBody",
+    "HitHead",
+    "Hook",
+    "Jab",
+    "Jump",
+    "Knee",
+    "PunchCombo",
+    "RoundhouseKick",
+    "SideKick",
+    "SideStep",
+    "Speedbag",
+    "Victory",
+    "WarmUp"
+  ],
+  "liczba_klipow": 36,
+  "liczba_klipow_T": 35,
+  "liczba_klipow_autorskich": 1,
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#kulturysta_6e9de514",
+  "zrodlo": "tripo_convert_6e9de514-4e99-4fba-b404-27e8fe5d5d8e.fbx",
+  "model_sha256": "523ac97eeb41e6ea48ec6de64317202cc6399bc19935dfb27f204ed3ccf65add",
+  "model_z_rigiem_sha256": "523ac97eeb41e6ea48ec6de64317202cc6399bc19935dfb27f204ed3ccf65add",
+  "status": "Sprawdzono po powtórnym imporcie FBX w Blenderze. Test odtwarzania w Unity do wykonania.",
+  "paczka": "Postac_6e9de514_T_20261115_v2.zip",
+  "animowany_fbx_sha256": "669810a576ac2ef2d179891da4df9f992921da803708dcaad2f9086088686376",
+  "manifest_sha256": "1a9d3ffbbdd371fe9ee4369948221a2074d45b915da44be25dfb7acc8d5de0ab",
+  "wydanie": {
+    "id": 443180649,
+    "tag": "postacie-globalne-20261112",
+    "status": "draft"
+  },
+  "pliki": {
+    "unity": {
+      "nazwa": "Postac_6e9de514_T_20261115_v2.zip",
+      "bajty": 21021094,
+      "sha256": "822f2143e3ea21dda79323a49695b45512a53d2da2096f29156c0a9a11d0dc40",
+      "asset_id": 751918424,
+      "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/releases/download/untagged-05d8c167499aaef3e0f8/Postac_6e9de514_T_20261115_v2.zip"
+    }
+  },
+  "limit_tekstur": 2048,
+  "limit_tekstur_android": 2048,
+  "kontrola": {
+    "szkielet_kosci": 65,
+    "ponowny_import_FBX_w_Blenderze": 36,
+    "do_oceny_rozciagniecia": [
+      "Idle",
+      "Walk",
+      "Run",
+      "SitDown",
+      "SeatedIdle",
+      "StandUp",
+      "Talk",
+      "Wave",
+      "Point",
+      "WarmUp",
+      "GymBicepCurl",
+      "GymFrontRaises",
+      "GymBackSquat",
+      "GymKettlebellSwing",
+      "GymJumpingJacks",
+      "Speedbag",
+      "Drink",
+      "Jump",
+      "CombatIdle",
+      "GuardStepForward",
+      "GuardStepBack",
+      "SideStep",
+      "Jab",
+      "Cross",
+      "Hook",
+      "PunchCombo",
+      "SideKick",
+      "Knee",
+      "RoundhouseKick",
+      "Dodge",
+      "Block",
+      "HitHead",
+      "HitBody",
+      "GetUp",
+      "Victory",
+      "FrontDoubleBiceps"
+    ],
+    "geometria_i_tekstury": {
+      "vertices": 18779,
+      "faces": 18617,
+      "same_topology": true,
+      "max_relative_rest_vertex_difference": 2.665234176928018e-7,
+      "max_uv_delta": 0,
+      "source_pixels_color_normal_metal_roughness": true
+    },
+    "odbior_Unity": "oczekuje",
+    "sprzet": {
+      "GymBicepCurl": {
+        "plik": "Hantla.fbx",
+        "proby": 353,
+        "przeciecia_talerzy": 0
+      },
+      "GymBackSquat": {
+        "plik": "Sztanga.fbx",
+        "proby": 137,
+        "przeciecia_talerzy": 0,
+        "kontrola_chwytu": "obie dłonie przez cały przysiad"
+      }
+    }
+  },
+  "ataki": [
+    "Jab",
+    "Cross",
+    "Hook",
+    "PunchCombo",
+    "SideKick",
+    "Knee",
+    "RoundhouseKick"
+  ],
+  "profil_silowni": "Postacie/silownia/gym.json#kulturysta_6e9de514"
+}

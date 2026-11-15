@@ -12,4 +12,4 @@ Postacie uczestniczące w bójkach ulicznych.
 
 ## Przydzielone role z 15 listopada, godz. 18.34
 
-- [Kulturysta – siłownia i bójki uliczne](kulturysta_6e9de514/przydzial.json)
+- [Kulturysta – siłownia i bójki uliczne](kulturysta_6e9de514/karta.json)

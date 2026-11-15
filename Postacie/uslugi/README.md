@@ -23,9 +23,9 @@ Postacie według wykonywanego zawodu.
 
 ## Przydzielone role z 15 listopada, godz. 18.34
 
-- [Doradczyni klienta w banku](bank/doradczyni_6793f1b2/przydzial.json)
-- [Pracownik usług w granatowym garniturze](uslugi_27782fb9/przydzial.json)
-- [Dyrektor Hotelu Sobczak](hotel/dyrektor_6e378fa7/przydzial.json)
-- [Sprzedawczyni w salonie odzieżowym](sklepy/sprzedawczyni_71f0a7dc/przydzial.json)
-- [Marynarz z obsługi promu](zegluga/marynarz_73f43eee/przydzial.json)
-- [Obsługa sali kasyna w czerwonej kamizelce](kasyno/obsluga_kasyna_7a324450/przydzial.json)
+- [Doradczyni klienta w banku](bank/doradczyni_6793f1b2/karta.json)
+- [Pracownik usług w granatowym garniturze](uslugi_27782fb9/karta.json)
+- [Dyrektor Hotelu Sobczak](hotel/dyrektor_6e378fa7/karta.json)
+- [Sprzedawczyni w salonie odzieżowym](sklepy/sprzedawczyni_71f0a7dc/karta.json)
+- [Marynarz z obsługi promu](zegluga/marynarz_73f43eee/karta.json)
+- [Obsługa sali kasyna w czerwonej kamizelce](kasyno/obsluga_kasyna_7a324450/karta.json)
