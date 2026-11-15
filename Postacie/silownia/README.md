@@ -25,3 +25,7 @@ python3 unity-tools/claude/gym.py /sciezka/do/gym.zip aneta patryk
 Importer sprawdza SHA-256 archiwum i wybranych FBX. Przygotowanie obsady Osiedla w CI automatycznie pobiera ćwiczenia wybranych postaci ze szkicu. W Unity dla NPC uruchom ich dotychczasowe polecenie w menu **Braxhorn → Postacie**. Kontroler dostaje trzy stany. Stanowisko wywołuje np. `TryGym("JumpingJacks")` na komponencie Anety. Klip wraca do spoczynku po jednym wykonaniu. System stanowiska decyduje o następnym powtórzeniu. Patryk korzysta z istniejącej ścieżki Legacy Osiedla, np. `animation.CrossFade("GymBackSquat")`.
 
 Aby dodać kolejną postać z dostępem do siłowni, dodaj profil z jej identyfikatorem oraz trzema identyfikatorami z listy `clips` w `gym.json`, połącz kartę postaci z profilem i ponownie przygotuj jej kontroler. Inne profile i źródłowa paczka są niezależne od tego wyboru. Klipy opisują ruch ciała. Sztangę, odważnik lub hantle dostarcza stanowisko w scenie. Rozmieszczenie postaci ustala obsada danego rejonu.
+
+## Przydzielone role z 15 listopada, godz. 18.34
+
+- [Kulturysta, trening i bójki uliczne](../uliczni-zadymiarze/kulturysta_6e9de514/przydzial.json)

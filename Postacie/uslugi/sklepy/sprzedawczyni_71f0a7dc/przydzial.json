@@ -1,0 +1,35 @@
+{
+  "id": "sprzedawczyni_71f0a7dc",
+  "model": "71f0a7dc",
+  "nazwa": "Sprzedawczyni w salonie odzieżowym",
+  "role": [
+    "sprzedawczyni_odziezy"
+  ],
+  "miejsca": [
+    "salon_odziezowy"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "CallOnMove",
+    "CarryStock",
+    "ExplainItem",
+    "GreetShopper",
+    "Idle",
+    "Point",
+    "Run",
+    "SeatedIdle",
+    "SeatedTalk",
+    "ShopWalk",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "UseRegister",
+    "Walk",
+    "Wave"
+  ],
+  "sprawdzono": "Blender, ponowny import FBX, 13 próbek każdego stanu",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_71f0a7dc_T_20261115.zip",
+  "sha256_paczki": "a6f22740306848909803dd8e31c120695531a0a9a69f1636d5912df59ca904f6",
+  "sha256_modelu_zrodlowego": "03f4fa30582219af66727e41fee1ec1b3a32be290f8f2697b4339962578f148f"
+}

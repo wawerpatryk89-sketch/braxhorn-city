@@ -1,0 +1,37 @@
+{
+  "id": "marynarz_73f43eee",
+  "model": "73f43eee",
+  "nazwa": "Marynarz z obsługi promu",
+  "role": [
+    "marynarz_promu"
+  ],
+  "miejsca": [
+    "port",
+    "prom",
+    "trap"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "CallOnMove",
+    "CarryCargo",
+    "DeckWalk",
+    "Drink",
+    "Idle",
+    "Point",
+    "Run",
+    "SeatedIdle",
+    "SeatedTalk",
+    "Signal",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "Walk",
+    "Warn",
+    "Wave"
+  ],
+  "sprawdzono": "Blender, ponowny import FBX, 13 próbek każdego stanu",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_73f43eee_T_20261115.zip",
+  "sha256_paczki": "66609f9840572f09a365580f3dc3eca614031678d3569719ef089e04a9f03457",
+  "sha256_modelu_zrodlowego": "1188cdff89276b22ead7170b533b03e323613526abd1c3f26fa9e3ddb949c9e1"
+}

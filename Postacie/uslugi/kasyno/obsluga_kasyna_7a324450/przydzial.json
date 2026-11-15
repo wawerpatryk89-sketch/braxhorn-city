@@ -1,0 +1,36 @@
+{
+  "id": "obsluga_kasyna_7a324450",
+  "model": "7a324450",
+  "nazwa": "Obsługa sali kasyna w czerwonej kamizelce",
+  "role": [
+    "obsluga_kasyna"
+  ],
+  "miejsca": [
+    "kasyno",
+    "sala_gier"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "Applause",
+    "CallOnMove",
+    "Carry",
+    "EscortWalk",
+    "ExplainTable",
+    "GreetGuest",
+    "Idle",
+    "Point",
+    "Run",
+    "SeatedIdle",
+    "SeatedTalk",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "Walk",
+    "Wave"
+  ],
+  "sprawdzono": "Blender, ponowny import FBX, 13 próbek każdego stanu",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_7a324450_T_20261115.zip",
+  "sha256_paczki": "409dc2de3a5b401cb77096a651a0be27b3ef001d761715bbbd10a701d08a0034",
+  "sha256_modelu_zrodlowego": "772707f71132af590b79bff12f3fe5f50eab26ee3a955d3157d202f0e51d619c"
+}

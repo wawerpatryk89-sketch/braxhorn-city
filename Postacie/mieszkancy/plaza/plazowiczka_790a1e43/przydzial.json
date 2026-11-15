@@ -1,0 +1,42 @@
+{
+  "id": "plazowiczka_790a1e43",
+  "model": "790a1e43",
+  "nazwa": "Plażowiczka w czerwonym bikini",
+  "role": [
+    "plazowiczka"
+  ],
+  "miejsca": [
+    "plaza",
+    "promenada",
+    "kapielisko"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "BeachStroll",
+    "Cheer",
+    "Idle",
+    "Jump",
+    "LoungerRest",
+    "Point",
+    "Run",
+    "SeatedDrink",
+    "SeatedIdle",
+    "SitDown",
+    "StandUp",
+    "Swim",
+    "SwimToEdge",
+    "Talk",
+    "ThrowFrisbee",
+    "TreadWater",
+    "VolleyBump",
+    "VolleySet",
+    "Walk",
+    "WarmUp",
+    "Wave"
+  ],
+  "sprawdzono": "Blender, ponowny import FBX, 13 próbek każdego stanu",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_790a1e43_T_20261115.zip",
+  "sha256_paczki": "754d052546518331ab61b30c0d1b64fefa5466985e9464ab68d9ba8becdaa860",
+  "sha256_modelu_zrodlowego": "570f198458701390c6f1e1e3886ba74019df13b0321792b1a1cb016812b545fd"
+}

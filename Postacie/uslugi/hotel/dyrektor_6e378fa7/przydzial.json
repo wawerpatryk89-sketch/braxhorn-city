@@ -1,0 +1,35 @@
+{
+  "id": "dyrektor_6e378fa7",
+  "model": "6e378fa7",
+  "nazwa": "Dyrektor Hotelu Sobczak",
+  "role": [
+    "dyrektor_hotelu"
+  ],
+  "miejsca": [
+    "hotel_sobczak",
+    "lobby"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "BriefStaff",
+    "Celebrate",
+    "GreetVIP",
+    "Idle",
+    "LobbyWalk",
+    "Phone",
+    "Point",
+    "Run",
+    "SeatedIdle",
+    "SeatedTalk",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "Walk",
+    "Wave"
+  ],
+  "sprawdzono": "Blender, ponowny import FBX, 13 próbek każdego stanu",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_6e378fa7_T_20261115.zip",
+  "sha256_paczki": "0a9039102c6b8aeb7066ed188c25f3339972e22a2f05b3a8ac8c49f049fb7149",
+  "sha256_modelu_zrodlowego": "cac9c770b55f9b03ed2fe7d4fdd5b2294ec39111032949fdceebd9b866b89af3"
+}

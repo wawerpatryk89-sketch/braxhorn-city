@@ -1,0 +1,37 @@
+{
+  "id": "uslugi_27782fb9",
+  "model": "67991d47",
+  "nazwa": "Pracownik usług w granatowym garniturze",
+  "role": [
+    "uslugi"
+  ],
+  "miejsca": [],
+  "walka": false,
+  "stany_fbx": [
+    "Carry",
+    "GreetVisitor",
+    "Idle",
+    "Point",
+    "Run",
+    "SeatedIdle",
+    "SeatedTalk",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "TalkOnPhone",
+    "Walk",
+    "Wave"
+  ],
+  "sprawdzono": "Blender, ponowny import FBX, 13 próbek każdego stanu",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_67991d47_T_20261115.zip",
+  "sha256_paczki": "9fff3e80221a36639822c8bb555d2875c73422d589dea23091f929fcf8eb39b1",
+  "sha256_modelu_zrodlowego": "e02531fca451cbd15333cd9eee31743e0e32d969d0adbdad1fa716b167ed0acd",
+  "wariant": "Aktualizacja istniejącej postaci",
+  "wstawanie": {
+    "p99_przed": 2.096,
+    "p99_po": 1.599,
+    "maks_przed": 15.154,
+    "maks_po": 8.345
+  }
+}

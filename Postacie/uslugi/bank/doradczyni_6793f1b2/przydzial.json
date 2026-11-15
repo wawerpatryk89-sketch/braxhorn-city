@@ -1,0 +1,35 @@
+{
+  "id": "doradczyni_6793f1b2",
+  "model": "6793f1b2",
+  "nazwa": "Doradczyni klienta w banku",
+  "role": [
+    "doradczyni_bankowa"
+  ],
+  "miejsca": [
+    "bank"
+  ],
+  "walka": false,
+  "stany_fbx": [
+    "DeskDrink",
+    "Explain",
+    "GreetClient",
+    "Idle",
+    "Phone",
+    "Point",
+    "PresentDocuments",
+    "Run",
+    "SeatedIdle",
+    "SeatedTalk",
+    "SitDown",
+    "StandUp",
+    "Talk",
+    "UseLaptop",
+    "Walk",
+    "Wave"
+  ],
+  "sprawdzono": "Blender, ponowny import FBX, 13 próbek każdego stanu",
+  "test_w_Unity": false,
+  "paczka_modelu": "Postac_6793f1b2_T_20261115.zip",
+  "sha256_paczki": "0b66489b1c8c96c2acd5e8018d54b4aae868678b7616cf294db722b4e40319a0",
+  "sha256_modelu_zrodlowego": "a8c0fb98a8a7dc9313fc78c284486da975595e819d867b0fb3dee4bbdf3476b2"
+}
