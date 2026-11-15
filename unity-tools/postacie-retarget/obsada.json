@@ -1,0 +1,1198 @@
+{
+  "characters": {
+    "aneta": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "WarmUp": "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439",
+        "TrainingJog": "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+        "GymJumpingJacks": "8a14789ff4420a74cb2e9601f331d490317635e51d1f0a04c69373f3925fb5a0",
+        "GymPistolSquat": "9823f0cfc4eacf74e261337dedb057642e468f015b1f4d5c9b68733022c5fdbc",
+        "GymBurpee": "724a142b3793f051524561c4437ed3ff1ff36556ca731add2cff74eea3fb460a"
+      },
+      "sha256": "0bee53d3b1691fd61ef631aa1e34d98fef45a3ece8b4a457fa448f52a1642b48",
+      "original_name": "tripo_convert_da3ef4e1-1d02-406c-aadd-5abef8487837.fbx"
+    },
+    "dziecko_003f4e46": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "KickBall": "d9c58808d28367dcbebe935171bc4cd45bc541a9ba8fd8bb888b76900b4a5ff1"
+      },
+      "sha256": "a0ffd9dc97459a1e711c9395582ee900597038adff9d5efefca46415df17a355",
+      "original_name": "tripo_convert_003f4e46-b7cc-4a35-93fb-b73bed881e0b.fbx"
+    },
+    "ewa": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17"
+      },
+      "sha256": "4b4cb3e0bb8b03a3761a7e6d576d113e4edb2700219af25450cb95d30186d5f8",
+      "original_name": "tripo_convert_4dab8530-a7bb-451a-9209-5582b96028f3.fbx"
+    },
+    "gitara": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+        "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+        "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+        "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+        "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+        "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+        "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+        "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+        "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+        "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+        "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+        "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24",
+        "GymKettlebellSwing": "9e419fb99cf4b469172e97b3ddb40e2b25308ae3efb2abf42a6e8fb88e177c67",
+        "GymFrontRaises": "e798330a8ae0e0176a2254079e4181618d6ab4da17d89cea7e21da7ceeefcc10",
+        "GymJumpingJacks": "8a14789ff4420a74cb2e9601f331d490317635e51d1f0a04c69373f3925fb5a0"
+      },
+      "sha256": "3370dd4c3d1278cbd0d590ace88f4cc62048aede15e6edbceaf12c2389f1a403",
+      "original_name": "tripo_convert_972033f4-77ab-4fd7-b1c8-1af4cff48524.fbx"
+    },
+    "kamil": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+        "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+        "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+        "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+        "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+        "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+        "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+        "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+        "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+        "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+        "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+        "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24",
+        "GymBurpee": "724a142b3793f051524561c4437ed3ff1ff36556ca731add2cff74eea3fb460a",
+        "GymBicepCurl": "7672ba471289139c7c7b70bc7bcc17801086373e5aed02d8c03f91d9a105b2d4",
+        "GymPistolSquat": "9823f0cfc4eacf74e261337dedb057642e468f015b1f4d5c9b68733022c5fdbc"
+      },
+      "sha256": "e6988dd615daf0839481726c5053c70d06feaf2cebb3149efae0f3478c99a704",
+      "original_name": "tripo_convert_e36f2d56-7190-44e2-8214-586901c75104.fbx"
+    },
+    "kapitan_02d85d24": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "Helm": "41a3ccff2c70c9c3a5a7525437380e3af4aa51b724a18f1fb58e07d2e869e6ca",
+        "TrainingJog": "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f"
+      },
+      "sha256": "17df5242d92c70701da52afc1b148359e1ee40b783b171ee88e36fdcba0247fa",
+      "original_name": "tripo_convert_02d85d24-adbd-426b-92f9-09fc7b78be8a.fbx"
+    },
+    "kiler": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+        "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+        "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+        "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+        "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+        "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+        "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+        "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+        "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+        "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+        "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+        "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24",
+        "GymBackSquatB": "de72e3354412dc56ddf585ec2b5758f4576dee1157aa0843b405fb7b6e69a894",
+        "GymSnatchB": "fc35509464fd4ec0fbe04f0f1245c42cae72f2285b3e1de96354bdbeec82b3bc",
+        "GymSumoHighPull": "f244a15dc370f8d995f143cdbefc93804e0769a91b218c5c370e57995901a404"
+      },
+      "sha256": "ec76430405ac54a1c07cb2223bbf33010f80296a4ccd48942457f112ef79be2e",
+      "original_name": "tripo_convert_310bd1c7-ed8f-4d11-9a4e-e7e97063bf71.fbx"
+    },
+    "martyna": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17"
+      },
+      "sha256": "8d454b3ff0e65f4ca4ee628c454a97d3630a6c60311e9e0716a20dca2389ae2b",
+      "original_name": "tripo_convert_96f43062-b1c4-4964-b2b7-ac702b2e7cc2.fbx"
+    },
+    "mateusz": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+        "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+        "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+        "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+        "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+        "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+        "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+        "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+        "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+        "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+        "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+        "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24",
+        "GymOverheadSquat": "d70ddc3a794c435991ae9d4e9d6c2c2db3eec6cb23a3383b3f5a932c856aa8d6",
+        "GymSnatch": "b3cbd2583653787a303c04c6c661762e569b4735a102c9168079172ea666600f",
+        "GymKettlebellSwing": "9e419fb99cf4b469172e97b3ddb40e2b25308ae3efb2abf42a6e8fb88e177c67"
+      },
+      "sha256": "5789e1ca09fdc4185a9a375a858e5fd5b5700610a83fdfb0e094673560ec2345",
+      "original_name": "tripo_convert_8bce6046-ba57-4cbb-b920-b6568a140790.fbx"
+    },
+    "monika": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+        "GymJumpingJacks": "8a14789ff4420a74cb2e9601f331d490317635e51d1f0a04c69373f3925fb5a0",
+        "GymFrontRaises": "e798330a8ae0e0176a2254079e4181618d6ab4da17d89cea7e21da7ceeefcc10",
+        "GymKettlebellSwing": "9e419fb99cf4b469172e97b3ddb40e2b25308ae3efb2abf42a6e8fb88e177c67"
+      },
+      "sha256": "f80dd6dd0370e549f9f77070e068b949eb969c00ac4e6001c965e7639ea79af7",
+      "original_name": "tripo_convert_191d98d9-8ae0-4729-b2e9-5fc717d1755d.fbx"
+    },
+    "patryk": {
+      "profile": {
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "EnteringCar": "4e495d89f30b1f47b0d160078fe6df6a1bcfe233ddb8ef64803c1adfdcb28235",
+        "CarIdle": "41a3ccff2c70c9c3a5a7525437380e3af4aa51b724a18f1fb58e07d2e869e6ca",
+        "ExitingCar": "982d796c4bc5b5469526b5e1b5e6995b2c2b5d6fe723ad1f9de1d037bbb4a722",
+        "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+        "CombatForward": "f4d757557f8c798d4c316e2f84f6877586bcbe3c372028979d33d7b4a14d98cd",
+        "CombatBackward": "7c26ff8b3dee2163b998858acf64047ba0d2413a9cb499f78dee042b27610355",
+        "CombatLeft": "4849b647922abf59ad19c6a953f1d79fe133ffd229e38a3a5ea8ccf83f43158f",
+        "Punch": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+        "Punch2": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+        "Punch3": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+        "Kick": "f499a5f55debba36708a5976a034710e62cf5f13542cbda4d5e923085f94b2d7",
+        "Kick2": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+        "Kick3": "a9c98e86a9ff9b38b1d830ecfdfc0af140558a80b92885da5581002dc8bd3fb4",
+        "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+        "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+        "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+        "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+        "Knockdown": "84f2d80d12c9d1c1877d9a510b03cf33a0aa3a7335c294e376b4c9a8bd455740",
+        "GetUp": "64fa0742fbe0ddf9a5d1fd5737444b4cab8cf06c6878228eb4daff728f57bb04",
+        "Bow": "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122",
+        "Taunt": "1ba718194ba0ddec65cfde1b9a1400e47ebf4bf33436b9f2edad7d275b4247d9",
+        "Victory": "382372b9fb0a1ce1eda1ebbc705feec5028eba59a2bd5900cd2e6424d7b1199f",
+        "Defeat": "024797ce3c7001a6c55757dd9c46dd9430aa4475a0093603868f941a15f1a7c8",
+        "WarmUp": "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439",
+        "Roll": "393ca7ec8e0409c5eea0fe44075d74ae5ce2c825ded47782ff6f85df58edd434",
+        "GolfDrive": "4714698c582070221acc178fb5dba70e43dd79d5c20bf8c48b7956f88aa284fd",
+        "GolfPutt": "4b2ae4503b06d15f8e93407a33be8b793617c43910fe714895250f330bec4f65",
+        "Speedbag": "5fa3cdd7edb60c256255bb238686e87ddea3cd270eb1f9ae4ab965959b4660e7",
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+        "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+        "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+        "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24",
+        "Swim": "8642d8f9401205f7a48e727f4a41e7ba83377fe47c0922f6b78bec6d2a9726b6",
+        "SwimToEdge": "38cec51310bd099bb65b369fad8523de91540facdc21589a540719a1ae594b96",
+        "Bowling": "b284d09acbfc513eab7f76f38ec1ba4f07c5c4de4fa0c2de505a0bbbcffe37c5",
+        "GymBackSquat": "aa45ae073f1744e5b21aae5df5081b3a33ddecd1345b1e84e1d6b7e49bff6c16",
+        "GymBicepCurl": "7672ba471289139c7c7b70bc7bcc17801086373e5aed02d8c03f91d9a105b2d4",
+        "GymFrontRaises": "e798330a8ae0e0176a2254079e4181618d6ab4da17d89cea7e21da7ceeefcc10"
+      },
+      "sha256": "eacee0beb02fac53587337edee09f790577a700464448bf797d2ed65a2c66d1f",
+      "original_name": "tripo_convert_f1ca6723-5c3a-4431-99f7-8361d4e63066.fbx"
+    },
+    "plazowicz_0493f781": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "Swim": "8642d8f9401205f7a48e727f4a41e7ba83377fe47c0922f6b78bec6d2a9726b6",
+        "SwimToEdge": "38cec51310bd099bb65b369fad8523de91540facdc21589a540719a1ae594b96"
+      },
+      "sha256": "f5d2029612d89242f6bcb1241132ecbb2370b6cf94d0026c06f6c09346b82bae",
+      "original_name": "tripo_convert_0493f781-de81-4e76-b3d8-b3d00db68bb1.fbx"
+    },
+    "wiechu": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17"
+      },
+      "sha256": "7daaaa150bc4a9c56cf2f47bf9d3089ce2deb0f1105bffffbfcd8403bd14c0bc",
+      "original_name": "tripo_convert_b9504130-b980-4f39-8a58-4be22313eebe.fbx"
+    },
+    "zadymiarz_021fef69": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+        "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+        "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+        "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+        "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+        "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+        "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+        "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+        "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+        "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c"
+      },
+      "sha256": "869a3fb1099f76dcbb99804097752a3d6622dabf358fca8cd36619d6d6ad2b28",
+      "original_name": "tripo_convert_021fef69-c359-4653-b265-70e5332ceb46.fbx"
+    },
+    "imprezowiczka_13e8d41d": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+        "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+        "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
+      },
+      "sha256": "848be124c9157907c12447c384c8aa56697b320aaecff1e2137587ab852e9e38",
+      "original_name": "tripo_convert_13e8d41d-4253-4f93-ae34-c6c9bdc1cabd.fbx"
+    },
+    "zadymiarz_163dca80": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+        "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+        "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+        "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+        "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+        "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+        "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+        "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+        "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+        "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c"
+      },
+      "sha256": "13eb66878194fa46f6da66dced401aa725fbad66256e2e9ffd750daf5237a7fb",
+      "original_name": "tripo_convert_163dca80-d777-46e0-884f-24d4b26ac9e0.fbx"
+    },
+    "bramkarz_1c96d333": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+        "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+        "Jab": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+        "Cross": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+        "Hook": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+        "SideKick": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+        "Knee": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+        "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+        "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+        "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+        "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c"
+      },
+      "sha256": "cf531b57242007bf194eae429029ed3f659a263920086ad46789805586251fde",
+      "original_name": "tripo_convert_1c96d333-b488-4417-9b17-b3c2ce071073.fbx"
+    },
+    "imprezowiczka_11baefe5": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+        "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+        "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
+      },
+      "sha256": "3f13175011b5c99de91b29b332f776353cd6ba9e9e971e2788f57b88f94a4ad6",
+      "original_name": "tripo_convert_11baefe5-78f5-42b7-b9e9-db412da2fb35.fbx"
+    },
+    "imprezowiczka_0dbe3922": {
+      "profile": {
+        "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+        "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+        "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+        "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+        "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+        "StandUp": {
+          "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+          "window": [
+            0.82,
+            0.9955
+          ]
+        },
+        "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+        "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+        "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+        "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+        "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+        "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+        "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+        "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+        "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
+      },
+      "sha256": "cc617b221c38abbb8034db230751be9ebcf70380b67d98cb1b8c9aed87a54e42",
+      "original_name": "tripo_convert_0dbe3922-27f7-42c2-b4d9-ad3a176d684a.fbx"
+    }
+  },
+  "clips": {
+    "393ca7ec8e0409c5eea0fe44075d74ae5ce2c825ded47782ff6f85df58edd434": {
+      "sha256": "393ca7ec8e0409c5eea0fe44075d74ae5ce2c825ded47782ff6f85df58edd434",
+      "name": "Run To Rolling",
+      "accepted_hashes": [
+        "393ca7ec8e0409c5eea0fe44075d74ae5ce2c825ded47782ff6f85df58edd434"
+      ]
+    },
+    "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17": {
+      "sha256": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+      "name": "Hip Hop Dancing",
+      "accepted_hashes": [
+        "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17"
+      ]
+    },
+    "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12": {
+      "sha256": "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12",
+      "name": "Jump (2)",
+      "accepted_hashes": [
+        "cf7323e98372ec9854ac7e84c4143de90c11b0dcfd2eba14795ea7917a164f12"
+      ]
+    },
+    "cbf451e27babd8ab613119e01ce06f5c7ab6c8f81f81b6b8a58a1736f5494183": {
+      "sha256": "cbf451e27babd8ab613119e01ce06f5c7ab6c8f81f81b6b8a58a1736f5494183",
+      "name": "Pointing (1)",
+      "accepted_hashes": [
+        "cbf451e27babd8ab613119e01ce06f5c7ab6c8f81f81b6b8a58a1736f5494183"
+      ]
+    },
+    "4e495d89f30b1f47b0d160078fe6df6a1bcfe233ddb8ef64803c1adfdcb28235": {
+      "sha256": "4e495d89f30b1f47b0d160078fe6df6a1bcfe233ddb8ef64803c1adfdcb28235",
+      "name": "Entering Car (3)",
+      "accepted_hashes": [
+        "4e495d89f30b1f47b0d160078fe6df6a1bcfe233ddb8ef64803c1adfdcb28235"
+      ]
+    },
+    "f4d757557f8c798d4c316e2f84f6877586bcbe3c372028979d33d7b4a14d98cd": {
+      "sha256": "f4d757557f8c798d4c316e2f84f6877586bcbe3c372028979d33d7b4a14d98cd",
+      "name": "Walking (3)",
+      "accepted_hashes": [
+        "f4d757557f8c798d4c316e2f84f6877586bcbe3c372028979d33d7b4a14d98cd"
+      ]
+    },
+    "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06": {
+      "sha256": "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06",
+      "name": "Sitting",
+      "accepted_hashes": [
+        "513db4532dc710a04763bf9bf3f404fd0821e624b29341986f43cd2c3295fa06"
+      ]
+    },
+    "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc": {
+      "sha256": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+      "name": "Boxing (1)",
+      "accepted_hashes": [
+        "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc"
+      ]
+    },
+    "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d": {
+      "sha256": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+      "name": "SitDown_UseLaptop_mixamo_57de780",
+      "accepted_hashes": [
+        "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+        "dbd4b1ad89f70a18ef8dd75f888f39a4a4267401a7393ac2fcbfba86e6c956bf"
+      ]
+    },
+    "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f": {
+      "sha256": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+      "name": "Center Block (1)",
+      "accepted_hashes": [
+        "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+        "f98b919681f32f7fe07ab76bd124f7f2203f4678e17d90b7992e32c8d365eaa5"
+      ]
+    },
+    "f499a5f55debba36708a5976a034710e62cf5f13542cbda4d5e923085f94b2d7": {
+      "sha256": "f499a5f55debba36708a5976a034710e62cf5f13542cbda4d5e923085f94b2d7",
+      "name": "Mma Kick",
+      "accepted_hashes": [
+        "f499a5f55debba36708a5976a034710e62cf5f13542cbda4d5e923085f94b2d7"
+      ]
+    },
+    "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c": {
+      "sha256": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+      "name": "Big Stomach Hit",
+      "accepted_hashes": [
+        "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c"
+      ]
+    },
+    "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983": {
+      "sha256": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "name": "Pointing Gesture",
+      "accepted_hashes": [
+        "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983"
+      ]
+    },
+    "024797ce3c7001a6c55757dd9c46dd9430aa4475a0093603868f941a15f1a7c8": {
+      "sha256": "024797ce3c7001a6c55757dd9c46dd9430aa4475a0093603868f941a15f1a7c8",
+      "name": "Defeated",
+      "accepted_hashes": [
+        "024797ce3c7001a6c55757dd9c46dd9430aa4475a0093603868f941a15f1a7c8"
+      ]
+    },
+    "41a3ccff2c70c9c3a5a7525437380e3af4aa51b724a18f1fb58e07d2e869e6ca": {
+      "sha256": "41a3ccff2c70c9c3a5a7525437380e3af4aa51b724a18f1fb58e07d2e869e6ca",
+      "name": "Driving (3)",
+      "accepted_hashes": [
+        "41a3ccff2c70c9c3a5a7525437380e3af4aa51b724a18f1fb58e07d2e869e6ca"
+      ]
+    },
+    "982d796c4bc5b5469526b5e1b5e6995b2c2b5d6fe723ad1f9de1d037bbb4a722": {
+      "sha256": "982d796c4bc5b5469526b5e1b5e6995b2c2b5d6fe723ad1f9de1d037bbb4a722",
+      "name": "Exiting Car (3)",
+      "accepted_hashes": [
+        "982d796c4bc5b5469526b5e1b5e6995b2c2b5d6fe723ad1f9de1d037bbb4a722"
+      ]
+    },
+    "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439": {
+      "sha256": "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439",
+      "name": "Warming Up",
+      "accepted_hashes": [
+        "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439"
+      ]
+    },
+    "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680": {
+      "sha256": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "name": "Seated Idle",
+      "accepted_hashes": [
+        "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680"
+      ]
+    },
+    "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122": {
+      "sha256": "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122",
+      "name": "Quick Formal Bow",
+      "accepted_hashes": [
+        "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122"
+      ]
+    },
+    "b284d09acbfc513eab7f76f38ec1ba4f07c5c4de4fa0c2de505a0bbbcffe37c5": {
+      "sha256": "b284d09acbfc513eab7f76f38ec1ba4f07c5c4de4fa0c2de505a0bbbcffe37c5",
+      "name": "Goalkeeper Pass",
+      "accepted_hashes": [
+        "b284d09acbfc513eab7f76f38ec1ba4f07c5c4de4fa0c2de505a0bbbcffe37c5"
+      ]
+    },
+    "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d": {
+      "sha256": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "name": "Regular_Light_mixamo_a2d488d",
+      "accepted_hashes": [
+        "5e1ca321566a6b127f94cdc1c5f1c82cf67f36e656c1bae67a878ea6cfd576b2",
+        "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d"
+      ]
+    },
+    "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567": {
+      "sha256": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "name": "Talking (3)",
+      "accepted_hashes": [
+        "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567"
+      ]
+    },
+    "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2": {
+      "sha256": "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2",
+      "name": "Strut Walking",
+      "accepted_hashes": [
+        "921f21be512f72a5d8e18040440cb686a1f24091abddfd58706ec564248eedc2"
+      ]
+    },
+    "84f2d80d12c9d1c1877d9a510b03cf33a0aa3a7335c294e376b4c9a8bd455740": {
+      "sha256": "84f2d80d12c9d1c1877d9a510b03cf33a0aa3a7335c294e376b4c9a8bd455740",
+      "name": "Dying (1)",
+      "accepted_hashes": [
+        "84f2d80d12c9d1c1877d9a510b03cf33a0aa3a7335c294e376b4c9a8bd455740"
+      ]
+    },
+    "19324a681352e95618345f4d179b3cfa2f1ea5aed3d2ec0492f822d14bc68344": {
+      "sha256": "19324a681352e95618345f4d179b3cfa2f1ea5aed3d2ec0492f822d14bc68344",
+      "name": "Pointing",
+      "accepted_hashes": [
+        "19324a681352e95618345f4d179b3cfa2f1ea5aed3d2ec0492f822d14bc68344"
+      ]
+    },
+    "64fa0742fbe0ddf9a5d1fd5737444b4cab8cf06c6878228eb4daff728f57bb04": {
+      "sha256": "64fa0742fbe0ddf9a5d1fd5737444b4cab8cf06c6878228eb4daff728f57bb04",
+      "name": "Zombie Stand Up",
+      "accepted_hashes": [
+        "64fa0742fbe0ddf9a5d1fd5737444b4cab8cf06c6878228eb4daff728f57bb04"
+      ]
+    },
+    "7c26ff8b3dee2163b998858acf64047ba0d2413a9cb499f78dee042b27610355": {
+      "sha256": "7c26ff8b3dee2163b998858acf64047ba0d2413a9cb499f78dee042b27610355",
+      "name": "Step Backward",
+      "accepted_hashes": [
+        "7c26ff8b3dee2163b998858acf64047ba0d2413a9cb499f78dee042b27610355"
+      ]
+    },
+    "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8": {
+      "sha256": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+      "name": "Light Hit To Head",
+      "accepted_hashes": [
+        "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8"
+      ]
+    },
+    "4849b647922abf59ad19c6a953f1d79fe133ffd229e38a3a5ea8ccf83f43158f": {
+      "sha256": "4849b647922abf59ad19c6a953f1d79fe133ffd229e38a3a5ea8ccf83f43158f",
+      "name": "Medium Left Side Step",
+      "accepted_hashes": [
+        "4849b647922abf59ad19c6a953f1d79fe133ffd229e38a3a5ea8ccf83f43158f"
+      ]
+    },
+    "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b": {
+      "sha256": "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+      "name": "Knee Kick Lead (1)",
+      "accepted_hashes": [
+        "04bf957ba375394d630c49eddae7d814fbd0c21a6730961aebe6790f50f65e9b",
+        "c340ad84eedffa9c490fbe9009d211179fc6e4cd5f6accc8e034f2b468f45375"
+      ]
+    },
+    "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40": {
+      "sha256": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+      "name": "drunk walk",
+      "accepted_hashes": [
+        "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40"
+      ]
+    },
+    "1ba718194ba0ddec65cfde1b9a1400e47ebf4bf33436b9f2edad7d275b4247d9": {
+      "sha256": "1ba718194ba0ddec65cfde1b9a1400e47ebf4bf33436b9f2edad7d275b4247d9",
+      "name": "Taunt (1)",
+      "accepted_hashes": [
+        "1ba718194ba0ddec65cfde1b9a1400e47ebf4bf33436b9f2edad7d275b4247d9"
+      ]
+    },
+    "382372b9fb0a1ce1eda1ebbc705feec5028eba59a2bd5900cd2e6424d7b1199f": {
+      "sha256": "382372b9fb0a1ce1eda1ebbc705feec5028eba59a2bd5900cd2e6424d7b1199f",
+      "name": "Victory",
+      "accepted_hashes": [
+        "382372b9fb0a1ce1eda1ebbc705feec5028eba59a2bd5900cd2e6424d7b1199f"
+      ]
+    },
+    "4b2ae4503b06d15f8e93407a33be8b793617c43910fe714895250f330bec4f65": {
+      "sha256": "4b2ae4503b06d15f8e93407a33be8b793617c43910fe714895250f330bec4f65",
+      "name": "Golf Putt",
+      "accepted_hashes": [
+        "4b2ae4503b06d15f8e93407a33be8b793617c43910fe714895250f330bec4f65"
+      ]
+    },
+    "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf": {
+      "sha256": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "name": "Drinking",
+      "accepted_hashes": [
+        "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf"
+      ]
+    },
+    "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90": {
+      "sha256": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+      "name": "Cross Punch",
+      "accepted_hashes": [
+        "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90"
+      ]
+    },
+    "8642d8f9401205f7a48e727f4a41e7ba83377fe47c0922f6b78bec6d2a9726b6": {
+      "sha256": "8642d8f9401205f7a48e727f4a41e7ba83377fe47c0922f6b78bec6d2a9726b6",
+      "name": "Swimming",
+      "accepted_hashes": [
+        "8642d8f9401205f7a48e727f4a41e7ba83377fe47c0922f6b78bec6d2a9726b6"
+      ]
+    },
+    "38cec51310bd099bb65b369fad8523de91540facdc21589a540719a1ae594b96": {
+      "sha256": "38cec51310bd099bb65b369fad8523de91540facdc21589a540719a1ae594b96",
+      "name": "Swimming To Edge",
+      "accepted_hashes": [
+        "38cec51310bd099bb65b369fad8523de91540facdc21589a540719a1ae594b96"
+      ]
+    },
+    "4b4287b76924c42b8c091a7c7cf8b732f0fef4fafdb501d6cd174d022f618b86": {
+      "sha256": "4b4287b76924c42b8c091a7c7cf8b732f0fef4fafdb501d6cd174d022f618b86",
+      "name": "Pointing (2)",
+      "accepted_hashes": [
+        "4b4287b76924c42b8c091a7c7cf8b732f0fef4fafdb501d6cd174d022f618b86"
+      ]
+    },
+    "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843": {
+      "sha256": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "name": "Jump",
+      "accepted_hashes": [
+        "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843"
+      ]
+    },
+    "d9c58808d28367dcbebe935171bc4cd45bc541a9ba8fd8bb888b76900b4a5ff1": {
+      "sha256": "d9c58808d28367dcbebe935171bc4cd45bc541a9ba8fd8bb888b76900b4a5ff1",
+      "name": "Soccer_PenaltyKick_mixamo_37ebf35",
+      "accepted_hashes": [
+        "a2244c4e44acf5b71f25f492c493dbd7be4a036e63fba89d49ad7a8627884c83",
+        "d9c58808d28367dcbebe935171bc4cd45bc541a9ba8fd8bb888b76900b4a5ff1"
+      ]
+    },
+    "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a": {
+      "sha256": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "name": "Sitting (1)",
+      "accepted_hashes": [
+        "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a"
+      ]
+    },
+    "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89": {
+      "sha256": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+      "name": "Hook (4)",
+      "accepted_hashes": [
+        "2e004d4d92124e95ae09055984ad79de45b820fea9d9bc559659b21cd6f892b9",
+        "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89"
+      ]
+    },
+    "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5": {
+      "sha256": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+      "name": "Side Kick",
+      "accepted_hashes": [
+        "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5"
+      ]
+    },
+    "a9c98e86a9ff9b38b1d830ecfdfc0af140558a80b92885da5581002dc8bd3fb4": {
+      "sha256": "a9c98e86a9ff9b38b1d830ecfdfc0af140558a80b92885da5581002dc8bd3fb4",
+      "name": "Roundhouse Kick (1)",
+      "accepted_hashes": [
+        "a9c98e86a9ff9b38b1d830ecfdfc0af140558a80b92885da5581002dc8bd3fb4"
+      ]
+    },
+    "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb": {
+      "sha256": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+      "name": "Walking (1)",
+      "accepted_hashes": [
+        "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb"
+      ]
+    },
+    "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30": {
+      "sha256": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "name": "Fast Run",
+      "accepted_hashes": [
+        "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30"
+      ]
+    },
+    "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18": {
+      "sha256": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "name": "House Dancing",
+      "accepted_hashes": [
+        "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18"
+      ]
+    },
+    "5fa3cdd7edb60c256255bb238686e87ddea3cd270eb1f9ae4ab965959b4660e7": {
+      "sha256": "5fa3cdd7edb60c256255bb238686e87ddea3cd270eb1f9ae4ab965959b4660e7",
+      "name": "Speedbag",
+      "accepted_hashes": [
+        "5fa3cdd7edb60c256255bb238686e87ddea3cd270eb1f9ae4ab965959b4660e7"
+      ]
+    },
+    "4714698c582070221acc178fb5dba70e43dd79d5c20bf8c48b7956f88aa284fd": {
+      "sha256": "4714698c582070221acc178fb5dba70e43dd79d5c20bf8c48b7956f88aa284fd",
+      "name": "Golf Drive",
+      "accepted_hashes": [
+        "4714698c582070221acc178fb5dba70e43dd79d5c20bf8c48b7956f88aa284fd"
+      ]
+    },
+    "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff": {
+      "sha256": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+      "name": "Dodging",
+      "accepted_hashes": [
+        "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff"
+      ]
+    },
+    "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8": {
+      "sha256": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "name": "Waving",
+      "accepted_hashes": [
+        "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8"
+      ]
+    },
+    "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f": {
+      "sha256": "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f",
+      "name": "Medium Run",
+      "accepted_hashes": [
+        "c7fb699a65393704e9ca05cfca1176c09e691a3cac8fb2d51a2484f3e3e06d5f"
+      ]
+    },
+    "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24": {
+      "sha256": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24",
+      "name": "drunk turn",
+      "accepted_hashes": [
+        "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
+      ]
+    },
+    "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0": {
+      "sha256": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+      "name": "drunk idle variation",
+      "accepted_hashes": [
+        "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0"
+      ]
+    },
+    "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5": {
+      "sha256": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+      "name": "Lead Jab (2)",
+      "accepted_hashes": [
+        "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5"
+      ]
+    },
+    "de72e3354412dc56ddf585ec2b5758f4576dee1157aa0843b405fb7b6e69a894": {
+      "name": "Przysiad ze sztangą na plecach II",
+      "sha256": "de72e3354412dc56ddf585ec2b5758f4576dee1157aa0843b405fb7b6e69a894",
+      "accepted_hashes": [
+        "de72e3354412dc56ddf585ec2b5758f4576dee1157aa0843b405fb7b6e69a894"
+      ]
+    },
+    "aa45ae073f1744e5b21aae5df5081b3a33ddecd1345b1e84e1d6b7e49bff6c16": {
+      "name": "Przysiad ze sztangą na plecach",
+      "sha256": "aa45ae073f1744e5b21aae5df5081b3a33ddecd1345b1e84e1d6b7e49bff6c16",
+      "accepted_hashes": [
+        "aa45ae073f1744e5b21aae5df5081b3a33ddecd1345b1e84e1d6b7e49bff6c16"
+      ]
+    },
+    "7672ba471289139c7c7b70bc7bcc17801086373e5aed02d8c03f91d9a105b2d4": {
+      "name": "Uginanie przedramion",
+      "sha256": "7672ba471289139c7c7b70bc7bcc17801086373e5aed02d8c03f91d9a105b2d4",
+      "accepted_hashes": [
+        "7672ba471289139c7c7b70bc7bcc17801086373e5aed02d8c03f91d9a105b2d4"
+      ]
+    },
+    "724a142b3793f051524561c4437ed3ff1ff36556ca731add2cff74eea3fb460a": {
+      "name": "Burpees",
+      "sha256": "724a142b3793f051524561c4437ed3ff1ff36556ca731add2cff74eea3fb460a",
+      "accepted_hashes": [
+        "724a142b3793f051524561c4437ed3ff1ff36556ca731add2cff74eea3fb460a"
+      ]
+    },
+    "e798330a8ae0e0176a2254079e4181618d6ab4da17d89cea7e21da7ceeefcc10": {
+      "name": "Unoszenie ramion w przód",
+      "sha256": "e798330a8ae0e0176a2254079e4181618d6ab4da17d89cea7e21da7ceeefcc10",
+      "accepted_hashes": [
+        "e798330a8ae0e0176a2254079e4181618d6ab4da17d89cea7e21da7ceeefcc10"
+      ]
+    },
+    "8a14789ff4420a74cb2e9601f331d490317635e51d1f0a04c69373f3925fb5a0": {
+      "name": "Pajacyki",
+      "sha256": "8a14789ff4420a74cb2e9601f331d490317635e51d1f0a04c69373f3925fb5a0",
+      "accepted_hashes": [
+        "8a14789ff4420a74cb2e9601f331d490317635e51d1f0a04c69373f3925fb5a0"
+      ]
+    },
+    "9e419fb99cf4b469172e97b3ddb40e2b25308ae3efb2abf42a6e8fb88e177c67": {
+      "name": "Wymach odważnikiem",
+      "sha256": "9e419fb99cf4b469172e97b3ddb40e2b25308ae3efb2abf42a6e8fb88e177c67",
+      "accepted_hashes": [
+        "9e419fb99cf4b469172e97b3ddb40e2b25308ae3efb2abf42a6e8fb88e177c67"
+      ]
+    },
+    "d70ddc3a794c435991ae9d4e9d6c2c2db3eec6cb23a3383b3f5a932c856aa8d6": {
+      "name": "Przysiad ze sztangą nad głową",
+      "sha256": "d70ddc3a794c435991ae9d4e9d6c2c2db3eec6cb23a3383b3f5a932c856aa8d6",
+      "accepted_hashes": [
+        "d70ddc3a794c435991ae9d4e9d6c2c2db3eec6cb23a3383b3f5a932c856aa8d6"
+      ]
+    },
+    "9823f0cfc4eacf74e261337dedb057642e468f015b1f4d5c9b68733022c5fdbc": {
+      "name": "Przysiad na jednej nodze",
+      "sha256": "9823f0cfc4eacf74e261337dedb057642e468f015b1f4d5c9b68733022c5fdbc",
+      "accepted_hashes": [
+        "9823f0cfc4eacf74e261337dedb057642e468f015b1f4d5c9b68733022c5fdbc"
+      ]
+    },
+    "fc35509464fd4ec0fbe04f0f1245c42cae72f2285b3e1de96354bdbeec82b3bc": {
+      "name": "Rwanie II",
+      "sha256": "fc35509464fd4ec0fbe04f0f1245c42cae72f2285b3e1de96354bdbeec82b3bc",
+      "accepted_hashes": [
+        "fc35509464fd4ec0fbe04f0f1245c42cae72f2285b3e1de96354bdbeec82b3bc"
+      ]
+    },
+    "b3cbd2583653787a303c04c6c661762e569b4735a102c9168079172ea666600f": {
+      "name": "Rwanie",
+      "sha256": "b3cbd2583653787a303c04c6c661762e569b4735a102c9168079172ea666600f",
+      "accepted_hashes": [
+        "b3cbd2583653787a303c04c6c661762e569b4735a102c9168079172ea666600f"
+      ]
+    },
+    "b6f376c64368f365ee6e622334077d5ed51e7bd561d2cac666fae3d5e349de00": {
+      "name": "Przejście do rowerka na macie",
+      "sha256": "b6f376c64368f365ee6e622334077d5ed51e7bd561d2cac666fae3d5e349de00",
+      "accepted_hashes": [
+        "b6f376c64368f365ee6e622334077d5ed51e7bd561d2cac666fae3d5e349de00"
+      ]
+    },
+    "f244a15dc370f8d995f143cdbefc93804e0769a91b218c5c370e57995901a404": {
+      "name": "Wysokie podciąganie w pozycji sumo",
+      "sha256": "f244a15dc370f8d995f143cdbefc93804e0769a91b218c5c370e57995901a404",
+      "accepted_hashes": [
+        "f244a15dc370f8d995f143cdbefc93804e0769a91b218c5c370e57995901a404"
+      ]
+    }
+  },
+  "catalog": {
+    "commit": "941f1652b63a18c3718e20409cd158f4aa734c2d"
+  },
+  "profiles": {
+    "tlum": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": {
+        "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+        "window": [
+          0.82,
+          0.9955
+        ]
+      },
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567"
+    },
+    "glowna": {
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "Jump": "42b4a316a6c17fb58754e471652ccbcb58821fd730ba0fbb4b7cdc1c06c3f843",
+      "EnteringCar": "4e495d89f30b1f47b0d160078fe6df6a1bcfe233ddb8ef64803c1adfdcb28235",
+      "CarIdle": "41a3ccff2c70c9c3a5a7525437380e3af4aa51b724a18f1fb58e07d2e869e6ca",
+      "ExitingCar": "982d796c4bc5b5469526b5e1b5e6995b2c2b5d6fe723ad1f9de1d037bbb4a722",
+      "CombatIdle": "06dc7d7a149bbdaafcecccabc94ddde5542f4027685382e7c137bf956d1372fc",
+      "CombatForward": "f4d757557f8c798d4c316e2f84f6877586bcbe3c372028979d33d7b4a14d98cd",
+      "CombatBackward": "7c26ff8b3dee2163b998858acf64047ba0d2413a9cb499f78dee042b27610355",
+      "CombatLeft": "4849b647922abf59ad19c6a953f1d79fe133ffd229e38a3a5ea8ccf83f43158f",
+      "Punch": "dc4d75012eb34c2a6400f46cdb5536046abc4fdb04ff296c7e0ccad2567461a5",
+      "Punch2": "6663ca725b158acc8b377be1e9cf2f617e48512dee2d89f600101ab6e4a86e90",
+      "Punch3": "32231bb0e8ee87d4387407d93847d942e075beb44de067b98de6bb6b11f1cd89",
+      "Kick": "f499a5f55debba36708a5976a034710e62cf5f13542cbda4d5e923085f94b2d7",
+      "Kick2": "40ba86f510f1064e10e9fa9a21ef2eecd34aacc920e5665e01353ffcd31809a5",
+      "Kick3": "a9c98e86a9ff9b38b1d830ecfdfc0af140558a80b92885da5581002dc8bd3fb4",
+      "Dodge": "8cf5158b9b8851ff5340bd570c72100f58c01eb7b1c15e549434e19076d7ecff",
+      "Block": "6e52b33f83b55814c6890012f1afdf6724eed60e08030e97af251eb0cd1aa45f",
+      "HitHead": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
+      "HitBody": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+      "Knockdown": "84f2d80d12c9d1c1877d9a510b03cf33a0aa3a7335c294e376b4c9a8bd455740",
+      "GetUp": "64fa0742fbe0ddf9a5d1fd5737444b4cab8cf06c6878228eb4daff728f57bb04",
+      "Bow": "14e2b621e520aeadddf285892a76dd54bf33774c06f874a511fffd5806384122",
+      "Taunt": "1ba718194ba0ddec65cfde1b9a1400e47ebf4bf33436b9f2edad7d275b4247d9",
+      "Victory": "382372b9fb0a1ce1eda1ebbc705feec5028eba59a2bd5900cd2e6424d7b1199f",
+      "Defeat": "024797ce3c7001a6c55757dd9c46dd9430aa4475a0093603868f941a15f1a7c8",
+      "WarmUp": "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439",
+      "Roll": "393ca7ec8e0409c5eea0fe44075d74ae5ce2c825ded47782ff6f85df58edd434",
+      "GolfDrive": "4714698c582070221acc178fb5dba70e43dd79d5c20bf8c48b7956f88aa284fd",
+      "GolfPutt": "4b2ae4503b06d15f8e93407a33be8b793617c43910fe714895250f330bec4f65",
+      "Speedbag": "5fa3cdd7edb60c256255bb238686e87ddea3cd270eb1f9ae4ab965959b4660e7",
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": {
+        "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+        "window": [
+          0.82,
+          0.9955
+        ]
+      },
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+      "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+      "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+      "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24",
+      "Swim": "8642d8f9401205f7a48e727f4a41e7ba83377fe47c0922f6b78bec6d2a9726b6",
+      "SwimToEdge": "38cec51310bd099bb65b369fad8523de91540facdc21589a540719a1ae594b96",
+      "Bowling": "b284d09acbfc513eab7f76f38ec1ba4f07c5c4de4fa0c2de505a0bbbcffe37c5",
+      "GymBackSquat": "aa45ae073f1744e5b21aae5df5081b3a33ddecd1345b1e84e1d6b7e49bff6c16",
+      "GymBicepCurl": "7672ba471289139c7c7b70bc7bcc17801086373e5aed02d8c03f91d9a105b2d4",
+      "GymFrontRaises": "e798330a8ae0e0176a2254079e4181618d6ab4da17d89cea7e21da7ceeefcc10"
+    },
+    "klub": {
+      "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
+      "Walk": "b3af4ef1d56816e39fbc6963a099e31d5c341d3bcff11aea0ec4dda31ddfdabb",
+      "Run": "b3d6070085efc6677db8899d48105687f3f1d174d3dcaaea42d0c2e1f888eb30",
+      "SitDown": "24082b3ca22003fccd7a1bcfe8b22f271d4ded7df8de2fa91ea9623f30500b3a",
+      "SeatedIdle": "ca846248da90e9b9156200e1e5420a45880284b429f149a5f5c514da22341680",
+      "StandUp": {
+        "clip": "a282e334d67ded69b3dd5488fb9bd596b755fb01524d5a8057181d490f7f121d",
+        "window": [
+          0.82,
+          0.9955
+        ]
+      },
+      "Talk": "1253544b18442feb5ec1d6fe1b9d54226beb91ef801304dabb822b661f6a0567",
+      "Wave": "a461701d1ac04b185a42bd43f78d7ad893a9cb7656ec4b200b9c02ac1bdb6ef8",
+      "Point": "3ff1aa0620cf1cbfda31973c342f42df3719594f5b1ab20022a24cf8b71ee983",
+      "DanceHouse": "ce5145ac0b0214884ccdbc565bff964dc3603359258be90500dbdd2b57571d18",
+      "DanceHipHop": "ea4048ba509eac40c48ce2bd5fac8c65c0778c0d116e0e191e5039c88a4aff17",
+      "Drink": "ec9365dab674b16d84871d104107cc97f91e1c5ed91bba9fc3c25c8d74225ebf",
+      "DrunkIdle": "bb673cef1ecbc3d91ca4066c8dd20429acd5fb57bb191bedda628d07875d84f0",
+      "DrunkWalk": "c45c2ff600d63274ccf6dfd172785abfe5d5733a8dc7b21e31a5fa4a9b9f9f40",
+      "DrunkTurn": "6d86067fb4533963dafb8809498c2709d291603dfbc9853d7d3cdd4c7c975d24"
+    }
+  }
+}
