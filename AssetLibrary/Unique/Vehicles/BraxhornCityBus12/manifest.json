@@ -1,0 +1,53 @@
+{
+  "id": "braxhorn.vehicle.citybus12",
+  "version": "1.0.0",
+  "displayName": "Braxhorn City — autobus miejski 12 m",
+  "scope": "shared, all city regions",
+  "sourceStorage": {
+    "type": "private owner library",
+    "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
+    "packageFile": "BraxhornCityBus12.unitypackage",
+    "sourceFile": "Braxhorn_Autobus_Model.zip"
+  },
+  "unity": {
+    "assetPath": "Assets/Braxhorn/Shared/Vehicles/BraxhornCityBus12.glb",
+    "assetGuid": "2dbdb004bfdb5793a15a12a2f5b382ee",
+    "importer": "com.unity.cloud.gltfast",
+    "projectImporterVersion": "6.20.0",
+    "sourceUnit": "metre",
+    "gltfForward": "+Z",
+    "sourceLengthM": 12.029,
+    "worldScaleK": 1.294,
+    "applyWorldScaleOnce": true
+  },
+  "package": {
+    "bytes": 17186592,
+    "sha256": "6fb50bf69657308336dc2d3664b89f7cccd351a575fff3c05bfaa2ab12b901ea"
+  },
+  "model": {
+    "format": "GLB 2.0",
+    "bytes": 19491904,
+    "sha256": "b4a7f611cb3d3e3c332aa23365f93d92d0aacbd940971a530ad864734229c0f9",
+    "seatedPassengers": 33,
+    "driverSeats": 1,
+    "wheelsWithPivots": 4,
+    "doorLeavesWithPivots": 4,
+    "trianglesInstanced": 113774,
+    "embeddedImageCount": 12,
+    "surfaceTextureSize": 2048,
+    "keyMaterials": [
+      "Fabric Pattern 05",
+      "Rubber Tiles"
+    ]
+  },
+  "validation": {
+    "glbBlenderReimport": true,
+    "unityPackageContentsVerified": true,
+    "unityPlayMode": "untested",
+    "androidDevice": "untested"
+  },
+  "sources": [
+    "https://polyhaven.com/a/fabric_pattern_05",
+    "https://polyhaven.com/a/rubber_tiles"
+  ]
+}
