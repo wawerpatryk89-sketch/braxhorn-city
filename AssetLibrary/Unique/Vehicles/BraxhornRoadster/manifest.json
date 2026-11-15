@@ -1,0 +1,90 @@
+{
+  "id": "braxhorn.vehicle.roadster",
+  "displayName": "Braxhorn Roadster",
+  "version": "0.1.0-review",
+  "scope": "shared, all city regions",
+  "sourceStorage": {
+    "type": "private owner library",
+    "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
+    "packageFile": "BraxhornRoadster.unitypackage",
+    "sourceFile": "Braxhorn_Roadster_Model.zip",
+    "sourceSHA256": "1590fdbe7afb4f8f03005e2021f75faff42a2028598de4870976d6e59349a480"
+  },
+  "model": {
+    "bytes": 10460432,
+    "sha256": "29c486dca84983b133e6f7b5f48c7bed900fd4a1e6f3f79fcc937dba48ce315a",
+    "triangles": 146779,
+    "forward": "+Z",
+    "unit": "metre",
+    "embeddedImages": {
+      "twill_normal": [
+        1536,
+        1536
+      ],
+      "twill_color": [
+        1536,
+        1536
+      ],
+      "saddle_normal": [
+        2048,
+        2048
+      ],
+      "saddle_color": [
+        2048,
+        2048
+      ],
+      "instruments": [
+        1024,
+        400
+      ],
+      "navigation": [
+        800,
+        450
+      ],
+      "bull_nickel": [
+        1024,
+        1024
+      ],
+      "suede_normal": [
+        2048,
+        2048
+      ],
+      "suede_color": [
+        2048,
+        2048
+      ]
+    },
+    "wheelPivots": [
+      "Wheel_FL",
+      "Wheel_FR",
+      "Wheel_RL",
+      "Wheel_RR"
+    ],
+    "seats": 2
+  },
+  "distance": {
+    "bytes": 7106132,
+    "triangles": 34736,
+    "sha256": "35230ce411f6e93427fc5232896a75445224fdb061bd6685db02fd1d99859ed0",
+    "manualSelection": true
+  },
+  "unityPackage": {
+    "assetPath": "Assets/Braxhorn/Shared/Vehicles/BraxhornRoadster.glb",
+    "sha256": "526ddcf64be46941aa22752f7c4c9b6663082eb2171c600012de00d697a545d1",
+    "gltfImporter": "com.unity.cloud.gltfast",
+    "targetProjectVersion": "6.20.0",
+    "bytes": 13605601
+  },
+  "validation": {
+    "blenderReimport": "passed",
+    "unityPackageByteMatch": "passed",
+    "unityPlayMode": "untested",
+    "androidDevice": "untested"
+  },
+  "ownerApproval": {
+    "status": "approved",
+    "scope": "global reusable vehicle model",
+    "version": "0.1.0-review",
+    "date": "2026-11-15"
+  }
+}
