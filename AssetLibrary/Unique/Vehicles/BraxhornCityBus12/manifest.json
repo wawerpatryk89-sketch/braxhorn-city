@@ -62,5 +62,11 @@
   "sources": [
     "https://polyhaven.com/a/fabric_pattern_05",
     "https://polyhaven.com/a/rubber_tiles"
-  ]
+  ],
+  "ownerApproval": {
+    "version": "1.0.1",
+    "status": "approved",
+    "scope": "global reusable vehicle model",
+    "date": "2026-11-15"
+  }
 }
