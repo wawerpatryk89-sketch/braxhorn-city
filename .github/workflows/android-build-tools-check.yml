@@ -19,13 +19,19 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-          # Testy odczytują rzeczywiste pliki generatorów Unity, nie tylko skrypty Python.
-          # Wyłącznie źródła C#/Shader, bez Asset Library i wielkich modeli/tekstur.
+          # Testy odczytują rzeczywiste pliki generatorów Unity, manifesty paczek, narzędzia i źródła.
+          # 16.11: pobranie rzadkie (wzorce, nie stożek) — całe repo BEZ zaszyfrowanych paczek (.cms, .tar.gz.enc, .ogg.enc ~1.3 GB),
+          # dev/, public/, asset-library/, unity-preview/ (~250 MB zamiast ~2 GB). Testy paczek sprawdzają pliki pominięte przez indeks
+          # gita (unity-tools/claude/repo_pliki.py). Wcześniej stożek bez Prywatne/, sklep/, Source/ — 23 testy padały na każdym pushu.
+          filter: blob:none
+          sparse-checkout-cone-mode: false
           sparse-checkout: |
-            unity-tools/claude
-            unity-city/Assets/Editor
-            unity-city/Assets/Claude/Runtime
-            unity-city/Assets/City
-            unity-city/Assets/BraxGymPlayer.cs
-            .github/workflows/claude-region-build.yml
+            /*
+            !/dev/
+            !/public/
+            !/asset-library/
+            !/unity-preview/
+            !*.cms
+            !*.tar.gz.enc
+            !*.ogg.enc
       - run: python3 -m unittest discover -s unity-tools/claude -p 'test_*.py' -v

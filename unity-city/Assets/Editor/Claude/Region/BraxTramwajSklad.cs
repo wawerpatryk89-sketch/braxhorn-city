@@ -309,7 +309,7 @@ public static class BraxTramwajSklad
     }
 
     // ---------------------------------------------------------------------------------------------------------------
-    /// <summary>Szyny rowkowe wzdłuż pętli: główka (stal, 12 mm nad asfaltem) i rowek (ciemny, 4 mm) po wewnętrznej stronie.</summary>
+    /// <summary>Szyny rowkowe wzdłuż pętli: główka (stal, 22 mm nad asfaltem) i rowek (ciemny, 20 mm) po wewnętrznej stronie.</summary>
     public static void Szyny(Trasa t, float rozstaw, float glowka, float rowek, Transform rodzic, Material stal, Material ciemny)
     {
         var bs = new BraxRegionMeble.Bud(); var br = new BraxRegionMeble.Bud();
@@ -323,13 +323,17 @@ public static class BraxTramwajSklad
                 float c = strona * (rozstaw * .5f + glowka * .5f);
                 // główka: wierzch + dwa boki
                 Vector3 a0 = p0 + N0 * (c - glowka * .5f), b0 = p0 + N0 * (c + glowka * .5f), a1 = p1 + N1 * (c - glowka * .5f), b1 = p1 + N1 * (c + glowka * .5f);
-                Vector3 h = Vector3.up * .012f, h2 = Vector3.up * .004f;
+                // 16.11 (log 12.11, BRAXHORN_MIGOTANIE „główki szyn ↔ rowki szyn 0.8 cm”, rowek 4 mm nad asfaltem): odstępy ≥ 2 cm od
+                // asfaltu (zasada migotania) — główka 2.2 cm, rowek 2.0 cm (pasy obok siebie, nie na sobie), boki od 1 cm pod asfaltem
+                Vector3 h = Vector3.up * .022f, h2 = Vector3.up * .020f, dol = Vector3.down * .01f;
                 Gora(bs, a0 + h, b0 + h, b1 + h, a1 + h);
-                Bok(bs, a0, a1, a1 + h, a0 + h, -N0); Bok(bs, b0, b1, b1 + h, b0 + h, N0);
+                Bok(bs, a0 + dol, a1 + dol, a1 + h, a0 + h, -N0); Bok(bs, b0 + dol, b1 + dol, b1 + h, b0 + h, N0);
                 // rowek po wewnętrznej stronie (bliżej osi toru)
                 float rc = strona * (rozstaw * .5f - rowek * .5f);
                 Vector3 r0a = p0 + N0 * (rc - rowek * .5f), r0b = p0 + N0 * (rc + rowek * .5f), r1a = p1 + N1 * (rc - rowek * .5f), r1b = p1 + N1 * (rc + rowek * .5f);
                 Gora(br, r0a + h2, r0b + h2, r1b + h2, r1a + h2);
+                if (strona > 0) Bok(br, r0a + dol, r1a + dol, r1a + h2, r0a + h2, -N0);   // ścianka rowka od strony osi toru
+                else Bok(br, r0b + dol, r1b + dol, r1b + h2, r0b + h2, N0);
             }
         }
         bs.Obiekt("Tramwaj T1: główki szyn (pętla)", rodzic, stal, false, false);

@@ -17,6 +17,10 @@ public static class BraxCityMeshCut
         public Vector3 p, n, world;
         public Vector4 tangent;
         public Vector2 uv, uv2;
+        // 16.11 (MIASTO R1): wypalone światło CityStaticPBR (UV3 / UV7: widoczność słońca, otoczenie, znacznik 2718) przechodzi
+        // przez cięcie. Wcześniej wycięta siatka traciła je — cały odcinek ulicy / wnętrze bez znacznika „bez słońca” jaśniał
+        // skokowo względem sąsiadów (łaty jasnego asfaltu, wnętrza oświetlone słońcem przez ścianę).
+        public Vector4 b3, b7;
         public Color color;
         public int original;
         public static Vertex Lerp(Vertex a, Vertex b, float t)
@@ -24,6 +28,7 @@ public static class BraxCityMeshCut
             return new Vertex { p=Vector3.LerpUnclamped(a.p,b.p,t), world=Vector3.LerpUnclamped(a.world,b.world,t),
                 n=Vector3.LerpUnclamped(a.n,b.n,t).normalized, tangent=Vector4.LerpUnclamped(a.tangent,b.tangent,t),
                 uv=Vector2.LerpUnclamped(a.uv,b.uv,t), uv2=Vector2.LerpUnclamped(a.uv2,b.uv2,t),
+                b3=Vector4.LerpUnclamped(a.b3,b.b3,t), b7=Vector4.LerpUnclamped(a.b7,b.b7,t),
                 color=Color.LerpUnclamped(a.color,b.color,t), original=-1 };
         }
     }
@@ -50,6 +55,18 @@ public static class BraxCityMeshCut
             a=v;da=dv;keepA=keep;
         }
         return output;
+    }
+    // kanały UV3 i UV7 źródła (Vector4) — null, gdy siatka ich nie ma
+    static void Wypalenie(Mesh source, out List<Vector4> b3, out List<Vector4> b7)
+    {
+        int n = source.vertexCount;
+        b3 = new List<Vector4>(); source.GetUVs(3, b3); if (b3.Count != n) b3 = null;
+        b7 = new List<Vector4>(); source.GetUVs(7, b7); if (b7.Count != n) b7 = null;
+    }
+    static void ZapiszWypalenie(Mesh mesh, List<Vertex> result, bool m3, bool m7)
+    {
+        if (m3) { var l = new List<Vector4>(result.Count); foreach (var v in result) l.Add(v.b3); mesh.SetUVs(3, l); }
+        if (m7) { var l = new List<Vector4>(result.Count); foreach (var v in result) l.Add(v.b7); mesh.SetUVs(7, l); }
     }
     static bool TriangleOutside(Vector3 a, Vector3 b, Vector3 c, Bounds cut)
     {
@@ -84,10 +101,12 @@ public static class BraxCityMeshCut
             if (mine.Count == 0) continue;
             var positions = source.vertices; var normals = source.normals; var tangents = source.tangents;
             var uv = source.uv; var uv2 = source.uv2; var colors = source.colors;
+            Wypalenie(source, out var b3, out var b7);
             var vertices = new Vertex[positions.Length];
             for (int i = 0; i < positions.Length; i++) vertices[i] = new Vertex { p = positions[i], world = filter.transform.TransformPoint(positions[i]),
                 n = normals.Length == positions.Length ? normals[i] : Vector3.up, tangent = tangents.Length == positions.Length ? tangents[i] : new Vector4(1, 0, 0, 1),
                 uv = uv.Length == positions.Length ? uv[i] : Vector2.zero, uv2 = uv2.Length == positions.Length ? uv2[i] : Vector2.zero,
+                b3 = b3 != null ? b3[i] : Vector4.zero, b7 = b7 != null ? b7[i] : Vector4.zero,
                 color = colors.Length == positions.Length ? colors[i] : Color.white, original = i };
             var result = new List<Vertex>(); var oldToNew = new Dictionary<int, int>();
             var submeshes = new List<int[]>(); bool changed = false;
@@ -138,6 +157,7 @@ public static class BraxCityMeshCut
             var uOut = new Vector2[result.Count]; var u2Out = new Vector2[result.Count]; var cOut = new Color[result.Count];
             for (int i = 0; i < result.Count; i++) { var v = result[i]; pOut[i] = v.p; nOut[i] = v.n; tOut[i] = v.tangent; uOut[i] = v.uv; u2Out[i] = v.uv2; cOut[i] = v.color; }
             mesh.vertices = pOut; mesh.normals = nOut; mesh.tangents = tOut; mesh.uv = uOut; mesh.uv2 = u2Out; mesh.colors = cOut;
+            ZapiszWypalenie(mesh, result, b3 != null, b7 != null);
             mesh.subMeshCount = submeshes.Count; for (int i = 0; i < submeshes.Count; i++) mesh.SetTriangles(submeshes[i], i);
             mesh.RecalculateBounds();
             var path = AssetDatabase.GenerateUniqueAssetPath(outputDirectory + "/" + filter.name + "_" + label + ".asset");
@@ -159,10 +179,12 @@ public static class BraxCityMeshCut
             bool tall=keepTallWalls&&renderer.bounds.size.y>4f;
             var positions=source.vertices;var normals=source.normals;var tangents=source.tangents;
             var uv=source.uv;var uv2=source.uv2;var colors=source.colors;
+            Wypalenie(source,out var b3,out var b7);
             var vertices=new Vertex[positions.Length];
             for(int i=0;i<positions.Length;i++)vertices[i]=new Vertex {p=positions[i],world=filter.transform.TransformPoint(positions[i]),
                 n=normals.Length==positions.Length?normals[i]:Vector3.up,tangent=tangents.Length==positions.Length?tangents[i]:new Vector4(1,0,0,1),
                 uv=uv.Length==positions.Length?uv[i]:Vector2.zero,uv2=uv2.Length==positions.Length?uv2[i]:Vector2.zero,
+                b3=b3!=null?b3[i]:Vector4.zero,b7=b7!=null?b7[i]:Vector4.zero,
                 color=colors.Length==positions.Length?colors[i]:Color.white,original=i};
             var result=new List<Vertex>();var oldToNew=new Dictionary<int,int>();
             var submeshes=new List<int[]>();bool changed=false;
@@ -207,6 +229,7 @@ public static class BraxCityMeshCut
             var uOut=new Vector2[result.Count];var u2Out=new Vector2[result.Count];var cOut=new Color[result.Count];
             for(int i=0;i<result.Count;i++){var v=result[i];pOut[i]=v.p;nOut[i]=v.n;tOut[i]=v.tangent;uOut[i]=v.uv;u2Out[i]=v.uv2;cOut[i]=v.color;}
             mesh.vertices=pOut;mesh.normals=nOut;mesh.tangents=tOut;mesh.uv=uOut;mesh.uv2=u2Out;mesh.colors=cOut;
+            ZapiszWypalenie(mesh,result,b3!=null,b7!=null);
             mesh.subMeshCount=submeshes.Count;for(int i=0;i<submeshes.Count;i++)mesh.SetTriangles(submeshes[i],i);
             mesh.RecalculateBounds();
             var path=AssetDatabase.GenerateUniqueAssetPath(outputDirectory+"/"+filter.name+"_"+label+".asset");

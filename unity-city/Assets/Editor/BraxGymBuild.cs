@@ -386,7 +386,13 @@ public static class BraxGymBuild
         // 9.11: BraxR1StreetLightingAudit (7.11) ZDJĘTY — dublował BraxRegionMiastoB.OdbiorWyposazeniaUlic (krok BraxRegion) z innymi
         // progami (3,6 m vs 2,4 m) i kasował lampy „na asfalcie” po NaJezdni, którą ten sam dzień zmieniano 2,85 m → 9 m.
         // Dwa przebiegi na tych samych obiektach = nieprzewidywalny wynik. Zostaje jeden odbiór (manifest nazw, rozmiary, bliskość).
+        // MIASTO R1 16.11 (właściciel 13:32 „sklepy… wchodzisz do środka i szkło albo pustka”): supermarket powstaje PO kroku rejonu —
+        // jego wnętrza dostają tę samą kontrolę prześwitów ścian (podszycie od środka) co reszta miasta (BraxKontrolaZakamarkow).
+        if(fullCity&&!osiedle)try{BraxKontrolaZakamarkow.WnetrzaPoBudowie(scene,"supermarket");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_PRZESWITY supermarket: "+e);}
         if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrole jakości (miasto): "+e);}
+        // MIASTO R1 16.11 13:57 (właściciel: „żadnej farby wiszącej nad powierzchnią. Licznik nakladki=0 przed oddaniem gałęzi”):
+        // licznik po WSZYSTKICH kontrolach (także po rozsuwaniu warstw przez kontrolę migotania) — BRAXHORN_NAKLADKI
+        if(fullCity&&!osiedle)try{BraxZnakiPoziome.Kontrola(scene);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_NAKLADKI: "+e);}
         // Głęboki audyt obiektów i przejść na REALNEJ scenie przed jej podziałem
         // na sektory; raport ostrzega, nie przerywa kosztownego generowania.
         if(fullCity&&!osiedle)try{BraxR1SceneAcceptance.Run(scene);}

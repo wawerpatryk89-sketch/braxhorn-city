@@ -346,22 +346,30 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     static Rect Przetnij(Rect a, Rect b) => Rect.MinMaxRect(Mathf.Max(a.xMin, b.xMin), Mathf.Max(a.yMin, b.yMin), Mathf.Min(a.xMax, b.xMax), Mathf.Min(a.yMax, b.yMax));
     static bool Niepuste(Rect r) => r.width > .005f && r.height > .005f;
 
-    // górna powierzchnia prostokąta z otworami (siatka komórek na krawędziach otworów), farba w otworach, boki, kolizja
+    // górna powierzchnia prostokąta z otworami (siatka komórek na krawędziach otworów), farba w otworach, boki, kolizja.
+    // 16.11 13:57 (właściciel: „linie węższe niż 25 cm — w teksturę, nie w geometrię”): otwory węższe niż 25 cm (osie 12 cm, linie
+    // stanowisk) NIE są już komórkami farby — komórki pasa linii (BraxZnakiPoziome, 40 cm) zostają nawierzchnią `bTop` z UV2 maski
+    // linii; obiekt nawierzchni dostaje wtedy materiał z liniami w teksturze (AsfaltLinie(bTop)). Farba-geometria: tylko pola ≥ 25 cm.
     static void Wstawki(string n, Rect a, float y, List<Rect> otwory, Material top, Material paint, BraxRegionMeble.Bud bTop, BraxRegionMeble.Bud bPaint, float grub = .3f, bool kolizja = true)
     {
         var xs = new SortedSet<float> { a.xMin, a.xMax }; var zs = new SortedSet<float> { a.yMin, a.yMax };
         for (float x = a.xMin + 6f; x < a.xMax - .5f; x += 6f) xs.Add(x);
         for (float z = a.yMin + 6f; z < a.yMax - .5f; z += 6f) zs.Add(z);
-        var h = otwory.Select(o => Przetnij(o, a)).Where(Niepuste).ToList();
+        var h = otwory.Where(o => !BraxZnakiPoziome.Cienka(o)).Select(o => Przetnij(o, a)).Where(Niepuste).ToList();
+        var pasy = new BraxZnakiPoziome.Pasy(otwory.Where(o => BraxZnakiPoziome.Cienka(o) && Niepuste(Przetnij(o, a))));
         foreach (var o in h) { xs.Add(o.xMin); xs.Add(o.xMax); zs.Add(o.yMin); zs.Add(o.yMax); }
+        pasy.Krawedzie(a, xs, zs);
         var X = xs.ToArray(); var Z = zs.ToArray();
         for (int i = 0; i + 1 < X.Length; i++)
             for (int j = 0; j + 1 < Z.Length; j++)
             {
                 if (X[i + 1] - X[i] < .002f || Z[j + 1] - Z[j] < .002f) continue;
                 var c = new Vector2((X[i] + X[i + 1]) * .5f, (Z[j] + Z[j + 1]) * .5f);
-                var b = h.Any(o => o.Contains(c)) ? bPaint : bTop;
-                b.Quad(new Vector3(X[i], y, Z[j]), new Vector3(X[i], y, Z[j + 1]), new Vector3(X[i + 1], y, Z[j + 1]), new Vector3(X[i + 1], y, Z[j]));
+                if (h.Any(o => o.Contains(c)))
+                { bPaint.Quad(new Vector3(X[i], y, Z[j]), new Vector3(X[i], y, Z[j + 1]), new Vector3(X[i + 1], y, Z[j + 1]), new Vector3(X[i + 1], y, Z[j])); continue; }
+                int s0 = bTop.Count;
+                bTop.Quad(new Vector3(X[i], y, Z[j]), new Vector3(X[i], y, Z[j + 1]), new Vector3(X[i + 1], y, Z[j + 1]), new Vector3(X[i + 1], y, Z[j]));
+                if (pasy.Komorka(c, out var px, out var pz)) { bTop.Znaki(s0, BraxZnakiPoziome.Pasy.Uv2(px, pz)); BraxZnakiPoziome.Komorek++; }
             }
         // boki (do dołu warstwy) — tylko widoczne krawędzie (nie dublują sąsiednich płyt: boki są pionowe, sąsiad ma bok w tej samej
         // płaszczyźnie odwrócony — oba wewnątrz styku, niewidoczne)
@@ -373,19 +381,23 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         if (kolizja) Nawierzchnia(BraxRegionMeble.Kolizja(root, n + " kolizja", new Vector3(a.center.x, y - grub * .5f, a.center.y), new Vector3(a.width, grub, a.height)));
     }
 
+    // nawierzchnia z liniami w teksturze (gdy Bud ma pasy linii) albo zwykła
+    static Material AsfaltZ => BraxZnakiPoziome.Mat(asfalt, new Color(.86f, .86f, .82f), .7f);
+    static Material AsfaltLinie(BraxRegionMeble.Bud b) => b.MaZnaki ? AsfaltZ : asfalt;
+
     static void BudujAsfalt(Farba f)
     {
-        // a) jezdnie B z farbą w otworach
+        // a) jezdnie B z farbą w otworach (pola ≥ 25 cm) i liniami w teksturze asfaltu (< 25 cm)
         int nA = 0;
         var top = new BraxRegionMeble.Bud(); var paint = new BraxRegionMeble.Bud();
         foreach (var (n, r) in asfalty)
         {
             Wstawki("Jezdnia: " + n, r, YA, f.r, asfalt, farba, top, paint);
-            if (++nA % 40 == 0) { top.Obiekt("Jezdnie miasta B (asfalt)", root, asfalt, false, false); paint.Obiekt("Oznakowanie poziome (farba w wycięciach asfaltu)", root, farba, false, false); top = new BraxRegionMeble.Bud(); paint = new BraxRegionMeble.Bud(); }
+            if (++nA % 40 == 0) { top.Obiekt("Jezdnie miasta B (asfalt)", root, AsfaltLinie(top), false, false); paint.Obiekt("Oznakowanie poziome (farba w wycięciach asfaltu)", root, farba, false, false); top = new BraxRegionMeble.Bud(); paint = new BraxRegionMeble.Bud(); }
         }
-        top.Obiekt("Jezdnie miasta B (asfalt)", root, asfalt, false, false);
+        top.Obiekt("Jezdnie miasta B (asfalt)", root, AsfaltLinie(top), false, false);
         paint.Obiekt("Oznakowanie poziome (farba w wycięciach asfaltu)", root, farba, false, false);
-        // b) farba poza jezdniami B (ulica główna A: skrzyżowanie z Wiaduktową, zebra przy rondzie, osie) — wycięcie asfaltu A
+        // b) farba poza jezdniami B (ulica główna A: skrzyżowanie z Wiaduktową, zebra przy rondzie, osie) — w nawierzchni A
         var reszta = new List<Rect>();
         foreach (var q in f.r)
         {
@@ -396,18 +408,74 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         }
         Transform ulica = null;
         foreach (var t in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)) if (t && t.name == "Street pavement and dry asphalt") { ulica = t; break; }
-        var pA = new BraxRegionMeble.Bud(); int wyc = 0;
-        foreach (var q in reszta)
-        {
-            if (q.yMin < 23.99f || q.yMax > 33.01f || q.xMin < -104.01f) { MigotaniePary++; Debug.LogWarning("BRAXHORN_MIASTO_B_MIGOTANIE farba poza jezdnią: " + q); continue; }
-            if (ulica) wyc += BraxCityMeshCut.Subtract(ulica, Bx(q.xMin, q.xMax, -.06f, .06f, q.yMin, q.yMax), BraxRegion.Out + "/Cuts", "farba_ulica_glowna");
-            pA.Quad(new Vector3(q.xMin, .003f, q.yMin), new Vector3(q.xMin, .003f, q.yMax), new Vector3(q.xMax, .003f, q.yMax), new Vector3(q.xMax, .003f, q.yMin));
-        }
-        pA.Obiekt("Oznakowanie ulicy głównej (farba w wycięciach asfaltu A)", root, farba, false, false);
+        int wyc = OznakowanieUlicyA(ulica, reszta);
         // c) kontrola: farba na farbie, asfalt na asfalcie (te same wysokości) — pary nachodzące
         for (int i = 0; i < asfalty.Count; i++) for (int j = i + 1; j < asfalty.Count; j++) if (Niepuste(Przetnij(asfalty[i].r, asfalty[j].r))) { MigotaniePary++; Debug.LogWarning("BRAXHORN_MIASTO_B_MIGOTANIE asfalt×asfalt " + asfalty[i].n + " × " + asfalty[j].n); }
         for (int i = 0; i < f.r.Count; i++) for (int j = i + 1; j < f.r.Count; j++) if (Niepuste(Przetnij(f.r[i], f.r[j]))) { MigotaniePary++; Debug.LogWarning("BRAXHORN_MIASTO_B_MIGOTANIE farba×farba " + f.r[i] + " × " + f.r[j]); }
-        Debug.Log("BRAXHORN_MIASTO_B_OZNAKOWANIE jezdnie=" + asfalty.Count + " pasy_farby=" + f.r.Count + " na_ulicy_A=" + reszta.Count + " (wycięte siatki asfaltu A: " + wyc + ") — farba W WYCIĘCIACH, bez nakładania");
+        Debug.Log("BRAXHORN_MIASTO_B_OZNAKOWANIE jezdnie=" + asfalty.Count + " pasy_farby=" + f.r.Count + " (linie < 25 cm w teksturze: " + f.r.Count(BraxZnakiPoziome.Cienka) +
+                  ", komórek pasów " + BraxZnakiPoziome.Komorek + ") na_ulicy_A=" + reszta.Count + " (wycięte siatki asfaltu A: " + wyc + ") — farba ≥ 25 cm W WYCIĘCIACH, linie w teksturze, bez nakładania");
+    }
+
+    // ULICA GŁÓWNA (A) — OZNAKOWANIE W NAWIERZCHNI (16.11 13:57: „linie węższe niż 25 cm — w teksturę… żadnej farby wiszącej nad
+    // powierzchnią”). Stare oznakowanie bazy miasta leżało NAD asfaltem (y .003): kreski osi „Centre line dash” 3 × 0.12 m —
+    // prostopadłościany .006–.012 (3 mm nad asfaltem), przejście X52 „Daylight road paint” — .008–.016 (pasy zebry 0.44 m, linie
+    // zatrzymania 0.35 m; BraxCitySystemsBuild.BuildCrossing). Zdjęte i narysowane od nowa razem z farbą miasta B leżącą na ulicy A:
+    // łaty = prostokąty obejmujące pola farby i pasy linii (zachodzące scalone), wycięte z nawierzchni A (asfalt i stara farba)
+    // i wypełnione w tej samej płaszczyźnie (y .003): asfalt tą samą teksturą i skalą co A (clean_asphalt 2.1 m, UV w metrach
+    // świata) z liniami w teksturze, pola ≥ 25 cm farbą w wycięciach. Łata dostaje wypalone światło asfaltu A spod siebie (UV3).
+    static int OznakowanieUlicyA(Transform ulica, List<Rect> reszta)
+    {
+        var szer = new List<Rect>(); var cien = new List<Rect>(); int stare = 0;
+        void Dodaj(Rect q)
+        {
+            if (q.yMin < 23.99f || q.yMax > 33.01f || q.xMin < -104.01f || q.xMax > 66.01f) { MigotaniePary++; Debug.LogWarning("BRAXHORN_MIASTO_B_MIGOTANIE farba poza jezdnią: " + q); return; }
+            (BraxZnakiPoziome.Cienka(q) ? cien : szer).Add(q);
+        }
+        foreach (var q in reszta) Dodaj(q);
+        foreach (var t in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None).ToList())
+        {
+            if (!t || t.name != "Centre line dash") continue;
+            var r = t.GetComponent<Renderer>();
+            if (r && r.enabled) { var b = r.bounds; Dodaj(Rect.MinMaxRect(b.min.x, b.min.z, b.max.x, b.max.z)); }
+            UnityEngine.Object.DestroyImmediate(t.gameObject); stare++;
+        }
+        foreach (var t in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None).ToList())
+        {
+            if (!t || t.name != "Daylight road paint") continue;
+            // wymiary jak w BraxCitySystemsBuild.BuildCrossing: pasy zebry x 50.1–53.9, 0.44 m co 0.9 m od z 24.15; linie zatrzymania 0.35 × 4.4 m
+            for (float z = 24.15f; z < 32.9f; z += .9f) Dodaj(Rect.MinMaxRect(50.1f, z, 53.9f, z + .44f));
+            Dodaj(Rect.MinMaxRect(48.525f, 24.1f, 48.875f, 28.5f)); Dodaj(Rect.MinMaxRect(55.125f, 28.5f, 55.475f, 32.9f));
+            UnityEngine.Object.DestroyImmediate(t.gameObject); stare++;
+        }
+        // łaty: pola farby i pasy linii, zachodzące / stykające się scalone w prostokąty obejmujące, przycięte do jezdni A
+        var laty = szer.Concat(cien.Select(q => BraxZnakiPoziome.PasLinii(q).pas)).Select(q => Rect.MinMaxRect(q.xMin, Mathf.Max(q.yMin, 24.0f), q.xMax, Mathf.Min(q.yMax, 33.0f))).ToList();
+        for (bool zmiana = true; zmiana;)
+        {
+            zmiana = false;
+            for (int i = 0; i < laty.Count && !zmiana; i++)
+                for (int j = i + 1; j < laty.Count; j++)
+                {
+                    var a = laty[i]; var b = laty[j];
+                    if (a.xMax < b.xMin - .01f || b.xMax < a.xMin - .01f || a.yMax < b.yMin - .01f || b.yMax < a.yMin - .01f) continue;
+                    laty[i] = Rect.MinMaxRect(Mathf.Min(a.xMin, b.xMin), Mathf.Min(a.yMin, b.yMin), Mathf.Max(a.xMax, b.xMax), Mathf.Max(a.yMax, b.yMax));
+                    laty.RemoveAt(j); zmiana = true; break;
+                }
+        }
+        int wyc = 0, zWypaleniem = 0;
+        var pasy = new BraxZnakiPoziome.Pasy(cien);
+        foreach (var R in laty)
+        {
+            var wyp = new BraxZnakiPoziome.Wypalenie(ulica, R);
+            if (ulica) wyc += BraxCityMeshCut.Subtract(ulica, Bx(R.xMin, R.xMax, -.06f, .06f, R.yMin, R.yMax), BraxRegion.Out + "/Cuts", "oznakowanie_ulica_glowna");
+            var bT = new BraxRegionMeble.Bud(); var bP = new BraxRegionMeble.Bud();
+            Wstawki("Ulica główna: łata oznakowania", R, .003f, szer.Concat(cien).ToList(), asfalt, farba, bT, bP, 0f, false);
+            var gT = bT.Obiekt("Ulica główna: asfalt z liniami w teksturze (łata oznakowania)", root, AsfaltLinie(bT), false, false);
+            var gP = bP.Obiekt("Oznakowanie ulicy głównej (farba w wycięciach asfaltu A)", root, farba, false, false);
+            zWypaleniem += wyp.Nadaj(gT) + wyp.Nadaj(gP);
+        }
+        BraxRegion.Note("ulica główna A: oznakowanie w nawierzchni — stare obiekty farby nad asfaltem zdjęte " + stare + ", pól farby ≥ 25 cm " + szer.Count +
+                        ", linii w teksturze " + cien.Count + ", łat " + laty.Count + " (wierzchołki z wypalonym światłem A: " + zWypaleniem + ")");
+        return wyc;
     }
 
     // czy punkt leży na jezdni miasta B (test ruchu aut): prostokąty asfaltu, pierścienie rond, ulica główna (A)
@@ -821,12 +889,15 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         // Główna aleja manewrowa po osi x=-126 (szer. 12m), od jezdni
         // do pasa pieszego przy witrynie. Samochody nie wjeżdżają na chodnik.
         float szer = 2.5f * K, dl = 5f * K;
+        // 16.11 (właściciel 13:32: „samochody w powietrzu wiszą”): asfalt parkingu leży na poziomie jezdni (YA, BudujAsfalt), a
+        // stanowiska były na poziomie chodnika (YC) — auta i motocykle wisiały 14.7 cm nad asfaltem. Stanowiska na YA; dodatkowo
+        // krok ruchu dosuwa każde stanowisko do nawierzchni promieniem (ParkingMiastaB), a kontrola zakamarków mierzy każde auto.
         for (int i = 0; i < 9; i++)
         {
             float z = PetlaZ - 16f + i * 3.5f;
-            MiejscaParkingu.Add((new Vector3(AX - 10.0f, YC, z),
+            MiejscaParkingu.Add((new Vector3(AX - 10.0f, YA, z),
                 Vector3.right, new Vector2(szer, dl)));
-            MiejscaParkingu.Add((new Vector3(AX + 10.0f, YC, z),
+            MiejscaParkingu.Add((new Vector3(AX + 10.0f, YA, z),
                 Vector3.left, new Vector2(szer, dl)));
         }
         // Prosty, szeroki chodnik z kostki od parkingu pod wejście sklepu.
@@ -1029,7 +1100,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         var top = new BraxRegionMeble.Bud(); var paint = new BraxRegionMeble.Bud();
         Wstawki("Parking przy warsztatach", Rect.MinMaxRect(ParkX0, ParkZ0, ParkX1, ParkZ1), YC, linie, asfalt, farba, top, paint);
         Wstawki("Parking: wjazd od alei", Rect.MinMaxRect(LicoE, ParkAleja0, ParkX0, ParkAleja1), YC, new List<Rect>(), asfalt, farba, top, paint);
-        top.Obiekt("Parking przy warsztatach: asfalt", root, asfalt, false, false);
+        top.Obiekt("Parking przy warsztatach: asfalt (linie stanowisk 12 cm w teksturze)", root, AsfaltLinie(top), false, false);
         paint.Obiekt("Parking przy warsztatach: linie stanowisk (farba w wycięciach)", root, farba, false, false);
         for (int i = 0; i < N; i++)
         {

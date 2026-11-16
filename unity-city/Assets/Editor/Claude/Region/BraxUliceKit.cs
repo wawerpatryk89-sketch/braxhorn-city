@@ -24,6 +24,15 @@ internal sealed class UlSiatka
     public readonly List<int> i = new List<int>();
     public Color32 kolor = new Color32(255, 255, 255, 255);
     public int Wierzcholki => v.Count;
+    // 16.11 13:57: UV2 oznakowania poziomego w teksturze (CityStaticPBR _BRAX_ZNAKI)
+    List<Vector2> uv2;
+    public bool MaZnaki => uv2 != null;
+    public void Znaki(int od, System.Func<Vector3, Vector2> f)
+    {
+        if (uv2 == null) uv2 = new List<Vector2>();
+        while (uv2.Count < od) uv2.Add(Vector2.zero);
+        for (int k = od; k < v.Count; k++) uv2.Add(f(v[k]));
+    }
 
     static void Planar(Vector3 nn, out Vector3 u, out Vector3 w)
     {
@@ -204,6 +213,7 @@ internal sealed class UlSiatka
     {
         var m = new Mesh { name = nazwa, indexFormat = v.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
         m.SetVertices(v); m.SetNormals(n); m.SetTangents(t); m.SetUVs(0, uv); m.SetColors(c); m.SetTriangles(i, 0);
+        if (uv2 != null) { while (uv2.Count < v.Count) uv2.Add(Vector2.zero); m.SetUVs(2, uv2); }
         m.RecalculateBounds(); return m;
     }
 }

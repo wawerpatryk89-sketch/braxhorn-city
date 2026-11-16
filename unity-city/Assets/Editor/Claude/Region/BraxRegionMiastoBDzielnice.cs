@@ -347,7 +347,7 @@ public static partial class BraxRegionMiastoB
         var rowekMat = BraxCityMaterials.Surface("Tor: rowek szyny (ciemny)", new Color(.05f, .05f, .05f), .8f, .3f);
         var bTop = new BraxRegionMeble.Bud(); var bWst = new[] { new BraxRegionMeble.Bud(), new BraxRegionMeble.Bud(), new BraxRegionMeble.Bud() };
         NdWstawki(TorRect, YA, ndWstawkiToru, bTop, bWst);
-        bTop.Obiekt("Jezdnia z torowiskiem (asfalt, ul. Tramwajowa)", root, asfalt, false, false);
+        bTop.Obiekt("Jezdnia z torowiskiem (asfalt, ul. Tramwajowa)", root, AsfaltLinie(bTop), false, false);
         bWst[0].Obiekt("Torowisko: farba w wycięciach", root, farba, false, false);
         bWst[1].Obiekt("Torowisko: główki szyn (w wycięciach asfaltu)", root, stalSzyny, false, false);
         bWst[2].Obiekt("Torowisko: rowki szyn (w wycięciach asfaltu)", root, rowekMat, false, false);
@@ -364,8 +364,11 @@ public static partial class BraxRegionMiastoB
         var xs = new SortedSet<float> { a.xMin, a.xMax }; var zs = new SortedSet<float> { a.yMin, a.yMax };
         for (float x = a.xMin + 6f; x < a.xMax - .5f; x += 6f) xs.Add(x);
         for (float z = a.yMin + 6f; z < a.yMax - .5f; z += 6f) zs.Add(z);
-        var h = wst.Select(o => (r: Przetnij(o.r, a), o.mat)).Where(o => Niepuste(o.r)).ToList();
+        // 16.11 13:57: farba węższa niż 25 cm (osie przerywane) — w teksturze asfaltu (pas linii w bTop z UV2), nie wstawką-geometrią
+        var h = wst.Where(o => o.mat != 0 || !BraxZnakiPoziome.Cienka(o.r)).Select(o => (r: Przetnij(o.r, a), o.mat)).Where(o => Niepuste(o.r)).ToList();
+        var pasy = new BraxZnakiPoziome.Pasy(wst.Where(o => o.mat == 0 && BraxZnakiPoziome.Cienka(o.r) && Niepuste(Przetnij(o.r, a))).Select(o => o.r));
         foreach (var o in h) { xs.Add(o.r.xMin); xs.Add(o.r.xMax); zs.Add(o.r.yMin); zs.Add(o.r.yMax); }
+        pasy.Krawedzie(a, xs, zs);
         var X = xs.ToArray(); var Z = zs.ToArray();
         for (int i = 0; i + 1 < X.Length; i++)
             for (int j = 0; j + 1 < Z.Length; j++)
@@ -374,7 +377,9 @@ public static partial class BraxRegionMiastoB
                 var c = new Vector2((X[i] + X[i + 1]) * .5f, (Z[j] + Z[j + 1]) * .5f);
                 int m = -1; foreach (var o in h) if (o.r.Contains(c)) { m = o.mat; break; }
                 var b = m < 0 ? bTop : bW[m];
+                int s0 = b.Count;
                 b.Quad(new Vector3(X[i], y, Z[j]), new Vector3(X[i], y, Z[j + 1]), new Vector3(X[i + 1], y, Z[j + 1]), new Vector3(X[i + 1], y, Z[j]));
+                if (m < 0 && pasy.Komorka(c, out var px, out var pz)) { bTop.Znaki(s0, BraxZnakiPoziome.Pasy.Uv2(px, pz)); BraxZnakiPoziome.Komorek++; }
             }
         Vector3 P(float x, float yy, float z) => new Vector3(x, yy, z);
         bTop.Quad(P(a.xMin, y, a.yMin), P(a.xMax, y, a.yMin), P(a.xMax, y - grub, a.yMin), P(a.xMin, y - grub, a.yMin));

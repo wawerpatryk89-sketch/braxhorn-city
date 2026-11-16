@@ -314,8 +314,10 @@ public static class BraxKontrolaMigotania
             // Bledy wizualne pozostaja ostrzezeniami, bez przerywania APK.
             // 9.11 (właściciel, zdjęcia ulicy: „mozaika” na kamienicach): APK 9.11 — pominięte_budżet=574 przy 90 s / 320 siatek,
             // czas cięcia 97 s. Miasto dostaje budżet osiedla ×1.25: 300 s / 800 siatek (≈ +3.5 min buildu, pamięć: kopie siatek elewacji).
-            int limitS = BraxKontrola.Obszar == "miasto" ? 300 : 240;
-            int limitMesh = BraxKontrola.Obszar == "miasto" ? 800 : 600;
+            // 16.11 (log APK 12.11: miasto pary=4304, po cięciu 1221, pominięte_budżet=241 przy 193 s / 800 siatek; zasada OBRAZ:
+            // pary_po = 0): miasto 480 s / 1400 siatek (≈ +3 min buildu) — fawela, nowe dzielnice i port mieszczą się w budżecie.
+            int limitS = BraxKontrola.Obszar == "miasto" ? 480 : 240;
+            int limitMesh = BraxKontrola.Obszar == "miasto" ? 1400 : 600;
             if (stoper.Elapsed.TotalSeconds > limitS || powierzchnie >= limitMesh) { pominieteBudzet++; continue; }
             var r = grupa.Key; var mf = r ? r.GetComponent<MeshFilter>() : null;
             if (!mf || !mf.sharedMesh) { pominieteBezSiatki++; continue; }

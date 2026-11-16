@@ -44,6 +44,12 @@ Shader "Braxhorn/CityStaticPBR"
         _GroundColor("City ground irradiance", Color) = (.42,.40,.36,1)
         _AmbientIntensity("City ambient irradiance", Range(0,2)) = .65
         _ReflectionStrength("Broad sky reflection", Range(0,1)) = .4
+        // 16.11 13:57 (właściciel: „linie węższe niż 25 cm — w teksturę, nie w geometrię”): oznakowanie poziome w nawierzchni.
+        // Słowo _BRAX_ZNAKI, UV2 (TEXCOORD2): x — w poprzek linii biegnącej wzdłuż X świata (0..1 w pasie), y — wzdłuż Z.
+        [Toggle(_BRAX_ZNAKI)] _Znaki("Road markings in texture (UV2)", Float) = 0
+        _ZnakiTex("Line mask across the strip (linear, mipmapped, clamp)", 2D) = "black" {}
+        _ZnakiKolor("Road paint colour", Color) = (.86,.86,.82,1)
+        _ZnakiSzorstkosc("Road paint roughness", Range(0,1)) = .62
     }
     SubShader
     {
@@ -68,6 +74,8 @@ Shader "Braxhorn/CityStaticPBR"
             // światła kierunkowego sceny (zasięg i kaskady wg trybu grafiki, wygaszanie na końcu zasięgu), łączony z cieniem
             // zapieczonym w wierzchołkach (min — bez podwójnego przyciemnienia). Bez lightmap.
             #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
+            // 16.11: oznakowanie poziome w teksturze (tylko materiały nawierzchni z liniami — wariant powstaje, gdy go używa materiał)
+            #pragma shader_feature_local _ _BRAX_ZNAKI
             #include "UnityCG.cginc"
             #include "AutoLight.cginc"
 
@@ -86,6 +94,16 @@ Shader "Braxhorn/CityStaticPBR"
             // To samo prawo i kolor co tło nieba i teren za miastem (MiastoTlo: 1 − e^(−d·gęstość)).
             half4 _BraxMgielkaKolor;
             float _BraxMgielkaGestosc;
+            // 16.11 (zasada OBRAZ — minimum Osiedle): ekspozycja światła dziennego rejonu (słońce + otoczenie + odbicie nieba),
+            // globalna, ustawiana w grze przez BraxObrazRejonu sceny; 0 / nieustawiona = 1 (bez zmian). Lampy wnętrz bez zmian.
+            float _BraxEkspozycja;
+            #ifdef _BRAX_ZNAKI
+            // maska linii: środek pasa biały (udział = BraxZnakiPoziome.Wypelnienie), brzegi czarne; mipmapy uśredniają ją
+            // w oddali do tylu farby, ile linia ma naprawdę — cienka linia nie migocze jak cienki wielokąt
+            sampler2D _ZnakiTex;
+            half4 _ZnakiKolor;
+            half _ZnakiSzorstkosc;
+            #endif
 
             struct appdata
             {
@@ -96,6 +114,9 @@ Shader "Braxhorn/CityStaticPBR"
                 float2 uv1 : TEXCOORD1;
                 float4 bake3 : TEXCOORD3;
                 float4 bake7 : TEXCOORD7;
+                #ifdef _BRAX_ZNAKI
+                float2 znaki : TEXCOORD2;
+                #endif
                 float4 color : COLOR;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
@@ -108,6 +129,9 @@ Shader "Braxhorn/CityStaticPBR"
                 half4 tangent : TEXCOORD3;
                 half2 baked : TEXCOORD4;
                 UNITY_SHADOW_COORDS(5)
+                #ifdef _BRAX_ZNAKI
+                float2 znaki : TEXCOORD6;
+                #endif
                 half4 color : COLOR;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -143,6 +167,9 @@ Shader "Braxhorn/CityStaticPBR"
                                  v.tangent.w * unity_WorldTransformParams.w);
                 o.uv = float4(v.uv, v.uv1);
                 o.color = v.color;
+                #ifdef _BRAX_ZNAKI
+                o.znaki = v.znaki;
+                #endif
                 // No global/material bake toggle: unbaked instances can share a material.
                 // A reserved marker distinguishes lighting from an existing model UV set.
                 float has3 = step(abs(v.bake3.w - 2718.0), .1) * step(.99, v.bake3.z);
@@ -162,10 +189,19 @@ Shader "Braxhorn/CityStaticPBR"
                 // OPAQUE deliberately ignores texture alpha; MASK keeps its true threshold.
                 clip(lerp(1, alpha - _Cutoff, _AlphaClip));
                 half3 albedo = WorkingColour(baseSample.rgb) * WorkingColour(_Color.rgb) * vertexTint.rgb;
+                half znak = 0;
+                #ifdef _BRAX_ZNAKI
+                // dwie próbki 1-wymiarowe (linia wzdłuż X i wzdłuż Z — skrzyżowanie = obie); poza pasem UV2 = 0 → czarny brzeg maski.
+                // Farba przykrywa ziarno nawierzchni, ale jasność kruszywa lekko przebija (kilka %), a kurz i ślady kół
+                // (kolor wierzchołków nawierzchni, np. jezdnie faweli) brudzą ją tak samo jak asfalt obok.
+                znak = max(tex2D(_ZnakiTex, float2(i.znaki.x, .5)).r, tex2D(_ZnakiTex, float2(i.znaki.y, .5)).r) * _ZnakiKolor.a;
+                half jasnosc = dot(WorkingColour(baseSample.rgb), half3(.2126, .7152, .0722));
+                albedo = lerp(albedo, WorkingColour(_ZnakiKolor.rgb) * vertexTint.rgb * (.95 + .5 * saturate(jasnosc)), znak);
+                #endif
                 float2 uvNormal = MapUV(i.uv, _BumpMap_ST, _BumpMap_Rotation.xy, _BumpMap_texCoord);
                 half4 packed = tex2D(_BumpMap, uvNormal);
                 half3 normalTS = lerp(packed.xyz * 2 - 1, UnpackNormal(packed), _NormalEncoding);
-                normalTS.xy *= _BumpScale;
+                normalTS.xy *= _BumpScale * (1 - .6 * znak);   // farba wypełnia drobne pory nawierzchni
                 normalTS = normalize(normalTS);
                 half3 n = normalize(i.normal);
                 half3 t = i.tangent.xyz;
@@ -197,6 +233,9 @@ Shader "Braxhorn/CityStaticPBR"
                 half3 arm = tex2D(_ARM, MapUV(i.uv,_ARM_ST,_ARM_Rotation.xy,_ARM_texCoord)).rgb;
                 // glTF metallic-roughness channels: G roughness, B metallic.
                 half roughness = clamp(arm.g * _Roughness, .085, 1);
+                #ifdef _BRAX_ZNAKI
+                roughness = lerp(roughness, _ZnakiSzorstkosc, znak);
+                #endif
                 half metallic = saturate(arm.b * _Metallic);
                 half aoMap = tex2D(_OcclusionMap, MapUV(i.uv,_OcclusionMap_ST,
                                       _OcclusionMap_Rotation.xy,_OcclusionMap_texCoord)).r;
@@ -221,7 +260,8 @@ Shader "Braxhorn/CityStaticPBR"
                              * (_SunIntensity * nl * min(saturate(i.baked.x), cienSlonca));
                 half3 sky = WorkingColour(_SkyColor.rgb), ground = WorkingColour(_GroundColor.rgb);
                 half3 ambient = lerp(ground,sky,n.y*.5+.5) * _AmbientIntensity;
-                half3 colour = direct + albedo*(1-metallic)*ambient*ambientAO;
+                half ekspozycja = _BraxEkspozycja > 0 ? _BraxEkspozycja : 1;
+                half3 colour = (direct + albedo*(1-metallic)*ambient*ambientAO) * ekspozycja;
                 #ifdef VERTEXLIGHT_ON
                 // Lampy wnętrz (hol, klub, pawilon, metro): do 4 świateł punktowych na obiekt,
                 // ten sam BRDF co słońce, tłumienie Unity (atten0 = 25/zasięg²) z miękkim końcem.
@@ -251,7 +291,7 @@ Shader "Braxhorn/CityStaticPBR"
                 half3 reflected = reflect(-view,n);
                 half3 environment = lerp(ground,sky,reflected.y*.5+.5);
                 half3 viewFresnel = f0 + (1-f0)*Pow5(1-nv);
-                colour += environment*viewFresnel*(1-.65*roughness)*_ReflectionStrength*ambientAO;
+                colour += environment*viewFresnel*(1-.65*roughness)*_ReflectionStrength*ambientAO*ekspozycja;
                 if (dot(_EmissionColor.rgb,_EmissionColor.rgb) > 0)
                     colour += WorkingColour(tex2D(_EmissionMap, MapUV(i.uv,_EmissionMap_ST,
                                       _EmissionMap_Rotation.xy,_EmissionMap_texCoord)).rgb)

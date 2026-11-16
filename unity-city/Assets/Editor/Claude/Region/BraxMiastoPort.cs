@@ -53,17 +53,24 @@ internal static class BraxMiastoPort
     }
 
     // ---------------- nawierzchnia z oznakowaniem W PŁASZCZYŹNIE (pola, nie naklejki) ----------------
-    static void Plaszczyzna(UlSiatka s, float x0, float x1, float z0, float z1, float y, IList<Rect> dziury)
+    // 16.11 13:57 (właściciel: „linie węższe niż 25 cm — w teksturę, nie w geometrię”): linie portu (żółte 15 cm, białe 12–15 cm)
+    // to pasy płyt betonowych z UV2 maski linii (BraxZnakiPoziome) w materiale betonu z farbą danej barwy (sPasy[grupa]).
+    static void Plaszczyzna(UlSiatka s, float x0, float x1, float z0, float z1, float y, IList<Rect> dziury, BraxZnakiPoziome.Pasy pasy = null, UlSiatka[] sPasy = null)
     {
         var xs = new SortedSet<float> { x0, x1 }; var zs = new SortedSet<float> { z0, z1 };
         foreach (var d in dziury) { xs.Add(Mathf.Clamp(d.xMin, x0, x1)); xs.Add(Mathf.Clamp(d.xMax, x0, x1)); zs.Add(Mathf.Clamp(d.yMin, z0, z1)); zs.Add(Mathf.Clamp(d.yMax, z0, z1)); }
+        pasy?.Krawedzie(Rect.MinMaxRect(x0, z0, x1, z1), xs, zs);
         var X = xs.ToArray(); var Z = zs.ToArray();
         for (int i = 0; i < X.Length - 1; i++) for (int j = 0; j < Z.Length - 1; j++)
             {
                 if (X[i + 1] - X[i] < .002f || Z[j + 1] - Z[j] < .002f) continue;
                 var c = new Vector2((X[i] + X[i + 1]) * .5f, (Z[j] + Z[j + 1]) * .5f);
                 if (dziury.Any(d => d.Contains(c))) continue;
-                s.Quad(new Vector3(X[i], y, Z[j]), new Vector3(X[i + 1], y, Z[j]), new Vector3(X[i + 1], y, Z[j + 1]), new Vector3(X[i], y, Z[j + 1]), Vector3.up);
+                BraxZnakiPoziome.Pas px = null, pz = null;
+                var sc = pasy != null && sPasy != null && pasy.Komorka(c, out px, out pz) ? sPasy[(px ?? pz).grupa] : s;
+                int s0 = sc.Wierzcholki;
+                sc.Quad(new Vector3(X[i], y, Z[j]), new Vector3(X[i + 1], y, Z[j]), new Vector3(X[i + 1], y, Z[j + 1]), new Vector3(X[i], y, Z[j + 1]), Vector3.up);
+                if (sc != s) { sc.Znaki(s0, BraxZnakiPoziome.Pasy.Uv2(px, pz)); BraxZnakiPoziome.Komorek++; }
             }
     }
     static void Nawierzchnia()
@@ -78,10 +85,14 @@ internal static class BraxMiastoPort
         for (float z = Z0 + 1f; z < Z1 - 3f; z += 6f) biale.Add(Rect.MinMaxRect(79.6f, z, 79.75f, z + 3f));
         // pola stosów (obrys białą linią 12 cm)
         foreach (var b in Bloki()) { biale.Add(Rect.MinMaxRect(b.xMin - .25f, b.yMin - .25f, b.xMax + .25f, b.yMin - .13f)); biale.Add(Rect.MinMaxRect(b.xMin - .25f, b.yMax + .13f, b.xMax + .25f, b.yMax + .25f)); biale.Add(Rect.MinMaxRect(b.xMin - .25f, b.yMin - .13f, b.xMin - .13f, b.yMax + .13f)); biale.Add(Rect.MinMaxRect(b.xMax + .13f, b.yMin - .13f, b.xMax + .25f, b.yMax + .13f)); }
-        var wszystkie = linie.Concat(biale).ToList();
-        Plaszczyzna(BraxUliceKit.S(beton), X0, 83.3f, Z0, Z1, Y, wszystkie);   // 9.11: bez dziury po biurze (biuro usunięte — miejsce wejścia metra S1)
-        foreach (var r in linie) BraxUliceKit.S(zolty).Quad(new Vector3(r.xMin, Y, r.yMin), new Vector3(r.xMax, Y, r.yMin), new Vector3(r.xMax, Y, r.yMax), new Vector3(r.xMin, Y, r.yMax), Vector3.up);
-        foreach (var r in biale) BraxUliceKit.S(bialy).Quad(new Vector3(r.xMin, Y, r.yMin), new Vector3(r.xMax, Y, r.yMin), new Vector3(r.xMax, Y, r.yMax), new Vector3(r.xMin, Y, r.yMax), Vector3.up);
+        // wszystkie linie portu są węższe niż 25 cm → w teksturze betonu placu (grupa 0 biała, 1 żółta); farba-geometria tylko ≥ 25 cm
+        var pasy = new BraxZnakiPoziome.Pasy();
+        pasy.Dodaj(biale.Where(BraxZnakiPoziome.Cienka), 0); pasy.Dodaj(linie.Where(BraxZnakiPoziome.Cienka), 1);
+        var sPasy = new[] { BraxUliceKit.S(BraxZnakiPoziome.Mat(beton, new Color(.92f, .92f, .9f), .7f)), BraxUliceKit.S(BraxZnakiPoziome.Mat(beton, new Color(.88f, .7f, .1f), .7f)) };
+        var szerokie = linie.Concat(biale).Where(r => !BraxZnakiPoziome.Cienka(r)).ToList();
+        Plaszczyzna(BraxUliceKit.S(beton), X0, 83.3f, Z0, Z1, Y, szerokie, pasy, sPasy);   // 9.11: bez dziury po biurze (biuro usunięte — miejsce wejścia metra S1)
+        foreach (var r in linie.Where(r => !BraxZnakiPoziome.Cienka(r))) BraxUliceKit.S(zolty).Quad(new Vector3(r.xMin, Y, r.yMin), new Vector3(r.xMax, Y, r.yMin), new Vector3(r.xMax, Y, r.yMax), new Vector3(r.xMin, Y, r.yMax), Vector3.up);
+        foreach (var r in biale.Where(r => !BraxZnakiPoziome.Cienka(r))) BraxUliceKit.S(bialy).Quad(new Vector3(r.xMin, Y, r.yMin), new Vector3(r.xMax, Y, r.yMin), new Vector3(r.xMax, Y, r.yMax), new Vector3(r.xMin, Y, r.yMax), Vector3.up);
         BraxMiastoA.Kol(kol, "nawierzchnia placu portu", new Vector3(X0, Y - .4f, Z0), new Vector3(83.3f, Y, Z1));
     }
 

@@ -407,6 +407,22 @@ public static partial class BraxRegionFawela
         public readonly List<Color> c = new List<Color>(); public readonly List<int> t = new List<int>();
         public Func<Vector3, Color> kolor = q => Color.white;
         public int Count => v.Count;
+        // 16.11 13:57: UV2 oznakowania poziomego w teksturze (CityStaticPBR _BRAX_ZNAKI)
+        List<Vector2> uv2;
+        public bool MaZnaki => uv2 != null;
+        public void Znaki(int od, Func<Vector3, Vector2> f)
+        {
+            if (uv2 == null) uv2 = new List<Vector2>();
+            while (uv2.Count < od) uv2.Add(Vector2.zero);
+            for (int i = od; i < v.Count; i++) uv2.Add(f(v[i]));
+        }
+        /// <summary>UV2 podane wprost dla kolejnych wierzchołków od `od` (np. pas osi: 1, 1, 0, 0 w poprzek).</summary>
+        public void ZnakiUV(int od, params Vector2[] w)
+        {
+            if (uv2 == null) uv2 = new List<Vector2>();
+            while (uv2.Count < od) uv2.Add(Vector2.zero);
+            for (int i = 0; i < w.Length && uv2.Count < v.Count; i++) uv2.Add(w[i]);
+        }
         public Bud K(Color k) { kolor = q => k; return this; }
         void Dodaj(Vector3 q, Vector3 nn, Color k, Vector2 u) { k.a = 1f; v.Add(q); n.Add(nn); c.Add(k); uv.Add(u); }
         public void Quad(Vector3 a, Vector3 b, Vector3 cc, Vector3 d)
@@ -489,6 +505,7 @@ public static partial class BraxRegionFawela
             if (v.Count == 0 || !m) return null;
             var mesh = new Mesh { name = nazwa, indexFormat = v.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
             mesh.SetVertices(v); mesh.SetNormals(n); mesh.SetUVs(0, uv); mesh.SetColors(c); mesh.SetTriangles(t, 0);
+            if (uv2 != null) { while (uv2.Count < v.Count) uv2.Add(Vector2.zero); mesh.SetUVs(2, uv2); }
             mesh.RecalculateBounds(); mesh.RecalculateTangents();
             var g = new GameObject(nazwa); g.transform.SetParent(rodzic, false); g.transform.position = Vector3.zero;
             g.AddComponent<MeshFilter>().sharedMesh = mesh;

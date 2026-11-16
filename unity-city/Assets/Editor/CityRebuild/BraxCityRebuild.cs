@@ -271,9 +271,11 @@ public static class BraxCityRebuild
         }).ToArray();
         var highRises=root.GetComponentsInChildren<Transform>(true)
             .Count(t=>t.name.StartsWith("High-rise ",StringComparison.Ordinal));
-        if(WholeDistrict && (builtBuildings.Length!=18||highRises<9||world.elevator==null))
+        // 16.11: winda BRAXHORN TOWER to od 3.11 BraxWinda (TowerQuay w BraxRegionTylyB — stara BraxCityElevator zdjęta, world.elevator = null)
+        bool windaTower=world.elevator!=null||UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include,FindObjectsSortMode.None).Any(m=>m&&m.GetType().Name=="BraxWinda");
+        if(WholeDistrict && (builtBuildings.Length!=18||highRises<9||!windaTower))
             Debug.LogWarning("DO POPRAWKI: CITY_PREMIUM_INCOMPLETE measured street buildings="+
-                builtBuildings.Length+" highRises="+highRises+" elevator="+(world.elevator!=null));
+                builtBuildings.Length+" highRises="+highRises+" elevator="+windaTower);
         // Source world may contain doors of the gym / NOVA. Require new doors
         // from the 18 audited storefront footprints in addition to preserved
         // interiors, no named building with a fake decorative entry.
@@ -282,20 +284,30 @@ public static class BraxCityRebuild
             var required=new HashSet<string>(BraxCityArchitecture.StreetBuildings
                 .Select(b=>b.id=="quay_corner"?"R1_TOWER_DOOR":"R1_PUBLIC_DOOR_"+b.id));
             var present=new HashSet<string>(world.doors.Where(d=>d).Select(d=>d.id));
+            // 16.11 (log 12.11: CITY_REAL_DOORS_MISSING — fałszywy alarm): pierzeje stawiają nowe drzwi lokali (BraxDrzwiLokalu: skrzydłowe
+            // BraxCityDoor albo przesuwne BraxDrzwiPrzesuwne) w budynku — liczą się drzwi znalezione w scenie, nie tylko lista świata
+            foreach(var d in UnityEngine.Object.FindObjectsByType<BraxCityDoor>(FindObjectsInactive.Include,FindObjectsSortMode.None))if(d&&!string.IsNullOrEmpty(d.id))present.Add(d.id);
+            foreach(var b in BraxCityArchitecture.StreetBuildings)
+            {
+                var node=root.Find("Building "+b.id);
+                if(node&&(node.GetComponentsInChildren<BraxCityDoor>(true).Length>0||node.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true).Length>0))
+                    present.Add(b.id=="quay_corner"?"R1_TOWER_DOOR":"R1_PUBLIC_DOOR_"+b.id);
+            }
+            if(windaTower)present.Add("R1_TOWER_DOOR");
             var missing=required.Where(id=>!present.Contains(id)).ToArray();
             if(missing.Length>0)
                 Debug.LogWarning("DO POPRAWKI: CITY_REAL_DOORS_MISSING "+
                     string.Join(",",missing));
             Debug.Log("CITY_ALL_REAL_ENTRANCES_AUDITED count="+required.Count+
                 " originalInteriorsPreserved=true");
-            if(world.additionalTowerElevators.Length<8)
-                Debug.LogWarning("DO POPRAWKI: CITY_HIGHRISE_ELEVATORS_MISSING "+
-                    world.additionalTowerElevators.Length+"/8");
+            // 11.11 20:08 (właściciel: „wszystkie te windy, które wchodzą do sklepu, wypierdalają… nie musi każdy budynek być dostępny”):
+            // 8 dodatkowych wind wieżowców zdjętych w BraxUlicePierzeje.ZdejmijWindyWiezowcow — oczekiwane 0, zostaje winda BRAXHORN TOWER.
             var distinctShafts=world.additionalTowerElevators
                 .Select(l=>l.shaftCenter).Distinct().Count();
-            if(distinctShafts<8)
+            if(distinctShafts!=world.additionalTowerElevators.Length)
                 Debug.LogWarning("DO POPRAWKI: CITY_ELEVATOR_SHAFT_DUPLICATE "+
-                    distinctShafts+"/8");
+                    distinctShafts+"/"+world.additionalTowerElevators.Length);
+            if(!windaTower)Debug.LogWarning("DO POPRAWKI: CITY_TOWER_ELEVATOR_MISSING (BRAXHORN TOWER bez windy)");
             Debug.Log("CITY_NINE_PHYSICAL_ELEVATORS_INCLUDED actual="+
                 (world.additionalTowerElevators.Length+1)+
                 " uniqueAdditionalShafts="+distinctShafts+

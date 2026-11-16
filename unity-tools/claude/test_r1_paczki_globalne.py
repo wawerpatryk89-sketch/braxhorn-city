@@ -5,6 +5,8 @@ import json
 import unittest
 from pathlib import Path
 
+from repo_pliki import w_repo
+
 ROOT = Path(__file__).resolve().parents[2]
 PRYW = ROOT / "unity-city" / "Prywatne"
 WF = (ROOT / ".github" / "workflows" / "claude-region-build.yml").read_text()
@@ -51,8 +53,8 @@ class PaczkiGlobalne(unittest.TestCase):
             m = json.loads((p / "manifest.json").read_text())
             self.assertTrue(m["target"])
             for part in m["parts"]:
-                self.assertTrue((p / part["name"]).is_file(), p.name + "/" + part["name"])
-            self.assertTrue((p / "recipient.crt").is_file() and (p / "recipient.pem.enc").is_file())
+                self.assertTrue(w_repo(p / part["name"]), p.name + "/" + part["name"])   # szybkie testy CI: bez pobierania .cms
+            self.assertTrue(w_repo(p / "recipient.crt") and w_repo(p / "recipient.pem.enc"))
             self.assertEqual([q.name for q in p.iterdir() if q.suffix in (".glb", ".jpg", ".png", ".tar", ".pem")], [], p.name)
         names = {p.name for p in packs}
         for need in ["braxhorn-sklep-walka-01", "braxhorn-sklep-sprzet-01", "braxhorn-sklep-silownia-01", "braxhorn-sklep-silownia-02"]:

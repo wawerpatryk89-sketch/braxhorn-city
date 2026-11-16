@@ -5,6 +5,7 @@ całą ścianę, matowa kula. Sprawdzenie źródła i geometrii w Pythonie (bez 
 import re
 import unittest
 from pathlib import Path
+from repo_pliki import rozmiar
 
 ROOT = Path(__file__).resolve().parents[2]
 E = ROOT / "unity-city/Assets/Editor"
@@ -127,7 +128,7 @@ class Nova(unittest.TestCase):
 
     def test_pack_decrypted_for_city(self):
         self.assertIn('"osiedle_wnetrza")', PRYW.split("PACZKI_MIASTA = ")[1].split("\n\n")[0])
-        self.assertTrue((ROOT / "unity-city/Prywatne/osiedle_wnetrza.tar.gz.enc").stat().st_size > 1_000_000)
+        self.assertTrue(rozmiar(ROOT / "unity-city/Prywatne/osiedle_wnetrza.tar.gz.enc") > 1_000_000)
         cred = (ROOT / "unity-city/Assets/Source/Claude/Nova/CREDITS.md").read_text(encoding="utf-8")
         for a in ("windupbird", "Helyeouka", "3DECraft", "tedpermana"):
             self.assertIn(a, cred)

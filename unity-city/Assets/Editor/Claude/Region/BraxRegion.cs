@@ -107,6 +107,12 @@ public static class BraxRegion
         // Na końcu (jak na budowie, 16:04): ruch aut i ludzie miasta B na gotowych nawierzchniach i wyposażeniu (B, ETAP 2).
         Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () => BraxClaudeOsiedle.RuchMiastaB(root));
         Step("ludzie miasta (B): obsada, ławki, przechodnie po chodnikach i zebrach", () => BraxClaudeOsiedle.LudzieMiastaB(root));
+        // 16.11 (właściciel 13:32–13:37: „auta w powietrzu… las, slumsy… sklepy: z zewnątrz mur, w środku szkło albo pustka — prześwit…
+        // każdy zakamarek, każdy detal”): pomiar CAŁEGO miasta automatem po ustawieniu wszystkiego — auta, rośliny i meble na ziemi,
+        // prześwity ścian we wnętrzach z podszyciem od środka (BraxKontrolaZakamarkow, raport Logs/r1-zakamarki.json).
+        Step("kontrola zakamarków: auta, rośliny i meble na nawierzchni, prześwity ścian we wnętrzach (podszycie tynkiem)", () => BraxKontrolaZakamarkow.Wykonaj(world, root));
+        // 16.11 (zasada OBRAZ — minimum Osiedle): słońce, otoczenie, mgła, kamera, przejście koloru (BraxR1Obraz)
+        Step("obraz R1 wg zasady globalnej (słońce 1.24, otoczenie, mgła, bliska płaszczyzna 0.25, kolor 1.15/1.06)", () => BraxR1Obraz.Zastosuj(root));
         // Na końcu: przesunięcie głębi dla wszystkiego, co dobudowane (anty-migotanie).
         Step("anty-migotanie (offset głębi, trilinear)", () => BraxRegionFlicker.Apply(root));
 

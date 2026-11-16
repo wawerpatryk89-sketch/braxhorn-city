@@ -57,6 +57,9 @@ public static class BraxKontrolaMiastaDetale
                 var A = napisy[i]; var B = napisy[j];
                 if (usun.Contains(A.g) || usun.Contains(B.g)) continue;
                 if (A.g.transform.IsChildOf(B.g.transform) || B.g.transform.IsChildOf(A.g.transform)) continue;
+                // 16.11 (log buildu 12.11: przed=403, bezpiecznik — same fałszywe pary „Napis 3D X (lico)” × „Napis 3D X (boki)”): lico,
+                // boki i obrys JEDNEGO napisu to części tej samej bryły liter — nie nachodzące napisy
+                if (Rdzen(A.tekst) == Rdzen(B.tekst) && Vector3.Distance(A.b.center, B.b.center) < Mathf.Max(.3f, .25f * Mathf.Max(A.b.size.magnitude, B.b.size.magnitude))) continue;
                 // oś najcieńsza = normalna napisu; oba w tej samej płaszczyźnie (± 0.3 m) i wspólne pole na niej > 20 % mniejszego
                 int osA = A.b.size.x <= A.b.size.z ? 0 : 2, osB = B.b.size.x <= B.b.size.z ? 0 : 2;
                 if (osA != osB) continue;
@@ -75,6 +78,13 @@ public static class BraxKontrolaMiastaDetale
         foreach (var g in usun) if (g) UnityEngine.Object.DestroyImmediate(g);
         Debug.Log("BRAXHORN_NAPISY_KOLIZJE przed=" + przed + " po=0 usuniete=" + usun.Count + " napisow=" + napisy.Count + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(25)) + "]" : "")
             + " (napisy 3D wtopione w elewacje — Napis3D — poza tą kontrolą)");
+    }
+
+    static string Rdzen(string t)
+    {
+        if (string.IsNullOrEmpty(t)) return "";
+        int i = t.LastIndexOf(" (", StringComparison.Ordinal);
+        return (i > 0 && t.EndsWith(")") ? t.Substring(0, i) : t).Trim();
     }
 
     // ---------------- przeszkody przed drzwiami ----------------
@@ -173,7 +183,17 @@ public static class BraxKontrolaMiastaDetale
         }).ToList();
         var zbior = new HashSet<Transform>(kandydaci);
         kandydaci = kandydaci.Where(t => { for (var q = t.parent; q; q = q.parent) if (zbior.Contains(q)) return false; return true; }).ToList();
-        var usun = new List<GameObject>(); var opis = new List<string>();
+        var usun = new List<GameObject>(); var opis = new List<string>(); int opuszczone = 0;
+        // siatki widoczne w okolicy (do podparcia bez kolizji): kubełki 4 m po obrysach rendererów
+        var siatki = new Dictionary<(int, int), List<Renderer>>();
+        foreach (var r in root.GetComponentsInChildren<Renderer>(false))
+        {
+            if (!r.enabled || r is ParticleSystemRenderer) continue;
+            var rb = r.bounds; if (rb.size.x > 40f || rb.size.z > 40f) continue;
+            for (int x = Mathf.FloorToInt(rb.min.x / 4f); x <= Mathf.FloorToInt(rb.max.x / 4f); x++)
+                for (int z = Mathf.FloorToInt(rb.min.z / 4f); z <= Mathf.FloorToInt(rb.max.z / 4f); z++)
+                { if (!siatki.TryGetValue((x, z), out var l)) siatki[(x, z)] = l = new List<Renderer>(); l.Add(r); }
+        }
         foreach (var t in kandydaci)
         {
             var b = Obrys(t.gameObject); if (b.size.x > 6f || b.size.z > 6f || b.size.y > 3f) continue;
@@ -193,11 +213,36 @@ public static class BraxKontrolaMiastaDetale
             }
             bool sufit = Physics.RaycastAll(b.center, Vector3.up, 8f, ~0, QueryTriggerInteraction.Ignore).Any(h => !wlasne.Contains(h.collider));
             if (podparty || najblizej > 2.9f || (!sufit && najblizej > 1.5f)) continue;   // podparty / nad pustką / na zewnątrz bez kolizji gruntu — nie ruszam
+            // 16.11 (log 12.11: 444 „Stolik kawiarniany 81 cm nad podłożem” — blat stolika to osobny obiekt, noga obok bez kolizji):
+            // podparcie także przez siatkę pod spodem bez kolizji (noga, stelaż, podstawa) — widoczny renderer, który sięga spodu
+            if (PodpartySiatka(t, b, siatki)) continue;
+            // mebel wisi naprawdę: OPUSZCZONY na podłoże (z dziećmi i kolizjami), nie usuwany
+            if (najblizej > .05f && najblizej < 1.5f) { t.position -= Vector3.up * najblizej; opuszczone++; opis.Add(t.name + " opuszczony o " + (najblizej * 100f).ToString("F0") + " cm @" + b.center.ToString("F0")); continue; }
             usun.Add(t.gameObject); opis.Add(t.name + " " + (najblizej * 100f).ToString("F0") + " cm nad podłożem @" + b.center.ToString("F0"));
         }
         if (usun.Count > 40) { Debug.LogWarning("BRAXHORN_DETALE_BEZPIECZNIK za dużo do usunięcia (" + usun.Count + ") — podejrzenie błędu wykrywania, NIC nie usuwam, tylko lista: " + string.Join("; ", usun.Take(15).Select(g => g ? g.name : "?"))); usun.Clear(); }   // prowadzący (audyt 3.11)
         foreach (var g in usun) if (g) UnityEngine.Object.DestroyImmediate(g);
-        Debug.Log("BRAXHORN_MEBLE_WISZACE usuniete=" + usun.Count + " sprawdzone=" + kandydaci.Count + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(30)) + "]" : "") + " (cel 0 wiszących)");
+        Debug.Log("BRAXHORN_MEBLE_WISZACE opuszczone=" + opuszczone + " usuniete=" + usun.Count + " sprawdzone=" + kandydaci.Count + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(30)) + "]" : "") + " (cel 0 wiszących)");
+    }
+
+    /// <summary>Pod spodem obiektu (≤ 5 cm) jest inna widoczna siatka, która sięga od dołu do jego spodu (noga, stelaż, podstawa).</summary>
+    static bool PodpartySiatka(Transform t, Bounds b, Dictionary<(int, int), List<Renderer>> siatki)
+    {
+        var bb = b; bb.Expand(new Vector3(-.02f, 0f, -.02f));
+        for (int x = Mathf.FloorToInt(b.min.x / 4f); x <= Mathf.FloorToInt(b.max.x / 4f); x++)
+            for (int z = Mathf.FloorToInt(b.min.z / 4f); z <= Mathf.FloorToInt(b.max.z / 4f); z++)
+            {
+                if (!siatki.TryGetValue((x, z), out var l)) continue;
+                foreach (var r in l)
+                {
+                    if (!r || r.transform == t || r.transform.IsChildOf(t)) continue;
+                    var rb = r.bounds;
+                    if (rb.max.y < b.min.y - .05f || rb.max.y > b.min.y + .25f || rb.min.y > b.min.y - .1f) continue;   // sięga od dołu do spodu
+                    if (rb.max.x < bb.min.x || rb.min.x > bb.max.x || rb.max.z < bb.min.z || rb.min.z > bb.max.z) continue;
+                    return true;
+                }
+            }
+        return false;
     }
 
     // ---------------- lady bez kolizji ----------------

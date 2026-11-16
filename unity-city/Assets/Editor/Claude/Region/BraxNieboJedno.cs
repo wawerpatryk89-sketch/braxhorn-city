@@ -93,6 +93,9 @@ public static class BraxNieboJedno
             for (int i = 0; i < nProp; i++)
             {
                 string p = sh.GetPropertyName(i);
+                // 16.11 (log 12.11: „różnica szklo_wieże…_Grzbiety / _Pasmo / _ZiemiaMakro”): parametry, których shader szyby nie deklaruje
+                // w Properties (zmienne z MiastoTlo.cginc), są ustawione w materiale, ale GetFloat ich nie zwraca — sprawdzamy tylko zadeklarowane
+                if (!m.HasProperty(p)) continue;
                 bool ok = sh.GetPropertyType(i) switch
                 {
                     ShaderPropertyType.Texture => m.GetTexture(p) == niebo.GetTexture(p),

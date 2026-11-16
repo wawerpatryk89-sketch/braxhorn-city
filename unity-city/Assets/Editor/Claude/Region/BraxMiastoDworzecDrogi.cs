@@ -99,8 +99,12 @@ internal static partial class BraxMiastoDworzec
             bool zebra = Mathf.Abs(srod.x - ZebraX) < ZebraSz * .5f + .6f && Mathf.Abs(srod.y - DrogaZ) < Pas + .5f;
             if (s >= od && s <= doS && ((int)(s / 3f)) % 2 == 0 && !zebra)
             {
-                Vector2 l0 = o.L(i) * .06f, l1 = o.L(i + 1) * .06f;
-                Farba(farba, o.p[i] - l0, o.p[i + 1] - l1, o.p[i + 1] + l1, o.p[i] + l0);
+                // 16.11 13:57 (właściciel: „linie węższe niż 25 cm — w teksturę, nie w geometrię”): kreska osi 12 cm = pas asfaltu
+                // 40 cm (ta sama płaszczyzna, w wycięciu jezdni) z UV2 maski linii; u = położenie w poprzek odcinka (0..1 w pasie)
+                float pol = BraxZnakiPoziome.SzerPasa(.12f) * .5f;
+                Vector2 l0 = o.L(i) * pol, l1 = o.L(i + 1) * pol, A = o.p[i], B = o.p[i + 1];
+                var tt = (B - A).normalized; var N = new Vector2(-tt.y, tt.x);
+                FarbaU(AsfaltLinii, q => .5f + Vector2.Dot(q - A, N) / (2f * pol), new[] { A - l0, B - l1, B + l1, A + l0 });
             }
             s += len;
         }
@@ -110,7 +114,9 @@ internal static partial class BraxMiastoDworzec
     // Wzór miasta B (BudujAsfalt, 10.11): oznakowanie leży DOKŁADNIE w płaszczyźnie asfaltu, asfalt ma w tym miejscu otwór —
     // styk krawędzią, bez dwóch powierzchni jedna nad drugą (zasada „zero migotania, zakaz nakładania”). Farba: wielokąty wypukłe
     // w XZ (kreski osi, pasy zebry, trójkąty liter BUS / TAXI / K+R); wysokość z trójkąta asfaltu, w którym leżą.
-    internal static readonly List<(Vector2[] w, Material m)> Farby = new List<(Vector2[], Material)>();
+    internal static readonly List<(Vector2[] w, Material m, System.Func<Vector2, float> u)> Farby = new List<(Vector2[], Material, System.Func<Vector2, float>)>();
+    // asfalt jezdni z liniami w teksturze (pasy osi; BraxZnakiPoziome)
+    static Material AsfaltLinii => BraxZnakiPoziome.Mat(asfalt, new Color(.9f, .9f, .87f), .75f);
     const float ZebraX = -14f; static float ZebraSz => 4f * K;
     static Vector2 XZ(Vector3 p) => new Vector2(p.x, p.z);
     static float Pole2(IList<Vector2> w) { float a = 0f; for (int i = 0; i < w.Count; i++) { var p = w[i]; var q = w[(i + 1) % w.Count]; a += p.x * q.y - q.x * p.y; } return a * .5f; }
@@ -133,11 +139,13 @@ internal static partial class BraxMiastoDworzec
         }
         return !Rozdziel(a, b) && !Rozdziel(b, a);
     }
-    static void Farba(Material m, params Vector2[] w)
+    static void Farba(Material m, params Vector2[] w) => FarbaU(m, null, w);
+    /// <summary>u != null: pas linii w teksturze — wielokąt wypełniany materiałem m (asfalt z liniami) z UV2.x = u(punkt).</summary>
+    static void FarbaU(Material m, System.Func<Vector2, float> u, Vector2[] w)
     {
         if (Mathf.Abs(Pole2(w)) < 1e-5f) return;
         if (Pole2(w) < 0f) System.Array.Reverse(w);
-        Farby.Add((w, m));
+        Farby.Add((w, m, u));
     }
     // część wielokąta po lewej (lewa = true) albo prawej stronie prostej a→b
     static List<Vector2> Przytnij(List<Vector2> w, Vector2 a, Vector2 b, bool lewa)
@@ -176,7 +184,7 @@ internal static partial class BraxMiastoDworzec
         sA.v.Clear(); sA.n.Clear(); sA.t.Clear(); sA.uv.Clear(); sA.c.Clear(); sA.i.Clear();
         var bb = Farby.Select(f => (x0: f.w.Min(q => q.x), x1: f.w.Max(q => q.x), z0: f.w.Min(q => q.y), z1: f.w.Max(q => q.y))).ToArray();
         Grupa("nawierzchnie: oznakowanie");
-        int kaw = 0;
+        int kaw = 0, pasow = 0;
         foreach (var (a, b, c) in tri)
         {
             var nn = Vector3.Cross(b - a, c - a); if (nn.y < 0f) nn = -nn; if (nn.sqrMagnitude < 1e-12f) continue; nn.Normalize();
@@ -193,7 +201,18 @@ internal static partial class BraxMiastoDworzec
                     if (!Nachodza(k, Farby[f].w)) { nowe.Add(k); continue; }
                     var wy = Odejmij(k, Farby[f].w, out var wsp);
                     nowe.AddRange(wy);
-                    if (wsp != null && Farby[f].m != null) { Wachlarz(S(Farby[f].m), wsp, Y, nn); kaw++; }
+                    if (wsp != null && Farby[f].m != null)
+                    {
+                        if (Farby[f].u != null)
+                        {
+                            // pas linii: asfalt jezdni (grupa jezdni — bez zasięgu znikania oznakowania) z UV2 maski
+                            Grupa("nawierzchnie: jezdnie"); var sz = S(Farby[f].m); int s0 = sz.Wierzcholki; var uf = Farby[f].u;
+                            Wachlarz(sz, wsp, Y, nn); sz.Znaki(s0, q => new Vector2(uf(XZ(q)), 0f)); pasow++;
+                            Grupa("nawierzchnie: oznakowanie");
+                        }
+                        else Wachlarz(S(Farby[f].m), wsp, Y, nn);
+                        kaw++;
+                    }
                 }
                 kawalki = nowe;
             }
@@ -202,7 +221,7 @@ internal static partial class BraxMiastoDworzec
             Grupa("nawierzchnie: oznakowanie");
         }
         Grupa("nawierzchnie: jezdnie");
-        Opis("oznakowanie: " + Farby.Count + " wielokątów farby w wycięciach asfaltu (" + kaw + " kawałków, bez nakładania)");
+        Opis("oznakowanie: " + Farby.Count + " wielokątów (farba ≥ 25 cm w wycięciach asfaltu, osie 12 cm w teksturze asfaltu — kawałków pasów " + pasow + "; razem " + kaw + " kawałków, bez nakładania)");
     }
     /// <summary>Napis farbą na płaskiej jezdni (y = o.y): otwor = true — tylko prostokąt pola do wycięcia; false — wypełnienie pola
     /// pasami poziomymi (rozkład trapezowy): w każdym pasie przedziały liter = farba, reszta = asfalt (te same wierzchołki na stykach).</summary>

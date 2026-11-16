@@ -163,10 +163,19 @@ internal static partial class BraxMiastoDworzec
         float g = -kier;   // znak przyrostu z w głąb peronu
         float Zd(float d) => zKraw + g * d;
         B(betonMur, PX0, Formacja - .1f, Mathf.Min(zKraw, zTyl), PX1, YP - .05f, Mathf.Max(zKraw, zTyl), 0);
-        // pasy wierzchu (od krawędzi): krawężnik granit 0.32, płyty, płytki z wypustkami 0.40, płyty, biała linia 0.08, płyty
-        var pasy = new (float d0, float d1, Material m)[] { (0f, .32f, granitC), (.32f, .45f, plyty), (.45f, .85f, dotyk), (.85f, .95f, plyty), (.95f, 1.03f, farba), (1.03f, Mathf.Abs(zTyl - zKraw), plyty) };
+        // pasy wierzchu (od krawędzi): krawężnik granit 0.32, płyty, płytki z wypustkami 0.40, płyty, biała linia 0.08, płyty.
+        // 16.11 13:57 (właściciel: „linie węższe niż 25 cm — w teksturę, nie w geometrię”): biała linia 8 cm (oś 0.99 m od krawędzi)
+        // to pas płyt 0.28 m (0.85–1.13) z linią w teksturze (UV2 maski, BraxZnakiPoziome) — bez osobnej płyty farby 8 cm
+        float zLinii = Zd(.99f), szPasa = .28f;
+        var plytyLinia = BraxZnakiPoziome.Mat(plyty, new Color(.93f, .93f, .9f), .7f);
+        var pasy = new (float d0, float d1, Material m)[] { (0f, .32f, granitC), (.32f, .45f, plyty), (.45f, .85f, dotyk), (.85f, 1.13f, plytyLinia), (1.13f, Mathf.Abs(zTyl - zKraw), plyty) };
         // otwory na szyby wind (kabina staje w poziomie peronu — pod nią szyb, nie płyta)
-        foreach (var (d0, d1, m) in pasy) PlytaBez(m, PX0, Zd(d0), PX1, Zd(d1), YP, .05f, OtworySzybow);
+        foreach (var (d0, d1, m) in pasy)
+        {
+            int s0 = S(m).Wierzcholki;
+            PlytaBez(m, PX0, Zd(d0), PX1, Zd(d1), YP, .05f, OtworySzybow);
+            if (m == plytyLinia) { S(m).Znaki(s0, q => new Vector2(.5f + (q.z - zLinii) / szPasa, 0f)); BraxZnakiPoziome.Komorek++; }
+        }
         // lico krawędzi peronu (nad torem): wysunięty gzyms granitu 3 cm
         B(granitC, PX0, YP - .3f, Mathf.Min(zKraw, zKraw - g * .03f), PX1, YP - .05f, Mathf.Max(zKraw, zKraw - g * .03f), 0);
         Kol("peron " + nr, V(PX0, Formacja, Mathf.Min(zKraw, zTyl)), V(PX1, YP, Mathf.Max(zKraw, zTyl)));

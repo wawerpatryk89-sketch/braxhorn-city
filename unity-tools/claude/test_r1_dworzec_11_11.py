@@ -247,7 +247,9 @@ class ZeroMigotania(unittest.TestCase):
         self.assertNotIn("YJ + .02f", DW)                                       # zebra i napisy nie leżą 2 cm nad asfaltem
         self.assertIn("static void WytnijFarbe()", DW)
         self.assertIn("NapisNaJezdni(", DW)
-        self.assertIn("Farba(farba, o.p[i] - l0", DW)                           # oś przerywana w wycięciu
+        # 16.11 13:57: oś przerywana 12 cm — pas asfaltu z linią w teksturze (UV2), nie wielokąt farby
+        self.assertNotIn("Farba(farba, o.p[i] - l0", DW)
+        self.assertIn("FarbaU(AsfaltLinii, q => .5f + Vector2.Dot(q - A, N) / (2f * pol)", DW)
         self.assertIn("public static List<Vector3[]> Trojkaty(", BEBAS)
 
     def test_plaza_strips_inlaid_and_curb_corners_mitred(self):

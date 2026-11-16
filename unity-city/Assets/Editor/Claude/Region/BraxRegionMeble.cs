@@ -22,7 +22,17 @@ public static class BraxRegionMeble
         readonly List<Vector3> v = new List<Vector3>(), n = new List<Vector3>();
         readonly List<Vector2> uv = new List<Vector2>();
         readonly List<int> t = new List<int>();
+        // 16.11 13:57: UV2 oznakowania poziomego w teksturze (CityStaticPBR _BRAX_ZNAKI) — null, dopóki żaden pas linii nie powstał
+        List<Vector2> uv2;
         public int Count => v.Count;
+        public bool MaZnaki => uv2 != null;
+        /// <summary>UV2 (maska linii) dla wierzchołków od indeksu `od` do końca; wcześniejsze bez linii (0,0).</summary>
+        public void Znaki(int od, Func<Vector3, Vector2> f)
+        {
+            if (uv2 == null) uv2 = new List<Vector2>();
+            while (uv2.Count < od) uv2.Add(Vector2.zero);
+            for (int i = od; i < v.Count; i++) uv2.Add(f(v[i]));
+        }
         static Vector2 UV(Vector3 p, Vector3 nn)
         {
             float ax = Mathf.Abs(nn.x), ay = Mathf.Abs(nn.y), az = Mathf.Abs(nn.z);
@@ -82,6 +92,7 @@ public static class BraxRegionMeble
         {
             var m = new Mesh { name = name, indexFormat = v.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
             m.SetVertices(v); m.SetNormals(n); m.SetUVs(0, uv); m.SetTriangles(t, 0);
+            if (uv2 != null) { while (uv2.Count < v.Count) uv2.Add(Vector2.zero); m.SetUVs(2, uv2); }
             m.RecalculateBounds(); m.RecalculateTangents();
             return m;
         }

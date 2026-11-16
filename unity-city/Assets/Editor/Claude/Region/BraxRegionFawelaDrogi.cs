@@ -121,7 +121,24 @@ public static partial class BraxRegionFawela
             {
                 if (d.pomin[i] && d.pomin[i + 1]) continue;
                 bool wMiescie = !WPlanie(d.p[i].x, d.p[i].y);
-                for (int q = 0; q < 4; q++) bA.QuadC(V(i, offs[q], 0f), V(i + 1, offs[q], 0f), V(i + 1, offs[q + 1], 0f), V(i, offs[q + 1], 0f), KA(i, q), KA(i + 1, q), KA(i + 1, q + 1), KA(i, q + 1));
+                // 16.11 (log buildu 12.11, BRAXHORN_MIGOTANIE: „jezdnie ↔ oś jezdni i progi (farba) odstęp 0.0 cm, 543 m²”) i 13:57
+                // (właściciel: „linie węższe niż 25 cm — w teksturę, nie w geometrię… żadnej farby wiszącej nad powierzchnią”): oś żółta
+                // 12 cm jest MASKĄ W TEKSTURZE asfaltu — pas ±0.2 m w osi to ten sam asfalt (te same kolory kurzu i śladów kół) z UV2
+                // maski linii (BraxZnakiPoziome, 12 cm = 30 % pasa 40 cm); bez wielokąta farby, bez nakładania, z mipmapami w oddali
+                bool os = d.srodek && (i / 3) % 2 == 0 && !d.pomin[i] && !d.pomin[i + 1];
+                if (!d.srodek)
+                    for (int q = 0; q < 4; q++) bA.QuadC(V(i, offs[q], 0f), V(i + 1, offs[q], 0f), V(i + 1, offs[q + 1], 0f), V(i, offs[q + 1], 0f), KA(i, q), KA(i + 1, q), KA(i + 1, q + 1), KA(i, q + 1));
+                else
+                {
+                    float pol = BraxZnakiPoziome.SzerPasa(.12f) * .5f;
+                    float[] o6 = { h, h * .45f, pol, -pol, -h * .45f, -h }; int[] q6 = { 0, 1, 2, 2, 3, 4 };
+                    for (int j = 0; j < 5; j++)
+                    {
+                        int s0 = bA.Count;
+                        bA.QuadC(V(i, o6[j], 0f), V(i + 1, o6[j], 0f), V(i + 1, o6[j + 1], 0f), V(i, o6[j + 1], 0f), KA(i, q6[j]), KA(i + 1, q6[j]), KA(i + 1, q6[j + 1]), KA(i, q6[j + 1]));
+                        if (j == 2 && os && bA.Count == s0 + 4) { bA.ZnakiUV(s0, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f)); BraxZnakiPoziome.Komorek++; }
+                    }
+                }
                 // krawężniki 0.25 m, 12 cm nad jezdnią, lico zewnętrzne 0.5 m w dół; miejscami malowane w żółto-białe pasy
                 bool malowany = Szum(i / 37f + d.szer, d.p[0].x) > .74f;
                 foreach (float s in new[] { 1f, -1f })
@@ -143,12 +160,7 @@ public static partial class BraxRegionFawela
                         bK.Quad(V(i, o1, .12f), V(i + 1, o1, .12f), V(i + 1, o1, -.5f), V(i, o1, -.5f));
                     }
                 }
-                // oś przerywana żółta (3 m / 3 m), wytarta
-                if (d.srodek && (i / 3) % 2 == 0 && !d.pomin[i] && !d.pomin[i + 1])
-                {
-                    float wyt = .55f + .45f * Szum(i / 5f, d.szer); bF.K(Color.Lerp(new Color(.45f, .43f, .38f), zolty, wyt));
-                    bF.Quad(V(i, .06f, .012f), V(i + 1, .06f, .012f), V(i + 1, -.06f, .012f), V(i, -.06f, .012f));
-                }
+                // oś przerywana żółta (3 m / 3 m), wytarta — w pasie asfaltu wyżej (wpuszczona, bez nakładania)
                 if (wMiescie) continue;
                 // łaty asfaltu (ciemniejsze — nowe, jaśniejsze — beton), 2 cm nad jezdnią
                 if (--lata <= 0 && i + 3 < n)
@@ -160,8 +172,9 @@ public static partial class BraxRegionFawela
                 // włazy żeliwne
                 if (--wlaz <= 0)
                 {
-                    wlaz = rnd.Next(38, 60); var c0 = V(i, (rnd.NextDouble() < .5 ? -1f : 1f) * h * .42f, .004f);
-                    bWlaz.K(new Color(.55f, .53f, .5f)); bWlaz.Cyl(c0, c0 + Vector3.up * .016f, .33f * K, 14);
+                    // 16.11 (migotanie „jezdnie ↔ włazy 0.0 cm”): pokrywa włazu 2.2 cm nad asfaltem (jak prawdziwa rama), korpus pod asfaltem
+                    wlaz = rnd.Next(38, 60); var c0 = V(i, (rnd.NextDouble() < .5 ? -1f : 1f) * h * .42f, -.03f);
+                    bWlaz.K(new Color(.55f, .53f, .5f)); bWlaz.Cyl(c0, c0 + Vector3.up * .052f, .33f * K, 14);
                 }
                 // strona spadku: betonowy murek w żółto-czarne pasy; strona stoku: mur z pustaka z graffiti (odcinki)
                 foreach (float s in new[] { 1f, -1f })
@@ -217,9 +230,10 @@ public static partial class BraxRegionFawela
             for (int q = 0; q < 8; q++)
             {
                 float o0 = -hh + q * (r1.szer / 8f), o1 = o0 + r1.szer / 8f; bF.K(q % 2 == 0 ? zolty : czarny);
-                bF.Quad(P(-.5f, o1, .012f), P(-.15f, o1, .07f), P(-.15f, o0, .07f), P(-.5f, o0, .012f));
+                // 16.11: najazdy progu zaczynają się 1 cm POD asfaltem (przecinają go pod kątem) — bez pasa farby 1.2 cm nad jezdnią
+                bF.Quad(P(-.56f, o1, -.01f), P(-.15f, o1, .07f), P(-.15f, o0, .07f), P(-.56f, o0, -.01f));
                 bF.Quad(P(-.15f, o1, .07f), P(.15f, o1, .07f), P(.15f, o0, .07f), P(-.15f, o0, .07f));
-                bF.Quad(P(.15f, o1, .07f), P(.5f, o1, .012f), P(.5f, o0, .012f), P(.15f, o0, .07f));
+                bF.Quad(P(.15f, o1, .07f), P(.56f, o1, -.01f), P(.56f, o0, -.01f), P(.15f, o0, .07f));
             }
         }
         // nawrotka na końcu ul. dolnej: tarcza asfaltu z krawężnikiem (otwarta od strony jezdni)
@@ -237,9 +251,10 @@ public static partial class BraxRegionFawela
             bK.Quad(D(a0, NawrotkaR, 0f), D(a1, NawrotkaR, 0f), D(a1, NawrotkaR, .12f), D(a0, NawrotkaR, .12f));
             bK.Quad(D(a0, NawrotkaR + .25f, .12f), D(a1, NawrotkaR + .25f, .12f), D(a1, NawrotkaR + .25f, -.5f), D(a0, NawrotkaR + .25f, -.5f));
         }
-        bA.Obiekt("Fawela: jezdnie (asfalt spękany, łaty)", tr, asfalt, false, true);
+        // oś żółta wytarta (farba ~ 90 % krycia, przybrudzona kolorami asfaltu pod spodem) w teksturze asfaltu
+        bA.Obiekt("Fawela: jezdnie (asfalt spękany, łaty, oś żółta w teksturze)", tr, bA.MaZnaki ? BraxZnakiPoziome.Mat(asfalt, new Color(.80f, .63f, .14f, .9f), .66f) : asfalt, false, true);
         bK.Obiekt("Fawela: krawężniki", tr, kraweznik, false, true);
-        bF.Obiekt("Fawela: oś jezdni i progi zwalniające (farba)", tr, farba, false, false);
+        bF.Obiekt("Fawela: progi zwalniające (żółto-czarne)", tr, farba, false, false);
         bMurek.Obiekt("Fawela: murki betonowe w żółto-czarne pasy", tr, beton, true, true);
         bMur.Obiekt("Fawela: mury z pustaka przy drogach", tr, pustak, true, true);
         bWlaz.Obiekt("Fawela: włazy żeliwne", tr, zeliwo, false, false);

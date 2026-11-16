@@ -59,10 +59,36 @@ public static partial class BraxClaudeOsiedle
     // Auta zaparkowane miasta B: stanowiska parkingu przy warsztatach (BraxRegionMiastoB.MiejscaParkingu) przez gotowy
     // AutaZaparkowane osiedla (zajętość ~55 %, kontrola kolizji, bez świateł i spalin) — wspólna lista MiejscaParkingowe
     // podmieniona na czas wywołania i przywrócona.
+    /// <summary>Wysokość nawierzchni pod punktem: najwyższa trafiona pozioma powierzchnia z kolizją (normalna w górę) nie wyżej
+    /// niż 0.5 m nad punktem; pomija wyzwalacze i auta. Brak trafienia = wysokość zapasowa.</summary>
+    static int warsztatyDosuniete;
+    internal static float NawierzchniaPod(Vector3 p, float zapas)
+    {
+        float best = float.NegativeInfinity;
+        foreach (var h in Physics.RaycastAll(p + Vector3.up * 1.2f, Vector3.down, 4f, ~0, QueryTriggerInteraction.Ignore))
+        {
+            if (h.normal.y < .7f || h.point.y > p.y + .5f) continue;
+            if (h.collider.GetComponentInParent<BraxAuto>()) continue;
+            if (h.point.y > best) best = h.point.y;
+        }
+        return float.IsNegativeInfinity(best) ? zapas : best;
+    }
+
     static void ParkingMiastaB(List<AutoSzablon> szablony)
     {
         var miejsca = BraxRegionMiastoB.MiejscaParkingu;
         if (miejsca.Count == 0) { Debug.Log("BRAXHORN_RUCH_MIASTO_B parking: brak stanowisk (krok miasta B nie zbudował parkingu)"); return; }
+        // 16.11 (właściciel 13:32: „samochody w powietrzu wiszą”): wysokość stanowiska z PRAWDZIWEJ nawierzchni pod nim (promień
+        // w dół), nie ze stałej w kodzie — parking SUPERMARKET miał stanowiska na poziomie chodnika nad asfaltem jezdni (14.7 cm).
+        {
+            Physics.SyncTransforms(); int dosuniete = 0; float maxRoz = 0f;
+            for (int i = 0; i < miejsca.Count; i++)
+            {
+                var m = miejsca[i]; float y = NawierzchniaPod(m.c, m.c.y);
+                if (Mathf.Abs(y - m.c.y) > .005f) { maxRoz = Mathf.Max(maxRoz, Mathf.Abs(y - m.c.y)); dosuniete++; miejsca[i] = (new Vector3(m.c.x, y, m.c.z), m.przod, m.rozmiar); }
+            }
+            Debug.Log("BRAXHORN_RUCH_MIASTO_B stanowiska dosunięte do nawierzchni: " + dosuniete + "/" + miejsca.Count + " (największa różnica " + (maxRoz * 100f).ToString("F1") + " cm)");
+        }
         var zapas = MiejscaParkingowe.ToList();
         var g = group;
         // 12.11 (właściciel 01:30 „motory globalnie”, 02:05 „dokończ”): 3 stanowiska na motocykle właściciela (2 + 2 + 1) — pierwsze,
@@ -123,7 +149,7 @@ public static partial class BraxClaudeOsiedle
         var g = new GameObject("CLAUDE miasto B: warsztaty — auta i koła").transform; g.SetParent(root.parent ? root.parent : root, false); g.position = Vector3.zero;
         var rnd = new System.Random(911);
         // auta
-        int aut = 0;
+        int aut = 0; warsztatyDosuniete = 0;
         foreach (var (c, przod, podnies, nazwa) in BraxRegionMiastoB.AutaWarsztatow)
         {
             var kand = szablony.Where(s => s.dl <= 4.75f && s.szerNadw <= 1.95f && s.wys <= 1.6f).ToList();
@@ -131,6 +157,18 @@ public static partial class BraxClaudeOsiedle
             var sz = kand[rnd.Next(kand.Count)];
             var o = AutoInstancja(sz, g, "Auto w warsztacie · " + nazwa + " · " + sz.id, rnd, out var kolor);
             o.transform.SetPositionAndRotation(c, Quaternion.LookRotation(przod));
+            // 16.11 (właściciel: „samochody w powietrzu wiszą”, fawela na stoku): auto stojące (nie na podnośniku) — koła na
+            // nawierzchni: wysokość i pochylenie z nawierzchni pod osią przednią i tylną (promienie w dół, bez kolizji aut)
+            if (podnies <= 0f)
+            {
+                Physics.SyncTransforms();
+                var f = przod; f.y = 0f; if (f.sqrMagnitude < 1e-4f) f = Vector3.forward; f.Normalize();
+                float pol = Mathf.Max(.8f, sz.dl * .36f);
+                float gF = NawierzchniaPod(c + f * pol, c.y), gB = NawierzchniaPod(c - f * pol, c.y);
+                var kier = new Vector3(f.x, (gF - gB) / (2f * pol), f.z);
+                o.transform.SetPositionAndRotation(new Vector3(c.x, (gF + gB) * .5f, c.z), Quaternion.LookRotation(kier, Vector3.up));
+                if (Mathf.Abs((gF + gB) * .5f - c.y) > .02f) warsztatyDosuniete++;
+            }
             var nad = o.transform.Find("nadwozie");
             if (nad)
                 foreach (var t in nad.Cast<Transform>().Where(t => t.name == "spaliny" || t.name.StartsWith("światło") || t.name.StartsWith("kierunkowskaz")).ToList())
@@ -160,7 +198,7 @@ public static partial class BraxClaudeOsiedle
             cc.transform.position = podparcie + Vector3.up * hS * .5f;
             var bx = cc.AddComponent<BoxCollider>(); bx.size = lezy ? new Vector3(2f * kR, hS, 2f * kR) : new Vector3(Mathf.Abs(os.x) > .5f ? kSz : 2f * kR, hS, Mathf.Abs(os.z) > .5f ? kSz : 2f * kR);
         }
-        string opis = "BRAXHORN_WARSZTATY auta " + aut + " (" + string.Join(", ", BraxRegionMiastoB.AutaWarsztatow.Select(a => a.nazwa)) + "), kół z kodu " + n;
+        string opis = "BRAXHORN_WARSZTATY auta " + aut + " (" + string.Join(", ", BraxRegionMiastoB.AutaWarsztatow.Select(a => a.nazwa)) + "), dosunięte do nawierzchni " + warsztatyDosuniete + ", kół z kodu " + n;
         Debug.Log(opis); rep.notes.Add(opis.Replace("BRAXHORN_WARSZTATY ", "warsztaty: "));
     }
 
@@ -337,6 +375,18 @@ public static partial class BraxClaudeOsiedle
                         col.center = bus.transform.InverseTransformPoint(bounds.center);
                         col.size = bounds.size / Mathf.Max(.0001f, bus.transform.lossyScale.x);
                         var rigid = bus.AddComponent<Rigidbody>(); rigid.isKinematic = true; rigid.useGravity = false;
+                        // 16.11 (log 12.11: BRAXHORN_AUTA_KIEROWCY jadace_bez=1 — model autobusu nie ma węzła fotela kierowcy): fotel kierowcy
+                        // z przodu po lewej (ruch prawostronny), siedzisko ok. 0.31 wysokości pudła, 1.3 m × K za czołem — kierowca jak w autach
+                        if (!bus.GetComponentsInChildren<Transform>(true).Any(t => t.name == FotelKierowcy))
+                        {
+                            var lmin = bus.transform.InverseTransformPoint(bounds.min); var lmax = bus.transform.InverseTransformPoint(bounds.max);
+                            var mn3 = Vector3.Min(lmin, lmax); var mx3 = Vector3.Max(lmin, lmax);
+                            float sk = Mathf.Max(.0001f, bus.transform.lossyScale.x);
+                            var fot = new GameObject(FotelKierowcy).transform; fot.SetParent(bus.transform, false);
+                            fot.localPosition = new Vector3(mn3.x + .72f * K / sk, mn3.y + (mx3.y - mn3.y) * .31f, mx3.z - 1.3f * K / sk);
+                            fot.localRotation = Quaternion.identity;
+                            Debug.Log("BRAXHORN_BUS fotel kierowcy dodany (model bez węzła) @" + fot.position.ToString("F2"));
+                        }
                         foreach (var tr in bus.GetComponentsInChildren<Transform>(true))
                             GameObjectUtility.SetStaticEditorFlags(tr.gameObject, 0);
                         // Szukamy punktu postoju na prawym pasie +X z przystankiem po prawej (-Z).

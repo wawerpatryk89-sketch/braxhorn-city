@@ -281,7 +281,6 @@ public static partial class BraxRegionMiastoB
         var tynk = BraxRegionMeble.Tex("Warsztat: tynk wnętrza", 1.5f, new Color(.90f, .90f, .88f), .9f, "white_plaster_02", "white_stucco_02");
         var lamperia = BraxCityMaterials.Surface("Warsztat: lamperia (farba olejna grafit)", new Color(.27f, .29f, .32f), .45f);
         var zywica = BraxCityMaterials.Surface("Warsztat: posadzka żywica epoksydowa", new Color(.50f, .52f, .54f), .35f);
-        var bhp = BraxCityMaterials.Surface("Warsztat: linia BHP żółta", new Color(.95f, .76f, .06f), .5f);
         var led = BraxRegionMeble.Swiecacy("Warsztat: oprawa LED (jasna)", new Color(.96f, .96f, .92f), 1.6f);
         var czerwony = BraxCityMaterials.Surface("Warsztat: lakier czerwony", new Color(.62f, .08f, .06f), .4f, .3f);
         var niebieski = BraxCityMaterials.Surface("Warsztat: regał stal niebieska", new Color(.12f, .22f, .45f), .45f, .5f);
@@ -293,19 +292,24 @@ public static partial class BraxRegionMiastoB
         var stan = i == 1 ? Rect.MinMaxRect(m - 2.3f * K, zc - 3.4f * K, m + 2.3f * K, zc + 2.6f * K) : Rect.MinMaxRect(m - 1.5f, zc - 2.6f * K, m + 2.9f, zc + 2.6f * K);
         var linie = new List<Rect> { Rect.MinMaxRect(stan.xMin, stan.yMin, stan.xMax, stan.yMin + .1f), Rect.MinMaxRect(stan.xMin, stan.yMax - .1f, stan.xMax, stan.yMax),
                                      Rect.MinMaxRect(stan.xMin, stan.yMin + .1f, stan.xMin + .1f, stan.yMax - .1f), Rect.MinMaxRect(stan.xMax - .1f, stan.yMin + .1f, stan.xMax, stan.yMax - .1f) };
-        var pz = new BraxRegionMeble.Bud(); var pb = new BraxRegionMeble.Bud();
+        // 16.11 13:57: linie BHP 10 cm — w teksturze posadzki (pasy linii z UV2, BraxZnakiPoziome), nie wielokątami w wycięciach
+        var pz = new BraxRegionMeble.Bud();
+        var obszarP = Rect.MinMaxRect(x0, z0, x1, z1 + .35f);
         var xsS = new SortedSet<float> { x0, x1 }; var zsS = new SortedSet<float> { z0, z1 + .35f };
-        foreach (var l in linie) { xsS.Add(l.xMin); xsS.Add(l.xMax); zsS.Add(l.yMin); zsS.Add(l.yMax); }
+        var pasyBhp = new BraxZnakiPoziome.Pasy(linie);
+        pasyBhp.Krawedzie(obszarP, xsS, zsS);
         var XS = xsS.ToList(); var ZS = zsS.ToList();
         for (int a = 0; a + 1 < XS.Count; a++)
             for (int b = 0; b + 1 < ZS.Count; b++)
             {
+                if (XS[a + 1] - XS[a] < .002f || ZS[b + 1] - ZS[b] < .002f) continue;
                 var c = new Vector2((XS[a] + XS[a + 1]) * .5f, (ZS[b] + ZS[b + 1]) * .5f);
-                var bud = linie.Any(l => l.Contains(c)) ? pb : pz;
-                bud.Quad(new Vector3(XS[a], yp, ZS[b]), new Vector3(XS[a], yp, ZS[b + 1]), new Vector3(XS[a + 1], yp, ZS[b + 1]), new Vector3(XS[a + 1], yp, ZS[b]));
+                int s0 = pz.Count;
+                pz.Quad(new Vector3(XS[a], yp, ZS[b]), new Vector3(XS[a], yp, ZS[b + 1]), new Vector3(XS[a + 1], yp, ZS[b + 1]), new Vector3(XS[a + 1], yp, ZS[b]));
+                if (pasyBhp.Komorka(c, out var lx, out var lz)) { pz.Znaki(s0, BraxZnakiPoziome.Pasy.Uv2(lx, lz)); BraxZnakiPoziome.Komorek++; }
             }
-        pz.Obiekt("Warsztat " + n + ": posadzka (żywica epoksydowa)", w, zywica, false, false);
-        pb.Obiekt("Warsztat " + n + ": linie BHP (w wycięciach)", w, bhp, false, false);
+        pz.Obiekt("Warsztat " + n + ": posadzka (żywica epoksydowa, linie BHP w teksturze)", w, pz.MaZnaki ? BraxZnakiPoziome.Mat(zywica, new Color(.95f, .76f, .06f), .5f) : zywica, false, false);
+
         // ściany: tynk 2 cm przed murem, lamperia 2 cm przed tynkiem do 1.4 m × k; sufit 3 cm pod stropem
         // otwory ściany tylnej (drzwi zaplecza, 3 okna górne) i szczytowej zachodniej lokalu 0 (okna) — w tynku i lamperii te same
         float ua = WarX0 + i * WarModul, udw = 1.0f * K, udh = 2.2f * K, zbM = WarZb;
@@ -445,7 +449,7 @@ public static partial class BraxRegionMiastoB
                                      Rect.MinMaxRect(px0 + 1f, pz0 + 1f, px0 + 1.08f, pz1 - 1f), Rect.MinMaxRect(px1 - 1.08f, pz0 + 1f, px1 - 1f, pz1 - 1f) };
         var pt = new BraxRegionMeble.Bud(); var pl = new BraxRegionMeble.Bud();
         Wstawki("Plac ustawek", Rect.MinMaxRect(px0, pz0, px1, pz1), YC, linie, asfalt, farba, pt, pl, .3f - YA);
-        pt.Obiekt("Plac ustawek: nawierzchnia (asfalt)", root, asfalt, false, false);
+        pt.Obiekt("Plac ustawek: nawierzchnia (asfalt, linie obwiedni 8 cm w teksturze)", root, AsfaltLinie(pt), false, false);
         pl.Obiekt("Plac ustawek: linie (farba w wycięciach)", root, farba, false, false);
         for (float x = px0 + 3f; x < px1 - 2f; x += 6.5f) { float xx = x; Pozniej("ławka kibiców", () => BraxRegionMeble.Lawka(root, NaPodlozu(new Vector3(xx, YC, pz1 + .1f + .3f * K)), 180f, "Ławka kibiców")); }
         world_point("R1_PLAC_USTAWEK", "plac ustawek 3 na 3", new Vector3((px0 + px1) * .5f, YC, (pz0 + pz1) * .5f));

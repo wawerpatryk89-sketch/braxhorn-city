@@ -12,6 +12,7 @@ import re
 import sys
 import tempfile
 import unittest
+from repo_pliki import rozmiar, w_repo
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PACK = ROOT / "unity-city/Prywatne/braxhorn-postacie-01"
@@ -43,8 +44,8 @@ class Paczka(unittest.TestCase):
         self.assertIn("openssl cms -encrypt", MANIFEST["format"])
         for part in MANIFEST["parts"]:
             p = PACK / part["name"]
-            self.assertTrue(p.exists(), part["name"])
-            self.assertEqual(p.stat().st_size, part["bytes"])
+            self.assertTrue(w_repo(p), part["name"])            # szybkie testy CI: rzadkie pobranie bez .cms — rozmiar z gita
+            self.assertEqual(rozmiar(p), part["bytes"])
             self.assertLessEqual(part["bytes"], 95 * 1024 * 1024)      # limit GitHuba 100 MB na plik
         self.assertTrue((PACK / "recipient.crt").exists())
 

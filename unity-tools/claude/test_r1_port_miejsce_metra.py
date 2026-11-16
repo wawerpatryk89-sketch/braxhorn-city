@@ -18,7 +18,8 @@ class R1PortMiejsceMetra(unittest.TestCase):
 
     def test_square_paved_where_office_stood(self):
         self.assertNotIn("Rect.MinMaxRect(66.3f, 6.5f, 74.3f, 16.5f)", PORT)
-        self.assertIn("Plaszczyzna(BraxUliceKit.S(beton), X0, 83.3f, Z0, Z1, Y, wszystkie)", PORT)
+        # 16.11 13:57: linie portu (< 25 cm) w teksturze betonu placu — pełna płyta z pasami linii
+        self.assertIn("Plaszczyzna(BraxUliceKit.S(beton), X0, 83.3f, Z0, Z1, Y, szerokie, pasy, sPasy)", PORT)
 
     def test_gate_stays_without_office_reference(self):
         self.assertIn("Brama(); Maszty();", PORT)
