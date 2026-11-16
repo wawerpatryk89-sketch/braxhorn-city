@@ -445,9 +445,26 @@ public static class BraxChampionsFoundation
     public static Material Fotoskan(string id,string slug,float metres,Color target,Vector3 slugMean)
     {
         float G(float t,float m)=>Mathf.Min(12f,Mathf.GammaToLinearSpace(Mathf.Clamp01(t))/Mathf.Max(.002f,Mathf.GammaToLinearSpace(m/255f)));
-        var g=new Color(Mathf.LinearToGammaSpace(G(target.r,slugMean.x)),Mathf.LinearToGammaSpace(G(target.g,slugMean.y)),Mathf.LinearToGammaSpace(G(target.b,slugMean.z)),1f);
+        float gr=G(target.r,slugMean.x),gg=G(target.g,slugMean.y),gb=G(target.b,slugMean.z);
+        // 16.11 07:32 owner (sauna floor in the picture): "Gdy ty widzisz podłogę wykończoną, bo ja nie widzę" - a white target
+        // over a beige photo pushed the light half of the map past 1.0: the stone clipped to a flat white. The gain is now
+        // lowered (all channels together, the hue kept) until the brightest 1 % of the map stays at .94 linear (~248 sRGB):
+        // the slabs, joints and veins of the photo stay visible.
+        if(Jasne.TryGetValue(slug,out var p99))
+        {
+            float top=Mathf.Max(gr*Mathf.GammaToLinearSpace(p99.x/255f),Mathf.Max(gg*Mathf.GammaToLinearSpace(p99.y/255f),gb*Mathf.GammaToLinearSpace(p99.z/255f)));
+            if(top>.94f){float s=.94f/top;gr*=s;gg*=s;gb*=s;}
+        }
+        var g=new Color(Mathf.LinearToGammaSpace(gr),Mathf.LinearToGammaSpace(gg),Mathf.LinearToGammaSpace(gb),1f);
         return SourceMaterial(id,slug,metres,g);
     }
+    // the brightest 1 % of each photo (sRGB 0-255, measured 16.11 on the 1k maps)
+    public static readonly System.Collections.Generic.Dictionary<string,Vector3> Jasne=new System.Collections.Generic.Dictionary<string,Vector3>{
+        {"beige_wall_001",new Vector3(159,141,121)},{"brushed_concrete",new Vector3(126,117,103)},{"checkered_pavement_tiles",new Vector3(123,106,88)},
+        {"concrete_floor_02",new Vector3(179,168,147)},{"fabric_leather_02",new Vector3(150,102,45)},{"floor_tiles_02",new Vector3(184,168,151)},
+        {"granite_tile",new Vector3(91,91,91)},{"wood_planks_grey",new Vector3(93,92,89)},{"hessian_230",new Vector3(183,155,120)},{"marble_01",new Vector3(191,175,141)},
+        {"rectangular_paving",new Vector3(145,122,98)},{"rubberized_track",new Vector3(125,67,60)},{"sparse_grass",new Vector3(111,86,44)},
+        {"velour_velvet",new Vector3(179,53,78)}};
     static Color Srednia(Vector3 srgb,Color tint)=>new Color(
         Mathf.LinearToGammaSpace(Mathf.GammaToLinearSpace(srgb.x/255f)*Mathf.GammaToLinearSpace(tint.r)),
         Mathf.LinearToGammaSpace(Mathf.GammaToLinearSpace(srgb.y/255f)*Mathf.GammaToLinearSpace(tint.g)),
@@ -456,7 +473,10 @@ public static class BraxChampionsFoundation
     public static readonly Vector3 MeanBeigeWall=new Vector3(158,140,120),MeanHessian=new Vector3(144,123,92),MeanVelvet=new Vector3(174,46,71),
         MeanConcreteFloor02=new Vector3(124,114,95),MeanBrushedConcrete=new Vector3(107,100,89),MeanRubberTrack=new Vector3(116,61,54),
         MeanSparseGrass=new Vector3(81,63,23),MeanGraniteTile=new Vector3(78,79,79),MeanMarble01=new Vector3(178,157,122),
-        MeanFabricLeather02=new Vector3(130,79,28),MeanCheckered=new Vector3(91,78,65),MeanRectPaving=new Vector3(128,108,86);
+        MeanFabricLeather02=new Vector3(130,79,28),MeanCheckered=new Vector3(91,78,65),MeanRectPaving=new Vector3(128,108,86),
+        MeanFloorTiles02=new Vector3(158,144,126),MeanWoodPlanksGrey=new Vector3(70,68,63);
+    // real sizes of the photo-scans (Poly Haven "dimensions", ZASADA-SKALA-GLOBALNA: a slab is as big as in the photo)
+    public const float FloorTiles02Metres=4.0f,Marble01Metres=1.5f;
     public static Material SourceMaterial(string id,string slug,float metres,Color tint)
     {
         string tex=Source+"/Textures";
@@ -477,7 +497,11 @@ public static class BraxChampionsFoundation
     // Polished WHITE Carrara-type marble in seamless slabs (owner 9.11 23:00: marble_01 read as beige bathroom
     // tiles). Poly Haven has no white marble; ambientCG Marble021 4K (CC0), prepared like Marble016.
     // white stone (was ambientCG Marble021, 244,242,241): Poly Haven marble_01 slabs brought to the same white
-    public static Material LibraryMarbleWhite(string id,Color tint,float metres)=>Fotoskan(id,"marble_01",metres,Srednia(new Vector3(244,242,241),tint),MeanMarble01);
+    // 16.11 07:32 owner: the white floors read unfinished (flat white). marble_01 has almost no contrast (mean 177, top 1 %
+    // 191) - pushed to 244 nothing of the stone was left. Now Poly Haven floor_tiles_02: large pale limestone slabs with
+    // real joints and tone changes between the slabs, at its real size (4 m map, slabs ~0.8-1 m), a warm white (232,229,224)
+    // that stays under the clip guard of Fotoskan. `metres` of the callers was the old seamless marble's repeat: not used.
+    public static Material LibraryMarbleWhite(string id,Color tint,float metres)=>Fotoskan(id,"floor_tiles_02",FloorTiles02Metres,Srednia(new Vector3(232,229,224),tint),MeanFloorTiles02);
     // Vein-cut travertine (ambientCG Travertine009 4K, CC0) for the Hotel Sobczak podium: owner 9.11 23:29
     // "ta z dołu kondygnacja taka szara ... jakiejś tekstury dobrej materiału".
     // travertine (was ambientCG Travertine009, 223,204,172): Poly Haven marble_01 (beige stone slabs)

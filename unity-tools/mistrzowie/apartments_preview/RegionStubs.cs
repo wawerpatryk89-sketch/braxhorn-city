@@ -19,15 +19,29 @@ public static partial class BraxChampionsFoundation
     public static Material Fotoskan(string id, string slug, float metres, Color target, Vector3 mean)
     {
         float G(float t, float m) => Math.Min(12f, Lin(Math.Min(1f, Math.Max(0f, t))) / Math.Max(.002f, Lin(m / 255f)));
-        return SourceMaterial(id, slug, metres, new Color(Gam(G(target.r, mean.x)), Gam(G(target.g, mean.y)), Gam(G(target.b, mean.z)), 1f));
+        float gr = G(target.r, mean.x), gg = G(target.g, mean.y), gb = G(target.b, mean.z);
+        if (Jasne.TryGetValue(slug, out var p99))
+        {
+            float top = Math.Max(gr * Lin(p99.x / 255f), Math.Max(gg * Lin(p99.y / 255f), gb * Lin(p99.z / 255f)));
+            if (top > .94f) { float s = .94f / top; gr *= s; gg *= s; gb *= s; }
+        }
+        return SourceMaterial(id, slug, metres, new Color(Gam(gr), Gam(gg), Gam(gb), 1f));
     }
+    public static readonly System.Collections.Generic.Dictionary<string, Vector3> Jasne = new System.Collections.Generic.Dictionary<string, Vector3>{
+        {"beige_wall_001",new Vector3(159,141,121)},{"brushed_concrete",new Vector3(126,117,103)},{"checkered_pavement_tiles",new Vector3(123,106,88)},
+        {"concrete_floor_02",new Vector3(179,168,147)},{"fabric_leather_02",new Vector3(150,102,45)},{"floor_tiles_02",new Vector3(184,168,151)},
+        {"granite_tile",new Vector3(91,91,91)},{"wood_planks_grey",new Vector3(93,92,89)},{"hessian_230",new Vector3(183,155,120)},{"marble_01",new Vector3(191,175,141)},
+        {"rectangular_paving",new Vector3(145,122,98)},{"rubberized_track",new Vector3(125,67,60)},{"sparse_grass",new Vector3(111,86,44)},
+        {"velour_velvet",new Vector3(179,53,78)}};
+    public const float FloorTiles02Metres = 4.0f, Marble01Metres = 1.5f;
     static Color Srednia(Vector3 s, Color t) => new Color(Gam(Lin(s.x / 255f) * Lin(t.r)), Gam(Lin(s.y / 255f) * Lin(t.g)), Gam(Lin(s.z / 255f) * Lin(t.b)), 1f);
     public static readonly Vector3 MeanBeigeWall = new Vector3(158, 140, 120), MeanHessian = new Vector3(144, 123, 92), MeanVelvet = new Vector3(174, 46, 71),
         MeanConcreteFloor02 = new Vector3(124, 114, 95), MeanBrushedConcrete = new Vector3(107, 100, 89), MeanRubberTrack = new Vector3(116, 61, 54),
         MeanSparseGrass = new Vector3(81, 63, 23), MeanGraniteTile = new Vector3(78, 79, 79), MeanMarble01 = new Vector3(178, 157, 122),
-        MeanFabricLeather02 = new Vector3(130, 79, 28), MeanCheckered = new Vector3(91, 78, 65), MeanRectPaving = new Vector3(128, 108, 86);
+        MeanFabricLeather02 = new Vector3(130, 79, 28), MeanCheckered = new Vector3(91, 78, 65), MeanRectPaving = new Vector3(128, 108, 86),
+        MeanFloorTiles02 = new Vector3(158, 144, 126), MeanWoodPlanksGrey = new Vector3(70, 68, 63);
     public static Material LibraryMarble(string id, Color tint, float metres) => Fotoskan(id, "granite_tile", metres, Srednia(new Vector3(66, 68, 67), tint), MeanGraniteTile);
-    public static Material LibraryMarbleWhite(string id, Color tint, float metres) => Fotoskan(id, "marble_01", metres, Srednia(new Vector3(244, 242, 241), tint), MeanMarble01);
+    public static Material LibraryMarbleWhite(string id, Color tint, float metres) => Fotoskan(id, "floor_tiles_02", FloorTiles02Metres, Srednia(new Vector3(232, 229, 224), tint), MeanFloorTiles02);
     public static Material LibraryTravertine(string id, Color tint, float metres) => Fotoskan(id, "marble_01", metres, Srednia(new Vector3(223, 204, 172), tint), MeanMarble01);
     public static Material LibraryAcg(string id, string asset, Color tint, float metres)
     {

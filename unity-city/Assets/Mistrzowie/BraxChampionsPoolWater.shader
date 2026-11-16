@@ -7,6 +7,7 @@ Shader "Braxhorn/ChampionsP1PoolWater"
         _Opacity ("Water transparency", Range(0,1)) = 0.72
         _RippleStrength ("Ripple intensity", Range(0,2)) = 0.8
         _Bubbles ("Jacuzzi aeration 0-1", Range(0,1)) = 0
+        _K ("World units per metre", Float) = 1
     }
     SubShader
     {
@@ -25,6 +26,7 @@ Shader "Braxhorn/ChampionsP1PoolWater"
             #include "UnityCG.cginc"
             fixed4 _DeepColor, _ShallowColor;
             half _Opacity, _RippleStrength, _Bubbles;
+            float _K;
             struct appdata { float4 vertex : POSITION; float2 uv : TEXCOORD0; };
             struct v2f { float4 pos : SV_POSITION; float3 world : TEXCOORD0; float2 uv : TEXCOORD1; };
             v2f vert(appdata v)
@@ -58,7 +60,7 @@ Shader "Braxhorn/ChampionsP1PoolWater"
                 half caustic=.5h+.5h*sin(a*.75+b*.35);
                 half3 color=lerp(_DeepColor.rgb,_ShallowColor.rgb,.34h+.34h*caustic);
                 color+=pow(saturate(dot(n,h)),58.0h)*half3(.25,.30,.35);
-                color=lerp(color,half3(.68,.90,1.0),fresnel*.38);
+                color=lerp(color,half3(.68,.90,1.0),fresnel*.55);
                 // Fine bubbling and foam are explicitly reserved for the owner's
                 // real jacuzzi, never drawn over an absent or unapproved tub.
                 if(_Bubbles>.01)
@@ -67,7 +69,21 @@ Shader "Braxhorn/ChampionsP1PoolWater"
                     half foam=smoothstep(.80, .98, g)*_Bubbles;
                     color=lerp(color,half3(.90,.98,1.0),foam*.82);
                 }
-                return half4(color,saturate(_Opacity+.08h*fresnel+.08h*_Bubbles));
+                // 16.11: the water body under the surface is ChampionsPoolVolume - the surface is the top only: thinner in the
+                // middle, a mirror at grazing angles (real water reflects the sky low over the pool)
+                half alpha=saturate(_Opacity+.55h*fresnel+.08h*_Bubbles);
+                // seen from UNDER the water (diving): a bright rippling ceiling, the sky only through the window straight up
+                // (Snell's cone ~48 degrees), farther surface lost in the blue
+                if(_WorldSpaceCameraPos.y<i.world.y)
+                {
+                    half window=smoothstep(.66h,.82h,-v.y);
+                    float metres=length(_WorldSpaceCameraPos.xyz-i.world)/max(_K,1e-3);
+                    half fog=1.0h-exp(-metres*.24h);
+                    color=lerp(_ShallowColor.rgb*1.25h+.06h+caustic*.10h,color,window*.6h);
+                    color=lerp(color,_DeepColor.rgb,fog*.85h);
+                    alpha=lerp(.93h,.42h,window*(1.0h-fog));
+                }
+                return half4(color,alpha);
             }
             ENDCG
         }

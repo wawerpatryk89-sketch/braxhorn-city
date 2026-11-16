@@ -37,7 +37,7 @@ public static partial class BraxChampionsAquapark
 
     static void RiverPool()
     {
-        MakePool(river, poolTile, poolFloor, water, true, true);
+        MakePool(river, poolTile, poolFloor, water, true, true, waterBody);
         Steps(river, P(RX1, -26f), 4.0f, 6);          // from the east deck (the lagoon side)
         Steps(river, P(-80.5f, RZ1), 4.0f, 6);        // from the north deck (the kids' zone side)
         foreach (var l in new[] { P(RX0, -30f), P(-80.5f, RZ0), P(RX1, -48f) }) Ladder(river, l);

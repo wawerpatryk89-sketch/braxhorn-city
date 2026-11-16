@@ -28,12 +28,13 @@ public static partial class BraxChampionsAquapark
     public const float CX=529f,CZ=200f,X0=426f,X1=632f,Z0=87f,Z1=313f,DY=.16f;
     const string Out="Assets/PlayableGenerated/Mistrzowie",Folder=Out+"/Meshes/Aquapark",Paczka="basen_01";
     static float K=>BraxClaudeOsiedle.K;
-    public static int Colliders,Loungers,Parasols,Seats,SwimZones,Slides,Palms,Lamps,OwnerModels,OwnerMissing,Pools,Walkers;
+    public static int Colliders,Loungers,Parasols,Seats,SwimZones,Slides,Palms,Lamps,OwnerModels,OwnerMissing,Pools,Walkers,WaterBodies;
 
     static Transform root,cols,seats,models;
     static BraxChampionsMeshBatch m,walk;
-    static Material deck,plaza,coping,poolTile,poolFloor,waterline,teak,lawn,rubber,rubberYellow,rock,steel,graphite,glass,led,
-        cushion,towel,canvas,canvasRed,white,black,blackGloss,stone,water,waterKids,waterSpa,uplight,bark,leaf,fountainWater;
+    static Material deck,plaza,coping,poolTile,poolFloor,waterline,teak,teakDeck,lawn,rubber,rubberYellow,rock,steel,graphite,glass,led,
+        cushion,towel,canvas,canvasRed,white,black,blackGloss,stone,water,waterKids,waterSpa,uplight,bark,leaf,fountainWater,
+        waterBody,waterBodyKids,waterBodySpa,floatRed,floatWhite;
 
     static Material S(string id,Color c,float r,float met,Color? e=null,bool t=false)=>BraxChampionsHarbour.Surface("aq_"+id,c,r,met,e,t);
     static Material Tex(string id,string slug,float metres,Color tint)=>BraxChampionsFoundation.SourceMaterial("aq_"+id,slug,metres,tint);
@@ -45,20 +46,28 @@ public static partial class BraxChampionsAquapark
         // pool deck: light anti-slip granite tiles (wet feet), the forecourt in the darker granite, coping in white marble
         // pool deck: large-format white porcelain (the warm long_white_tiles map neutralised to a cool white), the forecourt in
         // grey concrete pavers, the coping in white marble (marble_01 neutralised: no beige - the region's rule)
-        deck=Tex("deck_white_porcelain","long_white_tiles",2.4f,new Color(.98f,1.03f,1.13f));
+        // 16.11 07:33 owner: "od płotu ... po płytkę, która jest zjebana ... na dworze": the narrow wall tiles stretched over the
+        // whole deck read as a striped plastic floor. The deck is now real pale limestone slabs (Poly Haven floor_tiles_02 at its
+        // real 4 m: slabs ~0.8-1 m, joints, tone changes slab to slab), warm sand-white like a resort pool terrace.
+        deck=BraxChampionsFoundation.Fotoskan("aq_deck_limestone_slabs","floor_tiles_02",BraxChampionsFoundation.FloorTiles02Metres,
+            new Color(214f/255f,207f/255f,194f/255f),BraxChampionsFoundation.MeanFloorTiles02);
         plaza=Tex("plaza_grey_pavers","concrete_pavement_02",1.8f,new Color(.96f,1.05f,1.18f));
-        coping=Tex("coping_white_marble","marble_01",1.2f,new Color(1.02f,1.15f,1.47f));
-        // the shell: long white ceramic tiles with an aqua cast (the water reads turquoise over them), a navy mosaic waterline
-        poolTile=Tex("pool_wall_tiles","long_white_tiles",1.0f,new Color(.80f,1.02f,1.10f));
-        poolFloor=Tex("pool_floor_tiles","long_white_tiles",1.0f,new Color(.74f,.98f,1.08f));
-        waterline=Tex("pool_waterline_mosaic","tiled_floor_001",.6f,new Color(.22f,.42f,.86f));
-        teak=Tex("deck_silver_teak","teak_veneer",1.1f,new Color(.91f,1.20f,1.72f));
+        coping=Tex("coping_white_marble","marble_01",BraxChampionsFoundation.Marble01Metres,new Color(1.02f,1.15f,1.47f));
+        // the shell: long white ceramic tiles with an aqua cast (the water reads turquoise over them), a navy mosaic waterline;
+        // every map at its real size (long_white_tiles 1.27 m, tiled_floor_001 1.5 m)
+        poolTile=Tex("pool_wall_tiles","long_white_tiles",1.27f,new Color(.80f,1.02f,1.10f));
+        poolFloor=Tex("pool_floor_tiles","long_white_tiles",1.27f,new Color(.74f,.98f,1.08f));
+        waterline=Tex("pool_waterline_mosaic","tiled_floor_001",1.5f,new Color(.22f,.42f,.86f));
+        teak=Tex("deck_silver_teak","teak_veneer",1.0f,new Color(.91f,1.20f,1.72f));       // furniture: loungers' slats, bar, daybeds
+        // the terraces: a veneer has no boards - the jacuzzi deck read as one grey plane. Real weathered silver decking
+        // boards (Poly Haven wood_planks_grey at its real 1.5 m: ~25 cm boards, gaps, grain), lightened to silver teak.
+        teakDeck=BraxChampionsFoundation.Fotoskan("aq_deck_silver_boards","wood_planks_grey",1.5f,new Color(152f/255f,147f/255f,138f/255f),BraxChampionsFoundation.MeanWoodPlanksGrey);
         lawn=BraxChampionsPromenadeFurniture.Lawn();
         // coloured EPDM safety floor of the kids' zone (the black rubber_tiles map stays black under any tint)
         rubber=BraxChampionsFoundation.Fotoskan("kids_epdm_teal","rubberized_track",2f,new Color(.07f,.56f,.64f),BraxChampionsFoundation.MeanRubberTrack); // 16.11 Poly Haven ("każda podłoga, ściana, sufit")
         rubberYellow=BraxChampionsHarbour.Nakladka(BraxChampionsFoundation.Fotoskan("kids_epdm_yellow","rubberized_track",2f,new Color(.98f,.76f,.10f),BraxChampionsFoundation.MeanRubberTrack));   // 6 mm over the deck: depth offset (16.11 "wszystko migota")
-        rock=Tex("waterfall_rock","concrete_wall_008",2.4f,new Color(.74f,.78f,.93f));
-        stone=Tex("tower_column_stone","sandstone_blocks_08",2.2f,new Color(.39f,.44f,.56f));
+        rock=Tex("waterfall_rock","concrete_wall_008",2.71f,new Color(.74f,.78f,.93f));
+        stone=Tex("tower_column_stone","sandstone_blocks_08",3.0f,new Color(.39f,.44f,.56f));
         cushion=BraxChampionsPromenade.Fabric("aq_lounger_cushion_white","cotton_jersey",new Color(1.20f,1.36f,1.46f),.6f);
         towel=BraxChampionsPromenade.Fabric("aq_towel_red","cotton_jersey",new Color(.92f,.10f,.12f),.6f);
         canvas=BraxChampionsPromenade.Fabric("aq_parasol_white","terlenka",new Color(1.21f,1.36f,1.53f),.9f,new Color(.38f,.38f,.36f));
@@ -68,11 +77,19 @@ public static partial class BraxChampionsAquapark
         blackGloss=S("black_gloss_frp",new Color(.025f,.027f,.03f),.12f,.05f);
         glass=S("balustrade_glass",new Color(.80f,.90f,.94f,.26f),.04f,0f,null,true);
         uplight=S("underwater_led",new Color(.80f,.95f,1f),.2f,0f,new Color(.75f,1.15f,1.45f));
-        bark=Tex("palm_planter_bark","brown_mud_leaves_01",1.0f,new Color(.62f,.58f,.52f));
+        bark=Tex("palm_planter_bark","brown_mud_leaves_01",1.3f,new Color(.62f,.58f,.52f));
         leaf=S("rockery_fern",new Color(.20f,.40f,.14f),.7f,0f);
-        water=Water("aq_pool_water",new Color(.03f,.26f,.47f),new Color(.12f,.66f,.86f),.70f,.8f,0f);
-        waterKids=Water("aq_kids_water",new Color(.07f,.40f,.58f),new Color(.20f,.78f,.92f),.55f,.6f,0f);
-        waterSpa=Water("aq_jacuzzi_water",new Color(.05f,.30f,.50f),new Color(.16f,.70f,.88f),.66f,1.4f,1f);
+        // the surface: now only the top of the water (thinner - the body under it gives the depth), a mirror at grazing angles
+        water=Water("aq_pool_water",new Color(.03f,.26f,.47f),new Color(.12f,.66f,.86f),.34f,.8f,0f);
+        waterKids=Water("aq_kids_water",new Color(.07f,.40f,.58f),new Color(.20f,.78f,.92f),.28f,.6f,0f);
+        waterSpa=Water("aq_jacuzzi_water",new Color(.05f,.30f,.50f),new Color(.16f,.70f,.88f),.42f,1.4f,1f);
+        // the water body (Braxhorn/ChampionsPoolVolume): clear turquoise over the shallows, deep blue in the 4 m well
+        waterBody=Volume("aq_pool_water_body",new Color(.012f,.15f,.31f),new Color(.07f,.52f,.70f),.24f,.9f);
+        waterBodyKids=Volume("aq_kids_water_body",new Color(.03f,.26f,.42f),new Color(.12f,.62f,.78f),.20f,.7f);
+        waterBodySpa=Volume("aq_jacuzzi_water_body",new Color(.02f,.20f,.36f),new Color(.10f,.56f,.74f),.30f,.5f);
+        // the floats of the line round the diving well: polyethylene (Poly Haven rubberized_track, its grain under the colour)
+        floatRed=BraxChampionsFoundation.Fotoskan("aq_float_red","rubberized_track",.6f,new Color(.80f,.07f,.07f),BraxChampionsFoundation.MeanRubberTrack);
+        floatWhite=BraxChampionsFoundation.Fotoskan("aq_float_white","rubberized_track",.6f,new Color(.93f,.93f,.91f),BraxChampionsFoundation.MeanRubberTrack);
         fountainWater=S("fountain_water",new Color(.90f,.95f,1f,.62f),.1f,0f,new Color(.30f,.32f,.34f),true);
         BuildingMaterials();
         SlideMaterials();
@@ -85,8 +102,34 @@ public static partial class BraxChampionsAquapark
         if(!sh){BraxBuildQuality.Warn("AQUAPARK_WATER_SHADER_MISSING Braxhorn/ChampionsP1PoolWater - CityStaticPBR glass instead");return S(id,new Color(shallow.r,shallow.g,shallow.b,.55f),.05f,0f,null,true);}
         var w=new Material(sh){name="Aquapark "+id};
         w.SetColor("_DeepColor",deep);w.SetColor("_ShallowColor",shallow);w.SetFloat("_Opacity",opacity);w.SetFloat("_RippleStrength",ripple);w.SetFloat("_Bubbles",bubbles);
+        w.SetFloat("_K",K);
         w.renderQueue=3000;
         string path=Out+"/Materials/"+id+".mat";
+        var old=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(old){EditorUtility.CopySerialized(w,old);UnityEngine.Object.DestroyImmediate(w);return old;}
+        BraxZapisAssetu.Utworz(w,path);return w;
+    }
+
+    // the water body under the surface (Braxhorn/ChampionsPoolVolume): drawn after every opaque tile, before the surface
+    static Material Volume(string id,Color deep,Color shallow,float density,float caustics)
+    {
+        var sh=Shader.Find("Braxhorn/ChampionsPoolVolume");
+        if(!sh){BraxBuildQuality.Warn("AQUAPARK_WATER_BODY_SHADER_MISSING Braxhorn/ChampionsPoolVolume - the pools keep the surface only");return null;}
+        var w=new Material(sh){name="Aquapark "+id};
+        w.SetColor("_DeepColor",deep);w.SetColor("_ShallowColor",shallow);w.SetFloat("_Density",density);w.SetFloat("_Caustics",caustics);w.SetFloat("_K",K);
+        w.renderQueue=2990;
+        string path=Out+"/Materials/"+id+".mat";
+        var old=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(old){EditorUtility.CopySerialized(w,old);UnityEngine.Object.DestroyImmediate(w);return old;}
+        BraxZapisAssetu.Utworz(w,path);return w;
+    }
+    // the screen veil under the water (Braxhorn/ChampionsPodWodaEkran) for BraxChampionsPodWoda
+    static Material Ekran()
+    {
+        var sh=Shader.Find("Braxhorn/ChampionsPodWodaEkran");
+        if(!sh){BraxBuildQuality.Warn("AQUAPARK_UNDERWATER_VEIL_SHADER_MISSING Braxhorn/ChampionsPodWodaEkran");return null;}
+        var w=new Material(sh){name="Aquapark aq_underwater_veil"};w.renderQueue=4000;
+        string path=Out+"/Materials/aq_underwater_veil.mat";
         var old=AssetDatabase.LoadAssetAtPath<Material>(path);
         if(old){EditorUtility.CopySerialized(w,old);UnityEngine.Object.DestroyImmediate(w);return old;}
         BraxZapisAssetu.Utworz(w,path);return w;
@@ -315,10 +358,11 @@ public static partial class BraxChampionsAquapark
     public static int Generate()
     {
         System.IO.Directory.CreateDirectory(Folder);
-        Colliders=Loungers=Parasols=Seats=SwimZones=Slides=Palms=Lamps=OwnerModels=OwnerMissing=Pools=Walkers=Rings=Cabanas=0;
+        Colliders=Loungers=Parasols=Seats=SwimZones=Slides=Palms=Lamps=OwnerModels=OwnerMissing=Pools=Walkers=Rings=Cabanas=WaterBodies=0;
         Materials();
         var go=new GameObject("AQUAPARK BRAXHORN | laguna, wieża ze zjeżdżalniami, strefa dzieci, SPA, jacuzzi (owner 12.11 02:47)");
         root=go.transform;root.position=Vector3.zero;
+        go.AddComponent<BraxChampionsPodWoda>().ekran=Ekran();      // NURKUJ + the veil under the water (16.11)
         cols=Group(root,"kolizje");seats=Group(root,"siedziska (BraxSeat)");models=Group(root,"modele właściciela i rośliny");
         m=new BraxChampionsMeshBatch();walk=new BraxChampionsMeshBatch();
         Layout();
@@ -343,7 +387,7 @@ public static partial class BraxChampionsAquapark
             var z0=g.AddComponent<BraxZrodloPetli>();z0.rodzaj="woda";z0.glosnosc=vol;z0.zasieg=range*K;
         }
         // (no walking girls here any more: owner 12.11 11:56 "mają chodzić tylko w kasynie i na plaży")
-        Debug.Log("MISTRZOWIE_AQUAPARK walkers="+Walkers+" rings="+Rings+" cabanas="+Cabanas+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+
+        Debug.Log("MISTRZOWIE_AQUAPARK waterBodies="+WaterBodies+" walkers="+Walkers+" rings="+Rings+" cabanas="+Cabanas+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+
                   " seats="+Seats+" palms="+Palms+" lamps="+Lamps+" ownerModels="+OwnerModels+" ownerMissing="+OwnerMissing+" colliders="+Colliders+
                   " site=x"+X0+".."+X1+" z"+Z0+".."+Z1);
         return 1;

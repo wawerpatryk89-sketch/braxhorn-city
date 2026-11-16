@@ -280,7 +280,9 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertNotIn("('Marble021'", self.prepare)
         self.assertIn("'laminate_floor_02'", self.prepare)
         foundation = (EDITOR / "BraxChampionsFoundation.cs").read_text(encoding="utf-8")
-        self.assertIn('LibraryMarbleWhite(string id,Color tint,float metres)=>Fotoskan(id,"marble_01",metres,Srednia(new Vector3(244,242,241),tint),MeanMarble01);', foundation)
+        # 16.11 07:32 owner ("nie widzę podłogi wykończonej"): white stone = Poly Haven floor_tiles_02 slabs at their real size,
+        # a white kept under the clip guard (marble_01 at 244 clipped to a flat white)
+        self.assertIn('LibraryMarbleWhite(string id,Color tint,float metres)=>Fotoskan(id,"floor_tiles_02",FloorTiles02Metres,Srednia(new Vector3(232,229,224),tint),MeanFloorTiles02);', foundation)
         self.assertIn('"lobby centre plant"', self.gen)
         self.assertIn('"roof bar stool, leather"', self.gen)
         # owner 9.11 23:29 travertine -> 10.11 12:48 (beige on the phone): white marble podium; 3D sign on the roof

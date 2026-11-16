@@ -3786,5 +3786,569 @@
         }
       }
     }
+  },
+  "floor_tiles_02": {
+    "Diffuse": {
+      "8k": {
+        "jpg": {
+          "size": 15474697,
+          "md5": "1d329aa71e124dfdb142e588cd5fb592",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/floor_tiles_02/floor_tiles_02_diff_8k.jpg"
+        },
+        "png": {
+          "size": 68572972,
+          "md5": "3f184845dedadbb291b38966ef841881",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/floor_tiles_02/floor_tiles_02_diff_8k.png"
+        },
+        "exr": {
+          "size": 36370662,
+          "md5": "6784d6954da272c6166255f81a59a64f",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/floor_tiles_02/floor_tiles_02_diff_8k.exr"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "size": 4965650,
+          "md5": "67b6d1dc61a3051cff05fc5054ec4275",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/floor_tiles_02/floor_tiles_02_diff_4k.jpg"
+        },
+        "png": {
+          "size": 19623537,
+          "md5": "1428f6aeb5dd781bc58ba62b0bde47ca",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/floor_tiles_02/floor_tiles_02_diff_4k.png"
+        },
+        "exr": {
+          "size": 12437557,
+          "md5": "34e47af056cee2d68d4dac5f4941a26f",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/floor_tiles_02/floor_tiles_02_diff_4k.exr"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "size": 1381118,
+          "md5": "9266824013917ad1a25678fd95c866c1",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/floor_tiles_02/floor_tiles_02_diff_2k.jpg"
+        },
+        "png": {
+          "size": 5357586,
+          "md5": "1d6eaf4a9d916f01a669d4d8c5238470",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/floor_tiles_02/floor_tiles_02_diff_2k.png"
+        },
+        "exr": {
+          "size": 3654788,
+          "md5": "7232a2c0c4a4314cb43d6b1ff0e9516d",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/floor_tiles_02/floor_tiles_02_diff_2k.exr"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "size": 354550,
+          "md5": "32de1779b8ddba55ad62df8d014264cd",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/floor_tiles_02/floor_tiles_02_diff_1k.jpg"
+        },
+        "png": {
+          "size": 1384055,
+          "md5": "1b845154601f9c22aede9d5c3caabe9b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/floor_tiles_02/floor_tiles_02_diff_1k.png"
+        },
+        "exr": {
+          "size": 974607,
+          "md5": "4b4fe07041bb5d7c77412190b4de3f0e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/floor_tiles_02/floor_tiles_02_diff_1k.exr"
+        }
+      }
+    },
+    "nor_gl": {
+      "8k": {
+        "jpg": {
+          "size": 5421303,
+          "md5": "b5082662424f57bbfe4f5f0ec2549d18",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/floor_tiles_02/floor_tiles_02_nor_gl_8k.jpg"
+        },
+        "png": {
+          "size": 38379667,
+          "md5": "f14a8441024754ad6a0a9d9e0997e1b8",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/floor_tiles_02/floor_tiles_02_nor_gl_8k.png"
+        },
+        "exr": {
+          "size": 18346384,
+          "md5": "42c51c7289b79cf951eeee6c2b1ad3fb",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/floor_tiles_02/floor_tiles_02_nor_gl_8k.exr"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "size": 1733468,
+          "md5": "60ed5a0362b7c5ed9101e4f65b289e25",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/floor_tiles_02/floor_tiles_02_nor_gl_4k.jpg"
+        },
+        "png": {
+          "size": 8569184,
+          "md5": "9e08197a042e068100dd1328e787add9",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/floor_tiles_02/floor_tiles_02_nor_gl_4k.png"
+        },
+        "exr": {
+          "size": 5456749,
+          "md5": "66294f5d3fa353a24c432ad0d31bafea",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/floor_tiles_02/floor_tiles_02_nor_gl_4k.exr"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "size": 540151,
+          "md5": "358c5f021781a448e2e3357d42bd1f81",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/floor_tiles_02/floor_tiles_02_nor_gl_2k.jpg"
+        },
+        "png": {
+          "size": 2091599,
+          "md5": "cefe143cbb9e7440f9e54892a77beec4",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/floor_tiles_02/floor_tiles_02_nor_gl_2k.png"
+        },
+        "exr": {
+          "size": 1685425,
+          "md5": "98f32ac99c28b4707c7c4b5f654529ed",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/floor_tiles_02/floor_tiles_02_nor_gl_2k.exr"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "size": 156697,
+          "md5": "0018f27bf5486fcf939232dff86dc68e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/floor_tiles_02/floor_tiles_02_nor_gl_1k.jpg"
+        },
+        "png": {
+          "size": 607355,
+          "md5": "b1a8b8b4ef5f6bbf5035928d05b60eda",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/floor_tiles_02/floor_tiles_02_nor_gl_1k.png"
+        },
+        "exr": {
+          "size": 524993,
+          "md5": "ba4b1e0a6198c72a01d35da0666c7fb5",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/floor_tiles_02/floor_tiles_02_nor_gl_1k.exr"
+        }
+      }
+    },
+    "Rough": {
+      "8k": {
+        "jpg": {
+          "size": 15662913,
+          "md5": "ba205331f87f8e9c8fc837b690a757ed",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/floor_tiles_02/floor_tiles_02_rough_8k.jpg"
+        },
+        "png": {
+          "size": 30282274,
+          "md5": "3473870add2b16509e6c35d4821e7283",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/floor_tiles_02/floor_tiles_02_rough_8k.png"
+        },
+        "exr": {
+          "size": 49240555,
+          "md5": "53542eebf793663dbc902f737a2c9cf4",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/floor_tiles_02/floor_tiles_02_rough_8k.exr"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "size": 4601318,
+          "md5": "875c620e89ea15e7dbd05568835749ed",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/floor_tiles_02/floor_tiles_02_rough_4k.jpg"
+        },
+        "png": {
+          "size": 11169258,
+          "md5": "712ac8e4161dcd1aaa84972a8085de2e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/floor_tiles_02/floor_tiles_02_rough_4k.png"
+        },
+        "exr": {
+          "size": 13763227,
+          "md5": "5b2950ce53432d8d7f453031c4a65d00",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/floor_tiles_02/floor_tiles_02_rough_4k.exr"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "size": 1214592,
+          "md5": "0c9b0ec7f5fabc3f1708c8193a1807ff",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/floor_tiles_02/floor_tiles_02_rough_2k.jpg"
+        },
+        "png": {
+          "size": 2814424,
+          "md5": "7607e3d02c5cf8947efcb020d4ee596a",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/floor_tiles_02/floor_tiles_02_rough_2k.png"
+        },
+        "exr": {
+          "size": 3536222,
+          "md5": "0c93e39cdac0ebaae509b00ca410ac64",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/floor_tiles_02/floor_tiles_02_rough_2k.exr"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "size": 304724,
+          "md5": "e32ffaaa6a49f4403af466c33f606fa2",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/floor_tiles_02/floor_tiles_02_rough_1k.jpg"
+        },
+        "png": {
+          "size": 709858,
+          "md5": "f2f666b1059590f01bd0cfbc5708ce23",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/floor_tiles_02/floor_tiles_02_rough_1k.png"
+        },
+        "exr": {
+          "size": 919858,
+          "md5": "0c8be741197570afe22b02060cb496b4",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/floor_tiles_02/floor_tiles_02_rough_1k.exr"
+        }
+      }
+    },
+    "arm": {
+      "8k": {
+        "jpg": {
+          "size": 12274872,
+          "md5": "d30b3941823fd54cf5f51e137d324a35",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/floor_tiles_02/floor_tiles_02_arm_8k.jpg"
+        },
+        "png": {
+          "size": 203243832,
+          "md5": "ece8eca802221deb73611dc2e5b894fa",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/floor_tiles_02/floor_tiles_02_arm_8k.png"
+        },
+        "exr": {
+          "size": 105375652,
+          "md5": "519a1cddecdcccbe8dc289cf04569688",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/floor_tiles_02/floor_tiles_02_arm_8k.exr"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "size": 3115823,
+          "md5": "0c95f30b3b80dc5b9a5b0c5411cf2378",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/floor_tiles_02/floor_tiles_02_arm_4k.jpg"
+        },
+        "png": {
+          "size": 51366318,
+          "md5": "0299fe1fbb79c7d74d30274bb5603616",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/floor_tiles_02/floor_tiles_02_arm_4k.png"
+        },
+        "exr": {
+          "size": 28033125,
+          "md5": "fc0f9809a8d2fa606632116dc1276c7e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/floor_tiles_02/floor_tiles_02_arm_4k.exr"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "size": 686577,
+          "md5": "b16bbae0895471cb57be28ff338b8bfc",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/floor_tiles_02/floor_tiles_02_arm_2k.jpg"
+        },
+        "png": {
+          "size": 12521990,
+          "md5": "b923f4d5cb15f383b6532ceb6e863374",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/floor_tiles_02/floor_tiles_02_arm_2k.png"
+        },
+        "exr": {
+          "size": 6541281,
+          "md5": "9c7f778e67ba17ecfc17447a7691d057",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/floor_tiles_02/floor_tiles_02_arm_2k.exr"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "size": 159606,
+          "md5": "41c1ac7aa504410ca4ca1d6fe0bdc696",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/floor_tiles_02/floor_tiles_02_arm_1k.jpg"
+        },
+        "png": {
+          "size": 3085428,
+          "md5": "224307ecf6175a62792bcbf8adfe480a",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/floor_tiles_02/floor_tiles_02_arm_1k.png"
+        },
+        "exr": {
+          "size": 1588908,
+          "md5": "db435e757b1bb1db9e173f5912ba614a",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/floor_tiles_02/floor_tiles_02_arm_1k.exr"
+        }
+      }
+    }
+  },
+  "wood_planks_grey": {
+    "Diffuse": {
+      "8k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/wood_planks_grey/wood_planks_grey_diff_8k.jpg",
+          "size": 12935288,
+          "md5": "e1e9600a9833e4a9e7209580d84bb9be"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/wood_planks_grey/wood_planks_grey_diff_8k.png",
+          "size": 320586399,
+          "md5": "78f9befb1338ca0a11f811e976792d9a"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/wood_planks_grey/wood_planks_grey_diff_8k.exr",
+          "size": 57854246,
+          "md5": "9ba7cb94d184dcfc1a48e7d0744bbf42"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/wood_planks_grey/wood_planks_grey_diff_4k.jpg",
+          "size": 4088029,
+          "md5": "2a50ef58857c22fb71aefa8ad9ef0135"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/wood_planks_grey/wood_planks_grey_diff_4k.png",
+          "size": 89090127,
+          "md5": "7d7a0a8184570ce123cd7841497c7e13"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/wood_planks_grey/wood_planks_grey_diff_4k.exr",
+          "size": 18873937,
+          "md5": "25696b1429e8a26f303327134f83bae6"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_planks_grey/wood_planks_grey_diff_2k.jpg",
+          "size": 998333,
+          "md5": "91ca23c2f5584014f465a3a50ada472f"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/wood_planks_grey/wood_planks_grey_diff_2k.png",
+          "size": 22409165,
+          "md5": "df56b569da7d50a195dbada81d908a59"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/wood_planks_grey/wood_planks_grey_diff_2k.exr",
+          "size": 5125892,
+          "md5": "295b5a2ecf883ee0fff6fd165fd4e64e"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_planks_grey/wood_planks_grey_diff_1k.jpg",
+          "size": 228279,
+          "md5": "f2b4a70fed329c13850917c5f2d1498c"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/wood_planks_grey/wood_planks_grey_diff_1k.png",
+          "size": 5566063,
+          "md5": "d60af478ac79df738c418977367b7e05"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/wood_planks_grey/wood_planks_grey_diff_1k.exr",
+          "size": 1315761,
+          "md5": "7de845745e629003bbbd4dfd2162ca43"
+        }
+      }
+    },
+    "nor_gl": {
+      "8k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/wood_planks_grey/wood_planks_grey_nor_gl_8k.jpg",
+          "size": 6072801,
+          "md5": "74a1da23111f1a2492507fc76c4fadad"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/wood_planks_grey/wood_planks_grey_nor_gl_8k.png",
+          "size": 262732216,
+          "md5": "b1de4d8b82ffb18bce19886abff2dcd2"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/wood_planks_grey/wood_planks_grey_nor_gl_8k.exr",
+          "size": 35730211,
+          "md5": "a5a351d9e90435ef13e5824937e9a25f"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/wood_planks_grey/wood_planks_grey_nor_gl_4k.jpg",
+          "size": 2124037,
+          "md5": "f5970e3b7b90bac06fdb372bac1ae991"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/wood_planks_grey/wood_planks_grey_nor_gl_4k.png",
+          "size": 78448502,
+          "md5": "b08c8feeac30db7c77f013d255a55d1f"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/wood_planks_grey/wood_planks_grey_nor_gl_4k.exr",
+          "size": 13853353,
+          "md5": "c8cd3169c9dcc8da25d174a29bfe7c3a"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_planks_grey/wood_planks_grey_nor_gl_2k.jpg",
+          "size": 647815,
+          "md5": "b46a35ec45e38dee2aeeb9330adb270b"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/wood_planks_grey/wood_planks_grey_nor_gl_2k.png",
+          "size": 20807642,
+          "md5": "b21bfa0d5511ed33d749ca66d3d11cbe"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/wood_planks_grey/wood_planks_grey_nor_gl_2k.exr",
+          "size": 5376860,
+          "md5": "c88ce5073816575a9f8bce0bd77113a6"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_planks_grey/wood_planks_grey_nor_gl_1k.jpg",
+          "size": 157419,
+          "md5": "fe633ea606ac22b732d4204a7fa52b03"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/wood_planks_grey/wood_planks_grey_nor_gl_1k.png",
+          "size": 5350344,
+          "md5": "0133a783487fff34b45edd8196878465"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/wood_planks_grey/wood_planks_grey_nor_gl_1k.exr",
+          "size": 1686025,
+          "md5": "0f55da99b4655093fa270daf6320d824"
+        }
+      }
+    },
+    "Rough": {
+      "8k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/wood_planks_grey/wood_planks_grey_rough_8k.jpg",
+          "size": 10891114,
+          "md5": "e906ce2220cad354305abce5f1280d95"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/wood_planks_grey/wood_planks_grey_rough_8k.png",
+          "size": 104347539,
+          "md5": "b56eed5d9e1629d0f74ba6a1cd606bde"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/wood_planks_grey/wood_planks_grey_rough_8k.exr",
+          "size": 76405456,
+          "md5": "f5f3c060b1b35a68e9fa0996b34cb96e"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/wood_planks_grey/wood_planks_grey_rough_4k.jpg",
+          "size": 3423511,
+          "md5": "f7164a6a72d4822e32c1de38dda391e8"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/wood_planks_grey/wood_planks_grey_rough_4k.png",
+          "size": 29331443,
+          "md5": "5d84b0c4f132b3c7713af93a5a14adda"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/wood_planks_grey/wood_planks_grey_rough_4k.exr",
+          "size": 19747365,
+          "md5": "21739893adfeea2ac99671ce76ac9903"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_planks_grey/wood_planks_grey_rough_2k.jpg",
+          "size": 829157,
+          "md5": "91bd16df40f3784b695a6fe2dc6cd709"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/wood_planks_grey/wood_planks_grey_rough_2k.png",
+          "size": 7380375,
+          "md5": "3db8138b0173986c3b02d229102e4d62"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/wood_planks_grey/wood_planks_grey_rough_2k.exr",
+          "size": 4858275,
+          "md5": "e4d697a40bc6da2034c59ed70e95f015"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_planks_grey/wood_planks_grey_rough_1k.jpg",
+          "size": 186804,
+          "md5": "eb620bf4c075153d9272de00f1bf7633"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/wood_planks_grey/wood_planks_grey_rough_1k.png",
+          "size": 1832684,
+          "md5": "d519c5f0d242e2fd3534536572118597"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/wood_planks_grey/wood_planks_grey_rough_1k.exr",
+          "size": 1176206,
+          "md5": "0c863a27e2858b5cd9ddaba719de227b"
+        }
+      }
+    },
+    "arm": {
+      "8k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/wood_planks_grey/wood_planks_grey_arm_8k.jpg",
+          "size": 10310199,
+          "md5": "c2eb207f4e030bb84f218a48c05c1d64"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/wood_planks_grey/wood_planks_grey_arm_8k.png",
+          "size": 167899723,
+          "md5": "070be8dcb6077f06df4926c45d6932f9"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/wood_planks_grey/wood_planks_grey_arm_8k.exr",
+          "size": 62360888,
+          "md5": "cc421ee35bd3ff900acc2bbabebb73a7"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/wood_planks_grey/wood_planks_grey_arm_4k.jpg",
+          "size": 2933566,
+          "md5": "124bc4ca8084f5455df69fbdcd27f6f9"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/wood_planks_grey/wood_planks_grey_arm_4k.png",
+          "size": 47342253,
+          "md5": "79c742eaa0ecd44d2152cfb30852f03c"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/wood_planks_grey/wood_planks_grey_arm_4k.exr",
+          "size": 22483769,
+          "md5": "24076e0c31d7e551bc01d44c85b73328"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_planks_grey/wood_planks_grey_arm_2k.jpg",
+          "size": 691036,
+          "md5": "48a59347ab3e3f279cbb4334d9770fa1"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/wood_planks_grey/wood_planks_grey_arm_2k.png",
+          "size": 12471794,
+          "md5": "30dc84ae176b5b5fd46a5e6559b5ccf6"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/wood_planks_grey/wood_planks_grey_arm_2k.exr",
+          "size": 6000898,
+          "md5": "9be3f28f221cb2794bf1b0868eea6a6c"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_planks_grey/wood_planks_grey_arm_1k.jpg",
+          "size": 155198,
+          "md5": "2da2c5b43105bd0b1bcc8712e8164406"
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/wood_planks_grey/wood_planks_grey_arm_1k.png",
+          "size": 3281348,
+          "md5": "8ae154827e5336c02e2c731ab7217476"
+        },
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/wood_planks_grey/wood_planks_grey_arm_1k.exr",
+          "size": 1431295,
+          "md5": "fa4e750fb2dee197f7de9494b72ba04c"
+        }
+      }
+    }
   }
 }

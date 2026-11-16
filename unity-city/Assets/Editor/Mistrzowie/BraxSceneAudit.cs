@@ -808,7 +808,7 @@ public static class BraxSceneAudit
             if(Contains(n,"sidewalk_paving"))return "concrete_pavement_02";
             if(Contains(n,"drive_asphalt"))return "clean_asphalt";
             if(Contains(n,"teak_veneer")||Contains(n,"teak_dark"))return "teak_veneer";
-            if(Contains(n,"white_marble")||Contains(n,"bath_marble_floor"))return "marble_01";
+            if(Contains(n,"white_marble")||Contains(n,"bath_marble_floor"))return "floor_tiles_02";   // 16.11: white stone = Poly Haven floor_tiles_02
             if(Contains(n,"cream_marble"))return "marble_01";
             if(Contains(n,"black_marble"))return "granite_tile";
             if(Contains(n,"room_oak_floor"))return "laminate_floor_02";

@@ -19,7 +19,7 @@ public static partial class BraxChampionsAquapark
     {
         const float half = 2.3f, post = 2.15f, y0 = DY + .01f, deck = DY + .13f, eave = DY + 2.75f, apex = DY + 3.45f;
         // the platform (flush silver teak on a graphite plinth)
-        walk.BoxMinMax(teak, cx - half, cx + half, deck - .03f, deck, cz - half, cz + half);
+        walk.BoxMinMax(teakDeck, cx - half, cx + half, deck - .03f, deck, cz - half, cz + half);
         m.BoxMinMax(graphite, cx - half + .02f, cx + half - .02f, y0, deck - .03f, cz - half + .02f, cz + half - .02f);
         // posts
         foreach (float sx in new[] { -1f, 1f }) foreach (float sz in new[] { -1f, 1f })

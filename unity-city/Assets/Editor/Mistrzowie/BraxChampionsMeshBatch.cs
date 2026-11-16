@@ -57,6 +57,16 @@ public sealed class BraxChampionsMeshBatch
         p.t.Add(i); p.t.Add(i + 1); p.t.Add(i + 2); p.t.Add(i); p.t.Add(i + 2); p.t.Add(i + 3);
     }
 
+    /// <summary>Triangle with its own UVs (data for the shader, e.g. the depth under a water surface), same winding as Triangle.</summary>
+    public void TriangleUV(Material m, Vector3 a, Vector3 b, Vector3 c, Vector2 ua, Vector2 ub, Vector2 uc)
+    {
+        var p = Of(m); int i = p.v.Count;
+        var n = Vector3.Cross(b - a, c - a).normalized;
+        p.v.Add(a); p.v.Add(b); p.v.Add(c); p.n.Add(n); p.n.Add(n); p.n.Add(n);
+        p.uv.Add(ua); p.uv.Add(ub); p.uv.Add(uc);
+        p.t.Add(i); p.t.Add(i + 1); p.t.Add(i + 2);
+    }
+
     public void Triangle(Material m, Vector3 a, Vector3 b, Vector3 c)
     {
         var p = Of(m); int i = p.v.Count;

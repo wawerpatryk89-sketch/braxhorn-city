@@ -11,7 +11,14 @@ using UnityEngine;
 //   | JACUZZI teak deck x 58..92, z -12..22 east | lawns with palms round the edge.
 public static partial class BraxChampionsAquapark
 {
-    sealed class Pool { public string id; public List<Vector2> edge, cop; public float water, floor; public readonly List<List<Vector2>> islands = new List<List<Vector2>>(); }
+    sealed class Pool
+    {
+        public string id; public List<Vector2> edge, cop; public float water, floor, pitFloor;
+        public readonly List<List<Vector2>> islands = new List<List<Vector2>>();
+        // deep wells sunk into the floor (the lagoon's diving well): vertical tiled walls down to pitFloor
+        public readonly List<List<Vector2>> pits = new List<List<Vector2>>();
+        public float Deepest => pits.Count > 0 ? Mathf.Min(floor, pitFloor) : floor;
+    }
     static Pool lagoon, kidsPool; static readonly List<Pool> spas = new List<Pool>();
     static List<Vector2> deckOuter, kidsArea, teakSouth, teakEast, plazaRect;
     static readonly List<List<Vector2>> lawns = new List<List<Vector2>>();
@@ -33,6 +40,10 @@ public static partial class BraxChampionsAquapark
         lagoon.cop = Offset(lagoon.edge, .45f);
         // an island in the lagoon with two palms (its shore wall in the pool's tiles, white marble coping, lawn on top)
         lagoon.islands.Add(W(Blob(new[]{new Vector2(2,2),new Vector2(9,0),new Vector2(13,5),new Vector2(10,11),new Vector2(3,10)}, .5f)));
+        // 16.11 07:33 owner "jak wejdę do wody, zanurkuję": the lagoon is 1.18 m deep - nobody goes under standing. East of the
+        // island a diving well 14 x 12 m, 4.08 m of water (a real pool's diving depth), its edge marked on the floor in navy and
+        // on the surface by a line of floats; away from the steps, the ladders and the slides' splash-downs (z 26-29)
+        lagoon.pits.Add(W(RoundRect(21f, 35f, 2f, 14f, 4f, .5f))); lagoon.pitFloor = DY - 4.20f;
         kidsArea = W(RoundRect(-98f, -56f, 22f, 66f, 6f));
         kidsPool = new Pool { id = "BRODZIK", edge = W(Blob(new[]{new Vector2(-87,37),new Vector2(-77,34.5f),new Vector2(-67.5f,37.5f),new Vector2(-65.5f,45),
             new Vector2(-69.5f,51.5f),new Vector2(-79,53.5f),new Vector2(-87.5f,48)}, .5f)), water = DY - .07f, floor = DY - .38f };
@@ -63,32 +74,34 @@ public static partial class BraxChampionsAquapark
     // ================================================================ POOLS
     static void Pools3()
     {
-        MakePool(lagoon, poolTile, poolFloor, water, true, true);
+        MakePool(lagoon, poolTile, poolFloor, water, true, true, waterBody);
         FloorBull(P(-15.5f, 3.5f), lagoon.floor, 15f);          // the BRAXHORN bull in navy mosaic on the lagoon's floor
         Steps(lagoon, P(0f, -19.6f), 6.0f, 7);
         Steps(lagoon, P(-37.6f, 2f), 4.0f, 7);
         foreach (var l in new[] { P(-24f, -17.7f), P(24f, -16.5f), P(44.6f, 8f), P(-35f, 12f), P(-8f, 27.3f) }) Ladder(lagoon, l);
-        MakePool(kidsPool, poolTile, poolFloor, waterKids, false, false);
+        MakePool(kidsPool, poolTile, poolFloor, waterKids, false, false, waterBodyKids);
         Steps(kidsPool, P(-77f, 34.6f), 3.0f, 2);
         foreach (var s in spas)
         {
-            MakePool(s, poolTile, poolFloor, waterSpa, false, false);
+            MakePool(s, poolTile, poolFloor, waterSpa, false, false, waterBodySpa);
             JacuzziBench(s);
         }
         Pools = 2 + spas.Count;
         RiverPool();
     }
 
-    static void MakePool(Pool p, Material wall, Material floorMat, Material wat, bool lights, bool swim)
+    static void MakePool(Pool p, Material wall, Material floorMat, Material wat, bool lights, bool swim, Material vol = null)
     {
         // marble coping flush with the deck, its rounded nose into the water, a navy mosaic waterline, white-aqua tiles
         Band(walk, coping, p.edge, p.cop, DY, DY);
         Skin(walk, coping, p.edge, DY - .05f, DY, true);
         Skin(walk, waterline, p.edge, Mathf.Max(p.floor, p.water - .18f), DY - .05f, true);
         if (p.water - .18f > p.floor) Skin(walk, wall, p.edge, p.floor, p.water - .18f, true);
-        Fill(walk, floorMat, p.edge, p.islands, p.floor);
-        // the water (no collider)
+        Fill(walk, floorMat, p.edge, p.islands.Concat(p.pits.Select(q => Offset(q, .25f))).ToList(), p.floor);
+        foreach (var q in p.pits) Pit(p, q, wall, floorMat, lights);
+        // the water (no collider): its surface and its body (the whole basin under the surface is water)
         Fill(m, wat, p.edge, p.islands, p.water);
+        if (vol) WaterBody(p, vol);
         foreach (var isl in p.islands)
         {
             var top = Offset(isl, -.45f); var grass = Offset(isl, -.60f);
@@ -111,6 +124,87 @@ public static partial class BraxChampionsAquapark
             }
         }
         if (swim) SwimStrips(p, 3f);
+    }
+
+    // the diving well: navy marking band 25 cm round its edge on the floor, tiled walls and floor 4 m down, lights in its
+    // walls, and on the surface 60 cm outside the edge a line of red and white floats on a steel cable
+    static void Pit(Pool p, List<Vector2> pit, Material wall, Material floorMat, bool lights)
+    {
+        Band(walk, waterline, pit, Offset(pit, .25f), p.floor, p.floor);
+        Skin(walk, wall, pit, p.pitFloor, p.floor, true);
+        Fill(walk, floorMat, pit, null, p.pitFloor);
+        if (lights)
+        {
+            float run = 3.5f;
+            for (int i = 0; i < pit.Count; i++)
+            {
+                var a = pit[i]; var b = pit[(i + 1) % pit.Count]; run += (b - a).magnitude;
+                if (run < 7f) continue; run = 0f;
+                var t = (b - a).normalized; var inw = new Vector3(-t.y, 0, t.x);
+                var c = new Vector3(a.x, p.pitFloor + 1.4f, a.y) + inw * .012f;
+                m.Cylinder(uplight, c, .13f, .012f, 16, Quaternion.FromToRotation(Vector3.up, inw), true, false);
+                m.Cylinder(steel, c - inw * .006f, .16f, .008f, 16, Quaternion.FromToRotation(Vector3.up, inw), true, false);
+            }
+        }
+        var line = Resample(Offset(pit, .6f), .30f);
+        for (int i = 0; i < line.Count; i++)
+        {
+            var a = line[i]; var b = line[(i + 1) % line.Count]; var t = (b - a).normalized; var t3 = new Vector3(t.x, 0, t.y);
+            var c = new Vector3(a.x, p.water + .015f, a.y);
+            m.Cylinder((i / 3) % 2 == 0 ? floatRed : floatWhite, c - t3 * .055f, .055f, .11f, 10, Quaternion.FromToRotation(Vector3.up, t3), true, true);
+            m.Tube(steel, c + t3 * .055f, new Vector3(b.x, p.water + .015f, b.y) - t3 * .055f, .006f, 6);
+        }
+    }
+
+    static List<Vector2> Resample(List<Vector2> loop, float step)
+    {
+        var o = new List<Vector2>(); float carry = 0f;
+        for (int i = 0; i < loop.Count; i++)
+        {
+            var a = loop[i]; var b = loop[(i + 1) % loop.Count]; float len = (b - a).magnitude, d = carry;
+            for (; d < len; d += step) o.Add(Vector2.Lerp(a, b, d / len));
+            carry = d - len;
+        }
+        return o;
+    }
+
+    // THE WATER BODY (owner 16.11 07:33 "woda ma być wodą, nie tylko pasek wody ... po całym basenie"): a skin 5 cm in front of
+    // every wall and floor under the surface, facing into the water, drawn with Braxhorn/ChampionsPoolVolume (each tile
+    // coloured by the way the light travels under the water to it). uv.x = depth of the vertex under the surface.
+    static void WaterBody(Pool p, Material vol)
+    {
+        const float g = .05f;
+        float S = p.water, f = p.floor + g;
+        var e = Offset(p.edge, -g);
+        VSkin(vol, e, f, S, S, true);
+        var holes = p.islands.Select(i => Offset(i, g)).Concat(p.pits.Select(q => Offset(q, -g))).ToList();
+        VFill(vol, e, holes, f, S);
+        foreach (var i in p.islands) VSkin(vol, Offset(i, g), f, S, S, false);
+        foreach (var q in p.pits) { var qi = Offset(q, -g); VSkin(vol, qi, p.pitFloor + g, f, S, true); VFill(vol, qi, null, p.pitFloor + g, S); }
+        WaterBodies++;
+    }
+    static void VSkin(Material vol, IList<Vector2> poly, float y0, float y1, float S, bool inward)
+    {
+        int n = poly.Count;
+        for (int i = 0; i < n; i++)
+        {
+            int j = (i + 1) % n; var ed = poly[j] - poly[i]; var no = new Vector3(ed.y, 0, -ed.x).normalized; if (inward) no = -no;
+            Vector3 a = new Vector3(poly[i].x, y0, poly[i].y), b = new Vector3(poly[j].x, y0, poly[j].y), c = new Vector3(poly[j].x, y1, poly[j].y), d = new Vector3(poly[i].x, y1, poly[i].y);
+            Vector2 lo = new Vector2(S - y0, 0f), hi = new Vector2(S - y1, 0f);
+            if (Vector3.Dot(Vector3.Cross(b - a, c - a), no) < 0) m.QuadUV(vol, d, c, b, a, hi, hi, lo, lo);
+            else m.QuadUV(vol, a, b, c, d, lo, lo, hi, hi);
+        }
+    }
+    static void VFill(Material vol, List<Vector2> outer, List<List<Vector2>> holes, float y, float S)
+    {
+        var tris = Triangulate(outer, holes, out var pts); var uv = new Vector2(S - y, 0f);
+        for (int i = 0; i + 2 < tris.Count; i += 3)
+        {
+            var a = pts[tris[i]]; var c1 = pts[tris[i + 1]]; var c2 = pts[tris[i + 2]];
+            if (Mathf.Abs(Cross(c1 - a, c2 - a)) < 1e-8f) continue;
+            Vector3 A = new Vector3(a.x, y, a.y), B = new Vector3(c1.x, y, c1.y), C = new Vector3(c2.x, y, c2.y);
+            if (Vector3.Cross(B - A, C - A).y < 0) m.TriangleUV(vol, A, C, B, uv, uv, uv); else m.TriangleUV(vol, A, B, C, uv, uv, uv);
+        }
     }
 
     static List<Vector2> Spans(IList<Vector2> poly, float x, List<List<Vector2>> holes = null)
@@ -145,7 +239,7 @@ public static partial class BraxChampionsAquapark
                     if (!hit) ok = false;
                 }
                 z0 += .35f; z1 -= .35f; if (!ok || z1 - z0 < .8f) continue;
-                float y0 = p.floor + .05f, y1 = p.water + .35f;
+                float y0 = p.Deepest + .05f, y1 = p.water + .35f;     // down into the diving well too (else a diver leaves the water)
                 var g = new GameObject(p.id + " | woda " + SwimZones); g.transform.SetParent(zones, false);
                 g.transform.localPosition = new Vector3((xa + xb) * .5f, (y0 + y1) * .5f, (z0 + z1) * .5f) * K;
                 var bc = g.AddComponent<BoxCollider>(); bc.isTrigger = true; bc.size = new Vector3(xb - xa, y1 - y0, z1 - z0) * K;
@@ -218,7 +312,7 @@ public static partial class BraxChampionsAquapark
         var inner = Circle(c, r0, 48);
         var outer = Circle(c, r1 - .002f, 48);
         Band(walk, coping, inner, outer, seat, seat);
-        Skin(walk, poolTile, Ccw(inner), p.floor, seat, false);
+        Skin(walk, poolTile, Ccw(inner), p.floor, seat, true);      // the bench's front faces the middle of the tub (was turned away: no front)
         for (int k = 0; k < 6; k++)
         {
             float a = (k + .5f) * 60f * Mathf.Deg2Rad; var d = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
@@ -251,8 +345,8 @@ public static partial class BraxChampionsAquapark
         Fill(walk, rubber, kidsArea, new List<List<Vector2>> { kidsPool.cop }, DY);
         Skin(m, black, kidsArea, DY - .02f, DY, false);
         // teak terraces (flush): the south one, the east one round the two jacuzzi
-        Fill(walk, teak, teakSouth, null, DY);
-        Fill(walk, teak, teakEast, spas.Select(s => s.cop).ToList(), DY);
+        Fill(walk, teakDeck, teakSouth, null, DY);
+        Fill(walk, teakDeck, teakEast, spas.Select(s => s.cop).ToList(), DY);
         // lawns 1 cm above the deck inside a 15 cm granite edging 3 cm proud
         foreach (var l in lawns)
         {

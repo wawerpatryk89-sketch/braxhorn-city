@@ -17,7 +17,8 @@ using UnityEngine;
 public static partial class BraxChampionsAquapark
 {
     const float BX0 = -58f, BX1 = 58f, BZ0 = -96f, BZ1 = -64f, FFL = DY + .02f, CY = FFL + 4.4f, RY = DY + 6.6f, AY = DY + 7.2f;
-    static Material render, renderIn, terrazzo, wetTile, marbleBlack, marbleWhite, quartz, ceiling, frosted, lockerMat, plate, mirror, downlight, fin;
+    static Material render, renderIn, terrazzo, wetTile, marbleBlack, marbleWhite, quartz, ceiling, frosted, lockerMat, plate, mirror, downlight, fin,
+        doorWalnut, frameSteel;
     static int doors;
 
     static Material Inside(Material x, float a) { BraxChampionsInteriorLight.Apply(x, a); return x; }
@@ -26,20 +27,27 @@ public static partial class BraxChampionsAquapark
     {
         render = Tex("pavilion_white_render", "white_stucco_02", 2.0f, new Color(1.06f, 1.06f, 1.08f));
         BraxChampionsInteriorLight.Facade(render);
-        renderIn = Inside(Tex("pavilion_inside_render", BraxChampionsFoundation.InteriorPaintSlug, 2.0f, BraxChampionsFoundation.PaintTint(new Color(1.04f, 1.04f, 1.06f))), 1.05f);
-        terrazzo = Inside(Tex("lobby_terrazzo", "terrazzo_tiles", 1.4f, new Color(1.10f, 1.38f, 1.74f)), 1.0f);      // the warm map neutralised: light grey
-        wetTile = Inside(Tex("wet_antislip_tiles", "anti_skid_tiles", 1.0f, new Color(1.05f, 1.31f, 1.68f)), 1.0f);
+        renderIn = Inside(Tex("pavilion_inside_render", BraxChampionsFoundation.InteriorPaintSlug, 3.0f, BraxChampionsFoundation.PaintTint(new Color(1.04f, 1.04f, 1.06f))), 1.05f);
+        // 16.11 07:32 owner "nie widzę podłogi wykończonej": the fine terrazzo read as a plain grey floor. The lobby is now
+        // limestone slabs (Poly Haven marble_01 at its real 1.5 m: joints and slab tones visible), a light warm stone.
+        terrazzo = Inside(BraxChampionsFoundation.Fotoskan("aq_lobby_limestone_slabs", "marble_01", BraxChampionsFoundation.Marble01Metres,
+            new Color(216f / 255f, 207f / 255f, 190f / 255f), BraxChampionsFoundation.MeanMarble01), 1.0f);
+        wetTile = Inside(Tex("wet_antislip_tiles", "anti_skid_tiles", 1.8f, new Color(1.05f, 1.31f, 1.68f)), 1.0f);   // real size: 30 cm tiles
         marbleBlack = Inside(BraxChampionsFoundation.LibraryMarble("aq_lobby_black_marble", new Color(1f, 1f, 1f), 1.8f), 1.0f);
         marbleWhite = Inside(BraxChampionsFoundation.LibraryMarbleWhite("aq_spa_white_marble", new Color(1f, 1f, 1f), 1.6f), 1.0f);
         quartz = Inside(S("reception_white_quartz", new Color(.95f, .95f, .96f), .18f, 0f), 1.0f);
         // 16.11 owner "basen masz skończyć premium ... Poly Haven": the ceiling in the interior paint (Poly Haven), no plain colour
-        ceiling = Inside(Tex("pavilion_ceiling_white", BraxChampionsFoundation.InteriorPaintSlug, 2.0f, BraxChampionsFoundation.PaintTint(new Color(1.06f, 1.06f, 1.08f))), 1.1f);
+        ceiling = Inside(Tex("pavilion_ceiling_white", BraxChampionsFoundation.InteriorPaintSlug, 3.0f, BraxChampionsFoundation.PaintTint(new Color(1.06f, 1.06f, 1.08f))), 1.1f);
         frosted = S("pavilion_frosted_glass", new Color(.90f, .94f, .96f, .62f), .3f, 0f, null, true);
         lockerMat = Inside(S("locker_graphite_hpl", new Color(.16f, .17f, .19f), .42f, .05f), 1.0f);
         plate = S("locker_number_plate", new Color(.85f, .86f, .88f), .25f, .8f);
         mirror = S("vanity_mirror", new Color(.78f, .82f, .86f), .03f, 1f);
         downlight = S("pavilion_downlight", new Color(1f, .96f, .88f), .3f, 0f, new Color(1.25f, 1.18f, 1.02f));
         fin = S("pavilion_black_fin", new Color(.03f, .032f, .035f), .38f, .6f);
+        // 16.11 owner "każdy detal ma być wykończony": the solid doors were plain painted slabs in a bare plaster hole. Now flush
+        // walnut veneer leaves (Poly Haven smoked_walnut_veneer, real 1 m) in black brushed-steel casings, long black pulls
+        doorWalnut = Inside(Tex("door_walnut_veneer", "smoked_walnut_veneer", 1.0f, new Color(.92f, .92f, .92f)), 1.0f);
+        frameSteel = Inside(BraxChampionsFoundation.LibraryMetal("aq_door_frame_black_steel", new Color(.10f, .10f, .11f)), 1.0f);
     }
 
     static void BL(Material mat, float x0, float x1, float y0, float y1, float z0, float z1, bool col = false) => B(mat, CX + x0, CX + x1, y0, y1, CZ + z0, CZ + z1, col);
@@ -80,9 +88,15 @@ public static partial class BraxChampionsAquapark
             }
             else
             {
-                lm.BoxMinMax(renderIn, a0, a1, .02f, height - .02f, -.025f, .025f);
-                float px = side < 0 ? a1 - .12f : a0 + .12f;
-                foreach (float f in new[] { -1f, 1f }) lm.BoxMinMax(steel, px - .08f, px + .08f, 1.02f, 1.06f, f > 0 ? .025f : -.075f, f > 0 ? .075f : -.025f);
+                lm.BoxMinMax(doorWalnut, a0, a1, .02f, height - .02f, -.025f, .025f);
+                // a long black pull on both faces (60 cm, two stand-offs), 10 cm from the closing edge
+                float px = side < 0 ? a1 - .10f : a0 + .10f;
+                foreach (float f in new[] { -1f, 1f })
+                {
+                    float z0 = f > 0 ? .065f : -.085f, z1 = z0 + .02f;
+                    lm.BoxMinMax(frameSteel, px - .012f, px + .012f, .75f, 1.35f, z0, z1);
+                    foreach (float y in new[] { .82f, 1.28f }) lm.BoxMinMax(frameSteel, px - .008f, px + .008f, y - .008f, y + .008f, f > 0 ? .025f : -.065f, f > 0 ? .065f : -.025f);
+                }
             }
             lm.Build(hinge, label + " skrzydło " + (i + 1), Folder, false);
             BraxChampionsMeshBatch.Collider(hinge, "skrzydło kolizja", new Vector3((a0 + a1) * .5f, height * .5f, 0), new Vector3(a1 - a0, height, .08f));
@@ -90,6 +104,22 @@ public static partial class BraxChampionsAquapark
             leaves[i] = hinge; sides[i] = n == 1 ? 1f : (i == 0 ? 1f : -1f);
         }
         var d = group.gameObject.AddComponent<BraxCityDoor>(); d.id = "aquapark_" + (++doors); d.label = label; d.leaves = leaves; d.sides = sides;
+        if (!glassLeaf) Casing(lx, lz, yaw, width, height);
+    }
+
+    // the casing of a solid door in a 15 cm partition: 8 mm steel linings over the plaster reveals (jambs and head), 7 cm
+    // architraves 2 cm proud on both faces (flush with the timber panelling, which stops 10 cm from the opening)
+    static void Casing(float lx, float lz, float yaw, float w, float h)
+    {
+        var r = Quaternion.Euler(0, yaw, 0); var o = V(lx, FFL, lz); float hw = w * .5f;
+        void Bx(float x0, float x1, float y0, float y1, float z0, float z1) =>
+            m.Box(frameSteel, o + r * new Vector3((x0 + x1) * .5f, (y0 + y1) * .5f, (z0 + z1) * .5f), new Vector3(x1 - x0, y1 - y0, z1 - z0), r);
+        foreach (float f in new[] { -1f, 1f })
+        {
+            float z0 = f > 0 ? .075f : -.095f, z1 = z0 + .02f;
+            Bx(-hw - .07f, -hw, 0f, h + .07f, z0, z1); Bx(hw, hw + .07f, 0f, h + .07f, z0, z1); Bx(-hw, hw, h, h + .07f, z0, z1);
+        }
+        Bx(-hw, -hw + .008f, 0f, h, -.075f, .075f); Bx(hw - .008f, hw, 0f, h, -.075f, .075f); Bx(-hw, hw, h - .008f, h, -.075f, .075f);
     }
 
     static void Building()
@@ -201,11 +231,13 @@ public static partial class BraxChampionsAquapark
     //   - the SAUNA room's empty half: three loungers to rest after the sauna (you lie on them), plants.
     static void Finish(float ti)
     {
-        var slat = Inside(Tex("ceiling_walnut_slats", "smoked_walnut_veneer", 1.2f, Color.white), 1.0f);
-        var felt = Inside(Tex("ceiling_black_felt", "hessian_230", 1.0f, new Color(.10f, .10f, .11f)), 1.0f);
-        var walnut = Inside(Tex("spa_walnut_panels", "smoked_walnut_veneer", 1.6f, Color.white), 1.0f);
-        var oak = Inside(Tex("sauna_oak_panels", "oak_wood_planks", 1.6f, Color.white), 1.0f);
-        var tiles = Inside(Tex("changing_long_white_tiles", "long_white_tiles", 1.2f, Color.white), 1.0f);
+        // every map at its real size (Poly Haven dimensions: walnut veneer 1.0 m, hessian .27 m, oak planks 1.2 m, wall tiles
+        // 1.27 m, wool .27 m)
+        var slat = Inside(Tex("ceiling_walnut_slats", "smoked_walnut_veneer", 1.0f, Color.white), 1.0f);
+        var felt = Inside(Tex("ceiling_black_felt", "hessian_230", .27f, new Color(.10f, .10f, .11f)), 1.0f);
+        var walnut = Inside(Tex("spa_walnut_panels", "smoked_walnut_veneer", 1.0f, Color.white), 1.0f);
+        var oak = Inside(Tex("sauna_oak_panels", "oak_wood_planks", 1.2f, Color.white), 1.0f);
+        var tiles = Inside(Tex("changing_long_white_tiles", "long_white_tiles", 1.27f, Color.white), 1.0f);
         // slat ceilings (the felt 3 cm under the plaster, the slats under the felt)
         foreach (var (x0, x1, z0, z1) in new[] { (-13.9f, 13.9f, BZ0 + .2f, BZ1 - .2f), (14.1f, BX1 - .2f, -89.9f, BZ1 - .2f) })
         {
@@ -249,10 +281,28 @@ public static partial class BraxChampionsAquapark
         // the sauna room's rest corner: three loungers (BraxSeat lie) and two plants
         foreach (float x in new[] { 51.9f, 54.0f, 56.1f }) Lounger(V(x, FFL, -84.6f), 0f);
         BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + 41.4f, CZ - 81.0f, "flower_gazania");
+        // 16.11 07:32 (the owner's picture of this room: an empty floor): the west half was bare. A second rest row of three
+        // loungers facing the cabins' glass, walnut side tables with rolled towels between all loungers, and a walnut towel
+        // rack by the door from the corridor (x 50.2..51.8 on the south wall: the shower at 56.6, the bench at 50 stay free)
+        foreach (float x in new[] { 42.3f, 44.4f, 46.5f }) Lounger(V(x, FFL, -83.9f), 0f);
+        var tableWood = Inside(Tex("spa_walnut_side_table", "smoked_walnut_veneer", 1.0f, Color.white), 1.0f);
+        foreach (var (x, z) in new[] { (43.35f, -83.2f), (45.45f, -83.2f), (52.95f, -85.3f), (55.05f, -85.3f) })
+        {
+            BL(tableWood, x - .22f, x + .22f, FFL + .44f, FFL + .48f, z - .22f, z + .22f);
+            BL(frameSteel, x - .02f, x + .02f, FFL, FFL + .44f, z - .02f, z + .02f);
+            BL(frameSteel, x - .16f, x + .16f, FFL, FFL + .012f, z - .16f, z + .16f);
+            m.Cylinder(towel, V(x + .14f, FFL + .535f, z), .055f, .28f, 12, Quaternion.Euler(0, 0, 90f), true, true);   // axis -x: x+.14 .. x-.14
+            Col(CX + x - .22f, CX + x + .22f, FFL, FFL + .48f, CZ + z - .22f, CZ + z + .22f, "stolik");
+        }
+        BL(tableWood, 50.3f, 51.8f, FFL, FFL + .04f, -89.9f, -89.5f, true);
+        foreach (float y in new[] { .45f, .95f, 1.45f }) BL(tableWood, 50.3f, 51.8f, FFL + y, FFL + y + .03f, -89.9f, -89.5f);
+        foreach (float x in new[] { 50.3f, 51.77f }) BL(frameSteel, x, x + .03f, FFL, FFL + 1.6f, -89.9f, -89.5f);
+        foreach (float y in new[] { .48f, .98f })
+            for (int k = 0; k < 4; k++) m.Cylinder(towel, V(50.55f + k * .33f, FFL + y + .11f, -89.88f), .11f, .36f, 14, Quaternion.Euler(90f, 0, 0), true, true);
         // the lobby's entrance half (z -98..-86 was empty floor): two lounge corners by the side walls, off the walk from
         // the doors to the turnstiles and the SPA door - a graphite leather sofa, two armchairs, a walnut table on a wool rug
         var sofaLeather = BraxChampionsFoundation.LibraryLeather("aq_lobby_sofa_leather", new Color(.42f, .43f, .46f));
-        var rug = Inside(Tex("aq_lobby_rug_wool", "poly_wool_herringbone", .8f, new Color(.55f, .56f, .60f)), 1.0f);
+        var rug = Inside(Tex("aq_lobby_rug_wool", "poly_wool_herringbone", .27f, new Color(.55f, .56f, .60f)), 1.0f);
         foreach (float x in new[] { -9.2f, 9.2f })
         {
             BL(rug, x - 2.4f, x + 2.4f, FFL, FFL + .012f, -90.6f, -85.6f);

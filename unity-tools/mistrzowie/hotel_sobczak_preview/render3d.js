@@ -86,6 +86,26 @@ window.setup=async function(w,h){
     // their normals, sharper edges stay hard (PREVIEW_FLAT=1: the old flat facets)
     let gg=g;if(process_flat)g.computeVertexNormals();else{gg=toCreasedNormals(g,35*Math.PI/180);}
     const g2=gg;
+    // the Mistrzowie pools' water body (Braxhorn/ChampionsPoolVolume, 16.11): the same light-path fog and caustics as the
+    // game's shader; the surface level per pool (nominal metres, the aquapark's DY .16 minus .12 / .07 / .10)
+    if(/water_body/.test(n)){
+      const kids=/kids/.test(n),spa=/jacuzzi/.test(n);
+      const sm=new THREE.ShaderMaterial({uniforms:{deep:{value:S2L(kids?[.03,.26,.42]:spa?[.02,.20,.36]:[.012,.15,.31])},
+        shallow:{value:S2L(kids?[.12,.62,.78]:spa?[.10,.56,.74]:[.07,.52,.70])},dens:{value:kids?.20:spa?.30:.24},
+        caus:{value:kids?.7:spa?.5:.9},surf:{value:kids?.09:spa?.06:.04},t:{value:3.0}},
+        vertexShader:'varying vec3 W;varying vec3 N;void main(){vec4 w=modelMatrix*vec4(position,1.);W=w.xyz;N=normalize(mat3(modelMatrix)*normal);gl_Position=projectionMatrix*viewMatrix*w;}',
+        fragmentShader:'uniform vec3 deep,shallow;uniform float dens,caus,surf,t;varying vec3 W;varying vec3 N;void main(){'+
+          'vec3 C=cameraPosition,P=W;float len=length(P-C);float under=C.y<=surf?len:len*(1.-clamp((C.y-surf)/max(C.y-P.y,1e-3),0.,1.));'+
+          'float depth=max(0.,surf-P.y);float fog=1.-exp(-under*dens);vec3 water=mix(shallow,deep,clamp(under/7.+depth/9.,0.,1.));'+
+          'vec2 q=vec2(P.x,-P.z)*2.7;float a1=sin(q.x*1.7+sin(q.y*1.3+t*.8)*1.6+t*.5);float a2=sin(q.y*1.9+sin(q.x*1.1-t*.7)*1.7-t*.6);'+
+          'float a3=sin((q.x+q.y)*1.2+sin(q.x*.7-q.y*.9+t*.4)*2.+t*.3);vec2 r=vec2(q.x*.8-q.y*.6,q.x*.6+q.y*.8)*1.37;'+
+          'float b1=sin(r.x*1.5+sin(r.y*1.7-t*.6)*1.4-t*.4);float b2=sin(r.y*1.6+sin(r.x*1.2+t*.55)*1.5+t*.45);'+
+          'float ridge=clamp(1.-abs(a1+a2+a3)*.45,0.,1.)*clamp(1.-abs(b1+b2)*.3,0.,1.);float up=clamp(normalize(N).y,0.,1.);'+
+          'float cs=pow(ridge,6.)*caus*.45*(.3+.7*up)*exp(-depth*.35)*clamp(1.-len/16.,0.,1.)*(1.-fog*.7);'+
+          'gl_FragColor=vec4(water*fog+cs*vec3(.62,.70,.66),fog);'+String.fromCharCode(10)+'#include <colorspace_fragment>'+String.fromCharCode(10)+'}',
+        transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,blendEquation:THREE.AddEquation,side:THREE.FrontSide});
+      const vm=new THREE.Mesh(g2,sm);vm.renderOrder=-1;S.add(vm);continue;
+    }
     const p={color:S2L([Math.min(c[0],2.2),Math.min(c[1],2.2),Math.min(c[2],2.2)]),side:THREE.FrontSide,roughness:.75,metalness:0};
     if(m.slug){p.map=await tex('http://preview.local/tex/'+m.slug+'_diff_1k.jpg',true);p.normalMap=await tex('http://preview.local/tex/'+m.slug+'_nor_gl_1k.jpg',false);
       if(/ceiling|wall_white/.test(n))p.normalScale=new THREE.Vector2(.18,.18);}   // same _BumpScale as the Unity ceiling / white wall materials
