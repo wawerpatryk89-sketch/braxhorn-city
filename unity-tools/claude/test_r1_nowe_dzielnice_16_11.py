@@ -181,6 +181,30 @@ class ZdjeciaZEdytora(unittest.TestCase):
         self.assertIn("unity-city/Logs/", wf)
 
 
+class GrafikiBetWlasciciela(unittest.TestCase):
+    """16.11 21:51: „Masz, to ci się przyda” — logo BRAXHORN BET i 6 plakatów walk właściciela (paczka zaszyfrowana)."""
+
+    def test_pack_encrypted_with_logo_and_six_posters(self):
+        pk = ROOT / "unity-city/Prywatne/braxhorn-sklep-bet-01"
+        m = json.loads((pk / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(m["target"], "bet_01")
+        for f in ["bet_01/logo.png", "bet_01/logo_kaseton.jpg"] + ["bet_01/plakat_0%d.jpg" % i for i in range(1, 7)]:
+            self.assertIn(f, m["files"])
+        self.assertEqual(sorted(q.name for q in pk.iterdir()), ["manifest.json", "part-000.cms", "recipient.crt", "recipient.pem.enc"])   # nic jawnego
+        dane = (pk / "part-000.cms").read_bytes()
+        self.assertNotIn(b"\x89PNG", dane); self.assertNotIn(b"JFIF", dane)
+
+    def test_bet_uses_owner_graphics_without_fallback_blocks(self):
+        g = src(REG / "BraxBetGrafiki.cs")
+        self.assertIn('Katalog = "Assets/Source/Prywatne/Miasto/bet_01/"', g)
+        self.assertIn("Lico(obraz, srodek + n * .025f, n, w, h);", g)                 # plakat 2.5 cm przed ścianą
+        self.assertIn("Lico(obraz, srodek + n * (gl - .03f), n, w, h);", g)          # lico kasetonu w ramie
+        self.assertNotIn("Rura(c", g)                                                 # bez linek
+        self.assertIn("BraxBetGrafiki.Kaseton(W(sLogo", PIERZ)
+        self.assertIn("BraxBetGrafiki.Stojak(nrW[ix]", PIERZ)
+        self.assertIn('l.typ == "bukmacher" && BraxBetGrafiki.Kaseton(F.P(sm, yc, -.26f), F.N, .88f)', LOK)
+
+
 class KontrolaMigotania(unittest.TestCase):
     """16.11 wieczór: podgląd z prawdziwego kodu (unity-tools/claude/podglad_aleja) — pary powierzchni < 2 cm = 0 (różne materiały)."""
 

@@ -1820,10 +1820,33 @@ public static class BraxUlicePierzeje
             BraxMiastoA.Akcja(bg, "bet_terminal_" + (t + 1), "TERMINAL: POSTAW ZAKŁAD", "Terminal BRAXHORN BET: wybierz walkę, kurs i stawkę — kupon wydrukuje się od razu.", W(sTm, y0, dTm - .9f), 1.2f);
             term0++;
         }
-        // logo na ścianie tylnej nad salą: litery przestrzenne złote, podświetlane
-        float sLogo = (sWolna0 + sWolna1) * .5f;
-        BraxUliceKit.Napis3D("BRAXHORN BET", W(sLogo, y0 + 2.7f * k, dTyl + .02f), f.N, .3f * k, .05f, BraxMiastoA.Swieci("bukmacher: logo (złote litery)", new Color(1f, .78f, .22f), new Color(1.8f, 1.3f, .3f)),
-            BraxUliceKit.Mat("litery przestrzenne: boki grafit", new Color(.06f, .06f, .065f), .5f, .4f));
+        // logo na ścianie tylnej nad salą: KASETON z logo właściciela (paczka braxhorn-sklep-bet-01); bez paczki — litery złote
+        float sLogo = (sWolna0 + sWolna1) * .5f, hLogo = .95f;
+        bool kaseton = BraxBetGrafiki.Kaseton(W(sLogo, y0 + 2.75f * k, dTyl + .02f), f.N, hLogo, .8f);
+        if (!kaseton)
+            BraxUliceKit.Napis3D("BRAXHORN BET", W(sLogo, y0 + 2.7f * k, dTyl + .02f), f.N, .3f * k, .05f, BraxMiastoA.Swieci("bukmacher: logo (złote litery)", new Color(1f, .78f, .22f), new Color(1.8f, 1.3f, .3f)),
+                BraxUliceKit.Mat("litery przestrzenne: boki grafit", new Color(.06f, .06f, .065f), .5f, .4f));
+        // PLAKATY WALK właściciela (16.11 21:51): 2 na ścianie po stronie kasy, 1 na ścianie tylnej między tablicą kursów a logo,
+        // 3 na stojakach w witrynach przodem do promenady (jak w prawdziwych punktach zakładów)
+        int plak = 0; float hP = 1.2f;
+        {
+            float sL = drzwiPrawo ? sIn1 + .01f : sIn0 - .01f; Vector3 nL = drzwiPrawo ? -f.R : f.R;
+            foreach (var (nr, d) in new[] { (1, -1.95f), (6, -3.55f) })
+                if (d - hP * BraxBetGrafiki.AspektPlakatu * .5f > dTyl + .3f && BraxBetGrafiki.Plakat(nr, W(sL, y0 + 1.8f, d), nL, hP)) plak++;
+            // tylna: między krawędzią tablicy kursów (kc ± 1.33) a kasetonem (sLogo ± 0.99), z dala od zegara (kc − 1.75)
+            float kcT = Mathf.Clamp((ladaS0 + ladaS1) * .5f, sIn0 + 1.3f + .15f, sIn1 - 1.3f - .15f), wP = hP * BraxBetGrafiki.AspektPlakatu;
+            float a0 = Mathf.Min(kcT, sLogo) + (kcT < sLogo ? 1.33f : hLogo + .04f), a1 = Mathf.Max(kcT, sLogo) - (kcT < sLogo ? hLogo + .04f : 1.33f), sP = (a0 + a1) * .5f;
+            float zegar = kcT - 1.75f;
+            if (a1 - a0 > wP + .5f && Mathf.Abs(sP - zegar) > wP * .5f + .35f && BraxBetGrafiki.Plakat(3, W(sP, y0 + 1.95f, dTyl + .02f), f.N, hP)) plak++;
+            // witryny: środki przęseł co 3.6 m od drzwi, poza drzwiami, 1.3 m od ścian
+            int ix = 0; var nrW = new[] { 2, 4, 5 };
+            for (int j = -3; j <= 3 && ix < nrW.Length; j++)
+            {
+                float sw = f.drzwiS + j * 3.6f; if (j == 0 || sw < sIn0 + 1.3f || sw > sIn1 - 1.3f) continue;
+                if (BraxBetGrafiki.Stojak(nrW[ix], W(sw, y0, -.45f), f.N, 1.15f, .62f)) plak++;
+                ix++;
+            }
+        }
         // sala: stoliki wysokie z hokerami po bokach (poza przejściem od drzwi i poza kontuarem)
         float sT = Mathf.Clamp((sWolna0 + sWolna1) * .5f + kr * .6f, Mathf.Min(sWolna0, sWolna1) + 1.1f, Mathf.Max(sWolna0, sWolna1) - 1.1f);
         if (Mathf.Abs(sWolna1 - sWolna0) > 3.2f)
@@ -1837,7 +1860,8 @@ public static class BraxUlicePierzeje
         if (kc - 1.85f > sIn0 + .3f) PH(bg, "wall_clock", "BRAXHORN BET: zegar", W(kc - 1.75f, y0 + 2.25f * k, dTyl + .03f), yawDoUlicy, .32f * k);
         PH(rodzic, "doniczka_kalatea_3", "BRAXHORN BET: roślina przy witrynie", W(drzwiPrawo ? sIn0 + .45f : sIn1 - .45f, y0 + .004f, -.75f), 40f);
         BraxMiastoA.Akcja(bg, "bet_transmisja", "OGLĄDAJ TRANSMISJĘ", "BRAXHORN BET: Liga Mistrzów na ekranach — rozpiska, kursy i wyniki. Wygrana wpada na konto.", W(sS + kr * 1.5f, y0, (dA + dB) * .5f), 2.0f);
-        BraxRegion.Note("BRAXHORN BET: tablica kursów, ściana ekranów " + ekr + ", terminale " + term0 + ", kontuar z hokerami, stoliki wysokie, logo");
+        BraxRegion.Note("BRAXHORN BET: tablica kursów, ściana ekranów " + ekr + ", terminale " + term0 + ", kontuar z hokerami, stoliki wysokie, "
+                        + (kaseton ? "kaseton z logo właściciela" : "logo z liter (bez paczki braxhorn-sklep-bet-01)") + ", plakaty właściciela " + plak);
     }
 
     /// <summary>Biuro dewelopera Patryka i Moniki (właściciel 12.11 23:41: „deweloperka: mieszkania w mieście”): recepcja (lada z

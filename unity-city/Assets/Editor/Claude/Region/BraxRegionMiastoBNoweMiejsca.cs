@@ -129,7 +129,9 @@ public static partial class BraxRegionMiastoB
 
         // latarnie sodowe na starych słupach stalowych (wysięgnik, oprawa); NW świeci pomarańczowo, SE nie świeci
         var stalS = BraxRegionMeble.Tex("Plac ustawek: stal słupa (rdzawa farba)", 1.0f, new Color(.42f, .40f, .38f), .7f, "painted_metal_shutter", "metal_plate");
-        var oprawa = BraxCityMaterials.Surface("Plac ustawek: oprawa latarni (aluminium szare)", new Color(.38f, .39f, .40f), .5f, .6f);
+        // 16.11 wieczór (właściciel: „co to jest… takie jedno na dachu”): oprawa była płaskim jasnym pudłem 71 × 71 cm — z góry jak płyta.
+        // Teraz stara oprawa uliczna „kobra” z ciemnoszarego lakierowanego aluminium: korpus przy wysięgniku + płaski nos z kloszem
+        var oprawa = BraxCityMaterials.Surface("Plac ustawek: oprawa latarni (aluminium lakierowane ciemnoszare)", new Color(.20f, .21f, .22f), .55f, .4f);
         var sod = BraxRegionMeble.Swiecacy("Plac ustawek: lampa sodowa (pomarańczowa)", new Color(1f, .62f, .26f), 1.4f);
         var zgasla = BraxCityMaterials.Surface("Plac ustawek: klosz zgaszonej lampy (zmatowiały)", new Color(.45f, .42f, .36f), .4f);
         foreach (var (p, wys, swieci) in new[] { (new Vector3(R.xMin + 3f, y, R.yMax - 3f), 7.5f * K * .8f, true), (new Vector3(R.xMax - 3f, y, R.yMin + 3f), 7.5f * K * .8f, false) })
@@ -138,9 +140,11 @@ public static partial class BraxRegionMiastoB
             var ku = (R.center - new Vector2(p.x, p.z)).normalized; var kier = new Vector3(ku.x, 0f, ku.y);
             sl.Cyl(p, p + Vector3.up * wys, .1f * K, 12, .065f * K);
             sl.Cyl(p + Vector3.up * (wys - .05f), p + Vector3.up * (wys + .25f * K) + kier * 1.4f * K, .04f * K, 8);
-            var h = p + Vector3.up * (wys + .25f * K) + kier * 1.55f * K;
-            op.Box(h + Vector3.up * .06f * K, new Vector3(.55f * K, .14f * K, .55f * K), Quaternion.LookRotation(kier));
-            kl.Box(h - Vector3.up * .03f * K, new Vector3(.42f * K, .04f * K, .42f * K), Quaternion.LookRotation(kier));
+            var h = p + Vector3.up * (wys + .25f * K) + kier * 1.4f * K;   // koniec wysięgnika
+            var q = Quaternion.LookRotation(kier);
+            op.Box(h + kier * .14f * K + Vector3.up * .06f * K, new Vector3(.26f * K, .16f * K, .28f * K), q);   // korpus (statecznik) na wysięgniku
+            op.Box(h + kier * .48f * K + Vector3.up * .03f * K, new Vector3(.32f * K, .10f * K, .40f * K), q);   // nos oprawy
+            kl.Box(h + kier * .48f * K - Vector3.up * .035f * K, new Vector3(.26f * K, .03f * K, .34f * K), q);  // klosz pod nosem
             sl.Obiekt("Plac ustawek: słup latarni", g, stalS, false, true); op.Obiekt("Plac ustawek: oprawa latarni", g, oprawa, false, true);
             kl.Obiekt(swieci ? "Plac ustawek: klosz lampy sodowej (świeci)" : "Plac ustawek: klosz lampy (zgaszony)", g, swieci ? sod : zgasla, false, false);
             BraxRegionMeble.Kolizja(g, "Plac ustawek: kolizja słupa", p + Vector3.up * wys * .5f, new Vector3(.22f * K, wys, .22f * K));

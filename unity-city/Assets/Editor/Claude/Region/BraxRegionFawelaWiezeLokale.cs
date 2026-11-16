@@ -154,7 +154,21 @@ public static partial class BraxRegionFawela
         string firma = l.typ == "apteka" ? "sobczak_apteka" : l.typ == "piekarnia" ? "sobczak_piekarnia" : l.typ == "cukiernia" ? "sobczak_cukiernia"
                      : l.typ == "kawiarnia" ? "sobczak_kawiarnia" : l.typ == "market" ? "sobczak_delikatesy" : null;   // grafiki firm właściciela (3.11)
         float wG = Mathf.Min(sb - sa - .6f, 3.4f), hG = wG / 5f;
-        if (firma == null || !BraxMiastoBillboardy.Mural(lr, firma, F.P(sm, yc, -.27f), F.N, wG, hG))
+        // BRAXHORN BET (16.11 21:51): kaseton z logo właściciela nad witryną + złote litery po bokach (paczka braxhorn-sklep-bet-01)
+        bool betLogo = false;
+        if (l.typ == "bukmacher" && BraxBetGrafiki.Kaseton(F.P(sm, yc, -.26f), F.N, .88f))
+        {
+            betLogo = true;
+            var zl = BraxMiastoA.Swieci("bukmacher: logo (złote litery)", new Color(1f, .78f, .22f), new Color(1.8f, 1.3f, .3f));
+            var bk = BraxUliceKit.Mat("litery przestrzenne: boki grafit", new Color(.06f, .06f, .065f), .5f, .4f);
+            foreach (var (t, s0, s1) in new[] { ("ZAKŁADY BUKMACHERSKIE", sa + .2f, sm - .88f - .3f), ("LIGA MISTRZÓW NA ŻYWO", sm + .88f + .3f, sb - .2f) })
+            {
+                if (s1 - s0 < 1.5f) continue;
+                float cp = Mathf.Min(.24f, (s1 - s0) / Mathf.Max(.01f, BraxUliceKit.SzerokoscNapisu(t, 1f)));
+                BraxUliceKit.Napis3D(t, F.P((s0 + s1) * .5f, yc - cp * .5f, -.26f), F.N, cp, .05f, zl, bk);
+            }
+        }
+        if (!betLogo && (firma == null || !BraxMiastoBillboardy.Mural(lr, firma, F.P(sm, yc, -.27f), F.N, wG, hG)))
         {
             var lico = BraxUliceKit.Mat("litery przestrzenne: lico " + l.szyld + " (podświetlenie nocą)",
                 l.typ == "apteka" ? new Color(.10f, .55f, .28f) : l.typ == "bukmacher" ? new Color(.95f, .76f, .22f) : new Color(.95f, .93f, .86f), .45f, .05f);

@@ -1,0 +1,35 @@
+{
+ "source": "Właściciel 16.11.2026 21:51: „Masz, to ci się przyda, twój kolega to wykorzystał już.” — logo BRAXHORN BET i 6 plakatów walk (grafiki właściciela bez zmian treści; JPEG 1024×1536, logo PNG z alfą i na czarnym tle do kasetonu) — BRAXHORN BET w parterze wieżowca C5_U07 (R1)",
+ "target": "bet_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/bet_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "b60d0826538e427642b7bda11aedb6bcaf81bef29cb1df43ad2712bf59cd131c",
+ "cmsSha256": "4498f197212529ce368ca2195b86627c8318aade6a3763efa05d63195a1b7623",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 27873861,
+   "sha256": "4498f197212529ce368ca2195b86627c8318aade6a3763efa05d63195a1b7623"
+  }
+ ],
+ "files": {
+  "bet_01/katalog.json": "25f6676e5eda52b08cb84d07c444f0f0c01597804fd027c765c0810299ad8b27",
+  "bet_01/logo.png": "9b94f7ddd1c8cee306b905813d1849086b13132e494516a99d7e54813146fbd3",
+  "bet_01/logo_kaseton.jpg": "56e9f8566f91a62c840aa095d482622aafac88c3a8a070c31b4d7735cee67643",
+  "bet_01/plakat_01.jpg": "966902d59a13cabc8544dedd32bfaab99a5d161fb15ebbab87c903071c695f74",
+  "bet_01/plakat_02.jpg": "619e9a670f44d8aede8eea1d8482fa3c988cdac0547cadfb921224e4c4ae1ba9",
+  "bet_01/plakat_03.jpg": "0912e9d16378f15ed4b2c5f3e6970aeba988e9c8f08c1704bfa223f3f78f8768",
+  "bet_01/plakat_04.jpg": "53a220f85d2a18ab7ede84d1a12a75aa18a70eed0a7ddc1e345dd832b78dc0c7",
+  "bet_01/plakat_05.jpg": "40ca96bef76d810d08a25a45dd68fd531675ec6f5bb677599c5261d4e5bb8117",
+  "bet_01/plakat_06.jpg": "219052bc7ef1e282741af8af550a501b10956acb5e6111e2c4e960ee3ad50d0c",
+  "oryginal/logo_oryginal.png": "bf40e127bc0f96d389ffe279189bc965201ee9b4d20132947b78f8fa9ffd2829",
+  "oryginal/plakat_01_oryginal.png": "099236a7a7ec91de3c456b3beca1806ede9493c1fb10e1caa71623d494780be2",
+  "oryginal/plakat_02_oryginal.png": "20307aac5cd5d9f1d0e02f75034df4bf9cdd7e385e3ce4b248e87d7596799ab2",
+  "oryginal/plakat_03_oryginal.png": "ef9a6cb84e320cd236425d7dbba0004f214360ae1807df19ab75d8c254fd298c",
+  "oryginal/plakat_04_oryginal.png": "61b2385a3132c53f5d87c58fff3414b6b8a3574c2eddb51357fc2f9135f8db19",
+  "oryginal/plakat_05_oryginal.png": "fa97334cee32dcb6c541bde9786ee4e23b65f78c867f3b28b0ec184907f031f8",
+  "oryginal/plakat_06_oryginal.png": "66851b664c5e26f7c7c9460fe9bf7623fc14ab12eb7423d413c6393c4d320e39",
+  "oryginal/spec.json": "49e53bc766cad96637bac6b7b40fa52923d102cb8cd29f3f6b73ffda5abf7f7a"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
