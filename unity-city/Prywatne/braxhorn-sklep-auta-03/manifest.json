@@ -1,0 +1,48 @@
+{
+ "source": "Właściciel 16.11.2026 13:07: „jedziesz ten kremowy, poprawiasz kolor, detaling” — kremowy kabriolet z jego zipa (Tripo 08:19) poprawiony na jego modelu: kształt bez zmian (wymiary Corvette C8), czysty krem z połyskiem, skóra koniak, świecące lampy; 4 koła wg zdjęć C8, szyba czołowa, byk na nosie i z tyłu, napis BRAXHORN: kabriolet_kremowy (LOD0, 88279 trójkątów) + kabriolet_kremowy_lod1 (23416); prawdziwe metry, przód +Z, podstawa y = 0",
+ "target": "pojazdy_auta_03",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/pojazdy_auta_03 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "5b2a86a51fe33b9baa37975765b076279af94d7427ef15bb692c6a55dbf1a793",
+ "cmsSha256": "e7777c70b1f6ea04779e50c58fee3de9f11745f697f1285b3ba988b5549a57d5",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 20900421,
+   "sha256": "e7777c70b1f6ea04779e50c58fee3de9f11745f697f1285b3ba988b5549a57d5"
+  }
+ ],
+ "files": {
+  "oryginal/emblematy.py": "0eb6c99e7a9580be94696fb90fe03dbd3c6f2155f97f22a55a234bfa2d21e99f",
+  "oryginal/finalizuj.sh": "8fb190e9ceab1b1e574b09976cd1c82919bc9b67070822b7e97174b4585b5d31",
+  "oryginal/kolor.py": "3af5ee401b4d7aa2ab70a87a22277f81a404d8c46c0416e2098a5f3f430f0381",
+  "oryginal/krem_cialo.py": "78d0dd282f0aca91ef48b70eaf51114a2db7ccb57d9a895722c5f8d8b1a06865",
+  "oryginal/krem_detale.py": "3169fec0e2ff723352bfb7ff04bd9fc384b59571899234020e04fc19830eaec0",
+  "oryginal/krem_emblematy_pom.py": "8c8df88ba0a34dbfc932ef48185f873ad8a6b5ee972ff196282ce57737a54df8",
+  "oryginal/krem_kola.py": "165b436b4d4759063b4a2e830c1d462d9c6673a891b4c7940b69b2e65347b0bf",
+  "oryginal/krem_koniec.py": "48f034bf8b981b2d61eac9db5dd1f02277087f2b7bc549dab099e0a93c058a62",
+  "oryginal/krem_naglowek.py": "a9119a92371d98d2cce80625263eaacd287da5fe031344b32f3f30ff054fd05e",
+  "oryginal/krem_pomocnicze.py": "d80f08b3fa9258f57b296cc34568723e6b8bd16fe5388a12e339653284a956a7",
+  "oryginal/logo_wlasciciela_16-11.glb": "aa794f33f7d20f6a3101173e9fe137accf219928a3b81b80f9a4c964766d3552",
+  "oryginal/spec.json": "7e5e64fa8838bc0c587ec8eb30305a1b097ec942a5e7f5578f1264fcc08fb93c",
+  "oryginal/sprawdz_normalne.py": "59b9986a2eff981f79f488f319d3276e1d58662b121a6b5d756793b53c5031ae",
+  "oryginal/tekstury_na_zewnatrz.py": "fd9593d1daa1bcbe674e18a063143d2c816f3683eeb8a668ebb010223446b827",
+  "oryginal/tripo_kremowy.glb": "a6a18b7bc3ef557fe5d41b9811ba15be84c8a06db8149902d4440a36bc49eabe",
+  "oryginal/uv_npz.py": "8eb124bfc9d0541d340ff02c2ed77bc88025c61c4175dc1b721fd929d4be9634",
+  "oryginal/uvmapa.py": "246d8c1e1fc54e09c1326eb3f7ae771f1ad8ae562c747f4e014aee2e90776313",
+  "oryginal/zloz_krem.py": "dc3971f6e26b72d155515b8fbfc711186eca6047c3e126588927496653bed739",
+  "pojazdy_auta_03/_tekstury/kabriolet_kremowy/emblemat_kolor.jpg": "0dd18da146ae9d97f783cf245b445961d0d2fa72f0f99f46dd77b42b97a3c332",
+  "pojazdy_auta_03/_tekstury/kabriolet_kremowy/emis.png": "39cc6d2491a514a25efd60f2bb640dfb01d01069a8e34679898932f264edcec1",
+  "pojazdy_auta_03/_tekstury/kabriolet_kremowy/emis_1k.png": "dd4d03dbe4e1cf99c11e941f217241f3367ee02668d02c645911f780e8140ad3",
+  "pojazdy_auta_03/_tekstury/kabriolet_kremowy/kolor.png": "0452a4b6c2f1c506c28dd1ccead64f38196fd31c24232674acf7c659ed548d96",
+  "pojazdy_auta_03/_tekstury/kabriolet_kremowy/kolor_1k.png": "266b7197f6fa30ca7bad6cfad50b16d9328d91ac9da323c7d1873f314fe95336",
+  "pojazdy_auta_03/_tekstury/kabriolet_kremowy/mr.png": "882f547ffe4ee782042aed886b51f2ce294129d1177250e1e2574b54756b61d0",
+  "pojazdy_auta_03/_tekstury/kabriolet_kremowy/mr_1k.png": "5795f3677e69765077d84ae2376908c505a15eec3ffffe685a05fcf15405be49",
+  "pojazdy_auta_03/_tekstury/kabriolet_kremowy/normal.png": "81f8f506730f3f74f11be7f4cd2493425e8332e53ecc6dc9ee255ca689ec37e3",
+  "pojazdy_auta_03/_tekstury/kabriolet_kremowy/normal_1k.png": "d9c9a959bc46ad4867354a0465ce8ee4921dcba311e551600f3c43a4a1457edb",
+  "pojazdy_auta_03/kabriolet_kremowy.glb": "d7f35c2e67003a23a4944ea6cbbfd1bf93e6ea504bfe470dc59bb9c12dc716e4",
+  "pojazdy_auta_03/kabriolet_kremowy_lod1.glb": "d019e27a84bb6199e4c2645d3ca0f14e8991016770adcabb60c6448d90a60d2c",
+  "pojazdy_auta_03/katalog.json": "c8e765242114937213864543dc8440dc9546f2ca507b1d28fc5550f3d46d3a9c"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
