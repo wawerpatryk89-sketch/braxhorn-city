@@ -31,7 +31,7 @@ import re
 import sys
 
 WERSJA = '1'
-REJONY = ('osiedle', 'miasto', 'oba')
+REJONY = ('osiedle', 'miasto', 'oba', 'pokoj')
 
 # Pliki generatora WYŁĄCZNIE drugiego rejonu (ścieżki względem unity-city/). Kod gry (Assets/Claude, Assets/City, …),
 # pliki wspólne edytora (BraxGymBuild, BraxCityBuild, BraxClaudeSiatki, BraxClaudeBezSwiecenia, BraxClaudeObszary,
@@ -54,6 +54,14 @@ TYLKO = {
         'Assets/Editor/BraxNovaMusicBuild.cs',
         'Assets/Editor/BraxGymReferenceRebuild.cs',
         'Assets/Editor/BraxGymReferenceEquipment.cs',
+    ],
+    # PIĄTY REJON: pokój prób postaci (właściciel 16.11, 10:26). Osobna, mała scena do
+    # sprawdzania postaci — nie generuje świata, nie buduje APK. Jego pliki są poza kluczem
+    # miasta i osiedla, więc praca nad testami nie unieważnia światów tamtych rejonów.
+    'pokoj': [
+        'Assets/Editor/BraxPokojProbBuild.cs',
+        'Assets/BraxProbaPostaci.cs',
+        'Assets/BraxProbaPary.cs',
     ],
     # generator osiedla R2 — poza kluczem miasta. BraxClaudeOsiedle.cs (główny) zostaje w kluczu miasta:
     # siłownia miasta woła z niego BraxClaudeOsiedle.StreamAudio (BraxGymBuild).
