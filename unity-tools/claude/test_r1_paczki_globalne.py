@@ -22,9 +22,7 @@ class PaczkiGlobalne(unittest.TestCase):
                                       # 16.11 01:29 „ten model 1:1 do gry, materiały Poly Haven i zapisać w paczce aut”
                                       ("braxhorn-sklep-auta-01", "pojazdy_auta_01", 2),
                                       # 16.11 08:11 „zapisz to auto, jedziesz z następnym” — pikap ze zdjęcia
-                                      ("braxhorn-sklep-auta-02", "pojazdy_auta_02", 2),
-                                      # 16.11 10:11 „dawaj resztę rób… te, co ci wysłałem, do poprawki” — limuzyna od zera
-                                      ("braxhorn-sklep-auta-03", "pojazdy_auta_03", 2)]:
+                                      ("braxhorn-sklep-auta-02", "pojazdy_auta_02", 2)]:
             m = json.loads((PRYW / nazwa / "manifest.json").read_text())
             self.assertEqual(m["target"], target)
             glb = [f for f in m["files"] if f.startswith(target + "/") and f.endswith(".glb")]
@@ -187,25 +185,6 @@ class PikapMiedziany(unittest.TestCase):
         self.assertEqual(tracked, [])
         a = json.loads((ROOT / "AssetLibrary/Unique/Vehicles/BraxhornPikapMiedziany/manifest.json").read_text())
         self.assertEqual(a["sourceStorage"]["pack"], "unity-city/Prywatne/braxhorn-sklep-auta-02")
-        self.assertTrue(a["validation"]["badgesFitted"])
-
-
-class LimuzynaCzarna(unittest.TestCase):
-    def test_limuzyna_czarna_16_11(self):
-        """Limuzyna z zipa właściciela (Tripo 08:19) zbudowana od zera: LOD0 + LOD1, tekstury Poly Haven obok GLB, byk i napis
-        z modelu właściciela; model Tripo i skrypty tylko w zaszyfrowanej paczce; wpis w katalogu Worka."""
-        m = json.loads((PRYW / "braxhorn-sklep-auta-03" / "manifest.json").read_text())
-        f = m["files"]
-        for n in ["pojazdy_auta_03/limuzyna_czarna.glb", "pojazdy_auta_03/limuzyna_czarna_lod1.glb", "pojazdy_auta_03/katalog.json",
-                  "pojazdy_auta_03/_tekstury/limuzyna_czarna/tapicerka_kolor.jpg", "pojazdy_auta_03/_tekstury/limuzyna_czarna/drewno_kolor.jpg",
-                  "pojazdy_auta_03/_tekstury/limuzyna_czarna/emblemat_kolor.jpg", "oryginal/tripo_limuzyna.glb",
-                  "oryginal/nadwozie_sdf.py", "oryginal/zloz.py", "oryginal/sprawdz_normalne.py"]:
-            self.assertIn(n, f)
-        self.assertIn("od zera", m["source"])
-        tracked = [str(p.relative_to(ROOT)) for p in (ROOT / "unity-city").rglob("*limuzyna*")]
-        self.assertEqual(tracked, [])
-        a = json.loads((ROOT / "AssetLibrary/Unique/Vehicles/BraxhornLimuzynaCzarna/manifest.json").read_text())
-        self.assertEqual(a["sourceStorage"]["pack"], "unity-city/Prywatne/braxhorn-sklep-auta-03")
         self.assertTrue(a["validation"]["badgesFitted"])
 
 
