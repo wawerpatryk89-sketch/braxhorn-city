@@ -28,3 +28,9 @@ unity-city/Assets/StreamingAssets/BraxContent.meta
 unity-city/Assets/Resources/BraxContentBase.json*
 unity-city/content-mode.txt
 content-smoke/
+
+# Prywatne modele i mapy obsady, dostarczane osobną paczką.
+unity-city/Assets/Source/ObsadaOsiedla/
+unity-city/Assets/Source/ObsadaOsiedla.meta
+unity-city/Assets/Source/PostacieGlobalne/
+unity-city/Assets/Source/PostacieGlobalne.meta
