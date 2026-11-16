@@ -165,7 +165,7 @@ public static class BraxPokojProbBuild
                 korzen.SetParent(pokoj, false);
                 korzen.localPosition = new Vector3(0, .02f, 0);
                 korzen.localRotation = Quaternion.identity;
-                var a = BraxClaudeOsiedle.ModelObsady(id, korzen, 1.80f * K);
+                var a = BraxClaudeOsiedle.ModelObsady(id, korzen, 1.80f * K, false);
                 anim.Add(a);
                 nazwy.Add(id);
                 mimiki.Add(a.GetComponentInChildren<BraxMimikaOsiedla>());
@@ -325,7 +325,7 @@ public static class BraxPokojProbBuild
                 korzen.SetParent(pokoj, false);
                 korzen.localPosition = new Vector3(kier.x * promien, .02f, kier.z * promien);
                 korzen.localRotation = Quaternion.LookRotation(-kier, Vector3.up);
-                var a = BraxClaudeOsiedle.ModelObsady(id, korzen, 1.80f * K);
+                var a = BraxClaudeOsiedle.ModelObsady(id, korzen, 1.80f * K, false);
                 if (a.GetClip("Idle")) { a["Idle"].wrapMode = WrapMode.Loop; a.Play("Idle"); }
                 var opis = new GameObject("Podpis " + id).AddComponent<BraxPodpisPostaci>();
                 opis.transform.SetParent(korzen, false);
@@ -363,7 +363,7 @@ public static class BraxPokojProbBuild
             {
                 try
                 {
-                    var a = BraxClaudeOsiedle.ModelObsady(zapas, gracz.transform, 1.80f * K);
+                    var a = BraxClaudeOsiedle.ModelObsady(zapas, gracz.transform, 1.80f * K, false);
                     foreach (var tr in a.GetComponentsInChildren<Transform>(true)) tr.gameObject.layer = 8;
                     kapsula.height = 1.80f * K;
                     kapsula.center = Vector3.up * (kapsula.height * .5f);

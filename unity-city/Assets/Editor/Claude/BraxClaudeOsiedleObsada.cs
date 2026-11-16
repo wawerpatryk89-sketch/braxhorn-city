@@ -53,9 +53,15 @@ public static partial class BraxClaudeOsiedle
             AnimationUtility.SetEditorCurve(clips,dest,AnimationUtility.GetEditorCurve(source,binding));
             found.Add(leaf);
         }
-        if (!new[] {"Hips","Head","RightForeArm","RightHand","RightHandIndex3","LeftHand","LeftFoot","RightFoot"}.All(k => found.Any(n => n.EndsWith(k,StringComparison.Ordinal)))
-            || Mathf.Abs(clips.length - czas) > .06f)
-            throw new InvalidOperationException("Niepełny szkielet lub czas nagrania " + plik);
+        var wymagane = new[] {"Hips","Head","RightForeArm","RightHand","RightHandIndex3","LeftHand","LeftFoot","RightFoot"};
+        var brakujace = wymagane.Where(k => !found.Any(n => n.EndsWith(k,StringComparison.Ordinal))).ToArray();
+        bool zlyCzas = Mathf.Abs(clips.length - czas) > .06f;
+        if (brakujace.Length > 0 || zlyCzas)
+            throw new InvalidOperationException("Nagranie " + plik + " nie przeszło: " +
+                (brakujace.Length > 0 ? "brak kości " + string.Join(",", brakujace) +
+                    " (znalezione: " + found.Count + ", np. " + string.Join(",", found.Take(4)) + ")" : "") +
+                (brakujace.Length > 0 && zlyCzas ? "; " : "") +
+                (zlyCzas ? "czas " + clips.length.ToString("F4") + " s zamiast " + czas.ToString("F4") + " s" : ""));
         clips.EnsureQuaternionContinuity();
         string path = folder + "Bar_" + stan + ".anim";
         var saved = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
@@ -67,7 +73,14 @@ public static partial class BraxClaudeOsiedle
 
     // public: używa jej też pokój prób postaci (unity-tools/claude/pokoj-prob) — próba ma
     // stawiać DOKŁADNIE tę samą postać co gra, nie własną kopię kodu.
-    public static Animation ModelObsady(string id, Transform rodzic, float wzrost)
+    public static Animation ModelObsady(string id, Transform rodzic, float wzrost) =>
+        ModelObsady(id, rodzic, wzrost, true);
+
+    // klipyBaru = false: model bez ujęć z paczki baru (Drink / Pour). Pokój prób sprawdza RUCH
+    // i MIMIKĘ, a nie picie — bez tej opcji wadliwe ujęcie baru wyrzucało Patryka i barmana
+    // z próby (run 43858052058: „Niepełny szkielet lub czas nagrania”). Rejon woła bez tej
+    // opcji i działa dokładnie jak dotąd.
+    public static Animation ModelObsady(string id, Transform rodzic, float wzrost, bool klipyBaru)
     {
         string folder = BraxObsadaImport.Katalog + id + "/";
         string path = folder + id + ".fbx";
@@ -97,8 +110,8 @@ public static partial class BraxClaudeOsiedle
             }
             anim.AddClip(stan, nazwa);
         }
-        if (id == "bramkarz_1c96d333") DodajKlipBaru(anim,folder,"Barman.fbx","Pour",85f/24f);
-        if (id == "gitara" || id == "patryk") DodajKlipBaru(anim,folder,id+".fbx","Drink",8.8667f);
+        if (klipyBaru && id == "bramkarz_1c96d333") DodajKlipBaru(anim,folder,"Barman.fbx","Pour",85f/24f);
+        if (klipyBaru && (id == "gitara" || id == "patryk")) DodajKlipBaru(anim,folder,id+".fbx","Drink",8.8667f);
         if (!anim.GetClip("Idle") || !anim.GetClip("Walk")) throw new InvalidOperationException(id + " brak Idle/Walk");
         var renders = model.GetComponentsInChildren<SkinnedMeshRenderer>(true);
         if (renders.Length == 0) throw new InvalidOperationException(id + " bez siatki");
