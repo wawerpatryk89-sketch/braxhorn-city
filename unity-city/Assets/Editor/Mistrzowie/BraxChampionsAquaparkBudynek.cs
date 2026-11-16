@@ -248,8 +248,35 @@ public static partial class BraxChampionsAquapark
         PanelZ(tiles, -36f, +1f, -89.9f, BZ1 - .2f);
         // the sauna room's rest corner: three loungers (BraxSeat lie) and two plants
         foreach (float x in new[] { 51.9f, 54.0f, 56.1f }) Lounger(V(x, FFL, -84.6f), 0f);
-        BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + 57.2f, CZ - 81.0f, "flower_empodium");
-        BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + 41.2f, CZ - 81.0f, "flower_gazania");
+        BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + 41.4f, CZ - 81.0f, "flower_gazania");
+        // the lobby's entrance half (z -98..-86 was empty floor): two lounge corners by the side walls, off the walk from
+        // the doors to the turnstiles and the SPA door - a graphite leather sofa, two armchairs, a walnut table on a wool rug
+        var sofaLeather = BraxChampionsFoundation.LibraryLeather("aq_lobby_sofa_leather", new Color(.42f, .43f, .46f));
+        var rug = Inside(Tex("aq_lobby_rug_wool", "poly_wool_herringbone", .8f, new Color(.55f, .56f, .60f)), 1.0f);
+        foreach (float x in new[] { -9.2f, 9.2f })
+        {
+            BL(rug, x - 2.4f, x + 2.4f, FFL, FFL + .012f, -90.6f, -85.6f);
+            m.RoundedBox(sofaLeather, V(x, FFL + .22f, -86.6f), new Vector3(2.6f, .44f, .92f), .08f, Quaternion.identity, 2);
+            m.RoundedBox(sofaLeather, V(x, FFL + .55f, -86.15f), new Vector3(2.6f, .62f, .22f), .08f, Quaternion.identity, 2);
+            Col(CX + x - 1.3f, CX + x + 1.3f, FFL, FFL + .8f, CZ - 87.1f, CZ - 86.0f, "sofa wejście");
+            BL(walnut, x - .7f, x + .7f, FFL + .38f, FFL + .44f, -88.5f, -87.8f);
+            foreach (float lx in new[] { -.6f, .6f }) BL(black, x + lx - .03f, x + lx + .03f, FFL, FFL + .38f, -88.2f, -88.1f);
+            Col(CX + x - .7f, CX + x + .7f, FFL, FFL + .44f, CZ - 88.5f, CZ - 87.8f, "stolik wejście");
+            for (int k = 0; k < 2; k++)
+            {
+                var g = new GameObject("sofa wejście " + x + " " + k); g.transform.SetParent(seats, false); g.transform.localPosition = V(x - .6f + k * 1.2f, FFL + .44f, -86.7f) * K;
+                g.transform.localRotation = Quaternion.LookRotation(Vector3.back); var st = g.AddComponent<BraxSeat>(); st.label = "SOFA"; st.surfaceY = (FFL + .44f) * K; Seats++;
+            }
+            foreach (float ax in new[] { -.95f, .95f })
+            {
+                m.RoundedBox(sofaLeather, V(x + ax, FFL + .22f, -89.6f), new Vector3(.86f, .44f, .82f), .07f, Quaternion.identity, 2);
+                m.RoundedBox(sofaLeather, V(x + ax, FFL + .55f, -90.0f), new Vector3(.86f, .62f, .2f), .07f, Quaternion.identity, 2);
+                Col(CX + x + ax - .43f, CX + x + ax + .43f, FFL, FFL + .8f, CZ - 90.1f, CZ - 89.2f, "fotel wejście");
+                var g = new GameObject("fotel wejście " + x + " " + ax); g.transform.SetParent(seats, false); g.transform.localPosition = V(x + ax, FFL + .44f, -89.5f) * K;
+                g.transform.localRotation = Quaternion.LookRotation(Vector3.forward); var st = g.AddComponent<BraxSeat>(); st.label = "FOTEL"; st.surfaceY = (FFL + .44f) * K; Seats++;
+            }
+            BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + x, CZ - 84.9f, x < 0 ? "flower_gazania" : "flower_empodium");
+        }
     }
 
     static void GlassRun(float x0, float x1, float z, float y0, float y1, (float a, float b)[] gaps)
