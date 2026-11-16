@@ -105,8 +105,11 @@ public static class BraxRegion
         // pkt 48 / 48b: stare reklamy usunięte, nośniki z grafikami właściciela (billboardy, citylighty, mural 19).
         Step("nośniki reklamowe (billboardy, citylighty, mural przy siłowni)", () => BraxMiastoBillboardy.Apply(root));
         // Na końcu (jak na budowie, 16:04): ruch aut i ludzie miasta B na gotowych nawierzchniach i wyposażeniu (B, ETAP 2).
-        Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () => BraxClaudeOsiedle.RuchMiastaB(root));
-        Step("ludzie miasta (B): obsada, ławki, przechodnie po chodnikach i zebrach", () => BraxClaudeOsiedle.LudzieMiastaB(root));
+        // 16.11 14:56 (właściciel: „Usuwasz wszystkie pojazdy (samochody) z gry i ludzi! Wszystkie te w powietrzu, na drzewach, w lesie
+        // też!”): ruch aut i ludzie miasta B WYŁĄCZONE (BraxBezAutILudzi.Wlaczone), a scena zamieciona z każdego auta i człowieka.
+        Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () => { if (!BraxBezAutILudzi.Wlaczone) BraxClaudeOsiedle.RuchMiastaB(root); else Note("ruch aut miasta B: wyłączony (właściciel 16.11 14:56 — bez aut)"); });
+        Step("ludzie miasta (B): obsada, ławki, przechodnie po chodnikach i zebrach", () => { if (!BraxBezAutILudzi.Wlaczone) BraxClaudeOsiedle.LudzieMiastaB(root); else Note("ludzie miasta B: wyłączeni (właściciel 16.11 14:56 — bez ludzi)"); });
+        Step("bez aut i ludzi: zamiatanie całej sceny (auta, sterowniki ruchu, ludzie — poza graczem i zawodnikami areny)", () => BraxBezAutILudzi.Usun(root.gameObject.scene, "krok rejonu"));
         // 16.11 (właściciel 13:32–13:37: „auta w powietrzu… las, slumsy… sklepy: z zewnątrz mur, w środku szkło albo pustka — prześwit…
         // każdy zakamarek, każdy detal”): pomiar CAŁEGO miasta automatem po ustawieniu wszystkiego — auta, rośliny i meble na ziemi,
         // prześwity ścian we wnętrzach z podszyciem od środka (BraxKontrolaZakamarkow, raport Logs/r1-zakamarki.json).

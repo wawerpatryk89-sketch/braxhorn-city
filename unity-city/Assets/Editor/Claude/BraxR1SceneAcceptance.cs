@@ -56,7 +56,9 @@ public static class BraxR1SceneAcceptance
                 phantomCircle++;
 
         int overlaps=0, doorPanels=0, stops=0;
-        if(buses.Length!=1)bad.Add("AUTOBUS: oczekiwany jeden kursowy, jest "+buses.Length);
+        // 16.11 14:56 (właściciel): miasto bez aut i ludzi, autobus MAN precz — nowy autobus (BraxhornCityBus12) czeka na plik modelu
+        if(BraxBezAutILudzi.Wlaczone){ if(cars.Length>0)bad.Add("BEZ AUT: zostało aut "+cars.Length); }
+        else if(buses.Length!=1)bad.Add("AUTOBUS: oczekiwany jeden kursowy, jest "+buses.Length);
         foreach(var bus in buses)
         {
             var traffic=controllers.FirstOrDefault(c=>c && c.auta!=null && c.auta.Contains(bus));

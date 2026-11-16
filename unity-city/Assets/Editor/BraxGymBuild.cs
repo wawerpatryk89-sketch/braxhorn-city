@@ -388,6 +388,8 @@ public static class BraxGymBuild
         // Dwa przebiegi na tych samych obiektach = nieprzewidywalny wynik. Zostaje jeden odbiór (manifest nazw, rozmiary, bliskość).
         // MIASTO R1 16.11 (właściciel 13:32 „sklepy… wchodzisz do środka i szkło albo pustka”): supermarket powstaje PO kroku rejonu —
         // jego wnętrza dostają tę samą kontrolę prześwitów ścian (podszycie od środka) co reszta miasta (BraxKontrolaZakamarkow).
+        // 16.11 14:56 (właściciel: bez aut i ludzi): drugie zamiatanie po supermarkecie (powstaje po kroku rejonu)
+        if(fullCity&&!osiedle)try{BraxBezAutILudzi.Usun(scene,"po supermarkecie");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_BEZ_AUT_I_LUDZI: "+e);}
         if(fullCity&&!osiedle)try{BraxKontrolaZakamarkow.WnetrzaPoBudowie(scene,"supermarket");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_PRZESWITY supermarket: "+e);}
         if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrole jakości (miasto): "+e);}
         // MIASTO R1 16.11 13:57 (właściciel: „żadnej farby wiszącej nad powierzchnią. Licznik nakladki=0 przed oddaniem gałęzi”):
