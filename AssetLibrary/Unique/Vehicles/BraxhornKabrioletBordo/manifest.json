@@ -1,7 +1,7 @@
 {
   "id": "braxhorn.vehicle.kabriolet_bordo",
   "displayName": "Braxhorn Kabriolet Bordo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "shared, all city regions",
   "ownerBrief": "Właściciel 16.11.2026 01:29: model 1:1 ze zdjęcia (bok + przód), materiały Poly Haven, zapis w paczce aut",
   "sourceStorage": {
@@ -17,18 +17,18 @@
       "lod1": "kabriolet_bordo_lod1.glb"
     },
     "sha256": {
-      "lod0": "172b61dc7c663a38264637f114e84aef4bd0fc4bc45cc276202fbd0a09415cd4",
-      "lod1": "b9214927a6f54aa81e1e9ab50df1ebb173d97f78591daf2b1cf9e6a842e7270d"
+      "lod0": "b1755b4cfbccd0b8307d81793c67b494b582932b8f15fa4f9a0d36954b7702b9",
+      "lod1": "13bf7a10f312accff7d0e4197ee61b18ac9e284960cd5afa66da907cda05683f"
     },
     "bytes": {
-      "lod0": 7241628,
-      "lod1": 1837740
+      "lod0": 10029228,
+      "lod1": 2015224
     },
     "triangles": {
-      "lod0": 177814,
-      "lod1": 36638
+      "lod0": 221264,
+      "lod1": 39270
     },
-    "externalTextures": "_tekstury/kabriolet_bordo/ (Poly Haven brown_leather 1K, recoloured: cognac seats, dark floor, steering wheel)",
+    "externalTextures": "_tekstury/kabriolet_bordo/ (Poly Haven leather_white 1K recoloured cognac/dark brown; poly_wool_herringbone 1K carpet)",
     "lengthM": 4.448,
     "widthM": 1.92,
     "heightM": 1.317,
