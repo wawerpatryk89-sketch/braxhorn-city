@@ -620,7 +620,41 @@ public static class BraxPokojProbBuild
         // POKAZ: każda postać po kolei na środek, spoczynek → chód → bieg → rozmowa,
         // kamera trzyma ją w kadrze, na ekranie nazwa i etap. Przycisk NAGRYWAJ albo
         // nagrywanie ekranu telefonu daje gotowy film.
-        if (!porownanie && !siatkaTwarzy)
+        // REKLAMA (właściciel 16.11, 23:48): Patryk mówi do kamery i gestykuluje, a pod koniec
+        // wchodzą pijani Mateusz i Kamil i mu przerywają. Kamera stoi nieruchomo, w planie
+        // średnim — gesty mają być widoczne w całości, więc nie jedzie za postacią.
+        bool reklama = TrybZlecenia() == "reklama";
+        if (reklama)
+        {
+            runtime.enabled = false;          // gracz nie przejmuje kamery
+            var r = new GameObject("Reklama").AddComponent<BraxReklama>();
+            r.kamera = kam;
+            Animation Znajdz(string id)
+            {
+                int i = ustawioneNazwy.IndexOf(id);
+                return i >= 0 ? ustawioneAnim[i] : null;
+            }
+            r.patryk = Znajdz("patryk");
+            r.mateusz = Znajdz("mateusz");
+            r.kamil = Znajdz("kamil");
+            if (!r.patryk)
+                throw new InvalidOperationException("Reklama: brak Patryka w obsadzie");
+            var scena = r.patryk.transform.parent ? r.patryk.transform.parent : r.patryk.transform;
+            scena.localPosition = new Vector3(0f, .02f, 0f);
+            scena.localRotation = Quaternion.identity;        // przodem do kamery
+            r.srodek = scena;
+            // Plan średni: kamera na wysokości piersi, 4,3 m przed postacią.
+            kam.transform.SetParent(pokoj, false);
+            kam.transform.localPosition = scena.localPosition
+                                        + new Vector3(0f, 1.42f * K, -4.3f * K);
+            kam.transform.localRotation = Quaternion.Euler(3.5f, 0f, 0f);
+            foreach (var podpis in UnityEngine.Object.FindObjectsByType<BraxPodpisPostaci>(FindObjectsSortMode.None))
+                UnityEngine.Object.DestroyImmediate(podpis.gameObject);
+            Debug.Log("BRAX_REKLAMA scena gotowa: patryk + "
+                      + (r.mateusz ? "mateusz " : "") + (r.kamil ? "kamil" : ""));
+        }
+
+        if (!porownanie && !siatkaTwarzy && !reklama)
         {
         var srodek = new GameObject("Środek pokazu").transform;
         srodek.SetParent(pokoj, false);

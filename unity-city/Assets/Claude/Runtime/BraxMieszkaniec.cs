@@ -200,7 +200,24 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
             case "barista": return Random.value < .4f ? BraxLudzie.Los(BraxDymki.Sklep) : BraxLudzie.Los(new[] { "Dzień dobry! Kawa?", "Polecam dziś sernik.", "Cappuccino jak zawsze?" });
             case "recepcja": return BraxLudzie.Los(new[] { "Dzień dobry! W czym mogę pomóc?", "Witamy! Karnet czy wejście jednorazowe?" });
             case "kasjer": return Random.value < .5f ? BraxLudzie.Los(BraxDymki.Sklep) : BraxLudzie.Los(new[] { "Dzień dobry!", "Następny proszę.", "Płatność kartą?" });
-            case "kasyno": return BraxLudzie.Los(new[] { "Dobry wieczór. Żetony?", "Witamy w kasynie. Ile wymieniamy?" });
+            // KASYNO — właściciel 16.11, 23:39: „weź zrób jakieś inne teksty jeszcze”.
+            // Krupier i obsługa stołu: powitanie, wymiana, zamknięcie zakładów, wypłata.
+            case "kasyno": return BraxLudzie.Los(new[] {
+                "Dobry wieczór. Żetony?",
+                "Witamy w kasynie. Ile wymieniamy?",
+                "Zakłady proszę. Kto jeszcze dokłada?",
+                "Zakłady zamknięte, panowie.",
+                "Dwadzieścia sześć, czarne. Gratulacje.",
+                "Zero. Dziś bank ma dobry wieczór.",
+                "Rozdaję. Karta w ciemno czy czekamy?",
+                "Blackjack. Płacę od razu.",
+                "Przepraszam, stół ma limit do dziesięciu tysięcy.",
+                "Wygrana do kasy, czy gramy dalej?",
+                "Keno rusza za chwilę, zostało sześć numerów.",
+                "Jackpot stoi na dwadzieścia pięć tysięcy. Ktoś chętny?",
+                "Przy stole bez telefonu, taka zasada.",
+                "Napoje są na koszt lokalu. Proszę mówić do kelnera.",
+                "Dziękuję za grę. Zapraszam jutro." });
             case "ochrona": return Random.value < .5f ? BraxLudzie.Los(BraxDymki.Ochroniarz) : BraxLudzie.Los(new[] { "Dobry wieczór.", "Zapraszam, tylko bez awantur.", "Lista gości? Żartuję, wchodź." });
             case "policja": return BraxLudzie.Los(new[] { "Dzień dobry. Coś się stało?", "Komisariat, słucham.", "Proszę poczekać, zaraz ktoś podejdzie." });
             case "lekarz": return BraxLudzie.Los(new[] { "Dzień dobry. Rejestracja jest na wprost.", "Proszę poczekać, zaraz pana poproszą." });
