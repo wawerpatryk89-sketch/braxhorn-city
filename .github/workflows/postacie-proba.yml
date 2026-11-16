@@ -14,7 +14,7 @@ name: Pokoj prob postaci (bez APK, bez rejonu)
         type: string
         default: ''
       tryb:
-        description: 'apk = LEKKI APK na telefon | solo, rozmowa, walka, stres = bramki na liczbach + film'
+        description: 'apk = LEKKI APK | polysk = ta sama postac w 3 gladkosciach obok siebie | solo, rozmowa, walka, stres = bramki'
         type: choice
         options:
         - apk
@@ -22,6 +22,7 @@ name: Pokoj prob postaci (bez APK, bez rejonu)
         - rozmowa
         - walka
         - stres
+        - polysk
         default: apk
       klatek:
         description: 'Klatek na etap (36 = 1,5 s przy 24 kl./s)'
@@ -83,7 +84,7 @@ jobs:
         echo "zlecenie pokoju:"; cat unity-city/pokoj-prob.txt
 
     - name: Wlasny klucz podpisu (ten sam co gra; APK pokoju ma OSOBNY identyfikator)
-      if: inputs.tryb == 'apk'
+      if: inputs.tryb == 'apk' || inputs.tryb == 'polysk'
       env:
         KS: ${{ secrets.BRAXHORN_KEYSTORE }}
         KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -95,7 +96,7 @@ jobs:
         else echo "brak klucza — APK podpisane kluczem debug"; fi
 
     - name: Zbuduj APK pokoju prob
-      if: inputs.tryb == 'apk'
+      if: inputs.tryb == 'apk' || inputs.tryb == 'polysk'
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
       env:
         UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -111,7 +112,7 @@ jobs:
         versioning: None
 
     - name: Wgraj APK pokoju
-      if: inputs.tryb == 'apk'
+      if: inputs.tryb == 'apk' || inputs.tryb == 'polysk'
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
         name: pokoj-apk-${{ github.run_id }}
@@ -120,7 +121,7 @@ jobs:
         retention-days: 14
 
     - name: Zbuduj pokoj prob
-      if: inputs.tryb != 'apk'
+      if: inputs.tryb != 'apk' && inputs.tryb != 'polysk'
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
       env:
         UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -141,7 +142,7 @@ jobs:
     # konca w 900 s i zapisala JEDNA klatke (run 43865869702, kod 124 = ubita przez timeout).
     # Bramki licza sie szybko, bo nie czytaja bufora. FILM bierzemy z APK na telefonie, gdzie jest GPU.
     - name: Przelicz bramki kazdej postaci (bez filmu — serwer bez GPU)
-      if: inputs.tryb != 'apk'
+      if: inputs.tryb != 'apk' && inputs.tryb != 'polysk'
       env:
         LIBGL_ALWAYS_SOFTWARE: '1'
         BRAX_BEZ_KLATEK: '1'
@@ -187,7 +188,7 @@ jobs:
         echo "kod gry: $kod (1 = ktoras postac nie przeszla, bramki i tak sa wyzej)"
 
     - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-      if: always() && inputs.tryb != 'apk'
+      if: always() && inputs.tryb != 'apk' && inputs.tryb != 'polysk'
       with:
         name: pokoj-prob-${{ github.run_id }}
         path: |

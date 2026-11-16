@@ -8,6 +8,12 @@ Shader "Braxhorn/Obsada Osiedla"
         _FaceTex ("Fazy powiek i warg", 2D) = "black" {}
         _Blink ("Powieki", Range(0,1)) = 0
         _Speech ("Usta", Range(0,1)) = 0
+        // Mnożnik gładkości. 1 = dokładnie to, co jest w mapie (zachowanie bez zmian).
+        // Zmierzone 16.11: u Patryka 52 % powierzchni ma gładkość 0,4–0,5, a odchylenie w całej
+        // mapie to 0,11 — czyli skóra, koszula, spodnie i buty odbijają światło prawie tak samo.
+        // Oko czyta jeden połysk na wszystkim jako plastik. Ten mnożnik ścina poziom, zachowując
+        // różnice tam, gdzie w mapie są. Metaliczności NIE rusza.
+        _Gladkosc ("Mnożnik gładkości (1 = jak w mapie)", Range(0,1)) = 1
     }
     SubShader
     {
@@ -17,6 +23,7 @@ Shader "Braxhorn/Obsada Osiedla"
         #pragma surface surf Standard fullforwardshadows
         sampler2D _MainTex, _BumpMap, _MetalSmooth, _FaceTex;
         half _Blink, _Speech;
+        half _Gladkosc;
         struct Input { float2 uv_MainTex; float2 uv2_FaceTex; };
         half4 phase(float2 coord, float n)
         {
@@ -39,7 +46,7 @@ Shader "Braxhorn/Obsada Osiedla"
             o.Albedo=color;
             o.Normal=UnpackNormal(tex2D(_BumpMap,uv));
             o.Metallic=packedMap.r;
-            o.Smoothness=packedMap.a;
+            o.Smoothness=packedMap.a*_Gladkosc;
             o.Occlusion=1;
             o.Alpha=1;
         }

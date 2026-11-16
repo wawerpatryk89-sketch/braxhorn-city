@@ -289,6 +289,60 @@ public static class BraxPokojProbBuild
     // postacie tylko na testy”. Serwer CI nie ma karty graficznej i renderuje programowo —
     // dlatego obrazu nie robimy tam wcale. APK renderuje TELEFON właściciela: wchodzi do
     // pokoju, chodzi między postaciami i sam je ogląda. Bez świata, bez rejonu, kilka MB.
+    // PORÓWNANIE POŁYSKU (właściciel 16.11, 15:31: „świecą się i są plastikowi wszyscy”).
+    // Ta sama postać trzy razy obok siebie, trzy mnożniki gładkości. Nie zmienia map ani gry —
+    // mnożnik w shaderze domyślnie wynosi 1, czyli bez tej próby nic się nie dzieje.
+    // Zmierzone podstawy: u Patryka 52 % powierzchni ma gładkość 0,4–0,5 przy odchyleniu 0,11
+    // w całej mapie, czyli skóra i ubranie odbijają światło prawie tak samo. Skóra ma być
+    // matowa (0,2–0,3), tkanina 0,1–0,25.
+    static readonly float[] Mnozniki = { 1.00f, 0.62f, 0.45f };
+
+    static void Polysk(Transform pokoj, Camera kam, List<Animation> anim, List<string> nazwy)
+    {
+        if (anim.Count == 0) throw new InvalidOperationException("Próba połysku: brak postaci");
+        float rozstaw = 1.15f * K;
+        for (int i = 0; i < Mnozniki.Length; i++)
+        {
+            var zrodlo = anim[0];
+            var kopia = i == 0 ? zrodlo.gameObject
+                               : UnityEngine.Object.Instantiate(zrodlo.gameObject,
+                                     zrodlo.transform.parent.parent, false);
+            var korzen = kopia.transform.parent ? kopia.transform.parent : kopia.transform;
+            korzen.localPosition = new Vector3((i - 1) * rozstaw, .02f, 0f);
+            korzen.localRotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
+            kopia.SetActive(true);
+
+            // własny materiał na każdą kopię — inaczej wszystkie trzy dzieliłyby jeden
+            foreach (var r in kopia.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                var mats = r.sharedMaterials;
+                for (int m = 0; m < mats.Length; m++)
+                {
+                    if (!mats[m]) continue;
+                    var kopiaMat = UnityEngine.Object.Instantiate(mats[m]);
+                    kopiaMat.name = mats[m].name + " x" + Mnozniki[i].ToString("F2");
+                    kopiaMat.SetFloat("_Gladkosc", Mnozniki[i]);
+                    AssetDatabase.CreateAsset(kopiaMat,
+                        BraxObsadaImport.Katalog + nazwy[0] + "/Polysk" + i + ".mat");
+                    mats[m] = kopiaMat;
+                }
+                r.sharedMaterials = mats;
+            }
+
+            var a = kopia.GetComponent<Animation>();
+            if (a && a.GetClip("Idle")) { a["Idle"].wrapMode = WrapMode.Loop; a.Play("Idle"); }
+            var opis = new GameObject("Podpis " + i).AddComponent<BraxPodpisPostaci>();
+            opis.transform.SetParent(korzen, false);
+            opis.transform.localPosition = Vector3.up * (2.05f * K);
+            opis.nazwa = Mnozniki[i].ToString("F2") + (i == 0 ? "  (jak teraz)" : "");
+        }
+        kam.fieldOfView = 46f;
+        kam.transform.position = new Vector3(0f, 1.35f * K, -4.2f * K);
+        kam.transform.LookAt(new Vector3(0f, 1.1f * K, 0f));
+        Debug.Log("BRAX_POKOJ_POLYSK postac=" + nazwy[0] + " mnozniki=" +
+                  string.Join(",", Mnozniki.Select(m => m.ToString("F2"))));
+    }
+
     public static void ZbudujApk()
     {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -431,9 +485,25 @@ public static class BraxPokojProbBuild
         runtime.view = kam;
         BraxCityBuild.UstawSterowanieOsiedla(runtime);
 
+        // POŁYSK: zamiast pokazu — ta sama postać trzy razy obok siebie, trzy mnożniki
+        // gładkości, do porównania na jednym ekranie (właściciel 16.11, 15:31–15:32).
+        // Bez wczesnego wyjścia: ogon metody (klucz podpisu, zapis sceny, build) jest wspólny,
+        // inaczej APK porównania wyszłoby niepodpisane.
+        bool porownanie = TrybZlecenia() == "polysk";
+        if (porownanie)
+        {
+            // Gracz musi przestać prowadzić kamerę, inaczej nadpisze ustawienie porównania —
+            // dokładnie ten błąd widać było na nagraniu z 14:48, gdzie zamiast prezentowanej
+            // postaci przez cały czas widać było Patryka.
+            runtime.enabled = false;
+            Polysk(pokoj, kam, ustawioneAnim, ustawioneNazwy);
+        }
+
         // POKAZ: każda postać po kolei na środek, spoczynek → chód → bieg → rozmowa,
         // kamera trzyma ją w kadrze, na ekranie nazwa i etap. Przycisk NAGRYWAJ albo
         // nagrywanie ekranu telefonu daje gotowy film.
+        if (!porownanie)
+        {
         var srodek = new GameObject("Środek pokazu").transform;
         srodek.SetParent(pokoj, false);
         srodek.localPosition = new Vector3(0f, .02f, 1.2f * K);
@@ -442,6 +512,7 @@ public static class BraxPokojProbBuild
         pokaz.nazwy = ustawioneNazwy.ToArray();
         pokaz.srodek = srodek;
         pokaz.kamera = kam;
+        }
 
         PlayerSettings.companyName = "Braxhorn";
         PlayerSettings.productName = "Braxhorn Pokój Prób";
