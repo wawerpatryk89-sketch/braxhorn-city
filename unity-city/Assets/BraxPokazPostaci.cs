@@ -33,8 +33,17 @@ public sealed class BraxPokazPostaci : MonoBehaviour
     static readonly (string klip, string opis)[] Etapy =
     {
         ("Idle", "SPOCZYNEK"), ("Idle", "OBRÓT — każdy profil"),
-        ("Walk", "CHÓD"), ("Run", "BIEG"), ("Talk", "ROZMOWA"),
+        ("Walk", "CHÓD"), ("Run", "BIEG"),
+        // PIJANY (właściciel 16.11, 22:47: „Mateusza Zubiak jest pijany, chcę zobaczyć”).
+        // Sprawdzone w paczce: Mateusz, Kamil i Gitara MAJĄ własne DrunkIdle, DrunkTurn
+        // i DrunkWalk — nie trzeba niczego pożyczać. Monika ich nie ma, więc u niej ten
+        // etap się po prostu pomija (patrz Nieobowiazkowe), zamiast wypisywać BRAK.
+        ("DrunkWalk", "PIJANY — idzie"), ("DrunkIdle", "PIJANY — stoi"),
+        ("Talk", "ROZMOWA"),
     };
+
+    // Etapy, których brak NIE jest błędem — postać po prostu ich nie ma w paczce.
+    static readonly string[] Nieobowiazkowe = { "DrunkWalk", "DrunkIdle", "DrunkTurn" };
 
     // Te same cztery warianty co w próbie połysku — żeby numer, który właściciel poda,
     // znaczył dokładnie to samo w obu miejscach.
@@ -170,6 +179,8 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                     string doGrania = klip;
                     if (klip == "Idle" && pozy.Length > 0) doGrania = pozy[Mathf.Clamp(poza, 0, pozy.Length - 1)];
                     if (a.GetClip(doGrania)) { a[doGrania].wrapMode = WrapMode.Loop; a.CrossFade(doGrania, .2f); }
+                    else if (System.Array.IndexOf(Nieobowiazkowe, doGrania) >= 0)
+                        continue;                 // ta postać tego nie ma — etap pomijamy
                     else
                     {
                         // Nie samo „BRAK KLIPU” — od razu widac, co ta postac ma, zeby nie trzeba
