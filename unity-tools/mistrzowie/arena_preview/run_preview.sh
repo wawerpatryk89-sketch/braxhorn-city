@@ -5,7 +5,7 @@
 # Needs: dotnet 8 SDK, python3 + numpy + shapely + pillow + matplotlib, node + playwright, npm three@0.160.0.
 # usage: run_preview.sh <work dir> <node_modules/three>
 # Owner pictures are NOT in the repository: put them in <work dir>/Assets/Source/Mistrzowie/ first
-#   ArenaMuralsHD/MURAL_*_6144x2048.png (+ run split_arena_murals.py <that folder>), ArenaSigns/champion_arena_*.png.
+#   ArenaMuralsHD/MURAL_*_6144x2048.png (whole pictures, never split), ArenaSigns/champion_arena_*.png.
 # Without them the generator reports the murals / signs as missing, exactly as a build would.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$(cd "$HERE/../../.." && pwd)"; HOTEL="$HERE/../hotel_sobczak_preview"

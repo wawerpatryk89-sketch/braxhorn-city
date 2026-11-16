@@ -182,13 +182,24 @@ Shader "Braxhorn/ChampionsPBR"
                 }
                 else
                 {
+                    // Owner 16.11 13:52 ("arena od 10 buildów nie ma murali"): a big picture with no mesh tangents (the arena
+                    // murals: one 0..1 UV over 30-90 m) seen from across the hall gives a cotangent frame ~1e-4 long. Its
+                    // square (~1e-8) and the old 1e-12 floor both flush to 0 in a phone's half precision (mediump), rsqrt(0)
+                    // is infinite, 0 x inf = NaN and the whole surface drew BLACK on the phone (never in the editor, which
+                    // computes in full float). The frame is built and normalised in full precision and scaled by its own
+                    // largest component first, so nothing small is ever squared and nothing is divided by zero.
+                    float3 nF = normalize((float3)n);
                     float3 dx = ddx(i.worldPos), dy = ddy(i.worldPos);
                     float2 ux = ddx(uvNormal), uy = ddy(uvNormal);
-                    float3 dyPerp = cross(dy,n), dxPerp = cross(n,dx);
-                    t = dyPerp * ux.x + dxPerp * uy.x;
-                    b = dyPerp * ux.y + dxPerp * uy.y;
-                    float frameScale = rsqrt(max(max(dot(t,t),dot(b,b)), 1e-12));
-                    t *= frameScale; b *= frameScale;
+                    float3 dyPerp = cross(dy,nF), dxPerp = cross(nF,dx);
+                    float3 tF = dyPerp * ux.x + dxPerp * uy.x;
+                    float3 bF = dyPerp * ux.y + dxPerp * uy.y;
+                    float3 aT = abs(tF), aB = abs(bF);
+                    float largest = max(max(max(aT.x,aT.y),max(aT.z,aB.x)),max(aB.y,aB.z));
+                    float inv = largest > 0.0 ? 1.0 / largest : 0.0;
+                    tF *= inv; bF *= inv;                                   // largest component 1 (or all 0)
+                    float frameScale = rsqrt(max(max(dot(tF,tF),dot(bF,bF)), 1.0));
+                    t = (half3)(tF * frameScale); b = (half3)(bF * frameScale);
                 }
                 // Flip the complete perturbed normal on a two-sided back face.
                 // Flipping only N beforehand would leave tangent-space X unflipped.

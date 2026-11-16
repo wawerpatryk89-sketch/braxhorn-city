@@ -25,15 +25,17 @@ class ArenaOwnerReview20261110(unittest.TestCase):
         cls.belt = src("BraxChampionsBeltShowcase.cs")
         cls.workflow = (ROOT / ".github/workflows/mistrzowie-apk.yml").read_text(encoding="utf-8")
 
-    def test_all_three_murals_use_one_backlit_tiled_print(self):
-        self.assertIn("public const int TileCount=3;", self.printer)
-        self.assertIn('TilePath(string source,int i)=>source.Substring(0,source.Length-4)+"_TILE"+i+".png"', self.printer)
+    def test_all_three_murals_use_one_backlit_whole_print(self):
+        # owner 16.11 13:52-13:53: "to dzielone ... dajesz nowe co ci dałem" - the owner's whole picture, never split
+        self.assertNotIn("TileCount", self.printer)
+        self.assertNotIn("_TILE", self.printer)
+        self.assertIn('Quad(group,name+" | owner picture 6144x2048 whole",id+"_whole"', self.printer)
+        self.assertIn("split=NO tangents=YES", self.printer)
         # back-lit: the picture is its own light, independent of the dim hall ambient
         glow = float(re.search(r"Glow=([\d.]+)f", self.printer).group(1))
         self.assertGreaterEqual(glow, .8)
         self.assertIn('m.SetTexture("_EmissionMap",picture);', self.printer)
-        # never an empty wall: whole-picture fallback, and a loud FAIL only when the owner source itself is missing
-        self.assertIn("whole 6144x2048 picture on one panel", self.printer)
+        # a loud FAIL only when the owner source itself is missing; never a substitute
         self.assertIn("NO substitute image", self.printer)
         self.assertEqual(self.mural.count("BraxChampionsArenaMuralPrint.Hang("), 1)
         # owner 10.11 13:20 ("czemu zrobiłeś duplikaty?"): each mural once - LEFT and RIGHT side walls only
@@ -42,40 +44,25 @@ class ArenaOwnerReview20261110(unittest.TestCase):
         self.assertIn("bool left=Side(originalBowl,PickRequiredHd(LeftFightersHd", self.side)
         self.assertIn("bool right=Side(originalBowl,PickRequiredHd(RightBeltHd", self.side)
 
-    def test_tiles_are_a_lossless_crop_made_in_ci(self):
-        script = (TOOLS / "split_arena_murals.py").read_text(encoding="utf-8")
-        for sha in ("5d30aa995bb0da043a34c282fb452743f1b04b9f4584abf2be925ea29a461a73",
-                    "0805d4170b696236dba7a37c89fc4415ee21a87b316c1d58734bac212cb11a2c",
-                    "b134858b5ba16dc85089642eb1f7432ef5c76e036a8d313805947923b7661304"):
-            self.assertIn(sha, script)
-        self.assertIn("check.convert(\"RGB\").tobytes() != tile.tobytes()", script)
-        self.assertIn("python3 unity-tools/mistrzowie/split_arena_murals.py", self.workflow)
-        self.assertLess(self.workflow.index("pillow=="), self.workflow.index("split_arena_murals.py"))
+    def test_ci_no_longer_splits_the_murals(self):
+        self.assertNotIn("python3 unity-tools/mistrzowie/split_arena_murals.py", self.workflow)
+        # the owner originals are still staged and checked byte for byte (his attachments have the same SHA-256)
+        self.assertIn("python3 unity-tools/mistrzowie/install_arena_murals_hd.py", self.workflow)
+        self.assertIn("python3 unity-tools/mistrzowie/verify_arena_three_murals.py", self.workflow)
         tracked = subprocess.run(["git", "ls-files", "unity-city/Assets/Source/Mistrzowie/ArenaMuralsHD"],
                                  cwd=ROOT, capture_output=True, text=True).stdout
         self.assertNotIn("_TILE", tracked)
 
-    def test_tile_split_keeps_every_pixel(self):
-        try:
-            from PIL import Image
-        except ImportError:
-            self.skipTest("Pillow not installed")
-        import importlib.util, tempfile, hashlib
-        spec = importlib.util.spec_from_file_location("split_arena_murals", TOOLS / "split_arena_murals.py")
-        mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
-        with tempfile.TemporaryDirectory() as d:
-            picture = Image.radial_gradient("L").resize((6144, 2048)).convert("RGB")
-            picture.putpixel((2047, 5), (255, 0, 0)); picture.putpixel((2048, 5), (0, 255, 0)); picture.putpixel((6143, 2047), (0, 0, 255))
-            name = "MURAL_TEST_6144x2048.png"; picture.save(Path(d) / name)
-            mod.SOURCES = {name: hashlib.sha256((Path(d) / name).read_bytes()).hexdigest()}
-            self.assertEqual(len(mod.split(d)), 3)
-            tiles = [Image.open(Path(d) / mod.tile_name(name, i)).convert("RGB") for i in range(3)]
-            self.assertEqual([t.size for t in tiles], [(2048, 2048)] * 3)
-            self.assertEqual(tiles[0].getpixel((2047, 5)), (255, 0, 0))
-            self.assertEqual(tiles[1].getpixel((0, 5)), (0, 255, 0))
-            self.assertEqual(tiles[2].getpixel((2047, 2047)), (0, 0, 255))
-            joined = b"".join(t.tobytes() for t in tiles)
-            self.assertEqual(len(joined), 6144 * 2048 * 3)
+    def test_mural_panel_never_takes_the_black_derivative_path(self):
+        # the panel has real tangents and white colours -> the shader's supplied-tangent branch
+        self.assertIn("mesh.RecalculateTangents();", self.printer)
+        self.assertIn("mesh.tangents=new[]{tan,tan,tan,tan};", self.printer)
+        self.assertIn("mesh.colors=new[]{Color.white,Color.white,Color.white,Color.white};", self.printer)
+        # and the region shader's derivative frame is built in full precision (no 1e-12 floor that mediump flushes to 0)
+        shader = (ROOT / "unity-city/Assets/Mistrzowie/BraxChampionsPBR.shader").read_text(encoding="utf-8")
+        self.assertNotIn("rsqrt(max(max(dot(t,t),dot(b,b)), 1e-12))", shader)
+        self.assertIn("float inv = largest > 0.0 ? 1.0 / largest : 0.0;", shader)
+        self.assertIn("float frameScale = rsqrt(max(max(dot(tF,tF),dot(bF,bF)), 1.0));", shader)
 
     def test_entrance_mural_is_whole_above_the_door(self):
         w = float(re.search(r"MuralWidth=([\d.]+)f", self.mural).group(1))

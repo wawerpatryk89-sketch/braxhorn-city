@@ -400,9 +400,8 @@ jobs:
           # Owner 10.11 "globalnie zakaz tanich napisów": one 3D glyph kit (Montserrat, OFL) for every composed text
           # in the region - door and room numbers, stop names, arena wayfinding, the vitrine plaque (LetterKit.bytes).
           python3 unity-tools/mistrzowie/build_letter_kit.py
-          # Owner 9.11: the three arena murals as 3 x 2048 tiles each (lossless crop of the verified originals).
-          # A failure here is not fatal: the build then hangs each mural as one whole 6144x2048 panel.
-          python3 unity-tools/mistrzowie/split_arena_murals.py || echo "::warning::arena mural tiles not made, whole-picture fallback"
+          # Owner 16.11 13:52 ("to dzielone ... dajesz nowe co ci dałem"): the arena murals are NOT split any more - each is the
+          # owner's whole 6144x2048 picture on one panel (BraxChampionsArenaMuralPrint); split_arena_murals.py is not run.
           # Owner 10.11 port: four repainted hull atlases for the 40 m yacht (navy, black, emerald, sapphire + original white).
           # Not fatal: without them every yacht keeps the original white hull (the 3D transom names stay).
           python3 unity-tools/mistrzowie/build_yacht_liveries.py || echo "::warning::yacht liveries not made, white hulls"

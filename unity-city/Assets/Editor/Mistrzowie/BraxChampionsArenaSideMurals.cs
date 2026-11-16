@@ -21,8 +21,8 @@ public static class BraxChampionsArenaSideMurals
     const float WallTopY = 28f;
     const float BottomY = 2.65f;
     // b33 / APK 35 phone: both side walls showed BLACK although the log said APPLIED (one 8192-wide padded ASTC
-    // texture sampled 4-5 mips down, lit only by a dim interior ambient). Since 9.11 23:43 every mural is hung by
-    // BraxChampionsArenaMuralPrint: three 2048 tiles, back-lit, gold frame.
+    // texture sampled 4-5 mips down, lit only by a dim interior ambient). Every mural is hung by BraxChampionsArenaMuralPrint:
+    // since 16.11 the owner's WHOLE picture on one back-lit panel with real tangents (the tiles of 9.11-16.11 are gone).
     public const float MuralStandOff = .12f;
     const float WallSpan = WallNearZ - WallFarZ;
     const float ImageHeight = WallSpan / 3f;

@@ -5,21 +5,21 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 // One way to hang an owner 6144 x 2048 mural, used by all three (entrance, left, right).
-// Owner 9.11 23:43: "Mural jest ucięty, ten pierwszy. Dwóch murali kolejnych nie ma, nadal nie ma ... mają być
-// wszystkie 3". APK 35 logged all three as APPLIED, yet the phone showed the two hall murals black.
-// What changes here, for every mural:
-// * THREE 2048 x 2048 TILES instead of one 6144 x 2048 texture (which Unity padded to 8192 x 2048 for ASTC and
-//   sampled 4-5 mip levels down across a 70 m wall). 6144 = 3 x 2048: split_arena_murals.py cuts the verified
-//   originals without touching a pixel. Square power-of-two tiles are the most ordinary texture a phone can get.
+// Owner 16.11 13:52-13:53: "arena od 10 buildów nie ma murali ... to dzielone ... usuwasz tamte złe ... dajesz nowe co ci
+// dałem". Since 9.11 every mural was cut into three 2048 tiles (split_arena_murals.py in CI) and none was seen on the phone.
+// Now, for every mural:
+// * THE OWNER'S WHOLE PICTURE, NOT SPLIT: the one 6144 x 2048 file he sent (the release copy has the same SHA-256 as his
+//   attachment, checked in CI by install_arena_murals_hd.py / verify_arena_three_murals.py) on ONE panel. No tiles, no crop.
+// * WHY IT DREW BLACK: the panel had no mesh tangents, so the region shader built its normal frame from screen
+//   derivatives; on a picture 30-90 m wide seen from across the hall that frame underflows a phone's half precision and the
+//   surface came out NaN = black (BraxChampionsPBR fixed 16.11). The panel now carries real tangents and white vertex
+//   colours, so the shader never takes that path for it at all.
 // * A BACK-LIT PRINT: the picture is its own light (emission .86, albedo .30), so it shows the owner's colours at
-//   full strength on a wall the sun never reaches, instead of albedo x a dim interior ambient.
-// * If the tiles are not there, the whole original is used on one panel (never an empty wall) and the log says so.
+//   full strength on a wall the sun never reaches.
 public static class BraxChampionsArenaMuralPrint
 {
     const string Output="Assets/PlayableGenerated/Mistrzowie/Arena/Mural";
-    public const int TileCount=3;
     public const float Glow=.86f, Albedo=.30f, FrameBar=.16f;
-    public static string TilePath(string source,int i)=>source.Substring(0,source.Length-4)+"_TILE"+i+".png";
 
     static Material Print(Texture2D picture,string name,string asset)
     {
@@ -56,7 +56,16 @@ public static class BraxChampionsArenaMuralPrint
         // Unity front = clockwise: the normal of (a,b,c) is (b-a) x (c-a). Face the viewer, whatever the wall.
         bool flip=Vector3.Dot(Vector3.Cross(tl-bl,tr-bl),facing)<0;
         mesh.triangles=flip?new[]{0,2,1,0,3,2}:new[]{0,1,2,0,2,3};
-        mesh.RecalculateNormals();mesh.RecalculateBounds();mesh.RecalculateUVDistributionMetrics();
+        // normal = facing, tangent = along the picture (u grows to the viewer's right), white colours: the shader's
+        // supplied-tangent path, never the screen-derivative one that drew the murals black on the phone
+        var nrm=facing.normalized;
+        var tan=new Vector4(right.x,right.y,right.z,Vector3.Dot(Vector3.Cross(nrm,right),Vector3.up)<0f?-1f:1f);
+        mesh.normals=new[]{nrm,nrm,nrm,nrm};
+        mesh.RecalculateTangents();
+        var tg=mesh.tangents;
+        if(tg==null||tg.Length!=4||new Vector3(tg[0].x,tg[0].y,tg[0].z).sqrMagnitude<.5f)mesh.tangents=new[]{tan,tan,tan,tan};
+        mesh.colors=new[]{Color.white,Color.white,Color.white,Color.white};
+        mesh.RecalculateBounds();mesh.RecalculateUVDistributionMetrics();
         AssetDatabase.CreateAsset(mesh,Output+"/"+id+".asset");
         var go=new GameObject(name);
         go.transform.SetParent(parent,false);
@@ -71,38 +80,25 @@ public static class BraxChampionsArenaMuralPrint
 
     // bottomLeft: lower-left corner AS THE VIEWER SEES IT; right: unit vector to the viewer's right;
     // facing: unit vector from the print toward the viewer. Width : height must be 3 : 1.
-    // Returns the number of tiles hung (3), 1 for the whole-picture fallback, 0 when the owner source is missing.
+    // Returns 1 (the owner's whole picture on one panel) or 0 when the owner source is missing (loud FAIL, no substitute).
     public static int Hang(Transform parent,string name,string id,string source,Vector3 bottomLeft,Vector3 right,Vector3 facing,
         float width,float height,out Transform group)
     {
         group=null;
         if(Mathf.Abs(width-3f*height)>.02f)throw new InvalidOperationException("A1 mural must stay 3:1, got "+width+"x"+height);
         Directory.CreateDirectory(Output);
-        group=new GameObject(name).transform;
-        group.SetParent(parent,false);
-        var tiles=new Texture2D[TileCount];bool all=true;
-        for(int i=0;i<TileCount;i++){tiles[i]=Load(TilePath(source,i));all&=tiles[i];}
-        if(all)
-        {
-            float w=width/TileCount;
-            for(int i=0;i<TileCount;i++)
-                Quad(group,name+" | tile "+(i+1)+"/3 | 2048x2048",id+"_tile"+i,
-                    Print(tiles[i],name+" tile "+i,Output+"/"+id+"_tile"+i+".mat"),
-                    bottomLeft+right*(w*i),right,w,height,facing,0f,1f);
-            Debug.Log("A1_MURAL_PRINT "+id+" tiles=3x2048 size="+width.ToString("F2")+"x"+height.ToString("F2")+
-                " pxPerMetre="+(6144f/width).ToString("F0")+" backlit=true glow="+Glow+" source="+source);
-            return TileCount;
-        }
         var whole=Load(source);
         if(!whole)
         {
             BraxBuildQuality.Warn("A1_MURAL_PRINT "+id+" FAIL: owner source missing: "+source+"; NO substitute image");
-            UnityEngine.Object.DestroyImmediate(group.gameObject);group=null;
             return 0;
         }
-        BraxBuildQuality.Warn("A1_MURAL_PRINT "+id+" tiles missing (split_arena_murals.py): whole 6144x2048 picture on one panel");
-        Quad(group,name+" | whole owner picture",id+"_whole",Print(whole,name+" whole",Output+"/"+id+"_whole.mat"),
+        group=new GameObject(name).transform;
+        group.SetParent(parent,false);
+        Quad(group,name+" | owner picture 6144x2048 whole",id+"_whole",Print(whole,name+" whole",Output+"/"+id+"_whole.mat"),
             bottomLeft,right,width,height,facing,0f,1f);
+        Debug.Log("A1_MURAL_PRINT "+id+" whole=6144x2048 split=NO tangents=YES size="+width.ToString("F2")+"x"+height.ToString("F2")+
+            " pxPerMetre="+(6144f/width).ToString("F0")+" backlit=true glow="+Glow+" source="+source);
         return 1;
     }
 
