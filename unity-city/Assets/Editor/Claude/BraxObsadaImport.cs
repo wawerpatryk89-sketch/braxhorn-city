@@ -9,7 +9,8 @@ public sealed class BraxObsadaImport : AssetPostprocessor
     // z pamięci, a waga APK zostałaby bez zmian i wyglądałoby to na brak efektu.
     // Każda zmiana ustawień importu obsady = podniesienie tego numeru.
     // 1 — 16.11.2026: kompresja obsady (wcześniej numeru nie było wcale).
-    public override uint GetVersion() => 1;
+    // 2 — 16.11.2026: cofnięta kompresja siatek (fasetowanie na ciele).
+    public override uint GetVersion() => 2;
 
     public const string Katalog = "Assets/Source/ObsadaOsiedla/";
     public const string KatalogBaru = "Assets/Source/Prywatne/BarOsiedla/";
@@ -37,7 +38,13 @@ public sealed class BraxObsadaImport : AssetPostprocessor
         // Tolerancje ciasne (0,2 % zamiast domyślnych 0,5 %), żeby obrotów praktycznie nie ruszać:
         // na stałych krzywych błąd i tak wynosi zero, a ruch ma wyglądać dokładnie tak, jak go
         // właściciel dostarczył.
-        model.meshCompression = ModelImporterMeshCompression.Medium;
+        // SIATKI BEZ KOMPRESJI — cofnięte 16.11, 18:00 (właściciel: „zero kwadratowych,
+        // kanciatych kształtów”). Kompresja siatki kwantyzuje pozycje, normalne i styczne;
+        // na organicznym ciele daje to fasetowanie i szwy, czyli dokładnie kanciaste kształty.
+        // Bilans: siatki to 30,6 MB z 309,6 MB (10 %), a kompresja oszczędzała ok. 11,8 MB na
+        // pięciu postaciach. Animacje dały 145 MB, czyli 12x więcej, bez żadnego ryzyka dla
+        // wyglądu. Nie warto płacić fasetowaniem za 4 % wagi.
+        model.meshCompression = ModelImporterMeshCompression.Off;
         model.animationCompression = ModelImporterAnimationCompression.KeyframeReduction;
         model.animationPositionError = .2f;
         model.animationRotationError = .2f;
