@@ -37,12 +37,57 @@ public static class BraxPokojProbBuild
         return g;
     }
 
+    // game-ci/unity-builder NIE przepuszcza własnych zmiennych środowiska do kontenera z Unity
+    // (pierwszy przebieg pokoju: scena dostała domyślnego Patryka zamiast trzech postaci).
+    // Dlatego zlecenie idzie plikiem — tak samo jak rejon buildu przez unity-city/rejon-ci.txt.
+    const string PlikZlecenia = "pokoj-prob.txt";
+
+    static string[] Zlecenie()
+    {
+        string sciezka = Path.GetFullPath(Path.Combine(Application.dataPath, "..", PlikZlecenia));
+        if (File.Exists(sciezka))
+        {
+            var linie = File.ReadAllLines(sciezka)
+                            .Select(l => l.Trim()).Where(l => l.Length > 0).ToArray();
+            if (linie.Length > 0) return linie;
+        }
+        return new[] { Environment.GetEnvironmentVariable("BRAX_POSTACIE") ?? "patryk",
+                       Environment.GetEnvironmentVariable("BRAX_TRYB") ?? "solo" };
+    }
+
     static string[] PostacieZOtoczenia()
     {
-        string v = Environment.GetEnvironmentVariable("BRAX_POSTACIE");
+        string v = Zlecenie()[0];
         if (string.IsNullOrWhiteSpace(v)) return new[] { "patryk" };
         return v.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => s.Trim()).Where(s => s.Length > 0).Distinct().ToArray();
+    }
+
+    static string TrybZlecenia()
+    {
+        var z = Zlecenie();
+        string t = z.Length > 1 ? z[1] : null;
+        if (string.IsNullOrWhiteSpace(t)) t = Environment.GetEnvironmentVariable("BRAX_TRYB");
+        return (t ?? "solo").Trim().ToLowerInvariant();
+    }
+
+    // Pliki wgrane przed startem Unity bywają jeszcze nieprzetworzone, gdy budujemy scenę
+    // od razu po uruchomieniu edytora — wymuszamy import, żeby klipy legacy były na miejscu.
+    static void DoczytajZrodla(IEnumerable<string> ids)
+    {
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        foreach (string folder in new[] { BraxObsadaImport.KatalogBaru })
+            if (AssetDatabase.IsValidFolder(folder.TrimEnd('/')))
+                foreach (string p in Directory.GetFiles(folder, "*.fbx"))
+                    AssetDatabase.ImportAsset(p.Replace('\\', '/'), ImportAssetOptions.ForceSynchronousImport);
+        foreach (string id in ids)
+        {
+            string folder = BraxObsadaImport.Katalog + id + "/";
+            if (!AssetDatabase.IsValidFolder(folder.TrimEnd('/'))) continue;
+            foreach (string p in Directory.GetFiles(folder))
+                if (!p.EndsWith(".meta", StringComparison.Ordinal))
+                    AssetDatabase.ImportAsset(p.Replace('\\', '/'), ImportAssetOptions.ForceSynchronousImport);
+        }
     }
 
     public static void Zbuduj()
@@ -83,6 +128,7 @@ public static class BraxPokojProbBuild
 
         // --- postacie -----------------------------------------------------
         var ids = PostacieZOtoczenia();
+        DoczytajZrodla(ids);
         var anim = new List<Animation>();
         var nazwy = new List<string>();
         var mimiki = new List<BraxMimikaOsiedla>();
@@ -115,7 +161,7 @@ public static class BraxPokojProbBuild
                   (brakujace.Count > 0 ? " pominięte: " + string.Join(" | ", brakujace) : ""));
 
         // --- kamera i tryb próby -------------------------------------------
-        string tryb = (Environment.GetEnvironmentVariable("BRAX_TRYB") ?? "solo").Trim().ToLowerInvariant();
+        string tryb = TrybZlecenia();
         var kam = new GameObject("Kamera próby").AddComponent<Camera>();
         kam.tag = "MainCamera";
         kam.gameObject.AddComponent<AudioListener>();

@@ -75,7 +75,11 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         BRAX_POSTACIE: ${{ inputs.postacie }}
         BRAX_TRYB: ${{ inputs.tryb }}
-      run: python3 unity-tools/claude/pokoj-prob/przygotuj.py
+      run: |
+        python3 unity-tools/claude/pokoj-prob/przygotuj.py
+        # unity-builder nie przepuszcza wlasnych zmiennych do kontenera z Unity — zlecenie idzie plikiem
+        printf '%s\n%s\n' "${{ inputs.postacie }}" "${{ inputs.tryb }}" > unity-city/pokoj-prob.txt
+        echo "zlecenie pokoju:"; cat unity-city/pokoj-prob.txt
 
     - name: Zbuduj pokoj prob
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
