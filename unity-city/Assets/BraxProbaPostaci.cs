@@ -66,6 +66,20 @@ public sealed class BraxProbaPostaci : MonoBehaviour
             var blok = new MaterialPropertyBlock();
             int brakKlipow = 0;
 
+            // GŁOWA MA PRACOWAĆ (właściciel 16.11, 09:21: „na nagraniu samej buzi unieruchomił głowę…
+            // to będzie trzeba wyłapać w teście”). BraxSpojrzeniePatryka dokłada tylko korektę na
+            // wierzchu — jeśli klip przychodzi z zamrożoną szyją i głową, postać poza rozmową stoi
+            // jak posąg. Mierzymy zakres obrotu głowy WZGLĘDEM klatki piersiowej, żeby nie liczyć
+            // obrotu całej postaci.
+            Transform glowaK = null, piers = null;
+            foreach (var t in anim.GetComponentsInChildren<Transform>(true))
+            {
+                if (!glowaK && t.name.EndsWith("Head", StringComparison.Ordinal)) glowaK = t;
+                if (!piers && t.name.EndsWith("Spine2", StringComparison.Ordinal)) piers = t;
+            }
+            Quaternion? pierwsza = null;
+            float glowaZakres = 0f;
+
             foreach (var (klip, opis) in Etapy)
             {
                 if (!anim.GetClip(klip)) { brakKlipow++; continue; }
@@ -94,6 +108,13 @@ public sealed class BraxProbaPostaci : MonoBehaviour
                         if (mimika.wargi >= 0)
                             wargiMax = Mathf.Max(wargiMax, mimika.twarz.GetBlendShapeWeight(mimika.wargi));
                     }
+                    if (glowaK && piers)
+                    {
+                        var wzgledny = Quaternion.Inverse(piers.rotation) * glowaK.rotation;
+                        if (pierwsza.HasValue)
+                            glowaZakres = Mathf.Max(glowaZakres, Quaternion.Angle(pierwsza.Value, wzgledny));
+                        else pierwsza = wzgledny;
+                    }
                     zrzut.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
                     zrzut.Apply(false);
                     File.WriteAllBytes(Path.Combine(katalog, numer.ToString("D5") + ".jpg"),
@@ -102,11 +123,16 @@ public sealed class BraxProbaPostaci : MonoBehaviour
                 }
             }
 
-            bool ok = brakKlipow == 0 && mrugMax >= .60f && szczekaMax >= 20f;
+            // Próg 4°: tyle głowa rusza się u człowieka nawet w spokojnym staniu.
+            // Poniżej tego klip ma wyciszoną ścieżkę szyi i głowy — postać będzie posągiem.
+            bool glowaPracuje = glowaZakres >= 4f;
+            bool ok = brakKlipow == 0 && mrugMax >= .60f && szczekaMax >= 20f && glowaPracuje;
             wszystkoOk &= ok;
             string linia = string.Format(CultureInfo.InvariantCulture,
-                "BRAX_POSTAC {0} brak_klipow={1} mruganie={2:F2} szczeka={3:F0} wargi={4:F0} {5}",
-                nazwa, brakKlipow, mrugMax, szczekaMax, wargiMax, ok ? "PASS" : "FAIL");
+                "BRAX_POSTAC {0} brak_klipow={1} mruganie={2:F2} szczeka={3:F0} wargi={4:F0} " +
+                "glowa={5:F1} stopni {6} {7}",
+                nazwa, brakKlipow, mrugMax, szczekaMax, wargiMax, glowaZakres,
+                glowaPracuje ? "pracuje" : "ZAMROZONA", ok ? "PASS" : "FAIL");
             Debug.Log(linia);
             wynik.AppendLine(linia);
         }
