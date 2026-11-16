@@ -1,0 +1,79 @@
+{
+  "id": "braxhorn.vehicle.limuzyna_czarna",
+  "displayName": "Braxhorn Limuzyna Czarna",
+  "version": "0.1.0",
+  "scope": "shared, all city regions",
+  "ownerBrief": "Właściciel 16.11.2026: zip z modelami Tripo (08:19) do poprawy na premium; 09:09 „jeżeli się nie opłaca naprawić — stwórz od zera”; 10:11 „dawaj resztę rób”",
+  "sourceStorage": {
+    "type": "encrypted pack in this repository (public repo: owner content only encrypted)",
+    "pack": "unity-city/Prywatne/braxhorn-sklep-auta-03",
+    "target": "pojazdy_auta_03",
+    "installer": "unity-tools/sklep/install_sklep_modele.py (CI, step with KLUCZ)",
+    "unityAccess": "BraxMiastoAssety.Model(\"pojazdy_auta_03\", \"limuzyna_czarna\")"
+  },
+  "model": {
+    "files": {
+      "lod0": "limuzyna_czarna.glb",
+      "lod1": "limuzyna_czarna_lod1.glb"
+    },
+    "sha256": {
+      "lod0": "798febef8959314aa13a0aba1ebc87c2ce8083ff98cee1cde8b1867e9ca48282",
+      "lod1": "ce9d76fac2237bbeda75112214bc7e9ba9ccb93d1c9b32b23f419d4ad3d3aaaa"
+    },
+    "bytes": {
+      "lod0": 17481548,
+      "lod1": 4276084
+    },
+    "triangles": {
+      "lod0": 348319,
+      "lod1": 69551
+    },
+    "externalTextures": "_tekstury/limuzyna_czarna/ (Poly Haven leather_white, poly_wool_herringbone, teak_veneer — 1K recoloured; owner badge 512 px)",
+    "lengthM": 5.5,
+    "widthM": 2.01,
+    "heightM": 1.642,
+    "wheelbaseM": 3.5,
+    "trackM": 1.7,
+    "wheelDiameterM": 0.76,
+    "gltfForward": "+Z",
+    "sourceUnit": "metre",
+    "seats": 4,
+    "movingNodes": [
+      "drzwi_lp",
+      "drzwi_pp",
+      "drzwi_lt",
+      "drzwi_pt",
+      "maska",
+      "bagaznik",
+      "wlew",
+      "kolo_przod_lewe",
+      "kolo_przod_prawe",
+      "kolo_tyl_lewe",
+      "kolo_tyl_prawe",
+      "zacisk_przod_lewe",
+      "zacisk_przod_prawe",
+      "kierownica"
+    ],
+    "badgeMounts": {
+      "znak_byk_grill": "owner bull on the grille centre",
+      "napis_braxhorn_bagaznik": "owner BRAXHORN lettering on the trunk lid"
+    }
+  },
+  "unity": {
+    "importer": "com.unity.cloud.gltfast",
+    "worldScaleK": 1.2944,
+    "applyWorldScaleOnce": true
+  },
+  "validation": {
+    "webglPreview": true,
+    "badgesFitted": true,
+    "normalsOutward": "sprawdz_normalne.py (in pack oryginal/): 0 inverted closed islands in LOD0 and LOD1",
+    "unityPlayMode": "untested",
+    "androidDevice": "untested",
+    "sharedGeometryAppliedToRegionScenes": false
+  },
+  "ownerApproval": {
+    "status": "pending",
+    "note": "zdjęcia wysłane 16.11 ~12:35"
+  }
+}
