@@ -33,13 +33,12 @@ for entry in d['meshdumps']:
         p = e[2]; w = []
         for i in range(0, len(p), 3): w += list(T(p[i], p[i + 1], p[i + 2]))
         res['meshes'].append([tid + ' ' + e[0], e[1], [round(v, 4) for v in w]] + e[3:])
-    qy = [0, math.sin(math.radians(yaw) / 2), 0, math.cos(math.radians(yaw) / 2)]
     K = 2.33 / 1.80
     for mo in m.get('models', []):
         # the dump keeps the model's world scale (the root carries K); this scene is in nominal metres
         mo = dict(mo); mo['pos'] = list(T(*mo['pos']))
-        if 'yaw' in mo: mo['yaw'] = mo['yaw'] + yaw
-        if 'rot' in mo: mo['rot'] = qmul(qy, mo['rot'])
+        # MeshDump writes the position in the root's frame but the yaw and the rotation in the world's (the root's turn
+        # included): turning them again put every model of a tower turned 180 deg round (16.11: the helicopter)
         if abs(mo.get('scale', 1) - K) < 1e-3: mo['scale'] = 1
         res['models'].append(mo)
     for pl in m.get('palms', []):

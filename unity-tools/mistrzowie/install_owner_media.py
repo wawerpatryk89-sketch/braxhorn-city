@@ -18,6 +18,11 @@ assety od właściciela pakować od razu):
                                                         reel strips, cut into the slot machines' reels) and bet/*.png (the
                                                         BRAXHORN BET posters, screen frame, logo) -> Assets/Source/Mistrzowie/
                                                         KasynoWlasciciel/ 1:1
+  unity-city/Prywatne/braxhorn-mistrzowie-helikopter-20261116/ the BRAXHORN helicopter (16.11 22:00, his ec_135.glb, the EC135
+                                                        by GRIP420, CC-BY 4.0, repainted by unity-tools/mistrzowie/helikopter):
+                                                        Helikopter/braxhorn_ec135.glb + _tekstury/ -> Assets/Source/
+                                                        Mistrzowie/Helikopter/ (the heliport of the BRAXHORN TOWER); zrodlo/
+                                                        (his original) stays in the pack
 
 Each pack: tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (the owner's CI transfer certificate "Braxhorn camp
 input transfer", release oboz-transfer-key-41749904696) -> parts <= 90 MB with SHA-256 in manifest.json. The private key
@@ -44,6 +49,9 @@ KASYNO = "braxhorn-mistrzowie-kasyno-grafiki-20261116"
 # 16.11 20:46: the toppers of the new machine games, the chips, the card back and his court cards
 KASYNO_2 = "braxhorn-mistrzowie-kasyno-grafiki-20261116-2"
 KASYNO_DIR = ROOT / "unity-city/Assets/Source/Mistrzowie/KasynoWlasciciel"
+# 16.11 22:00: the BRAXHORN EC135 on the BRAXHORN TOWER (BraxChampionsWiezowce.HeliModel)
+HELIKOPTER = "braxhorn-mistrzowie-helikopter-20261116"
+MISTRZOWIE_SRC = ROOT / "unity-city/Assets/Source/Mistrzowie"
 SA = ROOT / "unity-city/Assets/StreamingAssets/Mistrzowie"
 WIDEO = ROOT / "unity-city/Assets/StreamingAssets/BraxhornWideo"
 TELEWIZOR = ROOT / "unity-city/Assets/BraxhornWideo/BraxTelewizor.cs"
@@ -172,6 +180,19 @@ def main():
                 print("BRAX_KASYNO_GRAFIKI_OK %s files=%d -> %s" % (name, n, KASYNO_DIR.relative_to(ROOT)))
             else:
                 print("BRAX_KASYNO_GRAFIKI_MISSING " + name + " (" + without + ")")
+        # the helicopter: the model and its textures byte for byte (the generator reads Helikopter/braxhorn_ec135.glb)
+        heli = open_pack(HELIKOPTER, tmp)
+        if heli:
+            n = 0
+            for f in sorted((heli / "Helikopter").rglob("*")):
+                if not f.is_file():
+                    continue
+                dst = MISTRZOWIE_SRC / f.relative_to(heli)
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(f, dst); n += 1
+            print("BRAX_HELIKOPTER_OK files=%d -> %s" % (n, (MISTRZOWIE_SRC / "Helikopter").relative_to(ROOT)))
+        else:
+            print("BRAX_HELIKOPTER_MISSING " + HELIKOPTER + " (the heliport of the BRAXHORN TOWER stays empty)")
         ads = open_pack("mistrzowie-kino-reklamy-20261112", tmp)
         if ads:
             (SA / "Kino").mkdir(parents=True, exist_ok=True)

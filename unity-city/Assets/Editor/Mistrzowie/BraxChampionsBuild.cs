@@ -231,7 +231,7 @@ public static class BraxChampionsBuild
         if(!scene.IsValid()||!scene.isLoaded)
             throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: no loaded exploration scene");
         var cars=scene.GetRootGameObjects()
-            .SelectMany(g=>g.GetComponentsInChildren<BraxChampionsCar>(true)).ToArray();
+            .SelectMany(g=>g.GetComponentsInChildren<BraxChampionsCar>(true)).Where(c=>!c.helikopter).ToArray();   // not the helicopter's proxy
         if(cars.Length!=1)
             throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: expected one BRAXHORN owner car, found "+cars.Length);
         var car=cars[0];

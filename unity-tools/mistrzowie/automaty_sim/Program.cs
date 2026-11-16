@@ -179,6 +179,51 @@ static class Program
     }
 
     static int fails;
+    // the BRAXHORN helicopter's flight (BraxChampionsLot, flown by BraxChampionsHelikopter; owner 16.11 22:00 "żeby był
+    // funkcjonalny, żeby można było latać"): the EC135's figures in the world's scale K - the rotor up in 4.5 s, no lift-off
+    // before, a climb of 7.6 m/s, a hover when let go, the cruise of 234 km/h along the heading nose down, a turn of 55 deg/s
+    // banked, a descent of 6 m/s settling on the ground, the height cap, the rotor running down
+    static void Lot()
+    {
+        const float dt = 1f / 60f, K = 1.2944f, deck = 343.8f;
+        var l = new BraxChampionsLot { pos = new Vector3(610f, deck, 570f), heading = 270f, k = K };
+        void Run(float secs, Vector2 stick, float col, float ground) { for (float t = 0f; t < secs; t += dt) l.Apply(l.Step(stick, col, ground, dt), ground, dt); }
+        Run(1f, new Vector2(0f, 1f), 1f, deck);
+        Check(l.grounded && Math.Abs(l.pos.y - deck) < 1e-4f && l.rotor == 0f, "heli: engine off, it stays on the deck");
+        l.engine = true; float tu = 0f; bool early = false;
+        for (; !l.Ready && tu < 10f; tu += dt) { l.Apply(l.Step(Vector2.zero, 1f, deck, dt), deck, dt); if (!l.Ready && (!l.grounded || l.pos.y != deck)) early = true; }
+        Check(Math.Abs(tu - BraxChampionsLot.SpoolUp * .97f) < .1f, "heli: the rotor up in ~4.4 s (" + tu + ")");
+        Check(!early, "heli: no lift-off before the rotor is up");
+        float y0 = l.pos.y; Run(10f, Vector2.zero, 1f, deck);
+        float climb = (l.pos.y - y0) / K;
+        Check(!l.grounded && climb > 66f && climb < 76f, "heli: climbs 7.6 m/s (" + climb + " m in 10 s)");
+        Run(3f, Vector2.zero, 0f, deck); float hy = l.pos.y; Run(5f, Vector2.zero, 0f, deck);
+        Check(Math.Abs(l.pos.y - hy) < .01f && l.SpeedKph < .5f, "heli: hovers when let go");
+        var p0 = l.pos; Run(20f, new Vector2(0f, 1f), 0f, deck);
+        Check(Math.Abs(l.SpeedKph - 234f) < 1f, "heli: cruise 234 km/h (" + l.SpeedKph + ")");
+        Check(l.pos.x < p0.x - 600f * K && Math.Abs(l.pos.z - p0.z) < .5f && Math.Abs(l.pos.y - hy) < .01f, "heli: flies level along its heading (270 = -x)");
+        Check(l.pitch < -4f, "heli: nose down at speed (" + l.pitch + ")");
+        float h0 = l.heading; Run(1f, new Vector2(1f, 1f), 0f, deck);
+        float turned = Mathf.Repeat(l.heading - h0, 360f);
+        Check(turned > 40f && turned < 56f, "heli: turns up to 55 deg/s (" + turned + " in 1 s)");
+        Check(l.roll < -3f, "heli: banked into the turn (" + l.roll + ")");
+        var fw = Quaternion.Euler(0f, l.heading, 0f) * Vector3.forward;
+        Check(Vector3.Dot(l.vel.normalized, fw) > .999f, "heli: the turn carries the speed round (no skid)");
+        Run(12f, Vector2.zero, 0f, deck);
+        Check(l.SpeedKph < .5f && Math.Abs(l.roll) < .5f, "heli: stops and levels when let go");
+        float street = deck - 100f * K, yd = l.pos.y; Run(5f, Vector2.zero, -1f, street);
+        float sink = (yd - l.pos.y) / K;
+        Check(sink > 25f && sink < 30f, "heli: sinks 6 m/s (" + sink + " m in 5 s)");
+        Run(40f, Vector2.zero, -1f, street);
+        Check(l.grounded && Math.Abs(l.pos.y - street) < 1e-3f && l.vs == 0f, "heli: settles on the ground under it");
+        var pg = l.pos; Run(3f, new Vector2(0f, 1f), -1f, street);
+        Check((l.pos - pg).magnitude < 1e-3f, "heli: on its skids the cyclic does not move it");
+        Run(200f, Vector2.zero, 1f, street);
+        Check(Math.Abs(l.pos.y - BraxChampionsLot.MaxHeight * K) < 1e-3f, "heli: the height capped at 650 m");
+        Run(150f, Vector2.zero, -1f, street); l.engine = false; Run(10f, Vector2.zero, 0f, street);
+        Check(l.grounded && l.rotor == 0f, "heli: landed, the rotor runs down in 9 s");
+        Console.WriteLine("HELIKOPTER spool {0:F1} s, climb {1:F1} m/10 s, cruise {2:F0} km/h, turn {3:F0} deg/s, sink {4:F1} m/5 s", tu, climb, 234f, turned, sink);
+    }
     static void Check(bool ok, string what) { if (!ok) { fails++; if (fails < 20) Console.WriteLine("FAIL " + what); } }
 
     static int Main(string[] args)
@@ -360,6 +405,7 @@ static class Program
         PlayerPrefs.DeleteAll(); for (int i = 0; i < 50; i++) BraxChampionsKasyno.Dorzuc(10);
         Check(BraxChampionsKasyno.Jackpot == BraxChampionsKasyno.JackpotStart + 10, "jackpot +2 % (" + BraxChampionsKasyno.Jackpot + ")");
         Check(BraxChampionsKasyno.WezJackpot() == BraxChampionsKasyno.JackpotStart + 10 && BraxChampionsKasyno.Jackpot == BraxChampionsKasyno.JackpotStart, "jackpot pays and restarts");
+        Lot();
         Console.WriteLine(fails == 0 ? "AUTOMATY_SIM OK" : "AUTOMATY_SIM FAILED " + fails);
         return fails == 0 ? 0 : 1;
     }

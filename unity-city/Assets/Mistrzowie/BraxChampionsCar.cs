@@ -55,24 +55,28 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     public AudioClip engineIdleClip, engineRevClip, engineHighClip;
     public float engineMinDistance = 2.2f, engineMaxDistance = 36f;
 
-    public BraxGymPlayer Driver => driver;
+    // Proxy mode (16.11 22:00, the BRAXHORN helicopter): this component only carries the player's vehicle hook - the city
+    // joystick (Steer) and the follow camera (BraxGymPlayer.championsCar) - for BraxChampionsHelikopter; no car, no audio.
+    public BraxChampionsHelikopter helikopter;
+    bool Proxy => helikopter;
+    public BraxGymPlayer Driver => Proxy ? helikopter.Pilot : driver;
     public bool HandbrakeOn => Time.time < handbrakeUntil;
     public void PullHandbrake()
     {
-        if (!driver || transition) return;
+        if (Proxy || !driver || transition) return;
         if (!HandbrakeOn) Debug.Log("A1_CAR_HANDBRAKE speedKph=" + SpeedKph.ToString("F0"));
         handbrakeUntil = Time.time + handbrakeHold;
     }
     /// <summary>Handbrake held by the on-screen button (BraxChampionsCarHud): on while the finger stays on it.</summary>
     public void HoldHandbrake(float seconds)
     {
-        if (!driver || transition) return;
+        if (Proxy || !driver || transition) return;
         if (!HandbrakeOn) Debug.Log("A1_CAR_HANDBRAKE button speedKph=" + SpeedKph.ToString("F0"));
         handbrakeUntil = Mathf.Max(handbrakeUntil, Time.time + seconds);
     }
     public float Speed => speed;
     public float SpeedKph => Mathf.Abs(speed) * 3.6f / Mathf.Max(.01f, worldScale);
-    public bool Transitioning => transition;
+    public bool Transitioning => Proxy ? helikopter.Transitioning : transition;
     const int PlayerLayer = 8;
     readonly RaycastHit[] groundHits = new RaycastHit[24];
     readonly RaycastHit[] obstacleHits = new RaycastHit[24];
@@ -93,6 +97,8 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 
     void Awake()
     {
+        if (!helikopter) helikopter = GetComponentInParent<BraxChampionsHelikopter>();
+        if (Proxy) return;
         physicsBody = GetComponent<Rigidbody>();
         if (!physicsBody || !bodyCollider || !driverSeat || !doorApproach)
             throw new InvalidOperationException("A1 owner's car is incomplete: real chassis, driver seat and entrance required");
@@ -108,11 +114,13 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 
     void OnEnable()
     {
+        if (Proxy) return;
         BraxInterakcje.Dodaj(this);
         StartIdleIfReady();
     }
     void OnDisable()
     {
+        if (Proxy) return;
         BraxInterakcje.Usun(this);
         EmergencyExit();
         if (engineIdleSource) engineIdleSource.Stop();
@@ -121,6 +129,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 
     public string Kontekst(Vector3 position)
     {
+        if (Proxy) return helikopter.Kontekst(position);    // the AKCJA label while flying (BraxGymPlayer.Context asks the hook)
         if (driver)
             return transition ? "WSIADANIE / WYSIADANIE"
                 : Mathf.Abs(speed) > .25f ? "ZATRZYMAJ AUTO, ABY WYSIĄŚĆ"
@@ -132,6 +141,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 
     public bool Wykonaj(Vector3 position)
     {
+        if (Proxy) return helikopter.Wykonaj(position);
         if (driver)
         {
             if (!transition && Mathf.Abs(speed) < .25f)
@@ -160,6 +170,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 
     public void Steer(Vector2 input)
     {
+        if (Proxy) { helikopter.Steer(input); return; }
         control = Vector2.ClampMagnitude(input, 1f);
     }
 
@@ -264,6 +275,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 
     void Update()
     {
+        if (Proxy) return;
         UpdateEngineAudio();
 #if UNITY_EDITOR || UNITY_STANDALONE
         if (driver && !transition && Input.GetKey(KeyCode.Space)) handbrakeUntil = Mathf.Max(handbrakeUntil, Time.time + .12f);
@@ -435,6 +447,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     // the player's CharacterController disabled or parented to an old car.
     public void EmergencyExit()
     {
+        if (Proxy) { helikopter.EmergencyExit(); return; }
         StopAllCoroutines();
         if (driver)
         {
@@ -569,7 +582,7 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
 
     void FixedUpdate()
     {
-        if (!driver || transition || !physicsBody || !bodyCollider) return;
+        if (Proxy || !driver || transition || !physicsBody || !bodyCollider) return;
         float dt = Time.fixedDeltaTime;
         bool handbrake = HandbrakeOn;
         float deflection = control.magnitude;

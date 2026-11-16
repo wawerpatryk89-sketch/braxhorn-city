@@ -23,3 +23,12 @@ unity-tools/mistrzowie/__pycache__/
 # owner 10.11 19:12: the HDR 360 sky is downloaded by prepare_assets.py in CI (Poly Haven, size + MD5), never committed
 unity-city/Assets/Source/Mistrzowie/Sky/
 unity-city/Assets/Source/Mistrzowie/Sky.meta
+
+# MIASTO MISTRZÓW: the owner's media opened in CI by unity-tools/mistrzowie/install_owner_media.py (the repository is public:
+# they live only encrypted in unity-city/Prywatne/braxhorn-*)
+unity-city/Assets/Source/Mistrzowie/Helikopter/
+unity-city/Assets/Source/Mistrzowie/Helikopter.meta
+unity-city/Assets/Source/Mistrzowie/KasynoWlasciciel/
+unity-city/Assets/Source/Mistrzowie/KasynoWlasciciel.meta
+unity-city/Assets/Source/Mistrzowie/G1Wlasciciel/
+unity-city/Assets/Source/Mistrzowie/G1Wlasciciel.meta

@@ -46,7 +46,7 @@ class Plan(unittest.TestCase):
         self.assertEqual((t["name"], t["shape"], t["floors"]), ("BRAXHORN TOWER", "Setback", 60))
         h = const("Fl") + const("Lobby") + t["floors"] * const("Storey") + 14.0
         self.assertTrue(250 <= h <= 300, h)
-        self.assertIn("Heliport(roof+14f);", SRC)
+        self.assertIn("Heliport(roof+14f,F2);", SRC)                   # the heliport (test_helikopter_20261116)
         self.assertIn('"BRAXHORN",at,yaw,3.6f', SRC)
         # every other tower is a premium high-rise too (>= 33 floors of 4 m)
         for tid, tt in TOWERS.items():
@@ -198,7 +198,8 @@ class SkyCasino(unittest.TestCase):
 
     def test_working_express_lift(self):
         self.assertIn("var w=cab.gameObject.AddComponent<BraxWinda>();", SRC)
-        self.assertIn('w.pietraNazwy=new[]{"HOL · BRAXHORN TOWER","SKY KASYNO · 60 PIĘTRO"};', SRC)
+        self.assertIn('StopNames={"HOL · BRAXHORN TOWER","SKY KASYNO · 60 PIĘTRO","LĄDOWISKO · DACH"};', SRC)
+        self.assertIn("w.pietraNazwy[i]=StopNames[i];", SRC)
         self.assertIn("w.przystanekL=landL;w.przystanekP=landR;", SRC)
         self.assertIn("LobbyFitOut(core,new Vector2(11.5f,-8.5f),new Vector2(15.5f,-13f),false,4,split,0);", SRC)
         self.assertIn('"SKY KASYNO",new Vector3(LiftCentre(core,4,0),Fl+2.50f,-2f)', SRC)

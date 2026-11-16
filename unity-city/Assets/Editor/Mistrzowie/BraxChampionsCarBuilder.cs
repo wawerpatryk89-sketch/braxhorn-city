@@ -161,8 +161,9 @@ public static class BraxChampionsCarBuilder
 
     public static void Generate(Transform parent)
     {
+        // the BRAXHORN helicopter's camera hook is a BraxChampionsCar in proxy mode (16.11 22:00): not a car
         if (UnityEngine.Object.FindObjectsByType<BraxChampionsCar>(
-                FindObjectsInactive.Include, FindObjectsSortMode.None).Length > 0)
+                FindObjectsInactive.Include, FindObjectsSortMode.None).Any(c => !c.helikopter))
             throw new InvalidOperationException("Second A1 player car forbidden");
         var source = AssetDatabase.LoadAssetAtPath<GameObject>(OwnerCar)
             ?? AssetDatabase.LoadAllAssetsAtPath(OwnerCar).OfType<GameObject>().FirstOrDefault();

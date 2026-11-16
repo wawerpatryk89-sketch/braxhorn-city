@@ -365,7 +365,7 @@ public static class BraxChampionsWiezowce
         Tower t=default;bool found=false;
         foreach(var x in Towers)if(x.id==id){t=x;found=true;}
         if(!found)throw new ArgumentException("Unknown tower plot "+id);
-        outFolder=folder;towerId=id;doors=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;roulettes=0;obsluga=0;ownerMissing=0;hung.Clear();Materials(ext);
+        outFolder=folder;towerId=id;doors=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;roulettes=0;obsluga=0;ownerMissing=0;heliY=float.NaN;helis=0;hung.Clear();Materials(ext);
         Physics.SyncTransforms();
         float datum=0f;
         if(Physics.Raycast(new Vector3(t.x,80f,t.z)*K,Vector3.down,out var hit,200f*K,~0,QueryTriggerInteraction.Ignore))
@@ -680,6 +680,8 @@ public static class BraxChampionsWiezowce
         // a lounge at each side
         var core=new Core(1f,-2f,12f,12f);
         GroundFloor(F0,-20f,new[]{-10.5f,4.5f},core,split);
+        // the express lift's three stops: the lobby, the sky casino, the heliport's pavilion on the crown (its floor)
+        heliY=Shaft+t.floors*Storey+14f+PavFloor;
         CasinoMaterials();ExpressLift(LiftCentre(core,4,0));
         // the express lift's name over its portal in the lobby (white light on the walnut)
         BraxChampionsLetters3D.Text(letters,ledWhite,black,"SKY KASYNO",new Vector3(LiftCentre(core,4,0),Fl+2.50f,-2f),180f,.24f,.05f,.08f,2.2f);
@@ -719,7 +721,7 @@ public static class BraxChampionsWiezowce
             var at=new Vector3(0,roof+4.2f,z);
             BraxChampionsLetters3D.Text(letters,black,black,"BRAXHORN",at,yaw,3.6f,.25f,.10f,17f);
         }
-        Heliport(roof+14f);
+        Heliport(roof+14f,F2);
         SkyCasino(F2);
         // the tower's body is solid but for the sky casino (its glass and floor collide on their own) and the lift's way
         W.KolizjaMM(-20f,20f,Shaft,yS1,-20f,20f);W.KolizjaMM(-17f,17f,yS1,yS2,-17f,17f);W.KolizjaMM(-14f,14f,yS2,CasinoY-.30f,-14f,14f);
@@ -729,35 +731,344 @@ public static class BraxChampionsWiezowce
         float edge=-20f-CanopyOut;
         BraxChampionsLetters3D.Text(letters,ledWhite,black,"BRAXHORN TOWER",new Vector3(4.5f,Fl+CanopyTop,edge+.10f),180f,.55f,.10f,.12f,5.6f);
         BraxChampionsLetters3D.Text(letters,ledGreen,black,"BRAXHORN BET",new Vector3(-10.5f,Fl+CanopyTop,edge+.10f),180f,.60f,.10f,.12f,5.6f);
-        return roof+15.6f;
+        return roof+14f+HeliGap+HeliSlab;                     // the heliport deck's top
     }
-    // the heliport: an 21.6 m square deck 1.2 m over the crown on steel posts, its top made of 1.2 m cells - the white
-    // edge and the white H are cells of the deck itself (no paint on top), green edge lights
-    static void Heliport(float y)
+    // ---------------- the heliport (owner 16.11 21:52 "lotnisko dla heli", 21:56 "jest zejście? ... jakaś winda musiała
+    // być", 22:00 "postaw go na dachu i zrób wejście") ----------------
+    // An elevated rooftop heliport as they are built (ICAO Annex 14 vol. II, FAA AC 150/5390-2C): a concrete deck 21.6 m
+    // square (the FATO >= 1.5 D of the EC135, D 12.2 m) on a steel grid (posts into girders every 9.3 m) 3 m over the
+    // crown's slab. Its markings are cut into its top - never paint laid over it (ZASADA migotanie 16.11): the TLOF
+    // perimeter white 30 cm, the touchdown / positioning ring yellow 50 cm wide of inner diameter 0.5 D (6.1 m), the
+    // identification H white 3 x 1.8 m in 40 cm strokes, its bars along the approach (east - west); green perimeter lights;
+    // a safety net 1.5 m wide round it (open where the stairs come up); a windsock (five bands orange / white, 2.4 m) on
+    // its mast; a glass balustrade on the slab's edge. Under the deck a glass pavilion round the express lift (its third
+    // stop LĄDOWISKO · DACH) and two steel stairs up to the deck - an elevated heliport needs two ways off. The BRAXHORN
+    // helicopter stands on the ring.
+    const float HeliHalf=10.8f,HeliGap=3.0f,HeliSlab=.40f,PavFloor=.03f,NetWidth=1.5f;
+    static float heliY=float.NaN;                         // the lift's roof stop (the pavilion's floor), set before ExpressLift
+    static int helis;
+    static Material heliYellow,heliNet,sockOrange;
+    // the stairs (south and its escape twin north): their tops at x = +-3.0, the landings +-(3.0..4.4) on the deck's edge
+    const float StairTop=3.0f,StairLand=1.40f,StairIn=11.0f,StairOut=12.4f;
+    static bool PrzyLadowaniuSchodow(float x,float z)=>z<0f?x>StairTop-.2f&&x<StairTop+StairLand+.2f:x<-(StairTop-.2f)&&x>-(StairTop+StairLand+.2f);
+    static void Heliport(float y,List<Vector2> slab)
     {
         W.Grupa=outside;W.Wnetrze=false;
-        const int N=18;const float c=1.2f,h=N*c*.5f;float y0=y+1.2f,y1=y0+.40f;
-        for(int i=0;i<N;i++)for(int j=0;j<N;j++)
-        {
-            bool edge=i==0||j==0||i==N-1||j==N-1;
-            bool H=(j>=5&&j<=12)&&((i==6||i==7)||(i==10||i==11)||((j==8||j==9)&&(i==8||i==9)));
-            float x0=-h+i*c,z0=-h+j*c;
-            Q(edge||H?paintWhite:deck,new Vector3(x0,y1,z0),new Vector3(x0+c,y1,z0),new Vector3(x0+c,y1,z0+c),new Vector3(x0,y1,z0+c),Vector3.up);
-        }
+        const float h=HeliHalf;float y0=y+HeliGap,y1=y0+HeliSlab;
+        heliYellow=Surface("helideck_yellow_paint",new Color(.95f,.72f,.07f),.6f,0f);
+        sockOrange=Surface("windsock_orange",new Color(.97f,.36f,.06f),.8f,0f);
+        HeliDeckTop(y1,h);
         var sq=Box4(h,h);Sides(bandGraphite,sq,y0,y1);Cap(bandGraphite,sq,y0,false);
-        foreach(float sx in new[]{-1f,0f,1f})foreach(float sz in new[]{-1f,0f,1f})
-            if(sx!=0f||sz!=0f)W.MM(steel,sx*(h-1.5f)-.2f,sx*(h-1.5f)+.2f,y,y0,sz*(h-1.5f)-.2f,sz*(h-1.5f)+.2f);
-        W.Grupa=details;
-        for(int k=0;k<N;k+=2)foreach(var (px,pz) in new[]{(-h+k*c+c*.5f,-h-.12f),(-h+k*c+c*.5f,h+.12f),(-h-.12f,-h+k*c+c*.5f),(h+.12f,-h+k*c+c*.5f)})
-            W.MM(ledGreen,px-.12f,px+.12f,y1-.10f,y1+.08f,pz-.12f,pz+.12f);
-        W.Grupa=outside;
         W.KolizjaMM(-h,h,y0,y1,-h,h);
+        // the steel grid under it: girders along z every 9.3 m, posts into them (no bottom face on the slab)
+        foreach(float gx in new[]{-9.3f,0f,9.3f})
+        {
+            W.MM(bandGraphite,gx-.15f,gx+.15f,y0-.45f,y0,-h,h);
+            foreach(float gz in new[]{-9.3f,0f,9.3f})
+                W.OBox(steel,new Vector3(gx,(y+y0-.20f)*.5f,gz),new Vector3(.40f,y0-.20f-y,.40f),Quaternion.identity,true,true);
+        }
+        // green perimeter lights (ICAO: TLOF / FATO edge), none on the stairs' landings
+        W.Grupa=details;
+        const int N=18;const float c=1.2f;
+        for(int k=0;k<N;k+=2)foreach(var (px,pz) in new[]{(-h+k*c+c*.5f,-h-.12f),(-h+k*c+c*.5f,h+.12f),(-h-.12f,-h+k*c+c*.5f),(h+.12f,-h+k*c+c*.5f)})
+        {
+            if(Mathf.Abs(pz)>h&&PrzyLadowaniuSchodow(px,pz))continue;
+            W.MM(ledGreen,px-.12f,px+.12f,y1-.10f,y1+.08f,pz-.12f,pz+.12f);
+        }
+        W.Grupa=outside;
+        HeliNet(y0,y1,h);
+        Windsock(new Vector3(13.2f,y,4.0f),y1+3.2f,Vector3.forward);
+        SlabBalustrade(Offset(slab,.35f),y);
+        HeliPavilion(y,y0);
+        HeliStair(StairTop,1f,-StairIn,-StairOut,-h,y,y1);
+        HeliStair(-StairTop,-1f,StairIn,StairOut,h,y,y1);
+        Helikopter(y1);
+        Debug.Log("TOWER_T09_HELIPORT deck="+(2f*h).ToString("F1")+"m top="+y1.ToString("F2")+"m nominal markings=cut(TLOF white .30, TDPM yellow 3.05-3.55, H 3x1.8) "+
+            "net="+NetWidth.ToString("F1")+"m stairs=2 lift_stop="+heliY.ToString("F2")+" helicopters="+helis);
+        if(helis!=1)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_HELICOPTER helicopters="+helis+" (expected 1: the BRAXHORN EC135)");
+    }
+    // the deck's top: one surface, each piece in its own colour (cut, never laid over). Rays from the centre (every 5.625
+    // deg plus the H's corners) cut the disc round the H, the yellow ring, the deck and the white perimeter band into quads
+    // between the same rays; inside the H's rectangle a grid on the rays' points - no edge has a vertex its neighbour lacks
+    static void HeliDeckTop(float yt,float h)
+    {
+        const float r0=3.05f,r1=3.55f,band=.30f,hx=1.5f,hz=.9f,bar=.40f,cross=.20f;
+        var ang=new List<float>();
+        for(int i=0;i<64;i++)ang.Add(i*360f/64f);
+        foreach(var p in new[]{new Vector2(hx,hz),new Vector2(cross,hz),new Vector2(hx,hz-bar)})
+            foreach(float sx in new[]{-1f,1f})foreach(float sz in new[]{-1f,1f})
+                ang.Add(Mathf.Repeat(Mathf.Atan2(sz*p.y,sx*p.x)*Mathf.Rad2Deg,360f));
+        ang.Sort();
+        var a=new List<float>();foreach(var v in ang)if(a.Count==0||v-a[a.Count-1]>1e-3f)a.Add(v);
+        if(360f-a[a.Count-1]+a[0]<1e-3f)a.RemoveAt(a.Count-1);
+        int n=a.Count;var dir=new Vector2[n];var rect=new Vector2[n];
+        var xs=new List<float>{-hx,-cross,cross,hx};var zs=new List<float>{-hz,-(hz-bar),hz-bar,hz};
+        Vector2 OnBox(Vector2 d,float bx,float bz)
+        {
+            float t=Mathf.Min(Mathf.Abs(d.x)>1e-6f?bx/Mathf.Abs(d.x):float.MaxValue,Mathf.Abs(d.y)>1e-6f?bz/Mathf.Abs(d.y):float.MaxValue);
+            var q=d*t;
+            if(Mathf.Abs(Mathf.Abs(q.x)-bx)<1e-4f)q.x=Mathf.Sign(q.x)*bx;
+            if(Mathf.Abs(Mathf.Abs(q.y)-bz)<1e-4f)q.y=Mathf.Sign(q.y)*bz;
+            return q;
+        }
+        for(int i=0;i<n;i++)
+        {
+            float r=a[i]*Mathf.Deg2Rad;dir[i]=new Vector2(Mathf.Cos(r),Mathf.Sin(r));rect[i]=OnBox(dir[i],hx,hz);
+            if(Mathf.Abs(rect[i].y)==hz)xs.Add(rect[i].x);
+            if(Mathf.Abs(rect[i].x)==hx)zs.Add(rect[i].y);
+        }
+        List<float> Uniq(List<float> l){l.Sort();var u=new List<float>();foreach(var v in l)if(u.Count==0||v-u[u.Count-1]>1e-4f)u.Add(v);return u;}
+        xs=Uniq(xs);zs=Uniq(zs);
+        Vector3 P(Vector2 p)=>new Vector3(p.x,yt,p.y);
+        for(int i=0;i<n;i++)
+        {
+            int j=(i+1)%n;
+            Q(deck,P(rect[i]),P(rect[j]),P(dir[j]*r0),P(dir[i]*r0),Vector3.up);
+            Q(heliYellow,P(dir[i]*r0),P(dir[j]*r0),P(dir[j]*r1),P(dir[i]*r1),Vector3.up);
+            Q(deck,P(dir[i]*r1),P(dir[j]*r1),P(OnBox(dir[j],h-band,h-band)),P(OnBox(dir[i],h-band,h-band)),Vector3.up);
+            Q(paintWhite,P(OnBox(dir[i],h-band,h-band)),P(OnBox(dir[j],h-band,h-band)),P(OnBox(dir[j],h,h)),P(OnBox(dir[i],h,h)),Vector3.up);
+        }
+        // the H (bars along x, the crossbar across them) and the deck in its two notches
+        for(int i=0;i+1<xs.Count;i++)for(int k=0;k+1<zs.Count;k++)
+        {
+            float cx=(xs[i]+xs[i+1])*.5f,cz=(zs[k]+zs[k+1])*.5f;
+            bool white=Mathf.Abs(cz)>hz-bar||Mathf.Abs(cx)<cross;
+            Q(white?paintWhite:deck,new Vector3(xs[i],yt,zs[k]),new Vector3(xs[i+1],yt,zs[k]),new Vector3(xs[i+1],yt,zs[k+1]),new Vector3(xs[i],yt,zs[k+1]),Vector3.up);
+        }
+    }
+    // the safety net (ICAO: 1.5 m wide round an elevated deck, its outer edge not over the deck): a knotted net in a
+    // tube frame on brackets from the deck's fascia, rising a little outward; its picture has mip levels (from afar a
+    // dark band, never a shimmer of cords). Open over the stairs.
+    static void HeliNet(float y0,float y1,float h)
+    {
+        heliNet=HeliNetMaterial();
+        float yi=y1-.25f,yo=y1-.08f,o=h+NetWidth;
+        // the four sides cut round the stairs, the four corners
+        var spans=new List<(float,float,int)>();      // (from, to, side): side 0 south (-z), 1 north, 2 west (-x), 3 east
+        foreach(int side in new[]{0,1})
+        {
+            float s0=side==0?StairTop-19*.28f-.3f:-(StairTop+StairLand+.2f),s1=side==0?StairTop+StairLand+.2f:-(StairTop-19*.28f-.3f);
+            spans.Add((-h,s0,side));spans.Add((s1,h,side));
+        }
+        spans.Add((-h,h,2));spans.Add((-h,h,3));
+        foreach(var (u0,u1,side) in spans)
+        {
+            Vector3 In(float u)=>side==0?new Vector3(u,yi,-h):side==1?new Vector3(u,yi,h):side==2?new Vector3(-h,yi,u):new Vector3(h,yi,u);
+            Vector3 Out(float u)=>side==0?new Vector3(u,yo,-o):side==1?new Vector3(u,yo,o):side==2?new Vector3(-o,yo,u):new Vector3(o,yo,u);
+            var nrm=Vector3.up;
+            Q(heliNet,In(u0),In(u1),Out(u1),Out(u0),nrm);
+            W.Rura(steel,Out(u0),Out(u1),.025f,8);
+            int nb=Mathf.Max(1,Mathf.CeilToInt((u1-u0)/2.7f));
+            for(int b=0;b<=nb;b++){float u=Mathf.Lerp(u0,u1,(float)b/nb);var i=In(u);W.Rura(steel,new Vector3(i.x,y0+.12f,i.z),Out(u),.03f,8);}
+        }
+        foreach(float sx in new[]{-1f,1f})foreach(float sz in new[]{-1f,1f})
+        {
+            var ci=new Vector3(sx*h,yi,sz*h);var cx=new Vector3(sx*o,yo,sz*h);var cc=new Vector3(sx*o,yo,sz*o);var cz=new Vector3(sx*h,yo,sz*o);
+            Q(heliNet,ci,cx,cc,cz,Vector3.up);
+            W.Rura(steel,cx,cc,.025f,8);W.Rura(steel,cz,cc,.025f,8);W.Rura(steel,new Vector3(ci.x,y0+.12f,ci.z),cc,.03f,8);
+        }
+    }
+    static Material HeliNetMaterial()
+    {
+        string dir=outFolder+"/Textures",path=dir+"/tower_helideck_safety_net.png";
+        System.IO.Directory.CreateDirectory(dir);
+        if(!System.IO.File.Exists(path))
+        {
+            // 1 m of the net: a 32 mm square mesh of 6 mm dark cords (a 256 px tile, 8 px a mesh)
+            const int S=256,M=8;var t=new Texture2D(S,S,TextureFormat.RGBA32,false);var px=new Color32[S*S];
+            for(int y=0;y<S;y++)for(int x=0;x<S;x++)
+            {
+                int cx=x%M,cy=y%M;byte al=(byte)(cx<2||cy<2?255:0);
+                if((cx<2)&&(cy<2))al=255;
+                px[y*S+x]=new Color32(46,48,46,al);
+            }
+            t.SetPixels32(px);t.Apply(false);
+            System.IO.File.WriteAllBytes(path,t.EncodeToPNG());
+        }
+        AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
+        if(AssetImporter.GetAtPath(path) is TextureImporter imp)
+        {
+            imp.textureType=TextureImporterType.Default;imp.sRGBTexture=true;imp.alphaSource=TextureImporterAlphaSource.FromInput;
+            imp.alphaIsTransparency=false;imp.mipmapEnabled=true;imp.wrapMode=TextureWrapMode.Repeat;
+            imp.filterMode=FilterMode.Trilinear;imp.anisoLevel=8;imp.maxTextureSize=256;
+            var an=imp.GetPlatformTextureSettings("Android");an.overridden=true;an.maxTextureSize=256;an.format=TextureImporterFormat.ASTC_4x4;
+            imp.SetPlatformTextureSettings(an);imp.SaveAndReimport();
+        }
+        var m=Surface("helideck_safety_net",new Color(.20f,.21f,.20f,1f),.8f,0f);
+        m.SetTexture("_MainTex",AssetDatabase.LoadAssetAtPath<Texture2D>(path));
+        m.SetFloat("_Transparent",1f);m.SetFloat("_SrcBlend",(float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        m.SetFloat("_DstBlend",(float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);m.SetFloat("_ZWrite",0f);m.SetFloat("_Cull",0f);
+        m.renderQueue=3000;m.SetOverrideTag("RenderType","Transparent");EditorUtility.SetDirty(m);
+        return m;
+    }
+    // the windsock (ICAO: a truncated cone of fabric >= 2.4 m long, 0.6 m at its mouth, five bands orange / white, the
+    // first and last orange) on a steel mast; it blows along blow, sagging 12 deg
+    static void Windsock(Vector3 foot,float topY,Vector3 blow)
+    {
+        var up=Vector3.up;var top=new Vector3(foot.x,topY,foot.z);
+        W.MM(steel,foot.x-.2f,foot.x+.2f,foot.y,foot.y+.02f,foot.z-.2f,foot.z+.2f);
+        W.Rura(steel,new Vector3(foot.x,foot.y+.02f,foot.z),top,.05f,10);
+        var mouth=top+blow*.35f-up*.05f;
+        W.Rura(steel,top,mouth+up*.30f,.02f,8);
+        float sag=12f*Mathf.Deg2Rad;var axis=(blow*Mathf.Cos(sag)-up*Mathf.Sin(sag)).normalized;
+        var u=Vector3.Cross(axis,up).normalized;var w=Vector3.Cross(u,axis);
+        const int sides=16;
+        for(int b=0;b<5;b++)
+        {
+            float t0=b/5f,t1=(b+1)/5f,ra=Mathf.Lerp(.30f,.15f,t0),rb=Mathf.Lerp(.30f,.15f,t1);
+            Vector3 ca=mouth+axis*2.4f*t0,cb=mouth+axis*2.4f*t1;var m=b%2==0?sockOrange:paintWhite;
+            for(int s=0;s<sides;s++)
+            {
+                float p0=s*Mathf.PI*2f/sides,p1=(s+1)*Mathf.PI*2f/sides;
+                Vector3 d0=u*Mathf.Cos(p0)+w*Mathf.Sin(p0),d1=u*Mathf.Cos(p1)+w*Mathf.Sin(p1);
+                Vector3 A=ca+d0*ra,B=ca+d1*ra,C=cb+d1*rb,D=cb+d0*rb;var nOut=(d0+d1).normalized;
+                Q(m,A,B,C,D,nOut);Q(m,A,D,C,B,-nOut);                        // fabric: seen from inside too
+            }
+        }
+        for(int s=0;s<sides;s++)
+        {
+            float p0=s*Mathf.PI*2f/sides,p1=(s+1)*Mathf.PI*2f/sides;
+            W.Rura(steel,mouth+(u*Mathf.Cos(p0)+w*Mathf.Sin(p0))*.30f,mouth+(u*Mathf.Cos(p1)+w*Mathf.Sin(p1))*.30f,.012f,6,false);
+        }
+    }
+    // a glass balustrade (1.1 m: a steel shoe, clear glass, a stainless rail) round the crown's slab, colliding
+    static void SlabBalustrade(List<Vector2> P,float y)
+    {
+        var c=Centre(P);
+        for(int i=0;i<P.Count;i++)
+        {
+            var a=P[i];var b=P[(i+1)%P.Count];var n=EdgeOut(P,i,c);var e=b-a;float L=e.magnitude;var mid=(a+b)*.5f;
+            var q=Quaternion.LookRotation(new Vector3(e.x,0f,e.y));
+            W.OBox(steel,new Vector3(mid.x,y+.05f,mid.y),new Vector3(.08f,.10f,L),q,false,true);
+            Q(casinoGlass,V3(a,y+.10f),V3(b,y+.10f),V3(b,y+1.04f),V3(a,y+1.04f),new Vector3(n.x,0f,n.y));
+            W.Rura(steel,V3(a,y+1.07f),V3(b,y+1.07f),.03f,10);
+            W.Kolizja(new Vector3(mid.x,y+.55f,mid.y),new Vector3(.12f,1.1f,L),q);
+        }
+    }
+    // the pavilion under the deck: clear glass in a black frame round the express lift's landing (its core in walnut as
+    // in the lobby and the casino), a granite floor, the deck's underside its ceiling with a light; the door south
+    static void HeliPavilion(float y,float top)
+    {
+        const float x0=1.2f,x1=4.9f,z0=-5.0f,z1=.80f,door=.75f,t=.05f;
+        float yf=y+PavFloor;
+        W.Grupa=inside;W.Wnetrze=true;
+        W.OBox(granite,new Vector3((x0+x1)*.5f,y+PavFloor*.5f,(z0+z1)*.5f),new Vector3(x1-x0,PavFloor,z1-z0),Quaternion.identity,false,true);
+        W.KolizjaMM(x0,x1,y,yf,z0,z1);
+        LiftCore(new Core(liftX-1.35f,LiftZ0,2.7f,2.6f),liftX,yf,top);
+        W.Grupa=inside;W.Wnetrze=true;
+        BraxChampionsLetters3D.Text(letters,ledWhite,black,"LĄDOWISKO",new Vector3(liftX,yf+2.42f,LiftZ0),180f,.20f,.04f,.08f,2.4f);
+        var walls=new List<(Vector2,Vector2)>{(new Vector2(x0,z0),new Vector2(liftX-door,z0)),(new Vector2(liftX+door,z0),new Vector2(x1,z0)),
+            (new Vector2(x1,z0),new Vector2(x1,z1)),(new Vector2(x1,z1),new Vector2(x0,z1)),(new Vector2(x0,z1),new Vector2(x0,z0))};
+        var centre=new Vector2((x0+x1)*.5f,(z0+z1)*.5f);var posts=new HashSet<(int,int)>();
+        foreach(var (a,b) in walls)
+        {
+            var e=b-a;float L=e.magnitude;var mid=(a+b)*.5f;var o=mid-centre;var nrm=new Vector3(o.x,0f,o.y).normalized;
+            var q=Quaternion.LookRotation(new Vector3(e.x,0f,e.y));
+            Q(casinoGlass,V3(a,yf+.06f),V3(b,yf+.06f),V3(b,top-.06f),V3(a,top-.06f),nrm);
+            int n=Mathf.Max(1,Mathf.CeilToInt(L/1.25f));
+            for(int k=0;k<=n;k++)
+            {
+                var p=Vector2.Lerp(a,b,(float)k/n);
+                if(posts.Add((Mathf.RoundToInt(p.x*100f),Mathf.RoundToInt(p.y*100f))))W.MM(mullion,p.x-t,p.x+t,yf,top,p.y-t,p.y+t);
+            }
+            W.OBox(mullion,new Vector3(mid.x,yf+.03f,mid.y),new Vector3(2f*t,.06f,L),q);
+            W.OBox(mullion,new Vector3(mid.x,top-.03f,mid.y),new Vector3(2f*t,.06f,L),q);
+            W.Kolizja(new Vector3(mid.x,(yf+top)*.5f,mid.y),new Vector3(.10f,top-yf,L),q);
+        }
+        // over the door: a transom at 2.4 m and glass above it
+        W.MM(mullion,liftX-door,liftX+door,yf+2.40f,yf+2.46f,z0-t,z0+t);
+        Q(casinoGlass,new Vector3(liftX-door,yf+2.46f,z0),new Vector3(liftX+door,yf+2.46f,z0),new Vector3(liftX+door,top-.06f,z0),new Vector3(liftX-door,top-.06f,z0),Vector3.back);
+        W.MM(ledWhite,x0+.6f,x1-.6f,top-.02f,top,z0+.5f,LiftZ0-.7f);
+        lights.Add(W.Lampa("BRAXHORN TOWER | heliport pavilion light",new Vector3((x0+x1)*.5f,top-.5f,(z0+LiftZ0)*.5f),.8f,7f,new Color(.97f,.98f,1f)));
+        W.Grupa=outside;W.Wnetrze=false;
+    }
+    // a steel stair to the deck (20 risers of 17 cm, treads 28 cm: open steel treads on two stringers, a handrail each
+    // side, colliding as a ramp) climbing along x (dir) to its top xt at the deck's top yt, between z zi (the deck's side)
+    // and zo; its landing 1.4 m beyond xt out to the deck's edge ze
+    static void HeliStair(float xt,float dir,float zi,float zo,float ze,float y,float yt)
+    {
+        const int N=20;const float G=.28f;
+        float run=(N-1)*G,xb=xt-dir*run,rise=(yt-y)/N,za=Mathf.Min(zi,zo),zb=Mathf.Max(zi,zo),zc=(za+zb)*.5f,width=zb-za;
+        W.Grupa=outside;W.Wnetrze=false;
+        for(int k=0;k<N-1;k++)
+        {
+            float a=xb+dir*k*G,b=xb+dir*(k+1)*G,ty=y+(k+1)*rise;
+            W.MM(steel,Mathf.Min(a,b),Mathf.Max(a,b),ty-.04f,ty,za+.07f,zb-.07f);
+        }
+        float len=Mathf.Sqrt(run*run+(yt-y)*(yt-y));var q=Quaternion.Euler(0f,0f,Mathf.Atan2(yt-y,dir*run)*Mathf.Rad2Deg);
+        foreach(float sz in new[]{za+.03f,zb-.03f})
+        {
+            W.OBox(bandGraphite,new Vector3((xb+xt)*.5f,(y+yt)*.5f-.06f,sz),new Vector3(len,.26f,.06f),q,false,true);
+            W.Rura(steel,new Vector3(xb,y+1.0f,sz),new Vector3(xt,yt+1.0f,sz),.025f,8);
+            for(int k=0;k<=4;k++){float f=k/4f;var p=new Vector3(Mathf.Lerp(xb,xt,f),Mathf.Lerp(y,yt,f),sz);W.Rura(steel,p+Vector3.up*.08f,p+Vector3.up*1.0f,.02f,8);}
+            W.Kolizja(new Vector3((xb+xt)*.5f,(y+yt)*.5f+.5f,sz),new Vector3(len,1.0f,.06f),q);
+        }
+        W.Rampa(new Vector3(xt,yt,zc),new Vector3(xb,y,zc),width);
+        // the landing on the deck's edge, its guard on the open sides, two legs to the slab
+        float l0=Mathf.Min(xt,xt+dir*StairLand),l1=Mathf.Max(xt,xt+dir*StairLand),lz0=Mathf.Min(za,ze),lz1=Mathf.Max(zb,ze),xe=xt+dir*StairLand;
+        W.MM(steel,l0,l1,yt-.06f,yt,lz0,lz1);
+        W.KolizjaMM(l0,l1,yt-.06f,yt,lz0,lz1);
+        float zOut=zo>0f?zb-.03f:za+.03f;
+        W.Rura(steel,new Vector3(xt,yt+1.0f,zOut),new Vector3(xe,yt+1.0f,zOut),.025f,8);
+        W.Rura(steel,new Vector3(xe,yt+1.0f,zOut),new Vector3(xe,yt+1.0f,ze),.025f,8);
+        foreach(var p in new[]{new Vector3(xe,yt,zOut),new Vector3(xe,yt,ze-Mathf.Sign(ze)*.05f)})W.Rura(steel,p,p+Vector3.up*1.0f,.02f,8);
+        W.KolizjaMM(Mathf.Min(xt,xe),Mathf.Max(xt,xe),yt,yt+1.0f,zOut-.03f,zOut+.03f);
+        W.KolizjaMM(xe-.03f,xe+.03f,yt,yt+1.0f,lz0,lz1);
+        foreach(float lz in new[]{za+.10f,zb-.10f})W.Rura(bandGraphite,new Vector3(xe-dir*.10f,y,lz),new Vector3(xe-dir*.10f,yt-.06f,lz),.05f,8);
+    }
+    // the BRAXHORN helicopter (owner 16.11 22:00): the owner's EC135 in the BRAXHORN livery (black, the gold cheatline,
+    // BRAXHORN and the coat of arms; model GRIP420, CC-BY 4.0, repainted by unity-tools/mistrzowie/helikopter) on the
+    // ring, nose east, its right door - the pilot's - toward the south stair. A working helicopter: AKCJA at that door
+    // (BraxChampionsHelikopter); the player's vehicle hook - a BraxChampionsCar in proxy mode - carries the joystick and the
+    // follow camera, the hull's colliders under it (the camera never hits its own helicopter).
+    public const string HeliModel="Assets/Source/Mistrzowie/Helikopter/braxhorn_ec135.glb";
+    const string HeliTextures="Assets/Source/Mistrzowie/Helikopter/_tekstury/braxhorn_ec135";
+    static void Helikopter(float yt)
+    {
+        if(!System.IO.File.Exists(HeliModel))
+        {
+            BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_HELICOPTER_MISSING "+HeliModel+" (pack braxhorn-mistrzowie-helikopter-20261116 not opened: KLUCZ) - the heliport stays empty");
+            return;
+        }
+        // the textures first: glTFast takes the project's compressed textures instead of its own copies
+        if(System.IO.Directory.Exists(HeliTextures))AssetDatabase.ImportAsset(HeliTextures,ImportAssetOptions.ImportRecursive|ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.ImportAsset(HeliModel,ImportAssetOptions.ForceSynchronousImport);
+        var src=AssetDatabase.LoadAssetAtPath<GameObject>(HeliModel);
+        if(!src){BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_HELICOPTER_IMPORT "+HeliModel);return;}
+        var heli=new GameObject("HELIKOPTER BRAXHORN | Airbus EC135 (GRIP420, CC-BY 4.0) | latający").transform;
+        heli.SetParent(outside.parent,false);heli.localPosition=new Vector3(0f,yt,0f);heli.localRotation=Quaternion.Euler(0f,90f,0f);
+        var model=(GameObject)UnityEngine.Object.Instantiate(src,heli,false);model.name="BRAXHORN EC135 | model";
+        model.transform.localPosition=Vector3.zero;model.transform.localRotation=Quaternion.identity;model.transform.localScale=Vector3.one;
+        BraxMiastoAssety.Przygotuj(model,false,true);
+        var rs=model.GetComponentsInChildren<Renderer>(true);
+        if(rs.Length>0){var lod=model.AddComponent<LODGroup>();lod.SetLODs(new[]{new LOD(.01f,rs)});lod.RecalculateBounds();}
+        Transform Punkt(string name,Transform parent,Vector3 local){var p=new GameObject(name).transform;p.SetParent(parent,false);p.localPosition=local;return p;}
+        // in the model's metres: the pilot's (right) seat - his hips over its cushion -, the right door on the deck, the
+        // camera point over the cabin's back
+        var fotel=Punkt("fotel pilota (prawy)",heli,new Vector3(.31f,1.28f,1.70f));
+        var wejscie=Punkt("wejście (prawe drzwi)",heli,new Vector3(1.90f,0f,1.60f));
+        var kam=Punkt("kamera (BraxChampionsCar w trybie helikoptera)",heli,new Vector3(0f,1.20f,-1.0f));
+        var kol=Punkt("kolizje kadłuba",kam,-kam.localPosition);
+        void Box(string name,Vector3 c,Vector3 s){var b=Punkt(name,kol,c);b.gameObject.AddComponent<BoxCollider>().size=s;}
+        Box("kabina",new Vector3(0f,1.75f,.40f),new Vector3(1.70f,2.40f,5.60f));
+        Box("belka ogonowa",new Vector3(0f,2.05f,-4.80f),new Vector3(.80f,1.10f,4.80f));
+        Box("statecznik",new Vector3(0f,3.0f,-6.75f),new Vector3(.30f,1.80f,.90f));
+        Box("płozy",new Vector3(0f,.25f,.20f),new Vector3(2.90f,.50f,3.40f));
+        var car=kam.gameObject.AddComponent<BraxChampionsCar>();
+        var h=heli.gameObject.AddComponent<BraxChampionsHelikopter>();
+        car.helikopter=h;
+        h.model=model.transform;h.fotel=fotel;h.wejscie=wejscie;h.kamera=car;
+        h.wirnikGlowny=BraxMiastoAssety.Znajdz(model.transform,"wirnik_glowny");
+        h.wirnikOgonowy=BraxMiastoAssety.Znajdz(model.transform,"wirnik_ogonowy");
+        if(!h.wirnikGlowny||!h.wirnikOgonowy)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_HELICOPTER_ROTORS main="+(h.wirnikGlowny!=null)+" tail="+(h.wirnikOgonowy!=null)+" (nodes wirnik_glowny / wirnik_ogonowy)");
+        foreach(var t in heli.GetComponentsInChildren<Transform>(true))GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
+        helis++;
     }
     // ---------------- T09 SKY KASYNO ----------------
     // Owner 16.11 17:42: "na jednym wieżowcu kasyno na samej górze z widokiem na całe miasto" (plan 12.11: "Dwa kasyna:
     // KASYNO WAWER T11 i sky kasyno na szczycie wieżowca"). The top two storeys of the BRAXHORN TOWER (240-248 m over the
     // plaza, the highest room of the region) are one hall 8 m high in clear glass all round: the whole city below. The
-    // express lift from the lobby (lift 1 of the bank, a working BraxWinda: two stops) opens into it. Inside: dark oak
+    // express lift from the lobby (lift 1 of the bank, a working BraxWinda: three stops, the last the heliport) opens into it. Inside: dark oak
     // planks, a dark ceiling with lamps, blackjack tables made as real ones (red felt, a padded black leather armrest,
     // walnut body, steel chip tray, pedestals), two banks of working slot machines (mechanical and screen, BraxChampionsKasyno-
     // Sprzet), a bar with the owner's back-bar and lamps, lounges at the glass.
@@ -870,7 +1181,7 @@ public static class BraxChampionsWiezowce
                                 new Vector3(9.8f,4.6f,-4.5f),new Vector3(1f,3.6f,7.3f),new Vector3(-10.5f,4.6f,8.5f),new Vector3(10.5f,4.6f,8.5f)})
             lights.Add(W.Lampa("SKY KASYNO light",new Vector3(lp.x,y+lp.y,lp.z),1.0f,11f,new Color(.97f,.98f,1f)));
         Debug.Log("TOWER_T09_SKY_KASYNO floor="+CasinoY.ToString("F2")+"m nominal glass=clear-both-sides tables="+tables+" roulettes="+roulettes+" slots="+slots+
-            " backBarUnits="+units+" ownerModelsMissing="+ownerMissing+" lift=BraxWinda(2 stops)");
+            " backBarUnits="+units+" ownerModelsMissing="+ownerMissing+" lift=BraxWinda("+Stops().Length+" stops)");
         if(ownerMissing>0)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO owner models missing x"+ownerMissing+" (osiedle_wnetrza pack): back-bar / bar lamps stay empty");
         if(slots!=40)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO slot machines "+slots+"/40");
         if(obsluga!=4)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO service points "+obsluga+"/4 (reception, cloakroom, two cashier windows)");
@@ -995,9 +1306,8 @@ public static class BraxChampionsWiezowce
         W.Lampa("SKY KASYNO lift cabin light",new Vector3(x,2.2f,(zf+zb)*.5f),.7f,3f,new Color(.97f,.98f,1f));
         cabL=new GameObject("cabin door L").transform;cabL.SetParent(cab,false);W.Grupa=cabL;W.MM(steel,x-LiftLeaf,x,.01f,2.25f,zf-.08f,zf-.05f,true);
         cabR=new GameObject("cabin door R").transform;cabR.SetParent(cab,false);W.Grupa=cabR;W.MM(steel,x,x+LiftLeaf,.01f,2.25f,zf-.08f,zf-.05f,true);
-        landL=new Transform[2];landR=new Transform[2];
-        var ys=new[]{Fl,CasinoY};
-        for(int s=0;s<2;s++)
+        var ys=Stops();landL=new Transform[ys.Length];landR=new Transform[ys.Length];
+        for(int s=0;s<ys.Length;s++)
         {
             float yy=ys[s],z0=LiftZ0+.22f;
             landL[s]=new GameObject("SKY KASYNO lift landing door L | stop "+s).transform;landL[s].SetParent(inside,false);W.Grupa=landL[s];
@@ -1007,6 +1317,10 @@ public static class BraxChampionsWiezowce
         }
         W.Grupa=inside;
     }
+    // the express lift's stops (nominal y of their floors): the lobby, the sky casino and - on the BRAXHORN TOWER - the
+    // heliport's pavilion
+    static float[] Stops()=>float.IsNaN(heliY)?new[]{Fl,CasinoY}:new[]{Fl,CasinoY,heliY};
+    static readonly string[] StopNames={"HOL · BRAXHORN TOWER","SKY KASYNO · 60 PIĘTRO","LĄDOWISKO · DACH"};
     // after the root is placed: the lift's stops in world y, its call points, the BraxWinda itself
     static void WireLift(Transform root)
     {
@@ -1016,10 +1330,14 @@ public static class BraxChampionsWiezowce
         var w=cab.gameObject.AddComponent<BraxWinda>();
         w.nazwa="BRAXHORN TOWER · SKY KASYNO";
         w.kabina=cab;w.kabinaL=cabL;w.kabinaP=cabR;
-        w.pietraY=new[]{root.TransformPoint(new Vector3(0,Fl,0)).y,root.TransformPoint(new Vector3(0,CasinoY,0)).y};
-        w.pietraNazwy=new[]{"HOL · BRAXHORN TOWER","SKY KASYNO · 60 PIĘTRO"};w.uzytkowe=new[]{true,true};
+        var ys=Stops();int n=ys.Length;
+        w.pietraY=new float[n];w.pietraNazwy=new string[n];w.uzytkowe=new bool[n];w.wezwanie=new Vector3[n];
+        for(int i=0;i<n;i++)
+        {
+            w.pietraY[i]=root.TransformPoint(new Vector3(0,ys[i],0)).y;w.pietraNazwy[i]=StopNames[i];w.uzytkowe[i]=true;
+            w.wezwanie[i]=root.TransformPoint(new Vector3(liftX,ys[i]+1.2f,LiftZ0-.9f));
+        }
         w.przystanekL=landL;w.przystanekP=landR;
-        w.wezwanie=new[]{root.TransformPoint(new Vector3(liftX,Fl+1.2f,LiftZ0-.9f)),root.TransformPoint(new Vector3(liftX,CasinoY+1.2f,LiftZ0-.9f))};
         var sh=root.TransformPoint(new Vector3(liftX,0,(LiftZ0+LiftZ1)*.5f));w.szyb=new Vector2(sh.x,sh.z);
         w.wnetrze=new Vector2(.93f*K,.95f*K);w.przesuw=LiftLeaf*.95f;w.start=0;
     }

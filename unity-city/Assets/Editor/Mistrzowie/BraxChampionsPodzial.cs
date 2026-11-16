@@ -57,10 +57,11 @@ public static class BraxChampionsPodzial
         Strefa("Mistrzowie_M5_Metro", "M5 | ", 120f, 250f, 30000, "| reused city metro"),
     };
 
-    // never leave the main scene (the player must not vanish with an area; these move through several areas)
+    // never leave the main scene (the player must not vanish with an area; these move through several areas). The BRAXHORN
+    // helicopter (16.11, it flies anywhere) before the car: its camera hook is a BraxChampionsCar child that goes with it
     static readonly Type[] Zostaja =
     {
-        typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(AudioListener), typeof(BraxVessel), typeof(BraxChampionsCar), typeof(BraxPieszy),
+        typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(AudioListener), typeof(BraxVessel), typeof(BraxChampionsHelikopter), typeof(BraxChampionsCar), typeof(BraxPieszy),
         typeof(BraxChampionsObszary), typeof(BraxChampionsObszarZDaleka), typeof(BraxChampionsWydajnosc), typeof(BraxChampionsVisualReview)
     };
 

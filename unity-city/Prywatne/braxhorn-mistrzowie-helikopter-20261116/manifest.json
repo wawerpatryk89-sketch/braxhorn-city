@@ -1,0 +1,38 @@
+{
+ "source": "owner 16.11.2026 22:00: \"Masz tutaj helikopter ... Przemaluj go na nasz kolor, z napisem naszym, z naszym herbem. I go postaw na dachu i zrób wejście. I żeby był funkcjonalny\" - his ec_135.glb (the Airbus EC135 by GRIP420, Sketchfab, CC-BY 4.0, https://sketchfab.com/3d-models/ec-135-ec30f802c6ac43a8843948fbadb674d2) as he sent it (zrodlo/), and the BRAXHORN EC135 made from it by unity-tools/mistrzowie/helikopter (the ADAC paint black, the gold cheatline, BRAXHORN big on the tail boom, his coin as the emblem; 22:38 \"słabo widoczny ... napis\": the letters 30 cm, a brighter satin gold)",
+ "target": "Assets/Source/Mistrzowie/Helikopter/ (install_owner_media.py; BraxChampionsWiezowce.Helikopter on the BRAXHORN TOWER heliport); zrodlo/ stays in the pack",
+ "license": "CC-BY 4.0 - \"EC 135\" by GRIP420 (https://sketchfab.com/GRIP420), modified: livery, crew and stretcher removed, parts baked, rotors on pivots",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "145448fe269b31903abe6f51311f482b5dd28c04d3ce9437ee200ca359ab7aa7",
+ "cmsSha256": "96941d6ce2505148eccdc9c1d24069dd5909e09c2aecc7b3d6279a6f6f34dcbb",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 81918573,
+   "sha256": "96941d6ce2505148eccdc9c1d24069dd5909e09c2aecc7b3d6279a6f6f34dcbb"
+  }
+ ],
+ "files": {
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_fotele.png": "bce75dc7fb9cedc1375f74084069bf2f022097341bfddb394f4e98d589541fad",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_fotele_mr__lin.png": "b9cbf576f0989c99ad8bfb59bd2a12218644fea8fd4e24f104daec7afe61bd8b",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_fotele_normal__lin.png": "4f8aa0e9907f471d4dabcc7d1c9e1e0f410a047e815322469c9685b0a64b73f5",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kabina.png": "b320c9ed3b288f1d08aaf808237dee03469a3718b207dcb7301dbe1b104880cd",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kabina_mr__lin.png": "6f43863226137b528aac0614e8d2d25e13f471fc9220168c991017def6574040",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kabina_normal__lin.png": "ee848710071d83c4956543affaa179233b02cf243bf66c9813f0ceb357510b90",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kadlub.png": "8db74d76bebffe6c4d91c17b885f5ab94e9dffee7123ed65bd346b2ebc7129df",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kadlub_mr__lin.png": "f966548c5051ac16fa7581c9a6f796e4bcee7b73756f132a6ed1905db6173b86",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kadlub_normal__lin.png": "51d3d6110b1a850dcd4ec28cff79141771fdcf6b163919341fb1ee0ba86bddc7",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kadlub_tyl.png": "ca5a9dc71c55104083c36f253c6bfe2407b013e3d1d92814e605cc5974b380e6",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kadlub_tyl_mr__lin.png": "d779e0f865dc27e05a2df798da64c99d218e1b9d2badddf230fd67f4f650f8f9",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kadlub_tyl_normal__lin.png": "24bb6624da395f4dc3d83986ffb66b49857227682ef55b6874b9f24b523f808f",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kokpit.png": "ed6547028f29d106a589b40d919e3240f1f84791bf48670b56537dd636f98a62",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kokpit_mr__lin.png": "4c022209248ad3807387240b0f0cd1249cef428cbe846e9990eea08bd630b346",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_kokpit_normal__lin.png": "a21249fe5953348b2b4a007b5409052807e38059f007f526029e017d4c233ff4",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_wirniki.png": "2835a81d3c9408fe8f19c9d005029da871213a6bb1dd2ad703698bad11371c48",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_wirniki_mr__lin.png": "9f2984c26bbdab0c5da5692b722d7f81b49a237ddc04c052ce3a43e99671befd",
+  "Helikopter/_tekstury/braxhorn_ec135/braxhorn_ec135_wirniki_normal__lin.png": "4b5244e752e8c4d5beb669b4f245c5b85514b59fa2c758f00ccba912abf4b790",
+  "Helikopter/braxhorn_ec135.glb": "c24875597a73713b5a11e3bf67cde15e81872a7e66dea61135a802caf098358d",
+  "zrodlo/ec_135.glb": "1b7ba7abc734d4c601128a63b39ae127cb0311a3cf8aa12f8f8a62179a45c266"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

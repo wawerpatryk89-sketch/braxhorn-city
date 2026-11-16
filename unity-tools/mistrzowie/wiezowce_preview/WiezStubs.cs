@@ -20,3 +20,16 @@ public sealed class BraxWinda : UnityEngine.MonoBehaviour
     public float przesuw = .75f;
     public int start;
 }
+// the BRAXHORN helicopter (Assets/Mistrzowie/BraxChampionsHelikopter.cs) and the player's vehicle hook in its proxy mode
+// (BraxChampionsCar.cs): runtime MonoBehaviours tied to the player - their serialised fields only
+public sealed class BraxChampionsHelikopter : UnityEngine.MonoBehaviour
+{
+    public UnityEngine.Transform model, wirnikGlowny, wirnikOgonowy, fotel, wejscie;
+    public BraxChampionsCar kamera;
+    public string nazwa = "HELIKOPTER BRAXHORN";
+    public float interactionRadius = 3.2f, worldScale = 1f, rotorRadius = 5.1f, skidHalfLength = 1.6f;
+}
+public sealed class BraxChampionsCar : UnityEngine.MonoBehaviour
+{
+    public BraxChampionsHelikopter helikopter;
+}

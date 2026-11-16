@@ -106,6 +106,7 @@ namespace UnityEngine
         public static float DeltaAngle(float a, float b) { float d = (b - a) % 360f; if (d < 0) d += 360f; if (d > 180f) d -= 360f; return d; }
         public static float InverseLerp(float a, float b, float v) => a != b ? Clamp01((v - a) / (b - a)) : 0f;
         public static float Repeat(float t, float l) => Clamp(t - (float)Math.Floor(t / l) * l, 0f, l);
+        public static float MoveTowards(float c, float t, float d) => Math.Abs(t - c) <= d ? t : c + Math.Sign(t - c) * d;
         public static float LerpAngle(float a, float b, float t) { float d = Repeat(b - a, 360f); if (d > 180f) d -= 360f; return a + d * Clamp01(t); }
         public static float GammaToLinearSpace(float v) => v <= .04045f ? v / 12.92f : (float)Math.Pow((v + .055) / 1.055, 2.4);
         public static float LinearToGammaSpace(float v) => v <= .0031308f ? v * 12.92f : (float)(1.055 * Math.Pow(v, 1 / 2.4) - .055); }
@@ -127,6 +128,8 @@ namespace UnityEngine
         }
         public static T Instantiate<T>(T original, Transform parent, bool stays) where T : Object
         {
+            // a preview model keeps its stand-in (drawn from the file: the BRAXHORN helicopter on the heliport)
+            if (original is GameObject pg && pg.GetComponent<PreviewModel>() != null) { var c = Instantiate(original) as GameObject; c.transform.SetParent(parent, false); return c as T; }
             if (original is GameObject g) { var c = new GameObject(g.name + "(Clone)"); c.transform.SetParent(parent, false); return c as T; }
             return original;
         }
@@ -310,7 +313,7 @@ namespace UnityEditor
 {
     using UnityEngine;
     public enum InteractionMode { AutomatedAction, UserAction }
-    [Flags] public enum ImportAssetOptions { Default = 0, ForceUpdate = 1, ForceSynchronousImport = 8 }
+    [Flags] public enum ImportAssetOptions { Default = 0, ForceUpdate = 1, ForceSynchronousImport = 8, ImportRecursive = 256 }
     [Flags] public enum StaticEditorFlags { ContributeGI = 1, OccluderStatic = 2, BatchingStatic = 4, NavigationStatic = 8, OccludeeStatic = 16 }
     public static class AssetDatabase {
         public static T LoadAssetAtPath<T>(string p) where T : Object
