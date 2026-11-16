@@ -14,6 +14,16 @@ Shader "Braxhorn/Obsada Osiedla"
         // Oko czyta jeden połysk na wszystkim jako plastik. Ten mnożnik ścina poziom, zachowując
         // różnice tam, gdzie w mapie są. Metaliczności NIE rusza.
         _Gladkosc ("Mnożnik gładkości (1 = jak w mapie)", Range(0,1)) = 1
+        // Metaliczność. Zmierzone 16.11: imprezowiczka ma 0,60 na CAŁEJ postaci — skóra
+        // i tkanina nie są metalem, a przy takiej wartości materiał traci własny kolor
+        // i staje się ciemnym lustrem. To znany artefakt generatorów 3D (Tripo).
+        // 0 = metaliczność wyłączona, 1 = dokładnie to, co w mapie.
+        _MetalMnoznik ("Mnożnik metaliczności", Range(0,1)) = 1
+        // Siła mapy normalnych. Zmierzone: u Ewy 74 % pikseli nie ma żadnej faktury
+        // (odchylenie 0,021), u Patryka, bramkarza i imprezowiczki niewiele lepiej.
+        // Płaska mapa normalnych nie rozbija odblasku, więc skóra odbija jak lakier.
+        // Podbicie XY zwiększa mikrofakturę bez ruszania map.
+        _SilaNormalnych ("Siła mapy normalnych", Range(0.5,3)) = 1
     }
     SubShader
     {
@@ -23,7 +33,7 @@ Shader "Braxhorn/Obsada Osiedla"
         #pragma surface surf Standard fullforwardshadows
         sampler2D _MainTex, _BumpMap, _MetalSmooth, _FaceTex;
         half _Blink, _Speech;
-        half _Gladkosc;
+        half _Gladkosc, _MetalMnoznik, _SilaNormalnych;
         struct Input { float2 uv_MainTex; float2 uv2_FaceTex; };
         half4 phase(float2 coord, float n)
         {
@@ -44,8 +54,10 @@ Shader "Braxhorn/Obsada Osiedla"
                 color=lerp(lerp(color,a.rgb,a.a),lerp(color,b.rgb,b.a),frac(f));
             }
             o.Albedo=color;
-            o.Normal=UnpackNormal(tex2D(_BumpMap,uv));
-            o.Metallic=packedMap.r;
+            half3 nrm = UnpackNormal(tex2D(_BumpMap,uv));
+            nrm.xy *= _SilaNormalnych;
+            o.Normal = normalize(nrm);
+            o.Metallic=packedMap.r*_MetalMnoznik;
             o.Smoothness=packedMap.a*_Gladkosc;
             o.Occlusion=1;
             o.Alpha=1;

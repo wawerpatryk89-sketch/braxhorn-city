@@ -295,24 +295,38 @@ public static class BraxPokojProbBuild
     // Zmierzone podstawy: u Patryka 52 % powierzchni ma gładkość 0,4–0,5 przy odchyleniu 0,11
     // w całej mapie, czyli skóra i ubranie odbijają światło prawie tak samo. Skóra ma być
     // matowa (0,2–0,3), tkanina 0,1–0,25.
-    static readonly float[] Mnozniki = { 1.00f, 0.62f, 0.45f };
+    // Cztery warianty obok siebie (właściciel 16.11, 17:58: „postacie mają być naturalne,
+    // prawdziwe, żadnego plastiku, żadnego połysku”). Każdy rusza WSZYSTKIE trzy przyczyny
+    // zmierzone w paczkach, nie samą gładkość:
+    //   gładkość  — mediana w mapach to 0,43, a skóra ma mieć 0,2–0,3;
+    //   metal     — imprezowiczka ma 0,60 na całej postaci (artefakt generatora 3D);
+    //   normalne  — u Ewy 74 % pikseli bez faktury, więc nie ma co rozbić odblasku.
+    // nazwa, mnożnik gładkości, mnożnik metaliczności, siła normalnych
+    static readonly (string nazwa, float gl, float me, float nr)[] Warianty =
+    {
+        ("1  jak teraz",      1.00f, 1f, 1.0f),
+        ("2  matowy",         0.55f, 0f, 1.0f),
+        ("3  mat + faktura",  0.45f, 0f, 1.6f),
+        ("4  pelny mat",      0.33f, 0f, 2.0f),
+    };
 
     static void Polysk(Transform pokoj, Camera kam, List<Animation> anim, List<string> nazwy)
     {
         if (anim.Count == 0) throw new InvalidOperationException("Próba połysku: brak postaci");
-        float rozstaw = 1.15f * K;
-        for (int i = 0; i < Mnozniki.Length; i++)
+        float rozstaw = 1.05f * K;
+        float srodek = (Warianty.Length - 1) * .5f;
+        for (int i = 0; i < Warianty.Length; i++)
         {
             var zrodlo = anim[0];
             var kopia = i == 0 ? zrodlo.gameObject
                                : UnityEngine.Object.Instantiate(zrodlo.gameObject,
                                      zrodlo.transform.parent.parent, false);
             var korzen = kopia.transform.parent ? kopia.transform.parent : kopia.transform;
-            korzen.localPosition = new Vector3((i - 1) * rozstaw, .02f, 0f);
+            korzen.localPosition = new Vector3((i - srodek) * rozstaw, .02f, 0f);
             korzen.localRotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
             kopia.SetActive(true);
 
-            // własny materiał na każdą kopię — inaczej wszystkie trzy dzieliłyby jeden
+            // własny materiał na każdą kopię — inaczej wszystkie dzieliłyby jeden
             foreach (var r in kopia.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 var mats = r.sharedMaterials;
@@ -320,8 +334,10 @@ public static class BraxPokojProbBuild
                 {
                     if (!mats[m]) continue;
                     var kopiaMat = UnityEngine.Object.Instantiate(mats[m]);
-                    kopiaMat.name = mats[m].name + " x" + Mnozniki[i].ToString("F2");
-                    kopiaMat.SetFloat("_Gladkosc", Mnozniki[i]);
+                    kopiaMat.name = mats[m].name + " w" + i;
+                    kopiaMat.SetFloat("_Gladkosc", Warianty[i].gl);
+                    kopiaMat.SetFloat("_MetalMnoznik", Warianty[i].me);
+                    kopiaMat.SetFloat("_SilaNormalnych", Warianty[i].nr);
                     AssetDatabase.CreateAsset(kopiaMat,
                         BraxObsadaImport.Katalog + nazwy[0] + "/Polysk" + i + ".mat");
                     mats[m] = kopiaMat;
@@ -334,13 +350,14 @@ public static class BraxPokojProbBuild
             var opis = new GameObject("Podpis " + i).AddComponent<BraxPodpisPostaci>();
             opis.transform.SetParent(korzen, false);
             opis.transform.localPosition = Vector3.up * (2.05f * K);
-            opis.nazwa = Mnozniki[i].ToString("F2") + (i == 0 ? "  (jak teraz)" : "");
+            opis.nazwa = Warianty[i].nazwa;
         }
-        kam.fieldOfView = 46f;
-        kam.transform.position = new Vector3(0f, 1.35f * K, -4.2f * K);
-        kam.transform.LookAt(new Vector3(0f, 1.1f * K, 0f));
-        Debug.Log("BRAX_POKOJ_POLYSK postac=" + nazwy[0] + " mnozniki=" +
-                  string.Join(",", Mnozniki.Select(m => m.ToString("F2"))));
+        kam.fieldOfView = 50f;
+        kam.transform.position = new Vector3(0f, 1.3f * K, -4.9f * K);
+        kam.transform.LookAt(new Vector3(0f, 1.05f * K, 0f));
+        Debug.Log("BRAX_POKOJ_POLYSK postac=" + nazwy[0] + " warianty=" +
+                  string.Join(" | ", Warianty.Select(w =>
+                      $"{w.nazwa}: gl={w.gl:F2} metal={w.me:F0} norm={w.nr:F1}")));
     }
 
     public static void ZbudujApk()
@@ -489,6 +506,27 @@ public static class BraxPokojProbBuild
         // gładkości, do porównania na jednym ekranie (właściciel 16.11, 15:31–15:32).
         // Bez wczesnego wyjścia: ogon metody (klucz podpisu, zapis sceny, build) jest wspólny,
         // inaczej APK porównania wyszłoby niepodpisane.
+        // POKÓJ DOSTAJE WARIANT MATOWY. Właściciel 16.11, 17:58: „żadnego plastiku, żadnego
+        // połysku”. Bez wyboru właściciela biorę wariant 3 (mat + faktura): gładkość x0,45
+        // sprowadza medianę 0,43 do 0,19 (zalecane dla skóry 0,15–0,3), metaliczność na zero
+        // (imprezowiczka ma w mapie 0,60 — artefakt generatora 3D), normalne x1,6, bo mapy
+        // są prawie płaskie. Zmiana to jedna linia, gdy właściciel wskaże inny wariant.
+        if (TrybZlecenia() != "polysk")
+        {
+            var w = Warianty[2];
+            foreach (var a in ustawioneAnim)
+                foreach (var r in a.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                    foreach (var m in r.sharedMaterials)
+                        if (m)
+                        {
+                            m.SetFloat("_Gladkosc", w.gl);
+                            m.SetFloat("_MetalMnoznik", w.me);
+                            m.SetFloat("_SilaNormalnych", w.nr);
+                        }
+            Debug.Log($"BRAX_POKOJ_MATERIAL wariant={w.nazwa} gladkosc={w.gl:F2} " +
+                      $"metal={w.me:F0} normalne={w.nr:F1}");
+        }
+
         bool porownanie = TrybZlecenia() == "polysk";
         if (porownanie)
         {
