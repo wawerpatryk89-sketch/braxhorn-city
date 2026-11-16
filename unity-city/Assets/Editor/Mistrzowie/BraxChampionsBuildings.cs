@@ -145,10 +145,21 @@ public static class BraxChampionsBuildings
                 BraxChampionsApartments.Generate(apt,materials,Out);
                 apartmentBuildings++;
             });
+        // Owner 16.11 14:50 ("Zacznij budować wieżowce i bukmachera, minimum 4 wieżowce premium blisko siebie"): downtown,
+        // the five free tower plots round the casino - T08 BANK, T09 BRAXHORN TOWER (heliport, BRAXHORN BET downstairs), T10,
+        // T12, T13. Each one on its own: a failure is a warning, the city and the APK build on.
+        int towers=0;
+        foreach(string tower in BraxChampionsWiezowce.Ids)
+            BraxChampionsFoundation.Optional("wieżowiec "+tower,()=>
+            {
+                BraxChampionsWiezowce.Generate(tower,materials,Out);
+                towers++;
+            });
         AssetDatabase.SaveAssets();
-        int generated=d.buildings.Length+(casinoGenerated?1:0)+apartmentBuildings+(e1Generated?1:0)+(d2Generated?1:0)+(g1Generated?1:0);
+        int generated=d.buildings.Length+(casinoGenerated?1:0)+apartmentBuildings+(e1Generated?1:0)+(d2Generated?1:0)+(g1Generated?1:0)+towers;
         Debug.Log("CHAMPIONS_BUILDING_GENERATION base="+d.buildings.Length+
-            " T11="+casinoGenerated+" E1="+e1Generated+" D2="+d2Generated+" G1="+g1Generated+" APARTMENTS="+apartmentBuildings+"/"+BraxChampionsApartments.Ids.Length+" P1=REMOVED_BY_OWNER"+
+            " T11="+casinoGenerated+" E1="+e1Generated+" D2="+d2Generated+" G1="+g1Generated+" APARTMENTS="+apartmentBuildings+"/"+BraxChampionsApartments.Ids.Length+
+            " TOWERS="+towers+"/"+BraxChampionsWiezowce.Ids.Length+" P1=REMOVED_BY_OWNER"+
             " generated="+generated+" visualAccepted=false");
         return generated;
     }

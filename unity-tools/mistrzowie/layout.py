@@ -60,6 +60,11 @@ GAUGE=1.435
 # Owner 10.11 08:36 ("tam gdzie są palmy, nie lepiej trawnik? to wejście dla ludzi, nie dla samochodu"): the A1 walk
 # from the Z650 sidewalk to the doors is a 10 m pedestrian boulevard (was 30 m of paving that read as a road); lawn either side.
 BUILDING_ACCESS=[(595,667,10,58),(817,805,8,20),(710,790,73,12)]
+# Owner 16.11 14:50 (downtown towers, BraxChampionsWiezowce): a 6 m walk from the sidewalk to every tower door across the
+# city lawn - T08/T09/T10 face road Z650 (sidewalk edge z633, plot edge z597.5), T12/T13 face road Z330 (sidewalk edge
+# z347, plot edge z437.5). T09 has two doors: BRAXHORN BET (world x620.5) and the lobby (x605.5).
+TOWER_WALKS=[(492,597.5,6,35.5),(602.5,597.5,6,35.5),(617.5,597.5,6,35.5),(722,597.5,6,35.5),(607,347,6,90.5),(722,347,6,90.5)]
+BUILDING_ACCESS+=TOWER_WALKS
 # A1 side car parks are centred at world X535/X665. Their 6.4m vehicle lanes
 # must cross ONLY the north sidewalk of Z650 (world z660..667). These two
 # rectangles are cut out of foundation paving and replaced by graded asphalt

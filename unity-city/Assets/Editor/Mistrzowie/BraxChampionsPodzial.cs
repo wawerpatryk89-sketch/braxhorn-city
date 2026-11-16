@@ -44,6 +44,12 @@ public static class BraxChampionsPodzial
         Strefa("Mistrzowie_T06_Apartamenty", "T06 | APARTAMENTY"),
         Strefa("Mistrzowie_T07_Apartamenty", "T07 | APARTAMENTY"),
         Strefa("Mistrzowie_Aquapark", "AQUAPARK BRAXHORN"),
+        // downtown towers (16.11): seen from the whole region - the far copy stays, the finished lobby loads on approach
+        Strefa("Mistrzowie_T08_Wiezowiec", "T08 | ", 150f, 280f, 80000),
+        Strefa("Mistrzowie_T09_BraxhornTower", "T09 | ", 150f, 280f, 80000),
+        Strefa("Mistrzowie_T10_Wiezowiec", "T10 | ", 150f, 280f, 80000),
+        Strefa("Mistrzowie_T12_Wiezowiec", "T12 | ", 150f, 280f, 80000),
+        Strefa("Mistrzowie_T13_Wiezowiec", "T13 | ", 150f, 280f, 80000),
         Strefa("Mistrzowie_M1_Metro", "M1 | ", 120f, 250f, 30000, "| reused city metro"),
         Strefa("Mistrzowie_M2_Metro", "M2 | ", 120f, 250f, 30000, "| reused city metro"),
         Strefa("Mistrzowie_M3_Metro", "M3 | ", 120f, 250f, 30000, "| reused city metro"),
