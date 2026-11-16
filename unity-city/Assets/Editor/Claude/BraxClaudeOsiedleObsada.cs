@@ -27,9 +27,17 @@ public static partial class BraxClaudeOsiedle
 
     static void DodajKlipBaru(Animation anim, string folder, string plik, string stan, float czas)
     {
-        var source = AssetDatabase.LoadAllAssetsAtPath(BraxObsadaImport.KatalogBaru + plik).OfType<AnimationClip>()
-            .SingleOrDefault(c => c.legacy && !c.name.StartsWith("__preview__") && (c.name.Split('|').Last() == stan || stan == "Pour"));
-        if (!source) throw new InvalidOperationException("Nie znaleziono klipu " + stan + " w " + plik);
+        var wszystkie = AssetDatabase.LoadAllAssetsAtPath(BraxObsadaImport.KatalogBaru + plik)
+            .OfType<AnimationClip>().Where(c => !c.name.StartsWith("__preview__")).ToArray();
+        var source = wszystkie.FirstOrDefault(c => c.legacy && (c.name.Split('|').Last() == stan || stan == "Pour"));
+        // Zapas: nagranie w paczce baru bywa nazwane inaczej, niż oczekuje stan (Barman.fbx ma
+        // „Scene”, patryk.fbx i gitara.fbx „Armature|Drink”). Jeśli w pliku jest DOKŁADNIE jedno
+        // nagranie, to ono jest tym nagraniem — inaczej build całego rejonu pada na jednym imieniu.
+        if (!source && wszystkie.Length == 1) source = wszystkie[0];
+        if (!source)
+            throw new InvalidOperationException("Nie znaleziono klipu " + stan + " w " + plik +
+                " (w pliku: " + (wszystkie.Length == 0 ? "brak nagrań" :
+                string.Join(", ", wszystkie.Select(c => c.name + (c.legacy ? "" : " [nie-legacy]")))) + ")");
         var clips = new AnimationClip { name = stan, legacy = true, frameRate = source.frameRate, wrapMode = WrapMode.Once };
         var bones = anim.GetComponentsInChildren<Transform>(true).ToLookup(t => t.name);
         var found = new System.Collections.Generic.HashSet<string>();

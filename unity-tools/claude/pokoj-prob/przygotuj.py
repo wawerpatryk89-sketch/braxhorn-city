@@ -18,6 +18,10 @@ import pobierz_obsade as obsada  # noqa: E402
 from osiedle_mowa import prepare  # noqa: E402
 
 KWESTIA = "9a79ffe04cb33bdb_m.ogg"
+ZLECENIE = "unity-city/pokoj-prob.txt"
+# Wlasciciel 16.11, 12:25: „Max 5 nie wiecej”. Pokoj bierze NAJWYZEJ piec postaci na jedna probe —
+# dzieki temu APK jest lekkie, wszystkie piec widac w kadrze i proba konczy sie w rozsadnym czasie.
+MAX_POSTACI = 5
 
 # Patryk, gitara i barman biorą klip z paczki baru (BraxClaudeOsiedleObsada.DodajKlipBaru).
 # Nazwa i suma MUSZĄ być zgodne z pobierz_obsade.dodatki_osiedla — gdy się tam zmienią, zmień tu.
@@ -53,14 +57,37 @@ def paczka_baru(praca):
     print("BRAX_POKOJ paczka baru gotowa", flush=True)
 
 
+WSZYSTKIE = {"wszystkie", "wszyscy", "all", "*"}
+PIERWSZA_PIATKA = ["patryk", "bramkarz_1c96d333", "kapitan_02d85d24",
+                   "imprezowiczka_0dbe3922", "dziecko_003f4e46"]
+
+
 def wybrane():
-    v = os.environ.get("BRAX_POSTACIE", "patryk")
+    v = os.environ.get("BRAX_POSTACIE", "").strip()
+    if not v or v.lower() in WSZYSTKIE:
+        return list(PIERWSZA_PIATKA)
     out = []
     for czesc in v.replace(";", ",").replace(" ", ",").split(","):
         czesc = czesc.strip()
         if czesc and czesc not in out:
             out.append(czesc)
+    if not out:
+        return list(PIERWSZA_PIATKA)
+    if len(out) > MAX_POSTACI:
+        print("BRAX_POKOJ limit", MAX_POSTACI, "— biore pierwsze:", ", ".join(out[:MAX_POSTACI]),
+              "| odlozone:", ", ".join(out[MAX_POSTACI:]), flush=True)
+        out = out[:MAX_POSTACI]
     return out
+
+
+def zapisz_zlecenie(ids):
+    """Zlecenie dla Unity. unity-builder nie przepuszcza wlasnych zmiennych do kontenera,
+    a lista musi byc ROZWIAZANA (slowo „wszystkie” Unity nic nie mowi)."""
+    plik = obsada.ROOT / ZLECENIE
+    plik.write_text(",".join(ids) + "\n" + os.environ.get("BRAX_TRYB", "apk") + "\n",
+                    encoding="utf-8")
+    print("BRAX_POKOJ zlecenie:", plik.read_text(encoding="utf-8").replace("\n", " | "),
+          flush=True)
 
 
 def gotowa(katalog, ident):
@@ -69,25 +96,56 @@ def gotowa(katalog, ident):
                (ident + ".fbx", "Color.png", "Normal.png", "MetalSmooth.png", "Mimika.png"))
 
 
+def rownolegle(zadania, blender, workers):
+    """Blender na kazdej postaci osobno — niezalezne procesy, wiec ida obok siebie.
+
+    Wlasciciel 16.11, 09:03: „mamy bardzo duzo postaci, wiec musimy miec do tego
+    srodowisko odpowiednie na szybkie testy”. Kazde zadanie ma WLASNY katalog wyjsciowy,
+    bo popraw_model odklada Mimika.png obok wyniku — przy wspolnym katalogu dwa procesy
+    nadpisalyby sobie twarze.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    bledy = []
+
+    def jeden(i, model, wyjscie):
+        wyjscie.mkdir(parents=True, exist_ok=True)
+        try:
+            obsada.popraw_model(model, wyjscie / model.name, blender)
+            print("BRAX_POKOJ przerobiona", i, flush=True)
+            return None
+        except Exception as e:  # noqa: BLE001 — jedna zla postac nie moze zabic calej proby
+            print("BRAX_POKOJ BLAD", i, "-", e, flush=True)
+            return (i, str(e))
+
+    with ThreadPoolExecutor(max_workers=workers) as pula:
+        for wynik in pula.map(lambda z: jeden(*z), zadania):
+            if wynik:
+                bledy.append(wynik)
+    return bledy
+
+
 def main():
     ids = wybrane()
     cel = obsada.ROOT / "unity-city/Assets/Source/ObsadaOsiedla"
     cel.mkdir(parents=True, exist_ok=True)
 
-    # Szybkie testy przy dużej obsadzie (właściciel 16.11, 09:03: „mamy bardzo dużo postaci,
-    # więc musimy mieć do tego środowisko odpowiednie na szybkie testy”): postać raz przerobiona
-    # przez Blendera leży w pamięci podręcznej i w kolejnym przebiegu jest brana gotowa.
     z_pamieci = [i for i in ids if gotowa(cel / i, i)]
     ids = [i for i in ids if i not in z_pamieci]
     if z_pamieci:
-        print("BRAX_POKOJ z pamięci podręcznej:", ", ".join(z_pamieci), flush=True)
+        print("BRAX_POKOJ z pamieci podrecznej:", ", ".join(z_pamieci), flush=True)
     if not ids:
-        print("BRAX_POKOJ wszystkie postacie gotowe — Blender pominięty", flush=True)
+        print("BRAX_POKOJ cala piatka gotowa — Blender pominiety", flush=True)
         zasoby = obsada.ROOT / "unity-city/Assets/Resources"
         prepare(zasoby / "OsiedleGlosy", zasoby / "OsiedleMimika", KWESTIA)
+        zapisz_zlecenie(z_pamieci)
+        print("BRAX_POKOJ postacie:", ",".join(z_pamieci), flush=True)
         return
 
     blender = Path(os.environ["RUNNER_TEMP"]) / "blender-4.2.3-linux-x64/blender"
+    workers = max(1, min(MAX_POSTACI, len(os.sched_getaffinity(0))))
+    bledy = []
+    wstawione = []
 
     with tempfile.TemporaryDirectory(dir=cel.parent) as temp:
         praca = Path(temp)
@@ -97,36 +155,43 @@ def main():
         staged.mkdir()
         obsada.odczytaj(archiwum, staged)
 
-        if POTRZEBUJA_BARU.intersection(ids):
-            paczka_baru(praca)
-
         dostepne = sorted(p.name for p in staged.iterdir() if p.is_dir())
         brak = [i for i in ids if i not in dostepne]
         if brak:
             raise SystemExit(
-                "Nie ma w paczce: " + ", ".join(brak) + "\nDostępne: " + ", ".join(dostepne))
+                "Nie ma w paczce: " + ", ".join(brak) + "\nDostepne: " + ", ".join(dostepne))
 
-        # Patryk pożycza ujęcie z nieprzerobionego FBX Ewy — musi iść pierwszy, tak jak w rejonie.
+        if POTRZEBUJA_BARU.intersection(ids) or POTRZEBUJA_BARU.intersection(z_pamieci):
+            paczka_baru(praca)
+
+        # Patryk pozycza ujecie z nieprzerobionego FBX Ewy — idzie pierwszy, tak jak w rejonie.
         kolejnosc = sorted(ids, key=lambda i: i != "patryk")
         gotowe = praca / "poprawione"
         gotowe.mkdir()
-        for i in kolejnosc:
-            model = staged / i / (i + ".fbx")
-            print("BRAX_POKOJ przygotowuję", i, flush=True)
-            obsada.popraw_model(model, gotowe / model.name, blender)
+        print("BRAX_POKOJ Blender:", len(kolejnosc), "postaci na", workers, "watkach", flush=True)
+        zadania = [(i, staged / i / (i + ".fbx"), gotowe / i) for i in kolejnosc]
+        bledy = rownolegle(zadania, blender, workers)
+        zle = {i for i, _ in bledy}
 
         for i in ids:
+            if i in zle:
+                continue
             docelowy = cel / i
             if docelowy.exists():
                 import shutil
                 shutil.rmtree(docelowy)
             (staged / i).rename(docelowy)
-            print("BRAX_POKOJ gotowe", i, "plików:",
-                  len(list(docelowy.iterdir())), flush=True)
+            wstawione.append(i)
 
+    razem = [i for i in wybrane() if i in set(z_pamieci) | set(wstawione)]
+    if not razem:
+        raise SystemExit("Zadna postac sie nie przygotowala")
     zasoby = obsada.ROOT / "unity-city/Assets/Resources"
     prepare(zasoby / "OsiedleGlosy", zasoby / "OsiedleMimika", KWESTIA)
-    print("BRAX_POKOJ postacie:", ", ".join(ids), flush=True)
+    zapisz_zlecenie(razem)
+    if bledy:
+        print("BRAX_POKOJ NIEUDANE:", "; ".join(f"{i}: {e}" for i, e in bledy), flush=True)
+    print("BRAX_POKOJ postacie:", ",".join(razem), flush=True)
 
 
 if __name__ == "__main__":

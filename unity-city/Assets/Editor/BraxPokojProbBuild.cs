@@ -43,6 +43,9 @@ public static class BraxPokojProbBuild
     // Dlatego zlecenie idzie plikiem — tak samo jak rejon buildu przez unity-city/rejon-ci.txt.
     const string PlikZlecenia = "pokoj-prob.txt";
 
+    // Właściciel 16.11, 12:25: „Max 5 nie więcej”. Pokój bierze NAJWYŻEJ pięć postaci na próbę.
+    const int MaxPostaci = 5;
+
     static string[] Zlecenie()
     {
         string sciezka = Path.GetFullPath(Path.Combine(Application.dataPath, "..", PlikZlecenia));
@@ -60,8 +63,15 @@ public static class BraxPokojProbBuild
     {
         string v = Zlecenie()[0];
         if (string.IsNullOrWhiteSpace(v)) return new[] { "patryk" };
-        return v.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s.Trim()).Where(s => s.Length > 0).Distinct().ToArray();
+        var lista = v.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                     .Select(s => s.Trim()).Where(s => s.Length > 0).Distinct().ToArray();
+        if (lista.Length > MaxPostaci)
+        {
+            Debug.Log("BRAX_POKOJ limit " + MaxPostaci + " — odłożone: " +
+                      string.Join(",", lista.Skip(MaxPostaci)));
+            lista = lista.Take(MaxPostaci).ToArray();
+        }
+        return lista;
     }
 
     static string TrybZlecenia()
@@ -303,7 +313,7 @@ public static class BraxPokojProbBuild
         var ustawioneNazwy = new List<string>();
         var braki = new List<string>();
         float promien = 5.2f * K;
-        float luk = Mathf.Min(150f, Mathf.Max(0f, (ids.Length - 1) * 11f));
+        float luk = Mathf.Min(150f, Mathf.Max(0f, (ids.Length - 1) * 9f));
         for (int i = 0; i < ids.Length; i++)
         {
             string id = ids[i];
@@ -341,7 +351,32 @@ public static class BraxPokojProbBuild
         gracz.transform.position = new Vector3(0, .05f, -2.6f * K);
         var kapsula = gracz.AddComponent<CharacterController>();
         kapsula.radius = .32f;
-        var bohater = BraxClaudeOsiedle.NowyPatrykOsiedla(gracz.transform, kapsula);
+        // Run 43841249558 padł DOKŁADNIE tutaj: jedna wadliwa postać (klip Drink) rzuciła wyjątek
+        // poza pętlą postaci i zabiła całe APK. Pokój służy do PATRZENIA na obsadę — gdy gracz się
+        // nie złoży, próba musi mimo to powstać.
+        GameObject bohater = null;
+        try { bohater = BraxClaudeOsiedle.NowyPatrykOsiedla(gracz.transform, kapsula); }
+        catch (Exception e)
+        {
+            Debug.LogWarning("BRAX_POKOJ gracz bez modelu Patryka — " + e.Message);
+            foreach (string zapas in ustawioneNazwy)
+            {
+                try
+                {
+                    var a = BraxClaudeOsiedle.ModelObsady(zapas, gracz.transform, 1.80f * K);
+                    foreach (var tr in a.GetComponentsInChildren<Transform>(true)) tr.gameObject.layer = 8;
+                    kapsula.height = 1.80f * K;
+                    kapsula.center = Vector3.up * (kapsula.height * .5f);
+                    bohater = a.gameObject;
+                    Debug.Log("BRAX_POKOJ gracz zastępczy: " + zapas);
+                    break;
+                }
+                catch (Exception e2) { Debug.LogWarning("BRAX_POKOJ zastępczy " + zapas + " też nie — " + e2.Message); }
+            }
+            if (!bohater)
+                throw new InvalidOperationException("Pokój APK: nie ma z czego zrobić gracza. " +
+                                                    string.Join(" | ", braki) + " | " + e.Message);
+        }
         var runtime = gracz.AddComponent<BraxGymPlayer>();
         runtime.visual = bohater.transform;
         runtime.body = kapsula;

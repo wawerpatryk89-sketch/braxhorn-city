@@ -10,9 +10,9 @@ name: Pokoj prob postaci (bez APK, bez rejonu)
   workflow_dispatch:
     inputs:
       postacie:
-        description: 'Postacie po przecinku, np. patryk,ewa,kiler (puste = patryk)'
+        description: 'MAX 5 postaci po przecinku. Puste = pierwsza piatka (patryk + czterej nowi)'
         type: string
-        default: patryk
+        default: ''
       tryb:
         description: 'apk = LEKKI APK na telefon (wchodzisz i ogladasz) | solo, rozmowa, walka = bramki na liczbach'
         type: choice
@@ -37,7 +37,7 @@ concurrency:
 jobs:
   pokoj:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 90
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       with:
@@ -78,8 +78,7 @@ jobs:
         BRAX_TRYB: ${{ inputs.tryb }}
       run: |
         python3 unity-tools/claude/pokoj-prob/przygotuj.py
-        # unity-builder nie przepuszcza wlasnych zmiennych do kontenera z Unity — zlecenie idzie plikiem
-        printf '%s\n%s\n' "${{ inputs.postacie }}" "${{ inputs.tryb }}" > unity-city/pokoj-prob.txt
+        # Zlecenie zapisuje sam prep — z ROZWIAZANA lista postaci (slowo "wszystkie" Unity nic nie mowi).
         echo "zlecenie pokoju:"; cat unity-city/pokoj-prob.txt
 
     - name: Wlasny klucz podpisu (ten sam co gra; APK pokoju ma OSOBNY identyfikator)
