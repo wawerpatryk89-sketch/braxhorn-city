@@ -18,6 +18,7 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
     static float ciszaDo;
     static Vector3 miejsceOstatniejRozmowy;
     static bool bylaRozmowa;
+    BraxPokazCiosow pokazCiosow;
     Vector3 start;
     Quaternion kierunek, obrotRozmowy;
     bool obracaSie;
@@ -37,6 +38,7 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
 
     void Start()
     {
+        if (ruch) pokazCiosow = ruch.GetComponent<BraxPokazCiosow>();
         start = transform.position;
         kierunek = transform.rotation;
         Graj(zajecie);
@@ -60,7 +62,7 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
 
     void Update()
     {
-        if (!gracz) return;
+        if (!gracz || (pokazCiosow && pokazCiosow.Trwa)) return;
         if (obracaSie)
         {
             transform.rotation = Quaternion.RotateTowards(transform.rotation,obrotRozmowy,115f*Time.deltaTime);

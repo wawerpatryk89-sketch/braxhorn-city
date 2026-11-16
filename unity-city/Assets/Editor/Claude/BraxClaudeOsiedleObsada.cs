@@ -84,7 +84,7 @@ public static partial class BraxClaudeOsiedle
         {
             var anim = PrzygotujModelObsady(id, parent.transform, 0f, folder, false);
             anim.playAutomatically = true;
-            parent.AddComponent<BraxGlosPostaci>();
+            parent.AddComponent<BraxGlosPostaci>().ruchSamodzielny = anim;
             var prefab = PrefabUtility.SaveAsPrefabAsset(parent, folder + id + ".prefab");
             if (!prefab) throw new InvalidOperationException("Nie zapisano prefabu " + id);
             Selection.activeObject = prefab;
@@ -124,6 +124,7 @@ public static partial class BraxClaudeOsiedle
         if (osiedle && id == "bramkarz_1c96d333") DodajKlipBaru(anim,folder,"Barman.fbx","Pour",85f/24f);
         if (osiedle && (id == "gitara" || id == "patryk")) DodajKlipBaru(anim,folder,id+".fbx","Drink",8.8667f);
         if (!anim.GetClip("Idle") || !anim.GetClip("Walk")) throw new InvalidOperationException(id + " brak Idle/Walk");
+        if (!anim.GetClip("Talk")) throw new InvalidOperationException(id + " brak animacji rozmowy Talk");
         var renders = model.GetComponentsInChildren<SkinnedMeshRenderer>(true);
         if (renders.Length == 0) throw new InvalidOperationException(id + " bez siatki");
         var shader = Shader.Find("Braxhorn/Obsada Osiedla");
@@ -192,6 +193,13 @@ public static partial class BraxClaudeOsiedle
             if (v.sqrMagnitude > .00001f && v.z < 0) model.transform.localRotation = Quaternion.Euler(0,180,0) * model.transform.localRotation;
         }
         anim.clip = anim.GetClip("Idle");
+        if ((id.StartsWith("zadymiarz_",StringComparison.Ordinal) || id == "bywalec_baru_ec697965")
+            && BraxPokazCiosow.Ciosy.All(n => anim.GetClip(n)))
+            model.AddComponent<BraxPokazCiosow>().ruch = anim;
+        DopasujOdstepPrzyRozmowie(id, anim, osiedle);
+        string profilSzklanki = folder + "ChwytNapoju.json";
+        if (!(osiedle && (id == "patryk" || id == "gitara")) && System.IO.File.Exists(profilSzklanki))
+            DodajSzklankeModelu(anim, profilSzklanki);
         return anim;
     }
 

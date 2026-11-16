@@ -15,7 +15,38 @@ public sealed class BraxGlosPostaci : MonoBehaviour
     public const float Wyraznie = 3.5f * K, Cisza = 12f * K, MinOdl = 4f * K, MaxOdl = Cisza, RozmowaOdl = 6f * K;
     public const float BlendRozmowa = .35f;
     static BraxGymPlayer gracz;
+    public Animation ruchSamodzielny;
+    bool prowadziRozmowe;
     AudioSource source;
+
+    void Start()
+    {
+        if (!ruchSamodzielny)
+        {
+            var dawnyPrefab = GetComponentInChildren<Animation>();
+            if (dawnyPrefab && dawnyPrefab.playAutomatically && dawnyPrefab.clip && dawnyPrefab.clip.name == "Idle")
+                ruchSamodzielny = dawnyPrefab;
+        }
+        if (!ruchSamodzielny) return;
+        foreach (string nazwa in new[] { "Idle", "Talk" })
+            if (ruchSamodzielny[nazwa] != null) ruchSamodzielny[nazwa].wrapMode = WrapMode.Loop;
+        if (!ruchSamodzielny.isPlaying && ruchSamodzielny["Idle"] != null) ruchSamodzielny.Play("Idle");
+    }
+
+    bool InnaCzynnosc()
+    {
+        foreach (AnimationState stan in ruchSamodzielny)
+            if (stan.enabled && stan.name != "Idle" && stan.name != "Talk") return true;
+        return false;
+    }
+
+    void KoniecRozmowy()
+    {
+        if (prowadziRozmowe && ruchSamodzielny && ruchSamodzielny.IsPlaying("Talk")
+            && !InnaCzynnosc() && ruchSamodzielny["Idle"] != null)
+            ruchSamodzielny.CrossFade("Idle", .18f);
+        prowadziRozmowe = false;
+    }
     BraxMimikaOsiedla mimika;
     float baza = 1f; bool graczMowi;
 
@@ -43,6 +74,7 @@ public sealed class BraxGlosPostaci : MonoBehaviour
     public void Mow(AudioClip clip) => Mow(clip, Rodzaj.Rozmowa);
     public void Mow(AudioClip clip, Rodzaj rodzaj)
     {
+        if (!clip) return;
         if (!source)
         {
             source = gameObject.AddComponent<AudioSource>(); source.playOnAwake = false;
@@ -57,6 +89,13 @@ public sealed class BraxGlosPostaci : MonoBehaviour
         source.volume = baza * Glosnosc(); source.Play();
         if (!mimika) mimika = GetComponentInChildren<BraxMimikaOsiedla>();
         if (mimika) mimika.Wypowiedz(source);
+        if (ruchSamodzielny && ruchSamodzielny["Talk"] != null && !InnaCzynnosc()
+            && (!ruchSamodzielny.isPlaying || ruchSamodzielny.IsPlaying("Idle")))
+        {
+            ruchSamodzielny["Talk"].wrapMode = WrapMode.Loop;
+            ruchSamodzielny.CrossFade("Talk", .18f);
+            prowadziRozmowe = true;
+        }
         if (graczMowi && rodzaj == Rodzaj.Rozmowa) gracz.SpeakWhileStanding(clip.length);
     }
     float Glosnosc()
@@ -65,7 +104,11 @@ public sealed class BraxGlosPostaci : MonoBehaviour
         Transform t = gracz ? gracz.transform : (Camera.main ? Camera.main.transform : null);
         return t ? Krzywa(Vector3.Distance(t.position, transform.position)) : 1f;
     }
-    void Update() { if (source && source.isPlaying) source.volume = baza * Glosnosc(); }
-    void OnDisable() { if (source) source.Stop(); }
+    void Update()
+    {
+        if (source && source.isPlaying) source.volume = baza * Glosnosc();
+        else if (prowadziRozmowe) KoniecRozmowy();
+    }
+    void OnDisable() { if (source) source.Stop(); KoniecRozmowy(); }
     void OnDestroy() { if (source) Destroy(source); }
 }

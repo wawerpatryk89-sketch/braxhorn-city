@@ -60,9 +60,20 @@ public sealed class BraxMimikaOsiedla : MonoBehaviour
         }
         // Support voices supplied by a later content update that has no baked envelope yet.
         glos.GetOutputData(probki,0);
-        float suma = 0;
-        foreach (float v in probki) suma += v*v;
-        return new Vector2(Mathf.Clamp01((Mathf.Sqrt(suma/probki.Length)-.009f)*6f),0f);
+        float energia = 0f, roznice = 0f;
+        for (int i = 0; i < probki.Length; i++)
+        {
+            energia += probki[i] * probki[i];
+            if (i > 0)
+            {
+                float zmiana = probki[i] - probki[i-1];
+                roznice += zmiana * zmiana;
+            }
+        }
+        float otwarcie = Mathf.Clamp01((Mathf.Sqrt(energia/probki.Length)-.009f)*6f);
+        float ostrosc = Mathf.Sqrt(roznice/Mathf.Max(energia, 1e-9f)) * AudioSettings.outputSampleRate;
+        float zaokraglenieGloski = 1f - Mathf.InverseLerp(2200f, 9600f, ostrosc);
+        return new Vector2(otwarcie, otwarcie * zaokraglenieGloski);
     }
 
     void LateUpdate()
