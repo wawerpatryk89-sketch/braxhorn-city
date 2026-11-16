@@ -345,6 +345,8 @@ namespace UnityEngine
         public Texture2D(int w, int h) { width = w; height = h; }
         public Texture2D(int w, int h, TextureFormat f, bool mip) { width = w; height = h; }
         public void SetPixels(Color[] p) => px = p; public void Apply() { }
+        public Color32[] px32;   // 16.11: RGBA (kanał alfa — siatka płotu w teksturze) → PNG z alfą
+        public void SetPixels32(Color32[] p) { px32 = p; px = Array.ConvertAll(p, q => (Color)q); }
         // prawdziwy PNG (RGB 8 bit) — podgląd pokazuje tekstury generowane kodem (np. etykiety napojów)
         public byte[] EncodeToPNG()
         {
@@ -358,13 +360,18 @@ namespace UnityEngine
                 uint c = 0xFFFFFFFFu; foreach (var b in tb) c = crcT[(c ^ b) & 0xFF] ^ (c >> 8); foreach (var b in dane) c = crcT[(c ^ b) & 0xFF] ^ (c >> 8); BE(ms, c ^ 0xFFFFFFFFu);
             }
             ms.Write(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }, 0, 8);
-            var ih = new System.IO.MemoryStream(); BE(ih, (uint)width); BE(ih, (uint)height); ih.Write(new byte[] { 8, 2, 0, 0, 0 }, 0, 5); Chunk("IHDR", ih.ToArray());
+            bool alfa = px32 != null && px32.Length == width * height;
+            var ih = new System.IO.MemoryStream(); BE(ih, (uint)width); BE(ih, (uint)height); ih.Write(new byte[] { 8, (byte)(alfa ? 6 : 2), 0, 0, 0 }, 0, 5); Chunk("IHDR", ih.ToArray());
             var raw = new System.IO.MemoryStream();
             using (var z = new System.IO.Compression.ZLibStream(raw, System.IO.Compression.CompressionLevel.Fastest, true))
                 for (int r = height - 1; r >= 0; r--)
                 {
                     z.WriteByte(0);
-                    for (int x = 0; x < width; x++) { var c = px[r * width + x]; z.WriteByte((byte)Math.Round(Math.Clamp(c.r, 0f, 1f) * 255)); z.WriteByte((byte)Math.Round(Math.Clamp(c.g, 0f, 1f) * 255)); z.WriteByte((byte)Math.Round(Math.Clamp(c.b, 0f, 1f) * 255)); }
+                    for (int x = 0; x < width; x++)
+                    {
+                        if (alfa) { var q = px32[r * width + x]; z.WriteByte(q.r); z.WriteByte(q.g); z.WriteByte(q.b); z.WriteByte(q.a); continue; }
+                        var c = px[r * width + x]; z.WriteByte((byte)Math.Round(Math.Clamp(c.r, 0f, 1f) * 255)); z.WriteByte((byte)Math.Round(Math.Clamp(c.g, 0f, 1f) * 255)); z.WriteByte((byte)Math.Round(Math.Clamp(c.b, 0f, 1f) * 255));
+                    }
                 }
             Chunk("IDAT", raw.ToArray()); Chunk("IEND", new byte[0]);
             return ms.ToArray();
@@ -387,6 +394,7 @@ namespace UnityEngine
         public float GetFloat(string n) => f.TryGetValue(n, out var x) ? x : 0f; public Color GetColor(string n) => c.TryGetValue(n, out var x) ? x : Color.white;
         public bool HasProperty(string n) => true; public void EnableKeyword(string k) { } public void DisableKeyword(string k) { }
         public void SetInt(string n, int v) => f[n] = v;
+        public Vector2 mainTextureScale { get => new Vector2(f.TryGetValue("_MainTex_SX", out var x) ? x : 1f, f.TryGetValue("_MainTex_SY", out var y) ? y : 1f); set { f["_MainTex_SX"] = value.x; f["_MainTex_SY"] = value.y; } }
     }
 
     public class Mesh : Object
@@ -450,6 +458,7 @@ namespace UnityEngine.Rendering
 {
     public enum ShadowCastingMode { Off, On, TwoSided, ShadowsOnly }
     public enum IndexFormat { UInt16, UInt32 }
+    public enum RenderQueue { Background = 1000, Geometry = 2000, AlphaTest = 2450, GeometryLast = 2500, Transparent = 3000, Overlay = 4000 }
 }
 
 namespace UnityEditor
@@ -467,5 +476,6 @@ namespace UnityEditor
         public static void CreateAsset(Object o, string p) { } public static void SaveAssets() { } public static void Refresh() { }
     }
     public class AssetImporter : Object { public static AssetImporter GetAtPath(string p) => null; public void SaveAndReimport() { } }
-    public class TextureImporter : AssetImporter { public bool sRGBTexture, mipmapEnabled; public TextureWrapMode wrapMode; public int maxTextureSize, anisoLevel; }
+    public enum TextureImporterAlphaSource { None, FromInput, FromGrayScale }
+    public class TextureImporter : AssetImporter { public bool sRGBTexture, mipmapEnabled, alphaIsTransparency, mipMapsPreserveCoverage; public TextureWrapMode wrapMode; public int maxTextureSize, anisoLevel; public float alphaTestReferenceValue; public TextureImporterAlphaSource alphaSource; }
 }

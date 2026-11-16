@@ -4,8 +4,8 @@ using UnityEngine;
 
 // BANERY WŁAŚCICIELA W R1 (16.11.2026): zaszyfrowana paczka globalna braxhorn-sklep-banery-r1-01 (repo publiczne; CI:
 // install_sklep_modele.py rozpakowuje do Assets/Source/Prywatne/Miasto/banery_r1_01/). Grafiki bez zmian treści. Bez paczki — nic.
-//  • 23:14 „Tu masz, mistrzu, do tego, do komisu?” — KOMIS SAMOCHODOWY BRAXHORN CITY: baner frontlit 5.2 × 2.9 m na stalowej ramie
-//    na dachu kontenera-biura komisu przy T1 TRAMWAJOWA, przodem do ulicy (widać go zza aut), dwa naświetlacze LED na wysięgnikach.
+//  • 23:14 „Tu masz, mistrzu, do tego, do komisu?” — KOMIS SAMOCHODOWY BRAXHORN CITY; 23:37 „Na płocie go powieś”: baner PVC na
+//    płocie panelowym komisu od ul. Tramwajowej, przywiązany opaskami (NaPlocie). Wariant na dachu kontenera (NaDachuKontenera) — nieużywany.
 //  • 23:16 „billboard… motywacyjny… powiesić nad główną ulicą… między tymi dwiema kamienicami… żeby wisiał, z dwóch stron” — TRENUJ.
 //    ZAWALCZ O PAS MISTRZA!: baner dwustronny (blockout, nadruk z obu stron) 8 × 3.2 m w poprzek Portowej, w tunelach górnym
 //    i dolnym rury stalowe Ø 48 mm, liny stalowe Ø 12 mm z napinaczami śrubowymi do kotew w filarach elewacji po obu stronach
@@ -107,6 +107,53 @@ internal static class BraxMiastoBanery
         Obiekt(led, "Komis: baner — naświetlacze (LED)", root, BraxRegionMeble.Swiecacy("Banery: naświetlacz LED (biały ciepły)", new Color(1f, .95f, .86f), 1.4f), false);
         banerow++;
         return "baner " + w.ToString("F1") + " × " + h.ToString("F2") + " m na dachu kontenera, góra " + (srodekDach.y + yG).ToString("F1") + " m";
+    }
+
+    /// <summary>KOMIS (23:37 „Na płocie go powieś”): baner PVC na płocie panelowym od ulicy — przywiązany opaskami przez oczka do drutów,
+    /// odstep przed płaszczyzną paneli. srodekDol = środek dolnej krawędzi, n = do ulicy, h = wysokość banera. Zwraca opis albo null bez paczki.</summary>
+    public static string NaPlocie(Transform g, Vector3 srodekDol, Vector3 n, float h, float odstep = .055f)
+    {
+        var obraz = Obraz(Komis, "KOMIS SAMOCHODOWY BRAXHORN CITY"); if (!obraz) return null;
+        n.y = 0f; n.Normalize(); var R = Vector3.Cross(n, Vector3.up).normalized; float w = h * AspektKomis;
+        var c = srodekDol + Vector3.up * (h * .5f);
+        var root = new GameObject("Komis: baner KOMIS SAMOCHODOWY BRAXHORN CITY na płocie (grafika właściciela)").transform; root.SetParent(g, false);
+        var sO = new UlSiatka(); Lico(sO, c, n, w, h);
+        var sT = new UlSiatka(); Lico(sT, c, -n, w, h);
+        // opaski kablowe (czarne, 8 mm) co ~0.5 m, owinięte przez górną i dolną krawędź banera do drutu panelu (odstep za banerem):
+        // poza polem nadruku (bez równoległych lic na obrazie), z tyłu oplatają drut i kończą się 2.2 cm za panelem (końcówka opaski)
+        var op = new UlSiatka(); int opasek = 0;
+        int nx = Mathf.Max(2, Mathf.RoundToInt(w / .5f));
+        float gl = odstep + .022f + .006f;                                                   // od 6 mm przed banerem do końcówki 2.2 cm za drutem panelu
+        for (int i = 0; i <= nx; i++)
+            foreach (float sg in new[] { 1f, -1f })
+            {
+                var p = c + R * (-w * .5f + .04f + (w - .08f) * i / nx) + Vector3.up * (sg * (h * .5f + .011f));
+                op.OBox(p + n * (.006f - gl * .5f), R, Vector3.up, n, .008f, .018f, gl); opasek++;
+            }
+        Obiekt(sO, "Komis: baner na płocie — nadruk (KOMIS SAMOCHODOWY BRAXHORN CITY)", root, obraz);
+        Obiekt(sT, "Komis: baner na płocie — tył (szary PVC)", root, BraxCityMaterials.Surface("Banery: tył banera (szary PVC)", new Color(.42f, .43f, .44f), .8f));
+        Obiekt(op, "Komis: baner na płocie — opaski kablowe", root, BraxCityMaterials.Surface("Banery: opaska kablowa (czarny nylon)", new Color(.03f, .03f, .035f), .6f), false);
+        banerow++;
+        return "baner " + w.ToString("F2") + " × " + h.ToString("F2") + " m na płocie od ulicy, opasek " + opasek;
+    }
+
+    /// <summary>KOMIS: ta sama grafika właściciela w ramce aluminiowej na ścianie biura (wnętrze kontenera). srodek = środek obrazu na licu
+    /// ściany, n = do wnętrza, h = wysokość obrazu. Obraz 3.5 cm przed ścianą, listwy ramy 2.5–5 cm (poza polem obrazu). Null bez paczki.</summary>
+    public static string WRamce(Transform g, Vector3 srodek, Vector3 n, float h)
+    {
+        var obraz = Obraz(Komis, "KOMIS SAMOCHODOWY BRAXHORN CITY"); if (!obraz) return null;
+        n.y = 0f; n.Normalize(); var R = Vector3.Cross(n, Vector3.up).normalized; float w = h * AspektKomis, p = .025f;
+        var root = new GameObject("Komis: grafika w ramce na ścianie biura (grafika właściciela)").transform; root.SetParent(g, false);
+        var sO = new UlSiatka(); Lico(sO, srodek + n * .035f, n, w, h);
+        var ra = new UlSiatka(); var c = srodek + n * .0375f;
+        ra.OBox(c + Vector3.up * (h * .5f + p * .5f), R, Vector3.up, n, w + 2f * p, p, .025f);
+        ra.OBox(c - Vector3.up * (h * .5f + p * .5f), R, Vector3.up, n, w + 2f * p, p, .025f);
+        ra.OBox(c + R * (w * .5f + p * .5f), R, Vector3.up, n, p, h, .025f);
+        ra.OBox(c - R * (w * .5f + p * .5f), R, Vector3.up, n, p, h, .025f);
+        Obiekt(sO, "Komis: grafika w ramce — nadruk (KOMIS SAMOCHODOWY BRAXHORN CITY)", root, obraz, false);
+        Obiekt(ra, "Komis: grafika w ramce — rama (aluminium anodowane grafit)", root, BraxCityMaterials.Surface("Banery: rama obrazu (aluminium anodowane grafit)", new Color(.22f, .23f, .24f), .45f, .6f), false);
+        banerow++;
+        return "grafika w ramce " + w.ToString("F2") + " × " + h.ToString("F2") + " m";
     }
 
     /// <summary>PORTOWA: baner dwustronny w poprzek jezdni. x = oś banera, zPld/zPln = lica elewacji (płd. / płn.), xKotPld/xKotPln = osie

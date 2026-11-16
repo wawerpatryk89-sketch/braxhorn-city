@@ -49,7 +49,11 @@ public static class BraxR1Zdjecia
         // banery właściciela (16.11 23:14 / 23:16)
         ("23_ulica_baner_od_zachodu", new Vector3(-34f, 1.7f, 22.4f), new Vector3(-17f, 7f, 29.5f), "Portowa: baner TRENUJ nad jezdnią między BISTRO a POCZTĄ (od zachodu)"),
         ("24_ulica_baner_od_wschodu", new Vector3(0f, 1.7f, 34.8f), new Vector3(-17f, 7.2f, 27.5f), "Portowa: baner TRENUJ — druga strona (od wschodu)"),
-        ("25_komis_baner", new Vector3(-713.5f, 1.7f, -61f), new Vector3(-723.5f, 4.4f, -80.5f), "komis: baner KOMIS SAMOCHODOWY BRAXHORN CITY na dachu kontenera"),
+        ("25_komis_baner_na_plocie", new Vector3(-711.5f, 1.7f, -64.5f), new Vector3(-719.5f, 1.2f, -72.2f), "komis: baner KOMIS SAMOCHODOWY BRAXHORN CITY na płocie panelowym od ulicy"),
+        // komis 23:38: płot normalny i biuro, do którego można wejść
+        ("26_komis_biuro_drzwi", new Vector3(-717.6f, 1.7f, -75.2f), new Vector3(-722f, 1.5f, -79.6f), "komis: biuro w kontenerze — drzwi, stopień, okno"),
+        ("27_komis_biuro_wnetrze", new Vector3(-720.4f, 1.7f, -79.95f), new Vector3(-724.6f, 1f, -81.6f), "komis: wnętrze biura od drzwi — biurko, krzesła, grafika w ramce"),
+        ("28_komis_biuro_od_okna", new Vector3(-725.8f, 1.6f, -82.2f), new Vector3(-721.5f, 1.5f, -79.8f), "komis: wnętrze biura od szafy — okno, drzwi, roślina"),
     };
 
     public static int Wykonaj(Scene scena)

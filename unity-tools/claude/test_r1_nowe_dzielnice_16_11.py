@@ -176,7 +176,7 @@ class ZdjeciaZEdytora(unittest.TestCase):
         z = src(REG / "BraxR1Zdjecia.cs")
         self.assertIn('public const string Katalog = "Logs/r1-zdjecia";', z)            # unity-city/Logs/ = artefakt diagnostyki
         self.assertIn("if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)", z)
-        self.assertEqual(len(re.findall(r'\("\d\d_\w+", new Vector3', z)), 25)   # 12 nowej części + 8 lądowiska + 2 biura z grafikami + 3 banery właściciela (16.11)
+        self.assertEqual(len(re.findall(r'\("\d\d_\w+", new Vector3', z)), 28)   # 12 nowej części + 8 lądowiska + 2 biura z grafikami + 3 banery właściciela + 3 biuro komisu (16.11)
         wf = (ROOT / ".github/workflows/claude-region-build.yml").read_text(encoding="utf-8")
         self.assertIn("unity-city/Logs/", wf)
 
@@ -253,11 +253,45 @@ class BaneryWlasciciela(unittest.TestCase):
         dane = (pk / "part-000.cms").read_bytes()
         self.assertNotIn(b"\x89PNG", dane); self.assertNotIn(b"JFIF", dane)
 
-    def test_komis_banner_on_container_roof(self):
+    def test_komis_banner_on_fence(self):
+        # 23:37 „Na płocie go powieś” — baner na płocie od ulicy, 2.5 cm przed licem słupków, opaski poza polem nadruku
         nd = src(REG / "BraxRegionMiastoBNoweMiejsca.cs")
-        self.assertIn("banerKomisu = BraxMiastoBanery.NaDachuKontenera(g, new Vector3((x0 + x1) * .5f, y + Hc - r, z1 - .35f), Vector3.forward", nd)
+        kom = src(REG / "BraxRegionMiastoBKomis.cs")
+        self.assertIn("banerKomisu = BraxMiastoBanery.NaPlocie(g, srodekBanera, Vector3.forward, hBanera, OdstepBanera);", nd)
+        self.assertNotIn("NaDachuKontenera(g", nd)
+        self.assertIn("internal const float OdstepBanera = .055f;", kom)
+        self.assertIn("srodekBanera = new Vector3(R.xMin + 9.8f, y + .25f + .05f, zU + OdstepBanera);", kom)
         self.assertIn('Katalog = "Assets/Source/Prywatne/Miasto/banery_r1_01/"', self.BAN)
-        self.assertIn("st.OBox(p + Vector3.up * .0125f, R, Vector3.up, n, .3f, .025f, .3f);", self.BAN)     # stopy 2.5 cm (bez cienkich płyt)
+        self.assertIn("Vector3.up * (sg * (h * .5f + .011f))", self.BAN)                                  # opaski przez krawędź banera
+        self.assertIn("public static string WRamce(Transform g, Vector3 srodek, Vector3 n, float h)", self.BAN)
+        self.assertIn("BraxMiastoBanery.WRamce(root, new Vector3(bx, yP + 1.55f * k, z0 + w1), Vector3.forward, .75f)", kom)
+
+    def test_komis_normal_fence_and_enterable_office(self):
+        # 23:38 „zrób płot normalny … tę budkę zrób trochę lepszą, że tam można było wejść”
+        nd = src(REG / "BraxRegionMiastoBNoweMiejsca.cs")
+        kom = src(REG / "BraxRegionMiastoBKomis.cs")
+        self.assertIn("string biuro = KomisBiuro(g, R, y);", nd)
+        self.assertIn("string plot = KomisPlot(g, R, y, xWj0, xWj1, out var srodekBanera, out float hBanera);", nd)
+        # płot panelowy 3D: siatka w teksturze z alfą (cutout), słupki 60 × 60, podmurówka wzdłuż płotu, narożniki bez zdublowanych słupków
+        self.assertIn("imp.mipMapsPreserveCoverage = true", kom)
+        self.assertIn('m.EnableKeyword("_ALPHATEST_ON")', kom)
+        self.assertNotIn('m.SetFloat("_Cull", 0f)', kom)                                               # dwa quady, bez podwójnego renderu
+        self.assertIn("gPod = .05f, sx = .06f, sz = .06f", kom)
+        self.assertIn("new Vector3((p1 - p0).magnitude - .004f, hPod + .05f, gPod), rot)", kom)
+        self.assertIn('new Vector3(xZ, y, zT), new Vector3(xW, y, zT), hP, sl, pod, pan, false, false);', kom)
+        # biuro: drzwi na zawiasach (same się otwierają), ściany warstwami z pustką 2.5 cm (bez lic w jednej płaszczyźnie)
+        self.assertIn('d.id = "R1_KOMIS_BIURO"', kom)
+        self.assertIn("d.leaves = new[] { zaw }", kom)
+        self.assertIn("e0 = .04f, e1 = .065f, e2 = .09f, w1 = .11f", kom)
+        self.assertIn('BraxMiastoA.Akcja(root, "komis_biuro", "ZAPYTAJ O AUTO"', kom)
+        self.assertIn('"R1_KOMIS_BIURO_WEJSCIE"', kom)
+        self.assertIn("PlytaWnetrza()", kom)                                                           # listwy H w teksturze
+        self.assertIn('180f, .24f, false, "classic_laptop")', kom)                                     # laptop w skali (nie 2.6 cm)
+
+    def test_single_variant_of_polyhaven_models(self):
+        meb = src(REG / "BraxRegionMeble.cs")
+        self.assertIn("JedenWariant(o);", meb)
+        self.assertIn('if (t && !t.name.EndsWith("_a")) UnityEngine.Object.DestroyImmediate(t.gameObject);', meb)
 
     def test_street_banner_double_sided_over_roadway(self):
         ul = src(REG / "BraxMiastoUlica.cs")

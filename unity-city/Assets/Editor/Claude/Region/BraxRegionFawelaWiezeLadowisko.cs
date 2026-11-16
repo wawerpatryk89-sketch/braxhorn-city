@@ -187,7 +187,7 @@ public static partial class BraxRegionFawela
             Wyrob(rb, "Recepcja: blat (granit polerowany)", hr, granit, false, true);
             var a0 = P(rs0, y0, rd0); var a1 = P(rs1, y0 + hR, rd1);
             BraxRegionMeble.Kolizja(hr, "Recepcja lądowiska: kolizja", (a0 + a1) * .5f, new Vector3(Mathf.Abs(a1.x - a0.x), hR, Mathf.Abs(a1.z - a0.z)));
-            BraxRegionMeble.Model(hr, "Recepcja lądowiska: laptop", P(rs0 + .3f, y0 + hR, (rd0 + rd1) * .5f), Quaternion.LookRotation(-R).eulerAngles.y, .02f, false, "classic_laptop");
+            BraxRegionMeble.Model(hr, "Recepcja lądowiska: laptop", P(rs0 + .3f, y0 + hR, (rd0 + rd1) * .5f), Quaternion.LookRotation(-R).eulerAngles.y, .24f, false, "classic_laptop");   // otwarty, ekran ~24 cm
             BraxUlicePierzeje.KrzesloTapicerowane("Recepcja lądowiska: krzesło", hr, P(sB - .75f, y0, (rd0 + rd1) * .5f), Quaternion.LookRotation(-R).eulerAngles.y);
             BraxMiastoA.Akcja(hr, "ladowisko_recepcja", "RECEPCJA LĄDOWISKA", "Recepcja: Lot na dach? Winda na końcu holu — lądowisko 148 m nad promenadą.", P(rs0 - 1.0f, y0, (rd0 + rd1) * .5f), 1.6f);
         }

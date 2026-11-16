@@ -436,12 +436,23 @@ public static class BraxRegionMeble
         var s = seat.AddComponent<BraxSeat>(); s.label = "KRZESŁO"; s.surfaceY = p.y + .48f * k;
     }
 
+    /// <summary>Poly Haven trzyma część modeli jako kilka wariantów obok siebie (pachira_aquatica_01: bark/leaves _a…_d co 2 m). Pojedynczy
+    /// mebel / roślina = jeden wariant (_a); bez tego środek obrysu wypada między doniczkami i rośliny stoją za ścianą.</summary>
+    static void JedenWariant(GameObject o)
+    {
+        bool War(Transform t) => t.name.Length > 2 && t.name[t.name.Length - 2] == '_' && t.name[t.name.Length - 1] >= 'a' && t.name[t.name.Length - 1] <= 'h';
+        var w = o.GetComponentsInChildren<Transform>(true).Where(t => t != o.transform && War(t)).ToList();
+        if (w.Select(t => t.name[t.name.Length - 1]).Distinct().Count() < 2 || !w.Any(t => t.name.EndsWith("_a"))) return;
+        foreach (var t in w) if (t && !t.name.EndsWith("_a")) UnityEngine.Object.DestroyImmediate(t.gameObject);
+    }
+
     /// <summary>Model Poly Haven / biblioteki o zadanej wysokości RZECZYWISTEJ × k (null, gdy brak modelu).</summary>
     public static GameObject Model(Transform parent, string etykieta, Vector3 p, float yaw, float wysRealna, bool kolizja, params string[] ids)
     {
         var src = BraxRegion.Model(ids); if (!src) return null;
         var o = BraxRegion.Put(parent, src, etykieta, p, yaw, 1f, false, 0f);
         if (!o) return null;
+        JedenWariant(o);
         var b = BraxRegion.Bounds(o); if (b.size.y < 1e-3f) return o;
         float s = wysRealna * K / b.size.y;
         o.transform.localScale *= s;

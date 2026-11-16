@@ -294,48 +294,14 @@ public static partial class BraxRegionMiastoB
             BraxMiastoA.Akcja(g, "komis_auto_" + (i + 1), "OBEJRZYJ AUTO", "Komisant: " + opis + ". Cena do negocjacji, jazda próbna po spisaniu dowodu.", new Vector3(x, y, zPrzod + .7f), 1.4f);
             aut++;
         }
-        // --- kontener biurowy (6.06 × 2.44 × 2.60 m × K): rama stalowa, ściany z blachy trapezowej, drzwi i okno od placu, szyld na dachu
+        // --- biuro w kontenerze Z WEJŚCIEM (23:38 „tę budkę zrób trochę lepszą, że tam można było wejść”) — BraxRegionMiastoBKomis
+        string biuro = KomisBiuro(g, R, y);
+        // --- płot panelowy 3D od ulicy, po bokach i z tyłu, wjazd 8 m przy pylonie (23:38 „zrób płot normalny”); baner na płocie od ulicy
+        float xWj0 = R.xMax - 9.2f, xWj1 = R.xMax - 1.2f;
+        string plot = KomisPlot(g, R, y, xWj0, xWj1, out var srodekBanera, out float hBanera);
+        banerKomisu = BraxMiastoBanery.NaPlocie(g, srodekBanera, Vector3.forward, hBanera, OdstepBanera);
         {
-            float L = 6.06f * K, B = 2.44f * K, Hc = 2.60f * K, x0 = R.xMin + .6f, z0 = R.yMin + .5f, x1 = x0 + L, z1 = z0 + B;
-            var rama = new BraxRegionMeble.Bud(); var sc = new BraxRegionMeble.Bud(); var szk = new BraxRegionMeble.Bud(); var dr = new BraxRegionMeble.Bud();
-            float r = .12f * K;
-            foreach (float xx in new[] { x0, x1 - r }) foreach (float zz in new[] { z0, z1 - r }) rama.MinMax(new Vector3(xx, y, zz), new Vector3(xx + r, y + Hc, zz + r));
-            foreach (float yy in new[] { y, y + Hc - r }) { rama.MinMax(new Vector3(x0, yy, z0), new Vector3(x1, yy + r, z0 + r)); rama.MinMax(new Vector3(x0, yy, z1 - r), new Vector3(x1, yy + r, z1)); rama.MinMax(new Vector3(x0, yy, z0 + r), new Vector3(x0 + r, yy + r, z1 - r)); rama.MinMax(new Vector3(x1 - r, yy, z0 + r), new Vector3(x1, yy + r, z1 - r)); }
-            sc.MinMax(new Vector3(x0 + .04f, y + r, z0 + .04f), new Vector3(x1 - .04f, y + Hc - r, z1 - .04f));   // korpus: ściany 4 cm za licem ramy (bez wspólnych płaszczyzn)
-            // drzwi stalowe 0.9 × 2.0 m × K i okno 1.2 × 1.0 m × K na licu północnym (od placu), 1 cm przed blachą
-            float dx = x1 - 1.3f * K, zf = z1 - .01f;
-            dr.MinMax(new Vector3(dx - .45f * K, y + r, zf), new Vector3(dx + .45f * K, y + r + 2.0f * K, zf + .025f));
-            // okno: ramka 5 cm (pierścień) na licu, szyba przyciemniana w ramce 2.5 cm przed blachą korpusu
-            var ok0 = new Vector3(x0 + 1.4f * K, y + .95f * K, zf); var ok1 = new Vector3(x0 + 2.6f * K, y + 1.95f * K, zf);
-            rama.MinMax(new Vector3(ok0.x - .05f, ok0.y - .05f, zf - .03f), new Vector3(ok1.x + .05f, ok0.y, zf + .02f)); rama.MinMax(new Vector3(ok0.x - .05f, ok1.y, zf - .03f), new Vector3(ok1.x + .05f, ok1.y + .05f, zf + .02f));
-            rama.MinMax(new Vector3(ok0.x - .05f, ok0.y, zf - .03f), new Vector3(ok0.x, ok1.y, zf + .02f)); rama.MinMax(new Vector3(ok1.x, ok0.y, zf - .03f), new Vector3(ok1.x + .05f, ok1.y, zf + .02f));
-            szk.Quad(new Vector3(ok0.x, ok0.y, zf - .005f), new Vector3(ok1.x, ok0.y, zf - .005f), new Vector3(ok1.x, ok1.y, zf - .005f), new Vector3(ok0.x, ok1.y, zf - .005f));
-            rama.Obiekt("Komis: kontener biurowy — rama stalowa", g, BraxRegionMeble.Tex("Komis: kontener — rama (stal malowana grafit)", 1.0f, new Color(.30f, .31f, .32f), .55f, "painted_metal_shutter", "metal_plate"), false, true);
-            sc.Obiekt("Komis: kontener biurowy — blacha trapezowa", g, BraxRegionMeble.Tex("Komis: kontener — blacha trapezowa (biała)", 1.2f, new Color(.90f, .91f, .90f), .55f, "corrugated_iron", "painted_metal_shutter"), false, true);
-            dr.Obiekt("Komis: kontener biurowy — drzwi stalowe", g, BraxRegionMeble.Tex("Komis: drzwi kontenera (stal malowana)", 1.0f, new Color(.55f, .57f, .58f), .5f, "painted_metal_shutter", "metal_plate"), false, true);
-            szk.Obiekt("Komis: kontener biurowy — szyba (przyciemniana, rolety)", g, BraxCityMaterials.Surface("Komis: szyba okna (przyciemniana)", new Color(.13f, .16f, .18f), .06f, .6f), false, false);
-            BraxRegionMeble.Kolizja(g, "Komis: kolizja kontenera biurowego", new Vector3((x0 + x1) * .5f, y + Hc * .5f, (z0 + z1) * .5f), new Vector3(L, Hc, B));
-            BraxMiastoA.Akcja(g, "komis_biuro", "ZAPYTAJ O AUTO", "Komisant: Skup, sprzedaż, zamiana. Wszystkie auta z dokumentami — wybierz, pogadamy o cenie.", new Vector3(dx, y, z1 + 1.2f), 1.6f);
-            world_point("R1_KOMIS_AUT", "komis samochodów używanych (biuro w kontenerze, przy T1 TRAMWAJOWA)", new Vector3(dx, y, z1 + 1.2f));
-            // 16.11 23:14 (właściciel: „Tu masz, mistrzu, do tego, do komisu?”): baner KOMIS SAMOCHODOWY BRAXHORN CITY na ramie na dachu
-            // kontenera, przodem do ulicy (stopy na blasze dachu między belkami ramy, baner 0.35 m nad dachem — widać go zza aut)
-            banerKomisu = BraxMiastoBanery.NaDachuKontenera(g, new Vector3((x0 + x1) * .5f, y + Hc - r, z1 - .35f), Vector3.forward, Mathf.Min(5.2f, L - 1.4f));
-        }
-        // --- słupki z łańcuchem wzdłuż chodnika (wjazd 8 m przy pylonie) i pylon KOMIS AUTO
-        {
-            var sl = new BraxRegionMeble.Bud(); float zs = R.yMax - .35f, xWj0 = R.xMax - 9.2f, xWj1 = R.xMax - 1.2f;
-            var pts = new List<float>(); for (float x = R.xMin + .4f; x <= xWj0 + .01f; x += 2.4f) pts.Add(x);
-            if (pts[pts.Count - 1] < xWj0 - .2f) pts.Add(xWj0);
-            foreach (float x in pts) { sl.Cyl(new Vector3(x, y, zs), new Vector3(x, y + .75f * K, zs), .035f * K, 10); sl.Cyl(new Vector3(x, y + .75f * K, zs), new Vector3(x, y + .78f * K, zs), .045f * K, 10); }
-            var lan = new BraxRegionMeble.Bud();
-            for (int i = 0; i + 1 < pts.Count; i++)
-            {
-                Vector3 a = new Vector3(pts[i], y + .68f * K, zs), b = new Vector3(pts[i + 1], y + .68f * K, zs), m = (a + b) * .5f - Vector3.up * .12f * K;
-                lan.Cyl(a, m, .008f * K, 5); lan.Cyl(m, b, .008f * K, 5);
-            }
-            sl.Obiekt("Komis: słupki od chodnika", g, stalM, false, true);
-            lan.Obiekt("Komis: łańcuch między słupkami", g, stalM, false, false);
-            BraxRegionMeble.Kolizja(g, "Komis: kolizja słupków i łańcucha", new Vector3((pts[0] + pts[pts.Count - 1]) * .5f, y + .4f * K, zs), new Vector3(pts[pts.Count - 1] - pts[0], .8f * K, .12f));
+            float zs = R.yMax - .35f;
             // pylon: dwa słupy stalowe, tablica 3.4 × 1.1 m, napis z obu stron
             float xp = R.xMax - .6f; var pyl = new BraxRegionMeble.Bud(); var tab = new BraxRegionMeble.Bud();
             float yt0 = y + 2.4f * K, yt1 = yt0 + 1.1f * K;
@@ -383,7 +349,7 @@ public static partial class BraxRegionMiastoB
             }
             lin.Obiekt("Komis: linka girlandy", g, stalM, false, false);
             for (int i = 0; i < flagi.Length; i++) flagi[i].Obiekt("Komis: chorągiewki girlandy", g, BraxCityMaterials.Surface("Komis: chorągiewka (folia PE) " + i, kolF[i], .6f), false, false);
-            NdLog("komis aut przy T1 TRAMWAJOWA: aut na sprzedaż " + aut + "/" + KomisAuta.Length + (BraxMiastoAssety.Jest(KomisPaczka) ? "" : " (brak paczki " + KomisPaczka + " — plac bez aut)") + ", chorągiewek " + nf + ", masztów " + xs.Length + ", " + (banerKomisu ?? "bez banera (brak paczki braxhorn-sklep-banery-r1-01)"));
+            NdLog("komis aut przy T1 TRAMWAJOWA: aut na sprzedaż " + aut + "/" + KomisAuta.Length + (BraxMiastoAssety.Jest(KomisPaczka) ? "" : " (brak paczki " + KomisPaczka + " — plac bez aut)") + ", chorągiewek " + nf + ", masztów " + xs.Length + ", " + biuro + ", " + plot + ", " + (banerKomisu ?? "bez banera (brak paczki braxhorn-sklep-banery-r1-01)"));
         }
     }
 }
