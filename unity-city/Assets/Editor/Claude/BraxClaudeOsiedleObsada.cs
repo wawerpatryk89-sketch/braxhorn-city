@@ -57,7 +57,9 @@ public static partial class BraxClaudeOsiedle
         anim.AddClip(saved,stan);
     }
 
-    static Animation ModelObsady(string id, Transform rodzic, float wzrost)
+    // public: używa jej też pokój prób postaci (unity-tools/claude/pokoj-prob) — próba ma
+    // stawiać DOKŁADNIE tę samą postać co gra, nie własną kopię kodu.
+    public static Animation ModelObsady(string id, Transform rodzic, float wzrost)
     {
         string folder = BraxObsadaImport.Katalog + id + "/";
         string path = folder + id + ".fbx";
