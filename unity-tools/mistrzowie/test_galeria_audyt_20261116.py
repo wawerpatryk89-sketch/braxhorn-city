@@ -316,5 +316,19 @@ class ShopPromotions(unittest.TestCase):
         self.assertFalse(letters - allowed, letters - allowed)                      # every character has a glyph
 
 
+class NutritionPostersSpread(unittest.TestCase):
+    """Owner 16.11 13:48-13:49: "plakaty z odżywkami przegięłaś z ilością i dwa koło siebie blisko ... po całym mieście trochę myśl"."""
+
+    def test_six_boxes_none_side_by_side(self):
+        p = read("BraxChampionsPlakaty.cs")
+        gen = p[p.index("public static int Generate()"):]
+        self.assertEqual(gen.count("Plakat(m, ") + gen.count("Citylight(m, "), 6)
+        self.assertNotIn("(38.6f, 1)", gen)                    # the second citylight at the SPORT ARENA door
+        self.assertNotIn("gx + 76.5f", gen)                    # the second poster on the NUTRITION wall
+        self.assertNotIn("556.5f", gen)                        # the second one at E1
+        xs = [float(v) for v in re.findall(r"Citylight\(m, ([0-9.]+)f, -1", gen)]
+        self.assertLessEqual(len(re.findall(r"Citylight\(m, 62f", gen)), 2)
+
+
 if __name__ == "__main__":
     unittest.main()

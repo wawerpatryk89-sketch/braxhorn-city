@@ -48,6 +48,21 @@ public static class G1Program
         }
         Console.WriteLine("FOUNDATION_MESHES " + meshes);
         BraxChampionsFoundation.Optional("G1 galeria", () => BraxChampionsD2.GenerateG1("out"));
+        // preview only: PREVIEW_UNITS=1 prints every shop unit's world rectangle (to aim the audit cameras)
+        if (Environment.GetEnvironmentVariable("PREVIEW_UNITS") == "1")
+        {
+            var t = typeof(BraxChampionsD2); var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
+            var units = (System.Collections.IList)t.GetField("g1Units", bf).GetValue(null);
+            var wld = t.GetMethod("Wld", bf); var lvl = t.GetMethod("LevelY", bf);
+            foreach (var u in units)
+            {
+                var ut = u.GetType(); float F(string n) => (float)ut.GetField(n).GetValue(u);
+                int l = (int)ut.GetField("level").GetValue(u); float y = (float)lvl.Invoke(null, new object[] { l });
+                var a = (Vector3)wld.Invoke(null, new object[] { new Vector3(F("x0"), y, F("z0")) }); var b = (Vector3)wld.Invoke(null, new object[] { new Vector3(F("x1"), y, F("z1")) });
+                Console.WriteLine("G1_UNIT " + ut.GetField("name").GetValue(u) + " | " + ut.GetField("trade").GetValue(u) + " | face " + ut.GetField("face").GetValue(u) + " | P" + l +
+                    " | x " + Mathf.Min(a.x, b.x).ToString("F1") + ".." + Mathf.Max(a.x, b.x).ToString("F1") + " | z " + Mathf.Min(a.z, b.z).ToString("F1") + ".." + Mathf.Max(a.z, b.z).ToString("F1") + " | y " + a.y.ToString("F2") + " | back " + F("back"));
+            }
+        }
         var g1 = GameObject.Registry.Find(g => g.transform.parent == null && g.name.StartsWith("G1 | "));
         if (g1 != null) g1.transform.SetParent(root, true);
         Console.WriteLine("G1 doors=" + BraxChampionsD2.Doors + " bays=" + BraxChampionsD2.G1Bays + " accessible=" + BraxChampionsD2.G1AccessibleBays + " colliders=" + BraxChampionsD2.Colliders + " seats=" + BraxChampionsD2.Seats + " shops=" + BraxChampionsD2.G1Shops);

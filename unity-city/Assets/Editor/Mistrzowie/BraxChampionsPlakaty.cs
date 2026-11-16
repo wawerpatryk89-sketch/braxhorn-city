@@ -8,10 +8,14 @@ using UnityEngine;
 // braxhorn-sklep-plakaty-01, global: plakaty_01/*.jpg; the adidas logo on the first one masked - only BRAXHORN in the game)
 // hang as BACK-LIT light boxes: a black aluminium case, the print lit from inside (emission = the picture, like the arena
 // murals), double-sided on a foot in the open, single-sided on a wall:
-//  * G1 SPORT ARENA: two on the BRAXHORN NUTRITION wall either side of the green 3D name, two citylights in the mall at
-//    the store's door;
-//  * the promenade: a citylight in the palm row every ~110 m (between a lamp and a bench) and one at the outdoor gym;
-//  * E1 CENTRUM ROZRYWKI: two citylights on the forecourt by the taxi bay.
+// Owner 16.11 13:48-13:49 "te plakaty z odżywkami przegięłaś z ilością i dwa koło siebie blisko ... po całym mieście
+// trochę myśl": 15 boxes (pairs side by side, a citylight every 110 m of the promenade) cut to 6, one per place, spread
+// over the city - never two within sight of each other:
+//  * G1 SPORT ARENA: one on the BRAXHORN NUTRITION wall beside the green 3D name, one citylight in the mall at the store's
+//    door (88 m apart, two floors and a wall between);
+//  * the promenade: two citylights in the palm row, 650 m apart;
+//  * the outdoor gym: one at its west edge;
+//  * E1 CENTRUM ROZRYWKI: one on the forecourt by the taxi bay.
 // Gyms and training halls get theirs when they are built (Plakat() is public for them).
 public static class BraxChampionsPlakaty
 {
@@ -121,13 +125,12 @@ public static class BraxChampionsPlakaty
         var root = new GameObject("MIASTO MISTRZÓW | plakaty BRAXHORN NUTRITION (citylighty, ściany)").transform;
         var m = new BraxChampionsMeshBatch();
         // G1 SPORT ARENA (G1 frame + 940/175): the NUTRITION wall (south, face z -54.62, first floor 6.32), the green name at
-        // x 61..71 / y 9.42..9.74 - posters either side, over the 2.2 m shelving
+        // x 61..71 / y 9.42..9.74 - one poster beside it (west), over the 2.2 m shelving
         float gx = BraxChampionsD2.G1CentreX, gz = BraxChampionsD2.G1CentreZ, f1 = BraxChampionsD2.G1F1;
         float wallZ = -BraxChampionsD2.G1HD + .3f + .08f;
         Plakat(m, new Vector3(gx + 55.5f, f1 + 3.25f, gz + wallZ + .03f), Vector3.forward, 0, false);
-        Plakat(m, new Vector3(gx + 76.5f, f1 + 3.25f, gz + wallZ + .03f), Vector3.forward, 1, false);
-        // the store's door from the north mall (x 47, z 28..40): two citylights in the mall 3 m in front of it
-        foreach (var (z, i) in new[] { (29.4f, 0), (38.6f, 1) })
+        // the store's door from the north mall (x 47, z 28..40): one citylight in the mall 3 m in front of it
+        foreach (var (z, i) in new[] { (29.4f, 1) })
         {
             var c = new Vector3(gx + 44.0f, f1 + 1.62f, gz + z);
             Plakat(m, c, Vector3.left, i, true);
@@ -138,17 +141,15 @@ public static class BraxChampionsPlakaty
             m.RoundedBox(frame, new Vector3(c.x, f1 + .04f, c.z), new Vector3(1.45f, .08f, .32f), .02f, rot, 2);
         }
         // the promenade palm row (z -143): palms every 18 m from x 62, lamps 3.7 m either side, benches at +9; a citylight
-        // between a lamp and a bench (+6.35), facing along the walkway, every 6th palm
-        int k = 0;
-        foreach (int pi in new[] { 4, 10, 16, 22, 28, 34, 40, 45 })
-            Citylight(m, 62f + 18f * pi + 6.35f, -143f, (k++ % 2 == 0) ? Vector3.right : Vector3.left, pi);
+        // between a lamp and a bench (+6.35), facing along the walkway - two, at the 8th and the 44th palm (650 m apart)
+        Citylight(m, 62f + 18f * 8 + 6.35f, -143f, Vector3.right, 0);
+        Citylight(m, 62f + 18f * 44 + 6.35f, -143f, Vector3.left, 1);
         // the outdoor gym (zone 430 / -101, 22 x 14): one at its west edge, facing the zone path
         Citylight(m, 417.6f, -95.5f, Vector3.right, 0);
-        // E1 forecourt (facade z -38, taxi bay x 517..553 at the road): either side, facing the street
-        Citylight(m, 514.5f, -45f, Vector3.back, 0);
-        Citylight(m, 556.5f, -45f, Vector3.back, 1);
+        // E1 forecourt (facade z -38, taxi bay x 517..553 at the road): one, west of the bay, facing the street
+        Citylight(m, 514.5f, -45f, Vector3.back, 1);
         m.Build(root, "plakaty BRAXHORN NUTRITION", Out, false);
-        Debug.Log("MISTRZOWIE_PLAKATY skrzynki=" + Count + " wydruki=" + prints.Count + " (G1 SPORT ARENA 4, promenada 9, E1 2)");
+        Debug.Log("MISTRZOWIE_PLAKATY skrzynki=" + Count + " wydruki=" + prints.Count + " (G1 SPORT ARENA 2, promenada 2, siłownia 1, E1 1)");
         return Count;
     }
 }

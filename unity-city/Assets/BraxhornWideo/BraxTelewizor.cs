@@ -24,9 +24,9 @@ public static class BraxWideo
     {
         "tv_01_puma.mp4", "tv_02_alpy.mp4", "tv_03_roboty.mp4", "tv_04_gangsterzy.mp4", "tv_05_fabryka.mp4",
     };
-    // owner 12.11 12:25: "tylko ten jeden, ten teledysk ... to możesz zostawić 9:16, tam gdzie ten teledysk jest ... resztę
-    // 9:16 usuwasz" - the one portrait film: his music video, on the G1 gallery's totems where it played
-    public static readonly string[] Pion = { "pion_10_teledysk.mp4" };
+    // owner 16.11 13:48: "Wszystkie 9:16 w pizdu" - no portrait film anywhere, the music video too (the 12.11 12:25 exception
+    // for the G1 totems is over; the totems are gone). The list stays empty: nothing 9:16 is staged into the build.
+    public static readonly string[] Pion = { };
     public static string Sciezka(bool pion, string plik) =>
         Application.streamingAssetsPath.TrimEnd('/') + "/BraxhornWideo/" + (pion ? "pion/" : "tv/") + plik;
     /// <summary>the film's name for the AKCJA button: "tv_02_alpy.mp4" -> "ALPY"</summary>

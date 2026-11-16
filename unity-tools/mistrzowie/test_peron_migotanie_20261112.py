@@ -69,16 +69,15 @@ class PeronMigotanie(unittest.TestCase):
 
     def test_no_portrait_films(self):
         tv = (ED.parents[1] / 'BraxhornWideo' / 'BraxTelewizor.cs').read_text(encoding='utf-8')
-        # owner 12.11 12:25: only his music video stays 9:16, on the G1 totems where it played
-        self.assertIn('public static readonly string[] Pion = { "pion_10_teledysk.mp4" };', tv)
+        # owner 16.11 13:48: "Wszystkie 9:16 w pizdu" - none at all, the music video too
+        self.assertIn('public static readonly string[] Pion = { };', tv)
         lista = re.search(r'public static readonly string\[\] Tv =\s*\{(.*?)\};', tv, re.S).group(1)
         self.assertEqual(re.findall(r'"([^"]+)"', lista), ['tv_01_puma.mp4', 'tv_02_alpy.mp4', 'tv_03_roboty.mp4',
                                                           'tv_04_gangsterzy.mp4', 'tv_05_fabryka.mp4'])
         g1 = src('BraxChampionsG1Wnetrze.cs')
-        self.assertIn('G1AdTotem(x,y,z);', g1)
-        for f in ED.glob('*.cs'):
-            if f.name != 'BraxChampionsG1Wnetrze.cs':      # the only portrait screens: the G1 totems (the teledysk)
-                self.assertIsNone(re.search(r'WorkingScreen\([^;]*,\s*true\s*,', f.read_text(encoding='utf-8')), f.name)
+        self.assertNotIn('G1AdTotem', g1)                    # the totems are gone
+        for f in ED.glob('*.cs'):                            # no portrait screen anywhere
+            self.assertIsNone(re.search(r'WorkingScreen\([^;]*,\s*true\s*,', f.read_text(encoding='utf-8')), f.name)
 
     def test_tv_plays_where_it_stands_and_only_in_sight(self):
         tv = (ED.parents[1] / 'BraxhornWideo' / 'BraxTelewizor.cs').read_text(encoding='utf-8')

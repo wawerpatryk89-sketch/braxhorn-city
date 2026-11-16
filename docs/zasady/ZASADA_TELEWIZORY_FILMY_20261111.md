@@ -18,6 +18,17 @@ sklepy i salony w budynkach, biura. Kino ma własne filmy. Na ulicach, placach, 
 z filmami (tablice informacyjne, repertuar i menu zostają). Obowiązuje do odwołania przez właściciela. Dotyczy każdego nowego i poprawianego telewizora, monitora reklamowego i totemu.
 Telewizor z samym obrazkiem nie jest skończony (ZASADA_FUNKCJONALNE_JAK_W_ZYCIU_20261111).
 
+## 000. DECYZJA WŁAŚCICIELA 16.11.2026, 13:48 — NADRZĘDNA (zmienia sekcje 00 i 0)
+
+> „Wszystkie 9:16 w pizdu”
+
+- **Żadnego filmu 9:16 w grze, także teledysku.** `BraxWideo.Pion` jest pusta, instalator nie wkłada nic do `pion/`.
+- Totemy reklamowe w galerii G1, które grały teledysk, są usunięte. Nie stawiamy żadnych ekranów pionowych.
+- Telewizory grają tylko pięć reklam 16:9 (`tv_01..05`). Kino gra swoje filmy.
+- Pliki 9:16 leżą jeszcze w zaszyfrowanej paczce `braxhorn-wideo-20261111`, ale do gry nie trafiają. Kasujemy je z paczki
+  tylko po liście i zgodzie właściciela.
+- W witrynie od ulicy nie stoi żaden telewizor: film byłby widoczny z ulicy (zasada 11.11, 21:48).
+
 ## 00. DECYZJA WŁAŚCICIELA 12.11.2026, 12:21–12:25 — NADRZĘDNA (zmienia sekcję 0)
 
 > „na korytarzu w apartamencie słychać coś z mojego filmika, ale nie ma nigdzie mojego filmika na żadnym telewizorze.
