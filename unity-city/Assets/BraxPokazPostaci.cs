@@ -22,7 +22,8 @@ public sealed class BraxPokazPostaci : MonoBehaviour
     public Transform srodek;
     public Camera kamera;
     public float naEtap = 3f;
-    public const float ObrotSekund = 6f;        // pełne 360 stopni, spokojnie, żeby dało się patrzeć
+    public const float ObrotSekund = 6f;
+    public const float SpoczynekSekund = 10f;   // spoczynek też się obraca, tylko wolniej        // pełne 360 stopni, spokojnie, żeby dało się patrzeć
     public const string Kwestia = "9a79ffe04cb33bdb_m";
     public const int NagranPodRzad = 6;     // więcej tekstu — jedno nagranie to za mało, żeby ocenić usta
     public bool[] kobieta = new bool[0];    // nagrania mają w nazwie _f i _m — głos ma pasować do postaci
@@ -225,18 +226,24 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                         continue;
                     }
 
-                    float dlugosc = obrot ? ObrotSekund : naEtap;
+                    // W spoczynku postać powoli się obraca — właściciel 16.11, 21:29:
+                    // „nie mogą tak w fazie spoczynkowej się nic nie ruszać, normalnie powinien
+                    // się obkręcać albo coś”. Pełny obrót jest wolniejszy niż w etapie OBRÓT,
+                    // żeby dało się patrzeć na samą postawę, a nie gonić ją wzrokiem.
+                    bool spoczynek = opis == "SPOCZYNEK";
+                    float dlugosc = obrot ? ObrotSekund : (spoczynek ? SpoczynekSekund : naEtap);
                     float start = Time.time, do_ = start + dlugosc;
                     while (Time.time < do_)
                     {
-                        if (obrot)
+                        if (obrot || spoczynek)
                         {
-                            float post = (Time.time - start) / ObrotSekund;
+                            float okres = obrot ? ObrotSekund : SpoczynekSekund;
+                            float post = (Time.time - start) / okres;
                             korzen.localRotation = Quaternion.Euler(0, 180f + post * 360f, 0);
                         }
                         yield return null;
                     }
-                    if (obrot) korzen.localRotation = Quaternion.Euler(0, 180f, 0);
+                    if (obrot || spoczynek) korzen.localRotation = Quaternion.Euler(0, 180f, 0);
                 }
                 korzen.localPosition = staraPoz;
                 korzen.localRotation = staryObrot;
@@ -256,7 +263,15 @@ public sealed class BraxPokazPostaci : MonoBehaviour
             var glowa = postacie[kto].transform.Find("mixamorig:Hips/mixamorig:Spine/mixamorig:Spine1/mixamorig:Spine2/mixamorig:Neck/mixamorig:Head");
             var celGlowy = glowa ? glowa.position + Vector3.up * (.08f * SKALA)
                                  : stopy + Vector3.up * (1.62f * SKALA);
-            kamera.transform.position = celGlowy + new Vector3(0f, .02f * SKALA, -.62f * SKALA);
+            // Kamera staje PRZED twarzą, licząc od kierunku, w którym postać patrzy — nie
+            // w stałym kierunku świata. Przedtem offset szedł zawsze wzdłuż -Z, więc przy
+            // obróconej postaci kamera lądowała z boku głowy i twarz uciekała poza kadr
+            // (nagranie właściciela 16.11, 21:29 — imprezowiczka ucięta przy krawędzi).
+            var przod = postacie[kto].transform.forward;
+            przod.y = 0f;
+            if (przod.sqrMagnitude < .0001f) przod = Vector3.back;
+            przod.Normalize();
+            kamera.transform.position = celGlowy + przod * (.62f * SKALA) + Vector3.up * (.02f * SKALA);
             kamera.transform.LookAt(celGlowy);
             return;
         }

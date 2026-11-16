@@ -375,6 +375,54 @@ public static class BraxPokojProbBuild
                       $"{w.nazwa}: gl={w.gl:F2} metal={w.me:F0} norm={w.nr:F1}")));
     }
 
+    static void Twarze(Transform pokoj, Camera kam, List<Animation> anim, List<string> nazwy)
+    {
+        int ile = Mathf.Min(4, anim.Count);
+        if (ile == 0) throw new InvalidOperationException("Próba twarzy: brak postaci");
+
+        // Postacie stoją daleko od siebie, żeby żadna nie weszła w kadr sąsiada.
+        for (int i = 0; i < anim.Count; i++)
+        {
+            var korzen = anim[i].transform.parent ? anim[i].transform.parent : anim[i].transform;
+            korzen.localPosition = new Vector3(i * 6f * K, .02f, 0f);
+            korzen.localRotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
+            anim[i].gameObject.SetActive(i < ile);
+        }
+
+        var kamery = new Camera[ile];
+        var kafelki = new[]
+        {
+            new Rect(0f, .5f, .5f, .5f), new Rect(.5f, .5f, .5f, .5f),
+            new Rect(0f, 0f, .5f, .5f),  new Rect(.5f, 0f, .5f, .5f),
+        };
+        for (int i = 0; i < ile; i++)
+        {
+            var c = i == 0 ? kam : new GameObject("Kamera twarzy " + i).AddComponent<Camera>();
+            c.rect = kafelki[i];
+            c.fieldOfView = 32f;
+            c.nearClipPlane = .05f;
+            c.farClipPlane = 30f;
+            c.clearFlags = CameraClearFlags.SolidColor;
+            c.backgroundColor = new Color(.13f, .14f, .15f);   // ciemne, neutralne tło jak we wzorcu
+            c.depth = i;
+            kamery[i] = c;
+        }
+
+        var siatka = new GameObject("Siatka twarzy").AddComponent<BraxTwarzeSiatka>();
+        siatka.postacie = anim.GetRange(0, ile).ToArray();
+        siatka.nazwy = nazwy.GetRange(0, ile).ToArray();
+        siatka.kamery = kamery;
+        var zenskieT = new HashSet<string> { "ewa", "monika", "aneta", "martyna" };
+        var plcieT = new bool[ile];
+        for (int i = 0; i < ile; i++)
+            plcieT[i] = zenskieT.Contains(nazwy[i]) ||
+                        nazwy[i].StartsWith("imprezowiczka", StringComparison.Ordinal) ||
+                        nazwy[i].StartsWith("kobieta", StringComparison.Ordinal);
+        siatka.kobieta = plcieT;
+        Debug.Log("BRAX_POKOJ_TWARZE " + string.Join(",", nazwy.GetRange(0, ile)
+            .Select((n, i) => n + "=" + (plcieT[i] ? "K" : "M"))));
+    }
+
     public static void ZbudujApk()
     {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -542,6 +590,17 @@ public static class BraxPokojProbBuild
                       $"metal={w.me:F0} normalne={w.nr:F1}");
         }
 
+        // SIATKA TWARZY — odtworzenie wzorca, który właściciel pokazał 16.11, 21:31
+        // („BRAXHORN Mowa — próba głosu, 17–20 z 68”): cztery twarze naraz, kadr na twarz,
+        // nazwa pod spodem, ciemne tło. Tak się ocenia mimikę; w ujęciu całej sylwetki twarz
+        // ma na telefonie około stu pikseli i nie da się jej ocenić.
+        bool siatkaTwarzy = TrybZlecenia() == "twarze";
+        if (siatkaTwarzy)
+        {
+            runtime.enabled = false;        // gracz nie prowadzi kamer siatki
+            Twarze(pokoj, kam, ustawioneAnim, ustawioneNazwy);
+        }
+
         bool porownanie = TrybZlecenia() == "polysk";
         if (porownanie)
         {
@@ -558,7 +617,7 @@ public static class BraxPokojProbBuild
         // POKAZ: każda postać po kolei na środek, spoczynek → chód → bieg → rozmowa,
         // kamera trzyma ją w kadrze, na ekranie nazwa i etap. Przycisk NAGRYWAJ albo
         // nagrywanie ekranu telefonu daje gotowy film.
-        if (!porownanie)
+        if (!porownanie && !siatkaTwarzy)
         {
         var srodek = new GameObject("Środek pokazu").transform;
         srodek.SetParent(pokoj, false);

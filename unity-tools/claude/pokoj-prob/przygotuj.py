@@ -58,8 +58,11 @@ def paczka_baru(praca):
 
 
 WSZYSTKIE = {"wszystkie", "wszyscy", "all", "*"}
-PIERWSZA_PIATKA = ["patryk", "bramkarz_1c96d333", "kapitan_02d85d24",
-                   "imprezowiczka_0dbe3922", "dziecko_003f4e46"]
+# Wlasciciel 16.11, 21:30: „nie dales Moniki. Monika jest jedna. Ta w sukience takiej dlugiej.
+# Z Patrykiem, co prowadzi.” Para Patryk i Monika prowadzi gre (zasada PATRYK-I-MONIKA),
+# wiec oboje sa w staliej piatce. Dziecko ustapilo miejsca — wroci w nastepnej piatce.
+PIERWSZA_PIATKA = ["patryk", "monika", "kapitan_02d85d24",
+                   "imprezowiczka_0dbe3922", "bramkarz_1c96d333"]
 
 
 def wybrane():
@@ -137,7 +140,11 @@ def main():
     if not ids:
         print("BRAX_POKOJ cala piatka gotowa — Blender pominiety", flush=True)
         zasoby = obsada.ROOT / "unity-city/Assets/Resources"
-        prepare(zasoby / "OsiedleGlosy", zasoby / "OsiedleMimika", KWESTIA)
+        # WSZYSTKIE nagrania, nie jedno. Trzeci argument prepare to WZORZEC, nie nazwa pliku —
+        # przy KWESTIA sciezka mimiki powstawala tylko dla jednego nagrania, a pokaz puszcza
+        # ich kilka pod rzad, wiec reszta szla bez sciezki i usta ledwo chodzily
+        # (wlasciciel 16.11, 21:06: „nie widac jak ustami ruszaja w ogole”).
+        prepare(zasoby / "OsiedleGlosy", zasoby / "OsiedleMimika", "*.ogg")
         zapisz_zlecenie(z_pamieci)
         print("BRAX_POKOJ postacie:", ",".join(z_pamieci), flush=True)
         return
@@ -187,7 +194,7 @@ def main():
     if not razem:
         raise SystemExit("Zadna postac sie nie przygotowala")
     zasoby = obsada.ROOT / "unity-city/Assets/Resources"
-    prepare(zasoby / "OsiedleGlosy", zasoby / "OsiedleMimika", KWESTIA)
+    prepare(zasoby / "OsiedleGlosy", zasoby / "OsiedleMimika", "*.ogg")
     zapisz_zlecenie(razem)
     if bledy:
         print("BRAX_POKOJ NIEUDANE:", "; ".join(f"{i}: {e}" for i, e in bledy), flush=True)
