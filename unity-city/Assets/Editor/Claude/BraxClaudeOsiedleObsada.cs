@@ -339,7 +339,7 @@ public static partial class BraxClaudeOsiedle
             szklanki.Length != 2 || gracz.szklanka.gameObject.activeSelf ||
             szklanki.Any(s => !s.ciecz || !s.dlon || !s.ruch || s.dnoWDloni.sqrMagnitude < 1e-12f) ||
             !szklanki.Any(s => s.postac && s.postac.name=="gitara" && s.gameObject.activeSelf) ||
-            !gracz.bar.stanowiska.Any(s => s.barman && s.ruch && s.ruch.GetClip("Pour") && s.chwyt != null && s.chwyt.Length == 5 && s.chwyt.All(k=>k)) ||
+            (gracz.bar.stanowiska == null || !gracz.bar.stanowiska.Any(s => BraxBarDyskoteki.Gotowe(s) && s.chwyt.All(k=>k))) ||
             osoby.Any(o=>!o.spojrzenie || o.spojrzenie.glowa!=o.glowa || !o.ruch.GetComponentInChildren<BraxMimikaOsiedla>()))
             throw new InvalidOperationException("Brak chwytu, szkła, mimiki lub odniesienia do rozmówcy w Osiedlu.");
         int klipy = gracz.clips.GetClipCount() + osoby.Sum(o => o.ruch.GetClipCount());

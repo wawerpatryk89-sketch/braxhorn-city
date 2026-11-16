@@ -429,7 +429,7 @@ public static partial class BraxClaudeOsiedle
             }
             s.butelki = bl.ToArray();
             var gp = new Vector3(sx + .24f, yF + hC + .05f, zL1 + .43f);
-            s.punktOdbioru = new Vector3(gp.x,gp.y,zC1 + .14f);
+            s.punktOdbioru = new Vector3(gp.x, yF, zH + .2f * K + .50f);
             s.szklanka = Obiekt(barGo.transform, "bar: szklanka", mSzklanka, glassM, gp, Quaternion.identity, Vector3.one * K).transform;
             s.ciecz = Obiekt(barGo.transform, "bar: drink w szklance", mWalec, liquid, gp + Vector3.up * .008f * K, Quaternion.identity, new Vector3(.034f * K, .075f * K, .034f * K)).transform;
             s.strumien = Obiekt(barGo.transform, "bar: strumień", mWalec, liquid, gp, Quaternion.identity, new Vector3(.005f * K, .1f, .005f * K)).transform;

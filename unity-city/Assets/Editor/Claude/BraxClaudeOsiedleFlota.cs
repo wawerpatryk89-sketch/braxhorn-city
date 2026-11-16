@@ -79,15 +79,26 @@ public static partial class BraxClaudeOsiedle
         return car;
     }
 
+    static bool ParkingPrzedBudynkiem(Vector3 miejsce, int lot)
+    {
+        var (z0, z1) = LotyBulwarow[lot];
+        return miejsce.x >= -107.5f && miejsce.x <= -64f && miejsce.z >= z0 && miejsce.z <= z1;
+    }
+
     static bool ParkingFloty(BraxAutoGracza car,int nr)
     {
         var size = car.obrys.size;
-        var dest = nr==4 ? new Vector3(-86,0,14) :
-            (nr==1 || nr==3) ? new Vector3(-86,0,-42) : new Vector3(0,0,34);
+        int lot = nr == 4 ? 1 : (nr == 1 || nr == 3) ? 0 : -1;
+        var dest = new Vector3(0, 0, 34);
+        if (lot >= 0)
+        {
+            var (z0, z1) = LotyBulwarow[lot];
+            dest = new Vector3(-86f, 0f, (z0 + z1) * .5f);
+        }
         Physics.SyncTransforms();
         foreach (var m in MiejscaParkingowe.OrderBy(m => (m.srodek-dest).sqrMagnitude))
         {
-            if ((nr==1 || nr==4) && (m.srodek-dest).sqrMagnitude>42*42) break;
+            if (lot >= 0 && !ParkingPrzedBudynkiem(m.srodek, lot)) continue;
             foreach(bool parallel in new[]{false,true})
             {
                 var f = parallel ? Vector3.Cross(Vector3.up,m.przod).normalized : m.przod.normalized;
@@ -154,6 +165,13 @@ public static partial class BraxClaudeOsiedle
                 c.skret.Length!=2 || c.skret.Any(k=>!k) || c.rozstaw<1f || c.promienKola<.12f ||
                 c.GetComponentsInChildren<Transform>().Count(t=>t.name.StartsWith(c.rejestracja+" "))!=2)
                 throw new InvalidDataException("Niekompletne mocowania "+c.rejestracja);
+        }
+        foreach (var c in fleet)
+        {
+            bool komisariat = c.rejestracja == "BX 10001" || c.rejestracja == "BX 10003";
+            bool szpital = c.rejestracja == "BX 10004";
+            if ((komisariat || szpital) && !ParkingPrzedBudynkiem(c.transform.position, szpital ? 1 : 0))
+                throw new InvalidDataException("Pojazd poza parkingiem służb: " + c.rejestracja);
         }
         var traffic=scena.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<BraxRuchAut>(true));
         if(traffic.SelectMany(r=>r.auta).Count(a=>a && a.autoTestowe && a.autoTestowe.rejestracja=="BX 10002")!=1)

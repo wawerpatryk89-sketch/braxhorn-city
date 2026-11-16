@@ -75,7 +75,10 @@ public sealed class BraxBarDyskoteki : MonoBehaviour, IBraxInterakcja
         }
     }
 
-    static bool Gotowe(Stanowisko s) => s != null && s.barman && s.ruch && s.ruch.GetClip("Pour") && s.chwyt != null && s.chwyt.Length == 5 && s.korekta != null && s.korekta.Length == 62 && s.butelki != null && s.butelki.Length > 0 && s.szklanka;
+    public static bool Gotowe(Stanowisko s) =>
+        s != null && s.barman && s.dlon && s.ruch && s.ruch.GetClip("Pour") &&
+        s.chwyt != null && s.chwyt.Length == 5 && s.korekta != null && s.korekta.Length == 62 &&
+        s.butelki != null && s.butelki.Length > 0 && s.butelki[0] && s.szklanka && s.ciecz && s.strumien;
 
     Stanowisko Najblizsze(Vector3 g)
     {
@@ -149,7 +152,14 @@ public sealed class BraxBarDyskoteki : MonoBehaviour, IBraxInterakcja
         var bt = s.butelki[0]; if (bt) bt.SetPositionAndRotation(s.bPoz, s.bRot);
         if (s.strumien) s.strumien.gameObject.SetActive(false);
         s.ruch.CrossFade("Idle", .18f, PlayMode.StopAll);
-        s.t = -1f; s.nast = Time.time + 20f + (float)rnd.NextDouble() * 20f; s.pelna = Time.time + 8f;
+        s.t = -1f;
+        s.nast = Time.time + 20f + (float)rnd.NextDouble() * 20f;
+        s.pelna = s.napelnienie > 0f ? Time.time + 8f : 0f;
+        if (s.napelnienie <= 0f)
+        {
+            s.ciecz.gameObject.SetActive(false);
+            if (zamowione == s) zamowione = null;
+        }
     }
 
     void Update()
