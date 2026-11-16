@@ -13,12 +13,14 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
 {
     const string Katalog = "Assets/Source/Prywatne/";
 
-    public override uint GetVersion() { return 7; }
+    public override uint GetVersion() { return 8; }
 
     void OnPreprocessModel()
     {
         if (!assetPath.StartsWith(Katalog)) return;
         if (assetPath.StartsWith(Katalog + "Osiedle/")) return;   // modele osiedla ze Sketchfaba (glTF) — własne ustawienia
+        // Klipy baru importuje BraxObsadaImport jako Legacy, z krzywymi kości właściciela.
+        if (assetPath.StartsWith(BraxObsadaImport.KatalogBaru, System.StringComparison.Ordinal)) return;
         var mi = assetImporter as ModelImporter;
         if (mi == null) return;
         mi.materialImportMode = ModelImporterMaterialImportMode.None;

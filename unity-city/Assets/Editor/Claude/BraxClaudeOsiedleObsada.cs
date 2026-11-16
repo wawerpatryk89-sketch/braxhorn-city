@@ -27,9 +27,13 @@ public static partial class BraxClaudeOsiedle
 
     static void DodajKlipBaru(Animation anim, string folder, string plik, string stan, float czas)
     {
-        var source = AssetDatabase.LoadAllAssetsAtPath(BraxObsadaImport.KatalogBaru + plik).OfType<AnimationClip>()
-            .SingleOrDefault(c => c.legacy && !c.name.StartsWith("__preview__") && (c.name.Split('|').Last() == stan || stan == "Pour"));
-        if (!source) throw new InvalidOperationException("Nie znaleziono klipu " + stan + " w " + plik);
+        // Każdy FBX z zatwierdzonej paczki baru ma jedno nagranie. Unity może nadać mu własną nazwę.
+        var takes = AssetDatabase.LoadAllAssetsAtPath(BraxObsadaImport.KatalogBaru + plik).OfType<AnimationClip>()
+            .Where(c => !c.name.StartsWith("__preview__", StringComparison.Ordinal)).ToArray();
+        if (takes.Length != 1 || !takes[0].legacy)
+            throw new InvalidOperationException("Oczekiwano jednego klipu Legacy dla " + stan + " w " + plik +
+                ". Zaimportowane klipy: " + string.Join(", ", takes.Select(c => c.name + " (legacy=" + c.legacy + ")")));
+        var source = takes[0];
         var clips = new AnimationClip { name = stan, legacy = true, frameRate = source.frameRate, wrapMode = WrapMode.Once };
         var bones = anim.GetComponentsInChildren<Transform>(true).ToLookup(t => t.name);
         var found = new System.Collections.Generic.HashSet<string>();
