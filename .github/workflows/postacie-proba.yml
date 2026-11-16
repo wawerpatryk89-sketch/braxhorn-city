@@ -105,6 +105,8 @@ jobs:
       run: |
         set -euo pipefail
         export BRAX_PROBA_KLATKI="$RUNNER_TEMP/klatki"
+        # Unity buduje w kontenerze jako root — runner nie moze zmienic praw cudzemu plikowi
+        sudo chown -R "$(id -u):$(id -g)" build
         chmod +x build/pokoj/PokojProb.x86_64
         sudo apt-get -qq update
         sudo apt-get -qq install -y xvfb xauth ffmpeg libgl1-mesa-dri pulseaudio pulseaudio-utils

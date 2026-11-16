@@ -76,10 +76,22 @@ public static class BraxPokojProbBuild
     static void DoczytajZrodla(IEnumerable<string> ids)
     {
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-        foreach (string folder in new[] { BraxObsadaImport.KatalogBaru })
-            if (AssetDatabase.IsValidFolder(folder.TrimEnd('/')))
-                foreach (string p in Directory.GetFiles(folder, "*.fbx"))
-                    AssetDatabase.ImportAsset(p.Replace('\\', '/'), ImportAssetOptions.ForceSynchronousImport);
+        string bar = BraxObsadaImport.KatalogBaru;
+        if (AssetDatabase.IsValidFolder(bar.TrimEnd('/')))
+            foreach (string p in Directory.GetFiles(bar, "*.fbx"))
+            {
+                string sciezka = p.Replace('\\', '/');
+                // Jawnie, a nie licząc na kolejność AssetPostprocessora: klipy baru muszą być
+                // legacy, inaczej DodajKlipBaru ich nie znajdzie (run 43829276955: Patryk bez Drink,
+                // choć w patryk.fbx z paczki baru klip „Armature|Drink” jest).
+                if (AssetImporter.GetAtPath(sciezka) is ModelImporter mi)
+                {
+                    mi.animationType = ModelImporterAnimationType.Legacy;
+                    mi.importAnimation = true;
+                    mi.SaveAndReimport();
+                }
+                else AssetDatabase.ImportAsset(sciezka, ImportAssetOptions.ForceSynchronousImport);
+            }
         foreach (string id in ids)
         {
             string folder = BraxObsadaImport.Katalog + id + "/";
