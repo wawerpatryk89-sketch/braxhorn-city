@@ -10,6 +10,7 @@ using UnityEngine;
 
 public static class MeshDump
 {
+    static readonly float PalmRange = float.TryParse(Environment.GetEnvironmentVariable("PREVIEW_PALM_RANGE") ?? "", System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var pr) ? pr : 220f;
     static string F(float v) => v.ToString("0.####", CultureInfo.InvariantCulture);
     static string V(Vector3 v) => F(v.x) + "," + F(v.y) + "," + F(v.z);
     // a generator may repaint a model (roof dollar): the preview then draws it in that material, not the file's own
@@ -111,7 +112,8 @@ public static class MeshDump
         sb.Write(string.Join(",", models) + "],\"palms\":[");
         // city palms (a model pack the preview does not have): positions only, drawn as plain stand-ins
         // [x, y, z, size]: size = the palm's own scale (1 for a city palm; the aquapark's potted indoor palms are smaller)
-        sb.Write(string.Join(",", Rec.PalmObjs.Select(t => (p: root.InverseTransformPoint(t.position) / scale, s: t.localScale.x)).Where(q => Math.Abs(q.p.x) < 220 && Math.Abs(q.p.z) < 220).Select(q => "[" + V(q.p) + "," + F(q.s) + "]")));
+        // (PREVIEW_PALM_RANGE: the G1 gallery dumps world positions ~1000 m out - its mall palms need a wider window than 220)
+        sb.Write(string.Join(",", Rec.PalmObjs.Select(t => (p: root.InverseTransformPoint(t.position) / scale, s: t.localScale.x)).Where(q => Math.Abs(q.p.x) < PalmRange && Math.Abs(q.p.z) < PalmRange).Select(q => "[" + V(q.p) + "," + F(q.s) + "]")));
         sb.Write("],\"colours\":{");
         sb.Write(string.Join(",", mats.Select(kv => "\"" + kv.Key + "\":[" + F(kv.Value.color.r) + "," + F(kv.Value.color.g) + "," + F(kv.Value.color.b) + "," + F(kv.Value.color.a) + "]")));
         sb.Write("},\"ambient\":{");

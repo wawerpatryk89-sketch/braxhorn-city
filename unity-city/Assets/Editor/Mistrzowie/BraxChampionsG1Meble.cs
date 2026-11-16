@@ -23,12 +23,15 @@ public static partial class BraxChampionsD2
     static void HomeMaterials()
     {
         if(hBoucle)return;
-        hBoucle=Inside(Tex("g1_home_boucle_cream","curly_teddy_natural",.35f,new Color(1.02f,1.0f,.98f)),.85f);
+        // (my audit 16.11, the no-beige rule: the bouclé, the linen, the second rug and the lamp shades were cream / sand
+        // photos under a near-white tint - the same Poly Haven scans through Fotoskan now, neutral: an off-white bouclé, a
+        // pale-grey linen, a stone-grey rug, white shades; the opal glass glows neutral white, not gold)
+        hBoucle=Inside(BraxChampionsFoundation.Fotoskan("d2_g1_home_boucle_white","curly_teddy_natural",.35f,new Color(226f/255f,225f/255f,222f/255f),BraxChampionsFoundation.MeanCurlyTeddy),.85f);
         hWoolGrey=Inside(Tex("g1_home_wool_grey","poly_wool_herringbone",.45f,new Color(1.30f,1.30f,1.34f)),.85f);
         hWoolCharcoal=Inside(Tex("g1_home_wool_charcoal","poly_wool_herringbone",.45f,new Color(.55f,.55f,.58f)),.85f);
         hVelvetGreen=Inside(Tex("g1_home_velvet_emerald","velour_velvet",.5f,new Color(.22f,2.5f,1.25f)),.85f);
         hVelvetRust=Inside(Tex("g1_home_velvet_rust","velour_velvet",.5f,new Color(.85f,.90f,.45f)),.85f);
-        hLinen=Inside(Tex("g1_home_linen","hessian_230",.4f,new Color(1.45f,1.45f,1.45f)),.85f);
+        hLinen=Inside(BraxChampionsFoundation.Fotoskan("d2_g1_home_linen","hessian_230",.4f,new Color(196f/255f,196f/255f,194f/255f),BraxChampionsFoundation.MeanHessian),.85f);
         hCotton=Inside(Tex("g1_home_cotton_white","cotton_jersey",.5f,new Color(1.22f,1.30f,1.36f)),.85f);
         hTaupe=Inside(Tex("g1_home_satin_taupe","crepe_satin",.6f,new Color(.62f,.66f,.74f)),.85f);
         hCognac=Inside(Tex("g1_home_leather_cognac","brown_leather",.6f,new Color(1.55f,1.45f,1.35f)),.85f);
@@ -42,9 +45,9 @@ public static partial class BraxChampionsD2
         // polished microcement (not wood), the ceiling black
         hConcrete=Inside(Tex("g1_home_polished_concrete","concrete_floor_02",3.0f,new Color(.92f,.92f,.94f)),.85f);
         hRugGrey=Inside(Tex("g1_home_rug_grey","poly_wool_herringbone",.9f,new Color(1.05f,1.05f,1.10f)),.85f);
-        hRugBeige=Inside(Tex("g1_home_rug_beige","terlenka",1.2f,new Color(1.05f,1.0f,.95f)),.85f);
-        hOpal=S("g1_home_opal_glass",new Color(.98f,.95f,.88f),.15f,0f,new Color(1.25f,1.05f,.78f));
-        hShade=Inside(Tex("g1_home_lamp_linen","hessian_230",.3f,new Color(1.70f,1.66f,1.60f)),.9f);
+        hRugBeige=Inside(BraxChampionsFoundation.Fotoskan("d2_g1_home_rug_stone","terlenka",1.2f,new Color(150f/255f,152f/255f,156f/255f),BraxChampionsFoundation.MeanTerlenka),.85f);   // (the field keeps its old name)
+        hOpal=S("g1_home_opal_glass",new Color(.97f,.97f,.95f),.15f,0f,new Color(1.18f,1.15f,1.08f));
+        hShade=Inside(BraxChampionsFoundation.Fotoskan("d2_g1_home_lamp_linen","hessian_230",.3f,new Color(234f/255f,233f/255f,230f/255f),BraxChampionsFoundation.MeanHessian),.9f);
     }
 
     // ---- the frame of a piece: c on the floor at the middle of its FRONT edge, face = where it faces; P(a, h, d): a to its

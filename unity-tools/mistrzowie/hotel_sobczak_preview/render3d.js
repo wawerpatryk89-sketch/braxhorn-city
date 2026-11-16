@@ -195,7 +195,7 @@ window.setup=async function(w,h){
     const palm=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.16,.24,7.2,10),tm);trunk.position.y=3.6;palm.add(trunk);
     for(let i=0;i<11;i++){const f=new THREE.Mesh(new THREE.PlaneGeometry(.7,3.4),fm);const a=i*Math.PI*2/11;
       f.position.set(Math.cos(a)*1.35,7.0-(i%2)*.25,Math.sin(a)*1.35);f.rotation.set(0,-a+Math.PI/2,0);f.rotateX(-1.05-(i%2)*.2);palm.add(f);}
-    for(const p of scene.palms){const o=palm.clone(true);o.position.set(p[0],p[1],p[2]);o.rotation.y=p[0]*.7+p[2]*.3;S.add(o);}
+    for(const p of scene.palms){const o=palm.clone(true);o.position.set(p[0],p[1],p[2]);o.rotation.y=p[0]*.7+p[2]*.3;if(p.length>3&&p[3]>0&&p[3]!==1)o.scale.multiplyScalar(p[3]*11/7.6);S.add(o);}   // [3]: the palm's scale (11 m = 1)
   }
   // W.Lampa: colour (1,.95,.86), ForceVertex. Unity per-vertex-light attenuation ~ 1/(1+25 d^2/r^2): decay 1, I = 2.5 x intensity
   window.lights=scene.lights.map(l=>{const L=new THREE.PointLight(S2L([1,.95,.86]),l[4]*2.5,l[3],1);L.position.set(l[0],l[1],l[2]);L.visible=false;S.add(L);return L;});

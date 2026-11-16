@@ -213,6 +213,23 @@ public static partial class BraxChampionsD2
             Col(x-.4f,x+.4f,y,y+1.06f,z-.4f,z+.4f,"stolik barowy");
         }
         Bin(-52.5f,y,30.2f);Bin(-83.6f,y,30.2f);
+        // (my audit 16.11 "co jest do wykończenia": the tills and the bar stood on open floor) the queue lanes: stainless posts
+        // (weighted bases, 97 cm) with red retractable belts at 90 cm - one lane along the tills, one at the bar
+        var belt=Inside(S("g1_kino_queue_belt",new Color(.62f,.05f,.06f),.45f,0f),.9f);
+        foreach(var (xa,xb) in new[]{(-81.6f,-72.0f),(-62.6f,-53.6f)})foreach(float zq in new[]{31.0f,32.6f})
+        {
+            Vector3 prev=Vector3.zero;bool first=true;
+            for(float x=xa;x<=xb+.01f;x+=(xb-xa)/Mathf.Max(1f,Mathf.Round((xb-xa)/1.6f)))
+            {
+                bool outer=zq>32f;                                                                         // the lane: in at the outer row's east end,
+                if(outer&&x>xb-1.7f)break;if(!outer&&x<xa+1.7f)continue;                                   // out to the counter at the inner row's west end
+                var pb=new Vector3(x,y,zq);m.Cylinder(stainless,pb,.16f,.025f,20);m.Cylinder(stainless,pb+Vector3.up*.025f,.03f,.945f,12);
+                m.Cylinder(gCinemaDark,pb+Vector3.up*.94f,.035f,.07f,12);
+                var top=pb+Vector3.up*.90f;if(!first)m.RoundedBox(belt,(prev+top)*.5f,new Vector3((top-prev).magnitude,.05f,.006f),.002f,Quaternion.identity,1);
+                prev=top;first=false;
+            }
+            if(zq>32f)Col(xa-.1f,xb-1.6f,y,y+.97f,zq-.08f,zq+.08f,"barierka kolejki");else Col(xa+1.6f,xb+.1f,y,y+.97f,zq-.08f,zq+.08f,"barierka kolejki");
+        }
     }
     static float top()=>G1Roof-.9f;
 

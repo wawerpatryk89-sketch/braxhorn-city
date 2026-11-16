@@ -33,7 +33,7 @@ public static partial class BraxChampionsFoundation
         {"granite_tile",new Vector3(91,91,91)},{"wood_planks_grey",new Vector3(93,92,89)},
         {"long_white_tiles",new Vector3(226,222,210)},{"large_floor_tiles_02",new Vector3(155,154,147)},{"hessian_230",new Vector3(183,155,120)},{"marble_01",new Vector3(191,175,141)},
         {"rectangular_paving",new Vector3(145,122,98)},{"rubberized_track",new Vector3(125,67,60)},{"sparse_grass",new Vector3(111,86,44)},
-        {"velour_velvet",new Vector3(179,53,78)}};
+        {"velour_velvet",new Vector3(179,53,78)},{"curly_teddy_natural",new Vector3(244,226,208)},{"terlenka",new Vector3(210,188,166)},{"granite_tile_04",new Vector3(144,131,116)}};
     public const float FloorTiles02Metres = 4.0f, Marble01Metres = 1.5f;
     static Color Srednia(Vector3 s, Color t) => new Color(Gam(Lin(s.x / 255f) * Lin(t.r)), Gam(Lin(s.y / 255f) * Lin(t.g)), Gam(Lin(s.z / 255f) * Lin(t.b)), 1f);
     public static readonly Vector3 MeanBeigeWall = new Vector3(158, 140, 120), MeanHessian = new Vector3(144, 123, 92), MeanVelvet = new Vector3(174, 46, 71),
@@ -41,7 +41,8 @@ public static partial class BraxChampionsFoundation
         MeanSparseGrass = new Vector3(81, 63, 23), MeanGraniteTile = new Vector3(78, 79, 79), MeanMarble01 = new Vector3(178, 157, 122),
         MeanFabricLeather02 = new Vector3(130, 79, 28), MeanCheckered = new Vector3(91, 78, 65), MeanRectPaving = new Vector3(128, 108, 86),
         MeanFloorTiles02 = new Vector3(158, 144, 126), MeanWoodPlanksGrey = new Vector3(70, 68, 63),
-        MeanLongWhiteTiles = new Vector3(205, 198, 182), MeanLargeFloorTiles02 = new Vector3(117, 118, 115);
+        MeanLongWhiteTiles = new Vector3(205, 198, 182), MeanLargeFloorTiles02 = new Vector3(117, 118, 115),
+        MeanCurlyTeddy = new Vector3(233, 211, 187), MeanTerlenka = new Vector3(197, 175, 153), MeanGraniteTile04 = new Vector3(113, 100, 86);
     public static Material LibraryMarble(string id, Color tint, float metres) => Fotoskan(id, "granite_tile", metres, Srednia(new Vector3(66, 68, 67), tint), MeanGraniteTile);
     public static Material LibraryMarbleWhite(string id, Color tint, float metres) => Fotoskan(id, "floor_tiles_02", FloorTiles02Metres, Srednia(new Vector3(232, 229, 224), tint), MeanFloorTiles02);
     public static Material LibraryTravertine(string id, Color tint, float metres) => Fotoskan(id, "marble_01", metres, Srednia(new Vector3(223, 204, 172), tint), MeanMarble01);

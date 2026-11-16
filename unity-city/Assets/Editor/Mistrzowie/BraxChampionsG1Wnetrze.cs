@@ -138,7 +138,9 @@ public static partial class BraxChampionsD2
             case "toys":return Inside(Tex("g1_wall_toys_yellow",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.41f,1.18f,.44f))),.9f);
             case "pharmacy":return Inside(Tex("g1_wall_pharmacy_green",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.18f,1.35f,1.24f))),.9f);
             case "sport":return Inside(Tex("g1_wall_sport_navy",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(.15f,.24f,.47f))),.9f);
-            case "home":return Inside(Tex("g1_wall_home_greige",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.12f,1.00f,.86f))),.9f);   // DOM I WNĘTRZA: warm greige plaster (my audit 12.11: the white walls broke the no-white rule)
+            // DOM I WNĘTRZA (my audit 12.11: the white walls broke the no-white rule; 16.11: the greige that replaced them was
+            // beige) - a sage-grey plaster, the colour of a furniture showroom, no yellow in it
+            case "home":return Inside(Tex("g1_wall_home_greige",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(.74f,.80f,.78f))),.9f);
             default:return gWallWarm;
         }
     }
@@ -487,7 +489,15 @@ public static partial class BraxChampionsD2
         for(int r=0;r<6;r++){float yy=y+.4f+r*.45f;F(StoneTop(),47.2f,48.2f,yy,yy+.03f,-50f,26f);}
         F(gWood,47.15f,47.22f,y,y+3.2f,-50f,26f);
         for(int i=0;i<3;i++)StationBench(new Vector3(50.5f,y,-40f+i*20f),Vector3.left,3,"ławka przymierzania obuwia",0,true);
-        Goods("SPORT ARENA | ściana butów",()=>{for(int r=1;r<5;r++){float yy=y+.4f+r*.45f+.03f;int i=r;for(float z=-49.5f;z<25.6f;z+=1.0f,i++){if(ShopModel(ButyPaczka,SportButy[(i)%SportButy.Length],new Vector3(47.75f,yy,z),Vector3.right))continue;BraxKatalog.Sneaker(Kat(),new Vector3(47.75f,yy,z-.07f),Vector3.right,BraxKatalog.SportCols[i%4]);BraxKatalog.Sneaker(Kat(),new Vector3(47.75f,yy,z+.07f),Vector3.right,BraxKatalog.SportCols[i%4]);}}});
+        // (my audit 16.11, owner 08:59 "buty były za małe": one 29 cm shoe a metre apart on four of the six shelves of a 76 m
+        // wall - from the aisle a scatter of specks. A shoe wall is full: five shelves from 43 cm to 2.23 m, a shoe every
+        // 42 cm on the three at eye level as in OBUWIE KROK, every 84 cm on the lowest and the top one (the phone: ~720
+        // shoes on 76 m); built in 8 m bays, each its own culled group)
+        for(float z0b=-49.5f;z0b<25.6f;z0b+=8f)
+        {
+            float za=z0b,zb=Mathf.Min(z0b+8f,25.6f);
+            Goods("SPORT ARENA | ściana butów z "+za.ToString("0"),()=>{for(int r=0;r<5;r++){float yy=y+.4f+r*.45f+.03f;int i=r*7+(int)(za*3f);float stp=r==0||r==4?.84f:.42f;for(float z=za+(r==4?.21f:0f);z<zb;z+=stp,i++){if(ShopModel(ButyPaczka,SportButy[((i%SportButy.Length)+SportButy.Length)%SportButy.Length],new Vector3(47.75f,yy,z),Vector3.right))continue;BraxKatalog.Sneaker(Kat(),new Vector3(47.75f,yy,z-.07f),Vector3.right,BraxKatalog.SportCols[((i%4)+4)%4]);BraxKatalog.Sneaker(Kat(),new Vector3(47.75f,yy,z+.07f),Vector3.right,BraxKatalog.SportCols[((i%4)+4)%4]);}}});
+        }
         // BRAXHORN NUTRITION on the south wall (x 56..76): walnut shelving, the owner's supplements on every shelf
         {
             float a=56f,b=76f,zw=z0+.08f,dep=.45f;
@@ -689,6 +699,11 @@ public static partial class BraxChampionsD2
                 Prop(root,"ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf",new Vector3(x,y,z),x*13f+z,.3f);
             foreach(float x in new[]{-28f,28f}){Bin(x,y,(G1NorthMallZ0+G1NorthMallZ1)*.5f);Bin(x,y,(G1SouthMallZ0+G1SouthMallZ1)*.5f);}
         }
+        // (my audit 16.11, owner 08:59 "co jest do wykończenia": 12 m wide malls with four benches and knee-high pots - from
+        // the hall a bare stone runway) seating islands on the ground floor's malls between the atrium and the bench groups:
+        // a granite planter with a young palm (the owner's palms, 3.0 m) and an oak bench seat on both long sides
+        int pi=0;
+        foreach(float x in new[]{-17f,17f})foreach(float z in new[]{(G1NorthMallZ0+G1NorthMallZ1)*.5f,(G1SouthMallZ0+G1SouthMallZ1)*.5f})G1Planter(x,G1F0,z,pi++);
         G1Directory(-5.2f,G1F0,6f,"ATRIUM · PARTER");G1Directory(5.2f,G1F0,6f,"ATRIUM · PARTER");
         G1Directory(-10.5f,G1F1,G1NorthMallZ0+2.5f,"PIĘTRO · PÓŁNOC");G1Directory(10.5f,G1F1,G1SouthMallZ1-2.5f,"PIĘTRO · POŁUDNIE");
         G1Directory(0f,G1F0,G1NorthMallZ1+2.0f,"HOL GŁÓWNY");
@@ -699,6 +714,38 @@ public static partial class BraxChampionsD2
         foreach(var (x,y,z) in new[]{(-30f,G1F0,34f),(30f,G1F0,34f),(-30f,G1F0,-19f),(30f,G1F0,-19f),(-12.5f,G1F0,47.5f),(-30f,G1F1,34f),(30f,G1F1,-19f)})G1AdTotem(x,y,z);
     }
 
+    static GameObject[] g1PalmSrc;static Material g1Bark;
+    public static int G1Palms;
+    // a seating island: c = its centre on the floor; 3.2 x 1.5 m granite planter, 52 cm, black rim, bark mulch, an oak seat
+    // (45 cm, on black brackets) along both long faces; the palm stood on the soil, measured and brought to 3.0 m
+    static void G1Planter(float x,float y,float z,int i)
+    {
+        if(!g1Bark)g1Bark=Inside(Tex("g1_planter_bark","brown_mud_leaves_01",1.3f,new Color(.62f,.58f,.52f)),.9f);
+        const float hx=1.6f,hz=.75f,h=.52f;
+        RB(gStone,x-hx,x+hx,y,y+h,z-hz,z+hz,.04f,true,3);
+        B(gCinemaDark,x-hx+.02f,x+hx-.02f,y+h,y+h+.025f,z-hz+.02f,z-hz+.08f);B(gCinemaDark,x-hx+.02f,x+hx-.02f,y+h,y+h+.025f,z+hz-.08f,z+hz-.02f);
+        B(gCinemaDark,x-hx+.02f,x-hx+.08f,y+h,y+h+.025f,z-hz+.08f,z+hz-.08f);B(gCinemaDark,x+hx-.08f,x+hx-.02f,y+h,y+h+.025f,z-hz+.08f,z+hz-.08f);
+        B(g1Bark,x-hx+.08f,x+hx-.08f,y+h-.04f,y+h-.01f,z-hz+.08f,z+hz-.08f);
+        foreach(float s in new[]{-1f,1f})
+        {
+            float zs=z+s*(hz+.21f);
+            float ze=z+s*(hz+.38f);
+            for(float a=-hx+.35f;a<=hx-.34f;a+=hx-.35f)B(frame,x+a-.03f,x+a+.03f,y+.34f,y+.42f,Mathf.Min(ze,z+s*hz),Mathf.Max(ze,z+s*hz));   // brackets from the planter
+            RB(benchWood,x-hx+.1f,x+hx-.1f,y+.42f,y+.46f,zs-.21f,zs+.21f,.012f,true,2);
+            for(int k=0;k<4;k++)Seat(x-1.2f+k*.8f,y+.46f,zs,new Vector3(0,0,s),"ławka przy palmie "+(k+1));   // four places a side (BraxSeat)
+        }
+        if(g1PalmSrc==null)g1PalmSrc=new[]{BraxMiastoAssety.Model("miasto_palmy","palma"),BraxMiastoAssety.Model("miasto_palmy","palma2")};
+        var src=g1PalmSrc[i%2];if(!src)return;
+        var soil=Wld(new Vector3(x,y+h-.02f,z));
+        var o=BraxChampionsModel.Postaw(root,src,"G1 pasaż palma "+(i+1),soil,(i*97.3f)%360f,1f,true,true);
+        if(!o)return;
+        var rs=o.GetComponentsInChildren<Renderer>(true);float ph=0f;if(rs.Length>0){var bb=rs[0].bounds;foreach(var r in rs)bb.Encapsulate(r.bounds);ph=bb.size.y;}
+        if(ph<.01f)ph=11f*K;
+        o.transform.localScale*=3.0f*K/ph;
+        BraxChampionsPalmTrunk.OnSpot(o,soil);
+        rs=o.GetComponentsInChildren<Renderer>(true);if(rs.Length>0){var bb=rs[0].bounds;foreach(var r in rs)bb.Encapsulate(r.bounds);o.transform.position+=Vector3.up*(soil.y-bb.min.y);}
+        G1Palms++;
+    }
     static Material[] totemMats;
     static void G1AdTotem(float x,float y,float z)
     {

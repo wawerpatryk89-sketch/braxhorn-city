@@ -465,7 +465,7 @@ public static class BraxChampionsFoundation
         {"granite_tile",new Vector3(91,91,91)},{"wood_planks_grey",new Vector3(93,92,89)},
         {"long_white_tiles",new Vector3(226,222,210)},{"large_floor_tiles_02",new Vector3(155,154,147)},{"hessian_230",new Vector3(183,155,120)},{"marble_01",new Vector3(191,175,141)},
         {"rectangular_paving",new Vector3(145,122,98)},{"rubberized_track",new Vector3(125,67,60)},{"sparse_grass",new Vector3(111,86,44)},
-        {"velour_velvet",new Vector3(179,53,78)}};
+        {"velour_velvet",new Vector3(179,53,78)},{"curly_teddy_natural",new Vector3(244,226,208)},{"terlenka",new Vector3(210,188,166)},{"granite_tile_04",new Vector3(144,131,116)}};
     static Color Srednia(Vector3 srgb,Color tint)=>new Color(
         Mathf.LinearToGammaSpace(Mathf.GammaToLinearSpace(srgb.x/255f)*Mathf.GammaToLinearSpace(tint.r)),
         Mathf.LinearToGammaSpace(Mathf.GammaToLinearSpace(srgb.y/255f)*Mathf.GammaToLinearSpace(tint.g)),
@@ -476,7 +476,8 @@ public static class BraxChampionsFoundation
         MeanSparseGrass=new Vector3(81,63,23),MeanGraniteTile=new Vector3(78,79,79),MeanMarble01=new Vector3(178,157,122),
         MeanFabricLeather02=new Vector3(130,79,28),MeanCheckered=new Vector3(91,78,65),MeanRectPaving=new Vector3(128,108,86),
         MeanFloorTiles02=new Vector3(158,144,126),MeanWoodPlanksGrey=new Vector3(70,68,63),
-        MeanLongWhiteTiles=new Vector3(205,198,182),MeanLargeFloorTiles02=new Vector3(117,118,115);
+        MeanLongWhiteTiles=new Vector3(205,198,182),MeanLargeFloorTiles02=new Vector3(117,118,115),
+        MeanCurlyTeddy=new Vector3(233,211,187),MeanTerlenka=new Vector3(197,175,153),MeanGraniteTile04=new Vector3(113,100,86);   // 16.11, the G1 audit
     // real sizes of the photo-scans (Poly Haven "dimensions", ZASADA-SKALA-GLOBALNA: a slab is as big as in the photo)
     public const float FloorTiles02Metres=4.0f,Marble01Metres=1.5f;
     public static Material SourceMaterial(string id,string slug,float metres,Color tint)

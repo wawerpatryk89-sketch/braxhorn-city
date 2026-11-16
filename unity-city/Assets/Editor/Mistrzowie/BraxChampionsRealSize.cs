@@ -14,4 +14,19 @@ public static class BraxChampionsRealSize
         if (modelPath.Contains("sofa_02/")) return 1.22f;
         return 1f;
     }
+    // THE OWNER'S SHOP GOODS (Tripo packs, measured 16.11 from every model's glTF bounds, scratch audit_g1/glbsize.py; owner
+    // 16.11 08:59 "skala wszystkiego ... buty były za małe"): shoes 25-29 cm (EU 39-45), perfumes 14-16 cm, watches,
+    // handbags, clothes, mannequins 1.88-1.93 m, motorbikes 2.1-2.3 m, bikes 1.9 m are real size as cut. The three laptops
+    // are not: 24.7-26.4 cm wide is a 10-11" netbook, a laptop shop shows 14-15.6" machines (31-36 cm). Corrected here,
+    // used by every generator that stands these packs (G1 ShopModel), so one model has one size everywhere.
+    public static float Towar(string name)
+    {
+        switch (name)
+        {
+            case "laptop_gamingowy_czerwony": return 1.38f;   // .255 -> .352 m: a 15.6" gaming laptop
+            case "laptop_srebrny": return 1.30f;              // .247 -> .321 m: 14"
+            case "laptop_zloty": return 1.22f;                // .264 -> .322 m: 14"
+            default: return 1f;
+        }
+    }
 }

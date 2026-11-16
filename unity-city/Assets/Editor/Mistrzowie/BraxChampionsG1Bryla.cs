@@ -319,8 +319,9 @@ public static partial class BraxChampionsD2
             BraxChampionsMeshBatch.Collider(t,"skrzydło",new Vector3(0,h*.5f,0),new Vector3(w,h,.06f));
             leaves[i]=t;outs[i]=Vector3.zero;slides[i]=new Vector3(side*w*.98f,0,0)*K;
         }
-        // the door's own head box (black) with the sensor
-        var hm=new BraxChampionsMeshBatch();hm.BoxMinMax(frame,-w-.05f,w+.05f,h,h+.10f,-.08f,.08f);hm.BoxMinMax(led,-.10f,.10f,h-.012f,h,-.06f,-.04f);hm.Build(d,"napęd drzwi",Folder,false);
+        // the door's own head box (black) with the sensor; it ends 1 cm past the leaves (my flicker check 16.11: 5 cm past
+        // them its front face lay in the shop front's glass plane over the first pane, 0.02 m2 each side)
+        var hm=new BraxChampionsMeshBatch();hm.BoxMinMax(frame,-w-.01f,w+.01f,h,h+.10f,-.08f,.08f);hm.BoxMinMax(led,-.10f,.10f,h-.012f,h,-.06f,-.04f);hm.Build(d,"napęd drzwi",Folder,false);
         var c2=d.gameObject.AddComponent<BraxChampionsD2DrzwiPociagu>();
         c2.skrzydla=leaves;c2.wysuw=outs;c2.przesuw=slides;c2.promien=2.2f*K;c2.czas=1.1f;
         Doors++;

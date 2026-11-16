@@ -69,9 +69,15 @@ public static partial class BraxChampionsD2
         gCinemaDark=S("g1_black_lacquer",new Color(.035f,.035f,.04f),.35f,0f);
         // the floors: cream limestone slabs in a running bond (Poly Haven marble_01) in the malls, the same stone lighter in
         // the atrium / hall / food court fields, dark granite bands (granite_tile_03), light granite tiles in the market
-        gMallFloor=Inside(Tex("g1_mall_floor_limestone","marble_01",3.0f,new Color(1.10f,1.09f,1.10f)),.85f);
-        gMallFloor2=Inside(Tex("g1_mall_floor_limestone_light","marble_01",2.4f,new Color(1.24f,1.23f,1.22f)),.85f);
-        gMarketFloor=Inside(Tex("g1_market_floor_granite","granite_tile_04",2.0f,new Color(1.55f,1.53f,1.52f)),.85f);
+        // (my audit 16.11, owner 08:59 "galerię sprawdzasz ... co do poprawienia": the marble_01 photo is a cream stone, mean
+        // 178/157/122 - under a grey-neutral tint the whole mall read sand-beige, against the no-beige rule. The same Poly Haven
+        // slabs now through Fotoskan: the photo's mean divided out per channel, a cool light-grey limestone, veins and joints
+        // of the photo kept by the clip guard)
+        gMallFloor=Inside(BraxChampionsFoundation.Fotoskan("d2_g1_mall_floor_limestone","marble_01",3.0f,new Color(214f/255f,214f/255f,212f/255f),BraxChampionsFoundation.MeanMarble01),.85f);
+        gMallFloor2=Inside(BraxChampionsFoundation.Fotoskan("d2_g1_mall_floor_limestone_light","marble_01",2.4f,new Color(228f/255f,228f/255f,226f/255f),BraxChampionsFoundation.MeanMarble01),.85f);
+        // (16.11 the same audit: the market's granite_tile_04 is a brown photo, mean 113/100/86 - x1.55 it read tan) a light
+        // grey granite through Fotoskan
+        gMarketFloor=Inside(BraxChampionsFoundation.Fotoskan("d2_g1_market_floor_granite","granite_tile_04",2.0f,new Color(200f/255f,201f/255f,202f/255f),BraxChampionsFoundation.MeanGraniteTile04),.85f);
         gMallBand=Inside(Tex("g1_mall_floor_band","granite_tile_03",1.2f,new Color(.40f,.42f,.46f)),.85f);
         // walls and ceilings: white plaster (white_stucco_02); wood: walnut veneer; tops: the light limestone
         gWhitePanel=Inside(Tex("g1_white_plaster",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.06f,1.06f,1.05f))),.9f);
@@ -82,8 +88,10 @@ public static partial class BraxChampionsD2
         // panelling or a warm textured plaster, the ceilings timber slats on black felt - no all-white interiors
         gOak=Inside(Tex("g1_light_oak_veneer","teak_veneer",1.2f,new Color(1.22f,1.10f,.96f)),.85f);
         gWallPanels=Inside(Tex("g1_wall_oak_panels","wooden_panels",2.4f,new Color(1.0f,.96f,.92f)),.85f);
-        gWallWarm=Inside(Tex("g1_wall_warm_plaster","beige_wall_001",2.4f,new Color(.92f,.86f,.80f)),.85f);
-        gStoneTop=Inside(Tex("g1_counter_stone","marble_01",1.2f,new Color(1.26f,1.25f,1.24f)),.85f);
+        // (16.11 the same audit: the "warm plaster" of the jewellers', perfumeries', opticians' walls and ceilings and the
+        // counter stone were beige - a light stone-grey plaster and a white-grey marble now, both the same Poly Haven scans)
+        gWallWarm=Inside(BraxChampionsFoundation.Fotoskan("d2_g1_wall_warm_plaster","beige_wall_001",2.4f,new Color(196f/255f,197f/255f,198f/255f),BraxChampionsFoundation.MeanBeigeWall),.85f);
+        gStoneTop=Inside(BraxChampionsFoundation.Fotoskan("d2_g1_counter_stone","marble_01",1.2f,new Color(232f/255f,232f/255f,231f/255f),BraxChampionsFoundation.MeanMarble01),.85f);
         // upholstery: cognac leather (brown_leather), black leather (fabric_leather_02 dark), navy leather, black velvet
         gChairLeather=Inside(Tex("g1_chair_cognac_leather","brown_leather",.6f,new Color(1.0f,.92f,.86f)),.85f);
         gLeatherBlack=Inside(Tex("g1_leather_black","fabric_leather_02",.5f,new Color(.16f,.16f,.17f)),.85f);
