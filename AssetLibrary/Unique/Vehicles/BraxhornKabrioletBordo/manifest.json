@@ -17,12 +17,12 @@
       "lod1": "kabriolet_bordo_lod1.glb"
     },
     "sha256": {
-      "lod0": "194ae1fbadc846bdef41a48289cd3825f7155bc66cba8e8097c2c5a0af99b21c",
-      "lod1": "34fac2bcf339d040fc5f2563c6fd75e237e2bc0b484df750cc878c86056d540a"
+      "lod0": "6222f93de2481b0f163056cbc2d75f06ae163f76c7f75bda85cec2a5a704eb0d",
+      "lod1": "942776a21f513d8915779a59c2a7ae38c2565836b952e5afdd76837db418373c"
     },
     "bytes": {
-      "lod0": 11333588,
-      "lod1": 2268240
+      "lod0": 11334060,
+      "lod1": 2268056
     },
     "triangles": {
       "lod0": 244242,
