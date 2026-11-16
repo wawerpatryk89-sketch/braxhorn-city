@@ -18,6 +18,9 @@ def pobierz(plik, repo, cel):
     release = json.loads(subprocess.check_output(["gh", "api", f"{api}/{plik['release_id']}"]))
     if release["draft"] is not True or release["tag_name"] != plik["tag"]:
         raise ValueError("Oczekiwano prywatnego szkicu wydania " + plik["tag"])
+    if plik == PACZKA and any(a["name"] == GOTOWA_PACZKA["name"] and a["state"] == "uploaded"
+                              for a in release["assets"]):
+        plik = GOTOWA_PACZKA
     matches = [a for a in release["assets"] if a["name"] == plik["name"] and a["state"] == "uploaded"]
     if len(matches) != 1:
         raise FileNotFoundError(f"Brak {plik['name']} w szkicu {plik['tag']}")
@@ -27,6 +30,7 @@ def pobierz(plik, repo, cel):
     with cel.open("wb") as out:
         subprocess.run(["gh", "api", f"{api}/assets/{asset['id']}", "-H", "Accept: application/octet-stream"],
                        stdout=out, check=True)
+    return plik
 
 
 PACZKA = {
@@ -35,6 +39,43 @@ PACZKA = {
     "name": "Osiedle_19_postaci_20261115.zip",
     "sha256": "94a34ab8d0635bd92dfec7e518185a2fda98f376ba4c9e74a6087fb0deaabd97",
 }
+
+
+GOTOWA_PACZKA = dict(PACZKA, name="BRAXHORN_Osiedle_19_postaci.zip",
+                     sha256="408be30891fed4e37ee20ec9af125326f422dfc71845f5470998859a830f4560")
+
+
+def odczytaj_gotowa(archive, postacie, bar):
+    with archive.open("rb") as stream:
+        if hashlib.file_digest(stream, "sha256").hexdigest() != GOTOWA_PACZKA["sha256"]:
+            raise ValueError("Niepoprawna suma przygotowanej obsady Osiedla")
+    with ZipFile(archive) as pack:
+        roster = json.loads(pack.read("Obsada.json"))
+        if len(roster) != 19 or len({r["id"] for r in roster}) != 19:
+            raise ValueError("Niepełna obsada Osiedla")
+        for row in roster:
+            actor = row["id"]
+            if not actor or Path(actor).name != actor or actor in (".", ".."):
+                raise ValueError("Niepoprawny identyfikator postaci")
+            base = "Assets/Source/ObsadaOsiedla/" + actor + "/"
+            profile = json.loads(pack.read(base + "postac.json"))
+            if row["model"] != base + actor + ".fbx" or not {"Drink", "Eat"} <= set(profile["states"]):
+                raise ValueError("Brak modelu lub klipów postaci " + actor)
+            dest = postacie / actor
+            dest.mkdir(parents=True)
+            names = (actor + ".fbx", "Color.png", "Normal.png", "MetalSmooth.png", "Mimika.png",
+                     "ChwytNapoju.json", "ChwytJedzenia.json", "postac.json")
+            for name in names:
+                with pack.open(base + name) as src, (dest / name).open("xb") as dst:
+                    shutil.copyfileobj(src, dst)
+                if name != "postac.json":
+                    with (dest / name).open("rb") as saved:
+                        if hashlib.file_digest(saved, "sha256").hexdigest() != profile["files"].get(name):
+                            raise ValueError(f"Niezgodny plik obsady: {actor}/{name}")
+        bar.mkdir(parents=True)
+        for name in ("Barman.fbx", "patryk.fbx", "gitara.fbx", "Chwyt.json", "ButelkaPrzyBlacie.json"):
+            with pack.open("Assets/Source/Prywatne/BarOsiedla/" + name) as src, (bar / name).open("xb") as dst:
+                shutil.copyfileobj(src, dst)
 
 
 def odczytaj(archive, target):
@@ -78,7 +119,7 @@ def popraw_modele(staged, work, blender):
         popraw_model(model, work / model.name, blender)
 
 
-def dodatki_osiedla(parent, blender, *, z_flota=True):
+def dodatki_osiedla(parent, blender, *, z_flota=True, gotowy_bar=None):
     base = {"release_id": PACZKA["release_id"], "tag": PACZKA["tag"]}
     vehicle_names = ("Policja_Kombi", "Policja_Kombi", "SPKP", "Ambulans", "Taxi", "Autobus", "GT6_Coupe",
                      "S2_Spider", "Roadster", "Roadster_Metalik", "L8", "Shooting_Brake", "Coupe", "Graphite_Coupe")
@@ -90,6 +131,9 @@ def dodatki_osiedla(parent, blender, *, z_flota=True):
     if z_flota:
         packages.append(("Osiedle_14_pojazdow_z_tablicami.zip", "70c78d9bfffd4f2617be29504993edb9dd7b83a5b8570f1e2fa264392f4aae65", vehicles, "FlotaOsiedla"))
     parent.mkdir(parents=True, exist_ok=True)
+    if gotowy_bar is not None:
+        zainstaluj(gotowy_bar, parent / "BarOsiedla")
+        packages = [p for p in packages if p[3] != "BarOsiedla"]
     for name, digest, names, directory in packages:
         with tempfile.TemporaryDirectory(dir=parent) as temporary:
             tmp = Path(temporary)
@@ -123,13 +167,18 @@ def przygotuj():
     with tempfile.TemporaryDirectory(dir=target.parent) as tmp:
         tmp = Path(tmp)
         archive = tmp / "obsada.zip"
-        pobierz(PACZKA, os.environ["GITHUB_REPOSITORY"], archive)
+        wybrana = pobierz(PACZKA, os.environ["GITHUB_REPOSITORY"], archive)
         staged = tmp / "postacie"
         staged.mkdir()
-        odczytaj(archive, staged)
         blender = Path(os.environ["RUNNER_TEMP"]) / "blender-4.2.3-linux-x64/blender"
-        dodatki_osiedla(target.parent / "Prywatne", blender)
-        popraw_modele(staged, tmp / "poprawione", blender)
+        if wybrana == GOTOWA_PACZKA:
+            bar = tmp / "bar" / "source"
+            odczytaj_gotowa(archive, staged, bar)
+            dodatki_osiedla(target.parent / "Prywatne", blender, gotowy_bar=bar)
+        else:
+            odczytaj(archive, staged)
+            dodatki_osiedla(target.parent / "Prywatne", blender)
+            popraw_modele(staged, tmp / "poprawione", blender)
         zainstaluj(staged, target)
     from osiedle_mowa import prepare
     resources = ROOT / "unity-city/Assets/Resources"

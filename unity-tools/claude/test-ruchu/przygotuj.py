@@ -11,14 +11,19 @@ target.parent.mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(dir=target.parent) as temp:
     work = Path(temp)
     archive = work / "source.zip"
-    obsada.pobierz(obsada.PACZKA, os.environ["GITHUB_REPOSITORY"], archive)
+    wybrana = obsada.pobierz(obsada.PACZKA, os.environ["GITHUB_REPOSITORY"], archive)
     staged = work / "source"
-    obsada.odczytaj(archive, staged)
     model = staged / "patryk/patryk.fbx"
     blender = Path(os.environ["RUNNER_TEMP"]) / "blender-4.2.3-linux-x64/blender"
-    obsada.dodatki_osiedla(target.parent.parent / "Prywatne", blender, z_flota=False)
-    obsada.popraw_model(model, work / model.name, blender)
-    (staged / "patryk").rename(target)
+    if wybrana == obsada.GOTOWA_PACZKA:
+        bar = work / "bar" / "source"
+        obsada.odczytaj_gotowa(archive, staged, bar)
+        obsada.dodatki_osiedla(target.parent.parent / "Prywatne", blender, z_flota=False, gotowy_bar=bar)
+    else:
+        obsada.odczytaj(archive, staged)
+        obsada.dodatki_osiedla(target.parent.parent / "Prywatne", blender, z_flota=False)
+        obsada.popraw_model(model, work / model.name, blender)
+    obsada.zainstaluj(staged / "patryk", target)
 
 from osiedle_mowa import prepare
 resources = obsada.ROOT / "unity-city/Assets/Resources"
