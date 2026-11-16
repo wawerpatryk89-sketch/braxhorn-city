@@ -65,7 +65,7 @@ public static class AquaProgram
             // the water body (Braxhorn/ChampionsPoolVolume) is drawn by render3d.js's own copy of the shader ("water_body")
             if (mm != null && mm.name != null && mm.name.Contains("water_body")) { mm.color = new Color(.07f, .52f, .70f, .5f); continue; }
             // the surface is now the top only (16.11: opacity .34 / .28 / .42 in the game, the body gives the depth)
-            if (mm != null && mm.name != null && (mm.name.Contains("pool_water") || mm.name.Contains("kids_water") || mm.name.Contains("jacuzzi_water"))) { mm.color = mm.name.Contains("kids") ? new Color(.30f, .78f, .90f, .30f) : mm.name.Contains("jacuzzi") ? new Color(.10f, .55f, .80f, .42f) : new Color(.10f, .55f, .80f, .36f); mm.roughness = .08f; }
+            if (mm != null && mm.name != null && (mm.name.Contains("pool_water") || mm.name.Contains("river_water") || mm.name.Contains("kids_water") || mm.name.Contains("jacuzzi_water"))) { mm.color = mm.name.Contains("kids") ? new Color(.30f, .78f, .90f, .30f) : mm.name.Contains("jacuzzi") ? new Color(.10f, .55f, .80f, .42f) : new Color(.10f, .55f, .80f, .36f); mm.roughness = .08f; }
         }
         var wm = new Material { name = "preview_fountain_water", color = new Color(.90f, .95f, 1f, .62f), roughness = .1f, emission = new Color(.30f, .32f, .34f) };
         foreach (var go in GameObject.Registry.ToArray())

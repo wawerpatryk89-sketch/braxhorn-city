@@ -3,6 +3,9 @@ using UnityEngine;
 public class BraxSwimmingZone : MonoBehaviour { public Transform waterSurface; public bool allowsSwimming = true; public string basinId; }
 public sealed class BraxChampionsPoolSwimVolume : BraxSwimmingZone { }
 public sealed class BraxChampionsPodWoda : MonoBehaviour { public Material ekran; }
+public class ScriptableObject : Object { public static T CreateInstance<T>() where T : ScriptableObject, new() => new T(); }
+public class BraxClaudeTrawaDane : ScriptableObject { public Vector4[] kepy; public float[] y; public float wysokosc, granicaLaki; }
+public class BraxClaudeTrawa : MonoBehaviour { public BraxClaudeTrawaDane dane; public Mesh siatka; public Material material; public float kawalek, zasiegMurawy, zasiegLaki; }
 public sealed class BraxChampionsZjezdzalnia : MonoBehaviour
 {
     public string nazwa; public Vector3[] trasa = new Vector3[0], normalne = new Vector3[0]; public Vector3 start, wyjscie;
@@ -20,5 +23,5 @@ public sealed class BraxZrodloPetli : MonoBehaviour { public string rodzaj = "wo
 public sealed class BraxChampionsLeniwaRzeka : MonoBehaviour
 {
     public Vector3[] petla = new Vector3[0], brzeg = new Vector3[0]; public Transform[] kola = new Transform[0]; public BraxSeat[] siedziska = new BraxSeat[0];
-    public float predkosc, zasieg, siedzenie, kolysanie;
+    public float predkosc, zasieg, siedzenie, kolysanie, polSzerokosci, pradGracza;
 }

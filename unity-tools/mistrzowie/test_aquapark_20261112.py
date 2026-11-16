@@ -66,7 +66,7 @@ class Aquapark(unittest.TestCase):
     def test_lazy_river(self):
         # LENIWA RZEKA: a real pool (swimming), the rings drift on it and you ride them, stairs in, the bank to get off
         s = src()
-        self.assertIn('MakePool(river, poolTile, poolFloor, water, true, true, waterBody)', s)   # 16.11: + the water body
+        self.assertIn('MakePool(river, poolTile, poolFloor, riverWater ?? water, true, true, waterBody, RiverLine(), 1.05f * K)', s)   # 16.11: water body + flowing surface
         self.assertIn('AddComponent<BraxChampionsLeniwaRzeka>()', s)
         self.assertIn('rz.brzeg = bank', s)
         self.assertIn('SetStaticEditorFlags(t.gameObject, 0)', s)          # moving rings: never static-batched

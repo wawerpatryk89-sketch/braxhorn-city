@@ -37,7 +37,8 @@ public static partial class BraxChampionsAquapark
 
     static void RiverPool()
     {
-        MakePool(river, poolTile, poolFloor, water, true, true, waterBody);
+        // 16.11 owner "ta rzeka ... ma płynąć z prądem": its surface flows anticlockwise round the island with the rings' speed
+        MakePool(river, poolTile, poolFloor, riverWater ?? water, true, true, waterBody, RiverLine(), 1.05f * K);
         Steps(river, P(RX1, -26f), 4.0f, 6);          // from the east deck (the lagoon side)
         Steps(river, P(-80.5f, RZ1), 4.0f, 6);        // from the north deck (the kids' zone side)
         foreach (var l in new[] { P(RX0, -30f), P(-80.5f, RZ0), P(RX1, -48f) }) Ladder(river, l);
@@ -131,6 +132,7 @@ public static partial class BraxChampionsAquapark
         }
         rz.petla = loop; rz.brzeg = bank; rz.kola = kola; rz.siedziska = st;
         rz.predkosc = 1.05f * K; rz.zasieg = 3.4f * K; rz.siedzenie = .10f * K; rz.kolysanie = .035f * K;
+        rz.polSzerokosci = ((RX1 - IX1) * .5f + .3f) * K; rz.pradGracza = .8f;
         var snd = new GameObject("leniwa rzeka: szum łuków wodnych"); snd.transform.SetParent(g.transform, false); snd.transform.position = V(-80.5f, DY + 1f, -25f) * K;
         var zr = snd.AddComponent<BraxZrodloPetli>(); zr.rodzaj = "woda"; zr.glosnosc = .45f; zr.zasieg = 30f * K;
     }

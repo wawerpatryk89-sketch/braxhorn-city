@@ -25,13 +25,16 @@ public static partial class BraxChampionsAquapark
 
     static void BuildingMaterials()
     {
-        render = Tex("pavilion_white_render", "white_stucco_02", 2.0f, new Color(1.06f, 1.06f, 1.08f));
+        // 16.11 08:03 owner "budynek ma być premium ... na zewnątrz": the wings in large pale limestone panels (Poly Haven
+        // floor_tiles_02 at its real 4 m: ~1 m panels, joints, tone changes), neutral light, instead of a white render
+        render = BraxChampionsFoundation.Fotoskan("aq_pavilion_limestone_cladding", "floor_tiles_02", BraxChampionsFoundation.FloorTiles02Metres,
+            new Color(226f / 255f, 224f / 255f, 219f / 255f), BraxChampionsFoundation.MeanFloorTiles02);
         BraxChampionsInteriorLight.Facade(render);
         renderIn = Inside(Tex("pavilion_inside_render", BraxChampionsFoundation.InteriorPaintSlug, 3.0f, BraxChampionsFoundation.PaintTint(new Color(1.04f, 1.04f, 1.06f))), 1.05f);
         // 16.11 07:32 owner "nie widzę podłogi wykończonej": the fine terrazzo read as a plain grey floor. The lobby is now
         // limestone slabs (Poly Haven marble_01 at its real 1.5 m: joints and slab tones visible), a light warm stone.
         terrazzo = Inside(BraxChampionsFoundation.Fotoskan("aq_lobby_limestone_slabs", "marble_01", BraxChampionsFoundation.Marble01Metres,
-            new Color(216f / 255f, 207f / 255f, 190f / 255f), BraxChampionsFoundation.MeanMarble01), 1.0f);
+            new Color(222f / 255f, 219f / 255f, 212f / 255f), BraxChampionsFoundation.MeanMarble01), 1.0f);   // neutral: no beige (region rule)
         wetTile = Inside(Tex("wet_antislip_tiles", "anti_skid_tiles", 1.8f, new Color(1.05f, 1.31f, 1.68f)), 1.0f);   // real size: 30 cm tiles
         marbleBlack = Inside(BraxChampionsFoundation.LibraryMarble("aq_lobby_black_marble", new Color(1f, 1f, 1f), 1.8f), 1.0f);
         marbleWhite = Inside(BraxChampionsFoundation.LibraryMarbleWhite("aq_spa_white_marble", new Color(1f, 1f, 1f), 1.6f), 1.0f);
@@ -39,11 +42,12 @@ public static partial class BraxChampionsAquapark
         // 16.11 owner "basen masz skończyć premium ... Poly Haven": the ceiling in the interior paint (Poly Haven), no plain colour
         ceiling = Inside(Tex("pavilion_ceiling_white", BraxChampionsFoundation.InteriorPaintSlug, 3.0f, BraxChampionsFoundation.PaintTint(new Color(1.06f, 1.06f, 1.08f))), 1.1f);
         frosted = S("pavilion_frosted_glass", new Color(.90f, .94f, .96f, .62f), .3f, 0f, null, true);
-        lockerMat = Inside(S("locker_graphite_hpl", new Color(.16f, .17f, .19f), .42f, .05f), 1.0f);
+        // lockers / WC partitions: graphite brushed metal carcass (was a plain grey colour), walnut veneer doors (Finish)
+        lockerMat = Inside(BraxChampionsFoundation.LibraryMetal("aq_locker_graphite_brushed", new Color(.20f, .21f, .23f)), 1.0f);
         plate = S("locker_number_plate", new Color(.85f, .86f, .88f), .25f, .8f);
         mirror = S("vanity_mirror", new Color(.78f, .82f, .86f), .03f, 1f);
         downlight = S("pavilion_downlight", new Color(1f, .96f, .88f), .3f, 0f, new Color(1.25f, 1.18f, 1.02f));
-        fin = S("pavilion_black_fin", new Color(.03f, .032f, .035f), .38f, .6f);
+        fin = BraxChampionsFoundation.LibraryMetal("aq_pavilion_black_fin_brushed", new Color(.07f, .07f, .075f));      // black brushed steel
         // 16.11 owner "każdy detal ma być wykończony": the solid doors were plain painted slabs in a bare plaster hole. Now flush
         // walnut veneer leaves (Poly Haven smoked_walnut_veneer, real 1 m) in black brushed-steel casings, long black pulls
         doorWalnut = Inside(Tex("door_walnut_veneer", "smoked_walnut_veneer", 1.0f, new Color(.92f, .92f, .92f)), 1.0f);
@@ -193,7 +197,11 @@ public static partial class BraxChampionsAquapark
         BL(black, -14.2f, 14.2f, FFL + 5.25f, FFL + 5.85f, -104.2f, BZ0 - .5f, false);
         BL(led, -14.22f, 14.22f, FFL + 5.30f, FFL + 5.34f, -104.22f, -104.2f);
         foreach (float x in new[] { -12.5f, 12.5f }) BL(black, x - .25f, x + .25f, DY, FFL + 5.25f, -103.6f, -103.1f, true);
-        for (float x = -12f; x <= 12.1f; x += 3f) for (float z = -103f; z <= -98f; z += 2.5f) m.Cylinder(downlight, V(x, FFL + 5.19f, z), .12f, .01f, 14);
+        // the canopy's soffit in walnut slats (as the lobby inside: the ceiling runs out through the glass), downlights under it
+        var soffit = Tex("canopy_walnut_slats", "smoked_walnut_veneer", 1.0f, Color.white);
+        BraxChampionsInteriorLight.Facade(soffit);
+        for (float x = -13.94f; x + .06f < 14f; x += .15f) BL(soffit, x, x + .06f, FFL + 5.10f, FFL + 5.18f, -103.9f, BZ0 - .55f);
+        for (float x = -12f; x <= 12.1f; x += 3f) for (float z = -103f; z <= -98f; z += 2.5f) m.Cylinder(downlight, V(x, FFL + 5.085f, z), .12f, .01f, 14);
         // ---------------- interior partitions
         float ti = .15f, hy = CY;
         // corridors (z -90) with doors / turnstile openings; wings split
@@ -239,7 +247,10 @@ public static partial class BraxChampionsAquapark
         var oak = Inside(Tex("sauna_oak_panels", "oak_wood_planks", 1.2f, Color.white), 1.0f);
         var tiles = Inside(Tex("changing_long_white_tiles", "long_white_tiles", 1.27f, Color.white), 1.0f);
         // slat ceilings (the felt 3 cm under the plaster, the slats under the felt)
-        foreach (var (x0, x1, z0, z1) in new[] { (-13.9f, 13.9f, BZ0 + .2f, BZ1 - .2f), (14.1f, BX1 - .2f, -89.9f, BZ1 - .2f) })
+        // 16.11 08:03 "w środku wykończony": the corridors and the changing rooms had a flat painted ceiling - now the whole
+        // pavilion is under the walnut slats
+        foreach (var (x0, x1, z0, z1) in new[] { (-13.9f, 13.9f, BZ0 + .2f, BZ1 - .2f), (14.1f, BX1 - .2f, -89.9f, BZ1 - .2f),
+            (BX0 + .2f, -14.1f, BZ0 + .2f, -90.1f), (14.1f, BX1 - .2f, BZ0 + .2f, -90.1f), (BX0 + .2f, -36.1f, -89.9f, BZ1 - .2f), (-35.9f, -14.1f, -89.9f, BZ1 - .2f) })
         {
             BL(felt, x0, x1, CY - .04f, CY - .012f, z0, z1);
             for (float x = x0 + .06f; x + .06f < x1; x += .15f) BL(slat, x, x + .06f, CY - .10f, CY - .04f, z0, z1);
@@ -273,11 +284,17 @@ public static partial class BraxChampionsAquapark
         PanelZ(walnut, 40f, +1f, -79.9f, -64.6f, (-73.3f, -71.9f));
         PanelZ(walnut, 49f, -1f, -79.9f, -64.6f);
         PanelZ(walnut, 49f, +1f, -79.9f, -64.6f);
-        // changing rooms x -58..-36 and -36..-14: the corridor wall (doors at -47 and -25) and the partition, tiled to 2.4 m
-        top = FFL + 2.4f;
+        // the corridors (z -96..-90): walnut on the corridor wall (doors kept) and on the inner face of the street wall
+        PanelX(walnut, -90f, -1f, BX0 + .35f, -14.3f, (-47.7f, -46.3f), (-25.7f, -24.3f));
+        PanelX(walnut, -90f, -1f, 14.3f, BX1 - .35f, (25.7f, 28.3f), (48.55f, 49.95f));
+        foreach (var (a, b) in new[] { (BX0 + .35f, -14.3f), (14.3f, BX1 - .35f) }) BL(walnut, a, b, FFL + .02f, top, BZ0 + .15f, BZ0 + .17f);
+        // changing rooms x -58..-36 and -36..-14: tiled floor to ceiling (the slats) on every wall - the corridor wall (doors at
+        // -47 and -25), the partition, the outer north wall (doors to the deck at -47 / -25) and the west end wall
         PanelX(tiles, -90f, +1f, BX0 + .35f, -14.1f, (-47.7f, -46.3f), (-25.7f, -24.3f), (-36.1f, -35.9f));
         PanelZ(tiles, -36f, -1f, -89.9f, BZ1 - .2f);
         PanelZ(tiles, -36f, +1f, -89.9f, BZ1 - .2f);
+        foreach (var (a, b) in new[] { (BX0 + .35f, -48.1f), (-45.9f, -36.1f), (-35.9f, -26.1f), (-23.9f, -14.3f) }) BL(tiles, a, b, FFL + .02f, top, BZ1 - .17f, BZ1 - .15f);
+        BL(tiles, BX0 + .15f, BX0 + .17f, FFL + .02f, top, -89.9f, BZ1 - .2f);
         // the sauna room's rest corner: three loungers (BraxSeat lie) and two plants
         foreach (float x in new[] { 51.9f, 54.0f, 56.1f }) Lounger(V(x, FFL, -84.6f), 0f);
         BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + 41.4f, CZ - 81.0f, "flower_gazania");
@@ -393,7 +410,7 @@ public static partial class BraxChampionsAquapark
                 {
                     float y0 = FFL + .08f + tier * .97f;
                     float fx = wx < (x0 + x1) * .5f ? wx + .5f : wx;
-                    BL(lockerMat, fx - .01f, fx + .01f, y0, y0 + .92f, z + .02f, z + .48f);
+                    BL(doorWalnut, fx - .01f, fx + .01f, y0, y0 + .92f, z + .02f, z + .48f);
                     BL(plate, fx - .015f, fx + .015f, y0 + .70f, y0 + .78f, z + .18f, z + .32f);
                 }
         }
@@ -403,7 +420,7 @@ public static partial class BraxChampionsAquapark
         for (float z = -86f; z < -78.01f; z += .5f)
             foreach (float fx in new[] { mx - .5f, mx + .5f })
             {
-                BL(lockerMat, fx - .01f, fx + .01f, FFL + .08f, FFL + 1.68f, z + .02f, z + .48f);
+                BL(doorWalnut, fx - .01f, fx + .01f, FFL + .08f, FFL + 1.68f, z + .02f, z + .48f);
                 BL(plate, fx - .015f, fx + .015f, FFL + 1.40f, FFL + 1.48f, z + .18f, z + .32f);
             }
         foreach (float dx in new[] { -2.3f, 2.3f }) foreach (float z in new[] { -84f, -80f, -75f })
@@ -419,7 +436,7 @@ public static partial class BraxChampionsAquapark
         }
         // vanities and the mirror on the south wall, east of the corridor door
         foreach (float dx in new[] { 3.4f, 5.4f }) Owner("umywalka_podwojna", V(door + dx, FFL, zc0 + .45f), 0f, true);
-        BL(mirror, door + 2.5f, door + 6.3f, FFL + 1.25f, FFL + 2.25f, zc0 + .08f, zc0 + .1f);
+        BL(mirror, door + 2.5f, door + 6.3f, FFL + 1.25f, FFL + 2.25f, zc0 + .095f, zc0 + .115f);   // 1.5 cm proud of the tiles (no flicker)
         // WC cubicles (south-west corner): HPL partitions, a wall-hung white pan, a door each
         for (int k = 0; k < 2; k++)
         {

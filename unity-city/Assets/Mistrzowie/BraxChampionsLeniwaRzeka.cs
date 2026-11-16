@@ -17,6 +17,8 @@ public sealed class BraxChampionsLeniwaRzeka : MonoBehaviour, IBraxInterakcja
     public float siedzenie = .10f;               // world: the seat over the ring's centre (the rider's hips in the hole)
     public float kolysanie = .035f;              // world: the bob
     public string basen = "LENIWA RZEKA";        // the river's swimming volumes (BraxSwimmingZone.basinId)
+    public float polSzerokosci = 3.6f;           // world: half the channel's width (the current only inside the river)
+    public float pradGracza = .8f;               // a swimmer drifts with this part of the current (16.11 "ma płynąć z prądem")
 
     float[] L; float dl; float[] s, obrot; int jedzie = -1; BraxGymPlayer gracz; Vector3 lokalnie; bool blisko = true; float sprawdz;
     readonly System.Collections.Generic.List<BraxSwimmingZone> strefy = new System.Collections.Generic.List<BraxSwimmingZone>();
@@ -114,17 +116,32 @@ public sealed class BraxChampionsLeniwaRzeka : MonoBehaviour, IBraxInterakcja
             sprawdz = Time.unscaledTime + .5f;
             var kam = Camera.main;
             blisko = jedzie >= 0 || !kam || (kam.transform.position - transform.position).sqrMagnitude < 200f * 200f;
+            if (!gracz) gracz = FindAnyObjectByType<BraxGymPlayer>();
         }
         if (!blisko) return;
         float dt = Mathf.Min(Time.deltaTime, .05f);
         Ustaw(dt);
-        if (jedzie < 0) return;
+        if (jedzie < 0) { Prad(dt); return; }
         var st = siedziska[jedzie];
         if (!gracz || gracz.seat != st) { Zejdz(); return; }        // joystick / AKCJA: getting off
         Siedzisko(jedzie);
         var tr = gracz.transform;
         tr.position = st.transform.position + st.transform.rotation * lokalnie;
         tr.rotation = st.transform.rotation;
+    }
+
+    // 16.11 owner: "ta rzeka ... ma płynąć, kurwa ... z prądem": whoever swims in the channel drifts with the current round
+    // the island (the joystick still swims, against the current too - slower); only in the river (near its centre line)
+    void Prad(float dt)
+    {
+        if (!gracz || !gracz.Swimming || !gracz.body || !gracz.body.enabled) return;
+        var p = gracz.transform.position;
+        int best = -1; float bd = float.MaxValue;
+        for (int i = 0; i < petla.Length; i++) { float dx = petla[i].x - p.x, dz = petla[i].z - p.z, d = dx * dx + dz * dz; if (d < bd) { bd = d; best = i; } }
+        if (best < 0 || bd > polSzerokosci * polSzerokosci || Mathf.Abs(p.y - petla[best].y) > 3f) return;
+        var t = Vector3.ProjectOnPlane(petla[(best + 1) % petla.Length] - petla[(best - 1 + petla.Length) % petla.Length], Vector3.up);
+        if (t.sqrMagnitude < 1e-6f) return;
+        gracz.body.Move(t.normalized * (predkosc * pradGracza * dt));
     }
 
     void Zejdz()

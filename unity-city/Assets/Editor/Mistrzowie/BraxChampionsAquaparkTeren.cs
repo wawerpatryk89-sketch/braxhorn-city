@@ -90,7 +90,7 @@ public static partial class BraxChampionsAquapark
         RiverPool();
     }
 
-    static void MakePool(Pool p, Material wall, Material floorMat, Material wat, bool lights, bool swim, Material vol = null)
+    static void MakePool(Pool p, Material wall, Material floorMat, Material wat, bool lights, bool swim, Material vol = null, List<Vector2> flow = null, float speed = 0f)
     {
         // marble coping flush with the deck, its rounded nose into the water, a navy mosaic waterline, white-aqua tiles
         Band(walk, coping, p.edge, p.cop, DY, DY);
@@ -100,7 +100,7 @@ public static partial class BraxChampionsAquapark
         Fill(walk, floorMat, p.edge, p.islands.Concat(p.pits.Select(q => Offset(q, .25f))).ToList(), p.floor);
         foreach (var q in p.pits) Pit(p, q, wall, floorMat, lights);
         // the water (no collider): its surface and its body (the whole basin under the surface is water)
-        Fill(m, wat, p.edge, p.islands, p.water);
+        if (flow == null) Fill(m, wat, p.edge, p.islands, p.water); else FlowFill(wat, p.edge, p.islands, p.water, flow, speed);
         if (vol) WaterBody(p, vol);
         foreach (var isl in p.islands)
         {
@@ -153,6 +153,27 @@ public static partial class BraxChampionsAquapark
             var c = new Vector3(a.x, p.water + .015f, a.y);
             m.Cylinder((i / 3) % 2 == 0 ? floatRed : floatWhite, c - t3 * .055f, .055f, .11f, 10, Quaternion.FromToRotation(Vector3.up, t3), true, true);
             m.Tube(steel, c + t3 * .055f, new Vector3(b.x, p.water + .015f, b.y) - t3 * .055f, .006f, 6);
+        }
+    }
+
+    // the river's surface: the same triangles as Fill, every corner carrying the current's velocity (world units/s, along the
+    // nearest piece of the centre line, in the flow's direction) in its uv for ChampionsP1PoolWater's _Flow
+    static void FlowFill(Material wat, List<Vector2> outer, List<List<Vector2>> holes, float y, List<Vector2> line, float speed)
+    {
+        var tris = Triangulate(outer, holes, out var pts);
+        Vector2 Vel(Vector2 q)
+        {
+            int best = 0; float bd = float.MaxValue;
+            for (int i = 0; i < line.Count; i++) { float d = (line[i] - q).sqrMagnitude; if (d < bd) { bd = d; best = i; } }
+            return (line[(best + 1) % line.Count] - line[(best - 1 + line.Count) % line.Count]).normalized * speed;
+        }
+        for (int i = 0; i + 2 < tris.Count; i += 3)
+        {
+            var a = pts[tris[i]]; var c1 = pts[tris[i + 1]]; var c2 = pts[tris[i + 2]];
+            if (Mathf.Abs(Cross(c1 - a, c2 - a)) < 1e-8f) continue;
+            Vector3 A = new Vector3(a.x, y, a.y), B = new Vector3(c1.x, y, c1.y), C = new Vector3(c2.x, y, c2.y);
+            Vector2 ua = Vel(a), ub = Vel(c1), uc = Vel(c2);
+            if (Vector3.Cross(B - A, C - A).y < 0) m.TriangleUV(wat, A, C, B, ua, uc, ub); else m.TriangleUV(wat, A, B, C, ua, ub, uc);
         }
     }
 
@@ -355,6 +376,9 @@ public static partial class BraxChampionsAquapark
             Band(walk, plaza, l, e, DY + .03f, DY + .03f);
             Skin(m, plaza, e, DY, DY + .03f, false); Skin(m, plaza, l, DY + .01f, DY + .03f, true);
         }
+        // 16.11 07:15 owner "prawdziwa trawa": real 3D grass on every lawn of the lot (and the island), the region's own blades
+        // (BraxChampionsGrass: mesh + material of the promenade lawns) drawn by the shared instancer near the camera
+        LawnGrass(lawns.Concat(lagoon.islands.Select(i => Ccw(Offset(i, -.60f)))).ToList(), DY + .01f);
         // palm planters: granite ring 45 cm, mulch inside, the owner's palm in each
         var palmSrc = new[] { BraxMiastoAssety.Model("miasto_palmy", "palma"), BraxMiastoAssety.Model("miasto_palmy", "palma2") };
         int pi = 0;
@@ -390,6 +414,39 @@ public static partial class BraxChampionsAquapark
         // flower planters along the forecourt and at the deck's doors
         foreach (float x in new[] { -90f, -78f, -66f, 66f, 78f, 90f }) BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + x, CZ - 104f, x < 0 ? "flower_empodium" : "flower_gazania");
         foreach (float x in new[] { -24f, -14f, 14f, 24f }) BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + x, CZ - 60.5f, "flower_gazania");
+    }
+
+    // tufts every ~40 cm (jittered) inside the lawns, kept 12 cm off the edging; the shared BraxClaudeTrawa draws only the
+    // 9 m pieces within 22 m of the camera (the far lawn is the photo-scan texture of the same grass)
+    public static int GrassTufts;
+    static void LawnGrass(List<List<Vector2>> polys, float y)
+    {
+        GrassTufts = 0;
+        var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(Out + "/Meshes/grass_blades.asset");
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(Out + "/Materials/grass_blades.mat");
+        if (!mesh || !mat) { BraxBuildQuality.Warn("AQUAPARK_GRASS_BLADES_MISSING the promenade's grass blades were not built - lawns keep the photo-scan only"); return; }
+        var kepy = new List<Vector4>(); var ys = new List<float>(); var rng = new System.Random(16112026);
+        const float step = .40f;
+        foreach (var poly in polys)
+        {
+            var inner = Offset(Ccw(poly), -.12f);
+            float x0 = poly.Min(q => q.x), x1 = poly.Max(q => q.x), z0 = poly.Min(q => q.y), z1 = poly.Max(q => q.y);
+            for (float x = x0 + step * .5f; x < x1; x += step)
+                for (float z = z0 + step * .5f; z < z1; z += step)
+                {
+                    var q = new Vector2(x + ((float)rng.NextDouble() - .5f) * .28f, z + ((float)rng.NextDouble() - .5f) * .28f);
+                    if (!Inside(inner, q)) continue;
+                    kepy.Add(new Vector4(q.x * K, q.y * K, (float)rng.NextDouble() * 360f, .85f + .3f * (float)rng.NextDouble())); ys.Add(y * K);
+                }
+        }
+        if (kepy.Count > 120000) { BraxBuildQuality.Warn("AQUAPARK_GRASS_BUDGET " + kepy.Count + " tufts - trimmed"); kepy.RemoveRange(120000, kepy.Count - 120000); ys.RemoveRange(120000, ys.Count - 120000); }
+        var data = ScriptableObject.CreateInstance<BraxClaudeTrawaDane>(); data.wysokosc = .065f; data.granicaLaki = .15f;
+        data.kepy = kepy.ToArray(); data.y = ys.ToArray();
+        string path = Out + "/aquapark_grass_instances.asset"; AssetDatabase.DeleteAsset(path); AssetDatabase.CreateAsset(data, path);
+        var o = new GameObject("aquapark | trawa 3D na trawnikach (kępy przy kamerze)"); o.transform.SetParent(root, false);
+        var draw = o.AddComponent<BraxClaudeTrawa>(); draw.dane = data; draw.siatka = mesh; draw.material = mat;
+        draw.zasiegMurawy = 22; draw.zasiegLaki = 22; draw.kawalek = 9;
+        GrassTufts = kepy.Count;
     }
 
     static void Palm(GameObject[] src, Vector3 at, int i)

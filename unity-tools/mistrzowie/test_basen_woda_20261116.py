@@ -41,7 +41,7 @@ class WaterBody(unittest.TestCase):
                      "MakePool(kidsPool, poolTile, poolFloor, waterKids, false, false, waterBodyKids);",
                      "MakePool(s, poolTile, poolFloor, waterSpa, false, false, waterBodySpa);"):
             self.assertIn(call, self.teren)
-        self.assertIn("MakePool(river, poolTile, poolFloor, water, true, true, waterBody);", read(ED / "BraxChampionsAquaparkRzeka.cs"))
+        self.assertIn("waterBody, RiverLine(), 1.05f * K);", read(ED / "BraxChampionsAquaparkRzeka.cs"))
         self.assertIn("if (vol) WaterBody(p, vol);", self.teren)
         # the skin 5 cm in front of the tiles (no z-fight with the bull mosaic at 2.5-3 cm or the lights)
         self.assertIn("const float g = .05f;", self.teren)
@@ -99,6 +99,39 @@ class Floors(unittest.TestCase):
         self.assertIn("lm.BoxMinMax(doorWalnut, a0, a1, .02f, height - .02f, -.025f, .025f);", bud)
         self.assertNotIn("lm.BoxMinMax(renderIn, a0, a1", bud)
         self.assertIn("if (!glassLeaf) Casing(lx, lz, yaw, width, height);", bud)
+
+
+class RiverAndPavilion(unittest.TestCase):
+    """Owner 16.11 08:03: "ta rzeka ... ma płynąć ... z prądem", "budynek ma być premium ... w środku wykończony, na zewnątrz"."""
+
+    def test_river_surface_flows_and_carries_the_swimmer(self):
+        water = read(RT / "BraxChampionsPoolWater.shader")
+        self.assertIn("_Flow", water)
+        self.assertIn("float2 v=i.uv*_Flow;", water)
+        teren = read(ED / "BraxChampionsAquaparkTeren.cs")
+        self.assertIn("FlowFill(wat, p.edge, p.islands, p.water, flow, speed)", teren)
+        rzeka = read(ED / "BraxChampionsAquaparkRzeka.cs")
+        self.assertIn("MakePool(river, poolTile, poolFloor, riverWater ?? water, true, true, waterBody, RiverLine(), 1.05f * K);", rzeka)
+        self.assertIn("rz.polSzerokosci = ((RX1 - IX1) * .5f + .3f) * K;", rzeka)
+        rt = read(RT / "BraxChampionsLeniwaRzeka.cs")
+        self.assertIn("if (jedzie < 0) { Prad(dt); return; }", rt)
+        self.assertIn("gracz.body.Move(t.normalized * (predkosc * pradGracza * dt));", rt)
+        self.assertIn('riverWater.SetFloat("_Flow",1f)', read(ED / "BraxChampionsAquapark.cs"))
+
+    def test_lawns_get_real_3d_grass(self):
+        teren = read(ED / "BraxChampionsAquaparkTeren.cs")
+        self.assertIn("LawnGrass(lawns.Concat(", teren)
+        self.assertIn("var draw = o.AddComponent<BraxClaudeTrawa>();", teren)
+
+    def test_pavilion_finished_inside_and_out(self):
+        bud = read(ED / "BraxChampionsAquaparkBudynek.cs")
+        self.assertIn('Fotoskan("aq_pavilion_limestone_cladding", "floor_tiles_02"', bud)
+        self.assertNotIn('Tex("pavilion_white_render"', bud)
+        self.assertIn('"canopy_walnut_slats"', bud)
+        self.assertIn("(BX0 + .2f, -14.1f, BZ0 + .2f, -90.1f)", bud)        # corridor slats
+        self.assertIn("BL(doorWalnut, fx - .01f, fx + .01f, y0, y0 + .92f", bud)  # locker doors
+        self.assertNotIn("top = FFL + 2.4f;", bud)                           # tiles floor to ceiling
+        self.assertIn("zc0 + .095f, zc0 + .115f", bud)                       # mirror off the tiles
 
 
 if __name__ == "__main__":

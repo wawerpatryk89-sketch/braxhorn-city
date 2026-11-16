@@ -8,6 +8,7 @@ Shader "Braxhorn/ChampionsP1PoolWater"
         _RippleStrength ("Ripple intensity", Range(0,2)) = 0.8
         _Bubbles ("Jacuzzi aeration 0-1", Range(0,1)) = 0
         _K ("World units per metre", Float) = 1
+        _Flow ("River current 0-1 (uv = flow velocity)", Range(0,1)) = 0
     }
     SubShader
     {
@@ -26,9 +27,17 @@ Shader "Braxhorn/ChampionsP1PoolWater"
             #include "UnityCG.cginc"
             fixed4 _DeepColor, _ShallowColor;
             half _Opacity, _RippleStrength, _Bubbles;
-            float _K;
+            float _K, _Flow;
             struct appdata { float4 vertex : POSITION; float2 uv : TEXCOORD0; };
             struct v2f { float4 pos : SV_POSITION; float3 world : TEXCOORD0; float2 uv : TEXCOORD1; };
+            // the analytic waves at p (time t): their slope, and the phase for the light net
+            float2 Fale(float2 p, float t, out float a, out float b)
+            {
+                a=dot(p,float2(.71,.704))*7.5-t*1.75;
+                b=dot(p,float2(-.38,.925))*11.0+t*1.32;
+                float c=dot(p,float2(.96,-.28))*4.4-t*.95;
+                return (_RippleStrength*.018)*(cos(a)*7.5*float2(.71,.704)+cos(b)*11.0*float2(-.38,.925)+cos(c)*4.4*float2(.96,-.28));
+            }
             v2f vert(appdata v)
             {
                 v2f o;
@@ -45,13 +54,19 @@ Shader "Braxhorn/ChampionsP1PoolWater"
                 float2 p=i.world.xz;
                 float t=_Time.y;
                 // Analytic moving waves: no texture downloads or repeated maps.
-                float a=dot(p,float2(.71,.704))*7.5-t*1.75;
-                float b=dot(p,float2(-.38,.925))*11.0+t*1.32;
-                float c=dot(p,float2(.96,-.28))*4.4-t*.95;
-                float2 slope=(_RippleStrength*.018)*(
-                    cos(a)*7.5*float2(.71,.704)+
-                    cos(b)*11.0*float2(-.38,.925)+
-                    cos(c)*4.4*float2(.96,-.28));
+                float a,b;
+                float2 slope=Fale(p,t,a,b);
+                // 16.11 owner "ta rzeka ... ma płynąć, z prądem": on the river the waves are carried by the current (uv = the
+                // flow's velocity, world units/s): two copies 2 s apart in phase, cross-faded, so the drift never stretches
+                if(_Flow>.001)
+                {
+                    float2 v=i.uv*_Flow;
+                    float f0=frac(t*.25),f1=frac(t*.25+.5);
+                    float a0,b0,a1,b1;
+                    float2 s0=Fale(p-v*f0*4.0,t*.35,a0,b0), s1=Fale(p-v*f1*4.0,t*.35,a1,b1);
+                    float w0=1.0-abs(1.0-2.0*f0);
+                    slope=lerp(s1,s0,w0); a=lerp(a1,a0,w0); b=lerp(b1,b0,w0);
+                }
                 half3 n=normalize(half3(-slope.x,1,-slope.y));
                 half3 v=normalize(_WorldSpaceCameraPos.xyz-i.world);
                 half3 sun=normalize(half3(.37,.82,-.44));

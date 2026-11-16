@@ -34,7 +34,7 @@ public static partial class BraxChampionsAquapark
     static BraxChampionsMeshBatch m,walk;
     static Material deck,plaza,coping,poolTile,poolFloor,waterline,teak,teakDeck,lawn,rubber,rubberYellow,rock,steel,graphite,glass,led,
         cushion,towel,canvas,canvasRed,white,black,blackGloss,stone,water,waterKids,waterSpa,uplight,bark,leaf,fountainWater,
-        waterBody,waterBodyKids,waterBodySpa,floatRed,floatWhite;
+        waterBody,waterBodyKids,waterBodySpa,floatRed,floatWhite,riverWater;
 
     static Material S(string id,Color c,float r,float met,Color? e=null,bool t=false)=>BraxChampionsHarbour.Surface("aq_"+id,c,r,met,e,t);
     static Material Tex(string id,string slug,float metres,Color tint)=>BraxChampionsFoundation.SourceMaterial("aq_"+id,slug,metres,tint);
@@ -73,7 +73,7 @@ public static partial class BraxChampionsAquapark
         canvas=BraxChampionsPromenade.Fabric("aq_parasol_white","terlenka",new Color(1.21f,1.36f,1.53f),.9f,new Color(.38f,.38f,.36f));
         canvasRed=BraxChampionsPromenade.Fabric("aq_parasol_valance_red","terlenka",new Color(.80f,.08f,.10f),.9f);
         white=S("white_composite",new Color(.94f,.95f,.95f),.30f,.02f);
-        black=S("black_steel",new Color(.035f,.037f,.04f),.36f,.65f);
+        black=BraxChampionsFoundation.LibraryMetal("aq_black_steel_brushed",new Color(.06f,.06f,.065f));   // 16.11: brushed black steel (was a plain colour)
         blackGloss=S("black_gloss_frp",new Color(.025f,.027f,.03f),.12f,.05f);
         glass=S("balustrade_glass",new Color(.80f,.90f,.94f,.26f),.04f,0f,null,true);
         uplight=S("underwater_led",new Color(.80f,.95f,1f),.2f,0f,new Color(.75f,1.15f,1.45f));
@@ -83,6 +83,9 @@ public static partial class BraxChampionsAquapark
         water=Water("aq_pool_water",new Color(.03f,.26f,.47f),new Color(.12f,.66f,.86f),.34f,.8f,0f);
         waterKids=Water("aq_kids_water",new Color(.07f,.40f,.58f),new Color(.20f,.78f,.92f),.28f,.6f,0f);
         waterSpa=Water("aq_jacuzzi_water",new Color(.05f,.30f,.50f),new Color(.16f,.70f,.88f),.42f,1.4f,1f);
+        // the lazy river: the pool's water carried by the current (uv = flow velocity, see FlowFill)
+        riverWater=Water("aq_river_water",new Color(.03f,.26f,.47f),new Color(.12f,.66f,.86f),.34f,.9f,0f);
+        if(riverWater&&riverWater.HasProperty("_Flow")){riverWater.SetFloat("_Flow",1f);EditorUtility.SetDirty(riverWater);}
         // the water body (Braxhorn/ChampionsPoolVolume): clear turquoise over the shallows, deep blue in the 4 m well
         waterBody=Volume("aq_pool_water_body",new Color(.012f,.15f,.31f),new Color(.07f,.52f,.70f),.24f,.9f);
         waterBodyKids=Volume("aq_kids_water_body",new Color(.03f,.26f,.42f),new Color(.12f,.62f,.78f),.20f,.7f);
@@ -387,7 +390,7 @@ public static partial class BraxChampionsAquapark
             var z0=g.AddComponent<BraxZrodloPetli>();z0.rodzaj="woda";z0.glosnosc=vol;z0.zasieg=range*K;
         }
         // (no walking girls here any more: owner 12.11 11:56 "mają chodzić tylko w kasynie i na plaży")
-        Debug.Log("MISTRZOWIE_AQUAPARK waterBodies="+WaterBodies+" walkers="+Walkers+" rings="+Rings+" cabanas="+Cabanas+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+
+        Debug.Log("MISTRZOWIE_AQUAPARK grassTufts="+GrassTufts+" waterBodies="+WaterBodies+" walkers="+Walkers+" rings="+Rings+" cabanas="+Cabanas+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+
                   " seats="+Seats+" palms="+Palms+" lamps="+Lamps+" ownerModels="+OwnerModels+" ownerMissing="+OwnerMissing+" colliders="+Colliders+
                   " site=x"+X0+".."+X1+" z"+Z0+".."+Z1);
         return 1;
