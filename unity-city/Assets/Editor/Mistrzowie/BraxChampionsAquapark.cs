@@ -66,7 +66,9 @@ public static partial class BraxChampionsAquapark
         // coloured EPDM safety floor of the kids' zone (the black rubber_tiles map stays black under any tint)
         rubber=BraxChampionsFoundation.Fotoskan("kids_epdm_teal","rubberized_track",2f,new Color(.07f,.56f,.64f),BraxChampionsFoundation.MeanRubberTrack); // 16.11 Poly Haven ("każda podłoga, ściana, sufit")
         rubberYellow=BraxChampionsHarbour.Nakladka(BraxChampionsFoundation.Fotoskan("kids_epdm_yellow","rubberized_track",2f,new Color(.98f,.76f,.10f),BraxChampionsFoundation.MeanRubberTrack));   // 6 mm over the deck: depth offset (16.11 "wszystko migota")
-        rock=Tex("waterfall_rock","concrete_wall_008",2.71f,new Color(.74f,.78f,.93f));
+        // the waterfall's and the river island's rocks: a real boulder photo-scan (Poly Haven rock_boulder_dry, 1.8 m), light
+        // natural stone - the concrete map tinted dark read as black blobs (16.11 pictures)
+        rock=Tex("waterfall_rock_boulder","rock_boulder_dry",1.8f,new Color(.95f,.95f,.97f));
         stone=Tex("tower_column_stone","sandstone_blocks_08",3.0f,new Color(.39f,.44f,.56f));
         cushion=BraxChampionsPromenade.Fabric("aq_lounger_cushion_white","cotton_jersey",new Color(1.20f,1.36f,1.46f),.6f);
         towel=BraxChampionsPromenade.Fabric("aq_towel_red","cotton_jersey",new Color(.92f,.10f,.12f),.6f);
@@ -361,7 +363,7 @@ public static partial class BraxChampionsAquapark
     public static int Generate()
     {
         System.IO.Directory.CreateDirectory(Folder);
-        Colliders=Loungers=Parasols=Seats=SwimZones=Slides=Palms=Lamps=OwnerModels=OwnerMissing=Pools=Walkers=Rings=Cabanas=WaterBodies=PhModels=PhMissing=Tables=Saunas=IndoorSpas=Pictures=0;
+        Colliders=Loungers=Parasols=Seats=SwimZones=Slides=Palms=Lamps=OwnerModels=OwnerMissing=Pools=Walkers=Rings=Cabanas=WaterBodies=PhModels=PhMissing=Tables=Saunas=IndoorSpas=Pictures=IndoorPalms=0;
         Materials();
         var go=new GameObject("AQUAPARK BRAXHORN | laguna, wieża ze zjeżdżalniami, strefa dzieci, SPA, jacuzzi (owner 12.11 02:47)");
         root=go.transform;root.position=Vector3.zero;
@@ -390,7 +392,7 @@ public static partial class BraxChampionsAquapark
             var z0=g.AddComponent<BraxZrodloPetli>();z0.rodzaj="woda";z0.glosnosc=vol;z0.zasieg=range*K;
         }
         // (no walking girls here any more: owner 12.11 11:56 "mają chodzić tylko w kasynie i na plaży")
-        Debug.Log("MISTRZOWIE_AQUAPARK saunas="+Saunas+" indoorSpas="+IndoorSpas+" pictures="+Pictures+" polyHavenFurniture="+PhModels+" missing="+PhMissing+" tables="+Tables+" grassTufts="+GrassTufts+" waterBodies="+WaterBodies+" walkers="+Walkers+" rings="+Rings+" cabanas="+Cabanas+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+
+        Debug.Log("MISTRZOWIE_AQUAPARK indoorPalms="+IndoorPalms+" saunas="+Saunas+" indoorSpas="+IndoorSpas+" pictures="+Pictures+" polyHavenFurniture="+PhModels+" missing="+PhMissing+" tables="+Tables+" grassTufts="+GrassTufts+" waterBodies="+WaterBodies+" walkers="+Walkers+" rings="+Rings+" cabanas="+Cabanas+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+
                   " seats="+Seats+" palms="+Palms+" lamps="+Lamps+" ownerModels="+OwnerModels+" ownerMissing="+OwnerMissing+" colliders="+Colliders+
                   " site=x"+X0+".."+X1+" z"+Z0+".."+Z1);
         return 1;

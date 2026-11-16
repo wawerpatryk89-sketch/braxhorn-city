@@ -119,7 +119,7 @@ def main(src, out, ground=None):
         if tmpl:
             y += lv[2]
         lights.append([x, y, -z, rng, inten])
-    palms = [[x, y, -z] for x, y, z in d.get("palms", [])]
+    palms = [[p[0], p[1], -p[2]] + list(p[3:4]) for p in d.get("palms", [])]   # [x, y, z(, size)]
     json.dump(dict(materials=mats, models=models, lights=lights, ground=ground, palms=palms), open(out / "scene.json", "w"))
     print("materials", len(mats), "triangles", sum(m["count"] for m in mats), "models", len(models), "lights", len(lights),
           "textured", sum(1 for m in mats if m["slug"]))

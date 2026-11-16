@@ -185,7 +185,7 @@ window.setup=async function(w,h){
        console.log('palm foot n='+n+' foot='+c.x.toFixed(2)+','+c.z.toFixed(2)+' bboxCentre='+bc.x.toFixed(2)+','+bc.z.toFixed(2)+' size='+(bb.max.x-bb.min.x).toFixed(2)+'x'+(bb.max.z-bb.min.z).toFixed(2)+' minY='+bb.min.y.toFixed(2));}
       const g=new THREE.Group();palm.position.set(-c.x,-bb.min.y,-c.z);g.add(palm);g.scale.setScalar(PALM_SCALE);
       console.log('palm model height '+(bb.max.y-bb.min.y).toFixed(2));
-      for(const p of scene.palms){const o=g.clone(true);o.position.set(p[0],p[1],p[2]);o.rotation.y=p[0]*.7+p[2]*.3;S.add(o);}}
+      for(const p of scene.palms){const o=g.clone(true);o.position.set(p[0],p[1],p[2]);o.rotation.y=p[0]*.7+p[2]*.3;if(p.length>3&&p[3]>0&&p[3]!==1)o.scale.multiplyScalar(p[3]);S.add(o);}}
   }
   // City palms: the game places its own palm model pack; the preview draws a plain stand-in (trunk + fronds) there.
   // Off unless PREVIEW_PALMS=1: a stand-in is not what the game shows (owner 10.11: "żadnych sztucznych drzew").

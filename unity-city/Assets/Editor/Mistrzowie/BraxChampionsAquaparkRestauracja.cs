@@ -116,7 +116,7 @@ public static partial class BraxChampionsAquapark
                 PH(MLamp, V(tx, CY - .10f, tz), 0f, "restauracja: lampa nad stołem", false, true);
             }
         }
-        foreach (var (x, z) in new[] { (-13.1f, -64.9f), (13.1f, -64.9f), (-7.1f, -76.3f), (7.1f, -76.3f), (-2.6f, -64.9f), (2.6f, -64.9f) })
+        foreach (var (x, z) in new[] { (-7.1f, -76.3f), (7.1f, -76.3f), (-2.6f, -64.9f), (2.6f, -64.9f) })        // the corners by the glass: potted palms (Wellness)
             PH(MPlant, V(x, FFL, z), x * 13f, "restauracja: roślina", true);
         // ---- the terrace on the deck (z -63.5..-55): table sets under parasols either side of the walk to the lagoon
         foreach (float tz in new[] { -61.2f, -57.4f })

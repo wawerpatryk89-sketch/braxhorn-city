@@ -110,7 +110,8 @@ public static class MeshDump
         }
         sb.Write(string.Join(",", models) + "],\"palms\":[");
         // city palms (a model pack the preview does not have): positions only, drawn as plain stand-ins
-        sb.Write(string.Join(",", Rec.PalmObjs.Select(t => root.InverseTransformPoint(t.position) / scale).Where(p => Math.Abs(p.x) < 220 && Math.Abs(p.z) < 220).Select(p => "[" + V(p) + "]")));
+        // [x, y, z, size]: size = the palm's own scale (1 for a city palm; the aquapark's potted indoor palms are smaller)
+        sb.Write(string.Join(",", Rec.PalmObjs.Select(t => (p: root.InverseTransformPoint(t.position) / scale, s: t.localScale.x)).Where(q => Math.Abs(q.p.x) < 220 && Math.Abs(q.p.z) < 220).Select(q => "[" + V(q.p) + "," + F(q.s) + "]")));
         sb.Write("],\"colours\":{");
         sb.Write(string.Join(",", mats.Select(kv => "\"" + kv.Key + "\":[" + F(kv.Value.color.r) + "," + F(kv.Value.color.g) + "," + F(kv.Value.color.b) + "," + F(kv.Value.color.a) + "]")));
         sb.Write("},\"ambient\":{");

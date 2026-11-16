@@ -251,6 +251,25 @@ public static partial class BraxChampionsAquapark
         // round the two jacuzzi on the teak: loungers looking at the lagoon
         foreach (var (x, z) in new[] { (61f, 12.6f), (61f, 14.2f), (90.5f, -9f), (90.5f, -7.4f), (90.5f, 17f), (90.5f, 18.6f) }) Lounger(V(x, DY, z), 90f);
         foreach (var (x, z) in new[] { (61.6f, 16.6f), (92.4f, -5.2f), (92.4f, 20.6f) }) Parasol(V(x, DY, z), 0);
+        // 16.11 08:46 (own audit: the 36 x 36 m silver deck round the jacuzzi stood empty): two rows of lounger pairs under
+        // parasols along its south and north edges facing the tubs, and palms in four raised granite planters
+        foreach (float x in new[] { 63.5f, 69.5f, 75.5f, 81.5f, 87.5f })
+        {
+            Lounger(V(x, DY, -12.2f), 180f); Lounger(V(x + 1.1f, DY, -12.2f), 180f); Parasol(V(x + .55f, DY, -13.55f), 0);
+            Lounger(V(x, DY, 19.8f), 0f); Lounger(V(x + 1.1f, DY, 19.8f), 0f); Parasol(V(x + .55f, DY, 21.15f), 0);
+        }
+        var deckPalms = new[] { BraxMiastoAssety.Model("miasto_palmy", "palma"), BraxMiastoAssety.Model("miasto_palmy", "palma2") };
+        int dp = 0;
+        foreach (var (x, z) in new[] { (62f, 4f), (92f, 4f), (75f, -4f), (75f, 15f) })
+        {
+            var c = P(x, z); float r = 1.35f;
+            var ring = Circle(c, r, 32); var outer = Circle(c, r + .14f, 32);
+            Band(m, plaza, ring, outer, DY + .45f, DY + .45f);
+            Skin(m, plaza, Ccw(outer), DY, DY + .45f, false); Skin(m, plaza, Ccw(ring), DY + .32f, DY + .45f, true);
+            Fill(m, bark, Ccw(ring), null, DY + .32f);
+            Col(c.x - r, c.x + r, DY, DY + .45f, c.y - r, c.y + r, "donica palmy");
+            Palm(deckPalms, new Vector3(c.x, DY + .32f, c.y), 50 + dp++);
+        }
         // lifeguard chairs (the owner's model) on both shores
         Owner("ratownik_krzeslo", V(-30f, DY, 21.6f), 150f, false);
         Owner("ratownik_krzeslo", V(47.2f, DY, 18f), 250f, false);
@@ -304,6 +323,7 @@ public static partial class BraxChampionsAquapark
         Skin(m, led, Ccw(Circle(new Vector2(c.x, c.z), r1 + .005f, 48)), DY + .12f, DY + .15f, false);
         // back bar: shelves of bottles round a centre column
         m.Cylinder(black, c, 1.1f, 2.2f, 24); m.Cylinder(white, c + Vector3.up * 1.05f, 1.25f, .04f, 24);
+        for (int k = 0; k < 8; k++) { float a = k * 45f * Mathf.Deg2Rad; PH(k % 2 == 0 ? MBrass : MVase1, c + new Vector3(Mathf.Cos(a) * 1.17f, 1.09f, Mathf.Sin(a) * 1.17f), k * 45f, "bar basenowy: wazon", false); }
         for (int k = 0; k < 6; k++) { float a = k * 60f * Mathf.Deg2Rad; var p = c + new Vector3(Mathf.Cos(a) * 4.6f, 0, Mathf.Sin(a) * 4.6f); m.Cylinder(black, p, .09f, 3.3f, 12); Col(p.x - .1f, p.x + .1f, DY, DY + 3.3f, p.z - .1f, p.z + .1f, "bar słup"); }
         var roofIn = Circle(new Vector2(c.x, c.z), .3f, 48); var roofOut = Circle(new Vector2(c.x, c.z), 5.4f, 48);
         Band(m, white, roofIn, roofOut, DY + 3.6f, DY + 3.3f); Band(m, white, roofOut, roofIn, DY + 3.25f, DY + 3.55f);
@@ -314,7 +334,8 @@ public static partial class BraxChampionsAquapark
         for (int k = 0; k < 10; k++)
         {
             float a = (k * 36f + 18f) * Mathf.Deg2Rad; var d = new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)); var p = c + d * 4.15f;
-            m.Cylinder(steel, p, .2f, .02f, 16); m.Cylinder(steel, p, .035f, .72f, 10); m.Cylinder(white, p + Vector3.up * .72f, .2f, .06f, 20);
+            // the stools: Poly Haven bar_chair_round_01 at real size (were three plain cylinders)
+            if (!PH(MStool, p, -Mathf.Atan2(d.z, d.x) * Mathf.Rad2Deg - 90f, "bar basenowy: hoker", false)) { m.Cylinder(steel, p, .2f, .02f, 16); m.Cylinder(steel, p, .035f, .72f, 10); m.Cylinder(white, p + Vector3.up * .72f, .2f, .06f, 20); }
             var g = new GameObject("hoker bar " + (k + 1)); g.transform.SetParent(seats, false); g.transform.localPosition = (p + Vector3.up * .78f) * K;
             g.transform.localRotation = Quaternion.LookRotation(-d); var s = g.AddComponent<BraxSeat>(); s.label = "HOKER"; s.surfaceY = (DY + .78f) * K; Seats++;
         }

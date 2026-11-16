@@ -170,10 +170,46 @@ public static partial class BraxChampionsAquapark
         foreach (float x in new[] { 43f, 46.5f, 56.5f }) Pic(x, FFL + 1.7f, -80.11f, 180f, n++);
         foreach (float z in new[] { -77f, -69f }) { Pic(40.11f, FFL + 1.6f, z, 90f, n++); Pic(48.89f, FFL + 1.6f, z, -90f, n++); Pic(49.11f, FFL + 1.6f, z, 90f, n++); }
         // plants: the corridors' ends and doors, the jacuzzi hall's corners, the changing rooms by the vanities, the lobby
-        foreach (var (x, z) in new[] { (-57.3f, -95.3f), (-57.3f, -90.8f), (57.3f, -95.3f), (57.3f, -90.8f), (-15.2f, -90.8f), (15.2f, -95.4f),
-                                       (14.8f, -89.2f), (39.2f, -89.2f), (39.2f, -64.9f), (14.9f, -64.9f), (-45.3f, -89.3f), (-23.3f, -89.3f),
+        foreach (var (x, z) in new[] { (-57.3f, -90.8f), (57.3f, -90.8f), (-15.2f, -90.8f), (15.2f, -95.4f), (-45.3f, -89.3f), (-23.3f, -89.3f),
                                        (-7.3f, -84.2f), (7.3f, -84.2f) })
             PH(MPlant, V(x, FFL, z), x * 11f + z, "roślina", true);
+        // 16.11 08:46 owner "małe palmy w doniczkach, żeby coś tam było w środku": young palms (his palm models at 2.3 m) in
+        // tapered black granite pots - the corridors' ends, the lobby's entrance corners, the restaurant's corners by the glass,
+        // the jacuzzi hall's four corners, the sauna room
+        int k = 0;
+        foreach (var (x, z) in new[] { (-57.2f, -95.3f), (57.2f, -95.3f), (-12.6f, -95.3f), (12.6f, -95.3f), (-13.2f, -64.8f), (13.2f, -64.8f),
+                                       (15.0f, -89.3f), (39.1f, -89.3f), (39.1f, -64.8f), (15.0f, -64.8f), (57.2f, -80.8f) })
+            IndoorPalm(x, z, k++);
+        DecorEnd();
+    }
+
+    static GameObject[] palmSrc;
+    public static int IndoorPalms;
+    static void IndoorPalm(float x, float z, int i)
+    {
+        var b = V(x, FFL, z);
+        m.Cylinder(marbleBlack, b, .30f, .58f, 28, Quaternion.identity, false, true, .37f);          // the tapered pot
+        m.Cylinder(black, b + Vector3.up * .58f, .375f, .025f, 28, Quaternion.identity, true, false, .375f);   // its rim
+        m.Cylinder(bark, b + Vector3.up * .545f, .35f, .012f, 28, Quaternion.identity, true, false);      // the bark mulch
+        Col(CX + x - .36f, CX + x + .36f, FFL, FFL + .6f, CZ + z - .36f, CZ + z + .36f, "donica palmy");
+        if (palmSrc == null) palmSrc = new[] { BraxMiastoAssety.Model("miasto_palmy", "palma"), BraxMiastoAssety.Model("miasto_palmy", "palma2") };
+        var s = palmSrc[i % 2]; if (!s) { OwnerMissing++; return; }
+        var soil = (b + Vector3.up * .56f) * K;
+        var o = BraxChampionsModel.Postaw(models, s, "palma w donicy " + (i + 1), soil, (i * 97.3f) % 360f, 1f, true, true);
+        if (!o) return;
+        // its real height measured after the import, brought to a young palm's 2.3 m over the soil
+        var rs = o.GetComponentsInChildren<Renderer>(true);
+        float h = 0f; if (rs.Length > 0) { var bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds); h = bb.size.y; }
+        if (h < .01f) h = 11f * K;                                                                    // (no bounds: the preview's stand-in)
+        o.transform.localScale *= 2.3f * K / h;
+        BraxChampionsPalmTrunk.OnSpot(o, soil);
+        rs = o.GetComponentsInChildren<Renderer>(true);
+        if (rs.Length > 0) { var bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds); o.transform.position += Vector3.up * (soil.y - bb.min.y); }
+        IndoorPalms++;
+    }
+
+    static void DecorEnd()
+    {
         PH(MClock, V(-17.5f, FFL + 2.45f, -90.11f), 180f, "zegar", false, false, true);
         PH(MClock, V(51.0f, FFL + 2.45f, -80.11f), 180f, "zegar", false, false, true);
     }

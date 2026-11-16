@@ -114,6 +114,31 @@ public static partial class BraxChampionsAquapark
         if (!glassLeaf) Casing(lx, lz, yaw, width, height);
     }
 
+    static int gateCount;
+    // a speed-gate passage: two glass wings hinged at both sides (local x across the passage, local z along it = world x)
+    static void GateWings(string label, float lx, float lz, float width, Material inox)
+    {
+        var group = Group(root, label + " | skrzydła szklane (otwierają się przy podejściu)");
+        group.localPosition = V(lx, FFL, lz) * K; group.localRotation = Quaternion.Euler(0, 90f, 0);
+        int n = width > .9f ? 2 : 1; var leaves = new Transform[n]; var sides = new float[n];
+        for (int i = 0; i < n; i++)
+        {
+            float side = n == 1 ? -1f : (i == 0 ? -1f : 1f), lw = width / n - .02f;
+            var hinge = Group(group, "skrzydło " + (i + 1)); hinge.localPosition = new Vector3(side * width * .5f, 0, 0) * K;
+            float a0 = side < 0 ? .015f : -lw, a1 = side < 0 ? lw : -.015f;
+            var lm = new BraxChampionsMeshBatch();
+            lm.BoxMinMax(glass, a0, a1, .25f, 1.6f, -.008f, .008f);
+            lm.BoxMinMax(inox, a0, a1, 1.6f, 1.625f, -.012f, .012f);
+            float hx = side < 0 ? a0 : a1;
+            lm.BoxMinMax(inox, hx - .02f, hx + .02f, .2f, 1.65f, -.02f, .02f);
+            lm.Build(hinge, label + " skrzydło " + (i + 1), Folder, false);
+            BraxChampionsMeshBatch.Collider(hinge, "skrzydło kolizja", new Vector3((a0 + a1) * .5f, .9f, 0), new Vector3(a1 - a0, 1.8f, .05f));
+            foreach (var t in hinge.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
+            leaves[i] = hinge; sides[i] = n == 1 ? 1f : (i == 0 ? 1f : -1f);
+        }
+        var d = group.gameObject.AddComponent<BraxCityDoor>(); d.id = "aquapark_bramka_" + gateCount; d.label = label; d.leaves = leaves; d.sides = sides;
+    }
+
     // the casing of a solid door in a 15 cm partition: 8 mm steel linings over the plaster reveals (jambs and head), 7 cm
     // architraves 2 cm proud on both faces (flush with the timber panelling, which stops 10 cm from the opening)
     static void Casing(float lx, float lz, float yaw, float w, float h)
@@ -225,8 +250,7 @@ public static partial class BraxChampionsAquapark
         Finish(ti);
         // ---------------- turnstiles (3 stainless gates in the west opening)
         // SPEED GATES (owner 16.11 08:25 "co to są za tandetne bramki"): brushed stainless cabinets with rounded ends on a black
-        // granite plinth, a black glass top with the card reader and green arrows lit, tall frameless glass wings 1.6 m with
-        // stainless edges into both passages, a stainless canopy rail over the line of gates
+        // granite plinth, a black glass top with the card reader and green arrows lit
         var gateTop = S("gate_black_glass", new Color(.02f, .02f, .025f, .92f), .05f, 0f, null, true);
         var arrow = S("gate_arrow_green", new Color(.10f, .85f, .35f), .3f, 0f, new Color(.25f, 1.6f, .55f));
         var inox = Inside(BraxChampionsFoundation.LibraryMetal("aq_gate_brushed_inox", new Color(.86f, .87f, .89f)), 1.0f);
@@ -239,14 +263,12 @@ public static partial class BraxChampionsAquapark
             foreach (float ex in new[] { -14.5f, -13.5f }) m.Cylinder(gateTop, V(ex, FFL + 1.0f, z), .1f, .03f, 20);
             BL(black, -14.38f, -14.18f, FFL + 1.03f, FFL + 1.045f, z - .06f, z + .06f);                    // card reader
             foreach (float ax in new[] { -13.95f, -13.75f }) BL(arrow, ax - .04f, ax + .04f, FFL + 1.03f, FFL + 1.034f, z - .015f, z + .015f);
-            foreach (float s2 in new[] { -1f, 1f })
-            {
-                float w0 = s2 < 0 ? z - .55f : z + .1f, w1 = s2 < 0 ? z - .1f : z + .55f;
-                BL(glass, -14.02f, -13.98f, FFL + .25f, FFL + 1.6f, w0, w1);
-                BL(inox, -14.025f, -13.975f, FFL + 1.6f, FFL + 1.62f, w0, w1);
-            }
         }
-        BL(inox, -14.06f, -13.94f, FFL + 2.62f, FFL + 2.68f, -95.4f, -91.0f);
+        // the wings WORK (owner 08:46 "te bramki nadal są spierdolone" - the glass you walked through): in each of the four
+        // passages two frameless glass wings 1.6 m on stainless hinge posts at the cabinets, a real door (BraxCityDoor): they
+        // swing open as you walk up to them, close by themselves behind you, and stop you while closed
+        foreach (var (z0, z1) in new[] { (-95.35f, -94.7f), (-94.5f, -93.3f), (-93.1f, -91.9f), (-91.7f, -91.05f) })
+            GateWings("BRAMKA WEJŚCIA " + (++gateCount), -14f, (z0 + z1) * .5f, z1 - z0, inox);
         Lobby(); ChangingRoom("KOBIETY", BX0, -36f); ChangingRoom("MĘŻCZYŹNI", -36f, -14f); Spa();
         Restaurant(); Lounges();                                                                 // 16.11 08:13 "bogate wyposażenie"
         Wellness();                                                                              // 16.11 08:25 saunas, jacuzzi, pictures, plants

@@ -203,5 +203,25 @@ class SaunasSpasTowerDecor(unittest.TestCase):
         self.assertIn('Col(s0, s1, y, y + 1.6f, a.z - .06f, a.z + .06f, "balustrada");', self.t)
 
 
+class OwnAudit0846(unittest.TestCase):
+    """Owner 08:46: "sam wyciągaj błędy ... małe palmy w doniczkach w środku", "te bramki nadal są spierdolone"."""
+
+    def test_gate_wings_are_real_doors(self):
+        bud = read(ED / "BraxChampionsAquaparkBudynek.cs")
+        self.assertIn("static void GateWings(", bud)
+        self.assertIn('var d = group.gameObject.AddComponent<BraxCityDoor>(); d.id = "aquapark_bramka_" + gateCount;', bud)
+        self.assertIn("BraxChampionsMeshBatch.Collider(hinge, \"skrzydło kolizja\"", bud)
+
+    def test_indoor_potted_palms_and_decks(self):
+        w = read(ED / "BraxChampionsAquaparkWellness.cs")
+        self.assertIn("static void IndoorPalm(float x, float z, int i)", w)
+        self.assertIn("o.transform.localScale *= 2.3f * K / h;", w)
+        wy = read(ED / "BraxChampionsAquaparkWyposazenie.cs")
+        self.assertIn("Palm(deckPalms, new Vector3(c.x, DY + .32f, c.y), 50 + dp++);", wy)
+        self.assertIn('PH(MStool, p,', wy)
+        self.assertIn('rock=Tex("waterfall_rock_boulder","rock_boulder_dry",1.8f', read(ED / "BraxChampionsAquapark.cs"))
+        self.assertIn("'rock_boulder_dry'", read(ROOT / "unity-tools/mistrzowie/prepare_assets.py"))
+
+
 if __name__ == "__main__":
     unittest.main()
