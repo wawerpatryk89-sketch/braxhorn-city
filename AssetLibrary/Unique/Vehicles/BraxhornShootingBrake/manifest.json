@@ -1,0 +1,54 @@
+{
+  "id": "braxhorn.vehicle.shooting_brake",
+  "displayName": "Braxhorn Shooting Brake",
+  "version": "1.0.0",
+  "designRevision": 10,
+  "scope": "shared, all city regions",
+  "ownerApproval": {
+    "status": "approved for shared game assets",
+    "date": "2026-11-16"
+  },
+  "sourceStorage": {
+    "type": "private owner library",
+    "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
+    "editableFile": "Braxhorn_Shooting_Brake_10.blend",
+    "editableSHA256": "57cf29cd287d8bf750207e78168de8b77b1c0232b01b6aeb89222ee79d72ccf1",
+    "sourceFile": "Braxhorn_Shooting_Brake.glb",
+    "sourceSHA256": "efc78d2b9d1e40cd0b4a9de04bf4034e8de579320864997cd08919b9891b476c",
+    "packageFile": "BraxhornShootingBrake.unitypackage"
+  },
+  "model": {
+    "bytes": 48781484,
+    "sha256": "efc78d2b9d1e40cd0b4a9de04bf4034e8de579320864997cd08919b9891b476c",
+    "trianglesInstanced": 927652,
+    "meshes": 85,
+    "widthIncludingMirrorsM": 1.896,
+    "lengthM": 4.837,
+    "heightM": 1.45,
+    "wheelPivots": [
+      "Wheel_FL",
+      "Wheel_FR",
+      "Wheel_RL",
+      "Wheel_RR"
+    ],
+    "embeddedImages": 18,
+    "sourceUnit": "metre",
+    "gltfForward": "-Z"
+  },
+  "unityPackage": {
+    "assetPath": "Assets/Braxhorn/Shared/Vehicles/BraxhornShootingBrake.glb",
+    "assetGuid": "49ff7d7787da5af8bb88d0d050fca7b0",
+    "sha256": "fd56e504392d31909d7a9b9e63be19b2e6f059f41e14181e692cec3da947c7c8",
+    "bytes": 27886944,
+    "importer": "com.unity.cloud.gltfast",
+    "worldScaleApplied": false
+  },
+  "validation": {
+    "unityPackageByteMatch": true,
+    "triangleCountMatchesSource": true,
+    "unityPlayMode": "untested",
+    "androidDevice": "untested",
+    "sharedGeometryAppliedToRegionScenes": false,
+    "blenderReimport": true
+  }
+}
