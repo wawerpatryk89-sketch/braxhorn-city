@@ -164,5 +164,21 @@ class UstawkiIKomis(unittest.TestCase):
             self.assertIn("pojazdy_komis_01/" + plik + ".glb", man["files"])
 
 
+
+class ZdjeciaZEdytora(unittest.TestCase):
+    """Właściciel 19:02: „bez zdjęcia nic nie akceptuje” — zdjęcia nowych miejsc z gotowej sceny w tym samym przebiegu APK."""
+    def test_photos_before_scene_save_and_split(self):
+        gym = src(ROOT / "unity-city/Assets/Editor/BraxGymBuild.cs")
+        i_z = gym.index("BraxR1Zdjecia.Wykonaj(scene)")
+        self.assertLess(gym.index("BraxWyspaOdbior.SprawdzScene(scene);"), i_z)
+        self.assertLess(i_z, gym.index('string scenePath=osiedle?null:Generated+(fullCity?"/BraxhornCity.unity"'))
+        z = src(REG / "BraxR1Zdjecia.cs")
+        self.assertIn('public const string Katalog = "Logs/r1-zdjecia";', z)            # unity-city/Logs/ = artefakt diagnostyki
+        self.assertIn("if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)", z)
+        self.assertEqual(len(re.findall(r'\("\d\d_\w+", new Vector3', z)), 12)
+        wf = (ROOT / ".github/workflows/claude-region-build.yml").read_text(encoding="utf-8")
+        self.assertIn("unity-city/Logs/", wf)
+
+
 if __name__ == "__main__":
     unittest.main()

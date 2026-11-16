@@ -412,6 +412,8 @@ public static class BraxGymBuild
         // C1 (2.11, różowe jachty/żurawie/budka): kontrola końcowa — renderery z materiałem NULL / bez shadera (cel 0), przed zapisem.
         if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pamiec(scene,"przed_zapisem_sceny");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrola braku materiałów (pamięć): "+e);}
         if(fullCity&&!osiedle)BraxWyspaOdbior.SprawdzScene(scene);   // 9.11: odbiór wyspy — tylko ostrzeżenia i JSON, bez throw
+        // 16.11 19:02 (właściciel: „bez zdjęcia nic nie akceptuje”): zdjęcia nowej części miasta z gotowej sceny, przed zapisem i podziałem
+        if(fullCity&&!osiedle)try{BraxR1Zdjecia.Wykonaj(scene);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_ZDJECIA: "+e);}
         // Miasto na 2 obszary (właściciel 1.11): nabrzeże (port, plaża, las za plażą, marina, metro, wyspa) osobną sceną,
         // doczytywaną w tle 45 m przed granicą i zwalnianą 110 m od niej (BraxObszary). Scena startowa = centrum.
         string scenePath=osiedle?null:Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!osiedle&&!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
