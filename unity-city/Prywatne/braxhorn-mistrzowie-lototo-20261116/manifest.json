@@ -1,0 +1,18 @@
+{
+ "source": "owner 16.11.2026 23:06: his poster of LOTOTO BRAX CASH (\"DO WYGRANIA 10 000 000 ZŁ · DWA LOSOWANIA W TYGODNIU · WYNIKI NA ŻYWO W TELEWIZJI · CODZIENNIE O 20:00\"), 1024 x 1536 - used 1:1: the poster on its stand in the BRAXHORN BET and its logo cut 1:1 on the studio's wall and the kolektura's counter",
+ "target": "Assets/Source/Mistrzowie/LototoWlasciciel/plakaty (install_owner_media.py; BraxChampionsKasynoSprzet.Lototo)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "73e19d387715ef6990c7fa38695f50472fb9d6cb672f4b0e9df37bd136ef8891",
+ "cmsSha256": "3bd7cf0903c43202ea55aa92d438fbf64072c0bd9eb97b3cfdb1b0bf156a130b",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 2081325,
+   "sha256": "3bd7cf0903c43202ea55aa92d438fbf64072c0bd9eb97b3cfdb1b0bf156a130b"
+  }
+ ],
+ "files": {
+  "plakaty/lototo_brax_cash.png": "93f26368c6220f093a4916f6f54e3a6a8c8cb19ba80b7419e72f3c8e01aca081"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

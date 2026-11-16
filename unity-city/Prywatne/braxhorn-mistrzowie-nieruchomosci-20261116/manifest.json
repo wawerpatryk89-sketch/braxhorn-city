@@ -1,0 +1,18 @@
+{
+ "source": "owner 16.11.2026 23:12 (\"To masz do Biura Nieruchomości\"): his poster WAWER NIERUCHOMOŚCI - Poznaj Monikę (Monika, his partner: private, only encrypted - ZASADA Patryk i Monika), 1024 x 1536, for the real estate office in Miasto Mistrzów (23:13: and three luxury villas for sale later)",
+ "target": "Assets/Source/Mistrzowie/NieruchomosciWlasciciel/plakaty (install_owner_media.py; the office, to be built)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "72fa2c36945950ac3b0120aa59eb67419a8d1ee94b7a5534e40a21803877fd30",
+ "cmsSha256": "043050c5c086fa268d8b4cbc17de28eca86896dd7951b79cbd2410d71161fae2",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 2337573,
+   "sha256": "043050c5c086fa268d8b4cbc17de28eca86896dd7951b79cbd2410d71161fae2"
+  }
+ ],
+ "files": {
+  "plakaty/wawer_nieruchomosci_monika.png": "56cef2c635328fff4905aa5e090c6af00ae4e3912737294e44122c73502ea879"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

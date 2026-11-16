@@ -6,6 +6,7 @@
 //     the jackpot grows by 2 % of the stake and pays out.
 // usage: dotnet run -- [spins]   (exit 1 on any mismatch)
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using Z = BraxChampionsAutomatyZasady;
@@ -224,6 +225,96 @@ static class Program
         Check(l.grounded && l.rotor == 0f, "heli: landed, the rotor runs down in 9 s");
         Console.WriteLine("HELIKOPTER spool {0:F1} s, climb {1:F1} m/10 s, cruise {2:F0} km/h, turn {3:F0} deg/s, sink {4:F1} m/5 s", tu, climb, 234f, turned, sink);
     }
+    // LOTOTO BRAX CASH (owner 16.11 22:52-23:08): the schedule (Wednesday, Saturday 20:00 by the phone's clock), the draws
+    // from their date (the same everywhere, six different of 1-49, fair), the real 6 of 49 odds and the prize table, the
+    // kumulacja, the coupons, buying at the counter, and the studio's show: the balls mix inside the drum and the six come out
+    // to their cups in the order drawn
+    static void Lototo()
+    {
+        var F = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+        var D = new DateTime(2026, 11, 18, 20, 0, 0);
+        Check(BraxChampionsLototo.Zasady.Nastepne(new DateTime(2026, 11, 16, 23, 0, 0)) == D, "lototo: the next draw Wednesday 18.11 20:00");
+        Check(BraxChampionsLototo.Zasady.Nastepne(D.AddSeconds(1)) == new DateTime(2026, 11, 21, 20, 0, 0), "lototo: then Saturday 20:00");
+        Check(BraxChampionsLototo.Zasady.Nastepne(D) == D, "lototo: a draw starting now is the next");
+        Check(BraxChampionsLototo.Zasady.Ostatnie(new DateTime(2026, 11, 21, 20, 0, 30)) == new DateTime(2026, 11, 21, 20, 0, 0), "lototo: the last draw");
+        Check(BraxChampionsLototo.Zasady.Ostatnie(new DateTime(2026, 11, 17, 12, 0, 0)) == DateTime.MinValue, "lototo: none before the first");
+        var cnt = new int[50]; int draws = 0; bool ok = true;
+        for (var d = D; d < D.AddYears(40); d = BraxChampionsLototo.Zasady.Nastepne(d.AddMinutes(1)), draws++)
+        {
+            var w = BraxChampionsLototo.Zasady.Losuj(BraxChampionsLototo.Zasady.Id(d));
+            ok &= w.Length == 6 && new HashSet<int>(w).Count == 6 && Array.TrueForAll(w, x => x >= 1 && x <= 49);
+            foreach (int x in w) cnt[x]++;
+        }
+        Check(ok, "lototo: six different numbers of 1-49 every draw");
+        double exp = draws * 6.0 / 49; int mn = int.MaxValue, mx = 0; for (int x = 1; x <= 49; x++) { mn = Math.Min(mn, cnt[x]); mx = Math.Max(mx, cnt[x]); }
+        Check(mn > exp * .85 && mx < exp * 1.15, "lototo: every number as often (" + mn + ".." + mx + " of " + exp.ToString("F0") + ")");
+        Check(Liczby(BraxChampionsLototo.Zasady.Losuj(20261118)) == Liczby(BraxChampionsLototo.Zasady.Losuj(20261118)), "lototo: the same draw on every phone");
+        double Cn(int n, int k) { double r = 1; for (int i = 1; i <= k; i++) r = r * (n - k + i) / i; return r; }
+        double all = Cn(49, 6), ret = 0; var pk = new double[7];
+        for (int k = 0; k <= 6; k++) { pk[k] = Cn(6, k) * Cn(43, 6 - k) / all; if (k >= 3 && k <= 5) ret += pk[k] * BraxChampionsLototo.Zasady.Wygrane[k]; }
+        Check(Math.Abs(all - 13983816) < .5, "lototo: 13 983 816 combinations");
+        Check(BraxChampionsLototo.Zasady.Wygrane[3] == 24 && BraxChampionsLototo.Zasady.Cena == 3, "lototo: 3 zł a bet, the three pays 24 zł (8x, the real three)");
+        var rng = new System.Random(5); var hits = new long[7]; const int N = 300000;
+        for (int i = 0; i < N; i++) hits[BraxChampionsLototo.Zasady.Trafienia(BraxChampionsLototo.Zasady.ChybilTrafil(rng), BraxChampionsLototo.Zasady.Losuj(20261118 + i % 5000))]++;
+        Check(Math.Abs(hits[3] / (double)N - pk[3]) < .0012, "lototo: three hits on 1.77 % of bets (" + (100.0 * hits[3] / N).ToString("F2") + " %)");
+        int k0 = BraxChampionsLototo.Zasady.Kumulacja(D), k1 = BraxChampionsLototo.Zasady.Kumulacja(new DateTime(2026, 11, 21, 20, 0, 0));
+        bool six = BraxChampionsLototo.Zasady.Szostka(20261118);
+        Check(k0 == 10000000 && k1 == (six ? 10000000 : 12500000), "lototo: the kumulacja from 10 000 000, +2 500 000 a draw without a six");
+        var c = new List<(int, int[])> { (20261118, new[] { 1, 2, 3, 4, 5, 6 }), (20261121, new[] { 7, 14, 21, 28, 35, 49 }) };
+        var back = BraxChampionsLototo.Zasady.Czytaj(BraxChampionsLototo.Zasady.Zapisz(c));
+        Check(back.Count == 2 && back[1].Item1 == 20261121 && back[1].Item2[5] == 49, "lototo: the coupons kept");
+        Console.WriteLine("LOTOTO 6 z 49: draws (40 years) {0}, numbers {1}..{2} times (expected {3:F0}); return without the kumulacja {4:F3}, with it (10 mln) {5:F3}; three hits {6:F2} %",
+            draws, mn, mx, exp, ret / 3, (ret + pk[6] * 10000000) / 3, 100.0 * hits[3] / N);
+        // the studio: the drum, 49 balls, the way out, six cups
+        var g = new GameObject("lototo"); var L = g.AddComponent<BraxChampionsLototo>();
+        Transform T(string n, Vector3 at) { var t = new GameObject(n).transform; t.SetParent(g.transform, false); t.localPosition = at; return t; }
+        L.beben = T("beben", new Vector3(0, 1.3f, 0)); L.kule = new Transform[49];
+        for (int i = 0; i < 49; i++) { var t = new GameObject("kula " + (i + 1)).transform; t.SetParent(L.beben, false); L.kule[i] = t; }
+        L.tor = new[] { T("t0", new Vector3(0, 1.72f, 0)), T("t1", new Vector3(.14f, 1.78f, .06f)), T("t2", new Vector3(.42f, 1.40f, .30f)), T("t3", new Vector3(.62f, 1.12f, .52f)) };
+        L.miejsca = new Transform[6]; for (int k = 0; k < 6; k++) L.miejsca[k] = T("m" + k, new Vector3(.74f + k * .12f, 1.12f, .52f));
+        L.lada = T("lada", new Vector3(10, 0, 0)); L.szyba = T("szyba", new Vector3(20, 0, 0));
+        var tab = new GameObject("tablica"); L.tablica = tab.AddComponent<MeshFilter>();
+        var szer = Environment.GetEnvironmentVariable("LOTOTO_SZER");                     // the words' widths (the generator measures them)
+        if (!string.IsNullOrEmpty(szer)) L.slowaSzer = Array.ConvertAll(szer.Split(','), x => float.Parse(x, System.Globalization.CultureInfo.InvariantCulture));
+        var T_ = typeof(BraxChampionsLototo); T_.GetMethod("Start", F, null, Type.EmptyTypes, null).Invoke(L, null);
+        float lim = L.bebenR - L.kulaR; bool inside = true; float minD = 9f;
+        L.Pokaz(20261118, 0f, true);
+        var upd = T_.GetMethod("Update", F); Time.deltaTime = 1f / 30f;
+        for (int f = 0; f < 30 * 95; f++)
+        {
+            upd.Invoke(L, null);
+            if (f % 30 == 0)
+                for (int i = 0; i < 49; i++)
+                {
+                    if (L.WDrodze(i)) continue;
+                    inside &= L.Pozycja(i).magnitude <= lim + .002f;
+                    for (int j = i + 1; j < 49; j++) if (!L.WDrodze(j)) minD = Math.Min(minD, (L.Pozycja(i) - L.Pozycja(j)).magnitude);
+                }
+        }
+        Check(inside, "lototo: the balls stay inside the drum");
+        Check(minD > 1.4f * L.kulaR, "lototo: the balls never sink into each other (" + (minD / L.kulaR).ToString("F2") + " r)");
+        var w0 = BraxChampionsLototo.Zasady.Losuj(20261118); bool cups = true;
+        for (int k = 0; k < 6; k++) cups &= (L.kule[w0[k] - 1].position - L.miejsca[k].position).magnitude < .001f;
+        Check(cups, "lototo: the six in their cups in the order drawn");
+        Check(L.tablica.sharedMesh != null && L.tablica.sharedMesh.vertices.Length >= 4 * (1 + 6 + 3), "lototo: the results board drawn");
+        var dump = Environment.GetEnvironmentVariable("LOTOTO_TABLICA_JSON");
+        if (!string.IsNullOrEmpty(dump))
+        {
+            var m = L.tablica.sharedMesh; var sb = new System.Text.StringBuilder("{\"v\":[");
+            for (int i = 0; i < m.vertices.Length; i++) sb.Append((i > 0 ? "," : "") + "[" + m.vertices[i].x.ToString(System.Globalization.CultureInfo.InvariantCulture) + "," + m.vertices[i].y.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]");
+            sb.Append("],\"uv\":[");
+            for (int i = 0; i < m.uv.Length; i++) sb.Append((i > 0 ? "," : "") + "[" + m.uv[i].x.ToString(System.Globalization.CultureInfo.InvariantCulture) + "," + m.uv[i].y.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]");
+            System.IO.File.WriteAllText(dump, sb.Append("]}").ToString());
+        }
+        // the counter: a coupon for the next draw for 3 zł
+        PlayerPrefs.DeleteAll(); int kr = BraxChampionsKasyno.Kredyt; var at = L.lada.position + new Vector3(.3f, 0, 0);
+        Check(L.Kontekst(at).StartsWith("LOTOTO BRAX CASH · KUPON 3 ZŁ"), "lototo: the counter offers a coupon (" + L.Kontekst(at) + ")");
+        L.Wykonaj(at);
+        var kupony = BraxChampionsLototo.Zasady.Czytaj(PlayerPrefs.GetString("braxhorn_lototo_kupony", ""));
+        Check(BraxChampionsKasyno.Kredyt == kr - 3 && kupony.Count == 1 && kupony[0].Item1 == BraxChampionsLototo.Zasady.Id(BraxChampionsLototo.Zasady.Nastepne(DateTime.Now)), "lototo: a coupon bought for the next draw");
+        Check(L.Kontekst(L.szyba.position).StartsWith("LOTOTO · POWTÓRKA") || BraxChampionsLototo.Zasady.Ostatnie(DateTime.Now) == DateTime.MinValue, "lototo: the replay at the glass");
+    }
+    static string Liczby(int[] w) => string.Join(",", w);
     static void Check(bool ok, string what) { if (!ok) { fails++; if (fails < 20) Console.WriteLine("FAIL " + what); } }
 
     static int Main(string[] args)
@@ -406,6 +497,7 @@ static class Program
         Check(BraxChampionsKasyno.Jackpot == BraxChampionsKasyno.JackpotStart + 10, "jackpot +2 % (" + BraxChampionsKasyno.Jackpot + ")");
         Check(BraxChampionsKasyno.WezJackpot() == BraxChampionsKasyno.JackpotStart + 10 && BraxChampionsKasyno.Jackpot == BraxChampionsKasyno.JackpotStart, "jackpot pays and restarts");
         Lot();
+        Lototo();
         Console.WriteLine(fails == 0 ? "AUTOMATY_SIM OK" : "AUTOMATY_SIM FAILED " + fails);
         return fails == 0 ? 0 : 1;
     }

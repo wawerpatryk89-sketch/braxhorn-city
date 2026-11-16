@@ -21,5 +21,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsRuletka.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsLot.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsLototo.cs" />
   </ItemGroup>
 </Project>

@@ -133,6 +133,7 @@ namespace UnityEngine
             if (original is GameObject g) { var c = new GameObject(g.name + "(Clone)"); c.transform.SetParent(parent, false); return c as T; }
             return original;
         }
+        public static void Destroy(Object o) { if (o is GameObject) DestroyImmediate(o); }
         public static void DestroyImmediate(Object o)
         {
             if (o is GameObject g) { g.transform.SetParent(null, false); GameObject.Registry.Remove(g); }
@@ -187,6 +188,7 @@ namespace UnityEngine
         public Transform Find(string n) => children.FirstOrDefault(c => c.gameObject.name == n);
         public Vector3 up => rotation * Vector3.up; public Vector3 forward => rotation * Vector3.forward; public Vector3 right => rotation * Vector3.right;
         public Vector3 eulerAngles { get { var f = rotation * Vector3.forward; return new Vector3(0, (float)(Math.Atan2(f.x, f.z) * 180 / Math.PI), 0); } }
+        public void SetPositionAndRotation(Vector3 p, Quaternion q) { position = p; rotation = q; }
         public void Rotate(Vector3 axis, float angle, Space space) { localRotation = localRotation * Quaternion.AngleAxis(angle, axis); }
         public void RotateAround(Vector3 point, Vector3 axis, float angle) { var q = Quaternion.AngleAxis(angle, axis); var p = position; position = point + q * (p - point); rotation = q * rotation; }
         public Vector3 TransformPoint(Vector3 v) { var l = localPosition + localRotation * Vector3.Scale(localScale, v); return parent == null ? l : parent.TransformPoint(l); }
@@ -522,4 +524,18 @@ public sealed class BraxChampionsFontanna : UnityEngine.MonoBehaviour
     public UnityEngine.Vector3[] a = new UnityEngine.Vector3[0], b = new UnityEngine.Vector3[0]; public float[] h = new float[0], w = new float[0];
     public int[] n = new int[0]; public bool[] plusk = new bool[0]; public UnityEngine.Vector3[] lustroC = new UnityEngine.Vector3[0];
     public float[] lustroR = new float[0]; public float g, lift, zasieg = 180f, czujnik; public UnityEngine.Material woda, tafla;
+}
+// LOTOTO BRAX CASH (Assets/Mistrzowie/BraxChampionsLototo.cs): the atlas rectangle, the studio camera's render texture (the
+// camera renders nothing here)
+namespace UnityEngine
+{
+    public struct RectInt { public int x, y, width, height; public RectInt(int x, int y, int w, int h) { this.x = x; this.y = y; width = w; height = h; } }
+    public enum RenderTextureFormat { ARGB32, Default }
+    public enum CameraClearFlags { Skybox = 1, SolidColor = 2, Depth = 3, Nothing = 4 }
+    public class RenderTexture : Texture
+    {
+        public int antiAliasing = 1;
+        public RenderTexture(int w, int h, int depth, RenderTextureFormat f) { }
+        public void Release() { }
+    }
 }

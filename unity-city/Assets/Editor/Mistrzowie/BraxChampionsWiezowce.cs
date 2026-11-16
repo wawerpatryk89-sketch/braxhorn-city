@@ -365,7 +365,7 @@ public static class BraxChampionsWiezowce
         Tower t=default;bool found=false;
         foreach(var x in Towers)if(x.id==id){t=x;found=true;}
         if(!found)throw new ArgumentException("Unknown tower plot "+id);
-        outFolder=folder;towerId=id;doors=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;roulettes=0;obsluga=0;ownerMissing=0;heliY=float.NaN;helis=0;hung.Clear();Materials(ext);
+        outFolder=folder;towerId=id;doors=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;roulettes=0;obsluga=0;ownerMissing=0;heliY=float.NaN;helis=0;betEkrany.Clear();lototo=null;hung.Clear();Materials(ext);
         Physics.SyncTransforms();
         float datum=0f;
         if(Physics.Raycast(new Vector3(t.x,80f,t.z)*K,Vector3.down,out var hit,200f*K,~0,QueryTriggerInteraction.Ignore))
@@ -422,7 +422,7 @@ public static class BraxChampionsWiezowce
         if(doors<1)BraxBuildQuality.Warn("DO POPRAWKI TOWER_"+id+"_ENTRANCE_DOOR_MISSING");
         Debug.Log("CHAMPIONS_TOWER "+id+" "+t.name+" shape="+t.shape+" floors="+t.floors+" height="+(roof).ToString("F1")+"m nominal ("+
             (roof*K).ToString("F1")+" world) meshes="+saved+" curtainWall=units:"+glassUnits+",frameChunks:"+chunks+" doors="+doors+" seats="+seats+" models="+models+" palms="+palms+" lights="+lights.Count+
-            (betScreens>0?" BRAXHORN_BET screens="+betScreens+" films=0 (street premises)":""));
+            (betScreens>0?" BRAXHORN_BET screens="+betScreens+" films=0 (street premises) lototo="+(lototo?"studio+kolektura":"none"):""));
     }
 
     // ---------------- the plot: granite plaza over the whole 55 x 55 m, planters, the tower stands on it ----------------
@@ -1383,7 +1383,8 @@ public static class BraxChampionsWiezowce
         }
         foreach(float x in new[]{-16.8f,-11.0f})Model("HotelSobczak/side_table_01/side_table_01_1k.gltf","BET side table",new Vector3(x,y0,5.9f),0f);
         // high tables: a black steel post on a round foot, a walnut top 70 cm, two bar stools each, a pendant over each
-        foreach(var (hx,z) in new[]{(-13.2f,-1.5f),(-13.2f,-6.5f),(-13.2f,-11.5f),(-17.4f,-4.0f),(-17.4f,-9.0f),(-17.4f,-14.0f)})
+        // (16.11: the west middle one gave way to the LOTOTO studio)
+        foreach(var (hx,z) in new[]{(-13.2f,-1.5f),(-13.2f,-6.5f),(-13.2f,-11.5f),(-17.4f,-4.0f),(-17.4f,-14.0f)})
         {
             var p=new Vector3(hx,y0,z);
             W.Walec(black,p,.25f,.02f,24);W.Walec(black,p+Vector3.up*.02f,.04f,1.01f,12);W.Walec(walnut,p+Vector3.up*1.03f,.35f,.04f,32);
@@ -1401,9 +1402,18 @@ public static class BraxChampionsWiezowce
         Model("ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf","BET plant",new Vector3(-8.6f,y0,13.6f),0f);
         foreach(float z in new[]{-14f,-6f,2f,10f})foreach(float x in new[]{-16.4f,-10.2f})
             lights.Add(W.Lampa("BRAXHORN BET light",new Vector3(x,ceil-1.0f,z),.9f,11f,new Color(.96f,.98f,1f)));
+        // LOTOTO BRAX CASH (owner 16.11 22:52-23:08: "Kolektura ... i w telewizorach losowanie", the studio "w tym BRAXHORN
+        // BET", his poster): the draw studio against the west glass (where a high table stood), the kolektura's counter by the
+        // partition south of the tills, the coupon desk and his poster on a stand in the hall; every screen of the premises
+        // shows the studio's camera - a live picture of the game, not a film (BraxChampionsLototo)
+        W.Grupa=inside;W.Wnetrze=true;
+        lototo=BraxChampionsKasynoSprzet.Lototo(inside,kat,new Vector3(-17.4f,y0,-9.2f),90f,new Vector3(split-2.37f,y0,-4.2f),90f,
+            new Vector3(-11.4f,y0,-3.6f),270f,new Vector3(-11.2f,y0,-8.4f),180f,betEkrany);
     }
     // a BRAXHORN BET screen: the catalogue TV on the wall, its picture the black glass of a TV that is off and NO film player
     // (owner 11.11 21:48: films only in flats, hotels, apartments - never in street premises)
+    // (16.11 23:03: the screens show the LOTOTO studio's camera - the draws live and the results; still never a film)
+    static readonly List<Renderer> betEkrany=new List<Renderer>();static BraxChampionsLototo lototo;
     static void BetScreen(BraxKatalog.Ctx ctx,Vector3 p,Vector3 f,float inches,string label)
     {
         BraxKatalog.Materials();
@@ -1412,7 +1422,8 @@ public static class BraxChampionsWiezowce
         foreach(var tv in inside.GetComponentsInChildren<BraxTelewizor>(true))
         {
             if(before.Contains(tv))continue;
-            tv.gameObject.name=label+" | ekran wyłączony (bez filmów; transmisje walk ligi BRAXHORN BET)";
+            tv.gameObject.name=label+" | ekran bez filmów: studio LOTOTO BRAX CASH na żywo (transmisje walk ligi BRAXHORN BET)";
+            var r=tv.GetComponent<Renderer>();if(r)betEkrany.Add(r);
             UnityEngine.Object.DestroyImmediate(tv);
         }
         betScreens++;

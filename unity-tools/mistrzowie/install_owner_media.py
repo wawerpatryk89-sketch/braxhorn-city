@@ -23,6 +23,10 @@ assety od właściciela pakować od razu):
                                                         Helikopter/braxhorn_ec135.glb + _tekstury/ -> Assets/Source/
                                                         Mistrzowie/Helikopter/ (the heliport of the BRAXHORN TOWER); zrodlo/
                                                         (his original) stays in the pack
+  unity-city/Prywatne/braxhorn-mistrzowie-lototo-20261116/ his LOTOTO BRAX CASH poster (16.11 23:06) -> Assets/Source/Mistrzowie/
+                                                        LototoWlasciciel/plakaty/ 1:1 (the poster, its logo on the studio's wall)
+  unity-city/Prywatne/braxhorn-mistrzowie-nieruchomosci-20261116/ his WAWER NIERUCHOMOŚCI poster with Monika (16.11 23:12, private)
+                                                        -> Assets/Source/Mistrzowie/NieruchomosciWlasciciel/plakaty/ 1:1
 
 Each pack: tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (the owner's CI transfer certificate "Braxhorn camp
 input transfer", release oboz-transfer-key-41749904696) -> parts <= 90 MB with SHA-256 in manifest.json. The private key
@@ -52,6 +56,9 @@ KASYNO_DIR = ROOT / "unity-city/Assets/Source/Mistrzowie/KasynoWlasciciel"
 # 16.11 22:00: the BRAXHORN EC135 on the BRAXHORN TOWER (BraxChampionsWiezowce.HeliModel)
 HELIKOPTER = "braxhorn-mistrzowie-helikopter-20261116"
 MISTRZOWIE_SRC = ROOT / "unity-city/Assets/Source/Mistrzowie"
+# 16.11 23:06 / 23:12: his posters, each pack's files byte for byte into its folder
+PLAKATY = (("braxhorn-mistrzowie-lototo-20261116", "LototoWlasciciel", "the LOTOTO studio and kolektura carry drawn names"),
+           ("braxhorn-mistrzowie-nieruchomosci-20261116", "NieruchomosciWlasciciel", "the real estate office has no poster"))
 SA = ROOT / "unity-city/Assets/StreamingAssets/Mistrzowie"
 WIDEO = ROOT / "unity-city/Assets/StreamingAssets/BraxhornWideo"
 TELEWIZOR = ROOT / "unity-city/Assets/BraxhornWideo/BraxTelewizor.cs"
@@ -193,6 +200,17 @@ def main():
             print("BRAX_HELIKOPTER_OK files=%d -> %s" % (n, (MISTRZOWIE_SRC / "Helikopter").relative_to(ROOT)))
         else:
             print("BRAX_HELIKOPTER_MISSING " + HELIKOPTER + " (the heliport of the BRAXHORN TOWER stays empty)")
+        for name, folder, without in PLAKATY:
+            pk = open_pack(name, tmp)
+            if pk:
+                n = 0
+                for f in sorted(pk.rglob("*.png")):
+                    dst = MISTRZOWIE_SRC / folder / f.relative_to(pk)
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(f, dst); n += 1
+                print("BRAX_PLAKATY_OK %s files=%d -> %s" % (name, n, (MISTRZOWIE_SRC / folder).relative_to(ROOT)))
+            else:
+                print("BRAX_PLAKATY_MISSING " + name + " (" + without + ")")
         ads = open_pack("mistrzowie-kino-reklamy-20261112", tmp)
         if ads:
             (SA / "Kino").mkdir(parents=True, exist_ok=True)
