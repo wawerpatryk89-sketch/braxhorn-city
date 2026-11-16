@@ -71,13 +71,15 @@ jobs:
       run: |
         set -euo pipefail
         export BRAX_PROBA_KLATKI="$RUNNER_TEMP/klatki"
-        chmod +x build/proba/Osiedle.x86_64
+        player_dir="$RUNNER_TEMP/osiedle-player"
+        cp -R build/proba "$player_dir"
+        chmod u+x "$player_dir/Osiedle.x86_64"
         sudo apt-get -qq update
         sudo apt-get -qq install -y xvfb xauth ffmpeg libgl1-mesa-dri pulseaudio pulseaudio-utils
         pulseaudio --start --exit-idle-time=-1
         pactl load-module module-null-sink sink_name=brax_test
         pactl set-default-sink brax_test
-        timeout 150 xvfb-run -a -s '-screen 0 800x600x24' build/proba/Osiedle.x86_64 -force-glcore -screen-width 800 -screen-height 600 -screen-fullscreen 0 -logFile "$RUNNER_TEMP/proba.log" || { tail -80 "$RUNNER_TEMP/proba.log"; exit 1; }
+        timeout 150 xvfb-run -a -s '-screen 0 800x600x24' "$player_dir/Osiedle.x86_64" -force-glcore -screen-width 800 -screen-height 600 -screen-fullscreen 0 -logFile "$RUNNER_TEMP/proba.log" || { tail -80 "$RUNNER_TEMP/proba.log"; exit 1; }
         grep BRAX_PROBA "$RUNNER_TEMP/proba.log"
         grep -Fx 'PASS Idle Walk Run Idle; PASS blink and speech' "$BRAX_PROBA_KLATKI/wynik.txt"
         ffmpeg -hide_banner -loglevel error -framerate 24 -i "$BRAX_PROBA_KLATKI/%04d.jpg" -frames:v 192 -c:v libx264 -pix_fmt yuv420p -movflags +faststart Patryk_joystick_Unity.mp4
