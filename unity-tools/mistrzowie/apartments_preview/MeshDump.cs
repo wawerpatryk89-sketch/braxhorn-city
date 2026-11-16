@@ -93,7 +93,7 @@ public static class MeshDump
             var m = mr.sharedMaterial; mats[m.name] = m;
             var v = mf.sharedMesh.vertices.Select(p => root.InverseTransformPoint(mf.transform.TransformPoint(p)) / scale).ToArray();
             var tr = mf.sharedMesh.triangles; tris += tr.Length / 3; objects++;
-            string uv = m.picture != null && mf.sharedMesh.uv != null && mf.sharedMesh.uv.Length == v.Length ? ",[" + string.Join(",", mf.sharedMesh.uv.Select(u => F(u.x) + "," + F(u.y))) + "]" : "";
+            string uv = (m.picture != null || m.skyGlass) && mf.sharedMesh.uv != null && mf.sharedMesh.uv.Length == v.Length ? ",[" + string.Join(",", mf.sharedMesh.uv.Select(u => F(u.x) + "," + F(u.y))) + "]" : "";
             if (parts++ > 0) sb.Write(',');
             sb.Write("[\"" + mf.gameObject.name.Replace("\"", "'").Replace("\\", "/") + "\",\"" + m.name + "\",[" + string.Join(",", v.Select(V)) + "],[" + string.Join(",", tr) + "]" + uv + "]");
         }
@@ -120,7 +120,8 @@ public static class MeshDump
         sb.Write(string.Join(",", mats.Select(kv => "\"" + kv.Key + "\":[" + string.Join(",", new[] { kv.Value.sky.r, kv.Value.sky.g, kv.Value.sky.b, kv.Value.ground.r, kv.Value.ground.g, kv.Value.ground.b, kv.Value.ambient }.Select(F)) + "]")));
         sb.Write("},\"pbr\":{");
         sb.Write(string.Join(",", mats.Select(kv => "\"" + kv.Key + "\":{\"metallic\":" + F(kv.Value.metallic) + ",\"roughness\":" + F(kv.Value.roughness) + ",\"emission\":[" +
-            F(kv.Value.emission.r) + "," + F(kv.Value.emission.g) + "," + F(kv.Value.emission.b) + "]" + (kv.Value.picture != null ? ",\"picture\":\"" + kv.Value.picture + "\"" : "") + "}")));
+            F(kv.Value.emission.r) + "," + F(kv.Value.emission.g) + "," + F(kv.Value.emission.b) + "]" + (kv.Value.picture != null ? ",\"picture\":\"" + kv.Value.picture + "\"" : "") +
+            (kv.Value.skyGlass ? ",\"glass\":[" + F(kv.Value.glassF0.r) + "," + F(kv.Value.glassF0.g) + "," + F(kv.Value.glassF0.b) + "]" : "") + "}")));
         sb.Write("},\"lights\":[");
         var lights = new List<string>();
         foreach (var l in root.gameObject.GetComponentsInChildren<Light>(true))

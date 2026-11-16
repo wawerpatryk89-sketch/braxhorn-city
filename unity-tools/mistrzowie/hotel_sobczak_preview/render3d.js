@@ -21,6 +21,11 @@ const FLAT = process.env.PREVIEW_FLAT === '1';
 // sidewalks over it (Unity coordinates, nominal metres).
 const GROUND_TEX = process.env.PREVIEW_GROUND_TEX || '';
 const GROUND_BANDS = process.env.PREVIEW_GROUND_BANDS || '[]';
+// PREVIEW_SKY_HDR=<.hdr>: the region's real sky panorama (BraxChampionsSky: Poly Haven, Skybox/Panoramic turned
+// PREVIEW_SKY_ROT degrees, exposure PREVIEW_SKY_EXPO) as the background, and in the tower glass (materials whose pbr has
+// "glass": Braxhorn/ChampionsPBR _SKY_GLASS, the same formula as the game's shader)
+const SKY_HDR = process.env.PREVIEW_SKY_HDR || '';
+const SKY_ROT = parseFloat(process.env.PREVIEW_SKY_ROT || '20.8'), SKY_EXPO = parseFloat(process.env.PREVIEW_SKY_EXPO || String(1.18 * .9834));
 const html = `<!doctype html><html><body style="margin:0;background:#9fc2e5">
 <script type="importmap">{"imports":{"three":"http://preview.local/three/build/three.module.js","three/addons/":"http://preview.local/three/examples/jsm/"}}</script>
 <script type="module">
@@ -30,7 +35,11 @@ import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
-const process_flat=${FLAT};const MODELS_NEAR=${JSON.stringify(MODELS_NEAR)};const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const PALM_SCALE=${PALM_SCALE};const PALM_HALF=${PALM_HALF};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+const process_flat=${FLAT};const MODELS_NEAR=${JSON.stringify(MODELS_NEAR)};const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const PALM_SCALE=${PALM_SCALE};const PALM_HALF=${PALM_HALF};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};const SKY=${JSON.stringify(SKY_HDR?'yes':'')};const SKY_ROT=${SKY_ROT};const SKY_EXPO=${SKY_EXPO};
+// Unity's Skybox/Panoramic lookup of a Unity-space direction (three.js z mirrored), turned by the sky's rotation
+const PANO='vec2 panoUV(vec3 d){float s=sin(radians(skyRot)),c=cos(radians(skyRot));vec3 r=vec3(c*d.x-s*d.z,d.y,s*d.x+c*d.z);'+
+  'return vec2(.5-atan(r.z,r.x)/(2.*3.14159265),acos(clamp(r.y,-1.,1.))/3.14159265);}';
 async function bin(n){const r=await fetch('http://preview.local/bin/'+n);return new Float32Array(await r.arrayBuffer());}
 const tl=new THREE.TextureLoader();
 function tex(url,srgb){return new Promise(res=>tl.load(url,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(srgb)t.colorSpace=THREE.SRGBColorSpace;res(t);},undefined,()=>res(null)));}
@@ -57,6 +66,18 @@ window.setup=async function(w,h){
   const R=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});R.setSize(w,h);R.toneMapping=THREE.NoToneMapping;
   document.body.appendChild(R.domElement);
   const S=new THREE.Scene();S.background=new THREE.Color(0x9fc2e5);
+  let pano=null;
+  if(SKY){pano=await new Promise(res=>new RGBELoader().load('http://preview.local/sky/sky.hdr',t=>res(t),undefined,()=>res(null)));
+    if(pano){pano.generateMipmaps=true;pano.minFilter=THREE.LinearMipmapLinearFilter;pano.magFilter=THREE.LinearFilter;pano.wrapS=THREE.RepeatWrapping;pano.needsUpdate=true;
+      const dm=new THREE.ShaderMaterial({uniforms:{pano:{value:pano},skyRot:{value:SKY_ROT},expo:{value:SKY_EXPO}},side:THREE.BackSide,depthWrite:false,
+        vertexShader:'varying vec3 D;void main(){D=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+        // under the horizon the game has the region's sea, coast and hills hazed into the sky (BraxChampionsHorizon); the
+        // panorama itself is sky only - the preview draws that sea in the haze there instead of the panorama's lower half
+        fragmentShader:'uniform sampler2D pano;uniform float skyRot,expo;varying vec3 D;'+PANO+'void main(){vec3 d=normalize(D);d.z=-d.z;'+
+          'vec3 c=textureLod(pano,panoUV(vec3(d.x,max(d.y,.002),d.z)),0.).rgb*expo;'+
+          'if(d.y<0.){vec3 haze=textureLod(pano,panoUV(vec3(d.x,.002,d.z)),3.).rgb*expo;c=mix(haze,vec3(.035,.085,.11),smoothstep(0.,.18,-d.y));}'+
+          'gl_FragColor=vec4(c,1.);'+String.fromCharCode(10)+'#include <colorspace_fragment>'+String.fromCharCode(10)+'}'});
+      window.skyDome=new THREE.Mesh(new THREE.SphereGeometry(1900,64,32),dm);window.skyDome.renderOrder=-10;window.skyDome.frustumCulled=false;S.add(window.skyDome);}}
   // live mirror quads (two triangles each, Unity front = into the wall): a three.js Reflector of the same size, turned to
   // the side the camera is on at each shot
   window.mirrors=[];
@@ -105,6 +126,30 @@ window.setup=async function(w,h){
           'gl_FragColor=vec4(water*fog+cs*vec3(.62,.70,.66),fog);'+String.fromCharCode(10)+'#include <colorspace_fragment>'+String.fromCharCode(10)+'}',
         transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,blendEquation:THREE.AddEquation,side:THREE.FrontSide});
       const vm=new THREE.Mesh(g2,sm);vm.renderOrder=-1;S.add(vm);continue;
+    }
+    // tower glass: the game's _SKY_GLASS formula (sun GGX + the region's ambient + the real sky panorama by the
+    // reflected direction, the unit's frame from its UV like the mip-mapped frame texture)
+    if(m.pbr&&m.pbr.glass&&pano){
+      const amb=m.ambient||[.60,.68,.78,.42,.40,.36,.65];
+      const gm=new THREE.ShaderMaterial({uniforms:{pano:{value:pano},skyRot:{value:SKY_ROT},expo:{value:SKY_EXPO},f0g:{value:new THREE.Vector3(...m.pbr.glass)},
+          body:{value:S2L(c)},rough:{value:Math.max(m.pbr.roughness,.085)},sunDir:{value:new THREE.Vector3(-.45,.78,-.42).normalize()},
+          sunCol:{value:S2L([1,.98,.94])},skyC:{value:S2L(amb.slice(0,3))},groundC:{value:S2L(amb.slice(3,6))},ambI:{value:amb[6]}},
+        vertexShader:'varying vec3 W;varying vec3 N;varying vec2 U;void main(){vec4 w=modelMatrix*vec4(position,1.);W=w.xyz;N=normalize(mat3(modelMatrix)*normal);U=uv;gl_Position=projectionMatrix*viewMatrix*w;}',
+        fragmentShader:'uniform sampler2D pano;uniform float skyRot,expo,rough,ambI;uniform vec3 f0g,body,sunDir,sunCol,skyC,groundC;varying vec3 W;varying vec3 N;varying vec2 U;'+PANO+
+          'float P5(float v){float s=v*v;return s*s*v;}'+
+          'void main(){vec3 n=normalize(N);vec3 v=normalize(cameraPosition-W);n.z=-n.z;v.z=-v.z;'+
+          'float bx=2./128.;vec2 d=min(U,1.-U);vec2 w=fwidth(U);'+
+          'float gx=mix(clamp((d.x-bx)/max(w.x,1e-5)+.5,0.,1.),1.-2.*bx,clamp(w.x/(2.*bx)-.5,0.,1.));'+
+          'float gy=mix(clamp((d.y-bx)/max(w.y,1e-5)+.5,0.,1.),1.-2.*bx,clamp(w.y/(2.*bx)-.5,0.,1.));float g=gx*gy;'+
+          'vec3 alb=mix(vec3(.006,.006,.007),vec3(1.),g)*body;float r=clamp(mix(.45,rough,g),.085,1.);vec3 f0=mix(vec3(.035,.035,.04),f0g,g);'+
+          'vec3 L=sunDir;vec3 h=normalize(v+L);float nl=clamp(dot(n,L),0.,1.),nv=max(clamp(dot(n,v),0.,1.),.001),nh=clamp(dot(n,h),0.,1.),vh=clamp(dot(v,h),0.,1.);'+
+          'vec3 F=f0+(1.-f0)*P5(1.-vh);float a=r*r,a2=a*a;float dn=nh*nh*(a2-1.)+1.;float D=a2/max(3.14159265*dn*dn,1e-6);float k=(r+1.)*(r+1.)*.125;'+
+          'float G=(nv/(nv*(1.-k)+k))*(nl/(nl*(1.-k)+k));vec3 spec=F*(D*G/max(4.*nv*nl,.001));vec3 dif=(1.-F)*alb/3.14159265;'+
+          'vec3 col=(dif+spec)*sunCol*(2.4*nl)+alb*mix(groundC,skyC,n.y*.5+.5)*ambI;'+
+          'vec3 R=reflect(-v,n);vec3 pn=min(textureLod(pano,panoUV(R),r*6.).rgb*expo,vec3(16.));float sr=sin(radians(skyRot)),cr=cos(radians(skyRot));'+
+          'float ry=R.y;vec3 env=mix(pn,groundC*ambI*1.4,clamp(-ry*12.,0.,1.));col+=env*(f0+(1.-f0)*P5(1.-nv))*(1.-.65*r);'+
+          'gl_FragColor=vec4(col,1.);'+String.fromCharCode(10)+'#include <colorspace_fragment>'+String.fromCharCode(10)+'}'});
+      g.computeVertexNormals();S.add(new THREE.Mesh(g,gm));continue;
     }
     const p={color:S2L([Math.min(c[0],2.2),Math.min(c[1],2.2),Math.min(c[2],2.2)]),side:THREE.FrontSide,roughness:.75,metalness:0};
     if(m.slug){p.map=await tex('http://preview.local/tex/'+m.slug+'_diff_1k.jpg',true);p.normalMap=await tex('http://preview.local/tex/'+m.slug+'_nor_gl_1k.jpg',false);
@@ -207,6 +252,7 @@ window.shot=function(v,w,h){
   window.lights.map(L=>[L,L.position.distanceTo(eye)]).sort((a,b)=>a[1]-b[1]).slice(0,v.lights??4).forEach(([L,d])=>{if(d<L.distance+2)L.visible=true;});
   const C=new THREE.PerspectiveCamera(v.fov,w/h,v.near||.05,2000);
   C.position.copy(eye);C.lookAt(v.target[0],v.target[1],-v.target[2]);
+  if(window.skyDome)window.skyDome.position.copy(eye);
   // the mirrors within 40 m show the room: in the game one renders live and the others keep the picture they took
   // (BraxChampionsWydajnosc, 12.11: at most 40 copies), so the preview draws up to 24 of the nearest as reflections
   // (a view's "mirrors": n draws fewer: each reflection draws the scene once more)
@@ -230,6 +276,7 @@ window.ready=true;
     else if (u.startsWith('bin/')) file = path.join(binDir, u.slice(4));
     else if (u.startsWith('models/')) file = path.join(modelsDir, decodeURIComponent(u.slice(7)));
     else if (u.startsWith('tex/')) file = path.join(texDir, u.slice(4));
+    else if (u === 'sky/sky.hdr') file = SKY_HDR;
     else if (u.startsWith('pic/')) file = path.join(process.env.PREVIEW_PICTURES || texDir, decodeURIComponent(u.slice(4)));
     if (!file || !fs.existsSync(file)) { if (process.env.PREVIEW_DEBUG404) console.log('404 ' + u); return r.fulfill({ status: 404, body: '' }); }
     const ext = path.extname(file);

@@ -134,7 +134,7 @@ namespace UnityEngine
         // painted textures (E1 balls, screens): the pixels are kept and written as a PNG when the generator saves the asset
         public Color32[] pixels; public TextureWrapMode wrapMode; public FilterMode filterMode;
         public Texture2D() { } public Texture2D(int w, int h, TextureFormat f, bool mips) { width = w; height = h; }
-        public void SetPixels32(Color32[] px) { pixels = px; } public void Apply(bool mips = true) { } }
+        public void SetPixels32(Color32[] px) { pixels = px; } public void Apply(bool mips = true) { } public void Apply(bool mips, bool readOnly) { } public byte[] EncodeToPNG() => new byte[0]; }
     public enum TextureFormat { RGBA32, RGB24, ARGB32 }
     public struct Color32 { public byte r, g, b, a; public Color32(byte r, byte g, byte b, byte a) { this.r = r; this.g = g; this.b = b; this.a = a; }
         static byte B(float v) => (byte)Math.Max(0, Math.Min(255, (int)Math.Round(v * 255f)));
@@ -150,9 +150,13 @@ namespace UnityEngine
         public void SetFloat(string n, float v) { floats[n] = v; if (n == "_AmbientIntensity") ambient = v; else if (n == "_Metallic") metallic = v; else if (n == "_Roughness") roughness = v; }
         public readonly System.Collections.Generic.Dictionary<string, float> floats = new System.Collections.Generic.Dictionary<string, float>();
         public float GetFloat(string n) => floats.TryGetValue(n, out var v) ? v : 0f;
-        public void SetColor(string n, Color c) { if (n == "_Color") color = c; else if (n == "_SkyColor") sky = c; else if (n == "_GroundColor") ground = c; else if (n == "_EmissionColor") emission = c; }
+        public void SetColor(string n, Color c) { if (n == "_Color") color = c; else if (n == "_SkyColor") sky = c; else if (n == "_GroundColor") ground = c; else if (n == "_EmissionColor") emission = c; else if (n == "_GlassF0") glassF0 = c; }
+        // tower glass (Braxhorn/ChampionsPBR _SKY_GLASS): its reflectance, recorded so the preview reflects its sky panorama
+        public Color glassF0 = new Color(-1, 0, 0); public bool skyGlass;
+        public void EnableKeyword(string k) { if (k == "_SKY_GLASS") skyGlass = true; } public void DisableKeyword(string k) { if (k == "_SKY_GLASS") skyGlass = false; }
+        public Shader shader;
         public void SetTexture(string n, Texture t) { if (n == "_MainTex" && t is Texture2D t2 && t2.real) { picture = t.name; textured = true; } }
-        public void SetVector(string n, Vector4 v) { }
+        public void SetVector(string n, Vector4 v) { if (n == "_GlassF0") glassF0 = new Color(v.x, v.y, v.z, v.w); }
         public void SetOverrideTag(string t, string v) { } public bool HasProperty(string n) => true;
         public string[] GetTexturePropertyNames() => textured ? new[] { "_MainTex" } : new string[0]; public Texture GetTexture(string n) => textured ? new Texture() : null; }
     public class Component : Object { public GameObject gameObject; public Transform transform => gameObject.transform;
@@ -348,7 +352,11 @@ namespace UnityEditor
             // a real PNG on disk: its own size from the IHDR header (the owner's posters, 9:16 and 2:3)
             try { if (name != null && name.EndsWith(".png") && System.IO.File.Exists(name)) { var b = new byte[24]; using (var f = System.IO.File.OpenRead(name)) f.Read(b, 0, 24);
                     w = (b[16] << 24) | (b[17] << 16) | (b[18] << 8) | b[19]; h = (b[20] << 24) | (b[21] << 16) | (b[22] << 8) | b[23]; } } catch { }
-        } public bool isReadable, mipmapEnabled, sRGBTexture, alphaIsTransparency; public int maxTextureSize; }
+        } public bool isReadable, mipmapEnabled, sRGBTexture, alphaIsTransparency; public int maxTextureSize;
+        public TextureImporterType textureType; public TextureImporterAlphaSource alphaSource; public TextureImporterCompression textureCompression; }
+    public enum TextureImporterType { Default, NormalMap, GUI, Sprite, Cursor, Cookie, Lightmap, SingleChannel }
+    public enum TextureImporterAlphaSource { None, FromInput, FromGrayScale }
+    public enum TextureImporterCompression { Uncompressed, Compressed, CompressedHQ, CompressedLQ }
     public static class Lightmapping { public static bool BakeReflectionProbe(ReflectionProbe p, string path) => true; }
     public static class EditorUtility { public static void SetDirty(Object o) { } public static void CopySerialized(Object a, Object b) { } }
     public static class ShaderUtil { public static bool ShaderHasError(Shader s) => false; }

@@ -8,24 +8,27 @@ using W = BraxWnetrzaKit;
 // bukmachera, minimum 4 wieżowce premium blisko siebie"; plan 12.11 claude/braxhorn-city-ZALOZENIA-GRY-I-PLAN-MISTRZOW:
 // "Downtown (T08-T13): BRAXHORN TOWER 250-300 m z lądowiskiem", "punkt BRAXHORN BET"). The five free tower plots of
 // plan_inventory.json round the casino T11, 115 m apart (55 x 55 m each):
-//   T08 (495,570) BANK            - twisting: 42 office floors, every plate turned 2 degrees (84 in all), white slab bands
+//   T08 (495,570) BANK            - twisting: 42 office floors, every plate turned 3 degrees (126 in all), the glass a ruled
+//                                   surface between the plates (as the Evolution Tower)
 //   T09 (610,570) BRAXHORN TOWER  - 60 floors + a 14 m lit crown = 262 m: a chamfered square with two setbacks,
 //                                   stainless blades, BRAXHORN on the crown, a heliport on top; BRAXHORN BET downstairs
 //   T10 (725,570) MEDIA           - elliptical, 34 floors, white bands, a crown of blades
 //   T12 (610,465) KLUB / BIURA    - three stacked blocks turned 90 degrees to each other: cantilevers, roof terraces,
 //                                   white slab bands
 //   T13 (725,465) USŁUGI / KLUB   - tapering 40 -> 26 m under a steel diagrid
-// Real sizes (nominal metres, K once on the root): lobby 8.0 m (double height), office storey 4.0 m, slab band .90 m,
-// door 2.0 x 2.7 m. The office floors stand behind OPAQUE black glass (owner 10.11: façade glass black, only the door
-// leaves light) - no empty storey can be seen through them. The ground floors are finished and open: smoked glass, real
-// doors (BraxCityDoor), marble floor, reception, a lift bank, seats, plants, pendants, light.
+// Real sizes (nominal metres, K once on the root): lobby 8.0 m (double height), office storey 4.0 m, door 2.0 x 2.7 m.
+// Owner 16.11 17:37 ("Real Real wszystko ... drewno to drewno, metal to metal, szkło to szkło"): the office floors are
+// clad in a real curtain wall (CurtainStorey: 1.5 m units of coated glass reflecting the region's real sky, spandrels,
+// black anodised mullion and transom caps with depth, every unit a fraction of a degree off true) after real towers
+// (T08 Evolution Tower, T10 Absolute World, T13 Hearst Tower). The ground floors are finished and open: smoked glass,
+// real doors (BraxCityDoor), marble floor, reception, a lift bank, seats, plants, pendants, light.
 // No surface lies on another (owner 13:57): every prism has its own caps; caps of stacked prisms meet face to face
 // (opposite faces, never seen); details stand 2 cm or more off the faces behind them.
 public static class BraxChampionsWiezowce
 {
     static float K => BraxClaudeOsiedle.K;
     public const float SiteY=.16f, PlotBaseY=-.25f, Fl=.18f, Lobby=8.0f, Storey=4.0f, Band=.90f, Proud=.10f, PlotHalf=27.5f;
-    public const float DoorHalf=1.0f, DoorH=2.70f, Ceiling=.30f, CanopyTop=4.90f, CanopyOut=3.02f;
+    public const float DoorHalf=1.0f, DoorH=2.70f, Ceiling=.30f, CanopyTop=4.90f, CanopyOut=3.02f, Turn=3f;
     public static float Shaft=>Fl+Lobby;                   // the first office floor (the lobby ceiling hangs .30 under it)
     enum Shape{Twist,Setback,Ellipse,Stacked,Taper}
     struct Tower{public string id,name;public float x,z,yaw;public Shape shape;public int floors;}
@@ -48,7 +51,7 @@ public static class BraxChampionsWiezowce
     }
 
     // ---------------- materials ----------------
-    static Material gBlack,gLobby,gClear,band,bandWhite,bandGraphite,steel,black,granite,plaza,marble,walnut,ceilingWhite,
+    static Material gLobby,gClear,bandWhite,bandGraphite,steel,black,granite,plaza,marble,walnut,ceilingWhite,
         ceilingBlack,ledWhite,ledGreen,teak,grass,deck,paintWhite,lantern;
     static string outFolder;
     static Material Surface(string id,Color c,float rough,float metal,Color? emission=null)
@@ -68,12 +71,69 @@ public static class BraxChampionsWiezowce
         var m=BraxChampionsFoundation.SourceMaterial("tower_"+id,slug,metres,tint);
         m.SetFloat("_Roughness",rough);EditorUtility.SetDirty(m);return m;
     }
+    // the skybox's own colour factor: Skybox/Panoramic multiplies by its _Tint (.5 gamma = .2140 linear) x
+    // unity_ColorSpaceDouble (4.5948 in a linear project) = .9834, then by its exposure
+    const float SkyboxTint=.9834f;
+    public const string GlassShader="Braxhorn/ChampionsPBR";
+    // coated curtain-wall glass: f0 = the coating's reflectance (real reflective units 15-30 %), body = the room behind
+    static Material SkyGlass(string id,Color f0,Color body,float rough)
+    {
+        string path=outFolder+"/Materials/tower_"+id+".mat";
+        var shader=Shader.Find(GlassShader);
+        var sky=AssetDatabase.LoadAssetAtPath<Texture2D>(BraxChampionsSky.Source);
+        if(!shader||!sky)
+        {
+            BraxBuildQuality.Warn("DO POPRAWKI TOWER_SKY_GLASS "+id+" "+(!shader?"shader "+GlassShader+" missing":"sky panorama missing "+BraxChampionsSky.Source)+
+                ": this glass reflects the broad sky only");
+            var f=Surface(id,body,rough,0f);f.SetFloat("_ReflectionStrength",1f);f.SetTexture("_MainTex",unitFrame);return f;
+        }
+        var m=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(!m){m=new Material(shader);AssetDatabase.CreateAsset(m,path);}else m.shader=shader;
+        m.name="Mistrzowie tower sky glass "+id;m.enableInstancing=true;
+        m.SetColor("_Color",body);m.SetFloat("_Roughness",rough);m.SetFloat("_Metallic",0f);m.SetFloat("_VertexTint",0f);
+        m.SetTexture("_MainTex",unitFrame);
+        m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);m.SetFloat("_ReflectionStrength",1f);
+        m.SetTexture("_SkyPanorama",sky);m.SetFloat("_SkyRotation",BraxChampionsSky.Rotation);
+        m.SetFloat("_SkyExposure",BraxChampionsSky.Exposure*SkyboxTint);m.SetVector("_GlassF0",new Vector4(f0.r,f0.g,f0.b,1f));
+        m.SetFloat("_SkyGlass",1f);m.EnableKeyword("_SKY_GLASS");
+        EditorUtility.SetDirty(m);return m;
+    }
+    // the unit's frame in the glass texture (alpha 1 = glass, 0 = the black anodised frame: 2 px of 128 at every edge): from
+    // afar the mip chain averages the frame into the glass smoothly, near the 3D caps stand in front of it
+    static Texture2D unitFrame;
+    static Texture2D UnitFrame()
+    {
+        string dir=outFolder+"/Textures",path=dir+"/tower_curtain_unit_frame.png";
+        System.IO.Directory.CreateDirectory(dir);
+        if(!System.IO.File.Exists(path))
+        {
+            const int N=128,B=2;var t=new Texture2D(N,N,TextureFormat.RGBA32,false);var px=new Color32[N*N];
+            for(int y=0;y<N;y++)for(int x=0;x<N;x++)
+            {
+                bool frame=x<B||y<B||x>=N-B||y>=N-B;
+                px[y*N+x]=frame?new Color32(18,18,20,0):new Color32(255,255,255,255);
+            }
+            t.SetPixels32(px);t.Apply(false);
+            System.IO.File.WriteAllBytes(path,t.EncodeToPNG());
+        }
+        AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
+        if(AssetImporter.GetAtPath(path) is TextureImporter imp)
+        {
+            imp.textureType=TextureImporterType.Default;imp.sRGBTexture=true;imp.alphaSource=TextureImporterAlphaSource.FromInput;
+            imp.alphaIsTransparency=false;imp.mipmapEnabled=true;imp.streamingMipmaps=true;imp.wrapMode=TextureWrapMode.Clamp;
+            imp.filterMode=FilterMode.Trilinear;imp.anisoLevel=8;imp.maxTextureSize=128;
+            var a=imp.GetPlatformTextureSettings("Android");a.overridden=true;a.maxTextureSize=128;a.format=TextureImporterFormat.ASTC_4x4;
+            imp.SetPlatformTextureSettings(a);imp.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+    }
+    static Material mullion;
     static void Materials(Dictionary<string,Material> ext)
     {
         System.IO.Directory.CreateDirectory(outFolder+"/Materials");
-        // opaque black glass with the sky in it (a dielectric: dark body, fresnel reflection at a glance)
-        gBlack=Surface("black_glass",new Color(.018f,.022f,.028f),.05f,0f);
-        if(gBlack.HasProperty("_ReflectionStrength"))gBlack.SetFloat("_ReflectionStrength",1f);
+        unitFrame=UnitFrame();
+        // the frame: black anodised aluminium (owner 11.11 14:57: everything that holds the glass is black)
+        mullion=BraxChampionsFoundation.LibraryMetal("tower_black_anodised_frame",new Color(.075f,.075f,.085f));
         gLobby=ext["facade_glass"];gClear=ext["clear_glass"];steel=ext["steel"];black=ext["arena_black"];
         bandWhite=BraxChampionsFoundation.LibraryMetal("tower_white_aluminium",new Color(.86f,.87f,.88f));
         bandGraphite=BraxChampionsFoundation.LibraryMetal("tower_graphite_aluminium",new Color(.13f,.135f,.14f));
@@ -171,12 +231,109 @@ public static class BraxChampionsWiezowce
         }
         if(bottom)Cap(bottom,p0,y0,false);if(top)Cap(top,p1,y1,true);
     }
-    // one office storey: the slab band (Proud wider than the glass, its own caps) and the black glass over it
-    static void OfficeStorey(List<Vector2> glass,float y,Material bandM,Material roof=null)
+    // ---------------- the curtain wall (owner 16.11 17:37: "Real ... drewno to drewno, metal to metal, szkło to szkło") ------
+    // Built the way real office towers are clad (unitised curtain wall: one unit per module 1.2-1.5 m wide and per storey,
+    // BRANZ "Curtain wall cladding"; Evolution Tower: reflective cold-mirror glass, Hearst Tower: diagrid over the glass,
+    // Absolute World: white slab edges round recessed glass): vision glass over a spandrel (opaque glass, or a projecting
+    // aluminium band), black anodised mullion caps WITH DEPTH at every unit joint, transoms at the stack joint and over the
+    // spandrel. Every insulating unit sits a fraction of a degree off true, as real units do, so the sky in the glass
+    // breaks unit by unit. The glass reflects the region's real sky panorama (Braxhorn/ChampionsPBR _SKY_GLASS); from
+    // afar the frame is in the glass's own texture (mip-mapped, no shimmer), near it is real 3D in front of the glass.
+    struct Skin
     {
-        Prism(bandM,bandM,bandM,Offset(glass,Proud),y,y+Band);
-        Prism(gBlack,gBlack,roof?roof:gBlack,glass,y+Band,y+Storey);
+        public Material vision, spandrel, band;      // band set = an aluminium band prism instead of a spandrel of glass
+        public float module, spandrelH, bandProud;   // unit width, spandrel height, how far the band stands out
+        public float mullW, mullD, transH, transD;   // the caps: face width and depth in front of the glass
     }
+    const float Back=.03f;                            // frame bars reach 3 cm behind the glass line (units tilt <= 1.8 cm)
+    static BraxChampionsMeshBatch glassSkin;          // the units (one mesh per material)
+    static List<(float y0,float y1,BraxChampionsMeshBatch b)> frames;   // the 3D frame in 8-storey chunks (near LOD each)
+    static BraxChampionsMeshBatch FrameAt(float y)
+    {
+        int k=Mathf.FloorToInt((y-Shaft)/(8f*Storey));
+        while(frames.Count<=k)frames.Add((Shaft+frames.Count*8f*Storey,Shaft+(frames.Count+1)*8f*Storey,new BraxChampionsMeshBatch()));
+        return frames[Mathf.Max(0,k)].b;
+    }
+    static uint Hash(int a,int b,int c,int d)
+    {
+        unchecked{uint h=2166136261u;foreach(int v in new[]{a,b,c,d,towerId.GetHashCode()}){h^=(uint)v;h*=16777619u;h^=h>>15;}return h;}
+    }
+    static float Rand(uint h){unchecked{h^=h>>16;h*=0x7feb352du;h^=h>>15;h*=0x846ca68bu;h^=h>>16;}return (h&0xFFFFFF)/16777216f;}
+    // quad a-b-c-d with its front along n, its UV 0..1 over the unit (the frame lines of the glass texture)
+    static void UnitQuad(Material m,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Vector3 n)
+    {
+        if(Vector3.Dot(Vector3.Cross(b-a,c-a),n)<0)glassSkin.QuadUV(m,b,a,d,c,new Vector2(1,0),new Vector2(0,0),new Vector2(0,1),new Vector2(1,1));
+        else glassSkin.QuadUV(m,a,b,c,d,new Vector2(0,0),new Vector2(1,0),new Vector2(1,1),new Vector2(0,1));
+    }
+    // one insulating unit: up to .6 degrees off true about its vertical axis and .4 about its horizontal one
+    static void Unit(Material m,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Vector3 n,uint seed)
+    {
+        float yawT=Mathf.Tan((Rand(seed)-.5f)*1.2f*Mathf.Deg2Rad),pitT=Mathf.Tan((Rand(seed*7919u+13u)-.5f)*.8f*Mathf.Deg2Rad);
+        var ctr=(a+b+c+d)*.25f;var e=(b-a).normalized;var up=(d-a).normalized;
+        Vector3 T(Vector3 p){var r=p-ctr;return p+n*(Vector3.Dot(r,e)*yawT+Vector3.Dot(r,up)*pitT);}
+        UnitQuad(m,T(a),T(b),T(c),T(d),n);glassUnits++;
+    }
+    // a frame bar (mullion or transom cap) from a to b on the glass line: w wide, d in front of the glass (+3 cm behind
+    // it); its face and two sides only - the back is in the wall, the ends meet the next bar or a band
+    static void Bar(BraxChampionsMeshBatch bt,Material m,Vector3 a,Vector3 b,Vector3 n,float w,float d,bool back=false)
+    {
+        var dir=b-a;float len=dir.magnitude;if(len<1e-3f)return;var f=dir/len;
+        var nn=(n-Vector3.Dot(n,f)*f).normalized;var x=Vector3.Cross(f,nn).normalized;
+        var c=(a+b)*.5f+nn*((d-Back)*.5f);
+        Vector3 hx=x*(w*.5f),hy=f*(len*.5f),hz=nn*((d+Back)*.5f);
+        Vector3 P(int sx,int sy,int sz)=>c+hx*sx+hy*sy+hz*sz;
+        void F(Vector3 p0,Vector3 p1,Vector3 p2,Vector3 p3,Vector3 nf){if(Vector3.Dot(Vector3.Cross(p1-p0,p2-p0),nf)<0)bt.Quad(m,p3,p2,p1,p0);else bt.Quad(m,p0,p1,p2,p3);}
+        F(P(-1,-1,1),P(1,-1,1),P(1,1,1),P(-1,1,1),nn);      // face
+        F(P(1,-1,-1),P(1,-1,1),P(1,1,1),P(1,1,-1),x);       // sides
+        F(P(-1,-1,1),P(-1,-1,-1),P(-1,1,-1),P(-1,1,1),-x);
+        if(back)F(P(1,-1,-1),P(-1,-1,-1),P(-1,1,-1),P(1,1,-1),-nn);   // seen from inside (the sky casino)
+    }
+    static bool Same(List<Vector2> a,List<Vector2> b){if(a.Count!=b.Count)return false;for(int i=0;i<a.Count;i++)if((a[i]-b[i]).sqrMagnitude>1e-8f)return false;return true;}
+    static List<Vector2> Lerp(List<Vector2> a,List<Vector2> b,float t){var r=new List<Vector2>(a.Count);for(int i=0;i<a.Count;i++)r.Add(Vector2.Lerp(a[i],b[i],t));return r;}
+    // one storey of curtain wall on the glass line: outline p0 at y, p1 at y+Storey (= p0 on a straight tower)
+    static void CurtainStorey(List<Vector2> p0,List<Vector2> p1,float y,Skin s,int floor,Material roof=null)
+    {
+        var c=Centre(p0);int nE=p0.Count;float sp=s.spandrelH;var bt=FrameAt(y);
+        bool straight=Same(p0,p1);
+        if(s.band)
+        {
+            if(straight)Prism(s.band,s.band,s.band,Offset(p0,s.bandProud),y,y+sp);
+            else Frustum(s.band,s.band,s.band,Offset(p0,s.bandProud),Offset(Lerp(p0,p1,sp/Storey),s.bandProud),y,y+sp);
+        }
+        float g0=s.band?sp:0f;                                  // where the glass and the mullions start
+        for(int i=0;i<nE;i++)
+        {
+            int j=(i+1)%nE;
+            Vector3 P(float t,float h){var a=Vector2.Lerp(p0[i],p1[i],h/Storey);var b=Vector2.Lerp(p0[j],p1[j],h/Storey);return V3(Vector2.Lerp(a,b,t),y+h);}
+            var n2=EdgeOut(p0,i,c);var n=new Vector3(n2.x,0,n2.y);
+            float L=(p0[j]-p0[i]).magnitude;int m=Mathf.Max(1,Mathf.RoundToInt(L/s.module));
+            for(int k=0;k<m;k++)
+            {
+                float t0=(float)k/m,t1=(float)(k+1)/m;
+                // (the two units of a module stop 4 mm apart behind the spandrel's transom: tilted, they never cross)
+                float top=s.band?Storey:Storey-.002f;
+                if(!s.band)Unit(s.spandrel,P(t0,.002f),P(t1,.002f),P(t1,sp-.002f),P(t0,sp-.002f),n,Hash(floor,i,k,7));
+                Unit(s.vision,P(t0,s.band?sp:sp+.002f),P(t1,s.band?sp:sp+.002f),P(t1,top),P(t0,top),n,Hash(floor,i,k,3));
+            }
+            // mullion caps at the unit joints; the corner one (k = 0) wider, it covers the turn to the previous edge
+            for(int k=0;k<m;k++){float t=(float)k/m;Bar(bt,mullion,P(t,g0),P(t,Storey),n,k==0?s.mullW*1.6f:s.mullW,s.mullD);}
+            // transoms (shallower than the mullions, never in one plane with them), stopping at the corner caps
+            // (on a band tower the band's own top is the sill: no transom there). Each starts past its own corner cap and runs
+            // into the next edge's corner cap, so two transoms never share a corner.
+            float cut=Mathf.Min(.45f,s.mullW*.8f/L);
+            if(!s.band){Bar(bt,mullion,P(cut,0),P(1f,0),n,s.transH,s.transD);Bar(bt,mullion,P(cut,sp),P(1f,sp),n,s.transH,s.transD);}
+        }
+        if(roof)Cap(roof,p1,y+Storey,true);
+    }
+    // a glass skin: vision units over spandrels of opaque (shadow-box) glass of the same coating, 1.10 m at the slab
+    static Skin GlassSkin(Color f0,float mullD=.14f)=>new Skin{
+        vision=SkyGlass(towerId+"_vision",f0,new Color(.030f,.034f,.040f),.04f),
+        spandrel=SkyGlass(towerId+"_spandrel",f0,new Color(.012f,.013f,.015f),.06f),
+        module=1.5f,spandrelH=1.10f,mullW=.065f,mullD=mullD,transH=.065f,transD=.08f};
+    // a band skin: vision units between projecting aluminium slab bands (the band is the spandrel)
+    static Skin BandSkin(Color f0,Material band,float proud,float bandH=.90f)=>new Skin{
+        vision=SkyGlass(towerId+"_vision",f0,new Color(.030f,.034f,.040f),.04f),band=band,bandProud=proud,
+        module=1.5f,spandrelH=bandH,mullW=.065f,mullD=.12f,transH=.065f,transD=.08f};
     // a blade (stainless fin) standing on the face of edge i at parameter t, from y0 to y1, w wide, d deep
     static void Blade(Material m,List<Vector2> p,int i,float t,float y0,float y1,float w=.30f,float d=.45f)
     {
@@ -184,19 +341,20 @@ public static class BraxChampionsWiezowce
         var o=new Vector3(n.x,0,n.y);
         W.OBox(m,V3(at,(y0+y1)*.5f)+o*(d*.5f),new Vector3(w,y1-y0,d),Quaternion.LookRotation(o,Vector3.up));
     }
+    // stainless blades standing on the curtain wall's mullions: every other joint of the 1.5 m units (3 m), never on a corner
     static void Blades(Material m,List<Vector2> p,float y0,float y1,float step,Func<int,bool> edgeOk=null)
     {
         for(int i=0;i<p.Count;i++)
         {
             if(edgeOk!=null&&!edgeOk(i))continue;
-            float len=(p[(i+1)%p.Count]-p[i]).magnitude;int n=Mathf.Max(1,Mathf.RoundToInt(len/step));
-            for(int k=0;k<n;k++)Blade(m,p,i,(k+.5f)/n,y0,y1);
+            float len=(p[(i+1)%p.Count]-p[i]).magnitude;int mod=Mathf.Max(1,Mathf.RoundToInt(len/1.5f));int every=Mathf.Max(1,Mathf.RoundToInt(step/1.5f));
+            for(int k=every;k<mod;k+=every)Blade(m,p,i,(float)k/mod,y0,y1);
         }
     }
 
     // ---------------- per tower state ----------------
     static Transform outside,details,inside;
-    static int doors,seats,models,betScreens;
+    static int doors,seats,models,betScreens,glassUnits;
     static string towerId;
     static BraxChampionsMeshBatch letters,kat;
     static List<Light> lights;
@@ -207,7 +365,7 @@ public static class BraxChampionsWiezowce
         Tower t=default;bool found=false;
         foreach(var x in Towers)if(x.id==id){t=x;found=true;}
         if(!found)throw new ArgumentException("Unknown tower plot "+id);
-        outFolder=folder;towerId=id;doors=0;seats=0;models=0;betScreens=0;hung.Clear();Materials(ext);
+        outFolder=folder;towerId=id;doors=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;ownerMissing=0;hung.Clear();Materials(ext);
         Physics.SyncTransforms();
         float datum=0f;
         if(Physics.Raycast(new Vector3(t.x,80f,t.z)*K,Vector3.down,out var hit,200f*K,~0,QueryTriggerInteraction.Ignore))
@@ -222,6 +380,7 @@ public static class BraxChampionsWiezowce
         inside=new GameObject("lobby (finished)").transform;inside.SetParent(root,false);
         W.Wyczysc();W.Start(outside);W.Wnetrze=false;W.Komorka=40f;
         letters=new BraxChampionsMeshBatch();kat=new BraxChampionsMeshBatch();lights=new List<Light>();
+        glassSkin=new BraxChampionsMeshBatch();frames=new List<(float,float,BraxChampionsMeshBatch)>();
         Site();
         float roof;
         switch(t.shape)
@@ -233,6 +392,18 @@ public static class BraxChampionsWiezowce
             default:roof=Taper(t);break;
         }
         int saved=W.Zapisz(id+"_tower");
+        // the curtain wall: the glass units in one mesh per material; the 3D frame in 8-storey chunks, each shown while it is
+        // near (>= 22 % of the screen high, ~120 m) - beyond that the frame in the glass texture carries it, without shimmer
+        glassSkin.Build(outside,id+" | curtain wall glass units",folder,true,1f);
+        var frameRoot=new GameObject("curtain wall frame (black anodised caps, near LOD per 8 storeys)").transform;frameRoot.SetParent(root,false);
+        int chunks=0;
+        foreach(var (y0,y1,b) in frames)
+        {
+            if(b.Empty)continue;
+            var g=b.Build(frameRoot,id+" | curtain wall frame "+y0.ToString("F0")+"-"+y1.ToString("F0")+" m",folder,false,1f);
+            var rs=g.GetComponentsInChildren<Renderer>(true);if(rs.Length==0)continue;
+            var lg=g.gameObject.AddComponent<LODGroup>();lg.SetLODs(new[]{new LOD(.22f,rs)});lg.RecalculateBounds();chunks++;
+        }
         kat.Build(inside,id+" | lobby screens and pieces (catalogue)",folder,false,1f);
         BraxChampionsLetters3D.Build(letters,outside,id+" "+t.name+" lettering",1f);
         var detailRenderers=details.GetComponentsInChildren<Renderer>(true);
@@ -246,10 +417,11 @@ public static class BraxChampionsWiezowce
         root.rotation=Quaternion.Euler(0,t.yaw,0);
         root.position=new Vector3(t.x*K,datum,t.z*K);
         foreach(var l in root.GetComponentsInChildren<Light>(true))l.range*=K;
+        WireLift(root);
         int palms=Palms(root);
         if(doors<1)BraxBuildQuality.Warn("DO POPRAWKI TOWER_"+id+"_ENTRANCE_DOOR_MISSING");
         Debug.Log("CHAMPIONS_TOWER "+id+" "+t.name+" shape="+t.shape+" floors="+t.floors+" height="+(roof).ToString("F1")+"m nominal ("+
-            (roof*K).ToString("F1")+" world) meshes="+saved+" doors="+doors+" seats="+seats+" models="+models+" palms="+palms+" lights="+lights.Count+
+            (roof*K).ToString("F1")+" world) meshes="+saved+" curtainWall=units:"+glassUnits+",frameChunks:"+chunks+" doors="+doors+" seats="+seats+" models="+models+" palms="+palms+" lights="+lights.Count+
             (betScreens>0?" BRAXHORN_BET screens="+betScreens+" films=0 (street premises)":""));
     }
 
@@ -309,7 +481,7 @@ public static class BraxChampionsWiezowce
             {
                 if(s1-s0<.05f)return;
                 int n2=Mathf.Max(1,Mathf.CeilToInt((s1-s0)/3.0f-.01f));float w=(s1-s0)/n2;
-                for(int k=0;k<n2;k++){Glass(s0+k*w+.06f,s0+(k+1)*w-.06f,y0,y0+4.0f-.06f);Glass(s0+k*w+.06f,s0+(k+1)*w-.06f,y0+4.0f+.06f,y1);}
+                for(int k=0;k<n2;k++){Glass(s0+k*w+.06f,s0+(k+1)*w-.06f,y0,y0+4.0f-.06f);Glass(s0+k*w+.06f,s0+(k+1)*w-.06f,y0+4.0f+.06f,y1-.02f);}
                 W.Grupa=details;
                 // mullions stand on the plaza (their feet 2 cm under the panes' - never in the panes' plane)
                 for(int k=0;k<=n2;k++){var pm=a+e*(s0+k*w);W.OBox(black,V3(pm,(SiteY+y1)*.5f)+o*.03f,new Vector3(.12f,y1-SiteY,.18f),Quaternion.LookRotation(o,Vector3.up));}
@@ -323,7 +495,7 @@ public static class BraxChampionsWiezowce
                 // the door: black portal, two framed clear leaves (BraxCityDoor), the smoked transom over it
                 var mid=a+e*((c0+c1)*.5f);
                 Entrance(mid,o,e,y0);
-                Glass(c0+.10f,c1-.10f,y0+DoorH+.16f,y1);
+                Glass(c0+.10f,c1-.10f,y0+DoorH+.16f,y1-.02f);   // (its top 2 cm under the curtain wall's first transom)
                 u0=c1;
             }
             Panes(u0,len);
@@ -384,16 +556,20 @@ public static class BraxChampionsWiezowce
     }
 
     // ---------------- the finished lobby inside ----------------
-    static void LobbyFitOut(Core core,Vector2 desk,Vector2 lounge,bool loungeFacesRight,int lifts=4,float xmin=float.NegativeInfinity)
+    static float LiftCentre(Core core,int lifts,int i){float lw=1.2f,gap=(core.width-lifts*lw)/(lifts+1);return core.xMin+gap*(i+1)+lw*(i+.5f);}
+    static void LobbyFitOut(Core core,Vector2 desk,Vector2 lounge,bool loungeFacesRight,int lifts=4,float xmin=float.NegativeInfinity,int working=-1)
     {
         float y0=Fl,ceil=Shaft-Ceiling;
         W.Grupa=inside;W.Wnetrze=true;
-        // the lift core clad in walnut, its front at z=core.yMin, the lift doors in brushed stainless
-        W.MM(walnut,core.xMin,core.xMax,y0,ceil,core.yMin,core.yMax,true);
-        float lw=1.2f,gap=(core.width-lifts*lw)/(lifts+1);
+        // the lift core clad in walnut, its front at z=core.yMin, the lift doors in brushed stainless; a working lift (the
+        // SKY KASYNO express) has its shaft open in the core
+        if(working<0)W.MM(walnut,core.xMin,core.xMax,y0,ceil,core.yMin,core.yMax,true);
+        else LiftCore(core,LiftCentre(core,lifts,working),y0,ceil);
+        float lw=1.2f;
         for(int i=0;i<lifts;i++)
         {
-            float x=core.xMin+gap*(i+1)+lw*(i+.5f);
+            if(i==working)continue;
+            float x=LiftCentre(core,lifts,i);
             W.MM(steel,x-lw*.5f,x+lw*.5f,y0,y0+2.6f,core.yMin-.04f,core.yMin);                                     // the doors, 4 cm proud
             W.MM(black,x-lw*.5f-.08f,x+lw*.5f+.08f,y0+2.6f,y0+2.75f,core.yMin-.05f,core.yMin);                       // their head
             W.MM(steel,x+lw*.5f+.20f,x+lw*.5f+.32f,y0+1.0f,y0+1.25f,core.yMin-.03f,core.yMin);                     // call panel
@@ -482,12 +658,15 @@ public static class BraxChampionsWiezowce
         LightLines(F,-H,H,4f,core);
         W.Grupa=outside;W.Wnetrze=false;
         float y=Shaft;
-        for(int f=0;f<t.floors;f++,y+=Storey)OfficeStorey(Rot(F,2f*f),y,bandWhite,f==t.floors-1?bandGraphite:null);
-        // the roof: a white parapet 1.4 m over the last plate, its top a grey concrete roof deck (no white lid seen from the
-        // towers round it); a white light band 25 cm high 2 cm off the parapet's face
-        var last=Rot(F,2f*(t.floors-1));
-        Prism(bandWhite,bandWhite,deck,Offset(last,Proud),y,y+1.4f);
-        W.Grupa=details;Sides(ledWhite,Offset(last,Proud+.02f),y+.95f,y+1.20f);W.Grupa=outside;
+        // as the Evolution Tower (Moscow): every plate turned 3 degrees on the one below, the glass between two plates a ruled
+        // surface (the units twist with it), reflective blue-silver coated glass with glass spandrels
+        var skin=GlassSkin(new Color(.22f,.28f,.33f),.10f);
+        for(int f=0;f<t.floors;f++,y+=Storey)CurtainStorey(Rot(F,Turn*f),Rot(F,Turn*(f+1)),y,skin,f,f==t.floors-1?deck:null);
+        // the roof: a parapet of the same glass units' black frame (anodised), 1.4 m, round the last plate; a white light
+        // band 25 cm high 2 cm off its face
+        var last=Rot(F,Turn*t.floors);
+        Prism(mullion,mullion,deck,Offset(last,.16f),y,y+1.4f);
+        W.Grupa=details;Sides(ledWhite,Offset(last,.18f),y+.95f,y+1.20f);W.Grupa=outside;
         W.KolizjaMM(-H,H,Shaft,y,-H,H);
         return y+1.4f;
     }
@@ -501,25 +680,30 @@ public static class BraxChampionsWiezowce
         // a lounge at each side
         var core=new Core(1f,-2f,12f,12f);
         GroundFloor(F0,-20f,new[]{-10.5f,4.5f},core,split);
-        LobbyFitOut(core,new Vector2(11.5f,-8.5f),new Vector2(15.5f,-13f),false,4,split);
+        CasinoMaterials();ExpressLift(LiftCentre(core,4,0));
+        // the express lift's name over its portal in the lobby (white light on the walnut)
+        BraxChampionsLetters3D.Text(letters,ledWhite,black,"SKY KASYNO",new Vector3(LiftCentre(core,4,0),Fl+2.50f,-2f),180f,.24f,.05f,.08f,2.2f);
+        LobbyFitOut(core,new Vector2(11.5f,-8.5f),new Vector2(15.5f,-13f),false,4,split,0);
         Lounge(new Vector2(-2.5f,-12f),true,"lobby west","SOFA W HOLU");
         Bet(F0,split);
         LightLines(F0,split+.6f,20f,4f,core);
         LightLinesAt(F0,new[]{-15.3f,-11.0f,-8.6f},null,15f-.6f);           // between the pendants' rows, over the tills
         W.Grupa=outside;W.Wnetrze=false;
         float y=Shaft;int s1=30,s2=48;
+        // neutral silver coated glass with glass spandrels; the setback terraces are the roofs of the sections below
+        var skin=GlassSkin(new Color(.19f,.21f,.23f));
         for(int f=0;f<t.floors;f++,y+=Storey)
         {
             var g=f<s1?F0:f<s2?F1:F2;
             bool lastOfSection=f==s1-1||f==s2-1||f==t.floors-1;
-            OfficeStorey(g,y,bandGraphite,lastOfSection?bandGraphite:null);
+            if(f>=CasinoFloor)CasinoStorey(g,y,f==t.floors-1);
+            else CurtainStorey(g,g,y,skin,f,lastOfSection?deck:null);
         }
         float yS1=Shaft+s1*Storey,yS2=Shaft+s2*Storey,roof=y;
         // terraces of the setbacks: a parapet ring is the band of the next section's first floor (its own caps)
         // stainless blades every 3 m on every face of each section (30 cm face, 45 cm deep)
         W.Grupa=details;
-        // (the lowest ones rise from the top of the first slab band: their feet never lie in the plane of its underside)
-        Blades(steel,F0,Shaft+Band,yS1,3.0f);Blades(steel,F1,yS1,yS2,3.0f);
+        Blades(steel,F0,Shaft,yS1,3.0f);Blades(steel,F1,yS1,yS2,3.0f);
         // the top section's blades run up into the crown on the sides and chamfers; front and back faces stay open for
         // the name
         Blades(steel,F2,yS2,roof,3.0f);
@@ -536,7 +720,10 @@ public static class BraxChampionsWiezowce
             BraxChampionsLetters3D.Text(letters,black,black,"BRAXHORN",at,yaw,3.6f,.25f,.10f,17f);
         }
         Heliport(roof+14f);
-        W.KolizjaMM(-20f,20f,Shaft,yS1,-20f,20f);W.KolizjaMM(-17f,17f,yS1,yS2,-17f,17f);W.KolizjaMM(-14f,14f,yS2,roof+14f,-14f,14f);
+        SkyCasino(F2);
+        // the tower's body is solid but for the sky casino (its glass and floor collide on their own) and the lift's way
+        W.KolizjaMM(-20f,20f,Shaft,yS1,-20f,20f);W.KolizjaMM(-17f,17f,yS1,yS2,-17f,17f);W.KolizjaMM(-14f,14f,yS2,CasinoY-.30f,-14f,14f);
+        W.KolizjaMM(-14f,14f,roof,roof+14f,-14f,14f);
         // the tower's name over the lobby door (white light) and BRAXHORN BET over its door (green light): letters standing
         // on the canopy at its front edge, their faces flush with its fascia, so the canopy never hides their foot
         float edge=-20f-CanopyOut;
@@ -565,6 +752,251 @@ public static class BraxChampionsWiezowce
             W.MM(ledGreen,px-.12f,px+.12f,y1-.10f,y1+.08f,pz-.12f,pz+.12f);
         W.Grupa=outside;
         W.KolizjaMM(-h,h,y0,y1,-h,h);
+    }
+    // ---------------- T09 SKY KASYNO ----------------
+    // Owner 16.11 17:42: "na jednym wieżowcu kasyno na samej górze z widokiem na całe miasto" (plan 12.11: "Dwa kasyna:
+    // KASYNO WAWER T11 i sky kasyno na szczycie wieżowca"). The top two storeys of the BRAXHORN TOWER (240-248 m over the
+    // plaza, the highest room of the region) are one hall 8 m high in clear glass all round: the whole city below. The
+    // express lift from the lobby (lift 1 of the bank, a working BraxWinda: two stops) opens into it. Inside: dark oak
+    // planks, a dark ceiling with lamps, blackjack tables made as real ones (red felt, a padded black leather armrest,
+    // walnut body, steel chip tray, pedestals), the owner's slot machines, a bar with the owner's back-bar and lamps, lounges
+    // at the glass.
+    public const int CasinoFloor=58;
+    public static float CasinoY=>Shaft+CasinoFloor*Storey;
+    const float LiftZ0=-2f,LiftZ1=.30f,LiftHalf=1.05f,LiftLeaf=.60f;
+    static Material casinoGlass,oakDark,felt,leatherBlack,darkMetal;
+    static Transform cab,cabL,cabR;static Transform[] landL,landR;static float liftX;static int slots,tables,ownerMissing;
+    static void CasinoMaterials()
+    {
+        // clear glass both ways (seen from the hall too), the city's clear glass otherwise
+        string path=outFolder+"/Materials/tower_sky_casino_clear_glass.mat";
+        casinoGlass=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(!casinoGlass){casinoGlass=new Material(gClear){name="Mistrzowie tower sky casino clear glass (both sides)"};casinoGlass.SetFloat("_Cull",0f);AssetDatabase.CreateAsset(casinoGlass,path);}
+        // the owner's hall board (10.11): oak planks smoked a shade darker; Poly Haven velour for the felt (red, the
+        // region's casino colour); black hide for the armrests; blackened steel for the pedestals
+        oakDark=Src("sky_casino_oak","oak_wood_planks",2.2f,new Color(.50f,.44f,.42f),.6f);
+        felt=Src("sky_casino_felt","velour_velvet",.6f,new Color(.82f,.80f,.82f),.95f);
+        leatherBlack=BraxChampionsFoundation.LibraryLeather("tower_casino_leather_black",new Color(.30f,.52f,.70f));
+        darkMetal=BraxChampionsFoundation.LibraryMetal("tower_casino_blackened_steel",new Color(.10f,.10f,.11f));
+    }
+    // one storey of the hall's glass: clear units, mullions with a back (seen from the hall), the sill / the 4 m transom,
+    // the glass's collision; the roof deck over the top one
+    static void CasinoStorey(List<Vector2> p,float y,bool roof)
+    {
+        var c=Centre(p);var bt=FrameAt(y);
+        for(int i=0;i<p.Count;i++)
+        {
+            int j=(i+1)%p.Count;var n2=EdgeOut(p,i,c);var n=new Vector3(n2.x,0,n2.y);
+            float L=(p[j]-p[i]).magnitude;int m=Mathf.Max(1,Mathf.RoundToInt(L/1.5f));
+            Vector3 P(float t,float h)=>V3(Vector2.Lerp(p[i],p[j],t),y+h);
+            for(int k=0;k<m;k++)UnitQuad(casinoGlass,P((float)k/m,0),P((float)(k+1)/m,0),P((float)(k+1)/m,Storey),P((float)k/m,Storey),n);
+            for(int k=0;k<m;k++)Bar(bt,mullion,P((float)k/m,0),P((float)k/m,Storey),n,k==0?.10f:.065f,.14f,true);
+            float cut=Mathf.Min(.45f,.08f/L);
+            Bar(bt,mullion,P(cut,0),P(1f,0),n,.10f,.08f,true);
+            W.Grupa=inside;W.Wnetrze=true;
+            W.Kolizja(V3(Vector2.Lerp(p[i],p[j],.5f),y+Storey*.5f)-n*.15f,new Vector3(L,Storey,.30f),Quaternion.LookRotation(n,Vector3.up));
+            W.Grupa=outside;W.Wnetrze=false;
+        }
+        if(roof)Cap(deck,p,y+Storey,true);
+    }
+    static void SkyCasino(List<Vector2> F)
+    {
+        float y=CasinoY,ceil=CasinoY+2f*Storey-Ceiling;
+        W.Grupa=inside;W.Wnetrze=true;
+        Cap(oakDark,F,y,true);Cap(ceilingBlack,F,ceil,false);
+        W.KolizjaMM(-14f,14f,y-.30f,y,-14f,14f);
+        // the core: walnut round the express lift's shaft, the lift opening to the hall (south, -z)
+        LiftCore(new Core(-4f,-2f,10f,7f),liftX,y,ceil);
+        BraxChampionsLetters3D.Text(letters,ledWhite,black,"SKY KASYNO",new Vector3(-1.2f,y+3.2f,-2f),180f,.42f,.06f,.10f,5.0f);
+        // ---- the bar on the core's back (z 5): back counter, the owner's back-bar, the bartender's walk, the counter
+        const float bz=5f;
+        kat.RoundedBox(walnut,new Vector3(1f,y+.48f,bz+.30f),new Vector3(9.0f,.96f,.60f),.02f);
+        kat.RoundedBox(marble,new Vector3(1f,y+.98f,bz+.31f),new Vector3(9.1f,.04f,.62f),.012f);
+        int units=OwnerBackBar(-3.2f,5.2f,y+1.0f,bz+.04f,y+3.1f);
+        kat.RoundedBox(walnut,new Vector3(1f,y+.55f,7.35f),new Vector3(9.0f,1.10f,.70f),.03f);
+        kat.RoundedBox(marble,new Vector3(1f,y+1.12f,7.30f),new Vector3(9.2f,.04f,.84f),.015f);
+        kat.Tube(steel,new Vector3(-3.4f,y+.22f,7.84f),new Vector3(5.4f,y+.22f,7.84f),.025f,10);
+        W.KolizjaMM(-3.5f,5.5f,y,y+1.14f,7.0f,7.72f);W.KolizjaMM(-3.5f,5.5f,y,y+1.0f,bz,bz+.6f);
+        for(int i=0;i<7;i++)
+        {
+            float x=-2.6f+i*1.2f;
+            Model("HotelSobczak/bar_chair_round_01/bar_chair_round_01_1k.gltf","sky casino bar stool",new Vector3(x,y,8.40f),0f);
+            W.Grupa=inside;W.Siedzisko(new Vector3(x,y+.76f,8.40f),Vector3.back,"SKY KASYNO BAR");seats++;
+        }
+        for(int i=0;i<4;i++)OwnerModel("bar_lampa_markpeters","sky casino bar lamp",new Vector3(-2.0f+i*2.0f,y+2.55f,7.30f),0f,.50f,ceil);
+        // ---- the slot machines (the owner's, BRAXHORN screens): two banks back to back, west and east of the lift
+        foreach(float x0 in new[]{-12.0f,7.4f})
+            for(int i=0;i<6;i++)
+            {
+                float x=x0+.42f+i*.84f;
+                if(OwnerModel("kasyno_automat_nermin","sky casino slot machine",new Vector3(x,y,-4.0f),0f,1.85f)!=null)slots++;
+                if(OwnerModel("kasyno_automat_nermin","sky casino slot machine",new Vector3(x,y,-5.0f),180f,1.85f)!=null)slots++;
+            }
+        // ---- blackjack tables to the south (the street side, the glass behind the players)
+        foreach(float x in new[]{-6.6f,0f,6.6f})BlackjackTable(new Vector2(x,-9.6f));
+        // ---- lounges at the west and east glass, the sofas facing the city; plants
+        Lounge(new Vector2(-10.5f,8.5f),false,"sky casino lounge W","SOFA SKY KASYNO");
+        Lounge(new Vector2(10.5f,8.5f),true,"sky casino lounge E","SOFA SKY KASYNO");
+        W.Grupa=inside;W.Wnetrze=true;
+        foreach(var pp in new[]{new Vector2(-11f,-11f),new Vector2(11f,-11f),new Vector2(-11f,11f),new Vector2(11f,11f)})
+            Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf","sky casino plant",new Vector3(pp.x,y,pp.y),pp.x*13f);
+        // ---- light: lamps on the dark ceiling over the tables and the lounges, the light of the hall
+        foreach(var lp in new[]{new Vector2(-6.6f,-9.6f),new Vector2(0f,-9.6f),new Vector2(6.6f,-9.6f),new Vector2(-10.5f,8.5f),new Vector2(10.5f,8.5f)})
+            Model("HotelSobczak/modern_ceiling_lamp_01/modern_ceiling_lamp_01_1k.gltf","sky casino ceiling lamp",new Vector3(lp.x,ceil,lp.y),0f,hang:true);
+        foreach(var lp in new[]{new Vector3(-6.6f,4.6f,-9.6f),new Vector3(0f,4.6f,-9.6f),new Vector3(6.6f,4.6f,-9.6f),new Vector3(-9.6f,4.6f,-4.5f),
+                                new Vector3(9.8f,4.6f,-4.5f),new Vector3(1f,3.6f,7.3f),new Vector3(-10.5f,4.6f,8.5f),new Vector3(10.5f,4.6f,8.5f)})
+            lights.Add(W.Lampa("SKY KASYNO light",new Vector3(lp.x,y+lp.y,lp.z),1.0f,11f,new Color(.97f,.98f,1f)));
+        Debug.Log("TOWER_T09_SKY_KASYNO floor="+CasinoY.ToString("F2")+"m nominal glass=clear-both-sides tables="+tables+" slots="+slots+
+            " backBarUnits="+units+" ownerModelsMissing="+ownerMissing+" lift=BraxWinda(2 stops)");
+        if(ownerMissing>0)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO owner models missing x"+ownerMissing+" (osiedle_wnetrza pack): slots / back-bar / bar lamps stay empty");
+    }
+    // a blackjack table as real ones are (2.2 x 1.05 m, felt at .78 m): a half-ellipse of red felt, a padded black leather
+    // armrest round the players' arc, a walnut apron under it, the dealer's straight walnut edge with a steel chip tray, two
+    // blackened steel pedestals; five dining chairs (Poly Haven) round the arc, the dealer standing on the straight side (+z)
+    static void BlackjackTable(Vector2 at)
+    {
+        float y=CasinoY,top=.78f;const float A=1.10f,B=.95f,Rail=.11f,RailH=.075f;
+        Vector3 L(float x,float h,float z)=>new Vector3(at.x+x,y+h,at.y+z);
+        Vector2 Arc(float t,float k)=>new Vector2(A*k*Mathf.Cos(t),-B*k*Mathf.Sin(t));
+        Vector2 Out(float t){var v=new Vector2(Mathf.Cos(t)/A,-Mathf.Sin(t)/B);return v.normalized;}
+        void Up(Material m,Vector3 a,Vector3 b,Vector3 c,bool up){var n=Vector3.Cross(b-a,c-a);if((n.y<0)==up)kat.Triangle(m,a,c,b);else kat.Triangle(m,a,b,c);}
+        const int N=28;float kIn=1f-Rail/A*.9f;
+        for(int i=0;i<N;i++)
+        {
+            float t0=Mathf.PI*i/N,t1=Mathf.PI*(i+1)/N;var a0=Arc(t0,kIn);var a1=Arc(t1,kIn);
+            Up(felt,L(0,top,.02f),L(a0.x,top,a0.y),L(a1.x,top,a1.y),true);                     // the felt
+            var b0=Arc(t0,1f);var b1=Arc(t1,1f);
+            Up(walnut,L(0,top-.16f,.02f),L(b0.x,top-.16f,b0.y),L(b1.x,top-.16f,b1.y),false);  // the underside
+        }
+        // the padded armrest: a half-round roll of leather on the arc's rim (out of the felt's plane by its own height)
+        kat.Surface(leatherBlack,(u,v)=>{float t=Mathf.PI*u,ph=Mathf.PI*v;var c=Arc(t,1f-Rail*.5f/A);var o=Out(t);
+            float r=-Mathf.Cos(ph)*Rail*.5f,h=Mathf.Sin(ph)*RailH;return L(c.x+o.x*r,top-.005f+h,c.y+o.y*r);},N,6,true);
+        // the walnut apron under it, straight down to the underside
+        kat.Surface(walnut,(u,v)=>{float t=Mathf.PI*u;var c=Arc(t,1f);return L(c.x,top-.16f+v*.155f,c.y);},N,1);
+        // the dealer's side: a straight walnut edge, the steel chip tray let into it, the felt's strip to it
+        kat.RoundedBox(walnut,L(0,top-.08f,.10f),new Vector3(2*A+.02f,.16f,.16f),.02f);
+        kat.RoundedBox(steel,L(0,top+.012f,.10f),new Vector3(.62f,.024f,.12f),.006f);
+        foreach(float sx in new[]{-1f,1f})kat.RoundedBox(darkMetal,L(sx*.55f,(top-.16f)*.5f,-.30f),new Vector3(.14f,top-.16f,.46f),.02f);
+        W.Grupa=inside;W.Wnetrze=true;W.KolizjaMM(at.x-A,at.x+A,y,y+top,at.y-B,at.y+.18f);
+        for(int k=0;k<5;k++)
+        {
+            float t=Mathf.PI*(k+.5f)/5f;var p=Arc(t,1f)+Out(t)*.42f;var face=Out(t)*-1f;
+            Model("HotelSobczak/dining_chair_02/dining_chair_02_2k.gltf","sky casino blackjack chair",new Vector3(at.x+p.x,y,at.y+p.y),Mathf.Atan2(face.x,face.y)*Mathf.Rad2Deg);
+            W.Grupa=inside;W.Siedzisko(new Vector3(at.x+p.x,y+.47f,at.y+p.y),new Vector3(face.x,0,face.y),"SKY KASYNO BLACKJACK");seats++;
+        }
+        tables++;
+    }
+    // one of the owner's models (osiedle_wnetrza: CC BY, decrypted in CI): base centred on at (or hung so its top is at
+    // hangTo), fitted to fitHeight metres, turned by yaw; null and counted when the pack is not here
+    static GameObject OwnerModel(string file,string label,Vector3 at,float yaw,float fitHeight,float hangTo=float.NaN)
+    {
+        var src=BraxMiastoAssety.Model("osiedle_wnetrza",file);
+        if(!src){ownerMissing++;return null;}
+        try
+        {
+            var o=(GameObject)UnityEngine.Object.Instantiate(src,inside,false);o.name="TOWER | "+label+" | "+file+" (biblioteka właściciela, CC BY)";
+            o.transform.localPosition=Vector3.zero;o.transform.localRotation=Quaternion.Euler(0,yaw,0)*src.transform.localRotation;o.transform.localScale=src.transform.localScale;
+            var b=BraxMiastoAssety.Granice(o);
+            if(fitHeight>0f&&b.size.y>1e-4f){o.transform.localScale*=fitHeight/b.size.y;b=BraxMiastoAssety.Granice(o);}
+            var t=inside.TransformPoint(at);
+            o.transform.position+=new Vector3(t.x-b.center.x,t.y-b.min.y,t.z-b.center.z);
+            if(!float.IsNaN(hangTo))
+            {
+                // a pendant: a steel cable from its top to the ceiling
+                var bb=BraxMiastoAssety.Granice(o);var c=inside.InverseTransformPoint(bb.center);float topY=inside.InverseTransformPoint(bb.max).y;
+                if(hangTo>topY+.05f)kat.Tube(steel,new Vector3(c.x,topY,c.z),new Vector3(c.x,hangTo,c.z),.004f,6);
+            }
+            BraxMiastoAssety.Przygotuj(o,true,true);models++;return o;
+        }
+        catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI TOWER_OWNER_MODEL "+file+" "+e.Message);ownerMissing++;return null;}
+    }
+    // the owner's back-bar units (windupbird) standing on the back counter between xa and xb, fronts to the bar (+z), the
+    // bottles at their real height (.33 m, as E1's bar)
+    static int OwnerBackBar(float xa,float xb,float y0,float zBack,float yTop)
+    {
+        var src=BraxMiastoAssety.Model("osiedle_wnetrza","bar_polki_butelki_windupbird");if(!src){ownerMissing++;return 0;}
+        try
+        {
+            var tmp=(GameObject)UnityEngine.Object.Instantiate(src);tmp.transform.position=Vector3.zero;tmp.transform.rotation=src.transform.localRotation;
+            float maxB=0f;
+            foreach(var t in tmp.GetComponentsInChildren<Transform>(true))
+                if(t!=tmp.transform&&(t.name.StartsWith("Object")||t.name.StartsWith("Box"))){float h=BraxMiastoAssety.Granice(t.gameObject).size.y;if(h>maxB&&h<BraxMiastoAssety.Granice(tmp).size.y*.6f)maxB=h;}
+            var b0=BraxMiastoAssety.Granice(tmp);UnityEngine.Object.DestroyImmediate(tmp);if(maxB<=0f)maxB=b0.size.y*.2f;
+            float s=Mathf.Min(.33f/maxB,(yTop-y0)/Mathf.Max(1e-4f,b0.size.y));
+            bool longX=b0.size.x>=b0.size.z;float yaw=longX?0f:90f;float wr=Mathf.Max(b0.size.x,b0.size.z)*s,Lr=xb-xa;
+            int n=Mathf.Clamp(Mathf.FloorToInt((Lr+.1f)/(wr+.1f)),1,12);float step=Lr/n;
+            for(int i=0;i<n;i++)
+            {
+                var o=(GameObject)UnityEngine.Object.Instantiate(src,inside,false);o.name="TOWER | sky casino back-bar "+(i+1)+" | bar_polki_butelki_windupbird (biblioteka właściciela, CC BY)";
+                o.transform.localPosition=Vector3.zero;o.transform.localRotation=Quaternion.Euler(0,yaw,0)*src.transform.localRotation;o.transform.localScale=src.transform.localScale*s;
+                var b=BraxMiastoAssety.Granice(o);var t=inside.TransformPoint(new Vector3(xa+step*(i+.5f),y0,zBack));
+                o.transform.position+=new Vector3(t.x-b.center.x,t.y-b.min.y,t.z-b.min.z);
+                BraxMiastoAssety.Przygotuj(o,true,true);models++;
+            }
+            return n;
+        }
+        catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI TOWER_OWNER_BACKBAR "+e.Message);ownerMissing++;return 0;}
+    }
+    // a lift core in walnut round one working lift's shaft (x = the shaft's centre): the walls beside and over the doors,
+    // a brushed stainless portal 3 cm proud, the call panel
+    static void LiftCore(Core core,float x,float y0,float y1)
+    {
+        float s0=x-LiftHalf,s1=x+LiftHalf,d0=x-LiftLeaf,d1=x+LiftLeaf,front=core.yMin,wall=front+.20f;
+        W.Grupa=inside;W.Wnetrze=true;
+        W.MM(walnut,core.xMin,s0,y0,y1,core.yMin,core.yMax,true);
+        W.MM(walnut,s1,core.xMax,y0,y1,core.yMin,core.yMax,true);
+        W.MM(walnut,s0,s1,y0,y1,front+(LiftZ1-LiftZ0),core.yMax,true);
+        W.MM(walnut,s0,d0,y0,y1,front,wall,true);W.MM(walnut,d1,s1,y0,y1,front,wall,true);
+        W.MM(walnut,d0,d1,y0+2.25f,y1,front,wall,true);
+        W.MM(steel,d0-.08f,d0,y0,y0+2.25f,front-.03f,front);W.MM(steel,d1,d1+.08f,y0,y0+2.25f,front-.03f,front);
+        W.MM(steel,d0-.08f,d1+.08f,y0+2.25f,y0+2.33f,front-.03f,front);
+        W.MM(steel,d1+.20f,d1+.32f,y0+1.0f,y0+1.25f,front-.03f,front);
+    }
+    // the express lift: a cabin built at its floor y = 0 (BraxWinda carries it to a stop), its doors, the landing doors of the
+    // lobby and of the sky casino (each leaf its own object: they slide)
+    static void ExpressLift(float x)
+    {
+        liftX=x;float zf=LiftZ0+.34f,zb=LiftZ1-.06f;
+        cab=new GameObject("BRAXHORN TOWER | SKY KASYNO express lift | cabin (BraxWinda)").transform;cab.SetParent(inside,false);
+        W.Grupa=cab;W.Wnetrze=true;
+        W.MM(marble,x-.98f,x+.98f,-.12f,.01f,zf-.08f,zb+.05f,true);
+        W.MM(walnut,x-.98f,x+.98f,.01f,2.5f,zb,zb+.05f,true);
+        W.MM(walnut,x-.98f,x-.93f,.01f,2.5f,zf,zb,true);W.MM(walnut,x+.93f,x+.98f,.01f,2.5f,zf,zb,true);
+        W.MM(steel,x-.98f,x+.98f,2.5f,2.56f,zf-.08f,zb+.05f);W.MM(ledWhite,x-.55f,x+.55f,2.47f,2.5f,zf+.40f,zb-.40f);
+        W.MM(steel,x-.93f,x-LiftLeaf,.01f,2.5f,zf-.04f,zf,true);W.MM(steel,x+LiftLeaf,x+.93f,.01f,2.5f,zf-.04f,zf,true);
+        W.MM(steel,x-LiftLeaf,x+LiftLeaf,2.25f,2.5f,zf-.04f,zf,true);
+        W.MM(black,x+.70f,x+.86f,1.0f,1.45f,zf,zf+.02f);
+        W.Rura(steel,new Vector3(x-.80f,.95f,zb-.06f),new Vector3(x+.80f,.95f,zb-.06f),.02f);
+        W.Lampa("SKY KASYNO lift cabin light",new Vector3(x,2.2f,(zf+zb)*.5f),.7f,3f,new Color(.97f,.98f,1f));
+        cabL=new GameObject("cabin door L").transform;cabL.SetParent(cab,false);W.Grupa=cabL;W.MM(steel,x-LiftLeaf,x,.01f,2.25f,zf-.08f,zf-.05f,true);
+        cabR=new GameObject("cabin door R").transform;cabR.SetParent(cab,false);W.Grupa=cabR;W.MM(steel,x,x+LiftLeaf,.01f,2.25f,zf-.08f,zf-.05f,true);
+        landL=new Transform[2];landR=new Transform[2];
+        var ys=new[]{Fl,CasinoY};
+        for(int s=0;s<2;s++)
+        {
+            float yy=ys[s],z0=LiftZ0+.22f;
+            landL[s]=new GameObject("SKY KASYNO lift landing door L | stop "+s).transform;landL[s].SetParent(inside,false);W.Grupa=landL[s];
+            W.MM(steel,x-LiftLeaf,x,yy,yy+2.25f,z0,z0+.03f,true);
+            landR[s]=new GameObject("SKY KASYNO lift landing door R | stop "+s).transform;landR[s].SetParent(inside,false);W.Grupa=landR[s];
+            W.MM(steel,x,x+LiftLeaf,yy,yy+2.25f,z0,z0+.03f,true);
+        }
+        W.Grupa=inside;
+    }
+    // after the root is placed: the lift's stops in world y, its call points, the BraxWinda itself
+    static void WireLift(Transform root)
+    {
+        if(!cab)return;
+        foreach(var t in cab.GetComponentsInChildren<Transform>(true))GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
+        foreach(var arr in new[]{landL,landR})foreach(var l in arr)foreach(var t in l.GetComponentsInChildren<Transform>(true))GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
+        var w=cab.gameObject.AddComponent<BraxWinda>();
+        w.nazwa="BRAXHORN TOWER · SKY KASYNO";
+        w.kabina=cab;w.kabinaL=cabL;w.kabinaP=cabR;
+        w.pietraY=new[]{root.TransformPoint(new Vector3(0,Fl,0)).y,root.TransformPoint(new Vector3(0,CasinoY,0)).y};
+        w.pietraNazwy=new[]{"HOL · BRAXHORN TOWER","SKY KASYNO · 60 PIĘTRO"};w.uzytkowe=new[]{true,true};
+        w.przystanekL=landL;w.przystanekP=landR;
+        w.wezwanie=new[]{root.TransformPoint(new Vector3(liftX,Fl+1.2f,LiftZ0-.9f)),root.TransformPoint(new Vector3(liftX,CasinoY+1.2f,LiftZ0-.9f))};
+        var sh=root.TransformPoint(new Vector3(liftX,0,(LiftZ0+LiftZ1)*.5f));w.szyb=new Vector2(sh.x,sh.z);
+        w.wnetrze=new Vector2(.93f*K,.95f*K);w.przesuw=LiftLeaf*.95f;w.start=0;
     }
     // BRAXHORN BET (plan 12.11 "punkt BRAXHORN BET"): the west wing of the BRAXHORN TOWER ground floor, its own door on
     // the street. A dark sportsbook: black granite floor, a black ceiling with white light lines, a video wall of fifteen
@@ -654,7 +1086,9 @@ public static class BraxChampionsWiezowce
         LightLines(F,-21f,21f,4f,core);
         W.Grupa=outside;W.Wnetrze=false;
         float y=Shaft;
-        for(int f=0;f<t.floors;f++,y+=Storey)OfficeStorey(F,y,bandWhite,f==t.floors-1?bandGraphite:null);
+        // as the Absolute World towers: white slab edges standing .60 m out round the whole ellipse, the glass set back
+        var skin=BandSkin(new Color(.17f,.22f,.26f),bandWhite,.60f);
+        for(int f=0;f<t.floors;f++,y+=Storey)CurtainStorey(F,F,y,skin,f,f==t.floors-1?deck:null);
         // the crown: a ring of white blades 8 m high every 2 m round the ellipse, a graphite lid
         W.Grupa=details;Blades(bandWhite,F,y,y+8f,2.0f);W.Grupa=outside;
         Prism(bandGraphite,bandGraphite,bandGraphite,Offset(F,.60f),y+7.4f,y+8.2f);
@@ -672,10 +1106,12 @@ public static class BraxChampionsWiezowce
         LightLines(A,-18f,18f,4f,core);
         W.Grupa=outside;W.Wnetrze=false;
         float y=Shaft;int per=t.floors/3;
+        // white aluminium slab edges .25 m out, neutral grey coated glass
+        var skin=BandSkin(new Color(.17f,.18f,.20f),bandWhite,.25f);
         for(int b=0;b<3;b++)
         {
             var g=b==1?B:A;
-            for(int f=0;f<per;f++,y+=Storey)OfficeStorey(g,y,bandWhite,f==per-1?(b==2?bandGraphite:teak):null);
+            for(int f=0;f<per;f++,y+=Storey)CurtainStorey(g,g,y,skin,b*per+f,f==per-1?(b==2?deck:teak):null);
             if(b<2)Terraces(g,b==1?A:B,y);
         }
         // the top: a graphite parapet
@@ -716,12 +1152,10 @@ public static class BraxChampionsWiezowce
         float top=Shaft+t.floors*Storey;
         float Half(float yy)=>Mathf.Lerp(h0,h1,(yy-Shaft)/(top-Shaft));
         float y=Shaft;
+        // as the Hearst Tower: clear blue coated glass behind a stainless diagrid
+        var skin=GlassSkin(new Color(.17f,.22f,.28f));
         for(int f=0;f<t.floors;f++,y+=Storey)
-        {
-            float hb=Half(y),hm=Half(y+Band),ht=Half(y+Storey);
-            Frustum(bandWhite,bandWhite,bandWhite,Box4(hb+Proud,hb+Proud),Box4(hm+Proud,hm+Proud),y,y+Band);
-            Frustum(gBlack,gBlack,f==t.floors-1?bandGraphite:gBlack,Box4(hm,hm),Box4(ht,ht),y+Band,y+Storey);
-        }
+            CurtainStorey(Box4(Half(y),Half(y)),Box4(Half(y+Storey),Half(y+Storey)),y,skin,f,f==t.floors-1?deck:null);
         // the diagrid: diamonds four storeys high, eight half-steps across each face, ring beams at the nodes, corner
         // columns - steel members 60 x 50 cm, 35 cm off the glass
         W.Grupa=details;

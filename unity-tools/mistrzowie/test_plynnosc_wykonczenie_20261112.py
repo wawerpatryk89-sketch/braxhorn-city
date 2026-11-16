@@ -56,10 +56,12 @@ class PlynnoscWykonczenie(unittest.TestCase):
                        'TRANSFER_SHADOW(o);', 'sunShadow = SHADOW_ATTENUATION(i);', '* sunShadow);',
                        'Tags { "LightMode"="ShadowCaster" }', 'SHADOW_CASTER_FRAGMENT(i)'):
             self.assertIn(needle, sh)
-        # the same properties as the city's shader: a material moved over keeps every value
+        # every property of the city's shader: a material moved over keeps every value; the only additions are the tower
+        # glass's real-sky reflection (16.11, materials made with this shader directly, _SKY_GLASS)
         import re
         props = lambda t: set(re.findall(r'^\s*(?:\[[^\]]+\]\s*)*(_\w+)\(', t.split('SubShader')[0], re.M))
-        self.assertEqual(props(sh), props(city))
+        self.assertTrue(props(city) <= props(sh))
+        self.assertEqual(props(sh) - props(city), {'_SkyGlass', '_SkyPanorama', '_SkyRotation', '_SkyExposure', '_GlassF0'})
         self.assertTrue((ASSETS / 'Mistrzowie' / 'BraxChampionsPBR.shader.meta').exists())
         e = src('Editor/Mistrzowie/BraxChampionsExplorer.cs')
         self.assertIn('SunShadows(scene);', e)

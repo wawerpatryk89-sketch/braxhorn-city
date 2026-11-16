@@ -52,6 +52,15 @@ Shader "Braxhorn/ChampionsPBR"
         _GroundColor("City ground irradiance", Color) = (.42,.40,.36,1)
         _AmbientIntensity("City ambient irradiance", Range(0,2)) = .65
         _ReflectionStrength("Broad sky reflection", Range(0,1)) = .4
+        // Tower glass (owner 16.11 17:37 "szkło to szkło"): coated curtain-wall glass reflects the region's REAL sky - the
+        // same Poly Haven 360 HDR panorama as the skybox (BraxChampionsSky), turned and exposed the same way - instead of the
+        // broad two-colour gradient; _GlassF0 is its reflectance, _Color the dark room seen through it.
+        [Toggle(_SKY_GLASS)] _SkyGlass("Real sky panorama in the glass", Float) = 0
+        _SkyPanorama("Sky panorama (latitude-longitude, HDR)", 2D) = "black" {}
+        _SkyRotation("Sky panorama rotation (degrees, as the skybox)", Float) = 0
+        _SkyExposure("Sky panorama exposure (as the skybox)", Float) = 1
+        // a Vector, not a Color: a linear project would convert a Color as sRGB and the reflectance would fall to a fifth
+        _GlassF0("Glass reflectance at normal incidence (linear)", Vector) = (.20,.22,.25,1)
     }
     SubShader
     {
@@ -73,10 +82,14 @@ Shader "Braxhorn/ChampionsPBR"
             // unity_4LightPos*; liczymy je tu PER PIKSEL (bez dodatkowych przebiegów ForwardAdd).
             #pragma multi_compile _ VERTEXLIGHT_ON
             #pragma multi_compile _ SHADOWS_SCREEN
+            #pragma shader_feature_local _SKY_GLASS
             #include "UnityCG.cginc"
             #include "AutoLight.cginc"
 
             sampler2D _MainTex, _BumpMap, _ARM, _OcclusionMap, _EmissionMap;
+            sampler2D _SkyPanorama;
+            float _SkyRotation, _SkyExposure;
+            float4 _GlassF0;
             float4 _MainTex_ST, _BumpMap_ST, _ARM_ST, _OcclusionMap_ST, _EmissionMap_ST;
             float4 _MainTex_Rotation, _BumpMap_Rotation, _ARM_Rotation;
             float4 _OcclusionMap_Rotation, _EmissionMap_Rotation;
@@ -209,6 +222,12 @@ Shader "Braxhorn/ChampionsPBR"
                 // glTF metallic-roughness channels: G roughness, B metallic.
                 half roughness = clamp(arm.g * _Roughness, .085, 1);
                 half metallic = saturate(arm.b * _Metallic);
+                #ifdef _SKY_GLASS
+                // the unit's frame lives in the base texture's alpha (1 glass, 0 black anodised frame): mip-mapped, so from
+                // afar it blends into the glass instead of shimmering; the frame is satin, the glass mirror-smooth
+                half glassMask = baseSample.a;
+                roughness = lerp(.45, roughness, glassMask);
+                #endif
                 half aoMap = tex2D(_OcclusionMap, MapUV(i.uv,_OcclusionMap_ST,
                                       _OcclusionMap_Rotation.xy,_OcclusionMap_texCoord)).r;
                 half textureAO = lerp(1, lerp(aoMap,arm.r,_UseARMForAO), _OcclusionStrength);
@@ -219,6 +238,9 @@ Shader "Braxhorn/ChampionsPBR"
                 half nl = saturate(dot(n,light)), nv = max(saturate(dot(n,view)), .001);
                 half nh = saturate(dot(n,h)), vh = saturate(dot(view,h));
                 half3 f0 = lerp(half3(.04,.04,.04), albedo, metallic);
+                #ifdef _SKY_GLASS
+                f0 = lerp(half3(.035,.035,.04), _GlassF0.rgb, glassMask);   // the coating's reflectance; albedo = the room behind
+                #endif
                 half3 fresnel = f0 + (1-f0) * Pow5(1-vh);
                 float a = roughness*roughness, a2 = a*a;
                 float denom = nh*nh*(a2-1)+1;
@@ -267,6 +289,19 @@ Shader "Braxhorn/ChampionsPBR"
                 // screen-space reflection, real-time probe, or extra light is involved.
                 half3 reflected = reflect(-view,n);
                 half3 environment = lerp(ground,sky,reflected.y*.5+.5);
+                #ifdef _SKY_GLASS
+                {
+                    // as Unity's Skybox/Panoramic: the direction turned round Y by the sky's rotation, then latitude-longitude;
+                    // an explicit mip (roughness) so the u seam never picks a wrong mip
+                    float3 rd = normalize((float3)reflected);
+                    float sa, ca; sincos(radians(_SkyRotation), sa, ca);
+                    float3 rr = float3(ca*rd.x - sa*rd.z, rd.y, sa*rd.x + ca*rd.z);
+                    float2 pano = float2(.5 - atan2(rr.z, rr.x) * (.5/UNITY_PI), 1 - acos(clamp(rr.y,-1,1)) / UNITY_PI);
+                    half3 panorama = min(tex2Dlod(_SkyPanorama, float4(pano, 0, roughness*6)).rgb * _SkyExposure, 16);
+                    // the panorama is sky only: under the horizon the city's ground, blended over a few degrees
+                    environment = lerp(panorama, ground*_AmbientIntensity*1.4, saturate(-rr.y*12));
+                }
+                #endif
                 half3 viewFresnel = f0 + (1-f0)*Pow5(1-nv);
                 colour += environment*viewFresnel*(1-.65*roughness)*_ReflectionStrength*ambientAO;
                 if (dot(_EmissionColor.rgb,_EmissionColor.rgb) > 0)

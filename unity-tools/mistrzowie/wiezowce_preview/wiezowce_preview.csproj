@@ -12,6 +12,7 @@
     <Compile Include="../apartments_preview/Stubs.cs" />
     <Compile Include="../apartments_preview/RegionStubs.cs" />
     <Compile Include="WiezMain.cs" />
+    <Compile Include="WiezStubs.cs" />
     <Compile Include="../casino_preview/CasinoStubs.cs" />
     <Compile Include="../promenade_preview/PromenadeStubs.cs" />
     <Compile Include="../apartments_preview/MeshDump.cs" />
