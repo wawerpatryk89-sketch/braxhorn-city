@@ -1455,8 +1455,10 @@ public static class BraxChampionsWiezowce
     {
         var A=Box4(18f,13f);var B=Box4(13f,18f);
         var core=new Core(-5f,-2f,10f,9f);
-        GroundFloor(A,-13f,new[]{0f},core);
-        LobbyFitOut(core,new Vector2(10f,-8f),new Vector2(-12.5f,-6.5f),true);
+        // the west wing is WAWER NIERUCHOMOŚCI (16.11 23:12-23:13), its own door on the street at x -12; the lobby's lounge east
+        GroundFloor(A,-13f,new[]{0f,-12f},core);
+        LobbyFitOut(core,new Vector2(10f,-8f),new Vector2(12.5f,4.5f),false,4,OfficeX);
+        Nieruchomosci(A);
         LightLines(A,-18f,18f,4f,core);
         W.Grupa=outside;W.Wnetrze=false;
         float y=Shaft;int per=t.floors/3;
@@ -1472,6 +1474,31 @@ public static class BraxChampionsWiezowce
         Prism(bandGraphite,bandGraphite,bandGraphite,Offset(A,Proud),y,y+1.2f);
         W.KolizjaMM(-18f,18f,Shaft,y,-18f,18f);
         return y+1.2f;
+    }
+    // WAWER NIERUCHOMOŚCI, the real estate office of Patryk and Monika (owner 16.11 23:12 with her poster "Poznaj Monikę ...
+    // Prowadzę biuro nieruchomości w Mieście Mistrzów"): the T12's ground floor west of the partition at x -6 (walnut on its
+    // side, white marble on the lobby's - two halves back to back), its name in white light on the canopy over its door,
+    // the fit-out by BraxChampionsKasynoSprzet.Biuro; the chairs and the lounge are the tower's real-size models
+    const float OfficeX=-6f;
+    static void Nieruchomosci(List<Vector2> F)
+    {
+        float y0=Fl,ceil=Shaft-Ceiling,x0=-18f,z0=-13f,z1=13f;
+        W.Grupa=inside;W.Wnetrze=true;
+        W.MM(walnut,OfficeX-.30f,OfficeX-.15f,y0,ceil,z0+.1f,z1-.1f);
+        W.MM(marble,OfficeX-.15f,OfficeX,y0,ceil,z0+.1f,z1-.1f);
+        W.KolizjaMM(OfficeX-.30f,OfficeX,y0,ceil,z0+.1f,z1-.1f);
+        BraxChampionsKasynoSprzet.Biuro(inside,kat,x0+.2f,OfficeX-.30f,z0+.15f,z1-.15f,y0,-12f);
+        // her desk's chairs: two for the clients before it, hers behind it; a lounge at the back; plants
+        foreach(float sx in new[]{-.55f,.55f})
+        {
+            Model("HotelSobczak/dining_chair_02/dining_chair_02_2k.gltf","WAWER NIERUCHOMOŚCI client chair",new Vector3(-12f+sx,y0,z0+.15f+6.2f-1.05f),0f);
+            W.Grupa=inside;W.Siedzisko(new Vector3(-12f+sx,y0+.46f,z0+.15f+6.2f-1.0f),Vector3.forward,"WAWER NIERUCHOMOŚCI");seats++;
+        }
+        Model("HotelSobczak/dining_chair_02/dining_chair_02_2k.gltf","WAWER NIERUCHOMOŚCI Monika's chair",new Vector3(-12f,y0,z0+.15f+6.2f+.75f),180f);
+        Lounge(new Vector2(-11.5f,7.5f),true,"WAWER NIERUCHOMOŚCI","SOFA W BIURZE");
+        foreach(var (px,pz) in new[]{(-17.2f,-11.8f),(-7.0f,-11.8f),(-7.0f,11.8f)})Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf","WAWER NIERUCHOMOŚCI plant",new Vector3(px,y0,pz),px*13f);
+        float edge=-13f-CanopyOut;
+        BraxChampionsLetters3D.Text(letters,ledWhite,black,"WAWER NIERUCHOMOŚCI",new Vector3(-12f,Fl+CanopyTop,edge+.10f),180f,.42f,.10f,.10f,5.6f);
     }
     // the roof of a block where the next block does not cover it: a teak terrace (the block's roof cap) with a glass
     // balustrade on its open edges and granite planters

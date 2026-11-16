@@ -40,6 +40,7 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoWejscie.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsLototo.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoLototo.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoBiuro.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsRuletka.cs" />
   </ItemGroup>
 </Project>

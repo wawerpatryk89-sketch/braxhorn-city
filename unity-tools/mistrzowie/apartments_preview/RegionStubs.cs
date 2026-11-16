@@ -175,6 +175,7 @@ public static class BraxWnetrzaKit
     public static void Kolizja(Vector3 c, Vector3 size, Quaternion q) => Rec.Cols.Add("box");
     public static void KolizjaMM(float x0, float x1, float y0, float y1, float z0, float z1) => Rec.Cols.Add("mm");
     public static void Rampa(Vector3 gora, Vector3 dol, float szer) => Rec.Cols.Add("ramp " + gora.y.ToString("F2") + "->" + dol.y.ToString("F2"));
+    public static Transform Akcja(string id, string etykieta, string odpowiedz, Vector3 at, Transform mowca = null, float promien = 1.7f) { var g = new GameObject("AKCJA " + id); g.transform.SetParent(Grupa, false); g.transform.position = at; return g.transform; }
     public static Transform Obsada(string rola, Vector3 at, float yaw) { var g = new GameObject("BRAXHORN obsada: " + rola); g.transform.SetParent(Grupa, false); g.transform.position = at; return g.transform; }
     public static Light Lampa(string n, Vector3 at, float moc, float zasieg, Color? k = null)
     { var g = new GameObject(n); g.transform.SetParent(Grupa, false); g.transform.position = at; var l = g.AddComponent<Light>(); l.range = zasieg; l.intensity = moc; return l; }
