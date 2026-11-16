@@ -1,0 +1,25 @@
+{
+ "source": "Właściciel 16.11.2026 08:19 (zip z Tripo): byk + napis BRAXHORN, czarna limuzyna, czerwone coupé, kremowy kabriolet, czerwona motorówka — surowe, na później (nie instalowane w buildzie)",
+ "target": "surowe_tripo_20261116",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/surowe_tripo_20261116 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "1c364d9965fecf2df32d4856575539bd00dd90f37b4b84dcd0ac3106337de793",
+ "cmsSha256": "fa0c915ba5eb8b95ededa017244c50334e75d133fc7cbb254604cc4087c5d1f0",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 30392901,
+   "sha256": "fa0c915ba5eb8b95ededa017244c50334e75d133fc7cbb254604cc4087c5d1f0"
+  }
+ ],
+ "files": {
+  "oryginal/spec.json": "8aef2e933cad4da7d35c3418daec9128f92c75cf2f365b6f14b500c9e5ef38ca",
+  "oryginal/tripo_wlasciciela_16-11_0819.zip": "8cd7ec8472c366350c0df20faca22030bbf1bb73553b37c06b55ea90469a32b5",
+  "surowe_tripo_20261116/coupe_czerwone.glb": "9cd9da392729a1c3dd65be74878f806a69f0502daaf6f973e12455cad58f59b0",
+  "surowe_tripo_20261116/kabriolet_kremowy.glb": "a6a18b7bc3ef557fe5d41b9811ba15be84c8a06db8149902d4440a36bc49eabe",
+  "surowe_tripo_20261116/limuzyna_czarna.glb": "268046139b492525e109fcf2906ec7e0bf8a3078ce29dc22b4f8acd4b3231440",
+  "surowe_tripo_20261116/logo_byk_braxhorn.glb": "aa794f33f7d20f6a3101173e9fe137accf219928a3b81b80f9a4c964766d3552",
+  "surowe_tripo_20261116/motorowka_czerwona.glb": "c95705cd1f5d0a0f2746a3fc3b83710da9461e8592bcac1c42d308323d33b5bc"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
