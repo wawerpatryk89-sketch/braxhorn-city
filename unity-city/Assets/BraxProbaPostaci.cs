@@ -31,6 +31,8 @@ public sealed class BraxProbaPostaci : MonoBehaviour
     GUIStyle styl;
     string podpis = "";
 
+    bool BezKlatek => Environment.GetEnvironmentVariable("BRAX_BEZ_KLATEK") == "1";
+
     void Start()
     {
         katalog = Environment.GetEnvironmentVariable("BRAX_PROBA_KLATKI");
@@ -137,11 +139,17 @@ public sealed class BraxProbaPostaci : MonoBehaviour
                             glowaZakres = Mathf.Max(glowaZakres, Quaternion.Angle(pierwsza.Value, wzgledny));
                         else pierwsza = wzgledny;
                     }
-                    zrzut.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
-                    zrzut.Apply(false);
-                    File.WriteAllBytes(Path.Combine(katalog, numer.ToString("D5") + ".jpg"),
-                                       zrzut.EncodeToJPG(88));
-                    numer++;
+                    // BRAX_BEZ_KLATEK=1 — tylko liczby. Serwer CI nie ma karty graficznej
+                    // („Renderer: llvmpipe”), a odczyt bufora i JPEG na każdą klatkę kosztuje tam
+                    // tyle, że próba nie dochodzi do końca. Film bierzemy z APK, gdzie jest GPU.
+                    if (!BezKlatek)
+                    {
+                        zrzut.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+                        zrzut.Apply(false);
+                        File.WriteAllBytes(Path.Combine(katalog, numer.ToString("D5") + ".jpg"),
+                                           zrzut.EncodeToJPG(88));
+                        numer++;
+                    }
                 }
             }
 

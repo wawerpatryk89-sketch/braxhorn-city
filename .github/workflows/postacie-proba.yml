@@ -136,10 +136,15 @@ jobs:
         allowDirtyBuild: true
         versioning: None
 
-    - name: Nagraj probe kazdej postaci
+    # TYLKO LICZBY, BEZ FILMU. Serwer nie ma karty graficznej (w logu gry: "Renderer: llvmpipe"),
+    # a zapis kazdej klatki (ReadPixels + JPEG) jest tam tak drogi, ze proba stresu nie doszla do
+    # konca w 900 s i zapisala JEDNA klatke (run 43865869702, kod 124 = ubita przez timeout).
+    # Bramki licza sie szybko, bo nie czytaja bufora. FILM bierzemy z APK na telefonie, gdzie jest GPU.
+    - name: Przelicz bramki kazdej postaci (bez filmu — serwer bez GPU)
       if: inputs.tryb != 'apk'
       env:
         LIBGL_ALWAYS_SOFTWARE: '1'
+        BRAX_BEZ_KLATEK: '1'
         BRAX_POSTACIE: ${{ inputs.postacie }}
         BRAX_TRYB: ${{ inputs.tryb }}
       run: |
@@ -163,14 +168,20 @@ jobs:
         echo "--- wynik proby ---"
         grep -E 'BRAX_POSTAC |BRAX_ROZMOWA |BRAX_CIOS |BRAX_POKOJ|BRAX_PROBA_POSTACI_KONIEC|BRAX_PROBA_PARY_KONIEC' "$RUNNER_TEMP/pokoj.log" || true
         klatek=$(ls "$BRAX_PROBA_KLATKI"/*.jpg 2>/dev/null | wc -l)
-        echo "zapisanych klatek: $klatek"
-        cat "$BRAX_PROBA_KLATKI/wynik.txt" 2>/dev/null || { echo "BRAK wynik.txt — ostatnie 60 linii logu gry:"; tail -60 "$RUNNER_TEMP/pokoj.log" || true; }
+        echo "zapisanych klatek: $klatek (0 = tryb tylko liczby, tak ma byc)"
+        if [ -f "$BRAX_PROBA_KLATKI/wynik.txt" ]; then
+          echo "--- bramki ---"; cat "$BRAX_PROBA_KLATKI/wynik.txt"
+        else
+          echo "::error::gra nie zapisala wynik.txt — ostatnie 80 linii logu gry:"
+          tail -80 "$RUNNER_TEMP/pokoj.log" || true
+          exit 1
+        fi
         if [ "$klatek" -gt 0 ]; then
           ffmpeg -hide_banner -loglevel error -framerate 24 \
             -i "$BRAX_PROBA_KLATKI/%05d.jpg" -c:v libx264 -pix_fmt yuv420p \
             -movflags +faststart Pokoj_prob_postaci.mp4
-        else echo "::error::gra nie zapisala ani jednej klatki"; exit 1; fi
-        echo "kod gry: $kod (1 = ktoras postac nie przeszla, film i tak powstal)"
+        fi
+        echo "kod gry: $kod (1 = ktoras postac nie przeszla, bramki i tak sa wyzej)"
 
     - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       if: always() && inputs.tryb != 'apk'

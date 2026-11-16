@@ -73,9 +73,25 @@ public sealed class BraxProbaPary : MonoBehaviour
         GUI.Label(new Rect(18, 12, 1000, 40), podpis, styl);
     }
 
+    // BRAX_BEZ_KLATEK=1 — TYLKO LICZBY, bez zapisywania klatek.
+    // Serwer CI nie ma karty graficznej (w logu: „Renderer: llvmpipe”), a ReadPixels + JPEG na
+    // każdą klatkę jest tam tak drogie, że próba stresu nie doszła do końca w 900 s i zapisała
+    // JEDNĄ klatkę (run 43865869702, kod 124 = ubita przez timeout). Same bramki liczbowe liczą
+    // się szybko, bo nie ma odczytu z bufora. Film bierzemy z APK na telefonie, gdzie jest GPU.
+    bool BezKlatek => Environment.GetEnvironmentVariable("BRAX_BEZ_KLATEK") == "1";
+
     IEnumerator Klatki(int ile, Action naKlatce)
     {
         var koniec = new WaitForEndOfFrame();
+        if (BezKlatek)
+        {
+            for (int i = 0; i < ile; i++)
+            {
+                yield return koniec;
+                naKlatce?.Invoke();
+            }
+            yield break;
+        }
         var zrzut = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
         for (int i = 0; i < ile; i++)
         {
