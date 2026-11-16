@@ -43,6 +43,9 @@ public static class BraxR1Zdjecia
         ("18_ladowisko_plyta", new Vector3(-483.5f, 152.9f, -27.2f), new Vector3(-483.5f, 150.6f, -12f), "płyta lądowiska: H, okrąg przyziemienia, lampy obwodu"),
         ("19_ladowisko_pawilon", new Vector3(-484.2f, 148.6f, -15.9f), new Vector3(-480.6f, 148.3f, -21.0f), "pawilon odlotów: winda z holu, poczekalnia, tablica odlotów"),
         ("20_ladowisko_schody", new Vector3(-500.5f, 148.3f, -21.5f), new Vector3(-492f, 150.6f, -15.5f), "schody z tarasu na płytę"),
+        // biuro WAWER NIERUCHOMOŚCI z grafikami właściciela (16.11 22:57 / 23:01)
+        ("21_deweloper_recepcja_logo", new Vector3(-395.4f, 1.65f, 41.3f), new Vector3(-395.4f, 2.35f, 47.4f), "WAWER NIERUCHOMOŚCI: logo za recepcją, ogłoszenia w ramkach"),
+        ("22_deweloper_zdjecia", new Vector3(-398.2f, 1.7f, 41.6f), new Vector3(-392.8f, 1.95f, 44.0f), "WAWER NIERUCHOMOŚCI: zdjęcia w ramach na ścianie bocznej"),
     };
 
     public static int Wykonaj(Scene scena)

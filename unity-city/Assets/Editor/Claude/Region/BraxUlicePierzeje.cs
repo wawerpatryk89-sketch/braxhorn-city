@@ -1872,9 +1872,37 @@ public static class BraxUlicePierzeje
         // biurka doradców po stronie drzwi przeciwnej do lady recepcji (bez kolizji z ladą), makieta po stronie lady przy witrynie
         bool ladaPrawo = (ladaS0 + ladaS1) * .5f > f.drzwiS, drzwiPrawo = ladaPrawo;
         float sWolna0 = ladaPrawo ? sIn0 + .5f : f.drzwiS + 1.4f, sWolna1 = ladaPrawo ? f.drzwiS - 1.4f : sIn1 - .5f;
-        var plyta = BraxUliceKit.Mat("biuro dewelopera: tablica oferty (grafit)", new Color(.12f, .125f, .13f), .4f, .2f);
-        TablicaZaLada(f, "biuro dewelopera", sIn0, sIn1, dTyl, ladaS0, ladaS1, y0, 1.3f,
-            new[] { f.lok.szyld, "MIESZKANIA   ALEJA CENTRALNA", "KAWALERKA   32 M2", "2 POKOJE   48 M2", "3 POKOJE   72 M2", "APARTAMENT   140 M2" }, plyta, new Color(.12f, .125f, .13f), new Color(.95f, .95f, .93f));   // białe na grafitowym
+        // GRAFIKI WŁAŚCICIELA (16.11 22:57 „na recepcję”, 23:01 „w ramkach”; paczka braxhorn-sklep-nieruchomosci-01): za recepcją kaseton
+        // z logo W i nazwa firmy (litery ze stali na grafitowym nośniku z LED), po bokach dwa ogłoszenia w ramkach; bez paczki — tablica oferty
+        bool grafiki = BraxNieruchomosciGrafiki.Jest; int ramek = 0; string logoOpis = "bez paczki — tablica oferty";
+        if (grafiki)
+        {
+            // zestaw na ścianie za recepcją: [ogłoszenie] — kaseton z nazwą — [ogłoszenie]; środek przy osi lady, przesunięty tak,
+            // by cały zestaw mieścił się na ścianie (≥ 0.25 m od narożników)
+            float hK = .6f * k, wK = hK * BraxNieruchomosciGrafiki.AspektKasetonu, capN = .12f * k, hO = 1.0f * k, wO = BraxNieruchomosciGrafiki.Szerokosc(4, hO);
+            float polZ = Mathf.Max(wK * .5f + .04f, (BraxUliceKit.SzerokoscNapisu(f.lok.szyld, capN) + .24f) * .5f), odst = .4f, zasieg = polZ + odst + wO + .06f + .25f;
+            float kcL = (sIn1 - sIn0) > 2f * zasieg ? Mathf.Clamp((ladaS0 + ladaS1) * .5f, sIn0 + zasieg, sIn1 - zasieg) : (sIn0 + sIn1) * .5f;
+            if (BraxNieruchomosciGrafiki.Kaseton(W(kcL, y0 + 2.6f * k, dTyl), f.N, hK))
+            {
+                // nazwa firmy pod kasetonem: litery 3D na grafitowym nośniku z linią LED (dolna krawędź nośnika 0.12 m nad dołem ogłoszeń)
+                float wN = BraxNieruchomosciGrafiki.NazwaFirmy(f.lok.szyld, W(kcL, y0 + 2.6f * k - hK * .5f - .04f - .14f - (capN + .2f), dTyl), f.N, capN);
+                float pol = Mathf.Max(wK * .5f + .04f, wN * .5f);
+                foreach (var (nr, sg) in new[] { (4, -1f), (5, 1f) })
+                {
+                    float so = kcL + sg * (pol + odst + wO * .5f + .03f);
+                    if (so - wO * .5f - .03f < sIn0 + .25f || so + wO * .5f + .03f > sIn1 - .25f) continue;
+                    if (BraxNieruchomosciGrafiki.Plakat(nr, W(so, y0 + 2.2f * k, dTyl + .02f), f.N, hO) > 0f) ramek++;
+                }
+                logoOpis = "kaseton z logo za recepcją, ogłoszeń obok " + ramek;
+            }
+            else grafiki = false;
+        }
+        if (!grafiki)
+        {
+            var plyta = BraxUliceKit.Mat("biuro dewelopera: tablica oferty (grafit)", new Color(.12f, .125f, .13f), .4f, .2f);
+            TablicaZaLada(f, "biuro dewelopera", sIn0, sIn1, dTyl, ladaS0, ladaS1, y0, 1.3f,
+                new[] { f.lok.szyld, "MIESZKANIA   ALEJA CENTRALNA", "KAWALERKA   32 M2", "2 POKOJE   48 M2", "3 POKOJE   72 M2", "APARTAMENT   140 M2" }, plyta, new Color(.12f, .125f, .13f), new Color(.95f, .95f, .93f));   // białe na grafitowym
+        }
         var dab = BraxUliceKit.S(BraxUliceKit.Tex("meble: okleina dąb", 1.6f, null, new Color(.6f, .45f, .3f), .45f, "teak_veneer", "dark_wood"));
         var stal = BraxUliceKit.S(BraxUliceKit.Mat("biuro: stal malowana biała", new Color(.86f, .86f, .85f), .45f, .3f));
         float kr = drzwiPrawo ? 1f : -1f, sB = Mathf.Clamp((sWolna0 + sWolna1) * .5f, Mathf.Min(sWolna0, sWolna1) + 1.2f, Mathf.Max(sWolna0, sWolna1) - 1.2f);
@@ -1927,8 +1955,27 @@ public static class BraxUlicePierzeje
             sr.Quad(R(-pw, -ph, .03f), R(pw, -ph, .03f), R(pw, ph, .03f), R(-pw, ph, .03f), nSc);
             sr.uv[i0] = new Vector2(0f, 0f); sr.uv[i0 + 1] = new Vector2(1f, 0f); sr.uv[i0 + 2] = new Vector2(1f, 1f); sr.uv[i0 + 3] = new Vector2(0f, 1f);
         }
+        if (grafiki)
+        {
+            // ZDJĘCIA właściciela w ramach na ścianie po stronie recepcji (od witryny: ulica willowa, kawalerka, apartament z mariną),
+            // jak plakaty BET na ścianie bocznej; kończą się 0.9 m przed ścianą tylną
+            float sL = drzwiPrawo ? sIn1 + .01f - .02f : sIn0 - .01f + .02f; Vector3 nL = drzwiPrawo ? -f.R : f.R; float cur = -1.8f;   // lico ściany + dystanse 2 cm; od 1.8 m za witryną (za makietą)
+            foreach (int nr in new[] { 2, 1, 3 })
+            {
+                float h = nr == 1 ? .72f * k : 1.0f * k, w = BraxNieruchomosciGrafiki.Szerokosc(nr, h), dc = cur - w * .5f - .03f;
+                if (dc - w * .5f - .03f < dTyl + .9f) break;                                  // 0.9 m od ściany tylnej (narożnik z ogłoszeniem)
+                if (BraxNieruchomosciGrafiki.Plakat(nr, W(sL, y0 + 1.75f * k, dc), nL, h) > 0f) ramek++;
+                cur = dc - w * .5f - .03f - .4f;
+            }
+            // OGŁOSZENIE W WITRYNIE przodem do Alei (jak w prawdziwych biurach nieruchomości): środki przęseł co 3.6 m od drzwi
+            foreach (int j in new[] { -1, 1, -2, 2 })
+            {
+                float sw = f.drzwiS + j * 3.6f; if (sw < sIn0 + 1.3f || sw > sIn1 - 1.3f) continue;
+                if (BraxNieruchomosciGrafiki.Stojak(6, W(sw, y0, -.45f), f.N, 1.1f, .62f)) { ramek++; break; }
+            }
+        }
         PH(rodzic, "doniczka_kalatea_3", "Biuro dewelopera: roślina", W(drzwiPrawo ? sIn0 + .45f : sIn1 - .45f, y0 + .004f, dTyl + .5f), (float)rng.NextDouble() * 360f);
-        BraxRegion.Note("biuro dewelopera " + f.lok.szyld + ": biurek doradców " + biurek + ", makieta, tablica oferty");
+        BraxRegion.Note("biuro dewelopera " + f.lok.szyld + ": biurek doradców " + biurek + ", makieta, " + logoOpis + ", grafik właściciela w ramach " + ramek);
     }
 
     /// <summary>11.11: odległość środka stolika od osi drzwi lokalu (wolne przejście 2.3 m od drzwi w głąb).</summary>

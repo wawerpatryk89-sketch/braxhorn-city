@@ -1,0 +1,35 @@
+{
+ "source": "Właściciel 16.11.2026 22:57: „Ty to zamówiłeś na recepcję” i 23:01: „To zrób w ramkach” — logo WAWER NIERUCHOMOŚCI, 3 zdjęcia i 3 ogłoszenia (grafiki właściciela bez zmian treści; logo z usuniętymi kropkami tła i na czarnym tle do kasetonu 1.6:1) — biuro dewelopera w parterze wieżowca C5_U12 (R1)",
+ "target": "nieruchomosci_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/nieruchomosci_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "ebba3c5407dad5861fc9a2ac351ab15e699b6d7b64a55238587f7b8c1948e999",
+ "cmsSha256": "b76ecc59e5d365c19b1152c364d80b014b83ffdfe1ec03c102dc64c1b96a2524",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 24341061,
+   "sha256": "b76ecc59e5d365c19b1152c364d80b014b83ffdfe1ec03c102dc64c1b96a2524"
+  }
+ ],
+ "files": {
+  "nieruchomosci_01/katalog.json": "2586d5629236380f18eff375efd1fd09b386ac17f04be1fb3fb8328a171b712b",
+  "nieruchomosci_01/logo.png": "300b595f79e2cfcf65341f65f49a3e8ddf14f4f3a3e5116829fb118543e05eee",
+  "nieruchomosci_01/logo_kaseton.jpg": "0db0d7074951b57934844981c57073925e0a401e67d2d537fe067347258bd285",
+  "nieruchomosci_01/plakat_01.jpg": "6ba1e80dec8f693dbb4b189eb21ffd416a99bec395b61524dd82a4c37fc01b5e",
+  "nieruchomosci_01/plakat_02.jpg": "22e8c6cc9a99e544c87af5afd1cdd00f1086f1cabad3595fd8a196da184231a1",
+  "nieruchomosci_01/plakat_03.jpg": "faf3bedf4cbb6bf265b36b9c920dc7e452b99757802d7ebd759ab7a7824d128b",
+  "nieruchomosci_01/plakat_04.jpg": "f9d86e430c66b91850fca511ff6e8a673ea2b07fcad6fc454c16732bd6b4e52c",
+  "nieruchomosci_01/plakat_05.jpg": "5d17a1d2946fee8c39c7251b27ea520bcd40a683140dcafca7d179448dd6bb56",
+  "nieruchomosci_01/plakat_06.jpg": "cfed704d9cf1891aa555b4c5edd944d3017ef8417480aead70347983c108d00c",
+  "oryginal/logo_oryginal.png": "4aaf78d4b547b15c60c5aa606e8662059cb48ea4136960feaf411ac795c74ad3",
+  "oryginal/plakat_01_oryginal.png": "4343d892ef58f2396243c9624d66f2b499781ffd540cc202f95e264b382e0930",
+  "oryginal/plakat_02_oryginal.png": "881e3d542ff7d9ce84162a3b4394879cd47e5ca3eddefe73e664c85caced7214",
+  "oryginal/plakat_03_oryginal.png": "bbea405d77567b94324a025743c24704bd15bf8cc82cb4263e11d6253ceffc21",
+  "oryginal/plakat_04_oryginal.png": "b949ded136d8ec937db4f33efb4d99cf22c51e732edca709937dbc97bf5d39f7",
+  "oryginal/plakat_05_oryginal.png": "95500f01b5bff9eac74127061d5259e16df480b353d426faa328f3a616d1235b",
+  "oryginal/plakat_06_oryginal.png": "0ad44387dab8b0c8eeed56b0b8dd6fb20dfef61bfa3ba04d13aba427cd0539b3",
+  "oryginal/spec.json": "70a934f6c6753fada10688519b20c3490fae256c5eed17106266dd7b8c34bd2d"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
