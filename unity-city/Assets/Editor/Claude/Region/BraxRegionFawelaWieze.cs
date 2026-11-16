@@ -196,7 +196,7 @@ public static partial class BraxRegionFawela
                     BoxF(Mur(), F, s - Fil, s + Fil, yMur0, yKor, -Wys, 0f, false, false);
                     if (ostatni)
                     {   // filary korony z kamienia, wyciągnięte ponad attykę (sterczyny)
-                        BoxF(Kam(), F, s - Fil, s + Fil, yKor, y1 + att + .45f, -Wys - .04f, .3f, true, false);
+                        BoxF(Kam(), F, s - Fil, s + Fil, yKor, y1 + att + .45f, -Wys - .04f, .27f, true, false);   // tył 5 cm za licem wewn. attyki (16.11)
                     }
                 }
                 if (linie.Count > 0)
@@ -212,15 +212,22 @@ public static partial class BraxRegionFawela
                 {
                     bool dokladne = i <= 7 || ostatni;
                     Pasek(oknaP, F, o.xMin, o.xMax, o.yMin, o.yMax, Gl - .06f);
-                    float cs = (o.xMin + o.xMax) * .5f, gd = Gl - .075f;
-                    Pasek(rama, F, cs - .03f, cs + .03f, o.yMin, o.yMax, gd);
+                    // 16.11 (kontrola migotania, zasada 13:57): stolarka jako BRYŁY 5 cm przed szybą (do 2 cm za nią), nie paski 1.5 cm nad
+                    // szkłem; ościeżnica, ślemię i słupek bez nakładania brył (słupek i ślemię dzielone na odcinki między ramami)
+                    // tylko lica widoczne z zewnątrz (boki przy ościeżu, góra pod nadprożem i spody na podokienniku zakryte)
+                    float cs = (o.xMin + o.xMax) * .5f, gd = Gl - .11f, gt = Gl - .04f;
                     if (dokladne)
                     {
-                        Pasek(rama, F, o.xMin, o.xMin + .06f, o.yMin, o.yMax, gd); Pasek(rama, F, o.xMax - .06f, o.xMax, o.yMin, o.yMax, gd);
-                        Pasek(rama, F, o.xMin, o.xMax, o.yMin, o.yMin + .06f, gd); Pasek(rama, F, o.xMin, o.xMax, o.yMax - .06f, o.yMax, gd);
-                        Pasek(rama, F, o.xMin, o.xMax, o.yMin + (o.yMax - o.yMin) * .56f - .025f, o.yMin + (o.yMax - o.yMin) * .56f + .025f, gd);
+                        float yT = o.yMin + (o.yMax - o.yMin) * .56f;
+                        RamaLica(rama, F, o.xMin, o.xMin + .06f, o.yMin, o.yMax, gd, gt, false, true, false, false); RamaLica(rama, F, o.xMax - .06f, o.xMax, o.yMin, o.yMax, gd, gt, true, false, false, false);
+                        RamaLica(rama, F, o.xMin + .06f, o.xMax - .06f, o.yMin, o.yMin + .06f, gd, gt, false, false, true, false); RamaLica(rama, F, o.xMin + .06f, o.xMax - .06f, o.yMax - .06f, o.yMax, gd, gt, false, false, false, true);
+                        RamaLica(rama, F, o.xMin + .06f, cs - .03f, yT - .025f, yT + .025f, gd, gt, false, false, true, true); RamaLica(rama, F, cs + .03f, o.xMax - .06f, yT - .025f, yT + .025f, gd, gt, false, false, true, true);
+                        RamaLica(rama, F, cs - .03f, cs + .03f, o.yMin + .06f, yT - .025f, gd, gt, true, true, false, false); RamaLica(rama, F, cs - .03f, cs + .03f, yT + .025f, o.yMax - .06f, gd, gt, true, true, false, false);
                     }
-                    BoxF(Kam(), F, o.xMin - .14f, o.xMax + .14f, o.yMin - .16f, o.yMin, -.1f, .05f, false, dokladne);             // parapet kamienny
+                    else RamaLica(rama, F, cs - .03f, cs + .03f, o.yMin, o.yMax, gd, gt, true, true, false, false);
+                    // parapet kamienny do lica muru (16.11: wchodził 5 cm w ościeże — górna płaszczyzna parapetu i podokiennik ościeża
+                    // w jednej wysokości na pasie 5 cm × szerokość okna = migotanie na każdym oknie)
+                    BoxF(Kam(), F, o.xMin - .14f, o.xMax + .14f, o.yMin - .16f, o.yMin, -.1f, 0f, false, dokladne);
                     BoxF(Kam(), F, o.xMin - .1f, o.xMax + .1f, o.yMax, o.yMax + .34f, -.05f, 0f, false, true);                    // nadproże
                     // płycina podokienna (kamień ciemniejszy) od nadproża niższego okna do parapetu — pionowy pas okien między filarami
                     if (i > f0 || f0 > 0) { var pl = WB(st.kamien); pl.kolor = pp => st.kamienK * .78f * (.94f + .06f * Szum(pp.x * .3f, pp.y * .3f + pp.z * .3f)); Pasek(pl, F, o.xMin, o.xMax, Mathf.Max(o.yMin - (Hk - (o.yMax - o.yMin)) + .34f, yMur0 + .14f), o.yMin - .16f, -.03f); }
@@ -244,9 +251,17 @@ public static partial class BraxRegionFawela
                         Pasek(szyba, F, o.xMin, o.xMax, o.yMin, o.yMax, Gl - .06f);
                         if (lp != null) Pasek(szyba, F, o.xMax, o.xMin, o.yMin, o.yMax, Gl - .06f);  // szyba dwustronna (od środka też szkło)
                         float yn = o.yMin + (o.yMax - o.yMin) * .74f;
-                        foreach (float s in new[] { o.xMin, o.xMin + (o.xMax - o.xMin) / 3f - .03f, o.xMin + (o.xMax - o.xMin) * 2f / 3f - .03f, o.xMax - .07f }) Pasek(rama, F, s, s + .07f, o.yMin, o.yMax, gd);
-                        Pasek(rama, F, o.xMin, o.xMax, o.yMin, o.yMin + .08f, gd); Pasek(rama, F, o.xMin, o.xMax, o.yMax - .08f, o.yMax, gd); Pasek(rama, F, o.xMin, o.xMax, yn - .04f, yn + .04f, gd);
-                        BoxF(Kam(), F, o.xMin - .1f, o.xMax + .1f, o.yMin - .12f, o.yMin, -.08f, .05f, false, true);
+                        // stolarka witryny jako bryły (5 cm przed szybą, 2 cm za nią); w lokalu z tyłem (widać od środka przez szybę)
+                        float rd0 = Gl - .11f, rd1 = Gl - .03f; bool rTyl = lp != null;
+                        var slupki = new[] { o.xMin, o.xMin + (o.xMax - o.xMin) / 3f - .03f, o.xMin + (o.xMax - o.xMin) * 2f / 3f - .03f, o.xMax - .07f };
+                        foreach (float s in slupki) BoxF(rama, F, s, s + .07f, o.yMin, o.yMax, rd0, rd1, rTyl, false);
+                        for (int j = 0; j + 1 < slupki.Length; j++)
+                        {
+                            float a = slupki[j] + .07f, c = slupki[j + 1];
+                            BoxF(rama, F, a, c, o.yMin, o.yMin + .08f, rd0, rd1, rTyl, false); BoxF(rama, F, a, c, o.yMax - .08f, o.yMax, rd0, rd1, rTyl, true);
+                            BoxF(rama, F, a, c, yn - .04f, yn + .04f, rd0, rd1, rTyl, true);
+                        }
+                        BoxF(Kam(), F, o.xMin - .1f, o.xMax + .1f, o.yMin - .12f, o.yMin, -.08f, 0f, false, true);   // parapet do lica (jak wyżej)
                         if ((q * 7 + nr * 3 + si) % 5 < 2)
                         {   // markiza płócienna nad witryną (prześwit 2.6 m × K)
                             var mk = WB(wPlotno).K(kolMarkiz); float ym = Mathf.Max(yn, y0 + 2.7f * k);
@@ -339,22 +354,38 @@ public static partial class BraxRegionFawela
     }
 
     // portal wejścia: obramienie z kamienia wysunięte 30 cm, dwuskrzydłowe drzwi z przeszkleniem, naświetle, daszek na cięgnach, lampy, stopień
+    /// <summary>16.11: element stolarki okna jako bryła, ale tylko z licami widocznymi (przód + wskazane boki) — przód d0, tył d1.</summary>
+    static void RamaLica(Bud b, Fr F, float s0, float s1, float y0, float y1, float d0, float d1, bool lewa, bool prawa, bool gora, bool dol)
+    {
+        if (s1 - s0 < 1e-4f || y1 - y0 < 1e-4f) return;
+        b.Quad(F.P(s0, y0, d0), F.P(s1, y0, d0), F.P(s1, y1, d0), F.P(s0, y1, d0));
+        if (lewa) b.Quad(F.P(s0, y0, d1), F.P(s0, y0, d0), F.P(s0, y1, d0), F.P(s0, y1, d1));
+        if (prawa) b.Quad(F.P(s1, y0, d0), F.P(s1, y0, d1), F.P(s1, y1, d1), F.P(s1, y1, d0));
+        if (gora) b.Quad(F.P(s0, y1, d0), F.P(s1, y1, d0), F.P(s1, y1, d1), F.P(s0, y1, d1));
+        if (dol) b.Quad(F.P(s0, y0, d1), F.P(s1, y0, d1), F.P(s1, y0, d0), F.P(s0, y0, d0));
+    }
+
     static void PortalWiezy(Fr F, Rect o, Func<Material, Bud> WB, StylWiezy st, Bud szklo, Bud rama, string id, int si)
     {
         var km = WB(st.kamien).K(st.kamienK); float cs = (o.xMin + o.xMax) * .5f, yD = o.yMin + 2.55f * K * .9f, g = .2f;
-        BoxF(km, F, o.xMin - .55f, o.xMin, o.yMin, o.yMax + .5f, -.3f, 0f, false, false); BoxF(km, F, o.xMax, o.xMax + .55f, o.yMin, o.yMax + .5f, -.3f, 0f, false, false);
+        // pylony portalu 33 cm przed licem (16.11: 30 cm — lico cokolika 28 cm biegło 2 cm za nimi)
+        BoxF(km, F, o.xMin - .55f, o.xMin, o.yMin, o.yMax + .5f, -.33f, 0f, false, false); BoxF(km, F, o.xMax, o.xMax + .55f, o.yMin, o.yMax + .5f, -.33f, 0f, false, false);
         BoxF(km, F, o.xMin - .7f, o.xMax + .7f, o.yMax, o.yMax + .62f, -.36f, 0f, false, true);
-        BoxF(WB(st.cokol).K(st.cokolK * .8f), F, o.xMin - .7f, o.xMax + .7f, o.yMin - .3f, o.yMin + .02f, -1.1f, 0f, false, false);   // stopień
+        BoxF(WB(st.cokol).K(st.cokolK * .8f), F, o.xMin - .7f, o.xMax + .7f, o.yMin - .3f, o.yMin + .03f, -1.1f, 0f, false, false);   // stopień (3 cm nad chodnikiem)
         var dr = WB(wDrzwi).K(Color.white);
         foreach (var (a, b) in new[] { (o.xMin + .06f, cs - .02f), (cs + .02f, o.xMax - .06f) })
         {
-            BoxF(dr, F, a, b, o.yMin + .03f, yD, g - .05f, g, false, false);
-            Pasek(szklo, F, a + .16f, b - .16f, o.yMin + 1.0f, yD - .2f, g - .055f);
+            // skrzydło: ramiak i oścież wokół PRAWDZIWEGO otworu, szyba w połowie grubości skrzydła (16.11: nie szyba 5 mm przed drewnem)
+            BoxF(dr, F, a, a + .16f, o.yMin + .03f, yD, g - .05f, g, false, false); BoxF(dr, F, b - .16f, b, o.yMin + .03f, yD, g - .05f, g, false, false);
+            BoxF(dr, F, a + .16f, b - .16f, o.yMin + .03f, o.yMin + 1.0f, g - .05f, g, false, false); BoxF(dr, F, a + .16f, b - .16f, yD - .2f, yD, g - .05f, g, false, true);
+            Pasek(szklo, F, a + .16f, b - .16f, o.yMin + 1.0f, yD - .2f, g - .025f);
             BoxF(WB(wStal).K(new Color(.8f, .81f, .83f)), F, (a + b) * .5f + (a < cs ? .32f : -.4f), (a + b) * .5f + (a < cs ? .4f : -.32f), o.yMin + 1.0f, o.yMin + 1.5f, g - .1f, g - .05f, false, true);   // pochwyt stalowy (12.11: bez mosiądzu)
         }
         Pasek(szklo, F, o.xMin + .06f, o.xMax - .06f, yD + .08f, o.yMax - .06f, g - .01f);                                             // naświetle
-        foreach (float s in new[] { o.xMin, o.xMax - .06f }) Pasek(rama, F, s, s + .06f, o.yMin, o.yMax, g - .03f);
-        Pasek(rama, F, o.xMin, o.xMax, yD, yD + .08f, g - .03f); Pasek(rama, F, o.xMin, o.xMax, o.yMax - .06f, o.yMax, g - .03f); Pasek(rama, F, cs - .03f, cs + .03f, yD + .08f, o.yMax - .06f, g - .02f);
+        // ościeżnica, ślemię i słupek naświetla jako bryły (5 cm przed szybą naświetla), bez nakładania
+        foreach (float s in new[] { o.xMin, o.xMax - .06f }) BoxF(rama, F, s, s + .06f, o.yMin, o.yMax, g - .06f, g + .01f, false, false);
+        BoxF(rama, F, o.xMin + .06f, o.xMax - .06f, yD, yD + .08f, g - .06f, g + .01f, false, true); BoxF(rama, F, o.xMin + .06f, o.xMax - .06f, o.yMax - .06f, o.yMax, g - .06f, g + .01f, false, true);
+        BoxF(rama, F, cs - .03f, cs + .03f, yD + .08f, o.yMax - .06f, g - .06f, g + .01f, false, false);
         var stal = WB(wStal).K(Color.white); float yk = o.yMax + .72f;
         BoxF(stal, F, o.xMin - .9f, o.xMax + .9f, yk, yk + .14f, -1.9f, 0f, false, true);                                             // daszek
         foreach (float s in new[] { o.xMin - .7f, o.xMax + .7f }) stal.Cyl(F.P(s, yk + .14f, -1.7f), F.P(s, yk + 1.5f, -.02f), .018f, 5, -1f, false);

@@ -50,7 +50,8 @@ public static partial class BraxRegionMiastoB
     }
 
     // ---------------- 2) plac ustawek za ATLANTĄ ----------------
-    internal static readonly Rect PlacUstawekA = Rect.MinMaxRect(-869f, 108f, -821f, 147.5f);
+    // 32 × 30 m (ring 3 na 3 + miejsce dla kibiców pod płotem) — podwórze ciasne, nie plac (zdjęcie podglądu 16.11: 48 × 40 m było puste)
+    internal static readonly Rect PlacUstawekA = Rect.MinMaxRect(-869f, 116f, -837f, 146f);
     static Material betonUstawek;
     static Material BetonUstawek => betonUstawek ? betonUstawek : (betonUstawek = BraxRegionMeble.Tex("Plac ustawek: beton zużyty (ciemny)", 2.4f, new Color(.56f, .56f, .57f), .94f, "concrete_floor_worn_001", "concrete_floor_02"));
 
@@ -69,9 +70,10 @@ public static partial class BraxRegionMiastoB
         // ogrodzenie z prefabrykatów: słupek 12 × 12 cm, przęsło 2.0 m, 4 płyty 200 × 50 × 5 cm (× K), czapka słupka
         var tony = new[]
         {
-            BraxRegionMeble.Tex("Płot betonowy: płyta (szara)", 1.6f, new Color(.62f, .62f, .61f), .93f, "concrete_wall_008", "concrete_floor_02"),
-            BraxRegionMeble.Tex("Płot betonowy: płyta (zabrudzona)", 1.6f, new Color(.50f, .50f, .49f), .95f, "concrete_wall_008", "concrete_floor_02"),
-            BraxRegionMeble.Tex("Płot betonowy: płyta (zawilgocona)", 1.6f, new Color(.43f, .44f, .44f), .96f, "concrete_wall_008", "concrete_floor_02"),
+            // 16.11 wieczór: odcień chłodny szary (podgląd: .78/.68/.60 wyszły beżowe w słońcu — ma być szaro i ciemno)
+            BraxRegionMeble.Tex("Płot betonowy: płyta (szara)", 1.6f, new Color(.64f, .66f, .68f), .93f, "concrete_wall_008", "concrete_floor_02"),
+            BraxRegionMeble.Tex("Płot betonowy: płyta (zabrudzona)", 1.6f, new Color(.55f, .57f, .59f), .95f, "concrete_wall_008", "concrete_floor_02"),
+            BraxRegionMeble.Tex("Płot betonowy: płyta (zawilgocona)", 1.6f, new Color(.47f, .49f, .51f), .96f, "concrete_wall_008", "concrete_floor_02"),
         };
         var slupMat = BraxRegionMeble.Tex("Płot betonowy: słupek", 1.2f, new Color(.55f, .55f, .54f), .93f, "concrete_wall_008", "concrete_floor_02");
         var panele = tony.Select(_ => new BraxRegionMeble.Bud()).ToArray(); var slupy = new BraxRegionMeble.Bud();
@@ -87,7 +89,9 @@ public static partial class BraxRegionMiastoB
             for (int i = 0; i <= n; i++)
             {
                 var c = a + dir * (p * i); c.y = y;
-                if (slupkiKoncowe || (i > 0 && i < n)) {
+                // słupek stoi, jeśli przy nim jest choć jedno przęsło z płytami (w szerokim wjeździe słupków nie ma — brama otwarta)
+                bool przyPlycie = (i > 0 && !bezPlyt(i - 1, n)) || (i < n && !bezPlyt(i, n));
+                if ((slupkiKoncowe || (i > 0 && i < n)) && przyPlycie) {
                 slupy.Box(c + Vector3.up * (H + .04f * K) * .5f, new Vector3(ss, H + .04f * K, ss));
                 slupy.Box(c + Vector3.up * (H + .04f * K + .025f * K), new Vector3(ss + .03f * K, .05f * K, ss + .03f * K));   // czapka
                 }
@@ -172,15 +176,79 @@ public static partial class BraxRegionMiastoB
         Jersey(new Vector3(R.xMax - 1.6f, y, R.yMax - 6f), Vector3.forward);
         bj.Obiekt("Bariery betonowe New Jersey", g, jer, false, true);
 
+        // REKWIZYTY PODWÓRZA (pod płotem, środek wolny na ustawkę ~14 × 12 m): palety EUR w stosach, beczki 200 l, opony, szpula kablowa
+        var drewno = BraxRegionMeble.Tex("Plac ustawek: palety (drewno sosnowe, szare)", 1.0f, new Color(.72f, .64f, .54f), .9f, "wood_planks", "wood_planks_grey");
+        var rdza = BraxRegionMeble.Tex("Plac ustawek: beczki (stal malowana, rdza)", 1.0f, new Color(.42f, .30f, .24f), .7f, "painted_metal_shutter", "metal_plate");
+        var guma = BraxCityMaterials.Surface("Plac ustawek: opony (guma)", new Color(.05f, .05f, .055f), .9f);
+        var pal = new BraxRegionMeble.Bud(); var bec = new BraxRegionMeble.Bud(); var opo = new BraxRegionMeble.Bud(); var szp = new BraxRegionMeble.Bud();
+        // paleta EUR 1200 × 800 × 144 mm: 3 deski spodu, 9 klocków, 3 deski poprzeczne, 5 desek wierzchu (× K)
+        void Paleta(Vector3 c, bool wzdX)
+        {
+            Vector3 X(float a, float h, float b) => c + (wzdX ? new Vector3(a, h, b) : new Vector3(b, h, a)) * K;
+            foreach (float b in new[] { -.3505f, 0f, .3505f }) { pal.MinMax(X(-.6f, 0f, b - .05f), X(.6f, .022f, b + .05f)); foreach (float a in new[] { -.5275f, 0f, .5275f }) pal.MinMax(X(a - .0725f, .022f, b - .05f), X(a + .0725f, .1f, b + .05f)); }
+            foreach (float a in new[] { -.5275f, 0f, .5275f }) pal.MinMax(X(a - .0725f, .1f, -.4f), X(a + .0725f, .122f, .4f));
+            foreach (float b in new[] { -.3505f, -.175f, 0f, .175f, .3505f }) pal.MinMax(X(-.6f, .122f, b - .0495f), X(.6f, .144f, b + .0495f));
+        }
+        int palet = 0;
+        foreach (var (x0, z0, n, wzdX) in new[] { (R.xMin + 1.2f, R.yMin + 2.0f, 6, true), (R.xMin + 1.2f, R.yMin + 3.4f, 4, true), (R.xMax - 3.8f, R.yMax - 2.0f, 5, false) })
+            for (int i = 0; i < n; i++) { Paleta(new Vector3(x0 + (wzdX ? .6f * K : .4f * K), y + i * .1445f * K, z0), wzdX); palet++; }
+        BraxRegionMeble.Kolizja(g, "Plac ustawek: kolizja palet", new Vector3(R.xMin + 1.2f + .6f * K, y + .45f * K, R.yMin + 2.7f), new Vector3(1.2f * K, .9f * K, 2.4f));
+        // beczka 200 l: Ø 585 mm × 880 mm, dwie obręcze toczne (× K); jedna leży
+        int beczek = 0;
+        foreach (var (p, lezy) in new[] { (new Vector3(R.xMin + 15.4f, y, R.yMax - 1.4f), false), (new Vector3(R.xMin + 16.2f, y, R.yMax - 2.1f), false), (new Vector3(R.xMin + 16.8f, y, R.yMax - 1.2f), false), (new Vector3(R.xMin + 4.5f, y, R.yMin + 6.2f), true) })
+        {
+            float r0 = .2925f * K, h0 = .88f * K;
+            Vector3 a0 = lezy ? p + Vector3.up * r0 - Vector3.right * h0 * .5f : p, a1 = lezy ? p + Vector3.up * r0 + Vector3.right * h0 * .5f : p + Vector3.up * h0;
+            var os = (a1 - a0).normalized;
+            bec.Cyl(a0, a1, r0, 20);
+            foreach (float t in new[] { .33f, .67f }) bec.Cyl(a0 + os * (h0 * t - .012f), a0 + os * (h0 * t + .012f), r0 + .012f, 20);
+            BraxRegionMeble.Kolizja(g, "Plac ustawek: kolizja beczki", (a0 + a1) * .5f, lezy ? new Vector3(h0, 2f * r0, 2f * r0) : new Vector3(2f * r0, h0, 2f * r0));
+            beczek++;
+        }
+        // opony (Ø 63 cm, szer. 20 cm × K): stos 4 + 2 luzem; opona = pierścień (torus o przekroju prostokątnym z zaokrągleniem)
+        void Opona(Vector3 c, Vector3 os)
+        {
+            float R0 = .315f * K, r1 = .2f * K, sz = .1f * K; var u = Vector3.Cross(os, Mathf.Abs(os.y) > .9f ? Vector3.right : Vector3.up).normalized; var v = Vector3.Cross(os, u);
+            int N = 24; var prof = new[] { new Vector2(r1, -sz), new Vector2(R0 - .03f, -sz), new Vector2(R0, -sz * .5f), new Vector2(R0, sz * .5f), new Vector2(R0 - .03f, sz), new Vector2(r1, sz), new Vector2(r1, -sz) };
+            for (int i = 0; i < N; i++)
+            {
+                float a = i * Mathf.PI * 2f / N, b = (i + 1) * Mathf.PI * 2f / N; Vector3 ra = u * Mathf.Cos(a) + v * Mathf.Sin(a), rb = u * Mathf.Cos(b) + v * Mathf.Sin(b);
+                for (int j = 0; j + 1 < prof.Length; j++)
+                    opo.Quad(c + ra * prof[j].x + os * prof[j].y, c + rb * prof[j].x + os * prof[j].y, c + rb * prof[j + 1].x + os * prof[j + 1].y, c + ra * prof[j + 1].x + os * prof[j + 1].y);
+            }
+        }
+        int opon = 0; var stos = new Vector3(R.xMax - 5.5f, y, R.yMin + 1.6f);
+        for (int i = 0; i < 4; i++) { Opona(stos + Vector3.up * (.1f * K + i * .2f * K), Vector3.up); opon++; }
+        Opona(new Vector3(R.xMax - 6.6f, y + .1f * K, R.yMin + 2.4f), Vector3.up); opon++;
+        Opona(new Vector3(R.xMax - 4.5f, y + .315f * K, R.yMin + 2.7f), Vector3.forward); opon++;   // opona oparta pionowo
+        BraxRegionMeble.Kolizja(g, "Plac ustawek: kolizja stosu opon", stos + Vector3.up * .4f * K, new Vector3(.63f * K, .8f * K, .63f * K));
+        // szpula kablowa (drewniana, Ø 1.2 m × K) leżąca na boku — stolik kibiców przy barierach
+        { var c = new Vector3(R.xMin + 20f, y, R.yMin + 3.2f); float rs = .6f * K;
+          szp.Cyl(c, c + Vector3.up * .06f * K, rs, 24); szp.Cyl(c + Vector3.up * .06f * K, c + Vector3.up * .66f * K, .24f * K, 16); szp.Cyl(c + Vector3.up * .66f * K, c + Vector3.up * .72f * K, rs, 24);
+          BraxRegionMeble.Kolizja(g, "Plac ustawek: kolizja szpuli", c + Vector3.up * .36f * K, new Vector3(2f * rs, .72f * K, 2f * rs)); }
+        // RING Z OPON wokół miejsca ustawki (jak na podwórkowych walkach): 28 opon leżących w kręgu Ø 11.6 m (4.5 m × K), dwa przejścia
+        int wRingu = 0;
+        {
+            var srodek = new Vector3(R.center.x + 4f, y, R.center.y); float rr = 4.5f * K;
+            for (int i = 0; i < 30; i++)
+            {
+                if (i == 7 || i == 22) continue;   // przejścia: od wjazdu i od kontenerów
+                float a = i * Mathf.PI * 2f / 30f; Opona(srodek + new Vector3(Mathf.Cos(a) * rr, .1f * K, Mathf.Sin(a) * rr), Vector3.up); opon++; wRingu++;
+            }
+        }
+        pal.Obiekt("Plac ustawek: palety EUR", g, drewno, false, true); szp.Obiekt("Plac ustawek: szpula kablowa", g, drewno, false, true);
+        bec.Obiekt("Plac ustawek: beczki 200 l", g, rdza, false, true); opo.Obiekt("Plac ustawek: opony", g, guma, false, true);
+
         // gra: AKCJA ustawki na środku podwórza, punkt świata
         var mz = new GameObject("BRAXHORN AKCJA: USTAWKA 3 NA 3 (plac za ATLANTĄ)"); mz.transform.SetParent(g, false); mz.transform.position = new Vector3(R.center.x + 4f, y, R.center.y);
         var z = mz.AddComponent<BraxMiejsceZadania>(); z.id = "ustawka_atlanta"; z.napis = "USTAWKA 3 NA 3"; z.promien = 7f;
         world_point("R1_PLAC_USTAWEK_ATLANTA", "plac ustawek 3 na 3 za ATLANTĄ (betonowe podwórze, nocą)", mz.transform.position);
-        NdLog("plac ustawek za ATLANTĄ: " + R.width.ToString("F0") + " × " + R.height.ToString("F0") + " m, przęseł płotu " + przesel + " (bez płyt " + wylamane + "), kontenerów " + kont + ", barier " + barier + ", latarnie 2 (jedna zgaszona)");
+        NdLog("plac ustawek za ATLANTĄ: " + R.width.ToString("F0") + " × " + R.height.ToString("F0") + " m, przęseł płotu " + przesel + " (bez płyt " + wylamane + "), kontenerów " + kont + ", barier " + barier + ", palet " + palet + ", beczek " + beczek + ", opon " + opon + ", szpula, latarnie 2 (jedna zgaszona)");
     }
 
     // ---------------- 3) komis samochodów używanych przy przystanku T1 TRAMWAJOWA ----------------
-    internal static readonly Rect KomisRect = Rect.MinMaxRect(-738f, -83.2f, -688f, NS1 - NPR);
+    // 36 m od frontu: kontener biurowy + 5 aut + wjazd (zdjęcie podglądu 16.11: przy 50 m pół placu stało puste)
+    internal static readonly Rect KomisRect = Rect.MinMaxRect(-728f, -83.2f, -692f, NS1 - NPR);
     const string KomisPaczka = "pojazdy_komis_01";
     static readonly (string plik, string opis)[] KomisAuta =
     {
@@ -228,14 +296,15 @@ public static partial class BraxRegionMiastoB
             float r = .12f * K;
             foreach (float xx in new[] { x0, x1 - r }) foreach (float zz in new[] { z0, z1 - r }) rama.MinMax(new Vector3(xx, y, zz), new Vector3(xx + r, y + Hc, zz + r));
             foreach (float yy in new[] { y, y + Hc - r }) { rama.MinMax(new Vector3(x0, yy, z0), new Vector3(x1, yy + r, z0 + r)); rama.MinMax(new Vector3(x0, yy, z1 - r), new Vector3(x1, yy + r, z1)); rama.MinMax(new Vector3(x0, yy, z0 + r), new Vector3(x0 + r, yy + r, z1 - r)); rama.MinMax(new Vector3(x1 - r, yy, z0 + r), new Vector3(x1, yy + r, z1 - r)); }
-            sc.MinMax(new Vector3(x0 + .02f, y + r, z0 + .02f), new Vector3(x1 - .02f, y + Hc - r, z1 - .02f));   // korpus (ściany cofnięte 2 cm za ramę)
-            sc.MinMax(new Vector3(x0 + .02f, y + Hc - r, z0 + .02f), new Vector3(x1 - .02f, y + Hc - .01f, z1 - .02f));
+            sc.MinMax(new Vector3(x0 + .04f, y + r, z0 + .04f), new Vector3(x1 - .04f, y + Hc - r, z1 - .04f));   // korpus: ściany 4 cm za licem ramy (bez wspólnych płaszczyzn)
             // drzwi stalowe 0.9 × 2.0 m × K i okno 1.2 × 1.0 m × K na licu północnym (od placu), 1 cm przed blachą
             float dx = x1 - 1.3f * K, zf = z1 - .01f;
             dr.MinMax(new Vector3(dx - .45f * K, y + r, zf), new Vector3(dx + .45f * K, y + r + 2.0f * K, zf + .025f));
-            var ok0 = new Vector3(x0 + 1.4f * K, y + .95f * K, zf); var ok1 = new Vector3(x0 + 2.6f * K, y + 1.95f * K, zf + .02f);
-            rama.MinMax(ok0 - new Vector3(.05f, .05f, 0f), new Vector3(ok1.x + .05f, ok1.y + .05f, zf + .015f));
-            szk.Quad(new Vector3(ok0.x, ok0.y, zf + .021f), new Vector3(ok1.x, ok0.y, zf + .021f), new Vector3(ok1.x, ok1.y, zf + .021f), new Vector3(ok0.x, ok1.y, zf + .021f));
+            // okno: ramka 5 cm (pierścień) na licu, szyba przyciemniana w ramce 2.5 cm przed blachą korpusu
+            var ok0 = new Vector3(x0 + 1.4f * K, y + .95f * K, zf); var ok1 = new Vector3(x0 + 2.6f * K, y + 1.95f * K, zf);
+            rama.MinMax(new Vector3(ok0.x - .05f, ok0.y - .05f, zf - .03f), new Vector3(ok1.x + .05f, ok0.y, zf + .02f)); rama.MinMax(new Vector3(ok0.x - .05f, ok1.y, zf - .03f), new Vector3(ok1.x + .05f, ok1.y + .05f, zf + .02f));
+            rama.MinMax(new Vector3(ok0.x - .05f, ok0.y, zf - .03f), new Vector3(ok0.x, ok1.y, zf + .02f)); rama.MinMax(new Vector3(ok1.x, ok0.y, zf - .03f), new Vector3(ok1.x + .05f, ok1.y, zf + .02f));
+            szk.Quad(new Vector3(ok0.x, ok0.y, zf - .005f), new Vector3(ok1.x, ok0.y, zf - .005f), new Vector3(ok1.x, ok1.y, zf - .005f), new Vector3(ok0.x, ok1.y, zf - .005f));
             rama.Obiekt("Komis: kontener biurowy — rama stalowa", g, BraxRegionMeble.Tex("Komis: kontener — rama (stal malowana grafit)", 1.0f, new Color(.30f, .31f, .32f), .55f, "painted_metal_shutter", "metal_plate"), false, true);
             sc.Obiekt("Komis: kontener biurowy — blacha trapezowa", g, BraxRegionMeble.Tex("Komis: kontener — blacha trapezowa (biała)", 1.2f, new Color(.90f, .91f, .90f), .55f, "corrugated_iron", "painted_metal_shutter"), false, true);
             dr.Obiekt("Komis: kontener biurowy — drzwi stalowe", g, BraxRegionMeble.Tex("Komis: drzwi kontenera (stal malowana)", 1.0f, new Color(.55f, .57f, .58f), .5f, "painted_metal_shutter", "metal_plate"), false, true);
@@ -278,7 +347,7 @@ public static partial class BraxRegionMiastoB
         {
             var ms = new BraxRegionMeble.Bud(); var lin = new BraxRegionMeble.Bud(); var lampy = new BraxRegionMeble.Bud();
             float zb = R.yMin + .7f, hm = 5.0f * K;
-            var xs = new[] { R.xMin + 22f, R.xMin + 34f, R.xMin + 46f };
+            var xs = new[] { R.xMin + 12f, R.xMin + 22f, R.xMin + 32f };
             foreach (float x in xs)
             {
                 ms.Cyl(new Vector3(x, y, zb), new Vector3(x, y + hm, zb), .07f * K, 12, .05f * K);

@@ -107,7 +107,8 @@ class LokaleWParterach(unittest.TestCase):
         self.assertIn('ChodnikBez("kwartał C" + (i + 1) + " z promenadą (płyty)", Rect.MinMaxRect(xa, RzC0, xb, RzC1), bezLokali);', ND)
         self.assertNotIn('Chodnik("kwartał A" + (i + 1) + " (płyty)", xa, xb, RzA0, RzA1);', ND)
         self.assertIn("try { NdLokaleKontrola(); }", ND)                                 # lokal bez wieżowca → łata płyt
-        self.assertIn('wynik.Add((id + "|" + l.szyld, RectF(F, linie[q0] + LokOds, linie[q1 + 1] - LokOds, .04f, LokTyl)));', LOK)
+        # 16.11: wycięcie 4 cm szersze pod ścianami lokalu (krawędź płyty nie w licu ściany — kontrola migotania)
+        self.assertIn('wynik.Add((id + "|" + l.szyld, RectF(F, linie[q0] + LokOds - .04f, linie[q1 + 1] - LokOds + .04f, .04f, LokTyl + .04f)));', LOK)
 
 
 class BukmacherIDeweloper(unittest.TestCase):
@@ -178,6 +179,38 @@ class ZdjeciaZEdytora(unittest.TestCase):
         self.assertEqual(len(re.findall(r'\("\d\d_\w+", new Vector3', z)), 12)
         wf = (ROOT / ".github/workflows/claude-region-build.yml").read_text(encoding="utf-8")
         self.assertIn("unity-city/Logs/", wf)
+
+
+class KontrolaMigotania(unittest.TestCase):
+    """16.11 wieczór: podgląd z prawdziwego kodu (unity-tools/claude/podglad_aleja) — pary powierzchni < 2 cm = 0 (różne materiały)."""
+
+    def test_boards_have_text_in_texture_not_floating_letters(self):
+        tab = PIERZ[PIERZ.index("static void TablicaZaLada("):PIERZ.index("static Material TablicaTekstura(")]
+        self.assertNotIn("Napis3D", tab)
+        self.assertIn("TablicaTekstura(nazwa, wiersze", tab)
+
+    def test_skirting_and_panelling_are_solids_at_least_2cm(self):
+        self.assertIn("const float gLis = .03f;", PIERZ)
+        self.assertIn("lam.Box(P(s0, y0 + .085f, -.06f), P(s0 + o, yL, dT + o));", PIERZ)
+        self.assertNotIn("lam.Quad(", PIERZ)
+
+    def test_pizza_oven_has_real_mouth_and_avoids_counter(self):
+        self.assertIn("bool kolA = ladaGl &&", PIERZ)
+        self.assertNotIn("dO = d1 - .12f + .006f", PIERZ)
+
+    def test_tower_window_frames_are_solids_and_sills_stop_at_wall(self):
+        self.assertIn("static void RamaLica(", WIEZE)
+        self.assertNotIn("Pasek(rama,", WIEZE)
+        self.assertIn("o.yMin - .16f, o.yMin, -.1f, 0f, false, dokladne);", WIEZE)
+        self.assertIn("o.yMin - .12f, o.yMin, -.08f, 0f, false, true);", WIEZE)
+        self.assertIn("o.yMin - .3f, o.yMin + .03f, -1.1f, 0f, false, false);", WIEZE)
+
+    def test_preview_report_has_zero_flicker_pairs(self):
+        rap = ROOT / "unity-tools/claude/podglad_aleja/out/migotanie.txt"
+        if not rap.exists():
+            self.skipTest("podgląd nie zbudowany (bash unity-tools/claude/podglad_aleja/build.sh)")
+        pierwsza = rap.read_text(encoding="utf-8").splitlines()[0]
+        self.assertIn("migotanie (różne materiały) 0, szkło 0", pierwsza)
 
 
 if __name__ == "__main__":

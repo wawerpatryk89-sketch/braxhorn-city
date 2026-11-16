@@ -30,10 +30,10 @@ public static class BraxR1Zdjecia
         ("06_deweloper_wnetrze", new Vector3(-395.5f, 1.9f, 41.2f), new Vector3(-401.5f, 1.5f, 45.5f), "biuro dewelopera w środku: biurka doradców, tablica oferty"),
         ("07_aleja_lokale_polnoc", new Vector3(-505f, 2.2f, 31f), new Vector3(-478f, 3.0f, 40.5f), "Aleja Centralna, strona północna: DELIKATESY w parterze C5_U08"),
         ("08_pizzeria_wnetrze", new Vector3(-465.5f, 1.9f, -4.5f), new Vector3(-474f, 1.2f, -9.5f), "PIZZERIA w środku (C5_U04)"),
-        ("09_plac_ustawek_wjazd", new Vector3(-808f, 2.0f, 128.5f), new Vector3(-845f, 1.2f, 128f), "plac ustawek za ATLANTĄ od wjazdu"),
-        ("10_plac_ustawek_z_gory", new Vector3(-823f, 9.0f, 111f), new Vector3(-850f, .5f, 136f), "plac ustawek z góry: płot betonowy, kontenery, bariery"),
-        ("11_komis_z_chodnika", new Vector3(-698f, 1.75f, -68.8f), new Vector3(-714f, 1.0f, -77.5f), "komis aut z chodnika ul. Tramwajowej"),
-        ("12_komis_od_tramwaju", new Vector3(-676f, 3.0f, -70f), new Vector3(-716f, 1.0f, -78f), "komis aut od przystanku T1 TRAMWAJOWA"),
+        ("09_plac_ustawek_wjazd", new Vector3(-822f, 2.0f, 131.5f), new Vector3(-855f, 1.2f, 131f), "plac ustawek za ATLANTĄ od wjazdu"),
+        ("10_plac_ustawek_z_gory", new Vector3(-829f, 11f, 105f), new Vector3(-856f, .5f, 134f), "plac ustawek z góry: płot betonowy, kontenery, bariery"),
+        ("11_komis_z_chodnika", new Vector3(-699f, 1.75f, -70.2f), new Vector3(-713f, 1.0f, -78f), "komis aut z chodnika ul. Tramwajowej"),
+        ("12_komis_od_tramwaju", new Vector3(-680f, 3.0f, -66f), new Vector3(-712f, 1.0f, -78f), "komis aut od przystanku T1 TRAMWAJOWA"),
     };
 
     public static int Wykonaj(Scene scena)

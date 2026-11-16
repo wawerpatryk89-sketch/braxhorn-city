@@ -911,13 +911,17 @@ public static class BraxUlicePierzeje
         int nPolek = lok.typ == "apteka" ? 9 : lok.typ == "optyk" ? 8 : 5;   // apteka: gęste półki co ok. 0.33 m; optyk: ściana oprawek
         // lokal płytki (lada przy fasadzie nie zmieści się przed regałem tylnym z przejściem 0.5 m) — bez regału na ścianie tylnej
         bool plytki = Mathf.Min(dTyl + 1.6f * k, -1.25f) - .6f * k < dTyl + .5f + .5f;
-        if (regaly && !plytki) Regal(W(sIn0 + .1f, 0, dTyl + .5f), f.R, -f.N, sIn1 - sIn0 - .2f, .45f, hR, nPolek);
+        // 16.11 (zasada „zero klocków”, właściciel 17:55 „wszystko realistyczne”): w pizzerii, bistro i kawiarni bez prawdziwego towaru
+        // regał na ścianie tylnej z kolorowymi bryłami zamiast towaru NIE powstaje (za ladą piec, rożen, ekspres — ściana z cegły)
+        bool bezBrylTowaru = !prawdziwy && (lok.typ == "pizzeria" || lok.typ == "bistro" || lok.typ == "kawiarnia");
+        if (regaly && !plytki && !bezBrylTowaru) Regal(W(sIn0 + .1f, 0, dTyl + .5f), f.R, -f.N, sIn1 - sIn0 - .2f, .45f, hR, nPolek);
         // gastronomia (bistro, pizzeria, kawiarnia, bar): regał tylko za ladą — na sali stoliki, nie półki jak w sklepie
         bool gastro = lok.typ == "bistro" || lok.typ == "pizzeria" || lok.typ == "kawiarnia" || lok.typ == "bar";
         if (regaly && lok.typ != "warsztat" && !gastro)
         {
-            if (f.drzwiS > 3.2f) Regal(W(sIn0 + .42f, 0, -1.1f), -f.N, -f.R, Mathf.Max(1f, gl - 2.4f), .42f, hR, nPolek);
-            else Regal(W(sIn1 - .42f, 0, dTyl + 1.1f), f.N, f.R, Mathf.Max(1f, gl - 2.4f), .42f, hR, nPolek);
+            // 16.11: plecy regału 5 cm od muru (za listwą 3 cm — bez par < 2 cm)
+            if (f.drzwiS > 3.2f) Regal(W(sIn0 + .47f, 0, -1.1f), -f.N, -f.R, Mathf.Max(1f, gl - 2.4f), .42f, hR, nPolek);
+            else Regal(W(sIn1 - .47f, 0, dTyl + 1.1f), f.N, f.R, Mathf.Max(1f, gl - 2.4f), .42f, hR, nPolek);
         }
         // lada (wysokość 0.95 m × k) z blatem, przed regałem tylnym, z boku osi drzwi
         float ladaS0 = Mathf.Max(sIn0 + .6f, f.drzwiS + .9f), ladaS1 = Mathf.Min(sIn1 - .6f, ladaS0 + 2.4f * k);
@@ -1209,17 +1213,18 @@ public static class BraxUlicePierzeje
         ss.Quad(P(s1, y0, -.04f), P(s1, y0, dT), P(s1, ySuf, dT), P(s1, ySuf, -.04f), -f.R);
         ss.Quad(P(s0, y0, dT), P(s1, y0, dT), P(s1, ySuf, dT), P(s0, ySuf, dT), f.N);
         var sl = BraxUliceKit.S(mLis);
-        sl.Box(P(s0, y0 + .004f, -.06f), P(s0 + .014f, y0 + .085f, dT + .014f)); sl.Box(P(s1 - .014f, y0 + .004f, -.06f), P(s1, y0 + .085f, dT + .014f));
-        sl.Box(P(s0 + .014f, y0 + .004f, dT), P(s1 - .014f, y0 + .085f, dT + .014f));
+        // 16.11 (kontrola migotania): listwa 3 cm (MDF) — lico listwy ≥ 2 cm od lica ściany (wcześniej 1.4 cm — para < 2 cm)
+        const float gLis = .03f;
+        sl.Box(P(s0, y0 + .004f, -.06f), P(s0 + gLis, y0 + .085f, dT + gLis)); sl.Box(P(s1 - gLis, y0 + .004f, -.06f), P(s1, y0 + .085f, dT + gLis));
+        sl.Box(P(s0 + gLis, y0 + .004f, dT), P(s1 - gLis, y0 + .085f, dT + gLis));
         // lamperia z okleiny (do 1.05 m × K) z listwą u góry — sklepy, księgarnia, optyk, kantor, poczta (miasto ekskluzywne)
         if (t == "market" || t == "warzywniak" || t == "piekarnia" || t == "cukiernia" || t == "ksiegarnia" || t == "optyk" || t == "kantor" || t == "poczta")
         {
-            float k = BraxUliceKit.K, yL = y0 + 1.05f * k, o = .006f;
+            float k = BraxUliceKit.K, yL = y0 + 1.05f * k, o = .022f;   // 16.11: lamperia = płyta 2.2 cm (bryła), nie warstwa 6 mm przed murem
             var lam = BraxUliceKit.S(BraxUliceKit.Tex(t == "kantor" ? "lamperia: orzech" : "lamperia: dąb", 1.6f, t == "kantor" ? new Color(.62f, .5f, .4f) : (Color?)null, new Color(.55f, .4f, .27f), .5f, "teak_veneer", "dark_wood"));
-            lam.Quad(P(s0 + o, y0 + .085f, -.06f), P(s0 + o, y0 + .085f, dT + .02f), P(s0 + o, yL, dT + .02f), P(s0 + o, yL, -.06f), f.R);
-            lam.Quad(P(s1 - o, y0 + .085f, -.06f), P(s1 - o, y0 + .085f, dT + .02f), P(s1 - o, yL, dT + .02f), P(s1 - o, yL, -.06f), -f.R);
-            lam.Quad(P(s0 + .02f, y0 + .085f, dT + o), P(s1 - .02f, y0 + .085f, dT + o), P(s1 - .02f, yL, dT + o), P(s0 + .02f, yL, dT + o), f.N);
-            sl.Box(P(s0, yL, -.06f), P(s0 + .022f, yL + .035f, dT)); sl.Box(P(s1 - .022f, yL, -.06f), P(s1, yL + .035f, dT)); sl.Box(P(s0, yL, dT), P(s1, yL + .035f, dT + .022f));
+            lam.Box(P(s0, y0 + .085f, -.06f), P(s0 + o, yL, dT + o)); lam.Box(P(s1 - o, y0 + .085f, -.06f), P(s1, yL, dT + o));
+            lam.Box(P(s0 + o, y0 + .085f, dT), P(s1 - o, yL, dT + o));
+            sl.Box(P(s0, yL, -.06f), P(s0 + .045f, yL + .035f, dT)); sl.Box(P(s1 - .045f, yL, -.06f), P(s1, yL + .035f, dT)); sl.Box(P(s0, yL, dT), P(s1, yL + .035f, dT + .045f));
         }
     }
 
@@ -1402,15 +1407,24 @@ public static class BraxUlicePierzeje
         {   // PIEC DO PIZZY z cegły w tylnym narożniku po stronie bez drzwi: cokół, płyta z granitu, komora, skośna czapa, otwór z żarem, rura
             var cegla = BraxUliceKit.S(BraxUliceKit.Tex("piec do pizzy: cegła", 1.0f, null, new Color(.55f, .25f, .16f), .9f, "red_brick_03", "brick_wall_001"));
             var gr = BraxUliceKit.S(BraxUliceKit.Tex("blat: granit polerowany", 1.2f, null, new Color(.2f, .19f, .18f), .22f, "granite_tile_02", "granite_tile"));
-            float p0 = drzwiPrawo ? sIn0 + .08f : sIn1 - 1.38f, p1 = p0 + 1.3f, d0 = dTyl + .58f, d1 = dTyl + 1.8f, hc = .85f * k, hk = 1.45f * k, sm = (p0 + p1) * .5f;
+            // narożnik bez drzwi; gdy tam stoi lada (lokal wąski, lada po drugiej stronie drzwi) — narożnik przeciwny (16.11: piec wchodził w ladę)
+            float pA = sIn0 + .08f, pB = sIn1 - 1.38f, d0 = dTyl + .58f, d1 = dTyl + 1.8f;
+            bool ladaGl = ladaD - ladaG < d1 + .15f;
+            bool kolA = ladaGl && !(pA + 1.3f < ladaS0 - .15f || pA > ladaS1 + .15f), kolB = ladaGl && !(pB + 1.3f < ladaS0 - .15f || pB > ladaS1 + .15f);
+            float p0 = drzwiPrawo ? (kolA && !kolB ? pB : pA) : (kolB && !kolA ? pA : pB), p1 = p0 + 1.3f, hc = .85f * k, hk = 1.45f * k, sm = (p0 + p1) * .5f;
+            if (kolA && kolB) BraxRegion.Note("pizzeria " + f.lok.szyld + ": piec przy ladzie (lokal za wąski na dwa narożniki)");
             cegla.Box(W(p0, y0, d1), W(p1, y0 + hc, d0));
             gr.Box(W(p0 - .03f, y0 + hc, d1 + .04f), W(p1 + .03f, y0 + hc + .05f, d0));
-            cegla.Box(W(p0 + .07f, y0 + hc + .05f, d1 - .12f), W(p1 - .07f, y0 + hk, d0));
             cegla.Quad(W(p0 + .07f, y0 + hk, d1 - .12f), W(p1 - .07f, y0 + hk, d1 - .12f), W(p1 - .25f, y0 + hk + .25f, d0 + .4f), W(p0 + .25f, y0 + hk + .25f, d0 + .4f), Vector3.up + f.N);
             cegla.Quad(W(p0 + .25f, y0 + hk + .25f, d0 + .4f), W(p1 - .25f, y0 + hk + .25f, d0 + .4f), W(p1 - .25f, y0 + hk + .25f, d0), W(p0 + .25f, y0 + hk + .25f, d0), Vector3.up);
-            float yo0 = y0 + hc + .1f, yo1 = yo0 + .32f * k, dO = d1 - .12f + .006f;
-            BraxUliceKit.S(BraxUliceKit.Mat("piec: wnętrze (sadza)", new Color(.04f, .035f, .03f), .9f)).Quad(W(sm - .3f, yo0 + .1f, dO), W(sm + .3f, yo0 + .1f, dO), W(sm + .3f, yo1, dO), W(sm - .3f, yo1, dO), f.N);
-            BraxUliceKit.S(BraxMiastoA.Swieci("piec: żar", new Color(1f, .42f, .1f), new Color(2.4f, .8f, .15f))).Quad(W(sm - .3f, yo0, dO), W(sm + .3f, yo0, dO), W(sm + .3f, yo0 + .1f, dO), W(sm - .3f, yo0 + .1f, dO), f.N);
+            // komora z PRAWDZIWYM otworem (16.11: zamiast sadzy i żaru namalowanych 6 mm przed cegłą): czoło 15 cm z cegły wokół
+            // otworu 0.6 × 0.32 m × K, w głębi komory sadza (bryła 3 cm przed tyłem wnęki), na dnie wnęki żar (bryła drewna i węgli)
+            float yo0 = y0 + hc + .1f, yo1 = yo0 + .32f * k, dF = d1 - .12f, dW = dF - .15f;
+            cegla.Box(W(p0 + .07f, y0 + hc + .05f, dW), W(p1 - .07f, y0 + hk, d0));                                   // komora za czołem
+            cegla.Box(W(p0 + .07f, y0 + hc + .05f, dF), W(sm - .3f, y0 + hk, dW)); cegla.Box(W(sm + .3f, y0 + hc + .05f, dF), W(p1 - .07f, y0 + hk, dW));
+            cegla.Box(W(sm - .3f, yo1, dF), W(sm + .3f, y0 + hk, dW)); cegla.Box(W(sm - .3f, y0 + hc + .05f, dF), W(sm + .3f, yo0, dW));
+            BraxUliceKit.S(BraxUliceKit.Mat("piec: wnętrze (sadza)", new Color(.04f, .035f, .03f), .9f)).Box(W(sm - .3f, yo0, dW + .03f), W(sm + .3f, yo1, dW - .05f));
+            BraxUliceKit.S(BraxMiastoA.Swieci("piec: żar", new Color(1f, .42f, .1f), new Color(2.4f, .8f, .15f))).Box(W(sm - .26f, yo0, dW + .1f), W(sm + .26f, yo0 + .07f, dW + .03f));
             BraxUliceKit.S(BraxUliceKit.Mat("gastronomia: stal nierdzewna", new Color(.78f, .79f, .8f), .25f, .9f)).Rura(W(sm, y0 + hk + .25f, (d0 + d1) * .5f - .1f), W(sm, ySuf, (d0 + d1) * .5f - .1f), .1f, 12);
             var kp = new GameObject("kolizja: piec do pizzy"); kp.transform.SetParent(kolizje, false); var bcp = kp.AddComponent<BoxCollider>();
             var pa = W(p0, y0, d1 + .04f); var pb = W(p1, y0 + hk + .25f, d0); bcp.center = (pa + pb) * .5f; bcp.size = new Vector3(Mathf.Abs(pb.x - pa.x), pb.y - pa.y, Mathf.Abs(pb.z - pa.z));
@@ -1590,20 +1604,49 @@ public static class BraxUlicePierzeje
     // ---------------- BRAXHORN BET i biuro dewelopera (16.11, nowe dzielnice) ----------------
     // Tablica na ścianie tylnej za ladą: płyta w ramie ze stali szczotkowanej, wiersze z liter przestrzennych (jak kantor);
     // wysokość wersalika dopasowana do szerokości płyty (żaden wiersz nie wychodzi poza ramę).
-    static void TablicaZaLada(Fasada f, string nazwa, float sIn0, float sIn1, float dTyl, float ladaS0, float ladaS1, float y0, float pol, string[] wiersze, Material plyta, Material litery)
+    static void TablicaZaLada(Fasada f, string nazwa, float sIn0, float sIn1, float dTyl, float ladaS0, float ladaS1, float y0, float pol, string[] wiersze, Material plyta, Color tloNapisow, Color kolorNapisow)
     {
         float k = BraxUliceKit.K, kc = Mathf.Clamp((ladaS0 + ladaS1) * .5f, sIn0 + pol + .15f, sIn1 - pol - .15f), kd = dTyl + .02f, ty0 = 1.3f * k, ty1 = 2.6f * k;
         Vector3 W(float s, float y, float d) => f.P(s, y, d);
-        BraxUliceKit.S(plyta).Box(W(kc - pol, y0 + ty0, kd + .05f), W(kc + pol, y0 + ty1, kd));
+        // 16.11 (zasada 13:57 „żadnej farby wiszącej nad powierzchnią”): napisy W TEKSTURZE tablicy (nie litery 6 mm nad płytą);
+        // płyta tylna przy ścianie, lico z obrazem 5 cm przed nią, rama 6 cm zakrywa krawędzie
+        BraxUliceKit.S(plyta).Box(W(kc - pol, y0 + ty0, kd + .01f), W(kc + pol, y0 + ty1, kd));
         var rama = BraxUliceKit.S(BraxUliceKit.Mat(nazwa + ": rama (stal szczotkowana)", new Color(.7f, .71f, .72f), .3f, .9f));
         rama.Box(W(kc - pol - .03f, y0 + ty0 - .03f, kd + .06f), W(kc + pol + .03f, y0 + ty0, kd)); rama.Box(W(kc - pol - .03f, y0 + ty1, kd + .06f), W(kc + pol + .03f, y0 + ty1 + .03f, kd));
         rama.Box(W(kc - pol - .03f, y0 + ty0, kd + .06f), W(kc - pol, y0 + ty1, kd)); rama.Box(W(kc + pol, y0 + ty0, kd + .06f), W(kc + pol + .03f, y0 + ty1, kd));
-        float krok = (ty1 - ty0 - .22f) / wiersze.Length;
-        for (int i = 0; i < wiersze.Length; i++)
+        var obraz = TablicaTekstura(nazwa, wiersze, tloNapisow, kolorNapisow, 2f * pol / (ty1 - ty0));
+        var so = BraxUliceKit.S(obraz); int i0 = so.v.Count;
+        so.Quad(W(kc - pol, y0 + ty0, kd + .05f), W(kc + pol, y0 + ty0, kd + .05f), W(kc + pol, y0 + ty1, kd + .05f), W(kc - pol, y0 + ty1, kd + .05f), f.N);
+        bool odwr = Vector3.Dot(Vector3.Cross(Vector3.up, f.N), f.R) > 0f;   // prawo patrzącego na tablicę = −R × N … u = 0 po lewej patrzącego
+        so.uv[i0] = new Vector2(odwr ? 1f : 0f, 0f); so.uv[i0 + 1] = new Vector2(odwr ? 0f : 1f, 0f); so.uv[i0 + 2] = new Vector2(odwr ? 0f : 1f, 1f); so.uv[i0 + 3] = new Vector2(odwr ? 1f : 0f, 1f);
+    }
+
+    // tablica z napisami w obrazie (kursy bukmachera, oferta dewelopera): tło jak płyta, wiersze wyśrodkowane, pierwszy większy
+    static Material TablicaTekstura(string nazwa, string[] wiersze, Color tlo, Color kolor, float proporcja)
+    {
+        string klucz = "tablica|" + nazwa + "|" + string.Join("|", wiersze);
+        if (ekranyBET.TryGetValue(klucz, out var mm) && mm) return mm;
+        int Wd = 1024, Hd = Mathf.Clamp(Mathf.RoundToInt(1024f / Mathf.Max(.5f, proporcja)), 256, 1024); var px = new Color[Wd * Hd];
+        for (int i = 0; i < px.Length; i++) px[i] = tlo;
+        float krok = Hd * .86f / wiersze.Length;
+        for (int r = 0; r < wiersze.Length; r++)
         {
-            float cap = Mathf.Min((i == 0 ? .1f : .08f) * k, (2f * pol - .26f) / Mathf.Max(.01f, BraxUliceKit.SzerokoscNapisu(wiersze[i], 1f)));
-            BraxUliceKit.Napis3D(wiersze[i], W(kc, y0 + ty1 - .16f - (i + 1) * krok + krok * .25f, kd + .055f), f.N, cap, .006f, litery, litery);
+            float yb = Hd * .93f - (r + .62f) * krok, hl = (r == 0 ? .5f : .38f) * krok;
+            float szer = BraxUliceKit.SzerokoscNapisu(wiersze[r], 1f); if (szer > .01f) hl = Mathf.Min(hl, Wd * .9f / szer);
+            BraxUliceKit.NapisWTeksturze(px, Wd, Hd, wiersze[r], Wd * .5f, yb, hl, kolor);
+            if (r == 0) for (int y = Mathf.RoundToInt(yb - krok * .42f); y < Mathf.RoundToInt(yb - krok * .42f) + 3; y++) for (int x = 60; x < Wd - 60; x++) px[y * Wd + x] = Color.Lerp(tlo, kolor, .6f);
         }
+        var tx = new Texture2D(Wd, Hd, TextureFormat.RGB24, false); tx.SetPixels(px); tx.Apply();
+        string dir = BraxUliceKit.Out + "/Ekrany"; System.IO.Directory.CreateDirectory(dir);
+        string path = dir + "/tablica_" + BraxUliceKit.Bezpieczna(nazwa) + ".png";
+        System.IO.File.WriteAllBytes(path, tx.EncodeToPNG()); UnityEngine.Object.DestroyImmediate(tx);
+        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+        if (AssetImporter.GetAtPath(path) is TextureImporter imp) { imp.sRGBTexture = true; imp.wrapMode = TextureWrapMode.Clamp; imp.maxTextureSize = 1024; imp.mipmapEnabled = true; imp.SaveAndReimport(); }
+        var t = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        var m = BraxMiastoA.Swieci(nazwa + ": tablica (napisy w obrazie)", Color.white, new Color(.12f, .12f, .12f));
+        if (t) { m.SetTexture("_MainTex", t); if (m.HasProperty("_EmissionMap")) { m.SetTexture("_EmissionMap", t); m.SetColor("_EmissionColor", new Color(.7f, .7f, .7f)); } }
+        EditorUtility.SetDirty(m);
+        return ekranyBET[klucz] = m;
     }
 
     // ekran na ścianie (telewizor 65" × K): obudowa z czarnego aluminium, matryca z obrazem W TEKSTURZE (napis jest obrazem, nie nakładką)
@@ -1611,11 +1654,15 @@ public static class BraxUlicePierzeje
     static void EkranNaScianie(Vector3 srodek, Vector3 nn, float w, float h, Material obraz)
     {
         var rt = Vector3.Cross(nn, Vector3.up).normalized;   // prawo patrzącego na ekran
+        // obudowa = ramka 2.5 cm dookoła matrycy (bez płyty za matrycą — matryca i obudowa nie leżą w jednej płaszczyźnie), tył przy ścianie
         var obud = BraxUliceKit.S(BraxUliceKit.Mat("ekran: obudowa (czarne aluminium)", new Color(.03f, .03f, .035f), .45f, .4f));
-        Vector3 a = srodek - rt * (w * .5f + .025f) - Vector3.up * (h * .5f + .025f), b = srodek + rt * (w * .5f + .025f) + Vector3.up * (h * .5f + .025f) + nn * .055f;
-        obud.Box(a, b);
+        Vector3 E(float x, float y, float d) => srodek + rt * x + Vector3.up * y + nn * d;
+        float hw = w * .5f, hh = h * .5f, r = .025f;
+        obud.Box(E(-hw - r, -hh - r, 0f), E(hw + r, -hh, .06f)); obud.Box(E(-hw - r, hh, 0f), E(hw + r, hh + r, .06f));
+        obud.Box(E(-hw - r, -hh, 0f), E(-hw, hh, .06f)); obud.Box(E(hw, -hh, 0f), E(hw + r, hh, .06f));
+        obud.Box(E(-hw, -hh, 0f), E(hw, hh, .015f));                                                     // tył matrycy przy ścianie (4.5 cm za matrycą)
         var s = BraxUliceKit.S(obraz); int i0 = s.v.Count;
-        Vector3 c0 = srodek - rt * w * .5f - Vector3.up * h * .5f + nn * .056f, c1 = srodek + rt * w * .5f - Vector3.up * h * .5f + nn * .056f;
+        Vector3 c0 = E(-hw, -hh, .06f), c1 = E(hw, -hh, .06f);
         s.Quad(c0, c1, c1 + Vector3.up * h, c0 + Vector3.up * h, nn);
         s.uv[i0] = new Vector2(0f, 0f); s.uv[i0 + 1] = new Vector2(1f, 0f); s.uv[i0 + 2] = new Vector2(1f, 1f); s.uv[i0 + 3] = new Vector2(0f, 1f);
     }
@@ -1649,6 +1696,43 @@ public static class BraxUlicePierzeje
         return ekranyBET[tytul] = m;
     }
 
+    // rzut mieszkania (biały papier, ściany czarne, opisy pomieszczeń z powierzchnią) — tekstura z kodu, napisy w obrazie
+    static Material PlanMieszkania(string tytul, int pokoje)
+    {
+        string klucz = "rzut " + tytul; if (ekranyBET.TryGetValue(klucz, out var mm) && mm) return mm;
+        int Wd = 1024, Hd = 716; var px = new Color[Wd * Hd]; var papier = new Color(.96f, .96f, .94f); var czarny = new Color(.08f, .08f, .09f); var szary = new Color(.55f, .56f, .58f);
+        for (int i = 0; i < px.Length; i++) px[i] = papier;
+        void Pros(int x0, int y0, int x1, int y1, int g, Color c)
+        {   // obrys prostokąta grubości g
+            for (int y = y0; y <= y1; y++) for (int x = x0; x <= x1; x++)
+                if (x - x0 < g || x1 - x < g || y - y0 < g || y1 - y < g) if (x >= 0 && x < Wd && y >= 0 && y < Hd) px[y * Wd + x] = c;
+        }
+        BraxUliceKit.NapisWTeksturze(px, Wd, Hd, tytul, Wd * .5f, Hd * .9f, Hd * .055f, czarny);
+        BraxUliceKit.NapisWTeksturze(px, Wd, Hd, "WAWER NIERUCHOMOŚCI   ALEJA CENTRALNA", Wd * .5f, Hd * .04f, Hd * .03f, szary);
+        int X0 = 90, X1 = 934, Y0 = 70, Y1 = 600; Pros(X0, Y0, X1, Y1, 9, czarny);
+        // podział: salon z aneksem (lewa część), sypialnie (prawa), łazienka i przedpokój (środek dołem)
+        int xS = pokoje == 2 ? 520 : 440, xP = pokoje == 3 ? 700 : X1, yL = 300;
+        Pros(X0, Y0, xS, Y1, 6, czarny); Pros(xS, yL, X1, Y1, 6, czarny); Pros(xS, Y0, pokoje == 3 ? xP : X1, yL, 6, czarny);
+        if (pokoje == 3) Pros(xP, Y0, X1, yL, 6, czarny);
+        Pros(xS, Y0, xS + 170, 190, 5, czarny);                                                                       // łazienka
+        BraxUliceKit.NapisWTeksturze(px, Wd, Hd, "SALON Z ANEKSEM", (X0 + xS) * .5f, 360, 26, czarny); BraxUliceKit.NapisWTeksturze(px, Wd, Hd, pokoje == 2 ? "24.6 M2" : "28.4 M2", (X0 + xS) * .5f, 320, 22, szary);
+        BraxUliceKit.NapisWTeksturze(px, Wd, Hd, "SYPIALNIA", (xS + X1) * .5f, 470, 26, czarny); BraxUliceKit.NapisWTeksturze(px, Wd, Hd, pokoje == 2 ? "12.8 M2" : "13.2 M2", (xS + X1) * .5f, 430, 22, szary);
+        BraxUliceKit.NapisWTeksturze(px, Wd, Hd, "ŁAZIENKA", xS + 85, 125, 20, czarny);
+        if (pokoje == 3) { BraxUliceKit.NapisWTeksturze(px, Wd, Hd, "POKÓJ", (xP + X1) * .5f, 200, 24, czarny); BraxUliceKit.NapisWTeksturze(px, Wd, Hd, "10.9 M2", (xP + X1) * .5f, 165, 20, szary); }
+        BraxUliceKit.NapisWTeksturze(px, Wd, Hd, "PRZEDPOKÓJ", (xS + 190 + (pokoje == 3 ? xP : X1)) * .5f, 230, 20, czarny);
+        var tx = new Texture2D(Wd, Hd, TextureFormat.RGB24, false); tx.SetPixels(px); tx.Apply();
+        string dir = BraxUliceKit.Out + "/Ekrany"; System.IO.Directory.CreateDirectory(dir);
+        string path = dir + "/rzut_" + BraxUliceKit.Bezpieczna(tytul) + ".png";
+        System.IO.File.WriteAllBytes(path, tx.EncodeToPNG()); UnityEngine.Object.DestroyImmediate(tx);
+        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+        if (AssetImporter.GetAtPath(path) is TextureImporter imp) { imp.sRGBTexture = true; imp.wrapMode = TextureWrapMode.Clamp; imp.maxTextureSize = 1024; imp.mipmapEnabled = true; imp.SaveAndReimport(); }
+        var t = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        var m = BraxCityMaterials.Surface("Biuro dewelopera: rzut " + tytul + " (wydruk)", Color.white, .8f);
+        if (t) m.SetTexture("_MainTex", t);
+        EditorUtility.SetDirty(m);
+        return ekranyBET[klucz] = m;
+    }
+
     // stolik wysoki (barowy) przy zakładach: blat z orzecha Ø 0.64 m × K na 1.05 m × K, stalowa kolumna na talerzu
     static void StolikWysoki(Vector3 at, Transform bg, Transform kolizje)
     {
@@ -1656,7 +1740,8 @@ public static class BraxUlicePierzeje
         var orzech = BraxMiastoA.Tex("meble: orzech ciemny (fornir)", 1.4f, new Color(.52f, .36f, .27f), new Color(.20f, .12f, .07f), .42f, "teak_veneer", "dark_wood");
         var stal = BraxUliceKit.Mat("meble kawiarni: stal czarna", new Color(.06f, .06f, .065f), .45f, .5f);
         var blat = Siatka("stolik wysoki (orzech)", s => { s.Walec(new Vector3(0, hb - .035f, 0), .32f * k, .035f, 28); });
-        var noga = Siatka("noga stolika wysokiego (talerz)", s => { s.Walec(Vector3.zero, .26f * k, .025f, 24); s.Rura(new Vector3(0, .025f, 0), new Vector3(0, hb - .05f, 0), .04f, 12); s.Walec(new Vector3(0, hb - .05f, 0), .12f * k, .015f, 20); });
+        // talerz podstawy i płyta pod blatem po 3 cm (16.11: płyta 1.5 cm dawała parę < 2 cm ze spodem blatu)
+        var noga = Siatka("noga stolika wysokiego (talerz 3 cm)", s => { s.Walec(Vector3.zero, .26f * k, .03f, 24); s.Rura(new Vector3(0, .03f, 0), new Vector3(0, hb - .065f, 0), .04f, 12); s.Walec(new Vector3(0, hb - .065f, 0), .12f * k, .03f, 20); });
         Mebel("Stolik wysoki", bg, blat, orzech, at, 0); Mebel("Stolik wysoki: noga", bg, noga, stal, at, 0);
         var kc = new GameObject("kolizja: stolik wysoki"); kc.transform.SetParent(kolizje, false); kc.transform.position = at + Vector3.up * hb * .5f;
         var col = kc.AddComponent<CapsuleCollider>(); col.radius = .3f * k; col.height = hb;
@@ -1672,9 +1757,8 @@ public static class BraxUlicePierzeje
         bool ladaPrawo = (ladaS0 + ladaS1) * .5f > f.drzwiS, drzwiPrawo = ladaPrawo;
         float sWolna0 = ladaPrawo ? sIn0 + .5f : f.drzwiS + 1.4f, sWolna1 = ladaPrawo ? f.drzwiS - 1.4f : sIn1 - .5f;
         var plyta = BraxUliceKit.Mat("bukmacher: tablica kursów (czarna)", new Color(.03f, .03f, .035f), .3f, .2f);
-        var led = BraxMiastoA.Swieci("bukmacher: kursy (złote)", new Color(1f, .74f, .2f), new Color(2.2f, 1.5f, .35f));
         TablicaZaLada(f, "bukmacher", sIn0, sIn1, dTyl, ladaS0, ladaS1, y0, 1.3f,
-            new[] { "BRAXHORN BET   KURSY", "LIGA MĘSKA   1.65   2.25", "LIGA DAMSKA   1.90   1.95", "WALKA O PAS   2.40   1.55", "WALKA WIECZORU   1.80   2.05", "USTAWKA 3 NA 3   1.85   1.95" }, plyta, led);
+            new[] { "BRAXHORN BET   KURSY", "LIGA MĘSKA   1.65   2.25", "LIGA DAMSKA   1.90   1.95", "WALKA O PAS   2.40   1.55", "WALKA WIECZORU   1.80   2.05", "USTAWKA 3 NA 3   1.85   1.95" }, plyta, new Color(.03f, .03f, .035f), new Color(1f, .74f, .2f));   // kursy złote na czarnym
         // ściana bez drzwi: kontuar przyścienny (orzech na stalowych wspornikach) i dwa ekrany nad nim
         float kr = drzwiPrawo ? 1f : -1f, sS = drzwiPrawo ? sIn0 : sIn1; Vector3 nS = drzwiPrawo ? f.R : -f.R;
         float dA = -1.5f, dB = Mathf.Min(-2.6f, dTyl + 1.3f), hk = 1.05f * k;
@@ -1685,13 +1769,61 @@ public static class BraxUlicePierzeje
         var kk = new GameObject("kolizja: kontuar przy ekranach"); kk.transform.SetParent(kolizje, false); var bk = kk.AddComponent<BoxCollider>();
         var k0 = W(sS, y0, dA); var k1 = W(sS + kr * .38f, y0 + hk, dB); bk.center = (k0 + k1) * .5f; bk.size = new Vector3(Mathf.Abs(k1.x - k0.x), k1.y - k0.y, Mathf.Abs(k1.z - k0.z));
         for (float d = dA - .45f; d > dB + .3f; d -= .8f) Hoker(W(sS + kr * .76f, y0, d), bg);
-        float we = 1.44f * k, he = .81f * k, ye = y0 + 2.15f * k;
-        var e1 = EkranBET("LIGA MISTRZÓW   DZIŚ", new[] { ("19.00  WAGA LEKKA", "1.70  2.10"), ("20.30  WAGA ŚREDNIA", "1.95  1.85"), ("22.00  WALKA O PAS", "2.40  1.55") });
-        var e2 = EkranBET("WYNIKI   LIGA MISTRZÓW", new[] { ("WAGA CIĘŻKA", "1  KO R2"), ("LIGA DAMSKA", "2  PKT"), ("WAGA PIÓRKOWA", "1  PODD.") });
-        float dE1 = dA - .2f - we * .5f, dE2 = dE1 - we - .3f;
-        if (dE2 - we * .5f < dTyl + .3f) dE2 = float.NaN;
-        EkranNaScianie(W(sS + kr * .005f, ye, dE1), nS, we, he, e1);
-        if (!float.IsNaN(dE2)) EkranNaScianie(W(sS + kr * .005f, ye, dE2), nS, we, he, e2);
+        // ŚCIANA EKRANÓW (jak w prawdziwych punktach zakładów): 2 rzędy × 3 telewizory 43" × K nad kontuarem — rozpiska, kursy, wyniki
+        float we = .95f * k, he = .54f * k, odst = .08f;
+        var tresci = new[]
+        {
+            EkranBET("LIGA MISTRZÓW   DZIŚ", new[] { ("19.00  WAGA LEKKA", "1.70  2.10"), ("20.30  WAGA ŚREDNIA", "1.95  1.85"), ("22.00  WALKA O PAS", "2.40  1.55") }),
+            EkranBET("LIGA DAMSKA   KURSY", new[] { ("18.30  WAGA SŁOMKOWA", "1.80  2.00"), ("19.45  WAGA MUSZA", "2.25  1.65"), ("21.15  WALKA O PAS", "1.90  1.90") }),
+            EkranBET("USTAWKI 3 NA 3   NOCĄ", new[] { ("PLAC ZA ATLANTĄ", "1.85  1.95"), ("WARSZTATY", "2.10  1.75"), ("PORT", "1.95  1.85") }),
+            EkranBET("WYNIKI   LIGA MISTRZÓW", new[] { ("WAGA CIĘŻKA", "1  KO R2"), ("LIGA DAMSKA", "2  PKT"), ("WAGA PIÓRKOWA", "1  PODD.") }),
+            EkranBET("WALKA WIECZORU", new[] { ("ARENA MISTRZÓW", "20.00"), ("ZWYCIĘZCA", "1.80  2.05"), ("PRZED CZASEM", "2.60") }),
+            EkranBET("BRAXHORN BET", new[] { ("KUPON W KASIE", "ALBO"), ("W TERMINALU", "24 H"), ("WYGRANA", "NA KONTO") }),
+        };
+        int ekr = 0; float dSr = (dA + dB) * .5f;
+        for (int rz = 0; rz < 2; rz++)
+            for (int i = 0; i < 3; i++)
+            {
+                float dC = dSr + (i - 1) * (we + odst), yC = y0 + (rz == 0 ? 2.0f : 2.62f) * k;
+                if (dC + we * .5f > dA + .1f || dC - we * .5f < dTyl + .25f) continue;
+                EkranNaScianie(W(sS + kr * .005f, yC, dC), nS, we, he, tresci[(rz * 3 + i) % tresci.Length]); ekr++;
+            }
+        // TERMINALE SAMOOBSŁUGOWE (2) przy witrynie po stronie sali: cokół, korpus z blachy grafitowej, ekran dotykowy pochylony 20°,
+        // drukarka kuponów pod ekranem
+        var term = BraxUliceKit.S(BraxUliceKit.Mat("terminal zakładów: korpus (stal malowana grafit)", new Color(.11f, .115f, .12f), .45f, .4f));
+        var zl = BraxUliceKit.S(BraxMiastoA.Swieci("terminal zakładów: listwa (złota)", new Color(1f, .76f, .2f), new Color(1.6f, 1.1f, .25f)));
+        var ekT = EkranBET("POSTAW ZAKŁAD", new[] { ("LIGA MISTRZÓW", "DOTKNIJ"), ("LIGA DAMSKA", "DOTKNIJ"), ("USTAWKI", "DOTKNIJ") });
+        int term0 = 0;
+        for (int t = 0; t < 2; t++)
+        {
+            float sTm = sS + kr * (1.6f + t * 1.05f * k), dTm = -.95f; if (Mathf.Abs(sTm - f.drzwiS) < 2.0f) continue;
+            float tw = .26f * k, tg = .2f * k;
+            term.Box(W(sTm - tw, y0, dTm + tg), W(sTm + tw, y0 + .05f, dTm - tg));                                         // cokół
+            term.Box(W(sTm - tw + .03f, y0 + .05f, dTm + tg - .03f), W(sTm + tw - .03f, y0 + 1.02f * k, dTm - tg + .03f));  // korpus
+            float dKl = dTm - tg + .03f;                                                                                          // lico korpusu od klienta (sala)
+            zl.Box(W(sTm - tw + .03f, y0 + .5f * k, dKl - .03f), W(sTm + tw - .03f, y0 + .53f * k, dKl));                     // listwa złota 3 cm przed licem
+            term.Box(W(sTm - .09f * k, y0 + .78f * k, dKl - .035f), W(sTm + .09f * k, y0 + .81f * k, dKl));                     // drukarka kuponów
+            // ekran 22" od strony klienta, pochylony o 20° do góry (klient patrzy z góry); ramka 2 cm za matrycą
+            var rt = f.R; var nn = (-f.N * Mathf.Cos(20f * Mathf.Deg2Rad) + Vector3.up * Mathf.Sin(20f * Mathf.Deg2Rad)).normalized;
+            var up = Vector3.Cross(nn, rt).normalized; if (up.y < 0f) up = -up;
+            var c = W(sTm, y0 + 1.22f * k, dKl - .06f); float ew = .5f * k * .5f, eh = .3f * k * .5f;
+            var ram = BraxUliceKit.S(BraxUliceKit.Mat("ekran: obudowa (czarne aluminium)", new Color(.03f, .03f, .035f), .45f, .4f));
+            ram.OBox(c - nn * .045f, rt, up, nn, 2f * ew + .05f, 2f * eh + .05f, .05f);
+            var se = BraxUliceKit.S(ekT); int i0 = se.v.Count;
+            var prawo = Vector3.Cross(Vector3.up, -nn); prawo.y = 0f; prawo.Normalize();                                        // prawo patrzącego na ekran
+            Vector3 p0 = c - prawo * ew - up * eh, p1 = c + prawo * ew - up * eh;
+            se.Quad(p0, p1, p1 + up * 2f * eh, p0 + up * 2f * eh, nn);
+            se.uv[i0] = new Vector2(0f, 0f); se.uv[i0 + 1] = new Vector2(1f, 0f); se.uv[i0 + 2] = new Vector2(1f, 1f); se.uv[i0 + 3] = new Vector2(0f, 1f);
+            term.Box(W(sTm - .03f, y0 + 1.02f * k, dKl - .01f), W(sTm + .03f, y0 + 1.16f * k, dKl - .07f));                    // wspornik ekranu
+            var kt = new GameObject("kolizja: terminal zakładów"); kt.transform.SetParent(kolizje, false); var bt = kt.AddComponent<BoxCollider>();
+            var t0 = W(sTm - tw, y0, dTm + tg); var t1 = W(sTm + tw, y0 + 1.4f * k, dTm - tg); bt.center = (t0 + t1) * .5f; bt.size = new Vector3(Mathf.Abs(t1.x - t0.x), t1.y - t0.y, Mathf.Abs(t1.z - t0.z));
+            BraxMiastoA.Akcja(bg, "bet_terminal_" + (t + 1), "TERMINAL: POSTAW ZAKŁAD", "Terminal BRAXHORN BET: wybierz walkę, kurs i stawkę — kupon wydrukuje się od razu.", W(sTm, y0, dTm - .9f), 1.2f);
+            term0++;
+        }
+        // logo na ścianie tylnej nad salą: litery przestrzenne złote, podświetlane
+        float sLogo = (sWolna0 + sWolna1) * .5f;
+        BraxUliceKit.Napis3D("BRAXHORN BET", W(sLogo, y0 + 2.7f * k, dTyl + .02f), f.N, .3f * k, .05f, BraxMiastoA.Swieci("bukmacher: logo (złote litery)", new Color(1f, .78f, .22f), new Color(1.8f, 1.3f, .3f)),
+            BraxUliceKit.Mat("litery przestrzenne: boki grafit", new Color(.06f, .06f, .065f), .5f, .4f));
         // sala: stoliki wysokie z hokerami po bokach (poza przejściem od drzwi i poza kontuarem)
         float sT = Mathf.Clamp((sWolna0 + sWolna1) * .5f + kr * .6f, Mathf.Min(sWolna0, sWolna1) + 1.1f, Mathf.Max(sWolna0, sWolna1) - 1.1f);
         if (Mathf.Abs(sWolna1 - sWolna0) > 3.2f)
@@ -1705,7 +1837,7 @@ public static class BraxUlicePierzeje
         if (kc - 1.85f > sIn0 + .3f) PH(bg, "wall_clock", "BRAXHORN BET: zegar", W(kc - 1.75f, y0 + 2.25f * k, dTyl + .03f), yawDoUlicy, .32f * k);
         PH(rodzic, "doniczka_kalatea_3", "BRAXHORN BET: roślina przy witrynie", W(drzwiPrawo ? sIn0 + .45f : sIn1 - .45f, y0 + .004f, -.75f), 40f);
         BraxMiastoA.Akcja(bg, "bet_transmisja", "OGLĄDAJ TRANSMISJĘ", "BRAXHORN BET: Liga Mistrzów na ekranach — rozpiska, kursy i wyniki. Wygrana wpada na konto.", W(sS + kr * 1.5f, y0, (dA + dB) * .5f), 2.0f);
-        BraxRegion.Note("BRAXHORN BET: tablica kursów, ekrany " + (float.IsNaN(dE2) ? 1 : 2) + ", kontuar z hokerami, stoliki wysokie");
+        BraxRegion.Note("BRAXHORN BET: tablica kursów, ściana ekranów " + ekr + ", terminale " + term0 + ", kontuar z hokerami, stoliki wysokie, logo");
     }
 
     /// <summary>Biuro dewelopera Patryka i Moniki (właściciel 12.11 23:41: „deweloperka: mieszkania w mieście”): recepcja (lada z
@@ -1717,9 +1849,8 @@ public static class BraxUlicePierzeje
         bool ladaPrawo = (ladaS0 + ladaS1) * .5f > f.drzwiS, drzwiPrawo = ladaPrawo;
         float sWolna0 = ladaPrawo ? sIn0 + .5f : f.drzwiS + 1.4f, sWolna1 = ladaPrawo ? f.drzwiS - 1.4f : sIn1 - .5f;
         var plyta = BraxUliceKit.Mat("biuro dewelopera: tablica oferty (grafit)", new Color(.12f, .125f, .13f), .4f, .2f);
-        var biel = BraxMiastoA.Swieci("biuro dewelopera: napisy oferty (białe)", new Color(.95f, .95f, .93f), new Color(1.1f, 1.1f, 1.05f));
         TablicaZaLada(f, "biuro dewelopera", sIn0, sIn1, dTyl, ladaS0, ladaS1, y0, 1.3f,
-            new[] { f.lok.szyld, "MIESZKANIA   ALEJA CENTRALNA", "KAWALERKA   32 M2", "2 POKOJE   48 M2", "3 POKOJE   72 M2", "APARTAMENT   140 M2" }, plyta, biel);
+            new[] { f.lok.szyld, "MIESZKANIA   ALEJA CENTRALNA", "KAWALERKA   32 M2", "2 POKOJE   48 M2", "3 POKOJE   72 M2", "APARTAMENT   140 M2" }, plyta, new Color(.12f, .125f, .13f), new Color(.95f, .95f, .93f));   // białe na grafitowym
         var dab = BraxUliceKit.S(BraxUliceKit.Tex("meble: okleina dąb", 1.6f, null, new Color(.6f, .45f, .3f), .45f, "teak_veneer", "dark_wood"));
         var stal = BraxUliceKit.S(BraxUliceKit.Mat("biuro: stal malowana biała", new Color(.86f, .86f, .85f), .45f, .3f));
         float kr = drzwiPrawo ? 1f : -1f, sB = Mathf.Clamp((sWolna0 + sWolna1) * .5f, Mathf.Min(sWolna0, sWolna1) + 1.2f, Mathf.Max(sWolna0, sWolna1) - 1.2f);
@@ -1757,8 +1888,21 @@ public static class BraxUlicePierzeje
             var q0 = W(sm - pp, y0, dm + pp); var q1 = W(sm + pp, y0 + hp + gh, dm - pp); bm.center = (q0 + q1) * .5f; bm.size = new Vector3(Mathf.Abs(q1.x - q0.x), q1.y - q0.y, Mathf.Abs(q1.z - q0.z));
         }
         float sSc = drzwiPrawo ? sIn0 + .03f : sIn1 - .03f; float yawSc = Quaternion.LookRotation(drzwiPrawo ? f.R : -f.R, Vector3.up).eulerAngles.y;
-        PH(bg, "hanging_picture_frame_02", "Biuro dewelopera: wizualizacja na ścianie", W(sSc, y0 + 1.6f * k, -3.0f), yawSc, .8f * k);
-        PH(bg, "hanging_picture_frame_02", "Biuro dewelopera: wizualizacja na ścianie", W(sSc, y0 + 1.6f * k, -5.0f), yawSc, .8f * k);
+        // rzuty mieszkań w ramach (wydruk 100 × 70 cm × K na ścianie po stronie biurek) — jak w biurach sprzedaży deweloperów
+        Vector3 nSc = drzwiPrawo ? f.R : -f.R; var ramaR = BraxUliceKit.S(BraxUliceKit.Mat("rama rzutu (aluminium czarne)", new Color(.05f, .05f, .055f), .4f, .5f));
+        foreach (var (dP, tytul, pokoje) in new[] { (-2.6f, "2 POKOJE   48 M2", 2), (-5.0f, "3 POKOJE   72 M2", 3) })
+        {
+            if (dP - .7f * k < dTyl + .2f) continue;
+            float pw = .5f * k, ph = .35f * k, rr = .03f; var c = W(sSc, y0 + 1.75f * k, dP);
+            var prawo = Vector3.Cross(nSc, Vector3.up).normalized;
+            Vector3 R(float x, float y, float d) => c + prawo * x + Vector3.up * y + nSc * d;
+            ramaR.Box(R(-pw - rr, -ph - rr, 0f), R(pw + rr, -ph, .035f)); ramaR.Box(R(-pw - rr, ph, 0f), R(pw + rr, ph + rr, .035f));
+            ramaR.Box(R(-pw - rr, -ph, 0f), R(-pw, ph, .035f)); ramaR.Box(R(pw, -ph, 0f), R(pw + rr, ph, .035f));
+            ramaR.Box(R(-pw, -ph, 0f), R(pw, ph, .008f));
+            var sr = BraxUliceKit.S(PlanMieszkania(tytul, pokoje)); int i0 = sr.v.Count;
+            sr.Quad(R(-pw, -ph, .03f), R(pw, -ph, .03f), R(pw, ph, .03f), R(-pw, ph, .03f), nSc);
+            sr.uv[i0] = new Vector2(0f, 0f); sr.uv[i0 + 1] = new Vector2(1f, 0f); sr.uv[i0 + 2] = new Vector2(1f, 1f); sr.uv[i0 + 3] = new Vector2(0f, 1f);
+        }
         PH(rodzic, "doniczka_kalatea_3", "Biuro dewelopera: roślina", W(drzwiPrawo ? sIn0 + .45f : sIn1 - .45f, y0 + .004f, dTyl + .5f), (float)rng.NextDouble() * 360f);
         BraxRegion.Note("biuro dewelopera " + f.lok.szyld + ": biurek doradców " + biurek + ", makieta, tablica oferty");
     }
@@ -1788,8 +1932,9 @@ public static class BraxUlicePierzeje
         // noga na talerzu; krzesła tapicerowane (KrzesloTapicerowane: rama z orzecha, miękkie siedzisko i oparcie ze skóry pikowanej).
         var orzech = BraxMiastoA.Tex("meble: orzech ciemny (fornir)", 1.4f, new Color(.52f, .36f, .27f), new Color(.20f, .12f, .07f), .42f, "teak_veneer", "dark_wood");
         var stal = BraxUliceKit.Mat("meble kawiarni: stal czarna", new Color(.06f, .06f, .065f), .45f, .5f);
-        var blat = Siatka("stolik kawiarniany (orzech)", s => { s.Walec(new Vector3(0, .72f * k - .035f, 0), .36f * k, .035f, 28); s.Walec(new Vector3(0, .72f * k - .05f, 0), .33f * k, .015f, 28); });
-        var noga = Siatka("noga stolika (talerz)", s => { s.Walec(Vector3.zero, .24f * k, .025f, 24); s.Rura(new Vector3(0, .025f, 0), new Vector3(0, .72f * k - .05f, 0), .035f, 12); });
+        // 16.11 (kontrola migotania): podblat 3 cm (był 1.5 cm — denko nogi i podblat w odstępie 1.5 cm), talerz podstawy 3 cm
+        var blat = Siatka("stolik kawiarniany (orzech, podblat 3 cm)", s => { s.Walec(new Vector3(0, .72f * k - .035f, 0), .36f * k, .035f, 28); s.Walec(new Vector3(0, .72f * k - .065f, 0), .33f * k, .03f, 28); });
+        var noga = Siatka("noga stolika (talerz 3 cm)", s => { s.Walec(Vector3.zero, .24f * k, .03f, 24); s.Rura(new Vector3(0, .03f, 0), new Vector3(0, .72f * k - .065f, 0), .035f, 12); });
         Mebel("Stolik kawiarniany", bg, blat, orzech, at, 0); Mebel("Stolik kawiarniany: noga", bg, noga, stal, at, 0);
         foreach (float sg in new[] { -1f, 1f })
             KrzesloTapicerowane("Krzesło kawiarniane (tapicerowane)", bg, at + f.R * sg * .66f * k, Quaternion.LookRotation(-f.R * sg).eulerAngles.y);
@@ -1811,7 +1956,7 @@ public static class BraxUlicePierzeje
             {
                 s.Rura(new Vector3(x, 0, w - .025f), new Vector3(x, hs, w - .025f), .019f, 8);                      // nogi przednie
                 s.Rura(new Vector3(x, 0, -w + .025f), new Vector3(x, hs, -w + .025f), .019f, 8);                    // nogi tylne
-                s.Rura(new Vector3(x, hs, -w + .025f), new Vector3(x, .9f * k, -w - .02f * k), .017f, 8);           // słupki oparcia (odchylone)
+                s.Rura(new Vector3(x, hs - .025f, -w + .025f), new Vector3(x, .9f * k, -w - .02f * k), .017f, 8);   // słupki oparcia (odchylone; początek w oskrzynieniu)
             }
             s.Box(new Vector3(-w, hs - .05f, -w), new Vector3(w, hs, w));                                            // oskrzynienie
             s.Box(new Vector3(-w + .01f, .88f * k, -w - .04f * k), new Vector3(w - .01f, .92f * k, -w - .01f * k)); // górna listwa oparcia
@@ -1836,7 +1981,7 @@ public static class BraxUlicePierzeje
         // 10.11 (właściciel 12:19: „siedziska za płaskie”): gruba miękka poducha 10 cm × k z zaokrągloną krawędzią zamiast 7-cm krążka,
         // talerz pod siedziskiem, podnóżek z rury
         var m = Siatka("hoker barowy: stelaż", s => {
-            s.Walec(Vector3.zero, .2f * k, .022f, 20); s.Rura(new Vector3(0, .02f, 0), new Vector3(0, .66f * k, 0), .035f, 10);
+            s.Walec(Vector3.zero, .2f * k, .03f, 20); s.Rura(new Vector3(0, .03f, 0), new Vector3(0, .66f * k, 0), .035f, 10);   // talerz 3 cm (lico ≥ 2 cm nad posadzką)
             s.Walec(new Vector3(0, .66f * k, 0), .14f * k, .03f, 20);
             for (int q = 0; q < 16; q++) { float a0 = q * Mathf.PI / 8f, a1 = (q + 1) * Mathf.PI / 8f, rN = .16f * k; s.Rura(new Vector3(Mathf.Cos(a0) * rN, .3f * k, Mathf.Sin(a0) * rN), new Vector3(Mathf.Cos(a1) * rN, .3f * k, Mathf.Sin(a1) * rN), .011f, 6); }
             for (int q = 0; q < 4; q++) { float a = q * Mathf.PI * .5f + Mathf.PI * .25f; s.Rura(new Vector3(0, .3f * k, 0), new Vector3(Mathf.Cos(a) * .16f * k, .3f * k, Mathf.Sin(a) * .16f * k), .008f, 6); }

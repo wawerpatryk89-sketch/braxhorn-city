@@ -103,7 +103,9 @@ public static partial class BraxRegionFawela
         {
             var F = sciany[l.strona]; var linie = LinieSiatki(F); int osi = Mathf.Max(0, linie.Count - 1);
             if (!Przesla(l, osi, WejscieHolu(l.strona, osi), out int q0, out int q1, out _)) continue;
-            wynik.Add((id + "|" + l.szyld, RectF(F, linie[q0] + LokOds, linie[q1 + 1] - LokOds, .04f, LokTyl)));
+            // wycięcie płyt 4 cm szersze pod ścianami bocznymi i tylną lokalu (16.11, kontrola migotania: krawędź płyty nie leży w licu
+            // ściany lokalu — szczelina za ścianą, w bryle wieży, niewidoczna); od ulicy wycięcie w licu fasady jak było
+            wynik.Add((id + "|" + l.szyld, RectF(F, linie[q0] + LokOds - .04f, linie[q1 + 1] - LokOds + .04f, .04f, LokTyl + .04f)));
         }
         return wynik;
     }

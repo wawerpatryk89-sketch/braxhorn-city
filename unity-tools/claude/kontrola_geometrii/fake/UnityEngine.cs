@@ -44,6 +44,15 @@ namespace UnityEngine
         public static Vector3 up => new Vector3(0, 1, 0); public static Vector3 down => new Vector3(0, -1, 0);
         public static Vector3 left => new Vector3(-1, 0, 0); public static Vector3 right => new Vector3(1, 0, 0);
         public static Vector3 forward => new Vector3(0, 0, 1); public static Vector3 back => new Vector3(0, 0, -1);
+        // podgląd nowej części miasta (16.11): kąt ze znakiem wokół osi i zapis z formatem (logi lokali)
+        public static float SignedAngle(Vector3 a, Vector3 b, Vector3 os)
+        {
+            float la = (float)Math.Sqrt(a.x * a.x + a.y * a.y + a.z * a.z), lb = (float)Math.Sqrt(b.x * b.x + b.y * b.y + b.z * b.z); if (la < 1e-6f || lb < 1e-6f) return 0f;
+            float d = (a.x * b.x + a.y * b.y + a.z * b.z) / (la * lb); float ang = (float)(Math.Acos(Math.Clamp(d, -1f, 1f)) * 180.0 / Math.PI);
+            float cx = a.y * b.z - a.z * b.y, cy = a.z * b.x - a.x * b.z, cz = a.x * b.y - a.y * b.x;
+            return cx * os.x + cy * os.y + cz * os.z < 0f ? -ang : ang;
+        }
+        public string ToString(string f) => "(" + x.ToString(f) + ", " + y.ToString(f) + ", " + z.ToString(f) + ")";
         public float sqrMagnitude => x * x + y * y + z * z; public float magnitude => (float)Math.Sqrt(sqrMagnitude);
         public Vector3 normalized { get { float m = magnitude; return m > 1e-5f ? new Vector3(x / m, y / m, z / m) : zero; } }
         public void Normalize() { var n = normalized; x = n.x; y = n.y; z = n.z; }
@@ -158,6 +167,7 @@ namespace UnityEngine
         public float x, y, width, height;
         public Rect(float x, float y, float w, float h) { this.x = x; this.y = y; width = w; height = h; }
         public static Rect MinMaxRect(float x0, float y0, float x1, float y1) => new Rect(x0, y0, x1 - x0, y1 - y0);
+        public static Rect zero => new Rect(0, 0, 0, 0);
         public float xMin { get => x; set { width += x - value; x = value; } }
         public float yMin { get => y; set { height += y - value; y = value; } }
         public float xMax { get => x + width; set => width = value - x; }
