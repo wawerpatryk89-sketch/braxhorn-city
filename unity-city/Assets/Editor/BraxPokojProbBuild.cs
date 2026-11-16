@@ -295,9 +295,11 @@ public static class BraxPokojProbBuild
 
         float dl = 20f * K, szer = 10f * K, wys = 3.6f * K, gr = .12f * K;
         var pokoj = new GameObject("Pokój prób").transform;
-        var matPodloga = Mat("posadzka", new Color(.34f, .33f, .32f), .25f);
-        var matSciana = Mat("ściana", new Color(.70f, .70f, .68f), .12f);
-        var matSufit = Mat("sufit", new Color(.86f, .86f, .85f), .08f);
+        // Ciemniejsze wnetrze niz w wersji na serwer: jasne sciany odbijaly swiatlo na postac
+        // i wszystko wychodzilo szare. Postac ma byc najjasniejsza rzecza w kadrze.
+        var matPodloga = Mat("posadzka", new Color(.17f, .17f, .17f), .20f);
+        var matSciana = Mat("ściana", new Color(.26f, .26f, .27f), .10f);
+        var matSufit = Mat("sufit", new Color(.22f, .22f, .22f), .06f);
         var matPas = Mat("pas pomiarowy", new Color(.22f, .45f, .72f), .3f);
 
         var podloga = Plyta("posadzka", pokoj, new Vector3(0, -gr * .5f, 0), new Vector3(dl, gr, szer), matPodloga);
@@ -313,12 +315,18 @@ public static class BraxPokojProbBuild
         var slonce = new GameObject("Słońce").AddComponent<Light>();
         slonce.type = LightType.Directional;
         slonce.transform.rotation = Quaternion.Euler(46, -32, 0);
-        slonce.intensity = 1.1f;
+        // Nagranie 16.11, 14:48: pokoj byl mleczny, bez kontrastu — postaci nie dalo sie ocenic.
+        // Mocniejsze slonce i WYRAZNIE ciemniejsze otoczenie: swiatlo ma lepic bryle, a nie
+        // rozswietlac wszystko po rowno. Sciany tez schodza w dol (nizej, przy materialach).
+        slonce.intensity = 1.35f;
         slonce.shadows = LightShadows.Soft;
+        slonce.shadowStrength = .85f;
+        slonce.shadowBias = .02f;
+        slonce.shadowNormalBias = .2f;
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-        RenderSettings.ambientSkyColor = new Color(.66f, .69f, .74f);
-        RenderSettings.ambientEquatorColor = new Color(.50f, .50f, .52f);
-        RenderSettings.ambientGroundColor = new Color(.26f, .25f, .24f);
+        RenderSettings.ambientSkyColor = new Color(.38f, .41f, .47f);
+        RenderSettings.ambientEquatorColor = new Color(.26f, .26f, .28f);
+        RenderSettings.ambientGroundColor = new Color(.13f, .12f, .11f);
 
         // POSTACIE W ŁUKU przodem do gracza. Szereg był zły: policzone 16.11 — przy 19 postaciach
         // w kadrze (FOV 55 st., 6,2 m) mieściły się TRZY. Łuk 150 st. na promieniu 5,2 m trzyma
@@ -393,6 +401,9 @@ public static class BraxPokojProbBuild
                 throw new InvalidOperationException("Pokój APK: nie ma z czego zrobić gracza. " +
                                                     string.Join(" | ", braki) + " | " + e.Message);
         }
+        // Model gracza jest WYLACZANY: w pokoju oglada sie obsade, a nie wlasne plecy.
+        // Na nagraniu wlasciciela (16.11, 14:48) to wlasnie model gracza zaslanial cala scene.
+        if (bohater) bohater.SetActive(false);
         var runtime = gracz.AddComponent<BraxGymPlayer>();
         runtime.visual = bohater.transform;
         runtime.body = kapsula;

@@ -9,6 +9,12 @@ using UnityEngine;
 // Każda postać po kolei wychodzi na środek i robi: spoczynek, chód, bieg, rozmowę.
 // Kamera trzyma ją w kadrze. Przycisk NAGRYWAJ zapisuje klatki do pamięci telefonu,
 // a kto woli — po prostu włącza nagrywanie ekranu i ma gotowy film.
+// KOLEJNOSC 20000 — POKAZ USTAWIA KAMERE JAKO OSTATNI.
+// Nagranie wlasciciela z 16.11, 14:48: przez caly pokaz widac bylo Patryka, mimo ze podpis mowil
+// „bramkarz” albo „kapitan”. Powod: BraxGymPlayer tez ustawia kamere w LateUpdate (trzecia osoba,
+// za graczem), a pokaz robil to wczesniej — wiec kamera wracala za gracza, czyli za Patryka,
+// a prezentowana postac stala poza kadrem. Teraz pokaz idzie po nim i wygrywa.
+[DefaultExecutionOrder(20000)]
 public sealed class BraxPokazPostaci : MonoBehaviour
 {
     public Animation[] postacie;
@@ -57,7 +63,16 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                 {
                     etap = opis;
                     if (a.GetClip(klip)) { a[klip].wrapMode = WrapMode.Loop; a.CrossFade(klip, .2f); }
-                    else etap = opis + " — BRAK KLIPU";
+                    else
+                    {
+                        // Nie samo „BRAK KLIPU” — od razu widac, co ta postac ma, zeby nie trzeba
+                        // bylo tego dochodzic osobno.
+                        var ma = new System.Collections.Generic.List<string>();
+                        foreach (AnimationState st in a) if (st.clip != null) ma.Add(st.name);
+                        ma.Sort(System.StringComparer.Ordinal);
+                        etap = opis + " — BRAK KLIPU " + klip + " (ma: " +
+                               (ma.Count == 0 ? "nic" : string.Join(",", ma)) + ")";
+                    }
                     float do_ = Time.time + naEtap;
                     while (Time.time < do_) { yield return null; }
                 }
