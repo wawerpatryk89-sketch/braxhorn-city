@@ -167,13 +167,16 @@ jobs:
         set -e
         echo "--- wynik proby ---"
         grep -E 'BRAX_POSTAC |BRAX_ROZMOWA |BRAX_CIOS |BRAX_POKOJ|BRAX_PROBA_POSTACI_KONIEC|BRAX_PROBA_PARY_KONIEC' "$RUNNER_TEMP/pokoj.log" || true
-        klatek=$(ls "$BRAX_PROBA_KLATKI"/*.jpg 2>/dev/null | wc -l)
+        # find, nie ls: "ls *.jpg" przy zerze plikow KONCZY SIE BLEDEM, a krok ma set -e,
+        # wiec przerywal sie tutaj, zanim sprawdzil wyniki (run 43869823877 — moj blad, nie gry).
+        klatek=$(find "$BRAX_PROBA_KLATKI" -maxdepth 1 -name '*.jpg' 2>/dev/null | wc -l)
         echo "zapisanych klatek: $klatek (0 = tryb tylko liczby, tak ma byc)"
+        echo "--- ostatnie 40 linii logu gry (zawsze, zeby bylo widac co sie stalo) ---"
+        tail -40 "$RUNNER_TEMP/pokoj.log" 2>/dev/null || echo "(brak logu gry)"
         if [ -f "$BRAX_PROBA_KLATKI/wynik.txt" ]; then
-          echo "--- bramki ---"; cat "$BRAX_PROBA_KLATKI/wynik.txt"
+          echo "--- BRAMKI ---"; cat "$BRAX_PROBA_KLATKI/wynik.txt"
         else
-          echo "::error::gra nie zapisala wynik.txt — ostatnie 80 linii logu gry:"
-          tail -80 "$RUNNER_TEMP/pokoj.log" || true
+          echo "::error::gra nie zapisala wynik.txt (kod gry: $kod)"
           exit 1
         fi
         if [ "$klatek" -gt 0 ]; then
