@@ -28,5 +28,10 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsInteriorLight.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsMeshBatch.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsLetters3D.cs" />
+    <Compile Include="../wiezowce_preview/AutomatyStubs.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsAutomatyZasady.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsAutomaty.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoSprzet.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsPiksele.cs" />
   </ItemGroup>
 </Project>

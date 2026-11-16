@@ -7,9 +7,9 @@ using W = BraxWnetrzaKit;
 // być. To, że ona nie jest wyposażona w środku, to nie znaczy, że tam nie można wejść." and, on the render of the
 // windows, "jedno poprawiłeś, a drugie zepsułeś": a glowing board 1 m behind the glass read as painted plywood.
 // The podium was an EMPTY box: a lobby whose back wall carried a painted "portal", and boards behind every window.
-// Now the lobby opens through a real 6 x 4.5 m portal into the casino hall: one 75 x 52 m room, 12.8 m high, finished
-// but not furnished (no tables, no machines yet): black marble floor with a field of red marble tiles, a cream coffered ceiling with
-// light lines around the roof lantern, twelve polished gold columns, six ring chandeliers, a lit rear wall.
+// Now the lobby opens through a real 6 x 4.5 m portal into the casino hall: one 75 x 52 m room, 12.8 m high: black marble
+// floor with a field of red marble tiles, a cream coffered ceiling with light lines around the roof lantern, twelve polished
+// gold columns, six ring chandeliers, a lit rear wall; since 16.11 64 working slot machines in four banks (no tables yet).
 // Every window now looks into this real room. Built in nominal metres with the interior kit, scaled by K once.
 public static partial class BraxChampionsCasinoT11
 {
@@ -144,12 +144,30 @@ public static partial class BraxChampionsCasinoT11
             foreach(float z in new[]{-14f,0f,14f})
                 RingChandelier(gold,led,new Vector3(x,HallCeiling,z),z==0f?1.25f:1.0f);
 
+            // ---- the slot machines, working (owner 16.11 18:22: "tak samo tam to wyposażymy ... kasynowawer - dwie roboty w
+            // jednym"): the SKY KASYNO's machines (BraxChampionsKasynoSprzet / BraxChampionsAutomaty). Two double banks in each
+            // wing, between the column lines (x 14.1 / 28.2) under the chandeliers, eight a row back to back with their stools,
+            // mechanical and screen machines in turn in the six themes of the owner's strips (19:13 "co druga różnego typu"), on
+            // the red marble; the linked jackpot board hangs over each bank. The middle under the lantern stays for the tables.
+            int slots=0;
+            BraxChampionsFoundation.Optional("T11 slot machines",()=>
+            {
+                var body=new BraxChampionsMeshBatch();
+                var kas=BraxChampionsKasynoSprzet.Zacznij(g,body,"KASYNO WAWER");
+                int start=0;
+                foreach(float x in new[]{-24.5f,-19.5f,19.5f,24.5f})BraxChampionsKasynoSprzet.Bank(kas,new Vector3(x,HallFloor+.016f,0f),90f,8,start++,HallCeiling);
+                body.Build(g,"T11 casino hall | slot machines",BraxChampionsKasynoSprzet.Out+"/Meshes",false,1f);
+                BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
+            });
+            W.Grupa=g;W.Wnetrze=true;
+            if(slots!=64)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL slot machines "+slots+"/64");
+
             // ---- light: six warm vertex lamps (no shadows) ----
             foreach(float x in new[]{-21.15f,21.15f})
             foreach(float z in new[]{-14f,0f,14f})
                 W.Lampa("T11 hall chandelier warm light",new Vector3(x,9.2f,z),1.5f,24f*K,new Color(1f,.88f,.66f));
             Debug.Log("T11_CASINO_HALL open=true portal=6x4.5 floor=black_marble+red_marble_tiles_3m_gold_joints ceiling=cream_coffered_"+HallCeiling+
-                " columns="+columns+"_polished_gold chandeliers=6 lights=6_vertex furniture=NONE_YET scale=K_once");
+                " columns="+columns+"_polished_gold chandeliers=6 lights=6_vertex slots="+slots+"_working tables=NONE_YET scale=K_once");
         }
         catch { W.Wyczysc(); UnityEngine.Object.DestroyImmediate(g.gameObject); throw; }
         W.Zapisz("mistrzowie_t11_casino_hall");

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>CS0649;CS0414;CS0169;CS8632</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../apartments_preview/Stubs.cs" />
+    <Compile Include="../apartments_preview/RegionStubs.cs" />
+    <Compile Include="../casino_preview/RuntimeStubs.cs" />
+    <Compile Include="../wiezowce_preview/AutomatyStubs.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsPiksele.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsAutomatyZasady.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsAutomaty.cs" />
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+</Project>

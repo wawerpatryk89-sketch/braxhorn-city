@@ -84,6 +84,6 @@ public sealed class BraxVessel : MonoBehaviour
 }
 public sealed class BraxCitySignText : MonoBehaviour { }
 namespace UnityEngine { public class DisallowMultipleComponentAttribute : System.Attribute { }
-    public static class Time { public static float unscaledTime, deltaTime; }
+    public static class Time { public static float unscaledTime, deltaTime, time; }
     public class Camera : Behaviour { public static Camera main; }
     public static class Application { public static string dataPath => System.IO.Path.GetFullPath("Assets"); } }

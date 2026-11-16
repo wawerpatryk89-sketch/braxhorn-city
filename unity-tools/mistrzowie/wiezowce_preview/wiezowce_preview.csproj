@@ -30,5 +30,9 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxKatalogTowar.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxKatalogDom.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsPiksele.cs" />
+    <Compile Include="AutomatyStubs.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsAutomatyZasady.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsAutomaty.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoSprzet.cs" />
   </ItemGroup>
 </Project>

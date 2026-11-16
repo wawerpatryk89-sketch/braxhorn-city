@@ -57,6 +57,28 @@ public sealed class BraxChampionsMeshBatch
         p.t.Add(i); p.t.Add(i + 1); p.t.Add(i + 2); p.t.Add(i); p.t.Add(i + 2); p.t.Add(i + 3);
     }
 
+    /// <summary>The triangles collected for one material (a, b, c per triangle): lettering printed into a picture.</summary>
+    public List<Vector3> Trojkaty(Material m)
+    {
+        var o = new List<Vector3>();
+        if (m && parts.TryGetValue(m, out var p)) foreach (int i in p.t) o.Add(p.v[i]);
+        return o;
+    }
+
+    /// <summary>Adds every part of a template batch turned by rot and moved to at (one cabinet built once and placed in a
+    /// whole casino: the slot machines). Normals turn with it; UVs stay the template's.</summary>
+    public void Append(BraxChampionsMeshBatch src, Vector3 at, Quaternion rot)
+    {
+        if (src == null) return;
+        foreach (var m in src.order)
+        {
+            var s = src.parts[m]; if (s.t.Count == 0) continue;
+            var p = Of(m); int b = p.v.Count;
+            for (int i = 0; i < s.v.Count; i++) { p.v.Add(at + rot * s.v[i]); p.n.Add(rot * s.n[i]); p.uv.Add(s.uv[i]); }
+            for (int i = 0; i < s.t.Count; i++) p.t.Add(b + s.t[i]);
+        }
+    }
+
     /// <summary>Triangle with its own UVs (data for the shader, e.g. the depth under a water surface), same winding as Triangle.</summary>
     public void TriangleUV(Material m, Vector3 a, Vector3 b, Vector3 c, Vector2 ua, Vector2 ub, Vector2 uc)
     {

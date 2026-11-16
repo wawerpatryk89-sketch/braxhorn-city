@@ -1,0 +1,31 @@
+{
+ "source": "owner 16.11.2026 19:13: his six slot reel strips (one per machine theme, cut into the reels' symbols 1:1 - BraxChampionsKasynoSprzet.Atlas) and the BRAXHORN BET art: six posters, the screen frame for the odds boards, the logo - used 1:1, no lettering of ours",
+ "target": "Assets/Source/Mistrzowie/KasynoWlasciciel/{paski,bet} (install_owner_media.py; BraxChampionsKasynoSprzet)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "55ea10c2ff84a46f449efccf85378f38da0cc48fa3d004e6d09bb382de0cd635",
+ "cmsSha256": "b43af0ed544b42937fe1d46f7a49ed8a0a11c187c92145c265e16e117dfaf768",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 40018501,
+   "sha256": "b43af0ed544b42937fe1d46f7a49ed8a0a11c187c92145c265e16e117dfaf768"
+  }
+ ],
+ "files": {
+  "bet/logo_braxhorn_bet.png": "bf40e127bc0f96d389ffe279189bc965201ee9b4d20132947b78f8fa9ffd2829",
+  "bet/plakat_fight_night.png": "fa97334cee32dcb6c541bde9786ee4e23b65f78c867f3b28b0ec184907f031f8",
+  "bet/plakat_noc_wielkich_walk.png": "20307aac5cd5d9f1d0e02f75034df4bf9cdd7e385e3ce4b248e87d7596799ab2",
+  "bet/plakat_pas_mistrzowski.png": "ef9a6cb84e320cd236425d7dbba0004f214360ae1807df19ab75d8c254fd298c",
+  "bet/plakat_postaw_na_walke.png": "099236a7a7ec91de3c456b3beca1806ede9493c1fb10e1caa71623d494780be2",
+  "bet/plakat_queens_of_the_cage.png": "61b2385a3132c53f5d87c58fff3414b6b8a3574c2eddb51357fc2f9135f8db19",
+  "bet/plakat_walka_wieczoru.png": "66851b664c5e26f7c7c9460fe9bf7623fc14ab12eb7423d413c6393c4d320e39",
+  "bet/ramka_ekranu.png": "28e0f5b22530794ad32eb512071dba01de74ec7b1b770ec934a6f44355a559f9",
+  "paski/pasek_czerwony.png": "01b601dee9a7d58193e1d4c9e5956000e370cde81c99e6409040289e96172b47",
+  "paski/pasek_czerwony_cytryna.png": "10457e1d07e9c516ff7fc767a1eae91553d512cc4cbe8722c8de70601648b952",
+  "paski/pasek_fiolet_zloty.png": "8a78d6c7a42d7c7575a63980543468398f9ac1c4a5d1f281bf1939d312e16c70",
+  "paski/pasek_fioletowy.png": "7f493a8c874db79fe3b8403126cd875b7baf3cb3f4215d45a77696ef32235400",
+  "paski/pasek_niebieski.png": "a018c03b389f90e99fcf27d824a97ecd2e0a74f2a6c25516b64431cc1e9288c1",
+  "paski/pasek_zielony.png": "ca0e299006b160fc9b905df4c700d4fcbca77361129e3c22fd51ab6cf2d29611"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

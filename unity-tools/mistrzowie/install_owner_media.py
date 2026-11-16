@@ -14,6 +14,10 @@ assety od właściciela pakować od razu):
   unity-city/Prywatne/braxhorn-mistrzowie-g1-grafiki-20261116/ the owner's own pictures (16.11 14:07-14:22): plakaty/*.png
                                                         (his shop posters, text his own) and pulpity/*.png (Windows-like
                                                         desktops) -> Assets/Source/Mistrzowie/G1Wlasciciel/ 1:1
+  unity-city/Prywatne/braxhorn-mistrzowie-kasyno-grafiki-20261116/ the owner's casino art (16.11 19:13): paski/*.png (his six
+                                                        reel strips, cut into the slot machines' reels) and bet/*.png (the
+                                                        BRAXHORN BET posters, screen frame, logo) -> Assets/Source/Mistrzowie/
+                                                        KasynoWlasciciel/ 1:1
 
 Each pack: tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (the owner's CI transfer certificate "Braxhorn camp
 input transfer", release oboz-transfer-key-41749904696) -> parts <= 90 MB with SHA-256 in manifest.json. The private key
@@ -36,6 +40,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PACKS = ROOT / "unity-city/Prywatne"
 WLASCICIEL = ROOT / "unity-city/Assets/Source/Mistrzowie/G1Wlasciciel"
 GRAFIKI = "braxhorn-mistrzowie-g1-grafiki-20261116"
+KASYNO = "braxhorn-mistrzowie-kasyno-grafiki-20261116"
+KASYNO_DIR = ROOT / "unity-city/Assets/Source/Mistrzowie/KasynoWlasciciel"
 SA = ROOT / "unity-city/Assets/StreamingAssets/Mistrzowie"
 WIDEO = ROOT / "unity-city/Assets/StreamingAssets/BraxhornWideo"
 TELEWIZOR = ROOT / "unity-city/Assets/BraxhornWideo/BraxTelewizor.cs"
@@ -150,6 +156,17 @@ def main():
             print("BRAX_G1_GRAFIKI_OK files=%d -> %s" % (n, WLASCICIEL.relative_to(ROOT)))
         else:
             print("BRAX_G1_GRAFIKI_MISSING " + GRAFIKI + " (monitors keep the photographs, the shops their own windows)")
+        # the casino art: his reel strips (BraxChampionsKasynoSprzet cuts them into the reels) and the BET art, byte for byte
+        kas = open_pack(KASYNO, tmp)
+        if kas:
+            n = 0
+            for f in sorted(kas.rglob("*.png")):
+                dst = KASYNO_DIR / f.relative_to(kas)
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(f, dst); n += 1
+            print("BRAX_KASYNO_GRAFIKI_OK files=%d -> %s" % (n, KASYNO_DIR.relative_to(ROOT)))
+        else:
+            print("BRAX_KASYNO_GRAFIKI_MISSING " + KASYNO + " (the slot reels show placeholder strips)")
         ads = open_pack("mistrzowie-kino-reklamy-20261112", tmp)
         if ads:
             (SA / "Kino").mkdir(parents=True, exist_ok=True)

@@ -104,10 +104,13 @@ namespace UnityEngine
         public static float Cos(float a) => (float)Math.Cos(a); public static float Sin(float a) => (float)Math.Sin(a);
         public static float SmoothStep(float a, float b, float t) { t = Clamp01(t); t = -2f * t * t * t + 3f * t * t; return b * t + a * (1f - t); }
         public static float DeltaAngle(float a, float b) { float d = (b - a) % 360f; if (d < 0) d += 360f; if (d > 180f) d -= 360f; return d; }
-        public static float InverseLerp(float a, float b, float v) => a != b ? Clamp01((v - a) / (b - a)) : 0f; }
+        public static float InverseLerp(float a, float b, float v) => a != b ? Clamp01((v - a) / (b - a)) : 0f;
+        public static float GammaToLinearSpace(float v) => v <= .04045f ? v / 12.92f : (float)Math.Pow((v + .055) / 1.055, 2.4);
+        public static float LinearToGammaSpace(float v) => v <= .0031308f ? v * 12.92f : (float)(1.055 * Math.Pow(v, 1 / 2.4) - .055); }
     public class Object { string nm; public virtual string name { get => nm; set => nm = value; }
         public static implicit operator bool(Object o) => o != null && !o.destroyed;
         internal bool destroyed;
+        public int GetInstanceID() => GetHashCode();
         public static T Instantiate<T>(T original) where T : Object
         {
             if (original is Mesh m) return new Mesh { name = m.name, vertices = (Vector3[])m.vertices.Clone(), normals = (Vector3[])m.normals?.Clone(), uv = (Vector2[])m.uv?.Clone(), triangles = (int[])m.triangles.Clone() } as T;
@@ -134,7 +137,12 @@ namespace UnityEngine
         // painted textures (E1 balls, screens): the pixels are kept and written as a PNG when the generator saves the asset
         public Color32[] pixels; public TextureWrapMode wrapMode; public FilterMode filterMode;
         public Texture2D() { } public Texture2D(int w, int h, TextureFormat f, bool mips) { width = w; height = h; }
-        public void SetPixels32(Color32[] px) { pixels = px; } public void Apply(bool mips = true) { } public void Apply(bool mips, bool readOnly) { } public byte[] EncodeToPNG() => new byte[0]; }
+        public void SetPixels32(Color32[] px) { pixels = px; } public void Apply(bool mips = true) { } public void Apply(bool mips, bool readOnly) { }
+        // a painted picture written to a file (the casino's reel atlas, pay tables): real PNG bytes, so the preview draws it
+        public byte[] EncodeToPNG() { if (pixels == null || pixels.Length != width * height) return new byte[0]; var ms = new System.IO.MemoryStream(); PreviewPng.Write(ms, width, height, pixels); return ms.ToArray(); }
+        public Color32[] GetPixels32() => pixels ?? new Color32[width * height];
+        // an owner's picture read by a generator (the casino's reel strips): decoded, rows bottom-up as Unity's
+        public bool LoadImage(byte[] data) { var px = PreviewPng.Read(data, out int w, out int h); if (px == null) return false; width = w; height = h; pixels = px; return true; } }
     public enum TextureFormat { RGBA32, RGB24, ARGB32 }
     public struct Color32 { public byte r, g, b, a; public Color32(byte r, byte g, byte b, byte a) { this.r = r; this.g = g; this.b = b; this.a = a; }
         static byte B(float v) => (byte)Math.Max(0, Math.Min(255, (int)Math.Round(v * 255f)));
@@ -166,6 +174,7 @@ namespace UnityEngine
         public T[] GetComponentsInChildren<T>() where T : Component => gameObject.All<T>(); }
     public class Transform : Component { public Transform parent; public readonly List<Transform> children = new List<Transform>();
         public Vector3 localPosition; public Quaternion localRotation = Quaternion.identity; public Vector3 localScale = Vector3.one;
+        public Vector3 lossyScale { get { var s = localScale; for (var p = parent; p != null; p = p.parent) s = new Vector3(s.x * p.localScale.x, s.y * p.localScale.y, s.z * p.localScale.z); return s; } }
         public Vector3 position { get => parent == null ? localPosition : parent.TransformPoint(localPosition); set => localPosition = parent == null ? value : parent.InverseTransformPoint(value); }
         public Quaternion rotation { get => parent == null ? localRotation : parent.rotation * localRotation; set => localRotation = parent == null ? value : Quaternion.Inverse(parent.rotation) * value; }
         public void SetParent(Transform p, bool keep) { parent?.children.Remove(this); parent = p; p?.children.Add(this); }
@@ -245,7 +254,7 @@ namespace UnityEngine
     // Stand-in for an imported glTF model: its path and the real bounds read from the glTF accessors (x mirrored like glTFast).
     public class PreviewModel : Component { public string path; public Vector3 min, max; }
     public class MeshRenderer : Renderer { }
-    public class Mesh : Object { public Vector3[] vertices = new Vector3[0]; public Vector3[] normals; public Vector2[] uv; public int[] triangles = new int[0]; public Bounds bounds; public Vector4[] tangents; public Color[] colors;
+    public class Mesh : Object { public void MarkDynamic() { } public Vector3[] vertices = new Vector3[0]; public Vector3[] normals; public Vector2[] uv; public int[] triangles = new int[0]; public Bounds bounds; public Vector4[] tangents; public Color[] colors;
         public Rendering.IndexFormat indexFormat;
         public void SetVertices(List<Vector3> v) => vertices = v.ToArray(); public void SetNormals(List<Vector3> n) { }
         public void SetUVs(int ch, List<Vector2> u) { if (ch == 0) uv = u.ToArray(); } public void SetTriangles(List<int> t, int sub) => triangles = t.ToArray();
@@ -449,13 +458,52 @@ static class PreviewPng
         uint c = 0xFFFFFFFFu; foreach (var b in td) c = Crc[(c ^ b) & 0xFF] ^ (c >> 8); c ^= 0xFFFFFFFFu;
         s.Write(new byte[] { (byte)(c >> 24), (byte)(c >> 16), (byte)(c >> 8), (byte)c }, 0, 4);
     }
-    public static void Write(string path, int w, int h, UnityEngine.Color32[] px)
+    public static void Write(string path, int w, int h, UnityEngine.Color32[] px) { using var f = System.IO.File.Create(path); Write(f, w, h, px); }
+    // 8-bit RGB / RGBA / grey, not interlaced (what the owner's generator and ours write); null for anything else
+    public static UnityEngine.Color32[] Read(byte[] d, out int w, out int h)
+    {
+        w = h = 0; if (d == null || d.Length < 33 || d[1] != 'P' || d[2] != 'N' || d[3] != 'G') return null;
+        int pos = 8, bitDepth = 0, colour = 0, inter = 0; var idat = new System.IO.MemoryStream();
+        while (pos + 8 <= d.Length)
+        {
+            int len = (d[pos] << 24) | (d[pos + 1] << 16) | (d[pos + 2] << 8) | d[pos + 3]; string type = System.Text.Encoding.ASCII.GetString(d, pos + 4, 4);
+            if (type == "IHDR") { w = (d[pos + 8] << 24) | (d[pos + 9] << 16) | (d[pos + 10] << 8) | d[pos + 11]; h = (d[pos + 12] << 24) | (d[pos + 13] << 16) | (d[pos + 14] << 8) | d[pos + 15]; bitDepth = d[pos + 16]; colour = d[pos + 17]; inter = d[pos + 20]; }
+            else if (type == "IDAT") idat.Write(d, pos + 8, len);
+            else if (type == "IEND") break;
+            pos += 12 + len;
+        }
+        int bpp = colour == 6 ? 4 : colour == 2 ? 3 : colour == 0 ? 1 : colour == 4 ? 2 : 0;
+        if (bitDepth != 8 || inter != 0 || bpp == 0 || w <= 0 || h <= 0) return null;
+        idat.Position = 0; var raw = new System.IO.MemoryStream();
+        using (var z = new System.IO.Compression.ZLibStream(idat, System.IO.Compression.CompressionMode.Decompress)) z.CopyTo(raw);
+        var r = raw.ToArray(); int stride = w * bpp; var cur = new byte[stride]; var prev = new byte[stride]; var px = new UnityEngine.Color32[w * h];
+        for (int y = 0; y < h; y++)
+        {
+            int o = y * (stride + 1); byte f = r[o];
+            for (int i = 0; i < stride; i++)
+            {
+                int x = r[o + 1 + i], a = i >= bpp ? cur[i - bpp] : 0, b = prev[i], c = i >= bpp ? prev[i - bpp] : 0;
+                if (f == 1) x += a; else if (f == 2) x += b; else if (f == 3) x += (a + b) / 2;
+                else if (f == 4) { int pp = a + b - c, pa = Math.Abs(pp - a), pb = Math.Abs(pp - b), pc = Math.Abs(pp - c); x += pa <= pb && pa <= pc ? a : pb <= pc ? b : c; }
+                cur[i] = (byte)x;
+            }
+            int row = (h - 1 - y) * w;
+            for (int x = 0; x < w; x++)
+            {
+                int i = x * bpp;
+                px[row + x] = bpp == 4 ? new UnityEngine.Color32(cur[i], cur[i + 1], cur[i + 2], cur[i + 3]) : bpp == 3 ? new UnityEngine.Color32(cur[i], cur[i + 1], cur[i + 2], 255)
+                    : bpp == 2 ? new UnityEngine.Color32(cur[i], cur[i], cur[i], cur[i + 1]) : new UnityEngine.Color32(cur[i], cur[i], cur[i], 255);
+            }
+            var t = prev; prev = cur; cur = t;
+        }
+        return px;
+    }
+    public static void Write(System.IO.Stream f, int w, int h, UnityEngine.Color32[] px)
     {
         var raw = new System.IO.MemoryStream();
         for (int y = h - 1; y >= 0; y--) { raw.WriteByte(0); for (int x = 0; x < w; x++) { var c = px[y * w + x]; raw.WriteByte(c.r); raw.WriteByte(c.g); raw.WriteByte(c.b); raw.WriteByte(c.a); } }
         var z = new System.IO.MemoryStream();
         using (var zs = new System.IO.Compression.ZLibStream(z, System.IO.Compression.CompressionLevel.Optimal, true)) { raw.Position = 0; raw.CopyTo(zs); }
-        using var f = System.IO.File.Create(path);
         f.Write(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }, 0, 8);
         Chunk(f, "IHDR", new byte[] { (byte)(w >> 24), (byte)(w >> 16), (byte)(w >> 8), (byte)w, (byte)(h >> 24), (byte)(h >> 16), (byte)(h >> 8), (byte)h, 8, 6, 0, 0, 0 });
         Chunk(f, "IDAT", z.ToArray()); Chunk(f, "IEND", new byte[0]);

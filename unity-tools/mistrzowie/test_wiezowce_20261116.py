@@ -209,8 +209,12 @@ class SkyCasino(unittest.TestCase):
     def test_furnished_with_real_things(self):
         sc = SRC[SRC.index("static void SkyCasino("):SRC.index("static void BlackjackTable(")]
         self.assertIn("foreach(float x in new[]{-6.6f,0f,6.6f})BlackjackTable(", sc)
-        for owner in ("kasyno_automat_nermin", "bar_lampa_markpeters"):
-            self.assertIn('OwnerModel("%s"' % owner, sc)
+        self.assertIn('OwnerModel("bar_lampa_markpeters"', sc)
+        # 16.11 18:19 the owner's placeholder machine model gave way to working slot machines (test_automaty_20261116)
+        self.assertNotIn("kasyno_automat_nermin", sc)
+        self.assertIn('BraxChampionsKasynoSprzet.Zacznij(inside,kat,"SKY KASYNO")', sc)
+        self.assertIn("BraxChampionsKasynoSprzet.Bank(kas,new Vector3(-9.6f,y,-4.5f),0f,6,0,ceil);", sc)
+        self.assertIn("BraxChampionsKasynoSprzet.Bank(kas,new Vector3(9.8f,y,-4.5f),0f,6,3,ceil);", sc)
         self.assertIn("OwnerBackBar(", sc)
         self.assertIn('BraxMiastoAssety.Model("osiedle_wnetrza",file)', SRC)
         bj = SRC[SRC.index("static void BlackjackTable("):SRC.index("static GameObject OwnerModel(")]

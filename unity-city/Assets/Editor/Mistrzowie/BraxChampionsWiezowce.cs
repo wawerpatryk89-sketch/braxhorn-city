@@ -759,8 +759,8 @@ public static class BraxChampionsWiezowce
     // plaza, the highest room of the region) are one hall 8 m high in clear glass all round: the whole city below. The
     // express lift from the lobby (lift 1 of the bank, a working BraxWinda: two stops) opens into it. Inside: dark oak
     // planks, a dark ceiling with lamps, blackjack tables made as real ones (red felt, a padded black leather armrest,
-    // walnut body, steel chip tray, pedestals), the owner's slot machines, a bar with the owner's back-bar and lamps, lounges
-    // at the glass.
+    // walnut body, steel chip tray, pedestals), two banks of working slot machines (mechanical and screen, BraxChampionsKasyno-
+    // Sprzet), a bar with the owner's back-bar and lamps, lounges at the glass.
     public const int CasinoFloor=58;
     public static float CasinoY=>Shaft+CasinoFloor*Storey;
     const float LiftZ0=-2f,LiftZ1=.30f,LiftHalf=1.05f,LiftLeaf=.60f;
@@ -824,14 +824,19 @@ public static class BraxChampionsWiezowce
             W.Grupa=inside;W.Siedzisko(new Vector3(x,y+.76f,8.40f),Vector3.back,"SKY KASYNO BAR");seats++;
         }
         for(int i=0;i<4;i++)OwnerModel("bar_lampa_markpeters","sky casino bar lamp",new Vector3(-2.0f+i*2.0f,y+2.55f,7.30f),0f,.50f,ceil);
-        // ---- the slot machines (the owner's, BRAXHORN screens): two banks back to back, west and east of the lift
-        foreach(float x0 in new[]{-12.0f,7.4f})
-            for(int i=0;i<6;i++)
-            {
-                float x=x0+.42f+i*.84f;
-                if(OwnerModel("kasyno_automat_nermin","sky casino slot machine",new Vector3(x,y,-4.0f),0f,1.85f)!=null)slots++;
-                if(OwnerModel("kasyno_automat_nermin","sky casino slot machine",new Vector3(x,y,-5.0f),180f,1.85f)!=null)slots++;
-            }
+        // ---- the slot machines, working (BraxChampionsKasynoSprzet / BraxChampionsAutomaty; owner 16.11 18:19 "mechaniczne i
+        // komputerowe ... mogą normalnie działać", 19:13 "różnorodne ... co druga różnego typu"): a bank west and a bank east of
+        // the lift, each two rows of six back to back with their stools - mechanical and screen machines in turn, each in
+        // another of the six themes of the owner's strips - the linked jackpot board hanging over each; as KASYNO WAWER
+        W.Grupa=inside;W.Wnetrze=true;
+        BraxChampionsFoundation.Optional("SKY KASYNO slot machines",()=>
+        {
+            var kas=BraxChampionsKasynoSprzet.Zacznij(inside,kat,"SKY KASYNO");
+            BraxChampionsKasynoSprzet.Bank(kas,new Vector3(-9.6f,y,-4.5f),0f,6,0,ceil);
+            BraxChampionsKasynoSprzet.Bank(kas,new Vector3(9.8f,y,-4.5f),0f,6,3,ceil);
+            BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
+        });
+        W.Grupa=inside;W.Wnetrze=true;
         // ---- blackjack tables to the south (the street side, the glass behind the players)
         foreach(float x in new[]{-6.6f,0f,6.6f})BlackjackTable(new Vector2(x,-9.6f));
         // ---- lounges at the west and east glass, the sofas facing the city; plants
@@ -848,7 +853,8 @@ public static class BraxChampionsWiezowce
             lights.Add(W.Lampa("SKY KASYNO light",new Vector3(lp.x,y+lp.y,lp.z),1.0f,11f,new Color(.97f,.98f,1f)));
         Debug.Log("TOWER_T09_SKY_KASYNO floor="+CasinoY.ToString("F2")+"m nominal glass=clear-both-sides tables="+tables+" slots="+slots+
             " backBarUnits="+units+" ownerModelsMissing="+ownerMissing+" lift=BraxWinda(2 stops)");
-        if(ownerMissing>0)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO owner models missing x"+ownerMissing+" (osiedle_wnetrza pack): slots / back-bar / bar lamps stay empty");
+        if(ownerMissing>0)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO owner models missing x"+ownerMissing+" (osiedle_wnetrza pack): back-bar / bar lamps stay empty");
+        if(slots!=24)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO slot machines "+slots+"/24");
     }
     // a blackjack table as real ones are (2.2 x 1.05 m, felt at .78 m): a half-ellipse of red felt, a padded black leather
     // armrest round the players' arc, a walnut apron under it, the dealer's straight walnut edge with a steel chip tray, two
