@@ -6,7 +6,7 @@ using UnityEngine;
 // puts a 10 chip on the outside box in front of the player (1-18, PARZYSTE, CZERWONE, CZARNE, NIEPARZYSTE, 19-36 - the box is
 // the one the player stands at, as at a real table) and the croupier launches the ball: it runs against the rotor on the
 // bowl's track, slows, drops down the cone past the deflectors into the pocket ring, hops over a few frets and stays in the
-// pocket of the number drawn; the board at the wheel shows it with the last numbers; even money pays 1:1, zero takes the
+// pocket of the number drawn; the screen on its column by the wheel shows it with the 12 before it, red / zero / black of the last 100 and the hot and cold numbers; even money pays 1:1, zero takes the
 // bets. The money is the casino credit (BraxChampionsKasyno, the slot machines' too).
 public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
 {
@@ -18,7 +18,7 @@ public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
         public Vector3 kolo;                                     // the wheel's centre in the table's frame (the rotor's base)
         public Transform[] zetony = new Transform[0];            // a chip on each of the six outside boxes (shown while bet)
         public float[] polaX = new float[0];                     // the six boxes' centres along the table (local x)
-        public Renderer tablica;                                 // the history board (painted)
+        public MeshFilter wyswietlacz;                           // the winning-number display's live layer (Wyswietlacz)
     }
     public Stol[] stoly = new Stol[0];
     public string nazwa = "RULETKA";
@@ -29,11 +29,11 @@ public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
     sealed class Stan
     {
         public bool kreci; public float start, rotorKat, wynikKat, skala = 1f; public int wynik = -1, zaklad = -1, pole = -1;
-        public int[] historia = new int[12]; public int ile;
-        public Texture2D tex; public Color32[] px;
+        public int[] historia = new int[13]; public int ile;
+        public int[] sto = new int[100]; public int stoN, stoI;           // the last 100 numbers (the display's statistics)
+        public Mesh siatka;
     }
     Stan[] stan; System.Random los;
-    public const int TabW = 64, TabH = 128;
     const float Obrot = .35f * 360f;                             // the rotor: .35 turns a second (counter-clockwise)
     const float T1 = 5.2f, T2 = 6.6f, T3 = 8.4f;                 // on the track; falling in; settling; the end
     const float Om0 = 2.6f * 360f, Tau = 3.2f;                   // the ball's start speed (deg/s, clockwise) and its decay
@@ -50,14 +50,12 @@ public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
             var s = new Stan(); stan[i] = s; var t = stoly[i]; if (t == null || !t.stol) continue;
             s.rotorKat = (float)los.NextDouble() * 360f;
             foreach (var z in t.zetony) if (z) z.gameObject.SetActive(false);
-            if (t.tablica)
+            Wyswietlacz.Poczatek(los, s.historia, s.sto);
+            s.ile = s.historia.Length; s.stoN = s.sto.Length; s.stoI = 0;
+            if (t.wyswietlacz)
             {
-                s.tex = new Texture2D(TabW, TabH, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "ruletka tablica" };
-                var mat = new Material(t.tablica.sharedMaterial) { name = "ruletka tablica" };
-                mat.SetTexture("_MainTex", s.tex); if (mat.HasProperty("_EmissionMap")) mat.SetTexture("_EmissionMap", s.tex);
-                t.tablica.sharedMaterial = mat; s.px = new Color32[TabW * TabH];
-                for (int k = 0; k < s.historia.Length; k++) s.historia[k] = los.Next(37);
-                s.ile = s.historia.Length; Tablica(s);
+                s.siatka = new Mesh { name = "ruletka wyświetlacz" }; s.siatka.MarkDynamic();
+                t.wyswietlacz.sharedMesh = s.siatka; Wyswietlacz.Zbuduj(s.siatka, s.historia, s.sto, s.stoN);
             }
             Kulka(t, s, 0f);
         }
@@ -172,30 +170,83 @@ public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
         s.kreci = false;
         for (int k = s.historia.Length - 1; k > 0; k--) s.historia[k] = s.historia[k - 1];
         s.historia[0] = s.wynik; if (s.ile < s.historia.Length) s.ile++;
+        s.sto[s.stoI] = s.wynik; s.stoI = (s.stoI + 1) % s.sto.Length; if (s.stoN < s.sto.Length) s.stoN++;
         int wyg = Zasady.Wygrywa(s.pole, s.wynik) ? s.zaklad * 2 : 0;
         if (wyg > 0) BraxChampionsKasyno.Wplac(wyg);
         BraxChampionsGry.Pokaz(Zasady.Opis(s.wynik) + (wyg > 0 ? " · WYGRANA " + wyg : " · " + Zasady.Pola[s.pole] + " PRZEGRYWA"), 3f);
         if (s.pole >= 0 && s.pole < t.zetony.Length && t.zetony[s.pole]) t.zetony[s.pole].gameObject.SetActive(false);
         s.zaklad = 0; s.pole = -1;
-        Tablica(s);
+        if (s.siatka) Wyswietlacz.Zbuduj(s.siatka, s.historia, s.sto, s.stoN);
     }
 
-    // the history board: the last number big, the others under it, red / black / green as on the wheel
-    static readonly Color32 Czarny = new Color32(4, 4, 6, 255), Czerwony = new Color32(255, 50, 40, 255), Bialy = new Color32(235, 238, 245, 255),
-        Zielony = new Color32(40, 230, 90, 255), Zloty = new Color32(255, 200, 60, 255);
-    void Tablica(Stan s) { if (!s.tex) return; PaintTablica(s.px, s.historia, s.ile); s.tex.SetPixels32(s.px); s.tex.Apply(false); }
-    public static void PaintTablica(Color32[] px, int[] h, int ile)
+    // ---------------- the winning-number display (after the TCS John Huxley column displays): a portrait screen .36 x .64 m
+    // on a column at the wheel. Its fixed picture (frame, BRAXHORN, the labels) is the generator's; this live layer is quads
+    // cut from one atlas of sharp pictures (the 37 numbers in their red / black / green discs in the region's sign typeface,
+    // the digits, colour cells): the last number big, the twelve before it, red / zero / black over the last 100 in bars
+    // with their percentages, the four hottest and the four coldest numbers.
+    public static class Wyswietlacz
     {
-        BraxChampionsPiksele.Wypelnij(px, Czarny);
-        BraxChampionsPiksele.Srodek(px, TabW, TabH, "BRAXHORN", TabW / 2, TabH - 10, 1, Zloty);
-        Color32 K(int n) => n == 0 ? Zielony : Zasady.Czerwony(n) ? Czerwony : Bialy;
-        if (ile > 0) BraxChampionsPiksele.Srodek(px, TabW, TabH, h[0].ToString(), TabW / 2, TabH - 36, 3, K(h[0]));
-        for (int k = 1; k < Mathf.Min(ile, h.Length); k++)
+        public const float W = .36f, H = .64f;
+        public const int AtlasW = 1024, AtlasH = 1024, Krazek = 128, CyfraW = 64, CyfraH = 80;
+        // atlas: discs 0-36 in 8 columns from the top-left; digits 0-9 and % in a row under them; colour cells under those
+        public static void KrazekPx(int n, out int x, out int y) { x = n % 8 * Krazek; y = AtlasH - (n / 8 + 1) * Krazek; }
+        public static void CyfraPx(int c, out int x, out int y) { x = c * CyfraW; y = AtlasH - 5 * Krazek - CyfraH; }
+        public static void KolorPx(int k, out int x, out int y) { x = k * 32; y = AtlasH - 5 * Krazek - CyfraH - 32; }
+        public static readonly float[] HistX = { -.125f, -.075f, -.025f, .025f, .075f, .125f };
+        public const float DuzyY = .165f, DuzyD = .15f, HistY0 = .045f, HistY1 = -.005f, HistD = .044f,
+            BarX0 = -.035f, BarL = .12f, BarH = .016f, ProcX = .128f, GoraceY = -.205f, ZimneY = -.262f, MalyD = .040f;
+        public static readonly float[] BarY = { -.075f, -.103f, -.131f };          // red, zero, black
+        public static readonly float[] HotX = { -.02f, .025f, .07f, .115f };
+
+        static readonly System.Collections.Generic.List<Vector3> v = new System.Collections.Generic.List<Vector3>();
+        static readonly System.Collections.Generic.List<Vector2> uv = new System.Collections.Generic.List<Vector2>();
+        static readonly System.Collections.Generic.List<int> tr = new System.Collections.Generic.List<int>();
+        // a picture's quad: cx / cy in the viewer's frame (x to his right, y up), facing +z; the atlas rectangle in pixels
+        static void Q(float cx, float cy, float w, float h, int px, int py, int pw, int ph)
         {
-            int y = TabH - 44 - k * 8; bool lewo = h[k] == 0 ? false : Zasady.Czerwony(h[k]);
-            // red to the left, black to the right, zero in the middle (as the real boards)
-            int x = h[k] == 0 ? TabW / 2 : lewo ? 18 : TabW - 18;
-            BraxChampionsPiksele.Srodek(px, TabW, TabH, h[k].ToString(), x, y, 1, K(h[k]));
+            int i = v.Count; float u0 = (px + .5f) / AtlasW, u1 = (px + pw - .5f) / AtlasW, v0 = (py + .5f) / AtlasH, v1 = (py + ph - .5f) / AtlasH;
+            // the viewer's right is the display's -x
+            v.Add(new Vector3(-(cx - w * .5f), cy - h * .5f, 0)); v.Add(new Vector3(-(cx + w * .5f), cy - h * .5f, 0));
+            v.Add(new Vector3(-(cx + w * .5f), cy + h * .5f, 0)); v.Add(new Vector3(-(cx - w * .5f), cy + h * .5f, 0));
+            uv.Add(new Vector2(u0, v0)); uv.Add(new Vector2(u1, v0)); uv.Add(new Vector2(u1, v1)); uv.Add(new Vector2(u0, v1));
+            tr.Add(i); tr.Add(i + 2); tr.Add(i + 1); tr.Add(i); tr.Add(i + 3); tr.Add(i + 2);     // facing +z (as the screen reels)
+        }
+        static void Dysk(int n, float cx, float cy, float d) { KrazekPx(n, out int x, out int y); Q(cx, cy, d, d, x, y, Krazek, Krazek); }
+        static void Liczba(int val, float right, float cy, float h)
+        {
+            string t = val + "%"; float w = h * CyfraW / CyfraH, x = right - w * (t.Length - .5f);
+            foreach (char c in t) { CyfraPx(c == '%' ? 10 : c - '0', out int px, out int py); Q(x, cy, w, h, px, py, CyfraW, CyfraH); x += w * .82f; }
+        }
+        // a table that has been played: 100 numbers in the order they fell (sto[99] the newest, so the next goes to sto[0]),
+        // the history their last 13 (historia[0] the newest) - the game's start and the generator's sample alike
+        public static void Poczatek(System.Random los, int[] historia, int[] sto)
+        {
+            for (int k = 0; k < sto.Length; k++) sto[k] = los.Next(37);
+            for (int k = 0; k < historia.Length; k++) historia[k] = sto[sto.Length - 1 - k];
+        }
+        // historia[0] = the last number; sto = the last up to 100 (any order), n of them filled
+        public static void Zbuduj(Mesh m, int[] historia, int[] sto, int n)
+        {
+            v.Clear(); uv.Clear(); tr.Clear();
+            Dysk(historia[0], 0f, DuzyY, DuzyD);
+            for (int k = 1; k < historia.Length && k <= 12; k++) Dysk(historia[k], HistX[(k - 1) % 6], k <= 6 ? HistY0 : HistY1, HistD);
+            var licz = new int[37]; int red = 0, zero = 0, all = Mathf.Max(1, n);
+            for (int i = 0; i < n; i++) { licz[sto[i]]++; if (sto[i] == 0) zero++; else if (Zasady.Czerwony(sto[i])) red++; }
+            int[] p = { Mathf.RoundToInt(100f * red / all), Mathf.RoundToInt(100f * zero / all), 0 }; p[2] = Mathf.Max(0, 100 - p[0] - p[1]);
+            int[] kol = { 0, 2, 1 };
+            for (int b = 0; b < 3; b++)
+            {
+                float l = BarL * p[b] / 100f; KolorPx(kol[b], out int cx, out int cy);
+                if (l > .001f) Q(BarX0 + l * .5f, BarY[b], l, BarH, cx + 8, cy + 8, 16, 16);
+                Liczba(p[b], ProcX + .03f, BarY[b], BarH * 1.1f);
+            }
+            // the hottest (most often) and the coldest (least often) of the last 100; ties: the lower number first
+            var hot = new int[37]; var cold = new int[37]; for (int i = 0; i < 37; i++) { hot[i] = i; cold[i] = i; }
+            System.Array.Sort(hot, (a, b) => licz[b] != licz[a] ? licz[b].CompareTo(licz[a]) : a.CompareTo(b));
+            System.Array.Sort(cold, (a, b) => licz[a] != licz[b] ? licz[a].CompareTo(licz[b]) : a.CompareTo(b));
+            for (int i = 0; i < 4; i++) { Dysk(hot[i], HotX[i], GoraceY, MalyD); Dysk(cold[i], HotX[i], ZimneY, MalyD); }
+            m.Clear(); m.SetVertices(v); m.SetUVs(0, uv); m.SetTriangles(tr, 0);
+            var nr = new Vector3[v.Count]; for (int i = 0; i < nr.Length; i++) nr[i] = Vector3.forward; m.normals = nr; m.RecalculateBounds();
         }
     }
 

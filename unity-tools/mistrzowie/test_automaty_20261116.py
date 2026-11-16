@@ -227,8 +227,6 @@ class Cabinets(unittest.TestCase):
                 self.assertIn(f, proj)
 
 
-if __name__ == "__main__":
-    unittest.main()
 
 
 ROUL = (ASSETS / "Mistrzowie/BraxChampionsRuletka.cs").read_text(encoding="utf-8")
@@ -271,3 +269,25 @@ class Roulette(unittest.TestCase):
         self.assertIn("BraxChampionsKasynoSprzet.Ruletka(kas,new Vector3(rx,HallFloor+.016f,rz),rz>0f?0f:180f);", HALL)
         self.assertIn('if(roulettes!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL roulettes "', HALL)
         self.assertTrue((ASSETS / "Mistrzowie/BraxChampionsRuletka.cs.meta").exists())
+
+    def test_premium_display(self):
+        """Owner 16.11 20:19: "ten taki 17 na zdjęciu, tego nie można zrobić bardziej premium?" - the LED board became a
+        portrait screen on a column (after the TCS John Huxley displays): the last number big, 12 before it, red / zero /
+        black over the last 100, 4 hot and 4 cold numbers - live, rebuilt by the game after every spin."""
+        self.assertIn("public static void Zbuduj(Mesh m, int[] historia, int[] sto, int n)", ROUL)
+        self.assertIn("if (s.siatka) Wyswietlacz.Zbuduj(s.siatka, s.historia, s.sto, s.stoN);", ROUL)
+        # the start and the generator's sample are one played table: the history is the last 13 of the 100
+        self.assertIn("for (int k = 0; k < historia.Length; k++) historia[k] = sto[sto.Length - 1 - k];", ROUL)
+        self.assertIn("Wyswietlacz.Poczatek(los, s.historia, s.sto);", ROUL)
+        self.assertIn("BraxChampionsRuletka.Wyswietlacz.Poczatek(new System.Random(77 + idx), hist, sto);", KIT)
+        # the quads face the player (+z), as the slab's glass
+        self.assertIn("tr.Add(i); tr.Add(i + 2); tr.Add(i + 1); tr.Add(i); tr.Add(i + 3); tr.Add(i + 2);", ROUL)
+        for label in ('"BRAXHORN"', '"POPRZEDNIE"', '"OSTATNIE 100"', '"CZERWONE", "ZERO", "CZARNE"', '"GORĄCE"', '"ZIMNE"'):
+            self.assertIn(label, KIT)
+        self.assertNotIn("PaintTablica", ROUL)                                      # the old 64 x 128 LED board is gone
+        sim = (ROOT / "unity-tools/mistrzowie/automaty_sim/Program.cs").read_text(encoding="utf-8")
+        self.assertIn('"display shows " + wynik', sim)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -70,7 +70,7 @@ public static class BraxChampionsKasynoSprzet
     static Mesh[] bebenSiatki; static Mesh quad; static Mesh[,] kolumnaStart;
     static List<(Mesh, Material)> czRamie, czKula, czSpin, czSpinEkran, czRotor, czKulka, czZeton;
     static BraxChampionsMeshBatch szablonRuletki;
-    static Material orzech, sukno, uklad, pierscien, kulkaMat, zetonMat, tablicaRuletki;
+    static Material orzech, sukno, uklad, pierscien, kulkaMat, zetonMat, zloto, wysTlo, wysAtlas;
     static Color32[][] atlasPx;
     public static bool SymboleWlasciciela; public static int Brakujace;
 
@@ -312,7 +312,7 @@ public static class BraxChampionsKasynoSprzet
         var b = new BraxChampionsMeshBatch(); var face = new Material(Shader.Find(BraxCityMaterials.ShaderName)) { name = "napis lico" }; var dark = new Material(face) { name = "napis bok" };
         try
         {
-            float sz = BraxChampionsLetters3D.Text(b, face, dark, text, Vector3.zero, 0f, 1f, .01f, .10f);
+            float sz = BraxChampionsLetters3D.Text(b, face, dark, text.Replace('·', '•'), Vector3.zero, 0f, 1f, .01f, .10f);   // the kit's dot is the bullet
             var tri = b.Trojkaty(face);
             if (sz <= 0f || tri.Count == 0) return false;
             float s = Mathf.Min(cap, maxW / sz), ca = Mathf.Cos(deg * Mathf.Deg2Rad), sa = Mathf.Sin(deg * Mathf.Deg2Rad);
@@ -671,8 +671,14 @@ public static class BraxChampionsKasynoSprzet
             var z = new GameObject("żeton " + BraxChampionsRuletka.Zasady.Pola[e]).transform; z.SetParent(stol, false);
             z.localPosition = new Vector3(px[e], UkladY + Przed + .001f, PoleZ); Wstaw(czZeton, z, "żeton"); z.gameObject.SetActive(false); zet[e] = z;
         }
-        var tab = Ekranik(stol, "tablica ruletki", tablicaRuletki, new Vector3(1.24f, 1.62f, -.50f + .025f + Przed), .20f, .40f, Quaternion.identity);
-        k.ruletki.Add(new BraxChampionsRuletka.Stol { stol = stol, rotor = rot, kulka = ball, kolo = Kolo, zetony = zet, polaX = px, tablica = tab });
+        // the display's live layer (the game rebuilds it after every spin); the generator's sample until then
+        var wo = new GameObject("wyświetlacz ruletki (numery, statystyka)"); wo.transform.SetParent(stol, false);
+        wo.transform.localPosition = WysC + new Vector3(0f, 0f, .0225f + 2f * Przed);
+        var wm = new Mesh { name = "ruletka wyświetlacz (próbka generatora)" };
+        var hist = new int[13]; var sto = new int[100]; BraxChampionsRuletka.Wyswietlacz.Poczatek(new System.Random(77 + idx), hist, sto);
+        BraxChampionsRuletka.Wyswietlacz.Zbuduj(wm, hist, sto, sto.Length);
+        var wf = wo.AddComponent<MeshFilter>(); wf.sharedMesh = wm; Cienie(wo.AddComponent<MeshRenderer>()).sharedMaterial = wysAtlas;
+        k.ruletki.Add(new BraxChampionsRuletka.Stol { stol = stol, rotor = rot, kulka = ball, kolo = Kolo, zetony = zet, polaX = px, wyswietlacz = wf });
         W.Kolizja(at + q * new Vector3(0f, .43f, 0f), new Vector3(2.70f, .86f, 1.24f), q);
         W.Obsada("krupier ruletki", at + q * new Vector3(.20f, 0f, -1.0f), yaw);
     }
@@ -686,9 +692,61 @@ public static class BraxChampionsKasynoSprzet
         uklad.SetTexture("_MainTex", Png("kasyno_uklad_ruletki", UkW, UkH, Uklad(), true)); uklad = BraxChampionsHarbour.Nakladka(uklad); EditorUtility.SetDirty(uklad);
         pierscien = BraxChampionsHarbour.Surface("kasyno_pierscien_ruletki", Color.white, .30f, 0f);
         pierscien.SetTexture("_MainTex", Png("kasyno_pierscien_ruletki", 2048, 128, Pierscien(), true)); Wnetrze(pierscien);
-        var tb = new Color32[BraxChampionsRuletka.TabW * BraxChampionsRuletka.TabH];
-        BraxChampionsRuletka.PaintTablica(tb, new[] { 17, 32, 0, 5, 26, 11, 30, 8, 19, 4, 21, 2 }, 12);
-        tablicaRuletki = Ekran("tablica_ruletki", Male("kasyno_tablica_ruletki", BraxChampionsRuletka.TabW, BraxChampionsRuletka.TabH, tb), 1.1f);
+        zloto = Metal("zloto_polerowane", new Color(1.0f, .78f, .36f), .22f);
+        wysTlo = Ekran("wyswietlacz_ruletki_tlo", Png("kasyno_wyswietlacz_ruletki_tlo", 576, 1024, WysTloPx(), true), 1.0f);
+        wysAtlas = Ekran("wyswietlacz_ruletki_atlas", Png("kasyno_wyswietlacz_ruletki_atlas", BraxChampionsRuletka.Wyswietlacz.AtlasW, BraxChampionsRuletka.Wyswietlacz.AtlasH, WysAtlasPx(), true), 1.0f);
+    }
+    // ---- the winning-number display (a portrait screen on a column, after the TCS John Huxley displays)
+    static readonly Vector3 WysC = new Vector3(1.24f, 1.56f, -.50f);              // the screen's centre (its glass slab's middle)
+    static readonly Color32 WysCzern = new Color32(6, 6, 9, 255), WysZloto = new Color32(232, 186, 74, 255), WysSzary = new Color32(150, 154, 166, 255);
+    // the screen's fixed picture (576 x 1024 for .36 x .64 m): black glass, a gold line, BRAXHORN, the labels of the live parts
+    static Color32[] WysTloPx()
+    {
+        const int w = 576, h = 1024; var px = new Color32[w * h]; BraxChampionsPiksele.Wypelnij(px, WysCzern);
+        Ramka(px, w, h, 12, 12, w - 12, h - 12, 3, WysZloto);
+        float X(float x) => w * .5f + x * 1600f; float Y(float y) => h * .5f + y * 1600f;
+        void T(string t, float x, float y, float cap, float maxW, Color32 c) { if (!Napis(px, w, h, t, X(x), Y(y), cap, maxW, 0f, c, 0f, c)) BraxChampionsPiksele.Srodek(px, w, h, t, (int)X(x), (int)Y(y) - 10, 3, c); }
+        T("BRAXHORN", 0f, .288f, 46f, 470f, WysZloto);
+        T("RULETKA EUROPEJSKA · STAWKA " + Stawka, 0f, .252f, 17f, 480f, WysSzary);
+        T("POPRZEDNIE", 0f, BraxChampionsRuletka.Wyswietlacz.HistY0 + .036f, 15f, 300f, WysSzary);
+        T("OSTATNIE 100", 0f, -.050f, 15f, 300f, WysSzary);
+        string[] bar = { "CZERWONE", "ZERO", "CZARNE" };
+        for (int b = 0; b < 3; b++) T(bar[b], -.100f, BraxChampionsRuletka.Wyswietlacz.BarY[b], 14f, 180f, Krem);   // one size for all three
+        Ramka(px, w, h, (int)X(-.17f), (int)Y(-.155f), (int)X(.17f), (int)Y(-.060f), 2, new Color32(60, 50, 30, 255));
+        T("GORĄCE", -.105f, BraxChampionsRuletka.Wyswietlacz.GoraceY, 17f, 140f, new Color32(255, 128, 64, 255));
+        T("ZIMNE", -.105f, BraxChampionsRuletka.Wyswietlacz.ZimneY, 17f, 140f, new Color32(120, 190, 255, 255));
+        T("KASYNO", 0f, -.300f, 15f, 300f, WysZloto);
+        return px;
+    }
+    // the live layer's atlas (1024 x 1024): the 37 numbers in discs (gold rim, red / black / green, white number), the digits
+    // and %, the bars' colours - all on the screen's black, so the layer needs no transparency
+    static Color32[] WysAtlasPx()
+    {
+        int w = BraxChampionsRuletka.Wyswietlacz.AtlasW, h = BraxChampionsRuletka.Wyswietlacz.AtlasH, K = BraxChampionsRuletka.Wyswietlacz.Krazek;
+        var px = new Color32[w * h]; BraxChampionsPiksele.Wypelnij(px, WysCzern);
+        for (int n = 0; n < 37; n++)
+        {
+            BraxChampionsRuletka.Wyswietlacz.KrazekPx(n, out int x0, out int y0);
+            var c = n == 0 ? new Color32(24, 150, 70, 255) : BraxChampionsRuletka.Zasady.Czerwony(n) ? new Color32(206, 24, 32, 255) : new Color32(22, 22, 26, 255);
+            float cx = x0 + K * .5f, cy = y0 + K * .5f;
+            for (int y = y0; y < y0 + K; y++)
+                for (int x = x0; x < x0 + K; x++)
+                {
+                    float d = Mathf.Sqrt((x + .5f - cx) * (x + .5f - cx) + (y + .5f - cy) * (y + .5f - cy));
+                    Color32 o = d <= 54f ? c : d <= 61f ? WysZloto : WysCzern;
+                    float e = Mathf.Clamp01(61.5f - d);                                     // a smooth outer edge
+                    px[y * w + x] = d > 61f ? Color32.Lerp(WysCzern, WysZloto, e) : o;
+                }
+            Napis(px, w, h, n.ToString(), cx, cy, 52f, 90f, 0f, new Color32(250, 250, 252, 255), 0f, Krem);
+        }
+        for (int d = 0; d <= 10; d++)
+        {
+            BraxChampionsRuletka.Wyswietlacz.CyfraPx(d, out int x0, out int y0);
+            Napis(px, w, h, d == 10 ? "%" : d.ToString(), x0 + BraxChampionsRuletka.Wyswietlacz.CyfraW * .5f, y0 + BraxChampionsRuletka.Wyswietlacz.CyfraH * .5f, 52f, 56f, 0f, new Color32(240, 240, 244, 255), 0f, Krem);
+        }
+        Color32[] kol = { new Color32(206, 24, 32, 255), new Color32(170, 172, 182, 255), new Color32(24, 150, 70, 255), WysZloto };
+        for (int k = 0; k < kol.Length; k++) { BraxChampionsRuletka.Wyswietlacz.KolorPx(k, out int x0, out int y0); BraxChampionsPiksele.Prost(px, w, h, x0, y0, x0 + 32, y0 + 32, kol[k]); }
+        return px;
     }
     static readonly Color32 Krem = new Color32(236, 228, 206, 255), KCzerwony = new Color32(172, 20, 26, 255), KCzarny = new Color32(16, 16, 18, 255),
         KZielony = new Color32(18, 112, 56, 255);
@@ -807,9 +865,18 @@ public static class BraxChampionsKasynoSprzet
             float a = (i + .5f) * Mathf.PI / 4f;
             t.Box(chrom, Kolo + P(.335f, a, .040f), new Vector3(.010f, .008f, .026f), Quaternion.Euler(0f, -a * Mathf.Rad2Deg, 0f) * Quaternion.Euler(0f, 0f, 20f));
         }
-        // the history board on a chrome pole, behind the wheel (the dealer's side)
-        t.Cylinder(chrom, new Vector3(1.24f, .76f, -.50f), .015f, .64f, 12, Quaternion.identity, false);
-        t.RoundedBox(czern, new Vector3(1.24f, 1.62f, -.50f), new Vector3(.24f, .44f, .05f), .01f, Quaternion.identity, 1);
+        // the winning-number display behind the wheel (the dealer's side): a brushed column, a black glass slab with a polished
+        // gold frame, the screen's fixed picture (the live layer is the game's)
+        float bot = WysC.y - .335f;
+        t.Cylinder(stal, new Vector3(WysC.x, .76f, WysC.z), .045f, .012f, 20, Quaternion.identity, true);
+        t.Cylinder(stal, new Vector3(WysC.x, .772f, WysC.z), .022f, bot - .772f, 14, Quaternion.identity, false);
+        t.RoundedBox(czern, WysC, new Vector3(.38f, .67f, .045f), .008f, Quaternion.identity, 1);
+        float fz = WysC.z + .0225f;
+        t.BoxMinMax(zloto, WysC.x - .19f, WysC.x + .19f, WysC.y + .325f, WysC.y + .335f, fz, fz + .012f);
+        t.BoxMinMax(zloto, WysC.x - .19f, WysC.x + .19f, WysC.y - .335f, WysC.y - .325f, fz, fz + .012f);
+        t.BoxMinMax(zloto, WysC.x + .18f, WysC.x + .19f, WysC.y - .325f, WysC.y + .325f, fz, fz + .012f);
+        t.BoxMinMax(zloto, WysC.x - .19f, WysC.x - .18f, WysC.y - .325f, WysC.y + .325f, fz, fz + .012f);
+        Obraz(t, wysTlo, new Vector3(WysC.x, WysC.y, fz + Przed), BraxChampionsRuletka.Wyswietlacz.W, BraxChampionsRuletka.Wyswietlacz.H, Quaternion.identity);
         szablonRuletki = t;
     }
 

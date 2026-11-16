@@ -123,7 +123,8 @@ static class Program
         var kolo = new Vector3(.88f, .78f, 0f); rot.localPosition = kolo;
         var zet = new Transform[6]; var polaX = new float[6];
         for (int e = 0; e < 6; e++) { zet[e] = new GameObject("z").transform; zet[e].SetParent(rst, false); polaX[e] = .13f - .23f * e; }
-        rul.stoly = new[] { new BraxChampionsRuletka.Stol { stol = rst, rotor = rot, kulka = kul, kolo = kolo, zetony = zet, polaX = polaX } };
+        var wys = new GameObject("wyswietlacz").AddComponent<MeshFilter>();
+        rul.stoly = new[] { new BraxChampionsRuletka.Stol { stol = rst, rotor = rot, kulka = kul, kolo = kolo, zetony = zet, polaX = polaX, wyswietlacz = wys } };
         var RT = typeof(BraxChampionsRuletka); RT.GetMethod("Start", F).Invoke(rul, null);
         var rUpd = RT.GetMethod("Update", F); var rStan = RT.GetField("stan", F);
         int spinsR = Math.Max(200, spins / 10); long rStake = 0, rPaid = 0; var seen = new int[37];
@@ -152,6 +153,10 @@ static class Program
             int expect = BraxChampionsRuletka.Zasady.Wygrywa(e, wynik) ? 20 : 0;
             Check(BraxChampionsKasyno.Kredyt == kr - 10 + expect, "roulette pays " + expect + " on " + wynik + " " + BraxChampionsRuletka.Zasady.Pola[e]);
             Check(!zet[e].gameObject.activeSelf, "the chip taken / paid");
+            // the display: the big disc shows the number drawn (its atlas cell)
+            BraxChampionsRuletka.Wyswietlacz.KrazekPx(wynik, out int ax, out int ay);
+            var duv = wys.sharedMesh.uv[0]; Check(Math.Abs(duv.x - (ax + .5f) / 1024f) < 1e-4 && Math.Abs(duv.y - (ay + .5f) / 1024f) < 1e-4, "display shows " + wynik);
+            Check(wys.sharedMesh.vertices.Length >= 4 * (1 + 12 + 8), "display layer complete");
             rStake += 10; rPaid += expect;
         }
         int zeros = seen[0], reds = 0; for (int n = 1; n <= 36; n++) if (BraxChampionsRuletka.Zasady.Czerwony(n)) reds += seen[n];

@@ -147,6 +147,7 @@ namespace UnityEngine
         public bool LoadImage(byte[] data) { var px = PreviewPng.Read(data, out int w, out int h); if (px == null) return false; width = w; height = h; pixels = px; return true; } }
     public enum TextureFormat { RGBA32, RGB24, ARGB32 }
     public struct Color32 { public byte r, g, b, a; public Color32(byte r, byte g, byte b, byte a) { this.r = r; this.g = g; this.b = b; this.a = a; }
+        public static Color32 Lerp(Color32 x, Color32 y, float t) { t = Math.Max(0f, Math.Min(1f, t)); byte L(byte p, byte q) => (byte)Math.Round(p + (q - p) * t); return new Color32(L(x.r, y.r), L(x.g, y.g), L(x.b, y.b), L(x.a, y.a)); }
         static byte B(float v) => (byte)Math.Max(0, Math.Min(255, (int)Math.Round(v * 255f)));
         public static implicit operator Color32(Color c) => new Color32(B(c.r), B(c.g), B(c.b), B(c.a)); } public enum TextureWrapMode { Repeat, Clamp } public enum FilterMode { Point, Bilinear, Trilinear }
     public class Shader : Object { public static Shader Find(string n) => new Shader { name = n }; }
@@ -256,7 +257,7 @@ namespace UnityEngine
     // Stand-in for an imported glTF model: its path and the real bounds read from the glTF accessors (x mirrored like glTFast).
     public class PreviewModel : Component { public string path; public Vector3 min, max; }
     public class MeshRenderer : Renderer { }
-    public class Mesh : Object { public void MarkDynamic() { } public Vector3[] vertices = new Vector3[0]; public Vector3[] normals; public Vector2[] uv; public int[] triangles = new int[0]; public Bounds bounds; public Vector4[] tangents; public Color[] colors;
+    public class Mesh : Object { public void MarkDynamic() { } public void Clear() { vertices = new Vector3[0]; triangles = new int[0]; uv = null; } public Vector3[] vertices = new Vector3[0]; public Vector3[] normals; public Vector2[] uv; public int[] triangles = new int[0]; public Bounds bounds; public Vector4[] tangents; public Color[] colors;
         public Rendering.IndexFormat indexFormat;
         public void SetVertices(List<Vector3> v) => vertices = v.ToArray(); public void SetNormals(List<Vector3> n) { }
         public void SetUVs(int ch, List<Vector2> u) { if (ch == 0) uv = u.ToArray(); } public void SetTriangles(List<int> t, int sub) => triangles = t.ToArray();
