@@ -50,6 +50,20 @@ public sealed class BraxObrazBuild : IPreprocessBuildWithReport
         var byloAniz = QualitySettings.anisotropicFiltering;
         var byloRzut = QualitySettings.shadowProjection;
 
+        // Na KAŻDYM poziomie jakości, nie tylko na aktywnym w edytorze. QualitySettings.antiAliasing
+        // zapisuje się do poziomu bieżącego, a gracz może wystartować na innym — wtedy wypalone
+        // wygładzanie by go nie dotyczyło i cienkie linie migotałyby dalej.
+        int poziomBylo = QualitySettings.GetQualityLevel();
+        int poziomow = QualitySettings.names.Length;
+        for (int i = 0; i < poziomow; i++)
+        {
+            QualitySettings.SetQualityLevel(i, false);
+            QualitySettings.antiAliasing = msaa;
+            if (QualitySettings.anisotropicFiltering == AnisotropicFiltering.Disable)
+                QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
+            QualitySettings.shadowProjection = ShadowProjection.StableFit;
+        }
+        QualitySettings.SetQualityLevel(poziomBylo, false);
         QualitySettings.antiAliasing = msaa;
         var byloBarwy = PlayerSettings.colorSpace;
         if (PlayerSettings.colorSpace != ColorSpace.Linear)
@@ -66,12 +80,12 @@ public sealed class BraxObrazBuild : IPreprocessBuildWithReport
         AssetDatabase.SaveAssets();
 
         Debug.Log(string.Format(
-            "BRAX_OBRAZ_BUILD cel={0} msaa={1}->{2} anizotropia={3}->{4} rzutowanie={5}->{6} " +
-            "kolor_kadru={7} przestrzen_barw={8}->{9}",
+            "BRAX_OBRAZ_BUILD cel={0} msaa={1}->{2} (poziomow jakosci: {10}) " +
+            "anizotropia={3}->{4} rzutowanie={5}->{6} kolor_kadru={7} przestrzen_barw={8}->{9}",
             cel, bylo, QualitySettings.antiAliasing, byloAniz, QualitySettings.anisotropicFiltering,
             byloRzut, QualitySettings.shadowProjection,
             kolorJest ? "jest" : "BRAK — rejony pojda bez gradingu",
-            byloBarwy, PlayerSettings.colorSpace));
+            byloBarwy, PlayerSettings.colorSpace, poziomow));
 
         if (!kolorJest)
             Debug.LogWarning("BRAX_OBRAZ_BUILD: nie ma shadera Braxhorn/OsiedleKolor w Resources — " +
