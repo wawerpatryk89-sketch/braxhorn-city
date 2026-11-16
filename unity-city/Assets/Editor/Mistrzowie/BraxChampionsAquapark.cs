@@ -361,7 +361,7 @@ public static partial class BraxChampionsAquapark
     public static int Generate()
     {
         System.IO.Directory.CreateDirectory(Folder);
-        Colliders=Loungers=Parasols=Seats=SwimZones=Slides=Palms=Lamps=OwnerModels=OwnerMissing=Pools=Walkers=Rings=Cabanas=WaterBodies=0;
+        Colliders=Loungers=Parasols=Seats=SwimZones=Slides=Palms=Lamps=OwnerModels=OwnerMissing=Pools=Walkers=Rings=Cabanas=WaterBodies=PhModels=PhMissing=Tables=0;
         Materials();
         var go=new GameObject("AQUAPARK BRAXHORN | laguna, wieża ze zjeżdżalniami, strefa dzieci, SPA, jacuzzi (owner 12.11 02:47)");
         root=go.transform;root.position=Vector3.zero;
@@ -390,7 +390,7 @@ public static partial class BraxChampionsAquapark
             var z0=g.AddComponent<BraxZrodloPetli>();z0.rodzaj="woda";z0.glosnosc=vol;z0.zasieg=range*K;
         }
         // (no walking girls here any more: owner 12.11 11:56 "mają chodzić tylko w kasynie i na plaży")
-        Debug.Log("MISTRZOWIE_AQUAPARK grassTufts="+GrassTufts+" waterBodies="+WaterBodies+" walkers="+Walkers+" rings="+Rings+" cabanas="+Cabanas+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+
+        Debug.Log("MISTRZOWIE_AQUAPARK polyHavenFurniture="+PhModels+" missing="+PhMissing+" tables="+Tables+" grassTufts="+GrassTufts+" waterBodies="+WaterBodies+" walkers="+Walkers+" rings="+Rings+" cabanas="+Cabanas+" pools="+Pools+" swimZones="+SwimZones+" slides="+Slides+" loungers="+Loungers+" parasols="+Parasols+
                   " seats="+Seats+" palms="+Palms+" lamps="+Lamps+" ownerModels="+OwnerModels+" ownerMissing="+OwnerMissing+" colliders="+Colliders+
                   " site=x"+X0+".."+X1+" z"+Z0+".."+Z1);
         return 1;

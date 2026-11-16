@@ -4350,5 +4350,287 @@
         }
       }
     }
+  },
+  "large_floor_tiles_02": {
+    "Diffuse": {
+      "8k": {
+        "jpg": {
+          "size": 30807710,
+          "md5": "e5d30b65314f13b8ed42b914fb7d71f4",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/large_floor_tiles_02/large_floor_tiles_02_diff_8k.jpg"
+        },
+        "png": {
+          "size": 395700364,
+          "md5": "b1228c4c1768293208098c337a860b94",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/large_floor_tiles_02/large_floor_tiles_02_diff_8k.png"
+        },
+        "exr": {
+          "size": 63445461,
+          "md5": "0f0ead2c6f7f0204169428bff68b4882",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/large_floor_tiles_02/large_floor_tiles_02_diff_8k.exr"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "size": 9422099,
+          "md5": "120566f1e895f7fd1dc2dd05584a29d4",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/large_floor_tiles_02/large_floor_tiles_02_diff_4k.jpg"
+        },
+        "png": {
+          "size": 104418948,
+          "md5": "4717eabed99d82eb1cd80b0639fce84b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/large_floor_tiles_02/large_floor_tiles_02_diff_4k.png"
+        },
+        "exr": {
+          "size": 19791256,
+          "md5": "7c52f153be79cfd37f5af5e7e890043b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/large_floor_tiles_02/large_floor_tiles_02_diff_4k.exr"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "size": 2409892,
+          "md5": "4a11f2c94aeba4ef7eec7a4ec31b857e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/large_floor_tiles_02/large_floor_tiles_02_diff_2k.jpg"
+        },
+        "png": {
+          "size": 26082304,
+          "md5": "adbfa2a2c4799adbd5ad7aa61d09c3c8",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/large_floor_tiles_02/large_floor_tiles_02_diff_2k.png"
+        },
+        "exr": {
+          "size": 5219474,
+          "md5": "6d19d424d3801f777d43b26a3b2bea15",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/large_floor_tiles_02/large_floor_tiles_02_diff_2k.exr"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "size": 557814,
+          "md5": "929f604bfe0f38041afdcf4676a9f777",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/large_floor_tiles_02/large_floor_tiles_02_diff_1k.jpg"
+        },
+        "png": {
+          "size": 6437089,
+          "md5": "38960a7a7e1c13e108bdb5e62cd1c3ca",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/large_floor_tiles_02/large_floor_tiles_02_diff_1k.png"
+        },
+        "exr": {
+          "size": 1257095,
+          "md5": "ddb274f185bd5e08bb7b44150566fcd7",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/large_floor_tiles_02/large_floor_tiles_02_diff_1k.exr"
+        }
+      }
+    },
+    "nor_gl": {
+      "8k": {
+        "jpg": {
+          "size": 12727942,
+          "md5": "781d79737ab1038732a40338ca6963c3",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_8k.jpg"
+        },
+        "png": {
+          "size": 262793043,
+          "md5": "078b5951fa557e2eb0ae6915f4b486ee",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_8k.png"
+        },
+        "exr": {
+          "size": 27426405,
+          "md5": "2bc355bcf8446aa0a3d0df8bac381f70",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_8k.exr"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "size": 4505749,
+          "md5": "0fa0f823544786f239dd85b8e5e68f52",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_4k.jpg"
+        },
+        "png": {
+          "size": 76953246,
+          "md5": "f2bcda78a42a82d5775139ec0875ee95",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_4k.png"
+        },
+        "exr": {
+          "size": 10363359,
+          "md5": "388f6dbae830aad4d03cba3d853d7c31",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_4k.exr"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "size": 1272020,
+          "md5": "ae6767279425e8719d255c768e30ef33",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_2k.jpg"
+        },
+        "png": {
+          "size": 20845751,
+          "md5": "773b0cdeadd2f51f874d1eb2d2730d1f",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_2k.png"
+        },
+        "exr": {
+          "size": 3785846,
+          "md5": "cb6402d6fee52906edda21670066fffc",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_2k.exr"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "size": 228980,
+          "md5": "3e7cb144a9928dcc8edc336614814d45",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_1k.jpg"
+        },
+        "png": {
+          "size": 5316133,
+          "md5": "f8390bb15ef35ebcd41b8c633f01f1a8",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_1k.png"
+        },
+        "exr": {
+          "size": 1017057,
+          "md5": "d5ceb4ab11f87a38cc99f6680d42b993",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/large_floor_tiles_02/large_floor_tiles_02_nor_gl_1k.exr"
+        }
+      }
+    },
+    "Rough": {
+      "8k": {
+        "jpg": {
+          "size": 23271634,
+          "md5": "83290793f0b1a625c6c8504917f1e20b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/large_floor_tiles_02/large_floor_tiles_02_rough_8k.jpg"
+        },
+        "png": {
+          "size": 136357257,
+          "md5": "a07bec647d41917a584fe24a672f309e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/large_floor_tiles_02/large_floor_tiles_02_rough_8k.png"
+        },
+        "exr": {
+          "size": 35547163,
+          "md5": "08d6b5b1c9a3516c3d5b6208d0c7da50",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/large_floor_tiles_02/large_floor_tiles_02_rough_8k.exr"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "size": 7311855,
+          "md5": "b2bcdb8ca12ace461c3174acaf024bed",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/large_floor_tiles_02/large_floor_tiles_02_rough_4k.jpg"
+        },
+        "png": {
+          "size": 36947369,
+          "md5": "d8d1cf86e93a9619e1981a7d50ae07a5",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/large_floor_tiles_02/large_floor_tiles_02_rough_4k.png"
+        },
+        "exr": {
+          "size": 10988333,
+          "md5": "63b56149bd84bb5494fc11ccfca96121",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/large_floor_tiles_02/large_floor_tiles_02_rough_4k.exr"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "size": 1895686,
+          "md5": "0e74a78daad5b9a8fd9afed1d5d102cb",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/large_floor_tiles_02/large_floor_tiles_02_rough_2k.jpg"
+        },
+        "png": {
+          "size": 9259751,
+          "md5": "5ae8aa325b5f8a076545d146ae308f24",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/large_floor_tiles_02/large_floor_tiles_02_rough_2k.png"
+        },
+        "exr": {
+          "size": 2874063,
+          "md5": "f339e9bbb693c7773bc7631a6a900c33",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/large_floor_tiles_02/large_floor_tiles_02_rough_2k.exr"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "size": 435217,
+          "md5": "543d5f2cb129ac96ccc76f2c427c622e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/large_floor_tiles_02/large_floor_tiles_02_rough_1k.jpg"
+        },
+        "png": {
+          "size": 2289481,
+          "md5": "ef6abcbf8efd9d9d1dfc446afed8cf4f",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/large_floor_tiles_02/large_floor_tiles_02_rough_1k.png"
+        },
+        "exr": {
+          "size": 696385,
+          "md5": "3b2a04fbbc776c8ba3ad53dcb13f2442",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/large_floor_tiles_02/large_floor_tiles_02_rough_1k.exr"
+        }
+      }
+    },
+    "arm": {
+      "8k": {
+        "jpg": {
+          "size": 14004224,
+          "md5": "655efb3c11e7acbde336a74ddd26a844",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/8k/large_floor_tiles_02/large_floor_tiles_02_arm_8k.jpg"
+        },
+        "png": {
+          "size": 282193042,
+          "md5": "dfc714303f852731842adea3d0efd516",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/8k/large_floor_tiles_02/large_floor_tiles_02_arm_8k.png"
+        },
+        "exr": {
+          "size": 90984025,
+          "md5": "1e0b70684a449d74b5ca2b9a0c69e589",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/8k/large_floor_tiles_02/large_floor_tiles_02_arm_8k.exr"
+        }
+      },
+      "4k": {
+        "jpg": {
+          "size": 3897683,
+          "md5": "88021adbe63cfe8239ddb3b50ec3c281",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/large_floor_tiles_02/large_floor_tiles_02_arm_4k.jpg"
+        },
+        "png": {
+          "size": 73610687,
+          "md5": "e931eda4b02124137dd93764be33c194",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/large_floor_tiles_02/large_floor_tiles_02_arm_4k.png"
+        },
+        "exr": {
+          "size": 27591254,
+          "md5": "c5e6fd80015e430eeca4831477dd6b5d",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/large_floor_tiles_02/large_floor_tiles_02_arm_4k.exr"
+        }
+      },
+      "2k": {
+        "jpg": {
+          "size": 904327,
+          "md5": "e8170ae81f03c97957f85f5063a7f245",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/large_floor_tiles_02/large_floor_tiles_02_arm_2k.jpg"
+        },
+        "png": {
+          "size": 18096642,
+          "md5": "cd13d1c9b256cabfee4aaf029062e62a",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/large_floor_tiles_02/large_floor_tiles_02_arm_2k.png"
+        },
+        "exr": {
+          "size": 6992455,
+          "md5": "fdf91c55559991b42959f0b9b0adb595",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/2k/large_floor_tiles_02/large_floor_tiles_02_arm_2k.exr"
+        }
+      },
+      "1k": {
+        "jpg": {
+          "size": 193823,
+          "md5": "d2ec5504a81e01ede73517c3a7c0155e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/large_floor_tiles_02/large_floor_tiles_02_arm_1k.jpg"
+        },
+        "png": {
+          "size": 4431013,
+          "md5": "514829ac840f6876b6d68a4e9a9b633d",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/large_floor_tiles_02/large_floor_tiles_02_arm_1k.png"
+        },
+        "exr": {
+          "size": 1645836,
+          "md5": "55817ec9f1ce858c9695f16a6a072434",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/1k/large_floor_tiles_02/large_floor_tiles_02_arm_1k.exr"
+        }
+      }
+    }
   }
 }

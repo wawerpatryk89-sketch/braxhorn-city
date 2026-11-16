@@ -29,7 +29,7 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  # 16.11 owner "tylko Poly Haven" (rule 11.11): the marina / beach decking (was ambientCG Planks040)
                  'brown_planks_09',
                  # 16.11 every surface Poly Haven: lawns, stone, quilted leather, checkerboard, paving, EPDM, concrete
-                 'sparse_grass','rectangular_paving','checkered_pavement_tiles','rubberized_track','brushed_concrete','floor_tiles_02','wood_planks_grey')
+                 'sparse_grass','rectangular_paving','checkered_pavement_tiles','rubberized_track','brushed_concrete','floor_tiles_02','wood_planks_grey','large_floor_tiles_02')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
 # (Poly Haven CC0, the same partly cloudy sky as the first city), the original 4K Radiance .hdr checked against the

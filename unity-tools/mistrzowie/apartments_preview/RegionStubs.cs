@@ -30,7 +30,8 @@ public static partial class BraxChampionsFoundation
     public static readonly System.Collections.Generic.Dictionary<string, Vector3> Jasne = new System.Collections.Generic.Dictionary<string, Vector3>{
         {"beige_wall_001",new Vector3(159,141,121)},{"brushed_concrete",new Vector3(126,117,103)},{"checkered_pavement_tiles",new Vector3(123,106,88)},
         {"concrete_floor_02",new Vector3(179,168,147)},{"fabric_leather_02",new Vector3(150,102,45)},{"floor_tiles_02",new Vector3(184,168,151)},
-        {"granite_tile",new Vector3(91,91,91)},{"wood_planks_grey",new Vector3(93,92,89)},{"hessian_230",new Vector3(183,155,120)},{"marble_01",new Vector3(191,175,141)},
+        {"granite_tile",new Vector3(91,91,91)},{"wood_planks_grey",new Vector3(93,92,89)},
+        {"long_white_tiles",new Vector3(226,222,210)},{"large_floor_tiles_02",new Vector3(155,154,147)},{"hessian_230",new Vector3(183,155,120)},{"marble_01",new Vector3(191,175,141)},
         {"rectangular_paving",new Vector3(145,122,98)},{"rubberized_track",new Vector3(125,67,60)},{"sparse_grass",new Vector3(111,86,44)},
         {"velour_velvet",new Vector3(179,53,78)}};
     public const float FloorTiles02Metres = 4.0f, Marble01Metres = 1.5f;
@@ -39,7 +40,8 @@ public static partial class BraxChampionsFoundation
         MeanConcreteFloor02 = new Vector3(124, 114, 95), MeanBrushedConcrete = new Vector3(107, 100, 89), MeanRubberTrack = new Vector3(116, 61, 54),
         MeanSparseGrass = new Vector3(81, 63, 23), MeanGraniteTile = new Vector3(78, 79, 79), MeanMarble01 = new Vector3(178, 157, 122),
         MeanFabricLeather02 = new Vector3(130, 79, 28), MeanCheckered = new Vector3(91, 78, 65), MeanRectPaving = new Vector3(128, 108, 86),
-        MeanFloorTiles02 = new Vector3(158, 144, 126), MeanWoodPlanksGrey = new Vector3(70, 68, 63);
+        MeanFloorTiles02 = new Vector3(158, 144, 126), MeanWoodPlanksGrey = new Vector3(70, 68, 63),
+        MeanLongWhiteTiles = new Vector3(205, 198, 182), MeanLargeFloorTiles02 = new Vector3(117, 118, 115);
     public static Material LibraryMarble(string id, Color tint, float metres) => Fotoskan(id, "granite_tile", metres, Srednia(new Vector3(66, 68, 67), tint), MeanGraniteTile);
     public static Material LibraryMarbleWhite(string id, Color tint, float metres) => Fotoskan(id, "floor_tiles_02", FloorTiles02Metres, Srednia(new Vector3(232, 229, 224), tint), MeanFloorTiles02);
     public static Material LibraryTravertine(string id, Color tint, float metres) => Fotoskan(id, "marble_01", metres, Srednia(new Vector3(223, 204, 172), tint), MeanMarble01);

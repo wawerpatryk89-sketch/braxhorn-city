@@ -134,5 +134,35 @@ class RiverAndPavilion(unittest.TestCase):
         self.assertIn("zc0 + .095f, zc0 + .115f", bud)                       # mirror off the tiles
 
 
+class RichFurnishing(unittest.TestCase):
+    """Owner 16.11 08:10-08:13: "ja tam widzę jeszcze poprawki", "bogate wyposażenie, wypoczynek, sofy obite skórą w środku,
+    restauracja w basenie ... perfekt"."""
+
+    def setUp(self):
+        self.r = read(ED / "BraxChampionsAquaparkRestauracja.cs")
+        self.bud = read(ED / "BraxChampionsAquaparkBudynek.cs")
+
+    def test_restaurant_bar_tables_banquettes_terrace(self):
+        for needle in ('"RESTAURACJA LAGUNA"', "LibraryLeather(\"aq_restaurant_cognac_leather\"", "MStool", "MChair", "MLamp", "MSet", "Parasol(V(px, DY, pz), 0)"):
+            self.assertIn(needle, self.r)
+        self.assertIn("Restaurant(); Lounges();", self.bud)
+        self.assertIn('Door("RESTAURACJA LAGUNA wyjście na taras", 0f, BZ1, 0f, 2.5f, 2.6f, true);', self.bud)
+        meta = read(ED / "BraxChampionsAquaparkRestauracja.cs.meta")
+        guid = re.search(r"guid: ([0-9a-f]{32})", meta).group(1)
+        self.assertEqual(len([p for p in ASSETS.rglob("*.meta") if guid in p.read_text(errors="ignore")]), 1)
+
+    def test_leather_lounges_are_real_poly_haven_models(self):
+        self.assertIn('MSofa = PA + "sofa_02/sofa_02_2k.gltf"', self.r)
+        self.assertIn('LeatherSofa(27f, -74.2f, 0f, "jacuzzi: sofa skórzana");', self.r)
+        self.assertNotIn("m.RoundedBox(sofaLeather", self.bud)        # no box sofas any more
+
+    def test_every_wall_face_closed_and_over_every_door(self):
+        self.assertIn("if (g.h > 0f && top - g.h > .02f) BL(mat, g.a, g.b, g.h, top, za, zb);", self.bud)
+        self.assertIn("PanelZ(tiles, -14f, -1f, e, zIn, BZ1 - eo - d);", self.bud)
+        self.assertIn("RevealZ(walnut, -14f, -95.4f, -91.0f, FFL + 2.8f);", self.bud)
+        self.assertIn('"aq_changing_grey_floor_tiles", "large_floor_tiles_02"', self.bud)
+        self.assertIn("'large_floor_tiles_02'", read(ROOT / "unity-tools/mistrzowie/prepare_assets.py"))
+
+
 if __name__ == "__main__":
     unittest.main()
