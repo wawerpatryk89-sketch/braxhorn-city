@@ -308,6 +308,7 @@ public static class BraxPokojProbBuild
         ("2  matowy",         0.55f, 0f, 1.0f),
         ("3  mat + faktura",  0.45f, 0f, 1.6f),
         ("4  pelny mat",      0.33f, 0f, 2.0f),
+        ("5  bez odblasku",   0.00f, 0f, 1.3f),
     };
 
     static void Polysk(Transform pokoj, Camera kam, List<Animation> anim, List<string> nazwy)
@@ -569,14 +570,16 @@ public static class BraxPokojProbBuild
         // gładkości, do porównania na jednym ekranie (właściciel 16.11, 15:31–15:32).
         // Bez wczesnego wyjścia: ogon metody (klucz podpisu, zapis sceny, build) jest wspólny,
         // inaczej APK porównania wyszłoby niepodpisane.
-        // POKÓJ DOSTAJE WARIANT MATOWY. Właściciel 16.11, 17:58: „żadnego plastiku, żadnego
-        // połysku”. Bez wyboru właściciela biorę wariant 3 (mat + faktura): gładkość x0,45
-        // sprowadza medianę 0,43 do 0,19 (zalecane dla skóry 0,15–0,3), metaliczność na zero
-        // (imprezowiczka ma w mapie 0,60 — artefakt generatora 3D), normalne x1,6, bo mapy
-        // są prawie płaskie. Zmiana to jedna linia, gdy właściciel wskaże inny wariant.
+        // POKÓJ DOSTAJE SKÓRĘ BEZ ODBLASKU. Właściciel 16.11, 21:56: „Naturalna skóra ma być,
+        // żadnych białych odblasków, nic”. Wcześniej szedł wariant 3 (gładkość x0,45) i on
+        // wciąż zostawiał połysk — zmierzone na bramkarzu: najbardziej błyszczący procent jego
+        // powierzchni ma gładkość 0,64 przy kolorze 53–96, czyli na prawie czarnym mundurze
+        // odblask jest JEDYNĄ rzeczą, którą widać (stąd „białe ślady”), a na kapitanie z tego
+        // samego powodu rozmywa się namalowany krawat. Gładkość na zero gasi to całkowicie;
+        // normalne x1,3 zostają, żeby skóra i tkanina nie wyszły jak guma.
         if (TrybZlecenia() != "polysk")
         {
-            var w = Warianty[2];
+            var w = Warianty[4];
             foreach (var a in ustawioneAnim)
                 foreach (var r in a.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                     foreach (var m in r.sharedMaterials)

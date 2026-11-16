@@ -10,7 +10,10 @@ public sealed class BraxObsadaImport : AssetPostprocessor
     // Każda zmiana ustawień importu obsady = podniesienie tego numeru.
     // 1 — 16.11.2026: kompresja obsady (wcześniej numeru nie było wcale).
     // 2 — 16.11.2026: cofnięta kompresja siatek (fasetowanie na ciele).
-    public override uint GetVersion() => 2;
+    // 1 = kompresja, 2 = cofnięta kompresja siatek, 3 = sufit mimiki 2048.
+    // Bez podbicia numeru Unity bierze teksturę z pamięci podręcznej i nie zauważa,
+    // że ustawienia importu się zmieniły.
+    public override uint GetVersion() => 3;
 
     public const string Katalog = "Assets/Source/ObsadaOsiedla/";
     public const string KatalogBaru = "Assets/Source/Prywatne/BarOsiedla/";
@@ -77,7 +80,11 @@ public sealed class BraxObsadaImport : AssetPostprocessor
         t.mipmapEnabled = true;
         t.streamingMipmaps = true;
         // Keep the authored resolution ceiling. A 2K source remains 2K and distant mips still stream.
-        t.maxTextureSize = mimika ? 1024 : 4096;
+        // MIMIKA MA SUFIT 2048, NIE 1024. Atlas mimiki ma osiem poziomów ułożonych 4 na 2, więc
+        // przy SIZE=512 (osiedle_twarz.py) plik ma 2048x1024. Sufit 1024 zmniejszyłby go z powrotem
+        // do 1024x512 i cała zmiana rozdzielczości poszłaby w gwizdek — zęby znów miałyby po
+        // dwa piksele. Sprawdzone: to jest jedyne miejsce, które mogło to po cichu cofnąć.
+        t.maxTextureSize = mimika ? 2048 : 4096;
         var android = t.GetPlatformTextureSettings("Android");
         android.name = "Android";
         android.overridden = true;

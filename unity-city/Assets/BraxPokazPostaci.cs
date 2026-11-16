@@ -45,8 +45,10 @@ public sealed class BraxPokazPostaci : MonoBehaviour
         ("3 mat+faktura", 0.45f, 0f, 1.6f),
         ("4 pełny mat",   0.33f, 0f, 2.0f),
         ("5 maksymalny",  0.22f, 0f, 2.6f),
+        ("6 bez odblasku", 0.00f, 0f, 1.3f),
     };
-    public int wariant = 2;      // pokój startuje na wariancie 3
+    // Właściciel 16.11, 21:56: „Naturalna skóra ma być, żadnych białych odblasków, nic”.
+    public int wariant = 5;      // pokój startuje na „6 bez odblasku”
 
     void ZastosujMaterial()
     {

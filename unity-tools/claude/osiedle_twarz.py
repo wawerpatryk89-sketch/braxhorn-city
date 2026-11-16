@@ -60,8 +60,32 @@ FACES = {
         (124, 196, 23, 0, 8, 0),
     ),
 }
-SIZE = 256
+# ROZDZIELCZOŚĆ ATLASU MIMIKI. Właściciel 16.11, 21:56: „jakieś białe ślady są dziwne"
+# i „zębów nie widać". Zmierzone: atlas miał 256x256, a tekstura ciała ma 2048x2048, więc
+# wokół ust skóra była podmieniana kopią samej siebie w ośmiokrotnie gorszej rozdzielczości
+# — stąd jaśniejsza płaska plama z twardą krawędzią. Zęby malowane przez speech_teeth miały
+# w tej skali OKOŁO 2,5 PIKSELA wysokości, czyli przy zbliżeniu rozmazaną smugę.
+#
+# Wszystkie współrzędne w FACES i wszystkie stałe pikselowe w expression/speech_teeth były
+# dostrojone przy 256. Dlatego nie wystarczy zmienić SIZE — każda wielkość liczona w
+# pikselach idzie przez S. Wielkości względne (dx dzielone przez szerokość ust, maski
+# 0..1 po dx) zostają bez zmian, bo nie zależą od rozdzielczości.
+BAZA = 256
+SIZE = 512
+S = SIZE / BAZA      # mnożnik dla każdej stałej wyrażonej w pikselach
 LEVELS = 8
+
+
+def skaluj_twarz(eyes, mouth):
+    """FACES jest zapisane w pikselach atlasu 256 — przelicz na bieżące SIZE.
+
+    Ostatnia pozycja ust (zęby ze skanu) to flaga, nie piksele, więc zostaje.
+    """
+    if S == 1:
+        return eyes, mouth
+    oczy = [tuple(v * S for v in e) for e in eyes]
+    usta = tuple(v * S for v in mouth[:-1]) + (mouth[-1],)
+    return oczy, usta
 
 
 def sample(image, x, y):
@@ -118,8 +142,9 @@ def speech_teeth(cavity, dx, depth, opening, t, lip_color):
     for center, width, length in ((.115,.117,1.),(.325,.092,.81),(.487,.075,.62),(.62,.067,.42)):
         d = np.abs(side-center)/width
         crown = np.clip(1-d**4,0,1)**.30
-        arch = (.76+.24*crown) * length * np.minimum(opening*.44,2.75)
-        opacity = np.clip((1.13-d)*4,0,1)*np.clip(arch-depth+.42,0,1)*amount
+        # arch i depth są w pikselach -> ograniczenie i miękka krawędź idą przez S
+        arch = (.76+.24*crown) * length * np.minimum(opening*.44,2.75*S)
+        opacity = np.clip((1.13-d)*4,0,1)*np.clip((arch-depth+.42*S)/S,0,1)*amount
         tint = enamel * (.87+.09*crown-.15*side)[...,None]
         result += (tint-result)*opacity[...,None]
     return result
@@ -130,35 +155,35 @@ def expression(front, eyes, mouth, t, custom_teeth=False):
     rgb = front.copy()
     alpha = np.zeros_like(xx)
     for ex,ey,width,height,slope in eyes:
-        dx=(xx-ex)/(width+2.3)
+        dx=(xx-ex)/(width+2.3*S)
         arc=np.sqrt(np.maximum(0,1-dx*dx))
         center=ey+slope*dx
-        top=center-(height+2.25)*arc
-        bottom=center+(height+2.15)*arc
+        top=center-(height+2.25*S)*arc
+        bottom=center+(height+2.15*S)*arc
         seam=center+height*.29*arc
         upper=top+(seam-top)*t
         lower=bottom+(seam-bottom)*t
-        feather=np.clip((1-np.abs(dx))*(width+2.3),0,1)
+        feather=np.clip((1-np.abs(dx))*(width+2.3*S),0,1)
         # Draw the advancing lid from skin above the lash line. Sampling the
         # open-eye texture on the moving edge leaves the iris on the closed lid.
-        local = np.clip(yy-top+1.,0,1)*np.clip(bottom-yy+1.,0,1)*feather
+        local = np.clip((yy-top+1.*S)/S,0,1)*np.clip((bottom-yy+1.*S)/S,0,1)*feather
         # The narrow strip between eyelashes and brows varies considerably
         # between scans. Use the adjoining lower lid to fill the lid surface;
         # exclude the eyebrows and the edges of eyeglass frames from the mask.
-        base = sample(front,xx,bottom+2.7*arc+.65)
-        near = sample(front,xx,top-1.35*arc-.65)
+        base = sample(front,xx,bottom+(2.7*arc+.65)*S)
+        near = sample(front,xx,top-(1.35*arc+.65)*S)
         skin = base*.81 + near*.19
-        if mouth[-1] and ey>150:
+        if mouth[-1] and ey>150*S:
             blue_frame=(front[:,:,2]>front[:,:,0]*1.26)&(front[:,:,2]>front[:,:,1]*1.18)
             local *= ~blue_frame
-        upper_mask=np.clip(upper-yy+.6,0,1)
-        lower_mask=np.clip(yy-lower+.6,0,1)
+        upper_mask=np.clip((upper-yy+.6*S)/S,0,1)
+        lower_mask=np.clip((yy-lower+.6*S)/S,0,1)
         cover=np.maximum(upper_mask,lower_mask)*local*min(1.,t*6)
         if t>.92:
             cover=np.maximum(cover,local*(t-.92)/.08)
-        depth=np.clip((yy-top)/np.maximum(1.,seam-top),0,1)
+        depth=np.clip((yy-top)/np.maximum(1.*S,seam-top),0,1)
         surface=skin*(1.01-.07*depth)[...,None]
-        line=np.exp(-((yy-upper)/(.46+.34*arc))**2)*arc*feather*t
+        line=np.exp(-((yy-upper)/((.46+.34*arc)*S))**2)*arc*feather*t
         surface*=1.-.43*line[...,None]
         rgb+=(surface-rgb)*cover[...,None]
         alpha=np.maximum(alpha,cover)
@@ -169,21 +194,21 @@ def expression(front, eyes, mouth, t, custom_teeth=False):
     if teeth:
         # The scan already supplies its own teeth. Put the hinge below the
         # last enamel pixel so opening the lip cannot duplicate that row.
-        offsets=np.arange(-4.,10.51,.5)
+        offsets=np.arange(-4.,10.51,.5)*S
         rows=np.stack([sample(front,xx[:1],line[:1]+dy)[0] for dy in offsets])
         light=rows@np.array([.22,.65,.13])
         ivory=(light>.49)&((rows[:,:,0]-rows[:,:,2])<.23)
-        bottom=np.max(np.where(ivory,offsets[:,None],-8.),axis=0)
-        bottom=np.where(bottom>-7,bottom+.65,2.4)
+        bottom=np.max(np.where(ivory,offsets[:,None],-8.*S),axis=0)
+        bottom=np.where(bottom>-7*S,bottom+.65*S,2.4*S)
         line=line+np.convolve(bottom,[.13,.22,.30,.22,.13],mode='same')[None,:]*shape
 
     # Preserve each scan's lip seam and the position of the corners.
     # Follow the local dark seam within a small band, excluding a beard or moustache.
-    if not teeth and abs(corner)<12:
-        offsets=np.arange(-2.5,2.51,.5)
+    if not teeth and abs(corner)<12*S:
+        offsets=np.arange(-2.5,2.51,.5)*S
         samples=np.stack([sample(front,xx[:1],line[:1]+off)[0] for off in offsets])
         lum=samples@np.array([.23,.60,.17])
-        k=np.argmin(lum+.009*np.abs(offsets)[:,None],axis=0)
+        k=np.argmin(lum+.009/S*np.abs(offsets)[:,None],axis=0)
         seam=np.convolve(offsets[k],[.1,.2,.4,.2,.1],mode='same')
         line=line+seam[None,:]*shape
     opening=t*excursion*.78*shape**1.52
@@ -193,12 +218,12 @@ def expression(front, eyes, mouth, t, custom_teeth=False):
         opening *= .38
     below=yy-line
     margin=np.clip((1-np.abs(dx))/.19,0,1)
-    blend=margin*np.clip((10+opening-below)/6,0,1)*np.clip(below+.65,0,1)
-    lower=sample(front,xx,np.maximum(yy-opening,line+.50) if teeth else yy-opening)
-    inner=np.clip(below+.4,0,1)*np.clip(opening-below+.38,0,1)
-    lip=sample(front,xx,line+3)
+    blend=margin*np.clip((10*S+opening-below)/(6*S),0,1)*np.clip((below+.65*S)/S,0,1)
+    lower=sample(front,xx,np.maximum(yy-opening,line+.50*S) if teeth else yy-opening)
+    inner=np.clip((below+.4*S)/S,0,1)*np.clip((opening-below+.38*S)/S,0,1)
+    lip=sample(front,xx,line+3*S)
     cavity=lip*np.array([.38,.23,.26])
-    if custom_teeth and abs(corner)<12:
+    if custom_teeth and abs(corner)<12*S:
         cavity=speech_teeth(cavity,dx,below,opening,t,lip)
     lower+=(cavity-lower)*inner[...,None]
     rgb+=(lower-rgb)*blend[...,None]
@@ -238,11 +263,11 @@ def add_face(actor, obj, axes, head, color_path, atlas_path):
     span = np.ptp(body[:, 1]) * 0.175
     head = head @ axes
     cx, cy = head[0], body[:, 1].max() - span * 0.48
-    eyes, mouth = FACES[actor]
+    eyes, mouth = skaluj_twarz(*FACES[actor])
     midpoint = (
-        (sum(e[1] for e in eyes) / len(eyes) if eyes else mouth[1] - 58) + mouth[1]
+        (sum(e[1] for e in eyes) / len(eyes) if eyes else mouth[1] - 58 * S) + mouth[1]
     ) / 2
-    shift = 128 - midpoint
+    shift = SIZE / 2 - midpoint
     points = np.column_stack(
         (
             (body[:, 0] - cx) / span + 0.5,
@@ -297,8 +322,8 @@ def add_face(actor, obj, axes, head, color_path, atlas_path):
     mx, my, width, corner, opening, _ = mouth
     dx = abs(points[:, 0] - mx) / width
     line = my + corner * np.minimum(dx**2, 1)
-    along = np.clip((points[:, 1] - line) / 10, 0, 1) * np.clip(
-        (line + 58 - points[:, 1]) / 27, 0, 1
+    along = np.clip((points[:, 1] - line) / (10 * S), 0, 1) * np.clip(
+        (line + 58 * S - points[:, 1]) / (27 * S), 0, 1
     )
     across = np.clip((1.8 - dx) / 0.9, 0, 1)
     face_depth = np.clip((body[:, 2] - head[2]) / (span * 0.14), 0, 1)
@@ -310,7 +335,7 @@ def add_face(actor, obj, axes, head, color_path, atlas_path):
     key.value = 0
     # Approximate the rounded Polish o/u vowels with local inward and forward lip motion.
     rounded = obj.shape_key_add(name="BraxRound", from_mix=False)
-    lip_band = np.clip(1 - abs(points[:, 1] - line) / (opening + 6), 0, 1)
+    lip_band = np.clip(1 - abs(points[:, 1] - line) / (opening + 6 * S), 0, 1)
     lip_band *= np.clip(1 - (dx / 1.35) ** 2, 0, 1) * face_depth
     inward = -(points[:, 0] - mx) * span / SIZE * 0.22
     motion = (inward[:, None] * axes[:, 0] + span * 0.009 * axes[:, 2]) * lip_band[

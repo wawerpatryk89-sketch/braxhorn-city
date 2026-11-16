@@ -121,6 +121,19 @@ jobs:
         if-no-files-found: error
         retention-days: 14
 
+    # ATLASY MIMIKI DO OBEJRZENIA. Serwer nie ma GPU, więc filmu z gry tu nie zrobię,
+    # ale atlas to zwykły PNG z namalowanymi ustami, zębami i powiekami — po nim widać,
+    # czy zęby w ogóle są i czy plama wokół ust ma twardą krawędź, zanim właściciel
+    # otworzy APK. Osobny artefakt, żeby nie mieszać się z APK.
+    - name: Wgraj atlasy mimiki
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: mimika-atlasy-${{ github.run_id }}
+        path: unity-city/Assets/Source/ObsadaOsiedla/*/Mimika.png
+        if-no-files-found: warn
+        retention-days: 7
+
     - name: Zbuduj pokoj prob
       if: inputs.tryb != 'apk' && inputs.tryb != 'polysk' && inputs.tryb != 'twarze'
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
