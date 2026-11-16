@@ -1,0 +1,104 @@
+name: Pokoj prob postaci (bez APK, bez rejonu)
+
+# OSOBNY POKOJ PROB (wlasciciel 16.11, 08:47-08:48: "osobny pokoj na testy dla postaci i tyle.
+# I tam bedziemy testowac"; "nie mozesz tego zrobic tak, zeby to w kolejce nie stalo").
+#
+# Wlasna grupa concurrency — NIGDY nie czeka za buildem rejonu (ten ma grupe claude-region-<ref>).
+# Nie generuje rejonu, nie buduje APK, nie dotyka wydan. Sparse checkout, build na Linuxa,
+# uruchomienie bezglowe pod xvfb, gotowy MP4 w artefakcie.
+'on':
+  workflow_dispatch:
+    inputs:
+      postacie:
+        description: 'Postacie po przecinku, np. patryk,ewa,kiler (puste = patryk)'
+        type: string
+        default: patryk
+      klatek:
+        description: 'Klatek na etap (36 = 1,5 s przy 24 kl./s)'
+        type: string
+        default: '36'
+
+permissions:
+  contents: write   # pobranie prywatnego szkicu wydania z paczka obsady
+
+concurrency:
+  group: postacie-proba-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pokoj:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        sparse-checkout: |
+          unity-city/Assets
+          unity-city/Packages
+          unity-city/ProjectSettings
+          unity-tools/claude
+        persist-credentials: false
+
+    - name: Blender i FFmpeg
+      run: |
+        bash unity-tools/claude/blender_ci.sh
+        command -v ffmpeg >/dev/null || { sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg; }
+
+    - name: Przygotuj wskazane postacie z zatwierdzonej paczki
+      env:
+        GH_TOKEN: ${{ github.token }}
+        BRAX_POSTACIE: ${{ inputs.postacie }}
+      run: python3 unity-tools/claude/pokoj-prob/przygotuj.py
+
+    - name: Zbuduj pokoj prob
+      uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+      env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+        UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        BRAX_POSTACIE: ${{ inputs.postacie }}
+      with:
+        projectPath: unity-city
+        unityVersion: 6000.0.58f2
+        targetPlatform: StandaloneLinux64
+        buildMethod: BraxPokojProbBuild.Zbuduj
+        allowDirtyBuild: true
+        versioning: None
+
+    - name: Nagraj probe kazdej postaci
+      env:
+        LIBGL_ALWAYS_SOFTWARE: '1'
+        BRAX_POSTACIE: ${{ inputs.postacie }}
+      run: |
+        set -euo pipefail
+        export BRAX_PROBA_KLATKI="$RUNNER_TEMP/klatki"
+        chmod +x build/pokoj/PokojProb.x86_64
+        sudo apt-get -qq update
+        sudo apt-get -qq install -y xvfb xauth ffmpeg libgl1-mesa-dri pulseaudio pulseaudio-utils
+        pulseaudio --start --exit-idle-time=-1
+        pactl load-module module-null-sink sink_name=brax_pokoj
+        pactl set-default-sink brax_pokoj
+        set +e
+        timeout 420 xvfb-run -a -s '-screen 0 900x1200x24' \
+          build/pokoj/PokojProb.x86_64 -force-glcore \
+          -screen-width 900 -screen-height 1200 -screen-fullscreen 0 \
+          -logFile "$RUNNER_TEMP/pokoj.log"
+        kod=$?
+        set -e
+        echo "--- wynik proby ---"
+        grep -E 'BRAX_POSTAC |BRAX_POKOJ|BRAX_PROBA_POSTACI_KONIEC' "$RUNNER_TEMP/pokoj.log" || true
+        cat "$BRAX_PROBA_KLATKI/wynik.txt" || { tail -80 "$RUNNER_TEMP/pokoj.log"; exit 1; }
+        ffmpeg -hide_banner -loglevel error -framerate 24 \
+          -i "$BRAX_PROBA_KLATKI/%05d.jpg" -c:v libx264 -pix_fmt yuv420p \
+          -movflags +faststart Pokoj_prob_postaci.mp4
+        echo "kod gry: $kod (1 = ktoras postac nie przeszla, film i tak powstal)"
+
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      if: always()
+      with:
+        name: pokoj-prob-${{ github.run_id }}
+        path: |
+          Pokoj_prob_postaci.mp4
+          ${{ runner.temp }}/klatki/wynik.txt
+        if-no-files-found: warn
+        retention-days: 7
