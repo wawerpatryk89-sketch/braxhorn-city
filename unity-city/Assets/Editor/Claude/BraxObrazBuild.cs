@@ -23,6 +23,15 @@ using UnityEngine;
 // 2. ANIZOTROPIA. Wypalona, żeby posadzki i asfalt nie pełzały od pierwszej klatki, zanim
 //    BraxObrazGlobalny w ogóle wstanie.
 //
+// 3. PRZESTRZEŃ BARW — LINEAR. Złapane pomiarem, nie z głowy: build rejonu idzie przez
+//    BraxGymBuild.BuildInternal, który ustawia Linear, a pokój prób nie ustawiał nic i wyszedł
+//    w Gamma (run 43865869702: „przestrzen_barw=Gamma”). To znaczy, że pokój pokazywał postacie
+//    w INNYM świetle niż gra — a służy do oceniania, jak wyglądają. W Gamma całe liczenie światła
+//    jest inne: cienie twardsze, półtony brudniejsze, skóra szarzeje. Jedna przestrzeń dla
+//    wszystkiego albo porównania nic nie znaczą.
+//    Uwaga: zmiana przestrzeni barw wymusza ponowny import tekstur. Rejony już są w Linear, więc
+//    nic u nich nie przeładuje — płaci tylko ten build, który dotąd był w Gamma.
+//
 // Każdy build wypisuje BRAX_OBRAZ_BUILD — widać w logu, że poszedł na standardzie.
 public sealed class BraxObrazBuild : IPreprocessBuildWithReport
 {
@@ -42,6 +51,9 @@ public sealed class BraxObrazBuild : IPreprocessBuildWithReport
         var byloRzut = QualitySettings.shadowProjection;
 
         QualitySettings.antiAliasing = msaa;
+        var byloBarwy = PlayerSettings.colorSpace;
+        if (PlayerSettings.colorSpace != ColorSpace.Linear)
+            PlayerSettings.colorSpace = ColorSpace.Linear;
         if (QualitySettings.anisotropicFiltering == AnisotropicFiltering.Disable)
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
         QualitySettings.shadowProjection = ShadowProjection.StableFit;
@@ -55,11 +67,11 @@ public sealed class BraxObrazBuild : IPreprocessBuildWithReport
 
         Debug.Log(string.Format(
             "BRAX_OBRAZ_BUILD cel={0} msaa={1}->{2} anizotropia={3}->{4} rzutowanie={5}->{6} " +
-            "kolor_kadru={7} przestrzen_barw={8}",
+            "kolor_kadru={7} przestrzen_barw={8}->{9}",
             cel, bylo, QualitySettings.antiAliasing, byloAniz, QualitySettings.anisotropicFiltering,
             byloRzut, QualitySettings.shadowProjection,
             kolorJest ? "jest" : "BRAK — rejony pojda bez gradingu",
-            PlayerSettings.colorSpace));
+            byloBarwy, PlayerSettings.colorSpace));
 
         if (!kolorJest)
             Debug.LogWarning("BRAX_OBRAZ_BUILD: nie ma shadera Braxhorn/OsiedleKolor w Resources — " +
