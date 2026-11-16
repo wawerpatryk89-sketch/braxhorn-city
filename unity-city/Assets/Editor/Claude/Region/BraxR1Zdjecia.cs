@@ -45,7 +45,11 @@ public static class BraxR1Zdjecia
         ("20_ladowisko_schody", new Vector3(-500.5f, 148.3f, -21.5f), new Vector3(-492f, 150.6f, -15.5f), "schody z tarasu na płytę"),
         // biuro WAWER NIERUCHOMOŚCI z grafikami właściciela (16.11 22:57 / 23:01)
         ("21_deweloper_recepcja_logo", new Vector3(-395.4f, 1.65f, 41.3f), new Vector3(-395.4f, 2.35f, 47.4f), "WAWER NIERUCHOMOŚCI: logo za recepcją, ogłoszenia w ramkach"),
-        ("22_deweloper_zdjecia", new Vector3(-398.2f, 1.7f, 41.6f), new Vector3(-392.8f, 1.95f, 44.0f), "WAWER NIERUCHOMOŚCI: zdjęcia w ramach na ścianie bocznej"),
+        ("22_deweloper_oferty", new Vector3(-398.2f, 1.7f, 41.6f), new Vector3(-392.8f, 1.95f, 44.0f), "WAWER NIERUCHOMOŚCI: ogłoszenia na sprzedaż w strefie klienta"),
+        // banery właściciela (16.11 23:14 / 23:16)
+        ("23_ulica_baner_od_zachodu", new Vector3(-34f, 1.7f, 22.4f), new Vector3(-17f, 7f, 29.5f), "Portowa: baner TRENUJ nad jezdnią między BISTRO a POCZTĄ (od zachodu)"),
+        ("24_ulica_baner_od_wschodu", new Vector3(0f, 1.7f, 34.8f), new Vector3(-17f, 7.2f, 27.5f), "Portowa: baner TRENUJ — druga strona (od wschodu)"),
+        ("25_komis_baner", new Vector3(-713.5f, 1.7f, -61f), new Vector3(-723.5f, 4.4f, -80.5f), "komis: baner KOMIS SAMOCHODOWY BRAXHORN CITY na dachu kontenera"),
     };
 
     public static int Wykonaj(Scene scena)

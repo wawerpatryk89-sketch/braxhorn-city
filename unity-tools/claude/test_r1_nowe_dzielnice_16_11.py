@@ -176,7 +176,7 @@ class ZdjeciaZEdytora(unittest.TestCase):
         z = src(REG / "BraxR1Zdjecia.cs")
         self.assertIn('public const string Katalog = "Logs/r1-zdjecia";', z)            # unity-city/Logs/ = artefakt diagnostyki
         self.assertIn("if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)", z)
-        self.assertEqual(len(re.findall(r'\("\d\d_\w+", new Vector3', z)), 22)   # 12 nowej części + 8 lądowiska (16.11 22:00) + 2 biura z grafikami właściciela
+        self.assertEqual(len(re.findall(r'\("\d\d_\w+", new Vector3', z)), 25)   # 12 nowej części + 8 lądowiska + 2 biura z grafikami + 3 banery właściciela (16.11)
         wf = (ROOT / ".github/workflows/claude-region-build.yml").read_text(encoding="utf-8")
         self.assertIn("unity-city/Logs/", wf)
 
@@ -229,10 +229,43 @@ class GrafikiNieruchomosci(unittest.TestCase):
         self.assertIn("BraxUliceKit.Napis3D(tekst, c0 - Vector3.up * (cap * .5f) + n * .025f, n, cap, .05f, LicoStal, BokiGrafit);", g)
         dew = PIERZ[PIERZ.index("static void Deweloper("):PIERZ.index("const float WolneOdDrzwi")]
         self.assertIn("BraxNieruchomosciGrafiki.Kaseton(W(kcL, y0 + 2.6f * k, dTyl), f.N, hK)", dew)
-        self.assertIn("foreach (var (nr, sg) in new[] { (4, -1f), (5, 1f) })", dew)  # 2 ogłoszenia obok logo
-        self.assertIn("foreach (int nr in new[] { 2, 1, 3 })", dew)                  # 3 zdjęcia na ścianie bocznej
+        self.assertIn("foreach (var (nr, sg) in new[] { (2, -1f), (3, 1f) })", dew)  # za recepcją logo i zdjęcia (wille, marina)
+        # 23:15 „domy na sprzedaż z boku, żeby klient miał do nich dostęp, a nie przy kasie”: ogłoszenia w strefie klienta z AKCJĄ
+        self.assertIn("foreach (var (nr, adres, co) in oferty)", dew)
+        self.assertIn('BraxMiastoA.Akcja(bg, "nieruchomosci_oferta_" + nr, "OBEJRZYJ OFERTĘ"', dew)
+        self.assertNotIn("Plakat(4, W(so", dew); self.assertNotIn("(4, -1f)", dew)
+        self.assertIn("BraxNieruchomosciGrafiki.Plakat(1, W(sD, y0 + 1.75f * k, dc), nSc, h)", dew)   # kawalerka przy biurkach
         self.assertIn("BraxNieruchomosciGrafiki.Stojak(6, W(sw, y0, -.45f), f.N, 1.1f, .62f)", dew)
         self.assertIn("if (!grafiki)", dew)                                           # bez paczki — tablica oferty z kodu
+
+
+class BaneryWlasciciela(unittest.TestCase):
+    """16.11 23:14 baner komisu, 23:16 baner motywacyjny nad ulicą główną „z dwóch stron” (paczka zaszyfrowana)."""
+    BAN = src(REG / "BraxMiastoBanery.cs")
+
+    def test_pack_encrypted_with_both_banners(self):
+        pk = ROOT / "unity-city/Prywatne/braxhorn-sklep-banery-r1-01"
+        m = json.loads((pk / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(m["target"], "banery_r1_01")
+        for f in ["banery_r1_01/komis_baner.jpg", "banery_r1_01/trenuj_baner.jpg", "oryginal/komis_baner_oryginal.png", "oryginal/trenuj_baner_oryginal.png"]:
+            self.assertIn(f, m["files"])
+        self.assertEqual(sorted(q.name for q in pk.iterdir()), ["manifest.json", "part-000.cms", "recipient.crt", "recipient.pem.enc"])
+        dane = (pk / "part-000.cms").read_bytes()
+        self.assertNotIn(b"\x89PNG", dane); self.assertNotIn(b"JFIF", dane)
+
+    def test_komis_banner_on_container_roof(self):
+        nd = src(REG / "BraxRegionMiastoBNoweMiejsca.cs")
+        self.assertIn("banerKomisu = BraxMiastoBanery.NaDachuKontenera(g, new Vector3((x0 + x1) * .5f, y + Hc - r, z1 - .35f), Vector3.forward", nd)
+        self.assertIn('Katalog = "Assets/Source/Prywatne/Miasto/banery_r1_01/"', self.BAN)
+        self.assertIn("st.OBox(p + Vector3.up * .0125f, R, Vector3.up, n, .3f, .025f, .3f);", self.BAN)     # stopy 2.5 cm (bez cienkich płyt)
+
+    def test_street_banner_double_sided_over_roadway(self):
+        ul = src(REG / "BraxMiastoUlica.cs")
+        self.assertIn("BraxMiastoBanery.NadUlica(root, -17f, 20.6f, 36.1f, -18f, -16f, Grunt(-17f, (KrawPld + KrawPln) * .5f), 8f)", ul)
+        self.assertIn("yD = yJezdni + 5.8f", self.BAN)                                                  # skrajnia 4.6 m z zapasem
+        self.assertIn("Lico(sA, c, Vector3.left, szer, h);", self.BAN)                                   # nadruk z obu stron, nie lustrzany
+        self.assertIn("Lico(sB, c, Vector3.right, szer, h);", self.BAN)
+        self.assertIn("kot.Rura(a + dir * .05f, a + dir * .35f, .022f, 8);", self.BAN)                 # napinacze śrubowe
 
 
 class LadowiskoNaDachu(unittest.TestCase):

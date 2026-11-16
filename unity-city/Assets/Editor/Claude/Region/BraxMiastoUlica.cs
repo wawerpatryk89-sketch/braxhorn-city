@@ -233,8 +233,12 @@ internal static class BraxMiastoUlica
         }
         BraxUliceKit.UstawGrupe("Ulica: ekrany LED na wieżowcach");
         int ekr = Ekrany(cityRoot);
+        // 16.11 23:16 (właściciel: „billboard… motywacyjny… nad główną ulicą… między tymi dwiema kamienicami… żeby wisiał, z dwóch stron”):
+        // baner dwustronny TRENUJ / ZAWALCZ O PAS MISTRZA w poprzek Portowej między BISTRO (płd.) a POCZTĄ (płn.), x −17; kotwy w filarach
+        // elewacji (granice przęseł: BISTRO x −18, POCZTA x −16), dół 5.8 m nad jezdnią; bez paczki — nic
+        string baner = BraxMiastoBanery.NadUlica(root, -17f, 20.6f, 36.1f, -18f, -16f, Grunt(-17f, (KrawPld + KrawPln) * .5f), 8f);
         int siatek = BraxUliceKit.Zapisz(root, "ulica_wyposazenie");
-        BraxMiastoA.Log("ULICA: drzew w kratach " + drzew + " (11.11: usunięte z całej Portowej), ławek " + lawek + ", koszy " + koszy + ", ekranów LED " + ekr + ", siatek " + siatek + "; zdjęte stare tablice reklamowe: " + stare);
+        BraxMiastoA.Log("ULICA: drzew w kratach " + drzew + " (11.11: usunięte z całej Portowej), ławek " + lawek + ", koszy " + koszy + ", ekranów LED " + ekr + ", siatek " + siatek + "; zdjęte stare tablice reklamowe: " + stare + "; " + (baner ?? "baner nad jezdnią: brak paczki braxhorn-sklep-banery-r1-01"));
         Debug.Log("BRAXHORN_PORTOWA porządek: drzwi " + drzwi.Count + ", wyłączone niewidzialne kolizje " + niewidzialne + ", " + wiata + "; " + string.Join("; ", porzadek));
     }
 

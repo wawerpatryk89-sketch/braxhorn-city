@@ -82,7 +82,7 @@ public static class BraxCityArchitecture
         public string id, label; public float x0, x1, z0, z1; public int floors; public bool far, side;
         public Building(string id, string label, float x0, float x1, float z0, float z1, int floors, bool far = false, bool side = false)
         { this.id = id; this.label = label; this.x0 = x0; this.x1 = x1; this.z0 = z0; this.z1 = z1; this.floors = floors; this.far = far; this.side = side; }
-        public float Height => floors * 3.2f + 1f;
+        public float Height => 3.75f + floors * 3.2f + .75f;   // jak BraxCityArchitecture.Building
     }
     public static readonly Building[] StreetBuildings = new Building[0];
     public static GameObject Box(string n, Transform parent, Vector3 c, Vector3 size, Material m, bool kol) => null;

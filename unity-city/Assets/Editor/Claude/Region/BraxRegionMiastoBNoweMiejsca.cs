@@ -273,6 +273,7 @@ public static partial class BraxRegionMiastoB
         var g = new GameObject("CLAUDE nowe dzielnice: KOMIS SAMOCHODÓW UŻYWANYCH (przy T1 TRAMWAJOWA)").transform; g.SetParent(root, false);
         var R = KomisRect; float y = Podloze(R.center.x, R.center.y, YC);
         var stalM = BraxCityMaterials.Surface("Komis: stal ocynkowana", new Color(.62f, .64f, .66f), .45f, .75f);
+        string banerKomisu = null;
         // --- auta na sprzedaż: przodem do ulicy (+z), przód 1.2 m od linii słupków; przód auta z kół (Wheel_FL/FR przed RL/RR)
         int aut = 0; float zPrzod = R.yMax - 1.25f;
         for (int i = 0; i < KomisAuta.Length; i++)
@@ -316,6 +317,9 @@ public static partial class BraxRegionMiastoB
             BraxRegionMeble.Kolizja(g, "Komis: kolizja kontenera biurowego", new Vector3((x0 + x1) * .5f, y + Hc * .5f, (z0 + z1) * .5f), new Vector3(L, Hc, B));
             BraxMiastoA.Akcja(g, "komis_biuro", "ZAPYTAJ O AUTO", "Komisant: Skup, sprzedaż, zamiana. Wszystkie auta z dokumentami — wybierz, pogadamy o cenie.", new Vector3(dx, y, z1 + 1.2f), 1.6f);
             world_point("R1_KOMIS_AUT", "komis samochodów używanych (biuro w kontenerze, przy T1 TRAMWAJOWA)", new Vector3(dx, y, z1 + 1.2f));
+            // 16.11 23:14 (właściciel: „Tu masz, mistrzu, do tego, do komisu?”): baner KOMIS SAMOCHODOWY BRAXHORN CITY na ramie na dachu
+            // kontenera, przodem do ulicy (stopy na blasze dachu między belkami ramy, baner 0.35 m nad dachem — widać go zza aut)
+            banerKomisu = BraxMiastoBanery.NaDachuKontenera(g, new Vector3((x0 + x1) * .5f, y + Hc - r, z1 - .35f), Vector3.forward, Mathf.Min(5.2f, L - 1.4f));
         }
         // --- słupki z łańcuchem wzdłuż chodnika (wjazd 8 m przy pylonie) i pylon KOMIS AUTO
         {
@@ -379,7 +383,7 @@ public static partial class BraxRegionMiastoB
             }
             lin.Obiekt("Komis: linka girlandy", g, stalM, false, false);
             for (int i = 0; i < flagi.Length; i++) flagi[i].Obiekt("Komis: chorągiewki girlandy", g, BraxCityMaterials.Surface("Komis: chorągiewka (folia PE) " + i, kolF[i], .6f), false, false);
-            NdLog("komis aut przy T1 TRAMWAJOWA: aut na sprzedaż " + aut + "/" + KomisAuta.Length + (BraxMiastoAssety.Jest(KomisPaczka) ? "" : " (brak paczki " + KomisPaczka + " — plac bez aut)") + ", chorągiewek " + nf + ", masztów " + xs.Length);
+            NdLog("komis aut przy T1 TRAMWAJOWA: aut na sprzedaż " + aut + "/" + KomisAuta.Length + (BraxMiastoAssety.Jest(KomisPaczka) ? "" : " (brak paczki " + KomisPaczka + " — plac bez aut)") + ", chorągiewek " + nf + ", masztów " + xs.Length + ", " + (banerKomisu ?? "bez banera (brak paczki braxhorn-sklep-banery-r1-01)"));
         }
     }
 }

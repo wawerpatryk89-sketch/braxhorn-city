@@ -1,0 +1,24 @@
+{
+ "source": "Właściciel 16.11.2026 23:14 i 23:16 — baner komisu KOMIS SAMOCHODOWY BRAXHORN CITY i baner motywacyjny TRENUJ / ZAWALCZ O PAS MISTRZA (grafiki właściciela bez zmian treści) — komis przy T1 TRAMWAJOWA i ulica główna R1",
+ "target": "banery_r1_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/banery_r1_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "3118cc75b3f77c3d76780d4c55804f691f0836f9d2dd153f97eacb72b50a96f4",
+ "cmsSha256": "db8b6e347f46ebc07dc91540d67f950e3e4d2f0b1fa1623a44ee8671b4618db3",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 7055936,
+   "sha256": "db8b6e347f46ebc07dc91540d67f950e3e4d2f0b1fa1623a44ee8671b4618db3"
+  }
+ ],
+ "files": {
+  "banery_r1_01/katalog.json": "bf5fdfe93635f28a8e063386c36803e9a3037bc201ed5e1edf73b570e38dc379",
+  "banery_r1_01/komis_baner.jpg": "3486dbc314b71655eba6c5161d5d3992a9142b74cf6a1866af1bbc029d8578e5",
+  "banery_r1_01/trenuj_baner.jpg": "a7406449bd511d47389e4c7e039388e1543088213570e2a95dddc86c8fc3f6f5",
+  "oryginal/komis_baner_oryginal.png": "15279e647586f60495518c04139fb78c4ed4e8db9535cc976112edd08374da7e",
+  "oryginal/spec.json": "2c359a4dd4831371136d58a1272f5b9a7bd9c886a665ece0af709483cfdd6ceb",
+  "oryginal/trenuj_baner_oryginal.png": "e72954d8be6e551915263eb07bb4c423ffed5d8b8fe31b136a6e8bb97cb1d6ad"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

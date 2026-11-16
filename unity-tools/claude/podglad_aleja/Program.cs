@@ -39,6 +39,37 @@ public static class Podglad
         BraxRegionFawela.WiezaMurowana(g, id, x, .15f, z, w, d);
     }
 
+    static void Portowa(Transform root)
+    {
+        var gp = new GameObject("PORTOWA (podgląd: ulica główna z banerem)").transform; gp.SetParent(root, false);
+        var kolizje = new GameObject("kolizje").transform; kolizje.SetParent(gp, false);
+        BraxRegionMiastoB.Plaski("Portowa: jezdnia (podgląd)", BraxRegionMiastoB.Asfalt, Rect.MinMaxRect(-40f, 23.755f, 6f, 33.245f), .003f);
+        BraxRegionMiastoB.ChodnikPub("Portowa: chodnik płd. (podgląd)", -40f, 6f, 20.6f, 23.755f);
+        BraxRegionMiastoB.ChodnikPub("Portowa: chodnik płn. (podgląd)", -40f, 6f, 33.245f, 36.1f);
+        var T = typeof(BraxUlicePierzeje); var F = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
+        T.GetField("style", F).SetValue(null, T.GetMethod("Style", F).Invoke(null, null));
+        var lokale = (System.Collections.IDictionary)T.GetField("Lokale", F).GetValue(null);
+        var budynki = new[] {
+            new BraxCityArchitecture.Building("bar", "BAR 24", -12, -1, 11.6f, 20.6f, 7),
+            new BraxCityArchitecture.Building("restaurant", "BISTRO", -24, -12, 11.6f, 20.6f, 10),
+            new BraxCityArchitecture.Building("workshop_shop", "PRACOWNIA", -36, -24, 11.6f, 20.6f, 7, false, true),
+            new BraxCityArchitecture.Building("gallery", "GALERIA", -10, 2, 36.1f, 48, 8, true, true),
+            new BraxCityArchitecture.Building("office_entrance", "BRAXHORN", -22, -10, 36.1f, 48, 7, true, true),
+            new BraxCityArchitecture.Building("apartments_1", "KSIĘGARNIA", -34, -22, 36.1f, 48, 9, true) };
+        foreach (var b in budynki)
+        {
+            var lok = lokale[b.id];
+            var f = T.GetMethod("Front", F).Invoke(null, new object[] { b, lok, false });
+            BraxUliceKit.UstawGrupe("Elewacja " + b.id);
+            T.GetMethod("Elewacja", F).Invoke(null, new object[] { f, kolizje });
+            BraxUliceKit.UstawGrupe("Szyldy " + b.id, 90f);
+            T.GetMethod("Szyldy", F).Invoke(null, new object[] { f });
+        }
+        BraxUliceKit.Zapisz(gp, "portowa_podglad");
+        var opis = BraxMiastoBanery.NadUlica(gp, -17f, 20.6f, 36.1f, -18f, -16f, .003f, 8f);
+        Console.WriteLine("LOG PORTOWA: " + (opis ?? "brak paczki banerów"));
+    }
+
     public static int Main(string[] args)
     {
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
@@ -79,6 +110,10 @@ public static class Podglad
         BraxRegionMiastoB.PodgladKomisNawierzchnia();
         foreach (var (n, a) in new (string, Action)[] { ("plac ustawek", BraxRegionMiastoB.PodgladPlacUstawek), ("komis", BraxRegionMiastoB.PodgladKomis) })
             try { a(); } catch (Exception e) { Console.WriteLine("BŁĄD " + n + ": " + e); }
+        // ---- PORTOWA (ulica główna R1), fragment x −40…6: elewacje z prawdziwego generatora pierzei (BraxUlicePierzeje.Front/Elewacja/
+        // Szyldy przez refleksję, te same dane budynków co w grze), jezdnia i chodniki uproszczone, bryły za elewacjami pominięte; baner
+        // właściciela nad jezdnią (BraxMiastoBanery.NadUlica — ten sam wywołanie co w BraxMiastoUlica.Apply)
+        try { Portowa(root); } catch (Exception e) { Console.WriteLine("BŁĄD Portowa: " + e); }
         File.WriteAllText(Path.Combine(outDir, "opis.txt"), string.Join("\n", Rejestr.Notatki) + "\n\nAKCJE:\n" + string.Join("\n", BraxMiastoAAkcje.Lista.Select(q => q.id + " — " + q.etykieta + " @ " + q.p.ToString("F1"))));
         // ---------------- zbiór powierzchni
         var pows = new List<Pow>(); var mats = new List<Material>(); var matIdx = new Dictionary<Material, int>();
@@ -191,22 +226,26 @@ public static class Podglad
         var styki = pary.Where(p => { var ob = obw[p.Key]; float dl = Mathf.Max(ob.mx.x - ob.mn.x, ob.mx.y - ob.mn.y); return p.Value.dd < .001f && dl > .05f && p.Value.pole / dl < .001; }).Select(p => p.Key).ToList();
         foreach (var k in styki) pary.Remove(k);
         var lista = pary.OrderByDescending(p => p.Value.pole).ToList();
-        int zle = 0, szkloN = 0, tenSam = 0, ruch = 0;
+        int zle = 0, szkloN = 0, tenSam = 0, ruch = 0, portowa = 0;
+        // Portowa (16.11): elewacje z generatora pierzei w podglądzie BEZ kroku gry „A: kontrola migotania pierzei i lokali”
+        // (BraxMiastoA.KontrolaUlicy wycina starszą powierzchnię każdej pary < 2 cm) — liczone osobno; baner liczony normalnie
+        bool Elew(string n) => n.Contains("PORTOWA (podgląd") && !n.Contains("Ulica: baner");
         raport.AppendLine("KONTROLA MIGOTANIA nowej części miasta R1 — pary powierzchni równoległych, odstęp < " + limitCm + " cm, wspólne pole dokładne");
         foreach (var kv in lista)
         {
             var A = pows[kv.Key.Item1]; var B = pows[kv.Key.Item2];
             bool same = A.m == B.m; bool szk = A.m.renderQueue >= 2900 || B.m.renderQueue >= 2900; bool ru = A.ruchomy || B.ruchomy;
-            string typ = same ? "TEN SAM MATERIAŁ (te same UV — niewidoczne)" : szk ? "SZKŁO" : "MIGOTANIE";
-            if (same) tenSam++; else if (szk) szkloN++; else zle++;
+            bool elew = Elew(A.nazwa) && Elew(B.nazwa);
+            string typ = elew ? "PORTOWA — ELEWACJE (w grze KontrolaUlicy)" : same ? "TEN SAM MATERIAŁ (te same UV — niewidoczne)" : szk ? "SZKŁO" : "MIGOTANIE";
+            if (elew) portowa++; else if (same) tenSam++; else if (szk) szkloN++; else zle++;
             if (ru) ruch++;
             var ob = obw[kv.Key]; string osN = (ob.znak == 1 ? "+" : "-") + "XYZ"[ob.os]; string uN = ob.os == 0 ? "z" : "x", vN = ob.os == 1 ? "z" : "y";
             raport.AppendLine($"{typ}{(ru ? " [ruchome]" : "")}: {Krot(A.nazwa)} <{Mat(A.m)}> ↔ {Krot(B.nazwa)} <{Mat(B.m)}> | odstęp {kv.Value.dd * 100f:F1} cm, pole {kv.Value.pole:F4} m² | lico {osN}={ob.d:F3}, {uN} {ob.mn.x:F2}…{ob.mx.x:F2}, {vN} {ob.mn.y:F2}…{ob.mx.y:F2}");
         }
-        raport.Insert(0, $"PODSUMOWANIE: pary {lista.Count} — migotanie (różne materiały) {zle}, szkło {szkloN}, ten sam materiał {tenSam}, w tym ruchome {ruch} (styki krawędzi bez wspólnego pola, pominięte: {styki.Count})\n");
+        raport.Insert(0, $"PODSUMOWANIE: pary {lista.Count} — migotanie (różne materiały) {zle}, szkło {szkloN}, ten sam materiał {tenSam}, w tym ruchome {ruch} (styki krawędzi bez wspólnego pola, pominięte: {styki.Count}); Portowa — elewacje pierzei (w grze KontrolaUlicy): {portowa}\n");
         File.WriteAllText(Path.Combine(outDir, "migotanie.txt"), raport.ToString());
         Console.WriteLine(raport.ToString().Split('\n')[0]);
-        foreach (var l in UnityEngine.Debug.Log_.Where(x => x.StartsWith("WARN") || x.StartsWith("ERR") || x.Contains("BRAXHORN_WIEZA ") || x.Contains("LADOWISKO"))) Console.WriteLine(l);
+        foreach (var l in UnityEngine.Debug.Log_.Where(x => x.StartsWith("WARN") || x.StartsWith("ERR") || x.Contains("BRAXHORN_WIEZA ") || x.Contains("LADOWISKO") || x.Contains("komis aut"))) Console.WriteLine(l);
         return 0;
     }
 
