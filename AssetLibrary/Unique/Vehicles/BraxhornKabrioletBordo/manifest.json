@@ -17,16 +17,16 @@
       "lod1": "kabriolet_bordo_lod1.glb"
     },
     "sha256": {
-      "lod0": "3f8bc734017a78619ae13a7af9d3a111116cb8210536c3a58a7711a074ac3164",
-      "lod1": "4cc95560f06ff59123bf1115d4ff4f011b1b8c0cba445704826866073202723a"
+      "lod0": "172b61dc7c663a38264637f114e84aef4bd0fc4bc45cc276202fbd0a09415cd4",
+      "lod1": "b9214927a6f54aa81e1e9ab50df1ebb173d97f78591daf2b1cf9e6a842e7270d"
     },
     "bytes": {
-      "lod0": 7208448,
-      "lod1": 1844372
+      "lod0": 7241628,
+      "lod1": 1837740
     },
     "triangles": {
-      "lod0": 177000,
-      "lod1": 36636
+      "lod0": 177814,
+      "lod1": 36638
     },
     "externalTextures": "_tekstury/kabriolet_bordo/ (Poly Haven brown_leather 1K, recoloured: cognac seats, dark floor, steering wheel)",
     "lengthM": 4.448,
