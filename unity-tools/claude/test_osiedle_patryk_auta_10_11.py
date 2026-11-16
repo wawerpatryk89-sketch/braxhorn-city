@@ -8,6 +8,7 @@ import json
 import os
 import pathlib
 import re
+import runpy
 import tempfile
 import unittest
 from unittest import mock
@@ -116,6 +117,25 @@ class RuchyWlasciciela(unittest.TestCase):
                     root / "blender-4.2.3-linux-x64/blender")
                 prywatne.patryk_i_ruchy()
                 self.assertEqual((root / "unity-city/Assets/Source/ObsadaOsiedla/potwierdzenie").read_text(), "19")
+
+    def test_proba_joysticka_przygotowuje_klipy_baru_bez_floty(self):
+        import pobierz_obsade
+
+        def extract_actor(archive, destination):
+            (destination / "patryk").mkdir(parents=True)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            with mock.patch.dict(os.environ, {"GITHUB_REPOSITORY": "owner/repo", "RUNNER_TEMP": tmp}), \
+                 mock.patch.object(pobierz_obsade, "ROOT", root), \
+                 mock.patch.object(pobierz_obsade, "pobierz"), \
+                 mock.patch.object(pobierz_obsade, "odczytaj", side_effect=extract_actor), \
+                 mock.patch.object(pobierz_obsade, "popraw_model"), \
+                 mock.patch.object(pobierz_obsade, "dodatki_osiedla") as dodatki, \
+                 mock.patch("osiedle_mowa.prepare"):
+                runpy.run_path(str(TU / "test-ruchu/przygotuj.py"))
+            dodatki.assert_called_once_with(root / "unity-city/Assets/Source/Prywatne",
+                                           root / "blender-4.2.3-linux-x64/blender", z_flota=False)
 
     def test_bez_klucza_instalator_nie_wypakowuje(self):
         import import_patryk_owner_22 as imp

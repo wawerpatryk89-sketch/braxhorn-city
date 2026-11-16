@@ -78,7 +78,7 @@ def popraw_modele(staged, work, blender):
         popraw_model(model, work / model.name, blender)
 
 
-def dodatki_osiedla(parent, blender):
+def dodatki_osiedla(parent, blender, *, z_flota=True):
     base = {"release_id": PACZKA["release_id"], "tag": PACZKA["tag"]}
     vehicle_names = ("Policja_Kombi", "Policja_Kombi", "SPKP", "Ambulans", "Taxi", "Autobus", "GT6_Coupe",
                      "S2_Spider", "Roadster", "Roadster_Metalik", "L8", "Shooting_Brake", "Coupe", "Graphite_Coupe")
@@ -86,8 +86,9 @@ def dodatki_osiedla(parent, blender):
                 for i, name in enumerate(vehicle_names, 1)]
     bar = ["Assets/Source/Prywatne/BarOsiedla/" + n for n in ("Barman.fbx", "Chwyt.json", "gitara.fbx", "patryk.fbx")]
     packages = [
-        ("Osiedle_Klipy_Baru.zip", "454c273ca563df8de94b25291a39bb9a236a3a5aa1089fdfcd326609f04117c2", bar, "BarOsiedla"),
-        ("Osiedle_14_pojazdow_z_tablicami.zip", "70c78d9bfffd4f2617be29504993edb9dd7b83a5b8570f1e2fa264392f4aae65", vehicles, "FlotaOsiedla")]
+        ("Osiedle_Klipy_Baru.zip", "454c273ca563df8de94b25291a39bb9a236a3a5aa1089fdfcd326609f04117c2", bar, "BarOsiedla")]
+    if z_flota:
+        packages.append(("Osiedle_14_pojazdow_z_tablicami.zip", "70c78d9bfffd4f2617be29504993edb9dd7b83a5b8570f1e2fa264392f4aae65", vehicles, "FlotaOsiedla"))
     parent.mkdir(parents=True, exist_ok=True)
     for name, digest, names, directory in packages:
         with tempfile.TemporaryDirectory(dir=parent) as temporary:

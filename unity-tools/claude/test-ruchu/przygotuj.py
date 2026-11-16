@@ -16,6 +16,7 @@ with tempfile.TemporaryDirectory(dir=target.parent) as temp:
     obsada.odczytaj(archive, staged)
     model = staged / "patryk/patryk.fbx"
     blender = Path(os.environ["RUNNER_TEMP"]) / "blender-4.2.3-linux-x64/blender"
+    obsada.dodatki_osiedla(target.parent.parent / "Prywatne", blender, z_flota=False)
     obsada.popraw_model(model, work / model.name, blender)
     (staged / "patryk").rename(target)
 
