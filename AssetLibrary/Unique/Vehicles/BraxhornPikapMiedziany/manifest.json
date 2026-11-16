@@ -1,7 +1,7 @@
 {
   "id": "braxhorn.vehicle.pikap_miedziany",
   "displayName": "Braxhorn Pikap Miedziany",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "shared, all city regions",
   "ownerBrief": "Właściciel 16.11.2026 08:11: zdjęcie pikapa (bok + przód) — „zapisz to auto, jedziesz z następnym”; model 1:1, materiały Poly Haven, paczka aut",
   "sourceStorage": {
@@ -17,15 +17,15 @@
       "lod1": "pikap_miedziany_lod1.glb"
     },
     "sha256": {
-      "lod0": "081318db7e4e7e1764440adf1b0ab97d93316a7003eda06ce1a2916f0db0e29d",
-      "lod1": "da38a423118fc4c562576fbd7917dc5deaa0fc8930ac60060ba59e7cc4783afa"
+      "lod0": "5ef374ed25c00eee2233b29852a01c4141d31b308a07bd396d90d45bceef619f",
+      "lod1": "12645c695399e02308bec5414ab47b54b6183dacfa492e46a1c251bae1f799a2"
     },
     "bytes": {
-      "lod0": 12939960,
-      "lod1": 3111824
+      "lod0": 12949828,
+      "lod1": 3106812
     },
     "triangles": {
-      "lod0": 259222,
+      "lod0": 259224,
       "lod1": 57544
     },
     "externalTextures": "_tekstury/pikap_miedziany/ (Poly Haven leather_white, poly_wool_herringbone, rubberized_track, metal_plate — 1K recoloured; owner badge 512 px)",
@@ -73,6 +73,7 @@
     "sharedGeometryAppliedToRegionScenes": false
   },
   "ownerApproval": {
-    "status": "pending review"
+    "status": "accepted",
+    "note": "właściciel 16.11 09:00: „ten pick-up akceptuję” (poprawka wnętrza kabiny po jego uwadze 09:01)"
   }
 }

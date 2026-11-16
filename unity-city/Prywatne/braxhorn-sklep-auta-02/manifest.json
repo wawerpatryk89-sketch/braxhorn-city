@@ -1,15 +1,15 @@
 {
- "source": "Właściciel 16.11.2026 08:11: „zapisz to auto, jedziesz z następnym” — pikap miedziany 1:1 ze zdjęcia (bok + przód), materiały Poly Haven: pikap_miedziany (LOD0, 259222 trójkątów) + pikap_miedziany_lod1 (57544); drzwi ×4, maska, klapa, wlew, koła, kierownica ruchome; byk na grillu i napis BRAXHORN na klapie z modelu właściciela; prawdziwe metry, przód +Z, podstawa y = 0",
+ "source": "Właściciel 16.11.2026 08:11: „zapisz to auto, jedziesz z następnym” — pikap miedziany 1:1 ze zdjęcia (bok + przód), materiały Poly Haven: pikap_miedziany (LOD0, 259224 trójkątów) + pikap_miedziany_lod1 (57544); drzwi ×4, maska, klapa, wlew, koła, kierownica ruchome; byk na grillu i napis BRAXHORN na klapie z modelu właściciela; prawdziwe metry, przód +Z, podstawa y = 0",
  "target": "pojazdy_auta_02",
  "staging": "unity-city/Assets/Source/Prywatne/Miasto/pojazdy_auta_02 (BraxMiastoAssety.Model)",
  "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
- "tarSha256": "11e812cd3cda17bfc04a800a310491fe95edb011539679f49fbca6d73dde4a33",
- "cmsSha256": "87ddf162f93f5c361d1cd1efa9abd8171843720a784aa14019ef577ceff67802",
+ "tarSha256": "654231a43a6ed57a78a9a065f23ebd56ddfa3ede51d4232b7afb205569afa3a5",
+ "cmsSha256": "207119662ae2dc4029628b8ce3e1b8d960bb3cc16f3605c64c3064aeb1a7aab0",
  "parts": [
   {
    "name": "part-000.cms",
    "bytes": 22712901,
-   "sha256": "87ddf162f93f5c361d1cd1efa9abd8171843720a784aa14019ef577ceff67802"
+   "sha256": "207119662ae2dc4029628b8ce3e1b8d960bb3cc16f3605c64c3064aeb1a7aab0"
   }
  ],
  "files": {
@@ -18,7 +18,7 @@
   "oryginal/leather_white.json": "7ebf43c2a3a0ae41d2d305770f59e981c24a63298e1f7d167f760c614427f166",
   "oryginal/logo_wlasciciela_16-11.glb": "aa794f33f7d20f6a3101173e9fe137accf219928a3b81b80f9a4c964766d3552",
   "oryginal/metal_plate.json": "6a67dcc408c32005533f935e37a4796d60f46ec4e1e7b6147746c2f280602e13",
-  "oryginal/nadwozie_sdf.py": "aa8f7335147dc1e5b44e673883b6332e158a8f26ff262613884f08dff1338300",
+  "oryginal/nadwozie_sdf.py": "38e0469b93932d15936d068c5e3defdeabb6eb77bb3f54591e06b3841219bcf1",
   "oryginal/podglad_ply.py": "6a08bf0a4a20e3748ca9e7422dcdfe9ba510e790b4eb62bbc1b190e3faf22cbc",
   "oryginal/poly_wool_herringbone.json": "4fcdb7cee772205baf892df1cd6e03eaf78d019f6a19e2afe850b24ed4fa52ee",
   "oryginal/rubberized_track.json": "8f0d4cd1e2686bb8214a27491d4e960e7611c3f9607afb6c49dee50a3235bc4f",
@@ -28,7 +28,7 @@
   "oryginal/tekstury_na_zewnatrz.py": "fd9593d1daa1bcbe674e18a063143d2c816f3683eeb8a668ebb010223446b827",
   "oryginal/wymiary.py": "be51c336bc3b1f0a4836c0c214fce6cee8cb7e22952f8edeb72e6dbb22b327c9",
   "oryginal/zdjecie_wlasciciela_pikap_16-11.png": "df65044ae251576c707c03a6ab34a9586367cda568c1dfd31a89f8d06a6b6013",
-  "oryginal/zloz.py": "66a1a6714ea65abddfc85bba8701af7c4c9431fd4ecdb9e97d756694fd440ddf",
+  "oryginal/zloz.py": "0f67041ab2d998eceede102f42ba698f0a2e516708a12aeaca74734f86722e9c",
   "oryginal/zloz_czesci.py": "6a3ab8ebcb10786d48e98abdbdd2cbc468006ff4cc9b3fa590ac58a9e3affc95",
   "oryginal/zloz_naglowek.py": "a4d95ecf78d7e79370fc72920c8fd3f04da879fd4c6f60e4668f3352a38effcf",
   "oryginal/zloz_wnetrze.py": "85f93a614d0a64f183b17f14daf4bd603ccc3769b9521a909cff76dfde90aa9b",
@@ -48,9 +48,9 @@
   "pojazdy_auta_02/_tekstury/pikap_miedziany/tapicerka_kolor.jpg": "86fae2f85871662675ea60f85162593d5e72c366e58d5629fb70e3561c68b075",
   "pojazdy_auta_02/_tekstury/pikap_miedziany/tapicerka_mr.jpg": "e1111abf1296f077f637677a57b7f4a71f1d86aee2f01ae024f81bf94d918bb4",
   "pojazdy_auta_02/_tekstury/pikap_miedziany/tapicerka_normal.jpg": "0faf6a1d949f36c1497ee5688a59fd04fe85f70281d712eb2132b06155db6e57",
-  "pojazdy_auta_02/katalog.json": "484b53741cccb2da126c57b853ee981069be085f5a5d034abdcf991488a602ba",
-  "pojazdy_auta_02/pikap_miedziany.glb": "081318db7e4e7e1764440adf1b0ab97d93316a7003eda06ce1a2916f0db0e29d",
-  "pojazdy_auta_02/pikap_miedziany_lod1.glb": "da38a423118fc4c562576fbd7917dc5deaa0fc8930ac60060ba59e7cc4783afa"
+  "pojazdy_auta_02/katalog.json": "e3cb1f1464316c7de7838bcb5b8a4969522c0369bad193869b304dfb09b357ef",
+  "pojazdy_auta_02/pikap_miedziany.glb": "5ef374ed25c00eee2233b29852a01c4141d31b308a07bd396d90d45bceef619f",
+  "pojazdy_auta_02/pikap_miedziany_lod1.glb": "12645c695399e02308bec5414ab47b54b6183dacfa492e46a1c251bae1f799a2"
  },
  "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
 }
