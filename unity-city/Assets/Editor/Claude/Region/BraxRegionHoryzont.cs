@@ -111,6 +111,8 @@ public static class BraxRegionHoryzont
             };
             int k = 0;
             foreach (var w in BraxMiastoGranice.Wyciecia) obj.Add(("wyciecie" + (k++), Bx(w.xMin + .3f, w.xMax - .3f, -120f, 400f, w.yMin + .3f, w.yMax - .3f)));
+            // 16.11: działka supermarketu wyjęta z wycięcia lasu (grywalna), ale stare siatki oryginału z niej znikają jak dotąd
+            { var d = BraxMiastoGranice.DzialkaSupermarketu; obj.Add(("dzialka supermarketu", Bx(d.xMin, d.xMax, -120f, 400f, d.yMin + .3f, d.yMax))); }
             foreach (var (nazwa, b) in obj)
             {
                 var przed = original.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.enabled && r.bounds.Intersects(b)).Select(r => r.name).ToList();

@@ -49,7 +49,10 @@ class R1TrafficRetailRepairs(unittest.TestCase):
         self.assertIn("pojazd kursowy z jednej symulacji ruchu",DISTRICT)
 
     def test_bus_source_model_reused_as_moving_car_with_original_dimensions(self):
-        self.assertIn('BraxMiastoAssety.Model("miasto_pojazdy", "autobus")', TRAFFIC)
+        # 16.11 (właściciel): nowy autobus BX 10006 z wnętrzem zamiast MAN-a (paczka braxhorn-sklep-pojazdy-01)
+        self.assertNotIn('BraxMiastoAssety.Model("miasto_pojazdy", "autobus")', TRAFFIC)
+        self.assertIn('BraxMiastoAssety.Model(NowyAutobusPaczka, NowyAutobusPlik)', TRAFFIC)
+        self.assertIn('NowyAutobusPaczka = "pojazdy_globalne_01", NowyAutobusPlik = "Braxhorn_Autobus_BX10006"', TRAFFIC)
         self.assertIn('bus.AddComponent<BraxAuto>()', TRAFFIC)
         self.assertIn("a.dl = busLength; a.szer = busWidth;", TRAFFIC)
         self.assertIn("var rigid = bus.AddComponent<Rigidbody>(); rigid.isKinematic = true;", TRAFFIC)

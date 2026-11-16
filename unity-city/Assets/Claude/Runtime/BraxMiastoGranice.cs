@@ -21,7 +21,16 @@ public static class BraxMiastoGranice
     // Nowe dzielnice (x X0…−262) kończą się na północy na z 156 (ciąg pieszy za rzędem B) — dalej las.
     // 9.11 (właściciel: fawela na wzgórzu za miastem): wzgórze za placem wieżowców (x −61.4…70) jest teraz FAWELĄ (grywalne) —
     // wycięciem zostaje tylko pas przy morzu x 70…84 (skarpa nad wodą, poza fawelą).
-    public static readonly Rect[] Wyciecia = { Rect.MinMaxRect(-262f, 126f, -40f, Z1), Rect.MinMaxRect(X0, 156f, -262f, Z1), Rect.MinMaxRect(FawelaX1, Z0, 84f, -68f) };
+    // 16.11 15:13 (właściciel: „wejście do supermarketu nie istnieje!!! Od paru buildów”): SUPERMARKET BRAXHORN 1 stoi na stałe na
+    // północ od parkingu (hala x −144…−108, z 131.5…157.4) — czyli w wycięciu lasu z ≥ 126, POZA obszarem grywalnym. Granica miasta
+    // (płot lasu z kolizją 3 m, BraxRegionHoryzont) szła wzdłuż z 126.3 — w poprzek dojścia, 5 m przed drzwiami. Działka sklepu
+    // (z dojściem i placem dookoła hali) jest teraz GRYWALNA: wycięcie lasu ma w tym miejscu wnękę, granica obchodzi działkę.
+    public static readonly Rect DzialkaSupermarketu = Rect.MinMaxRect(-152f, 126f, -100f, 162f);
+    public static readonly Rect[] Wyciecia =
+    {
+        Rect.MinMaxRect(-262f, 126f, -152f, Z1), Rect.MinMaxRect(-100f, 126f, -40f, Z1), Rect.MinMaxRect(-152f, 162f, -100f, Z1),   // las z ≥ 126 bez działki sklepu
+        Rect.MinMaxRect(X0, 156f, -262f, Z1), Rect.MinMaxRect(FawelaX1, Z0, 84f, -68f)
+    };
 
     // ---- FAWELA NA WZGÓRZU (9.11, właściciel: „slamsy… z delikatnym przejściem… nie ma być teren mały”) ----
     // Całe wzgórze na południe od miasta: od linii miasta (z −68 za parkiem wieżowców na wschód od x −61.4, z Z0 dalej na zachód)

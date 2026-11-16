@@ -14,6 +14,8 @@ using UnityEngine.SceneManagement;
 //  • Zamiatanie sceny (koniec kroku rejonu i drugi raz po supermarkecie): KAŻDY obiekt z autem (BraxAuto), sterownikiem ruchu
 //    (BraxRuchAut), osobą (IBraxOsoba: pieszy, mieszkaniec) albo postacią ze szkieletem człowieka (Animator Humanoid; Animation +
 //    skóra z kośćmi bioder) — usunięty, z listą: co i gdzie (log BRAXHORN_BEZ_AUT_I_LUDZI).
+//  • AUTOBUS (15:14: plik ze szkicu wydania „Postacie”): nowy BX 10006 jeździ kursem Alei Centralnej jako JEDYNY pojazd
+//    (BraxClaudeOsiedle.TylkoAutobus) — zamiatanie go nie rusza (nazwa „Autobus KURSOWY”, sterownik z samym autobusem).
 //  • ZOSTAJĄ: gracz (BraxGymPlayer) i zawodnicy areny z postaci globalnych właściciela (BraxArenaWalka / BraxArenaPokaz — jego
 //    postacie, nie ludzie miasta), manekiny, posągi, figury; łodzie, statki, tramwaj (nie samochody); stoiska food truck na wyspie.
 //  • Nowy autobus (BraxhornCityBus12 1.0.1, zatwierdzony 15.11, z wnętrzem: 33 miejsca, kierowca, drzwi i koła z osiami) — w repo
@@ -50,6 +52,7 @@ public static class BraxBezAutILudzi
     }
 
     static string Gdzie(Transform t) => t.position.ToString("F1");
+    static bool Autobus(BraxAuto a) => a && a.name.StartsWith("Autobus KURSOWY", StringComparison.Ordinal);
 
     /// <summary>Usuwa z całej sceny auta, sterowniki ruchu i ludzi (poza graczem i zawodnikami areny). Zwraca liczbę usuniętych.</summary>
     public static int Usun(Scene scena, string etap)
@@ -71,16 +74,17 @@ public static class BraxBezAutILudzi
             if (!r) continue;
             // całe korzenie ruchu aut i ludzi miasta B (gdyby powstały)
             foreach (var t in r.GetComponentsInChildren<Transform>(true))
-                if (t.name == "CLAUDE miasto B: ruch aut" || t.name == "CLAUDE miasto B: ludzie") Dodaj(t.gameObject, inne, t.name);
-            foreach (var a in r.GetComponentsInChildren<BraxAuto>(true)) if (a) Dodaj(a.gameObject, auta, a.name);
-            foreach (var s in r.GetComponentsInChildren<BraxRuchAut>(true)) if (s) Dodaj(s.gameObject, inne, "sterownik ruchu aut: " + s.name);
+                if ((t.name == "CLAUDE miasto B: ruch aut" && !t.GetComponentsInChildren<BraxAuto>(true).Any(Autobus)) || t.name == "CLAUDE miasto B: ludzie") Dodaj(t.gameObject, inne, t.name);
+            foreach (var a in r.GetComponentsInChildren<BraxAuto>(true)) if (a && !Autobus(a)) Dodaj(a.gameObject, auta, a.name);
+            foreach (var s in r.GetComponentsInChildren<BraxRuchAut>(true))
+                if (s && !(s.auta != null && s.auta.Length > 0 && s.auta.All(Autobus))) Dodaj(s.gameObject, inne, "sterownik ruchu aut: " + s.name);
             foreach (var mb in r.GetComponentsInChildren<MonoBehaviour>(true)) if (mb is IBraxOsoba) Dodaj(mb.gameObject, ludzie, mb.name);
             foreach (var an in r.GetComponentsInChildren<Animator>(true)) if (an && Czlowiek(an.gameObject)) Dodaj(an.gameObject, ludzie, an.name);
             foreach (var am in r.GetComponentsInChildren<Animation>(true)) if (am && Czlowiek(am.gameObject)) Dodaj(am.gameObject, ludzie, am.name);
         }
         foreach (var g in doUsuniecia) if (g) UnityEngine.Object.DestroyImmediate(g);
         var sb = new StringBuilder("BRAXHORN_BEZ_AUT_I_LUDZI " + etap + ": auta=" + auta.Count + " ludzie=" + ludzie.Count + " korzenie/sterowniki=" + inne.Count +
-                                   " (decyzja właściciela 16.11 14:56; zostają: gracz, zawodnicy areny z postaci globalnych, manekiny, łodzie, tramwaj)");
+                                   " (decyzja właściciela 16.11 14:56; zostają: autobus BX 10006, gracz, zawodnicy areny z postaci globalnych, manekiny, łodzie, tramwaj)");
         foreach (var x in auta.Take(60)) sb.Append(" | AUTO ").Append(x);
         foreach (var x in ludzie.Take(60)) sb.Append(" | CZŁOWIEK ").Append(x);
         foreach (var x in inne.Take(20)) sb.Append(" | ").Append(x);

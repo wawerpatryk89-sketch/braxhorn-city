@@ -57,8 +57,8 @@ public static class BraxR1SceneAcceptance
 
         int overlaps=0, doorPanels=0, stops=0;
         // 16.11 14:56 (właściciel): miasto bez aut i ludzi, autobus MAN precz — nowy autobus (BraxhornCityBus12) czeka na plik modelu
-        if(BraxBezAutILudzi.Wlaczone){ if(cars.Length>0)bad.Add("BEZ AUT: zostało aut "+cars.Length); }
-        else if(buses.Length!=1)bad.Add("AUTOBUS: oczekiwany jeden kursowy, jest "+buses.Length);
+        if(BraxBezAutILudzi.Wlaczone){ int inne=cars.Count(x=>!x.name.Contains("Autobus KURSOWY")); if(inne>0)bad.Add("BEZ AUT: zostało aut "+inne); }
+        if(buses.Length!=1)bad.Add("AUTOBUS: oczekiwany jeden kursowy (BX 10006), jest "+buses.Length);
         foreach(var bus in buses)
         {
             var traffic=controllers.FirstOrDefault(c=>c && c.auta!=null && c.auta.Contains(bus));
@@ -115,10 +115,11 @@ public static class BraxR1SceneAcceptance
                d.blokady==null || d.blokady.Length!=2)
                 bad.Add("SKLEP: nierówna liczba skrzydeł i blokad "+d.etykieta);
             float radius=.33f, height=2.23f;
-            for(int k=0;k<=16;k++)
+            // 16.11 15:13: oś od parkingu (14 m przed drzwiami — granica miasta stała 5 m przed nimi) do 3 m w głąb, próby co 0.25 m
+            for(int k=0;k<=68;k++)
             {
                 // Oś: z parkingu przez drzwi automatyczne, 3 m w głąb sklepu.
-                var at=d.transform.position+d.transform.forward*Mathf.Lerp(-3f,3f,k/16f);
+                var at=d.transform.position+d.transform.forward*Mathf.Lerp(-14f,3f,k/68f);
                 var foot=new Vector3(at.x,d.transform.position.y,at.z);
                 samples++;
                 foreach(var hit in Physics.OverlapCapsule(foot+Vector3.up*(radius+.07f),

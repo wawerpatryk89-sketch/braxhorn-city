@@ -107,7 +107,14 @@ public static class BraxRegion
         // Na końcu (jak na budowie, 16:04): ruch aut i ludzie miasta B na gotowych nawierzchniach i wyposażeniu (B, ETAP 2).
         // 16.11 14:56 (właściciel: „Usuwasz wszystkie pojazdy (samochody) z gry i ludzi! Wszystkie te w powietrzu, na drzewach, w lesie
         // też!”): ruch aut i ludzie miasta B WYŁĄCZONE (BraxBezAutILudzi.Wlaczone), a scena zamieciona z każdego auta i człowieka.
-        Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () => { if (!BraxBezAutILudzi.Wlaczone) BraxClaudeOsiedle.RuchMiastaB(root); else Note("ruch aut miasta B: wyłączony (właściciel 16.11 14:56 — bez aut)"); });
+        // 15:14: jedyny pojazd — nowy autobus BX 10006 na kursie Alei Centralnej (BraxClaudeOsiedle.TylkoAutobus)
+        Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () =>
+        {
+            if (!BraxBezAutILudzi.Wlaczone) { BraxClaudeOsiedle.RuchMiastaB(root); return; }
+            BraxClaudeOsiedle.TylkoAutobus = true;
+            try { BraxClaudeOsiedle.RuchMiastaB(root); } finally { BraxClaudeOsiedle.TylkoAutobus = false; }
+            Note("ruch aut miasta B: bez aut (właściciel 16.11 14:56) — tylko autobus BX 10006 na kursie Alei Centralnej");
+        });
         Step("ludzie miasta (B): obsada, ławki, przechodnie po chodnikach i zebrach", () => { if (!BraxBezAutILudzi.Wlaczone) BraxClaudeOsiedle.LudzieMiastaB(root); else Note("ludzie miasta B: wyłączeni (właściciel 16.11 14:56 — bez ludzi)"); });
         Step("bez aut i ludzi: zamiatanie całej sceny (auta, sterowniki ruchu, ludzie — poza graczem i zawodnikami areny)", () => BraxBezAutILudzi.Usun(root.gameObject.scene, "krok rejonu"));
         // 16.11 (właściciel 13:32–13:37: „auta w powietrzu… las, slumsy… sklepy: z zewnątrz mur, w środku szkło albo pustka — prześwit…

@@ -17,6 +17,12 @@ using UnityEngine;
 // Wydajność: 8 aut w ruchu (LOD znika przy ~1.5 % ekranu), symulacja BraxRuchAut jak na osiedlu.
 public static partial class BraxClaudeOsiedle
 {
+    // 16.11 14:56–15:14 (właściciel: „Usuwasz wszystkie pojazdy (samochody) z gry… Autobus mamy nowy ze środkiem… go bierzemy, nie
+    // tego MAN-a”): tryb TYLKO AUTOBUS — bez aut w ruchu, parkingów i warsztatów; jedyny pojazd to nowy autobus BX 10006
+    // (BraxhornCityBus12 1.0.1, paczka braxhorn-sklep-pojazdy-01 → pojazdy_globalne_01) na kursie Alei Centralnej. MAN wycofany.
+    public static bool TylkoAutobus;
+    const string NowyAutobusPaczka = "pojazdy_globalne_01", NowyAutobusPlik = "Braxhorn_Autobus_BX10006";
+
     public static void RuchMiastaB(Transform cityRoot)
     {
         var repPrev = rep; var rootPrev = root; var colPrev = colliders; var groupPrev = group;
@@ -33,6 +39,12 @@ public static partial class BraxClaudeOsiedle
             root.gameObject.AddComponent<LODGroup>();
             colliders = new GameObject("kolizje").transform; colliders.SetParent(root, false);
             lakiery.Clear(); szablonSwiatla.Clear(); quadSwiatla = null; matStop = matMigacz = matDym = null; autoSiatki = 0;
+            if (TylkoAutobus)
+            {
+                AutaMiastaB(new List<AutoSzablon>());
+                foreach (var n in rep.notes) Debug.Log("BRAXHORN_RUCH_MIASTO_B " + n);
+                return;
+            }
             var modele = AutaModele();
             if (modele.Count == 0) { Debug.LogWarning("BRAXHORN_RUCH_MIASTO_B brak modeli aut (" + AutaDir + ") — miasto bez ruchu"); return; }
             var tmp = new GameObject("auta — szablony (tymczasowe)").transform;
@@ -54,6 +66,44 @@ public static partial class BraxClaudeOsiedle
             BraxTrasyAut.RondoPromien = rpPrev; BraxTrasyAut.RondoJezdnia = rjPrev; BraxTrasyAut.OdsuniecieZebr = lukPrev;
             groups.Clear();
         }
+    }
+
+    // NOWY AUTOBUS BX 10006 (glTF Braxhorn City | Bus 12): ramka „Autobus KURSOWY …” (na niej BraxAuto, kolizja, ciało) z modelem
+    // w środku. Przód z modelu, nie z założenia: fotel kierowcy („Driver seat | Driver”) leży z przodu — gdy po imporcie wypada
+    // z tyłu, model obrócony o 180° w ramce. Koła: każdy węzeł Wheel XX przeniesiony do osi „koło LP/PP/LT/PT/obrót” ustawionej
+    // jak rama (toczenie wokół poprzecznej osi ramy, skręt przednich wokół pionu) — jak w autach miasta.
+    static GameObject NowyAutobus(GameObject source, Vector3 p, out Transform[] kola, out Transform[] skret, out float rozstaw, out float osTyl, out float promien)
+    {
+        kola = new Transform[0]; skret = new Transform[0]; rozstaw = osTyl = promien = 0f;
+        var model = BraxMiastoAssety.Postaw(root, source, "model: Braxhorn City Bus 12 (BX 10006)", p, 0f, 1f, false, true);
+        if (!model) return null;
+        var bb = BraxRegion.Bounds(model);
+        var rama = new GameObject("Autobus KURSOWY ALEJA CENTRALNA (BX 10006, wspólna symulacja)").transform;
+        rama.SetParent(root, false); rama.SetPositionAndRotation(new Vector3(bb.center.x, p.y, bb.center.z), Quaternion.identity);
+        model.transform.SetParent(rama, true);
+        var fotel = model.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.StartsWith("Driver seat", StringComparison.Ordinal));
+        bool obrot = fotel && rama.InverseTransformPoint(fotel.position).z < 0f;
+        if (obrot) { model.transform.localPosition = Quaternion.Euler(0f, 180f, 0f) * model.transform.localPosition; model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f) * model.transform.localRotation; }
+        var kolaL = new List<(Transform obr, Transform os, Vector3 l)>();
+        foreach (var w in model.GetComponentsInChildren<Transform>(true).Where(t => t.name.StartsWith("Wheel ", StringComparison.Ordinal)).ToList())
+        {
+            var l = rama.InverseTransformPoint(w.position);
+            var os = new GameObject("koło " + (l.x < 0f ? "L" : "P") + (l.z > 0f ? "P" : "T")).transform; os.SetParent(rama, false); os.localPosition = l; os.localRotation = Quaternion.identity;
+            var obr = new GameObject("obrót").transform; obr.SetParent(os, false);
+            w.SetParent(obr, true);
+            kolaL.Add((obr, os, l));
+            var rs = w.GetComponentsInChildren<Renderer>(true); if (rs.Length > 0) { var wb = rs[0].bounds; foreach (var r in rs) wb.Encapsulate(r.bounds); promien = Mathf.Max(promien, wb.size.y * .5f); }
+        }
+        if (kolaL.Count == 4)
+        {
+            kola = kolaL.OrderBy(k => k.l.z > 0f ? 0 : 1).ThenBy(k => k.l.x).Select(k => k.obr).ToArray();   // LP, PP, LT, PT
+            skret = kolaL.Where(k => k.l.z > 0f).OrderBy(k => k.l.x).Select(k => k.os).ToArray();
+            float zp = kolaL.Where(k => k.l.z > 0f).Average(k => k.l.z), zt = kolaL.Where(k => k.l.z <= 0f).Average(k => k.l.z);
+            rozstaw = zp - zt; osTyl = zt;
+        }
+        Debug.Log("BRAXHORN_BUS nowy autobus BX 10006: przód z fotela kierowcy" + (fotel ? "" : " (brak węzła — bez obrotu)") + (obrot ? ", model obrócony o 180°" : "") +
+                  ", długość " + bb.size.z.ToString("F1") + " × szer. " + bb.size.x.ToString("F1") + " m, koła " + kolaL.Count + " (rozstaw osi " + rozstaw.ToString("F2") + " m, promień " + promien.ToString("F2") + " m)");
+        return rama.gameObject;
     }
 
     // Auta zaparkowane miasta B: stanowiska parkingu przy warsztatach (BraxRegionMiastoB.MiejscaParkingu) przez gotowy
@@ -319,7 +369,7 @@ public static partial class BraxClaudeOsiedle
         int[] ile = { 5, 5, 4, 3, 3, 3, 4 };   // 3 pętle miasta B (14 aut) + 4 pętle nowych dzielnic (13 aut); autobus osobno (busRoute → 0 aut z puli).
                                               // właściciel 3.11 10:15: „gdzie ruch na ulicy, samochody zniknęły”; 9.11: po zdjęciu pętli północnej (parking) i C1–C2 (torowisko) auta rozłożone na pętle zastępcze, łącznie 27 jak przed 7.11
         for (int r = 0; r < wy.trasy.Count; r++)
-            for (int k = 0; k < (r == busRoute ? 0 : r < ile.Length ? ile[r] : 1); k++)
+            for (int k = 0; k < (TylkoAutobus || r == busRoute ? 0 : r < ile.Length ? ile[r] : 1); k++)
             {
                 var sz2 = pula[rnd.Next(pula.Count)];
                 var o = AutoInstancja(sz2, root, "Auto w ruchu (miasto) · " + sz2.id + (AutaNC.Contains(sz2.id) ? " (DO WYMIANY PRZED SPRZEDAŻĄ)" : ""), rnd, out var kolor);
@@ -347,14 +397,16 @@ public static partial class BraxClaudeOsiedle
         // REALNY autobus z istniejącego modelu. Wspólny indeks w ra.auta
         // oznacza, że BraxRuchAutSym widzi jego gabaryty i wszystkie auta
         // hamują przed nim; brak oddzielnej nieruchomej kopii/collidera.
-        if (busRoute >= 0 && BraxMiastoAssety.Jest("miasto_pojazdy"))
+        // 16.11 (właściciel): nowy autobus BX 10006 z wnętrzem zamiast MAN-a (paczka miasto_pojazdy/autobus wycofana z kursu)
+        if (busRoute >= 0 && !BraxMiastoAssety.Jest(NowyAutobusPaczka))
+            Debug.LogWarning("BRAXHORN_BUS DO POPRAWKI: brak paczki nowego autobusu (braxhorn-sklep-pojazdy-01 → " + NowyAutobusPaczka + ") — MAN wycofany, kurs bez autobusu");
+        if (busRoute >= 0 && BraxMiastoAssety.Jest(NowyAutobusPaczka))
         {
-            var source = BraxMiastoAssety.Model("miasto_pojazdy", "autobus");
+            var source = BraxMiastoAssety.Model(NowyAutobusPaczka, NowyAutobusPlik);
+            if (!source) Debug.LogWarning("BRAXHORN_BUS DO POPRAWKI: w paczce " + NowyAutobusPaczka + " brak " + NowyAutobusPlik + ".glb");
             if (source)
             {
-                var bus = BraxMiastoAssety.Postaw(root, source,
-                    "Autobus KURSOWY ALEJA CENTRALNA (wspólna symulacja)",
-                    new Vector3(-345f, YA, rz - ah*.5f), 0f, 1f, false, true);
+                var bus = NowyAutobus(source, new Vector3(-345f, YA, rz - ah*.5f), out var kolaBus, out var skretBus, out float rozstawBus, out float osTylBus, out float promienBus);
                 if (bus)
                 {
                     var bb = BraxRegion.Bounds(bus);
@@ -367,8 +419,10 @@ public static partial class BraxClaudeOsiedle
                         var a = bus.AddComponent<BraxAuto>();
                         a.trasaNr = busRoute; a.trasa = PunktyTrasy(wy,busRoute);
                         a.vmax = 8f; a.dl = busLength; a.szer = busWidth;
-                        a.rozstaw = Mathf.Min(9.2f, busLength*.63f);
-                        a.osTyl = -busLength*.40f; a.promienKola = .5f;
+                        // osie z węzłów kół modelu (Wheel FL/FR/RL/RR), koła toczą się i przednie skręcają (osie obrotu wg ramy autobusu)
+                        a.rozstaw = rozstawBus > 1f ? rozstawBus : Mathf.Min(9.2f, busLength*.63f);
+                        a.osTyl = rozstawBus > 1f ? osTylBus : -busLength*.40f; a.promienKola = promienBus > .1f ? promienBus : .5f * K;
+                        a.kola = kolaBus; a.skret = skretBus;
                         a.nadwozie = null; // nie nadpisuj rotacji części modelu
                         var bounds = BraxRegion.Bounds(bus);
                         var col = bus.AddComponent<BoxCollider>();
@@ -424,6 +478,7 @@ public static partial class BraxClaudeOsiedle
             }
         }
         ra.auta = auta.ToArray();
+        if (auta.Count == 0) { Debug.LogWarning("BRAXHORN_RUCH_MIASTO_B brak pojazdów na trasach" + (TylkoAutobus ? " (tryb tylko autobus — brak autobusu)" : "")); UnityEngine.Object.DestroyImmediate(mg); return; }
         float szerMax = auta.Max(a => a.szer), dlMax = auta.Max(a => a.dl);
         var s0 = new BraxRuchAutSym(ra.punkty, ra.trasy, ra.zdarzenia, ra.wezly, ra.ziarno, szerMax, dlMax);
         foreach (var a in auta) s0.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax);

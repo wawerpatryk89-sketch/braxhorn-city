@@ -60,12 +60,157 @@ public static class BraxSupermarket
             // Odbiór po zbudowaniu faktycznej bryły. Tylko drzewo/płot,
             // którego siatka przecina wnętrze lub światło wejścia.
             int towar = Zbuduj(t, lustro, i + 1);
-            OczyscWejscie(scena, root.transform, t, lustro, i + 1);
+            // 16.11 15:13: najpierw działka i korytarz wejścia (granica, płoty, kolizje dowolnej wielkości), potem dotychczasowe czyszczenie
+            if (i == 0) { try { Dzialka(scena, root.transform, t); } catch (Exception e) { Debug.LogWarning("BRAXHORN_SUPERMARKET_DZIALKA DO POPRAWKI: " + e); } }
+            OczyscWejscie(scena, root.transform, t, lustro, i + 1);   // drobne obiekty w całości (drzewa, słupki, kosze)
+            try { KorytarzWejscia(scena, root.transform, t, WejscieX(lustro, i + 1), i + 1); } catch (Exception e) { Debug.LogWarning("BRAXHORN_SUPERMARKET_KORYTARZ DO POPRAWKI sklep " + (i + 1) + ": " + e); }
             try { OczyscHale(scena, root.transform, t, i + 1); } catch (Exception e) { Debug.LogWarning("BRAXHORN_SUPERMARKET_HALA DO POPRAWKI sklep " + (i + 1) + ": " + e.Message); }
             Physics.SyncTransforms();
             Debug.Log("BRAXHORN_SUPERMARKET kopia " + (i + 1) + ": front (środek) " + c.ToString("F1") + ", obrót " + yaw + "°, hala " + W.ToString("F1") + " × " + D.ToString("F1") + " × " + H.ToString("F1") + " m"
                       + (lustro ? ", odbicie lustrzane (wejście i kasy po drugiej stronie)" : "") + ", towar modeli " + towar + ", szukanie " + stoper.ElapsedMilliseconds + " ms");
         }
+    }
+
+    // ================================================================================================================
+    // 16.11 15:13 (właściciel: „wejście do supermarketu nie istnieje!!! Od paru buildów, i mi nie mów, że jest”).
+    // PRZYCZYNA (kod + log buildu 12.11): sklep #1 stał POZA obszarem grywalnym (wycięcie lasu z ≥ 126 w BraxMiastoGranice), a granica
+    // miasta — płot lasu z kolizją 3 m (BraxRegionHoryzont) — biegła wzdłuż z 126.3, w poprzek dojścia, 5 m przed drzwiami.
+    // OczyscWejscie wycinało przejście tylko w SIATCE płotu; kolizji nie ruszało (pudło dłuższe niż 12 m), a 12 prób przejścia co
+    // 1.5 m przeskoczyło ścianę grubości 0.5 m („potencjalne_przeszkody=0”). Teraz:
+    //  • działka sklepu jest grywalna (BraxMiastoGranice.DzialkaSupermarketu) — granica obchodzi ją dookoła, las się cofa;
+    //  • plac z płyt wokół hali na całej działce (bez dziur w gruncie), obce drobne obiekty (drzewa, krzewy, słupki) z działki precz;
+    //  • KORYTARZ WEJŚCIA (od parkingu do progu, szerokość drzwi + 1 m, od 20 cm nad posadzką): KAŻDA obca kolizja i siatka, bez
+    //    limitu rozmiaru, wycięta (pudła przycięte, inne kolizje wyłączone) — log z nazwami: BRAXHORN_SUPERMARKET_KORYTARZ.
+    static Bounds Aabb(Transform store, Vector3 a, Vector3 b)
+    {
+        Vector3 lo = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue), hi = -lo;
+        foreach (var q in new[] { new Vector3(a.x, a.y, a.z), new Vector3(b.x, a.y, a.z), new Vector3(a.x, a.y, b.z), new Vector3(b.x, a.y, b.z),
+                                  new Vector3(a.x, b.y, a.z), new Vector3(b.x, b.y, a.z), new Vector3(a.x, b.y, b.z), new Vector3(b.x, b.y, b.z) })
+        { var w = store.TransformPoint(q); lo = Vector3.Min(lo, w); hi = Vector3.Max(hi, w); }
+        var bb = new Bounds(); bb.SetMinMax(lo, hi); return bb;
+    }
+    static bool Obcy(Transform t, Transform shopRoot) =>
+        t && !t.IsChildOf(shopRoot) && !t.GetComponentInParent<BraxGymPlayer>() && !t.GetComponentInParent<Camera>();
+
+    /// <summary>Pudło kolizji (obrót tylko o wielokrotność 90° wokół pionu) minus objętość → do 6 pudeł osiowych; oryginał wyłączony.</summary>
+    static bool PrzytnijPudlo(BoxCollider c, Bounds v, Transform rodzic)
+    {
+        var e = c.transform.rotation.eulerAngles;
+        bool osiowe = Mathf.Abs(Mathf.DeltaAngle(e.x, 0f)) < .1f && Mathf.Abs(Mathf.DeltaAngle(e.z, 0f)) < .1f && Mathf.Abs(Mathf.DeltaAngle(e.y, Mathf.Round(e.y / 90f) * 90f)) < .1f;
+        var b = c.bounds; Vector3 lo = Vector3.Max(b.min, v.min), hi = Vector3.Min(b.max, v.max);
+        if (hi.x - lo.x < .005f || hi.y - lo.y < .005f || hi.z - lo.z < .005f) return false;
+        if (osiowe)
+        {
+            void Dodaj(Vector3 a, Vector3 z)
+            {
+                var sz = z - a; if (sz.x < .01f || sz.y < .01f || sz.z < .01f) return;
+                var k = new GameObject(c.name + " (przycięta do wejścia sklepu)"); k.transform.SetParent(rodzic, false); k.transform.position = (a + z) * .5f;
+                k.layer = c.gameObject.layer; k.AddComponent<BoxCollider>().size = sz;
+            }
+            Dodaj(b.min, new Vector3(lo.x, b.max.y, b.max.z));
+            Dodaj(new Vector3(hi.x, b.min.y, b.min.z), b.max);
+            Dodaj(new Vector3(lo.x, b.min.y, b.min.z), new Vector3(hi.x, lo.y, b.max.z));
+            Dodaj(new Vector3(lo.x, hi.y, b.min.z), new Vector3(hi.x, b.max.y, b.max.z));
+            Dodaj(new Vector3(lo.x, lo.y, b.min.z), new Vector3(hi.x, hi.y, lo.z));
+            Dodaj(new Vector3(lo.x, lo.y, hi.z), new Vector3(hi.x, hi.y, b.max.z));
+        }
+        c.enabled = false;
+        return true;
+    }
+
+    static void KorytarzWejscia(Scene scene, Transform shopRoot, Transform store, float entryX, int nr)
+    {
+        Physics.SyncTransforms();
+        float pol = 2.4f * K * .5f + .5f, y0 = Podloga + .2f, y1 = 2.6f * K + .3f;
+        var kor = Aabb(store, new Vector3(entryX - pol, y0, -14f), new Vector3(entryX + pol, y1, 1.0f));
+        var rodzic = new GameObject("SUPERMARKET " + nr + ": kolizje otoczenia przycięte do korytarza wejścia").transform; rodzic.SetParent(shopRoot, false);
+        var lista = new List<string>(); int kol = 0, siatki = 0;
+        foreach (var go in scene.GetRootGameObjects())
+        {
+            if (!go || !Obcy(go.transform, shopRoot)) continue;
+            foreach (var c in go.GetComponentsInChildren<Collider>(true))
+            {
+                if (!c || !c.enabled || c.isTrigger || !Obcy(c.transform, shopRoot) || !c.bounds.Intersects(kor)) continue;
+                if (c is BoxCollider bc) { if (PrzytnijPudlo(bc, kor, rodzic)) { kol++; if (lista.Count < 30) lista.Add("kolizja " + c.name); } }
+                else if (c is MeshCollider && c.GetComponent<MeshFilter>() && c.GetComponent<MeshRenderer>()) { }   // przycinana razem z siatką niżej
+                else { c.enabled = false; kol++; if (lista.Count < 30) lista.Add("kolizja wyłączona " + c.name); }
+            }
+            foreach (var r in go.GetComponentsInChildren<MeshRenderer>(true).ToList())
+            {
+                if (!r || !r.enabled || !Obcy(r.transform, shopRoot) || !r.bounds.Intersects(kor)) continue;
+                try { int n = BraxCityMeshCut.Subtract(r.transform, kor, BraxRegion.Out + "/Cuts", "supermarket_korytarz_" + nr); siatki += n; if (n > 0 && lista.Count < 30) lista.Add("siatka " + r.name); }
+                catch (Exception e) { Debug.LogWarning("BRAXHORN_SUPERMARKET_KORYTARZ cięcie " + r.name + ": " + e.Message); }
+            }
+        }
+        Physics.SyncTransforms();
+        // próba końcowa: kapsuła Braxa co 0.2 m od parkingu (14 m przed witryną) do 3 m w głąb sklepu; drzwi automatyczne pominięte
+        var zostaly = new HashSet<string>(); int prob = 0;
+        float rad = .32f, hk = 2.2f * K;
+        for (float z = -14f; z <= 3.01f; z += .2f)
+        {
+            var foot = store.TransformPoint(new Vector3(entryX, Podloga, z)); prob++;
+            foreach (var c in Physics.OverlapCapsule(foot + Vector3.up * (rad + .2f), foot + Vector3.up * (hk - rad), rad, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore))
+                if (c && c.enabled && !c.isTrigger && !c.GetComponentInParent<BraxDrzwiPrzesuwne>() && zostaly.Count < 20) zostaly.Add(c.name + " @" + c.bounds.center.ToString("F1"));
+        }
+        string linia = "BRAXHORN_SUPERMARKET_KORYTARZ sklep=" + nr + " korytarz " + kor.min.ToString("F1") + "…" + kor.max.ToString("F1") + ": kolizje przycięte/wyłączone " + kol +
+                       ", siatki wycięte " + siatki + (lista.Count > 0 ? " [" + string.Join("; ", lista) + "]" : " (pusto)") + "; próba końcowa " + prob + " kapsuł co 0.2 m: przeszkody " + zostaly.Count +
+                       (zostaly.Count > 0 ? " [" + string.Join("; ", zostaly) + "]" : "");
+        if (zostaly.Count > 0) Debug.LogWarning("DO POPRAWKI: " + linia); else Debug.Log(linia);
+    }
+
+    /// <summary>Działka sklepu #1 (BraxMiastoGranice.DzialkaSupermarketu): obce drobne obiekty precz, plac z płyt wokół hali.</summary>
+    static void Dzialka(Scene scene, Transform shopRoot, Transform store)
+    {
+        var R = BraxMiastoGranice.DzialkaSupermarketu;
+        float hw = W * .5f;
+        var hala = Aabb(store, new Vector3(-hw, 0f, 0f), new Vector3(hw, H, D));
+        var hRect = Rect.MinMaxRect(hala.min.x, hala.min.z, hala.max.x, hala.max.z);
+        float ax = BraxRegionMiastoB.AX, pp = BraxRegionMiastoB.PetlaPlac, pz = BraxRegionMiastoB.PetlaZ;
+        var dojscie = Rect.MinMaxRect(ax - pp, pz + pp, ax + pp + 2f, pz + pp + 5.5f);   // chodnik „dojście od parkingu” (BraxRegionMiastoB)
+        // 1) obce drobne obiekty stojące na działce poza halą (drzewa lasu, krzewy, słupki, kamienie) — w całości, z LODGroup
+        var precz = new HashSet<GameObject>(); var nazwy = new List<string>();
+        foreach (var go in scene.GetRootGameObjects())
+        {
+            if (!go || !Obcy(go.transform, shopRoot)) continue;
+            foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!r || r is SkinnedMeshRenderer || !r.enabled || !Obcy(r.transform, shopRoot)) continue;
+                var rb = r.bounds;
+                if (rb.size.y < .6f || rb.size.x > 12f || rb.size.z > 12f) continue;
+                var stopa = new Vector2(rb.center.x, rb.center.z);
+                if (!R.Contains(stopa) || hRect.Contains(stopa) || dojscie.Contains(stopa) || rb.min.y > store.position.y + 1.5f) continue;
+                var lg = r.GetComponentInParent<LODGroup>();
+                var cel = lg && Obcy(lg.transform, shopRoot) && BraxRegion.Bounds(lg.gameObject).size.x < 12f ? lg.gameObject : r.gameObject;
+                if (cel.transform == go.transform && go.transform.childCount > 64) continue;
+                if (precz.Add(cel) && nazwy.Count < 20) nazwy.Add(cel.name);
+            }
+        }
+        foreach (var g in precz) if (g) UnityEngine.Object.DestroyImmediate(g);
+        // 2) plac z płyt chodnika (te same co dojście) na całej działce poza halą i dojściem: wierzch 0.15 (poziom chodników), 0.3 m
+        var plyty = BraxRegionMeble.Tex("Miasto B: płyty chodnika", 1.4f, new Color(.80f, .77f, .72f), .88f, "concrete_pavers_02", "concrete_pavement_02");
+        var kawalki = new List<Rect> { R };
+        foreach (var o in new[] { hRect, dojscie })
+            kawalki = kawalki.SelectMany(k => Odejmij(k, o)).ToList();
+        var bud = new BraxRegionMeble.Bud(); const float yTop = .15f, gr = .3f; int n = 0;
+        var kolRoot = new GameObject("SUPERMARKET 1: plac działki — kolizje").transform; kolRoot.SetParent(shopRoot, false);
+        foreach (var k in kawalki)
+        {
+            if (k.width < .05f || k.height < .05f) continue;
+            bud.MinMax(new Vector3(k.xMin, yTop - gr, k.yMin), new Vector3(k.xMax, yTop, k.yMax)); n++;
+            BraxRegionMeble.Kolizja(kolRoot, "plac działki: kolizja", new Vector3(k.center.x, yTop - gr * .5f, k.center.y), new Vector3(k.width, gr, k.height));
+        }
+        bud.Obiekt("SUPERMARKET 1: plac działki (płyty chodnika)", shopRoot, plyty, false, false);
+        Debug.Log("BRAXHORN_SUPERMARKET_DZIALKA działka " + R + " grywalna (granica obchodzi działkę), plac z płyt: " + n + " pól; obce obiekty usunięte " + precz.Count +
+                  (nazwy.Count > 0 ? " [" + string.Join("; ", nazwy) + "]" : ""));
+    }
+    static IEnumerable<Rect> Odejmij(Rect a, Rect b)
+    {
+        var p = Rect.MinMaxRect(Mathf.Max(a.xMin, b.xMin), Mathf.Max(a.yMin, b.yMin), Mathf.Min(a.xMax, b.xMax), Mathf.Min(a.yMax, b.yMax));
+        if (p.width <= .001f || p.height <= .001f) { yield return a; yield break; }
+        if (p.yMin > a.yMin) yield return Rect.MinMaxRect(a.xMin, a.yMin, a.xMax, p.yMin);
+        if (p.yMax < a.yMax) yield return Rect.MinMaxRect(a.xMin, p.yMax, a.xMax, a.yMax);
+        if (p.xMin > a.xMin) yield return Rect.MinMaxRect(a.xMin, p.yMin, p.xMin, p.yMax);
+        if (p.xMax < a.xMax) yield return Rect.MinMaxRect(p.xMax, p.yMin, a.xMax, p.yMax);
     }
 
     // Utrzymanie istniejącego sklepu i zatwierdzonych produktów.
@@ -200,9 +345,10 @@ public static class BraxSupermarket
         // Takich drzwi nie traktujemy jako niewidzialnej przeszkody.
         int samples=0;var obstacles=new HashSet<string>();
         float radius=.32f, h=2.2f*K;
-        for(int i=0;i<=11;i++)
+        // 16.11 15:13: próby co 0.25 m (było 12 prób co 1.5 m — przeskoczyły kolizję granicy grubości 0.5 m w poprzek dojścia)
+        for(int i=0;i<=68;i++)
         {
-            float z=Mathf.Lerp(-13.5f,3.5f,i/11f);   // 10.11: sprawdzenie całego dojścia od parkingu do wnętrza
+            float z=Mathf.Lerp(-13.5f,3.5f,i/68f);   // 10.11: sprawdzenie całego dojścia od parkingu do wnętrza
             Vector3 foot=store.TransformPoint(new Vector3(entryX,.12f,z));
             foreach(var c in Physics.OverlapCapsule(foot+Vector3.up*(radius+.06f),
                 foot+Vector3.up*(h-radius),radius,

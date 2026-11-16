@@ -1,0 +1,22 @@
+{
+ "source": "Właściciel 16.11.2026 14:56–15:14: „Autobus mamy nowy ze środkiem… go bierzemy, nie tego MAN-a”; plik z szkicu wydania „Postacie” (Osiedle_14_pojazdow_z_tablicami.zip → Braxhorn_Autobus_BX10006.glb, BraxhornCityBus12 1.0.1 zatwierdzony 15.11) — autobus kursowy miasta R1",
+ "target": "pojazdy_globalne_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/pojazdy_globalne_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "fc0177eb3a80e141130aaa3eabb128f11b72c377dd32c41ee2156d3ac0000aaa",
+ "cmsSha256": "07f60eede5dca248334f09c833423192791434dd0b3e2b83a8edad91336f3eec",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 19456581,
+   "sha256": "07f60eede5dca248334f09c833423192791434dd0b3e2b83a8edad91336f3eec"
+  }
+ ],
+ "files": {
+  "oryginal/spec.json": "e82dc56797c83f3624148509e2f127ff36c347693d68fc618552f3370af9d31b",
+  "oryginal/zrodlo.txt": "4438098613070168e7b1110c4b97c04ebcdd4e85ef7734122876e3a97f3970b6",
+  "pojazdy_globalne_01/Braxhorn_Autobus_BX10006.glb": "38251fe47700bed6bcd0aeafb206e53a45930d60a9428f72353a4d463ae4e544",
+  "pojazdy_globalne_01/katalog.json": "0ffd287c8d0c6e9bd0d82c3440b88e04b19ef5c5eb384b165c0cf3180d66ed33"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

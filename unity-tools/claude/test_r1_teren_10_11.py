@@ -336,7 +336,8 @@ class WejscieSupermarketu(unittest.TestCase):
     def test_entrance_corridor_to_parking(self):
         sm = src(R / "BraxSupermarket.cs")
         self.assertIn("Mathf.Abs(q.x-entryX) < doorWidth*.5f+.8f && q.z > -14f && q.z < 2f;", sm)
-        self.assertIn("float z=Mathf.Lerp(-13.5f,3.5f,i/11f);", sm)
+        # 16.11 15:13: próby co 0.25 m (12 prób co 1.5 m przeskoczyło kolizję granicy 0.5 m w poprzek dojścia)
+        self.assertIn("float z=Mathf.Lerp(-13.5f,3.5f,i/68f);", sm)
 
 
 if __name__ == "__main__":
