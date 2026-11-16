@@ -403,6 +403,19 @@ class Entrance(unittest.TestCase):
         self.assertTrue(all(x + w <= 2172 and y + h <= 724 for x, y, w, h in parts))
         self.assertIn("if (src != null) Wklej(px, w, h, src, sw, sh, Arkusz[i, 0], sh - Arkusz[i, 1] - Arkusz[i, 3], Arkusz[i, 2], Arkusz[i, 3], 0, 0, w, h);", KIT3)
 
+    def test_cloakroom_hangs_the_owners_jackets(self):
+        # 16.11 22:37 "na wieszakach to powiesić normalne ciuchy, te co mamy, nie? Kurtki": the shared shop packs' hanger cuts
+        for n in ("sklep_ubrania_01/ubranie_trencz_bezowy", "sklep_ubrania_02/ubranie_ramoneska_czarna", "sklep_ubrania_01/ubranie_kurtka_puchowa_czarna",
+                  "sklep_ubrania_02/ubranie_bomberka_khaki", "sklep_ubrania_02/ubranie_katana_jeansowa"):
+            self.assertIn('"' + n + '"', KIT3)
+        self.assertIn('BraxMiastoAssety.Model(pack, n.Substring(sl + 1) + "_wieszak")', KIT3)
+        self.assertIn("BraxMiastoAssety.Przygotuj(o, false, false);", KIT3)        # shared meshes: not static, no shadows
+        self.assertIn("x += wlasne ? .15f : .11f", KIT3)                            # 12-13 cm thick cuts 15 cm apart
+        self.assertIn("if (!wlasne || !KurtkaNaWieszaku(", KIT3)                   # the code coats only without the packs
+        self.assertIn("lod.SetLODs(new[] { new LOD(.04f, rs) });", KIT3)
+        self.assertIn("var jego = Kurtka(KurtkaGracza);", KIT3)                    # the player's own jacket too
+        self.assertIn('Debug.Log("KASYNO_SZATNIA "', KIT3)
+
     def test_both_casinos(self):
         for f in ("Bramka(kas,new Vector3(0f,fl,-22.4f),0f)", "Recepcja(kas,new Vector3(-8.0f,fl,-20.5f),90f,4.0f,true)",
                   "Szatnia(kas,new Vector3(8.0f,fl,-20.5f),-90f,3.6f,2,true)", "Kasa(kas,new Vector3(13.8f,fl,-21.4f),0f,3)",

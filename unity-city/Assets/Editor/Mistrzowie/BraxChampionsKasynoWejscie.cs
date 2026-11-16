@@ -54,13 +54,46 @@ public static partial class BraxChampionsKasynoSprzet
         var b = new BraxChampionsMeshBatch(); Plaszcz(b, plaszcze[3], Vector3.zero, 0f); czKurtka = Czesc(b, "szatnia kurtka gracza");
     }
 
+    // the coat check's wooden hanger (its bar across the rail, the chrome hook over the rail at top)
+    static void Wieszak(BraxChampionsMeshBatch b, Vector3 top, float skret)
+    {
+        var q = Quaternion.Euler(0f, skret, 0f);
+        b.Tube(ciemnyOrzech, top + q * new Vector3(0f, -.05f, -.21f), top + q * new Vector3(0f, -.05f, .21f), .008f, 6);
+        b.Tube(chrom, top + q * new Vector3(0f, -.05f, 0f), top + q * new Vector3(0f, .012f, 0f), .003f, 5);
+    }
+    // the owner's jackets (16.11 22:37: "Tam w szatni na wieszakach to powiesić normalne ciuchy, te co mamy, nie? Kurtki"):
+    // the hanger cuts ("_wieszak") of the shared shop packs (unity-tools/sklep, global for the whole game: one mesh per model
+    // on every hook, not static, no shadows) - a trench, a black puffer, a biker, a bomber, a denim jacket; the code coats
+    // below only without the packs (no KLUCZ)
+    static readonly string[] Kurtki = { "sklep_ubrania_01/ubranie_trencz_bezowy", "sklep_ubrania_02/ubranie_ramoneska_czarna",
+        "sklep_ubrania_01/ubranie_kurtka_puchowa_czarna", "sklep_ubrania_02/ubranie_bomberka_khaki", "sklep_ubrania_02/ubranie_katana_jeansowa" };
+    public const int KurtkaGracza = 1;                                                                   // his own: the black biker
+    public static int KurtkiWlasciciela;
+    static GameObject Kurtka(int i)
+    {
+        string n = Kurtki[((i % Kurtki.Length) + Kurtki.Length) % Kurtki.Length]; int sl = n.IndexOf('/');
+        string pack = n.Substring(0, sl);
+        return BraxMiastoAssety.Jest(pack) ? BraxMiastoAssety.Model(pack, n.Substring(sl + 1) + "_wieszak") : null;
+    }
+    // one of the owner's jackets on its hanger at the rail's point top (k.root's frame): its front along the rail, its
+    // shoulders across it, hanging from the hanger 6 cm under the rail (as in the shops, BraxChampionsG1Sklepy)
+    static bool KurtkaNaWieszaku(BraxChampionsMeshBatch b, Transform parent, Vector3 top, float skret, int i)
+    {
+        var src = Kurtka(i); if (!src) return false;
+        var o = (GameObject)UnityEngine.Object.Instantiate(src, parent, false); o.name = "szatnia | " + src.name + " (paczka sklepowa właściciela)";
+        o.transform.localPosition = top + Vector3.down * .06f; o.transform.localRotation = Quaternion.Euler(0f, skret + 90f, 0f);
+        o.transform.localScale = src.transform.localScale;
+        BraxMiastoAssety.Przygotuj(o, false, false);
+        Wieszak(b, top, skret);
+        KurtkiWlasciciela++;
+        return true;
+    }
     // a coat on its wooden hanger, hanging from the rail at top (the rail along x, the coat across it)
     static void Plaszcz(BraxChampionsMeshBatch b, Material m, Vector3 top, float skret, float dlugosc = 1.04f)
     {
         var q = Quaternion.Euler(0f, skret, 0f);
         Vector3 P(float x, float y, float z) => top + q * new Vector3(x, y, z);
-        b.Tube(ciemnyOrzech, P(0f, -.05f, -.21f), P(0f, -.05f, .21f), .008f, 6);                    // the hanger's bar
-        b.Tube(chrom, P(0f, -.05f, 0f), P(0f, .012f, 0f), .003f, 5);                                         // its hook
+        Wieszak(b, top, skret);
         // the body: narrower and thinner at the shoulders, its hem as long as the coat (coats 11 cm apart never touch)
         float y0 = -.06f, y1 = -dlugosc;
         Vector3[] s = { P(-.032f, y0, -.20f), P(.032f, y0, -.20f), P(.032f, y0, .20f), P(-.032f, y0, .20f) };
@@ -120,6 +153,9 @@ public static partial class BraxChampionsKasynoSprzet
         W.Kolizja(P(0f, .52f, 0f), new Vector3(L + .1f, 1.05f, .76f), q);
         var los = new System.Random(31 + (int)(c.x * 7f + c.z * 13f));
         float rl = L + .4f;
+        // the owner's jackets in one group, hidden from afar (a 2.5k-triangle model on every hook)
+        var kurtki = new GameObject("szatnia | kurtki (paczki sklepowe właściciela)").transform; kurtki.SetParent(k.root, false);
+        int przed = KurtkiWlasciciela;
         for (int r = 0; r < rails; r++)
         {
             float z = -.95f - .75f * r, y = 1.78f;
@@ -129,13 +165,33 @@ public static partial class BraxChampionsKasynoSprzet
                 b.Tube(chrom, P(s * rl * .5f, 0f, z), P(s * rl * .5f, y + .02f, z), .02f, 10);
                 b.Cylinder(chrom, P(s * rl * .5f, 0f, z), .14f, .015f, 14, q, true);
             }
-            for (float x = -rl * .5f + .12f; x < rl * .5f - .20f; x += .11f)
-                if (los.NextDouble() < .78) Plaszcz(b, plaszcze[los.Next(plaszcze.Length)], P(x, y, z), yaw + (float)(los.NextDouble() * 4 - 2), .92f + .02f * los.Next(9));
+            // the jackets 15 cm apart (their hanger cuts are 12-13 cm thick), the code coats 11 cm
+            bool wlasne = false; for (int i = 0; i < Kurtki.Length; i++) wlasne |= Kurtka(i) != null;
+            for (float x = -rl * .5f + .12f; x < rl * .5f - .20f; x += wlasne ? .15f : .11f)
+            {
+                if (los.NextDouble() >= .78) continue;
+                float skret = yaw + (float)(los.NextDouble() * 4 - 2);
+                if (!wlasne || !KurtkaNaWieszaku(b, kurtki, P(x, y, z), skret, los.Next(Kurtki.Length)))
+                    Plaszcz(b, plaszcze[los.Next(plaszcze.Length)], P(x, y, z), skret, .92f + .02f * los.Next(9));
+            }
             W.Kolizja(P(0f, .9f, z), new Vector3(rl, 1.8f, .55f), q);
         }
         // the player's jacket on the first hook of the front rail (the game shows it while it hangs there)
         var kurtka = new GameObject("szatnia | kurtka gracza (na wieszaku)").transform; kurtka.SetParent(k.root, false);
-        kurtka.localPosition = P(rl * .5f - .08f, 1.78f, -.95f); kurtka.localRotation = q; Wstaw(czKurtka, kurtka, "kurtka");
+        kurtka.localPosition = P(rl * .5f - .08f, 1.78f, -.95f); kurtka.localRotation = q;
+        var jego = Kurtka(KurtkaGracza);
+        if (jego)
+        {
+            // his jacket under the shown / hidden hook object; the hanger stays on the rail when he takes it
+            var o = (GameObject)UnityEngine.Object.Instantiate(jego, kurtka, false); o.name = "szatnia | kurtka gracza | " + jego.name;
+            o.transform.localPosition = Vector3.down * .06f; o.transform.localRotation = Quaternion.Euler(0f, 90f, 0f); o.transform.localScale = jego.transform.localScale;
+            BraxMiastoAssety.Przygotuj(o, false, false); Wieszak(b, P(rl * .5f - .08f, 1.78f, -.95f), yaw); KurtkiWlasciciela++;
+        }
+        else Wstaw(czKurtka, kurtka, "kurtka");
+        var rs = kurtki.GetComponentsInChildren<Renderer>(true);
+        if (rs.Length > 0) { var lod = kurtki.gameObject.AddComponent<LODGroup>(); lod.SetLODs(new[] { new LOD(.04f, rs) }); lod.RecalculateBounds(); }
+        else UnityEngine.Object.DestroyImmediate(kurtki.gameObject);
+        Debug.Log("KASYNO_SZATNIA " + k.nazwa + " jackets=" + (KurtkiWlasciciela - przed) + (KurtkiWlasciciela > przed ? " (the owner's shop packs)" : " (code coats: shop packs missing)"));
         if (sciana)
         {
             float z = -1.0f - .75f * rails, sw = L + 1.4f;
