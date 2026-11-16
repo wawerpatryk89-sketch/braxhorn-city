@@ -351,7 +351,9 @@ class WiezowceMurowane(unittest.TestCase):
 
     def test_windows_are_real_glass_on_world_grid(self):
         self.assertIn("const float WG = 3.6f;", WIEZE)
-        self.assertIn("float s = (j * WG - a0) / kier;", WIEZE)
+        # 16.11: siatka filarów wspólna z lokalami w parterach (BraxRegionFawelaWiezeLokale.LinieSiatki) — ta sama formuła
+        self.assertIn("float s = (j * WG - a0) / kier;", src(R / "BraxRegionFawelaWiezeLokale.cs"))
+        self.assertIn("var linie = LinieSiatki(F);", WIEZE)
         self.assertIn('BraxSzkloFasady.Mat("wieże — okna " + kl, WG, kondygnacja, floor0,', WIEZE)
         self.assertIn("float ww = 2.5f, wh = 2.7f, par = .8f;", WIEZE)                    # duże okna
         self.assertNotIn("OknoPokoj", WIEZE)

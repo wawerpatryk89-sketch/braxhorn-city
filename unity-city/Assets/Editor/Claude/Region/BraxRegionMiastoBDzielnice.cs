@@ -167,15 +167,17 @@ public static partial class BraxRegionMiastoB
     static void NdKwartaly()
     {
         // --- KWARTAŁY (płyty jak chodniki B) ---
+        // 16.11: bez posadzek lokali w parterach wieżowców (posadzka lokalu z generatora wnętrz — BraxRegionFawelaWiezeLokale)
+        BraxRegionFawela.LokaleReset(); ndPosadzki = NdPosadzkiLokali(); var bezLokali = ndPosadzki.Select(q => q.r).ToList();
         for (int i = 0; i < 3; i++)
         {
             float xa = NC[i + 1] + NPR, xb = NC[i] - NPR;
-            Chodnik("kwartał A" + (i + 1) + " (płyty)", xa, xb, RzA0, RzA1);
-            Chodnik("kwartał C" + (i + 1) + " z promenadą (płyty)", xa, xb, RzC0, RzC1);
+            ChodnikBez("kwartał A" + (i + 1) + " (płyty)", Rect.MinMaxRect(xa, RzA0, xb, RzA1), bezLokali);
+            ChodnikBez("kwartał C" + (i + 1) + " z promenadą (płyty)", Rect.MinMaxRect(xa, RzC0, xb, RzC1), bezLokali);
         }
         Chodnik("rząd B ul. Nowojorskiej (płyty)", NC[3] - NPR, NC[0] + NPR, RzB0, RzB1);
         Chodnik("ciąg pieszy za rzędem B (płyty)", NXA, NC[0] + NPR, RzB1, NZ1);
-        Plyta("Plac ATLANTA: płyty granitowe", granitPlac, NXA, NC[3] - NPR, NS1 - NPR, RzB1, YC, .3f - YA);
+        NdPlacAtlanty();   // 16.11: granit placu + betonowe podwórze ustawek za ATLANTĄ (BraxRegionMiastoBNoweMiejsca)
     }
 
     static void NdZielen()
@@ -183,11 +185,12 @@ public static partial class BraxRegionMiastoB
         // --- ZIELEŃ: skwer zachodni (między pętlą a ul. C0), pas zieleni na południu ---
         Trawa("Skwer zachodni (płn.)", NC[0] + NPR, NX, RZ + APR, NZ1);
         Trawa("Skwer zachodni (płd.)", NC[0] + NPR, NX, NS1 - NPR, RZ - APR);
-        TrawaBez("Pas zieleni na południu (do granicy)", Rect.MinMaxRect(NXA, BraxMiastoGranice.Z0, NX, NS1 - NPR), true, PeronTramwaju);
+        TrawaBez("Pas zieleni na południu (do granicy)", Rect.MinMaxRect(NXA, BraxMiastoGranice.Z0, NX, NS1 - NPR), true, PeronTramwaju, KomisRect);
+        NdKomisNawierzchnia();   // 16.11: plac komisu aut przy przystanku T1 TRAMWAJOWA (asfalt w miejscu trawy)
         Chodnik("peron przystanku tramwajowego (płyty)", PeronTramwaju.xMin, PeronTramwaju.xMax, PeronTramwaju.yMin, PeronTramwaju.yMax);
         for (float z = RZ + APR + 8f; z < NZ1 - 6f; z += 14f) { Drzewo(new Vector3(-283f + ((int)z % 3), YC - .03f, z)); Drzewo(new Vector3(-269f, YC - .03f, z + 7f)); ndDrzewa += 2; }
         for (float z = NS1 - NPR + 8f; z < RZ - APR - 6f; z += 14f) { Drzewo(new Vector3(-283f, YC - .03f, z)); Drzewo(new Vector3(-269f + ((int)z % 3), YC - .03f, z + 7f)); ndDrzewa += 2; }
-        for (float x = NXA + 10f; x < NX - 10f; x += 16f) { if (PeronTramwaju.xMin - 4f < x && x < PeronTramwaju.xMax + 4f) continue; Drzewo(new Vector3(x, YC - .03f, -79f + ((int)(x * .1f) % 3))); ndDrzewa++; }
+        for (float x = NXA + 10f; x < NX - 10f; x += 16f) { if (PeronTramwaju.xMin - 4f < x && x < PeronTramwaju.xMax + 4f) continue; if (KomisRect.xMin - 4f < x && x < KomisRect.xMax + 4f) continue; Drzewo(new Vector3(x, YC - .03f, -79f + ((int)(x * .1f) % 3))); ndDrzewa++; }
     }
 
     // 9.11: przystanek „T1 · TRAMWAJOWA” na pętli T1 (odcinek C3–C2, jazda na wschód, drzwi po prawej = strona płd.)
@@ -462,6 +465,7 @@ public static partial class BraxRegionMiastoB
         try { NdMigotanieBudynkow(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola podstaw budynków", e); }
         // 11.11 (właściciel: okrągły wieżowiec „brzydki”, „zrób porządnie”) — po przycięciu nawisów, bryła modelu bez zmian
         try { NdLondonFasada(g); } catch (Exception e) { BraxMiastoAssety.Blad("LONDON elewacja", e); }
+        try { NdLokaleKontrola(); } catch (Exception e) { BraxMiastoAssety.Blad("lokale w parterach wieżowców", e); }
         NdLog("szkło fasad: " + nSzklo + " materiałów na budynkach zamienione na szkło refleksyjne (czarny metal / szyby przed pustą bryłą)");
         NdLog("wieżowce z kodu: " + ndWiezeMurowane + " (murowanych " + BraxRegionFawela.wiezMurowanych + ", szklanych " + BraxRegionFawela.wiezSzklanych + ", okien " + BraxRegionFawela.wiezOkien + ", trójkątów " + BraxRegionFawela.wiezTrojkatow + ")");
         NdLog("budynki: postawione " + ok + "/" + NoweBudynki.Length + (brak > 0 ? ", bez modelu " + brak + " (paczka nieodszyfrowana — kwartał zostaje z płytami)" : ""));
@@ -718,6 +722,8 @@ public static partial class BraxRegionMiastoB
         try { NdPrzystanekAutobusu(); } catch (Exception e) { BraxMiastoAssety.Blad("przystanek autobusowy", e); }
         try { NdTramwaj(); } catch (Exception e) { BraxMiastoAssety.Blad("tramwaj", e); }
         try { NdDrobne(); } catch (Exception e) { BraxMiastoAssety.Blad("wyposażenie (hydranty, skrzynki, bankomat, kontenery)", e); }
+        try { NdPlacUstawek(); } catch (Exception e) { BraxMiastoAssety.Blad("plac ustawek za ATLANTĄ", e); }
+        try { NdKomis(); } catch (Exception e) { BraxMiastoAssety.Blad("komis samochodów używanych", e); }
         try { NdKontrolaNawierzchni(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola migotania nawierzchni", e); }
         Debug.Log("BRAXHORN_MIASTO_ASSETY_MIGOTANIE pary=" + ndMigotanie + " (nowe dzielnice: płyty, krawężniki, trawniki, wstawki toru, podstawy budynków; asfalt i farba — w kontroli B)");
         Debug.Log("BRAXHORN_MIASTO_ASSETY_USUNIETE (" + ndUsuniete.Count + "): " + string.Join(" | ", ndUsuniete.Take(40)));

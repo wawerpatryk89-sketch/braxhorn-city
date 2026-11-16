@@ -136,15 +136,13 @@ public static partial class BraxRegionFawela
         var kolMarkiz = new[] { new Color(.55f, .14f, .12f), new Color(.12f, .30f, .22f), new Color(.14f, .20f, .38f), new Color(.82f, .72f, .5f) }[nr % 4];
         const float Gl = .26f, Fil = .4f, Wys = .16f;   // głębokość ościeża, pół szerokości filara, wysunięcie filara
         float ww = 2.5f, wh = 2.7f, par = .8f;       // duże okna (2.5 × 2.7 m) — przeszklenie ok. 45 % elewacji
+        // 16.11: prawdziwe lokale w parterze (BraxRegionFawelaWiezeLokale) — przęsła ze szkłem przezroczystym, drzwi, wnętrze
+        var lokaleTu = LokaleWiez.Where(l => l.bud == id).ToList(); var plany = new List<LokalPlan>();
 
         for (int ti = 0; ti < pietra.Length; ti++)
         {
             var (rc, f0, f1) = pietra[ti]; bool ostatni = ti == pietra.Length - 1; float y0 = Y(f0), y1 = Y(f1), att = ostatni ? 1.5f : 1.1f;
-            var sciany = new[]
-            {
-                Fr.Nowa(new Vector3(rc.xMin, 0f, rc.yMax), Vector3.forward, rc.width), Fr.Nowa(new Vector3(rc.xMax, 0f, rc.yMin), Vector3.back, rc.width),
-                Fr.Nowa(new Vector3(rc.xMin, 0f, rc.yMin), Vector3.left, rc.height), Fr.Nowa(new Vector3(rc.xMax, 0f, rc.yMax), Vector3.right, rc.height)
-            };
+            var sciany = ScianyProstokata(rc);
             for (int si = 0; si < 4; si++)
             {
                 var F = sciany[si]; float L = F.L;
@@ -159,22 +157,29 @@ public static partial class BraxRegionFawela
                     continue;
                 }
                 // linie siatki świata na tej ścianie (osie filarów)
-                bool wzdX = Mathf.Abs(F.R.x) > .5f; float a0 = wzdX ? F.A.x : F.A.z, kier = wzdX ? F.R.x : F.R.z;
-                var linie = new List<float>();
-                for (int j = Mathf.FloorToInt(Mathf.Min(a0, a0 + kier * L) / WG) - 1; j <= Mathf.CeilToInt(Mathf.Max(a0, a0 + kier * L) / WG) + 1; j++)
-                { float s = (j * WG - a0) / kier; if (s > Fil + .15f && s < L - Fil - .15f) linie.Add(s); }
-                linie.Sort();
+                var linie = LinieSiatki(F);
                 var osie = new List<float>(); for (int j = 0; j + 1 < linie.Count; j++) osie.Add((linie[j] + linie[j + 1]) * .5f);
-                int wejscie = (f0 == 0 && si < 2 && osie.Count >= 3) || (f0 == 0 && si >= 2 && osie.Count >= 7) ? osie.Count / 2 : -1;
+                int wejscie = f0 == 0 ? WejscieHolu(si, osie.Count) : -1;
+                // lokale na tej ścianie (tylko parter): przęsła q0…q1, drzwi w przęśle qd
+                var lokTu = new List<LokalPlan>();
+                if (f0 == 0)
+                    foreach (var l in lokaleTu.Where(q => q.strona == si))
+                    {
+                        if (!Przesla(l, osie.Count, wejscie, out int q0, out int q1, out int qd) || lokTu.Any(p => !(q1 < p.q0 || q0 > p.q1)))
+                        { Debug.LogWarning("DO POPRAWKI: BRAXHORN_LOKALE_WIEZ " + id + ": " + l.szyld + " nie mieści się w parterze (przęseł " + osie.Count + ", portal holu " + wejscie + ")"); continue; }
+                        lokTu.Add(new LokalPlan { l = l, F = F, q0 = q0, q1 = q1, qd = qd, s0 = linie[q0], s1 = linie[q1 + 1], sc = osie[qd] });
+                    }
+                Func<int, LokalPlan> LokalQ = q => lokTu.FirstOrDefault(p => q >= p.q0 && q <= p.q1);
                 // ---- otwory: witryny / portal na parterze, okna wyżej
                 var otwP = new List<Rect>(); var otwG = new List<(Rect r, int pietro)>();
                 for (int i = f0; i < f1; i++)
                     for (int q = 0; q < osie.Count; q++)
                     {
                         float sc = osie[q], yy = Y(i);
-                        if (i == 0) otwP.Add(q == wejscie ? Rect.MinMaxRect(sc - 1.25f, yy, sc + 1.25f, yy + 3.7f) : Rect.MinMaxRect(sc - 1.28f, yy + .55f, sc + 1.28f, yy + Hp - 1.25f));
+                        if (i == 0) otwP.Add(q == wejscie || LokalQ(q)?.qd == q ? Rect.MinMaxRect(sc - 1.25f, yy, sc + 1.25f, yy + 3.7f) : Rect.MinMaxRect(sc - 1.28f, yy + .55f, sc + 1.28f, yy + Hp - 1.25f));
                         else otwG.Add((Rect.MinMaxRect(sc - ww * .5f, yy + par, sc + ww * .5f, yy + par + (ostatni && i >= f1 - 2 ? wh + .25f : wh)), i));
                     }
+                foreach (var p in lokTu) { p.otw = otwP.GetRange(p.q0, p.q1 - p.q0 + 1); plany.Add(p); lokaleWiezPlan.Add(id + "|" + p.l.szyld); }
                 // ---- mur: parter z kamienia cokołu, wyżej cegła; attyka nad uskokiem
                 float yMur0 = y0;
                 if (f0 == 0) { Sciana(Cok(), F, 0f, L, y0, Y(1), otwP, float.NaN, Gl); yMur0 = Y(1); }
@@ -224,12 +229,20 @@ public static partial class BraxRegionFawela
                 // ---- parter: cokolik, witryny z naświetlem i markizą, portal wejścia
                 if (f0 == 0)
                 {
-                    BoxF(WB(st.cokol).K(st.cokolK * .7f), F, -Wys - .1f, L + Wys + .1f, y0 - .3f, y0 + .5f, -Wys - .12f, 0f, false, false);
+                    {   // cokolik wzdłuż lica — przerwany w drzwiach lokali (wejście z chodnika bez progu z kamienia)
+                        var cokB = WB(st.cokol).K(st.cokolK * .7f); float cs0 = -Wys - .1f;
+                        foreach (var p in lokTu.OrderBy(p => p.sc)) { BoxF(cokB, F, cs0, p.sc - LokDrzwiW * .5f, y0 - .3f, y0 + .5f, -Wys - .12f, 0f, false, false); cs0 = p.sc + LokDrzwiW * .5f; }
+                        BoxF(cokB, F, cs0, L + Wys + .1f, y0 - .3f, y0 + .5f, -Wys - .12f, 0f, false, false);
+                    }
                     for (int q = 0; q < otwP.Count; q++)
                     {
                         var o = otwP[q]; float gd = Gl - .075f;
                         if (q == wejscie) { PortalWiezy(F, o, WB, st, oknaW, rama, id, si); continue; }
-                        Pasek(oknaW, F, o.xMin, o.xMax, o.yMin, o.yMax, Gl - .06f);
+                        var lp = LokalQ(q);
+                        if (lp != null && lp.qd == q) continue;                                    // drzwi lokalu — ZbudujLokal (BraxDrzwiLokalu)
+                        var szyba = lp != null ? WB(LokSzklo).K(Color.white) : oknaW;              // lokal: szkło przezroczyste, za nim prawdziwe wnętrze
+                        Pasek(szyba, F, o.xMin, o.xMax, o.yMin, o.yMax, Gl - .06f);
+                        if (lp != null) Pasek(szyba, F, o.xMax, o.xMin, o.yMin, o.yMax, Gl - .06f);  // szyba dwustronna (od środka też szkło)
                         float yn = o.yMin + (o.yMax - o.yMin) * .74f;
                         foreach (float s in new[] { o.xMin, o.xMin + (o.xMax - o.xMin) / 3f - .03f, o.xMin + (o.xMax - o.xMin) * 2f / 3f - .03f, o.xMax - .07f }) Pasek(rama, F, s, s + .07f, o.yMin, o.yMax, gd);
                         Pasek(rama, F, o.xMin, o.xMax, o.yMin, o.yMin + .08f, gd); Pasek(rama, F, o.xMin, o.xMax, o.yMax - .08f, o.yMax, gd); Pasek(rama, F, o.xMin, o.xMax, yn - .04f, yn + .04f, gd);
@@ -296,18 +309,31 @@ public static partial class BraxRegionFawela
                 WB(wStal).K(new Color(.8f, .8f, .8f)).Box(new Vector3(vx - .5f, yd, vz - .4f), new Vector3(vx + .5f, yd + .9f, vz + .4f));
             }
         }
+        // lico wewnętrzne ściany frontowej lokali (od środka — z ościeżami witryn i drzwi), do sufitu lokalu
+        foreach (var p in plany) LicoWewnetrzne(WB(LokLico).K(Color.white), p, yBase, yBase + LokSufit, Gl);
         // ---- siatki, kolizja bryły, LOD
         var rend = new List<Renderer>();
         foreach (var kv in siatki)
         {
-            bool szklo = kv.Key.shader && kv.Key.shader.name.Contains("Okno");
+            bool szkloLok = plany.Count > 0 && kv.Key == LokSzklo;
+            bool szklo = (kv.Key.shader && kv.Key.shader.name.Contains("Okno")) || szkloLok;
             var o = kv.Value.Obiekt("Wieża " + id + ": " + kv.Key.name, korzen, kv.Key, !szklo, false);
+            if (o && szkloLok) GameObjectUtility.SetStaticEditorFlags(o, StaticEditorFlags.BatchingStatic);   // szyba witryn nie zasłania (bez Occluder)
             if (o) { rend.Add(o.GetComponent<Renderer>()); wiezTrojkatow += kv.Value.t.Count / 3; }
         }
         float top = Y(N) + 1.5f;
-        var col = new GameObject("Budynek " + id + " kolizja").AddComponent<BoxCollider>(); col.transform.SetParent(korzen, false);
-        col.transform.position = new Vector3(x, (yBase + top) * .5f, z); col.size = new Vector3(w + 2f * Wys, top - yBase, d + 2f * Wys);
+        if (plany.Count == 0)
+        {
+            var col = new GameObject("Budynek " + id + " kolizja").AddComponent<BoxCollider>(); col.transform.SetParent(korzen, false);
+            col.transform.position = new Vector3(x, (yBase + top) * .5f, z); col.size = new Vector3(w + 2f * Wys, top - yBase, d + 2f * Wys);
+        }
+        else KolizjeZLokalami(korzen, id, x, z, w, d, yBase, top, Gl, Wys, plany);
         var lod = korzen.gameObject.AddComponent<LODGroup>(); lod.SetLODs(new[] { new LOD(.004f, rend.ToArray()) }); lod.RecalculateBounds();
+        foreach (var p in plany)
+        {
+            try { ZbudujLokal(korzen, id, p, yBase, Gl); }
+            catch (Exception e) { Debug.LogError("BRAXHORN_LOKALE_WIEZ " + id + " " + p.l.szyld + " DO POPRAWKI: " + e); }
+        }
         Debug.Log("BRAXHORN_WIEZA " + id + ": " + (szklana ? "SZKLANA (wariant " + (wariantSzkla % 4) + "), " : "MUROWANA, ") + "styl „" + st.nazwa + "”, kondygnacji " + N + ", wysokość " + (top - yBase).ToString("F0") + " m, obrys " + w.ToString("F1") + " × " + d.ToString("F1") + " m, okien dotąd " + wiezOkien + ", trójkątów dotąd " + wiezTrojkatow);
         return korzen.gameObject;
     }

@@ -1,0 +1,26 @@
+{
+ "source": "Właściciel 16.11.2026 17:57: „mały komis samochodów używanych… koło tramwaju” — 5 aut z szkicu wydania „Postacie” (Osiedle_14_pojazdow_z_tablicami.zip): coupé BX 10013, coupé grafitowe BX 10014, GT6 coupé BX 10007, roadster BX 10009, S2 spider BX 10008 — ekspozycja komisu przy T1 TRAMWAJOWA",
+ "target": "pojazdy_komis_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/pojazdy_komis_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "9eeb514f229ed75d83284c8843623bd0aefa28de537f217663d088a2faff068f",
+ "cmsSha256": "2cbceeeb6c8fcdd9763330ca68e294f17d371617948b4ee3766d533e241188a3",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 51200581,
+   "sha256": "2cbceeeb6c8fcdd9763330ca68e294f17d371617948b4ee3766d533e241188a3"
+  }
+ ],
+ "files": {
+  "oryginal/spec.json": "7e3b4e4b0c94148c9decff3db3e92238c351eaa18ffbfbe65a335757ee983122",
+  "oryginal/zrodlo.txt": "725bfe7500e2dba0297680a22f34efd406534e2b497d7f63b19ae49434ca508c",
+  "pojazdy_komis_01/Braxhorn_Coupe_BX10013.glb": "824e52ec3813c762b60a15d0267367a847d540ab7f8422ddae601c60b6901b0e",
+  "pojazdy_komis_01/Braxhorn_GT6_Coupe_BX10007.glb": "f6d9f1b54ae7c65f61a666f6d7d2c5718c81cfb3d5fa4d09a29255cd4c56a7d7",
+  "pojazdy_komis_01/Braxhorn_Graphite_Coupe_BX10014.glb": "89921f2c1685a476de51aaf884c1e87eb949462bdeb4a710b3b7e1a44e691526",
+  "pojazdy_komis_01/Braxhorn_Roadster_BX10009.glb": "9df528e52db25f1c56abfc33bef7e0fb52f98109dc8d494b545987f8d08e22dd",
+  "pojazdy_komis_01/Braxhorn_S2_Spider_BX10008.glb": "e0c056020e6f8329308d922f9d4d56257178051141401cf91cf50164b8bd1e3c",
+  "pojazdy_komis_01/katalog.json": "9f40a239abe09daa33543aa3621bf6afdb79f5cb0d808229e9816707cfbe34f3"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
