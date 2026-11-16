@@ -81,7 +81,7 @@ class Finishing(unittest.TestCase):
         self.assertIn('if(fac&&u.trade!="fashion"&&u.trade!="sport"&&u.trade!="bags")', self.s)
         for t in ('u.trade=="shoes"', 'u.trade=="cosmetics"', 'u.trade=="toys"'):
             self.assertIn(t, self.s[self.s.index("THE STREET WINDOWS"):])
-        self.assertIn('nm+" TV witryna"', self.s)
+        self.assertNotIn('nm+" TV witryna"', self.s)                     # no films to the street (11.11 21:48)
 
     def test_facade_units_back_the_mirror_and_close_the_fitting_rooms(self):
         self.assertIn("Box(walnut,.36f,1.44f,y,y+2.26f,D-.288f,D-.24f,true)", self.s)

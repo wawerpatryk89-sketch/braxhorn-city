@@ -1819,9 +1819,9 @@ public static partial class BraxChampionsD2
                 {
                     Goods(nm+" | witryna "+ii,()=>
                     {
-                        if(ii==1)BraxKatalog.Tv(Kat(),P(t,py,dc-.18f),toBack,43f,7,true,nm+" TV witryna",BraxKatalog.Photo(2));
-                        else{Console(P(t-.18f,py,dc-.05f),toBack);Headphones(P(t+.28f,py,dc-.10f),toBack);}
-                        if(ii==1)Console(P(t,py,dc+.12f),toBack);
+                        // no TV in a street window (owner 11.11 21:48-21:50 "na ulicach żadnych filmów" - a TV here played his
+                        // films to the street; my check 16.11 13:45): the consoles and headphones on every podium
+                        Console(P(t-.18f,py,dc-.05f),toBack);Headphones(P(t+.28f,py,dc-.10f),toBack);
                     });
                 }
             }
