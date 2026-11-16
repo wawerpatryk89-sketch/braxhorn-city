@@ -13,7 +13,12 @@ public sealed class BraxSeat : MonoBehaviour
     BraxGymPlayer rider; Vector3 before; Quaternion beforeRot;
     public bool Occupied { get { return rider; } }
     void OnEnable() { All.Add(this); }
-    void OnDisable() { All.Remove(this); }
+    bool animowane, wstaje;
+    float fazaOd;
+    Transform biodra;
+    public bool GraKlip => animowane;
+    public bool ZajetaAnimacja { get; set; }
+    void OnDisable() { All.Remove(this); if (rider) Leave(); }
 
     public static BraxSeat Nearest(Vector3 p, float max)
     {
@@ -22,13 +27,29 @@ public sealed class BraxSeat : MonoBehaviour
         return best;
     }
 
-    public void Use(BraxGymPlayer p)
+    public void Use(BraxGymPlayer p, bool animuj = true)
     {
         if (rider || !p) return;
         rider = p; before = p.transform.position; beforeRot = p.transform.rotation;
         p.seat = this; p.body.enabled = false;
         var fwd = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
-        if (!lie)
+        animowane = !lie && animuj && p.playFullActionClips && p.clips && p.clips.GetClip("SitDown") &&
+            p.clips.GetClip("SeatedIdle") && p.clips.GetClip("StandUp");
+        if (animowane)
+        {
+            biodra = null;
+            foreach (var t in p.visual.GetComponentsInChildren<Transform>())
+                if (t.name.EndsWith("Hips",System.StringComparison.Ordinal)) { biodra=t; break; }
+            animowane = biodra;
+        }
+        if (animowane)
+        {
+            fazaOd=Time.time; wstaje=false;
+            p.transform.rotation=Quaternion.LookRotation(fwd);
+            p.clips["SitDown"].wrapMode=WrapMode.ClampForever; p.clips["SitDown"].speed=1f;
+            p.clips.CrossFade("SitDown", .16f);
+        }
+        else if (!lie)
         {
             p.transform.position = new Vector3(transform.position.x, surfaceY - hipsAboveRoot, transform.position.z) - fwd * .1f;
             p.transform.rotation = Quaternion.LookRotation(fwd);
@@ -43,10 +64,39 @@ public sealed class BraxSeat : MonoBehaviour
         }
     }
 
+    public void Wstan()
+    {
+        if (!animowane) { Leave(); return; }
+        if (wstaje) return;
+        wstaje=true; fazaOd=Time.time;
+        rider.clips["StandUp"].wrapMode=WrapMode.ClampForever;
+        rider.clips["StandUp"].speed=1f; rider.clips.CrossFade("StandUp",.18f);
+    }
+
+    void LateUpdate()
+    {
+        if (!animowane || !rider || !biodra) return;
+        string klip = wstaje ? "StandUp" : "SitDown";
+        float t = Mathf.Clamp01((Time.time-fazaOd)/Mathf.Max(.01f,rider.clips[klip].length));
+        var punkt = transform.position; punkt.y=surfaceY+.10f;
+        var siedzi = rider.transform.position + punkt-biodra.position;
+        float waga = wstaje ? 1f-t : t;
+        rider.transform.position=Vector3.Lerp(before,siedzi,Mathf.SmoothStep(0,1,waga));
+        if (t<1f) return;
+        if (wstaje) { Leave(); return; }
+        if (!rider.clips.IsPlaying("SeatedIdle"))
+        {
+            rider.clips["SeatedIdle"].wrapMode=WrapMode.Loop;
+            rider.clips.CrossFade("SeatedIdle",.18f);
+        }
+    }
+
     public void Leave()
     {
         if (!rider) return;
         var p = rider; rider = null;
+        if (animowane) p.clips.CrossFade("Idle", .16f);
+        animowane=wstaje=ZajetaAnimacja=false;
         BraxPose.Get(p).Set(BraxPose.Mode.None, null);
         p.transform.rotation = Quaternion.Euler(0, beforeRot.eulerAngles.y, 0);
         p.transform.position = before;

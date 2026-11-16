@@ -341,7 +341,7 @@ public static partial class BraxClaudeOsiedle
         Collider(new Vector3((xs + bx1) * .5f, yF + hC * .5f, (zL1 + zC1) * .5f), new Vector3(bx1 - xs, hC, zC1 - zL1));
         BoxMinMax(brass, xs, bx1, yF + kick + .02f, yF + kick + .05f, zC1, zC1 + .008f, false);
         BoxMinMax(onyx, xs - .05f, bx1 + .05f, yF + hC, yF + hC + .05f, zL1 - .05f, zC1 + .14f, false, true);
-        BoxMinMax(steel, xs, bx1 - .7f, yF + .88f * K, yF + .9f * K, zL1 - .2f, zL1, false, true);
+        BoxMinMax(steel, xs, bx1 - .7f, yF + .88f * K, yF + .9f * K, zL1 - .175f, zL1, false, true);
         BoxMinMax(lacquer, bx1 - .5f, bx1, yF, yF + hC, zB1, zL1);                                                             // zamknięcie przejścia od wschodu
         Mebel("bar: lada", new Bounds(new Vector3((xs + bx1) * .5f, yF + hC * .5f, (zL1 + zC1) * .5f), new Vector3(bx1 - xs, hC, zC1 - zL1)));
         Tube(brass, new Vector3(xs + .1f, yF + .25f * K, zC1 + .16f), new Vector3(bx1 - .1f, yF + .25f * K, zC1 + .16f), .022f * K, 10);
@@ -406,7 +406,7 @@ public static partial class BraxClaudeOsiedle
             var bl = new List<Transform>();
             for (int i = 0; i < 5; i++)
             {
-                var p = new Vector3(sx - .36f + i * .18f, yRail, zL1 - .12f);
+                var p = new Vector3(sx - .05f + i * .115f, yRail, zL1 - .12f);
                 var bt = new GameObject("bar: butelka (osobna) " + (i + 1)).transform; bt.SetParent(barGo.transform, false); bt.position = p;
                 bool zModelu = false;
                 if (butelkiM)
@@ -428,12 +428,13 @@ public static partial class BraxClaudeOsiedle
                 bl.Add(bt); butelkiOsobne++;
             }
             s.butelki = bl.ToArray();
-            var gp = new Vector3(sx + .35f, yF + hC + .05f, zL1 + .3f);
+            var gp = new Vector3(sx + .24f, yF + hC + .05f, zL1 + .43f);
+            s.punktOdbioru = new Vector3(gp.x,gp.y,zC1 + .14f);
             s.szklanka = Obiekt(barGo.transform, "bar: szklanka", mSzklanka, glassM, gp, Quaternion.identity, Vector3.one * K).transform;
             s.ciecz = Obiekt(barGo.transform, "bar: drink w szklance", mWalec, liquid, gp + Vector3.up * .008f * K, Quaternion.identity, new Vector3(.034f * K, .075f * K, .034f * K)).transform;
             s.strumien = Obiekt(barGo.transform, "bar: strumień", mWalec, liquid, gp, Quaternion.identity, new Vector3(.005f * K, .1f, .005f * K)).transform;
             st.Add(s);
-            klub.barmani.Add(new Vector3(sx, yF, (zB1 + zL1) * .5f));
+            klub.barmani.Add(new Vector3(sx, yF, zL1 - .63f * K));
         }
         klubBar.stanowiska = st.ToArray();
         klubBar.strefaZamow = new Bounds(new Vector3((xs + bx1) * .5f, yF + 1.2f, zC1 + .9f), new Vector3(bx1 - xs, 2.6f, 1.6f * K));

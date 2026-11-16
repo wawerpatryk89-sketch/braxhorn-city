@@ -16,6 +16,7 @@ public sealed class BraxGlosPostaci : MonoBehaviour
     public const float BlendRozmowa = .35f;
     static BraxGymPlayer gracz;
     AudioSource source;
+    BraxMimikaOsiedla mimika;
     float baza = 1f; bool graczMowi;
 
     // Krzywa głośności od odległości od gracza: 1 do 3.5 m × K, gładko (smoothstep) do 0 na 12 m × K.
@@ -54,6 +55,9 @@ public sealed class BraxGlosPostaci : MonoBehaviour
         Ustawienia(rodzaj, graczMowi, out float blend, out baza);
         source.Stop(); source.spatialBlend = blend; source.pitch = 1f; source.clip = clip;
         source.volume = baza * Glosnosc(); source.Play();
+        if (!mimika) mimika = GetComponentInChildren<BraxMimikaOsiedla>();
+        if (mimika) mimika.Wypowiedz(source);
+        if (graczMowi && rodzaj == Rodzaj.Rozmowa) gracz.SpeakWhileStanding(clip.length);
     }
     float Glosnosc()
     {

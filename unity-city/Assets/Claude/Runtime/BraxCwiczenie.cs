@@ -19,6 +19,7 @@ public sealed class BraxCwiczenie : MonoBehaviour, IBraxInterakcja
 
     static readonly string[] Nazwy = { "WYCISKANIE", "PRZYSIAD", "UGINANIE" };
     static readonly float[] Okres = { 2.4f, 2.8f, 2.0f };
+    string klipCwiczenia;
     BraxSeat miejsce; BraxGymPlayer gracz; bool trwa; float t0;
     Transform hips, spine, chest, head, lUp, lLeg, lFoot, rUp, rLeg, rFoot, lArm, lFore, lHand, rArm, rFore, rHand;
     GameObject sprzet, hL, hR; GUIStyle styl;
@@ -45,7 +46,7 @@ public sealed class BraxCwiczenie : MonoBehaviour, IBraxInterakcja
     public bool Wykonaj(Vector3 p)
     {
         var g = Gracz(); if (!g || g.seat || g.vessel || trwa) return false;
-        miejsce.Use(g);
+        miejsce.Use(g, false);
         BraxPose.Get(g).Set(BraxPose.Mode.None, null);
         var f = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
         if (rodzaj == Rodzaj.Wyciskanie)
@@ -54,6 +55,14 @@ public sealed class BraxCwiczenie : MonoBehaviour, IBraxInterakcja
             g.transform.position = transform.position + Vector3.up * (wysokosc + .14f) + f * 1.15f;
         }
         else { g.transform.rotation = Quaternion.LookRotation(f); g.transform.position = transform.position + Vector3.up * .02f; }
+        klipCwiczenia = rodzaj == Rodzaj.Przysiad ? "GymBackSquat" : rodzaj == Rodzaj.Uginanie ? "GymBicepCurl" : null;
+        if (klipCwiczenia != null && g.playFullActionClips && g.clips.GetClip(klipCwiczenia))
+        {
+            miejsce.ZajetaAnimacja = true;
+            var stan = g.clips[klipCwiczenia];
+            stan.wrapMode=WrapMode.Loop; stan.speed=stan.length/Okres[(int)rodzaj];
+            g.clips.CrossFade(klipCwiczenia,.18f); stan.normalizedTime=0f;
+        }
         Szukaj(g); trwa = true; t0 = Time.time; Powtorzenia = 0;
         Sprzet();
         if (ukryj) ukryj.SetActive(false);
@@ -63,6 +72,8 @@ public sealed class BraxCwiczenie : MonoBehaviour, IBraxInterakcja
     void Koniec()
     {
         trwa = false;
+        if (gracz && klipCwiczenia != null && gracz.clips && gracz.clips.IsPlaying(klipCwiczenia)) gracz.clips.CrossFade("Idle",.16f);
+        klipCwiczenia=null;
         if (sprzet) Destroy(sprzet); if (hL) Destroy(hL); if (hR) Destroy(hR);
         if (ukryj) ukryj.SetActive(true);
     }
@@ -144,31 +155,34 @@ public sealed class BraxCwiczenie : MonoBehaviour, IBraxInterakcja
         Powtorzenia = Mathf.FloorToInt(t);
         float p = .5f - .5f * Mathf.Cos(t * Mathf.PI * 2f);    // 0 → 1 → 0 w każdym powtórzeniu
         var U = Vector3.up;
-        if (rodzaj == Rodzaj.Wyciskanie)
+        if (!miejsce.ZajetaAnimacja)
         {
-            var f = Vector3.ProjectOnPlane(transform.forward, U).normalized; var R = Vector3.Cross(U, f);   // prawa strona leżącego
-            Aim(lUp, lLeg, f * .9f - R * .18f - U * .12f); Aim(rUp, rLeg, f * .9f + R * .18f - U * .12f);
-            Aim(lLeg, lFoot, -U * .95f + f * .12f); Aim(rLeg, rFoot, -U * .95f + f * .12f);
-            // p = 1: ręce wyprostowane (sztanga nad klatką), p = 0: sztanga przy klatce, łokcie w bok
-            Aim(lArm, lFore, Vector3.Lerp(-R * .9f + U * .05f + f * .15f, U * .95f - R * .22f, p)); Aim(rArm, rFore, Vector3.Lerp(R * .9f + U * .05f + f * .15f, U * .95f + R * .22f, p));
-            Aim(lFore, lHand, U * .95f - R * .1f); Aim(rFore, rHand, U * .95f + R * .1f);
-        }
-        else if (rodzaj == Rodzaj.Przysiad)
-        {
-            var F = g.transform.forward; var R = g.transform.right;
-            Vector3 sL = lFoot ? lFoot.position : Vector3.zero, sR = rFoot ? rFoot.position : Vector3.zero;   // stopy z animacji (na podłodze)
-            if (hips) hips.position -= U * (.45f * p) + F * (.12f * p);
-            Aim(spine, chest ? chest : head, U * .93f + F * (.15f + .35f * p));
-            Noga(lUp, lLeg, lFoot, sL, F - R * .35f); Noga(rUp, rLeg, rFoot, sR, F + R * .35f);
-            Aim(lArm, lFore, -R * .75f - U * .25f - F * .35f); Aim(rArm, rFore, R * .75f - U * .25f - F * .35f);
-            Aim(lFore, lHand, U * .9f - F * .2f + R * .1f); Aim(rFore, rHand, U * .9f - F * .2f - R * .1f);
-        }
-        else
-        {
-            var F = g.transform.forward; var R = g.transform.right;
-            Aim(lArm, lFore, -U * .97f - R * .12f + F * .08f); Aim(rArm, rFore, -U * .97f + R * .12f + F * .08f);
-            var przed = Vector3.Lerp(-U * .95f + F * .25f, U * .62f + F * .72f, p);
-            Aim(lFore, lHand, przed); Aim(rFore, rHand, przed);
+            if (rodzaj == Rodzaj.Wyciskanie)
+            {
+                var f = Vector3.ProjectOnPlane(transform.forward, U).normalized; var R = Vector3.Cross(U, f);   // prawa strona leżącego
+                Aim(lUp, lLeg, f * .9f - R * .18f - U * .12f); Aim(rUp, rLeg, f * .9f + R * .18f - U * .12f);
+                Aim(lLeg, lFoot, -U * .95f + f * .12f); Aim(rLeg, rFoot, -U * .95f + f * .12f);
+                // p = 1: ręce wyprostowane (sztanga nad klatką), p = 0: sztanga przy klatce, łokcie w bok
+                Aim(lArm, lFore, Vector3.Lerp(-R * .9f + U * .05f + f * .15f, U * .95f - R * .22f, p)); Aim(rArm, rFore, Vector3.Lerp(R * .9f + U * .05f + f * .15f, U * .95f + R * .22f, p));
+                Aim(lFore, lHand, U * .95f - R * .1f); Aim(rFore, rHand, U * .95f + R * .1f);
+            }
+            else if (rodzaj == Rodzaj.Przysiad)
+            {
+                var F = g.transform.forward; var R = g.transform.right;
+                Vector3 sL = lFoot ? lFoot.position : Vector3.zero, sR = rFoot ? rFoot.position : Vector3.zero;   // stopy z animacji (na podłodze)
+                if (hips) hips.position -= U * (.45f * p) + F * (.12f * p);
+                Aim(spine, chest ? chest : head, U * .93f + F * (.15f + .35f * p));
+                Noga(lUp, lLeg, lFoot, sL, F - R * .35f); Noga(rUp, rLeg, rFoot, sR, F + R * .35f);
+                Aim(lArm, lFore, -R * .75f - U * .25f - F * .35f); Aim(rArm, rFore, R * .75f - U * .25f - F * .35f);
+                Aim(lFore, lHand, U * .9f - F * .2f + R * .1f); Aim(rFore, rHand, U * .9f - F * .2f - R * .1f);
+            }
+            else
+            {
+                var F = g.transform.forward; var R = g.transform.right;
+                Aim(lArm, lFore, -U * .97f - R * .12f + F * .08f); Aim(rArm, rFore, -U * .97f + R * .12f + F * .08f);
+                var przed = Vector3.Lerp(-U * .95f + F * .25f, U * .62f + F * .72f, p);
+                Aim(lFore, lHand, przed); Aim(rFore, rHand, przed);
+            }
         }
         // sprzęt w dłoniach
         if (sprzet && lHand && rHand)

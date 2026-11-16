@@ -22,6 +22,7 @@ public sealed class BraxAuto : MonoBehaviour
     public float sStart, vmax = 8.5f;
     public Vector3[] trasa = new Vector3[0];       // punkty trasy co ~3 m (tylko do odczytu, np. MENU → UTKNĄŁEM szuka najbliższej drogi)
     public float dl = 4.6f, szer = 1.9f, rozstaw = 2.7f, osTyl = -1.3f, promienKola = .33f;
+    public BraxAutoGracza autoTestowe;
     public Transform nadwozie;
     public Transform[] kola = new Transform[0];    // obracające się części kół (LP, PP, LT, PT)
     public Transform[] skret = new Transform[0];   // osie skrętu przednich kół
@@ -44,7 +45,7 @@ public sealed class BraxAuto : MonoBehaviour
     Renderer[] dymR; float[] dymFaza; MaterialPropertyBlock dymMpb; static Camera kam;
 
     void OnEnable() { Wszystkie.Add(this); }
-    void OnDisable() { Wszystkie.Remove(this); }
+    void OnDisable() { Wszystkie.Remove(this); if(dzwiek) dzwiek.Stop(); if(dzwiekKlakson) dzwiekKlakson.Stop(); }
 
     void Start()
     {
@@ -80,6 +81,7 @@ public sealed class BraxAuto : MonoBehaviour
             var q = Quaternion.Euler(katKol, 0f, 0f);
             foreach (var k in kola) if (k) k.localRotation = q;
             skretAkt = Mathf.Lerp(skretAkt, st.skret, 1f - Mathf.Exp(-dt * 10f));
+            if(autoTestowe) autoTestowe.ObracajKierownice(skretAkt);
             foreach (var s in skret) if (s) s.localRotation = Quaternion.Euler(0f,KatKola(skretAkt,rozstaw,transform.InverseTransformPoint(s.position).x),0f);
             // przechyły: w zakręcie nadwozie pochyla się na zewnątrz łuku, przy hamowaniu „nurkuje”
             if (nadwozie)

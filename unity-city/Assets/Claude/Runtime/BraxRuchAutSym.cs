@@ -34,6 +34,7 @@ public sealed class BraxRuchAutSym
 
     public sealed class Auto
     {
+        public bool przejety;
         public int id, trasa, obszar;
         public float s, v, a, vCel, zapas, vmax;
         public float dl, szer, rozstaw, osTyl, przodOd, tylOd;
@@ -279,7 +280,7 @@ public sealed class BraxRuchAutSym
     {
         foreach (var b in auta)
         {
-            if (b == a || b == pomin) continue;
+            if (b.przejety || b == a || b == pomin) continue;
             float dx = b.poz.x - p.x, dz = b.poz.z - p.z, r = (a.dl + b.dl) * .5f + zapasDl + 1f;
             if (dx * dx + dz * dz > r * r) continue;
             if (Prost(p, k, a.szer * .5f + zapasBok, a.dl * .5f + zapasDl, b.poz, b.kier, b.szer * .5f, b.dl * .5f)) { ostatniKolizyjny = b.id; return true; }
@@ -291,7 +292,7 @@ public sealed class BraxRuchAutSym
     {
         foreach (var b in auta)
         {
-            if (b == a) continue;
+            if (b.przejety || b == a) continue;
             float dx = b.poz.x - p.x, dz = b.poz.z - p.z, r = (a.dl + b.dl) * .5f + 1f;
             if (dx * dx + dz * dz > r * r) continue;
             // Nie dopuść do wejścia głębiej w inne auto. Zakleszczenia rozwiązuje kontrolowane przestawienie poza widokiem.
@@ -348,6 +349,7 @@ public sealed class BraxRuchAutSym
         for (int n = 0; n < wz.Length; n++) { wSrodku[n].Clear(); wSrodkuZd[n].Clear(); }
         foreach (var a in auta)
         {
+            if(a.przejety) { a.rez=-1; a.bramka=-1; a.rondo=-1; continue; }
             a.bramka = -1; a.rondo = -1; float best = 1e9f;
             float sF = a.s + a.przodOd, sT = a.s - a.tylOd;
             foreach (int e in wezlyTrasy[a.trasa])
@@ -367,15 +369,16 @@ public sealed class BraxRuchAutSym
         }
         // rezerwacje tuż przed linią liczą się jak zajęcie
         foreach (var a in auta)
-            if (a.rez >= 0 && a.rez == a.bramka && czas - a.tRez < 3f)
+            if (!a.przejety && a.rez >= 0 && a.rez == a.bramka && czas - a.tRez < 3f)
             {
                 wSrodku[zd[a.rez].wezel].Add(a.id); wSrodkuZd[zd[a.rez].wezel].Add(a.rez);
             }
         // 2) decyzje
-        foreach (var a in auta) Decyzja(a, t);
+        foreach (var a in auta) if(!a.przejety) Decyzja(a, t);
         // 3) zaklinowane, koniec trasy
         foreach (var a in auta)
         {
+            if(a.przejety) continue;
             bool stoi = a.v < .2f && (a.vCel < .3f || a.blokada >= 0);   // stoi z wyboru albo zablokowane obrysem innego auta
             if (a.powod == P_KONIEC && stoi)
             {
@@ -421,7 +424,7 @@ public sealed class BraxRuchAutSym
         float best = 1e9f;
         foreach (var b in auta)
         {
-            if (b == a || b.id == pomin) continue;
+            if (b.przejety || b == a || b.id == pomin) continue;
             float dx = b.poz.x - a.poz.x, dz = b.poz.z - a.poz.z, r = n + a.dl + b.dl;
             if (dx * dx + dz * dz > r * r) continue;
             float hlB = hl;
@@ -523,7 +526,7 @@ public sealed class BraxRuchAutSym
                 float thA = Kat(dc), doZj = Rep(a.katZj - thA, 360f);
                 foreach (var b in auta)
                 {
-                    if (b == a) continue;
+                    if (b.przejety || b == a) continue;
                     // auto już włączające się (za linią, jeszcze nie na pierścieniu) przed nami — czekamy, aż wjedzie
                     if (b.rondo == a.rondo && (b.poz - c).magnitude > RondoWlaczony)
                     {
@@ -597,7 +600,7 @@ public sealed class BraxRuchAutSym
         // pierwszeństwo między nadjeżdżającymi (kto czeka na linii > 6 s, ten jedzie — reszta go przepuszcza)
         foreach (var b in auta)
         {
-            if (b == a || b.bramka < 0 || b.bramka == e) continue;
+            if (b.przejety || b == a || b.bramka < 0 || b.bramka == e) continue;
             var zb = zd[b.bramka]; if (zb.wezel != z.wezel || zb.typ != Z_WEZEL || !Konflikt(e, b.bramka)) continue;
             if (b.tCzeka > 6f && b.czekaPierwsz && b.tCzeka > a.tCzeka) { a.czekaNa = b.id; a.czekaCzemu = "przepuszcza czekającego"; a.czekaPierwsz = true; return false; }
             if (a.tCzeka > 6f) continue;
@@ -615,7 +618,7 @@ public sealed class BraxRuchAutSym
     {
         foreach (var b in auta)
         {
-            if (b == a || b.bramka < 0 || zd[b.bramka].wezel != wezel || b.tCzeka <= 0f) continue;
+            if (b.przejety || b == a || b.bramka < 0 || zd[b.bramka].wezel != wezel || b.tCzeka <= 0f) continue;
             if (b.tCzeka > a.tCzeka + 1e-3f || (Math.Abs(b.tCzeka - a.tCzeka) <= 1e-3f && b.id < a.id)) return false;
         }
         return true;
@@ -661,6 +664,7 @@ public sealed class BraxRuchAutSym
     {
         foreach (var a in auta)
         {
+            if(a.przejety) continue;
             float acc = (a.vCel - a.v) / (a.vCel < a.v ? .3f : .6f);   // hamowanie szybciej niż przyspieszanie
             acc = Mathf.Clamp(acc, -7.5f, a.v < 4f ? PrzyspDuze : PrzyspMale);
             float v = Mathf.Max(0f, a.v + acc * dt);

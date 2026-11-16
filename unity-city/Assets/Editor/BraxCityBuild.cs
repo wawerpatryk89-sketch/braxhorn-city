@@ -11,6 +11,13 @@ using UnityEngine.Rendering;
 // cylinders below are invisible source physics, never substitute buildings.
 public static class BraxCityBuild
 {
+    public static void UstawSterowanieOsiedla(BraxGymPlayer runtime)
+    {
+        runtime.walkOnly = false;
+        runtime.playFullActionClips = true;
+        runtime.hideWhenCameraClose = false;
+    }
+
     const string Source="Assets/Source/City/",Generated="Assets/PlayableGenerated",Output=Generated+"/City";
     [Serializable] public sealed class Box { public float minX,maxX,minZ,maxZ,top,bottom;public string tag; }
     [Serializable] public sealed class Circle { public float x,z,r,top,bottom;public string tag; }
@@ -219,7 +226,7 @@ public static class BraxCityBuild
         RenderSettings.sun=sun;QualitySettings.shadows=ShadowQuality.All;QualitySettings.shadowDistance=42;QualitySettings.shadowResolution=ShadowResolution.Medium;QualitySettings.shadowCascades=2;
         var shadow=GameObject.CreatePrimitive(PrimitiveType.Quad);shadow.name="Original Brax contact shadow";UnityEngine.Object.DestroyImmediate(shadow.GetComponent<Collider>());shadow.transform.rotation=Quaternion.Euler(90,0,0);shadow.transform.localScale=new Vector3(1.6f,1.4f,1);shadow.GetComponent<Renderer>().sharedMaterial=AssetDatabase.LoadAssetAtPath<Material>(Generated+"/ContactShadow.mat");shadow.layer=8;
         var runtime=player.AddComponent<BraxGymPlayer>();runtime.visual=hero.transform;runtime.body=body;runtime.clips=animation;runtime.view=camera;runtime.contactShadow=shadow.transform;runtime.bags=Array.Empty<Transform>();runtime.buildId=commit;runtime.worldSpawn=player.transform.position;
-        runtime.walkOnly=true;runtime.playFullActionClips=true;runtime.hideWhenCameraClose=false;
+        UstawSterowanieOsiedla(runtime);
         AddArea("estate",runtime);
         // Estate-only visual pass: verified source textures on original roof meshes.
         BraxEstateR2ApprovedRoofs.Apply();
@@ -227,6 +234,7 @@ public static class BraxCityBuild
         // Osiedle R2 (Opus): remont A, Park Centralny, osiedle B, wille, kasyno, komisariat, siłownia A, trawa, wylot tunelu z miasta.
         BraxClaudeOsiedle.Apply();
         BraxClaudeOsiedle.SprawdzNowaObsade(runtime);
+        BraxClaudeOsiedle.SprawdzFlote(scene);
         {var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
         try{BraxClaudeBezSwiecenia.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (osiedle): "+e);}
         try{BraxClaudeSiatki.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}

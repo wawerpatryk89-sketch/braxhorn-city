@@ -11,6 +11,7 @@ name: Claude - region R1 na gotowo (TEST, bez publikacji)
         - osiedle
         - miasto
         - oba
+        - proba-joysticka-bez-apk
         default: osiedle
       pamiec:
         description: 'Pamiec podreczna wygenerowanego rejonu (odznacz = wymus pelne generowanie)'
@@ -27,8 +28,67 @@ concurrency:
   group: claude-region-${{ github.ref }}
   cancel-in-progress: false
 jobs:
+  proba-joysticka:
+    if: inputs.rejon == 'proba-joysticka-bez-apk' && github.ref == 'refs/heads/claude/osiedle-42-poprawka'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write  # download the existing owner-only draft asset
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        sparse-checkout: |
+          unity-city/Assets
+          unity-city/Packages
+          unity-city/ProjectSettings
+          unity-tools/claude
+        persist-credentials: false
+    - name: Prepare Patryk from the same private source and import scripts as the district
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        bash unity-tools/claude/blender_ci.sh
+        command -v ffmpeg >/dev/null || { sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg; }
+        python3 unity-tools/claude/test-ruchu/przygotuj.py
+        cp unity-tools/claude/test-ruchu/BraxProbaRuchu.cs unity-city/Assets/
+        cp unity-tools/claude/test-ruchu/BraxProbaRuchuBuild.cs unity-city/Assets/Editor/
+    - name: Compile just the test scene with the district player
+      uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+      env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+        UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      with:
+        projectPath: unity-city
+        unityVersion: 6000.0.58f2
+        targetPlatform: StandaloneLinux64
+        buildMethod: BraxProbaRuchuBuild.Zbuduj
+        allowDirtyBuild: true
+        versioning: None
+    - name: Record and validate the actual controller and Animation states
+      env:
+        LIBGL_ALWAYS_SOFTWARE: '1'
+      run: |
+        set -euo pipefail
+        export BRAX_PROBA_KLATKI="$RUNNER_TEMP/klatki"
+        chmod +x build/proba/Osiedle.x86_64
+        sudo apt-get -qq update
+        sudo apt-get -qq install -y xvfb xauth ffmpeg libgl1-mesa-dri pulseaudio pulseaudio-utils
+        pulseaudio --start --exit-idle-time=-1
+        pactl load-module module-null-sink sink_name=brax_test
+        pactl set-default-sink brax_test
+        timeout 150 xvfb-run -a -s '-screen 0 800x600x24' build/proba/Osiedle.x86_64 -force-glcore -screen-width 800 -screen-height 600 -screen-fullscreen 0 -logFile "$RUNNER_TEMP/proba.log" || { tail -80 "$RUNNER_TEMP/proba.log"; exit 1; }
+        grep BRAX_PROBA "$RUNNER_TEMP/proba.log"
+        grep -Fx 'PASS Idle Walk Run Idle; PASS blink and speech' "$BRAX_PROBA_KLATKI/wynik.txt"
+        ffmpeg -hide_banner -loglevel error -framerate 24 -i "$BRAX_PROBA_KLATKI/%04d.jpg" -frames:v 192 -c:v libx264 -pix_fmt yuv420p -movflags +faststart Patryk_joystick_Unity.mp4
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: Osiedle-proba-joysticka-${{ github.sha }}
+        path: Patryk_joystick_Unity.mp4
+        if-no-files-found: error
+        retention-days: 3
   source-imports:
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ inputs.rejon != 'proba-joysticka-bez-apk' && !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -51,7 +111,7 @@ jobs:
         retention-days: 3
         if-no-files-found: error
   cc0-assets:
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ inputs.rejon != 'proba-joysticka-bez-apk' && !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -389,7 +449,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ inputs.rejon != 'proba-joysticka-bez-apk' && !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -857,7 +917,7 @@ jobs:
 
   shots:
     needs: combined-unity6
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ inputs.rejon != 'proba-joysticka-bez-apk' && !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
     runs-on: ubuntu-latest
     timeout-minutes: 100
     strategy:
@@ -911,3 +971,43 @@ jobs:
         cp unity-preview/*.json region-shots/ 2>/dev/null || true
         (cd region-shots && zip -q -r ../region-shots-$S-part${{ matrix.part }}.zip .)
         gh release upload claude-region-preview --repo "$GITHUB_REPOSITORY" --clobber region-shots-$S-part${{ matrix.part }}.zip
+
+  osiedle-proba-apk:
+    if: github.ref == 'refs/heads/claude/osiedle-42-poprawka' && inputs.rejon == 'osiedle'
+    needs: android-apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    permissions:
+      contents: write  # istniejący APK jest załącznikiem prywatnego szkicu
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        sparse-checkout: unity-tools/claude
+        persist-credentials: false
+    - name: Pobierz podpisany APK z tego commitu
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh release download claude-region-preview --pattern "braxhorn-osiedle-${GITHUB_SHA::7}.apk"
+    - name: Uruchom emulator Androida z obsługą ARM64
+      run: |
+        set -eu
+        sudo apt-get -qq update
+        sudo apt-get -qq install -y ffmpeg
+        sudo chmod a+rw /dev/kvm
+        image='system-images;android-30;google_apis;x86_64'
+        "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "emulator" "platform-tools" "$image"
+        echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --name osiedle --package "$image" --device pixel_4
+        "$ANDROID_HOME/emulator/emulator" -avd osiedle -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 4096 -partition-size 4096 >"$RUNNER_TEMP/emulator.log" 2>&1 &
+        timeout 180 adb wait-for-device
+        timeout 240 bash -c 'until adb shell getprop sys.boot_completed | grep -q 1; do sleep 2; done'
+        adb shell wm size 720x1280
+    - name: Sprawdź bar i 14 jazd w zainstalowanym APK
+      run: timeout 40m python3 -u unity-tools/claude/proba_apk_osiedla.py "braxhorn-osiedle-${GITHUB_SHA::7}.apk"
+    - name: Filmy i pomiary z emulatora
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: osiedle-filmy-apk-${{ github.sha }}
+        path: proba-apk/
+        if-no-files-found: warn
+        retention-days: 7

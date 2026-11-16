@@ -52,7 +52,7 @@ public static class BraxTeksty
     {
         { "OTWÓRZ DRZWI", "OPEN DOOR" }, { "ZAMKNIJ DRZWI", "CLOSE DOOR" }, { "USIĄDŹ", "SIT" }, { "POŁÓŻ SIĘ", "LIE DOWN" },
         { "WSTAŃ", "STAND UP" }, { "WSIĄDŹ", "BOARD" }, { "ZEJDŹ", "GET OFF" }, { "POGADAJ", "TALK" }, { "WRÓĆ DO MIASTA", "BACK TO THE CITY" },
-        { "WEJDŹ", "ENTER" }, { "ZAMÓW", "ORDER" }, { "ZAGRAJ", "PLAY" }, { "TUNEL", "TUNNEL" }, { "WCZYTYWANIE DZIELNICY…", "LOADING DISTRICT…" }, { "ULICA — KOLEJNY ETAP", "STREET — NEXT STAGE" },
+        { "WEJDŹ", "ENTER" }, { "ZAMÓW", "ORDER" }, { "NAPIJ SIĘ", "DRINK" }, { "NALEWANIE", "POURING" }, { "ODBIERZ PRZY BARMANIE", "COLLECT AT BAR" }, { "ZAGRAJ", "PLAY" }, { "TUNEL", "TUNNEL" }, { "WCZYTYWANIE DZIELNICY…", "LOADING DISTRICT…" }, { "ULICA — KOLEJNY ETAP", "STREET — NEXT STAGE" },
     };
     public static string Kontekst(string pl)
     {
@@ -82,6 +82,17 @@ public static class BraxTeksty
         { "menu.utknalem", new[] { "UTKNĄŁEM", "I'M STUCK" } },
         { "menu.zdjecia", new[] { "TRYB ZDJĘĆ", "PHOTO MODE" } },
         { "menu.test", new[] { "TEST", "TEST" } },
+        { "menu.ruchy", new[] { "RUCHY PATRYKA", "CHARACTER ACTIONS" } },
+        { "ruch.Wave", new[] { "Pomachaj", "Wave" } },
+        { "ruch.Point", new[] { "Wskaż", "Point" } },
+        { "ruch.Bow", new[] { "Ukłoń się", "Bow" } },
+        { "ruch.Taunt", new[] { "Zaczepka", "Taunt" } },
+        { "ruch.WarmUp", new[] { "Rozgrzewka", "Warm up" } },
+        { "ruch.DanceHouse", new[] { "Taniec house", "House dance" } },
+        { "ruch.DanceHipHop", new[] { "Taniec hip-hop", "Hip-hop dance" } },
+        { "ruch.Block", new[] { "Blok", "Block" } },
+        { "ruch.Dodge", new[] { "Unik", "Dodge" } },
+        { "ruch.Roll", new[] { "Przewrót", "Roll" } },
         { "menu.autorzy", new[] { "AUTORZY", "CREDITS" } },
         { "menu.zamknij", new[] { "ZAMKNIJ", "CLOSE" } },
         { "menu.wstecz", new[] { "WSTECZ", "BACK" } },

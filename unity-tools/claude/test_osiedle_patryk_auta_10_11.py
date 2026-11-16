@@ -101,11 +101,19 @@ class RuchyWlasciciela(unittest.TestCase):
             def extract(source, target):
                 self.assertEqual(source.read_bytes(), b"archiwum")
                 (target / "potwierdzenie").write_text("19")
-            with mock.patch.object(pobierz_obsade, "ROOT", root), mock.patch.dict(os.environ, {"GITHUB_REPOSITORY": "owner/repo"}), \
+            with mock.patch.object(pobierz_obsade, "ROOT", root), mock.patch.dict(os.environ, {"GITHUB_REPOSITORY": "owner/repo", "RUNNER_TEMP": tmp}), \
                  mock.patch.object(pobierz_obsade, "pobierz", side_effect=archive), \
                  mock.patch.object(pobierz_obsade, "odczytaj", side_effect=extract), \
+                 mock.patch.object(pobierz_obsade, "dodatki_osiedla") as prepare_fleet_and_bar, \
+                 mock.patch("osiedle_mowa.prepare") as prepare_speech, \
+                 mock.patch.object(pobierz_obsade, "popraw_modele") as prepare_models, \
                  mock.patch.object(prywatne, "odszyfruj", side_effect=AssertionError("nadpisanie obsady")):
                 pobierz_obsade.przygotuj()
+                resources = root / "unity-city/Assets/Resources"
+                prepare_speech.assert_called_once_with(resources / "OsiedleGlosy", resources / "OsiedleMimika")
+                prepare_models.assert_called_once()
+                prepare_fleet_and_bar.assert_called_once_with(root / "unity-city/Assets/Source/Prywatne",
+                    root / "blender-4.2.3-linux-x64/blender")
                 prywatne.patryk_i_ruchy()
                 self.assertEqual((root / "unity-city/Assets/Source/ObsadaOsiedla/potwierdzenie").read_text(), "19")
 

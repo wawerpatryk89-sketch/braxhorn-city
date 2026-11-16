@@ -1,37 +1,67 @@
 using UnityEngine;
 
-// BAR DYSKOTEKI (build 45 runda 2, E30 dopisek): na każdym stanowisku 4–6 OSOBNYCH butelek (osobne obiekty, nie w scalonej
-// siatce), co 20–40 s — tylko gdy gracz bliżej niż 14 m — sekwencja nalewania: barman sięga (poza ramienia w LateUpdate,
-// po animacji: obrót ramienia w stronę butelki), butelka unosi się nad szklankę, przechyla, strumień (walec) do szklanki,
-// szklanka się napełnia, butelka wraca na miejsce; pełna szklanka stoi 8 s. Przycisk AKCJA przy ladzie: „ZAMÓW” —
-// najbliższy barman odpowiada i nalewa od razu. Poza ramienia: jeśli animacja jej nie nadpisała (postać bez animacji
-// poza promieniem BraxLudzie), najpierw przywracana — obrót się nie kumuluje.
+// Barman podnosi butelkę prawą ręką, nalewa i odstawia ją na szynę.
+// Zamówiona szklanka czeka na odbiór, dopóki gracz jest przy barze.
 public sealed class BraxBarDyskoteki : MonoBehaviour, IBraxInterakcja
 {
     [System.Serializable]
     public sealed class Stanowisko
     {
         public Transform barman, ramie, dlon;
-        public Transform[] butelki;                 // korzeń butelki = środek dna
-        public Transform szklanka, ciecz, strumien; // szklanka: korzeń = środek dna; ciecz: walec 0–1 (y); strumień: walec 0–1 (y)
+        public Transform[] chwyt, butelki;
+        public Vector3[] korekta;
+        public Transform szklanka, ciecz, strumien;
+        public Animation ruch;
+        public Vector3 osButelkiWRece, dnoWRece, punktOdbioru;
         public float butelkaWys = .4f, szklankaWys = .12f, cieczSkalaY = .1f, strumienR = .006f;
-        [System.NonSerialized] public float t = -1f, nast, pelna, w;
-        [System.NonSerialized] public int b;
+        [System.NonSerialized] public float t = -1f, nast, pelna, napelnienie;
         [System.NonSerialized] public Vector3 bPoz;
-        [System.NonSerialized] public Quaternion bRot, bazaRamie, mojaRamie;
-        [System.NonSerialized] public bool ik;
+        [System.NonSerialized] public Quaternion bRot;
     }
 
     public Stanowisko[] stanowiska;
     public Bounds strefaZamow;
+    public BraxGymPlayer gracz;
+    Stanowisko zamowione, wydane;
     public float blisko = 14f;
     public string[] odpowiedzi = { "Już się robi!", "Chwila, nalewam.", "Proszę bardzo, na zdrowie!", "Dla pana — z lodem?" };
     readonly System.Random rnd = new System.Random(4521);
 
-    const float Siega = .7f, Niesie = 1.5f, Przechyla = 1.9f, Leje = 3.6f, Odnosi = 4.5f, Koniec = 5.2f, Kat = 112f;
+    public const float Bierze = 89f/24f;
+    public const float Poczatek = 78f/24f;
+    const float Koniec = 163f/24f, Odkłada = 150f/24f;
+    const float StabilnyStrumienOd = 110f/24f, StabilnyStrumienDo = 133f/24f;
+    public static Vector3 DnoButelki(Stanowisko s,float czas)
+    {
+        float f=Mathf.Clamp((czas-Bierze)*24f,0f,s.korekta.Length-1);
+        int k=Mathf.FloorToInt(f);
+        var v=Vector3.Lerp(s.korekta[k],s.korekta[Mathf.Min(k+1,s.korekta.Length-1)],f-k);
+        return s.dlon.TransformPoint(s.dnoWRece+v);
+    }
 
-    void OnEnable() => BraxInterakcje.Dodaj(this);
-    void OnDisable() => BraxInterakcje.Usun(this);
+    void OnEnable()
+    {
+        BraxInterakcje.Dodaj(this);
+        if (!gracz && BraxLudzie.Gracz) gracz = BraxLudzie.Gracz.GetComponent<BraxGymPlayer>();
+        if (gracz) gracz.bar = this;
+    }
+    void OnDisable()
+    {
+        BraxInterakcje.Usun(this);
+        if (gracz && wydane != null) gracz.OdstawSzklanke();
+        if (stanowiska != null) foreach (var s in stanowiska)
+        {
+            if (s == null) continue;
+            if (s.t >= 0f && s.butelki != null && s.butelki.Length > 0 && s.butelki[0])
+                s.butelki[0].SetPositionAndRotation(s.bPoz, s.bRot);
+            if (s.ruch && s.ruch.IsPlaying("Pour")) s.ruch.CrossFade("Idle", .15f);
+            s.t = -1f; s.pelna = 0f;
+            if (s.ciecz) s.ciecz.gameObject.SetActive(false);
+            if (s.strumien) s.strumien.gameObject.SetActive(false);
+        }
+        zamowione = wydane = null;
+        if (gracz && gracz.bar == this) gracz.bar = null;
+    }
 
     void Start()
     {
@@ -45,34 +75,81 @@ public sealed class BraxBarDyskoteki : MonoBehaviour, IBraxInterakcja
         }
     }
 
-    static bool Gotowe(Stanowisko s) => s != null && s.barman && s.butelki != null && s.butelki.Length > 0 && s.szklanka;
+    static bool Gotowe(Stanowisko s) => s != null && s.barman && s.ruch && s.ruch.GetClip("Pour") && s.chwyt != null && s.chwyt.Length == 5 && s.korekta != null && s.korekta.Length == 62 && s.butelki != null && s.butelki.Length > 0 && s.szklanka;
 
-    public string Kontekst(Vector3 g) => BraxGodzinyOtwarcia.Otwarte("dyskoteka") && strefaZamow.Contains(g) ? "ZAMÓW" : "";
+    Stanowisko Najblizsze(Vector3 g)
+    {
+        Stanowisko wynik = null;
+        float najmniej = float.PositiveInfinity;
+        if (stanowiska != null) foreach (var s in stanowiska)
+        {
+            if (!Gotowe(s)) continue;
+            float d = (s.szklanka.position - g).sqrMagnitude;
+            if (d < najmniej) { wynik = s; najmniej = d; }
+        }
+        return wynik;
+    }
+
+    public string Kontekst(Vector3 g)
+    {
+        if (wydane != null || !strefaZamow.Contains(g) || !BraxGodzinyOtwarcia.Otwarte("dyskoteka")) return "";
+        if (zamowione != null)
+        {
+            if (zamowione.t >= 0f) return "NALEWANIE";
+            Vector3 delta = zamowione.punktOdbioru - g;
+            delta.y = 0;
+            return delta.sqrMagnitude <= 1.03f*1.03f ? "NAPIJ SIĘ" : "ODBIERZ PRZY BARMANIE";
+        }
+        return Najblizsze(g) != null ? "ZAMÓW" : "";
+    }
+
     public bool Wykonaj(Vector3 g)
     {
-        if (stanowiska == null) return false;
-        Stanowisko best = null; float bd = float.MaxValue;
-        foreach (var s in stanowiska) { if (!Gotowe(s)) continue; float d = (s.barman.position - g).sqrMagnitude; if (d < bd) { bd = d; best = s; } }
-        if (best == null) return false;
-        if (best.t < 0f) Rozpocznij(best); else best.nast = 0f;
-        BraxDymki.Powiedz(best.barman, odpowiedzi[rnd.Next(odpowiedzi.Length)]);
+        string akcja = Kontekst(g);
+        if (akcja.Length == 0) return false;
+        if (akcja == "ZAMÓW")
+        {
+            zamowione = Najblizsze(g);
+            if (zamowione.t < 0f) Rozpocznij(zamowione);
+            BraxDymki.Powiedz(zamowione.barman, odpowiedzi[0]);
+        }
+        else if (akcja == "NAPIJ SIĘ" && gracz && gracz.Pij(zamowione.szklanka))
+        {
+            wydane = zamowione; zamowione = null;
+            wydane.szklanka.gameObject.SetActive(false);
+            wydane.ciecz.gameObject.SetActive(false);
+        }
         return true;
+    }
+
+    public void Zwrot()
+    {
+        if (wydane == null) return;
+        wydane.szklanka.gameObject.SetActive(true);
+        wydane.pelna = 0f;
+        wydane.nast = Time.time + 20f;
+        wydane = null;
     }
 
     void Rozpocznij(Stanowisko s)
     {
-        s.t = 0f; s.b = rnd.Next(s.butelki.Length);
-        var bt = s.butelki[s.b]; if (!bt) { s.t = -1f; return; }
+        s.t = Poczatek; s.napelnienie = 0f;
+        var bt = s.butelki[0]; if (!bt) { s.t = -1f; return; }
         s.bPoz = bt.position; s.bRot = bt.rotation;
+        var stan = s.ruch["Pour"];
+        stan.speed = 1f; stan.wrapMode = WrapMode.ClampForever;
+        s.ruch.CrossFade("Pour", .12f, PlayMode.StopAll);
+        stan.time = 0f;
         if (s.ciecz) { s.ciecz.gameObject.SetActive(true); var k = s.ciecz.localScale; k.y = 1e-4f; s.ciecz.localScale = k; }
         s.pelna = 0f;
     }
 
     void Zakoncz(Stanowisko s)
     {
-        var bt = s.butelki[s.b]; if (bt) bt.SetPositionAndRotation(s.bPoz, s.bRot);
+        var bt = s.butelki[0]; if (bt) bt.SetPositionAndRotation(s.bPoz, s.bRot);
         if (s.strumien) s.strumien.gameObject.SetActive(false);
-        s.t = -1f; s.w = 0f; s.nast = Time.time + 20f + (float)rnd.NextDouble() * 20f; s.pelna = Time.time + 8f;
+        s.ruch.CrossFade("Idle", .18f, PlayMode.StopAll);
+        s.t = -1f; s.nast = Time.time + 20f + (float)rnd.NextDouble() * 20f; s.pelna = Time.time + 8f;
     }
 
     void Update()
@@ -80,69 +157,59 @@ public sealed class BraxBarDyskoteki : MonoBehaviour, IBraxInterakcja
         if (stanowiska == null) return;
         bool otw = BraxGodzinyOtwarcia.Otwarte("dyskoteka");
         var gr = BraxLudzie.Gracz; float teraz = Time.time;
+        if (zamowione != null && (!otw || !gr || (gr.position-zamowione.barman.position).sqrMagnitude>blisko*blisko))
+        {
+            if (zamowione.t<0f) zamowione.pelna=teraz+8f;
+            zamowione=null;
+        }
         foreach (var s in stanowiska)
         {
             if (!Gotowe(s)) continue;
             if (s.t < 0f)
             {
+                if (s == zamowione || s == wydane) continue;
                 if (s.pelna > 0f && teraz > s.pelna) { s.pelna = 0f; if (s.ciecz) s.ciecz.gameObject.SetActive(false); }
                 if (otw && teraz >= s.nast && gr && (gr.position - s.barman.position).sqrMagnitude < blisko * blisko) Rozpocznij(s);
                 continue;
             }
-            s.t += Time.deltaTime;
-            if (s.t >= Koniec) Zakoncz(s);
+            var stan = s.ruch["Pour"];
+            s.t = Poczatek + stan.time;
+            if (s.t >= Koniec || !s.ruch.IsPlaying("Pour")) Zakoncz(s);
         }
     }
+
 
     void LateUpdate()
     {
         if (stanowiska == null) return;
         foreach (var s in stanowiska)
         {
-            if (!Gotowe(s)) continue;
-            if (s.ramie && s.ik && s.ramie.localRotation == s.mojaRamie) s.ramie.localRotation = s.bazaRamie;
-            s.ik = false;
-            if (s.t < 0f) continue;
-            var bt = s.butelki[s.b]; if (!bt) continue;
-            float t = s.t;
-            var dno = s.szklanka.position; var gora = dno + Vector3.up * s.szklanka.lossyScale.y * s.szklankaWys;
-            var d = gora - s.bPoz; d.y = 0f; d = d.sqrMagnitude > 1e-6f ? d.normalized : s.barman.forward;
-            var os = Vector3.Cross(Vector3.up, d);
-            float kat = t < Siega ? 0f : t < Niesie ? Mathf.SmoothStep(0f, 40f, (t - Siega) / (Niesie - Siega)) : t < Przechyla ? Mathf.SmoothStep(40f, Kat, (t - Niesie) / (Przechyla - Niesie))
-                      : t < Leje ? Kat : t < Odnosi ? Mathf.SmoothStep(Kat, 0f, (t - Leje) / (Odnosi - Leje)) : 0f;
-            var R = Quaternion.AngleAxis(kat, os);
-            var nad = gora + Vector3.up * .04f - R * Vector3.up * s.butelkaWys;     // dno butelki tak, by szyjka była nad szklanką
-            Vector3 poz = t < Siega ? s.bPoz : t < Niesie ? Vector3.Lerp(s.bPoz, nad, Mathf.SmoothStep(0f, 1f, (t - Siega) / (Niesie - Siega)))
-                        : t < Leje ? nad : t < Odnosi ? Vector3.Lerp(nad, s.bPoz, Mathf.SmoothStep(0f, 1f, (t - Leje) / (Odnosi - Leje))) : s.bPoz;
-            bt.SetPositionAndRotation(poz, R * s.bRot);
-            // strumień i napełnianie
-            bool leje = t > Przechyla && t < Leje;
-            float fill = Mathf.Clamp01((t - Przechyla) / (Leje - Przechyla));
-            if (s.ciecz) { var k = s.ciecz.localScale; k.y = Mathf.Max(1e-4f, s.cieczSkalaY * fill); s.ciecz.localScale = k; }
-            if (s.strumien)
+            if (!Gotowe(s) || s.t < 0f) continue;
+            var bt = s.butelki[0];
+            var os = Vector3.up;
+            var dno = s.bPoz;
+            if (s.t > Bierze && s.t <= Odkłada)
             {
-                s.strumien.gameObject.SetActive(leje);
-                if (leje)
-                {
-                    var a0 = poz + R * Vector3.up * s.butelkaWys;
-                    var a1 = s.ciecz ? s.ciecz.position + Vector3.up * s.ciecz.lossyScale.y : dno;
-                    var v = a0 - a1; float L = Mathf.Max(.01f, v.magnitude);
-                    s.strumien.SetPositionAndRotation(a1, Quaternion.FromToRotation(Vector3.up, v));
-                    s.strumien.localScale = new Vector3(s.strumienR, L, s.strumienR);
-                }
+                os = s.dlon.TransformDirection(s.osButelkiWRece).normalized;
+                dno = DnoButelki(s,s.t);
             }
-            // poza ramienia barmana (po animacji): ramię do butelki, waga narasta przy sięganiu i maleje po odstawieniu
-            s.w = t < Siega ? t / Siega : t < Odnosi ? 1f : Mathf.Clamp01(1f - (t - Odnosi) / (Koniec - Odnosi));
-            if (s.ramie && s.dlon && s.w > 0f)
+            bt.SetPositionAndRotation(dno,Quaternion.FromToRotation(Vector3.up,os)*s.bRot);
+            var szyjka = dno + os*s.butelkaWys;
+            var nadSzklem = Vector3.ProjectOnPlane(szyjka-s.szklanka.position,Vector3.up);
+            bool leje = s.t>StabilnyStrumienOd && s.t<StabilnyStrumienDo && os.y<.015f
+                && szyjka.y>s.szklanka.position.y+s.szklankaWys && nadSzklem.magnitude<s.szklankaWys*(.039f/.095f);
+            if (leje) s.napelnienie=Mathf.Min(.80f,s.napelnienie+Time.deltaTime*1.968f);
+            if (s.ciecz)
             {
-                s.bazaRamie = s.ramie.localRotation;
-                var cel = poz + R * Vector3.up * (s.butelkaWys * .35f);
-                var cur = s.dlon.position - s.ramie.position; var want = cel - s.ramie.position;
-                if (cur.sqrMagnitude > 1e-6f && want.sqrMagnitude > 1e-6f)
-                {
-                    s.ramie.rotation = Quaternion.Slerp(Quaternion.identity, Quaternion.FromToRotation(cur, want), s.w) * s.ramie.rotation;
-                    s.mojaRamie = s.ramie.localRotation; s.ik = true;
-                }
+                var v=s.ciecz.localScale; v.y=Mathf.Max(.0001f,s.cieczSkalaY*s.napelnienie); s.ciecz.localScale=v;
+            }
+            if (!s.strumien) continue;
+            s.strumien.gameObject.SetActive(leje);
+            if (leje)
+            {
+                float dolY=s.szklanka.position.y+s.szklankaWys*(.085f+.76f*s.napelnienie);
+                s.strumien.SetPositionAndRotation(new Vector3(szyjka.x,dolY,szyjka.z),Quaternion.identity);
+                s.strumien.localScale=new Vector3(s.strumienR,Mathf.Max(.001f,szyjka.y-dolY),s.strumienR);
             }
         }
     }

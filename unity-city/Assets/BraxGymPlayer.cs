@@ -14,6 +14,28 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public string buildId;
     public bool ready;
     public bool walkOnly, playFullActionClips;
+    public BraxBarDyskoteki bar;
+    public BraxSzklanka szklanka;
+    bool skokWTrakcie, wPowietrzu;
+    Vector3 kierunekSkoku;
+    int numerCiosu, numerKopniecia;
+
+    public bool Pij(Transform blat)
+    {
+        if (!ready || paused || !bar || !szklanka || !clips.GetClip("Drink") || seat || vessel || autoGracza ||
+            skokWTrakcie || Time.time < actionEnd) return false;
+        StartAction("Drink", 1f, -1f);
+        szklanka.Podaj(blat);
+        return true;
+    }
+
+    public void OdstawSzklanke()
+    {
+        if (szklanka && szklanka.gameObject.activeSelf) szklanka.Schowaj();
+        if (bar) bar.Zwrot();
+    }
+
+    void OnDisable() { OdstawSzklanke(); }
     public bool hideWhenCameraClose = true;
     public BraxCityWorld cityWorld;
     public Vector3 worldSpawn=new Vector3(1.5f,.08f,2.8f);
@@ -28,6 +50,13 @@ public sealed class BraxGymPlayer : MonoBehaviour
     private float yaw, pitch = 19f, distance = 5.8f, vertical, speed;
     private float actionEnd, hitAt, stateAt;
     private string action = "Idle";
+    private float talkUntil;
+
+    public void SpeakWhileStanding(float duration)
+    {
+        if (duration > 0f && clips && clips.GetClip("Talk"))
+            talkUntil = Time.time + duration;
+    }
     private float combatUntil;
     private bool hitPending, doorOpen, paused, runEnabled = true, soundEnabled = true;
     // SKOK (właściciel 1.11, 18:23: „skok zjebany, jakiś podwójny”): klip Jump sam podnosił biodra, a fizyka od razu wybijała
@@ -77,6 +106,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         QualitySettings.vSyncCount = 0;
         clips.playAutomatically = false;
         clips.cullingType = AnimationCullingType.AlwaysAnimate;
+        clips["Idle"].wrapMode = WrapMode.Loop;
         clips.Play("Idle");
         bagSwing = new Vector2[bags.Length]; bagVelocity = new Vector2[bags.Length];
         bagRestRotation = new Quaternion[bags.Length];
@@ -95,6 +125,9 @@ public sealed class BraxGymPlayer : MonoBehaviour
         for(int i=0;i<samples.Length;i++){float t=(float)i/rate; samples[i]=Mathf.Sin(2f*Mathf.PI*(100f-180f*t)*t)*Mathf.Exp(-t*34f)*.7f;}
         impact=AudioClip.Create("Training impact",samples.Length,1,rate,false); impact.SetData(samples,0);
         reviewEnabled=ReviewEnabled();ready=true;UpdateCamera(1f);Report();
+#if UNITY_ANDROID && !UNITY_EDITOR
+        BraxProbaOsiedla.UruchomJesliWybrana(this);
+#endif
     }
     public void MoveInput(string values)
     {
@@ -124,6 +157,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(key=="pause"){paused=!paused;move=Vector2.zero;foreach(AnimationState st in clips)st.speed=paused?0:1;Report();return;}
         if(key=="reset")
         {
+            OdstawSzklanke(); skokWTrakcie = wPowietrzu = jumpPending = false;
             if(autoGracza)autoGracza.PrzedTeleportem();
             if(vessel){transform.SetParent(null,true);vessel=null;}
             if(seat){seat.Leave();}
@@ -137,21 +171,48 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(paused)return;
         if(key=="action")
         {
+            if (skokWTrakcie || (szklanka && szklanka.gameObject.activeSelf)) return;
+            if (seat && seat.GraKlip) { seat.Wstan(); return; }
+            if (bar && !seat && !vessel && !autoGracza && bar.Kontekst(transform.position).Length > 0 && bar.Wykonaj(transform.position)) return;
             if(cityWorld&&cityWorld.Interact())return;
             if(door && Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f){doorOpen=!doorOpen;Report();}
             return;
         }
-        if(Time.time<actionEnd||vessel||seat||autoGracza)return;
-        if(key=="punch")StartAction("Punch",1.25f,.43f);
-        else if(key=="kick")StartAction("Kick",1.2f,.60f);
-        else if(key=="jump" && body.isGrounded && !jumpPending){StartAction("Jump",1.35f,-1);jumpPending=true;jumpDeadline=Time.time+.30f;hipsPrevY=float.NaN;}
+        if(Time.time<actionEnd||skokWTrakcie||vessel||seat||autoGracza)return;
+        if(key=="punch")StartAction("Punch",1.25f,.43f, Wariant("Punch", ref numerCiosu));
+        else if(key=="kick")StartAction("Kick",1.2f,.60f, Wariant("Kick", ref numerKopniecia));
+        else if(key=="jump" && body.isGrounded && clips.GetClip("Jump"))
+        {
+            StartAction("Jump", 1f, -1);
+            jumpPending = skokWTrakcie = true; wPowietrzu = false;
+            kierunekSkoku = Vector3.zero;
+            speed = Mathf.Max(speed, TargetSpeedForStick(move.magnitude));
+            jumpDeadline = Time.time + .12f; hipsPrevY = float.NaN;
+        }
     }
     public bool SportPunchPending => hitPending && action == "Punch" && BraxSport.Aktywne;
     public float SportContactTime => hitAt;
 
-    private void StartAction(string name,float rate,float contact)
+    public bool MozeWykonacGest => ready && playFullActionClips && !seat && !autoGracza && !vessel &&
+        !skokWTrakcie && Time.time >= actionEnd && body && body.isGrounded;
+
+    public void WykonajGest(string klip)
     {
-        if (clips[name] == null)
+        if (!paused && MozeWykonacGest && clips.GetClip(klip)) StartAction(klip,1f,-1);
+    }
+
+    string Wariant(string podstawowy, ref int i)
+    {
+        if (!playFullActionClips || BraxSport.Aktywne) return podstawowy;
+        string klip = i == 0 ? podstawowy : podstawowy + (i + 1);
+        i = (i + 1) % 3;
+        return clips.GetClip(klip) ? klip : podstawowy;
+    }
+
+    private void StartAction(string name,float rate,float contact,string klip=null)
+    {
+        klip = klip ?? name;
+        if (clips[klip] == null)
         {
             if (!BraxSport.Aktywne || (name != "Punch" && name != "Kick")) return;
             action = name;
@@ -162,11 +223,19 @@ public sealed class BraxGymPlayer : MonoBehaviour
             return;
         }
         if ((name=="Punch" || name=="Kick") && clips["CombatIdle"]!=null && !BraxSport.Aktywne) combatUntil=Time.time+8f;
-        action=name;clips[name].wrapMode=WrapMode.Once;clips[name].speed=rate;
-        clips.CrossFade(name,.10f,PlayMode.StopAll);
-        actionEnd=Time.time+(playFullActionClips?clips[name].length/rate:Mathf.Min(clips[name].length/rate,name=="Punch"?1.25f:name=="Kick"?1.1f:1.2f));
+        action=name;clips[klip].wrapMode=name=="Jump"?WrapMode.ClampForever:WrapMode.Once;clips[klip].speed=rate;
+        clips.CrossFade(klip,.10f,PlayMode.StopAll);
+        actionEnd=Time.time+(playFullActionClips?clips[klip].length/rate:Mathf.Min(clips[klip].length/rate,name=="Punch"?1.25f:name=="Kick"?1.1f:1.2f));
         hitAt=Time.time+contact/rate;hitPending=contact>=0;Report();
     }
+    public float TargetSpeedForStick(float magnitude)
+    {
+        if (magnitude < .12f) return 0f;
+        if (magnitude < .7f) return Mathf.Lerp(.9f, 2.1f, (magnitude - .12f) / .58f);
+        if (walkOnly || !runEnabled) return 2.1f;
+        return Mathf.Lerp(2.1f, 5.2f, Mathf.SmoothStep(0f, 1f, (magnitude - .7f) / .22f));
+    }
+
     private void Update()
     {
         if(!ready||paused||(cityWorld&&cityWorld.loading))return;
@@ -180,6 +249,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
         }
         if(seat)
         {
+            if(seat.ZajetaAnimacja){speed=0;vertical=0;if(move.magnitude>.6f)seat.Leave();return;}
+            if(seat.GraKlip){speed=0;vertical=0;if(move.magnitude>.6f)seat.Wstan();return;}
             if(move.magnitude>.6f){seat.Leave();}
             else{speed=0;vertical=0;if(action!="Idle"){action="Idle";clips["Idle"].wrapMode=WrapMode.Loop;clips["Idle"].speed=1;clips.CrossFade("Idle",.16f,PlayMode.StopAll);}return;}
         }
@@ -189,10 +260,11 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(action!="Idle"){action="Idle";clips["Idle"].wrapMode=WrapMode.Loop;clips["Idle"].speed=1;clips.CrossFade("Idle",.16f,PlayMode.StopAll);}
             return;
         }
-        bool acting=Time.time<actionEnd;
-        bool jumping=acting&&action=="Jump";   // w skoku: pęd zostaje, sterowanie lekkie
+        if (szklanka && szklanka.gameObject.activeSelf && Time.time >= actionEnd) OdstawSzklanke();
+        bool jumping=skokWTrakcie;
+        bool acting=jumping || Time.time<actionEnd;   // w skoku: pęd zostaje, sterowanie lekkie
         float mag=move.magnitude;   // 1.11: chód przy lekkim wychyleniu (0.9–2.1 m/s), płynnie w bieg przy mocnym (do 5.2 m/s), bez przycisku BIEG
-        float naJoy=mag<.12f?0f:mag<.7f?Mathf.Lerp(.9f,2.1f,(mag-.12f)/.58f):(!walkOnly&&runEnabled?Mathf.Lerp(2.1f,5.2f,Mathf.SmoothStep(0f,1f,(mag-.7f)/.22f)):2.1f);
+        float naJoy = TargetSpeedForStick(mag);
         float target=jumping?speed:!acting?naJoy:0;
         speed=Mathf.MoveTowards(speed,target,dt*15f);
         Vector3 right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
@@ -204,25 +276,41 @@ public sealed class BraxGymPlayer : MonoBehaviour
         joyHeld=joy;
         if(AutoCamera&&joy){var q=Quaternion.Euler(0,joyRefYaw,0);right=q*Vector3.right;forward=q*Vector3.forward;}
         Vector3 direction=right*move.x+forward*move.y;
+        if (jumping)
+        {
+            if (kierunekSkoku.sqrMagnitude < .001f)
+                kierunekSkoku = direction.sqrMagnitude > .01f ? direction.normalized : transform.forward;
+            direction = kierunekSkoku;
+        }
         if(direction.sqrMagnitude>.01f && (!acting||jumping))transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(direction),1-Mathf.Exp(-dt*12f));
         if(jumpPending)
         {
             bool odbicie=Time.time>=jumpDeadline;
             if(hips&&!float.IsNaN(hipsPrevY)&&Time.time>jumpDeadline-.2f&&visual.InverseTransformPoint(hips.position).y>hipsPrevY+.0015f)odbicie=true;   // koniec przysiadu
             if(hips)hipsPrevY=visual.InverseTransformPoint(hips.position).y;
-            if(odbicie){jumpPending=false;if(body.isGrounded)vertical=6.2f;}
+            if(odbicie){jumpPending=false;vertical=6.2f;}
         }
         if(body.isGrounded&&vertical<0)vertical=-2f;vertical-=18f*dt;
         Vector3 moveDir=jumping&&direction.sqrMagnitude<.01f?transform.forward:direction.normalized;
         Vector3 step=(moveDir*speed+Vector3.up*vertical)*dt;
         int n=Mathf.Max(1,Mathf.CeilToInt(step.magnitude/.16f));for(int i=0;i<n;i++)body.Move(step/n);
+        if (jumping && !jumpPending)
+        {
+            if (!body.isGrounded) wPowietrzu=true;
+            if (vertical <= 0f && (body.isGrounded || (!wPowietrzu && Time.time > jumpDeadline + .8f)))
+            { skokWTrakcie=false; actionEnd=0f; }
+        }
         if(transform.position.y<(cityWorld?-20f:-3f))Command("reset");
         if(!cityWorld&&transform.position.z>20.2f){body.enabled=false;var q=transform.position;q.z=20.2f;transform.position=q;body.enabled=true;}
         if(hitPending&&Time.time>=hitAt){hitPending=false;HitBag();OnCios?.Invoke(transform.position,transform.forward,action=="Kick");}
         if(!acting)
         {
-            string next=speed>3f?"Run":speed>.12f?"Walk":Time.time<combatUntil && clips["CombatIdle"]!=null && !BraxSport.Aktywne?"CombatIdle":"Idle";
-            if(action!=next){action=next;clips[next].wrapMode=WrapMode.Loop;clips[next].speed=1;clips.CrossFade(next,.16f,PlayMode.StopAll);}
+            string next = "Idle";
+            if (speed > 3f) next = "Run";
+            else if (speed > .12f) next = "Walk";
+            else if (Time.time < combatUntil && clips["CombatIdle"] != null && !BraxSport.Aktywne) next = "CombatIdle";
+            else if (Time.time < talkUntil) next = "Talk";
+            if(action!=next || !clips.IsPlaying(next)){action=next;clips[next].wrapMode=WrapMode.Loop;clips[next].speed=1;clips.CrossFade(next,.16f,PlayMode.StopAll);}
             if(next=="Walk")clips[next].speed=Mathf.Max(.55f,speed/2f);
             if(next=="Run")clips[next].speed=Mathf.Max(.65f,speed/5f);
         }
@@ -359,10 +447,28 @@ public sealed class BraxGymPlayer : MonoBehaviour
         for(int k=0;k<4&&near>.36f&&CameraBlocked(position,mask);k++){near=Mathf.Max(.35f,near*.72f);position=cameraTarget+dir*near;}
         // przeszkoda znika (minięty pień, róg) — kamera odjeżdża płynnie (3.5 m/s), a nie skokiem; do przeszkody — od razu
         if(snap||camNear<0f||near<camNear)camNear=near;else{camNear=Mathf.MoveTowards(camNear,near,dt*3.5f);near=camNear;position=cameraTarget+dir*near;}
+        bool pije = szklanka && szklanka.gameObject.activeSelf;
+        if (pije && near < 1.55f)
+        {
+            // Keep the drinker visible beside the counter if the normal boom hits it.
+            // Try both shoulders and a higher angle, staying inside the collision-free segment.
+            float best = near;
+            for (int i = 0; i < 5; i++)
+            {
+                float kat = i == 4 ? 180f : (i % 2 == 0 ? 1f : -1f) * (i < 2 ? 60f : 115f);
+                var bok = (Quaternion.AngleAxis(kat,Vector3.up)*dir + Vector3.up*.36f).normalized;
+                float dl = Mathf.Min(viewDistance,2.6f);
+                if (Physics.SphereCast(cameraTarget,.26f,bok,out var przeszkoda,dl,mask,QueryTriggerInteraction.Ignore))
+                    dl=Mathf.Max(.05f,przeszkoda.distance-.12f);
+                var cel = cameraTarget+bok*dl;
+                if (dl>best && !CameraBlocked(cel,mask)) { best=dl; position=cel; }
+            }
+            near=best;
+        }
         view.transform.position=position;view.transform.LookAt(cameraTarget);
         // build 45 (E8, nagranie: kamera „w głowie” Patryka przy drzwiach): postać chowana też wtedy, gdy kamera jest blisko CIAŁA
         // (kapsuła od stóp do czubka głowy), a nie tylko blisko celu na 1.65 m — Patryk 2.27 m ma głowę wyżej niż cel kamery
-        bool close=hideWhenCameraClose&&(near<1.1f||(!autoGracza&&OdlegloscOdCiala(view.transform.position)<.55f));
+        bool close=!pije&&hideWhenCameraClose&&(near<1.1f||(!autoGracza&&OdlegloscOdCiala(view.transform.position)<.55f));
         if(close!=hiddenClose){hiddenClose=close;foreach(var r in visual.GetComponentsInChildren<Renderer>(true))r.shadowCastingMode=close?UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly:UnityEngine.Rendering.ShadowCastingMode.On;}
         if(contactShadow){var p=transform.position;
             if(cityWorld&&Physics.Raycast(p+Vector3.up*.25f,Vector3.down,out RaycastHit floor,30,~((1<<8)|(1<<29)),QueryTriggerInteraction.Ignore))p.y=floor.point.y+.018f;
@@ -380,7 +486,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public void ReviewView(string text)
     {
         if(!reviewEnabled)return;
-        if(autoGracza)autoGracza.PrzedTeleportem();
+        OdstawSzklanke(); skokWTrakcie = wPowietrzu = jumpPending = false;
+            if(autoGracza)autoGracza.PrzedTeleportem();
         var a=text.Split(',');if(a.Length!=6)return;var v=new float[6];
         for(int i=0;i<6;i++)if(!float.TryParse(a[i],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out v[i])||float.IsNaN(v[i])||float.IsInfinity(v[i]))return;
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";clips.Play("Idle");
@@ -390,7 +497,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
     }
     public void TravelTo(Vector3 position)
     {
-        if(autoGracza)autoGracza.PrzedTeleportem();
+        OdstawSzklanke(); skokWTrakcie = wPowietrzu = jumpPending = false;
+            if(autoGracza)autoGracza.PrzedTeleportem();
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";
         body.enabled=false;transform.position=position;body.enabled=true;clips.Play("Idle");
         cameraTarget=position+Vector3.up*1.65f;UpdateCamera(1f);Report();
@@ -423,6 +531,11 @@ public sealed class BraxGymPlayer : MonoBehaviour
         {
             string context=door&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f?(doorOpen?"ZAMKNIJ DRZWI":"OTWÓRZ DRZWI"):transform.position.z>18?"ULICA — KOLEJNY ETAP":"";
             if(cityWorld){if(!string.IsNullOrEmpty(cityWorld.Context))context=cityWorld.Context;else if(context=="ULICA — KOLEJNY ETAP")context="";}
+            if (bar && !seat && !vessel && !autoGracza)
+            {
+                string akcjaBaru=bar.Kontekst(transform.position);
+                if (akcjaBaru.Length>0) context=akcjaBaru;
+            }
             if(vessel)context="ZEJDŹ · "+vessel.label;
             if(seat)context="WSTAŃ";
             return context;

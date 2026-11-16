@@ -7,7 +7,8 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
 {
     public string postac, zajecie, powitanie, temat, odpowiedz, zakonczenie;
     public int drugaRozmowa;
-    public bool kobieta, spacer;
+    public bool kobieta, spacer, przyBarze;
+    public BraxSpojrzeniePatryka spojrzenie;
     public Vector3 celSpaceru;
     public Animation ruch;
     public Transform gracz, glowa;
@@ -18,7 +19,8 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
     static Vector3 miejsceOstatniejRozmowy;
     static bool bylaRozmowa;
     Vector3 start;
-    Quaternion kierunek;
+    Quaternion kierunek, obrotRozmowy;
+    bool obracaSie;
     bool powrot, powitany;
     int wizyty;
     float kontrola, przerwa, nastepnaWizyta, tlo;
@@ -59,6 +61,11 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
     void Update()
     {
         if (!gracz) return;
+        if (obracaSie)
+        {
+            transform.rotation = Quaternion.RotateTowards(transform.rotation,obrotRozmowy,115f*Time.deltaTime);
+            if (Quaternion.Angle(transform.rotation,obrotRozmowy)<.1f) obracaSie=false;
+        }
         float d = Vector3.Distance(gracz.position, transform.position);
         if (d > Odejscie) powitany = false;
         if (spacer && mowi != this) Spaceruj();
@@ -76,12 +83,12 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
                 d = odleglosc;
                 najblizszy = osoba;
             }
-            if (najblizszy == this) StartCoroutine(Rozmowa());
+            if (najblizszy == this) StartCoroutine(BraxSpojrzeniePatryka.Rozmowa(spojrzenie, gracz.GetComponentInChildren<BraxSpojrzeniePatryka>(), Rozmowa()));
         }
         else if (partner && Time.time >= tlo && d > Odejscie && d < 18f)
         {
             tlo = Time.time + 30f;
-            StartCoroutine(RozmowaWTle());
+            StartCoroutine(BraxSpojrzeniePatryka.Rozmowa(spojrzenie, partner.spojrzenie, RozmowaWTle()));
         }
     }
 
@@ -91,17 +98,23 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
         // W grupie reaguje najbliższa osoba. Do kolejnej można podejść z innej strony.
         powitany = true; bylaRozmowa = true; miejsceOstatniejRozmowy = gracz.position;
         nastepnaWizyta = Time.time + 18f;
-        if (spacer || zajecie == "Idle" || zajecie == "Talk" || zajecie.StartsWith("Dance")) { Obroc(gracz.position); Graj("Talk"); }
+        bool stojacaRozmowa = spacer || zajecie == "Idle" || zajecie == "Talk" || zajecie.StartsWith("Dance");
+        if (stojacaRozmowa && !przyBarze)
+        {
+            var doOsoby = Vector3.ProjectOnPlane(gracz.position-transform.position,Vector3.up);
+            if (doOsoby.sqrMagnitude>.001f) { obrotRozmowy=Quaternion.LookRotation(doOsoby); obracaSie=true; }
+        }
         var wymiana = BraxDymki.Wymiany[drugaRozmowa];
         bool pierwsza = wizyty++ % 2 == 0;
         string[] tekst = pierwsza ? new[] {powitanie, temat, odpowiedz, zakonczenie} : new[] {"O, Patryk! Siema!", wymiana[0], wymiana[1], wymiana[2]};
         for (int i = 0; i < tekst.Length; i++)
         {
             if (Vector3.Distance(transform.position, gracz.position) > Odejscie || !Widzi(gracz)) break;
+            if (stojacaRozmowa && !przyBarze) Graj(i == 2 ? "Idle" : "Talk");
             float trwa = BraxDymki.Powiedz(i == 2 ? gracz : transform, tekst[i], i == 2 ? 1f : Ton);
             yield return new WaitForSeconds(trwa + .18f);
         }
-        if (!spacer) { transform.rotation = kierunek; Graj(zajecie); }
+        if (!spacer && !(przyBarze && ruch.IsPlaying("Pour"))) { obrotRozmowy=kierunek; obracaSie=true; Graj(zajecie); }
         ciszaDo = Time.time + 1.2f;
         mowi = null;
     }
@@ -116,24 +129,6 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
             float trwa = BraxDymki.Powiedz(osoba.transform, tekst[i], osoba.Ton, BraxGlosPostaci.Rodzaj.Tlo);
             yield return new WaitForSeconds(trwa + .25f);
         }
-    }
-
-    Quaternion bazaGlowy, ostatniaGlowa;
-    bool odwrocona;
-    void LateUpdate()
-    {
-        if (!glowa) return;
-        if (odwrocona && Quaternion.Angle(glowa.localRotation, ostatniaGlowa) < .005f)
-            glowa.localRotation = bazaGlowy;
-        odwrocona = false;
-        if (mowi != this || (zajecie != "SeatedIdle" && zajecie != "Drink")) return;
-        var doGracza = Vector3.ProjectOnPlane(gracz.position - glowa.position, Vector3.up);
-        if (doGracza.sqrMagnitude < .01f) return;
-        float kat = Mathf.Clamp(Vector3.SignedAngle(transform.forward, doGracza, Vector3.up), -32f, 32f);
-        bazaGlowy = glowa.localRotation;
-        glowa.rotation = Quaternion.AngleAxis(kat, Vector3.up) * glowa.rotation;
-        ostatniaGlowa = glowa.localRotation;
-        odwrocona = true;
     }
 
     void Obroc(Vector3 cel)

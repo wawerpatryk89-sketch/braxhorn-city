@@ -15,7 +15,7 @@ using UnityEngine;
 public sealed class BraxMenuGry
 {
     public const bool PokazTest = true;
-    public enum Ekran { Glowne, Ustawienia, Test, Teleport, Mapa, Autorzy }
+    public enum Ekran { Glowne, Ustawienia, Test, Teleport, Mapa, Autorzy, Ruchy }
     public Ekran ekran;
     readonly BraxTouchControls ster;
     float s; Rect sa;
@@ -56,6 +56,7 @@ public sealed class BraxMenuGry
             case Ekran.Teleport: Teleport(g); break;
             case Ekran.Mapa: Mapa(g); break;
             case Ekran.Autorzy: Autorzy(); break;
+            case Ekran.Ruchy: Ruchy(g); break;
         }
     }
 
@@ -66,7 +67,7 @@ public sealed class BraxMenuGry
         BraxGui.Napis(new Rect(sa.x + pad, top, sa.width, s * .04f), "BRAXHORN CITY", BraxGui.Styl(Mathf.RoundToInt(s * .026f), true, TextAnchor.MiddleLeft), BraxGui.Akcent, false);
         BraxGui.Napis(new Rect(sa.x + pad, top + s * .035f, sa.width, s * .085f), BraxTeksty.T("menu.pauza"), BraxGui.Styl(Mathf.RoundToInt(s * .065f), true, TextAnchor.MiddleLeft), BraxGui.Biel);
         bool poziom = sa.width > sa.height;
-        int kol = poziom ? 4 : 2, wier = 8 / kol;
+        int kol = poziom ? 4 : 2, wier = Mathf.CeilToInt((g && g.szklanka ? 9f : 8f) / kol);
         float gap = s * .025f, gx = sa.x + pad, gw = sa.width - 2 * pad;
         if (gw > s * 2.3f) { gx += (gw - s * 2.3f) * .5f; gw = s * 2.3f; }
         float gy = top + s * .15f, gh = sa.yMax - pad * .8f - gy;
@@ -75,6 +76,7 @@ public sealed class BraxMenuGry
         Rect K() { var r = new Rect(gx + (i % kol) * (kw + gap), gy + (i / kol) * (kh + gap), kw, kh); i++; return r; }
         if (Kafel(K(), BraxTeksty.T("menu.wroc"), BraxIkony.Wroc, glowny: true)) { ster.Pauza(false); return; }
         if (Kafel(K(), BraxTeksty.T("menu.ustawienia"), BraxIkony.Zebatka)) ekran = Ekran.Ustawienia;
+        if (g && g.szklanka && Kafel(K(), BraxTeksty.T("menu.ruchy"), BraxIkony.Wroc, aktywny:g.MozeWykonacGest)) ekran=Ekran.Ruchy;
         bool jestMapa = mapa;
         if (Kafel(K(), BraxTeksty.T(jestMapa ? "menu.mapa" : "menu.mapa_wkrotce"), BraxIkony.Mapa, aktywny: jestMapa)) ekran = Ekran.Mapa;
         if (Kafel(K(), BraxTeksty.T("menu.zglos"), BraxIkony.Aparat)) ster.Zglos();
@@ -82,6 +84,23 @@ public sealed class BraxMenuGry
         if (Kafel(K(), BraxTeksty.T("menu.zdjecia"), BraxIkony.Ramka)) { ster.TrybZdjec(); return; }
         if (PokazTest && Kafel(K(), BraxTeksty.T("menu.test"), BraxIkony.Slupki)) ekran = Ekran.Test;
         if (Kafel(K(), BraxTeksty.T("menu.autorzy"), BraxIkony.Info)) { ekran = Ekran.Autorzy; autorzyStrona = 0; }
+    }
+
+    static readonly string[] gesty = {"Wave","Point","Bow","Taunt","WarmUp","DanceHouse","DanceHipHop","Block","Dodge","Roll"};
+    void Ruchy(BraxGymPlayer g)
+    {
+        float top = Naglowek(BraxTeksty.T("menu.ruchy")), pad=s*.035f;
+        int kol=sa.width>sa.height?4:2, rzedy=Mathf.CeilToInt(gesty.Length/(float)kol);
+        float w=(sa.width-(kol+1)*pad)/kol, h=(sa.yMax-top-(rzedy+1)*pad)/rzedy;
+        for(int i=0;i<gesty.Length;i++)
+        {
+            string klip=gesty[i];
+            var pole=new Rect(sa.x+pad+(i%kol)*(w+pad),top+pad+(i/kol)*(h+pad),w,h);
+            if (Kafel(pole,BraxTeksty.T("ruch."+klip),BraxIkony.Wroc,aktywny:g && g.MozeWykonacGest && g.clips.GetClip(klip)))
+            {
+                ster.Pauza(false); g.WykonajGest(klip); return;
+            }
+        }
     }
 
     void Ustawienia()

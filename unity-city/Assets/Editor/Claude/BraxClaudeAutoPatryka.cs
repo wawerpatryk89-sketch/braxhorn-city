@@ -77,6 +77,7 @@ public static partial class BraxClaudeOsiedle
                     +obrotWsiadania.ToString("F0")+"°, biodra koniec→CarIdle "+korektaWsiadania.ToString("F3")+" (wysiadanie = klip od końca)");
             }
             else Debug.LogWarning("BRAXHORN_AUTO_PATRYKA_WSIADANIE brak klipu EnteringCar — wsiadanie samą pozą CarIdle");
+            biodraKierowcy=hipsOffset; korektaWejsciaFloty=korektaWsiadania; obrotWejsciaFloty=obrotWsiadania;
             foreach(string id in AutaSportowePatryka)
             {
                 var t=templates.FirstOrDefault(q=>q.id==id&&q.kol==4); if(t==null){kandydaci.Add((null,false,default,false,id+": brak modelu"));continue;}

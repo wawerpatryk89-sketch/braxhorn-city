@@ -69,8 +69,9 @@ public static partial class BraxClaudeOsiedle
         if (szablony.Count > 0)
         {
             RaportSkaliAut(szablony);
-            Guard("auta w ruchu (trasy, pierwszeństwo, test ruchu)", () => AutaWRuchu(szablony));
             Guard("prywatne auto Patryka pod areną", () => AutoPatryka(szablony));
+            FlotaOsiedla();
+            Guard("auta w ruchu (trasy, pierwszeństwo, test ruchu)", () => AutaWRuchu(szablony));
             Guard("auta zaparkowane (zatoki, kolory, kolizje)", () => AutaZaparkowane(szablony));
             Guard("salon samochodowy: auta na talerzach, antresoli i placu", () => SalonAuta(szablony));
             Guard("warsztat: auto na podnośniku", () => WarsztatAuto(szablony));
@@ -241,6 +242,9 @@ public static partial class BraxClaudeOsiedle
                 string key = sz.id + " " + kolor; opis[key] = opis.TryGetValue(key, out var x) ? x + 1 : 1;
             }
         }
+        int patrol = auta.FindIndex(a => wy.trasy[a.trasaNr].petla && wy.trasy[a.trasaNr].obszar==0);
+        if(patrol<0) throw new InvalidOperationException("Brak okrężnej trasy Osiedla dla patrolu");
+        auta[patrol]=WstawPatrol(auta[patrol]);
         ra.auta = auta.ToArray();
         float szerMax = auta.Max(a => a.szer), dlMax = auta.Max(a => a.dl);
         Guard("ruch: kontrola toru skrętu", () => KontrolaToruSkretu(wy, szerMax, dlMax));

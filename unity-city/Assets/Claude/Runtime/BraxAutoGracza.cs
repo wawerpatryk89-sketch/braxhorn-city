@@ -8,6 +8,16 @@ using UnityEngine.SceneManagement;
 public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
 {
     public static readonly List<BraxAutoGracza> Wszystkie = new List<BraxAutoGracza>();
+    public string rejestracja;
+    public Transform wieniec;
+    public Vector3 osKolumny;
+    public Quaternion spoczynkowaKierownicy = Quaternion.identity;
+    public BraxAuto patrol;
+    public bool PatrolWTrasie => patrol && patrol.enabled;
+    public void ObracajKierownice(float kat)
+    {
+        if (wieniec) wieniec.localRotation = spoczynkowaKierownicy * Quaternion.AngleAxis(kat * 9f, osKolumny);
+    }
     public Transform fotel;
     public BoxCollider obrys;
     public Transform[] kola = new Transform[0], skret = new Transform[0];
@@ -74,8 +84,9 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     Vector3 Drzwi(int strona) => transform.TransformPoint(new Vector3(strona*(obrys.size.x*.5f+.65f),0,fotel ? transform.InverseTransformPoint(fotel.position).z : 0));
     public string Kontekst(Vector3 p)
     {
-        if (gracz) return przejscie ? "WSIADANIE / WYSIADANIE" : Mathf.Abs(predkosc)>.25f ? "ZATRZYMAJ, ABY WYSIĄŚĆ" : "WYSIĄDŹ · AUTO PATRYKA";
-        return fotel && obrys && (Drzwi(-1)-p).sqrMagnitude < 2.5f*2.5f ? "WSIĄDŹ · AUTO PATRYKA" : "";
+        string pojazd=string.IsNullOrEmpty(rejestracja) ? "AUTO PATRYKA" : rejestracja;
+        if (gracz) return przejscie ? "WSIADANIE / WYSIADANIE" : Mathf.Abs(predkosc)>.25f ? "ZATRZYMAJ, ABY WYSIĄŚĆ" : "WYSIĄDŹ · " + pojazd;
+        return fotel && obrys && (Drzwi(-1)-p).sqrMagnitude < 2.5f*2.5f ? "WSIĄDŹ · " + pojazd : "";
     }
     public bool Wykonaj(Vector3 p)
     {
@@ -92,6 +103,7 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
             if(count==hits.Length)return false;
             for(int i=0;i<count;i++)if(hits[i].collider&&!hits[i].collider.transform.IsChildOf(player.transform))return false;
         }
+        if (PatrolWTrasie) patrol.enabled=false;
         gracz=player; scenaGracza=player.gameObject.scene; startWejscia=player.transform.position;
         BraxPose.Get(player).Set(BraxPose.Mode.None,null);
         player.autoGracza=this; player.body.enabled=false;
@@ -230,7 +242,9 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         if(!Grunt(next,out float ground) || Mathf.Abs(ground-position.y)>.35f) blocked=true;
         if(blocked) predkosc*=.5f;                                                          // zaklinowane: hamuje, nie staje w miejscu od razu
         else {next.y=ground;cialo.MovePosition(next);cialo.MoveRotation(rotNext);}
-        obrotKol=Mathf.Repeat(obrotKol+predkosc*dt/Mathf.Max(.1f,promienKola)*Mathf.Rad2Deg,360);
+        ObracajKierownice(kierownica);
+        float droga=blocked ? 0f : Vector3.Dot(ruch,rotNext*Vector3.forward);
+        obrotKol=Mathf.Repeat(obrotKol+droga/Mathf.Max(.1f,promienKola)*Mathf.Rad2Deg,360);
         foreach(var wheel in kola)if(wheel)wheel.localRotation=Quaternion.Euler(obrotKol,0,0);
         foreach(var pivot in skret)if(pivot)pivot.localRotation=Quaternion.Euler(0,BraxAuto.KatKola(kierownica,rozstaw,transform.InverseTransformPoint(pivot.position).x*Mathf.Abs(transform.lossyScale.x)),0);
         if(audioSilnika&&silnikStan==2)   // runda 4: ton i głośność od prędkości (przy przyspieszaniu ciut wyżej)
