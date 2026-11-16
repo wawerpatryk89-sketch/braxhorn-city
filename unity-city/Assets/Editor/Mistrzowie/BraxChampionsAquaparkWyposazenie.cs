@@ -125,8 +125,9 @@ public static partial class BraxChampionsAquapark
     {
         var src = BraxMiastoAssety.Model(Paczka, plik);
         if (!src) { OwnerMissing++; return null; }
-        var o = BraxMiastoAssety.Postaw(models, src, "AQUAPARK | " + plik, at * K, yaw, 1f, true, true);
+        var o = BraxChampionsModel.Postaw(models, src, "AQUAPARK | " + plik, at * K, yaw, 1f, true, true);
         if (!o) { OwnerMissing++; return null; }
+        Dopasuj(o, plik, at);
         OwnerModels++;
         if (collide)
         {
@@ -136,6 +137,50 @@ public static partial class BraxChampionsAquapark
             g.AddComponent<BoxCollider>().size = bd.size * .92f; Colliders++;
         }
         return o;
+    }
+
+    // Owner 13.11 10:48 (photo: a sauna cabin taller than the buildings next to the road, "nie wiem kto kazał postać"): the
+    // basen_01 pack was taken to be in real metres and placed without a measurement. The sauna cabin is drawn in
+    // centimetres with a 0.01 scale on its nodes (measured 16.11: 196 units tall, 1.97 m with the node scale); where that
+    // scale is lost the cabin stands 100x too big. The global
+    // scale rule (ZASADA-SKALA-GLOBALNA 11.11 p. 3): every model is measured after the import and brought to its real size.
+    // Real heights (nominal metres): the allowed band and the height a model outside it is brought to; the footprint cap
+    // keeps it in its room (the two sauna cabins stand 2.9 m apart in a 3 m deep room).
+    static readonly Dictionary<string, (float min, float max, float cel, float stopa)> Wymiary = new Dictionary<string, (float, float, float, float)>
+    {
+        { "sauna_kabina", (1.9f, 2.4f, 2.1f, 2.7f) },
+        { "prysznic_kabina", (1.9f, 2.4f, 2.2f, 1.6f) },
+        { "jacuzzi_wanna", (.7f, 1.25f, .95f, 2.6f) },
+        { "umywalka_podwojna", (.75f, 2.2f, .9f, 1.7f) },
+        { "lawka_szatnia", (.38f, 2.0f, .45f, 2.2f) },
+        { "ratownik_krzeslo", (1.6f, 3.4f, 2.4f, 2.0f) },
+        { "zjezdzalnia_dzieci_palma", (1.5f, 5.0f, 3.2f, 9f) },
+        { "zjezdzalnia_dzieci_wieza", (1.5f, 5.0f, 3.2f, 9f) },
+        { "stol_masaz_drewno", (.6f, 1.0f, .76f, 2.3f) },
+        { "stol_masaz_skladany_czarny", (.6f, 1.0f, .84f, 2.3f) },
+        { "stol_masaz_skladany_zielony", (.6f, 1.0f, .82f, 2.4f) },
+        { "stol_masaz_kosmetyczny", (.7f, 1.4f, 1.1f, 2.1f) },
+        { "lezanka_masaz_tajski", (.25f, .6f, .42f, 2.2f) },
+    };
+    public static int OwnerRescaled;
+
+    static void Dopasuj(GameObject o, string plik, Vector3 at)
+    {
+        var rs = o.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) return;
+        Bounds Gr() { var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); return b; }
+        var bd = Gr();
+        float h = bd.size.y / K, stopa = Mathf.Max(bd.size.x, bd.size.z) / K;
+        if (!Wymiary.TryGetValue(plik, out var w)) w = (.05f, 6f, Mathf.Clamp(h, .05f, 6f), 12f);   // unknown model: nothing above 6 m
+        float f = 1f;
+        if (h < w.min || h > w.max) f = w.cel / Mathf.Max(h, 1e-4f);
+        if (stopa * f > w.stopa) f = w.stopa / Mathf.Max(stopa, 1e-4f);
+        if (Mathf.Abs(f - 1f) < .01f) { Debug.Log("AQUAPARK_OWNER_SIZE " + plik + " h=" + h.ToString("F2") + " m footprint " + stopa.ToString("F2") + " m (real size)"); return; }
+        o.transform.localScale *= f;
+        bd = Gr();
+        o.transform.position += new Vector3(0f, at.y * K - bd.min.y, 0f);                // the base stays on its floor
+        OwnerRescaled++;
+        Debug.LogWarning("AQUAPARK_OWNER_RESCALED " + plik + " h=" + h.ToString("F2") + " m footprint " + stopa.ToString("F2") + " m -> x" + f.ToString("F4") +
+                         " = h " + (h * f).ToString("F2") + " m footprint " + (stopa * f).ToString("F2") + " m");
     }
 
     // ================================================================ FURNITURE

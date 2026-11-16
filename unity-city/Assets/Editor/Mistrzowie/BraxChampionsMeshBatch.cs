@@ -280,6 +280,20 @@ public sealed class BraxChampionsMeshBatch
         return go;
     }
 
+    // SMALL PIECES CULLED BY DISTANCE (owner 16.11 01:36: "gra się źle rysuje, a wzególnie galeria, basen ... patrz jak
+    // osiedle płynnie chodzi"). A batch joins everything of one material into one mesh: the G1 gallery's shop walls full of
+    // goods, the food court's chairs, the pool deck's loungers were each part of a mesh as big as the building, so they were
+    // drawn as far as the building is (counted 16.11 in the G1 preview: 8.2 M triangles, 7.5 M of them pieces under 1.2 m).
+    // In a big batch (over 20 000 triangles) each piece (triangles joined by shared corners, welded to 1 mm = one shape)
+    // is sorted by its size: pieces of 2 m and more stay in the material's mesh as before; pieces under 2 m go to meshes
+    // per 24 m cell on layer 20 (drawn to 260 world units, BraxChampionsWydajnosc), under 0.6 m per 12 m cell on layer 21
+    // (90 units) - the region's own rule for small objects (BraxChampionsExplorer: 4 m / 1.2 m), here applied inside the
+    // batches it could not see. Small batches (one piece of goods, a pin, a TV screen, a template) are left whole.
+    public static bool Klasy = true;
+    const int ProgPodzialu = 20000;
+    const float Drobny = .6f, Maly = 2f, KomorkaMala = 24f, KomorkaDrobna = 12f;
+    public static int SplitPieces, SplitRenderers;
+
     /// <summary>Writes one mesh per material under parent (x K), saved as assets; returns the group.</summary>
     /// <param name="unit">metres per nominal unit: K (default) under an unscaled parent, 1 under a parent that already
     /// carries K (apartments, hotel, arena interiors, the vitrine)</param>
@@ -287,23 +301,86 @@ public sealed class BraxChampionsMeshBatch
     {
         var g = new GameObject(name).transform; g.SetParent(parent, false);
         float u = unit > 0f ? unit : K;
+        bool dziel = Klasy && Triangles > ProgPodzialu;
         foreach (var m in order)
         {
             var p = parts[m]; if (p.t.Count == 0) continue;
-            var v = new Vector3[p.v.Count]; for (int i = 0; i < v.Length; i++) v[i] = p.v[i] * u;
-            var mesh = new Mesh { name = name + " | " + m.name, indexFormat = v.Length > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
-            mesh.vertices = v; mesh.uv = p.uv.ToArray(); mesh.triangles = p.t.ToArray();
-            mesh.normals = p.n.ToArray(); mesh.RecalculateTangents(); mesh.RecalculateBounds();       // smooth on rounded parts
-            mesh = Save(mesh, assetFolder + "/batch_" + (saved++).ToString("D4") + ".asset");
-            var o = new GameObject(name + " | " + m.name); o.transform.SetParent(g, false);
-            o.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var r = o.AddComponent<MeshRenderer>(); r.sharedMaterial = m;
-            r.shadowCastingMode = shadows && m.renderQueue < 3000 ? ShadowCastingMode.On : ShadowCastingMode.Off;
-            r.receiveShadows = m.renderQueue < 3000;
-            GameObjectUtility.SetStaticEditorFlags(o, StaticEditorFlags.OccludeeStatic | StaticEditorFlags.BatchingStatic);
+            if (!dziel) { Emit(g, name + " | " + m.name, m, p, null, u, shadows, assetFolder, 0); continue; }
+            // pieces: corners welded to 1 mm, joined through the triangles
+            int nv = p.v.Count; var r = new int[nv]; var spaw = new Dictionary<(int, int, int), int>(nv);
+            for (int i = 0; i < nv; i++)
+            {
+                var q = p.v[i]; var key = (Mathf.RoundToInt(q.x * 1000f), Mathf.RoundToInt(q.y * 1000f), Mathf.RoundToInt(q.z * 1000f));
+                if (spaw.TryGetValue(key, out int f)) r[i] = f; else { spaw[key] = i; r[i] = i; }
+            }
+            spaw = null;
+            int Root(int i) { while (r[i] != i) { r[i] = r[r[i]]; i = r[i]; } return i; }
+            for (int j = 0; j + 2 < p.t.Count; j += 3)
+            {
+                int a = Root(p.t[j]), b = Root(p.t[j + 1]); if (a != b) r[b] = a;
+                int c = Root(p.t[j + 2]); if (c != a) r[c] = a;
+            }
+            var mn = new Dictionary<int, Vector3>(); var mx = new Dictionary<int, Vector3>();
+            for (int i = 0; i < nv; i++)
+            {
+                int k = Root(i);
+                if (mn.TryGetValue(k, out var lo)) { mn[k] = Vector3.Min(lo, p.v[i]); mx[k] = Vector3.Max(mx[k], p.v[i]); }
+                else { mn[k] = p.v[i]; mx[k] = p.v[i]; }
+            }
+            var duze = new List<int>(); var grupy = new Dictionary<(int cls, int cx, int cz), List<int>>();
+            var policzone = new HashSet<int>();
+            for (int j = 0; j + 2 < p.t.Count; j += 3)
+            {
+                int k = Root(p.t[j]); var sz = mx[k] - mn[k]; float e = Mathf.Max(sz.x, sz.y, sz.z);
+                if (e >= Maly) { duze.Add(j); continue; }
+                int cls = e < Drobny ? 2 : 1; float cell = cls == 2 ? KomorkaDrobna : KomorkaMala;
+                var c0 = (mn[k] + mx[k]) * .5f;
+                var key = (cls, Mathf.FloorToInt(c0.x / cell), Mathf.FloorToInt(c0.z / cell));
+                if (!grupy.TryGetValue(key, out var l)) { l = new List<int>(); grupy[key] = l; }
+                l.Add(j); if (policzone.Add(k)) SplitPieces++;
+            }
+            if (duze.Count > 0) Emit(g, name + " | " + m.name, m, p, duze.Count * 3 == p.t.Count ? null : duze, u, shadows, assetFolder, 0);
+            foreach (var e in grupy)
+            {
+                int layer = e.Key.cls == 2 ? BraxChampionsWydajnosc.WarstwaDrobne : BraxChampionsWydajnosc.WarstwaMale;
+                Emit(g, name + " | " + m.name + (e.Key.cls == 2 ? " | drobne " : " | małe ") + e.Key.cx + "_" + e.Key.cz, m, p, e.Value, u,
+                     shadows && e.Key.cls == 1, assetFolder, layer);
+                SplitRenderers++;
+            }
         }
         parts.Clear(); order.Clear();
         return g;
+    }
+
+    // one renderer: the whole part (tris null) or the triangles starting at the given indices, their vertices only
+    static void Emit(Transform g, string name, Material m, Part p, List<int> tris, float u, bool shadows, string assetFolder, int layer)
+    {
+        List<Vector3> V, N; List<Vector2> U; List<int> T;
+        if (tris == null) { V = p.v; N = p.n; U = p.uv; T = p.t; }
+        else
+        {
+            V = new List<Vector3>(); N = new List<Vector3>(); U = new List<Vector2>(); T = new List<int>(tris.Count * 3);
+            var map = new Dictionary<int, int>();
+            foreach (int j in tris)
+                for (int q = 0; q < 3; q++)
+                {
+                    int i = p.t[j + q];
+                    if (!map.TryGetValue(i, out int w)) { w = V.Count; map[i] = w; V.Add(p.v[i]); N.Add(p.n[i]); U.Add(p.uv[i]); }
+                    T.Add(w);
+                }
+        }
+        var v = new Vector3[V.Count]; for (int i = 0; i < v.Length; i++) v[i] = V[i] * u;
+        var mesh = new Mesh { name = name, indexFormat = v.Length > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
+        mesh.vertices = v; mesh.uv = U.ToArray(); mesh.triangles = T.ToArray();
+        mesh.normals = N.ToArray(); mesh.RecalculateTangents(); mesh.RecalculateBounds();       // smooth on rounded parts
+        mesh = Save(mesh, assetFolder + "/batch_" + (saved++).ToString("D4") + ".asset");
+        var o = new GameObject(name); o.transform.SetParent(g, false);
+        if (layer != 0) o.layer = layer;
+        o.AddComponent<MeshFilter>().sharedMesh = mesh;
+        var r = o.AddComponent<MeshRenderer>(); r.sharedMaterial = m;
+        r.shadowCastingMode = shadows && m.renderQueue < 3000 ? ShadowCastingMode.On : ShadowCastingMode.Off;
+        r.receiveShadows = m.renderQueue < 3000;
+        GameObjectUtility.SetStaticEditorFlags(o, StaticEditorFlags.OccludeeStatic | StaticEditorFlags.BatchingStatic);
     }
 
     static Mesh Save(Mesh mesh, string path)

@@ -481,7 +481,7 @@ public static partial class BraxChampionsArenaArrival
             Box(root,"A1 LAWNS | warm uplight in the grass at the palm",led,new Vector3(at.x,y+.015f,at.y-1.30f),new Vector3(.26f,.02f,.26f),false);
             var src=(!thickOnly.Contains(at)&&palm2&&placed%2==1)?palm2:palm;
             var world=arenaRoot.TransformPoint(new Vector3(at.x,y,at.y)*K);
-            var instance=BraxMiastoAssety.Postaw(root,src,"A1 lawn palm",world,(at.x*11f+at.y*7f)%360f,1f,false,true);
+            var instance=BraxChampionsModel.Postaw(root,src,"A1 lawn palm",world,(at.x*11f+at.y*7f)%360f,1f,false,true);
             if(!instance)continue;
             BraxMiastoAssety.LodyZWezlow(instance,new[]{.25f,.08f,.012f});
             BraxChampionsPalmTrunk.OnSpot(instance,world);
@@ -713,7 +713,7 @@ public static partial class BraxChampionsArenaArrival
             float y=.245f;
             try{y=ActualFloorYNominal(arenaRoot,at.x,at.y);}catch(Exception){}
             var world=arenaRoot.TransformPoint(new Vector3(at.x,y,at.y)*K);
-            var instance=BraxMiastoAssety.Postaw(root,palm,"A1 entrance palm",world,(at.x*7f+at.y*3f)%360f,1f,false,true);
+            var instance=BraxChampionsModel.Postaw(root,palm,"A1 entrance palm",world,(at.x*7f+at.y*3f)%360f,1f,false,true);
             if(!instance)continue;
             BraxMiastoAssety.LodyZWezlow(instance,new[]{.25f,.08f,.012f});
             BraxChampionsPalmTrunk.OnSpot(instance,world);

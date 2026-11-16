@@ -302,7 +302,7 @@ public static partial class BraxChampionsAquapark
     {
         var s = src[i % 2]; if (!s) { OwnerMissing++; return; }
         var w = at * K;
-        var o = BraxMiastoAssety.Postaw(models, s, "Palma " + (Palms + 1), w, (i * 137.508f) % 360f, 1f, false, true);
+        var o = BraxChampionsModel.Postaw(models, s, "Palma " + (Palms + 1), w, (i * 137.508f) % 360f, 1f, false, true);
         if (!o) return;
         BraxChampionsPalmTrunk.OnSpot(o, w);
         BraxMiastoAssety.LodyZWezlow(o, new[] { .25f, .08f, .012f });

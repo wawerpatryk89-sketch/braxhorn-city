@@ -294,7 +294,7 @@ public static partial class BraxChampionsD2
                 float zc=islands[i];
                 if(regal)
                 {
-                    var o=BraxMiastoAssety.Postaw(wyp,regal,"Regał-wyspa "+(k+1)+"."+(i+1),Wld(new Vector3(x,y,zc)),0f,1f,true,true);
+                    var o=BraxChampionsModel.Postaw(wyp,regal,"Regał-wyspa "+(k+1)+"."+(i+1),Wld(new Vector3(x,y,zc)),0f,1f,true,true);
                     if(!o)continue;
                     BraxMiastoAssety.LodyZWezlow(o,new[]{.22f,.05f});BraxMiastoAssety.Kolizja(cols,o,"kolizja: regał-wyspa",.03f);
                     var tw=BraxSklepyTowar.Korzen(wyp,"BRAXHORN MARKET regał "+(k+1)+"."+(i+1));
@@ -340,14 +340,14 @@ public static partial class BraxChampionsD2
         var lod=pack?BraxMiastoAssety.Model("miasto_sklepy","lodowka"):null;
         if(lod)
         {
-            int n=0;for(float x=67.0f+.44f;x<84.6f-.44f;x+=.874f)BraxMiastoAssety.Postaw(wyp,lod,"Lodówka "+(++n),Wld(new Vector3(x,y,z0+.15f+.50f)),180f,1f,true,true);
+            int n=0;for(float x=67.0f+.44f;x<84.6f-.44f;x+=.874f)BraxChampionsModel.Postaw(wyp,lod,"Lodówka "+(++n),Wld(new Vector3(x,y,z0+.15f+.50f)),180f,1f,true,true);
             Col(67f,84.6f,y,y+2.2f,z0+.15f,z0+1.15f,"lodówki");
         }
         // ---- the checkouts (pack kasa; built ones without the pack) at the mall entry and the street entry
         var kasa=pack?BraxMiastoAssety.Model("miasto_sklepy","kasa"):null;
         foreach(var (cx,cz,yaw) in new[]{(53.8f,13.5f,90f),(53.8f,17.9f,90f),(53.8f,22.3f,90f),(53.5f,45.8f,180f),(57.9f,45.8f,180f),(73.0f,45.8f,180f),(77.4f,45.8f,180f)})
         {
-            if(kasa){var o=BraxMiastoAssety.Postaw(wyp,kasa,"Kasa",Wld(new Vector3(cx,y,cz)),yaw,1f,true,true);if(o){BraxMiastoAssety.LodyZWezlow(o,new[]{.2f,.05f});BraxMiastoAssety.Kolizja(cols,o,"kolizja: kasa",.1f);}}
+            if(kasa){var o=BraxChampionsModel.Postaw(wyp,kasa,"Kasa",Wld(new Vector3(cx,y,cz)),yaw,1f,true,true);if(o){BraxMiastoAssety.LodyZWezlow(o,new[]{.2f,.05f});BraxMiastoAssety.Kolizja(cols,o,"kolizja: kasa",.1f);}}
             else foreach(float s in new[]{-1f,1f})Checkout(new Vector3(cx,y,cz)+(yaw==90f?Vector3.forward:Vector3.right)*s*1.1f,yaw==90f?90f:0f);
         }
         // ---- fruit and vegetables on oak tables by the east windows (pack owoce_skrzynka, Poly Haven bananas)
@@ -507,9 +507,9 @@ public static partial class BraxChampionsD2
         for(int i=0;i<5;i++)
         {
             var at=Wld(new Vector3(58f+i*4.5f,y,48.5f));
-            if(biez){var o=BraxMiastoAssety.Postaw(gym,biez,"Bieżnia "+(i+1),at,180f,1f,true,true);if(o)BraxMiastoAssety.Kolizja(cols,o,"kolizja: bieżnia",.05f);}
+            if(biez){var o=BraxChampionsModel.Postaw(gym,biez,"Bieżnia "+(i+1),at,180f,1f,true,true);if(o)BraxMiastoAssety.Kolizja(cols,o,"kolizja: bieżnia",.05f);}
         }
-        for(int i=0;i<2;i++){var at=Wld(new Vector3(81f,y,44f+i*4f));if(law){var o=BraxMiastoAssety.Postaw(gym,law,"Ławka treningowa "+(i+1),at,90f,1f,true,true);if(o)BraxMiastoAssety.Kolizja(cols,o,"kolizja: ławka",.05f);}}
+        for(int i=0;i<2;i++){var at=Wld(new Vector3(81f,y,44f+i*4f));if(law){var o=BraxChampionsModel.Postaw(gym,law,"Ławka treningowa "+(i+1),at,90f,1f,true,true);if(o)BraxMiastoAssety.Kolizja(cols,o,"kolizja: ławka",.05f);}}
         G1Shops++;
     }
 

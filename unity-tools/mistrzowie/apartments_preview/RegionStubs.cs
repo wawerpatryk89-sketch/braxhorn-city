@@ -136,3 +136,6 @@ public static class BraxWnetrzaKit
     public static class Mat { public static Material Plain(string n, Color c, float s = .7f, float m = 0f) => new Material { name = "plain:" + n }; }
 }
 
+
+// the region's culling layers (Assets/Mistrzowie/BraxChampionsWydajnosc.cs, a runtime script): only the layer numbers
+public static class BraxChampionsWydajnosc { public const int WarstwaMale = 20, WarstwaDrobne = 21; }

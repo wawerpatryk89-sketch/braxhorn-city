@@ -13,6 +13,7 @@
     <Compile Include="../apartments_preview/RegionStubs.cs" />
     <Compile Include="HotelStubs.cs" />
     <Compile Include="HotelMain.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsModel.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakMaterials.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsHotelSobczakT03.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsInteriorLight.cs" />

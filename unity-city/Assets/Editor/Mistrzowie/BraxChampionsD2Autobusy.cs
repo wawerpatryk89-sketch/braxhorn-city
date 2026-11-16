@@ -72,7 +72,7 @@ public static partial class BraxChampionsD2
         foreach(int i in new[]{0,1,3,5,6})
         {
             float x=StandX0+(i+.5f)*StandPitch,zc=BusZ1-.4f-6.0f;
-            var o=BraxMiastoAssety.Postaw(g,src,"D2 autobus stanowisko "+(i+1),root.TransformPoint(new Vector3(x,LaneY,zc)*K),0f,1f,false,true);
+            var o=BraxChampionsModel.Postaw(g,src,"D2 autobus stanowisko "+(i+1),root.TransformPoint(new Vector3(x,LaneY,zc)*K),0f,1f,false,true);
             if(o)BraxMiastoAssety.Kolizja(g,o,"autobus kolizja",.1f);
         }
     }

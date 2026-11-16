@@ -306,7 +306,7 @@ public static class BraxChampionsFoundation
                 if(p.kind=="palm")
                 {
                     // Source palms are in real metres; Postaw applies the shared K once.
-                    o=BraxMiastoAssety.Postaw(vegetation,palms[p.variant%palms.Length],p.id+" Palma "+p.band,at,p.yaw,1f,false,true);
+                    o=BraxChampionsModel.Postaw(vegetation,palms[p.variant%palms.Length],p.id+" Palma "+p.band,at,p.yaw,1f,false,true);
                     BraxMiastoAssety.LodyZWezlow(o,new[]{.25f,.08f,.012f});report.palms++;
                     BraxChampionsPalmTrunk.OnSpot(o,at);                    // the trunk, not the model origin, in the bed
                 }

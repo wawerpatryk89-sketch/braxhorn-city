@@ -222,10 +222,15 @@ public static class BraxChampionsPodzial
         return new BraxChampionsObszary.Obszar { scena = plan.scena, granice = gr, wczytaj = plan.wczytaj, zwolnij = plan.zwolnij };
     }
 
-    // ================================================================ the far copy (the R1 author's method, BraxClaudeZDaleka)
-    // Big surfaces only (largest side >= 2.5 m): vertices in one cell with one normal direction become one vertex
-    // (Rossignac-Borrel clustering), degenerate triangles drop out; objects with a LODGroup give their last level as it is;
-    // the same materials; one mesh per area, one sub-mesh per material; the cell grows until the area has at most maxTris.
+    // ================================================================ the far copy
+    // Owner 13.11-16.11 ("wszystko migota", "rysuje się źle", "woda ma być w całym basenie, nie pasek wody"): the first far
+    // copy (vertex clustering, the R1 author's BraxClaudeZDaleka) MOVED vertices onto a grid: thin triangles of a big
+    // flat fill (the lagoon's water) collapsed into a strip, a tile coping and the water or a frame and its glass landed in
+    // one plane and fought for depth, textures slid. Now nothing is moved: the copy is the building's own triangles,
+    // only its big PIECES (a wall, a slab, a roof, a façade, the whole water of a pool) and none of the small ones (rails,
+    // slats, chairs, goods). A piece = triangles joined by shared corners (positions welded to 1 mm); its size = the
+    // longest side of its box, but at most 25x the second side (a 20 m rail 4 cm thick is not big, a façade fin is). The biggest pieces go
+    // in first (a heavy one a little later) while the area's triangle budget lasts. Objects with a LODGroup give their last level as it is.
     struct Zrodlo { public Renderer r; public Mesh m; public Matrix4x4 l2w; public bool dokladne; }
     sealed class Kubel
     {
@@ -297,59 +302,90 @@ public static class BraxChampionsPodzial
         if (d.v.Length <= 30000) cache[m] = d;                                  // big merged meshes are read when used and let go
         return d;
     }
-    static int KlasaNormalnej(Vector3 n)
+    const float MinKawalek = 2.5f, Smuklosc = 25f, Spaw = .001f;
+    sealed class Kawalek { public float wynik; public int zrodlo; public readonly List<int> sub = new List<int>(), tri = new List<int>(); }
+
+    static int Korzen(int[] r, int i) { while (r[i] != i) { r[i] = r[r[i]]; i = r[i]; } return i; }
+
+    // the pieces of one source (world size of each); LOD last levels and light glass/cut-out objects are one piece kept first
+    static void Kawalki(Zrodlo z, int zi, Dane d, List<Kawalek> wynik)
     {
-        float ax = Mathf.Abs(n.x), ay = Mathf.Abs(n.y), az = Mathf.Abs(n.z);
-        if (ax >= ay && ax >= az) return n.x >= 0 ? 0 : 1;
-        if (ay >= az) return n.y >= 0 ? 2 : 3;
-        return n.z >= 0 ? 4 : 5;
+        int nv = d.v.Length; var l2w = z.l2w;
+        var w = new Vector3[nv]; for (int i = 0; i < nv; i++) w[i] = l2w.MultiplyPoint3x4(d.v[i]);
+        if (z.dokladne)
+        {
+            var k = new Kawalek { wynik = float.MaxValue, zrodlo = zi };
+            for (int s = 0; s < d.sub.Length; s++) for (int j = 0; j + 2 < d.sub[s].Length; j += 3) { k.sub.Add(s); k.tri.Add(j); }
+            if (k.tri.Count > 0) wynik.Add(k);
+            return;
+        }
+        var r = new int[nv]; var spaw = new Dictionary<(int, int, int), int>(nv);
+        for (int i = 0; i < nv; i++)
+        {
+            var key = (Mathf.RoundToInt(w[i].x / Spaw), Mathf.RoundToInt(w[i].y / Spaw), Mathf.RoundToInt(w[i].z / Spaw));
+            if (spaw.TryGetValue(key, out int f)) r[i] = f; else { spaw[key] = i; r[i] = i; }
+        }
+        spaw = null;
+        for (int s = 0; s < d.sub.Length; s++)
+        {
+            var t = d.sub[s];
+            for (int j = 0; j + 2 < t.Length; j += 3)
+            {
+                int a = Korzen(r, t[j]), b = Korzen(r, t[j + 1]), c = Korzen(r, t[j + 2]);
+                if (a != b) r[b] = a; c = Korzen(r, c); if (c != a) r[c] = a;
+            }
+        }
+        var mn = new Dictionary<int, Vector3>(); var mx = new Dictionary<int, Vector3>(); var kaw = new Dictionary<int, Kawalek>();
+        for (int s = 0; s < d.sub.Length; s++)
+        {
+            var t = d.sub[s];
+            for (int j = 0; j + 2 < t.Length; j += 3)
+            {
+                int root = Korzen(r, t[j]);
+                if (!kaw.TryGetValue(root, out var k)) { k = new Kawalek { zrodlo = zi }; kaw[root] = k; mn[root] = w[t[j]]; mx[root] = w[t[j]]; }
+                k.sub.Add(s); k.tri.Add(j);
+                for (int q = 0; q < 3; q++) { var p = w[t[j + q]]; mn[root] = Vector3.Min(mn[root], p); mx[root] = Vector3.Max(mx[root], p); }
+            }
+        }
+        foreach (var e in kaw)
+        {
+            var sz = mx[e.Key] - mn[e.Key];
+            float e1 = Mathf.Max(sz.x, sz.y, sz.z), e3 = Mathf.Min(sz.x, sz.y, sz.z), e2 = sz.x + sz.y + sz.z - e1 - e3;
+            e.Value.wynik = Mathf.Min(e1, Smuklosc * e2);
+            if (e.Value.wynik >= MinKawalek * BraxClaudeOsiedle.K) wynik.Add(e.Value);
+        }
     }
-    static long Klucz(Vector3 p, float kom, int klasa)
-    {
-        const long M = (1L << 20) - 1, O = 1L << 19;
-        long x = (Mathf.FloorToInt(p.x / kom) + O) & M, y = (Mathf.FloorToInt(p.y / kom) + O) & M, z = (Mathf.FloorToInt(p.z / kom) + O) & M;
-        return x | (y << 20) | (z << 40) | ((long)klasa << 60);
-    }
-    static Dictionary<Material, Kubel> Grupuj(List<Zrodlo> zr, float kom, Dictionary<Mesh, Dane> cache, out long tris)
+
+    // the kept pieces into one bucket per material: the source's own vertices, normals, tangents and UVs, unmoved
+    static Dictionary<Material, Kubel> Zloz(List<Zrodlo> zr, List<Kawalek> wybrane, Dictionary<Mesh, Dane> cache, out long tris)
     {
         var kub = new Dictionary<Material, Kubel>(); tris = 0;
-        foreach (var z in zr)
+        foreach (var grupa in wybrane.GroupBy(k => k.zrodlo))
         {
-            var d = Czytaj(z.m, cache); var mats = z.r.sharedMaterials; var l2w = z.l2w; bool odwroc = l2w.determinant < 0f;
+            var z = zr[grupa.Key]; var d = Czytaj(z.m, cache); var mats = z.r.sharedMaterials; var l2w = z.l2w; bool odwroc = l2w.determinant < 0f;
             int nv = d.v.Length; bool maN = d.n.Length == nv, maT = d.t.Length == nv, maUv = d.uv.Length == nv;
-            for (int s = 0; s < d.sub.Length; s++)
-            {
-                var mat = s < mats.Length ? mats[s] : null;
-                if (!mat || d.sub[s].Length == 0) continue;
-                if (!kub.TryGetValue(mat, out var k)) { k = new Kubel { mat = mat }; kub[mat] = k; }
-                var idx = new Dictionary<int, int>();
-                int Wez(int i)
+            var idx = new Dictionary<(Kubel, int), int>();
+            foreach (var k in grupa)
+                for (int q = 0; q < k.tri.Count; q++)
                 {
-                    if (idx.TryGetValue(i, out int w)) return w;
-                    var p = l2w.MultiplyPoint3x4(d.v[i]);
-                    var n = maN ? l2w.MultiplyVector(d.n[i]).normalized : Vector3.up;
-                    if (!z.dokladne)
+                    int s = k.sub[q]; var mat = s < mats.Length ? mats[s] : null; if (!mat) continue;
+                    if (!kub.TryGetValue(mat, out var b)) { b = new Kubel { mat = mat }; kub[mat] = b; }
+                    int Wez(int i)
                     {
-                        long key = Klucz(p, kom, KlasaNormalnej(n));
-                        if (k.mapa.TryGetValue(key, out w)) { idx[i] = w; return w; }
-                        w = k.v.Count; k.mapa[key] = w;
+                        if (idx.TryGetValue((b, i), out int x)) return x;
+                        x = b.v.Count; idx[(b, i)] = x;
+                        b.v.Add(l2w.MultiplyPoint3x4(d.v[i]));
+                        b.n.Add(maN ? l2w.MultiplyVector(d.n[i]).normalized : Vector3.up);
+                        if (maT) { var t = d.t[i]; var tw = l2w.MultiplyVector(new Vector3(t.x, t.y, t.z)).normalized; b.t.Add(new Vector4(tw.x, tw.y, tw.z, odwroc ? -t.w : t.w)); }
+                        else b.t.Add(new Vector4(1, 0, 0, 1));
+                        b.uv.Add(maUv ? d.uv[i] : Vector2.zero);
+                        return x;
                     }
-                    else w = k.v.Count;
-                    k.v.Add(p); k.n.Add(n);
-                    if (maT) { var t = d.t[i]; var tw = l2w.MultiplyVector(new Vector3(t.x, t.y, t.z)).normalized; k.t.Add(new Vector4(tw.x, tw.y, tw.z, odwroc ? -t.w : t.w)); }
-                    else k.t.Add(new Vector4(1, 0, 0, 1));
-                    k.uv.Add(maUv ? d.uv[i] : Vector2.zero);
-                    idx[i] = w; return w;
-                }
-                var tri = d.sub[s];
-                for (int j = 0; j + 2 < tri.Length; j += 3)
-                {
-                    int a = Wez(tri[j]), b = Wez(tri[j + 1]), c = Wez(tri[j + 2]);
-                    if (a == b || b == c || a == c) continue;
-                    if (odwroc) { k.i.Add(a); k.i.Add(c); k.i.Add(b); } else { k.i.Add(a); k.i.Add(b); k.i.Add(c); }
+                    var tri = d.sub[s]; int j = k.tri[q];
+                    int a0 = Wez(tri[j]), a1 = Wez(tri[j + 1]), a2 = Wez(tri[j + 2]);
+                    if (odwroc) { b.i.Add(a0); b.i.Add(a2); b.i.Add(a1); } else { b.i.Add(a0); b.i.Add(a1); b.i.Add(a2); }
                     tris++;
                 }
-            }
         }
         return kub;
     }
@@ -360,16 +396,21 @@ public static class BraxChampionsPodzial
         if (zr.Count == 0) { Debug.Log("A1_Z_DALEKA " + scena + ": no big surfaces, no copy"); return null; }
         var cache = new Dictionary<Mesh, Dane>();
         long zrodlo = zr.Sum(z => (long)Tris(z.m));
-        float kom = Mathf.Max(.05f, komorka), uzyta = kom; Dictionary<Material, Kubel> kub = null; long tris = 0;
-        for (int przejscie = 0; przejscie < 7; przejscie++)
+        var kawalki = new List<Kawalek>();
+        for (int zi = 0; zi < zr.Count; zi++) Kawalki(zr[zi], zi, Czytaj(zr[zi].m, cache), kawalki);
+        // the biggest pieces first, until the budget is full (a piece is never cut)
+        var wybrane = new List<Kawalek>(); long suma0 = 0; float prog = 0f;
+        // order: size, a heavy piece (thousands of triangles, e.g. the inside of a slide tube) a little later than a light one
+        foreach (var k in kawalki.OrderByDescending(k => k.wynik / Mathf.Sqrt(Mathf.Max(1f, k.tri.Count / 1500f))))
         {
-            uzyta = kom; kub = Grupuj(zr, kom, cache, out tris);
-            if (tris <= maxTris) break;
-            kom *= Mathf.Max(1.3f, Mathf.Sqrt(tris / (float)maxTris) * 1.1f);     // triangles ~ 1 / cell^2
+            if (suma0 + k.tri.Count > maxTris && wybrane.Count > 0) { prog = Mathf.Max(prog, k.wynik); continue; }
+            wybrane.Add(k); suma0 += k.tri.Count;
         }
+        float uzyta = prog / BraxClaudeOsiedle.K;
+        var kub = Zloz(zr, wybrane, cache, out long tris);
         cache.Clear();
         var kubly = kub.Values.Where(k => k.i.Count / 3 >= MinTrisNaMaterial).ToList();
-        if (kubly.Count == 0) { Debug.Log("A1_Z_DALEKA " + scena + ": nothing left after clustering, no copy"); return null; }
+        if (kubly.Count == 0) { Debug.Log("A1_Z_DALEKA " + scena + ": no big pieces, no copy"); return null; }
         var mesh = new Mesh { name = "Z daleka: " + scena };
         int nv = kubly.Sum(k => k.v.Count);
         mesh.indexFormat = nv > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16;
@@ -404,7 +445,7 @@ public static class BraxChampionsPodzial
         var zd = go.AddComponent<BraxChampionsObszarZDaleka>(); zd.scena = scena; zd.renderery = new Renderer[] { mr };
         long koniec = subs.Sum(x => (long)x.Length / 3); suma += koniec;
         Debug.Log("A1_Z_DALEKA " + scena + ": surfaces " + zr.Count + " (source triangles " + zrodlo + ") -> " + koniec + " triangles, vertices " + nv +
-                  ", materials " + kubly.Count + ", cell " + uzyta.ToString("0.00") + " m");
+                  ", materials " + kubly.Count + ", pieces " + wybrane.Count + "/" + kawalki.Count + (prog > 0f ? ", smaller than " + uzyta.ToString("0.0") + " m left out" : ", all big pieces in"));
         return go;
     }
 }

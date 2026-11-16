@@ -1271,7 +1271,7 @@ public static class BraxChampionsApartments
         foreach(var p in spots)
         {
             var world=root.TransformPoint(new Vector3(p.x,SiteY,p.y));
-            var o=BraxMiastoAssety.Postaw(parent,palm,"apartment garden palm",world,(p.x*11f+p.y*5f)%360f,1f,false,true);
+            var o=BraxChampionsModel.Postaw(parent,palm,"apartment garden palm",world,(p.x*11f+p.y*5f)%360f,1f,false,true);
             if(!o)continue;
             o.transform.localScale=Vector3.one;                     // the parent already carries K
             BraxMiastoAssety.LodyZWezlow(o,new[]{.25f,.08f,.012f});

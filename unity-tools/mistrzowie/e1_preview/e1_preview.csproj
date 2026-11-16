@@ -16,6 +16,7 @@
     <Compile Include="../promenade_preview/PromenadeStubs.cs" />
     <Compile Include="E1Stubs.cs" />
     <Compile Include="E1Main.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsModel.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsE1.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPalmTrunk.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsE1Finish.cs" />

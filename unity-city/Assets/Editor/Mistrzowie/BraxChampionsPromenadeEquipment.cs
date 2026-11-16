@@ -64,7 +64,7 @@ public static class BraxChampionsPromenadeEquipment
         var src=BraxMiastoAssety.Jest(Pack)?BraxMiastoAssety.Model(Pack,name):null;
         if(!src){missing.Add(name);return null;}
         var at=root.TransformPoint(local*K);
-        var o=BraxMiastoAssety.Postaw(parent?parent:root,src,root.name.Split(' ')[0]+" | "+label+" ("+name+")",at,root.eulerAngles.y+yaw,1f,false,false);
+        var o=BraxChampionsModel.Postaw(parent?parent:root,src,root.name.Split(' ')[0]+" | "+label+" ("+name+")",at,root.eulerAngles.y+yaw,1f,false,false);
         if(!o){missing.Add(name);return null;}
         var b=BraxRegion.Bounds(o);
         o.transform.position+=new Vector3(at.x-b.center.x,at.y-b.min.y,at.z-b.center.z);

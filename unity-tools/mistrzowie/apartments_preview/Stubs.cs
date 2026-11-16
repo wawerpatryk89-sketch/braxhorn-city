@@ -38,6 +38,8 @@ namespace UnityEngine
         public static Vector3 Slerp(Vector3 a, Vector3 b, float t) { t = Mathf.Clamp(t, 0, 1); float la = a.magnitude, lb = b.magnitude; if (la < 1e-9f || lb < 1e-9f) return Lerp(a, b, t); var ua = a * (1f / la); var ub = b * (1f / lb); float d = Mathf.Clamp(Dot(ua, ub), -1f, 1f); float th = (float)Math.Acos(d) * t; var rel = (ub - ua * d); float rl = rel.magnitude; var dir = rl < 1e-6f ? ua : ua * (float)Math.Cos(th) + rel * ((float)Math.Sin(th) / rl); return dir * (la + (lb - la) * t); }
         public static Vector3 Cross(Vector3 a, Vector3 b) => new Vector3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
         public static Vector3 Scale(Vector3 a, Vector3 b) => new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
+        public static Vector3 Min(Vector3 a, Vector3 b) => new Vector3(System.Math.Min(a.x, b.x), System.Math.Min(a.y, b.y), System.Math.Min(a.z, b.z));
+        public static Vector3 Max(Vector3 a, Vector3 b) => new Vector3(System.Math.Max(a.x, b.x), System.Math.Max(a.y, b.y), System.Math.Max(a.z, b.z));
         public static float Distance(Vector3 a, Vector3 b) => (a - b).magnitude; public static Vector3 Lerp(Vector3 a, Vector3 b, float t) => a + (b - a) * Mathf.Clamp(t, 0, 1);
         public void Normalize() { float m = magnitude; if (m > 1e-9f) { x /= m; y /= m; z /= m; } }
         public float sqrMagnitude => x * x + y * y + z * z;

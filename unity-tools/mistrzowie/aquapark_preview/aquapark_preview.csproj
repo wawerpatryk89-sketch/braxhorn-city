@@ -20,6 +20,7 @@
     <Compile Include="AquaStubs.cs" />
     <Compile Include="../g1_preview/G1Stubs.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsD2Tablice.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsModel.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsD2.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsD2Budynek.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsD2Kolej.cs" />

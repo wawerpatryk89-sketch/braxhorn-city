@@ -232,7 +232,7 @@ public static partial class BraxChampionsArenaArrival
     static bool GearModel(Transform g, string pack, string name, Vector3 p, float yaw, float tilt = 0f, float lift = 0f, float roll = 0f)
     {
         var src = BraxMiastoAssety.Model(pack, name); if (!src) return false;
-        var o = BraxMiastoAssety.Postaw(g, src, "A1 szatnia | " + name, Vector3.zero, yaw, 1f, true, true);
+        var o = BraxChampionsModel.Postaw(g, src, "A1 szatnia | " + name, Vector3.zero, yaw, 1f, true, true);
         if (!o) return false;
         o.transform.localPosition = p + Vector3.up * lift; o.transform.localRotation = Quaternion.Euler(0, yaw, 0) * Quaternion.Euler(tilt, 0, roll);
         o.transform.localScale = Vector3.one;

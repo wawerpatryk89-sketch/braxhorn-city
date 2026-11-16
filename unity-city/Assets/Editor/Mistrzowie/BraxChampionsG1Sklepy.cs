@@ -419,7 +419,7 @@ public static partial class BraxChampionsD2
         if(!BraxMiastoAssety.Jest(pack))return false;
         var src=BraxMiastoAssety.Model(pack,name);if(!src)return false;
         var w=root.rotation*faceLocal;float yaw=Mathf.Atan2(w.x,w.z)*Mathf.Rad2Deg;
-        var o=BraxMiastoAssety.Postaw(goodsInst?goodsInst:g1Goods,src,name,Wld(local+Vector3.up*lift),yaw,1f,false,false);
+        var o=BraxChampionsModel.Postaw(goodsInst?goodsInst:g1Goods,src,name,Wld(local+Vector3.up*lift),yaw,1f,false,false);
         if(o&&tilt!=0f)o.transform.rotation=Quaternion.Euler(0f,yaw,0f)*Quaternion.Euler(tilt,0f,0f);
         LastShopModel=o;
         return true;
@@ -467,7 +467,7 @@ public static partial class BraxChampionsD2
         if(!BraxMiastoAssety.Jest(pack))return false;
         var src=BraxMiastoAssety.Model(pack,n+"_wieszak");if(!src)return false;
         var w=root.rotation*alongLocal;float yaw=Mathf.Atan2(w.x,w.z)*Mathf.Rad2Deg;
-        BraxMiastoAssety.Postaw(goodsInst?goodsInst:g1Goods,src,n,Wld(hookLocal+Vector3.down*.06f),yaw,1f,false,false);
+        BraxChampionsModel.Postaw(goodsInst?goodsInst:g1Goods,src,n,Wld(hookLocal+Vector3.down*.06f),yaw,1f,false,false);
         BraxKatalog.Hanger(Kat(),hookLocal,alongLocal);
         return true;
     }

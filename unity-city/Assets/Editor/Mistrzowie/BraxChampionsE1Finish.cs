@@ -427,7 +427,7 @@ public static partial class BraxChampionsE1
             B(plantSoil,x-.8f,x+.8f,Y0,Y0+.52f,z-.8f,z+.8f);
             Col(x-.9f,x+.9f,Y0,Y0+.6f,z-.9f,z+.9f,"donica palmy");
             var s=src[n%2];n++;
-            if(s){var at=root.TransformPoint(new Vector3(x,Y0+.52f,z)*K);var o=BraxMiastoAssety.Postaw(palms,s,"E1 palma "+n,at,n*67f,1f,false,true);
+            if(s){var at=root.TransformPoint(new Vector3(x,Y0+.52f,z)*K);var o=BraxChampionsModel.Postaw(palms,s,"E1 palma "+n,at,n*67f,1f,false,true);
                 if(o)BraxChampionsPalmTrunk.OnSpot(o,at);}
             FinishItems++;
         }
