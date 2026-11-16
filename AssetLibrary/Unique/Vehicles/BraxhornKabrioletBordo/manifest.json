@@ -1,7 +1,7 @@
 {
   "id": "braxhorn.vehicle.kabriolet_bordo",
   "displayName": "Braxhorn Kabriolet Bordo",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "scope": "shared, all city regions",
   "ownerBrief": "Właściciel 16.11.2026 01:29: model 1:1 ze zdjęcia (bok + przód), materiały Poly Haven, zapis w paczce aut",
   "sourceStorage": {
@@ -17,16 +17,16 @@
       "lod1": "kabriolet_bordo_lod1.glb"
     },
     "sha256": {
-      "lod0": "a3643e190df7b7dd8aa9d46267cd2a4ecd8cd39a1330afc65630b2c3992822f5",
-      "lod1": "a81bef3159b7c796f4527f0737a3f2194efaafdecaf63acdf8a8ce185e02a945"
+      "lod0": "194ae1fbadc846bdef41a48289cd3825f7155bc66cba8e8097c2c5a0af99b21c",
+      "lod1": "34fac2bcf339d040fc5f2563c6fd75e237e2bc0b484df750cc878c86056d540a"
     },
     "bytes": {
-      "lod0": 10043840,
-      "lod1": 1951092
+      "lod0": 11333588,
+      "lod1": 2268240
     },
     "triangles": {
-      "lod0": 235642,
-      "lod1": 38616
+      "lod0": 244242,
+      "lod1": 40716
     },
     "externalTextures": "_tekstury/kabriolet_bordo/ (Poly Haven leather_white 1K recoloured cognac/dark brown; poly_wool_herringbone 1K carpet)",
     "lengthM": 4.448,
@@ -50,8 +50,8 @@
       "kierownica"
     ],
     "badgeMounts": {
-      "znak_byk_maska": "Bull (BraxhornAutoBadges), node +Z = bonnet normal",
-      "napis_braxhorn_tyl": "BRAXHORN (BraxhornAutoBadges), node +Z = rear normal"
+      "znak_byk_maska": "owner bull (Tripo 16.11) fitted to the bonnet surface, satin nickel with graphite detail",
+      "napis_braxhorn_tyl": "owner BRAXHORN lettering fitted to the rear above the plate, satin nickel"
     }
   },
   "unity": {
@@ -62,7 +62,7 @@
   "validation": {
     "blenderCyclesPreview": true,
     "webglPreview": true,
-    "badgesFitted": false,
+    "badgesFitted": true,
     "unityPlayMode": "untested",
     "androidDevice": "untested",
     "sharedGeometryAppliedToRegionScenes": false,
