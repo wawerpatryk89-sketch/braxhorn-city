@@ -14,13 +14,14 @@ name: Pokoj prob postaci (bez APK, bez rejonu)
         type: string
         default: ''
       tryb:
-        description: 'apk = LEKKI APK na telefon (wchodzisz i ogladasz) | solo, rozmowa, walka = bramki na liczbach'
+        description: 'apk = LEKKI APK na telefon | solo, rozmowa, walka, stres = bramki na liczbach + film'
         type: choice
         options:
         - apk
         - solo
         - rozmowa
         - walka
+        - stres
         default: apk
       klatek:
         description: 'Klatek na etap (36 = 1,5 s przy 24 kl./s)'

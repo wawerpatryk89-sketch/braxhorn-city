@@ -206,6 +206,7 @@ public static class BraxPokojProbBuild
         else
         {
             bool walka = tryb == "walka";
+            bool stres = tryb == "stres";
             // Bić się mają TYLKO te postacie, które mają zestaw walki (właściciel 16.11, 09:02).
             if (walka)
             {
@@ -222,17 +223,28 @@ public static class BraxPokojProbBuild
                 mimiki = umieja.Select(i => mimiki[i]).ToList();
             }
 
-            float promien = walka ? .62f * K : .85f * K;   // walka: dystans ciosu; rozmowa: dystans rozmowy
-            int n = Mathf.Min(anim.Count, walka ? 2 : 3);
+            float promien = walka ? .62f * K : stres ? 1.75f * K : .85f * K;   // walka: dystans ciosu; stres: świadkowie wokół; rozmowa: dystans rozmowy
+            int n = Mathf.Min(anim.Count, walka ? 2 : stres ? MaxPostaci : 3);
             anim = anim.Take(n).ToList(); nazwy = nazwy.Take(n).ToList(); mimiki = mimiki.Take(n).ToList();
             var spojrzenia = new List<BraxSpojrzeniePatryka>();
             for (int i = 0; i < n; i++)
             {
-                float katUst = n == 2 ? (i == 0 ? 180f : 0f) : i * 120f;
-                var poz = Quaternion.Euler(0, katUst, 0) * Vector3.forward * promien;
+                // STRES: stresowana stoi w ŚRODKU, świadkowie w półkolu wokół niej i przodem do niej —
+                // inaczej nie da się zmierzyć, czy na nią patrzą.
+                Vector3 poz;
+                if (stres)
+                    poz = i == 0 ? Vector3.zero
+                        : Quaternion.Euler(0, -70f + 140f * (i - 1) / Mathf.Max(1, n - 2), 0) * Vector3.back * promien;
+                else
+                {
+                    float katUst = n == 2 ? (i == 0 ? 180f : 0f) : i * 120f;
+                    poz = Quaternion.Euler(0, katUst, 0) * Vector3.forward * promien;
+                }
                 var korzen = anim[i].transform.parent;
                 korzen.localPosition = new Vector3(poz.x, .02f, poz.z);
-                korzen.localRotation = Quaternion.LookRotation(-poz.normalized, Vector3.up);
+                korzen.localRotation = poz.sqrMagnitude < .0001f
+                    ? Quaternion.LookRotation(Vector3.back, Vector3.up)
+                    : Quaternion.LookRotation(-poz.normalized, Vector3.up);
                 anim[i].gameObject.SetActive(true);
 
                 var kosci = anim[i].GetComponentsInChildren<Transform>(true);
@@ -246,12 +258,16 @@ public static class BraxPokojProbBuild
                 spojrzenia.Add(wzrok);
             }
 
-            kam.fieldOfView = walka ? 38f : 40f;
-            kam.transform.position = new Vector3(2.9f * K, 1.5f * K, -3.4f * K);
+            kam.fieldOfView = walka ? 38f : stres ? 52f : 40f;
+            kam.transform.position = stres
+                ? new Vector3(0f, 1.6f * K, -4.3f * K)
+                : new Vector3(2.9f * K, 1.5f * K, -3.4f * K);
             kam.transform.LookAt(new Vector3(0f, 1.15f * K, 0f));
 
             var para = new GameObject("Próba par").AddComponent<BraxProbaPary>();
-            para.tryb = walka ? BraxProbaPary.Tryb.Walka : BraxProbaPary.Tryb.Rozmowa;
+            para.tryb = walka ? BraxProbaPary.Tryb.Walka
+                      : stres ? BraxProbaPary.Tryb.Stres
+                      : BraxProbaPary.Tryb.Rozmowa;
             para.postacie = anim.ToArray();
             para.nazwy = nazwy.ToArray();
             para.mimiki = mimiki.ToArray();
