@@ -70,12 +70,12 @@ public static partial class BraxRegionMiastoB
         // ogrodzenie z prefabrykatów: słupek 12 × 12 cm, przęsło 2.0 m, 4 płyty 200 × 50 × 5 cm (× K), czapka słupka
         var tony = new[]
         {
-            // 16.11 wieczór: odcień chłodny szary (podgląd: .78/.68/.60 wyszły beżowe w słońcu — ma być szaro i ciemno)
-            BraxRegionMeble.Tex("Płot betonowy: płyta (szara)", 1.6f, new Color(.64f, .66f, .68f), .93f, "concrete_wall_008", "concrete_floor_02"),
-            BraxRegionMeble.Tex("Płot betonowy: płyta (zabrudzona)", 1.6f, new Color(.55f, .57f, .59f), .95f, "concrete_wall_008", "concrete_floor_02"),
-            BraxRegionMeble.Tex("Płot betonowy: płyta (zawilgocona)", 1.6f, new Color(.47f, .49f, .51f), .96f, "concrete_wall_008", "concrete_floor_02"),
+            // 16.11 wieczór: beton szary chropowaty (concrete_floor_02) — concrete_wall_008 wychodził beżowy w słońcu (podgląd), ma być szaro i ciemno
+            BraxRegionMeble.Tex("Płot betonowy: płyta (szara)", 1.6f, new Color(.74f, .75f, .76f), .93f, "concrete_floor_02", "concrete_wall_008"),
+            BraxRegionMeble.Tex("Płot betonowy: płyta (zabrudzona)", 1.6f, new Color(.64f, .65f, .66f), .95f, "concrete_floor_02", "concrete_wall_008"),
+            BraxRegionMeble.Tex("Płot betonowy: płyta (zawilgocona)", 1.6f, new Color(.56f, .57f, .58f), .96f, "concrete_floor_02", "concrete_wall_008"),
         };
-        var slupMat = BraxRegionMeble.Tex("Płot betonowy: słupek", 1.2f, new Color(.55f, .55f, .54f), .93f, "concrete_wall_008", "concrete_floor_02");
+        var slupMat = BraxRegionMeble.Tex("Płot betonowy: słupek", 1.2f, new Color(.58f, .59f, .60f), .93f, "concrete_floor_02", "concrete_wall_008");
         var panele = tony.Select(_ => new BraxRegionMeble.Bud()).ToArray(); var slupy = new BraxRegionMeble.Bud();
         var rnd = new System.Random(4242);
         float prz = 2.0f * K, hp = .5f * K, gp = .05f * K, ss = .12f * K, H = 4 * hp + .1f * K;
