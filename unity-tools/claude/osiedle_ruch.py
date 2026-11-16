@@ -407,7 +407,13 @@ def prepare(source, output):
     relax_arms(s, r, ms[0], nm, axes, h, new, animate_torso=True)
     avoid_clothing(s, r, ms[0], nm, axes, new)
     if actor == "patryk":
-        for planted in (new, acts["Walk"], acts["Talk"]):
+        # SPOCZYNEK WYJETY Z PLANTOWANIA PODESZW (16.11, 20:34 — wlasciciel: „Patryk ma zjebana
+        # poze spoczynkowa”). To jedyny krok w calym potoku stosowany WYLACZNIE do Patryka, i to
+        # wlasnie on wyglada zle, podczas gdy reszta obsady stoi normalnie. Zmierzone w APK:
+        # wszystkie siatki maja dolna krawedz dokladnie w Y=0, wiec w pozie spoczynkowej stoja na
+        # podlodze — unosi je dopiero nagranie. Chod i mowa zostaja, bo tam plantowanie pomaga
+        # (stopa nie slizga sie po ziemi), a stanie w miejscu go nie potrzebuje.
+        for planted in (acts["Walk"], acts["Talk"]):
             align_planted_soles(
                 s, r, r.pose.bones[nm["Hips"]], ms[0], axes[:, 1], planted
             )

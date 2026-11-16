@@ -565,6 +565,7 @@ public static class BraxPokojProbBuild
         pokaz.nazwy = ustawioneNazwy.ToArray();
         pokaz.srodek = srodek;
         pokaz.kamera = kam;
+        pokaz.wariant = 2;   // startuje na „3 mat+faktura”; przyciskiem na ekranie idzie dalej
         }
 
         PlayerSettings.companyName = "Braxhorn";
