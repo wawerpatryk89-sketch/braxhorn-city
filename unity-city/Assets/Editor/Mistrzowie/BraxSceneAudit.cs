@@ -802,15 +802,15 @@ public static class BraxSceneAudit
             if(Contains(n,"font")||Contains(n,"LegacyRuntime")||Contains(n,"napisy")||Contains(shader,"GUI/Text")||Contains(shader,"CitySignText"))return "CUSTOM_TEXT";
             if(user&&user.transform.GetComponentsInParent<Transform>(true).Any(p=>Contains(p.name,"| Poly Haven CC0")))return "POLYHAVEN_MODEL";
             if(Contains(n,"brick_facade"))return "exterior_wall_cladding_02";
-            if(Contains(n,"podium_travertine"))return "Travertine009";
+            if(Contains(n,"podium_travertine"))return "marble_01";
             if(Contains(n,"podium_granite"))return "granite_tile_03";
             if(Contains(n,"dark_granite")||Contains(n,"granite_kerb"))return "granite_tile";
             if(Contains(n,"sidewalk_paving"))return "concrete_pavement_02";
             if(Contains(n,"drive_asphalt"))return "clean_asphalt";
             if(Contains(n,"teak_veneer")||Contains(n,"teak_dark"))return "teak_veneer";
-            if(Contains(n,"white_marble")||Contains(n,"bath_marble_floor"))return "Marble021";
+            if(Contains(n,"white_marble")||Contains(n,"bath_marble_floor"))return "marble_01";
             if(Contains(n,"cream_marble"))return "marble_01";
-            if(Contains(n,"black_marble"))return "Marble016";
+            if(Contains(n,"black_marble"))return "granite_tile";
             if(Contains(n,"room_oak_floor"))return "laminate_floor_02";
             if(Contains(n,"corridor_carpet")||Contains(n,"room_rug_jacquard")||Contains(n,"lobby_rug_jacquard"))return "floral_jacquard";
             if(Contains(n,"room_rug"))return "poly_wool_herringbone";

@@ -115,7 +115,7 @@ public static partial class BraxChampionsE1
         lineBlue=BraxChampionsHarbour.Nakladka(Inside(S("paint_accessible_blue",new Color(.10f,.32f,.72f),.6f,0f),.85f));
         ledCool=S("led_cool",new Color(1f,1f,1f),.3f,0f,new Color(1.15f,1.15f,1.20f));
         marbleWhite=Inside(BraxChampionsFoundation.LibraryMarbleWhite("e1_white_marble",new Color(.96f,.96f,.97f),2.0f),.8f);
-        roofMembrane=S("roof_membrane_grey",new Color(.43f,.44f,.46f),.85f,0f);
+        roofMembrane=BraxChampionsFoundation.Fotoskan("roof_membrane_grey","brushed_concrete",2.5f,new Color(.43f,.44f,.46f),BraxChampionsFoundation.MeanBrushedConcrete); // 16.11 Poly Haven ("każda podłoga, ściana, sufit")
         hvac=S("galvanised_steel_neutral",new Color(.58f,.60f,.63f),.45f,.80f);                           // the library map reads khaki
         antiSlip=Tex("ramp_anti_slip_concrete","anti_slip_concrete",2f,new Color(1.0f,1.11f,1.31f));
         rampWall=Tex("ramp_wall_concrete","concrete_wall_008",2.5f,new Color(1.0f,1.05f,1.26f));

@@ -117,10 +117,10 @@ class PremiumReferenceRegressions(unittest.TestCase):
         self.assertIn('BraxChampionsFoundation.LibraryMarble("A1_vitrine_black_marble_veined"', text)
         self.assertIn('A1_VITRINE_MARBLE016_MISSING', text)
         prep = (ROOT / 'unity-tools/mistrzowie/prepare_assets.py').read_text(encoding='utf-8')
-        self.assertIn("('Marble016',['Color','NormalGL','Roughness'])", prep)
+        # 16.11 owner "tylko Poly Haven": the black stone is Poly Haven granite_tile in Marble016's colour (66,68,67)
+        self.assertNotIn("('Marble016'", prep)
         foundation = source('BraxChampionsFoundation.cs')
-        self.assertIn('prefix="Marble016_4K-JPG_"', foundation)
-        self.assertIn('"Marble016_ARM_4k.png"', foundation)
+        self.assertIn('LibraryMarble(string id,Color tint,float metres)=>Fotoskan(id,"granite_tile",metres,Srednia(new Vector3(66,68,67),tint),MeanGraniteTile);', foundation)
         # Glass contract unchanged: 12 mm, single alpha layer, no Z write.
         self.assertIn('glass.SetFloat("_ZWrite",0f);', text)
         self.assertIn('glass.SetFloat("_Transparent",1f);', text)

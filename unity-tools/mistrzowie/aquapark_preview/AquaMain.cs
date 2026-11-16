@@ -17,7 +17,7 @@ public static class AquaProgram
         {
             case "paving": case "plot_base": return new Material { name = T("fnd_paving", "concrete_pavement_02", 1.8f), textured = true, roughness = .8f };
             case "asphalt": return new Material { name = T("fnd_asphalt", "clean_asphalt", 2.1f), textured = true, roughness = .85f };
-            case "grass": return new Material { name = T("fnd_grass", "Grass004", 1.4f), textured = true, roughness = .9f };
+            case "grass": return new Material { name = T("fnd_grass", "sparse_grass", 2f), color = new Color(1.16f, 1.64f, 1.79f), textured = true, roughness = .9f };
             default: return null;
         }
     }

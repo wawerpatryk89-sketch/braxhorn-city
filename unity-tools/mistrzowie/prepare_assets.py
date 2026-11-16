@@ -27,7 +27,9 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  # D2 DWORZEC 11.11 (owner board "metal_panels_02", navy cladding): Poly Haven blue_metal_plate.
                  'blue_metal_plate',
                  # 16.11 owner "tylko Poly Haven" (rule 11.11): the marina / beach decking (was ambientCG Planks040)
-                 'brown_planks_09')
+                 'brown_planks_09',
+                 # 16.11 every surface Poly Haven: lawns, stone, quilted leather, checkerboard, paving, EPDM, concrete
+                 'sparse_grass','rectangular_paving','checkered_pavement_tiles','rubberized_track','brushed_concrete')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
 # (Poly Haven CC0, the same partly cloudy sky as the first city), the original 4K Radiance .hdr checked against the
@@ -155,24 +157,11 @@ def main():
   print('BRAX_MISTRZOWIE_SKY_SOURCE '+slug,flush=True)
   report.append(fetch_sky(slug))
  # Extract the complete original packs once; retain original maps and pack ARM outside Unity.
- for asset, kinds in [('Grass004',['Color','NormalGL','Roughness','AmbientOcclusion']),
-                      ('Metal048A',['Color','NormalGL','Roughness','Metalness']),
-                      # 9.11 owner vitrine photo: polished BLACK marble with thin
-                      # WHITE veins. Poly Haven has no such material (marble_01 is
-                      # beige tiles); ambientCG Marble016 is CC0 like Leather037.
-                      ('Marble016',['Color','NormalGL','Roughness']),
-                      # 9.11 owner review of the hotel/apartment previews: polished WHITE marble in
-                      # seamless slabs for lobbies, corridors and bathrooms (marble_01 = beige tiles).
-                      ('Marble021',['Color','NormalGL','Roughness']),
-                      # 9.11 23:29 owner: the grey granite podium of Hotel Sobczak -> vein-cut travertine
-                      ('Travertine009',['Color','NormalGL','Roughness','AmbientOcclusion']),
-                      # 10.11 owner material board: A28 quilted leather on the arena hall walls, Tiles012 black/white
-                      # marble checkerboard on the arena entrance lobby floor.
-                      ('Leather013',['Color','NormalGL','Roughness']),
-                      ('Tiles012',['Color','NormalGL','Roughness']),
-                      # 10.11 owner "promenada ... port porządny": real marina decking (pontoons, gangways, beach
-                      # boardwalks) instead of furniture veneer, and premium light stone slabs on the promenade.
-                      ('PavingStones126A',['Color','NormalGL','Roughness','AmbientOcclusion'])]:
+ # 16.11 owner "tylko Poly Haven ... każda ściana, każdy sufit, każda podłoga, prawdziwa trawa": the ambientCG maps of
+ # 9-10.11 (Grass004, Marble016/021, Travertine009, Leather013, Tiles012, PavingStones126A) are replaced by Poly Haven
+ # photo-scans of the same mean colour (BraxChampionsFoundation.Fotoskan). Only the brushed stainless (Metal048A) stays:
+ # Poly Haven has no brushed metal.
+ for asset, kinds in [('Metal048A',['Color','NormalGL','Roughness','Metalness'])]:
   prefix=asset+'_4K-JPG_'
   names=[prefix+k+'.jpg' for k in kinds]
   # New maps have no historical lock: verify against the archive on every preparation.
@@ -188,7 +177,7 @@ def main():
   report.append(dict(file=output.name,sha256=hashlib.sha256(output.read_bytes()).hexdigest(),
                      source='packed-original-channels',ao='source' if ao else 'neutral: no AO supplied for this smooth material'))
  (DEST.parent/'grass-calibration.json').write_text(json.dumps(dict(
-     grass=linear_mean(DEST/'Grass004_4K-JPG_Color.jpg'),
+     grass=linear_mean(DEST/'sparse_grass_diff_4k.jpg'),
      soil=linear_mean(DEST/'brown_mud_leaves_01_diff_4k.jpg')),indent=2))
  (DEST.parent/'source-materials.json').write_text(json.dumps(report,indent=2))
  print('BRAX_MISTRZOWIE_PBR_OK maps='+str(len(report))+' original=4K')

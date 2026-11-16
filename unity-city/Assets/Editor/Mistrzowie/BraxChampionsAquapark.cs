@@ -55,8 +55,8 @@ public static partial class BraxChampionsAquapark
         teak=Tex("deck_silver_teak","teak_veneer",1.1f,new Color(.91f,1.20f,1.72f));
         lawn=BraxChampionsPromenadeFurniture.Lawn();
         // coloured EPDM safety floor of the kids' zone (the black rubber_tiles map stays black under any tint)
-        rubber=S("kids_epdm_teal",new Color(.07f,.56f,.64f),.92f,0f);
-        rubberYellow=BraxChampionsHarbour.Nakladka(S("kids_epdm_yellow",new Color(.98f,.76f,.10f),.92f,0f));   // 6 mm over the deck: depth offset (16.11 "wszystko migota")
+        rubber=BraxChampionsFoundation.Fotoskan("kids_epdm_teal","rubberized_track",2f,new Color(.07f,.56f,.64f),BraxChampionsFoundation.MeanRubberTrack); // 16.11 Poly Haven ("każda podłoga, ściana, sufit")
+        rubberYellow=BraxChampionsHarbour.Nakladka(BraxChampionsFoundation.Fotoskan("kids_epdm_yellow","rubberized_track",2f,new Color(.98f,.76f,.10f),BraxChampionsFoundation.MeanRubberTrack));   // 6 mm over the deck: depth offset (16.11 "wszystko migota")
         rock=Tex("waterfall_rock","concrete_wall_008",2.4f,new Color(.74f,.78f,.93f));
         stone=Tex("tower_column_stone","sandstone_blocks_08",2.2f,new Color(.39f,.44f,.56f));
         cushion=BraxChampionsPromenade.Fabric("aq_lounger_cushion_white","cotton_jersey",new Color(1.20f,1.36f,1.46f),.6f);

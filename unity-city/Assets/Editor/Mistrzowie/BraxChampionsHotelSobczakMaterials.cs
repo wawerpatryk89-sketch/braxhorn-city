@@ -91,7 +91,7 @@ public static class BraxChampionsHotelSobczakMaterials
         if(s.paint.HasProperty("_BumpScale"))s.paint.SetFloat("_BumpScale",.20f);
         // owner 10.11 22:43 (photo from the game: "sufity beton"): the stucco grain read as raw concrete on the ceilings -
         // smooth matte white ceiling paint, no texture grain; a neutral ground ambient below (white stays white)
-        s.ceiling=Surface("ceiling_paint_white_smooth",new Color(.93f,.93f,.94f),.92f,0f,false,false);
+        s.ceiling=BraxChampionsFoundation.Fotoskan("hotel_ceiling_paint_white_smooth",BraxChampionsFoundation.InteriorPaintSlug,2f,new Color(.93f,.93f,.94f),BraxChampionsFoundation.MeanBeigeWall); // 16.11 Poly Haven ("każda podłoga, ściana, sufit")
         s.concrete=P("technical_concrete","concrete_wall_003",3.0f,new Color(.82f,.81f,.78f),1f);
         // owner palette: no brown - black leather (was brown_leather tinted .40/.24/.15)
         try{s.leather=BraxChampionsFoundation.LibraryLeather("t03_black_leather",new Color(.33f,.55f,.70f));}

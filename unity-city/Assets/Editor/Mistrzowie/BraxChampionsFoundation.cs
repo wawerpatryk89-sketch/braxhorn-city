@@ -120,7 +120,8 @@ public static class BraxChampionsFoundation
         // (sand_wet) is the SAME sand, only darker (a separate MapSet = its own material tint below).
         foreach(string role in new[]{"sand_dry","sand_wet"})
             maps[role]=new MapSet{color=FileIn(tex,"coast_sand_02_diff_4k.jpg"),normal=FileIn(tex,"coast_sand_02_nor_gl_4k.exr"),arm=FileIn(tex,"coast_sand_02_arm_4k.png"),tile=15f};
-        maps["grass"]=new MapSet{color=FileIn(tex,"Grass004_4K-JPG_Color.jpg"),normal=FileIn(tex,"Grass004_4K-JPG_NormalGL.jpg"),arm=FileIn(tex,"Grass004_ARM_4k.png"),tile=1.4f};
+        // lawns: Poly Haven sparse_grass (real blades, 2 m), coloured in BraxChampionsGrass to the lawn green (was ambientCG Grass004)
+        maps["grass"]=new MapSet{color=FileIn(tex,"sparse_grass_diff_4k.jpg"),normal=FileIn(tex,"sparse_grass_nor_gl_4k.exr"),arm=FileIn(tex,"sparse_grass_arm_4k.png"),tile=2.0f};
         foreach(string pair in new[]{"asphalt|clean_asphalt|2.1","paving|concrete_pavement_02|1.8"})
         {
             var a=pair.Split('|');string slug=a[1];
@@ -139,12 +140,13 @@ public static class BraxChampionsFoundation
         maps["quay_ramp"]=maps["quay_wood"];
         maps["quay_ramp_jetski"]=maps["quay_wood"];
         maps["quay_ramp_along"]=maps["quay_wood"];
-        // Premium promenade paving (owner 10.11 "promenady ładne, ekskluzywne"): ambientCG PavingStones126A, large
-        // vein-cut light stone slabs (~0.9 m, CC0), on the promenade and the kiosk pads only; city sidewalks unchanged.
+        // Premium promenade paving (owner 10.11 "promenady ładne, ekskluzywne"): light stone slabs on the promenade and the
+        // kiosk pads; 16.11 Poly Haven rectangular_paving (was ambientCG PavingStones126A), lightened to its colour in
+        // MaterialFor (PromPavingTint)
         maps["prom_paving"]=new MapSet{
-            color=FileIn(tex,"PavingStones126A_4K-JPG_Color.jpg"),
-            normal=FileIn(tex,"PavingStones126A_4K-JPG_NormalGL.jpg"),
-            arm=FileIn(tex,"PavingStones126A_ARM_4k.png"),tile=4.5f};
+            color=FileIn(tex,"rectangular_paving_diff_4k.jpg"),
+            normal=FileIn(tex,"rectangular_paving_nor_gl_4k.exr"),
+            arm=FileIn(tex,"rectangular_paving_arm_4k.png"),tile=2.0f};
         // Owner 10.11 14:56-14:57 ("pomost ... nie tylko beton wylany", "most wykończ"): the passenger walk of the ferry and
         // cruise quays is the promenade's own light vein-cut stone (the SAME material - the quays continue the promenade);
         // the berth aprons along the ship faces are dark flamed granite, cut edge to edge with the walk (one surface).
@@ -266,6 +268,9 @@ public static class BraxChampionsFoundation
         materials["sand_wet"].SetColor("_Color",new Color(1.30f,1.38f,1.50f,1f));
         // marina decking: silver-grey weathered boards (brown_planks_09 alone is 156,136,111, Planks040 was 155,132,118 -> ~146,143,139), light granite quays
         materials["quay_wood"].SetColor("_Color",new Color(.94f,1.08f,1.18f,1f));
+        // 16.11: Poly Haven rectangular_paving (128,108,86) brought to the light vein-cut stone of PavingStones126A (184,179,166)
+        foreach(string role in new[]{"prom_paving","quay_cruise","quay_ferry"})
+            if(materials.TryGetValue(role,out var pv)&&pv)pv.SetColor("_Color",new Color(1.44f,1.65f,1.90f,1f));
         materials["quay_apron"].SetColor("_Color",new Color(1.15f,1.15f,1.15f,1f));    // dark graphite granite, neutral
         EditorUtility.SetDirty(materials["quay_wood"]);EditorUtility.SetDirty(materials["quay_apron"]);
         materials["pontoon_side"].SetColor("_Color",new Color(.20f,.21f,.22f,1f));
@@ -433,6 +438,25 @@ public static class BraxChampionsFoundation
     // stucco (mean linear colour .34/.26/.19 -> .42 each, as gamma factors), so the tint alone gives the wall's hue.
     public const string InteriorPaintSlug="beige_wall_001";
     public static Color PaintTint(Color stuccoTint)=>new Color(stuccoTint.r*1.100f,stuccoTint.g*1.239f,stuccoTint.b*1.442f,stuccoTint.a);
+    // ONLY POLY HAVEN, EVERY SURFACE (owner 11.11 "tylko Poly Haven, do wszystkiego"; 16.11 07:15 "każda ściana, każdy sufit,
+    // każda podłoga ... prawdziwa trawa ... wszystko"). A plain colour or an ambientCG map becomes the nearest Poly Haven
+    // photo-scan, tinted so that its mean colour is the colour the surface had (means measured 16.11 on the 1k maps, sRGB
+    // 0-255): the room keeps its look and gains the real texture. The gain is per channel in linear light, capped at 12.
+    public static Material Fotoskan(string id,string slug,float metres,Color target,Vector3 slugMean)
+    {
+        float G(float t,float m)=>Mathf.Min(12f,Mathf.GammaToLinearSpace(Mathf.Clamp01(t))/Mathf.Max(.002f,Mathf.GammaToLinearSpace(m/255f)));
+        var g=new Color(Mathf.LinearToGammaSpace(G(target.r,slugMean.x)),Mathf.LinearToGammaSpace(G(target.g,slugMean.y)),Mathf.LinearToGammaSpace(G(target.b,slugMean.z)),1f);
+        return SourceMaterial(id,slug,metres,g);
+    }
+    static Color Srednia(Vector3 srgb,Color tint)=>new Color(
+        Mathf.LinearToGammaSpace(Mathf.GammaToLinearSpace(srgb.x/255f)*Mathf.GammaToLinearSpace(tint.r)),
+        Mathf.LinearToGammaSpace(Mathf.GammaToLinearSpace(srgb.y/255f)*Mathf.GammaToLinearSpace(tint.g)),
+        Mathf.LinearToGammaSpace(Mathf.GammaToLinearSpace(srgb.z/255f)*Mathf.GammaToLinearSpace(tint.b)),1f);
+    // the measured means
+    public static readonly Vector3 MeanBeigeWall=new Vector3(158,140,120),MeanHessian=new Vector3(144,123,92),MeanVelvet=new Vector3(174,46,71),
+        MeanConcreteFloor02=new Vector3(124,114,95),MeanBrushedConcrete=new Vector3(107,100,89),MeanRubberTrack=new Vector3(116,61,54),
+        MeanSparseGrass=new Vector3(81,63,23),MeanGraniteTile=new Vector3(78,79,79),MeanMarble01=new Vector3(178,157,122),
+        MeanFabricLeather02=new Vector3(130,79,28),MeanCheckered=new Vector3(91,78,65),MeanRectPaving=new Vector3(128,108,86);
     public static Material SourceMaterial(string id,string slug,float metres,Color tint)
     {
         string tex=Source+"/Textures";
@@ -448,35 +472,28 @@ public static class BraxChampionsFoundation
     }
     // Polished black marble with thin white veins (owner vitrine photo 9.11).
     // ambientCG Marble016 4K (CC0), prepared by prepare_assets.py like Leather037.
-    public static Material LibraryMarble(string id,Color tint,float metres)
-    {
-        string tex=Source+"/Textures",prefix="Marble016_4K-JPG_";
-        var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
-            arm=FileIn(tex,"Marble016_ARM_4k.png"),tile=metres});
-        m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
-    }
+    // black stone (was ambientCG Marble016, 66,68,67): Poly Haven granite_tile in the same colour
+    public static Material LibraryMarble(string id,Color tint,float metres)=>Fotoskan(id,"granite_tile",metres,Srednia(new Vector3(66,68,67),tint),MeanGraniteTile);
     // Polished WHITE Carrara-type marble in seamless slabs (owner 9.11 23:00: marble_01 read as beige bathroom
     // tiles). Poly Haven has no white marble; ambientCG Marble021 4K (CC0), prepared like Marble016.
-    public static Material LibraryMarbleWhite(string id,Color tint,float metres)
-    {
-        string tex=Source+"/Textures",prefix="Marble021_4K-JPG_";
-        var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
-            arm=FileIn(tex,"Marble021_ARM_4k.png"),tile=metres});
-        m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
-    }
+    // white stone (was ambientCG Marble021, 244,242,241): Poly Haven marble_01 slabs brought to the same white
+    public static Material LibraryMarbleWhite(string id,Color tint,float metres)=>Fotoskan(id,"marble_01",metres,Srednia(new Vector3(244,242,241),tint),MeanMarble01);
     // Vein-cut travertine (ambientCG Travertine009 4K, CC0) for the Hotel Sobczak podium: owner 9.11 23:29
     // "ta z dołu kondygnacja taka szara ... jakiejś tekstury dobrej materiału".
-    public static Material LibraryTravertine(string id,Color tint,float metres)
-    {
-        string tex=Source+"/Textures",prefix="Travertine009_4K-JPG_";
-        var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
-            arm=FileIn(tex,"Travertine009_ARM_4k.png"),tile=metres});
-        m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
-    }
+    // travertine (was ambientCG Travertine009, 223,204,172): Poly Haven marble_01 (beige stone slabs)
+    public static Material LibraryTravertine(string id,Color tint,float metres)=>Fotoskan(id,"marble_01",metres,Srednia(new Vector3(223,204,172),tint),MeanMarble01);
     // Any other ambientCG 4K pack chosen by the owner from the material board (10.11: Leather013 hall walls, Tiles012
     // lobby floor). prepare_assets.py extracts <asset>_4K-JPG_{Color,NormalGL,Roughness}.jpg and packs <asset>_ARM_4k.png.
     public static Material LibraryAcg(string id,string asset,Color tint,float metres)
     {
+        // the ambientCG maps of 9-10.11 -> Poly Haven (16.11), same mean colour
+        switch(asset)
+        {
+            case "Grass004":return Fotoskan(id,"sparse_grass",2f,Srednia(new Vector3(100,112,52),tint),MeanSparseGrass);
+            case "Leather013":return Fotoskan(id,"fabric_leather_02",metres,Srednia(new Vector3(73,64,63),tint),MeanFabricLeather02);
+            case "Tiles012":return Fotoskan(id,"checkered_pavement_tiles",metres,Srednia(new Vector3(180,177,169),tint),MeanCheckered);
+            case "PavingStones126A":return Fotoskan(id,"rectangular_paving",2f,Srednia(new Vector3(184,179,166),tint),MeanRectPaving);
+        }
         string tex=Source+"/Textures",prefix=asset+"_4K-JPG_";
         var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
             arm=FileIn(tex,asset+"_ARM_4k.png"),tile=metres});

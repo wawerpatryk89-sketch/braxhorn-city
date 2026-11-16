@@ -107,7 +107,7 @@ public static partial class BraxChampionsAquapark
         Fill(m, ceiling, all, null, CY, true);
         // roof: light grey membrane (not a black slab seen from the tower and the hotels), three skylight ribbons over the
         // lobby, the changing rooms and the SPA, rooftop air handlers on black frames
-        var roofMat = S("pavilion_roof_light_membrane", new Color(.66f, .68f, .71f), .86f, 0f);
+        var roofMat = BraxChampionsFoundation.Fotoskan("pavilion_roof_light_membrane", "brushed_concrete", 2.5f, new Color(.66f, .68f, .71f), BraxChampionsFoundation.MeanBrushedConcrete); // 16.11 Poly Haven ("każda podłoga, ściana, sufit")
         var lights = new List<List<Vector2>>();
         foreach (var (x0, x1) in new[] { (-10f, 10f), (-50f, -22f), (20f, 52f) }) lights.Add(W(new[] { new Vector2(x0, -86f), new Vector2(x1, -86f), new Vector2(x1, -74f), new Vector2(x0, -74f) }));
         Fill(m, roofMat, all, lights, RY);

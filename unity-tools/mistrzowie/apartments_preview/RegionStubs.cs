@@ -13,10 +13,33 @@ public static partial class BraxChampionsFoundation
     public const string InteriorPaintSlug = "beige_wall_001";
     public static Color PaintTint(Color t) => new Color(t.r * 1.100f, t.g * 1.239f, t.b * 1.442f, t.a);
     public static Material SourceMaterial(string id, string slug, float metres, Color tint) => new Material { name = id + "|" + slug + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
-    public static Material LibraryMarble(string id, Color tint, float metres) => new Material { name = id + "|Marble016|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
-    public static Material LibraryAcg(string id, string asset, Color tint, float metres) => new Material { name = id + "|" + asset + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
-    public static Material LibraryMarbleWhite(string id, Color tint, float metres) => new Material { name = id + "|Marble021|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
-    public static Material LibraryTravertine(string id, Color tint, float metres) => new Material { name = id + "|Travertine009|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
+    // the real BraxChampionsFoundation.Fotoskan / Library* (16.11 every surface Poly Haven): the same slugs and colour gains
+    static float Lin(float c) => c <= .04045f ? c / 12.92f : (float)Math.Pow((c + .055f) / 1.055f, 2.4);
+    static float Gam(float c) => c <= .0031308f ? c * 12.92f : 1.055f * (float)Math.Pow(c, 1 / 2.4) - .055f;
+    public static Material Fotoskan(string id, string slug, float metres, Color target, Vector3 mean)
+    {
+        float G(float t, float m) => Math.Min(12f, Lin(Math.Min(1f, Math.Max(0f, t))) / Math.Max(.002f, Lin(m / 255f)));
+        return SourceMaterial(id, slug, metres, new Color(Gam(G(target.r, mean.x)), Gam(G(target.g, mean.y)), Gam(G(target.b, mean.z)), 1f));
+    }
+    static Color Srednia(Vector3 s, Color t) => new Color(Gam(Lin(s.x / 255f) * Lin(t.r)), Gam(Lin(s.y / 255f) * Lin(t.g)), Gam(Lin(s.z / 255f) * Lin(t.b)), 1f);
+    public static readonly Vector3 MeanBeigeWall = new Vector3(158, 140, 120), MeanHessian = new Vector3(144, 123, 92), MeanVelvet = new Vector3(174, 46, 71),
+        MeanConcreteFloor02 = new Vector3(124, 114, 95), MeanBrushedConcrete = new Vector3(107, 100, 89), MeanRubberTrack = new Vector3(116, 61, 54),
+        MeanSparseGrass = new Vector3(81, 63, 23), MeanGraniteTile = new Vector3(78, 79, 79), MeanMarble01 = new Vector3(178, 157, 122),
+        MeanFabricLeather02 = new Vector3(130, 79, 28), MeanCheckered = new Vector3(91, 78, 65), MeanRectPaving = new Vector3(128, 108, 86);
+    public static Material LibraryMarble(string id, Color tint, float metres) => Fotoskan(id, "granite_tile", metres, Srednia(new Vector3(66, 68, 67), tint), MeanGraniteTile);
+    public static Material LibraryMarbleWhite(string id, Color tint, float metres) => Fotoskan(id, "marble_01", metres, Srednia(new Vector3(244, 242, 241), tint), MeanMarble01);
+    public static Material LibraryTravertine(string id, Color tint, float metres) => Fotoskan(id, "marble_01", metres, Srednia(new Vector3(223, 204, 172), tint), MeanMarble01);
+    public static Material LibraryAcg(string id, string asset, Color tint, float metres)
+    {
+        switch (asset)
+        {
+            case "Grass004": return Fotoskan(id, "sparse_grass", 2f, Srednia(new Vector3(100, 112, 52), tint), MeanSparseGrass);
+            case "Leather013": return Fotoskan(id, "fabric_leather_02", metres, Srednia(new Vector3(73, 64, 63), tint), MeanFabricLeather02);
+            case "Tiles012": return Fotoskan(id, "checkered_pavement_tiles", metres, Srednia(new Vector3(180, 177, 169), tint), MeanCheckered);
+            case "PavingStones126A": return Fotoskan(id, "rectangular_paving", 2f, Srednia(new Vector3(184, 179, 166), tint), MeanRectPaving);
+        }
+        return new Material { name = id + "|" + asset + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
+    }
     public static Material LibraryLeather(string id, Color tint) => new Material { name = id + "|leather_white|0.3", color = new Color(tint.r * .12f, tint.g * .12f, tint.b * .13f, tint.a), textured = true };
     public static Material LibraryMetal(string id, Color tint) => new Material { name = id + "|Metal048A|0.65", color = tint, textured = true };
     public static void Optional(string what, Action build) { try { build(); } catch (Exception e) { Console.WriteLine("WARN OPTIONAL_FAILED " + what + ": " + e.Message + (Environment.GetEnvironmentVariable("PREVIEW_STACK") == "1" ? "\n" + e.StackTrace : "")); } }

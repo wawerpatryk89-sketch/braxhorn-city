@@ -107,7 +107,7 @@ public static partial class BraxChampionsD2
         concrete=Tex("fair_faced_concrete","concrete_wall_009",3.0f,new Color(.97f,1.0f,1.06f));   // clean formwork concrete (viaduct, piers, slabs)
         concreteDark=Tex("concrete_weathered","concrete_wall_008",3.0f,new Color(.82f,.86f,.92f));
         ballast=Tex("track_ballast","gravel_embedded_concrete_02",.9f,new Color(.80f,.80f,.82f));
-        sleeper=S("sleeper_concrete",new Color(.62f,.62f,.60f),.85f,0f);
+        sleeper=BraxChampionsFoundation.Fotoskan("sleeper_concrete","concrete_floor_02",1f,new Color(.62f,.62f,.60f),BraxChampionsFoundation.MeanConcreteFloor02); // 16.11 Poly Haven ("każda podłoga, ściana, sufit")
         railHead=S("rail_head_bright",new Color(.70f,.72f,.75f),.25f,.95f);
         railWeb=S("rail_web_rust",new Color(.30f,.22f,.18f),.80f,.35f);
         // paint: depth offset (owner 12.11 "nic nie ma migotać" - BraxChampionsHarbour.Nakladka)
@@ -122,10 +122,10 @@ public static partial class BraxChampionsD2
         waterJet=S("fountain_jet",new Color(.88f,.94f,.97f,.24f),.05f,0f,new Color(.22f,.24f,.26f),true);
         hallFloor=Inside(Tex("hall_granite","granite_tile_03",1.2f,new Color(1.08f,1.12f,1.20f)),.85f);
         // interior partitions: smooth warm-white emulsion on skimmed plaster (the stucco texture read as grey concrete)
-        plaster=Inside(S("wall_paint_warm_white",new Color(.91f,.90f,.87f),.82f,0f),BraxChampionsInteriorLight.Walls);
+        plaster=Inside(BraxChampionsFoundation.Fotoskan("wall_paint_warm_white",BraxChampionsFoundation.InteriorPaintSlug,2f,new Color(.91f,.90f,.87f),BraxChampionsFoundation.MeanBeigeWall),BraxChampionsInteriorLight.Walls);
         // smooth painted plasterboard (the stucco texture read as raw concrete on a ceiling - owner 11.11 15:29)
-        ceilWhite=Inside(S("ceiling_board_white",new Color(.93f,.93f,.92f),.88f,0f),BraxChampionsInteriorLight.Ceilings);
-        tunnelDark=S("tunnel_soot",new Color(.045f,.045f,.05f),.95f,0f);
+        ceilWhite=Inside(BraxChampionsFoundation.Fotoskan("ceiling_board_white",BraxChampionsFoundation.InteriorPaintSlug,2f,new Color(.93f,.93f,.92f),BraxChampionsFoundation.MeanBeigeWall),BraxChampionsInteriorLight.Ceilings);
+        tunnelDark=BraxChampionsFoundation.Fotoskan("tunnel_soot","brushed_concrete",2.5f,new Color(.045f,.045f,.05f),BraxChampionsFoundation.MeanBrushedConcrete);
         black=S("black_matte",new Color(.03f,.03f,.035f),.6f,0f);
         rubber=S("rubber_black",new Color(.05f,.05f,.055f),.85f,0f);
         signBlue=S("sign_navy",new Color(.06f,.14f,.34f),.35f,.2f,new Color(.04f,.08f,.20f));

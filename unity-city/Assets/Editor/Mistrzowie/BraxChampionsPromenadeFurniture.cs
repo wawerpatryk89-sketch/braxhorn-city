@@ -101,7 +101,7 @@ public static class BraxChampionsPromenadeFurniture
     {
         if(lawn)return lawn;
         lawn=AssetDatabase.LoadAssetAtPath<Material>(Output+"/Materials/grass.mat");
-        if(!lawn)lawn=BraxChampionsHarbour.Surface("prom_planter_lawn",new Color(.30f,.46f,.20f),.85f,0f);
+        if(!lawn)lawn=BraxChampionsFoundation.Fotoskan("prom_planter_lawn","sparse_grass",2f,new Color(.30f,.46f,.20f),BraxChampionsFoundation.MeanSparseGrass);   // 16.11 real grass (Poly Haven)
         return lawn;
     }
     // one flower model scaled so its longest side is `length` (nominal), longest side along x, standing on `at`
@@ -210,7 +210,35 @@ public static class BraxChampionsPromenadeFurniture
         // warm uplight at the seaward edge of the bed, aimed at the trunk
         m.BoxMinMax(BraxChampionsHarbour.Graphite,b.x-.16f,b.x+.16f,Y,Y+.05f,z0+.18f,z0+.42f);
         m.BoxMinMax(BraxChampionsHarbour.Led,b.x-.11f,b.x+.11f,Y+.05f,Y+.058f,z0+.22f,z0+.38f);
+        // 16.11 owner "prawdziwa trawa, krzewy ... wszystko": the bed planted under the palm - real Poly Haven shrubs
+        // (shrub_04 boxwood-like, shrub_03 low) in the four corners, clear of the trunk and the uplight; drawn up close only
+        if(bedModels)
+        {
+            float ex=Mathf.Max(.4f,b.w*.5f-.55f),ez=Mathf.Max(.4f,b.d*.5f-.55f);int i=0;
+            foreach(var (sx,sz) in new[]{(-1f,-1f),(1f,-1f),(-1f,1f),(1f,1f)})
+            {
+                if(sz<0f&&Mathf.Abs(sx*ex)<.5f)continue;                                   // never over the uplight
+                Shrub(bedModels,(i++%2==0)?"shrub_04":"shrub_03",new Vector3(b.x+sx*ex,Y,b.z+sz*ez),(i%2==0)?.95f:1.15f,i*67f);
+            }
+        }
         Beds++;
+    }
+    static Transform bedModels;
+    public static int Shrubs;
+    // one shrub: its longest side `length` nominal metres, standing on `at`, culled when small on screen
+    public static void Shrub(Transform models,string id,Vector3 at,float length,float yaw)
+    {
+        var src=BraxChampionsPromenadeStock.Flower(id);if(!src)return;
+        var o=(GameObject)UnityEngine.Object.Instantiate(src);o.name="krzew "+id;o.transform.SetParent(models,false);
+        var b=BraxRegion.Bounds(o);float longest=Mathf.Max(b.size.x,Mathf.Max(b.size.y,b.size.z));
+        if(longest<1e-4f){UnityEngine.Object.DestroyImmediate(o);return;}
+        o.transform.localRotation=Quaternion.Euler(0,yaw,0);
+        o.transform.localScale=o.transform.localScale*(length*K/longest);
+        b=BraxRegion.Bounds(o);
+        o.transform.position+=models.TransformPoint(at*K)-new Vector3(b.center.x,b.min.y,b.center.z);
+        foreach(var c in o.GetComponentsInChildren<Collider>(true))UnityEngine.Object.DestroyImmediate(c);
+        var lod=o.AddComponent<LODGroup>();lod.SetLODs(new[]{new LOD(.02f,o.GetComponentsInChildren<Renderer>(true))});lod.RecalculateBounds();
+        Shrubs++;
     }
 
     // Owner 10.11 10:28: "między budkami ... krzesełka obok, stanowiska do jedzenia, palmy posadzić". A dining island
@@ -269,6 +297,7 @@ public static class BraxChampionsPromenadeFurniture
         var colliders=new GameObject("kolizje").transform;colliders.SetParent(root,false);
         var models=new GameObject("kwiaty w donicach (Poly Haven, oryginały 2K)").transform;models.SetParent(root,false);
         var m=new BraxChampionsMeshBatch();
+        bedModels=models;Shrubs=0;
         foreach(var b in beds)Bed(m,b);
         foreach(var f in furniture)
         {

@@ -89,7 +89,7 @@ public static class BraxChampionsArena
         // kolorem", and on the lobby wall with the belt: "tylko to wygląda premium" (whole wall like that).
         // So the WHOLE hall speaks the language of that wall: polished black marble (Marble016, the very material of
         // the lobby wall) in 3 m slabs, thin gold lines and warm light lines. No walnut, no beige, no brown anywhere.
-        var acoustic = Plain("hala walk panele akustyczne czarne", new Color(.105f,.105f,.115f), .1f);
+        var acoustic = BraxChampionsFoundation.Fotoskan("hala walk panele akustyczne czarne", "hessian_230", 1f, new Color(.105f,.105f,.115f), BraxChampionsFoundation.MeanHessian); // 16.11 Poly Haven ("każda podłoga, ściana, sufit")
         var lobbyMarble = BraxChampionsFoundation.LibraryMarble(
             "arena_lobby_wall_black_marble", new Color(.95f,.93f,.91f), 3.0f);
         var marble = lobbyMarble;                       // one material for every marble face of the hall
@@ -98,8 +98,8 @@ public static class BraxChampionsArena
         var beamBlack = Plain("hala walk belki sufitu czarna stal satyna", new Color(.055f,.055f,.06f), .55f, .6f);
         var warmLine = WarmLine();
         var red = Plain("hala walk czerwień BRAXHORN", new Color(.60f, .04f, .05f), .45f);
-        var ceil = Plain("hala walk sufit czarny mat", new Color(.09f, .09f, .10f), .05f);
-        var black = Plain("oktagon czarny winyl", new Color(.03f, .03f, .035f), .55f);
+        var ceil = BraxChampionsFoundation.Fotoskan("hala walk sufit czarny mat", "brushed_concrete", 2.5f, new Color(.09f, .09f, .10f), BraxChampionsFoundation.MeanBrushedConcrete);
+        var black = BraxChampionsFoundation.Fotoskan("oktagon czarny winyl", "hessian_230", 1f, new Color(.035f, .035f, .04f), BraxChampionsFoundation.MeanHessian);   // the canvas of the cage floor
         var steel = Plain("oktagon stal ciemna", new Color(.16f, .17f, .18f), .5f, .8f);
         var chrome = Plain("słupki chrom", new Color(.75f, .76f, .78f), .85f, .95f);
         // Owner 10.11 15:24-15:31 ("najebane tego złota ... nie znaczy, że chcę mieć całą grę w złocie"; asked which hall
@@ -107,9 +107,9 @@ public static class BraxChampionsArena
         var railBlack = Plain("trybuny poręcze czarna stal satyna", new Color(.045f,.045f,.05f), .55f, .65f);
         var vipGold = Plain("słupki VIP złote", new Color(.88f, .64f, .18f), .88f, .96f);
         BraxChampionsGold.Apply(vipGold);
-        var carpet = Plain("hala walk chodnik czerwony", new Color(.45f, .03f, .04f), .1f);
+        var carpet = BraxChampionsFoundation.Fotoskan("hala walk chodnik czerwony", "velour_velvet", .6f, new Color(.45f, .03f, .04f), BraxChampionsFoundation.MeanVelvet);
         var rope = Plain("lina aksamitna czerwona", new Color(.42f, .03f, .05f), .25f);
-        var tier = Plain("trybuny beton grafit", new Color(.15f, .15f, .16f), .3f);
+        var tier = BraxChampionsFoundation.Fotoskan("trybuny beton grafit", "concrete_floor_02", 2f, new Color(.15f, .15f, .16f), BraxChampionsFoundation.MeanConcreteFloor02);
         var nose = Plain("trybuny listwa aluminium", new Color(.55f, .56f, .58f), .55f, .6f);
         var seatRed = Plain("krzesełko trybun czerwone", new Color(.55f, .04f, .05f), .4f);
         var seatBlk = Plain("krzesełko trybun czarne", new Color(.04f, .04f, .045f), .4f);
@@ -778,7 +778,7 @@ public static class BraxChampionsArena
         var marker=new GameObject("A1 PREMIUM STAIR CARPET | 32 steps | width 1.30m");
         marker.transform.SetParent(colliders.parent,false);
         marker.transform.localPosition=Vector3.zero;
-        var stone=Plain("schody trybun",new Color(.28f,.27f,.25f));
+        var stone=BraxChampionsFoundation.Fotoskan("schody trybun","concrete_floor_02",2f,new Color(.28f,.27f,.25f),BraxChampionsFoundation.MeanConcreteFloor02); // 16.11 Poly Haven ("każda podłoga, ściana, sufit")
         const float stairHalf=.85f;       // 1.70m structural aisle
         const float carpetHalf=.65f;      // 1.30m red velour
         const float goldWidth=.020f;

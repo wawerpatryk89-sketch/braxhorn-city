@@ -25,8 +25,8 @@ public static partial class BraxChampionsE1
     static void FinishMaterials()
     {
         cladding=BraxChampionsFoundation.LibraryMetal("e1_facade_black_metal_panels",new Color(.17f,.18f,.215f));   // board "Panel metalowy (czarny mat)": brushed grain reads
-        ceilWhite=Inside(S("ceiling_paint_white_matte",new Color(.92f,.92f,.91f),.88f,0f),BraxChampionsInteriorLight.Ceilings);
-        wallWhite=Inside(S("wall_paint_white_matte",new Color(.88f,.88f,.87f),.85f,0f),BraxChampionsInteriorLight.Walls);
+        ceilWhite=Inside(BraxChampionsFoundation.Fotoskan("ceiling_paint_white_matte",BraxChampionsFoundation.InteriorPaintSlug,2f,new Color(.92f,.92f,.91f),BraxChampionsFoundation.MeanBeigeWall),BraxChampionsInteriorLight.Ceilings); // 16.11 Poly Haven ("każda podłoga, ściana, sufit")
+        wallWhite=Inside(BraxChampionsFoundation.Fotoskan("wall_paint_white_matte",BraxChampionsFoundation.InteriorPaintSlug,2f,new Color(.88f,.88f,.87f),BraxChampionsFoundation.MeanBeigeWall),BraxChampionsInteriorLight.Walls);
         // the interior ambient's ground colour is warm (.80,.77,.72): a downward face (a ceiling) took it and read beige /
         // like raw concrete (owner 10.11 22:43 on the hotel). White paint keeps a neutral ground colour: white stays white.
         foreach(var w in new[]{ceilWhite,wallWhite})w.SetColor("_GroundColor",new Color(.96f,.96f,.97f));

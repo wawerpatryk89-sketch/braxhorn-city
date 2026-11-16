@@ -47,7 +47,7 @@ public static class BraxChampionsPromenadeZones
         jet=BraxChampionsHarbour.Surface("prom_fountain_jet",new Color(.86f,.95f,1f,.62f),.03f,0f,new Color(.10f,.14f,.16f),true);
         gymRubber=BraxChampionsFoundation.SourceMaterial("prom_gym_rubber_tiles","rubber_tiles",1.0f,new Color(1.25f,1.25f,1.30f));
         // poured EPDM safety surface, blue granules (rubber_tiles is black interlocking tiles: kept for the gym)
-        playRubber=BraxChampionsHarbour.Surface("prom_playground_epdm_blue",new Color(.15f,.36f,.60f),.93f,0f);
+        playRubber=BraxChampionsFoundation.Fotoskan("prom_playground_epdm_blue","rubberized_track",2f,new Color(.15f,.36f,.60f),BraxChampionsFoundation.MeanRubberTrack); // 16.11 Poly Haven ("każda podłoga, ściana, sufit")
         sand=BraxChampionsFoundation.SourceMaterial("prom_playground_sandpit_sand","coast_sand_02",1.5f,new Color(1.02f,1.0f,.96f));
         hdpeBlue=BraxChampionsHarbour.Surface("prom_play_hdpe_blue",new Color(.08f,.34f,.68f),.45f,0f);
         hdpeRed=BraxChampionsHarbour.Surface("prom_play_hdpe_red",new Color(.72f,.10f,.09f),.45f,0f);

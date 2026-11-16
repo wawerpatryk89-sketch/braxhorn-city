@@ -276,16 +276,17 @@ class HotelSobczakT03Contract(unittest.TestCase):
         self.assertIn('s.grasscloth=P("linen_wallcovering","terlenka"', self.materials)
         self.assertIn('s.carpet=P("corridor_carpet","floral_jacquard"', self.materials)
         self.assertIn('LibraryMetal("t03_brushed_stainless"', self.materials)
-        self.assertIn("('Marble021',['Color','NormalGL','Roughness'])", self.prepare)
+        # 16.11 owner "tylko Poly Haven, każda podłoga": the white marble is Poly Haven marble_01 brought to Marble021's white
+        self.assertNotIn("('Marble021'", self.prepare)
         self.assertIn("'laminate_floor_02'", self.prepare)
         foundation = (EDITOR / "BraxChampionsFoundation.cs").read_text(encoding="utf-8")
-        self.assertIn('prefix="Marble021_4K-JPG_"', foundation)
+        self.assertIn('LibraryMarbleWhite(string id,Color tint,float metres)=>Fotoskan(id,"marble_01",metres,Srednia(new Vector3(244,242,241),tint),MeanMarble01);', foundation)
         self.assertIn('"lobby centre plant"', self.gen)
         self.assertIn('"roof bar stool, leather"', self.gen)
         # owner 9.11 23:29 travertine -> 10.11 12:48 (beige on the phone): white marble podium; 3D sign on the roof
         self.assertIn('LibraryMarbleWhite("t03_podium_white_marble"', self.materials)
         self.assertIn('s.paint=P("wall_paint_white",BraxChampionsFoundation.InteriorPaintSlug', self.materials)   # 12:54: no beige walls
-        self.assertIn("('Travertine009',['Color','NormalGL','Roughness','AmbientOcclusion'])", self.prepare)
+        self.assertNotIn("('Travertine009'", self.prepare)                       # 16.11: Poly Haven only
         # owner 10.11 20:09: "ten u góry jest niepotrzebny w ogóle, z obu stron" - facade + reception signs only
         self.assertNotIn('roof front', self.gen)
         self.assertNotIn('roof back', self.gen)

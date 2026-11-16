@@ -21,9 +21,12 @@ public static class BraxChampionsGrass
         // Owner 9.11 video: "trawa" read as flat lime. The old tint cut R and B to
         // 53.6% ON TOP of the already-green Grass004 photo. Now the photo keeps
         // its own measured colour; only brightness is calibrated (same .133).
-        float y=.2126f*c.grass[0]+.7152f*c.grass[1]+.0722f*c.grass[2];
-        float gain=.133f/Mathf.Max(y,.001f);
-        material.color=new Color(gain,gain,gain).gamma;
+        // 16.11 (owner "prawdziwa trawa", rule 11.11 "tylko Poly Haven"): the photo is now Poly Haven sparse_grass - real
+        // blades, but a dry brownish green (linear mean ~.082/.050/.009). It is brought per channel to the lawn green the
+        // owner accepted (the Grass004 hue, 100,112,52) at the same calibrated brightness (.133).
+        var cel=new Vector3(Mathf.GammaToLinearSpace(100/255f),Mathf.GammaToLinearSpace(112/255f),Mathf.GammaToLinearSpace(52/255f));
+        cel*=.133f/(.2126f*cel.x+.7152f*cel.y+.0722f*cel.z);
+        material.color=new Color(Mathf.Min(8f,cel.x/Mathf.Max(c.grass[0],.001f)),Mathf.Min(8f,cel.y/Mathf.Max(c.grass[1],.001f)),Mathf.Min(8f,cel.z/Mathf.Max(c.grass[2],.001f))).gamma;
         material.SetFloat("_MacroMean",Mathf.Max(.001f,.3f*c.grass[0]+.59f*c.grass[1]+.11f*c.grass[2]));
         material.SetFloat("_DryMean",Mathf.Max(.001f,c.grass[1]));
         foreach(string property in new[]{"_MainTex","_BumpMap","_ARM"})material.SetTextureScale(property,Vector2.one/2f);

@@ -19,7 +19,8 @@ class HotelOwnerReviewNight(unittest.TestCase):
         cls.t03 = code("BraxChampionsHotelSobczakT03.cs")
 
     def test_ceiling_smooth_white_paint(self):
-        self.assertIn('s.ceiling=Surface("ceiling_paint_white_smooth"', self.mat)
+        # 16.11 owner "każdy sufit ... Poly Haven": the same smooth white, now the Poly Haven paint scan in that colour
+        self.assertIn('s.ceiling=BraxChampionsFoundation.Fotoskan("hotel_ceiling_paint_white_smooth",BraxChampionsFoundation.InteriorPaintSlug,2f,new Color(.93f,.93f,.94f)', self.mat)
         self.assertNotIn('s.ceiling=P("ceiling_stucco","white_stucco_02"', self.mat)
         self.assertIn('s.ceiling.SetColor("_GroundColor",new Color(.96f,.96f,.97f));', self.mat)
 

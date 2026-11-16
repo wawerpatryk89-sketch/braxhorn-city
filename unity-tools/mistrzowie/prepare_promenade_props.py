@@ -29,7 +29,7 @@ CDN="https://dl.polyhaven.org/file/ph-assets/Models/"
 MAX_SINGLE_BYTES=16*1024*1024
 MAX_TOTAL_BYTES=230*1024*1024
 USER_AGENT="BRAXHORN-CITY-Unity6-PolyHaven-CC0-Staging/1.0"
-EXPECTED_ASSETS=27      # 25 kiosk goods + 2 flowers for the promenade planters (owner board 10.11 18:12)
+EXPECTED_ASSETS=29      # 25 kiosk goods + 2 flowers for the promenade planters (owner board 10.11 18:12) + 2 shrubs for the palm beds (16.11)
 ALLOWED_EXT={".jpg",".jpeg",".png",".bin",".gltf"}
 
 

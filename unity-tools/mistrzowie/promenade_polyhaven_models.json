@@ -224,6 +224,18 @@
       "polycount": 25819,
       "kiosks": [],
       "promenade": "fountain plaza flower beds"
+    },
+    {
+      "id": "shrub_03",
+      "polycount": 16955,
+      "kiosks": [],
+      "promenade": "palm beds (owner 16.11 07:15: prawdziwa trawa, krzewy)"
+    },
+    {
+      "id": "shrub_04",
+      "polycount": 47813,
+      "kiosks": [],
+      "promenade": "palm beds (owner 16.11 07:15: prawdziwa trawa, krzewy)"
     }
   ],
   "excludedMissingProducts": [
