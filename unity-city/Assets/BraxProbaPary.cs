@@ -46,6 +46,14 @@ public sealed class BraxProbaPary : MonoBehaviour
         katalog = Environment.GetEnvironmentVariable("BRAX_PROBA_KLATKI");
         if (string.IsNullOrEmpty(katalog)) katalog = Path.Combine(Application.persistentDataPath, "klatki");
         Directory.CreateDirectory(katalog);
+        QualitySettings.shadows = ShadowQuality.HardOnly;
+        QualitySettings.shadowResolution = ShadowResolution.Low;
+        QualitySettings.shadowCascades = 1;
+        QualitySettings.shadowDistance = 18f;
+        QualitySettings.antiAliasing = 0;
+        QualitySettings.realtimeReflectionProbes = false;
+        QualitySettings.globalTextureMipmapLimit = 1;
+        QualitySettings.vSyncCount = 0;
         Time.captureFramerate = 24;
         StartCoroutine(tryb == Tryb.Rozmowa ? Rozmowa() : Walka());
     }

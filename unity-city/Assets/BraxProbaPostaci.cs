@@ -36,8 +36,30 @@ public sealed class BraxProbaPostaci : MonoBehaviour
         katalog = Environment.GetEnvironmentVariable("BRAX_PROBA_KLATKI");
         if (string.IsNullOrEmpty(katalog)) katalog = Path.Combine(Application.persistentDataPath, "klatki");
         Directory.CreateDirectory(katalog);
+        LekkaGrafika();
         Time.captureFramerate = 24;
         StartCoroutine(Prowadz());
+    }
+
+
+    // Pokój prób leci na serwerze bez karty graficznej (llvmpipe, render programowy).
+    // BraxGrafika sama ustawia WYSOKĄ, bo widzi komputer — miękkie cienie, 4 kaskady i MSAA
+    // dają wtedy klatki po kilka sekund i próba nie kończy się przed limitem (run 43831783370).
+    // Próba sprawdza RUCH, nie urodę kadru, więc ścinamy wszystko, co kosztuje a nic nie wnosi.
+    static void LekkaGrafika()
+    {
+        QualitySettings.shadows = ShadowQuality.HardOnly;
+        QualitySettings.shadowResolution = ShadowResolution.Low;
+        QualitySettings.shadowCascades = 1;
+        QualitySettings.shadowDistance = 18f;
+        QualitySettings.antiAliasing = 0;
+        QualitySettings.realtimeReflectionProbes = false;
+        QualitySettings.softParticles = false;
+        QualitySettings.lodBias = 1f;
+        QualitySettings.globalTextureMipmapLimit = 1;
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = -1;
+        Debug.Log("BRAX_POKOJ grafika proby: cienie twarde, bez MSAA, mip 1");
     }
 
     void OnGUI()

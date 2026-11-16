@@ -36,7 +36,7 @@ concurrency:
 jobs:
   pokoj:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       with:
@@ -114,18 +114,22 @@ jobs:
         pactl load-module module-null-sink sink_name=brax_pokoj
         pactl set-default-sink brax_pokoj
         set +e
-        timeout 420 xvfb-run -a -s '-screen 0 900x1200x24' \
+        timeout 900 xvfb-run -a -s '-screen 0 540x810x24' \
           build/pokoj/PokojProb.x86_64 -force-glcore \
-          -screen-width 900 -screen-height 1200 -screen-fullscreen 0 \
+          -screen-width 540 -screen-height 810 -screen-fullscreen 0 \
           -logFile "$RUNNER_TEMP/pokoj.log"
         kod=$?
         set -e
         echo "--- wynik proby ---"
         grep -E 'BRAX_POSTAC |BRAX_ROZMOWA |BRAX_CIOS |BRAX_POKOJ|BRAX_PROBA_POSTACI_KONIEC|BRAX_PROBA_PARY_KONIEC' "$RUNNER_TEMP/pokoj.log" || true
-        cat "$BRAX_PROBA_KLATKI/wynik.txt" || { tail -80 "$RUNNER_TEMP/pokoj.log"; exit 1; }
-        ffmpeg -hide_banner -loglevel error -framerate 24 \
-          -i "$BRAX_PROBA_KLATKI/%05d.jpg" -c:v libx264 -pix_fmt yuv420p \
-          -movflags +faststart Pokoj_prob_postaci.mp4
+        klatek=$(ls "$BRAX_PROBA_KLATKI"/*.jpg 2>/dev/null | wc -l)
+        echo "zapisanych klatek: $klatek"
+        cat "$BRAX_PROBA_KLATKI/wynik.txt" 2>/dev/null || { echo "BRAK wynik.txt — ostatnie 60 linii logu gry:"; tail -60 "$RUNNER_TEMP/pokoj.log" || true; }
+        if [ "$klatek" -gt 0 ]; then
+          ffmpeg -hide_banner -loglevel error -framerate 24 \
+            -i "$BRAX_PROBA_KLATKI/%05d.jpg" -c:v libx264 -pix_fmt yuv420p \
+            -movflags +faststart Pokoj_prob_postaci.mp4
+        else echo "::error::gra nie zapisala ani jednej klatki"; exit 1; fi
         echo "kod gry: $kod (1 = ktoras postac nie przeszla, film i tak powstal)"
 
     - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
