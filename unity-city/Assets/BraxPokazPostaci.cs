@@ -204,8 +204,13 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                     // Przyczyna nie była w sile mimiki, tylko w kadrze: kamera stała 3,1 m od
                     // postaci, więc twarz miała na telefonie około stu pikseli. Przy takim ujęciu
                     // nie da się ocenić ani ust, ani powiek, choćby chodziły idealnie.
+                    // PIJANY MÓWI W TRAKCIE CHODU. Właściciel 16.11, 23:37: „on powinien iść
+                    // i już mówić pijany”. Więc etap „PIJANY — idzie” gra nagranie tak samo jak
+                    // rozmowa, ale BEZ zbliżenia — bo tu ma być widać, jak się zatacza, a nie
+                    // samą twarz. Kamil ma na to osobne nagranie (kamil_pijany_*).
+                    bool pijany = opis.StartsWith("PIJANY — idzie");
                     zblizenie = rozmowa;
-                    if (rozmowa)
+                    if (rozmowa || pijany)
                     {
                         var mim = a.GetComponentInChildren<BraxMimikaOsiedla>();
                         var zrodlo2 = a.GetComponent<AudioSource>();
@@ -221,12 +226,25 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                         // nagranie i nagranie Moniki. Jeśli w OsiedleGlosy są pliki zaczynające się
                         // od nazwy postaci (patryk_01_m, monika_01_f…), postać mówi TYLKO nimi;
                         // reszta obsady dalej bierze z banku według płci.
-                        string wlasny = kto < (nazwy?.Length ?? 0) && !string.IsNullOrEmpty(nazwy[kto])
-                            ? nazwy[kto] + "_" : null;
-                        if (wlasny != null)
+                        string kim = kto < (nazwy?.Length ?? 0) ? nazwy[kto] : null;
+                        // W etapie pijanym najpierw szukam nagrania pijanego tej postaci,
+                        // dopiero potem jej zwykłych kwestii.
+                        foreach (var przedrostek in pijany && !string.IsNullOrEmpty(kim)
+                                     ? new[] { kim + "_pijany_", kim + "_" }
+                                     : new[] { kim + "_" })
+                        {
+                            if (string.IsNullOrEmpty(kim)) break;
                             foreach (var k in wszystkie)
-                                if (k && k.name.StartsWith(wlasny, System.StringComparison.Ordinal))
-                                    pasujace.Add(k);
+                            {
+                                if (!k || !k.name.StartsWith(przedrostek, System.StringComparison.Ordinal))
+                                    continue;
+                                // Poza etapem pijanym kwestie pijane się nie liczą — inaczej
+                                // Kamil mówiłby po pijaku także w zwykłej ROZMOWIE.
+                                if (!pijany && k.name.Contains("_pijany_")) continue;
+                                pasujace.Add(k);
+                            }
+                            if (pasujace.Count > 0) break;
+                        }
                         bool swoje = pasujace.Count > 0;
                         if (!swoje)
                             foreach (var k in wszystkie)
