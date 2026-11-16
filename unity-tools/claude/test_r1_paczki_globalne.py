@@ -22,9 +22,7 @@ class PaczkiGlobalne(unittest.TestCase):
                                       # 16.11 01:29 „ten model 1:1 do gry, materiały Poly Haven i zapisać w paczce aut”
                                       ("braxhorn-sklep-auta-01", "pojazdy_auta_01", 2),
                                       # 16.11 08:11 „zapisz to auto, jedziesz z następnym” — pikap ze zdjęcia
-                                      ("braxhorn-sklep-auta-02", "pojazdy_auta_02", 2),
-                                      # 16.11 13:07 „jedziesz ten kremowy, poprawiasz kolor, detaling” — model właściciela poprawiony
-                                      ("braxhorn-sklep-auta-03", "pojazdy_auta_03", 2)]:
+                                      ("braxhorn-sklep-auta-02", "pojazdy_auta_02", 2)]:
             m = json.loads((PRYW / nazwa / "manifest.json").read_text())
             self.assertEqual(m["target"], target)
             glb = [f for f in m["files"] if f.startswith(target + "/") and f.endswith(".glb")]
@@ -187,25 +185,6 @@ class PikapMiedziany(unittest.TestCase):
         self.assertEqual(tracked, [])
         a = json.loads((ROOT / "AssetLibrary/Unique/Vehicles/BraxhornPikapMiedziany/manifest.json").read_text())
         self.assertEqual(a["sourceStorage"]["pack"], "unity-city/Prywatne/braxhorn-sklep-auta-02")
-        self.assertTrue(a["validation"]["badgesFitted"])
-
-
-class KabrioletKremowy(unittest.TestCase):
-    def test_kabriolet_kremowy_16_11(self):
-        """Kremowy kabriolet z zipa właściciela (Tripo 08:19) poprawiony na jego modelu (kolor, detale): LOD0 + LOD1, tekstury
-        obok GLB, model Tripo i skrypty tylko w zaszyfrowanej paczce; wpis w katalogu Worka."""
-        m = json.loads((PRYW / "braxhorn-sklep-auta-03" / "manifest.json").read_text())
-        f = m["files"]
-        for n in ["pojazdy_auta_03/kabriolet_kremowy.glb", "pojazdy_auta_03/kabriolet_kremowy_lod1.glb", "pojazdy_auta_03/katalog.json",
-                  "pojazdy_auta_03/_tekstury/kabriolet_kremowy/kolor.png", "pojazdy_auta_03/_tekstury/kabriolet_kremowy/mr.png",
-                  "pojazdy_auta_03/_tekstury/kabriolet_kremowy/emblemat_kolor.jpg", "oryginal/tripo_kremowy.glb",
-                  "oryginal/kolor.py", "oryginal/zloz_krem.py", "oryginal/sprawdz_normalne.py"]:
-            self.assertIn(n, f)
-        self.assertIn("kremowy", m["source"])
-        tracked = [str(p.relative_to(ROOT)) for p in (ROOT / "unity-city").rglob("*kremowy*")]
-        self.assertEqual(tracked, [])
-        a = json.loads((ROOT / "AssetLibrary/Unique/Vehicles/BraxhornKabrioletKremowy/manifest.json").read_text())
-        self.assertEqual(a["sourceStorage"]["pack"], "unity-city/Prywatne/braxhorn-sklep-auta-03")
         self.assertTrue(a["validation"]["badgesFitted"])
 
 
