@@ -1,7 +1,7 @@
 {
   "id": "braxhorn.vehicle.limuzyna_czarna",
   "displayName": "Braxhorn Limuzyna Czarna",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scope": "shared, all city regions",
   "ownerBrief": "Właściciel 16.11.2026: zip z modelami Tripo (08:19) do poprawy na premium; 09:09 „jeżeli się nie opłaca naprawić — stwórz od zera”; 10:11 „dawaj resztę rób”",
   "sourceStorage": {
@@ -17,16 +17,16 @@
       "lod1": "limuzyna_czarna_lod1.glb"
     },
     "sha256": {
-      "lod0": "798febef8959314aa13a0aba1ebc87c2ce8083ff98cee1cde8b1867e9ca48282",
-      "lod1": "ce9d76fac2237bbeda75112214bc7e9ba9ccb93d1c9b32b23f419d4ad3d3aaaa"
+      "lod0": "d08c451191c4544b9a1f1c9c4f7470bf9998ed2951d326dbce5b6864b8d057a3",
+      "lod1": "9c2a7defa4a94f00cf73659cbf003540b6c8025df8e237c2c3a18f3f8e16cf2a"
     },
     "bytes": {
-      "lod0": 17481548,
-      "lod1": 4276084
+      "lod0": 19713040,
+      "lod1": 4807608
     },
     "triangles": {
-      "lod0": 348319,
-      "lod1": 69551
+      "lod0": 376675,
+      "lod1": 76383
     },
     "externalTextures": "_tekstury/limuzyna_czarna/ (Poly Haven leather_white, poly_wool_herringbone, teak_veneer — 1K recoloured; owner badge 512 px)",
     "lengthM": 5.5,
@@ -34,7 +34,7 @@
     "heightM": 1.642,
     "wheelbaseM": 3.5,
     "trackM": 1.7,
-    "wheelDiameterM": 0.76,
+    "wheelDiameterM": 0.705,
     "gltfForward": "+Z",
     "sourceUnit": "metre",
     "seats": 4,
@@ -67,13 +67,13 @@
   "validation": {
     "webglPreview": true,
     "badgesFitted": true,
-    "normalsOutward": "sprawdz_normalne.py (in pack oryginal/): 0 inverted closed islands in LOD0 and LOD1",
+    "normalsOutward": "sprawdz_normalne.py (in pack oryginal/): LOD0 0 inverted closed islands; LOD1 one 6-triangle micro-fold (black double-sided) at a door edge",
     "unityPlayMode": "untested",
     "androidDevice": "untested",
     "sharedGeometryAppliedToRegionScenes": false
   },
   "ownerApproval": {
     "status": "pending",
-    "note": "zdjęcia wysłane 16.11 ~12:35"
+    "note": "12:35 zdjęcia v1; 12:39 właściciel: detale zgadywane — przerobione według zdjęć prawdziwej Century (v2)"
   }
 }

@@ -1,15 +1,15 @@
 {
- "source": "Właściciel 16.11.2026 10:11: „Te, co ci wysłałem, do poprawki” — czarna limuzyna z jego zipa (Tripo 08:19) zbudowana od zera według kształtu modelu, materiały Poly Haven: limuzyna_czarna (LOD0, 348319 trójkątów) + limuzyna_czarna_lod1 (69551); drzwi ×4, maska, bagażnik, wlew, koła, kierownica ruchome; byk na grillu, masce, kierownicy i kołach, napis BRAXHORN na bagażniku; wnętrze premium (kremowa skóra, fornir, salonka z tyłu); prawdziwe metry, przód +Z, podstawa y = 0",
+ "source": "Właściciel 16.11.2026 10:11: „Te, co ci wysłałem, do poprawki” — czarna limuzyna z jego zipa (Tripo 08:19) zbudowana od zera według kształtu modelu, materiały Poly Haven: limuzyna_czarna (LOD0, 376675 trójkątów) + limuzyna_czarna_lod1 (76383); drzwi ×4, maska, bagażnik, wlew, koła, kierownica ruchome; byk na grillu, masce, kierownicy i kołach, napis BRAXHORN na bagażniku; wnętrze premium (kremowa skóra, fornir, salonka z tyłu); prawdziwe metry, przód +Z, podstawa y = 0",
  "target": "pojazdy_auta_03",
  "staging": "unity-city/Assets/Source/Prywatne/Miasto/pojazdy_auta_03 (BraxMiastoAssety.Model)",
  "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
- "tarSha256": "6aadd5fad0599af8160907dee84c28fc40d8a575e382e1e351b3dcd15e7a4113",
- "cmsSha256": "5174a3e02bec749297af417800e84cca28940e4bcfd23257efc34c13ef203f73",
+ "tarSha256": "da9d1932d4ced33760163c5d4d83aa3afb3653c47223f1991692dfa7295bdccd",
+ "cmsSha256": "1d01d573d2d63d7a0c166bd08dc8e0d3554ee3a37904f949767d0417d400c799",
  "parts": [
   {
    "name": "part-000.cms",
-   "bytes": 30065221,
-   "sha256": "5174a3e02bec749297af417800e84cca28940e4bcfd23257efc34c13ef203f73"
+   "bytes": 32840261,
+   "sha256": "1d01d573d2d63d7a0c166bd08dc8e0d3554ee3a37904f949767d0417d400c799"
   }
  ],
  "files": {
@@ -17,7 +17,7 @@
   "oryginal/emblematy.py": "0eb6c99e7a9580be94696fb90fe03dbd3c6f2155f97f22a55a234bfa2d21e99f",
   "oryginal/leather_white.json": "7ebf43c2a3a0ae41d2d305770f59e981c24a63298e1f7d167f760c614427f166",
   "oryginal/logo_wlasciciela_16-11.glb": "aa794f33f7d20f6a3101173e9fe137accf219928a3b81b80f9a4c964766d3552",
-  "oryginal/nadwozie_sdf.py": "c6b0210d92e194e535d35a618f5f1aae6c49e42a7a6381a1c6bd1e6ae96b670a",
+  "oryginal/nadwozie_sdf.py": "907a2959f58713923ceb2325e5ec33cafcc1a3760f6b66ea82028a0413d3ec14",
   "oryginal/obrysy.py": "48a7b00b173b5185cbe302772ed4b24101e7f2958d21e135fdf773a11ae731c2",
   "oryginal/podglad_ply.py": "6a08bf0a4a20e3748ca9e7422dcdfe9ba510e790b4eb62bbc1b190e3faf22cbc",
   "oryginal/poly_wool_herringbone.json": "4fcdb7cee772205baf892df1cd6e03eaf78d019f6a19e2afe850b24ed4fa52ee",
@@ -31,14 +31,14 @@
   "oryginal/tekstury.py": "536d4603076c5f7dd6f8f2db874fa8f89daa77d42704ed5f25c584e24e5718ed",
   "oryginal/tekstury_na_zewnatrz.py": "fd9593d1daa1bcbe674e18a063143d2c816f3683eeb8a668ebb010223446b827",
   "oryginal/tripo_limuzyna.glb": "268046139b492525e109fcf2906ec7e0bf8a3078ce29dc22b4f8acd4b3231440",
-  "oryginal/wymiary.py": "37587b4a2d6bcae147a7e3c124914e4c9991638276b955966ef3c9c6e10fd506",
+  "oryginal/wymiary.py": "1a6ab281b5a894ca389c7499c547b1e203d0050a8dad16be1f61c2c6e91dd900",
   "oryginal/zbuduj.sh": "8601a6f571a4489c985455c7dcf25ce13169b29a1947ace34d448709869063f2",
-  "oryginal/zloz.py": "b55ce1bbf25163f1c3c44056a1b653b21ea3f9afc34a05e7c9d6853c174aa88f",
-  "oryginal/zloz_czesci.py": "dbbb8985760e1f206d6c8878e5ab798b989906a18d51cf896fe26f42fab46739",
+  "oryginal/zloz.py": "5cd99b35bd493ec9d6ed24bfd3c14b3f6df3cdfb2cd618f5d54a67131415b5e7",
+  "oryginal/zloz_czesci.py": "61499b2580cde504df1416f19cd7e3611954ec1bc8441efd8a1872d6cad31ab3",
   "oryginal/zloz_emblematy_pom.py": "8c8df88ba0a34dbfc932ef48185f873ad8a6b5ee972ff196282ce57737a54df8",
   "oryginal/zloz_fotel.py": "e0755cf173de5fcb421c8ea229528c5de0fb28e0cc6313e37e2fbba2a981b586",
-  "oryginal/zloz_kabina.py": "833fc5ecd9f08d6577282eddff50ccd6112f3543dd5686615c7f8c6866ea3ed3",
-  "oryginal/zloz_koniec.py": "2dd63637d6c6ff4be4ecea0994a610013a6afeefebf53cf29f05eb9803864cf4",
+  "oryginal/zloz_kabina.py": "c21c1a61923f1089248eaaa686a0f7d0a648684c84d0aa400440c2855256c8cb",
+  "oryginal/zloz_koniec.py": "9c7aa29cf8429d0aec049c06c22b7a932a9675c8af8529d5ba6b57a4c1c3a067",
   "oryginal/zloz_naglowek.py": "1c368852f3b675ce26e38abd2ac8a6f4a3684deaeede48bbb017ae04d54c62fa",
   "oryginal/zloz_pomocnicze.py": "d80f08b3fa9258f57b296cc34568723e6b8bd16fe5388a12e339653284a956a7",
   "oryginal/zloz_sdf.py": "8c2e3924478c22517474aa222c4ecca369590f24f6670c834b6cc6771824dff8",
@@ -56,9 +56,9 @@
   "pojazdy_auta_03/_tekstury/limuzyna_czarna/tapicerka_kolor.jpg": "d69ac58ad8e00011dddc9ff14791e2a25aa4fa4646b1b9ed897ff9a4d50c8ab6",
   "pojazdy_auta_03/_tekstury/limuzyna_czarna/tapicerka_mr.jpg": "e1111abf1296f077f637677a57b7f4a71f1d86aee2f01ae024f81bf94d918bb4",
   "pojazdy_auta_03/_tekstury/limuzyna_czarna/tapicerka_normal.jpg": "0faf6a1d949f36c1497ee5688a59fd04fe85f70281d712eb2132b06155db6e57",
-  "pojazdy_auta_03/katalog.json": "622f6c7bfa0fc38a2a15eddb6d11647fa8807bd95bf1a73ef5dbfc03cf699889",
-  "pojazdy_auta_03/limuzyna_czarna.glb": "798febef8959314aa13a0aba1ebc87c2ce8083ff98cee1cde8b1867e9ca48282",
-  "pojazdy_auta_03/limuzyna_czarna_lod1.glb": "ce9d76fac2237bbeda75112214bc7e9ba9ccb93d1c9b32b23f419d4ad3d3aaaa"
+  "pojazdy_auta_03/katalog.json": "b2c703f15eee972b911026d69dfa840aba92a6b74bfd58c8bbc0c736b44e714b",
+  "pojazdy_auta_03/limuzyna_czarna.glb": "d08c451191c4544b9a1f1c9c4f7470bf9998ed2951d326dbce5b6864b8d057a3",
+  "pojazdy_auta_03/limuzyna_czarna_lod1.glb": "9c2a7defa4a94f00cf73659cbf003540b6c8025df8e237c2c3a18f3f8e16cf2a"
  },
  "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
 }
