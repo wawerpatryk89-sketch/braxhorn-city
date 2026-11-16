@@ -41,6 +41,8 @@ PACKS = ROOT / "unity-city/Prywatne"
 WLASCICIEL = ROOT / "unity-city/Assets/Source/Mistrzowie/G1Wlasciciel"
 GRAFIKI = "braxhorn-mistrzowie-g1-grafiki-20261116"
 KASYNO = "braxhorn-mistrzowie-kasyno-grafiki-20261116"
+# 16.11 20:46: the toppers of the new machine games, the chips, the card back and his court cards
+KASYNO_2 = "braxhorn-mistrzowie-kasyno-grafiki-20261116-2"
 KASYNO_DIR = ROOT / "unity-city/Assets/Source/Mistrzowie/KasynoWlasciciel"
 SA = ROOT / "unity-city/Assets/StreamingAssets/Mistrzowie"
 WIDEO = ROOT / "unity-city/Assets/StreamingAssets/BraxhornWideo"
@@ -156,17 +158,20 @@ def main():
             print("BRAX_G1_GRAFIKI_OK files=%d -> %s" % (n, WLASCICIEL.relative_to(ROOT)))
         else:
             print("BRAX_G1_GRAFIKI_MISSING " + GRAFIKI + " (monitors keep the photographs, the shops their own windows)")
-        # the casino art: his reel strips (BraxChampionsKasynoSprzet cuts them into the reels) and the BET art, byte for byte
-        kas = open_pack(KASYNO, tmp)
-        if kas:
-            n = 0
-            for f in sorted(kas.rglob("*.png")):
-                dst = KASYNO_DIR / f.relative_to(kas)
-                dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(f, dst); n += 1
-            print("BRAX_KASYNO_GRAFIKI_OK files=%d -> %s" % (n, KASYNO_DIR.relative_to(ROOT)))
-        else:
-            print("BRAX_KASYNO_GRAFIKI_MISSING " + KASYNO + " (the slot reels show placeholder strips)")
+        # the casino art: his reel strips (BraxChampionsKasynoSprzet cuts them into the reels) and the BET art; the toppers of
+        # the new games, the chips and the cards - byte for byte
+        for name, without in ((KASYNO, "the slot reels show placeholder strips"),
+                              (KASYNO_2, "the new games' toppers, the chips and the cards are drawn by the generator")):
+            kas = open_pack(name, tmp)
+            if kas:
+                n = 0
+                for f in sorted(kas.rglob("*.png")):
+                    dst = KASYNO_DIR / f.relative_to(kas)
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(f, dst); n += 1
+                print("BRAX_KASYNO_GRAFIKI_OK %s files=%d -> %s" % (name, n, KASYNO_DIR.relative_to(ROOT)))
+            else:
+                print("BRAX_KASYNO_GRAFIKI_MISSING " + name + " (" + without + ")")
         ads = open_pack("mistrzowie-kino-reklamy-20261112", tmp)
         if ads:
             (SA / "Kino").mkdir(parents=True, exist_ok=True)

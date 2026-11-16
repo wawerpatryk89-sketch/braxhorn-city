@@ -831,9 +831,15 @@ public static class BraxChampionsWiezowce
         W.Grupa=inside;W.Wnetrze=true;
         BraxChampionsFoundation.Optional("SKY KASYNO slot machines",()=>
         {
+            // 16.11 20:28 "różne gry w automatach ... lepiej rozstawić": the banks play the five games in turn, and north of each a
+            // CAROUSEL of eight round a drum with the owner's toppers on its crown - KOŁO MISTRZÓW west, VIDEO POKER / KENO east
             var kas=BraxChampionsKasynoSprzet.Zacznij(inside,kat,"SKY KASYNO");
-            BraxChampionsKasynoSprzet.Bank(kas,new Vector3(-9.6f,y,-4.5f),0f,6,0,ceil);
-            BraxChampionsKasynoSprzet.Bank(kas,new Vector3(9.8f,y,-4.5f),0f,6,3,ceil);
+            const int Mech=BraxChampionsAutomatyGry.Mech,Video=BraxChampionsAutomatyGry.Video,Poker=BraxChampionsAutomatyGry.Poker,
+                Keno=BraxChampionsAutomatyGry.Keno,Kolo=BraxChampionsAutomatyGry.Kolo;
+            BraxChampionsKasynoSprzet.Bank(kas,new Vector3(-9.6f,y,-4.5f),0f,6,0,ceil,new[]{Mech,Video,Kolo,Poker});
+            BraxChampionsKasynoSprzet.Bank(kas,new Vector3(9.8f,y,-4.5f),0f,6,1,ceil,new[]{Video,Keno,Mech,Kolo});
+            BraxChampionsKasynoSprzet.Karuzela(kas,new Vector3(-9.5f,y,2.0f),8,new[]{Kolo,Video},0,2.95f);
+            BraxChampionsKasynoSprzet.Karuzela(kas,new Vector3(9.8f,y,2.0f),8,new[]{Poker,Keno},0,2.95f);
             BraxChampionsKasynoSprzet.Ruletka(kas,new Vector3(0f,y,-9.4f),0f);
             BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;roulettes=kas.ruletki.Count;
         });
@@ -857,7 +863,7 @@ public static class BraxChampionsWiezowce
         Debug.Log("TOWER_T09_SKY_KASYNO floor="+CasinoY.ToString("F2")+"m nominal glass=clear-both-sides tables="+tables+" roulettes="+roulettes+" slots="+slots+
             " backBarUnits="+units+" ownerModelsMissing="+ownerMissing+" lift=BraxWinda(2 stops)");
         if(ownerMissing>0)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO owner models missing x"+ownerMissing+" (osiedle_wnetrza pack): back-bar / bar lamps stay empty");
-        if(slots!=24)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO slot machines "+slots+"/24");
+        if(slots!=40)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO slot machines "+slots+"/40");
     }
     // a blackjack table as real ones are (2.2 x 1.05 m, felt at .78 m): a half-ellipse of red felt, a padded black leather
     // armrest round the players' arc, a walnut apron under it, the dealer's straight walnut edge with a steel chip tray, two

@@ -1,0 +1,26 @@
+{
+ "source": "owner 16.11.2026 20:46-20:49: the toppers of his three new machine games (VIDEO POKER, KENO, KOŁO MISTRZÓW), the BRAXHORN CASINO chips 5 / 25 / 100 / 500 / 1000 (one sheet), the card back with the bull and his King, Queen and Jack; one sheet with the gold coin (both faces), the signs RECEPCJA, SZATNIA, KASA, SALON VIP, the BRAXHORN CASINO logo and the table signs BLACKJACK, BAKARAT, POKER, RULETKA - used 1:1, no lettering of ours on them (the cards' corner indices go on the card's margin)",
+ "target": "Assets/Source/Mistrzowie/KasynoWlasciciel/{toppery,zetony,karty,szyldy} (install_owner_media.py; BraxChampionsKasynoSprzet)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "65f48d4dfd3b423cec8f5d9be3e6961c7ac04b0f9ff0a27d984e44b3962a6196",
+ "cmsSha256": "4e4a26dbe0cc5bef5f7f0e3c7e3f88597026c5bc4413f4d825ea4dc1fb4dcbf9",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 27952325,
+   "sha256": "4e4a26dbe0cc5bef5f7f0e3c7e3f88597026c5bc4413f4d825ea4dc1fb4dcbf9"
+  }
+ ],
+ "files": {
+  "karty/dama.png": "a9668dd405b5d6742b8005d221671aaa01934374a8140404195df88314da0bea",
+  "karty/krol.png": "ae5591495492df41c338d81fdcc7956b443e1412a6ffdafc373b10b45fa54a87",
+  "karty/rewers.png": "3a43d1e38b6ac3700395a3f9a0ce151cb76539c6012c7fb71d3e773554f13f1b",
+  "karty/walet.png": "90814dd460d644bec5137a2604bd01b515976543734621518ab67558f7d155a2",
+  "szyldy/arkusz_szyldy_monety_logo.png": "bd6a853ddf653f53f87d68224dbe023312436780f0f075279badff442f16fcc5",
+  "toppery/topper_keno.png": "b52d3d490e2af18ecf278f8adbaa7522fc01281d2d253e5abf154c917eda47ee",
+  "toppery/topper_kolo_mistrzow.png": "a39d1a80e68a6865fe00ccb412ef30f7646ab5f7e8f816447d6b42075fa9a4d7",
+  "toppery/topper_video_poker.png": "dd69d1d752112b4081b09cf0c897366a6361c7e92da8457d0bd26cce6624f40d",
+  "zetony/zetony_5_25_100_500_1000.png": "0518dc80f9e58fa442fea7721ab7f9b5eea09d2ff1adc70ecc1cf863e650d5ef"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

@@ -1,6 +1,10 @@
 using System;
 using UnityEngine;
 using Z = BraxChampionsAutomatyZasady;
+using G = BraxChampionsAutomatyGry;
+using P = BraxChampionsAutomatyGry.PokerGra;
+using K = BraxChampionsAutomatyGry.KenoGra;
+using KG = BraxChampionsAutomatyGry.KoloGra;
 
 // MIASTO MISTRZÓW - the casinos' slot machines, working (owner 16.11 18:12-18:22: "porządne maszyny do grania ...
 // mechaniczne i komputerowe ... w nich komputer i mogą normalnie działać", "te maszyny mają funkcjonować"). The same machines
@@ -10,7 +14,11 @@ using Z = BraxChampionsAutomatyZasady;
 //    meter under the glass shows the credit and the win;
 //  - SCREEN (an upright video slot): AKCJA presses SPIN, the game runs on the main screen - five reels of three symbols
 //    scroll, stop one after another, five lines pay; the meter under the reels shows the credit and the win.
-// The rules and the pay tables are BraxChampionsAutomatyZasady; the symbols are the owner's reel strips (an atlas a theme). The linked
+//  - VIDEO POKER (the screen upright): AKCJA deals five cards, the AUTO HOLD marks TRZYMAJ, AKCJA again draws, the hand pays;
+//  - KENO (the screen upright): AKCJA quick-picks six numbers of 80 and draws twenty balls one by one, the catches pay;
+//  - KOŁO MISTRZÓW (the stepper with the wheel on top): as the mechanical one; KOŁO on the third reel's line spins the wheel.
+// The rules and the pay tables are BraxChampionsAutomatyZasady and BraxChampionsAutomatyGry; the symbols are the owner's reel
+// strips (an atlas a theme). The linked
 // progressive jackpot of all the region's machines shows on every topper and on the boards over the banks (one picture
 // each, painted when it changes). A machine gets its own meter picture when it is first played (idle ones share the
 // casino's). The money is the casino credit (BraxChampionsKasyno) until the game has its wallet.
@@ -20,12 +28,15 @@ public sealed class BraxChampionsAutomaty : MonoBehaviour, IBraxInterakcja
     {
         public Transform korpus;                               // the machine: origin on the floor, +z towards the player
         public bool ekran;                                     // false = drums, true = screen
+        public int gra;                                        // BraxChampionsAutomatyGry: 0 classic, 1 video, 2 poker, 3 keno, 4 koło
         public int motyw;                                      // its theme (cabinet colour, the owner's art per theme)
         public Transform[] bebny = new Transform[0];           // mechanical: drums turning about their local x
         public Transform dzwignia;                             // mechanical: the lever swinging about its local x
         public Transform przycisk;                             // the SPIN button (pressed in when played)
         public MeshFilter[] kolumny = new MeshFilter[0];       // screen: per reel 4 symbol cells (rebuilt while spinning)
         public float komorka = .09f;                           // screen: one cell (local metres, square)
+        public MeshFilter warstwa;                             // poker / keno: the main screen's live layer
+        public Transform kolo, wskaznik;                       // koło: the wheel (turning about its local z) and its pointer
         public Renderer licznik;                               // credit / win
     }
     public Maszyna[] maszyny = new Maszyna[0];
@@ -41,10 +52,19 @@ public sealed class BraxChampionsAutomaty : MonoBehaviour, IBraxInterakcja
         public int wygrana; public Vector3 przyciskZ;
         public Texture2D tex; public Color32[] px;
         public Mesh[] siatki; public Vector3[][] wierzcholki; public Vector2[][] uv;
+        // poker: 0 waiting for the deal, 1 dealt (waiting for the draw), 2 drawn; the cards turn over one by one
+        public int faza, trzymaj, uklad, wTalii;
+        public readonly int[] karty = new int[5], talia = new int[52]; public readonly bool[] odkryte = new bool[5]; public readonly float[] odkryj = new float[5];
+        // keno: the six numbers, the twenty balls, how many are shown
+        public readonly int[] typy = new int[K.Typy], kule = new int[K.Kule]; public int pokazane; public float nastepna;
+        public Mesh warstwa;
+        // koło: the wheel's angle (clockwise seen from the front), its spin from start to target, the segment drawn
+        public bool koloKreci; public float koloOd, koloStart, koloCel, koloKat; public int koloSeg;
     }
     Stan[] stan;
     System.Random los;
     Texture2D jTex, tTex; Color32[] jPx, tPx;
+    static G.Warstwa wPoker, wKeno;
     float odswiez; long ostatniJackpot = -1;
     const float Zasieg = 40f;
     public const int LicznikW = 192, LicznikH = 24, JackW = 192, JackH = 64, TabW = 256, TabH = 64;
@@ -59,11 +79,14 @@ public sealed class BraxChampionsAutomaty : MonoBehaviour, IBraxInterakcja
         for (int i = 0; i < maszyny.Length; i++)
         {
             var m = maszyny[i]; var s = new Stan(); stan[i] = s; if (m == null || !m.korpus) continue;
-            int n = m.ekran ? 5 : 3;
+            if (m.ekran && m.gra == G.Mech) m.gra = G.Video;
+            if (m.gra == G.Poker || m.gra == G.Keno) { StartEkranu(m, s); continue; }
+            int n = m.gra == G.Video ? 5 : 3;
             s.poz = new float[n]; s.cel = new float[n]; s.startCel = new float[n]; s.stop = new float[n]; s.staje = new bool[n]; s.stoi = new bool[n];
             for (int r = 0; r < n; r++) s.poz[r] = los.Next(Z.Stopy);
             if (m.przycisk) s.przyciskZ = m.przycisk.localPosition;
-            if (m.ekran)
+            if (m.kolo) { s.koloKat = los.Next(KG.Segmenty.Length) * KG.Kat; m.kolo.localRotation = Quaternion.AngleAxis(s.koloKat, Vector3.forward); }
+            if (m.gra == G.Video)
             {
                 s.siatki = new Mesh[n]; s.wierzcholki = new Vector3[n][]; s.uv = new Vector2[n][];
                 for (int r = 0; r < n && r < m.kolumny.Length; r++)
@@ -83,6 +106,23 @@ public sealed class BraxChampionsAutomaty : MonoBehaviour, IBraxInterakcja
         jTex = Wspolna(jackpoty, JackW, JackH, out jPx);
         tTex = Wspolna(tablice, TabW, TabH, out tPx);
         Jackpoty(true);
+    }
+    // poker and keno: the machine's own layer mesh; the idle screen shows a hand / six numbers (as a machine left by a player)
+    void StartEkranu(Maszyna m, Stan s)
+    {
+        if (m.przycisk) s.przyciskZ = m.przycisk.localPosition;
+        if (!m.warstwa) return;
+        s.warstwa = new Mesh { name = m.gra == G.Poker ? "video poker ekran" : "keno ekran" }; s.warstwa.MarkDynamic();
+        m.warstwa.sharedMesh = s.warstwa;
+        if (m.gra == G.Poker) { P.Tasuj(los, s.talia); for (int k = 0; k < 5; k++) { s.karty[k] = s.talia[k]; s.odkryte[k] = true; } }
+        else K.Losuj(los, s.typy);
+        Ekran(m, s);
+    }
+    void Ekran(Maszyna m, Stan s)
+    {
+        if (!s.warstwa) return;
+        if (m.gra == G.Poker) P.Zbuduj(wPoker ??= new G.Warstwa(P.AtlasW, P.AtlasH), s.warstwa, s.karty, s.odkryte, s.trzymaj, s.uklad);
+        else K.Zbuduj(wKeno ??= new G.Warstwa(K.AtlasW, K.AtlasH), s.warstwa, s.typy, s.kule, s.pokazane);
     }
     // one picture for a set of displays: a copy of the first one's material with its own texture, given to all of them
     static Texture2D Wspolna(Renderer[] r, int w, int h, out Color32[] px)
@@ -114,16 +154,29 @@ public sealed class BraxChampionsAutomaty : MonoBehaviour, IBraxInterakcja
     public string Kontekst(Vector3 gracz)
     {
         int i = Najblizsza(gracz); if (i < 0 || stan == null) return "";
-        if (stan[i].kreci) return "AUTOMAT · KRĘCI";
-        return BraxChampionsKasyno.Kredyt >= stawka ? (maszyny[i].ekran ? "GRAJ · " : "POCIĄGNIJ DŹWIGNIĘ · ") + stawka : "BRAK KREDYTU";
+        var s = stan[i]; var m = maszyny[i];
+        if (s.koloKreci) return "KOŁO MISTRZÓW · KRĘCI SIĘ";
+        if (s.kreci) return m.gra == G.Keno ? "KENO · LOSOWANIE" : m.gra == G.Poker ? "VIDEO POKER · ROZDAJE" : "AUTOMAT · KRĘCI";
+        if (m.gra == G.Poker && s.faza == 1) return "WYMIEŃ KARTY · TRZYMA " + Bity(s.trzymaj);
+        if (BraxChampionsKasyno.Kredyt < stawka) return "BRAK KREDYTU";
+        switch (m.gra)
+        {
+            case G.Poker: return "VIDEO POKER · ROZDAJ · " + stawka;
+            case G.Keno: return "KENO 6 Z 80 · GRAJ · " + stawka;
+            case G.Video: return "GRAJ · " + stawka;
+            default: return "POCIĄGNIJ DŹWIGNIĘ · " + stawka;
+        }
     }
+    static int Bity(int v) { int c = 0; while (v != 0) { c += v & 1; v >>= 1; } return c; }
     public bool Wykonaj(Vector3 gracz)
     {
         int i = Najblizsza(gracz); if (i < 0 || stan == null) return false;
         var s = stan[i]; var m = maszyny[i];
-        if (s.kreci) return true;
+        if (s.kreci || s.koloKreci) return true;
+        if (m.gra == G.Poker) return PokerAkcja(m, s);
         if (!BraxChampionsKasyno.Wydaj(stawka)) { BraxChampionsGry.Pokaz("BRAK KREDYTU", 1.6f); return true; }
-        BraxChampionsKasyno.Dorzuc(stawka);
+        if (m.gra == G.Keno) return KenoAkcja(m, s);
+        if (m.gra != G.Kolo) BraxChampionsKasyno.Dorzuc(stawka);      // the linked jackpot: the classic and the video machines
         int n = m.ekran ? 5 : 3; float now = Time.time;
         s.kreci = true; s.wygrana = 0; s.start = now; s.przyciskOd = now; s.dzwigniaOd = m.dzwignia ? now : -9f;
         float poczatek = m.ekran ? .05f : .35f;                   // the drums start when the lever is down
@@ -137,6 +190,90 @@ public sealed class BraxChampionsAutomaty : MonoBehaviour, IBraxInterakcja
         return true;
     }
 
+    // ---- VIDEO POKER: the deal (the stake), then the draw of the cards not held
+    bool PokerAkcja(Maszyna m, Stan s)
+    {
+        float now = Time.time;
+        if (s.faza == 1)
+        {
+            s.przyciskOd = now; int j = 0;
+            for (int k = 0; k < 5; k++) if ((s.trzymaj >> k & 1) == 0) { s.karty[k] = s.talia[s.wTalii++]; s.odkryte[k] = false; s.odkryj[k] = now + .12f + .11f * j++; }
+            s.faza = 2; s.kreci = true; Ekran(m, s); return true;
+        }
+        if (!BraxChampionsKasyno.Wydaj(stawka)) { BraxChampionsGry.Pokaz("BRAK KREDYTU", 1.6f); return true; }
+        s.przyciskOd = now; P.Tasuj(los, s.talia); s.wTalii = 0;
+        for (int k = 0; k < 5; k++) { s.karty[k] = s.talia[s.wTalii++]; s.odkryte[k] = false; s.odkryj[k] = now + .12f + .11f * k; }
+        s.trzymaj = 0; s.uklad = 0; s.wygrana = 0; s.faza = 0; s.kreci = true;
+        Ekran(m, s); Licznik(m, s); return true;
+    }
+    void PokerKrok(Maszyna m, Stan s)
+    {
+        float now = Time.time; bool zmiana = false, wszystkie = true;
+        for (int k = 0; k < 5; k++)
+            if (!s.odkryte[k]) { if (now >= s.odkryj[k]) { s.odkryte[k] = true; zmiana = true; } else wszystkie = false; }
+        if (wszystkie)
+        {
+            s.kreci = false; zmiana = true; s.uklad = P.Ocen(s.karty);
+            if (s.faza == 0) { s.trzymaj = P.Trzymaj(s.karty); s.faza = 1; }          // AUTO HOLD; a dealt hand shows its name
+            else
+            {
+                s.trzymaj = 0; s.faza = 0; s.wygrana = P.Wyplata[s.uklad] * stawka;
+                if (s.wygrana > 0) { BraxChampionsKasyno.Wplac(s.wygrana); BraxChampionsGry.Pokaz(P.Uklady[s.uklad] + " · WYGRANA " + s.wygrana + "!", s.uklad >= P.Kareta ? 4f : 2.2f); }
+                Licznik(m, s);
+            }
+        }
+        if (zmiana) Ekran(m, s);
+    }
+    // ---- KENO: QUICK PICK six, twenty balls one by one
+    bool KenoAkcja(Maszyna m, Stan s)
+    {
+        float now = Time.time; s.przyciskOd = now;
+        K.Losuj(los, s.typy); K.Losuj(los, s.kule);
+        s.pokazane = 0; s.nastepna = now + .45f; s.kreci = true; s.wygrana = 0;
+        Ekran(m, s); Licznik(m, s); return true;
+    }
+    void KenoKrok(Maszyna m, Stan s)
+    {
+        if (Time.time < s.nastepna) return;
+        s.pokazane++; s.nastepna = Time.time + .16f;
+        if (s.pokazane >= K.Kule)
+        {
+            s.kreci = false; int t = K.Trafione(s.typy, s.kule, K.Kule); s.wygrana = K.Wyplata[t] * stawka;
+            if (s.wygrana > 0) { BraxChampionsKasyno.Wplac(s.wygrana); BraxChampionsGry.Pokaz("KENO · TRAFIONE " + t + " Z 6 · WYGRANA " + s.wygrana + "!", t >= 5 ? 4f : 2.2f); }
+            Licznik(m, s);
+        }
+        Ekran(m, s);
+    }
+    // ---- KOŁO MISTRZÓW: the wheel runs 6.5 s down to the segment drawn; the pointer flaps on the pegs
+    const float KoloCzas = 6.5f;
+    void KoloStart(Stan s)
+    {
+        s.koloKreci = true; s.koloOd = Time.time + .5f; s.koloSeg = los.Next(KG.Segmenty.Length); s.koloStart = s.koloKat;
+        s.koloCel = s.koloKat + 3f * 360f + Mathf.Repeat(KG.KatSegmentu(s.koloSeg) - s.koloKat, 360f);
+    }
+    void KoloKrok(Maszyna m, Stan s)
+    {
+        float t = Time.time - s.koloOd; if (t < 0f) return;
+        float u = Mathf.Clamp01(t / KoloCzas), e = 1f - Mathf.Pow(1f - u, 3f);
+        s.koloKat = Mathf.Lerp(s.koloStart, s.koloCel, e);
+        if (m.kolo) m.kolo.localRotation = Quaternion.AngleAxis(s.koloKat, Vector3.forward);
+        if (m.wskaznik)
+        {
+            // a peg reaches the pointer when the angle passes a segment border: pushed to the right, it snaps back
+            float f = Mathf.Repeat(s.koloKat + .5f * KG.Kat, KG.Kat) / KG.Kat;
+            float d = f > .7f ? (f - .7f) / .3f : f < .12f ? 1f - f / .12f : 0f;
+            m.wskaznik.localRotation = Quaternion.AngleAxis(-22f * d, Vector3.forward);
+        }
+        if (u >= 1f)
+        {
+            s.koloKreci = false; s.koloKat = Mathf.Repeat(s.koloCel, 360f);
+            if (m.kolo) m.kolo.localRotation = Quaternion.AngleAxis(s.koloKat, Vector3.forward);
+            if (m.wskaznik) m.wskaznik.localRotation = Quaternion.identity;
+            int w = KG.Wygrana(s.koloSeg, stawka); s.wygrana += w; BraxChampionsKasyno.Wplac(w);
+            BraxChampionsGry.Pokaz("KOŁO MISTRZÓW · " + w + "!", 3.2f); Licznik(m, s);
+        }
+    }
+
     // ---------------- per frame ----------------
     void Update()
     {
@@ -148,13 +285,14 @@ public sealed class BraxChampionsAutomaty : MonoBehaviour, IBraxInterakcja
             var s = stan[i]; var m = maszyny[i]; if (m == null || !m.korpus) continue;
             if (s.przyciskOd > 0f) Przycisk(m, s);
             if (s.dzwigniaOd > 0f) Dzwignia(m, s);
-            if (s.kreci) Krec(m, s);
+            if (s.kreci) { if (m.gra == G.Poker) PokerKrok(m, s); else if (m.gra == G.Keno) KenoKrok(m, s); else Krec(m, s); }
+            if (s.koloKreci) KoloKrok(m, s);
         }
         int bliska = g ? Najblizsza(gp) : -1;
         if (bliska >= 0)
         {
             var s = stan[bliska];
-            BraxChampionsGry.Ustaw(nazwa + " · KREDYT " + BraxChampionsKasyno.Kredyt + " · STAWKA " + stawka + (s.wygrana > 0 ? " · WYGRANA " + s.wygrana : ""));
+            BraxChampionsGry.Ustaw(nazwa + " · " + G.Nazwy[maszyny[bliska].gra] + " · KREDYT " + BraxChampionsKasyno.Kredyt + " · STAWKA " + stawka + (s.wygrana > 0 ? " · WYGRANA " + s.wygrana : ""));
         }
         if (Time.time >= odswiez && g && Blisko(gp)) { odswiez = Time.time + .5f; Jackpoty(false); }
     }
@@ -235,9 +373,15 @@ public sealed class BraxChampionsAutomaty : MonoBehaviour, IBraxInterakcja
         }
         else
         {
-            int a = Z.Symbol(Z.Pasek(0, false), Mathf.RoundToInt(s.poz[0])), b = Z.Symbol(Z.Pasek(1, false), Mathf.RoundToInt(s.poz[1])),
-                c = Z.Symbol(Z.Pasek(2, false), Mathf.RoundToInt(s.poz[2]));
-            int mn = Z.Mechaniczny(a, b, c); jackpot = mn < 0; wygrana = mn > 0 ? mn * stawka : 0;
+            int a = Z.Symbol(G.Pasek(m.gra, 0), Mathf.RoundToInt(s.poz[0])), b = Z.Symbol(G.Pasek(m.gra, 1), Mathf.RoundToInt(s.poz[1])),
+                c = Z.Symbol(G.Pasek(m.gra, 2), Mathf.RoundToInt(s.poz[2]));
+            if (m.gra == G.Kolo)
+            {
+                // the wheel machine: its own line pays (three SEVENS fixed), KOŁO on the third reel spins the wheel
+                jackpot = false; wygrana = KG.Linia(a, b, c) * stawka;
+                if (c == KG.Symbol) KoloStart(s);
+            }
+            else { int mn = Z.Mechaniczny(a, b, c); jackpot = mn < 0; wygrana = mn > 0 ? mn * stawka : 0; }
         }
         if (jackpot) wygrana = BraxChampionsKasyno.WezJackpot();
         s.wygrana = wygrana;
@@ -246,6 +390,7 @@ public sealed class BraxChampionsAutomaty : MonoBehaviour, IBraxInterakcja
             BraxChampionsKasyno.Wplac(wygrana);
             BraxChampionsGry.Pokaz(jackpot ? "JACKPOT! " + wygrana : "WYGRANA " + wygrana + "!", jackpot ? 4f : 2.2f);
         }
+        else if (s.koloKreci) BraxChampionsGry.Pokaz("KOŁO MISTRZÓW!", 2.2f);
         Licznik(m, s); Jackpoty(true);
     }
 

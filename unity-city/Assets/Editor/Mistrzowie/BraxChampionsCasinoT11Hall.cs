@@ -9,7 +9,8 @@ using W = BraxWnetrzaKit;
 // The podium was an EMPTY box: a lobby whose back wall carried a painted "portal", and boards behind every window.
 // Now the lobby opens through a real 6 x 4.5 m portal into the casino hall: one 75 x 52 m room, 12.8 m high: black marble
 // floor with a field of red marble tiles, a cream coffered ceiling with light lines around the roof lantern, twelve polished
-// gold columns, six ring chandeliers, a lit rear wall; since 16.11 64 working slot machines in four banks (no tables yet).
+// gold columns, six ring chandeliers, a lit rear wall; since 16.11 128 working machines of five games in banks and on four
+// carousels, four roulettes.
 // Every window now looks into this real room. Built in nominal metres with the interior kit, scaled by K once.
 public static partial class BraxChampionsCasinoT11
 {
@@ -149,13 +150,29 @@ public static partial class BraxChampionsCasinoT11
             // wing, between the column lines (x 14.1 / 28.2) under the chandeliers, eight a row back to back with their stools,
             // mechanical and screen machines in turn in the six themes of the owner's strips (19:13 "co druga różnego typu"), on
             // the red marble; the linked jackpot board hangs over each bank. The middle under the lantern stays for the tables.
-            int slots=0,roulettes=0;
+            // 16.11 20:28 ("możesz zrobić więcej ... albo lepiej rozstawić ... różne gry w automatach ... pokaż, jak się robi
+            // luksus"): five games (BraxChampionsAutomatyGry) - the classic, the video, VIDEO POKER, KENO, KOŁO MISTRZÓW - every
+            // neighbour another game; in each wing the two long banks, a short bank before and behind them, and under the front
+            // and the back chandelier a CAROUSEL of eight round a lacquered drum with the owner's toppers on its crown (the KOŁO
+            // carousels to the entrance, the poker / keno ones at the back): 128 machines
+            int slots=0,roulettes=0,carousels=0;
             BraxChampionsFoundation.Optional("T11 slot machines",()=>
             {
                 var body=new BraxChampionsMeshBatch();
                 var kas=BraxChampionsKasynoSprzet.Zacznij(g,body,"KASYNO WAWER");
-                int start=0;
-                foreach(float x in new[]{-24.5f,-19.5f,19.5f,24.5f})BraxChampionsKasynoSprzet.Bank(kas,new Vector3(x,HallFloor+.016f,0f),90f,8,start++,HallCeiling);
+                int start=0;const int Mech=BraxChampionsAutomatyGry.Mech,Video=BraxChampionsAutomatyGry.Video,Poker=BraxChampionsAutomatyGry.Poker,
+                    Keno=BraxChampionsAutomatyGry.Keno,Kolo=BraxChampionsAutomatyGry.Kolo;
+                var dlugie=new[]{Mech,Video,Kolo,Poker,Mech,Video,Kolo,Keno};var krotkie=new[]{Video,Keno,Kolo,Poker};
+                float fl=HallFloor+.016f;
+                foreach(float x in new[]{-24.5f,-19.5f,19.5f,24.5f})BraxChampionsKasynoSprzet.Bank(kas,new Vector3(x,fl,0f),90f,8,start++,HallCeiling,dlugie);
+                foreach(float x in new[]{-22.0f,22.0f})foreach(float z in new[]{-8.0f,8.0f})
+                    BraxChampionsKasynoSprzet.Bank(kas,new Vector3(x,fl,z),0f,4,start++,HallCeiling,krotkie);
+                foreach(float x in new[]{-21.15f,21.15f})
+                {
+                    BraxChampionsKasynoSprzet.Karuzela(kas,new Vector3(x,fl,-14f),8,new[]{Kolo,Video},x<0f?0:1,2.95f);
+                    BraxChampionsKasynoSprzet.Karuzela(kas,new Vector3(x,fl,14f),8,new[]{Poker,Keno},x<0f?0:1,2.95f);
+                }
+                carousels=kas.karuzele;
                 // the roulette pit under the lantern (owner 19:13 "ruletki prawdziwe"): four European tables, the croupiers in the
                 // middle, the players facing out
                 foreach(float rx in new[]{-4.0f,4.0f})foreach(float rz in new[]{-4.5f,4.5f})
@@ -165,7 +182,7 @@ public static partial class BraxChampionsCasinoT11
                 BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
             });
             W.Grupa=g;W.Wnetrze=true;
-            if(slots!=64)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL slot machines "+slots+"/64");
+            if(slots!=128||carousels!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL slot machines "+slots+"/128 carousels "+carousels+"/4");
             if(roulettes!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL roulettes "+roulettes+"/4");
 
             // ---- light: six warm vertex lamps (no shadows) ----
@@ -173,7 +190,7 @@ public static partial class BraxChampionsCasinoT11
             foreach(float z in new[]{-14f,0f,14f})
                 W.Lampa("T11 hall chandelier warm light",new Vector3(x,9.2f,z),1.5f,24f*K,new Color(1f,.88f,.66f));
             Debug.Log("T11_CASINO_HALL open=true portal=6x4.5 floor=black_marble+red_marble_tiles_3m_gold_joints ceiling=cream_coffered_"+HallCeiling+
-                " columns="+columns+"_polished_gold chandeliers=6 lights=6_vertex slots="+slots+"_working roulettes="+roulettes+"_working scale=K_once");
+                " columns="+columns+"_polished_gold chandeliers=6 lights=6_vertex slots="+slots+"_working carousels="+carousels+" roulettes="+roulettes+"_working scale=K_once");
         }
         catch { W.Wyczysc(); UnityEngine.Object.DestroyImmediate(g.gameObject); throw; }
         W.Zapisz("mistrzowie_t11_casino_hall");

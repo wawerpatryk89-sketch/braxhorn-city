@@ -213,8 +213,8 @@ class SkyCasino(unittest.TestCase):
         # 16.11 18:19 the owner's placeholder machine model gave way to working slot machines (test_automaty_20261116)
         self.assertNotIn("kasyno_automat_nermin", sc)
         self.assertIn('BraxChampionsKasynoSprzet.Zacznij(inside,kat,"SKY KASYNO")', sc)
-        self.assertIn("BraxChampionsKasynoSprzet.Bank(kas,new Vector3(-9.6f,y,-4.5f),0f,6,0,ceil);", sc)
-        self.assertIn("BraxChampionsKasynoSprzet.Bank(kas,new Vector3(9.8f,y,-4.5f),0f,6,3,ceil);", sc)
+        self.assertIn("BraxChampionsKasynoSprzet.Bank(kas,new Vector3(-9.6f,y,-4.5f),0f,6,0,ceil,new[]{Mech,Video,Kolo,Poker});", sc)
+        self.assertIn("BraxChampionsKasynoSprzet.Bank(kas,new Vector3(9.8f,y,-4.5f),0f,6,1,ceil,new[]{Video,Keno,Mech,Kolo});", sc)
         self.assertIn("OwnerBackBar(", sc)
         self.assertIn('BraxMiastoAssety.Model("osiedle_wnetrza",file)', SRC)
         bj = SRC[SRC.index("static void BlackjackTable("):SRC.index("static GameObject OwnerModel(")]

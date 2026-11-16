@@ -161,7 +161,8 @@ class Cabinets(unittest.TestCase):
         self.assertIn("public const float BebenR = .175f, BebenSzer = .11f", KIT)
         self.assertIn("RozstawEkran = .76f, RozstawMech = .82f, RozstawMieszany = .80f", KIT)   # room for the lever
         # every other machine the other type, every machine another theme than its neighbours (owner 16.11 19:13)
-        self.assertIn("bool ekran = (i + row + start) % 2 == 1; int motyw = (start + i + 3 * row) % Motywy.Length;", KIT)
+        self.assertIn("int gra = gry == null ? ((i + row + start) % 2 == 1 ? G.Video : G.Mech) : gry[(i + 2 * row + start) % gry.Length];", KIT)
+        self.assertIn("int motyw = (start + i + 3 * row) % Motywy.Length;", KIT)
         self.assertIn('BraxChampionsFoundation.LibraryMetal("kasyno_" + id, c)', KIT)  # lacquered steel, chrome: the metal scan
         self.assertIn('BraxChampionsFoundation.LibraryLeather("kasyno_skora_czarna"', KIT)
         self.assertNotIn("BraxChampionsLetters3D.Text(b, chrom", KIT)          # the top glass is printed (1 600 triangles less)
@@ -210,20 +211,23 @@ class Cabinets(unittest.TestCase):
     def test_both_casinos(self):
         self.assertIn('BraxChampionsKasynoSprzet.Zacznij(inside,kat,"SKY KASYNO")', TOWER)
         self.assertEqual(TOWER.count("BraxChampionsKasynoSprzet.Bank("), 2)
+        self.assertEqual(TOWER.count("BraxChampionsKasynoSprzet.Karuzela("), 2)
         self.assertIn('BraxChampionsKasynoSprzet.Zacznij(g,body,"KASYNO WAWER")', HALL)
         self.assertIn("foreach(float x in new[]{-24.5f,-19.5f,19.5f,24.5f})BraxChampionsKasynoSprzet.Bank(", HALL)
-        self.assertIn('if(slots!=64)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL slot machines "', HALL)
-        self.assertIn('if(slots!=24)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO slot machines "', TOWER)
+        self.assertEqual(HALL.count("BraxChampionsKasynoSprzet.Karuzela("), 2)          # two a wing (front and back)
+        self.assertIn('if(slots!=128||carousels!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL slot machines "', HALL)
+        self.assertIn('if(slots!=40)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO slot machines "', TOWER)
 
     def test_meta_files(self):
-        for f in ("Mistrzowie/BraxChampionsAutomaty.cs", "Mistrzowie/BraxChampionsAutomatyZasady.cs",
-                  "Editor/Mistrzowie/BraxChampionsKasynoSprzet.cs"):
+        for f in ("Mistrzowie/BraxChampionsAutomaty.cs", "Mistrzowie/BraxChampionsAutomatyZasady.cs", "Mistrzowie/BraxChampionsAutomatyGry.cs",
+                  "Editor/Mistrzowie/BraxChampionsKasynoSprzet.cs", "Editor/Mistrzowie/BraxChampionsKasynoGry.cs"):
             self.assertTrue((ASSETS / (f + ".meta")).exists(), f)
 
     def test_previews_compile_the_real_files(self):
         for p in ("wiezowce_preview/wiezowce_preview.csproj", "casino_preview/casino_preview.csproj"):
             proj = (ROOT / "unity-tools/mistrzowie" / p).read_text(encoding="utf-8")
-            for f in ("BraxChampionsKasynoSprzet.cs", "BraxChampionsAutomaty.cs", "BraxChampionsAutomatyZasady.cs", "AutomatyStubs.cs"):
+            for f in ("BraxChampionsKasynoSprzet.cs", "BraxChampionsKasynoGry.cs", "BraxChampionsAutomaty.cs", "BraxChampionsAutomatyZasady.cs",
+                      "BraxChampionsAutomatyGry.cs", "AutomatyStubs.cs"):
                 self.assertIn(f, proj)
 
 
@@ -287,6 +291,89 @@ class Roulette(unittest.TestCase):
         self.assertNotIn("PaintTablica", ROUL)                                      # the old 64 x 128 LED board is gone
         sim = (ROOT / "unity-tools/mistrzowie/automaty_sim/Program.cs").read_text(encoding="utf-8")
         self.assertIn('"display shows " + wynik', sim)
+
+
+
+GRY = (ASSETS / "Mistrzowie/BraxChampionsAutomatyGry.cs").read_text(encoding="utf-8")
+KIT2 = (ASSETS / "Editor/Mistrzowie/BraxChampionsKasynoGry.cs").read_text(encoding="utf-8")
+PACK2 = ROOT / "unity-city/Prywatne/braxhorn-mistrzowie-kasyno-grafiki-20261116-2"
+
+
+def gry_array(name):
+    return ints(re.search(r"%s\s*=\s*\{(.*?)\};" % re.escape(name), GRY, re.S).group(1))
+
+
+class NewGames(unittest.TestCase):
+    """Owner 16.11 20:28: "musiałbyś zrobić różne gry w automatach ... lepiej rozstawić ... pokaż, jak się robi luksus" -
+    VIDEO POKER, KENO and KOŁO MISTRZÓW beside the two reel slots, working, in banks and on carousels in both casinos."""
+
+    def test_video_poker_full_pay(self):
+        # Jacks or Better 9/6, the real full-pay table (99.54 % with the best play), for one at the max bet
+        self.assertEqual(gry_array("public static readonly int[] Wyplata"), [0, 1, 2, 3, 4, 6, 9, 25, 50, 800])
+        self.assertIn('"POKER KRÓLEWSKI"', GRY)
+        # the AUTO HOLD follows the simple strategy in its order (Wizard of Odds' 16 rules)
+        order = ["DoKrolewskiego(k, 4)", "u == Full || u == KolorU || u == Strit", "DoPokera(k, 4)", "u == DwiePary", "u == ParaOdWaleta",
+                 "DoKrolewskiego(k, 3)", "DoKoloru(k)", "Takie(k, 2)) != 0", "Otwarty(k)", "Wysokie(k, true)", "DoPokera(k, 3)",
+                 "Wysokie(k, false)", "Dziesiatka10(k)", "Ranga(k[i]) >= Walet) return 1 << i"]
+        at = [GRY.index(o) for o in order]
+        self.assertEqual(at, sorted(at))
+        sim = (ROOT / "unity-tools/mistrzowie/automaty_sim/Program.cs").read_text(encoding="utf-8")
+        for c in ('"video poker RTP "', '"AUTO HOLD marked"', '"held card stays"', '"poker pays "'):
+            self.assertIn(c, sim)
+
+    def test_keno_return(self):
+        from math import comb
+        keno = GRY[GRY.index("public static class KenoGra"):]
+        pay = ints(re.search(r"public static readonly int\[\] Wyplata = \{([^}]*)\}", keno).group(1))
+        self.assertEqual(pay, [0, 0, 0, 1, 6, 100, 2400])
+        rtp = sum(p * comb(6, c) * comb(74, 20 - c) / comb(80, 20) for c, p in enumerate(pay))
+        self.assertAlmostEqual(rtp, .9202, places=3)                                # Las Vegas video keno: 90-91 %
+        self.assertIn("public const int Pola = 80, Kule = 20, Typy = 6;", GRY)
+
+    def test_wheel_machine_return(self):
+        strip3 = gry_array("public static readonly int[] Pasek3")
+        self.assertEqual(len(strip3), 20); self.assertEqual(strip3.count(7), 1)
+        self.assertEqual([v if v != 7 else 5 for v in strip3], MECH[2])              # the stepper's third reel, one grapes -> KOŁO
+        seg = gry_array("public static readonly int[] Segmenty")
+        self.assertEqual(len(seg), 22)
+        sevens = int(re.search(r"public const int Siodemki = (\d+);", GRY).group(1))
+        line_pay = 0
+        for a, b, c in itertools.product(MECH[0], MECH[1], strip3):
+            m = mechanical(a, b, c)
+            line_pay += sevens if m < 0 else m
+        rtp = line_pay / 8000 + strip3.count(7) / 20 * (sum(seg) / len(seg) / 10)
+        self.assertTrue(.93 < rtp < .97, rtp)                                       # 95.5 %, as real wheel slots
+        self.assertIn("if (m.gra != G.Kolo) BraxChampionsKasyno.Dorzuc(stawka);", GAME)   # not on the linked jackpot
+        self.assertIn("s.koloCel = s.koloKat + 3f * 360f + Mathf.Repeat(KG.KatSegmentu(s.koloSeg) - s.koloKat, 360f);", GAME)
+
+    def test_owner_art_1_to_1(self):
+        man = json.loads((PACK2 / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(sorted(man["files"]), ["karty/dama.png", "karty/krol.png", "karty/rewers.png", "karty/walet.png",
+                                                "szyldy/arkusz_szyldy_monety_logo.png", "toppery/topper_keno.png",
+                                                "toppery/topper_kolo_mistrzow.png", "toppery/topper_video_poker.png",
+                                                "zetony/zetony_5_25_100_500_1000.png"])
+        self.assertEqual(man["recipientCertificateSha256"], "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5")
+        for part in man["parts"]:
+            f = PACK2 / part["name"]
+            self.assertEqual(hashlib.sha256(f.read_bytes()).hexdigest(), part["sha256"])
+        inst = (ROOT / "unity-tools/mistrzowie/install_owner_media.py").read_text(encoding="utf-8")
+        self.assertIn('KASYNO_2 = "braxhorn-mistrzowie-kasyno-grafiki-20261116-2"', inst)
+        # his toppers whole, his court cards whole inside the card's margin, the corner indices on the margin
+        self.assertIn("if (src != null) { Wklej(px, w, h, src, sw, sh, 0, 0, sw, sh, 0, 0, w, h); return px; }", KIT2)
+        self.assertIn("if (fig[f] != null) Wklej(px, w, h, fig[f], fw[f], fh[f], 0, 0, fw[f], fh[f], ax, ay, aw, ah);", KIT2)
+        self.assertIn('Wczytaj(dir + "rewers.png"', KIT2)
+        self.assertIn('Wlasciciel + "/zetony/zetony_5_25_100_500_1000.png"', KIT2)
+        tracked = subprocess.run(["git", "ls-files", "unity-city/Assets/Source/Mistrzowie/KasynoWlasciciel"], cwd=ROOT,
+                                 capture_output=True, text=True).stdout
+        self.assertEqual(tracked.strip(), "")
+
+    def test_carousels_and_mixed_banks(self):
+        self.assertIn("float rb = .36f / Mathf.Tan(Mathf.PI / n) + .03f;", KIT2)     # the cabinets' back corners clear
+        self.assertIn("var dlugie=new[]{Mech,Video,Kolo,Poker,Mech,Video,Kolo,Keno};var krotkie=new[]{Video,Keno,Kolo,Poker};", HALL)
+        for cyc in ([0, 1, 4, 2, 0, 1, 4, 3], [1, 3, 4, 2]):                         # neighbours differ, also round the cycle
+            self.assertTrue(all(cyc[i] != cyc[(i + 1) % len(cyc)] for i in range(len(cyc))))
+        self.assertIn("BraxChampionsKasynoSprzet.Karuzela(kas,new Vector3(-9.5f,y,2.0f),8,new[]{Kolo,Video},0,2.95f);", TOWER)
+        self.assertIn("BraxChampionsKasynoSprzet.Karuzela(kas,new Vector3(9.8f,y,2.0f),8,new[]{Poker,Keno},0,2.95f);", TOWER)
 
 
 if __name__ == "__main__":

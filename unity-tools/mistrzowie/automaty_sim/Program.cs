@@ -12,6 +12,172 @@ using Z = BraxChampionsAutomatyZasady;
 
 static class Program
 {
+    // video poker, keno, the wheel machine: exact returns where they can be counted, the poker's AUTO HOLD over many hands,
+    // then the real component plays each machine
+    static void Gry(int spins, BraxGymPlayer gracz, BindingFlags F)
+    {
+        var P = typeof(BraxChampionsAutomatyGry.PokerGra);
+        int[] H(params string[] k)
+        {
+            var r = new int[5];
+            for (int i = 0; i < 5; i++) { string t = k[i]; int rank = "23456789TJQKA".IndexOf(t[0]), suit = "shdc".IndexOf(t[1]); r[i] = suit * 13 + rank; }
+            return r;
+        }
+        void U(string what, int want, params string[] k) => Check(BraxChampionsAutomatyGry.PokerGra.Ocen(H(k)) == want, "poker " + what);
+        U("royal", 9, "Ts", "Js", "Qs", "Ks", "As"); U("straight flush", 8, "9h", "Th", "Jh", "Qh", "Kh"); U("wheel straight flush", 8, "Ad", "2d", "3d", "4d", "5d");
+        U("quads", 7, "7c", "7d", "7h", "7s", "2c"); U("full", 6, "Kc", "Kd", "Kh", "3s", "3c"); U("flush", 5, "2c", "9c", "Jc", "4c", "Kc");
+        U("straight A high", 4, "Tc", "Jd", "Qh", "Ks", "Ac"); U("straight wheel", 4, "Ac", "2d", "3h", "4s", "5c"); U("no straight K-A-2", 0, "Qc", "Kd", "Ah", "2s", "3c");
+        U("trips", 3, "5c", "5d", "5h", "Ks", "2c"); U("two pair", 2, "5c", "5d", "9h", "9s", "Kc"); U("jacks", 1, "Jc", "Jd", "2h", "7s", "9c");
+        U("tens are nothing", 0, "Tc", "Td", "2h", "7s", "9c");
+        int Hold(params string[] k) => BraxChampionsAutomatyGry.PokerGra.Trzymaj(H(k));
+        Check(Hold("Ts", "Js", "Qs", "Ks", "2h") == 15, "hold four to a royal");
+        Check(Hold("Ts", "Js", "Qs", "Ks", "9s") == 31, "a straight flush stays");
+        Check(Hold("Jc", "Jd", "2h", "7s", "9c") == 3, "hold the high pair");
+        Check(Hold("4c", "4d", "As", "Kh", "9c") == 3, "a low pair over two high cards");
+        Check(Hold("2c", "5c", "8c", "Jc", "Kd") == 15, "four to a flush");
+        Check(Hold("5c", "6d", "7h", "8s", "Kc") == 15, "four to an outside straight");
+        Check(Hold("Ac", "Kd", "Qh", "3s", "8c") == 6, "two unsuited high: the lowest two");
+        Check(Hold("2c", "4d", "6h", "8s", "Tc") == 0, "draw five");
+        // the poker over many hands with the AUTO HOLD
+        var los = new System.Random(7); var talia = new int[52]; var reka = new int[5]; long pw = 0; int nh = Math.Max(200000, spins * 200); var ile = new long[10];
+        for (int h = 0; h < nh; h++)
+        {
+            BraxChampionsAutomatyGry.PokerGra.Tasuj(los, talia); Array.Copy(talia, reka, 5);
+            int t = BraxChampionsAutomatyGry.PokerGra.Trzymaj(reka), w = 5;
+            for (int i = 0; i < 5; i++) if ((t >> i & 1) == 0) reka[i] = talia[w++];
+            int u = BraxChampionsAutomatyGry.PokerGra.Ocen(reka); ile[u]++; pw += BraxChampionsAutomatyGry.PokerGra.Wyplata[u];
+        }
+        double rtpP = (double)pw / nh;
+        Console.WriteLine("VIDEO POKER 9/6 AUTO HOLD over {0} hands: RTP {1:F4} (best play 0.9954, the simple strategy 0.9946); royals {2}, a win on {3:F1} % of hands",
+            nh, rtpP, ile[9], 100.0 * (nh - ile[0]) / nh);
+        Check(rtpP > .975 && rtpP < 1.01, "video poker RTP " + rtpP);
+        // keno exactly (20 of 80, six picked)
+        double C(int n, int k) { double r = 1; for (int i = 1; i <= k; i++) r = r * (n - k + i) / i; return r; }
+        double rtpK = 0; for (int c = 0; c <= 6; c++) rtpK += BraxChampionsAutomatyGry.KenoGra.Wyplata[c] * C(6, c) * C(74, 20 - c) / C(80, 20);
+        Console.WriteLine("KENO 6 OF 80 RTP {0:F4} exactly", rtpK);
+        Check(Math.Abs(rtpK - .9202) < .0005, "keno RTP " + rtpK);
+        // the wheel machine exactly: its line pays over the 8 000 combinations + KOŁO on the third reel x the wheel's average
+        long lw = 0, nk = 0;
+        for (int a = 0; a < 20; a++) for (int b = 0; b < 20; b++) for (int c = 0; c < 20; c++)
+        {
+            int x = BraxChampionsAutomatyGry.Pasek(4, 0)[a], y = BraxChampionsAutomatyGry.Pasek(4, 1)[b], z = BraxChampionsAutomatyGry.Pasek(4, 2)[c];
+            lw += BraxChampionsAutomatyGry.KoloGra.Linia(x, y, z); if (z == BraxChampionsAutomatyGry.KoloGra.Symbol) nk++;
+        }
+        double sred = 0; foreach (int v in BraxChampionsAutomatyGry.KoloGra.Segmenty) sred += v / 10.0; sred /= BraxChampionsAutomatyGry.KoloGra.Segmenty.Length;
+        double rtpW = lw / 8000.0 + nk / 8000.0 * sred;
+        Console.WriteLine("KOŁO MISTRZÓW RTP {0:F4} = line {1:F4} + the wheel 1 in {2} spins x {3:F2}", rtpW, lw / 8000.0, 8000 / Math.Max(1, nk), sred);
+        Check(rtpW > .90 && rtpW < .98, "wheel machine RTP " + rtpW);
+
+        // ---- the machines played by the real component
+        PlayerPrefs.DeleteAll();
+        var host = new GameObject("kasyno gry"); var gra = host.AddComponent<BraxChampionsAutomaty>(); gra.stawka = 10;
+        var mat = new Material { name = "ekran" };
+        BraxChampionsAutomaty.Maszyna M(int g, Vector3 at)
+        {
+            var kor = new GameObject("g" + g).transform; kor.localPosition = at;
+            var m = new BraxChampionsAutomaty.Maszyna { korpus = kor, ekran = BraxChampionsAutomatyGry.Ekranowa(g), gra = g };
+            var lic = new GameObject("licznik"); lic.transform.SetParent(kor, false); var r = lic.AddComponent<MeshRenderer>(); r.sharedMaterial = mat; m.licznik = r;
+            if (g == 4)
+            {
+                m.bebny = new Transform[3]; for (int i = 0; i < 3; i++) { var o = new GameObject("b"); o.transform.SetParent(kor, false); m.bebny[i] = o.transform; }
+                var d = new GameObject("d"); d.transform.SetParent(kor, false); m.dzwignia = d.transform;
+                var k = new GameObject("kolo"); k.transform.SetParent(kor, false); m.kolo = k.transform;
+                var w = new GameObject("wskaznik"); w.transform.SetParent(kor, false); m.wskaznik = w.transform;
+            }
+            else { var o = new GameObject("warstwa"); o.transform.SetParent(kor, false); m.warstwa = o.AddComponent<MeshFilter>(); }
+            return m;
+        }
+        gra.maszyny = new[] { M(2, new Vector3(0, 0, 0)), M(3, new Vector3(10, 0, 0)), M(4, new Vector3(20, 0, 0)) };
+        var T = typeof(BraxChampionsAutomaty); T.GetMethod("Start", F).Invoke(gra, null);
+        var update = T.GetMethod("Update", F); var stanF = T.GetField("stan", F);
+        object St(int i) => ((Array)stanF.GetValue(gra)).GetValue(i);
+        T0 Pole<T0>(object o, string n) => (T0)o.GetType().GetField(n).GetValue(o);
+        int Klatki(object s, string flag)
+        {
+            int fr = 0; while (Pole<bool>(s, flag) && fr < 4000) { Time.time += Time.deltaTime; update.Invoke(gra, null); fr++; }
+            return fr;
+        }
+        int games = Math.Max(300, spins / 5);
+        // video poker: deal, the AUTO HOLD, draw, the hand pays
+        {
+            var m = gra.maszyny[0]; gracz.transform.localPosition = m.korpus.TransformPoint(new Vector3(0, 0, 1.0f)); long st = 0, pd = 0;
+            for (int g = 0; g < games; g++)
+            {
+                if (BraxChampionsKasyno.Kredyt < 10) BraxChampionsKasyno.Wplac(1000);
+                int kr = BraxChampionsKasyno.Kredyt; var s = St(0);
+                Check(gra.Kontekst(gracz.transform.position).StartsWith("VIDEO POKER · ROZDAJ"), "poker context deal");
+                Check(gra.Wykonaj(gracz.transform.position) && BraxChampionsKasyno.Kredyt == kr - 10, "poker stake taken");
+                int f1 = Klatki(s, "kreci"); Check(f1 > 20 && f1 < 120, "deal turns the cards over " + f1);
+                var karty = (int[])Pole<int[]>(s, "karty").Clone();
+                Check(Pole<int>(s, "faza") == 1 && Pole<int>(s, "trzymaj") == BraxChampionsAutomatyGry.PokerGra.Trzymaj(karty), "AUTO HOLD marked");
+                Check(gra.Kontekst(gracz.transform.position).StartsWith("WYMIEŃ KARTY"), "poker context draw");
+                int hold = Pole<int>(s, "trzymaj");
+                gra.Wykonaj(gracz.transform.position); Klatki(s, "kreci");
+                var po = Pole<int[]>(s, "karty");
+                for (int i = 0; i < 5; i++) if ((hold >> i & 1) != 0) Check(po[i] == karty[i], "held card stays");
+                Check(new System.Collections.Generic.HashSet<int>(po).Count == 5, "five different cards");
+                int u = BraxChampionsAutomatyGry.PokerGra.Ocen(po), w = Pole<int>(s, "wygrana");
+                Check(w == BraxChampionsAutomatyGry.PokerGra.Wyplata[u] * 10, "poker pays " + w + " for " + u);
+                Check(BraxChampionsKasyno.Kredyt == kr - 10 + w, "poker win credited");
+                Check(m.warstwa.sharedMesh.vertices.Length >= 20, "poker screen layer");
+                st += 10; pd += w;
+            }
+            Console.WriteLine("VIDEO POKER played {0} hands: staked {1}, paid {2} (RTP {3:F3})", games, st, pd, (double)pd / st);
+        }
+        // keno: six picked, twenty balls one by one, the catches pay
+        {
+            var m = gra.maszyny[1]; gracz.transform.localPosition = m.korpus.TransformPoint(new Vector3(0, 0, 1.0f)); long st = 0, pd = 0;
+            for (int g = 0; g < games; g++)
+            {
+                if (BraxChampionsKasyno.Kredyt < 10) BraxChampionsKasyno.Wplac(1000);
+                int kr = BraxChampionsKasyno.Kredyt; var s = St(1);
+                Check(gra.Kontekst(gracz.transform.position).StartsWith("KENO 6 Z 80"), "keno context");
+                gra.Wykonaj(gracz.transform.position); Check(BraxChampionsKasyno.Kredyt == kr - 10, "keno stake taken");
+                int fr = Klatki(s, "kreci"); Check(fr > 150 && fr < 300, "keno draw length " + fr / 60f + " s");
+                var typy = Pole<int[]>(s, "typy"); var kule = Pole<int[]>(s, "kule");
+                Check(new System.Collections.Generic.HashSet<int>(typy).Count == 6 && new System.Collections.Generic.HashSet<int>(kule).Count == 20, "keno numbers distinct");
+                foreach (int k in kule) Check(k >= 1 && k <= 80, "ball 1..80");
+                int t = BraxChampionsAutomatyGry.KenoGra.Trafione(typy, kule, 20), w = Pole<int>(s, "wygrana");
+                Check(w == BraxChampionsAutomatyGry.KenoGra.Wyplata[t] * 10 && BraxChampionsKasyno.Kredyt == kr - 10 + w, "keno pays " + w + " for " + t);
+                Check(m.warstwa.sharedMesh.vertices.Length == 4 * (20 + 6 - t + 1 + 2), "keno layer " + m.warstwa.sharedMesh.vertices.Length / 4 + " quads");
+                st += 10; pd += w;
+            }
+            Console.WriteLine("KENO played {0} games: staked {1}, paid {2} (RTP {3:F3})", games, st, pd, (double)pd / st);
+        }
+        // the wheel machine: the drums, KOŁO on the third reel spins the wheel to the drawn segment
+        {
+            var m = gra.maszyny[2]; gracz.transform.localPosition = m.korpus.TransformPoint(new Vector3(0, 0, 1.0f)); long st = 0, pd = 0; int kola = 0;
+            for (int g = 0; g < games * 3; g++)
+            {
+                if (BraxChampionsKasyno.Kredyt < 10) BraxChampionsKasyno.Wplac(1000);
+                int kr = BraxChampionsKasyno.Kredyt; long j0 = BraxChampionsKasyno.Jackpot; var s = St(2);
+                Check(gra.Kontekst(gracz.transform.position).StartsWith("POCIĄGNIJ"), "wheel machine context");
+                gra.Wykonaj(gracz.transform.position);
+                Check(BraxChampionsKasyno.Jackpot == j0, "the wheel machine is not on the linked jackpot");
+                Klatki(s, "kreci");
+                var poz = Pole<float[]>(s, "poz"); int a = BraxChampionsAutomatyGry.Pasek(4, 0)[(int)Math.Round(poz[0]) % 20], b = BraxChampionsAutomatyGry.Pasek(4, 1)[(int)Math.Round(poz[1]) % 20],
+                    c = BraxChampionsAutomatyGry.Pasek(4, 2)[(int)Math.Round(poz[2]) % 20];
+                int linia = BraxChampionsAutomatyGry.KoloGra.Linia(a, b, c) * 10, w = linia;
+                if (c == BraxChampionsAutomatyGry.KoloGra.Symbol)
+                {
+                    Check(Pole<bool>(s, "koloKreci"), "KOŁO starts the wheel");
+                    Check(gra.Kontekst(gracz.transform.position).StartsWith("KOŁO MISTRZÓW"), "wheel context");
+                    int fr = Klatki(s, "koloKreci"); Check(fr > 380 && fr < 460, "the wheel runs " + fr / 60f + " s");
+                    int seg = Pole<int>(s, "koloSeg"); float kat = Pole<float>(s, "koloKat"); w += BraxChampionsAutomatyGry.KoloGra.Wygrana(seg, 10);
+                    Check(Math.Abs(Mathf.DeltaAngle(kat, BraxChampionsAutomatyGry.KoloGra.KatSegmentu(seg))) < .01f, "segment " + seg + " under the pointer (" + kat + ")");
+                    var q = m.kolo.localRotation; float rk = (float)(2 * Math.Atan2(q.z, q.w) * 180 / Math.PI);
+                    Check(Math.Abs(Mathf.DeltaAngle(rk, kat)) < .05f, "the wheel turned to its angle");
+                    Check(m.wskaznik.localRotation.w > .9999f, "the pointer rests");
+                    kola++;
+                }
+                Check(Pole<int>(s, "wygrana") == w && BraxChampionsKasyno.Kredyt == kr - 10 + w, "wheel machine pays " + w);
+                st += 10; pd += w;
+            }
+            Console.WriteLine("KOŁO MISTRZÓW played {0} spins: staked {1}, paid {2} (RTP {3:F3}), the wheel {4} times", games * 3, st, pd, (double)pd / st, kola);
+            Check(kola > 0, "the wheel was spun");
+        }
+    }
+
     static int fails;
     static void Check(bool ok, string what) { if (!ok) { fails++; if (fails < 20) Console.WriteLine("FAIL " + what); } }
 
@@ -115,6 +281,8 @@ static class Program
             }
             Console.WriteLine("{0} played {1} spins: staked {2}, paid {3} (RTP {4:F3}), jackpot now {5}", ekran ? "SCREEN" : "MECHANICAL", spins, staked, paid, (double)paid / staked, BraxChampionsKasyno.Jackpot);
         }
+        // ---- 2b. the other games (owner 16.11 20:28 "różne gry w automatach"): their tables and the machines played
+        Gry(spins, gracz, F);
         // ---- 3. the roulette: every outside bet, the ball ends in the drawn number's pocket, even money pays 1:1, zero takes it
         PlayerPrefs.DeleteAll();
         var rh = new GameObject("ruletka"); var rul = rh.AddComponent<BraxChampionsRuletka>(); rul.stawka = 10;

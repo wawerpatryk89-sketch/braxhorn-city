@@ -6,6 +6,8 @@ using UnityEngine;
 using W = BraxWnetrzaKit;
 using Z = BraxChampionsAutomatyZasady;
 using A = BraxChampionsAutomaty;
+using G = BraxChampionsAutomatyGry;
+using KG = BraxChampionsAutomatyGry.KoloGra;
 
 // MIASTO MISTRZÓW - the casinos' slot machines, built as the real ones (owner 16.11 18:12-18:22, five reference photos:
 // an IGT upright with a topper, a Promatic double tower, a Promatic Pro Selection, a Merkur Magie with its curved top, a
@@ -25,7 +27,7 @@ using A = BraxChampionsAutomaty;
 // uprights 1.8-2.1 m, 27-28" wide, seat 0.68 m, the aisle behind the stools >= 0.92 m (dimensions.com, Suzohapp).
 // Materials: lacquered steel, chrome and brushed steel on the region's photo-scanned metal (Metal048A), glass, black
 // leather (Poly Haven leather_white); only LEDs and screens are plain light.
-public static class BraxChampionsKasynoSprzet
+public static partial class BraxChampionsKasynoSprzet
 {
     public const string Out = "Assets/PlayableGenerated/Mistrzowie/Kasyno";
     // the owner's pack braxhorn-mistrzowie-kasyno-grafiki-20261116 (install_owner_media.py): paski/<strip>.png - his six reel
@@ -70,7 +72,7 @@ public static class BraxChampionsKasynoSprzet
     static Mesh[] bebenSiatki; static Mesh quad; static Mesh[,] kolumnaStart;
     static List<(Mesh, Material)> czRamie, czKula, czSpin, czSpinEkran, czRotor, czKulka, czZeton;
     static BraxChampionsMeshBatch szablonRuletki;
-    static Material orzech, sukno, uklad, pierscien, kulkaMat, zetonMat, zloto, wysTlo, wysAtlas;
+    static Material orzech, sukno, uklad, pierscien, kulkaMat, zloto, wysTlo, wysAtlas;
     static Color32[][] atlasPx;
     public static bool SymboleWlasciciela; public static int Brakujace;
 
@@ -81,7 +83,8 @@ public static class BraxChampionsKasynoSprzet
         public readonly List<A.Maszyna> maszyny = new List<A.Maszyna>();
         public readonly List<Renderer> jackpoty = new List<Renderer>(), tablice = new List<Renderer>();
         public readonly List<BraxChampionsRuletka.Stol> ruletki = new List<BraxChampionsRuletka.Stol>();
-        public int mech, ekran, banki;
+        public int mech, ekran, banki, karuzele;
+        public readonly int[] gry = new int[G.Ile];
     }
     /// <summary>Starts a casino's equipment under root (nominal metres, root at the origin while building); the cabinets
     /// go into body (the caller builds it), the moving parts and the displays under root.</summary>
@@ -101,7 +104,9 @@ public static class BraxChampionsKasynoSprzet
             r.torR = TorR; r.torY = TorY; r.kieszenR = KieszenR; r.kieszenY = KieszenY; r.kulkaR = KulkaR;
             Debug.Log("KASYNO_RULETKI " + k.nazwa + " tables=" + k.ruletki.Count + " wheel=European(37) bets=" + string.Join("/", BraxChampionsRuletka.Zasady.Pola) + " game=BraxChampionsRuletka");
         }
+        var gry = new System.Text.StringBuilder(); for (int g = 0; g < G.Ile; g++) gry.Append((g > 0 ? "/" : "") + G.Nazwy[g].Replace(' ', '_') + "=" + k.gry[g]);
         Debug.Log("KASYNO_AUTOMATY " + k.nazwa + " machines=" + k.maszyny.Count + " mechanical=" + k.mech + " screen=" + k.ekran + " banks=" + k.banki +
+            " carousels=" + k.karuzele + " games=" + gry + " toppers=" + (TopperyWlasciciela ? "owner" : "drawn") + " cards=" + (KartyWlasciciela ? "owner" : "drawn") +
             " stake=" + Stawka + " themes=" + Motywy.Length + " strips=" + (SymboleWlasciciela ? "owner" : "placeholder(missing " + Brakujace + ")") + " game=BraxChampionsAutomaty");
         return c;
     }
@@ -110,29 +115,38 @@ public static class BraxChampionsKasynoSprzet
     /// -z of the bank; the linked jackpot board hangs over the spine on two cables up to hangTo. Owner 16.11 19:13 ("co druga,
     /// muszą być różnego typu"): every other machine is the other type and every machine another theme than its neighbours;
     /// start shifts the pattern from bank to bank.</summary>
-    public static void Bank(Kasyno k, Vector3 c, float yaw, int n, int start, float hangTo)
+    public static void Bank(Kasyno k, Vector3 c, float yaw, int n, int start, float hangTo) => Bank(k, c, yaw, n, start, hangTo, null);
+    /// <summary>A bank playing the games in turn (owner 16.11 20:28 "różne gry w automatach"): gry is the cycle along a row
+    /// (neighbours differ), the row behind runs it shifted by two; null = the classic and the video in turn.</summary>
+    public static void Bank(Kasyno k, Vector3 c, float yaw, int n, int start, float hangTo, int[] gry)
     {
         var q = Quaternion.Euler(0f, yaw, 0f);
         for (int row = 0; row < 2; row++)
             for (int i = 0; i < n; i++)
             {
-                bool ekran = (i + row + start) % 2 == 1; int motyw = (start + i + 3 * row) % Motywy.Length;
-                float D = ekran ? EkranD : MechD, x = (i - (n - 1) * .5f) * RozstawMieszany, z = (D * .5f + .01f) * (row == 0 ? 1f : -1f);
-                Automat(k, c + q * new Vector3(x, 0f, z), yaw + (row == 0 ? 0f : 180f), ekran, motyw);
+                int gra = gry == null ? ((i + row + start) % 2 == 1 ? G.Video : G.Mech) : gry[(i + 2 * row + start) % gry.Length];
+                int motyw = (start + i + 3 * row) % Motywy.Length;
+                float D = G.Ekranowa(gra) ? EkranD : MechD, x = (i - (n - 1) * .5f) * RozstawMieszany, z = (D * .5f + .01f) * (row == 0 ? 1f : -1f);
+                Automat(k, c + q * new Vector3(x, 0f, z), yaw + (row == 0 ? 0f : 180f), gra, motyw);
             }
         Tablica(k, c + new Vector3(0f, 2.95f, 0f), yaw, hangTo);
         k.banki++;
     }
 
     /// <summary>One machine with its stool at at (floor), turned by yaw (its front to the local +z).</summary>
-    public static A.Maszyna Automat(Kasyno k, Vector3 at, float yaw, bool ekran, int motyw)
+    public static A.Maszyna Automat(Kasyno k, Vector3 at, float yaw, bool ekran, int motyw) => Automat(k, at, yaw, ekran ? G.Video : G.Mech, motyw);
+    /// <summary>One machine of a game (BraxChampionsAutomatyGry) with its stool at at (floor), turned by yaw (its front to the
+    /// local +z).</summary>
+    public static A.Maszyna Automat(Kasyno k, Vector3 at, float yaw, int gra, int motyw)
     {
-        motyw = Mathf.Clamp(motyw, 0, Motywy.Length - 1);
+        motyw = Mathf.Clamp(motyw, 0, Motywy.Length - 1); gra = Mathf.Clamp(gra, 0, G.Ile - 1); bool ekran = G.Ekranowa(gra);
         var q = Quaternion.Euler(0f, yaw, 0f); int idx = k.maszyny.Count;
-        k.body.Append(szablon[ekran ? 1 : 0, motyw], at, q);
-        var kor = new GameObject((ekran ? "automat ekranowy " : "automat mechaniczny ") + (idx + 1) + " | " + Motywy[motyw] + " | BRAXHORN " + (ekran ? "VIDEO" : "CLASSIC")).transform;
+        k.body.Append(szablon[gra, motyw], at, q);
+        var kor = new GameObject((ekran ? "automat ekranowy " : "automat mechaniczny ") + (idx + 1) + " | " + Motywy[motyw] + " | " + G.Nazwy[gra]).transform;
         kor.SetParent(k.root, false); kor.localPosition = at; kor.localRotation = q;
-        var m = new A.Maszyna { korpus = kor, ekran = ekran, motyw = motyw, komorka = Komorka };
+        var m = new A.Maszyna { korpus = kor, ekran = ekran, gra = gra, motyw = motyw, komorka = Komorka };
+        k.gry[gra]++;
+        if (gra == G.Poker || gra == G.Keno) { AutomatGry(k, m, at, q, idx); k.maszyny.Add(m); return m; }
         if (!ekran)
         {
             m.bebny = new Transform[3];
@@ -141,7 +155,7 @@ public static class BraxChampionsKasynoSprzet
                 var t = new GameObject("bęben " + (r + 1)).transform; t.SetParent(kor, false);
                 t.localPosition = new Vector3(BebenX[r], BebenY, BebenZ);
                 t.localRotation = Quaternion.AngleAxis(((idx * 7 + r * 5) % Z.Stopy) * 18f, Vector3.right);
-                Wstaw(new List<(Mesh, Material)> { (bebenSiatki[r], pasekBeben[motyw]) }, t, "pasek");
+                Wstaw(new List<(Mesh, Material)> { (bebenSiatki[gra == G.Kolo && r == 2 ? 3 : r], pasekBeben[motyw]) }, t, "pasek");
                 m.bebny[r] = t;
             }
             var lev = new GameObject("dźwignia").transform; lev.SetParent(kor, false); lev.localPosition = new Vector3(-.364f, 1.10f, .05f);
@@ -149,7 +163,9 @@ public static class BraxChampionsKasynoSprzet
             m.przycisk = Spin(kor, DeckMech, new Vector3(-.20f, 0f, .01f), czSpin);
             m.licznik = Ekranik(kor, "licznik", licznikMech, new Vector3(0f, 1.035f, .249f), .32f, .04f, Quaternion.identity);
             k.mech++;
-            W.Kolizja(at + q * new Vector3(0f, .94f, .05f), new Vector3(.68f, 1.88f, .66f), q);
+            if (gra == G.Kolo) KoloNaAutomacie(m, kor, idx);
+            float hk = gra == G.Kolo ? KoloC.y + KoloObudowaR + .04f : 1.88f;
+            W.Kolizja(at + q * new Vector3(0f, hk * .5f, .05f), new Vector3(.68f, hk, .66f), q);
         }
         else
         {
@@ -206,13 +222,18 @@ public static class BraxChampionsKasynoSprzet
         Directory.CreateDirectory(Out + "/Textures"); Directory.CreateDirectory(Out + "/Meshes");
         Materialy();
         quad = ZapiszSiatke(Kwadrat(), "kasyno_ekran_kwadrat");
-        bebenSiatki = new Mesh[3]; for (int r = 0; r < 3; r++) bebenSiatki[r] = ZapiszSiatke(Beben(r), "kasyno_beben_" + (r + 1));
+        bebenSiatki = new Mesh[4]; for (int r = 0; r < 4; r++) bebenSiatki[r] = ZapiszSiatke(Beben(r), r < 3 ? "kasyno_beben_" + (r + 1) : "kasyno_beben_kolo_3");
         kolumnaStart = new Mesh[4, 5];
         for (int v = 0; v < 4; v++) for (int r = 0; r < 5; r++) kolumnaStart[v, r] = ZapiszSiatke(KolumnaStart(v, r), "kasyno_kolumna_" + (v + 1) + "_" + (r + 1));
         CzesciRuchome();
+        CzesciKola();
         RuletkaCzesci();
-        szablon = new BraxChampionsMeshBatch[2, Motywy.Length];
-        for (int t = 0; t < Motywy.Length; t++) { szablon[0, t] = Mechaniczny(t); szablon[1, t] = Ekranowy(t); }
+        szablon = new BraxChampionsMeshBatch[G.Ile, Motywy.Length];
+        for (int t = 0; t < Motywy.Length; t++)
+        {
+            szablon[G.Mech, t] = Mechaniczny(t, false); szablon[G.Kolo, t] = Mechaniczny(t, true);
+            szablon[G.Video, t] = Ekranowy(t, G.Video); szablon[G.Poker, t] = Ekranowy(t, G.Poker); szablon[G.Keno, t] = Ekranowy(t, G.Keno);
+        }
         gotowe = true;
     }
 
@@ -284,6 +305,7 @@ public static class BraxChampionsKasynoSprzet
         var tb = new Color32[A.TabW * A.TabH]; A.PaintTablica(tb, BraxChampionsKasyno.JackpotStart);
         tablicaMat = Ekran("tablica_jackpot", Male("kasyno_tablica_jackpot", A.TabW, A.TabH, tb), 1.2f);
         for (int t = 0; t < Motywy.Length; t++) szyld[t] = Ekran("szyld_" + t, Png("kasyno_szyld_" + t, 1024, 512, Szyld(t), true), 1.0f);
+        GryMaterialy();
     }
     // the mechanical machine's top glass, printed and lit from behind (as the real ones): BRAXHORN in the region's sign letters
     // (the 3D letter kit, its faces rasterised) in silver with a dark edge on the theme's light; the kit missing - the LED font
@@ -405,6 +427,7 @@ public static class BraxChampionsKasynoSprzet
                     px[(cy + y) * Z.AtlasW + cx + x] = Probka(src, sw, sh, fx, fy);
                 }
         }
+        KomorkaKolo(px, t);                                       // the eighth cell: the wheel machine's KOŁO symbol
         atlasPx[t] = px;
         return Png("kasyno_bebny_atlas_" + t, Z.AtlasW, Z.AtlasH, px, true);
     }
@@ -565,7 +588,7 @@ public static class BraxChampionsKasynoSprzet
     // front (the drum turned by stop x 18 degrees about x brings stop to the window), the strip upright to the player
     static Mesh Beben(int r)
     {
-        var s = new Siatka(); var pasek = Z.Pasek(r, false); const int sub = 3; float w = BebenSzer * .5f;
+        var s = new Siatka(); var pasek = r < 3 ? Z.Pasek(r, false) : KG.Pasek3; const int sub = 3; float w = BebenSzer * .5f;
         Vector3 P(float x, float a) => new Vector3(x, BebenR * Mathf.Sin(a), BebenR * Mathf.Cos(a));
         Vector3 N(float a) => new Vector3(0f, Mathf.Sin(a), Mathf.Cos(a));
         for (int j = 0; j < Z.Stopy; j++)
@@ -578,7 +601,7 @@ public static class BraxChampionsKasynoSprzet
                 s.Quad(P(-w, a0), P(w, a0), P(w, a1), P(-w, a1), N(a0), N(a0), N(a1), N(a1), new Vector2(u1, t0), new Vector2(u0, t0), new Vector2(u0, t1), new Vector2(u1, t1));
             }
         }
-        return s.Mesh("kasyno bęben " + (r + 1));
+        return s.Mesh(r < 3 ? "kasyno bęben " + (r + 1) : "kasyno bęben koło 3");
     }
     // a screen reel at rest (the generator's picture before the game starts)
     static Mesh KolumnaStart(int v, int r)
@@ -687,7 +710,6 @@ public static class BraxChampionsKasynoSprzet
         orzech = BraxChampionsFoundation.SourceMaterial("kasyno_orzech", "smoked_walnut_veneer", 1.6f, new Color(.80f, .70f, .62f)); orzech.SetFloat("_Roughness", .45f); Wnetrze(orzech);
         sukno = BraxChampionsFoundation.Fotoskan("kasyno_sukno_zielone", "velour_velvet", .6f, new Color(.10f, .36f, .20f), BraxChampionsFoundation.MeanVelvet); Wnetrze(sukno);
         kulkaMat = Metal("kulka_kosc", new Color(.95f, .94f, .90f), .12f, 0f);
-        zetonMat = Metal("zeton_czerwony", new Color(.62f, .05f, .06f), .45f, 0f);
         uklad = BraxChampionsHarbour.Surface("kasyno_uklad_ruletki", Color.white, .6f, 0f, null, true);
         uklad.SetTexture("_MainTex", Png("kasyno_uklad_ruletki", UkW, UkH, Uklad(), true)); uklad = BraxChampionsHarbour.Nakladka(uklad); EditorUtility.SetDirty(uklad);
         pierscien = BraxChampionsHarbour.Surface("kasyno_pierscien_ruletki", Color.white, .30f, 0f);
@@ -843,8 +865,9 @@ public static class BraxChampionsKasynoSprzet
         czRotor = Czesc(b, "ruletka rotor");
         b.Lathe(kulkaMat, new Vector3(0f, -KulkaR, 0f), Profil(KulkaR, 8), 12);
         czKulka = Czesc(b, "ruletka kulka");
-        b.Cylinder(zetonMat, Vector3.zero, .02f, .007f, 16, Quaternion.identity, true);
-        czZeton = Czesc(b, "ruletka żeton");
+        // the stake of 10: two of the owner's 5 chips (16.11 20:46) stacked
+        Zeton(b, 0, Vector3.zero); Zeton(b, 0, new Vector3(0f, ZetonH, 0f));
+        czZeton = Czesc(b, "ruletka żetony 2 x 5");
         // ---- the table and the bowl (static, placed like the cabinets)
         var t = new BraxChampionsMeshBatch();
         t.RoundedBoxMinMax(orzech, -1.15f, 1.15f, 0f, .70f, -.42f, .42f, .03f, 2);
@@ -908,7 +931,7 @@ public static class BraxChampionsKasynoSprzet
         b.Tube(chrom, c + new Vector3(0f, .64f, .12f), c + new Vector3(0f, .80f, .175f), .012f, 8);
         b.RoundedBox(skora, c + new Vector3(0f, .87f, .19f), new Vector3(.34f, .16f, .055f), .022f, Quaternion.Euler(8f, 0f, 0f), 1);
     }
-    static BraxChampionsMeshBatch Mechaniczny(int t)
+    static BraxChampionsMeshBatch Mechaniczny(int t, bool kolo)
     {
         var b = new BraxChampionsMeshBatch(); var lak = lakier[t];
         // base (set back 2 cm) and its brushed kick plate
@@ -935,7 +958,7 @@ public static class BraxChampionsKasynoSprzet
         // the meter (its picture is the game's) in a black bezel; the pay glass in a chrome frame
         b.BoxMinMax(czern, -.172f, .172f, 1.055f, 1.061f, .24f, .256f); b.BoxMinMax(czern, -.172f, .172f, 1.007f, 1.015f, .24f, .256f);
         b.BoxMinMax(czern, .16f, .172f, 1.015f, 1.055f, .24f, .256f); b.BoxMinMax(czern, -.172f, -.16f, 1.015f, 1.055f, .24f, .256f);
-        Obraz(b, tabelaMech[t], new Vector3(0f, .81f, .247f), .54f, .22f, Quaternion.identity);
+        Obraz(b, kolo ? tabelaKolo[t] : tabelaMech[t], new Vector3(0f, .81f, .247f), .54f, .22f, Quaternion.identity);
         b.BoxMinMax(chrom, -.282f, .282f, .92f, .932f, .24f, .252f); b.BoxMinMax(chrom, -.282f, .282f, .688f, .70f, .24f, .252f);
         b.BoxMinMax(chrom, .27f, .282f, .70f, .92f, .24f, .252f); b.BoxMinMax(chrom, -.282f, -.27f, .70f, .92f, .24f, .252f);
         // the coin tray (chrome, open on top)
@@ -951,6 +974,7 @@ public static class BraxChampionsKasynoSprzet
         // the lever's hub plate on the right side (the lever itself moves)
         b.Cylinder(chrom, new Vector3(-.33f, 1.10f, .05f), .065f, .022f, 16, Quaternion.Euler(0f, 0f, 90f), true);
         b.Cylinder(chrom, new Vector3(-.352f, 1.10f, .05f), .03f, .012f, 12, Quaternion.Euler(0f, 0f, 90f), true);
+        if (kolo) { KoloNadstawka(b, t); Stolek(b); return b; }
         // the top box: the printed glass lit from behind (BRAXHORN) in a chrome frame; the candle
         b.RoundedBoxMinMax(lak, -.33f, .33f, 1.42f, 1.80f, -.26f, .22f, .03f, 2);
         Obraz(b, szyld[t], new Vector3(0f, 1.61f, .227f), .58f, .30f, Quaternion.identity);
@@ -988,7 +1012,7 @@ public static class BraxChampionsKasynoSprzet
             b.Quad(m, P(x0, a), P(x1, a), P(x1, c), P(x0, c));
         }
     }
-    static BraxChampionsMeshBatch Ekranowy(int t)
+    static BraxChampionsMeshBatch Ekranowy(int t, int gra)
     {
         var b = new BraxChampionsMeshBatch(); var lak = lakier[t]; var led = swiatlo[t];
         // foot plate, the tapered base with LED edges
@@ -1026,11 +1050,22 @@ public static class BraxChampionsKasynoSprzet
         void Pas(float x0, float x1, float y0, float y1) => Obraz(b, tloEkran, s0 + qs * new Vector3((x0 + x1) * .5f, (y0 + y1) * .5f, Przed), x1 - x0, y1 - y0, qs,
             .5f - x1 * k, .5f + y0 / EkranH, .5f - x0 * k, .5f + y1 / EkranH);
         // the bottom strip leaves the meter's place open (the meter is the game's, as far in front of the glass)
-        Pas(L, R, B, LicznikY - .02f); Pas(L, R, LicznikY + .02f, cy - hh); Pas(.16f, R, LicznikY - .02f, LicznikY + .02f); Pas(L, -.16f, LicznikY - .02f, LicznikY + .02f);
-        Pas(L, R, cy + hh, T); Pas(hw, R, cy - hh, cy + hh); Pas(L, -hw, cy - hh, cy + hh);
+        if (gra == G.Video)
+        {
+            Pas(L, R, B, LicznikY - .02f); Pas(L, R, LicznikY + .02f, cy - hh); Pas(.16f, R, LicznikY - .02f, LicznikY + .02f); Pas(L, -.16f, LicznikY - .02f, LicznikY + .02f);
+            Pas(L, R, cy + hh, T); Pas(hw, R, cy - hh, cy + hh); Pas(L, -hw, cy - hh, cy + hh);
+        }
+        else
+        {
+            // poker / keno: the game's whole picture (its live layer in front of it), the meter's place open
+            var tlo = gra == G.Poker ? tloPoker : tloKeno;
+            void PasG(float x0, float x1, float y0, float y1) => Obraz(b, tlo, s0 + qs * new Vector3((x0 + x1) * .5f, (y0 + y1) * .5f, Przed), x1 - x0, y1 - y0, qs,
+                .5f - x1 * k, .5f + y0 / EkranH, .5f - x0 * k, .5f + y1 / EkranH);
+            PasG(L, R, B, LicznikY - .02f); PasG(L, R, LicznikY + .02f, T); PasG(.16f, R, LicznikY - .02f, LicznikY + .02f); PasG(L, -.16f, LicznikY - .02f, LicznikY + .02f);
+        }
         // the upper screen (the pay table) in its slab; the filler between the two screens
         b.BoxMinMax(czern, -.33f, .33f, 1.40f, 1.77f, .155f, .205f);
-        Obraz(b, tabelaEkran[t], new Vector3(0f, 1.585f, .205f + Przed), EkranW, EkranH, Quaternion.identity);
+        Obraz(b, gra == G.Poker ? tabelaPoker : gra == G.Keno ? tabelaKeno : tabelaEkran[t], new Vector3(0f, 1.585f, .205f + Przed), EkranW, EkranH, Quaternion.identity);
         b.BoxMinMax(czern, -.33f, .33f, 1.37f, 1.40f, .15f, .20f);
         // the topper: the jackpot screen (the game's) in a box with a curved top, LED along the curve each side
         b.BoxMinMax(lak, -.33f, .33f, 1.80f, 1.98f, -.24f, .20f);
@@ -1046,6 +1081,8 @@ public static class BraxChampionsKasynoSprzet
                 b.Tube(led, p0 + new Vector3(s * .006f, 0f, 0f), p1 + new Vector3(s * .006f, 0f, 0f), .005f, 6);
             }
         b.BoxMinMax(chrom, -.252f, .252f, 1.97f, 1.978f, .20f, .214f); b.BoxMinMax(chrom, -.252f, .252f, 1.802f, 1.81f, .20f, .214f);
+        // poker / keno: the owner's topper of the game in the jackpot screen's place (the video machine's is the game's)
+        if (gra != G.Video) Obraz(b, toppery[gra], new Vector3(0f, 1.89f, .20f + Przed), .48f, .16f, Quaternion.identity);
         Stolek(b);
         return b;
     }
