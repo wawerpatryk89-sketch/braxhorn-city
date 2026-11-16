@@ -1,15 +1,15 @@
 {
- "source": "Właściciel 16.11.2026 01:29: „Masz stworzyć ten model 1:1 do gry, materiały Poly Haven i zapisać w paczce aut” + 07:20–07:27 (fotele z przeszyciami, Poly Haven, szyba gięta, bieżnik) — kabriolet bordo: kabriolet_bordo (LOD0, 221 tys. trójkątów) + kabriolet_bordo_lod1 (39 tys.), drzwi/koła/kierownica ruchome, punkty montażu byka i napisu BRAXHORN; prawdziwe metry, przód +Z, podstawa y = 0",
+ "source": "Właściciel 16.11.2026 01:29: „Masz stworzyć ten model 1:1 do gry, materiały Poly Haven i zapisać w paczce aut” + 07:20–07:27 (fotele z przeszyciami, Poly Haven, szyba gięta, bieżnik) — kabriolet bordo v4: kabriolet_bordo (LOD0, 235642 trójkątów) + kabriolet_bordo_lod1 (38616), fotele pikowane z nicią, normalne brył na zewnątrz (0 odwróconych), drzwi/koła/kierownica ruchome, punkty montażu byka i napisu BRAXHORN; prawdziwe metry, przód +Z, podstawa y = 0",
  "target": "pojazdy_auta_01",
  "staging": "unity-city/Assets/Source/Prywatne/Miasto/pojazdy_auta_01 (BraxMiastoAssety.Model)",
  "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
- "tarSha256": "5d598238916c44c8d1de7572fe60184e9468dd2e844d2574f53f5ffa962535a6",
- "cmsSha256": "3f803c957a9b159f22cfed5a3005e7ff942d068ccc502bf3ff855c2d5f753194",
+ "tarSha256": "bcd838c5aea0c90aca1cc671adbfac6fbe8d76fcb0c658ff477fe793d11f80d4",
+ "cmsSha256": "2d9ce985014dc7e7f2b2754fb4262652685b63419cff8d03272ca2ec920ebe29",
  "parts": [
   {
    "name": "part-000.cms",
-   "bytes": 17295941,
-   "sha256": "3f803c957a9b159f22cfed5a3005e7ff942d068ccc502bf3ff855c2d5f753194"
+   "bytes": 17254981,
+   "sha256": "2d9ce985014dc7e7f2b2754fb4262652685b63419cff8d03272ca2ec920ebe29"
   }
  ],
  "files": {
@@ -20,10 +20,11 @@
   "oryginal/polyhaven_brown_leather.json": "c988de9b099cc47ac170a2fdb55622684be5df102323a447bdc511a5525a6baa",
   "oryginal/render.py": "769d7beb349eecba072089c5d2f912b2f9122180f7b90e6c13915dbbb1a75172",
   "oryginal/spec.json": "d2f25fbcb99b23b831493561bc1140e2b004b5963b4ff4d9d6e879f211cb9dfd",
+  "oryginal/sprawdz_normalne.py": "59b9986a2eff981f79f488f319d3276e1d58662b121a6b5d756793b53c5031ae",
   "oryginal/tekstury_na_zewnatrz.py": "fd9593d1daa1bcbe674e18a063143d2c816f3683eeb8a668ebb010223446b827",
   "oryginal/wymiary.py": "4df0f187055839025d581173c264f372fedb8911c3a51698c99833a186b6a104",
   "oryginal/zdjecie_wlasciciela_16-11.png": "b9f5fa3c7b8a19c5e89564f64ef36eefdf2e72a4a5c8ce98abd5abc0d8bcdf75",
-  "oryginal/zloz.py": "da3b31c252dd7f6e95e74884b53ca160a0f44950983ac6ee2339437e5123449c",
+  "oryginal/zloz.py": "db34bc3cd47ba5bfe911b45d812c0405d8562d305dd5db03eb16521e8d422906",
   "pojazdy_auta_01/_tekstury/kabriolet_bordo/dywan_kolor.jpg": "aae38d993852b576a01dda2957bef6758dc67dd5e4e24636f0132dbbe7d84804",
   "pojazdy_auta_01/_tekstury/kabriolet_bordo/dywan_mr.jpg": "2905203a481a79cf63387a9d7c1e47a90f0c7f275f44078ee474e3a760179f5b",
   "pojazdy_auta_01/_tekstury/kabriolet_bordo/dywan_normal.jpg": "314ac7c1b7c101a48106e05199bfdb24e33671e58a6ccb334249b441d8e8ac98",
@@ -31,9 +32,9 @@
   "pojazdy_auta_01/_tekstury/kabriolet_bordo/skora_koniak_kolor.jpg": "3db43fa27bf46b6c843e87352b8906b575dad0e9d53835a1a82afe2c8dcefd2d",
   "pojazdy_auta_01/_tekstury/kabriolet_bordo/skora_mr.jpg": "3c78c4f6b443375ed8b27e143a3f2ae73a2ae6095159adfb095c63f4376adc98",
   "pojazdy_auta_01/_tekstury/kabriolet_bordo/skora_normal.jpg": "51bdac4b76da70dc54c288cffea4ecaf837ebb6ed9264664bf5c9a1fc79aa074",
-  "pojazdy_auta_01/kabriolet_bordo.glb": "b1755b4cfbccd0b8307d81793c67b494b582932b8f15fa4f9a0d36954b7702b9",
-  "pojazdy_auta_01/kabriolet_bordo_lod1.glb": "13bf7a10f312accff7d0e4197ee61b18ac9e284960cd5afa66da907cda05683f",
-  "pojazdy_auta_01/katalog.json": "a60d6be18a32e5cc3ee3f6801437daa29cfe47de764cccd96e34cf85f36d84cf"
+  "pojazdy_auta_01/kabriolet_bordo.glb": "a3643e190df7b7dd8aa9d46267cd2a4ecd8cd39a1330afc65630b2c3992822f5",
+  "pojazdy_auta_01/kabriolet_bordo_lod1.glb": "a81bef3159b7c796f4527f0737a3f2194efaafdecaf63acdf8a8ce185e02a945",
+  "pojazdy_auta_01/katalog.json": "2d62d914f192d80eaa6c75d31e19acaa6bbe69b888dd293ba5b45b73fb6358b4"
  },
  "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
 }
