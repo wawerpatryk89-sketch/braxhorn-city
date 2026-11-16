@@ -14,13 +14,14 @@ name: Pokoj prob postaci (bez APK, bez rejonu)
         type: string
         default: patryk
       tryb:
-        description: 'solo = kazda osobno (chod, bieg, mowa) | rozmowa = 2-3 razem (czy patrza na siebie) | walka = 2 (czy dochodza ciosy)'
+        description: 'apk = LEKKI APK na telefon (wchodzisz i ogladasz) | solo, rozmowa, walka = bramki na liczbach'
         type: choice
         options:
+        - apk
         - solo
         - rozmowa
         - walka
-        default: solo
+        default: apk
       klatek:
         description: 'Klatek na etap (36 = 1,5 s przy 24 kl./s)'
         type: string
@@ -36,7 +37,7 @@ concurrency:
 jobs:
   pokoj:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       with:
@@ -81,7 +82,45 @@ jobs:
         printf '%s\n%s\n' "${{ inputs.postacie }}" "${{ inputs.tryb }}" > unity-city/pokoj-prob.txt
         echo "zlecenie pokoju:"; cat unity-city/pokoj-prob.txt
 
+    - name: Wlasny klucz podpisu (ten sam co gra; APK pokoju ma OSOBNY identyfikator)
+      if: inputs.tryb == 'apk'
+      env:
+        KS: ${{ secrets.BRAXHORN_KEYSTORE }}
+        KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: |
+        cd unity-city
+        if [ -n "${KS:-}" ] && [ -n "${KP:-}" ]; then
+          echo "$KS" | base64 -d > braxhorn.keystore && printf '%s' "$KP" > braxhorn.keystore.pass
+          echo "klucz podpisu: OK"
+        else echo "brak klucza — APK podpisane kluczem debug"; fi
+
+    - name: Zbuduj APK pokoju prob
+      if: inputs.tryb == 'apk'
+      uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+      env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+        UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      with:
+        projectPath: unity-city
+        unityVersion: 6000.0.58f2
+        targetPlatform: Android
+        androidExportType: androidPackage
+        buildMethod: BraxPokojProbBuild.ZbudujApk
+        allowDirtyBuild: true
+        versioning: None
+
+    - name: Wgraj APK pokoju
+      if: inputs.tryb == 'apk'
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: pokoj-apk-${{ github.run_id }}
+        path: build/Android/braxhorn-pokoj.apk
+        if-no-files-found: error
+        retention-days: 14
+
     - name: Zbuduj pokoj prob
+      if: inputs.tryb != 'apk'
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
       env:
         UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -98,6 +137,7 @@ jobs:
         versioning: None
 
     - name: Nagraj probe kazdej postaci
+      if: inputs.tryb != 'apk'
       env:
         LIBGL_ALWAYS_SOFTWARE: '1'
         BRAX_POSTACIE: ${{ inputs.postacie }}
@@ -105,6 +145,8 @@ jobs:
       run: |
         set -euo pipefail
         export BRAX_PROBA_KLATKI="$RUNNER_TEMP/klatki"
+        # Unity buduje w kontenerze jako root — runner nie moze zmienic praw cudzemu plikowi
+        sudo chown -R "$(id -u):$(id -g)" build
         chmod +x build/pokoj/PokojProb.x86_64
         sudo apt-get -qq update
         sudo apt-get -qq install -y xvfb xauth ffmpeg libgl1-mesa-dri pulseaudio pulseaudio-utils
@@ -112,22 +154,26 @@ jobs:
         pactl load-module module-null-sink sink_name=brax_pokoj
         pactl set-default-sink brax_pokoj
         set +e
-        timeout 420 xvfb-run -a -s '-screen 0 900x1200x24' \
+        timeout 900 xvfb-run -a -s '-screen 0 540x810x24' \
           build/pokoj/PokojProb.x86_64 -force-glcore \
-          -screen-width 900 -screen-height 1200 -screen-fullscreen 0 \
+          -screen-width 540 -screen-height 810 -screen-fullscreen 0 \
           -logFile "$RUNNER_TEMP/pokoj.log"
         kod=$?
         set -e
         echo "--- wynik proby ---"
         grep -E 'BRAX_POSTAC |BRAX_ROZMOWA |BRAX_CIOS |BRAX_POKOJ|BRAX_PROBA_POSTACI_KONIEC|BRAX_PROBA_PARY_KONIEC' "$RUNNER_TEMP/pokoj.log" || true
-        cat "$BRAX_PROBA_KLATKI/wynik.txt" || { tail -80 "$RUNNER_TEMP/pokoj.log"; exit 1; }
-        ffmpeg -hide_banner -loglevel error -framerate 24 \
-          -i "$BRAX_PROBA_KLATKI/%05d.jpg" -c:v libx264 -pix_fmt yuv420p \
-          -movflags +faststart Pokoj_prob_postaci.mp4
+        klatek=$(ls "$BRAX_PROBA_KLATKI"/*.jpg 2>/dev/null | wc -l)
+        echo "zapisanych klatek: $klatek"
+        cat "$BRAX_PROBA_KLATKI/wynik.txt" 2>/dev/null || { echo "BRAK wynik.txt — ostatnie 60 linii logu gry:"; tail -60 "$RUNNER_TEMP/pokoj.log" || true; }
+        if [ "$klatek" -gt 0 ]; then
+          ffmpeg -hide_banner -loglevel error -framerate 24 \
+            -i "$BRAX_PROBA_KLATKI/%05d.jpg" -c:v libx264 -pix_fmt yuv420p \
+            -movflags +faststart Pokoj_prob_postaci.mp4
+        else echo "::error::gra nie zapisala ani jednej klatki"; exit 1; fi
         echo "kod gry: $kod (1 = ktoras postac nie przeszla, film i tak powstal)"
 
     - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-      if: always()
+      if: always() && inputs.tryb != 'apk'
       with:
         name: pokoj-prob-${{ github.run_id }}
         path: |
