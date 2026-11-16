@@ -249,7 +249,7 @@ class G1OwnerMediaTests(unittest.TestCase):
         # owner 20:57: every TV can be switched on and off and plays the films (the global library, BraxTelewizor)
         k = (ED / 'BraxKatalog.cs').read_text()
         self.assertIn('AddComponent<BraxTelewizor>()', k)
-        self.assertIn('WorkingScreen(c, Screen("tv_"', k)
+        self.assertIn('WorkingScreen(c, photo ? photo : Screen("tv_"', k)   # 16.11: a real photograph when given, else the drawn still
         rt = (ROOT / 'unity-city/Assets/BraxhornWideo/BraxTelewizor.cs').read_text()
         for t in ('IBraxInterakcja', '"WŁĄCZ TV"', '"WYŁĄCZ TV"', 'BraxhornWideo/', 'loopPointReached'):
             self.assertIn(t, rt)

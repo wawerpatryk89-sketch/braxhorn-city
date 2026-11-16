@@ -100,7 +100,7 @@ public static partial class BraxChampionsD2
     {
         if(Vector3.Dot(Vector3.Cross(b-a,c-a),n)<0)m.QuadUV(mat,d,c,b,a,ud,uc,ub,ua);else m.QuadUV(mat,a,b,c,d,ua,ub,uc,ud);
     }
-    static void Panel(Material back,Vector3 c,Vector3 v,Vector3 n,float w,float h,float t,float bz,Vector4 tile)
+    static void Panel(Material back,Vector3 c,Vector3 v,Vector3 n,float w,float h,float t,float bz,Vector4 tile,Material pic=null)
     {
         v.Normalize();n.Normalize();var u=Vector3.Cross(n,v).normalized;                // the picture's right seen from the front
         Vector3 F(float a,float b,float o)=>c+u*a+v*b+n*o;
@@ -110,7 +110,8 @@ public static partial class BraxChampionsD2
         Q(back,F(-hw,-hh,-ht),F(-hw,hh,-ht),F(-hw,hh,ht),F(-hw,-hh,ht),-u);Q(back,F(hw,-hh,-ht),F(hw,hh,-ht),F(hw,hh,ht),F(hw,-hh,ht),u);
         Q(eBezel,F(-hw,-hh,ht),F(hw,-hh,ht),F(hw,-ih,ht),F(-hw,-ih,ht),n);Q(eBezel,F(-hw,ih,ht),F(hw,ih,ht),F(hw,hh,ht),F(-hw,hh,ht),n);
         Q(eBezel,F(-hw,-ih,ht),F(-iw,-ih,ht),F(-iw,ih,ht),F(-hw,ih,ht),n);Q(eBezel,F(iw,-ih,ht),F(hw,-ih,ht),F(hw,ih,ht),F(iw,ih,ht),n);
-        QUV(eDisplay,F(-iw,-ih,ht),F(iw,-ih,ht),F(iw,ih,ht),F(-iw,ih,ht),n,new Vector2(tile.x,tile.y),new Vector2(tile.z,tile.y),new Vector2(tile.z,tile.w),new Vector2(tile.x,tile.w));
+        if(pic)QUV(pic,F(-iw,-ih,ht),F(iw,-ih,ht),F(iw,ih,ht),F(-iw,ih,ht),n,new Vector2(0f,0f),new Vector2(1f,0f),new Vector2(1f,1f),new Vector2(0f,1f));   // a whole photograph
+        else QUV(eDisplay,F(-iw,-ih,ht),F(iw,-ih,ht),F(iw,ih,ht),F(-iw,ih,ht),n,new Vector2(tile.x,tile.y),new Vector2(tile.z,tile.y),new Vector2(tile.z,tile.w),new Vector2(tile.x,tile.w));
     }
     // a laptop on a table at p, open toward f: aluminium body, 5 rows of keys and the space bar, the trackpad, the hinge,
     // the lid at 112 degrees with its picture
@@ -150,12 +151,22 @@ public static partial class BraxChampionsD2
         }
         else Beam(eBezel,c-n*.03f,c-n*.09f,.25f,.18f);                                   // the wall bracket
     }
+    // a 27" monitor as sold today (owner 16.11 10:30 "dlaczego te monitory są sztuczne": a flat black slab on a square post):
+    // the picture in a 6 mm black bezel on a 10 mm panel, a rounded aluminium back shell behind it with the stand's bulge,
+    // an oval aluminium neck leaning 8 degrees back from a round brushed foot
     static void Monitor(Vector3 p,Vector3 f)
     {
-        f.y=0;f.Normalize();var rot=Quaternion.LookRotation(f,Vector3.up);
-        m.RoundedBox(eAlu,p+Vector3.up*.006f,new Vector3(.22f,.012f,.16f),.004f,rot,2);
-        Beam(eAlu,p+Vector3.up*.012f-f*.03f,p+Vector3.up*.33f-f*.05f,.05f,.02f);
-        Panel(eBezel,p+Vector3.up*.40f-f*.02f,Vector3.up,f,.61f,.36f,.022f,.008f,TDesk);
+        f.y=0;f.Normalize();var r=Vector3.Cross(Vector3.up,f).normalized;
+        const float W=.615f,H=.362f,yc=.43f;
+        var c=p+Vector3.up*yc;
+        // on the screen a real photograph (Poly Haven, G1Ekrany), chosen by the place - the painted desktop read as pixel art
+        Panel(eAlu,c,Vector3.up,f,W,H,.010f,.006f,TDesk,BraxKatalog.Photo(System.Math.Abs(Mathf.RoundToInt(p.x*3.7f+p.z*1.9f))));
+        var shell=c-f*.017f;m.RoundedBox(eAlu,shell,new Vector3(W-.03f,H-.03f,.024f),.011f,Quaternion.LookRotation(f,Vector3.up),3);
+        var bulge=c-f*.038f-Vector3.up*.035f;m.RoundedBox(eAlu,bulge,new Vector3(.20f,.15f,.026f),.012f,Quaternion.LookRotation(f,Vector3.up),3);
+        var foot=p-f*.035f;
+        m.Cylinder(eAlu,foot,.115f,.008f,40,Quaternion.identity,true,false,.110f);
+        var top=bulge-f*.012f;var bot=foot+Vector3.up*.008f;var axis=(top-bot).normalized;
+        m.RoundedBox(eAlu,(top+bot)*.5f,new Vector3(.062f,(top-bot).magnitude,.024f),.011f,Quaternion.LookRotation(Vector3.Cross(r,axis),axis),3);
     }
     // over-ear headphones on a stand at p toward f
     static void Headphones(Vector3 p,Vector3 f)
@@ -412,14 +423,14 @@ public static partial class BraxChampionsD2
         for(int yy=2;yy<10;yy++)for(int xx=6;xx<w-6;xx++)px[yy*w+xx]=xx<w/2?new Color32(200,30,34,255):new Color32(30,160,60,255);
         return px;
     }
-    static bool ShopModel(string pack,string name,Vector3 local,Vector3 faceLocal,float tilt=0f,float lift=0f)
+    static bool ShopModel(string pack,string name,Vector3 local,Vector3 faceLocal,float tilt=0f,float lift=0f,float mul=1f)
     {
         int sl=name.IndexOf('/');if(sl>0){pack=name.Substring(0,sl);name=name.Substring(sl+1);}   // "pack/name" = a model from another pack
         if(Odrzucony(pack,name))return false;
         if(!BraxMiastoAssety.Jest(pack))return false;
         var src=BraxMiastoAssety.Model(pack,name);if(!src)return false;
         var w=root.rotation*faceLocal;float yaw=Mathf.Atan2(w.x,w.z)*Mathf.Rad2Deg;
-        var o=BraxChampionsModel.Postaw(goodsInst?goodsInst:g1Goods,src,name,Wld(local+Vector3.up*lift),yaw,BraxChampionsRealSize.Towar(name),false,false);
+        var o=BraxChampionsModel.Postaw(goodsInst?goodsInst:g1Goods,src,name,Wld(local+Vector3.up*lift),yaw,BraxChampionsRealSize.Towar(name)*mul,false,false);
         if(o&&tilt!=0f)o.transform.rotation=Quaternion.Euler(0f,yaw,0f)*Quaternion.Euler(tilt,0f,0f);
         LastShopModel=o;
         return true;
@@ -657,7 +668,9 @@ public static partial class BraxChampionsD2
         var pos=P(ct+.85f,y+1.04f,cd+.35f);Goods(nm+" | kasa",()=>Monitor(pos,toFront));
         Transform lib=null;Transform Lib(){if(!lib)lib=BraxSklepyTowar.Korzen(g1Goods,"G1 "+nm);return lib;}
         // wall shelving on both side walls: a white (or walnut) carcass, n shelves; returns the shelf tops
-        List<(float t,float yy,float side)> WallShelves(Material mat,int n,float depth,float d0,float d1,float h=2.2f)
+        // bay > 0: a 25 mm upright every bay metres from off (as real shelving is built - an 8 m shelf with no upright read
+        // as a printed board), set between the goods' places
+        List<(float t,float yy,float side)> WallShelves(Material mat,int n,float depth,float d0,float d1,float h=2.2f,float bay=0f,float off=0f)
         {
             var tops=new List<(float,float,float)>();
             foreach(float s in new[]{0f,1f})
@@ -666,6 +679,7 @@ public static partial class BraxChampionsD2
                 float ta=s==0?.08f:Wd-.08f-depth,tb=ta+depth;
                 Box(mat,ta,tb,y,y+.10f,d0,d1,true);Box(mat,s==0?ta:tb-.03f,s==0?ta+.03f:tb,y,y+h,d0,d1);
                 Box(mat,ta,tb,y+h-.03f,y+h,d0,d1);Box(mat,ta,tb,y,y+h,d0-.03f,d0);Box(mat,ta,tb,y,y+h,d1,d1+.03f);
+                if(bay>.3f)for(float du=off;du<d1-.3f;du+=bay)if(du>d0+.3f)Box(mat,ta+(s==0?.03f:0f),tb-(s==0?0f:.03f),y+.10f,y+h-.03f,du-.0125f,du+.0125f);
                 for(int k=0;k<n;k++){float yy=y+.30f+k*(h-.45f)/n;Box(mat,ta+(s==0?.03f:0f),tb-(s==0?0f:.03f),yy-.025f,yy,d0,d1);tops.Add((s==0?ta+.03f+(depth-.03f)*.5f:ta+(depth-.03f)*.5f,yy,s));}
             }
             return tops;
@@ -894,7 +908,7 @@ public static partial class BraxChampionsD2
                 foreach(float d in tables)Table(StoneTop(),Wd*.5f-1.5f,Wd*.5f+1.5f,d,d+1.0f,.90f);
                 Goods(nm+" | elektronika",()=>
                 {
-                    if(rtv)foreach(float d in tables){int k=(int)d;foreach(float t in new[]{Wd*.5f-.78f,Wd*.5f+.78f}){BraxKatalog.Tv(Kat(),P(t,y+.90f,d+.30f),toFront,50f,k++,true,nm+" TV");BraxKatalog.Tv(Kat(),P(t,y+.90f,d+.70f),toBack,43f,k++,true,nm+" TV");}}
+                    if(rtv)foreach(float d in tables){int k=(int)d;foreach(float t in new[]{Wd*.5f-.78f,Wd*.5f+.78f}){BraxKatalog.Tv(Kat(),P(t,y+.90f,d+.30f),toFront,50f,k,true,nm+" TV",BraxKatalog.Photo(k));k++;BraxKatalog.Tv(Kat(),P(t,y+.90f,d+.70f),toBack,43f,k,true,nm+" TV",BraxKatalog.Photo(k));k++;}}
                     foreach(float d in tables)
                     {
                         if(rtv)continue;
@@ -916,14 +930,14 @@ public static partial class BraxChampionsD2
                     }
                     // TVs: on the back wall (inner units) or both side walls (façade units), 55" / 65"
                     // the BRAXHORN TVs (owner 20:12: "telewizory ... jak najlepsze ... swoją markę"): 65" on the back wall, 55" on the side walls
-                    if(!fac){int k=0;for(float t=1.4f;t<Wd-1.2f;t+=2.0f)BraxKatalog.Tv(Kat(),P(t,y+2.1f,D-.16f),toFront,65f,k++,false,nm+" TV");}
-                    else foreach(float s in new[]{0f,1f})if(!SideOpen(s)){int k=(int)s;for(float d=3.5f;d<D-1.5f;d+=2.6f)BraxKatalog.Tv(Kat(),P(s==0?.05f:Wd-.05f,y+2.1f,d),s==0?alongT:-alongT,55f,k++,false,nm+" TV");}
+                    if(!fac){int k=0;for(float t=1.4f;t<Wd-1.2f;t+=2.0f){BraxKatalog.Tv(Kat(),P(t,y+2.1f,D-.16f),toFront,65f,k,false,nm+" TV",BraxKatalog.Photo(k));k++;}}
+                    else foreach(float s in new[]{0f,1f})if(!SideOpen(s)){int k=(int)s;for(float d=3.5f;d<D-1.5f;d+=2.6f){BraxKatalog.Tv(Kat(),P(s==0?.05f:Wd-.05f,y+2.1f,d),s==0?alongT:-alongT,55f,k,false,nm+" TV",BraxKatalog.Photo(k));k++;}}
                     if(audio)foreach(float t in new[]{.8f,Wd-.8f})Speaker(P(t,y,D-1.0f),toFront,1.05f);
                 });
                 // both side walls finished: battens, the oak cabinet with the goods on it, lit shelves (façade units: the TVs over the cabinet)
                 foreach(float s in new[]{0f,1f})SideWall(s,2.6f,D-1.4f,!fac&&!rtv);
                 if(rtv)Goods(nm+" | telewizory na ścianach",()=>{foreach(float s in new[]{0f,1f})if(!SideOpen(s)){int k=3+(int)s*5;float w=s==0f?.05f:Wd-.05f;var f=s==0f?alongT:-alongT;
-                    for(float d=3.3f;d<D-2.0f;d+=1.75f){BraxKatalog.Tv(Kat(),P(w,y+1.95f,d),f,55f,k++,false,nm+" TV ściana");Speaker(P(s==0f?.30f:Wd-.30f,y+.90f,d),f,.18f);}}});
+                    for(float d=3.3f;d<D-2.0f;d+=1.75f){{BraxKatalog.Tv(Kat(),P(w,y+1.95f,d),f,55f,k,false,nm+" TV ściana",BraxKatalog.Photo(k));k++;}Speaker(P(s==0f?.30f:Wd-.30f,y+.90f,d),f,.18f);}}});
                 if(!rtv)Goods(nm+" | ściany",()=>{foreach(float s in new[]{0f,1f})WallItems(s,2.6f,D-1.4f,!fac,(p,f,l)=>
                 {
                     // the eye-level shelf (1.55 m): every second place one of the owner's four small pieces, in turn along the wall
@@ -943,7 +957,9 @@ public static partial class BraxChampionsD2
                 // the counter: in the middle of the floor; in a small shop at the back, the islands in front of it with room to pass
                 float kd=u.back>0f?D-1.7f:D*.5f;
                 bool booth=u.trade=="optician"&&Droom>=4.2f;                                           // the eye-test room behind the sales floor
-                var cshelves=WallShelves(gOak,4,.40f,3.0f,D-1.2f);
+                // the uprights between the goods: bottles every 17 cm from 3.15 (a bay of six), frames every 27 cm (a bay of four)
+                bool perf=u.trade=="cosmetics";
+                var cshelves=WallShelves(gOak,4,.40f,3.0f,D-1.2f,2.2f,perf?6*.17f:4*.27f,perf?3.15f+.085f:3.15f+.135f);
                 if(u.trade=="cosmetics")Goods(nm+" | perfumy",()=>
                 {
                     int i=nm.Length;
@@ -1347,7 +1363,6 @@ public static partial class BraxChampionsD2
                         {var a0=P(tc-.8f,y,d);var a1=P(tc+.8f,y,d+.8f);Col(Mathf.Min(a0.x,a1.x),Mathf.Max(a0.x,a1.x),y,y+.75f,Mathf.Min(a0.z,a1.z),Mathf.Max(a0.z,a1.z),"biurko");}
                         var mp=P(tc-.10f,y+.75f,d+.30f);var kp=P(tc-.10f,y+.75f,d+.56f);
                         Goods(nm+" | stanowisko "+dk,()=>{Monitor(mp,toBack);BraxKatalog.KeyboardMouse(Kat(),kp,toBack);});
-                        Ph(PHT+"desk_lamp_arm_01/desk_lamp_arm_01_1k.gltf",P(tc+.60f,y+.75f,d+.20f),toBack,"lampka biurkowa");
                         Ph(PHT+"modern_ceiling_lamp_01/modern_ceiling_lamp_01_1k.gltf",P(tc,ry,d+.40f),toFront,"lampa nad biurkiem",true);
                         G1Chair(P(tc,y,d+1.30f),toFront);{var sp=P(tc,y,d+1.30f);Seat(sp.x,y+.51f,sp.z,toFront,nm+" doradca "+dk);}   // the adviser
                         foreach(float a in new[]{-.36f,.36f})if(!Ph(chairM,P(tc+a,y,d-.52f),toBack,"krzesło klienta",false,.46f))G1Chair(P(tc+a,y,d-.55f),toBack);
@@ -1359,7 +1374,7 @@ public static partial class BraxChampionsD2
                     var lc=P(Wd*.5f,y+.012f,D-1.95f);Ph(PHT+"coffee_table_round_01/coffee_table_round_01_2k.gltf",lc,toFront,"stolik");
                     foreach(float a in new[]{-1.45f,1.45f}){var lp=P(Wd*.5f+a,y+.012f,D-2.05f);var fc=lc-lp;fc.y=0f;Ph(PHT+"mid_century_lounge_chair/mid_century_lounge_chair_2k.gltf",lp,fc.normalized,"fotel",false,.42f);}
                     // a video wall of three 65" screens over the lounge (one screen was a stamp on a 10 m wall)
-                    Goods(nm+" | ekrany",()=>{for(int k=-1;k<=1;k++)BraxKatalog.Tv(Kat(),P(Wd*.5f+k*1.50f,y+1.75f,D-.16f),toFront,65f,11+k,false,nm+" ekran "+(k+2));});
+                    Goods(nm+" | ekrany",()=>{for(int k=-1;k<=1;k++)BraxKatalog.Tv(Kat(),P(Wd*.5f+k*1.50f,y+1.75f,D-.16f),toFront,65f,11+k,false,nm+" ekran "+(k+2),BraxKatalog.Photo(k+1+nm.Length));});   // real photographs
                     foreach(float t in new[]{.85f,Wd-.85f})Ph(PHA+"potted_plant_02/potted_plant_02_1k.gltf",P(t,y,D-.75f),toFront,"roślina");
                     Ph(PHT+"potted_plant_04/potted_plant_04_1k.gltf",P(Wd-.75f,y,1.0f),toFront,"roślina przy wejściu");
                     // vases on the side walls' lit shelves (1.55 m), every 1.8 m
@@ -1425,10 +1440,12 @@ public static partial class BraxChampionsD2
                 }
                 else if(u.trade=="cosmetics")
                 {
-                    float[] hs={.15f,.30f,.45f};                                                               // three stepped glass cubes
-                    for(int k=0;k<3;k++){float tk=t-.30f+k*.30f;Box(StoneTop(),tk-.12f,tk+.12f,py,py+hs[k],dc-.24f,dc,true);}    // solid marble cubes
-                    Goods(nm+" | witryna "+ii,()=>{for(int k=0;k<3;k++)ShopModel(Perfumy0,Perfumy[(ii*4+k)%Perfumy.Length],P(t-.30f+k*.30f,py+hs[k],dc-.12f),toBack);
-                        for(int k=0;k<4;k++)ShopModel(Perfumy0,Perfumy[(ii*4+k+3)%Perfumy.Length],P(t-.36f+k*.24f,py,dc+.22f),toBack);});
+                    // (owner 16.11 10:30 "co to jest": white cubes with small bottles read as boxes) a perfumery window as in
+                    // life: the display dummy - the factice, the house's bottle four times its size (60 cm) - on a low black
+                    // marble plinth, three real bottles at its foot
+                    Box(gCinemaDark,t-.26f,t+.26f,py,py+.06f,dc-.38f,dc+.06f,true);
+                    Goods(nm+" | witryna "+ii,()=>{ShopModel(Perfumy0,Perfumy[(ii*5+1)%Perfumy.Length],P(t,py+.06f,dc-.14f),toBack,0f,0f,4f);
+                        for(int k=0;k<3;k++)ShopModel(Perfumy0,Perfumy[(ii*5+1)%Perfumy.Length],P(t-.30f+k*.30f,py,dc+.26f),toBack);});
                 }
                 else if(u.trade=="toys")
                 {
@@ -1445,7 +1462,7 @@ public static partial class BraxChampionsD2
                 {
                     Goods(nm+" | witryna "+ii,()=>
                     {
-                        if(ii==1)BraxKatalog.Tv(Kat(),P(t,py,dc-.18f),toBack,43f,7,true,nm+" TV witryna");
+                        if(ii==1)BraxKatalog.Tv(Kat(),P(t,py,dc-.18f),toBack,43f,7,true,nm+" TV witryna",BraxKatalog.Photo(2));
                         else{Console(P(t-.18f,py,dc-.05f),toBack);Headphones(P(t+.28f,py,dc-.10f),toBack);}
                         if(ii==1)Console(P(t,py,dc+.12f),toBack);
                     });

@@ -58,7 +58,7 @@ class PrzegladModeli(unittest.TestCase):
     def test_gloves_lie_on_the_shop_rack(self):
         w = src('BraxChampionsG1Wnetrze.cs')
         self.assertIn('"sklep_walka_01/rekawice_bokserskie_braxhorn_czarno_zlote",new Vector3(rx+.35f+i*.55f,y+.75f,rz+.15f),Vector3.back,90f,.118f);', w)
-        self.assertIn('static bool ShopModel(string pack,string name,Vector3 local,Vector3 faceLocal,float tilt=0f,float lift=0f)', src('BraxChampionsG1Sklepy.cs'))
+        self.assertIn('static bool ShopModel(string pack,string name,Vector3 local,Vector3 faceLocal,float tilt=0f,float lift=0f,float mul=1f)', src('BraxChampionsG1Sklepy.cs'))
 
     def test_balls_are_sewn_from_panels(self):
         t = src('BraxKatalogTowar.cs')

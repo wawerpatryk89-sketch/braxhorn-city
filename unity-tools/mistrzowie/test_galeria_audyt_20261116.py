@@ -138,7 +138,8 @@ class RealWorldFurniture(unittest.TestCase):
 
     def test_office_is_an_office(self):
         o = self.s[self.s.index("bool office=nm.Contains"):self.s.index('if(!nm.Contains("PRALNIA"))')]
-        for piece in ('"biurko"', "the modesty panel", "the pedestal", "BraxKatalog.KeyboardMouse", "desk_lamp_arm_01",
+        self.assertNotIn("desk_lamp_arm_01", o)                             # 10:30 owner: "co to za lampa" - the clamp lamp is gone
+        for piece in ('"biurko"', "the modesty panel", "the pedestal", "BraxKatalog.KeyboardMouse",
                       "modern_ceiling_lamp_01", "dining_chair_02", "sofa_02", "mid_century_lounge_chair", "coffee_table_round_01",
                       "potted_plant_02", "ceramic_vase_0", "HRug("):
             self.assertIn(piece, o)
@@ -156,13 +157,60 @@ class RealWorldFurniture(unittest.TestCase):
         self.assertIn("static GameObject G1PH(string path,Vector3 local,float yaw,string label,bool collide,bool top=false)", self.w)
         self.assertIn("BraxChampionsRealSize.Scale(full)", self.w)
         self.assertIn("float rx0=ix0+.45f,rx1=ix1-.45f,rz0=iz0+.45f,rz1=iz1-.45f,ry=yc-.14f;", self.w)
-        for slug in ("HotelSobczak/Ottoman_01", "HotelSobczak/desk_lamp_arm_01", "HotelSobczak/modern_ceiling_lamp_01",
+        for slug in ("HotelSobczak/Ottoman_01", "HotelSobczak/modern_ceiling_lamp_01",
                      "HotelSobczak/dining_chair_02", "ArenaLobby/sofa_02", "HotelSobczak/mid_century_lounge_chair",
                      "HotelSobczak/coffee_table_round_01", "ArenaLobby/potted_plant_02", "HotelSobczak/potted_plant_04",
                      "HotelSobczak/ceramic_vase_01", "HotelSobczak/ceramic_vase_02"):
             name = slug.split("/")[1]
             prep = (TOOLS / ("prepare_hotel_sobczak_models.py" if slug.startswith("Hotel") else "prepare_arena_lobby_models.py")).read_text(encoding="utf-8")
             self.assertIn("'%s'" % name, prep, slug)                       # downloaded by CI before the build
+
+
+class RealScreensAndWindows(unittest.TestCase):
+    """Owner 16.11 10:30: "co to jest na pierwszym zdjęciu? dlaczego te monitory są sztuczne, co to za lampa"."""
+
+    def setUp(self):
+        self.s = read("BraxChampionsG1Sklepy.cs")
+        self.k = read("BraxKatalog.cs")
+
+    def test_photographs_on_the_screens(self):
+        folder = ROOT / "unity-city/Assets/Source/Mistrzowie/G1Ekrany"
+        names = re.search(r"ZdjeciaNazwy = \{([^}]*)\}", self.k).group(1)
+        for n in re.findall(r'"([a-z0-9_]+)"', names):
+            f = folder / (n + ".jpg")
+            self.assertTrue(f.exists(), f)
+            self.assertLess(f.stat().st_size, 400_000)
+        self.assertIn("polyhaven.com/hdris (CC0", (folder / "README.md").read_text(encoding="utf-8"))
+        self.assertIn('Material photo = null)', self.k)
+        self.assertIn('photo ? photo : Screen("tv_" + picture', self.k)
+        self.assertGreaterEqual(self.s.count("BraxKatalog.Photo("), 6)
+
+    def test_the_monitor_is_a_monitor(self):
+        mon = self.s[self.s.index("static void Monitor(Vector3 p,Vector3 f)"):]
+        mon = mon[:mon.index("\n    }") + 6]
+        self.assertNotIn("Beam(", mon)                                      # no square post
+        for piece in ("var shell=", "var bulge=", "m.Cylinder(eAlu,foot", "Quaternion.LookRotation(Vector3.Cross(r,axis),axis)"):
+            self.assertIn(piece, mon)
+        self.assertIn("TDesk,BraxKatalog.Photo(", mon)                        # a photograph on it, not the painted desktop
+        self.assertIn("if(pic)QUV(pic,", self.s)
+        kmon = self.k[self.k.index("public static void Monitor(Ctx c"):]
+        self.assertIn("var ph = Photo(desktop);", kmon[:kmon.index("\n    }")])
+
+    def test_wall_shelving_has_uprights(self):
+        self.assertIn("float h=2.2f,float bay=0f,float off=0f)", self.s)
+        self.assertIn("if(bay>.3f)for(float du=off;du<d1-.3f;du+=bay)", self.s)
+        self.assertIn("perf?6*.17f:4*.27f,perf?3.15f+.085f:3.15f+.135f", self.s)   # between the bottles / the frames
+
+    def test_no_hazy_yellow_photograph(self):
+        names = re.search(r"ZdjeciaNazwy = \{([^}]*)\}", self.k).group(1)
+        self.assertNotIn("cape_hill", names)                                  # a yellow haze: no golden light, on a screen either
+        self.assertGreaterEqual(len(re.findall(r'"([a-z0-9_]+)"', names)), 5)
+
+    def test_perfumery_window_has_factices(self):
+        self.assertIn("float tilt=0f,float lift=0f,float mul=1f)", self.s)
+        self.assertIn("BraxChampionsRealSize.Towar(name)*mul", self.s)
+        self.assertIn("toBack,0f,0f,4f);", self.s)                          # the 60 cm display dummy
+        self.assertNotIn("float[] hs={.15f,.30f,.45f};", self.s)
 
 
 if __name__ == "__main__":

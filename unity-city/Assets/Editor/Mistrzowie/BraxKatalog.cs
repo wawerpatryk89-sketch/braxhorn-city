@@ -73,6 +73,24 @@ public static partial class BraxKatalog
         screens[id] = mt; return mt;
     }
 
+    // A REAL PHOTOGRAPH ON A SCREEN (owner 16.11 10:30 "dlaczego te monitory są sztuczne": the 320 x 180 drawn pictures
+    // read as pixel art): Poly Haven CC0 landscape and city photographs (the tonemapped HDRI panoramas, a 16:9 window cut
+    // round the horizon, 1024 x 576), committed in Assets/Source/Mistrzowie/G1Ekrany/ - lit like a screen
+    public const string Zdjecia = "Assets/Source/Mistrzowie/G1Ekrany/";
+    public static readonly string[] ZdjeciaNazwy = { "simons_town_rocks", "canary_wharf", "blouberg_sunrise_1", "fish_hoek_beach", "red_hill_curve" };   // (cape_hill out 16.11 12:40: a yellow haze)
+    public static Material Photo(int i)
+    {
+        string n = ZdjeciaNazwy[((i % ZdjeciaNazwy.Length) + ZdjeciaNazwy.Length) % ZdjeciaNazwy.Length], id = "photo_" + n;
+        if (screens.TryGetValue(id, out var have) && have) return have;
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(Zdjecia + n + ".jpg");
+        if (!tex) { Debug.LogWarning("KATALOG_PHOTO_MISSING " + Zdjecia + n + ".jpg"); return null; }
+        // a photograph is bright: the panel itself is dark glass (base 6 %) and the picture is its light only - a white base
+        // under the same emission doubled it and burnt it to white (my check 16.11 12:13)
+        var mt = BraxChampionsHarbour.Surface("kat_screen_" + id, new Color(.06f, .06f, .065f), .12f, 0f, new Color(.92f, .92f, .95f));
+        mt.SetTexture("_MainTex", tex); mt.SetTexture("_EmissionMap", tex); EditorUtility.SetDirty(mt);
+        screens[id] = mt; return mt;
+    }
+
     /// <summary>the four TV pictures' materials (the stills; BraxTelewizor plays the films over them)</summary>
     public static Material[] TvMaterials()
     {
@@ -277,14 +295,14 @@ public static partial class BraxKatalog
     // behind the picture, the electronics' box low on the back with the ports, a brushed chin with the 3D BRAXHORN logo, the
     // red standby LED; on a brushed pedestal (onStand) or 45 mm off the wall on a black bracket. p = the stand's foot point
     // on the surface (onStand) or the wall point under the screen's centre at its centre height (wall).
-    public static void Tv(Ctx c, Vector3 p, Vector3 f, float inches, int picture, bool onStand = true, string label = "telewizor")
+    public static void Tv(Ctx c, Vector3 p, Vector3 f, float inches, int picture, bool onStand = true, string label = "telewizor", Material photo = null)
     {
         Materials();
         float W = inches * .0254f * .8716f, H = inches * .0254f * .4903f;
         var k = new Fr(p, f);
         float yc = onStand ? .10f + H * .5f + .03f : 0f, d = onStand ? 0f : .045f + .03f;     // the picture plane's offset
         var s = k.P(0f, yc, d);
-        WorkingScreen(c, Screen("tv_" + picture, 320, 180, TvPicture(picture)), s, f, W, H, false, label, picture * 3);
+        WorkingScreen(c, photo ? photo : Screen("tv_" + picture, 320, 180, TvPicture(picture)), s, f, W, H, false, label, picture * 3);
         // the bezel (5 mm, 2 mm proud of the picture), the panel's back plate, the electronics box, the chin with the logo
         RB(c, BlackGloss, k, -W * .5f - .005f, W * .5f + .005f, yc + H * .5f, yc + H * .5f + .005f, d - .014f, d + .002f, .0015f, 1);
         RB(c, BlackGloss, k, -W * .5f - .005f, W * .5f + .005f, yc - H * .5f - .005f, yc - H * .5f, d - .014f, d + .002f, .0015f, 1);
@@ -354,7 +372,7 @@ public static partial class BraxKatalog
         var sc = hinge + up * (LH * .5f + .004f) + fw * .0040f;
         var lrot = Quaternion.LookRotation(fw, up);
         c.m.RoundedBox(GlassDark, hinge + up * (LH * .5f) + fw * .0002f, new Vector3(W - .006f, LH - .006f, .0016f), .002f, lrot, 1);   // the black glass
-        var rv = -k.r; float sw = W - .024f, sh = LH - .034f; var scr = Screen("pulpit_" + desktop, 256, 160, Desktop(desktop));
+        var rv = -k.r; float sw = W - .024f, sh = LH - .034f; var ph = Photo(desktop); var scr = ph ? ph : Screen("pulpit_" + desktop, 256, 160, Desktop(desktop));   // a photograph, as on the monitors
         var q0 = sc - rv * (sw * .5f) - up * (sh * .5f); var q1 = sc + rv * (sw * .5f) - up * (sh * .5f); var q2 = sc + rv * (sw * .5f) + up * (sh * .5f); var q3 = sc - rv * (sw * .5f) + up * (sh * .5f);
         c.m.QuadUV(scr, q0, q3, q2, q1, new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 0));
         c.m.Cylinder(BlackMatt, hinge + up * (LH - .007f) + fw * .0012f, .0018f, .0012f, 8, Quaternion.FromToRotation(Vector3.up, fw), true);   // the camera
@@ -371,7 +389,10 @@ public static partial class BraxKatalog
         Materials();
         float W = inches * .0254f * .8716f, H = inches * .0254f * .4903f; var k = new Fr(p, f);
         float yc = .12f + H * .5f; float d = .02f;
-        Picture(c, Screen("pulpit_" + desktop, 256, 160, Desktop(desktop)), k, k.P(0f, yc, d), W, H);
+        // a real photograph (owner 16.11 10:30 "dlaczego te monitory są sztuczne": a drawn desktop read as pixel art); the
+        // drawn desktop only when the photographs are missing
+        var ph = Photo(desktop);
+        Picture(c, ph ? ph : Screen("pulpit_" + desktop, 256, 160, Desktop(desktop)), k, k.P(0f, yc, d), W, H);
         RB(c, BlackMatt, k, -W * .5f - .006f, W * .5f + .006f, yc + H * .5f, yc + H * .5f + .006f, d - .014f, d + .002f, .0015f, 1);
         RB(c, BlackMatt, k, -W * .5f - .006f, W * .5f + .006f, yc - H * .5f - .018f, yc - H * .5f, d - .014f, d + .002f, .0015f, 1);
         RB(c, BlackMatt, k, -W * .5f - .006f, -W * .5f, yc - H * .5f, yc + H * .5f, d - .014f, d + .002f, .0015f, 1);
