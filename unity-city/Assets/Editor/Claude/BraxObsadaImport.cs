@@ -3,6 +3,14 @@ using UnityEditor;
 
 public sealed class BraxObsadaImport : AssetPostprocessor
 {
+    // NUMER WERSJI IMPORTU. Unity trzyma zaimportowane pliki w pamięci podręcznej i zmiana
+    // ustawień w tym pliku SAMA jej nie unieważnia — bez tego numeru kompresja z 16.11
+    // (redukcja klatek, siatki Medium, ASTC 6x6) nie nałożyłaby się na postacie wzięte
+    // z pamięci, a waga APK zostałaby bez zmian i wyglądałoby to na brak efektu.
+    // Każda zmiana ustawień importu obsady = podniesienie tego numeru.
+    // 1 — 16.11.2026: kompresja obsady (wcześniej numeru nie było wcale).
+    public override uint GetVersion() => 1;
+
     public const string Katalog = "Assets/Source/ObsadaOsiedla/";
     public const string KatalogBaru = "Assets/Source/Prywatne/BarOsiedla/";
     void OnPreprocessModel()
