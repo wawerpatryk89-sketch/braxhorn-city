@@ -150,9 +150,7 @@ class JazdaJednosladami(unittest.TestCase):
         self.assertIn('BraxMiastoMotory.Stacja(gj, "przy siłowni BRAXHORN"', r)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
+class KabrioletBordo(unittest.TestCase):
     def test_kabriolet_bordo_16_11(self):
         """Kabriolet bordo ze zdjęcia właściciela: LOD0 + LOD1, tekstury obok GLB (glTFast bierze skompresowany asset),
         oryginał (zdjęcie + skrypty odtwarzające model) tylko w zaszyfrowanej paczce."""
@@ -167,3 +165,7 @@ if __name__ == "__main__":
         # w gicie nic jawnego od właściciela (zdjęcie i skrypty z wymiarami jego projektu tylko w paczce)
         tracked = [str(p.relative_to(ROOT)) for p in (ROOT / "unity-city").rglob("*kabriolet*")]
         self.assertEqual(tracked, [])
+
+
+if __name__ == "__main__":
+    unittest.main()
