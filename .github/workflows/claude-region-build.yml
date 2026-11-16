@@ -188,6 +188,13 @@ jobs:
       run: |
         python3 unity-tools/check_webgl_bridges.py
         python3 unity-tools/kickboxing/package.py --check-template
+    - name: Przygotuj FFmpeg do analizy nagrań mowy i importu dźwięku
+      run: |
+        if ! command -v ffmpeg >/dev/null; then
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+        fi
+        ffmpeg -version
     - name: Sprawdź i przygotuj prywatne postacie wybranego rejonu
       env:
         GH_TOKEN: ${{ github.token }}
@@ -232,10 +239,6 @@ jobs:
 
         python3 unity-tools/city-rebuild/check_brand_sources.py
 
-
-        sudo apt-get update -qq
-
-        sudo apt-get install -y --no-install-recommends ffmpeg
 
         python3 unity-tools/nova-audio/prepare.py
 
@@ -494,6 +497,13 @@ jobs:
       run: |
         python3 unity-tools/check_webgl_bridges.py
         python3 unity-tools/kickboxing/package.py --check-template
+    - name: Przygotuj FFmpeg do analizy nagrań mowy i importu dźwięku
+      run: |
+        if ! command -v ffmpeg >/dev/null; then
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+        fi
+        ffmpeg -version
     - name: Sprawdź i przygotuj prywatne postacie wybranego rejonu
       env:
         GH_TOKEN: ${{ github.token }}
@@ -538,10 +548,6 @@ jobs:
 
         python3 unity-tools/city-rebuild/check_brand_sources.py
 
-
-        sudo apt-get update -qq
-
-        sudo apt-get install -y --no-install-recommends ffmpeg
 
         python3 unity-tools/nova-audio/prepare.py
 
