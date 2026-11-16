@@ -295,11 +295,12 @@ public static class BraxPokojProbBuild
 
         float dl = 20f * K, szer = 10f * K, wys = 3.6f * K, gr = .12f * K;
         var pokoj = new GameObject("Pokój prób").transform;
-        // Ciemniejsze wnetrze niz w wersji na serwer: jasne sciany odbijaly swiatlo na postac
-        // i wszystko wychodzilo szare. Postac ma byc najjasniejsza rzecza w kadrze.
-        var matPodloga = Mat("posadzka", new Color(.17f, .17f, .17f), .20f);
-        var matSciana = Mat("ściana", new Color(.26f, .26f, .27f), .10f);
-        var matSufit = Mat("sufit", new Color(.22f, .22f, .22f), .06f);
+        // Neutralna szarość studyjna i materiały MATOWE (gładkość prawie zero): ściany nie mają
+        // dokładać własnych odblasków ani barwić postaci. Ani mleczna biel (było 0.70 — zalewało
+        // postać odbitym światłem), ani ciemnica (było 0.26 — wypychało odblask na wierzch).
+        var matPodloga = Mat("posadzka", new Color(.34f, .34f, .34f), .04f);
+        var matSciana = Mat("ściana", new Color(.46f, .46f, .47f), .03f);
+        var matSufit = Mat("sufit", new Color(.52f, .52f, .52f), .02f);
         var matPas = Mat("pas pomiarowy", new Color(.22f, .45f, .72f), .3f);
 
         var podloga = Plyta("posadzka", pokoj, new Vector3(0, -gr * .5f, 0), new Vector3(dl, gr, szer), matPodloga);
@@ -314,19 +315,29 @@ public static class BraxPokojProbBuild
 
         var slonce = new GameObject("Słońce").AddComponent<Light>();
         slonce.type = LightType.Directional;
-        slonce.transform.rotation = Quaternion.Euler(46, -32, 0);
-        // Nagranie 16.11, 14:48: pokoj byl mleczny, bez kontrastu — postaci nie dalo sie ocenic.
-        // Mocniejsze slonce i WYRAZNIE ciemniejsze otoczenie: swiatlo ma lepic bryle, a nie
-        // rozswietlac wszystko po rowno. Sciany tez schodza w dol (nizej, przy materialach).
-        slonce.intensity = 1.35f;
+        // ŚWIATŁO DOKŁADNIE TAKIE JAK NA OSIEDLU — nie wymyślone przeze mnie.
+        // Poprawka 16.11, 15:26 (właściciel: „te postacie wyglądają jeszcze gorzej”).
+        // Zrobiłem wcześniej dwie zmiany naraz: ciemne wnętrze I mocniejsze słońce. To najgorsze
+        // połączenie dla skóry — w ciemnym otoczeniu odblask zostaje jedyną jasną rzeczą w kadrze,
+        // więc świeci MOCNIEJ, nie słabiej. A przedtem było odwrotnie: mleczne białe ściany
+        // zalewały postać odbitym światłem.
+        //
+        // Właściwa odpowiedź nie jest pośrodku, tylko gdzie indziej: pokój służy do oceniania,
+        // czy postać nadaje się DO GRY, więc ma ją pokazywać w świetle GRY. Liczby poniżej to
+        // co do jednej wartości BraxClaudeOsiedle.Daylight (linie 3928–3940) — czyli wzorzec,
+        // który właściciel wskazał jako najlepszy. Jeśli postać wygląda źle tutaj, będzie
+        // wyglądać źle na Osiedlu, i o to w tej próbie chodzi.
+        slonce.intensity = 1.24f;
+        slonce.color = new Color(1f, .955f, .875f);
+        slonce.transform.rotation = Quaternion.Euler(43f, -35f, 0f);
         slonce.shadows = LightShadows.Soft;
-        slonce.shadowStrength = .85f;
-        slonce.shadowBias = .02f;
-        slonce.shadowNormalBias = .2f;
+        slonce.shadowStrength = .80f;
+        slonce.shadowBias = .04f;
+        slonce.shadowNormalBias = .25f;
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-        RenderSettings.ambientSkyColor = new Color(.38f, .41f, .47f);
-        RenderSettings.ambientEquatorColor = new Color(.26f, .26f, .28f);
-        RenderSettings.ambientGroundColor = new Color(.13f, .12f, .11f);
+        RenderSettings.ambientSkyColor = new Color(.60f, .68f, .80f);
+        RenderSettings.ambientEquatorColor = new Color(.50f, .53f, .50f);
+        RenderSettings.ambientGroundColor = new Color(.30f, .28f, .23f);
 
         // POSTACIE W ŁUKU przodem do gracza. Szereg był zły: policzone 16.11 — przy 19 postaciach
         // w kadrze (FOV 55 st., 6,2 m) mieściły się TRZY. Łuk 150 st. na promieniu 5,2 m trzyma

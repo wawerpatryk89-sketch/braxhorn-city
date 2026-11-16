@@ -70,8 +70,11 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                         var ma = new System.Collections.Generic.List<string>();
                         foreach (AnimationState st in a) if (st.clip != null) ma.Add(st.name);
                         ma.Sort(System.StringComparer.Ordinal);
-                        etap = opis + " — BRAK KLIPU " + klip + " (ma: " +
-                               (ma.Count == 0 ? "nic" : string.Join(",", ma)) + ")";
+                        // Na telefonie w pionie dluga linia ucina sie na krawedzi (widac na
+                        // nagraniu wlasciciela: „BRAK KLIPU Run (ma:” i koniec). Krotko i konkretnie.
+                        etap = opis + " — BRAK " + klip + " (" + ma.Count + " ujec: " +
+                               string.Join(",", ma.GetRange(0, System.Math.Min(4, ma.Count))) +
+                               (ma.Count > 4 ? "…" : "") + ")";
                     }
                     float do_ = Time.time + naEtap;
                     while (Time.time < do_) { yield return null; }
