@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -255,5 +256,146 @@ public static class BraxPokojProbBuild
         var wynik = BuildPipeline.BuildPlayer(new[] { path }, dest, BuildTarget.StandaloneLinux64, BuildOptions.None);
         if (wynik.summary.result != BuildResult.Succeeded)
             throw new Exception(wynik.summary.result.ToString());
+    }
+
+    // ======================= APK: POKÓJ DO OBEJRZENIA NA TELEFONIE =======================
+    // Właściciel 16.11, 10:31: „pokój, który generuje APK, lekki pokój, do którego wchodzą
+    // postacie tylko na testy”. Serwer CI nie ma karty graficznej i renderuje programowo —
+    // dlatego obrazu nie robimy tam wcale. APK renderuje TELEFON właściciela: wchodzi do
+    // pokoju, chodzi między postaciami i sam je ogląda. Bez świata, bez rejonu, kilka MB.
+    public static void ZbudujApk()
+    {
+        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+        float dl = 20f * K, szer = 10f * K, wys = 3.6f * K, gr = .12f * K;
+        var pokoj = new GameObject("Pokój prób").transform;
+        var matPodloga = Mat("posadzka", new Color(.34f, .33f, .32f), .25f);
+        var matSciana = Mat("ściana", new Color(.70f, .70f, .68f), .12f);
+        var matSufit = Mat("sufit", new Color(.86f, .86f, .85f), .08f);
+        var matPas = Mat("pas pomiarowy", new Color(.22f, .45f, .72f), .3f);
+
+        var podloga = Plyta("posadzka", pokoj, new Vector3(0, -gr * .5f, 0), new Vector3(dl, gr, szer), matPodloga);
+        podloga.isStatic = true;
+        Plyta("sufit", pokoj, new Vector3(0, wys, 0), new Vector3(dl, gr, szer), matSufit);
+        Plyta("ściana tył", pokoj, new Vector3(0, wys * .5f, szer * .5f), new Vector3(dl, wys, gr), matSciana);
+        Plyta("ściana przód", pokoj, new Vector3(0, wys * .5f, -szer * .5f), new Vector3(dl, wys, gr), matSciana);
+        Plyta("ściana lewa", pokoj, new Vector3(-dl * .5f, wys * .5f, 0), new Vector3(gr, wys, szer), matSciana);
+        Plyta("ściana prawa", pokoj, new Vector3(dl * .5f, wys * .5f, 0), new Vector3(gr, wys, szer), matSciana);
+        for (int i = -8; i <= 8; i++)
+            Plyta($"pas {i} m", pokoj, new Vector3(i * K, .005f, 0), new Vector3(.04f * K, .008f, szer * .9f), matPas);
+
+        var slonce = new GameObject("Słońce").AddComponent<Light>();
+        slonce.type = LightType.Directional;
+        slonce.transform.rotation = Quaternion.Euler(46, -32, 0);
+        slonce.intensity = 1.1f;
+        slonce.shadows = LightShadows.Soft;
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+        RenderSettings.ambientSkyColor = new Color(.66f, .69f, .74f);
+        RenderSettings.ambientEquatorColor = new Color(.50f, .50f, .52f);
+        RenderSettings.ambientGroundColor = new Color(.26f, .25f, .24f);
+
+        // POSTACIE W ŁUKU przodem do gracza. Szereg był zły: policzone 16.11 — przy 19 postaciach
+        // w kadrze (FOV 55 st., 6,2 m) mieściły się TRZY. Łuk 150 st. na promieniu 5,2 m trzyma
+        // wszystkie w zasięgu obrotu gracza, a pokaz i tak wyciąga je pojedynczo na środek.
+        var ids = PostacieZOtoczenia();
+        DoczytajZrodla(ids);
+        var ustawioneAnim = new List<Animation>();
+        var ustawioneNazwy = new List<string>();
+        var braki = new List<string>();
+        float promien = 5.2f * K;
+        float luk = Mathf.Min(150f, Mathf.Max(0f, (ids.Length - 1) * 11f));
+        for (int i = 0; i < ids.Length; i++)
+        {
+            string id = ids[i];
+            try
+            {
+                float kat = ids.Length < 2 ? 0f : -luk * .5f + luk * i / (ids.Length - 1);
+                var kier = Quaternion.Euler(0, kat, 0) * Vector3.forward;
+                var korzen = new GameObject("Postać " + id).transform;
+                korzen.SetParent(pokoj, false);
+                korzen.localPosition = new Vector3(kier.x * promien, .02f, kier.z * promien);
+                korzen.localRotation = Quaternion.LookRotation(-kier, Vector3.up);
+                var a = BraxClaudeOsiedle.ModelObsady(id, korzen, 1.80f * K);
+                if (a.GetClip("Idle")) { a["Idle"].wrapMode = WrapMode.Loop; a.Play("Idle"); }
+                var opis = new GameObject("Podpis " + id).AddComponent<BraxPodpisPostaci>();
+                opis.transform.SetParent(korzen, false);
+                opis.transform.localPosition = Vector3.up * (2.05f * K);
+                opis.nazwa = id;
+                ustawioneAnim.Add(a);
+                ustawioneNazwy.Add(id);
+            }
+            catch (Exception e)
+            {
+                braki.Add(id + ": " + e.Message);
+                Debug.LogWarning("BRAX_POKOJ pominięta " + id + " — " + e.Message);
+            }
+        }
+        int ustawione = ustawioneAnim.Count;
+        if (ustawione == 0)
+            throw new InvalidOperationException("Pokój APK: żadna postać się nie wczytała. " + string.Join(" | ", braki));
+        Debug.Log("BRAX_POKOJ_APK postacie=" + ustawione + "/" + ids.Length + " łuk=" + luk.ToString("F0") + " st." +
+                  (braki.Count > 0 ? " pominięte: " + string.Join(" | ", braki) : ""));
+
+        // gracz: ten sam Patryk i to samo sterowanie co w rejonie (BraxTouchControls dokłada się sam)
+        var gracz = new GameObject("BraxhornPlayer");
+        gracz.transform.position = new Vector3(0, .05f, -2.6f * K);
+        var kapsula = gracz.AddComponent<CharacterController>();
+        kapsula.radius = .32f;
+        var bohater = BraxClaudeOsiedle.NowyPatrykOsiedla(gracz.transform, kapsula);
+        var runtime = gracz.AddComponent<BraxGymPlayer>();
+        runtime.visual = bohater.transform;
+        runtime.body = kapsula;
+        runtime.clips = bohater.GetComponent<Animation>();
+        runtime.bags = Array.Empty<Transform>();
+        runtime.worldSpawn = gracz.transform.position;
+        runtime.buildId = Environment.GetEnvironmentVariable("GITHUB_SHA") ?? "pokoj";
+        var kam = new GameObject("Kamera gracza").AddComponent<Camera>();
+        kam.tag = "MainCamera";
+        kam.fieldOfView = 55;
+        kam.nearClipPlane = .15f;
+        kam.farClipPlane = 60f;
+        kam.gameObject.AddComponent<AudioListener>();
+        runtime.view = kam;
+        BraxCityBuild.UstawSterowanieOsiedla(runtime);
+
+        // POKAZ: każda postać po kolei na środek, spoczynek → chód → bieg → rozmowa,
+        // kamera trzyma ją w kadrze, na ekranie nazwa i etap. Przycisk NAGRYWAJ albo
+        // nagrywanie ekranu telefonu daje gotowy film.
+        var srodek = new GameObject("Środek pokazu").transform;
+        srodek.SetParent(pokoj, false);
+        srodek.localPosition = new Vector3(0f, .02f, 1.2f * K);
+        var pokaz = new GameObject("Pokaz postaci").AddComponent<BraxPokazPostaci>();
+        pokaz.postacie = ustawioneAnim.ToArray();
+        pokaz.nazwy = ustawioneNazwy.ToArray();
+        pokaz.srodek = srodek;
+        pokaz.kamera = kam;
+
+        PlayerSettings.companyName = "Braxhorn";
+        PlayerSettings.productName = "Braxhorn Pokój Prób";
+        // OSOBNY identyfikator, żeby pokój NIE nadpisał gry na telefonie.
+        PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android, "com.braxhorn.pokojprob");
+        PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+        PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel24;
+        PlayerSettings.Android.useAPKExpansionFiles = false;
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
+        PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.Android, ManagedStrippingLevel.Medium);
+        string pass = File.Exists("braxhorn.keystore.pass") ? File.ReadAllText("braxhorn.keystore.pass").Trim() : null;
+        if (File.Exists("braxhorn.keystore") && !string.IsNullOrEmpty(pass))
+        {
+            PlayerSettings.Android.useCustomKeystore = true;
+            PlayerSettings.Android.keystoreName = Path.GetFullPath("braxhorn.keystore");
+            PlayerSettings.Android.keystorePass = pass;
+            PlayerSettings.Android.keyaliasName = "braxhorn";
+            PlayerSettings.Android.keyaliasPass = pass;
+        }
+        else PlayerSettings.Android.useCustomKeystore = false;
+
+        const string path = "Assets/PokojProbApk.unity";
+        if (!EditorSceneManager.SaveScene(scene, path)) throw new IOException(path);
+        var dest = Path.GetFullPath(Path.Combine(Application.dataPath, "../../build/Android/braxhorn-pokoj.apk"));
+        Directory.CreateDirectory(Path.GetDirectoryName(dest));
+        var wynik = BuildPipeline.BuildPlayer(new[] { path }, dest, BuildTarget.Android, BuildOptions.None);
+        if (wynik.summary.result != BuildResult.Succeeded) throw new Exception(wynik.summary.result.ToString());
+        Debug.Log("BRAX_POKOJ_APK gotowe: " + dest + " (" + wynik.summary.totalSize / 1048576 + " MB)");
     }
 }
