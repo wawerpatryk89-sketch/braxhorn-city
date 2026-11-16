@@ -114,22 +114,81 @@ public static class BraxPokojProbBuild
         Debug.Log("BRAX_POKOJ postacie=" + anim.Count + "/" + ids.Length +
                   (brakujace.Count > 0 ? " pominięte: " + string.Join(" | ", brakujace) : ""));
 
-        // --- kamera -------------------------------------------------------
+        // --- kamera i tryb próby -------------------------------------------
+        string tryb = (Environment.GetEnvironmentVariable("BRAX_TRYB") ?? "solo").Trim().ToLowerInvariant();
         var kam = new GameObject("Kamera próby").AddComponent<Camera>();
         kam.tag = "MainCamera";
         kam.gameObject.AddComponent<AudioListener>();
         kam.clearFlags = CameraClearFlags.SolidColor;
         kam.backgroundColor = new Color(.10f, .11f, .13f);
-        kam.fieldOfView = 34f;
         kam.nearClipPlane = .15f;
-        kam.transform.position = new Vector3(0f, 1.45f * K, -4.6f * K);
-        kam.transform.rotation = Quaternion.Euler(6f, 0f, 0f);
 
-        var proba = new GameObject("Próba postaci").AddComponent<BraxProbaPostaci>();
-        proba.kamera = kam;
-        proba.postacie = anim.ToArray();
-        proba.nazwy = nazwy.ToArray();
-        proba.mimiki = mimiki.ToArray();
+        if (tryb == "solo")
+        {
+            kam.fieldOfView = 34f;
+            kam.transform.position = new Vector3(0f, 1.45f * K, -4.6f * K);
+            kam.transform.rotation = Quaternion.Euler(6f, 0f, 0f);
+            var proba = new GameObject("Próba postaci").AddComponent<BraxProbaPostaci>();
+            proba.kamera = kam;
+            proba.postacie = anim.ToArray();
+            proba.nazwy = nazwy.ToArray();
+            proba.mimiki = mimiki.ToArray();
+        }
+        else
+        {
+            bool walka = tryb == "walka";
+            // Bić się mają TYLKO te postacie, które mają zestaw walki (właściciel 16.11, 09:02).
+            if (walka)
+            {
+                var umieja = Enumerable.Range(0, anim.Count)
+                    .Where(i => anim[i].GetClip("CombatIdle") &&
+                                new[] { "Jab", "Cross", "Hook" }.Any(c => anim[i].GetClip(c)))
+                    .ToList();
+                if (umieja.Count < 2)
+                    throw new InvalidOperationException(
+                        "Próba walki: trzeba dwóch z zestawem walki. Mają go: " +
+                        (umieja.Count == 0 ? "nikt z podanych" : string.Join(", ", umieja.Select(i => nazwy[i]))));
+                anim = umieja.Select(i => anim[i]).ToList();
+                nazwy = umieja.Select(i => nazwy[i]).ToList();
+                mimiki = umieja.Select(i => mimiki[i]).ToList();
+            }
+
+            float promien = walka ? .62f * K : .85f * K;   // walka: dystans ciosu; rozmowa: dystans rozmowy
+            int n = Mathf.Min(anim.Count, walka ? 2 : 3);
+            anim = anim.Take(n).ToList(); nazwy = nazwy.Take(n).ToList(); mimiki = mimiki.Take(n).ToList();
+            var spojrzenia = new List<BraxSpojrzeniePatryka>();
+            for (int i = 0; i < n; i++)
+            {
+                float katUst = n == 2 ? (i == 0 ? 180f : 0f) : i * 120f;
+                var poz = Quaternion.Euler(0, katUst, 0) * Vector3.forward * promien;
+                var korzen = anim[i].transform.parent;
+                korzen.localPosition = new Vector3(poz.x, .02f, poz.z);
+                korzen.localRotation = Quaternion.LookRotation(-poz.normalized, Vector3.up);
+                anim[i].gameObject.SetActive(true);
+
+                var kosci = anim[i].GetComponentsInChildren<Transform>(true);
+                var szyja = kosci.FirstOrDefault(t => t.name.EndsWith("Neck", StringComparison.Ordinal));
+                var glowa = kosci.FirstOrDefault(t => t.name.EndsWith("Head", StringComparison.Ordinal));
+                var wzrok = anim[i].gameObject.AddComponent<BraxSpojrzeniePatryka>();
+                wzrok.postac = korzen;
+                wzrok.szyja = szyja;
+                wzrok.glowa = glowa;
+                wzrok.przodGlowy = glowa ? glowa.InverseTransformDirection(korzen.forward) : Vector3.forward;
+                spojrzenia.Add(wzrok);
+            }
+
+            kam.fieldOfView = walka ? 38f : 40f;
+            kam.transform.position = new Vector3(2.9f * K, 1.5f * K, -3.4f * K);
+            kam.transform.LookAt(new Vector3(0f, 1.15f * K, 0f));
+
+            var para = new GameObject("Próba par").AddComponent<BraxProbaPary>();
+            para.tryb = walka ? BraxProbaPary.Tryb.Walka : BraxProbaPary.Tryb.Rozmowa;
+            para.postacie = anim.ToArray();
+            para.nazwy = nazwy.ToArray();
+            para.mimiki = mimiki.ToArray();
+            para.spojrzenia = spojrzenia.ToArray();
+            Debug.Log("BRAX_POKOJ tryb=" + tryb + " postacie=" + string.Join(",", nazwy));
+        }
 
         const string path = "Assets/PokojProb.unity";
         if (!EditorSceneManager.SaveScene(scene, path)) throw new IOException(path);

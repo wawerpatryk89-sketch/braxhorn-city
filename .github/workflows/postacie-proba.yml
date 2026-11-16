@@ -13,6 +13,14 @@ name: Pokoj prob postaci (bez APK, bez rejonu)
         description: 'Postacie po przecinku, np. patryk,ewa,kiler (puste = patryk)'
         type: string
         default: patryk
+      tryb:
+        description: 'solo = kazda osobno (chod, bieg, mowa) | rozmowa = 2-3 razem (czy patrza na siebie) | walka = 2 (czy dochodza ciosy)'
+        type: choice
+        options:
+        - solo
+        - rozmowa
+        - walka
+        default: solo
       klatek:
         description: 'Klatek na etap (36 = 1,5 s przy 24 kl./s)'
         type: string
@@ -39,6 +47,24 @@ jobs:
           unity-tools/claude
         persist-credentials: false
 
+    # SZYBKIE TESTY (wlasciciel 16.11, 09:03): postac raz przerobiona przez Blendera zostaje
+    # w pamieci podrecznej; kolejny przebieg bierze ja gotowa i pomija Blendera.
+    - name: Pamiec podreczna przerobionych postaci
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: unity-city/Assets/Source/ObsadaOsiedla
+        key: postacie-przerobione-v1-${{ hashFiles('unity-tools/claude/osiedle_ruch.py','unity-tools/claude/osiedle_twarz.py','unity-tools/claude/osiedle_odstep.py','unity-tools/claude/pobierz_obsade.py') }}-${{ inputs.postacie }}
+        restore-keys: |
+          postacie-przerobione-v1-${{ hashFiles('unity-tools/claude/osiedle_ruch.py','unity-tools/claude/osiedle_twarz.py','unity-tools/claude/osiedle_odstep.py','unity-tools/claude/pobierz_obsade.py') }}-
+
+    - name: Pamiec podreczna Library Unity
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: unity-city/Library
+        key: pokoj-prob-library-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}
+        restore-keys: |
+          pokoj-prob-library-v1-
+
     - name: Blender i FFmpeg
       run: |
         bash unity-tools/claude/blender_ci.sh
@@ -48,6 +74,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         BRAX_POSTACIE: ${{ inputs.postacie }}
+        BRAX_TRYB: ${{ inputs.tryb }}
       run: python3 unity-tools/claude/pokoj-prob/przygotuj.py
 
     - name: Zbuduj pokoj prob
@@ -57,6 +84,7 @@ jobs:
         UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
         UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         BRAX_POSTACIE: ${{ inputs.postacie }}
+        BRAX_TRYB: ${{ inputs.tryb }}
       with:
         projectPath: unity-city
         unityVersion: 6000.0.58f2
@@ -69,6 +97,7 @@ jobs:
       env:
         LIBGL_ALWAYS_SOFTWARE: '1'
         BRAX_POSTACIE: ${{ inputs.postacie }}
+        BRAX_TRYB: ${{ inputs.tryb }}
       run: |
         set -euo pipefail
         export BRAX_PROBA_KLATKI="$RUNNER_TEMP/klatki"
@@ -86,7 +115,7 @@ jobs:
         kod=$?
         set -e
         echo "--- wynik proby ---"
-        grep -E 'BRAX_POSTAC |BRAX_POKOJ|BRAX_PROBA_POSTACI_KONIEC' "$RUNNER_TEMP/pokoj.log" || true
+        grep -E 'BRAX_POSTAC |BRAX_ROZMOWA |BRAX_CIOS |BRAX_POKOJ|BRAX_PROBA_POSTACI_KONIEC|BRAX_PROBA_PARY_KONIEC' "$RUNNER_TEMP/pokoj.log" || true
         cat "$BRAX_PROBA_KLATKI/wynik.txt" || { tail -80 "$RUNNER_TEMP/pokoj.log"; exit 1; }
         ffmpeg -hide_banner -loglevel error -framerate 24 \
           -i "$BRAX_PROBA_KLATKI/%05d.jpg" -c:v libx264 -pix_fmt yuv420p \

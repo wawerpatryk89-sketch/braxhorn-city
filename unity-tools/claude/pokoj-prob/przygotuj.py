@@ -63,10 +63,30 @@ def wybrane():
     return out
 
 
+def gotowa(katalog, ident):
+    """Postać przerobiona we wcześniejszym przebiegu (pamięć podręczna) — nie liczymy jej od nowa."""
+    return all((katalog / n).is_file() for n in
+               (ident + ".fbx", "Color.png", "Normal.png", "MetalSmooth.png", "Mimika.png"))
+
+
 def main():
     ids = wybrane()
     cel = obsada.ROOT / "unity-city/Assets/Source/ObsadaOsiedla"
     cel.mkdir(parents=True, exist_ok=True)
+
+    # Szybkie testy przy dużej obsadzie (właściciel 16.11, 09:03: „mamy bardzo dużo postaci,
+    # więc musimy mieć do tego środowisko odpowiednie na szybkie testy”): postać raz przerobiona
+    # przez Blendera leży w pamięci podręcznej i w kolejnym przebiegu jest brana gotowa.
+    z_pamieci = [i for i in ids if gotowa(cel / i, i)]
+    ids = [i for i in ids if i not in z_pamieci]
+    if z_pamieci:
+        print("BRAX_POKOJ z pamięci podręcznej:", ", ".join(z_pamieci), flush=True)
+    if not ids:
+        print("BRAX_POKOJ wszystkie postacie gotowe — Blender pominięty", flush=True)
+        zasoby = obsada.ROOT / "unity-city/Assets/Resources"
+        prepare(zasoby / "OsiedleGlosy", zasoby / "OsiedleMimika", KWESTIA)
+        return
+
     blender = Path(os.environ["RUNNER_TEMP"]) / "blender-4.2.3-linux-x64/blender"
 
     with tempfile.TemporaryDirectory(dir=cel.parent) as temp:
