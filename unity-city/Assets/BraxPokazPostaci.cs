@@ -62,6 +62,27 @@ public sealed class BraxPokazPostaci : MonoBehaviour
         Debug.Log($"BRAX_POKAZ_MATERIAL {u.nazwa} gl={u.gl:F2} metal={u.me:F0} norm={u.nr:F1}");
     }
 
+    // WYBÓR POZY SPOCZYNKOWEJ (właściciel 16.11, 20:41: „zrób pozę Patryka”).
+    // Patryk ma w paczce DZIESIĘĆ ujęć spoczynkowych (Idle, CarIdle, CombatIdle, SeatedIdle…),
+    // a zmierzone kąty ramion pokazują, że nie odstaje od reszty obsady — więc nie zgaduję,
+    // który spoczynek jest właściwy, tylko daję je do przejrzenia. Przycisk przełącza spoczynek
+    // pokazywanej postaci; nazwa ujęcia jest na ekranie, żeby dało się ją podać.
+    string[] pozy = new string[0];
+    int poza;
+
+    void ZbierzPozy(Animation a)
+    {
+        var lista = new System.Collections.Generic.List<string>();
+        foreach (AnimationState st in a)
+            if (st.clip && st.name.IndexOf("Idle", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                lista.Add(st.name);
+        lista.Sort(System.StringComparer.Ordinal);
+        int i = lista.IndexOf("Idle");
+        if (i > 0) { lista.RemoveAt(i); lista.Insert(0, "Idle"); }   // własny spoczynek pierwszy
+        pozy = lista.ToArray();
+        poza = 0;
+    }
+
     int kto = -1;
     string etap = "";
     bool nagrywa;
@@ -92,6 +113,7 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                 korzen.localPosition = srodek ? srodek.localPosition : Vector3.zero;
                 korzen.localRotation = Quaternion.Euler(0, 180f, 0);
 
+                ZbierzPozy(a);
                 int nrEtapu = -1;
                 foreach (var (klip, opis) in Etapy)
                 {
@@ -99,7 +121,9 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                     etap = opis;
                     bool obrot = opis.StartsWith("OBRÓT");
                     bool rozmowa = opis == "ROZMOWA";
-                    if (a.GetClip(klip)) { a[klip].wrapMode = WrapMode.Loop; a.CrossFade(klip, .2f); }
+                    string doGrania = klip;
+                    if (klip == "Idle" && pozy.Length > 0) doGrania = pozy[Mathf.Clamp(poza, 0, pozy.Length - 1)];
+                    if (a.GetClip(doGrania)) { a[doGrania].wrapMode = WrapMode.Loop; a.CrossFade(doGrania, .2f); }
                     else
                     {
                         // Nie samo „BRAK KLIPU” — od razu widac, co ta postac ma, zeby nie trzeba
@@ -109,7 +133,7 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                         ma.Sort(System.StringComparer.Ordinal);
                         // Na telefonie w pionie dluga linia ucina sie na krawedzi (widac na
                         // nagraniu wlasciciela: „BRAK KLIPU Run (ma:” i koniec). Krotko i konkretnie.
-                        etap = opis + " — BRAK " + klip + " (" + ma.Count + " ujec: " +
+                        etap = opis + " — BRAK " + doGrania + " (" + ma.Count + " ujec: " +
                                string.Join(",", ma.GetRange(0, System.Math.Min(4, ma.Count))) +
                                (ma.Count > 4 ? "…" : "") + ")";
                     }
@@ -188,6 +212,20 @@ public sealed class BraxPokazPostaci : MonoBehaviour
         {
             wariant = (wariant + 1) % Ustawienia.Length;
             ZastosujMaterial();
+        }
+        if (pozy.Length > 1 &&
+            GUI.Button(new Rect(Screen.width - 330, Screen.height - 250, 300, 90),
+                       "POZA: " + pozy[Mathf.Clamp(poza, 0, pozy.Length - 1)] +
+                       "  (" + (poza + 1) + "/" + pozy.Length + ")", przyciskStyl))
+        {
+            poza = (poza + 1) % pozy.Length;
+            var a = postacie[Mathf.Clamp(kto, 0, postacie.Length - 1)];
+            if (a && a.GetClip(pozy[poza]))
+            {
+                a[pozy[poza]].wrapMode = WrapMode.Loop;
+                a.CrossFade(pozy[poza], .25f);
+                Debug.Log("BRAX_POKAZ_POZA " + pozy[poza]);
+            }
         }
         GUI.Label(new Rect(20, Screen.height - 50, Screen.width - 40, 36),
                   $"postać {kto + 1}/{postacie.Length}", duzy);
