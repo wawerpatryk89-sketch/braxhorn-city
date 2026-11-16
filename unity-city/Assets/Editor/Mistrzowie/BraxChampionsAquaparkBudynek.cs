@@ -224,19 +224,32 @@ public static partial class BraxChampionsAquapark
         WallZ(renderIn, 49f, -80f, BZ1, FFL, hy, ti);
         Finish(ti);
         // ---------------- turnstiles (3 stainless gates in the west opening)
-        // slim speed gates: brushed stainless cabinets 16 cm wide, a black glass top with a white LED line, glass wings into
-        // both passages (they open for whoever walks through - no collider on the wings)
+        // SPEED GATES (owner 16.11 08:25 "co to są za tandetne bramki"): brushed stainless cabinets with rounded ends on a black
+        // granite plinth, a black glass top with the card reader and green arrows lit, tall frameless glass wings 1.6 m with
+        // stainless edges into both passages, a stainless canopy rail over the line of gates
         var gateTop = S("gate_black_glass", new Color(.02f, .02f, .025f, .92f), .05f, 0f, null, true);
+        var arrow = S("gate_arrow_green", new Color(.10f, .85f, .35f), .3f, 0f, new Color(.25f, 1.6f, .55f));
+        var inox = Inside(BraxChampionsFoundation.LibraryMetal("aq_gate_brushed_inox", new Color(.86f, .87f, .89f)), 1.0f);
+        BL(marbleBlack, -14.75f, -13.25f, FFL, FFL + .02f, -95.35f, -91.05f);
         foreach (float z in new[] { -94.6f, -93.2f, -91.8f })
         {
-            BL(steel, -14.62f, -13.38f, FFL, FFL + .92f, z - .08f, z + .08f, true);
-            BL(gateTop, -14.62f, -13.38f, FFL + .92f, FFL + .97f, z - .085f, z + .085f);
-            BL(led, -14.55f, -13.45f, FFL + .97f, FFL + .975f, z - .015f, z + .015f);
+            BL(inox, -14.5f, -13.5f, FFL + .02f, FFL + 1.0f, z - .1f, z + .1f, true);
+            foreach (float ex in new[] { -14.5f, -13.5f }) m.Cylinder(inox, V(ex, FFL + .02f, z), .1f, .98f, 20);
+            BL(gateTop, -14.5f, -13.5f, FFL + 1.0f, FFL + 1.03f, z - .1f, z + .1f);
+            foreach (float ex in new[] { -14.5f, -13.5f }) m.Cylinder(gateTop, V(ex, FFL + 1.0f, z), .1f, .03f, 20);
+            BL(black, -14.38f, -14.18f, FFL + 1.03f, FFL + 1.045f, z - .06f, z + .06f);                    // card reader
+            foreach (float ax in new[] { -13.95f, -13.75f }) BL(arrow, ax - .04f, ax + .04f, FFL + 1.03f, FFL + 1.034f, z - .015f, z + .015f);
             foreach (float s2 in new[] { -1f, 1f })
-                BL(glass, -14.02f, -13.98f, FFL + .30f, FFL + 1.15f, s2 < 0 ? z - .48f : z + .08f, s2 < 0 ? z - .08f : z + .48f);
+            {
+                float w0 = s2 < 0 ? z - .55f : z + .1f, w1 = s2 < 0 ? z - .1f : z + .55f;
+                BL(glass, -14.02f, -13.98f, FFL + .25f, FFL + 1.6f, w0, w1);
+                BL(inox, -14.025f, -13.975f, FFL + 1.6f, FFL + 1.62f, w0, w1);
+            }
         }
+        BL(inox, -14.06f, -13.94f, FFL + 2.62f, FFL + 2.68f, -95.4f, -91.0f);
         Lobby(); ChangingRoom("KOBIETY", BX0, -36f); ChangingRoom("MĘŻCZYŹNI", -36f, -14f); Spa();
         Restaurant(); Lounges();                                                                 // 16.11 08:13 "bogate wyposażenie"
+        Wellness();                                                                              // 16.11 08:25 saunas, jacuzzi, pictures, plants
     }
 
     // full-height glazing with black mullions every 2.4 m and a black head; gaps (doors) left open
@@ -308,36 +321,36 @@ public static partial class BraxChampionsAquapark
         }
         float zIn = -90f + e + d, zOut = -90f - e - d;                                              // the z -90 runs' faces
         // LOBBY x -14..14: walnut on both side walls (the turnstiles' opening, the SPA door)
-        PanelZ(walnut, -14f, +1f, e, BZ0 + eo, BZ1 - eo, (-95.5f, -90.9f, FFL + 2.8f));
-        PanelZ(walnut, 14f, -1f, e, BZ0 + eo, BZ1 - eo, (-94.5f, -91.9f, gd));
+        PanelZ(walnut, -14f, +1f, e, BZ0 + eo, BZ1 - eo, (-95.4f, -91.0f, FFL + 2.8f));
+        PanelZ(walnut, 14f, -1f, e, BZ0 + eo, BZ1 - eo, (-94.4f, -92.0f, gd));
         RevealZ(walnut, -14f, -95.4f, -91.0f, FFL + 2.8f); RevealZ(frameSteel, 14f, -94.4f, -92.0f, gd);
         // CORRIDORS z -96..-90 (walnut): the corridor wall, the street wall's inside, both end walls, the lobby walls' backs
-        PanelX(walnut, -90f, -1f, e, BX0 + eo, -14f - e, (-47.7f, -46.3f, sd), (-25.7f, -24.3f, sd));
-        PanelX(walnut, -90f, -1f, e, 14f + e, BX1 - eo, (25.7f, 28.3f, gd), (48.55f, 49.95f, sd));
+        PanelX(walnut, -90f, -1f, e, BX0 + eo, -14f - e, (-47.67f, -46.33f, sd), (-25.67f, -24.33f, sd));
+        PanelX(walnut, -90f, -1f, e, 14f + e, BX1 - eo, (25.8f, 28.2f, gd), (48.58f, 49.92f, sd));
         RevealX(frameSteel, -90f, 25.8f, 28.2f, gd);
         PanelX(walnut, BZ0, +1f, eo, BX0 + eo, -14f - e); PanelX(walnut, BZ0, +1f, eo, 14f + e, BX1 - eo);
         PanelZ(walnut, BX0, +1f, eo, BZ0 + eo + d, zOut); PanelZ(walnut, BX1, -1f, eo, BZ0 + eo + d, zOut);
-        PanelZ(walnut, -14f, -1f, e, BZ0 + eo + d, zOut, (-95.5f, -90.9f, FFL + 2.8f));
-        PanelZ(walnut, 14f, +1f, e, BZ0 + eo + d, zOut, (-94.5f, -91.9f, gd));
+        PanelZ(walnut, -14f, -1f, e, BZ0 + eo + d, zOut, (-95.4f, -91.0f, FFL + 2.8f));
+        PanelZ(walnut, 14f, +1f, e, BZ0 + eo + d, zOut, (-94.4f, -92.0f, gd));
         // CHANGING ROOMS x -58..-36 / -36..-14 (white tiles floor to slats, every wall; the doors to the corridor and the deck)
-        PanelX(tiles, -90f, +1f, e, BX0 + eo, -14f - e, (-47.7f, -46.3f, sd), (-36f - e, -36f + e, 0f), (-25.7f, -24.3f, sd));
-        PanelX(tiles, BZ1, -1f, eo, BX0 + eo, -14f - e, (-48.1f, -45.9f, gd), (-36f - e, -36f + e, 0f), (-26.1f, -23.9f, gd));
+        PanelX(tiles, -90f, +1f, e, BX0 + eo, -14f - e, (-47.67f, -46.33f, sd), (-36f - e, -36f + e, 0f), (-25.67f, -24.33f, sd));
+        PanelX(tiles, BZ1, -1f, eo, BX0 + eo, -14f - e, (-48.0f, -46.0f, gd), (-36f - e, -36f + e, 0f), (-26.0f, -24.0f, gd));
         PanelZ(tiles, BX0, +1f, eo, zIn, BZ1 - eo - d);
         PanelZ(tiles, -36f, -1f, e, zIn, BZ1 - eo - d); PanelZ(tiles, -36f, +1f, e, zIn, BZ1 - eo - d);
         PanelZ(tiles, -14f, -1f, e, zIn, BZ1 - eo - d);
         // JACUZZI HALL x 14..40 (walnut; the glass to the deck north)
-        PanelX(walnut, -90f, +1f, e, 14f + e, 40f - e, (25.7f, 28.3f, gd));
+        PanelX(walnut, -90f, +1f, e, 14f + e, 40f - e, (25.8f, 28.2f, gd));
         PanelZ(walnut, 14f, +1f, e, zIn, BZ1 - eo);
-        PanelZ(walnut, 40f, -1f, e, zIn, BZ1 - eo, (-73.3f, -71.9f, sd));
+        PanelZ(walnut, 40f, -1f, e, zIn, BZ1 - eo, (-73.27f, -71.93f, sd));
         // SAUNA ROOM x 40..58, z -90..-80 (oak all round)
-        PanelX(oak, -90f, +1f, e, 40f + e, BX1 - eo, (48.55f, 49.95f, sd));
-        PanelX(oak, -80f, -1f, e, 40f + e, BX1 - eo, (52.8f, 54.2f, sd));
+        PanelX(oak, -90f, +1f, e, 40f + e, BX1 - eo, (48.58f, 49.92f, sd));
+        PanelX(oak, -80f, -1f, e, 40f + e, BX1 - eo, (52.83f, 54.17f, sd));
         PanelZ(oak, 40f, +1f, e, zIn, -80f - e - d); PanelZ(oak, BX1, -1f, eo, zIn, -80f - e - d);
         // MASSAGE A x 40..49 / B x 49..58, z -80..-64 (walnut all round; the black marble wall stands in front of the north one)
-        PanelX(walnut, -80f, +1f, e, 40f + e, 49f - e); PanelX(walnut, -80f, +1f, e, 49f + e, BX1 - eo, (52.8f, 54.2f, sd));
+        PanelX(walnut, -80f, +1f, e, 40f + e, 49f - e); PanelX(walnut, -80f, +1f, e, 49f + e, BX1 - eo, (52.83f, 54.17f, sd));
         PanelX(walnut, BZ1, -1f, eo, 40f + e, 49f - e); PanelX(walnut, BZ1, -1f, eo, 49f + e, BX1 - eo);
         float zM = -80f + e + d, zN = BZ1 - eo - d;
-        PanelZ(walnut, 40f, +1f, e, zM, zN, (-73.3f, -71.9f, sd));
+        PanelZ(walnut, 40f, +1f, e, zM, zN, (-73.27f, -71.93f, sd));
         PanelZ(walnut, 49f, -1f, e, zM, zN); PanelZ(walnut, 49f, +1f, e, zM, zN); PanelZ(walnut, BX1, -1f, eo, zM, zN);
         // the sauna room's rest corner: three loungers (BraxSeat lie) and two plants
         foreach (float x in new[] { 51.9f, 54.0f, 56.1f }) Lounger(V(x, FFL, -84.6f), 0f);
@@ -461,24 +474,8 @@ public static partial class BraxChampionsAquapark
 
     static void Spa()
     {
-        // JACUZZI HALL: the owner's four hot tubs in a 2 x 2 grid on white marble, loungers at the glass
-        var tubs = new[] { (20.5f, -84.5f), (33.5f, -84.5f), (20.5f, -77.0f), (33.5f, -77.0f) };
-        foreach (var (x, z) in tubs)
-        {
-            var o = Owner("jacuzzi_wanna", V(x, FFL, z), 0f, true);
-            if (!o) continue;
-            // the model's own flat water hidden, the region's bubbling water at its level; four places to sit in
-            float wy = FFL + .77f; Vector3 wc = V(x, 0, z);
-            foreach (var r in o.GetComponentsInChildren<MeshRenderer>(true))
-                if (r.name.ToLowerInvariant().Contains("water")) { var bd = r.bounds; wy = bd.center.y / K; wc = bd.center / K; r.enabled = false; }
-            var pool = Ccw(RoundRect(wc.x - .96f, wc.x + .96f, wc.z - .96f, wc.z + .96f, .2f, .3f));
-            Fill(m, waterSpa, pool, null, wy);
-            foreach (var (dx, dz, yaw) in new[] { (-.6f, -.6f, 45f), (.6f, -.6f, -45f), (-.6f, .6f, 135f), (.6f, .6f, -135f) })
-            {
-                var g = new GameObject("jacuzzi SPA miejsce"); g.transform.SetParent(seats, false); g.transform.localPosition = new Vector3(wc.x + dx, wy - .32f, wc.z + dz) * K;
-                g.transform.localRotation = Quaternion.Euler(0, yaw, 0); var s = g.AddComponent<BraxSeat>(); s.label = "JACUZZI"; s.surfaceY = (wy - .32f) * K; Seats++;
-            }
-        }
+        // JACUZZI HALL: two built raised spa pools (BraxChampionsAquaparkWellness.IndoorSpa - 16.11 08:25 "gdzie masz porobione
+        // jacuzzi": the owner's four small tub models read as wooden boxes), loungers at the glass
         for (float x = 16f; x <= 38.1f; x += 2.2f) Lounger(V(x, FFL, -68.5f), 180f);
         // the black marble wall with the bull mark and the name, opposite the glass
         BL(marbleBlack, 14.08f, 14.32f, FFL, CY, -88.5f, -70.5f, true);
@@ -486,8 +483,10 @@ public static partial class BraxChampionsAquapark
         BraxChampionsLetters3D.Text(m, BraxChampionsHarbour.SignFace, BraxChampionsHarbour.SignDark, "SPA & WELLNESS", V(14.34f, FFL + 1.05f, -79.5f), 90f, .34f, .05f, .12f, 8f);
         BraxChampionsLetters3D.Text(m, BraxChampionsHarbour.SignFace, BraxChampionsHarbour.SignDark, "JACUZZI", V(27f, FFL + 2.95f, -90.09f), 180f, .26f, .04f, .1f, 4f);
         // SAUNA room: the owner's two cabins, a bench, the cold shower
-        Owner("sauna_kabina", V(43.5f, FFL, -88.6f), 0f, true);
-        Owner("sauna_kabina", V(46.4f, FFL, -88.6f), 0f, true);
+        // the owner's two cabins (infrared) east of the corridor door - the walk-in SAUNA FIŃSKA and ŁAŹNIA PAROWA fill the
+        // south-west corner (BraxChampionsAquaparkWellness.Sauna)
+        Owner("sauna_kabina", V(53.0f, FFL, -88.6f), 0f, true);
+        Owner("sauna_kabina", V(54.7f, FFL, -88.6f), 0f, true);
         Owner("prysznic_kabina", V(56.6f, FFL, -88.8f), 0f, false);
         ShowerWater(V(56.6f, FFL + 2.02f, -88.8f), FFL, "zimny prysznic SPA");
         foreach (float sx in new[] { -.64f, .64f }) Col(CX + 56.6f + sx - .03f, CX + 56.6f + sx + .03f, FFL, FFL + 2.2f, CZ - 89.3f, CZ - 88.2f, "kabina prysznic");

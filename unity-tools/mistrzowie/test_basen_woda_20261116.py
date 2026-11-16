@@ -164,5 +164,44 @@ class RichFurnishing(unittest.TestCase):
         self.assertIn("'large_floor_tiles_02'", read(ROOT / "unity-tools/mistrzowie/prepare_assets.py"))
 
 
+class SaunasSpasTowerDecor(unittest.TestCase):
+    """Owner 16.11 08:25-08:26: "Sauny, gdzie są porobione sauny? Jacuzzi ...? Co to są za tandetne bramki? Kwiatki, obrazy",
+    "zjeżdżalnia funkcjonalna ... wchodziłem na górę, to spadałem w przepaść ... wszystko ma być funkcjonalne"."""
+
+    def setUp(self):
+        self.w = read(ED / "BraxChampionsAquaparkWellness.cs")
+        self.bud = read(ED / "BraxChampionsAquaparkBudynek.cs")
+        self.t = read(ED / "BraxChampionsAquaparkZjezdzalnie.cs")
+
+    def test_walk_in_saunas_and_built_spa_pools(self):
+        self.assertIn('Sauna("SAUNA FIŃSKA 90°C", 40.095f, 44.55f, false);', self.w)
+        self.assertIn('Sauna("ŁAŹNIA PAROWA 45°C", 44.65f, 48.45f, true);', self.w)
+        self.assertIn("Door(name, dc, zf, 0f, .8f, 2.05f, true);", self.w)          # a door that opens
+        self.assertIn('Seat("SAUNA"', self.w)
+        self.assertIn('IndoorSpa("JACUZZI SPA 1", 21.0f, -82.6f);', self.w)
+        self.assertIn("WaterBody(new Pool", self.w)
+        self.assertIn("Wellness();", self.bud)
+        self.assertNotIn('Owner("jacuzzi_wanna"', self.bud)
+        self.assertIn("'hinoki_planks'", read(ROOT / "unity-tools/mistrzowie/prepare_assets.py"))
+        guid = re.search(r"guid: ([0-9a-f]{32})", read(ED / "BraxChampionsAquaparkWellness.cs.meta")).group(1)
+        self.assertEqual(len([p for p in ASSETS.rglob("*.meta") if guid in p.read_text(errors="ignore")]), 1)
+
+    def test_pictures_plants_and_real_gates(self):
+        self.assertIn("MFrame1", self.w)
+        self.assertIn("MClock", self.w)
+        self.assertIn('"aq_gate_brushed_inox"', self.bud)
+        self.assertIn("(-95.4f, -91.0f, FFL + 2.8f)", self.bud)                     # panels to the exact opening
+        # grey steel is grey: the brass Metal048A map's hue divided out for grey tints
+        self.assertIn("tint=new Color(N(tint.r,.991f),N(tint.g,.768f),N(tint.b,.332f),tint.a);", read(ED / "BraxChampionsFoundation.cs"))
+
+    def test_tower_never_drops_you_into_the_void(self):
+        self.assertIn('"klatka schodowa: szkło"', self.t)
+        self.assertIn('"między biegami: szkło"', self.t)
+        self.assertIn('"podest: balustrada"', self.t)
+        self.assertIn("Rail(V(WellX1, L4, 61.0f), V(WellX1, L4, WellZ1), (0f, 0f));", self.t)
+        self.assertIn('bar.AddComponent<BoxCollider>().size = new Vector3(halfW * 2f + .2f, 2.4f, .12f) * K;', self.t)
+        self.assertIn('Col(s0, s1, y, y + 1.6f, a.z - .06f, a.z + .06f, "balustrada");', self.t)
+
+
 if __name__ == "__main__":
     unittest.main()

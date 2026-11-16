@@ -68,6 +68,7 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsAquaparkBudynek.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsAquaparkRzeka.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsAquaparkRestauracja.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsAquaparkWellness.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsAquaparkVip.cs" />
   </ItemGroup>
 </Project>

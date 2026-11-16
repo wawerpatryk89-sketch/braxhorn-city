@@ -66,7 +66,17 @@ public static partial class BraxChampionsAquapark
             Fill(walk, antiSlip, land, null, mid); Fill(m, black, land, null, mid - .2f, true); Skin(m, black, Ccw(land), mid - .2f, mid, false);
             // wall-side stringer posts at the landing
             B(black, CX + 25.4f, CX + 25.55f, DY, mid, CZ + 59.4f, CZ + 59.55f); B(black, CX + 25.4f, CX + 25.55f, DY, mid, CZ + 62.55f, CZ + 62.7f);
+            // 16.11 08:26 owner: "jak tam wchodziłem na górę, to spadałem w przepaść ... wszystko ma być funkcjonalne": the stair
+            // core is now closed - glass walls (with colliders) along both outer sides of the flights, between the two flights,
+            // and round the half landing; nobody steps off a flight or a landing into the void
+            foreach (float zw in new[] { 59.35f, 62.75f }) { B(glass, CX + 25.4f, CX + 29.8f, y0, y1, CZ + zw - .006f, CZ + zw + .006f); Col(CX + 25.4f, CX + 29.8f, y0, y1 + 1.2f, CZ + zw - .05f, CZ + zw + .05f, "klatka schodowa: szkło"); }
+            B(glass, CX + 27.0f, CX + 29.8f, y0, y1 + 1.0f, CZ + 61.044f, CZ + 61.056f); Col(CX + 27.0f, CX + 29.8f, y0, y1 + 1.2f, CZ + 61.0f, CZ + 61.1f, "między biegami: szkło");
+            B(black, CX + 27.0f, CX + 29.8f, y1 + 1.0f, y1 + 1.05f, CZ + 61.02f, CZ + 61.08f);
+            B(glass, CX + 25.35f, CX + 25.40f, mid, mid + 1.1f, CZ + 59.4f, CZ + 62.7f); Col(CX + 25.3f, CX + 25.45f, mid, mid + 1.6f, CZ + 59.4f, CZ + 62.7f, "podest: balustrada");
         }
+        // the top (L4): the well over the last flight is closed on its east and north sides (the arrival stays open)
+        Rail(V(WellX1, L4, 61.0f), V(WellX1, L4, WellZ1), (0f, 0f));
+        Rail(V(WellX0, L4, WellZ1), V(WellX1, L4, WellZ1), (0f, 0f));
         // glass balustrades round every platform and the well, openings at the slide gates and the stair arrivals
         foreach (float y in new[] { L1, L2, L3, L4 })
         {
@@ -129,12 +139,12 @@ public static partial class BraxChampionsAquapark
             if (alongX)
             {
                 B(glass, s0, s1, y + .08f, y + 1.04f, a.z - .006f, a.z + .006f); B(black, s0, s1, y, y + .08f, a.z - .04f, a.z + .04f);
-                B(black, s0, s1, y + 1.04f, y + 1.10f, a.z - .035f, a.z + .035f); Col(s0, s1, y, y + 1.1f, a.z - .06f, a.z + .06f, "balustrada");
+                B(black, s0, s1, y + 1.04f, y + 1.10f, a.z - .035f, a.z + .035f); Col(s0, s1, y, y + 1.6f, a.z - .06f, a.z + .06f, "balustrada");
             }
             else
             {
                 B(glass, a.x - .006f, a.x + .006f, y + .08f, y + 1.04f, s0, s1); B(black, a.x - .04f, a.x + .04f, y, y + .08f, s0, s1);
-                B(black, a.x - .035f, a.x + .035f, y + 1.04f, y + 1.10f, s0, s1); Col(a.x - .06f, a.x + .06f, y, y + 1.1f, s0, s1, "balustrada");
+                B(black, a.x - .035f, a.x + .035f, y + 1.04f, y + 1.10f, s0, s1); Col(a.x - .06f, a.x + .06f, y, y + 1.6f, s0, s1, "balustrada");
             }
         }
     }
@@ -376,6 +386,13 @@ public static partial class BraxChampionsAquapark
     static void Gate(Vector3 at, Vector3 dir, string name, float halfW = .78f)
     {
         var rot = Quaternion.LookRotation(dir); var r = rot * Vector3.right;
+        // 16.11 08:26 (owner fell into the void at the top): the opening is closed by a stainless start bar at the hips and an
+        // invisible wall 2.4 m high - you leave the tower only on the slide (AKCJA = ZJEDŹ at the gate), never on foot
+        m.Box(steel, at + Vector3.up * .95f, new Vector3(halfW * 2f, .05f, .05f), rot);
+        m.Box(steel, at + Vector3.up * .55f, new Vector3(halfW * 2f, .04f, .04f), rot);
+        var bar = new GameObject("bramka zjeżdżalni " + name + ": zamknięta (zjazd tylko AKCJĄ)"); bar.transform.SetParent(cols, false);
+        bar.transform.localPosition = (at + Vector3.up * 1.2f) * K; bar.transform.localRotation = rot;
+        bar.AddComponent<BoxCollider>().size = new Vector3(halfW * 2f + .2f, 2.4f, .12f) * K; Colliders++;
         foreach (float s in new[] { -1f, 1f }) m.Box(steel, at + r * halfW * s + Vector3.up * 1.2f, new Vector3(.08f, 2.4f, .08f), rot);
         m.Box(black, at + Vector3.up * 2.55f, new Vector3(halfW * 2f + .34f, .42f, .14f), rot);
         BraxChampionsLetters3D.Text(m, BraxChampionsHarbour.SignFace, BraxChampionsHarbour.SignDark, name, at + Vector3.up * 2.43f - dir * .075f, BraxChampionsLetters3D.YawFacing(-dir), .20f, .04f, .10f, 1.7f);

@@ -25,18 +25,18 @@ public static partial class BraxChampionsAquapark
         MLounge = PT + "mid_century_lounge_chair/mid_century_lounge_chair_2k.gltf";
 
     // a Poly Haven model at real size; `at` nominal: its floor point, or (top) the point its top hangs from; yaw turns its front (+z)
-    static GameObject PH(string path, Vector3 at, float yaw, string label, bool collide, bool top = false)
+    static GameObject PH(string path, Vector3 at, float yaw, string label, bool collide, bool top = false, bool centre = false, float mul = 1f)
     {
         string full = "Assets/Source/Mistrzowie/" + path;
         var src = AssetDatabase.LoadAssetAtPath<GameObject>(full);
         if (!src) { BraxBuildQuality.Warn("AQUAPARK_PH_MODEL_MISSING " + full + " (prepare_arena_lobby_models.py / prepare_hotel_sobczak_models.py)"); PhMissing++; return null; }
-        var o = BraxChampionsModel.Postaw(models, src, "AQUAPARK | " + label + " | Poly Haven CC0", at * K, yaw, BraxChampionsRealSize.Scale(full), true, true);
+        var o = BraxChampionsModel.Postaw(models, src, "AQUAPARK | " + label + " | Poly Haven CC0", at * K, yaw, BraxChampionsRealSize.Scale(full) * mul, true, true);
         if (!o) { PhMissing++; return null; }
         var rs = o.GetComponentsInChildren<Renderer>(true);
         if (rs.Length > 0)
         {
             var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
-            float want = at.y * K, have = top ? b.max.y : b.min.y;
+            float want = at.y * K, have = centre ? b.center.y : top ? b.max.y : b.min.y;
             if (Mathf.Abs(want - have) > 1e-4f) { o.transform.position += Vector3.up * (want - have); b.center += Vector3.up * (want - have); }
             if (collide)
             {

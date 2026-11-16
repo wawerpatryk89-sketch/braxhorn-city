@@ -487,6 +487,15 @@ public static class BraxChampionsFoundation
     }
     public static Material LibraryMetal(string id,Color tint)
     {
+        // 16.11 (the aquapark's inox gates came out brass-yellow in the preview): the Metal048A colour map is brass (mean sRGB
+        // 254,227,156), so every GREY tint - steel, inox, graphite, black - gave yellow metal. A grey tint (spread < .12) now has
+        // the map's hue divided out per channel in linear light: steel is steel. A coloured tint (gold, bronze) keeps the map.
+        float spread=Mathf.Max(tint.r,Mathf.Max(tint.g,tint.b))-Mathf.Min(tint.r,Mathf.Min(tint.g,tint.b));
+        if(spread<.12f)
+        {
+            float N(float t,float m)=>Mathf.LinearToGammaSpace(Mathf.Min(12f,Mathf.GammaToLinearSpace(Mathf.Max(0f,t))/m));
+            tint=new Color(N(tint.r,.991f),N(tint.g,.768f),N(tint.b,.332f),tint.a);
+        }
         string tex=Source+"/Textures",prefix="Metal048A_4K-JPG_";
         var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
             arm=FileIn(tex,"Metal048A_ARM_4k.png"),tile=.65f});
