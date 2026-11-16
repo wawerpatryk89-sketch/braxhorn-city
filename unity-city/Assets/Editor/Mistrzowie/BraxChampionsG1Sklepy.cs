@@ -168,6 +168,179 @@ public static partial class BraxChampionsD2
         var top=bulge-f*.012f;var bot=foot+Vector3.up*.008f;var axis=(top-bot).normalized;
         m.RoundedBox(eAlu,(top+bot)*.5f,new Vector3(.062f,(top-bot).magnitude,.024f),.011f,Quaternion.LookRotation(Vector3.Cross(r,axis),axis),3);
     }
+    // the travel agency's offers (owner 16.11 13:09 "gdzie oferty"): the destination, the price, the photograph that goes with
+    // it (BraxKatalog.ZdjeciaNazwy: 0 rocks and sea, 1 the City of London, 2 a beach with towers, 3 a bay with a town, 4 a
+    // coast road)
+    static readonly (string dest,string price,int pic)[] Oferty={("GRECJA 7 DNI","OD 2499 ZŁ",3),("LONDYN 3 DNI","OD 1299 ZŁ",1),
+        ("HISZPANIA 7 DNI","OD 2799 ZŁ",2),("SESZELE 10 DNI","OD 6999 ZŁ",0),("PORTUGALIA 8 DNI","OD 2299 ZŁ",4),
+        ("CHORWACJA 7 DNI","OD 1999 ZŁ",3),("TENERYFA 7 DNI","OD 3299 ZŁ",2),("MAURITIUS 10 DNI","OD 7499 ZŁ",0)};
+    static Material gFrost,gVinylWhite,gVinylRed,gVinylGraphite;
+    static void PromoMaterials()
+    {
+        if(gFrost)return;
+        gFrost=S("g1_window_frosted_film",new Color(.90f,.92f,.93f,.55f),.55f,0f,null,true);                 // frosted glass film
+        gVinylWhite=S("g1_window_vinyl_white",new Color(.96f,.96f,.95f),.45f,0f);
+        gVinylRed=S("g1_window_vinyl_red",new Color(.78f,.06f,.09f),.45f,0f);
+        gVinylGraphite=S("g1_window_vinyl_graphite",new Color(.11f,.11f,.12f),.45f,0f);
+    }
+    // a photograph on a quad centred at c facing n (toward the viewer), w x h, the whole picture or the u range u0..u1
+    static void PhotoQuad(Material mat,Vector3 c,Vector3 n,float w,float h,float u0=0f,float u1=1f)
+    {
+        n.y=0;n.Normalize();var rv=-Vector3.Cross(Vector3.up,n).normalized;var up=Vector3.up;
+        var a=c-rv*(w*.5f)-up*(h*.5f);var b=c+rv*(w*.5f)-up*(h*.5f);var cc=c+rv*(w*.5f)+up*(h*.5f);var d=c-rv*(w*.5f)+up*(h*.5f);
+        m.QuadUV(mat,a,d,cc,b,new Vector2(u0,0),new Vector2(u0,1),new Vector2(u1,1),new Vector2(u1,0));
+    }
+    // a single quad centred at c facing f, w x h (a lit panel, a card)
+    static void FaceQuad(Material mat,Vector3 c,Vector3 f,float w,float h)
+    {
+        f.y=0;f.Normalize();var r=Vector3.Cross(Vector3.up,f).normalized;var up=Vector3.up;
+        var a=c-r*(w*.5f)-up*(h*.5f);var b=c+r*(w*.5f)-up*(h*.5f);Q(mat,a,b,b+up*h,a+up*h,f);
+    }
+    // A LIGHTBOX POSTER: a 4 cm black box centred at c (local), its face toward n, a photograph (16:9, w wide) over a lit
+    // white strip with the caption in graphite 3D letters; both = double-sided (hung in a window). big != null: a sale
+    // poster instead of the photograph - the deal in big red letters on the lit white (a beach over "ŚWIEŻE KWIATY" read
+    // as nonsense: only the travel agency shows the places)
+    static void Lightbox(Vector3 c,Vector3 n,float w,int pic,string caption,bool both,string label,string big=null)
+    {
+        PromoMaterials();n.y=0;n.Normalize();var r=Vector3.Cross(Vector3.up,n).normalized;var q=Quaternion.LookRotation(n,Vector3.up);
+        float ph=w*9f/16f,sh=.12f,H=ph+sh+.06f;
+        m.RoundedBox(frame,c,new Vector3(w+.06f,H,.04f),.008f,q,1);                                            // the box
+        var lm=new BraxChampionsMeshBatch();
+        foreach(float sd in both?new[]{1f,-1f}:new[]{1f})
+        {
+            // every layer 7 mm off the one under it (my flicker check 16.11 13:30: lit and anodised faces count as seen from
+            // afar, 6 mm): the box face at 20 mm, the picture and the lit strip at 27 mm, the letters from 34 mm
+            var f=n*sd;var face=c+f*.027f;
+            var pcen=face+Vector3.up*(H*.5f-.03f-ph*.5f);
+            if(big!=null)
+            {
+                FaceQuad(gLetterFace,pcen,f,w,ph);                                                                 // the lit poster
+                float cap=Mathf.Min(ph*.42f,.30f);
+                BraxChampionsLetters3D.Text(lm,gVinylRed,gVinylRed,big,pcen+f*.007f-Vector3.up*(cap*.5f),BraxChampionsLetters3D.YawFacing(f),cap,.004f,.10f,w-.16f);
+            }
+            else{var photo=BraxKatalog.Photo(pic);if(photo)PhotoQuad(photo,pcen,f,w,ph);}
+            var strip=face+Vector3.up*(-H*.5f+.03f+sh*.5f);
+            FaceQuad(gLetterFace,strip,f,w,sh);                                                                    // the lit strip
+            if(!string.IsNullOrEmpty(caption))
+                BraxChampionsLetters3D.Text(lm,gLetterSide,gLetterSide,caption,strip+f*.007f-Vector3.up*.035f,BraxChampionsLetters3D.YawFacing(f),.07f,.004f,.12f,w-.12f);
+        }
+        BraxChampionsLetters3D.Build(lm,root,"G1 "+label);
+    }
+    // THE SHOP WINDOW AS IN A REAL MALL (owner 16.11 12:59): a frosted manifestation band across every pane at 1.05-1.20 m
+    // (12 mm outside the glass, inside the mullions' depth), the offer in 3D vinyl letters on the pane right of the door
+    // (on a frosted sticker: the headline in graphite, the deal in red, 7 mm off the film), and 35 cm behind the pane left of the door a
+    // double-sided lightbox on two steel cables: a photograph and the headline under it
+    static void ShopWindowPromo(G1Unit u,char f,List<(float a,float b)> segs,float y)
+    {
+        PromoMaterials();
+        Vector3 Fp(float t,float yy,float o)=>f=='S'?new Vector3(t,yy,u.z0+o):f=='N'?new Vector3(t,yy,u.z1-o):f=='E'?new Vector3(u.x1-o,yy,t):new Vector3(u.x0+o,yy,t);
+        Vector3 outN=f=='S'?Vector3.back:f=='N'?Vector3.forward:f=='E'?Vector3.right:Vector3.left;
+        float yaw=BraxChampionsLetters3D.YawFacing(outN);
+        var (head,deal)=Promo(u);
+        var panes=new List<(float,float)>();
+        foreach(var (a,b) in segs){int n=Mathf.Max(1,Mathf.CeilToInt((b-a)/2.4f-.01f));float w=(b-a)/n;for(int i=0;i<n;i++)panes.Add((a+i*w,a+(i+1)*w));}
+        bool agency=u.trade=="service"&&u.name.Contains("PODRÓŻY");
+        void Film(float a,float b,float y0,float y1){var q0=Fp(a,y+y0,.088f);var q1=Fp(b,y+y0,.088f);var up=Vector3.up*(y1-y0);Q(gFrost,q0,q1,q1+up,q0+up,outN);Q(gFrost,q0,q1,q1+up,q0+up,-outN);}
+        for(int i=0;i<panes.Count;i++)
+        {
+            var (a,b)=panes[i];
+            if(agency&&segs.Count>1&&Mathf.Abs(a-segs[1].a)<.01f)continue;                                // the board of offers stands behind this one
+            Film(a+.03f,b-.03f,1.05f,1.20f);
+        }
+        if(segs.Count<2)return;
+        var lm=new BraxChampionsMeshBatch();
+        {
+            // the pane right of the door (its first pane): the headline over the band, the deal under it (a travel agency:
+            // both high, over the board of offers behind the glass)
+            int n=Mathf.Max(1,Mathf.CeilToInt((segs[1].b-segs[1].a)/2.4f-.01f));float w=(segs[1].b-segs[1].a)/n,t0=segs[1].a,tc=t0+w*.5f,wm=w-.36f;
+            float yh=agency?2.62f:1.62f,yd=agency?2.30f:1.30f;
+            if(wm>.4f)
+            {
+                // on a frosted sticker (white letters on clear glass did not read against a light shop): graphite and red
+                float hw=Mathf.Min(wm,Mathf.Max(BraxChampionsLetters3D.Width(head,.15f),string.IsNullOrEmpty(deal)?0f:BraxChampionsLetters3D.Width(deal,.24f,.10f)))*.5f+.12f;
+                Film(tc-hw,tc+hw,(string.IsNullOrEmpty(deal)?yh:yd)-.10f,yh+.27f);
+                BraxChampionsLetters3D.Text(lm,gVinylGraphite,gVinylGraphite,head,Fp(tc,y+yh,.081f),yaw,.15f,.003f,.12f,wm);
+                if(!string.IsNullOrEmpty(deal))BraxChampionsLetters3D.Text(lm,gVinylRed,gVinylRed,deal,Fp(tc,y+yd,.081f),yaw,.24f,.003f,.10f,wm);
+            }
+            if(agency&&wm>.7f)
+            {
+                // THE BOARD OF OFFERS as in every travel agency's window: a black panel 30 cm behind the glass on two black
+                // feet, two rows of A3 offer cards on it - the photograph, the destination, the price in red
+                int cols=Mathf.Max(1,Mathf.FloorToInt((wm+.05f)/.36f));float bw=cols*.36f+.04f;
+                var pc=Fp(tc,y+1.55f,.42f);var pq=Quaternion.LookRotation(outN,Vector3.up);var r=Vector3.Cross(Vector3.up,outN).normalized;
+                m.RoundedBox(frame,pc,new Vector3(bw,1.06f,.04f),.006f,pq,1);
+                foreach(float sg in new[]{-1f,1f}){var fp=Fp(tc,y,.42f)+r*sg*(bw*.5f-.10f);m.RoundedBox(frame,fp+Vector3.up*.51f,new Vector3(.04f,1.02f,.03f),.006f,pq,1);m.RoundedBox(frame,fp+Vector3.up*.006f,new Vector3(.06f,.012f,.36f),.004f,pq,1);}
+                int k=0;
+                for(int row=0;row<2;row++)for(int c=0;c<cols;c++,k++)
+                {
+                    var o=Oferty[(k+u.name.Length)%Oferty.Length];
+                    var cc=pc+outN*.027f+r*(((cols-1)*.5f-c)*.36f)+Vector3.up*(row==0?.255f:-.255f);    // the card, 7 mm off the panel
+                    // (owner 16.11 13:34 "zakaz wywlekania": no photograph of another place under a destination's name - the
+                    // destination and the price only, until the owner's own pictures of these places come)
+                    FaceQuad(gVinylWhite,cc,outN,.30f,.42f);
+                    var nm2=o.dest.Split(' ');string place=nm2[0],days=o.dest.Substring(place.Length).Trim();
+                    BraxChampionsLetters3D.Text(lm,gLetterSide,gLetterSide,place,cc+outN*.007f+Vector3.up*.08f,yaw,.045f,.002f,.10f,.26f);
+                    BraxChampionsLetters3D.Text(lm,gLetterSide,gLetterSide,days,cc+outN*.007f+Vector3.up*.01f,yaw,.030f,.002f,.10f,.26f);
+                    BraxChampionsLetters3D.Text(lm,gVinylRed,gVinylRed,o.price,cc+outN*.007f-Vector3.up*.11f,yaw,.050f,.002f,.10f,.26f);
+                }
+                var a0=Fp(tc-bw*.5f,y,.38f);var a1=Fp(tc+bw*.5f,y,.46f);Col(Mathf.Min(a0.x,a1.x),Mathf.Max(a0.x,a1.x),y,y+2.0f,Mathf.Min(a0.z,a1.z),Mathf.Max(a0.z,a1.z),"tablica ofert");
+            }
+        }
+        BraxChampionsLetters3D.Build(lm,root,"G1 witryna "+u.name+" | oferta");
+        {
+            // the lightbox behind the pane left of the door (its last pane)
+            int n=Mathf.Max(1,Mathf.CeilToInt((segs[0].b-segs[0].a)/2.4f-.01f));float w=(segs[0].b-segs[0].a)/n,tc=segs[0].b-w*.5f;
+            float bw=Mathf.Min(1.20f,w-.5f);
+            if(bw>.6f)
+            {
+                float H=bw*9f/16f+.18f,yc=y+2.30f+H*.5f;var c=Fp(tc,yc,.51f);
+                Lightbox(c,outN,bw,0,deal!=null?head:u.name,true,"witryna "+u.name+" | lightbox",deal??head);   // text only (owner 13:34)
+                float top=ShopCeil(u.level)-.005f;var r=Vector3.Cross(Vector3.up,outN).normalized;
+                foreach(float sg in new[]{-1f,1f}){var a=c+r*sg*(bw*.5f-.06f)+Vector3.up*(H*.5f);m.Tube(stainless,a,new Vector3(a.x,top,a.z),.0015f,6);}
+            }
+        }
+    }
+    // A TWO-GROUP ESPRESSO MACHINE on a counter at p (its foot), the barista's side (the group heads) toward f: a brushed
+    // steel body 78 x 42 x 50 cm on chrome feet, the cup warmer on top with six cups, two group heads with their
+    // portafilters (black handles), the drip tray with its grate, two pressure gauges, the steam and the water wands
+    static void Espresso(Vector3 p,Vector3 f)
+    {
+        BraxKatalog.Materials();
+        f.y=0;f.Normalize();var r=Vector3.Cross(Vector3.up,f).normalized;var q=Quaternion.LookRotation(f,Vector3.up);
+        Vector3 L(float a,float h,float d)=>p+r*a+Vector3.up*h+f*d;
+        const float W=.78f;
+        foreach(var (a,d) in new[]{(-W*.5f+.06f,-.19f),(W*.5f-.06f,-.19f),(-W*.5f+.06f,.11f),(W*.5f-.06f,.11f)})m.Cylinder(BraxKatalog.Chrome,L(a,0f,d),.018f,.04f,12,Quaternion.identity,true,false);
+        m.RoundedBox(BraxKatalog.Steel,L(0f,.24f,-.04f),new Vector3(W,.40f,.42f),.03f,q,3);                          // the body
+        m.RoundedBox(BraxKatalog.Chrome,L(0f,.446f,-.04f),new Vector3(W-.06f,.012f,.36f),.004f,q,1);                  // the cup warmer
+        for(int i=0;i<6;i++)Cup(L(-.25f+i*.10f,.452f,-.06f));
+        m.RoundedBox(BraxKatalog.BlackMatt,L(0f,.065f,.215f),new Vector3(W-.10f,.05f,.10f),.01f,q,1);                 // the drip tray
+        m.RoundedBox(BraxKatalog.Chrome,L(0f,.092f,.215f),new Vector3(W-.12f,.006f,.09f),.002f,q,1);                  // its grate
+        foreach(float a in new[]{-.18f,.18f})
+        {
+            m.RoundedBox(BraxKatalog.Chrome,L(a,.33f,.21f),new Vector3(.12f,.06f,.08f),.012f,q,2);                    // the group head block
+            m.Cylinder(BraxKatalog.Chrome,L(a,.265f,.215f),.040f,.035f,20,Quaternion.identity,true,true);            // the group
+            m.Cylinder(BraxKatalog.Chrome,L(a,.235f,.215f),.043f,.03f,20,Quaternion.identity,true,true);             // the portafilter basket
+            m.Tube(BraxKatalog.BlackMatt,L(a,.25f,.255f),L(a,.235f,.40f),.012f,10);                                 // its handle
+            m.Cylinder(BraxKatalog.WhiteGloss,L(a*.45f,.385f,.169f),.028f,.008f,16,Quaternion.FromToRotation(Vector3.up,f),true,false);   // a gauge
+        }
+        foreach(float sg in new[]{-1f,1f})m.Tube(BraxKatalog.Chrome,L(sg*(W*.5f-.07f),.34f,.17f),L(sg*(W*.5f-.05f),.13f,.25f),.006f,8);   // the wands
+        {var a=L(-W*.5f,0f,-.25f);var b=L(W*.5f,0f,.25f);Col(Mathf.Min(a.x,b.x),Mathf.Max(a.x,b.x),p.y,p.y+.46f,Mathf.Min(a.z,b.z),Mathf.Max(a.z,b.z),"ekspres");}
+    }
+    // the coffee grinder beside it: a black body, the smoked bean hopper, its lid, the dosing fork
+    static void Grinder(Vector3 p,Vector3 f)
+    {
+        f.y=0;f.Normalize();var q=Quaternion.LookRotation(f,Vector3.up);
+        m.RoundedBox(BraxKatalog.BlackMatt,p+Vector3.up*.20f,new Vector3(.18f,.40f,.26f),.03f,q,2);
+        m.Lathe(BraxKatalog.GlassDark,p+Vector3.up*.40f,new[]{new Vector2(.03f,0f),new Vector2(.09f,.14f),new Vector2(.095f,.15f),new Vector2(0f,.15f)},20,Quaternion.identity,false,false);
+        m.Cylinder(BraxKatalog.BlackMatt,p+Vector3.up*.55f,.097f,.02f,20,Quaternion.identity,true,true);
+        m.RoundedBox(BraxKatalog.Chrome,p+Vector3.up*.11f+f*.14f,new Vector3(.10f,.02f,.06f),.006f,q,1);
+    }
+    // a white porcelain cup (8 cm across) on its saucer, standing on p
+    static void Cup(Vector3 p)
+    {
+        m.Lathe(BraxKatalog.WhiteGloss,p,new[]{new Vector2(0f,0f),new Vector2(.065f,0f),new Vector2(.068f,.006f),new Vector2(0f,.006f)},18,Quaternion.identity,false,false);
+        m.Lathe(BraxKatalog.WhiteGloss,p+Vector3.up*.006f,new[]{new Vector2(0f,0f),new Vector2(.026f,0f),new Vector2(.040f,.050f),new Vector2(.042f,.062f),new Vector2(.034f,.062f),new Vector2(.033f,.054f),new Vector2(0f,.054f)},18,Quaternion.identity,false,true);
+    }
     // over-ear headphones on a stand at p toward f
     static void Headphones(Vector3 p,Vector3 f)
     {
@@ -604,11 +777,16 @@ public static partial class BraxChampionsD2
         // a straight-edged batten (2-6 cm: a radius would not show, the triangles would)
         void SB(Material mat,float t0,float t1,float y0,float y1,float d0,float d1){var a=P(t0,y0,d0);var b=P(t1,y1,d1);B(mat,Mathf.Min(a.x,b.x),Mathf.Max(a.x,b.x),y0,y1,Mathf.Min(a.z,b.z),Mathf.Max(a.z,b.z));}
         // a glass case (12 mm panes, black frame on top) on a surface at yb over t0..t1 x d0..d1, h high
-        void GlassCase(float t0,float t1,float d0,float d1,float yb,float h)
+        void GlassCase(float t0,float t1,float d0,float d1,float yb,float h,bool glassTop=false)
         {
             var c0=P(t0,yb,d0);var c1=P(t1,yb,d0);var c2=P(t1,yb,d1);var c3=P(t0,yb,d1);var up=Vector3.up*h;
             foreach(var (a,b) in new[]{(c0,c1),(c1,c2),(c2,c3),(c3,c0)}){var n=Vector3.Cross(b-a,Vector3.up);Q(glass,a,b,b+up,a+up,n);Q(glass,a,b,b+up,a+up,-n);}
-            SB(frame,t0,t1,yb+h,yb+h+.025f,d0,d1);
+            if(!glassTop){SB(frame,t0,t1,yb+h,yb+h+.025f,d0,d1);return;}
+            // a glass top inside a 2 cm black rim (the rim's four bars meet without overlapping; the glass 1 cm up in it)
+            SB(frame,t0,t1,yb+h,yb+h+.02f,d0,d0+.02f);SB(frame,t0,t1,yb+h,yb+h+.02f,d1-.02f,d1);
+            SB(frame,t0,t0+.02f,yb+h,yb+h+.02f,d0+.02f,d1-.02f);SB(frame,t1-.02f,t1,yb+h,yb+h+.02f,d0+.02f,d1-.02f);
+            var g0=P(t0+.02f,yb+h+.01f,d0+.02f);var g1=P(t1-.02f,yb+h+.01f,d0+.02f);var g2=P(t1-.02f,yb+h+.01f,d1-.02f);var g3=P(t0+.02f,yb+h+.01f,d1-.02f);
+            Q(glass,g0,g1,g2,g3,Vector3.up);Q(glass,g0,g1,g2,g3,Vector3.down);
         }
         // a finished side wall (owner 11.11 18:32 "ściany ... gołe, tam nic nie ma"): walnut battens on black felt to 3.2 m, a
         // light-oak cabinet on a shadow plinth with a stone top and black handles, two floating oak shelves lit from below;
@@ -661,6 +839,11 @@ public static partial class BraxChampionsD2
             // a black 8 mm joint every 1.2 m, 12 mm proud of the face
             if(!(u.trade=="electronics"||u.trade=="phones"))for(float tj=.3f+1.2f;tj<fw-.3f;tj+=1.2f)Box(gCinemaDark,tj-.004f,tj+.004f,y+.10f,y+3.6f,D-.172f,D-.16f);
             Box(ledWarm,.3f,fw,y+3.62f,y+3.65f,D-.20f,D-.12f);
+            // a promotion on the back wall (owner 16.11 12:59 "na ścianach jakieś promocje"): a lit sale poster with the
+            // offer over everything on that wall (2.44-3.41 m), in its left third; the offices have their own posters, the
+            // electronics their screens
+            if(u.trade!="service"&&u.trade!="electronics"&&u.trade!="phones"&&u.trade!="games")
+            {var (ph,pd)=Promo(u);Lightbox(P(Wd*.24f,y+2.92f,D-.20f),toFront,1.40f,0,pd!=null?ph:nm,false,nm+" | promocja na ścianie",pd??ph);}
         }
         // the cash desk by one side near the front: walnut, white marble top, a POS terminal with its screen
         float ct=Wd-2.4f,cd=2.2f;
@@ -668,6 +851,11 @@ public static partial class BraxChampionsD2
         var pos=P(ct+.85f,y+1.04f,cd+.35f);Goods(nm+" | kasa",()=>Monitor(pos,toFront));
         Transform lib=null;Transform Lib(){if(!lib)lib=BraxSklepyTowar.Korzen(g1Goods,"G1 "+nm);return lib;}
         // wall shelving on both side walls: a white (or walnut) carcass, n shelves; returns the shelf tops
+        // the bay boundaries of shelving from d0 to d1 with an upright every bay metres from off (as WallShelves builds them)
+        List<float> Bays(float d0,float d1,float bay,float off)
+        {
+            var o=new List<float>{d0};for(float du=off;du<d1-.3f;du+=bay)if(du>d0+.3f)o.Add(du);o.Add(d1);return o;
+        }
         // bay > 0: a 25 mm upright every bay metres from off (as real shelving is built - an 8 m shelf with no upright read
         // as a printed board), set between the goods' places
         List<(float t,float yy,float side)> WallShelves(Material mat,int n,float depth,float d0,float d1,float h=2.2f,float bay=0f,float off=0f)
@@ -1061,17 +1249,46 @@ public static partial class BraxChampionsD2
             {
                 // the pharmacy: shelving on both walls and behind the counter, the owner's BRAXHORN PHARMA medicines (pack
                 // miasto_sklepy, lek_01..24) on every shelf and on the counter; the dispensing counter with two stations
-                var tops=WallShelves(gOak,5,.40f,3.0f,D-3.2f);
+                // (16.11 audit, "jak w realnym życiu"): the shelving in 1 m bays - an upright between every bay, the medicines of
+                // each bay on their own; the dispensing counter on a recessed black plinth; the back wall's shelving the same
+                var tops=WallShelves(gOak,5,.40f,3.0f,D-3.2f,2.2f,1.0f,4.0f);
                 var g=Lib();
-                foreach(var (t,yy,s) in tops)LibShelf(g,"apteka",P(t,yy,3.05f),toBack,s==0?-alongT:alongT,D-6.3f,.30f);
-                Box(walnut,.6f,Wd-.6f,y,y+1.0f,D-2.8f,D-2.2f,true);Box(StoneTop(),.55f,Wd-.55f,y+1.0f,y+1.04f,D-2.85f,D-2.15f);
+                var pb=Bays(3.0f,D-3.2f,1.0f,4.0f);
+                foreach(var (t,yy,s) in tops)for(int k=0;k+1<pb.Count;k++)LibShelf(g,"apteka",P(t,yy,pb[k]+.035f),toBack,s==0?-alongT:alongT,pb[k+1]-pb[k]-.07f,.30f);
+                Box(gCinemaDark,.66f,Wd-.66f,y,y+.08f,D-2.74f,D-2.26f);Box(walnut,.6f,Wd-.6f,y+.08f,y+1.0f,D-2.8f,D-2.2f,true);Box(StoneTop(),.55f,Wd-.55f,y+1.0f,y+1.04f,D-2.85f,D-2.15f);
                 LibCounter(g,"apteka",P(.9f,y+1.04f,D-2.5f),alongT,toBack,Wd-1.8f);
                 if(!fac)
                 {
                     Box(gOak,.4f,Wd-.4f,y,y+2.4f,D-.55f,D-.16f,true);
-                    for(int k=0;k<5;k++){float yy=y+.35f+k*.40f;Box(gOak,.4f,Wd-.4f,yy-.025f,yy,D-.95f,D-.55f);LibShelf(g,"apteka",P(.5f,yy,D-.75f),alongT,toBack,Wd-1.0f,.35f);}
+                    var bb=Bays(.4f,Wd-.4f,1.0f,1.4f);
+                    for(int k=0;k<bb.Count;k++){float c=k==0?.3925f:k==bb.Count-1?Wd-.3925f:bb[k];Box(gOak,c-.0125f,c+.0125f,y,y+2.4f,D-.95f,D-.55f);}   // the uprights; the two ends cover the shelves' ends (no shared face)
+                    for(int k=0;k<5;k++){float yy=y+.35f+k*.40f;Box(gOak,.4f,Wd-.4f,yy-.025f,yy,D-.95f,D-.55f);
+                        for(int j=0;j+1<bb.Count;j++)LibShelf(g,"apteka",P(bb[j]+.035f,yy,D-.75f),alongT,toBack,bb[j+1]-bb[j]-.07f,.35f);}
                 }
-                Box(Inside(S("g1_pharmacy_cross",new Color(.2f,.85f,.4f),.3f,0f,new Color(.25f,1.0f,.45f)),.9f),Wd*.5f-.4f,Wd*.5f+.4f,y+2.9f,y+3.0f,D-.6f,D-.56f);
+                // the pharmacy cross (16.11 audit: a green bar hung in the air 40 cm off the wall): a lit green cross 60 x 60 cm
+                // on the back wall over the shelving - the upright and two arms, no shared face
+                {var gc=Inside(S("g1_pharmacy_cross",new Color(.2f,.85f,.4f),.3f,0f,new Color(.25f,1.0f,.45f)),.9f);float cy=y+2.85f,cd0=D-.21f,cd1=D-.17f;
+                 Box(gc,Wd*.5f-.10f,Wd*.5f+.10f,cy-.30f,cy+.30f,cd0,cd1);Box(gc,Wd*.5f-.30f,Wd*.5f-.10f,cy-.10f,cy+.10f,cd0,cd1);Box(gc,Wd*.5f+.10f,Wd*.5f+.30f,cy-.10f,cy+.10f,cd0,cd1);}
+                // THE MIDDLE OF THE FLOOR (16.11 audit: 60 m2 of empty floor between the walls and the counter): oak gondolas as in
+                // every pharmacy - double-sided, 1.3 m long, 1.48 m high, a black plinth, three shelves a side, the over-the-counter
+                // goods (the owner's BRAXHORN PHARMA pack) on both faces; a 1.2 m aisle kept before the dispensing counter
+                {
+                    float[] gr=Wd>=9f?new[]{Wd*.33f,Wd*.67f}:new[]{Wd*.5f};int gi=0;
+                    foreach(float tr in gr)for(float d=3.8f;d+.68f<D-4.1f;d+=2.2f)
+                    {
+                        if(NearColumn(P(tr,y,d),1.2f))continue;
+                        if(tr>Wd-3.2f&&d-.68f<3.1f)continue;                                               // clear of the cash desk
+                        gi++;
+                        Box(gCinemaDark,tr-.27f,tr+.27f,y,y+.08f,d-.62f,d+.62f);Box(gOak,tr-.31f,tr+.31f,y+.08f,y+.20f,d-.65f,d+.65f,true);
+                        Box(gOak,tr-.015f,tr+.015f,y+.20f,y+1.45f,d-.65f,d+.65f);
+                        foreach(float e in new[]{-1f,1f})Box(gOak,tr-.31f,tr+.31f,y+.08f,y+1.45f,e<0f?d-.68f:d+.65f,e<0f?d-.65f:d+.68f);
+                        Box(gOak,tr-.32f,tr+.32f,y+1.45f,y+1.48f,d-.69f,d+.69f);
+                        foreach(float sg in new[]{-1f,1f})foreach(float yy in new[]{.55f,.90f,1.25f})Box(gOak,sg<0f?tr-.30f:tr+.015f,sg<0f?tr-.015f:tr+.30f,y+yy-.02f,y+yy,d-.65f,d+.65f);
+                        {var a=P(tr-.32f,y,d-.69f);var b=P(tr+.32f,y,d+.69f);Col(Mathf.Min(a.x,b.x),Mathf.Max(a.x,b.x),y,y+1.48f,Mathf.Min(a.z,b.z),Mathf.Max(a.z,b.z),"regał apteczny");}
+                        foreach(float sg in new[]{-1f,1f})foreach(float yy in new[]{.20f,.55f,.90f,1.25f})
+                            LibShelf(g,"apteka",P(tr+sg*.16f,y+yy,d-.62f),toBack,sg>0f?-alongT:alongT,1.24f,.30f);
+                    }
+                }
                 break;
             }
             case "jewellery":
@@ -1081,10 +1298,9 @@ public static partial class BraxChampionsD2
                 {
                     {var tt=t;var dd=d;Goods(nm+" | witryna",()=>{Material[] st={jDiamond,jSapphire,jEmerald,jRuby};for(int i=0;i<4;i++){var p=P(tt-.54f+i*.36f,y+.93f,dd+.36f);int k=i%3,ji=i+(int)(dd*2+tt);if(JModel(k,ji,p,toFront))continue;if(k==0)Watch(p,toFront);else if(k==1)RingBox(p,toFront,st[(i+(int)dd)%4]);else NecklaceBust(p,toFront,st[(i+1)%4]);}});}
                     Box(gCinemaDark,t-.74f,t+.74f,y,y+.08f,d+.06f,d+.64f);Box(walnut,t-.8f,t+.8f,y+.08f,y+.86f,d,d+.7f,true);Box(StoneTop(),t-.82f,t+.82f,y+.86f,y+.9f,d-.02f,d+.72f);Box(gCinemaDark,t-.75f,t+.75f,y+.9f,y+.93f,d+.05f,d+.65f);   // walnut cabinet on a shadow plinth, stone top
-                    var g0=P(t-.78f,y+.93f,d+.02f);var g1=P(t+.78f,y+1.3f,d+.68f);
-                    B(frame,Mathf.Min(g0.x,g1.x),Mathf.Max(g0.x,g1.x),y+1.30f,y+1.33f,Mathf.Min(g0.z,g1.z),Mathf.Max(g0.z,g1.z));
-                    foreach(var (q0,q1) in new[]{(P(t-.78f,y+.93f,d+.02f),P(t+.78f,y+.93f,d+.02f)),(P(t-.78f,y+.93f,d+.68f),P(t+.78f,y+.93f,d+.68f))})
-                    {Q(glass,q0,q1,q1+Vector3.up*.37f,q0+Vector3.up*.37f,Vector3.Cross(q1-q0,Vector3.up));Q(glass,q0,q1,q1+Vector3.up*.37f,q0+Vector3.up*.37f,-Vector3.Cross(q1-q0,Vector3.up));}
+                    // (16.11 audit: two panes and a solid black lid - the ends open, nothing seen from above) a jeweller's counter
+                    // case as in life: 12 mm glass on all four sides and on top, a 2 cm black rim round the top
+                    GlassCase(t-.78f,t+.78f,d+.02f,d+.68f,y+.93f,.37f,true);
                 }
                 // the walls: battens, oak cabinets with lit glass cases along them (the jewellery models come with the owner's pack)
                 foreach(float s in new[]{0f,1f})
@@ -1100,9 +1316,21 @@ public static partial class BraxChampionsD2
             case "books":
             {
                 // walnut bookcases on both walls and two tables: the owner's books (ksiazki_01..08, covers) from the library
-                var tops=WallShelves(gCinemaDark,5,.36f,2.8f,D-.8f,2.4f);var g=Lib();   // black bookcases: the books stand out of the walnut room
-                foreach(var (t,yy,s) in tops)LibShelf(g,"ksiegarnia",P(t,yy,2.85f),toBack,s==0?-alongT:alongT,D-3.7f,.36f);
-                for(float d=3.5f;d<D-2.5f;d+=3.2f){Box(walnut,Wd*.5f-1f,Wd*.5f+1f,y,y+.8f,d,d+1.2f,true);LibCounter(g,"ksiegarnia",P(Wd*.5f-.9f,y+.8f,d+.6f),alongT,toBack,1.8f);}
+                // (16.11 audit, "jak w realnym życiu"): bookcases built in 90 cm bays (an upright between every bay, each bay's
+                // books on their own - one 12 m shelf read as a printed board), the new titles on walnut waterfall tables (the
+                // solid walnut blocks are gone), a reading corner at the back: two Poly Haven armchairs, a side table, a plant
+                var tops=WallShelves(gCinemaDark,5,.36f,2.8f,D-.8f,2.4f,.90f,3.7f);var g=Lib();   // black bookcases: the books stand out of the walnut room
+                var kb=Bays(2.8f,D-.8f,.90f,3.7f);
+                foreach(var (t,yy,s) in tops)for(int k=0;k+1<kb.Count;k++)LibShelf(g,"ksiegarnia",P(t,yy,kb[k]+.035f),toBack,s==0?-alongT:alongT,kb[k+1]-kb[k]-.07f,.36f);
+                float tEnd=0f;
+                for(float d=3.5f;d<D-2.5f;d+=3.2f){Table(walnut,Wd*.5f-1f,Wd*.5f+1f,d,d+1.2f,.80f);LibCounter(g,"ksiegarnia",P(Wd*.5f-.9f,y+.8f,d+.6f),alongT,toBack,1.8f);tEnd=d+1.2f;}
+                if(D-1.9f>tEnd+1.0f)
+                {
+                    const string PHA="ArenaLobby/",PHT="HotelSobczak/";float rd=D-1.9f;
+                    foreach(float sg in new[]{-1f,1f})Ph(PHA+"modern_arm_chair_01/modern_arm_chair_01_2k.gltf",P(Wd*.5f+sg*.95f,y,rd),sg<0f?alongT:-alongT,"fotel do czytania",false,.42f);
+                    Ph(PHT+"side_table_01/side_table_01_1k.gltf",P(Wd*.5f,y,rd),toFront,"stolik");
+                    Ph(PHA+"potted_plant_01/potted_plant_01_1k.gltf",P(Wd*.5f,y,D-.75f),toFront,"roślina");
+                }
                 break;
             }
             case "toys":
@@ -1187,15 +1415,73 @@ public static partial class BraxChampionsD2
             }
             case "flowers":
             {
-                // zinc buckets and pots with the region's Poly Haven flowers (flower_empodium, flower_gazania), plants
-                for(float t=1.1f;t<Wd-1.0f;t+=1.0f)for(float d=2.9f;d<D-1f;d+=1.4f)
+                // A FLORIST AS IN LIFE (16.11 audit: twenty buckets in a grid on a bare floor, two of them in the cash desk): the
+                // left wall a three-step oak staging with zinc troughs of flowers on every step, the flower cooler against the
+                // back wall (black frame, two glass doors, steel shelves of troughs, lit), a marble-topped waterfall table in the
+                // middle with a tray of gazanias, the right wall's cabinet and lit shelves with troughs and vases. The region's
+                // Poly Haven flowers are rows of real-size plants in one file (flower_empodium: five plants in a 1.32 x .28 m row,
+                // flower_gazania: eight in 1.58 x .81 m) - so they stand in troughs and trays of that size, never squeezed into a
+                // bucket (a 26 cm bucket made each plant 5 cm)
+                BraxKatalog.Materials();
+                if(!g1Bark)g1Bark=Inside(Tex("g1_planter_bark","brown_mud_leaves_01",1.3f,new Color(.62f,.58f,.52f)),.9f);
+                // a zinc trough t0..t1 x d0..d1 on yb, h high, filled with bark to 4 cm under its rim; along = its long side
+                void Trough(float t0,float t1,float d0,float d1,float yb,float h,string id,float len,float yaw)
                 {
-                    var b=P(t,y,d);m.Cylinder(stainless,b,.20f,.38f,18,Quaternion.identity,false,true);m.Cylinder(gCinemaDark,b+Vector3.up*.33f,.19f,.02f,18,Quaternion.identity,true,false);
-                    BraxChampionsPromenadeFurniture.Flower(g1Goods,((int)(t*3+d))%2==0?"flower_empodium":"flower_gazania",b+Vector3.up*.35f,.55f,t*40f+d*25f);
+                    Box(stainless,t0,t1,yb,yb+h,d0,d1);Box(g1Bark,t0+.015f,t1-.015f,yb+h-.04f,yb+h-.025f,d0+.015f,d1-.015f);
+                    var c=P((t0+t1)*.5f,yb+h-.04f,(d0+d1)*.5f);Goods(nm+" | kwiaty",()=>BraxChampionsPromenadeFurniture.Flower(g1Goods,id,c,len,yaw));
+                }
+                float sEnd=D-1.6f;int fi=0;
+                if(!SideOpen(0f))
+                {
+                    Clad(0f,.4f,D-.3f);
+                    Box(gCinemaDark,.14f,1.31f,y,y+.06f,2.44f,sEnd-.04f);
+                    float[] st0={.95f,.55f,.10f},st1={1.35f,1.00f,.60f},sh={.30f,.58f,.86f};
+                    for(int k=0;k<3;k++)
+                    {
+                        Box(gOak,st0[k],st1[k],y+.06f,y+sh[k],2.4f,sEnd,k==2);
+                        float tc=(st0[k]+(k==0?st1[k]:k==1?.95f:.55f))*.5f;
+                        float hw=k==0?.15f:.14f;var along=Mathf.Atan2(toBack.x,toBack.z)*Mathf.Rad2Deg-90f;   // the row along the wall
+                        for(float d=2.55f;d+1.30f<=sEnd-.10f;d+=1.45f){Trough(tc-hw,tc+hw,d,d+1.30f,y+sh[k],.16f,"flower_empodium",1.24f,along);fi++;}
+                    }
+                    var a=P(.10f,y,2.4f);var b=P(1.35f,y,sEnd);Col(Mathf.Min(a.x,b.x),Mathf.Max(a.x,b.x),y,y+.86f,Mathf.Min(a.z,b.z),Mathf.Max(a.z,b.z),"stopnie z kwiatami");
+                }
+                if(!fac)
+                {
+                    // the flower cooler, 2.2 m wide, 2.1 m high, 65 cm deep, against the back wall left of the staff door
+                    float c0=.45f,c1=2.65f,k0=D-.86f,k1=D-.21f;
+                    Box(gCinemaDark,c0,c1,y,y+.10f,k0+.03f,k1);                                                   // the base
+                    Box(gCinemaDark,c0,c0+.05f,y+.10f,y+2.10f,k0,k1);Box(gCinemaDark,c1-.05f,c1,y+.10f,y+2.10f,k0,k1);   // the sides
+                    Box(gCinemaDark,c0,c1,y+1.88f,y+2.10f,k0,k1);                                                 // the header
+                    Box(BraxKatalog.WhiteGloss,c0+.05f,c1-.05f,y+.10f,y+1.88f,k1-.03f,k1);                        // the white back
+                    Box(gCinemaDark,(c0+c1)*.5f-.02f,(c0+c1)*.5f+.02f,y+.10f,y+1.88f,k0,k0+.04f);                 // the doors' meeting stile
+                    SB(led,c0+.08f,c1-.08f,y+1.86f,y+1.875f,k0+.10f,k1-.10f);                                     // the light inside
+                    foreach(float yy in new[]{.62f,1.14f}){Box(stainless,c0+.05f,c1-.05f,y+yy-.02f,y+yy,k0+.06f,k1-.03f);}
+                    {var q0=P(c0+.05f,y+.10f,k0+.02f);var q1=P(c1-.05f,y+.10f,k0+.02f);var up=Vector3.up*1.78f;var n=Vector3.Cross(q1-q0,Vector3.up);Q(glass,q0,q1,q1+up,q0+up,n);Q(glass,q0,q1,q1+up,q0+up,-n);}
+                    foreach(float hx in new[]{(c0+c1)*.5f-.06f,(c0+c1)*.5f+.06f})Box(stainless,hx-.01f,hx+.01f,y+.80f,y+1.30f,k0-.03f,k0+.005f);   // the door handles
+                    {var a=P(c0,y,k0);var b=P(c1,y,k1);Col(Mathf.Min(a.x,b.x),Mathf.Max(a.x,b.x),y,y+2.1f,Mathf.Min(a.z,b.z),Mathf.Max(a.z,b.z),"chłodnia kwiatów");}
+                    float acr=Mathf.Atan2(alongT.x,alongT.z)*Mathf.Rad2Deg-90f;                                 // the row across the cooler
+                    foreach(float yy in new[]{.10f,.62f,1.14f})Trough(c0+.12f,c1-.12f,k0+.14f,k0+.42f,y+yy,.14f,"flower_empodium",1.80f,acr);
+                }
+                // the arranging table in the middle: marble on walnut, wicker baskets of flowers on it
+                {
+                    float tt0=Mathf.Max(1.8f,Wd*.5f-.85f),tt1=Mathf.Min(Wd-2.6f,Wd*.5f+.65f),td0=3.9f,td1=4.8f;
+                    if(tt1-tt0>1.0f&&td1<sEnd-.6f)
+                    {
+                        Table(StoneTop(),tt0,tt1,td0,td1,.86f);
+                        float acr2=Mathf.Atan2(alongT.x,alongT.z)*Mathf.Rad2Deg-90f;
+                        Trough(tt0+.08f,tt1-.08f,td0+.10f,td1-.10f,y+.86f,.07f,"flower_gazania",tt1-tt0-.20f,acr2);    // a tray of gazanias
+                        foreach(float e in new[]{tt0-.30f,tt1+.30f})Ph(e<tt0?"HotelSobczak/ceramic_vase_01/ceramic_vase_01_1k.gltf":"HotelSobczak/ceramic_vase_02/ceramic_vase_02_1k.gltf",P(e,y,(td0+td1)*.5f),toFront,"wazon");
+                    }
                 }
                 Prop(root,"ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf",P(.7f,y,1.4f),10f,.3f);
-                foreach(float sd in new[]{0f,1f})SideWall(sd,2.4f,D-1.0f,true);
-                Goods(nm+" | półki",()=>{foreach(float sd in new[]{0f,1f})WallItems(sd,2.4f,D-1.0f,true,(p,f,l)=>BraxChampionsPromenadeFurniture.Flower(g1Goods,l==1?"flower_gazania":"flower_empodium",p,l==0?.55f:.40f,Mathf.Atan2(f.x,f.z)*Mathf.Rad2Deg));});
+                Ph("HotelSobczak/potted_plant_04/potted_plant_04_1k.gltf",P(3.3f,y,D-.55f),toFront,"roślina");
+                SideWall(1f,2.4f,D-1.0f,true);
+                if(!SideOpen(1f))
+                {
+                    float along2=Mathf.Atan2(toBack.x,toBack.z)*Mathf.Rad2Deg-90f;
+                    foreach(var (yy,t0,t1) in new[]{(.90f,Wd-.45f,Wd-.13f),(1.55f,Wd-.31f,Wd-.07f),(2.10f,Wd-.31f,Wd-.07f)})
+                        for(float d=2.6f;d+1.0f<=D-1.1f;d+=1.25f)Trough(t0,t1,d,d+1.0f,y+yy,.12f,"flower_empodium",.95f,along2);
+                }
                 break;
             }
             case "cafe":
@@ -1233,8 +1519,38 @@ public static partial class BraxChampionsD2
                 }
                 if(!nm.Contains("LODY"))
                 {
-                    string[] ids={"carrot_cake","croissant","strawberry_chocolate_cake","croissant","tea_set_01"};
-                    for(int i=0;i<ids.Length;i++)BraxChampionsPromenadeFurniture.Flower(g1Goods,ids[i],P(.8f+i*(Wd-1.6f)/ids.Length,y+1.09f,D-1.85f),ids[i]=="croissant"?.14f:ids[i]=="tea_set_01"?.40f:.26f,i*30f);
+                    // A CAFÉ AS IN LIFE (16.11 audit: the cakes stood loose on a bare counter, no coffee machine, nothing behind the
+                    // bar): the lit pastry case on the left of the counter (a steel base, 12 mm glass all round and on top), the
+                    // cakes in it; a two-group espresso machine and its grinder on the right, facing the barista; the back bar
+                    // along the back wall (walnut on a shadow plinth, marble, two lit oak shelves of cups and tea sets)
+                    BraxKatalog.Materials();
+                    float pw=Mathf.Min(2.4f,Wd*.36f),pt0=.6f,pt1=pt0+pw,pd0=D-2.15f,pd1=D-1.55f,yb=y+1.09f;
+                    Box(stainless,pt0,pt1,yb,yb+.03f,pd0,pd1);
+                    GlassCase(pt0,pt1,pd0,pd1,yb+.03f,.42f,true);SB(ledWarm,pt0+.05f,pt1-.05f,yb+.43f,yb+.44f,pd0+.05f,pd1-.05f);
+                    string[] ids={"carrot_cake","croissant","strawberry_chocolate_cake","croissant","carrot_cake"};
+                    for(int i=0;i<ids.Length;i++)BraxChampionsPromenadeFurniture.Flower(g1Goods,ids[i],P(pt0+.25f+i*(pw-.5f)/(ids.Length-1),yb+.03f,(pd0+pd1)*.5f),ids[i]=="croissant"?.14f:.24f,i*30f);
+                    var em=P(Wd-1.7f,yb,D-1.85f);var gp=P(Wd-1.0f,yb,D-1.85f);Goods(nm+" | ekspres",()=>{Espresso(em,toBack);Grinder(gp,toBack);});
+                    if(!fac)
+                    {
+                        float bt0=.5f,bt1=u.back>0f?Wd-1.75f:Wd-.5f,bd0=D-.62f,bd1=D-.21f;
+                        Box(gCinemaDark,bt0+.06f,bt1-.06f,y,y+.08f,bd0+.06f,bd1);Box(walnut,bt0,bt1,y+.08f,y+.90f,bd0,bd1,true);
+                        Box(StoneTop(),bt0-.02f,bt1+.02f,y+.90f,y+.94f,bd0-.02f,bd1);
+                        int nh=Mathf.Max(1,Mathf.RoundToInt((bt1-bt0)/.9f));
+                        for(int i=0;i<nh;i++){float tc=bt0+(i+.5f)*(bt1-bt0)/nh;Box(frame,tc-.20f,tc+.20f,y+.80f,y+.814f,bd0-.016f,bd0);}
+                        foreach(float yy in new[]{1.55f,1.95f}){Box(gOak,bt0,bt1,y+yy-.04f,y+yy,D-.45f,D-.18f);SB(ledWarm,bt0+.1f,bt1-.1f,y+yy-.052f,y+yy-.04f,D-.30f,D-.25f);}
+                        Goods(nm+" | zaplecze baru",()=>
+                        {
+                            int i=0;
+                            for(float t=bt0+.35f;t<bt1-.3f;t+=.60f,i++)BraxChampionsPromenadeFurniture.Flower(g1Goods,i%2==0?"tea_set_01":"brass_goblets",P(t,y+1.95f,D-.31f),i%2==0?.30f:.20f,i*40f);
+                            for(float t=bt0+.25f;t<bt1-.2f;t+=.22f){var c=P(t,y+1.55f,D-.31f);Cup(c);Cup(c+Vector3.up*.075f);}
+                            for(float t=bt0+.5f;t<bt1-.4f;t+=1.4f)BraxChampionsPromenadeFurniture.Flower(g1Goods,"wooden_cutting_board",P(t,y+.94f,D-.40f),.36f,90f);
+                        });
+                    }
+                }
+                {
+                    // three pendants over the bar (Poly Haven modern_ceiling_lamp_01) from the ceiling raft
+                    float ry=ShopCeil(u.level)-.14f;
+                    for(int k=0;k<3;k++)Ph("HotelSobczak/modern_ceiling_lamp_01/modern_ceiling_lamp_01_1k.gltf",P(Wd*(.25f+.25f*k),ry,D-1.85f),toFront,"lampa nad barem",true);
                 }
                 foreach(float s in new[]{0f,1f})SideWall(s,2.4f,D-2.6f,true);
                 Goods(nm+" | półki",()=>{foreach(float s in new[]{0f,1f})WallItems(s,2.4f,D-2.6f,true,(p,f,l)=>{if(l>0)BraxChampionsPromenadeFurniture.Flower(g1Goods,l==1?"tea_set_01":"wooden_bowl_02",p,l==1?.36f:.28f,Mathf.Atan2(f.x,f.z)*Mathf.Rad2Deg);});});
@@ -1376,6 +1692,47 @@ public static partial class BraxChampionsD2
                     // a video wall of three 65" screens over the lounge (one screen was a stamp on a 10 m wall)
                     Goods(nm+" | ekrany",()=>{for(int k=-1;k<=1;k++)BraxKatalog.Tv(Kat(),P(Wd*.5f+k*1.50f,y+1.75f,D-.16f),toFront,65f,11+k,false,nm+" ekran "+(k+2),BraxKatalog.Photo(k+1+nm.Length));});   // real photographs
                     foreach(float t in new[]{.85f,Wd-.85f})Ph(PHA+"potted_plant_02/potted_plant_02_1k.gltf",P(t,y,D-.75f),toFront,"roślina");
+                    // WHAT MAKES IT A TRAVEL AGENCY (owner 16.11 12:59: "wygląda jak meblowy z monitorem"): the name in brushed
+                    // steel 3D letters over the video wall; lit posters of the destinations on both side walls over the lit
+                    // shelves (a photograph, the offer under it); a brochure stand of catalogues by the door
+                    {
+                        var lm=new BraxChampionsMeshBatch();
+                        BraxChampionsLetters3D.Text(lm,BraxKatalog.Steel,gLetterSide,nm,P(Wd*.5f,y+2.62f,D-.175f),BraxChampionsLetters3D.YawFacing(toFront),.24f,.03f,.12f,Wd*.6f);
+                        BraxChampionsLetters3D.Build(lm,root,"G1 "+nm+" | napis nad ekranami");
+                    }
+                    bool agency=nm.Contains("PODRÓŻY");string[] dest={"DORADZTWO","KREDYTY","UBEZPIECZENIA","INWESTYCJE","LEASING"};
+                    int pk=0;
+                    foreach(float sd in new[]{0f,1f})if(!SideOpen(sd))for(float d=5.2f;d+.8f<D-2.6f;d+=2.6f)
+                    {
+                        var face=sd==0f?alongT:-alongT;float tw=sd==0f?.11f:Wd-.11f;
+                        var o=Oferty[(pk+2)%Oferty.Length];
+                        // a poster of the offer: the price big, the destination under it - no invented photograph (owner 13:34)
+                        Lightbox(P(tw,y+2.72f,d),face,1.20f,0,agency?o.dest:dest[pk%dest.Length],false,nm+" | plakat "+pk,agency?o.price:"ZAPRASZAMY");pk++;
+                    }
+                    if(!SideOpen(0f))
+                    {
+                        PromoMaterials();
+                        // the brochure stand: a black steel frame, four shelves tilted back 15 degrees, three catalogues on
+                        // each (A4, the cover a photograph)
+                        var bs=P(.30f,y,1.70f);var bf=alongT;var br=Vector3.Cross(Vector3.up,bf).normalized;var bq=Quaternion.LookRotation(bf,Vector3.up);
+                        foreach(float sg in new[]{-1f,1f})m.RoundedBox(BraxKatalog.BlackMatt,bs+br*sg*.33f+Vector3.up*.78f,new Vector3(.025f,1.56f,.30f),.005f,bq,1);
+                        for(int k=0;k<4;k++)
+                        {
+                            float yy=.42f+k*.33f;var sc=bs+Vector3.up*yy+bf*.02f;
+                            m.RoundedBox(BraxKatalog.BlackMatt,sc,new Vector3(.64f,.012f,.08f),.003f,bq,1);                      // the ledge
+                            for(int j=-1;j<=1;j++)
+                            {
+                                var tilt=Quaternion.AngleAxis(-15f,br);var cn=(tilt*bf).normalized;var cu=(tilt*Vector3.up).normalized;
+                                var cc=sc+br*j*.215f+Vector3.up*.006f+cu*.1485f-bf*.03f;
+                                m.RoundedBox(gLetterFace,cc-cn*.003f,new Vector3(.21f,.297f,.006f),.001f,Quaternion.LookRotation(cn,cu),1);   // the catalogue
+                                // the cover: the destination in red letters (no invented photograph - owner 13:34)
+                                var cl=new BraxChampionsMeshBatch();var dn=Oferty[(k*3+j+1+Oferty.Length)%Oferty.Length].dest.Split(' ')[0];
+                                BraxChampionsLetters3D.Text(cl,gVinylRed,gVinylRed,dn,cc+cn*.007f+cu*.06f,BraxChampionsLetters3D.YawFacing(cn),.026f,.002f,.10f,.18f);
+                                BraxChampionsLetters3D.Build(cl,root,"G1 "+nm+" | katalog "+k+j);
+                            }
+                        }
+                        var a0=P(.08f,y,1.35f);var a1=P(.52f,y,2.05f);Col(Mathf.Min(a0.x,a1.x),Mathf.Max(a0.x,a1.x),y,y+1.56f,Mathf.Min(a0.z,a1.z),Mathf.Max(a0.z,a1.z),"stojak z katalogami");
+                    }
                     Ph(PHT+"potted_plant_04/potted_plant_04_1k.gltf",P(Wd-.75f,y,1.0f),toFront,"roślina przy wejściu");
                     // vases on the side walls' lit shelves (1.55 m), every 1.8 m
                     foreach(float sd in new[]{0f,1f})if(!SideOpen(sd))for(float d=5.0f;d<D-1.6f;d+=1.8f)
@@ -1470,5 +1827,34 @@ public static partial class BraxChampionsD2
             }
         }
         if(lib)BraxSklepyTowar.Zakoncz(lib,"G1 "+nm);
+    }
+    // (kept after the fit-out: its cases are the fit-out's, this switch only names the offer)
+    // THE OFFER OF A SHOP (owner 16.11 12:59 "na ścianach jakieś promocje czy co na szybie, jak w sklepach"): the headline
+    // and the deal its window and lightboxes show, as the trade would advertise it
+    static (string head,string deal) Promo(G1Unit u)
+    {
+        string n=u.name;
+        switch(u.trade)
+        {
+            case "fashion":return ("NOWA KOLEKCJA","-30%");
+            case "sport":return ("NOWY SEZON","-25%");
+            case "bags":return ("PODRÓŻUJ Z KLASĄ","-20%");
+            case "shoes":return ("NOWA KOLEKCJA","-20%");
+            case "cosmetics":return (n.Contains("DROGERIA")?"PROMOCJA TYGODNIA":"NOWE ZAPACHY","-25%");
+            case "optician":return ("BADANIE WZROKU","GRATIS");
+            case "electronics":return (n.Contains("GAMES")?"NOWE GRY":n.Contains("FOTO")?"NOWE APARATY":"NOWOŚCI","RATY 0%");
+            case "phones":return ("NOWE SMARTFONY","RATY 0%");
+            case "books":return (n.Contains("PAPIERNIA")?"POWRÓT DO SZKOŁY":"BESTSELLERY","-20%");
+            case "jewellery":return (n.Contains("ZEGARKI")?"NOWE ZEGARKI":"NOWA KOLEKCJA","GRAWER GRATIS");
+            case "pharmacy":return ("PROMOCJA MIESIĄCA","-15%");
+            case "toys":return ("NOWOŚCI","-20%");
+            case "home":return ("NOWA KOLEKCJA","-30%");
+            case "moto":return ("MODELE 2027","RATY 0%");
+            case "flowers":return ("ŚWIEŻE KWIATY","CODZIENNIE");
+            case "cafe":return n.Contains("LODY")?("LODY RZEMIEŚLNICZE","NOWE SMAKI"):("KAWA + CIASTKO","15 ZŁ");
+            case "salon":return ("STRZYŻENIE","BEZ ZAPISÓW");
+            case "service":return n.Contains("PODRÓŻY")?("LAST MINUTE","-30%"):n.Contains("PRALNIA")?("PRANIE EXPRESS","24H"):("DORADZTWO","BEZPŁATNIE");
+            default:return ("ZAPRASZAMY",null);
+        }
     }
 }

@@ -213,5 +213,108 @@ class RealScreensAndWindows(unittest.TestCase):
         self.assertNotIn("float[] hs={.15f,.30f,.45f};", self.s)
 
 
+class RealShopsSecondPass(unittest.TestCase):
+    """16.11 after 12:45: the bookshop, the pharmacy, the jeweller, the florist and the café to the same standard."""
+
+    def setUp(self):
+        self.s = read("BraxChampionsG1Sklepy.cs")
+        self.w = read("BraxChampionsG1Wnetrze.cs")
+
+    def case(self, name):
+        c = self.s[self.s.index('case "%s":\n' % name):]                         # the fit-out's case, not Promo's
+        return c[:c.index("break;")]
+
+    def test_bookshop_bays_tables_reading_corner(self):
+        c = self.case("books")
+        self.assertIn("WallShelves(gCinemaDark,5,.36f,2.8f,D-.8f,2.4f,.90f,3.7f)", c)
+        self.assertIn("var kb=Bays(2.8f,D-.8f,.90f,3.7f);", c)
+        self.assertIn("Table(walnut,Wd*.5f-1f,Wd*.5f+1f,d,d+1.2f,.80f)", c)
+        self.assertNotIn("Box(walnut,Wd*.5f-1f,Wd*.5f+1f,y,y+.8f", c)        # no solid walnut block
+        self.assertIn("modern_arm_chair_01", c)
+        self.assertIn('case "books":return Inside(Tex("g1_wall_books_green"', self.w)
+
+    def test_pharmacy_cross_and_gondolas(self):
+        c = self.case("pharmacy")
+        self.assertNotIn("Wd*.5f-.4f,Wd*.5f+.4f,y+2.9f,y+3.0f,D-.6f,D-.56f", c)   # the bar in the air
+        self.assertIn("float cy=y+2.85f,cd0=D-.21f,cd1=D-.17f;", c)
+        self.assertIn('"regał apteczny"', c)
+        self.assertIn("WallShelves(gOak,5,.40f,3.0f,D-3.2f,2.2f,1.0f,4.0f)", c)
+
+    def test_jeweller_cases_glazed_all_round(self):
+        c = self.case("jewellery")
+        self.assertIn("GlassCase(t-.78f,t+.78f,d+.02f,d+.68f,y+.93f,.37f,true);", c)
+        self.assertIn("bool glassTop=false)", self.s)
+
+    def test_florist_staging_and_cooler(self):
+        c = self.case("flowers")
+        self.assertNotIn("for(float t=1.1f;t<Wd-1.0f;t+=1.0f)for(float d=2.9f;d<D-1f;d+=1.4f)", c)   # the grid in the cash desk
+        self.assertIn('"stopnie z kwiatami"', c)
+        self.assertIn('"chłodnia kwiatów"', c)
+        self.assertIn('"flower_empodium",1.24f', c)                                 # a real-size row in a trough
+        self.assertNotIn("void Bucket(", c)                                         # no plant squeezed into a bucket
+
+    def test_cafe_machine_case_back_bar_pendants(self):
+        c = self.case("cafe")
+        for piece in ("Espresso(em,toBack);Grinder(gp,toBack);", "GlassCase(pt0,pt1,pd0,pd1,yb+.03f,.42f,true)",
+                      '"lampa nad barem"', "zaplecze baru"):
+            self.assertIn(piece, c)
+        self.assertIn("static void Espresso(Vector3 p,Vector3 f)", self.s)
+        self.assertIn('case "cafe":return Inside(Tex("g1_wall_cafe_charcoal"', self.w)
+        polyhaven = (ROOT / "unity-tools/mistrzowie/promenade_polyhaven_models.json").read_text(encoding="utf-8")
+        for slug in ("brass_goblets", "wooden_cutting_board", "tea_set_01", "flower_empodium", "flower_gazania"):
+            self.assertIn('"%s"' % slug, polyhaven)                           # in the verified Poly Haven set
+
+
+class ShopPromotions(unittest.TestCase):
+    """Owner 16.11 12:59 "na ścianach jakieś promocje czy co na szybie, jak w sklepach", 13:09 "biuro podróży - gdzie oferty"."""
+
+    def setUp(self):
+        self.s = read("BraxChampionsG1Sklepy.cs")
+        self.w = read("BraxChampionsG1Wnetrze.cs")
+
+    def test_every_trade_has_an_offer(self):
+        promo = self.s[self.s.index("static (string head,string deal) Promo(G1Unit u)"):]
+        promo = promo[:promo.index("\n    }")]
+        trades = set(re.findall(r'"([a-z]+)"', self.w[self.w.index("string[] t0="):self.w.index("for(int l=0;l<2;l++)")]))
+        for t in trades:
+            self.assertIn('case "%s":' % t, promo, t)
+
+    def test_window_film_offer_and_lightbox(self):
+        self.assertIn("if(door)ShopWindowPromo(u,f,segs,y);", self.w)
+        win = self.s[self.s.index("static void ShopWindowPromo("):]
+        win = win[:win.index("\n    }\n")]
+        self.assertIn("Film(a+.03f,b-.03f,1.05f,1.20f);", win)                     # the manifestation band
+        self.assertIn(",.088f);", win)                                              # 12 mm outside the glass (o .10)
+        self.assertIn("gVinylGraphite", win)                                        # readable on a light shop
+        self.assertIn("Lightbox(c,outN,bw,", win)
+
+    def test_travel_agency_offers(self):
+        self.assertIn('("GRECJA 7 DNI","OD 2499 ZŁ",3)', self.s)
+        self.assertIn('"tablica ofert"', self.s)
+        self.assertIn('"stojak z katalogami"', self.s)
+        self.assertIn('"G1 "+nm+" | napis nad ekranami"', self.s)
+        self.assertIn('nm+" | plakat "+pk,agency?o.price:"ZAPRASZAMY");', self.s)
+        # owner 13:34 "zakaz wywlekania": no photograph of another place under a destination's name
+        board = self.s[self.s.index("THE BOARD OF OFFERS"):self.s.index('"tablica ofert"')]
+        self.assertNotIn("Photo(", board)
+        self.assertNotIn("BraxKatalog.Photo(k*3+j+1)", self.s)
+        self.assertNotIn("agency?o.pic", self.s)
+
+    def test_back_wall_sale_poster(self):
+        self.assertIn('nm+" | promocja na ścianie",pd??ph);', self.s)
+
+    def test_percent_glyph_in_the_letter_kit(self):
+        kit = (ROOT / "unity-tools/mistrzowie/build_letter_kit.py").read_text(encoding="utf-8")
+        charset = re.search(r"^CHARSET = (.*)$", kit, re.M).group(1)
+        self.assertIn("%", charset)
+        promo = self.s[self.s.index("static (string head,string deal) Promo(G1Unit u)"):]
+        used = set("".join(re.findall(r'"([^"]*)"', promo[:promo.index("\n    }")])).upper()) - set(" ")
+        allowed = set("ABCDEFGHIJKLMNOPQRSTUVWXYZĄĆĘŁŃÓŚŹŻÉÜÖ0123456789-/•.,:&'()!+#%")
+        trade_words = {"fashion", "sport", "bags", "shoes", "cosmetics", "optician", "electronics", "phones", "books",
+                       "jewellery", "pharmacy", "toys", "home", "moto", "flowers", "cafe", "salon", "service"}
+        letters = set("".join(w for w in re.findall(r'"([^"]*)"', promo[:promo.index("\n    }")]) if w not in trade_words).upper()) - set(" ")
+        self.assertFalse(letters - allowed, letters - allowed)                      # every character has a glyph
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -21,7 +21,7 @@ from build_harbour_signs import CAP, FPS, _TT, CMAPS, FONT_FILES, _advance, _fon
 from matplotlib.textpath import TextPath
 from shapely.geometry import Polygon
 
-CHARSET = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'ĄĆĘŁŃÓŚŹŻÉÜÖ' '0123456789' "-/•.,:&'()!+#")
+CHARSET = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'ĄĆĘŁŃÓŚŹŻÉÜÖ' '0123456789' "-/•.,:&'()!+#%")   # % for the shops' offers (16.11)
 BEVEL = .02          # in cap units: 2 mm on a 10 cm number
 
 

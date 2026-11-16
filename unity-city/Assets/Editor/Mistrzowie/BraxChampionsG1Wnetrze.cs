@@ -133,7 +133,11 @@ public static partial class BraxChampionsD2
         switch(t)
         {
             case "fashion":case "bags":return gWallPanels;
-            case "shoes":case "books":case "cafe":return gWood;
+            case "shoes":return gWood;
+            // a bookshop and a café (16.11 audit: walnut walls over a walnut floor under a walnut ceiling - a wooden box): the
+            // bookshop's walls a deep bottle green as in an old library, the café's a dark charcoal behind the walnut battens
+            case "books":return Inside(Tex("g1_wall_books_green",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(.16f,.30f,.24f))),.9f);
+            case "cafe":return Inside(Tex("g1_wall_cafe_charcoal",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(.24f,.24f,.25f))),.9f);
             case "electronics":case "phones":case "games":return Inside(Tex("g1_wall_graphite",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(.30f,.31f,.34f))),.9f);
             case "toys":return Inside(Tex("g1_wall_toys_yellow",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.41f,1.18f,.44f))),.9f);
             case "pharmacy":return Inside(Tex("g1_wall_pharmacy_green",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.18f,1.35f,1.24f))),.9f);
@@ -223,6 +227,7 @@ public static partial class BraxChampionsD2
             FrontBox(frame,a-.03f,b+.03f,y+.002f,y+.10f,.04f,.16f);
             var ca=Fp(a,y,.0f);var cb=Fp(b,y+4f,.2f);Col(Mathf.Min(ca.x,cb.x),Mathf.Max(ca.x,cb.x),y,y+4f,Mathf.Min(ca.z,cb.z),Mathf.Max(ca.z,cb.z),"witryna");
         }
+        if(door)ShopWindowPromo(u,f,segs,y);                                             // the window film, the offer, the lightbox
         FrontBox(frame,f0+.012f,f1-.012f,y+4.0f,y+4.08f,.04f,.16f);
         FrontBox(frame,f0+e-.05f,f0+e-.02f,y+.002f,y+4.0f,.0f,.16f);FrontBox(frame,f1-e+.02f,f1-e+.05f,y+.002f,y+4.0f,.0f,.16f);   // 1 cm inside the unit's line (no face shared with the linings)
         float yaw=f=='S'?180f:f=='N'?0f:f=='E'?90f:-90f;
