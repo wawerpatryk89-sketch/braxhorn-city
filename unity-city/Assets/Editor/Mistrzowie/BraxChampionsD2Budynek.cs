@@ -523,7 +523,7 @@ public static partial class BraxChampionsD2
         benchWood=Inside(Tex("bench_oak","oak_wood_planks",1.0f,new Color(.92f,.86f,.82f)),.85f);
         // floor: granite tiles everywhere, a darker granite band at the entrance mats and round the info desk
         Flat(hallFloor,-BW,BW,0f,BD,FFL);
-        Flat(graniteDark,-6f,6f,.3f,3.0f,FFL+.012f);Flat(graniteDark,-6f,6f,BD-3.0f,BD-.3f,FFL+.012f);
+        Flat(Inlay(graniteDark),-6f,6f,.3f,3.0f,FFL+.012f);Flat(Inlay(graniteDark),-6f,6f,BD-3.0f,BD-.3f,FFL+.012f);
         // first floor slabs in the wings (4.5..4.9), ceilings under them (white), gallery edge (navy band) + glass balustrade
         foreach(float s in new[]{-1f,1f})
         {
@@ -670,8 +670,8 @@ public static partial class BraxChampionsD2
     // stone planters, ticket machines at the ticket halls, bins
     static void HallDetails()
     {
-        for(int r=1;r<=4;r++){float z=r*6f;Flat(graniteDark,-HallW+.6f,HallW-.6f,z-.15f,z+.15f,FFL+.012f);}
-        foreach(float x in new[]{-6.15f,5.85f})Flat(graniteDark,x,x+.3f,3.2f,24f-.15f,FFL+.012f);
+        for(int r=1;r<=4;r++){float z=r*6f;Flat(Inlay(graniteDark),-HallW+.6f,HallW-.6f,z-.15f,z+.15f,FFL+.012f);}
+        foreach(float x in new[]{-6.15f,5.85f})Flat(Inlay(graniteDark),x,x+.3f,3.2f,24f-.15f,FFL+.012f);
         foreach(float z in new[]{9f,15f,21f})foreach(float x in new[]{-9.5f,9.5f})Halo(x,7.2f,z,1.25f,3);
         foreach(var (x,z) in new[]{(-16.6f,1.6f),(16.6f,1.6f),(-16.6f,22.4f),(16.6f,22.4f),(-4.6f,25.0f),(4.6f,25.0f)})
         {

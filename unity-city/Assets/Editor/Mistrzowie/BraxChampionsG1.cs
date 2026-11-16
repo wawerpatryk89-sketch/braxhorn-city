@@ -138,12 +138,12 @@ public static partial class BraxChampionsD2
         SquareGround(-G1HW,G1HW,G1HD,80f,holes);
         SquareGround(-30f,75f,80f,G1SiteZ1,holes);
         SquareGround(G1HW,110f,G1HD,80f,holes);                                   // to the metro walk east
-        for(float x=-80f;x<=80f;x+=10f){float z1=x>-30f&&x<75f?G1SiteZ1-.5f:79.5f;Flat(graniteDark,x-.20f,x+.20f,G1HD+3.5f,z1,WalkY+.012f);}
-        foreach(float z in new[]{65f,75f})Flat(graniteDark,-G1HW+.5f,G1HW-.5f,z-.20f,z+.20f,WalkY+.012f);
+        for(float x=-80f;x<=80f;x+=10f){float z1=x>-30f&&x<75f?G1SiteZ1-.5f:79.5f;Flat(Inlay(graniteDark),x-.20f,x+.20f,G1HD+3.5f,z1,WalkY+.012f);}
+        foreach(float z in new[]{65f,75f})Flat(Inlay(graniteDark),-G1HW+.5f,G1HW-.5f,z-.20f,z+.20f,WalkY+.012f);
         for(float z=90f;z<G1SiteZ1-1f;z+=10f)
         {
             // the bands stop 1.5 m short of the metro entrance's surround
-            Flat(graniteDark,-29.5f,Mathf.Min(74.5f,z>70f&&z<80f?55f:74.5f),z-.20f,z+.20f,WalkY+.012f);
+            Flat(Inlay(graniteDark),-29.5f,Mathf.Min(74.5f,z>70f&&z<80f?55f:74.5f),z-.20f,z+.20f,WalkY+.012f);
         }
         // the metro walk east to road X1130 (layout ENTRANCE_PATHS) and the walk round the building's east side
         Ground(walk,110f,G1SiteX1,72.67f,76.3f,WalkY,"chodnik do metra");

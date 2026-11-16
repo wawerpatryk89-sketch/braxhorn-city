@@ -66,5 +66,34 @@ class OwnerModelScaleTests(unittest.TestCase):
         self.assertTrue(lo <= 2.1 <= hi and abs(cel - 2.1) < .01)
 
 
+class AquaparkPremiumAndPolyHavenTests(unittest.TestCase):
+    def test_pavilion_finish(self):
+        b = (ED / "BraxChampionsAquaparkBudynek.cs").read_text(encoding="utf-8")
+        self.assertIn("Finish(ti);", b)
+        for slug in ("smoked_walnut_veneer", "hessian_230", "oak_wood_planks", "long_white_tiles"):
+            self.assertIn('"%s"' % slug, b)
+        self.assertNotIn('S("pavilion_ceiling_white"', b)            # the ceiling is Poly Haven paint now
+
+    def test_ambientcg_replaced_where_poly_haven_has_it(self):
+        for f in ("BraxChampionsBeachFurnishings.cs", "BraxChampionsPromenadeFurniture.cs", "BraxChampionsFoundation.cs"):
+            self.assertNotIn('"Planks040', (ED / f).read_text(encoding="utf-8"), f)
+        fnd = (ED / "BraxChampionsFoundation.cs").read_text(encoding="utf-8")
+        self.assertIn('return SourceMaterial(id,"leather_white",.3f,', fnd)
+        z = (ED / "BraxChampionsAquaparkZjezdzalnie.cs").read_text(encoding="utf-8")
+        self.assertIn('"anti_slip_concrete"', z)
+        prep = (ROOT / "unity-tools/mistrzowie/prepare_assets.py").read_text()
+        self.assertIn("'brown_planks_09'", prep)
+        self.assertNotIn("('Planks040'", prep)
+        self.assertNotIn("('Leather037'", prep)
+
+    def test_inlays_drawn_in_front(self):
+        d2 = (ED / "BraxChampionsD2.cs").read_text(encoding="utf-8")
+        self.assertIn("static Material Inlay(Material mat)", d2)
+        g1 = (ED / "BraxChampionsG1.cs").read_text(encoding="utf-8")
+        self.assertNotIn("Flat(graniteDark,", g1)
+        aq = (ED / "BraxChampionsAquapark.cs").read_text(encoding="utf-8")
+        self.assertIn('rubberYellow=BraxChampionsHarbour.Nakladka(', aq)
+
+
 if __name__ == "__main__":
     unittest.main()

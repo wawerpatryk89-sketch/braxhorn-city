@@ -21,7 +21,7 @@ public static class BraxChampionsPromenadeFurniture
         Teak=BraxChampionsFoundation.SourceMaterial("prom_bench_silver_teak_slats","oak_wood_planks",.9f,new Color(.975f,1.32f,1.76f));
         Kerb=BraxChampionsFoundation.SourceMaterial("prom_bed_granite_kerb","granite_tile",1.2f,new Color(.70f,.70f,.69f));
         // the same silver-grey weathered boards as the pontoons and the beach boardwalks
-        Deck=BraxChampionsFoundation.LibraryAcg("prom_beach_boardwalk_deck","Planks040",new Color(.94f,1.08f,1.18f),2.0f);
+        Deck=BraxChampionsFoundation.SourceMaterial("prom_beach_boardwalk_deck","brown_planks_09",1.0f,new Color(.94f,1.08f,1.18f));   // Poly Haven (16.11)
     }
 
     // Owner 10.11 15:53 (render of a quay bench from the walk: "coś z niej wystaje ... jakby jakiś słupek z drugiej strony

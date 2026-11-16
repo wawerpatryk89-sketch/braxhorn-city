@@ -129,11 +129,12 @@ public static class BraxChampionsFoundation
         // Real Poly Haven PBR for working docks: hard wearing timber on
         // floating pontoons, granite on high passenger/cruise berths.
         // Owner 10.11: the pontoons were furniture veneer (teak_veneer, read pink in the game). Real marina decking:
-        // ambientCG Planks040 (weathered grey deck boards with gaps and screw lines, CC0), 2 m tile.
+        // Poly Haven brown_planks_09 (weathered deck boards, 1 m) - owner 11.11 "tylko Poly Haven": the ambientCG Planks040
+        // of 10.11 replaced 16.11 (the same pale weathered timber: mean 156,136,111 vs Planks040 155,132,118).
         maps["quay_wood"]=new MapSet{
-            color=FileIn(tex,"Planks040_4K-JPG_Color.jpg"),
-            normal=FileIn(tex,"Planks040_4K-JPG_NormalGL.jpg"),
-            arm=FileIn(tex,"Planks040_ARM_4k.png"),tile=2.0f};
+            color=FileIn(tex,"brown_planks_09_diff_4k.jpg"),
+            normal=FileIn(tex,"brown_planks_09_nor_gl_4k.exr"),
+            arm=FileIn(tex,"brown_planks_09_arm_4k.png"),tile=1.0f};
         maps["quay_jetski"]=maps["quay_wood"];
         maps["quay_ramp"]=maps["quay_wood"];
         maps["quay_ramp_jetski"]=maps["quay_wood"];
@@ -263,7 +264,7 @@ public static class BraxChampionsFoundation
         // review 10.11 10:00: the old tint (1.46,1.37,1.17) gave orange sand (188,156,106); light Mediterranean sand now
         materials["sand_dry"].SetColor("_Color",new Color(1.59f,1.68f,1.81f,1f));
         materials["sand_wet"].SetColor("_Color",new Color(1.30f,1.38f,1.50f,1f));
-        // marina decking: silver-grey weathered boards (Planks040 alone is pink-brown 155,132,118 -> ~146,143,139), light granite quays
+        // marina decking: silver-grey weathered boards (brown_planks_09 alone is 156,136,111, Planks040 was 155,132,118 -> ~146,143,139), light granite quays
         materials["quay_wood"].SetColor("_Color",new Color(.94f,1.08f,1.18f,1f));
         materials["quay_apron"].SetColor("_Color",new Color(1.15f,1.15f,1.15f,1f));    // dark graphite granite, neutral
         EditorUtility.SetDirty(materials["quay_wood"]);EditorUtility.SetDirty(materials["quay_apron"]);
@@ -483,10 +484,9 @@ public static class BraxChampionsFoundation
     }
     public static Material LibraryLeather(string id,Color tint)
     {
-        string tex=Source+"/Textures",prefix="Leather037_4K-JPG_";
-        var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
-            arm=FileIn(tex,"Leather037_ARM_4k.png"),tile=.6f});
-        m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
+        // black leather: Poly Haven leather_white (0.3 m) tinted down, as BraxKatalog's leather (owner 11.11 "tylko Poly
+        // Haven"; the ambientCG Leather037 replaced 16.11); the caller's tint is relative to black leather as before
+        return SourceMaterial(id,"leather_white",.3f,new Color(tint.r*.12f,tint.g*.12f,tint.b*.13f,tint.a));
     }
 
     static Material FoamMaterial()

@@ -25,7 +25,9 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  'smoked_walnut_veneer','long_white_tiles','anti_skid_tiles','fabric_leather_02',
                  'laminate_floor_02',
                  # D2 DWORZEC 11.11 (owner board "metal_panels_02", navy cladding): Poly Haven blue_metal_plate.
-                 'blue_metal_plate')
+                 'blue_metal_plate',
+                 # 16.11 owner "tylko Poly Haven" (rule 11.11): the marina / beach decking (was ambientCG Planks040)
+                 'brown_planks_09')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
 # (Poly Haven CC0, the same partly cloudy sky as the first city), the original 4K Radiance .hdr checked against the
@@ -155,7 +157,6 @@ def main():
  # Extract the complete original packs once; retain original maps and pack ARM outside Unity.
  for asset, kinds in [('Grass004',['Color','NormalGL','Roughness','AmbientOcclusion']),
                       ('Metal048A',['Color','NormalGL','Roughness','Metalness']),
-                      ('Leather037',['Color','NormalGL','Roughness']),
                       # 9.11 owner vitrine photo: polished BLACK marble with thin
                       # WHITE veins. Poly Haven has no such material (marble_01 is
                       # beige tiles); ambientCG Marble016 is CC0 like Leather037.
@@ -171,7 +172,6 @@ def main():
                       ('Tiles012',['Color','NormalGL','Roughness']),
                       # 10.11 owner "promenada ... port porządny": real marina decking (pontoons, gangways, beach
                       # boardwalks) instead of furniture veneer, and premium light stone slabs on the promenade.
-                      ('Planks040',['Color','NormalGL','Roughness','AmbientOcclusion','Metalness']),
                       ('PavingStones126A',['Color','NormalGL','Roughness','AmbientOcclusion'])]:
   prefix=asset+'_4K-JPG_'
   names=[prefix+k+'.jpg' for k in kinds]

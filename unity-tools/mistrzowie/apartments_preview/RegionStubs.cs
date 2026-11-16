@@ -17,7 +17,7 @@ public static partial class BraxChampionsFoundation
     public static Material LibraryAcg(string id, string asset, Color tint, float metres) => new Material { name = id + "|" + asset + "|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryMarbleWhite(string id, Color tint, float metres) => new Material { name = id + "|Marble021|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
     public static Material LibraryTravertine(string id, Color tint, float metres) => new Material { name = id + "|Travertine009|" + metres.ToString(System.Globalization.CultureInfo.InvariantCulture), color = tint, textured = true };
-    public static Material LibraryLeather(string id, Color tint) => new Material { name = id + "|Leather037|0.6", color = tint, textured = true };
+    public static Material LibraryLeather(string id, Color tint) => new Material { name = id + "|leather_white|0.3", color = new Color(tint.r * .12f, tint.g * .12f, tint.b * .13f, tint.a), textured = true };
     public static Material LibraryMetal(string id, Color tint) => new Material { name = id + "|Metal048A|0.65", color = tint, textured = true };
     public static void Optional(string what, Action build) { try { build(); } catch (Exception e) { Console.WriteLine("WARN OPTIONAL_FAILED " + what + ": " + e.Message + (Environment.GetEnvironmentVariable("PREVIEW_STACK") == "1" ? "\n" + e.StackTrace : "")); } }
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }

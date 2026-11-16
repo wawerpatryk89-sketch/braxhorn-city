@@ -150,7 +150,7 @@ public static partial class BraxChampionsAquapark
     {
         { "sauna_kabina", (1.9f, 2.4f, 2.1f, 2.7f) },
         { "prysznic_kabina", (1.9f, 2.4f, 2.2f, 1.6f) },
-        { "jacuzzi_wanna", (.7f, 1.25f, .95f, 2.6f) },
+        { "jacuzzi_wanna", (.7f, 1.25f, .95f, 3.0f) },          // the owner's catalogue: 2.23 x 2.85 x 0.98 m
         { "umywalka_podwojna", (.75f, 2.2f, .9f, 1.7f) },
         { "lawka_szatnia", (.38f, 2.0f, .45f, 2.2f) },
         { "ratownik_krzeslo", (1.6f, 3.4f, 2.4f, 2.0f) },

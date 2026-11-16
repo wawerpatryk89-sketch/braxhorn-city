@@ -163,6 +163,22 @@ public static partial class BraxChampionsD2
         if(x1-x0<1e-4f||z1-z0<1e-4f)return;
         Q(mat,new Vector3(x0,y,z0),new Vector3(x1,y,z0),new Vector3(x1,y,z1),new Vector3(x0,y,z1),Vector3.up);
     }
+    // An INLAY lying on another surface (granite bands and rubber strips 12 mm proud): owner 16.11 01:36 "wszystko migota u
+    // ciebie" - from ~170 m on the phone's depth buffer cannot tell 12 mm apart, so the inlay gets its material's
+    // depth-offset twin (CityStaticPBR polygon offset -1/-1, BraxChampionsHarbour.Nakladka) and always lies in front of the
+    // surface under it. Only for inlays: a base surface with an offset would cover what lies on it.
+    static readonly Dictionary<Material,Material> inlays=new Dictionary<Material,Material>();
+    static Material Inlay(Material mat)
+    {
+        if(!mat||!mat.HasProperty("_OffsetFactor")||mat.GetFloat("_OffsetFactor")<0f)return mat;   // already an overlay (paint)
+        if(inlays.TryGetValue(mat,out var c)&&c)return c;
+        c=new Material(mat){name=mat.name+" | nakładka"};BraxChampionsHarbour.Nakladka(c);
+        string dir="Assets/PlayableGenerated/Mistrzowie/Materials/Nakladki";BraxChampionsMeshBatch.Folder(dir);
+        var path=dir+"/"+string.Join("_",(mat.name+"_nakladka").Split(System.IO.Path.GetInvalidFileNameChars()))+".mat";
+        var old=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(old){EditorUtility.CopySerialized(c,old);UnityEngine.Object.DestroyImmediate(c);c=old;}else BraxZapisAssetu.Utworz(c,path);
+        inlays[mat]=c;return c;
+    }
     // walkable ground: the surface plus a thin collider slab under it
     static void Ground(Material mat,float x0,float x1,float z0,float z1,float y,string name="teren")
     {

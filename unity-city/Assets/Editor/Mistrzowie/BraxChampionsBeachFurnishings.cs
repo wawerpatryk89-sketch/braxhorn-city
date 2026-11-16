@@ -58,7 +58,7 @@ public static class BraxChampionsBeachFurnishings
         Towel=BraxChampionsPromenade.Fabric("beach_towel_navy_cotton","cotton_jersey",new Color(.18f,.30f,.59f),.6f);
         Canvas=BraxChampionsPromenade.Fabric("beach_parasol_canvas_white","terlenka",new Color(1.21f,1.36f,1.53f),.9f,new Color(.38f,.38f,.36f));
         Navy=BraxChampionsPromenade.Fabric("beach_parasol_valance_navy","terlenka",new Color(.17f,.30f,.60f),.9f);
-        Deck=BraxChampionsFoundation.LibraryAcg("prom_beach_boardwalk_deck","Planks040",new Color(.94f,1.08f,1.18f),2.0f);
+        Deck=BraxChampionsFoundation.SourceMaterial("prom_beach_boardwalk_deck","brown_planks_09",1.0f,new Color(.94f,1.08f,1.18f));   // Poly Haven (16.11)
         Buoy=BraxChampionsHarbour.Surface("beach_swim_buoy_yellow",new Color(1.0f,.78f,.08f),.35f,0f);
         Rope=BraxChampionsHarbour.Surface("beach_swim_rope_white",new Color(.92f,.92f,.90f),.8f,0f);
     }

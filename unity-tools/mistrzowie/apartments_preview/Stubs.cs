@@ -147,7 +147,9 @@ namespace UnityEngine
         public Color sky = new Color(.60f, .68f, .78f), ground = new Color(.42f, .40f, .36f); public float ambient = .65f;
         // metallic / roughness / emission are recorded for generators that build plain meshes (casino, arena)
         public float metallic = 0, roughness = .5f; public Color emission = new Color(0, 0, 0); public string picture;
-        public void SetFloat(string n, float v) { if (n == "_AmbientIntensity") ambient = v; else if (n == "_Metallic") metallic = v; else if (n == "_Roughness") roughness = v; }
+        public void SetFloat(string n, float v) { floats[n] = v; if (n == "_AmbientIntensity") ambient = v; else if (n == "_Metallic") metallic = v; else if (n == "_Roughness") roughness = v; }
+        public readonly System.Collections.Generic.Dictionary<string, float> floats = new System.Collections.Generic.Dictionary<string, float>();
+        public float GetFloat(string n) => floats.TryGetValue(n, out var v) ? v : 0f;
         public void SetColor(string n, Color c) { if (n == "_Color") color = c; else if (n == "_SkyColor") sky = c; else if (n == "_GroundColor") ground = c; else if (n == "_EmissionColor") emission = c; }
         public void SetTexture(string n, Texture t) { if (n == "_MainTex" && t is Texture2D t2 && t2.real) { picture = t.name; textured = true; } }
         public void SetVector(string n, Vector4 v) { }

@@ -296,7 +296,7 @@ public static partial class BraxChampionsD2
         var c0=FP(side,u-ws,3.1f,-.25f);var c1=FP(side,u+ws,3.2f,-3.6f);
         B(gWood,Mathf.Min(c0.x,c1.x),Mathf.Max(c0.x,c1.x),3.1f,3.2f,Mathf.Min(c0.z,c1.z),Mathf.Max(c0.z,c1.z));
         var m0=FP(side,u-ws+.1f,y,-.25f);var m1=FP(side,u+ws-.1f,y,-3.45f);
-        Flat(rubber,Mathf.Min(m0.x,m1.x),Mathf.Max(m0.x,m1.x),Mathf.Min(m0.z,m1.z),Mathf.Max(m0.z,m1.z),y+.012f);
+        Flat(Inlay(rubber),Mathf.Min(m0.x,m1.x),Mathf.Max(m0.x,m1.x),Mathf.Min(m0.z,m1.z),Mathf.Max(m0.z,m1.z),y+.012f);
     }
     // automatic sliding glass door at c (floor level), facing yaw: two leaves w each, apart by w (the train's runtime)
     static void SlidingGlassDoor(string label,Vector3 c,float yaw,float w,float h)

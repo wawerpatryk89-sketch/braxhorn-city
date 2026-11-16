@@ -32,7 +32,8 @@ public static partial class BraxChampionsAquapark
         marbleBlack = Inside(BraxChampionsFoundation.LibraryMarble("aq_lobby_black_marble", new Color(1f, 1f, 1f), 1.8f), 1.0f);
         marbleWhite = Inside(BraxChampionsFoundation.LibraryMarbleWhite("aq_spa_white_marble", new Color(1f, 1f, 1f), 1.6f), 1.0f);
         quartz = Inside(S("reception_white_quartz", new Color(.95f, .95f, .96f), .18f, 0f), 1.0f);
-        ceiling = Inside(S("pavilion_ceiling_white", new Color(.93f, .93f, .94f), .7f, 0f), 1.1f);
+        // 16.11 owner "basen masz skończyć premium ... Poly Haven": the ceiling in the interior paint (Poly Haven), no plain colour
+        ceiling = Inside(Tex("pavilion_ceiling_white", BraxChampionsFoundation.InteriorPaintSlug, 2.0f, BraxChampionsFoundation.PaintTint(new Color(1.06f, 1.06f, 1.08f))), 1.1f);
         frosted = S("pavilion_frosted_glass", new Color(.90f, .94f, .96f, .62f), .3f, 0f, null, true);
         lockerMat = Inside(S("locker_graphite_hpl", new Color(.16f, .17f, .19f), .42f, .05f), 1.0f);
         plate = S("locker_number_plate", new Color(.85f, .86f, .88f), .25f, .8f);
@@ -179,6 +180,7 @@ public static partial class BraxChampionsAquapark
         WallX(renderIn, -80f, 40f, BX1, FFL, hy, ti, (52.9f, 54.1f, FFL + 2.3f));
         Door("MASAŻ B", 53.5f, -80f, 0f, 1.2f, 2.3f, false);
         WallZ(renderIn, 49f, -80f, BZ1, FFL, hy, ti);
+        Finish(ti);
         // ---------------- turnstiles (3 stainless gates in the west opening)
         foreach (float z in new[] { -94.6f, -93.2f, -91.8f })
         {
@@ -189,6 +191,67 @@ public static partial class BraxChampionsAquapark
     }
 
     // full-height glazing with black mullions every 2.4 m and a black head; gaps (doors) left open
+    // PREMIUM FINISH (owner 16.11 01:36-01:41 "basen masz skończyć premium ... Poly Haven ... wszystko sprawdzasz, co
+    // trzeba wykończyć"; the 16.11 preview: grey painted walls and a flat white ceiling over 116 m of rooms). All Poly Haven:
+    //   - the LOBBY and the SPA wing under a walnut slat ceiling: 6 x 6 cm slats every 15 cm on black acoustic felt (hessian),
+    //     warm downlights hanging just under the slats;
+    //   - the LOBBY's side walls, the JACUZZI HALL, the SAUNA room and the MASSAGE rooms panelled in timber up to the slats
+    //     (walnut; oak in the sauna room), 2 cm proud of the plaster, the door openings left free;
+    //   - the CHANGING ROOMS' walls tiled (long white porcelain) to 2.4 m, 12 mm proud;
+    //   - the SAUNA room's empty half: three loungers to rest after the sauna (you lie on them), plants.
+    static void Finish(float ti)
+    {
+        var slat = Inside(Tex("ceiling_walnut_slats", "smoked_walnut_veneer", 1.2f, Color.white), 1.0f);
+        var felt = Inside(Tex("ceiling_black_felt", "hessian_230", 1.0f, new Color(.10f, .10f, .11f)), 1.0f);
+        var walnut = Inside(Tex("spa_walnut_panels", "smoked_walnut_veneer", 1.6f, Color.white), 1.0f);
+        var oak = Inside(Tex("sauna_oak_panels", "oak_wood_planks", 1.6f, Color.white), 1.0f);
+        var tiles = Inside(Tex("changing_long_white_tiles", "long_white_tiles", 1.2f, Color.white), 1.0f);
+        // slat ceilings (the felt 3 cm under the plaster, the slats under the felt)
+        foreach (var (x0, x1, z0, z1) in new[] { (-13.9f, 13.9f, BZ0 + .2f, BZ1 - .2f), (14.1f, BX1 - .2f, -89.9f, BZ1 - .2f) })
+        {
+            BL(felt, x0, x1, CY - .04f, CY - .012f, z0, z1);
+            for (float x = x0 + .06f; x + .06f < x1; x += .15f) BL(slat, x, x + .06f, CY - .10f, CY - .04f, z0, z1);
+            for (float x = x0 + 2f; x < x1 - 1f; x += 4f) for (float z = z0 + 2f; z < z1 - 1f; z += 4f) m.Cylinder(downlight, V(x, CY - .125f, z), .09f, .012f, 14);
+        }
+        // timber panelling (2 cm proud of the wall face, a 2 cm shadow gap at the floor), openings kept
+        float top = CY - .10f, e = ti * .5f;                                                      // up to the slats
+        void PanelX(Material mat, float z, float side, float x0, float x1, params (float a, float b)[] gaps)
+        {
+            float zf = z + side * e, za = Mathf.Min(zf, zf + side * .02f), zb = Mathf.Max(zf, zf + side * .02f), x = x0;
+            foreach (var g in gaps.OrderBy(q => q.a)) { if (g.a - x > .05f) BL(mat, x, g.a, FFL + .02f, top, za, zb); x = g.b; }
+            if (x1 - x > .05f) BL(mat, x, x1, FFL + .02f, top, za, zb);
+        }
+        void PanelZ(Material mat, float x, float side, float z0, float z1, params (float a, float b)[] gaps)
+        {
+            float xf = x + side * e, xa = Mathf.Min(xf, xf + side * .02f), xb = Mathf.Max(xf, xf + side * .02f), z = z0;
+            foreach (var g in gaps.OrderBy(q => q.a)) { if (g.a - z > .05f) BL(mat, xa, xb, FFL + .02f, top, z, g.a); z = g.b; }
+            if (z1 - z > .05f) BL(mat, xa, xb, FFL + .02f, top, z, z1);
+        }
+        // the lobby's side walls (the turnstiles' opening at x -14, the SPA door at x 14)
+        PanelZ(walnut, -14f, +1f, BZ0 + .35f, BZ1 - .2f, (-95.5f, -90.9f));
+        PanelZ(walnut, 14f, -1f, BZ0 + .35f, BZ1 - .2f, (-94.5f, -91.9f));
+        // jacuzzi hall x 14..40: the corridor wall (door 25.8..28.2) and the wall to the sauna / massage (door at z -73.2..-72)
+        PanelX(walnut, -90f, +1f, 14.4f, 39.9f, (25.7f, 28.3f));
+        PanelZ(walnut, 40f, -1f, -89.9f, -64.4f, (-73.3f, -71.9f));
+        // sauna room x 40..58, z -90..-80: oak all round (door from the corridor 48.65..49.85, to massage B 52.9..54.1)
+        PanelX(oak, -90f, +1f, 40.1f, 57.6f, (48.55f, 49.95f));
+        PanelX(oak, -80f, -1f, 40.1f, 57.6f, (52.8f, 54.2f));
+        PanelZ(oak, 40f, +1f, -89.9f, -80.1f);
+        // massage A x 40..49 / B x 49..58, z -80..-64: walnut on the side walls (the black marble wall is at the glass)
+        PanelZ(walnut, 40f, +1f, -79.9f, -64.6f, (-73.3f, -71.9f));
+        PanelZ(walnut, 49f, -1f, -79.9f, -64.6f);
+        PanelZ(walnut, 49f, +1f, -79.9f, -64.6f);
+        // changing rooms x -58..-36 and -36..-14: the corridor wall (doors at -47 and -25) and the partition, tiled to 2.4 m
+        top = FFL + 2.4f;
+        PanelX(tiles, -90f, +1f, BX0 + .35f, -14.1f, (-47.7f, -46.3f), (-25.7f, -24.3f), (-36.1f, -35.9f));
+        PanelZ(tiles, -36f, -1f, -89.9f, BZ1 - .2f);
+        PanelZ(tiles, -36f, +1f, -89.9f, BZ1 - .2f);
+        // the sauna room's rest corner: three loungers (BraxSeat lie) and two plants
+        foreach (float x in new[] { 51.9f, 54.0f, 56.1f }) Lounger(V(x, FFL, -84.6f), 0f);
+        BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + 57.2f, CZ - 81.0f, "flower_empodium");
+        BraxChampionsPromenadeFurniture.Planter(m, cols, models, CX + 41.2f, CZ - 81.0f, "flower_gazania");
+    }
+
     static void GlassRun(float x0, float x1, float z, float y0, float y1, (float a, float b)[] gaps)
     {
         float x = x0;
