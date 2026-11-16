@@ -1,21 +1,21 @@
 {
   "id": "braxhorn.vehicle.taxi",
   "displayName": "Braxhorn Taxi",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scope": "shared, all city regions",
   "sourceStorage": {
     "type": "private owner library",
     "folder": "Braxhorn city/Zasoby globalne/Pojazdy",
     "sourceFile": "Braxhorn_Taxi.glb",
-    "sourceSHA256": "f94ce52a8e0edd27db952e9bea8a2d16eff65410c7210861cb441cce3a401b63",
+    "sourceSHA256": "07f9a29d8ee0a09ec3b70ab00aeb64f213df1812c8ae187bdf7475447b4fe34a",
     "packageFile": "BraxhornTaxi.unitypackage"
   },
   "model": {
-    "sha256": "f94ce52a8e0edd27db952e9bea8a2d16eff65410c7210861cb441cce3a401b63",
-    "bytes": 23962908,
+    "sha256": "07f9a29d8ee0a09ec3b70ab00aeb64f213df1812c8ae187bdf7475447b4fe34a",
+    "bytes": 23962844,
     "trianglesInstanced": 213272,
     "widthIncludingMirrorsM": 2.134,
-    "heightIncludingAntennaM": 1.84,
+    "heightIncludingAntennaM": 1.827,
     "lengthM": 4.617,
     "wheelPivots": [
       "Wheel_FL",
@@ -31,18 +31,14 @@
   },
   "previews": {
     "fullVehicle": [
-      "Braxhorn_Taxi_Cale_auto.jpg",
-      "Braxhorn_Taxi_Prawy_bok.jpg",
-      "Braxhorn_Taxi_Przod.jpg",
-      "Braxhorn_Taxi_Tyl.jpg"
-    ],
-    "gallery": "Braxhorn_Taxi_12_zdjec.zip"
+      "Braxhorn_Taxi_11_Cale_auto.jpg"
+    ]
   },
   "unityPackage": {
     "assetPath": "Assets/Braxhorn/Shared/Vehicles/BraxhornTaxi.glb",
     "assetGuid": "380035a3793454dea61311de811eb2e5",
-    "sha256": "da5b67a7e62e5ec5336fc43044417732ac6110a6eccd247d4b8a5e2a20006955",
-    "bytes": 20414667,
+    "sha256": "182a548bbb5f8ef29d2d0ecb001288739b6812d69b81e2ddf2470569a78cd2ab",
+    "bytes": 20591943,
     "importer": "com.unity.cloud.gltfast",
     "worldScaleK": 1.294,
     "applyWorldScaleOnce": true
@@ -56,6 +52,6 @@
   },
   "ownerApproval": {
     "status": "approved for shared game assets",
-    "date": "2026-11-15"
+    "date": "2026-11-16"
   }
 }
