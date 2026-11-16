@@ -5,6 +5,8 @@ using UnityEngine;
 // przywracane przy jej zamknięciu (przejście miasto ↔ osiedle tunelem nie przenosi ustawień do drugiego rejonu).
 // W pudłach `bezZmian` (sala siłowni startowej — zatwierdzona, oświetlona po swojemu) ekspozycja 1 i dawna moc słońca.
 // Sprawdzanie położenia kamery co 0.25 s, bez pracy w klatce.
+// MGŁA: ŻADNA (właściciel 16.11 14:33: „Żadnej kurwa mgły stop”) — mgiełka shaderów miasta (_BraxMgielkaGestosc, ustawiana
+// globalnie przez BraxGrafika) w tej scenie = 0; przy zamknięciu sceny wraca poprzednia wartość (inne rejony bez zmian).
 public sealed class BraxObrazRejonu : MonoBehaviour
 {
     public float ekspozycja = 1f;
@@ -13,9 +15,10 @@ public sealed class BraxObrazRejonu : MonoBehaviour
     public Bounds[] bezZmian = new Bounds[0];
 
     static readonly int Id = Shader.PropertyToID("_BraxEkspozycja");
-    float nast; int stan = -1;
+    static readonly int IdMgielka = Shader.PropertyToID("_BraxMgielkaGestosc");
+    float nast; int stan = -1; float mgielkaPrzed = -1f;
 
-    void OnEnable() { stan = -1; Ustaw(false); }
+    void OnEnable() { stan = -1; Ustaw(false); mgielkaPrzed = Shader.GetGlobalFloat(IdMgielka); Shader.SetGlobalFloat(IdMgielka, 0f); }
 
     void Update()
     {
@@ -35,5 +38,9 @@ public sealed class BraxObrazRejonu : MonoBehaviour
         if (slonce) slonce.intensity = wewnatrz ? slonceWewnatrz : slonceZewnatrz;
     }
 
-    void OnDisable() { Shader.SetGlobalFloat(Id, 0f); stan = -1; }   // 0 = nieustawiona (shader liczy jak 1)
+    void OnDisable()
+    {
+        Shader.SetGlobalFloat(Id, 0f); stan = -1;   // 0 = nieustawiona (shader liczy jak 1)
+        if (mgielkaPrzed >= 0f) Shader.SetGlobalFloat(IdMgielka, mgielkaPrzed);
+    }
 }

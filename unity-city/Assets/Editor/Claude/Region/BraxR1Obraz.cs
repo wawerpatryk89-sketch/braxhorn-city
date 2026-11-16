@@ -12,9 +12,8 @@ using UnityEngine.Rendering;
 //     kierunek bez zmian (= słońce shaderów miasta, BraxCityMaterials.SunDirection — cienie zgodne z cieniowaniem);
 //   • materiały miasta: ekspozycja 1.62 (= 1.24 / (2.4/π)) — słońce i otoczenie na poziomie Osiedla; w sali siłowni bez zmian;
 //   • otoczenie trilight nie niżej niż Osiedle (kanał po kanale): niebo (.60,.68,.80), horyzont (.50,.53,.50), ziemia (.30,.28,.23);
-//   • mgła WŁĄCZONA: wykładnicza 0.00042, barwa (.70,.76,.83) — to samo prawo i kolor co perspektywa powietrzna miasta
-//     (BraxGrafika.Mgielka, shader CityStaticPBR, tło nieba i teren za granicą), więc auta, ludzie i modele mają tę samą głębię
-//     co budynki (gęstość Osiedla 0.0042² zjadłaby wyspę 1 km od portu i wieżowce — miasto ma inną skalę widoku);
+//   • MGŁA: ŻADNA (właściciel 16.11 14:33: „Żadnej kurwa mgły stop”) — mgła Unity wyłączona, mgiełka shadera miasta
+//     (_BraxMgielkaGestosc) w scenie R1 = 0 (BraxObrazRejonu), tło nieba, teren za granicą i pierścień panoramy bez mgiełki;
 //   • kamery na ekran: bliska płaszczyzna 0.25 m (0.15 m przy ścianie — BraxClaudeKamera), przejście koloru BraxClaudeKolor
 //     (nasycenie 1.15, kontrast 1.06 — to samo co Osiedle), odbicia 1.0.
 // Log BRAXHORN_OBRAZ_R1 z porównaniem do minimum (każda pozycja OK / PONIŻEJ).
@@ -42,8 +41,7 @@ public static class BraxR1Obraz
         RenderSettings.ambientSkyColor = Max(RenderSettings.ambientSkyColor, new Color(.60f, .68f, .80f));
         RenderSettings.ambientEquatorColor = Max(RenderSettings.ambientEquatorColor, new Color(.50f, .53f, .50f));
         RenderSettings.ambientGroundColor = Max(RenderSettings.ambientGroundColor, new Color(.30f, .28f, .23f));
-        RenderSettings.fog = true; RenderSettings.fogMode = FogMode.Exponential; RenderSettings.fogDensity = .00042f;
-        RenderSettings.fogColor = new Color(.70f, .76f, .83f);
+        RenderSettings.fog = false;   // właściciel 16.11 14:33: „Żadnej kurwa mgły stop”
         RenderSettings.reflectionIntensity = Mathf.Max(1f, RenderSettings.reflectionIntensity);
         int kam = 0; bool kolorOk = true;
         foreach (var cam in Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -67,7 +65,7 @@ public static class BraxR1Obraz
         P("otoczenie niebo", !Nie(RenderSettings.ambientSkyColor, new Color(.60f, .68f, .80f)), RenderSettings.ambientSkyColor.ToString("F2"));
         P("otoczenie horyzont", !Nie(RenderSettings.ambientEquatorColor, new Color(.50f, .53f, .50f)), RenderSettings.ambientEquatorColor.ToString("F2"));
         P("otoczenie ziemia", !Nie(RenderSettings.ambientGroundColor, new Color(.30f, .28f, .23f)), RenderSettings.ambientGroundColor.ToString("F2"));
-        P("mgła", RenderSettings.fog, RenderSettings.fogMode + " " + RenderSettings.fogDensity.ToString("F5"));
+        P("mgła wyłączona (decyzja właściciela 16.11 14:33)", !RenderSettings.fog, RenderSettings.fog ? "WŁĄCZONA" : "brak mgły, mgiełka shadera 0");
         P("bliska płaszczyzna", kam > 0, ".25 m (przy ścianie .15 m), kamer " + kam);
         P("przejście koloru", kam > 0 && kolorOk, "nasycenie 1.15, kontrast 1.06");
         P("rzutowanie cieni", true, "StableFit (ustawia BraxGrafika i BraxClaudeKamera w grze)");

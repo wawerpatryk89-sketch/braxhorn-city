@@ -135,7 +135,14 @@ class Zakamarki(unittest.TestCase):
     def test_image_standard(self):
         self.assertIn("public const float Ekspozycja = 1.62f;", OBRAZ)
         self.assertIn("sun.intensity = 1.24f;", OBRAZ)
-        self.assertIn("RenderSettings.fogDensity = .00042f;", OBRAZ)
+        # właściciel 16.11 14:33: „Żadnej kurwa mgły stop” — bez mgły Unity i bez mgiełki shaderów miasta, tła i panoramy
+        self.assertIn("RenderSettings.fog = false;", OBRAZ)
+        self.assertNotIn("RenderSettings.fog = true", OBRAZ)
+        self.assertIn("Shader.SetGlobalFloat(IdMgielka, 0f);", src(ROOT / "unity-city/Assets/Claude/Runtime/BraxObrazRejonu.cs"))
+        HOR = src(REG / "BraxRegionHoryzont.cs")
+        self.assertIn('m.SetFloat("_MgielkaGestosc", 0f);', HOR)
+        self.assertIn('m.SetFloat("_PasmoMgla", 0f);', HOR)
+        self.assertIn("const float Mgielka = 0f;", src(REG / "BraxPanorama.cs"))
         self.assertIn("kol.nasycenie = 1.15f; kol.kontrast = 1.06f;", OBRAZ)
         self.assertIn("half3 colour = (direct + albedo*(1-metallic)*ambient*ambientAO) * ekspozycja;", SHADER)
 

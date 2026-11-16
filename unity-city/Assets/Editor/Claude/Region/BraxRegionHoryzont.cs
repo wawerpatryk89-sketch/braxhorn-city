@@ -380,7 +380,7 @@ public static class BraxRegionHoryzont
         // szczyt i zalesiona góra, na północy zalesione zbocza
         m.SetFloat("_PasmoU0", .27f - .5f + (info.przesuniecie_u - .02f));
         m.SetFloat("_PasmoGora", info.elewacja_gora); m.SetFloat("_PasmoDol", info.elewacja_dol);
-        m.SetFloat("_PasmoJasnosc", .96f); m.SetFloat("_PasmoNasycenie", 1.12f); m.SetFloat("_PasmoMgla", .2f);
+        m.SetFloat("_PasmoJasnosc", .96f); m.SetFloat("_PasmoNasycenie", 1.12f); m.SetFloat("_PasmoMgla", 0f);   // właściciel 16.11 14:33: „Żadnej kurwa mgły stop”
         m.SetTexture("_Grzbiety", grzbietyTex);
         m.SetVector("_GrzbietyR", new Vector4(R1, R2, H1, H2));
         m.SetColor("_GrzbietKolor1", new Color(.21f, .29f, .16f)); m.SetColor("_GrzbietKolor2", new Color(.22f, .29f, .19f));
@@ -391,7 +391,7 @@ public static class BraxRegionHoryzont
         m.SetVector("_Brzeg2", new Vector4(BraxMiastoGranice.BrzegLukPolnocZ, BraxMiastoGranice.BrzegLukPoludnieZ, BraxMiastoGranice.BrzegLukNachylenie, BraxMiastoGranice.PoziomMorza));
         m.SetColor("_MorzeKolor", new Color(.06f, .19f, .24f));
         m.SetColor("_MgielkaKolor", new Color(.70f, .76f, .83f));
-        m.SetFloat("_MgielkaGestosc", .00042f); m.SetFloat("_MgielkaNieboUdzial", .6f);
+        m.SetFloat("_MgielkaGestosc", 0f); m.SetFloat("_MgielkaNieboUdzial", .6f);   // bez mgiełki (właściciel 16.11 14:33)
     }
 
     static void Niebo()

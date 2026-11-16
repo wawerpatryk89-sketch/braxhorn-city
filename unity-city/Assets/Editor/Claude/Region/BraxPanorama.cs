@@ -18,7 +18,9 @@ public static class BraxPanorama
     static Material mat;
     static Vector2 Ref => new Vector2(BraxMiastoGranice.SrodekX, BraxMiastoGranice.SrodekZ);
     static float N(float x, float z, int oct = 3) { float s = 0, a = 1, f = 1, n = 0; for (int i = 0; i < oct; i++) { s += a * (Mathf.PerlinNoise(x * f + 311f * i + 77f, z * f + 191f * i + 33f) * 2f - 1f); n += a; a *= .5f; f *= 2.03f; } return s / n; }
-    static Color32 C(float r, float g, float b, float mg) => new Color32((byte)(Mathf.Clamp01(r) * 255), (byte)(Mathf.Clamp01(g) * 255), (byte)(Mathf.Clamp01(b) * 255), (byte)(Mathf.Clamp01(mg) * 255));
+    // właściciel 16.11 14:33: „Żadnej kurwa mgły stop” — mgiełka odległości w wierzchołkach (alfa → kolor mgiełki w shaderze) = 0
+    const float Mgielka = 0f;
+    static Color32 C(float r, float g, float b, float mg) => new Color32((byte)(Mathf.Clamp01(r) * 255), (byte)(Mathf.Clamp01(g) * 255), (byte)(Mathf.Clamp01(b) * 255), (byte)(Mathf.Clamp01(mg * Mgielka) * 255));
     static bool Morze(float x, float z) => !BraxMiastoGranice.Lad(x, z);
 
     sealed class S { public List<Vector3> v = new List<Vector3>(); public List<Color32> c = new List<Color32>(); public List<int> t = new List<int>();

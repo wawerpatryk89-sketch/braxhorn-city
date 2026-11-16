@@ -108,11 +108,14 @@ class R1CienieIMgielka(unittest.TestCase):
         self.assertIn("slonce.shadows = w ? LightShadows.None : cienie;", run)
 
     def test_aerial_haze_matches_sky(self):
+        # 16.11 14:33 (właściciel: „Żadnej kurwa mgły stop”): w R1 mgiełka wyłączona — shader ją umie (gęstość 0 = brak),
+        # globalna wartość BraxGrafika zostaje dla innych rejonów, scena R1 ustawia 0, tło i teren za granicą bez mgiełki
         self.assertIn("_BraxMgielkaGestosc", SHADER)
         self.assertIn("1.0 - exp(-odl * _BraxMgielkaGestosc)", SHADER)
         self.assertIn('Shader.SetGlobalFloat("_BraxMgielkaGestosc", .00042f);', GRAF)
         sky = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxRegionHoryzont.cs").read_text(encoding="utf-8")
-        self.assertIn('m.SetFloat("_MgielkaGestosc", .00042f)', sky)
+        self.assertIn('m.SetFloat("_MgielkaGestosc", 0f)', sky)
+        self.assertNotIn('m.SetFloat("_MgielkaGestosc", .00042f)', sky)
 
     def test_ring_island_replaced_by_real_far_copy(self):
         self.assertIn('trZD.name.StartsWith("Nasza wyspa (z daleka")', BUILD)
