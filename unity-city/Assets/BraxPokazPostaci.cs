@@ -206,20 +206,38 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                         bool ona = kto < kobieta.Length && kobieta[kto];
                         var wszystkie = Resources.LoadAll<AudioClip>("OsiedleGlosy");
                         var pasujace = new System.Collections.Generic.List<AudioClip>();
-                        foreach (var k in wszystkie)
-                            if (k && k.name.EndsWith(ona ? "_f" : "_m", System.StringComparison.Ordinal))
-                                pasujace.Add(k);
+                        // WŁASNY GŁOS PRZED BANKIEM. Właściciel 16.11, 22:44–22:45 przysłał swoje
+                        // nagranie i nagranie Moniki. Jeśli w OsiedleGlosy są pliki zaczynające się
+                        // od nazwy postaci (patryk_01_m, monika_01_f…), postać mówi TYLKO nimi;
+                        // reszta obsady dalej bierze z banku według płci.
+                        string wlasny = kto < (nazwy?.Length ?? 0) && !string.IsNullOrEmpty(nazwy[kto])
+                            ? nazwy[kto] + "_" : null;
+                        if (wlasny != null)
+                            foreach (var k in wszystkie)
+                                if (k && k.name.StartsWith(wlasny, System.StringComparison.Ordinal))
+                                    pasujace.Add(k);
+                        bool swoje = pasujace.Count > 0;
+                        if (!swoje)
+                            foreach (var k in wszystkie)
+                                if (k && k.name.EndsWith(ona ? "_f" : "_m", System.StringComparison.Ordinal))
+                                    pasujace.Add(k);
                         var nagrania = pasujace.Count > 0 ? pasujace.ToArray() : wszystkie;
-                        for (int n = 0; n < NagranPodRzad; n++)
+                        if (swoje) Debug.Log($"BRAX_POKOJ_GLOS {nazwy[kto]} mówi własnym głosem, {nagrania.Length} kwestii");
+                        // Własne nagrania lecą PO KOLEI i wszystkie — to jedna wypowiedź pocięta
+                        // na frazy, więc kolejność ma znaczenie. Bank leci jak dotąd, co szóste.
+                        int ile = swoje ? Mathf.Min(nagrania.Length, 12) : NagranPodRzad;
+                        for (int n = 0; n < ile; n++)
                         {
                             var klipGlosu = nagrania != null && nagrania.Length > 0
-                                ? nagrania[(kto * 7 + n * 13) % nagrania.Length]
+                                ? nagrania[swoje ? n % nagrania.Length
+                                                 : (kto * 7 + n * 13) % nagrania.Length]
                                 : Resources.Load<AudioClip>("OsiedleGlosy/" + Kwestia);
                             if (!klipGlosu) { etap = opis + " — brak nagrań głosu"; break; }
                             zrodlo2.clip = klipGlosu;
                             zrodlo2.Play();
                             if (mim) mim.Wypowiedz(zrodlo2);
-                            etap = opis + "  ♪ " + (n + 1) + "/" + NagranPodRzad + (ona ? "  (głos kobiecy)" : "");
+                            etap = opis + "  ♪ " + (n + 1) + "/" + ile
+                                 + (swoje ? "  (własny głos)" : ona ? "  (głos kobiecy)" : "");
                             float koniecGlosu = Time.time + klipGlosu.length + .25f;
                             while (Time.time < koniecGlosu) yield return null;
                         }
