@@ -217,17 +217,24 @@ public static partial class BraxChampionsD2
         Vector3 outN=f=='S'?Vector3.back:f=='N'?Vector3.forward:f=='E'?Vector3.right:Vector3.left;
         void FrontBox(Material mat,float t0,float t1,float y0,float y1,float o0,float o1)
         {var a=Fp(t0,y0,o0);var b=Fp(t1,y1,o1);B(mat,Mathf.Min(a.x,b.x),Mathf.Max(a.x,b.x),y0,y1,Mathf.Min(a.z,b.z),Mathf.Max(a.z,b.z));}
-        void FrontGlass(float t0,float t1,float y0,float y1){var a=Fp(t0,y0,.10f);var b=Fp(t1,y0,.10f);var c=Fp(t1,y1,.10f);var d=Fp(t0,y1,.10f);Q(gShopGlass,a,b,c,d,outN);Q(gShopGlass,a,b,c,d,-outN);}
+        void Pane(Material mat,float t0,float t1,float y0,float y1){var a=Fp(t0,y0,.10f);var b=Fp(t1,y0,.10f);var c=Fp(t1,y1,.10f);var d=Fp(t0,y1,.10f);Q(mat,a,b,c,d,outN);Q(mat,a,b,c,d,-outN);}
+        // the frosted manifestation band (owner 16.11 12:59 "coś na szybie jak w sklepach") is a strip OF the pane at 1.05-1.20 m,
+        // in the glass's own plane - not a film over it (13:57: "żadnej farby wiszącej nad powierzchnią")
+        void FrontGlass(float t0,float t1,float y0,float y1,bool band)
+        {
+            if(!band){Pane(gShopGlass,t0,t1,y0,y1);return;}
+            PromoMaterials();Pane(gShopGlass,t0,t1,y0,y+1.05f);Pane(gFrost,t0,t1,y+1.05f,y+1.20f);Pane(gShopGlass,t0,t1,y+1.20f,y1);
+        }
         var segs=door?new List<(float,float)>{(f0+e,fc-dw),(fc+dw,f1-e)}:new List<(float,float)>{(f0+e,f1-e)};
         foreach(var (a,b) in segs)
         {
             int n=Mathf.Max(1,Mathf.CeilToInt((b-a)/2.4f-.01f));float w=(b-a)/n;
-            for(int i=0;i<n;i++)FrontGlass(a+i*w+.012f,a+(i+1)*w-.012f,y+.10f,y+4.0f);
+            for(int i=0;i<n;i++)FrontGlass(a+i*w+.012f,a+(i+1)*w-.012f,y+.10f,y+4.0f,door&&!BandlessPane(u,segs,a+i*w));
             for(int i=0;i<=n;i++){float t=a+i*w;FrontBox(frame,t-.03f,t+.03f,y+.10f,y+4.0f,.04f,.16f);}
             FrontBox(frame,a-.03f,b+.03f,y+.002f,y+.10f,.04f,.16f);
             var ca=Fp(a,y,.0f);var cb=Fp(b,y+4f,.2f);Col(Mathf.Min(ca.x,cb.x),Mathf.Max(ca.x,cb.x),y,y+4f,Mathf.Min(ca.z,cb.z),Mathf.Max(ca.z,cb.z),"witryna");
         }
-        if(door)ShopWindowPromo(u,f,segs,y);                                             // the window film, the offer, the lightbox
+        if(door)ShopWindowPromo(u,f,segs,y);                                             // the owner's poster behind the glass
         FrontBox(frame,f0+.012f,f1-.012f,y+4.0f,y+4.08f,.04f,.16f);
         FrontBox(frame,f0+e-.05f,f0+e-.02f,y+.002f,y+4.0f,.0f,.16f);FrontBox(frame,f1-e+.02f,f1-e+.05f,y+.002f,y+4.0f,.0f,.16f);   // 1 cm inside the unit's line (no face shared with the linings)
         float yaw=f=='S'?180f:f=='N'?0f:f=='E'?90f:-90f;

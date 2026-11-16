@@ -9,6 +9,7 @@ wall-to-wall counter; thin toy tables; 12 m malls with four benches; open floor 
 import pathlib
 import re
 import unittest
+import subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 ED = ROOT / "unity-city/Assets/Editor/Mistrzowie"
@@ -191,10 +192,10 @@ class RealScreensAndWindows(unittest.TestCase):
         self.assertNotIn("Beam(", mon)                                      # no square post
         for piece in ("var shell=", "var bulge=", "m.Cylinder(eAlu,foot", "Quaternion.LookRotation(Vector3.Cross(r,axis),axis)"):
             self.assertIn(piece, mon)
-        self.assertIn("TDesk,BraxKatalog.Photo(", mon)                        # a photograph on it, not the painted desktop
+        self.assertIn("TDesk,BraxKatalog.Pulpit(pick)??BraxKatalog.Photo(pick));", mon)   # his desktop, else a photograph
         self.assertIn("if(pic)QUV(pic,", self.s)
         kmon = self.k[self.k.index("public static void Monitor(Ctx c"):]
-        self.assertIn("var ph = Photo(desktop);", kmon[:kmon.index("\n    }")])
+        self.assertIn("var ph = Pulpit(desktop) ?? Photo(desktop);", kmon[:kmon.index("\n    }")])
 
     def test_wall_shelving_has_uprights(self):
         self.assertIn("float h=2.2f,float bay=0f,float off=0f)", self.s)
@@ -272,48 +273,44 @@ class ShopPromotions(unittest.TestCase):
         self.s = read("BraxChampionsG1Sklepy.cs")
         self.w = read("BraxChampionsG1Wnetrze.cs")
 
-    def test_every_trade_has_an_offer(self):
-        promo = self.s[self.s.index("static (string head,string deal) Promo(G1Unit u)"):]
-        promo = promo[:promo.index("\n    }")]
-        trades = set(re.findall(r'"([a-z]+)"', self.w[self.w.index("string[] t0="):self.w.index("for(int l=0;l<2;l++)")]))
-        for t in trades:
-            self.assertIn('case "%s":' % t, promo, t)
-
-    def test_window_film_offer_and_lightbox(self):
+    def test_window_band_is_glass_and_no_lettering_of_mine(self):
+        # owner 13:45 "ty nie będziesz mi napisów nanosił", 13:57 "żadnej farby wiszącej nad powierzchnią"
         self.assertIn("if(door)ShopWindowPromo(u,f,segs,y);", self.w)
+        self.assertIn("PromoMaterials();Pane(gShopGlass,t0,t1,y0,y+1.05f);Pane(gFrost,t0,t1,y+1.05f,y+1.20f);Pane(gShopGlass,t0,t1,y+1.20f,y1);", self.w)
+        self.assertIn("FrontGlass(a+i*w+.012f,a+(i+1)*w-.012f,y+.10f,y+4.0f,door&&!BandlessPane(u,segs,a+i*w));", self.w)
         win = self.s[self.s.index("static void ShopWindowPromo("):]
         win = win[:win.index("\n    }\n")]
-        self.assertIn("Film(a+.03f,b-.03f,1.05f,1.20f);", win)                     # the manifestation band
-        self.assertIn(",.088f);", win)                                              # 12 mm outside the glass (o .10)
-        self.assertIn("gVinylGraphite", win)                                        # readable on a light shop
-        self.assertIn("Lightbox(c,outN,bw,", win)
+        self.assertNotIn("Film(", win)
+        self.assertNotIn(".088f", win)                                              # no film 12 mm off the glass
+        self.assertNotIn("Letters3D", win)
+        for gone in ("static void Lightbox(", "Promo(G1Unit u)", "gVinylRed", "gVinylGraphite", '"ZAPRASZAMY"', "promocja na ścianie"):
+            self.assertNotIn(gone, self.s)
 
     def test_travel_agency_offers(self):
-        self.assertIn('("GRECJA 7 DNI","OD 2499 ZŁ",3)', self.s)
+        # owner 16.11 13:45 "ty nie będziesz mi napisów nanosił ... robię to po swojemu", 14:07 his six posters
+        self.assertNotIn("Oferty", self.s)                                         # my invented offers are gone
         self.assertIn('"tablica ofert"', self.s)
         self.assertIn('"stojak z katalogami"', self.s)
         self.assertIn('"G1 "+nm+" | napis nad ekranami"', self.s)
-        self.assertIn('nm+" | plakat "+pk,agency?o.price:"ZAPRASZAMY");', self.s)
-        # owner 13:34 "zakaz wywlekania": no photograph of another place under a destination's name
         board = self.s[self.s.index("THE BOARD OF OFFERS"):self.s.index('"tablica ofert"')]
+        self.assertIn('BraxKatalog.OwnerPicture("plakaty/"+k2', board)
+        self.assertNotIn("Letters3D", board)
         self.assertNotIn("Photo(", board)
-        self.assertNotIn("BraxKatalog.Photo(k*3+j+1)", self.s)
-        self.assertNotIn("agency?o.pic", self.s)
+        self.assertIn('static readonly string[] Kierunki={"grecja","londyn","hiszpania","seszele"};', self.s)
+        self.assertIn('string[] own2={"seszele","londyn","grecja","hiszpania","biuro_podrozy_2"};', self.s)
+        self.assertIn('OwnerPoster(c,outN,ph,own,true,agency?"biuro_podrozy_2":null)', self.s)
+        # the catalogues: his destination posters as covers, never my letters
+        stand = self.s[self.s.index("the brochure stand"):self.s.index('"stojak z katalogami"')]
+        self.assertNotIn("Letters3D", stand)
+        self.assertIn('BraxKatalog.OwnerPicture("plakaty/"+Kierunki[', stand)
 
-    def test_back_wall_sale_poster(self):
-        self.assertIn('nm+" | promocja na ścianie",pd??ph);', self.s)
+    def test_back_wall_poster_is_his(self):
+        self.assertIn("if(own!=null&&!plakatWOknie.Contains(nm))OwnerPoster(P(Wd*.24f,y+2.97f,D-.20f),toFront,1.0f,own,false);", self.s)
 
     def test_percent_glyph_in_the_letter_kit(self):
         kit = (ROOT / "unity-tools/mistrzowie/build_letter_kit.py").read_text(encoding="utf-8")
         charset = re.search(r"^CHARSET = (.*)$", kit, re.M).group(1)
         self.assertIn("%", charset)
-        promo = self.s[self.s.index("static (string head,string deal) Promo(G1Unit u)"):]
-        used = set("".join(re.findall(r'"([^"]*)"', promo[:promo.index("\n    }")])).upper()) - set(" ")
-        allowed = set("ABCDEFGHIJKLMNOPQRSTUVWXYZĄĆĘŁŃÓŚŹŻÉÜÖ0123456789-/•.,:&'()!+#%")
-        trade_words = {"fashion", "sport", "bags", "shoes", "cosmetics", "optician", "electronics", "phones", "books",
-                       "jewellery", "pharmacy", "toys", "home", "moto", "flowers", "cafe", "salon", "service"}
-        letters = set("".join(w for w in re.findall(r'"([^"]*)"', promo[:promo.index("\n    }")]) if w not in trade_words).upper()) - set(" ")
-        self.assertFalse(letters - allowed, letters - allowed)                      # every character has a glyph
 
 
 class NutritionPostersSpread(unittest.TestCase):
@@ -332,3 +329,60 @@ class NutritionPostersSpread(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OwnerPostersAndDesktops(unittest.TestCase):
+    """Owner 16.11 13:39-14:22: Windows-like desktops for every monitor and laptop, his own posters for the shops - 1:1."""
+
+    def setUp(self):
+        self.s = read("BraxChampionsG1Sklepy.cs")
+        self.k = read("BraxKatalog.cs")
+        self.pack = ROOT / "unity-city/Prywatne/braxhorn-mistrzowie-g1-grafiki-20261116"
+
+    def test_encrypted_pack_has_his_files(self):
+        import json
+        m = json.loads((self.pack / "manifest.json").read_text(encoding="utf-8"))
+        files = set(m["files"])
+        for n in ("pulpit_byk", "pulpit_przegladarka", "pulpit_magazyn"):
+            self.assertIn("pulpity/%s.png" % n, files)
+        for n in ("biuro_podrozy_1", "biuro_podrozy_2", "seszele", "hiszpania", "londyn", "grecja", "salon_fryzjerski",
+                  "zabawki_1", "zabawki_2", "kawa_ciastko", "lody", "wyprzedaz_moda", "perfumy", "bizuteria", "apteka"):
+            self.assertIn("plakaty/%s.png" % n, files)
+        self.assertEqual(len(files), 18)
+        self.assertEqual(m["recipientCertificateSha256"], "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5")
+        # the repository is public: nothing of his in the clear
+        tracked = subprocess.run(["git", "ls-files", "unity-city/Assets/Source/Mistrzowie/G1Wlasciciel"], cwd=ROOT,
+                                 capture_output=True, text=True).stdout
+        self.assertEqual(tracked.strip(), "")
+        inst = (ROOT / "unity-tools/mistrzowie/install_owner_media.py").read_text(encoding="utf-8")
+        self.assertIn('GRAFIKI = "braxhorn-mistrzowie-g1-grafiki-20261116"', inst)
+        self.assertIn('ROOT / "unity-city/Assets/Source/Mistrzowie/G1Wlasciciel"', inst)
+        # checked out in CI (sparse checkout takes braxhorn-*/)
+        wf = (ROOT / ".github/workflows/mistrzowie-apk.yml").read_text(encoding="utf-8")
+        self.assertIn("unity-city/Prywatne/braxhorn-*/", wf)
+
+    def test_monitors_and_laptops_show_his_desktops(self):
+        self.assertIn("var ph = Pulpit(desktop) ?? Photo(desktop);", self.k)
+        self.assertIn("var ph = Pulpit(desktop) ?? Photo(desktop); var scr", self.k)
+        self.assertIn('public const string Wlasciciel = "Assets/Source/Mistrzowie/G1Wlasciciel/";', self.k)
+
+    def test_each_shop_its_own_poster_no_lettering(self):
+        mapping = self.s[self.s.index("static string PlakatSklepu(G1Unit u)"):self.s.index("static readonly string[] Kierunki")]
+        pairs = dict(re.findall(r'"([A-ZĄĆĘŁŃÓŚŹŻÉ ]+)"=>"([a-z_0-9]+)"', mapping))
+        self.assertEqual(pairs["SALON FRYZJERSKI"], "salon_fryzjerski")
+        self.assertEqual(pairs["CAFÉ PANORAMA"], "kawa_ciastko")
+        self.assertEqual(pairs["LODY GELATO"], "lody")
+        self.assertEqual(pairs["APTEKA ZDROWIE"], "apteka")
+        self.assertEqual(pairs["JUBILER SREBRO"], "bizuteria")
+        self.assertEqual(pairs["PERFUMERIA AURA"], "perfumy")
+        self.assertEqual(len(set(pairs.values())), len(pairs))                     # no poster in two shops
+        poster = self.s[self.s.index("static bool OwnerPoster("):]
+        poster = poster[:poster.index("\n    }\n")]
+        self.assertNotIn("Letters3D", poster)
+        self.assertIn("PictureBody(pic,pb,c,n,h*asp,h);", poster)
+        # 13:57: the picture IS the face in its frame's opening - no picture lying on a box face
+        body = self.s[self.s.index("static void PictureBody("):]
+        body = body[:body.index("\n    }\n")]
+        self.assertIn("PhotoQuad(pic,c+n*(d*.5f-.005f),n,w,h);", body)
+        self.assertEqual(body.count("m.RoundedBox(frame,"), 4)                      # four bars, no panel behind the picture
+

@@ -11,6 +11,9 @@ assety od właściciela pakować od razu):
   unity-city/Prywatne/mistrzowie-kino-reklamy-20261112/ the cinema's pre-show (owner 12.11 02:49 "przed kinem jako reklama"):
                                                         kino/reklama_0[1-3].mp4 with the real brand marks blurred ->
                                                         StreamingAssets/Mistrzowie/Kino (repertuar.json "reklamy")
+  unity-city/Prywatne/braxhorn-mistrzowie-g1-grafiki-20261116/ the owner's own pictures (16.11 14:07-14:22): plakaty/*.png
+                                                        (his shop posters, text his own) and pulpity/*.png (Windows-like
+                                                        desktops) -> Assets/Source/Mistrzowie/G1Wlasciciel/ 1:1
 
 Each pack: tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (the owner's CI transfer certificate "Braxhorn camp
 input transfer", release oboz-transfer-key-41749904696) -> parts <= 90 MB with SHA-256 in manifest.json. The private key
@@ -31,6 +34,8 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 PACKS = ROOT / "unity-city/Prywatne"
+WLASCICIEL = ROOT / "unity-city/Assets/Source/Mistrzowie/G1Wlasciciel"
+GRAFIKI = "braxhorn-mistrzowie-g1-grafiki-20261116"
 SA = ROOT / "unity-city/Assets/StreamingAssets/Mistrzowie"
 WIDEO = ROOT / "unity-city/Assets/StreamingAssets/BraxhornWideo"
 TELEWIZOR = ROOT / "unity-city/Assets/BraxhornWideo/BraxTelewizor.cs"
@@ -79,6 +84,9 @@ def private_key(pack, tmp):
 
 def open_pack(name, tmp):
     pack = PACKS / name
+    if not (pack / "manifest.json").exists():
+        print("BRAX_OWNER_MEDIA_PACK_ABSENT " + name + " (not in this checkout)")
+        return None
     manifest = json.loads((pack / "manifest.json").read_text())
     pem = private_key(pack, tmp)
     if pem is None:
@@ -130,6 +138,18 @@ def main():
             for n, d in FILMS.items():
                 if sha256(films / n) == d:
                     shutil.copy2(films / n, SA / "Kino" / n); print("BRAX_KINO_FILM_OK " + n)
+        # the owner's posters and desktops: every file of the pack, byte for byte (open_pack checked each SHA-256)
+        pics = open_pack(GRAFIKI, tmp)
+        if pics:
+            n = 0
+            for f in sorted(pics.rglob("*.png")):
+                rel = f.relative_to(pics)
+                dst = WLASCICIEL / rel
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(f, dst); n += 1
+            print("BRAX_G1_GRAFIKI_OK files=%d -> %s" % (n, WLASCICIEL.relative_to(ROOT)))
+        else:
+            print("BRAX_G1_GRAFIKI_MISSING " + GRAFIKI + " (monitors keep the photographs, the shops their own windows)")
         ads = open_pack("mistrzowie-kino-reklamy-20261112", tmp)
         if ads:
             (SA / "Kino").mkdir(parents=True, exist_ok=True)

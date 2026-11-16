@@ -159,8 +159,10 @@ public static partial class BraxChampionsD2
         f.y=0;f.Normalize();var r=Vector3.Cross(Vector3.up,f).normalized;
         const float W=.615f,H=.362f,yc=.43f;
         var c=p+Vector3.up*yc;
-        // on the screen a real photograph (Poly Haven, G1Ekrany), chosen by the place - the painted desktop read as pixel art
-        Panel(eAlu,c,Vector3.up,f,W,H,.010f,.006f,TDesk,BraxKatalog.Photo(System.Math.Abs(Mathf.RoundToInt(p.x*3.7f+p.z*1.9f))));
+        // on the screen the owner's desktop (16.11 13:39 "pulpit jak na Windows"), chosen by the place; without his pack a
+        // real photograph (Poly Haven, G1Ekrany) - the painted desktop read as pixel art
+        int pick=System.Math.Abs(Mathf.RoundToInt(p.x*3.7f+p.z*1.9f));
+        Panel(eAlu,c,Vector3.up,f,W,H,.010f,.006f,TDesk,BraxKatalog.Pulpit(pick)??BraxKatalog.Photo(pick));
         var shell=c-f*.017f;m.RoundedBox(eAlu,shell,new Vector3(W-.03f,H-.03f,.024f),.011f,Quaternion.LookRotation(f,Vector3.up),3);
         var bulge=c-f*.038f-Vector3.up*.035f;m.RoundedBox(eAlu,bulge,new Vector3(.20f,.15f,.026f),.012f,Quaternion.LookRotation(f,Vector3.up),3);
         var foot=p-f*.035f;
@@ -168,20 +170,24 @@ public static partial class BraxChampionsD2
         var top=bulge-f*.012f;var bot=foot+Vector3.up*.008f;var axis=(top-bot).normalized;
         m.RoundedBox(eAlu,(top+bot)*.5f,new Vector3(.062f,(top-bot).magnitude,.024f),.011f,Quaternion.LookRotation(Vector3.Cross(r,axis),axis),3);
     }
-    // the travel agency's offers (owner 16.11 13:09 "gdzie oferty"): the destination, the price, the photograph that goes with
-    // it (BraxKatalog.ZdjeciaNazwy: 0 rocks and sea, 1 the City of London, 2 a beach with towers, 3 a bay with a town, 4 a
-    // coast road)
-    static readonly (string dest,string price,int pic)[] Oferty={("GRECJA 7 DNI","OD 2499 ZŁ",3),("LONDYN 3 DNI","OD 1299 ZŁ",1),
-        ("HISZPANIA 7 DNI","OD 2799 ZŁ",2),("SESZELE 10 DNI","OD 6999 ZŁ",0),("PORTUGALIA 8 DNI","OD 2299 ZŁ",4),
-        ("CHORWACJA 7 DNI","OD 1999 ZŁ",3),("TENERYFA 7 DNI","OD 3299 ZŁ",2),("MAURITIUS 10 DNI","OD 7499 ZŁ",0)};
-    static Material gFrost,gVinylWhite,gVinylRed,gVinylGraphite;
+    // THE OWNER'S POSTERS (owner 16.11 13:45 "ty nie będziesz mi napisów nanosił ... robię to po swojemu", 14:07-14:22 his
+    // posters): his files 1:1 (BraxKatalog.OwnerPicture, the encrypted pack braxhorn-mistrzowie-g1-grafiki-20261116) - no
+    // letters, captions, crops of mine; my own text promotions (window vinyl, text lightboxes, wall posters) are gone. One
+    // poster per shop; the travel agency has six.
+    static string PlakatSklepu(G1Unit u)=>u.name switch
+    {
+        "SALON FRYZJERSKI"=>"salon_fryzjerski","ZABAWKI HOP"=>"zabawki_1","KIDS WORLD"=>"zabawki_2","CAFÉ PANORAMA"=>"kawa_ciastko",
+        "LODY GELATO"=>"lody","MODA NOVA"=>"wyprzedaz_moda","PERFUMERIA AURA"=>"perfumy","JUBILER SREBRO"=>"bizuteria",
+        "APTEKA ZDROWIE"=>"apteka","BIURO PODRÓŻY"=>"biuro_podrozy_1",_=>null
+    };
+    static readonly string[] Kierunki={"grecja","londyn","hiszpania","seszele"};
+    // the shops whose poster already hangs in the shop window (ShopFront runs before ShopFitOut)
+    static readonly HashSet<string> plakatWOknie=new HashSet<string>();
+    static Material gFrost;
     static void PromoMaterials()
     {
         if(gFrost)return;
-        gFrost=S("g1_window_frosted_film",new Color(.90f,.92f,.93f,.55f),.55f,0f,null,true);                 // frosted glass film
-        gVinylWhite=S("g1_window_vinyl_white",new Color(.96f,.96f,.95f),.45f,0f);
-        gVinylRed=S("g1_window_vinyl_red",new Color(.78f,.06f,.09f),.45f,0f);
-        gVinylGraphite=S("g1_window_vinyl_graphite",new Color(.11f,.11f,.12f),.45f,0f);
+        gFrost=S("g1_window_frosted_film",new Color(.90f,.92f,.93f,.55f),.55f,0f,null,true);                 // the frosted band, IN the glass
     }
     // a photograph on a quad centred at c facing n (toward the viewer), w x h, the whole picture or the u range u0..u1
     static void PhotoQuad(Material mat,Vector3 c,Vector3 n,float w,float h,float u0=0f,float u1=1f)
@@ -196,108 +202,89 @@ public static partial class BraxChampionsD2
         f.y=0;f.Normalize();var r=Vector3.Cross(Vector3.up,f).normalized;var up=Vector3.up;
         var a=c-r*(w*.5f)-up*(h*.5f);var b=c+r*(w*.5f)-up*(h*.5f);Q(mat,a,b,b+up*h,a+up*h,f);
     }
-    // A LIGHTBOX POSTER: a 4 cm black box centred at c (local), its face toward n, a photograph (16:9, w wide) over a lit
-    // white strip with the caption in graphite 3D letters; both = double-sided (hung in a window). big != null: a sale
-    // poster instead of the photograph - the deal in big red letters on the lit white (a beach over "ŚWIEŻE KWIATY" read
-    // as nonsense: only the travel agency shows the places)
-    static void Lightbox(Vector3 c,Vector3 n,float w,int pic,string caption,bool both,string label,string big=null)
+    // A PICTURE AS ITS OWN BODY (owner 16.11 13:57 "żadnej farby wiszącej nad powierzchnią ... licznik nakładki=0"): a frame
+    // of four bars t wide and d deep round an opening w x h; the picture IS the face in the opening (5 mm in from the frame's
+    // front), the back is its own face turned the other way (a second picture for a window, else the frame's colour).
+    // No face lies on another: the bars meet end to end, the faces only touch the bars' inner sides.
+    static void PictureBody(Material pic,Material back,Vector3 c,Vector3 n,float w,float h,float t=.025f,float d=.04f)
     {
-        PromoMaterials();n.y=0;n.Normalize();var r=Vector3.Cross(Vector3.up,n).normalized;var q=Quaternion.LookRotation(n,Vector3.up);
-        float ph=w*9f/16f,sh=.12f,H=ph+sh+.06f;
-        m.RoundedBox(frame,c,new Vector3(w+.06f,H,.04f),.008f,q,1);                                            // the box
-        var lm=new BraxChampionsMeshBatch();
-        foreach(float sd in both?new[]{1f,-1f}:new[]{1f})
-        {
-            // every layer 7 mm off the one under it (my flicker check 16.11 13:30: lit and anodised faces count as seen from
-            // afar, 6 mm): the box face at 20 mm, the picture and the lit strip at 27 mm, the letters from 34 mm
-            var f=n*sd;var face=c+f*.027f;
-            var pcen=face+Vector3.up*(H*.5f-.03f-ph*.5f);
-            if(big!=null)
-            {
-                FaceQuad(gLetterFace,pcen,f,w,ph);                                                                 // the lit poster
-                float cap=Mathf.Min(ph*.42f,.30f);
-                BraxChampionsLetters3D.Text(lm,gVinylRed,gVinylRed,big,pcen+f*.007f-Vector3.up*(cap*.5f),BraxChampionsLetters3D.YawFacing(f),cap,.004f,.10f,w-.16f);
-            }
-            else{var photo=BraxKatalog.Photo(pic);if(photo)PhotoQuad(photo,pcen,f,w,ph);}
-            var strip=face+Vector3.up*(-H*.5f+.03f+sh*.5f);
-            FaceQuad(gLetterFace,strip,f,w,sh);                                                                    // the lit strip
-            if(!string.IsNullOrEmpty(caption))
-                BraxChampionsLetters3D.Text(lm,gLetterSide,gLetterSide,caption,strip+f*.007f-Vector3.up*.035f,BraxChampionsLetters3D.YawFacing(f),.07f,.004f,.12f,w-.12f);
-        }
-        BraxChampionsLetters3D.Build(lm,root,"G1 "+label);
+        n.y=0;n.Normalize();var q=Quaternion.LookRotation(n,Vector3.up);var r=Vector3.Cross(Vector3.up,n).normalized;
+        m.RoundedBox(frame,c+Vector3.up*(h*.5f+t*.5f),new Vector3(w+2f*t,t,d),.004f,q,1);
+        m.RoundedBox(frame,c-Vector3.up*(h*.5f+t*.5f),new Vector3(w+2f*t,t,d),.004f,q,1);
+        m.RoundedBox(frame,c+r*(w*.5f+t*.5f),new Vector3(t,h,d),.004f,q,1);
+        m.RoundedBox(frame,c-r*(w*.5f+t*.5f),new Vector3(t,h,d),.004f,q,1);
+        PhotoQuad(pic,c+n*(d*.5f-.005f),n,w,h);
+        if(back)PhotoQuad(back,c-n*(d*.5f-.005f),-n,w,h);else FaceQuad(frame,c-n*(d*.5f-.005f),-n,w,h);
     }
-    // THE SHOP WINDOW AS IN A REAL MALL (owner 16.11 12:59): a frosted manifestation band across every pane at 1.05-1.20 m
-    // (12 mm outside the glass, inside the mullions' depth), the offer in 3D vinyl letters on the pane right of the door
-    // (on a frosted sticker: the headline in graphite, the deal in red, 7 mm off the film), and 35 cm behind the pane left of the door a
-    // double-sided lightbox on two steel cables: a photograph and the headline under it
+    // THE OWNER'S POSTER h high, as wide as HIS picture's proportion, as its own framed body at c facing n; both = a window
+    // lightbox (the inner face shows `back`, another of his posters of the same proportion, else the same one). False
+    // (nothing built) when his picture is missing - never a substitute.
+    static bool OwnerPoster(Vector3 c,Vector3 n,float h,string file,bool both,string back=null)
+    {
+        var pic=BraxKatalog.OwnerPicture("plakaty/"+file,out float asp);if(!pic)return false;
+        Material pb=null;
+        if(both)
+        {
+            if(back!=null){pb=BraxKatalog.OwnerPicture("plakaty/"+back,out float ab);if(pb&&Mathf.Abs(ab-asp)>.01f)pb=null;}
+            if(!pb)pb=pic;
+        }
+        PictureBody(pic,pb,c,n,h*asp,h);
+        return true;
+    }
+    // THE SHOP WINDOW (owner 16.11 12:59 "coś na szybie jak w sklepach", 13:45 "robię to po swojemu", 13:57 "żadnej farby
+    // wiszącej nad powierzchnią"): the frosted manifestation band is part of the glass (ShopFront cuts each pane: clear,
+    // frosted 1.05-1.20 m, clear - one plane, no film on it); no lettering of mine. The owner's poster in a double-sided
+    // lightbox on two steel cables 51 cm behind the pane left of the door; the travel agency: his destination posters on a
+    // stand behind the pane right of the door (that pane has no band).
+    static bool BandlessPane(G1Unit u,List<(float a,float b)> segs,float a)=>
+        u.trade=="service"&&u.name.Contains("PODRÓŻY")&&segs.Count>1&&Mathf.Abs(a-segs[1].a)<.01f;
     static void ShopWindowPromo(G1Unit u,char f,List<(float a,float b)> segs,float y)
     {
-        PromoMaterials();
         Vector3 Fp(float t,float yy,float o)=>f=='S'?new Vector3(t,yy,u.z0+o):f=='N'?new Vector3(t,yy,u.z1-o):f=='E'?new Vector3(u.x1-o,yy,t):new Vector3(u.x0+o,yy,t);
         Vector3 outN=f=='S'?Vector3.back:f=='N'?Vector3.forward:f=='E'?Vector3.right:Vector3.left;
-        float yaw=BraxChampionsLetters3D.YawFacing(outN);
-        var (head,deal)=Promo(u);
-        var panes=new List<(float,float)>();
-        foreach(var (a,b) in segs){int n=Mathf.Max(1,Mathf.CeilToInt((b-a)/2.4f-.01f));float w=(b-a)/n;for(int i=0;i<n;i++)panes.Add((a+i*w,a+(i+1)*w));}
         bool agency=u.trade=="service"&&u.name.Contains("PODRÓŻY");
-        void Film(float a,float b,float y0,float y1){var q0=Fp(a,y+y0,.088f);var q1=Fp(b,y+y0,.088f);var up=Vector3.up*(y1-y0);Q(gFrost,q0,q1,q1+up,q0+up,outN);Q(gFrost,q0,q1,q1+up,q0+up,-outN);}
-        for(int i=0;i<panes.Count;i++)
+        string own=PlakatSklepu(u);plakatWOknie.Remove(u.name);
+        if(own==null||segs.Count<2)return;
+        var r=Vector3.Cross(Vector3.up,outN).normalized;var pq=Quaternion.LookRotation(outN,Vector3.up);
+        if(agency)
         {
-            var (a,b)=panes[i];
-            if(agency&&segs.Count>1&&Mathf.Abs(a-segs[1].a)<.01f)continue;                                // the board of offers stands behind this one
-            Film(a+.03f,b-.03f,1.05f,1.20f);
-        }
-        if(segs.Count<2)return;
-        var lm=new BraxChampionsMeshBatch();
-        {
-            // the pane right of the door (its first pane): the headline over the band, the deal under it (a travel agency:
-            // both high, over the board of offers behind the glass)
-            int n=Mathf.Max(1,Mathf.CeilToInt((segs[1].b-segs[1].a)/2.4f-.01f));float w=(segs[1].b-segs[1].a)/n,t0=segs[1].a,tc=t0+w*.5f,wm=w-.36f;
-            float yh=agency?2.62f:1.62f,yd=agency?2.30f:1.30f;
-            if(wm>.4f)
+            // THE BOARD OF OFFERS as in every travel agency's window, 42 cm behind the glass: his four destination posters
+            // (Grecja, Londyn, Hiszpania, Seszele) side by side in their frames, hung from a black rail on two black posts
+            int n=Mathf.Max(1,Mathf.CeilToInt((segs[1].b-segs[1].a)/2.4f-.01f));float w=(segs[1].b-segs[1].a)/n,tc=segs[1].a+w*.5f,wm=w-.36f;
+            var mats=new List<(Material mt,float asp)>();
+            foreach(var k2 in Kierunki){var mt=BraxKatalog.OwnerPicture("plakaty/"+k2,out float a2);if(mt)mats.Add((mt,a2));}
+            const float PH=.96f,T=.025f,GAP=.03f;float pw=PH*(mats.Count>0?mats[0].asp:.5625f);
+            int cols=Mathf.Min(mats.Count,Mathf.FloorToInt((wm+GAP)/(pw+2f*T+GAP)));
+            if(cols>0)
             {
-                // on a frosted sticker (white letters on clear glass did not read against a light shop): graphite and red
-                float hw=Mathf.Min(wm,Mathf.Max(BraxChampionsLetters3D.Width(head,.15f),string.IsNullOrEmpty(deal)?0f:BraxChampionsLetters3D.Width(deal,.24f,.10f)))*.5f+.12f;
-                Film(tc-hw,tc+hw,(string.IsNullOrEmpty(deal)?yh:yd)-.10f,yh+.27f);
-                BraxChampionsLetters3D.Text(lm,gVinylGraphite,gVinylGraphite,head,Fp(tc,y+yh,.081f),yaw,.15f,.003f,.12f,wm);
-                if(!string.IsNullOrEmpty(deal))BraxChampionsLetters3D.Text(lm,gVinylRed,gVinylRed,deal,Fp(tc,y+yd,.081f),yaw,.24f,.003f,.10f,wm);
-            }
-            if(agency&&wm>.7f)
-            {
-                // THE BOARD OF OFFERS as in every travel agency's window: a black panel 30 cm behind the glass on two black
-                // feet, two rows of A3 offer cards on it - the photograph, the destination, the price in red
-                int cols=Mathf.Max(1,Mathf.FloorToInt((wm+.05f)/.36f));float bw=cols*.36f+.04f;
-                var pc=Fp(tc,y+1.55f,.42f);var pq=Quaternion.LookRotation(outN,Vector3.up);var r=Vector3.Cross(Vector3.up,outN).normalized;
-                m.RoundedBox(frame,pc,new Vector3(bw,1.06f,.04f),.006f,pq,1);
-                foreach(float sg in new[]{-1f,1f}){var fp=Fp(tc,y,.42f)+r*sg*(bw*.5f-.10f);m.RoundedBox(frame,fp+Vector3.up*.51f,new Vector3(.04f,1.02f,.03f),.006f,pq,1);m.RoundedBox(frame,fp+Vector3.up*.006f,new Vector3(.06f,.012f,.36f),.004f,pq,1);}
-                int k=0;
-                for(int row=0;row<2;row++)for(int c=0;c<cols;c++,k++)
+                float bw=cols*(pw+2f*T)+(cols-1)*GAP,yc=y+1.55f,top=yc+PH*.5f+T;
+                for(int c=0;c<cols;c++)
                 {
-                    var o=Oferty[(k+u.name.Length)%Oferty.Length];
-                    var cc=pc+outN*.027f+r*(((cols-1)*.5f-c)*.36f)+Vector3.up*(row==0?.255f:-.255f);    // the card, 7 mm off the panel
-                    // (owner 16.11 13:34 "zakaz wywlekania": no photograph of another place under a destination's name - the
-                    // destination and the price only, until the owner's own pictures of these places come)
-                    FaceQuad(gVinylWhite,cc,outN,.30f,.42f);
-                    var nm2=o.dest.Split(' ');string place=nm2[0],days=o.dest.Substring(place.Length).Trim();
-                    BraxChampionsLetters3D.Text(lm,gLetterSide,gLetterSide,place,cc+outN*.007f+Vector3.up*.08f,yaw,.045f,.002f,.10f,.26f);
-                    BraxChampionsLetters3D.Text(lm,gLetterSide,gLetterSide,days,cc+outN*.007f+Vector3.up*.01f,yaw,.030f,.002f,.10f,.26f);
-                    BraxChampionsLetters3D.Text(lm,gVinylRed,gVinylRed,o.price,cc+outN*.007f-Vector3.up*.11f,yaw,.050f,.002f,.10f,.26f);
+                    var (mt,a2)=mats[c];
+                    PictureBody(mt,null,Fp(tc,yc,.42f)+r*(((cols-1)*.5f-c)*(pw+2f*T+GAP)),outN,PH*a2,PH,T);
                 }
-                var a0=Fp(tc-bw*.5f,y,.38f);var a1=Fp(tc+bw*.5f,y,.46f);Col(Mathf.Min(a0.x,a1.x),Mathf.Max(a0.x,a1.x),y,y+2.0f,Mathf.Min(a0.z,a1.z),Mathf.Max(a0.z,a1.z),"tablica ofert");
+                m.RoundedBox(frame,Fp(tc,top+.015f,.42f),new Vector3(bw+.10f,.03f,.04f),.004f,pq,1);                      // the rail
+                foreach(float sg in new[]{-1f,1f})
+                {
+                    var fp=Fp(tc,y,.42f)+r*sg*(bw*.5f+.03f);
+                    m.RoundedBox(frame,fp+Vector3.up*((top+.03f-y)*.5f+.006f),new Vector3(.04f,top+.03f-y-.012f,.03f),.004f,pq,1);   // a post
+                    m.RoundedBox(frame,fp+Vector3.up*.006f,new Vector3(.06f,.012f,.36f),.004f,pq,1);                           // its foot
+                }
+                var a0=Fp(tc-bw*.5f-.05f,y,.38f);var a1=Fp(tc+bw*.5f+.05f,y,.46f);
+                Col(Mathf.Min(a0.x,a1.x),Mathf.Max(a0.x,a1.x),y,y+2.0f,Mathf.Min(a0.z,a1.z),Mathf.Max(a0.z,a1.z),"tablica ofert");
             }
         }
-        BraxChampionsLetters3D.Build(lm,root,"G1 witryna "+u.name+" | oferta");
         {
-            // the lightbox behind the pane left of the door (its last pane)
+            // the lightbox behind the pane left of the door (its last pane): its foot at 1.30 m (over the frosted band), 1.50 m
+            // high, narrower on a narrow pane; inside the same poster (the agency: his second one)
             int n=Mathf.Max(1,Mathf.CeilToInt((segs[0].b-segs[0].a)/2.4f-.01f));float w=(segs[0].b-segs[0].a)/n,tc=segs[0].b-w*.5f;
-            float bw=Mathf.Min(1.20f,w-.5f);
-            if(bw>.6f)
-            {
-                float H=bw*9f/16f+.18f,yc=y+2.30f+H*.5f;var c=Fp(tc,yc,.51f);
-                Lightbox(c,outN,bw,0,deal!=null?head:u.name,true,"witryna "+u.name+" | lightbox",deal??head);   // text only (owner 13:34)
-                float top=ShopCeil(u.level)-.005f;var r=Vector3.Cross(Vector3.up,outN).normalized;
-                foreach(float sg in new[]{-1f,1f}){var a=c+r*sg*(bw*.5f-.06f)+Vector3.up*(H*.5f);m.Tube(stainless,a,new Vector3(a.x,top,a.z),.0015f,6);}
-            }
+            var tst=BraxKatalog.OwnerPicture("plakaty/"+own,out float asp);
+            if(!tst||w-.6f<.5f)return;
+            float ph=Mathf.Min(1.50f,(w-.6f)/asp),yc=y+1.30f+ph*.5f;var c=Fp(tc,yc,.51f);
+            if(!OwnerPoster(c,outN,ph,own,true,agency?"biuro_podrozy_2":null))return;
+            plakatWOknie.Add(u.name);
+            float topC=ShopCeil(u.level)-.005f,pw=ph*asp;
+            foreach(float sg in new[]{-1f,1f}){var a=c+r*sg*(pw*.5f-.04f)+Vector3.up*(ph*.5f+.025f);m.Tube(stainless,a,new Vector3(a.x,topC,a.z),.0015f,6);}
         }
     }
     // A TWO-GROUP ESPRESSO MACHINE on a counter at p (its foot), the barista's side (the group heads) toward f: a brushed
@@ -839,11 +826,10 @@ public static partial class BraxChampionsD2
             // a black 8 mm joint every 1.2 m, 12 mm proud of the face
             if(!(u.trade=="electronics"||u.trade=="phones"))for(float tj=.3f+1.2f;tj<fw-.3f;tj+=1.2f)Box(gCinemaDark,tj-.004f,tj+.004f,y+.10f,y+3.6f,D-.172f,D-.16f);
             Box(ledWarm,.3f,fw,y+3.62f,y+3.65f,D-.20f,D-.12f);
-            // a promotion on the back wall (owner 16.11 12:59 "na ścianach jakieś promocje"): a lit sale poster with the
-            // offer over everything on that wall (2.44-3.41 m), in its left third; the offices have their own posters, the
-            // electronics their screens
-            if(u.trade!="service"&&u.trade!="electronics"&&u.trade!="phones"&&u.trade!="games")
-            {var (ph,pd)=Promo(u);Lightbox(P(Wd*.24f,y+2.92f,D-.20f),toFront,1.40f,0,pd!=null?ph:nm,false,nm+" | promocja na ścianie",pd??ph);}
+            // the owner's poster (16.11 14:22; 12:59 "na ścianach jakieś promocje") on the back wall over everything on it
+            // (2.45-3.50 m), in its left third - only when it does not already hang in the window; no poster of mine
+            string own=PlakatSklepu(u);
+            if(own!=null&&!plakatWOknie.Contains(nm))OwnerPoster(P(Wd*.24f,y+2.97f,D-.20f),toFront,1.0f,own,false);
         }
         // the cash desk by one side near the front: walnut, white marble top, a POS terminal with its screen
         float ct=Wd-2.4f,cd=2.2f;
@@ -1700,20 +1686,20 @@ public static partial class BraxChampionsD2
                         BraxChampionsLetters3D.Text(lm,BraxKatalog.Steel,gLetterSide,nm,P(Wd*.5f,y+2.62f,D-.175f),BraxChampionsLetters3D.YawFacing(toFront),.24f,.03f,.12f,Wd*.6f);
                         BraxChampionsLetters3D.Build(lm,root,"G1 "+nm+" | napis nad ekranami");
                     }
-                    bool agency=nm.Contains("PODRÓŻY");string[] dest={"DORADZTWO","KREDYTY","UBEZPIECZENIA","INWESTYCJE","LEASING"};
-                    int pk=0;
-                    foreach(float sd in new[]{0f,1f})if(!SideOpen(sd))for(float d=5.2f;d+.8f<D-2.6f;d+=2.6f)
+                    bool agency=nm.Contains("PODRÓŻY");
+                    // the agency: the owner's posters (16.11 14:07) over the lit shelves, 1 m high (2.20-3.20 m) - no lettering
+                    // of mine (the other office had my text posters: gone, 13:45)
+                    int pk=0;string[] own2={"seszele","londyn","grecja","hiszpania","biuro_podrozy_2"};
+                    if(agency)foreach(float sd in new[]{0f,1f})if(!SideOpen(sd))for(float d=5.2f;d+.8f<D-2.6f;d+=2.6f)
                     {
                         var face=sd==0f?alongT:-alongT;float tw=sd==0f?.11f:Wd-.11f;
-                        var o=Oferty[(pk+2)%Oferty.Length];
-                        // a poster of the offer: the price big, the destination under it - no invented photograph (owner 13:34)
-                        Lightbox(P(tw,y+2.72f,d),face,1.20f,0,agency?o.dest:dest[pk%dest.Length],false,nm+" | plakat "+pk,agency?o.price:"ZAPRASZAMY");pk++;
+                        OwnerPoster(P(tw,y+2.70f,d),face,1.0f,own2[pk%own2.Length],false);pk++;
                     }
-                    if(!SideOpen(0f))
+                    if(agency&&!SideOpen(0f))
                     {
-                        PromoMaterials();
                         // the brochure stand: a black steel frame, four shelves tilted back 15 degrees, three catalogues on
-                        // each (A4, the cover a photograph)
+                        // each
+                        BraxKatalog.Materials();
                         var bs=P(.30f,y,1.70f);var bf=alongT;var br=Vector3.Cross(Vector3.up,bf).normalized;var bq=Quaternion.LookRotation(bf,Vector3.up);
                         foreach(float sg in new[]{-1f,1f})m.RoundedBox(BraxKatalog.BlackMatt,bs+br*sg*.33f+Vector3.up*.78f,new Vector3(.025f,1.56f,.30f),.005f,bq,1);
                         for(int k=0;k<4;k++)
@@ -1724,11 +1710,18 @@ public static partial class BraxChampionsD2
                             {
                                 var tilt=Quaternion.AngleAxis(-15f,br);var cn=(tilt*bf).normalized;var cu=(tilt*Vector3.up).normalized;
                                 var cc=sc+br*j*.215f+Vector3.up*.006f+cu*.1485f-bf*.03f;
-                                m.RoundedBox(gLetterFace,cc-cn*.003f,new Vector3(.21f,.297f,.006f),.001f,Quaternion.LookRotation(cn,cu),1);   // the catalogue
-                                // the cover: the destination in red letters (no invented photograph - owner 13:34)
-                                var cl=new BraxChampionsMeshBatch();var dn=Oferty[(k*3+j+1+Oferty.Length)%Oferty.Length].dest.Split(' ')[0];
-                                BraxChampionsLetters3D.Text(cl,gVinylRed,gVinylRed,dn,cc+cn*.007f+cu*.06f,BraxChampionsLetters3D.YawFacing(cn),.026f,.002f,.10f,.18f);
-                                BraxChampionsLetters3D.Build(cl,root,"G1 "+nm+" | katalog "+k+j);
+                                // a slim catalogue in the proportion of the owner's poster, its own body: his destination
+                                // poster (16.11 14:07) IS its front face, white back and edges 6 mm behind (13:57: no cover
+                                // lying on a body); without his pack a plain white cover - never my lettering
+                                var cov=BraxKatalog.OwnerPicture("plakaty/"+Kierunki[((k*3+j+1)%Kierunki.Length+Kierunki.Length)%Kierunki.Length],out float ca);
+                                var R=Vector3.Cross(cn,cu).normalized;                                   // the viewer's right
+                                float cw2=cov?.297f*ca:.21f,th=.006f;var hw=R*(cw2*.5f);var hh=cu*.1485f;var bk=-cn*th;
+                                Vector3 LB=cc-hw-hh,LT=cc-hw+hh,RT=cc+hw+hh,RB=cc+hw-hh;
+                                if(cov)m.QuadUV(cov,LB,LT,RT,RB,new Vector2(0,0),new Vector2(0,1),new Vector2(1,1),new Vector2(1,0));
+                                else Q(BraxKatalog.WhiteGloss,LB,RB,RT,LT,cn);
+                                Q(BraxKatalog.WhiteGloss,LB+bk,RB+bk,RT+bk,LT+bk,-cn);                                  // the back
+                                Q(BraxKatalog.WhiteGloss,LT,RT,RT+bk,LT+bk,cu);Q(BraxKatalog.WhiteGloss,LB,RB,RB+bk,LB+bk,-cu);    // top, bottom
+                                Q(BraxKatalog.WhiteGloss,LB,LT,LT+bk,LB+bk,-R);Q(BraxKatalog.WhiteGloss,RB,RT,RT+bk,RB+bk,R);      // the sides
                             }
                         }
                         var a0=P(.08f,y,1.35f);var a1=P(.52f,y,2.05f);Col(Mathf.Min(a0.x,a1.x),Mathf.Max(a0.x,a1.x),y,y+1.56f,Mathf.Min(a0.z,a1.z),Mathf.Max(a0.z,a1.z),"stojak z katalogami");
@@ -1827,34 +1820,5 @@ public static partial class BraxChampionsD2
             }
         }
         if(lib)BraxSklepyTowar.Zakoncz(lib,"G1 "+nm);
-    }
-    // (kept after the fit-out: its cases are the fit-out's, this switch only names the offer)
-    // THE OFFER OF A SHOP (owner 16.11 12:59 "na ścianach jakieś promocje czy co na szybie, jak w sklepach"): the headline
-    // and the deal its window and lightboxes show, as the trade would advertise it
-    static (string head,string deal) Promo(G1Unit u)
-    {
-        string n=u.name;
-        switch(u.trade)
-        {
-            case "fashion":return ("NOWA KOLEKCJA","-30%");
-            case "sport":return ("NOWY SEZON","-25%");
-            case "bags":return ("PODRÓŻUJ Z KLASĄ","-20%");
-            case "shoes":return ("NOWA KOLEKCJA","-20%");
-            case "cosmetics":return (n.Contains("DROGERIA")?"PROMOCJA TYGODNIA":"NOWE ZAPACHY","-25%");
-            case "optician":return ("BADANIE WZROKU","GRATIS");
-            case "electronics":return (n.Contains("GAMES")?"NOWE GRY":n.Contains("FOTO")?"NOWE APARATY":"NOWOŚCI","RATY 0%");
-            case "phones":return ("NOWE SMARTFONY","RATY 0%");
-            case "books":return (n.Contains("PAPIERNIA")?"POWRÓT DO SZKOŁY":"BESTSELLERY","-20%");
-            case "jewellery":return (n.Contains("ZEGARKI")?"NOWE ZEGARKI":"NOWA KOLEKCJA","GRAWER GRATIS");
-            case "pharmacy":return ("PROMOCJA MIESIĄCA","-15%");
-            case "toys":return ("NOWOŚCI","-20%");
-            case "home":return ("NOWA KOLEKCJA","-30%");
-            case "moto":return ("MODELE 2027","RATY 0%");
-            case "flowers":return ("ŚWIEŻE KWIATY","CODZIENNIE");
-            case "cafe":return n.Contains("LODY")?("LODY RZEMIEŚLNICZE","NOWE SMAKI"):("KAWA + CIASTKO","15 ZŁ");
-            case "salon":return ("STRZYŻENIE","BEZ ZAPISÓW");
-            case "service":return n.Contains("PODRÓŻY")?("LAST MINUTE","-30%"):n.Contains("PRALNIA")?("PRANIE EXPRESS","24H"):("DORADZTWO","BEZPŁATNIE");
-            default:return ("ZAPRASZAMY",null);
-        }
     }
 }

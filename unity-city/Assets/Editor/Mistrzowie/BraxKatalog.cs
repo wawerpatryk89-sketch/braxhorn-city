@@ -91,6 +91,40 @@ public static partial class BraxKatalog
         screens[id] = mt; return mt;
     }
 
+    // THE OWNER'S OWN PICTURES (owner 16.11 13:39-14:22: "na laptopy wygenerować pulpit jak na Windows", the shops' posters
+    // "robię to po swojemu"): his files 1:1 - no lettering, crop or caption of mine. The repository is public, so they come
+    // only from the encrypted pack unity-city/Prywatne/braxhorn-mistrzowie-g1-grafiki-20261116, restored in CI by
+    // install_owner_media.py into Assets/Source/Mistrzowie/G1Wlasciciel/{pulpity,plakaty}/. Missing pack = null (the caller
+    // keeps what it had), never a substitute picture.
+    public const string Wlasciciel = "Assets/Source/Mistrzowie/G1Wlasciciel/";
+    public static readonly string[] Pulpity = { "pulpit_byk", "pulpit_przegladarka", "pulpit_magazyn" };
+    /// <summary>the owner's desktop for a monitor or a laptop (16:9), chosen by i</summary>
+    public static Material Pulpit(int i) => OwnerPicture("pulpity/" + Pulpity[((i % Pulpity.Length) + Pulpity.Length) % Pulpity.Length], out _);
+    /// <summary>the owner's picture rel (without .png) as a lit print or screen; aspect = width / height of HIS file</summary>
+    public static Material OwnerPicture(string rel, out float aspect)
+    {
+        aspect = 1f; string path = Wlasciciel + rel + ".png", id = "owner_" + rel.Replace('/', '_');
+        if (!System.IO.File.Exists(path)) { Debug.LogWarning("KATALOG_OWNER_PICTURE_MISSING " + path); return null; }
+        var ti = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (ti)
+        {
+            ti.GetSourceTextureWidthAndHeight(out int w, out int h); if (w > 0 && h > 0) aspect = (float)w / h;
+            bool dirty = false;
+            if (ti.maxTextureSize != 2048) { ti.maxTextureSize = 2048; dirty = true; }
+            if (!ti.mipmapEnabled) { ti.mipmapEnabled = true; dirty = true; }
+            if (ti.wrapMode != TextureWrapMode.Clamp) { ti.wrapMode = TextureWrapMode.Clamp; dirty = true; }
+            if (ti.anisoLevel < 4) { ti.anisoLevel = 4; dirty = true; }
+            if (dirty) ti.SaveAndReimport();
+        }
+        if (screens.TryGetValue(id, out var have) && have) return have;
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if (!tex) { Debug.LogWarning("KATALOG_OWNER_PICTURE_NOT_IMPORTED " + path); return null; }
+        // lit from behind like a screen or a lightbox print: a dark base and the picture as its light (as Photo)
+        var mt = BraxChampionsHarbour.Surface("kat_" + id, new Color(.06f, .06f, .065f), .12f, 0f, new Color(.92f, .92f, .95f));
+        mt.SetTexture("_MainTex", tex); mt.SetTexture("_EmissionMap", tex); EditorUtility.SetDirty(mt);
+        screens[id] = mt; return mt;
+    }
+
     /// <summary>the four TV pictures' materials (the stills; BraxTelewizor plays the films over them)</summary>
     public static Material[] TvMaterials()
     {
@@ -372,7 +406,8 @@ public static partial class BraxKatalog
         var sc = hinge + up * (LH * .5f + .004f) + fw * .0040f;
         var lrot = Quaternion.LookRotation(fw, up);
         c.m.RoundedBox(GlassDark, hinge + up * (LH * .5f) + fw * .0002f, new Vector3(W - .006f, LH - .006f, .0016f), .002f, lrot, 1);   // the black glass
-        var rv = -k.r; float sw = W - .024f, sh = LH - .034f; var ph = Photo(desktop); var scr = ph ? ph : Screen("pulpit_" + desktop, 256, 160, Desktop(desktop));   // a photograph, as on the monitors
+        // the owner's desktop (16.11 13:39 "pulpit jak na Windows"); without his pack a photograph, then the drawn one
+        var rv = -k.r; float sw = W - .024f, sh = LH - .034f; var ph = Pulpit(desktop) ?? Photo(desktop); var scr = ph ? ph : Screen("pulpit_" + desktop, 256, 160, Desktop(desktop));
         var q0 = sc - rv * (sw * .5f) - up * (sh * .5f); var q1 = sc + rv * (sw * .5f) - up * (sh * .5f); var q2 = sc + rv * (sw * .5f) + up * (sh * .5f); var q3 = sc - rv * (sw * .5f) + up * (sh * .5f);
         c.m.QuadUV(scr, q0, q3, q2, q1, new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 0));
         c.m.Cylinder(BlackMatt, hinge + up * (LH - .007f) + fw * .0012f, .0018f, .0012f, 8, Quaternion.FromToRotation(Vector3.up, fw), true);   // the camera
@@ -389,9 +424,9 @@ public static partial class BraxKatalog
         Materials();
         float W = inches * .0254f * .8716f, H = inches * .0254f * .4903f; var k = new Fr(p, f);
         float yc = .12f + H * .5f; float d = .02f;
-        // a real photograph (owner 16.11 10:30 "dlaczego te monitory są sztuczne": a drawn desktop read as pixel art); the
-        // drawn desktop only when the photographs are missing
-        var ph = Photo(desktop);
+        // the owner's desktop (16.11 13:39-13:40 "pulpit jak na Windows ... i laptopy"); without his pack a photograph
+        // (10:30 "dlaczego te monitory są sztuczne"), the drawn desktop only when both are missing
+        var ph = Pulpit(desktop) ?? Photo(desktop);
         Picture(c, ph ? ph : Screen("pulpit_" + desktop, 256, 160, Desktop(desktop)), k, k.P(0f, yc, d), W, H);
         RB(c, BlackMatt, k, -W * .5f - .006f, W * .5f + .006f, yc + H * .5f, yc + H * .5f + .006f, d - .014f, d + .002f, .0015f, 1);
         RB(c, BlackMatt, k, -W * .5f - .006f, W * .5f + .006f, yc - H * .5f - .018f, yc - H * .5f, d - .014f, d + .002f, .0015f, 1);

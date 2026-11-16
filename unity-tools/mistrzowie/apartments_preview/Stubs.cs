@@ -342,7 +342,13 @@ namespace UnityEditor
     public sealed class TextureImporterPlatformSettings { public bool overridden; public int maxTextureSize, compressionQuality; public TextureImporterFormat format; }
     public class TextureImporter : AssetImporter { public bool streamingMipmaps; public TextureWrapMode wrapMode; public FilterMode filterMode; public int anisoLevel;
         public TextureImporterPlatformSettings GetPlatformTextureSettings(string platform) => new TextureImporterPlatformSettings(); public void SetPlatformTextureSettings(TextureImporterPlatformSettings s) { }
-        public void GetSourceTextureWidthAndHeight(out int w, out int h) { bool mural = name != null && name.Contains("6144x2048"); w = mural ? 6144 : 2048; h = mural ? 2048 : 512; } public bool isReadable, mipmapEnabled, sRGBTexture, alphaIsTransparency; public int maxTextureSize; }
+        public void GetSourceTextureWidthAndHeight(out int w, out int h)
+        {
+            bool mural = name != null && name.Contains("6144x2048"); w = mural ? 6144 : 2048; h = mural ? 2048 : 512;
+            // a real PNG on disk: its own size from the IHDR header (the owner's posters, 9:16 and 2:3)
+            try { if (name != null && name.EndsWith(".png") && System.IO.File.Exists(name)) { var b = new byte[24]; using (var f = System.IO.File.OpenRead(name)) f.Read(b, 0, 24);
+                    w = (b[16] << 24) | (b[17] << 16) | (b[18] << 8) | b[19]; h = (b[20] << 24) | (b[21] << 16) | (b[22] << 8) | b[23]; } } catch { }
+        } public bool isReadable, mipmapEnabled, sRGBTexture, alphaIsTransparency; public int maxTextureSize; }
     public static class Lightmapping { public static bool BakeReflectionProbe(ReflectionProbe p, string path) => true; }
     public static class EditorUtility { public static void SetDirty(Object o) { } public static void CopySerialized(Object a, Object b) { } }
     public static class ShaderUtil { public static bool ShaderHasError(Shader s) => false; }

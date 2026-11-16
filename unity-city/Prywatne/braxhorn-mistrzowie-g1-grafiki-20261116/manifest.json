@@ -1,0 +1,35 @@
+{
+ "source": "owner 16.11.2026 14:07-14:22: his own posters for the G1 shops (travel agency x6, hairdresser, toys x2, cafe, ice cream, fashion sale, perfume, jewellery, pharmacy) and three Windows-like desktops for every monitor and laptop - used 1:1, no lettering of ours",
+ "target": "Assets/Source/Mistrzowie/G1Wlasciciel/{plakaty,pulpity} (install_owner_media.py; BraxKatalog.OwnerPicture / Pulpit)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "96142260a2737a380917c34c412ce87fbff8e718bbf33b7ecb3559c892b0db49",
+ "cmsSha256": "7ddb3dc243ec7e2ab776850af021c2a79b0cd7415be836616653610b45709cc5",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 59505221,
+   "sha256": "7ddb3dc243ec7e2ab776850af021c2a79b0cd7415be836616653610b45709cc5"
+  }
+ ],
+ "files": {
+  "plakaty/apteka.png": "ba206313fb98279d343f89c2d0370ee267eb017882bc775e44f2b4366c086aa5",
+  "plakaty/biuro_podrozy_1.png": "3704c8c3eb8b677b1bc161cd2662a5f75e505cfd9a31a238e46fb74044051bb0",
+  "plakaty/biuro_podrozy_2.png": "3d7200aef013057ac66d3cfcb480295a800842d3174cfa67115661eb842f18bc",
+  "plakaty/bizuteria.png": "210ec31a5bf0521879e28e88008487e7546b5e3d452d3bb8388cc2dad171d56a",
+  "plakaty/grecja.png": "30176eababf286b99d28c6eb488098058a2240947a9c6cdfa1f8a5a2983e381f",
+  "plakaty/hiszpania.png": "5b53f750a7bf321275cb0f669be2bc355f6994ab1c743caee307bbc3ae78a163",
+  "plakaty/kawa_ciastko.png": "ba9223498bb07169d3c96cb3d7ab092e47c14ffe7208f697ffca31b62f6f2af4",
+  "plakaty/lody.png": "718795cd95ae88fcbf79141fb4627e0e8fed4b09b2cfa8336c617e7fa0a926cb",
+  "plakaty/londyn.png": "c99be121a2bf32f695ae72137133dc5916c326ffc78571c094030fb3dc13d884",
+  "plakaty/perfumy.png": "0c25b99a422d6218d1975cec1703ec9f5690e5337951d7f06c564119ce10eba9",
+  "plakaty/salon_fryzjerski.png": "6694f6fdb554cb39d56ba55b05626362937fed98161e0f9a2c88a58757a0257c",
+  "plakaty/seszele.png": "e66d81a1db198fa0561229d11600d0249543ac2a54a5fed32d370eeb4289cb6a",
+  "plakaty/wyprzedaz_moda.png": "f0e51241cde5e147202bee16f7d9a08e7c821796e76ef9de9bcd36425f5443ac",
+  "plakaty/zabawki_1.png": "ee5d0476f3fc52029ed561d4fad1e5df7bcca1b270a19b7281f2f2250d51875e",
+  "plakaty/zabawki_2.png": "3fff53ae756e0ff8c8125f36f18751c383cc971c0bf8c92e1fcf9885cba14176",
+  "pulpity/pulpit_byk.png": "b6271dbdda6665418229f7f138cbdb200543b4f46535b32364d43bf4c91c121f",
+  "pulpity/pulpit_magazyn.png": "60bc9f7f5c353682ce705f3e8041d773202a15a9c5b63e3ffe356ef807729ab5",
+  "pulpity/pulpit_przegladarka.png": "f5177b25dcfaf0e494746428d618b21cef4229a8c6f5e733d7b87e3ab33cc38b"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}
