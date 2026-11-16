@@ -47,6 +47,11 @@ def restore(source, output):
     for action, curve in original.items():
         if action[0] != "Idle":
             baked[action].elems[:] = curve.elems
+
+    write_tree(root, version, output)
+
+
+def write_tree(root, version, output):
     methods = dict(
         B="bool",
         C="char",

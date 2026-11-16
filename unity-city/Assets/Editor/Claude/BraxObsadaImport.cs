@@ -4,10 +4,14 @@ using UnityEditor;
 public sealed class BraxObsadaImport : AssetPostprocessor
 {
     public const string Katalog = "Assets/Source/ObsadaOsiedla/";
+    public const string KatalogGlobalny = "Assets/Source/PostacieGlobalne/";
+    static bool ModelPostaci(string path) =>
+        path.StartsWith(Katalog, StringComparison.Ordinal) || path.StartsWith(KatalogGlobalny, StringComparison.Ordinal);
+
     public const string KatalogBaru = "Assets/Source/Prywatne/BarOsiedla/";
     void OnPreprocessModel()
     {
-        if (!assetPath.StartsWith(Katalog, StringComparison.Ordinal) && !assetPath.StartsWith(KatalogBaru, StringComparison.Ordinal)) return;
+        if (!ModelPostaci(assetPath) && !assetPath.StartsWith(KatalogBaru, StringComparison.Ordinal)) return;
         var model = (ModelImporter)assetImporter;
         model.animationType = ModelImporterAnimationType.Legacy;
         model.importAnimation = true;
@@ -26,7 +30,7 @@ public sealed class BraxObsadaImport : AssetPostprocessor
 
     void OnPreprocessTexture()
     {
-        if (!assetPath.StartsWith(Katalog, StringComparison.Ordinal)) return;
+        if (!ModelPostaci(assetPath)) return;
         var t = (TextureImporter)assetImporter;
         bool normal = assetPath.EndsWith("/Normal.png", StringComparison.Ordinal);
         if (normal) t.textureType = TextureImporterType.NormalMap;

@@ -25,10 +25,25 @@ public sealed class BraxMimikaOsiedla : MonoBehaviour
 
     public void Wypowiedz(AudioSource zrodlo)
     {
+        if (!zrodlo || !zrodlo.clip) return;
         glos = zrodlo;
         var amplitudy = Resources.Load<TextAsset>("OsiedleMimika/" + glos.clip.name);
         obwiednia = amplitudy ? amplitudy.bytes : null;
         usta = 0f;
+    }
+
+    void OnDisable()
+    {
+        glos = null;
+        obwiednia = null;
+        usta = zaokraglenie = 0f;
+        if (!twarz || material == null) return;
+        if (szczeka >= 0) twarz.SetBlendShapeWeight(szczeka, 0f);
+        if (wargi >= 0) twarz.SetBlendShapeWeight(wargi, 0f);
+        twarz.GetPropertyBlock(material);
+        material.SetFloat(Blink, 0f);
+        material.SetFloat(Speech, 0f);
+        twarz.SetPropertyBlock(material);
     }
 
     Vector2 RuchWarg()
@@ -62,7 +77,7 @@ public sealed class BraxMimikaOsiedla : MonoBehaviour
         float powieki = faza<.072f ? Mathf.SmoothStep(0f,1f,faza/.072f)
             : 1f-Mathf.SmoothStep(0f,1f,(faza-.084f)/.12f);
         Vector2 gloski = RuchWarg();
-        float cel = gloski.x * .78f;
+        float cel = gloski.x;
         float szybkosc = cel>usta ? 36f : 28f;
         usta = Mathf.Lerp(usta,cel,1f-Mathf.Exp(-szybkosc*Time.deltaTime));
         twarz.SetBlendShapeWeight(szczeka,usta*100f);

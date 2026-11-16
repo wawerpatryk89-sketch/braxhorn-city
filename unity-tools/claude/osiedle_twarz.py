@@ -1,5 +1,6 @@
 """Build per-character facial poses from that character's original UVs and skin texture."""
 
+import json
 import math
 import struct
 import zlib
@@ -60,6 +61,24 @@ FACES = {
         (124, 196, 23, 0, 8, 0),
     ),
 }
+# Catalog IDs distinguish two exports that share the same internal actor name.
+CATALOG = json.loads(Path(__file__).with_name("profile_twarzy.json").read_text(encoding="utf-8"))
+
+
+def face_profile(actor, override=None):
+    if override is not None:
+        return override
+    if actor in FACES:
+        return FACES[actor]
+    key = actor.rsplit("_", 1)[-1]
+    for name, pins in FACES.items():
+        if name.rsplit("_", 1)[-1] == key:
+            return pins
+    if key in CATALOG:
+        return CATALOG[key]
+    raise ValueError(f"{actor}: supply calibrated eye and mouth landmarks from its neutral portrait")
+
+
 SIZE = 256
 LEVELS = 8
 
@@ -107,7 +126,7 @@ def front_image(points, tris, triangle_uv, image):
     return front, depth
 
 
-def speech_teeth(cavity, dx, depth, opening, t, lip_color):
+def speech_teeth(cavity, dx, depth, opening, t, lip_color, muzzle=False):
     # Upper incisors emerge from behind the upper lip. The mouth corners
     # stay in shadow and the lower row is covered in conversational speech.
     side = np.abs(dx)
@@ -115,10 +134,15 @@ def speech_teeth(cavity, dx, depth, opening, t, lip_color):
     shade = np.clip(np.mean(lip_color, axis=2) * .28 + .46, .48, .63)
     enamel = shade[..., None] * np.array([1., .94, .83])
     result = cavity.copy()
-    for center, width, length in ((.115,.117,1.),(.325,.092,.81),(.487,.075,.62),(.62,.067,.42)):
+    teeth = ((.115,.117,1.),(.325,.092,.81),(.487,.075,.62),(.62,.067,.42))
+    if muzzle:
+        teeth = ((.105,.092,.51),(.295,.082,.48),(.52,.078,1.14))
+    for center, width, length in teeth:
         d = np.abs(side-center)/width
         crown = np.clip(1-d**4,0,1)**.30
         arch = (.76+.24*crown) * length * np.minimum(opening*.44,2.75)
+        if muzzle and length > 1:
+            arch *= np.clip(1 - .83*d, 0, 1)
         opacity = np.clip((1.13-d)*4,0,1)*np.clip(arch-depth+.42,0,1)*amount
         tint = enamel * (.87+.09*crown-.15*side)[...,None]
         result += (tint-result)*opacity[...,None]
@@ -198,17 +222,20 @@ def expression(front, eyes, mouth, t, custom_teeth=False):
     inner=np.clip(below+.4,0,1)*np.clip(opening-below+.38,0,1)
     lip=sample(front,xx,line+3)
     cavity=lip*np.array([.38,.23,.26])
-    if custom_teeth and abs(corner)<12:
-        cavity=speech_teeth(cavity,dx,below,opening,t,lip)
+    if custom_teeth:
+        cavity=speech_teeth(cavity,dx,below,opening,t,lip,muzzle=abs(corner)>=12)
     lower+=(cavity-lower)*inner[...,None]
     rgb+=(lower-rgb)*blend[...,None]
     alpha=np.maximum(alpha,blend)
+    # The Unity shader applies the atlas alpha once against the base skin.
+    # Convert the composited preview back to straight alpha before saving.
+    rgb = front + (rgb-front)/np.maximum(alpha[...,None], 1e-6)
     if t==0:
         alpha.fill(0)
     return np.uint8(np.clip(np.dstack((rgb,alpha))*255+.5,0,255))
 
 
-def png(path, rgba):
+def png(path, rgba, clear_transparent=True):
     def chunk(tag, data):
         return (
             struct.pack(">I", len(data))
@@ -218,7 +245,8 @@ def png(path, rgba):
         )
 
     # Use a transparent border / gutter around each active region.
-    rgba[rgba[:, :, 3] == 0] = 0
+    if clear_transparent:
+        rgba[rgba[:, :, 3] == 0] = 0
     height, width = rgba.shape[:2]
     raw = b"".join(b"\0" + row.tobytes() for row in rgba)
     Path(path).write_bytes(
@@ -229,7 +257,7 @@ def png(path, rgba):
     )
 
 
-def add_face(actor, obj, axes, head, color_path, atlas_path):
+def head_projection(obj, axes, head, color_path):
     mesh = obj.data
     mesh.calc_loop_triangles()
     co = np.array([v.co[:] for v in mesh.vertices])
@@ -238,11 +266,6 @@ def add_face(actor, obj, axes, head, color_path, atlas_path):
     span = np.ptp(body[:, 1]) * 0.175
     head = head @ axes
     cx, cy = head[0], body[:, 1].max() - span * 0.48
-    eyes, mouth = FACES[actor]
-    midpoint = (
-        (sum(e[1] for e in eyes) / len(eyes) if eyes else mouth[1] - 58) + mouth[1]
-    ) / 2
-    shift = 128 - midpoint
     points = np.column_stack(
         (
             (body[:, 0] - cx) / span + 0.5,
@@ -261,6 +284,15 @@ def add_face(actor, obj, axes, head, color_path, atlas_path):
     color = pixels.reshape(image.size[1], image.size[0], 4)[:, :, :3]
     front, depth = front_image(points, triangles, texture_uv[loops], color)
     bpy.data.images.remove(image)
+    return co, transform, body, span, head, points, triangles, loops, front, depth
+
+
+def add_face(actor, obj, axes, head, color_path, atlas_path, profile=None):
+    mesh = obj.data
+    eyes, mouth = face_profile(actor, profile)
+    co, transform, body, span, head, points, triangles, loops, front, depth = head_projection(obj, axes, head, color_path)
+    eye_y = np.mean([e[1] for e in eyes]) if eyes else mouth[1] - 58
+    shift = round(128 - (eye_y + mouth[1]) / 2)
     # Only the frontal surface is mapped. Keep the back of the head, hair, and glasses outside the atlas.
     ix, iy = np.clip(points[:, :2].astype(int), 0, SIZE - 1).T
     visible = (points[:, 2] > depth[iy, ix] - 0.13) & (
@@ -270,7 +302,9 @@ def add_face(actor, obj, axes, head, color_path, atlas_path):
         (points[:, 0] / SIZE, 1 - (points[:, 1] + shift) / SIZE)
     )
     # Apply visibility per triangle so hidden vertices cannot stretch the atlas across an ear or the scalp.
-    layer = mesh.uv_layers.new(name="Mimika", do_init=False)
+    if len(mesh.uv_layers) > 1 and mesh.uv_layers[1].name != "Mimika":
+        raise ValueError(f"{actor}: UV2 already belongs to {mesh.uv_layers[1].name}")
+    layer = mesh.uv_layers.get("Mimika") or mesh.uv_layers.new(name="Mimika", do_init=False)
     projected = np.full((len(mesh.loops), 2), -2, dtype=np.float32)
     for tri, loop in zip(triangles, loops):
         if visible[tri].all():
@@ -293,7 +327,7 @@ def add_face(actor, obj, axes, head, color_path, atlas_path):
     png(atlas_path, atlas)
     if not mesh.shape_keys:
         obj.shape_key_add(name="Basis")
-    key = obj.shape_key_add(name="BraxJaw", from_mix=False)
+    key = mesh.shape_keys.key_blocks.get("BraxJaw") or obj.shape_key_add(name="BraxJaw", from_mix=False)
     mx, my, width, corner, opening, _ = mouth
     dx = abs(points[:, 0] - mx) / width
     line = my + corner * np.minimum(dx**2, 1)
@@ -309,7 +343,7 @@ def add_face(actor, obj, axes, head, color_path, atlas_path):
     key.data.foreach_set("co", (co + weight[:, None] * local).astype("f").ravel())
     key.value = 0
     # Approximate the rounded Polish o/u vowels with local inward and forward lip motion.
-    rounded = obj.shape_key_add(name="BraxRound", from_mix=False)
+    rounded = mesh.shape_keys.key_blocks.get("BraxRound") or obj.shape_key_add(name="BraxRound", from_mix=False)
     lip_band = np.clip(1 - abs(points[:, 1] - line) / (opening + 6), 0, 1)
     lip_band *= np.clip(1 - (dx / 1.35) ** 2, 0, 1) * face_depth
     inward = -(points[:, 0] - mx) * span / SIZE * 0.22

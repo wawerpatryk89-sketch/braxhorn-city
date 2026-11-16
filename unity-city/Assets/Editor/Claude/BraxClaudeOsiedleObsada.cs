@@ -57,9 +57,39 @@ public static partial class BraxClaudeOsiedle
         anim.AddClip(saved,stan);
     }
 
-    static Animation ModelObsady(string id, Transform rodzic, float wzrost)
+    static Animation ModelObsady(string id, Transform rodzic, float wzrost) =>
+        PrzygotujModelObsady(id, rodzic, wzrost, BraxObsadaImport.Katalog + id + "/", true);
+
+    [MenuItem("Braxhorn/Postacie/Utwórz prefab z wybranego FBX", true)]
+    static bool WybranoModelGlobalny()
     {
-        string folder = BraxObsadaImport.Katalog + id + "/";
+        string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+        return path.StartsWith(BraxObsadaImport.KatalogGlobalny, StringComparison.Ordinal)
+            && path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)
+            && System.IO.Path.GetFileNameWithoutExtension(path) == System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(path));
+    }
+
+    [MenuItem("Braxhorn/Postacie/Utwórz prefab z wybranego FBX")]
+    static void ZapiszGlobalnyPrefab()
+    {
+        string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+        string id = System.IO.Path.GetFileNameWithoutExtension(path);
+        string folder = path.Substring(0, path.LastIndexOf('/') + 1);
+        var parent = new GameObject(id);
+        try
+        {
+            var anim = PrzygotujModelObsady(id, parent.transform, 0f, folder, false);
+            anim.playAutomatically = true;
+            parent.AddComponent<BraxGlosPostaci>();
+            var prefab = PrefabUtility.SaveAsPrefabAsset(parent, folder + id + ".prefab");
+            if (!prefab) throw new InvalidOperationException("Nie zapisano prefabu " + id);
+            Selection.activeObject = prefab;
+        }
+        finally { Object.DestroyImmediate(parent); }
+    }
+
+    static Animation PrzygotujModelObsady(string id, Transform rodzic, float wzrost, string folder, bool osiedle)
+    {
         string path = folder + id + ".fbx";
         var wzor = AssetDatabase.LoadAssetAtPath<GameObject>(path);
         if (!wzor) throw new InvalidOperationException("Brak modelu obsady " + path);
@@ -87,8 +117,8 @@ public static partial class BraxClaudeOsiedle
             }
             anim.AddClip(stan, nazwa);
         }
-        if (id == "bramkarz_1c96d333") DodajKlipBaru(anim,folder,"Barman.fbx","Pour",85f/24f);
-        if (id == "gitara" || id == "patryk") DodajKlipBaru(anim,folder,id+".fbx","Drink",8.8667f);
+        if (osiedle && id == "bramkarz_1c96d333") DodajKlipBaru(anim,folder,"Barman.fbx","Pour",85f/24f);
+        if (osiedle && (id == "gitara" || id == "patryk")) DodajKlipBaru(anim,folder,id+".fbx","Drink",8.8667f);
         if (!anim.GetClip("Idle") || !anim.GetClip("Walk")) throw new InvalidOperationException(id + " brak Idle/Walk");
         var renders = model.GetComponentsInChildren<SkinnedMeshRenderer>(true);
         if (renders.Length == 0) throw new InvalidOperationException(id + " bez siatki");
@@ -134,17 +164,18 @@ public static partial class BraxClaudeOsiedle
                 dol = Mathf.Min(dol, y); gora = Mathf.Max(gora, y);
             }
             Object.DestroyImmediate(mesh);
-            BraxObjetoscRak.Przygotuj(r, folder);
+            if (osiedle || r == skora) BraxObjetoscRak.Przygotuj(r, folder);
             r.quality = SkinQuality.Bone4;
             if (ruchPrzyBarze) r.updateWhenOffscreen = true;
             r.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.BlendProbes;
             r.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.BlendProbes;
             r.probeAnchor = KoscObsady(model.transform, "Spine2");
             r.receiveShadows = true;
-            r.sharedMaterials = Enumerable.Repeat(material, r.sharedMesh.subMeshCount).ToArray();
+            if (osiedle || r == skora)
+                r.sharedMaterials = Enumerable.Repeat(material, r.sharedMesh.subMeshCount).ToArray();
         }
         if (!(gora > dol + .05f)) throw new InvalidOperationException(id + " pusty model");
-        float skala = wzrost / (gora - dol);
+        float skala = wzrost > 0f ? wzrost / (gora - dol) : 1f;
         model.transform.localScale *= skala;
         model.transform.localPosition -= Vector3.up * dol * skala;
         // Kierunek palców stóp ustala przód modelu również przy różnych osiach pliku FBX.
