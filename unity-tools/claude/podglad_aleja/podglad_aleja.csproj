@@ -9,6 +9,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../kontrola_geometrii/fake/UnityEngine.cs;Stubs*.cs;gen/*.cs;Program.cs" />
-    <Compile Include="../../../unity-city/Assets/Editor/Claude/Region/BraxRegionFawelaWieze.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxRegionFawelaWiezeLokale.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxBetGrafiki.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxUlicePierzeje.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxDrzwiLokalu.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxCeramika.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxLiteryBebas*.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxRegionMiastoBNoweMiejsca.cs;../../../unity-city/Assets/Claude/Runtime/BraxMiastoGranice.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Claude/Region/BraxRegionFawelaWieze.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxRegionFawelaWiezeLokale.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxBetGrafiki.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxRegionFawelaWiezeLadowisko.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxUlicePierzeje.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxDrzwiLokalu.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxCeramika.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxLiteryBebas*.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxRegionMiastoBNoweMiejsca.cs;../../../unity-city/Assets/Claude/Runtime/BraxMiastoGranice.cs" />
   </ItemGroup>
 </Project>

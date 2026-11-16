@@ -34,6 +34,15 @@ public static class BraxR1Zdjecia
         ("10_plac_ustawek_z_gory", new Vector3(-829f, 11f, 105f), new Vector3(-856f, .5f, 134f), "plac ustawek z góry: płot betonowy, kontenery, bariery"),
         ("11_komis_z_chodnika", new Vector3(-699f, 1.75f, -70.2f), new Vector3(-713f, 1.0f, -78f), "komis aut z chodnika ul. Tramwajowej"),
         ("12_komis_od_tramwaju", new Vector3(-680f, 3.0f, -66f), new Vector3(-712f, 1.0f, -78f), "komis aut od przystanku T1 TRAMWAJOWA"),
+        // lądowisko na dachu C5_U04 (16.11 22:00) — te same kamery co zdjęcia podglądu wysłane właścicielowi
+        ("13_ladowisko_portal", new Vector3(-472.5f, 1.7f, 6.5f), new Vector3(-480.6f, 3.4f, -3.5f), "wejście do holu lądowiska od promenady (C5_U04), napis na daszku"),
+        ("14_ladowisko_hol", new Vector3(-478.2f, 1.85f, -5.2f), new Vector3(-480.8f, 2.4f, -19.5f), "hol lądowiska: recepcja, winda na dach w ścianie z granitu"),
+        ("15_ladowisko_hol_recepcja", new Vector3(-483.6f, 1.85f, -17.6f), new Vector3(-477.8f, 1.5f, -6.5f), "hol lądowiska od windy: recepcja, sofy, wejście"),
+        ("16_ladowisko_z_drona", new Vector3(-452f, 178f, 18f), new Vector3(-483.5f, 149.5f, -20f), "dach C5_U04 z drona: płyta H 17 × 17 m, pawilon, schody, rękaw"),
+        ("17_ladowisko_taras", new Vector3(-498.5f, 148.5f, -11.5f), new Vector3(-483f, 150.6f, -19.5f), "taras dachu: pawilon odlotów pod płytą, słupy, schody"),
+        ("18_ladowisko_plyta", new Vector3(-483.5f, 152.9f, -27.2f), new Vector3(-483.5f, 150.6f, -12f), "płyta lądowiska: H, okrąg przyziemienia, lampy obwodu"),
+        ("19_ladowisko_pawilon", new Vector3(-484.2f, 148.6f, -15.9f), new Vector3(-480.6f, 148.3f, -21.0f), "pawilon odlotów: winda z holu, poczekalnia, tablica odlotów"),
+        ("20_ladowisko_schody", new Vector3(-500.5f, 148.3f, -21.5f), new Vector3(-492f, 150.6f, -15.5f), "schody z tarasu na płytę"),
     };
 
     public static int Wykonaj(Scene scena)

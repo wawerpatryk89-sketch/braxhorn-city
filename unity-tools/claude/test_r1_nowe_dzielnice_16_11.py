@@ -93,14 +93,14 @@ class LokaleWParterach(unittest.TestCase):
         self.assertIn("var szyba = lp != null ? WB(LokSzklo).K(Color.white) : oknaW;", WIEZE)
         self.assertIn("if (lp != null) Pasek(szyba, F, o.xMax, o.xMin, o.yMin, o.yMax, Gl - .06f);", WIEZE)   # szkło dwustronne
         self.assertIn("if (lp != null && lp.qd == q) continue;", WIEZE)
-        self.assertIn("LicoWewnetrzne(WB(LokLico).K(Color.white), p, yBase, yBase + LokSufit, Gl);", WIEZE)
-        self.assertIn("else KolizjeZLokalami(korzen, id, x, z, w, d, yBase, top, Gl, Wys, plany);", WIEZE)
+        self.assertIn("LicoWewnetrzne(WB(p.hol ? HolLico : LokLico).K(Color.white), p, yBase, yBase + LokSufit, Gl);", WIEZE)
+        self.assertIn("if (hol == null) KolizjeZLokalami(korzen, id, x, z, w, d, yBase, top, Gl, Wys, plany);", WIEZE)
         self.assertIn("ZbudujLokal(korzen, id, p, yBase, Gl);", WIEZE)
-        self.assertIn("foreach (var p in lokTu.OrderBy(p => p.sc)) { BoxF(cokB, F, cs0, p.sc - LokDrzwiW * .5f,", WIEZE)   # cokolik przerwany w drzwiach
+        self.assertIn("foreach (var p in lokTu.OrderBy(p => p.sc)) { float pd = LokDrzwiW * .5f + (p.hol ? .25f : 0f); BoxF(cokB, F, cs0, p.sc - pd,", WIEZE)
         self.assertIn("BraxDrzwiLokalu.Podwojne(lr, \"R1_WIEZA_\"", LOK)
         self.assertIn("BraxUlicePierzeje.WnetrzeKamienicy(lr, l.szyld, l.typ, l.numer, A, -F.R, F.N, p.s1 - p.s0, LokGl + .55f, p.s1 - p.sc,", LOK)
         self.assertIn("BraxMiastoA.Akcja(lr, l.idAkcji, l.akcja, l.odpowiedz, klient, 1.6f);", LOK)
-        self.assertIn('KolBox(g, "posadzka lokalu " + p.l.szyld', LOK)
+        self.assertIn('KolBox(g, "posadzka lokalu " + p.Nazwa', LOK)
 
     def test_kwartal_slabs_are_cut_under_shop_floors(self):
         self.assertIn('ChodnikBez("kwartał A" + (i + 1) + " (płyty)", Rect.MinMaxRect(xa, RzA0, xb, RzA1), bezLokali);', ND)
@@ -176,7 +176,7 @@ class ZdjeciaZEdytora(unittest.TestCase):
         z = src(REG / "BraxR1Zdjecia.cs")
         self.assertIn('public const string Katalog = "Logs/r1-zdjecia";', z)            # unity-city/Logs/ = artefakt diagnostyki
         self.assertIn("if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)", z)
-        self.assertEqual(len(re.findall(r'\("\d\d_\w+", new Vector3', z)), 12)
+        self.assertEqual(len(re.findall(r'\("\d\d_\w+", new Vector3', z)), 20)   # 12 nowej części + 8 lądowiska (16.11 22:00)
         wf = (ROOT / ".github/workflows/claude-region-build.yml").read_text(encoding="utf-8")
         self.assertIn("unity-city/Logs/", wf)
 
@@ -203,6 +203,52 @@ class GrafikiBetWlasciciela(unittest.TestCase):
         self.assertIn("BraxBetGrafiki.Kaseton(W(sLogo", PIERZ)
         self.assertIn("BraxBetGrafiki.Stojak(nrW[ix]", PIERZ)
         self.assertIn('l.typ == "bukmacher" && BraxBetGrafiki.Kaseton(F.P(sm, yc, -.26f), F.N, .88f)', LOK)
+
+
+class LadowiskoNaDachu(unittest.TestCase):
+    """16.11 22:00: „Na dachu wieżowca dla helikoptera miejsce… Zrób też miejsce zajebiste i wejście na dach.”"""
+    LAD = src(REG / "BraxRegionFawelaWiezeLadowisko.cs")
+
+    def test_tower_gets_real_lobby_and_lift_to_roof(self):
+        self.assertIn('LadowiskoWieza = "C5_U04"', self.LAD)
+        self.assertIn("lokTu.Add(new LokalPlan { hol = true, tyl = HolGl", WIEZE)
+        self.assertIn("PortalWiezy(F, o, WB, st, oknaW, rama, id, si, LokalQ(q)?.hol == true)", WIEZE)
+        self.assertIn("BraxDrzwiLokalu.Podwojne(hr, \"R1_WIEZA_\" + id + \"_HOL\"", self.LAD)
+        self.assertIn("BraxRegionTylyB.WindaZewn(hr,", self.LAD)
+        self.assertIn("internal static void WindaZewn(", src(REG / "BraxRegionTylyB.cs"))
+
+    def test_collisions_follow_setbacks_and_leave_lift_shaft_open(self):
+        self.assertIn("KolizjeZLokalami(korzen, id, x, z, w, d, yBase, top, Gl, Wys, plany, bryly, SzybRect(SzybLadowiska(hol)))", WIEZE)
+        self.assertIn("MinusRect(br, dziura.Value)", LOK)
+        self.assertIn('wynik.Add((id + "|SZYB LĄDOWISKA"', LOK)
+
+    def test_helideck_real_dimensions_markings_in_texture(self):
+        self.assertIn("PlytaB = 17f, Polka = 1.5f, PlytaNad = 4.4f", self.LAD)
+        self.assertIn("float rIn = 4f, rOut = 5f;", self.LAD)                       # okrąg przyziemienia 0.5 D, szer. 1 m
+        self.assertIn("TeksturaPlyty()", self.LAD)                                  # oznakowanie w teksturze płyty
+        self.assertIn("int nR = 23;", self.LAD)                                     # schody 23 × 17.7 cm
+        self.assertIn('BraxMiastoA.Akcja(g, "ladowisko_lot", "LOT HELIKOPTEREM"', self.LAD)
+        for pkt in ["R1_LADOWISKO_HOL", "R1_LADOWISKO_PLYTA", "R1_LADOWISKO_TARAS", "R1_LADOWISKO_WINDA_GORA"]:
+            self.assertIn(pkt, self.LAD)
+
+    def test_finishes_real_materials_and_sign(self):
+        # konstrukcja: stal malowana proszkowo (nie blacha ryflowana na słupach); stopnie: blacha ryflowana
+        self.assertIn('Surface("lądowisko: stal konstrukcji (farba proszkowa RAL 7016)"', self.LAD)
+        self.assertIn('"lądowisko: stopnie i pomosty (blacha ryflowana ocynkowana)", .6f', self.LAD)
+        # pawilon: posadzka z marmuru w poziomie tarasu (płyty tarasu wycięte pod pawilonem — bez progu do windy)
+        self.assertIn("foreach (var r in MinusRect(rIn, rPaw))", self.LAD)
+        self.assertIn('Wyrob(bpp, "Pawilon odlotów: posadzka marmurowa"', self.LAD)
+        # trzon windy w granicie dookoła; front z otworami na opaskę i kasetę (hol i pawilon)
+        self.assertIn("static void OkladzinaFrontuSzybu(", self.LAD)
+        self.assertEqual(self.LAD.count("OkladzinaFrontuSzybu(b"), 2)
+        self.assertIn("internal static Vector2 DrzwiWindy", src(REG / "BraxRegionTylyB.cs"))
+        # rękaw wiatrowy: pasy jako osobne materiały; napis nad wejściem z liter podświetlanych na daszku portalu
+        self.assertIn('"lądowisko: rękaw — tkanina pomarańczowa"', self.LAD)
+        self.assertIn('const string napis = "LĄDOWISKO · BRAXHORN HELI";', self.LAD)
+
+    def test_roof_clutter_removed_on_helipad_tower(self):
+        self.assertIn("bool ladowisko = id == LadowiskoWieza && plany.Any(p => p.hol);", WIEZE)
+        self.assertIn("if (!namiot && !ladowisko) WB(wStal)", WIEZE)
 
 
 class KontrolaMigotania(unittest.TestCase):

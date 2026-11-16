@@ -87,10 +87,17 @@ public static partial class BraxRegionFawela
         return q0 >= 0 && q1 < osi && l.bayN >= 2 && qd >= q0 && qd <= q1 && (wejscie < q0 || wejscie > q1);
     }
 
-    sealed class LokalPlan { public LokalWiezy l; public Fr F; public int q0, q1, qd; public float s0, s1, sc; public List<Rect> otw = new List<Rect>(); }
+    sealed class LokalPlan
+    {
+        public LokalWiezy l; public Fr F; public int q0, q1, qd; public float s0, s1, sc; public List<Rect> otw = new List<Rect>();
+        public bool hol; public float tyl = LokTyl;                     // 16.11 22:00: hol lądowiska (głębszy, bez lokalu)
+        public string Nazwa => hol ? "HOL LĄDOWISKA" : l.szyld;
+    }
 
     static Material lokSzklo, lokLico;
     static Material LokSzklo { get { if (!lokSzklo) lokSzklo = BraxUliceKit.SzkloPrzezroczyste; return lokSzklo; } }
+    static Material holLico;
+    static Material HolLico { get { if (!holLico) holLico = T("hol lądowiska: lico wewnętrzne frontu (gładź biała)", 3f, new Color(1f, 1f, .99f), .95f, "white_stucco", "white_plaster_02"); return holLico; } }
     static Material LokLico { get { if (!lokLico) lokLico = T("wieże: lico wewnętrzne lokalu (gładź biała)", 2.4f, new Color(.96f, .95f, .93f), .9f, "white_plaster_02", "white_stucco"); return lokLico; } }
 
     /// <summary>Prostokąty posadzek lokali (świat x/z) dla wieżowca w obrysie w × d — płyty kwartału pod nimi są wycinane
@@ -106,6 +113,16 @@ public static partial class BraxRegionFawela
             // wycięcie płyt 4 cm szersze pod ścianami bocznymi i tylną lokalu (16.11, kontrola migotania: krawędź płyty nie leży w licu
             // ściany lokalu — szczelina za ścianą, w bryle wieży, niewidoczna); od ulicy wycięcie w licu fasady jak było
             wynik.Add((id + "|" + l.szyld, RectF(F, linie[q0] + LokOds - .04f, linie[q1 + 1] - LokOds + .04f, .04f, LokTyl + .04f)));
+        }
+        if (id == LadowiskoWieza)
+        {   // hol lądowiska: portal ± 1 przęsło, głębokość HolGl (+ szyb windy za ścianą tylną — płyty pod szybem też wycięte)
+            var F = sciany[LadowiskoStrona]; var linie = LinieSiatki(F); int osi = Mathf.Max(0, linie.Count - 1), we = WejscieHolu(LadowiskoStrona, osi);
+            if (we >= 1 && we + 2 < linie.Count)
+            {
+                var h = BraxRegionTylyB.SzybPolowy; float sc = (linie[we] + linie[we + 1]) * .5f;
+                wynik.Add((id + "|HOL LĄDOWISKA", RectF(F, linie[we - 1] + LokOds - .04f, linie[we + 2] - LokOds + .04f, .04f, HolGl + .04f)));
+                wynik.Add((id + "|SZYB LĄDOWISKA", RectF(F, sc - h.x - .04f, sc + h.x + .04f, HolGl + .04f, HolGl + 2f * h.y + .04f)));
+            }
         }
         return wynik;
     }
@@ -196,22 +213,27 @@ public static partial class BraxRegionFawela
 
     /// <summary>Kolizje wieżowca z lokalami: nad lokalami cała bryła; parter — obrys bez lokali; front lokalu bez otworu drzwi;
     /// posadzka lokalu (płyty kwartału wycięte).</summary>
-    static void KolizjeZLokalami(Transform korzen, string id, float x, float z, float w, float d, float yBase, float top, float gl, float wys, List<LokalPlan> plany)
+    static void KolizjeZLokalami(Transform korzen, string id, float x, float z, float w, float d, float yBase, float top, float gl, float wys, List<LokalPlan> plany,
+                                 List<(Rect r, float y1)> bryly = null, Rect? dziura = null)
     {
         var g = new GameObject("Budynek " + id + " kolizja (z lokalami w parterze)").transform; g.SetParent(korzen, false); g.position = Vector3.zero;
         float yL = yBase + LokSufit;
         var FP = Rect.MinMaxRect(x - w * .5f - wys, z - d * .5f - wys, x + w * .5f + wys, z + d * .5f + wys);
-        KolBox(g, "bryła nad lokalami", new Vector3(FP.xMin, yL, FP.yMin), new Vector3(FP.xMax, top, FP.yMax));
+        if (bryly == null) KolBox(g, "bryła nad lokalami", new Vector3(FP.xMin, yL, FP.yMin), new Vector3(FP.xMax, top, FP.yMax));
+        else foreach (var (br, y1) in bryly)
+                foreach (var q in dziura.HasValue ? MinusRect(br, dziura.Value) : new[] { br })
+                    KolBox(g, "bryła uskoku nad lokalami", new Vector3(q.xMin, yL, q.yMin), new Vector3(q.xMax, y1, q.yMax));
         var reszta = new List<Rect> { FP };
-        foreach (var p in plany) { var wc = RectF(p.F, p.s0 + LokOds, p.s1 - LokOds, -wys, LokTyl); reszta = reszta.SelectMany(r => MinusRect(r, wc)).ToList(); }
+        foreach (var p in plany) { var wc = RectF(p.F, p.s0 + LokOds, p.s1 - LokOds, -wys, p.tyl); reszta = reszta.SelectMany(r => MinusRect(r, wc)).ToList(); }
+        if (dziura.HasValue) reszta = reszta.SelectMany(r => MinusRect(r, dziura.Value)).ToList();
         foreach (var r in reszta) KolBox(g, "parter poza lokalami", new Vector3(r.xMin, yBase - .3f, r.yMin), new Vector3(r.xMax, yL, r.yMax));
         foreach (var p in plany)
         {
             var F = p.F; float sA = p.s0 + LokOds, sB = p.s1 - LokOds, dl = p.sc - LokDrzwiW * .5f, dp = p.sc + LokDrzwiW * .5f;
-            KolBox(g, "front lokalu " + p.l.szyld + " (lewa)", F.P(sA, yBase - .3f, -wys), F.P(dl, yL, gl));
-            KolBox(g, "front lokalu " + p.l.szyld + " (prawa)", F.P(dp, yBase - .3f, -wys), F.P(sB, yL, gl));
-            KolBox(g, "nad drzwiami lokalu " + p.l.szyld, F.P(dl, yBase + LokDrzwiH, -wys), F.P(dp, yL, gl));
-            KolBox(g, "posadzka lokalu " + p.l.szyld, F.P(sA, yBase - .3f, .04f), F.P(sB, yBase, LokTyl));
+            KolBox(g, "front lokalu " + p.Nazwa + " (lewa)", F.P(sA, yBase - .3f, -wys), F.P(dl, yL, gl));
+            KolBox(g, "front lokalu " + p.Nazwa + " (prawa)", F.P(dp, yBase - .3f, -wys), F.P(sB, yL, gl));
+            KolBox(g, "nad drzwiami lokalu " + p.Nazwa, F.P(dl, yBase + LokDrzwiH, -wys), F.P(dp, yL, gl));
+            KolBox(g, "posadzka lokalu " + p.Nazwa, F.P(sA, yBase - .3f, .04f), F.P(sB, yBase, p.tyl));
         }
     }
 }

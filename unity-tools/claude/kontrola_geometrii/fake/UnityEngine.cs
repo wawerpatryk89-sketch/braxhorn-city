@@ -467,5 +467,5 @@ namespace UnityEditor
         public static void CreateAsset(Object o, string p) { } public static void SaveAssets() { } public static void Refresh() { }
     }
     public class AssetImporter : Object { public static AssetImporter GetAtPath(string p) => null; public void SaveAndReimport() { } }
-    public class TextureImporter : AssetImporter { public bool sRGBTexture, mipmapEnabled; public TextureWrapMode wrapMode; public int maxTextureSize; }
+    public class TextureImporter : AssetImporter { public bool sRGBTexture, mipmapEnabled; public TextureWrapMode wrapMode; public int maxTextureSize, anisoLevel; }
 }

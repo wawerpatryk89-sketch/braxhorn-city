@@ -96,6 +96,15 @@ public static partial class BraxRegionFawela { internal static int trojkatow; }
 
 public static partial class BraxRegionMeble
 {
+    // jak w grze (BraxRegionMeble.Model): model Poly Haven / biblioteki o zadanej wysokości rzeczywistej × K
+    public static GameObject Model(Transform parent, string etykieta, Vector3 p, float yaw, float wysRealna, bool kolizja, params string[] ids)
+    {
+        var src = BraxRegion.Model(ids); if (!src) return null;
+        var o = BraxRegion.Put(parent, src, etykieta, p, yaw, 1f, false, wysRealna);
+        if (o && kolizja) { var b = BraxRegion.Bounds(o); Kolizja(parent, etykieta + " kolizja", b.center, b.size); }
+        return o;
+    }
+
     public static Material Tex(string nazwa, float realneMetry, Color tint, float szorstkosc, params string[] ids) => BraxUliceKit.Tex(nazwa, realneMetry, tint, tint, szorstkosc, ids);
     public static Material Swiecacy(string nazwa, Color c, float moc) { var m = BraxUliceKit.Mat("świeci: " + nazwa, c, .4f); m.SetColor("_EmissionColor", c * moc); m.rodzaj = "swieci"; return m; }
 }
@@ -168,3 +177,32 @@ public static partial class BraxMiastoAssety
     }
 }
 
+
+// winda z biurowców Tyłów B (BraxRegionTylyB.Winda — w grze BraxWinda z kabiną i panelem): w podglądzie szyb z murem, drzwi przystanków
+// zamknięte (stal szczotkowana) i opaski — wymiary jak w grze (kabina 1.6 × 1.4 m × K, drzwi 1.1 × 2.1 m × K)
+public static class BraxRegionTylyB
+{
+    static float K => BraxUliceKit.K; static float KabW => 1.6f * K; static float KabD => 1.4f * K; static float DrzW => 1.1f * K; static float DrzH => 2.1f * K;
+    internal static Vector2 SzybPolowy => new Vector2(KabW * .5f + .1f + .25f, KabD * .5f + .1f + .25f);
+    internal static Vector2 DrzwiWindy => new Vector2(DrzW, DrzH);
+    internal static void WindaZewn(Transform T, string nazwa, Vector2 szyb, float[] pY, bool[] uz, string[] nazwy, float top, float f)
+    {
+        var W = new GameObject("Winda " + nazwa).transform; W.SetParent(T, false);
+        float sx = szyb.x, sz = szyb.y, hw = KabW * .5f + .1f, hd = KabD * .5f + .1f, t = .25f;
+        var sc = new BraxRegionMeble.Bud(); var st = new BraxRegionMeble.Bud();
+        void BoxZ(BraxRegionMeble.Bud bb, float x0, float x1, float y0, float y1, float dz0, float dz1) => bb.MinMax(new Vector3(x0, y0, Mathf.Min(sz + f * dz0, sz + f * dz1)), new Vector3(x1, y1, Mathf.Max(sz + f * dz0, sz + f * dz1)));
+        BoxZ(sc, sx - hw - t, sx + hw + t, pY[0], top, -hd - t, -hd); BoxZ(sc, sx - hw - t, sx - hw, pY[0], top, -hd, hd); BoxZ(sc, sx + hw, sx + hw + t, pY[0], top, -hd, hd);
+        for (int i = 0; i < pY.Length; i++)
+        {
+            float y0 = pY[i], y1 = i == pY.Length - 1 ? top : pY[i + 1];
+            BoxZ(sc, sx - hw - t, sx - DrzW * .5f - .05f, y0, y1, hd, hd + t); BoxZ(sc, sx + DrzW * .5f + .05f, sx + hw + t, y0, y1, hd, hd + t);
+            BoxZ(sc, sx - DrzW * .5f - .05f, sx + DrzW * .5f + .05f, y0 + DrzH + .1f, y1, hd, hd + t);
+            BoxZ(st, sx - DrzW * .5f - .05f, sx + DrzW * .5f + .05f, y0 + .004f, y0 + DrzH + .1f, hd + .05f, hd + .09f);                                   // skrzydła zamknięte
+            BoxZ(st, sx - DrzW * .5f - .16f, sx - DrzW * .5f - .05f, y0, y0 + DrzH + .2f, hd + t, hd + t + .06f); BoxZ(st, sx + DrzW * .5f + .05f, sx + DrzW * .5f + .16f, y0, y0 + DrzH + .2f, hd + t, hd + t + .06f);
+            BoxZ(st, sx - DrzW * .5f - .16f, sx + DrzW * .5f + .16f, y0 + DrzH + .1f, y0 + DrzH + .25f, hd + t, hd + t + .06f);
+            BoxZ(st, sx + DrzW * .5f + .35f, sx + DrzW * .5f + .55f, y0 + 1.0f * K, y0 + 1.35f * K, hd + t, hd + t + .03f);                           // kaseta przywołania
+        }
+        sc.Obiekt("Szyb windy " + nazwa, W, BraxCityMaterials.Surface("Wnętrza B: tynk szybu", new Color(.86f, .85f, .82f), .9f), false, true);
+        st.Obiekt("Winda " + nazwa + ": skrzydła i opaski (stal)", W, BraxCityMaterials.Surface("Wnętrza B: stal nierdzewna szczotkowana", new Color(.70f, .71f, .72f), .35f, .85f), false, false);
+    }
+}

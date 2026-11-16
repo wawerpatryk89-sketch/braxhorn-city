@@ -367,7 +367,7 @@ class WiezowceMurowane(unittest.TestCase):
             self.assertGreaterEqual(float(b_), float(r_), barwy)                            # żadnego brązowego szkła (z góry wyglądało jak cegła)
 
     def test_base_crown_and_roof_details(self):
-        for czesc in ("PortalWiezy(F, o, WB, st, oknaW, rama, id, si)", "bool namiot = !szklana && !dlugi && (st == stylWiez[1] || st == stylWiez[4]);",
+        for czesc in ("PortalWiezy(F, o, WB, st, oknaW, rama, id, si, ", "bool namiot = !ladowisko && !szklana && !dlugi && (st == stylWiez[1] || st == stylWiez[4]);",
                       "float yKor = ostatni ? Y(f1 - 2) : y1 + att;"):
             self.assertIn(czesc, WIEZE, czesc)
 

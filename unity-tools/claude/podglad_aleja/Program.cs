@@ -206,7 +206,7 @@ public static class Podglad
         raport.Insert(0, $"PODSUMOWANIE: pary {lista.Count} — migotanie (różne materiały) {zle}, szkło {szkloN}, ten sam materiał {tenSam}, w tym ruchome {ruch} (styki krawędzi bez wspólnego pola, pominięte: {styki.Count})\n");
         File.WriteAllText(Path.Combine(outDir, "migotanie.txt"), raport.ToString());
         Console.WriteLine(raport.ToString().Split('\n')[0]);
-        foreach (var l in UnityEngine.Debug.Log_.Where(x => x.StartsWith("WARN") || x.StartsWith("ERR"))) Console.WriteLine(l);
+        foreach (var l in UnityEngine.Debug.Log_.Where(x => x.StartsWith("WARN") || x.StartsWith("ERR") || x.Contains("BRAXHORN_WIEZA ") || x.Contains("LADOWISKO"))) Console.WriteLine(l);
         return 0;
     }
 

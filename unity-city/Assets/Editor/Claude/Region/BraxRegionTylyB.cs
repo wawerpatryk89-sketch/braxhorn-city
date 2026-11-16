@@ -589,6 +589,16 @@ public static class BraxRegionTylyB
         foreach (var tt in W.GetComponentsInChildren<Transform>(true)) if (tt.name.StartsWith("skrzydło") || tt.name.StartsWith("Drzwi")) GameObjectUtility.SetStaticEditorFlags(tt.gameObject, 0);
     }
 
+    /// <summary>16.11: winda dla innych budynków R1 (lądowisko na dachu C5_U04) — ta sama kabina, drzwi i panel; połowa szybu
+    /// z murem (x = szerokość / 2, y = głębokość / 2) do rozmieszczenia ścian wokół.</summary>
+    internal static Vector2 SzybPolowy => new Vector2(KabW * .5f + .1f + .25f, KabD * .5f + .1f + .25f);
+    /// <summary>Otwór drzwi przystanku (szer., wys.) — do okładziny frontu szybu wokół opaski.</summary>
+    internal static Vector2 DrzwiWindy => new Vector2(DrzW, DrzH);
+    internal static void WindaZewn(Transform T, string nazwa, Vector2 szyb, float[] pY, bool[] uz, string[] nazwy, float top, float f)
+    {
+        Materialy(); Winda(T, nazwa, szyb, pY, uz, nazwy, top, f);
+    }
+
     static Transform Lisc(Transform parent, string n, float off)
     {
         var t = new GameObject(n).transform; t.SetParent(parent, false); t.localPosition = new Vector3(off, 0, 0);
