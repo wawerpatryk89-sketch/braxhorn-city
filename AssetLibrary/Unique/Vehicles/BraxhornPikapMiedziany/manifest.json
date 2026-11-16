@@ -1,0 +1,78 @@
+{
+  "id": "braxhorn.vehicle.pikap_miedziany",
+  "displayName": "Braxhorn Pikap Miedziany",
+  "version": "0.1.0",
+  "scope": "shared, all city regions",
+  "ownerBrief": "Właściciel 16.11.2026 08:11: zdjęcie pikapa (bok + przód) — „zapisz to auto, jedziesz z następnym”; model 1:1, materiały Poly Haven, paczka aut",
+  "sourceStorage": {
+    "type": "encrypted pack in this repository (public repo: owner content only encrypted)",
+    "pack": "unity-city/Prywatne/braxhorn-sklep-auta-02",
+    "target": "pojazdy_auta_02",
+    "installer": "unity-tools/sklep/install_sklep_modele.py (CI, step with KLUCZ)",
+    "unityAccess": "BraxMiastoAssety.Model(\"pojazdy_auta_02\", \"pikap_miedziany\")"
+  },
+  "model": {
+    "files": {
+      "lod0": "pikap_miedziany.glb",
+      "lod1": "pikap_miedziany_lod1.glb"
+    },
+    "sha256": {
+      "lod0": "081318db7e4e7e1764440adf1b0ab97d93316a7003eda06ce1a2916f0db0e29d",
+      "lod1": "da38a423118fc4c562576fbd7917dc5deaa0fc8930ac60060ba59e7cc4783afa"
+    },
+    "bytes": {
+      "lod0": 12939960,
+      "lod1": 3111824
+    },
+    "triangles": {
+      "lod0": 259222,
+      "lod1": 57544
+    },
+    "externalTextures": "_tekstury/pikap_miedziany/ (Poly Haven leather_white, poly_wool_herringbone, rubberized_track, metal_plate — 1K recoloured; owner badge 512 px)",
+    "lengthM": 4.811,
+    "widthM": 2.03,
+    "heightM": 2.053,
+    "wheelbaseM": 3.048,
+    "trackM": 1.693,
+    "wheelDiameterM": 0.94,
+    "gltfForward": "+Z",
+    "sourceUnit": "metre",
+    "seats": 4,
+    "movingNodes": [
+      "drzwi_lp",
+      "drzwi_pp",
+      "drzwi_lt",
+      "drzwi_pt",
+      "maska",
+      "klapa",
+      "wlew",
+      "kolo_przod_lewe",
+      "kolo_przod_prawe",
+      "kolo_tyl_lewe",
+      "kolo_tyl_prawe",
+      "zacisk_przod_lewe",
+      "zacisk_przod_prawe",
+      "kierownica"
+    ],
+    "badgeMounts": {
+      "znak_byk_grill": "owner bull (Tripo 16.11) on the middle grille bar, satin nickel with graphite detail",
+      "napis_braxhorn_klapa": "owner BRAXHORN lettering on the tailgate, satin nickel"
+    }
+  },
+  "unity": {
+    "importer": "com.unity.cloud.gltfast",
+    "worldScaleK": 1.2944,
+    "applyWorldScaleOnce": true
+  },
+  "validation": {
+    "webglPreview": true,
+    "badgesFitted": true,
+    "normalsOutward": "sprawdz_normalne.py (in pack oryginal/): 0 inverted closed islands in LOD0 and LOD1",
+    "unityPlayMode": "untested",
+    "androidDevice": "untested",
+    "sharedGeometryAppliedToRegionScenes": false
+  },
+  "ownerApproval": {
+    "status": "pending review"
+  }
+}

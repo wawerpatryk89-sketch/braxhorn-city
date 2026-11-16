@@ -20,7 +20,9 @@ class PaczkiGlobalne(unittest.TestCase):
                                       ("braxhorn-sklep-wyciag-01", "silownia_wyciag_01", 6), ("braxhorn-sklep-ring-01", "silownia_ring_01", 1),
                                       ("braxhorn-sklep-ring-02", "silownia_ring_02", 1),
                                       # 16.11 01:29 „ten model 1:1 do gry, materiały Poly Haven i zapisać w paczce aut”
-                                      ("braxhorn-sklep-auta-01", "pojazdy_auta_01", 2)]:
+                                      ("braxhorn-sklep-auta-01", "pojazdy_auta_01", 2),
+                                      # 16.11 08:11 „zapisz to auto, jedziesz z następnym” — pikap ze zdjęcia
+                                      ("braxhorn-sklep-auta-02", "pojazdy_auta_02", 2)]:
             m = json.loads((PRYW / nazwa / "manifest.json").read_text())
             self.assertEqual(m["target"], target)
             glb = [f for f in m["files"] if f.startswith(target + "/") and f.endswith(".glb")]
@@ -165,6 +167,25 @@ class KabrioletBordo(unittest.TestCase):
         # w gicie nic jawnego od właściciela (zdjęcie i skrypty z wymiarami jego projektu tylko w paczce)
         tracked = [str(p.relative_to(ROOT)) for p in (ROOT / "unity-city").rglob("*kabriolet*")]
         self.assertEqual(tracked, [])
+
+
+class PikapMiedziany(unittest.TestCase):
+    def test_pikap_miedziany_16_11(self):
+        """Pikap ze zdjęcia właściciela 08:11: LOD0 + LOD1, tekstury Poly Haven obok GLB, byk i napis z modelu właściciela,
+        oryginał (zdjęcie, logo, skrypty) tylko w zaszyfrowanej paczce; wpis w katalogu Worka."""
+        m = json.loads((PRYW / "braxhorn-sklep-auta-02" / "manifest.json").read_text())
+        f = m["files"]
+        for n in ["pojazdy_auta_02/pikap_miedziany.glb", "pojazdy_auta_02/pikap_miedziany_lod1.glb", "pojazdy_auta_02/katalog.json",
+                  "pojazdy_auta_02/_tekstury/pikap_miedziany/tapicerka_kolor.jpg", "pojazdy_auta_02/_tekstury/pikap_miedziany/plastik_normal.jpg",
+                  "pojazdy_auta_02/_tekstury/pikap_miedziany/emblemat_kolor.jpg", "oryginal/zdjecie_wlasciciela_pikap_16-11.png",
+                  "oryginal/logo_wlasciciela_16-11.glb", "oryginal/nadwozie_sdf.py", "oryginal/zloz.py", "oryginal/sprawdz_normalne.py"]:
+            self.assertIn(n, f)
+        self.assertIn("1:1", m["source"])
+        tracked = [str(p.relative_to(ROOT)) for p in (ROOT / "unity-city").rglob("*pikap*")]
+        self.assertEqual(tracked, [])
+        a = json.loads((ROOT / "AssetLibrary/Unique/Vehicles/BraxhornPikapMiedziany/manifest.json").read_text())
+        self.assertEqual(a["sourceStorage"]["pack"], "unity-city/Prywatne/braxhorn-sklep-auta-02")
+        self.assertTrue(a["validation"]["badgesFitted"])
 
 
 if __name__ == "__main__":
