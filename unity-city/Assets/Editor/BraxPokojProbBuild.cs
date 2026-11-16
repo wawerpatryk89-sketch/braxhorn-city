@@ -326,20 +326,32 @@ public static class BraxPokojProbBuild
             korzen.localRotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
             kopia.SetActive(true);
 
-            // własny materiał na każdą kopię — inaczej wszystkie dzieliłyby jeden
+            // Własny materiał na każdą kopię — inaczej wszystkie dzieliłyby jeden.
+            //
+            // BEZ AssetDatabase.CreateAsset. Pierwsza wersja zapisywała skopiowany materiał jako
+            // plik w katalogu ŹRÓDŁOWYM postaci (Assets/Source/ObsadaOsiedla/patryk/). Zapis
+            // w tym katalogu w trakcie budowania sceny uruchamia import tego katalogu, a ten
+            // przechodzi przez BraxObsadaImport — i materiały, które już były przypisane,
+            // traciły odwołania do tekstur. Skutek: postać wyszła CAŁKOWICIE BIAŁA, bo pusty
+            // _MainTex w Unity to biel (nagranie właściciela 16.11, 20:27).
+            // Sprawdzone: tekstury SĄ w APK (Color 2048x2048 ASTC 6x6), więc kompresja ich nie
+            // zgubiła — zgubiło je zapisywanie materiału.
+            // new Material(źródło) kopiuje wszystkie właściwości razem z teksturami, a materiał
+            // zapisuje się wtedy wewnątrz sceny. Baza zasobów nie jest w ogóle ruszana.
             foreach (var r in kopia.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 var mats = r.sharedMaterials;
                 for (int m = 0; m < mats.Length; m++)
                 {
                     if (!mats[m]) continue;
-                    var kopiaMat = UnityEngine.Object.Instantiate(mats[m]);
-                    kopiaMat.name = mats[m].name + " w" + i;
+                    var kopiaMat = new Material(mats[m]) { name = mats[m].name + " w" + i };
                     kopiaMat.SetFloat("_Gladkosc", Warianty[i].gl);
                     kopiaMat.SetFloat("_MetalMnoznik", Warianty[i].me);
                     kopiaMat.SetFloat("_SilaNormalnych", Warianty[i].nr);
-                    AssetDatabase.CreateAsset(kopiaMat,
-                        BraxObsadaImport.Katalog + nazwy[0] + "/Polysk" + i + ".mat");
+                    if (!kopiaMat.GetTexture("_MainTex"))
+                        throw new InvalidOperationException(
+                            "Wariant " + i + ": kopia materiału straciła teksturę — przerywam, " +
+                            "zamiast oddać białą postać");
                     mats[m] = kopiaMat;
                 }
                 r.sharedMaterials = mats;
@@ -530,6 +542,9 @@ public static class BraxPokojProbBuild
         bool porownanie = TrybZlecenia() == "polysk";
         if (porownanie)
         {
+            // Łuk z pozostałymi postaciami tylko zaśmieca kadr porównania — chowamy go.
+            for (int i = 1; i < ustawioneAnim.Count; i++)
+                if (ustawioneAnim[i]) ustawioneAnim[i].gameObject.SetActive(false);
             // Gracz musi przestać prowadzić kamerę, inaczej nadpisze ustawienie porównania —
             // dokładnie ten błąd widać było na nagraniu z 14:48, gdzie zamiast prezentowanej
             // postaci przez cały czas widać było Patryka.
