@@ -55,6 +55,7 @@ public static partial class BraxChampionsKasynoSprzet
         zlotoKola = Metal("zloto_kola", new Color(1.0f, .78f, .36f), .22f);
         zetonyMat = BraxChampionsHarbour.Surface("kasyno_zetony", Color.white, .42f, 0f);
         zetonyMat.SetTexture("_MainTex", Png("kasyno_zetony_atlas", 2048, 512, ZetonyAtlas(), true)); Wnetrze(zetonyMat);
+        WejscieMaterialy();
         // the layers' pictures before the game starts (saved meshes: four of each)
         probkaPoker = new Mesh[4]; probkaKeno = new Mesh[4];
         var wp = new G.Warstwa(P.AtlasW, P.AtlasH); var wk = new G.Warstwa(K.AtlasW, K.AtlasH);

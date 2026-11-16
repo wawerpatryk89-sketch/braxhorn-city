@@ -365,7 +365,7 @@ public static class BraxChampionsWiezowce
         Tower t=default;bool found=false;
         foreach(var x in Towers)if(x.id==id){t=x;found=true;}
         if(!found)throw new ArgumentException("Unknown tower plot "+id);
-        outFolder=folder;towerId=id;doors=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;roulettes=0;ownerMissing=0;hung.Clear();Materials(ext);
+        outFolder=folder;towerId=id;doors=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;roulettes=0;obsluga=0;ownerMissing=0;hung.Clear();Materials(ext);
         Physics.SyncTransforms();
         float datum=0f;
         if(Physics.Raycast(new Vector3(t.x,80f,t.z)*K,Vector3.down,out var hit,200f*K,~0,QueryTriggerInteraction.Ignore))
@@ -765,7 +765,7 @@ public static class BraxChampionsWiezowce
     public static float CasinoY=>Shaft+CasinoFloor*Storey;
     const float LiftZ0=-2f,LiftZ1=.30f,LiftHalf=1.05f,LiftLeaf=.60f;
     static Material casinoGlass,oakDark,felt,leatherBlack,darkMetal;
-    static Transform cab,cabL,cabR;static Transform[] landL,landR;static float liftX;static int slots,tables,roulettes,ownerMissing;
+    static Transform cab,cabL,cabR;static Transform[] landL,landR;static float liftX;static int slots,tables,roulettes,ownerMissing,obsluga;
     static void CasinoMaterials()
     {
         // clear glass both ways (seen from the hall too), the city's clear glass otherwise
@@ -840,6 +840,15 @@ public static class BraxChampionsWiezowce
             BraxChampionsKasynoSprzet.Bank(kas,new Vector3(9.8f,y,-4.5f),0f,6,1,ceil,new[]{Video,Keno,Mech,Kolo});
             BraxChampionsKasynoSprzet.Karuzela(kas,new Vector3(-9.5f,y,2.0f),8,new[]{Kolo,Video},0,2.95f);
             BraxChampionsKasynoSprzet.Karuzela(kas,new Vector3(9.8f,y,2.0f),8,new[]{Poker,Keno},0,2.95f);
+            // the service (owner 20:29 "porządna recepcja ... szatnia"): the hostess' podium by the express lift, the cloakroom and
+            // the cashier's cage in the south-west corner by the glass; the owner's signs hang over the roulette and the blackjack
+            BraxChampionsKasynoSprzet.Recepcja(kas,new Vector3(-3.0f,y,-3.6f),90f,1.4f,false);
+            BraxChampionsKasynoSprzet.Szatnia(kas,new Vector3(-9.8f,y,-12.0f),0f,2.0f,1,true);
+            BraxChampionsKasynoSprzet.Kasa(kas,new Vector3(-12.15f,y,-9.3f),90f,2);
+            BraxChampionsKasynoSprzet.SzyldWiszacy(kas,new Vector3(0f,y+3.4f,-9.4f),BraxChampionsKasynoSprzet.ArkRuletka,1.6f,ceil);
+            foreach(float x in new[]{-6.6f,6.6f})
+                BraxChampionsKasynoSprzet.SzyldWiszacy(kas,new Vector3(x,y+3.4f,-9.6f),BraxChampionsKasynoSprzet.ArkBlackjack,1.4f,ceil);
+            obsluga=kas.punkty.Count;
             BraxChampionsKasynoSprzet.Ruletka(kas,new Vector3(0f,y,-9.4f),0f);
             BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;roulettes=kas.ruletki.Count;
         });
@@ -852,7 +861,7 @@ public static class BraxChampionsWiezowce
         Lounge(new Vector2(-10.5f,8.5f),false,"sky casino lounge W","SOFA SKY KASYNO");
         Lounge(new Vector2(10.5f,8.5f),true,"sky casino lounge E","SOFA SKY KASYNO");
         W.Grupa=inside;W.Wnetrze=true;
-        foreach(var pp in new[]{new Vector2(-11f,-11f),new Vector2(11f,-11f),new Vector2(-11f,11f),new Vector2(11f,11f)})
+        foreach(var pp in new[]{new Vector2(-13.3f,-6.8f),new Vector2(11f,-11f),new Vector2(-11f,11f),new Vector2(11f,11f)})
             Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf","sky casino plant",new Vector3(pp.x,y,pp.y),pp.x*13f);
         // ---- light: lamps on the dark ceiling over the tables and the lounges, the light of the hall
         foreach(var lp in new[]{new Vector2(-6.6f,-9.6f),new Vector2(0f,-9.6f),new Vector2(6.6f,-9.6f),new Vector2(-10.5f,8.5f),new Vector2(10.5f,8.5f)})
@@ -864,6 +873,7 @@ public static class BraxChampionsWiezowce
             " backBarUnits="+units+" ownerModelsMissing="+ownerMissing+" lift=BraxWinda(2 stops)");
         if(ownerMissing>0)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO owner models missing x"+ownerMissing+" (osiedle_wnetrza pack): back-bar / bar lamps stay empty");
         if(slots!=40)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO slot machines "+slots+"/40");
+        if(obsluga!=4)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO service points "+obsluga+"/4 (reception, cloakroom, two cashier windows)");
     }
     // a blackjack table as real ones are (2.2 x 1.05 m, felt at .78 m): a half-ellipse of red felt, a padded black leather
     // armrest round the players' arc, a walnut apron under it, the dealer's straight walnut edge with a steel chip tray, two

@@ -283,6 +283,31 @@ static class Program
         }
         // ---- 2b. the other games (owner 16.11 20:28 "różne gry w automatach"): their tables and the machines played
         Gry(spins, gracz, F);
+        // ---- 2c. the service at the entrance: the club card's welcome once, the coat check's tag, the cashier
+        {
+            PlayerPrefs.DeleteAll();
+            var oh = new GameObject("obsluga"); var ob = oh.AddComponent<BraxChampionsKasynoObsluga>(); ob.nazwa = "KASYNO";
+            Transform Mi(Vector3 at) { var t = new GameObject("m").transform; t.localPosition = at; return t; }
+            var kurtka = new GameObject("kurtka").transform;
+            ob.punkty = new[] { new BraxChampionsKasynoObsluga.Punkt { rodzaj = 0, miejsce = Mi(new Vector3(100, 0, 0)) },
+                new BraxChampionsKasynoObsluga.Punkt { rodzaj = 1, miejsce = Mi(new Vector3(110, 0, 0)), kurtka = kurtka },
+                new BraxChampionsKasynoObsluga.Punkt { rodzaj = 2, miejsce = Mi(new Vector3(120, 0, 0)) } };
+            typeof(BraxChampionsKasynoObsluga).GetMethod("Start", F).Invoke(ob, null);
+            Check(!kurtka.gameObject.activeSelf, "no jacket hangs before");
+            var at = new Vector3(100.3f, 0, 0); int k0 = BraxChampionsKasyno.Kredyt;
+            Check(ob.Kontekst(at).StartsWith("RECEPCJA · ZAŁÓŻ KARTĘ"), "reception context " + ob.Kontekst(at));
+            ob.Wykonaj(at); Check(BraxChampionsKasyno.Kredyt == k0 + 1000 && BraxChampionsKasynoObsluga.Klub, "the welcome free play");
+            ob.Wykonaj(at); Check(BraxChampionsKasyno.Kredyt == k0 + 1000, "the welcome only once");
+            at = new Vector3(110.4f, 0, 0);
+            Check(ob.Kontekst(at) == "SZATNIA · ODDAJ KURTKĘ", "cloakroom context");
+            ob.Wykonaj(at); int n = BraxChampionsKasynoObsluga.Numerek;
+            Check(n >= 1 && n <= 250 && kurtka.gameObject.activeSelf && ob.Kontekst(at).EndsWith("NUMEREK " + n), "the tag " + n + ", the jacket hangs");
+            ob.Wykonaj(at); Check(BraxChampionsKasynoObsluga.Numerek == 0 && !kurtka.gameObject.activeSelf, "the jacket back for the tag");
+            at = new Vector3(120.2f, 0, 0); int k1 = BraxChampionsKasyno.Kredyt;
+            ob.Wykonaj(at); Check(BraxChampionsKasyno.Kredyt == k1 + 1000, "the cashier changes 1000");
+            Check(ob.Kontekst(new Vector3(105f, 0, 0)) == "", "nothing between the counters");
+            Console.WriteLine("OBSLUGA reception (welcome once) / cloakroom (tag " + n + ") / cashier: OK");
+        }
         // ---- 3. the roulette: every outside bet, the ball ends in the drawn number's pocket, even money pays 1:1, zero takes it
         PlayerPrefs.DeleteAll();
         var rh = new GameObject("ruletka"); var rul = rh.AddComponent<BraxChampionsRuletka>(); rul.stawka = 10;

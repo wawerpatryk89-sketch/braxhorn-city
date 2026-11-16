@@ -155,7 +155,7 @@ public static partial class BraxChampionsCasinoT11
             // neighbour another game; in each wing the two long banks, a short bank before and behind them, and under the front
             // and the back chandelier a CAROUSEL of eight round a lacquered drum with the owner's toppers on its crown (the KOŁO
             // carousels to the entrance, the poker / keno ones at the back): 128 machines
-            int slots=0,roulettes=0,carousels=0;
+            int slots=0,roulettes=0,carousels=0,obsluga=0;
             BraxChampionsFoundation.Optional("T11 slot machines",()=>
             {
                 var body=new BraxChampionsMeshBatch();
@@ -173,6 +173,18 @@ public static partial class BraxChampionsCasinoT11
                     BraxChampionsKasynoSprzet.Karuzela(kas,new Vector3(x,fl,14f),8,new[]{Poker,Keno},x<0f?0:1,2.95f);
                 }
                 carousels=kas.karuzele;
+                // the entrance (owner 20:29 "porządna recepcja, konkretna, na maksa ... szatnia"), as the real luxury casinos: the
+                // security arches between brass posts with red velvet ropes in the portal, the RECEPCJA (the players club desk,
+                // the back wall with the owner's logo) left, the SZATNIA right, the KASA beyond it; his RULETKA sign over the pit
+                BraxChampionsKasynoSprzet.Bramka(kas,new Vector3(0f,fl,-22.4f),0f);
+                foreach(float s in new[]{-1f,1f})
+                    BraxChampionsKasynoSprzet.Liny(kas,new[]{new Vector3(s*2.9f,fl,-23.8f),new Vector3(s*2.35f,fl,-23.1f),new Vector3(s*1.85f,fl,-22.4f)});
+                BraxChampionsKasynoSprzet.Liny(kas,new[]{new Vector3(-.45f,fl,-22.4f),new Vector3(.45f,fl,-22.4f)});
+                BraxChampionsKasynoSprzet.Recepcja(kas,new Vector3(-8.0f,fl,-20.5f),90f,4.0f,true);
+                BraxChampionsKasynoSprzet.Szatnia(kas,new Vector3(8.0f,fl,-20.5f),-90f,3.6f,2,true);
+                BraxChampionsKasynoSprzet.Kasa(kas,new Vector3(13.8f,fl,-21.4f),0f,3);
+                BraxChampionsKasynoSprzet.SzyldWiszacy(kas,new Vector3(0f,6.0f,0f),BraxChampionsKasynoSprzet.ArkRuletka,2.6f,HallCeiling);
+                obsluga=kas.punkty.Count;
                 // the roulette pit under the lantern (owner 19:13 "ruletki prawdziwe"): four European tables, the croupiers in the
                 // middle, the players facing out
                 foreach(float rx in new[]{-4.0f,4.0f})foreach(float rz in new[]{-4.5f,4.5f})
@@ -182,6 +194,7 @@ public static partial class BraxChampionsCasinoT11
                 BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
             });
             W.Grupa=g;W.Wnetrze=true;
+            if(obsluga!=5)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL service points "+obsluga+"/5 (reception, cloakroom, three cashier windows)");
             if(slots!=128||carousels!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL slot machines "+slots+"/128 carousels "+carousels+"/4");
             if(roulettes!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL roulettes "+roulettes+"/4");
 

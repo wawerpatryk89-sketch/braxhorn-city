@@ -83,6 +83,7 @@ public static partial class BraxChampionsKasynoSprzet
         public readonly List<A.Maszyna> maszyny = new List<A.Maszyna>();
         public readonly List<Renderer> jackpoty = new List<Renderer>(), tablice = new List<Renderer>();
         public readonly List<BraxChampionsRuletka.Stol> ruletki = new List<BraxChampionsRuletka.Stol>();
+        public readonly List<BraxChampionsKasynoObsluga.Punkt> punkty = new List<BraxChampionsKasynoObsluga.Punkt>();
         public int mech, ekran, banki, karuzele;
         public readonly int[] gry = new int[G.Ile];
     }
@@ -103,6 +104,13 @@ public static partial class BraxChampionsKasynoSprzet
             var r = k.root.gameObject.AddComponent<BraxChampionsRuletka>(); r.nazwa = k.nazwa + " · RULETKA"; r.stawka = Stawka; r.stoly = k.ruletki.ToArray();
             r.torR = TorR; r.torY = TorY; r.kieszenR = KieszenR; r.kieszenY = KieszenY; r.kulkaR = KulkaR;
             Debug.Log("KASYNO_RULETKI " + k.nazwa + " tables=" + k.ruletki.Count + " wheel=European(37) bets=" + string.Join("/", BraxChampionsRuletka.Zasady.Pola) + " game=BraxChampionsRuletka");
+        }
+        if (k.punkty.Count > 0)
+        {
+            var o = k.root.gameObject.AddComponent<BraxChampionsKasynoObsluga>(); o.nazwa = k.nazwa; o.punkty = k.punkty.ToArray();
+            int Ile(int r) { int n = 0; foreach (var p in k.punkty) if (p.rodzaj == r) n++; return n; }
+            Debug.Log("KASYNO_OBSLUGA " + k.nazwa + " reception=" + Ile(BraxChampionsKasynoObsluga.Recepcja) + " cloakroom=" + Ile(BraxChampionsKasynoObsluga.Szatnia) +
+                " cashierWindows=" + Ile(BraxChampionsKasynoObsluga.Kasa) + " signs=" + (SzyldyWlasciciela ? "owner" : "drawn") + " game=BraxChampionsKasynoObsluga");
         }
         var gry = new System.Text.StringBuilder(); for (int g = 0; g < G.Ile; g++) gry.Append((g > 0 ? "/" : "") + G.Nazwy[g].Replace(' ', '_') + "=" + k.gry[g]);
         Debug.Log("KASYNO_AUTOMATY " + k.nazwa + " machines=" + k.maszyny.Count + " mechanical=" + k.mech + " screen=" + k.ekran + " banks=" + k.banki +

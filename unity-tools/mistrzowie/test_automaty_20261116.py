@@ -376,5 +376,46 @@ class NewGames(unittest.TestCase):
         self.assertIn("BraxChampionsKasynoSprzet.Karuzela(kas,new Vector3(9.8f,y,2.0f),8,new[]{Poker,Keno},0,2.95f);", TOWER)
 
 
+
+OBS = (ASSETS / "Mistrzowie/BraxChampionsKasynoObsluga.cs").read_text(encoding="utf-8")
+KIT3 = (ASSETS / "Editor/Mistrzowie/BraxChampionsKasynoWejscie.cs").read_text(encoding="utf-8")
+
+
+class Entrance(unittest.TestCase):
+    """Owner 16.11 20:29: "Porządna recepcja, konkretna, na maksa ... szatnia tam powinna być ... pokaż, jak się robi luksus" -
+    the security arches with velvet ropes, the players club desk, the coat check, the cashier's cage; working."""
+
+    def test_service_works(self):
+        self.assertIn("public sealed class BraxChampionsKasynoObsluga : MonoBehaviour, IBraxInterakcja", OBS)
+        self.assertIn("public const int Powitanie = 1000, Wymiana = 1000;", OBS)
+        self.assertIn("if (!Klub)", OBS)                                                 # the welcome free play once
+        self.assertIn('"SZATNIA · TWÓJ NUMEREK: "', OBS)
+        self.assertIn("q.kurtka.gameObject.SetActive(Numerek > 0)", OBS)                  # his jacket hangs while it is there
+        sim = (ROOT / "unity-tools/mistrzowie/automaty_sim/Program.cs").read_text(encoding="utf-8")
+        for c in ('"the welcome only once"', '"the jacket back for the tag"', '"the cashier changes 1000"'):
+            self.assertIn(c, sim)
+
+    def test_owner_signs_1_to_1(self):
+        # his sheet cut into its parts (found by their transparency), each on a black lacquered plaque, nothing of ours on it
+        self.assertIn('Wlasciciel + "/szyldy/arkusz_szyldy_monety_logo.png"', KIT3)
+        parts = [ints(r) for r in re.findall(r"\{ (\d+, \d+, \d+, \d+) \}", KIT3[KIT3.index("static readonly int[,] Arkusz"):KIT3.index("ArkNazwy")])]
+        self.assertEqual(len(parts), 11)
+        self.assertTrue(all(x + w <= 2172 and y + h <= 724 for x, y, w, h in parts))
+        self.assertIn("if (src != null) Wklej(px, w, h, src, sw, sh, Arkusz[i, 0], sh - Arkusz[i, 1] - Arkusz[i, 3], Arkusz[i, 2], Arkusz[i, 3], 0, 0, w, h);", KIT3)
+
+    def test_both_casinos(self):
+        for f in ("Bramka(kas,new Vector3(0f,fl,-22.4f),0f)", "Recepcja(kas,new Vector3(-8.0f,fl,-20.5f),90f,4.0f,true)",
+                  "Szatnia(kas,new Vector3(8.0f,fl,-20.5f),-90f,3.6f,2,true)", "Kasa(kas,new Vector3(13.8f,fl,-21.4f),0f,3)",
+                  "SzyldWiszacy(kas,new Vector3(0f,6.0f,0f),BraxChampionsKasynoSprzet.ArkRuletka,2.6f,HallCeiling)"):
+            self.assertIn("BraxChampionsKasynoSprzet." + f, HALL)
+        for f in ("Recepcja(kas,new Vector3(-3.0f,y,-3.6f),90f,1.4f,false)", "Szatnia(kas,new Vector3(-9.8f,y,-12.0f),0f,2.0f,1,true)",
+                  "Kasa(kas,new Vector3(-12.15f,y,-9.3f),90f,2)"):
+            self.assertIn("BraxChampionsKasynoSprzet." + f, TOWER)
+        self.assertIn('if(obsluga!=5)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL service points "', HALL)
+        self.assertIn('if(obsluga!=4)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO service points "', TOWER)
+        for f in ("Mistrzowie/BraxChampionsKasynoObsluga.cs", "Editor/Mistrzowie/BraxChampionsKasynoWejscie.cs"):
+            self.assertTrue((ASSETS / (f + ".meta")).exists(), f)
+
+
 if __name__ == "__main__":
     unittest.main()

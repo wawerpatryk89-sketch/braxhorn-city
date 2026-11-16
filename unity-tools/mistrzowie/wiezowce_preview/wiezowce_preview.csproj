@@ -33,9 +33,11 @@
     <Compile Include="AutomatyStubs.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsAutomatyZasady.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsAutomatyGry.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsKasynoObsluga.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsAutomaty.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoSprzet.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoGry.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoWejscie.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsRuletka.cs" />
   </ItemGroup>
 </Project>
