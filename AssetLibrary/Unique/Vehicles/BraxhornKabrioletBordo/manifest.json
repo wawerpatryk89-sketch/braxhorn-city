@@ -1,0 +1,73 @@
+{
+  "id": "braxhorn.vehicle.kabriolet_bordo",
+  "displayName": "Braxhorn Kabriolet Bordo",
+  "version": "0.1.0",
+  "scope": "shared, all city regions",
+  "ownerBrief": "Właściciel 16.11.2026 01:29: model 1:1 ze zdjęcia (bok + przód), materiały Poly Haven, zapis w paczce aut",
+  "sourceStorage": {
+    "type": "encrypted pack in this repository (public repo: owner content only encrypted)",
+    "pack": "unity-city/Prywatne/braxhorn-sklep-auta-01",
+    "target": "pojazdy_auta_01",
+    "installer": "unity-tools/sklep/install_sklep_modele.py (CI, step with KLUCZ)",
+    "unityAccess": "BraxMiastoAssety.Model(\"pojazdy_auta_01\", \"kabriolet_bordo\")"
+  },
+  "model": {
+    "files": {
+      "lod0": "kabriolet_bordo.glb",
+      "lod1": "kabriolet_bordo_lod1.glb"
+    },
+    "sha256": {
+      "lod0": "3f8bc734017a78619ae13a7af9d3a111116cb8210536c3a58a7711a074ac3164",
+      "lod1": "4cc95560f06ff59123bf1115d4ff4f011b1b8c0cba445704826866073202723a"
+    },
+    "bytes": {
+      "lod0": 7208448,
+      "lod1": 1844372
+    },
+    "triangles": {
+      "lod0": 177000,
+      "lod1": 36636
+    },
+    "externalTextures": "_tekstury/kabriolet_bordo/ (Poly Haven brown_leather 1K, recoloured: cognac seats, dark floor, steering wheel)",
+    "lengthM": 4.448,
+    "widthM": 1.92,
+    "heightM": 1.317,
+    "wheelbaseM": 2.884,
+    "trackM": 1.62,
+    "wheelDiameterM": 0.772,
+    "gltfForward": "+Z",
+    "sourceUnit": "metre",
+    "frontSeats": 2,
+    "movingNodes": [
+      "drzwi_lewe",
+      "drzwi_prawe",
+      "kolo_przod_lewe",
+      "kolo_przod_prawe",
+      "kolo_tyl_lewe",
+      "kolo_tyl_prawe",
+      "zacisk_przod_lewe",
+      "zacisk_przod_prawe",
+      "kierownica"
+    ],
+    "badgeMounts": {
+      "znak_byk_maska": "Bull (BraxhornAutoBadges), node +Z = bonnet normal",
+      "napis_braxhorn_tyl": "BRAXHORN (BraxhornAutoBadges), node +Z = rear normal"
+    }
+  },
+  "unity": {
+    "importer": "com.unity.cloud.gltfast",
+    "worldScaleK": 1.2944,
+    "applyWorldScaleOnce": true
+  },
+  "validation": {
+    "blenderCyclesPreview": true,
+    "webglPreview": true,
+    "badgesFitted": false,
+    "unityPlayMode": "untested",
+    "androidDevice": "untested",
+    "sharedGeometryAppliedToRegionScenes": false
+  },
+  "ownerApproval": {
+    "status": "pending review"
+  }
+}

@@ -18,7 +18,9 @@ class PaczkiGlobalne(unittest.TestCase):
                                       # 01:47 „jeżeli dostałeś coś, czego nie potrzebujesz, zapisz to na gałęzi… albo na siłowni”
                                       ("braxhorn-sklep-boks-01", "silownia_boks_01", 8), ("braxhorn-sklep-boks-02", "silownia_boks_02", 7),
                                       ("braxhorn-sklep-wyciag-01", "silownia_wyciag_01", 6), ("braxhorn-sklep-ring-01", "silownia_ring_01", 1),
-                                      ("braxhorn-sklep-ring-02", "silownia_ring_02", 1)]:
+                                      ("braxhorn-sklep-ring-02", "silownia_ring_02", 1),
+                                      # 16.11 01:29 „ten model 1:1 do gry, materiały Poly Haven i zapisać w paczce aut”
+                                      ("braxhorn-sklep-auta-01", "pojazdy_auta_01", 2)]:
             m = json.loads((PRYW / nazwa / "manifest.json").read_text())
             self.assertEqual(m["target"], target)
             glb = [f for f in m["files"] if f.startswith(target + "/") and f.endswith(".glb")]
@@ -150,3 +152,18 @@ class JazdaJednosladami(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_kabriolet_bordo_16_11(self):
+        """Kabriolet bordo ze zdjęcia właściciela: LOD0 + LOD1, tekstury obok GLB (glTFast bierze skompresowany asset),
+        oryginał (zdjęcie + skrypty odtwarzające model) tylko w zaszyfrowanej paczce."""
+        m = json.loads((PRYW / "braxhorn-sklep-auta-01" / "manifest.json").read_text())
+        f = m["files"]
+        for n in ["pojazdy_auta_01/kabriolet_bordo.glb", "pojazdy_auta_01/kabriolet_bordo_lod1.glb", "pojazdy_auta_01/katalog.json",
+                  "pojazdy_auta_01/_tekstury/kabriolet_bordo/skora_koniak_kolor.jpg", "pojazdy_auta_01/_tekstury/kabriolet_bordo/skora_normal.jpg",
+                  "pojazdy_auta_01/_tekstury/kabriolet_bordo/skora_mr.jpg", "oryginal/zdjecie_wlasciciela_16-11.png", "oryginal/nadwozie_sdf.py",
+                  "oryginal/zloz.py", "oryginal/wymiary.py"]:
+            self.assertIn(n, f)
+        self.assertIn("1:1", m["source"])
+        # w gicie nic jawnego od właściciela (zdjęcie i skrypty z wymiarami jego projektu tylko w paczce)
+        tracked = [str(p.relative_to(ROOT)) for p in (ROOT / "unity-city").rglob("*kabriolet*")]
+        self.assertEqual(tracked, [])
