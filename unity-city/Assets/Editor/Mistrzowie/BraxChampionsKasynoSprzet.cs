@@ -68,7 +68,9 @@ public static class BraxChampionsKasynoSprzet
         licznikMech, licznikEkran, jackpotMat, tablicaMat, kula, pCzerwony, pZielony, pBialy, pZolty, skora, swiecaCzerwona, swiecaBiala;
     static BraxChampionsMeshBatch[,] szablon;
     static Mesh[] bebenSiatki; static Mesh quad; static Mesh[,] kolumnaStart;
-    static List<(Mesh, Material)> czRamie, czKula, czSpin, czSpinEkran;
+    static List<(Mesh, Material)> czRamie, czKula, czSpin, czSpinEkran, czRotor, czKulka, czZeton;
+    static BraxChampionsMeshBatch szablonRuletki;
+    static Material orzech, sukno, uklad, pierscien, kulkaMat, zetonMat, tablicaRuletki;
     static Color32[][] atlasPx;
     public static bool SymboleWlasciciela; public static int Brakujace;
 
@@ -78,6 +80,7 @@ public static class BraxChampionsKasynoSprzet
         public Transform root; public BraxChampionsMeshBatch body; public string nazwa;
         public readonly List<A.Maszyna> maszyny = new List<A.Maszyna>();
         public readonly List<Renderer> jackpoty = new List<Renderer>(), tablice = new List<Renderer>();
+        public readonly List<BraxChampionsRuletka.Stol> ruletki = new List<BraxChampionsRuletka.Stol>();
         public int mech, ekran, banki;
     }
     /// <summary>Starts a casino's equipment under root (nominal metres, root at the origin while building); the cabinets
@@ -92,6 +95,12 @@ public static class BraxChampionsKasynoSprzet
     {
         var c = k.root.gameObject.AddComponent<A>();
         c.nazwa = k.nazwa; c.stawka = Stawka; c.maszyny = k.maszyny.ToArray(); c.jackpoty = k.jackpoty.ToArray(); c.tablice = k.tablice.ToArray();
+        if (k.ruletki.Count > 0)
+        {
+            var r = k.root.gameObject.AddComponent<BraxChampionsRuletka>(); r.nazwa = k.nazwa + " · RULETKA"; r.stawka = Stawka; r.stoly = k.ruletki.ToArray();
+            r.torR = TorR; r.torY = TorY; r.kieszenR = KieszenR; r.kieszenY = KieszenY; r.kulkaR = KulkaR;
+            Debug.Log("KASYNO_RULETKI " + k.nazwa + " tables=" + k.ruletki.Count + " wheel=European(37) bets=" + string.Join("/", BraxChampionsRuletka.Zasady.Pola) + " game=BraxChampionsRuletka");
+        }
         Debug.Log("KASYNO_AUTOMATY " + k.nazwa + " machines=" + k.maszyny.Count + " mechanical=" + k.mech + " screen=" + k.ekran + " banks=" + k.banki +
             " stake=" + Stawka + " themes=" + Motywy.Length + " strips=" + (SymboleWlasciciela ? "owner" : "placeholder(missing " + Brakujace + ")") + " game=BraxChampionsAutomaty");
         return c;
@@ -201,6 +210,7 @@ public static class BraxChampionsKasynoSprzet
         kolumnaStart = new Mesh[4, 5];
         for (int v = 0; v < 4; v++) for (int r = 0; r < 5; r++) kolumnaStart[v, r] = ZapiszSiatke(KolumnaStart(v, r), "kasyno_kolumna_" + (v + 1) + "_" + (r + 1));
         CzesciRuchome();
+        RuletkaCzesci();
         szablon = new BraxChampionsMeshBatch[2, Motywy.Length];
         for (int t = 0; t < Motywy.Length; t++) { szablon[0, t] = Mechaniczny(t); szablon[1, t] = Ekranowy(t); }
         gotowe = true;
@@ -288,40 +298,47 @@ public static class BraxChampionsKasynoSprzet
             for (int x = 0; x < w; x++) px[y * w + x] = col;
         }
         Ramka(px, w, h, 10, 10, w - 10, h - 10, 6, new Color32(20, 16, 12, 255));
-        var b = new BraxChampionsMeshBatch(); var face = new Material(Shader.Find(BraxCityMaterials.ShaderName)) { name = "szyld lico" }; var dark = new Material(face) { name = "szyld bok" };
-        float sz = BraxChampionsLetters3D.Text(b, face, dark, "BRAXHORN", Vector3.zero, 0f, 1f, .01f, .10f);
-        var tri = b.Trojkaty(face);
-        if (sz <= 0f || tri.Count == 0)
+        if (!Napis(px, w, h, "BRAXHORN", w * .5f, h * .5f, .52f * h, .86f * w, 0f, new Color32(232, 234, 240, 255), 7f, new Color32(18, 14, 10, 255)))
         {
             BraxBuildQuality.Warn("DO POPRAWKI KASYNO_SZYLD letter kit missing: the top glass carries BRAXHORN in the LED font");
             BraxChampionsPiksele.Srodek(px, w, h, "BRAXHORN", w / 2, h / 2 - 56, 16, new Color32(236, 238, 242, 255));
-            return px;
         }
-        // the word fits 86 % of the width and 52 % of the height; u to the reader's right (-x), v up
-        float s = Mathf.Min(.86f * w / sz, .52f * h / 1f), ox = w * .5f, oy = h * .5f - .36f * s;
-        Vector2 P(Vector3 v) => new Vector2(ox - v.x * s, oy + v.y * s);
-        void Fill(Vector2 a, Vector2 bb, Vector2 cc, float grow, Color32 col)
-        {
-            int x0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.x, Mathf.Min(bb.x, cc.x)) - grow)), x1 = Mathf.Min(w - 1, Mathf.CeilToInt(Mathf.Max(a.x, Mathf.Max(bb.x, cc.x)) + grow));
-            int y0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.y, Mathf.Min(bb.y, cc.y)) - grow)), y1 = Mathf.Min(h - 1, Mathf.CeilToInt(Mathf.Max(a.y, Mathf.Max(bb.y, cc.y)) + grow));
-            float E(Vector2 p, Vector2 q, Vector2 r) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
-            float area = E(a, bb, cc); if (Mathf.Abs(area) < 1e-6f) return; float sg = Mathf.Sign(area);
-            float la = (bb - a).magnitude, lb = (cc - bb).magnitude, lc = (a - cc).magnitude;
-            for (int y = y0; y <= y1; y++)
-                for (int x = x0; x <= x1; x++)
-                {
-                    var p = new Vector2(x + .5f, y + .5f);
-                    // inside, or within grow of an edge (the dark rim round the letter)
-                    if (sg * E(bb, cc, p) >= -grow * lb && sg * E(cc, a, p) >= -grow * lc && sg * E(a, bb, p) >= -grow * la) px[y * w + x] = col;
-                }
-        }
-        for (int i = 0; i + 2 < tri.Count; i += 3) Fill(P(tri[i]), P(tri[i + 1]), P(tri[i + 2]), 7f, new Color32(18, 14, 10, 255));
-        for (int i = 0; i + 2 < tri.Count; i += 3) Fill(P(tri[i]), P(tri[i + 1]), P(tri[i + 2]), 0f, new Color32(232, 234, 240, 255));
-        UnityEngine.Object.DestroyImmediate(face); UnityEngine.Object.DestroyImmediate(dark);
         return px;
     }
+    // lettering in the region's sign typeface (the 3D letter kit, Montserrat SemiBold: its faces rasterised) into a picture:
+    // centred on (cx, cy), cap height cap px, at most maxW wide, turned by deg (counter-clockwise), a dark rim of rim px
+    static bool Napis(Color32[] px, int w, int h, string text, float cx, float cy, float cap, float maxW, float deg, Color32 col, float rim, Color32 rimCol)
+    {
+        var b = new BraxChampionsMeshBatch(); var face = new Material(Shader.Find(BraxCityMaterials.ShaderName)) { name = "napis lico" }; var dark = new Material(face) { name = "napis bok" };
+        try
+        {
+            float sz = BraxChampionsLetters3D.Text(b, face, dark, text, Vector3.zero, 0f, 1f, .01f, .10f);
+            var tri = b.Trojkaty(face);
+            if (sz <= 0f || tri.Count == 0) return false;
+            float s = Mathf.Min(cap, maxW / sz), ca = Mathf.Cos(deg * Mathf.Deg2Rad), sa = Mathf.Sin(deg * Mathf.Deg2Rad);
+            // the kit's text runs toward -x (seen from its front): the reader's x is -x; centre the cap height on cy
+            Vector2 P(Vector3 v) { float x = -v.x * s, y = (v.y - .36f) * s; return new Vector2(cx + x * ca - y * sa, cy + x * sa + y * ca); }
+            if (rim > 0f) for (int i = 0; i + 2 < tri.Count; i += 3) Trojkat(px, w, h, P(tri[i]), P(tri[i + 1]), P(tri[i + 2]), rim, rimCol);
+            for (int i = 0; i + 2 < tri.Count; i += 3) Trojkat(px, w, h, P(tri[i]), P(tri[i + 1]), P(tri[i + 2]), 0f, col);
+            return true;
+        }
+        finally { UnityEngine.Object.DestroyImmediate(face); UnityEngine.Object.DestroyImmediate(dark); }
+    }
+    static void Trojkat(Color32[] px, int w, int h, Vector2 a, Vector2 bb, Vector2 cc, float grow, Color32 col)
+    {
+        int x0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.x, Mathf.Min(bb.x, cc.x)) - grow)), x1 = Mathf.Min(w - 1, Mathf.CeilToInt(Mathf.Max(a.x, Mathf.Max(bb.x, cc.x)) + grow));
+        int y0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.y, Mathf.Min(bb.y, cc.y)) - grow)), y1 = Mathf.Min(h - 1, Mathf.CeilToInt(Mathf.Max(a.y, Mathf.Max(bb.y, cc.y)) + grow));
+        float E(Vector2 p, Vector2 q, Vector2 r) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+        float area = E(a, bb, cc); if (Mathf.Abs(area) < 1e-6f) return; float sg = Mathf.Sign(area);
+        float la = (bb - a).magnitude, lb = (cc - bb).magnitude, lc = (a - cc).magnitude;
+        for (int y = y0; y <= y1; y++)
+            for (int x = x0; x <= x1; x++)
+            {
+                var p = new Vector2(x + .5f, y + .5f);
+                if (sg * E(bb, cc, p) >= -grow * lb && sg * E(cc, a, p) >= -grow * lc && sg * E(a, bb, p) >= -grow * la) px[y * w + x] = col;
+            }
+    }
 
-    // ---------------- textures
     static Texture2D Png(string name, int w, int h, Color32[] px, bool mips)
     {
         string path = Out + "/Textures/" + name + ".png";
@@ -621,6 +638,179 @@ public static class BraxChampionsKasynoSprzet
         var o = new GameObject(name); o.transform.SetParent(parent, false);
         o.transform.localPosition = c; o.transform.localRotation = q; o.transform.localScale = new Vector3(w, h, 1f);
         o.AddComponent<MeshFilter>().sharedMesh = quad; var r = Cienie(o.AddComponent<MeshRenderer>()); r.sharedMaterial = mat; return r;
+    }
+
+    // ================================================================ roulette (owner 16.11 19:13: "ruletki prawdziwe")
+    // A European single-zero table as the real ones (2.7 x 1.24 m, the 32" wheel at its end, the layout on green felt):
+    // a walnut cabinet and top, black leather armrest on the players' side, the felt (Poly Haven velour_velvet, casino green)
+    // with the printed layout - numbers 0-36 in the real red / black, dozens, columns, the six outside boxes - in the region's
+    // sign typeface; the wheel: a walnut bowl with the ball track and eight chrome deflectors on the cone, the rotor with the
+    // number ring in the real order, 37 pockets between chrome frets, the walnut cone and the chrome turret; the ivory ball; the
+    // history board on a chrome pole. The game: BraxChampionsRuletka.
+    public static readonly Vector3 Kolo = new Vector3(.88f, .78f, 0f);           // the wheel's centre on the table (local)
+    public const float TorR = .37f, TorY = .050f, KieszenR = .217f, KieszenY = .006f, KulkaR = .0095f;
+    const float UkladXW = .39f, UkladL = 1.65f, UkladZN = .435f, UkladD = .85f, UkladY = .775f;
+    const int UkW = 2048, UkH = 1024, UkM = 40, UkKol = 140, UkZero = 180, UkRzad = 200, UkSiatka = 320;
+    static float PoleX(int e) => UkladXW - (UkZero + 2 * UkKol * e + UkKol) / (float)UkW * UkladL;   // the six outside boxes
+    static float PoleZ => UkladZN - 110f / UkH * UkladD;
+    public static void Ruletka(Kasyno k, Vector3 at, float yaw)
+    {
+        var q = Quaternion.Euler(0f, yaw, 0f); int idx = k.ruletki.Count;
+        k.body.Append(szablonRuletki, at, q);
+        var stol = new GameObject("ruletka " + (idx + 1) + " | europejska (37) | BRAXHORN").transform;
+        stol.SetParent(k.root, false); stol.localPosition = at; stol.localRotation = q;
+        var rot = new GameObject("rotor (koło z numerami)").transform; rot.SetParent(stol, false); rot.localPosition = Kolo;
+        rot.localRotation = Quaternion.AngleAxis(-(idx * 47f % 360f), Vector3.up); Wstaw(czRotor, rot, "rotor");
+        var ball = new GameObject("kulka").transform; ball.SetParent(stol, false);
+        float a0 = (idx * 47f % 360f) * Mathf.Deg2Rad; ball.localPosition = Kolo + new Vector3(KieszenR * Mathf.Cos(a0), KieszenY + KulkaR, KieszenR * Mathf.Sin(a0));
+        Wstaw(czKulka, ball, "kulka");
+        var zet = new Transform[6]; var px = new float[6];
+        for (int e = 0; e < 6; e++)
+        {
+            px[e] = PoleX(e);
+            var z = new GameObject("żeton " + BraxChampionsRuletka.Zasady.Pola[e]).transform; z.SetParent(stol, false);
+            z.localPosition = new Vector3(px[e], UkladY + Przed + .001f, PoleZ); Wstaw(czZeton, z, "żeton"); z.gameObject.SetActive(false); zet[e] = z;
+        }
+        var tab = Ekranik(stol, "tablica ruletki", tablicaRuletki, new Vector3(1.24f, 1.62f, -.50f + .025f + Przed), .20f, .40f, Quaternion.identity);
+        k.ruletki.Add(new BraxChampionsRuletka.Stol { stol = stol, rotor = rot, kulka = ball, kolo = Kolo, zetony = zet, polaX = px, tablica = tab });
+        W.Kolizja(at + q * new Vector3(0f, .43f, 0f), new Vector3(2.70f, .86f, 1.24f), q);
+        W.Obsada("krupier ruletki", at + q * new Vector3(.20f, 0f, -1.0f), yaw);
+    }
+    static void RuletkaMaterialy()
+    {
+        orzech = BraxChampionsFoundation.SourceMaterial("kasyno_orzech", "smoked_walnut_veneer", 1.6f, new Color(.80f, .70f, .62f)); orzech.SetFloat("_Roughness", .45f); Wnetrze(orzech);
+        sukno = BraxChampionsFoundation.Fotoskan("kasyno_sukno_zielone", "velour_velvet", .6f, new Color(.10f, .36f, .20f), BraxChampionsFoundation.MeanVelvet); Wnetrze(sukno);
+        kulkaMat = Metal("kulka_kosc", new Color(.95f, .94f, .90f), .12f, 0f);
+        zetonMat = Metal("zeton_czerwony", new Color(.62f, .05f, .06f), .45f, 0f);
+        uklad = BraxChampionsHarbour.Surface("kasyno_uklad_ruletki", Color.white, .6f, 0f, null, true);
+        uklad.SetTexture("_MainTex", Png("kasyno_uklad_ruletki", UkW, UkH, Uklad(), true)); uklad = BraxChampionsHarbour.Nakladka(uklad); EditorUtility.SetDirty(uklad);
+        pierscien = BraxChampionsHarbour.Surface("kasyno_pierscien_ruletki", Color.white, .30f, 0f);
+        pierscien.SetTexture("_MainTex", Png("kasyno_pierscien_ruletki", 2048, 128, Pierscien(), true)); Wnetrze(pierscien);
+        var tb = new Color32[BraxChampionsRuletka.TabW * BraxChampionsRuletka.TabH];
+        BraxChampionsRuletka.PaintTablica(tb, new[] { 17, 32, 0, 5, 26, 11, 30, 8, 19, 4, 21, 2 }, 12);
+        tablicaRuletki = Ekran("tablica_ruletki", Male("kasyno_tablica_ruletki", BraxChampionsRuletka.TabW, BraxChampionsRuletka.TabH, tb), 1.1f);
+    }
+    static readonly Color32 Krem = new Color32(236, 228, 206, 255), KCzerwony = new Color32(172, 20, 26, 255), KCzarny = new Color32(16, 16, 18, 255),
+        KZielony = new Color32(18, 112, 56, 255);
+    // the layout printed on the felt (2048 x 1024 for 1.65 x 0.85 m, transparent where the felt shows): u to the players'
+    // right (the wheel's end on the left), v away from the players
+    static Color32[] Uklad()
+    {
+        var px = new Color32[UkW * UkH]; const int L = 5;
+        void Pole(int x0, int y0, int x1, int y1, Color32? fill) { if (fill.HasValue) BraxChampionsPiksele.Prost(px, UkW, UkH, x0, y0, x1, y1, fill.Value); Ramka(px, UkW, UkH, x0, y0, x1, y1, L, Krem); }
+        void Txt(string t, float cx, float cy, float cap, float maxW, Color32 c) { if (!Napis(px, UkW, UkH, t, cx, cy, cap, maxW, 0f, c, 0f, c)) BraxChampionsPiksele.Srodek(px, UkW, UkH, t, (int)cx, (int)(cy - 3.5f * 6), 6, c); }
+        int gx0 = UkZero, gy0 = UkSiatka;
+        // zero over the three rows
+        Pole(UkM, gy0, gx0, gy0 + 3 * UkRzad, KZielony); Txt("0", (UkM + gx0) * .5f, gy0 + 1.5f * UkRzad, 90f, 120f, Krem);
+        for (int c = 0; c < 12; c++)
+            for (int r = 0; r < 3; r++)
+            {
+                int n = 3 * c + r + 1, x0 = gx0 + c * UkKol, y0 = gy0 + r * UkRzad;
+                Pole(x0, y0, x0 + UkKol, y0 + UkRzad, BraxChampionsRuletka.Zasady.Czerwony(n) ? KCzerwony : KCzarny);
+                Txt(n.ToString(), x0 + UkKol * .5f, y0 + UkRzad * .5f, 74f, UkKol - 24f, Krem);
+            }
+        int cx0 = gx0 + 12 * UkKol;
+        for (int r = 0; r < 3; r++) { Pole(cx0, gy0 + r * UkRzad, UkW - UkM, gy0 + (r + 1) * UkRzad, null); Txt("2:1", (cx0 + UkW - UkM) * .5f, gy0 + (r + .5f) * UkRzad, 56f, 120f, Krem); }
+        string[] tuziny = { "1-12", "13-24", "25-36" };
+        for (int d = 0; d < 3; d++) { int x0 = gx0 + d * 4 * UkKol; Pole(x0, 180, x0 + 4 * UkKol, gy0, null); Txt(tuziny[d], x0 + 2 * UkKol, 250, 62f, 400f, Krem); }
+        string[] pola = { "1-18", "PARZYSTE", "", "", "NIEPARZYSTE", "19-36" };
+        for (int e = 0; e < 6; e++)
+        {
+            int x0 = gx0 + e * 2 * UkKol; Pole(x0, UkM, x0 + 2 * UkKol, 180, null);
+            if (e == 2 || e == 3)
+            {
+                // the red and the black diamond
+                var c0 = new Vector2(x0 + UkKol, 110); var col = e == 2 ? KCzerwony : KCzarny;
+                Trojkat(px, UkW, UkH, c0 + new Vector2(-90, 0), c0 + new Vector2(0, -48), c0 + new Vector2(90, 0), 3f, Krem);
+                Trojkat(px, UkW, UkH, c0 + new Vector2(-90, 0), c0 + new Vector2(90, 0), c0 + new Vector2(0, 48), 3f, Krem);
+                Trojkat(px, UkW, UkH, c0 + new Vector2(-84, 0), c0 + new Vector2(0, -43), c0 + new Vector2(84, 0), 0f, col);
+                Trojkat(px, UkW, UkH, c0 + new Vector2(-84, 0), c0 + new Vector2(84, 0), c0 + new Vector2(0, 43), 0f, col);
+            }
+            else Txt(pola[e], x0 + UkKol, 110, 58f, 2 * UkKol - 30f, Krem);
+        }
+        return px;
+    }
+    // the rotor's ring (2048 x 128): 37 segments in the wheel's order (clockwise), the number band (upper half, white numbers on red /
+    // black / green, their tops to the wheel's centre) and the pocket floors (lower half)
+    static Color32[] Pierscien()
+    {
+        const int w = 2048, h = 128; var px = new Color32[w * h];
+        for (int j = 0; j < 37; j++)
+        {
+            // segment j sits j x 360/37 counter-clockwise on the rotor (u grows counter-clockwise so the numbers read from
+            // outside): the wheel's order runs clockwise, so it is read backwards from the zero
+            int n = BraxChampionsRuletka.Zasady.Kolo[(37 - j) % 37]; int x0 = Mathf.RoundToInt(j * w / 37f), x1 = Mathf.RoundToInt((j + 1) * w / 37f);
+            var c = n == 0 ? KZielony : BraxChampionsRuletka.Zasady.Czerwony(n) ? KCzerwony : KCzarny;
+            var dark = new Color32((byte)(c.r * .7f), (byte)(c.g * .7f), (byte)(c.b * .7f), 255);
+            BraxChampionsPiksele.Prost(px, w, h, x0, 0, x1, 64, dark); BraxChampionsPiksele.Prost(px, w, h, x0, 64, x1, 128, c);
+            BraxChampionsPiksele.Prost(px, w, h, x0, 64, x0 + 2, 128, new Color32(200, 170, 90, 255));            // the brass line between numbers
+            if (!Napis(px, w, h, n.ToString(), (x0 + x1) * .5f, 96f, 40f, (x1 - x0) - 8f, 0f, Krem, 0f, Krem))
+                BraxChampionsPiksele.Srodek(px, w, h, n.ToString(), (x0 + x1) / 2, 86, 3, Krem);
+        }
+        return px;
+    }
+    static void RuletkaCzesci()
+    {
+        RuletkaMaterialy();
+        const int N = 37; float al = 2f * Mathf.PI / N;
+        Vector3 P(float r, float a, float y) => new Vector3(r * Mathf.Cos(a), y, r * Mathf.Sin(a));
+        // ---- the rotor (turns): number ring, pocket floors, frets, the pockets' outer wall, the cone, the turret, a dark
+        // disc under it all
+        var b = new BraxChampionsMeshBatch();
+        for (int j = 0; j < N; j++)
+            for (int k = 0; k < 2; k++)
+            {
+                float a0 = (j - .5f + k * .5f) * al, a1 = a0 + .5f * al, u0 = (j + k * .5f) / N, u1 = u0 + .5f / N;
+                b.QuadUV(pierscien, P(.250f, a0, .017f), P(.250f, a1, .017f), P(.290f, a1, .022f), P(.290f, a0, .022f),
+                         new Vector2(u0, .98f), new Vector2(u1, .98f), new Vector2(u1, .52f), new Vector2(u0, .52f));
+                b.QuadUV(pierscien, P(.190f, a0, KieszenY), P(.190f, a1, KieszenY), P(.2475f, a1, KieszenY), P(.2475f, a0, KieszenY),
+                         new Vector2(u0, .05f), new Vector2(u1, .05f), new Vector2(u1, .45f), new Vector2(u0, .45f));
+            }
+        for (int j = 0; j < N; j++)
+        {
+            float a = (j + .5f) * al;
+            b.Box(chrom, P(.219f, a, .0125f), new Vector3(.057f, .013f, .0028f), Quaternion.Euler(0f, -a * Mathf.Rad2Deg, 0f));
+        }
+        b.Lathe(chrom, Vector3.zero, new[] { new Vector2(.2478f, .017f), new Vector2(.2478f, KieszenY) }, 74, Quaternion.identity, false, false);
+        b.Lathe(chrom, Vector3.zero, new[] { new Vector2(.19f, KieszenY), new Vector2(.19f, .019f) }, 64, Quaternion.identity, false, false);
+        b.Lathe(orzech, Vector3.zero, new[] { new Vector2(.19f, .019f), new Vector2(.13f, .040f), new Vector2(.06f, .066f), new Vector2(.02f, .071f), new Vector2(0f, .071f) }, 48);
+        b.Cylinder(chrom, new Vector3(0f, .071f, 0f), .016f, .065f, 14, Quaternion.identity, true);
+        for (int i = 0; i < 4; i++)
+        {
+            float a = i * Mathf.PI * .5f; var e = P(.075f, a, .124f);
+            b.Tube(chrom, new Vector3(0f, .118f, 0f), e, .006f, 8);
+            b.Lathe(chrom, e + new Vector3(0f, -.011f, 0f), Profil(.011f, 6), 10);
+        }
+        b.Cylinder(plastik, new Vector3(0f, -.014f, 0f), .29f, .002f, 37, Quaternion.identity, true);
+        czRotor = Czesc(b, "ruletka rotor");
+        b.Lathe(kulkaMat, new Vector3(0f, -KulkaR, 0f), Profil(KulkaR, 8), 12);
+        czKulka = Czesc(b, "ruletka kulka");
+        b.Cylinder(zetonMat, Vector3.zero, .02f, .007f, 16, Quaternion.identity, true);
+        czZeton = Czesc(b, "ruletka żeton");
+        // ---- the table and the bowl (static, placed like the cabinets)
+        var t = new BraxChampionsMeshBatch();
+        t.RoundedBoxMinMax(orzech, -1.15f, 1.15f, 0f, .70f, -.42f, .42f, .03f, 2);
+        t.RoundedBoxMinMax(orzech, -1.35f, 1.35f, .70f, .76f, -.62f, .62f, .025f, 2);
+        t.BoxMinMax(sukno, -1.29f, .41f, .76f, UkladY, -.50f, .52f);
+        t.RoundedBoxMinMax(skora, -1.33f, .43f, .76f, .815f, .52f, .62f, .025f, 2);
+        t.RoundedBoxMinMax(skora, -1.35f, -1.29f, .76f, .815f, -.50f, .52f, .02f, 2);
+        t.BoxMinMax(orzech, -1.29f, .41f, .76f, .785f, -.62f, -.50f);
+        // the layout printed on the felt: u to the players' right, v away from them
+        float y = UkladY + Przed, xW = UkladXW, xF = UkladXW - UkladL, zN = UkladZN, zF = UkladZN - UkladD;
+        t.QuadUV(uklad, new Vector3(xF, y, zN), new Vector3(xW, y, zN), new Vector3(xW, y, zF), new Vector3(xF, y, zF),
+                 new Vector2(1, 0), new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1));
+        // the bowl: outside wall, rim, the ball track, the cone down to the rotor; the deflectors
+        t.Lathe(orzech, Kolo, new[] { new Vector2(.42f, -.02f), new Vector2(.42f, .068f), new Vector2(.405f, .075f), new Vector2(.393f, .068f),
+            new Vector2(.386f, .056f), new Vector2(.37f, TorY), new Vector2(.30f, .025f), new Vector2(.293f, .022f) }, 64, Quaternion.identity, false, false);
+        for (int i = 0; i < 8; i++)
+        {
+            float a = (i + .5f) * Mathf.PI / 4f;
+            t.Box(chrom, Kolo + P(.335f, a, .040f), new Vector3(.010f, .008f, .026f), Quaternion.Euler(0f, -a * Mathf.Rad2Deg, 0f) * Quaternion.Euler(0f, 0f, 20f));
+        }
+        // the history board on a chrome pole, behind the wheel (the dealer's side)
+        t.Cylinder(chrom, new Vector3(1.24f, .76f, -.50f), .015f, .64f, 12, Quaternion.identity, false);
+        t.RoundedBox(czern, new Vector3(1.24f, 1.62f, -.50f), new Vector3(.24f, .44f, .05f), .01f, Quaternion.identity, 1);
+        szablonRuletki = t;
     }
 
     // ---------------- the cabinets (templates, machine-local: floor at y 0, front +z, the player's left +x)

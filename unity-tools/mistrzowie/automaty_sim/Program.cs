@@ -115,6 +115,49 @@ static class Program
             }
             Console.WriteLine("{0} played {1} spins: staked {2}, paid {3} (RTP {4:F3}), jackpot now {5}", ekran ? "SCREEN" : "MECHANICAL", spins, staked, paid, (double)paid / staked, BraxChampionsKasyno.Jackpot);
         }
+        // ---- 3. the roulette: every outside bet, the ball ends in the drawn number's pocket, even money pays 1:1, zero takes it
+        PlayerPrefs.DeleteAll();
+        var rh = new GameObject("ruletka"); var rul = rh.AddComponent<BraxChampionsRuletka>(); rul.stawka = 10;
+        var rst = new GameObject("stol").transform; var rot = new GameObject("rotor").transform; rot.SetParent(rst, false);
+        var kul = new GameObject("kulka").transform; kul.SetParent(rst, false);
+        var kolo = new Vector3(.88f, .78f, 0f); rot.localPosition = kolo;
+        var zet = new Transform[6]; var polaX = new float[6];
+        for (int e = 0; e < 6; e++) { zet[e] = new GameObject("z").transform; zet[e].SetParent(rst, false); polaX[e] = .13f - .23f * e; }
+        rul.stoly = new[] { new BraxChampionsRuletka.Stol { stol = rst, rotor = rot, kulka = kul, kolo = kolo, zetony = zet, polaX = polaX } };
+        var RT = typeof(BraxChampionsRuletka); RT.GetMethod("Start", F).Invoke(rul, null);
+        var rUpd = RT.GetMethod("Update", F); var rStan = RT.GetField("stan", F);
+        int spinsR = Math.Max(200, spins / 10); long rStake = 0, rPaid = 0; var seen = new int[37];
+        for (int sp = 0; sp < spinsR; sp++)
+        {
+            int e = sp % 6; gracz.transform.localPosition = rst.TransformPoint(new Vector3(polaX[e], 0, 1.0f));
+            if (BraxChampionsKasyno.Kredyt < 10) BraxChampionsKasyno.Wplac(1000);
+            int kr = BraxChampionsKasyno.Kredyt;
+            string ctx = rul.Kontekst(gracz.transform.position);
+            Check(ctx == "POSTAW 10 · " + BraxChampionsRuletka.Zasady.Pola[e], "roulette context '" + ctx + "' for box " + e);
+            Check(rul.Wykonaj(gracz.transform.position), "roulette bet");
+            var so = ((Array)rStan.GetValue(rul)).GetValue(0); var sT = so.GetType();
+            int wynik = (int)sT.GetField("wynik").GetValue(so); seen[wynik]++;
+            Check(zet[e].gameObject.activeSelf, "the chip lies on the box");
+            int fr = 0; while ((bool)sT.GetField("kreci").GetValue(so) && fr < 2000) { Time.time += Time.deltaTime; rUpd.Invoke(rul, null); fr++; }
+            Check(fr > 400 && fr < 560, "roulette spin length " + fr / 60f);
+            // the ball in the pocket of the number drawn: its angle on the rotor = the pocket's angle
+            var pos = kul.localPosition - kolo; float ang = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
+            float rotorKat = (float)sT.GetField("rotorKat").GetValue(so);
+            float rel = Mathf.DeltaAngle(BraxChampionsRuletka.Zasady.KatKieszeni(wynik), ang - rotorKat);
+            Check(Math.Abs(rel) < 360f / 37f * .5f, "ball in pocket " + wynik + " (" + rel + " deg off)");
+            float rr = new Vector2(pos.x, pos.z).magnitude; Check(Math.Abs(rr - rul.kieszenR) < .002f, "ball at the pocket radius " + rr);
+            // the rotor turned counter-clockwise by rotorKat
+            var q = rot.localRotation; float rk = (float)(-2 * Math.Atan2(q.y, q.w) * 180 / Math.PI);
+            Check(Math.Abs(Mathf.DeltaAngle(rk, rotorKat)) < .01f, "rotor at its angle");
+            int expect = BraxChampionsRuletka.Zasady.Wygrywa(e, wynik) ? 20 : 0;
+            Check(BraxChampionsKasyno.Kredyt == kr - 10 + expect, "roulette pays " + expect + " on " + wynik + " " + BraxChampionsRuletka.Zasady.Pola[e]);
+            Check(!zet[e].gameObject.activeSelf, "the chip taken / paid");
+            rStake += 10; rPaid += expect;
+        }
+        int zeros = seen[0], reds = 0; for (int n = 1; n <= 36; n++) if (BraxChampionsRuletka.Zasady.Czerwony(n)) reds += seen[n];
+        Console.WriteLine("ROULETTE played {0} spins: staked {1}, paid {2} (RTP {3:F3}; exact 36/37 = 0.973), zeros {4}, reds {5}", spinsR, rStake, rPaid, (double)rPaid / rStake, zeros, reds);
+        Check(new System.Collections.Generic.HashSet<int>(BraxChampionsRuletka.Zasady.Kolo).Count == 37 && BraxChampionsRuletka.Zasady.Kolo[0] == 0, "the wheel: 0-36 once each");
+
         // the jackpot: 2 % of a stake of 10 = 0.20 a spin
         PlayerPrefs.DeleteAll(); for (int i = 0; i < 50; i++) BraxChampionsKasyno.Dorzuc(10);
         Check(BraxChampionsKasyno.Jackpot == BraxChampionsKasyno.JackpotStart + 10, "jackpot +2 % (" + BraxChampionsKasyno.Jackpot + ")");

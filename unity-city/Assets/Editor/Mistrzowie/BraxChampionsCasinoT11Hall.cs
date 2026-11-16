@@ -149,25 +149,31 @@ public static partial class BraxChampionsCasinoT11
             // wing, between the column lines (x 14.1 / 28.2) under the chandeliers, eight a row back to back with their stools,
             // mechanical and screen machines in turn in the six themes of the owner's strips (19:13 "co druga różnego typu"), on
             // the red marble; the linked jackpot board hangs over each bank. The middle under the lantern stays for the tables.
-            int slots=0;
+            int slots=0,roulettes=0;
             BraxChampionsFoundation.Optional("T11 slot machines",()=>
             {
                 var body=new BraxChampionsMeshBatch();
                 var kas=BraxChampionsKasynoSprzet.Zacznij(g,body,"KASYNO WAWER");
                 int start=0;
                 foreach(float x in new[]{-24.5f,-19.5f,19.5f,24.5f})BraxChampionsKasynoSprzet.Bank(kas,new Vector3(x,HallFloor+.016f,0f),90f,8,start++,HallCeiling);
+                // the roulette pit under the lantern (owner 19:13 "ruletki prawdziwe"): four European tables, the croupiers in the
+                // middle, the players facing out
+                foreach(float rx in new[]{-4.0f,4.0f})foreach(float rz in new[]{-4.5f,4.5f})
+                    BraxChampionsKasynoSprzet.Ruletka(kas,new Vector3(rx,HallFloor+.016f,rz),rz>0f?0f:180f);
+                roulettes=kas.ruletki.Count;
                 body.Build(g,"T11 casino hall | slot machines",BraxChampionsKasynoSprzet.Out+"/Meshes",false,1f);
                 BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
             });
             W.Grupa=g;W.Wnetrze=true;
             if(slots!=64)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL slot machines "+slots+"/64");
+            if(roulettes!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL roulettes "+roulettes+"/4");
 
             // ---- light: six warm vertex lamps (no shadows) ----
             foreach(float x in new[]{-21.15f,21.15f})
             foreach(float z in new[]{-14f,0f,14f})
                 W.Lampa("T11 hall chandelier warm light",new Vector3(x,9.2f,z),1.5f,24f*K,new Color(1f,.88f,.66f));
             Debug.Log("T11_CASINO_HALL open=true portal=6x4.5 floor=black_marble+red_marble_tiles_3m_gold_joints ceiling=cream_coffered_"+HallCeiling+
-                " columns="+columns+"_polished_gold chandeliers=6 lights=6_vertex slots="+slots+"_working tables=NONE_YET scale=K_once");
+                " columns="+columns+"_polished_gold chandeliers=6 lights=6_vertex slots="+slots+"_working roulettes="+roulettes+"_working scale=K_once");
         }
         catch { W.Wyczysc(); UnityEngine.Object.DestroyImmediate(g.gameObject); throw; }
         W.Zapisz("mistrzowie_t11_casino_hall");

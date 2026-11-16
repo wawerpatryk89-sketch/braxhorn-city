@@ -365,7 +365,7 @@ public static class BraxChampionsWiezowce
         Tower t=default;bool found=false;
         foreach(var x in Towers)if(x.id==id){t=x;found=true;}
         if(!found)throw new ArgumentException("Unknown tower plot "+id);
-        outFolder=folder;towerId=id;doors=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;ownerMissing=0;hung.Clear();Materials(ext);
+        outFolder=folder;towerId=id;doors=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;roulettes=0;ownerMissing=0;hung.Clear();Materials(ext);
         Physics.SyncTransforms();
         float datum=0f;
         if(Physics.Raycast(new Vector3(t.x,80f,t.z)*K,Vector3.down,out var hit,200f*K,~0,QueryTriggerInteraction.Ignore))
@@ -765,7 +765,7 @@ public static class BraxChampionsWiezowce
     public static float CasinoY=>Shaft+CasinoFloor*Storey;
     const float LiftZ0=-2f,LiftZ1=.30f,LiftHalf=1.05f,LiftLeaf=.60f;
     static Material casinoGlass,oakDark,felt,leatherBlack,darkMetal;
-    static Transform cab,cabL,cabR;static Transform[] landL,landR;static float liftX;static int slots,tables,ownerMissing;
+    static Transform cab,cabL,cabR;static Transform[] landL,landR;static float liftX;static int slots,tables,roulettes,ownerMissing;
     static void CasinoMaterials()
     {
         // clear glass both ways (seen from the hall too), the city's clear glass otherwise
@@ -834,11 +834,14 @@ public static class BraxChampionsWiezowce
             var kas=BraxChampionsKasynoSprzet.Zacznij(inside,kat,"SKY KASYNO");
             BraxChampionsKasynoSprzet.Bank(kas,new Vector3(-9.6f,y,-4.5f),0f,6,0,ceil);
             BraxChampionsKasynoSprzet.Bank(kas,new Vector3(9.8f,y,-4.5f),0f,6,3,ceil);
-            BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
+            BraxChampionsKasynoSprzet.Ruletka(kas,new Vector3(0f,y,-9.4f),0f);
+            BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;roulettes=kas.ruletki.Count;
         });
         W.Grupa=inside;W.Wnetrze=true;
         // ---- blackjack tables to the south (the street side, the glass behind the players)
-        foreach(float x in new[]{-6.6f,0f,6.6f})BlackjackTable(new Vector2(x,-9.6f));
+        foreach(float x in new[]{-6.6f,6.6f})BlackjackTable(new Vector2(x,-9.6f));
+        // (the roulette between them - owner 16.11 19:13 "ruletki prawdziwe" - is set with the slot machines above: a European
+        // table at x 0, the players to the hall)
         // ---- lounges at the west and east glass, the sofas facing the city; plants
         Lounge(new Vector2(-10.5f,8.5f),false,"sky casino lounge W","SOFA SKY KASYNO");
         Lounge(new Vector2(10.5f,8.5f),true,"sky casino lounge E","SOFA SKY KASYNO");
@@ -851,7 +854,7 @@ public static class BraxChampionsWiezowce
         foreach(var lp in new[]{new Vector3(-6.6f,4.6f,-9.6f),new Vector3(0f,4.6f,-9.6f),new Vector3(6.6f,4.6f,-9.6f),new Vector3(-9.6f,4.6f,-4.5f),
                                 new Vector3(9.8f,4.6f,-4.5f),new Vector3(1f,3.6f,7.3f),new Vector3(-10.5f,4.6f,8.5f),new Vector3(10.5f,4.6f,8.5f)})
             lights.Add(W.Lampa("SKY KASYNO light",new Vector3(lp.x,y+lp.y,lp.z),1.0f,11f,new Color(.97f,.98f,1f)));
-        Debug.Log("TOWER_T09_SKY_KASYNO floor="+CasinoY.ToString("F2")+"m nominal glass=clear-both-sides tables="+tables+" slots="+slots+
+        Debug.Log("TOWER_T09_SKY_KASYNO floor="+CasinoY.ToString("F2")+"m nominal glass=clear-both-sides tables="+tables+" roulettes="+roulettes+" slots="+slots+
             " backBarUnits="+units+" ownerModelsMissing="+ownerMissing+" lift=BraxWinda(2 stops)");
         if(ownerMissing>0)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO owner models missing x"+ownerMissing+" (osiedle_wnetrza pack): back-bar / bar lamps stay empty");
         if(slots!=24)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO slot machines "+slots+"/24");

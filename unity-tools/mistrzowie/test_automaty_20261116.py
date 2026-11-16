@@ -229,3 +229,45 @@ class Cabinets(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+ROUL = (ASSETS / "Mistrzowie/BraxChampionsRuletka.cs").read_text(encoding="utf-8")
+
+
+class Roulette(unittest.TestCase):
+    """Owner 16.11 19:13: "ruletki porobić prawdziwe" - a European wheel as the real one, in both casinos."""
+
+    def test_real_wheel(self):
+        kolo = ints(re.search(r"public static readonly int\[\] Kolo = \{([^}]*)\}", ROUL).group(1))
+        self.assertEqual(kolo, [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31,
+                                9, 22, 18, 29, 7, 28, 12, 35, 3, 26])
+        red = ints(re.search(r"static readonly int\[\] Czerwone = \{([^}]*)\}", ROUL).group(1))
+        self.assertEqual(red, [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36])
+        # red and black alternate round the wheel (the zero apart)
+        self.assertTrue(all((kolo[i] in red) != (kolo[i + 1] in red) for i in range(1, 36)))
+        # the order runs clockwise seen from above: the pockets' angles and the painted ring agree
+        self.assertIn("public static float KatKieszeni(int n) => -Array.IndexOf(Kolo, n) * 360f / 37f;", ROUL)
+        self.assertIn("int n = BraxChampionsRuletka.Zasady.Kolo[(37 - j) % 37];", KIT)
+
+    def test_bets_and_pay(self):
+        self.assertIn('Pola = { "1-18", "PARZYSTE", "CZERWONE", "CZARNE", "NIEPARZYSTE", "19-36" }', ROUL)
+        self.assertIn("if (n <= 0) return false;                                             // the zero takes the outside bets", ROUL)
+        self.assertIn("int wyg = Zasady.Wygrywa(s.pole, s.wynik) ? s.zaklad * 2 : 0;", ROUL)              # even money 1:1
+        # the ball is aimed: its speed is scaled so it reaches the pockets over the drawn number, then settles in it
+        self.assertIn("s.skala = 1f - d / Mathf.Max(1f, Mathf.Abs(bez));", ROUL)
+        self.assertIn("float rel = Mathf.LerpAngle(a0, s.wynikKat, 1f - Mathf.Pow(1f - u, 3f));", ROUL)
+        sim = (ROOT / "unity-tools/mistrzowie/automaty_sim/Program.cs").read_text(encoding="utf-8")
+        self.assertIn('"ball in pocket " + wynik', sim)
+
+    def test_real_table(self):
+        for part in ("velour_velvet", "smoked_walnut_veneer", "the ball track", "eight chrome deflectors", "the chrome turret"):
+            self.assertIn(part, KIT)
+        self.assertIn("public const float TorR = .37f, TorY = .050f, KieszenR = .217f, KieszenY = .006f, KulkaR = .0095f;", KIT)
+        self.assertIn('W.Obsada("krupier ruletki"', KIT)
+
+    def test_both_casinos(self):
+        self.assertIn("BraxChampionsKasynoSprzet.Ruletka(kas,new Vector3(0f,y,-9.4f),0f);", TOWER)
+        self.assertIn("foreach(float x in new[]{-6.6f,6.6f})BlackjackTable(new Vector2(x,-9.6f));", TOWER)
+        self.assertIn("BraxChampionsKasynoSprzet.Ruletka(kas,new Vector3(rx,HallFloor+.016f,rz),rz>0f?0f:180f);", HALL)
+        self.assertIn('if(roulettes!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL roulettes "', HALL)
+        self.assertTrue((ASSETS / "Mistrzowie/BraxChampionsRuletka.cs.meta").exists())
