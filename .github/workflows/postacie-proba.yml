@@ -30,7 +30,7 @@ permissions:
   contents: write   # pobranie prywatnego szkicu wydania z paczka obsady
 
 concurrency:
-  group: postacie-proba-${{ github.ref }}
+  group: postacie-proba-${{ github.ref }}-${{ inputs.tryb }}
   cancel-in-progress: true
 
 jobs:
@@ -53,17 +53,17 @@ jobs:
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
         path: unity-city/Assets/Source/ObsadaOsiedla
-        key: postacie-przerobione-v1-${{ hashFiles('unity-tools/claude/osiedle_ruch.py','unity-tools/claude/osiedle_twarz.py','unity-tools/claude/osiedle_odstep.py','unity-tools/claude/pobierz_obsade.py') }}-${{ inputs.postacie }}
+        key: postacie-przerobione-v2-${{ hashFiles('unity-tools/claude/osiedle_ruch.py','unity-tools/claude/osiedle_twarz.py','unity-tools/claude/osiedle_odstep.py','unity-tools/claude/pobierz_obsade.py') }}-${{ github.run_id }}
         restore-keys: |
-          postacie-przerobione-v1-${{ hashFiles('unity-tools/claude/osiedle_ruch.py','unity-tools/claude/osiedle_twarz.py','unity-tools/claude/osiedle_odstep.py','unity-tools/claude/pobierz_obsade.py') }}-
+          postacie-przerobione-v2-${{ hashFiles('unity-tools/claude/osiedle_ruch.py','unity-tools/claude/osiedle_twarz.py','unity-tools/claude/osiedle_odstep.py','unity-tools/claude/pobierz_obsade.py') }}-
 
     - name: Pamiec podreczna Library Unity
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
         path: unity-city/Library
-        key: pokoj-prob-library-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}
+        key: pokoj-prob-library-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}
         restore-keys: |
-          pokoj-prob-library-v1-
+          pokoj-prob-library-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-
 
     - name: Blender i FFmpeg
       run: |
