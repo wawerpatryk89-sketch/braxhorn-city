@@ -231,7 +231,7 @@ window.ready=true;
     else if (u.startsWith('models/')) file = path.join(modelsDir, decodeURIComponent(u.slice(7)));
     else if (u.startsWith('tex/')) file = path.join(texDir, u.slice(4));
     else if (u.startsWith('pic/')) file = path.join(process.env.PREVIEW_PICTURES || texDir, decodeURIComponent(u.slice(4)));
-    if (!file || !fs.existsSync(file)) return r.fulfill({ status: 404, body: '' });
+    if (!file || !fs.existsSync(file)) { if (process.env.PREVIEW_DEBUG404) console.log('404 ' + u); return r.fulfill({ status: 404, body: '' }); }
     const ext = path.extname(file);
     const type = { '.js': 'application/javascript', '.json': 'application/json', '.gltf': 'model/gltf+json', '.jpg': 'image/jpeg', '.png': 'image/png', '.wasm': 'application/wasm' }[ext] || 'application/octet-stream';
     r.fulfill({ status: 200, body: fs.readFileSync(file), contentType: type });

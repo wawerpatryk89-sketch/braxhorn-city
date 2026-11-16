@@ -176,8 +176,18 @@ public static partial class BraxChampionsD2
         }
         else if(tr=="jewellery"||tr=="cosmetics"||tr=="optician"||tr=="pharmacy"||tr=="cafe"||tr=="salon"||tr=="service"||tr=="flowers")
         {
-            Q(gWallWarm,new Vector3(ix0,yc,iz0),new Vector3(ix1,yc,iz0),new Vector3(ix1,yc,iz1),new Vector3(ix0,yc,iz1),Vector3.down);
-            for(float x=ix0+1.3f;x<ix1-.9f;x+=1.8f)for(float z=iz0+1.3f;z<iz1-.9f;z+=1.8f){m.Cylinder(frame,new Vector3(x,yc-.014f,z),.075f,.014f,16,Quaternion.identity,false,true);m.Cylinder(ledWarm,new Vector3(x,yc-.026f,z),.055f,.012f,16,Quaternion.identity,false,true);}
+            // (owner 16.11 09:58 "premium ... wykończenia": one flat grey lid with downlights read as an office of the 90s) a
+            // floating plaster raft 14 cm under a black ceiling, a 45 cm shadow gap all round, a neutral-white LED line along
+            // the raft's edges, the downlights set in the raft
+            Q(gCinemaDark,new Vector3(ix0,yc,iz0),new Vector3(ix1,yc,iz0),new Vector3(ix1,yc,iz1),new Vector3(ix0,yc,iz1),Vector3.down);
+            float rx0=ix0+.45f,rx1=ix1-.45f,rz0=iz0+.45f,rz1=iz1-.45f,ry=yc-.14f;
+            if(rx1-rx0>1f&&rz1-rz0>1f)
+            {
+                B(gWallWarm,rx0,rx1,ry,ry+.05f,rz0,rz1);
+                B(led,rx0-.012f,rx0,ry+.012f,ry+.038f,rz0,rz1);B(led,rx1,rx1+.012f,ry+.012f,ry+.038f,rz0,rz1);
+                B(led,rx0,rx1,ry+.012f,ry+.038f,rz0-.012f,rz0);B(led,rx0,rx1,ry+.012f,ry+.038f,rz1,rz1+.012f);
+                for(float x=rx0+.9f;x<rx1-.5f;x+=1.8f)for(float z=rz0+.9f;z<rz1-.5f;z+=1.8f){m.Cylinder(frame,new Vector3(x,ry-.014f,z),.075f,.014f,16,Quaternion.identity,false,true);m.Cylinder(led,new Vector3(x,ry-.026f,z),.055f,.012f,16,Quaternion.identity,false,true);}
+            }
         }
         else SlatCeiling(ix0+.01f,ix1-.01f,iz0+.02f,iz1-.02f,yc,null);                                    // timber slats on black felt, LED lines (no white ceilings)
         // the main front with its automatic door; a corner unit's second frontage glazed (no door), both with the name
@@ -440,8 +450,12 @@ public static partial class BraxChampionsD2
         }
         for(float z=-36f;z<40f;z+=8f)for(float x=56f;x<80f;x+=8f)
         {
-            F(gOak,x,x+3f,y+.80f,y+.85f,z-.5f,z+.5f);
-            foreach(float xl in new[]{x+.15f,x+2.79f})F(frame,xl,xl+.06f,y,y+.80f,z-.4f,z+.4f);
+            // (owner 16.11 09:58: the sled-legged tables are gone) a waterfall table: marble top on solid walnut end panels,
+            // aprons, a display shelf, shadow plinths
+            F(StoneTop(),x,x+3f,y+.815f,y+.85f,z-.5f,z+.5f);
+            foreach(float xl in new[]{x+.02f,x+2.93f}){F(walnut,xl,xl+.05f,y+.012f,y+.815f,z-.48f,z+.48f,true);B(gCinemaDark,xl+.01f,xl+.04f,y,y+.012f,z-.45f,z+.45f);}
+            F(walnut,x+.07f,x+2.93f,y+.755f,y+.815f,z-.47f,z-.45f);F(walnut,x+.07f,x+2.93f,y+.755f,y+.815f,z+.45f,z+.47f);
+            F(walnut,x+.07f,x+2.93f,y+.16f,y+.19f,z-.44f,z+.44f);
             Col(x,x+3f,y,y+.85f,z-.5f,z+.5f,"stół ekspozycyjny");
         }
         {
@@ -714,6 +728,27 @@ public static partial class BraxChampionsD2
         foreach(var (x,y,z) in new[]{(-30f,G1F0,34f),(30f,G1F0,34f),(-30f,G1F0,-19f),(30f,G1F0,-19f),(-12.5f,G1F0,47.5f),(-30f,G1F1,34f),(30f,G1F1,-19f)})G1AdTotem(x,y,z);
     }
 
+    // a Poly Haven model (CC0, real size via BraxChampionsRealSize) in G1: local = its floor point, or (top) the point its top
+    // hangs from; yaw turns its front (+z); a box collider from its bounds when asked
+    public static int G1PhModels,G1PhMissing;
+    static GameObject G1PH(string path,Vector3 local,float yaw,string label,bool collide,bool top=false)
+    {
+        string full="Assets/Source/Mistrzowie/"+path;
+        var src=AssetDatabase.LoadAssetAtPath<GameObject>(full);
+        if(!src){Debug.LogWarning("G1_PH_MODEL_MISSING "+full+" (prepare_arena_lobby_models.py / prepare_hotel_sobczak_models.py)");G1PhMissing++;return null;}
+        var at=Wld(local);
+        var o=BraxChampionsModel.Postaw(root,src,"G1 | "+label+" | Poly Haven CC0",at,yaw,BraxChampionsRealSize.Scale(full),true,true);
+        if(!o){G1PhMissing++;return null;}
+        var rs=o.GetComponentsInChildren<Renderer>(true);
+        if(rs.Length>0)
+        {
+            var b=rs[0].bounds;foreach(var r in rs)b.Encapsulate(r.bounds);
+            float have=top?b.max.y:b.min.y;
+            if(Mathf.Abs(at.y-have)>1e-4f){o.transform.position+=Vector3.up*(at.y-have);b.center+=Vector3.up*(at.y-have);}
+            if(collide){var g=new GameObject(label+" | kolizja");g.transform.SetParent(cols,false);g.transform.position=b.center;g.AddComponent<BoxCollider>().size=b.size*.9f;Colliders++;}
+        }
+        G1PhModels++;return o;
+    }
     static GameObject[] g1PalmSrc;static Material g1Bark;
     public static int G1Palms;
     // a seating island: c = its centre on the floor; 3.2 x 1.5 m granite planter, 52 cm, black rim, bark mulch, an oak seat

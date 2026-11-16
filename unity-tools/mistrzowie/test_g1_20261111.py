@@ -73,14 +73,14 @@ class G1Tests(unittest.TestCase):
         w = src('BraxChampionsG1Wnetrze.cs')
         unit = w[w.index('static void ShopUnit('):w.index('static void ShopFront(')]
         self.assertIn('SlatCeiling(ix0+.01f,ix1-.01f,iz0+.02f,iz1-.02f,yc,null)', unit)
-        self.assertIn('Q(gWallWarm,', unit)
+        self.assertIn('B(gWallWarm,rx0,rx1,ry,ry+.05f,rz0,rz1)', unit)   # 16.11: the clean trades' plaster raft under a black ceiling
         self.assertNotIn('ceilWhite', unit)
         ceil = w[w.index('static void G1Ceilings()'):w.index('static void G1Galleries()')]
         self.assertNotIn('ceilWhite', ceil)
         fit = src('BraxChampionsG1Sklepy.cs')
         fit = fit[fit.index('static void ShopFitOut('):]
         self.assertNotIn('gWhitePanel', fit)
-        self.assertIn('Table(gOak', fit)
+        self.assertIn('Table(StoneTop(),', fit)   # 16.11: the display tables walnut with a marble top (owner: no sled-legged tables)
 
     def test_no_bare_walls(self):
         # owner 18:32: the side walls finished (battens, cabinets, lit shelves) in the trades without wall fixtures

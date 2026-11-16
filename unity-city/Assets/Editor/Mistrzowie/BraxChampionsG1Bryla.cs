@@ -293,7 +293,7 @@ public static partial class BraxChampionsD2
             var e0=FP(side,u+g*w,y,-.10f);var e1=FP(side,u+g*half,y,-.10f);
             Col(Mathf.Min(e0.x,e1.x)-.05f,Mathf.Max(e0.x,e1.x)+.05f,y,3.1f,Mathf.Min(e0.z,e1.z)-.05f,Mathf.Max(e0.z,e1.z)+.05f,"szyba");
         }
-        var c0=FP(side,u-ws,3.1f,-.25f);var c1=FP(side,u+ws,3.2f,-3.6f);
+        var c0=FP(side,u-ws,3.1f,-.25f);var c1=FP(side,u+ws,3.2f,-3.58f);   // 2 cm short of the inner glass line (16.11 flicker check: its end lay in the pane)
         B(gWood,Mathf.Min(c0.x,c1.x),Mathf.Max(c0.x,c1.x),3.1f,3.2f,Mathf.Min(c0.z,c1.z),Mathf.Max(c0.z,c1.z));
         var m0=FP(side,u-ws+.1f,y,-.25f);var m1=FP(side,u+ws-.1f,y,-3.45f);
         Flat(Inlay(rubber),Mathf.Min(m0.x,m1.x),Mathf.Max(m0.x,m1.x),Mathf.Min(m0.z,m1.z),Mathf.Max(m0.z,m1.z),y+.012f);
