@@ -5,6 +5,10 @@ public sealed class BraxMimikaOsiedla : MonoBehaviour
     public SkinnedMeshRenderer twarz;
     public int szczeka, wargi;
     public bool widoczneOczy = true;
+    // Mnożnik odstępu między mrugnięciami. 1 = tempo z gry (2,3–6,5 s, średnio 4,4 s, czyli
+    // tyle, ile mruga człowiek). Pokój prób ustawia mniej, bo tam ocenia się SAMO mrugnięcie
+    // i trzeba je zobaczyć kilka razy (właściciel 16.11, 21:08: „może trochę za rzadko”).
+    public float odstepMrugania = 1f;
     static readonly int Blink = Shader.PropertyToID("_Blink");
     static readonly int Speech = Shader.PropertyToID("_Speech");
     MaterialPropertyBlock material;
@@ -56,7 +60,7 @@ public sealed class BraxMimikaOsiedla : MonoBehaviour
         if (t >= nastepne)
         {
             poczatek = t;
-            nastepne = t + 2.3f + (float)los.NextDouble()*4.2f;
+            nastepne = t + (2.3f + (float)los.NextDouble()*4.2f) * Mathf.Max(.1f, odstepMrugania);
         }
         float faza = t-poczatek;
         float powieki = faza<.072f ? Mathf.SmoothStep(0f,1f,faza/.072f)

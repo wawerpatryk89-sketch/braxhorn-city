@@ -359,6 +359,9 @@ public static class BraxPokojProbBuild
 
             var a = kopia.GetComponent<Animation>();
             if (a && a.GetClip("Idle")) { a["Idle"].wrapMode = WrapMode.Loop; a.Play("Idle"); }
+            // Podpisy nad postaciami ZOSTAJĄ tylko w porównaniu materiału, gdzie bez nich nie
+            // wiadomo, który wariant jest który. W pokazie są zdjęte — właściciel 16.11, 21:06:
+            // „napisy usuń z obrazu”, bo lądowały na twarzy oglądanej postaci.
             var opis = new GameObject("Podpis " + i).AddComponent<BraxPodpisPostaci>();
             opis.transform.SetParent(korzen, false);
             opis.transform.localPosition = Vector3.up * (2.05f * K);
@@ -566,6 +569,18 @@ public static class BraxPokojProbBuild
         pokaz.srodek = srodek;
         pokaz.kamera = kam;
         pokaz.wariant = 2;   // startuje na „3 mat+faktura”; przyciskiem na ekranie idzie dalej
+        // Płeć postaci — żeby kobieta dostała kobiecy głos. Lista z imion obsady właściciela.
+        var zenskie = new HashSet<string> { "ewa", "monika", "aneta", "martyna" };
+        var plcie = new bool[ustawioneNazwy.Count];
+        for (int i = 0; i < ustawioneNazwy.Count; i++)
+            plcie[i] = zenskie.Contains(ustawioneNazwy[i]) ||
+                       ustawioneNazwy[i].StartsWith("imprezowiczka", StringComparison.Ordinal) ||
+                       ustawioneNazwy[i].StartsWith("kobieta", StringComparison.Ordinal);
+        pokaz.kobieta = plcie;
+        Debug.Log("BRAX_POKOJ_PLCIE " + string.Join(",", ustawioneNazwy.Select((n, i) => n + "=" + (plcie[i] ? "K" : "M"))));
+        // Podpisy nad głowami zdjęte z pokazu (lądowały na twarzy oglądanej postaci).
+        foreach (var podpis in UnityEngine.Object.FindObjectsByType<BraxPodpisPostaci>(FindObjectsSortMode.None))
+            UnityEngine.Object.DestroyImmediate(podpis.gameObject);
         }
 
         PlayerSettings.companyName = "Braxhorn";

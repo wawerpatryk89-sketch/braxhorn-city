@@ -24,6 +24,9 @@ public sealed class BraxPokazPostaci : MonoBehaviour
     public float naEtap = 3f;
     public const float ObrotSekund = 6f;        // pełne 360 stopni, spokojnie, żeby dało się patrzeć
     public const string Kwestia = "9a79ffe04cb33bdb_m";
+    public const int NagranPodRzad = 6;     // więcej tekstu — jedno nagranie to za mało, żeby ocenić usta
+    public bool[] kobieta = new bool[0];    // nagrania mają w nazwie _f i _m — głos ma pasować do postaci
+    public bool zblizenie;                  // ROZMOWA: kamera na twarz, inaczej mimiki nie widać
     public const float SKALA = 2.33f / 1.80f;
 
     static readonly (string klip, string opis)[] Etapy =
@@ -69,6 +72,42 @@ public sealed class BraxPokazPostaci : MonoBehaviour
     // pokazywanej postaci; nazwa ujęcia jest na ekranie, żeby dało się ją podać.
     string[] pozy = new string[0];
     int poza;
+    public const string PozaZPostawa = "Idle + postawa";
+
+    // DOŁOŻONA POSTAWA (właściciel 16.11, 21:06: Patryk „chujowo stoi, jak taka łajza”).
+    // Zmierzone najpierw, żeby nie poprawiać czegoś, co nie jest zepsute: jego „Idle” ma
+    // najprostszy kręgosłup ze wszystkich dziesięciu jego spoczynków (pochylenie 0,12 stopnia
+    // wobec 10,55 u najgorszego), a kąty ramion są w tym samym zakresie co u kapitana i Ewy.
+    // Nic nie jest zepsute — poza jest po prostu IDEALNIE SYMETRYCZNA: stopy razem, ręce prosto
+    // wzdłuż ciała, zero przeniesienia ciężaru. Tak stoi manekin, nie człowiek.
+    // To jest dołożone NA WIERZCH nagrania, nie zamiast niego: ramiona odchylone od tułowia,
+    // łokcie lekko zgięte, ciężar na jednej nodze, biodro przesunięte. Działa tylko w pokoju
+    // prób i tylko gdy właściciel wybierze tę pozycję przyciskiem — do gry nic nie wchodzi,
+    // dopóki nie powie, że ma wejść.
+    static readonly (string kosc, Vector3 kat)[] Postawa =
+    {
+        ("LeftArm",      new Vector3(0f, 0f,  7f)),
+        ("RightArm",     new Vector3(0f, 0f, -7f)),
+        ("LeftForeArm",  new Vector3(0f, 12f, 0f)),
+        ("RightForeArm", new Vector3(0f,-12f, 0f)),
+        ("Spine",        new Vector3(0f, 0f,  2.5f)),
+        ("LeftUpLeg",    new Vector3(0f, 0f, -2.5f)),
+        ("RightUpLeg",   new Vector3(4f, 0f,  1.5f)),
+        ("Hips",         new Vector3(0f, 0f, -1.5f)),
+    };
+
+    void DolozPostawe(Animation a)
+    {
+        var korzenK = a.transform.Find("mixamorig:Hips");
+        if (!korzenK) return;
+        foreach (var (nazwaK, kat) in Postawa)
+        {
+            Transform b = null;
+            foreach (var tr in korzenK.GetComponentsInChildren<Transform>(true))
+                if (tr.name.EndsWith(nazwaK, System.StringComparison.Ordinal)) { b = tr; break; }
+            if (b) b.localRotation *= Quaternion.Euler(kat);
+        }
+    }
 
     void ZbierzPozy(Animation a)
     {
@@ -79,6 +118,7 @@ public sealed class BraxPokazPostaci : MonoBehaviour
         lista.Sort(System.StringComparer.Ordinal);
         int i = lista.IndexOf("Idle");
         if (i > 0) { lista.RemoveAt(i); lista.Insert(0, "Idle"); }   // własny spoczynek pierwszy
+        lista.Add(PozaZPostawa);   // ostatnia pozycja: własny Idle + dołożona postawa
         pozy = lista.ToArray();
         poza = 0;
     }
@@ -114,6 +154,9 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                 korzen.localRotation = Quaternion.Euler(0, 180f, 0);
 
                 ZbierzPozy(a);
+                // W próbie mrugnięcie ma być widać kilka razy, a nie raz na ujęcie.
+                foreach (var m in a.GetComponentsInChildren<BraxMimikaOsiedla>(true))
+                    m.odstepMrugania = .4f;
                 int nrEtapu = -1;
                 foreach (var (klip, opis) in Etapy)
                 {
@@ -141,27 +184,48 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                     // (właściciel 16.11, 20:34: „chcę widzieć jak się obracają, każdy profil”).
                     // GŁOS: w rozmowie leci nagranie, a mimika jedzie z jego ścieżki, więc usta
                     // chodzą do tego, co słychać.
-                    AudioSource zrodlo = null;
+                    // ROZMOWA: KAMERA NA TWARZ i KILKA NAGRAŃ POD RZĄD.
+                    // Właściciel 16.11, 21:06: „nie widać jak ustami ruszają w ogóle, za słabo,
+                    // więcej tekstu potrzebuję, żeby było widać normalnie jak mrugają”.
+                    // Przyczyna nie była w sile mimiki, tylko w kadrze: kamera stała 3,1 m od
+                    // postaci, więc twarz miała na telefonie około stu pikseli. Przy takim ujęciu
+                    // nie da się ocenić ani ust, ani powiek, choćby chodziły idealnie.
+                    zblizenie = rozmowa;
                     if (rozmowa)
                     {
                         var mim = a.GetComponentInChildren<BraxMimikaOsiedla>();
-                        zrodlo = a.GetComponent<AudioSource>();
-                        if (!zrodlo) zrodlo = a.gameObject.AddComponent<AudioSource>();
-                        zrodlo.spatialBlend = 0f;
-                        zrodlo.playOnAwake = false;
-                        if (!zrodlo.clip) zrodlo.clip = Resources.Load<AudioClip>("OsiedleGlosy/" + Kwestia);
-                        if (zrodlo.clip)
+                        var zrodlo2 = a.GetComponent<AudioSource>();
+                        if (!zrodlo2) zrodlo2 = a.gameObject.AddComponent<AudioSource>();
+                        zrodlo2.spatialBlend = 0f;
+                        zrodlo2.playOnAwake = false;
+                        // GŁOS WEDŁUG PŁCI. Nagrania mają w nazwie _f i _m — wcześniej brałem
+                        // pierwsze z brzegu i kobieta dostawała męski głos (właściciel 16.11, 21:08).
+                        bool ona = kto < kobieta.Length && kobieta[kto];
+                        var wszystkie = Resources.LoadAll<AudioClip>("OsiedleGlosy");
+                        var pasujace = new System.Collections.Generic.List<AudioClip>();
+                        foreach (var k in wszystkie)
+                            if (k && k.name.EndsWith(ona ? "_f" : "_m", System.StringComparison.Ordinal))
+                                pasujace.Add(k);
+                        var nagrania = pasujace.Count > 0 ? pasujace.ToArray() : wszystkie;
+                        for (int n = 0; n < NagranPodRzad; n++)
                         {
-                            zrodlo.Play();
-                            if (mim) mim.Wypowiedz(zrodlo);
-                            etap = opis + "  ♪ " + zrodlo.clip.name;
+                            var klipGlosu = nagrania != null && nagrania.Length > 0
+                                ? nagrania[(kto * 7 + n * 13) % nagrania.Length]
+                                : Resources.Load<AudioClip>("OsiedleGlosy/" + Kwestia);
+                            if (!klipGlosu) { etap = opis + " — brak nagrań głosu"; break; }
+                            zrodlo2.clip = klipGlosu;
+                            zrodlo2.Play();
+                            if (mim) mim.Wypowiedz(zrodlo2);
+                            etap = opis + "  ♪ " + (n + 1) + "/" + NagranPodRzad + (ona ? "  (głos kobiecy)" : "");
+                            float koniecGlosu = Time.time + klipGlosu.length + .25f;
+                            while (Time.time < koniecGlosu) yield return null;
                         }
-                        else etap = opis + " — brak nagrania głosu";
+                        if (zrodlo2.isPlaying) zrodlo2.Stop();
+                        zblizenie = false;
+                        continue;
                     }
 
-                    float dlugosc = obrot ? ObrotSekund
-                                  : (rozmowa && zrodlo && zrodlo.clip
-                                        ? Mathf.Max(naEtap, zrodlo.clip.length + .4f) : naEtap);
+                    float dlugosc = obrot ? ObrotSekund : naEtap;
                     float start = Time.time, do_ = start + dlugosc;
                     while (Time.time < do_)
                     {
@@ -173,7 +237,6 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                         yield return null;
                     }
                     if (obrot) korzen.localRotation = Quaternion.Euler(0, 180f, 0);
-                    if (zrodlo && zrodlo.isPlaying) zrodlo.Stop();
                 }
                 korzen.localPosition = staraPoz;
                 korzen.localRotation = staryObrot;
@@ -186,9 +249,22 @@ public sealed class BraxPokazPostaci : MonoBehaviour
         if (kto < 0 || kto >= postacie.Length || !postacie[kto] || !kamera) return;
         // Kamera stoi przed postacią na wysokości piersi i trzyma ją w kadrze przez cały pokaz.
         var stopy = postacie[kto].transform.position;
+        if (zblizenie)
+        {
+            // Zbliżenie na twarz: 0,62 m od głowy. Usta i powieki zajmują wtedy realną część
+            // ekranu, więc widać, czy naprawdę chodzą.
+            var glowa = postacie[kto].transform.Find("mixamorig:Hips/mixamorig:Spine/mixamorig:Spine1/mixamorig:Spine2/mixamorig:Neck/mixamorig:Head");
+            var celGlowy = glowa ? glowa.position + Vector3.up * (.08f * SKALA)
+                                 : stopy + Vector3.up * (1.62f * SKALA);
+            kamera.transform.position = celGlowy + new Vector3(0f, .02f * SKALA, -.62f * SKALA);
+            kamera.transform.LookAt(celGlowy);
+            return;
+        }
         var cel = stopy + Vector3.up * (1.15f * SKALA);
         kamera.transform.position = stopy + new Vector3(0f, 1.35f * SKALA, -3.1f * SKALA);
         kamera.transform.LookAt(cel);
+        if (pozy.Length > 0 && pozy[Mathf.Clamp(poza, 0, pozy.Length - 1)] == PozaZPostawa)
+            DolozPostawe(postacie[kto]);
         if (nagrywa) klatka++;
     }
 
@@ -207,20 +283,26 @@ public sealed class BraxPokazPostaci : MonoBehaviour
         // Przycisk przestawia materiał wszystkim postaciom naraz, bez budowania nowego APK.
         // Właściciel wybiera na oko i podaje numer — wtedy wpisuję go na stałe w ModelObsady.
         var przyciskStyl = new GUIStyle(GUI.skin.button) { fontSize = Mathf.RoundToInt(Screen.height * .022f) };
-        if (GUI.Button(new Rect(Screen.width - 330, Screen.height - 150, 300, 90),
+        if (GUI.Button(new Rect(Screen.width - 24 - Mathf.Min(360, Screen.width * .52f), Screen.height - 160, Mathf.Min(360, Screen.width * .52f), 92),
                        "MATERIAŁ: " + Ustawienia[wariant].nazwa, przyciskStyl))
         {
             wariant = (wariant + 1) % Ustawienia.Length;
             ZastosujMaterial();
         }
         if (pozy.Length > 1 &&
-            GUI.Button(new Rect(Screen.width - 330, Screen.height - 250, 300, 90),
+            GUI.Button(new Rect(Screen.width - 24 - Mathf.Min(360, Screen.width * .52f), Screen.height - 262, Mathf.Min(360, Screen.width * .52f), 92),
                        "POZA: " + pozy[Mathf.Clamp(poza, 0, pozy.Length - 1)] +
                        "  (" + (poza + 1) + "/" + pozy.Length + ")", przyciskStyl))
         {
             poza = (poza + 1) % pozy.Length;
             var a = postacie[Mathf.Clamp(kto, 0, postacie.Length - 1)];
-            if (a && a.GetClip(pozy[poza]))
+            if (a && pozy[poza] == PozaZPostawa && a.GetClip("Idle"))
+            {
+                a["Idle"].wrapMode = WrapMode.Loop;
+                a.CrossFade("Idle", .25f);
+                Debug.Log("BRAX_POKAZ_POZA Idle + dołożona postawa");
+            }
+            else if (a && a.GetClip(pozy[poza]))
             {
                 a[pozy[poza]].wrapMode = WrapMode.Loop;
                 a.CrossFade(pozy[poza], .25f);
