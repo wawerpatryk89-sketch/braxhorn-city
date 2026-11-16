@@ -29,6 +29,17 @@ public sealed class BraxGymPlayer : MonoBehaviour
         return true;
     }
 
+    public bool MozeZjesc => ready && !paused && clips && clips.GetClip("Eat") &&
+        !seat && !vessel && !autoGracza && !skokWTrakcie && Time.time >= actionEnd;
+
+    public bool Zjedz()
+    {
+        if (!MozeZjesc) return false;
+        StartAction("Eat",1f,-1f);
+        actionEnd = Time.time + clips["Eat"].length;
+        return true;
+    }
+
     public void OdstawSzklanke()
     {
         if (szklanka && szklanka.gameObject.activeSelf) szklanka.Schowaj();

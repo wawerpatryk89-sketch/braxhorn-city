@@ -25,6 +25,21 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
     bool powrot, powitany;
     int wizyty;
     float kontrola, przerwa, nastepnaWizyta, tlo;
+    float nastepnyPosilek, koniecPosilku;
+    bool pijeDoPosilku;
+    public bool PodajPosilek(bool woda)
+    {
+        string klip = woda ? "Drink" : "Eat";
+        if (!ruch || !ruch.GetClip(klip) || !ruch.IsPlaying("Idle") || mowi == this ||
+            (pokazCiosow && pokazCiosow.Trwa) || przyBarze) return false;
+        var stan = ruch[klip];
+        stan.wrapMode = WrapMode.Once;
+        stan.time = 0f;
+        ruch.CrossFade(klip,.14f,PlayMode.StopAll);
+        koniecPosilku = Time.time + stan.length;
+        return true;
+    }
+
     float Ton => kobieta ? 1.22f : 1f;
     const float Blisko = 3.5f, Odejscie = 5.4f;
 
@@ -44,6 +59,7 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
         Graj(zajecie);
         if (ruch && ruch[zajecie] != null) ruch[zajecie].normalizedTime = Mathf.Repeat(drugaRozmowa * .173f, 1f);
         tlo = Time.time + 8f;
+        nastepnyPosilek = Time.time + 18f + drugaRozmowa*2.3f;
     }
 
     void Graj(string klip)
@@ -63,6 +79,21 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
     void Update()
     {
         if (!gracz || (pokazCiosow && pokazCiosow.Trwa)) return;
+        if (koniecPosilku > 0f)
+        {
+            if (Time.time < koniecPosilku) return;
+            koniecPosilku = 0f;
+            Graj(zajecie);
+        }
+        if (Time.time >= nastepnyPosilek)
+        {
+            nastepnyPosilek = Time.time + 42f + drugaRozmowa*2.7f;
+            if (BraxPoczestunek.Blisko(transform.position) && PodajPosilek(pijeDoPosilku))
+            {
+                pijeDoPosilku = !pijeDoPosilku;
+                return;
+            }
+        }
         if (obracaSie)
         {
             transform.rotation = Quaternion.RotateTowards(transform.rotation,obrotRozmowy,115f*Time.deltaTime);
@@ -79,7 +110,7 @@ public sealed class BraxZnajomyPatryka : MonoBehaviour
             BraxZnajomyPatryka najblizszy = this;
             foreach (var osoba in obecni)
             {
-                if (osoba == this || osoba.powitany || Time.time < osoba.nastepnaWizyta) continue;
+                if (osoba == this || osoba.koniecPosilku > Time.time || osoba.powitany || Time.time < osoba.nastepnaWizyta) continue;
                 float odleglosc = Vector3.Distance(osoba.transform.position, gracz.position);
                 if (odleglosc >= d || !osoba.Widzi(gracz)) continue;
                 d = odleglosc;

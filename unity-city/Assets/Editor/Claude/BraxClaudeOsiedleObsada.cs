@@ -10,6 +10,7 @@ public static partial class BraxClaudeOsiedle
         root.GetComponentsInChildren<Transform>(true).First(t => t.name.EndsWith(nazwa, StringComparison.Ordinal));
 
     // Three anatomical directions at the reference grip, including the thumb side, work on mirrored avatars.
+    [Serializable] sealed class UchwytButelki { public Vector3 dno; }
     [Serializable] sealed class ProbkiChwytu { public Vector3[] przesuniecia; }
 
     static Vector3 WektorChwytu(Transform root, string bok, Vector3 skladniki)
@@ -200,6 +201,8 @@ public static partial class BraxClaudeOsiedle
         string profilSzklanki = folder + "ChwytNapoju.json";
         if (!(osiedle && (id == "patryk" || id == "gitara")) && System.IO.File.Exists(profilSzklanki))
             DodajSzklankeModelu(anim, profilSzklanki);
+        var jedzenie = folder + "ChwytJedzenia.json";
+        if (anim.GetClip("Eat") && System.IO.File.Exists(jedzenie)) DodajJedzenie(anim, jedzenie);
         return anim;
     }
 
@@ -280,8 +283,10 @@ public static partial class BraxClaudeOsiedle
         var nalewanie = st.ruch.GetClip("Pour");
         nalewanie.SampleAnimation(st.ruch.gameObject,BraxBarDyskoteki.Bierze-BraxBarDyskoteki.Poczatek);
         st.osButelkiWRece = st.dlon.InverseTransformDirection(Vector3.up);
-        var stojak = st.dlon.position + WektorChwytu(st.ruch.transform,"Right",
-            new Vector3(.4217686f,.0825908f,.0113165f))*K;
+        var przyBlacie = AssetDatabase.LoadAssetAtPath<TextAsset>(BraxObsadaImport.KatalogBaru+"ButelkaPrzyBlacie.json");
+        var chwyt = przyBlacie ? JsonUtility.FromJson<UchwytButelki>(przyBlacie.text).dno
+            : new Vector3(.4217686f,.0825908f,.0113165f);
+        var stojak = st.dlon.position + WektorChwytu(st.ruch.transform,"Right",chwyt)*K;
         st.dnoWRece = st.dlon.InverseTransformPoint(stojak);
         var daneChwytu = AssetDatabase.LoadAssetAtPath<TextAsset>(BraxObsadaImport.KatalogBaru+"Chwyt.json");
         if (!daneChwytu) throw new InvalidOperationException("Brak Chwyt.json");
@@ -339,6 +344,14 @@ public static partial class BraxClaudeOsiedle
         prowadzony.szklanka = DoReki(prowadzony.clips,gracz,new Vector3(.1120149f,-.0155896f,.0373275f),
             new Vector3(.15388f,.98686f,-.04926f),.0200831f,.10207736f);
         prowadzony.szklanka.Schowaj();
+        if (prowadzony.clips.GetClip("Eat"))
+        {
+            float x = AxisX + Half + 62f - 1.65f;
+            float z = StreetZ + Half + 6.30f + 1.35f*K;
+            var owoc = Jablko(.039f*K,new Vector3(x,.96f*K,z));
+            owoc.transform.SetParent(rodzic,true);
+            owoc.AddComponent<BraxPoczestunek>().gracz = prowadzony;
+        }
         klubBar.gracz = prowadzony;
         prowadzony.bar = klubBar;
 

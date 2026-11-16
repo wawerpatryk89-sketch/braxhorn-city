@@ -14,7 +14,13 @@ public sealed class BraxMimikaOsiedla : MonoBehaviour
     readonly float[] probki = new float[256];
     float nastepne, poczatek, usta, zaokraglenie;
 
-    void Awake() { material = new MaterialPropertyBlock(); }
+    AnimationState jedzenie;
+    void Awake()
+    {
+        material = new MaterialPropertyBlock();
+        var ruch = GetComponent<Animation>();
+        if (ruch && ruch.GetClip("Eat")) jedzenie = ruch["Eat"];
+    }
 
     void OnEnable()
     {
@@ -89,6 +95,14 @@ public sealed class BraxMimikaOsiedla : MonoBehaviour
             : 1f-Mathf.SmoothStep(0f,1f,(faza-.084f)/.12f);
         Vector2 gloski = RuchWarg();
         float cel = gloski.x;
+        if (jedzenie != null && jedzenie.enabled && !(glos && glos.isPlaying))
+        {
+            float czasJedzenia = Mathf.Repeat(jedzenie.time,jedzenie.length);
+            float kes = Mathf.SmoothStep(0f,1f,Mathf.InverseLerp(.75f,1.20f,czasJedzenia))
+                * (1f-Mathf.SmoothStep(0f,1f,Mathf.InverseLerp(1.66f,1.94f,czasJedzenia)));
+            float zuje = Mathf.Clamp01((czasJedzenia-1.68f)*7f)*Mathf.Clamp01((3.9f-czasJedzenia)*3f);
+            cel = jedzenie.weight * (.30f*kes + .095f*zuje*(1f+Mathf.Cos((czasJedzenia-1.9f)*12.4f)));
+        }
         float szybkosc = cel>usta ? 36f : 28f;
         usta = Mathf.Lerp(usta,cel,1f-Mathf.Exp(-szybkosc*Time.deltaTime));
         twarz.SetBlendShapeWeight(szczeka,usta*100f);

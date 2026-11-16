@@ -37,7 +37,8 @@ public static partial class BraxClaudeOsiedle
         stan.spoczynek = profil.spoczynek;
         stan.rozmowa = profil.rozmowa;
         stan.kierunekRozmowy = profil.kierunek;
-        if (osiedle && !string.IsNullOrEmpty(profil.bar))
+        if (osiedle && !string.IsNullOrEmpty(profil.bar) &&
+            !(profil.bar == "Pour" && File.Exists(BraxObsadaImport.KatalogBaru+"ButelkaPrzyBlacie.json")))
         {
             stan.klipPrzyBarze = profil.bar;
             stan.lewaPrzyBarze = profil.lewa;
