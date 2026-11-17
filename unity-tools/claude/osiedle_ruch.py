@@ -190,6 +190,14 @@ def prepare(source, output):
     from osiedle_obrys import refine_outline
 
     refine_outline(ms[0], up)
+
+    # WYGŁADZENIE WAG NA STAWACH. Zmierzone na paczce wejściowej: 43–68 % wierzchołków
+    # trzyma jedna albo dwie kości, więc na zgięciu robi się załamanie zamiast fałdy.
+    # Szczegóły i liczby w osiedle_wagi.py.
+    from osiedle_wagi import wygladz_wagi
+
+    for mesh in ms:
+        wygladz_wagi(mesh, r)
     acts = {
         a.name.rsplit("|", 1)[-1]: a
         for a in bpy.data.actions
