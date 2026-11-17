@@ -58,9 +58,9 @@ jobs:
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
         path: unity-city/Assets/Source/ObsadaOsiedla
-        key: postacie-przerobione-v5-${{ hashFiles('unity-tools/claude/osiedle_ruch.py','unity-tools/claude/osiedle_twarz.py','unity-tools/claude/osiedle_odstep.py','unity-tools/claude/pobierz_obsade.py') }}-${{ github.run_id }}
+        key: postacie-przerobione-v6-${{ hashFiles('unity-tools/claude/*.py','unity-tools/claude/pokoj-prob/*.py') }}-${{ github.run_id }}
         restore-keys: |
-          postacie-przerobione-v5-${{ hashFiles('unity-tools/claude/osiedle_ruch.py','unity-tools/claude/osiedle_twarz.py','unity-tools/claude/osiedle_odstep.py','unity-tools/claude/pobierz_obsade.py') }}-
+          postacie-przerobione-v6-${{ hashFiles('unity-tools/claude/*.py','unity-tools/claude/pokoj-prob/*.py') }}-
 
     - name: Pamiec podreczna Library Unity
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
