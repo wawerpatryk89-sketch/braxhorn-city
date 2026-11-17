@@ -50,6 +50,12 @@ class OwnerRoofSkyBull(unittest.TestCase):
         hdri_az = math.degrees((0.5 - 0.600) * 2 * math.pi)
         self.assertAlmostEqual(hdri_az - sun_az, 19.0, delta=.3)
         self.assertIn("unity-city/Assets/Source/Mistrzowie/Sky/", (ROOT / ".gitignore").read_text())
+        # the preview reads the panorama as the game's glass does (1 - acos(y)/pi; RGBELoader flips the .hdr): 17.11 it was upside down
+        shader = (ROOT / "unity-city/Assets/Mistrzowie/BraxChampionsPBR.shader").read_text()
+        self.assertIn("1 - acos(clamp(rr.y,-1,1)) / UNITY_PI", shader)
+        render = (TOOLS / "hotel_sobczak_preview/render3d.js").read_text()
+        self.assertIn("1.-acos(clamp(r.y,-1.,1.))/3.14159265", render)
+        self.assertIn("PREVIEW_SKY_ROT || '19.0'", render)
 
     def test_arena_roof_bull(self):
         import build_arena_roof_bull as b

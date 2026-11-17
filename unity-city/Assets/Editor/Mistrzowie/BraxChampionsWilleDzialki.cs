@@ -358,7 +358,7 @@ public static class BraxChampionsWilleDzialki
         for (int i = 0; i < n; i++)
         {
             if (i > 0) s += Vector2.Distance(p[i - 1], p[i]);
-            var dir = (p[Mathf.Min(i + 1, n - 1)] - p[Mathf.Max(i - 1, 0)]).normalized; var nn = new Vector2(-dir.y, dir.x);
+            var dir = Kierunek(p, i); var nn = new Vector2(-dir.y, dir.x);
             foreach (float side in new[] { -1f, 1f })
             {
                 var q = p[i] + nn * side * hw; v.Add(new Vector3(q.x, d.drogaY[i], q.y) * K); uv.Add(new Vector2(side * hw, s));
@@ -391,6 +391,16 @@ public static class BraxChampionsWilleDzialki
         // the street mouth across the city sidewalk (layout.WILLE_MOUTHS): north for the hill, east for the seafront
         var m = Mouth(d);
         BraxChampionsDriveMouth.Build(g, m, asfalt, chodnik, krawez);
+    }
+    // the road's direction at point i: the central chord inside, at the two ends the tangent (1.5 x the last chord - 0.5 x the
+    // one before: exact on an arc), so the end square to the road meets the gate's paving edge to edge (the hill's road ends on
+    // an arc: its last chord 1.4 deg off would push an 8 cm sliver of asphalt over the drive's paving)
+    static Vector2 Kierunek(Vector2[] p, int i)
+    {
+        int n = p.Length;
+        if (n < 3 || (i > 0 && i < n - 1)) return (p[Mathf.Min(i + 1, n - 1)] - p[Mathf.Max(i - 1, 0)]).normalized;
+        Vector2 c1 = i == 0 ? p[1] - p[0] : p[n - 1] - p[n - 2], c2 = i == 0 ? p[2] - p[1] : p[n - 2] - p[n - 3];
+        return (1.5f * c1.normalized - .5f * c2.normalized).normalized;
     }
     static void Tri(List<Vector3> v, List<int> t, int a, int b, int c)
     {

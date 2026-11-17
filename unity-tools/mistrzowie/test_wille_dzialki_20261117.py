@@ -47,6 +47,20 @@ class Sites(unittest.TestCase):
         self.assertLess(grade, .10)                                          # the hill roads of Los Angeles: 10-15 %
         self.assertIn("new[] { (0f, .16f), (53f, .16f), (198.5f, 3.0f) }, 3.0f);", SITES)
 
+    def test_the_road_ends_square_at_the_gate(self):
+        # the hill's road ends on an R 20 arc: its last chord (32 steps, 2.8 deg) is 1.4 deg off the tangent - the end built
+        # on the chord pushed an 8 cm sliver of asphalt over the drive's paving (z-fight); 1.5 c1 - 0.5 c2 is the tangent
+        self.assertIn("var dir = Kierunek(p, i);", SITES)
+        self.assertIn("return (1.5f * c1.normalized - .5f * c2.normalized).normalized;", SITES)
+        n = math.ceil(math.radians(90) * 20)
+        pts = [(639 + 20 * math.cos(math.radians(90 - 90 * i / n)), 1216 + 20 * math.sin(math.radians(90 - 90 * i / n))) for i in range(n + 1)]
+        def unit(a, b):
+            d = (b[0] - a[0], b[1] - a[1]); l = math.hypot(*d); return (d[0] / l, d[1] / l)
+        c1, c2 = unit(pts[-2], pts[-1]), unit(pts[-3], pts[-2])
+        t = (1.5 * c1[0] - .5 * c2[0], 1.5 * c1[1] - .5 * c2[1])
+        self.assertLess(abs(math.degrees(math.atan2(t[0], -t[1]))), .01)    # due south into the gate at z 1216
+        self.assertGreater(abs(math.degrees(math.atan2(c1[0], -c1[1]))), 1.3)
+
     def test_the_ground_never_lets_the_player_fall(self):
         self.assertIn("go.AddComponent<MeshCollider>().sharedMesh = mesh;", SITES)    # ground, road
         self.assertIn("W.Kolizja(new Vector3(mid.x, (y + y1) * .5f + 1.5f, mid.y) * K, new Vector3(.2f, 3f + Mathf.Abs(y1 - y), l) * K", SITES)  # behind the fences

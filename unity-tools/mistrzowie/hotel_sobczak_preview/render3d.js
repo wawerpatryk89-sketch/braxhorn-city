@@ -25,7 +25,7 @@ const GROUND_BANDS = process.env.PREVIEW_GROUND_BANDS || '[]';
 // PREVIEW_SKY_ROT degrees, exposure PREVIEW_SKY_EXPO) as the background, and in the tower glass (materials whose pbr has
 // "glass": Braxhorn/ChampionsPBR _SKY_GLASS, the same formula as the game's shader)
 const SKY_HDR = process.env.PREVIEW_SKY_HDR || '';
-const SKY_ROT = parseFloat(process.env.PREVIEW_SKY_ROT || '20.8'), SKY_EXPO = parseFloat(process.env.PREVIEW_SKY_EXPO || String(1.18 * .9834));
+const SKY_ROT = parseFloat(process.env.PREVIEW_SKY_ROT || '19.0'), SKY_EXPO = parseFloat(process.env.PREVIEW_SKY_EXPO || String(.89 * .9834));   // sunflowers_puresky (owner 17.11)
 const html = `<!doctype html><html><body style="margin:0;background:#9fc2e5">
 <script type="importmap">{"imports":{"three":"http://preview.local/three/build/three.module.js","three/addons/":"http://preview.local/three/examples/jsm/"}}</script>
 <script type="module">
@@ -37,9 +37,11 @@ import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 const process_flat=${FLAT};const MODELS_NEAR=${JSON.stringify(MODELS_NEAR)};const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const PALM_SCALE=${PALM_SCALE};const PALM_HALF=${PALM_HALF};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};const SKY=${JSON.stringify(SKY_HDR?'yes':'')};const SKY_ROT=${SKY_ROT};const SKY_EXPO=${SKY_EXPO};
-// Unity's Skybox/Panoramic lookup of a Unity-space direction (three.js z mirrored), turned by the sky's rotation
+// Unity's Skybox/Panoramic lookup of a Unity-space direction (three.js z mirrored), turned by the sky's rotation; v = 1 -
+// acos(y)/pi as BraxChampionsPBR _SKY_GLASS: RGBELoader uploads the .hdr with flipY, the zenith row at v 1 (until 17.11 the
+// preview read v = acos(y)/pi - the panorama upside down, the ground fill of a puresky smeared over the sky)
 const PANO='vec2 panoUV(vec3 d){float s=sin(radians(skyRot)),c=cos(radians(skyRot));vec3 r=vec3(c*d.x-s*d.z,d.y,s*d.x+c*d.z);'+
-  'return vec2(.5-atan(r.z,r.x)/(2.*3.14159265),acos(clamp(r.y,-1.,1.))/3.14159265);}';
+  'return vec2(.5-atan(r.z,r.x)/(2.*3.14159265),1.-acos(clamp(r.y,-1.,1.))/3.14159265);}';
 async function bin(n){const r=await fetch('http://preview.local/bin/'+n);return new Float32Array(await r.arrayBuffer());}
 const tl=new THREE.TextureLoader();
 function tex(url,srgb){return new Promise(res=>tl.load(url,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(srgb)t.colorSpace=THREE.SRGBColorSpace;res(t);},undefined,()=>res(null)));}
