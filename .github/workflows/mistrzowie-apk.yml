@@ -334,15 +334,29 @@ jobs:
           python3 unity-tools/mistrzowie/verify_previous_apk.py
       - name: Prepare runner disk and 12 GiB Unity swap
         run: |
-          # Keep the host Android SDK: APK certificate/identity verification needs it.
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/share/swift /usr/local/share/powershell
+          # Keep the host Android SDK's build-tools, platforms and platform-tools: APK certificate/identity verification
+          # needs aapt, apksigner and android.jar. #46 (17.11) died of "No space left on device" in Unity's import, so
+          # everything else the host never uses goes too: the SDK's NDKs, CMake and emulator (Unity builds in its own
+          # image, the picker compiles with its JDK), the whole tool cache (python3 here is /usr/lib/python3), browsers,
+          # Azure CLI, Boost, Julia, Miniconda, Homebrew.
+          sdk="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache /usr/share/swift /usr/local/share/powershell \
+            "$sdk/ndk" "$sdk/ndk-bundle" "$sdk/cmake" "$sdk/emulator" "$sdk/system-images" \
+            /usr/local/share/boost /usr/local/share/chromium /opt/google /opt/microsoft /opt/az /usr/share/miniconda \
+            /usr/local/julia* /home/linuxbrew
+          test -d "$sdk/build-tools" && test -d "$sdk/platforms"
           sudo apt-get clean
           sudo docker image prune --all --force
-          sudo fallocate -l 12G /swapfile-mistrzowie
-          sudo chmod 600 /swapfile-mistrzowie
-          sudo mkswap /swapfile-mistrzowie
-          sudo swapon /swapfile-mistrzowie
-          df -h /
+          # the swap on the runner's temporary disk when it has one with room, else on /
+          swap=/swapfile-mistrzowie
+          if mountpoint -q /mnt && [ "$(df --output=avail -BG /mnt | tail -1 | tr -dc 0-9)" -ge 20 ]; then swap=/mnt/swapfile-mistrzowie; fi
+          sudo fallocate -l 12G "$swap"
+          sudo chmod 600 "$swap"
+          sudo mkswap "$swap"
+          sudo swapon "$swap"
+          echo "BRAX_SWAP $swap"
+          df -h / /mnt 2>/dev/null || df -h /
           free -h
       - name: Cache original public PBR source maps
         continue-on-error: true
@@ -453,6 +467,15 @@ jobs:
         run: |
           rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
           df -h /
+          # #46 (17.11): the restored Library (~22 GB) did not spare Unity its reimport (19 617 imports in 87 min, 1 275
+          # textures) and with it the disk ran out mid-import; #43's clean import used 54 GB. The GUID sidecars are in
+          # Assets already (library_cache.sh), so below 85 GB free the restored Library goes: a clean import as #43.
+          avail=$(df --output=avail -BG / | tail -1 | tr -dc 0-9)
+          if [ "$avail" -lt 85 ] && [ -d unity-city/Library ]; then
+            rm -rf unity-city/Library
+            echo "BRAX_LIBRARY_DROPPED free=${avail}G < 85G: clean import"
+            df -h /
+          fi
       - name: Drop stale Android Bee output and recheck single picker provider
         if: ${{ inputs.etap != 'sceny' }}
         run: |
