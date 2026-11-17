@@ -388,6 +388,14 @@ public static class BraxChampionsHarbour
         YachtNamesBuilt++;
     }
 
+    // owner 17.11 ("na wyspie ... mały pomostek, miejsce na motorówkę"): the island villa's own Riva at its jetty - the marina's
+    // owner GLB at its real 8.5 m (owner 10.11 "wszystko w skalę": no yacht squeezed small) and BraxVessel to take it out
+    public static int PrywatnaLodz(Transform parent,string id,string kind,float x,float z,float yaw,float width,float accessX,float accessZ,float pierY)
+    {
+        var sources=new Dictionary<string,GameObject>();PrepareOriginalLibrary(sources);
+        var bay=new BraxChampionsFoundation.Berth{id=id,kind=kind,x=x,z=z,yaw=yaw,width=width,accessX=accessX,accessZ=accessZ};
+        return PlaceBoat(parent,bay,sources[kind],pierY);
+    }
     static int PlaceBoat(Transform parent,BraxChampionsFoundation.Berth bay,GameObject original,float pierY)
     {
         if(original==null)throw new ArgumentNullException(nameof(original));

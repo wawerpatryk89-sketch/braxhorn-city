@@ -6,5 +6,6 @@ public static class BraxChampionsHarbour
     public static Material Surface(string id, Color c, float rough, float metal, Color? emission = null, bool transparent = false)
         => new Material { name = "Champions harbour " + id, color = c, roughness = rough, metallic = metal, emission = emission ?? Color.black };
     public static Material Nakladka(Material m) => m;     // the depth offset of paint: nothing to draw differently in the preview
+    public static int PrywatnaLodz(Transform parent, string id, string kind, float x, float z, float yaw, float width, float accessX, float accessZ, float pierY) => 0;   // the owner's GLBs are not in the preview
 }
 public sealed class BraxTelewizor : MonoBehaviour { public bool wlaczony = true, pion, maMiejsce; public float zasieg = 14f, zasiegPrzycisku = 3.2f; public Material obraz, wylaczony; public int start; public Vector3 srodekLokalny, przodLokalny = Vector3.forward; }
