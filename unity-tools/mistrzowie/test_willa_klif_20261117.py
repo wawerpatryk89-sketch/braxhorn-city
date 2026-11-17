@@ -28,7 +28,7 @@ class WillaKlif(unittest.TestCase):
         self.assertIn("BraxChampionsWilleKitSrodziemne.cs", proj)
 
     def test_real_clay_tiles_ivory_stucco_and_rock(self):
-        self.assertIn("'clay_roof_tiles_02','cliff_side')", PREP)          # Poly Haven, fetched by the build
+        self.assertIn("'clay_roof_tiles_02','cliff_side',", PREP)          # Poly Haven, fetched by the build
         self.assertIn('dachowka = BraxChampionsFoundation.SourceMaterial("willa_dachowka", "clay_roof_tiles_02", 2.5f', VILLA)
         self.assertIn('tynkKrem = BraxChampionsFoundation.SourceMaterial("willa_tynk_kremowy", "white_stucco_02", 2.0f, new Color(1.46f, 1.41f, 1.28f));', VILLA)
         self.assertIn('skala = BraxChampionsFoundation.SourceMaterial("willa_skala", "cliff_side", 1.83f', VILLA)
@@ -80,9 +80,9 @@ class WillaKlif(unittest.TestCase):
         # owner 11.11: plants only natural (Poly Haven), no stand-ins; the region's palms and its drzewo_verdant
         self.assertIn('var t = BraxRegion.Model("drzewo_verdant");', WKIT)
         self.assertIn('BraxRegion.Put(g, t, "WILLA | drzewo (drzewo_verdant)", new Vector3(x, y, z), (x * 31f + z * 17f) % 360f, 1f, false, 0f, 0f, false)', WKIT)
-        self.assertIn('BraxRegion.Put(g, tree, "WILLA 1 | wzgórze | drzewo", at, yaw, 1f, false, 6.5f * K)', SITES)
-        self.assertIn("for (int i = 0; i < 6000 && (palmy < 26 || drzewa < 40); i++)", SITES)
-        self.assertIn("if (Blisko(d, w, RoadHalf + 4.5f)) continue;", SITES)
+        self.assertIn('BraxRegion.Put(g, tree, "WILLA " + d.nr + " | " + d.nazwa + " | drzewo", at, yaw, 1f, false, 6.5f * K)', SITES)
+        self.assertIn("for (int i = 0; i < 6000 && (palmy < maxP || drzewa < maxD); i++)", SITES)
+        self.assertIn("if (hill && Blisko(d, w, RoadHalf + 4.5f)) continue;", SITES)
         self.assertIn("Zielen(g, d);", SITES)
         self.assertGreaterEqual(PLAN.count("Palma("), 2)
         self.assertGreaterEqual(PLAN.count("Drzewo("), 2)

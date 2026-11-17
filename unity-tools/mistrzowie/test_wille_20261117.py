@@ -16,7 +16,8 @@ SZAFA = (RT / "BraxChampionsSzafa.cs").read_text(encoding="utf-8")
 class Villas(unittest.TestCase):
     def test_three_finishes_one_plan(self):
         self.assertIn('public static readonly string[] Nazwy = { "WILLA 1", "WILLA 2", "WILLA 3" };', SRC)
-        self.assertIn("static Material ScianaParter(int nr) => nr == 2 ? stone : render;", SRC)
+        # 17.11 21:55: the island's Miami house white to the ground (BraxChampionsWillaWyspa) - the old plan builds villa 3 only
+        self.assertIn("static Material ScianaParter(int nr) => render;", SRC)
         self.assertIn("static Material ScianaPietro(int nr) => nr == 3 ? graphite : render;", SRC)
         self.assertIn("g.localPosition = srodek * K; g.localRotation = Quaternion.Euler(0f, yaw, 0f); g.localScale = Vector3.one * K;", SRC)
 

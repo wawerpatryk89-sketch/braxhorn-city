@@ -254,7 +254,7 @@ public static class BraxChampionsWilleDzialki
             Zielen(g, d);
             if (d.rodzaj != Rodzaj.Wyspa) Plot(b, d);
             if (d.woda) MurPodWoda(d);
-            if (d.rodzaj == Rodzaj.Wyspa) Pomost(b, d);
+            if (d.rodzaj == Rodzaj.Wyspa) { Pomost(b, d); Lodz(g, d); }
             b.Build(g, "WILLA " + d.nr + " | działka " + d.nazwa + " | detale", Folder, true, K);
             W.Zapisz("mistrzowie_wille_dzialka_" + d.nr);
             Kolizje += W.Kolizje - k0;
@@ -446,23 +446,29 @@ public static class BraxChampionsWilleDzialki
     public static int ZielenPalmy, ZielenDrzewa;
     static void Zielen(Transform g, Dzialka d)
     {
-        if (d.rodzaj != Rodzaj.Wzgorze) return;
+        if (d.rodzaj == Rodzaj.Nabrzeze) return;
+        // the hill: a garden of trees and palms; the island (his Miami photo): palms, a few trees, on its grass only, clear of
+        // the way from the stair to the jetty
+        bool hill = d.rodzaj == Rodzaj.Wzgorze;
+        int maxP = hill ? 26 : 22, maxD = hill ? 40 : 8; float maxOd = hill ? 27f : 22f;
+        var ps = PomostStart(d);
         var palm = BraxMiastoAssety.Model("miasto_palmy", "palma");
         if (!palm) BraxBuildQuality.Warn("DO POPRAWKI WILLA_HILL_PALMS_MISSING: miasto_palmy/palma");
         var tree = BraxRegion.Model("drzewo_verdant");
         if (!tree) BraxBuildQuality.Warn("DO POPRAWKI WILLA_HILL_TREES_MISSING: drzewo_verdant");
-        var pd = BraxChampionsWille.Pad(d.nr); var rnd = new System.Random(1190);
+        var pd = BraxChampionsWille.Pad(d.nr); var rnd = new System.Random(hill ? 1190 : 400);
         float R(float a, float c) => a + (float)rnd.NextDouble() * (c - a);
         float sn = Mathf.Sin(d.yaw * Mathf.Deg2Rad), cs = Mathf.Cos(d.yaw * Mathf.Deg2Rad);
         var placed = new List<Vector2>();
         int palmy = 0, drzewa = 0;
-        for (int i = 0; i < 6000 && (palmy < 26 || drzewa < 40); i++)
+        for (int i = 0; i < 6000 && (palmy < maxP || drzewa < maxD); i++)
         {
             var l = new Vector2(R(pd.x - 32f, pd.y + 32f), R(pd.z - 30f, pd.w + 18f));
-            float od = OdPadu(d, l); if (od < 4.5f || od > 27f) continue;
+            float od = OdPadu(d, l); if (od < 4.5f || od > maxOd) continue;
             var w = d.srodek + new Vector2(l.x * cs + l.y * sn, -l.x * sn + l.y * cs);
-            if (Blisko(d, w, RoadHalf + 4.5f)) continue;
-            bool palma = palmy < 26 && (drzewa >= 40 || rnd.NextDouble() < .4);
+            if (hill && Blisko(d, w, RoadHalf + 4.5f)) continue;
+            if (!hill && (Grunt(d, w.x, w.y) < SeaY + .55f || (Mathf.Abs(w.x - ps.x) < 6f && w.y > ps.y - 30f))) continue;
+            bool palma = palmy < maxP && (drzewa >= maxD || rnd.NextDouble() < (hill ? .4 : .75));
             bool tooNear = false;
             foreach (var q in placed) if ((q - w).sqrMagnitude < 5f * 5f) { tooNear = true; break; }
             if (tooNear) continue;
@@ -470,7 +476,7 @@ public static class BraxChampionsWilleDzialki
             if (palma)
             {
                 palmy++; if (!palm) continue;
-                var o = BraxChampionsModel.Postaw(g, palm, "WILLA 1 | wzgórze | palma", at, yaw, 1f, false, true);
+                var o = BraxChampionsModel.Postaw(g, palm, "WILLA " + d.nr + " | " + d.nazwa + " | palma", at, yaw, 1f, false, true);
                 if (!o) continue;
                 BraxMiastoAssety.LodyZWezlow(o, new[] { .25f, .08f, .012f });
                 BraxChampionsPalmTrunk.OnSpot(o, at);
@@ -478,12 +484,23 @@ public static class BraxChampionsWilleDzialki
             else
             {
                 drzewa++; if (!tree) continue;
-                if (!BraxRegion.Put(g, tree, "WILLA 1 | wzgórze | drzewo", at, yaw, 1f, false, 6.5f * K)) continue;
+                if (!BraxRegion.Put(g, tree, "WILLA " + d.nr + " | " + d.nazwa + " | drzewo", at, yaw, 1f, false, 6.5f * K)) continue;
                 W.Kolizja(at + Vector3.up * 1.5f * K, new Vector3(.5f, 3f, .5f) * K, Quaternion.identity);   // the trunk
             }
             placed.Add(w);
         }
         ZielenPalmy += palmy; ZielenDrzewa += drzewa;
+    }
+
+    // owner 17.11 14:02 ("mały pomostek, miejsce na motorówkę, nie wiem, na mały jacht"): his Riva moored along the jetty's
+    // east side by its T head (BraxChampionsHarbour: the marina's own GLB at its real 8.5 m, BraxVessel to take it out to
+    // sea); the T head's 9 m face stays free for a small yacht
+    public static int Lodzie;
+    static void Lodz(Transform g, Dzialka d)
+    {
+        var s = PomostStart(d); float zb = s.y + PomostDl;
+        try { Lodzie += BraxChampionsHarbour.PrywatnaLodz(g, "W2", "motorboat", s.x + 3.0f, zb - 9f, 0f, 2.6f, s.x + .9f, zb - 9f, PomostY); }
+        catch (Exception e) { BraxBuildQuality.Warn("DO POPRAWKI WILLA_2_RIVA: " + e.Message); }
     }
 
     // post-and-rail fence (graphite steel) round a land patch FenceInset inside its edge, open to the region and at the

@@ -32,7 +32,9 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  'sparse_grass','rectangular_paving','checkered_pavement_tiles','rubberized_track','brushed_concrete','floor_tiles_02','wood_planks_grey','large_floor_tiles_02','hinoki_planks','rock_boulder_dry',
                  # 17.11 owner's villa photos ("zrób takie"): the Mediterranean villas' clay barrel tiles, the cliff under the
                  # hill villa's pool (a real eroded rock face, 1.83 m)
-                 'clay_roof_tiles_02','cliff_side')
+                 'clay_roof_tiles_02','cliff_side',
+                 # the island villa's tennis court: a smooth painted concrete (an acrylic hard court is paint on a slab), tinted
+                 'painted_concrete_02')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
 # (Poly Haven CC0), the original 4K Radiance .hdr checked against the provider's size and MD5 (BraxChampionsSky imports it

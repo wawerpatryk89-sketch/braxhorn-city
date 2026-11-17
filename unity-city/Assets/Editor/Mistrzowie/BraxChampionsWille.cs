@@ -48,6 +48,7 @@ public static partial class BraxChampionsWille
     public static int Zbudowane, Kolizje, Siedziska, Modele, Palmy, Drzewa;
     static BraxChampionsMeshBatch b, bw, kat;
     static Transform g;
+    static int nrWilli;                  // the villa being built (the plans that share the old terrain)
     static float pietro = FFL1;          // the upper floor of the plan being built (Siedz's colliders)
 
     static Material Inside(Material x, float a = .85f) { BraxChampionsInteriorLight.Apply(x, a); return x; }
@@ -89,6 +90,7 @@ public static partial class BraxChampionsWille
         // the hill villa's cliff (his photo: a pale warm rock face under the pool): Poly Haven cliff_side at its real 1.83 m
         skala = BraxChampionsFoundation.SourceMaterial("willa_skala", "cliff_side", 1.83f, new Color(1.12f, 1.08f, 1.02f));
         tynkBez = BraxChampionsFoundation.SourceMaterial("willa_tynk_bezowy", "white_stucco_02", 2.0f, new Color(1.12f, .94f, .74f));
+        if (nr == 2) render = elewacja;          // the island's Miami house in the scanned exterior stucco (17.11 "Te ściany są wykończone?")
         teak = BraxChampionsHarbour.Surface("willa_tik", new Color(.42f, .30f, .19f), .55f, 0f);
         cushion = BraxChampionsHarbour.Surface("willa_poduchy_lezakow", new Color(.92f, .91f, .88f), .85f, 0f);
         BraxKatalog.Materials(); BraxKatalog.HomeMaterials();
@@ -100,7 +102,7 @@ public static partial class BraxChampionsWille
     }
 
     // the finish of each volume per villa: 1 all white, 2 the ground floor clad in grey stone, 3 the upper floor graphite
-    static Material ScianaParter(int nr) => nr == 2 ? stone : render;
+    static Material ScianaParter(int nr) => render;                                 // 2: his Miami photo - white to the ground
     static Material ScianaPietro(int nr) => nr == 3 ? graphite : render;
 
     // ================================================================ public: one villa on its pad
@@ -109,6 +111,7 @@ public static partial class BraxChampionsWille
     public static Transform Willa(Transform parent, int nr, Vector3 srodek, float yaw)
     {
         nr = Mathf.Clamp(nr, 1, Ile);
+        nrWilli = nr;
         Materials(nr);
         g = new GameObject("MIASTO MISTRZÓW | " + Nazwy[nr - 1] + " na sprzedaż (WAWER NIERUCHOMOŚCI)").transform;
         g.position = Vector3.zero; g.rotation = Quaternion.identity; g.localScale = Vector3.one;
@@ -118,6 +121,7 @@ public static partial class BraxChampionsWille
         {
             pietro = FFL1;
             if (nr == 1) PlanKlif();                                        // owner 17.11: each villa its own (his photo: BraxChampionsWillaKlif)
+            else if (nr == 2) PlanWyspa();                                  // his Miami photo, the court, the jetty (BraxChampionsWillaWyspa)
             else { Teren(); Basen(); Jacuzzi_(); Bryla(nr); Garaz(); Wnetrze(nr); Wyposazenie(nr); Ogrod(nr); Palmy_(); }
             b.Build(g, Nazwy[nr - 1] + " | detale", Out + "/Meshes", true, 1f);
             kat.Build(g, Nazwy[nr - 1] + " | meble (katalog BRAXHORN HOME)", Out + "/Meshes", false, 1f);
@@ -225,7 +229,12 @@ public static partial class BraxChampionsWille
         // the limestone terrace round the pool (the pool and its trough left open)
         MM(deck, -21f, 24f, -s, 0f, PoolZ1, GZ0);                     // between the pool and the house, full width
         MM(deck, -21f, PoolX0, -s, 0f, PadZ0 + .3f, PoolZ1);          // west of the pool
-        MM(deck, PoolX1, 24f, -s, 0f, PadZ0 + .3f, PoolZ1);           // east of the pool (the jacuzzi stands on it)
+        if (nrWilli == 2)                                             // east of the pool round the island's raised spa
+        {
+            MM(deck, PoolX1, SX0, -s, 0f, PadZ0 + .3f, PoolZ1); MM(deck, SX1, 24f, -s, 0f, PadZ0 + .3f, PoolZ1);
+            MM(deck, SX0, SX1, -s, 0f, PadZ0 + .3f, SZ0); MM(deck, SX0, SX1, -s, 0f, SZ1, PoolZ1);
+        }
+        else MM(deck, PoolX1, 24f, -s, 0f, PadZ0 + .3f, PoolZ1);      // east of the pool (the jacuzzi stands on it)
         MM(deck, GX1, CX1, -s, 0f, GZ0, CZ0);                         // before the garage
         MM(deck, CX1, 24f, -s, 0f, GZ0, CZ1);
         MM(deck, -21f, GX0, -s, 0f, GZ0, 1f);                         // the west side path
@@ -249,7 +258,8 @@ public static partial class BraxChampionsWille
         MM(stone, PoolX1, 24f, -s, 0f, PadZ0, PadZ0 + .3f, false);
         // a glass balustrade on the pad's edge beside the pool (over the pool the edge stays open: the infinity view)
         Balustrada(true, PadZ0 + .15f, PadX0 + .2f, PoolX0 - .4f, 0f);
-        Balustrada(true, PadZ0 + .15f, PoolX1 + .4f, PadX1 - .2f, 0f);
+        if (nrWilli == 2) { Balustrada(true, PadZ0 + .15f, PoolX1 + .4f, WStX0 - .1f, 0f); Balustrada(true, PadZ0 + .15f, WStX1 + .1f, PadX1 - .2f, 0f); }   // the stair to the beach
+        else Balustrada(true, PadZ0 + .15f, PoolX1 + .4f, PadX1 - .2f, 0f);
         // the trough's water (35 cm under the pool's) and a low safety rail-less lip: from the terrace the pool meets the sky
         Plane(bw, waterMat, new Vector3(PoolX0, -.45f, PadZ0 + .3f), new Vector3(PoolX1 - PoolX0, 0, 0), new Vector3(0, 0, PoolZ0 - .3f - (PadZ0 + .3f)));
     }
@@ -793,7 +803,7 @@ public static partial class BraxChampionsWille
         // the terrace lights: low bollards along the pool, warm
         foreach (float x in new[] { -18f, 6f, 20f }) { b.Cylinder(black, new Vector3(x, 0f, -16.0f), .07f, .6f, 12, Quaternion.identity, true); W.Lampa(Nazwy[nr - 1] + " | taras", new Vector3(x, .7f, -15.8f), .5f, 6f * K, new Color(1f, .86f, .64f)); }
         // planters with olive trees by the glass
-        foreach (float x in new[] { -20f, 22.5f }) { b.RoundedBox(graphite, new Vector3(x, .45f, -4f), new Vector3(1.2f, .9f, 1.2f), .03f, Quaternion.identity, 2); W.Kolizja(new Vector3(x, .45f, -4f), new Vector3(1.2f, .9f, 1.2f), Quaternion.identity); }
+        if (nr != 2) foreach (float x in new[] { -20f, 22.5f }) { b.RoundedBox(graphite, new Vector3(x, .45f, -4f), new Vector3(1.2f, .9f, 1.2f), .03f, Quaternion.identity, 2); W.Kolizja(new Vector3(x, .45f, -4f), new Vector3(1.2f, .9f, 1.2f), Quaternion.identity); }
         // the sale board by the drive: white, on two black posts, 3D letters; AKCJA asks Monika
         var sb = new Vector3(-5.2f, 0f, PadZ1 - 2.5f);
         foreach (float sx in new[] { -.75f, .75f }) b.Box(black, sb + new Vector3(sx, .9f, 0f), new Vector3(.08f, 1.8f, .08f), Quaternion.identity);
@@ -804,7 +814,8 @@ public static partial class BraxChampionsWille
         BraxChampionsLetters3D.Text(b, black, black, Nazwy[nr - 1], sb + new Vector3(0f, 1.01f, -.072f), BraxChampionsLetters3D.YawFacing(Vector3.back), .06f, .006f, .1f, 1.6f);
         W.Grupa = g;
         W.Akcja("willa_" + nr + "_sprzedaz", Nazwy[nr - 1] + " · NA SPRZEDAŻ",
-            "MONIKA: Ta willa jest na sprzedaż. Basen infinity, jacuzzi, garaż na dwa auta, apartament z widokiem na miasto. Zapraszam do WAWER NIERUCHOMOŚCI na parterze T12!",
+            nr == 2 ? "MONIKA: Willa na własnej wyspie w zatoce, jak z Miami: szklany dom na dwa piętra, basen infinity ze spa, kort tenisowy, kryta jadalnia z barem, własny pomost z motorówką Riva i miejsce na mały jacht. Zapraszam do WAWER NIERUCHOMOŚCI na parterze T12!"
+                    : "MONIKA: Ta willa jest na sprzedaż. Basen infinity, jacuzzi, garaż na dwa auta, apartament z widokiem na miasto. Zapraszam do WAWER NIERUCHOMOŚCI na parterze T12!",
             sb + new Vector3(0f, 0f, -1.2f));
         W.Kolizja(sb + new Vector3(0f, .9f, 0f), new Vector3(1.8f, 1.8f, .12f), Quaternion.identity);
     }
