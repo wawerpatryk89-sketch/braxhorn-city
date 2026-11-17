@@ -2,8 +2,9 @@
 będzie przy tym bębnie ... automatycznie ... 2 razy w tygodniu", the name "Lototo Brax Cash", the studio "w tym BRAXHORN BET",
 his poster ("DO WYGRANIA 10 000 000 ZŁ · DWA LOSOWANIA W TYGODNIU · WYNIKI NA ŻYWO W TELEWIZJI · CODZIENNIE O 20:00").
 
-A lottery 6 of 49 as the real ones: the kolektura's counter (a coupon 3 zł, the three 24 zł), the draws on Wednesday and
-Saturday at 20:00 by the phone's clock live in the studio (the host by the glass drum, 49 balls, six down the chute), the
+23:42 "60 kuleczek ... losujemy 20", 17.11 ten numbers on the coupon: the kolektura's counter (a coupon of ten of 60 for
+3 zł, five hits the stake back ... ten the kumulacja), the draws on Wednesday and Saturday at 20:00 by the phone's clock live
+in the studio (the host by the glass drum, 60 balls, twenty down the chute into two rows of cups), the
 studio camera's picture on every screen of the BET (a live picture, never a film), the numbers from the draw's date (the same
 on every phone), the replay at the glass. The rules, the show and the counter are checked by automaty_sim."""
 import hashlib
@@ -25,27 +26,36 @@ PACK_N = ROOT / "unity-city/Prywatne/braxhorn-mistrzowie-nieruchomosci-20261116"
 
 
 class Rules(unittest.TestCase):
-    def test_real_6_of_49(self):
-        self.assertIn("public const int Pula = 49, Typy = 6, Cena = 3, Godzina = 20, MaxKuponow = 10;", GAME)
-        self.assertIn("public static readonly int[] Wygrane = { 0, 0, 0, 24, 170, 5000 };", GAME)
-        self.assertIn("KumulacjaStart = 10000000", GAME)                         # his poster: 10 000 000 zł
-        self.assertIn("public static readonly DayOfWeek[] Dni = { DayOfWeek.Wednesday, DayOfWeek.Saturday };", GAME)
+    def test_ten_of_60_twenty_drawn(self):
+        self.assertIn('nazwa = "LOTOTO BRAX CASH", klucz = "braxhorn_lototo_kupony", marka = Tablica.Marka, pula = 60, losowane = 20, typy = 10, cena = 3,', GAME)
+        self.assertIn("wygrane = new[] { 0, 0, 0, 0, 0, 3, 6, 25, 200, 5000 },", GAME)
+        self.assertIn("kumulacjaStart = 10000000", GAME)                         # his poster: 10 000 000 zł
+        self.assertIn("dni = new[] { DayOfWeek.Wednesday, DayOfWeek.Saturday }", GAME)
         # the draw from its date: the same on every phone
-        self.assertIn("public static int[] Losuj(int id) => Szesc(new System.Random(unchecked(id * 7919 + 1049)));", GAME)
+        self.assertIn("public int[] Losuj(int id) => Wybierz(new System.Random(unchecked(id * 7919 + 1049 + Ziarno)), losowane);", GAME)
+
+    def test_brax_szostka_for_r1(self):
+        self.assertIn('nazwa = "BRAX SZÓSTKA", klucz = "braxhorn_szostka_kupony", marka = Tablica.MarkaSzostka, pula = 40, losowane = 6, typy = 6, cena = 3,', GAME)
+        self.assertIn("public static Zasady Gra(int i) => i == 1 ? BraxSzostka : BraxCash;", GAME)
+        self.assertIn("IList<Renderer> ekrany, int gra = 0)", KIT)
+        self.assertIn('"BRAX SZÓSTKA" };', GAME)
 
     def test_checked_by_the_simulator(self):
         sim = (TOOLS / "automaty_sim/Program.cs").read_text(encoding="utf-8")
-        for c in ("lototo: the next draw Wednesday 18.11 20:00", "lototo: every number as often", "lototo: 13 983 816 combinations",
-                  "lototo: three hits on 1.77 % of bets", "lototo: the balls stay inside the drum", "lototo: the six in their cups in the order drawn",
-                  "lototo: a coupon bought for the next draw", "lototo: the same draw on every phone"):
+        for c in ("lototo: the next draw Wednesday 18.11 20:00", "lototo: every number as often", "lototo: 75 394 027 566 coupons of ten of 60",
+                  "lototo: all ten 1 in 408 074", "lototo: 50-60 % back without the kumulacja", "lototo: one coupon in five wins",
+                  "lototo: five hits on 13.5 % of coupons", "lototo: the balls stay inside the drum", "lototo: the twenty in their cups in the order drawn",
+                  "lototo: a coupon of ten bought for the next draw", "lototo: the same draw on every phone",
+                  "brax szóstka: six different numbers of 1-40 every draw, not the BET's", "brax szóstka: 3 838 380 coupons of six of 40",
+                  "brax szóstka: its counter"):
             self.assertIn(c, sim)
         self.assertIn("BraxChampionsLototo.cs", (TOOLS / "automaty_sim/automaty_sim.csproj").read_text(encoding="utf-8"))
 
 
 class Show(unittest.TestCase):
     def test_live_at_the_clock_and_the_replay(self):
-        self.assertIn("if (od < Zasady.Program && !(pokaz && !powtorka && pokazId == id)) Pokaz(id, od, false);", GAME)
-        self.assertIn('return "LOTOTO · POWTÓRKA LOSOWANIA ("', GAME)
+        self.assertIn("if (od < Z.Program && !(pokaz && !powtorka && pokazId == id)) Pokaz(id, od, false);", GAME)
+        self.assertIn('return Z.nazwa + " · POWTÓRKA LOSOWANIA ("', GAME)
         # the camera renders only during a show near the player, one frame when the board changes
         self.assertIn("kamera.enabled = false;", GAME)
         self.assertIn("if (pokaz && blisko && Time.unscaledTime >= nastepnaKlatka) { nastepnaKlatka = Time.unscaledTime + 1f / 15f;", GAME)
@@ -63,10 +73,11 @@ class Show(unittest.TestCase):
 class Studio(unittest.TestCase):
     def test_machine_balls_and_host(self):
         self.assertIn("var m0 = new Vector3(-.9f, 0f, -.9f); float bR = .36f, cY = 1.30f;", KIT)   # a 72 cm glass drum
-        self.assertIn("lot.kule = new Transform[L.Zasady.Pula];", KIT)
+        self.assertIn("lot.kule = new Transform[Z.pula];", KIT)
         self.assertIn('ZapiszSiatke(KulaSiatka((n - 1) % 8, (n - 1) / 8, .03f), "lototo_kula_" + n.ToString("00"))', KIT)
         self.assertIn('W.Obsada("prowadzący losowania LOTOTO BRAX CASH"', KIT)
-        self.assertIn("lot.miejsca = new Transform[6];", KIT)
+        self.assertIn("lot.miejsca = new Transform[Z.losowane];", KIT)
+        self.assertIn("int wRz = Mathf.Min(10, Z.losowane)", KIT)                     # twenty cups: two rows of ten
         self.assertIn('var cam = kam.AddComponent<Camera>(); cam.enabled = false;', KIT)
 
     def test_owner_poster_1_to_1(self):

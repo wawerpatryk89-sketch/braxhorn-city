@@ -9,9 +9,9 @@ using L = BraxChampionsLototo;
 // MIASTO MISTRZÓW - LOTOTO BRAX CASH (owner 16.11 22:52-23:08): the draw studio and the kolektura, built in the BRAXHORN BET
 // (BraxChampionsWiezowce.Bet) with the casino kit's materials and painters. The studio as a TV lottery studio is: a set
 // wall in dark blue with the owner's logo back-lit (his poster's logo, cut 1:1), the draw machine - a steel pedestal, a
-// clear glass drum of 72 cm with 49 balls of 6 cm (gold, a white disc with the number on two sides), the outlet at its top,
-// the chute (two chrome rails) down to the rail of six cups in front of it -, the results screen, the host by the machine,
-// a TV camera on its tripod, two softboxes, glass walls in a black frame. The kolektura: a walnut counter with a marble top,
+// clear glass drum of 72 cm with 60 balls of 6 cm (gold, a white disc with the number on two sides), the outlet at its top,
+// the chute (two chrome rails) down to the rail of 20 cups (two rows of ten) in front of it -, the results screen, the host,
+// by the machine, a TV camera on its tripod, two softboxes, glass walls in a black frame. The kolektura: a walnut counter with a marble top,
 // the owner's logo on its front, the terminal, the coupon printer, the coupon desk, his poster on a stand. The game:
 // BraxChampionsLototo (the camera's picture goes to every screen of the BET).
 public static partial class BraxChampionsKasynoSprzet
@@ -23,16 +23,18 @@ public static partial class BraxChampionsKasynoSprzet
 
     static Material lotKule, lotTablica, lotLogo, lotPlakat, lotEkran, lotGranat, lotSoftbox, lotKupon;
     static Mesh[] lotSiatki; static float[] lotSzer;
+    // the balls of both games (LOTOTO BRAX CASH 60, BRAX SZÓSTKA 40): one atlas, one mesh per number
+    static int MaxKul => Mathf.Max(L.Zasady.BraxCash.pula, L.Zasady.BraxSzostka.pula);
 
     static void LototoMaterialy()
     {
         Przygotuj();
-        // the balls: 49 cells of 256 x 128 (the ball's equirectangular skin): gold, a white disc with the number in navy at
+        // the balls: 60 cells of 256 x 128 (the ball's equirectangular skin): gold, a white disc with the number in navy at
         // the front (+z) and the back (-z)
         const int CW = 256, CH = 128, AW = 2048, AH = 1024;
         var px = new Color32[AW * AH];
         var zl = new Color32(214, 168, 52, 255); BraxChampionsPiksele.Wypelnij(px, zl);
-        for (int n = 1; n <= L.Zasady.Pula; n++)
+        for (int n = 1; n <= MaxKul; n++)
         {
             int x0 = (n - 1) % 8 * CW, y0 = (n - 1) / 8 * CH;
             for (int y = 0; y < CH; y++) for (int x = 0; x < CW; x++)
@@ -50,8 +52,8 @@ public static partial class BraxChampionsKasynoSprzet
         }
         var kt = Png("lototo_kule_atlas", AW, AH, px, true);
         lotKule = BraxChampionsHarbour.Surface("kasyno_lototo_kule", Color.white, .14f, 0f); lotKule.SetTexture("_MainTex", kt); Wnetrze(lotKule);
-        lotSiatki = new Mesh[L.Zasady.Pula];
-        for (int n = 1; n <= L.Zasady.Pula; n++) lotSiatki[n - 1] = ZapiszSiatke(KulaSiatka((n - 1) % 8, (n - 1) / 8, .03f), "lototo_kula_" + n.ToString("00"));
+        lotSiatki = new Mesh[MaxKul];
+        for (int n = 1; n <= MaxKul; n++) lotSiatki[n - 1] = ZapiszSiatke(KulaSiatka((n - 1) % 8, (n - 1) / 8, .03f), "lototo_kula_" + n.ToString("00"));
         // the board's atlas (BraxChampionsLototo.Tablica)
         int tw = L.Tablica.W, th = L.Tablica.H; var tp = new Color32[tw * th];
         var granat = new Color32(12, 20, 64, 255); BraxChampionsPiksele.Wypelnij(tp, granat);
@@ -60,12 +62,12 @@ public static partial class BraxChampionsKasynoSprzet
             var r = L.Tablica.Cyfra(d);
             Tekst(tp, tw, th, d < 10 ? d.ToString() : d == 10 ? ":" : ".", r.x + r.width * .5f, r.y + r.height * .5f, 78f, r.width - 6f, 0f, Biel);
         }
-        for (int n = 1; n <= L.Zasady.Pula + 1; n++)
+        for (int n = 1; n <= MaxKul + 1; n++)
         {
-            var r = n <= L.Zasady.Pula ? L.Tablica.Kula(n) : L.Tablica.Pusta; float cx = r.x + 64f, cy = r.y + 64f;
-            Kolko(tp, tw, th, cx, cy, 60f, n <= L.Zasady.Pula ? Zloto : new Color32(40, 52, 110, 255));
-            Kolko(tp, tw, th, cx, cy, 50f, n <= L.Zasady.Pula ? new Color32(250, 250, 252, 255) : new Color32(24, 34, 88, 255));
-            if (n <= L.Zasady.Pula) Tekst(tp, tw, th, n.ToString(), cx, cy, 46f, 84f, 0f, granat);
+            var r = n <= MaxKul ? L.Tablica.Kula(n) : L.Tablica.Pusta; float cx = r.x + 64f, cy = r.y + 64f;
+            Kolko(tp, tw, th, cx, cy, 60f, n <= MaxKul ? Zloto : new Color32(40, 52, 110, 255));
+            Kolko(tp, tw, th, cx, cy, 50f, n <= MaxKul ? new Color32(250, 250, 252, 255) : new Color32(24, 34, 88, 255));
+            if (n <= MaxKul) Tekst(tp, tw, th, n.ToString(), cx, cy, 46f, 84f, 0f, granat);
         }
         for (int i = 0; i < L.Tablica.Slowa.Length; i++)
         {
@@ -100,11 +102,12 @@ public static partial class BraxChampionsKasynoSprzet
         lotGranat = Metal("lototo_lakier_granat", new Color(.05f, .08f, .24f), .22f, 0f);
         lotSoftbox = Swiatlo("lototo_softbox", new Color(1.5f, 1.48f, 1.42f));
         var kp = new Color32[256 * 512]; BraxChampionsPiksele.Wypelnij(kp, new Color32(250, 248, 240, 255));
-        for (int i = 0; i < L.Zasady.Pula; i++)
+        // the BET's coupon: the 60 numbers ten a row, as on a real coupon of a game of this kind
+        for (int i = 0; i < L.Zasady.BraxCash.pula; i++)
         {
-            float cx = 28 + (i % 7) * 33f, cy = 470 - (i / 7) * 40f;
-            Ramka(kp, 256, 512, (int)cx - 13, (int)cy - 15, (int)cx + 13, (int)cy + 15, 1, new Color32(200, 40, 40, 255));
-            Tekst(kp, 256, 512, (i + 1).ToString(), cx, cy, 11f, 22f, 0f, new Color32(200, 40, 40, 255));
+            float cx = 19 + (i % 10) * 24.2f, cy = 470 - (i / 10) * 34f;
+            Ramka(kp, 256, 512, (int)cx - 10, (int)cy - 13, (int)cx + 10, (int)cy + 13, 1, new Color32(200, 40, 40, 255));
+            Tekst(kp, 256, 512, (i + 1).ToString(), cx, cy, 10f, 18f, 0f, new Color32(200, 40, 40, 255));
         }
         Tekst(kp, 256, 512, "LOTOTO BRAX CASH", 128, 70, 18f, 230f, 0f, new Color32(16, 22, 64, 255));
         lotKupon = BraxChampionsHarbour.Surface("kasyno_lototo_kupon", Color.white, .9f, 0f); lotKupon.SetTexture("_MainTex", Png("lototo_kupon", 256, 512, kp, true)); Wnetrze(lotKupon);
@@ -139,21 +142,24 @@ public static partial class BraxChampionsKasynoSprzet
     /// <summary>The LOTOTO BRAX CASH studio (its floor centre s, its front - the glass to the hall - to yaw; 6.8 x 4.4 m, 3.4 m
     /// high) and the kolektura (the counter's customer side at lada facing ladaYaw; the coupon desk at pulpit; the poster
     /// stand at plakat), under root (nominal metres, root at the origin while building); b = the batch of the static parts.
-    /// The screens get the studio's picture.</summary>
+    /// The screens get the studio's picture. gra 0 = LOTOTO BRAX CASH (60 balls, 20 drawn - the BET), 1 = BRAX SZÓSTKA (40, 6 -
+    /// the kolektura of the city R1, for its own builder: without the owner's poster of that game, no LOTOTO poster).</summary>
     public static L Lototo(Transform root, BraxChampionsMeshBatch b, Vector3 s, float yaw, Vector3 lada, float ladaYaw, Vector3 pulpit, float pulpitYaw,
-        Vector3 plakat, float plakatYaw, IList<Renderer> ekrany)
+        Vector3 plakat, float plakatYaw, IList<Renderer> ekrany, int gra = 0)
     {
         LototoMaterialy();
+        var Z = L.Zasady.Gra(gra);
+        if (gra != 0) { lotPlakat = null; BraxBuildQuality.Warn("DO POPRAWKI " + Z.nazwa + "_PLAKAT: the owner's poster of this game is not in the region (the LOTOTO poster is not used)"); }
         var q = Quaternion.Euler(0f, yaw, 0f); Vector3 P(float x, float y, float z) => s + q * new Vector3(x, y, z);
         const float HX = 3.4f, HZ = 2.2f, H = 3.4f;
         var g = new GameObject("LOTOTO BRAX CASH | studio losowań i kolektura (BraxChampionsLototo)").transform; g.SetParent(root, false);
-        var lot = g.gameObject.AddComponent<L>();
+        var lot = g.gameObject.AddComponent<L>(); lot.gra = gra; lot.nazwa = Z.nazwa;
         // ---- the studio: the floor, the set wall, the ceiling, the glass in its black frame
         b.Box(czern, P(0f, .015f, .08f), new Vector3(2f * HX, .03f, 2f * HZ - .16f), q, false);                  // up to the set wall
         W.Kolizja(P(0f, .015f, 0f), new Vector3(2f * HX, .03f, 2f * HZ), q);
         b.Box(lotGranat, P(0f, H * .5f, -HZ + .08f), new Vector3(2f * HX, H, .16f), q);
         b.Box(czern, P(0f, H + .03f, 0f), new Vector3(2f * HX + .1f, .06f, 2f * HZ + .1f), q);
-        Obraz(b, lotLogo, P(-.7f, 2.62f, -HZ + .16f + Przed), 2.2f, 2.2f * LototoLogo[3] / LototoLogo[2], q);
+        if (gra == 0) Obraz(b, lotLogo, P(-.7f, 2.62f, -HZ + .16f + Przed), 2.2f, 2.2f * LototoLogo[3] / LototoLogo[2], q);
         foreach (var (a, c, open) in new[] { (new Vector2(-HX, HZ), new Vector2(HX, HZ), false), (new Vector2(HX, -HZ + .16f), new Vector2(HX, HZ), false), (new Vector2(-HX, -HZ + .16f), new Vector2(-HX, HZ), false) })
         {
             var A = P(a.x, 0f, a.y); var C = P(c.x, 0f, c.y); var e = C - A; float len = e.magnitude; var qe = Quaternion.LookRotation(e.normalized);
@@ -163,7 +169,7 @@ public static partial class BraxChampionsKasynoSprzet
             b.Box(czern, (A + C) * .5f + Vector3.up * .03f, new Vector3(.06f, .06f, len), qe);
             W.Kolizja((A + C) * .5f + Vector3.up * H * .5f, new Vector3(.10f, H, len), qe);
         }
-        // ---- the machine: the pedestal, the glass drum, the outlet collar, the chute, the rail of six cups
+        // ---- the machine: the pedestal, the glass drum, the outlet collar, the chute, the rail of cups (one per ball drawn)
         var m0 = new Vector3(-.9f, 0f, -.9f); float bR = .36f, cY = 1.30f;
         b.Cylinder(stal, P(m0.x, 0f, m0.z), .34f, .05f, 28, q, true);
         b.Cylinder(stal, P(m0.x, .05f, m0.z), .22f, .80f, 24, q, true, false, .18f);
@@ -174,13 +180,28 @@ public static partial class BraxChampionsKasynoSprzet
             b.Tube(chrom, P(m0.x + Mathf.Cos(a0) * rr, yy, m0.z + Mathf.Sin(a0) * rr), P(m0.x + Mathf.Cos(a1) * rr, yy, m0.z + Mathf.Sin(a1) * rr), .018f, 8);
         }
         b.Cylinder(chrom, P(m0.x, .89f, m0.z), .045f, cY - bR - .89f + .01f, 12, q, false);              // the air pipe into the drum
-        var drum = new GameObject("bęben (szkło, 49 kul)").transform; drum.SetParent(g, false); drum.localPosition = P(m0.x, cY, m0.z); drum.localRotation = q;
+        var drum = new GameObject("bęben (szkło, " + Z.pula + " kul)").transform; drum.SetParent(g, false); drum.localPosition = P(m0.x, cY, m0.z); drum.localRotation = q;
         Kula(b, szklo, P(m0.x, cY, m0.z), bR, 28, 18);
         b.Cylinder(chrom, P(m0.x, cY + bR - .02f, m0.z), .055f, .07f, 18, q, true);                     // the outlet collar
-        lot.kule = new Transform[L.Zasady.Pula];
-        for (int n = 1; n <= L.Zasady.Pula; n++)
+        lot.kule = new Transform[Z.pula];
+        // the balls at rest in the drum's bottom before the draw - layers of rings against the glass (the owner's look at the
+        // first photo, 16.11 23:42: every ball stood in the drum's centre, it read as one ball); the game re-spreads them
+        var stos = new List<Vector3>(); float rb = .03f, lim = bR - rb - .002f; int warstwa = 0;
+        for (float y = -lim; stos.Count < Z.pula && y < 0f; y += rb * 1.75f, warstwa++)
+        {
+            float rr = Mathf.Sqrt(Mathf.Max(0f, lim * lim - y * y));
+            for (float ring = rr; ring > -.001f && stos.Count < Z.pula; ring -= 2f * rb)
+            {
+                int ile = ring < rb ? 1 : Mathf.FloorToInt(2f * Mathf.PI * ring / (2.05f * rb));
+                for (int i = 0; i < ile && stos.Count < Z.pula; i++) { float a = 2f * Mathf.PI * (i + .5f * warstwa) / ile; stos.Add(new Vector3(Mathf.Cos(a) * ring, y, Mathf.Sin(a) * ring)); }
+            }
+        }
+        var losKul = new System.Random(Z.pula * 13 + Z.losowane);
+        for (int n = 1; n <= Z.pula; n++)
         {
             var o = new GameObject("kula " + n); o.transform.SetParent(drum, false);
+            o.transform.localPosition = stos[(n * 37) % Z.pula];                 // the numbers mixed through the pile
+            o.transform.localRotation = Quaternion.Euler(losKul.Next(360), losKul.Next(360), losKul.Next(360));
             o.AddComponent<MeshFilter>().sharedMesh = lotSiatki[n - 1]; Cienie(o.AddComponent<MeshRenderer>()).sharedMaterial = lotKule;
             lot.kule[n - 1] = o.transform;
         }
@@ -194,14 +215,21 @@ public static partial class BraxChampionsKasynoSprzet
             var d = (tor[i + 1] - tor[i]).normalized; var side = Vector3.Cross(Vector3.up, d).normalized * .022f; var down = Vector3.down * .022f;
             foreach (float sg in new[] { -1f, 1f }) b.Tube(chrom, P(tor[i].x, tor[i].y, tor[i].z) + q * (side * sg + down), P(tor[i + 1].x, tor[i + 1].y, tor[i + 1].z) + q * (side * sg + down), .005f, 6);
         }
-        // the rail: six cups along the studio's x, in front of the drum, numbered by place
-        lot.miejsca = new Transform[6]; float rx0 = m0.x + .62f, ry = 1.12f, rz = m0.z + .52f;
-        b.Box(stal, P(rx0 + .36f, ry - .05f, rz), new Vector3(.86f, .03f, .07f), q);
-        foreach (float sx in new[] { rx0 - .02f, rx0 + .74f }) b.Cylinder(stal, P(sx, 0f, rz), .02f, ry - .065f, 10, q, false);
-        for (int k = 0; k < 6; k++)
+        // the rail: the cups along the studio's x in front of the drum, numbered by place - ten a row (20 drawn: the second
+        // row behind and 4 cm higher, seen by the camera over the first), each row on its steel plate with its two legs
+        lot.miejsca = new Transform[Z.losowane]; float rx0 = m0.x + .62f, ry = 1.12f, rz = m0.z + .52f;
+        int wRz = Mathf.Min(10, Z.losowane), rzedy = (Z.losowane + wRz - 1) / wRz; float krok = Mathf.Min(.12f, .75f / wRz);
+        for (int r = 0; r < rzedy; r++)
         {
-            var c = new Vector3(rx0 + .12f + k * .12f, ry, rz);
-            b.Cylinder(chrom, P(c.x, ry - .035f, c.z), .028f, .012f, 16, q, false);
+            float y = ry + r * .04f, z = rz - r * .085f;
+            b.Box(stal, P(rx0 + .36f, y - .05f, z), new Vector3(.86f, .03f, .07f), q);
+            foreach (float sx in new[] { rx0 - .02f, rx0 + .74f }) b.Cylinder(stal, P(sx, 0f, z), .02f, y - .065f, 10, q, false);
+        }
+        for (int k = 0; k < Z.losowane; k++)
+        {
+            int r = k / wRz, kk = k % wRz;
+            var c = new Vector3(rx0 + .36f + (kk - (wRz - 1) * .5f) * krok, ry + r * .04f, rz - r * .085f);
+            b.Cylinder(chrom, P(c.x, c.y - .035f, c.z), .028f, .012f, 16, q, false);
             var t = new GameObject("miejsce " + (k + 1)).transform; t.SetParent(g, false); t.localPosition = P(c.x, c.y, c.z); lot.miejsca[k] = t;
         }
         // ---- the results screen on the set wall (its quads at runtime), its black bezel
@@ -270,9 +298,9 @@ public static partial class BraxChampionsKasynoSprzet
         }
         // the screens of the premises show the studio
         int ne = 0; if (ekrany != null) foreach (var r in ekrany) if (r) { r.sharedMaterial = lotEkran; ne++; }
-        Debug.Log("LOTOTO_BRAX_CASH studio=" + (2f * HX).ToString("F1") + "x" + (2f * HZ).ToString("F1") + "m balls=" + L.Zasady.Pula + " drum=" + (2f * bR).ToString("F2") + "m screens=" + ne +
-            " draws=" + string.Join("/", Array.ConvertAll(L.Zasady.Dni, d => d.ToString())) + " " + L.Zasady.Godzina + ":00 kumulacja_start=" + L.Zasady.KumulacjaStart + " poster=" + (LototoWlasciciela ? "owner" : "missing") +
-            " game=BraxChampionsLototo");
+        Debug.Log("LOTOTO_BRAX_CASH studio=" + (2f * HX).ToString("F1") + "x" + (2f * HZ).ToString("F1") + "m game=" + Z.nazwa + " balls=" + Z.pula + " drawn=" + Z.losowane +
+            " coupon=" + Z.typy + " drum=" + (2f * bR).ToString("F2") + "m screens=" + ne + " draws=" + string.Join("/", Array.ConvertAll(Z.dni, d => d.ToString())) + " " + Z.godzina +
+            ":00 kumulacja_start=" + Z.kumulacjaStart + " poster=" + (LototoWlasciciela && gra == 0 ? "owner" : "missing") + " component=BraxChampionsLototo");
         return lot;
     }
     // a sphere (the drum's glass), seen from both sides
