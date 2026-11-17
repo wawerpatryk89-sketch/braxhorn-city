@@ -90,13 +90,17 @@ public static class BraxChampionsHorizon
         return MathF.Sqrt(dx * dx + dz * dz);
     }
     // ground height of the coarse far land: under the D2 railway hill (BraxChampionsD2.Hill*) it is pressed down, so the fine
-    // hill patch (RailHill) with the cutting and the tunnel lies over it and nothing of the coarse land shows in the tunnel
+    // hill patch (RailHill) with the cutting and the tunnel lies over it and nothing of the coarse land shows in the tunnel;
+    // the same under the villas' land patches (owner 17.11, BraxChampionsWilleDzialki: the hill, the seafront)
     public static float Height(float x, float z)
     {
         float h = FarHeight(x, z);
         if (!Inside(x, z) && BraxChampionsD2.HillR2(x, z) < .78f) h = MathF.Min(h, 0f);
+        if (Docisk != null && !Inside(x, z)) h = MathF.Min(h, Docisk(x, z));
         return h;
     }
+    // set by the build (BraxChampionsExplorer: BraxChampionsWilleDzialki.Docisk) before the far land is made
+    public static Func<float, float, float> Docisk;
     // ground height; inside the region rectangle the far land stays under the region's own ground and sea
     public static float FarHeight(float x, float z)
     {

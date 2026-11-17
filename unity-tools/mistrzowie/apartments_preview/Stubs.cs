@@ -14,6 +14,7 @@ namespace UnityEngine
         public static Vector2 operator *(Vector2 a, float d) => new Vector2(a.x * d, a.y * d);
         public static Vector2 operator *(float d, Vector2 a) => new Vector2(a.x * d, a.y * d);
         public static float Dot(Vector2 a, Vector2 b) => a.x * b.x + a.y * b.y;
+        public static float Distance(Vector2 a, Vector2 b) => (a - b).magnitude;
         public static bool operator ==(Vector2 a, Vector2 b) { float dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy < 9.99999944E-11f; }
         public static bool operator !=(Vector2 a, Vector2 b) => !(a == b);
         public override bool Equals(object o) => o is Vector2 v && v.x == x && v.y == y;

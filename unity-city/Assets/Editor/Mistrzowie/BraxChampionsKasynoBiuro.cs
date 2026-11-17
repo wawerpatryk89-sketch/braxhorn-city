@@ -46,36 +46,49 @@ public static partial class BraxChampionsKasynoSprzet
         b.Box(bialy, desk + new Vector3(.35f, .772f, -.12f), new Vector3(.60f, .002f, .42f), Quaternion.identity);
         var monika = W.Obsada("Monika - WAWER NIERUCHOMOŚCI", desk + new Vector3(0f, 0f, .95f), 180f);   // (the chairs: the tower's models)
         W.Akcja("nieruchomosci_wille", "WAWER NIERUCHOMOŚCI · ZAPYTAJ O WILLĘ",
-            "MONIKA: Mamy trzy wille na wzgórzu - najpiękniejsze w Mieście Mistrzów. Sprzedaż ruszy wkrótce, zapraszam!",
+            "MONIKA: Mamy trzy wille: na wzgórzu nad areną, na własnej wyspie w zatoce i nad samym morzem - najpiękniejsze w Mieście Mistrzów. Sprzedaż ruszy wkrótce, zapraszam!",
             desk + new Vector3(0f, 0f, -.95f), monika, 1.8f);
-        // ---- the model of the three villas on the hill, under glass, on a walnut plinth
+        // ---- the model of the three villas' sites under glass on a walnut plinth (owner 17.11: "Na wzgórzu jedna, druga mała
+        // wyspa z willą. Trzecia gdzieś tam" - BraxChampionsWilleDzialki): the hill, the island with its jetty, the seafront
         var mk = new Vector3(x0 + 2.6f, y, z0 + 5.0f);
         b.RoundedBox(ciemnyOrzech, mk + new Vector3(0f, .43f, 0f), new Vector3(1.9f, .86f, 1.3f), .02f, Quaternion.identity, 2);
         b.Box(bialy, mk + new Vector3(0f, .875f, 0f), new Vector3(1.8f, .03f, 1.2f), Quaternion.identity);
-        // the hill in three terraces, a road up it, the three villas (white blocks, a dark glass band, a pool), trees
+        var morze = Metal("makieta_morze", new Color(.10f, .32f, .46f), .15f, 0f);
+        var piasekM = Metal("makieta_piasek", new Color(.86f, .80f, .64f), .9f, 0f);
         float top = .89f;
-        foreach (var (w, d, h) in new[] { (1.6f, 1.0f, .04f), (1.15f, .72f, .04f), (.70f, .45f, .04f) }) { b.Box(trawa, mk + new Vector3(0f, top + h * .5f, 0f), new Vector3(w, h, d), Quaternion.identity); top += h; }
-        float[] lv = { .93f, .97f, 1.01f };
-        var wille = new[] { (new Vector3(-.58f, 0f, -.30f), 0), (new Vector3(.40f, 0f, -.22f), 1), (new Vector3(0f, 0f, .05f), 2) };
+        // the sea along the front of the model (the island's and the seafront's), the sand of the seafront's beach
+        b.Box(morze, mk + new Vector3(.30f, top + .004f, .30f), new Vector3(1.16f, .008f, .56f), Quaternion.identity);
+        b.Box(piasekM, mk + new Vector3(.62f, top + .006f, -.02f), new Vector3(.52f, .012f, .10f), Quaternion.identity);
+        b.Box(trawa, mk + new Vector3(.62f, top + .01f, -.30f), new Vector3(.52f, .02f, .46f), Quaternion.identity);
+        // the hill: three grass terraces in the back left
+        foreach (var (w, d, h) in new[] { (.62f, .90f, .05f), (.44f, .62f, .05f), (.28f, .36f, .05f) })
+        { b.Box(trawa, mk + new Vector3(-.55f, top + h * .5f, -.12f), new Vector3(w, h, d), Quaternion.identity); top += h; }
+        // the island: sand ring and lawn in the sea, its jetty
+        b.Cylinder(piasekM, mk + new Vector3(.02f, .893f, .30f), .19f, .02f, 28, Quaternion.identity, true);
+        b.Cylinder(trawa, mk + new Vector3(.02f, .913f, .30f), .15f, .02f, 28, Quaternion.identity, true);
+        b.Box(ciemnyOrzech, mk + new Vector3(-.06f, .905f, .48f), new Vector3(.02f, .006f, .20f), Quaternion.identity);
+        // the villas: on the hill's top, on the island, behind the beach (white blocks, a dark glass band, a pool)
+        var wille = new[] { (new Vector3(-.55f, 1.04f, -.10f), 0), (new Vector3(.02f, .933f, .30f), 1), (new Vector3(.62f, .91f, -.22f), 2) };
         foreach (var (p, l) in wille)
         {
-            var c = mk + p + new Vector3(0f, lv[l], 0f);
-            b.Box(bialy, c + new Vector3(0f, .025f, 0f), new Vector3(.22f, .05f, .14f), Quaternion.identity);
-            b.Box(bialy, c + new Vector3(.03f, .075f, -.01f), new Vector3(.18f, .05f, .12f), Quaternion.identity);
-            b.Box(szybaM, c + new Vector3(0f, .025f, -.071f), new Vector3(.20f, .03f, .004f), Quaternion.identity);
-            b.Box(woda, c + new Vector3(-.02f, .002f, -.12f), new Vector3(.12f, .004f, .06f), Quaternion.identity);
+            var c = mk + p;
+            b.Box(bialy, c + new Vector3(0f, .025f, 0f), new Vector3(.20f, .05f, .13f), Quaternion.identity);
+            b.Box(bialy, c + new Vector3(.03f, .075f, -.01f), new Vector3(.16f, .05f, .11f), Quaternion.identity);
+            b.Box(szybaM, c + new Vector3(0f, .025f, -.066f), new Vector3(.18f, .03f, .004f), Quaternion.identity);
+            b.Box(woda, c + new Vector3(-.02f, .002f, -.11f), new Vector3(.11f, .004f, .055f), Quaternion.identity);
         }
         var rnd = new System.Random(12);
-        for (int i = 0; i < 22; i++)
+        for (int i = 0; i < 14; i++)
         {
-            float a = (float)rnd.NextDouble() * Mathf.PI * 2f, r = .30f + (float)rnd.NextDouble() * .45f;
-            var t = mk + new Vector3(Mathf.Cos(a) * r * 1.3f, top - .04f, Mathf.Sin(a) * r * .8f);
+            float a = (float)rnd.NextDouble() * Mathf.PI * 2f, r = .12f + (float)rnd.NextDouble() * .16f;
+            var t = mk + new Vector3(-.55f + Mathf.Cos(a) * r, .94f, -.12f + Mathf.Sin(a) * r * 1.4f);
             b.Cylinder(ciemnyOrzech, t, .004f, .03f, 5, Quaternion.identity, false);
             b.RoundedBox(trawa, t + new Vector3(0f, .045f, 0f), new Vector3(.035f, .04f, .035f), .015f, Quaternion.identity, 2);
         }
         b.Box(szklo, mk + new Vector3(0f, 1.12f, 0f), new Vector3(1.78f, .45f, 1.18f), Quaternion.identity);
         W.Kolizja(mk + new Vector3(0f, .67f, 0f), new Vector3(1.9f, 1.34f, 1.3f), Quaternion.identity);
-        W.Akcja("nieruchomosci_makieta", "MAKIETA · TRZY WILLE NA WZGÓRZU", "Trzy wille na wzgórzu: basen, taras z widokiem na miasto, garaż. Zapytaj Monikę przy biurku.",
+        W.Akcja("nieruchomosci_makieta", "MAKIETA · TRZY WILLE: WZGÓRZE, WYSPA, NABRZEŻE",
+            "Willa na wzgórzu nad areną, willa na wyspie z pomostem, willa nad morzem z własną plażą: basen, taras z widokiem, garaż. Zapytaj Monikę przy biurku.",
             mk + new Vector3(1.25f, 0f, 0f), null, 1.4f);
         // ---- the shelves of binders along the side wall (x0), the lounge, the plants
         for (int s = 0; s < 3; s++)

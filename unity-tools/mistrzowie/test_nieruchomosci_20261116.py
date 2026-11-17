@@ -27,7 +27,7 @@ class Office(unittest.TestCase):
     def test_monika_her_desk_and_the_villas(self):
         self.assertIn('W.Obsada("Monika - WAWER NIERUCHOMOŚCI"', KIT)
         self.assertIn('W.Akcja("nieruchomosci_wille", "WAWER NIERUCHOMOŚCI · ZAPYTAJ O WILLĘ"', KIT)
-        self.assertIn('W.Akcja("nieruchomosci_makieta", "MAKIETA · TRZY WILLE NA WZGÓRZU"', KIT)
+        self.assertIn('W.Akcja("nieruchomosci_makieta", "MAKIETA · TRZY WILLE: WZGÓRZE, WYSPA, NABRZEŻE"', KIT)   # owner 17.11: hill, island, seafront
         wille = next(l for l in KIT.splitlines() if "var wille = new[]" in l)
         self.assertEqual(wille.count("(new Vector3("), 3)                           # three villas, no more
 

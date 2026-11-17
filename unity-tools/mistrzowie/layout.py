@@ -215,3 +215,18 @@ for _id,_z0,_z1 in G1_MOUTHS_X800:
  G1_MOUTH_CORNERS+=[(810.0,_z0-DRIVE_MOUTH_R,DRIVE_MOUTH_R,DRIVE_MOUTH_R),(810.0,_z1,DRIVE_MOUTH_R,DRIVE_MOUTH_R)]
 DRIVE_MOUTHS=DRIVE_MOUTHS+G1_DRIVE_MOUTHS
 MOUTH_CUTS=MOUTH_CUTS+G1_SITE_RECTS+G1_DRIVE_STRIPS+G1_MOUTH_CORNERS
+
+# Owner 17.11 ("Na wzgórzu jedna, druga mała wyspa z willą. Trzecia gdzieś tam"): the villas' private roads leave the city by
+# street mouths like the casino's (city kerb open, R 3 m arcs, BraxChampionsDriveMouth) - WILLA 1 (the hill north of A1)
+# across the Z935 north sidewalk (road edge z 945) at x 597..604 and on through the grass to the region's edge (z 1000);
+# WILLA 3 (the seafront east of the promenade) across the X1130 east sidewalk (road edge x 1140) at z 0..7 and on through
+# the grass to the region's edge (x 1200). WILLA 2 is on the island: no road. BraxChampionsWilleDzialki lays the drives and
+# the roads over these cuts. Must match the C# (BraxChampionsWilleDzialki.Mouth, test_wille_dzialki_20261117.py).
+WILLE_MOUTH_HILL=('WILLA1',597.0,604.0)
+WILLE_MOUTH_SHORE=('WILLA3',0.0,7.0)
+WILLE_DRIVE_STRIPS=[(597.0,945.0,7.0,7.0),(597.0,952.0,7.0,48.0),(1140.0,0.0,7.0,7.0),(1147.0,0.0,53.0,7.0)]
+_m,_c=_mouth('WILLA1',597.0,604.0,945.0,1)
+WILLE_DRIVE_MOUTHS=[_m,('WILLA3',1140.0,0.0-DRIVE_MOUTH_R,1140.0,7.0+DRIVE_MOUTH_R)]
+WILLE_MOUTH_CORNERS=_c+[(1140.0,0.0-DRIVE_MOUTH_R,DRIVE_MOUTH_R,DRIVE_MOUTH_R),(1140.0,7.0,DRIVE_MOUTH_R,DRIVE_MOUTH_R)]
+DRIVE_MOUTHS=DRIVE_MOUTHS+WILLE_DRIVE_MOUTHS
+MOUTH_CUTS=MOUTH_CUTS+WILLE_DRIVE_STRIPS+WILLE_MOUTH_CORNERS
