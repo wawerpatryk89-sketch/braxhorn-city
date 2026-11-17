@@ -9,7 +9,7 @@ using Debug = UnityEngine.Debug;
 
 // ZDJĘCIA Z EDYTORA W BUILDZIE R1 (właściciel 16.11.2026 19:02: „bez zdjęcia nic nie akceptuje, nie ma opcji”).
 // Zdjęcia CI z playera WebGL są wyłączone (właściciel 3.11 18:40: „to tylko czas zajmuje” — 12 części × 80 min). Tu zamiast nich
-// kilkanaście ujęć z GOTOWEJ sceny miasta w edytorze, w tym samym przebiegu APK, przed zapisem i podziałem na obszary (wszystko
+// kilkanaście ujęć z GOTOWEJ sceny miasta w edytorze (od 17.11 tylko z BRAXHORN_ZDJECIA_EDYTOR=1 — patrz Wykonaj), przed zapisem i podziałem na obszary (wszystko
 // w scenie): kamera tymczasowa 55° (jak w grze), 1600 × 900, MSAA 4, ekspozycja i moc słońca jak przy starcie sceny
 // (BraxObrazRejonu), bez mgły. Pliki JPG w unity-city/Logs/r1-zdjecia (artefakt „android-build-diagnostics”, razem z logiem).
 // Bez karty graficznej (urządzenie Null) — tylko wpis w logu, build idzie dalej. Korekcja koloru gry (BraxClaudeKolor) nie działa
@@ -56,8 +56,20 @@ public static class BraxR1Zdjecia
         ("28_komis_biuro_od_okna", new Vector3(-725.8f, 1.6f, -82.2f), new Vector3(-721.5f, 1.5f, -79.8f), "komis: wnętrze biura od szafy — okno, drzwi, roślina"),
     };
 
+    // 17.11 (build 44025295436): pierwszy cam.Render() pełnego miasta w edytorze CI kompilował shadery pod platformę edytora przy
+    // 13 GB RAM + 20 GB swap — 3 h 15 min bez jednego zdjęcia, krok Unity ucięty limitem 285 min, APK i checkpoint miasta przepadły.
+    // Domyślnie WYŁĄCZONE w buildzie APK; zdjęcia do akceptacji właściciela robi podgląd z prawdziwego kodu (unity-tools/claude/
+    // podglad_aleja). Włączenie tylko świadomie: BRAXHORN_ZDJECIA_EDYTOR=1 (np. osobny przebieg sceny bez APK).
+    public const string Wlacznik = "BRAXHORN_ZDJECIA_EDYTOR";
+
     public static int Wykonaj(Scene scena)
     {
+        if (Environment.GetEnvironmentVariable(Wlacznik) != "1")
+        {
+            Debug.Log("BRAXHORN_ZDJECIA z edytora wyłączone w buildzie APK (" + Wlacznik + " != 1) — render pełnego miasta w edytorze CI "
+                      + "zjadł limit kroku Unity w buildzie 44025295436; zdjęcia z podglądu kodu");
+            return 0;
+        }
         Directory.CreateDirectory(Katalog);
         if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
         {

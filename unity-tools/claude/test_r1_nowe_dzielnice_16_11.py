@@ -180,6 +180,17 @@ class ZdjeciaZEdytora(unittest.TestCase):
         wf = (ROOT / ".github/workflows/claude-region-build.yml").read_text(encoding="utf-8")
         self.assertIn("unity-city/Logs/", wf)
 
+    def test_editor_photos_off_in_apk_build(self):
+        # build 44025295436: render pełnego miasta w edytorze CI (kompilacja shaderów pod swapem) zjadł 3 h 15 min i limit kroku Unity
+        z = src(REG / "BraxR1Zdjecia.cs")
+        i_w = z.index("public static int Wykonaj(Scene scena)")
+        i_g = z.index('if (Environment.GetEnvironmentVariable(Wlacznik) != "1")', i_w)
+        self.assertLess(i_g, z.index("cam.Render()"))
+        self.assertLess(i_g, z.index("Directory.CreateDirectory(Katalog);", i_w))
+        self.assertIn('public const string Wlacznik = "BRAXHORN_ZDJECIA_EDYTOR";', z)
+        wf = (ROOT / ".github/workflows/claude-region-build.yml").read_text(encoding="utf-8")
+        self.assertNotIn("BRAXHORN_ZDJECIA_EDYTOR", wf)                                            # w buildzie APK nie włączone
+
 
 class GrafikiBetWlasciciela(unittest.TestCase):
     """16.11 21:51: „Masz, to ci się przyda” — logo BRAXHORN BET i 6 plakatów walk właściciela (paczka zaszyfrowana)."""
