@@ -25,7 +25,7 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
     public string nazwa = "BLACKJACK";
     public int stawka = 10;
     public float decyzja = 5f, filcY = .80f;
-    public const float KartaSz = .063f, KartaDl = .088f;         // a casino card: 63 x 88 mm
+    public const float KartaSz = BraxChampionsKarty.Szer, KartaDl = BraxChampionsKarty.Dl;   // a casino card: 63 x 88 mm
 
     const int Wolny = 0, Rozdanie = 1, Decyzja = 2, Krupier = 3, Wynik = 4;
     sealed class Karta { public Transform t; public int c; public Vector3 z, cel; public Quaternion rz, rcel; public float start, lot = .35f, yaw; public bool zakryta; }
@@ -245,24 +245,5 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
         foreach (var k in s.karty) if (k.t) { k.t.gameObject.SetActive(false); k.t.SetParent(transform, false); wolne.Push(k.t); }
         s.karty.Clear();
     }
-    void Siatki()
-    {
-        const int AW = BraxChampionsAutomatyGry.PokerGra.AtlasW, AH = BraxChampionsAutomatyGry.PokerGra.AtlasH, KW = BraxChampionsAutomatyGry.PokerGra.KartaW, KH = BraxChampionsAutomatyGry.PokerGra.KartaH;
-        BraxChampionsAutomatyGry.PokerGra.RewersPx(out int rx, out int ry);
-        siatki = new Mesh[52];
-        for (int c = 0; c < 52; c++)
-        {
-            BraxChampionsAutomatyGry.PokerGra.KartaPx(c, out int px, out int py);
-            float w = KartaSz * .5f, h = KartaDl * .5f, d = .0003f;
-            Vector2 U(int x, int y) => new Vector2((float)x / AW, (float)y / AH);
-            var m = new Mesh { name = "karta " + c };
-            m.vertices = new[] { new Vector3(-w, d, -h), new Vector3(-w, d, h), new Vector3(w, d, h), new Vector3(w, d, -h),
-                                 new Vector3(w, -d, -h), new Vector3(w, -d, h), new Vector3(-w, -d, h), new Vector3(-w, -d, -h) };
-            m.uv = new[] { U(px, py), U(px, py + KH), U(px + KW, py + KH), U(px + KW, py),
-                           U(rx, ry), U(rx, ry + KH), U(rx + KW, ry + KH), U(rx + KW, ry) };
-            m.triangles = new[] { 0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7 };
-            m.normals = new[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up, Vector3.down, Vector3.down, Vector3.down, Vector3.down };
-            m.RecalculateBounds(); siatki[c] = m;
-        }
-    }
+    void Siatki() { siatki = BraxChampionsKarty.Siatki(); }
 }

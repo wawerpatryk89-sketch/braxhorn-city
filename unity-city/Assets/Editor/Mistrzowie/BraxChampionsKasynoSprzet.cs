@@ -84,6 +84,7 @@ public static partial class BraxChampionsKasynoSprzet
         public readonly List<Renderer> jackpoty = new List<Renderer>(), tablice = new List<Renderer>();
         public readonly List<BraxChampionsRuletka.Stol> ruletki = new List<BraxChampionsRuletka.Stol>();
         public readonly List<BraxChampionsBlackjack.Stol> blackjack = new List<BraxChampionsBlackjack.Stol>();
+        public readonly List<BraxChampionsBakarat.Stol> bakarat = new List<BraxChampionsBakarat.Stol>();
         public readonly List<BraxChampionsKasynoObsluga.Punkt> punkty = new List<BraxChampionsKasynoObsluga.Punkt>();
         public int mech, ekran, banki, karuzele;
         public readonly int[] gry = new int[G.Ile];
@@ -111,6 +112,12 @@ public static partial class BraxChampionsKasynoSprzet
             var bj = k.root.gameObject.AddComponent<BraxChampionsBlackjack>(); bj.nazwa = "BLACKJACK"; bj.stawka = Stawka; bj.stoly = k.blackjack.ToArray();
             bj.karty = kartyStol; bj.filcY = BjTop;
             Debug.Log("KASYNO_BLACKJACK " + k.nazwa + " tables=" + k.blackjack.Count + " decks=6 dealerStands=17 blackjackPays=3:2 cards=" + (KartyWlasciciela ? "owner" : "drawn") + " game=BraxChampionsBlackjack");
+        }
+        if (k.bakarat.Count > 0)
+        {
+            var bk = k.root.gameObject.AddComponent<BraxChampionsBakarat>(); bk.nazwa = "BAKARAT"; bk.stawka = 2 * Stawka; bk.stoly = k.bakarat.ToArray();
+            bk.karty = kartyStol; bk.filcY = BjTop;
+            Debug.Log("KASYNO_BAKARAT " + k.nazwa + " tables=" + k.bakarat.Count + " decks=8 game=punto_banco banker=0.95:1 tie=8:1 stake=" + bk.stawka + " game=BraxChampionsBakarat");
         }
         if (k.punkty.Count > 0)
         {

@@ -190,7 +190,7 @@ public static partial class BraxChampionsCasinoT11
             // neighbour another game; in each wing the two long banks, a short bank before and behind them, and under the front
             // and the back chandelier a CAROUSEL of eight round a lacquered drum with the owner's toppers on its crown (the KOŁO
             // carousels to the entrance, the poker / keno ones at the back): 128 machines
-            int slots=0,roulettes=0,carousels=0,obsluga=0,blackjacks=0;
+            int slots=0,roulettes=0,carousels=0,obsluga=0,blackjacks=0,bakarats=0;
             BraxChampionsFoundation.Optional("T11 slot machines",()=>
             {
                 var body=new BraxChampionsMeshBatch();
@@ -233,6 +233,13 @@ public static partial class BraxChampionsCasinoT11
                     BraxChampionsKasynoSprzet.SzyldWiszacy(kas,new Vector3(bx,4.6f,-8.9f),BraxChampionsKasynoSprzet.ArkBlackjack,1.5f,HallCeiling);
                 }
                 blackjacks=kas.blackjack.Count;
+                // and two baccarat tables north of them (punto banco, BraxChampionsKasynoBakarat), his BAKARAT sign over each
+                foreach(float bx in new[]{-11.5f,11.5f})
+                {
+                    BraxChampionsKasynoSprzet.Bakarat(kas,new Vector3(bx,HallFloor+.016f,6.0f),180f);
+                    BraxChampionsKasynoSprzet.SzyldWiszacy(kas,new Vector3(bx,4.6f,5.6f),BraxChampionsKasynoSprzet.ArkBakarat,1.5f,HallCeiling);
+                }
+                bakarats=kas.bakarat.Count;
                 body.Build(g,"T11 casino hall | slot machines",BraxChampionsKasynoSprzet.Out+"/Meshes",false,1f);
                 BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
             });
@@ -244,6 +251,7 @@ public static partial class BraxChampionsCasinoT11
             if(slots!=128||carousels!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL slot machines "+slots+"/128 carousels "+carousels+"/4");
             if(roulettes!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL roulettes "+roulettes+"/4");
             if(blackjacks!=2)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL blackjack tables "+blackjacks+"/2");
+            if(bakarats!=2)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL baccarat tables "+bakarats+"/2");
 
             // ---- light: six warm vertex lamps (no shadows) ----
             foreach(float x in new[]{-21.15f,21.15f})

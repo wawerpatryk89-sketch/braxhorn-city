@@ -10,6 +10,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 ED = ROOT / "unity-city/Assets/Editor/Mistrzowie"
 RT = ROOT / "unity-city/Assets/Mistrzowie"
 GAME = (RT / "BraxChampionsBlackjack.cs").read_text(encoding="utf-8")
+KARTY = (RT / "BraxChampionsKarty.cs").read_text(encoding="utf-8")
 KIT = (ED / "BraxChampionsKasynoBlackjack.cs").read_text(encoding="utf-8")
 SPRZET = (ED / "BraxChampionsKasynoSprzet.cs").read_text(encoding="utf-8")
 HALL = (ED / "BraxChampionsCasinoT11Hall.cs").read_text(encoding="utf-8")
@@ -53,13 +54,14 @@ class Rules(unittest.TestCase):
         self.assertNotIn("W.Siedzisko", KIT)
 
     def test_his_cards_chips_sign_and_felt(self):
-        self.assertIn("BraxChampionsAutomatyGry.PokerGra.KartaPx(c, out int px, out int py);", GAME)
-        self.assertIn("BraxChampionsAutomatyGry.PokerGra.RewersPx(out int rx, out int ry);", GAME)
+        self.assertIn("BraxChampionsAutomatyGry.PokerGra.KartaPx(c, out int px, out int py);", KARTY)
+        self.assertIn("BraxChampionsAutomatyGry.PokerGra.RewersPx(out int rx, out int ry);", KARTY)
+        self.assertIn("siatki = BraxChampionsKarty.Siatki();", GAME)
         self.assertIn('kartyMat.GetTexture("_MainTex")', KIT)
         self.assertIn("Zeton(b, r % 5,", KIT)
         self.assertIn("Arkusz[ArkLogo, 0]", KIT)
         self.assertIn('"BLACKJACK PŁACI 3 DO 2"', KIT)
-        self.assertIn("public const float KartaSz = .063f, KartaDl = .088f;", GAME)                    # 63 x 88 mm
+        self.assertIn("public const float Szer = .063f, Dl = .088f;", KARTY)                          # 63 x 88 mm
 
     def test_in_both_casinos(self):
         self.assertIn("BraxChampionsKasynoSprzet.Blackjack(kas,new Vector3(bx,HallFloor+.016f,-8.5f),180f);", HALL)
