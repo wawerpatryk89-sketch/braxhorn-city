@@ -22,7 +22,9 @@ public static class BraxChampionsExplorer
         if (File.Exists(ScenePath)) throw new InvalidOperationException("Keep existing exploration scene edits; reviewed regeneration required.");
         var scene = SceneManager.GetActiveScene();
         if (scene.path != BraxChampionsFoundation.ScenePath) throw new InvalidOperationException("Open the completed Champions foundation first.");
-        if (All<BraxGymPlayer>(scene).Length != 0 || All<Camera>(scene).Length != 0)
+        // a player camera is an enabled one: the region's own cameras render on demand into their screens, disabled (the
+        // LOTOTO studio's TV camera, the KASYNO WAWER office's monitoring) - they are no second player
+        if (All<BraxGymPlayer>(scene).Length != 0 || All<Camera>(scene).Count(c => c.enabled) != 0)
             throw new InvalidOperationException("Region already contains a player/camera; do not duplicate it.");
         var rig = new GameObject("Miasto Mistrzow | Brax exploration rig");
         var player = new GameObject("BraxhornPlayer"); player.transform.SetParent(rig.transform, false); player.layer = 8;
@@ -324,7 +326,7 @@ public static class BraxChampionsExplorer
             throw new InvalidOperationException("Brax has been scaled twice or capsule differs from estate.");
         if(p.walkOnly||!p.playFullActionClips||p.initialCameraYaw!=180f||p.bags==null)
             throw new InvalidOperationException("Missing estate locomotion configuration.");
-        if(All<Camera>(scene).Length!=1||All<AudioListener>(scene).Length!=1||!p.view.CompareTag("MainCamera")||!p.view.GetComponent<BraxClaudeKamera>())
+        if(All<Camera>(scene).Count(c=>c.enabled)!=1||All<AudioListener>(scene).Length!=1||!p.view.CompareTag("MainCamera")||!p.view.GetComponent<BraxClaudeKamera>())
             throw new InvalidOperationException("Single player camera/listener required.");
         if(All<BraxTouchControls>(scene).Length!=0) throw new InvalidOperationException("Android HUD is bootstrapped once; no serialized duplicate.");
         var desktop=p.GetComponent<BraxChampionsDesktopInput>(); if(!desktop||desktop.player!=p) throw new InvalidOperationException("Desktop exploration input missing.");

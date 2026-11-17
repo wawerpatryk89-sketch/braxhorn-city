@@ -107,6 +107,7 @@ namespace UnityEngine
         public static float InverseLerp(float a, float b, float v) => a != b ? Clamp01((v - a) / (b - a)) : 0f;
         public static float Repeat(float t, float l) => Clamp(t - (float)Math.Floor(t / l) * l, 0f, l);
         public static float MoveTowards(float c, float t, float d) => Math.Abs(t - c) <= d ? t : c + Math.Sign(t - c) * d;
+        public static bool Approximately(float a, float b) => Math.Abs(b - a) < Math.Max(1e-6f * Math.Max(Math.Abs(a), Math.Abs(b)), 1e-44f * 8);
         public static float LerpAngle(float a, float b, float t) { float d = Repeat(b - a, 360f); if (d > 180f) d -= 360f; return a + d * Clamp01(t); }
         public static float GammaToLinearSpace(float v) => v <= .04045f ? v / 12.92f : (float)Math.Pow((v + .055) / 1.055, 2.4);
         public static float LinearToGammaSpace(float v) => v <= .0031308f ? v * 12.92f : (float)(1.055 * Math.Pow(v, 1 / 2.4) - .055); }

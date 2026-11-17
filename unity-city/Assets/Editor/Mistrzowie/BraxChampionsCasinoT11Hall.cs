@@ -43,6 +43,41 @@ public static partial class BraxChampionsCasinoT11
         W.Kula(crystal,top+Vector3.down*(3.55f*scale),.30f*scale,12,8);
     }
 
+    // The owner's hidden office (16.11 23:41 "W tym kasynie Wawer na mieście ... prywatne pomieszczenie, do którego ... wejście
+    // będzie nikomu nieznane ... przez szafę", 23:44 "dyskretne pomieszczenie, biuro chcę mieć dla siebie"): a walnut block in
+    // the hall's rear east corner - inside of the side windows (x 26..33) and against the windowless rear wall -, 4.6 m high,
+    // black marble floor, cream ceiling at 4.2 m; its door's opening hides behind the middle of three wardrobes on its hall
+    // wall. The wardrobes, the furniture, the open safe with the gold, the monitoring of six hall cameras:
+    // BraxChampionsKasynoSprzet.BiuroWlasciciela.
+    const float OfX0=26.0f,OfX1=33.0f,OfZ0=19.0f,OfZ1=27.35f,OfT=.2f,OfH=4.6f,OfDrzwi0=28.9f,OfDrzwi1=30.3f,OfDrzwiH=2.35f;
+    static readonly BraxChampionsKasynoSprzet.KameraHali[] KameryHali =
+    {
+        new BraxChampionsKasynoSprzet.KameraHali{nazwa="WEJŚCIE",poz=new Vector3(-10.0f,5.0f,-23.6f),cel=new Vector3(4.0f,1.0f,-19.0f)},
+        new BraxChampionsKasynoSprzet.KameraHali{nazwa="RULETKI",poz=new Vector3(13.45f,6.0f,0f),cel=new Vector3(0f,.9f,0f)},
+        new BraxChampionsKasynoSprzet.KameraHali{nazwa="KASA",poz=new Vector3(14.1f,6.0f,-14.62f),cel=new Vector3(13.8f,1.2f,-21.0f)},
+        new BraxChampionsKasynoSprzet.KameraHali{nazwa="AUTOMATY ZACHÓD",poz=new Vector3(-27.75f,6.0f,-13.55f),cel=new Vector3(-22f,1f,-2f)},
+        new BraxChampionsKasynoSprzet.KameraHali{nazwa="AUTOMATY WSCHÓD",poz=new Vector3(27.75f,6.0f,-13.55f),cel=new Vector3(22f,1f,-2f)},
+        new BraxChampionsKasynoSprzet.KameraHali{nazwa="KARUZELE",poz=new Vector3(-14.62f,6.0f,14.0f),cel=new Vector3(-21.15f,1.5f,14f)},
+    };
+    static void BiuroWlasciciela(Transform g,Material marble,Material wall,Material ceiling,Material gold)
+    {
+        float y=HallFloor+.03f;                                                          // over the red tiles and their gold joints
+        W.MM(marble,OfX0,OfX1,HallFloor+.02f,y,OfZ0,OfZ1);
+        W.KolizjaMM(OfX0,OfX1,HallFloor,y,OfZ0,OfZ1);
+        W.MM(wall,OfX0,OfX0+OfT,y,OfH,OfZ0,OfZ1,true);                                   // west
+        W.MM(wall,OfX1-OfT,OfX1,y,OfH,OfZ0,OfZ1,true);                                   // east
+        W.MM(wall,OfX0+OfT,OfX1-OfT,y,OfH,OfZ1-OfT,OfZ1,true);                           // south
+        W.MM(wall,OfX0+OfT,OfDrzwi0,y,OfH,OfZ0,OfZ0+OfT,true);                           // north, west of the door
+        W.MM(wall,OfDrzwi1,OfX1-OfT,y,OfH,OfZ0,OfZ0+OfT,true);                           // north, east of it
+        W.MM(wall,OfDrzwi0,OfDrzwi1,OfDrzwiH,OfH,OfZ0,OfZ0+OfT,true);                    // over it
+        W.MM(wall,OfX0,OfX1,OfH,OfH+.12f,OfZ0,OfZ1);                                     // the roof
+        W.MM(ceiling,OfX0+OfT,OfX1-OfT,4.20f,4.22f,OfZ0+OfT,OfZ1-OfT);                   // the ceiling inside
+        W.MM(gold,OfX0-.02f,OfX1,4.46f,4.50f,OfZ0-.02f,OfZ0);                            // a gold line round its top (hall sides)
+        W.MM(gold,OfX0-.02f,OfX0,4.46f,4.50f,OfZ0,OfZ1);
+        W.MM(gold,OfX1,OfX1+.02f,4.46f,4.50f,OfZ0-.02f,OfZ1);
+        BraxChampionsKasynoSprzet.BiuroWlasciciela(g,OfX0+OfT,OfX1-OfT,OfZ0+OfT,OfZ1-OfT,y,OfT,OfDrzwi0,OfDrzwi1,KameryHali);
+    }
+
     static void CasinoHall()
     {
         var g=new GameObject("T11 casino hall | open, finished, unfurnished | marble, red tiles, gold columns, chandeliers").transform;
@@ -193,6 +228,9 @@ public static partial class BraxChampionsCasinoT11
                 body.Build(g,"T11 casino hall | slot machines",BraxChampionsKasynoSprzet.Out+"/Meshes",false,1f);
                 BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
             });
+            W.Grupa=g;W.Wnetrze=true;
+            // owner 16.11 23:41 / 23:44, 17.11: his hidden office, its door a wardrobe (BiuroWlasciciela below)
+            BraxChampionsFoundation.Optional("T11 ukryte biuro właściciela",()=>BiuroWlasciciela(g,marble,wall,ceiling,gold));
             W.Grupa=g;W.Wnetrze=true;
             if(obsluga!=5)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL service points "+obsluga+"/5 (reception, cloakroom, three cashier windows)");
             if(slots!=128||carousels!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL slot machines "+slots+"/128 carousels "+carousels+"/4");
