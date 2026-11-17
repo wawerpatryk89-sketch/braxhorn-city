@@ -36,3 +36,9 @@ unity-city/Assets/Source/Mistrzowie/LototoWlasciciel/
 unity-city/Assets/Source/Mistrzowie/LototoWlasciciel.meta
 unity-city/Assets/Source/Mistrzowie/NieruchomosciWlasciciel/
 unity-city/Assets/Source/Mistrzowie/NieruchomosciWlasciciel.meta
+# owner 17.11: Patryk as the Champions player and the collection cars - restored/copied in CI only, never committed
+unity-city/Assets/Source/Mistrzowie/Player/
+unity-city/Assets/Source/Mistrzowie/Player.meta
+unity-city/Assets/Source/Mistrzowie/Vehicles/car_918.glb*
+unity-city/Assets/Source/Mistrzowie/Vehicles/car_r8.glb*
+unity-city/Assets/Source/Mistrzowie/Vehicles/car_dc.glb*

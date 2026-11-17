@@ -34,7 +34,11 @@ public static partial class BraxChampionsPatryk
         PK("Punch", false, true, "brax/Jab Cross (1).fbx", "xd/Jab Cross.fbx"),
         PK("Kick", false, true, "brax/Mma Kick (1).fbx", "nyxa/Mma Kick (1).fbx"),
         PK("Jump", false, true, "patryk_owner/Jump.fbx", "brax/Jump.fbx", "extra2/Unarmed Jump Running.fbx"),
-        PK("EnteringCar", false, true, "patryk_owner/Entering Car.fbx"),
+        PK("EnteringCar", false, true, "patryk_owner/Entering Car.fbx", "car/Entering Car.fbx"),
+        // the region's car and the helicopter play Driving in the seat and ExitingCar (owner 17.11: Patryk instead of Brax):
+        // the owner's own Mixamo car moves (Brax/CarAnimations, the A1 package) copied by restore_player.py as Humanoid sources
+        PK("Driving", true, true, "car/Driving.fbx"),
+        PK("ExitingCar", false, true, "car/Exiting Car.fbx"),
         PK("GoalkeeperDivingSave", false, true, "patryk_owner/Goalkeeper Diving Save.fbx"),
         PK("GoalkeeperCatch", false, true, "patryk_owner/Goalkeeper Catch.fbx"),
         PK("Boxing", false, false, "brax/Boxing.fbx", "xd/Boxing.fbx"),

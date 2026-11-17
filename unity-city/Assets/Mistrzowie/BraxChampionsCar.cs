@@ -370,8 +370,9 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
         p.transform.localRotation = Quaternion.identity;
         if (hips) p.transform.position += driverSeat.position - hips.position;
         else p.transform.localPosition = Vector3.zero;
-        p.clips["Driving"].wrapMode = WrapMode.Loop;
-        p.clips.CrossFade("Driving", .18f, PlayMode.StopAll);
+        // a player without a Driving clip (Patryk if his car moves did not import, 17.11) still drives - only the pose stays
+        var driving = p.clips["Driving"];
+        if (driving != null) { driving.wrapMode = WrapMode.Loop; p.clips.CrossFade("Driving", .18f, PlayMode.StopAll); }
         yield return null;
         if (hips) p.transform.position += driverSeat.position - hips.position;
         yield return MoveDoor(0f, .35f);

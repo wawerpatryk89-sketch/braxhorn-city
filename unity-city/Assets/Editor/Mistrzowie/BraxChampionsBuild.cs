@@ -119,6 +119,7 @@ public static class BraxChampionsBuild
             if(validationOnly)Gate(report,()=>VerifyArenaCasinoAssembly(scene,report,"foundation-serialized"));
             report.checks.Add("Serialized scene reopened; consult quality-review.json for inspection warnings");
             BraxChampionsExplorer.Generate(report.sourceCommit);
+            report.playerCharacter=BraxChampionsExplorer.Bohater;          // owner 17.11: Patryk (Brax only if his import failed)
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
             scene=EditorSceneManager.OpenScene(BraxChampionsExplorer.ScenePath,OpenSceneMode.Single);
             Physics.SyncTransforms();
@@ -232,6 +233,7 @@ public static class BraxChampionsBuild
             throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: no loaded exploration scene");
         var cars=scene.GetRootGameObjects()
             .SelectMany(g=>g.GetComponentsInChildren<BraxChampionsCar>(true)).Where(c=>!c.helikopter).ToArray();   // not the helicopter's proxy
+        cars=cars.Where(c=>!c.name.StartsWith(BraxChampionsKolekcjaAut.Prefix)).ToArray();   // nor the collection's three cars (owner 17.11)
         if(cars.Length!=1)
             throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: expected one BRAXHORN owner car, found "+cars.Length);
         var car=cars[0];

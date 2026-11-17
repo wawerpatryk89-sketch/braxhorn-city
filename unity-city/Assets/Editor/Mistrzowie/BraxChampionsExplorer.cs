@@ -29,9 +29,9 @@ public static class BraxChampionsExplorer
         var body = player.AddComponent<CharacterController>();
         body.height = 2.25f; body.radius = .35f; body.center = new Vector3(0, 1.125f, 0);
         body.stepOffset = .36f; body.slopeLimit = 48; body.skinWidth = .035f;
-        var hero = BraxChampionsBrax.Create(player.transform, body);
+        var hero = Gracz(player.transform, body);
         var animation = hero.GetComponentInChildren<Animation>(true);
-        if (!animation) throw new InvalidOperationException("Brax has no original animations.");
+        if (!animation) throw new InvalidOperationException(Bohater + " has no original animations.");
         var camera = new GameObject("Brax exploration camera").AddComponent<Camera>();
         camera.transform.SetParent(rig.transform, false); camera.tag = "MainCamera";
         camera.fieldOfView = 55; camera.nearClipPlane = .15f; camera.farClipPlane = BraxChampionsHorizon.ViewDistance;   // the far coast and ridges (owner 10.11 19:51 "panoramę w tle")
@@ -68,6 +68,8 @@ public static class BraxChampionsExplorer
         // Functional copy of the same source sport car available to the estate.
         // Single parked car near A1 west parking; no replacement meshes or roads.
         BraxChampionsCarBuilder.Generate(rig.transform);
+        // owner 17.11 00:20 "podstaw z 3 auta z naszej kolekcji": Porsche 918, Audi R8, Dodge Challenger beside it, driveable
+        BraxChampionsKolekcjaAut.Generate(rig.transform);
         // Existing Android HUD creates one persistent instance at runtime. Editor/PC uses the same player command API.
         player.AddComponent<BraxChampionsDesktopInput>().player = runtime;
         AddDaylight(rig.transform);
@@ -293,15 +295,32 @@ public static class BraxChampionsExplorer
             BraxBuildQuality.Issue(new InvalidOperationException("Brax spawn/approach is obstructed: "+feet));
     }
 
+    // Owner 17.11 00:20 ("Wstaw mi Patryka zamiast brax"): the player of the region is Patryk - the estate's model and moves
+    // (private: decrypted only in CI by restore_player.py, BraxChampionsPatryk moves the clips onto his bones, his car moves
+    // too). If he cannot be built the APK still comes out with Brax and the build says why (DO POPRAWKI MISTRZOWIE_GRACZ):
+    // the owner asked for a build by the morning.
+    public static string Bohater = "Brax";
+    static GameObject Gracz(Transform player, CharacterController body)
+    {
+        try { var h = BraxChampionsPatryk.PatrykBohater(player, body); Bohater = "Patryk"; Debug.Log("MISTRZOWIE_GRACZ Patryk"); return h; }
+        catch (Exception e)
+        {
+            BraxBuildQuality.Warn("DO POPRAWKI MISTRZOWIE_GRACZ Patryk nie wszedł, gramy Braxem: " + (e.InnerException ?? e).Message);
+            body.height = 2.25f; body.radius = .35f; body.center = new Vector3(0, 1.125f, 0); body.stepOffset = .36f;
+            Bohater = "Brax"; return BraxChampionsBrax.Create(player, body);
+        }
+    }
+
     public static int Validate(Scene scene)
     {
         try
         {
         var players=All<BraxGymPlayer>(scene); if(players.Length!=1) throw new InvalidOperationException("Exactly one Brax required.");
         var p=players[0];
-        if(!p.visual||p.visual.name!="Brax"||!p.body||!p.clips||!p.view||!p.cityWorld||p.cityWorld.player!=p||p.cityWorld.area!="mistrzowie")
+        bool patryk=p.visual&&p.visual.name=="Patryk";
+        if(!p.visual||(p.visual.name!="Brax"&&!patryk)||!p.body||!p.clips||!p.view||!p.cityWorld||p.cityWorld.player!=p||p.cityWorld.area!="mistrzowie")
             throw new InvalidOperationException("Incomplete Brax/world/camera references.");
-        if((p.transform.lossyScale-Vector3.one).sqrMagnitude>.000001f||Mathf.Abs(p.body.height-2.25f)>.001f)
+        if((p.transform.lossyScale-Vector3.one).sqrMagnitude>.000001f||(!patryk&&Mathf.Abs(p.body.height-2.25f)>.001f))
             throw new InvalidOperationException("Brax has been scaled twice or capsule differs from estate.");
         if(p.walkOnly||!p.playFullActionClips||p.initialCameraYaw!=180f||p.bags==null)
             throw new InvalidOperationException("Missing estate locomotion configuration.");
@@ -317,7 +336,7 @@ public static class BraxChampionsExplorer
             if(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(r.sharedMesh)))throw new InvalidOperationException("Unsaved Brax mesh.");
             foreach(var m in r.sharedMaterials)
             {
-                if(!m||!m.shader||m.shader.name!="Braxhorn/HeroPremium"||ShaderUtil.ShaderHasError(m.shader))throw new InvalidOperationException("Missing Brax shader.");
+                if(!m||!m.shader||m.shader.name!=(patryk?"Braxhorn/ChampionsPatryk":"Braxhorn/HeroPremium")||ShaderUtil.ShaderHasError(m.shader))throw new InvalidOperationException("Missing Brax shader.");
                 foreach(var property in new[]{"_MainTex","_BumpMap","_Orm"})
                 {
                     var texture=m.GetTexture(property);

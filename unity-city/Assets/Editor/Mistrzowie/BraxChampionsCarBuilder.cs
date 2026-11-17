@@ -24,7 +24,7 @@ public static class BraxChampionsCarBuilder
     static float CarScale => WorldLengthMetres / LengthMetres;
     static float K => BraxClaudeOsiedle.K;
 
-    static void ApplyCarPbr(GameObject copy)
+    internal static void ApplyCarPbr(GameObject copy)
     {
         var cache = new Dictionary<Material, Material>();
         int converted = 0, preserved = 0, slots = 0;
@@ -76,7 +76,7 @@ public static class BraxChampionsCarBuilder
             + " slots=" + slots + " sourceTexturesUnchanged=true reflectionStrength=.28");
     }
 
-    static Bounds BoundsLocal(Transform parent)
+    internal static Bounds BoundsLocal(Transform parent)
     {
         var renderers = parent.GetComponentsInChildren<Renderer>(true);
         if (renderers.Length == 0)
@@ -106,7 +106,7 @@ public static class BraxChampionsCarBuilder
     // Merely turning around world Y leaves their chassis standing on end.
     // Evaluate right-angle axis conversions from REAL renderer bounds, without
     // changing source meshes, wheel geometry, materials or the authored car.
-    static void PlaceWheelsDown(GameObject copy,Transform root)
+    internal static void PlaceWheelsDown(GameObject copy,Transform root)
     {
         var original=copy.transform.localRotation;
         var candidates=new[]{

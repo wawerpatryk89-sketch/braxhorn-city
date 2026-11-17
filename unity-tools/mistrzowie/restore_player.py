@@ -104,6 +104,28 @@ def copy_animations(staging, destination):
     return files
 
 
+# Owner 17.11 ("Wstaw mi Patryka zamiast brax"): the region's car and the helicopter play EnteringCar, Driving and
+# ExitingCar. They are the owner's own Mixamo car moves from the A1 package (import_brax_car_animations.py puts them in
+# Brax/CarAnimations before this step); copied under ruchy/car they import as Humanoid sources (BraxChampionsPatrykImport)
+# and BraxChampionsPatryk moves them onto Patryk's bones like his other clips. Missing = Patryk walks, but sits still.
+CAR_MOVES = ROOT / "unity-city/Assets/Source/Mistrzowie/Brax/CarAnimations"
+CAR_CLIPS = ("Entering Car.fbx", "Driving.fbx", "Exiting Car.fbx")
+
+
+def copy_car_moves(source=CAR_MOVES, destination=None):
+    destination = (destination or CEL / "ruchy") / "car"
+    files = []
+    for name in CAR_CLIPS:
+        src = Path(source) / name
+        if not src.is_file():
+            print("::warning::BRAXHORN_PATRYK car move missing: " + str(src))
+            continue
+        destination.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, destination / name)
+        files.append(destination / name)
+    return files
+
+
 def main():
     if not prywatne.klucz():
         raise RuntimeError("Missing repository key for the required estate Patryk")
@@ -121,7 +143,7 @@ def main():
                     raise RuntimeError("Empty original package: " + name)
         przygotuj_patryka(staging)
         files = [{"path": str(target.relative_to(ROOT)), "sha256": hashlib.sha256(target.read_bytes()).hexdigest()}
-                 for target in [*copy_animations(staging, CEL / "ruchy"), *owner_files]]
+                 for target in [*copy_animations(staging, CEL / "ruchy"), *owner_files, *copy_car_moves()]]
         for name in ("Patryk.fbx", "Patryk_BaseColor.png", "Patryk_Normal.png", "Patryk_ORM.png"):
             target = CEL / "patryk" / name
             files.append({"path": str(target.relative_to(ROOT)), "sha256": hashlib.sha256(target.read_bytes()).hexdigest()})

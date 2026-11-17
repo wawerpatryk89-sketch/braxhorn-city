@@ -149,9 +149,17 @@ jobs:
             unity-city/Prywatne/miasto_pojazdy.tar.gz.enc
             unity-city/Prywatne/braxhorn-*/
             unity-city/Prywatne/mistrzowie-kino-filmy-20261111/
+            unity-city/Prywatne/patryk.tar.gz.enc
+            unity-city/Prywatne/ruchy_brax.tar.gz.enc
+            unity-city/Prywatne/ruchy_wlasciciela.tar.gz.enc
+            unity-city/Prywatne/import-patryk-20261103/
+            unity-city/Prywatne/import-patryk-animations-20261104/
             unity-tools/wideo
             unity-tools/sklep
             public/assets/cars-src/car_rev.glb
+            public/assets/cars-src/car_918.glb
+            public/assets/cars-src/car_r8.glb
+            public/assets/cars-src/car_dc.glb
             public/assets/chars/brax.glb.gz
             public/assets/tex/brax_color.webp
             public/assets/tex/brax_normal.webp
@@ -375,6 +383,11 @@ jobs:
           python3 unity-tools/mistrzowie/verify_t11_real_sources.py
           python3 unity-tools/mistrzowie/verify_native_vegetation_glb.py
           python3 unity-tools/mistrzowie/restore_private.py
+          # Owner 17.11 00:20 "Wstaw mi Patryka zamiast brax": the estate's Patryk and his moves (+ the car moves) for the
+          # player. Not fatal: without them BraxChampionsExplorer builds Brax and says DO POPRAWKI MISTRZOWIE_GRACZ.
+          python3 unity-tools/mistrzowie/restore_player.py || echo "::warning::MISTRZOWIE_GRACZ Patryk not restored - the APK plays Brax"
+          # Owner 17.11 00:20 "podstaw z 3 auta z naszej kolekcji": 918, R8, Challenger unchanged from public/assets/cars-src.
+          python3 unity-tools/mistrzowie/prepare_kolekcja_aut.py || echo "::warning::KOLEKCJA_AUT sources not copied"
           python3 unity-tools/mistrzowie/prepare_brax.py
           python3 unity-tools/mistrzowie/prepare_signage.py
           # Owner-approved temporary 12-sign 3x4 atlas was checked by SHA-256 above.
