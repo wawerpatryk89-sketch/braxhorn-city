@@ -70,12 +70,17 @@ public sealed class BraxReklama : MonoBehaviour
         kamera.transform.rotation = dokadR;
     }
 
-    // Gest na kwestię. Jak postać nie ma ujęcia, zostaje przy Idle — nie przerywa sceny.
+    // GEST NA KAŻDĄ KWESTIĘ, A POD SPODEM „Talk”. Na nagraniu właściciela (17.11, 14:35)
+    // Patryk stał z rękami przy sobie przez większość reklamy: gesty owszem leciały, ale
+    // trwają 1–3 s przy kwestiach po 4–5 s, a między nimi wracał do Idle, czyli do bezruchu.
+    // Teraz podkładem jest Talk (ujęcie z pracą rąk przy mówieniu), gest wchodzi na wierzch
+    // na początku kwestii, a po jego końcu wraca Talk — więc ręce chodzą przez cały czas.
     static readonly string[] Gesty =
     {
-        "Wave", "Idle", "Point", "Idle", "Taunt", "Idle", "Point",
-        "Victory", "Idle", "Point", "Idle", "Idle", "Idle", "Bow",
+        "Wave", "Point", "Taunt", "Point", "Victory", "Taunt", "Bow",
+        "Point", "Wave", "Taunt", "Victory", "Point", "Taunt", "Bow",
     };
+    const string Podklad = "Talk";
 
     string etap = "";
     string mowi = "";
@@ -101,12 +106,28 @@ public sealed class BraxReklama : MonoBehaviour
         return z;
     }
 
+    static readonly string[] Petle = { "Idle", "Talk", "DrunkWalk", "DrunkIdle" };
+
     void Graj(Animation a, string klip)
     {
         if (!a || !a.GetClip(klip)) return;
-        a[klip].wrapMode = klip == "Idle" || klip == "DrunkWalk" || klip == "DrunkIdle"
+        a[klip].wrapMode = System.Array.IndexOf(Petle, klip) >= 0
             ? WrapMode.Loop : WrapMode.ClampForever;
         a.CrossFade(klip, .25f);
+    }
+
+    /// Gest na wierzchu, a po jego naturalnym końcu powrót do podkładu, żeby postać
+    /// nigdy nie zastygła z rękami przy sobie.
+    IEnumerator Gest(Animation a, string klip, string wracaDo = null)
+    {
+        if (!a) yield break;
+        string podklad = wracaDo != null && a.GetClip(wracaDo) ? wracaDo
+                       : a.GetClip(Podklad) ? Podklad : "Idle";
+        if (!a.GetClip(klip)) { Graj(a, podklad); yield break; }
+        Graj(a, klip);
+        float dlugosc = a[klip].length;
+        yield return new WaitForSeconds(Mathf.Max(.2f, dlugosc - .2f));
+        Graj(a, podklad);
     }
 
     IEnumerator Powiedz(Animation kto, AudioClip klip, string podpis)
@@ -163,9 +184,10 @@ public sealed class BraxReklama : MonoBehaviour
         var sam = patryk.transform.parent ? patryk.transform.parent : patryk.transform;
         Kadruj(new[] { sam.position }, 1.12f);
         etap = "REKLAMA";
+        Graj(patryk, patryk.GetClip(Podklad) ? Podklad : "Idle");
         for (int i = 0; i < patrykKwestie.Count; i++)
         {
-            Graj(patryk, i < Gesty.Length ? Gesty[i] : "Idle");
+            StartCoroutine(Gest(patryk, Gesty[i % Gesty.Length]));
             yield return Powiedz(patryk, patrykKwestie[i], "Patryk");
         }
 
@@ -201,12 +223,17 @@ public sealed class BraxReklama : MonoBehaviour
                 if (kamera) r.rotation = Quaternion.LookRotation(
                     Vector3.ProjectOnPlane(kamera.transform.position - r.position, Vector3.up), Vector3.up);
             }
-        Graj(patryk, "Idle");
+        Graj(patryk, patryk.GetClip(Podklad) ? Podklad : "Idle");
 
-        // 3. Przerywają mu.
+        // 3. Przerywają mu. Mówiący dostaje gest, pozostali kiwają się na DrunkIdle.
         etap = "PIJANI PRZERYWAJĄ";
+        int n = 0;
         foreach (var (kto, klip, podpis) in duet)
+        {
+            StartCoroutine(Gest(kto, n % 2 == 0 ? "Taunt" : "Point", "DrunkIdle"));
+            n++;
             yield return Powiedz(kto, klip, podpis);
+        }
 
         etap = "KONIEC — dotknij, żeby od nowa";
         while (!Input.anyKeyDown && Input.touchCount == 0) yield return null;
