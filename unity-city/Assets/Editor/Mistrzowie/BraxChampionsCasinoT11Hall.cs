@@ -190,7 +190,7 @@ public static partial class BraxChampionsCasinoT11
             // neighbour another game; in each wing the two long banks, a short bank before and behind them, and under the front
             // and the back chandelier a CAROUSEL of eight round a lacquered drum with the owner's toppers on its crown (the KOŁO
             // carousels to the entrance, the poker / keno ones at the back): 128 machines
-            int slots=0,roulettes=0,carousels=0,obsluga=0;
+            int slots=0,roulettes=0,carousels=0,obsluga=0,blackjacks=0;
             BraxChampionsFoundation.Optional("T11 slot machines",()=>
             {
                 var body=new BraxChampionsMeshBatch();
@@ -225,6 +225,14 @@ public static partial class BraxChampionsCasinoT11
                 foreach(float rx in new[]{-4.0f,4.0f})foreach(float rz in new[]{-4.5f,4.5f})
                     BraxChampionsKasynoSprzet.Ruletka(kas,new Vector3(rx,HallFloor+.016f,rz),rz>0f?0f:180f);
                 roulettes=kas.ruletki.Count;
+                // owner 16.11 ("blackjack grywalny w obu kasynach"): two playable tables between the roulette pit and the slot
+                // wings, their players to the entrance, his BLACKJACK sign over each (BraxChampionsKasynoBlackjack)
+                foreach(float bx in new[]{-11.5f,11.5f})
+                {
+                    BraxChampionsKasynoSprzet.Blackjack(kas,new Vector3(bx,HallFloor+.016f,-8.5f),180f);
+                    BraxChampionsKasynoSprzet.SzyldWiszacy(kas,new Vector3(bx,4.6f,-8.9f),BraxChampionsKasynoSprzet.ArkBlackjack,1.5f,HallCeiling);
+                }
+                blackjacks=kas.blackjack.Count;
                 body.Build(g,"T11 casino hall | slot machines",BraxChampionsKasynoSprzet.Out+"/Meshes",false,1f);
                 BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
             });
@@ -235,6 +243,7 @@ public static partial class BraxChampionsCasinoT11
             if(obsluga!=5)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL service points "+obsluga+"/5 (reception, cloakroom, three cashier windows)");
             if(slots!=128||carousels!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL slot machines "+slots+"/128 carousels "+carousels+"/4");
             if(roulettes!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL roulettes "+roulettes+"/4");
+            if(blackjacks!=2)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL blackjack tables "+blackjacks+"/2");
 
             // ---- light: six warm vertex lamps (no shadows) ----
             foreach(float x in new[]{-21.15f,21.15f})

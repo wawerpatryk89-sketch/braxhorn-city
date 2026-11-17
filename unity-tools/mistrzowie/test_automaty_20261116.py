@@ -269,7 +269,8 @@ class Roulette(unittest.TestCase):
 
     def test_both_casinos(self):
         self.assertIn("BraxChampionsKasynoSprzet.Ruletka(kas,new Vector3(0f,y,-9.4f),0f);", TOWER)
-        self.assertIn("foreach(float x in new[]{-6.6f,6.6f})BlackjackTable(new Vector2(x,-9.6f));", TOWER)
+        self.assertIn("foreach(float x in new[]{-6.6f,6.6f})BraxChampionsKasynoSprzet.Blackjack(kas,new Vector3(x,y,-9.6f),180f);", TOWER)
+        self.assertIn("BraxChampionsKasynoSprzet.Blackjack(kas,new Vector3(bx,HallFloor+.016f,-8.5f),180f);", HALL)
         self.assertIn("BraxChampionsKasynoSprzet.Ruletka(kas,new Vector3(rx,HallFloor+.016f,rz),rz>0f?0f:180f);", HALL)
         self.assertIn('if(roulettes!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL roulettes "', HALL)
         self.assertTrue((ASSETS / "Mistrzowie/BraxChampionsRuletka.cs.meta").exists())

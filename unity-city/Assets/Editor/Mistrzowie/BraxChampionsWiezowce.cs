@@ -1069,13 +1069,13 @@ public static class BraxChampionsWiezowce
     // KASYNO WAWER T11 i sky kasyno na szczycie wieżowca"). The top two storeys of the BRAXHORN TOWER (240-248 m over the
     // plaza, the highest room of the region) are one hall 8 m high in clear glass all round: the whole city below. The
     // express lift from the lobby (lift 1 of the bank, a working BraxWinda: three stops, the last the heliport) opens into it. Inside: dark oak
-    // planks, a dark ceiling with lamps, blackjack tables made as real ones (red felt, a padded black leather armrest,
-    // walnut body, steel chip tray, pedestals), two banks of working slot machines (mechanical and screen, BraxChampionsKasyno-
+    // planks, a dark ceiling with lamps, two playable blackjack tables (BraxChampionsKasynoBlackjack, 17.11: "blackjack
+    // grywalny w obu kasynach"), the roulette, two banks of working slot machines (mechanical and screen, BraxChampionsKasyno-
     // Sprzet), a bar with the owner's back-bar and lamps, lounges at the glass.
     public const int CasinoFloor=58;
     public static float CasinoY=>Shaft+CasinoFloor*Storey;
     const float LiftZ0=-2f,LiftZ1=.30f,LiftHalf=1.05f,LiftLeaf=.60f;
-    static Material casinoGlass,oakDark,felt,leatherBlack,darkMetal;
+    static Material casinoGlass,oakDark;
     static Transform cab,cabL,cabR;static Transform[] landL,landR;static float liftX;static int slots,tables,roulettes,ownerMissing,obsluga;
     static void CasinoMaterials()
     {
@@ -1083,12 +1083,8 @@ public static class BraxChampionsWiezowce
         string path=outFolder+"/Materials/tower_sky_casino_clear_glass.mat";
         casinoGlass=AssetDatabase.LoadAssetAtPath<Material>(path);
         if(!casinoGlass){casinoGlass=new Material(gClear){name="Mistrzowie tower sky casino clear glass (both sides)"};casinoGlass.SetFloat("_Cull",0f);AssetDatabase.CreateAsset(casinoGlass,path);}
-        // the owner's hall board (10.11): oak planks smoked a shade darker; Poly Haven velour for the felt (red, the
-        // region's casino colour); black hide for the armrests; blackened steel for the pedestals
+        // the owner's hall board (10.11): oak planks smoked a shade darker (the blackjack tables are the casinos' own now)
         oakDark=Src("sky_casino_oak","oak_wood_planks",2.2f,new Color(.50f,.44f,.42f),.6f);
-        felt=Src("sky_casino_felt","velour_velvet",.6f,new Color(.82f,.80f,.82f),.95f);
-        leatherBlack=BraxChampionsFoundation.LibraryLeather("tower_casino_leather_black",new Color(.30f,.52f,.70f));
-        darkMetal=BraxChampionsFoundation.LibraryMetal("tower_casino_blackened_steel",new Color(.10f,.10f,.11f));
     }
     // one storey of the hall's glass: clear units, mullions with a back (seen from the hall), the sill / the 4 m transom,
     // the glass's collision; the roof deck over the top one
@@ -1161,11 +1157,11 @@ public static class BraxChampionsWiezowce
                 BraxChampionsKasynoSprzet.SzyldWiszacy(kas,new Vector3(x,y+3.4f,-9.6f),BraxChampionsKasynoSprzet.ArkBlackjack,1.4f,ceil);
             obsluga=kas.punkty.Count;
             BraxChampionsKasynoSprzet.Ruletka(kas,new Vector3(0f,y,-9.4f),0f);
-            BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;roulettes=kas.ruletki.Count;
+            // 17.11 ("blackjack grywalny w obu kasynach"): the two tables to the south playable, their players to the glass
+            foreach(float x in new[]{-6.6f,6.6f})BraxChampionsKasynoSprzet.Blackjack(kas,new Vector3(x,y,-9.6f),180f);
+            BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;roulettes=kas.ruletki.Count;tables=kas.blackjack.Count;
         });
         W.Grupa=inside;W.Wnetrze=true;
-        // ---- blackjack tables to the south (the street side, the glass behind the players)
-        foreach(float x in new[]{-6.6f,6.6f})BlackjackTable(new Vector2(x,-9.6f));
         // (the roulette between them - owner 16.11 19:13 "ruletki prawdziwe" - is set with the slot machines above: a European
         // table at x 0, the players to the hall)
         // ---- lounges at the west and east glass, the sofas facing the city; plants
@@ -1185,42 +1181,6 @@ public static class BraxChampionsWiezowce
         if(ownerMissing>0)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO owner models missing x"+ownerMissing+" (osiedle_wnetrza pack): back-bar / bar lamps stay empty");
         if(slots!=40)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO slot machines "+slots+"/40");
         if(obsluga!=4)BraxBuildQuality.Warn("DO POPRAWKI TOWER_T09_SKY_KASYNO service points "+obsluga+"/4 (reception, cloakroom, two cashier windows)");
-    }
-    // a blackjack table as real ones are (2.2 x 1.05 m, felt at .78 m): a half-ellipse of red felt, a padded black leather
-    // armrest round the players' arc, a walnut apron under it, the dealer's straight walnut edge with a steel chip tray, two
-    // blackened steel pedestals; five dining chairs (Poly Haven) round the arc, the dealer standing on the straight side (+z)
-    static void BlackjackTable(Vector2 at)
-    {
-        float y=CasinoY,top=.78f;const float A=1.10f,B=.95f,Rail=.11f,RailH=.075f;
-        Vector3 L(float x,float h,float z)=>new Vector3(at.x+x,y+h,at.y+z);
-        Vector2 Arc(float t,float k)=>new Vector2(A*k*Mathf.Cos(t),-B*k*Mathf.Sin(t));
-        Vector2 Out(float t){var v=new Vector2(Mathf.Cos(t)/A,-Mathf.Sin(t)/B);return v.normalized;}
-        void Up(Material m,Vector3 a,Vector3 b,Vector3 c,bool up){var n=Vector3.Cross(b-a,c-a);if((n.y<0)==up)kat.Triangle(m,a,c,b);else kat.Triangle(m,a,b,c);}
-        const int N=28;float kIn=1f-Rail/A*.9f;
-        for(int i=0;i<N;i++)
-        {
-            float t0=Mathf.PI*i/N,t1=Mathf.PI*(i+1)/N;var a0=Arc(t0,kIn);var a1=Arc(t1,kIn);
-            Up(felt,L(0,top,.02f),L(a0.x,top,a0.y),L(a1.x,top,a1.y),true);                     // the felt
-            var b0=Arc(t0,1f);var b1=Arc(t1,1f);
-            Up(walnut,L(0,top-.16f,.02f),L(b0.x,top-.16f,b0.y),L(b1.x,top-.16f,b1.y),false);  // the underside
-        }
-        // the padded armrest: a half-round roll of leather on the arc's rim (out of the felt's plane by its own height)
-        kat.Surface(leatherBlack,(u,v)=>{float t=Mathf.PI*u,ph=Mathf.PI*v;var c=Arc(t,1f-Rail*.5f/A);var o=Out(t);
-            float r=-Mathf.Cos(ph)*Rail*.5f,h=Mathf.Sin(ph)*RailH;return L(c.x+o.x*r,top-.005f+h,c.y+o.y*r);},N,6,true);
-        // the walnut apron under it, straight down to the underside
-        kat.Surface(walnut,(u,v)=>{float t=Mathf.PI*u;var c=Arc(t,1f);return L(c.x,top-.16f+v*.155f,c.y);},N,1);
-        // the dealer's side: a straight walnut edge, the steel chip tray let into it, the felt's strip to it
-        kat.RoundedBox(walnut,L(0,top-.08f,.10f),new Vector3(2*A+.02f,.16f,.16f),.02f);
-        kat.RoundedBox(steel,L(0,top+.012f,.10f),new Vector3(.62f,.024f,.12f),.006f);
-        foreach(float sx in new[]{-1f,1f})kat.RoundedBox(darkMetal,L(sx*.55f,(top-.16f)*.5f,-.30f),new Vector3(.14f,top-.16f,.46f),.02f);
-        W.Grupa=inside;W.Wnetrze=true;W.KolizjaMM(at.x-A,at.x+A,y,y+top,at.y-B,at.y+.18f);
-        for(int k=0;k<5;k++)
-        {
-            float t=Mathf.PI*(k+.5f)/5f;var p=Arc(t,1f)+Out(t)*.42f;var face=Out(t)*-1f;
-            Model("HotelSobczak/dining_chair_02/dining_chair_02_2k.gltf","sky casino blackjack chair",new Vector3(at.x+p.x,y,at.y+p.y),Mathf.Atan2(face.x,face.y)*Mathf.Rad2Deg);
-            W.Grupa=inside;W.Siedzisko(new Vector3(at.x+p.x,y+.47f,at.y+p.y),new Vector3(face.x,0,face.y),"SKY KASYNO BLACKJACK");seats++;
-        }
-        tables++;
     }
     // one of the owner's models (osiedle_wnetrza: CC BY, decrypted in CI): base centred on at (or hung so its top is at
     // hangTo), fitted to fitHeight metres, turned by yaw; null and counted when the pack is not here

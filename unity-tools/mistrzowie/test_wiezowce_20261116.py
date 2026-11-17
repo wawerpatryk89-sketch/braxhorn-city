@@ -208,8 +208,10 @@ class SkyCasino(unittest.TestCase):
         self.assertIn("W.MM(marble,x-.98f,x+.98f,-.12f,.01f,", SRC)
 
     def test_furnished_with_real_things(self):
-        sc = SRC[SRC.index("static void SkyCasino("):SRC.index("static void BlackjackTable(")]
-        self.assertIn("foreach(float x in new[]{-6.6f,6.6f})BlackjackTable(", sc)
+        sc = SRC[SRC.index("static void SkyCasino("):SRC.index("static GameObject OwnerModel(")]
+        # 17.11 the two tables are the casinos' playable blackjack (BraxChampionsKasynoBlackjack), no longer decoration
+        self.assertIn("foreach(float x in new[]{-6.6f,6.6f})BraxChampionsKasynoSprzet.Blackjack(kas,new Vector3(x,y,-9.6f),180f);", sc)
+        self.assertNotIn("static void BlackjackTable(", SRC)
         self.assertIn('OwnerModel("bar_lampa_markpeters"', sc)
         # 16.11 18:19 the owner's placeholder machine model gave way to working slot machines (test_automaty_20261116)
         self.assertNotIn("kasyno_automat_nermin", sc)
@@ -218,10 +220,6 @@ class SkyCasino(unittest.TestCase):
         self.assertIn("BraxChampionsKasynoSprzet.Bank(kas,new Vector3(9.8f,y,-4.5f),0f,6,1,ceil,new[]{Video,Keno,Mech,Kolo});", sc)
         self.assertIn("OwnerBackBar(", sc)
         self.assertIn('BraxMiastoAssety.Model("osiedle_wnetrza",file)', SRC)
-        bj = SRC[SRC.index("static void BlackjackTable("):SRC.index("static GameObject OwnerModel(")]
-        for part in ('felt', 'leatherBlack', 'walnut', 'steel', 'darkMetal', 'dining_chair_02_2k.gltf'):
-            self.assertIn(part, bj)
-        self.assertIn('felt=Src("sky_casino_felt","velour_velvet"', SRC)
         self.assertIn('oakDark=Src("sky_casino_oak","oak_wood_planks"', SRC)
         self.assertNotIn("BraxKatalog.Tv(", sc)                          # no films in a casino either (street premises rule)
 

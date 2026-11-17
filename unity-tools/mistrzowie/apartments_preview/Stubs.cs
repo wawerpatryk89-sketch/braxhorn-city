@@ -70,6 +70,15 @@ namespace UnityEngine
         }
         public static Quaternion AngleAxis(float deg, Vector3 axis) => Axis(axis.normalized, deg);
         public static Quaternion Inverse(Quaternion q) => new Quaternion(-q.x, -q.y, -q.z, q.w);
+        public static Quaternion Slerp(Quaternion a, Quaternion b, float t)
+        {
+            t = Mathf.Clamp(t, 0, 1); float d = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+            if (d < 0) { b = new Quaternion(-b.x, -b.y, -b.z, -b.w); d = -d; }
+            float k0 = 1 - t, k1 = t;
+            if (d < .9995f) { float th = (float)Math.Acos(d), s = (float)Math.Sin(th); k0 = (float)Math.Sin((1 - t) * th) / s; k1 = (float)Math.Sin(t * th) / s; }
+            var q = new Quaternion(a.x * k0 + b.x * k1, a.y * k0 + b.y * k1, a.z * k0 + b.z * k1, a.w * k0 + b.w * k1);
+            float n = (float)Math.Sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w); return new Quaternion(q.x / n, q.y / n, q.z / n, q.w / n);
+        }
         public static Quaternion operator *(Quaternion a, Quaternion b) => new Quaternion(
             a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y, a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
             a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w, a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
