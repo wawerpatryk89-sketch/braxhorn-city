@@ -240,6 +240,8 @@ public static partial class BraxChampionsCasinoT11
                     BraxChampionsKasynoSprzet.SzyldWiszacy(kas,new Vector3(bx,4.6f,5.6f),BraxChampionsKasynoSprzet.ArkBakarat,1.5f,HallCeiling);
                 }
                 bakarats=kas.bakarat.Count;
+                // the BIG SIX "KOŁO FORTUNY" at the back of the hall, its betting table before it (BraxChampionsKasynoKolo)
+                BraxChampionsKasynoSprzet.KoloFortuny(kas,new Vector3(0f,HallFloor+.016f,23.5f),180f);
                 body.Build(g,"T11 casino hall | slot machines",BraxChampionsKasynoSprzet.Out+"/Meshes",false,1f);
                 BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
             });
