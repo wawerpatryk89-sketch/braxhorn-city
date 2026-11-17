@@ -142,7 +142,7 @@ public static partial class BraxChampionsKasynoSprzet
         var src = Wczytaj(Wlasciciel + "/szyldy/arkusz_szyldy_monety_logo.png", out int sw, out int sh);
         for (int i = 0; i < 7; i++)
         {
-            float x = KoloPoleX(i); int x0 = (int)X(x + .2f), x1 = (int)X(x - .2f), y0 = (int)Y(-.36f), y1 = (int)Y(.30f);
+            float x = KoloPoleX(i); int x0 = (int)X(x + .2f), x1 = (int)X(x - .2f), y0 = (int)Y(.30f), y1 = (int)Y(-.36f);   // X, Y fall with x, z
             for (int yy = y0; yy < y1; yy++) for (int xx = x0; xx < x1; xx++)
             {
                 var o = px[yy * w + xx]; var kk = KoloKolory[i]; px[yy * w + xx] = new Color32((byte)((o.r + kk.r * 2) / 3), (byte)((o.g + kk.g * 2) / 3), (byte)((o.b + kk.b * 2) / 3), 255);
