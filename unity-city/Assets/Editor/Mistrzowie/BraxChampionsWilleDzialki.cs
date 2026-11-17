@@ -170,7 +170,8 @@ public static class BraxChampionsWilleDzialki
         {
             // under the villa's slabs (bottoms at -.3): just under them, and under its front deep (the retaining wall's
             // foot, the trough); under the pool's shell 2.2 m down
-            if (l.x > BraxChampionsWille.PoolX0 - .6f && l.x < BraxChampionsWille.PoolX1 + .6f && l.y < BraxChampionsWille.PoolZ1 + .6f) return d.padY - 2.2f;
+            var pool = BraxChampionsWille.StrefaBasenu(d.nr);                 // each villa its own pool (owner 17.11)
+            if (l.x > pool.x - .6f && l.x < pool.y + .6f && l.y < pool.z + .6f) return d.padY - 2.2f;
             return Mathf.Min(PrzyPadzie(d, l.y) - .3f, d.padY - .35f);
         }
         float od = OdPadu(l);

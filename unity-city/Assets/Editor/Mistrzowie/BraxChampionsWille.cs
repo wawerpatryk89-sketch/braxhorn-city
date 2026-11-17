@@ -23,7 +23,7 @@ using W = BraxWnetrzaKit;
 //  - AKCJA "WILLA n · NA SPRZEDAŻ" at the board by the drive (Monika).
 // Three finishes on the same plan: 1 white render and travertine, 2 the ground floor in grey stone, 3 the upper floor in
 // graphite. Nominal metres, built at the origin, then the group goes onto its pad x K (once).
-public static class BraxChampionsWille
+public static partial class BraxChampionsWille
 {
     static float K => BraxClaudeOsiedle.K;
     public const string Out = "Assets/PlayableGenerated/Mistrzowie/Wille";
@@ -42,10 +42,12 @@ public static class BraxChampionsWille
 
     static Material render, renderIn, stone, graphite, deck, floorGf, floorUf, ceiling, soffit, alu, glass, steel, poolTile,
         lawn, paving, gravel, concrete, waterMat, waterBody, spaWater, oak, walnut, cushion, teak, porcelain, chrome, mirrorFrame, black, signWhite,
-        stoneIn, fire, downlight, marbleIn, bottle;
+        stoneIn, fire, downlight, marbleIn, bottle,
+        elewacja, dachBlacha, stalCzarna;   // the new plans (owner 17.11): the scanned exterior stucco, standing-seam metal, black steel
     public static int Zbudowane, Kolizje, Siedziska, Modele, Palmy;
     static BraxChampionsMeshBatch b, bw, kat;
     static Transform g;
+    static float pietro = FFL1;          // the upper floor of the plan being built (Siedz's colliders)
 
     static Material Inside(Material x, float a = .85f) { BraxChampionsInteriorLight.Apply(x, a); return x; }
 
@@ -75,6 +77,12 @@ public static class BraxChampionsWille
         marbleIn = Inside(BraxChampionsFoundation.LibraryMarbleWhite("willa_lazienka_kamien", new Color(.97f, .96f, .94f), 4f), .9f);
         bottle = BraxChampionsHarbour.Surface("willa_butelki", new Color(.05f, .12f, .06f), .08f, .1f);
         black = BraxChampionsHarbour.Surface("willa_czern_mat", new Color(.03f, .03f, .035f), .5f, 0f);
+        // owner 17.11 ("Te ściany są wykończone?" on the old white: a flat interior paint, grey in the shade) - the new plans' walls
+        // in the scanned exterior stucco of the apartments (Poly Haven white_stucco_02, warm clean white), the roofs dark
+        // standing-seam metal, the gable frames black steel
+        elewacja = BraxChampionsFoundation.SourceMaterial("willa_tynk_elewacja", "white_stucco_02", 2.0f, new Color(1.24f, 1.22f, 1.18f));
+        dachBlacha = BraxChampionsHarbour.Surface("willa_dach_blacha_grafit", new Color(.115f, .118f, .125f), .42f, .75f);
+        stalCzarna = BraxChampionsHarbour.Surface("willa_stal_czarna", new Color(.035f, .035f, .04f), .45f, .85f);
         teak = BraxChampionsHarbour.Surface("willa_tik", new Color(.42f, .30f, .19f), .55f, 0f);
         cushion = BraxChampionsHarbour.Surface("willa_poduchy_lezakow", new Color(.92f, .91f, .88f), .85f, 0f);
         BraxKatalog.Materials(); BraxKatalog.HomeMaterials();
@@ -102,7 +110,9 @@ public static class BraxChampionsWille
         int kol0 = W.Kolizje;
         try
         {
-            Teren(); Basen(); Jacuzzi_(); Bryla(nr); Garaz(); Wnetrze(nr); Wyposazenie(nr); Ogrod(nr); Palmy_();
+            pietro = FFL1;
+            if (nr == 1) PlanWzgorze();                                     // owner 17.11: each villa its own (BraxChampionsWillaWzgorze)
+            else { Teren(); Basen(); Jacuzzi_(); Bryla(nr); Garaz(); Wnetrze(nr); Wyposazenie(nr); Ogrod(nr); Palmy_(); }
             b.Build(g, Nazwy[nr - 1] + " | detale", Out + "/Meshes", true, 1f);
             kat.Build(g, Nazwy[nr - 1] + " | meble (katalog BRAXHORN HOME)", Out + "/Meshes", false, 1f);
             bw.Build(g, Nazwy[nr - 1] + " | woda", Out + "/Meshes", false, 1f);
@@ -709,7 +719,7 @@ public static class BraxChampionsWille
     {
         if (!o) return;
         W.Siedzisko(at, f, label); Siedziska++;
-        float y0 = at.y >= FFL1 ? FFL1 : 0f, h = Mathf.Max(.2f, at.y - y0);
+        float y0 = at.y >= pietro ? pietro : 0f, h = Mathf.Max(.2f, at.y - y0);
         W.Kolizja(new Vector3(at.x, y0 + h * .5f, at.z), new Vector3(.75f, h, .75f), Quaternion.identity);
     }
     static GameObject Model(string path, string label, Vector3 at, float yaw, bool centre = false) => Place(path, label, at, yaw, centre ? 1 : 0, 0f);
