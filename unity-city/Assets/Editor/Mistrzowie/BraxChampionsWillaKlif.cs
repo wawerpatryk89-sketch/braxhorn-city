@@ -56,9 +56,9 @@ public static partial class BraxChampionsWille
         MM(deck, -18.5f, -9f, -s, 0f, -12.5f, -12f); MM(deck, -9f, 9f, -s, 0f, -12.5f, 0f); MM(deck, 9f, 16.5f, -s, 0f, -12.5f, -10f);
         MM(lawn, PadX0, -21f, -s, 0f, -12f, 8f); MM(lawn, 21f, PadX1, -s, 0f, -10f, 10f); MM(lawn, PadX0, -14f, -s, 0f, 8f, PadZ1);
         MM(paving, 9f, PadX1, -s, 0f, 10f, 13f); MM(paving, -14f, PadX1, -s, 0f, 13f, PadZ1);
-        // the pool terrace's edge over the cliff (its paving has no thickness): a stone fascia to the cliff's top
+        // the pool terrace's edge over the cliff (its paving has no thickness): a fascia of its stone to the cliff's top
         { Vector3 f0 = new Vector3(-18.5f, -s, PadZ0), f1 = new Vector3(-18.5f, 0f, PadZ0), f2 = new Vector3(16.5f, 0f, PadZ0), f3 = new Vector3(16.5f, -s, PadZ0);
-          if (Vector3.Dot(Vector3.Cross(f1 - f0, f2 - f0), Vector3.back) < 0f) b.Quad(stone, f3, f2, f1, f0); else b.Quad(stone, f0, f1, f2, f3); }
+          if (Vector3.Dot(Vector3.Cross(f1 - f0, f2 - f0), Vector3.back) < 0f) b.Quad(deck, f3, f2, f1, f0); else b.Quad(deck, f0, f1, f2, f3); }
         // the cliff: under the front edge 9 m down, along the sides as the ground there rises to the back
         KlifSciana(true, PadZ0, PadX0 - 1f, PadX1 + 1f, -1f, a => BraxChampionsWilleDzialki.PrzodKlif - .6f, 3);
         KlifSciana(false, PadX0, PadZ0 - 1f, PadZ0 + 8.6f, -1f, z => BraxChampionsWilleDzialki.Uskok(1, z) - .6f, 11);

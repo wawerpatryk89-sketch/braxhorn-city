@@ -72,7 +72,7 @@ class WillaKlif(unittest.TestCase):
         # its relief out to 1.5 m, flush under the terrace's edge; the terrace's paving gets a fascia to its top
         self.assertIn("float amp = 1.5f * Mathf.Clamp01((top - y) / 1.6f);", PLAN)
         self.assertIn("W.Kolizja(c, alongX ? new Vector3(e - a, h, .6f) : new Vector3(.6f, h, e - a), Quaternion.identity);", PLAN)
-        self.assertIn("the pool terrace's edge over the cliff (its paving has no thickness): a stone fascia", PLAN)
+        self.assertIn("the pool terrace's edge over the cliff (its paving has no thickness): a fascia of its stone", PLAN)
         # the pool's zone under the pad never lifts the ground over the cliff's foot (a vertex on the edge rounds inside)
         self.assertIn("return Mathf.Min(d.padY - 2.2f, PrzyPadzie(d, l.y) - .3f);", SITES)
 
