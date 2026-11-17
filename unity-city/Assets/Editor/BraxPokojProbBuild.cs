@@ -626,7 +626,11 @@ public static class BraxPokojProbBuild
         bool reklama = TrybZlecenia() == "reklama";
         if (reklama)
         {
-            runtime.enabled = false;          // gracz nie przejmuje kamery
+            // GRACZ WYLATUJE CAŁY. Samo wyłączenie BraxGymPlayer nie wystarczyło: Awake
+            // leci nawet na wyłączonym komponencie, więc sterowanie dokładało się samo
+            // i na zdjęciu właściciela (17.11, 13:40) wisiał drążek i przycisk skoku.
+            // Kamera to osobny obiekt, nie dziecko gracza, więc przeżywa.
+            UnityEngine.Object.DestroyImmediate(gracz);
             var r = new GameObject("Reklama").AddComponent<BraxReklama>();
             r.kamera = kam;
             Animation Znajdz(string id)
@@ -641,15 +645,22 @@ public static class BraxPokojProbBuild
                 throw new InvalidOperationException("Reklama: brak Patryka w obsadzie");
             var scena = r.patryk.transform.parent ? r.patryk.transform.parent : r.patryk.transform;
             scena.localPosition = new Vector3(0f, .02f, 0f);
-            scena.localRotation = Quaternion.identity;        // przodem do kamery
+            scena.localRotation = Quaternion.identity;
             r.srodek = scena;
-            // Plan średni: kamera na wysokości piersi, 4,3 m przed postacią.
+            r.wzrost = 1.80f * K;
+            // KAMERĘ USTAWIA JUŻ BraxReklama, W GRZE. Tu nie znam ani pola widzenia po
+            // przeliczeniu, ani proporcji ekranu telefonu, a to one decydują, ile się mieści
+            // w poziomie. Na zdjęciu właściciela (17.11, 13:40) drugi aktor był ucięty
+            // krawędzią ekranu dokładnie dlatego, że odległość policzyłem tu na oko.
             kam.transform.SetParent(pokoj, false);
-            kam.transform.localPosition = scena.localPosition
-                                        + new Vector3(0f, 1.42f * K, -4.3f * K);
-            kam.transform.localRotation = Quaternion.Euler(3.5f, 0f, 0f);
             foreach (var podpis in UnityEngine.Object.FindObjectsByType<BraxPodpisPostaci>(FindObjectsSortMode.None))
                 UnityEngine.Object.DestroyImmediate(podpis.gameObject);
+            foreach (var n in ustawioneNazwy)
+            {
+                var a = Znajdz(n);
+                var t = a.transform.parent ? a.transform.parent : a.transform;
+                Debug.Log($"BRAX_REKLAMA aktor {n} poz={t.position} przod={t.forward}");
+            }
             Debug.Log("BRAX_REKLAMA scena gotowa: patryk + "
                       + (r.mateusz ? "mateusz " : "") + (r.kamil ? "kamil" : ""));
         }

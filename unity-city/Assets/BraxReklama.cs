@@ -22,6 +22,53 @@ public sealed class BraxReklama : MonoBehaviour
     public Animation kamil;
     public Camera kamera;
     public Transform srodek;
+    public float wzrost = 1.8f;
+
+    // KADR LICZONY, NIE ZGADNIĘTY. Telefon trzymany pionowo ma wąskie pole widzenia
+    // w poziomie: przy 55 stopniach w pionie i proporcji 9:19,5 połowa kadru w poziomie
+    // to niecałe 15 stopni, czyli w odległości 4,3 m mieści się tylko ±1,1 m. Dlatego
+    // na zdjęciu właściciela (17.11, 13:40) drugi aktor wisiał na krawędzi ekranu.
+    // Tu odległość wychodzi z tego, co naprawdę ma być w kadrze.
+    void Kadruj(Vector3[] punkty, float zapas)
+    {
+        if (!kamera || punkty.Length == 0 || !srodek) return;
+        Vector3 przod = srodek.forward, prawo = srodek.right;
+        Vector3 c = Vector3.zero;
+        foreach (var p in punkty) c += p;
+        c /= punkty.Length;
+
+        float polSzer = .55f;            // pół szerokości barków skrajnego aktora
+        foreach (var p in punkty) polSzer = Mathf.Max(polSzer, Mathf.Abs(Vector3.Dot(p - c, prawo)) + .55f);
+        float polWys = wzrost * .62f;    // sylwetka plus zapas nad głową i pod stopami
+
+        float tanPion = Mathf.Tan(kamera.fieldOfView * .5f * Mathf.Deg2Rad);
+        float tanPoziom = tanPion * Mathf.Max(.2f, kamera.aspect);
+        float d = Mathf.Max(polSzer / tanPoziom, polWys / tanPion) * zapas;
+
+        Vector3 cel = c + Vector3.up * (wzrost * .56f);
+        // Postać patrzy wzdłuż swojego „przodu”, więc kamera stoi PO TEJ stronie.
+        // (Na zdjęciu właściciela była po drugiej i widać było same plecy.)
+        kamera.transform.position = cel + przod * d;
+        kamera.transform.rotation = Quaternion.LookRotation(cel - kamera.transform.position, Vector3.up);
+    }
+
+    IEnumerator PrzejedzKadr(Vector3[] punkty, float zapas, float czas)
+    {
+        Vector3 skadP = kamera.transform.position;
+        Quaternion skadR = kamera.transform.rotation;
+        Kadruj(punkty, zapas);
+        Vector3 dokadP = kamera.transform.position;
+        Quaternion dokadR = kamera.transform.rotation;
+        for (float t = 0; t < 1f; t += Time.deltaTime / czas)
+        {
+            float s = Mathf.SmoothStep(0, 1, Mathf.Clamp01(t));
+            kamera.transform.position = Vector3.Lerp(skadP, dokadP, s);
+            kamera.transform.rotation = Quaternion.Slerp(skadR, dokadR, s);
+            yield return null;
+        }
+        kamera.transform.position = dokadP;
+        kamera.transform.rotation = dokadR;
+    }
 
     // Gest na kwestię. Jak postać nie ma ujęcia, zostaje przy Idle — nie przerywa sceny.
     static readonly string[] Gesty =
@@ -98,8 +145,10 @@ public sealed class BraxReklama : MonoBehaviour
             Vector3 bok = p.right, przod = p.forward;
             startM = p.position + bok * 7.5f + przod * 1.2f;
             startK = p.position + bok * 9.2f + przod * .2f;
-            celM = p.position + bok * 1.35f + przod * .25f;
-            celK = p.position + bok * 2.5f - przod * .15f;
+            // Stają BLIŻEJ niż poprzednio i lekko z tyłu — przy trzech osobach w pionowym
+            // kadrze każdy metr w bok kosztuje odsunięcie kamery, a wtedy twarze maleją.
+            celM = p.position + bok * .95f - przod * .35f;
+            celK = p.position + bok * 1.75f - przod * .6f;
             foreach (var (a, poz) in new[] { (mateusz, startM), (kamil, startK) })
                 if (a)
                 {
@@ -110,7 +159,9 @@ public sealed class BraxReklama : MonoBehaviour
                 }
         }
 
-        // 1. Patryk mówi i gestykuluje.
+        // 1. Patryk mówi i gestykuluje — kadr tylko na niego, żeby gesty były duże.
+        var sam = patryk.transform.parent ? patryk.transform.parent : patryk.transform;
+        Kadruj(new[] { sam.position }, 1.12f);
         etap = "REKLAMA";
         for (int i = 0; i < patrykKwestie.Count; i++)
         {
@@ -122,6 +173,9 @@ public sealed class BraxReklama : MonoBehaviour
         etap = "…i wtedy wchodzą ci dwaj";
         Graj(mateusz, "DrunkWalk");
         Graj(kamil, "DrunkWalk");
+        // Kamera odjeżdża w tym samym czasie, w którym oni wchodzą — inaczej albo weszliby
+        // poza kadr, albo trzeba by od początku trzymać szeroki plan i twarze byłyby małe.
+        StartCoroutine(PrzejedzKadr(new[] { sam.position, celM, celK }, 1.1f, 3.0f));
         float t = 0f;
         while (t < 1f)
         {
