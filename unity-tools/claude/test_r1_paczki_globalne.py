@@ -185,6 +185,10 @@ class PikapMiedziany(unittest.TestCase):
         self.assertIn("1:1", m["source"])
         tracked = [str(p.relative_to(ROOT)) for p in (ROOT / "unity-city").rglob("*pikap*")]
         self.assertEqual(tracked, [])
+        # wpis w katalogu Worka: build APK pobiera repo w trybie sparse (bez AssetLibrary/ — build 44008543098 padł na tym pliku),
+        # więc sprawdzamy go tylko tam, gdzie katalog Worka jest w checkoucie; gdy katalog jest, a wpisu brak — błąd jak dotąd
+        if not (ROOT / "AssetLibrary").is_dir():
+            return
         a = json.loads((ROOT / "AssetLibrary/Unique/Vehicles/BraxhornPikapMiedziany/manifest.json").read_text())
         self.assertEqual(a["sourceStorage"]["pack"], "unity-city/Prywatne/braxhorn-sklep-auta-02")
         self.assertTrue(a["validation"]["badgesFitted"])
