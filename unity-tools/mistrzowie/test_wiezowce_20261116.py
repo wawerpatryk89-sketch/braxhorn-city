@@ -109,7 +109,7 @@ class CurtainWall(unittest.TestCase):
         self.assertIn("f0 = lerp(half3(.035,.035,.04), _GlassF0.rgb, glassMask);", SHADER)
         sky = (ED / "BraxChampionsSky.cs").read_text(encoding="utf-8")
         stub = (TOOLS / "wiezowce_preview/WiezStubs.cs").read_text(encoding="utf-8")
-        for line in ('public const string Slug = "kloofendal_48d_partly_cloudy_puresky";', "public const float Rotation = 20.8f, Exposure = 1.18f;"):
+        for line in ('public const string Slug = "sunflowers_puresky";', "public const float Rotation = 19.0f, Exposure = .89f;"):
             self.assertIn(line, sky)
             self.assertIn(line, stub)
 

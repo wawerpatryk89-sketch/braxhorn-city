@@ -4,15 +4,17 @@ using UnityEngine;
 
 // Owner 10.11 19:12 (photos from the Hotel Sobczak roof): "Nieba też brak", "I panorama realistyczną HDR 360". The region
 // had Unity's procedural atmosphere: a flat gradient and a flat grey-green ground colour beyond the city. Now the sky is a real
-// 360 HDR panorama: Poly Haven CC0 kloofendal_48d_partly_cloudy_puresky (the same partly cloudy sky as the first city), the
-// original 4K Radiance .hdr (prepare_assets.py, provider size + MD5) on Unity's Skybox/Panoramic, kept HDR on the phone
-// (ASTC HDR 6x6). Its sun (equirect u .595, elevation 47.9 deg, measured in the .hdr) is turned onto the region's own
-// directional light (pitch 48, yaw -35): sun azimuth -55.0 deg (atan2 z,x) - HDRI -34.2 deg -> _Rotation 20.8.
+// 360 HDR panorama on Unity's Skybox/Panoramic, the original 4K Radiance .hdr (prepare_assets.py, provider size + MD5), kept
+// HDR on the phone (ASTC HDR 6x6). Owner 17.11 (the helicopter's flights, a choice of 5 skies at the game's brightness):
+// "sunflowers" - Poly Haven CC0 sunflowers_puresky, a deep blue sky with bright cumulus all round (before: kloofendal_48d).
+// Its sun (equirect u .600, elevation 43.0 deg, measured in the .hdr; the city's directional light is fixed at about 48)
+// is turned onto the region's light (pitch 48, yaw -35): sun azimuth -55.0 deg (atan2 z,x) - HDRI -36.0 deg -> _Rotation
+// 19.0. Exposure .89: the sky band 20..45 deg as bright on screen as kloofendal's at 1.18 (the camera is LDR, no HDR).
 public static class BraxChampionsSky
 {
-    public const string Slug = "kloofendal_48d_partly_cloudy_puresky";
+    public const string Slug = "sunflowers_puresky";
     public const string Source = "Assets/Source/Mistrzowie/Sky/" + Slug + "_4k.hdr";
-    public const float Rotation = 20.8f, Exposure = 1.18f;
+    public const float Rotation = 19.0f, Exposure = .89f;
     public const string MaterialPath = "Assets/PlayableGenerated/Mistrzowie/Materials/champions_hdr360_sky.mat";
 
     public static Material Create()

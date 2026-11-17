@@ -36,19 +36,19 @@ class OwnerRoofSkyBull(unittest.TestCase):
         self.assertIn("Box(M.teakDark,-15.2f,15.2f,y+.02f,y+.045f,-15.0f,-9.4f,true);", roof)
 
     def test_hdr_360_sky(self):
-        self.assertIn("SKY_HDRIS=('kloofendal_48d_partly_cloudy_puresky',)", self.prepare)
+        self.assertIn("SKY_HDRIS=('sunflowers_puresky',)", self.prepare)   # owner 17.11: the sky "sunflowers"
         self.assertIn("metadata['hdri']['4k']['hdr']", self.prepare)
         self.assertIn('Shader.Find("Skybox/Panoramic")', self.sky)
         self.assertIn("TextureImporterFormat.ASTC_HDR_6x6", self.sky)
-        self.assertIn("Rotation = 20.8f", self.sky)
+        self.assertIn("Rotation = 19.0f", self.sky)
         self.assertIn("var hdrSky = BraxChampionsSky.Create();", self.explorer)
-        # the HDRI sun (u .595, elevation 47.9) on the region sun Euler(48,-35): azimuth -55.0 -> rotation 20.8
+        # the HDRI sun (sunflowers_puresky: u .600, elevation 43.0) on the region sun Euler(48,-35): azimuth -55.0 -> rotation 19.0
         import math
         fwd = (math.sin(math.radians(-35)) * math.cos(math.radians(48)), -math.sin(math.radians(48)),
                math.cos(math.radians(-35)) * math.cos(math.radians(48)))
         sun_az = math.degrees(math.atan2(-fwd[2], -fwd[0]))
-        hdri_az = math.degrees((0.5 - 0.595) * 2 * math.pi)
-        self.assertAlmostEqual(hdri_az - sun_az, 20.8, delta=.3)
+        hdri_az = math.degrees((0.5 - 0.600) * 2 * math.pi)
+        self.assertAlmostEqual(hdri_az - sun_az, 19.0, delta=.3)
         self.assertIn("unity-city/Assets/Source/Mistrzowie/Sky/", (ROOT / ".gitignore").read_text())
 
     def test_arena_roof_bull(self):

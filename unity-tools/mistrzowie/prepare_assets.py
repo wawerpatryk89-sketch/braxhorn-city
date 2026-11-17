@@ -32,9 +32,9 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  'sparse_grass','rectangular_paving','checkered_pavement_tiles','rubberized_track','brushed_concrete','floor_tiles_02','wood_planks_grey','large_floor_tiles_02','hinoki_planks','rock_boulder_dry')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
-# (Poly Haven CC0, the same partly cloudy sky as the first city), the original 4K Radiance .hdr checked against the
-# provider's size and MD5 (BraxChampionsSky imports it as the Skybox/Panoramic texture).
-SKY_HDRIS=('kloofendal_48d_partly_cloudy_puresky',)
+# (Poly Haven CC0), the original 4K Radiance .hdr checked against the provider's size and MD5 (BraxChampionsSky imports it
+# as the Skybox/Panoramic texture). Owner 17.11, the sky for the helicopter's flights: "sunflowers" (sunflowers_puresky).
+SKY_HDRIS=('sunflowers_puresky',)
 SKY_DEST=DEST.parent/'Sky'
 
 def fetch_sky(slug):

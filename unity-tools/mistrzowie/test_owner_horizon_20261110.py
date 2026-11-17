@@ -28,7 +28,7 @@ class OwnerHorizon(unittest.TestCase):
 
     def test_haze_is_the_sky_at_the_horizon(self):
         self.assertIn("RenderSettings.fogMode = FogMode.ExponentialSquared;", self.cs)
-        self.assertIn("new Color(.723f, .748f, .815f)", self.cs)            # kloofendal puresky 0..1 deg x 1.18, sRGB
+        self.assertIn("new Color(.653f, .682f, .650f)", self.cs)            # sunflowers puresky 0..1 deg x .89, sRGB (owner 17.11)
         self.assertIn("#pragma multi_compile_fog", self.shader)
         self.assertIn("UNITY_APPLY_FOG(i.fogCoord, col);", self.shader)
         self.assertIn('Shader "Braxhorn/MistrzowieHorizonSource"', self.shader)

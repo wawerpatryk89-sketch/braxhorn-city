@@ -2,9 +2,9 @@
 // and exposure (test_wiezowce_20261116 keeps these equal to the real file).
 public static class BraxChampionsSky
 {
-    public const string Slug = "kloofendal_48d_partly_cloudy_puresky";
+    public const string Slug = "sunflowers_puresky";
     public const string Source = "Assets/Source/Mistrzowie/Sky/" + Slug + "_4k.hdr";
-    public const float Rotation = 20.8f, Exposure = 1.18f;
+    public const float Rotation = 19.0f, Exposure = .89f;
 }
 // the city's working lift (Assets/Claude/Runtime/BraxWinda.cs, a runtime MonoBehaviour): its serialised fields only
 public sealed class BraxWinda : UnityEngine.MonoBehaviour

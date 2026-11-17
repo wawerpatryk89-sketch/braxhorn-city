@@ -17,7 +17,7 @@ using UnityEngine.Rendering;
 // * the LAND round the region: low green hills from the region's edge, forest, then mountain ridges (up to ~1.3 km)
 //   2-13 km away, grey rock on the steep and high parts - no brown, no beige (sand is pale grey);
 // * the HAZE of distance is the scene's exponential-squared fog in the colour of the HDR sky at the horizon (measured in
-//   kloofendal_48d_partly_cloudy_puresky x exposure 1.18): the ridges pale into the sky, the far sea melts into the
+//   sunflowers_puresky x exposure .89, owner 17.11; the band 0..1 deg, sRGB): the ridges pale into the sky, the far sea melts into the
 //   horizon. CityStaticPBR has no fog, so the city itself stays crisp; at the region's far edge the fog is ~4 %.
 //
 // Nominal metres (x 1..1200 east, z -500..1000 north) x K once.
@@ -27,7 +27,7 @@ public static class BraxChampionsHorizon
     public const float CentreX = 600f, CentreZ = 250f, RingIn = 560f, RingOut = 10000f, SeaOut = 13000f;
     public const int Columns = 320, Rings = 80, Chunks = 8;
     public const float FogDensity = .00014f;                                // per world metre, exponential squared
-    public static readonly Color Fog = new Color(.723f, .748f, .815f);     // HDR sky at the horizon (0..1 deg), sRGB
+    public static readonly Color Fog = new Color(.653f, .682f, .650f);     // HDR sky at the horizon (0..1 deg), sRGB
     public const float ViewDistance = 18000f;                               // world metres (camera far plane)
 
     // ---------------------------------------------------------------- noise (hash value noise, fbm, ridged)
