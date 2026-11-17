@@ -78,7 +78,7 @@ class Sites(unittest.TestCase):
         self.assertIn("BraxChampionsWille.Willa(g, d.nr, new Vector3(d.srodek.x, d.padY, d.srodek.y), d.yaw);", SITES)
         self.assertIn("public const float Przod = -3.9f;", SITES)                    # the front wall's foot (-4) buried
         # each villa its own pool (17.11: the hill's rebuilt villa, BraxChampionsWillaWzgorze)
-        self.assertIn("if (l.x > pool.x - .6f && l.x < pool.y + .6f && l.y < pool.z + .6f) return d.padY - 2.2f;", SITES)
+        self.assertIn("if (l.x > pool.x - .6f && l.x < pool.y + .6f && l.y < pool.z + .6f) return Mathf.Min(d.padY - 2.2f, PrzyPadzie(d, l.y) - .3f);", SITES)
 
     def test_monika_sells_the_three_places(self):
         self.assertIn('"MAKIETA · TRZY WILLE: WZGÓRZE, WYSPA, NABRZEŻE"', OFFICE)

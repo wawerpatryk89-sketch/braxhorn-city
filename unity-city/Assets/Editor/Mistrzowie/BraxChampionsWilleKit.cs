@@ -298,12 +298,23 @@ public static partial class BraxChampionsWille
         W.Kolizja(p + Vector3.up * .9f, new Vector3(1.8f, 1.8f, .12f), q);
     }
 
-    /// <summary>A palm at (x, z) on the ground (the region's miasto_palmy).</summary>
-    static void Palma(float x, float z)
+    /// <summary>A tree at (x, z) on the ground at y: the region's own drzewo_verdant (Poly Haven island tree / jacaranda
+    /// leaves, LOD 49k / 28k / 13k - the streets', D2's), its real size (the villa is built in metres, scaled by K once);
+    /// a collider on its trunk.</summary>
+    static void Drzewo(float x, float z, float y = 0f)
+    {
+        var t = BraxRegion.Model("drzewo_verdant");
+        if (!t) { BraxBuildQuality.Warn("DO POPRAWKI WILLA_TREE_MISSING: drzewo_verdant"); return; }
+        if (!BraxRegion.Put(g, t, "WILLA | drzewo (drzewo_verdant)", new Vector3(x, y, z), (x * 31f + z * 17f) % 360f, 1f, false, 0f, 0f, false)) return;
+        W.Kolizja(new Vector3(x, y + 1.5f, z), new Vector3(.5f, 3f, .5f), Quaternion.identity);
+        Drzewa++;
+    }
+    /// <summary>A palm at (x, z) on the ground at y (the region's miasto_palmy).</summary>
+    static void Palma(float x, float z, float y = 0f)
     {
         var palm = BraxMiastoAssety.Model("miasto_palmy", "palma");
         if (!palm) { BraxBuildQuality.Warn("DO POPRAWKI WILLA_PALMS_MISSING: miasto_palmy/palma"); return; }
-        var at = new Vector3(x, 0f, z);
+        var at = new Vector3(x, y, z);
         var o = BraxChampionsModel.Postaw(g, palm, "willa palma", at, (x * 11f + z * 5f) % 360f, 1f, false, true);
         if (!o) return;
         o.transform.localScale = Vector3.one;

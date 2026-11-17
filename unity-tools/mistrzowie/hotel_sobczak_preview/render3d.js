@@ -184,6 +184,8 @@ window.setup=async function(w,h){
     if(!(mo.path in cache)){
       cache[mo.path]=await new Promise(res=>loader.load('http://preview.local/models/'+mo.path,gl=>res(gl.scene),undefined,()=>res(null)));
       if(cache[mo.path])cache[mo.path].traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(mt=>cityAmbient(mt,[.55,.63,.71,.23,.27,.22,1]));});
+      // a model with its LODs as nodes (drzewo_verdant: pien, liscie_0/1/2 - the game's LODGroup): draw LOD 0 only
+      if(cache[mo.path])cache[mo.path].traverse(o=>{if(/^liscie_[1-9]$/.test(o.name))o.visible=false;});
     }
     const src=cache[mo.path];if(!src)continue;
     const o=src.clone(true);o.position.set(mo.pos[0],mo.pos[1],mo.pos[2]);if(mo.quat)o.quaternion.set(mo.quat[0],mo.quat[1],mo.quat[2],mo.quat[3]);else o.rotation.y=mo.rotY;if(mo.scale&&mo.scale!==1)o.scale.setScalar(mo.scale);

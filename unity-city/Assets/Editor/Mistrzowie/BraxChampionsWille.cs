@@ -43,8 +43,9 @@ public static partial class BraxChampionsWille
     static Material render, renderIn, stone, graphite, deck, floorGf, floorUf, ceiling, soffit, alu, glass, steel, poolTile,
         lawn, paving, gravel, concrete, waterMat, waterBody, spaWater, oak, walnut, cushion, teak, porcelain, chrome, mirrorFrame, black, signWhite,
         stoneIn, fire, downlight, marbleIn, bottle,
-        elewacja, dachBlacha, stalCzarna;   // the new plans (owner 17.11): the scanned exterior stucco, standing-seam metal, black steel
-    public static int Zbudowane, Kolizje, Siedziska, Modele, Palmy;
+        elewacja, dachBlacha, stalCzarna,   // the new plans (owner 17.11): the scanned exterior stucco, standing-seam metal, black steel
+        dachowka, tynkKrem, tynkBez, skala; // owner 17.11 photos ("zrób takie"): clay barrel tiles, cream and warm beige stucco, the cliff's rock
+    public static int Zbudowane, Kolizje, Siedziska, Modele, Palmy, Drzewa;
     static BraxChampionsMeshBatch b, bw, kat;
     static Transform g;
     static float pietro = FFL1;          // the upper floor of the plan being built (Siedz's colliders)
@@ -83,6 +84,11 @@ public static partial class BraxChampionsWille
         elewacja = BraxChampionsFoundation.SourceMaterial("willa_tynk_elewacja", "white_stucco_02", 2.0f, new Color(1.24f, 1.22f, 1.18f));
         dachBlacha = BraxChampionsHarbour.Surface("willa_dach_blacha_grafit", new Color(.115f, .118f, .125f), .42f, .75f);
         stalCzarna = BraxChampionsHarbour.Surface("willa_stal_czarna", new Color(.035f, .035f, .04f), .45f, .85f);
+        dachowka = BraxChampionsFoundation.SourceMaterial("willa_dachowka", "clay_roof_tiles_02", 2.5f, new Color(1.0f, 1.0f, 1.0f));
+        tynkKrem = BraxChampionsFoundation.SourceMaterial("willa_tynk_kremowy", "white_stucco_02", 2.0f, new Color(1.46f, 1.41f, 1.28f));   // 17.11: ivory as his photo (was grey-brown)
+        // the hill villa's cliff (his photo: a pale warm rock face under the pool): Poly Haven cliff_side at its real 1.83 m
+        skala = BraxChampionsFoundation.SourceMaterial("willa_skala", "cliff_side", 1.83f, new Color(1.12f, 1.08f, 1.02f));
+        tynkBez = BraxChampionsFoundation.SourceMaterial("willa_tynk_bezowy", "white_stucco_02", 2.0f, new Color(1.12f, .94f, .74f));
         teak = BraxChampionsHarbour.Surface("willa_tik", new Color(.42f, .30f, .19f), .55f, 0f);
         cushion = BraxChampionsHarbour.Surface("willa_poduchy_lezakow", new Color(.92f, .91f, .88f), .85f, 0f);
         BraxKatalog.Materials(); BraxKatalog.HomeMaterials();
@@ -111,7 +117,7 @@ public static partial class BraxChampionsWille
         try
         {
             pietro = FFL1;
-            if (nr == 1) PlanWzgorze();                                     // owner 17.11: each villa its own (BraxChampionsWillaWzgorze)
+            if (nr == 1) PlanKlif();                                        // owner 17.11: each villa its own (his photo: BraxChampionsWillaKlif)
             else { Teren(); Basen(); Jacuzzi_(); Bryla(nr); Garaz(); Wnetrze(nr); Wyposazenie(nr); Ogrod(nr); Palmy_(); }
             b.Build(g, Nazwy[nr - 1] + " | detale", Out + "/Meshes", true, 1f);
             kat.Build(g, Nazwy[nr - 1] + " | meble (katalog BRAXHORN HOME)", Out + "/Meshes", false, 1f);

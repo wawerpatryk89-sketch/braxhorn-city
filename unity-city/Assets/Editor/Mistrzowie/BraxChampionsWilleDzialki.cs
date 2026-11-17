@@ -95,24 +95,31 @@ public static class BraxChampionsWilleDzialki
         return new Vector2(dx * c - dz * s, dx * s + dz * c);
     }
     // distance from the pad's rectangle (0 on and in it), in the villa's local metres
-    static float OdPadu(Vector2 l)
+    static float OdPadu(Dzialka d, Vector2 l)
     {
-        float ex = Mathf.Max(BraxChampionsWille.PadX0 - l.x, l.x - BraxChampionsWille.PadX1, 0f), ez = Mathf.Max(BraxChampionsWille.PadZ0 - l.y, l.y - BraxChampionsWille.PadZ1, 0f);
+        var p = BraxChampionsWille.Pad(d.nr);                                       // each villa its own pad (17.11)
+        float ex = Mathf.Max(p.x - l.x, l.x - p.y, 0f), ez = Mathf.Max(p.z - l.y, l.y - p.w, 0f);
         return Mathf.Sqrt(ex * ex + ez * ez);
     }
     public static bool PodPadem(Dzialka d, float x, float z)
     {
         var l = Lokalnie(d, x, z);
-        return l.x > BraxChampionsWille.PadX0 && l.x < BraxChampionsWille.PadX1 && l.y > BraxChampionsWille.PadZ0 && l.y < BraxChampionsWille.PadZ1;
+        var p = BraxChampionsWille.Pad(d.nr);
+        return l.x > p.x && l.x < p.y && l.y > p.z && l.y < p.w;
     }
     // the ground at the pad's level: its back and the back of its sides 5 cm under the lawn, its front 3.9 m under it (the
     // retaining wall's foot at -4 buried 10 cm), the sides falling between over the front 8 m (the side walls: Sciany)
     public const float Przod = -3.9f;
-    static float PrzyPadzie(Dzialka d, float lz)
+    // the hill villa after the owner's photo (17.11 "perched on a scenic cliff"): its pool terrace on a 9 m rock face (the
+    // villa builds the face, BraxChampionsWillaKlif)
+    public const float PrzodKlif = -9f;
+    /// <summary>The ground beside villa nr's pad at its local z, under the pad's top.</summary>
+    public static float Uskok(int nr, float lz)
     {
-        float z0 = BraxChampionsWille.PadZ0;
-        return d.padY + Mathf.Lerp(Przod, -.05f, Smooth(z0, z0 + 8f, lz));
+        float z0 = BraxChampionsWille.Pad(nr).z;
+        return Mathf.Lerp(nr == 1 ? PrzodKlif : Przod, -.05f, Smooth(z0, z0 + 8f, lz));
     }
+    static float PrzyPadzie(Dzialka d, float lz) => d.padY + Uskok(d.nr, lz);
     // the site's own land, away from the pad
     static float Podloze(Dzialka d, float x, float z, float odPadu)
     {
@@ -171,10 +178,12 @@ public static class BraxChampionsWilleDzialki
             // under the villa's slabs (bottoms at -.3): just under them, and under its front deep (the retaining wall's
             // foot, the trough); under the pool's shell 2.2 m down
             var pool = BraxChampionsWille.StrefaBasenu(d.nr);                 // each villa its own pool (owner 17.11)
-            if (l.x > pool.x - .6f && l.x < pool.y + .6f && l.y < pool.z + .6f) return d.padY - 2.2f;
+            // (and at the front edge as deep as the ground before it: a vertex on the edge itself, rounded inside, must not
+            // lift a grass slope over the cliff's foot - 17.11, the hill's 9 m rock face)
+            if (l.x > pool.x - .6f && l.x < pool.y + .6f && l.y < pool.z + .6f) return Mathf.Min(d.padY - 2.2f, PrzyPadzie(d, l.y) - .3f);
             return Mathf.Min(PrzyPadzie(d, l.y) - .3f, d.padY - .35f);
         }
-        float od = OdPadu(l);
+        float od = OdPadu(d, l);
         float h = Mathf.Lerp(PrzyPadzie(d, l.y), Podloze(d, x, z, od), Smooth(4f, 4f + d.spad, od));
         if (!d.woda || d.rodzaj == Rodzaj.Nabrzeze) h -= RimDip * (1f - Smooth(0f, RimBand, DoKrawedzi(d, x, z)));       // under the far land at the rim
         float y = Droga(d, x, z, out float dr);
@@ -242,6 +251,7 @@ public static class BraxChampionsWilleDzialki
             Teren(g, d);
             if (d.droga != null) DrogaMesh(g, b, d);
             Sciany(b, d);
+            Zielen(g, d);
             if (d.rodzaj != Rodzaj.Wyspa) Plot(b, d);
             if (d.woda) MurPodWoda(d);
             if (d.rodzaj == Rodzaj.Wyspa) Pomost(b, d);
@@ -338,7 +348,7 @@ public static class BraxChampionsWilleDzialki
     static List<float> PadKrawedzie(Dzialka d, bool wX)
     {
         var l = new List<float>(); float c = wX ? d.srodek.x : d.srodek.y, sg = Mathf.Abs(d.yaw - 180f) < 1f ? -1f : 1f;
-        float a = wX ? BraxChampionsWille.PadX0 : BraxChampionsWille.PadZ0, b = wX ? BraxChampionsWille.PadX1 : BraxChampionsWille.PadZ1;
+        var pd = BraxChampionsWille.Pad(d.nr); float a = wX ? pd.x : pd.z, b = wX ? pd.y : pd.w;
         foreach (var (e, inward) in new[] { (a, 1f), (b, -1f) }) { l.Add(c + sg * e); l.Add(c + sg * (e + inward * .1f)); }
         return l;
     }
@@ -419,14 +429,61 @@ public static class BraxChampionsWilleDzialki
     // stone retaining walls along the pad's sides where the ground falls to the front (the villa has the front one)
     static void Sciany(BraxChampionsMeshBatch b, Dzialka d)
     {
-        float z0 = BraxChampionsWille.PadZ0, z1 = z0 + 8.6f, y0 = d.padY - 4.6f, y1 = d.padY;
+        if (d.nr == 1) return;                                                  // the hill: the villa's own rock faces
+        var pd = BraxChampionsWille.Pad(d.nr); float z0 = pd.z, z1 = z0 + 8.6f, y0 = d.padY - 4.6f, y1 = d.padY;
         var q = Quaternion.Euler(0f, d.yaw, 0f); var c = new Vector3(d.srodek.x, 0f, d.srodek.y);
-        foreach (float x in new[] { BraxChampionsWille.PadX0 - .15f, BraxChampionsWille.PadX1 + .15f })
+        foreach (float x in new[] { pd.x - .15f, pd.y + .15f })
         {
             var p = c + q * new Vector3(x, 0f, (z0 + z1) * .5f); p.y = (y0 + y1) * .5f;
             b.Box(kamien, p, new Vector3(.3f, y1 - y0, z1 - z0), q);
             W.Kolizja(p * K, new Vector3(.3f, y1 - y0, z1 - z0) * K, q);
         }
+    }
+
+    // owner's photo of the cliff villa (17.11): the hill round it green - trees (the region's drzewo_verdant, as its streets)
+    // and palms on its slopes beside, behind and under the pad (the villa plants its own garden on the pad), on the
+    // site's ground, never on the road
+    public static int ZielenPalmy, ZielenDrzewa;
+    static void Zielen(Transform g, Dzialka d)
+    {
+        if (d.rodzaj != Rodzaj.Wzgorze) return;
+        var palm = BraxMiastoAssety.Model("miasto_palmy", "palma");
+        if (!palm) BraxBuildQuality.Warn("DO POPRAWKI WILLA_HILL_PALMS_MISSING: miasto_palmy/palma");
+        var tree = BraxRegion.Model("drzewo_verdant");
+        if (!tree) BraxBuildQuality.Warn("DO POPRAWKI WILLA_HILL_TREES_MISSING: drzewo_verdant");
+        var pd = BraxChampionsWille.Pad(d.nr); var rnd = new System.Random(1190);
+        float R(float a, float c) => a + (float)rnd.NextDouble() * (c - a);
+        float sn = Mathf.Sin(d.yaw * Mathf.Deg2Rad), cs = Mathf.Cos(d.yaw * Mathf.Deg2Rad);
+        var placed = new List<Vector2>();
+        int palmy = 0, drzewa = 0;
+        for (int i = 0; i < 6000 && (palmy < 26 || drzewa < 40); i++)
+        {
+            var l = new Vector2(R(pd.x - 32f, pd.y + 32f), R(pd.z - 30f, pd.w + 18f));
+            float od = OdPadu(d, l); if (od < 4.5f || od > 27f) continue;
+            var w = d.srodek + new Vector2(l.x * cs + l.y * sn, -l.x * sn + l.y * cs);
+            if (Blisko(d, w, RoadHalf + 4.5f)) continue;
+            bool palma = palmy < 26 && (drzewa >= 40 || rnd.NextDouble() < .4);
+            bool tooNear = false;
+            foreach (var q in placed) if ((q - w).sqrMagnitude < 5f * 5f) { tooNear = true; break; }
+            if (tooNear) continue;
+            var at = new Vector3(w.x, Grunt(d, w.x, w.y), w.y) * K; float yaw = R(0f, 360f);
+            if (palma)
+            {
+                palmy++; if (!palm) continue;
+                var o = BraxChampionsModel.Postaw(g, palm, "WILLA 1 | wzgórze | palma", at, yaw, 1f, false, true);
+                if (!o) continue;
+                BraxMiastoAssety.LodyZWezlow(o, new[] { .25f, .08f, .012f });
+                BraxChampionsPalmTrunk.OnSpot(o, at);
+            }
+            else
+            {
+                drzewa++; if (!tree) continue;
+                if (!BraxRegion.Put(g, tree, "WILLA 1 | wzgórze | drzewo", at, yaw, 1f, false, 6.5f * K)) continue;
+                W.Kolizja(at + Vector3.up * 1.5f * K, new Vector3(.5f, 3f, .5f) * K, Quaternion.identity);   // the trunk
+            }
+            placed.Add(w);
+        }
+        ZielenPalmy += palmy; ZielenDrzewa += drzewa;
     }
 
     // post-and-rail fence (graphite steel) round a land patch FenceInset inside its edge, open to the region and at the
@@ -491,7 +548,8 @@ public static class BraxChampionsWilleDzialki
 
     // the island's jetty: teak deck 2.4 m wide, 1 m over the sea, on piles from the lawn's edge over the beach into 4 m of
     // water, a T head 9 m wide with bollards; north of the villa's garage side (the pool's view stays open)
-    public static Vector2 PomostStart(Dzialka d) => new Vector2(d.srodek.x - 20f, d.srodek.y - BraxChampionsWille.PadZ0 + 4f + d.spad - 1f);   // the garage side
+    // the jetty's root on the lawn before the pad's front, at the villa's own landing (BraxChampionsWille.PomostX: its stair down)
+    public static Vector2 PomostStart(Dzialka d) => new Vector2(d.srodek.x - BraxChampionsWille.PomostX(d.nr), d.srodek.y - BraxChampionsWille.Pad(d.nr).z + 4f + d.spad - 1f);
     public const float PomostDl = 46f, PomostY = SeaY + 1.0f;
     static void Pomost(BraxChampionsMeshBatch b, Dzialka d)
     {

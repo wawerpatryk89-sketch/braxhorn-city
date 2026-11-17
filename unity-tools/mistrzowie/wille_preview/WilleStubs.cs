@@ -26,3 +26,39 @@ public static class BraxChampionsPromenadeFurniture
         Kerb = BraxChampionsFoundation.SourceMaterial("prom_kerb", "granite_tile_03", 1.6f, new Color(.8f, .82f, .86f));
     }
 }
+
+// R1's model helpers (Assets/Editor/Claude/Region/BraxRegion.cs, read-only): the region's trees are its drzewo_verdant;
+// the preview draws the real .glb (LOD 0, render3d hides liscie_1/2) where the file is, placed as BraxRegion.Put does
+public static class BraxRegion
+{
+    public const string PH = "Assets/Source/Claude/PolyHaven/", Lib = "Assets/Source/Claude/Library/";
+    public static GameObject Model(params string[] ids)
+    {
+        foreach (var id in ids)
+            foreach (var p in new[] { PH + "models/" + id + "/" + id + ".glb", Lib + id + ".glb" })
+            {
+                if (!System.IO.File.Exists(p)) continue;
+                var g = new GameObject(id); GameObject.Registry.Remove(g);
+                var pm = g.AddComponent<PreviewModel>(); pm.path = p; (pm.min, pm.max) = GltfBounds.Read(p);
+                g.AddComponent<MeshRenderer>().sharedMaterial = new Material { name = "gltf", textured = true };
+                return g;
+            }
+        return null;
+    }
+    public static GameObject Put(Transform parent, GameObject source, string label, Vector3 floor, float yaw,
+                                 float scale = 1f, bool solid = true, float maxHeight = 0f, float sink = 0f, bool skalaK = true)
+    {
+        if (!source) return null;
+        float kk = BraxClaudeOsiedle.K;
+        if (skalaK && Mathf.Abs(scale - kk) > .002f) { scale *= kk; if (maxHeight > 0f) maxHeight *= kk; }
+        var o = UnityEngine.Object.Instantiate(source); o.transform.SetParent(parent, false); o.name = label;
+        o.transform.position = Vector3.zero;
+        o.transform.rotation = Quaternion.Euler(0, yaw, 0) * o.transform.rotation;
+        if (Mathf.Abs(scale - 1f) > .0001f) o.transform.localScale *= scale;
+        Bounds B() { var rs = o.GetComponentsInChildren<Renderer>(true); var bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds); return bb; }
+        var b = B();
+        if (maxHeight > 0f && b.size.y > maxHeight) { o.transform.localScale *= maxHeight / b.size.y; b = B(); }
+        o.transform.position = floor - new Vector3(b.center.x, b.min.y + sink, b.center.z);
+        return o;
+    }
+}

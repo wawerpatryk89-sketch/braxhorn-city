@@ -18,7 +18,10 @@ SITES = (ED / "BraxChampionsWilleDzialki.cs").read_text(encoding="utf-8")
 class WillaWzgorze(unittest.TestCase):
     def test_the_hill_villa_is_its_own_plan(self):
         self.assertIn("public static partial class BraxChampionsWille", VILLA)
-        self.assertIn("if (nr == 1) PlanWzgorze();", VILLA)
+        # owner 17.11 14:55 on this plan: "tak jakieś baraki wygląda" - the hill builds his photo's villa (BraxChampionsWillaKlif);
+        # this plan stays in the code, not built, until he says what to delete
+        self.assertIn("if (nr == 1) PlanKlif();", VILLA)
+        self.assertNotIn("PlanWzgorze();", VILLA)
         self.assertIn("1471 Forest Knoll, Los Angeles (Standard Architecture", PLAN)
         for f in ("BraxChampionsWilleKit.cs.meta", "BraxChampionsWillaWzgorze.cs.meta"):
             self.assertTrue((ED / f).exists(), f)
@@ -60,7 +63,8 @@ class WillaWzgorze(unittest.TestCase):
         self.assertIn("sw.basinId = id;", KIT)
         # the site keeps the ground under each villa's own pool
         self.assertIn("var pool = BraxChampionsWille.StrefaBasenu(d.nr);", SITES)
-        self.assertIn("nr == 1 ? new Vector3(APoolX0, APoolX1, APoolZ1)", PLAN)
+        # 17.11 15:20: the hill builds the cliff villa - its free-form pool's bounds (this plan's pool stays for its code)
+        self.assertIn("foreach (var p in KBasen) { x0 = Mathf.Min(x0, p.x); x1 = Mathf.Max(x1, p.x); z1 = Mathf.Max(z1, p.y); }", PLAN)
         # the retaining wall's foot under the site's under-pad ground (-4.2)
         self.assertIn("MM(stone, PadX0, APoolX0 - .33f, -4.5f, -s, PadZ0, PadZ0 + .3f);", PLAN)
 

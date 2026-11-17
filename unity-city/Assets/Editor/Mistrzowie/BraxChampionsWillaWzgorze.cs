@@ -24,7 +24,17 @@ public static partial class BraxChampionsWille
 
     /// <summary>Where the ground under a villa's pad must stay under its pool (BraxChampionsWilleDzialki.Grunt): x0, x1 and
     /// the pool's back edge (the pool reaches the pad's front).</summary>
-    public static Vector3 StrefaBasenu(int nr) => nr == 1 ? new Vector3(APoolX0, APoolX1, APoolZ1) : new Vector3(PoolX0, PoolX1, PoolZ1);
+    public static Vector3 StrefaBasenu(int nr)
+    {
+        if (nr != 1) return new Vector3(PoolX0, PoolX1, PoolZ1);
+        float x0 = float.MaxValue, x1 = float.MinValue, z1 = float.MinValue;                // the cliff villa's free-form pool (17.11)
+        foreach (var p in KBasen) { x0 = Mathf.Min(x0, p.x); x1 = Mathf.Max(x1, p.x); z1 = Mathf.Max(z1, p.y); }
+        return new Vector3(x0, x1, z1);
+    }
+    /// <summary>A villa's pad (x0, x1, z0, z1) in its frame and the local x of its jetty's root (the sites,
+    /// BraxChampionsWilleDzialki): each plan may have its own.</summary>
+    public static Vector4 Pad(int nr) => new Vector4(PadX0, PadX1, PadZ0, PadZ1);
+    public static float PomostX(int nr) => 20f;
 
     static void PlanWzgorze()
     {
