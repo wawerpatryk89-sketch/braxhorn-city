@@ -21,13 +21,19 @@ jest przewidywalne i nie zależy od tego, co akurat jest aktywne w scenie.
 """
 from collections import defaultdict
 
-# Palce i twarz zostają nietknięte — tam sąsiednie kości są o milimetry od siebie
-# i wygładzanie zrobiłoby z dłoni rękawicę, a z twarzy maskę.
-POMIJANE = ("Hand", "Thumb", "Index", "Middle", "Ring", "Pinky", "Head", "Eye", "Jaw")
+# Palce zostają nietknięte — tam sąsiednie kości są o milimetry od siebie i wygładzanie
+# zrobiłoby z dłoni rękawicę.
+#
+# GŁOWA I SZYJA SĄ JUŻ ODBLOKOWANE. W pierwszym przejściu (build 44097483106) blokowałem
+# też je i wyszło z tego 33 grupy z 65 nietykalnych — a na tych skanach dłonie i głowa to
+# spory kawał siatki, więc średnia ruszyła tylko z 2,62 na 2,74 kości na wierzchołek.
+# Rigu twarzy tu nie ma, więc na głowie nie ma czego rozmyć, a połączenie szyi z głową
+# to prawdziwy staw i ma się zginać miękko.
+POMIJANE = ("Thumb", "Index", "Middle", "Ring", "Pinky", "HandIndex", "HandThumb")
 PROG = 1e-4
 
 
-def wygladz_wagi(mesh, rig=None, sila=0.45, powtorzen=2, limit=4):
+def wygladz_wagi(mesh, rig=None, sila=0.6, powtorzen=4, limit=4):
     """Uśrednia wagi po sąsiadach w siatce, ogranicza do `limit` kości, normalizuje.
 
     Zwraca (przed, po) — średnią liczbę kości na wierzchołek — żeby w logu było
@@ -45,7 +51,14 @@ def wygladz_wagi(mesh, rig=None, sila=0.45, powtorzen=2, limit=4):
         for g in v.groups:
             if g.weight > PROG:
                 wagi[v.index][g.group] = g.weight
+    def udzial_sztywnych(lista):
+        """Ile procent wierzchołków trzyma jedna albo dwie kości — ta liczba, nie średnia,
+        mówi o załamaniach na stawach."""
+        ile = sum(1 for w in lista if 0 < len(w) <= 2)
+        return 100.0 * ile / max(1, len(lista))
+
     przed = sum(len(w) for w in wagi) / max(1, len(wagi))
+    sztywne_przed = udzial_sztywnych(wagi)
 
     # 2. sąsiedzi z krawędzi siatki (nie z odległości — inaczej lewa noga
     #    oddawałaby wagi prawej tam, gdzie się stykają)
@@ -110,7 +123,8 @@ def wygladz_wagi(mesh, rig=None, sila=0.45, powtorzen=2, limit=4):
             grupy[g].add(lista, v, "REPLACE")
 
     print(
-        "BRAX_WAGI %s: kości na wierzchołek %.2f -> %.2f (nietykalne grupy: %d — palce i twarz)"
-        % (mesh.name, przed, po, len(nietykalne))
+        "BRAX_WAGI %s: kości na wierzchołek %.2f -> %.2f | "
+        "wierzchołki na 1-2 kościach %.1f%% -> %.1f%% | nietykalne grupy: %d (palce)"
+        % (mesh.name, przed, po, sztywne_przed, udzial_sztywnych(wagi), len(nietykalne))
     )
     return przed, po
