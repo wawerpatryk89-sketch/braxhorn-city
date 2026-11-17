@@ -78,6 +78,36 @@ public static partial class BraxChampionsCasinoT11
         BraxChampionsKasynoSprzet.BiuroWlasciciela(g,OfX0+OfT,OfX1-OfT,OfZ0+OfT,OfZ1-OfT,y,OfT,OfDrzwi0,OfDrzwi1,KameryHali);
     }
 
+    // The SALON VIP (owner 16.11, the queue: "Salon VIP i złote monety właściciela w kasynach"; his SALON VIP sign): a walnut
+    // block in the hall's rear west corner, the office's mirror and larger - inside of the west windows (x -33..-25), from
+    // behind the gold column line (z 15.4) to the rear wall -, 4.6 m high, black marble floor, cream ceiling at 4.2 m with a
+    // small ring chandelier over each high-limit table; its door to the hall in the east wall in a gold portal. The tables,
+    // the bar, the lounge, the vitrine of his coins, his sign, the ropes: BraxChampionsKasynoSprzet.SalonVip.
+    const float VpX0=-33.0f,VpX1=-25.0f,VpZ0=15.4f,VpZ1=27.35f,VpT=.2f,VpH=4.6f,VpDrzwi0=19.0f,VpDrzwi1=21.6f,VpDrzwiH=3.0f,VpY=HallFloor+.032f;
+    static void SalonVipSciany(Material marble,Material wall,Material ceiling,Material gold,Material led)
+    {
+        float y=VpY;
+        W.MM(marble,VpX0,VpX1,HallFloor+.022f,y,VpZ0,VpZ1);                               // over the tiles' gold edge (HallFloor+.02)
+        W.KolizjaMM(VpX0,VpX1,HallFloor,y,VpZ0,VpZ1);
+        W.MM(wall,VpX0,VpX0+VpT,y,VpH,VpZ0,VpZ1,true);                                   // west
+        W.MM(wall,VpX0+VpT,VpX1-VpT,y,VpH,VpZ1-VpT,VpZ1,true);                           // north, the rear
+        W.MM(wall,VpX0+VpT,VpX1-VpT,y,VpH,VpZ0,VpZ0+VpT,true);                           // south
+        W.MM(wall,VpX1-VpT,VpX1,y,VpH,VpZ0,VpDrzwi0,true);                               // east, south of the door
+        W.MM(wall,VpX1-VpT,VpX1,y,VpH,VpDrzwi1,VpZ1,true);                               // north of it
+        W.MM(wall,VpX1-VpT,VpX1,VpDrzwiH,VpH,VpDrzwi0,VpDrzwi1);                         // over it
+        W.MM(wall,VpX0,VpX1,VpH,VpH+.12f,VpZ0,VpZ1);                                     // the roof
+        W.MM(ceiling,VpX0+VpT,VpX1-VpT,4.20f,4.22f,VpZ0+VpT,VpZ1-VpT);                   // the ceiling inside
+        W.MM(gold,VpX0-.02f,VpX1+.02f,4.46f,4.50f,VpZ0-.02f,VpZ0);                       // a gold line round its top
+        W.MM(gold,VpX0-.02f,VpX0,4.46f,4.50f,VpZ0,VpZ1);
+        W.MM(gold,VpX1,VpX1+.02f,4.46f,4.50f,VpZ0,VpZ1);
+        // the gold portal of the door on the hall side: the jambs and the lintel 6 cm proud of the wall
+        W.MM(gold,VpX1,VpX1+.06f,y,VpDrzwiH+.12f,VpDrzwi0-.14f,VpDrzwi0);
+        W.MM(gold,VpX1,VpX1+.06f,y,VpDrzwiH+.12f,VpDrzwi1,VpDrzwi1+.14f);
+        W.MM(gold,VpX1,VpX1+.06f,VpDrzwiH,VpDrzwiH+.12f,VpDrzwi0,VpDrzwi1);
+        // a small ring chandelier over each table (their warm lights: BraxChampionsKasynoSprzet.SalonVip)
+        foreach(float z in new[]{17.4f,21.3f})RingChandelier(gold,led,new Vector3(VpX0+1.75f,4.20f,z),.30f);
+    }
+
     static void CasinoHall()
     {
         var g=new GameObject("T11 casino hall | open, finished, unfurnished | marble, red tiles, gold columns, chandeliers").transform;
@@ -190,7 +220,7 @@ public static partial class BraxChampionsCasinoT11
             // neighbour another game; in each wing the two long banks, a short bank before and behind them, and under the front
             // and the back chandelier a CAROUSEL of eight round a lacquered drum with the owner's toppers on its crown (the KOŁO
             // carousels to the entrance, the poker / keno ones at the back): 128 machines
-            int slots=0,roulettes=0,carousels=0,obsluga=0,blackjacks=0,bakarats=0,holdems=0;
+            int slots=0,roulettes=0,carousels=0,obsluga=0,blackjacks=0,bakarats=0,holdems=0,vipStoly=0;
             BraxChampionsFoundation.Optional("T11 slot machines",()=>
             {
                 var body=new BraxChampionsMeshBatch();
@@ -251,6 +281,14 @@ public static partial class BraxChampionsCasinoT11
                     BraxChampionsKasynoSprzet.SzyldWiszacy(kas,new Vector3(px,4.6f,15.1f),BraxChampionsKasynoSprzet.ArkPoker,1.5f,HallCeiling);
                 }
                 holdems=kas.holdem.Count;
+                // the SALON VIP in the rear west corner: its walls (SalonVipSciany), then its high-limit tables and furniture
+                BraxChampionsFoundation.Optional("T11 salon VIP",()=>
+                {
+                    SalonVipSciany(marble,wall,ceiling,gold,led);
+                    int bj0=kas.blackjack.Count,bk0=kas.bakarat.Count;
+                    BraxChampionsKasynoSprzet.SalonVip(kas,g,VpX0+VpT,VpX1-VpT,VpZ0+VpT,VpZ1-VpT,VpY,VpDrzwi0,VpDrzwi1,HallFloor+.016f,VpX1);
+                    vipStoly=(kas.blackjack.Count-bj0)+(kas.bakarat.Count-bk0);
+                });
                 body.Build(g,"T11 casino hall | slot machines",BraxChampionsKasynoSprzet.Out+"/Meshes",false,1f);
                 BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
             });
@@ -264,6 +302,7 @@ public static partial class BraxChampionsCasinoT11
             if(blackjacks!=2)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL blackjack tables "+blackjacks+"/2");
             if(bakarats!=2)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL baccarat tables "+bakarats+"/2");
             if(holdems!=2)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL Casino Hold'em tables "+holdems+"/2");
+            if(vipStoly!=2)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL SALON VIP high-limit tables "+vipStoly+"/2 (blackjack, baccarat)");
 
             // ---- light: six warm vertex lamps (no shadows) ----
             foreach(float x in new[]{-21.15f,21.15f})

@@ -19,6 +19,8 @@ public sealed class BraxChampionsBakarat : MonoBehaviour, IBraxInterakcja
         public Vector3[] pola = new Vector3[3];                  // the three betting boxes: BANKIER, REMIS, GRACZ (table frame)
         public Vector3 gracz, bankier;                           // the first card of each hand on the dealer's side (rows along -x / +x)
         public Transform[] zetony = new Transform[3];            // a chip stack on each box (shown while bet)
+        public int stawka;                                       // this table's stake (0: the component's; the SALON VIP's high limit)
+        public string nazwa;                                     // this table's name (null: the component's)
     }
     public const int Bankier = 0, Remis = 1, Gracz = 2;
     public static readonly string[] Pola = { "BANKIER", "REMIS", "GRACZ" };
@@ -26,6 +28,8 @@ public sealed class BraxChampionsBakarat : MonoBehaviour, IBraxInterakcja
     public Material karty;
     public string nazwa = "BAKARAT";
     public int stawka = 20;
+    int St(Stol t) => t != null && t.stawka > 0 ? t.stawka : stawka;
+    string Nz(Stol t) => t != null && !string.IsNullOrEmpty(t.nazwa) ? t.nazwa : nazwa;
     public float filcY = .80f;
 
     const int Wolny = 0, Rozdanie = 1, Wynik = 2;
@@ -101,14 +105,15 @@ public sealed class BraxChampionsBakarat : MonoBehaviour, IBraxInterakcja
     public string Kontekst(Vector3 g)
     {
         int i = Najblizszy(g, out int pole); if (i < 0 || stan == null) return "";
-        if (stan[i].faza != Wolny) return nazwa + " · ROZDANIE";
-        return BraxChampionsKasyno.Kredyt >= stawka ? "POSTAW " + stawka + " · " + Pola[pole] : "BRAK KREDYTU";
+        var t = stoly[i];
+        if (stan[i].faza != Wolny) return Nz(t) + " · ROZDANIE";
+        return BraxChampionsKasyno.Kredyt >= St(t) ? "POSTAW " + St(t) + " · " + Pola[pole] : "BRAK KREDYTU";
     }
     public bool Wykonaj(Vector3 g)
     {
         int i = Najblizszy(g, out int pole); if (i < 0 || stan == null) return false;
         var s = stan[i]; var t = stoly[i]; if (s.faza != Wolny) return true;
-        if (!BraxChampionsKasyno.Wydaj(stawka)) { BraxChampionsGry.Pokaz("BRAK KREDYTU · KASA", 1.6f); return true; }
+        if (!BraxChampionsKasyno.Wydaj(St(t))) { BraxChampionsGry.Pokaz("BRAK KREDYTU · KASA", 1.6f); return true; }
         if (s.wBucie > 346) Tasuj(s);                                // the cut card: the last sixth of the shoe stays
         Sprzatnij(s); s.gracz.Clear(); s.bankier.Clear(); s.pole = pole;
         if (pole < t.zetony.Length && t.zetony[pole]) t.zetony[pole].gameObject.SetActive(true);
@@ -148,7 +153,7 @@ public sealed class BraxChampionsBakarat : MonoBehaviour, IBraxInterakcja
             if (s.faza == Rozdanie && Time.time >= s.czas) Koniec(t, s);
             else if (s.faza == Wynik && Time.time >= s.czas) { Sprzatnij(s); s.faza = Wolny; }
             if (s.faza != Wolny && Blisko(t))
-                BraxChampionsGry.Ustaw(nazwa + " · " + Pola[s.pole] + " " + stawka + " · GRACZ " + Widac(s, true) + " · BANKIER " + Widac(s, false) + " · KREDYT " + BraxChampionsKasyno.Kredyt);
+                BraxChampionsGry.Ustaw(Nz(t) + " · " + Pola[s.pole] + " " + St(t) + " · GRACZ " + Widac(s, true) + " · BANKIER " + Widac(s, false) + " · KREDYT " + BraxChampionsKasyno.Kredyt);
         }
     }
     // the total of a hand's cards already on the felt
@@ -165,9 +170,9 @@ public sealed class BraxChampionsBakarat : MonoBehaviour, IBraxInterakcja
     void Koniec(Stol t, Stan s)
     {
         int g = Suma(s.gracz), b = Suma(s.bankier), w = Zwyciezca(g, b);
-        int wyplata = Wyplata(s.pole, w, stawka); if (wyplata > 0) BraxChampionsKasyno.Wplac(wyplata);
+        int st = St(t), wyplata = Wyplata(s.pole, w, st); if (wyplata > 0) BraxChampionsKasyno.Wplac(wyplata);
         string wynik = w == Remis ? "REMIS " + g + " : " + b : (w == Gracz ? "GRACZ" : "BANKIER") + " WYGRYWA " + Mathf.Max(g, b) + " NA " + Mathf.Min(g, b);
-        BraxChampionsGry.Pokaz(wynik + (wyplata > stawka ? " · WYGRANA " + wyplata : wyplata == stawka ? " · ZWROT " + wyplata : ""), 3.2f);
+        BraxChampionsGry.Pokaz(wynik + (wyplata > st ? " · WYGRANA " + wyplata : wyplata == st ? " · ZWROT " + wyplata : ""), 3.2f);
         s.faza = Wynik; s.czas = Time.time + 3.4f;
         if (s.pole >= 0 && s.pole < t.zetony.Length && t.zetony[s.pole]) t.zetony[s.pole].gameObject.SetActive(false);
     }

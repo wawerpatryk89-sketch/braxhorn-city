@@ -19,11 +19,15 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
         public Vector3[] miejsca = new Vector3[0];               // the betting circles on the felt (table frame)
         public Vector3 krupier;                                  // the dealer's first card (table frame), his row runs along +x
         public Transform[] zetony = new Transform[0];            // a chip stack on each circle (shown while bet)
+        public int stawka;                                       // this table's stake (0: the component's; the SALON VIP's high limit)
+        public string nazwa;                                     // this table's name (null: the component's)
     }
     public Stol[] stoly = new Stol[0];
     public Material karty;                                       // the card atlas (his J / Q / K, his back), lit as card stock
     public string nazwa = "BLACKJACK";
     public int stawka = 10;
+    int St(Stol t) => t != null && t.stawka > 0 ? t.stawka : stawka;
+    string Nz(Stol t) => t != null && !string.IsNullOrEmpty(t.nazwa) ? t.nazwa : nazwa;
     public float decyzja = 5f, filcY = .80f;
     public const float KartaSz = BraxChampionsKarty.Szer, KartaDl = BraxChampionsKarty.Dl;   // a casino card: 63 x 88 mm
 
@@ -106,9 +110,10 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
     {
         int i = Najblizszy(gracz, out _); if (i < 0 || stan == null) return "";
         var s = stan[i];
-        if (s.faza == Wolny) return BraxChampionsKasyno.Kredyt >= stawka ? nazwa + " · POSTAW " + stawka : "BRAK KREDYTU";
+        var t = stoly[i];
+        if (s.faza == Wolny) return BraxChampionsKasyno.Kredyt >= St(t) ? Nz(t) + " · POSTAW " + St(t) : "BRAK KREDYTU";
         if (s.faza == Decyzja) return "DOBIERZ · " + Suma(s.gracz, out _);
-        return nazwa + " · ROZDANIE";
+        return Nz(t) + " · ROZDANIE";
     }
     public bool Wykonaj(Vector3 gracz)
     {
@@ -116,7 +121,7 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
         var s = stan[i]; var t = stoly[i];
         if (s.faza == Decyzja) { Daj(t, s, true, s.gracz.Count, true); s.czas = Time.time + decyzja; Po(t, s); return true; }
         if (s.faza != Wolny) return true;
-        if (!BraxChampionsKasyno.Wydaj(stawka)) { BraxChampionsGry.Pokaz("BRAK KREDYTU · KASA", 1.6f); return true; }
+        if (!BraxChampionsKasyno.Wydaj(St(t))) { BraxChampionsGry.Pokaz("BRAK KREDYTU · KASA", 1.6f); return true; }
         if (s.wBucie > 234) Tasuj(s);                               // the cut card came out: a new shoe
         Sprzatnij(s); s.gracz.Clear(); s.krupier.Clear();
         s.miejsce = Mathf.Clamp(miejsce, 0, t.miejsca.Length - 1); s.faza = Rozdanie; s.krok = Time.time; s.czas = 0f;
@@ -183,7 +188,7 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
                     if (Time.time >= s.czas) { Sprzatnij(s); s.faza = Wolny; }
                     break;
             }
-            if (s.faza != Wolny && Gracz(t)) Panel(s);
+            if (s.faza != Wolny && Gracz(t)) Panel(t, s);
         }
     }
     bool Gracz(Stol t)
@@ -191,10 +196,10 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
         var g = BraxChampionsGry.Gracz; if (!g) return false;
         var l = t.stol.InverseTransformPoint(g.transform.position); return l.z > -.5f && l.z < 2.4f && Mathf.Abs(l.x) < 2.4f;
     }
-    void Panel(Stan s)
+    void Panel(Stol t, Stan s)
     {
         int g = Suma(s.gracz, out bool gm), widac = s.faza >= Krupier ? Suma(s.krupier, out _) : (s.krupier.Count > 0 ? Wartosc(s.krupier[0]) : 0);
-        string txt = nazwa + " · TY " + (gm && g < 21 ? (g - 10) + "/" + g : g.ToString()) + " · KRUPIER " + widac;
+        string txt = Nz(t) + " · TY " + (gm && g < 21 ? (g - 10) + "/" + g : g.ToString()) + " · KRUPIER " + widac;
         if (s.faza == Decyzja) txt += " · AKCJA = DOBIERZ · STÓJ ZA " + Mathf.CeilToInt(Mathf.Max(0f, s.czas - Time.time));
         BraxChampionsGry.Ustaw(txt + " · KREDYT " + BraxChampionsKasyno.Kredyt);
     }
@@ -207,12 +212,12 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
     }
     void Koniec(Stol t, Stan s, string przebicie)
     {
-        int wyplata = przebicie != null ? 0 : Wyplata(s.gracz, s.krupier, stawka);
+        int st = St(t), wyplata = przebicie != null ? 0 : Wyplata(s.gracz, s.krupier, st);
         if (wyplata > 0) BraxChampionsKasyno.Wplac(wyplata);
         int g = Suma(s.gracz, out _), k = Suma(s.krupier, out _);
-        string w = przebicie ?? (wyplata == stawka * 5 / 2 ? "BLACKJACK! · WYGRANA " + wyplata
-                 : wyplata == stawka * 2 ? "WYGRANA " + wyplata + " · " + g + " NA " + k
-                 : wyplata == stawka ? "REMIS · " + g
+        string w = przebicie ?? (wyplata == st * 5 / 2 ? "BLACKJACK! · WYGRANA " + wyplata
+                 : wyplata == st * 2 ? "WYGRANA " + wyplata + " · " + g + " NA " + k
+                 : wyplata == st ? "REMIS · " + g
                  : Blackjack(s.krupier) ? "BLACKJACK KRUPIERA" : "KRUPIER WYGRYWA · " + k + " NA " + g);
         BraxChampionsGry.Pokaz(w, 3f);
         s.faza = Wynik; s.czas = Time.time + 3.2f;

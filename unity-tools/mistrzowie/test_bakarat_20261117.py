@@ -77,7 +77,7 @@ class Rules(unittest.TestCase):
         self.assertIn("s.but = new int[416]; for (int i = 0; i < 416; i++) s.but[i] = i % 52;", GAME)   # eight decks
 
     def test_one_button_and_his_things(self):
-        self.assertIn('return BraxChampionsKasyno.Kredyt >= stawka ? "POSTAW " + stawka + " · " + Pola[pole] : "BRAK KREDYTU";', GAME)
+        self.assertIn('return BraxChampionsKasyno.Kredyt >= St(t) ? "POSTAW " + St(t) + " · " + Pola[pole] : "BRAK KREDYTU";', GAME)   # the table's own stake (SALON VIP)
         self.assertIn("siatki = BraxChampionsKarty.Siatki();", GAME)
         self.assertIn('string[] napis = { "BANKIER", "REMIS", "GRACZ" }, kurs = { "0,95 : 1", "8 : 1", "1 : 1" };', KIT)
         self.assertIn("Arkusz[ArkLogo, 0]", KIT)
