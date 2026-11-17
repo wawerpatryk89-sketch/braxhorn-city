@@ -502,9 +502,14 @@ public static class BraxChampionsWille
         BraxKatalog.Rug(c, new Vector3(-10.4f, 0f, -.6f), Vector3.forward, 4.4f, 3.8f, nr == 2);
         BraxKatalog.Sofa(c, new Vector3(-8.9f, .012f, -.6f), -toE, 3.2f, nr % 2, "sofa");
         BraxKatalog.FloorLamp(c, new Vector3(-7.6f, 0f, 1.7f));
-        // dining for eight: two tables end to end, by the glass
-        BraxKatalog.DiningSet(c, new Vector3(.7f, 0f, -3.2f), Vector3.back, "krzesło");
-        BraxKatalog.DiningSet(c, new Vector3(2.3f, 0f, -3.2f), Vector3.back, "krzesło");
+        // dining for eight: two tables end to end, by the glass, on a rug
+        BraxKatalog.Rug(c, new Vector3(1.5f, 0f, -2.75f), Vector3.forward, 4.6f, 3.0f, true);
+        // a walnut credenza on the WC block under the big print
+        b.RoundedBox(walnut, new Vector3(-4.25f, .38f, 5f - .06f - .23f), new Vector3(2.3f, .76f, .45f), .01f, Quaternion.identity, 1);
+        b.Box(BraxKatalog.BlackMatt, new Vector3(-4.25f, .03f, 5f - .06f - .23f), new Vector3(2.2f, .06f, .4f), Quaternion.identity);
+        W.Kolizja(new Vector3(-4.25f, .38f, 5f - .06f - .23f), new Vector3(2.3f, .76f, .45f), Quaternion.identity);
+        BraxKatalog.DiningSet(c, new Vector3(.7f, .012f, -3.2f), Vector3.back, "krzesło");
+        BraxKatalog.DiningSet(c, new Vector3(2.3f, .012f, -3.2f), Vector3.back, "krzesło");
         // the kitchen: a low run on the east wall (no wall units), the stone island with three stools
         BraxKatalog.Kitchen(c, new Vector3(GX1 - T - .002f, 0f, -5.4f), Vector3.forward, Vector3.left,
             new[] { "szuflady", "zlew", "zmywarka", "szuflady", "szuflady", "plyta", "szuflady", "piekarnik" }, walnut, BraxKatalog.BlackMatt, BraxKatalog.Stone, tag + " kuchnia", false);
