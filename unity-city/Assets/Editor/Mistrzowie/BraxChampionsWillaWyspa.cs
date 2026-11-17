@@ -46,16 +46,22 @@ public static partial class BraxChampionsWille
         MM(stone, WPadX0, PadX0, -4f, -s, PadZ0, PadZ0 + .3f);
         MM(stone, WPadX0, PadX0, -s, 0f, PadZ0, PadZ0 + .3f, false);
         Balustrada(true, PadZ0 + .15f, WPadX0 + .2f, PadX0 + .2f, 0f);
-        // the stair down to the beach: solid limestone steps, glass balustrades either side, the walk as a ramp
+        SchodyPlaza(WStX0, WStX1);
+    }
+    /// <summary>The stair down the pad's front (3.95 m, the site's ground before it) to the beach: solid limestone steps,
+    /// glass balustrades either side, the walk as a ramp (the island's to its jetty, the seafront's to its beach).</summary>
+    static void SchodyPlaza(float x0, float x1)
+    {
+        Out_(true);
         float riser = WStDrop / WStN, zFoot = PadZ0 - WStN * WStTread;
         for (int i = 0; i < WStN; i++)
         {
             float top = -WStDrop + (i + 1) * riser, za = zFoot + i * WStTread, zb = za + WStTread + (i == WStN - 1 ? 0f : .02f);
-            MM(deck, WStX0, WStX1, -WStDrop - .35f, top, za, zb, false);
+            MM(deck, x0, x1, -WStDrop - .35f, top, za, zb, false);
         }
-        W.Rampa(new Vector3((WStX0 + WStX1) * .5f, 0f, PadZ0), new Vector3((WStX0 + WStX1) * .5f, -WStDrop, zFoot), WStX1 - WStX0);
+        W.Rampa(new Vector3((x0 + x1) * .5f, 0f, PadZ0), new Vector3((x0 + x1) * .5f, -WStDrop, zFoot), x1 - x0);
         float run = WStN * WStTread, slope = Mathf.Atan2(WStDrop, run) * Mathf.Rad2Deg, len = Mathf.Sqrt(WStDrop * WStDrop + run * run);
-        foreach (float x in new[] { WStX0 + .04f, WStX1 - .04f })
+        foreach (float x in new[] { x0 + .04f, x1 - .04f })
         {
             var mid = new Vector3(x, -WStDrop * .5f + .55f, (PadZ0 + zFoot) * .5f);
             b.Box(glass, mid, new Vector3(.018f, 1.0f, len), Quaternion.Euler(slope, 0f, 0f));

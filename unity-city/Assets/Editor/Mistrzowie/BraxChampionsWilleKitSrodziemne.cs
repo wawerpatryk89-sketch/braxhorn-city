@@ -144,6 +144,50 @@ public static partial class BraxChampionsWille
         b.Surface(walnut, (u, v) => { float t = Mathf.PI * u, rr = r - .05f * v; return P(am - rr * Mathf.Cos(t), ys + rr * Mathf.Sin(t)) + nrm * outward * .045f; }, 24, 1, outward < 0f);
     }
 
+    /// <summary>The lower half of a round opening (its wall built with the square a0..a1 x yb..ys): the wall under the
+    /// half-circle down to yb, both faces and its soffit (Luk mirrored).</summary>
+    static void LukDol(bool alongX, float plane, float a0, float a1, float ys, float yb, float outward, Material zew, Material wew)
+    {
+        float t = T, r = (a1 - a0) * .5f, am = (a0 + a1) * .5f; const int N = 16;
+        Vector3 P(float a, float y, float off) => alongX ? new Vector3(a, y, plane - outward * off) : new Vector3(plane - outward * off, y, a);
+        var outN = alongX ? new Vector3(0, 0, outward) : new Vector3(outward, 0, 0);
+        void Q(Material m, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 face, bool inside)
+        {
+            var q = new[] { p0, p1, p2, p3 };
+            if (Vector3.Dot(Vector3.Cross(q[1] - q[0], q[2] - q[0]), face) < 0f) Array.Reverse(q);
+            Out_(!inside); W.Quad(m, q[0], q[1], q[2], q[3]);
+        }
+        for (int i = 0; i < N; i++)
+        {
+            float t0 = Mathf.PI * i / N, t1 = Mathf.PI * (i + 1) / N;
+            float u0 = am - r * Mathf.Cos(t0), u1 = am - r * Mathf.Cos(t1), y0 = ys - r * Mathf.Sin(t0), y1 = ys - r * Mathf.Sin(t1);
+            Q(zew, P(u0, y0, 0f), P(u1, y1, 0f), P(u1, yb, 0f), P(u0, yb, 0f), outN, false);
+            Q(wew, P(u0, y0, t), P(u1, y1, t), P(u1, yb, t), P(u0, yb, t), -outN, true);
+            var c = P((u0 + u1) * .5f, (y0 + y1) * .5f, t * .5f); var centre = P(am, ys, t * .5f);
+            Q(zew, P(u0, y0, 0f), P(u1, y1, 0f), P(u1, y1, t), P(u0, y0, t), centre - c, false);
+        }
+    }
+    /// <summary>A round window (owner's photo 2: the oculi) at (ac, yc), radius r, in an outside wall built with the square
+    /// opening ac-r..ac+r x yc-r..yc+r: the wall round the circle, the glass disc, a walnut bead both sides.</summary>
+    static void OknoOkragle(bool alongX, float plane, float ac, float yc, float r, float outward, Material zew)
+    {
+        Luk(alongX, plane, ac - r, ac + r, yc, yc + r, outward, zew, renderIn);
+        LukDol(alongX, plane, ac - r, ac + r, yc, yc - r, outward, zew, renderIn);
+        float gp = plane - outward * T * .5f; const int N = 32;
+        Vector3 P(float a, float y) => alongX ? new Vector3(a, y, gp) : new Vector3(gp, y, a);
+        var centre = P(ac, yc);
+        Out_(true);
+        for (int i = 0; i < N; i++)
+        {
+            float t0 = Mathf.PI * 2f * i / N, t1 = Mathf.PI * 2f * (i + 1) / N;
+            var p0 = P(ac - (r - .04f) * Mathf.Cos(t0), yc + (r - .04f) * Mathf.Sin(t0)); var p1 = P(ac - (r - .04f) * Mathf.Cos(t1), yc + (r - .04f) * Mathf.Sin(t1));
+            b.Triangle(glass, centre, p0, p1); b.Triangle(glass, centre, p1, p0);
+        }
+        var nrm = alongX ? Vector3.forward : Vector3.right;
+        b.Surface(walnut, (u, v) => { float t = Mathf.PI * 2f * u, rr = r - .05f * v; return P(ac - rr * Mathf.Cos(t), yc + rr * Mathf.Sin(t)) - nrm * outward * .045f; }, N, 1, outward > 0f);
+        b.Surface(walnut, (u, v) => { float t = Mathf.PI * 2f * u, rr = r - .05f * v; return P(ac - rr * Mathf.Cos(t), yc + rr * Mathf.Sin(t)) + nrm * outward * .045f; }, N, 1, outward < 0f);
+    }
+
     // ---------------------------------------------------------------- stone
     /// <summary>A Tuscan column at p (its base on p.y): plinth, base ring, the tapering shaft, the capital and its abacus.</summary>
     static void Kolumna(Vector3 p, float h, float r)

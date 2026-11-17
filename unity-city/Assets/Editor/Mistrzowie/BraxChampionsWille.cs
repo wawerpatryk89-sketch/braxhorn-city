@@ -89,7 +89,7 @@ public static partial class BraxChampionsWille
         tynkKrem = BraxChampionsFoundation.SourceMaterial("willa_tynk_kremowy", "white_stucco_02", 2.0f, new Color(1.46f, 1.41f, 1.28f));   // 17.11: ivory as his photo (was grey-brown)
         // the hill villa's cliff (his photo: a pale warm rock face under the pool): Poly Haven cliff_side at its real 1.83 m
         skala = BraxChampionsFoundation.SourceMaterial("willa_skala", "cliff_side", 1.83f, new Color(1.12f, 1.08f, 1.02f));
-        tynkBez = BraxChampionsFoundation.SourceMaterial("willa_tynk_bezowy", "white_stucco_02", 2.0f, new Color(1.12f, .94f, .74f));
+        tynkBez = BraxChampionsFoundation.SourceMaterial("willa_tynk_bezowy", "white_stucco_02", 2.0f, new Color(1.34f, 1.12f, .88f));   // his photo 2: a light warm peach-beige
         if (nr == 2) render = elewacja;          // the island's Miami house in the scanned exterior stucco (17.11 "Te ściany są wykończone?")
         teak = BraxChampionsHarbour.Surface("willa_tik", new Color(.42f, .30f, .19f), .55f, 0f);
         cushion = BraxChampionsHarbour.Surface("willa_poduchy_lezakow", new Color(.92f, .91f, .88f), .85f, 0f);
@@ -122,6 +122,7 @@ public static partial class BraxChampionsWille
             pietro = FFL1;
             if (nr == 1) PlanKlif();                                        // owner 17.11: each villa its own (his photo: BraxChampionsWillaKlif)
             else if (nr == 2) PlanWyspa();                                  // his Miami photo, the court, the jetty (BraxChampionsWillaWyspa)
+            else if (nr == 3) PlanNabrzeze();                               // his beige Mediterranean photo (BraxChampionsWillaNabrzeze)
             else { Teren(); Basen(); Jacuzzi_(); Bryla(nr); Garaz(); Wnetrze(nr); Wyposazenie(nr); Ogrod(nr); Palmy_(); }
             b.Build(g, Nazwy[nr - 1] + " | detale", Out + "/Meshes", true, 1f);
             kat.Build(g, Nazwy[nr - 1] + " | meble (katalog BRAXHORN HOME)", Out + "/Meshes", false, 1f);

@@ -37,7 +37,7 @@ public static partial class BraxChampionsWille
         pietro = KF1;
         var c = new BraxKatalog.Ctx { m = kat, root = g, cols = g, unit = 1f, water = null, inst = g, seat = (p, f, l) => { W.Siedzisko(p, f, l); Siedziska++; } };
         string tag = Nazwy[0];
-        KTeren(); KDom(); KSkrzydla(); KWieza(); KWnetrze(c, tag); KOgrod(tag);
+        KTeren(); KDom(tynkKrem, false); KSkrzydla(); KWieza(); KWnetrze(c, tag); KPietro(c, tag); KOgrod(tag);
     }
 
     // ================================================================ the pad: the pool on the edge, the rock face, terraces
@@ -105,9 +105,11 @@ public static partial class BraxChampionsWille
     }
 
     // ================================================================ the house
-    static void KDom()
+    // nabrzeze: the seafront villa 3 (his photo 2) - no loggia: the front door and arched French windows in the front wall,
+    // the balcony only over the door on two columns, round windows upstairs east, no tower door (the plan is the hill's)
+    static void KDom(Material zew, bool nabrzeze)
     {
-        var zew = tynkKrem;
+        if (nabrzeze) { NDomFront(zew); KDomReszta(zew, true); return; }
         Out_(false); MM(floorGf, -8.7f, 8.7f, -.25f, 0f, 3.3f, 12.7f);
         Out_(true); MM(deck, -8.7f, 8.7f, -.25f, 0f, 0f, 3.3f); MM(deck, -1f, 1f, -.25f, 0f, 12.7f, 13f);
         // ---- the ground front (z 0): three arches on two columns before the loggia, an arched window either side
@@ -136,9 +138,19 @@ public static partial class BraxChampionsWille
         MM(deck, -6.2f, 6.2f, KF1 - .22f, KF1, -1.25f, 0f);
         for (float x = -5.9f; x < 6.0f; x += 1.18f) b.Box(deck, new Vector3(x, KF1 - .42f, -.62f), new Vector3(.22f, .4f, 1.1f), Quaternion.identity);
         Tralki(true, -1.12f, -6.2f, 6.2f, KF1); Tralki(false, -6.07f, -1.25f, -.05f, KF1); Tralki(false, 6.07f, -1.25f, -.05f, KF1);
+        KDomReszta(zew, false);
+    }
+    // the sides, the back, the floors, the roof, the chimneys and the stair (both Mediterranean villas)
+    static void KDomReszta(Material zew, bool nabrzeze)
+    {
         // ---- the sides (the wings butt against the ground floor; the tower against the west) and the back
         ScianaOE(zew, false, -9f, 0f, 13f, 0f, KF1, -1f, false, RogZ(0f, 13f, false), new Vector4(5f, 6.2f, 0f, 2.25f));
-        ScianaOE(zew, false, -9f, 0f, 13f, KF1, KE, -1f, false, RogZ(0f, 13f, false), new Vector4(2f, 3.1f, KF1 + .9f, KF1 + 2.7f), new Vector4(10f, 10.9f, KF1, KF1 + 2.25f));
+        if (nabrzeze)
+        {
+            ScianaOE(zew, false, -9f, 0f, 13f, KF1, KE, -1f, false, RogZ(0f, 13f, false), new Vector4(2f, 3.1f, KF1 + .9f, KF1 + 2.7f), new Vector4(9.9f, 11f, KF1 + .9f, KF1 + 2.7f));
+            OknoLuk(false, -9f, 9.9f, 11f, KF1 + .9f, KF1 + 2.15f, KF1 + 2.7f, -1f, zew);
+        }
+        else ScianaOE(zew, false, -9f, 0f, 13f, KF1, KE, -1f, false, RogZ(0f, 13f, false), new Vector4(2f, 3.1f, KF1 + .9f, KF1 + 2.7f), new Vector4(10f, 10.9f, KF1, KF1 + 2.25f));
         OknoLuk(false, -9f, 2f, 3.1f, KF1 + .9f, KF1 + 2.15f, KF1 + 2.7f, -1f, zew);
         ScianaOE(zew, false, 9f, 0f, 13f, 0f, KF1, 1f, false, RogZ(0f, 13f, false), new Vector4(1f, 2f, 0f, 2.25f), new Vector4(7.5f, 8.4f, 0f, 2.25f));
         ScianaOE(zew, false, 9f, 0f, 13f, KF1, KE, 1f, false, RogZ(0f, 13f, false), new Vector4(2f, 3.1f, KF1 + .9f, KF1 + 2.7f), new Vector4(9.5f, 10.6f, KF1 + .9f, KF1 + 2.7f));
@@ -157,7 +169,7 @@ public static partial class BraxChampionsWille
             b.Box(downlight, new Vector3(lx, 2.4f, 13.2f), new Vector3(.12f, .26f, .01f), Quaternion.identity);
             W.Lampa("wejście | latarnia", new Vector3(lx, 2.3f, 13.6f), .5f, 4f * K, new Color(1f, .82f, .58f));
         }
-        BraxChampionsLetters3D.Text(b, steel, black, Nazwy[0], new Vector3(-2.9f, 3.0f, 13.012f), BraxChampionsLetters3D.YawFacing(Vector3.forward), .14f, .012f, .12f);
+        BraxChampionsLetters3D.Text(b, steel, black, Nazwy[nrWilli - 1], new Vector3(-2.9f, 3.0f, 13.012f), BraxChampionsLetters3D.YawFacing(Vector3.forward), .14f, .012f, .12f);
         // ---- the floors (the stair's well), the upper ceiling, the roof, two chimneys; the stair up the east wall
         Out_(false);
         SlabRect(ceiling, -8.7f, 8.7f, KF1 - .3f, KF1 - .04f, 3f, 12.7f, 7.25f, 8.7f, 4.8f, 11.21f);
@@ -249,7 +261,6 @@ public static partial class BraxChampionsWille
     static void KWnetrze(BraxKatalog.Ctx c, string tag)
     {
         Out_(false);
-        float y = KF1, top = KE - .2f;
         // ---- the salon (z 3.3..8): the stone fireplace on the west wall, sofas round it, the TV wall, the loggia's arches
         Scianka(true, 8f, -8.7f, 7.2f, 0f, KF1 - .3f, new Vector2(-6f, -3f), new Vector2(-1.5f, 1.5f));
         Scianka(false, -2f, 8f, 12.7f, 0f, KF1 - .3f, new Vector2(9.5f, 11.5f));
@@ -283,6 +294,11 @@ public static partial class BraxChampionsWille
         W.Lampa(tag + " | jadalnia", new Vector3(-5.4f, KF1 - .6f, 10.4f), .9f, 8f * K, new Color(1f, .9f, .78f));
         W.Lampa(tag + " | hol", new Vector3(1f, KF1 - .6f, 10.4f), .8f, 7f * K, new Color(1f, .9f, .78f));
         Oczka(-.6f, 4.2f, 9.2f, 11.6f, KF1 - .3f);
+        KPartyKuchnia(c, tag);
+    }
+    // the hill's kitchen in its west wing, its pavilion, the east wing's loggia, guest suite and garage
+    static void KPartyKuchnia(BraxKatalog.Ctx c, string tag)
+    {
         // ---- the kitchen in the west wing (a low run on the west wall, the island), the pavilion's table and lounge
         BraxKatalog.Kitchen(c, new Vector3(-20.68f, 0f, -1.4f), Vector3.forward, Vector3.right,
             new[] { "szuflady", "zlew", "zmywarka", "szuflady", "plyta", "szuflady", "piekarnik", "szuflady" }, walnut, BraxKatalog.BlackMatt, BraxKatalog.Stone, tag + " kuchnia", false);
@@ -322,7 +338,19 @@ public static partial class BraxChampionsWille
         MM(walnut, 20.2f, 20.7f, 0f, 2.0f, 5.0f, 9.0f);
         foreach (float x in new[] { 12.75f, 17.75f }) MM(black, x - .6f, x + .6f, 0f, .1f, 4.6f, 4.75f);
         W.Lampa("garaż | światło", new Vector3(15f, KEw - .6f, 7f), 1.1f, 9f * K);
+        // the tower: wine racks on the ground, lights on its three storeys
+        for (int i = 0; i < 5; i++) MM(oak, -13.7f, -13.3f, .4f + i * .4f, .43f + i * .4f, 8.6f, 12.4f);
+        W.Lampa(tag + " | wieża", new Vector3(-11.5f, 2.6f, 10.5f), .5f, 5f * K, new Color(1f, .82f, .55f));
+        W.Lampa(tag + " | wieża piętro", new Vector3(-11.5f, 7.0f, 10.5f), .6f, 5f * K, new Color(1f, .9f, .78f));
+        W.Lampa(tag + " | belweder", new Vector3(-11.5f, 10.2f, 10.5f), .6f, 6f * K, new Color(1f, .86f, .64f));
+    }
 
+    // the upper floor of the Mediterranean house (both villas): the master suite and a bedroom at the front, the bathrooms,
+    // the dressing room, the corridor to the stair
+    static void KPietro(BraxKatalog.Ctx c, string tag)
+    {
+        Out_(false);
+        float y = KF1, top = KE - .2f;
         // ---- upstairs: the master suite (x -8.7..0) and the bedroom (x 0..7.2) at the front, the bathrooms, the dressing
         // room, the corridor to the stair and the tower
         Scianka(false, 0f, .3f, 4.7f, y, top);
@@ -351,11 +379,6 @@ public static partial class BraxChampionsWille
         Oczka(-7.4f, 6.6f, 1.0f, 3.8f, top, 2.8f); Oczka(-8.0f, 6.4f, 10.4f, 10.4f, top, 2.4f);
         foreach (var lp in new[] { new Vector3(-4.4f, top - .3f, 2f), new Vector3(3.6f, top - .3f, 2f), new Vector3(-7f, top - .3f, 6.4f), new Vector3(5.8f, top - .3f, 6.4f), new Vector3(0f, top - .3f, 10.4f) })
             W.Lampa(tag + " | piętro", lp, .9f, 8f * K, new Color(1f, .93f, .82f));
-        // the tower: wine racks on the ground, lights on its three storeys
-        for (int i = 0; i < 5; i++) MM(oak, -13.7f, -13.3f, .4f + i * .4f, .43f + i * .4f, 8.6f, 12.4f);
-        W.Lampa(tag + " | wieża", new Vector3(-11.5f, 2.6f, 10.5f), .5f, 5f * K, new Color(1f, .82f, .55f));
-        W.Lampa(tag + " | wieża piętro", new Vector3(-11.5f, 7.0f, 10.5f), .6f, 5f * K, new Color(1f, .9f, .78f));
-        W.Lampa(tag + " | belweder", new Vector3(-11.5f, 10.2f, 10.5f), .6f, 6f * K, new Color(1f, .86f, .64f));
     }
 
     // ================================================================ the garden: as in his photo - palms and trees everywhere
