@@ -171,7 +171,8 @@ public static class BraxWnetrzaKit
             Quad(m, S(a0, b0), S(a1, b0), S(a1, b1), S(a0, b1));
         }
     }
-    public static void Siedzisko(Vector3 at, Vector3 forward, string label) => Rec.Cols.Add("seat");
+    public static void Siedzisko(Vector3 at, Vector3 forward, string label, bool lezy = false) => Rec.Cols.Add("seat");
+    public static int Bryly, Trojkaty, Kolizje;
     public static void Kolizja(Vector3 c, Vector3 size, Quaternion q) => Rec.Cols.Add("box");
     public static void KolizjaMM(float x0, float x1, float y0, float y1, float z0, float z1) => Rec.Cols.Add("mm");
     public static void Rampa(Vector3 gora, Vector3 dol, float szer) => Rec.Cols.Add("ramp " + gora.y.ToString("F2") + "->" + dol.y.ToString("F2"));

@@ -27,7 +27,8 @@ class Office(unittest.TestCase):
         self.assertIn('var szafa = sb.Build(zawias,', KIT)          # built in the hinge's frame: turns with it
         self.assertIn("drzwi.zawias = zawias; drzwi.katOtwarcia = -90f;", KIT)
         self.assertIn('public string napis = "SZAFA"', SZAFA)        # the label tells nobody it is a door
-        self.assertIn("zawias.localRotation = spoczynek * Quaternion.AngleAxis(kat, Vector3.up);", SZAFA)
+        self.assertIn("public Vector3 os = Vector3.up;", SZAFA)                 # the wardrobe turns about its up axis
+        self.assertIn("zawias.localRotation = spoczynek * Quaternion.AngleAxis(kat, os);", SZAFA)
         self.assertIn("BraxInterakcje.Dodaj(this);", SZAFA)
 
     def test_live_monitoring_never_a_film(self):

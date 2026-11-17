@@ -1,0 +1,11 @@
+[
+{"out": "w1_lot.png", "eye": [-48, 34, -62], "target": [2, 1, -6], "fov": 50},
+{"out": "w2_taras.png", "eye": [-19, 1.7, -21], "target": [3, 3.2, -6], "fov": 62},
+{"out": "w3_salon_na_basen.png", "eye": [-2, 1.6, 3], "target": [-6, 0.6, -22], "fov": 72},
+{"out": "w4_salon.png", "eye": [3, 1.6, 3.5], "target": [-12, 1.0, -1], "fov": 72},
+{"out": "w5_kuchnia.png", "eye": [2, 1.6, 2.5], "target": [12, 0.8, -3], "fov": 72},
+{"out": "w6_tyl.png", "eye": [10, 3.2, 30], "target": [4, 2.2, 6], "fov": 62},
+{"out": "w7_sypialnia.png", "eye": [5.2, 5.5, 0.6], "target": [12, 4.4, -6], "fov": 72},
+{"out": "w8_lazienka.png", "eye": [9.8, 5.5, 7.2], "target": [14, 4.5, 1.5], "fov": 72},
+{"out": "w9_schody.png", "eye": [-1, 1.6, 4.5], "target": [-11, 2.5, 7], "fov": 72}
+]

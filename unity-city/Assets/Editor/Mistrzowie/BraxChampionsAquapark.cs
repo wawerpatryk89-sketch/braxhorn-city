@@ -101,7 +101,7 @@ public static partial class BraxChampionsAquapark
     }
 
     // the pools' moving water: the region's pool shader (Braxhorn/ChampionsP1PoolWater, analytic waves, no collider)
-    static Material Water(string id,Color deep,Color shallow,float opacity,float ripple,float bubbles)
+    internal static Material Water(string id,Color deep,Color shallow,float opacity,float ripple,float bubbles)
     {
         var sh=Shader.Find("Braxhorn/ChampionsP1PoolWater");
         if(!sh){BraxBuildQuality.Warn("AQUAPARK_WATER_SHADER_MISSING Braxhorn/ChampionsP1PoolWater - CityStaticPBR glass instead");return S(id,new Color(shallow.r,shallow.g,shallow.b,.55f),.05f,0f,null,true);}
@@ -116,7 +116,7 @@ public static partial class BraxChampionsAquapark
     }
 
     // the water body under the surface (Braxhorn/ChampionsPoolVolume): drawn after every opaque tile, before the surface
-    static Material Volume(string id,Color deep,Color shallow,float density,float caustics)
+    internal static Material Volume(string id,Color deep,Color shallow,float density,float caustics)
     {
         var sh=Shader.Find("Braxhorn/ChampionsPoolVolume");
         if(!sh){BraxBuildQuality.Warn("AQUAPARK_WATER_BODY_SHADER_MISSING Braxhorn/ChampionsPoolVolume - the pools keep the surface only");return null;}
