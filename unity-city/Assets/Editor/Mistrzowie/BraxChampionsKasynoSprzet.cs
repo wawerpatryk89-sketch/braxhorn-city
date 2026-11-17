@@ -85,6 +85,7 @@ public static partial class BraxChampionsKasynoSprzet
         public readonly List<BraxChampionsRuletka.Stol> ruletki = new List<BraxChampionsRuletka.Stol>();
         public readonly List<BraxChampionsBlackjack.Stol> blackjack = new List<BraxChampionsBlackjack.Stol>();
         public readonly List<BraxChampionsBakarat.Stol> bakarat = new List<BraxChampionsBakarat.Stol>();
+        public readonly List<BraxChampionsHoldem.Stol> holdem = new List<BraxChampionsHoldem.Stol>();
         public readonly List<BraxChampionsKasynoObsluga.Punkt> punkty = new List<BraxChampionsKasynoObsluga.Punkt>();
         public int mech, ekran, banki, karuzele;
         public readonly int[] gry = new int[G.Ile];
@@ -118,6 +119,12 @@ public static partial class BraxChampionsKasynoSprzet
             var bk = k.root.gameObject.AddComponent<BraxChampionsBakarat>(); bk.nazwa = "BAKARAT"; bk.stawka = 2 * Stawka; bk.stoly = k.bakarat.ToArray();
             bk.karty = kartyStol; bk.filcY = BjTop;
             Debug.Log("KASYNO_BAKARAT " + k.nazwa + " tables=" + k.bakarat.Count + " decks=8 game=punto_banco banker=0.95:1 tie=8:1 stake=" + bk.stawka + " game=BraxChampionsBakarat");
+        }
+        if (k.holdem.Count > 0)
+        {
+            var hp = k.root.gameObject.AddComponent<BraxChampionsHoldem>(); hp.nazwa = "CASINO HOLD'EM"; hp.stawka = Stawka; hp.stoly = k.holdem.ToArray();
+            hp.karty = kartyStol; hp.filcY = BjTop;
+            Debug.Log("KASYNO_HOLDEM " + k.nazwa + " tables=" + k.holdem.Count + " deck=1 (shuffled every hand) ante=" + hp.stawka + " call=2xante dealerQualifies=pair_of_4s ante_table=100/20/10/3/2/1 game=BraxChampionsHoldem");
         }
         if (k.punkty.Count > 0)
         {

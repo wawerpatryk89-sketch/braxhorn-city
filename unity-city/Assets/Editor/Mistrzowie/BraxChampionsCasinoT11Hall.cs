@@ -190,7 +190,7 @@ public static partial class BraxChampionsCasinoT11
             // neighbour another game; in each wing the two long banks, a short bank before and behind them, and under the front
             // and the back chandelier a CAROUSEL of eight round a lacquered drum with the owner's toppers on its crown (the KOŁO
             // carousels to the entrance, the poker / keno ones at the back): 128 machines
-            int slots=0,roulettes=0,carousels=0,obsluga=0,blackjacks=0,bakarats=0;
+            int slots=0,roulettes=0,carousels=0,obsluga=0,blackjacks=0,bakarats=0,holdems=0;
             BraxChampionsFoundation.Optional("T11 slot machines",()=>
             {
                 var body=new BraxChampionsMeshBatch();
@@ -244,6 +244,13 @@ public static partial class BraxChampionsCasinoT11
                 BraxChampionsKasynoSprzet.KoloFortuny(kas,new Vector3(0f,HallFloor+.016f,23.5f),180f);
                 // and the SIC BO table between the roulette pit and the wheel (BraxChampionsKasynoSicBo), its players to the pit
                 BraxChampionsKasynoSprzet.SicBo(kas,new Vector3(0f,HallFloor+.016f,13.5f),180f);
+                // two CASINO HOLD'EM tables north of the baccarat ones, clear of the gold columns at x 14.1, his POKER sign over each
+                foreach(float px in new[]{-11.0f,11.0f})
+                {
+                    BraxChampionsKasynoSprzet.Holdem(kas,new Vector3(px,HallFloor+.016f,15.5f),180f);
+                    BraxChampionsKasynoSprzet.SzyldWiszacy(kas,new Vector3(px,4.6f,15.1f),BraxChampionsKasynoSprzet.ArkPoker,1.5f,HallCeiling);
+                }
+                holdems=kas.holdem.Count;
                 body.Build(g,"T11 casino hall | slot machines",BraxChampionsKasynoSprzet.Out+"/Meshes",false,1f);
                 BraxChampionsKasynoSprzet.Zakoncz(kas);slots=kas.maszyny.Count;
             });
@@ -256,6 +263,7 @@ public static partial class BraxChampionsCasinoT11
             if(roulettes!=4)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL roulettes "+roulettes+"/4");
             if(blackjacks!=2)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL blackjack tables "+blackjacks+"/2");
             if(bakarats!=2)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL baccarat tables "+bakarats+"/2");
+            if(holdems!=2)BraxBuildQuality.Warn("DO POPRAWKI T11_CASINO_HALL Casino Hold'em tables "+holdems+"/2");
 
             // ---- light: six warm vertex lamps (no shadows) ----
             foreach(float x in new[]{-21.15f,21.15f})

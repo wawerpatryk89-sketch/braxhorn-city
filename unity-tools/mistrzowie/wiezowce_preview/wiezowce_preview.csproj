@@ -45,6 +45,8 @@
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsKoloFortuny.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoSicBo.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsSicBo.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoHoldem.cs" />
+    <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsHoldem.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoGry.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKasynoWejscie.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsLototo.cs" />
