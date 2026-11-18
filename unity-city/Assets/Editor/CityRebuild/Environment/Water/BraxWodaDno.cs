@@ -3,7 +3,7 @@ using UnityEngine;
 // MIASTO R1 — DNO POD WODĄ MIASTA (właściciel 18.11 12:28–12:41: „nie możemy zrobić bardziej realistycznej wody?”, „ta woda to
 // jest woda, a nie pasek… widać nic”, „Ta woda nie może wyglądać realistycznie?”). Głębokość wody w każdym punkcie morza
 // miasta — z TYCH SAMYCH funkcji, które stawiają teren pod wodą:
-//   • plaża miejska i marina (siatka piasku x 64…182, z 100…178): BraxNabrzezePlaza.Wysokosc — płycizna 1:11, rewa, falochron;
+//   • plaża miejska i marina (siatka piasku x 64…260, z 100…178): BraxNabrzezePlaza.Wysokosc — płycizna 1:11, rewa, falochron;
 //   • wyspa z areną (BraxMiastoWyspa.H): plaża wyspy i jej szelf do 12 m;
 //   • reszta (nabrzeża portu, promenada, otwarte morze): model — przy murze nabrzeża od razu dno kolizji (y −7, BraxRegionSea),
 //     dalej łagodnie głębiej, na otwartym morzu do 20 m; na północ od cypla ten sam spadek co piasek plaży.
@@ -16,7 +16,7 @@ public static class BraxWodaDno
     public const int TexW = 1024, TexH = 768;                 // 1.375 × 1.333 m na piksel (filtr dwuliniowy)
     public const float MaxGlebokosc = 20f;
     public const float DnoKolizjiY = -7f;                     // wierzch kolizji dna morza (BraxRegionSea: środek y −7.5, grubość 1 m)
-    public static readonly Rect Plaza = Rect.MinMaxRect(64f, 100f, 182f, 178f);   // siatka piasku plaży (BraxNabrzezePlaza)
+    public static readonly Rect Plaza = Rect.MinMaxRect(64f, 100f, 260f, 178f);   // siatka piasku plaży (BraxNabrzezePlaza, od 18.11 do x 260)
     public const float PlazaPrzejscie = 8f;                   // przejście teren plaży → model poza siatką piasku
     public const float WyspaZasieg = 600f;                    // promień, w którym liczy się dno wyspy (dalej jej szelf = 12 m)
 

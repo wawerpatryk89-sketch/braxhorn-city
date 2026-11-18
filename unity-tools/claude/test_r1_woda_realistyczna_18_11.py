@@ -46,7 +46,7 @@ class Shader(unittest.TestCase):
         self.assertIn("return float2(frac(0.5 - lon / MT_2PI), 0.5 + lat / MT_PI);", tlo)
 
     def test_mobile_safe(self):
-        self.assertEqual(SHADER.count("Pass\n"), 1)
+        self.assertEqual(SHADER.count("Pass\n"), 2)                                         # z góry + od spodu (nurkowanie)
         self.assertIn('"RenderType"="Opaque"', SHADER)
         for zle in ("GrabPass", "_CameraDepthTexture", "_GrabTexture"):
             self.assertNotIn(zle, SHADER)

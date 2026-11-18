@@ -78,6 +78,8 @@ Shader "Braxhorn/CityStaticPBR"
             #pragma shader_feature_local _ _BRAX_ZNAKI
             #include "UnityCG.cginc"
             #include "AutoLight.cginc"
+            // 18.11 (nurkowanie): kamera pod lustrem strefy kąpieli — światło w wodzie od kamery (globalne z BraxMiastoNurek; nad wodą nic)
+            #include "Assets/Claude/Shaders/MiastoPodWoda.cginc"
 
             sampler2D _MainTex, _BumpMap, _ARM, _OcclusionMap, _EmissionMap;
             float4 _MainTex_ST, _BumpMap_ST, _ARM_ST, _OcclusionMap_ST, _EmissionMap_ST;
@@ -301,6 +303,7 @@ Shader "Braxhorn/CityStaticPBR"
                     float odl = distance(_WorldSpaceCameraPos.xyz, i.worldPos);
                     colour = lerp(colour, WorkingColour(_BraxMgielkaKolor.rgb), saturate(1.0 - exp(-odl * _BraxMgielkaGestosc)));
                 }
+                colour = BraxPodWoda(i.worldPos, colour, true);
                 #ifdef UNITY_COLORSPACE_GAMMA
                 colour = LinearToGammaSpace(max(colour,0));
                 #endif

@@ -7,7 +7,8 @@ before saving the generated scene. Keep the original glTF, material and texture.
 The original extent is Unity X 84..884, Z -340..460, mean Y -1.7 m. The generator
 retains that footprint. Eight small patches near the quay use a four-metre grid;
 three flat patches cover the remainder. Total generated geometry is 11 renderers.
-The shared material has one opaque pass and no grab pass or camera depth texture.
+The shared material has two opaque passes (from above, and from below for diving) and no grab pass or
+camera depth texture.
 No camera, light, probe, collider or runtime component is created.
 
 ### Realistic water (MIASTO R1, 18.11.2026)
@@ -44,6 +45,34 @@ changes together.
   Water shallower than 9 m adds one more depth sample, one sand sample and two
   caustics samples; this extra work runs in a coherent dynamic branch with
   explicit gradients.
+
+### Swimming and diving (MIASTO R1, 18.11.2026)
+
+The owner wrote: "Nie zanurkujesz… i widać nic", and at 13:04: "No tak, tak. Zrób tak."
+With that consent the shared swimming code was ported from the Champions branch
+(`BraxSwimmingZone`, swimming in `BraxGymPlayer`). Swimming and diving work only in
+the bathing area of the city beach, inside the buoys at x 196, where the water is
+about 3.5 m deep.
+
+- **Zone.** `BraxMiastoKapiel` is a `BraxSwimmingZone` with a depth threshold. The
+  player starts swimming when the feet are 0.9 m below the surface and walks again
+  at 0.7 m. In shallower water the player walks on the sand.
+- **Diving.** Hold `BraxMiastoNurek` (the NURKUJ button above SKOK, or C / Ctrl).
+  While it is held, the zone reports a surface 40 m lower. The shared buoyancy then
+  carries the body down until the sand stops it, and back up on release. The
+  camera follows the player under the water, low (3°) and closer (3.4 m).
+- **Surface from below.** The second pass (Cull Front, `fragPod`) shows a Snell
+  window: the refracted sky inside 48.8° from vertical (n = 1.33), total internal reflection
+  outside it. Water absorbs light from the surface to the camera.
+- **Light in the water.** The globals `_BraxPodWoda*` (`MiastoPodWoda.cginc`) are
+  set only while the camera is below the surface of a bathing zone. While they are
+  set, the seabed (`NabrzezeTeren`, via `finalcolor`) and city objects
+  (`CityStaticPBR`: buoys, piles, walls) lose light along the path through water,
+  using the same coefficients as this shader. Scattered light is `_DeepColor` × 1.6.
+  An inverted box (`MiastoWodaObjetosc`) covers the open water beyond the seabed
+  mesh. Above the water nothing changes: there is no fog.
+- **Buoys.** The bathing-area buoys are now whole spheres, so their submerged half
+  is visible from below.
 
 ## Assets and review status
 

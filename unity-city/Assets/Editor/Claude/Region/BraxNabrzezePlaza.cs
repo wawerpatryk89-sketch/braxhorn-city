@@ -27,7 +27,9 @@ public static class BraxNabrzezePlaza
 {
     public const float MurX = 84f, BulwarX0 = 64f, Z0 = 112f, Z1 = 166f;
     public static float Gora => BraxNabrzeze.Bulwar - 4f * .15f * BraxNabrzeze.K;   // piasek u stóp muru (4 stopnie niżej)
-    const float GX0 = 64f, GZ0 = 100f; const int NX = 118, NZ = 78;              // siatka terenu 1 m: x 64…182, z 100…178
+    // 18.11 (pływanie i nurkowanie): siatka do x 260 — dno z piasku pod całym poszerzonym kąpieliskiem (boje x 196, ok. 3.5 m wody)
+    // i 64 m dalej (spod wody nie widać końca dna: po 60 m woda pochłania > 99 % światła)
+    const float GX0 = 64f, GZ0 = 100f; const int NX = 196, NZ = 78;              // siatka terenu 1 m: x 64…260, z 100…178
     public static readonly float[] Schody = { 120f, 158f };                         // osie zejść schodami
     public const float RampaGora = 143.5f;                                           // podest rampy z 141.5…143.5, rampa w dół na południe
     static float W => BraxNabrzeze.Woda;
@@ -166,6 +168,7 @@ public static class BraxNabrzezePlaza
         var mat = BraxNabrzeze.Teren("Nabrzeże: teren plaży", new Color(.78f, .84f, .62f));
         BraxNabrzeze.Obiekt(root, "Plaża: teren piasku", mesh, mat, true);
         BraxNabrzeze.Log("teren plaży: wierzchołków " + v.Count + ", pól " + quads);
+        WodaPodLustrem(root);
     }
 
     // ---------------- bulwar plażowy, mur oporowy, balustrada, zejścia ----------------
@@ -377,10 +380,50 @@ public static class BraxNabrzezePlaza
         BraxNabrzeze.Log("plaża: parasoli " + nPar + ", leżaków " + nLez + ", kęp trawy " + nt + ", budka ratownika " + (budka ? "tak (× k, przemalowana)" : "BRAK"));
     }
 
+    // WODA POD LUSTREM (18.11, nurkowanie). Dno (shader terenu) oraz boje, pale i mury (CityStaticPBR) tłumią się same w swoim
+    // punkcie, gdy kamera jest pod lustrem (MiastoPodWoda.cginc, globalne z BraxMiastoNurek) — bez dodatkowej siatki nad piaskiem
+    // (wcześniejsza „skóra dna” dawała jasną linię na grzbiecie rewy). Tu: odwrócone pudło akwenu dookoła kąpieliska — shader
+    // Braxhorn/MiastoWodaObjetosc (tylko z kamerą pod lustrem): to, co spod wody widać za końcem dna (otwarta woda w stronę morza
+    // i mariny), traci światło po drodze przez wodę; dalej — sama woda. Nad wodą nic (bez mgły). Współczynniki: BraxMiastoNurek.
+    static void WodaPodLustrem(Transform root)
+    {
+        var sh = Shader.Find("Braxhorn/MiastoWodaObjetosc");
+        if (!sh) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_NURKOWANIE brak shadera Braxhorn/MiastoWodaObjetosc — pod wodą bez objętości wody"); return; }
+        var m = new Material(sh) { name = "Kąpielisko: woda pod lustrem (pudło akwenu)", renderQueue = 3005 };
+        m.SetFloat("_Lustro", W); m.SetVector("_Pochlanianie", BraxMiastoNurek.Pochlanianie); m.SetVector("_Rozproszenie", BraxMiastoNurek.Rozproszenie);
+        BraxZapisAssetu.Utworz(m, BraxNabrzeze.Out + "/kapielisko_woda_pudlo_akwenu.mat");
+        // pudło (od środka): x 110…320, z 70…210, dno y −12 m pod lustrem, góra 0.5 m nad lustrem (spod wody zasłania ją lustro od
+        // spodu, z góry shader nic nie rysuje) — za końcem dna sama woda, bez szczeliny przy falującym lustrze
+        var vp = new List<Vector3>(); var tp = new List<int>();
+        float x0 = 110f, x1 = 320f, z0 = 70f, z1 = 210f, yD = W - 12f, yG = W + .5f;
+        void Q(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3) { int k = vp.Count; vp.Add(p0); vp.Add(p1); vp.Add(p2); vp.Add(p3); tp.Add(k); tp.Add(k + 1); tp.Add(k + 2); tp.Add(k); tp.Add(k + 2); tp.Add(k + 3); }
+        Q(new Vector3(x0, yD, z0), new Vector3(x1, yD, z0), new Vector3(x1, yD, z1), new Vector3(x0, yD, z1));
+        Q(new Vector3(x0, yD, z0), new Vector3(x0, yG, z0), new Vector3(x1, yG, z0), new Vector3(x1, yD, z0));
+        Q(new Vector3(x0, yD, z1), new Vector3(x1, yD, z1), new Vector3(x1, yG, z1), new Vector3(x0, yG, z1));
+        Q(new Vector3(x1, yD, z0), new Vector3(x1, yG, z0), new Vector3(x1, yG, z1), new Vector3(x1, yD, z1));
+        Q(new Vector3(x0, yD, z0), new Vector3(x0, yD, z1), new Vector3(x0, yG, z1), new Vector3(x0, yG, z0));
+        var mesh = new Mesh { name = "Kąpielisko: woda pod lustrem (pudło akwenu)" };
+        mesh.SetVertices(vp); mesh.SetTriangles(tp, 0); mesh.RecalculateNormals(); mesh.RecalculateBounds();
+        var o = BraxNabrzeze.Obiekt(root, "Kąpielisko: woda pod lustrem (pudło akwenu)", mesh, m, false);
+        if (o) { var r = o.GetComponent<MeshRenderer>(); if (r) { r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; r.receiveShadows = false; } }
+        BraxNabrzeze.Log("woda pod lustrem: dno i boje — światło w wodzie w shaderach (MiastoPodWoda), pudło akwenu 10 trójkątów, lustro y " + W.ToString("0.00"));
+    }
+
+    static Material EkranPodWoda()
+    {
+        var sh = Shader.Find("Braxhorn/MiastoPodWodaEkran");
+        if (!sh) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_NURKOWANIE brak shadera Braxhorn/MiastoPodWodaEkran — pod wodą bez zasłony"); return null; }
+        var m = new Material(sh) { name = "Kąpielisko: zasłona ekranu pod wodą" };
+        BraxZapisAssetu.Utworz(m, BraxNabrzeze.Out + "/kapielisko_pod_woda.mat");
+        return m;
+    }
+
     // ---------------- kąpielisko: boje na linie i niewidzialna granica (także dla łodzi) ----------------
     static void Kapielisko(BraxNabrzeze.Zbior z, Transform root, Transform kol, BraxNabrzezeMebel.Mat m)
     {
-        float xb = 160f, zs = 114.5f, zn = 164f;
+        // 18.11 (właściciel 13:04 „tak” — pływanie i nurkowanie): boje z x 160 na x 196 — za rewą (x ≈ 160) dno schodzi do ~3.5 m,
+        // więc da się zanurkować (wcześniej najwyżej 1.4 m: głowa Braxa nad wodą nawet na dnie)
+        float xb = 196f, zs = 114.5f, zn = 164f;
         var pts = new List<Vector3> { new Vector3(LiniaWody(zs) + 2f, W, zs), new Vector3(xb, W, zs), new Vector3(xb, W, zn), new Vector3(LiniaWody(zn) + 2f, W, zn) };
         int nb = 0;
         for (int s = 0; s < pts.Count - 1; s++)
@@ -390,7 +433,7 @@ public static class BraxNabrzezePlaza
             {
                 if (s > 0 && i == 0) continue;
                 var p = Vector3.Lerp(a, b, (float)i / n);
-                BraxNabrzezeMebel.Boja(z, (nb % 4 == 0) ? m.czerwony : m.zolty, p + Vector3.up * .05f, .22f * BraxNabrzeze.K);
+                BraxNabrzezeMebel.Boja(z, (nb % 4 == 0) ? m.czerwony : m.zolty, p + Vector3.up * .05f, .22f * BraxNabrzeze.K, true);   // cała kula: widać ją spod wody
                 nb++;
             }
             z[m.bialy].Rura(a + Vector3.up * .04f, b + Vector3.up * .04f, .012f, 4, -1, false);
@@ -398,6 +441,16 @@ public static class BraxNabrzezePlaza
             BraxNabrzeze.Kol(kol, "Granica kąpieliska", new Vector3(c.x, -2.5f, c.z), new Vector3(.4f, 11f, len), yaw);
         }
         Miejsca["plaza_kapielisko_boje"] = new Vector3(xb - 4f, W, (zs + zn) * .5f);
-        BraxNabrzeze.Log("kąpielisko: boi " + nb + ", granica x " + xb + ", z " + zs + "…" + zn);
+        // strefa kąpieli: od plaży do boi, od dna do 1 m nad lustrem — BraxMiastoKapiel (pływanie dopiero od wody ponad pas, płycej
+        // chód po piasku), BraxMiastoNurek (przycisk NURKUJ w czasie pływania, zasłona ekranu pod wodą)
+        const float x0 = 128f;   // linia wody plaży x 130…150; o tym, gdzie zaczyna się pływanie, decyduje głębokość (strefa)
+        var gk = new GameObject("Kąpielisko: woda (pływanie i nurkowanie)"); gk.transform.SetParent(root, false); gk.transform.position = Vector3.zero;
+        var bk = gk.AddComponent<BoxCollider>(); bk.isTrigger = true;
+        bk.center = new Vector3((x0 + xb) * .5f, W - 3.5f, (zs + zn) * .5f); bk.size = new Vector3(xb - x0, 9f, zn - zs);
+        var lustro = new GameObject("Kąpielisko: lustro wody").transform; lustro.SetParent(gk.transform, false); lustro.position = new Vector3((x0 + xb) * .5f, W, (zs + zn) * .5f);
+        var kap = gk.AddComponent<BraxMiastoKapiel>(); kap.waterSurface = lustro; kap.basinId = "plaza_miejska";
+        var nurek = gk.AddComponent<BraxMiastoNurek>(); nurek.ekran = EkranPodWoda();
+        BraxNabrzeze.Log("kąpielisko: boi " + nb + ", granica x " + xb + ", z " + zs + "…" + zn + "; pływanie i nurkowanie: strefa x " + x0 + "…" + xb +
+                         ", najgłębiej przy bojach " + (W - Wysokosc(xb - 1f, (zs + zn) * .5f)).ToString("F1") + " m, zasłona pod wodą " + (nurek.ekran ? "tak" : "BRAK"));
     }
 }

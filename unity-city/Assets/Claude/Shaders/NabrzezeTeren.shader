@@ -2,6 +2,8 @@
 // (R = suchy piasek, G = mokry piasek, B = trawa / ściółka, A = skała) zamiast osobnych siatek z „zębami piły” na styku.
 // Tekstury rzutowane w metrach świata (XZ); skała dodatkowo z boku (stromizna w UV2.x), żeby urwiska nie były rozciągnięte.
 // Duża plama (makro) usuwa widoczne powtarzanie kafla. Mokry piasek ciemniejszy i gładszy (połysk). Nic nie świeci.
+// MIASTO R1 18.11 (nurkowanie): gdy kamera jest POD lustrem wody strefy kąpieli, dno traci światło po drodze przez wodę od kamery
+// (MiastoPodWoda.cginc, globalne z BraxMiastoNurek) — liczone w punkcie samego dna. Kamera nad wodą — bez zmian, żadnej mgły.
 Shader "Braxhorn/NabrzezeTeren"
 {
     Properties
@@ -28,11 +30,12 @@ Shader "Braxhorn/NabrzezeTeren"
         Tags { "RenderType"="Opaque" "Queue"="Geometry" }
         LOD 200
         CGPROGRAM
-        #pragma surface surf Standard fullforwardshadows vertex:vert
+        #pragma surface surf Standard fullforwardshadows vertex:vert finalcolor:PodWoda
         #pragma target 3.0
         sampler2D _Piasek, _PiasekN, _Mokry, _Trawa, _TrawaN, _Skala, _SkalaN;
         fixed4 _KPiasek, _KMokry, _KTrawa, _KSkala;
         float _TPiasek, _TTrawa, _TSkala, _Makro, _MakroMix;
+        #include "MiastoPodWoda.cginc"
         float4 _BraxSlady[24]; float _BraxSladyN, _BraxSladyCzas;   // ślady stóp (BraxSladyPiasek): x, z, kąt, czas
         struct Input { float3 worldPos; float4 color : COLOR; float stromo; };
         // normalne zapisane jako zwykłe RGB (bez kompresji DXT5nm) — dekodowane ręcznie, tak samo na telefonie i w WebGL
@@ -42,6 +45,16 @@ Shader "Braxhorn/NabrzezeTeren"
         {
             UNITY_INITIALIZE_OUTPUT(Input, o);
             o.stromo = v.texcoord1.x;
+        }
+
+        // kamera pod lustrem strefy kąpieli: dno traci światło po drodze przez wodę (rozproszone dodaje tylko przebieg podstawowy)
+        void PodWoda (Input IN, SurfaceOutputStandard o, inout fixed4 color)
+        {
+            #ifdef UNITY_PASS_FORWARDADD
+            color.rgb = BraxPodWoda(IN.worldPos, color.rgb, false);
+            #else
+            color.rgb = BraxPodWoda(IN.worldPos, color.rgb, true);
+            #endif
         }
 
         void surf (Input IN, inout SurfaceOutputStandard o)

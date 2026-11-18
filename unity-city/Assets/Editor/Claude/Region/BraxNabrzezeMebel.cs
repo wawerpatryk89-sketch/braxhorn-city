@@ -346,13 +346,14 @@ public static class BraxNabrzezeMebel
         z[m.stal].Rura(at - bok * L1 * .5f + Vector3.up * h, at + bok * L1 * .5f + Vector3.up * h, .02f * K, 8, .014f * K);
     }
 
-    /// <summary>Boja (kula na wodzie, pół zanurzona).</summary>
-    public static void Boja(BraxNabrzeze.Zbior z, Material kolor, Vector3 at, float r)
+    /// <summary>Boja (kula na wodzie, pół zanurzona). calaKula — także część pod wodą (kąpielisko z nurkowaniem: widać ją spod
+    /// wody); bez tego kopuła od −22.5° (część pod lustrem i tak zasłania nieprzezroczysta woda).</summary>
+    public static void Boja(BraxNabrzeze.Zbior z, Material kolor, Vector3 at, float r, bool calaKula = false)
     {
-        var s = z[kolor]; int seg = 10, rings = 5;
+        var s = z[kolor]; int seg = 10, rings = calaKula ? 8 : 5; float od = calaKula ? -1f : -.25f;
         for (int j = 0; j < rings; j++)
         {
-            float b0 = Mathf.Lerp(-.25f, 1f, (float)j / rings) * Mathf.PI * .5f, b1 = Mathf.Lerp(-.25f, 1f, (float)(j + 1) / rings) * Mathf.PI * .5f;
+            float b0 = Mathf.Lerp(od, 1f, (float)j / rings) * Mathf.PI * .5f, b1 = Mathf.Lerp(od, 1f, (float)(j + 1) / rings) * Mathf.PI * .5f;
             for (int i = 0; i < seg; i++)
             {
                 float a0 = i * Mathf.PI * 2 / seg, a1 = (i + 1) * Mathf.PI * 2 / seg;

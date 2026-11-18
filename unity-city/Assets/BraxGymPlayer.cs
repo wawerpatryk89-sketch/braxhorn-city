@@ -18,6 +18,27 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public int trainingHits;
     public BraxVessel vessel;   // pojazd wodny, na którym siedzi gracz (BraxVessel.Board)
     public BraxSeat seat;
+    // PŁYWANIE (18.11, właściciel 13:04: „tak, zrób tak” — przeniesienie pływania i nurkowania z gałęzi Mistrzów): wspólny kod
+    // pływania BraxGymPlayer z gałęzi Mistrzów (BraxSwimmingZone podaje lustro wody; łagodna wyporność zamiast grawitacji, wolniej
+    // niż pieszo). Bez zmian animacji, sterowania dotykiem i łodzi; dno zostaje kolizją (woda nie jest sufitem).
+    private int swimmingZoneId;
+    private float swimmingSurfaceY, nurekKam;
+    public bool Swimming => swimmingZoneId!=0 && !vessel && !seat;
+    public float SwimmingSurfaceY => swimmingSurfaceY;
+    public void EnterSwimmingZone(int zoneId,float surfaceY)
+    {
+        if(zoneId==0 || float.IsNaN(surfaceY) || float.IsInfinity(surfaceY) || vessel || seat)return;
+        swimmingZoneId=zoneId;swimmingSurfaceY=surfaceY;
+    }
+    public void ExitSwimmingZone(int zoneId)
+    {
+        if(zoneId!=swimmingZoneId)return;
+        swimmingZoneId=0;swimmingSurfaceY=0;
+    }
+    void ClearSwimming()
+    {
+        swimmingZoneId=0;swimmingSurfaceY=0;
+    }
     // 9.11 (właściciel: „metro całkowicie usunąć i zaplanować od zera”) — pole metroRide zdjęte razem z BraxMetro3StopRide.
     // sofa / ławka / hoker / łóżko (BraxSeat.Use)
     // Chwila trafienia CIOSU / KOPU (ta sama co trening na workach siłowni): pozycja gracza, kierunek, true = kopnięcie.
@@ -122,6 +143,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         {
             if(vessel){transform.SetParent(null,true);vessel=null;}
             if(seat){seat.Leave();}
+            ClearSwimming();
             body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,180,0);body.enabled=true;
             vertical=0;speed=0;move=Vector2.zero;actionEnd=0;hitPending=false;hitAt=0;
             yaw=0;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
@@ -181,7 +203,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
         bool jumping=acting&&action=="Jump";   // w skoku: pęd zostaje, sterowanie lekkie
         float mag=move.magnitude;   // 1.11: chód przy lekkim wychyleniu (0.9–2.1 m/s), płynnie w bieg przy mocnym (do 5.2 m/s), bez przycisku BIEG
         float naJoy=mag<.12f?0f:mag<.7f?Mathf.Lerp(.9f,2.1f,(mag-.12f)/.58f):(runEnabled?Mathf.Lerp(2.1f,5.2f,Mathf.SmoothStep(0f,1f,(mag-.7f)/.22f)):2.1f);
-        float target=jumping?speed:!acting?naJoy:0;
+        bool swimNow=Swimming;
+        float target=jumping?speed:!acting?(swimNow?naJoy*.48f:naJoy):0;
         speed=Mathf.MoveTowards(speed,target,dt*15f);
         Vector3 right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
         Vector3 forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
@@ -201,7 +224,18 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(hips)hipsPrevY=hips.localPosition.y;
             if(odbicie){jumpPending=false;if(body.isGrounded)vertical=6.2f;}
         }
-        if(body.isGrounded&&vertical<0)vertical=-2f;vertical-=18f*dt;
+        if(swimNow)
+        {
+            // łagodna wyporność tylko w strefach pływania (BraxSwimmingZone): stopy 0.6 wysokości ciała pod lustrem;
+            // nurkowanie = strefa podaje lustro obniżone o głębokość (BraxMiastoNurek), dno zatrzymuje ciało
+            float targetFeet=swimmingSurfaceY-body.height*.60f;
+            vertical=Mathf.Clamp((targetFeet-transform.position.y)*2.8f,-1.6f,1.6f);
+        }
+        else
+        {
+            if(body.isGrounded&&vertical<0)vertical=-2f;
+            vertical-=18f*dt;
+        }
         Vector3 moveDir=jumping&&direction.sqrMagnitude<.01f?transform.forward:direction.normalized;
         Vector3 step=(moveDir*speed+Vector3.up*vertical)*dt;
         int n=Mathf.Max(1,Mathf.CeilToInt(step.magnitude/.16f));for(int i=0;i<n;i++)body.Move(step/n);
@@ -365,9 +399,12 @@ public sealed class BraxGymPlayer : MonoBehaviour
             }
             return;
         }
-        float ya=yaw*Mathf.Deg2Rad,pi=pitch*Mathf.Deg2Rad;
+        // NURKOWANIE (18.11, BraxMiastoNurek): gdy strefa wody podaje lustro głęboko pod Braxem (trzymany NURKUJ), kamera schodzi
+        // za nim pod wodę — nisko (3°) i bliżej (3.4 m); po wypłynięciu wraca płynnie (1.5/s) do zwykłej kamery
+        nurekKam=Mathf.MoveTowards(nurekKam,Swimming&&swimmingSurfaceY<transform.position.y-1f?1f:0f,(snap?1f:dt)*1.5f);
+        float ya=yaw*Mathf.Deg2Rad,pi=Mathf.Lerp(pitch,3f,nurekKam)*Mathf.Deg2Rad;
         // Na motorówce i skuterze zachowujemy kamerę TPP za rufą (jacht i motorówka za sterem: blok HasPilotCamera wyżej).
-        float dist=distance;
+        float dist=Mathf.Lerp(distance,3.4f,nurekKam);
         Vector3 offset=new Vector3(Mathf.Sin(ya)*Mathf.Cos(pi),Mathf.Sin(pi),Mathf.Cos(ya)*Mathf.Cos(pi))*dist;
         Vector3 position=cameraTarget+offset;
         // Kamera (audyt filmów właściciela 1.11): nie wchodzi w ściany, szyby, korony drzew i lampy — kolidują z nią też
@@ -404,6 +441,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public void SnapKamera(){camPrevOk=false;cameraTarget=transform.position+Vector3.up*1.65f;UpdateCamera(1f);}
     public void TravelTo(Vector3 position)
     {
+        ClearSwimming();   // przejście / powrót na brzeg nie zostawia starej strefy wody
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";
         body.enabled=false;transform.position=position;body.enabled=true;clips.Play("Idle");
         cameraTarget=position+Vector3.up*1.65f;UpdateCamera(1f);Report();

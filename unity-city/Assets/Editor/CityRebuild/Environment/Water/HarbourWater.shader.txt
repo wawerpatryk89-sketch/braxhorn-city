@@ -41,16 +41,7 @@ Shader "Braxhorn/HarbourWaterMobile"
     {
         Tags { "RenderType"="Opaque" "Queue"="Geometry+10" "IgnoreProjector"="True" }
         LOD 150
-        Pass
-        {
-            Tags { "LightMode"="ForwardBase" }
-            ZWrite On
-            Cull Back
-            CGPROGRAM
-            #pragma target 3.0
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma multi_compile_fog
+        CGINCLUDE
             #include "UnityCG.cginc"
             #include "UnityLightingCommon.cginc"
 
@@ -139,12 +130,9 @@ Shader "Braxhorn/HarbourWaterMobile"
                 return o;
             }
 
-            half4 frag(v2f i) : SV_Target
+            // normalna lustra wody (w górę): długa fala + dwa kafle fal wiatrowych
+            float3 NormalnaWody(float2 xz, float t)
             {
-                // Full precision is intentional for world positions, time,
-                // trigonometry and derivatives on mobile GLES3/WebGL2.
-                float2 xz = i.world.xz;
-                float t = _Time.y;
                 // 1) długa fala (jak dotąd: te same fazy co łodzie, BraxVessel)
                 float2 broadPhase = SwellPhase(xz);
                 float3 envelope = SwellEnvelope(xz);
@@ -163,7 +151,27 @@ Shader "Braxhorn/HarbourWaterMobile"
                 float2 sB = -nB.xy / max(nB.z, 0.25h);
                 sB = float2(0.8 * sB.x - 0.6 * sB.y, 0.6 * sB.x + 0.8 * sB.y);
                 slope += (sA * 0.7 + sB * 0.55) * _RippleStrength;
-                float3 N = normalize(float3(-slope.x, 1.0, -slope.y));
+                return normalize(float3(-slope.x, 1.0, -slope.y));
+            }
+
+        ENDCG
+        Pass
+        {
+            Tags { "LightMode"="ForwardBase" }
+            ZWrite On
+            Cull Back
+            CGPROGRAM
+            #pragma target 3.0
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma multi_compile_fog
+            half4 frag(v2f i) : SV_Target
+            {
+                // Full precision is intentional for world positions, time,
+                // trigonometry and derivatives on mobile GLES3/WebGL2.
+                float2 xz = i.world.xz;
+                float t = _Time.y;
+                float3 N = NormalnaWody(xz, t);
 
                 float3 eye = _WorldSpaceCameraPos.xyz - i.world;
                 float dist = max(length(eye), 0.001);
@@ -236,6 +244,45 @@ Shader "Braxhorn/HarbourWaterMobile"
                 }
                 half4 result = half4(min(color, half3(8.0h, 8.0h, 8.0h)), 1);
                 UNITY_APPLY_FOG(i.fogCoord,result);
+                return result;
+            }
+            ENDCG
+        }
+        Pass
+        {
+            Tags { "LightMode"="ForwardBase" }
+            ZWrite On
+            Cull Front
+            CGPROGRAM
+            #pragma target 3.0
+            #pragma vertex vert
+            #pragma fragment fragPod
+            #pragma multi_compile_fog
+            // OD SPODU (kamera pod wodą — nurkowanie, BraxMiastoNurek): okno Snella — w stożku 48.8° od pionu (n = 1.33) niebo załamane na
+            // falującej powierzchni, dalej całkowite odbicie wewnętrzne (światło rozproszone w głębi); po drodze od lustra do kamery
+            // woda pochłania światło (te same współczynniki co z góry). Z góry ten przebieg nic nie rysuje (Cull Front).
+            half4 fragPod(v2f i) : SV_Target
+            {
+                float2 xz = i.world.xz;
+                float3 N = -NormalnaWody(xz, _Time.y);                  // normalna lustra od strony wody (w dół)
+                float3 eye = _WorldSpaceCameraPos.xyz - i.world;
+                float dist = max(length(eye), 0.001);
+                float3 V = eye / dist;                                    // od lustra do kamery (w dół)
+                float kat = max(length(fwidth(V)) * 4.0, 0.002);
+                float3 T = refract(-V, N, 1.33);                          // promień z wody w powietrze (0 = całkowite odbicie)
+                half3 k = _Pochlanianie.rgb;
+                half3 glebia = _DeepColor.rgb * 1.6h;
+                half3 color = glebia;
+                UNITY_BRANCH
+                if (dot(T, T) > 1e-4)
+                {
+                    half F = 0.02h + 0.98h * pow(1.0h - saturate(dot(-N, normalize(T))), 5.0h);
+                    color = lerp(Niebo(T, kat), glebia, saturate(F));
+                }
+                half3 Tv = exp(-k * dist);
+                color = color * Tv + glebia * (1.0h - Tv);
+                half4 result = half4(color, 1);
+                UNITY_APPLY_FOG(i.fogCoord, result);
                 return result;
             }
             ENDCG

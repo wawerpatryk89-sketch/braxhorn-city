@@ -21,6 +21,7 @@ public sealed class BraxWodaGlebia : MonoBehaviour
             if (!gracz) return;
         }
         if (gracz.vessel || gracz.seat || !gracz.body || !gracz.body.enabled) return;
+        if (gracz.Swimming) return;   // 18.11: w strefie kąpieli (BraxMiastoKapiel) pływa i nurkuje — bez powrotu na brzeg
         var p = gracz.transform.position;
         bool nadMorzem = morze.Contains(new Vector2(p.x, p.z));
         if (!nadMorzem || p.y > woda + .05f)
