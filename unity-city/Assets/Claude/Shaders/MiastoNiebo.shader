@@ -39,6 +39,7 @@ Shader "Braxhorn/MiastoNiebo"
         _MgielkaKolor ("Mgiełka", Color) = (.62, .68, .76, 1)
         _MgielkaGestosc ("Mgiełka: gęstość (1/m)", Float) = .00042
         _MgielkaNieboUdzial ("Mgiełka: udział koloru nieba", Range(0, 1)) = .6
+        _FotoHoryzont ("Zdjęcie 360° w układzie miasta (1 = tak)", Float) = 0
     }
     SubShader
     {

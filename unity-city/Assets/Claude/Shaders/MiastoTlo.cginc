@@ -58,6 +58,13 @@ half4 _MorzeKolor;                 // głębia morza z daleka
 half4 _MgielkaKolor;
 float _MgielkaGestosc;             // 1/m
 half _MgielkaNieboUdzial;          // ile koloru horyzontu nieba w mgiełce (0..1)
+// 18.11 (właściciel 11:32–11:39: „panorama… tragedia… nawet nie z Minecrafta”, „tam gdzie jest morze — inna, gdzie nie ma — inna,
+// profesjonalnie połączone, żeby nie było widać przejścia”): _FotoHoryzont = 1 — _NieboTex to PRAWDZIWE zdjęcie 360° (sklejka
+// Poly Haven „cannon” + „dalkey_view”, unity-tools/claude/panorama_miasta.py) w układzie miasta (u = azymut od +z ku +x), horyzont
+// zdjęcia na elewacji 0. Nad horyzontem — samo zdjęcie (bez mgiełki przy horyzoncie, bez obrotu chmur, bez grzbietów i pasa gór);
+// pod horyzontem — nasze morze / ląd liczone jak dotąd, ale tuż pod linią horyzontu przechodzą w to samo zdjęcie (woda w wodę,
+// ląd w ląd), a kolor dalekiego morza = kolor wody ze zdjęcia (_MorzeKolor ustawiany z pliku) — bez „urwanej” wody.
+half _FotoHoryzont;
 
 inline float MT_Brzeg(float z)
 {
@@ -162,6 +169,16 @@ inline half3 MT_Ziemia(float3 p, float t, float3 d, bool morze, half3 mg, float 
 {
     half3 c;
     float3 sun = normalize(_SloKierunek.xyz);
+    if (morze && _FotoHoryzont > 0.5)
+    {
+        // morze pod zdjęciem: kolor wody ZE ZDJĘCIA (_MorzeKolor), ku dołowi ciemniejsze (mniej odbitego nieba), odblask słońca
+        half cosv = saturate(-d.y);
+        half fres = 0.02 + 0.98 * pow(1.0 - cosv, 5.0);
+        c = _MorzeKolor.rgb * lerp(0.78, 1.0, fres);
+        float3 r = float3(d.x, abs(d.y), d.z);
+        c += half3(1.0, .96, .88) * pow(saturate(dot(r, sun)), 220.0) * 0.35;
+        return c;
+    }
     if (morze)
     {
         // głębia + odbicie nieba (fresnel), lekka ciemniejsza linia horyzontu morza
@@ -284,13 +301,21 @@ inline half3 MiastoTlo(float3 cam, float3 d, float katPiksela)
         pas = MT_Pasmo(p, sk);
     }
     half3 tlo;
-    if (tg < 1e8) tlo = MT_Ziemia(cam + d * tg, tg, d, morze, mg, katPiksela);
+    if (tg < 1e8)
+    {
+        tlo = MT_Ziemia(cam + d * tg, tg, d, morze, mg, katPiksela);
+        if (_FotoHoryzont > 0.5)
+        {   // tuż pod horyzontem: to samo zdjęcie (woda przechodzi w wodę zdjęcia, ląd w ląd) — 0.6°…2.3° (morze), 0.4°…1.4° (ląd)
+            half w = 1.0 - (morze ? smoothstep(0.010, 0.040, -d.y) : smoothstep(0.007, 0.025, -d.y));
+            if (w > 0.001) tlo = lerp(tlo, MT_Nasyc(MT_NieboProbka(d, _NieboObrot, katPiksela), _NieboNasycenie) * _NieboEkspozycja, w);
+        }
+    }
     else if (d.y < 0.0) tlo = mg;   // kamera pod ziemią (piwnica, metro) — tylko kolor powietrza
     else
     {
         tlo = MT_Niebo(d, katPiksela);
-        // przy samym horyzoncie niebo przechodzi w mgiełkę (powietrze nad morzem i doliną)
-        tlo = lerp(tlo, mg, (1.0 - smoothstep(0.0, 0.05, d.y)) * 0.55);
+        // przy samym horyzoncie niebo przechodzi w mgiełkę (powietrze nad morzem i doliną) — nie na zdjęciu (zamazałoby cypel i góry)
+        tlo = lerp(tlo, mg, (1.0 - smoothstep(0.0, 0.05, d.y)) * 0.55 * (1.0 - saturate(_FotoHoryzont)));
     }
     return lerp(tlo, pas.rgb, pas.a);
 }

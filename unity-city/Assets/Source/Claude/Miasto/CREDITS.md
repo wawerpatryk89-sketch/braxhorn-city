@@ -24,3 +24,13 @@ Wszystkie modele przeskalowane do prawdziwych metrów i × K (świat pod Braxa),
 
 Ulice, chodniki, krawężniki, torowisko (szyny w nawierzchni), sygnalizacja, latarnie, ławki — budowane kodem gry (bez cudzych modeli).
 Licencja CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ · Sketchfab Standard: https://sketchfab.com/licenses
+
+## Panorama miasta (niebo i horyzont 360°, 18.11)
+
+`sky/panorama_miasta_8k.jpg` — sklejka dwóch prawdziwych zdjęć 360° z Poly Haven (licencja CC0, https://polyhaven.com/license),
+wersje „tonemapped JPG” 8192×4096, generator `unity-tools/claude/panorama_miasta.py` (powtarzalny bit w bit):
+
+| Zdjęcie | Autor | Licencja | Źródło | Użycie |
+|---|---|---|---|---|
+| Cannon | Greg Zaal | CC0 | https://polyhaven.com/a/cannon | ląd (góra z miasteczkiem nad zatoką, wzgórza) i całe niebo; działo z budką fotografa wyretuszowane |
+| Dalkey View | Savva Zakharov | CC0 | https://polyhaven.com/a/dalkey_view | pas horyzontu nad morzem (daleki cypel), kolor dopasowany do Cannon rząd po rzędzie |
