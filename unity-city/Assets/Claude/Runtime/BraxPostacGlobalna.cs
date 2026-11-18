@@ -62,6 +62,7 @@ public static class BraxPostacGlobalna
     // Tutaj matowość nazywa się inaczej: szorstkość, i działa odwrotnie niż gładkość — 1 = matowo.
     static readonly int IdHeroSzorstkosc = Shader.PropertyToID("_RoughnessFloor");
     static readonly int IdHeroMetal = Shader.PropertyToID("_MetallicScale");
+    static readonly int IdHeroNormalne = Shader.PropertyToID("_BumpScale");
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void Podlacz()
@@ -115,8 +116,11 @@ public static class BraxPostacGlobalna
                     if (m.GetFloat(IdHeroSzorstkosc) < matowo) m.SetFloat(IdHeroSzorstkosc, matowo);
                     if (m.HasProperty(IdHeroMetal) && m.GetFloat(IdHeroMetal) > Metalicznosc)
                         m.SetFloat(IdHeroMetal, Metalicznosc);
-                    // Siły mapy normalnych NIE ruszam: w tym shaderze jest autorska (0,60 pod
-                    // „żadnego plastiku" z 10.11), a odblaski to nie to samo co faktura skóry.
+                    // Siła mapy normalnych też jak w wariancie 6 — właściciel 18.11, 16:46:
+                    // „była jedna wersja, ta 6 bez żadnych odblasków, i nikt nie ma wyglądać inaczej.
+                    // Nikt." _BumpScale mnoży XY mapy normalnych dokładnie tak samo jak
+                    // _SilaNormalnych w shaderze obsady, więc ta sama liczba znaczy to samo.
+                    if (m.HasProperty(IdHeroNormalne)) m.SetFloat(IdHeroNormalne, SilaNormalnych);
                 }
                 else if (m.HasProperty(IdStdGloss))
                 {
