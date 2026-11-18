@@ -465,6 +465,9 @@ public static class BraxRegionHoryzont
         UstawTlo(nieboMat);
         BraxZapisAssetu.Utworz(nieboMat, OutDir + "/niebo_miasta.mat");
         RenderSettings.skybox = nieboMat;
+        // 18.11 (właściciel: „bardziej realistycznej wody… każdą jedną wodę”): w wodzie odbija się TO SAMO zdjęcie 360° co niebo
+        // (ten sam obrót i ekspozycja) — port, morze za kamerą i akwen wyspy
+        BraxCityWaterBuild.UstawNiebo(nieboMat);
         foreach (var cam in UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (cam && cam.targetTexture == null && cam.clearFlags == CameraClearFlags.SolidColor && cam.CompareTag("MainCamera")) cam.clearFlags = CameraClearFlags.Skybox;
         // stare niebo (Skybox/Panoramic, dolna połowa = odbite niebo) — usunięte, żeby nic go już nie użyło
