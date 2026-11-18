@@ -105,7 +105,12 @@ public sealed class BraxCwiczenie : MonoBehaviour, IBraxInterakcja
         var o = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         Destroy(o.GetComponent<Collider>());
         o.transform.SetParent(parent, false); o.transform.localPosition = lokalnie; o.transform.localScale = new Vector3(2f * r, dl * .5f, 2f * r);
-        var mr = o.GetComponent<MeshRenderer>(); if (m) mr.sharedMaterial = m; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        var mr = o.GetComponent<MeshRenderer>();
+        // Bez własnego materiału bryła Unity zostaje na wbudowanym domyślnym, a ten w gotowym APK bywa bez
+        // shadera (różowy walec). Zapasowy wzór z buildu — BraxMaterialyRuntime.
+        if (m) mr.sharedMaterial = m;
+        else { var w = BraxMaterialyRuntime.Standard; if (w) mr.sharedMaterial = w; }
+        mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         return o;
     }
     GameObject Hantel(float masa)

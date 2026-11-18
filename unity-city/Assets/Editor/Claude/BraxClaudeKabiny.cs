@@ -119,10 +119,13 @@ public static partial class BraxClaudeOsiedle
         return w;
     }
 
-    static void DopasujKabine(BraxMieszkaniec osoba, Transform fotel)
+    /// <summary>Sadza osobę w kabinie i zwraca, czy w niej MIEŚCI SIĘ CAŁA (zapas nad głową ≥ 0).
+    /// Fałsz = głowa wystaje przez dach; wołający ma wtedy nie zostawiać jej w tym aucie
+    /// (właściciel 18.11, zdjęcie taksówki: „w jednym oczy siedzi dobrze, a w drugim głowa wystaje”).</summary>
+    static bool DopasujKabine(BraxMieszkaniec osoba, Transform fotel)
     {
         var kab = fotel.GetComponent<BraxFotelAuta>();
-        if (!kab || !osoba.anim) return;
+        if (!kab || !osoba.anim) return true;
         var kosci = osoba.anim.GetComponentsInChildren<Transform>(true);
         Transform T(string n) => kosci.FirstOrDefault(t => t.name == n);
         var kreg = T("Bip01 Spine") ?? osoba.kregoslup; var glowa = osoba.glowa ? osoba.glowa : T("Bip01 Head");
@@ -151,7 +154,7 @@ public static partial class BraxClaudeOsiedle
         {
             var brak = "BRAXHORN_KABINA: brak próbek głowy lub dachu " + nazwaAuta + " / " + fotel.name;
             Debug.LogWarning(brak); rep.notes.Add(brak);
-            return;
+            return true;   // nie zmierzono — nie ma podstaw, żeby kogokolwiek wyrzucać z auta
         }
         kabMiejsc++; kabZapasMin = Mathf.Min(kabZapasMin, wynik.zapas);
         if (wynik.odchylenie >= kab.odchylenieMax - .01f) kabOdchylenieMax++;
@@ -168,6 +171,7 @@ public static partial class BraxClaudeOsiedle
             Debug.LogError(opis + " — DO POPRAWKI: model auta " + model + " (" + kab.kabina + ", prześwit nad biodrem " + kab.przeswit.ToString("F2")
                 + ") brakuje " + (-wynik.zapas * 100f).ToString("F1") + " cm przy maks. odchyleniu " + kab.odchylenieMax.ToString("F0") + "° — kabina źle zmierzona albo zła skala modelu auta");
         }
+        return miesci;
     }
 
     static string KabinyPodsumowanie()

@@ -120,8 +120,12 @@ public sealed class BraxPose : MonoBehaviour
                         // gdy „Standard” nie wszedł do buildu — inaczej różowy shaker.
                         if (!shakerMat)
                         {
-                            var sh = Shader.Find("Standard"); if (!sh && mr.sharedMaterial) sh = mr.sharedMaterial.shader;
-                            if (sh) shakerMat = new Material(sh) { color = new Color(.2f, .8f, .35f) };
+                            // 18.11: wzór z materiału przygotowanego przy buildzie. Dotychczasowy zapas („shader
+                            // z materiału prymitywu”) nie pomagał: bryła Unity sama stoi na shaderze Standard,
+                            // więc gdy jego nie ma w APK, prymityw jest różowy i jego shader też jest ten błędny.
+                            var wzorMat = BraxMaterialyRuntime.Wzor(mr.sharedMaterial);
+                            if (wzorMat) shakerMat = new Material(wzorMat) { color = new Color(.2f, .8f, .35f) };
+                            else { var sh = Shader.Find("Standard"); if (sh) shakerMat = new Material(sh) { color = new Color(.2f, .8f, .35f) }; }
                         }
                         if (shakerMat) mr.sharedMaterial = shakerMat;
                     }

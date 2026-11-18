@@ -133,7 +133,9 @@ public static class BraxSport
     // Materiał z cieniowaniem Standard (shader wzięty z materiału prymitywu — zawsze jest w buildzie). Bez emisji.
     public static Material Mat(Renderer wzor, Color kolor, Texture tex, float gladkosc)
     {
-        var m = new Material(wzor.sharedMaterial) { color = kolor, mainTexture = tex };
+        // Wzór bierzemy z materiału przygotowanego przy buildzie (BraxMaterialyRuntime), a nie z wbudowanego
+        // materiału bryły Unity — ten drugi w gotowym APK bywa bez shadera i wtedy piłka jest różowa.
+        var m = new Material(BraxMaterialyRuntime.Wzor(wzor.sharedMaterial)) { color = kolor, mainTexture = tex };
         if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", gladkosc);
         if (m.HasProperty("_Metallic")) m.SetFloat("_Metallic", 0f);
         if (m.HasProperty("_EmissionColor")) m.SetColor("_EmissionColor", Color.black);

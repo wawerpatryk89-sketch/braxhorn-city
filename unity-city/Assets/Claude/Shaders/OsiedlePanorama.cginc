@@ -28,7 +28,13 @@ half4 PanoramaKierunek(float3 cam, float3 dir)
     float u = frac(0.25 + az / 360.0 + _PasmoU0);
     float v = saturate((el - _PasmoDol) / (_PasmoGora - _PasmoDol));
     half4 s = tex2Dlod(_Pasmo, float4(u, v, 0, 0));
-    if (el > _PasmoGora) s.a = 0;
+    // GÓRNA KRAWĘDŹ PASA WYGASA, NIE TNIE (właściciel 18.11, zdjęcie: „niebo się tak chujowo łączy”).
+    // Było: if (el > _PasmoGora) s.a = 0; — pas kończył się ostro na 35° nad horyzontem, a że zdjęcie ma niebo
+    // blade, a shader ciemnoniebieskie, na tej wysokości rysował się wyraźny łuk przez cały ekran.
+    // Teraz przezroczystość schodzi do zera na górnych 28 % pasa (od ok. 22° do 35°), czyli w obszarze, gdzie
+    // jest już samo niebo — grzbiety gór kończą się dużo niżej, więc krajobrazu to nie dotyka.
+    float zakresPasa = max(1e-3, _PasmoGora - _PasmoDol);
+    s.a *= 1.0 - smoothstep(_PasmoGora - 0.28 * zakresPasa, _PasmoGora, el);
     half y = dot(s.rgb, half3(.2126, .7152, .0722));
     s.rgb = max(0, y + (s.rgb - y) * _PasmoNasycenie) * _PasmoJasnosc;
     // mgiełka powietrza przy samym horyzoncie (dalekie stoki lekko jaśniejsze i bardziej niebieskie)

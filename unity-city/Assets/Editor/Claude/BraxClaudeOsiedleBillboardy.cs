@@ -47,7 +47,20 @@ public static partial class BraxClaudeOsiedle
         var mesh = sb.Zapisz("plakat " + nazwa + " " + c.ToString("F3") + " " + n.ToString("F3"));
         SalonObiekt(nazwa, g, mesh, new[] { m }, Vector3.zero);
     }
+    // SPORT MA PIERWSZEŃSTWO PRZED REKLAMĄ (właściciel 18.11, zdjęcie: „kort do tenisa zastawiony szyldem”).
+    // Sama fizyka tego nie wyłapie: kort to płaska nawierzchnia, więc tablica stojąca na nim niczego nie przecina
+    // i miejsce wychodzi „wolne”. Dokładamy warunek z nazwy: żaden billboard nie staje na korcie ani w pasie
+    // 2,5 m wokół jego ogrodzenia, nawet gdyby fizyka pozwalała.
+    const float BillOdSportu = 2.5f;
+    static bool BillNaSporcie(Vector3 p)
+    {
+        if (tennisFence.width <= 0f) return false;
+        var r = tennisFence;
+        return p.x > r.xMin - BillOdSportu && p.x < r.xMax + BillOdSportu
+            && p.z > r.yMin - BillOdSportu && p.z < r.yMax + BillOdSportu;
+    }
     static bool BillWolne(Vector3 p, float rx, float rz, float h, float yaw) =>
+        !BillNaSporcie(p) &&
         Physics.OverlapBox(p + Vector3.up * (h * .5f + .2f), new Vector3(rx, h * .5f, rz), Quaternion.Euler(0, yaw, 0), ~((1 << 8) | (1 << 2)), QueryTriggerInteraction.Ignore).Length == 0;
     static float BillGrunt(float x, float z)
     {
