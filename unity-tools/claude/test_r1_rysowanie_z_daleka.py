@@ -69,7 +69,19 @@ class R1RysowanieZDaleka(unittest.TestCase):
         self.assertIn('FindProperty("m_IsReadable")', HLOD)                    # tylko GPU
         self.assertIn("ShadowCastingMode.On", HLOD)
         self.assertIn("GetComponentInParent<Rigidbody>(true)", HLOD)            # rzeczy w ruchu poza kopią
-        self.assertIn("if (tris <= maxTris) break;", HLOD)
+        self.assertIn("if (tris <= maxTris) { ok = true; break; }", HLOD)
+
+    def test_far_copy_never_lego(self):
+        # 18.11 (właściciel: „panorama… klocki Lego”; APK 4f317df: komórki 154.7 / 79.3 / 64.6 m): komórka nigdy > 2 m,
+        # nadmiar trójkątów zdejmuje najmniejsze bryły, drzewa / alfa mają własny budżet, wierzchołek = średnia komórki
+        self.assertIn("public const float MaxKomorka = 2f;", HLOD)
+        self.assertIn("k = Mathf.Min(MaxKomorka, k * ", HLOD)
+        self.assertIn("float kom = Mathf.Clamp(komorka, .05f, MaxKomorka);", HLOD)
+        self.assertIn("ProgiRozmiaru = { MinRozmiar, 4f, 6f, 9f, 14f, 20f }", HLOD)
+        self.assertIn("int budzetDokl = Mathf.Max(1, maxTris / 3);", HLOD)
+        self.assertIn("OrderByDescending(z => z.rozmiar)", HLOD)
+        self.assertIn("k.v[j] = k.suma[j] / k.ile[j];", HLOD)
+        self.assertNotIn("for (; przejscia < 6; przejscia++)", HLOD)
 
     def test_runtime_switch_in_load_frame(self):
         self.assertIn("SceneManager.sceneLoaded += Wczytano;", RUN)

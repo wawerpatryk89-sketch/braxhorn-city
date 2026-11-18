@@ -20,6 +20,15 @@ using UnityEngine.SceneManagement;
 //  • komórka dobierana tak, żeby obszar miał najwyżej maxTris trójkątów (start 0.5 m — przy 120 m ~4 px na telefonie).
 // Kopia ma BraxObszarZDaleka (chowa ją w klatce wczytania sceny obszaru). Bez kolizji. Siatka zapisana jako tylko-GPU
 // (m_IsReadable = 0 — bez kopii w pamięci CPU telefonu).
+// 18.11 (właściciel 10:39: „panorama… klocki Lego”; „zamula”; APK 4f317df, log BRAXHORN_Z_DALEKA): komórka rosła ×1.3 aż do
+// zmieszczenia się w budżecie — K_x-2_z0 154.7 m, wyspa 79.3 m, K_x-2_z-2 64.6 m, trzy kwadraty ~18 m: cały budynek zlewał się
+// w jedną bryłę („Lego”), a i tak kopie miały razem 3.84 mln trójkątów, bo obiekty dokładne (ostatni LOD drzew, alfa) w ogóle nie
+// liczyły się do budżetu i nie dało się ich zmniejszyć komórką (K_x-2_z0: 805 tys. trójkątów przy komórce 155 m). Teraz:
+//  • komórka NIGDY większa niż MaxKomorka (2 m — bryła budynku, gzymsy i dachy zostają czytelne z 150+ m);
+//  • gdy przy 2 m za dużo trójkątów — zamiast zgrubiać, odpadają najmniejsze bryły (progi ProgiRozmiaru: 2.5 → 4 → 6 → 9 → 14 → 20 m),
+//    z daleka i tak niewidoczne; budynki zostają;
+//  • obiekty dokładne (drzewa — ostatni LOD, alfa) mają własny budżet (maxTris / 3), największe pierwsze;
+//  • wierzchołek komórki = ŚREDNIA wierzchołków komórki (Rossignac–Borrel), nie pierwszy z brzegu — bez „kolców”.
 public static class BraxClaudeZDaleka
 {
     public const float MinRozmiar = 2.5f;
@@ -27,6 +36,8 @@ public static class BraxClaudeZDaleka
     public static string Podsumowanie() => "obszarów " + Obszary + ", trójkątów " + Suma + ", wierzchołków " + SumaWierzcholkow + " (~" + (SumaWierzcholkow * 60 / 1048576) + " MB GPU)";
     const int MaxTrisLodNaObiekt = 1500;
     const int MinTrisNaMaterial = 24;
+    public const float MaxKomorka = 2f;
+    public static readonly float[] ProgiRozmiaru = { MinRozmiar, 4f, 6f, 9f, 14f, 20f };
 
     struct Zrodlo { public Renderer r; public Mesh m; public Matrix4x4 l2w; public bool dokladne; public float rozmiar; }
 
@@ -40,6 +51,8 @@ public static class BraxClaudeZDaleka
         public readonly List<Color32> c = new List<Color32>();
         public readonly List<int> i = new List<int>();
         public readonly Dictionary<long, int> mapa = new Dictionary<long, int>();
+        public readonly List<Vector3> suma = new List<Vector3>();   // suma pozycji wierzchołków komórki (średnia na końcu)
+        public readonly List<int> ile = new List<int>();
     }
 
     sealed class Dane
@@ -175,11 +188,11 @@ public static class BraxClaudeZDaleka
                     if (!z.dokladne)
                     {
                         long key = Klucz(p, kom, KlasaNormalnej(n));
-                        if (k.mapa.TryGetValue(key, out w)) { idx[i] = w; return w; }
+                        if (k.mapa.TryGetValue(key, out w)) { k.suma[w] += p; k.ile[w]++; idx[i] = w; return w; }
                         w = k.v.Count; k.mapa[key] = w;
                     }
                     else w = k.v.Count;
-                    k.v.Add(p); k.n.Add(n);
+                    k.v.Add(p); k.n.Add(n); k.suma.Add(p); k.ile.Add(1);
                     if (maT) { var t = d.t[i]; var tw = l2w.MultiplyVector(new Vector3(t.x, t.y, t.z)).normalized; k.t.Add(new Vector4(tw.x, tw.y, tw.z, odwroc ? -t.w : t.w)); }
                     else k.t.Add(new Vector4(1, 0, 0, 1));
                     k.uv.Add(maUv ? d.uv[i] : Vector2.zero); k.uv2.Add(maUv2 ? d.uv2[i] : Vector2.zero);
@@ -196,6 +209,8 @@ public static class BraxClaudeZDaleka
                 }
             }
         }
+        foreach (var k in kub.Values)
+            for (int j = 0; j < k.v.Count; j++) if (k.ile[j] > 1) k.v[j] = k.suma[j] / k.ile[j];
         return kub;
     }
 
@@ -206,15 +221,34 @@ public static class BraxClaudeZDaleka
         if (zr.Count == 0) { Debug.Log("BRAXHORN_Z_DALEKA " + scena + ": brak dużych brył (pominięte drobne " + male + ") — bez kopii"); return null; }
         var cache = new Dictionary<Mesh, Dane>();
         long zrodloTris = zr.Sum(z => (long)Tris(z.m));
-        float kom = Mathf.Max(.05f, komorka);
-        Dictionary<Material, Kubel> kub = null; long tris = 0; int przejscia = 0; float komUzyta = kom;
-        for (; przejscia < 6; przejscia++)
+        // obiekty dokładne (drzewa — ostatni LOD, alfa): osobny budżet, największe pierwsze
+        int budzetDokl = Mathf.Max(1, maxTris / 3); long dokl = 0; int odpadDokl = 0;
+        var dokladne = new List<Zrodlo>();
+        foreach (var z in zr.Where(z => z.dokladne).OrderByDescending(z => z.rozmiar))
         {
-            komUzyta = kom;
-            kub = Grupuj(zr, kom, cache, out tris);
-            if (tris <= maxTris) break;
-            // powierzchnie: trójkąty ~ 1/komórka² — skok o pierwiastek nadmiaru (+10 %), najmniej ×1.3
-            kom *= Mathf.Max(1.3f, Mathf.Sqrt(tris / (float)maxTris) * 1.1f);
+            int t = Tris(z.m);
+            if (dokl + t > budzetDokl) { odpadDokl++; continue; }
+            dokladne.Add(z); dokl += t;
+        }
+        var grupowane = zr.Where(z => !z.dokladne).ToList();
+        float kom = Mathf.Clamp(komorka, .05f, MaxKomorka);
+        Dictionary<Material, Kubel> kub = null; long tris = 0; int przejscia = 0; float komUzyta = kom, prog = MinRozmiar; int odpadMale = 0;
+        for (int pi = 0; pi < ProgiRozmiaru.Length; pi++)
+        {
+            prog = ProgiRozmiaru[pi];
+            var zestaw = dokladne.Concat(grupowane.Where(z => z.rozmiar >= prog)).ToList();
+            odpadMale = grupowane.Count(z => z.rozmiar < prog);
+            float k = kom; bool ok = false;
+            for (int krok = 0; krok < 4; krok++)
+            {
+                przejscia++; komUzyta = k;
+                kub = Grupuj(zestaw, k, cache, out tris);
+                if (tris <= maxTris) { ok = true; break; }
+                if (k >= MaxKomorka - 1e-4f) break;
+                // powierzchnie: trójkąty ~ 1/komórka² — skok o pierwiastek nadmiaru, ale najwyżej do MaxKomorka (bez „Lego”)
+                k = Mathf.Min(MaxKomorka, k * Mathf.Max(1.3f, Mathf.Sqrt(tris / (float)maxTris) * 1.1f));
+            }
+            if (ok) break;
         }
         cache.Clear();
         var kubly = kub.Values.Where(k => k.i.Count / 3 >= MinTrisNaMaterial).ToList();
@@ -258,7 +292,8 @@ public static class BraxClaudeZDaleka
         long koniec = subs.Sum(x => (long)x.Length / 3);
         Suma += koniec; SumaWierzcholkow += nv; Obszary++;
         Debug.Log("BRAXHORN_Z_DALEKA " + scena + ": brył " + zr.Count + " (trójkątów źródła " + zrodloTris + ") → " + koniec + " trójkątów, wierzchołków " + nv +
-                  ", materiałów " + kubly.Count + ", komórka " + komUzyta.ToString("0.00") + " m (przejść " + Mathf.Min(przejscia + 1, 6) + "), pominięte drobne " + male +
+                  ", materiałów " + kubly.Count + ", komórka " + komUzyta.ToString("0.00") + " m (max " + MaxKomorka.ToString("0.0") + ", przejść " + przejscia + "), próg brył " + prog.ToString("0.#") +
+                  " m (odpadło mniejszych " + odpadMale + "), dokładne (drzewa / alfa) " + dokladne.Count + " = " + dokl + " trójkątów (odpadło " + odpadDokl + "), pominięte drobne " + male +
                   ", ciężkie LOD/alfa " + lodDuze + ", plik " + path);
         return go;
     }
