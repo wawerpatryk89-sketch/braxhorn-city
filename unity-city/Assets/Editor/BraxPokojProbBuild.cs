@@ -413,7 +413,7 @@ public static class BraxPokojProbBuild
         siatka.postacie = anim.GetRange(0, ile).ToArray();
         siatka.nazwy = nazwy.GetRange(0, ile).ToArray();
         siatka.kamery = kamery;
-        var zenskieT = new HashSet<string> { "ewa", "monika", "aneta", "martyna" };
+        var zenskieT = new HashSet<string> { "ewa", "monika", "aneta", "martyna", "nyxa", "vexa", "nina" };
         var plcieT = new bool[ile];
         for (int i = 0; i < ile; i++)
             plcieT[i] = zenskieT.Contains(nazwy[i]) ||
@@ -677,7 +677,7 @@ public static class BraxPokojProbBuild
         pokaz.kamera = kam;
         pokaz.wariant = 2;   // startuje na „3 mat+faktura”; przyciskiem na ekranie idzie dalej
         // Płeć postaci — żeby kobieta dostała kobiecy głos. Lista z imion obsady właściciela.
-        var zenskie = new HashSet<string> { "ewa", "monika", "aneta", "martyna" };
+        var zenskie = new HashSet<string> { "ewa", "monika", "aneta", "martyna", "nyxa", "vexa", "nina" };
         var plcie = new bool[ustawioneNazwy.Count];
         for (int i = 0; i < ustawioneNazwy.Count; i++)
             plcie[i] = zenskie.Contains(ustawioneNazwy[i]) ||

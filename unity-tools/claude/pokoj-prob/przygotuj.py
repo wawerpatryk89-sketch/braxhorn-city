@@ -14,6 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import obsada_surowa  # noqa: E402
 import pobierz_obsade as obsada  # noqa: E402
 from osiedle_mowa import prepare  # noqa: E402
 
@@ -161,6 +162,12 @@ def main():
         staged = praca / "postacie"
         staged.mkdir()
         obsada.odczytaj(archiwum, staged)
+
+        # SUROWE MODELE Z BIBLIOTEKI (Brax, Nyxa). Nie ma ich w zatwierdzonej paczce,
+        # bo nikt ich jeszcze nie przerabiał — składam paczkę w locie z surowej
+        # konwersji Tripo i globalnej biblioteki ruchów, a dalej idą normalną drogą.
+        for i in [x for x in ids if x in obsada_surowa.SUROWI]:
+            obsada_surowa.zloz(i, os.environ["GITHUB_REPOSITORY"], praca, staged, blender)
 
         dostepne = sorted(p.name for p in staged.iterdir() if p.is_dir())
         brak = [i for i in ids if i not in dostepne]

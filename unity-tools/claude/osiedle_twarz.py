@@ -12,6 +12,11 @@ import numpy as np
 # Eyes are (x, y, half width, half height, inner-to-outer vertical slope).
 # Mouth is (x, central lip seam, half width, corner drop, opening, visible teeth).
 FACES = {
+    # BRAX i NYXA — minotaury z biblioteki globalnej. Współrzędne ODCZYTANE z rzutu
+    # twarzy (narzędzie rzut_twarzy.py), w skali 256, tak jak reszta tabeli.
+    # Zęby: 0, bo pysk na skanie jest zamknięty — mimika domaluje je sama.
+    "brax": ([(89, 123, 11, 6, 0), (178, 123, 11, 6, 0)], (133, 210, 33, 0, 8, 0)),
+    "nyxa": ([(97, 123, 11, 5, 0), (172, 123, 11, 5, 0)], (132, 184, 27, 0, 7, 0)),
     "aneta": ([(88, 126, 15, 4, 1), (150, 126, 15, 4, -1)], (118, 186, 26, -3, 8, 0)),
     "bramkarz_1c96d333": (
         [(91, 111, 12, 3, -1), (154, 110, 12, 3, 1)],
@@ -254,6 +259,17 @@ def png(path, rgba):
     )
 
 
+# PRZESUNIĘCIE RZUTU TWARZY, w ułamkach rozpiętości, liczone od czubka siatki.
+# Rzut jest wyśrodkowany pod ludzkie głowy (0,48). Rogi, włosy, kapelusz czy hełm
+# spychają twarz niżej: u Nyxy usta wypadały CAŁKIEM poza kadr, u Braxa stały na
+# dolnej krawędzi. Liczby odczytane z rzutu, nie zgadnięte. Brak wpisu = 0, czyli
+# dokładnie to, co było — żadna z 46 przerobionych postaci się nie przesuwa.
+PRZESUNIECIE_RZUTU = {
+    "brax": 0.14,
+    "nyxa": 0.30,
+}
+
+
 def add_face(actor, obj, axes, head, color_path, atlas_path):
     mesh = obj.data
     mesh.calc_loop_triangles()
@@ -262,7 +278,7 @@ def add_face(actor, obj, axes, head, color_path, atlas_path):
     body = (co @ transform[:3, :3].T + transform[:3, 3]) @ axes
     span = np.ptp(body[:, 1]) * 0.175
     head = head @ axes
-    cx, cy = head[0], body[:, 1].max() - span * 0.48
+    cx, cy = head[0], body[:, 1].max() - span * (0.48 + PRZESUNIECIE_RZUTU.get(actor, 0.0))
     eyes, mouth = skaluj_twarz(*FACES[actor])
     midpoint = (
         (sum(e[1] for e in eyes) / len(eyes) if eyes else mouth[1] - 58 * S) + mouth[1]
