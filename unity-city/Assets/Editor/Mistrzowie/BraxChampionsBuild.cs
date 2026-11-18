@@ -365,7 +365,9 @@ public static class BraxChampionsBuild
         PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,false);
         PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,new[]{GraphicsDeviceType.OpenGLES3});
         EditorUserBuildSettings.buildAppBundle=false;
-        // Match Champions PBR import overrides on modern ASTC-capable Android GPUs.
+        // Match Champions PBR import overrides on modern ASTC-capable Android GPUs. 18.11: the workflow starts Unity with
+        // -setDefaultPlatformTextureFormat astc, so this is already ASTC and no texture is imported twice (#48 lost 1.5 h).
+        Debug.Log("BRAX_ANDROID_TEXTURE_SUBTARGET before="+EditorUserBuildSettings.androidBuildSubtarget);
         EditorUserBuildSettings.androidBuildSubtarget=MobileTextureSubtarget.ASTC;
 
         // Reuse the game's lightweight loader, then only the Champions exploration

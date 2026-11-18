@@ -516,6 +516,12 @@ jobs:
           androidExportType: androidPackage
           versioning: None
           allowDirtyBuild: true
+          # #48 (18.11, run 44233747415) was cut by the 355-minute limit at 09:50:30 while Gradle packed the APK. Its log:
+          # at 07:39:37 BuildExplorationApk set the Android texture subtarget to ASTC (ProjectSettings reimported) and
+          # every source texture was imported a second time - 1 121 Source/Prywatne/Miasto, 253 Source/Mistrzowie/Textures,
+          # 96 PolyHaven and the rest, 07:40-09:10, 1.5 h. Unity's own switch sets ASTC before the first import, so each
+          # texture is imported once, already in the format the APK uses (the build still sets the same ASTC).
+          customParameters: -setDefaultPlatformTextureFormat astc
       - name: Save generated scene audit JSON and Markdown as downloadable evidence
         if: ${{ always() && inputs.etap == 'sceny' && inputs.zapisz_audyt }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
