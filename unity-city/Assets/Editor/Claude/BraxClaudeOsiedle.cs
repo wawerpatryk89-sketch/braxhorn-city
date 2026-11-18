@@ -261,7 +261,7 @@ public static partial class BraxClaudeOsiedle
         if (mats.TryGetValue(key, out var have)) return have;
         var sh = Shader.Find("Braxhorn/OsiedleLiscie"); var tex = BaseTex(src);
         if (!sh || !tex) { rep.notes.Add("liście " + key + ": brak shadera lub tekstury — zostaje import"); return null; }
-        if (key == "drzewa") { var own = TreeTex("liscie.png", false); if (own) tex = own; }
+        if (key.StartsWith("drzewa")) { var own = TreeTex("liscie.png", false); if (own) tex = own; }
         var m = new Material(sh) { name = "Osiedle: liście " + key, enableInstancing = true, mainTexture = tex };
         m.SetColor("_Leaf", leaf); m.SetColor("_Leaf2", leaf2);
         m.SetFloat("_InnerDark", .35f);   // wnętrze korony: zdjęcia buildu 3 — korony średnio V 0.27–0.29 (za ciemne), -30% przyciemnienia
@@ -932,14 +932,28 @@ public static partial class BraxClaudeOsiedle
         foreach (Transform c in t.transform) c.position -= pivot;
         // zielone korony zamiast czarnych: shader liści + zwykła kora z instancingiem
         var leafMesh = l0.GetComponent<MeshFilter>() ? l0.GetComponent<MeshFilter>().sharedMesh : null;
-        var leaf = leafMesh ? LeafMat("drzewa", l0.sharedMaterial, leafMesh.bounds, .1182f, .0158f, .85f, new Color(.310f, .522f, .147f), new Color(.408f, .553f, .164f)) : null;
+        // CZTERY ODCIENIE KORON ZAMIAST JEDNEGO (właściciel 18.11, film: „jakie drzewa słabe tam są” —
+        // za płotem stoi równy szpaler identycznych, jednakowo bladych koron). Wszystkie drzewa osiedla
+        // brały dotąd jeden materiał „drzewa”, więc każde miało co do piksela ten sam kolor liścia.
+        // Cztery materiały, nie czterdzieści: tekstura jest ta sama i wspólna, a instancing działa
+        // wewnątrz każdej czwórki — pamięci to praktycznie nie kosztuje.
+        int wariantLisci = treeRnd.Next(4);
+        float tonL = new[] { .88f, .97f, 1.06f, 1.14f }[wariantLisci];      // od ciemnej, nasyconej zieleni po jasną
+        float zolc = new[] { 1.00f, 1.04f, 1.09f, 1.03f }[wariantLisci];    // ile żółci w młodych liściach
+        var leaf = leafMesh ? LeafMat("drzewa" + wariantLisci, l0.sharedMaterial, leafMesh.bounds, .1182f, .0158f, .85f,
+                                      new Color(.310f * tonL * zolc, .522f * tonL, .147f * tonL),
+                                      new Color(.408f * tonL * zolc, .553f * tonL, .164f * tonL)) : null;
         if (leaf) foreach (var r in new[] { l0, l1, l2, l3 }) if (r) r.sharedMaterial = leaf;
         var bark = TrunkMat(pien.sharedMaterial); if (bark) pien.sharedMaterial = bark;
         // każde drzewo trochę inne: wysokość, szerokość korony, obrót
-        float spread = 1f + (float)(treeRnd.NextDouble() - .5) * .26f;
+        // Obrót wokół pionu niewiele daje, bo korona jest prawie symetryczna — stąd wrażenie odbitych z formy.
+        // Szerzej rozrzucona szerokość korony (±23 % zamiast ±13 %) i lekkie pochylenie pnia (do 4°) zmieniają
+        // sylwetkę naprawdę: żadne dwa drzewa nie mają tego samego obrysu na tle nieba.
+        float spread = 1f + (float)(treeRnd.NextDouble() - .5) * .46f;
         float s = height / Mathf.Max(.5f, b.size.y);
-        t.transform.localScale = new Vector3(s * spread, s, s * spread * (1f + (float)(treeRnd.NextDouble() - .5) * .12f));
-        t.transform.rotation = Quaternion.Euler(0, yaw, 0) * t.transform.rotation;
+        t.transform.localScale = new Vector3(s * spread, s, s * spread * (1f + (float)(treeRnd.NextDouble() - .5) * .18f));
+        float pochX = (float)(treeRnd.NextDouble() - .5) * 8f, pochZ = (float)(treeRnd.NextDouble() - .5) * 8f;
+        t.transform.rotation = Quaternion.Euler(pochX, yaw, pochZ) * t.transform.rotation;
         t.transform.position = at;
         // cienie rzucają bliskie poziomy (do ok. 40 m); dalsze korony bez cienia — budżet trójkątów na telefon
         foreach (var r in all) { r.shadowCastingMode = r == l2 || r == l3 ? ShadowCastingMode.Off : ShadowCastingMode.On; r.receiveShadows = true; }
