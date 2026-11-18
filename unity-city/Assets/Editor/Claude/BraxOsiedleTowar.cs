@@ -15,6 +15,39 @@ public static class BraxOsiedleTowar
     static readonly Dictionary<string, GameObject> cache = new Dictionary<string, GameObject>();
     public static bool Jest => BraxOsiedleAssety.Jest(Paczka);
 
+    // ---------------- NAZWY TOWARU (test zakupów, właściciel 18.11) ----------------
+    // Nazwy opisowe, po funkcji — ŻADNYCH prawdziwych marek leków: to cudze znaki towarowe.
+    // Który karton na półce jest czym, wie tylko właściciel (etykiety są jego); do czasu, aż
+    // poda przypisanie, lek_NN dostaje nazwę z tej listy po numerze. To jest nazwa ROBOCZA
+    // i tak ma być traktowana — mechanizm wyboru da się na niej przetestować.
+    static readonly string[] LEKI = {
+        "na grypę i przeziębienie", "na gorączkę", "przeciwbólowy", "na gardło",
+        "syrop na kaszel", "na katar", "witamina C", "witamina D",
+        "magnez z B6", "na zatoki", "na ból głowy", "elektrolity",
+        "na żołądek", "na zgagę", "probiotyk", "na alergię",
+        "plastry opatrunkowe", "bandaż elastyczny", "maść na stłuczenia", "żel chłodzący",
+        "krople do oczu", "na sen", "węgiel aktywny", "termometr" };
+
+    public static string NazwaTowaru(string plik)
+    {
+        if (plik.StartsWith("lek_", StringComparison.Ordinal)
+            && int.TryParse(plik.Substring(4), out int nr) && nr >= 1 && nr <= LEKI.Length) return LEKI[nr - 1];
+        if (plik.StartsWith("lek_", StringComparison.Ordinal)) return "lek";
+        if (plik.StartsWith("pud_", StringComparison.Ordinal)) return "pudełko";
+        if (plik.StartsWith("pus_", StringComparison.Ordinal)) return "puszka";
+        if (plik.StartsWith("but_", StringComparison.Ordinal)) return "butelka";
+        if (plik.StartsWith("kar_", StringComparison.Ordinal)) return "karton";
+        if (plik.StartsWith("tor_", StringComparison.Ordinal)) return "torba";
+        if (plik.StartsWith("odz_", StringComparison.Ordinal)) return "odżywka";
+        if (plik == "mleko") return "mleko";
+        return plik;
+    }
+
+    // ---------------- rzędy do wyboru towaru z półki ----------------
+    static readonly List<BraxPolkaSklepu.Rzad> rzedy = new List<BraxPolkaSklepu.Rzad>();
+    static readonly List<Transform> rzadTowar = new List<Transform>();
+    static readonly List<string> rzadNazwy = new List<string>();
+
     static string[] Asortyment(string typ) => typ switch
     {
         "sm_g0" => new[] { "sk:pud_b01*3", "sk:pud_d17*3", "sk:pud_d03*3", "sk:pud_d01*3", "sk:pud_b08*3", "sk:pud_b24*3", "sk:pud_d24*3", "sk:pud_a24*3", "sk:pud_d04*3", "sk:pud_d08*3", "sk:pud_d02*3", "sk:pud_b02*3", "sk:pud_a01*3", "sk:pud_b03*3", "sk:pud_a17*3", "sk:pud_a04*3", "sk:pud_a03*3", "sk:pud_a02*3", "sk:pud_b17*3", "sk:pud_a08*3", "sk:pud_b04*3" },
@@ -74,6 +107,7 @@ public static class BraxOsiedleTowar
             Vector3 cel = p + wzdl * (uzyte + ext * .5f);
             o.transform.position += new Vector3(cel.x - b.center.x, 0f, cel.z - b.center.z);
             uzyte += ext + .01f;
+            rzadTowar.Add(o.transform); rzadNazwy.Add(NazwaTowaru(plik));
         }
         return uzyte;
     }
@@ -82,6 +116,7 @@ public static class BraxOsiedleTowar
     public static void Polka(string typ, Transform parent, Vector3 start, Vector3 wzdl, Vector3 wglab, float dl, System.Random rng, float maxWys = 99f)
     {
         var a = Asortyment(typ); if (a == null) return;
+        rzadTowar.Clear(); rzadNazwy.Clear();
         float x = 0f; int i = rng.Next(a.Length), puste = 0;
         while (x < dl - .08f && puste < a.Length)
         {
@@ -89,6 +124,13 @@ public static class BraxOsiedleTowar
             if (u <= 0f) { puste++; x += .05f; continue; }
             puste = 0; x += u + .04f;
         }
+        // Jeden poziom regału = jeden rząd do przeglądania przy półce. wglab wchodzi w głąb półki,
+        // więc strona klienta (i kierunek, w którym odjeżdża kamera) to -wglab.
+        if (rzadTowar.Count > 0)
+            rzedy.Add(new BraxPolkaSklepu.Rzad {
+                start = start, wzdluz = wzdl.normalized, przod = (-wglab).normalized, dlugosc = dl,
+                towar = rzadTowar.ToArray(), nazwy = rzadNazwy.ToArray() });
+        rzadTowar.Clear(); rzadNazwy.Clear();
     }
 
     /// <summary>Cały towar lokalu w jednej grupie LOD (znika dalej niż ~25 m) + log.</summary>
@@ -102,6 +144,45 @@ public static class BraxOsiedleTowar
             lod.SetLODs(new[] { new LOD(Mathf.Clamp(Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z)) / (2f * 25f * .52f), .01f, .6f), rs) });
             lod.RecalculateBounds();
         }
-        Debug.Log("BRAXHORN_OSIEDLE_TOWAR " + nazwa + ": modeli " + rs.Length + (braki.Count > 0 ? "; brak: " + string.Join(", ", braki) : ""));
+        // PÓŁKA DO PRZEGLĄDANIA: rzędy zebrane od ostatniego Zakoncz należą do tego lokalu.
+        // NA RAZIE TYLKO APTEKA (właściciel 18.11, 16:18: „zrób na razie pod aptekę, ja zobaczę
+        // jak to działa; później zrobimy pod wszystko, jak będzie ustalone, że tak ma wyglądać”).
+        // Mechanizm jest sklepowi obojętny — żeby włączyć go wszędzie, wystarczy zdjąć ten warunek.
+        bool tenSklep = nazwa.IndexOf("aptek", StringComparison.OrdinalIgnoreCase) >= 0;
+        int sztuk = 0;
+        if (rzedy.Count > 0 && !tenSklep)
+        {
+            Debug.Log("BRAX_POLKA " + nazwa + ": wybór z półki wyłączony (na razie tylko apteka), rzędów pominiętych " + rzedy.Count);
+            rzedy.Clear();
+        }
+        if (rzedy.Count > 0)
+        {
+            var polka = t.gameObject.AddComponent<BraxPolkaSklepu>();
+            polka.sklep = nazwa;
+            // od najniższej półki do najwyższej — żeby palec w górę szedł w górę regału
+            rzedy.Sort((u, w) => u.start.y.CompareTo(w.start.y));
+            polka.rzedy = rzedy.ToArray();
+            foreach (var r in rzedy) sztuk += r.towar.Length;
+            rzedy.Clear();
+        }
+        // POMIAR TOWARU (właściciel 18.11: w aptece nie widać produktu). Zbliżenie kamery pokaże
+        // dokładnie to, co jest — więc log ma powiedzieć wprost, ile te modele mają centymetrów.
+        // Pudełko leku w rzeczywistości to ok. 10 x 5 x 2,5 cm; w grze razy K.
+        if (rs.Length > 0)
+        {
+            float k = Mathf.Max(.001f, K);
+            var naj = rs[0].bounds.size / k; var mal = naj;
+            foreach (var r in rs)
+            {
+                var v = r.bounds.size / k;
+                if (v.magnitude > naj.magnitude) naj = v;
+                if (v.magnitude < mal.magnitude) mal = v;
+            }
+            Debug.Log("BRAXHORN_OSIEDLE_TOWAR_WYMIAR " + nazwa + " (w metrach rzeczywistych, bez K=" + k.ToString("F3") + "): "
+                      + "najmniejszy " + (mal.x * 100f).ToString("F1") + "x" + (mal.y * 100f).ToString("F1") + "x" + (mal.z * 100f).ToString("F1") + " cm, "
+                      + "największy " + (naj.x * 100f).ToString("F1") + "x" + (naj.y * 100f).ToString("F1") + "x" + (naj.z * 100f).ToString("F1") + " cm "
+                      + "(pudełko leku ma mieć ok. 10x5x2,5 cm)");
+        }
+        Debug.Log("BRAXHORN_OSIEDLE_TOWAR " + nazwa + ": modeli " + rs.Length + ", do wyboru z półki " + sztuk + (braki.Count > 0 ? "; brak: " + string.Join(", ", braki) : ""));
     }
 }

@@ -53,6 +53,9 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public int trainingHits;
     public BraxVessel vessel;   // pojazd wodny, na którym siedzi gracz (BraxVessel.Board)
     public BraxAutoGracza autoGracza;
+    // PÓŁKA SKLEPOWA — drugi tryb kamery, zrobiony tak samo jak auto (właściciel 18.11):
+    // gdy jest ustawiona, kamerę i dotyk prowadzi BraxPolkaSklepu, a postać stoi.
+    public BraxPolkaSklepu polka;
     public BraxSeat seat;       // sofa / ławka / hoker / łóżko (BraxSeat.Use)
     // Chwila trafienia CIOSU / KOPU (ta sama co trening na workach siłowni): pozycja gracza, kierunek, true = kopnięcie.
     // Słuchają worki, liny ringu i piłki osiedla (BraxWorek, BraxLina, BraxPilka) — bez zależności gracza od nich.
@@ -189,7 +192,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(door && Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f){doorOpen=!doorOpen;Report();}
             return;
         }
-        if(Time.time<actionEnd||skokWTrakcie||vessel||seat||autoGracza)return;
+        if(Time.time<actionEnd||skokWTrakcie||vessel||seat||autoGracza||polka)return;
         if(key=="punch")StartAction("Punch",1.25f,.43f, Wariant("Punch", ref numerCiosu));
         else if(key=="kick")StartAction("Kick",1.2f,.60f, Wariant("Kick", ref numerKopniecia));
         else if(key=="jump" && body.isGrounded && clips.GetClip("Jump"))
@@ -255,6 +258,12 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(autoGracza)
         {
             autoGracza.Steruj(move);speed=0;vertical=0;hitPending=false;jumpPending=false;
+            action="Idle";actionEnd=0;
+            return;
+        }
+        if(polka)
+        {
+            polka.Krok(dt);speed=0;vertical=0;hitPending=false;jumpPending=false;
             action="Idle";actionEnd=0;
             return;
         }
@@ -428,8 +437,12 @@ public sealed class BraxGymPlayer : MonoBehaviour
         // pochylenie: skrajne (z dołu / z góry) wraca do wygodnego zakresu 8–32°
         pitch=Mathf.Lerp(pitch,Mathf.Clamp(pitch,8f,32f),1-Mathf.Exp(-dt*.9f*ramp*w));
     }
+    /// <summary>Po wyjściu z trybu półki kamera ma wrócić bez zjazdu przez pół mapy.</summary>
+    public void KameraOdNowa(){camNear=-1f;cameraTarget=transform.position+Vector3.up*1.65f;}
     private void UpdateCamera(float dt)
     {
+        // Półka prowadzi kamerę sama (zbliżenie na towar, przesuwanie wzdłuż regału).
+        if(polka&&polka.WTrybie){polka.UstawKamere(view,dt);return;}
         bool snap=dt>=.5f;   // Start, reset, teleport: kamera od razu na miejscu
         AutoYaw(dt,snap);
         Vector3 want=autoGracza?autoGracza.CelKamery:transform.position+Vector3.up*1.65f;
