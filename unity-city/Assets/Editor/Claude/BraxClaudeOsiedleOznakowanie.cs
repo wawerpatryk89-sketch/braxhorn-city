@@ -130,7 +130,16 @@ public static partial class BraxClaudeOsiedle
                         foreach (var kw in kawalki) OdejmijTrojkat(kw, F.a, F.c, F.d, nowe);
                         kawalki = nowe;
                         if (kawalki.Count == 0) break;
-                        if (kawalki.Count > 96) { przerwane = true; break; }
+                        // Limit kawałków na jeden trójkąt asfaltu. Zmierzone w APK a866992 (16.11):
+                        //   przerwane_trójkąty=1, farba_niewycięta=10/1031, nakladki=10
+                        //   — wszystkie w jednym miejscu, (-5.1, -153.4)…(-5.2, -152.1), 2,0 cm nad asfaltem.
+                        // Czyli DOKŁADNIE JEDEN trójkąt asfaltu rozpadł się na więcej niż 96 kawałków (zbieg
+                        // kilku oznaczeń naraz), wycinarka poddała się i dziesięć trójkątów farby zostało
+                        // naklejonych nad asfaltem zamiast w nim. Taka naklejka bije się z asfaltem o głębię
+                        // i migocze z odległości — ZASADA MIGOTANIA wymaga nakladki=0.
+                        // Limit podniesiony do 256. Dotyczy jednego trójkąta na tysiąc, więc czas cięcia
+                        // rośnie o tyle co nic, a zabezpieczenie przed prawdziwą pętlą zostaje.
+                        if (kawalki.Count > 256) { przerwane = true; break; }
                     }
                 if (przerwane)
                 {
