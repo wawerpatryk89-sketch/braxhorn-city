@@ -131,6 +131,12 @@ Nigdy klocek w kolorze jako zastępstwo.
 
 ## 5. POSTACIE
 
+**5.0. To jest wymuszone kodem**, nie dobrą wolą rejonu:
+`Assets/Claude/Runtime/BraxPostacGlobalna.cs` nakłada standard po każdym wczytaniu sceny —
+gładkość 0, metaliczność 0, normalne ×1,3, `SkinQuality.Bone4`, sondy światła i odbić,
+cienie. Wystarczy mieć `main`. Wyjątek: obiekt z `BraxObrazWyjatek` jest pomijany,
+a powód trafia do logu `BRAX_POSTAC`.
+
 **5.1. Połysk.** Skóra i tkanina mają być matowe. Gładkość z map generatora 3D jest
 zawyżona i nieprawdziwa — ten sam połysk dostaje wełna, skóra i dłoń. Metaliczność tkanin
 i skóry = 0. Zmierzone skutki zawyżonego połysku: krawat kapitana (jasność 42 na koszuli 229)
