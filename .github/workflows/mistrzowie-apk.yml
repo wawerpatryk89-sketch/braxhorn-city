@@ -99,7 +99,9 @@ concurrency:
 jobs:
   exploration-apk:
     if: ${{ inputs.recovery_run == '' && inputs.etap != 'aktualizacja' && inputs.etap != 'biblioteka' }}
-    runs-on: ubuntu-latest
+    # Ubuntu 24.04 as #43, the last APK built (12.11). ubuntu-latest moved to 26.04: #46 there died of "No space left on
+    # device" (the runner's own log), #47 on its /dev/mapper/cow-root variant lost the runner mid-generation (18.11).
+    runs-on: ubuntu-24.04
     timeout-minutes: 355
     env:
       MISTRZOWIE_PIPELINE: "20261105-A1-T11"
@@ -344,7 +346,9 @@ jobs:
           sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache /usr/share/swift /usr/local/share/powershell \
             "$sdk/ndk" "$sdk/ndk-bundle" "$sdk/cmake" "$sdk/emulator" "$sdk/system-images" \
             /usr/local/share/boost /usr/local/share/chromium /opt/google /opt/microsoft /opt/az /usr/share/miniconda \
-            /usr/local/julia* /home/linuxbrew
+            /usr/local/julia* /home/linuxbrew \
+            /usr/local/lib/node_modules /usr/lib/google-cloud-sdk /usr/local/share/vcpkg /usr/lib/firefox /usr/local/aws-cli \
+            /usr/local/aws-sam-cli /opt/pipx /home/runner/.rustup /home/runner/.cargo "$sdk/extras"
           test -d "$sdk/build-tools" && test -d "$sdk/platforms"
           sudo apt-get clean
           sudo docker image prune --all --force

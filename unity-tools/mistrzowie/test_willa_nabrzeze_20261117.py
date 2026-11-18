@@ -1,8 +1,8 @@
 """Owner 17.11.2026 14:56: his photo of a warm beige Mediterranean villa ("No bo dobra, zrób takie") for the seafront,
 21:55 "dokończ wille". WILLA 3: peach-beige stucco, clay hip roofs at three heights, the front door's arch with arched
 French windows and iron rails either side, the balcony over the door on two white columns, oculi upstairs and in the tall
-east wing with its big arched walnut door, the porch wing west, chimneys, the formal pool in a dark border with the little
-tree on its island, a stair to the beach."""
+east wing with its big arched walnut door, the porch wing west, chimneys, the formal pool in a dark border (all water:
+18.11 04:48 "W basenie drzewo" - no island, no tree in it), a stair to the beach."""
 import math
 import pathlib
 import unittest
@@ -60,11 +60,15 @@ class WillaNabrzeze(unittest.TestCase):
         self.assertGreater(4.28 - .37, 3.8)
         self.assertLess(4.28 + .37, 5.0 - .3)
 
-    def test_the_formal_pool_and_its_island(self):
+    def test_the_formal_pool_all_water(self):
         self.assertIn("public const float NPX0 = -7f, NPX1 = 7f, NPZ0 = -20.2f, NPZ1 = -13.7f;", PLAN)
         self.assertIn("MM(stone, NPX0 - .45f, NPX1 + .45f, -.3f, 0f, NPZ0 - .45f, NPZ0);", PLAN)     # the dark border
-        self.assertIn('BraxRegion.Put(g, tree, "WILLA 3 | drzewko na wysepce basenu (drzewo_verdant)", new Vector3(0f, .34f, NPZ0 + 1.1f), 35f, 1f, false, 3.2f, 0f, false)', PLAN)
         self.assertIn('sw.basinId = "willa_3_basen";', PLAN)
+        # 18.11 04:48 "W basenie drzewo": no island and no tree in the water
+        pool = PLAN[PLAN.index("static void NBasen()"):PLAN.index("static void", PLAN.index("static void NBasen()") + 20)]
+        self.assertNotIn("drzewo_verdant", pool)
+        self.assertNotIn("wysep", PLAN)
+        self.assertNotIn("MM(stone, -.8f, .8f, fl, .32f", pool)
 
     def test_the_stair_to_the_beach_and_the_garage(self):
         self.assertIn("SchodyPlaza(NSt0, NSt1);", PLAN)

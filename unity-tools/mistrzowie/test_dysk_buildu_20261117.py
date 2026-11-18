@@ -1,7 +1,11 @@
 """Build #46 (17.11.2026, run 44079266370) died in Unity's import: "No space left on device". Before Unity it had 46 GB
 free (54 GB used after the cleanup, 99 GB after the source preparation and the restored Library); #43's clean import had
 taken 54 GB. The runner now drops what the host never uses and, below 85 GB free, the restored Library (its GUID sidecars
-are already in Assets) - a clean import as #43."""
+are already in Assets) - a clean import as #43.
+#47 (17/18.11, run 44175616635) lost its runner 1.5 h into Unity, mid-generation, with no error: ubuntu-latest had moved to
+Ubuntu 26.04 (#46 too, on /dev/root; #47 on /dev/mapper/cow-root). #43, the last APK built, ran on ubuntu-24.04: the APK
+job is pinned there again, and the cleanup also drops Node's global modules, Google Cloud SDK, vcpkg, Firefox, the AWS
+CLIs, pipx, Rust and the Android SDK's extras (the job uses none of them)."""
 import pathlib
 import unittest
 
@@ -24,6 +28,18 @@ class DyskBuildu(unittest.TestCase):
         self.assertIn("sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache /usr/share/swift", WF)
         self.assertNotIn("/opt/hostedtoolcache/CodeQL", WF)
         self.assertNotIn("setup-python", WF)                                   # python3 is the system one
+
+    def test_the_apk_job_runs_where_43_was_built(self):
+        job = WF[WF.index("  exploration-apk:"):]
+        job = job[:job.index("    steps:")]
+        self.assertIn("runs-on: ubuntu-24.04", job)
+        self.assertNotIn("runs-on: ubuntu-latest", job)
+        for gone in ("/usr/local/lib/node_modules", "/usr/lib/google-cloud-sdk", "/usr/local/share/vcpkg", "/usr/lib/firefox",
+                     "/usr/local/aws-cli", "/usr/local/aws-sam-cli", "/opt/pipx", "/home/runner/.rustup", "/home/runner/.cargo",
+                     '"$sdk/extras"'):
+            self.assertIn(gone, WF)
+        # apksigner needs the host's Java: it stays
+        self.assertNotIn("/usr/lib/jvm", WF[WF.index("sudo rm -rf /usr/share/dotnet"):WF.index("sudo apt-get clean")])
 
     def test_the_swap_goes_to_the_temporary_disk_when_it_has_room(self):
         self.assertIn('if mountpoint -q /mnt && [ "$(df --output=avail -BG /mnt | tail -1 | tr -dc 0-9)" -ge 20 ]; then swap=/mnt/swapfile-mistrzowie; fi', WF)

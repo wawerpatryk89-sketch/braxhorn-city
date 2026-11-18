@@ -7,7 +7,7 @@ using W = BraxWnetrzaKit;
 // windows with black iron rails either side, the balcony over the door on two white columns with its balustrade, the
 // arched French window onto it, round windows (oculi) upstairs and in the tall east wing with its big arched walnut door,
 // the low porch wing west with its arches on a column, chimneys at both ends; before it the travertine terrace and the
-// formal pool in its dark granite border with the little tree on its island, lawns either side.
+// formal pool in its dark granite border, all water (no island, owner 18.11), lawns either side.
 // On the site's pad (x -24..27, z -22.6..26, the view to -z over the sea; the road in at the back, local x 9):
 //  - the house x -9..9, z 0..13 (the hill villa's shell: the floors, the stair, the upstairs rooms, the back door);
 //  - the west wing x -17..-9, z -6..8: the porch (two arches front, one west) and the kitchen behind;
@@ -50,7 +50,7 @@ public static partial class BraxChampionsWille
         Fontanna(new Vector3(-13.5f, 0f, -10f), 1.0f);
     }
 
-    // ================================================================ the formal pool in its dark border, its little island
+    // ================================================================ the formal pool in its dark border
     static void NBasen()
     {
         Out_(true);
@@ -63,12 +63,7 @@ public static partial class BraxChampionsWille
         MM(stone, NPX0 - .45f, NPX0, -.3f, 0f, NPZ0, NPZ1); MM(stone, NPX1, NPX1 + .45f, -.3f, 0f, NPZ0, NPZ1);
         // the steps in at the east end, toward the house
         for (int i = 0; i < 4; i++) MM(poolTile, NPX1 - .45f * (i + 1), NPX1, fl, -.32f - i * .32f, NPZ1 - 2.2f, NPZ1);
-        // the island at the front middle: a granite box from the floor, soil on it, a little tree (the region's drzewo_verdant
-        // to 3.2 m)
-        MM(stone, -.8f, .8f, fl, .32f, NPZ0 + .3f, NPZ0 + 1.9f);
-        MM(lawn, -.72f, .72f, .32f, .34f, NPZ0 + .38f, NPZ0 + 1.82f, false);
-        var tree = BraxRegion.Model("drzewo_verdant");
-        if (tree && BraxRegion.Put(g, tree, "WILLA 3 | drzewko na wysepce basenu (drzewo_verdant)", new Vector3(0f, .34f, NPZ0 + 1.1f), 35f, 1f, false, 3.2f, 0f, false)) Drzewa++;
+        // owner 18.11 04:48 "W basenie drzewo": no island and no tree in the water - the pool is all water
         // the water, its body, the swim zone, two lights
         Plane(bw, waterMat, new Vector3(NPX0, Water, NPZ0), new Vector3(NPX1 - NPX0, 0, 0), new Vector3(0, 0, NPZ1 - NPZ0));
         Ton(NPX0 + .05f, NPX1 - .05f, fl + .05f, Water - .005f, NPZ0 + .05f, NPZ1 - .05f);
@@ -262,6 +257,6 @@ public static partial class BraxChampionsWille
             Palma(p.x, p.y);
         foreach (var p in new[] { new Vector2(-20.5f, 13f), new Vector2(-12.5f, 19f), new Vector2(23f, 13.5f), new Vector2(-5f, 21f) }) Drzewo(p.x, p.y);
         TablicaSprzedazy(3, new Vector3(1.0f, 0f, 23.6f), Vector3.forward,
-            "MONIKA: Willa nad samym morzem, w ciepłym beżu i dachówce: łukowe drzwi i okna, balkon na kolumnach, okrągłe okna, ganek z kuchnią, apartament gościnny, garaż na dwa auta, basen z wysepką i drzewkiem, schody na plażę. Zapraszam do WAWER NIERUCHOMOŚCI w T12!");
+            "MONIKA: Willa nad samym morzem, w ciepłym beżu i dachówce: łukowe drzwi i okna, balkon na kolumnach, okrągłe okna, ganek z kuchnią, apartament gościnny, garaż na dwa auta, basen w ciemnej obwódce, schody na plażę. Zapraszam do WAWER NIERUCHOMOŚCI w T12!");
     }
 }
