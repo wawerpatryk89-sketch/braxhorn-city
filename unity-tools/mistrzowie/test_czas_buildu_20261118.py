@@ -7,7 +7,10 @@ don't have to import the texture again with the format you want".
 #49 (run 44280844489) imported in 1 h 07 min (#48: 1 h 46 min) and then lost its runner at 11:59 mid-generation, on a
 runner whose / is /dev/mapper/cow-root - as #47. Both died once ~80-90 GB had been written in all, about the free space
 those runners start with; #43, #46, #48 ran on /dev/root. The job now checks its root first and stops in two minutes on a
-copy-on-write root with under 130 GB left in its overlay; Unity logs memory, swap and disk every two minutes."""
+copy-on-write root with under 130 GB left in its overlay; Unity logs memory, swap and disk every two minutes.
+#50 (run 44324597131) ran on cow-root with 218 GB free in its overlay and died at 16:10 all the same: BRAX_RES showed Unity
+at 10.2 GB, 3.9 GB of memory left and swap starting - onto the swap file on the dm-snapshot root. A copy-on-write root now
+always stops the build."""
 import pathlib
 import unittest
 
@@ -44,8 +47,12 @@ class Maszyna(unittest.TestCase):
         self.assertIn("- name: Runner disk check - a copy-on-write root stops the build in two minutes", first)
         self.assertIn("src=$(findmnt -no SOURCE / || true)", first)
         self.assertIn("sudo dmsetup status", first)
-        self.assertIn('if [ -z "$cow" ] || [ "$cow" -lt 130 ]; then', first)
-        self.assertIn("exit 1", first)
+        # #50 (cow-root, 218 GB free in its overlay) still died: Unity 10.2 GB, 3.9 GB left, swap onto the dm-snapshot
+        # root - a copy-on-write root now always stops the build
+        self.assertNotIn('-lt 130', first)
+        cow = first[first.index("*cow*)"):first.index("esac")]
+        self.assertIn("exit 1 ;;", cow)
+        self.assertNotIn("if ", cow)
         # it is the job's first step: nothing is downloaded or written before it
         self.assertEqual(steps.index("      - name: Runner disk check"), steps.index("      - name:"))
 
