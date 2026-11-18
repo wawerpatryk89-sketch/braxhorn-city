@@ -51,6 +51,11 @@ public sealed class BraxVessel : MonoBehaviour
     public string dzwiek = "";            // "MOTOR", "ELEKTRYK", "" = bez silnika
     public Transform kolP, kolT, przod;   // koła (obrót wokół lokalnego X) i kierownica z widelcem (obrót wokół lokalnego Y)
     public float rKola = .3f;
+    // AUTO NA LĄDZIE (właściciel 18.11 15:13: „ten samochód wstawisz tak samo… do jeżdżenia po mieście”): ten sam napęd co jednoślady,
+    // ale cztery koła (kolaAuta, obrót wokół lokalnego X), skręt przednich (skretAuta, wokół lokalnego Y), bez przechyłu w zakręcie
+    // (nadwozie tylko lekko, maxPrzechyl), przeszkoda sprawdzana całą szerokością auta, kierowca siedzi (poza Kierowca, klip Jazda).
+    public bool auto;
+    public Transform[] kolaAuta = new Transform[0], skretAuta = new Transform[0];
     float ladY, skretS; bool ladOk;
     static readonly RaycastHit[] bufor = new RaycastHit[16];
     const int MaskaLad = ~((1 << 8) | (1 << 29));
@@ -138,7 +143,7 @@ public sealed class BraxVessel : MonoBehaviour
         if (sit)
         {
             var pose = BraxPose.Get(player);
-            pose.Set(label == "SKUTER" || lad ? BraxPose.Mode.Ride : (jazda ? BraxPose.Mode.Kierowca : BraxPose.Mode.Ster), transform);
+            pose.Set(label == "SKUTER" || lad && !auto ? BraxPose.Mode.Ride : (jazda ? BraxPose.Mode.Kierowca : BraxPose.Mode.Ster), transform);
             pose.klip = jazda;
             pose.SetGrips(leftGrip, rightGrip);
         }
@@ -249,7 +254,7 @@ public sealed class BraxVessel : MonoBehaviour
     public string Interakcja()
     {
         if (!rider) return "";
-        if (!walkableDeck) return "ZEJDŹ · " + label;
+        if (!walkableDeck) return (auto ? "WYSIĄDŹ · " : "ZEJDŹ · ") + label;
         if (!onDeck) return "WYJDŹ NA POKŁAD";
         if (BliskoSteru()) return "STERUJ JACHTEM";
         if (BliskoTrapu()) return "ZEJDŹ NA POMOST";
@@ -455,7 +460,9 @@ public sealed class BraxVessel : MonoBehaviour
         if (Mathf.Abs(speed) > .01f)
         {   // przeszkoda przed przodem (kula na wys. 0.55 m): ściana, auto, słupek, ławka — stop; podjazd i krawężnik nie
             var dir = fwd * Mathf.Sign(speed); float zasieg = length * .5f + Mathf.Abs(speed) * dt + .15f;
-            int c = Physics.SphereCastNonAlloc(pos + Vector3.up * .55f - dir * .2f, .22f, dir, bufor, zasieg + .2f, MaskaLad, QueryTriggerInteraction.Ignore);
+            int c = auto   // auto: cała szerokość (pudło 0.9 szerokości, 0.35–0.95 m nad nawierzchnią), krawężnik i podjazd przepuszcza
+                ? Physics.BoxCastNonAlloc(pos + Vector3.up * .65f - dir * .2f, new Vector3(width * .45f, .3f, .1f), dir, bufor, Quaternion.LookRotation(fwd), zasieg + .2f, MaskaLad, QueryTriggerInteraction.Ignore)
+                : Physics.SphereCastNonAlloc(pos + Vector3.up * .55f - dir * .2f, .22f, dir, bufor, zasieg + .2f, MaskaLad, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < c; i++)
             {
                 var h = bufor[i]; if (!h.collider || h.collider.transform.IsChildOf(transform) || h.distance <= 0f || h.normal.y > .7f) continue;
@@ -483,6 +490,12 @@ public sealed class BraxVessel : MonoBehaviour
         float obrot = speed * dt / Mathf.Max(.05f, rKola) * Mathf.Rad2Deg;
         if (kolP) kolP.localRotation *= Quaternion.AngleAxis(obrot, Vector3.right);
         if (kolT) kolT.localRotation *= Quaternion.AngleAxis(obrot, Vector3.right);
+        foreach (var k in kolaAuta) if (k) k.localRotation *= Quaternion.AngleAxis(obrot, Vector3.right);
+        if (skretAuta.Length > 0)
+        {   // skręt przednich kół: pełne wychylenie 34° na postoju, 12° przy prędkości maksymalnej
+            skretS = Mathf.Lerp(skretS, move.x * 34f * Mathf.Lerp(1f, .35f, v01), 1f - Mathf.Exp(-dt * 8f));
+            foreach (var t in skretAuta) if (t) t.localRotation = Quaternion.AngleAxis(skretS, Vector3.up);
+        }
         if (przod)
         {
             skretS = Mathf.Lerp(skretS, move.x * 24f * Mathf.Lerp(1f, .3f, v01), 1f - Mathf.Exp(-dt * 8f));

@@ -1,0 +1,37 @@
+{
+ "source": "Właściciel 18.11.2026 15:13: zip z dwoma GLB Tripo — samochód (czarny, złote listwy) i ścigacz (czerwony); „Popraw go. Te ramki zostaw złote. Napisy usuń… I ten motor wstaw i ten samochód… do jeżdżenia po mieście”; wybór: „Zrób koła” (275/35 R21, felga czarna ze złotym rantem), „Usuń i daj wyraźny BRAXHORN”. Ścigacz 2.11 m, koła z jego modelu (oś w środku felgi, opony obrotowe z jego przekroju); auto ×5.0 (4.90 m), +0.1225 m, naklejki BRAXHORN, tablica BRAXHORN, 4 koła ze skrętem. Skrypty odtwarzające w oryginal/.",
+ "target": "pojazdy_wlasciciela_01",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/pojazdy_wlasciciela_01 (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "58b355b0266db4f0146a3726abd551389c095e9b2054931f65bf95d89755a566",
+ "cmsSha256": "84268ce571e0a36568a4662609db3effa308c8b5dc965e9c45fd57b42d899634",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 29676101,
+   "sha256": "84268ce571e0a36568a4662609db3effa308c8b5dc965e9c45fd57b42d899634"
+  }
+ ],
+ "files": {
+  "oryginal/BebasNeue-Regular.ttf": "08e4623805102d819f58601e46e345648846075e363b2ceb23313c2d1c83ec73",
+  "oryginal/glb_proste.py": "da96869e5c743f4ebb78d756790bc5cf47e6d18a238a7724103d2ab1bef929d7",
+  "oryginal/pojazd_auto_braxhorn.py": "48b31ec7eb166b6332fcce043cd74a8f0817c6b966b1014cb5ab332048f7d4ce",
+  "oryginal/pojazd_motor_scigacz.py": "2e0d91d5e102f4a2597e3376678609826c6c15897ab338f860e91a8e4245bee6",
+  "oryginal/rzut.py": "ce3e78b0f5c0d87ef5b96f861af344f2e0362477b036e9385295e102a1b642d7",
+  "oryginal/spec.json": "59d605fce2b2bd42efa45a7238779e7453e978f3a44751de2067d7eec8d7c825",
+  "oryginal/tripo_convert_840fea80-4c23-42dd-91b0-46565940ee64.glb": "705d9d3827475fd9b4fcc6e80ab313e6b231e5565a014c9e828cff3f17eff4fd",
+  "oryginal/tripo_convert_acc13b2b-5961-4ff2-bdcb-b477df3c7ece.glb": "1a3622924c9ea79ae38c6be737faf08b17e698c00cca4d524264723766fabd1a",
+  "pojazdy_wlasciciela_01/_tekstury/auto_braxhorn_czarne/kolor.jpg": "3cea2eb49892e30b0677946984915906daa02844363680f6b06d762df63a84ab",
+  "pojazdy_wlasciciela_01/_tekstury/auto_braxhorn_czarne/mr.png": "e54f824fa28bd705e6b01db8782e102287f181d474ea91a7bd658ac09d1930c9",
+  "pojazdy_wlasciciela_01/_tekstury/auto_braxhorn_czarne/naklejki.png": "3cdc4c5fbca42c65ad2b27cddd25f0791f8ba458872d5b98417adfb6be980ae1",
+  "pojazdy_wlasciciela_01/_tekstury/auto_braxhorn_czarne/naklejki_mr.png": "a3ed9ccd44ff47441d8a5b64290c91174b7bf55e917f2e75cd78c52213dcab7b",
+  "pojazdy_wlasciciela_01/_tekstury/auto_braxhorn_czarne/normal.jpg": "dfd72501a65c32cebe77f875ebd11b7fe6561dc0caa8c0dd967e44299e660a33",
+  "pojazdy_wlasciciela_01/_tekstury/motor_scigacz_czerwony/kolor.jpg": "616b071fed4a35baf8254fdcd78e64d58e57e5beaeafbd75412341f6b523988e",
+  "pojazdy_wlasciciela_01/_tekstury/motor_scigacz_czerwony/mr.png": "e592d2b9cbaac98643ed7a3d16833c73785d2623aea58575a0e4649868525e56",
+  "pojazdy_wlasciciela_01/_tekstury/motor_scigacz_czerwony/normal.jpg": "2b0e6559c8b497d28432e0301a1f33307782355728672b3927c53ebf73564720",
+  "pojazdy_wlasciciela_01/auto_braxhorn_czarne.glb": "8a681d3bd9322179ea7582bcfdaf10b749c1542a23b13d09767abca8771de224",
+  "pojazdy_wlasciciela_01/katalog.json": "92a114d5d4cbfb0c4058c7426b858aef41c1c1abfa833e16b93b027230bfb3ef",
+  "pojazdy_wlasciciela_01/motor_scigacz_czerwony.glb": "0011dc55028ecc5b7bf0937f73fc9ffdc4b3b0d14c374e36f20aa7f6394fae45"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

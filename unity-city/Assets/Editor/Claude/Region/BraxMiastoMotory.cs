@@ -18,6 +18,12 @@ internal static class BraxMiastoMotory
     public static readonly string[] Motory = { "motor_sportowy_czerwony", "motor_naked_grafitowy", "motor_adventure_bezowy_kufry", "motor_cruiser_bordowy", "motor_turystyczny_granatowy" };
     public static readonly string[] Rowery = { "rower_fatbike_czarny", "rower_trekking_elektryczny_czarny" };
     public static bool SaMotory => BraxMiastoAssety.Jest(PaczkaMotory);
+    // 18.11 15:13 (właściciel, zip z dwoma GLB: „To jest samochód. Popraw go… I ten motor wstaw i ten samochód wstawisz tak samo…
+    // do jeżdżenia po mieście”): paczka pojazdy_wlasciciela_01 — ścigacz z kołami jako węzły modelu (kolo_przednie / kolo_tylne,
+    // oś w piaście) i auto BRAXHORN (skret_lp / skret_pp z kolo_lp / kolo_pp, kolo_lt / kolo_pt). Przygotowane poza Unity skryptami
+    // z paczki (oryginal/pojazd_motor_scigacz.py, pojazd_auto_braxhorn.py).
+    public const string PaczkaWlasciciela = "pojazdy_wlasciciela_01", ScigaczWlasciciela = "motor_scigacz_czerwony", AutoWlasciciela = "auto_braxhorn_czarne";
+    public static bool SaPojazdyWlasciciela => BraxMiastoAssety.Jest(PaczkaWlasciciela);
 
     /// <summary>Motocykle na stanowisku (c = środek stanowiska na nawierzchni, przod = kierunek wjazdu auta, rozmiar.x = szerokość
     /// w poprzek): ile ≤ 2 sztuk od modelu nr od — DO JAZDY (12.11 02:32). Zwraca liczbę postawionych.</summary>
@@ -51,28 +57,82 @@ internal static class BraxMiastoMotory
     { var c = new GameObject("kolizja pojazdu").AddComponent<BoxCollider>(); c.transform.SetParent(v, false); c.center = (lo + hi) * .5f; c.size = hi - lo; }
 
     /// <summary>Motocykl do jazdy (nr modelu 0–4). null = brak paczki.</summary>
-    public static BraxVessel Motor(Transform rodzic, int nr, Vector3 p, float yaw)
+    public static BraxVessel Motor(Transform rodzic, int nr, Vector3 p, float yaw) => Motor(rodzic, PaczkaMotory, Motory[Mathf.Abs(nr) % Motory.Length], p, yaw);
+
+    static BraxVessel Motor(Transform rodzic, string paczka, string plik, Vector3 p, float yaw)
     {
-        string plik = Motory[Mathf.Abs(nr) % Motory.Length];
-        var m = SaMotory ? BraxMiastoAssety.Model(PaczkaMotory, plik) : null; if (!m) return null;
+        var m = BraxMiastoAssety.Jest(paczka) ? BraxMiastoAssety.Model(paczka, plik) : null; if (!m) return null;
         var o = BraxMiastoAssety.Postaw(rodzic, m, "model · " + plik, p, yaw, 1f, false, true); if (!o) return null;
         var b = BraxMiastoAssety.Granice(o); float L = b.size.z > b.size.x ? b.size.z : b.size.x, H = b.size.y;
         var v = Korzen(rodzic, "Motocykl do jazdy · " + plik, p, yaw, "MOTOR", L, .9f * K);
         o.transform.SetParent(v.transform, true);
         v.maxSpeed = 24f; v.accel = 6.5f; v.turnRate = 72f; v.maxPrzechyl = 40f; v.stopka = 7f; v.dzwiek = "MOTOR"; v.sit = true;
         v.rozstaw = .68f * L; v.rKola = .31f * K;
-        v.seat = new Vector3(0f, .6f * H, -.08f * L);
-        v.leftGrip = Marker(v.transform, "uchwyt lewy", new Vector3(-.32f * K, .76f * H, .3f * L));
-        v.rightGrip = Marker(v.transform, "uchwyt prawy", new Vector3(.32f * K, .76f * H, .3f * L));
+        bool scigacz = plik == ScigaczWlasciciela;
+        // ścigacz właściciela: siodło i kierownica zmierzone na jego modelu (siodło 0.85 m, z −0.27; manetki ±0.30, 0.84, z 0.45)
+        v.seat = scigacz ? new Vector3(0f, .85f * K, -.27f * K) : new Vector3(0f, .6f * H, -.08f * L);
+        v.leftGrip = Marker(v.transform, "uchwyt lewy", scigacz ? new Vector3(-.30f * K, .84f * K, .45f * K) : new Vector3(-.32f * K, .76f * H, .3f * L));
+        v.rightGrip = Marker(v.transform, "uchwyt prawy", scigacz ? new Vector3(.30f * K, .84f * K, .45f * K) : new Vector3(.32f * K, .76f * H, .3f * L));
         Kolizja(v.transform, new Vector3(-.3f * K, .1f, -.45f * L), new Vector3(.3f * K, .85f * H, .45f * L));
-        // 18.11 14:49 (właściciel: „Zrób mi motor, w którym się kręcą koła”): koła wycięte z bryły modelu, kręcą się w jeździe
-        bool kola = BraxKolaMotoru.Wydziel(v, o, L, plik, out string opisKol);
-        Debug.Log((kola ? "BRAXHORN_MOTOR_KOLA " : "DO POPRAWKI: BRAXHORN_MOTOR_KOLA ") + plik + (kola ? ": koła się kręcą — " : ": koła NIE wycięte (jedna bryła) — ") + opisKol);
-        if (kola) KolaKreca++;
+        // 18.11 (właściciel 14:49: „Zrób mi motor, w którym się kręcą koła”): koła = węzły modelu kolo_przednie / kolo_tylne (oś
+        // w piaście) — przygotowane poza Unity na jego modelu. Motocykle paczki pojazdy_motory_01 to jedna bryła: wycinanie kół
+        // przy buildzie (BraxKolaMotoru) okazało się niepewne na modelach Tripo (opona spłaszczona u dołu → oś 15–19 mm za nisko,
+        // opona zrośnięta z wahaczem i błotnikiem) — nie jest używane; te motocykle jeżdżą jak dotąd, koła w bryle.
+        var kp = BraxMiastoAssety.Znajdz(o.transform, "kolo_przednie"); var kt = BraxMiastoAssety.Znajdz(o.transform, "kolo_tylne");
+        if (kp && kt)
+        {
+            v.kolP = kp; v.kolT = kt;
+            Vector3 lp = v.transform.InverseTransformPoint(kp.position), lt = v.transform.InverseTransformPoint(kt.position);
+            v.rozstaw = lp.z - lt.z; v.rKola = (Promien(kp) + Promien(kt)) * .5f; KolaKreca++;
+            Debug.Log("BRAXHORN_MOTOR_KOLA " + plik + ": koła się kręcą (węzły modelu) — rozstaw osi " + v.rozstaw.ToString("0.00") + " m, R koła " + v.rKola.ToString("0.000") + " m");
+        }
+        else Debug.Log("BRAXHORN_MOTOR_KOLA " + plik + ": koła w bryle (model bez węzłów kół)");
         Lod(v.gameObject, .012f);
         return v;
     }
     public static int KolaKreca;
+
+    // promień koła z obrysu jego brył (oś obrotu = lokalne X, więc wysokość obrysu = średnica)
+    static float Promien(Transform kolo)
+    {
+        var rs = kolo.GetComponentsInChildren<Renderer>(true); if (rs.Length == 0) return .3f * K;
+        var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        return b.extents.y;
+    }
+
+    /// <summary>Auto właściciela do jazdy (paczka pojazdy_wlasciciela_01, auto_braxhorn_czarne): 4 koła kręcą się, przednie
+    /// skręcają (węzły skret_lp / skret_pp), kierowca siedzi z lewej (kierownica jego modelu), wsiadanie przy drzwiach kierowcy.
+    /// null = brak paczki.</summary>
+    public static BraxVessel Auto(Transform rodzic, Vector3 p, float yaw)
+    {
+        var m = SaPojazdyWlasciciela ? BraxMiastoAssety.Model(PaczkaWlasciciela, AutoWlasciciela) : null; if (!m) return null;
+        var o = BraxMiastoAssety.Postaw(rodzic, m, "model · " + AutoWlasciciela, p, yaw, 1f, false, true); if (!o) return null;
+        var b = BraxMiastoAssety.Granice(o); float L = b.size.z > b.size.x ? b.size.z : b.size.x, W = b.size.z > b.size.x ? b.size.x : b.size.z, H = b.size.y;
+        var v = Korzen(rodzic, "Auto do jazdy BRAXHORN · " + AutoWlasciciela, p, yaw, "AUTO", L, W);
+        o.transform.SetParent(v.transform, true);
+        v.auto = true; v.maxSpeed = 30f; v.accel = 5.2f; v.turnRate = 52f; v.maxPrzechyl = 3f; v.stopka = 0f; v.dzwiek = "MOTOR"; v.sit = true;
+        string[] kola = { "kolo_lp", "kolo_pp", "kolo_lt", "kolo_pt" };
+        var t = new List<Transform>(); foreach (var n in kola) { var k = BraxMiastoAssety.Znajdz(o.transform, n); if (k) t.Add(k); }
+        v.kolaAuta = t.ToArray();
+        var sl = BraxMiastoAssety.Znajdz(o.transform, "skret_lp"); var sp = BraxMiastoAssety.Znajdz(o.transform, "skret_pp");
+        v.skretAuta = sl && sp ? new[] { sl, sp } : new Transform[0];
+        if (t.Count == 4)
+        {
+            Vector3 lp = v.transform.InverseTransformPoint(t[0].position), lt = v.transform.InverseTransformPoint(t[2].position);
+            v.rozstaw = lp.z - lt.z; v.rKola = Promien(t[0]);
+        }
+        else { v.rozstaw = .59f * L; v.rKola = .363f * K; }
+        // kierowca z lewej (kierownica jego modelu: x −0.405, y 0.887, z 0.425 m; siedzisko fotela 0.68 m, z −0.155) — dłonie na wieńcu
+        v.seat = new Vector3(-.405f * K, .68f * K, -.155f * K);
+        v.leftGrip = Marker(v.transform, "kierownica: lewa dłoń", new Vector3(-.575f * K, .887f * K, .41f * K));
+        v.rightGrip = Marker(v.transform, "kierownica: prawa dłoń", new Vector3(-.235f * K, .887f * K, .41f * K));
+        v.wejscie = new Vector3(-(W * .5f + .5f * K), 0f, .05f * K);                    // przy drzwiach kierowcy, na zewnątrz
+        Kolizja(v.transform, new Vector3(-.47f * W, .18f * K, -.49f * L), new Vector3(.47f * W, .86f * H, .49f * L));
+        Debug.Log("BRAXHORN_AUTO_WLASCICIELA " + AutoWlasciciela + ": " + L.ToString("0.00") + " × " + W.ToString("0.00") + " × " + H.ToString("0.00") + " m, kół " + t.Count +
+                  ", skręt " + v.skretAuta.Length + ", rozstaw osi " + v.rozstaw.ToString("0.00") + " m, R koła " + v.rKola.ToString("0.000") + " m");
+        Lod(v.gameObject, .01f);
+        return v;
+    }
 
     /// <summary>Ścigacz właściciela (motor_sportowy_czerwony) pod siłownią BRAXHORN (18.11 14:49: „Podstaw go pod siłownię,
     /// żebym mógł jeździć, bo to za dużo chodzenia”): pierwsze wolne miejsce z listy (płaska nawierzchnia, wolne 1.1 × 3.5 m).</summary>
@@ -87,14 +147,48 @@ internal static class BraxMiastoMotory
             if (!Physics.Raycast(p + Vector3.up * 2f, Vector3.down, out var h, 4f, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore) || h.normal.y < .95f) continue;
             p.y = h.point.y;
             if (Physics.CheckBox(p + Vector3.up * 1.0f, new Vector3(.55f, .8f, 1.35f * K), Quaternion.Euler(0f, yaw, 0f), ~0, QueryTriggerInteraction.Ignore)) continue;
-            var v = Motor(rodzic, 0, p, yaw);
+            // 18.11 15:13: ścigacz właściciela z zipa (gdy paczka jest), inaczej sportowy z paczki motocykli
+            bool wl = SaPojazdyWlasciciela; string plik = wl ? ScigaczWlasciciela : Motory[0];
+            var v = wl ? Motor(rodzic, PaczkaWlasciciela, ScigaczWlasciciela, p, yaw) : Motor(rodzic, 0, p, yaw);
             if (!v) continue;
-            v.name = "Ścigacz pod siłownią BRAXHORN · " + Motory[0];
+            v.name = "Ścigacz pod siłownią BRAXHORN · " + plik;
             Physics.SyncTransforms();
-            Debug.Log("BRAXHORN_MOTOR_SILOWNIA ścigacz " + Motory[0] + " w miejscu " + (i + 1) + "/" + miejsca.Count + " (" + p.x.ToString("0.0") + ", " + p.z.ToString("0.0") + "), koła " + (v.kolP && v.kolT ? "kręcą się" : "w bryle"));
+            Debug.Log("BRAXHORN_MOTOR_SILOWNIA ścigacz " + plik + " w miejscu " + (i + 1) + "/" + miejsca.Count + " (" + p.x.ToString("0.0") + ", " + p.z.ToString("0.0") + "), koła " + (v.kolP && v.kolT ? "kręcą się" : "w bryle"));
             return v;
         }
         Debug.Log("DO POPRAWKI: BRAXHORN_MOTOR_SILOWNIA żadne z " + miejsca.Count + " miejsc pod siłownią nie jest wolne — ścigacza nie postawiono");
+        return null;
+    }
+
+    /// <summary>Auto właściciela pod siłownią BRAXHORN („ten samochód wstawisz tak samo”): pierwsze płaskie i wolne miejsce
+    /// z listy (obrys auta + 15 cm), przodem w kierunku przodem.</summary>
+    public static BraxVessel AutoPodSilownia(Transform rodzic, IList<Vector3> miejsca, Vector3 przodem)
+    {
+        if (!SaPojazdyWlasciciela) { Debug.Log("DO POPRAWKI: BRAXHORN_AUTO_SILOWNIA brak paczki " + PaczkaWlasciciela + " — auta właściciela pod siłownią nie ma"); return null; }
+        przodem.y = 0f; przodem.Normalize(); float yaw = Quaternion.LookRotation(przodem).eulerAngles.y;
+        Physics.SyncTransforms();
+        for (int i = 0; i < miejsca.Count; i++)
+        {
+            var p = miejsca[i];
+            if (!Physics.Raycast(p + Vector3.up * 2f, Vector3.down, out var h, 4f, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore) || h.normal.y < .95f) continue;
+            p.y = h.point.y;
+            // płasko pod całym autem (cztery narożniki ± 3 cm) i wolne 2.35 × 1.5 × 5.2 m × K
+            var q = Quaternion.Euler(0f, yaw, 0f); bool plasko = true;
+            foreach (var r in new[] { new Vector3(-1.05f, 0f, -2.35f), new Vector3(1.05f, 0f, -2.35f), new Vector3(-1.05f, 0f, 2.35f), new Vector3(1.05f, 0f, 2.35f) })
+            {
+                var c = p + q * (r * K);
+                if (!Physics.Raycast(c + Vector3.up * 2f, Vector3.down, out var hc, 4f, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore) || Mathf.Abs(hc.point.y - p.y) > .03f) { plasko = false; break; }
+            }
+            if (!plasko) continue;
+            if (Physics.CheckBox(p + Vector3.up * (.85f * K), new Vector3(1.2f * K, .75f * K, 2.6f * K), q, ~0, QueryTriggerInteraction.Ignore)) continue;
+            var v = Auto(rodzic, p, yaw);
+            if (!v) continue;
+            v.name = "Auto pod siłownią BRAXHORN · " + AutoWlasciciela;
+            Physics.SyncTransforms();
+            Debug.Log("BRAXHORN_AUTO_SILOWNIA auto " + AutoWlasciciela + " w miejscu " + (i + 1) + "/" + miejsca.Count + " (" + p.x.ToString("0.0") + ", " + p.z.ToString("0.0") + ")");
+            return v;
+        }
+        Debug.Log("DO POPRAWKI: BRAXHORN_AUTO_SILOWNIA żadne z " + miejsca.Count + " miejsc pod siłownią nie jest wolne — auta nie postawiono");
         return null;
     }
 

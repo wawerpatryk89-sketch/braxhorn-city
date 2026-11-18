@@ -180,6 +180,12 @@ public static partial class BraxClaudeOsiedle
                 for (int r = 0; r < 2; r++) for (int i = 0; i < 3; i++) miejscaM.Add(new Vector3(19.7f + 4f * 1.25f * k + i * 1.25f * k, 0f, 8.6f + r * 3.2f * k));
                 for (int i = 1; i <= 2; i++) miejscaM.Add(new Vector3(19.7f - i * 1.25f * k, 0f, 8.6f));
                 if (BraxMiastoMotory.PodSilownia(gj, miejscaM, Vector3.forward)) jedn++;
+                // 18.11 15:13 („ten samochód wstawisz tak samo… do jeżdżenia po mieście”): auto właściciela w przejściu na wschód od
+                // siłowni (x 18.6…26, z −6…11.6, płyty placu) wzdłuż ściany siłowni, przodem do ulicy; potem podwórze za kamienicami
+                var miejscaA = new List<Vector3>();
+                foreach (float z in new[] { 1.5f, -.5f, 3.5f, -2f }) foreach (float x in new[] { 20.4f, 23.6f }) miejscaA.Add(new Vector3(x, 0f, z));
+                foreach (float x in new[] { -22f, -30f, -38f, -46f }) foreach (float z in new[] { 2f, 6f }) miejscaA.Add(new Vector3(x, 0f, z));
+                BraxMiastoMotory.AutoPodSilownia(gj, miejscaA, Vector3.forward);
             }
             Debug.Log("BRAXHORN_JEDNOSLADY do jazdy w mieście: " + jedn);
         }
