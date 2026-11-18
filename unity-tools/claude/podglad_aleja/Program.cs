@@ -76,6 +76,8 @@ public static class Podglad
             T.GetMethod("Elewacja", F).Invoke(null, new object[] { f, kolizje });
             BraxUliceKit.UstawGrupe("Szyldy " + b.id, 90f);
             T.GetMethod("Szyldy", F).Invoke(null, new object[] { f });
+            // 18.11 14:21: drzwi lokalu jak w grze (BraxUlicePierzeje.Drzwi → BraxDrzwiLokalu.Podwojne) — szyld nad drzwiami
+            try { T.GetMethod("Drzwi", F).Invoke(null, new object[] { gp, b, lok, f }); } catch (Exception e) { Console.WriteLine("BŁĄD drzwi " + b.id + ": " + (e.InnerException ?? e).Message); }
         }
         BraxUliceKit.Zapisz(gp, "portowa_podglad");
         var opis = BraxMiastoBanery.NadUlica(gp, -17f, 20.6f, 36.1f, -18f, -16f, .003f, 8f);

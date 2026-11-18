@@ -1,6 +1,6 @@
 """MIASTO R1 18.11 — szyldy z grafik właściciela (12:13: „Tych szyldów nie akceptuję… to ci wydrukuję”; 12:57 plansza A 17 + B 10;
 13:02: „Te wystarczą… jak brakuje, to zrób porządek sam” — C z ikon grafik A). Paczka zaszyfrowana (repo publiczne), kaseton
-świetlny bez par migotania, nad witryną — nie na szybie, nie na gzymsie."""
+świetlny bez par migotania, nad DRZWIAMI lokalu (14:21: „Nad oknami? Ani nad drzwiami?”) — nie na szybie, nie na gzymsie."""
 import json
 import re
 import unittest
@@ -52,20 +52,42 @@ class Montaz(unittest.TestCase):
         self.assertIn("s.uv[i0] = new Vector2(0f, 0f); s.uv[i0 + 1] = new Vector2(1f, 0f);", SZ)  # obraz nieodbity
         self.assertIn("var R = Vector3.Cross(n, Vector3.up).normalized;", SZ)                     # prawo patrzącego
 
-    def test_street_sign_above_window_not_on_glass(self):
-        self.assertIn("const float WitrynaGora = 3.05f;", PIERZ)
+    def test_street_sign_above_door_not_on_glass(self):
+        # nadproże drzwi = nadproże witryn (3.05): nad drzwiami pełny pas 45 cm do spodu gzymsu 3.50 (dotąd drzwi do 3.20)
+        self.assertIn("const float WitrynaGora = 3.05f, DrzwiGora = WitrynaGora;", PIERZ)
+        self.assertIn("otwory.Add(new Otwor { r = Rect.MinMaxRect(f.drzwiS - 1.17f, Chodnik, f.drzwiS + 1.17f, DrzwiGora), gleb = .3f, drzwi = true });", PIERZ)
+        self.assertIn("f.N, 2.34f, DrzwiGora - Chodnik, .3f, 0f, BraxDrzwiLokalu.ModelDla(lok.typ));", PIERZ)   # drzwi w tym otworze
+        self.assertNotIn("3.2f), gleb = .3f, drzwi = true", PIERZ)
         self.assertIn("otwory.Add(new Otwor { r = Rect.MinMaxRect(s0, .62f, s1, WitrynaGora), gleb = GlebWitryny, witryna = true });", PIERZ)
         self.assertIn("const float g0 = WitrynaGora + .005f + BraxSzyldyWlasciciela.Rama, g1 = 3.50f - .005f - BraxSzyldyWlasciciela.Rama, odSciany = .09f;", PIERZ)
         self.assertIn("OBox(f, st.detal, 0f, f.W, 3.50f, 3.62f, 0f, .13f);", PIERZ)             # spód gzymsu nad parterem
-        self.assertIn("foreach (var (s0, s1) in Witryny(f))", PIERZ[PIERZ.index("static bool KasetonWlasciciela"):])
+        k = PIERZ[PIERZ.index("static bool KasetonWlasciciela"):PIERZ.index("static void Elewacja")]
+        self.assertIn("float sc = Mathf.Clamp(f.drzwiS, lewo + (w + zapas) * .5f, prawo - (w + zapas) * .5f);", k)   # oś = oś drzwi
+        self.assertNotIn("Witryny(f)", k)
         a = PIERZ.index("static void Szyldy(Fasada f)")
         self.assertLess(PIERZ.index("if (KasetonWlasciciela(f)) goto poSzyldzie;", a), PIERZ.index("string firma = lok.typ", a))
+        self.assertIn("const float yNad = DrzwiGora,", PIERZ)                                    # szyld zapasowy też nad nadprożem
+
+    def test_awning_over_door_too(self):
+        # 14:33 (właściciel: „A ten taki daszek, to po co one są nad oknem zamiast nad drzwiami?”): markiza nad drzwiami, jedna linia
+        m = PIERZ[PIERZ.index("if (lok.markiza)"):PIERZ.index("if (lok.wysiegnik)")]
+        self.assertNotIn("if (i == drzwiBay) continue;", m)
+        self.assertIn("if (i == drzwiBay) { s0 = mdA; s1 = mdB; }", m)
+        self.assertIn("Mathf.Min(drzwiBay * f.bay + .2f, f.drzwiS - 1.37f)", m)            # wsporniki ± 1.27 m — na murze, nie w otworze
+        self.assertIn("Mathf.Max((drzwiBay + 1) * f.bay - .2f, f.drzwiS + 1.37f)", m)
+        self.assertIn("float yA = 3.04f, yB = 2.74f, dB = 1.05f, yC = 2.52f, pas = .26f;", m)   # dół falbany 2.52 m > Brax 2.33 m
+
+    def test_door_leaves_fit_brax(self):
+        drzwi = (REG / "BraxDrzwiLokalu.cs").read_text(encoding="utf-8")
+        self.assertIn("float hS = Mathf.Min(2.85f, H - .2f);", drzwi)       # 2.90 m → skrzydła 2.70 m (Brax 2.33 m)
+        self.assertIn("float hS = Mathf.Min(2.6f, H - .33f), hN = hS + .26f;", drzwi)   # przesuwne: 2.57 m
 
     def test_blade_sign_face(self):
         self.assertIn("BraxSzyldyWlasciciela.LicoWysiegnika(BraxSzyldyWlasciciela.PlikC(lok.szyld), fc, fn, 2f * bk)", PIERZ)
 
     def test_aleja_centralna_on_fascia(self):
-        self.assertIn('BraxSzyldyWlasciciela.Kaseton(BraxSzyldyWlasciciela.PlikB(l.szyld), F.P(sm, yc, -.26f - .08f), F.N, .62f, .08f, sb - sa - .4f,', WIEZE)
+        self.assertIn('BraxSzyldyWlasciciela.Kaseton(BraxSzyldyWlasciciela.PlikB(l.szyld), F.P(sB, yc, -.26f - .08f), F.N, .62f, .08f, sb - sa - .4f,', WIEZE)
+        self.assertIn("sB = Mathf.Clamp(p.sc, sa + .2f + wB * .5f, sb - .2f - wB * .5f);", WIEZE)   # nad drzwiami lokalu
         self.assertIn("BraxUliceKit.S(listwa).Box(F.P(sa, yc - .36f, -.215f), F.P(sb, yc + .36f, -.26f));", WIEZE)   # listwa 0.72 m ≥ lico 0.62 + rama
         self.assertIn("if (!betLogo && !grafikaB && (firma == null", WIEZE)
 

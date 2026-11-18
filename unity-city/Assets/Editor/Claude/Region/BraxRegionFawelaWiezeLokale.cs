@@ -187,7 +187,14 @@ public static partial class BraxRegionFawela
         }
         // 18.11 12:57 (plansza szyldów właściciela, B — Aleja Centralna, grafiki 6:1): kaseton świetlny z JEGO grafiką na listwie
         // (lico 62 cm, 8 cm przed listwą, rama w obrysie listwy 0.72 m); bez paczki jak dotąd (grafika firmy / litery z LED)
-        bool grafikaB = !betLogo && BraxSzyldyWlasciciela.Kaseton(BraxSzyldyWlasciciela.PlikB(l.szyld), F.P(sm, yc, -.26f - .08f), F.N, .62f, .08f, sb - sa - .4f, "Aleja Centralna: " + l.szyld + " (" + id + ")") > 0f;
+        // 18.11 14:21 (właściciel: „Nad oknami? Ani nad drzwiami?”): oś kasetonu = oś drzwi lokalu (p.sc), w obrysie listwy
+        float sB = sm;
+        if (BraxSzyldyWlasciciela.Grafika(BraxSzyldyWlasciciela.PlikB(l.szyld), out float aspB))
+        {
+            float wB = Mathf.Min(.62f * aspB, sb - sa - .4f) + 2f * BraxSzyldyWlasciciela.Rama;
+            sB = Mathf.Clamp(p.sc, sa + .2f + wB * .5f, sb - .2f - wB * .5f);
+        }
+        bool grafikaB = !betLogo && BraxSzyldyWlasciciela.Kaseton(BraxSzyldyWlasciciela.PlikB(l.szyld), F.P(sB, yc, -.26f - .08f), F.N, .62f, .08f, sb - sa - .4f, "Aleja Centralna nad drzwiami: " + l.szyld + " (" + id + ")") > 0f;
         if (!betLogo && !grafikaB && (firma == null || !BraxMiastoBillboardy.Mural(lr, firma, F.P(sm, yc, -.27f), F.N, wG, hG)))
         {
             var lico = BraxUliceKit.Mat("litery przestrzenne: lico " + l.szyld + " (podświetlenie nocą)",

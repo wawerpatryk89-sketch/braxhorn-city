@@ -184,7 +184,9 @@ internal static class BraxDrzwiLokalu
         var root = new GameObject("Drzwi lokalu: " + label).transform; root.SetParent(rodzic, false);
         root.position = p + Vector3.up * progY; root.rotation = Quaternion.LookRotation(n, Vector3.up); H -= progY;
         const float pr = .07f, zF0 = -.15f, zF1 = -.05f, sz = .003f, zs = -.1f;
-        float hS = Mathf.Min(2.6f, H - .45f), hN = hS + .26f;   // skrzydła, nad nimi kaseta napędu 26 cm
+        // skrzydła, nad nimi kaseta napędu 26 cm; naświetle nad kasetą tylko, gdy jest miejsce (18.11: drzwi lokali ulicy głównej
+        // 2.90 m — nadproże = nadproże witryn, szyld nad drzwiami — skrzydła 2.57 m zamiast 2.45 m, bez naświetla)
+        float hS = Mathf.Min(2.6f, H - .33f), hN = hS + .26f;
         float x0 = -W * .5f, x1 = W * .5f;
         var ram = new UlSiatka(); var szk = new UlSiatka(); var led = new UlSiatka();
         ram.Poducha(new Vector3(x0, -.02f, zF0), new Vector3(x0 + pr, H, zF1), .004f, 0f, 3);

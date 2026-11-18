@@ -458,7 +458,9 @@ public static class BraxUlicePierzeje
 
     sealed class Otwor { public Rect r; public float gleb; public bool parapet, witryna, drzwi; }
 
-    const float WitrynaGora = 3.05f;   // nadproże witryn lokalu (drzwi: 3.20); spód gzymsu nad parterem 3.50
+    // nadproże witryn i drzwi lokalu — jedna linia (18.11 14:21, właściciel: „Nad oknami? Ani nad drzwiami?”: szyld nad drzwiami
+    // w pełnym pasie 45 cm do spodu gzymsu nad parterem 3.50; drzwi dotąd do 3.20 — nad nimi było tylko 30 cm ściany)
+    const float WitrynaGora = 3.05f, DrzwiGora = WitrynaGora;
     /// <summary>Witryny parteru frontu (s0, s1): przęsła bez przęsła drzwi, przy drzwiach odsunięte od otworu drzwi o 0.45 m.</summary>
     static List<(float s0, float s1)> Witryny(Fasada f)
     {
@@ -476,29 +478,23 @@ public static class BraxUlicePierzeje
         return w;
     }
 
-    // 18.11 12:57 (właściciel przysłał planszę szyldów; A = 17 lokali tej ulicy, grafiki 4:1): kaseton świetlny z JEGO grafiką nad
-    // witryną najbliżej drzwi. Nad witryną jest 45 cm ściany (nadproże witryny 3.05 … spód gzymsu nad parterem 3.50): kaseton
-    // z ramą 3.055…3.495 (lico 39 cm × ok. 1.55 m, proporcje grafiki bez zmian), lico 9 cm przed ścianą — nic na szybie ani na
-    // gzymsie (12:35: „na szybie wisi szyld”), nad drzwiami (nadproże 3.20) zostaje czysta ściana.
+    // 18.11 12:57 (właściciel przysłał planszę szyldów; A = 17 lokali tej ulicy, grafiki 4:1): kaseton świetlny z JEGO grafiką
+    // NAD DRZWIAMI lokalu (14:21: „A gdzie tu umieściłeś te szyldy? Nad oknami? Ani nad drzwiami?” — dotąd nad witryną najbliżej
+    // drzwi). Nad nadprożem drzwi i witryn (3.05) jest 45 cm ściany do spodu gzymsu nad parterem (3.50): kaseton z ramą
+    // 3.055…3.495 (lico 39 cm, proporcje grafiki bez zmian), lico 9 cm przed ścianą, oś = oś drzwi (przy lizenie przesunięty tyle,
+    // ile trzeba, żeby nie wejść na lizenę) — nic na szybie ani na gzymsie (12:35: „na szybie wisi szyld”).
     static bool KasetonWlasciciela(Fasada f)
     {
         string plik = BraxSzyldyWlasciciela.PlikA(f.lok.szyld);
         if (!BraxSzyldyWlasciciela.Grafika(plik, out float asp)) return false;
         const float g0 = WitrynaGora + .005f + BraxSzyldyWlasciciela.Rama, g1 = 3.50f - .005f - BraxSzyldyWlasciciela.Rama, odSciany = .09f;
-        float h = g1 - g0, w = h * asp, zapas = 2f * BraxSzyldyWlasciciela.Rama + .06f;
-        float sc = -1f, najblizej = 1e9f, szer = 0f, scSzer = -1f;
-        foreach (var (s0, s1) in Witryny(f))
-        {
-            float c = (s0 + s1) * .5f, d = Mathf.Abs(c - f.drzwiS);
-            if (s1 - s0 >= w + zapas && d < najblizej) { najblizej = d; sc = c; }
-            if (s1 - s0 > szer) { szer = s1 - s0; scSzer = c; }
-        }
-        if (sc < 0f)
-        {   // żadna witryna nie mieści pełnej szerokości — najszersza, kaseton niższy (lico ≥ 25 cm), inaczej stare litery
-            if (scSzer < 0f || (szer - zapas) / asp < .25f) return false;
-            sc = scSzer; h = (szer - zapas) / asp;
-        }
-        return BraxSzyldyWlasciciela.Kaseton(plik, f.P(sc, (g0 + g1) * .5f, odSciany), f.N, h, odSciany, 99f, "ulica główna: " + f.lok.szyld + " nr " + f.lok.numer) > 0f;
+        float zapas = 2f * BraxSzyldyWlasciciela.Rama + .06f, lewo = Lizena + .1f, prawo = f.W - Lizena - .1f;
+        float h = g1 - g0, w = Mathf.Min(h * asp, prawo - lewo - zapas);
+        if (w / asp < .25f) return false;                                   // za wąsko na lico ≥ 25 cm — stare litery
+        h = w / asp;
+        float sc = Mathf.Clamp(f.drzwiS, lewo + (w + zapas) * .5f, prawo - (w + zapas) * .5f);
+        return BraxSzyldyWlasciciela.Kaseton(plik, f.P(sc, (g0 + g1) * .5f, odSciany), f.N, h, odSciany, 99f,
+                                             "ulica główna nad drzwiami: " + f.lok.szyld + " nr " + f.lok.numer) > 0f;
     }
 
     static void Elewacja(Fasada f, Transform kolizje)
@@ -509,7 +505,7 @@ public static class BraxUlicePierzeje
         // --- parter ---
         if (f.front && !f.gora)
         {
-            otwory.Add(new Otwor { r = Rect.MinMaxRect(f.drzwiS - 1.17f, Chodnik, f.drzwiS + 1.17f, 3.2f), gleb = .3f, drzwi = true });
+            otwory.Add(new Otwor { r = Rect.MinMaxRect(f.drzwiS - 1.17f, Chodnik, f.drzwiS + 1.17f, DrzwiGora), gleb = .3f, drzwi = true });
             foreach (var (s0, s1) in Witryny(f))
                 otwory.Add(new Otwor { r = Rect.MinMaxRect(s0, .62f, s1, WitrynaGora), gleb = GlebWitryny, witryna = true });
         }
@@ -717,7 +713,8 @@ public static class BraxUlicePierzeje
         var lok = f.lok; float k = BraxUliceKit.K;
         // 18.11 (właściciel 10:40: „Szyldy… co to za gówno, zwykły napis… każdy jeden”; 12:35: „na szybie wisi szyld”): nad witryną
         // kamienicy jest tylko 30 cm ściany — od nadproża witryn i drzwi (3.20) do spodu gzymsu nad parterem (3.50). Szyld (nośnik
-        // z ramą) mieści się W TYM PASIE w całości: rama 3.205…3.495, nic nie wchodzi na szybę ani na gzyms (dotąd: nośnik 43 cm
+        // z ramą) mieści się W TYM PASIE w całości: rama 3.205…3.495 (od 18.11 14:21 nadproże drzwi = witryn 3.05: rama 3.055…3.495),
+        // nic nie wchodzi na szybę ani na gzyms (dotąd: nośnik 43 cm
         // od 3.02 i grafiki SOBCZAK 52 cm od 3.07 — zachodziły na górę witryn i na gzyms). Nośnik z aluminium grafitowego 24 cm
         // na dystansach 2 cm od ściany, rama ze stali szczotkowanej 2.5 cm dookoła; na nim grafika firmy (kaseton) albo litery
         // Bebas Neue ze stali (pełne bryły 4 cm, 3 cm przed licem nośnika). Grafiki szyldów dla wszystkich lokali — od właściciela.
@@ -727,7 +724,7 @@ public static class BraxUlicePierzeje
         var listwa = BraxUliceKit.Mat("listwa montażowa szyldu (aluminium grafit)", new Color(.12f, .125f, .13f), .45f, .55f);
         var ramaN = BraxUliceKit.Mat("szyld: rama nośnika (stal szczotkowana)", new Color(.6f, .61f, .62f), .32f, .9f);
         float maxW = f.W - 2f * Lizena - .8f, cap = .15f;
-        const float yNad = 3.20f, yGzyms = 3.50f, ramaW = .025f, mBok = .2f, dN0 = .02f, dN1 = .08f;
+        const float yNad = DrzwiGora, yGzyms = 3.50f, ramaW = .025f, mBok = .2f, dN0 = .02f, dN1 = .08f;   // 18.11 14:21: nadproże 3.05
         float y0 = yNad + .005f + ramaW, y1 = yGzyms - .005f - ramaW, yS = (y0 + y1) * .5f;   // nośnik 3.23…3.47
         // nośnik + rama dookoła (rama nie leży na licu nośnika — lica > 2 cm od siebie, bez par migotania) + 4 dystanse
         void Nosnik(float a, float b)
@@ -761,18 +758,24 @@ public static class BraxUlicePierzeje
             BraxLiteryBebas.Napis(lok.szyld, f.P(sc, yS - cap * .5f, dN1), f.N, cap, .04f, stalLit, boki, .05f, .03f);
         }
         poSzyldzie:
-        // markizy nad witrynami (dół falbany 2.52 m — Brax 2.33 m przechodzi)
+        // markizy nad drzwiami i nad witrynami (dół falbany 2.52 m — Brax 2.33 m przechodzi). 18.11 14:33 (właściciel: „A ten taki
+        // daszek, to po co one są nad oknem zamiast nad drzwiami?”): markiza także NAD DRZWIAMI — wejście pod daszkiem, jedna linia
+        // markiz na całym froncie lokalu (dotąd przęsło drzwi bez markizy). Markiza drzwi szersza od otworu (oś drzwi ± 1.37 m):
+        // wsporniki ± 1.27 m stoją na murze, 5 cm od ościeża; sąsiednie markizy kończą się 0.40 m dalej (przerwa jak między przęsłami).
         if (lok.markiza)
         {
             var plotno = BraxUliceKit.Mat("markiza: płótno akrylowe (paski z koloru wierzchołków)", Color.white, .9f);
             var stal = BraxUliceKit.Mat("markiza: stal malowana", new Color(.10f, .10f, .11f), .5f, .5f);
             var ws = BraxUliceKit.S(plotno); var ss = BraxUliceKit.S(stal);
             int drzwiBay = Mathf.FloorToInt(f.drzwiS / f.bay);
+            float mL = Lizena + .08f, mP = f.W - Lizena - .08f;
+            float mdA = Mathf.Max(Mathf.Min(drzwiBay * f.bay + .2f, f.drzwiS - 1.37f), mL), mdB = Mathf.Min(Mathf.Max((drzwiBay + 1) * f.bay - .2f, f.drzwiS + 1.37f), mP);
             for (int i = 0; i < f.bays; i++)
             {
-                if (i == drzwiBay) continue;
-                float s0 = Mathf.Max(i * f.bay + .2f, Lizena + .08f), s1 = Mathf.Min((i + 1) * f.bay - .2f, f.W - Lizena - .08f);
-                if (i == drzwiBay - 1) s1 = Mathf.Min(s1, f.drzwiS - 1.3f); if (i == drzwiBay + 1) s0 = Mathf.Max(s0, f.drzwiS + 1.3f);
+                float s0 = Mathf.Max(i * f.bay + .2f, mL), s1 = Mathf.Min((i + 1) * f.bay - .2f, mP);
+                if (i == drzwiBay) { s0 = mdA; s1 = mdB; }
+                else if (i < drzwiBay) s1 = Mathf.Min(s1, mdA - .4f);
+                else s0 = Mathf.Max(s0, mdB + .4f);
                 if (s1 - s0 < .9f) continue;
                 // 18.11: góra markizy na nadprożu witryny (3.04, było 3.12) — nad nią kaseton szyldu właściciela (3.055…3.495); płótno
                 // od ściany opada w dół, więc nie przecina kasetonu ani jego ramy
@@ -870,9 +873,10 @@ public static class BraxUlicePierzeje
         // 11.11 (właściciel 19:33–19:45: „straszne te drzwi do lokali. Nie otwierają się… słabe, z przerwami… mają być konkretne…
         // klamki”): stare drzwi przebudowy (skrzydła-klocki, szczeliny 12 cm, otwarty pas nad nadprożem) zdjęte, w otworze elewacji
         // (drzwiS ± 1.17 m, Chodnik…3.2 m, ościeże 0.3 m) nowe drzwi premium: ościeżnica, naświetle, dwa szklane skrzydła z pochwytami
+        // 18.11 14:21: nadproże drzwi = nadproże witryn (DrzwiGora 3.05) — nad drzwiami szyld w pełnym pasie; skrzydła 2.70 m (2.09 m × K)
         string id = "R1_PUBLIC_DOOR_" + b.id;
         int stare = BraxDrzwiLokalu.UsunStare(id);
-        BraxDrzwiLokalu.Podwojne(bg, id, lok.szyld, f.P(f.drzwiS, Chodnik, 0f), f.N, 2.34f, 3.2f - Chodnik, .3f, 0f, BraxDrzwiLokalu.ModelDla(lok.typ));
+        BraxDrzwiLokalu.Podwojne(bg, id, lok.szyld, f.P(f.drzwiS, Chodnik, 0f), f.N, 2.34f, DrzwiGora - Chodnik, .3f, 0f, BraxDrzwiLokalu.ModelDla(lok.typ));
         nDrzwi++; if (stare == 0) Debug.LogWarning("BRAXHORN_DRZWI_LOKALI brak starych drzwi " + id + " (nowe postawione)");
         BraxUliceKit.Punkt("ulica_" + b.id + "_drzwi", "przed drzwiami: " + lok.szyld + " (nr " + lok.numer + ") — AKCJA = drzwi; miejsce zlecenia przy wejściu", f.P(f.drzwiS, Chodnik, 1.2f));
     }

@@ -43,9 +43,11 @@ class R1SzyldyBebas(unittest.TestCase):
         self.assertNotIn("NapisHalo(", KIT)
 
     def test_shop_sign_inside_wall_band_not_on_glass(self):
-        # 12:35 (właściciel: „na szybie wisi szyld”): cały szyld między nadprożem (3.20) a gzymsem (3.50)
+        # 12:35 (właściciel: „na szybie wisi szyld”): cały szyld między nadprożem a gzymsem (3.50); od 14:21 nadproże drzwi
+        # = nadproże witryn 3.05 (szyld nad drzwiami w pełnym pasie)
         s = blok(PIERZ, "static void Szyldy(Fasada f)", "poSzyldzie:")
-        self.assertIn("const float yNad = 3.20f, yGzyms = 3.50f, ramaW = .025f, mBok = .2f, dN0 = .02f, dN1 = .08f;", s)
+        self.assertIn("const float yNad = DrzwiGora, yGzyms = 3.50f, ramaW = .025f, mBok = .2f, dN0 = .02f, dN1 = .08f;", s)
+        self.assertIn("const float WitrynaGora = 3.05f, DrzwiGora = WitrynaGora;", PIERZ)
         self.assertIn("float y0 = yNad + .005f + ramaW, y1 = yGzyms - .005f - ramaW, yS = (y0 + y1) * .5f;", s)
         self.assertIn("float hG = y1 - y0 - .02f, wG = Mathf.Min(maxW, hG * 5f);", s)            # grafiki SOBCZAK w pasie
         self.assertIn('BraxUliceKit.Mat("szyld: litery — lico (stal nierdzewna szczotkowana)"', s)
