@@ -166,7 +166,16 @@ def main():
         # SUROWE MODELE Z BIBLIOTEKI (Brax, Nyxa). Nie ma ich w zatwierdzonej paczce,
         # bo nikt ich jeszcze nie przerabiał — składam paczkę w locie z surowej
         # konwersji Tripo i globalnej biblioteki ruchów, a dalej idą normalną drogą.
-        for i in [x for x in ids if x in obsada_surowa.SUROWI]:
+        # WYŁĄCZONE. Właściciel 18.11, 15:16: „weź ty nie rób żadnych animacji".
+        # Składanie postaci z surowego modelu wymaga dobrania jej ruchów, a tego już
+        # nie robię — dwa razy wysłałem zdeformowaną postać i dwa razy nie zauważyłem.
+        # Kod zostaje w repozytorium, nic nie jest kasowane, ale sam z siebie nie ruszy.
+        surowi = [x for x in ids if x in obsada_surowa.SUROWI]
+        if surowi and os.environ.get("BRAX_SKLADAJ_SUROWE") != "1":
+            raise SystemExit(
+                "Postacie %s wymagaja dobrania ruchow — wylaczone na polecenie wlasciciela "
+                "(18.11). Wlasciciel dostarcza model z wlasnymi animacjami." % ", ".join(surowi))
+        for i in surowi:
             obsada_surowa.zloz(i, os.environ["GITHUB_REPOSITORY"], praca, staged, blender)
 
         dostepne = sorted(p.name for p in staged.iterdir() if p.is_dir())
