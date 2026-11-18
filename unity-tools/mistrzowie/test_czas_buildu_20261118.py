@@ -3,7 +3,11 @@
 reimported and every source texture was imported a second time (1 121 Source/Prywatne/Miasto, 253
 Source/Mistrzowie/Textures, 96 PolyHaven ...) from 07:40 to 09:10 - 1.5 h. Unity's documented switch
 -setDefaultPlatformTextureFormat (Android only) sets the default texture compression before the first import, "so you
-don't have to import the texture again with the format you want"."""
+don't have to import the texture again with the format you want".
+#49 (run 44280844489) imported in 1 h 07 min (#48: 1 h 46 min) and then lost its runner at 11:59 mid-generation, on a
+runner whose / is /dev/mapper/cow-root - as #47. Both died once ~80-90 GB had been written in all, about the free space
+those runners start with; #43, #46, #48 ran on /dev/root. The job now checks its root first and stops in two minutes on a
+copy-on-write root with under 130 GB left in its overlay; Unity logs memory, swap and disk every two minutes."""
 import pathlib
 import unittest
 
@@ -30,6 +34,30 @@ class CzasBuildu(unittest.TestCase):
         # (gone), the rest to Gradle 38, Gradle and delivery about 20
         without_second_pass = 26 + 106 + 88 + 5 + 38 + 20
         self.assertLess(without_second_pass, 355 - 60)
+
+
+class Maszyna(unittest.TestCase):
+    def test_a_copy_on_write_root_stops_the_build_first(self):
+        job = WF[WF.index("  exploration-apk:"):]
+        steps = job[job.index("    steps:"):]
+        first = steps[:steps.index("      - name: Resolve the selected Champions source")]
+        self.assertIn("- name: Runner disk check - a copy-on-write root stops the build in two minutes", first)
+        self.assertIn("src=$(findmnt -no SOURCE / || true)", first)
+        self.assertIn("sudo dmsetup status", first)
+        self.assertIn('if [ -z "$cow" ] || [ "$cow" -lt 130 ]; then', first)
+        self.assertIn("exit 1", first)
+        # it is the job's first step: nothing is downloaded or written before it
+        self.assertEqual(steps.index("      - name: Runner disk check"), steps.index("      - name:"))
+
+    def test_unity_logs_what_runs_out(self):
+        src = (ROOT / "unity-city/Assets/Editor/Mistrzowie/BraxChampionsZasoby.cs").read_text(encoding="utf-8")
+        self.assertTrue((ROOT / "unity-city/Assets/Editor/Mistrzowie/BraxChampionsZasoby.cs.meta").exists())
+        self.assertIn("[InitializeOnLoad]", src)
+        self.assertIn("if (!Application.isBatchMode) return;", src)
+        self.assertIn("new System.Threading.Timer(_ => Log(), null, 0, 120000);", src)
+        self.assertIn("AssemblyReloadEvents.beforeAssemblyReload", src)
+        for k in ("MemAvailable:", "SwapFree:", "AvailableFreeSpace", "WorkingSet64", '"BRAX_RES "'):
+            self.assertIn(k, src)
 
 
 if __name__ == "__main__":

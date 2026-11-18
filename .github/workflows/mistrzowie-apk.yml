@@ -106,6 +106,27 @@ jobs:
     env:
       MISTRZOWIE_PIPELINE: "20261105-A1-T11"
     steps:
+      - name: Runner disk check - a copy-on-write root stops the build in two minutes, not after three hours
+        run: |
+          # #47 (17.11) and #49 (18.11, run 44280844489) ran on runners whose / is /dev/mapper/cow-root: both lost the
+          # runner mid-generation with no error once about 80-90 GB had been written in all - about the free space those
+          # runners started with (88 and 90 GB). A copy-on-write root keeps every block ever written in its overlay;
+          # deleting files gives nothing back. #43 (the last APK), #46 and #48 ran on /dev/root (#48 reached Gradle).
+          # This build writes well over 90 GB (sources ~22, import memory ~31, Unity 70+): on such a root it stops here,
+          # unless the overlay reports at least 130 GB left; GitHub hands out runners at random, the owner dispatches again.
+          src=$(findmnt -no SOURCE / || true); echo "BRAX_ROOT_DEVICE $src"
+          lsblk -o NAME,SIZE,TYPE,MOUNTPOINT 2>/dev/null || true
+          df -h 2>/dev/null || true
+          st=$(sudo dmsetup status 2>/dev/null || true); echo "$st"; sudo dmsetup table 2>/dev/null || true
+          case "$src" in
+            *cow*)
+              cow=$(echo "$st" | awk '{for(i=1;i<NF;i++) if($i=="snapshot"){split($(i+1),a,"/"); if(a[2]>0) print int((a[2]-a[1])*512/1073741824)}}' | head -1)
+              echo "BRAX_COW_FREE_GB ${cow:-unknown}"
+              if [ -z "$cow" ] || [ "$cow" -lt 130 ]; then
+                echo "::error title=Maszyna z dyskiem copy-on-write::/ to $src (wolne w nakładce: ${cow:-nieznane} GB). Na takiej maszynie #47 i #49 padły w połowie. Build zatrzymany po 2 minutach - uruchom go ponownie, GitHub przydziela maszynę losowo."
+                exit 1
+              fi ;;
+          esac
       - name: Resolve the selected Champions source
         id: selected
         env:
