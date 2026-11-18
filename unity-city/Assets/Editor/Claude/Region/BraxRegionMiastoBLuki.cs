@@ -277,7 +277,11 @@ public static partial class BraxRegionMiastoB
                 if (Niepuste(pas)) PlytaWielokat("Chodnik: ulica główna przy Wiaduktowej (łuk narożnika)", kostkaA ? kostkaA : plyty, WKole(pas, L, L.R - Kr), YC, .3f - YA, true);
             }
             // b) krawężnik po łuku: pierścień R − Kr … R, kamienie ~1 m (fuga = osobne ścianki co segment)
-            int n = Mathf.Max(6, Mathf.CeilToInt(L.R * Mathf.PI * .5f / .5f));
+            // 18.11 (APK 4f317df, BRAXHORN_MIGOTANIE: „Chodnik: … (łuk narożnika) ↔ Krawężniki łukiem 0.0 cm” × 7): krawężnik miał
+            // n = R·π/2 / 0.5 m odcinków, a chodnik w kole (WKole) LukSeg = 16 — cięciwy obu łuków się mijały i na krawędzi
+            // R − Kr leżały wąskie pasy dwóch nawierzchni w jednej płaszczyźnie. Teraz wewnętrzna krawędź krawężnika ma DOKŁADNIE
+            // te same wierzchołki co łuk chodnika (LukSeg) — styk krawędzią, bez nakładania.
+            int n = LukSeg;
             for (int i = 0; i < n; i++)
             {
                 float t0 = i * Mathf.PI * .5f / n, t1 = (i + 1) * Mathf.PI * .5f / n;

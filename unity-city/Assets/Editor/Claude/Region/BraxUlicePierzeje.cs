@@ -679,54 +679,48 @@ public static class BraxUlicePierzeje
     static void Szyldy(Fasada f)
     {
         var lok = f.lok; float k = BraxUliceKit.K;
-        // 18.11 (właściciel 10:40: „Szyldy… co to za gówno, zwykły napis… każdy jeden”): szyld = prawdziwy szyld z liter
-        // dystansowych, jak BRAXHORN GYM (11.11) i WAWER NIERUCHOMOŚCI: nośnik z aluminium grafitowego (kaseton 6 cm na dystansach
-        // 2 cm od ściany, marginesy 25 cm po bokach i 8 cm w pionie, rama ze stali szczotkowanej), na nim litery Bebas Neue
-        // (pełne bryły 5 cm, lico stal szczotkowana, boki i tył grafit) 4 cm przed licem nośnika, pod nośnikiem profil LED
-        // (ciepła biel, jak listwa LED szyldu BRAXHORN GYM i linia LED WAWER). Pod gzymsem nad parterem, nad witrynami.
+        // 18.11 (właściciel 10:40: „Szyldy… co to za gówno, zwykły napis… każdy jeden”; 12:35: „na szybie wisi szyld”): nad witryną
+        // kamienicy jest tylko 30 cm ściany — od nadproża witryn i drzwi (3.20) do spodu gzymsu nad parterem (3.50). Szyld (nośnik
+        // z ramą) mieści się W TYM PASIE w całości: rama 3.205…3.495, nic nie wchodzi na szybę ani na gzyms (dotąd: nośnik 43 cm
+        // od 3.02 i grafiki SOBCZAK 52 cm od 3.07 — zachodziły na górę witryn i na gzyms). Nośnik z aluminium grafitowego 24 cm
+        // na dystansach 2 cm od ściany, rama ze stali szczotkowanej 2.5 cm dookoła; na nim grafika firmy (kaseton) albo litery
+        // Bebas Neue ze stali (pełne bryły 4 cm, 3 cm przed licem nośnika). Grafiki szyldów dla wszystkich lokali — od właściciela.
         var stalLit = BraxUliceKit.Mat("szyld: litery — lico (stal nierdzewna szczotkowana)", new Color(.78f, .79f, .8f), .3f, .9f);
         var boki = BraxUliceKit.Mat("litery przestrzenne: boki grafit", new Color(.06f, .06f, .065f), .5f, .4f);
         var lico = BraxUliceKit.Mat("litery przestrzenne: lico " + lok.szyld + " (podświetlenie nocą)", lok.licoSzyldu, .45f, .05f);   // kaseton na wysięgniku
         var listwa = BraxUliceKit.Mat("listwa montażowa szyldu (aluminium grafit)", new Color(.12f, .125f, .13f), .45f, .55f);
         var ramaN = BraxUliceKit.Mat("szyld: rama nośnika (stal szczotkowana)", new Color(.6f, .61f, .62f), .32f, .9f);
-        var led = BraxMiastoA.Swieci("szyld: profil LED pod nośnikiem (ciepła biel)", new Color(1f, .96f, .88f), new Color(1.15f, 1.05f, .9f));
-        float maxW = f.W - 2f * Lizena - .8f, cap = .27f;
-        // nośnik 43 cm (3.02…3.45) z ramą 2.5 cm: góra ramy 3.475 — 2.5 cm pod gzymsem nad parterem (3.50, bez par migotania),
-        // dół zachodzi na górę witryn i drzwi jak kaseton nad witryną (drzwi: prześwit pod ramą 2.85 m); litery 27 cm
-        const float yS = 3.235f, hN = .43f, mBok = .25f, dN0 = .02f, dN1 = .08f;
+        float maxW = f.W - 2f * Lizena - .8f, cap = .15f;
+        const float yNad = 3.20f, yGzyms = 3.50f, ramaW = .025f, mBok = .2f, dN0 = .02f, dN1 = .08f;
+        float y0 = yNad + .005f + ramaW, y1 = yGzyms - .005f - ramaW, yS = (y0 + y1) * .5f;   // nośnik 3.23…3.47
+        // nośnik + rama dookoła (rama nie leży na licu nośnika — lica > 2 cm od siebie, bez par migotania) + 4 dystanse
+        void Nosnik(float a, float b)
+        {
+            foreach (float sd in new[] { a + .15f, b - .15f }) foreach (float yd in new[] { y0 + .05f, y1 - .05f }) OBox(f, ramaN, sd - .015f, sd + .015f, yd - .015f, yd + .015f, 0f, dN0 + .002f);
+            OBox(f, listwa, a, b, y0, y1, dN0, dN1, false);
+            OBox(f, ramaN, a - ramaW, b + ramaW, y1, y1 + ramaW, dN0, dN1 + .01f); OBox(f, ramaN, a - ramaW, b + ramaW, y0 - ramaW, y0, dN0, dN1 + .01f);
+            OBox(f, ramaN, a - ramaW, a, y0, y1, dN0, dN1 + .01f); OBox(f, ramaN, b, b + ramaW, y0, y1, dN0, dN1 + .01f);
+        }
         // 3.11 16:20 (właściciel: trzy firmy — BRAXHORN, WAWER, SOBCZAK — na wszystkie usługi): szyld z grafiki firmy (arkusz 5:1),
-        // jeśli jest w paczce grafik — w kasetonie z ramą ze stali (nie naklejka na listwie); inaczej litery dystansowe
+        // jeśli jest w paczce grafik — w kasetonie (grafika na licu nośnika, w ramie); inaczej litery dystansowe
         string firma = lok.typ == "apteka" ? "sobczak_apteka" : lok.typ == "piekarnia" ? "sobczak_piekarnia" : lok.typ == "cukiernia" ? "sobczak_cukiernia"
                      : lok.typ == "kawiarnia" ? "sobczak_kawiarnia" : lok.typ == "warzywniak" ? "sobczak_warzywa" : lok.typ == "market" ? "sobczak_delikatesy" : null;   // 16:34: właściciel dał SOBCZAK DELIKATESY
-        float wG = Mathf.Min(maxW, 2.6f), hG = wG / 5f;
+        float hG = y1 - y0 - .02f, wG = Mathf.Min(maxW, hG * 5f);
         if (firma != null)
         {
             if (!szyldyFirm) szyldyFirm = new GameObject("CLAUDE: szyldy firm z grafik (WAWER, SOBCZAK)").transform;
-            float scG = Mathf.Clamp(f.drzwiS, Lizena + wG * .5f + .2f, f.W - Lizena - wG * .5f - .2f);
-            if (BraxMiastoBillboardy.Mural(szyldyFirm, firma, f.P(scG, 3.33f, .06f), f.N, wG, hG))
+            float scG = Mathf.Clamp(f.drzwiS, Lizena + wG * .5f + .3f, f.W - Lizena - wG * .5f - .3f);
+            if (BraxMiastoBillboardy.Mural(szyldyFirm, firma, f.P(scG, yS, dN1 + .025f), f.N, wG, hG))
             {
-                float a = scG - wG * .5f, b = scG + wG * .5f, y0 = 3.33f - hG * .5f, y1 = 3.33f + hG * .5f;
-                OBox(f, listwa, a - .06f, b + .06f, y0 - .04f, y1 + .04f, 0f, .05f);
-                // rama kasetonu: 4 listwy stali 1.5 cm na krawędziach grafiki, 1.5 cm przed jej licem
-                OBox(f, ramaN, a - .06f, b + .06f, y1 - .015f, y1 + .04f, .05f, .075f); OBox(f, ramaN, a - .06f, b + .06f, y0 - .04f, y0 + .015f, .05f, .075f);
-                OBox(f, ramaN, a - .06f, a + .015f, y0 + .015f, y1 - .015f, .05f, .075f); OBox(f, ramaN, b - .015f, b + .06f, y0 + .015f, y1 - .015f, .05f, .075f);
+                Nosnik(scG - wG * .5f - .03f, scG + wG * .5f + .03f);
                 goto poSzyldzie;
             }
         }
         {
             float w = BraxLiteryBebas.Szerokosc(lok.szyld, cap); if (w > maxW - 2f * mBok) { cap *= (maxW - 2f * mBok) / w; w = maxW - 2f * mBok; }
             float sc = Mathf.Clamp(f.drzwiS, Lizena + w * .5f + mBok + .1f, f.W - Lizena - w * .5f - mBok - .1f);
-            float a = sc - w * .5f - mBok, b = sc + w * .5f + mBok, y0 = yS - hN * .5f, y1 = yS + hN * .5f;
-            // dystanse (4 tuleje 3 × 3 cm) i nośnik
-            foreach (float sd in new[] { a + .15f, b - .15f }) foreach (float yd in new[] { y0 + .06f, y1 - .06f }) OBox(f, ramaN, sd - .015f, sd + .015f, yd - .015f, yd + .015f, 0f, dN0 + .002f);
-            OBox(f, listwa, a, b, y0, y1, dN0, dN1, false);
-            // rama nośnika: stal szczotkowana 2.5 cm DOOKOŁA nośnika (nie na jego licu; lica ramy > 2 cm od lic nośnika), 1 cm przed licem
-            OBox(f, ramaN, a - .025f, b + .025f, y1, y1 + .025f, dN0, dN1 + .01f); OBox(f, ramaN, a - .025f, b + .025f, y0 - .025f, y0, dN0, dN1 + .01f);
-            OBox(f, ramaN, a - .025f, a, y0, y1, dN0, dN1 + .01f); OBox(f, ramaN, b, b + .025f, y0, y1, dN0, dN1 + .01f);
-            float yb = yS - cap * .5f;
-            // profil LED 2.5 × 2.5 cm pod dolną ramą (świeci w dół na witrynę), krótszy o 10 cm z każdej strony
-            OBox(f, led, a + .1f, b - .1f, y0 - .025f - .025f, y0 - .025f, dN0 + .015f, dN1 - .015f);
-            BraxLiteryBebas.Napis(lok.szyld, f.P(sc, yb, dN1), f.N, cap, .05f, stalLit, boki, .05f, .04f);
+            Nosnik(sc - w * .5f - mBok, sc + w * .5f + mBok);
+            BraxLiteryBebas.Napis(lok.szyld, f.P(sc, yS - cap * .5f, dN1), f.N, cap, .04f, stalLit, boki, .05f, .03f);
         }
         poSzyldzie:
         // markizy nad witrynami (dół falbany 2.52 m — Brax 2.33 m przechodzi)

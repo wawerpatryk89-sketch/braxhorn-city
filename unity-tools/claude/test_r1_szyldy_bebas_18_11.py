@@ -42,16 +42,17 @@ class R1SzyldyBebas(unittest.TestCase):
         self.assertNotIn("Halo(", BEBAS)
         self.assertNotIn("NapisHalo(", KIT)
 
-    def test_shop_sign_carrier_frame_letters_halo(self):
+    def test_shop_sign_inside_wall_band_not_on_glass(self):
+        # 12:35 (właściciel: „na szybie wisi szyld”): cały szyld między nadprożem (3.20) a gzymsem (3.50)
         s = blok(PIERZ, "static void Szyldy(Fasada f)", "poSzyldzie:")
+        self.assertIn("const float yNad = 3.20f, yGzyms = 3.50f, ramaW = .025f, mBok = .2f, dN0 = .02f, dN1 = .08f;", s)
+        self.assertIn("float y0 = yNad + .005f + ramaW, y1 = yGzyms - .005f - ramaW, yS = (y0 + y1) * .5f;", s)
+        self.assertIn("float hG = y1 - y0 - .02f, wG = Mathf.Min(maxW, hG * 5f);", s)            # grafiki SOBCZAK w pasie
         self.assertIn('BraxUliceKit.Mat("szyld: litery — lico (stal nierdzewna szczotkowana)"', s)
-        self.assertIn('BraxMiastoA.Swieci("szyld: profil LED pod nośnikiem (ciepła biel)"', s)
-        self.assertIn("OBox(f, led, a + .1f, b - .1f, y0 - .025f - .025f, y0 - .025f, dN0 + .015f, dN1 - .015f);", s)
-        self.assertIn("const float yS = 3.235f, hN = .43f, mBok = .25f, dN0 = .02f, dN1 = .08f;", s)
-        self.assertIn("OBox(f, listwa, a, b, y0, y1, dN0, dN1, false);", s)                    # nośnik
-        self.assertIn("OBox(f, ramaN, a - .025f, b + .025f, y1, y1 + .025f, dN0, dN1 + .01f);", s)   # rama dookoła, nie na licu
-        self.assertIn("BraxLiteryBebas.Napis(lok.szyld, f.P(sc, yb, dN1), f.N, cap, .05f, stalLit, boki, .05f, .04f);", s)
-        self.assertNotIn("BraxUliceKit.Napis3D(lok.szyld, f.P(sc, 3.215f", s)                  # stara listwa 14 cm z kreskami
+        self.assertIn("OBox(f, listwa, a, b, y0, y1, dN0, dN1, false);", s)
+        self.assertIn("OBox(f, ramaN, a - ramaW, b + ramaW, y1, y1 + ramaW, dN0, dN1 + .01f);", s)
+        self.assertNotIn("3.33f", s)                                                               # stary środek grafiki 52 cm
+        self.assertNotIn("3.02", s)
 
     def test_tower_shop_signs_led(self):
         self.assertIn('BraxMiastoA.Swieci("szyld: profil LED pod nośnikiem (ciepła biel)"', WIEZE)
