@@ -44,6 +44,7 @@ public static partial class BraxChampionsWille
         lawn, paving, gravel, concrete, waterMat, waterBody, spaWater, oak, walnut, cushion, teak, porcelain, chrome, mirrorFrame, black, signWhite,
         stoneIn, fire, downlight, marbleIn, bottle,
         elewacja, dachBlacha, stalCzarna,   // the new plans (owner 17.11): the scanned exterior stucco, standing-seam metal, black steel
+        recznik, murOporowy,                // 18.11 the loungers' towels; the retaining walls in light travertine (were grey granite tiles)
         dachowka, tynkKrem, tynkBez, skala; // owner 17.11 photos ("zrób takie"): clay barrel tiles, cream and warm beige stucco, the cliff's rock
     public static int Zbudowane, Kolizje, Siedziska, Modele, Palmy, Drzewa;
     static BraxChampionsMeshBatch b, bw, kat;
@@ -82,7 +83,7 @@ public static partial class BraxChampionsWille
         // owner 17.11 ("Te ściany są wykończone?" on the old white: a flat interior paint, grey in the shade) - the new plans' walls
         // in the scanned exterior stucco of the apartments (Poly Haven white_stucco_02, warm clean white), the roofs dark
         // standing-seam metal, the gable frames black steel
-        elewacja = BraxChampionsFoundation.SourceMaterial("willa_tynk_elewacja", "white_stucco_02", 2.0f, new Color(1.24f, 1.22f, 1.18f));
+        elewacja = BraxChampionsFoundation.SourceMaterial("willa_tynk_elewacja", "white_stucco_02", 2.0f, new Color(1.42f, 1.41f, 1.38f));   // 18.11 his Miami photo's crisp white (was grey)
         dachBlacha = BraxChampionsHarbour.Surface("willa_dach_blacha_grafit", new Color(.115f, .118f, .125f), .42f, .75f);
         stalCzarna = BraxChampionsHarbour.Surface("willa_stal_czarna", new Color(.035f, .035f, .04f), .45f, .85f);
         dachowka = BraxChampionsFoundation.SourceMaterial("willa_dachowka", "clay_roof_tiles_02", 2.5f, new Color(1.0f, 1.0f, 1.0f));
@@ -91,8 +92,13 @@ public static partial class BraxChampionsWille
         skala = BraxChampionsFoundation.SourceMaterial("willa_skala", "cliff_side", 1.83f, new Color(1.12f, 1.08f, 1.02f));
         tynkBez = BraxChampionsFoundation.SourceMaterial("willa_tynk_bezowy", "white_stucco_02", 2.0f, new Color(1.34f, 1.12f, .88f));   // his photo 2: a light warm peach-beige
         if (nr == 2) render = elewacja;          // the island's Miami house in the scanned exterior stucco (17.11 "Te ściany są wykończone?")
-        teak = BraxChampionsHarbour.Surface("willa_tik", new Color(.42f, .30f, .19f), .55f, 0f);
-        cushion = BraxChampionsHarbour.Surface("willa_poduchy_lezakow", new Color(.92f, .91f, .88f), .85f, 0f);
+        // 18.11 (owner: the loungers and the sofa "jak zabawki" - flat brown and flat white): oiled teak and cotton, real
+        // Poly Haven surfaces (teak_veneer warmed from its orange 175,130,87 to oiled teak; cotton_jersey off-white, as the
+        // beach's cushions); a navy cotton towel
+        teak = BraxChampionsFoundation.SourceMaterial("willa_tik_olejowany", "teak_veneer", 1.0f, new Color(.86f, .80f, .74f));
+        cushion = BraxChampionsFoundation.SourceMaterial("willa_poduchy_bawelna", "cotton_jersey", .6f, new Color(1.24f, 1.30f, 1.33f));
+        recznik = BraxChampionsFoundation.SourceMaterial("willa_recznik_granat", "cotton_jersey", .6f, new Color(.18f, .30f, .59f));
+        murOporowy = BraxChampionsFoundation.LibraryTravertine("willa_mur_oporowy_trawertyn", new Color(.88f, .85f, .80f), 1.2f);
         BraxKatalog.Materials(); BraxKatalog.HomeMaterials();
         floorUf = BraxKatalog.OakSolid; oak = BraxKatalog.OakSolid; walnut = BraxKatalog.Walnut;
         porcelain = BraxKatalog.Porcelain; chrome = BraxKatalog.Chrome; mirrorFrame = BraxKatalog.BlackMatt;
@@ -250,13 +256,13 @@ public static partial class BraxChampionsWille
         MM(poolTile, PoolX0, PoolX1, -.75f, -.6f, PadZ0 + .3f, PoolZ0 - .3f);
         MM(poolTile, PoolX0 - .3f, PoolX0, -.75f, -.3f, PadZ0 + .3f, PoolZ0 - .3f); MM(poolTile, PoolX1, PoolX1 + .3f, -.75f, -.3f, PadZ0 + .3f, PoolZ0 - .3f);
         MM(stone, PoolX0, PoolX1, -.75f, -.35f, PadZ0, PadZ0 + .3f);                     // the trough's outer lip, under the sightline
-        MM(stone, PadX0, PoolX0, -4f, -s, PadZ0, PadZ0 + .3f);                           // the retaining wall under the pad's front
-        MM(stone, PoolX0, PoolX1, -4f, -.75f, PadZ0, PadZ0 + .3f);
-        MM(stone, PoolX1, PadX1, -4f, -s, PadZ0, PadZ0 + .3f);
-        MM(stone, PadX0, -21f, -s, 0f, PadZ0, PadZ0 + .3f, false);                        // the lawn strips' front edge
-        MM(stone, 24f, PadX1, -s, 0f, PadZ0, PadZ0 + .3f, false);
-        MM(stone, -21f, PoolX0, -s, 0f, PadZ0, PadZ0 + .3f, false);
-        MM(stone, PoolX1, 24f, -s, 0f, PadZ0, PadZ0 + .3f, false);
+        MM(murOporowy, PadX0, PoolX0, -4f, -s, PadZ0, PadZ0 + .3f);                           // the retaining wall under the pad's front
+        MM(murOporowy, PoolX0, PoolX1, -4f, -.75f, PadZ0, PadZ0 + .3f);
+        MM(murOporowy, PoolX1, PadX1, -4f, -s, PadZ0, PadZ0 + .3f);
+        MM(murOporowy, PadX0, -21f, -s, 0f, PadZ0, PadZ0 + .3f, false);                        // the lawn strips' front edge
+        MM(murOporowy, 24f, PadX1, -s, 0f, PadZ0, PadZ0 + .3f, false);
+        MM(murOporowy, -21f, PoolX0, -s, 0f, PadZ0, PadZ0 + .3f, false);
+        MM(murOporowy, PoolX1, 24f, -s, 0f, PadZ0, PadZ0 + .3f, false);
         // a glass balustrade on the pad's edge beside the pool (over the pool the edge stays open: the infinity view)
         Balustrada(true, PadZ0 + .15f, PadX0 + .2f, PoolX0 - .4f, 0f);
         if (nrWilli == 2) { Balustrada(true, PadZ0 + .15f, PoolX1 + .4f, WStX0 - .1f, 0f); Balustrada(true, PadZ0 + .15f, WStX1 + .1f, PadX1 - .2f, 0f); }   // the stair to the beach
@@ -820,14 +826,44 @@ public static partial class BraxChampionsWille
             sb + new Vector3(0f, 0f, -1.2f));
         W.Kolizja(sb + new Vector3(0f, .9f, 0f), new Vector3(1.8f, 1.8f, .12f), Quaternion.identity);
     }
+    /// <summary>A teak outdoor sofa w wide facing f (18.11, owner: "jak zabawki" - it was a block with a cushion on it): four
+    /// legs, the aprons, slatted arms with a wide top, the slatted back frame; thick rounded cotton seat and back cushions,
+    /// one per seat (about 70 cm), linen throw cushions at the ends of a sofa.</summary>
     static void Lawka(Vector3 p, Vector3 f, float w)
     {
+        Out_(true);
         var q = Quaternion.LookRotation(f, Vector3.up);
-        b.RoundedBox(teak, p + q * new Vector3(0f, .2f, -.35f), new Vector3(w, .4f, .8f), .02f, q, 2);
-        b.RoundedBox(cushion, p + q * new Vector3(0f, .46f, -.38f), new Vector3(w - .1f, .12f, .7f), .04f, q, 2);
-        b.RoundedBox(cushion, p + q * new Vector3(0f, .72f, -.72f), new Vector3(w - .1f, .45f, .12f), .04f, q, 2);
-        W.Kolizja(p + q * new Vector3(0f, .35f, -.4f), new Vector3(w, .7f, .8f), q);
-        int n = Mathf.Max(1, Mathf.RoundToInt(w / .8f));
-        for (int i = 0; i < n; i++) { W.Siedzisko(p + q * new Vector3((i - (n - 1) * .5f) * .8f, .52f, -.25f), f, "SOFA OGRODOWA"); Siedziska++; }
+        Vector3 L(float x, float y, float z) => p + q * new Vector3(x, y, z);
+        float hw = w * .5f, D = .78f, zb = -D + .04f;     // within the old block's .8 (sofas stand 2 cm off walls)
+        foreach (float sx in new[] { -hw + .04f, hw - .04f }) foreach (float sz in new[] { -.04f, zb })
+            b.RoundedBox(teak, L(sx, .07f, sz), new Vector3(.07f, .14f, .07f), .012f, q, 2);
+        b.RoundedBox(teak, L(0f, .2f, -.04f), new Vector3(w, .12f, .05f), .012f, q, 2);
+        b.RoundedBox(teak, L(0f, .2f, zb), new Vector3(w, .12f, .05f), .012f, q, 2);
+        for (float x = -hw + .12f; x < hw - .1f; x += .09f) b.Box(teak, L(x, .265f, (zb - .04f) * .5f), new Vector3(.065f, .02f, D - .1f), q);
+        // the arms: a front and a back post, three rails, the 12 cm top
+        foreach (float s in new[] { -1f, 1f })
+        {
+            float ax = s * (hw - .04f);
+            foreach (float sz in new[] { -.04f, zb }) b.RoundedBox(teak, L(ax, .4f, sz), new Vector3(.06f, .5f, .06f), .012f, q, 2);
+            foreach (float y in new[] { .32f, .44f, .56f }) b.Box(teak, L(ax, y, (zb - .04f) * .5f), new Vector3(.03f, .05f, D - .1f), q);
+            b.RoundedBox(teak, L(s * (hw - .06f), .64f, (zb - .04f) * .5f), new Vector3(.12f, .035f, D), .012f, q, 2);
+        }
+        // the back: the top rail and vertical slats
+        b.RoundedBox(teak, L(0f, .74f, zb), new Vector3(w - .08f, .06f, .05f), .012f, q, 2);
+        for (float x = -hw + .14f; x < hw - .1f; x += .12f) b.Box(teak, L(x, .5f, zb), new Vector3(.06f, .44f, .025f), q);
+        // the cushions
+        float wi = w - .2f; int n = Mathf.Max(1, Mathf.RoundToInt(wi / .7f)); float cw = wi / n;
+        for (int i = 0; i < n; i++)
+        {
+            float x = -wi * .5f + cw * (i + .5f);
+            b.RoundedBox(cushion, L(x, .345f, -.34f), new Vector3(cw - .012f, .15f, .58f), .055f, q, 3);
+            b.RoundedBox(cushion, L(x, .62f, zb + .14f), new Vector3(cw - .012f, .42f, .16f), .06f, q * Quaternion.Euler(-9f, 0f, 0f), 3);
+        }
+        if (w >= 1.6f)
+            foreach (float s in new[] { -1f, 1f })
+                b.RoundedBox(BraxKatalog.Linen, L(s * (wi * .5f - .26f), .6f, zb + .3f), new Vector3(.42f, .42f, .13f), .06f, q * Quaternion.Euler(-14f, s * 10f, s * 4f), 3);
+        W.Kolizja(p + q * new Vector3(0f, .35f, -.43f), new Vector3(w, .7f, D), q);
+        int ns = Mathf.Max(1, Mathf.RoundToInt(w / .8f));
+        for (int i = 0; i < ns; i++) { W.Siedzisko(p + q * new Vector3((i - (ns - 1) * .5f) * .8f, .52f, -.25f), f, "SOFA OGRODOWA"); Siedziska++; }
     }
 }

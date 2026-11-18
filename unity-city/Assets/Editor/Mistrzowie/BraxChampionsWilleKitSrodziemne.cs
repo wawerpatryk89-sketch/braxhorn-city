@@ -54,8 +54,11 @@ public static partial class BraxChampionsWille
             bool hip = alongX ? (r0 ? przyMurze != 1 : przyMurze != 2) : (r0 ? przyMurze != 3 : przyMurze != 4);
             if (hip && (c - r).sqrMagnitude > 1f) b.Tube(dachowka, c + up, r + up, .1f, 8);
         }
-        // the boxed eave: the soffit ring and the fascia under the tiles' edge, dark timber corbels under it
+        // the boxed eave: the soffit ring and the fascia under the tiles' edge, dark timber corbels under it; 18.11 (his zoom:
+        // the stucco ran straight into the tiles) the fascia and a cornice under the soffit in the contrasting stone/ivory
+        // and the barrel tiles' round ends along the eaves
         float ys = ye - .16f;
+        var gzyms = sciana == tynkKrem ? deck : tynkKrem;
         void Okap(Vector3 p0, Vector3 p1, Vector3 w0, Vector3 w1, Vector3 outN)
         {
             p0.y = p1.y = w0.y = w1.y = ys;
@@ -65,7 +68,14 @@ public static partial class BraxChampionsWille
             var f0 = p0; var f1 = p1; var g0 = p0 + Vector3.up * .16f; var g1 = p1 + Vector3.up * .16f;
             var fq = new[] { f0, f1, g1, g0 };
             if (Vector3.Dot(Vector3.Cross(fq[1] - fq[0], fq[2] - fq[0]), outN) < 0f) Array.Reverse(fq);
-            b.Quad(sciana, fq[0], fq[1], fq[2], fq[3]);
+            b.Quad(gzyms, fq[0], fq[1], fq[2], fq[3]);
+            // the cornice: a 10 cm band 12 cm proud under the soffit and a 6 cm bead under it 7 cm proud (clear of the oculi's 4.5 cm rings); the eaves along
+            // x run 12 cm on past the corners so the sides along z butt into them (no overlapping faces at the corners)
+            bool wzdluzX = Mathf.Abs(outN.z) > .5f;
+            float ext = wzdluzX ? .12f : 0f, ln = Vector3.Distance(w0, w1) + 2f * ext; var mid = (w0 + w1) * .5f;
+            Vector3 Sz(float across, float h, float l) => wzdluzX ? new Vector3(l, h, across) : new Vector3(across, h, l);
+            b.Box(gzyms, mid + outN * .06f + Vector3.down * .05f, Sz(.12f, .1f, ln), Quaternion.identity);
+            b.Box(gzyms, mid + outN * .035f + Vector3.down * .13f, Sz(.07f, .06f, Vector3.Distance(w0, w1) + (wzdluzX ? .14f : 0f)), Quaternion.identity);
             float len = Vector3.Distance(w0, w1); var dir = (w1 - w0).normalized;
             for (float t = .6f; t < len - .3f; t += 1.2f)
             {
@@ -77,6 +87,34 @@ public static partial class BraxChampionsWille
         if (przyMurze != 4) Okap(new Vector3(X1, 0, Z1), new Vector3(X0, 0, Z1), new Vector3(x1, 0, z1), new Vector3(x0, 0, z1), Vector3.forward);
         if (przyMurze != 1) Okap(new Vector3(X0, 0, Z1), new Vector3(X0, 0, Z0), new Vector3(x0, 0, z1), new Vector3(x0, 0, z0), Vector3.left);
         if (przyMurze != 2) Okap(new Vector3(X1, 0, Z0), new Vector3(X1, 0, Z1), new Vector3(x1, 0, z0), new Vector3(x1, 0, z1), Vector3.right);
+        // the eaves' barrel tiles: their round ends every 21.7 cm (two of the texture's courses, 2.5 m / 23), radius 7.5 cm,
+        // 20 cm of each cap up the slope, closed at both ends; 30 cm clear of the hips
+        void Gasiory(Vector3 e0, Vector3 e1, Vector3 outN)
+        {
+            float len = Vector3.Distance(e0, e1); if (len < .8f) return;
+            var e = (e1 - e0) / len; var s = -outN * Mathf.Cos(a) + Vector3.up * Mathf.Sin(a);
+            var nn = Vector3.Cross(s, e); if (nn.y < 0f) nn = -nn;
+            const float R = .075f, Ls = .2f; const int M = 6;
+            void Tri(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 face)
+            {
+                if (Vector3.Dot(Vector3.Cross(p1 - p0, p2 - p0), face) < 0f) b.Triangle(dachowka, p0, p2, p1); else b.Triangle(dachowka, p0, p1, p2);
+            }
+            for (float t = .3f; t <= len - .3f; t += .217f)
+            {
+                var c = e0 + e * t + nn * .005f;
+                Vector3 Pt(float u, float v) { float th = Mathf.PI * u; return c + e * (R * Mathf.Cos(th)) + nn * (R * Mathf.Sin(th)) + s * (Ls * v); }
+                for (int i = 0; i < M; i++)
+                {
+                    float u0 = (float)i / M, u1 = (float)(i + 1) / M, th = Mathf.PI * (u0 + u1) * .5f;
+                    QF(dachowka, Pt(u0, 0f), Pt(u1, 0f), Pt(u1, 1f), Pt(u0, 1f), e * Mathf.Cos(th) + nn * Mathf.Sin(th));
+                    Tri(c, Pt(u0, 0f), Pt(u1, 0f), -s); Tri(c + s * Ls, Pt(u0, 1f), Pt(u1, 1f), s);
+                }
+            }
+        }
+        if (przyMurze != 3) Gasiory(c00, c10, Vector3.back);
+        if (przyMurze != 4) Gasiory(c11, c01, Vector3.forward);
+        if (przyMurze != 1) Gasiory(c01, c00, Vector3.left);
+        if (przyMurze != 2) Gasiory(c10, c11, Vector3.right);
         return yr;
     }
     // one tiled roof plane (3 or 4 points), turned to face up and out; its UVs: u along the eave, v down the slope (m);
@@ -118,16 +156,29 @@ public static partial class BraxChampionsWille
             var c = P((u0 + u1) * .5f, (y0 + y1) * .5f, t * .5f); var centre = P(am, ys, t * .5f);
             Q(zew, P(u0, y0, 0f), P(u1, y1, 0f), P(u1, y1, t), P(u0, y0, t), centre - c, false);
         }
+        // 18.11 an open arcade's arch (outside on both faces): the stone archivolt round it on the outer face
+        if (wew == zew && zew != renderIn) { Out_(true); Pierscien(Opaska_, alongX, plane, outward, am, ys, r, r + OpW, 0f, Mathf.PI, OpD, 20); }
     }
     /// <summary>An arched opening in an outside wall (its wall built by the caller with the opening a0..a1 from sill to the
     /// crown): the spandrels, glass in the rectangle and the half-round (two-sided), a dark frame - or open (szklo false).</summary>
-    static void OknoLuk(bool alongX, float plane, float a0, float a1, float sill, float ys, float yt, float outward, Material zew, bool szklo = true)
+    static void OknoLuk(bool alongX, float plane, float a0, float a1, float sill, float ys, float yt, float outward, Material zew, bool szklo = true, float opW = OpW)
     {
         Luk(alongX, plane, a0, a1, ys, yt, outward, zew, renderIn);
-        if (!szklo) return;
         float r = (a1 - a0) * .5f, am = (a0 + a1) * .5f, gp = plane - outward * T * .5f;
-        Szyba(alongX, gp, a0 + .031f, a1 - .031f, sill, ys);
+        // 18.11 the stone surround round it: the jambs from the sill (a fanlight over a door: from the floor), the band
+        // round the arch, the keystone at the crown; a window's stone sill
+        bool fanlight = ys - sill < .1f;
+        Opaska(alongX, plane, outward, a0, a1, fanlight ? 0f : sill, ys, opW);
+        if (szklo && !fanlight && sill > .05f) Parapet(alongX, plane, outward, a0, a1, sill, opW);
+        if (!szklo) return;
+        // the glass and the walnut casement (was black aluminium - 18.11 his zoom: a thin black square)
         Out_(true);
+        if (!fanlight)
+        {
+            if (alongX) MM(glass, a0 + .04f, a1 - .04f, sill + .05f, ys - .03f, gp - .012f, gp + .012f, false);
+            else MM(glass, gp - .012f, gp + .012f, sill + .05f, ys - .03f, a0 + .04f, a1 - .04f, false);
+            Skrzydla(alongX, gp, a0, a1, sill, ys);
+        }
         const int N = 24;
         Vector3 P(float a, float y) => alongX ? new Vector3(a, y, gp) : new Vector3(gp, y, a);
         var centre = P(am, ys);
@@ -139,6 +190,14 @@ public static partial class BraxChampionsWille
             // the curved glazing bead: a walnut strip on the glass's edge (a surface, not chord boxes - 17.11 they showed teeth)
         }
         b.Box(walnut, P(am, ys), alongX ? new Vector3(a1 - a0, .06f, .08f) : new Vector3(.08f, .06f, a1 - a0), Quaternion.identity);     // the transom at the springing
+        // the fanlight's glazing bars: three spokes from the transom's middle (45, 90, 135 degrees)
+        foreach (float deg in new[] { 45f, 90f, 135f })
+        {
+            float th = deg * Mathf.Deg2Rad, len = r - .05f;
+            var mid = P(am + Mathf.Cos(th) * len * .5f, ys + Mathf.Sin(th) * len * .5f);
+            var rot = alongX ? Quaternion.AngleAxis(deg, Vector3.forward) : Quaternion.AngleAxis(-deg, Vector3.right);
+            b.Box(walnut, mid, alongX ? new Vector3(len, .028f, .04f) : new Vector3(.04f, .028f, len), rot);
+        }
         var nrm = alongX ? Vector3.forward : Vector3.right;
         b.Surface(walnut, (u, v) => { float t = Mathf.PI * u, rr = r - .05f * v; return P(am - rr * Mathf.Cos(t), ys + rr * Mathf.Sin(t)) - nrm * outward * .045f; }, 24, 1, outward > 0f);
         b.Surface(walnut, (u, v) => { float t = Mathf.PI * u, rr = r - .05f * v; return P(am - rr * Mathf.Cos(t), ys + rr * Mathf.Sin(t)) + nrm * outward * .045f; }, 24, 1, outward < 0f);
@@ -169,10 +228,12 @@ public static partial class BraxChampionsWille
     }
     /// <summary>A round window (owner's photo 2: the oculi) at (ac, yc), radius r, in an outside wall built with the square
     /// opening ac-r..ac+r x yc-r..yc+r: the wall round the circle, the glass disc, a walnut bead both sides.</summary>
-    static void OknoOkragle(bool alongX, float plane, float ac, float yc, float r, float outward, Material zew)
+    static void OknoOkragle(bool alongX, float plane, float ac, float yc, float r, float outward, Material zew, float opW = .1f)
     {
         Luk(alongX, plane, ac - r, ac + r, yc, yc + r, outward, zew, renderIn);
         LukDol(alongX, plane, ac - r, ac + r, yc, yc - r, outward, zew, renderIn);
+        // 18.11 its stone ring (10 cm, as the oculi in his photo 2 sit close under the eaves)
+        if (opW > 0f) { Out_(true); Pierscien(Opaska_, alongX, plane, outward, ac, yc, r, r + opW, 0f, Mathf.PI * 2f, OpD, 32); }
         float gp = plane - outward * T * .5f; const int N = 32;
         Vector3 P(float a, float y) => alongX ? new Vector3(a, y, gp) : new Vector3(gp, y, a);
         var centre = P(ac, yc);
@@ -186,6 +247,86 @@ public static partial class BraxChampionsWille
         var nrm = alongX ? Vector3.forward : Vector3.right;
         b.Surface(walnut, (u, v) => { float t = Mathf.PI * 2f * u, rr = r - .05f * v; return P(ac - rr * Mathf.Cos(t), yc + rr * Mathf.Sin(t)) - nrm * outward * .045f; }, N, 1, outward > 0f);
         b.Surface(walnut, (u, v) => { float t = Mathf.PI * 2f * u, rr = r - .05f * v; return P(ac - rr * Mathf.Cos(t), yc + rr * Mathf.Sin(t)) + nrm * outward * .045f; }, N, 1, outward < 0f);
+    }
+
+    // ---------------------------------------------------------------- the finish round the openings (owner 18.11 04:40-04:46:
+    // "Co to za wykończenie jak to wygląda jak zabawki", "elewacja wykończenie premium" - his zoom: bare holes in the
+    // stucco with a thin black square in them). As his photo 2 and the classic Mediterranean villa: a stone surround 16 cm
+    // wide, 4.5 cm proud of the stucco, round every arched opening, a keystone at the crown, a stone sill 8 cm proud under
+    // every window, walnut casements in two leaves with glazing bars, the fanlight's spokes. The stone: the terrace's
+    // travertine (Poly Haven), the warm beige villa's surrounds and the ivory villa's alike.
+    const float OpW = .16f, OpD = .045f;
+    static Material Opaska_ => deck;
+    /// <summary>A quad turned to face 'face' (its winding fixed by the normal, as Luk's).</summary>
+    static void QF(Material m, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 face)
+    {
+        var q = new[] { p0, p1, p2, p3 };
+        if (Vector3.Dot(Vector3.Cross(q[1] - q[0], q[2] - q[0]), face) < 0f) Array.Reverse(q);
+        b.Quad(m, q[0], q[1], q[2], q[3]);
+    }
+    /// <summary>A box in a wall's frame: a along the wall, y up, off across it (positive into the wall from its outer
+    /// plane, negative proud of it).</summary>
+    static void WB(Material m, bool alongX, float plane, float outward, float a0, float a1, float y0, float y1, float off0, float off1)
+    {
+        float n0 = plane - outward * off0, n1 = plane - outward * off1;
+        if (alongX) MM(m, a0, a1, y0, y1, Mathf.Min(n0, n1), Mathf.Max(n0, n1), false);
+        else MM(m, Mathf.Min(n0, n1), Mathf.Max(n0, n1), y0, y1, a0, a1, false);
+    }
+    /// <summary>An annulus sector (radii r0..r1, angles t0..t1 from -a over the top) round (ac, yc) on a wall: its face d
+    /// proud of the wall and both rims back to the wall.</summary>
+    static void Pierscien(Material m, bool alongX, float plane, float outward, float ac, float yc, float r0, float r1, float t0, float t1, float d, int N)
+    {
+        Vector3 P(float a, float y, float off) => alongX ? new Vector3(a, y, plane - outward * off) : new Vector3(plane - outward * off, y, a);
+        Vector3 A(float rr, float u, float off) => P(ac - rr * Mathf.Cos(u), yc + rr * Mathf.Sin(u), off);
+        var outN = alongX ? new Vector3(0, 0, outward) : new Vector3(outward, 0, 0);
+        for (int i = 0; i < N; i++)
+        {
+            float u0 = Mathf.Lerp(t0, t1, (float)i / N), u1 = Mathf.Lerp(t0, t1, (float)(i + 1) / N), um = (u0 + u1) * .5f;
+            QF(m, A(r0, u0, -d), A(r0, u1, -d), A(r1, u1, -d), A(r1, u0, -d), outN);
+            var radial = A(1f, um, 0f) - P(ac, yc, 0f);
+            QF(m, A(r1, u0, -d), A(r1, u1, -d), A(r1, u1, .005f), A(r1, u0, .005f), radial);
+            QF(m, A(r0, u0, -d), A(r0, u1, -d), A(r0, u1, 0f), A(r0, u0, 0f), -radial);      // the opening's soffit goes on from 0
+        }
+    }
+    /// <summary>The stone surround of an arched opening a0..a1 (springing ys): the jambs from yb, the band round the arch,
+    /// the keystone (on the full 16 cm surround).</summary>
+    static void Opaska(bool alongX, float plane, float outward, float a0, float a1, float yb, float ys, float w)
+    {
+        if (w <= 0f) return;
+        Out_(true);
+        float r = (a1 - a0) * .5f, am = (a0 + a1) * .5f;
+        WB(Opaska_, alongX, plane, outward, a0 - w, a0, yb, ys, 0f, -OpD);
+        WB(Opaska_, alongX, plane, outward, a1, a1 + w, yb, ys, 0f, -OpD);
+        Pierscien(Opaska_, alongX, plane, outward, am, ys, r, r + w, 0f, Mathf.PI, OpD, 20);
+        if (w >= OpW) WB(Opaska_, alongX, plane, outward, am - .11f, am + .11f, ys + r, ys + r + w + .08f, 0f, -(OpD + .025f));
+    }
+    /// <summary>A window's stone sill: from the glass out 8 cm proud of the stucco, 5 cm past the surround each side.</summary>
+    static void Parapet(bool alongX, float plane, float outward, float a0, float a1, float sill, float w)
+    {
+        Out_(true);
+        float e = Mathf.Max(w, 0f) + .05f;
+        WB(Opaska_, alongX, plane, outward, a0 - e, a1 + e, sill - .07f, sill + .01f, T * .5f - .012f, -(OpD + .035f));     // to the glass, clear of the wall's two skins' joint
+    }
+    /// <summary>The walnut casement in the rectangle a0..a1 x y0..y1 at the glass plane gp: the frame, the meeting
+    /// stile of two leaves (over 85 cm), glazing bars dividing each leaf into panes about half a metre tall.</summary>
+    static void Skrzydla(bool alongX, float gp, float a0, float a1, float y0, float y1)
+    {
+        Out_(true);
+        void R(float p0, float p1, float q0, float q1, float d)
+        {
+            if (alongX) MM(walnut, p0, p1, q0, q1, gp - d, gp + d, false);
+            else MM(walnut, gp - d, gp + d, q0, q1, p0, p1, false);
+        }
+        float am = (a0 + a1) * .5f;
+        R(a0, a0 + .07f, y0, y1, .035f); R(a1 - .07f, a1, y0, y1, .035f);
+        R(a0 + .07f, a1 - .07f, y0, y0 + .11f, .035f);
+        if (a1 - a0 > .85f) R(am - .045f, am + .045f, y0 + .11f, y1, .035f);
+        int n = Mathf.Max(1, Mathf.RoundToInt((y1 - y0 - .11f) / .5f));
+        for (int k = 1; k < n; k++)
+        {
+            float y = y0 + .11f + k * (y1 - y0 - .11f) / n;
+            R(a0 + .07f, a1 - .07f, y - .015f, y + .015f, .022f);
+        }
     }
 
     // ---------------------------------------------------------------- stone

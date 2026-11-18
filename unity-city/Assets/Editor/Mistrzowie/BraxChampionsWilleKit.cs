@@ -265,17 +265,44 @@ public static partial class BraxChampionsWille
     }
 
     /// <summary>Teak loungers in a row from p along +x (step apart), facing f.</summary>
+    /// <summary>n teak sun loungers in a row (every step along x) facing f. 18.11 (owner: "jak zabawki", "Ty to mierzysz
+    /// skalujesz?" - the size was right, 2.00 x .72 m, the build was a plank on four sticks): as a real teak lounger
+    /// (Tribu/Dedon class) - two side rails and two cross rails, a slatted seat (13 slats with their gaps), the slatted
+    /// backrest hinged at 40 degrees on two struts, legs at the foot and wheels at the head; cotton cushions on the seat
+    /// and the back, a head pillow; a rolled navy towel on every other one.</summary>
     static void Lezaki(Vector3 p, int n, float step, Vector3 f)
     {
         Out_(true);
         var q = Quaternion.LookRotation(-f, Vector3.up);
+        var qb = q * Quaternion.Euler(-40f, 0f, 0f);
         for (int i = 0; i < n; i++)
         {
             var c = p + Vector3.right * (i * step);
-            b.RoundedBox(teak, c + Vector3.up * .17f, new Vector3(.72f, .08f, 2.0f), .02f, q, 2);
-            foreach (float sx in new[] { -.3f, .3f }) foreach (float sz in new[] { -.9f, .9f }) b.Box(teak, c + q * new Vector3(sx, .07f, sz), new Vector3(.05f, .14f, .05f), q);
-            b.RoundedBox(cushion, c + q * new Vector3(0f, .25f, -.25f), new Vector3(.68f, .08f, 1.45f), .03f, q, 2);
-            b.RoundedBox(cushion, c + q * new Vector3(0f, .48f, .72f), new Vector3(.68f, .08f, .62f), .03f, q * Quaternion.Euler(-48f, 0f, 0f), 2);
+            Vector3 L(float x, float y, float z) => c + q * new Vector3(x, y, z);
+            // the frame: side rails 2.0 m (5 x 10 cm), cross rails, two legs at the foot, the wheels at the head
+            foreach (float sx in new[] { -.335f, .335f }) b.RoundedBox(teak, L(sx, .22f, 0f), new Vector3(.05f, .1f, 2.0f), .015f, q, 2);
+            foreach (float sz in new[] { -.975f, .975f }) b.RoundedBox(teak, L(0f, .21f, sz), new Vector3(.62f, .08f, .05f), .012f, q, 2);
+            foreach (float sx in new[] { -.31f, .31f }) b.RoundedBox(teak, L(sx, .085f, -.9f), new Vector3(.06f, .17f, .06f), .012f, q, 2);
+            foreach (float sg in new[] { -1f, 1f })
+            {
+                b.RoundedBox(teak, L(sg * .335f, .125f, .86f), new Vector3(.05f, .1f, .1f), .01f, q, 2);       // the wheel's block under the rail
+                b.Cylinder(BraxKatalog.BlackMatt, L(sg * .36f, .085f, .86f), .085f, .04f, 18, q * Quaternion.Euler(0f, 0f, -90f * sg), true, true);
+            }
+            // the seat: 13 slats 6.5 cm wide with 2 cm gaps, their tops flush with the rails
+            for (int k = 0; k < 13; k++) b.Box(teak, L(0f, .26f, -.92f + k * .085f), new Vector3(.62f, .02f, .065f), q);
+            // the backrest: hinged at z .2, 40 degrees up, its rails, slats and two struts down to the side rails
+            var H = L(0f, .27f, .2f);
+            foreach (float sx in new[] { -.3f, .3f })
+            {
+                b.RoundedBox(teak, H + qb * new Vector3(sx, -.03f, .37f), new Vector3(.04f, .05f, .74f), .01f, qb, 2);
+                b.Tube(teak, H + qb * new Vector3(sx * .8f, -.05f, .55f), L(sx * .8f, .25f, .78f), .014f, 6);
+            }
+            for (int k = 0; k < 8; k++) b.Box(teak, H + qb * new Vector3(0f, -.005f, .05f + k * .085f), new Vector3(.58f, .018f, .065f), qb);
+            // the cushions: seat 1.15 m, back .72 m (8 cm, well rounded), the head pillow
+            b.RoundedBox(cushion, L(0f, .31f, -.39f), new Vector3(.64f, .085f, 1.16f), .038f, q, 3);
+            b.RoundedBox(cushion, H + qb * new Vector3(0f, .045f, .38f), new Vector3(.64f, .08f, .72f), .036f, qb, 3);
+            b.RoundedBox(cushion, H + qb * new Vector3(0f, .13f, .6f), new Vector3(.46f, .1f, .24f), .045f, qb, 3);
+            if (i % 2 == 0) b.Cylinder(recznik, L(-.25f, .4f, -.78f), .055f, .5f, 14, q * Quaternion.Euler(0f, 0f, -90f), true, true);
             W.Kolizja(c + Vector3.up * .15f, new Vector3(.72f, .3f, 2.0f), q);
             W.Siedzisko(c + Vector3.up * .3f, f, "LEŻAK", true); Siedziska++;
         }

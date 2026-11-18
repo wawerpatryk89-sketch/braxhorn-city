@@ -42,7 +42,7 @@ public static partial class BraxChampionsWille
         MM(lawn, -18f, -9f, -s, 0f, 8f, PadZ1); MM(lawn, -9f, -1.2f, -s, 0f, 13f, PadZ1); MM(lawn, 1.2f, 6f, -s, 0f, 13f, PadZ1);
         MM(paving, -1.2f, 1.2f, -s, 0f, 13f, PadZ1); MM(paving, 6f, 18f, -s, 0f, 13f, PadZ1);
         // the pad's front: the stone wall under its edge, a travertine coping, the white balustrade (open at the stair)
-        MM(stone, PadX0, PadX1, -4f, -s, PadZ0, PadZ0 + .3f);
+        MM(murOporowy, PadX0, PadX1, -4f, -s, PadZ0, PadZ0 + .3f);
         MM(deck, PadX0, PadX1, -s, 0f, PadZ0, PadZ0 + .3f, false);
         Tralki(true, PadZ0 + .15f, PadX0 + .2f, NSt0 - .1f, 0f); Tralki(true, PadZ0 + .15f, NSt1 + .1f, PadX1 - .2f, 0f);
         SchodyPlaza(NSt0, NSt1);
@@ -116,11 +116,39 @@ public static partial class BraxChampionsWille
     /// <summary>A black iron Juliet rail before a French window (a0..a1) at its sill, 1 m high, in front of the wall.</summary>
     static void Balkonik(bool alongX, float plane, float a0, float a1, float sill)
     {
+        // 18.11 (his zoom: a thin black grid) the wrought-iron rail of his photo 2: the round handrail, the bottom rail, square
+        // bars 11 cm apart, between two middle rails a band of rings, a ball finial on each end post
         Out_(true);
-        MM(stalCzarna, a0 - .05f, a1 + .05f, sill + .98f, sill + 1.02f, plane - .02f, plane + .02f, false);
-        MM(stalCzarna, a0 - .05f, a1 + .05f, sill + .06f, sill + .09f, plane - .015f, plane + .015f, false);
-        for (float a = a0 + .06f; a < a1 - .03f; a += .11f) MM(stalCzarna, a - .008f, a + .008f, sill + .09f, sill + .98f, plane - .008f, plane + .008f, false);
-        W.Kolizja(new Vector3((a0 + a1) * .5f, sill + .5f, plane), new Vector3(a1 - a0 + .1f, 1.0f, .06f), Quaternion.identity);
+        Vector3 P(float a, float y) => alongX ? new Vector3(a, y, plane) : new Vector3(plane, y, a);
+        float l0 = a0 - .05f, l1 = a1 + .05f;
+        b.Tube(stalCzarna, P(l0, sill + 1.0f), P(l1, sill + 1.0f), .022f, 10);
+        void Rail(float y, float h, float d) { if (alongX) MM(stalCzarna, l0, l1, y, y + h, plane - d, plane + d, false); else MM(stalCzarna, plane - d, plane + d, y, y + h, l0, l1, false); }
+        Rail(sill + .06f, .03f, .015f); Rail(sill + .76f, .02f, .01f); Rail(sill + .9f, .02f, .01f);
+        foreach (float a in new[] { l0, l1 })
+        {
+            if (alongX) MM(stalCzarna, a - .015f, a + .015f, sill + .06f, sill + 1.0f, plane - .015f, plane + .015f, false);
+            else MM(stalCzarna, plane - .015f, plane + .015f, sill + .06f, sill + 1.0f, a - .015f, a + .015f, false);
+            b.Lathe(stalCzarna, P(a, sill + 1.0f), new[] { new Vector2(0f, 0f), new Vector2(.02f, .01f), new Vector2(.035f, .045f), new Vector2(.02f, .08f), new Vector2(0f, .085f) }, 10, Quaternion.identity, false, false);
+        }
+        var nrm = alongX ? Vector3.forward : Vector3.right; var along = alongX ? Vector3.right : Vector3.forward;
+        for (float a = a0 + .06f; a < a1 - .03f; a += .11f)
+        {
+            if (alongX) MM(stalCzarna, a - .008f, a + .008f, sill + .09f, sill + .76f, plane - .008f, plane + .008f, false);
+            else MM(stalCzarna, plane - .008f, plane + .008f, sill + .09f, sill + .76f, a - .008f, a + .008f, false);
+            // the ring between this bar and the next, in the band
+            if (a + .11f < a1 - .03f)
+            {
+                var cRing = P(a + .055f, sill + .84f);
+                Vector3 Torus(float u, float v)
+                {
+                    float t = Mathf.PI * 2f * u, s = Mathf.PI * 2f * v, R = .045f, rr = .006f;
+                    var rad = along * Mathf.Cos(t) + Vector3.up * Mathf.Sin(t);
+                    return cRing + rad * (R + rr * Mathf.Cos(s)) + nrm * (rr * Mathf.Sin(s));
+                }
+                b.Surface(stalCzarna, Torus, 14, 4); b.Surface(stalCzarna, Torus, 14, 4, true);
+            }
+        }
+        W.Kolizja(P((a0 + a1) * .5f, sill + .5f), alongX ? new Vector3(a1 - a0 + .1f, 1.0f, .06f) : new Vector3(.06f, 1.0f, a1 - a0 + .1f), Quaternion.identity);
     }
 
     // ================================================================ the wings
@@ -154,7 +182,9 @@ public static partial class BraxChampionsWille
         Out_(true); MM(concrete, 10.2f, 15.8f, -.25f, 0f, 12.7f, 13f);
         float ry = 4.28f, rr = .37f;                     // the round windows under the wing's ceiling (4.7), over the door (3.8)
         ScianaOE(zew, true, -5f, 9f, 17f, 0f, NEe, -1f, false, RogX(9f, 17f), new Vector4(11.6f, 14.4f, 0f, 3.8f), new Vector4(13f - rr, 13f + rr, ry - rr, ry + rr));
-        OknoLuk(true, -5f, 11.6f, 14.4f, 2.38f, 2.4f, 3.8f, -1f, zew); OknoOkragle(true, -5f, 13f, ry, rr, -1f, zew);
+        // 18.11 the big door's surround 10 cm without a keystone, the oculus over it without its ring: the round window sits
+        // 11 cm over the door's crown (his photo 2)
+        OknoLuk(true, -5f, 11.6f, 14.4f, 2.38f, 2.4f, 3.8f, -1f, zew, true, .1f); OknoOkragle(true, -5f, 13f, ry, rr, -1f, zew, 0f);
         Out_(false);
         BraxChampionsInteriorDoor.Single("skrzydło wsch. drzwi L", "WILLA 3 | drzwi łukowe (orzech, lewe)", true, -4.85f, 11.6f, 13f, 0f, 2.38f, walnut, steel, .07f);
         BraxChampionsInteriorDoor.Single("skrzydło wsch. drzwi P", "WILLA 3 | drzwi łukowe (orzech, prawe)", true, -4.85f, 13f, 14.4f, 0f, 2.38f, walnut, steel, .07f);

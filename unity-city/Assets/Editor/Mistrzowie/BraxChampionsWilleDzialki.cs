@@ -223,7 +223,7 @@ public static class BraxChampionsWilleDzialki
         if (!BraxChampionsPromenadeFurniture.Teak) BraxChampionsPromenadeFurniture.Materials();
         krawez = BraxChampionsPromenadeFurniture.Kerb; drewno = BraxChampionsPromenadeFurniture.Teak;
         granit = BraxChampionsFoundation.SourceMaterial("wille_droga_granit", "granite_tile_03", 1.6f, new Color(.80f, .82f, .86f));
-        kamien = BraxChampionsFoundation.SourceMaterial("wille_mur_kamien", "granite_tile_04", 1.2f, new Color(.62f, .60f, .56f));
+        kamien = BraxChampionsFoundation.LibraryTravertine("wille_mur_kamien_trawertyn", new Color(.88f, .85f, .80f), 1.2f);   // 18.11 light travertine (was dark granite tiles)
         slupek = BraxChampionsHarbour.Surface("wille_ogrodzenie_grafit", new Color(.16f, .17f, .18f), .45f, .6f);
     }
 

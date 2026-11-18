@@ -43,8 +43,8 @@ public static partial class BraxChampionsWille
         MM(lawn, WPadX0, cx0, -s, 0f, PadZ0 + .3f, PadZ1); MM(lawn, cx1, PadX0, -s, 0f, PadZ0 + .3f, PadZ1);
         MM(lawn, cx0, cx1, -s, 0f, PadZ0 + .3f, cz0); MM(lawn, cx0, cx1, -s, 0f, cz1, PadZ1);
         // the front: the retaining wall, its stone edge, the glass balustrade (as the old pad's)
-        MM(stone, WPadX0, PadX0, -4f, -s, PadZ0, PadZ0 + .3f);
-        MM(stone, WPadX0, PadX0, -s, 0f, PadZ0, PadZ0 + .3f, false);
+        MM(murOporowy, WPadX0, PadX0, -4f, -s, PadZ0, PadZ0 + .3f);
+        MM(murOporowy, WPadX0, PadX0, -s, 0f, PadZ0, PadZ0 + .3f, false);
         Balustrada(true, PadZ0 + .15f, WPadX0 + .2f, PadX0 + .2f, 0f);
         SchodyPlaza(WStX0, WStX1);
     }
@@ -132,6 +132,7 @@ public static partial class BraxChampionsWille
         }
         Lamele(true, UGlass - .16f, UX0 + T + .1f, -12.2f, FFL1 + .02f, Roof - .02f);                        // west of the balcony's door
         Lamele(false, UX0 - .06f, UGlass + .1f, UZ1 - .1f, FFL1 + .02f, Roof - .02f);
+        Lamele(false, UX1 + .06f, UGlass + .1f, UZ1 - .1f, FFL1 + .02f, Roof - .02f);                       // 18.11 the east side too (it was a blank wall over the dining)
         W.Kolizja(new Vector3((UX0 + T + .1f - 12.2f) * .5f, (FFL1 + Roof) * .5f, UGlass - .16f), new Vector3(-12.2f - UX0 - T - .1f, Roof - FFL1, .08f), Quaternion.identity);
     }
 
@@ -144,11 +145,27 @@ public static partial class BraxChampionsWille
         // the house's east wall there: stucco outside (the pantry's door z 6.5..7.45 to the outdoor kitchen)
         MM(render, GX1, GX1 + .02f, 0f, H0, CZ0, 6.5f, false); MM(render, GX1, GX1 + .02f, 0f, H0, 7.45f, GZ1, false);
         MM(render, GX1, GX1 + .02f, 2.26f, H0, 6.5f, 7.45f, false);
-        // the canopy: a thin white plate on three black columns, its soffit oak (his photo: the wood ceiling over the dining)
-        MM(render, x0, x1, y, y + .22f, z0, z1);
-        MM(soffit, x0, x1, y - .02f, y, z0, z1, false);
-        foreach (var c in new[] { new Vector2(x1 - .25f, z0 + .25f), new Vector2(x1 - .25f, z1 - .25f), new Vector2(x0 + .3f, z0 + .25f) })
-        { b.Cylinder(stalCzarna, new Vector3(c.x, 0f, c.y), .07f, y - .02f, 16, Quaternion.identity, false); W.Kolizja(new Vector3(c.x, y * .5f, c.y), new Vector3(.16f, y, .16f), Quaternion.identity); }
+        // 18.11 (owner: "jak zabawki" - a blank grey wall and a thin plate on sticks): the house's east wall clad in vertical
+        // teak boards (10 cm, 2 cm joints, on a graphite backing) round the pantry's door; the canopy as his photo's covered
+        // dining - a deep flat roof 40 cm thick from the house's wall, its white fascia with a dark coping, the oak soffit, three
+        // square black steel columns 20 x 20 cm on its outer edge
+        const float cb = GX1 + .03f, ce = GX1 + .055f;
+        MM(graphite, GX1, cb, 0f, H0 - .02f, GZ0 + .1f, 6.45f, false); MM(graphite, GX1, cb, 0f, H0 - .02f, 7.5f, GZ1 - .05f, false);
+        MM(graphite, GX1, cb, 2.3f, H0 - .02f, 6.45f, 7.5f, false);
+        for (float zc = GZ0 + .16f; zc < GZ1 - .1f; zc += .12f)
+        {
+            bool nadDrzwiami = zc + .05f > 6.45f && zc - .05f < 7.5f;
+            MM(teak, cb, ce, nadDrzwiami ? 2.3f : 0f, H0 - .02f, zc - .05f, zc + .05f, false);
+        }
+        float xa = ce + .005f;
+        MM(render, xa, x1, y, y + .4f, z0, z1);
+        // its top: the house roof's gravel inside a 6 cm dark aluminium coping round the edge
+        MM(gravel, xa, x1 - .06f, y + .4f, y + .42f, z0 + .06f, z1 - .06f, false);
+        MM(alu, x1 - .06f, x1 + .01f, y + .4f, y + .45f, z0 - .01f, z1 + .01f, false);
+        MM(alu, xa, x1 - .06f, y + .4f, y + .45f, z0 - .01f, z0 + .06f, false); MM(alu, xa, x1 - .06f, y + .4f, y + .45f, z1 - .06f, z1 + .01f, false);
+        MM(soffit, xa, x1 - .02f, y - .02f, y, z0 + .02f, z1 - .02f, false);
+        foreach (float zc in new[] { z0 + .3f, (z0 + z1) * .5f, z1 - .3f })
+        { MM(stalCzarna, x1 - .4f, x1 - .2f, 0f, y - .02f, zc - .1f, zc + .1f); }
         foreach (var lp in new[] { new Vector3(18f, y - .03f, -1f), new Vector3(21.5f, y - .03f, -1f), new Vector3(18f, y - .03f, 4f), new Vector3(21.5f, y - .03f, 4f) })
         { b.Cylinder(downlight, lp, .065f, .003f, 16, Quaternion.identity, false, true); W.Lampa("jadalnia | oczko", lp + Vector3.down * .3f, .4f, 5f * K, new Color(1f, .86f, .64f)); }
         // dining for eight: two oak tables end to end along the canopy, on the deck

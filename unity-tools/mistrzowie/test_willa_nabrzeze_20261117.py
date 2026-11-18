@@ -44,7 +44,7 @@ class WillaNabrzeze(unittest.TestCase):
         self.assertIn("Tralki(true, -2.27f, -2.8f, 2.8f, KF1);", PLAN)
         self.assertGreaterEqual(PLAN.count("Balkonik("), 6)
         self.assertGreaterEqual(PLAN.count("OknoOkragle("), 5)
-        self.assertIn("static void OknoOkragle(bool alongX, float plane, float ac, float yc, float r, float outward, Material zew)", KIT)
+        self.assertIn("static void OknoOkragle(bool alongX, float plane, float ac, float yc, float r, float outward, Material zew, float opW = .1f)", KIT)
         self.assertIn("static void LukDol(", KIT)
 
     def test_three_roof_heights(self):
