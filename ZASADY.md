@@ -182,6 +182,52 @@ a powód trafia do logu `BRAX_POSTAC`.
 To było ustawienie „6 bez odblasku". Decyzja zapadła po obejrzeniu wszystkich sześciu
 obok siebie na żywych postaciach. **Nie otwieramy tego ponownie bez właściciela.**
 
+**5.1a. KAŻDA POSTAĆ W GRZE, OD 18.11. Bez wyjątków i bez „ten rejon ma inaczej".**
+Właściciel 18.11, 16:51: „Każda postać w grze od dzisiaj, każda jedna ma wyglądać tak, jak
+w zaakceptowanej wersji. Te ustawienia, żadnych błysków świecących, nic."
+
+To nie jest powtórzenie punktu 5.1, tylko odpowiedź na to, jak ten punkt dał się ominąć.
+
+**Co się stało 18.11.** Gałąź osiedla trzymała **starą kopię** `BraxObsadaOsiedla.shader` —
+bez `_Gladkosc`, `_MetalMnoznik` i `_SilaNormalnych`, czytającą połysk i metal wprost z mapy:
+
+```hlsl
+o.Metallic   = packedMap.r;      // bez mnożnika
+o.Smoothness = packedMap.a;      // bez mnożnika
+```
+
+`BraxPostacGlobalna` szuka w materiale właśnie tych nazw. Nie znajdowało ich, **nie robiło
+nic** — i wypisywało w logu, że standard został nałożony na 19 postaci. Czyli build wyglądałby
+dokładnie jak przed poprawką, a log i wykonawca zapewnialiby, że to wariant 6. Właściciel
+wyłapał to na słowo, zanim zobaczył obraz.
+
+Punkt 5.0a zakazywał tej kopii już wcześniej. Zabrakło **sprawdzania**, nie zakazu.
+
+**Dwie rzeczy obowiązkowe od teraz:**
+
+1. **Shader postaci musi mieć pokrętła standardu.** Sprawdzane automatycznie:
+   `unity-tools/claude/sprawdz_zasady.py`, reguła **P1** — `BraxObsadaOsiedla.shader` musi
+   zawierać `_Gladkosc`, `_MetalMnoznik` i `_SilaNormalnych`, i to **użyte w liczeniu
+   światła**, nie tylko zadeklarowane. Brak któregokolwiek = błąd, gałąź nie do odbioru.
+   Rejon, który wprowadza własny shader postaci, dokłada w nim te same trzy pokrętła.
+
+2. **Build ma UDOWODNIĆ, że objął wszystkich.** `BraxPostacGlobalna` liczy materiały, które
+   nie pasują do żadnej znanej nazwy, i kończy log albo:
+   `materiałów bez standardu: 0 (wszyscy objęci)`
+   albo listą shaderów, które uciekły. **Niezerowa lista to błąd, nie uwaga** — znaczy, że
+   jakaś postać wygląda inaczej niż reszta.
+
+**Objęte shadery** (stan 18.11): `Braxhorn/Obsada Osiedla`, `Braxhorn/HeroPremium` (Patryk,
+Brax, Nyxa — tam matowość nazywa się szorstkością i działa odwrotnie, więc podłoga
+szorstkości idzie w górę do pełnej), `Braxhorn/LudzieUbranie`, `Braxhorn/LudzieWlosy`,
+`Standard`. Nowy shader postaci bez obsługi w `BraxPostacGlobalna` zgłosi się sam w logu.
+
+**Sufit tekstur obsady zostaje taki, jak w pokoju prób** (ciała 4096, mimika 2048), mimo
+punktu 2.1. Właściciel 18.11, 16:50: „mają wyglądać tak, jak w ostatnim teście pokoju" —
+to jest obraz, który widział i przyjął, więc on wygrywa z sufitem. Zmierzony koszt: +67 MB
+na trzech postaciach z mapami 4096. Oszczędność i tak siedzi w ASTC 6×6 zamiast 4×4
+(obsada Osiedla: 483 MB → 222 MB).
+
 Skóra i tkanina mają być matowe. Gładkość z map generatora 3D jest
 zawyżona i nieprawdziwa — ten sam połysk dostaje wełna, skóra i dłoń. Metaliczność tkanin
 i skóry = 0. Zmierzone skutki zawyżonego połysku: krawat kapitana (jasność 42 na koszuli 229)

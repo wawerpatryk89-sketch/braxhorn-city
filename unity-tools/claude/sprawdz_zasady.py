@@ -90,6 +90,29 @@ def main(repo):
             if re.search(r"isReadable\s*=\s*true", goly):
                 dodaj(UWAGA, wzgl, nr, l, "S1 siatka do odczytu — podwaja pamięć")
 
+    # P1. SHADER OBSADY MUSI MIEĆ POKRĘTŁA STANDARDU POSTACI.
+    # 18.11: na gałęzi osiedla leżała STARA kopia Braxhorn/Obsada Osiedla — bez _Gladkosc,
+    # _MetalMnoznik i _SilaNormalnych. BraxPostacGlobalna przechodziło przez wszystkie 19
+    # postaci, nie miało czego ustawić, NIE ROBIŁO NIC i meldowało sukces w logu. Właściciel
+    # dostałby build z postaciami takimi jak przed poprawką i zapewnienie, że to wariant 6.
+    # To jest dokładnie to, czego zakazuje punkt 5.0a (rejon nie trzyma własnej kopii potoku
+    # obsady), tylko że nikt tego nie sprawdzał. Teraz sprawdza.
+    shader = Path(repo) / "unity-city/Assets/Claude/BraxObsadaOsiedla.shader"
+    if shader.exists():
+        tresc = shader.read_text(encoding="utf-8", errors="replace")
+        for pokretlo, uzycie in (("_Gladkosc", "_Gladkosc"),
+                                 ("_MetalMnoznik", "_MetalMnoznik"),
+                                 ("_SilaNormalnych", "_SilaNormalnych")):
+            # musi być i zadeklarowane, i użyte w liczeniu światła — sama właściwość nic nie daje
+            if tresc.count(uzycie) < 3:
+                dodaj(BLAD, "unity-city/Assets/Claude/BraxObsadaOsiedla.shader", 1,
+                      "brak albo nieużyte %s — standard postaci nie ma czego ustawić" % pokretlo,
+                      "P1 shader obsady bez pokrętła standardu")
+    else:
+        dodaj(BLAD, "unity-city/Assets/Claude", 1,
+              "brak BraxObsadaOsiedla.shader — rejon bez shadera obsady",
+              "P1 shader obsady bez pokrętła standardu")
+
     bledy = [z for z in znaleziska if z[0] == BLAD]
     uwagi = [z for z in znaleziska if z[0] == UWAGA]
 
