@@ -144,6 +144,29 @@ Nigdy klocek w kolorze jako zastępstwo.
 
 ## 5. POSTACIE
 
+**5.0a. JEDEN POTOK OBSADY DLA CZTERECH REJONÓW. Rejon nie ma własnego.**
+Właściciel 18.11, 10:54: „W czterech rejonach mają być takie same postacie jakościowo."
+Obsada to dziś **46 postaci przerobionych i 102 w kolejce** — przy czterech rejonach i
+czterech kopiach potoku to są cztery różne jakości tej samej osoby.
+
+Potok obsady leży na `main` i **tylko tam**:
+
+| Gdzie | Co robi |
+|---|---|
+| `unity-tools/claude/pobierz_obsade.py` | pobiera paczkę, sprawdza nazwy i sumy kontrolne |
+| `unity-tools/claude/osiedle_ruch.py` | rig, ujęcia ruchu, stopy, ramiona |
+| `unity-tools/claude/osiedle_wagi.py` | wygładzenie wag na stawach (4 kości na wierzchołek) |
+| `unity-tools/claude/osiedle_twarz.py` | atlas mimiki 512 na poziom, usta, powieki, zęby |
+| `unity-tools/claude/osiedle_mowa.py` | ścieżki ruchu ust z nagrań |
+| `Assets/Editor/Claude/BraxObsadaImport.cs` | import: 2048, ASTC 6×6 / 4×4 dla twarzy i mimiki |
+| `Assets/Editor/Claude/BraxClaudeOsiedleObsada.cs` | budowa postaci, materiał, mimika, skala |
+| `Assets/Claude/BraxObsadaOsiedla.shader` | shader obsady |
+
+**Rejonowi nie wolno trzymać własnej kopii żadnego z tych plików ani własnych ustawień
+importu obsady.** Poprawka wchodzi raz, na `main`, i dostają ją wszystkie cztery rejony
+i wszystkie 148 postaci. Nazwy plików zaczynają się od `osiedle_`, bo tam powstały —
+to nazwa historyczna, nie przypisanie do rejonu.
+
 **5.0. To jest wymuszone kodem**, nie dobrą wolą rejonu:
 `Assets/Claude/Runtime/BraxPostacGlobalna.cs` nakłada standard po każdym wczytaniu sceny —
 gładkość 0, metaliczność 0, normalne ×1,3, `SkinQuality.Bone4`, sondy światła i odbić,
