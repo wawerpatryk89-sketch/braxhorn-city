@@ -64,28 +64,6 @@ def biblioteka_ruchow(repo, praca):
     return cel
 
 
-def metalsmooth(fbm, cel):
-    """R = metaliczność, A = gładkość (1 − szorstkość) — tak czyta shader obsady."""
-    from PIL import Image, ImageChops
-
-    pliki = list(Path(fbm).iterdir())
-
-    def znajdz(*klucze):
-        for p in pliki:
-            if any(k in p.name.lower() for k in klucze):
-                return p
-        return None
-
-    szor = znajdz("roughness", "rough")
-    if not szor:
-        raise SystemExit("brak mapy szorstkości w " + str(fbm))
-    met = znajdz("metallic", "metalness")
-    s = Image.open(szor).convert("L")
-    m = Image.open(met).convert("L").resize(s.size) if met else Image.new("L", s.size, 0)
-    puste = Image.new("L", s.size, 0)
-    Image.merge("RGBA", (m, puste, puste, ImageChops.invert(s))).save(cel)
-
-
 def zloz(ident, repo, praca, staged, blender):
     """Pobierz surowy model, doklej ujęcia, złóż mapy. Zwraca katalog gotowej paczki."""
     opis = SUROWI[ident]
@@ -114,7 +92,7 @@ def zloz(ident, repo, praca, staged, blender):
         zrod = next((p for p in fbm.iterdir() if wzor in p.name.lower()), None)
         if zrod:
             shutil.copy(zrod, cel / nazwa)
-    metalsmooth(fbm, cel / "MetalSmooth.png")
+    # MetalSmooth sklada juz zrob_paczke_postaci w Blenderze.
     print("BRAX_SUROWA %s gotowa: %s" % (ident, ", ".join(sorted(p.name for p in cel.iterdir()))),
           flush=True)
     return cel

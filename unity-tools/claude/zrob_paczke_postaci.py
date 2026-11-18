@@ -84,29 +84,57 @@ def doloz_ujecia(rig, katalog, moje):
 
 
 def metalsmooth(katalog_map, cel):
-    """R = metaliczność, A = gładkość (1 - szorstkość). Tak czyta shader obsady."""
-    from PIL import Image
-    pliki = list(Path(katalog_map).glob("*"))
+    """R = metaliczność, A = gładkość (1 − szorstkość). Tak czyta shader obsady.
+
+    Liczone w BLENDERZE, nie w PIL. Build 44287173708 wywrócił się na
+    „No module named 'PIL'" — Python serwera go nie ma, Blender ma numpy i własne
+    wczytywanie obrazów, więc robota idzie tam, gdzie i tak już jesteśmy.
+    """
+    import numpy as np
+    bpy = blender()
+    pliki = list(Path(katalog_map).iterdir())
 
     def znajdz(*klucze):
         for p in pliki:
-            n = p.name.lower()
-            if any(k in n for k in klucze):
+            if any(k in p.name.lower() for k in klucze):
                 return p
         return None
 
-    met = znajdz("metallic", "metalness")
     szor = znajdz("roughness", "rough")
     if not szor:
         raise SystemExit("brak mapy szorstkości w " + str(katalog_map))
-    s = Image.open(szor).convert("L")
-    m = Image.open(met).convert("L").resize(s.size) if met else Image.new("L", s.size, 0)
-    from PIL import ImageChops
-    gladkosc = ImageChops.invert(s)
-    puste = Image.new("L", s.size, 0)
-    Image.merge("RGBA", (m, puste, puste, gladkosc)).save(cel)
-    print("BRAX_PACZKA MetalSmooth %s: metaliczność z %s, gładkość z %s"
-          % (s.size, met.name if met else "zera", szor.name))
+    met = znajdz("metallic", "metalness")
+
+    def wczytaj(sciezka):
+        im = bpy.data.images.load(str(sciezka), check_existing=False)
+        im.colorspace_settings.name = "Non-Color"
+        px = np.empty(len(im.pixels), np.float32)
+        im.pixels.foreach_get(px)
+        w, h = im.size
+        bpy.data.images.remove(im)
+        return px.reshape(h, w, 4)
+
+    s = wczytaj(szor)
+    h, w = s.shape[:2]
+    m = wczytaj(met) if met else None
+    if m is not None and m.shape[:2] != (h, w):
+        # Dopasowanie bez skalowania obrazu: próbkowanie najbliższego piksela.
+        yi = (np.arange(h) * m.shape[0] // h).clip(0, m.shape[0] - 1)
+        xi = (np.arange(w) * m.shape[1] // w).clip(0, m.shape[1] - 1)
+        m = m[yi][:, xi]
+
+    out = np.zeros((h, w, 4), np.float32)
+    out[:, :, 0] = m[:, :, 0] if m is not None else 0.0
+    out[:, :, 3] = 1.0 - s[:, :, 0]
+    nowa = bpy.data.images.new("MetalSmooth", width=w, height=h, alpha=True, float_buffer=False)
+    nowa.colorspace_settings.name = "Non-Color"
+    nowa.pixels.foreach_set(out.reshape(-1))
+    nowa.filepath_raw = str(cel)
+    nowa.file_format = "PNG"
+    nowa.save()
+    bpy.data.images.remove(nowa)
+    print("BRAX_PACZKA MetalSmooth %dx%d: metalicznosc z %s, gladkosc z %s"
+          % (w, h, met.name if met else "zera", szor.name))
 
 
 def main(argv):
@@ -140,8 +168,7 @@ def main(argv):
         if zrod and not (wyjscie / cel).exists():
             shutil.copy(zrod, wyjscie / cel)
             print("BRAX_PACZKA %s <- %s" % (cel, zrod.name))
-    # MetalSmooth skladam osobnym krokiem: Python Blendera nie ma PIL.
-    (wyjscie / "mapy_zrodlowe.txt").write_text(str(fbm), encoding="utf-8")
+    metalsmooth(fbm, wyjscie / "MetalSmooth.png")
 
     (wyjscie / "postac.json").write_text(json.dumps(
         {"id": ident, "states": stany, "zrodlo": os.path.basename(model),
