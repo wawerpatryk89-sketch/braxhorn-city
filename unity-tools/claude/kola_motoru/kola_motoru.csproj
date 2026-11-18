@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- MIASTO R1 18.11: test wycinania kół motocykla (BraxKolaMotoru.Szukaj / Podzial) poza Unity — model testowy ścigacza
+       z prawdziwymi wymiarami (opony 120/70-17 i 190/55-17, lagi, wahacz, tarcze, błotniki, owiewka, wydech) z szumem jak skan. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework><LangVersion>latest</LangVersion><OutputType>Exe</OutputType><Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><InvariantGlobalization>true</InvariantGlobalization>
+    <DefineConstants>$(DefineConstants);BRAX_TEST_KOLA</DefineConstants><NoWarn>CS0162;CS0168;CS0219;CS0414;CS0649;CS0169;CS8321;CS0618;CS0612;CS0108;CS0114;CS8981;CS0067</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../kontrola_geometrii/fake/UnityEngine.cs;Program.cs;../../../unity-city/Assets/Editor/Claude/Region/BraxKolaMotoru.cs" />
+  </ItemGroup>
+</Project>

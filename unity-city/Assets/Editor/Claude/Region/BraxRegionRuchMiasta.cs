@@ -172,6 +172,15 @@ public static partial class BraxClaudeOsiedle
                     if (BraxMiastoMotory.RowerJazda(gj, i, m.c + bok * (m.rozmiar.x * .25f), yaw) || BraxMiastoMotory.Hulajnoga(gj, m.c + bok * (m.rozmiar.x * .25f), yaw, i + 1)) jedn++;
                 }
             jedn += BraxMiastoMotory.Stacja(gj, "przy siłowni BRAXHORN", new Vector3(19.7f, 0f, 8.6f), Vector3.right, Vector3.forward);
+            // 18.11 14:49 (właściciel: „Zrób mi motor, w którym się kręcą koła. Podstaw go pod siłownię… za dużo chodzenia”; „mamy
+            // tam ścigacze”): ścigacz właściciela obok stacji jednośladów pod siłownią — w przedłużeniu rzędu (co 1.6 m × K),
+            // potem przed rzędem i rząd dalej od siłowni; pierwsze płaskie i wolne miejsce
+            {
+                float k = BraxClaudeOsiedle.K; var miejscaM = new List<Vector3>();
+                for (int r = 0; r < 2; r++) for (int i = 0; i < 3; i++) miejscaM.Add(new Vector3(19.7f + 4f * 1.25f * k + i * 1.25f * k, 0f, 8.6f + r * 3.2f * k));
+                for (int i = 1; i <= 2; i++) miejscaM.Add(new Vector3(19.7f - i * 1.25f * k, 0f, 8.6f));
+                if (BraxMiastoMotory.PodSilownia(gj, miejscaM, Vector3.forward)) jedn++;
+            }
             Debug.Log("BRAXHORN_JEDNOSLADY do jazdy w mieście: " + jedn);
         }
         try

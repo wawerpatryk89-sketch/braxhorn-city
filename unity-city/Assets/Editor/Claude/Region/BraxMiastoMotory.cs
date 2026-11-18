@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -64,8 +65,37 @@ internal static class BraxMiastoMotory
         v.leftGrip = Marker(v.transform, "uchwyt lewy", new Vector3(-.32f * K, .76f * H, .3f * L));
         v.rightGrip = Marker(v.transform, "uchwyt prawy", new Vector3(.32f * K, .76f * H, .3f * L));
         Kolizja(v.transform, new Vector3(-.3f * K, .1f, -.45f * L), new Vector3(.3f * K, .85f * H, .45f * L));
+        // 18.11 14:49 (właściciel: „Zrób mi motor, w którym się kręcą koła”): koła wycięte z bryły modelu, kręcą się w jeździe
+        bool kola = BraxKolaMotoru.Wydziel(v, o, L, plik, out string opisKol);
+        Debug.Log((kola ? "BRAXHORN_MOTOR_KOLA " : "DO POPRAWKI: BRAXHORN_MOTOR_KOLA ") + plik + (kola ? ": koła się kręcą — " : ": koła NIE wycięte (jedna bryła) — ") + opisKol);
+        if (kola) KolaKreca++;
         Lod(v.gameObject, .012f);
         return v;
+    }
+    public static int KolaKreca;
+
+    /// <summary>Ścigacz właściciela (motor_sportowy_czerwony) pod siłownią BRAXHORN (18.11 14:49: „Podstaw go pod siłownię,
+    /// żebym mógł jeździć, bo to za dużo chodzenia”): pierwsze wolne miejsce z listy (płaska nawierzchnia, wolne 1.1 × 3.5 m).</summary>
+    public static BraxVessel PodSilownia(Transform rodzic, IList<Vector3> miejsca, Vector3 przodem)
+    {
+        if (!SaMotory) { Debug.Log("DO POPRAWKI: BRAXHORN_MOTOR_SILOWNIA brak paczki " + PaczkaMotory + " — ścigacza pod siłownią nie ma"); return null; }
+        przodem.y = 0f; przodem.Normalize(); float yaw = Quaternion.LookRotation(przodem).eulerAngles.y;
+        Physics.SyncTransforms();
+        for (int i = 0; i < miejsca.Count; i++)
+        {
+            var p = miejsca[i];
+            if (!Physics.Raycast(p + Vector3.up * 2f, Vector3.down, out var h, 4f, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore) || h.normal.y < .95f) continue;
+            p.y = h.point.y;
+            if (Physics.CheckBox(p + Vector3.up * 1.0f, new Vector3(.55f, .8f, 1.35f * K), Quaternion.Euler(0f, yaw, 0f), ~0, QueryTriggerInteraction.Ignore)) continue;
+            var v = Motor(rodzic, 0, p, yaw);
+            if (!v) continue;
+            v.name = "Ścigacz pod siłownią BRAXHORN · " + Motory[0];
+            Physics.SyncTransforms();
+            Debug.Log("BRAXHORN_MOTOR_SILOWNIA ścigacz " + Motory[0] + " w miejscu " + (i + 1) + "/" + miejsca.Count + " (" + p.x.ToString("0.0") + ", " + p.z.ToString("0.0") + "), koła " + (v.kolP && v.kolT ? "kręcą się" : "w bryle"));
+            return v;
+        }
+        Debug.Log("DO POPRAWKI: BRAXHORN_MOTOR_SILOWNIA żadne z " + miejsca.Count + " miejsc pod siłownią nie jest wolne — ścigacza nie postawiono");
+        return null;
     }
 
     /// <summary>Rower do jazdy (0 fatbike, 1 trekkingowy elektryczny). null = brak paczki.</summary>
