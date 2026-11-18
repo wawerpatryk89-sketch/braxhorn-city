@@ -56,6 +56,12 @@ public static class BraxPostacGlobalna
     static readonly int IdNormalne = Shader.PropertyToID("_SilaNormalnych");
     static readonly int IdStdGloss = Shader.PropertyToID("_Glossiness");
     static readonly int IdStdMetal = Shader.PropertyToID("_Metallic");
+    // Braxhorn/HeroPremium — shader Patryka, Braxa i Nyxy. NIE MA żadnej z powyższych nazw, więc
+    // standard „bez odblasków" go dotąd OMIJAŁ: bohaterowie zostawali błyszczący, choć właściciel
+    // zaakceptował matowe (18.11: „postacie takie jak je zaakceptowałem, żadne inne. Wszystkie").
+    // Tutaj matowość nazywa się inaczej: szorstkość, i działa odwrotnie niż gładkość — 1 = matowo.
+    static readonly int IdHeroSzorstkosc = Shader.PropertyToID("_RoughnessFloor");
+    static readonly int IdHeroMetal = Shader.PropertyToID("_MetallicScale");
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void Podlacz()
@@ -77,7 +83,7 @@ public static class BraxPostacGlobalna
     {
         var skory = Object.FindObjectsByType<SkinnedMeshRenderer>(
             FindObjectsInactive.Include, FindObjectsSortMode.None);
-        int postaci = 0, pominietych = 0;
+        int postaci = 0, pominietych = 0, bohaterow = 0;
         foreach (var r in skory)
         {
             if (!r) continue;
@@ -101,6 +107,17 @@ public static class BraxPostacGlobalna
                     if (m.HasProperty(IdMetal)) m.SetFloat(IdMetal, Metalicznosc);
                     if (m.HasProperty(IdNormalne)) m.SetFloat(IdNormalne, SilaNormalnych);
                 }
+                else if (m.HasProperty(IdHeroSzorstkosc))
+                {
+                    // Podłoga szorstkości w górę do pełnej matowości = odpowiednik gładkości 0.
+                    // Tylko w górę: rejon, który ma już bardziej matowo, zostaje ze swoim.
+                    float matowo = 1f - Gladkosc; bohaterow++;
+                    if (m.GetFloat(IdHeroSzorstkosc) < matowo) m.SetFloat(IdHeroSzorstkosc, matowo);
+                    if (m.HasProperty(IdHeroMetal) && m.GetFloat(IdHeroMetal) > Metalicznosc)
+                        m.SetFloat(IdHeroMetal, Metalicznosc);
+                    // Siły mapy normalnych NIE ruszam: w tym shaderze jest autorska (0,60 pod
+                    // „żadnego plastiku" z 10.11), a odblaski to nie to samo co faktura skóry.
+                }
                 else if (m.HasProperty(IdStdGloss))
                 {
                     // Tu nie ma mnożnika, więc gładkość ustawiam wprost — ale tylko
@@ -115,6 +132,7 @@ public static class BraxPostacGlobalna
         if (postaci > 0 || pominietych > 0)
             Debug.Log($"BRAX_POSTAC standard nałożony na {postaci} postaci"
                       + (pominietych > 0 ? $", pominięto {pominietych} z wyjątkiem" : "")
-                      + $" (gładkość {Gladkosc}, metal {Metalicznosc}, normalne {SilaNormalnych}, Bone4)");
+                      + $" (gładkość {Gladkosc}, metal {Metalicznosc}, normalne {SilaNormalnych}, Bone4)"
+                      + $"; materiałów bohaterskich (HeroPremium) zmatowionych: {bohaterow}");
     }
 }
