@@ -20,8 +20,9 @@ from pathlib import Path
 
 # Pliki, którym wolno robić rzeczy zakazane dla reszty — z powodem.
 WYJATKI = {
-    "BraxGrafika.cs": "jedyne miejsce, które wolno ustawiać QualitySettings",
-    "BraxObrazBuild.cs": "wypala standard obrazu w buildzie",
+    "BraxGrafika.cs": "tryby jakości w czasie gry (ZASADY 4.5)",
+    "BraxObrazBuild.cs": "wypala standard obrazu w buildzie (ZASADY 4.5)",
+    "BraxObrazGlobalny.cs": "pilnuje standardu obrazu po wczytaniu sceny (ZASADY 4.5)",
     "BraxObsadaImport.cs": "importer obsady — klasa TwarzBohatera i mimika",
     "sprawdz_zasady.py": "ten plik",
 }
@@ -74,9 +75,9 @@ def main(repo):
             if re.search(r"mipmapEnabled\s*=\s*false|streamingMipmaps\s*=\s*false", goly):
                 dodaj(BLAD, wzgl, nr, l, "T4 mipmapy lub streaming wyłączone")
 
-            # 5. QualitySettings tylko w BraxGrafika.
+            # 5. QualitySettings tylko w trzech plikach standardu obrazu (ZASADY 4.5).
             if "QualitySettings." in goly and "=" in goly and nazwa not in WYJATKI:
-                dodaj(BLAD, wzgl, nr, l, "J1 QualitySettings poza BraxGrafika")
+                dodaj(BLAD, wzgl, nr, l, "J1 QualitySettings poza standardem obrazu")
 
             # 6. Przestrzeń barw: tylko Linear.
             if re.search(r"colorSpace\s*=\s*ColorSpace\.Gamma", goly):
