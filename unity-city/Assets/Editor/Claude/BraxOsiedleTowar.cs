@@ -44,7 +44,10 @@ public static class BraxOsiedleTowar
     }
 
     // ---------------- rzędy do wyboru towaru z półki ----------------
-    static readonly List<BraxPolkaSklepu.Rzad> rzedy = new List<BraxPolkaSklepu.Rzad>();
+    // Rzędy trzymamy RAZEM Z RODZICEM, do którego trafił towar. W kodzie osiedla jest więcej wywołań
+    // Polka niż Zakoncz (sklepy, które nie domykają grupy), więc wspólna lista bez rodzica potrafiłaby
+    // przypisać cudze półki do pierwszego lokalu, który się domknie.
+    static readonly List<(Transform rodzic, BraxPolkaSklepu.Rzad rzad)> rzedy = new List<(Transform, BraxPolkaSklepu.Rzad)>();
     static readonly List<Transform> rzadTowar = new List<Transform>();
     static readonly List<string> rzadNazwy = new List<string>();
 
@@ -127,9 +130,9 @@ public static class BraxOsiedleTowar
         // Jeden poziom regału = jeden rząd do przeglądania przy półce. wglab wchodzi w głąb półki,
         // więc strona klienta (i kierunek, w którym odjeżdża kamera) to -wglab.
         if (rzadTowar.Count > 0)
-            rzedy.Add(new BraxPolkaSklepu.Rzad {
+            rzedy.Add((parent, new BraxPolkaSklepu.Rzad {
                 start = start, wzdluz = wzdl.normalized, przod = (-wglab).normalized, dlugosc = dl,
-                towar = rzadTowar.ToArray(), nazwy = rzadNazwy.ToArray() });
+                towar = rzadTowar.ToArray(), nazwy = rzadNazwy.ToArray() }));
         rzadTowar.Clear(); rzadNazwy.Clear();
     }
 
@@ -150,20 +153,23 @@ public static class BraxOsiedleTowar
         // Mechanizm jest sklepowi obojętny — żeby włączyć go wszędzie, wystarczy zdjąć ten warunek.
         bool tenSklep = nazwa.IndexOf("aptek", StringComparison.OrdinalIgnoreCase) >= 0;
         int sztuk = 0;
-        if (rzedy.Count > 0 && !tenSklep)
+        var moje = new List<BraxPolkaSklepu.Rzad>();
+        for (int i = rzedy.Count - 1; i >= 0; i--)
         {
-            Debug.Log("BRAX_POLKA " + nazwa + ": wybór z półki wyłączony (na razie tylko apteka), rzędów pominiętych " + rzedy.Count);
-            rzedy.Clear();
+            var (rodzic, rzad) = rzedy[i];
+            if (!rodzic || !(rodzic == t || rodzic.IsChildOf(t))) continue;   // cudza półka — zostaje na liście
+            moje.Add(rzad); rzedy.RemoveAt(i);
         }
-        if (rzedy.Count > 0)
+        if (moje.Count > 0 && !tenSklep)
+            Debug.Log("BRAX_POLKA " + nazwa + ": wybór z półki wyłączony (na razie tylko apteka), rzędów pominiętych " + moje.Count);
+        else if (moje.Count > 0)
         {
             var polka = t.gameObject.AddComponent<BraxPolkaSklepu>();
             polka.sklep = nazwa;
             // od najniższej półki do najwyższej — żeby palec w górę szedł w górę regału
-            rzedy.Sort((u, w) => u.start.y.CompareTo(w.start.y));
-            polka.rzedy = rzedy.ToArray();
-            foreach (var r in rzedy) sztuk += r.towar.Length;
-            rzedy.Clear();
+            moje.Sort((u, w) => u.start.y.CompareTo(w.start.y));
+            polka.rzedy = moje.ToArray();
+            foreach (var r in moje) sztuk += r.towar.Length;
         }
         // POMIAR TOWARU (właściciel 18.11: w aptece nie widać produktu). Zbliżenie kamery pokaże
         // dokładnie to, co jest — więc log ma powiedzieć wprost, ile te modele mają centymetrów.
