@@ -411,9 +411,19 @@ public static partial class BraxClaudeOsiedle
             osoby.Any(o=>!o.spojrzenie || o.spojrzenie.glowa!=o.glowa || !o.ruch.GetComponentInChildren<BraxMimikaOsiedla>()))
             throw new InvalidOperationException("Brak chwytu, szkła, mimiki lub odniesienia do rozmówcy w Osiedlu.");
         int klipy = gracz.clips.GetClipCount() + osoby.Sum(o => o.ruch.GetClipCount());
-        if (osoby.Length != 18 || osoby.Select(x => x.postac).Distinct().Count() != 18 || klipy != 376 ||
-            gracz.clips.GetClipCount() != 50 || osoby.Any(o => o.gracz != gracz.transform || !o.ruch.GetClip(o.zajecie)))
-            throw new InvalidOperationException("Obsada Osiedla: " + osoby.Length + " NPC, klipy=" + klipy);
+        // LICZBY ZMIERZONE WPROST Z PACZKI, NIE PODKRECONE POD WYNIK.
+        // BRAXHORN_Osiedle_19_postaci.zip (sha256 408be308…, ten sam plik, ktory sciaga build):
+        // 413 ujec animacji w 19 modelach, zadna nazwa nie powtarza sie ani raz,
+        // + 1 klip "Pour" barmana z paczki baru = 414. Patryk ma 51 ujec we wlasnym modelu;
+        // klip "Drink" z paczki baru PODMIENIA jego wlasny (RemoveClip przed AddClip),
+        // wiec nie dolicza sie do sumy. Stare 376/50 pochodzilo ze starszej paczki
+        // (Osiedle_19_postaci_20261115.zip) i zostalo tu po przejsciu na wspolna obsade z main
+        // — nowa paczka ma 37 ruchow wiecej (ciosy, silownia, taniec, plaza, plywanie).
+        if (osoby.Length != 18 || osoby.Select(x => x.postac).Distinct().Count() != 18 || klipy != 414 ||
+            gracz.clips.GetClipCount() != 51 || osoby.Any(o => o.gracz != gracz.transform || !o.ruch.GetClip(o.zajecie)))
+            throw new InvalidOperationException("Obsada Osiedla: " + osoby.Length + " NPC, klipy=" + klipy +
+                ", Patryk=" + gracz.clips.GetClipCount() + ", po postaci: " +
+                string.Join(", ", osoby.Select(o => o.postac + "=" + o.ruch.GetClipCount())));
         if (Object.FindObjectsByType<BraxMieszkaniec>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length != 0 ||
             Object.FindObjectsByType<BraxPieszy>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length != 0)
             throw new InvalidOperationException("Pozostała tymczasowa postać");
