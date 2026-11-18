@@ -431,6 +431,21 @@ internal static class BraxUliceKit
         g_ = G('+', .56f); Kr(g_, Pk(0, .5f, .56f, .5f)); Kr(g_, Pk(.28f, .22f, .28f, .78f));
     }
     const float OdstepSlow = .42f;
+    // 18.11 (właściciel 10:40: „Szyldy, wawer nieruchomości, co to za gówno, zwykły napis… każdy jeden”): litery miasta były
+    // kreskami stałej grubości (krój „z patyków” powyżej — 15 % wysokości, końce kwadratowe) — z ulicy jak napis markerem. Teraz
+    // KAŻDY napis przestrzenny i każdy napis w teksturze idzie krojem Bebas Neue (zasada napisów premium 10.11, ten sam co szyld
+    // BRAXHORN GYM zatwierdzony 11.11 — BraxLiteryBebas: pełne bryły, lico, boki i tył, kerning fontu). Układ wszystkich szyldów
+    // zostaje: SzerokoscNapisu jak dotąd, a Bebas (krój wąski) dostaje wysokość, przy której wypełnia dawną szerokość — najwyżej
+    // 1.15 × dawnej wysokości, wyśrodkowany w niej (litery ani szersze, ani dużo wyższe niż miejsce, które nośnik dla nich ma).
+    // Znaki spoza Bebas — dawne kreski.
+    public const float BebasMaxWyzej = 1.15f;
+    static bool CalyBebas(string tekst) { foreach (char c in tekst) if (!BraxLiteryBebas.Ma(c)) return false; return tekst.Trim().Length > 0; }
+    /// <summary>Wysokość wersalika Bebas, przy której napis wypełnia dawną szerokość (najwyżej BebasMaxWyzej × cap).</summary>
+    public static float WysokoscBebas(string tekst, float cap, float s = .15f, float track = .14f)
+    {
+        float stara = SzerokoscNapisu(tekst, cap, s, track), b = BraxLiteryBebas.Szerokosc(tekst, cap);
+        return b > 1e-5f ? Mathf.Min(cap * BebasMaxWyzej, cap * stara / b) : cap;
+    }
     public static float SzerokoscNapisu(string tekst, float cap, float s = .15f, float track = .14f)
     {
         Krojownia(); float x = 0; int n = 0;
@@ -443,12 +458,20 @@ internal static class BraxUliceKit
         return n > 0 ? x - track * cap : x;
     }
     /// <summary>Napis z liter przestrzennych: o = środek linii bazowej na płaszczyźnie montażu, nn = lico (do oglądającego),
-    /// cap = wysokość wersalika, glebokosc = grubość liter. Litery bez tylnej ściany (stoją na ścianie / licu). Zwraca szerokość.</summary>
+    /// cap = wysokość wersalika, glebokosc = grubość liter. Bebas: pełne bryły (lico, boki, tył) 4 mm od płaszczyzny montażu.
+    /// Zwraca szerokość miejsca napisu (jak dotąd — układ szyldów bez zmian).</summary>
     public static float Napis3D(string tekst, Vector3 o, Vector3 nn, float cap, float glebokosc, Material lico, Material boki, float s = .15f, float track = .14f)
     {
         Krojownia();
         var r = Vector3.Cross(Vector3.up, -nn).normalized; var up = Vector3.Cross(r, nn).normalized;
-        float wTot = SzerokoscNapisu(tekst, cap, s, track), x = -wTot * .5f, sw = s * cap, kk = (1f - s) * cap;
+        float wTot = SzerokoscNapisu(tekst, cap, s, track);
+        if (CalyBebas(tekst))
+        {
+            float c2 = WysokoscBebas(tekst, cap, s, track);
+            BraxLiteryBebas.Napis(tekst, o + up * ((cap - c2) * .5f), nn, c2, glebokosc, lico, boki);
+            return wTot;
+        }
+        float x = -wTot * .5f, sw = s * cap, kk = (1f - s) * cap;
         foreach (char c0 in tekst)
         {
             char ch = char.ToUpperInvariant(c0);
@@ -461,11 +484,26 @@ internal static class BraxUliceKit
         }
         return wTot;
     }
+    /// <summary>Podświetlenie „halo” LED za napisem z Napis3D (te same parametry): świecący obrys liter Bebas na płaszczyźnie
+    /// montażu, 2.5 cm przed nią (odstęp > 2 cm — kontrola migotania: bez par z nośnikiem). Napis spoza Bebas — bez halo. Zwraca liczbę trójkątów.</summary>
+    public static int NapisHalo(string tekst, Vector3 o, Vector3 nn, float cap, Material swiatlo, float obrys = .015f, float s = .15f, float track = .14f)
+    {
+        if (!CalyBebas(tekst)) return 0;
+        var r = Vector3.Cross(Vector3.up, -nn).normalized; var up = Vector3.Cross(r, nn).normalized;
+        float c2 = WysokoscBebas(tekst, cap, s, track);
+        return BraxLiteryBebas.Halo(S(swiatlo), tekst, o + up * ((cap - c2) * .5f) + nn.normalized * .025f, nn, c2, obrys);
+    }
     /// <summary>Ten sam krój narysowany W TEKSTURZE (ekrany, telebimy — napis jest obrazem, nie nakładką): px — piksele
     /// (wiersz 0 = dół), cx — środek napisu, by — linia bazowa, cap — wysokość wersalika (wszystko w pikselach).</summary>
     public static void NapisWTeksturze(Color[] px, int W, int H, string tekst, float cx, float by, float cap, Color kolor, float s = .15f, float track = .14f)
     {
         Krojownia();
+        if (CalyBebas(tekst))
+        {
+            float c2 = WysokoscBebas(tekst, cap, s, track);
+            BraxLiteryBebas.WTeksturze(px, W, H, tekst, cx, by + (cap - c2) * .5f, c2, kolor);
+            return;
+        }
         float wTot = SzerokoscNapisu(tekst, cap, s, track), x = cx - wTot * .5f, sw = s * cap, kk = (1f - s) * cap;
         foreach (char c0 in tekst)
         {

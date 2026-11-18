@@ -100,4 +100,71 @@ internal static partial class BraxLiteryBebas
         }
         return (b - a) * cap;
     }
+
+    /// <summary>Napis Bebas W TEKSTURZE (ekrany, telebimy, tablice): px — piksele (wiersz 0 = dół), cx — środek atramentu,
+    /// by — linia bazowa, cap — wysokość wersalika (piksele). Trójkąty lica, 4 × 4 próbki na piksel (gładkie krawędzie).</summary>
+    public static void WTeksturze(Color[] px, int W, int H, string tekst, float cx, float by, float cap, Color kol, float track = .05f)
+    {
+        var uklad = Uklad(tekst, track, out float a, out float b); float x0 = cx - (a + b) * .5f * cap;
+        foreach (var (ch, xp) in uklad)
+        {
+            var g = Glify[ch];
+            for (int t = 0; t + 2 < g.tri.Length; t += 3)
+            {
+                Vector2 P(int i) => new Vector2(x0 + (xp + g.pts[2 * i]) * cap, by + g.pts[2 * i + 1] * cap);
+                Trojkat(px, W, H, P(g.tri[t]), P(g.tri[t + 1]), P(g.tri[t + 2]), kol);
+            }
+        }
+    }
+    static void Trojkat(Color[] px, int W, int H, Vector2 p0, Vector2 p1, Vector2 p2, Color kol)
+    {
+        int x0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(p0.x, Mathf.Min(p1.x, p2.x)))), x1 = Mathf.Min(W - 1, Mathf.CeilToInt(Mathf.Max(p0.x, Mathf.Max(p1.x, p2.x))));
+        int y0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(p0.y, Mathf.Min(p1.y, p2.y)))), y1 = Mathf.Min(H - 1, Mathf.CeilToInt(Mathf.Max(p0.y, Mathf.Max(p1.y, p2.y))));
+        float Kr(Vector2 a, Vector2 b, Vector2 c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+        float pole = Kr(p0, p1, p2); if (Mathf.Abs(pole) < 1e-6f) return;
+        for (int y = y0; y <= y1; y++)
+            for (int x = x0; x <= x1; x++)
+            {
+                int hit = 0;
+                for (int sy = 0; sy < 4; sy++) for (int sx = 0; sx < 4; sx++)
+                {
+                    var q = new Vector2(x + (sx + .5f) * .25f, y + (sy + .5f) * .25f);
+                    float w0 = Kr(p1, p2, q), w1 = Kr(p2, p0, q), w2 = Kr(p0, p1, q);
+                    if (pole > 0 ? (w0 >= 0 && w1 >= 0 && w2 >= 0) : (w0 <= 0 && w1 <= 0 && w2 <= 0)) hit++;
+                }
+                if (hit == 0) continue;
+                float cov = hit / 16f * kol.a; int i = y * W + x; var c = px[i];
+                px[i] = new Color(Mathf.Lerp(c.r, kol.r, cov), Mathf.Lerp(c.g, kol.g, cov), Mathf.Lerp(c.b, kol.b, cov), 1f);
+            }
+    }
+
+    /// <summary>„Halo” — podświetlenie LED za literami dystansowymi: płaska poświata w kształcie liter powiększonych o obrys,
+    /// w płaszczyźnie montażu o (na nośniku), do materiału świecącego. r, up, nn jak w Napis. Zwraca liczbę trójkątów.</summary>
+    public static int Halo(UlSiatka sh, string tekst, Vector3 o, Vector3 nn, float cap, float obrys, float track = .05f)
+    {
+        nn = nn.normalized; var r = Vector3.Cross(Vector3.up, -nn).normalized; var up = Vector3.Cross(r, nn).normalized;
+        int n0 = sh.i.Count;
+        var uklad = Uklad(tekst, track, out float a, out float b); float x0 = -(a + b) * .5f;
+        foreach (var (ch, xp) in uklad)
+        {
+            var g = Glify[ch]; int n = g.pts.Length / 2;
+            var p = new Vector3[n];
+            for (int i = 0; i < n; i++) p[i] = o + r * ((x0 + xp + g.pts[2 * i]) * cap) + up * (g.pts[2 * i + 1] * cap);
+            for (int t = 0; t < g.tri.Length; t += 3) sh.Tri(p[g.tri[t]], p[g.tri[t + 1]], p[g.tri[t + 2]], nn);
+            for (int k = 0; k < g.starty.Length; k++)
+            {
+                int s0 = g.starty[k], s1 = k + 1 < g.starty.Length ? g.starty[k + 1] : n;
+                for (int i = s0; i < s1; i++)
+                {
+                    int j = i + 1 < s1 ? i + 1 : s0;
+                    float dx = g.pts[2 * j] - g.pts[2 * i], dy = g.pts[2 * j + 1] - g.pts[2 * i + 1];
+                    var n2 = new Vector2(dy, -dx); if (n2.sqrMagnitude < 1e-12f) continue; n2.Normalize();
+                    var w = (r * n2.x + up * n2.y) * obrys; var dd = (p[j] - p[i]).normalized * obrys * .5f;
+                    sh.Quad(p[i], p[j], p[j] + w, p[i] + w, nn);
+                    sh.Quad(p[j], p[j] + w, p[j] + w + dd, p[j] + dd, nn);
+                }
+            }
+        }
+        return (sh.i.Count - n0) / 3;
+    }
 }
