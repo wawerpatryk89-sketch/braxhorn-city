@@ -19,6 +19,19 @@ public static partial class BraxClaudeOsiedle
     const string Mdl = "Assets/Source/Claude/Osiedle/models/";
     const string Out = "Assets/PlayableGenerated/ClaudeOsiedle";
 
+    // KATALOG WYJŚCIOWY MUSI ISTNIEĆ, ZANIM KTOKOLWIEK COŚ DO NIEGO ZAPISZE.
+    // Build 44346547252 (18.11) wywrócił się na tym:
+    //   Parent directory must exist before creating asset at
+    //   Assets/PlayableGenerated/ClaudeOsiedle/Skórka_jabłka.mat
+    // Katalog powstawał dopiero w generatorze osiedla, a materiał jabłka robi się WCZEŚNIEJ —
+    // przy budowie gracza (BraxCityBuild.CreateEstate → NowyPatrykOsiedla → DodajJedzenie).
+    // Przez ostatnie buildy tego nie było widać, bo świat szedł z pamięci podręcznej i ta
+    // ścieżka w ogóle się nie wykonywała. Pierwsze pełne generowanie od dawna pokazało błąd,
+    // który siedział tam cały czas.
+    // Konstruktor statyczny wykonuje się raz, przed pierwszym użyciem czegokolwiek z tej klasy,
+    // więc obejmuje wszystkie 67 miejsc zapisujących do Out — nie trzeba ich poprawiać po kolei.
+    static BraxClaudeOsiedle() { Directory.CreateDirectory(Out); }
+
     // Układ
     const float X0 = -114f, X1 = 114f;
     const float FenceA = -102f;                    // dawny płot południowy osiedla A
