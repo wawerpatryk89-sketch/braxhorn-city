@@ -11,7 +11,7 @@ using UnityEngine;
 public static class BraxDzwiekiAuta
 {
     public const int SR = 22050;
-    static AudioClip[] rozruszniki; static AudioClip zgaszenie, drzwiOtw, drzwiTrzask;
+    static AudioClip[] rozruszniki; static AudioClip zgaszenie, drzwiOtw, drzwiTrzask, syrena;
 
     static float[] Norm(float[] x, float s) { float m = 1e-5f; foreach (var v in x) m = Mathf.Max(m, Mathf.Abs(v)); for (int i = 0; i < x.Length; i++) x[i] *= s / m; return x; }
     static AudioClip Klip(string n, float[] x) { var c = AudioClip.Create(n, x.Length, 1, SR, false); c.SetData(x, 0); return c; }
@@ -67,6 +67,37 @@ public static class BraxDzwiekiAuta
         }
         return Norm(x, .7f);
     }
+    // SYRENA RADIOWOZU (właściciel 18.11: „jak jadę policją, to mają być sygnały włączone,
+    // mogę włączyć sygnał i na sygnale jechać"). Robiona z kodu jak reszta dźwięków aut —
+    // żadnego pliku z internetu, żadnego cudzego nagrania.
+    // Zawodzenie: częstotliwość chodzi 620 -> 1280 -> 620 Hz w dwusekundowym cyklu.
+    public static float[] Syrena()
+    {
+        const float T = 2f;                      // jeden pełny cykl zawodzenia
+        int n = (int)(T * SR);
+        var faza = new float[n]; float suma = 0f;
+        for (int i = 0; i < n; i++)
+        {
+            float t = i / (float)SR;
+            float f = 950f + 330f * Mathf.Sin(2f * Mathf.PI * t / T);
+            suma += 2f * Mathf.PI * f / SR;
+            faza[i] = suma;
+        }
+        // DOMKNIĘCIE PĘTLI. Klip gra w kółko, więc faza na końcu musi wypaść na pełnym okresie —
+        // inaczej przy każdym zapętleniu słychać trzask. Skalujemy całą fazę do najbliższej
+        // pełnej liczby okresów: częstotliwość przesuwa się o setne części procenta, nie do usłyszenia.
+        float cel = Mathf.Round(suma / (2f * Mathf.PI)) * 2f * Mathf.PI;
+        float k = suma > 1e-3f ? cel / suma : 1f;
+        var x = new float[n];
+        for (int i = 0; i < n; i++)
+        {
+            float f2 = faza[i] * k;
+            // same harmoniczne, bo czysta sinusoida brzmi jak budzik, a nie jak syrena
+            x[i] = Mathf.Sin(f2) + .42f * Mathf.Sin(2f * f2) + .18f * Mathf.Sin(3f * f2);
+        }
+        return Norm(x, .85f);
+    }
+
     public static float[] DrzwiOtw()
     {
         var r = new System.Random(307); int n = (int)(.28f * SR); var x = new float[n]; float hp = 0f, prev = 0f;
@@ -98,10 +129,11 @@ public static class BraxDzwiekiAuta
         if (rozruszniki != null) return;
         rozruszniki = new AudioClip[5];
         for (int k = 0; k < 5; k++) rozruszniki[k] = Klip("auto: rozrusznik + zapłon " + k, Rozrusznik(k));
-        zgaszenie = Klip("auto: zgaszenie", Zgaszenie()); drzwiOtw = Klip("auto: drzwi otwarcie", DrzwiOtw()); drzwiTrzask = Klip("auto: drzwi trzask", DrzwiTrzask());
+        zgaszenie = Klip("auto: zgaszenie", Zgaszenie()); syrena = Klip("radiowóz: syrena", Syrena()); drzwiOtw = Klip("auto: drzwi otwarcie", DrzwiOtw()); drzwiTrzask = Klip("auto: drzwi trzask", DrzwiTrzask());
     }
     public static AudioClip RozrusznikKlip(int wariant) { Przygotuj(); return rozruszniki[Mathf.Abs(wariant) % rozruszniki.Length]; }
     public static AudioClip ZgaszenieKlip { get { Przygotuj(); return zgaszenie; } }
+    public static AudioClip SyrenaKlip { get { Przygotuj(); return syrena; } }
     public static AudioClip DrzwiOtwKlip { get { Przygotuj(); return drzwiOtw; } }
     public static AudioClip DrzwiTrzaskKlip { get { Przygotuj(); return drzwiTrzask; } }
 

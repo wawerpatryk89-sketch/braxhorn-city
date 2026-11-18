@@ -88,7 +88,24 @@ public static partial class BraxClaudeOsiedle
         car.korektaWsiadania = korektaWejsciaFloty;
         car.obrotWsiadania = obrotWejsciaFloty;
         DrzwiFloty(car, go);
+        SygnalyFloty(car, go, nr);
         return car;
+    }
+
+    // SYGNAŁY W RADIOWOZACH (właściciel 18.11: „jak jadę policją, to mają być sygnały włączone").
+    // Belki są w modelach: kombi BX10001/2 mają „Belka_dachowa", SPKP BX10003 cały zestaw
+    // („Belka | niebieska dioda", „Belka | optyka kobaltowa", „Belka | soczewka szafirowa"...).
+    // Szukamy po nazwie, a jak nic nie wyjdzie — mówimy to wprost w logu, zamiast po cichu
+    // zostawić radiowóz bez sygnałów.
+    static void SygnalyFloty(BraxAutoGracza car, GameObject go, int nr)
+    {
+        if (nr != 1 && nr != 2 && nr != 3) return;      // tylko radiowozy: dwa kombi i SPKP
+        var r = go.GetComponentsInChildren<Renderer>(true)
+                  .Where(x => x && x.name.IndexOf("belka", StringComparison.OrdinalIgnoreCase) >= 0)
+                  .ToArray();
+        car.belka = r;
+        Debug.Log("BRAX_SYGNALY " + car.rejestracja + " belka=" + r.Length + " części"
+                  + (r.Length == 0 ? " — DO POPRAWKI: w modelu nie ma węzła z „belka” w nazwie" : ""));
     }
 
     // DRZWI W AUTACH FLOTY (właściciel 18.11: „drzwi od samochodu się nie otwierają tak samo”).

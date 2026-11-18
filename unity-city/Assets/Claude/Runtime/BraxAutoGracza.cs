@@ -50,6 +50,78 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     // To nie jest żaden nowy klip ani przerabianie ruchu — to ten sam zabieg, co u kierowców NPC
     // (BraxMieszkaniec.korektaRak): obrót dwóch kości PO animacji, w LateUpdate. Klip CarIdle zostaje nietknięty.
     // Przy maksymalnym skręcie 38° daje to ±17° w ramionach. Jedna liczba do dokręcenia, gdyby było za mało.
+    // ---------------- SYGNAŁY RADIOWOZU ----------------
+    // Właściciel 18.11: „jak jadę policją, to mają być sygnały włączone. Mogę włączyć sygnał
+    // i na sygnale jechać." Belka jest w modelu (kombi: „Belka_dachowa", SPKP: segmenty
+    // szafirowe, dioda, optyka kobaltowa) — wystarczy ją zapalać i dołożyć dźwięk.
+    public Renderer[] belka = new Renderer[0];
+    public bool MaSygnaly => belka != null && belka.Length > 0;
+    public bool Sygnaly { get; private set; }
+    Material[] belkaMat; Color[] belkaBaza; bool belkaSwieci;
+    AudioSource audioSyrena;
+    static readonly int IdKolorBelki = Shader.PropertyToID("_Color");
+    static readonly int IdEmisjaBelki = Shader.PropertyToID("_EmissionColor");
+    static readonly Color Kobalt = new Color(.18f, .42f, 1f, 1f);
+
+    // Rytm policyjny: dwa szybkie błyski, przerwa, dwa szybkie błyski — dwa razy na sekundę.
+    static bool WzorBlysku(float t)
+    {
+        float f = t - Mathf.Floor(t);
+        return f < .07f || (f >= .14f && f < .21f) || (f >= .50f && f < .57f) || (f >= .64f && f < .71f);
+    }
+
+    public void PrzelaczSygnaly()
+    {
+        if (!MaSygnaly) return;
+        Sygnaly = !Sygnaly;
+        if (Sygnaly)
+        {
+            if (!audioSyrena)
+            {
+                audioSyrena = gameObject.AddComponent<AudioSource>();
+                audioSyrena.clip = BraxDzwiekiAuta.SyrenaKlip;
+                audioSyrena.loop = true; audioSyrena.spatialBlend = 1f; audioSyrena.volume = .55f;
+                audioSyrena.rolloffMode = AudioRolloffMode.Linear; audioSyrena.minDistance = 6f; audioSyrena.maxDistance = 90f;
+            }
+            if (audioSyrena.clip) audioSyrena.Play();
+        }
+        else { if (audioSyrena) audioSyrena.Stop(); Swiec(false); }
+        Debug.Log("BRAX_SYGNALY " + rejestracja + " " + (Sygnaly ? "włączone" : "wyłączone"));
+    }
+
+    void Swiec(bool jak)
+    {
+        if (belkaMat == null)
+        {
+            // Kopie materiałów tylko dla tej belki — sharedMaterial dotknąłby wszystkich aut z tego modelu.
+            var mats = new System.Collections.Generic.List<Material>();
+            var bazy = new System.Collections.Generic.List<Color>();
+            foreach (var r in belka)
+            {
+                if (!r) continue;
+                foreach (var m in r.materials)      // .materials = instancje tego renderera
+                {
+                    if (!m) continue;
+                    mats.Add(m);
+                    bazy.Add(m.HasProperty(IdKolorBelki) ? m.GetColor(IdKolorBelki) : Color.white);
+                }
+            }
+            belkaMat = mats.ToArray(); belkaBaza = bazy.ToArray();
+        }
+        if (belkaSwieci == jak) return;
+        belkaSwieci = jak;
+        for (int i = 0; i < belkaMat.Length; i++)
+        {
+            var m = belkaMat[i]; if (!m) continue;
+            if (m.HasProperty(IdKolorBelki)) m.SetColor(IdKolorBelki, jak ? Kobalt * 2.2f : belkaBaza[i]);
+            if (m.HasProperty(IdEmisjaBelki))
+            {
+                if (jak) { m.EnableKeyword("_EMISSION"); m.SetColor(IdEmisjaBelki, Kobalt * 3.4f); }
+                else { m.SetColor(IdEmisjaBelki, Color.black); m.DisableKeyword("_EMISSION"); }
+            }
+        }
+    }
+
     public float silaRakNaKierownicy = .45f;
     Transform ramieL, ramieP; bool ramionaSzukane;
     void RuszRekami()
@@ -74,6 +146,7 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     {
         if (!gracz) { ramionaSzukane = false; ramieL = ramieP = null; }
         RuszRekami();
+        if (Sygnaly && MaSygnaly) Swiec(WzorBlysku(Time.time * 2f));
         if (!gracz || !kregoslupGracza || wagaPozy <= 0f || (odchylenie == 0f && pochylenieGlowy == 0f)) return;
         if (maKorekte && Quaternion.Dot(kregoslupGracza.localRotation, poKorekcie) > .9999999f) return;   // animacja nie nadpisała
         BraxMieszkaniec.PozaWAucie(kregoslupGracza, glowaGracza, transform.right, odchylenie * wagaPozy, pochylenieGlowy * wagaPozy);

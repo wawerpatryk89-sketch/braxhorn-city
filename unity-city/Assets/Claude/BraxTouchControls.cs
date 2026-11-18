@@ -35,13 +35,16 @@ public sealed class BraxTouchControls : MonoBehaviour
     // palce
     int joyId = -1, lookId = -1;
     Vector2 joyOrigin, joyNow, lookLast;            // ekran (y w górę)
-    const int PCios = 0, PKop = 1, PSkok = 2, PAkcja = 3, PMenu = 4;
-    readonly int[] palec = { -1, -1, -1, -1, -1 };
-    readonly float[] blysk = new float[5];
+    const int PCios = 0, PKop = 1, PSkok = 2, PAkcja = 3, PMenu = 4, PSygnaly = 5;
+    readonly int[] palec = { -1, -1, -1, -1, -1, -1 };
+    readonly float[] blysk = new float[6];
     // układ (ekran, y w górę)
     float s, m, gap, rC, rS, R, rMenu;
     Vector2 cCios, cKop, cSkok, cMenu, joyRest;
     Rect akcjaG;                                     // pigułka AKCJA (IMGUI, y w dół)
+    // SYGNAŁY: druga pigułka, nad AKCJĄ, tylko gdy siedzisz w radiowozie z belką
+    // (właściciel 18.11: „mogę włączyć sygnał i na sygnale jechać").
+    Rect sygnalyG;
     int ukW, ukH, ukWersja = -1; Rect ukSafe;
     // napis AKCJI
     string kontekst = "", kontekstEkran = "", kontekstZmierzony; float kontekstSzer, nastKontekst; bool grajek;
@@ -163,6 +166,9 @@ public sealed class BraxTouchControls : MonoBehaviour
 
     bool OnFoot => player && !player.vessel && !player.seat && !player.autoGracza && !player.polka;
     bool AkcjaWidoczna => kontekstEkran.Length > 0;
+    BraxAutoGracza Radiowoz => player && player.autoGracza && player.autoGracza.MaSygnaly ? player.autoGracza : null;
+    bool SygnalyWidoczne => Radiowoz != null;
+    bool WSygnalach(Vector2 p) { var g = new Vector2(p.x, Screen.height - p.y); var r = sygnalyG; r.xMin -= gap * .4f; r.yMin -= gap * .4f; r.xMax += gap * .4f; r.yMax += gap * .4f; return r.Contains(g); }
     static bool W(Vector2 p, Vector2 c, float r) => (p - c).sqrMagnitude <= r * r;
     bool WAkcji(Vector2 p) { var g = new Vector2(p.x, Screen.height - p.y); var r = akcjaG; r.xMin -= gap * .4f; r.yMin -= gap * .4f; r.xMax += gap * .4f; r.yMax += gap * .4f; return r.Contains(g); }
 
@@ -202,6 +208,7 @@ public sealed class BraxTouchControls : MonoBehaviour
             if (t.phase == TouchPhase.Began)
             {
                 if (W(p, cMenu, rMenu * 1.6f)) { blysk[PMenu] = Time.unscaledTime + .15f; Pauza(true); return; }
+                if (SygnalyWidoczne && WSygnalach(p)) { palec[PSygnaly] = t.fingerId; blysk[PSygnaly] = Time.unscaledTime + .12f; Radiowoz.PrzelaczSygnaly(); continue; }
                 if (AkcjaWidoczna && WAkcji(p)) { palec[PAkcja] = t.fingerId; Polecenie("action", PAkcja); continue; }
                 if (OnFoot)
                 {
@@ -394,11 +401,31 @@ public sealed class BraxTouchControls : MonoBehaviour
         // AKCJA: pigułka z dłonią i nazwą czynności
         if (AkcjaWidoczna) Akcja();
         else akcjaG = new Rect(-1000, -1000, 0, 0);
+        if (SygnalyWidoczne) Sygnaly();
+        else sygnalyG = new Rect(-1000, -1000, 0, 0);
         // podpowiedź na start, licznik
         float y = ukSafe.y + m * .5f;
         if (BraxUstawienia.Licznik && LicznikTekst.Length > 0) { Pasek(LicznikTekst, y, 1f); y += s * .055f; }
         float pa = Mathf.Clamp01(podpowiedzDo - Time.unscaledTime);
         if (pa > 0f) Pasek(BraxTeksty.T("hud.podpowiedz"), y, pa);
+    }
+
+    // Pigułka SYGNAŁY nad pigułką AKCJA, tej samej szerokości i w tej samej kolumnie.
+    void Sygnaly()
+    {
+        var radiowoz = Radiowoz; if (radiowoz == null) { sygnalyG = new Rect(-1000, -1000, 0, 0); return; }
+        float k = BraxUstawienia.SkalaPrzyciskow, h = s * .078f * k;
+        var st = BraxGui.Styl(Mathf.RoundToInt(h * .36f), true, TextAnchor.MiddleCenter);
+        float prawy = cSkok.x - rS - gap;
+        float w = Mathf.Max(h * 2.6f, akcjaG.width > 1f ? akcjaG.width : h * 2.6f);
+        float yc = Screen.height - cSkok.y - h * 1.28f;              // jeden rząd wyżej niż AKCJA
+        sygnalyG = new Rect(prawy - w, yc - h * .5f, w, h);
+        bool wc = Wcis(PSygnaly), gra = radiowoz.Sygnaly;
+        BraxGui.Zaokraglony(new Rect(sygnalyG.x - h * .06f, sygnalyG.y + h * .04f, sygnalyG.width + h * .12f, sygnalyG.height + h * .08f), h * .56f, new Color(0f, 0f, 0f, .2f));
+        var niebieski = new Color(.18f, .42f, 1f);
+        BraxGui.Pigulka(sygnalyG, gra ? new Color(niebieski.r, niebieski.g, niebieski.b, .78f) : new Color(.06f, .10f, .22f, .55f));
+        BraxGui.ObrysZaokraglony(sygnalyG, h * .5f, new Color(niebieski.r, niebieski.g, niebieski.b, wc || gra ? 1f : .7f));
+        BraxGui.Napis(sygnalyG, gra ? "SYGNAŁY ‧ WŁ." : "SYGNAŁY", st, BraxGui.Biel);
     }
 
     void Akcja()
