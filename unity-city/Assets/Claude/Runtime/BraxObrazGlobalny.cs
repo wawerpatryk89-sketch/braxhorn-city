@@ -166,9 +166,21 @@ public sealed class BraxObrazGlobalny : MonoBehaviour
                 if (slonce.intensity < SlonceMoc) slonce.intensity = SlonceMoc;
                 if (slonce.shadows == LightShadows.None) slonce.shadows = LightShadows.Soft;
                 if (slonce.shadowStrength < SlonceSilaCieni) slonce.shadowStrength = SlonceSilaCieni;
-                if (slonce.shadowBias > SloncePrzesuniecie) slonce.shadowBias = SloncePrzesuniecie;
-                if (slonce.shadowNormalBias > SloncePrzesuniecieNormalne)
-                    slonce.shadowNormalBias = SloncePrzesuniecieNormalne;
+                // PRZESUNIĘCIA CIENIA ZOSTAJĄ TAKIE, JAK USTAWIŁ REJON — i to jest poprawka
+                // mojego błędu z 16.11.
+                //
+                // Zbijałem tu bias do 0,04 i normalBias do 0,25, bo w Mieście były niższe niż
+                // w Osiedlu i wyszedłem z założenia, że niżej = lepiej. To jest prawda tylko
+                // dla DRGANIA cienia na krawędzi. Dla ACNE — tego stopniowanego migotania na
+                // całych powierzchniach — jest dokładnie odwrotnie: przesunięcie musi być
+                // WIĘKSZE niż texel mapy cieni rzutowany na świat, a ten rośnie wprost
+                // proporcjonalnie do zasięgu cieni. Osiedle ma kilkadziesiąt metrów, miasto
+                // ma kilkaset — ten sam bias, który w Osiedlu wystarcza, w mieście jest
+                // kilkukrotnie za mały i wtedy MIGOCZE WSZYSTKO.
+                //
+                // R1 miał normalBias 0,35 i działało; zbiłem mu go do 0,25.
+                // To nie jest parametr, który wolno ustalić jedną liczbą dla całej gry.
+                // Zostaje u rejonu, a tu tylko trafia do logu, żeby było co porównać.
             }
 
             if (RenderSettings.ambientMode != UnityEngine.Rendering.AmbientMode.Trilight)
@@ -204,7 +216,7 @@ public sealed class BraxObrazGlobalny : MonoBehaviour
             "BRAX_OBRAZ scena={0} rodzaj={1} zasieg={2:F0}m niebo={3} kamer={4} " +
             "bliska>={5:F2} poprawionych={6} kolor_kadru={7} " +
             "slonce={8:F2}->{9:F2} sila_cieni={10:F2}->{11:F2} mgla={12} " +
-            "anizotropia={13} rzutowanie={14}",
+            "anizotropia={13} rzutowanie={14} bias={15:F3}/{16:F2}(rejonu, nietkniete)",
             scena.name, otwarty ? "otwarty_rejon" : "wnetrze",
             najdalszy, jestNiebo ? "jest" : "brak", kamery.Length,
             podloga, poprawioneBliskie,
@@ -212,6 +224,7 @@ public sealed class BraxObrazGlobalny : MonoBehaviour
             mocBylo, slonce ? slonce.intensity : 0f,
             silaBylo, slonce ? slonce.shadowStrength : 0f,
             otwarty ? (mglaByla ? "byla" : "WLACZONA") : "pominieta_wnetrze",
-            QualitySettings.anisotropicFiltering, QualitySettings.shadowProjection));
+            QualitySettings.anisotropicFiltering, QualitySettings.shadowProjection,
+            slonce ? slonce.shadowBias : 0f, slonce ? slonce.shadowNormalBias : 0f));
     }
 }

@@ -99,6 +99,19 @@ Wystarczy mieć `main`.
 **3.3. Wyjątek jawny.** Rejon, który świadomie musi mieć inny obraz (noc, ciemne wnętrze),
 wstawia do sceny `BraxObrazWyjatek` z powodem. Widać to w logu — po cichu się nie da.
 
+**3.4a. PRZESUNIĘCIE CIENIA (bias) NALEŻY DO REJONU, nie do standardu.**
+Poprawka mojego błędu z 16.11: zbijałem bias do 0,04 i normalBias do 0,25 w każdym rejonie,
+bo w Mieście były niższe i wyszedłem z założenia, że niżej = lepiej. To prawda tylko dla
+**drgania krawędzi** cienia. Dla **acne** — tego stopniowanego migotania na całych
+powierzchniach — jest odwrotnie: przesunięcie musi być większe niż texel mapy cieni
+rzutowany na świat, a ten rośnie wprost proporcjonalnie do zasięgu cieni. Osiedle ma
+kilkadziesiąt metrów, miasto kilkaset. Ten sam bias, który w Osiedlu wystarcza, w mieście
+jest kilkukrotnie za mały — i wtedy **migocze wszystko**. R1 miał normalBias 0,35 i działało;
+standard zbijał mu go do 0,25.
+
+Od teraz: rejon ustawia bias u siebie, standard go **nie dotyka**, a wartości trafiają do
+logu `BRAX_OBRAZ` jako `bias=…/…(rejonu, nietkniete)`.
+
 **3.4. `QualitySettings` ustawia WYŁĄCZNIE `BraxGrafika.cs`.** Żaden skrypt rejonu, żadna
 próba, żaden pokaz. Dziś łamie to 47 miejsc — do posprzątania.
 
