@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -44,8 +45,35 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         { float u = Mathf.SmoothStep(od, doK, t); drzwi.localRotation = drzwiZamk * Quaternion.AngleAxis(katDrzwi * u, osDrzwi); yield return null; }
         drzwi.localRotation = drzwiZamk * Quaternion.AngleAxis(katDrzwi * doK, osDrzwi);
     }
+    // RĘCE ZA KIEROWNICĄ (właściciel 18.11: „kierownica się kręci, ale Patryk nie kręci rękami”).
+    // Wieniec obraca się o kąt × 9°, ramiona idą za nim ułamkiem tego kąta wokół TEJ SAMEJ osi kolumny.
+    // To nie jest żaden nowy klip ani przerabianie ruchu — to ten sam zabieg, co u kierowców NPC
+    // (BraxMieszkaniec.korektaRak): obrót dwóch kości PO animacji, w LateUpdate. Klip CarIdle zostaje nietknięty.
+    // Przy maksymalnym skręcie 38° daje to ±17° w ramionach. Jedna liczba do dokręcenia, gdyby było za mało.
+    public float silaRakNaKierownicy = .45f;
+    Transform ramieL, ramieP; bool ramionaSzukane;
+    void RuszRekami()
+    {
+        if (!gracz || wagaPozy <= 0f || silaRakNaKierownicy == 0f) return;
+        if (!ramionaSzukane)
+        {
+            ramionaSzukane = true;
+            var kosci = gracz.GetComponentsInChildren<Transform>(true);
+            ramieL = kosci.FirstOrDefault(t => t.name.EndsWith("LeftArm", System.StringComparison.Ordinal));
+            ramieP = kosci.FirstOrDefault(t => t.name.EndsWith("RightArm", System.StringComparison.Ordinal));
+        }
+        if (!ramieL && !ramieP) return;
+        var os = wieniec ? wieniec.TransformDirection(osKolumny) : transform.right;
+        // TEN SAM znak i TA SAMA oś co wieniec (ObracajKierownice): ręce idą za kierownicą, nie przeciw niej.
+        float kat = kierownica * silaRakNaKierownicy * wagaPozy;
+        if (ramieL) ramieL.rotation = Quaternion.AngleAxis(kat, os) * ramieL.rotation;
+        if (ramieP) ramieP.rotation = Quaternion.AngleAxis(kat, os) * ramieP.rotation;
+    }
+
     void LateUpdate()
     {
+        if (!gracz) { ramionaSzukane = false; ramieL = ramieP = null; }
+        RuszRekami();
         if (!gracz || !kregoslupGracza || wagaPozy <= 0f || (odchylenie == 0f && pochylenieGlowy == 0f)) return;
         if (maKorekte && Quaternion.Dot(kregoslupGracza.localRotation, poKorekcie) > .9999999f) return;   // animacja nie nadpisała
         BraxMieszkaniec.PozaWAucie(kregoslupGracza, glowaGracza, transform.right, odchylenie * wagaPozy, pochylenieGlowy * wagaPozy);

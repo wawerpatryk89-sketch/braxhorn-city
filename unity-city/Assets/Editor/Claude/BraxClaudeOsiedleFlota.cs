@@ -44,7 +44,18 @@ public static partial class BraxClaudeOsiedle
         forward.y = 0f;
         model.rotation = Quaternion.AngleAxis(Vector3.SignedAngle(forward, Vector3.forward, Vector3.up), Vector3.up) * model.rotation;
         var bounds = ObrysFloty(model);
-        model.position -= new Vector3(bounds.center.x, wheels.Min(w => ObrysFloty(w).min.y), bounds.center.z);
+        // SPÓD POJAZDU, NIE SAME KOŁA (właściciel 18.11, zdjęcie: „samochód się zatapia, opona”).
+        // Zmierzone wprost z modeli floty (min Y względem punktu zerowego modelu):
+        //   Ambulans BX10004 — najniższy obiekt to „Tyre sidewall” (−0,087), a koła Wheel_FL/FR/RL (−0,0004).
+        //   „Tyre sidewall” nie jest żadnym z czterech BX_Tire_*, więc wyrównanie po samych kołach
+        //   zostawiało gumę 0,087 × K ≈ 11 cm POD asfaltem. Rim stał na drodze, opona w niej tonęła.
+        //   Roadster Metalik BX10010 — cały model ma 0,295 jedn. wysokości i jest skalowany ×4,75,
+        //   więc każdy błąd wyrównania mnoży się przez ten sam współczynnik.
+        // Bierzemy niższy z dwóch: spód kół i spód CAŁEGO pojazdu. Nic nie ma prawa być pod jezdnią.
+        // Dla modeli wyrównanych poprawnie (12 z 14 ma spód dokładnie 0,000) nie zmienia to niczego.
+        float dolKol = wheels.Min(w => ObrysFloty(w).min.y);
+        float dolPojazdu = bounds.min.y;
+        model.position -= new Vector3(bounds.center.x, Mathf.Min(dolKol, dolPojazdu), bounds.center.z);
         bounds = ObrysFloty(model);
         var car = go.AddComponent<BraxAutoGracza>();
         car.rejestracja = "BX " + (10000+nr);
@@ -76,7 +87,40 @@ public static partial class BraxClaudeOsiedle
         car.przesuniecieGracza = car.fotel.localPosition-biodraKierowcy;
         car.korektaWsiadania = korektaWejsciaFloty;
         car.obrotWsiadania = obrotWejsciaFloty;
+        DrzwiFloty(car, go);
         return car;
+    }
+
+    // DRZWI W AUTACH FLOTY (właściciel 18.11: „drzwi od samochodu się nie otwierają tak samo”).
+    // Dotąd zawias dostawało TYLKO auto Patryka (BraxClaudeAutoPatryka) — czternaście aut floty nie
+    // miało ustawionego pola `drzwi` w ogóle, więc nie było czego obracać. Używamy tego samego
+    // szukacza co tam, z jego filtrami: część musi mieć w nazwie „door” i leżeć po stronie fotela
+    // (|x| > 0,25 m od osi auta). Dzięki temu modele, w których drzwi są ZROŚNIĘTE z nadwoziem w jeden
+    // obiekt („04 Coachwork | doors and clamshell bonnet”, „Bonnet, doors and flush hardware”), odpadają
+    // same — ich środek leży na osi auta. Lepiej, żeby drzwi zostały zamknięte, niż żeby przy wsiadaniu
+    // odjechała połowa karoserii z maską.
+    // Dodatkowy bezpiecznik rozmiaru: drzwi nie mogą być dłuższe niż 60 % auta ani wyższe niż 75 %.
+    static void DrzwiFloty(BraxAutoGracza car, GameObject go)
+    {
+        var czesci = BraxClaudeAutoPatryka.DrzwiKierowcy(go, car.fotel, out var ob);
+        var auto = car.obrys.size;
+        if (czesci.Count == 0 || ob.size.z > auto.z*.6f || ob.size.y > auto.y*.75f || ob.size.x > auto.x*.55f)
+        {
+            Debug.Log("BRAX_FLOTA_DRZWI "+car.rejestracja+" drzwi=nie ("+
+                      (czesci.Count==0 ? "model bez wydzielonych drzwi kierowcy" :
+                       "znalezione części za duże jak na drzwi: "+ob.size.ToString("F2")+" przy aucie "+auto.ToString("F2"))+
+                      ") — wsiadanie bez animacji drzwi");
+            return;
+        }
+        var piv = new GameObject("drzwi kierowcy (zawias)").transform;
+        piv.SetParent(go.transform, false);
+        piv.position = go.transform.TransformPoint(new Vector3(ob.center.x, ob.min.y+.5f*ob.size.y, ob.max.z-.03f*ob.size.z));
+        piv.rotation = go.transform.rotation;
+        foreach (var d in czesci) d.SetParent(piv, true);
+        car.drzwi = piv; car.osDrzwi = Vector3.up;
+        car.katDrzwi = ob.center.x < 0f ? 65f : -65f;
+        Debug.Log("BRAX_FLOTA_DRZWI "+car.rejestracja+" drzwi="+czesci.Count+" części, obrys "+ob.size.ToString("F2")+
+                  ", zawias na przedniej krawędzi, kąt "+car.katDrzwi.ToString("F0")+"°");
     }
 
     static bool ParkingPrzedBudynkiem(Vector3 miejsce, int lot)
