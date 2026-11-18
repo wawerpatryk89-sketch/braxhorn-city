@@ -229,6 +229,13 @@ def prepare(source, output):
     xyz = np.asarray(xyz) / h
     seed = zlib.crc32(actor.encode())
     span = 30 + seed % 13
+    # DŁUGOŚĆ OKNA DOPASOWANA DO NAGRANIA. Okno ma 30–42 próbek co 5 klatek, czyli
+    # potrzebuje ponad 150 klatek materiału. Nagrania z globalnej biblioteki ruchów
+    # bywają krótsze i wtedy pętla niżej nie wykonywała się ANI RAZU, a candidate[...]
+    # wywalało się na pustej liście (build 44287649268: Brax i Nyxa, IndexError bez
+    # słowa wyjaśnienia). Przy krótkim nagraniu bierzemy najdłuższe okno, jakie wchodzi.
+    if len(sample) - span - 1 <= 0:
+        span = max(4, len(sample) - 2)
     candidate = []
     for j in range(len(sample) - span - 1):
         v = xyz[j : j + span + 1]
@@ -245,6 +252,10 @@ def prepare(source, output):
         )
         candidate.append((score, j))
     candidate.sort()
+    if not candidate:
+        raise ValueError(
+            "%s: nagranie %s ma tylko %d probek co 5 klatek — za krotkie na petle chodu"
+            % (actor, original.name, len(sample)))
     j = candidate[seed % min(10, len(candidate))][1]
     ts = np.arange(sample[j], sample[j + span] + 1)
     n = len(ts)
