@@ -377,6 +377,7 @@ namespace UnityEngine
             return ms.ToArray();
         }
     }
+    public enum MaterialGlobalIlluminationFlags { None = 0, RealtimeEmissive = 1, BakedEmissive = 2, EmissiveIsBlack = 4 }
     public class Shader : Object { public static Shader Find(string n) => new Shader { name = n }; }
     public class Material : Object
     {
@@ -384,7 +385,7 @@ namespace UnityEngine
         public readonly Dictionary<string, float> f = new Dictionary<string, float>();
         public readonly Dictionary<string, Color> c = new Dictionary<string, Color>();
         public readonly Dictionary<string, Texture> t = new Dictionary<string, Texture>();
-        public float metry = 1f; public string[] slugi = new string[0]; public string rodzaj = "kolor"; public Shader shader;
+        public float metry = 1f; public string[] slugi = new string[0]; public string rodzaj = "kolor"; public Shader shader; public MaterialGlobalIlluminationFlags globalIlluminationFlags;
         public int renderQueue = 2000;
         public Material(Shader s) { shader = s; Wszystkie.Add(this); }
         public Material(Material m) { name = m.name; Wszystkie.Add(this); }
@@ -477,5 +478,7 @@ namespace UnityEditor
     }
     public class AssetImporter : Object { public static AssetImporter GetAtPath(string p) => null; public void SaveAndReimport() { } }
     public enum TextureImporterAlphaSource { None, FromInput, FromGrayScale }
-    public class TextureImporter : AssetImporter { public bool sRGBTexture, mipmapEnabled, alphaIsTransparency, mipMapsPreserveCoverage; public TextureWrapMode wrapMode; public int maxTextureSize, anisoLevel; public float alphaTestReferenceValue; public TextureImporterAlphaSource alphaSource; }
+    public enum TextureImporterType { Default, NormalMap, GUI, Sprite, Cursor, Cookie, Lightmap, SingleChannel }
+    public enum TextureImporterCompression { Uncompressed, Compressed, CompressedHQ, CompressedLQ }
+    public class TextureImporter : AssetImporter { public bool sRGBTexture, mipmapEnabled, alphaIsTransparency, mipMapsPreserveCoverage; public TextureWrapMode wrapMode; public int maxTextureSize, anisoLevel; public float alphaTestReferenceValue; public TextureImporterAlphaSource alphaSource; public TextureImporterType textureType; public FilterMode filterMode; public TextureImporterCompression textureCompression; }
 }

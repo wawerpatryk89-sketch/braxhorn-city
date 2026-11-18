@@ -185,7 +185,10 @@ public static partial class BraxRegionFawela
                 BraxUliceKit.Napis3D(t, F.P((s0 + s1) * .5f, yc - cp * .5f, -.26f), F.N, cp, .05f, zl, bk);
             }
         }
-        if (!betLogo && (firma == null || !BraxMiastoBillboardy.Mural(lr, firma, F.P(sm, yc, -.27f), F.N, wG, hG)))
+        // 18.11 12:57 (plansza szyldów właściciela, B — Aleja Centralna, grafiki 6:1): kaseton świetlny z JEGO grafiką na listwie
+        // (lico 62 cm, 8 cm przed listwą, rama w obrysie listwy 0.72 m); bez paczki jak dotąd (grafika firmy / litery z LED)
+        bool grafikaB = !betLogo && BraxSzyldyWlasciciela.Kaseton(BraxSzyldyWlasciciela.PlikB(l.szyld), F.P(sm, yc, -.26f - .08f), F.N, .62f, .08f, sb - sa - .4f, "Aleja Centralna: " + l.szyld + " (" + id + ")") > 0f;
+        if (!betLogo && !grafikaB && (firma == null || !BraxMiastoBillboardy.Mural(lr, firma, F.P(sm, yc, -.27f), F.N, wG, hG)))
         {
             var lico = BraxUliceKit.Mat("litery przestrzenne: lico " + l.szyld + " (podświetlenie nocą)",
                 l.typ == "apteka" ? new Color(.10f, .55f, .28f) : l.typ == "bukmacher" ? new Color(.95f, .76f, .22f) : new Color(.95f, .93f, .86f), .45f, .05f);

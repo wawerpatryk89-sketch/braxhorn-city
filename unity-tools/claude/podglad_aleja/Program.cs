@@ -43,19 +43,31 @@ public static class Podglad
     {
         var gp = new GameObject("PORTOWA (podgląd: ulica główna z banerem)").transform; gp.SetParent(root, false);
         var kolizje = new GameObject("kolizje").transform; kolizje.SetParent(gp, false);
-        BraxRegionMiastoB.Plaski("Portowa: jezdnia (podgląd)", BraxRegionMiastoB.Asfalt, Rect.MinMaxRect(-40f, 23.755f, 6f, 33.245f), .003f);
-        BraxRegionMiastoB.ChodnikPub("Portowa: chodnik płd. (podgląd)", -40f, 6f, 20.6f, 23.755f);
-        BraxRegionMiastoB.ChodnikPub("Portowa: chodnik płn. (podgląd)", -40f, 6f, 33.245f, 36.1f);
+        BraxRegionMiastoB.Plaski("Portowa: jezdnia (podgląd)", BraxRegionMiastoB.Asfalt, Rect.MinMaxRect(-106f, 23.755f, 54f, 33.245f), .003f);
+        BraxRegionMiastoB.ChodnikPub("Portowa: chodnik płd. (podgląd)", -106f, 54f, 20.6f, 23.755f);
+        BraxRegionMiastoB.ChodnikPub("Portowa: chodnik płn. (podgląd)", -106f, 54f, 33.245f, 36.1f);
         var T = typeof(BraxUlicePierzeje); var F = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
         T.GetField("style", F).SetValue(null, T.GetMethod("Style", F).Invoke(null, null));
         var lokale = (System.Collections.IDictionary)T.GetField("Lokale", F).GetValue(null);
+        // wszystkie 17 kamienic ulicy głównej — dane jak BraxCityArchitecture.StreetBuildings (bez BRAXHORN TOWER)
         var budynki = new[] {
+            new BraxCityArchitecture.Building("apothecary","APTEKA",38,52,-4,20.6f,8),
+            new BraxCityArchitecture.Building("corner_store","DELIKATESY",26,38,-4,20.6f,6),
             new BraxCityArchitecture.Building("bar", "BAR 24", -12, -1, 11.6f, 20.6f, 7),
             new BraxCityArchitecture.Building("restaurant", "BISTRO", -24, -12, 11.6f, 20.6f, 10),
             new BraxCityArchitecture.Building("workshop_shop", "PRACOWNIA", -36, -24, 11.6f, 20.6f, 7, false, true),
+            new BraxCityArchitecture.Building("hotel","HOTEL",-48,-36,11.6f,20.6f,11),
+            new BraxCityArchitecture.Building("viaduct_corner","BRAXHORN",-61.4f,-48,11.6f,20.6f,8),
+            new BraxCityArchitecture.Building("workshop","WARSZTAT",-87,-72.5f,11.6f,20.6f,6,false,true),
+            new BraxCityArchitecture.Building("estate_corner","KAWIARNIA",-104,-87,11.6f,20.6f,9),
+            new BraxCityArchitecture.Building("bakery","PIEKARNIA",18,32,36.1f,48,6,true),
             new BraxCityArchitecture.Building("gallery", "GALERIA", -10, 2, 36.1f, 48, 8, true, true),
             new BraxCityArchitecture.Building("office_entrance", "BRAXHORN", -22, -10, 36.1f, 48, 7, true, true),
-            new BraxCityArchitecture.Building("apartments_1", "KSIĘGARNIA", -34, -22, 36.1f, 48, 9, true) };
+            new BraxCityArchitecture.Building("apartments_1", "KSIĘGARNIA", -34, -22, 36.1f, 48, 9, true),
+            new BraxCityArchitecture.Building("apartments_2","KAWIARNIA",-46,-34,36.1f,48,7,true,true),
+            new BraxCityArchitecture.Building("apartments_3","PRACOWNIA",-61.4f,-46,36.1f,48,8,true),
+            new BraxCityArchitecture.Building("estate_apartments_1","BRAXHORN",-88,-71,36.1f,48,6,true,true),
+            new BraxCityArchitecture.Building("estate_apartments_2","BRAXHORN",-104,-88,36.1f,48,9,true) };
         foreach (var b in budynki)
         {
             var lok = lokale[b.id];
@@ -96,7 +108,7 @@ public static class Podglad
         BraxRegionMiastoB.Plaski("aleja: jezdnia (podgląd)", BraxRegionMiastoB.Asfalt, Rect.MinMaxRect(-600f, 23.75f, -300f, 33.25f), .003f);
         // ---- wieżowce z lokalami
         var gb = new GameObject("CLAUDE nowe dzielnice: budynki").transform; gb.SetParent(root, false);
-        foreach (var id in new[] { "C5_U12", "C5_U07", "C5_U04" }) { try { Wieza(gb, id); } catch (Exception e) { Console.WriteLine("BŁĄD wieżowiec " + id + ": " + e); } }
+        foreach (var id in new[] { "C5_U12", "C5_U07", "C5_U04", "C5_U09", "C5_U02", "C5_U08", "C5_U00", "C5_U03" }) { try { Wieza(gb, id); } catch (Exception e) { Console.WriteLine("BŁĄD wieżowiec " + id + ": " + e); } }
         try { BraxRegionMiastoB.PodgladLokaleKontrola(); } catch (Exception e) { Console.WriteLine("kontrola lokali: " + e.Message); }
         // ---- plac ATLANTA z podwórzem ustawek, pas zieleni z komisem przy ul. Tramwajowej
         BraxRegionMiastoB.PodgladPlacAtlanty();
