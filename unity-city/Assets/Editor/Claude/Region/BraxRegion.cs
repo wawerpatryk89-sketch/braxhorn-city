@@ -130,7 +130,7 @@ public static class BraxRegion
         Step("utrwalenie siatek", () => PersistMeshes(root));
         // Budżet: nic wyłączonego nie jedzie do paczki (397 siatek aut, zastąpione elewacje, atrapy), kompresja siatek.
         Step("odchudzenie danych: wyłączone renderery i kompresja siatek", () => Slim(root));
-        Note("materiały modeli → CityStaticPBR: " + converted + ", bez konwersji: " + keptForeign);
+        Note("materiały modeli → CityStaticPBR: " + converted + ", bez konwersji: " + keptForeign + "; liście matowe (bez odbicia nieba): " + liscieMatowe + ", korony lasu z odcieniem zieleni: " + koronyLasu);
         Rep.status = "BUILT";
         File.WriteAllText(Out + "/region.json", JsonUtility.ToJson(Rep, true));
         Debug.Log("BRAXHORN_CLAUDE_REGION " + JsonUtility.ToJson(Rep));
@@ -377,6 +377,7 @@ public static class BraxRegion
             c2.SetFloat("_AlphaClip", cutout ? 1 : 0); c2.SetFloat("_Cutoff", cutout ? (src.HasProperty("_Cutoff") ? Mathf.Clamp01(src.GetFloat("_Cutoff")) : .5f) : 0);
             c2.SetFloat("_Transparent", 0); c2.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One); c2.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero); c2.SetFloat("_ZWrite", 1);
             c2.renderQueue = cutout ? 2450 : 2000; c2.SetOverrideTag("RenderType", cutout ? "TransparentCutout" : "Opaque");
+            if (cutout) LiscieMatowe(src, c2);
             BraxZapisAssetu.Utworz(c2, NowaSciezkaMaterialu(src));
             return c2;
         }
@@ -427,8 +428,34 @@ public static class BraxRegion
                 szybyPojazdow++;
             }
         }
+        if (mode == 1) LiscieMatowe(src, c);
         BraxZapisAssetu.Utworz(c, NowaSciezkaMaterialu(src));
         return c;
+    }
+
+    // 18.11 14:56 (właściciel: „Ten twój las koło kolei… nie jest zielony, tylko matowy, jakiś szary”). Liście i igły (maska alfa)
+    // dostawały w CityStaticPBR odbicie nieba 0.4 × Fresnel — karty koron widziane pod ostrym kątem (większość kart w koronie)
+    // świeciły szaroniebieskim połyskiem nieba, który zalewał ciemną zieleń (podgląd z tym samym oświetleniem: las szary → zielony).
+    // Liść rozprasza światło matowo: bez odbicia nieba, szorstkość 1. Korony lasu R1 (las_*_korona z drzewa_las.py — atlas skalowany
+    // do średniej sRGB 60/82/42, z cieniowaniem już w obrazie, w grze wychodził za ciemny): odcień liniowo × (1.22, 1.34, 1.0)
+    // — zieleń w słońcu, pnie i ściółka bez zmian. Liczniki w notatce BRAXHORN (liście matowe / korony lasu).
+    static readonly System.Text.RegularExpressions.Regex Lisc = new System.Text.RegularExpressions.Regex(
+        "korona|lisc|liść|liscie|liście|leaf|leaves|foliage|needle|twig|fern|paproc|shrub|bush|krzew|grass|trawa|ivy|palm|frond|igl",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    public static int liscieMatowe, koronyLasu;
+    public static readonly Vector3 OdcienKoronyLasu = new Vector3(1.22f, 1.34f, 1.0f);
+    static void LiscieMatowe(Material src, Material c)
+    {
+        if (!Lisc.IsMatch(src.name)) return;
+        if (c.HasProperty("_ReflectionStrength")) c.SetFloat("_ReflectionStrength", 0f);
+        c.SetFloat("_Roughness", 1f);
+        liscieMatowe++;
+        if (src.name.StartsWith("las_") && src.name.Contains("_korona"))
+        {
+            var bc = c.GetColor("_Color").linear;
+            c.SetColor("_Color", new Color(bc.r * OdcienKoronyLasu.x, bc.g * OdcienKoronyLasu.y, bc.b * OdcienKoronyLasu.z, bc.a).gamma);
+            koronyLasu++;
+        }
     }
 
     // RÓŻOWE JACHTY (właściciel 2.11, 22:20): plik materiału nazywany był model-<liczba w słowniku>. Apply czyści słownik

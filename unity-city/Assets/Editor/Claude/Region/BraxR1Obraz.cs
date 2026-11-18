@@ -31,7 +31,8 @@ public static class BraxR1Obraz
         float staraMoc = sun ? sun.intensity : 0f;
         Bounds[] bezZmian = new Bounds[0];
         // 18.11 (właściciel 10:39: „gra zacina, zamula, szczególnie w siłowni… prawie wszystko w mieście migota”): na telefonie
-        // (build Android) bez pełnoekranowego przejścia koloru (OnRenderImage = kopia całego kadru + rozwiązanie MSAA co klatkę),
+        // (build Android) bez pełnoekranowego przejścia koloru (OnRenderImage = kopia całego kadru + rozwiązanie MSAA co klatkę —
+        // od 14:55 przywrócone, jak na Osiedlu),
         // bias cieni jak w Unity 0.05 / 0.4 (0.04 / 0.25 dawało „trądzik cieni” — pasy migoczące na ścianach przy ruchu kamery),
         // cienie zostają MIĘKKIE (twarde = postrzępione krawędzie cieni, które przy ruchu kamery „pełzają” — to też migotanie),
         // lustro siłowni tylko do 25 m i 15 razy na sekundę (rysowało miasto drugi raz do 80 m, 24 razy na sekundę).
@@ -80,14 +81,13 @@ public static class BraxR1Obraz
             // dwie powierzchnie 2 cm od siebie rozróżniane do ~410 m zamiast ~290 m, 1 cm do ~290 m zamiast ~205 m. Przy ścianie
             // dalej 0.15 m (BraxClaudeKamera: kula = róg bliskiej płaszczyzny + 5 cm, przy 0.5 m i 20:9 to ~0.86 m).
             bk.daleko = Mathf.Max(bk.daleko, .5f);
+            // 18.11 14:55 (właściciel: „dostosowałeś się do kolorów, żeby była taka głębia kolorów, kontrast jak na osiedlu?”):
+            // przejście koloru Osiedla WRACA także na telefonie (rano zdjęte dla płynności — wtedy miasto na telefonie było płaskie,
+            // poniżej minimum Osiedla, które ma je na telefonie i chodzi płynnie). Nasycenie 1.15, kontrast 1.06 jak Osiedle.
             var kol = cam.GetComponent<BraxClaudeKolor>();
-            if (telefon) { if (kol) Object.DestroyImmediate(kol); }
-            else
-            {
-                if (!kol) kol = cam.gameObject.AddComponent<BraxClaudeKolor>();
-                kol.shader = Shader.Find("Braxhorn/OsiedleKolor"); kol.nasycenie = 1.15f; kol.kontrast = 1.06f;
-                if (!kol.shader) kolorOk = false;
-            }
+            if (!kol) kol = cam.gameObject.AddComponent<BraxClaudeKolor>();
+            kol.shader = Shader.Find("Braxhorn/OsiedleKolor"); kol.nasycenie = 1.15f; kol.kontrast = 1.06f;
+            if (!kol.shader) kolorOk = false;
             kam++;
         }
         var g = new GameObject("CLAUDE obraz rejonu: ekspozycja i słońce (minimum Osiedle)"); g.transform.SetParent(root, false);
@@ -103,7 +103,7 @@ public static class BraxR1Obraz
         P("otoczenie ziemia", !Nie(RenderSettings.ambientGroundColor, new Color(.30f, .28f, .23f)), RenderSettings.ambientGroundColor.ToString("F2"));
         P("mgła wyłączona (decyzja właściciela 16.11 14:33)", !RenderSettings.fog, RenderSettings.fog ? "WŁĄCZONA" : "brak mgły, mgiełka shadera 0");
         P("bliska płaszczyzna", kam > 0, ".5 m na otwartej przestrzeni (przy ścianie .15 m), kamer " + kam);
-        P("przejście koloru", kam > 0 && kolorOk, telefon ? "wyłączone na telefonie (pełnoekranowa kopia kadru co klatkę)" : "nasycenie 1.15, kontrast 1.06");
+        P("przejście koloru (jak Osiedle, także telefon)", kam > 0 && kolorOk, "nasycenie 1.15, kontrast 1.06" + (telefon ? " (telefon)" : ""));
         P("lustro siłowni", true, lustra + " × do 25 m, 15 / s");
         P("rzutowanie cieni", true, "StableFit (ustawia BraxGrafika i BraxClaudeKamera w grze)");
         P("MSAA na każdym poziomie jakości (telefon startuje na „Medium”)", msaaWszedzie, string.Join(", ", msaaOpis) + " (podniesione: " + msaaPoziomy + ")");

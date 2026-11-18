@@ -69,7 +69,8 @@ internal static partial class BraxMiastoDworzec
                 else if (pniaki.Length > 0 && v < .53f * g + .08f) { if (BraxRegion.Put(las, pniaki[rnd.Next(pniaki.Length)], "Las: pniak", V(px + 1f, WysKorytarza(px + 1f, pz - 1.5f) - .05f, pz - 1.5f), R() * 360f, 1f, false, 0f, .05f)) podszytu++; }
                 else if (kloda && v > .985f && g > .5f) { if (BraxRegion.Put(las, kloda, "Las: kłoda", V(px, WysKorytarza(px, pz) - .1f, pz), R() * 360f, 1f, true, 0f, .1f)) klod++; }
             }
-        Opis("las: drzew " + drzew + " (" + string.Join(", ", licz.Select(kv => kv.Key + " " + kv.Value)) + "), podszytu " + podszytu + ", kłód " + klod);
+        Opis("las: drzew " + drzew + " (" + string.Join(", ", licz.Select(kv => kv.Key + " " + kv.Value)) + "), podszytu " + podszytu + ", kłód " + klod +
+             "; liście matowe (bez odbicia nieba) " + BraxRegion.liscieMatowe + ", korony z odcieniem zieleni " + BraxRegion.koronyLasu + " (18.11: las nie szary)");
     }
 
     // ============================================================================ KONTROLA SKALI (zasada globalna 11.11 — przed oddaniem)

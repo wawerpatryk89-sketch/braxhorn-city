@@ -25,8 +25,10 @@ class R1ObrazTelefon(unittest.TestCase):
         self.assertIn("if (QualitySettings.antiAliasing < 4) { QualitySettings.antiAliasing = 4; msaaPoziomy++; }", OBRAZ)
         self.assertIn("QualitySettings.SetQualityLevel(poziomBylo, false);", OBRAZ)
 
-    def test_no_fullscreen_colour_pass_on_phone(self):
-        self.assertIn("if (telefon) { if (kol) Object.DestroyImmediate(kol); }", OBRAZ)
+    def test_colour_pass_like_estate_also_on_phone(self):
+        # 14:55 (właściciel: „głębia kolorów, kontrast jak na osiedlu?”): przejście koloru Osiedla wraca na telefon
+        self.assertNotIn("if (telefon) { if (kol) Object.DestroyImmediate(kol); }", OBRAZ)
+        self.assertIn('kol.shader = Shader.Find("Braxhorn/OsiedleKolor"); kol.nasycenie = 1.15f; kol.kontrast = 1.06f;', OBRAZ)
         self.assertIn("UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.Android", OBRAZ)
 
     def test_gym_mirror_cheaper(self):
