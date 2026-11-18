@@ -1,0 +1,208 @@
+# ZASADY — BRAXHORN CITY
+
+**To jest jedyny obowiązujący zbiór zasad.** Obowiązuje każdy rejon i każdego wykonawcę:
+Osiedle, Miasto R1, Miasto Mistrzów, pokój prób, pojazdy i każdy następny rejon.
+
+**Gdy cokolwiek innego mówi inaczej — wygrywa ten plik.** Dotyczy to komentarzy w kodzie,
+notatek w projekcie i wszystkich wcześniejszych dokumentów z zasadami, w szczególności:
+`ZASADA-0-JEDEN-STANDARD-OBRAZU-16-11`, `ZASADA-OBRAZ-MINIMUM-OSIEDLE-16-11`,
+`ZASADA-KOLORY`, `STANDARD-TECHNICZNY`, `ZASADA-NADRZEDNA-WSZYSTKO-REALNE-16-11`,
+`ZASADA-MIGOTANIE-PASOW-I-CIENKICH-LINII-16-11`, `ZASADA-0-JEDEN-STANDARD-OBRAZU`,
+`ZASADA-ZERO-KLOCKOW`. Tamte zostają jako uzasadnienia i pomiary — **nie jako źródło decyzji**.
+
+Zasada jest jednostronna: **minimum wolno przekraczać w górę, nigdy w dół.**
+
+---
+
+## 0. DLACZEGO TEN PLIK ISTNIEJE
+
+Zasady były dokumentami w projekcie. Każdy wykonawca czytał inny, bo każdy miał własny
+`CLAUDE.md` na własnej gałęzi, a dokumentów z zasadami narosło osiem i część z nich mówiła
+co innego. Jeden z nich powoływał się nawet na sprawdzacz `sprawdz_zasade_0.py` jako
+„jest, działa" — a tego pliku **nigdy nie było w repozytorium**.
+
+Dlatego teraz: **jeden plik, w korzeniu `main`, plus sprawdzacz, który naprawdę istnieje.**
+
+    python3 -I unity-tools/claude/sprawdz_zasady.py .
+
+Kod wyjścia 1 = są błędy. Gałąź z błędami nie idzie do odbioru.
+
+---
+
+## 1. SPRZĘT I CEL
+
+Gra ma chodzić na telefonie, na baterii, bez przegrzewania. Telefon odniesienia:
+**moto g86 5G, 8 GB RAM**. Zmierzona granica: scena z 1,5 GB danych działa, 1,7 GB zamyka grę.
+
+To nie jest konsola. Nie porównujemy się do gier, które chodzą z wtyczką w gniazdku —
+nadrabiamy światłem, materiałami i ruchem, bo to widać najbardziej.
+
+---
+
+## 2. TEKSTURY — sufit 2048, format ASTC 6×6
+
+**To była największa rozjazdowa.** Jeden rejon ciągnął 4K, drugi 2K, trzeci bez kompresji.
+Pięć limitów rozdzielczości i pięć formatów w jednym APK.
+
+| Klasa | Co to jest | Limit | Format Android |
+|---|---|---|---|
+| `TwarzBohatera` | Patryk, Monika, przeciwnicy w ringu — twarz z 0,5 m | 2048 | ASTC 4×4 |
+| `Postac` | reszta obsady, ciała bohaterów | 2048 | ASTC 6×6 |
+| `Mimika` | atlas mimiki (8 poziomów ułożonych 4×2) | 2048 | ASTC 4×4 |
+| `ZBliska` | murale, szyldy, ekrany, wnętrza w zasięgu ręki | 2048 | ASTC 6×6 |
+| `Swiat` | elewacje, grunt, drogi, modele z Poly Haven, wnętrza ogólne | 1024 | ASTC 6×6 |
+| `Daleko` | kopie z daleka, niebo, tło | 512 | ASTC 6×6 |
+
+**2.1. Sufit 2048. 4096 tylko z pisemnym wyjątkiem właściciela** w treści commita.
+Dlaczego: 4K to czterokrotność pamięci wobec 2K, a telefon tego nie pokaże. Ściana 4 m
+pokryta teksturą 2K to 512 pikseli na metr; z dwóch metrów oko i tak nie rozróżnia więcej.
+Dziś zatwierdzony jest jeden wyjątek: mural 19 na siłowni.
+
+**2.2. ASTC 6×6 jest standardem, 4×4 tylko dla twarzy i mimiki.** 4×4 to 8 bitów na piksel,
+6×6 to 3,56 — **2,25× różnicy przy jakości nieodróżnialnej na elewacji czy asfalcie**.
+Sama obsada Osiedla: 304 MB w 4×4, 135 MB w 6×6.
+
+**2.3. Bez kompresji = zakazane.** `Uncompressed` i `RGB24` nie mają wstępu do buildu Androida.
+
+**2.4. Mipmapy i streaming zawsze.** Wyjątek tylko dla UI i ekranów startowych.
+
+**2.5. Bez `Read/Write Enabled`** i bez drugiego kompletu tych samych map w innym folderze.
+
+---
+
+## 3. OBRAZ — minimum to Osiedle
+
+Liczby wyjęte z `BraxClaudeOsiedle.Daylight()`. **Poniżej nich nie wolno zejść w żadnym rejonie.**
+
+| Parametr | Minimum |
+|---|---|
+| Słońce — moc | 1.24 |
+| Słońce — barwa | (1.000, 0.955, 0.875) |
+| Słońce — cienie | Soft, siła ≥ 0.80 |
+| Słońce — przesunięcie cienia | bias ≤ 0.04, normalBias ≤ 0.25 |
+| Otoczenie | Trilight; niebo (.60,.68,.80), horyzont (.50,.53,.50), ziemia (.30,.28,.23) |
+| Mgła | **włączona**, ExponentialSquared, barwa z horyzontu **własnego** nieba rejonu |
+| Bliska płaszczyzna kamery | 0.25 m w otwartym terenie, 0.15 m przy ścianie |
+| Przejście koloru | nasycenie 1.15, kontrast 1.06, jedno przejście, **bez bloomu** |
+| Rzutowanie cieni | StableFit |
+| Wygładzanie krawędzi | MSAA 2× telefon / 4× komputer, wypalone w buildzie |
+| Przestrzeń barw | **Linear.** Gamma jest błędem |
+
+**3.1. Gęstość mgły zależy od skali rejonu, nie jest jedną liczbą.** Osiedle 0.0042;
+Miasto R1 0.00042, bo przy skali miasta gęstość Osiedla zjada panoramę już na 300 m.
+Rejon podaje swoją gęstość w logu buildu. Zakazane jest **wyłączenie** mgły, nie jej dobranie.
+
+**3.2. To jest wymuszone kodem**, nie dobrą wolą: `Assets/Claude/Runtime/BraxObrazGlobalny.cs`
+(po każdym wczytaniu sceny) i `Assets/Editor/Claude/BraxObrazBuild.cs` (wypalenie w buildzie).
+Wystarczy mieć `main`.
+
+**3.3. Wyjątek jawny.** Rejon, który świadomie musi mieć inny obraz (noc, ciemne wnętrze),
+wstawia do sceny `BraxObrazWyjatek` z powodem. Widać to w logu — po cichu się nie da.
+
+**3.4. `QualitySettings` ustawia WYŁĄCZNIE `BraxGrafika.cs`.** Żaden skrypt rejonu, żadna
+próba, żaden pokaz. Dziś łamie to 47 miejsc — do posprzątania.
+
+**3.5. Cienie ze słońca nigdy nie są wyłączane.** Na żadnym poziomie jakości.
+Oszczędzamy na teksturach i siatkach, nie na cieniach.
+
+---
+
+## 4. MATERIAŁY — wszystko realne
+
+**Zasada nadrzędna właściciela: wszystko ma być z prawdziwych materiałów i tekstur.**
+Źródło: Poly Haven (CC0, wolno komercyjnie, bez podawania autora) albo biblioteka właściciela.
+
+**4.1. Każda widoczna powierzchnia ma pełny PBR** — kolor + normalne + chropowatość
+(i AO, gdy jest). Ściany, sufity, posadzki, chodniki, elewacje, mury, schody, dachy, blaty.
+
+**4.2. Materiał z samego koloru jest zakazany tam, gdzie istnieje fotoskan.** Drewno ma być
+drewnem, kamień kamieniem, beton betonem.
+
+**4.3. Czysty PBR bez map wolno tylko tam, gdzie fotoskanu nie ma:** szkło, metal gładki,
+lakier samochodowy, plastik urządzeń, ekrany, lampy, lustra.
+
+**4.4. Rzutowanie w metrach świata, nie „na obiekt".** Cegła ~0,25 m, deska ~0,15 m,
+płyta chodnikowa ~0,5 m, tynk 1,5–2 m. Powtarzalność łamana szumem 5–10 %.
+
+**4.5. Czego nie umiemy zrobić realistycznie — zostaje puste** i idzie na listę braków.
+Nigdy klocek w kolorze jako zastępstwo.
+
+---
+
+## 5. POSTACIE
+
+**5.0. To jest wymuszone kodem**, nie dobrą wolą rejonu:
+`Assets/Claude/Runtime/BraxPostacGlobalna.cs` nakłada standard po każdym wczytaniu sceny —
+gładkość 0, metaliczność 0, normalne ×1,3, `SkinQuality.Bone4`, sondy światła i odbić,
+cienie. Wystarczy mieć `main`. Wyjątek: obiekt z `BraxObrazWyjatek` jest pomijany,
+a powód trafia do logu `BRAX_POSTAC`.
+
+**5.1. Połysk.** Skóra i tkanina mają być matowe. Gładkość z map generatora 3D jest
+zawyżona i nieprawdziwa — ten sam połysk dostaje wełna, skóra i dłoń. Metaliczność tkanin
+i skóry = 0. Zmierzone skutki zawyżonego połysku: krawat kapitana (jasność 42 na koszuli 229)
+rozmywał się w jasną smugę, a ciemny mundur ochroniarza dostawał „białe ślady" — przy czym
+w jego teksturze **nie ma ani jednego białego piksela**, maksimum to 204.
+
+**5.2. Wagi skinningu: cztery kości na wierzchołek.** Zmierzone na paczce wejściowej:
+43–68 % wierzchołków trzymała **jedna albo dwie kości** — stąd załamania na łokciach i kolanach
+zamiast fałdy. Potok wygładza je automatycznie (`osiedle_wagi.py`); palce zostają nietknięte.
+Log `BRAX_WAGI` podaje udział przed i po.
+
+**5.3. Mimika.** Atlas 512 na poziom (plik 2048×1024). Niżej zęby mają dwa piksele i znikają.
+Sufit importu dla mimiki to 2048 — niższy skasuje całą rozdzielczość po cichu.
+
+**5.4. Czego potok nie naprawi: liczby trójkątów.** Ósemka (Patryk, Monika, Mateusz, Kamil,
+Ewa, Martyna, Wiechu, Plażowicz) ma po 17–18 tys. trójkątów, reszta obsady 33–40 tys.
+Kanciaki na zaokrągleniach biorą się stąd i **wymagają nowych modeli ze źródła**.
+
+**5.5. Normalne są w porządku** — rozciętych 0–0,8 %. Nikt nie ma szukać kanciaków tutaj.
+
+---
+
+## 6. GŁOS I TEKSTY
+
+**6.1. Głosy własne (Patryk, Monika) to nagrania.** Nie ma syntezy ich głosu i nie będzie.
+Nowy tekst ich głosem = nowe nagranie.
+
+**6.2. Głosy tła to generator** (Piper, offline, polskie głosy). Tekst zmienia się **bez
+nagrywania** — plik `unity-tools/claude/zrob_kwestie.py`. Dziś bank: 292 kwestie w dwóch głosach.
+
+**6.3. Nazwy plików niosą znaczenie:** `_m` / `_f` to płeć, `<postać>_` to głos własny tej
+postaci, `<postać>_pijany_` to kwestie po pijaku. Kobieta nigdy nie dostaje męskiego głosu.
+
+---
+
+## 7. BUILD I ODBIÓR
+
+**7.1. APK uruchamia WYŁĄCZNIE właściciel**, pojedynczo, przez `workflow_dispatch`.
+Commit i push **nie są zgodą na build**.
+
+**7.2. Nic nie jest zrobione bez pomiaru.** „Wykonawca obiecał" nie jest dowodem.
+Automat mierzy, bramka przerywa, nagranie dowodzi.
+
+**7.3. Klucz pamięci podręcznej liczy się z CAŁEGO potoku**, nie z ręcznie wypisanej listy
+plików. Inaczej build bierze gotowce i udaje, że wykonał zmianę — tak przepadło przejście
+wygładzania wag 17.11 (APK różnił się od poprzedniego o 100 bajtów).
+
+**7.4. Raport wagi z porównaniem.** Każdy build porównany z poprzednim; wzrost musi mieć
+listę „co doszło i ile waży". Wzrost bez nowej treści = błąd ustawień.
+
+**7.5. Nic się nie usuwa** bez wcześniejszej listy i zgody właściciela. Odseparować — tak.
+Wyrzucić — nie.
+
+---
+
+## 8. CO JEST JESZCZE DO DECYZJI WŁAŚCICIELA
+
+Te trzy rzeczy są świadomie **niezdecydowane** — nie wolno ich rozstrzygać samemu:
+
+1. **Pełne tekstury na telefonie.** `BraxGrafika.Mip()` wymusza połowę rozdzielczości
+   w każdym trybie, także Wysokim. To obejście awarii pamięci z 31.10. Zdjęcie go to
+   największy pojedynczy zapas jakości, jaki został — ale wymaga pomiaru na telefonie.
+2. **Cienie w trybie ŚREDNIM.** Dziś twarde, jedna kaskada na 35 m — krawędź cienia skacze.
+   Propozycja: miękkie, 2 kaskady, 45 m. Dotyka płynności na słabszych telefonach.
+3. **MSAA 4× zamiast 2× na telefonie.** Dopiero gdy APK z 2× okaże się stabilny.
+
+---
+
+*Zmiany w tym pliku — tylko za zgodą właściciela. Ostatnia aktualizacja: 18.11.2026.*
