@@ -84,7 +84,8 @@ public static class BraxPostacGlobalna
     {
         var skory = Object.FindObjectsByType<SkinnedMeshRenderer>(
             FindObjectsInactive.Include, FindObjectsSortMode.None);
-        int postaci = 0, pominietych = 0, bohaterow = 0;
+        int postaci = 0, pominietych = 0, bohaterow = 0, bezStandardu = 0;
+        var obceShadery = new System.Collections.Generic.HashSet<string>();
         foreach (var r in skory)
         {
             if (!r) continue;
@@ -122,7 +123,14 @@ public static class BraxPostacGlobalna
                     // _SilaNormalnych w shaderze obsady, więc ta sama liczba znaczy to samo.
                     if (m.HasProperty(IdHeroNormalne)) m.SetFloat(IdHeroNormalne, SilaNormalnych);
                 }
-                else if (m.HasProperty(IdStdGloss))
+                else if (!m.HasProperty(IdStdGloss))
+                {
+                    // ŻADNA ZE ZNANYCH NAZW. Taka postać wygląda inaczej niż reszta, a właściciel
+                    // powiedział wprost: „wszyscy" (18.11, 16:50). Build ma to WYPISAĆ, a nie przemilczeć —
+                    // dotąd standard przechodził przez shader obsady, nie robił nic i meldował sukces.
+                    bezStandardu++; obceShadery.Add(m.shader ? m.shader.name : "(brak shadera)");
+                }
+                else
                 {
                     // Tu nie ma mnożnika, więc gładkość ustawiam wprost — ale tylko
                     // w dół: rejon, który ma już matowo, zostaje ze swoim.
@@ -137,6 +145,9 @@ public static class BraxPostacGlobalna
             Debug.Log($"BRAX_POSTAC standard nałożony na {postaci} postaci"
                       + (pominietych > 0 ? $", pominięto {pominietych} z wyjątkiem" : "")
                       + $" (gładkość {Gladkosc}, metal {Metalicznosc}, normalne {SilaNormalnych}, Bone4)"
-                      + $"; materiałów bohaterskich (HeroPremium) zmatowionych: {bohaterow}");
+                      + $"; materiałów bohaterskich (HeroPremium) zmatowionych: {bohaterow}"
+                      + (bezStandardu > 0
+                            ? $"; UWAGA — materiałów BEZ standardu: {bezStandardu}, shadery: {string.Join(", ", obceShadery)}"
+                            : "; materiałów bez standardu: 0 (wszyscy objęci)"));
     }
 }

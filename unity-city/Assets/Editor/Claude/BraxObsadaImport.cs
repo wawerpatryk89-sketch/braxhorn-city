@@ -77,7 +77,12 @@ public sealed class BraxObsadaImport : AssetPostprocessor
         // 16 postaci ma mapy 2048, trzy maja 4096 — te trzy same w sobie to +67 MB w buildzie.
         // MIMIKA MA SUFIT 2048, NIE 1024: atlas ma osiem poziomow ulozonych 4 na 2, wiec plik to
         // 2048x1024. Sufit 1024 zmniejszylby go z powrotem i zeby znow mialyby po dwa piksele.
-        t.maxTextureSize = 2048;
+        // DOKŁADNIE JAK W OSTATNIM TEŚCIE POKOJU (właściciel 18.11, 16:50: „mają wyglądać tak,
+        // jak w ostatnim teście pokoju"). Tam sufit ciał to 4096, mimiki 2048 — nie ruszam go
+        // w dół, choć ZASADY mówią 2048, bo to jest wygląd, który właściciel widział i przyjął.
+        // Koszt zmierzony na tej paczce: trzy postacie z mapami 4096 to +67 MB wobec sufitu 2048.
+        // Lwia część oszczędności i tak siedzi gdzie indziej — w ASTC 6x6 zamiast 4x4 (483 -> 222 MB).
+        t.maxTextureSize = mimika ? 2048 : 4096;
         var android = t.GetPlatformTextureSettings("Android");
         android.name = "Android";
         android.overridden = true;
