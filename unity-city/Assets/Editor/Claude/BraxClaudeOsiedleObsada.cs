@@ -259,19 +259,19 @@ public static partial class BraxClaudeOsiedle
         var f = Vector3.forward;
         Vector3 P(float x, float z, float y = .10f) => new Vector3(x, y, z);
         string[] w(int i) => BraxDymki.Wymiany[i];
-        var ewa = Osoba("ewa", P(-20,58), f, "Walk", 1.70f, true, 11, "Cześć, Patryk!", "Trening dziś był?", "No, trening był ciężki.", "To pij dużo wody.");
-        var martyna = Osoba("martyna", P(-15,63), f, "Walk", 1.72f, true, 13, "Cześć, co słychać?", w(11)[0], w(11)[1], w(11)[2]);
+        var ewa = Osoba("ewa", P(-20,58), f, "Walk", 1.72f, true, 11, "Cześć, Patryk!", "Trening dziś był?", "No, trening był ciężki.", "To pij dużo wody.");
+        var martyna = Osoba("martyna", P(-15,63), f, "Walk", 1.73f, true, 13, "Cześć, co słychać?", w(11)[0], w(11)[1], w(11)[2]);
         var wiechu = Osoba("wiechu", P(-23,59.6f), f, "Walk", 1.78f, false, 5, "O, Patryk! Siema!", "Grill w sobotę? Zapraszam.", "Dzięki, wpadnę.", "To do zobaczenia!");
         ewa.spacer = martyna.spacer = wiechu.spacer = true;
         ewa.celSpaceru = P(-17.4f,58); martyna.celSpaceru = P(-15,67); wiechu.celSpaceru = P(-19.5f,59.6f);
 
-        Osoba("zadymiarz_021fef69", P(89.5f,30.1f), f, "Idle", 1.87f, false, 14, "Siemanko!", "Wszystko w porządku?", "Spoko, ogarnę to.", "Dobry wieczór. Zapraszam do środka.");
-        Osoba("kiler", P(82.6f,30.1f), f, "Idle", 1.84f, false, 1, "Cześć, mistrzu!", "Pamiętaj o gardzie, Patryk.", "Dobra, pamiętam.", "Do zobaczenia na gali!");
+        Osoba("zadymiarz_021fef69", P(89.5f,30.1f), f, "Idle", 1.80f, false, 14, "Siemanko!", "Wszystko w porządku?", "Spoko, ogarnę to.", "Dobry wieczór. Zapraszam do środka.");
+        Osoba("kiler", P(82.6f,30.1f), f, "Idle", 1.79f, false, 1, "Cześć, mistrzu!", "Pamiętaj o gardzie, Patryk.", "Dobra, pamiętam.", "Do zobaczenia na gali!");
         var mateusz = Osoba("mateusz", P(79.5f,32.8f), Vector3.right, "Talk", 1.79f, false, 7, "O, Patryk! Siema!", w(2)[0], w(2)[1], w(2)[2]);
         mateusz.partner = Osoba("dziecko_003f4e46", P(81.1f,32.8f), Vector3.left, "Talk", 1.36f, false, 10, "Hej!", w(12)[0], w(12)[1], w(12)[2]);
         if (klub == null || !klubBar || klub.sofy.Count < 3) throw new InvalidOperationException("Brak stanowisk w Club Puls");
         Osoba("kamil", klub.dj, Vector3.left, "Talk", 1.80f, false, 2, "Elo! Co tam?", "W klubie w piątek gra nowy DJ. Ma być tłum.", "Brzmi nieźle.", "Wpadaj, kiedy chcesz!");
-        var barman = Osoba("bramkarz_1c96d333", klub.barmani[1], f, "Idle", 1.83f, false, 6, "Cześć, Patryk!", "Coś jeszcze?", "Dzięki, trzymaj się.", "Wpadaj, kiedy chcesz!");
+        var barman = Osoba("bramkarz_1c96d333", klub.barmani[1], f, "Idle", 1.81f, false, 6, "Cześć, Patryk!", "Coś jeszcze?", "Dzięki, trzymaj się.", "Wpadaj, kiedy chcesz!");
         var st = klubBar.stanowiska[1];
         klubBar.odpowiedzi = new[] {"Zaraz podam, chwileczkę.", "Proszę, smacznego!", "Coś jeszcze?"};
         st.barman = barman.transform;
@@ -361,11 +361,12 @@ public static partial class BraxClaudeOsiedle
         // wysokości (patryk 98,26 jedn., monika 98,54 — Monika jest nawet o 0,3 % wyższa), więc o wyglądzie
         // decyduje wyłącznie ta liczba, nie model. Rozrzut w granicach z audytu osiedla: ludzie 1,60–1,90 m.
         // Właściciel 18.11, 15:53: „żeby trochę niższe były tylko dziewczyny od chłopaków, trochę”.
-        // Kobiety 1,69–1,73, mężczyźni 1,78–1,87, Patryk 1,80 — różnica rzędu 8 cm, nie 20.
+        // Właściciel 18.11, 16:08: „187 do 169 to jest w pizdę”. Ściągnięte: kobiety 1,70–1,74,
+        // mężczyźni 1,77–1,81, Patryk 1,80. Najgorszy przypadek 11 cm, typowo 6–7 cm.
         // Imiona, które są prawdziwymi ludźmi (patryk, monika, mateusz, kamil, ewa, martyna, wiechu) —
         // do wpisania prawdziwe wzrosty, gdy właściciel je poda. Reszta to rozrzut, nie kopia.
         string[] taniec = {"aneta","monika","imprezowiczka_11baefe5","imprezowiczka_13e8d41d","imprezowiczka_0dbe3922"};
-        float[] wzrostTanca = {1.72f, 1.71f, 1.69f, 1.73f, 1.70f};
+        float[] wzrostTanca = {1.74f, 1.72f, 1.70f, 1.73f, 1.71f};
         var miejsca = new[] {P(89,9,.11f),P(93,11,.11f),P(96,14,.11f),P(90,16,.11f),P(95,7.5f,.11f)};
         int[] tematy = {1,3,10,6,11};
         for (int i = 0; i < taniec.Length; i++)
@@ -375,7 +376,7 @@ public static partial class BraxClaudeOsiedle
                   BraxDymki.Mijanie[new[] {6,11,10,15,5}[i]], t[0], t[1], t[2]);
         }
         string[] loza = {"kapitan_02d85d24","plazowicz_0493f781","zadymiarz_163dca80"};
-        float[] wzrostLozy = {1.81f, 1.78f, 1.84f};
+        float[] wzrostLozy = {1.79f, 1.77f, 1.80f};
         int[] tematyLozy = {9,13,14};
         for (int i = 0; i < loza.Length; i++)
         {
