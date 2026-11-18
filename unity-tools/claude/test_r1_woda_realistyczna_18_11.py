@@ -2,6 +2,7 @@
 jest woda, a nie pasek… widać nic”, „każdą jedną wodę bardziej realistyczną”). Jeden materiał wody (port, morze za kamerą,
 akwen wyspy): fale z widma FFT, odbicie panoramy miasta, dno z piasku przez załamanie z kaustykami, pochłanianie w wodzie."""
 import hashlib
+import importlib.util
 import re
 import subprocess
 import sys
@@ -114,6 +115,8 @@ class Generator(unittest.TestCase):
 
 
 class Tekstury(unittest.TestCase):
+    # generator tekstur potrzebuje numpy i Pillow — w szybkim sprawdzaczu CI (tylko tree-sitter) ich nie ma: test pomijany
+    @unittest.skipUnless(importlib.util.find_spec("numpy") and importlib.util.find_spec("PIL"), "brak numpy / Pillow")
     def test_reproducible_from_script(self):
         skrypt = ROOT / "unity-tools/claude/woda_fale.py"
         with tempfile.TemporaryDirectory() as tmp:
