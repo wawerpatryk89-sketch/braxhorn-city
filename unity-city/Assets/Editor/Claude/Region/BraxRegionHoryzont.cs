@@ -39,7 +39,11 @@ public static class BraxRegionHoryzont
     // „cannon” (Simon's Town z góry), morze z cyplem na horyzoncie „dalkey_view”; w układzie miasta (u = azymut od +z ku +x,
     // morze na wschodzie 41…134°), horyzont obu zdjęć na elewacji 0. Generator: unity-tools/claude/panorama_miasta.py.
     public const string PanoramaMiasta = "Assets/Source/Claude/Miasto/sky/panorama_miasta_8k.jpg";
-    public static readonly Color MorzeZdjecia = new Color(.64f, .70f, .75f);   // mediana wody zdjęcia 0.3…1.2° pod horyzontem (sRGB)
+    // 18.11 16:04 („kolorystyka jak w osiedlu… zobacz, jaka jest panorama”; „żeby było dobrze, a inaczej jak na osiedlu”): niebo
+    // zdjęcia „cannon” było pochmurne — w sklejce słoneczne niebo z cumulusami (Poly Haven sunflowers_puresky, CC0, inne niż na
+    // Osiedlu), słońce zdjęcia na azymucie słońca miasta; woda zatoki w kolorze wody przy słońcu (sundowner_overlook, CC0)
+    // — unity-tools/claude/panorama_miasta_niebo.py. Kolor morza = mediana wody nowej sklejki 0.3…1.2° pod horyzontem (sRGB).
+    public static readonly Color MorzeZdjecia = new Color(.506f, .643f, .773f);
     static bool fotoPanorama;
     const float Zasieg = 520f;           // jak daleko od granicy sięga teren 3D (dalej tło nieba)
     const float R1 = 850f, R2 = 1450f, R3 = 2600f, H1 = 160f, H2 = 320f;
@@ -375,7 +379,8 @@ public static class BraxRegionHoryzont
         if (fotoPanorama)
         {
             // zdjęcie 360° w układzie miasta: u = azymut / 360° (MT_NieboUV: u = .25 + az/2π + obrót/2π → obrót = −π/2);
-            // bez obrotu chmur (góry i skały zdjęcia sięgają +10°), bez maski słońca obrazu (pochmurne), bez tarczy słońca na chmurach;
+            // bez obrotu chmur (góry i skały zdjęcia sięgają +11°), bez maski słońca obrazu (słońce zdjęcia nieba już na azymucie
+            // słońca miasta, 227°), bez dodatkowej tarczy;
             // bez grzbietów z profilu i bez pasa gór Alps (to wszystko jest na zdjęciu), morze z koloru wody zdjęcia
             m.SetFloat("_FotoHoryzont", 1f);
             m.SetFloat("_NieboObrot", -Mathf.PI * .5f);
@@ -478,7 +483,7 @@ public static class BraxRegionHoryzont
             if (!string.IsNullOrEmpty(p) && p.StartsWith("Assets/PlayableGenerated/")) AssetDatabase.DeleteAsset(p);
         }
         DynamicGI.UpdateEnvironment();
-        if (fotoPanorama) Debug.Log("BRAXHORN_PANORAMA_MIASTA zdjęcie 360° " + nieboTex.width + "x" + nieboTex.height + " (ląd i niebo: Poly Haven cannon, morze: dalkey_view, CC0) — bez grzbietów, bez pasa Alps, bez mgiełki, morze " + MorzeZdjecia);
+        if (fotoPanorama) Debug.Log("BRAXHORN_PANORAMA_MIASTA zdjęcie 360° " + nieboTex.width + "x" + nieboTex.height + " (ląd: Poly Haven cannon, morze: dalkey_view, niebo: sunflowers_puresky, CC0) — bez grzbietów, bez pasa Alps, bez mgiełki, morze " + MorzeZdjecia);
         Debug.Log("BRAXHORN_HORYZONT_MIASTO niebo: " + (nieboTex ? nieboTex.name + " " + nieboTex.width + "x" + nieboTex.height : "BRAK obrazu nieba") +
                   ", góry " + (pasmoTex ? "alps_field " + pasmoTex.width + "x" + pasmoTex.height : "BRAK (" + PasmoPath + ") — tylko grzbiety") +
                   ", grzbiety R " + R1 + "/" + R2 + " m, góry R " + R3 + " m, ziemia/morze w dolnej półkuli (bez lustra)");

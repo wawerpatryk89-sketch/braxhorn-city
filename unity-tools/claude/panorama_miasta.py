@@ -16,7 +16,10 @@ leży dokładnie tam (środek 87.5°), B wstawione tylko w pas horyzontu nad wod
 otwartej wodzie i w powietrzu przy horyzoncie. Retusz A: działo z budką przy fotografie (kąt 6.8…22°, el −0.3…+4.9°) zastąpione
 krzakami z tego samego zbocza (−20°). W grze: BraxRegionHoryzont (PanoramaMiasta) + MiastoTlo.cginc (_FotoHoryzont = 1).
 
-Użycie: python3 panorama_miasta.py <katalog z eq_cannon.jpg i eq_dalkey_view.jpg> <wyjście.jpg> [szerokość=8192]
+Krok 2 — słoneczne niebo zamiast pochmurnego nieba A (18.11 16:04): panorama_miasta_niebo.py, źródło
+  N = https://polyhaven.com/a/sunflowers_puresky (CC0) → eq_sunflowers_puresky.jpg w tym samym katalogu.
+
+Użycie: python3 panorama_miasta.py <katalog z eq_cannon.jpg, eq_dalkey_view.jpg [i eq_sunflowers_puresky.jpg]> <wyjście.jpg> [szerokość=8192]
 """
 import numpy as np, sys
 from PIL import Image
@@ -102,3 +105,13 @@ for y0 in range(0, H, 256):
     wynik[y0:y1] = (np.clip(srgb(out), 0, 1) * 255 + .5).astype(np.uint8)
 Image.fromarray(wynik).save(OUT, quality=92)
 print('zapisano', OUT, W, H)
+
+# Krok 2 (właściciel 18.11 16:04 „kolorystyka jak w osiedlu… zobacz, jaka jest panorama”, 16:2x „żeby było dobrze, a inaczej
+# jak na osiedlu”): niebo „cannon” jest pochmurne — słoneczne niebo z cumulusami (Poly Haven sunflowers_puresky, CC0) nad
+# lądem i morzem zdjęć 1 i 2, woda zatoki w kolorze wody przy słońcu (panorama_miasta_niebo.py). Bez pliku nieba — tylko krok 1.
+import os
+if os.path.exists(KAT + '/eq_sunflowers_puresky.jpg'):
+    del A, B, wynik, out, AZ, EL, lat, pion, wB, m                    # pamięć dla kroku 2 (8K × float32)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import panorama_miasta_niebo
+    panorama_miasta_niebo.zamien(OUT, KAT + '/eq_sunflowers_puresky.jpg', OUT)
