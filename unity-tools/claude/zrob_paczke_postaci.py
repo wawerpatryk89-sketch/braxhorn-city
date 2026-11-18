@@ -23,12 +23,59 @@ from pathlib import Path
 # Minimum, żeby pokój prób działał. To NIE jest docelowy zestaw ruchów postaci —
 # właściciel 18.11, 11:30: „chodzi ogólnie o jakość postaci, jak wygląda,
 # a nie o przypisanie teraz animacji".
-UJECIA = {
-    "Idle": ["Idle", "Fighting Idle", "Breathing Idle"],
-    "Walk": ["Walking", "Walk"],
-    "Run": ["Running", "Run"],
-    "Talk": ["Taunt Gesture", "Taunt", "Talking"],
+# ZESTAWY UJĘĆ. Właściciel 18.11, 15:08: „dobierz mu 30 animacji, walecznych,
+# kopania rękami, żeby nie był wolny, chodzenia, wszystkie podstawowe".
+#
+# Nazwa po lewej to stan, którego szuka gra; po prawej nazwa nagrania w globalnej
+# bibliotece (pozycja A). Idle, Walk, Run i Talk muszą być, bo na nich stoi pokój.
+PODSTAWA = {
+    "Idle": "Fighting Idle",
+    "Walk": "Walking",
+    "Run": "Running",
+    "Talk": "Taunt Gesture",
 }
+
+ZAWODNIK = dict(PODSTAWA, **{
+    # ruch
+    "WalkBack": "Walking Backwards",
+    "StepBack": "Step Backward",
+    "StepFwd": "Long Step Forward",
+    "SideStep": "Short Left Side Step",
+    "Sprint": "Standing Sprint Forward",
+    "Jump": "Jump",
+    # pięści
+    "Jab": "Lead Jab",
+    "JabCross": "Jab Cross",
+    "Hook": "Hook",
+    "Uppercut": "Uppercut",
+    "UppercutJab": "Uppercut Jab",
+    "BodyJab": "Body Jab Cross",
+    "Combo": "Punch Combo",
+    "Punching": "Punching",
+    # nogi i kolana
+    "KickMma": "Mma Kick",
+    "KickRound": "Roundhouse Kick",
+    "KickSide": "Side Kick",
+    "Kicking": "Kicking",
+    "Knee": "Illegal Knee",
+    "Elbow": "Illegal Elbow Punch",
+    # obrona
+    "Block": "Blocking",
+    "BlockCenter": "Center Block",
+    "BlockLeft": "Left Block",
+    "BlockRight": "Right Block",
+    "Dodge": "Dodging",
+    "Duck": "Ducking",
+    # reakcje i pokaz
+    "HitHead": "Head Hit",
+    "HitBody": "Hit To Body",
+    "Stumble": "Stumble Backwards",
+    "WarmUp": "Warming Up",
+    "Taunt": "Taunt",
+    "Defeat": "Defeat",
+})
+
+ZESTAWY = {"brax": ZAWODNIK, "nyxa": ZAWODNIK}
 
 
 def blender():
@@ -46,15 +93,15 @@ def wczytaj_model(sciezka):
     return rigi[0]
 
 
-def doloz_ujecia(rig, katalog, moje):
+def doloz_ujecia(rig, katalog, moje, zestaw):
     """Wciąga akcje z plików animacji i nazywa je stanami, których szuka potok."""
     bpy = blender()
     pliki = {p.stem: p for p in Path(katalog).glob("*.fbx")}
     dodane = []
-    for stan, kandydaci in UJECIA.items():
-        plik = next((pliki[k] for k in kandydaci if k in pliki), None)
+    for stan, zrodlo in zestaw.items():
+        plik = pliki.get(zrodlo)
         if plik is None:
-            print("BRAX_PACZKA BRAK ujęcia dla %s (szukałem: %s)" % (stan, ", ".join(kandydaci)))
+            print("BRAX_PACZKA BRAK nagrania %s dla stanu %s" % (zrodlo, stan))
             continue
         przed = set(bpy.data.actions.keys())
         bpy.ops.import_scene.fbx(filepath=str(plik), automatic_bone_orientation=True)
@@ -144,7 +191,8 @@ def main(argv):
 
     rig = wczytaj_model(model)
     moje = set(__import__('bpy').context.scene.objects)
-    stany = doloz_ujecia(rig, animacje, moje)
+    zestaw = ZESTAWY.get(ident, PODSTAWA)
+    stany = doloz_ujecia(rig, animacje, moje, zestaw)
 
     bpy = blender()
     bpy.ops.object.select_all(action="DESELECT")

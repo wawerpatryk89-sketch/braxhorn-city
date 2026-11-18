@@ -156,6 +156,11 @@ def align_planted_soles(scene, rig, hip, mesh, up, action):
     add_curves(action, path, frames, np.asarray(values))
 
 
+# Postacie, których sylwetka nie jest ludzka — poprawki ramion i tułowia ich nie
+# dotyczą, bo kąty w nich są dobrane do ludzkich proporcji.
+POPRAWKI_LUDZKIE_POMIJANE = {"brax", "nyxa", "vexa"}
+
+
 def prepare(source, output):
     actor = source.stem
     if actor == "patryk":
@@ -437,10 +442,22 @@ def prepare(source, output):
     new.name = "Idle"
     acts["Idle"] = new
 
-    from osiedle_odstep import relax_arms, avoid_clothing
+    # POPRAWKI RAMION TYLKO DLA SYLWETEK LUDZKICH. Właściciel 18.11, 15:06:
+    # „powygina ręce, jakieś dziwne chody, to jest deformacja".
+    #
+    # relax_arms i avoid_clothing obracają kości ramion o kąty dobrane do ludzkiej
+    # budowy: szerokości barków, długości ramienia, grubości tułowia. Brax i Nyxa to
+    # minotaury — bark dwa razy szerszy, inne proporcje — i te same kąty wyginają im
+    # ręce zamiast je ułożyć. Te kroki powstały dla czterdziestu sześciu postaci
+    # o ludzkiej sylwetce i tam zostają; nowym spoza tej grupy nic nie poprawiam,
+    # dopóki właściciel nie zobaczy, że trzeba.
+    if actor in POPRAWKI_LUDZKIE_POMIJANE:
+        print("BRAX_RUCH %s: pomijam poprawki ramion (sylwetka nieludzka)" % actor, flush=True)
+    else:
+        from osiedle_odstep import relax_arms, avoid_clothing
 
-    relax_arms(s, r, ms[0], nm, axes, h, new, animate_torso=True)
-    avoid_clothing(s, r, ms[0], nm, axes, new)
+        relax_arms(s, r, ms[0], nm, axes, h, new, animate_torso=True)
+        avoid_clothing(s, r, ms[0], nm, axes, new)
     if actor == "patryk":
         # SPOCZYNEK WYJETY Z PLANTOWANIA PODESZW (16.11, 20:34 — wlasciciel: „Patryk ma zjebana
         # poze spoczynkowa”). To jedyny krok w calym potoku stosowany WYLACZNIE do Patryka, i to
