@@ -137,34 +137,4 @@ internal static partial class BraxLiteryBebas
                 px[i] = new Color(Mathf.Lerp(c.r, kol.r, cov), Mathf.Lerp(c.g, kol.g, cov), Mathf.Lerp(c.b, kol.b, cov), 1f);
             }
     }
-
-    /// <summary>„Halo” — podświetlenie LED za literami dystansowymi: płaska poświata w kształcie liter powiększonych o obrys,
-    /// w płaszczyźnie montażu o (na nośniku), do materiału świecącego. r, up, nn jak w Napis. Zwraca liczbę trójkątów.</summary>
-    public static int Halo(UlSiatka sh, string tekst, Vector3 o, Vector3 nn, float cap, float obrys, float track = .05f)
-    {
-        nn = nn.normalized; var r = Vector3.Cross(Vector3.up, -nn).normalized; var up = Vector3.Cross(r, nn).normalized;
-        int n0 = sh.i.Count;
-        var uklad = Uklad(tekst, track, out float a, out float b); float x0 = -(a + b) * .5f;
-        foreach (var (ch, xp) in uklad)
-        {
-            var g = Glify[ch]; int n = g.pts.Length / 2;
-            var p = new Vector3[n];
-            for (int i = 0; i < n; i++) p[i] = o + r * ((x0 + xp + g.pts[2 * i]) * cap) + up * (g.pts[2 * i + 1] * cap);
-            for (int t = 0; t < g.tri.Length; t += 3) sh.Tri(p[g.tri[t]], p[g.tri[t + 1]], p[g.tri[t + 2]], nn);
-            for (int k = 0; k < g.starty.Length; k++)
-            {
-                int s0 = g.starty[k], s1 = k + 1 < g.starty.Length ? g.starty[k + 1] : n;
-                for (int i = s0; i < s1; i++)
-                {
-                    int j = i + 1 < s1 ? i + 1 : s0;
-                    float dx = g.pts[2 * j] - g.pts[2 * i], dy = g.pts[2 * j + 1] - g.pts[2 * i + 1];
-                    var n2 = new Vector2(dy, -dx); if (n2.sqrMagnitude < 1e-12f) continue; n2.Normalize();
-                    var w = (r * n2.x + up * n2.y) * obrys; var dd = (p[j] - p[i]).normalized * obrys * .5f;
-                    sh.Quad(p[i], p[j], p[j] + w, p[i] + w, nn);
-                    sh.Quad(p[j], p[j] + w, p[j] + w + dd, p[j] + dd, nn);
-                }
-            }
-        }
-        return (sh.i.Count - n0) / 3;
-    }
 }

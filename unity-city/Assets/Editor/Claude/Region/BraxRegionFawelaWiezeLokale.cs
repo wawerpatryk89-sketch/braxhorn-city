@@ -192,8 +192,9 @@ public static partial class BraxRegionFawela
             var boki = BraxUliceKit.Mat("litery przestrzenne: boki grafit", new Color(.06f, .06f, .065f), .5f, .4f);
             float cap = Mathf.Min(.44f, (sb - sa - .8f) / Mathf.Max(.01f, BraxUliceKit.SzerokoscNapisu(l.szyld, 1f)));
             BraxUliceKit.Napis3D(l.szyld, F.P(sm, yc - cap * .5f, -.26f), F.N, cap, .07f, lico, boki);
-            // 18.11 (właściciel: „szyldy… zwykły napis… każdy jeden”): litery Bebas (BraxUliceKit.Napis3D) + podświetlenie halo LED
-            BraxUliceKit.NapisHalo(l.szyld, F.P(sm, yc - cap * .5f, -.26f), F.N, cap, BraxMiastoA.Swieci("szyld: podświetlenie halo LED (ciepła biel)", new Color(1f, .93f, .8f), new Color(.95f, .86f, .7f)));
+            // 18.11 (właściciel: „szyldy… zwykły napis… każdy jeden”): litery Bebas (BraxUliceKit.Napis3D), pod listwą profil LED
+            BraxUliceKit.S(BraxMiastoA.Swieci("szyld: profil LED pod nośnikiem (ciepła biel)", new Color(1f, .96f, .88f), new Color(1.15f, 1.05f, .9f)))
+                .Box(F.P(sa + .1f, yc - .36f - .025f, -.22f), F.P(sb - .1f, yc - .36f, -.25f));
         }
         // wnętrze: układ generatora ulicy (A w licu na końcu s1, R = −F.R, d > 0 na zewnątrz), posadzka w poziomie płyt
         var A = F.P(p.s1, yBase - .114f, 0f);

@@ -484,15 +484,6 @@ internal static class BraxUliceKit
         }
         return wTot;
     }
-    /// <summary>Podświetlenie „halo” LED za napisem z Napis3D (te same parametry): świecący obrys liter Bebas na płaszczyźnie
-    /// montażu, 2.5 cm przed nią (odstęp > 2 cm — kontrola migotania: bez par z nośnikiem). Napis spoza Bebas — bez halo. Zwraca liczbę trójkątów.</summary>
-    public static int NapisHalo(string tekst, Vector3 o, Vector3 nn, float cap, Material swiatlo, float obrys = .015f, float s = .15f, float track = .14f)
-    {
-        if (!CalyBebas(tekst)) return 0;
-        var r = Vector3.Cross(Vector3.up, -nn).normalized; var up = Vector3.Cross(r, nn).normalized;
-        float c2 = WysokoscBebas(tekst, cap, s, track);
-        return BraxLiteryBebas.Halo(S(swiatlo), tekst, o + up * ((cap - c2) * .5f) + nn.normalized * .025f, nn, c2, obrys);
-    }
     /// <summary>Ten sam krój narysowany W TEKSTURZE (ekrany, telebimy — napis jest obrazem, nie nakładką): px — piksele
     /// (wiersz 0 = dół), cx — środek napisu, by — linia bazowa, cap — wysokość wersalika (wszystko w pikselach).</summary>
     public static void NapisWTeksturze(Color[] px, int W, int H, string tekst, float cx, float by, float cap, Color kolor, float s = .15f, float track = .14f)

@@ -682,14 +682,14 @@ public static class BraxUlicePierzeje
         // 18.11 (właściciel 10:40: „Szyldy… co to za gówno, zwykły napis… każdy jeden”): szyld = prawdziwy szyld z liter
         // dystansowych, jak BRAXHORN GYM (11.11) i WAWER NIERUCHOMOŚCI: nośnik z aluminium grafitowego (kaseton 6 cm na dystansach
         // 2 cm od ściany, marginesy 25 cm po bokach i 8 cm w pionie, rama ze stali szczotkowanej), na nim litery Bebas Neue
-        // (pełne bryły 5 cm, lico stal szczotkowana, boki i tył grafit) 4 cm przed licem nośnika, za literami podświetlenie
-        // „halo” LED (ciepła biel, 1.5 cm obrysu, 3 cm przed licem nośnika). Pod gzymsem nad parterem, nad witrynami.
+        // (pełne bryły 5 cm, lico stal szczotkowana, boki i tył grafit) 4 cm przed licem nośnika, pod nośnikiem profil LED
+        // (ciepła biel, jak listwa LED szyldu BRAXHORN GYM i linia LED WAWER). Pod gzymsem nad parterem, nad witrynami.
         var stalLit = BraxUliceKit.Mat("szyld: litery — lico (stal nierdzewna szczotkowana)", new Color(.78f, .79f, .8f), .3f, .9f);
         var boki = BraxUliceKit.Mat("litery przestrzenne: boki grafit", new Color(.06f, .06f, .065f), .5f, .4f);
         var lico = BraxUliceKit.Mat("litery przestrzenne: lico " + lok.szyld + " (podświetlenie nocą)", lok.licoSzyldu, .45f, .05f);   // kaseton na wysięgniku
         var listwa = BraxUliceKit.Mat("listwa montażowa szyldu (aluminium grafit)", new Color(.12f, .125f, .13f), .45f, .55f);
         var ramaN = BraxUliceKit.Mat("szyld: rama nośnika (stal szczotkowana)", new Color(.6f, .61f, .62f), .32f, .9f);
-        var halo = BraxMiastoA.Swieci("szyld: podświetlenie halo LED (ciepła biel)", new Color(1f, .93f, .8f), new Color(.95f, .86f, .7f));
+        var led = BraxMiastoA.Swieci("szyld: profil LED pod nośnikiem (ciepła biel)", new Color(1f, .96f, .88f), new Color(1.15f, 1.05f, .9f));
         float maxW = f.W - 2f * Lizena - .8f, cap = .27f;
         // nośnik 43 cm (3.02…3.45) z ramą 2.5 cm: góra ramy 3.475 — 2.5 cm pod gzymsem nad parterem (3.50, bez par migotania),
         // dół zachodzi na górę witryn i drzwi jak kaseton nad witryną (drzwi: prześwit pod ramą 2.85 m); litery 27 cm
@@ -724,8 +724,8 @@ public static class BraxUlicePierzeje
             OBox(f, ramaN, a - .025f, b + .025f, y1, y1 + .025f, dN0, dN1 + .01f); OBox(f, ramaN, a - .025f, b + .025f, y0 - .025f, y0, dN0, dN1 + .01f);
             OBox(f, ramaN, a - .025f, a, y0, y1, dN0, dN1 + .01f); OBox(f, ramaN, b, b + .025f, y0, y1, dN0, dN1 + .01f);
             float yb = yS - cap * .5f;
-            // halo: świecący obrys liter 3 cm przed licem nośnika (odstępy > 2 cm, bez par migotania), litery 4 cm przed licem
-            BraxLiteryBebas.Halo(BraxUliceKit.S(halo), lok.szyld, f.P(sc, yb, dN1 + .03f), f.N, cap, .015f);
+            // profil LED 2.5 × 2.5 cm pod dolną ramą (świeci w dół na witrynę), krótszy o 10 cm z każdej strony
+            OBox(f, led, a + .1f, b - .1f, y0 - .025f - .025f, y0 - .025f, dN0 + .015f, dN1 - .015f);
             BraxLiteryBebas.Napis(lok.szyld, f.P(sc, yb, dN1), f.N, cap, .05f, stalLit, boki, .05f, .04f);
         }
         poSzyldzie:
