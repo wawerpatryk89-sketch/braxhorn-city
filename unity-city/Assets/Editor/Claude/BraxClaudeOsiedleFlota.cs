@@ -119,7 +119,7 @@ public static partial class BraxClaudeOsiedle
     // Dodatkowy bezpiecznik rozmiaru: drzwi nie mogą być dłuższe niż 60 % auta ani wyższe niż 75 %.
     static void DrzwiFloty(BraxAutoGracza car, GameObject go)
     {
-        var czesci = BraxClaudeAutoPatryka.DrzwiKierowcy(go, car.fotel, out var ob);
+        var czesci = DrzwiKierowcy(go, car.fotel, out var ob);   // ta sama klasa czesciowa BraxClaudeOsiedle
         var auto = car.obrys.size;
         if (czesci.Count == 0 || ob.size.z > auto.z*.6f || ob.size.y > auto.y*.75f || ob.size.x > auto.x*.55f)
         {

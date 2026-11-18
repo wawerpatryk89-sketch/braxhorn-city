@@ -23,7 +23,7 @@ public static partial class BraxClaudeOsiedle
         return false;
     }
     // Najwyższe węzły części drzwi po stronie kierowcy (x tego samego znaku co fotel), w układzie auta.
-    internal static List<Transform> DrzwiKierowcy(GameObject auto, Transform fotel, out Bounds obrys)
+    static List<Transform> DrzwiKierowcy(GameObject auto, Transform fotel, out Bounds obrys)
     {
         obrys = default; var wynik = new List<Transform>(); bool jest = false;
         float xf = auto.transform.InverseTransformPoint(fotel.position).x;
