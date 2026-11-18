@@ -2,6 +2,7 @@
 
 import math
 import sys
+import os
 import zlib
 from pathlib import Path
 
@@ -194,10 +195,25 @@ def prepare(source, output):
     # WYGŁADZENIE WAG NA STAWACH. Zmierzone na paczce wejściowej: 43–68 % wierzchołków
     # trzyma jedna albo dwie kości, więc na zgięciu robi się załamanie zamiast fałdy.
     # Szczegóły i liczby w osiedle_wagi.py.
-    from osiedle_wagi import wygladz_wagi
+    # WYGŁADZANIE WAG WYŁĄCZONE. Właściciel 18.11, 14:49: „co ty im za deformację
+    # porobiłeś". Ma rację — to moja zmiana z 17.11 i ja ją cofam.
+    #
+    # Liczby niby się zgadzały (46,8 % -> 33,9 % wierzchołków na jednej albo dwóch
+    # kościach), ale poszedłem za mocno: siła 0,6, cztery przejścia, a przy drugim
+    # podejściu ZDJĄŁEM blokadę z dłoni i głowy, bo pierwsze „ruszyło za mało".
+    # Rozmycie wag na nadgarstku i na szyi nie poprawia zgięcia — ono rozmazuje
+    # kształt, bo te wierzchołki mają należeć do jednej kości i mają być sztywne.
+    # Sam wskaźnik, którym to mierzyłem, był zły: „mniej wierzchołków na 1–2 kościach"
+    # nie znaczy „lepiej wygląda", a ja nie miałem jak tego obejrzeć przed wysłaniem.
+    #
+    # Wraca dopiero wtedy, gdy właściciel zobaczy porównanie obok siebie i sam wskaże.
+    if os.environ.get("BRAX_WYGLADZ_WAGI") == "1":
+        from osiedle_wagi import wygladz_wagi
 
-    for mesh in ms:
-        wygladz_wagi(mesh, r)
+        for mesh in ms:
+            wygladz_wagi(mesh, r)
+    else:
+        print("BRAX_WAGI wygladzanie WYLACZONE — wagi zostaja takie, jak w modelu", flush=True)
     acts = {
         a.name.rsplit("|", 1)[-1]: a
         for a in bpy.data.actions
