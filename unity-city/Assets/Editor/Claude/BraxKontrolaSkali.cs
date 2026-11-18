@@ -79,6 +79,13 @@ public static class BraxKontrolaSkali
         var w = new Wynik { typ = typ.nazwa + (typ.kosz && j.wewnatrz ? " (wnętrze)" : ""), opis = j.opis, przed = m, po = m, cel = cel, gdzie = j.Podstawa, pomiar = opisPomiaru };
         if (WNormie(m, lo, hi, k)) return w;
         if (typ.raport || j.chroniony) { w.poza = true; return w; }
+        // 18.11 (MIASTO R1, właściciel 10:39: „dziwne, wielkie przedmioty są powstawiane prawie w każdym budynku”; APK 4f317df):
+        // w MIEŚCIE tylko raport, bez skalowania. Meble miasta stawia kod rejonu w wymiarach rzeczywistych × K (BraxUlicePierzeje,
+        // BraxRegionMeble.Model: wysokość z kodu), a kontrola mierzyła je po kawałku: sam blat stolika (osobny obiekt od nogi, 5 cm)
+        // → „stół za niski” → × 5 (155 stołów: blat Ø 4.5 m na 1.2 m), sama tapicerka ławki kantoru → × 5, stolik kawowy holu
+        // („stolik” = norma stołu jadalnego) → × 2.36, krzesła po ramie siedziska → × 1.13, latarnie ogrodowe → × 2.7.
+        // Osiedle bez zmian (tam kontrola poprawia modele bibliotek tak jak dotąd).
+        if (BraxKontrola.Obszar == "miasto") { w.poza = true; w.pomiar += " (miasto: tylko raport)"; return w; }
         float f = Mathf.Clamp(cel / m, .25f, 5f);
         j.Skaluj(f, j.Podstawa);
         float po = Zmierz(j, p, out _);
