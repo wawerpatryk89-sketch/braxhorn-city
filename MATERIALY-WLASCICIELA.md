@@ -6,7 +6,7 @@ z których przede wszystkim trzeba korzystać. (…) Wy macie wykańczać budynk
 najlepsze, są dobre do wyboru, mamy dużo rzeczy niepowykańczanych, jest zostawione w połowie roboty."*
 
 Zasada jest w `ZASADY.md`, punkty **5.8–5.10**. Ten plik to sama lista: **79 pozycji —
-72 tekstur i 7 modeli**, przepisane z pięciu serii zrzutów ekranu właściciela (powtórki
+72 tekstury i 7 modeli**, przepisane z pięciu serii zrzutów ekranu właściciela (powtórki
 połączone) i dopasowane co do jednej do katalogu Poly Haven (`api.polyhaven.com/assets`,
 23.11.2026). Żadna nazwa nie została odgadnięta: każdy identyfikator poniżej istnieje.
 
