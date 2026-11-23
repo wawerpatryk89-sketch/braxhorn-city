@@ -70,6 +70,9 @@ s.render.threads_mode = "AUTO"
 
 akcje = [a for a in bpy.data.actions if any("pose.bones" in c.data_path for c in a.fcurves)]
 akcje.sort(key=lambda a: (a.name.rsplit("|", 1)[-1] not in ("Idle", "Walk"), a.name))
+if not akcje:
+    s.render.filepath = str(wyj / 'spoczynek.jpg')
+    bpy.ops.render.render(write_still=True)
 nr = 0
 for a in akcje:
     nazwa = a.name.rsplit("|", 1)[-1]

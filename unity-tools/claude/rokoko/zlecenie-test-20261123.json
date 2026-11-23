@@ -2,112 +2,184 @@
  "klipy": "<katalog z nagraniami Rokoko>",
  "potok": "..",
  "postacie": {
-  "brax": [
+  "bokser2_rk": [
    {
     "stan": "Idle",
     "plik": "FightingIdle_mixamo.fbx",
     "ile": 300,
     "na_miejscu": true,
-    "rozstaw_nog": 0.5
+    "rozstaw_nog": 0.4
    },
    {
     "stan": "Walk",
     "plik": "10-WalkCycle_01_MIXAMO_769.fbx",
     "ile": 400,
     "chod": true,
-    "rozstaw_nog": 0.5
+    "rozstaw_nog": 0.4
    },
    {
     "stan": "RkBoks",
     "plik": "Boxing_mixamo.fbx",
-    "rozstaw_nog": 0.5
-   },
-   {
-    "stan": "RkKopniecie",
-    "plik": "RoundHouseKick_mixamo.fbx",
-    "rozstaw_nog": 0.5
+    "rozstaw_nog": 0.4
    },
    {
     "stan": "RkWalkaZCieniem",
     "plik": "ShadowBoxing_mixamo.fbx",
-    "rozstaw_nog": 0.5
+    "rozstaw_nog": 0.4
    },
    {
-    "stan": "RkZwyciezca",
+    "stan": "RkNokautZwyciezca",
     "plik": "KnockOut_Winner_mixamo.fbx",
-    "rozstaw_nog": 0.5
+    "rozstaw_nog": 0.4
+   },
+   {
+    "stan": "RkNokautPrzegrany",
+    "plik": "KnockOut_Loser_mixamo.fbx",
+    "rozstaw_nog": 0.4
    }
   ],
-  "nyxa": [
+  "kulturysta_rk": [
+   {
+    "stan": "Idle",
+    "plik": "Light_mixamo.fbx",
+    "ile": 300,
+    "na_miejscu": true,
+    "rozstaw_nog": 0.4
+   },
+   {
+    "stan": "Walk",
+    "plik": "12-WalkCycle_Pacing_MIXAMO_769.fbx",
+    "ile": 400,
+    "chod": true,
+    "rozstaw_nog": 0.4
+   },
+   {
+    "stan": "RkKopniecieOkrezne",
+    "plik": "RoundHouseKick_mixamo.fbx",
+    "rozstaw_nog": 0.4
+   },
+   {
+    "stan": "RkKopniecieProste",
+    "plik": "BigFrontKick_mixamo.fbx",
+    "rozstaw_nog": 0.4
+   },
+   {
+    "stan": "RkWalka1",
+    "plik": "Fight_01_mixamo.fbx",
+    "rozstaw_nog": 0.4
+   },
+   {
+    "stan": "RkWalka2",
+    "plik": "Fight_02_mixamo.fbx",
+    "rozstaw_nog": 0.4
+   }
+  ],
+  "kobieta_bojowki_rk": [
    {
     "stan": "Idle",
     "plik": "Regular_Light_mixamo.fbx",
     "ile": 300,
     "na_miejscu": true,
-    "rozstaw_nog": 0.5
+    "rozstaw_nog": 0.4
    },
    {
     "stan": "Walk",
     "plik": "11-WalkCycle_Cool_MIXAMO_WHS_segment.fbx",
     "ile": 400,
     "chod": true,
-    "rozstaw_nog": 0.5
+    "rozstaw_nog": 0.4
    },
    {
     "stan": "RkTaniec",
     "plik": "DancingMedium_mixamo.fbx",
-    "rozstaw_nog": 0.5
+    "rozstaw_nog": 0.4
    },
    {
     "stan": "RkImpreza",
     "plik": "NPC_DancingParty_mixamo.fbx",
-    "rozstaw_nog": 0.5
+    "rozstaw_nog": 0.4
    },
    {
     "stan": "RkKolysanie",
     "plik": "GentleSwayingDancing_mixamo.fbx",
-    "rozstaw_nog": 0.5
+    "rozstaw_nog": 0.4
    },
    {
     "stan": "RkRadosc",
     "plik": "HappyDance_mixamo.fbx",
-    "rozstaw_nog": 0.5
+    "rozstaw_nog": 0.4
    }
   ],
-  "kamil": [
+  "kobieta_czarna_rk": [
+   {
+    "stan": "Idle",
+    "plik": "Regular_Medium_mixamo.fbx",
+    "ile": 300,
+    "na_miejscu": true,
+    "rozstaw_nog": 0.4
+   },
+   {
+    "stan": "Walk",
+    "plik": "08-Loop_HappyWalk_MIXAMO_769_segment.fbx",
+    "ile": 400,
+    "chod": true,
+    "rozstaw_nog": 0.4
+   },
    {
     "stan": "RkProwadzacy",
-    "plik": "Host_mixamo.fbx"
+    "plik": "Host_mixamo.fbx",
+    "rozstaw_nog": 0.4
    },
    {
     "stan": "RkMonolog",
-    "plik": "StandUpComedian_mixamo.fbx"
+    "plik": "StandUpComedian_mixamo.fbx",
+    "rozstaw_nog": 0.4
    },
    {
     "stan": "RkSmiech",
-    "plik": "Laughs_mixamo.fbx"
+    "plik": "Laughs_mixamo.fbx",
+    "rozstaw_nog": 0.4
    },
    {
     "stan": "RkBrawa",
-    "plik": "Clap_SlowClap_mixamo.fbx"
+    "plik": "Clap_SlowClap_mixamo.fbx",
+    "rozstaw_nog": 0.4
    }
   ],
-  "monika": [
+  "niedzwiedz_rk": [
    {
-    "stan": "RkFlirt",
-    "plik": "Flirty_mixamo.fbx"
+    "stan": "Idle",
+    "plik": "Idle_LookingAround_HUMANIK_769.fbx",
+    "ile": 300,
+    "na_miejscu": true,
+    "rozstaw_nog": 0.5
    },
    {
-    "stan": "RkTaniecZDrinkiem",
-    "plik": "DancingwithDrink_mixamo.fbx"
+    "stan": "Walk",
+    "plik": "09-SlowWalkForward_MIXAMO_769.fbx",
+    "ile": 400,
+    "chod": true,
+    "rozstaw_nog": 0.5
    },
    {
     "stan": "RkTelefon",
-    "plik": "OnCellPhone_mixamo.fbx"
+    "plik": "OnCellPhone_mixamo.fbx",
+    "rozstaw_nog": 0.5
    },
    {
-    "stan": "RkWzruszenie",
-    "plik": "Shrugging_mixamo.fbx"
+    "stan": "RkObserwacja",
+    "plik": "WatchOverCity_mixamo.fbx",
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "RkStukanieStopa",
+    "plik": "FootTapping_mixamo.fbx",
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "RkWzruszenieRamion",
+    "plik": "Shrugging_mixamo.fbx",
+    "rozstaw_nog": 0.5
    }
   ]
  }

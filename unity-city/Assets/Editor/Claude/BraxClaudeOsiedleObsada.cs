@@ -144,7 +144,10 @@ public static partial class BraxClaudeOsiedle
         mimika.twarz = skora;
         mimika.szczeka = Kanal(skora.sharedMesh,"BraxJaw");
         mimika.wargi = Kanal(skora.sharedMesh,"BraxRound");
-        mimika.widoczneOczy = id != "wiechu";
+        // Postacie PRÓBNE (końcówka _rk, rokoko/CZYTAJ.md) nie mają jeszcze odczytanego układu
+        // twarzy, więc mruganie jest u nich wyłączone — inaczej powieki malowałyby się nie tam,
+        // gdzie są oczy. Twarz zostaje dokładnie taka, jak w modelu.
+        mimika.widoczneOczy = id != "wiechu" && !id.EndsWith("_rk", StringComparison.Ordinal);
         EditorUtility.SetDirty(material);
         float dol = float.PositiveInfinity, gora = float.NegativeInfinity;
         foreach (var r in renders)

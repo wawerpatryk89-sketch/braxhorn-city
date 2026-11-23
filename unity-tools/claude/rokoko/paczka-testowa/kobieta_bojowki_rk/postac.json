@@ -1,0 +1,45 @@
+{
+ "id": "kobieta_bojowki_rk",
+ "states": [
+  "Idle",
+  "Walk",
+  "RkTaniec",
+  "RkImpreza",
+  "RkKolysanie",
+  "RkRadosc"
+ ],
+ "zrodlo": "tripo_convert_9baee982-0083-4ff4-90b6-7000c11383ac.fbx",
+ "ruchy_przeniesione": [
+  {
+   "stan": "Idle",
+   "zrodlo": "Regular_Light_mixamo.fbx",
+   "klatek": 300
+  },
+  {
+   "stan": "Walk",
+   "zrodlo": "11-WalkCycle_Cool_MIXAMO_WHS_segment.fbx",
+   "klatek": 24
+  },
+  {
+   "stan": "RkTaniec",
+   "zrodlo": "DancingMedium_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkImpreza",
+   "zrodlo": "NPC_DancingParty_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkKolysanie",
+   "zrodlo": "GentleSwayingDancing_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkRadosc",
+   "zrodlo": "HappyDance_mixamo.fbx",
+   "klatek": 240
+  }
+ ],
+ "uwaga": "ruchy Rokoko przeniesione obrotem swiata z wyrownaniem pozy spoczynkowej (rk_przenies.py)"
+}

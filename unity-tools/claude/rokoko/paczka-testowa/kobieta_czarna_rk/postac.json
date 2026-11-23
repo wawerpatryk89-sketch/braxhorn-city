@@ -1,0 +1,45 @@
+{
+ "id": "kobieta_czarna_rk",
+ "states": [
+  "Idle",
+  "Walk",
+  "RkProwadzacy",
+  "RkMonolog",
+  "RkSmiech",
+  "RkBrawa"
+ ],
+ "zrodlo": "tripo_convert_b4333206-8995-4fea-9cfa-88b848f75737.fbx",
+ "ruchy_przeniesione": [
+  {
+   "stan": "Idle",
+   "zrodlo": "Regular_Medium_mixamo.fbx",
+   "klatek": 300
+  },
+  {
+   "stan": "Walk",
+   "zrodlo": "08-Loop_HappyWalk_MIXAMO_769_segment.fbx",
+   "klatek": 24
+  },
+  {
+   "stan": "RkProwadzacy",
+   "zrodlo": "Host_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkMonolog",
+   "zrodlo": "StandUpComedian_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkSmiech",
+   "zrodlo": "Laughs_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkBrawa",
+   "zrodlo": "Clap_SlowClap_mixamo.fbx",
+   "klatek": 240
+  }
+ ],
+ "uwaga": "ruchy Rokoko przeniesione obrotem swiata z wyrownaniem pozy spoczynkowej (rk_przenies.py)"
+}

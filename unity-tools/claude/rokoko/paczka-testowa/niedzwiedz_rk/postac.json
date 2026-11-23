@@ -1,0 +1,45 @@
+{
+ "id": "niedzwiedz_rk",
+ "states": [
+  "Idle",
+  "Walk",
+  "RkTelefon",
+  "RkObserwacja",
+  "RkStukanieStopa",
+  "RkWzruszenieRamion"
+ ],
+ "zrodlo": "tripo_convert_00802d59-c5a1-4ed3-9c15-84c258a33304.fbx",
+ "ruchy_przeniesione": [
+  {
+   "stan": "Idle",
+   "zrodlo": "Idle_LookingAround_HUMANIK_769.fbx",
+   "klatek": 300
+  },
+  {
+   "stan": "Walk",
+   "zrodlo": "09-SlowWalkForward_MIXAMO_769.fbx",
+   "klatek": 43
+  },
+  {
+   "stan": "RkTelefon",
+   "zrodlo": "OnCellPhone_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkObserwacja",
+   "zrodlo": "WatchOverCity_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkStukanieStopa",
+   "zrodlo": "FootTapping_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkWzruszenieRamion",
+   "zrodlo": "Shrugging_mixamo.fbx",
+   "klatek": 240
+  }
+ ],
+ "uwaga": "ruchy Rokoko przeniesione obrotem swiata z wyrownaniem pozy spoczynkowej (rk_przenies.py)"
+}

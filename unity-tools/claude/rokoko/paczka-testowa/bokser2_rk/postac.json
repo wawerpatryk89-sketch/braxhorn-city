@@ -1,0 +1,45 @@
+{
+ "id": "bokser2_rk",
+ "states": [
+  "Idle",
+  "Walk",
+  "RkBoks",
+  "RkWalkaZCieniem",
+  "RkNokautZwyciezca",
+  "RkNokautPrzegrany"
+ ],
+ "zrodlo": "tripo_convert_72e3042b-a0c2-4070-94a8-ab0ddbf409ee.fbx",
+ "ruchy_przeniesione": [
+  {
+   "stan": "Idle",
+   "zrodlo": "FightingIdle_mixamo.fbx",
+   "klatek": 300
+  },
+  {
+   "stan": "Walk",
+   "zrodlo": "10-WalkCycle_01_MIXAMO_769.fbx",
+   "klatek": 53
+  },
+  {
+   "stan": "RkBoks",
+   "zrodlo": "Boxing_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkWalkaZCieniem",
+   "zrodlo": "ShadowBoxing_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkNokautZwyciezca",
+   "zrodlo": "KnockOut_Winner_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkNokautPrzegrany",
+   "zrodlo": "KnockOut_Loser_mixamo.fbx",
+   "klatek": 240
+  }
+ ],
+ "uwaga": "ruchy Rokoko przeniesione obrotem swiata z wyrownaniem pozy spoczynkowej (rk_przenies.py)"
+}
