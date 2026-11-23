@@ -84,6 +84,8 @@ public static class BraxRegion
         // a miastem: las, dworzec autobusowo-kolejowy, tory pod pociąg MIASTA MISTRZÓW. Po faweli (jej plan i krawędź), przed
         // ruchem i ludźmi (obsada kas), przed horyzontem (teren za granicą przedłuża pas i fawelę).
         Step("dworzec R1: las, dworzec autobusowo-kolejowy, tory, przejazdy", () => BraxMiastoDworzec.Apply(root));
+        // 23.11 (właściciel 02:07–02:49): osiedle bydgoskie z mapy — wyłączone do czasu przesunięcia granicy północnej (opis w BraxBydgoszcz.cs)
+        if (BraxBydgoszcz.Wlaczone) Step("Bydgoszcz: osiedle przy Skłodowskiej-Curie 32a (z mapy)", () => BraxBydgoszcz.Apply(root));
         // 9.11 (właściciel: „te niebieskie… ma poznikać”, teren za siłownią → port → wulkanizacja): po WSZYSTKICH krokach, które
         // kładą nawierzchnie — zmierzone dziury w gruncie (pod nimi woda y −1.7) zamknięte płytą, trawniki z obrzeżem.
         // 9.11 (właściciel: „z siłowni w lewo, potem w lewo — za budynkiem woda… cały budynek prześwietl”): siłownia od zewnątrz

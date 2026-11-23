@@ -1,0 +1,536 @@
+{
+ "trojkatow_razem": 111746,
+ "trojkatow_grunt": 4738,
+ "najciezszy_budynek": [
+  9070,
+  "bud_wiezowiec_kolor_w168153268"
+ ],
+ "siatek": 316,
+ "plik_bajtow": 1606111,
+ "powierzchnie": {
+  "asfalt_m2": 9351,
+  "asfalt_osiedlowy_m2": 17604,
+  "chodnik_m2": 7624,
+  "trawa_m2": 117523
+ },
+ "budynkow_zbudowanych": 35,
+ "wg_typu": {
+  "bar": 1,
+  "blok4": 6,
+  "garaze": 7,
+  "pawilon": 4,
+  "szkola": 9,
+  "wiezowiec_kolor": 4,
+  "wiezowiec_szary": 4
+ },
+ "zbudowane": [
+  {
+   "osm": "w1206883976",
+   "adres": "Marii Skłodowskiej-Curie 32",
+   "typ": "pawilon",
+   "kondygnacje": 1,
+   "wysokosc_m": 3.75
+  },
+  {
+   "osm": "w1466284980",
+   "adres": "",
+   "typ": "pawilon",
+   "kondygnacje": 1,
+   "wysokosc_m": 3.75
+  },
+  {
+   "osm": "w165842370",
+   "adres": "Marii Skłodowskiej-Curie 34B",
+   "typ": "pawilon",
+   "kondygnacje": 1,
+   "wysokosc_m": 3.75
+  },
+  {
+   "osm": "w165842374",
+   "adres": "",
+   "typ": "garaze",
+   "kondygnacje": 1,
+   "wysokosc_m": 2.65
+  },
+  {
+   "osm": "w165842375",
+   "adres": "",
+   "typ": "garaze",
+   "kondygnacje": 1,
+   "wysokosc_m": 2.65
+  },
+  {
+   "osm": "w165842383",
+   "adres": "Marii Skłodowskiej-Curie 30a",
+   "typ": "wiezowiec_szary",
+   "kondygnacje": 11,
+   "wysokosc_m": 30.85
+  },
+  {
+   "osm": "w165842384",
+   "adres": "Marii Skłodowskiej-Curie 28",
+   "typ": "blok4",
+   "kondygnacje": 4,
+   "wysokosc_m": 12.6
+  },
+  {
+   "osm": "w165842385",
+   "adres": "Marii Skłodowskiej-Curie 28a",
+   "typ": "wiezowiec_szary",
+   "kondygnacje": 11,
+   "wysokosc_m": 30.85
+  },
+  {
+   "osm": "w165842386",
+   "adres": "Marii Skłodowskiej-Curie 36",
+   "typ": "blok4",
+   "kondygnacje": 4,
+   "wysokosc_m": 12.6
+  },
+  {
+   "osm": "w165842387",
+   "adres": "Marii Skłodowskiej-Curie 32B",
+   "typ": "pawilon",
+   "kondygnacje": 1,
+   "wysokosc_m": 3.75
+  },
+  {
+   "osm": "w165842389",
+   "adres": "Marii Skłodowskiej-Curie 32",
+   "typ": "blok4",
+   "kondygnacje": 4,
+   "wysokosc_m": 12.6
+  },
+  {
+   "osm": "w165842390",
+   "adres": "Marii Skłodowskiej-Curie 32a",
+   "typ": "wiezowiec_szary",
+   "kondygnacje": 11,
+   "wysokosc_m": 30.85
+  },
+  {
+   "osm": "w165842391",
+   "adres": "Marii Skłodowskiej-Curie 30",
+   "typ": "blok4",
+   "kondygnacje": 4,
+   "wysokosc_m": 12.6
+  },
+  {
+   "osm": "w165842392",
+   "adres": "Marii Skłodowskiej-Curie 38",
+   "typ": "blok4",
+   "kondygnacje": 4,
+   "wysokosc_m": 12.6
+  },
+  {
+   "osm": "w165842395",
+   "adres": "",
+   "typ": "garaze",
+   "kondygnacje": 1,
+   "wysokosc_m": 2.65
+  },
+  {
+   "osm": "w165842398",
+   "adres": "Marii Skłodowskiej-Curie 34",
+   "typ": "blok4",
+   "kondygnacje": 4,
+   "wysokosc_m": 12.6
+  },
+  {
+   "osm": "w165842399",
+   "adres": "",
+   "typ": "garaze",
+   "kondygnacje": 1,
+   "wysokosc_m": 2.65
+  },
+  {
+   "osm": "w165842402",
+   "adres": "Marii Skłodowskiej-Curie 34a",
+   "typ": "wiezowiec_szary",
+   "kondygnacje": 11,
+   "wysokosc_m": 30.85
+  },
+  {
+   "osm": "w168153232",
+   "adres": "Jana Pestalozziego 18",
+   "typ": "szkola",
+   "kondygnacje": 3,
+   "wysokosc_m": 10.7
+  },
+  {
+   "osm": "w168153238",
+   "adres": "Aleja kardynała Stefana Wyszyńskiego 9",
+   "typ": "wiezowiec_kolor",
+   "kondygnacje": 11,
+   "wysokosc_m": 31.15
+  },
+  {
+   "osm": "w168153248",
+   "adres": "Jana Pestalozziego 18",
+   "typ": "szkola",
+   "kondygnacje": 3,
+   "wysokosc_m": 10.7
+  },
+  {
+   "osm": "w168153253",
+   "adres": "Aleja kardynała Stefana Wyszyńskiego 11",
+   "typ": "wiezowiec_kolor",
+   "kondygnacje": 11,
+   "wysokosc_m": 31.15
+  },
+  {
+   "osm": "w168153255",
+   "adres": "Jana Pestalozziego 18",
+   "typ": "szkola",
+   "kondygnacje": 1,
+   "wysokosc_m": 3.9
+  },
+  {
+   "osm": "w168153256",
+   "adres": "Jana Pestalozziego 18",
+   "typ": "szkola",
+   "kondygnacje": 3,
+   "wysokosc_m": 10.7
+  },
+  {
+   "osm": "w168153258",
+   "adres": "Aleja kardynała Stefana Wyszyńskiego 7",
+   "typ": "wiezowiec_kolor",
+   "kondygnacje": 11,
+   "wysokosc_m": 31.15
+  },
+  {
+   "osm": "w168153268",
+   "adres": "Aleja kardynała Stefana Wyszyńskiego 13",
+   "typ": "wiezowiec_kolor",
+   "kondygnacje": 11,
+   "wysokosc_m": 31.15
+  },
+  {
+   "osm": "w218251410",
+   "adres": "Jana Pestalozziego 23",
+   "typ": "szkola",
+   "kondygnacje": 3,
+   "wysokosc_m": 10.7
+  },
+  {
+   "osm": "w218251441",
+   "adres": "Jana Pestalozziego 27",
+   "typ": "szkola",
+   "kondygnacje": 3,
+   "wysokosc_m": 10.7
+  },
+  {
+   "osm": "w218251443",
+   "adres": "Jana Pestalozziego 25",
+   "typ": "szkola",
+   "kondygnacje": 3,
+   "wysokosc_m": 10.7
+  },
+  {
+   "osm": "w372014792",
+   "adres": "",
+   "typ": "garaze",
+   "kondygnacje": 1,
+   "wysokosc_m": 2.65
+  },
+  {
+   "osm": "w404584802",
+   "adres": "Jana Pestalozziego 16",
+   "typ": "szkola",
+   "kondygnacje": 3,
+   "wysokosc_m": 10.7
+  },
+  {
+   "osm": "w426763153",
+   "adres": "Marii Skłodowskiej-Curie 34b",
+   "typ": "bar",
+   "kondygnacje": 1,
+   "wysokosc_m": 3.95
+  },
+  {
+   "osm": "w426763154",
+   "adres": "",
+   "typ": "garaze",
+   "kondygnacje": 1,
+   "wysokosc_m": 2.65
+  },
+  {
+   "osm": "w426763155",
+   "adres": "",
+   "typ": "garaze",
+   "kondygnacje": 1,
+   "wysokosc_m": 2.65
+  },
+  {
+   "osm": "w997347785",
+   "adres": "",
+   "typ": "szkola",
+   "kondygnacje": 3,
+   "wysokosc_m": 10.7
+  }
+ ],
+ "braki_bez_zdjecia": [
+  {
+   "osm": "w128459041",
+   "adres": "Marii Skłodowskiej-Curie 26",
+   "rodzaj_w_mapie": "yes",
+   "wymiar_m": [
+    67.7,
+    50.8
+   ],
+   "srodek": [
+    -187.1,
+    -1.1
+   ]
+  },
+  {
+   "osm": "w128530645",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "hospital",
+   "wymiar_m": [
+    56.9,
+    24.3
+   ],
+   "srodek": [
+    -89.2,
+    176.0
+   ]
+  },
+  {
+   "osm": "w131549604",
+   "adres": "Marii Skłodowskiej-Curie 38b",
+   "rodzaj_w_mapie": "commercial",
+   "wymiar_m": [
+    28.5,
+    13.0
+   ],
+   "srodek": [
+    158.5,
+    102.4
+   ]
+  },
+  {
+   "osm": "w1466300243",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "yes",
+   "wymiar_m": [
+    60.8,
+    57.7
+   ],
+   "srodek": [
+    -182.3,
+    -63.9
+   ]
+  },
+  {
+   "osm": "w1497881784",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "guardhouse",
+   "wymiar_m": [
+    3.1,
+    3.1
+   ],
+   "srodek": [
+    -146.3,
+    88.2
+   ]
+  },
+  {
+   "osm": "w1497898963",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "hospital",
+   "wymiar_m": [
+    66.4,
+    49.1
+   ],
+   "srodek": [
+    -144.2,
+    144.1
+   ]
+  },
+  {
+   "osm": "w165806060",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "yes",
+   "wymiar_m": [
+    20.1,
+    10.4
+   ],
+   "srodek": [
+    -109.1,
+    -197.0
+   ]
+  },
+  {
+   "osm": "w165842373",
+   "adres": "Marii Skłodowskiej-Curie 40",
+   "rodzaj_w_mapie": "apartments",
+   "wymiar_m": [
+    49.7,
+    10.5
+   ],
+   "srodek": [
+    171.7,
+    58.0
+   ]
+  },
+  {
+   "osm": "w165842397",
+   "adres": "Marii Skłodowskiej-Curie 30B",
+   "rodzaj_w_mapie": "yes",
+   "wymiar_m": [
+    19.9,
+    13.5
+   ],
+   "srodek": [
+    -67.8,
+    68.1
+   ]
+  },
+  {
+   "osm": "w168153242",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "yes",
+   "wymiar_m": [
+    32.1,
+    6.9
+   ],
+   "srodek": [
+    7.4,
+    -144.3
+   ]
+  },
+  {
+   "osm": "w168153247",
+   "adres": "Marii Skłodowskiej-Curie 36a",
+   "rodzaj_w_mapie": "kindergarten",
+   "wymiar_m": [
+    34.6,
+    21.1
+   ],
+   "srodek": [
+    86.9,
+    3.4
+   ]
+  },
+  {
+   "osm": "w168153261",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "yes",
+   "wymiar_m": [
+    43.7,
+    9.8
+   ],
+   "srodek": [
+    -19.4,
+    -164.5
+   ]
+  },
+  {
+   "osm": "w168153264",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "yes",
+   "wymiar_m": [
+    26.9,
+    14.1
+   ],
+   "srodek": [
+    -74.5,
+    -59.2
+   ]
+  },
+  {
+   "osm": "w168153277",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "yes",
+   "wymiar_m": [
+    67.1,
+    20.5
+   ],
+   "srodek": [
+    -49.8,
+    -133.6
+   ]
+  },
+  {
+   "osm": "w299841395",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "hospital",
+   "wymiar_m": [
+    30.6,
+    23.8
+   ],
+   "srodek": [
+    -9.5,
+    181.2
+   ]
+  },
+  {
+   "osm": "w299841397",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "yes",
+   "wymiar_m": [
+    19.7,
+    6.7
+   ],
+   "srodek": [
+    51.9,
+    183.5
+   ]
+  },
+  {
+   "osm": "w299841399",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "yes",
+   "wymiar_m": [
+    60.4,
+    15.4
+   ],
+   "srodek": [
+    60.3,
+    170.2
+   ]
+  },
+  {
+   "osm": "w367666295",
+   "adres": "bez adresu w mapie",
+   "rodzaj_w_mapie": "yes",
+   "wymiar_m": [
+    19.5,
+    13.0
+   ],
+   "srodek": [
+    -118.2,
+    56.9
+   ]
+  }
+ ],
+ "napisy": [
+  "30a",
+  "M. SKŁODOWSKIEJ",
+  "-CURIE",
+  "M. SKŁODOWSKIEJ",
+  "-CURIE 28",
+  "28a",
+  "M. SKŁODOWSKIEJ",
+  "-CURIE",
+  "M. SKŁODOWSKIEJ",
+  "-CURIE 36",
+  "M. SKŁODOWSKIEJ",
+  "-CURIE 32",
+  "32a",
+  "M. SKŁODOWSKIEJ",
+  "-CURIE",
+  "M. SKŁODOWSKIEJ",
+  "-CURIE 30",
+  "M. SKŁODOWSKIEJ",
+  "-CURIE 38",
+  "M. SKŁODOWSKIEJ",
+  "-CURIE 34",
+  "34a",
+  "M. SKŁODOWSKIEJ",
+  "-CURIE",
+  "BAR MLECZNY"
+ ]
+}
