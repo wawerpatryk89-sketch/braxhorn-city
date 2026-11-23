@@ -70,7 +70,7 @@ def linie_glownej(d, jezdnie_glowne):
     """Podwójna ciągła na osi Skłodowskiej-Curie (IMG_1598, IMG_1609) i przejścia „zebra” przy skrzyżowaniach."""
     znaki = []
     for u in d["ulice"]:
-        if u["klasa"] not in GLOWNE or len(u["linia"]) < 2: continue
+        if u["klasa"] not in GLOWNE or len(u["linia"]) < 2 or u.get("jednokier") == "yes": continue
         L = LineString(u["linia"]).intersection(OKNO)
         if L.is_empty: continue
         for off in (-.12, .12):
@@ -125,16 +125,20 @@ def bramka(S, A, B, wstecz, y0):
         S.rura("boisko", "stal_ocynk", p0, p1, .04 if np.linalg.norm(p1 - p0) > 1.2 else .03, seg=8)
 
 
-def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=()):
+def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
     S = Siatka()
-    jezdnie, glowne, piesze, parkingi, boiska, place = [], [], [], [], [], []
+    jezdnie, glowne, piesze, parkingi, boiska, place, rowery = [], [], [], [], [], [], []
     for u in d["ulice"]:
         if len(u["linia"]) < 2: continue
         ln = LineString(u["linia"])
         if u["klasa"] in SZER:
-            g = ln.buffer(SZER[u["klasa"]] / 2, cap_style=2, join_style=1)
+            w = SZER[u["klasa"]]
+            if u.get("jednokier") == "yes" and (u.get("pasy") or "").isdigit(): w = int(u["pasy"]) * 3.4
+            g = ln.buffer(w / 2, cap_style=2, join_style=1)
             jezdnie.append(g)
             if u["klasa"] in GLOWNE: glowne.append(g)
+        elif u["klasa"] == "cycleway":
+            rowery.append(ln.buffer(1.0, cap_style=1, join_style=1))
         elif u["klasa"] in SZER_PIESZE:
             piesze.append(ln.buffer(SZER_PIESZE[u["klasa"]] / 2, cap_style=1, join_style=1))
     for t in d["tereny"]:
@@ -161,12 +165,17 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=()):
     PLAC_G = unary_union(prz_g).difference(POZIOM0).difference(bud).intersection(OKNO) if prz_g else Polygon()
     CHOD = unary_union(piesze + [opaska, wzdluz, przy_uliczkach] + prz_k).difference(POZIOM0).difference(bud).difference(PLAC_G).intersection(OKNO)
     BOI = unary_union(boiska).difference(POZIOM0).difference(CHOD).difference(bud).intersection(OKNO)
+    ROW = unary_union(rowery).difference(POZIOM0).difference(bud).intersection(OKNO) if rowery else Polygon()
+    CHOD = CHOD.difference(ROW)
+    if las is not None:                                    # za Wyszyńskiego las: bez ulic, chodników i placów
+        JEZ = JEZ.difference(las); PARK = PARK.difference(las); POZIOM0 = POZIOM0.difference(las)
+        CHOD = CHOD.difference(las); BOI = BOI.difference(las); ROW = ROW.difference(las)
     BA = [boisko(S, p) for p in boiska_asf]
     BOI_A = unary_union([x[0] for x in BA]).difference(POZIOM0).difference(bud) if BA else Polygon()
     CHOD = CHOD.difference(BOI_A); BOI = BOI.difference(BOI_A)
     place = [p.difference(unary_union(boiska_asf)) for p in place]
     PLAC = unary_union(place).difference(POZIOM0).difference(CHOD).difference(bud).difference(BOI).intersection(OKNO)
-    TRAWA = OKNO.difference(unary_union([POZIOM0, CHOD, BOI, PLAC, PLAC_G, BOI_A, bud]))
+    TRAWA = OKNO.difference(unary_union([POZIOM0, CHOD, BOI, PLAC, PLAC_G, BOI_A, ROW, bud]))
     # krawężnik: pas 0,15 m po stronie chodnika/trawnika wzdłuż krawędzi jezdni i parkingów
     KRAW = POZIOM0.buffer(.15, join_style=2).difference(POZIOM0).difference(bud).intersection(OKNO)
     CHOD = CHOD.difference(KRAW); TRAWA = TRAWA.difference(KRAW)
@@ -178,6 +187,7 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=()):
     plaski(S, "teren", "asfalt_parking", PARK.simplify(.05), Y_JEZDNIA)
     plaski(S, "teren", "asfalt_parking", PLAC_G.difference(KRAW_PRE := POZIOM0.buffer(.15, join_style=2)).simplify(.05), Y_JEZDNIA + .01)
     plaski(S, "teren", "kostka", CHOD.simplify(.05), Y_CHODNIK)
+    plaski(S, "teren", "asfalt_czerwony", ROW.simplify(.05), Y_CHODNIK)
     plaski(S, "teren", "kraweznik", KRAW.simplify(.02), Y_CHODNIK + .01)
     boki(S, "teren", "kraweznik", KRAW.simplify(.02), Y_CHODNIK + .01, Y_JEZDNIA - .02)
     boki(S, "teren", "kostka", CHOD.simplify(.05), Y_CHODNIK, Y_TRAWA - .02)
@@ -193,7 +203,7 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=()):
     pola = {k: round(v.area) for k, v in (("jezdnie", JEZ), ("parkingi", PARK), ("chodniki", CHOD), ("trawa", TRAWA),
                                            ("boiska", BOI), ("place_zabaw", PLAC), ("krawezniki", KRAW))}
     pola["boiska_asfalt"] = round(BOI_A.area) if BA else 0
-    return S, pola, {"JEZ": JEZ, "GLOW": GLOW, "PARK": PARK, "CHOD": CHOD, "TRAWA": TRAWA, "bud": bud,
+    return S, pola, {"LAS": las, "JEZ": JEZ, "GLOW": GLOW, "PARK": PARK, "CHOD": CHOD, "TRAWA": TRAWA, "bud": bud,
                      "BEZ_DRZEW": unary_union([JEZ, PARK, CHOD, BOI, PLAC, PLAC_G, BOI_A, bud.buffer(3)])}
 
 
@@ -255,6 +265,16 @@ def punkty(d, G, seed=5):
                 drzewa.append((px, pz, R.choice(["duze", "duze", "srednie", "iglaste"])))
             z += krok
         x += krok
+    if G.get("LAS") is not None:                         # las za Wyszyńskiego: co ~7 m, sosny i liściaste
+        L = G["LAS"].intersection(OKNO).buffer(-3)
+        minx, minz, maxx, maxz = L.bounds; x = minx
+        while x < maxx:
+            z = minz
+            while z < maxz:
+                px, pz = x + R.uniform(-2.5, 2.5), z + R.uniform(-2.5, 2.5)
+                if L.contains(shapely.geometry.Point(px, pz)): drzewa.append((px, pz, "iglaste" if R.random() < .4 else "duze"))
+                z += 7.5
+            x += 7.5
     bez = G.get("BEZ_DRZEW")
     if bez is not None:
         drzewa = [p for p in drzewa if not bez.buffer(1.2).contains(shapely.geometry.Point(p[0], p[1]))]

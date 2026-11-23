@@ -1,6 +1,6 @@
 {
  "opis": "zdjęcia wzorcowe właściciela (Bydgoszcz) — do odwzorowania, nie do gry",
- "tar_sha256": "a800692c52ef3591eabeed391d1af860bf91508821ced73137334bd0db46b5ba",
+ "tar_sha256": "bb26711e2a069648a5c92786bafcd46670fe9a16bb52039adf8f2770efcf4ff5",
  "pliki": {
   "zdjecia/osiedle/o01.jpg": "c02850b235d4e6f83597af6d7243d1768589428a09c7d6c0b4f9093bbd80da6c",
   "zdjecia/osiedle/o02.jpg": "eb4c6cc2ca46ca85aad1008a04fd1b9608dc03715acdc821abda2c527a7e67e4",
@@ -12,6 +12,16 @@
   "zdjecia/osiedle/o08.jpg": "5404232ab9a47ef0bbcc83d3fa20f89270785beeab96e114b73f7f850ef604ef",
   "zdjecia/osiedle/o09.jpg": "c0ce6a6c5a6cb798ae27f6661569131ddad31f4e3e2af4739bf35aedd85faab4",
   "zdjecia/osiedle/o10.jpg": "98f1abb09cd81d10f7958622f2f01906ca33019af2415437306ba50f0f88500e",
+  "zdjecia/osiedle/o100_szkola_market.jpg": "b6482d8abf35c5ff09a56dbe7e842610e1e7c47d15122b64e73325b937285440",
+  "zdjecia/osiedle/o101_szkola_market.jpg": "6c764cb83fde036b19d38e2a892348ec31244e73e7cc720de42e388ace023616",
+  "zdjecia/osiedle/o102_szkola_market.jpg": "e6dd45b06c9c82b3cc4eeffa2c05bd9b48cc3ef4917592df5ff7d13a903c7913",
+  "zdjecia/osiedle/o103_przedszkole.jpg": "bf3a994d3bfeda530c3ce86577f3d0d194f9f3ea0f10d8df569c2e4e09f8deec",
+  "zdjecia/osiedle/o104_przedszkole.jpg": "1eaef8b092500f91fd599a825aed0eef8689ae0307ac8cb26a13b843b79761d7",
+  "zdjecia/osiedle/o105_market.jpg": "750847e56ea6c02c97317c0c211505932d8abc0aab529c7adbe9e1920f1e674c",
+  "zdjecia/osiedle/o106_market.jpg": "0ab0b8095c283a65f52af969f479edfd4f28246411b2ae8645ed56f7c1a96b26",
+  "zdjecia/osiedle/o107_market.jpg": "94e0578f378e7e917679dba8fc7dab023da703b79cd211e20a50a898abe8ce8a",
+  "zdjecia/osiedle/o108_market.jpg": "1452350e3e7295911668cad027c9422d20dd5c5da4a1e1c10ad05fce90ca1dd7",
+  "zdjecia/osiedle/o109_market.jpg": "dda6b9a752a8f3207e26e1429b0c60490ff5c11ab46857dd9155c415677f1271",
   "zdjecia/osiedle/o11.jpg": "752202249ade54c02b11cb51fec5a0c76e9a17f036166b960c12bd4b6ee5c9d5",
   "zdjecia/osiedle/o12.jpg": "fb419a95b12bfb844ad685c00b9adb1a20faae8059a27e41ef2e4b39cdb92a69",
   "zdjecia/osiedle/o13.jpg": "79e92cc4d6c9d8dfb849fd879716dd64b3ef7d1af8fadf8ce6230ffbff1e6080",
@@ -82,6 +92,16 @@
   "zdjecia/osiedle/o82_lotnicze_glowna.jpg": "6fab630ba68c6ae88f252e97c0cc6b5418d8e119dd9897ed4b8a59980dbeaa76",
   "zdjecia/osiedle/o83_lotnicze_glowna.jpg": "eb6fbe5d19048a4227bd0f2b13d2ac7102d26b392e1ce16ce224d649e953bc2a",
   "zdjecia/osiedle/o84_lotnicze_glowna.jpg": "852b8e4d8aeeb450b728c5dab694b384365809f29d2cc2d0eb452eba16984d06",
+  "zdjecia/osiedle/o90_wyszynskiego.jpg": "10620a7a9132d263e3bd4fe57a4b0f6d3d69d45318c20461f8589f01380cbf58",
+  "zdjecia/osiedle/o91_wyszynskiego.jpg": "71aa77d553f6926edb04075e96380dfa82b7b4e6de67f33ba0b5f28a4622b107",
+  "zdjecia/osiedle/o92_wyszynskiego.jpg": "b29d9364d088e7f3579699c0aecdbb892e339b946924430452f30263fc2683ca",
+  "zdjecia/osiedle/o93_wyszynskiego.jpg": "679b1f6673deeb75df6947a6f0ec51901626127c2201344f499ec2341a6119c3",
+  "zdjecia/osiedle/o94_wyszynskiego.jpg": "ac3915c92b52149a8b7c35de3f65b4d44a1a0216332ae5a09c1a242c13e2b25e",
+  "zdjecia/osiedle/o95_szpital_sor.jpg": "f6103dc3d2990ab979f2af9772ac95cfa37eaeb49f336e5b887faff688748e0c",
+  "zdjecia/osiedle/o96_szkola_market.jpg": "ed044a1e02c00eae007a3b02dd1b998c491ae85aa9edc72f4fadfda5b6ccb289",
+  "zdjecia/osiedle/o97_szkola_market.jpg": "bccc4b0186e58e72d16a49927de65069b7c9c7c71d30e386e7d6f505301d8d84",
+  "zdjecia/osiedle/o98_szkola_market.jpg": "193729f1b3f893bce4ddec1457a5b177ea75bdee1c8740c26550eba527e516d4",
+  "zdjecia/osiedle/o99_szkola_market.jpg": "53c57ac994d8c71c94f180fdea2423eb209527b6f850d1f598716a96552731c9",
   "zdjecia/spis.json": "d2a5ce4e16d7d8b044698108dced5b4791d7f682e6155e266bf0cfdf2f722476",
   "zdjecia/stare_miasto/01.jpg": "14b38a47a7d5f66cce130baa69eb8c3702422d90690bca02e803e69bc5889612",
   "zdjecia/stare_miasto/02.jpg": "247424049096777cbce55156527759ab0b93d7c6e89eb0eb02d2cb5827e2be81",
@@ -137,12 +157,12 @@
   {
    "name": "part-000.cms",
    "bytes": 47185920,
-   "sha256": "c7f268d36e9be4e4a3f2d800bd091f9b9a552f0887aff818d89afa42e68b64f6"
+   "sha256": "594a1758f83cd85e90021fad419a0565b266cd8a72a351c39e125913fd27a40a"
   },
   {
    "name": "part-001.cms",
-   "bytes": 26839621,
-   "sha256": "177ee70a3a24ba4a5e57b5594b45c28ed71ee5517887436fc49ca2346b8f91d4"
+   "bytes": 37612101,
+   "sha256": "f27a9efafb29852bab2de4f8d476d3a6098b9e4ca3af53a6ddc75bee9de658b8"
   }
  ]
 }

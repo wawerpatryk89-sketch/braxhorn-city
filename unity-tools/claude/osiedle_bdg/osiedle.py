@@ -23,9 +23,11 @@ import ogolny  # noqa: E402
 # Budynki z obrysu OSM (ogolny.py). Klucz: fragment nazwy z OSM albo (nr, ulica). zr = źródło liczby kondygnacji i koloru:
 # OSM (building:levels), ZDJ (zdjęcie właściciela), ZAL (założenie — lista do potwierdzenia zdjęciem).
 SPEC = [
-    ("E.Leclerc", dict(kond=1, parter=7.5, tynk="market_elewacja", okna_on=False, attyka=1.0, zr="OSM 2 p. / lotnicze IMG_1666: jedna bryła hali, płaski dach")),
+    ("E.Leclerc", dict(kond=2, h_kond=3.6, parter=4.6, tynk="market_elewacja", witryny=True, okna_kier=(0, 1), okna=(3.4, 2.6, 1.5, .9), market=True,
+                       attyka=1.0, pas_gorny=("market_niebieski", 1.1),
+                       zr="ZDJ IMG_1577 (front od Skłodowskiej: witryny pasażu w parterze, pas okien piętra) i IMG_1730 (tył: biała hala, niebieski pas); bez nazwy i logo (decyzja 16:49)")),
     ("Pawilon Łóżkowy", dict(kond=5, h_kond=3.4, parter=3.8, tynk="szpital_bialy", okna=(3.0, 1.6, 1.5, .9), zr="OSM 5 p., kolor IMG_1673")),
-    ("SOR", dict(kond=3, h_kond=3.8, parter=4.2, tynk="szpital_bialy", okna=(3.4, 2.2, 1.8, .8), zr="ZAL 3 p. (IMG_1672 w tle), lotnicze IMG_1664")),
+    ("SOR", dict(kond=4, h_kond=3.8, parter=4.5, tynk="szpital_bialy", okna=(2.6, 1.9, 1.5, .9), ladowisko=True, zr="ZDJ IMG_1727 (biały, lądowisko na dachu)")),
     ("Budynek F", dict(kond=4, h_kond=3.4, tynk="szpital_szary", okna=(3.2, 1.6, 1.5, .9), zr="ZAL 4 p., lotnicze IMG_1664")),
     ("Budynek A ", dict(kond=1, h_kond=3.6, tynk="szpital_szary", zr="OSM 1 p.")),
     ("Budynek B ", dict(kond=2, h_kond=3.4, tynk="szpital_szary", zr="ZAL 2 p.")),
@@ -38,15 +40,38 @@ SPEC = [
     (("38b", "Marii"), dict(kond=2, h_kond=3.2, tynk="tynk_kremowy", witryny=True, zr="OSM 2 p.")),
     (("40", "Marii"), dict(kond=5, h_kond=2.8, tynk="pole_a_1", okna=(3.0, 1.4, 1.3, .9), zr="OSM 5 p.")),
     (("30B", "Marii"), dict(kond=1, h_kond=3.6, tynk="tynk_paw_b", witryny=True, dach="koperta", dach_mat="dachowka", zr="ZDJ IMG_1596 (czerwony dach)")),
-    (("36a", "Marii"), dict(kond=2, h_kond=3.2, tynk="tynk_bialy", zr="ZAL 2 p. (przedszkole)")),
-    (("7", "Aleja"), dict(kond=11, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="ZAL 11 p. (IMG_1627–1630 z daleka)")),
-    (("9", "Aleja"), dict(kond=11, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="ZAL 11 p.")),
-    (("11", "Aleja"), dict(kond=11, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="ZAL 11 p.")),
-    (("13", "Aleja"), dict(kond=11, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="ZAL 11 p.")),
+    (("36a", "Marii"), dict(kond=2, h_kond=3.2, tynk="przedszkole", okna=(2.8, 1.5, 1.3, .9), zr="ZDJ IMG_1736–1737 (2 kond., kremowe)")),
+    (("7", "Aleja"), dict(kond=12, h_kond=2.8, parter=2.8, tynk="wysz_zolty", pola_kolorow=("wysz_zolty", "wysz_losos", "wysz_lawenda", "wysz_ziel"), nadbudowki=2, okna=(3.0, 1.5, 1.35, .9), zr="ZDJ IMG_1722–1726: 12 kond., pola kolorów, 2 nadbudówki")),
+    (("9", "Aleja"), dict(kond=12, h_kond=2.8, parter=2.8, tynk="wysz_zolty", pola_kolorow=("wysz_zolty", "wysz_losos", "wysz_lawenda", "wysz_ziel"), nadbudowki=2, okna=(3.0, 1.5, 1.35, .9), zr="ZDJ IMG_1722–1726: 12 kond., pola kolorów, 2 nadbudówki")),
+    (("11", "Aleja"), dict(kond=12, h_kond=2.8, parter=2.8, tynk="wysz_zolty", pola_kolorow=("wysz_zolty", "wysz_losos", "wysz_lawenda", "wysz_ziel"), nadbudowki=2, okna=(3.0, 1.5, 1.35, .9), zr="ZDJ IMG_1722–1726: 12 kond., pola kolorów, 2 nadbudówki")),
+    (("13", "Aleja"), dict(kond=12, h_kond=2.8, parter=2.8, tynk="wysz_zolty", pola_kolorow=("wysz_zolty", "wysz_losos", "wysz_lawenda", "wysz_ziel"), nadbudowki=2, okna=(3.0, 1.5, 1.35, .9), zr="ZDJ IMG_1722–1726: 12 kond., pola kolorów, 2 nadbudówki")),
     (("15", "Żmudzka"), dict(kond=12, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="OSM 12 p.")),
     (("17", "Żmudzka"), dict(kond=12, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="OSM 12 p.")),
     (("19", "Żmudzka"), dict(kond=12, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="OSM 12 p.")),
 ]
+# Za Wyszyńskiego las (właściciel 23.11, 17:05: „za główną ulicą to już będzie las… tam skończymy”): linia wschodniej
+# jezdni Wyszyńskiego z mapy + 15 m; na wschód od niej żadnych budynków ani ulic, gęsty las.
+LAS_LINIA = [(130, -411), (246, 33), (262, 120), (239, 287), (238, 460)]
+
+
+def x_lasu(z):
+    pts = LAS_LINIA
+    if z <= pts[0][1]: return pts[0][0] + 15
+    for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+        if z0 <= z <= z1: return x0 + (x1 - x0) * (z - z0) / (z1 - z0) + 15
+    return pts[-1][0] + 15
+
+
+def w_lesie(p):
+    return p.x > x_lasu(p.y)
+
+
+def las_poly():
+    zs = np.linspace(-260, 360, 63)
+    pts = [(x_lasu(z), z) for z in zs]
+    return Polygon(pts + [(400, 360), (400, -260)])
+
+
 DOMYSLNY = dict(kond=2, h_kond=3.0, tynk="tynk_szary", zr="ZAL 2 p. (brak zdjęcia)")
 DOMYSLNY_MALY = dict(kond=1, h_kond=3.0, tynk="tynk_szary", zr="ZAL 1 p. (brak zdjęcia)")
 
@@ -57,7 +82,7 @@ def spec(b):
             if k in (b.get("nazwa") or ""): return v
         elif b.get("nr") == k[0] and (b.get("ulica") or "").startswith(k[1]): return v
     if b.get("rodzaj") == "school" or (b.get("ulica") or "").startswith("Jana Pest") and b.get("nr") == "18":
-        return dict(kond=3 if b["pole_m2"] < 1200 else 2, h_kond=3.4, tynk="tynk_kremowy", zr="ZAL szkoła (IMG_1613–1616)")
+        return dict(kond=3, h_kond=3.3, tynk="szkola_ziel", okna=(2.6, 2.0, 1.45, .9), zr="ZDJ IMG_1729–1735 (3 kond., jasnozielona, szerokie okna)")
     p = b.get("pietra")
     if p and p.isdigit(): return dict(kond=int(p), h_kond=3.0, tynk="tynk_szary", zr="OSM %s p." % p)
     return DOMYSLNY if b["pole_m2"] >= 250 else DOMYSLNY_MALY
@@ -70,7 +95,7 @@ def inne(d, dst):
     opis = {}
     for i, b in enumerate(d["budynki"]):
         P = b["poly"]
-        if P.is_empty or P.area < 40 or not teren.OKNO.contains(P.centroid): continue
+        if P.is_empty or P.area < 40 or not teren.OKNO.contains(P.centroid) or w_lesie(P.centroid): continue
         if b.get("rodzaj") in ("garages", "garage", "roof"): continue
         if P.intersection(zrobione).area > .3 * P.area: continue
         sp = spec(b)
@@ -214,7 +239,7 @@ def bloki(d, dst):
     opis = {}
     for b in d["budynki"]:
         nr = b.get("nr"); ul = (b.get("ulica") or "")
-        if not ul.startswith("Marii") or nr not in BLOKI4 or b["pole_m2"] < 300: continue
+        if not ul.startswith("Marii") or nr not in BLOKI4 or b["pole_m2"] < 300 or w_lesie(b["poly"].centroid): continue
         c, a, L, W = prostokat(b["poly"])
         f = front_ze_wystepow(b["poly"], c, a); zrodlo = "występy klatek w OSM"
         if f is None: f = front_do_drogi(d, c, a); zrodlo = "ZAŁOŻENIE: do najbliższej drogi"
@@ -231,6 +256,7 @@ def male(d, dst):
     opis = {}
     for i, b in enumerate(d["budynki"]):
         nr = b.get("nr"); rodzaj = b.get("rodzaj")
+        if w_lesie(b["poly"].centroid) or not teren.OKNO.contains(b["poly"].centroid): continue
         c, a, L, W = prostokat(b["poly"])
         if rodzaj == "garages":
             f = front_do_drogi(d, c, a, ("service",)); k, ox, oz, X = ustaw(c, a, L, W, f)
@@ -262,7 +288,7 @@ if __name__ == "__main__":
         if b.get("nr") in WIEZOWCE and (b.get("ulica") or "").startswith("Marii"): MODELE.append(b["poly"])
     opis["inne"] = inne(d, D)
     pkt_osm, _ = wyposazenie.osm()
-    T, pola, G = teren.zbuduj(d, MODELE, PRZEDPOLA, boiska_asfalt(d), wyposazenie.zebry(pkt_osm, d["ulice"], teren.SZER))
+    T, pola, G = teren.zbuduj(d, MODELE, PRZEDPOLA, boiska_asfalt(d), wyposazenie.zebry(pkt_osm, d["ulice"], teren.SZER), las=las_poly())
     przenies(T, D, "teren", 0.0, 0.0, 0.0)
     drzewa, latarnie = teren.punkty(d, G)
     opis["teren"] = pola; opis["drzew"] = len(drzewa); opis["latarni"] = len(latarnie)

@@ -96,6 +96,16 @@ P = {
     "market_elewacja": {"tex": None, "kol": [214, 216, 218], "szorst": .55, "metal": .3},
     "tynk_szary": tynk([196, 194, 186], "brud_32a_wejscie.png"), "tynk_kremowy": tynk([222, 210, 180], "brud_32a_wejscie.png"),
     "tynk_bialy": tynk([232, 230, 224], "brud_32a_wejscie.png"), "tynk_attyka": tynk([180, 178, 172]),
+    # bloki przy Wyszyńskiego (IMG_1722–1726, 23.11): pola kolorów — żółty, łososiowy, szaroliliowy, jasnozielony; nadbudówki beż
+    "wysz_zolty": tynk([212, 204, 140], "brud_32a_wejscie.png"), "wysz_losos": tynk([218, 166, 128], "brud_32a_wejscie.png"),
+    "wysz_lawenda": tynk([180, 180, 198], "brud_32a_wejscie.png"), "wysz_ziel": tynk([190, 200, 140], "brud_32a_wejscie.png"),
+    "wysz_bez": tynk([220, 200, 182], "brud_32a_slepa.png"), "wysz_pas": tynk([90, 120, 170]),
+    "asfalt_czerwony": {"tex": "clean_asphalt", "m": 4.0, "kol": [150, 76, 70], "szorst": 1.0},
+    # zdjęcia 23.11, 17:07–17:09: szkoła budowlana jasnozielona (IMG_1729–1735), market biały z niebieskim pasem (IMG_1730),
+    # SOR biały z lądowiskiem (IMG_1727), przedszkole kremowe (IMG_1736–1737)
+    "szkola_ziel": tynk([166, 192, 146], "brud_32a_wejscie.png"), "market_niebieski": {"tex": None, "kol": [30, 70, 150], "szorst": .45, "metal": .3},
+    "market_rama": {"tex": None, "kol": [190, 192, 194], "szorst": .5, "metal": .2}, "market_szklo": {"tex": None, "kol": [70, 92, 110], "szorst": .06, "metal": .5},
+    "ladowisko": {"tex": BET, "m": 2.0, "kol": [120, 124, 128], "szorst": 1.0}, "przedszkole": tynk([218, 204, 176], "brud_32a_wejscie.png"),
     "dachowka": {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [168, 70, 44], "szorst": .8},
     "palik": {"tex": "weathered_brown_planks", "m": 1.2, "kol": [150, 118, 84], "szorst": .9},
     "trawa": {"tex": None, "kol": [86, 112, 58], "szorst": 1.0, "gra": "BraxRegionTrawa"},
