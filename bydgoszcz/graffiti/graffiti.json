@@ -223,8 +223,9 @@
    "szer_px": 412,
    "wys_px": 266,
    "krycie": 0.72,
-   "wybor": "szyld",
-   "napis": "POLICE"
+   "wybor": "odrzucone",
+   "napis": "POLICE",
+   "powod": "właściciel 23.11, 02:24: „to nie mają być szyldy, tylko graffiti na ścianach”"
   },
   {
    "plik": "plansza_b_09.png",
@@ -232,8 +233,9 @@
    "szer_px": 298,
    "wys_px": 229,
    "krycie": 0.75,
-   "wybor": "szyld",
-   "napis": "TAXI"
+   "wybor": "odrzucone",
+   "napis": "TAXI",
+   "powod": "właściciel 23.11, 02:24: „to nie mają być szyldy, tylko graffiti na ścianach”"
   },
   {
    "plik": "plansza_b_10.png",
@@ -241,8 +243,9 @@
    "szer_px": 373,
    "wys_px": 259,
    "krycie": 0.67,
-   "wybor": "szyld",
-   "napis": "HOTEL"
+   "wybor": "odrzucone",
+   "napis": "HOTEL",
+   "powod": "właściciel 23.11, 02:24: „to nie mają być szyldy, tylko graffiti na ścianach”"
   },
   {
    "plik": "plansza_b_11.png",
@@ -250,8 +253,9 @@
    "szer_px": 381,
    "wys_px": 250,
    "krycie": 0.67,
-   "wybor": "szyld",
-   "napis": "BAR"
+   "wybor": "odrzucone",
+   "napis": "BAR",
+   "powod": "właściciel 23.11, 02:24: „to nie mają być szyldy, tylko graffiti na ścianach”"
   },
   {
    "plik": "plansza_b_12.png",
@@ -259,8 +263,9 @@
    "szer_px": 404,
    "wys_px": 212,
    "krycie": 0.72,
-   "wybor": "szyld",
-   "napis": "SHOP"
+   "wybor": "odrzucone",
+   "napis": "SHOP",
+   "powod": "właściciel 23.11, 02:24: „to nie mają być szyldy, tylko graffiti na ścianach”"
   },
   {
    "plik": "plansza_b_13.png",
@@ -268,8 +273,9 @@
    "szer_px": 380,
    "wys_px": 228,
    "krycie": 0.73,
-   "wybor": "szyld",
-   "napis": "FITNESS"
+   "wybor": "odrzucone",
+   "napis": "FITNESS",
+   "powod": "właściciel 23.11, 02:24: „to nie mają być szyldy, tylko graffiti na ścianach”"
   },
   {
    "plik": "plansza_b_14.png",
@@ -277,8 +283,9 @@
    "szer_px": 325,
    "wys_px": 242,
    "krycie": 0.77,
-   "wybor": "szyld",
-   "napis": "GYM"
+   "wybor": "odrzucone",
+   "napis": "GYM",
+   "powod": "właściciel 23.11, 02:24: „to nie mają być szyldy, tylko graffiti na ścianach”"
   },
   {
    "plik": "plansza_b_15.png",
@@ -286,8 +293,9 @@
    "szer_px": 325,
    "wys_px": 249,
    "krycie": 0.74,
-   "wybor": "szyld",
-   "napis": "BEACH"
+   "wybor": "odrzucone",
+   "napis": "BEACH",
+   "powod": "właściciel 23.11, 02:24: „to nie mają być szyldy, tylko graffiti na ścianach”"
   },
   {
    "plik": "plansza_c_01.png",
@@ -584,8 +592,7 @@
  ],
  "wybor_opis": {
   "sciana": "graffiti na ściany bloków i faweli (propozycja wykonawcy listy; właściciel 02:21: „wybieraj te najlepsze”; Bydgoszcz i HWDP wskazane przez właściciela)",
-  "szyld": "napis miejsca — tylko przy tym miejscu, nie jako przypadkowe graffiti",
-  "odrzucone": "słabsze albo powtórzone — nie używać bez słowa właściciela"
+  "odrzucone": "słabsze, powtórzone albo napisy-szyldy (HOTEL, TAXI, SHOP…) odrzucone przez właściciela 02:24 — nie używać"
  },
  "pominiete_marki": "4 kafle planszy walk z prawdziwą marką albo realistyczną postacią zawodnika — nie wycięte (ZASADY 7.4)"
 }

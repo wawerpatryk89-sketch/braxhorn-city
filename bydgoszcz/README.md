@@ -72,8 +72,8 @@ Liczba pięter jest w mapie tylko dla 60 z 729 budynków — wysokości kamienic
 Z siedmiu plansz wyciętych jest 66 naklejek z przezroczystym tłem. W `graffiti.json` każda ma pole `wybor`:
 
 - **`sciana` — 36 sztuk**, w tym oba „Bydgoszcz” i „HWDP” wskazane przez właściciela. Na bloki i na fawelę.
-- **`szyld` — 8 sztuk** (POLICE, TAXI, HOTEL, BAR, SHOP, FITNESS, GYM, BEACH): tylko przy takim miejscu.
-- **`odrzucone` — 22 sztuki**: słabsze albo powtórzone.
+- **`odrzucone` — 30 sztuk**: słabsze, powtórzone oraz osiem napisów-szyldów (POLICE, TAXI, HOTEL, BAR, SHOP,
+  FITNESS, GYM, BEACH). Właściciel 02:24: *„to nie mają być szyldy, tylko graffiti na ścianach”*.
 
 Wybór jest mój — właściciel ogląda `plany/graffiti-wybor-na-sciany.png` i poprawia.
 **Cztery kafle planszy walk nie zostały wycięte:** mają prawdziwą markę albo realistyczną postać zawodnika (ZASADY 7.4).
