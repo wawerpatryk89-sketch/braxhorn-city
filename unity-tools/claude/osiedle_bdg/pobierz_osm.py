@@ -46,13 +46,13 @@ def przelicz(xml, rz):
                         "nazwa": t.get("name"), "uzytek": t.get("amenity") or t.get("shop"), "obrys": p})
         elif "highway" in t:
             ulice.append({"osm": "w" + i, "klasa": t["highway"], "nazwa": t.get("name"), "pasy": t.get("lanes"),
-                          "jednokier": t.get("oneway"), "rondo": t.get("junction") == "roundabout", "linia": p})
+                          "jednokier": t.get("oneway"), "rondo": t.get("junction") == "roundabout", "nawierzchnia": t.get("surface"), "linia": p})
         elif t.get("railway") in ("tram", "rail"):
             ulice.append({"osm": "w" + i, "klasa": "tory_" + t["railway"], "nazwa": t.get("name"), "linia": p})
         else:
             k = ("parking" if t.get("amenity") == "parking" else t.get("leisure") or t.get("landuse") or t.get("natural")
                  or (("ogrodzenie:" + t["barrier"]) if "barrier" in t else None) or t.get("amenity"))
-            if k: tereny.append({"osm": "w" + i, "rodzaj": k, "nazwa": t.get("name"), "zamkniety": p[0] == p[-1], "linia": p})
+            if k: tereny.append({"osm": "w" + i, "rodzaj": k, "nazwa": t.get("name"), "zamkniety": p[0] == p[-1], "nawierzchnia": t.get("surface"), "linia": p})
     out = {"zrodlo": "OpenStreetMap (ODbL) — © autorzy OpenStreetMap; api.openstreetmap.org, pobrane przez pobierz_osm.py",
            "jednostka": "metr; x = wschód, z = północ; (0,0) = lat0/lon0 z osiedle_rzut.json",
            "budynki": bud, "ulice": ulice, "tereny": tereny}
@@ -61,6 +61,10 @@ def przelicz(xml, rz):
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--z-pliku"]:          # przeliczenie zapisanego dane/osiedle_osm_map.xml bez pobierania
+        R = json.loads((DANE / "osiedle_rzut.json").read_text())
+        o = przelicz((DANE / "osiedle_osm_map.xml").read_bytes(), (R["lat0"], R["lon0"], R["MLAT"], R["MLON"]))
+        print("budynki", len(o["budynki"]), "ulice", len(o["ulice"]), "tereny", len(o["tereny"])); sys.exit(0)
     a = [float(v) for v in sys.argv[1:5]] if len(sys.argv) >= 5 else [-330, 250, -210, 310]
     xml, rz = pobierz(*a)
     o = przelicz(xml, rz)

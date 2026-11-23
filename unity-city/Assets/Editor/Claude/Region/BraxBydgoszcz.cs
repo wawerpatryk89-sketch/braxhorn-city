@@ -242,13 +242,16 @@ public static class BraxBydgoszcz
             if (!float.TryParse(pola[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float x)) continue;
             if (!float.TryParse(pola[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float z)) continue;
             string typ = pola[2].Trim().Trim(']', '"', ' ', '}');
-            string id = typ == "iglaste" ? "las_sosna_a" : "drzewo_verdant";
+            // 23.11 wieczorem (właściciel: „zwróć uwagę na drzewa”): młode = las_drzewko (tree_small_02 na telefon), liściaste =
+            // pień drzewo_verdant + korona z kart-gałązek drzewo_klaster (bez płaskich trójkątnych liści), iglaste = las_sosna_a
+            string id = typ == "iglaste" ? "las_sosna_a" : typ == "mlode" ? "las_drzewko" : "drzewo_verdant";
             float h = typ == "duze" ? 13f : typ == "srednie" ? 9f : typ == "mlode" ? 5.5f : 14f;
             var src = BraxRegion.Model(id);
             if (!src) continue;
             var pos = swiat(x, .08f, z);
             var o = BraxRegion.Put(root, src, "Bydgoszcz: " + id, pos, (licz * 137.5f) % 360f, 1f, false);
             if (!o) continue;
+            if (id == "drzewo_verdant") Korona(o, licz & 1); else BraxRegion.TreeLods(o);
             float wys = 0f; foreach (var rr in o.GetComponentsInChildren<Renderer>()) wys = Mathf.Max(wys, rr.bounds.max.y - pos.y);
             if (wys > .01f) { float f = h * K / wys; o.transform.localScale *= f; o.transform.position = pos + (o.transform.position - pos) * f; }
             var kol = new GameObject("Bydgoszcz: pień kolizja").AddComponent<CapsuleCollider>(); kol.transform.SetParent(root, false);
@@ -257,5 +260,69 @@ public static class BraxBydgoszcz
             licz++;
         }
         return licz;
+    }
+
+    // Korona z kart-gałązek (unity-tools/claude/drzewo_klaster.py; te same zasoby i shader co drzewa osiedla R2, kod własny —
+    // nie ruszamy cudzego rejonu). Siatki liscie_0..3 mają ten sam układ współrzędnych co liście drzewo_verdant.
+    const string KlasterDir = "Assets/Source/Claude/Osiedle/models/drzewo_klaster/";
+    static Mesh[] klLiscie; static Material[] klMat; static bool klProba;
+
+    static bool KlasterWczytaj()
+    {
+        if (klMat != null) return true;
+        if (klProba) return false; klProba = true;
+        string glb = KlasterDir + "drzewo_klaster.glb", atlas = KlasterDir + "galazki.png";
+        if (!File.Exists(glb) || !File.Exists(atlas)) { BraxRegion.Note("Bydgoszcz: brak drzewo_klaster — korony z liści drzewo_verdant"); return false; }
+        AssetDatabase.ImportAsset(glb, ImportAssetOptions.ForceSynchronousImport);
+        var siatki = new List<Mesh>(); foreach (var a in AssetDatabase.LoadAllAssetsAtPath(glb)) if (a is Mesh m) siatki.Add(m);
+        Mesh M(string n) { foreach (var m in siatki) if (m.name == n) return m; return null; }
+        klLiscie = new[] { M("liscie_0"), M("liscie_1"), M("liscie_2"), M("liscie_3") };
+        foreach (var m in klLiscie) if (!m) { klLiscie = null; BraxRegion.Note("Bydgoszcz: drzewo_klaster bez liscie_0..3"); return false; }
+        var imp = AssetImporter.GetAtPath(atlas) as TextureImporter;
+        if (imp)
+        {
+            imp.textureType = TextureImporterType.Default; imp.sRGBTexture = true; imp.alphaSource = TextureImporterAlphaSource.FromInput;
+            imp.alphaIsTransparency = true; imp.mipmapEnabled = true; imp.mipMapsPreserveCoverage = true; imp.alphaTestReferenceValue = .45f;
+            imp.wrapMode = TextureWrapMode.Clamp; imp.maxTextureSize = 1024; imp.textureCompression = TextureImporterCompression.Compressed; imp.SaveAndReimport();
+        }
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(atlas); var sh = Shader.Find("Braxhorn/OsiedleLiscie");
+        if (!tex || !sh) { BraxRegion.Note("Bydgoszcz: brak atlasu gałązek albo shadera OsiedleLiscie"); return false; }
+        var b = klLiscie[0].bounds; klMat = new Material[2];
+        var ziel = new[] { (new Color(.310f, .522f, .147f), new Color(.408f, .553f, .164f)), (new Color(.36f, .50f, .15f), new Color(.30f, .47f, .13f)) };
+        for (int v = 0; v < 2; v++)
+        {
+            var m = new Material(sh) { name = "Bydgoszcz: liście drzew (gałązki) " + v, enableInstancing = true, mainTexture = tex };
+            m.SetColor("_Leaf", ziel[v].Item1); m.SetColor("_Leaf2", ziel[v].Item2); m.SetFloat("_InnerDark", .35f); m.SetFloat("_Recolor", .85f);
+            m.SetFloat("_MeanGamma", .10993f); m.SetFloat("_MeanLinear", .014248f); m.SetFloat("_Cutoff", .45f);
+            m.SetVector("_Center", b.center + new Vector3(0, b.extents.y * .15f, 0)); m.SetVector("_Radius", b.extents);
+            BraxZapisAssetu.Utworz(m, Out + "/liscie_galazki_" + v + ".mat"); klMat[v] = m;
+        }
+        return true;
+    }
+
+    static void Korona(GameObject o, int odmiana)
+    {
+        if (!KlasterWczytaj()) { BraxRegion.TreeLods(o); return; }
+        Renderer pien = null; var lv = new Renderer[4];
+        foreach (var r in o.GetComponentsInChildren<Renderer>(true))
+        {
+            if (r.name == "pien") pien = r;
+            for (int k = 0; k < 4; k++) if (r.name == "liscie_" + k || (r.transform.parent && r.transform.parent.name == "liscie_" + k)) { if (!lv[k]) lv[k] = r; }
+        }
+        if (!pien || !lv[0]) { BraxRegion.TreeLods(o); return; }
+        var lods = new List<LOD>(); float[] prog = { .40f, .18f, .075f, .012f };
+        for (int k = 0; k < 4; k++)
+        {
+            var r = lv[k];
+            if (!r) { if (k < 3) continue; var g = new GameObject("liscie_3"); g.transform.SetParent(lv[0].transform.parent, false);
+                g.transform.localPosition = lv[0].transform.localPosition; g.transform.localRotation = lv[0].transform.localRotation; g.transform.localScale = lv[0].transform.localScale;
+                g.AddComponent<MeshFilter>(); r = g.AddComponent<MeshRenderer>(); }
+            var mf = r.GetComponent<MeshFilter>(); if (!mf) continue;
+            mf.sharedMesh = klLiscie[k]; r.sharedMaterial = klMat[odmiana & 1];
+            r.shadowCastingMode = k <= 1 ? ShadowCastingMode.On : ShadowCastingMode.Off; r.receiveShadows = true;
+            lods.Add(new LOD(prog[k], new[] { pien, r }));
+        }
+        var lod = o.GetComponent<LODGroup>(); if (!lod) lod = o.AddComponent<LODGroup>();
+        lod.SetLODs(lods.ToArray()); lod.fadeMode = LODFadeMode.CrossFade; lod.animateCrossFading = true; lod.RecalculateBounds();
     }
 }

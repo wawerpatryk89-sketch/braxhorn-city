@@ -54,7 +54,27 @@ TEXTURES_WYSPA = [
 ]
 # OSIEDLE BYDGOSKIE (23.11, właściciel: osiedle przy Skłodowskiej-Curie od nowa; ZASADY 5.8 — lista MATERIALY-WLASCICIELA):
 # tynk elewacji, beton cokołów i balkonów, kostka chodników (BraxBydgoszcz, paleta osiedle_bdg/paleta.py).
-TEXTURES_BYDGOSZCZ = ["white_stucco_02", "brushed_concrete_04", "concrete_pavers", "clay_roof_tiles_02"]
+TEXTURES_BYDGOSZCZ = ["white_stucco_02", "brushed_concrete_04", "concrete_pavers", "clay_roof_tiles_02",
+                      "bitumen", "gravel_floor_02", "painted_metal_shutter", "exterior_wall_cladding_03", "corrugated_iron_02", "red_bricks_04",
+                      "herringbone_pavement_03", "red_brick_pavers", "playground_sand", "blue_metal_plate"]
+
+
+def lakier_blacha(report: dict) -> None:
+    """Osiedle bydgoskie (23.11, „dosłownie wszystko ma mieć tekstury premium”): skan lakierowanej blachy bez barwy —
+    blue_metal_plate odbarwiony do luminancji (średnia sRGB 0.75), normalne i ARM bez zmian; barwę daje _Color z palety
+    (osiedle_bdg/paleta.py, LAKIER). Ta sama operacja co w podglądzie."""
+    src, dst = ROOT / "textures" / "blue_metal_plate", ROOT / "textures" / "lakier_blacha"
+    if (dst / "diffuse.jpg").exists():
+        report["textures"]["lakier_blacha"] = "already"; return
+    import numpy as np
+    from PIL import Image
+    d = np.asarray(Image.open(src / "diffuse.jpg").convert("RGB"), float) / 255
+    L = (d ** 2.2) @ np.array([.2126, .7152, .0722]); L = L / L.mean() * (.75 ** 2.2)
+    g = (np.clip(L, 0, 1) ** (1 / 2.2) * 255).astype(np.uint8)
+    dst.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(np.dstack([g] * 3)).save(dst / "diffuse.jpg", quality=92)
+    for f in ("normal.jpg", "arm.jpg"): (dst / f).write_bytes((src / f).read_bytes())
+    report["textures"]["lakier_blacha"] = "pochodna blue_metal_plate (odbarwiona)"
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
 # W 1K (telefon): 38 zestawów w 2K to ok. 0,5 GB tekstur w pamięci naraz — ściany dostają kolor + normalną 1024, drobne
@@ -204,6 +224,11 @@ def main() -> int:
         except Exception as exc:  # noqa: BLE001
             report["missing"].append(f"tex:{t}: {exc}")
             print("BRAK TEKSTURY", t, exc)
+    try:
+        lakier_blacha(report)
+    except Exception as exc:  # noqa: BLE001
+        report["missing"].append(f"tex:lakier_blacha: {exc}")
+        print("BRAK TEKSTURY lakier_blacha", exc)
     for t in TEXTURES_FAWELA_1K:
         try:
             texture(t, report, ("1k", "2k"))

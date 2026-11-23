@@ -1,0 +1,31 @@
+{
+ "opis": "zdjęcia wzorcowe właściciela (Bydgoszcz) — do odwzorowania, nie do gry",
+ "tar_sha256": "9233543ec52e2705c3a6a4361b4f38c936a0aaf5a05e4b21f0a525a40bbc37fe",
+ "pliki": {
+  "zdjecia/osiedle/o110_internet_market_szpital.jpg": "7263bea190692ca27a82a4a8af7405ad258cfe0c058c2e4504a915d775632850",
+  "zdjecia/osiedle/o111_internet_market_szpital.jpg": "51bc5b2359242e65e0ff2245e45e7f92ddc26c5d5dd820cd99cc229849362149",
+  "zdjecia/osiedle/o112_internet_market_szpital.jpg": "f3f345b6da3a5fe549a62fb4bb82d045b5aeb43b82f07386cbb42d4018ae66bc",
+  "zdjecia/osiedle/o113_internet_market_szpital.jpg": "b54bb05bbd840b9006e27cfeeeabe723f252944e66f0f1446844ab748cb19ce9",
+  "zdjecia/osiedle/o114_internet_market_szpital.jpg": "e25cfeec4b90da03ad3c74586dffa9c9d878c708a30768ddf446b07ffc6635a3",
+  "zdjecia/osiedle/o115_internet_market_szpital.jpg": "28b1023ace9efdf77e00590ccdca70ffc89cc2deb3ff3a1ac8aef4267bff52e2",
+  "zdjecia/osiedle/o117_szpital.jpg": "a6ccd7011a579b11c060d2de374db376bcd856a87ad13f545e5b0475fef4afc0",
+  "zdjecia/osiedle/o118_sor_porownanie.jpg": "0c6de9838e38de35b551f72db7cf60c810af76a74d3ee30a9570ffc56cef584e",
+  "zdjecia/osiedle/o119_droga_market_bloki.jpg": "c11df411f6a67ac7cea6a7f42ee930aa5498da0fed91bef0df227be4b03c84bf",
+  "zdjecia/osiedle/o120_droga_market_bloki.jpg": "833a8ef1c16b183f439fcd537e65ce100ba5eb0867cba9d9c391679748429c3b",
+  "zdjecia/osiedle/o121_droga_market_bloki.jpg": "73d8ccbb033e7d44b0797fc118582ae4a27db32ade340698f7d9bd1a26e497b3",
+  "zdjecia/osiedle/o122_droga_market_bloki.jpg": "fcb7ab5489b8fd3a2cfdddd92e1149acee26f831a79a40dca1e144cda779c6f4",
+  "zdjecia/osiedle/o123_droga_market_bloki.jpg": "e6154df692086ad55902ebc183ad47a7a5b1f421713bc1eb7a307c23de9169c6",
+  "zdjecia/osiedle/o124_droga_market_bloki.jpg": "1ea51a0152bb1d074f0dc9ec039784bab054ef03fb804650fbd02a34af89f0dd",
+  "zdjecia/osiedle/o125_droga_market_bloki.jpg": "d8992af9ecb857e3de6997c5410acdad6863b6510ae60c2c765f9de64540043b",
+  "zdjecia/osiedle/o126_droga_market_bloki.jpg": "8f08a67f22f8d54fa7196a2c98c1cbe1e559b067632cd0153819cd33d5ab9f2c",
+  "zdjecia/osiedle/o127_wlasciciel_sor_uwagi.jpg": "566c42aea052cf45591af8b8ddad1415186e7f22a8e0cb1c40b827e45ed902b8",
+  "zdjecia/osiedle/o128_wlasciciel_sor_uwagi.jpg": "85e8f0ca66e40d63a087613c5f604122e8c559ee6965c5adc3ebc9bf7d4574ec"
+ },
+ "czesci": [
+  {
+   "name": "part-000.cms",
+   "bytes": 7434816,
+   "sha256": "3b1c458c640a0bebe30cd341b4e79a2bb85bdc574b7a361e341e399a9ca3a9b4"
+  }
+ ]
+}

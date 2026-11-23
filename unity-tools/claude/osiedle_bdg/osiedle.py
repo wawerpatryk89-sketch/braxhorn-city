@@ -99,8 +99,11 @@ def inne(d, dst):
         if b.get("rodzaj") in ("garages", "garage", "roof"): continue
         if P.intersection(zrobione).area > .3 * P.area: continue
         sp = spec(b)
+        if sp.get("sor"):                       # drogi przy SOR: przerwy w murkach podjazdu
+            sp = dict(sp, drogi=[LineString(u["linia"]) for u in d["ulice"] if len(u["linia"]) > 1 and LineString(u["linia"]).distance(P) < 40])
         S = ogolny.zbuduj(P, sp, "o%d" % i)
         przenies(S, dst, "o%d" % i, 0.0, 0.0, 0.0); MODELE.append(P)
+        MODELE.extend(getattr(S, "wyciecia", []))
         opis["o%d" % i] = {"nazwa": b.get("nazwa") or ("%s %s" % (b.get("ulica") or "", b.get("nr") or "")).strip(),
                            "kond": sp["kond"], "zrodlo": sp["zr"], "trojkatow": sum(len(c["i"]) // 3 for c in S.dane().values())}
     return opis

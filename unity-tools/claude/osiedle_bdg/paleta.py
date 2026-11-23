@@ -42,9 +42,9 @@ P = {
     "szyba_drzwi": {"tex": None, "kol": [40, 46, 50], "szorst": .08, "metal": .2}, "szyba_piwnica": {"tex": None, "kol": [30, 32, 34], "szorst": .2},
     "stal": {"tex": None, "kol": [60, 62, 64], "szorst": .45, "metal": .7}, "kratka": {"tex": None, "kol": [25, 25, 25], "szorst": .8},
     "skrzynka_gaz": {"tex": None, "kol": [212, 172, 40], "szorst": .5}, "rura_gaz": {"tex": None, "kol": [212, 172, 40], "szorst": .5},
-    "papa": {"tex": None, "kol": [60, 60, 62], "szorst": .9}, "lampa": {"tex": None, "kol": [240, 240, 236], "szorst": .4},
+    "papa": {"tex": "bitumen", "m": 10.0, "kol": [62, 62, 64], "szorst": 1.0}, "lampa": {"tex": None, "kol": [240, 240, 236], "szorst": .4},
     "tabliczka": {"tex": None, "kol": [40, 70, 150], "szorst": .4}, "domofon": {"tex": None, "kol": [120, 122, 124], "szorst": .4, "metal": .4},
-    "zwir": {"tex": None, "kol": [128, 124, 118], "szorst": .95},
+    "zwir": {"tex": "gravel_floor_02", "m": 2.0, "kol": [128, 124, 118], "szorst": 1.0},
     "stal_balustrada": {"tex": None, "kol": [62, 64, 66], "szorst": .45, "metal": .6},
     "balustrada_prety": {"tex": None, "kol": [58, 60, 62], "szorst": .45, "metal": .6, "alfa": "balustrada_prety.png"},
     "balustrada_blacha_zielona": {"tex": None, "kol": [52, 128, 74], "szorst": .5, "metal": .2},
@@ -54,7 +54,7 @@ P = {
     "kostka": {"tex": "concrete_pavers", "m": 1.0, "kol": [150, 146, 140], "szorst": 1.0},
     "kraweznik": {"tex": BET, "m": 1.5, "kol": [160, 158, 152], "szorst": 1.0},
     "asfalt": {"tex": "clean_asphalt", "m": 4.0, "kol": [92, 92, 94], "szorst": 1.0},
-    "trawa_podglad": {"tex": None, "kol": [88, 112, 62], "szorst": .95},
+    "trawa_podglad": {"tex": None, "kol": [86, 112, 58], "szorst": 1.0},   # tylko tło podglądu (1,2 km), w grze horyzont
     # bar mleczny 34b (IMG_1631–1634), garaże (IMG_1418–1429, IMG_1632), pawilony przy głównej ulicy
     "tynk_bar": tynk([222, 196, 120], "brud_32a_wejscie.png"), "mural_zawisza": tynk([222, 196, 120], None, "mural_zawisza.png"),
     "tablica_bar": {"tex": None, "kol": [22, 22, 24], "szorst": .4, "nakl": "tablica_bar.png"},
@@ -62,7 +62,7 @@ P = {
     "pilaster": tynk([226, 224, 216]), "garaz_a": tynk([214, 172, 142], "brud_32a_slepa.png"), "garaz_b": tynk([222, 204, 170], "brud_32a_slepa.png"),
     "brama_drewno_czerw": {"tex": "weathered_brown_planks", "m": 1.2, "kol": [128, 58, 44], "szorst": .9},
     "brama_drewno_braz": {"tex": "weathered_brown_planks", "m": 1.2, "kol": [104, 68, 46], "szorst": .9},
-    "brama_uchylna": {"tex": None, "kol": [112, 74, 50], "szorst": .5, "metal": .3},
+    "brama_uchylna": {"tex": "painted_metal_shutter", "m": 2.0, "kol": [112, 74, 50], "szorst": .8},
     "tynk_paw_a": tynk([232, 232, 228]), "tynk_paw_b": tynk([226, 214, 170]),
     "pas_pomarancz": {"tex": None, "kol": [222, 110, 40], "szorst": .5}, "pas_granat": {"tex": None, "kol": [36, 52, 110], "szorst": .5},
     # teren (OSM + zdjęcia)
@@ -88,12 +88,13 @@ P = {
     "plot_prety": {"tex": None, "kol": [112, 50, 42], "szorst": .5, "metal": .4, "alfa": "plot_prety.png"},
     "zywoplot": {"tex": None, "wlasna": "zywoplot_lisc.png", "m": 1.0, "kol": [255, 255, 255], "szorst": .9},
     "zywoplot_brzeg": {"tex": None, "kol": [255, 255, 255], "szorst": .9, "alfa": "zywoplot_brzeg.png"},
+    "zywoplot_galazki": {"tex": None, "kol": [255, 255, 255], "szorst": .85, "alfa": "zywoplot_galazki.png"},   # karty gałązek
     "latarnia_beton": {"tex": BET, "m": 1.5, "kol": [150, 150, 146], "szorst": 1.0},
     "latarnia_stal": {"tex": None, "kol": [70, 74, 78], "szorst": .45, "metal": .6},
     "oprawa": {"tex": None, "kol": [90, 94, 98], "szorst": .4, "metal": .5},
     # budynki z obrysu (ogolny.py) — kolory: zdjęcia właściciela IMG_1669–1677, lotnicze IMG_1664–1668; reszta ZAŁOŻENIE
     "szpital_bialy": tynk([226, 228, 226], "brud_32a_wejscie.png"), "szpital_szary": tynk([196, 198, 200], "brud_32a_wejscie.png"),
-    "market_elewacja": {"tex": None, "kol": [210, 206, 198], "szorst": .55, "metal": .2},
+    "market_elewacja": {"tex": "exterior_wall_cladding_03", "m": 1.96, "kol": [210, 206, 198], "szorst": .8},
     "tynk_szary": tynk([196, 194, 186], "brud_32a_wejscie.png"), "tynk_kremowy": tynk([222, 210, 180], "brud_32a_wejscie.png"),
     "tynk_bialy": tynk([232, 230, 224], "brud_32a_wejscie.png"), "tynk_attyka": tynk([180, 178, 172]),
     # bloki przy Wyszyńskiego (IMG_1722–1726, 23.11): pola kolorów — żółty, łososiowy, szaroliliowy, jasnozielony; nadbudówki beż
@@ -105,14 +106,16 @@ P = {
     # SOR biały z lądowiskiem (IMG_1727), przedszkole kremowe (IMG_1736–1737)
     "szkola_ziel": tynk([166, 192, 146], "brud_32a_wejscie.png"), "market_niebieski": {"tex": None, "kol": [30, 70, 150], "szorst": .45, "metal": .3},
     "market_rama": {"tex": None, "kol": [190, 192, 194], "szorst": .5, "metal": .2}, "market_szklo": {"tex": None, "kol": [70, 92, 110], "szorst": .06, "metal": .5},
-    "lamele": {"tex": None, "kol": [150, 155, 160], "szorst": .45, "metal": .6}, "szpital_panel": {"tex": None, "kol": [120, 124, 132], "szorst": .45, "metal": .4},
-    "szpital_krem": tynk([226, 216, 196], "brud_32a_wejscie.png"), "szpital_cegla": {"tex": None, "kol": [176, 92, 62], "szorst": .9},
+    "dach_ciemny": {"tex": "corrugated_iron_02", "m": 2.7, "kol": [70, 74, 80], "szorst": .8},
+    "lamele": {"tex": None, "kol": [150, 155, 160], "szorst": .45, "metal": .6}, "szpital_panel": {"tex": "exterior_wall_cladding_03", "m": 1.96, "kol": [112, 116, 122], "szorst": .8},
+    "szpital_krem": tynk([226, 216, 196], "brud_32a_wejscie.png"), "szpital_cegla": {"tex": "red_bricks_04", "m": 2.5, "kol": [160, 86, 62], "szorst": 1.0},
     "ladowisko_krzyz_tlo": {"tex": None, "kol": [190, 40, 36], "szorst": .8}, "ladowisko_krzyz": {"tex": None, "kol": [236, 236, 232], "szorst": .8},
     "pole_logo": {"tex": None, "kol": [236, 238, 240], "szorst": .4},
-    "ladowisko": {"tex": BET, "m": 2.0, "kol": [120, 124, 128], "szorst": 1.0}, "przedszkole": tynk([218, 204, 176], "brud_32a_wejscie.png"),
+    "ladowisko_okrag": {"tex": None, "kol": [232, 196, 40], "szorst": .8},
+    "ladowisko": {"tex": BET, "m": 2.0, "kol": [168, 170, 172], "szorst": 1.0}, "przedszkole": tynk([218, 204, 176], "brud_32a_wejscie.png"),
     "dachowka": {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [168, 70, 44], "szorst": .8},
     "palik": {"tex": "weathered_brown_planks", "m": 1.2, "kol": [150, 118, 84], "szorst": .9},
-    "trawa": {"tex": None, "kol": [86, 112, 58], "szorst": 1.0, "gra": "BraxRegionTrawa"},
+    "trawa": {"tex": "grass004", "m": 2.5, "kol": [86, 112, 58], "szorst": 1.0, "gra": "BraxRegionTrawa"},
 }
 # bloki czterokondygnacyjne: palety ze zdjęć (1 = blok 30 IMG_1611, 2 = blok 32 IMG_1605, 3 = blok przy garażach IMG_1420, 4 = blok 28 kremowy)
 for k, (dol, a, b, sz) in {1: ([168, 140, 120], [214, 196, 150], [206, 176, 110], [208, 190, 140]),
@@ -127,7 +130,12 @@ for nr, k in (("28", 4), ("30", 1), ("32", 2), ("34", 3), ("36", 3), ("38", 1)):
 # średnie barwy tekstur (sRGB średniej liniowej, pomiar plików 2K Poly Haven 23.11) — do przeliczenia barwy docelowej na _Color
 SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, .368, .327], "concrete_pavers": [.409, .372, .328],
            "clean_asphalt": [.270, .274, .276], "weathered_brown_planks": [.380, .300, .232],
-           "clay_roof_tiles_02": [.590, .323, .177]}
+           "clay_roof_tiles_02": [.590, .323, .177],
+           # 23.11 wieczorem (właściciel: „tekstury wszędzie, jak najbardziej realistycznie”) — pomiar plików 2K jak wyżej
+           "bitumen": [.230, .214, .206], "gravel_floor_02": [.672, .656, .613], "painted_metal_shutter": [.502, .516, .527],
+           "exterior_wall_cladding_03": [.678, .654, .607], "corrugated_iron_02": [.348, .345, .319], "red_bricks_04": [.386, .243, .145],
+           "grass004": [.384, .431, .197], "herringbone_pavement_03": [.264, .232, .195], "red_brick_pavers": [.455, .250, .198],
+           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745]}
 
 
 def tint(v):
@@ -137,10 +145,28 @@ def tint(v):
     return [round(((c / 255) ** 2.2 / (s ** 2.2)) ** (1 / 2.2), 4) for c, s in zip(v["kol"], a)]
 
 
+# 23.11, 17:58 właściciel: „dosłownie wszystko ma mieć tekstury premium”. Malowana blacha, stal, PCV, farba na jezdni,
+# drzwi i drobne wyposażenie dostają skan lakierowanej blachy (blue_metal_plate z Poly Haven odbarwiony do szarości —
+# lakier_blacha: ta sama faktura, nierówności i normalne, barwę daje kol). Bez tekstury zostaje tylko szkło (gładkie,
+# odbija niebo — tak jak prawdziwe) i świecące soczewki lamp/sygnalizatorów.
+LAKIER = ["plycina", "listwa_braz", "pcv", "parapet", "obrobka", "drzwi_czerwone", "drzwi_braz", "drzwi_stal", "stal", "kratka",
+          "skrzynka_gaz", "rura_gaz", "tabliczka", "domofon", "stal_balustrada", "balustrada_blacha_zielona", "balustrada_blacha_ciemna",
+          "balustrada_blacha_biala", "balustrada_blacha_braz", "okap_blacha", "pas_pomarancz", "pas_granat", "linia_biala",
+          "stal_ocynk", "sygnal_szary", "sygnal_czarny", "wiata_rama", "szlaban_pomarancz", "szlaban_czerwony", "szlaban_bialy",
+          "paczkomat", "kontener_zielony", "kontener_zolty", "kontener_niebieski", "hydrant", "plot_rama", "latarnia_stal", "oprawa",
+          "market_niebieski", "market_rama", "lamele", "ladowisko_krzyz_tlo", "ladowisko_krzyz", "ladowisko_okrag", "pole_logo"]
+for _k in LAKIER:
+    if _k in P and not P[_k].get("tex"):
+        P[_k] = dict(P[_k], tex="lakier_blacha", m=2.5, szorst=max(.6, P[_k].get("szorst", .6)))
+P["kostka_jezdnia"] = {"tex": "herringbone_pavement_03", "m": 2.4, "kol": [124, 122, 118], "szorst": 1.0}   # IMG_1758–1765
+P["kostka_parking"] = {"tex": "red_brick_pavers", "m": 1.8, "kol": [128, 82, 70], "szorst": 1.0}            # zatoki IMG_1760–1761
+P["plac_zabaw"] = {"tex": "playground_sand", "m": 2.07, "kol": [196, 170, 128], "szorst": 1.0}
+
 for _k, _v in P.items():
     _v["tint"] = tint(_v)
 
 if __name__ == "__main__":
     out = Path(sys.argv[1] if len(sys.argv) > 1 else "."); out.mkdir(parents=True, exist_ok=True)
     (out / "paleta.json").write_text(json.dumps(P, ensure_ascii=False, indent=0), encoding="utf-8")
+    (out / "srednie.json").write_text(json.dumps(SREDNIE), encoding="utf-8")          # podgląd: średnie tekstur do odcienia
     print(len(P), "materiałów")

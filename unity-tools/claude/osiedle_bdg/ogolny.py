@@ -97,10 +97,10 @@ def zbuduj(poly, sp, nazwa="budynek"):
                 dd["i"] += [b0 + q for q in cz["i"]]
         if sp.get("market") and fronty:
             market_front(S, nazwa, max(fronty, key=lambda f: f[4]), H, att)
-        if sp.get("ladowisko"):                    # SOR (IMG_1727, IMG_1744–1751): zadaszenie z lameli nad całym dachem, lądowisko
-            sor_dach(S, nazwa, P, y + att)
+        if sp.get("ladowisko"):                    # SOR: cofnięta kondygnacja, płyta lądowiska z siatką (IMG_1744–1753)
+            Qd = sor_dach(S, nazwa, P, y, sp.get("front_kier", (0, -1)))
         if sp.get("sor") and fronty:
-            sor_front(S, nazwa, max(fronty, key=lambda f: f[4]), H)
+            sor_front(S, nazwa, max(fronty, key=lambda f: f[4]), H, sp.get("drogi"))
         if sp.get("dach", "plaski") == "koperta":
             dach_koperta(S, nazwa, P, y + .05, sp.get("dach_mat", "dachowka"), sp.get("spadek", 28))
         else:
@@ -128,42 +128,161 @@ def sciana(g, mat, o, t, n, L, H, okna, uv1):
             B.okno(g, o, t, n, u0, u1, v0, v1, "klatka", 0)        # witryna: jedno pole, bez parapetu mieszkaniowego
 
 
-def sor_dach(S, g, P, y):
-    """Zadaszenie z lameli 1,6 m nad dachem, wysunięte 1,5 m (rama + lamele co 1 m, widać niebo między nimi) na słupach;
-    lądowisko 22 x 22 m w środku: płyta z obwódką i białym krzyżem na czerwonym polu (lotnicze IMG_1751)."""
-    mr = list(P.minimum_rotated_rectangle.exterior.coords)[:4]
-    e1 = np.subtract(mr[1], mr[0]); e2 = np.subtract(mr[2], mr[1])
-    if np.linalg.norm(e1) < np.linalg.norm(e2): mr = mr[1:] + mr[:1]; e1, e2 = e2, e1
-    L, W = float(np.linalg.norm(e1)), float(np.linalg.norm(e2)); a = np.array([e1[0], 0, e1[1]]) / L; b = np.array([e2[0], 0, e2[1]]) / W
-    o = np.array([mr[0][0], 0, mr[0][1]]); yl = y + 1.6; ok = 1.5
-    Q = lambda u, v, yy=yl: o + a * u + b * v + UP * yy
-    for (p0, kx, dl) in ((Q(-ok, -ok), a, L + 2 * ok), (Q(-ok, W + ok - .4), a, L + 2 * ok), (Q(-ok, -ok), b, W + 2 * ok), (Q(L + ok - .4, -ok), b, W + 2 * ok)):
-        ky = b if kx is a else a
-        S.box(g, "lamele", p0, kx, UP, ky, dl, .35, .4)
-    u = -ok + 1.0
-    while u < L + ok - 1.0:
-        S.box(g, "lamele", Q(u, -ok + .4) + UP * .05, a, UP, b, .08, .25, W + 2 * ok - .8); u += 1.0
-    for (u, v) in ((2, 2), (L - 2, 2), (2, W - 2), (L - 2, W - 2), (L / 2, 2), (L / 2, W - 2)):
-        S.rura(g, "stal", Q(u, v, y), Q(u, v, yl), .15, seg=8)
-    c = (L / 2, W / 2); hw = 11.0; yh = yl + .45
-    S.box(g, "ladowisko", Q(c[0] - hw, c[1] - hw, yl + .1), a, UP, b, 2 * hw, .35, 2 * hw)
-    S.box(g, "ladowisko_krzyz_tlo", Q(c[0] - 4, c[1] - 4, yh), a, UP, b, 8, .02, 8, bez=("-y",))
-    for (u0, v0, du, dv) in ((c[0] - 3, c[1] - .8, 6, 1.6), (c[0] - .8, c[1] - 3, 1.6, 6)):
-        S.box(g, "ladowisko_krzyz", Q(u0, v0, yh + .02), a, UP, b, du, .02, dv, bez=("-y",))
-    for (p0, kx, dl) in ((Q(c[0] - hw, c[1] - hw, yh), a, 2 * hw), (Q(c[0] - hw, c[1] + hw - .4, yh), a, 2 * hw)):
-        S.box(g, "ladowisko_krzyz", p0, kx, UP, b, dl, .02, .4, bez=("-y",))
+def _zewn(Q, a, b):
+    """Normalna zewnętrzna boku a–b wielokąta Q (x, z)."""
+    t = nrm(b - a); n = nrm(np.cross(UP, t))
+    m = (a + b) / 2 + n * .3
+    return t, (-n if Q.contains(shapely.geometry.Point(m[0], m[2])) else n)
 
 
-def sor_front(S, g, f, H):
-    """Front SOR: szary panel na środkowe 60 % ściany (od 2. kondygnacji do 1,5 m pod dachem, pole na napis — bez
-    prawdziwej nazwy, ZASADY 7.4), parterowy przeszklony pawilon wejścia 7 m przed fasadą z daszkiem z blachy."""
+def _boki(Q):
+    pts = list(Q.exterior.coords)
+    for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+        a = np.array([x0, 0., z0]); b = np.array([x1, 0., z1]); L = float(np.linalg.norm(b - a))
+        if L > .2:
+            t, n = _zewn(Q, a, b); yield a, b, t, n, L
+
+
+def _plyta(S, g, Q, y0, h, m_gora, m_bok, m_spod):
+    """Płyta o obrysie Q (x, z) od y0 do y0+h: góra, spód, boki."""
+    for tri in shapely.constrained_delaunay_triangles(Q).geoms:
+        c = [np.array([x, 0., z]) for x, z in list(tri.exterior.coords)[:3]]
+        if np.cross(c[1] - c[0], c[2] - c[0])[1] < 0: c[1], c[2] = c[2], c[1]
+        S.tri_list(g, m_gora, [q + UP * (y0 + h) for q in c], (0., 1., 0.), (1., 0., 0.), [(q[0], q[2]) for q in c], None, [0, 1, 2])
+        S.tri_list(g, m_spod, [q + UP * y0 for q in (c[0], c[2], c[1])], (0., -1., 0.), (1., 0., 0.), [(q[0], q[2]) for q in (c[0], c[2], c[1])], None, [0, 1, 2])
+    for a, b, t, n, L in _boki(Q):
+        S.quad(g, m_bok, a + UP * y0, b + UP * y0, b + UP * (y0 + h), a + UP * (y0 + h), t=t, kier=n)
+
+
+def _przod(P, fk, glebokosc):
+    """Część obrysu P do `glebokosc` m od najbardziej wysuniętego punktu w kierunku fk (front)."""
+    f = np.array(fk, float); f /= np.linalg.norm(f); pr = np.array([-f[1], f[0]])
+    s0 = max(float(np.dot(p, f)) for p in P.exterior.coords)
+    A = f * (s0 + 20); B_ = f * (s0 - glebokosc)
+    return shapely.geometry.Polygon([tuple(A + pr * 900), tuple(A - pr * 900), tuple(B_ - pr * 900), tuple(B_ + pr * 900)])
+
+
+def sor_dach(S, g, P, y, fk):
+    """Dach SOR (IMG_1727, IMG_1744–1753, lotnicze IMG_1751, zdjęcie z internetu w 17:27): nad przednią częścią budynku
+    cofnięta o 2 m kondygnacja techniczna — ciemne przeszklenie z pionowymi szprosami, nad nią płyta lądowiska
+    wysunięta 1,2 m poza obrys, jasna; po obwodzie siatka bezpieczeństwa z lameli odchylonych na zewnątrz (to, co z ulicy
+    wygląda jak „grzebień”). Oznakowanie lądowiska przyszpitalnego wg ICAO zał. 14: biały krzyż z czerwonym H, biała
+    obwódka pola, żółty okrąg przyziemienia. Tylna część budynku zostaje z płaskim dachem z papy."""
+    przod = _przod(P, fk, 46.0)
+    Qc = P.buffer(-2.0, join_style=2).intersection(przod)
+    if Qc.geom_type != "Polygon": Qc = max(Qc.geoms, key=lambda q: q.area)
+    Qc = Qc.simplify(.2)
+    hc = 3.4
+    for a, b, t, n, L in _boki(Qc):                       # ściany kondygnacji technicznej: szkło + szprosy co 1,5 m
+        S.quad(g, "market_szklo", a + UP * y, b + UP * y, b + UP * (y + hc), a + UP * (y + hc), t=t, kier=n)
+        for u in np.arange(.75, L - .3, 1.5):
+            S.box(g, "stal", a + t * (u - .04) + UP * y, t, UP, n, .08, hc, .1, bez=("-z", "-y", "+y"))
+        S.box(g, "obrobka", a + UP * y, t, UP, n, L, .35, .12, bez=("-z", "-y"))
+    yd = y + hc
+    Qd = P.buffer(1.2, join_style=2).intersection(przod)
+    if Qd.geom_type != "Polygon": Qd = max(Qd.geoms, key=lambda q: q.area)
+    Qd = Qd.simplify(.3)
+    _plyta(S, g, Qd, yd, .5, "ladowisko", "szpital_bialy", "beton_daszek")
+    yt = yd + .5
+    # siatka bezpieczeństwa: lamele co 0,5 m, 1,5 m, odchylone 25° na zewnątrz, rama zewnętrzna
+    for a, b, t, n, L in _boki(Qd):
+        d = nrm(n * math.cos(math.radians(25)) + UP * math.sin(math.radians(25)))
+        a0 = a + UP * (yt - .05)
+        for u in np.arange(.25, L, .5):
+            S.box(g, "lamele", a0 + t * (u - .02), t, d, n, .04, 1.5, .02, bez=("-y",))
+        S.rura(g, "lamele", a0 + d * 1.5, a0 + t * L + d * 1.5, .035, seg=6)
+    # oznakowanie na środku płyty
+    c = np.array([Qd.centroid.x, 0., Qd.centroid.y]); f = np.array([fk[0], 0., fk[1]], float); f = nrm(f); r = nrm(np.cross(UP, f))
+    m = min(14.0, math.sqrt(Qd.area) / 2 - 3.0)
+    Kw = lambda u, v, du, dv, mat, dy: S.box(g, mat, c + r * u + f * v + UP * (yt + dy), r, UP, f, du, .012, dv, bez=("-y",))
+    for (u0, v0, du, dv) in ((-m, -m, 2 * m, .5), (-m, m - .5, 2 * m, .5), (-m, -m + .5, .5, 2 * m - 1), (m - .5, -m + .5, .5, 2 * m - 1)):
+        Kw(u0, v0, du, dv, "ladowisko_krzyz", .01)
+    R0, R1 = m * .72, m * .72 + .9                             # żółty okrąg przyziemienia
+    kat = np.linspace(0, 2 * math.pi, 49)
+    for f0, f1 in zip(kat, kat[1:]):
+        P_ = lambda rr, q: c + r * (rr * math.cos(q)) + f * (rr * math.sin(q)) + UP * (yt + .014)
+        S.quad(g, "ladowisko_okrag", P_(R0, f0), P_(R0, f1), P_(R1, f1), P_(R1, f0), kier=UP)
+    k = m * .45; w = k * .42                                  # biały krzyż (ramiona szer. 0,84k) z czerwonym H
+    Kw(-k, -w, 2 * k, 2 * w, "ladowisko_krzyz", .02)
+    Kw(-w, -k, 2 * w, k - w, "ladowisko_krzyz", .02); Kw(-w, w, 2 * w, k - w, "ladowisko_krzyz", .02)
+    hh, hw = w * .8, w * .6; sw = .3 * hw                    # czerwone H w środku krzyża
+    Kw(-hw, -hh, sw, 2 * hh, "ladowisko_krzyz_tlo", .03); Kw(hw - sw, -hh, sw, 2 * hh, "ladowisko_krzyz_tlo", .03)
+    Kw(-hw + sw, -sw / 2, 2 * hw - 2 * sw, sw, "ladowisko_krzyz_tlo", .03)
+    return Qd
+
+
+def sor_front(S, g, f, H, sp_drogi=None):
+    """Front SOR (IMG_1727, IMG_1744–1751): dwa kremowe skrzydła wysunięte 2,5 m na pełną wysokość, między nimi
+    wklęsła, łukowa ściana z szarego panelu (bez prawdziwej nazwy, ZASADY 7.4) i pasem okien nad nią; w parterze
+    przeszklony pawilon wejścia pod ciemnym dachem czterospadowym ściętym u góry; przed nim podjazd dla karetek —
+    pętla z asfaltu między betonowymi murkami wokół ogrodu (lotnicze IMG_1751)."""
     a, b, t, n, L = f
-    u0, u1 = L * .2, L * .8
-    S.box(g, "szpital_panel", a + t * u0 + UP * 6.0, t, UP, n, u1 - u0, H - 7.5, .18, bez=("-z",))
-    S.box(g, "market_szklo", a + t * (u0 - 2) + UP * .0, t, UP, n, u1 - u0 + 4, 4.0, 7.0, bez=("-z",))
-    S.box(g, "obrobka", a + t * (u0 - 3) + UP * 4.0, t, UP, n, u1 - u0 + 6, .3, 8.5, bez=("-z",))
-    for uu in np.linspace(u0 - 2.5, u1 + 2.5, 6):
-        S.rura(g, "stal", a + t * uu + n * 8.0, a + t * uu + n * 8.0 + UP * 4.0, .12, seg=8)
+    w = min(6.0, L * .24); wys = 2.5
+    for u in (0.0, L - w):                                    # skrzydła
+        S.box(g, "szpital_krem", a + t * u - UP * .25, t, UP, n, w, H + .85, wys, bez=("-z",))
+        S.box(g, "obrobka", a + t * (u - .04) + UP * (H + .6) - n * .04, t, UP, n, w + .08, .08, wys + .12)
+    u0, u1 = w, L - w; um = (u0 + u1) / 2; pol = (u1 - u0) / 2
+    d = lambda u: .25 + (wys - .25) * ((u - um) / pol) ** 2     # wklęsły łuk: przy skrzydłach 2,5 m, w środku 0,25 m
+    us = np.linspace(u0, u1, 25)
+    dd = lambda u: 2 * (wys - .25) * (u - um) / pol ** 2          # pochodna łuku
+    luk = np.concatenate([[0.], np.cumsum([math.hypot(q - p, d(q) - d(p)) for p, q in zip(us, us[1:])])])
+    for (v0, v1, mat) in ((7.2, H - 3.4, "szpital_panel"), (H - 3.4, H - 1.6, "market_szklo"), (H - 1.6, H + .6, "szpital_krem")):
+        pts, nn, tt, uv = [], [], [], []
+        for k_, u in enumerate(us):
+            T_ = nrm(t + n * dd(u)); N_ = nrm(n - t * dd(u))
+            for v in (v0, v1):
+                pts.append(a + t * u + n * d(u) + UP * v); nn.append(N_); tt.append(T_); uv.append((luk[k_], v))
+        idx = []
+        for k_ in range(len(us) - 1):
+            i0, i1, i2, i3 = 2 * k_, 2 * k_ + 2, 2 * k_ + 3, 2 * k_ + 1
+            if np.dot(np.cross(pts[i1] - pts[i0], pts[i3] - pts[i0]), nn[i0]) < 0: idx += [i0, i3, i2, i0, i2, i1]
+            else: idx += [i0, i1, i2, i0, i2, i3]
+        S.tri_list(g, mat, pts, nn, tt, uv, None, idx)
+    for p, q in zip(us, us[1:]):                              # spód i góra łuku
+        A = a + t * p; B_ = a + t * q
+        for yy, kk in ((7.2, -UP), (H + .6, UP)):
+            S.quad(g, "obrobka" if kk[1] > 0 else "szpital_krem", A + UP * yy, B_ + UP * yy, B_ + n * d(q) + UP * yy, A + n * d(p) + UP * yy, kier=kk)
+    for p in np.linspace(u0 + 1.2, u1 - 1.2, 6):                # szprosy pasa okien
+        S.box(g, "stal", a + t * (p - .04) + n * (d(p) + .02) + UP * (H - 3.4), t, UP, n, .08, 1.8, .06)
+    # przeszklony pawilon wejścia
+    S.box(g, "market_szklo", a + t * (u0 - 1) - UP * .25, t, UP, n, u1 - u0 + 2, 4.25, 7.0, bez=("-z",))
+    for p in np.linspace(u0 - 1, u1 + 1, 7):
+        S.box(g, "stal", a + t * (p - .05) + n * 7.0, t, UP, n, .1, 4.0, .06)
+    # ciemny dach czterospadowy ścięty u góry, okap na +5,0, szczyt +6,1, wysunięty 9,5 m
+    x0, x1, zz = u0 - 3.5, u1 + 3.5, 9.5; y0, y1, ins = 5.0, 6.1, 2.6
+    E = lambda u, v, yy: a + t * u + n * v + UP * yy
+    e0, e1, e2, e3 = E(x0, 0, y0), E(x1, 0, y0), E(x1, zz, y0), E(x0, zz, y0)
+    g0, g1, g2, g3 = E(x0 + ins, 0, y1), E(x1 - ins, 0, y1), E(x1 - ins, zz - ins, y1), E(x0 + ins, zz - ins, y1)
+    S.quad(g, "dach_ciemny", e3, e2, g2, g3, kier=nrm(n + UP))
+    S.quad(g, "dach_ciemny", e2, e1, g1, g2, kier=nrm(t + UP))
+    S.quad(g, "dach_ciemny", e0, e3, g3, g0, kier=nrm(-t + UP))
+    S.quad(g, "dach_ciemny", g0, g3, g2, g1, kier=UP)
+    S.quad(g, "beton_daszek", e0, e1, e2, e3, kier=-UP)
+    for (p, q, nn) in ((e3, e2, n), (e2, e1, t), (e0, e3, -t)):        # blenda okapu 0,35 m
+        S.quad(g, "obrobka", p - UP * .35, q - UP * .35, q, p, kier=nn)
+    for uu in np.linspace(x0 + .5, x1 - .5, 6):
+        S.rura(g, "stal", E(uu, zz - .6, 0), E(uu, zz - .6, y0 - .35), .14, seg=8)
+    # pod dachem jezdnia dojazdowa z asfaltu do samych drzwi (nie trawnik, nie drzewa) — teren wycięty
+    S.quad(g, "asfalt", E(x0, -.05, .005), E(x1, -.05, .005), E(x1, 9.6, .005), E(x0, 9.6, .005), kier=UP)
+    S.wyciecia = getattr(S, "wyciecia", []) + [shapely.geometry.Polygon([(q[0], q[2]) for q in (E(x0, -.05, 0), E(x1, -.05, 0), E(x1, 9.6, 0), E(x0, 9.6, 0))])]
+    # podjazd: półpierścień R 14–20 m, murki 1,0 m po obu stronach (przerwy tam, gdzie dochodzą drogi z OSM), ogród w środku;
+    # teren pod podjazdem i ogrodem wycięty (S.wyciecia -> osiedle.MODELE), żeby jezdnie i pasy nie prześwitywały
+    c = a + t * (L / 2) + n * 9.5; R0, R1 = 14.0, 20.0
+    kat = np.linspace(0, math.pi, 28)
+    P_ = lambda r, f_: c + t * (r * math.cos(f_)) + n * (r * math.sin(f_))
+    drogi = sp_drogi or []
+    przy_drodze = lambda q: any(dr.distance(shapely.geometry.Point(q[0], q[2])) < 3.2 for dr in drogi)
+    for f0, f1 in zip(kat, kat[1:]):
+        S.quad(g, "asfalt", P_(R0 - .25, f0) + UP * .005, P_(R0 - .25, f1) + UP * .005, P_(R1 + .25, f1) + UP * .005, P_(R1 + .25, f0) + UP * .005, kier=UP)
+        for r in (R0 - .25, R1):
+            A_, B_ = P_(r, f0), P_(r, f1); tt = nrm(B_ - A_)
+            if przy_drodze((A_ + B_) / 2): continue
+            S.box(g, "beton_daszek", A_ - tt * .02, tt, UP, nrm(np.cross(tt, UP)), float(np.linalg.norm(B_ - A_)) + .04, .95, .25, bez=("-y",))
+        A_, B_ = P_(R0 - .25, f0) + UP * .08, P_(R0 - .25, f1) + UP * .08
+        tri = [c + UP * .08, A_, B_]
+        if np.cross(tri[1] - tri[0], tri[2] - tri[0])[1] < 0: tri = [tri[0], tri[2], tri[1]]
+        S.tri_list(g, "trawa", tri, (0., 1., 0.), (1., 0., 0.), [(q[0], q[2]) for q in tri], None, [0, 1, 2])
+    S.wyciecia = getattr(S, "wyciecia", []) + [shapely.geometry.Polygon([(q[0], q[2]) for q in [P_(R1 + .25, f_) for f_ in kat] + [c]]).buffer(0)]
 
 
 def market_front(S, g, f, H, att):

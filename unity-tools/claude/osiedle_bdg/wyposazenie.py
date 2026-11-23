@@ -93,7 +93,9 @@ def zbuduj(d, G, szer, okno, drzewa, latarnie):
         if np.linalg.norm([p[0] - q[0], p[1] - q[1]]) < .3: n = np.array([-tt[2], 0, tt[0]])
         return X3(p[0], .12, p[1]), tt, n
 
+    zajete = G["bud"].buffer(.3)                  # budynki, podjazd SOR itp. (teren je omija) — nic tam nie stawiamy
     for (p, t) in pkt:
+        if zajete.contains(Point(*p)): continue
         if not W(p): continue
         hw, am, ba = t.get("highway"), t.get("amenity"), t.get("barrier")
         if hw == "traffic_signals":
@@ -130,12 +132,13 @@ def zbuduj(d, G, szer, okno, drzewa, latarnie):
         elif t.get("emergency") == "fire_hydrant":
             hydrant(S, X3(p[0], .12, p[1])); ile("hydranty")
     for (pts, t) in linie:
-        L = LineString(pts).intersection(okno)
+        L = LineString(pts).intersection(okno).difference(zajete)
         if L.is_empty: continue
         geoms = [L] if L.geom_type == "LineString" else [g for g in getattr(L, "geoms", []) if g.geom_type == "LineString"]
         for g in geoms:
             if t.get("barrier") == "hedge": zywoplot(S, list(g.coords), R); ile("zywoploty")
             else: plot(S, list(g.coords)); ile("ploty")
+    latarnie = [q for q in latarnie if not zajete.contains(Point(q[0], q[1]))]
     for (x, z, typ) in latarnie:
         dr = droga_przy((x, z), ulice, 20)
         tt = dr[2] if dr else np.array([1., 0, 0])
@@ -238,20 +241,46 @@ def plot(S, pts):
 
 
 def zywoplot(S, pts, R):
-    """Żywopłot strzyżony: rdzeń z liści (nieprzezroczysty) + zewnętrzna warstwa liści wycinana 6 cm dalej (nierówna
-    sylwetka), odcinki ~1 m o wysokości 1,0–1,35 m i szerokości 0,8–1,0 m (IMG_1631, IMG_1637)."""
+    """Żywopłot strzyżony (IMG_1631, IMG_1637) — bez klocków (właściciel 23.11, 18:11): ciemny rdzeń o zaokrąglonym przekroju
+    (cofnięty 0,15 m) obłożony kartami gałązek liści (atlas drzewo_klaster/galazki.png, te same gałązki co korony drzew),
+    karty prawie styczne do powierzchni, nachodzące na siebie, nachylone losowo — nierówna, liściasta sylwetka.
+    ~30 kart na metr (60 trójkątów) + rdzeń ~24 trójkąty/m."""
     g = "zielen"
     for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
         a, b = X3(x0, .08, z0), X3(x1, .08, z1); L = float(np.linalg.norm(b - a))
         if L < .3: continue
         t = (b - a) / L; n = np.array([-t[2], 0, t[0]])
-        s = 0.0
-        while s < L:
-            dl = min(L - s, R.uniform(.8, 1.3)); h = R.uniform(1.0, 1.35); w = R.uniform(.8, 1.0)
-            c = a + t * (s + dl / 2)
-            B(S, g, "zywoplot", c, t, n, dl + .02, h, w, bez=("-y",))
-            B(S, g, "zywoplot_brzeg", c, t, n, dl + .14, h + .07, w + .12, bez=("-y",))
-            s += dl
+        h = R.uniform(1.0, 1.3); w = R.uniform(.8, 1.0); hw = w / 2 - .15; hr = h - .15; r = .22
+        prof = [(-hw, 0), (-hw, hr - r), (-hw + r * .29, hr - r * .29), (-hw + r, hr), (hw - r, hr), (hw - r * .29, hr - r * .29), (hw, hr - r), (hw, 0)]
+        P = lambda s_, u, v: a + t * s_ + n * u + UP * v
+        for (u0, v0), (u1, v1) in zip(prof, prof[1:]):          # rdzeń: wytłoczony profil, normalne na zewnątrz
+            nn = nrm(n * (v1 - v0) * -1 + UP * (u1 - u0)) if True else None
+            q = [P(-.05, u0, v0), P(L + .05, u0, v0), P(L + .05, u1, v1), P(-.05, u1, v1)]
+            S.quad(g, "zywoplot", *q, kier=nrm(n * ((u0 + u1) / 2) + UP * ((v0 + v1) / 2 - hr * .4)))
+        for kon, sgn in ((0.0, -1), (L, 1)):                     # czoła rdzenia
+            pts_ = [P(kon, u, v) for (u, v) in prof]
+            for k in range(1, len(pts_) - 1):
+                tri = [pts_[0], pts_[k], pts_[k + 1]]
+                if np.dot(np.cross(tri[1] - tri[0], tri[2] - tri[0]), t * sgn) < 0: tri = [tri[0], tri[2], tri[1]]
+                S.tri_list(g, "zywoplot", tri, t * sgn, n, [(q[0], q[1]) for q in tri], None, [0, 1, 2])
+        # karty gałązek: boki (3 poziomy), góra (2 rzędy), co ~0,3 m wzdłuż
+        miejsca = [(-1, .18 + k * (hr - .25) / 2.6) for k in range(3)] + [(1, .18 + k * (hr - .25) / 2.6) for k in range(3)] + [(0, -.45), (0, .45)]
+        s_ = R.uniform(0, .15)
+        while s_ < L:
+            for (strona, par) in miejsca:
+                if strona == 0:
+                    pos = P(s_ + R.uniform(-.1, .1), par * hw * .9, hr + .02); out = nrm(UP * 1.0 + n * par * .6)
+                else:
+                    pos = P(s_ + R.uniform(-.1, .1), strona * (hw + .02), par + R.uniform(-.08, .08)); out = nrm(n * strona + UP * .25)
+                nk = nrm(out + np.array([R.uniform(-.35, .35), R.uniform(-.1, .3), R.uniform(-.35, .35)]))
+                gora = nrm(np.cross(nk, np.cross(UP * .8 + out * .6 + t * R.uniform(-.5, .5), nk)))
+                bok = nrm(np.cross(gora, nk)); sz = R.uniform(.55, .78)
+                c0 = pos + nk * R.uniform(.0, .08) - gora * sz * .35
+                k = R.randrange(4); cu, cv = (k % 2) * .5, (k // 2) * .5
+                q = [c0 - bok * sz / 2, c0 + bok * sz / 2, c0 + bok * sz / 2 + gora * sz, c0 - bok * sz / 2 + gora * sz]
+                idx = [0, 1, 2, 0, 2, 3] if np.dot(np.cross(q[1] - q[0], q[3] - q[0]), nk) > 0 else [0, 2, 1, 0, 3, 2]
+                S.tri_list(g, "zywoplot_galazki", q, nrm(nk + out), bok, [(cu, cv), (cu + .5, cv), (cu + .5, cv + .5), (cu, cv + .5)], None, idx)
+            s_ += R.uniform(.26, .34)
 
 
 def latarnia(S, o, ku_jezdni, glowna):

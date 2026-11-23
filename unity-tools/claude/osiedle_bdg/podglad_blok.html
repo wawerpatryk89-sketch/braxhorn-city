@@ -26,10 +26,11 @@ const CC=(Q.get('cc')||'9,0,-20').split(',').map(Number); sun.position.copy(dir.
 sun.castShadow=true; sun.shadow.mapSize.set(4096,4096); Object.assign(sun.shadow.camera,{left:-SC,right:SC,top:SC,bottom:-SC,near:1,far:SC*6}); sun.shadow.bias=-.0004; sun.shadow.normalBias=.02
 const lin=c=>c.map(v=>Math.pow(v/255,2.2))
 const TCACHE={}; function tex(slug,rep,kind){const k=slug+'_'+kind; if(!TCACHE[k]){const b=ld('tex/'+k+'.jpg'); b.wrapS=b.wrapT=THREE.RepeatWrapping; b.anisotropy=8; if(kind==='diff')b.colorSpace=THREE.SRGBColorSpace; TCACHE[k]=b} const t=TCACHE[k].clone(); t.repeat.set(1/rep,1/rep); return t}
-const AVG={white_stucco_02:[.683,.679,.666],brushed_concrete_04:[.409,.368,.327],concrete_pavers:[.409,.372,.328],clean_asphalt:[.27,.274,.276],weathered_brown_planks:[.380,.300,.232],clay_roof_tiles_02:[.590,.323,.177]}
+const AVG=await (await fetch('out/srednie.json')).json()
+function bezOdwr(m){m.side=THREE.DoubleSide; m.customProgramCacheKey=()=>'bezOdwr'; m.onBeforeCompile=s=>{s.fragmentShader=s.fragmentShader.replace('normal *= faceDirection;','').replace('bitangent = bitangent * faceDirection;','')}; return m}
 function pbr(slug,rep,target,rough=1,ext={}){
   const a=AVG[slug].map(v=>Math.pow(v,2.2)), t=lin(target)
-  const m=new THREE.MeshStandardMaterial({map:tex(slug,rep,'diff'),normalMap:tex(slug,rep,'nor'),roughnessMap:tex(slug,rep,'rough'),roughness:rough,metalness:0})
+  const m=new THREE.MeshStandardMaterial({map:tex(slug,rep,'diff'),normalMap:tex(slug,rep,'nor'),roughnessMap:slug==='grass004'?null:tex(slug,rep,'rough'),roughness:slug==='grass004'?.95:rough,metalness:0})
   m.color.setRGB(t[0]/a[0],t[1]/a[1],t[2]/a[2],THREE.LinearSRGBColorSpace); m.normalScale.set(1,1)
   if(ext.brud||ext.naklejka){
     const br=ext.brud?(TCACHE[ext.brud]||(TCACHE[ext.brud]=ld('out/'+ext.brud))):null, nk=ext.naklejka?(TCACHE[ext.naklejka]||(TCACHE[ext.naklejka]=ld('out/'+ext.naklejka))):null
@@ -80,7 +81,7 @@ function okno(cellW,mebli){return new THREE.ShaderMaterial({uniforms:{tPok:{valu
 // materiały z paleta.json (ta sama paleta trafia do gry)
 const PAL=await (await fetch('out/paleta.json')).json(); const M={}
 for(const [k,v] of Object.entries(PAL)){
-  if(v.alfa){const t=ld('out/'+v.alfa); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; M[k]=new THREE.MeshStandardMaterial({map:t,alphaTest:.5,roughness:v.szorst,metalness:v.metal||0,side:THREE.DoubleSide}); const c=lin(v.kol); M[k].color.setRGB(c[0],c[1],c[2],THREE.LinearSRGBColorSpace); continue}
+  if(v.alfa){const t=ld('out/'+v.alfa); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; M[k]=bezOdwr(new THREE.MeshStandardMaterial({map:t,alphaTest:.5,roughness:v.szorst,metalness:v.metal||0,side:THREE.DoubleSide})); const c=lin(v.kol); M[k].color.setRGB(c[0],c[1],c[2],THREE.LinearSRGBColorSpace); continue}
   if(v.wlasna){const t=ld('out/'+v.wlasna); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; t.repeat.set(1/v.m,1/v.m); M[k]=new THREE.MeshStandardMaterial({map:t,roughness:v.szorst}); continue}
   if(v.tex) M[k]=pbr(v.tex,v.m,v.kol,v.szorst,{brud:v.brud,naklejka:v.nakl,sila:1})
   else M[k]=flat(v.kol,v.szorst,v.metal||0)
@@ -91,13 +92,53 @@ const g=await new GLTFLoader().loadAsync('out/'+(Q.get('plik')||'blok_32a.glb'))
 g.scene.traverse(o=>{ if(!o.isMesh) return; const mat=o.name.split('|')[1]||(o.parent&&o.parent.name.split('|')[1]); const m=M[mat]
   if(!m) console.log('BRAK',o.name); o.material=m||flat([255,0,255],.5); o.castShadow=!/okno|teren/.test(mat||''); o.receiveShadow=true })
 sc.add(g.scene)
+
+// trawa 3D jak w grze (BraxClaudeTrawa): kępy = 3 płaszczyzny co 60°, karty z atlasu grass_medium_01, tylko w promieniu od kamery
+if(+(Q.get('trawa3d')||0)>0){
+  const R=+Q.get('trawa3d'), GEST=+(Q.get('gest')||28), HK=+(Q.get('hk')||.10), oko=num('oko')
+  const AT=await (await fetch('tex/detail/kepy_atlas.json')).json(); const at=ld('tex/detail/kepy_atlas.png'); at.colorSpace=THREE.SRGBColorSpace
+  const gl=lin(PAL.trawa.kol), cm=AT.srednia_lin, mat=bezOdwr(new THREE.MeshStandardMaterial({map:at,alphaTest:.45,side:THREE.DoubleSide,roughness:.95}))
+  mat.color.setRGB(Math.min(4,gl[0]*1.15/cm[0]),Math.min(4,gl[1]*1.15/cm[1]),Math.min(4,gl[2]*1.15/cm[2]),THREE.LinearSRGBColorSpace)
+  const tri=[]; let pole=0; g.scene.updateMatrixWorld(true)
+  g.scene.traverse(o=>{ if(!o.isMesh) return; const mn=o.name.split('|')[1]||(o.parent&&o.parent.name.split('|')[1]); if(mn!=='trawa') return
+    const p=o.geometry.attributes.position, ix=o.geometry.index, v=new THREE.Vector3(), n=ix?ix.count:p.count, P=k=>v.fromBufferAttribute(p,ix?ix.getX(k):k).applyMatrix4(o.matrixWorld).clone()
+    for(let k=0;k<n;k+=3){const a=P(k),b=P(k+1),c=P(k+2); const cx=(a.x+b.x+c.x)/3-oko[0], cz=(a.z+b.z+c.z)/3-oko[2]; if(cx*cx+cz*cz>(R+15)*(R+15)) continue
+      const ar=new THREE.Vector3().crossVectors(b.clone().sub(a),c.clone().sub(a)).length()/2; if(ar<1e-4) continue; tri.push([a,b,c,ar]); pole+=ar}})
+  let s=12345; const rnd=()=>((s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff)
+  const kom=AT.komorki, lis=kom.map(()=>[]), m4=new THREE.Matrix4(), q=new THREE.Quaternion(), e=new THREE.Euler()
+  for(const [a,b,c,ar] of tri){ let want=ar*GEST, n=Math.floor(want)+(rnd()<want%1?1:0)
+    for(let k=0;k<n;k++){ let u=rnd(), w=rnd(); if(u+w>1){u=1-u;w=1-w}
+      const x=a.x+(b.x-a.x)*u+(c.x-a.x)*w, y=a.y+(b.y-a.y)*u+(c.y-a.y)*w, z=a.z+(b.z-a.z)*u+(c.z-a.z)*w
+      const dx=x-oko[0], dz=z-oko[2]; if(dx*dx+dz*dz>R*R) continue
+      const zan=Math.min(1,Math.max(0,(R-Math.sqrt(dx*dx+dz*dz))/(R*.45))); if(rnd()>zan) continue; const hs=HK*(.75+.4*rnd())*(.6+.4*zan); e.set((rnd()-.5)*.2,rnd()*6.283,(rnd()-.5)*.2); q.setFromEuler(e)
+      lis[Math.floor(rnd()*kom.length*.9999)].push(m4.clone().compose(new THREE.Vector3(x,y-.01,z),q,new THREE.Vector3(hs,hs,hs)))}}
+  let ile=0
+  kom.forEach((K,ci)=>{ if(!lis[ci].length) return; const asp=K.aspekt, pos=[], uv=[], nr=[], id=[]
+    for(let qd=0;qd<3;qd++){const an=qd*Math.PI/3, dx=Math.cos(an)*asp/2, dz=Math.sin(an)*asp/2, b0=pos.length/3
+      pos.push(-dx,0,-dz, dx,0,dz, dx,1,dz, -dx,1,-dz); uv.push(K.u,K.v, K.u+K.w,K.v, K.u+K.w,K.v+K.h, K.u,K.v+K.h); for(let i=0;i<4;i++) nr.push(0,1,0)
+      id.push(b0,b0+1,b0+2,b0,b0+2,b0+3)}
+    const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2)); geo.setAttribute('normal',new THREE.Float32BufferAttribute(nr,3)); geo.setIndex(id)
+    const im=new THREE.InstancedMesh(geo,mat,lis[ci].length); lis[ci].forEach((M,i)=>im.setMatrixAt(i,M)); im.receiveShadow=true; im.frustumCulled=false; sc.add(im); ile+=lis[ci].length})
+  window.KEPY=ile
+}
 // drzewa z biblioteki właściciela (te same modele co w grze), punkty z osiedle_punkty.json
 if(Q.get('drzewa')==='1'){
+  // drzewa jak w grze: pień drzewo_verdant + korona z kart-gałązek (drzewo_klaster, BraxClaudeOsiedleDrzewa), młode =
+  // las_drzewko (tree_small_02 w wersji na telefon), iglaste = las_sosna_a; normalne korony sferyczne (shader OsiedleLiscie)
   const PT=await (await fetch('out/osiedle_punkty.json')).json(); const GL=new GLTFLoader()
-  const wz={}; for(const [k,f,h] of [['duze','drzewo_verdant.glb',13],['srednie','drzewo_verdant.glb',9],['mlode','drzewo_verdant.glb',5.5],['iglaste','las_sosna_a.glb',14]]){
-    const m=(await GL.loadAsync('lib/'+f)).scene; const bb=new THREE.Box3().setFromObject(m); const s=h/(bb.max.y-bb.min.y); wz[k]={m,s,y:-bb.min.y*s}
-    m.traverse(o=>{if(/liscie_[12]/.test(o.name)||(o.parent&&/liscie_[12]/.test(o.parent.name)))o.visible=false; if(o.isMesh){o.castShadow=true;o.receiveShadow=true; if(o.material){o.material.alphaTest=.5; o.material.side=THREE.DoubleSide}}})}
-  let i=0; for(const [x,z,t] of PT.drzewa){const w=wz[t]||wz.duze; const c=w.m.clone(); c.scale.setScalar(w.s*(.85+.3*((i*0.618)%1))); c.position.set(x,w.y+.08,-z); c.rotation.y=i*2.4; sc.add(c); i++}
+  const ver=(await GL.loadAsync('lib/drzewo_verdant.glb')).scene, kl=(await GL.loadAsync('lib/drzewo_klaster.glb')).scene
+  const korona=kl.getObjectByName('liscie_0'); const kg=korona.geometry.clone(); kg.computeBoundingBox(); const c=new THREE.Vector3(); kg.boundingBox.getCenter(c); c.y+=(kg.boundingBox.max.y-kg.boundingBox.min.y)*.08
+  const P=kg.attributes.position, N=kg.attributes.normal, v=new THREE.Vector3(); for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i).sub(c).normalize(); N.setXYZ(i,v.x,v.y*1.1+.15,v.z)} N.needsUpdate=true
+  const lm=['a','b'].map(k=>{const t=ld('lib/galazki_'+k+'.png'); t.colorSpace=THREE.SRGBColorSpace; return bezOdwr(new THREE.MeshStandardMaterial({map:t,alphaTest:.45,side:THREE.DoubleSide,roughness:.85}))})
+  ver.traverse(o=>{if(/^liscie_/.test(o.name)) o.visible=false; if(o.isMesh){o.castShadow=true;o.receiveShadow=true}})
+  const wz={}; const zrob=(m,h,k)=>{const bb=new THREE.Box3().setFromObject(m); const s=h/(bb.max.y-bb.min.y); wz[k]={m,s,y:-bb.min.y*s}}
+  for(const v_ of [0,1]){const t=ver.clone(true); const l0=t.getObjectByName('liscie_0'); const ko=new THREE.Mesh(kg,lm[v_]); ko.castShadow=true; ko.receiveShadow=true
+    if(l0.isMesh){l0.geometry=kg; l0.material=lm[v_]; l0.visible=true} else {l0.clear(); l0.add(ko); l0.visible=true}
+    wz['lisc'+v_]=t}
+  zrob(wz.lisc0,13,'duze'); zrob(wz.lisc1,13,'duze_b'); zrob(wz.lisc0,9,'srednie'); zrob(wz.lisc1,9,'srednie_b')
+  for(const [k,f,h] of [['mlode','las_drzewko.glb',5.5],['iglaste','las_sosna_a.glb',14]]){
+    const m=(await GL.loadAsync('lib/'+f)).scene; m.traverse(o=>{if(/liscie_[12]/.test(o.name))o.visible=false; if(o.isMesh){o.castShadow=true;o.receiveShadow=true; if(o.material&&/liscie/.test(o.name+(o.parent?o.parent.name:''))){o.material.alphaTest=.5; bezOdwr(o.material)}}}); zrob(m,h,k)}
+  let i=0; for(const [x,z,t] of PT.drzewa){const w=wz[(t==='duze'||t==='srednie')&&(i%2)?t+'_b':t]||wz.duze; const cl=w.m.clone(); cl.scale.setScalar(w.s*(.85+.3*((i*0.618)%1))); cl.position.set(x,w.y+.08,-z); cl.rotation.y=i*2.4; sc.add(cl); i++}
 }
 const big=new THREE.Mesh(new THREE.PlaneGeometry(1200,1200),M.trawa_podglad); big.rotation.x=-Math.PI/2; big.position.y=-.05; big.receiveShadow=true; sc.add(big)
 const cam=new THREE.PerspectiveCamera(+(Q.get('fov')||56.9),W/H,.1,2500); cam.position.set(...num('oko')); cam.lookAt(...num('cel'))

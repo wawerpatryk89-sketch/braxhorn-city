@@ -125,9 +125,17 @@ def bramka(S, A, B, wstecz, y0):
         S.rura("boisko", "stal_ocynk", p0, p1, .04 if np.linalg.norm(p1 - p0) > 1.2 else .03, seg=8)
 
 
+def czy_kostka(u):
+    """Jezdnia z kostki: uliczki osiedlowe/dojazdy bez asfaltu w OSM (zdjęcia właściciela IMG_1758–1765)."""
+    if u.get("nawierzchnia") in ("asphalt", "concrete"): return False
+    if u.get("nawierzchnia") in ("paving_stones", "sett", "cobblestone"): return True
+    return u["klasa"] in ("service", "residential", "living_street", "unclassified")
+
+
 def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
     S = Siatka()
     jezdnie, glowne, piesze, parkingi, boiska, place, rowery = [], [], [], [], [], [], []
+    jezdnie_kostka, parkingi_kostka, parkingi_czerwone = [], [], []
     for u in d["ulice"]:
         if len(u["linia"]) < 2: continue
         ln = LineString(u["linia"])
@@ -136,6 +144,7 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
             if u.get("jednokier") == "yes" and (u.get("pasy") or "").isdigit(): w = int(u["pasy"]) * 3.4
             g = ln.buffer(w / 2, cap_style=2, join_style=1)
             jezdnie.append(g)
+            if czy_kostka(u): jezdnie_kostka.append(g)
             if u["klasa"] in GLOWNE: glowne.append(g)
         elif u["klasa"] == "cycleway":
             rowery.append(ln.buffer(1.0, cap_style=1, join_style=1))
@@ -145,7 +154,10 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
         if len(t["linia"]) < 3: continue
         try: p = Polygon(t["linia"]).buffer(0)
         except Exception: continue
-        if t["rodzaj"] == "parking": parkingi.append(p)
+        if t["rodzaj"] == "parking":
+            parkingi.append(p)
+            if t.get("nawierzchnia") in (None, "paving_stones", "sett", "concrete:plates"): parkingi_kostka.append(p)
+            if t.get("nawierzchnia") is None and p.area <= 450: parkingi_czerwone.append(p)   # zatoki przy blokach
         elif t["rodzaj"] == "pitch": boiska.append(p)
         elif t["rodzaj"] == "playground": place.append(p)
     bud = unary_union(budynki_poly)
@@ -182,9 +194,35 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
     LIN = linie_glownej(d, GLOW)
     if zebry: LIN = unary_union([LIN, unary_union(zebry).intersection(JEZ)])   # przejścia z OSM, wycięte z asfaltu
     ASF = JEZ.difference(LIN)
+    # nawierzchnia (właściciel 23.11, 18:03, IMG_1758–1765): uliczki osiedlowe i dojazdy bez znacznika surface w OSM to
+    # szara kostka, zatoki parkingowe przy blokach — czerwona kostka; asfalt tam, gdzie OSM mówi asphalt, i na głównych
+    KOS = unary_union(jezdnie_kostka).intersection(OKNO).difference(GLOW).difference(LIN) if jezdnie_kostka else Polygon()
+    if las is not None: KOS = KOS.difference(las)
+    ASF = ASF.difference(KOS)
+    PARK_K = unary_union(parkingi_kostka).intersection(PARK) if parkingi_kostka else Polygon()
+    PARK_C = unary_union(parkingi_czerwone).intersection(PARK_K) if parkingi_czerwone else Polygon()
+    # białe linie miejsc postojowych (IMG_1760–1761): co 2,5 m prostopadle do dłuższego boku, 5 m w głąb od obu brzegów;
+    # wycięte z nawierzchni (żadnych nakładających się płaszczyzn)
+    lp = []
+    for q in getattr(PARK, "geoms", [PARK]):
+        if q.is_empty or q.area < 25: continue
+        r = list(q.minimum_rotated_rectangle.exterior.coords)[:4]
+        e1 = np.subtract(r[1], r[0]); e2 = np.subtract(r[2], r[1])
+        if np.linalg.norm(e1) < np.linalg.norm(e2): r = r[1:] + r[:1]; e1, e2 = e2, e1
+        Lr, Wr = np.linalg.norm(e1), np.linalg.norm(e2); a_, b_ = e1 / Lr, e2 / Wr; o_ = np.array(r[0])
+        for brzeg, kier in ((o_, b_), (o_ + e2, -b_)):
+            for u in np.arange(1.0, Lr - .9, 2.5):
+                p0 = brzeg + a_ * u; lp.append(LineString([tuple(p0), tuple(p0 + kier * min(5.0, Wr / 2 - .5))]).buffer(.06, cap_style=2))
+            if Wr < 11: break
+    LINP = unary_union(lp).intersection(PARK).buffer(0) if lp else Polygon()
+    PARK = PARK.difference(LINP); PARK_K = PARK_K.difference(LINP); PARK_C = PARK_C.difference(LINP)
     plaski(S, "teren", "asfalt", ASF.simplify(.05), Y_JEZDNIA)
+    plaski(S, "teren", "kostka_jezdnia", KOS.simplify(.05), Y_JEZDNIA)
     plaski(S, "teren", "linia_biala", LIN.simplify(.01), Y_JEZDNIA)
-    plaski(S, "teren", "asfalt_parking", PARK.simplify(.05), Y_JEZDNIA)
+    plaski(S, "teren", "linia_biala", LINP.simplify(.01), Y_JEZDNIA)
+    plaski(S, "teren", "asfalt_parking", PARK.difference(PARK_K).simplify(.05), Y_JEZDNIA)
+    plaski(S, "teren", "kostka_jezdnia", PARK_K.difference(PARK_C).simplify(.05), Y_JEZDNIA)
+    plaski(S, "teren", "kostka_parking", PARK_C.simplify(.05), Y_JEZDNIA)
     plaski(S, "teren", "asfalt_parking", PLAC_G.difference(KRAW_PRE := POZIOM0.buffer(.15, join_style=2)).simplify(.05), Y_JEZDNIA + .01)
     plaski(S, "teren", "kostka", CHOD.simplify(.05), Y_CHODNIK)
     plaski(S, "teren", "asfalt_czerwony", ROW.simplify(.05), Y_CHODNIK)

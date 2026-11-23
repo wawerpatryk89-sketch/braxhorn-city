@@ -22,7 +22,7 @@ using UnityEngine.Rendering;
 //    pasy koszenia 1.8 m / 9 %; pod drzewami wąski pierścień ziemi z liśćmi (maska 0.5 m/px);
 //  • trawnik = SAMA płaska powierzchnia (siatka z góry, bez boków) w otworze nawierzchni — nigdy na niej ani pod nią w tym samym
 //    miejscu; brzeg = betonowe obrzeże (stoi 4–5 cm nad trawą, zakrywa styk), żadnego pionowego „boku z trawy”;
-//  • warstwa 3D: kępy instancjami (BraxClaudeTrawa + BraxClaudeTrawaDane, atlas grass_medium_01) — murawa 6.5 cm, ~11/m²,
+//  • warstwa 3D: kępy instancjami (BraxClaudeTrawa + BraxClaudeTrawaDane, atlas grass_medium_01) — murawa 10 cm (23.11, było 6.5), ~11/m²,
 //    kolor nasady = kolor trawnika pod nią (zanik kęp z odległością niewidoczny: trawnik z daleka ma ten sam kolor);
 //  • stare trawniki miasta (glb + wszystko z materiałem „Ziemia: prawdziwa trawa Grass004”): materiał podmieniony W MIEJSCU
 //    (nic nie kładziemy na stare), pionowe/strome trójkąty przeniesione do osobnego materiału ziemi (bez trawy na ścianach).
@@ -483,7 +483,7 @@ public static class BraxRegionTrawa
     // Murawa w prostokącie: siatka 0.3 m z przesunięciem (~11 kęp / m²), 6 cm od obrzeża, bez dziur, bez zasłoniętych miejsc.
     static void Siatka(Wpis w, System.Random rnd, float[,] soil, List<Vector4> list, List<float> ys)
     {
-        const float hMur = .065f / .32f;
+        const float hMur = .10f / .32f;   // 23.11: 6.5 → 10 cm (właściciel: „dłuższa trawa, nie taka płaska”, całe miasto)
         var r = w.obszar;
         for (float z = r.yMin + .06f; z < r.yMax - .36f; z += .3f)
             for (float x = r.xMin + .06f; x < r.xMax - .36f; x += .3f)
@@ -523,7 +523,7 @@ public static class BraxRegionTrawa
         // murawa 11/m² (koszona), łąka (duże stare połacie) 5/m² wyższych kęp; budżet: najwyżej 160 tys. na jedną siatkę
         float dens = laka ? 5f : 11f;
         dens = Mathf.Min(dens, Mathf.Min(160000f, budzet) / total);
-        const float hMur = .065f / .32f;
+        const float hMur = .10f / .32f;   // 23.11: 6.5 → 10 cm (właściciel: „dłuższa trawa, nie taka płaska”, całe miasto)
         foreach (var (a, b, c, area) in tri)
         {
             float want = area * dens; int n = (int)want; if (rnd.NextDouble() < want - n) n++;

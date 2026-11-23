@@ -157,6 +157,18 @@ def plot_prety(out, px=256):
     Image.fromarray(rgba, "RGBA").save(out)
 
 
+def zywoplot_galazki(dst):
+    """Karty żywopłotu: atlas gałązek drzewo_klaster/galazki.png (repo, Poly Haven CC0 — liście island_tree/jacaranda)
+    przemalowany jak shader koron (OsiedleLiscie: luminancja / średnia × zieleń) na ciemniejszą zieleń strzyżonego ligustru."""
+    import numpy as np
+    src = Path(__file__).resolve().parents[3] / "unity-city/Assets/Source/Claude/Osiedle/models/drzewo_klaster/galazki.png"
+    a = np.asarray(Image.open(src).convert("RGBA"), float) / 255
+    lin = a[..., :3] ** 2.2; lum = lin @ np.array([.2126, .7152, .0722])
+    L = np.array([.26, .44, .13]) ** 2.2
+    o = np.clip(.85 * L[None, None, :] * (lum / .014248)[..., None] + .15 * lin, 0, 1) ** (1 / 2.2)
+    Image.fromarray((np.dstack([o, a[..., 3:]]) * 255).astype(np.uint8), "RGBA").save(dst)
+
+
 def zywoplot(liscie_rgba, out_lisc, out_brzeg, px=1024, seed=7):
     """Liście żywopłotu złożone z prawdziwego skanu liści (Poly Haven shrub_02, CC0 — atlas z park_shrub.glb biblioteki
     właściciela): ok. 2600 listków 4–7 cm, losowy obrót, trzy warstwy z cieniowaniem w głąb. Kafel 1 x 1 m.
@@ -213,7 +225,7 @@ def wypiecz(src, dst_gra, dst_prywatne):
         tlo.alpha_composite(nk)
         (dst_prywatne if nazwa == "mural_zawisza" else dst_gra).joinpath(nazwa + ".png").parent.mkdir(parents=True, exist_ok=True)
         tlo.convert("RGB").save((dst_prywatne if nazwa == "mural_zawisza" else dst_gra) / (nazwa + ".png"))
-    for f in ("balustrada_prety.png", "plot_prety.png", "zywoplot_lisc.png", "zywoplot_brzeg.png"):
+    for f in ("balustrada_prety.png", "plot_prety.png", "zywoplot_lisc.png", "zywoplot_brzeg.png", "zywoplot_galazki.png"):
         Image.open(src / f).save(dst_gra / f)
 
 
@@ -229,6 +241,7 @@ if __name__ == "__main__":
     plot_prety(out / "plot_prety.png")
     import sys as _s
     if len(_s.argv) > 2: zywoplot(_s.argv[2], out / "zywoplot_lisc.png", out / "zywoplot_brzeg.png")
+    zywoplot_galazki(out / "zywoplot_galazki.png")
     for nr in ("28", "30", "32", "34", "36", "38"):
         napis_blok(out / ("napis_blok_%s.png" % nr), nr)
     print("ok")
