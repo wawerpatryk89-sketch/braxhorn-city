@@ -16,8 +16,10 @@ using W = BraxWnetrzaKit;
 //  - floors: Wooden Floor 02 downstairs (the stair's treads too), Wooden Floor 01 upstairs, Rock Tile Floor (light granite
 //    slabs) in the hall, the kitchen and the showers, Square Tiles 03 in the bathrooms; Rustic Stone Wall behind the master's
 //    tub;
-//  - outside: the ground floor's walls and the entrance in Rock Wall 16 (dark hewn stone under the white upper floor in
-//    Plastered Wall 05), the terrace and the stair to the beach in Rock Tile Floor, the retaining walls in Stone Wall 04;
+//  - outside: the ground floor's walls and the entrance in Rustic Stone Wall (warm sandstone under the ivory upper floor in
+//    Plastered Wall 05), the terrace and the stair to the beach in Rock Tile Floor, the retaining walls in Rustic Stone Wall
+//    too (21:02 "te szare ściany mi się kompletnie nie podobają": they were the grey Rock Wall 16 and Stone Wall 04, and the
+//    plaster near-white, which the preview drew blue-grey);
 //    the stair to the beach 4 m wide between stone cheek walls with steel handrails (it had glass panes standing out on the
 //    slope); the steel light, stainless (it read black: a fully metallic surface in this shader reflects only the dark sky
 //    hemisphere).
@@ -28,8 +30,8 @@ public static partial class BraxChampionsWille
     // the means of the new photo-scans (sRGB 0-255, measured 23.11 on the 1k maps; their brightest 1 %: Foundation.Jasne)
     public static readonly Vector3 MeanPlastered05 = new Vector3(69, 73, 77), MeanWhitewashedBrick = new Vector3(166, 153, 140),
         MeanRusticStone = new Vector3(119, 102, 76), MeanDarkPaneledWood = new Vector3(42, 21, 17), MeanWoodenFloor01 = new Vector3(177, 126, 78),
-        MeanWoodenFloor02 = new Vector3(184, 136, 98), MeanSquareTiles03 = new Vector3(110, 97, 85), MeanRockWall16 = new Vector3(48, 43, 36),
-        MeanStoneWall04 = new Vector3(111, 103, 95), MeanRockTileFloor = new Vector3(148, 141, 131), MeanRoughLinen = new Vector3(145, 171, 205);
+        MeanWoodenFloor02 = new Vector3(184, 136, 98), MeanSquareTiles03 = new Vector3(110, 97, 85),
+        MeanRockTileFloor = new Vector3(148, 141, 131), MeanRoughLinen = new Vector3(145, 171, 205);
     public const float WSufitDol = .025f;        // the oak ceiling of the living floor, under the plaster
     static Material wCegla, wKamien, wPanel, wPlytki, wGranit, wDrewnoSufit, wDywan, wKsiazki0, wKsiazki1, wLen;
 
@@ -45,18 +47,21 @@ public static partial class BraxChampionsWille
     /// <summary>The island's terrace and paths: Rock Tile Floor, light granite slabs.</summary>
     public static Material GranitTarasu() =>
         BraxChampionsFoundation.Fotoskan("willa2_taras_granit", "rock_tile_floor", 1.96f, new Color(.80f, .78f, .74f), MeanRockTileFloor);
-    /// <summary>The island's retaining walls (the pad's and the site's): Stone Wall 04, light grey.</summary>
+    /// <summary>The island's retaining walls (the pad's, the site's, the stair's cheeks): Rustic Stone Wall, warm sandstone
+    /// (owner 23.11 21:02 "te szare ściany mi się kompletnie nie podobają": they were Stone Wall 04, grey).</summary>
     public static Material KamienMuruWyspy() =>
-        BraxChampionsFoundation.Fotoskan("willa2_mur_kamien", "stone_wall_04", 1.7f, new Color(.66f, .64f, .61f), MeanStoneWall04);
+        BraxChampionsFoundation.Fotoskan("willa2_mur_piaskowiec", "rustic_stone_wall", 1.52f, new Color(.72f, .63f, .50f), MeanRusticStone);
 
     // villa 2's finish (first in PlanWyspa: over Materials(2))
     static void WPremiumMaterialy()
     {
         var F = (Func<string, string, float, Color, Vector3, Material>)BraxChampionsFoundation.Fotoskan;
-        renderIn = Inside(Tynk("willa2_sciany_tynk", new Color(.90f, .89f, .86f), 2f), BraxChampionsInteriorLight.Walls);
-        ceiling = Inside(Tynk("willa2_sufit_tynk", new Color(.95f, .95f, .93f), 2f), .9f);
-        render = Tynk("willa2_elewacja_tynk", new Color(.93f, .93f, .91f), 2f); BraxChampionsInteriorLight.Facade(render);
-        stone = F("willa2_elewacja_kamien", "rock_wall_16", 2f, new Color(.36f, .34f, .31f), MeanRockWall16); BraxChampionsInteriorLight.Facade(stone);
+        // owner 23.11 21:02 ("te szare ściany mi się kompletnie nie podobają"): no grey wall in the house - the plaster warm
+        // ivory inside and out, the ceilings warm white, the stone warm sandstone (Rustic Stone Wall, as the fireplace wall)
+        renderIn = Inside(Tynk("willa2_sciany_krem", new Color(.93f, .88f, .79f), 2f), .80f);
+        ceiling = Inside(Tynk("willa2_sufit_cieply", new Color(.97f, .95f, .90f), 2f), .95f);
+        render = Tynk("willa2_elewacja_krem", new Color(.96f, .93f, .87f), 2f); BraxChampionsInteriorLight.Facade(render);
+        stone = F("willa2_elewacja_piaskowiec", "rustic_stone_wall", 1.52f, new Color(.70f, .61f, .48f), MeanRusticStone); BraxChampionsInteriorLight.Facade(stone);
         deck = GranitTarasu();
         murOporowy = KamienMuruWyspy();
         floorGf = Inside(F("willa2_podloga_parter", "wooden_floor_02", 1.94f, new Color(.64f, .48f, .35f), MeanWoodenFloor02), .9f);

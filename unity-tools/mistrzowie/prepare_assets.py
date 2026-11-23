@@ -41,9 +41,10 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  'damp_beach_sand',
                  # 23.11 owner (his island villa screenshots: "gipsowane ... ściany i sufity", "cegłę ozdobną", "elewacja, kostka"),
                  # from his own Poly Haven list (MATERIALY-WLASCICIELA): plaster, whitewashed brick, stone and dark wood walls,
-                 # the floors, the bathrooms' tiles, the hewn-stone facade, the retaining walls, the terrace, linen curtains
+                 # the floors, the bathrooms' tiles, the terrace, linen curtains (21:02 "te szare ściany ... nie podobają": the
+                 # grey Rock Wall 16 facade and Stone Wall 04 retaining walls gone, both now the warm Rustic Stone Wall)
                  'plastered_wall_05','whitewashed_brick','rustic_stone_wall','dark_paneled_wood','wooden_floor_01','wooden_floor_02',
-                 'square_tiles_03','rock_wall_16','stone_wall_04','rock_tile_floor','rough_linen',
+                 'square_tiles_03','rock_tile_floor','rough_linen',
                  # the island villa's tennis court: a smooth painted concrete (an acrylic hard court is paint on a slab), tinted
                  'painted_concrete_02')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))

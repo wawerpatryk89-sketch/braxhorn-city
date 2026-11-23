@@ -16,6 +16,10 @@ const PALM_SCALE = parseFloat(process.env.PREVIEW_PALM_SCALE || '1');
 const PALM_HALF = process.env.PREVIEW_PALM_HALF === '1';
 // PREVIEW_FLAT=1: flat facets (every triangle its own normal) instead of the game-like smooth shading
 const FLAT = process.env.PREVIEW_FLAT === '1';
+// PREVIEW_COLOUR_CAP: the highest tint (gamma) drawn as it is (default 2.2). The game takes any tint (linear colour space,
+// the tint to the power 2.2): a dark photo-scan brought to white carries a tint of 3 and more (Plastered Wall 05 to ivory:
+// 3.1, 2.8, 2.4) - capped at 2.2 its hue is lost and the wall reads blue-grey (owner 23.11 21:02, the island villa's walls)
+const COLOUR_CAP = parseFloat(process.env.PREVIEW_COLOUR_CAP || '2.2');
 // PREVIEW_GROUND_TEX=<texture slug in the textures dir>: the ground plane is that real map (e.g. the region's Grass004
 // lawn) instead of flat grey; PREVIEW_GROUND_BANDS=JSON [[x0,x1,z0,z1,tex,tileMetres],..] draws the region's roads and
 // sidewalks over it (Unity coordinates, nominal metres).
@@ -36,7 +40,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-const process_flat=${FLAT};const MODELS_NEAR=${JSON.stringify(MODELS_NEAR)};const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const PALM_SCALE=${PALM_SCALE};const PALM_HALF=${PALM_HALF};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};const SKY=${JSON.stringify(SKY_HDR?'yes':'')};const SKY_ROT=${SKY_ROT};const SKY_EXPO=${SKY_EXPO};
+const process_flat=${FLAT};const CAP=${COLOUR_CAP};const MODELS_NEAR=${JSON.stringify(MODELS_NEAR)};const PALMS=${PALMS_ON};const PALM_GLB=${JSON.stringify(PALM_GLB)};const PALM_SCALE=${PALM_SCALE};const PALM_HALF=${PALM_HALF};const GROUND_TEX=${JSON.stringify(GROUND_TEX)};const GROUND_BANDS=${GROUND_BANDS};const SKY=${JSON.stringify(SKY_HDR?'yes':'')};const SKY_ROT=${SKY_ROT};const SKY_EXPO=${SKY_EXPO};
 // Unity's Skybox/Panoramic lookup of a Unity-space direction (three.js z mirrored), turned by the sky's rotation; v = 1 -
 // acos(y)/pi as BraxChampionsPBR _SKY_GLASS: RGBELoader uploads the .hdr with flipY, the zenith row at v 1 (until 17.11 the
 // preview read v = acos(y)/pi - the panorama upside down, the ground fill of a puresky smeared over the sky)
@@ -153,7 +157,7 @@ window.setup=async function(w,h){
           'gl_FragColor=vec4(col,1.);'+String.fromCharCode(10)+'#include <colorspace_fragment>'+String.fromCharCode(10)+'}'});
       g.computeVertexNormals();S.add(new THREE.Mesh(g,gm));continue;
     }
-    const p={color:S2L([Math.min(c[0],2.2),Math.min(c[1],2.2),Math.min(c[2],2.2)]),side:THREE.FrontSide,roughness:.75,metalness:0};
+    const p={color:S2L([Math.min(c[0],CAP),Math.min(c[1],CAP),Math.min(c[2],CAP)]),side:THREE.FrontSide,roughness:.75,metalness:0};
     if(m.slug){p.map=await tex('http://preview.local/tex/'+m.slug+'_diff_1k.jpg',true);p.normalMap=await tex('http://preview.local/tex/'+m.slug+'_nor_gl_1k.jpg',false);
       if(/ceiling|wall_white/.test(n))p.normalScale=new THREE.Vector2(.18,.18);}   // same _BumpScale as the Unity ceiling / white wall materials
     if(/brass|chrome|stainless|bronze|mirror/.test(n)){p.metalness=.9;p.roughness=/mirror|chrome/.test(n)?.08:.3;}

@@ -24,7 +24,7 @@ FIX = json.loads((TOOLS / "pbr-provider-preflight.json").read_text(encoding="utf
 
 # the owner's list (MATERIALY-WLASCICIELA.md on main, 23.11): the ones this house uses
 LISTA = ("plastered_wall_05", "whitewashed_brick", "rustic_stone_wall", "dark_paneled_wood", "wooden_floor_01", "wooden_floor_02",
-         "square_tiles_03", "rock_wall_16", "stone_wall_04", "rock_tile_floor", "rough_linen")
+         "square_tiles_03", "rock_tile_floor", "rough_linen")
 
 
 class Materialy(unittest.TestCase):
@@ -38,24 +38,49 @@ class Materialy(unittest.TestCase):
             self.assertIn('"' + s + '"', PREM + FUND)
         # each photo-scan brought to its colour by its measured mean, its brightest 1 % kept from clipping
         for s in ("whitewashed_brick", "rustic_stone_wall", "dark_paneled_wood", "wooden_floor_01", "wooden_floor_02", "square_tiles_03",
-                  "rock_wall_16", "stone_wall_04", "rock_tile_floor"):
+                  "rock_tile_floor"):
             self.assertIn('{"' + s + '",new Vector3(', FUND)
 
     def test_no_more_plain_paint(self):
         # the old walls and ceilings: Beige Wall 001, a paint with no grain (its brightest 1 % is its mean) - the "gips"
         self.assertIn('{"beige_wall_001",new Vector3(159,141,121)}', FUND)
-        self.assertIn('renderIn = Inside(Tynk("willa2_sciany_tynk"', PREM)
-        self.assertIn('ceiling = Inside(Tynk("willa2_sufit_tynk"', PREM)
+        self.assertIn('renderIn = Inside(Tynk("willa2_sciany_krem"', PREM)
+        self.assertIn('ceiling = Inside(Tynk("willa2_sufit_cieply"', PREM)
         self.assertIn("WPremiumMaterialy();", PLAN)
         self.assertLess(PLAN.index("WPremiumMaterialy();"), PLAN.index("Teren(); WTeren();"))
         self.assertIn("Wnetrze(2); Wyposazenie(2); WPremiumWnetrze(); Ogrod(2);", PLAN)
 
     def test_the_outside(self):
-        self.assertIn('stone = F("willa2_elewacja_kamien", "rock_wall_16"', PREM)          # the ground floor and the entrance
+        self.assertIn('stone = F("willa2_elewacja_piaskowiec", "rustic_stone_wall"', PREM)  # the ground floor and the entrance
         self.assertIn("deck = GranitTarasu();", PREM)
         self.assertIn("murOporowy = KamienMuruWyspy();", PREM)
         self.assertIn("var mur = d.rodzaj == Rodzaj.Wyspa ? BraxChampionsWille.KamienMuruWyspy() : kamien;", SITES)
         self.assertIn('steel.SetFloat("_ReflectionStrength", 1f);', PREM)                  # stainless, not black
+
+
+class NieSzare(unittest.TestCase):
+    """Owner 23.11 21:02: "Te szare ściany mi się kompletnie nie podobają." No grey wall left in the island villa."""
+
+    def test_warm_walls_ceilings_and_stone(self):
+        m = re.search(r'renderIn = Inside\(Tynk\("willa2_sciany_krem", new Color\(([\d.]+)f, ([\d.]+)f, ([\d.]+)f\)', PREM)
+        r, g, b = map(float, m.groups())
+        self.assertGreater(r - b, .1)                                                       # ivory, not white or grey
+        self.assertGreaterEqual(min(r, g, b), .75)                                          # light
+        m = re.search(r'ceiling = Inside\(Tynk\("willa2_sufit_cieply", new Color\(([\d.]+)f, ([\d.]+)f, ([\d.]+)f\)', PREM)
+        r, g, b = map(float, m.groups())
+        self.assertGreater(r - b, .04)
+        self.assertGreater(min(r, g, b), .88)
+        # the stone: warm sandstone (the fireplace wall's) on the facade, the retaining walls and the stair's cheeks
+        self.assertIn('"willa2_mur_piaskowiec", "rustic_stone_wall"', PREM)
+        for grey in ("rock_wall_16", "stone_wall_04", "MeanRockWall16", "MeanStoneWall04"):
+            self.assertNotIn(grey, PREM + FUND + PREP)
+            self.assertNotIn(grey, FIX)
+
+    def test_the_preview_draws_the_real_tint(self):
+        # the region's preview capped a tint at 2.2: the ivory plaster (tint 3.1, 2.8, 2.4) was drawn blue-grey
+        js = (TOOLS / "hotel_sobczak_preview/render3d.js").read_text(encoding="utf-8")
+        self.assertIn("process.env.PREVIEW_COLOUR_CAP", js)
+        self.assertIn("Math.min(c[0],CAP)", js)
 
 
 class Wnetrze(unittest.TestCase):
