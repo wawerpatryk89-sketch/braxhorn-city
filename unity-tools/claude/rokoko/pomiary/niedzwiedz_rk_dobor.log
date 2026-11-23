@@ -2,34 +2,34 @@ niedzwiedz_rk BRAX_RECE KIdle0           przenikanie przed: L 7.3 cm, P 5.4 cm |
 niedzwiedz_rk BRAX_RECE KIdle1           przenikanie przed: L 7.5 cm, P 7.5 cm | odwiedzenie ramienia max: L 18°, P 21°
 niedzwiedz_rk BRAX_RECE KIdle2           przenikanie przed: L 7.5 cm, P 7.5 cm | odwiedzenie ramienia max: L 14°, P 14°
 niedzwiedz_rk BRAX_RECE KWalk0           przenikanie przed: L 7.3 cm, P 6.9 cm | odwiedzenie ramienia max: L 19°, P 12°
-niedzwiedz_rk BRAX_RECE KWalk1           przenikanie przed: L 6.4 cm, P 6.9 cm | odwiedzenie ramienia max: L 10°, P 12°
-niedzwiedz_rk BRAX_RECE KWalk2           przenikanie przed: L 7.0 cm, P 7.0 cm | odwiedzenie ramienia max: L 13°, P 15°
-niedzwiedz_rk BRAX_RECE KTelefon         przenikanie przed: L 4.3 cm, P 8.4 cm | odwiedzenie ramienia max: L 15°, P 35°
+niedzwiedz_rk BRAX_RECE KWalk1           przenikanie przed: L 6.4 cm, P 6.9 cm | odwiedzenie ramienia max: L 13°, P 15°
+niedzwiedz_rk BRAX_RECE KWalk2           przenikanie przed: L 7.0 cm, P 7.0 cm | odwiedzenie ramienia max: L 13°, P 16°
+niedzwiedz_rk BRAX_RECE KTelefon         przenikanie przed: L 4.1 cm, P 8.5 cm | odwiedzenie ramienia max: L 18°, P 35°
 niedzwiedz_rk BRAX_RECE KObserwacja      przenikanie przed: L 5.8 cm, P 6.7 cm | odwiedzenie ramienia max: L 11°, P 14°
 niedzwiedz_rk BRAX_RECE KStukanieStopa   przenikanie przed: L 7.6 cm, P 7.5 cm | odwiedzenie ramienia max: L 18°, P 26°
 niedzwiedz_rk BRAX_RECE KWzruszenieRamion przenikanie przed: L 8.1 cm, P 7.6 cm | odwiedzenie ramienia max: L 22°, P 35°
-niedzwiedz_rk BRAX_RECE KZdziwienieDwaRazy przenikanie przed: L 7.4 cm, P 7.5 cm | odwiedzenie ramienia max: L 24°, P 35°
+niedzwiedz_rk BRAX_RECE KZdziwienieDwaRazy przenikanie przed: L 7.4 cm, P 7.5 cm | odwiedzenie ramienia max: L 28°, P 35°
 niedzwiedz_rk BRAX_RECE KDlonNaTwarz     przenikanie przed: L 7.4 cm, P 7.6 cm | odwiedzenie ramienia max: L 21°, P 35°
 niedzwiedz_rk BRAX_RECE KBolBrzucha      przenikanie przed: L 8.2 cm, P 8.6 cm | odwiedzenie ramienia max: L 35°, P 35°
 niedzwiedz_rk BRAX_RECE KZdjecieGrupowe  przenikanie przed: L 7.9 cm, P 7.5 cm | odwiedzenie ramienia max: L 35°, P 14°
-niedzwiedz_rk KBolBrzucha            ODPADA  przenika max 8.4 cm (8.6%)  palec min x0.39  rozciag. x2.21
-niedzwiedz_rk KDlonNaTwarz           DOBRE  przenika max 1.4 cm (1.4%)  palec min x0.23  rozciag. x2.49
+niedzwiedz_rk KBolBrzucha            ODPADA  przenika max 8.2 cm (8.4%)  palec min x0.39  rozciag. x2.21
+niedzwiedz_rk KDlonNaTwarz           DOBRE  przenika max 1.5 cm (1.5%)  palec min x0.23  rozciag. x2.49
 niedzwiedz_rk KIdle0                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.53  rozciag. x1.60
 niedzwiedz_rk KIdle1                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.30  rozciag. x2.25
 niedzwiedz_rk KIdle2                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.22  rozciag. x2.48
 niedzwiedz_rk KObserwacja            DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.33  rozciag. x2.25
 niedzwiedz_rk KStukanieStopa         DOBRE  przenika max 1.4 cm (1.4%)  palec min x0.26  rozciag. x2.48
-niedzwiedz_rk KTelefon               ODPADA  przenika max 5.1 cm (5.2%)  palec min x0.25  rozciag. x2.41
-niedzwiedz_rk KWalk0                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.55  rozciag. x1.36
-niedzwiedz_rk KWalk1                 DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.50  rozciag. x1.38
-niedzwiedz_rk KWalk2                 DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.51  rozciag. x1.36
-niedzwiedz_rk KWzruszenieRamion      DOBRE  przenika max 1.6 cm (1.6%)  palec min x0.31  rozciag. x2.31
+niedzwiedz_rk KTelefon               ODPADA  przenika max 4.9 cm (5.0%)  palec min x0.25  rozciag. x2.41
+niedzwiedz_rk KWalk0                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.55  rozciag. x1.40
+niedzwiedz_rk KWalk1                 DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.50  rozciag. x1.40
+niedzwiedz_rk KWalk2                 DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.51  rozciag. x1.37
+niedzwiedz_rk KWzruszenieRamion      DOBRE  przenika max 1.9 cm (1.9%)  palec min x0.31  rozciag. x2.31
 niedzwiedz_rk KZdjecieGrupowe        DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.26  rozciag. x2.42
-niedzwiedz_rk KZdziwienieDwaRazy     ODPADA  przenika max 3.7 cm (3.8%)  palec min x0.27  rozciag. x2.36
-niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  Idle                 przenika   4.5% klatek, max  1.8 cm | dlon zdeform.  12.1% (x1.41 / x0.52) | skret  17°
-niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  RkDlonNaTwarz        przenika  26.2% klatek, max  1.5 cm | dlon zdeform. 100.0% (x2.51 / x0.20) | skret  64°
-niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  RkObserwacja         przenika   2.5% klatek, max  1.2 cm | dlon zdeform. 100.0% (x2.28 / x0.33) | skret  20°
-niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  RkStukanieStopa      przenika   3.8% klatek, max  1.4 cm | dlon zdeform. 100.0% (x2.51 / x0.22) | skret  56°
-niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  RkWzruszenieRamion   przenika   3.8% klatek, max  1.6 cm | dlon zdeform. 100.0% (x2.34 / x0.28) | skret  40°
-niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  Walk                 przenika   6.7% klatek, max  1.3 cm | dlon zdeform.  26.7% (x1.36 / x0.56) | skret   8°
+niedzwiedz_rk KZdziwienieDwaRazy     ODPADA  przenika max 3.3 cm (3.4%)  palec min x0.27  rozciag. x2.36
+niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  Idle                 przenika   9.1% klatek, max  1.4 cm | dlon zdeform.  12.1% (x1.43 / x0.52) | skret  46°
+niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  RkDlonNaTwarz        przenika  27.5% klatek, max  1.5 cm | dlon zdeform. 100.0% (x2.51 / x0.20) | skret 109°
+niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  RkObserwacja         przenika   2.5% klatek, max  1.2 cm | dlon zdeform. 100.0% (x2.28 / x0.33) | skret  64°
+niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  RkStukanieStopa      przenika   3.8% klatek, max  1.4 cm | dlon zdeform. 100.0% (x2.51 / x0.22) | skret  97°
+niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  RkWzruszenieRamion   przenika   2.5% klatek, max  1.9 cm | dlon zdeform. 100.0% (x2.34 / x0.28) | skret  76°
+niedzwiedz_rk KONIEC BRAX_MIARA niedzwiedz_rk  Walk                 przenika   6.7% klatek, max  1.3 cm | dlon zdeform.  26.7% (x1.48 / x0.56) | skret  52°
 niedzwiedz_rk WYBRANE: ['Idle<-Idle_LookingAround_HUMANIK_769.fbx', 'Walk<-09-SlowWalkForward_MIXAMO_769.fbx', 'RkObserwacja<-WatchOverCity_mixamo.fbx', 'RkStukanieStopa<-FootTapping_mixamo.fbx', 'RkWzruszenieRamion<-Shrugging_mixamo.fbx', 'RkDlonNaTwarz<-FacePalms_mixamo.fbx']

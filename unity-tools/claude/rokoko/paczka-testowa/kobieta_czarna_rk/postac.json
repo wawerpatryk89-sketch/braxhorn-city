@@ -5,8 +5,8 @@
   "Walk",
   "RkProwadzacy",
   "RkMonolog",
-  "RkSmiech",
-  "RkBrawa"
+  "RkSedzia",
+  "RkAdwokat"
  ],
  "zrodlo": "tripo_convert_b4333206-8995-4fea-9cfa-88b848f75737.fbx",
  "ruchy_przeniesione": [
@@ -31,13 +31,13 @@
    "klatek": 240
   },
   {
-   "stan": "RkSmiech",
-   "zrodlo": "Laughs_mixamo.fbx",
+   "stan": "RkSedzia",
+   "zrodlo": "Judge_mixamo.fbx",
    "klatek": 240
   },
   {
-   "stan": "RkBrawa",
-   "zrodlo": "Clap_SlowClap_mixamo.fbx",
+   "stan": "RkAdwokat",
+   "zrodlo": "Lawyer_01_mixamo.fbx",
    "klatek": 240
   }
  ],

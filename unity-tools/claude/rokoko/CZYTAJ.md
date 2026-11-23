@@ -58,12 +58,14 @@ Co zmienione w `rk_przenies.py`:
    weszła — co drugą klatkę, wygładzone.
 4. Pomiar przenikania potwierdza „w środku” promieniem (dalej w głąb musi być druga ścianka
    trafiona od środka). Bez tego dziury przy pachach dawały fałszywe 5–14 cm.
-5. Obrót ramienia wokół własnej osi (właściciel 23.11, 15:14: „dłonie strasznie powykręcane
-   w spoczynku”). Po samym wyrównaniu kierunku wnętrze dłoni stało obrócone o 83–93° względem
+5. Obrót dłoni wokół osi przedramienia (właściciel 23.11, 15:14: „dłonie strasznie powykręcane
+   w spoczynku”). Po samym wyrównaniu kierunku wnętrze dłoni stało obrócone o 83–103° względem
    aktora (poza A z Tripo vs poza T nagrania) — w każdym ruchu dłoń wnętrzem do przodu zamiast
-   do uda. Ramię i przedramię dostają ten sam obrót wokół swojej osi, tak że wnętrze dłoni
-   w spoczynku patrzy tam, gdzie u aktora. Sprawdzenie: `rk_skret_dloni.py`, zbliżenia
-   `rk_dlonie.py` → `pomiary/dlonie/` (górny rząd spoczynek, dolny ruch).
+   do uda. Obraca PRZEDRAMIĘ, jak u człowieka: pół obrotu w łokciu, pół w nadgarstku.
+   Pierwsza próba (build 45195601477) kręciła całym ramieniem — dłoń dobra, ale bark i rękaw
+   skręcone o 90° (pasek bluzy tancerki na przodzie). Sprawdzenie: `rk_skret_dloni.py`,
+   zbliżenia `rk_dlonie.py` → `pomiary/dlonie/`. Skręt nadgarstka po zmianie: do 141°
+   (taniec, ręka nad głową; zatwierdzona obsada do 118°) — na zbliżeniach bez „cukierka”.
 6. Spoczynek sprawdzany PO zwykłej drodze — ona go przebudowuje (dogięcie przedramion), a garda
    boksera wchodziła wtedy w klatkę na 7 cm. Taki spoczynek odpada, bierze się następny.
 

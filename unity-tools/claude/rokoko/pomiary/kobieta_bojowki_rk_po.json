@@ -5,57 +5,58 @@
  "ujecia": {
   "Idle": {
    "klatek_badanych": 54,
-   "przenikanie_klatek_proc": 18.5,
-   "przenikanie_max_cm": 1.5,
-   "przenikanie_najgorsza_klatka": 55,
+   "przenikanie_klatek_proc": 42.6,
+   "przenikanie_max_cm": 1.6,
+   "przenikanie_najgorsza_klatka": 64,
    "przenikanie_reka": {
-    "Right": 83
+    "Right": 111
    },
-   "dlon_zdeformowana_klatek_proc": 16.7,
+   "dlon_zdeformowana_klatek_proc": 18.5,
    "dlon_max_rozciagniecie": 1.6,
-   "dlon_max_zgniecenie": 0.5,
-   "skret_nadgarstka_max_st": 24.0
+   "dlon_max_zgniecenie": 0.52,
+   "skret_nadgarstka_max_st": 62.0
   },
   "RkImpreza": {
    "klatek_badanych": 80,
-   "przenikanie_klatek_proc": 1.2,
-   "przenikanie_max_cm": 1.2,
-   "przenikanie_najgorsza_klatka": 124,
+   "przenikanie_klatek_proc": 12.5,
+   "przenikanie_max_cm": 1.5,
+   "przenikanie_najgorsza_klatka": 217,
    "przenikanie_reka": {
-    "Right": 1
+    "Left": 2,
+    "Right": 8
    },
    "dlon_zdeformowana_klatek_proc": 100.0,
    "dlon_max_rozciagniecie": 2.13,
    "dlon_max_zgniecenie": 0.24,
-   "skret_nadgarstka_max_st": 36.0
+   "skret_nadgarstka_max_st": 86.0
   },
   "RkKolysanie": {
    "klatek_badanych": 80,
-   "przenikanie_klatek_proc": 3.8,
-   "przenikanie_max_cm": 1.2,
-   "przenikanie_najgorsza_klatka": 31,
+   "przenikanie_klatek_proc": 2.5,
+   "przenikanie_max_cm": 1.3,
+   "przenikanie_najgorsza_klatka": 235,
    "przenikanie_reka": {
-    "Left": 4,
-    "Right": 1
+    "Right": 1,
+    "Left": 1
    },
    "dlon_zdeformowana_klatek_proc": 100.0,
    "dlon_max_rozciagniecie": 2.0,
    "dlon_max_zgniecenie": 0.24,
-   "skret_nadgarstka_max_st": 14.0
+   "skret_nadgarstka_max_st": 64.0
   },
   "RkRadosc": {
    "klatek_badanych": 80,
-   "przenikanie_klatek_proc": 2.5,
-   "przenikanie_max_cm": 1.6,
-   "przenikanie_najgorsza_klatka": 220,
+   "przenikanie_klatek_proc": 8.8,
+   "przenikanie_max_cm": 1.4,
+   "przenikanie_najgorsza_klatka": 115,
    "przenikanie_reka": {
-    "Left": 1,
-    "Right": 2
+    "Right": 6,
+    "Left": 5
    },
    "dlon_zdeformowana_klatek_proc": 100.0,
    "dlon_max_rozciagniecie": 2.22,
-   "dlon_max_zgniecenie": 0.24,
-   "skret_nadgarstka_max_st": 87.0
+   "dlon_max_zgniecenie": 0.19,
+   "skret_nadgarstka_max_st": 135.0
   },
   "RkTaniec": {
    "klatek_badanych": 80,
@@ -66,20 +67,18 @@
    "dlon_zdeformowana_klatek_proc": 100.0,
    "dlon_max_rozciagniecie": 2.16,
    "dlon_max_zgniecenie": 0.17,
-   "skret_nadgarstka_max_st": 88.0
+   "skret_nadgarstka_max_st": 141.0
   },
   "Walk": {
    "klatek_badanych": 8,
-   "przenikanie_klatek_proc": 12.5,
-   "przenikanie_max_cm": 1.2,
-   "przenikanie_najgorsza_klatka": 19,
-   "przenikanie_reka": {
-    "Left": 1
-   },
+   "przenikanie_klatek_proc": 0.0,
+   "przenikanie_max_cm": 0.0,
+   "przenikanie_najgorsza_klatka": null,
+   "przenikanie_reka": {},
    "dlon_zdeformowana_klatek_proc": 100.0,
-   "dlon_max_rozciagniecie": 1.54,
-   "dlon_max_zgniecenie": 0.34,
-   "skret_nadgarstka_max_st": 46.0
+   "dlon_max_rozciagniecie": 1.81,
+   "dlon_max_zgniecenie": 0.4,
+   "skret_nadgarstka_max_st": 87.0
   }
  }
 }
