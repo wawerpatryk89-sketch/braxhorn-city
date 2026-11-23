@@ -305,6 +305,8 @@ def market_front(S, g, f, H, att):
     S.box(g, "market_szklo", b - t * 15.0 - n * 2.0, t, UP, n, 9.0, H + att + 1.5, 2.6)
     c = a + t * 3.0 - n * 1.0
     S.rura(g, "market_elewacja", c, c + UP * (H + att + .4), 3.0, seg=20)
+    for u in np.arange(4.5, L - 17.0, 1.6):                  # żółte słupki przed podcieniem (zdjęcia 17:25, IMG_1761–1762)
+        S.rura(g, "slupek_zolty", a + t * u + n * 3.45, a + t * u + n * 3.45 + UP * .9, .08, seg=8)
 
 
 def dach_plaski(S, g, P, y, att, mat):

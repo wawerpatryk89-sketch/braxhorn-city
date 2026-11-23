@@ -56,7 +56,28 @@ TEXTURES_WYSPA = [
 # tynk elewacji, beton cokołów i balkonów, kostka chodników (BraxBydgoszcz, paleta osiedle_bdg/paleta.py).
 TEXTURES_BYDGOSZCZ = ["white_stucco_02", "brushed_concrete_04", "concrete_pavers", "clay_roof_tiles_02",
                       "bitumen", "gravel_floor_02", "painted_metal_shutter", "exterior_wall_cladding_03", "corrugated_iron_02", "red_bricks_04",
-                      "herringbone_pavement_03", "red_brick_pavers", "playground_sand", "blue_metal_plate"]
+                      "herringbone_pavement_03", "red_brick_pavers", "playground_sand", "blue_metal_plate", "grey_tiles", "weathered_brown_planks"]
+
+
+BERMUDA_KARTY = [(94, 846, 299, 275), (561, 816, 394, 298), (1091, 726, 388, 405), (1385, 212, 568, 287), (1580, 646, 348, 488), (78, 314, 568, 288)]
+
+
+def kepy_bermuda(report: dict) -> None:
+    """Trawa miasta (23.11, właściciel: trawa jak w Mieście Mistrzów — Grass Bermuda 01): karty kęp z diffuse + alfa 2K
+    (prostokąty kęp znalezione w masce alfa), ten sam format atlasu co kepy_atlas osiedla (BraxRegionTrawa: KepyPng)."""
+    d = ROOT / "detail"
+    if (d / "kepy_bermuda.png").exists():
+        report["textures"]["kepy_bermuda"] = "already"; return
+    import io
+    from PIL import Image
+    import fetch_osiedle as F
+    f = files("grass_bermuda_01")
+    diff = Image.open(io.BytesIO(get(pick(f["Diffuse"], "2k")["png"]["url"]))); alfa = Image.open(io.BytesIO(get(pick(f["Alpha"], "2k")["png"]["url"])))
+    d.mkdir(parents=True, exist_ok=True)
+    stare = F.KARTY; F.KARTY = BERMUDA_KARTY
+    try: kom = F.kepy_atlas(diff, alfa, d / "kepy_bermuda.png", d / "kepy_bermuda.json")
+    finally: F.KARTY = stare
+    report["textures"]["kepy_bermuda"] = f"grass_bermuda_01 (Poly Haven CC0): {len(kom)} kart"
 
 
 def lakier_blacha(report: dict) -> None:
@@ -224,6 +245,10 @@ def main() -> int:
         except Exception as exc:  # noqa: BLE001
             report["missing"].append(f"tex:{t}: {exc}")
             print("BRAK TEKSTURY", t, exc)
+    for krok in (kepy_bermuda,):
+        try: krok(report)
+        except Exception as exc:  # noqa: BLE001
+            report["missing"].append(f"{krok.__name__}: {exc}"); print("BRAK", krok.__name__, exc)
     try:
         lakier_blacha(report)
     except Exception as exc:  # noqa: BLE001

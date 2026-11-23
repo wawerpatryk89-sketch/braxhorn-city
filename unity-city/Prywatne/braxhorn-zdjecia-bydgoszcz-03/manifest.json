@@ -1,0 +1,17 @@
+{
+ "opis": "zdjęcia wzorcowe właściciela (Bydgoszcz) — do odwzorowania, nie do gry",
+ "tar_sha256": "5d6f365c7ee9ea5d993668b6f76d1e6f6e5c8a5f534500f1bd4dce3ea3c99736",
+ "pliki": {
+  "zdjecia/osiedle/o129_market_noc.jpg": "f2e24c58ae9b8f1cd21db1f67e9c1d6c25351e2d0f67a6234c02da797d7157b8",
+  "zdjecia/osiedle/o130_market_noc.jpg": "788d4d7d3a91d43f9c40abe429bad8012227e21119d34787d92b66087e4421e8",
+  "zdjecia/osiedle/o131_market_noc.jpg": "55fceb320f6ed2dae9072d61c8a222ce76cefdf34194550a2b9706c6b9b143f4",
+  "zdjecia/osiedle/o132_market_noc.jpg": "bbf64d3a8d73222757a1e9795f041e261b45190ba20aaff684674bd526503edb"
+ },
+ "czesci": [
+  {
+   "name": "part-000.cms",
+   "bytes": 1331776,
+   "sha256": "a28ac0d89298169717202b700f1b98bc5f27e366acc4d1c3305a507537017f50"
+  }
+ ]
+}

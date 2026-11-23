@@ -204,8 +204,24 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
     # białe linie miejsc postojowych (IMG_1760–1761): co 2,5 m prostopadle do dłuższego boku, 5 m w głąb od obu brzegów;
     # wycięte z nawierzchni (żadnych nakładających się płaszczyzn)
     lp = []
+    alejki = [LineString(u["linia"]) for u in d["ulice"] if u["klasa"] == "service" and len(u["linia"]) > 1]
     for q in getattr(PARK, "geoms", [PARK]):
         if q.is_empty or q.area < 25: continue
+        moje = [a_.intersection(q.buffer(4)) for a_ in alejki if a_.distance(q) < 1.0]
+        moje = [g_ for a_ in moje for g_ in getattr(a_, "geoms", [a_]) if g_.geom_type == "LineString" and g_.length > 4]
+        if moje:                                  # rzędy miejsc po obu stronach alejek, linie prostopadle do alejki
+            for al in moje:
+                for strona in ("left", "right"):
+                    try: rz = al.parallel_offset(SZER["service"] / 2, strona)
+                    except Exception: continue
+                    for rr in getattr(rz, "geoms", [rz]):
+                        if rr.geom_type != "LineString" or rr.length < 3: continue
+                        for u in np.arange(1.25, rr.length, 2.5):
+                            p0 = np.array(rr.interpolate(u).coords[0]); p1 = np.array(rr.interpolate(min(rr.length, u + .2)).coords[0])
+                            tt = p1 - p0; tt = tt / (np.linalg.norm(tt) or 1); nn = np.array([-tt[1], tt[0]])
+                            if al.distance(shapely.geometry.Point(*(p0 + nn))) < al.distance(shapely.geometry.Point(*(p0 - nn))): nn = -nn
+                            lp.append(LineString([tuple(p0), tuple(p0 + nn * 5.0)]).buffer(.06, cap_style=2))
+            continue
         r = list(q.minimum_rotated_rectangle.exterior.coords)[:4]
         e1 = np.subtract(r[1], r[0]); e2 = np.subtract(r[2], r[1])
         if np.linalg.norm(e1) < np.linalg.norm(e2): r = r[1:] + r[:1]; e1, e2 = e2, e1
@@ -265,7 +281,7 @@ def punkty(d, G, seed=5):
                 s = 4.0
                 while s < lo.length:
                     p = lo.interpolate(s)
-                    if trawa.buffer(-.5).contains(p): drzewa.append((p.x, p.y, "mlode"))
+                    if trawa.buffer(-.9).contains(p): drzewa.append((p.x, p.y, "mlode"))
                     s += 8.0
                 s = 10.0
                 while s < lo.length:
@@ -291,7 +307,7 @@ def punkty(d, G, seed=5):
     # drzewa w trawnikach: siatka z rozrzutem, gęstość ~1 na 180 m² w pasie 6–25 m od bloków (jak na zdjęciach)
     # gęsto jak na zdjęciach z lotu ptaka (IMG_1664–1668): pas 4,5–35 m od bloków, siatka 9 m, odstęp min. 6 m
     wszystkie = unary_union([b["poly"] for b in d["budynki"] if "poly" in b] + [bud])   # też budynki jeszcze nie postawione
-    pas = wszystkie.buffer(30).difference(wszystkie.buffer(4.5)).intersection(trawa.buffer(-2.0))
+    pas = wszystkie.buffer(30).difference(wszystkie.buffer(4.5)).intersection(trawa.buffer(-3.0))   # pień ≥3 m od kostki (18:28)
     minx, minz, maxx, maxz = pas.bounds; krok = 9.0
     x = minx
     while x < maxx:

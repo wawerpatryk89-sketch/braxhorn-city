@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from kit import Siatka, zapisz_bin, zapisz_glb, trojkaty  # noqa: E402
+from kit import Siatka, UP, zapisz_bin, zapisz_glb, trojkaty  # noqa: E402
 import blok_32a  # noqa: E402
 import blok4  # noqa: E402
 import maly  # noqa: E402
@@ -112,6 +112,34 @@ from shapely.geometry import Polygon, LineString, Point  # noqa: E402
 K = 1.294
 O = np.array([-145.9, 508.8])
 DANE = Path(__file__).resolve().parent / "dane" / "osiedle-sklodowskiej-32a.json"
+
+
+def budki_market(d, dst):
+    """Budki z jedzeniem na parkingu przed frontem marketu (właściciel 18:32, zdjęcia nocne 18:47): przyczepa z
+    zapiekankami przy wejściu, budka z burgerami przy słupie z szyldem i girlandą, lodziarnia z podestem — bliżej ulicy."""
+    import budki
+    from shapely.geometry.polygon import orient
+    for b in d["budynki"]:
+        if "Leclerc" not in (b.get("nazwa") or ""): continue
+        P = orient(b["poly"].simplify(.15), 1.0); pts = list(P.exterior.coords); fr = []
+        for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+            a = np.array([x0, 0., z0]); bb = np.array([x1, 0., z1]); L = float(np.linalg.norm(bb - a))
+            if L < 3: continue
+            t = (bb - a) / L; n = np.array([-t[2], 0., t[0]])
+            if P.contains(Point(*((a + bb) / 2 + n * .5)[[0, 2]])): a, bb, t, n = bb, a, -t, -n
+            if n[2] > .5: fr.append((a, bb, t, n, L))
+        if not fr: return 0
+        a, bb, t, n, L = max(fr, key=lambda f: f[4])
+        S = Siatka()
+        budki.zapiekanki(S, a + t * (L - 21.0) + n * 4.6 + UP * Y_KOSTKI, t, n)        # przy wejściu (zdjęcia 17:25, 18:47)
+        budki.burger_kontener(S, a + t * (L * .82) + n * 15.0 + UP * Y_KOSTKI, t, n)  # przy słupie z szyldem, od ulicy
+        budki.lodziarnia(S, a + t * (L * .30) + n * 17.0 + UP * Y_KOSTKI, t, n)
+        przenies(S, dst, "budki", 0.0, 0.0, 0.0)
+        return 3
+    return 0
+
+
+Y_KOSTKI = 0.0
 
 
 def wczytaj():
@@ -290,6 +318,7 @@ if __name__ == "__main__":
     for b in d["budynki"]:
         if b.get("nr") in WIEZOWCE and (b.get("ulica") or "").startswith("Marii"): MODELE.append(b["poly"])
     opis["inne"] = inne(d, D)
+    opis["budki"] = budki_market(d, D)
     pkt_osm, _ = wyposazenie.osm()
     T, pola, G = teren.zbuduj(d, MODELE, PRZEDPOLA, boiska_asfalt(d), wyposazenie.zebry(pkt_osm, d["ulice"], teren.SZER), las=las_poly())
     przenies(T, D, "teren", 0.0, 0.0, 0.0)

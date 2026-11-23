@@ -40,7 +40,7 @@ def osm():
     linie = []
     for w in r.iter("way"):
         t = {g.get("k"): g.get("v") for g in w.iter("tag")}
-        if t.get("barrier") in ("fence", "hedge", "wall"):
+        if t.get("barrier") in ("fence", "hedge", "wall", "bollard"):
             linie.append(([nd[x.get("ref")] for x in w.iter("nd") if x.get("ref") in nd], t))
     return pkt, linie
 
@@ -137,6 +137,8 @@ def zbuduj(d, G, szer, okno, drzewa, latarnie):
         geoms = [L] if L.geom_type == "LineString" else [g for g in getattr(L, "geoms", []) if g.geom_type == "LineString"]
         for g in geoms:
             if t.get("barrier") == "hedge": zywoplot(S, list(g.coords), R); ile("zywoploty")
+            elif t.get("barrier") == "bollard": slupki(S, g); ile("slupki")
+            elif t.get("barrier") in ("kerb",): continue
             else: plot(S, list(g.coords)); ile("ploty")
     latarnie = [q for q in latarnie if not zajete.contains(Point(q[0], q[1]))]
     for (x, z, typ) in latarnie:
@@ -281,6 +283,26 @@ def zywoplot(S, pts, R):
                 idx = [0, 1, 2, 0, 2, 3] if np.dot(np.cross(q[1] - q[0], q[3] - q[0]), nk) > 0 else [0, 2, 1, 0, 3, 2]
                 S.tri_list(g, "zywoplot_galazki", q, nrm(nk + out), bok, [(cu, cv), (cu + .5, cv), (cu + .5, cv + .5), (cu, cv + .5)], None, idx)
             s_ += R.uniform(.26, .34)
+        for kon, sgn in ((-.02, -1), (L + .02, 1)):             # czoła też z gałązek (bez widocznego rdzenia)
+            for (u_, v_) in ((-hw * .5, .3), (hw * .5, .3), (-hw * .5, hr * .7), (hw * .5, hr * .7), (0, hr * .45)):
+                pos = P(kon, u_, v_); out = nrm(t * sgn + UP * .2)
+                nk = nrm(out + np.array([R.uniform(-.3, .3), R.uniform(-.1, .2), R.uniform(-.3, .3)]))
+                gora = nrm(np.cross(nk, np.cross(UP, nk))); bok = nrm(np.cross(gora, nk)); sz = R.uniform(.5, .7)
+                c0 = pos + nk * .04 - gora * sz * .4
+                k = R.randrange(4); cu, cv = (k % 2) * .5, (k // 2) * .5
+                q = [c0 - bok * sz / 2, c0 + bok * sz / 2, c0 + bok * sz / 2 + gora * sz, c0 - bok * sz / 2 + gora * sz]
+                idx = [0, 1, 2, 0, 2, 3] if np.dot(np.cross(q[1] - q[0], q[3] - q[0]), nk) > 0 else [0, 2, 1, 0, 3, 2]
+                S.tri_list(g, "zywoplot_galazki", q, nrm(nk + out), bok, [(cu, cv), (cu + .5, cv), (cu + .5, cv + .5), (cu, cv + .5)], None, idx)
+
+
+def slupki(S, ln, krok=1.3):
+    """Słupki blokujące biało-czerwone (U-12c) wzdłuż linii OSM barrier=bollard (IMG_1758–1761): 0,9 m, dwa czerwone pasy."""
+    g = "wyposazenie"; s_ = .3
+    while s_ < ln.length:
+        p = ln.interpolate(s_); o = X3(p.x, .12, p.y)
+        S.rura(g, "slupek_bialy", o, o + UP * .9, .05, seg=8)
+        for v in (.5, .74): S.rura(g, "slupek_czerwony", o + UP * v, o + UP * (v + .12), .053, seg=8)
+        s_ += krok
 
 
 def latarnia(S, o, ku_jezdni, glowna):

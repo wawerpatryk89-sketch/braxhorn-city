@@ -95,10 +95,10 @@ sc.add(g.scene)
 
 // trawa 3D jak w grze (BraxClaudeTrawa): kępy = 3 płaszczyzny co 60°, karty z atlasu grass_medium_01, tylko w promieniu od kamery
 if(+(Q.get('trawa3d')||0)>0){
-  const R=+Q.get('trawa3d'), GEST=+(Q.get('gest')||28), HK=+(Q.get('hk')||.10), oko=num('oko')
-  const AT=await (await fetch('tex/detail/kepy_atlas.json')).json(); const at=ld('tex/detail/kepy_atlas.png'); at.colorSpace=THREE.SRGBColorSpace
+  const R=+Q.get('trawa3d'), GEST=+(Q.get('gest')||110), HK=+(Q.get('hk')||.13), ATL=Q.get('atlas')||'kepy_bermuda', oko=num('oko')
+  const AT=await (await fetch('tex/detail/'+ATL+'.json')).json(); const at=ld('tex/detail/'+ATL+'.png'); at.colorSpace=THREE.SRGBColorSpace
   const gl=lin(PAL.trawa.kol), cm=AT.srednia_lin, mat=bezOdwr(new THREE.MeshStandardMaterial({map:at,alphaTest:.45,side:THREE.DoubleSide,roughness:.95}))
-  mat.color.setRGB(Math.min(4,gl[0]*1.15/cm[0]),Math.min(4,gl[1]*1.15/cm[1]),Math.min(4,gl[2]*1.15/cm[2]),THREE.LinearSRGBColorSpace)
+  const JA=+(Q.get('jasn')||1.45); mat.color.setRGB(Math.min(4,gl[0]*JA/cm[0]),Math.min(4,gl[1]*JA/cm[1]),Math.min(4,gl[2]*JA/cm[2]),THREE.LinearSRGBColorSpace)
   const tri=[]; let pole=0; g.scene.updateMatrixWorld(true)
   g.scene.traverse(o=>{ if(!o.isMesh) return; const mn=o.name.split('|')[1]||(o.parent&&o.parent.name.split('|')[1]); if(mn!=='trawa') return
     const p=o.geometry.attributes.position, ix=o.geometry.index, v=new THREE.Vector3(), n=ix?ix.count:p.count, P=k=>v.fromBufferAttribute(p,ix?ix.getX(k):k).applyMatrix4(o.matrixWorld).clone()
@@ -111,7 +111,8 @@ if(+(Q.get('trawa3d')||0)>0){
       const x=a.x+(b.x-a.x)*u+(c.x-a.x)*w, y=a.y+(b.y-a.y)*u+(c.y-a.y)*w, z=a.z+(b.z-a.z)*u+(c.z-a.z)*w
       const dx=x-oko[0], dz=z-oko[2]; if(dx*dx+dz*dz>R*R) continue
       const zan=Math.min(1,Math.max(0,(R-Math.sqrt(dx*dx+dz*dz))/(R*.45))); if(rnd()>zan) continue; const hs=HK*(.75+.4*rnd())*(.6+.4*zan); e.set((rnd()-.5)*.2,rnd()*6.283,(rnd()-.5)*.2); q.setFromEuler(e)
-      lis[Math.floor(rnd()*kom.length*.9999)].push(m4.clone().compose(new THREE.Vector3(x,y-.01,z),q,new THREE.Vector3(hs,hs,hs)))}}
+      const WG=ATL==='kepy_bermuda'?[1,1,1,.8,.6,.22]:kom.map(()=>1), SW=WG.reduce((a,b)=>a+b,0); let rr=rnd()*SW, ci=0; while(ci<WG.length-1&&rr>WG[ci]){rr-=WG[ci];ci++}
+      lis[ci].push(m4.clone().compose(new THREE.Vector3(x,y-.01,z),q,new THREE.Vector3(hs,hs,hs)))}}
   let ile=0
   kom.forEach((K,ci)=>{ if(!lis[ci].length) return; const asp=K.aspekt, pos=[], uv=[], nr=[], id=[]
     for(let qd=0;qd<3;qd++){const an=qd*Math.PI/3, dx=Math.cos(an)*asp/2, dz=Math.sin(an)*asp/2, b0=pos.length/3
@@ -131,7 +132,7 @@ if(Q.get('drzewa')==='1'){
   const P=kg.attributes.position, N=kg.attributes.normal, v=new THREE.Vector3(); for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i).sub(c).normalize(); N.setXYZ(i,v.x,v.y*1.1+.15,v.z)} N.needsUpdate=true
   const lm=['a','b'].map(k=>{const t=ld('lib/galazki_'+k+'.png'); t.colorSpace=THREE.SRGBColorSpace; return bezOdwr(new THREE.MeshStandardMaterial({map:t,alphaTest:.45,side:THREE.DoubleSide,roughness:.85}))})
   ver.traverse(o=>{if(/^liscie_/.test(o.name)) o.visible=false; if(o.isMesh){o.castShadow=true;o.receiveShadow=true}})
-  const wz={}; const zrob=(m,h,k)=>{const bb=new THREE.Box3().setFromObject(m); const s=h/(bb.max.y-bb.min.y); wz[k]={m,s,y:-bb.min.y*s}}
+  const wz={}; const zrob=(m,h,k)=>{const bb=new THREE.Box3().setFromObject(m); const c=new THREE.Vector3(); bb.getCenter(c); const gr=new THREE.Group(); const mm=m.clone(); mm.position.set(-c.x,-bb.min.y,-c.z); gr.add(mm); const s=h/(bb.max.y-bb.min.y); wz[k]={m:gr,s,y:0}}   // pień w punkcie (drzewo_verdant ma siatkę w (9.9, −73.2)!)
   for(const v_ of [0,1]){const t=ver.clone(true); const l0=t.getObjectByName('liscie_0'); const ko=new THREE.Mesh(kg,lm[v_]); ko.castShadow=true; ko.receiveShadow=true
     if(l0.isMesh){l0.geometry=kg; l0.material=lm[v_]; l0.visible=true} else {l0.clear(); l0.add(ko); l0.visible=true}
     wz['lisc'+v_]=t}

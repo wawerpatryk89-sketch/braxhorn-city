@@ -135,7 +135,7 @@ SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, 
            "bitumen": [.230, .214, .206], "gravel_floor_02": [.672, .656, .613], "painted_metal_shutter": [.502, .516, .527],
            "exterior_wall_cladding_03": [.678, .654, .607], "corrugated_iron_02": [.348, .345, .319], "red_bricks_04": [.386, .243, .145],
            "grass004": [.384, .431, .197], "herringbone_pavement_03": [.264, .232, .195], "red_brick_pavers": [.455, .250, .198],
-           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745]}
+           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287]}
 
 
 def tint(v):
@@ -158,6 +158,19 @@ LAKIER = ["plycina", "listwa_braz", "pcv", "parapet", "obrobka", "drzwi_czerwone
 for _k in LAKIER:
     if _k in P and not P[_k].get("tex"):
         P[_k] = dict(P[_k], tex="lakier_blacha", m=2.5, szorst=max(.6, P[_k].get("szorst", .6)))
+# budki z jedzeniem przed marketem (budki.py) — lakierowana blacha, szyldy z naklejką
+for _k, _c in (("kiosk_bialy", [232, 230, 224]), ("kiosk_dach", [70, 72, 76]), ("kiosk_wnetrze", [52, 50, 48]), ("kiosk_blat", [180, 182, 184]),
+               ("markiza", [196, 40, 36]), ("przyczepa_biala", [236, 236, 232]), ("przyczepa_czerwona", [190, 34, 30]), ("opona", [26, 26, 28]),
+               ("slupek_zolty", [226, 188, 30]), ("kontener_zolty", [232, 206, 84]), ("kontener_zolty_rel", [214, 196, 96]),
+               ("markiza_pasy", [226, 222, 214]), ("slupek_bialy", [236, 236, 232]), ("slupek_czerwony", [196, 30, 30])):
+    P[_k] = {"tex": "lakier_blacha", "m": 2.5, "kol": _c, "szorst": .6}
+P["szyld_bosna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [236, 196, 40], "szorst": .6, "nakl": "szyld_bosna.png"}
+P["szyld_burger"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [28, 28, 30], "szorst": .6, "nakl": "szyld_burger.png"}
+P["szyld_zapiekanki"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [196, 40, 34], "szorst": .6, "nakl": "szyld_zapiekanki.png"}
+P["szyld_lody"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [44, 44, 46], "szorst": .6, "nakl": "szyld_lody.png"}
+P["deska"] = {"tex": "weathered_brown_planks", "m": 2.0, "kol": [120, 96, 72], "szorst": 1.0}
+P["trawa_ozdobna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [200, 184, 140], "szorst": 1.0}
+P["market_elewacja"] = {"tex": "grey_tiles", "m": 2.2, "kol": [206, 202, 194], "szorst": 1.0}   # kwadratowe płyty (zdjęcia 18:47)
 P["kostka_jezdnia"] = {"tex": "herringbone_pavement_03", "m": 2.4, "kol": [124, 122, 118], "szorst": 1.0}   # IMG_1758–1765
 P["kostka_parking"] = {"tex": "red_brick_pavers", "m": 1.8, "kol": [128, 82, 70], "szorst": 1.0}            # zatoki IMG_1760–1761
 P["plac_zabaw"] = {"tex": "playground_sand", "m": 2.07, "kol": [196, 170, 128], "szorst": 1.0}

@@ -158,7 +158,7 @@
    "nazwa": "E.Leclerc",
    "kond": 2,
    "zrodlo": "ZDJ IMG_1577 (front od Skłodowskiej: witryny pasażu w parterze, pas okien piętra) i IMG_1730 (tył: biała hala, niebieski pas); bez nazwy i logo (decyzja 16:49)",
-   "trojkatow": 3039
+   "trojkatow": 3183
   },
   "o2": {
    "nazwa": "",
@@ -485,9 +485,10 @@
    "trojkatow": 31240
   }
  },
+ "budki": 3,
  "teren": {
   "jezdnie": 37854,
-  "parkingi": 14224,
+  "parkingi": 14142,
   "chodniki": 40231,
   "trawa": 128245,
   "boiska": 3278,
@@ -495,8 +496,8 @@
   "krawezniki": 2192,
   "boiska_asfalt": 720
  },
- "drzew": 608,
- "latarni": 257,
+ "drzew": 530,
+ "latarni": 256,
  "wyposazenie": {
   "przystanki": 6,
   "sygnalizacje": 12,
@@ -507,8 +508,9 @@
   "paczkomaty": 6,
   "ploty": 16,
   "zywoploty": 20,
-  "latarnie": 257,
+  "slupki": 3,
+  "latarnie": 256,
   "paliki": 46
  },
- "trojkatow": 820064
+ "trojkatow": 824720
 }

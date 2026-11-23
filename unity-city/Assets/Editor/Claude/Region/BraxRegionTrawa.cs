@@ -22,7 +22,7 @@ using UnityEngine.Rendering;
 //    pasy koszenia 1.8 m / 9 %; pod drzewami wąski pierścień ziemi z liśćmi (maska 0.5 m/px);
 //  • trawnik = SAMA płaska powierzchnia (siatka z góry, bez boków) w otworze nawierzchni — nigdy na niej ani pod nią w tym samym
 //    miejscu; brzeg = betonowe obrzeże (stoi 4–5 cm nad trawą, zakrywa styk), żadnego pionowego „boku z trawy”;
-//  • warstwa 3D: kępy instancjami (BraxClaudeTrawa + BraxClaudeTrawaDane, atlas grass_medium_01) — murawa 10 cm (23.11, było 6.5), ~11/m²,
+//  • warstwa 3D: kępy instancjami (BraxClaudeTrawa + BraxClaudeTrawaDane, atlas Grass Bermuda 01, 23.11; wcześniej grass_medium_01) — murawa 13 cm, ~20/m² (23.11; było 6.5 cm, 11/m²),
 //    kolor nasady = kolor trawnika pod nią (zanik kęp z odległością niewidoczny: trawnik z daleka ma ten sam kolor);
 //  • stare trawniki miasta (glb + wszystko z materiałem „Ziemia: prawdziwa trawa Grass004”): materiał podmieniony W MIEJSCU
 //    (nic nie kładziemy na stare), pionowe/strome trójkąty przeniesione do osobnego materiału ziemi (bez trawy na ścianach).
@@ -37,6 +37,10 @@ public static class BraxRegionTrawa
 {
     const string Tex = "Assets/Source/Claude/Osiedle/textures/";
     const string Detail = "Assets/Source/Claude/Osiedle/detail/";
+    // 23.11 (właściciel, zdjęcia trawy z Miasta Mistrzów): kępy z Grass Bermuda 01 (Poly Haven CC0) — atlas kart robi
+    // fetch_region.py (kepy_bermuda); brak = stary atlas grass_medium_01 z osiedla
+    static string KepyPng => File.Exists(BraxRegion.PH + "detail/kepy_bermuda.png") ? BraxRegion.PH + "detail/kepy_bermuda.png" : Detail + "kepy_atlas.png";
+    static string KepyJson => File.Exists(BraxRegion.PH + "detail/kepy_bermuda.json") ? BraxRegion.PH + "detail/kepy_bermuda.json" : Detail + "kepy_atlas.json";
     static string Out => BraxRegion.Out + "/Trawa";
     public const float GrubyObrzeza = .08f;          // szerokość betonowego obrzeża (m)
     public const float ObrzezeNadTrawa = .045f;      // obrzeże wystaje nad trawę
@@ -338,14 +342,14 @@ public static class BraxRegionTrawa
         var soil = MaskaZiemi(trawnik, laka);
         // 3) Kępy: trawniki z API + płaskie stare trawniki (nisko, y −0.6..0.8)
         var sh = Shader.Find("Braxhorn/OsiedleKepyInst");
-        var atlasImp = AssetImporter.GetAtPath(Detail + "kepy_atlas.png") as TextureImporter;
-        if (!sh || !atlasImp || !File.Exists(Detail + "kepy_atlas.json")) Notatka("kępy: brak shadera OsiedleKepyInst albo atlasu kęp — trawniki bez kęp");
+        var atlasImp = AssetImporter.GetAtPath(KepyPng) as TextureImporter;
+        if (!sh || !atlasImp || !File.Exists(KepyJson)) Notatka("kępy: brak shadera OsiedleKepyInst albo atlasu kęp — trawniki bez kęp");
         else
         {
             var mat = KepyMaterial(sh, atlasImp);
             var siatka = KepaMesh();
             var rnd = new System.Random(20261102);
-            int limit = 420000;
+            int limit = 800000;   // 23.11: 420 → 800 tys. (gęstsza murawa); dane ~16 MB, rysowane tylko w zasięgu 22 m
             foreach (var w in trawniki)
             {
                 if (!w.kepy || !w.go || nKep >= limit) continue;
@@ -483,12 +487,12 @@ public static class BraxRegionTrawa
     // Murawa w prostokącie: siatka 0.3 m z przesunięciem (~11 kęp / m²), 6 cm od obrzeża, bez dziur, bez zasłoniętych miejsc.
     static void Siatka(Wpis w, System.Random rnd, float[,] soil, List<Vector4> list, List<float> ys)
     {
-        const float hMur = .10f / .32f;   // 23.11: 6.5 → 10 cm (właściciel: „dłuższa trawa, nie taka płaska”, całe miasto)
+        const float hMur = .13f / .32f;   // 23.11: 6.5 → 13 cm (właściciel: „dłuższa trawa, nie taka płaska”, całe miasto)
         var r = w.obszar;
-        for (float z = r.yMin + .06f; z < r.yMax - .36f; z += .3f)
-            for (float x = r.xMin + .06f; x < r.xMax - .36f; x += .3f)
+        for (float z = r.yMin + .06f; z < r.yMax - .28f; z += .22f)
+            for (float x = r.xMin + .06f; x < r.xMax - .28f; x += .22f)
             {
-                float px = x + (float)rnd.NextDouble() * .3f, pz = z + (float)rnd.NextDouble() * .3f;
+                float px = x + (float)rnd.NextDouble() * .22f, pz = z + (float)rnd.NextDouble() * .22f;
                 if (w.dziury.Any(h => px > h.xMin - .06f && px < h.xMax + .06f && pz > h.yMin - .06f && pz < h.yMax + .06f)) continue;
                 if (rnd.NextDouble() < SoilAt(soil, px, pz) / .9) continue;
                 var p = new Vector3(px, w.y, pz);
@@ -521,9 +525,9 @@ public static class BraxRegionTrawa
         }
         if (total < 1f) return;
         // murawa 11/m² (koszona), łąka (duże stare połacie) 5/m² wyższych kęp; budżet: najwyżej 160 tys. na jedną siatkę
-        float dens = laka ? 5f : 11f;
-        dens = Mathf.Min(dens, Mathf.Min(160000f, budzet) / total);
-        const float hMur = .10f / .32f;   // 23.11: 6.5 → 10 cm (właściciel: „dłuższa trawa, nie taka płaska”, całe miasto)
+        float dens = laka ? 5f : 20f;   // 23.11: murawa 11 → 20 kęp/m² (gęsty dywan jak w Mieście Mistrzów)
+        dens = Mathf.Min(dens, Mathf.Min(300000f, budzet) / total);
+        const float hMur = .13f / .32f;   // 23.11: 6.5 → 13 cm (właściciel: „dłuższa trawa, nie taka płaska”, całe miasto)
         foreach (var (a, b, c, area) in tri)
         {
             float want = area * dens; int n = (int)want; if (rnd.NextDouble() < want - n) n++;
@@ -568,8 +572,8 @@ public static class BraxRegionTrawa
             imp.mipmapEnabled = true; imp.mipMapsPreserveCoverage = true; imp.alphaTestReferenceValue = .45f;
             imp.wrapMode = TextureWrapMode.Clamp; imp.maxTextureSize = 2048; imp.textureCompression = TextureImporterCompression.Compressed; imp.SaveAndReimport();
         }
-        var atlas = AssetDatabase.LoadAssetAtPath<Texture2D>(Detail + "kepy_atlas.png");
-        var info = JsonUtility.FromJson<KepyAtlas>(File.ReadAllText(Detail + "kepy_atlas.json"));
+        var atlas = AssetDatabase.LoadAssetAtPath<Texture2D>(KepyPng);
+        var info = JsonUtility.FromJson<KepyAtlas>(File.ReadAllText(KepyJson));
         var m = new Material(sh) { name = "Miasto: kępy trawy (instancje)", mainTexture = atlas, enableInstancing = true };
         int nCells = Mathf.Min(5, info != null && info.komorki != null ? info.komorki.Length : 0);
         for (int i = 0; i < nCells; i++) { var c = info.komorki[i]; m.SetVector("_C" + i, new Vector4(c.u, c.v, c.w, c.h)); }
@@ -582,7 +586,7 @@ public static class BraxRegionTrawa
             if (g.HasProperty("_Dry")) m.SetVector("_Dry", g.GetVector("_Dry"));
         }
         // kolor kart = 1.15 × średnie albedo trawnika (kolor pęczków = kolor podłoża, czubki odrobinę jaśniejsze) — jak osiedle 14
-        var cm = KartySrednio(Detail + "kepy_atlas.png"); float cy = .2126f * cm.x + .7152f * cm.y + .0722f * cm.z;
+        var cm = KartySrednio(KepyPng); float cy = .2126f * cm.x + .7152f * cm.y + .0722f * cm.z;
         float k = cy > .005f ? .133f * 1.15f / cy : 1f; var tip = new Vector4(k, k, k, 1);
         if (grassMeanLin.y > .005f && cm.x > .002f && cm.y > .002f && cm.z > .002f)
             tip = new Vector4(Mathf.Clamp(grassMeanLin.x * 1.15f / cm.x, 0f, 4f), Mathf.Clamp(grassMeanLin.y * 1.15f / cm.y, 0f, 4f), Mathf.Clamp(grassMeanLin.z * 1.15f / cm.z, 0f, 4f), 1f);

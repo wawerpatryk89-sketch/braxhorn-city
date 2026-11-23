@@ -148,6 +148,20 @@ def tablica_bar(out, px=400):
     d.text(((img.width - w) / 2, int(px * .12)), txt, font=f, fill=(236, 236, 230, 255)); img.save(out)
 
 
+def szyldy(out):
+    """Szyldy budek (budki.py): ogólne nazwy potraw, bez marek (ZASADY 7.4)."""
+    for plik, napisy, kol in (("szyld_bosna.png", [("BOSNA", .62), ("ZAPIEKANKI · HOT-DOG", .2)], (200, 30, 26, 255)),
+                              ("szyld_burger.png", [("BURGERY", .58), ("100% WOŁOWINA · FRYTKI", .2)], (236, 196, 40, 255)),
+                              ("szyld_zapiekanki.png", [("ZAPIEKANKI", .5), ("HOT-DOG · NAPOJE", .2)], (250, 236, 120, 255)),
+                              ("szyld_lody.png", [("LODZIARNIA", .62), ("LODY TRADYCYJNE · KAWA", .2)], (236, 236, 232, 255))):
+        W, H = 1024, 256
+        img = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(img); y = int(H * .06)
+        for txt, wys in napisy:
+            f = ImageFont.truetype(FONT_B, int(H * wys)); w = d.textlength(txt, font=f)
+            d.text(((W - w) / 2, y), txt, font=f, fill=kol); y += int(H * wys * 1.12)
+        img.save(out / plik)
+
+
 def plot_prety(out, px=256):
     """Płot panelowy z prętów (szpital, IMG_1673): pręty pionowe 2 cm co 12 cm, kafel 1 x 1 m, przezroczyste tło."""
     a = np.zeros((px, px), np.uint8)
@@ -242,6 +256,7 @@ if __name__ == "__main__":
     import sys as _s
     if len(_s.argv) > 2: zywoplot(_s.argv[2], out / "zywoplot_lisc.png", out / "zywoplot_brzeg.png")
     zywoplot_galazki(out / "zywoplot_galazki.png")
+    szyldy(out)
     for nr in ("28", "30", "32", "34", "36", "38"):
         napis_blok(out / ("napis_blok_%s.png" % nr), nr)
     print("ok")
