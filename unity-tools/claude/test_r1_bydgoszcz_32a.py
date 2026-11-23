@@ -144,3 +144,16 @@ def test_bus_z_bosna_wlasciciela_na_parkingu_marketu():
     assert not list((R / "unity-city/Prywatne/braxhorn-sklep-bydgoszcz-bosna-01").glob("*.glb"))      # nic jawnego
     cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
     assert "ModeleWlasciciela(root, Swiat)" in cs and "Mathf.Atan2(-kz, kx)" in cs
+
+
+def test_bus_z_bosna_okienko_i_miejsce_sprzedawcy():
+    """00:16: punkt KUP BOSNĘ przy okienku i miejsce sprzedawcy za ladą (osiedle_akcje.json → BraxBydgoszcz.Akcje)."""
+    import json, math
+    from pathlib import Path
+    R = Path(__file__).resolve().parents[2]
+    a = {x["id"]: x for x in json.loads((R / "unity-tools/claude/osiedle_bdg/gen/osiedle_akcje.json").read_text(encoding="utf-8"))["akcje"]}
+    assert a["bosna_kup"]["mowca"] == "bosna_sprzedawca" and a["bosna_kup"]["etykieta"] == "KUP BOSNĘ"
+    d = math.hypot(a["bosna_kup"]["x"] - a["bosna_sprzedawca"]["x"], a["bosna_kup"]["z"] - a["bosna_sprzedawca"]["z"])
+    assert 1.5 < d < 2.5                                            # klient przed ladą, sprzedawca za nią
+    cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
+    assert "Akcje(root, Swiat)" in cs and "osiedle_akcje.json" in cs

@@ -131,6 +131,9 @@ def zapiekanki(S, o, t, n, g="budki"):
     stolik(S, g, o + n * 2.3 - t * 1.2); stolik(S, g, o + n * 2.6 + t * .9)
 
 
+PUNKTY = {}
+
+
 def bosna_otwarta(S, P, c, s, g="budki"):
     """Otwarty bus z bosną (właściciel 24.11, 00:03–00:04, zdjęcie food trucka): klapa okienka podniesiona jako daszek
     (blacha, 12° nad poziom, na dwóch rozpórkach), lada ze stali pod okienkiem, ciemne wnętrze z blatem, tablica z menu
@@ -140,9 +143,28 @@ def bosna_otwarta(S, P, c, s, g="budki"):
     c, s = nrm(c), nrm(s)
     Wp = lambda xm, y, zm: P - c * xm + s * zm + UP * y
     ex = -c; zs = .975; xa, xb, ya, yb = .72, 2.40, .95, 1.91
-    # wnętrze: ciemny panel 1 cm przed burtą, blat ze stali i zaplecze (jaśniejszy pas), rama okienka
-    S.quad(g, "kiosk_wnetrze", Wp(xa, ya, zs + .01), Wp(xb, ya, zs + .01), Wp(xb, yb, zs + .01), Wp(xa, yb, zs + .01), kier=s)
-    S.quad(g, "kiosk_blat", Wp(xa + .05, ya + .3, zs + .012), Wp(xb - .05, ya + .3, zs + .012), Wp(xb - .05, ya + .38, zs + .012), Wp(xa + .05, ya + .38, zs + .012), kier=s)
+    # wnętrze za okienkiem (00:16: „na środku miejsce na osobę, żeby mógł sprzedawać”): okienko wycięte z burty modelu
+    # (wytnij_okienko.py), w środku komora 2,0 × 1,75 m: ściany i sufit białe, podłoga, lada wewnętrzna pod okienkiem,
+    # zaplecze z grillem do bosny, lodówka z napojami, półka; między ladami 0,9 m na sprzedawcę (twarzą do okienka)
+    xi0, xi1, zi0, zi1, yf, yc = .55, 2.55, -.82, .96, .5, 2.25          # podłoga na wysokości podłogi busa (nie widać jej spod nadwozia)
+    Q = lambda xm, y, zm: Wp(xm, y, zm)
+    S.quad(g, "kiosk_bialy", Q(xi0, yf, zi0), Q(xi1, yf, zi0), Q(xi1, yc, zi0), Q(xi0, yc, zi0), kier=s)              # tylna ściana
+    S.quad(g, "kiosk_bialy", Q(xi0, yf, zi0), Q(xi0, yf, zi1), Q(xi0, yc, zi1), Q(xi0, yc, zi0), kier=ex)                                                                  # bok od kabiny
+    S.quad(g, "kiosk_bialy", Q(xi1, yf, zi0), Q(xi1, yf, zi1), Q(xi1, yc, zi1), Q(xi1, yc, zi0), kier=-ex)             # bok od tyłu
+    S.quad(g, "posadzka", Q(xi0, yf, zi0), Q(xi1, yf, zi0), Q(xi1, yf, zi1), Q(xi0, yf, zi1), kier=UP)
+    S.quad(g, "kiosk_bialy", Q(xi0, yc, zi0), Q(xi1, yc, zi0), Q(xi1, yc, zi1), Q(xi0, yc, zi1), kier=-UP)
+    for (u0, u1, v0, v1) in ((xi0, xa, yf, yc), (xb, xi1, yf, yc), (xa, xb, yf, ya), (xa, xb, yb, yc)):             # przód od środka
+        S.quad(g, "kiosk_bialy", Q(u0, v0, zi1 - .03), Q(u1, v0, zi1 - .03), Q(u1, v1, zi1 - .03), Q(u0, v1, zi1 - .03), kier=-s)
+    S.box(g, "kiosk_wnetrze", Q(xa, yf, .62), ex, UP, s, xb - xa, ya - yf - .04, .3)                                 # lada wewn.
+    S.box(g, "kiosk_blat", Q(xa, ya - .04, .55), ex, UP, s, xb - xa, .04, .42)
+    S.box(g, "kiosk_wnetrze", Q(.75, yf, zi0 + .02), ex, UP, s, 1.15, .72, .52)                                     # zaplecze
+    S.box(g, "kiosk_blat", Q(.75, yf + .72, zi0 + .02), ex, UP, s, 1.15, .04, .54)
+    S.box(g, "latarnia_czarna", Q(.85, yf + .76, zi0 + .1), ex, UP, s, .55, .12, .38)                               # grill do bosny
+    S.box(g, "stal_ocynk", Q(1.5, yf + .76, zi0 + .1), ex, UP, s, .3, .3, .3)                                       # opiekacz
+    S.box(g, "kiosk_bialy", Q(2.0, yf, zi0 + .02), ex, UP, s, .5, 1.6, .55)                                         # lodówka
+    S.quad(g, "okno_klatka", Q(2.04, yf + .45, zi0 + .58), Q(2.46, yf + .45, zi0 + .58), Q(2.46, yf + 1.52, zi0 + .58), Q(2.04, yf + 1.52, zi0 + .58), kier=s)
+    S.box(g, "stal_ocynk", Q(.75, 1.72, zi0 + .02), ex, UP, s, 1.15, .03, .3)                                       # półka
+    PUNKTY["sprzedawca"] = Q((xa + xb) / 2, yf, .1); PUNKTY["klient"] = Q((xa + xb) / 2, 0., zs + 1.1); PUNKTY["s"] = s
     for (x0_, y0_, x1_, y1_) in ((xa - .04, ya - .04, xb + .04, ya), (xa - .04, yb, xb + .04, yb + .04), (xa - .04, ya, xa, yb), (xb, ya, xb + .04, yb)):
         S.box(g, "stal_ocynk", Wp(x0_, y0_, zs), ex, UP, s, x1_ - x0_, y1_ - y0_, .03)
     # lada 0,32 m na zewnątrz, wsporniki

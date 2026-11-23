@@ -1,0 +1,25 @@
+{
+ "akcje": [
+  {
+   "id": "bosna_kup",
+   "etykieta": "KUP BOSNĘ",
+   "odpowiedz": "Sprzedawca: Bosna klasyczna, ostra czy z serem? Z musztardą i cebulką?",
+   "x": -203.0,
+   "y": 0.0,
+   "z": 33.37,
+   "promien": 1.8,
+   "mowca": "bosna_sprzedawca"
+  },
+  {
+   "id": "bosna_sprzedawca",
+   "etykieta": "MIEJSCE SPRZEDAWCY",
+   "odpowiedz": "Za ladą busa z bosną — tu stoi sprzedawca.",
+   "x": -203.51,
+   "y": 0.5,
+   "z": 35.28,
+   "promien": 0.9,
+   "kier_x": 0.2571,
+   "kier_z": -0.9664
+  }
+ ]
+}

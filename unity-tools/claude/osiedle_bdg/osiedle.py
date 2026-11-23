@@ -172,11 +172,18 @@ def budki_market(d, dst):
         MODELE_WL.append(["bydgoszcz_bosna", "bosna_van", round(float(p_[0]), 2), round(float(p_[2]), 2), round(float(-t[0]), 4), round(float(-t[2]), 4)])
         S2 = Siatka(); budki.bosna_otwarta(S2, p_ + UP * Y_KOSTKI, -t, -n)     # otwarte okienko z daszkiem (00:03–00:04)
         przenies(S2, dst, "budki_bosna", 0.0, 0.0, 0.0)
+        sp_, kl_, s_ = budki.PUNKTY["sprzedawca"], budki.PUNKTY["klient"], budki.PUNKTY["s"]
+        AKCJE.append({"id": "bosna_kup", "etykieta": "KUP BOSNĘ", "odpowiedz": "Sprzedawca: Bosna klasyczna, ostra czy z serem? Z musztardą i cebulką?",
+                      "x": round(float(kl_[0]), 2), "y": 0.0, "z": round(float(kl_[2]), 2), "promien": 1.8, "mowca": "bosna_sprzedawca"})
+        AKCJE.append({"id": "bosna_sprzedawca", "etykieta": "MIEJSCE SPRZEDAWCY", "odpowiedz": "Za ladą busa z bosną — tu stoi sprzedawca.",
+                      "x": round(float(sp_[0]), 2), "y": round(float(sp_[1]), 2), "z": round(float(sp_[2]), 2), "promien": .9,
+                      "kier_x": round(float(s_[0]), 4), "kier_z": round(float(s_[2]), 4)})
         return 4
     return 0
 
 
 Y_KOSTKI = 0.0
+AKCJE = []              # punkty akcji (osiedle_akcje.json → BraxBydgoszcz): kupno, miejsce sprzedawcy
 MODELE_WL = []          # modele właściciela z paczek szyfrowanych: [paczka, plik, x, z, kier_x, kier_z] (metry; kier = oś kabiny)
 
 
@@ -388,6 +395,7 @@ if __name__ == "__main__":
     Wy, opis["wyposazenie"] = wyposazenie.zbuduj(d, G, teren.SZER, teren.OKNO, drzewa, latarnie)
     przenies(Wy, D, "wyposazenie", 0.0, 0.0, 0.0)
     (out / "osiedle_punkty.json").write_text(json.dumps({"drzewa": drzewa, "latarnie": latarnie, "modele": MODELE_WL}, ensure_ascii=False), encoding="utf-8")
+    (out / "osiedle_akcje.json").write_text(json.dumps({"akcje": AKCJE}, ensure_ascii=False, indent=1), encoding="utf-8")
     from kit import scal_wg_materialu, scal_wg_budynku
     zapisz_glb(scal_wg_materialu(D), out / "osiedle.glb")
     import paleta

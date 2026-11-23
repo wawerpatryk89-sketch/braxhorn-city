@@ -200,10 +200,11 @@ public static class BraxBydgoszcz
         }
         int drzew = Drzewa(root, Swiat);
         int modeli = ModeleWlasciciela(root, Swiat);
+        int akcji = Akcje(root, Swiat);
         TrawaMaska(root);
         int lodow = Zasiegi(root);
         Debug.Log("BRAXHORN_BYDGOSZCZ_OSIEDLE siatek=" + siatek + " trojkatow=" + trojkatow + " kolizji=" + kolizji + " materialow=" + maty.Count +
-                  " drzew=" + drzew + " modeli_wlasciciela=" + modeli + " lod=" + lodow + " punkt_zerowy=(" + PunktZerowy.x + "; " + PunktZerowy.y + ")");
+                  " drzew=" + drzew + " modeli_wlasciciela=" + modeli + " akcji=" + akcji + " lod=" + lodow + " punkt_zerowy=(" + PunktZerowy.x + "; " + PunktZerowy.y + ")");
     }
 
     /// <summary>Budżet kadru na telefonie (ZASADY 10.2, 800 tys./kadr): każda grupa osiedla (budynek, wyposażenie, budki) dostaje
@@ -310,6 +311,31 @@ public static class BraxBydgoszcz
             licz++;
         }
         return licz;
+    }
+
+    [Serializable] class AkcjaJ { public string id, etykieta, odpowiedz, mowca; public float x, y, z, promien = 1.7f, kier_x, kier_z; }
+    [Serializable] class AkcjeJ { public AkcjaJ[] akcje; }
+
+    /// <summary>Punkty akcji osiedla (osiedle_akcje.json, metry): 24.11 00:16 — bus z bosną: „KUP BOSNĘ” przy okienku i miejsce
+    /// sprzedawcy za ladą (znacznik z kierunkiem twarzą do okienka — dla obsady, gdy ludzie będą włączeni, i dla pracy gracza).</summary>
+    static int Akcje(Transform root, Func<float, float, float, Vector3> swiat)
+    {
+        string p = Path.Combine(Path.GetDirectoryName(Sciezka() ?? Plik) ?? "", "osiedle_akcje.json");
+        if (!File.Exists(p)) return 0;
+        var dane = JsonUtility.FromJson<AkcjeJ>(File.ReadAllText(p));
+        if (dane == null || dane.akcje == null) return 0;
+        int n = 0; var wg = new Dictionary<string, BraxPunktAkcji>();
+        foreach (var a in dane.akcje)
+        {
+            var pos = swiat(a.x, a.y, a.z);
+            var pk = BraxMiastoA.Akcja(root, a.id, a.etykieta, a.odpowiedz, pos, a.promien * K);
+            if (!pk) continue;
+            if (a.kier_x != 0f || a.kier_z != 0f) pk.transform.rotation = Quaternion.LookRotation(new Vector3(a.kier_x, 0f, a.kier_z), Vector3.up);
+            wg[a.id] = pk; n++;
+        }
+        foreach (var a in dane.akcje)                                   // dymek kupna nad sprzedawcą (punkt obsady)
+            if (!string.IsNullOrEmpty(a.mowca) && wg.TryGetValue(a.id, out var pk) && wg.TryGetValue(a.mowca, out var m)) pk.mowca = m.transform;
+        return n;
     }
 
     /// <summary>Drzewa z osiedle_punkty.json — modele z biblioteki właściciela (drzewo_verdant, las_sosna_a).</summary>
