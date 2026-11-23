@@ -344,6 +344,29 @@ wyrzucało z gry). Taki skok musi być widoczny od razu, a nie po tygodniu.
 
 **8.7. Rejony się nie mieszają.** Poprawka w jednym rejonie nie dotyka plików drugiego.
 
+**8.8. Z KAŻDYM BOLIDEM IDĄ ZDJĘCIA Z GRY — dla wykonawców, na poprawki.**
+Właściciel 23.11, 01:28: *„Z każdym bolidem mają być zdjęcia. Dla wykonawców. Na poprawki."*
+To zastępuje decyzję z 3.11 („bez zdjęć CI — to tylko czas zajmuje"). Zdjęcia wracają, ale
+**nie wstrzymują APK**: robi je osobny przebieg, równolegle albo po buildzie.
+
+- **Stała lista ujęć rejonu.** Te same nazwy i te same miejsca w każdym bolidzie, żeby dwa
+  bolidy dało się położyć obok siebie — to jest od razu „przed i po" z 8.3. Nowa dzielnica
+  albo nowy obiekt = nowe ujęcia dopisane na końcu. Starych się nie usuwa.
+- **Co musi być na liście:** każde miejsce zmienione w tym bolidzie, najcięższe miejsce
+  rejonu, jedna panorama z daleka, jedno ujęcie z poziomu gracza z kamerą z 10.8 i każde
+  wnętrze, do którego da się wejść.
+- **Z prawdziwej gry, nie z edytora:** skompilowany player, 1280×576 albo więcej,
+  w proporcjach telefonu, bez HUD i bez licznika (`BraxPlynnosc.Zdjecia = true`).
+- **Przy każdym zdjęciu liczby kadru.** Obok zdjęć plik `statystyki.txt`: nazwa ujęcia,
+  paczki, przejścia, trójkąty, obiekty rzucające cień. Rejon Mistrzów już to ma
+  (`BraxChampionsVisualReview`) — ten format jest wzorem. Ujęcie ponad budżet z 10.2 jest
+  „do poprawki" z urzędu, bez dyskusji o tym, jak wygląda.
+- **Strona przeglądu.** Przy każdym zdjęciu werdykt **OK** albo **do poprawki** z powodem,
+  na górze lista poprawek na następny bolid. Wzór: przegląd „Osiedle R2 build 4" z 31.10.
+  Werdykt pisze wykonawca rejonu i pisze wprost, co nie wyszło. Zdjęcie z podpisem „OK",
+  na którym widać błąd, jest gorsze niż brak zdjęcia.
+- **Bolid bez zdjęć jest nieodebrany** — tak samo jak gałąź z błędem sprawdzacza.
+
 ---
 
 ## 9. CO JEST DO DECYZJI WŁAŚCICIELA
@@ -357,7 +380,201 @@ wyrzucało z gry). Taki skok musi być widoczny od razu, a nie po tygodniu.
 2. **Cienie w trybie ŚREDNIM.** Dziś twarde, jedna kaskada na 35 m — krawędź skacze.
    Propozycja: miękkie, 2 kaskady, 45 m.
 3. **MSAA 4× zamiast 2×** — dopiero gdy APK z 2× okaże się stabilny na jego telefonie.
+4. **Liczby wspólnego pliku trybów jakości (10.3) i zasięgów według wielkości (10.4).**
+   Dziś są trzy wersje `BraxGrafika.cs` (różnią się zasięgiem, cieniami i progiem
+   szczegółów) i dwie wersje `BraxZasiegDrobnych.cs`. Jedna wersja wymaga wyboru tych
+   liczb, a wybór wymaga pomiaru licznikiem na telefonie w każdym rejonie. Do tego czasu
+   liczby są zamrożone — żaden rejon ich nie zmienia.
 
 ---
 
-*Zmiany w tym pliku — tylko za zgodą właściciela. Ostatnia aktualizacja: 18.11.2026.*
+## 10. PŁYNNOŚĆ I KAMERA
+
+Właściciel 23.11, 01:13: *„Mamy ustalić jeden konkretny zespół konkretnych zasad. Jak ma to
+wyglądać, że ta gra […] nie zamulała. Minimum 30 FPS, minimum."*
+Właściciel 23.11, 01:27: *„Pod każdy rejon jedne wspólne zasady, żebyśmy utrzymali tą jakość
+minimum co jest, albo jeszcze lepsza. Wszystko płynnie chodziło i kamera w każdym kolejnym
+buildzie już ma być bliżej postaci. Tak jak w GTA najnowszym."*
+
+**Skąd ten rozdział.** Do 23.11 ten plik ustalał, jak gra ma WYGLĄDAĆ (rozdziały 3–6),
+i nie miał ani jednej liczby o tym, jak ma CHODZIĆ. Liczby istniały — w `STANDARD-TECHNICZNY`
+(1.11) i `ZASADA-0` (16.11) — ale nie trafiły tutaj i nic ich nie mierzyło. Stan zmierzony
+23.11 na gałęziach rejonów:
+
+- `BraxGrafika.cs` ma **trzy różne wersje**. W trybie ŚREDNIM Miasto R1 rysuje wszystko do
+  1600 m, Osiedle i Mistrzowie do 420 m (tabela w 10.3).
+- Zasięg zależny od wielkości obiektu jest w **dwóch połówkach i żaden rejon nie ma obu**:
+  Osiedle ma go dla obiektów z poziomami szczegółów, Mistrzowie dla zwykłych obiektów,
+  Miasto R1 nie ma żadnej (10.4).
+- W kadrze mierzono 4,5 mln trójkątów (park Osiedla, 31.10) i 8,3 mln (galeria G1
+  w Mistrzach, 16.11) przy limicie 0,8 mln, którego żaden build nie sprawdzał.
+
+To nie są różne potrzeby rejonów. To ten sam rozjazd co przy teksturach, tylko w miejscu,
+którego nikt nie pilnował.
+
+**10.1. MINIMUM 30 KLATEK NA SEKUNDĘ.**
+Telefon odniesienia z rozdziału 1 (moto g86), tryb ŚREDNI. Niżej nie wolno zejść w żadnym
+rejonie i w żadnym miejscu rejonu. 60 klatek w trybie WYSOKIM na mocniejszym telefonie jest
+celem; 30 jest podłogą.
+
+- **Limit klatek nigdy nie jest ustawiany poniżej 30** (reguła F1 sprawdzacza).
+- **Liczy się najgorsza sekunda, nie średnia.** Jedno szarpnięcie przy doczytaniu obszaru
+  nie jest spadkiem klatek, ale ma być widać je w logu.
+- **Dowód:** licznik w grze i wiersze `BRAX_PLYNNOSC` w logu (`BraxPlynnosc`). Pomiar to
+  dwie minuty chodu i jazdy przez najcięższe miejsce rejonu. Licznik jest na telefonie
+  domyślnie widoczny; cztery palce przytrzymane na ekranie przez sekundę chowają go
+  i przywracają.
+
+**10.2. BUDŻET KADRU.**
+
+| Co | Limit |
+|---|---|
+| Jedna klatka, razem z przebiegami cieni | **≤ 800 tys. trójkątów, ≤ 400 wywołań rysowania** |
+| Scena-obszar | ≤ 1,5 mln trójkątów |
+| Rekwizyt / mebel / drzewo / budynek | ≤ 5 tys. / 15 tys. / 20 tys. / 60 tys. trójkątów |
+| Jedna siatka | ≤ 65 000 wierzchołków |
+
+Liczby są z `STANDARD-TECHNICZNY` z 1.11 — nie są nowe. Nowe jest to, że są mierzone:
+w grze licznik robi się czerwony, a przy każdym bolidzie liczby kadru stoją obok zdjęć
+(8.8). **Ujęcie ponad budżet = bolid nieodebrany.**
+
+**10.3. JEDEN PLIK TRYBÓW JAKOŚCI.** `Assets/Claude/BraxGrafika.cs` ma być ten sam
+w każdym rejonie — tak jak potok obsady (6.0), rejon nie trzyma własnej wersji.
+Stan 23.11, tryb ŚREDNI na telefonie:
+
+| | Osiedle, Mistrzowie, pokój prób | Miasto R1 |
+|---|---|---|
+| Zasięg kamery | 420 m | 1600 m |
+| Cienie | twarde, 1 kaskada, 35 m | miękkie, 2 kaskady, 80 m |
+| Próg szczegółów (lodBias) | 0,8 | 1,25 |
+| Tryb NISKI — cienie | **wyłączone** (wbrew 4.6) | twarde, 40 m |
+
+Wspólna wersja trafi na `main` po pomiarze licznikiem w każdym rejonie, bo wybór tych liczb
+należy do właściciela (9.4). **Do tego czasu liczby są zamrożone:** żaden rejon nie zmienia
+swojego `BraxGrafika.cs`. Sprawdzacz wypisuje wersję pliku i jego zasięgi przy każdym
+przebiegu (G1), żeby rozjazd było widać, a nie trzeba go było szukać.
+
+**10.4. ZASIĘG WEDŁUG WIELKOŚCI, NIE JEDNA LICZBA.**
+Jedna liczba dla wszystkiego daje wybór między dwiema złymi rzeczami: albo ławka rysuje się
+z kilometra, albo budynek znika razem z ławką. Dlatego zasięg zależy od wielkości obiektu.
+Są dwa mechanizmy, bo są dwa rodzaje obiektów. **Oba mają być w każdym rejonie.**
+
+**(a) SUFIT — żeby drobiazg nie rysował się z kilometra.** Zwykły obiekt, bez poziomów
+szczegółów:
+
+| Obiekt | Warstwa | Rysowany najwyżej do |
+|---|---|---|
+| DROBNY — największy wymiar poniżej 1,2 m (1,55 j.) | 21 | 90 j. (ok. 70 m) |
+| MAŁY — poniżej 4 m (5,18 j.) | 20 | 260 j. (ok. 200 m) |
+| DUŻY — budynki, grunt, drzewa, teren | bez zmian | dalekiego zasięgu rejonu |
+
+Przy tych liczbach obiekt znika, gdy ma na ekranie mniej niż 2 % wysokości. To jest metoda
+rejonu Mistrzów (`BraxChampionsWydajnosc`), wyjęta do jednego miejsca. Sortowanie przy
+buildzie: `BraxZasiegSortowanie.Posortuj(scena)`. Zasięgi w grze ustawia `BraxPlynnosc`.
+**Rejon nie wpisuje własnych warstw ani własnych zasięgów.**
+
+**(b) PODŁOGA — żeby nic nie wyskakiwało tuż przy postaci.** Właściciel 1.11, 20:49:
+*„kwiaty, drobne rzeczy pojawiają się dopiero tuż przy postaci"*. Obiekt z poziomami
+szczegółów (LODGroup) nie znika bliżej niż:
+
+| Największy wymiar | poniżej 0,8 j. | do 2,5 j. | do 6 j. | do 16 j. | większy |
+|---|---|---|---|---|---|
+| Widoczny co najmniej do (tryb ŚREDNI) | 55 j. | 80 j. | 120 j. | 220 j. | 300 j. |
+
+Tryb NISKI × 0,75, WYSOKI × 1,5. Pilnuje tego `Assets/Claude/Runtime/BraxZasiegDrobnych.cs`
+— plik z Osiedla, który przelicza ostatni próg każdej grupy tak, żeby zasięg nie zależał
+od trybu jakości. Sufit nie leży poniżej podłogi: 90 ≥ 80 i 260 ≥ 120.
+
+**Stan 23.11:** (a) działa tylko w Mistrzach. (b) dodaje tylko skrypt sceny Osiedla
+(`BraxClaudeOsiedleKraniec`), a sam plik ma dwie wersje — nowsza, z Osiedla, nie nakłada
+na siebie dwóch poziomów, gdy shader nie umie ich przenikać. Miasto R1 nie ma ani (a),
+ani (b) w swojej scenie. Liczby obu mechanizmów są zamrożone do pomiaru (9.4); włączenie
+(b) w nowym rejonie wydłuża rysowanie drobiazgów, więc idzie razem z licznikiem i ze
+zdjęciami, nie na ślepo.
+
+- **Siatki scalone dzieli się na wielkości PRZED scaleniem.** Tysiąc drobiazgów scalonych
+  z budynkiem ma wymiar budynku i rysuje się w całości z każdej odległości. Tak było
+  w galerii G1: 8,3 mln trójkątów, z czego 7,5 mln w kawałkach poniżej 1,2 m.
+- **Daleki zasięg zależy od skali rejonu** — tak jak gęstość mgły (4.1). Rejon podaje go
+  w logu. Mgła ma zakrywać granicę zasięgu; tam, gdzie obiekty wyskakują z niczego,
+  mgła jest za rzadka albo zasięg za krótki.
+- **Z daleka nic dużego nie znika.** Budynek poza wczytanym obszarem zostaje jako uproszczona
+  kopia w tych samych materiałach. Nigdy szare pudło.
+
+**10.5. POZIOMY SZCZEGÓŁÓW.** Każdy obiekt powyżej 3 tys. trójkątów ma trzy: pełny do 25 m,
+połowa trójkątów do 80 m, jedna piąta do 200 m, dalej nie jest rysowany. Drzewo na ostatnim
+poziomie jest płaską planszą z przezroczystością mieszaną, nie wycinaną (2.2).
+
+**10.6. WNĘTRZA NIE RYSUJĄ SIĘ Z ULICY.** Wnętrze, którego nie widać przez szybę, nie jest
+rysowane, dopóki gracz nie jest przy drzwiach. Ten sam mechanizm i te same odległości co
+obszary: wczytanie 45 m przed wejściem, zwolnienie 110 m za nim. Witryna, przez którą widać
+środek, pokazuje tylko to, co stoi przy szybie.
+
+**10.7. BEZPIECZNIK.** Gdy średnia z trzech sekund spada poniżej 30 klatek, gra sama
+zdejmuje ciężar — w tej kolejności i ani kroku dalej:
+
+1. zasięg warstw DROBNE i MAŁE × 0,75;
+2. próg szczegółów (lodBias) − 20 % — wykonuje `BraxGrafika`, bo tylko on rusza
+   `QualitySettings` (4.5);
+3. rozdzielczość — **wyłącznie przy wczytaniu sceny**, nigdy w trakcie gry.
+
+Bezpiecznik nie wyłącza cieni (4.6) i nie rusza MSAA ani rozdzielczości w locie: to odtwarza
+bufor ekranu i na Vulkanie zamykało aplikację (2.4). **Kod bezpiecznika powstaje po pierwszym
+pomiarze na telefonie** — pisany bez liczb robiłby migające drobiazgi zamiast płynności.
+
+**10.8. JEDNA KAMERA, BLIŻEJ POSTACI.**
+
+| | Było do 23.11 | Jest |
+|---|---|---|
+| Pieszo, za postacią | 5,8 j. (ok. 4,5 m) | **4,2 j. (ok. 3,2 m)** |
+| Za autem, postój → pełna prędkość | 7 → 9,5 j. | **5,5 → 7,5 j.** |
+| Postać na ekranie (pole widzenia 55°) | nieco ponad ⅓ wysokości | około połowy |
+
+- Liczby są w `Assets/Claude/BraxKameraStandard.cs` **i tylko tam**. `BraxGymPlayer.cs`
+  każdego rejonu czyta je stamtąd: `BraxKameraStandard.Pieszo` na starcie i przy powrocie
+  do ustawień, `BraxKameraStandard.Auto(prędkość)` za autem. Odległość wpisana liczbą
+  w pliku rejonu jest błędem (reguła K1).
+- „Jeszcze bliżej" albo „trochę dalej" to zmiana jednej liczby na `main`, na słowo
+  właściciela, ze zdjęciem przed i po z poziomu gracza. Nie cztery poprawki w czterech
+  gałęziach.
+- Bez zmian zostają: kąt startowy, wysokość celu 1,65, kolizja kamery ze ścianami
+  i chowanie postaci, gdy ściana dosuwa kamerę bliżej niż 1,1.
+- **Bliższa kamera poprawia wygląd, nie klatki.** Telefon i tak rysuje wszystko przed
+  kamerą aż do granicy zasięgu. Klatki dają 10.2 i 10.4.
+
+**10.9. PLIKI STANDARDU PŁYNNOŚCI.** Obecność wszystkich trzech na gałęzi rejonu jest
+obowiązkowa, tak jak plików obrazu (4.2).
+
+| Plik | Co robi |
+|---|---|
+| `Assets/Claude/BraxKameraStandard.cs` | liczby kamery (10.8) |
+| `Assets/Claude/Runtime/BraxPlynnosc.cs` | liczby budżetu i zasięgów, licznik w grze, log `BRAX_PLYNNOSC`, zasięgi warstw 20 i 21 |
+| `Assets/Editor/Claude/BraxZasiegSortowanie.cs` | sortowanie obiektów na warstwy zasięgu przy buildzie, log `BRAX_ZASIEG_WARSTWY` |
+
+Co czym jest pilnowane:
+
+| Zasada | Sprawdzacz (od 23.11) | Licznik w grze | Zdjęcia z bolidu (8.8) |
+|---|---|---|---|
+| 10.1 klatki | F1: limit klatek poniżej 30 | tak | — |
+| 10.2 budżet kadru | — | tak | tak |
+| 10.3 jeden plik trybów | G1: wypisuje wersję i zasięgi | — | — |
+| 10.4 (a) sufit drobiazgów | W1: rejon nie sortuje obiektów; W2: własne liczby | — | panorama z daleka |
+| 10.4 (b) podłoga drobiazgów | G1: wypisuje wersję `BraxZasiegDrobnych` | — | ujęcie z poziomu gracza |
+| 10.8 kamera | K1: odległość wpisana liczbą | — | ujęcie z poziomu gracza |
+| 10.9 pliki standardu | W0: brak pliku | — | — |
+
+10.5, 10.6 i 10.7 nie mają jeszcze automatu. Do czasu, aż go dostaną, dowodem jest
+`statystyki.txt` z ujęć przed budynkiem i w parku.
+
+**10.10. KOLEJNOŚĆ.** Najpierw pomiar, potem cięcie — nie odwrotnie.
+
+1. Każdy rejon bierze `main`, przechodzi sprawdzacz (K1, W0, W1, F1) i wypuszcza bolid
+   z licznikiem i zdjęciami.
+2. Właściciel przechodzi każdy rejon z licznikiem na ekranie. Czerwone miejsca trafiają do
+   logu z pozycją kamery.
+3. Z tych liczb powstaje wspólny `BraxGrafika.cs` (10.3, 9.4) i bezpiecznik (10.7).
+4. Rejon ponad budżetem tnie to, co pokazał pomiar — nie to, co się komuś wydaje.
+
+---
+
+*Zmiany w tym pliku — tylko za zgodą właściciela. Ostatnia aktualizacja: 23.11.2026.*
