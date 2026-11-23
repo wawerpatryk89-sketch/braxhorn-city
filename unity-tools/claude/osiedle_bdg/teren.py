@@ -79,7 +79,20 @@ def linie_glownej(d, jezdnie_glowne):
     return linie
 
 
-def zbuduj(d, budynki_poly):
+def przedpole(A, B, n, maks, jezdnie):
+    """Kostka od ściany do jezdni: głębokość = mediana odległości do jezdni wzdłuż normalnej (z 7 promieni), najwyżej maks."""
+    A, B, n = np.asarray(A, float), np.asarray(B, float), np.asarray(n, float)
+    gl = []
+    for t in np.linspace(.05, .95, 7):
+        p = A + (B - A) * t
+        ray = LineString([tuple(p), tuple(p + n * maks)])
+        x = ray.intersection(jezdnie)
+        gl.append(maks if x.is_empty else max(1.2, shapely.geometry.Point(*p).distance(x) + .3))
+    d = float(np.median(gl))
+    return Polygon([tuple(A - (B - A) * .02), tuple(B + (B - A) * .02), tuple(B + n * d), tuple(A + n * d)])
+
+
+def zbuduj(d, budynki_poly, przedpola=()):
     S = Siatka()
     jezdnie, glowne, piesze, parkingi, boiska, place = [], [], [], [], [], []
     for u in d["ulice"]:
@@ -106,10 +119,17 @@ def zbuduj(d, budynki_poly):
     # chodnik: ścieżki z mapy + opaska 1,2 m wokół budynków (kostka pod ścianami jak na zdjęciach) + 2 m wzdłuż głównej
     opaska = bud.buffer(1.2, join_style=2).difference(bud)
     wzdluz = GLOW.buffer(2.3, join_style=2).difference(GLOW)
-    CHOD = unary_union(piesze + [opaska, wzdluz]).difference(POZIOM0).difference(bud).intersection(OKNO)
+    # chodniki 1,8 m wzdłuż uliczek osiedlowych po obu stronach (IMG_1427, IMG_1630: kostka przy każdej uliczce)
+    uliczki = [LineString(u["linia"]).buffer(SZER[u["klasa"]] / 2 + 1.8, cap_style=2, join_style=1)
+               for u in d["ulice"] if u["klasa"] in ("service", "residential") and len(u["linia"]) >= 2]
+    przy_uliczkach = unary_union(uliczki).difference(JEZ) if uliczki else Polygon()
+    prz_k = [przedpole(A, B, n, m, POZIOM0) for (A, B, n, m, mat) in przedpola if mat == "kostka"]
+    prz_g = [przedpole(A, B, n, m, POZIOM0) for (A, B, n, m, mat) in przedpola if mat == "plac_garazy"]
+    PLAC_G = unary_union(prz_g).difference(POZIOM0).difference(bud).intersection(OKNO) if prz_g else Polygon()
+    CHOD = unary_union(piesze + [opaska, wzdluz, przy_uliczkach] + prz_k).difference(POZIOM0).difference(bud).difference(PLAC_G).intersection(OKNO)
     BOI = unary_union(boiska).difference(POZIOM0).difference(CHOD).difference(bud).intersection(OKNO)
     PLAC = unary_union(place).difference(POZIOM0).difference(CHOD).difference(bud).difference(BOI).intersection(OKNO)
-    TRAWA = OKNO.difference(unary_union([POZIOM0, CHOD, BOI, PLAC, bud]))
+    TRAWA = OKNO.difference(unary_union([POZIOM0, CHOD, BOI, PLAC, PLAC_G, bud]))
     # krawężnik: pas 0,15 m po stronie chodnika/trawnika wzdłuż krawędzi jezdni i parkingów
     KRAW = POZIOM0.buffer(.15, join_style=2).difference(POZIOM0).difference(bud).intersection(OKNO)
     CHOD = CHOD.difference(KRAW); TRAWA = TRAWA.difference(KRAW)
@@ -118,6 +138,7 @@ def zbuduj(d, budynki_poly):
     plaski(S, "teren", "asfalt", ASF.simplify(.05), Y_JEZDNIA)
     plaski(S, "teren", "linia_biala", LIN.simplify(.01), Y_JEZDNIA)
     plaski(S, "teren", "asfalt_parking", PARK.simplify(.05), Y_JEZDNIA)
+    plaski(S, "teren", "asfalt_parking", PLAC_G.difference(KRAW_PRE := POZIOM0.buffer(.15, join_style=2)).simplify(.05), Y_JEZDNIA + .01)
     plaski(S, "teren", "kostka", CHOD.simplify(.05), Y_CHODNIK)
     plaski(S, "teren", "kraweznik", KRAW.simplify(.02), Y_CHODNIK + .01)
     boki(S, "teren", "kraweznik", KRAW.simplify(.02), Y_CHODNIK + .01, Y_JEZDNIA - .02)

@@ -52,6 +52,9 @@ TEXTURES_WYSPA = [
     "coast_sand_02",   # piaskownica placu zabaw (dotąd kolor bez tekstury)
     "long_white_tiles", "large_floor_tiles_02",   # WC areny i plaży: płytki ścian (białe długie) i posadzki (wielki format)
 ]
+# OSIEDLE BYDGOSKIE (23.11, właściciel: osiedle przy Skłodowskiej-Curie od nowa; ZASADY 5.8 — lista MATERIALY-WLASCICIELA):
+# tynk elewacji, beton cokołów i balkonów, kostka chodników (BraxBydgoszcz, paleta osiedle_bdg/paleta.py).
+TEXTURES_BYDGOSZCZ = ["white_stucco_02", "brushed_concrete_04", "concrete_pavers"]
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
 # W 1K (telefon): 38 zestawów w 2K to ok. 0,5 GB tekstur w pamięci naraz — ściany dostają kolor + normalną 1024, drobne
@@ -195,7 +198,7 @@ def model(mid: str, res: str, report: dict) -> None:
 
 def main() -> int:
     report = {"source": "Poly Haven (CC0), wpisy opcjonalne", "textures": {}, "models": {}, "missing": []}
-    for t in TEXTURES + [x for x in TEXTURES_DWORZEC + TEXTURES_WYSPA if x not in TEXTURES]:
+    for t in TEXTURES + [x for x in TEXTURES_DWORZEC + TEXTURES_WYSPA + TEXTURES_BYDGOSZCZ if x not in TEXTURES]:
         try:
             texture(t, report)
         except Exception as exc:  # noqa: BLE001

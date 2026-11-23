@@ -168,6 +168,19 @@ def scal_wg_materialu(siatka):
     return out
 
 
+def scal_wg_budynku(siatka):
+    """Do gry: jedna siatka na (budynek, materiał) — grupa „w32a/sciana_W” -> „w32a”; partie > 60 tys. wierzchołków dzielone."""
+    out = Siatka(); licz = {}
+    for (g, m), c in siatka.dane().items():
+        b0 = g.split("/")[0]; k = licz.get((b0, m), 0)
+        if len(out._c("%s#%d" % (b0, k), m)["v"]) + len(c["v"]) > 60000:
+            k += 1; licz[(b0, m)] = k
+        d = out._c("%s#%d" % (b0, k), m); b = len(d["v"])
+        for f in ("v", "n", "t", "uv", "uv1"): d[f] += c[f]
+        d["i"] += [b + i for i in c["i"]]
+    return out
+
+
 def zapisz_glb(siatka, sciezka):
     """Podgląd (three.js): z -> -z (glTF prawoskrętny, północ = -z), kolejność trójkątów odwrócona; każda (grupa,
     materiał) to osobny węzeł o nazwie 'grupa|materiał'; styczne w atrybucie TANGENT (w odwrócone przez odbicie)."""

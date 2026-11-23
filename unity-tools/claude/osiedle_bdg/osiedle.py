@@ -100,6 +100,10 @@ def wiezowce(dst):
     for nr, (kat, tx, tz, seed) in WIEZOWCE.items():
         S, okien = blok_32a.zbuduj(nr, seed)
         przenies(S, dst, "w" + nr, kat, tx, tz)
+        B = blok_32a
+        # ściana wejściowa (północ połówki zachodniej) i ślepa ściana z napisem — przed nimi kostka do uliczki (IMG_1427)
+        PRZEDPOLA.append((swiat(kat, tx, tz, 0, B.DL), swiat(kat, tx, tz, B.SZ_POL, B.DL), kier(kat, 0, 1), 16.0, "kostka"))
+        PRZEDPOLA.append((swiat(kat, tx, tz, B.SZ_POL, B.DL + B.USKOK), swiat(kat, tx, tz, 2 * B.SZ_POL, B.DL + B.USKOK), kier(kat, 0, 1), 14.0, "kostka"))
         opis[nr] = {"trojkatow": trojkaty(S), "okien": okien, "kat": kat, "x": tx, "z": tz}
     return opis
 
@@ -109,6 +113,17 @@ def wiezowce(dst):
 BLOKI4 = {"28": 4, "30": 1, "32": 2, "34": 3, "36": 3, "38": 1}
 PN = np.array([0., 1.])
 MODELE = []      # obrysy budynków postawionych modelem (teren je omija)
+PRZEDPOLA = []   # (A, B, normalna na zewnątrz, maks. głębokość, materiał) — kostka od ściany wejściowej do jezdni
+
+
+def swiat(kat, tx, tz, x, z):
+    c, s_ = math.cos(math.radians(kat)), math.sin(math.radians(kat))
+    return np.array([c * x + s_ * z + tx, -s_ * x + c * z + tz])
+
+
+def kier(kat, x, z):
+    c, s_ = math.cos(math.radians(kat)), math.sin(math.radians(kat))
+    return np.array([c * x + s_ * z, -s_ * x + c * z])
 
 
 def bloki(d, dst):
@@ -123,6 +138,7 @@ def bloki(d, dst):
         strona = "W" if (-X) @ PN > 0 else "E"           # napis na szczycie od głównej ulicy (północ)
         S, okien = blok4.zbuduj(L, W, nr, BLOKI4[nr], klatki=3, seed=int(nr), napis_szczyt="napis_blok_" + nr, napis_strona=strona)
         przenies(S, dst, "b" + nr, k, ox, oz); MODELE.append(b["poly"])
+        PRZEDPOLA.append((swiat(k, ox, oz, 0, 0), swiat(k, ox, oz, L, 0), kier(k, 0, -1), 12.0, "kostka"))
         opis[nr] = {"L": round(L, 2), "W": round(W, 2), "kat": round(k, 2), "front": zrodlo, "trojkatow": trojkaty(S)}
     return opis
 
@@ -145,6 +161,11 @@ def male(d, dst):
         else:
             continue
         przenies(S, dst, nazwa, k, ox, oz); MODELE.append(b["poly"])
+        if nazwa.startswith("garaze"):
+            PRZEDPOLA.append((swiat(k, ox, oz, 0, 0), swiat(k, ox, oz, L, 0), kier(k, 0, -1), 10.0, "plac_garazy"))
+        else:   # bar i pawilony: kostka dookoła (IMG_1631–1634)
+            for (a0, a1, nn) in (((0, 0), (L, 0), (0, -1)), ((L, 0), (L, W), (1, 0)), ((0, W), (0, 0), (-1, 0)), ((L, W), (0, W), (0, 1))):
+                PRZEDPOLA.append((swiat(k, ox, oz, *a0), swiat(k, ox, oz, *a1), kier(k, *nn), 6.0 if nn == (0, -1) else 3.0, "kostka"))
         opis[nazwa] = {"L": round(L, 2), "W": round(W, 2), "kat": round(k, 2), "trojkatow": trojkaty(S)}
     return opis
 
@@ -155,13 +176,20 @@ if __name__ == "__main__":
     opis = {"wiezowce": wiezowce(D), "bloki": bloki(d, D), "male": male(d, D)}
     for b in d["budynki"]:
         if b.get("nr") in WIEZOWCE and (b.get("ulica") or "").startswith("Marii"): MODELE.append(b["poly"])
-    T, pola, G = teren.zbuduj(d, MODELE)
+    T, pola, G = teren.zbuduj(d, MODELE, PRZEDPOLA)
     przenies(T, D, "teren", 0.0, 0.0, 0.0)
     drzewa, latarnie = teren.punkty(d, G)
     opis["teren"] = pola; opis["drzew"] = len(drzewa); opis["latarni"] = len(latarnie)
     (out / "osiedle_punkty.json").write_text(json.dumps({"drzewa": drzewa, "latarnie": latarnie}, ensure_ascii=False), encoding="utf-8")
-    from kit import scal_wg_materialu
+    from kit import scal_wg_materialu, scal_wg_budynku
     zapisz_glb(scal_wg_materialu(D), out / "osiedle.glb")
+    import paleta
+    G = scal_wg_budynku(D)
+    uzyte = sorted({m for _, m in G.dane()})
+    brak = [m for m in uzyte if m not in paleta.P and m not in ("okno", "okno_klatka")]
+    if brak: raise SystemExit("materiały bez palety: " + ", ".join(brak))
+    zapisz_bin(G, {m: paleta.P.get(m, {"okno": True}) for m in uzyte}, out / "osiedle.bin",
+               {"punkt_zerowy_gry": [-145.9, 508.8], "K": K, "jednostka": "metr"}, "osiedle Skłodowskiej-Curie, Bydgoszcz (OSM ODbL)")
     opis["trojkatow"] = trojkaty(D)
     (out / "osiedle_opis.json").write_text(json.dumps(opis, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps(opis, ensure_ascii=False))

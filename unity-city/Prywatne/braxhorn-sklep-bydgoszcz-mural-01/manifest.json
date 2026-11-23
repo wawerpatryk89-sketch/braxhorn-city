@@ -1,0 +1,21 @@
+{
+ "source": "wlasciciel 23.11.2026: mural Zawiszy na bar mleczny 34b",
+ "target": "bydgoszcz_mural",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/bydgoszcz_mural (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "024f3950ecf0cfa2ea9c3b5c099f2089a71f266b8fb7a0fb96c68b574468be25",
+ "cmsSha256": "4ec95630f46df2e6bd9944c3933e4f8f36f6ab04065b1d5796e13f15a4447c0d",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 1116736,
+   "sha256": "4ec95630f46df2e6bd9944c3933e4f8f36f6ab04065b1d5796e13f15a4447c0d"
+  }
+ ],
+ "files": {
+  "bydgoszcz_mural/mural_zawisza.png": "e5496590d6500ff06bd116469a50a4fe233da7a4c73a8a06c234a0e820052518",
+  "oryginal/mural_bar_mleczny.jpg": "1c9ab3198a15fd186b912eb5cce40a92af8f11c3e50598209b831260ebc15a1b",
+  "oryginal/spec.json": "954043625b9d793d85dcb6701307d7e2086b444f8b681c3fe50c80346980a82d"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

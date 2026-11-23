@@ -95,7 +95,7 @@ if(Q.get('drzewa')==='1'){
   const PT=await (await fetch('out/osiedle_punkty.json')).json(); const GL=new GLTFLoader()
   const wz={}; for(const [k,f,h] of [['duze','drzewo_verdant.glb',13],['srednie','drzewo_verdant.glb',9],['mlode','drzewo_verdant.glb',5.5],['iglaste','las_sosna_a.glb',14]]){
     const m=(await GL.loadAsync('lib/'+f)).scene; const bb=new THREE.Box3().setFromObject(m); const s=h/(bb.max.y-bb.min.y); wz[k]={m,s,y:-bb.min.y*s}
-    m.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true; if(o.material){o.material.alphaTest=.5}}})}
+    m.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true; if(o.material){o.material.alphaTest=.5; o.material.side=THREE.DoubleSide}}})}
   let i=0; for(const [x,z,t] of PT.drzewa){const w=wz[t]||wz.duze; const c=w.m.clone(); c.scale.setScalar(w.s*(.85+.3*((i*0.618)%1))); c.position.set(x,w.y+.08,-z); c.rotation.y=i*2.4; sc.add(c); i++}
 }
 const big=new THREE.Mesh(new THREE.PlaneGeometry(1200,1200),M.trawa_podglad); big.rotation.x=-Math.PI/2; big.position.y=-.05; big.receiveShadow=true; sc.add(big)

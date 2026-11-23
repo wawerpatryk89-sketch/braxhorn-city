@@ -1,6 +1,6 @@
 {
  "opis": "zdjęcia wzorcowe właściciela (Bydgoszcz) — do odwzorowania, nie do gry",
- "tar_sha256": "69f0994a2655a79ff93ea0f6af5150e7abeddc0101cbe4368abda83688f6173a",
+ "tar_sha256": "04b458590666649d1025c110df869495b75de661ef1e6f9274052b2564aadb27",
  "pliki": {
   "zdjecia/osiedle/o01.jpg": "c02850b235d4e6f83597af6d7243d1768589428a09c7d6c0b4f9093bbd80da6c",
   "zdjecia/osiedle/o02.jpg": "eb4c6cc2ca46ca85aad1008a04fd1b9608dc03715acdc821abda2c527a7e67e4",
@@ -69,7 +69,15 @@
   "zdjecia/osiedle/o65_32a_szlaban.jpg": "e3b92f8c88c15a0beb33fb16458f01de41d5aac3484f800e82f6ffb0141fc16f",
   "zdjecia/osiedle/o66_lotnicze_32a_pn.jpg": "700e3f8efedf5532085ebae65e282dadad56910846daf732029037df6baae26f",
   "zdjecia/osiedle/o67_lotnicze_32a_pd_boisko.jpg": "26f9971ed064184fc43f94b4d213fcfc0a13993a186bc6b1d67a995c020a63f8",
-  "zdjecia/spis.json": "18b15c5e087484090a43773bf13097d596b24b447033de53d0f2dbcf00982035",
+  "zdjecia/osiedle/o70_glowna.jpg": "d5eb808bb01f3a16c7d7c2d52bfba4b472be3a03f06617c35d240fa52420299f",
+  "zdjecia/osiedle/o71_glowna.jpg": "20123d07b27b7df7cf4dcb3b454bcc2e4c4b20d3c65bb042e66c91a5bc01777e",
+  "zdjecia/osiedle/o72_glowna.jpg": "c22e27cb4d20e075729411f35e061580c428a0b008a0a5f5c6dabb836bcd7113",
+  "zdjecia/osiedle/o73_glowna.jpg": "35369ff77e0c41909b5b39062c0032520162a271f1c8ec20c83f07cca66b12d9",
+  "zdjecia/osiedle/o74_glowna.jpg": "0c905afbfe735debc0a9f30d765b8e567b6ba814afc987fb2218dd8312191d9d",
+  "zdjecia/osiedle/o75_glowna.jpg": "6aecc2d801a274c816769fafec2954a51017e2e359ae6bfce1bd9b08fa256a3b",
+  "zdjecia/osiedle/o76_glowna.jpg": "b36f97aa79dd45f56aff51bab5f05c8c9e08f78912865793ebca90ec1a2b7e25",
+  "zdjecia/osiedle/o77_glowna.jpg": "4091f001c33a849deb5a5eb5e678667beecde3008212c5de9f86e36a75915629",
+  "zdjecia/spis.json": "d2a5ce4e16d7d8b044698108dced5b4791d7f682e6155e266bf0cfdf2f722476",
   "zdjecia/stare_miasto/01.jpg": "14b38a47a7d5f66cce130baa69eb8c3702422d90690bca02e803e69bc5889612",
   "zdjecia/stare_miasto/02.jpg": "247424049096777cbce55156527759ab0b93d7c6e89eb0eb02d2cb5827e2be81",
   "zdjecia/stare_miasto/03.jpg": "051d840299c6fe5917eb16844a9223f89fd7231386ed21b9a417b5debde65599",
@@ -87,8 +95,8 @@
  "czesci": [
   {
    "name": "part-000.cms",
-   "bytes": 44339781,
-   "sha256": "6c11ce9c5e4503e7b97869fb9e1826072cb0fb03ff0d9dd43fc4fd3554f8d91e"
+   "bytes": 49244741,
+   "sha256": "b1590fc72dbf95823f8890b2e552ed643c752d47a5fff13efff9013e41eddc4c"
   }
  ]
 }

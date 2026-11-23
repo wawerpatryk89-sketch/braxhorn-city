@@ -156,6 +156,22 @@ def balustrada_prety(out, px=256):
     Image.fromarray(rgba, "RGBA").save(out)
 
 
+def wypiecz(src, dst_gra, dst_prywatne):
+    """Do gry: naklejka nałożona na barwę ściany (paleta) — jedna tekstura na UV2. Mural (plik właściciela) do katalogu
+    prywatnego (paczka szyfrowana), reszta (nasze napisy i graffiti) do Assets/Source/Claude/Bydgoszcz."""
+    import paleta
+    src, dst_gra, dst_prywatne = Path(src), Path(dst_gra), Path(dst_prywatne)
+    dst_gra.mkdir(parents=True, exist_ok=True); dst_prywatne.mkdir(parents=True, exist_ok=True)
+    for nazwa, v in paleta.P.items():
+        if not v.get("nakl"): continue
+        nk = Image.open(src / v["nakl"]).convert("RGBA")
+        tlo = Image.new("RGBA", nk.size, tuple(v["kol"]) + (255,))
+        tlo.alpha_composite(nk)
+        (dst_prywatne if nazwa == "mural_zawisza" else dst_gra).joinpath(nazwa + ".png").parent.mkdir(parents=True, exist_ok=True)
+        tlo.convert("RGB").save((dst_prywatne if nazwa == "mural_zawisza" else dst_gra) / (nazwa + ".png"))
+    Image.open(src / "balustrada_prety.png").save(dst_gra / "balustrada_prety.png")
+
+
 if __name__ == "__main__":
     out = Path(sys.argv[1] if len(sys.argv) > 1 else "."); out.mkdir(parents=True, exist_ok=True)
     graffiti(out / "graffiti_32a.png")

@@ -82,6 +82,21 @@ for k, (dol, a, b, sz) in {1: ([168, 140, 120], [214, 196, 150], [206, 176, 110]
 for nr, k in (("28", 4), ("30", 1), ("32", 2), ("34", 3), ("36", 3), ("38", 1)):
     P["napis_blok_" + nr] = tynk(P["szczyt4_%d" % k]["kol"], None, "napis_blok_%s.png" % nr)
 
+# średnie barwy tekstur (sRGB średniej liniowej, pomiar plików 2K Poly Haven 23.11) — do przeliczenia barwy docelowej na _Color
+SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, .368, .327], "concrete_pavers": [.409, .372, .328],
+           "clean_asphalt": [.270, .274, .276], "weathered_brown_planks": [.380, .300, .232]}
+
+
+def tint(v):
+    """_Color (sRGB) taki, że tekstura x _Color daje barwę docelową w przestrzeni liniowej (projekt Unity: Linear)."""
+    if not v.get("tex"): return [round(c / 255, 4) for c in v["kol"]]
+    a = SREDNIE[v["tex"]]
+    return [round(((c / 255) ** 2.2 / (s ** 2.2)) ** (1 / 2.2), 4) for c, s in zip(v["kol"], a)]
+
+
+for _k, _v in P.items():
+    _v["tint"] = tint(_v)
+
 if __name__ == "__main__":
     out = Path(sys.argv[1] if len(sys.argv) > 1 else "."); out.mkdir(parents=True, exist_ok=True)
     (out / "paleta.json").write_text(json.dumps(P, ensure_ascii=False, indent=0), encoding="utf-8")
