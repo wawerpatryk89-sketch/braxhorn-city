@@ -53,6 +53,15 @@ public static class BraxBydgoszcz
             case "ziemia": return BraxRegionMeble.Tex(n, 2.0f, Color.white, 1f, "brown_mud_dry", "brown_mud_leaves_01");
             case "szklo": return BraxRegionMeble.Gladki(n, c, .08f, .6f);
             case "trawa": return BraxRegionTrawa.Material;
+            case "obraz":   // 23.11, 08:01 — właściciel o muralu na barze mlecznym: „mój kolega tam robił… możesz go normalnie wstawić”
+            {
+                string obraz = "Assets/Source/Claude/Bydgoszcz/" + nazwa + ".jpg";
+                Texture2D tex = null;
+                if (File.Exists(obraz)) { AssetDatabase.ImportAsset(obraz, ImportAssetOptions.ForceSynchronousImport); tex = AssetDatabase.LoadAssetAtPath<Texture2D>(obraz); }
+                if (!tex) { BraxRegion.Note("Bydgoszcz: brak obrazu " + obraz + " — ściana w kolorze"); return BraxRegionMeble.Gladki(n, c, .9f, 0f); }
+                var m = BraxCityMaterials.Textured(n, tex, null, null, 1f); m.SetFloat("_Roughness", .9f); m.SetFloat("_Metallic", 0f);
+                return m;
+            }
             default: return BraxRegionMeble.Gladki(n, c, .55f, .1f);
         }
     }
@@ -91,11 +100,12 @@ public static class BraxBydgoszcz
                 {
                     string g = Tekst(r); int mi = r.ReadInt32(); byte flagi = r.ReadByte(); int nv = r.ReadInt32(), ni = r.ReadInt32();
                     var v = new List<Vector3>(nv); var n = new List<Vector3>(nv); var uv = new List<Vector2>(nv);
+                    float skalaUv = (flagi & 4) != 0 ? 1f : K;   // obraz (mural) ma UV 0…1, reszta — metry
                     for (int i = 0; i < nv; i++)
                     {
                         float x = r.ReadSingle(), y = r.ReadSingle(), z = r.ReadSingle();
                         v.Add(Swiat(x, y, z)); n.Add(new Vector3(r.ReadSingle(), r.ReadSingle(), r.ReadSingle()));
-                        uv.Add(new Vector2(r.ReadSingle() * K, r.ReadSingle() * K));
+                        uv.Add(new Vector2(r.ReadSingle() * skalaUv, r.ReadSingle() * skalaUv));
                     }
                     var t = new int[ni]; for (int i = 0; i < ni; i++) t[i] = r.ReadInt32();
                     if (nv == 0 || ni == 0 || !maty[mi]) continue;

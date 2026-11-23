@@ -22,6 +22,12 @@ from shapely.ops import unary_union
 TU = Path(__file__).resolve().parent
 D = json.load(open(TU / "osiedle_metry.json", encoding="utf-8"))
 UP = np.array([0.0, 1.0, 0.0])
+MURAL = TU.parents[2] / "unity-city/Assets/Source/Claude/Bydgoszcz/mural_bar_mleczny.jpg"
+try:
+    from PIL import Image as _Obraz
+    MURAL_ASPEKT = (lambda r: r[0] / r[1])(_Obraz.open(MURAL).size)
+except Exception:
+    MURAL_ASPEKT = 1.6
 
 # materiał → (barwa do podglądu i tint w grze, rodzaj). Rodzaje czyta BraxBydgoszcz.cs.
 MATS = {
@@ -34,6 +40,7 @@ MATS = {
     "drzwi": ((.34, .22, .16), "drewno"), "szyba": ((.16, .21, .27), "szklo"), "rama": ((.95, .95, .95), "gladki"), "rama_ciemna": ((.20, .21, .22), "gladki"),
     "balkon_a": ((.42, .60, .44), "gladki"), "balkon_b": ((.72, .72, .70), "gladki"), "balkon_c": ((.62, .30, .24), "gladki"),
     "asfalt": ((.27, .27, .28), "asfalt"), "asfalt_stary": ((.36, .35, .34), "asfalt_stary"), "chodnik": ((.62, .60, .57), "chodnik"),
+    "mural_bar_mleczny": ((.42, .12, .12), "obraz"),   # właściciel 23.11, 08:01: mural kolegi — „możesz go normalnie wstawić”
     "kraweznik": ((.66, .65, .62), "beton"), "trawa": ((.36, .52, .24), "trawa"), "ziemia": ((.30, .24, .17), "ziemia"),
 }
 
@@ -54,6 +61,11 @@ class Siatki:
             uv = (p[0], p[2]) if ay >= ax and ay >= az else ((p[2], p[1]) if ax >= az else (p[0], p[1]))
             v.append((*p, *n, *uv))
         for k in range(1, len(pts) - 1): i.extend((b, b + k, b + k + 1))
+    def obraz(s, g, mat, p0, d, s0, s1, y0, y1):
+        """Obraz na ścianie w wycięciu (bez nakładki): UV 0…1, czytany z zewnątrz od lewej do prawej."""
+        n = np.cross(d, UP); v, i = s.m.setdefault((g, mat), ([], [])); b = len(v)
+        for q, y, uv in ((s0, y0, (1, 0)), (s1, y0, (0, 0)), (s1, y1, (0, 1)), (s0, y1, (1, 1))): v.append((*(p0 + d * q + UP * y), *n, *uv))
+        i.extend((b, b + 1, b + 2, b, b + 2, b + 3))
     def plaszcz(s, g, mat, wielokat, y, hint=UP, skrot=None):
         """Wielokąt poziomy (z otworami) na wysokości y."""
         for p in (wielokat.geoms if hasattr(wielokat, "geoms") else [wielokat]):
@@ -96,6 +108,7 @@ class Siatki:
                 sm, vm = (a + b) / 2, (c + e) / 2
                 if any(o[0] < sm < o[1] and o[2] < vm < o[3] for o in otwory): continue
                 mat = next((o[4] for o in pola if o[0] < sm < o[1] and o[2] < vm < o[3]), None) or baza(sm, vm)
+                if mat == "__puste": continue
                 s.quad(g, mat, [P(a, c), P(b, c), P(b, e), P(a, e)], n)
         for a, b, c, e, rodzaj in otwory:
             oscieze = baza((a + b) / 2, (c + e) / 2)
@@ -152,8 +165,17 @@ def buduj(S, b, typ, nr_kol, drogi):
     cok = {"wiezowiec_szary": .6, "wiezowiec_kolor": .9, "blok4": 1.0, "szkola": .5}.get(typ, .15)
     H = cok + pietra * hk
     zachod = np.array([-1, 0, -.3]) / math.hypot(1, .3)
-    drzwi_dane = False; napis_dany = False
-    for (ax, az), (bx, bz) in zip(c[:-1], c[1:]):
+    drzwi_dane = False; napis_dany = False; mural = None
+    if typ == "bar":      # mural: najdłuższa ściana bez wejścia, najbliżej uliczki (zdjęcie właściciela: ściana przy chodniku)
+        kand = []
+        for j, ((ax, az), (bx, bz)) in enumerate(zip(c[:-1], c[1:])):
+            dd = np.array([bx - ax, 0, bz - az]); L = float(np.linalg.norm(dd))
+            if L < 6 or float(np.dot(np.cross(dd / L, UP), front)) > .5: continue
+            nn = np.cross(dd / L, UP); mx, mz = (ax + bx) / 2 + nn[0] * 2, (az + bz) / 2 + nn[2] * 2
+            kand.append((min((q[0] - mx) ** 2 + (q[1] - mz) ** 2 for q in drogi), j))
+        mural = min(kand)[1] if kand else None
+    for j, ((ax, az), (bx, bz)) in enumerate(zip(c[:-1], c[1:])):
+        mur = None
         p0 = np.array([ax, 0, az]); d = np.array([bx - ax, 0, bz - az]); dl = float(np.linalg.norm(d))
         if dl < .3: continue
         d /= dl; n = np.cross(d, UP); cf = float(np.dot(n, front)); dluga = dl > 0.6 * b["dlugosc_m"]
@@ -255,9 +277,13 @@ def buduj(S, b, typ, nr_kol, drogi):
                     else: otw.append((q - 1.3, q + 1.3, .5, 2.6, "witryna"))
                 if typ == "bar" and not napis_dany:
                     napis_dany = True; S.napisy.append(("BAR MLECZNY", *(p0 + d * (dl / 2) + n * .03 + UP * 3.15), *n, .5, .45, .12, .10))
-            elif typ == "bar" and dl > 5:
+            elif typ == "bar" and dl > 5 and j != mural:
                 for q in okna_w_przeslach(dl, 3.4, 1.8): otw.append((q - .9, q + .9, 1.0, 2.5, "okno"))
+        if typ == "bar" and j == mural:
+            szer = min(3.0 * MURAL_ASPEKT, dl - .6); wys = szer / MURAL_ASPEKT
+            mur = (dl / 2 - szer / 2, dl / 2 + szer / 2, .45, .45 + wys); pola.append((*mur, "__puste"))
         S.sciana(g, p0, d, dl, 0, H, baza, otw, pola)
+        if mur: S.obraz(g, "mural_bar_mleczny", p0, d, *mur)
     okap = {"garaze": .25, "bar": .7, "blok4": .35, "pawilon": .1}.get(typ, 0)
     S.plyta(g, "dach", poly.buffer(okap, join_style=2) if okap else poly, H, H + .14)
     if typ == "blok4":
@@ -288,7 +314,7 @@ def zapisz(S, sciezka):
     for n in nazwy: out += txt(n) + txt(MATS[n][1]) + struct.pack("<3f", *MATS[n][0])
     out += struct.pack("<i", len(S.m))
     for (g, m), (v, i) in sorted(S.m.items()):
-        a = np.asarray(v, "<f4"); flagi = (1 if g.startswith("grunt_") and m != "kraweznik" and m != "ziemia" else 0) | (2 if m == "trawa" else 0)
+        a = np.asarray(v, "<f4"); flagi = (1 if g.startswith("grunt_") and m != "kraweznik" and m != "ziemia" else 0) | (2 if m == "trawa" else 0) | (4 if MATS[m][1] == "obraz" else 0)
         out += txt(g) + struct.pack("<iBii", nazwy.index(m), flagi, len(a), len(i)) + a.tobytes() + np.asarray(i, "<i4").tobytes()
     out += struct.pack("<i", len(S.boksy)) + b"".join(struct.pack("<7f", *b) for b in S.boksy)
     out += struct.pack("<i", len(S.napisy)) + b"".join(txt(n[0]) + struct.pack("<10f", *n[1:]) for n in S.napisy)
