@@ -89,6 +89,8 @@ public static class BraxChampionsExplorer
         DoorwaysClear(scene);
         SunShadows(scene);
         SmallThingsLayers(scene);
+        // 23.11 (owner "trawa ... nie płaska", "długa", "to jest dobra trawa"): every lawn grows 3D Bermuda grass near the camera
+        BraxChampionsTrawa3DBuild.Generate(scene, rig.transform);
         rig.AddComponent<BraxChampionsWydajnosc>().kamera = camera;
         Physics.SyncTransforms(); Validate(scene);
         AssetDatabase.SaveAssets();

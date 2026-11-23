@@ -8,6 +8,7 @@ import hashlib,io,json,urllib.request,zipfile,time
 from PIL import Image
 from pack_materials import pack, linear_mean
 from pipeline import check_launcher
+import trawa_bermuda
 ROOT=Path(__file__).resolve().parents[2]
 DEST=ROOT/'unity-city/Assets/Source/Mistrzowie/Textures'
 LOCK=json.loads(Path(__file__).with_name('verified_textures.json').read_text())
@@ -184,6 +185,11 @@ def main():
  (DEST.parent/'grass-calibration.json').write_text(json.dumps(dict(
      grass=linear_mean(DEST/'sparse_grass_diff_4k.jpg'),
      soil=linear_mean(DEST/'brown_mud_leaves_01_diff_4k.jpg')),indent=2))
+ # owner 23.11 ("trawa ... nie płaska", "długa", "to jest dobra trawa"): the 3D lawn's card from Poly Haven Grass Bermuda 01
+ # (CC0, the original 4K Diffuse + Alpha checked against the provider's size and MD5; trawa_bermuda.py)
+ card=trawa_bermuda.main(DEST,DEST.parent)
+ report.append(dict(file=trawa_bermuda.SLUG+'_karta.png',sha256=hashlib.sha256((DEST/(trawa_bermuda.SLUG+'_karta.png')).read_bytes()).hexdigest(),
+                    source='composed from Poly Haven '+trawa_bermuda.SLUG+' 4K Diffuse + Alpha',plants=card['plants']))
  (DEST.parent/'source-materials.json').write_text(json.dumps(report,indent=2))
  print('BRAX_MISTRZOWIE_PBR_OK maps='+str(len(report))+' original=4K')
 
