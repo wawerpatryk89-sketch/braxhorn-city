@@ -56,7 +56,8 @@ TEXTURES_WYSPA = [
 # tynk elewacji, beton cokołów i balkonów, kostka chodników (BraxBydgoszcz, paleta osiedle_bdg/paleta.py).
 TEXTURES_BYDGOSZCZ = ["white_stucco_02", "brushed_concrete_04", "concrete_pavers", "clay_roof_tiles_02",
                       "bitumen", "gravel_floor_02", "painted_metal_shutter", "exterior_wall_cladding_03", "corrugated_iron_02", "red_bricks_04",
-                      "herringbone_pavement_03", "red_brick_pavers", "playground_sand", "blue_metal_plate", "grey_tiles", "weathered_brown_planks", "granite_tile", "granite_tile_04"]
+                      "herringbone_pavement_03", "red_brick_pavers", "playground_sand", "blue_metal_plate", "grey_tiles", "weathered_brown_planks", "granite_tile", "granite_tile_04",
+                      "rectangular_paving", "sandstone_blocks_04", "cotton_jersey"]
 
 
 BERMUDA_KARTY = [(94, 846, 299, 275), (561, 816, 394, 298), (1091, 726, 388, 405), (1385, 212, 568, 287), (1580, 646, 348, 488), (78, 314, 568, 288)]
@@ -107,6 +108,7 @@ def odbarwiona(report: dict, zrodlo: str, cel: str, srednia: float = .75, kontra
 def lakier_blacha(report: dict) -> None:
     odbarwiona(report, "blue_metal_plate", "lakier_blacha", kontrast=.35)   # 19:18: plamy lakieru na dużych płaszczyznach za mocne
     odbarwiona(report, "grey_tiles", "plyty_szare", srednia=.8, kontrast=2.4, bez_plam=48)   # 19:38–19:58: bez zacieków, wyraźne fugi
+    odbarwiona(report, "cotton_jersey", "plotno_parasol", srednia=.85, kontrast=.6, bez_plam=24)   # parasole ogródków Rynku
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
 # W 1K (telefon): 38 zestawów w 2K to ok. 0,5 GB tekstur w pamięci naraz — ściany dostają kolor + normalną 1024, drobne

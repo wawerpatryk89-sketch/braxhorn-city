@@ -173,8 +173,8 @@ def scal_wg_materialu(siatka):
     """Jedna siatka na materiał (podgląd całego osiedla: mniej wywołań rysowania)."""
     out = Siatka(); licz = {}
     for (g, m), c in siatka.dane().items():
-        k = licz.get(m, 0)
-        if len(out._c("razem%d" % k, m)["v"]) + len(c["v"]) > 60000:
+        k = licz.get(m, 0); d0 = out.cz.get(("razem%d" % k, m))
+        if d0 is not None and d0["v"] and len(d0["v"]) + len(c["v"]) > 60000:
             k += 1; licz[m] = k
         d = out._c("razem%d" % k, m); b = len(d["v"])
         for f in ("v", "n", "t", "uv", "uv1"): d[f] += c[f]

@@ -45,10 +45,11 @@ def zbuduj(poly, sp, nazwa="budynek"):
                 if P.contains(shapely.geometry.Point(*(((a_ + b_) / 2 + n_ * .5)[[0, 2]]))): n_ = -n_
                 if n_[0] * fk_[0] + n_[2] * fk_[1] > .5: Lmax_front = max(Lmax_front, L_)
         wolne = []                                  # krawędzie obrysu bez sąsiada (dach kamienicy: okap tylko na nich)
+        ulica_kr = []                               # krawędzie od ulicy/placu (lukarny, ozdoby)
         for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
             a = np.array([x0, 0., z0]); b = np.array([x1, 0., z1]); L = float(np.linalg.norm(b - a))
             wolne.append(True)
-            if L < .3: continue
+            if L < .3: ulica_kr.append(False); continue
             t = (b - a) / L                         # wzdłuż boku; obrys CCW (x, z) -> zewnętrze po prawej
             # widz z zewnątrz patrzy na ścianę: lewa krawędź = b? sprawdzamy normalną cross(UP, t)
             n = nrm(np.cross(UP, t))
@@ -64,8 +65,17 @@ def zbuduj(poly, sp, nazwa="budynek"):
             slepy = (lambda u: sl.contains(shapely.geometry.Point(*((a + t * u + n * .8)[[0, 2]])))) if sl is not None else (lambda u: False)
             udz_slepe = sum(slepy(u) for u in np.linspace(.3, L - .3, 5)) / 5 if sl is not None else 0.0
             wolne[-1] = udz_slepe < .5
+            ul_w = sp.get("ulica_geom")
+            pub = ul_w is None or ul_w.contains(shapely.geometry.Point(*(((a + b) / 2 + n * 7.0)[[0, 2]])))
+            ulica_kr.append(pub and udz_slepe < .5)
+            oz = sp.get("ozdoby") if (pub and udz_slepe < .5) else None
+            wyk_osie, balk_os, k, off = set(), None, 0, 0.0
             if L >= 2.2 and sp.get("okna_on", True) and (kier_ok is None or n[0] * kier_ok[0] + n[2] * kier_ok[1] > .5):
                 k = int((L - .8) // rozst)
+                if oz and k >= 3 and kond >= 3 and oz.get("wykusz"):         # wykusz na środkowych osiach (1 albo 2)
+                    wyk_osie = {k // 2 - 1, k // 2} if k % 2 == 0 else {k // 2}
+                elif oz and k >= 2 and kond >= 2 and oz.get("balkon"):
+                    balk_os = k // 2
                 if k >= 1:
                     off = (L - k * rozst) / 2
                     for i in range(k):
@@ -80,6 +90,10 @@ def zbuduj(poly, sp, nazwa="budynek"):
                                 drzwi = sp.get("market") and abs(L - Lmax_front) < .01 and abs(c - L / 2) < rozst / 2
                                 rw = "otwor" if drzwi else ("witryna_k" if sp.get("okno_lekkie") else "witryna")
                                 okna.append((c - rozst / 2 + .15, c + rozst / 2 - .15, .45 if not drzwi else cok + .02, min(p0 - .5, 3.0), rw, 0))
+                            elif f >= 1 and i in wyk_osie:
+                                continue                           # okno na froncie wykusza (ozdoby_sciany)
+                            elif f == 1 and i == balk_os:              # drzwi balkonowe
+                                okna.append((c - ow / 2, c + ow / 2, fl + .05, fl + opar + oh, rodz, f))
                             else:
                                 okna.append((c - ow / 2, c + ow / 2, fl + opar, fl + opar + oh, rodz, f))
             cok = sp.get("h_cokol", .5)
@@ -98,14 +112,24 @@ def zbuduj(poly, sp, nazwa="budynek"):
                         v = v1
                     u += w
                 blok4.sciana_pola(nazwa, a + UP * cok, t, L, Hh, gora, pola, uv1=(L, Hh))
+            elif sp.get("parter_mat") and pub and udz_slepe < .5 and p0 - cok > 1.0:   # boniowany parter od ulicy
+                hp = p0 - cok - .1
+                sciana(nazwa, sp["parter_mat"], a + UP * cok, t, n, L, hp, [o_ for o_ in gora if o_[3] <= hp + 1e-6], (L, hp))
+                sciana(nazwa, sp["tynk"], a + UP * (cok + hp), t, n, L, H + att - cok - hp,
+                       [(u0, u1, v0 - hp, v1 - hp, r, pp) for (u0, u1, v0, v1, r, pp) in gora if v0 >= hp - 1e-6], (L, H + att))
             else:
                 sciana(nazwa, sp["tynk"], a + UP * cok, t, n, L, H + att - cok, gora, (L, H + att), "szklo" if sp.get("market") else None)
+            if oz:
+                ozdoby_sciany(S, nazwa, a, t, n, L, okna, sp, oz, p0, hk, kond, H, att, rozst, ow, oh, opar,
+                              [off + (i + .5) * rozst for i in sorted(wyk_osie)] if wyk_osie else None,
+                              (off + (balk_os + .5) * rozst) if balk_os is not None else None,
+                              [off + i * rozst for i in range(1, k)] if L >= 2.2 and k >= 2 else [])
             if sp.get("gzymsy") and L > 1.0 and udz_slepe < .5:   # kamienice (Stary Rynek): gzymsy międzykondygnacyjne i wieńczący
                 dz_ = .02 * (len(fronty) % 2)            # sąsiednie boki na innej wysokości o 2 cm — bez wspólnych płaszczyzn w narożach
                 for k in range(kond - 1):                # linie stropów: nad parterem i nad każdym piętrem poza ostatnim
                     yk_ = p0 + k * hk
-                    S.box(nazwa, sp.get("gzyms_mat", "opaska"), a + UP * (yk_ - .12 + dz_) - t * .06, t, UP, n, L + .12, .22, .1)
-                S.box(nazwa, sp.get("gzyms_mat", "opaska"), a + UP * (H + att - .55 + dz_) - t * .25, t, UP, n, L + .5, .45, .32)
+                    S.box(nazwa, sp.get("gzyms_mat", "opaska"), a + UP * (yk_ - .12 + dz_) - t * .06, t, UP, n, L + .12, .22, .1, bez=("-z",))
+                S.box(nazwa, sp.get("gzyms_mat", "opaska"), a + UP * (H + att - .55 + dz_) - t * .25, t, UP, n, L + .5, .45, .32, bez=("-z",))
             if sp.get("pas_gorny") and not czy_front:   # pas blachy pod dachem 5 cm przed licem (market: niebieski, IMG_1730)
                 pm, ph = sp["pas_gorny"]
                 S.box(nazwa, pm, a + UP * (H + att - ph) - t * .05, t, UP, n, L + .1, ph + .05, .06)
@@ -155,7 +179,13 @@ def zbuduj(poly, sp, nazwa="budynek"):
             for Qc in rozklad_wypukly(P):
                 Qc = shapely.geometry.polygon.orient(Qc, 1.0); eq = list(Qc.exterior.coords)
                 wq = [wolna_w(((xa + xb) / 2, (za + zb) / 2)) for (xa, za), (xb, zb) in zip(eq, eq[1:])]
-                dach_kamienica(S, nazwa, Qc, wq, H + att + .02, sp.get("dach_mat", "dachowka"), sp.get("spadek", 42), sp["tynk"], sp.get("kalenica_max", 7.5))
+                uq = [False] * len(wq)
+                for kq, ((xa, za), (xb, zb)) in enumerate(zip(eq, eq[1:])):
+                    for k_, ((xc, zc), (xd, zd)) in enumerate(zip(ex, ex[1:])):
+                        if k_ < len(ulica_kr) and ulica_kr[k_] and shapely.geometry.LineString([(xc, zc), (xd, zd)]).distance(shapely.geometry.Point(((xa + xb) / 2, (za + zb) / 2))) < .05:
+                            uq[kq] = True
+                dach_kamienica(S, nazwa, Qc, wq, H + att + .02, sp.get("dach_mat", "dachowka"), sp.get("spadek", 42), sp["tynk"],
+                               sp.get("kalenica_max", 7.5), uq if sp.get("lukarny") else None, rozst, sp.get("kominy", True))
         elif sp.get("dach", "plaski") == "koperta":
             dach_koperta(S, nazwa, P, y + .05, sp.get("dach_mat", "dachowka"), sp.get("spadek", 28))
         else:
@@ -255,6 +285,90 @@ def witryna_kamienica(g, P, t, n, u0, u1, v0, v1, pietro):
     B.okno_nr[0] += 1
 
 
+def lukarna(S, g, p2, tt, nin, y, tg, ok, mat, tynk, hmin):
+    """Lukarna dwuspadowa na połaci od ulicy: ścianka czołowa z oknem 0,8 × 0,95 m 0,7 m za okapem, policzki do połaci,
+    daszek z dachówki z kalenicą prostopadłą do okapu. Pomijana, gdy połać jest za krótka (kopertowy narożnik)."""
+    w, hl, dF = 1.3, 1.45, .7
+    hF = y + tg * (dF + ok) - .04; yT = hF + hl
+    dB = (yT + .5 - y) / tg - ok + .05
+    pB = p2 + nin * (dB + .3)
+    if hmin(*pB) < yT + .45: return
+    n3 = np.array([-nin[0], 0., -nin[1]]); t3 = np.array([-n3[2], 0., n3[0]])          # cross(UP, t3) = n3
+    c3 = np.array([p2[0], 0., p2[1]]) - n3 * dF
+    FL = c3 - t3 * w / 2 + UP * hF
+    P = lambda u, v, d=0.0: FL + t3 * u + UP * v - n3 * d
+    S.sciana(g, tynk, FL, t3, w, hl, [(.25, 1.05, .3, 1.25)], uv1_skala=(w, hl))
+    okno_lekkie(g, P, t3, n3, .25, 1.05, .3, 1.25, 0, True)
+    dS = (yT - y) / tg - ok - dF                                   # policzki: trójkąty od czoła do połaci
+    for u_, kk in ((0., -t3), (w, t3)):
+        a = P(u_, 0); b = P(u_, hl); c = P(u_, hl, dS)
+        if np.dot(np.cross(b - a, c - a), kk) < 0: b, c = c, b
+        S.tri_list(g, tynk, [a, b, c], kk, n3, [(0, 0), (0, hl), (dS, hl)], None, [0, 1, 2])
+    # daszek: kalenica 0,5 m nad czołem, okap 12 cm poza ściankami
+    hr = .5; e = .12
+    dR = (yT + hr - y) / tg - ok - dF; dE = (yT - .04 - y) / tg - ok - dF
+    R0 = P(w / 2, hl + hr, -e); R1 = P(w / 2, hl + hr, dR)
+    for s_ in (-1, 1):
+        u_e = w / 2 + s_ * (w / 2 + e)
+        E0 = P(u_e, hl - .04, -e); E1 = P(u_e, hl - .04, dE)
+        q = [E0, R0, R1, E1] if s_ < 0 else [R0, E0, E1, R1]
+        nn = nrm(np.cross(q[1] - q[0], q[3] - q[0]))
+        if nn[1] < 0: q = q[::-1]
+        S.quad(g, mat, *q, kier=UP)
+    a = P(0, hl); b = P(w, hl); c = P(w / 2, hl + hr - .02)              # trójkąt szczytu nad oknem
+    S.tri_list(g, tynk, [a, b, c] if np.dot(np.cross(b - a, c - a), n3) > 0 else [a, c, b], n3, t3, [(0, 0), (w, 0), (w / 2, hr)], None, [0, 1, 2])
+
+
+def ozdoby_sciany(S, g, a, t, n, L, okna, sp, oz, p0, hk, kond, H, att, rozst, ow, oh, opar, wyk, balk, osie):
+    """Fasada kamienicy od ulicy (zdjęcia 02–03 Rynek): naczółki nad oknami pięter (na I piętrze trójkątne), płyciny pod
+    oknami, lizeny między osiami, wykusz na środkowych osiach albo balkon z kutą balustradą na I piętrze. Wszystko
+    wysunięte z lica (≥ 3 cm) — bez wspólnych płaszczyzn z tynkiem."""
+    P = lambda u, v, d=0.0: a + t * u + UP * v - n * d
+    OP = B.OPASKA; mo = "opaska"
+    for (u0, u1, v0, v1, r, pp) in okna:
+        if r != "okno_l" or pp < 1: continue
+        S.box(g, mo, P(u0 - OP - .06, v1 + OP, 0), t, UP, n, (u1 - u0) + 2 * OP + .12, .13, .13, bez=("-z",))   # naczółek prosty
+        if pp == 1 and oz.get("trojkat"):                                                                    # trójkątny na I p.
+            W_ = (u1 - u0) + 2 * OP + .12; y0 = v1 + OP + .13; d_ = -.1
+            A = P(u0 - OP - .06, y0, d_); Bq = P(u0 - OP - .06 + W_, y0, d_); C = P((u0 + u1) / 2, y0 + .36, d_)
+            S.tri_list(g, mo, [A, Bq, C] if np.dot(np.cross(Bq - A, C - A), n) > 0 else [A, C, Bq], n, t, [(0, 0), (W_, 0), (W_ / 2, .36)], None, [0, 1, 2])
+            for (p_, q_) in ((A, C), (C, Bq)):
+                S.quad(g, mo, p_, q_, q_ - n * .1, p_ - n * .1, kier=UP)
+        if oz.get("plyciny") and v0 - .55 > 0:
+            S.box(g, mo, P(u0 - .04, v0 - .52, 0), t, UP, n, (u1 - u0) + .08, .42, .03, bez=("-z",))
+    if oz.get("lizeny") and kond >= 2:
+        for u in osie:
+            if wyk and any(abs(u - c) < rozst * 1.1 for c in wyk): continue
+            S.box(g, mo, P(u - .18, p0 + .12, 0), t, UP, n, .36, H + att - p0 - .7, .07, bez=("-z",))
+    if wyk:                                                            # wykusz: piętra 1…ostatnie, wysunięty 0,8 m
+        ub0 = min(wyk) - rozst / 2 + .15; ub1 = max(wyk) + rozst / 2 - .15; Wb = ub1 - ub0; D = .8
+        y0 = p0 + .25; y1 = H - .3
+        o_b = P(ub0, y0, -D); okn = []
+        for f in range(1, kond):
+            fl = p0 + (f - 1) * hk
+            for c in wyk: okn.append((c - ow / 2 - ub0, c + ow / 2 - ub0, fl + opar - y0, fl + opar + oh - y0, "okno_l", f))
+        sciana(g, sp["tynk"], o_b, t, n, Wb, y1 - y0, okn, (Wb, y1 - y0))
+        for (u_, kk) in ((ub0, -t), (ub1, t)):
+            S.quad(g, sp["tynk"], P(u_, y0, 0), P(u_, y0, -D), P(u_, y1, -D), P(u_, y1, 0), kier=kk)
+        S.quad(g, mo, P(ub0, y0, 0), P(ub1, y0, 0), P(ub1, y0, -D), P(ub0, y0, -D), kier=-UP)
+        S.box(g, "blacha_miedz", P(ub0 - .08, y1, 0), t, UP, n, Wb + .16, .18, D + .1)                      # daszek wykusza
+        S.box(g, mo, P(ub0 - .05, y0 - .22, 0), t, UP, n, Wb + .1, .22, D + .06)                           # gzyms podstawy
+        for (u_, kk) in ((ub0 + .15, 0), (ub1 - .45, 0)):                                                # wsporniki
+            S.box(g, mo, P(u_, y0 - .9, 0), t, UP, n, .3, .68, D - .1)
+    if balk is not None:                                               # balkon I piętra: płyta, wsporniki, kuta balustrada
+        wb = ow + 1.2; D = .85; fl = p0
+        S.box(g, "opaska", P(balk - wb / 2, fl - .16, 0), t, UP, n, wb, .16, D)
+        for u_ in (balk - wb / 2 + .15, balk + wb / 2 - .45):
+            S.box(g, "opaska", P(u_, fl - .7, 0), t, UP, n, .3, .54, D - .15)
+        y_ = fl; hr = 1.0
+        rog = [P(balk - wb / 2 + .05, y_, -.05), P(balk - wb / 2 + .05, y_, -(D - .05)), P(balk + wb / 2 - .05, y_, -(D - .05)), P(balk + wb / 2 - .05, y_, -.05)]
+        for (p_, q_) in zip(rog, rog[1:]):
+            Lq = float(np.linalg.norm(q_ - p_)); tq = (q_ - p_) / Lq; nq = nrm(np.cross(UP, tq))
+            S.box(g, "stal_balustrada", p_ + UP * hr - nq * .025, tq, UP, nq, Lq, .05, .05)
+            S.box(g, "stal_balustrada", p_ + UP * .12 - nq * .015, tq, UP, nq, Lq, .03, .03)
+            for k_ in np.arange(.06, Lq, .12): S.rura(g, "stal_balustrada", p_ + tq * k_, p_ + tq * k_ + UP * hr, .011, seg=4)
+
+
 def rozklad_wypukly(P):
     """Podział wielokąta na części wypukłe: trójkąty z triangulacji z ograniczeniami łączone parami, dopóki suma jest
     wypukła (Hertel–Mehlhorn). Kamienice w pierzei to zwykle 1–3 części."""
@@ -274,7 +388,7 @@ def rozklad_wypukly(P):
     return cz
 
 
-def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5):
+def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5, ulica=None, rozst=2.2, kominy=True):
     """Dach kamienicy w pierzei: połacie tylko od krawędzi wolnych (ulica, podwórze), nad ścianami przy sąsiedzie szczyt
     (ściana ogniowa w tynku budynku) — jak na zdjęciach Rynku i Focha. Wysokość połaci = y + tg(spadek) · odległość od
     krawędzi (okap 0,35 m poza licem), dach = minimum połaci; powyżej kal_max płaski taras (mansardy dużych kamienic).
@@ -333,6 +447,28 @@ def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5):
             c3 = [np.array([x, y - .01, z]) for x, z in list(tri.exterior.coords)[:3]]
             if np.cross(c3[1] - c3[0], c3[2] - c3[0])[1] > 0: c3[1], c3[2] = c3[2], c3[1]
             S.tri_list(g, "deska_podbitka", c3, (0., -1., 0.), (1., 0., 0.), [(p_[0], p_[2]) for p_ in c3], None, [0, 1, 2])
+    hmin = lambda x, z: y + min(float(np.dot(nv, (x, z))) + c_ for (nv, c_) in lin)
+    # lukarny od ulicy (zdjęcia 02–03: rząd lukarn w dachu nad fasadą od Rynku)
+    if ulica is not None:
+        for i_k, (a_, b_, nin, f) in enumerate(kr):
+            if not f or i_k >= len(ulica) or not ulica[i_k]: continue
+            Lk = float(np.linalg.norm(b_ - a_)); tt = (b_ - a_) / max(Lk, 1e-6)
+            nk = max(0, int((Lk - 2.4) // (2 * rozst)) + 1)
+            for j in range(nk):
+                s_ = Lk / 2 + (j - (nk - 1) / 2) * 2 * rozst
+                if s_ < 1.4 or s_ > Lk - 1.4: continue
+                lukarna(S, g, a_ + tt * s_, tt, nin, y, tg, ok, mat, tynk, hmin)
+    # kominy z cegły przy ścianach sąsiadów (i jeden na kalenicy w budynku wolnostojącym)
+    if kominy:
+        pk = [(a_ + b_) / 2 + nin * .6 for (a_, b_, nin, f) in kr if not f and np.linalg.norm(b_ - a_) > 3]
+        if not pk: pk = [np.array(P.representative_point().coords[0])]
+        szczyt = max(hmin(*p_) for p_ in [np.array(q_) for q_ in P.exterior.coords] + [np.array(P.centroid.coords[0])])
+        for p_ in pk[:3]:
+            if not P.buffer(-.4).contains(shapely.geometry.Point(*p_)): continue
+            h0 = hmin(*p_); top = max(h0 + 1.0, szczyt + .7)
+            o3 = np.array([p_[0] - .35, h0 - .4, p_[1] - .25])
+            S.box(g, "cegla_komin", o3, (1., 0., 0.), UP, (0., 0., 1.), .7, top - h0 + .4, .5)
+            S.box(g, "obrobka", o3 + np.array([-.06, top - h0 + .4, -.06]), (1., 0., 0.), UP, (0., 0., 1.), .82, .07, .62)
     for (a_, b_, nin, f) in kr:
         if f: continue
         a2 = a_ + nin * .02; b2 = b_ + nin * .02                   # szczyt 2 cm w głąb (bez wspólnej płaszczyzny z sąsiadem)

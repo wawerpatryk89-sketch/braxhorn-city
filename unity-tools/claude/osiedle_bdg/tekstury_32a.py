@@ -239,6 +239,24 @@ def balustrada_prety(out, px=256):
     Image.fromarray(rgba, "RGBA").save(out)
 
 
+def balustrada_kuta(out, px=512):
+    """Balustrada nabrzeży Brdy i mostów (zdjęcia m14, m34–m36): czarne żeliwo — pochwyt, dwa rygle, pręty co 12 cm,
+    pas kół między ryglami u góry. Kafel 1 × 1 m (v = 0 na dole), przezroczyste tło."""
+    from PIL import ImageDraw
+    im = Image.new("L", (px, px), 0); d = ImageDraw.Draw(im); m = px / 1.0
+    Y = lambda v: int((1 - v) * px)                               # v w metrach od dołu
+    for (v0, v1) in ((.96, 1.0), (.78, .81), (.05, .09)):          # pochwyt, rygiel górny, rygiel dolny
+        d.rectangle([0, Y(v1), px, Y(v0)], fill=255)
+    for k in range(9):                                            # pręty co ~0,111 m (9 na metr — kafel bez szwu)
+        x = (k + .5) / 9 * px; w = .016 * m
+        d.rectangle([x - w / 2, Y(.78), x + w / 2, Y(.09)], fill=255)
+    for k in range(9):                                            # koła między ryglami
+        x = (k + .5) / 9 * px; r = .07 * m; yc = Y(.87)
+        d.ellipse([x - r, yc - r, x + r, yc + r], outline=255, width=max(2, int(.012 * m)))
+    rgba = np.zeros((px, px, 4), np.uint8); rgba[..., :3] = (34, 36, 36); rgba[..., 3] = np.asarray(im)
+    Image.fromarray(rgba, "RGBA").save(out)
+
+
 def wypiecz(src, dst_gra, dst_prywatne):
     """Do gry: naklejka nałożona na barwę ściany (paleta) — jedna tekstura na UV2. Mural (plik właściciela) do katalogu
     prywatnego (paczka szyfrowana), reszta (nasze napisy i graffiti) do Assets/Source/Claude/Bydgoszcz."""
@@ -252,7 +270,7 @@ def wypiecz(src, dst_gra, dst_prywatne):
         tlo.alpha_composite(nk)
         (dst_prywatne if nazwa == "mural_zawisza" else dst_gra).joinpath(nazwa + ".png").parent.mkdir(parents=True, exist_ok=True)
         tlo.convert("RGB").save((dst_prywatne if nazwa == "mural_zawisza" else dst_gra) / (nazwa + ".png"))
-    for f in ("balustrada_prety.png", "plot_prety.png", "zywoplot_lisc.png", "zywoplot_brzeg.png", "zywoplot_galazki.png"):
+    for f in ("balustrada_prety.png", "plot_prety.png", "zywoplot_lisc.png", "zywoplot_brzeg.png", "zywoplot_galazki.png", "balustrada_kuta.png"):
         Image.open(src / f).save(dst_gra / f)
 
 
@@ -264,6 +282,7 @@ if __name__ == "__main__":
     brud(out / "brud_32a_slepa.png", 9.3, 31.25, 1.0, pas_srodek=(31.25 - 4.8, .9), seed=3)
     brud(out / "brud_32a_wejscie.png", 9.3, 31.25, .45, seed=4)
     balustrada_prety(out / "balustrada_prety.png")
+    balustrada_kuta(out / "balustrada_kuta.png")
     tablica_bar(out / "tablica_bar.png")
     plot_prety(out / "plot_prety.png")
     import sys as _s

@@ -135,7 +135,8 @@ SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, 
            "bitumen": [.230, .214, .206], "gravel_floor_02": [.672, .656, .613], "painted_metal_shutter": [.502, .516, .527],
            "exterior_wall_cladding_03": [.678, .654, .607], "corrugated_iron_02": [.348, .345, .319], "red_bricks_04": [.386, .243, .145],
            "grass004": [.384, .431, .197], "herringbone_pavement_03": [.264, .232, .195], "red_brick_pavers": [.455, .250, .198],
-           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287], "plyty_szare": [.80, .80, .80], "granite_tile": [.306, .307, .308], "granite_tile_04": [.443, .396, .339]}
+           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287], "plyty_szare": [.80, .80, .80], "granite_tile": [.306, .307, .308], "granite_tile_04": [.443, .396, .339],
+           "rectangular_paving": [.499, .424, .336], "sandstone_blocks_04": [.774, .647, .501], "plotno_parasol": [.848, .848, .848]}
 
 
 def tint(v):
@@ -180,7 +181,24 @@ for _k in range(1, 5):
 for _k, _c in (("k_zolty", [222, 196, 120]), ("k_krem", [232, 220, 190]), ("k_szaroniebieski", [170, 182, 190]), ("k_rozowy", [222, 172, 160]),
                ("k_bialy", [236, 232, 222]), ("k_ochra", [206, 168, 104]), ("k_zielony", [188, 202, 168]), ("k_terakota", [196, 128, 96])):
     P[_k] = tynk(_c)
-P["rynek_plyty"] = {"tex": "granite_tile_04", "m": 2.0, "kol": [176, 172, 164], "szorst": .9}
+    P["kb" + _k[1:]] = {"tex": "sandstone_blocks_04", "m": 3.0, "kol": [int(c * .86) for c in _c], "szorst": .95}   # boniowany parter
+# zdjęcie 02 (Rynek, pierzeja północna): kremowy, jasnożółty, łososiowy, szaroniebieski, biało-kremowy
+for _k, _c in (("k_kremowy2", [226, 206, 160]), ("k_jasnozolty", [228, 212, 150]), ("k_losos", [226, 194, 180]), ("k_niebieskoszary", [176, 186, 194])):
+    P[_k] = tynk(_c)
+    P["kb" + _k[1:]] = {"tex": "sandstone_blocks_04", "m": 3.0, "kol": [int(c * .86) for c in _c], "szorst": .95}
+P["dachowka_braz"] = {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [150, 84, 62], "szorst": .8}
+P["dachowka_stara"] = {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [128, 70, 54], "szorst": .85}
+P["cegla_komin"] = {"tex": "red_bricks_04", "m": 1.5, "kol": [150, 84, 62], "szorst": .95}
+P["blacha_miedz"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [96, 140, 120], "szorst": .6}          # patyna na daszkach wykuszy
+P["krawoznik"] = {"tex": "granite_tile", "m": 1.0, "kol": [150, 148, 144], "szorst": .8}
+P["latarnia_czarna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [30, 30, 32], "szorst": .6}
+P["klosz"] = {"tex": None, "kol": [240, 230, 200], "szorst": .2}                                    # szkło latarni
+P["parasol"] = {"tex": "plotno_parasol", "m": 1.2, "kol": [236, 232, 222], "szorst": .9}
+P["donica"] = {"tex": "weathered_brown_planks", "m": 1.0, "kol": [118, 72, 48], "szorst": .85}
+P["balustrada_kuta"] = {"tex": None, "kol": [34, 36, 36], "szorst": .5, "metal": .5, "alfa": "balustrada_kuta.png"}
+P["meble_ogrodka"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [44, 42, 40], "szorst": .6}
+P["rynek_plyty"] = {"tex": "rectangular_paving", "m": 3.2, "kol": [214, 198, 172], "szorst": .9}     # zdj. 02: jasne płyty
+P["rynek_pas"] = {"tex": "rectangular_paving", "m": 3.2, "kol": [160, 112, 92], "szorst": .9}       # ukośne pasy ciemniejsze
 P["nabrzeze"] = {"tex": "granite_tile_04", "m": 2.0, "kol": [150, 146, 140], "szorst": .9}
 P["mur_nabrzeza"] = {"tex": "granite_tile", "m": 2.3, "kol": [128, 126, 122], "szorst": .8}
 P["woda_brda"] = {"tex": None, "kol": [38, 62, 66], "szorst": .06, "metal": .2, "woda": "HarbourWater"}   # w grze: materiał wody portu (fale, odbicia)
