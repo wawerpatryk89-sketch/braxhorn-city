@@ -21,11 +21,12 @@ LEGACY = (ROOT / "unity-tools/mistrzowie/legacy_foundation.py").read_text(encodi
 class Sites(unittest.TestCase):
     def test_the_three_places(self):
         self.assertIn('nr = 1, nazwa = "WZGÓRZE", rodzaj = Rodzaj.Wzgorze, srodek = new Vector2(650f, 1190f), yaw = 0f, padY = 24f', SITES)
-        self.assertIn('nr = 2, nazwa = "WYSPA", rodzaj = Rodzaj.Wyspa, srodek = new Vector2(1080f, -400f), yaw = 180f, padY = 3.5f', SITES)
+        self.assertIn('nr = 2, nazwa = "WYSPA", rodzaj = Rodzaj.Wyspa, srodek = new Vector2(700f, -640f), yaw = 180f, padY = 3.5f', SITES)
         self.assertIn('nr = 3, nazwa = "NABRZEŻE", rodzaj = Rodzaj.Nabrzeze, srodek = new Vector2(1272f, -98f), yaw = 0f, padY = 3.0f', SITES)
-        # the island in the region's own sea, clear of the marina (its piers end at z -266.8) and 250 m off the quay (z -150)
-        self.assertIn("x0 = 950f, x1 = 1210f, z0 = -530f, z1 = -270f, woda = true", SITES)
-        self.assertGreater(-150 - (-400), 240)
+        # 23.11 (owner: it stood on the cruise quay, "ma być oddalona kawałek"): alone in the open sea ~420 m off the shore,
+        # its patch wholly in the far sea south of the region's own (z -500); the clearances: test_wyspa_morze_20261123
+        self.assertIn("x0 = 572f, x1 = 852f, z0 = -780f, z1 = -510f, woda = true", SITES)
+        self.assertGreater(-150 - (-640), 400)
         self.assertIn('BraxChampionsFoundation.Optional("wille na sprzedaż: wzgórze, wyspa, nabrzeże",()=>BraxChampionsWilleDzialki.Zbuduj(null));', BUILDINGS)
 
     def test_roads_leave_the_city_by_street_mouths(self):

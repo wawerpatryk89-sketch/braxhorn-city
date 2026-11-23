@@ -104,11 +104,24 @@ public static class BraxChampionsPlaza
 
     public static Material Morze(IEnumerable<BraxChampionsFoundation.MeshData> meshes, float sea)
     {
+        var pole = Pole(meshes, sea);
+        var m = MorzeZPola(pole, Output + "/Textures/morze_brzeg.asset", Output + "/Materials/morze.mat", "Mistrzowie morze", 0f);
+        Debug.Log("A1_PLAZA_MORZE field=" + pole.w + "x" + pole.h + " rect=(" + pole.x0.ToString("F0") + "," + pole.z0.ToString("F0") + ")-(" +
+                  pole.x1.ToString("F0") + "," + pole.z1.ToString("F0") + ") sea=" + sea.ToString("F3") + " sandTriangles=" + pole.trojkaty +
+                  " waterline=" + pole.Odcinki + " landTexels=" + pole.komorekLadu + " runUp=" + Wbieganie + " (owner 23.11: real beach, waves onto the sand)");
+        if (pole.Odcinki == 0) BraxBuildQuality.Warn("A1_PLAZA_NO_WATERLINE the sand never crosses the sea level - no surf, no run-up");
+        return m;
+    }
+
+    /// <summary>The sea's material over a shore field (the beach's; the villa island's, BraxChampionsWyspaMorze): the field
+    /// saved as an RGHalf texture (distance to the waterline, the bed), the waves, the sand under the water. wzdluzZ: 0 for a
+    /// shore along x (the beach), 1 for a shore every way round (an island).</summary>
+    public static Material MorzeZPola(BraxChampionsMorzeBrzeg pole, string texPath, string matPath, string nazwa, float wzdluzZ)
+    {
         var shader = Shader.Find("Braxhorn/ChampionsMorze");
         if (!shader) throw new InvalidOperationException("Champions sea shader missing");
-        var pole = Pole(meshes, sea);
         var tex = new Texture2D(pole.w, pole.h, TextureFormat.RGHalf, false, true)
-        { name = "Mistrzowie morze brzeg", wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear, anisoLevel = 0 };
+        { name = nazwa + " brzeg", wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear, anisoLevel = 0 };
         var px = new ushort[pole.w * pole.h * 2];
         for (int i = 0; i < pole.d.Length; i++)
         {
@@ -118,24 +131,19 @@ public static class BraxChampionsPlaza
         tex.SetPixelData(px, 0);
         tex.Apply(false, false);
         Directory.CreateDirectory(Output + "/Textures");
-        string texPath = Output + "/Textures/morze_brzeg.asset";
         AssetDatabase.DeleteAsset(texPath); AssetDatabase.CreateAsset(tex, texPath);
         var wet = BraxChampionsFoundation.SourceMaterial("plaza_mokry", "damp_beach_sand", 2f, Color.white);
-        var m = new Material(shader) { name = "Mistrzowie morze" };
+        var m = new Material(shader) { name = nazwa };
         m.SetTexture("_Brzeg", tex);
         m.SetVector("_BrzegRect", new Vector4(pole.x0, pole.z0, 1f / (pole.x1 - pole.x0), 1f / (pole.z1 - pole.z0)));
-        m.SetFloat("_Poziom", sea);
+        m.SetFloat("_Poziom", pole.sea);
         m.SetTexture("_Szum", Szum());
         m.SetTexture("_Dno", wet.GetTexture("_MainTex"));
         m.SetVector("_DnoTint", Tint(Mokry, MeanDampBeachSand));
         m.SetFloat("_DnoKafel", 2f * K);
         m.SetVector("_Fala", new Vector4(Dlugosc, Okres, Wbieganie, ZasiegWbiegania));
-        string matPath = Output + "/Materials/morze.mat";
+        m.SetFloat("_WzdluzZ", wzdluzZ);
         AssetDatabase.DeleteAsset(matPath); AssetDatabase.CreateAsset(m, matPath);
-        Debug.Log("A1_PLAZA_MORZE field=" + pole.w + "x" + pole.h + " rect=(" + pole.x0.ToString("F0") + "," + pole.z0.ToString("F0") + ")-(" +
-                  pole.x1.ToString("F0") + "," + pole.z1.ToString("F0") + ") sea=" + sea.ToString("F3") + " sandTriangles=" + pole.trojkaty +
-                  " waterline=" + pole.Odcinki + " landTexels=" + pole.komorekLadu + " runUp=" + Wbieganie + " (owner 23.11: real beach, waves onto the sand)");
-        if (pole.Odcinki == 0) BraxBuildQuality.Warn("A1_PLAZA_NO_WATERLINE the sand never crosses the sea level - no surf, no run-up");
         return m;
     }
 

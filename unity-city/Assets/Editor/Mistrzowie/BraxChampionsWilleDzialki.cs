@@ -11,9 +11,12 @@ using W = BraxWnetrzaKit;
 //  - WILLA 1, THE HILL north of the arena A1: a south-facing ridge (16 m over the far land), the pad cut into it at 18 m with
 //    the view over the city and the sea; a 7 m private road (asphalt, granite edging) leaves road Z935 by a street mouth
 //    across its north sidewalk (layout.WILLE_MOUTHS), climbs the hill's west flank at 7 % and comes round to the gate;
-//  - WILLA 2, THE ISLAND 250 m off the east promenade: a small island built round the pad (about 120 x 117 m at the water),
-//    a lawn hump, a sand beach all round and a timber jetty to the north (the boats of the marina tie up at its head); the
-//    villa looks north over the bay to the city;
+//  - WILLA 2, THE ISLAND alone in the open sea ~420 m off the shore (owner 23.11 19:53: it stood in the harbour, the cruise
+//    quay and a 289 m ship through it - "ta wyspa w ogóle ma być oddalona kawałek"), south of the beach's east end, clear
+//    of every ship, quay and pier by ~300 m: a small island built round the pad (about 145 x 120 m at the water), a lawn
+//    hump, a sand beach all round, a lagoon of white sand round it and a timber jetty to the north (the boats tie up at its
+//    head); the villa looks north over the bay to the city. Its sea is the beach's real sea with its own shore field
+//    (BraxChampionsWyspaMorze): the waves run in to its beach from every side;
 //  - WILLA 3, THE SEAFRONT just east of the region: the pad 5 m over the sea behind its own beach, a private road from road
 //    X1130 across its east sidewalk (street mouth), east and round to the gate.
 // The far land (BraxChampionsHorizon) is pressed under the patches (Docisk) and the patches dip under it at their rims; the
@@ -49,8 +52,11 @@ public static class BraxChampionsWilleDzialki
         // back (local x 9)
         Droga(hill, new[] { Odc(600.5f, 952f, 600.5f, 1211f), Luk(625.5f, 1211f, 25f, 180f, 90f), Odc(625.5f, 1236f, 639f, 1236f), Luk(639f, 1216f, 20f, 90f, 0f) },
             new[] { (0f, .16f), (48f, .16f), (298f, 24f) }, 24f);
-        var island = new Dzialka { nr = 2, nazwa = "WYSPA", rodzaj = Rodzaj.Wyspa, srodek = new Vector2(1080f, -400f), yaw = 180f, padY = 3.5f, spad = 18f,
-            x0 = 950f, x1 = 1210f, z0 = -530f, z1 = -270f, woda = true };
+        // 23.11 (owner: the island stood on the cruise quay): out in the open sea, its patch wholly in the far sea south of the
+        // region's own (z -500), ~70 m of water round the island inside it (the surf dies out before its rim) - the far sea
+        // leaves a hole of exactly the patch for the island's water (BraxChampionsHorizon)
+        var island = new Dzialka { nr = 2, nazwa = "WYSPA", rodzaj = Rodzaj.Wyspa, srodek = new Vector2(700f, -640f), yaw = 180f, padY = 3.5f, spad = 18f,
+            x0 = 572f, x1 = 852f, z0 = -780f, z1 = -510f, woda = true };
         var shore = new Dzialka { nr = 3, nazwa = "NABRZEŻE", rodzaj = Rodzaj.Nabrzeze, srodek = new Vector2(1272f, -98f), yaw = 0f, padY = 3.0f, spad = 12f,
             x0 = 1200f, x1 = 1350f, z0 = -215f, z1 = 60f, woda = true };
         // east from the street mouth on road X1130 (the sidewalk's far edge x 1147), flat to the region's edge, 1.8 % up,
@@ -110,6 +116,7 @@ public static class BraxChampionsWilleDzialki
     // the ground at the pad's level: its back and the back of its sides 5 cm under the lawn, its front 3.9 m under it (the
     // retaining wall's foot at -4 buried 10 cm), the sides falling between over the front 8 m (the side walls: Sciany)
     public const float Przod = -3.9f;
+    public const float WyspaDno = 20f;                                         // the island's sea bed at its patch's rim (m under the sea)
     // the hill villa after the owner's photo (17.11 "perched on a scenic cliff"): its pool terrace on a 9 m rock face (the
     // villa builds the face, BraxChampionsWillaKlif)
     public const float PrzodKlif = -9f;
@@ -136,13 +143,17 @@ public static class BraxChampionsWilleDzialki
             }
             case Rodzaj.Wyspa:
             {
-                // the island round the pad: the lawn ends 0.8 m over the sea, the beach to the water, the shelf, the deep;
-                // its shore line wanders +-7 m (a real island is not the pad's rectangle)
+                // the island round the pad (23.11, a private island's shore): the lawn ends 1 m over the sea, a 14 m beach to
+                // the water (7 %), round it a lagoon of white sand - 1.2 m deep 16 m out, 2.2 m 44 m out: the clear turquoise
+                // water over sand - and its edge dropping to the open sea's depth (15 m 71 m out, 20 m farther: the far sea's
+                // deep blue at the patch's rim); its shore line wanders +-7 m (a real island is not the pad's rectangle)
                 float e = odPadu - (4f + d.spad) + 14f * (BraxChampionsHorizon.Fbm(x / 38f + 5.3f, z / 38f - 2.9f, 3) - .5f);
-                if (e <= 0f) return SeaY + .8f;
-                if (e <= 12f) return Mathf.Lerp(SeaY + .8f, SeaY, e / 12f);
-                if (e <= 37f) return Mathf.Lerp(SeaY, SeaY - 3.5f, Smooth(12f, 37f, e));
-                return Mathf.Lerp(SeaY - 3.5f, SeaY - 10f, Smooth(37f, 100f, e));
+                if (e <= 0f) return SeaY + 1f;
+                if (e <= 14f) return Mathf.Lerp(SeaY + 1f, SeaY, e / 14f);
+                if (e <= 30f) return Mathf.Lerp(SeaY, SeaY - 1.2f, (e - 14f) / 16f);
+                if (e <= 58f) return Mathf.Lerp(SeaY - 1.2f, SeaY - 2.2f, Smooth(30f, 58f, e));
+                if (e <= 85f) return Mathf.Lerp(SeaY - 2.2f, SeaY - 15f, Smooth(58f, 85f, e));
+                return Mathf.Lerp(SeaY - 15f, SeaY - WyspaDno, Smooth(85f, 130f, e));
             }
             default:
             {
@@ -254,7 +265,7 @@ public static class BraxChampionsWilleDzialki
             Zielen(g, d);
             if (d.rodzaj != Rodzaj.Wyspa) Plot(b, d);
             if (d.woda) MurPodWoda(d);
-            if (d.rodzaj == Rodzaj.Wyspa) { Pomost(b, d); Lodz(g, d); }
+            if (d.rodzaj == Rodzaj.Wyspa) { Pomost(b, d); Lodz(g, d); BraxChampionsWyspaMorze.Zbuduj(g, d); }
             b.Build(g, "WILLA " + d.nr + " | działka " + d.nazwa + " | detale", Folder, true, K);
             W.Zapisz("mistrzowie_wille_dzialka_" + d.nr);
             Kolizje += W.Kolizje - k0;
@@ -545,7 +556,9 @@ public static class BraxChampionsWilleDzialki
     // under the water at the sea edges of the patch: an invisible wall from the sea bed to 0.9 m under the surface
     static void MurPodWoda(Dzialka d)
     {
-        float top = SeaY - .9f, bot = SeaY - 11f, h = top - bot, y = (top + bot) * .5f;
+        float top = SeaY - .9f, bot = SeaY - 11f;
+        if (d.rodzaj == Rodzaj.Wyspa) bot = SeaY - WyspaDno - 1f;                    // the island's bed goes down to 20 m at its rim
+        float h = top - bot, y = (top + bot) * .5f;
         var sciany = new List<(float x0, float x1, float z0, float z1)>();
         if (d.rodzaj == Rodzaj.Wyspa)
         {
@@ -563,11 +576,12 @@ public static class BraxChampionsWilleDzialki
             W.Kolizja(new Vector3((x0 + x1) * .5f, y, (z0 + z1) * .5f) * K, new Vector3(x1 - x0, h, Mathf.Abs(z1 - z0)) * K, Quaternion.identity);
     }
 
-    // the island's jetty: teak deck 2.4 m wide, 1 m over the sea, on piles from the lawn's edge over the beach into 4 m of
-    // water, a T head 9 m wide with bollards; north of the villa's garage side (the pool's view stays open)
+    // the island's jetty: teak deck 2.4 m wide, 1 m over the sea, on piles from the lawn's edge over the beach and the lagoon
+    // (56 m: its head over 2 m of water, by the lagoon's edge), a T head 9 m wide with bollards; north of the villa's garage
+    // side (the pool's view stays open)
     // the jetty's root on the lawn before the pad's front, at the villa's own landing (BraxChampionsWille.PomostX: its stair down)
     public static Vector2 PomostStart(Dzialka d) => new Vector2(d.srodek.x - BraxChampionsWille.PomostX(d.nr), d.srodek.y - BraxChampionsWille.Pad(d.nr).z + 4f + d.spad - 1f);
-    public const float PomostDl = 46f, PomostY = SeaY + 1.0f;
+    public const float PomostDl = 56f, PomostY = SeaY + 1.0f;
     static void Pomost(BraxChampionsMeshBatch b, Dzialka d)
     {
         var s = PomostStart(d); float x = s.x, za = s.y, zb = s.y + PomostDl, y = PomostY;

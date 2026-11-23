@@ -79,7 +79,7 @@ class WillaWyspa(unittest.TestCase):
         self.assertLess(20, 21)                                                    # the jetty's root (PomostX 20) at its foot
         self.assertIn("public static float PomostX(int nr) => 20f;", HILL)
         self.assertIn("Balustrada(true, PadZ0 + .15f, WStX1 + .1f, PadX1 - .2f, 0f);", VILLA)
-        self.assertIn("if (d.rodzaj == Rodzaj.Wyspa) { Pomost(b, d); Lodz(g, d); }", SITES)
+        self.assertIn("if (d.rodzaj == Rodzaj.Wyspa) { Pomost(b, d); Lodz(g, d); BraxChampionsWyspaMorze.Zbuduj(g, d); }", SITES)   # 23.11 its own sea
         self.assertIn('BraxChampionsHarbour.PrywatnaLodz(g, "W2", "motorboat", s.x + 3.0f, zb - 9f, 0f, 2.6f, s.x + .9f, zb - 9f, PomostY)', SITES)
         self.assertIn('catch (Exception e) { BraxBuildQuality.Warn("DO POPRAWKI WILLA_2_RIVA: " + e.Message); }', SITES)
         self.assertIn("return PlaceBoat(parent,bay,sources[kind],pierY);", HARBOUR)

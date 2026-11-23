@@ -12,5 +12,6 @@
     <Compile Include="../trawa_sim/TrawaStubs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsMorzeBrzeg.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsWyspaWoda.cs" />
   </ItemGroup>
 </Project>

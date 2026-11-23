@@ -11,6 +11,9 @@
 //   migocze (zasada 16.11);
 // - powierzchnia: niebo z sondy odbicia (Fresnel), słońce na zmarszczkach (zmarszczki drobniejsze od piksela gasną).
 // Jeden przebieg, nieprzezroczyste (bez sortowania, bez przezroczystości), mgła jak reszta świata.
+// To samo morze wokół wyspy z willą (23.11, BraxChampionsWyspaMorze): jej własne pole brzegu, fale ze wszystkich stron.
+// Kołysanie otwartej wody gaśnie przy brzegu prostokąta pola: tam morze tego pola styka się z płaskim dalekim morzem
+// (BraxChampionsHorizon) krawędź w krawędź, bez schodka.
 Shader "Braxhorn/ChampionsMorze"
 {
     Properties
@@ -30,6 +33,7 @@ Shader "Braxhorn/ChampionsMorze"
         _Odbicie ("Odbicie nieba", Range(0,1)) = .55
         _Fala ("Fala: długość, okres, wbieganie, zasięg wbiegania", Vector) = (20,7,.27,22)
         _Przyboj ("Przybój: od, do (j. od brzegu)", Vector) = (52,36,0,0)
+        _WzdluzZ ("Fale różne wzdłuż z (wyspa: brzeg z każdej strony)", Float) = 0
         _SkyHorizon ("Niebo przy horyzoncie bez sondy", Color) = (0.62,0.70,0.78,1)
         _SkyZenith ("Niebo w zenicie bez sondy", Color) = (0.36,0.52,0.72,1)
     }
@@ -52,7 +56,7 @@ Shader "Braxhorn/ChampionsMorze"
 
             sampler2D _Brzeg, _Szum, _Dno;
             float4 _BrzegRect, _DnoTint, _Plytka, _Srednia, _Gleboka, _Pochlanianie, _Fala, _Przyboj;
-            float _Poziom, _DnoKafel, _Metnosc, _Odbicie;
+            float _Poziom, _DnoKafel, _Metnosc, _Odbicie, _WzdluzZ;
             half4 _SkyHorizon, _SkyZenith;
 
             struct appdata { float4 vertex : POSITION; };
@@ -75,18 +79,28 @@ Shader "Braxhorn/ChampionsMorze"
                 return f;
             }
             float Wzdluz(float x) { return sin(x * .0131) * .35 + sin(x * .0047 + 1.7) * .55; }
+            // each wave different along the shore: the beach runs along x; an island's shore runs every way
+            float Faza(float2 w) { return Wzdluz(w.x) + _WzdluzZ * Wzdluz(w.y * 1.13 + 77); }
+            // how far inside the field's rectangle (world units, negative outside): the open water's swell dies out at its
+            // rim, so where this sea meets the flat far sea (or the island's water the far sea) the edge stays flat
+            float Rant(float2 w)
+            {
+                float2 uv = (w - _BrzegRect.xy) * _BrzegRect.zw;
+                float2 r = min(uv, 1 - uv) / _BrzegRect.zw;
+                return smoothstep(9, 60, min(r.x, r.y));
+            }
 
             v2f vert(appdata v)
             {
                 v2f o;
                 float3 w = mul(unity_ObjectToWorld, v.vertex).xyz;
                 float d = Pole(w.xz, 0).x;
-                float p = frac(d / _Fala.x + _Time.y / _Fala.y + Wzdluz(w.x));
+                float p = frac(d / _Fala.x + _Time.y / _Fala.y + Faza(w.xz));
                 // the run-up: the water at the shore rises fast after a wave comes in and drains slowly
                 float run = smoothstep(0, .10, p) * (1 - smoothstep(.10, .80, p));
                 float env = 1 - smoothstep(0, _Fala.w, d);
                 float swell = (sin(dot(w.xz, float2(.034, .021)) - _Time.y * .65) * .06
-                             + sin(dot(w.xz, float2(-.013, .041)) - _Time.y * .92) * .04) * smoothstep(15, 60, d);
+                             + sin(dot(w.xz, float2(-.013, .041)) - _Time.y * .92) * .04) * smoothstep(15, 60, d) * Rant(w.xz);
                 w.y += _Fala.z * env * run + swell;
                 o.world = w;
                 o.run = run * env;
@@ -123,7 +137,7 @@ Shader "Braxhorn/ChampionsMorze"
                 float2 toSea = normalize(g + 1e-5);
                 float4 n38 = tex2D(_Szum, w / 38), n13 = tex2D(_Szum, w / 13 + .5);
                 float wig = (n38.g - .5) * .10 + (n13.g - .5) * .05;
-                float ph0 = d / _Fala.x + _Time.y / _Fala.y + Wzdluz(w.x) + wig;
+                float ph0 = d / _Fala.x + _Time.y / _Fala.y + Faza(w) + wig;
                 float p = frac(ph0), idx = floor(ph0);
                 // the surface: the breaking waves' faces in the surf zone and ripples (finer than a pixel: gone)
                 float surf = smoothstep(55, 30, d) * smoothstep(-2, 6, d);
