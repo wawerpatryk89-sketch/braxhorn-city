@@ -12,8 +12,10 @@ using W = BraxWnetrzaKit;
 //    Pine, also the soffits and the garage doors), the terrace in flagstones (Pavement 02), the forecourt in herringbone
 //    (Herringbone Concrete Tile 03), the garden path in setts (Stone Pathway 02); indoors plank floors (Old Wooden Floor 03
 //    downstairs, Wood Table upstairs), the fire wall in the drystone, brick (Brick Wall 02) and lacquered cherry panels;
-//  - the flat roofs (no gables): a slab with a white edge and a low parapet, gravel on top, the hall's roof running on 2.5 m
+//  - the flat roofs (no gables): a thin slab with a white edge, gravel on top, no parapet, the hall's roof running on 2.5 m
 //    over the terrace on its pine soffit; the glazed fronts in rectangular black steel frames;
+//  - (22:32 "płaski prostokąt ... zobacz na internecie jak to robią") the upper floors of W and E cantilevered 3 m over the
+//    terrace, pine louvres on their ends, outdoor rooms under them and on the garage's roof (W1Bryla);
 //  - the windows in real frames (90 mm black profiles, BraxChampionsWille.Szyba), an aluminium sill outside and an oak board
 //    inside each one with a sill;
 //  - the pad on the hill's 9 m rock face (BraxChampionsWilleDzialki.PrzodKlif), the cantilevered pool hanging over it;
@@ -26,6 +28,7 @@ public static partial class BraxChampionsWille
         MeanOldWoodenFloor03 = new Vector3(132, 79, 28), MeanWoodTable = new Vector3(99, 63, 40), MeanBrickWall02 = new Vector3(162, 143, 118),
         MeanLacqueredCherry = new Vector3(47, 28, 15);
     static Material sciezka, oknoParapet;
+    const float Dach = .32f;                       // the flat roofs' slab
     public static int W1Palmy;
 
     static void W1Materialy()
@@ -55,17 +58,16 @@ public static partial class BraxChampionsWille
     }
 
     // ---------------------------------------------------------------- the flat roof
-    /// <summary>A flat roof over the walls x0..x1, z0..z1 (their tops at e): the slab .42 thick with its white edge, out by
-    /// the overhangs (west, east, front -z, back +z), a .25 parapet .2 wide, gravel inside; the overhangs' undersides in the
-    /// soffit's pine; lining (if any) the ceiling under it between the walls.</summary>
+    /// <summary>A flat roof over the walls x0..x1, z0..z1 (their tops at e): a thin slab (.32) with its white edge, out by
+    /// the overhangs (west, east, front -z, back +z), gravel on it 25 cm in from the edge (22:32: the thin plane the modern
+    /// villas float over their glass - no parapet); the overhangs' undersides in the soffit's pine; lining (if any) the
+    /// ceiling under it between the walls.</summary>
     static void DachPlaski(float x0, float x1, float z0, float z1, float e, float ovW, float ovE, float ovS, float ovN, Material lining = null)
     {
-        const float gr = .42f, par = .25f, pw = .2f;
+        const float gr = Dach, pw = .25f;
         float a0 = x0 - ovW, a1 = x1 + ovE, c0 = z0 - ovS, c1 = z1 + ovN;
         Out_(true);
         MM(elewacja, a0, a1, e, e + gr, c0, c1);
-        MM(elewacja, a0, a1, e + gr, e + gr + par, c0, c0 + pw, false); MM(elewacja, a0, a1, e + gr, e + gr + par, c1 - pw, c1, false);
-        MM(elewacja, a0, a0 + pw, e + gr, e + gr + par, c0 + pw, c1 - pw, false); MM(elewacja, a1 - pw, a1, e + gr, e + gr + par, c0 + pw, c1 - pw, false);
         MM(gravel, a0 + pw, a1 - pw, e + gr, e + gr + .02f, c0 + pw, c1 - pw, false);
         // the overhangs' undersides: pine boards 2 cm under the slab (their edges 2 cm in from the white edge)
         if (ovS > .05f) MM(soffit, a0 + .02f, a1 - .02f, e - .02f, e, c0 + .02f, z0, false);
@@ -76,15 +78,15 @@ public static partial class BraxChampionsWille
     }
     /// <summary>The black steel frame round a glazed front x0..x1 on the plane z (Forest Knoll's "large steel frames", 23.11
     /// rectangular): two posts from the ground to e and the head beam under the roof, .3 x .45, .45 proud.</summary>
-    static void RamaProsta(float x0, float x1, float e, float z, float outward)
+    static void RamaProsta(float x0, float x1, float e, float z, float outward, float y0 = 0f)
     {
         Out_(true);
         const float w = .3f, d = .45f;
         float zc = z + outward * (d * .5f + .006f);
         foreach (float x in new[] { x0 + w * .5f - .06f, x1 - w * .5f + .06f })
         {
-            b.Box(stalCzarna, new Vector3(x, (e - w) * .5f, zc), new Vector3(w, e - w, d), Quaternion.identity);
-            W.Kolizja(new Vector3(x, (e - w) * .5f, zc), new Vector3(w, e - w, d), Quaternion.identity);
+            b.Box(stalCzarna, new Vector3(x, (e - w + y0) * .5f, zc), new Vector3(w, e - w - y0, d), Quaternion.identity);
+            if (y0 < .1f) W.Kolizja(new Vector3(x, (e - w + y0) * .5f, zc), new Vector3(w, e - w - y0, d), Quaternion.identity);
         }
         b.Box(stalCzarna, new Vector3((x0 + x1) * .5f, e - w * .5f - .02f, zc), new Vector3(x1 - x0 + .12f, w, d), Quaternion.identity);
     }
@@ -150,5 +152,55 @@ public static partial class BraxChampionsWille
         MM(wCegla, -15.72f, -11.45f, y - .02f, top, zs(-.5f), ze(-.5f), false);
         MM(wPanel, 9.75f, 14.65f, y - .02f, top, zs(.4f), ze(.4f), false);
         MM(wPanel, 18.35f, 25.72f, y - .02f, top, zs(10.2f), ze(10.2f), false);
+    }
+
+    // ---------------------------------------------------------------- 22:32 "zobacz na internecie jak to robią"
+    // What the hillside villas do (SAOTA's Hillside House, Los Angeles: the roof planes "pushed as far forward as possible"
+    // into covered outdoor rooms; Studio Saxe's Villa Nuri: heavy stone at the base, lighter timber and glass as it rises,
+    // planted terraces, the pool floating out): here the upper floors cantilevered over the terrace (AFront), the thin roof
+    // planes, vertical pine louvres on the upper floors' ends, outdoor rooms under the cantilevers and on the garage's roof.
+    static void W1Bryla()
+    {
+        // the louvres: vertical pine fins 6 x 10 cm every 16 cm, 2 cm off the render, clear of the windows
+        Lamele(-16f, -1f, -8f - WS + .1f, 14f - .1f, new Vector2(-6.3f, -2.1f), new Vector2(7.5f, 9.3f));
+        Lamele(16f, 1f, -8f - WS + .1f, 4f - .1f, new Vector2(-6.1f, -2.4f));
+        // under the cantilevers: a teak sofa against the glass, two armchairs, a stone table, on a rug of the terrace's stone
+        foreach (float cx in new[] { -12f, 12f })
+        {
+            var lc = new Vector3(cx, 0f, -9.9f);
+            Lawka(lc + new Vector3(0f, 0f, 1.0f), Vector3.back, 2.4f);
+            Lawka(lc + new Vector3(-1.75f, 0f, 0f), Vector3.right, .9f); Lawka(lc + new Vector3(1.75f, 0f, 0f), Vector3.left, .9f);
+            Out_(true);
+            b.RoundedBox(stone, lc + new Vector3(0f, .19f, -.1f), new Vector3(1.2f, .38f, .7f), .02f, Quaternion.identity, 2);
+            W.Kolizja(lc + new Vector3(0f, .19f, -.1f), new Vector3(1.2f, .38f, .7f), Quaternion.identity);
+        }
+        // the garage's roof a terrace: pine decking, glass round it, a black steel pergola with pine slats, three loungers
+        float y = AE + Dach;
+        Out_(true);
+        MM(soffit, 16.4f, 26.1f, y, y + .04f, 3.9f, 14.1f, false);
+        // 2 cm in off the deck's edges; the east run's ends buried in the long runs' bases, theirs in its (no faces flush)
+        Balustrada(true, 3.9f + .06f, 16.42f, 26.06f, y + .04f); Balustrada(true, 14.1f - .06f, 16.42f, 26.06f, y + .04f);
+        Balustrada(false, 26.1f - .06f, 3.93f, 14.07f, y + .04f);
+        float px0 = 17.0f, px1 = 21.6f, pz0 = 4.6f, pz1 = 9.4f, ph = y + .04f + 2.55f;
+        foreach (float x in new[] { px0, px1 }) foreach (float z in new[] { pz0, pz1 })
+            { MM(stalCzarna, x - .06f, x + .06f, y + .04f, ph, z - .06f, z + .06f); }
+        foreach (float z in new[] { pz0, pz1 }) MM(stalCzarna, px0 - .2f, px1 + .2f, ph, ph + .16f, z - .05f, z + .05f, false);
+        for (float x = px0 - .15f; x <= px1 + .16f; x += .3f) MM(soffit, x - .03f, x + .03f, ph + .16f, ph + .26f, pz0 - .25f, pz1 + .25f, false);
+        Lawka(new Vector3((px0 + px1) * .5f, y + .04f, pz0 + 1.3f), Vector3.forward, 2.4f);
+        Lezaki(new Vector3(18.0f, y + .04f, 12.3f), 3, 2.2f, Vector3.back);
+        W.Lampa("dach garażu | pergola", new Vector3((px0 + px1) * .5f, ph - .2f, (pz0 + pz1) * .5f), .5f, 6f * K, new Color(1f, .86f, .64f));
+    }
+    /// <summary>Vertical pine fins on the upper floor of a wall on the plane x = px (its outer face; s = outward), along z
+    /// z0..z1, every 16 cm, skipping the gaps (the windows).</summary>
+    static void Lamele(float px, float s, float z0, float z1, params Vector2[] gaps)
+    {
+        Out_(true);
+        for (float z = z0 + .03f; z < z1 - .03f; z += .16f)
+        {
+            bool skip = false; foreach (var g2 in gaps) if (z > g2.x && z < g2.y) { skip = true; break; }
+            if (skip) continue;
+            float a = px + s * .02f, c = px + s * .12f;
+            MM(soffit, Mathf.Min(a, c), Mathf.Max(a, c), AF1 + .05f, AE - .06f, z - .03f, z + .03f, false);
+        }
     }
 }

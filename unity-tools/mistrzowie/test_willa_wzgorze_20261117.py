@@ -33,8 +33,8 @@ class WillaWzgorze(unittest.TestCase):
     def test_three_flat_roofed_volumes_and_the_garage(self):
         # 23.11 modern: flat roofs with white edges over all four volumes, no gable anywhere
         self.assertIn("const float AE = 6.6f, AF1 = 3.6f;", PLAN)
-        for roof in ("DachPlaski(-16f, -8f, -8f, 14f, AE, .5f, .5f, 1.0f, .5f);", "DachPlaski(-5f, 5f, -10f, 14f, AE, .5f, .5f, 2.5f, .5f, soffit);",
-                     "DachPlaski(8f, 16f, -8f, 14f, AE, .5f, 0f, 1.0f, .5f);", "DachPlaski(16f, 26f, 4f, 14f, AE, 0f, .5f, .5f, .5f);"):
+        for roof in ("DachPlaski(-16f, -8f, -8f - WS, 14f, AE, .5f, .5f, 1.0f, .5f);", "DachPlaski(-5f, 5f, -10f, 14f, AE, .5f, .5f, 2.5f, .5f, soffit);",
+                     "DachPlaski(8f, 16f, -8f - WS, 14f, AE, .5f, 0f, 1.0f, .5f);", "DachPlaski(16f, 26f, 4f, 14f, AE, 0f, .5f, .5f, .5f);"):
             self.assertIn(roof, PLAN)
         for gable in ("Dach2(", "Szczyt(", "SzczytSzyba(", "RamaSzczytu(", "APitch"):
             self.assertNotIn(gable, PLAN)
