@@ -65,7 +65,18 @@ public static partial class BraxChampionsPatryk
     {
         WzrostZModelu = float.NaN;
         GameObject hero = null;
-        try { hero = PatrykZbuduj(gracz, cialo); return hero; }
+        try
+        {
+            // owner 23.11: the newest Patryk from the global library (BraxChampionsPatrykGlobalny); the old model only when
+            // the package is missing (a local run without CI) - and then the build says so
+            if (GlobalnyJest) hero = PatrykZbudujGlobalny(gracz, cialo);
+            else
+            {
+                BraxBuildQuality.Warn("DO POPRAWKI MISTRZOWIE_PATRYK stary model: brak globalnego Patryka 13.11 w " + GlobalnyKatalog);
+                hero = PatrykZbuduj(gracz, cialo);
+            }
+            return hero;
+        }
         catch (Exception e)
         {
             Debug.LogError("BRAXHORN_PATRYK błąd: " + e);

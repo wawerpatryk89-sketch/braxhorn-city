@@ -409,6 +409,7 @@ jobs:
       - name: Geometry and source preparation
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           python3 -m pip install numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
           test -f /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf
@@ -425,6 +426,9 @@ jobs:
           # Owner 17.11 00:20 "Wstaw mi Patryka zamiast brax": the estate's Patryk and his moves (+ the car moves) for the
           # player. Not fatal: without them BraxChampionsExplorer builds Brax and says DO POPRAWKI MISTRZOWIE_GRACZ.
           python3 unity-tools/mistrzowie/restore_player.py || echo "::warning::MISTRZOWIE_GRACZ Patryk not restored - the APK plays Brax"
+          # Owner 23.11 15:47/15:54 "Patryka dałeś złą wersję ... stara do wyrzucenia": the newest Patryk (13.11) from the global
+          # character library, the one Osiedle plays, with his 31 own motions. Fatal: without it the build would deliver the old one.
+          python3 unity-tools/mistrzowie/restore_patryk_globalny.py
           # Owner 17.11 00:20 "podstaw z 3 auta z naszej kolekcji": 918, R8, Challenger unchanged from public/assets/cars-src.
           python3 unity-tools/mistrzowie/prepare_kolekcja_aut.py || echo "::warning::KOLEKCJA_AUT sources not copied"
           python3 unity-tools/mistrzowie/prepare_brax.py

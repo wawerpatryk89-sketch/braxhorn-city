@@ -21,7 +21,9 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     public float topEndAccelerationFactor = .45f;
     // Owner 10.11 13:00: "bardziej przy wolnej skręca ostro" - 34 deg of lock turned the car on the spot at walking pace.
     // 26 deg of lock, the curved stick (below) and an absolute cap of maxYawRate deg/s at any speed.
-    public float wheelbase = 2.7f, maxSteer = 26f, highSpeedSteerFactor = .16f, maxYawRate = 50f;
+    // Owner 23.11 15:54: "Auto też ma lepiej skręcać, bo za słabo skręca przy dużej prędkości": at full speed 35 % of the lock
+    // stays (was 16 %, 4 deg at 200 km/h), and the tyres hold 2.0 g (below) - the arcade grip of GTA's cars.
+    public float wheelbase = 2.7f, maxSteer = 26f, highSpeedSteerFactor = .35f, maxYawRate = 50f;
     public float interactionRadius = 3.8f;
     public float acceleration = 5.5f, braking = 9.5f;
     // Owner 10.11 08:40: "hamulec ręczny, bo się trochę pobawię" and "joystickiem: jak lekko - jedzie wolno, jak na
@@ -39,7 +41,9 @@ public sealed class BraxChampionsCar : MonoBehaviour, IBraxInterakcja
     // on the stick (a light touch = a light correction), the wheel turns at steerRate (full lock ~.45 s) and comes back
     // at steerReturn, and the yaw rate never exceeds what the tyres hold: lateralGrip (m/s2, ~0.9 g) / speed.
     public float steerDeadZone = .10f, steerCurve = 1.6f, steerRate = 2.2f, steerReturn = 4.0f;
-    public float lateralGrip = 8.8f, driftLateralFactor = 1.7f;
+    // 23.11: 2.0 g (was 0.9 g: 9 deg/s at 200 km/h, a 90 deg corner at 150 km/h took 7.4 s; now 27 deg/s there, ~3.3 s; at
+    // 100 km/h 40 deg/s, still under the 50 deg/s cap of 10.11's "gwałtownie skręca")
+    public float lateralGrip = 19.6f, driftLateralFactor = 1.7f;
     public float groundProbeReach = 2.5f, maxGroundStep = .80f, collisionSkin = .10f;
     // Owner phone video 9.11: the car stopped at the first kerb/parking stop.
     // Low edges (kerbs ~.19-.26 m in game scale, parking stops, tactile strips)

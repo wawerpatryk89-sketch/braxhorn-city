@@ -21,7 +21,7 @@ public static partial class BraxChampionsKasynoSprzet
     static readonly int[] LototoLogo = { 118, 40, 790, 330 };
     public static bool LototoWlasciciela;
 
-    static Material lotKule, lotTablica, lotLogo, lotPlakat, lotEkran, lotGranat, lotSoftbox, lotKupon;
+    static Material lotKule, lotTablica, lotTablicaTlo, lotLogo, lotPlakat, lotEkran, lotGranat, lotSoftbox, lotKupon;
     static Mesh[] lotSiatki; static float[] lotSzer;
     // the balls of both games (LOTOTO BRAX CASH 60, BRAX SZÓSTKA 40): one atlas, one mesh per number
     static int MaxKul => Mathf.Max(L.Zasady.BraxCash.pula, L.Zasady.BraxSzostka.pula);
@@ -83,7 +83,13 @@ public static partial class BraxChampionsKasynoSprzet
             { var c = tp[y * tw + r.x + x]; if (Mathf.Abs(c.r - granat.r) + Mathf.Abs(c.g - granat.g) + Mathf.Abs(c.b - granat.b) > 30) { if (x < x0) x0 = x; if (x > x1) x1 = x; } }
             lotSzer[i] = x1 >= x0 ? 2f * Mathf.Max(r.width * .5f - x0, x1 + 1 - r.width * .5f) / r.width : 1f;
         }
-        lotTablica = Ekran("lototo_tablica", Png("lototo_tablica_atlas", tw, th, tp, true), 1.0f);
+        var atlas = Png("lototo_tablica_atlas", tw, th, tp, true);
+        lotTablica = Ekran("lototo_tablica", atlas, 1.0f);
+        // 23.11 (owner's photo: balls cut in half, some missing): the board's background is its own submesh with a material
+        // that writes no depth, drawn before the numbers (queue 2001 < 2002); the numbers lie in the same plane over it
+        lotTablicaTlo = Ekran("lototo_tablica_tlo", atlas, 1.0f);
+        lotTablicaTlo.SetFloat("_ZWrite", 0f); lotTablicaTlo.renderQueue = 2001; lotTablica.renderQueue = 2002;
+        EditorUtility.SetDirty(lotTablicaTlo); EditorUtility.SetDirty(lotTablica);
         // his poster and its logo (his art 1:1); without the pack the name in the region's letters
         var src = Wczytaj(LototoWlasciciel + "/plakaty/lototo_brax_cash.png", out int sw, out int sh);
         LototoWlasciciela = src != null;
@@ -234,10 +240,13 @@ public static partial class BraxChampionsKasynoSprzet
         }
         // ---- the results screen on the set wall (its quads at runtime), its black bezel
         float bw = 2.4f, bh = 1.35f; var bc = new Vector3(1.75f, 1.55f, -HZ + .20f);
-        b.Box(czern, P(bc.x, bc.y, bc.z - .03f), new Vector3(bw + .08f, bh + .08f, .05f), q);
+        // the bezel's face 2.7 cm behind the screen (was 1.2): no depth fight between them; its face 2 cm off the wall, its back sunk into it
+        b.Box(czern, P(bc.x, bc.y, bc.z - .045f), new Vector3(bw + .08f, bh + .08f, .05f), q);
         var tab = new GameObject("tablica wyników (LOTOTO)"); tab.transform.SetParent(g, false); tab.transform.localPosition = P(bc.x, bc.y, bc.z + Przed);
         tab.transform.localRotation = q;
-        tab.AddComponent<MeshRenderer>().sharedMaterial = lotTablica; lot.tablica = tab.AddComponent<MeshFilter>(); lot.tablicaW = bw; lot.tablicaH = bh; lot.slowaSzer = lotSzer;
+        var tabR = tab.AddComponent<MeshRenderer>(); tabR.sharedMaterials = new[] { lotTablicaTlo, lotTablica };   // submesh 0 = background
+        tabR.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; tabR.receiveShadows = false;           // a lit screen
+        lot.tablica = tab.AddComponent<MeshFilter>(); lot.tablicaW = bw; lot.tablicaH = bh; lot.slowaSzer = lotSzer;
         // ---- the host, the TV camera on its tripod, the softboxes, the light
         lot.prowadzacy = W.Obsada("prowadzący losowania LOTOTO BRAX CASH", P(.05f, 0f, -.55f), yaw - 20f);   // to the camera, a little to the machine
         var kamPos = new Vector3(.25f, 0f, 1.55f);

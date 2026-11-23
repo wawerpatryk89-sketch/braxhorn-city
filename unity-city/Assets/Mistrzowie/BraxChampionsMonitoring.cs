@@ -19,7 +19,7 @@ public sealed class BraxChampionsMonitoring : MonoBehaviour
         {
             if (!kamery[i] || !ekrany[i]) continue;
             kamery[i].enabled = false;
-            rt[i] = new RenderTexture(szer, wys, 16, RenderTextureFormat.ARGB32) { name = "monitoring " + kamery[i].name };
+            rt[i] = new RenderTexture(szer, wys, 24, RenderTextureFormat.ARGB32) { name = "monitoring " + kamery[i].name };
             kamery[i].targetTexture = rt[i];
             var m = new Material(ekrany[i].sharedMaterial) { name = "monitoring ekran " + (i + 1) };
             m.mainTexture = rt[i]; if (m.HasProperty("_EmissionMap")) m.SetTexture("_EmissionMap", rt[i]);

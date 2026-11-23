@@ -175,7 +175,7 @@ public sealed class BraxChampionsLototo : MonoBehaviour, IBraxInterakcja
         if (kamera)
         {
             kamera.enabled = false;
-            rt = new RenderTexture(640, 360, 16, RenderTextureFormat.ARGB32) { name = "LOTOTO studio kamera", antiAliasing = 1 };
+            rt = new RenderTexture(640, 360, 24, RenderTextureFormat.ARGB32) { name = "LOTOTO studio kamera", antiAliasing = 1 };   // 24-bit depth: at 16 the board flickered on the screens
             kamera.targetTexture = rt;
             if (ekran) { ekran.mainTexture = rt; if (ekran.HasProperty("_EmissionMap")) ekran.SetTexture("_EmissionMap", rt); }
         }
@@ -348,7 +348,7 @@ public sealed class BraxChampionsLototo : MonoBehaviour, IBraxInterakcja
         warstwa.Czysc();
         var now = DateTime.Now; var nast = Z.Nastepne(now.AddSeconds(1));
         float W = tablicaW, H = tablicaH;
-        { var r = Tablica.Tlo; warstwa.Q(0f, 0f, W, H, r.x, r.y, r.width, r.height, -.001f); }
+        { var r = Tablica.Tlo; warstwa.Tlo(0f, 0f, W, H, r.x, r.y, r.width, r.height); }   // its own submesh, no depth (Warstwa.Tlo)
         // a line of words and numbers, centred: a word is its ink only (its cell's navy round it would cover its neighbours)
         float Szer(int i) { var r = Tablica.Slowo(i); float f = i < slowaSzer.Length && slowaSzer[i] > .01f ? slowaSzer[i] : 1f; return Mathf.Min(r.width, Mathf.Ceil(r.width * f) + 10f); }
         float Znaki(string t) { float n = 0f; foreach (char c in t) n += c == ' ' ? .45f : 1f; return n; }        // a thin space between thousands
@@ -368,7 +368,7 @@ public sealed class BraxChampionsLototo : MonoBehaviour, IBraxInterakcja
                     {
                         int d = c == ':' ? 10 : c == '.' ? 11 : c - '0';
                         if (c == ' ') { cx += cw * .45f; continue; }
-                        if (d >= 0 && d <= 11) { var r = Tablica.Cyfra(d); warstwa.Q(cx, cy, cw, h, r.x, r.y, r.width, r.height, .001f); }
+                        if (d >= 0 && d <= 11) { var r = Tablica.Cyfra(d); warstwa.Q(cx, cy, cw, h, r.x, r.y, r.width, r.height); }
                         cx += cw;
                     }
                 }

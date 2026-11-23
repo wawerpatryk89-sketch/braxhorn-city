@@ -71,6 +71,10 @@ public static class BraxChampionsKolekcjaAut
             copy.transform.localPosition -= new Vector3(bounds.center.x, bounds.min.y - groundLocalY, bounds.center.z);
             Physics.SyncTransforms();
             bounds = BraxChampionsCarBuilder.BoundsLocal(root.transform);
+            // 23.11 (owner's photo: the 918 and the Challenger stood on their tails, ~25 m tall): a car goes into the game only
+            // lying on its wheels at its real size - longer than wide and than high, 3.8-5.6 m long (x K)
+            if (!(bounds.size.z >= 3.8f * K && bounds.size.z <= 5.6f * K && bounds.size.y < bounds.size.z * .45f && bounds.size.x < bounds.size.z * .6f))
+                throw new InvalidOperationException("KOLEKCJA_AUT_NIE_STOI_NA_KOLACH " + a.nazwa + " length=" + bounds.size.z.ToString("F2") + " width=" + bounds.size.x.ToString("F2") + " height=" + bounds.size.y.ToString("F2"));
 
             var kola = Kola(copy, root.transform, bounds, out float rozstaw, out string kolaOpis);
             foreach (var c in root.GetComponentsInChildren<Collider>(true)) UnityEngine.Object.DestroyImmediate(c);

@@ -30,23 +30,33 @@ public static class BraxChampionsAutomatyGry
     {
         readonly float aw, ah;
         readonly List<Vector3> v = new List<Vector3>(); readonly List<Vector2> uv = new List<Vector2>(); readonly List<int> tr = new List<int>();
+        readonly List<int> tlo = new List<int>();
         public Warstwa(int atlasW, int atlasH) { aw = atlasW; ah = atlasH; }
-        public void Czysc() { v.Clear(); uv.Clear(); tr.Clear(); }
+        public void Czysc() { v.Clear(); uv.Clear(); tr.Clear(); tlo.Clear(); }
         public int Ile => v.Count / 4;
         // cx / cy in the viewer's frame (x to his right, y up), the quad facing him (+z), z toward him; the atlas rectangle in
         // pixels (x from the left, y from the bottom)
-        public void Q(float cx, float cy, float w, float h, int px, int py, int pw, int ph, float z = 0f)
+        public void Q(float cx, float cy, float w, float h, int px, int py, int pw, int ph, float z = 0f) => Dodaj(tr, cx, cy, w, h, px, py, pw, ph, z);
+        // 23.11 (owner's photo of the LOTOTO board: balls cut in half and missing): the screen's background goes to its own
+        // submesh, drawn first by a material that does not write depth, and everything else lies in the SAME plane over it.
+        // Two layers a millimetre apart fight over depth on the phone in vertical bands; a background that writes no depth
+        // cannot win that fight at any distance or depth-buffer precision.
+        public void Tlo(float cx, float cy, float w, float h, int px, int py, int pw, int ph) => Dodaj(tlo, cx, cy, w, h, px, py, pw, ph, 0f);
+        void Dodaj(List<int> t, float cx, float cy, float w, float h, int px, int py, int pw, int ph, float z)
         {
             int i = v.Count; float u0 = (px + .5f) / aw, u1 = (px + pw - .5f) / aw, v0 = (py + .5f) / ah, v1 = (py + ph - .5f) / ah;
             // the viewer's right is the screen's -x
             v.Add(new Vector3(-(cx - w * .5f), cy - h * .5f, z)); v.Add(new Vector3(-(cx + w * .5f), cy - h * .5f, z));
             v.Add(new Vector3(-(cx + w * .5f), cy + h * .5f, z)); v.Add(new Vector3(-(cx - w * .5f), cy + h * .5f, z));
             uv.Add(new Vector2(u0, v0)); uv.Add(new Vector2(u1, v0)); uv.Add(new Vector2(u1, v1)); uv.Add(new Vector2(u0, v1));
-            tr.Add(i); tr.Add(i + 2); tr.Add(i + 1); tr.Add(i); tr.Add(i + 3); tr.Add(i + 2);
+            t.Add(i); t.Add(i + 2); t.Add(i + 1); t.Add(i); t.Add(i + 3); t.Add(i + 2);
         }
+        // with a background: submesh 0 = the background (its renderer's first material), submesh 1 = the rest
         public void Zapisz(Mesh m)
         {
-            m.Clear(); m.SetVertices(v); m.SetUVs(0, uv); m.SetTriangles(tr, 0);
+            m.Clear(); m.SetVertices(v); m.SetUVs(0, uv);
+            if (tlo.Count > 0) { m.subMeshCount = 2; m.SetTriangles(tlo, 0); m.SetTriangles(tr, 1); }
+            else m.SetTriangles(tr, 0);
             var nr = new Vector3[v.Count]; for (int i = 0; i < nr.Length; i++) nr[i] = Vector3.forward; m.normals = nr; m.RecalculateBounds();
         }
     }

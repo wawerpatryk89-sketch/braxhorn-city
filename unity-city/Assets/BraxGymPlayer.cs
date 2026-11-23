@@ -46,7 +46,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     // Słuchają worki, liny ringu i piłki osiedla (BraxWorek, BraxLina, BraxPilka) — bez zależności gracza od nich.
     public static event Action<Vector3,Vector3,bool> OnCios;
     private Vector2 move;
-    private float yaw, pitch = 19f, distance = 5.8f, vertical, speed;
+    private float yaw, pitch = 19f, distance = BraxKameraStandard.Pieszo, vertical, speed;   // ZASADY 10.8: camera numbers only from the standard
     private float actionEnd, hitAt, stateAt;
     private string action = "Idle";
     private float combatUntil;
@@ -151,7 +151,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             ClearSwimming();
             body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,initialCameraYaw+180f,0);body.enabled=true;
             vertical=0;speed=0;move=Vector2.zero;actionEnd=0;hitPending=false;hitAt=0;
-            yaw=initialCameraYaw;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
+            yaw=initialCameraYaw;pitch=19;distance=BraxKameraStandard.Pieszo;cameraTarget=transform.position+Vector3.up*1.65f;
             action="Idle";clips.Play("Idle");UpdateCamera(1f);Report();return;
         }
         if(key=="run"){if(!walkOnly)runEnabled=!runEnabled;Report();return;}
@@ -354,7 +354,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         cameraTarget=Vector3.Lerp(cameraTarget,want,1-Mathf.Exp(-dt*10f));   // build 14: lekkie opóźnienie za postacią (10/s)
         float ya=yaw*Mathf.Deg2Rad,pi=pitch*Mathf.Deg2Rad;
         // właściciel 3.11 10:39: na jachcie „kamera ze środka, za kierownicą” — blisko za głową sternika (najwyżej 2.2 m)
-        float dist=championsCar?8.4f:vessel&&vessel.label=="JACHT"?Mathf.Min(distance,2.2f):distance;
+        float dist=championsCar?BraxKameraStandard.Auto(championsCar.Speed):vessel&&vessel.label=="JACHT"?Mathf.Min(distance,2.2f):distance;
         Vector3 offset=new Vector3(Mathf.Sin(ya)*Mathf.Cos(pi),Mathf.Sin(pi),Mathf.Cos(ya)*Mathf.Cos(pi))*dist;
         Vector3 position=cameraTarget+offset;
         // Kamera (audyt filmów właściciela 1.11): nie wchodzi w ściany, szyby, korony drzew i lampy — kolidują z nią też

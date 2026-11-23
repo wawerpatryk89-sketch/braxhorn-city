@@ -55,11 +55,15 @@ class CarHudSteeringTests(unittest.TestCase):
     def test_yaw_rate_never_exceeds_tyre_grip(self):
         self.assertIn("turn = Mathf.Clamp(turn, -maxTurn, maxTurn);", self.car)
         grip = field(self.car, "lateralGrip")
-        self.assertTrue(7.0 <= grip <= 10.5, grip)                      # 0.7-1.07 g, a sports car on road tyres
-        for kph, max_deg in ((50, 45), (100, 21), (200, 11)):
+        # owner 23.11 "za słabo skręca przy dużej prędkości": the arcade grip of GTA's cars, 1.7-2.2 g (was 0.9 g)
+        self.assertTrue(16.5 <= grip <= 21.5, grip)
+        for kph, max_deg in ((100, 45), (200, 22)):
             v = kph / 3.6 * K
             yaw_rate = math.degrees(grip * K / v)
-            self.assertLessEqual(yaw_rate, max_deg, (kph, yaw_rate))
+            self.assertLessEqual(yaw_rate, max_deg, (kph, yaw_rate))   # still no "gwałtownie skręca" (10.11)
+        v = 150 / 3.6 * K
+        self.assertLess(90 / math.degrees(grip * K / v), 3.8)           # a 90 deg corner at 150 km/h in under 3.8 s
+        self.assertGreaterEqual(field(self.car, "highSpeedSteerFactor"), .3)
         # owner 13:00 "bardziej przy wolnej skręca ostro": absolute cap and less lock
         self.assertLessEqual(field(self.car, "maxYawRate"), 60)
         self.assertLessEqual(field(self.car, "maxSteer"), 28)

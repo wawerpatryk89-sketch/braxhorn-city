@@ -129,7 +129,10 @@ public static class BraxChampionsCarBuilder
             copy.transform.localRotation=candidate*original;
             Physics.SyncTransforms();
             var b=BoundsLocal(root);
-            if(b.size.x<.02f||b.size.y<.02f||b.size.z<.02f)continue;
+            // 23.11: relative to the car's own size - the estate's 918 and Challenger GLBs are 4.5-5 cm long, and the old
+            // absolute 2 cm skipped every candidate for them: they kept the reset (standing) pose and were scaled to ~25 m
+            float big=Mathf.Max(b.size.x,Mathf.Max(b.size.y,b.size.z));
+            if(big<=1e-6f||b.size.x<big*.05f||b.size.y<big*.05f||b.size.z<big*.05f)continue;
             float width=b.size.x/b.size.z;
             float height=b.size.y/b.size.z;
             // Car proportions: 4.95m long, roughly 1.9m wide, 1.5m high.
@@ -149,6 +152,8 @@ public static class BraxChampionsCarBuilder
                 bestScore=score;best=candidate;bestSize=b.size;
             }
         }
+        if(float.IsPositiveInfinity(bestScore))
+            throw new InvalidOperationException("A1_OWNER_CAR_ORIENTATION: no candidate pose has measurable bounds");
         copy.transform.localRotation=best*original;
         Physics.SyncTransforms();
         if(bestSize.y>bestSize.z*.75f || bestSize.x>bestSize.z*.85f)
