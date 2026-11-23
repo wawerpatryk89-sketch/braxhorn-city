@@ -101,7 +101,7 @@ class Miejsce(unittest.TestCase):
 
 class Morze(unittest.TestCase):
     def test_its_own_shore_field_and_water(self):
-        self.assertIn("if (d.rodzaj == Rodzaj.Wyspa) { Pomost(b, d); Lodz(g, d); BraxChampionsWyspaMorze.Zbuduj(g, d); }", SITES)
+        self.assertIn("if (d.rodzaj == Rodzaj.Wyspa) { Pomost(b, d); Lodz(g, d); BraxChampionsWyspaMorze.Zbuduj(g, d); PlazaWyspy(b, d); }", SITES)
         self.assertIn("BraxChampionsWyspaWoda.Pole(d.x0, d.z0, d.x1, d.z1, Krok, K, sea, PoleN, (x, z) => BraxChampionsWilleDzialki.Grunt(d, x, z),", WYSPA)
         self.assertIn('BraxChampionsPlaza.MorzeZPola(pole, Out + "/Textures/wyspa_morze_brzeg.asset", Out + "/Materials/morze_wyspa.mat", "Mistrzowie morze wokół wyspy", 1f);', WYSPA)
         self.assertIn('var m = MorzeZPola(pole, Output + "/Textures/morze_brzeg.asset", Output + "/Materials/morze.mat", "Mistrzowie morze", 0f);', PLAZA)

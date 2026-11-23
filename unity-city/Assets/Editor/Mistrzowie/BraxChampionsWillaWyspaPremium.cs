@@ -29,9 +29,9 @@ public static partial class BraxChampionsWille
     public static readonly Vector3 MeanPlastered05 = new Vector3(69, 73, 77), MeanWhitewashedBrick = new Vector3(166, 153, 140),
         MeanRusticStone = new Vector3(119, 102, 76), MeanDarkPaneledWood = new Vector3(42, 21, 17), MeanWoodenFloor01 = new Vector3(177, 126, 78),
         MeanWoodenFloor02 = new Vector3(184, 136, 98), MeanSquareTiles03 = new Vector3(110, 97, 85), MeanRockWall16 = new Vector3(48, 43, 36),
-        MeanStoneWall04 = new Vector3(111, 103, 95), MeanRockTileFloor = new Vector3(148, 141, 131);
+        MeanStoneWall04 = new Vector3(111, 103, 95), MeanRockTileFloor = new Vector3(148, 141, 131), MeanRoughLinen = new Vector3(145, 171, 205);
     public const float WSufitDol = .025f;        // the oak ceiling of the living floor, under the plaster
-    static Material wCegla, wKamien, wPanel, wPlytki, wGranit, wDrewnoSufit, wDywan, wKsiazki0, wKsiazki1;
+    static Material wCegla, wKamien, wPanel, wPlytki, wGranit, wDrewnoSufit, wDywan, wKsiazki0, wKsiazki1, wLen;
 
     // Plastered Wall 05 is a dark, very even plaster (its brightest 1 % only 12 % over its mean): brought to white with no cap
     // (Fotoskan caps the gain so a stone's light veins never clip; here there is nothing to clip)
@@ -42,6 +42,9 @@ public static partial class BraxChampionsWille
                              Mathf.LinearToGammaSpace(G(target.b, MeanPlastered05.z)), 1f);
         return BraxChampionsFoundation.SourceMaterial(id, "plastered_wall_05", metres, tint);
     }
+    /// <summary>The island's terrace and paths: Rock Tile Floor, light granite slabs.</summary>
+    public static Material GranitTarasu() =>
+        BraxChampionsFoundation.Fotoskan("willa2_taras_granit", "rock_tile_floor", 1.96f, new Color(.80f, .78f, .74f), MeanRockTileFloor);
     /// <summary>The island's retaining walls (the pad's and the site's): Stone Wall 04, light grey.</summary>
     public static Material KamienMuruWyspy() =>
         BraxChampionsFoundation.Fotoskan("willa2_mur_kamien", "stone_wall_04", 1.7f, new Color(.66f, .64f, .61f), MeanStoneWall04);
@@ -54,7 +57,7 @@ public static partial class BraxChampionsWille
         ceiling = Inside(Tynk("willa2_sufit_tynk", new Color(.95f, .95f, .93f), 2f), .9f);
         render = Tynk("willa2_elewacja_tynk", new Color(.93f, .93f, .91f), 2f); BraxChampionsInteriorLight.Facade(render);
         stone = F("willa2_elewacja_kamien", "rock_wall_16", 2f, new Color(.36f, .34f, .31f), MeanRockWall16); BraxChampionsInteriorLight.Facade(stone);
-        deck = F("willa2_taras_granit", "rock_tile_floor", 1.96f, new Color(.80f, .78f, .74f), MeanRockTileFloor);
+        deck = GranitTarasu();
         murOporowy = KamienMuruWyspy();
         floorGf = Inside(F("willa2_podloga_parter", "wooden_floor_02", 1.94f, new Color(.64f, .48f, .35f), MeanWoodenFloor02), .9f);
         floorUf = Inside(F("willa2_podloga_pietro", "wooden_floor_01", 1.99f, new Color(.62f, .45f, .30f), MeanWoodenFloor01), .9f);
@@ -65,6 +68,7 @@ public static partial class BraxChampionsWille
         wPanel = Inside(F("willa2_panele_drewno", "dark_paneled_wood", 1.4f, new Color(.28f, .17f, .12f), MeanDarkPaneledWood), .9f);
         wDrewnoSufit = Inside(BraxChampionsFoundation.SourceMaterial("willa2_sufit_dab", "oak_wood_planks", 2.4f, new Color(1.0f, .94f, .86f)), .9f);
         wDywan = Inside(F("willa2_dywan_welna", "curly_teddy_natural", .34f, new Color(.84f, .80f, .74f), BraxChampionsFoundation.MeanCurlyTeddy), .9f);
+        wLen = Inside(F("willa2_zaslony_len", "rough_linen", .27f, new Color(.93f, .92f, .89f), MeanRoughLinen), .9f);
         // the book spines: leather (two browns) and linen (navy, cream)
         wKsiazki0 = Inside(BraxChampionsFoundation.SourceMaterial("willa2_ksiazki_skora", "brown_leather", .6f, new Color(.80f, .62f, .48f)), .9f);
         wKsiazki1 = Inside(BraxChampionsFoundation.SourceMaterial("willa2_ksiazki_len", "hessian_230", .4f, new Color(.42f, .52f, .80f)), .9f);
@@ -137,6 +141,30 @@ public static partial class BraxChampionsWille
         Lamperia(false, -5.04f, -1.55f); Lamperia(false, -.55f, 3.95f); Lamperia(false, 4.95f, 9f - .04f);
         // the master's bathroom: stone behind the free-standing tub (over its tiles)
         Okl(wKamien, 10.4f, 14.6f, y + .005f, y + 2.62f, 1.068f, 1.10f);                          // from inside the tiles
+
+        // linen curtains drawn to the sides of the glass: each bedroom, the living room's two ends
+        float zu = UGlass + .15f;
+        foreach (var (a, c) in new[] { (-15.6f, -15.0f), (-7.75f, -7.15f), (-6.85f, -6.25f), (1.25f, 1.85f), (2.15f, 2.75f), (15.0f, 15.6f) })
+            Zaslona(a, c, zu, y + .01f, top - .03f);
+        foreach (var (a, c) in new[] { (-13.6f, -12.9f), (12.9f, 13.6f) })
+            Zaslona(a, c, GZ0 + .15f, .01f, H0 - WSufitDol - .03f);
+        // wall lights in the corridor over the wainscot: a black plate, its light thrown up and down (no lamp of its own)
+        foreach (float x in new[] { -14.3f, -10.0f, -5.0f, .6f })
+        {
+            b.Box(black, new Vector3(x, y + 1.95f, 1.06f + .03f), new Vector3(.12f, .30f, .06f), Quaternion.identity);
+            foreach (float dy in new[] { -.155f, .155f }) b.Box(downlight, new Vector3(x, y + 1.95f + dy, 1.06f + .045f), new Vector3(.08f, .012f, .03f), Quaternion.identity);
+        }
+    }
+
+    /// <summary>A linen curtain drawn aside: pleated (12 cm folds, 5 cm deep) from just over the floor to its track under the
+    /// ceiling, seen from both sides.</summary>
+    static void Zaslona(float xa, float xb, float z, float y0, float y1)
+    {
+        Out_(false);
+        int folds = Mathf.Max(2, Mathf.RoundToInt((xb - xa) / .12f));
+        Vector3 P(float u, float v) => new Vector3(xa + u * (xb - xa), y0 + v * (y1 - y0), z + .025f * Mathf.Sin(u * folds * 2f * Mathf.PI));
+        b.Surface(wLen, P, folds * 6, 1); b.Surface(wLen, P, folds * 6, 1, true);
+        b.Box(alu, new Vector3((xa + xb) * .5f, y1 + .015f, z), new Vector3(xb - xa + .1f, .03f, .05f), Quaternion.identity);   // the track
     }
 
     /// <summary>A desk lamp: a round black base, a brushed steel stem and arm, a cone shade lit inside (a warm light).</summary>

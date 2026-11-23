@@ -52,7 +52,7 @@ class Materialy(unittest.TestCase):
 
     def test_the_outside(self):
         self.assertIn('stone = F("willa2_elewacja_kamien", "rock_wall_16"', PREM)          # the ground floor and the entrance
-        self.assertIn('deck = F("willa2_taras_granit", "rock_tile_floor"', PREM)
+        self.assertIn("deck = GranitTarasu();", PREM)
         self.assertIn("murOporowy = KamienMuruWyspy();", PREM)
         self.assertIn("var mur = d.rodzaj == Rodzaj.Wyspa ? BraxChampionsWille.KamienMuruWyspy() : kamien;", SITES)
         self.assertIn('steel.SetFloat("_ReflectionStrength", 1f);', PREM)                  # stainless, not black
@@ -95,6 +95,19 @@ class Wnetrze(unittest.TestCase):
         body = VILLA[VILLA.index("static void Bryla(int nr)"):VILLA.index("static float fxHearth")]
         self.assertEqual(body.count("potted_plant_01_1k.gltf"), 0)                        # 176 000 triangles each
         self.assertLessEqual(body.count("potted_plant_02_1k.gltf"), 3)                    # 70 000 each
+
+
+class Wykonczenie(unittest.TestCase):
+    def test_curtains_wall_lights_and_the_beach(self):
+        self.assertIn('wLen = Inside(F("willa2_zaslony_len", "rough_linen", .27f', PREM)               # his Rough Linen, 27 cm
+        self.assertIn("b.Surface(wLen, P, folds * 6, 1); b.Surface(wLen, P, folds * 6, 1, true);", PREM)  # both sides
+        self.assertEqual(PREM.count("Zaslona(a, c, "), 2)
+        self.assertIn("foreach (float x in new[] { -14.3f, -10.0f, -5.0f, .6f })", PREM)              # clear of the doors and the print
+        # the island's beach: the path stair-to-jetty, loungers on the dry sand, parasols, a shower, lights
+        self.assertIn("PlazaWyspy(b, d); }", SITES)
+        self.assertIn("if (h < SeaY + .62f) { cz = z; break; }", SITES)                              # over the run-up's wet sand
+        self.assertIn("float z1 = Mathf.Min(z + 1f, ps.y - .1f), top = float.MinValue;", SITES)        # slabs edge to edge
+        self.assertIn('W.Siedzisko(P(0f, h + .10f, 0f) * K, Vector3.forward, "LEŻAK", true);', SITES)
 
 
 class Schody(unittest.TestCase):

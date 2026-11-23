@@ -265,7 +265,7 @@ public static class BraxChampionsWilleDzialki
             Zielen(g, d);
             if (d.rodzaj != Rodzaj.Wyspa) Plot(b, d);
             if (d.woda) MurPodWoda(d);
-            if (d.rodzaj == Rodzaj.Wyspa) { Pomost(b, d); Lodz(g, d); BraxChampionsWyspaMorze.Zbuduj(g, d); }
+            if (d.rodzaj == Rodzaj.Wyspa) { Pomost(b, d); Lodz(g, d); BraxChampionsWyspaMorze.Zbuduj(g, d); PlazaWyspy(b, d); }
             b.Build(g, "WILLA " + d.nr + " | działka " + d.nazwa + " | detale", Folder, true, K);
             W.Zapisz("mistrzowie_wille_dzialka_" + d.nr);
             Kolizje += W.Kolizje - k0;
@@ -513,6 +513,95 @@ public static class BraxChampionsWilleDzialki
         var s = PomostStart(d); float zb = s.y + PomostDl;
         try { Lodzie += BraxChampionsHarbour.PrywatnaLodz(g, "W2", "motorboat", s.x + 3.0f, zb - 9f, 0f, 2.6f, s.x + .9f, zb - 9f, PomostY); }
         catch (Exception e) { BraxBuildQuality.Warn("DO POPRAWKI WILLA_2_RIVA: " + e.Message); }
+    }
+
+    // owner 23.11 20:11 ("za mało premium wygląda ta wyspa"): the island's beach furnished - a path of granite slabs from the
+    // villa's stair to the jetty with low lights, three pairs of teak loungers under white parasols on the north beach (the
+    // view to the city), an outdoor shower by the path. The loungers follow the beach's slope (7 %), their feet to the sea.
+    public static int WyspaLezaki;
+    static void PlazaWyspy(BraxChampionsMeshBatch b, Dzialka d)
+    {
+        var granit = BraxChampionsWille.GranitTarasu();
+        var stal = BraxChampionsHarbour.Surface("wyspa_stal_nierdzewna", new Color(.78f, .78f, .79f), .25f, .55f); stal.SetFloat("_ReflectionStrength", 1f);
+        var poducha = BraxChampionsFoundation.SourceMaterial("wyspa_poduchy_bawelna", "cotton_jersey", .6f, new Color(1.20f, 1.36f, 1.46f));
+        var plotno = BraxChampionsFoundation.SourceMaterial("wyspa_parasol_plotno", "terlenka", .9f, new Color(1.21f, 1.36f, 1.53f));
+        var granat = BraxChampionsFoundation.SourceMaterial("wyspa_parasol_granat", "terlenka", .9f, new Color(.17f, .30f, .60f));
+        var led = BraxChampionsHarbour.Surface("wyspa_lampka_led", new Color(.9f, .9f, .88f), .3f, 0f, new Color(1.0f, .86f, .62f));
+        // the path: 1 m granite slabs, 2.4 m wide, each 2 cm over the highest ground under it (no ground through a slab)
+        var ps = PomostStart(d); float zStopa = d.srodek.y - BraxChampionsWille.Pad(d.nr).z + 6.9f;      // the stair's foot (6.9 m off the pad)
+        for (float z = zStopa + .1f; z < ps.y - .1f; z += 1f)
+        {
+            float z1 = Mathf.Min(z + 1f, ps.y - .1f), top = float.MinValue;                                 // edge to edge
+            foreach (float xx in new[] { ps.x - 1.2f, ps.x, ps.x + 1.2f }) foreach (float zz in new[] { z, z1 }) top = Mathf.Max(top, Grunt(d, xx, zz));
+            top += .02f;
+            b.BoxMinMax(granit, ps.x - 1.2f, ps.x + 1.2f, top - .12f, top, z, z1);
+            W.Kolizja(new Vector3(ps.x, top - .06f, (z + z1) * .5f) * K, new Vector3(2.4f, .12f, z1 - z) * K, Quaternion.identity);
+        }
+        // low bollard lights either side of the path, every 4 m
+        for (float z = zStopa + 1.5f; z < ps.y; z += 4f)
+            foreach (float sx in new[] { -1.6f, 1.6f })
+            {
+                float y = Grunt(d, ps.x + sx, z);
+                b.Cylinder(slupek, new Vector3(ps.x + sx, y - .05f, z), .06f, .55f, 12);
+                b.Cylinder(led, new Vector3(ps.x + sx, y + .44f, z), .055f, .03f, 12, Quaternion.identity, true, true);
+            }
+        // the outdoor shower beside the path, on a granite slab
+        {
+            float sx = ps.x + 3.4f, sz = (zStopa + ps.y) * .5f, y = Grunt(d, sx, sz);
+            b.BoxMinMax(granit, sx - .6f, sx + .6f, y - .08f, y + .04f, sz - .6f, sz + .6f);
+            b.Cylinder(stal, new Vector3(sx, y + .04f, sz), .05f, 2.3f, 14);
+            b.Tube(stal, new Vector3(sx, y + 2.30f, sz), new Vector3(sx - .42f, y + 2.30f, sz), .022f, 8);
+            b.Cylinder(stal, new Vector3(sx - .42f, y + 2.22f, sz), .11f, .04f, 16, Quaternion.identity, true, true);
+            W.Kolizja(new Vector3(sx, y + 1.15f, sz) * K, new Vector3(.14f, 2.3f, .14f) * K, Quaternion.identity);
+        }
+        // three pairs of loungers with a parasol, on the dry sand east of the jetty, looking north over the bay
+        foreach (float cx in new[] { ps.x + 10f, ps.x + 17f, ps.x + 24f })
+        {
+            // the place: the first dry sand going north (lawn's edge at 1 m, the run-up's wet sand at .3 m over the sea)
+            float cz = ps.y;
+            for (float z = ps.y - 20f; z < ps.y + 30f; z += .25f) { float h = Grunt(d, cx, z); if (h < SeaY + .62f) { cz = z; break; } }
+            foreach (float off in new[] { -.65f, .65f }) Lezak(b, d, poducha, stal, cx + off, cz);
+            Parasol(b, d, stal, plotno, granat, cx, cz - .75f);
+        }
+    }
+    // a teak lounger 1.95 x 0.65 m, its back toward the land (-z), its feet to the sea (+z), pitched with the sand under it
+    static void Lezak(BraxChampionsMeshBatch b, Dzialka d, Material poducha, Material stal, float x, float z)
+    {
+        const float w = .65f, L = 1.95f, h = .32f;
+        float yA = Grunt(d, x, z - L * .5f), yB = Grunt(d, x, z + L * .5f), pitch = -Mathf.Atan2(yB - yA, L) * Mathf.Rad2Deg;
+        var q = Quaternion.Euler(pitch, 0f, 0f); var o = new Vector3(x, (yA + yB) * .5f, z);
+        Vector3 P(float dx, float dy, float dz) => o + q * new Vector3(dx, dy, dz);
+        foreach (float sx in new[] { -.3f, .3f })
+        {
+            b.Box(stal, P(sx, h, .25f), new Vector3(.035f, .05f, 1.2f), q);
+            foreach (float zz in new[] { -.15f, .85f }) b.Box(stal, P(sx, h * .5f, zz), new Vector3(.035f, h, .035f), q);
+        }
+        b.Box(drewno, P(0f, h + .03f, .25f), new Vector3(w * .9f, .02f, 1.18f), q);
+        b.Box(poducha, P(0f, h + .07f, .27f), new Vector3(w * .86f, .06f, 1.14f), q);
+        var back = q * Quaternion.Euler(40f, 0f, 0f);                                                // up toward the land
+        var bc = P(0f, h, -.35f) + back * new Vector3(0f, 0f, -.37f);
+        b.Box(drewno, bc + back * new Vector3(0f, .03f, 0f), new Vector3(w * .9f, .02f, .72f), back);
+        b.Box(poducha, bc + back * new Vector3(0f, .07f, 0f), new Vector3(w * .86f, .06f, .68f), back);
+        W.Kolizja(P(0f, .27f, 0f) * K, new Vector3(w, .54f, L * .95f) * K, q);
+        W.Siedzisko(P(0f, h + .10f, 0f) * K, Vector3.forward, "LEŻAK", true); WyspaLezaki++;
+    }
+    // a round white parasol, 16 ribs, 2.7 m canopy, a navy valance, its pole in the sand
+    static void Parasol(BraxChampionsMeshBatch b, Dzialka d, Material stal, Material plotno, Material granat, float x, float z)
+    {
+        var p = new Vector3(x, Grunt(d, x, z), z);
+        b.Cylinder(slupek, p - Vector3.up * .05f, .09f, .17f, 12);
+        b.Cylinder(stal, p, .024f, 2.55f, 10);
+        const int ribs = 16; const float r = 1.35f, eave = 2.18f, top = 2.62f;
+        var apex = p + Vector3.up * top;
+        for (int j = 0; j < ribs; j++)
+        {
+            float a0 = 2f * Mathf.PI * j / ribs, a1 = 2f * Mathf.PI * (j + 1) / ribs, s0 = j % 2 == 0 ? 0f : .05f, s1 = (j + 1) % 2 == 0 ? 0f : .05f;
+            var p0 = p + new Vector3(r * Mathf.Cos(a0), eave - s0, r * Mathf.Sin(a0)); var p1 = p + new Vector3(r * Mathf.Cos(a1), eave - s1, r * Mathf.Sin(a1));
+            b.Triangle(plotno, apex, p1, p0); b.Triangle(plotno, apex, p0, p1);
+            b.Quad(granat, p0, p0 - Vector3.up * .10f, p1 - Vector3.up * .10f, p1); b.Quad(granat, p1, p1 - Vector3.up * .10f, p0 - Vector3.up * .10f, p0);
+        }
+        b.Cylinder(stal, apex - Vector3.up * .02f, .05f, .10f, 10);
+        W.Kolizja(new Vector3(x, p.y + 1.25f, z) * K, new Vector3(.12f, 2.5f, .12f) * K, Quaternion.identity);
     }
 
     // post-and-rail fence (graphite steel) round a land patch FenceInset inside its edge, open to the region and at the
