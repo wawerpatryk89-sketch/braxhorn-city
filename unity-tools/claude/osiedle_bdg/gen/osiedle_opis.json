@@ -146,6 +146,12 @@
    "kat": 157.7,
    "trojkatow": 300
   },
+  "garaze_81": {
+   "L": 19.2,
+   "W": 7.03,
+   "kat": 155.76,
+   "trojkatow": 348
+  },
   "pawilon_91": {
    "L": 13.39,
    "W": 11.02,
@@ -208,17 +214,41 @@
    "zrodlo": "OSM 2 p.",
    "trojkatow": 3582
   },
+  "o13": {
+   "nazwa": "Łużycka 24",
+   "kond": 2,
+   "zrodlo": "ZAL 2 p. (brak zdjęcia)",
+   "trojkatow": 8426
+  },
   "o14": {
    "nazwa": "Romek. Dom Studenta nr 1 Uniwersytetu Kazimierza Wielkiego",
    "kond": 2,
    "zrodlo": "ZAL 2 p. (brak zdjęcia)",
    "trojkatow": 8106
   },
+  "o16": {
+   "nazwa": "Jana Pestalozziego 8b",
+   "kond": 2,
+   "zrodlo": "ZAL 2 p. (brak zdjęcia)",
+   "trojkatow": 5866
+  },
   "o17": {
    "nazwa": "",
    "kond": 1,
    "zrodlo": "ZAL 1 p. (brak zdjęcia)",
    "trojkatow": 1530
+  },
+  "o18": {
+   "nazwa": "Jana Pestalozziego 8a",
+   "kond": 2,
+   "zrodlo": "ZAL 2 p. (brak zdjęcia)",
+   "trojkatow": 5226
+  },
+  "o19": {
+   "nazwa": "Jana Pestalozziego 8",
+   "kond": 2,
+   "zrodlo": "ZAL 2 p. (brak zdjęcia)",
+   "trojkatow": 8214
   },
   "o21": {
    "nazwa": "Marii Skłodowskiej-Curie 40",
@@ -333,6 +363,12 @@
    "kond": 1,
    "zrodlo": "ZAL 1 p. (brak zdjęcia)",
    "trojkatow": 1134
+  },
+  "o59": {
+   "nazwa": "Jana Pestalozziego 21",
+   "kond": 1,
+   "zrodlo": "ZAL 1 p. (brak zdjęcia)",
+   "trojkatow": 1050
   },
   "o60": {
    "nazwa": "Łużycka 32",
@@ -487,30 +523,30 @@
  },
  "budki": 3,
  "teren": {
-  "jezdnie": 37854,
+  "jezdnie": 38540,
   "parkingi": 14142,
-  "chodniki": 40231,
-  "trawa": 128245,
+  "chodniki": 41960,
+  "trawa": 146382,
   "boiska": 3278,
   "place_zabaw": 1594,
-  "krawezniki": 2192,
+  "krawezniki": 2266,
   "boiska_asfalt": 720
  },
- "drzew": 530,
- "latarni": 256,
+ "drzew": 803,
+ "latarni": 262,
  "wyposazenie": {
   "przystanki": 6,
-  "sygnalizacje": 12,
+  "sygnalizacje": 10,
   "hydranty": 26,
-  "lawki": 11,
+  "lawki": 14,
   "szlabany": 6,
   "kontenery": 3,
   "paczkomaty": 6,
-  "ploty": 16,
+  "ploty": 19,
   "zywoploty": 20,
   "slupki": 3,
-  "latarnie": 256,
-  "paliki": 46
+  "latarnie": 262,
+  "paliki": 56
  },
- "trojkatow": 826466
+ "trojkatow": 857743
 }

@@ -106,7 +106,7 @@ def odbarwiona(report: dict, zrodlo: str, cel: str, srednia: float = .75, kontra
 
 def lakier_blacha(report: dict) -> None:
     odbarwiona(report, "blue_metal_plate", "lakier_blacha", kontrast=.35)   # 19:18: plamy lakieru na dużych płaszczyznach za mocne
-    odbarwiona(report, "grey_tiles", "plyty_szare", srednia=.8, bez_plam=48)   # 19:38 „elewacja straszna”: bez zacieków
+    odbarwiona(report, "grey_tiles", "plyty_szare", srednia=.8, kontrast=2.4, bez_plam=48)   # 19:38–19:58: bez zacieków, wyraźne fugi
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
 # W 1K (telefon): 38 zestawów w 2K to ok. 0,5 GB tekstur w pamięci naraz — ściany dostają kolor + normalną 1024, drobne

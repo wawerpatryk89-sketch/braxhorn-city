@@ -23,7 +23,12 @@ GLOWNE = ("primary", "secondary", "tertiary")   # Skłodowskiej-Curie w OSM = te
 SZER = {"primary": 7.4, "secondary": 7.0, "tertiary": 7.0, "tertiary_link": 5.0, "residential": 5.5, "service": 4.6,
         "unclassified": 5.0}
 SZER_PIESZE = {"footway": 2.0, "path": 1.6, "pedestrian": 3.0, "steps": 2.0, "cycleway": 2.0}
-OKNO = box(-320, -200, 240, 300)          # wycinek osiedla w metrach: z główną ulicą do ronda i szpitalem (23.11, 16:23)
+# wycinek osiedla w metrach: z główną ulicą do ronda i szpitalem (23.11, 16:23). 19:55 (podłączenie do miasta): na południe
+# do z −254 m (= z 180 j. gry, północna granica miasta) — pas lasu między miastem a osiedlem z wjazdami; na wschodzie do
+# x 228 m (= x 150 j., brzeg morza BraxMiastoGranice.BrzegPolnoc); korytarz wjazdu 1 do z −268 m (= 162 j., działka po starym
+# supermarkecie, x −152…−100 j.).
+WJAZD1_X = (-126.0 + 145.9) / 1.294                  # oś alei miasta x −126 j. (BraxRegionMiastoB.AX)
+OKNO = unary_union([box(-320, -254, 228, 300), box((-152 + 145.9) / 1.294, -268, (-100 + 145.9) / 1.294, -250)])
 Y_JEZDNIA, Y_CHODNIK, Y_TRAWA = 0.0, 0.12, 0.08
 
 

@@ -10,6 +10,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from shapely.geometry import box, LineString, Point, Polygon  # noqa: E402
+from shapely.ops import unary_union  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from kit import Siatka, UP, zapisz_bin, zapisz_glb, trojkaty  # noqa: E402
@@ -67,9 +69,37 @@ def w_lesie(p):
 
 
 def las_poly():
+    """Las za Wyszyńskiego (17:05) + pas lasu między miastem a osiedlem (z −254…−214 m), poza korytarzami dróg (wjazdy)."""
     zs = np.linspace(-260, 360, 63)
     pts = [(x_lasu(z), z) for z in zs]
-    return Polygon(pts + [(400, 360), (400, -260)])
+    las = Polygon(pts + [(400, 360), (400, -260)])
+    pas = box(-330, -270, 240, -214)
+    kor = [LineString(u["linia"]).buffer({"primary": 16, "secondary": 14, "tertiary": 12}.get(u["klasa"], 8))
+           for u in WCZYTANE.get("ulice", []) if u["klasa"] in ("primary", "secondary", "tertiary", "residential", "service")
+           and len(u["linia"]) > 1 and LineString(u["linia"]).intersects(pas)]
+    return unary_union([las, pas.difference(unary_union(kor))]) if kor else unary_union([las, pas])
+
+
+WCZYTANE = {}
+
+
+def wjazd1(d):
+    """Wjazd 1 z miasta (właściciel 19:51–19:52): ulica z działki po starym supermarkecie (oś x −126 j.) na północ do
+    najbliższej drogi osiedla; przekrój jak uliczka osiedlowa (kostka, chodniki)."""
+    p0 = (teren.WJAZD1_X, -268.0)
+    best = None
+    for u in d["ulice"]:
+        if u["klasa"] not in ("residential", "service", "tertiary", "living_street", "unclassified") or len(u["linia"]) < 2: continue
+        L = LineString(u["linia"]).intersection(box(-330, -200, 250, 300))
+        for g in getattr(L, "geoms", [L]):
+            if g.is_empty or g.geom_type != "LineString": continue
+            q = g.interpolate(g.project(Point(p0[0], -150)))
+            dd = Point(p0).distance(q)
+            if best is None or dd < best[0]: best = (dd, (q.x, q.y))
+    cel = best[1] if best else (p0[0], -150)
+    d["ulice"].append({"osm": "wjazd1", "klasa": "residential", "nazwa": "wjazd z miasta 1", "pasy": None, "jednokier": None,
+                       "rondo": False, "nawierzchnia": "asphalt", "linia": [p0, (p0[0], -212.0), (cel[0] * .5 + p0[0] * .5, (cel[1] - 212) * .5), cel]})
+    return cel
 
 
 DOMYSLNY = dict(kond=2, h_kond=3.0, tynk="tynk_szary", zr="ZAL 2 p. (brak zdjęcia)")
@@ -313,7 +343,7 @@ def male(d, dst):
 
 if __name__ == "__main__":
     out = Path(sys.argv[1] if len(sys.argv) > 1 else "."); out.mkdir(parents=True, exist_ok=True)
-    D = Siatka(); d = wczytaj()
+    D = Siatka(); d = wczytaj(); WCZYTANE.update(d); wjazd1_cel = wjazd1(d)
     opis = {"wiezowce": wiezowce(D), "bloki": bloki(d, D), "male": male(d, D)}
     for b in d["budynki"]:
         if b.get("nr") in WIEZOWCE and (b.get("ulica") or "").startswith("Marii"): MODELE.append(b["poly"])
