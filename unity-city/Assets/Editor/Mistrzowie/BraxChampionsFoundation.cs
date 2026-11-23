@@ -500,7 +500,10 @@ public static class BraxChampionsFoundation
         // 23.11 the hill villa's finish (BraxChampionsWillaWzgorzeNowa), from his list
         {"rock_wall_04",new Vector3(145,126,102)},{"pavement_02",new Vector3(199,177,160)},{"herringbone_concrete_tile_03",new Vector3(145,137,125)},
         {"stone_pathway_02",new Vector3(113,95,68)},{"coated_pine",new Vector3(134,81,26)},{"old_wooden_floor_03",new Vector3(164,106,49)},
-        {"wood_table",new Vector3(154,114,77)},{"brick_wall_02",new Vector3(218,209,182)},{"lacquered_cherry_wood",new Vector3(59,40,23)}};
+        {"wood_table",new Vector3(154,114,77)},{"brick_wall_02",new Vector3(218,209,182)},{"lacquered_cherry_wood",new Vector3(59,40,23)},
+        // 24.11 the seafront villa's old brick and old stone walls (BraxChampionsWillaNabrzezeCegla), from his list
+        {"medieval_red_brick",new Vector3(163,144,124)},{"castle_wall_varriation",new Vector3(220,212,194)}
+    };
     static Color Srednia(Vector3 srgb,Color tint)=>new Color(
         Mathf.LinearToGammaSpace(Mathf.GammaToLinearSpace(srgb.x/255f)*Mathf.GammaToLinearSpace(tint.r)),
         Mathf.LinearToGammaSpace(Mathf.GammaToLinearSpace(srgb.y/255f)*Mathf.GammaToLinearSpace(tint.g)),

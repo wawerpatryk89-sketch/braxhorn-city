@@ -295,6 +295,19 @@ public static class BraxChampionsWilleDzialki
         var tg = new List<int>(); var ts = new List<int>();
         var vl = new List<Vector3>(v); var uvl = new List<Vector2>(uv);
         float plaza = SeaY + .75f; bool piach = d.rodzaj != Rodzaj.Wzgorze;
+        // 24.11 the seafront's private beach (owner: "I mają mieć prywatną plażę"): sand from 4.4 m before the pad's front (the
+        // beach stair's foot on it) to the sea between the beach's two stone walls (BraxChampionsWille.N3Plaza), not only under
+        // the height line; the sand / grass field the lower of the two, cut along its zero as before
+        float Pole(Vector3 v)
+        {
+            float f = v.y / K - plaza;
+            if (d.rodzaj == Rodzaj.Nabrzeze)
+            {
+                var l = Lokalnie(d, v.x / K, v.z / K);
+                if (l.x > BraxChampionsWille.N3PlazaX0 && l.x < BraxChampionsWille.N3PlazaX1) f = Mathf.Min(f, l.y - BraxChampionsWille.N3PlazaZ);
+            }
+            return f;
+        }
         // the grass / sand line follows the height exactly: a triangle across it is cut on it (the cut points shared by the
         // triangles either side, so the ground stays one closed surface)
         var ciecia = new Dictionary<long, int>();
@@ -302,13 +315,13 @@ public static class BraxChampionsWilleDzialki
         {
             long key = p < q ? (long)p * 4000000L + q : (long)q * 4000000L + p;
             if (ciecia.TryGetValue(key, out int r)) return r;
-            float hp = vl[p].y / K - plaza, hq = vl[q].y / K - plaza, t = Mathf.Clamp01(hp / (hp - hq));
+            float hp = Pole(vl[p]), hq = Pole(vl[q]), t = Mathf.Clamp01(hp / (hp - hq));
             vl.Add(Vector3.Lerp(vl[p], vl[q], t)); uvl.Add(Vector2.Lerp(uvl[p], uvl[q], t));
             return ciecia[key] = vl.Count - 1;
         }
         void Trojkat(int p0, int p1, int p2)
         {
-            bool g0 = !piach || vl[p0].y / K >= plaza, g1 = !piach || vl[p1].y / K >= plaza, g2 = !piach || vl[p2].y / K >= plaza;
+            bool g0 = !piach || Pole(vl[p0]) >= 0f, g1 = !piach || Pole(vl[p1]) >= 0f, g2 = !piach || Pole(vl[p2]) >= 0f;
             if (g0 == g1 && g1 == g2) { var l = g0 ? tg : ts; l.Add(p0); l.Add(p1); l.Add(p2); return; }
             // the lone vertex first, the order (and so the winding) kept
             int A, B, C; bool gA;
@@ -443,6 +456,7 @@ public static class BraxChampionsWilleDzialki
         if (d.nr == 1) return;                                                  // the hill: the villa's own rock faces
         var pd = BraxChampionsWille.Pad(d.nr); float z0 = pd.z, z1 = z0 + 8.6f, y0 = d.padY - 4.6f, y1 = d.padY;
         var mur = d.rodzaj == Rodzaj.Wyspa ? BraxChampionsWille.KamienMuruWyspy() : kamien;     // 23.11 the island: Stone Wall 04 (owner's list)
+        if (d.rodzaj == Rodzaj.Nabrzeze) mur = BraxChampionsWille.MurStaryNabrzeza();            // 24.11 the seafront: old stone ("stare, te mury")
         var q = Quaternion.Euler(0f, d.yaw, 0f); var c = new Vector3(d.srodek.x, 0f, d.srodek.y);
         foreach (float x in new[] { pd.x - .15f, pd.y + .15f })
         {
@@ -458,25 +472,26 @@ public static class BraxChampionsWilleDzialki
     public static int ZielenPalmy, ZielenDrzewa;
     static void Zielen(Transform g, Dzialka d)
     {
-        if (d.rodzaj == Rodzaj.Nabrzeze) return;
         // the hill: a garden of trees and palms; the island (his Miami photo): palms, a few trees, on its grass only, clear of
-        // the way from the stair to the jetty
-        bool hill = d.rodzaj == Rodzaj.Wzgorze;
-        int maxP = hill ? 26 : 22, maxD = hill ? 40 : 8; float maxOd = hill ? 27f : 22f;
+        // the way from the stair to the jetty; 24.11 the seafront (owner 00:00 "do willi palmy"): an avenue of thick palms
+        // along its drive as the hill's, palms on its lawns round the pad (none on the beach: the villa plants the beach's own)
+        bool hill = d.rodzaj == Rodzaj.Wzgorze, shore = d.rodzaj == Rodzaj.Nabrzeze;
+        int maxP = hill ? 26 : shore ? 24 : 22, maxD = hill ? 40 : 8; float maxOd = hill ? 27f : shore ? 30f : 22f;
         var ps = PomostStart(d);
         var palm = BraxMiastoAssety.Model("miasto_palmy", "palma");
         if (!palm) BraxBuildQuality.Warn("DO POPRAWKI WILLA_HILL_PALMS_MISSING: miasto_palmy/palma");
         var tree = BraxRegion.Model("drzewo_verdant");
         if (!tree) BraxBuildQuality.Warn("DO POPRAWKI WILLA_HILL_TREES_MISSING: drzewo_verdant");
-        var pd = BraxChampionsWille.Pad(d.nr); var rnd = new System.Random(hill ? 1190 : 400);
+        var pd = BraxChampionsWille.Pad(d.nr); var rnd = new System.Random(hill ? 1190 : shore ? 770 : 400);
         float R(float a, float c) => a + (float)rnd.NextDouble() * (c - a);
         float sn = Mathf.Sin(d.yaw * Mathf.Deg2Rad), cs = Mathf.Cos(d.yaw * Mathf.Deg2Rad);
         var placed = new List<Vector2>();
         int palmy = 0, drzewa = 0;
         // 23.11 (owner 22:22: "dojazd do willi, te grube palmy po obu stronach drogi. Ładny dojazd, piękny"): the hill's drive an
         // avenue - thick palms both sides every 12 m, 2.4 m off its edge, from the street to the pad
-        if (hill) Aleja = 0;
-        if (hill && d.droga != null && palm)
+        if (hill) Aleja = 0; else if (shore) AlejaNabrzeze = 0;
+        int aleja = 0;
+        if ((hill || shore) && d.droga != null && palm)
         {
             float next = 10f, s = 0f, off = RoadHalf + 2.4f;
             for (int i = 1; i < d.droga.Length; i++)
@@ -497,21 +512,24 @@ public static class BraxChampionsWilleDzialki
                         if (!o) continue;
                         BraxMiastoAssety.LodyZWezlow(o, new[] { .25f, .08f, .012f });
                         BraxChampionsPalmTrunk.OnSpot(o, at);
-                        placed.Add(w); Aleja++;
+                        placed.Add(w); aleja++;
                     }
                     next += 12f;
                 }
                 s += len;
             }
-            maxP = Mathf.Max(8, maxP - Aleja);                                  // the garden's own palms: fewer (the avenue is many)
+            maxP = Mathf.Max(8, maxP - aleja);                                  // the garden's own palms: fewer (the avenue is many)
+            if (hill) Aleja = aleja; else AlejaNabrzeze = aleja;
         }
         for (int i = 0; i < 6000 && (palmy < maxP || drzewa < maxD); i++)
         {
             var l = new Vector2(R(pd.x - 32f, pd.y + 32f), R(pd.z - 30f, pd.w + 18f));
             float od = OdPadu(d, l); if (od < 4.5f || od > maxOd) continue;
             var w = d.srodek + new Vector2(l.x * cs + l.y * sn, -l.x * sn + l.y * cs);
-            if (hill && Blisko(d, w, RoadHalf + 4.5f)) continue;
-            if (!hill && (Grunt(d, w.x, w.y) < SeaY + .55f || (Mathf.Abs(w.x - ps.x) < 6f && w.y > ps.y - 30f))) continue;
+            if ((hill || shore) && Blisko(d, w, RoadHalf + 4.5f)) continue;
+            if (shore && (Grunt(d, w.x, w.y) < SeaY + 1.0f || l.x < -54f ||                              // the lawns: off the beach, inside its west wall
+                          (l.y < BraxChampionsWille.N3PlazaZ + 2f && l.x > BraxChampionsWille.N3PlazaX0 - 1f && l.x < BraxChampionsWille.N3PlazaX1 + 1f))) continue;
+            if (!hill && !shore && (Grunt(d, w.x, w.y) < SeaY + .55f || (Mathf.Abs(w.x - ps.x) < 6f && w.y > ps.y - 30f))) continue;
             bool palma = palmy < maxP && (drzewa >= maxD || rnd.NextDouble() < (hill ? .4 : .75));
             bool tooNear = false;
             foreach (var q in placed) if ((q - w).sqrMagnitude < 5f * 5f) { tooNear = true; break; }
@@ -535,6 +553,7 @@ public static class BraxChampionsWilleDzialki
         }
         ZielenPalmy += palmy; ZielenDrzewa += drzewa;
         if (hill) Debug.Log("MISTRZOWIE_WILLA_ALEJA palms=" + Aleja + " garden_palms=" + palmy + " trees=" + drzewa + " (owner 23.11 22:22: thick palms both sides of the drive)");
+        if (shore) Debug.Log("MISTRZOWIE_WILLA_ALEJA_NABRZEZE palms=" + AlejaNabrzeze + " garden_palms=" + palmy + " trees=" + drzewa + " (owner 24.11 00:00: \"do willi palmy\")");
     }
 
     // owner 17.11 14:02 ("mały pomostek, miejsce na motorówkę, nie wiem, na mały jacht"): his Riva moored along the jetty's
@@ -677,6 +696,7 @@ public static class BraxChampionsWilleDzialki
     static bool Blisko(Dzialka d, Vector2 p, float r) { Droga(d, p.x, p.y, out float od); return od < r; }
     static bool WPatchu(Dzialka d, Vector2 w, float m) => w.x > d.x0 + m && w.x < d.x1 - m && w.y > d.z0 + m && w.y < d.z1 - m;
     public static int Aleja;                                                    // the hill drive's avenue palms (23.11)
+    public static int AlejaNabrzeze;                                            // the seafront drive's (24.11)
 
     // under the water at the sea edges of the patch: an invisible wall from the sea bed to 0.9 m under the surface
     static void MurPodWoda(Dzialka d)

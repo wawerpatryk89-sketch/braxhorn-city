@@ -85,7 +85,7 @@ class WillaKlif(unittest.TestCase):
         self.assertIn('BraxRegion.Put(g, t, "WILLA | drzewo (drzewo_verdant)", new Vector3(x, y, z), (x * 31f + z * 17f) % 360f, 1f, false, 0f, 0f, false)', WKIT)
         self.assertIn('BraxRegion.Put(g, tree, "WILLA " + d.nr + " | " + d.nazwa + " | drzewo", at, yaw, 1f, false, 6.5f * K)', SITES)
         self.assertIn("for (int i = 0; i < 6000 && (palmy < maxP || drzewa < maxD); i++)", SITES)
-        self.assertIn("if (hill && Blisko(d, w, RoadHalf + 4.5f)) continue;", SITES)
+        self.assertIn("if ((hill || shore) && Blisko(d, w, RoadHalf + 4.5f)) continue;", SITES)          # 24.11 the seafront's too
         self.assertIn("Zielen(g, d);", SITES)
         self.assertGreaterEqual(PLAN.count("Palma("), 2)
         self.assertGreaterEqual(PLAN.count("Drzewo("), 2)

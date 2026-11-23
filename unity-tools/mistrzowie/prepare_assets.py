@@ -52,7 +52,10 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  'rock_wall_04','pavement_02','herringbone_concrete_tile_03','stone_pathway_02','coated_pine','old_wooden_floor_03',
                  'wood_table','brick_wall_02','lacquered_cherry_wood',
                  # the island villa's tennis court: a smooth painted concrete (an acrylic hard court is paint on a slab), tinted
-                 'painted_concrete_02')
+                 'painted_concrete_02',
+                 # 24.11 00:00 owner (the seafront villa: "Zrób starą cegłę elewację i w ten sposób luksusową", "zrób taki stare,
+                 # te mury, ale taki luksus"): the old red brick facade and the old stone walls, from his list
+                 'medieval_red_brick','castle_wall_varriation')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
 # (Poly Haven CC0), the original 4K Radiance .hdr checked against the provider's size and MD5 (BraxChampionsSky imports it

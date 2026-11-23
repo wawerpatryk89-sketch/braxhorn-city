@@ -29,7 +29,8 @@ class WillaNabrzeze(unittest.TestCase):
 
     def test_his_beige_and_the_shared_shell(self):
         self.assertIn('tynkBez = BraxChampionsFoundation.SourceMaterial("willa_tynk_bezowy", "white_stucco_02", 2.0f, new Color(1.34f, 1.12f, .88f));', VILLA)
-        self.assertIn("NTeren(); NBasen(); KDom(tynkBez, true); NSkrzydla(); NWnetrze(c, tag); KPietro(c, tag); NOgrod(tag);", PLAN)
+        # 24.11 (owner: "Zrób starą cegłę elewację i w ten sposób luksusową"): the shell in old brick (test_willa_nabrzeze_cegla_20261124)
+        self.assertIn("NTeren(); NBasen(); KDom(cegla, true); NSkrzydla(); N3Kamien(); NWnetrze(c, tag); KPietro(c, tag); NOgrod(tag); N3Plaza();", PLAN)
         self.assertIn("KTeren(); KDom(tynkKrem, false); KSkrzydla(); KWieza(); KWnetrze(c, tag); KPietro(c, tag); KOgrod(tag);", KLIF)
         self.assertIn("if (nabrzeze) { NDomFront(zew); KDomReszta(zew, true); return; }", KLIF)
         # no tower on the seafront: a window where the hill's upper corridor opens to it

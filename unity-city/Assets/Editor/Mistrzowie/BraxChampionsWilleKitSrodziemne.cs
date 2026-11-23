@@ -59,12 +59,13 @@ public static partial class BraxChampionsWille
         // and the barrel tiles' round ends along the eaves
         float ys = ye - .16f;
         var gzyms = sciana == tynkKrem ? deck : tynkKrem;
+        var podbitka = cegla != null && sciana == cegla ? tynkKrem : sciana;     // 24.11 under the old brick villa's eaves a cream soffit
         void Okap(Vector3 p0, Vector3 p1, Vector3 w0, Vector3 w1, Vector3 outN)
         {
             p0.y = p1.y = w0.y = w1.y = ys;
             var q = new[] { w0, w1, p1, p0 };
             if (Vector3.Dot(Vector3.Cross(q[1] - q[0], q[2] - q[0]), Vector3.down) < 0f) Array.Reverse(q);
-            b.Quad(sciana, q[0], q[1], q[2], q[3]);
+            b.Quad(podbitka, q[0], q[1], q[2], q[3]);
             var f0 = p0; var f1 = p1; var g0 = p0 + Vector3.up * .16f; var g1 = p1 + Vector3.up * .16f;
             var fq = new[] { f0, f1, g1, g0 };
             if (Vector3.Dot(Vector3.Cross(fq[1] - fq[0], fq[2] - fq[0]), outN) < 0f) Array.Reverse(fq);
@@ -154,7 +155,9 @@ public static partial class BraxChampionsWille
             Q(zew, P(u0, y0, 0f), P(u1, y1, 0f), P(u1, yt, 0f), P(u0, yt, 0f), outN, false);
             Q(wew, P(u0, y0, t), P(u1, y1, t), P(u1, yt, t), P(u0, yt, t), -outN, true);
             var c = P((u0 + u1) * .5f, (y0 + y1) * .5f, t * .5f); var centre = P(am, ys, t * .5f);
-            Q(zew, P(u0, y0, 0f), P(u1, y1, 0f), P(u1, y1, t), P(u0, y0, t), centre - c, false);
+            // the soffit: 24.11 its inner half in the room's plaster (the old brick showed inside round the windows' arches)
+            if (wew == zew) Q(zew, P(u0, y0, 0f), P(u1, y1, 0f), P(u1, y1, t), P(u0, y0, t), centre - c, false);
+            else { Q(zew, P(u0, y0, 0f), P(u1, y1, 0f), P(u1, y1, t * .5f), P(u0, y0, t * .5f), centre - c, false); Q(wew, P(u0, y0, t * .5f), P(u1, y1, t * .5f), P(u1, y1, t), P(u0, y0, t), centre - c, true); }
         }
         // 18.11 an open arcade's arch (outside on both faces): the stone archivolt round it on the outer face
         if (wew == zew && zew != renderIn) { Out_(true); Pierscien(Opaska_, alongX, plane, outward, am, ys, r, r + OpW, 0f, Mathf.PI, OpD, 20); }
@@ -223,7 +226,9 @@ public static partial class BraxChampionsWille
             Q(zew, P(u0, y0, 0f), P(u1, y1, 0f), P(u1, yb, 0f), P(u0, yb, 0f), outN, false);
             Q(wew, P(u0, y0, t), P(u1, y1, t), P(u1, yb, t), P(u0, yb, t), -outN, true);
             var c = P((u0 + u1) * .5f, (y0 + y1) * .5f, t * .5f); var centre = P(am, ys, t * .5f);
-            Q(zew, P(u0, y0, 0f), P(u1, y1, 0f), P(u1, y1, t), P(u0, y0, t), centre - c, false);
+            // the soffit: 24.11 its inner half in the room's plaster (the old brick showed inside round the windows' arches)
+            if (wew == zew) Q(zew, P(u0, y0, 0f), P(u1, y1, 0f), P(u1, y1, t), P(u0, y0, t), centre - c, false);
+            else { Q(zew, P(u0, y0, 0f), P(u1, y1, 0f), P(u1, y1, t * .5f), P(u0, y0, t * .5f), centre - c, false); Q(wew, P(u0, y0, t * .5f), P(u1, y1, t * .5f), P(u1, y1, t), P(u0, y0, t), centre - c, true); }
         }
     }
     /// <summary>A round window (owner's photo 2: the oculi) at (ac, yc), radius r, in an outside wall built with the square
@@ -361,7 +366,7 @@ public static partial class BraxChampionsWille
     static void Komin(float x, float z, float foot, float top, float w = .9f, float d = .7f)
     {
         Out_(true);
-        MMd(tynkKrem, x - w * .5f, x + w * .5f, foot, top, z - d * .5f, z + d * .5f, false);
+        MMd(nrWilli == 3 && cegla != null ? cegla : tynkKrem, x - w * .5f, x + w * .5f, foot, top, z - d * .5f, z + d * .5f, false);   // 24.11 the seafront villa's in old brick
         MMd(deck, x - w * .5f - .06f, x + w * .5f + .06f, top, top + .1f, z - d * .5f - .06f, z + d * .5f + .06f, false);
         var c = new Vector3(x, top + .1f, z);
         b.Cylinder(dachowka, c, Mathf.Max(w, d) * .62f, .32f, 4, Quaternion.Euler(0f, 45f, 0f), true, false, .02f);

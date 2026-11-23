@@ -7796,5 +7796,161 @@
         }
       }
     }
+  },
+  "medieval_red_brick": {
+    "Diffuse": {
+      "4k": {
+        "jpg": {
+          "size": 13394923,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/medieval_red_brick/medieval_red_brick_diff_4k.jpg",
+          "md5": "00d807d467c0f0170edc955417b6e3e5"
+        },
+        "png": {
+          "size": 89562035,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/medieval_red_brick/medieval_red_brick_diff_4k.png",
+          "md5": "c020a98637926f4aabe1304a3f05da24"
+        },
+        "exr": {
+          "size": 23982961,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/medieval_red_brick/medieval_red_brick_diff_4k.exr",
+          "md5": "5dec96d1c6b2b8f8a30bf6b05039cf2f"
+        }
+      }
+    },
+    "nor_gl": {
+      "4k": {
+        "jpg": {
+          "size": 17322847,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/medieval_red_brick/medieval_red_brick_nor_gl_4k.jpg",
+          "md5": "0a839c21eef49e57041dbd826f69d4ad"
+        },
+        "png": {
+          "size": 91489937,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/medieval_red_brick/medieval_red_brick_nor_gl_4k.png",
+          "md5": "e1a435d63160534c9cd818b8ba32751c"
+        },
+        "exr": {
+          "size": 34833234,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/medieval_red_brick/medieval_red_brick_nor_gl_4k.exr",
+          "md5": "ab2a0c02bd5ba0d74bf2f2b288462e67"
+        }
+      }
+    },
+    "Rough": {
+      "4k": {
+        "jpg": {
+          "size": 6884470,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/medieval_red_brick/medieval_red_brick_rough_4k.jpg",
+          "md5": "313a20f45a3e11d311113239c9e0d234"
+        },
+        "png": {
+          "size": 27541245,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/medieval_red_brick/medieval_red_brick_rough_4k.png",
+          "md5": "bc83ee62bbce26503a4f6e5b7698f43b"
+        },
+        "exr": {
+          "size": 6240776,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/medieval_red_brick/medieval_red_brick_rough_4k.exr",
+          "md5": "97645ca37daf987959420d30b72883c8"
+        }
+      }
+    },
+    "arm": {
+      "4k": {
+        "jpg": {
+          "size": 10329030,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/medieval_red_brick/medieval_red_brick_arm_4k.jpg",
+          "md5": "e81e7540337ed51f80da70940618c917"
+        },
+        "png": {
+          "size": 66043064,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/medieval_red_brick/medieval_red_brick_arm_4k.png",
+          "md5": "ad50d6c1b0d2231855764071d005f3e6"
+        },
+        "exr": {
+          "size": 17767379,
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/medieval_red_brick/medieval_red_brick_arm_4k.exr",
+          "md5": "426a9e425819394d4f87d8a512dcbc8f"
+        }
+      }
+    }
+  },
+  "castle_wall_varriation": {
+    "Diffuse": {
+      "4k": {
+        "jpg": {
+          "size": 8542997,
+          "md5": "1b5fee78d5c52552f074f9ac6a1219d1",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/castle_wall_varriation/castle_wall_varriation_diff_4k.jpg"
+        },
+        "png": {
+          "size": 101311557,
+          "md5": "1f224baa9d03425b3a4e0585313824fb",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/castle_wall_varriation/castle_wall_varriation_diff_4k.png"
+        },
+        "exr": {
+          "size": 19791446,
+          "md5": "e1db9a9b017a3d8f884a554173f39108",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/castle_wall_varriation/castle_wall_varriation_diff_4k.exr"
+        }
+      }
+    },
+    "nor_gl": {
+      "4k": {
+        "jpg": {
+          "size": 13013970,
+          "md5": "87d261a44c2e42fa8416bda10a26a447",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/castle_wall_varriation/castle_wall_varriation_nor_gl_4k.jpg"
+        },
+        "png": {
+          "size": 99244823,
+          "md5": "7d622cf782a5f2b7a0b6f8a6448bd2dd",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/castle_wall_varriation/castle_wall_varriation_nor_gl_4k.png"
+        },
+        "exr": {
+          "size": 31041560,
+          "md5": "6976d429b6ad61832b839531cf1ce972",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/castle_wall_varriation/castle_wall_varriation_nor_gl_4k.exr"
+        }
+      }
+    },
+    "Rough": {
+      "4k": {
+        "jpg": {
+          "size": 5945054,
+          "md5": "2cef25574e466b84085e8ea5659857e6",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/castle_wall_varriation/castle_wall_varriation_rough_4k.jpg"
+        },
+        "png": {
+          "size": 35718682,
+          "md5": "8d675ca6c8ef0d4795c87648e213723c",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/castle_wall_varriation/castle_wall_varriation_rough_4k.png"
+        },
+        "exr": {
+          "size": 9537480,
+          "md5": "8a457df0fa935d4d4b1c98391f77e7a5",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/castle_wall_varriation/castle_wall_varriation_rough_4k.exr"
+        }
+      }
+    },
+    "arm": {
+      "4k": {
+        "jpg": {
+          "size": 3502168,
+          "md5": "f175c1c8058fc197bee924e9d2da1e25",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/castle_wall_varriation/castle_wall_varriation_arm_4k.jpg"
+        },
+        "png": {
+          "size": 72929974,
+          "md5": "b7f085285846f22c709c7f89d149510f",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/castle_wall_varriation/castle_wall_varriation_arm_4k.png"
+        },
+        "exr": {
+          "size": 25444055,
+          "md5": "a2922f900c4391a26e7fc887e07576b9",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/castle_wall_varriation/castle_wall_varriation_arm_4k.exr"
+        }
+      }
+    }
   }
 }

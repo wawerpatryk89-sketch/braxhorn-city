@@ -33,7 +33,7 @@ class Materialy(unittest.TestCase):
             self.assertIn("'" + s + "'", PREP)
             for key in ("Diffuse", "nor_gl", "Rough", "arm"):
                 self.assertIn("4k", FIX[s][key], s)
-        self.assertTrue(PREP.rstrip().endswith("'painted_concrete_02')") or "'painted_concrete_02')" in PREP)
+        self.assertIn("'painted_concrete_02'", PREP)
         for s in LISTA[:-1]:
             self.assertIn('"' + s + '"', PREM + FUND)
         # each photo-scan brought to its colour by its measured mean, its brightest 1 % kept from clipping

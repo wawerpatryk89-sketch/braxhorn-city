@@ -145,6 +145,10 @@ public static partial class BraxChampionsWille
     {
         // ---- the sides (the wings butt against the ground floor; the tower against the west) and the back
         ScianaOE(zew, false, -9f, 0f, 13f, 0f, KF1, -1f, false, RogZ(0f, 13f, false), new Vector4(5f, 6.2f, 0f, 2.25f));
+        // 24.11 the house's doors into the wings framed and hung (they were bare holes): the kitchen (west), the garage (east);
+        // the guest suite's door from the dining room closed (the guest bed's wall; the suite has its own arched door)
+        Drzwi("kuchnia", false, -9f + T * .5f, 5f, 6.2f, 0f, 2.25f, .018f, .018f, T * .5f);
+        Drzwi("garaż z domu", false, 9f - T * .5f, 7.5f, 8.4f, 0f, 2.25f, .018f, .018f, T * .5f);
         if (nabrzeze)
         {
             ScianaOE(zew, false, -9f, 0f, 13f, KF1, KE, -1f, false, RogZ(0f, 13f, false), new Vector4(2f, 3.1f, KF1 + .9f, KF1 + 2.7f), new Vector4(9.9f, 11f, KF1 + .9f, KF1 + 2.7f));
@@ -152,7 +156,7 @@ public static partial class BraxChampionsWille
         }
         else ScianaOE(zew, false, -9f, 0f, 13f, KF1, KE, -1f, false, RogZ(0f, 13f, false), new Vector4(2f, 3.1f, KF1 + .9f, KF1 + 2.7f), new Vector4(10f, 10.9f, KF1, KF1 + 2.25f));
         OknoLuk(false, -9f, 2f, 3.1f, KF1 + .9f, KF1 + 2.15f, KF1 + 2.7f, -1f, zew);
-        ScianaOE(zew, false, 9f, 0f, 13f, 0f, KF1, 1f, false, RogZ(0f, 13f, false), new Vector4(1f, 2f, 0f, 2.25f), new Vector4(7.5f, 8.4f, 0f, 2.25f));
+        ScianaOE(zew, false, 9f, 0f, 13f, 0f, KF1, 1f, false, RogZ(0f, 13f, false), new Vector4(7.5f, 8.4f, 0f, 2.25f));
         ScianaOE(zew, false, 9f, 0f, 13f, KF1, KE, 1f, false, RogZ(0f, 13f, false), new Vector4(2f, 3.1f, KF1 + .9f, KF1 + 2.7f), new Vector4(9.5f, 10.6f, KF1 + .9f, KF1 + 2.7f));
         OknoLuk(false, 9f, 2f, 3.1f, KF1 + .9f, KF1 + 2.15f, KF1 + 2.7f, 1f, zew); OknoLuk(false, 9f, 9.5f, 10.6f, KF1 + .9f, KF1 + 2.15f, KF1 + 2.7f, 1f, zew);
         ScianaOE(zew, true, 13f, -9f, 9f, 0f, KF1, 1f, false, RogX(-9f, 9f), new Vector4(-1f, 1f, 0f, 3.4f), new Vector4(-4.6f, -3.6f, .9f, 2.9f), new Vector4(3.6f, 4.6f, .9f, 2.9f));
@@ -351,21 +355,32 @@ public static partial class BraxChampionsWille
     {
         Out_(false);
         float y = KF1, top = KE - .2f;
-        // ---- upstairs: the master suite (x -8.7..0) and the bedroom (x 0..7.2) at the front, the bathrooms, the dressing
-        // room, the corridor to the stair and the tower
-        Scianka(false, 0f, .3f, 4.7f, y, top);
-        Scianka(true, 4.7f, -8.7f, 7.2f, y, top, new Vector2(-7.8f, -7.0f), new Vector2(-4.0f, -3.2f), new Vector2(-1.2f, -.3f), new Vector2(2.0f, 2.9f), new Vector2(5.5f, 6.3f));
+        // ---- upstairs: the master suite (x -8.7..1.6) and bedroom 2 (x 1.6..8.7) at the front, the bathrooms, the dressing
+        // room, the hall to the stair. 24.11 (owner: "Tam musi być tak samo zrobione porządnie"): the beds had stood through the
+        // back wall (BraxKatalog.Bed's p is the bed's foot), the partition in the balcony's French door (-.8..0.8: now at 1.6),
+        // a TV and a wardrobe in front of windows, bedroom 2 open to the stair's well (its wall now to 8.7); the doors moved
+        // off the beds' heads
+        Scianka(false, 1.6f, .3f, 4.7f, y, top);
+        Scianka(true, 4.7f, -8.7f, 8.7f, y, top, new Vector2(-7.8f, -7.0f), new Vector2(-3.1f, -2.3f), new Vector2(.5f, 1.4f), new Vector2(3.3f, 4.2f), new Vector2(5.5f, 6.3f));
         Scianka(false, -5.2f, 4.7f, 8.2f, y, top); Scianka(false, -2f, 4.7f, 8.2f, y, top); Scianka(false, 4.4f, 4.7f, 8.2f, y, top); Scianka(false, 7.2f, 4.7f, 8.2f, y, top);
         Scianka(true, 8.2f, -8.7f, -2f, y, top); Scianka(true, 8.2f, 4.4f, 7.2f, y, top);
-        Drzwi("łazienka główna", true, 4.7f, -7.8f, -7.0f, y); Drzwi("garderoba", true, 4.7f, -4.0f, -3.2f, y); Drzwi("sypialnia główna", true, 4.7f, -1.2f, -.3f, y);
-        Drzwi("sypialnia 2", true, 4.7f, 2.0f, 2.9f, y); Drzwi("łazienka 2", true, 4.7f, 5.5f, 6.3f, y);
-        BraxKatalog.Rug(c, new Vector3(-4.4f, y, 2.2f), Vector3.forward, 3.6f, 2.6f, true);
-        BraxKatalog.Bed(c, new Vector3(-4.4f, y + .012f, 3.34f), Vector3.back, 1.8f, "łóżko");
-        BraxKatalog.Tv(c, new Vector3(-8.68f, y + 1.35f, 2.4f), Vector3.right, 65f, 0, false, tag + " sypialnia główna TV");
+        Drzwi("łazienka główna", true, 4.7f, -7.8f, -7.0f, y); Drzwi("garderoba", true, 4.7f, -3.1f, -2.3f, y); Drzwi("sypialnia główna", true, 4.7f, .5f, 1.4f, y);
+        Drzwi("sypialnia 2", true, 4.7f, 3.3f, 4.2f, y); Drzwi("łazienka 2", true, 4.7f, 5.5f, 6.3f, y);
+        // the master: the bed's head 3 cm off the back wall (its face 4.64) between the bathroom's and the dressing room's
+        // doors, a bench at its foot, the sea before it; a sofa and the TV on the partition by the balcony's door
+        BraxKatalog.Rug(c, new Vector3(-5.05f, y, 2.2f), Vector3.forward, 3.6f, 2.6f, true);
+        BraxKatalog.Bed(c, new Vector3(-5.05f, y + .012f, 4.64f - .03f - 2.17f), Vector3.back, 1.8f, "łóżko");
+        LawkaLozka(c, new Vector3(-5.05f, y, 4.64f - .03f - 2.17f - .30f), 1.5f);
+        BraxKatalog.Tv(c, new Vector3(1.6f - .06f - .02f, y + 1.35f, 2.4f), Vector3.left, 55f, 0, false, tag + " sypialnia główna TV");
+        BraxKatalog.Sofa(c, new Vector3(-.2f, y + .012f, 2.4f), Vector3.right, 2.4f, 1, "sofa");
+        BraxKatalog.CoffeeTable(c, new Vector3(.75f, y + .012f, 2.4f), Vector3.right, 1.1f, .55f);
         Siedz(Model("HotelSobczak/mid_century_lounge_chair/mid_century_lounge_chair_2k.gltf", "fotel w sypialni", new Vector3(-7.6f, y, 1.0f), 200f), new Vector3(-7.6f, y + .42f, 1.0f), new Vector3(-.34f, 0f, -.94f), "FOTEL");
-        BraxKatalog.Rug(c, new Vector3(3.6f, y, 2.2f), Vector3.forward, 3.2f, 2.6f, false);
-        BraxKatalog.Bed(c, new Vector3(3.6f, y + .012f, 3.34f), Vector3.back, 1.6f, "łóżko");
-        BraxKatalog.Wardrobe(c, new Vector3(8.1f, y, 2.2f), Vector3.left, 2.4f, oak, BraxKatalog.Walnut, 2.4f, "szafa");
+        // bedroom 2: the bed's head on the partition (its face 1.66), the wardrobe on the back wall clear of the bathroom's
+        // door, the TV on the east wall clear of its window (z 2..3.1)
+        BraxKatalog.Rug(c, new Vector3(3.2f, y, 2.4f), Vector3.forward, 2.6f, 3.2f, false);
+        BraxKatalog.Bed(c, new Vector3(1.6f + .06f + .03f + 2.17f, y + .012f, 2.4f), Vector3.right, 1.6f, "łóżko");
+        BraxKatalog.Wardrobe(c, new Vector3(7.55f, y, 4.64f - .61f), Vector3.back, 2.0f, oak, BraxKatalog.Walnut, 2.4f, "szafa");
+        BraxKatalog.Tv(c, new Vector3(8.7f - .02f, y + 1.35f, 1.2f), Vector3.left, 55f, 1, false, tag + " sypialnia 2 TV");
         Lazienka(-8.7f, -5.26f, 4.76f, 8.14f, y, new Vector3(1f, -7.8f, -7.0f), 0f, 0f);
         Wanna(new Vector3(-6.9f, y, 7.3f)); BraxKatalog.WcPan(c, new Vector3(-8.684f, y, 5.6f), Vector3.right);
         BraxKatalog.Place(c, "umywalka 0.8 orzech", cc => BraxKatalog.Vanity(cc, Vector3.zero, Vector3.left, .8f, walnut, "umywalka"), new Vector3(-5.276f, y, 5.6f), Vector3.left, null);
@@ -373,11 +388,11 @@ public static partial class BraxChampionsWille
         Lazienka(4.46f, 7.14f, 4.76f, 8.14f, y, new Vector3(1f, 5.5f, 6.3f), 0f, 0f);
         Prysznic(new Vector3(5.3f, y, 7.3f)); BraxKatalog.WcPan(c, new Vector3(7.124f, y, 7.4f), Vector3.left);
         BraxKatalog.Place(c, "umywalka 0.6 orzech", cc => BraxKatalog.Vanity(cc, Vector3.zero, Vector3.left, .6f, walnut, "umywalka"), new Vector3(7.124f, y, 5.6f), Vector3.left, null);
-        Obrazek(3, new Vector3(-4.4f, y + 1.8f, 4.64f), Vector3.back, 1.8f, 1.0f); Obrazek(4, new Vector3(3.6f, y + 1.8f, 4.64f), Vector3.back, 1.6f, .9f);
+        Obrazek(3, new Vector3(-5.05f, y + 2.05f, 4.64f), Vector3.back, 1.8f, 1.0f); Obrazek(4, new Vector3(1.6f + .06f, y + 2.05f, 2.4f), Vector3.right, 1.6f, .9f);   // over the headboards (1.48)
         Obrazek(5, new Vector3(-1.94f, y + 1.6f, 6.4f), Vector3.right, 1.2f, .8f);
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel na korytarzu", new Vector3(-6.5f, y, 12.0f), 180f), new Vector3(-6.5f, y + .45f, 12.0f), Vector3.back, "FOTEL");
         Oczka(-7.4f, 6.6f, 1.0f, 3.8f, top, 2.8f); Oczka(-8.0f, 6.4f, 10.4f, 10.4f, top, 2.4f);
-        foreach (var lp in new[] { new Vector3(-4.4f, top - .3f, 2f), new Vector3(3.6f, top - .3f, 2f), new Vector3(-7f, top - .3f, 6.4f), new Vector3(5.8f, top - .3f, 6.4f), new Vector3(0f, top - .3f, 10.4f) })
+        foreach (var lp in new[] { new Vector3(-5.05f, top - .3f, 2f), new Vector3(4.6f, top - .3f, 2.4f), new Vector3(-7f, top - .3f, 6.4f), new Vector3(5.8f, top - .3f, 6.4f), new Vector3(0f, top - .3f, 10.4f) })
             W.Lampa(tag + " | piętro", lp, .9f, 8f * K, new Color(1f, .93f, .82f));
     }
 

@@ -25,7 +25,8 @@ public static partial class BraxChampionsWille
         pietro = KF1;
         var c = new BraxKatalog.Ctx { m = kat, root = g, cols = g, unit = 1f, water = null, inst = g, seat = (p, f, l) => { W.Siedzisko(p, f, l); Siedziska++; } };
         string tag = Nazwy[2];
-        NTeren(); NBasen(); KDom(tynkBez, true); NSkrzydla(); NWnetrze(c, tag); KPietro(c, tag); NOgrod(tag);
+        N3Materialy();                                                   // 24.11 old brick, old stone walls, cream inside
+        NTeren(); NBasen(); KDom(cegla, true); NSkrzydla(); N3Kamien(); NWnetrze(c, tag); KPietro(c, tag); NOgrod(tag); N3Plaza();
     }
 
     // ================================================================ the terraces, lawns, the drive, the pad's front
@@ -154,7 +155,7 @@ public static partial class BraxChampionsWille
     // ================================================================ the wings
     static void NSkrzydla()
     {
-        var zew = tynkBez;
+        var zew = cegla;                                                 // 24.11 old brick (was the beige stucco)
         // ---- the west porch: two arches to the terrace on a column, one west; the kitchen behind (z -1..8)
         Out_(true); MM(deck, -16.7f, -9f, -.25f, 0f, -5.7f, -1.06f);
         Out_(false); MM(floorGf, -16.7f, -9f, -.25f, 0f, -.94f, 7.7f);
@@ -171,7 +172,7 @@ public static partial class BraxChampionsWille
         ScianaOE(zew, true, 8f, -17f, -9f, 0f, NEw, 1f, false, new Vector4(-16.85f, -9f, -16.7f, -9f), new Vector4(-14f, -13f, .9f, 2.8f));
         OknoLuk(true, 8f, -14f, -13f, .9f, 2.3f, 2.8f, 1f, zew);
         Scianka(true, -1f, -16.7f, -9.3f, 0f, NEw - .3f, new Vector2(-12.6f, -11.7f)); Drzwi("kuchnia", true, -1f, -12.6f, -11.7f, 0f);
-        Out_(true); MM(zew, -16.7f, -9.3f, NEw - .3f, NEw, -5.7f, -1.06f, false);           // inside the porch's east wall (x -9.3..-9)
+        Out_(true); MM(tynkKrem, -16.7f, -9.3f, NEw - .3f, NEw, -5.7f, -1.06f, false);      // the porch's ceiling, cream between its walnut beams
         for (float z = -5.2f; z < -1.3f; z += 1.3f) b.Box(walnut, new Vector3(-12.85f, NEw - .38f, z), new Vector3(7.4f, .16f, .16f), Quaternion.identity);   // their ends in the walls
         Out_(false); MM(ceiling, -16.7f, -9.3f, NEw - .3f, NEw, -.94f, 0f, false); MM(ceiling, -16.7f, -9f, NEw - .3f, NEw, 0f, 7.7f, false);
         Dach4(-17f, -9f, -6f, 8f, NEw, KPitchW, zew, .6f, 2);
@@ -212,7 +213,7 @@ public static partial class BraxChampionsWille
         // ---- the salon (x -8.7..0, z .3..7.6): the stone fireplace on the west wall, sofas round it; the dining room east
         Scianka(true, 7.6f, -8.7f, 7.2f, 0f, KF1 - .3f, new Vector2(-6f, -3.5f), new Vector2(-1.2f, 1.2f), new Vector2(4.4f, 5.4f));
         MM(stoneIn, -8.7f, -8.5f, 0f, KF1 - .3f, 1.6f, 4.6f);
-        MM(stoneIn, -8.5f, -8.1f, 0f, 1.25f, 1.4f, 4.8f); MM(stoneIn, -8.5f, -7.9f, 1.25f, 1.4f, 1.2f, 5.0f);
+        MM(stoneIn, -8.5f, -8.1f, 0f, 1.25f, 1.4f, 4.8f); MM(marbleIn, -8.5f, -7.9f, 1.25f, 1.4f, 1.2f, 5.0f);      // 24.11 a marble mantel on the old brick
         MM(black, -8.5f, -8.48f, .25f, 1.0f, 2.3f, 3.9f, false); MM(fire, -8.48f, -8.46f, .3f, .5f, 2.5f, 3.7f, false);
         W.Lampa(tag + " | kominek", new Vector3(-7.6f, .6f, 3.1f), .8f, 5f * K, new Color(1f, .55f, .22f));
         BraxKatalog.Rug(c, new Vector3(-5.2f, 0f, 3.1f), Vector3.forward, 4.6f, 3.6f, true);
@@ -220,13 +221,14 @@ public static partial class BraxChampionsWille
         BraxKatalog.CoffeeTable(c, new Vector3(-5.3f, .012f, 3.1f), Vector3.left, 1.3f, .7f);
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel", new Vector3(-5.3f, .012f, 1.4f), 0f), new Vector3(-5.3f, .45f, 1.4f), Vector3.forward, "FOTEL");
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel", new Vector3(-5.3f, .012f, 4.8f), 180f), new Vector3(-5.3f, .45f, 4.8f), Vector3.back, "FOTEL");
-        BraxKatalog.Tv(c, new Vector3(-3.6f, 1.6f, 7.54f), Vector3.back, 75f, 2, false, tag + " salon TV");
+        // 24.11 the TV over the fireplace before the sofa (it had hung across the opening in the wall behind, x -6..-3.5)
+        BraxKatalog.Tv(c, new Vector3(-8.5f + .02f, 2.2f, 3.1f), Vector3.right, 65f, 2, false, tag + " salon TV");
         BraxKatalog.FloorLamp(c, new Vector3(-8.0f, 0f, .9f));
         Model("ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf", "roślina", new Vector3(-8.1f, 0f, 6.9f), 70f);
         BraxKatalog.Rug(c, new Vector3(3.6f, 0f, 3.0f), Vector3.forward, 5.0f, 3.0f, false);
         BraxKatalog.DiningSet(c, new Vector3(2.8f, .012f, 3.0f), Vector3.back, "krzesło"); BraxKatalog.DiningSet(c, new Vector3(4.4f, .012f, 3.0f), Vector3.back, "krzesło");
         foreach (float x in new[] { 2.8f, 4.4f }) ModelTop("HotelSobczak/modern_ceiling_lamp_01/modern_ceiling_lamp_01_1k.gltf", "lampa nad stołem", new Vector3(x, KF1 - 1.3f, 2.55f), KF1 - .3f);
-        Obrazek(3, new Vector3(4.0f, 2.0f, 7.54f), Vector3.back, 2.2f, 1.3f);
+        Obrazek(3, new Vector3(2.8f, 2.0f, 7.54f), Vector3.back, 2.2f, 1.3f);                         // on the wall between the openings (1.2..4.4)
         Oczka(-7.4f, 6.6f, 1.2f, 6.6f, KF1 - .3f, 2.8f);
         foreach (var lp in new[] { new Vector3(-5f, KF1 - .6f, 3f), new Vector3(3.6f, KF1 - .6f, 3f) }) W.Lampa(tag + " | salon", lp, 1f, 9f * K, new Color(1f, .9f, .78f));
         // ---- the library behind (x -8.7..-2) and the hall to the back door and the stair
@@ -265,9 +267,19 @@ public static partial class BraxChampionsWille
         Prysznic(new Vector3(15.9f, 0f, 3.1f));
         BraxKatalog.Place(c, "umywalka 0.8 orzech", cc => BraxKatalog.Vanity(cc, Vector3.zero, Vector3.back, .8f, walnut, "umywalka"), new Vector3(15.0f, 0f, -.584f), Vector3.back, null);
         BraxKatalog.WcPan(c, new Vector3(16.684f, 0f, 1.2f), Vector3.left);
-        BraxKatalog.Rug(c, new Vector3(11.2f, 0f, -1.4f), Vector3.forward, 3.0f, 2.6f, true);
-        BraxKatalog.Bed(c, new Vector3(11.2f, .012f, -.2f), Vector3.back, 1.6f, "łóżko");
-        BraxKatalog.Wardrobe(c, new Vector3(9.6f, 0f, 3.0f), Vector3.right, 1.8f, oak, BraxKatalog.Walnut, 2.3f, "szafa");
+        // 24.11 the room's west wall over z 0..3.94 is the house's east wall - its old brick plastered cream inside (and the
+        // wing's wall's end at z 0), 1 mm off the brick, its ends in the partition, the floor and the ceiling; the bed's head
+        // on it (the bed had stood in the room's middle - the catalogue's p is its foot - and across the house's door, now
+        // closed), the wardrobe out of the wall (it had stood 30 cm in it) on the garage's partition clear of its door, the TV
+        // on the bathroom's partition, a print over the bed, an armchair and a lamp by the west window
+        MM(renderIn, 9.001f, 9.012f, .001f, NEe - .28f, .012f, 3.96f, false); MM(renderIn, 9.001f, 9.299f, .001f, NEe - .28f, .001f, .012f, false);
+        BraxKatalog.Rug(c, new Vector3(10.3f, 0f, 1.9f), Vector3.forward, 2.8f, 3.0f, true);
+        BraxKatalog.Bed(c, new Vector3(9.012f + .03f + 2.17f, .012f, 1.9f), Vector3.right, 1.6f, "łóżko");
+        BraxKatalog.Wardrobe(c, new Vector3(12.17f, 0f, 3.94f - .61f), Vector3.back, 2.0f, oak, BraxKatalog.Walnut, 2.3f, "szafa");
+        BraxKatalog.Tv(c, new Vector3(13.3f - .06f - .02f, 1.35f, 2.6f), Vector3.left, 55f, 1, false, tag + " apartament gościnny TV");
+        Obrazek(6, new Vector3(9.012f, 2.05f, 1.9f), Vector3.right, 1.6f, .8f);
+        Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel w apartamencie", new Vector3(10.4f, 0f, -3.6f), 45f), new Vector3(10.4f, .45f, -3.6f), new Vector3(.71f, 0f, .71f), "FOTEL");
+        BraxKatalog.FloorLamp(c, new Vector3(9.8f, 0f, -4.3f));
         W.Lampa(tag + " | apartament gościnny", new Vector3(12f, NEe - .6f, -2f), .8f, 7f * K, new Color(1f, .93f, .82f));
         MM(walnut, 16.2f, 16.7f, 0f, 2.0f, 4.5f, 7.5f);
         foreach (float x in new[] { 11.2f, 14.8f }) MM(black, x - .6f, x + .6f, 0f, .1f, 5.0f, 5.15f);
@@ -287,6 +299,6 @@ public static partial class BraxChampionsWille
             Palma(p.x, p.y);
         foreach (var p in new[] { new Vector2(-20.5f, 13f), new Vector2(-12.5f, 19f), new Vector2(23f, 13.5f), new Vector2(-5f, 21f) }) Drzewo(p.x, p.y);
         TablicaSprzedazy(3, new Vector3(1.0f, 0f, 23.6f), Vector3.forward,
-            "MONIKA: Willa nad samym morzem, w ciepłym beżu i dachówce: łukowe drzwi i okna, balkon na kolumnach, okrągłe okna, ganek z kuchnią, apartament gościnny, garaż na dwa auta, basen w ciemnej obwódce, schody na plażę. Zapraszam do WAWER NIERUCHOMOŚCI w T12!");
+            "MONIKA: Willa nad samym morzem ze starej cegły z kamiennymi narożnikami, pod dachówką: łukowe drzwi i okna, balkon na kolumnach, okrągłe okna, ganek z kuchnią, apartament gościnny, garaż na dwa auta, basen w ciemnej obwódce i własna prywatna plaża z kabaną, leżakami i palmami. Zapraszam do WAWER NIERUCHOMOŚCI w T12!");
     }
 }

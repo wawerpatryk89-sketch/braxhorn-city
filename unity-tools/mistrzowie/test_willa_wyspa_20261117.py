@@ -69,7 +69,7 @@ class WillaWyspa(unittest.TestCase):
         self.assertLess(-37.1 + 9.145, -16)
         self.assertGreater(3.0 - 18.285, -22.6)
         self.assertLess(3.0 + 18.285, 26)
-        self.assertIn("'painted_concrete_02')", PREP)
+        self.assertIn("'painted_concrete_02'", PREP)
         self.assertIn('"painted_concrete_02", 4f', PLAN)
 
     def test_the_stair_and_the_riva(self):
@@ -87,8 +87,8 @@ class WillaWyspa(unittest.TestCase):
         self.assertIn('b.kind=="motorboat"?8.5f', HARBOUR)                          # real size
 
     def test_palms_on_the_island(self):
-        self.assertIn("int maxP = hill ? 26 : 22, maxD = hill ? 40 : 8;", SITES)
-        self.assertIn("if (!hill && (Grunt(d, w.x, w.y) < SeaY + .55f || (Mathf.Abs(w.x - ps.x) < 6f && w.y > ps.y - 30f))) continue;", SITES)
+        self.assertIn("int maxP = hill ? 26 : shore ? 24 : 22, maxD = hill ? 40 : 8;", SITES)
+        self.assertIn("if (!hill && !shore && (Grunt(d, w.x, w.y) < SeaY + .55f || (Mathf.Abs(w.x - ps.x) < 6f && w.y > ps.y - 30f))) continue;", SITES)
 
 
 if __name__ == "__main__":
