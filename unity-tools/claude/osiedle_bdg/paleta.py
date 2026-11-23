@@ -135,7 +135,7 @@ SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, 
            "bitumen": [.230, .214, .206], "gravel_floor_02": [.672, .656, .613], "painted_metal_shutter": [.502, .516, .527],
            "exterior_wall_cladding_03": [.678, .654, .607], "corrugated_iron_02": [.348, .345, .319], "red_bricks_04": [.386, .243, .145],
            "grass004": [.384, .431, .197], "herringbone_pavement_03": [.264, .232, .195], "red_brick_pavers": [.455, .250, .198],
-           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287], "plyty_szare": [.80, .80, .80], "granite_tile": [.306, .307, .308]}
+           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287], "plyty_szare": [.80, .80, .80], "granite_tile": [.306, .307, .308], "granite_tile_04": [.443, .396, .339]}
 
 
 def tint(v):
@@ -176,6 +176,16 @@ P["posadzka"] = {"tex": BET, "m": 2.0, "kol": [168, 166, 160], "szorst": .8}
 P["pas_zielony"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [40, 120, 70], "szorst": .6}
 for _k in range(1, 5):
     P["baner_%d" % _k] = {"tex": "lakier_blacha", "m": 2.5, "kol": [30, 70, 150], "szorst": .7, "nakl": "baner_%d.png" % _k}
+# Stary Rynek (rynek_bdg/rynek.py): tynki kamienic wg zdjęć właściciela (zdjecia/stare_miasto 01–13), płyty Rynku, nabrzeża Brdy
+for _k, _c in (("k_zolty", [222, 196, 120]), ("k_krem", [232, 220, 190]), ("k_szaroniebieski", [170, 182, 190]), ("k_rozowy", [222, 172, 160]),
+               ("k_bialy", [236, 232, 222]), ("k_ochra", [206, 168, 104]), ("k_zielony", [188, 202, 168]), ("k_terakota", [196, 128, 96])):
+    P[_k] = tynk(_c)
+P["rynek_plyty"] = {"tex": "granite_tile_04", "m": 2.0, "kol": [176, 172, 164], "szorst": .9}
+P["nabrzeze"] = {"tex": "granite_tile_04", "m": 2.0, "kol": [150, 146, 140], "szorst": .9}
+P["mur_nabrzeza"] = {"tex": "granite_tile", "m": 2.3, "kol": [128, 126, 122], "szorst": .8}
+P["woda_brda"] = {"tex": None, "kol": [38, 62, 66], "szorst": .06, "metal": .2, "woda": "HarbourWater"}   # w grze: materiał wody portu (fale, odbicia)
+P["rama_witryny"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [58, 56, 54], "szorst": .6}   # witryny kamienic: rama grafitowa
+P["deska_podbitka"] = {"tex": "weathered_brown_planks", "m": 1.6, "kol": [120, 92, 66], "szorst": .8}   # podbitka okapu kamienic
 P["kostka_jezdnia"] = {"tex": "herringbone_pavement_03", "m": 2.4, "kol": [124, 122, 118], "szorst": 1.0}   # IMG_1758–1765
 P["kostka_parking"] = {"tex": "red_brick_pavers", "m": 1.8, "kol": [128, 82, 70], "szorst": 1.0}            # zatoki IMG_1760–1761
 P["plac_zabaw"] = {"tex": "playground_sand", "m": 2.07, "kol": [196, 170, 128], "szorst": 1.0}
