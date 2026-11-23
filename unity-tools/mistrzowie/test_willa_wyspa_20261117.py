@@ -73,10 +73,11 @@ class WillaWyspa(unittest.TestCase):
         self.assertIn('"painted_concrete_02", 4f', PLAN)
 
     def test_the_stair_and_the_riva(self):
-        self.assertIn("const float WStX0 = 19f, WStX1 = 21f, WStDrop = 3.95f, WStTread = .30f; const int WStN = 23;", PLAN)
+        # 23.11: 4 m wide between stone cheek walls (it was 2 m between glass panes standing the wrong way)
+        self.assertIn("const float WStX0 = 18f, WStX1 = 22f, WStDrop = 3.95f, WStTread = .30f; const int WStN = 23;", PLAN)
         self.assertLess(3.95 / 23, .18)
-        self.assertLess(19, 20)
-        self.assertLess(20, 21)                                                    # the jetty's root (PomostX 20) at its foot
+        self.assertLess(18, 20)
+        self.assertLess(20, 22)                                                    # the jetty's root (PomostX 20) at its foot
         self.assertIn("public static float PomostX(int nr) => 20f;", HILL)
         self.assertIn("Balustrada(true, PadZ0 + .15f, WStX1 + .1f, PadX1 - .2f, 0f);", VILLA)
         self.assertIn("if (d.rodzaj == Rodzaj.Wyspa) { Pomost(b, d); Lodz(g, d); BraxChampionsWyspaMorze.Zbuduj(g, d); }", SITES)   # 23.11 its own sea

@@ -442,11 +442,12 @@ public static class BraxChampionsWilleDzialki
     {
         if (d.nr == 1) return;                                                  // the hill: the villa's own rock faces
         var pd = BraxChampionsWille.Pad(d.nr); float z0 = pd.z, z1 = z0 + 8.6f, y0 = d.padY - 4.6f, y1 = d.padY;
+        var mur = d.rodzaj == Rodzaj.Wyspa ? BraxChampionsWille.KamienMuruWyspy() : kamien;     // 23.11 the island: Stone Wall 04 (owner's list)
         var q = Quaternion.Euler(0f, d.yaw, 0f); var c = new Vector3(d.srodek.x, 0f, d.srodek.y);
         foreach (float x in new[] { pd.x - .15f, pd.y + .15f })
         {
             var p = c + q * new Vector3(x, 0f, (z0 + z1) * .5f); p.y = (y0 + y1) * .5f;
-            b.Box(kamien, p, new Vector3(.3f, y1 - y0, z1 - z0), q);
+            b.Box(mur, p, new Vector3(.3f, y1 - y0, z1 - z0), q);
             W.Kolizja(p * K, new Vector3(.3f, y1 - y0, z1 - z0) * K, q);
         }
     }

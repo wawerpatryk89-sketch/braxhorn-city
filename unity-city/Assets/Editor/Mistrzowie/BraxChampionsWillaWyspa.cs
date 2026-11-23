@@ -21,16 +21,18 @@ public static partial class BraxChampionsWille
     // the raised spa at the pool's east end (his photo: the mosaic box the pool's water spills from)
     const float SX0 = 3.3f, SX1 = 6.7f, SZ0 = -20.8f, SZ1 = -17.4f, SpaRim = .45f, SpaWater = .40f, SpaFloor = -.75f;
     // the stair from the pad's front down to the beach (the jetty's root at PomostX): 23 risers to the ground 3.95 m down
-    const float WStX0 = 19f, WStX1 = 21f, WStDrop = 3.95f, WStTread = .30f; const int WStN = 23;
+    // (23.11: 4 m wide between stone cheek walls, owner "schody ... porządne"; it was 2 m between glass panes)
+    const float WStX0 = 18f, WStX1 = 22f, WStDrop = 3.95f, WStTread = .30f; const int WStN = 23;
     static Material kortNiebieski, kortZielony, kortLinia;
 
     static void PlanWyspa()
     {
         pietro = FFL1;
+        WPremiumMaterialy();                                                             // 23.11 the owner's list (BraxChampionsWillaWyspaPremium)
         kortNiebieski = BraxChampionsFoundation.SourceMaterial("willa_kort_akryl_niebieski", "painted_concrete_02", 4f, new Color(.42f, .78f, 1.55f));
         kortZielony = BraxChampionsFoundation.SourceMaterial("willa_kort_akryl_zielony", "painted_concrete_02", 4f, new Color(.55f, 1.05f, .62f));
         kortLinia = BraxChampionsFoundation.SourceMaterial("willa_kort_linie", "painted_concrete_02", 4f, new Color(2.3f, 2.3f, 2.25f));
-        Teren(); WTeren(); Basen(); WSpa(); Bryla(2); WMiami(); WJadalnia(); Wnetrze(2); Wyposazenie(2); Ogrod(2); WKort(); Palmy_(); WPalmy();
+        Teren(); WTeren(); Basen(); WSpa(); Bryla(2); WMiami(); WJadalnia(); Wnetrze(2); Wyposazenie(2); WPremiumWnetrze(); Ogrod(2); WKort(); Palmy_(); WPalmy();
     }
 
     // ================================================================ the pad west of the old one, the stair to the beach
@@ -61,12 +63,45 @@ public static partial class BraxChampionsWille
         }
         W.Rampa(new Vector3((x0 + x1) * .5f, 0f, PadZ0), new Vector3((x0 + x1) * .5f, -WStDrop, zFoot), x1 - x0);
         float run = WStN * WStTread, slope = Mathf.Atan2(WStDrop, run) * Mathf.Rad2Deg, len = Mathf.Sqrt(WStDrop * WStDrop + run * run);
+        if (nrWilli == 2) { SchodyPolicze(x0, x1, riser, zFoot, slope, len); return; }
         foreach (float x in new[] { x0 + .04f, x1 - .04f })
         {
             var mid = new Vector3(x, -WStDrop * .5f + .55f, (PadZ0 + zFoot) * .5f);
-            b.Box(glass, mid, new Vector3(.018f, 1.0f, len), Quaternion.Euler(slope, 0f, 0f));
-            b.Box(steel, mid + new Vector3(0f, .52f, 0f), new Vector3(.05f, .04f, len), Quaternion.Euler(slope, 0f, 0f));
-            W.Kolizja(mid, new Vector3(.06f, 1.0f, len), Quaternion.Euler(slope, 0f, 0f));
+            // (23.11: the panes stood the wrong way, rising toward the beach: +pitch turns +z down, the stair rises to +z)
+            b.Box(glass, mid, new Vector3(.018f, 1.0f, len), Quaternion.Euler(-slope, 0f, 0f));
+            b.Box(steel, mid + new Vector3(0f, .52f, 0f), new Vector3(.05f, .04f, len), Quaternion.Euler(-slope, 0f, 0f));
+            W.Kolizja(mid, new Vector3(.06f, 1.0f, len), Quaternion.Euler(-slope, 0f, 0f));
+        }
+    }
+
+    // 23.11 the island's stair (owner's photo: glass panes standing out on the slope over a stepped block): stone cheek walls
+    // either side, stepped with the treads 0.95 m over them, in the retaining walls' stone, a stainless handrail on each on
+    // posts, a warm light in each cheek every fourth step
+    static void SchodyPolicze(float x0, float x1, float riser, float zFoot, float slope, float len)
+    {
+        const float t = .3f, h = .95f;
+        foreach (var (a, c) in new[] { (x0 - t, x0), (x1, x1 + t) })
+        {
+            for (int i = 0; i < WStN; i++)
+            {
+                float stepTop = -WStDrop + (i + 1) * riser, za = zFoot + i * WStTread;                // edge to edge: no face over another
+                MM(murOporowy, a, c, -WStDrop - .35f, stepTop + h, za, za + WStTread, false);
+            }
+            MM(deck, a - .02f, c + .02f, 0f, 1.12f, PadZ0 - .02f, PadZ0 + .3f, false);          // the pier where it meets the pad's balustrade
+            float rx = a < x0 ? c + .06f : a - .06f;                                           // the rail just inside the cheek
+            var mid = new Vector3(rx, -WStDrop * .5f + h - .08f, (PadZ0 + zFoot) * .5f);
+            b.Box(steel, mid, new Vector3(.045f, .045f, len), Quaternion.Euler(-slope, 0f, 0f));          // rising with the stair to +z
+            for (int i = 2; i < WStN; i += 5)
+            {
+                float zp = zFoot + (i + .5f) * WStTread, yp = -WStDrop + (i + 1) * riser;
+                b.Box(steel, new Vector3(rx + (a < x0 ? -.03f : .03f), yp + (h - .08f) * .5f, zp), new Vector3(.03f, h - .08f, .03f), Quaternion.identity);
+            }
+            for (int i = 3; i < WStN; i += 4)
+            {
+                float zp = zFoot + (i + .5f) * WStTread, yp = -WStDrop + (i + 1) * riser + .25f;
+                b.Box(downlight, new Vector3(a < x0 ? c + .004f : a - .004f, yp, zp), new Vector3(.016f, .05f, .16f), Quaternion.identity);   // 12 mm proud
+            }
+            W.Kolizja(new Vector3((a + c) * .5f, -WStDrop * .5f + h * .5f, (PadZ0 + zFoot) * .5f), new Vector3(t, h, len), Quaternion.Euler(-slope, 0f, 0f));
         }
     }
 

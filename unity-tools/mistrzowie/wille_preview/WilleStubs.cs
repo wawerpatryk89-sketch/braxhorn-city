@@ -62,3 +62,7 @@ public static class BraxRegion
         return o;
     }
 }
+
+// 23.11 the island's own sea (BraxChampionsWyspaMorze) is checked by morze_sim --wyspa and the sea's three.js picture; the
+// villa preview draws its own flat sea round a water site (WilleMain "dzialka")
+public static class BraxChampionsWyspaMorze { public static void Zbuduj(UnityEngine.Transform g, BraxChampionsWilleDzialki.Dzialka d) { } }

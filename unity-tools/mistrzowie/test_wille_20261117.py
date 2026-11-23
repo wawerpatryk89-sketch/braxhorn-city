@@ -41,7 +41,9 @@ class Villas(unittest.TestCase):
             self.assertIn(piece, SRC)
         self.assertEqual(SRC.count("BraxKatalog.Bed(c,"), 3)
         self.assertGreaterEqual(SRC.count("BraxKatalog.WcPan(c,"), 4)
-        self.assertGreaterEqual(len(re.findall(r'Model\("(ArenaLobby|HotelSobczak)/', SRC)), 20)
+        # 23.11: five potted plant scans (70 000 / 176 000 triangles each) and the 24 000-triangle desk lamp left the island
+        # villa (the owner's 15-19 frames a second inside, test_willa_wyspa_premium_20261123); the rooms keep their furniture
+        self.assertGreaterEqual(len(re.findall(r'Model\("(ArenaLobby|HotelSobczak)/', SRC)), 18)
         # owner 12.11: no big kitchen walls - a low run without wall units
         self.assertIn('tag + " kuchnia", false);', SRC)
         self.assertNotIn('"lodowka"', SRC)

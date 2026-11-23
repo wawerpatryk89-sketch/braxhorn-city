@@ -399,8 +399,7 @@ public static partial class BraxChampionsWille
             b.Box(downlight, new Vector3(lx, 1.86f, GZ1 + .11f), new Vector3(.08f, .01f, .08f), Quaternion.identity);
             W.Lampa("wejście | kinkiet", new Vector3(lx, 1.7f, GZ1 + .4f), .5f, 4f * K, new Color(1f, .86f, .64f));
         }
-        Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf", "roślina przy wejściu", new Vector3(-2.2f, 0f, GZ1 + .8f), 40f);
-        Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf", "roślina przy wejściu", new Vector3(5.2f, 0f, GZ1 + .8f), 130f);
+        Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf", "roślina przy wejściu", new Vector3(-2.2f, 0f, GZ1 + .8f), 40f);   // one (70 000 triangles)
     }
     // an outside wall along x with window openings (x0, x1, sill, head): the wall round them, the glass in its middle
     static void ScianaOkna(Material zew, float plane, float a0, float a1, float y0, float y1, params Vector4[] okna)
@@ -532,15 +531,15 @@ public static partial class BraxChampionsWille
         W.Lampa(tag + " | kominek", new Vector3(fx + .8f, .7f, -.6f), .7f, 5f * K, new Color(1f, .55f, .22f));
         BraxKatalog.Tv(c, new Vector3(fx + .12f, 1.95f, -.6f), toE, 85f, nr % 4, false, tag + " salon TV");
         for (int i = 0; i < 3; i++) { W.Siedzisko(new Vector3(fx + .42f, .40f, -2.6f + i * 1.6f), toE, "ŁAWA PRZY KOMINKU"); Siedziska++; }
-        BraxKatalog.Rug(c, new Vector3(-10.4f, 0f, -.6f), Vector3.forward, 4.4f, 3.8f, nr == 2);
+        Dywan(new Vector3(-10.4f, 0f, -.6f), 4.4f, 3.8f);                                   // 23.11 wool, not a flat white sheet
         BraxKatalog.Sofa(c, new Vector3(-8.9f, .012f, -.6f), -toE, 3.2f, nr % 2, "sofa");
         BraxKatalog.FloorLamp(c, new Vector3(-7.6f, 0f, 1.7f));
         // dining for eight: two tables end to end, by the glass, on a rug
-        BraxKatalog.Rug(c, new Vector3(1.5f, 0f, -2.75f), Vector3.forward, 4.6f, 3.0f, true);
-        // a walnut credenza on the WC block under the big print
-        b.RoundedBox(walnut, new Vector3(-4.25f, .38f, 5f - .06f - .23f), new Vector3(2.3f, .76f, .45f), .01f, Quaternion.identity, 1);
-        b.Box(BraxKatalog.BlackMatt, new Vector3(-4.25f, .03f, 5f - .06f - .23f), new Vector3(2.2f, .06f, .4f), Quaternion.identity);
-        W.Kolizja(new Vector3(-4.25f, .38f, 5f - .06f - .23f), new Vector3(2.3f, .76f, .45f), Quaternion.identity);
+        BraxKatalog.Rug(c, new Vector3(1.5f, 0f, -2.75f), Vector3.forward, 4.6f, 3.0f, false);
+        // a walnut credenza in the hall under its picture (23.11: it stood before the WC's door, a print over the door)
+        b.RoundedBox(walnut, new Vector3(5.5f, .38f, GZ1 - T - .25f), new Vector3(2.3f, .76f, .45f), .01f, Quaternion.identity, 1);
+        b.Box(BraxKatalog.BlackMatt, new Vector3(5.5f, .03f, GZ1 - T - .25f), new Vector3(2.2f, .06f, .4f), Quaternion.identity);
+        W.Kolizja(new Vector3(5.5f, .38f, GZ1 - T - .25f), new Vector3(2.3f, .76f, .45f), Quaternion.identity);
         BraxKatalog.DiningSet(c, new Vector3(.7f, .012f, -3.2f), Vector3.back, "krzesło");
         BraxKatalog.DiningSet(c, new Vector3(2.3f, .012f, -3.2f), Vector3.back, "krzesło");
         // the kitchen: a low run on the east wall (no wall units), the stone island with three stools
@@ -614,9 +613,7 @@ public static partial class BraxChampionsWille
         Drzwi("garderoba", true, 3f, 4.0f, 4.9f, y); Drzwi("łazienka główna", false, 9f, 1.4f, 2.3f, y);
         Drzwi("łazienka 2", true, 3f, -15.2f, -14.4f, y);
         // bedrooms: the beds face the view (their foot to the glass)
-        BraxKatalog.Rug(c, new Vector3(-11.4f, y, -1.6f), Vector3.forward, 2.8f, 2.6f, nr == 2);
-        BraxKatalog.Rug(c, new Vector3(-2.5f, y, -1.6f), Vector3.forward, 2.8f, 2.6f, nr == 2);
-        BraxKatalog.Rug(c, new Vector3(12.0f, y, -1.4f), Vector3.forward, 3.4f, 3.0f, true);
+        Dywan(new Vector3(-11.4f, y, -1.6f), 2.8f, 2.6f); Dywan(new Vector3(-2.5f, y, -1.6f), 2.8f, 2.6f); Dywan(new Vector3(12.0f, y, -1.4f), 3.4f, 3.0f);
         BraxKatalog.Bed(c, new Vector3(-11.4f, y + .012f, -1.30f), Vector3.back, 1.6f, "łóżko");
         BraxKatalog.Bed(c, new Vector3(-2.5f, y + .012f, -1.30f), Vector3.back, 1.6f, "łóżko");
         BraxKatalog.Bed(c, new Vector3(12.0f, y + .012f, -1.30f), Vector3.back, 1.8f, "łóżko");
@@ -633,7 +630,7 @@ public static partial class BraxChampionsWille
         W.Kolizja(new Vector3(2.46f, y + .38f, -1.0f), new Vector3(.8f, .76f, 1.6f), Quaternion.identity);
         BraxKatalog.Laptop(c, new Vector3(2.5f, y + .76f, -1.0f), Vector3.right, nr % 3);
         Siedz(Model("HotelSobczak/dining_chair_02/dining_chair_02_2k.gltf", "krzesło przy biurku", new Vector3(3.35f, y, -1.0f), -90f), new Vector3(3.35f, y + .47f, -1.0f), Vector3.left, "KRZESŁO");
-        Model("HotelSobczak/desk_lamp_arm_01/desk_lamp_arm_01_1k.gltf", "lampka", new Vector3(2.3f, y + .76f, -1.6f), 90f);
+        LampkaBiurko(new Vector3(2.55f, y + .76f, -1.62f));                                       // 23.11 (a 24 000-triangle scan with a metre-long arm)
         // the walk-in: wardrobes on both long walls
         BraxKatalog.Wardrobe(c, new Vector3(5.5f, y, UZ1 - T - .6f), Vector3.back, 5.6f, walnut, BraxKatalog.Walnut, 2.6f, "garderoba");
         // bathrooms: the master's double vanity, the free-standing tub at the window, the walk-in shower, the WC
@@ -668,7 +665,7 @@ public static partial class BraxChampionsWille
     static void Prysznic(Vector3 p)
     {
         Out_(false);
-        MM(BraxKatalog.StoneDark, p.x - .7f, p.x + .7f, p.y + .014f, p.y + .020f, p.z - .7f, p.z + .7f, false);
+        MM(nrWilli == 2 && wGranit ? wGranit : BraxKatalog.StoneDark, p.x - .7f, p.x + .7f, p.y + .014f, p.y + .020f, p.z - .7f, p.z + .7f, false);   // 23.11 the island: light granite (a black square)
         MM(glass, p.x - .72f, p.x - .70f, p.y, p.y + 2.1f, p.z - .7f, p.z + .7f);
         b.Tube(chrome, p + new Vector3(.68f, 2.25f, 0f), p + new Vector3(.3f, 2.25f, 0f), .012f, 8);
         b.Cylinder(chrome, p + new Vector3(.2f, 2.22f, 0f), .15f, .02f, 24, Quaternion.identity, true, true);
@@ -690,17 +687,15 @@ public static partial class BraxChampionsWille
             Siedz(Model("HotelSobczak/mid_century_lounge_chair/mid_century_lounge_chair_2k.gltf", "fotel przy szybie", new Vector3(x, 0f, -4.5f), 180f), new Vector3(x, .42f, -4.5f), Vector3.back, "FOTEL");
         Model("HotelSobczak/side_table_01/side_table_01_1k.gltf", "stolik przy szybie", new Vector3(-9.9f, 0f, -4.6f), 0f);
         Model("HotelSobczak/Ottoman_01/Ottoman_01_2k.gltf", "puf", new Vector3(-6.9f, 0f, 3.6f), 20f);
-        // plants in the corners, by the stair, in the hall, by the kitchen
+        // plants: one in the living room's corner, one at the stair's foot, a small one on the hall's credenza (23.11: the potted
+        // plant scans are 70 000 / 176 000 triangles each - nine of them were 1.05 million triangles in this house, the owner's
+        // 15-19 frames a second inside; the heavier one is gone, three of the lighter stay)
         Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf", "roślina", new Vector3(-13.1f, 0f, -5.3f), 30f);
-        Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf", "roślina", new Vector3(-2.7f, 0f, -5.3f), 110f);
-        Model("ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf", "roślina", new Vector3(-13.2f, 0f, 4.7f), 70f);
-        Model("HotelSobczak/potted_plant_04/potted_plant_04_1k.gltf", "roślina", new Vector3(3.3f, 0f, 8.2f), 0f);
-        Model("ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf", "roślina", new Vector3(13.1f, 0f, 1.0f), 200f);
+        Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf", "roślina", new Vector3(-12.9f, 0f, 4.9f), 70f);
+        Model("HotelSobczak/potted_plant_04/potted_plant_04_1k.gltf", "roślina", new Vector3(4.7f, .76f, GZ1 - T - .25f), 0f);
         Model("HotelSobczak/ceramic_vase_01/ceramic_vase_01_1k.gltf", "wazon", new Vector3(-1.7f, .84f, GZ1 - T - .25f), 0f);
         Model("HotelSobczak/ceramic_vase_02/ceramic_vase_02_1k.gltf", "wazon", new Vector3(fxHearth, .40f, 1.7f), 0f);
-        // art: a large print on the WC block (to the living room), one by the kitchen, one in the hall
-        Obrazek(nr, new Vector3(-4.25f, 1.75f, 5f - .06f), Vector3.back, 2.0f, 1.25f);
-        Obrazek(nr + 1, new Vector3(11.3f, 1.75f, 5f - .06f), Vector3.back, 1.6f, 1.0f);
+        // art in the hall (23.11: the prints on the WC and pantry blocks hung over their doors; the blocks are brick now)
         Model("HotelSobczak/fancy_picture_frame_01/fancy_picture_frame_01_1k.gltf", "obraz w holu", new Vector3(5.5f, 1.6f, GZ1 - T - .03f), 180f, true);
         // two pendants over the dining table, one in the hall
         foreach (float x in new[] { .7f, 2.3f }) ModelTop("HotelSobczak/modern_ceiling_lamp_01/modern_ceiling_lamp_01_1k.gltf", "lampa nad stołem", new Vector3(x, H0 - .9f, -2.75f), H0);
@@ -709,7 +704,8 @@ public static partial class BraxChampionsWille
         for (float x = -12f; x <= 12.1f; x += 2.4f) for (float z = -4.8f; z <= 7.3f; z += 2.4f)
         {
             if (x < StairX1 + .3f && x > StairX0 - .5f && z > StairZ0 - .3f) continue;
-            b.Cylinder(downlight, new Vector3(x, H0 - .007f, z), .065f, .003f, 16, Quaternion.identity, false, true);
+            float dol = z < 5f - .06f ? WSufitDol : 0f;                                     // the oak ceiling (BraxChampionsWillaWyspaPremium)
+            b.Cylinder(downlight, new Vector3(x, H0 - .007f - dol, z), .065f, .003f, 16, Quaternion.identity, false, true);
         }
         for (float x = -14.4f; x <= 14.5f; x += 2.4f) for (float z = -5.4f; z <= 7.0f; z += 2.4f)
             b.Cylinder(downlight, new Vector3(x, Roof - .007f, z), .065f, .003f, 16, Quaternion.identity, false, true);
@@ -717,13 +713,10 @@ public static partial class BraxChampionsWille
         Siedz(Model("HotelSobczak/mid_century_lounge_chair/mid_century_lounge_chair_2k.gltf", "fotel w sypialni", new Vector3(14.5f, y, -5.0f), 200f), new Vector3(14.5f, y + .42f, -5.0f), new Vector3(-.34f, 0f, -.94f), "FOTEL");
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel w sypialni", new Vector3(-14.6f, y, -5.4f), 150f), new Vector3(-14.6f, y + .45f, -5.4f), new Vector3(.5f, 0f, -.87f), "FOTEL");
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel w sypialni", new Vector3(-6.0f, y, -5.4f), 210f), new Vector3(-6.0f, y + .45f, -5.4f), new Vector3(-.5f, 0f, -.87f), "FOTEL");
-        Obrazek(nr + 2, new Vector3(12.0f, y + 1.85f, 1f - .06f), Vector3.back, 2.2f, 1.1f);
-        Obrazek(nr + 3, new Vector3(-11.4f, y + 1.85f, 1f - .06f), Vector3.back, 1.8f, 1.0f);
-        Obrazek(nr + 4, new Vector3(-2.5f, y + 1.85f, 1f - .06f), Vector3.back, 1.8f, 1.0f);
+        Obrazek(nr + 2, new Vector3(12.0f, y + 1.85f, 1f - .06f - .045f), Vector3.back, 2.2f, 1.1f);      // on the walls' brick / wood (4 cm)
+        Obrazek(nr + 3, new Vector3(-11.4f, y + 1.85f, 1f - .06f - .045f), Vector3.back, 1.8f, 1.0f);
+        Obrazek(nr + 4, new Vector3(-2.5f, y + 1.85f, 1f - .06f - .045f), Vector3.back, 1.8f, 1.0f);
         Obrazek(nr + 1, new Vector3(-12.0f, y + 1.6f, 1f + .06f), Vector3.forward, 1.6f, .9f);                 // the corridor
-        Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf", "roślina", new Vector3(15.1f, y, .2f), 0f);
-        Model("ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf", "roślina", new Vector3(-7.6f, y, -5.8f), 0f);
-        Model("ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf", "roślina", new Vector3(1.3f, y, -5.8f), 0f);
         Model("HotelSobczak/potted_plant_04/potted_plant_04_1k.gltf", "roślina", new Vector3(15.1f, y, 7.1f), 0f);
     }
     static float fxHearth => GX0 + T + .4f;
