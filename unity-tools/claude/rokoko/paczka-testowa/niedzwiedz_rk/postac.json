@@ -3,10 +3,10 @@
  "states": [
   "Idle",
   "Walk",
-  "RkTelefon",
   "RkObserwacja",
   "RkStukanieStopa",
-  "RkWzruszenieRamion"
+  "RkZdziwienieDwaRazy",
+  "RkDlonNaTwarz"
  ],
  "zrodlo": "tripo_convert_00802d59-c5a1-4ed3-9c15-84c258a33304.fbx",
  "ruchy_przeniesione": [
@@ -21,11 +21,6 @@
    "klatek": 43
   },
   {
-   "stan": "RkTelefon",
-   "zrodlo": "OnCellPhone_mixamo.fbx",
-   "klatek": 240
-  },
-  {
    "stan": "RkObserwacja",
    "zrodlo": "WatchOverCity_mixamo.fbx",
    "klatek": 240
@@ -36,8 +31,13 @@
    "klatek": 240
   },
   {
-   "stan": "RkWzruszenieRamion",
-   "zrodlo": "Shrugging_mixamo.fbx",
+   "stan": "RkZdziwienieDwaRazy",
+   "zrodlo": "DoubleTakes_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkDlonNaTwarz",
+   "zrodlo": "FacePalms_mixamo.fbx",
    "klatek": 240
   }
  ],

@@ -5,14 +5,14 @@
   "Walk",
   "RkBoks",
   "RkWalkaZCieniem",
-  "RkNokautZwyciezca",
-  "RkNokautPrzegrany"
+  "RkPiescWGore",
+  "RkWalkaIronMan"
  ],
  "zrodlo": "tripo_convert_72e3042b-a0c2-4070-94a8-ab0ddbf409ee.fbx",
  "ruchy_przeniesione": [
   {
    "stan": "Idle",
-   "zrodlo": "FightingIdle_mixamo.fbx",
+   "zrodlo": "Regular_Medium_mixamo.fbx",
    "klatek": 300
   },
   {
@@ -31,13 +31,13 @@
    "klatek": 240
   },
   {
-   "stan": "RkNokautZwyciezca",
-   "zrodlo": "KnockOut_Winner_mixamo.fbx",
+   "stan": "RkPiescWGore",
+   "zrodlo": "FistPumps_mixamo.fbx",
    "klatek": 240
   },
   {
-   "stan": "RkNokautPrzegrany",
-   "zrodlo": "KnockOut_Loser_mixamo.fbx",
+   "stan": "RkWalkaIronMan",
+   "zrodlo": "IronMan_Combat_mixamo.fbx",
    "klatek": 240
   }
  ],

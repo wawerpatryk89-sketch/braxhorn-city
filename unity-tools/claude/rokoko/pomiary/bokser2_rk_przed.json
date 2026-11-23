@@ -1,0 +1,91 @@
+{
+ "postac": "bokser2_rk",
+ "wzrost_m": 0.976,
+ "prog_cm": 1.2,
+ "ujecia": {
+  "Idle": {
+   "klatek_badanych": 66,
+   "przenikanie_klatek_proc": 62.1,
+   "przenikanie_max_cm": 6.9,
+   "przenikanie_najgorsza_klatka": 184,
+   "przenikanie_reka": {
+    "Left": 2997,
+    "Right": 2679
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 1.84,
+   "dlon_max_zgniecenie": 0.37,
+   "skret_nadgarstka_max_st": 32.0
+  },
+  "RkBoks": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 80.0,
+   "przenikanie_max_cm": 3.9,
+   "przenikanie_najgorsza_klatka": 217,
+   "przenikanie_reka": {
+    "Right": 6430,
+    "Left": 510
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 4.02,
+   "dlon_max_zgniecenie": 0.06,
+   "skret_nadgarstka_max_st": 50.0
+  },
+  "RkNokautPrzegrany": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 45.0,
+   "przenikanie_max_cm": 7.8,
+   "przenikanie_najgorsza_klatka": 70,
+   "przenikanie_reka": {
+    "Left": 4339,
+    "Right": 11679
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 3.59,
+   "dlon_max_zgniecenie": 0.03,
+   "skret_nadgarstka_max_st": 89.0
+  },
+  "RkNokautZwyciezca": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 50.0,
+   "przenikanie_max_cm": 6.6,
+   "przenikanie_najgorsza_klatka": 199,
+   "przenikanie_reka": {
+    "Right": 5514,
+    "Left": 8086
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 3.96,
+   "dlon_max_zgniecenie": 0.03,
+   "skret_nadgarstka_max_st": 83.0
+  },
+  "RkWalkaZCieniem": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 87.5,
+   "przenikanie_max_cm": 5.5,
+   "przenikanie_najgorsza_klatka": 7,
+   "przenikanie_reka": {
+    "Left": 5156,
+    "Right": 1780
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 4.09,
+   "dlon_max_zgniecenie": 0.03,
+   "skret_nadgarstka_max_st": 59.0
+  },
+  "Walk": {
+   "klatek_badanych": 18,
+   "przenikanie_klatek_proc": 100.0,
+   "przenikanie_max_cm": 5.3,
+   "przenikanie_najgorsza_klatka": 49,
+   "przenikanie_reka": {
+    "Left": 1625,
+    "Right": 4029
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 2.44,
+   "dlon_max_zgniecenie": 0.05,
+   "skret_nadgarstka_max_st": 5.0
+  }
+ }
+}

@@ -116,6 +116,39 @@ def wczytaj_zrodlo(plik, przed_obj, przed_akcje):
     return rigi[0], akcja, nowe, akcje
 
 
+# --- PALCE -------------------------------------------------------------------------------
+# Pomiar 23.11 (rk_mierz.py): przy przenoszeniu obrotu swiata krawedzie siatki palcow zapadaly
+# sie do 1-10 % dlugosci (zatwierdzona obsada nigdy ponizej 15 %) — palce skladaly sie przez
+# dlon. Powod: kosci palcow w modelach z Tripo maja inaczej ustawione osie niz rekawice Rokoko.
+# Dlatego z nagrania biore TYLKO KAT ZGIECIA kazdego stawu palca (w plaszczyznie dloni)
+# i zginam nasz palec o ten kat wokol jego wlasnej osi zgiecia. Palec nie moze sie juz
+# wykrecic na boki ani przejsc przez dlon; kat jest dodatkowo ograniczony do zakresu stawu.
+PALCE = ("Index", "Middle", "Ring", "Pinky", "Thumb")
+OS_Y = Vector((0, 1, 0))
+
+
+def kat_zgiecia(p, d, n):
+    c = n.cross(p)
+    if c.length < 1e-6:
+        return 0.0
+    c.normalize()
+    return math.atan2(p.cross(d).dot(c), p.dot(d))
+
+
+def dlon_spoczynek(szk, st):
+    g = szk.glowy
+    if any(st + k not in g for k in ("Hand", "HandIndex1", "HandPinky1", "HandMiddle1")):
+        return None
+    n = (g[st + "HandIndex1"] - g[st + "Hand"]).cross(g[st + "HandPinky1"] - g[st + "Hand"]).normalized()
+    kier = (g[st + "HandMiddle1"] - g[st + "Hand"]).normalized()
+    lancuchy = []
+    for p in PALCE:
+        lan = [st + "Hand" + p + str(i) for i in (1, 2, 3) if st + "Hand" + p + str(i) in g]
+        if lan:
+            lancuchy.append((p, lan))
+    return n, kier, lancuchy
+
+
 def srednia(wart, okno):
     n = len(wart); pol = okno // 2; out = []
     for i in range(n):
@@ -296,6 +329,67 @@ def przenies(cel, szk_c, plik, stan, opcje):
         probki, okres = jeden_cykl_chodu(probki, szk_z)
     n = len(probki)
 
+    # --- palce: kat zgiecia kazdego stawu z nagrania, os zgiecia z naszej dloni ---
+    palce_kat = {}      # klucz kosci -> lista katow (rad) na klatke
+    palce_os = {}       # klucz kosci -> os zgiecia w lokalnym ukladzie NASZEJ kosci
+    for st in ("Left", "Right"):
+        dz = dlon_spoczynek(szk_z, st)
+        dc = dlon_spoczynek(szk_c, st)
+        if not dz or not dc:
+            continue
+        nz, kz, lz = dz
+        nc, kc_, lc = dc
+        wsp_lan = {p: [k for k in lan if k in wsp and k in szk_c.kosci] for p, lan in lz}
+        # os zgiecia naszej kosci (w jej ukladzie spoczynkowym)
+        for p, lan in lc:
+            poprz = kc_
+            for k in lan:
+                d_r = szk_c.qspocz[k] @ OS_Y
+                c = nc.cross(poprz)
+                if c.length > 1e-6 and k in wsp_lan.get(p, []):
+                    palce_os[k] = szk_c.qspocz[k].inverted() @ c.normalized()
+                poprz = d_r
+        # kat zgiecia z nagrania, klatka po klatce
+        serie = {}
+        for pos_z, D in probki:
+            n_cur = D[st + "Hand"] @ nz
+            poprz_c, poprz_r = D[st + "Hand"] @ kz, kz
+            for p, lan in lz:
+                poprz_c, poprz_r = D[st + "Hand"] @ kz, kz
+                for k in lan:
+                    d_r = szk_z.qspocz[k] @ OS_Y
+                    d_c = D[k] @ d_r if k in D else d_r
+                    serie.setdefault(k, []).append(kat_zgiecia(poprz_c, d_c, n_cur) - kat_zgiecia(poprz_r, d_r, nz))
+                    poprz_c, poprz_r = d_c, d_r
+        # w ktora strone jest zgiecie do srodka dloni: w nagraniu palce zginaja sie duzo,
+        # a prostuja do tylu malo — znak przewazajacych duzych katow to znak zgiecia
+        duze = [v for p in ("Index", "Middle", "Ring", "Pinky") for v in serie.get(st + "Hand" + p + "1", [])
+                if abs(v) > math.radians(12)]
+        znak = 1.0 if sum(duze) >= 0 else -1.0
+        for k, vals in serie.items():
+            if k not in palce_os:
+                continue
+            kciuk = "Thumb" in k
+            # Gleboka piesc (90°+ w kazdym stawie) zgniata siatke palca z Tripo przy kostce do
+            # 7 % dlugosci krawedzi — pomiar 23.11. Do 55° w stawie dlon zostaje cala, a z odleglosci
+            # telefonu luzno zacisnieta piesc czyta sie tak samo.
+            pmax = float(opcje.get("palce_max", 55))
+            lo, hi = (math.radians(-10), math.radians(min(30, pmax))) if kciuk else (math.radians(-8), math.radians(pmax))
+            mn = 0.5 if kciuk else 1.0
+            palce_kat[k] = [znak * min(hi, max(lo, znak * v * mn)) for v in vals]
+        # PALCE ZGINAJA SIE RAZEM. Pomiar 23.11 (tancerka, Radosc): skora miedzy srodkowym
+        # a serdecznym rozciagnieta x3,4–3,9, bo nagranie zgina je kazdy inaczej. W dloni z Tripo
+        # palce maja wspolne wagi, wiec rozny kat dwoch sasiednich palcow rwie skore miedzy nimi.
+        # Kat kazdego stawu idzie w strone sredniej czterech palcow na tym samym poziomie.
+        razem = float(opcje.get("palce_razem", 0.7))
+        for seg in "123":
+            kl = [st + "Hand" + p + seg for p in ("Index", "Middle", "Ring", "Pinky") if st + "Hand" + p + seg in palce_kat]
+            if len(kl) < 2:
+                continue
+            sr = [sum(palce_kat[x][i] for x in kl) / len(kl) for i in range(len(palce_kat[kl[0]]))]
+            for x in kl:
+                palce_kat[x] = [razem * a + (1 - razem) * v for a, v in zip(sr, palce_kat[x])]
+
     # --- nasza postac: kolejnosc od rodzica ---------------------------------
     kolej = []
     def idz(bone):
@@ -317,7 +411,7 @@ def przenies(cel, szk_c, plik, stan, opcje):
     obroty = {bone.name: [] for bone in cel.data.bones if klucze[bone.name] in wsp}
     polozenia = []
     stopy = []
-    for pos_z, D in probki:
+    for nr_kl, (pos_z, D) in enumerate(probki):
         # biodra w swiecie naszej postaci
         wzgl = pos_z - p0
         wys = pos_z.dot(up_z) - ziemia_z
@@ -328,13 +422,18 @@ def przenies(cel, szk_c, plik, stan, opcje):
             nazwa = bone.name
             k = klucze[nazwa]
             if k in D and bone.name == szk_c.kosci[k].name:
-                q_swiat = (C @ D[k] @ Ci) @ QA[k] @ szk_c.qspocz[k]
-                q_arm = qo_ci @ q_swiat
-                if bone.parent is None:
-                    q_baza = kwat(spocz[nazwa]).inverted() @ q_arm
+                if k in palce_kat:
+                    q_baza = Quaternion(palce_os[k], palce_kat[k][nr_kl])
+                elif k.startswith(("LeftHand", "RightHand")) and k not in ("LeftHand", "RightHand"):
+                    q_baza = Quaternion()          # palec bez pary w nagraniu: zostaje jak w modelu
                 else:
-                    q_rodzic = kwat(M[bone.parent.name] @ lokal[nazwa])
-                    q_baza = q_rodzic.inverted() @ q_arm
+                    q_swiat = (C @ D[k] @ Ci) @ QA[k] @ szk_c.qspocz[k]
+                    q_arm = qo_ci @ q_swiat
+                    if bone.parent is None:
+                        q_baza = kwat(spocz[nazwa]).inverted() @ q_arm
+                    else:
+                        q_rodzic = kwat(M[bone.parent.name] @ lokal[nazwa])
+                        q_baza = q_rodzic.inverted() @ q_arm
                 lista = obroty[nazwa]
                 if lista and lista[-1].dot(q_baza) < 0:
                     q_baza = -q_baza
@@ -424,6 +523,188 @@ def przenies(cel, szk_c, plik, stan, opcje):
     return nowa
 
 
+# --- RECE NIE WCHODZA W CIALO ----------------------------------------------------------
+# Pomiar 23.11: przedramiona i dlonie wchodzily w tulow i uda do 13 cm (zatwierdzona obsada:
+# do ~3,5 cm, i to przy piciu). Powod: ruch nagrany na szczuplym aktorze, a nasze postacie
+# sa szersze (kulturysta, niedzwiedzica). Kat w stawie barkowym jest przeniesiony wiernie,
+# ale tam, gdzie aktor mial wolne miejsce, nasza postac ma juz brzuch albo udo.
+# Poprawka: w kazdej klatce sprawdzam na odksztalconej siatce, czy przedramie lub dlon sa pod
+# skora tulowia, glowy albo ud. Jesli tak, odwodze ramie w bok (obrot w barku na zewnatrz)
+# o najmniejszy kat, przy ktorym reka juz nie przenika — najwyzej 35°. Kat wygladzam w czasie,
+# zeby reka nie skakala. Nic nie jest ustawiane recznie.
+RDZEN_CIALA = {"Hips", "Spine", "Spine1", "Spine2", "Neck", "Head", "LeftUpLeg", "RightUpLeg",
+               "LeftShoulder", "RightShoulder"}
+
+
+def klasy_siatki(siatki):
+    """Dla kazdej siatki: twarze rdzenia ciala i wierzcholki przedramion/dloni (lewe, prawe)."""
+    out = []
+    for m in siatki:
+        grupy = {g.index: klucz(g.name) for g in m.vertex_groups}
+        klasa = []
+        for v in m.data.vertices:
+            best, w = "", 0.0
+            for g in v.groups:
+                if g.weight > w and g.group in grupy:
+                    best, w = grupy[g.group], g.weight
+            klasa.append(best)
+        rdzen = [p.index for p in m.data.polygons if all(klasa[i] in RDZEN_CIALA for i in p.vertices)]
+        reka = {st: [i for i, k in enumerate(klasa) if k.startswith((st + "ForeArm", st + "Hand"))][::2]
+                for st in ("Left", "Right")}
+        out.append((m, rdzen, reka))
+    return out
+
+
+def wewnatrz(bvh, p, nrm, H):
+    """Punkt „za” najblizsza scianka tulowia jest naprawde W SRODKU tylko wtedy, gdy idac dalej
+    w glab (przeciwnie do normalnej) trafiamy na druga scianke OD SRODKA. Bez tego dziury
+    w platku tulowia (wierzcholki przy pachach przypisane do ramienia) daja falszywe
+    „przenikanie” na glebokosc calej klatki piersiowej — reka za plecami liczy sie jak w piersi."""
+    kier = -nrm
+    hit = bvh.ray_cast(p + kier * (0.002 * H), kier, 0.6 * H)
+    return hit[0] is not None and hit[1].dot(kier) > 0
+
+
+def glebokosc(bvh, punkty, H, kierunek=False):
+    g = 0.0
+    suma = Vector((0, 0, 0))
+    for p in punkty:
+        loc, nrm, idx, dist = bvh.find_nearest(p)
+        if loc is None or dist > 0.15 * H:
+            continue
+        pod = -(p - loc).dot(nrm)
+        if pod > 0 and not wewnatrz(bvh, p, nrm, H):
+            continue
+        if pod > 0:
+            suma += nrm * pod
+        if pod > g:
+            g = pod
+    if kierunek:
+        return g, (suma.normalized() if suma.length > 1e-9 else None)
+    return g
+
+
+def odsun_rece(cel, akcja, klasy, szk_c, H, co_ile=2, maks=math.radians(35)):
+    from mathutils.bvhtree import BVHTree
+    scena = bpy.context.scene
+    cel.animation_data.action = akcja
+    prog = 0.012 * H
+    n = int(round(akcja.frame_range[1]))
+    bok = szk_c.os.col[0]
+    mw = cel.matrix_world
+    kosc = {st: {"Arm": szk_c.kosci[st + "Arm"].name, "Hand": szk_c.kosci[st + "Hand"].name} for st in ("Left", "Right")}
+    probki = {"Left": [], "Right": []}
+    klatki = list(range(1, n + 1, co_ile))
+    if klatki[-1] != n:
+        klatki.append(n)
+    przed = {"Left": 0.0, "Right": 0.0}
+    kierunki = {"Left": [], "Right": []}
+    for f in klatki:
+        scena.frame_set(f)
+        dg = bpy.context.evaluated_depsgraph_get()
+        wsp, twarze, reka = [], [], {"Left": [], "Right": []}
+        for (m, rdzen, rk) in klasy:
+            e = m.evaluated_get(dg); me = e.to_mesh()
+            co = [m.matrix_world @ v.co for v in me.vertices]
+            baza = len(wsp)
+            wsp.extend(co)
+            twarze.extend([[baza + i for i in me.polygons[j].vertices] for j in rdzen])
+            for st in reka:
+                reka[st].extend(co[i] for i in rk[st])
+            e.to_mesh_clear()
+        if not twarze:
+            return
+        bvh = BVHTree.FromPolygons(wsp, twarze, all_triangles=False)
+        for st, zew in (("Left", bok), ("Right", -bok)):
+            pb_a = cel.pose.bones[kosc[st]["Arm"]]; pb_h = cel.pose.bones[kosc[st]["Hand"]]
+            bark = mw @ pb_a.head; dlon_p = mw @ pb_h.head
+            v = dlon_p - bark
+            os_ = v.cross(zew)
+            g0, nrm = glebokosc(bvh, reka[st], H, kierunek=True)
+            przed[st] = max(przed[st], g0)
+            # Reka ma wyjsc z ciala ta strona, ktora weszla: przy gardzie (przedramie przed klatka)
+            # do przodu, przy udzie w bok. Kierunek = srednia normalna skory w miejscach przenikania.
+            if nrm is not None:
+                kier = (nrm * 0.75 + zew * 0.25).normalized()
+                os_ = v.cross(kier)
+            kierunki[st].append(nrm * 0.75 + zew * 0.25 if nrm is not None else zew.copy())
+            if g0 <= prog or os_.length < 1e-6:
+                probki[st].append(0.0); continue
+            os_.normalize()
+            def g(alfa):
+                R = Matrix.Rotation(alfa, 3, os_)
+                return glebokosc(bvh, [bark + R @ (p - bark) for p in reka[st]], H)
+            if g(maks) > prog:
+                probki[st].append(maks); continue
+            lo, hi = 0.0, maks
+            for _ in range(6):
+                mid = (lo + hi) / 2
+                if g(mid) > prog:
+                    lo = mid
+                else:
+                    hi = mid
+            probki[st].append(hi)
+    # wygladzenie: najpierw „poszerzenie” (max w oknie), potem srednia — bez skokow
+    def gladko(vals):
+        k = 3
+        dil = [max(vals[max(0, i - k):i + k + 1]) for i in range(len(vals))]
+        return [sum(dil[max(0, i - k):i + k + 1]) / len(dil[max(0, i - k):i + k + 1]) for i in range(len(dil))]
+    katy = {}
+    for st in probki:
+        gl = gladko(probki[st])
+        pelne = []
+        for f in range(1, n + 1):
+            j = min(range(len(klatki)), key=lambda x: abs(klatki[x] - f))
+            if klatki[j] == f or j == len(klatki) - 1:
+                pelne.append(gl[j])
+            else:
+                j0 = j if klatki[j] < f else j - 1
+                j1 = j0 + 1
+                t = (f - klatki[j0]) / (klatki[j1] - klatki[j0])
+                pelne.append(gl[j0] * (1 - t) + gl[j1] * t)
+        katy[st] = pelne
+    # wpisanie do klatek kluczowych ramienia
+    for st, zew in (("Left", bok), ("Right", -bok)):
+        if max(katy[st]) < math.radians(0.5):
+            continue
+        nazwa = kosc[st]["Arm"]
+        krzywe = [akcja.fcurves.find('pose.bones["%s"].rotation_quaternion' % nazwa, index=i) for i in range(4)]
+        pb_a = cel.pose.bones[nazwa]; pb_h = cel.pose.bones[kosc[st]["Hand"]]
+        w2a = cel.matrix_world.inverted().to_3x3()
+        kier_s = kierunki[st]
+        poprz = None
+        for f in range(1, n + 1):
+            alfa = katy[st][f - 1]
+            scena.frame_set(f)
+            if alfa > math.radians(0.2):
+                j = max(0, min(len(klatki) - 2, next((x for x in range(len(klatki) - 1) if klatki[x + 1] >= f), len(klatki) - 2)))
+                t = 0.0 if klatki[j + 1] == klatki[j] else min(1.0, max(0.0, (f - klatki[j]) / (klatki[j + 1] - klatki[j])))
+                kw = kier_s[j].lerp(kier_s[j + 1], t)
+                if kw.length < 1e-6:
+                    kw = zew.copy()
+                zew_arm = (w2a @ kw).normalized()
+                v = pb_h.head - pb_a.head
+                os_ = v.cross(zew_arm)
+                if os_.length > 1e-6:
+                    os_.normalize()
+                    piv = pb_a.head.copy()
+                    R = Matrix.Translation(piv) @ Matrix.Rotation(alfa, 4, os_) @ Matrix.Translation(-piv)
+                    pb_a.matrix = R @ pb_a.matrix
+            q = pb_a.rotation_quaternion.copy()
+            if poprz is not None and poprz.dot(q) < 0:
+                q = -q
+            poprz = q
+            for i in range(4):
+                krzywe[i].keyframe_points[f - 1].co[1] = q[i]
+        for c in krzywe:
+            c.update()
+    po = {}
+    for st in ("Left", "Right"):
+        po[st] = round(math.degrees(max(katy[st])), 1)
+    print("BRAX_RECE %-16s przenikanie przed: L %.1f cm, P %.1f cm | odwiedzenie ramienia max: L %.0f°, P %.0f°"
+          % (akcja.name, przed["Left"] * 100, przed["Right"] * 100, po["Left"], po["Right"]), flush=True)
+
+
 def main(argv):
     model, wyjscie, ident, zlecenie = argv[:4]
     model = Path(model)
@@ -456,11 +737,20 @@ def main(argv):
     bpy.context.view_layer.update()
     szk_c = Szkielet(cel)
 
+    siatki_c = [o for o in moje if o.type == "MESH"]
+    klasy = klasy_siatki(siatki_c)
+    pkt = [m.matrix_world @ v.co for m in siatki_c for v in list(m.data.vertices)[::9]]
+    H = max(p.z for p in pkt) - min(p.z for p in pkt)
+
     stany = []
     for wpis in spis["postacie"][ident]:
         if wpis["stan"] in wlasne:
             raise SystemExit("%s ma juz wlasne ujecie %s — nie nadpisuje" % (ident, wpis["stan"]))
         akcja = przenies(cel, szk_c, klipy / wpis["plik"], wpis["stan"], wpis)
+        if cel.animation_data is None:
+            cel.animation_data_create()
+        if not wpis.get("bez_odsuwania"):
+            odsun_rece(cel, akcja, klasy, szk_c, H)
         stany.append({"stan": wpis["stan"], "zrodlo": wpis["plik"], "klatek": int(akcja.frame_range[1])})
     if cel.animation_data is None:
         cel.animation_data_create()

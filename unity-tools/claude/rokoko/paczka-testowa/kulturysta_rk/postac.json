@@ -5,8 +5,8 @@
   "Walk",
   "RkKopniecieOkrezne",
   "RkKopniecieProste",
-  "RkWalka1",
-  "RkWalka2"
+  "RkWalka2",
+  "RkRzutKarny"
  ],
  "zrodlo": "tripo_convert_61ff34d9-ab9e-4dbb-9bf5-1758f3636001.fbx",
  "ruchy_przeniesione": [
@@ -31,13 +31,13 @@
    "klatek": 240
   },
   {
-   "stan": "RkWalka1",
-   "zrodlo": "Fight_01_mixamo.fbx",
+   "stan": "RkWalka2",
+   "zrodlo": "Fight_02_mixamo.fbx",
    "klatek": 240
   },
   {
-   "stan": "RkWalka2",
-   "zrodlo": "Fight_02_mixamo.fbx",
+   "stan": "RkRzutKarny",
+   "zrodlo": "Soccer_PenaltyKick_mixamo.fbx",
    "klatek": 240
   }
  ],

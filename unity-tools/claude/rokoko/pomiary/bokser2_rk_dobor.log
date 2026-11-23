@@ -1,0 +1,32 @@
+bokser2_rk BRAX_RECE KIdle0           przenikanie przed: L 3.7 cm, P 2.8 cm | odwiedzenie ramienia max: L 11°, P 5°
+bokser2_rk BRAX_RECE KIdle1           przenikanie przed: L 3.8 cm, P 4.6 cm | odwiedzenie ramienia max: L 5°, P 7°
+bokser2_rk BRAX_RECE KIdle2           przenikanie przed: L 2.8 cm, P 1.7 cm | odwiedzenie ramienia max: L 4°, P 2°
+bokser2_rk BRAX_RECE KWalk0           przenikanie przed: L 3.8 cm, P 4.5 cm | odwiedzenie ramienia max: L 6°, P 12°
+bokser2_rk BRAX_RECE KWalk1           przenikanie przed: L 5.5 cm, P 2.5 cm | odwiedzenie ramienia max: L 12°, P 4°
+bokser2_rk BRAX_RECE KWalk2           przenikanie przed: L 2.5 cm, P 3.6 cm | odwiedzenie ramienia max: L 6°, P 10°
+bokser2_rk BRAX_RECE KBoks            przenikanie przed: L 3.4 cm, P 4.5 cm | odwiedzenie ramienia max: L 16°, P 16°
+bokser2_rk BRAX_RECE KWalkaZCieniem   przenikanie przed: L 5.5 cm, P 4.7 cm | odwiedzenie ramienia max: L 25°, P 18°
+bokser2_rk BRAX_RECE KNokautZwyciezca przenikanie przed: L 6.0 cm, P 6.2 cm | odwiedzenie ramienia max: L 13°, P 13°
+bokser2_rk BRAX_RECE KNokautPrzegrany przenikanie przed: L 5.0 cm, P 7.5 cm | odwiedzenie ramienia max: L 14°, P 35°
+bokser2_rk BRAX_RECE KPiescWGore      przenikanie przed: L 4.1 cm, P 5.8 cm | odwiedzenie ramienia max: L 7°, P 24°
+bokser2_rk BRAX_RECE KWalkaIronMan    przenikanie przed: L 0.9 cm, P 2.6 cm | odwiedzenie ramienia max: L 0°, P 10°
+bokser2_rk KBoks                  DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.46  rozciag. x2.05
+bokser2_rk KIdle0                 DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.44  rozciag. x2.01
+bokser2_rk KIdle1                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.46  rozciag. x1.84
+bokser2_rk KIdle2                 DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.44  rozciag. x2.04
+bokser2_rk KNokautPrzegrany       ODPADA  przenika max 2.3 cm (2.4%)  palec min x0.46  rozciag. x1.94
+bokser2_rk KNokautZwyciezca       ODPADA  przenika max 2.0 cm (2.0%)  palec min x0.44  rozciag. x2.10
+bokser2_rk KPiescWGore            DOBRE  przenika max 1.5 cm (1.5%)  palec min x0.44  rozciag. x2.08
+bokser2_rk KWalk0                 DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.54  rozciag. x1.42
+bokser2_rk KWalk1                 DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.57  rozciag. x1.39
+bokser2_rk KWalk2                 DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.52  rozciag. x1.44
+bokser2_rk KWalkaIronMan          DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.49  rozciag. x1.93
+bokser2_rk KWalkaZCieniem         DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.44  rozciag. x2.04
+bokser2_rk UWAGA: spoczynek FightingIdle_mixamo.fbx po zwyklej drodze odpada (7.3 cm) — biore nastepny
+bokser2_rk KONIEC BRAX_MIARA bokser2_rk     Idle                 przenika  62.1% klatek, max  1.9 cm | dlon zdeform.   0.0% (x1.42 / x0.55) | skret  21°
+bokser2_rk KONIEC BRAX_MIARA bokser2_rk     RkBoks               przenika   3.8% klatek, max  1.3 cm | dlon zdeform. 100.0% (x2.08 / x0.46) | skret  50°
+bokser2_rk KONIEC BRAX_MIARA bokser2_rk     RkPiescWGore         przenika  10.0% klatek, max  1.4 cm | dlon zdeform. 100.0% (x2.11 / x0.41) | skret  38°
+bokser2_rk KONIEC BRAX_MIARA bokser2_rk     RkWalkaIronMan       przenika   1.2% klatek, max  1.3 cm | dlon zdeform. 100.0% (x1.98 / x0.34) | skret  73°
+bokser2_rk KONIEC BRAX_MIARA bokser2_rk     RkWalkaZCieniem      przenika   2.5% klatek, max  1.4 cm | dlon zdeform. 100.0% (x2.08 / x0.44) | skret  59°
+bokser2_rk KONIEC BRAX_MIARA bokser2_rk     Walk                 przenika  11.1% klatek, max  1.2 cm | dlon zdeform.   0.0% (x1.42 / x0.54) | skret   5°
+bokser2_rk WYBRANE: ['Idle<-Regular_Medium_mixamo.fbx', 'Walk<-10-WalkCycle_01_MIXAMO_769.fbx', 'RkBoks<-Boxing_mixamo.fbx', 'RkWalkaZCieniem<-ShadowBoxing_mixamo.fbx', 'RkPiescWGore<-FistPumps_mixamo.fbx', 'RkWalkaIronMan<-IronMan_Combat_mixamo.fbx']

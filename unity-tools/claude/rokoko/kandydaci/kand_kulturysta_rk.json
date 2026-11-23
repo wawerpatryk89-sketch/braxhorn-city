@@ -1,0 +1,44 @@
+{
+ "zrodlo": "surowe/kulturysta",
+ "idle": [
+  "Light_mixamo.fbx",
+  "Regular_Medium_mixamo.fbx",
+  "Medium_mixamo.fbx"
+ ],
+ "walk": [
+  "12-WalkCycle_Pacing_MIXAMO_769.fbx",
+  "09-SlowWalkForward_MIXAMO_769.fbx",
+  "10-WalkCycle_01_MIXAMO_769.fbx"
+ ],
+ "ruchy": [
+  [
+   "KopniecieOkrezne",
+   "RoundHouseKick_mixamo.fbx"
+  ],
+  [
+   "KopniecieProste",
+   "BigFrontKick_mixamo.fbx"
+  ],
+  [
+   "Walka1",
+   "Fight_01_mixamo.fbx"
+  ],
+  [
+   "Walka2",
+   "Fight_02_mixamo.fbx"
+  ],
+  [
+   "RzutKarny",
+   "Soccer_PenaltyKick_mixamo.fbx"
+  ],
+  [
+   "RzutPilki",
+   "Football_Quarterback_mixamo.fbx"
+  ],
+  [
+   "Narzut",
+   "Baseball_Pitcher_mixamo.fbx"
+  ]
+ ],
+ "palce_max": 35
+}

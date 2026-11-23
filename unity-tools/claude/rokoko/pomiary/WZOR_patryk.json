@@ -1,0 +1,60 @@
+{
+ "postac": "patryk",
+ "wzrost_m": 0.974,
+ "prog_cm": 1.2,
+ "ujecia": {
+  "Drink": {
+   "klatek_badanych": 89,
+   "przenikanie_klatek_proc": 32.6,
+   "przenikanie_max_cm": 3.2,
+   "przenikanie_najgorsza_klatka": 115,
+   "przenikanie_reka": {
+    "Right": 902
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 2.43,
+   "dlon_max_zgniecenie": 0.38,
+   "skret_nadgarstka_max_st": 118.0
+  },
+  "Idle": {
+   "klatek_badanych": 64,
+   "przenikanie_klatek_proc": 10.9,
+   "przenikanie_max_cm": 1.4,
+   "przenikanie_najgorsza_klatka": 154,
+   "przenikanie_reka": {
+    "Right": 23
+   },
+   "dlon_zdeformowana_klatek_proc": 93.8,
+   "dlon_max_rozciagniecie": 1.81,
+   "dlon_max_zgniecenie": 0.49,
+   "skret_nadgarstka_max_st": 95.0
+  },
+  "Talk": {
+   "klatek_badanych": 40,
+   "przenikanie_klatek_proc": 22.5,
+   "przenikanie_max_cm": 2.9,
+   "przenikanie_najgorsza_klatka": 13,
+   "przenikanie_reka": {
+    "Right": 176,
+    "Left": 93
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 1.96,
+   "dlon_max_zgniecenie": 0.27,
+   "skret_nadgarstka_max_st": 104.0
+  },
+  "Walk": {
+   "klatek_badanych": 11,
+   "przenikanie_klatek_proc": 18.2,
+   "przenikanie_max_cm": 1.6,
+   "przenikanie_najgorsza_klatka": 22,
+   "przenikanie_reka": {
+    "Left": 2
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 2.07,
+   "dlon_max_zgniecenie": 0.5,
+   "skret_nadgarstka_max_st": 113.0
+  }
+ }
+}

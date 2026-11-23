@@ -1,0 +1,88 @@
+{
+ "postac": "kulturysta_rk",
+ "wzrost_m": 0.978,
+ "prog_cm": 1.2,
+ "ujecia": {
+  "Idle": {
+   "klatek_badanych": 62,
+   "przenikanie_klatek_proc": 75.8,
+   "przenikanie_max_cm": 2.0,
+   "przenikanie_najgorsza_klatka": 67,
+   "przenikanie_reka": {
+    "Right": 215,
+    "Left": 330
+   },
+   "dlon_zdeformowana_klatek_proc": 0.0,
+   "dlon_max_rozciagniecie": 1.48,
+   "dlon_max_zgniecenie": 0.57,
+   "skret_nadgarstka_max_st": 38.0
+  },
+  "RkKopniecieOkrezne": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 38.8,
+   "przenikanie_max_cm": 4.4,
+   "przenikanie_najgorsza_klatka": 226,
+   "przenikanie_reka": {
+    "Right": 87,
+    "Left": 2262
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 3.41,
+   "dlon_max_zgniecenie": 0.03,
+   "skret_nadgarstka_max_st": 87.0
+  },
+  "RkKopniecieProste": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 0.0,
+   "przenikanie_max_cm": 0.0,
+   "przenikanie_najgorsza_klatka": null,
+   "przenikanie_reka": {},
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 3.29,
+   "dlon_max_zgniecenie": 0.03,
+   "skret_nadgarstka_max_st": 70.0
+  },
+  "RkWalka1": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 20.0,
+   "przenikanie_max_cm": 5.7,
+   "przenikanie_najgorsza_klatka": 169,
+   "przenikanie_reka": {
+    "Left": 131,
+    "Right": 1794
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 2.78,
+   "dlon_max_zgniecenie": 0.03,
+   "skret_nadgarstka_max_st": 64.0
+  },
+  "RkWalka2": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 41.2,
+   "przenikanie_max_cm": 5.1,
+   "przenikanie_najgorsza_klatka": 238,
+   "przenikanie_reka": {
+    "Right": 4500,
+    "Left": 2749
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 2.9,
+   "dlon_max_zgniecenie": 0.01,
+   "skret_nadgarstka_max_st": 65.0
+  },
+  "Walk": {
+   "klatek_badanych": 21,
+   "przenikanie_klatek_proc": 85.7,
+   "przenikanie_max_cm": 3.9,
+   "przenikanie_najgorsza_klatka": 22,
+   "przenikanie_reka": {
+    "Right": 1112,
+    "Left": 450
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 2.1,
+   "dlon_max_zgniecenie": 0.25,
+   "skret_nadgarstka_max_st": 7.0
+  }
+ }
+}

@@ -1,0 +1,40 @@
+{
+ "zrodlo": "surowe/bokser2",
+ "idle": [
+  "FightingIdle_mixamo.fbx",
+  "Regular_Medium_mixamo.fbx",
+  "Medium_mixamo.fbx"
+ ],
+ "walk": [
+  "10-WalkCycle_01_MIXAMO_769.fbx",
+  "09-SlowWalkForward_MIXAMO_769.fbx",
+  "12-WalkCycle_Pacing_MIXAMO_769.fbx"
+ ],
+ "ruchy": [
+  [
+   "Boks",
+   "Boxing_mixamo.fbx"
+  ],
+  [
+   "WalkaZCieniem",
+   "ShadowBoxing_mixamo.fbx"
+  ],
+  [
+   "NokautZwyciezca",
+   "KnockOut_Winner_mixamo.fbx"
+  ],
+  [
+   "NokautPrzegrany",
+   "KnockOut_Loser_mixamo.fbx"
+  ],
+  [
+   "PiescWGore",
+   "FistPumps_mixamo.fbx"
+  ],
+  [
+   "WalkaIronMan",
+   "IronMan_Combat_mixamo.fbx"
+  ]
+ ],
+ "palce_max": 35
+}

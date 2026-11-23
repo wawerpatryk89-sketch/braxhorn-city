@@ -1,0 +1,81 @@
+{
+ "postac": "kobieta_czarna_rk",
+ "wzrost_m": 0.971,
+ "prog_cm": 1.2,
+ "ujecia": {
+  "Idle": {
+   "klatek_badanych": 71,
+   "przenikanie_klatek_proc": 16.9,
+   "przenikanie_max_cm": 1.6,
+   "przenikanie_najgorsza_klatka": 193,
+   "przenikanie_reka": {
+    "Right": 193
+   },
+   "dlon_zdeformowana_klatek_proc": 1.4,
+   "dlon_max_rozciagniecie": 1.55,
+   "dlon_max_zgniecenie": 0.53,
+   "skret_nadgarstka_max_st": 22.0
+  },
+  "RkBrawa": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 16.2,
+   "przenikanie_max_cm": 1.5,
+   "przenikanie_najgorsza_klatka": 190,
+   "przenikanie_reka": {
+    "Right": 25
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 2.34,
+   "dlon_max_zgniecenie": 0.35,
+   "skret_nadgarstka_max_st": 74.0
+  },
+  "RkDwojeProwadzacych": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 5.0,
+   "przenikanie_max_cm": 1.4,
+   "przenikanie_najgorsza_klatka": 238,
+   "przenikanie_reka": {
+    "Right": 9
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 2.42,
+   "dlon_max_zgniecenie": 0.21,
+   "skret_nadgarstka_max_st": 60.0
+  },
+  "RkMonolog": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 0.0,
+   "przenikanie_max_cm": 0.0,
+   "przenikanie_najgorsza_klatka": null,
+   "przenikanie_reka": {},
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 2.53,
+   "dlon_max_zgniecenie": 0.27,
+   "skret_nadgarstka_max_st": 72.0
+  },
+  "RkProwadzacy": {
+   "klatek_badanych": 80,
+   "przenikanie_klatek_proc": 6.2,
+   "przenikanie_max_cm": 1.2,
+   "przenikanie_najgorsza_klatka": 7,
+   "przenikanie_reka": {
+    "Right": 8
+   },
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 2.42,
+   "dlon_max_zgniecenie": 0.21,
+   "skret_nadgarstka_max_st": 57.0
+  },
+  "Walk": {
+   "klatek_badanych": 8,
+   "przenikanie_klatek_proc": 0.0,
+   "przenikanie_max_cm": 0.0,
+   "przenikanie_najgorsza_klatka": null,
+   "przenikanie_reka": {},
+   "dlon_zdeformowana_klatek_proc": 100.0,
+   "dlon_max_rozciagniecie": 1.54,
+   "dlon_max_zgniecenie": 0.45,
+   "skret_nadgarstka_max_st": 72.0
+  }
+ }
+}

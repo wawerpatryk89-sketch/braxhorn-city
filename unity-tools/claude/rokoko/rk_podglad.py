@@ -80,8 +80,9 @@ for a in akcje:
         continue
     rig.animation_data.action = a
     f0, f1 = a.frame_range
-    for i in range(ile):
-        f = f0 + (f1 - f0) * (i + 0.5) / ile
+    wybrane = [int(x) for x in os.environ.get("RK_KLATKI", "").split(",") if x]
+    for i in range(len(wybrane) or ile):
+        f = wybrane[i] if wybrane else f0 + (f1 - f0) * (i + 0.5) / ile
         s.frame_set(int(f))
         if os.environ.get("RK_SLEDZ", "1") == "1":
             hb = next(b for b in rig.pose.bones if b.name.split(":")[-1] == "Hips")
