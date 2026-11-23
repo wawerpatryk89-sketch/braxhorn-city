@@ -43,6 +43,7 @@ ZOLTY_DO = 2.00
 
 S = Siatka()
 okno_nr = [0]
+SEED = 0
 
 
 def sciana_okna(g, mat_tynk, o, t, L, H, okna, inne_otwory=(), uv1=None, kolor_pas=None):
@@ -159,7 +160,7 @@ def sciana_dluga(g, o, t, seed):
             balkon(g, o, t, n, q + 1.75, q + 4.05, POZIOM0 + k * KOND, R.choice(BALUSTRADY))
 
 
-def blok():
+def blok(z_terenem=True):
     ex, ez = np.array([1., 0, 0]), np.array([0., 0, 1])
     # ---- ściana północna połówki zachodniej (Z = DL), widok z północy: u rośnie na zachód (t = -X) ----
     o = np.array([SZ_POL, 0.0, DL]); t = -ex
@@ -205,8 +206,8 @@ def blok():
     S.sciana("uskok_N", "cokol", ou, tu, USKOK + .12, COKOL_Z + .3, [])
     S.sciana("uskok_N", "tynk", ou + UP * (COKOL_Z + .3), tu, USKOK + .12, ATTYKA - COKOL_Z, [])
     # ---- długie ściany z balkonami: zachodnia (połówka zachodnia), wschodnia (połówka wschodnia) ----
-    sciana_dluga("sciana_W", np.array([0., 0, DL]), -ez, 11)
-    sciana_dluga("sciana_E", np.array([2 * SZ_POL, 0, USKOK]), ez, 12)
+    sciana_dluga("sciana_W", np.array([0., 0, DL]), -ez, 11 + SEED)
+    sciana_dluga("sciana_E", np.array([2 * SZ_POL, 0, USKOK]), ez, 12 + SEED)
     # ---- południe: NIEWYKOŃCZONE (brak zdjęć — właściciel nie może podejść; prośba o widok „Z lotu ptaka”) ----
     for (oo, tt, L, nazwa) in ((np.array([0., 0, 0]), ex, SZ_POL, "sciana_S_NIEWYKONCZONA"),
                                (np.array([SZ_POL, 0, USKOK]), ex, SZ_POL, "sciana_S_NIEWYKONCZONA"),
@@ -214,7 +215,8 @@ def blok():
         S.sciana(nazwa, "cokol", oo + UP * -.3, tt, L, COKOL_Z + .3, [])
         S.sciana(nazwa, "tynk", oo + UP * COKOL_Z, tt, L, ATTYKA - COKOL_Z, [])
     dach()
-    teren()
+    maszynownia()
+    if z_terenem: teren()
 
 
 def klatka(o, t):
@@ -325,6 +327,26 @@ def dach():
         S.box(g, "obrobka", a - tt * .04 + nn * .04 - UP * .06, tt, UP, -nn, L + .08, .08, .45)
 
 
+def maszynownia():
+    """Nadbudówka maszynowni windy (zdjęcia z lotu ptaka właściciela IMG_1638/1639): na styku połówek, 4,8 x 12 m, 3 m nad
+    dachem, tynk, attyka z obróbką; kominki wentylacyjne 0,6 x 0,6 w rzędzie wzdłuż osi."""
+    g = "dach"; x0, x1 = SZ_POL - 2.4, SZ_POL + 2.4; zc = (DL + USKOK) / 2; z0, z1 = zc - 6, zc + 6; H = 3.0
+    for (a, b, t) in (((x0, z0), (x1, z0), np.array([1., 0, 0])), ((x1, z0), (x1, z1), np.array([0., 0, 1])),
+                      ((x1, z1), (x0, z1), np.array([-1., 0, 0])), ((x0, z1), (x0, z0), np.array([0., 0, -1]))):
+        L = float(np.hypot(b[0] - a[0], b[1] - a[1]))
+        S.sciana(g, "tynk", np.array([a[0], DACH, a[1]]), t, L, H, [])
+    S.quad(g, "papa", np.array([x0, DACH + H, z0]), np.array([x0, DACH + H, z1]), np.array([x1, DACH + H, z1]), np.array([x1, DACH + H, z0]), kier=UP)
+    for (xa, za), (xb, zb) in zip([(x0, z0), (x0, z1), (x1, z1), (x1, z0), (x0, z0)], [(x0, z1), (x1, z1), (x1, z0), (x0, z0), (x0, z1)]):
+        a = np.array([xa, DACH + H, za]); b = np.array([xb, DACH + H, zb]); tt = nrm(b - a); nn = np.cross(tt, UP)
+        S.box(g, "obrobka", a - tt * .04 + nn * .04 - UP * .06, tt, UP, -nn, float(np.linalg.norm(b - a)) + .08, .1, .3)
+    S.box(g, "drzwi_stal", np.array([x0 - .001, DACH, zc - .45]), np.array([0., 0, 1]), UP, np.array([1., 0, 0]), .9, 2.0, .001)
+    for k, zz in enumerate(np.linspace(2.5, DL + USKOK - 2.5, 6)):
+        if z0 - .5 < zz < z1 + .5: continue
+        xx = SZ_POL * (.5 if k % 2 else 1.5)
+        S.box(g, "komin", np.array([xx - .3, DACH, zz - .3]), np.array([1., 0, 0]), UP, np.array([0., 0, 1]), .6, .9, .6)
+        S.box(g, "obrobka", np.array([xx - .35, DACH + .9, zz - .35]), np.array([1., 0, 0]), UP, np.array([0., 0, 1]), .7, .05, .7)
+
+
 def teren():
     """Tylko do podglądu wejścia: chodnik z kostki 4,2 m, krawężnik, jezdnia uliczki. Teren osiedla z mapy — osobno."""
     g = "teren_podglad"
@@ -333,6 +355,26 @@ def teren():
     S.box(g, "kraweznik", np.array([-4, -.2, DL + 6.2]), np.array([1., 0, 0]), UP, np.array([0, 0, 1.]), 28, .32, .15)
     S.quad(g, "asfalt", np.array([-4, -.02, DL + 6.35]), np.array([-4, -.02, DL + 22]), np.array([24, -.02, DL + 22]), np.array([24, -.02, DL + 6.35]), kier=UP)
     S.quad(g, "trawa_podglad", np.array([-20, -.01, 0]), np.array([-20, -.01, DL]), np.array([-4, -.01, DL]), np.array([-4, -.01, 0]), kier=UP)
+
+
+def zbuduj(nr, seed=0):
+    """Nowa siatka wieżowca tego typu (28a/30a/32a/34a). Materiały kolorowe dostają przyrostek numeru, np. tynk_28a;
+    pasek z graffiti i napis adresowy mają własne tekstury numeru. Zwraca (siatka, liczba okien)."""
+    global S, SEED
+    S = Siatka(); okno_nr[0] = 0; SEED = seed
+    blok(z_terenem=False)
+    zmiana = {"tynk": "tynk_" + nr, "tynk_brudny": "szczyt_" + nr, "napis_32a": "napis_" + nr,
+              "graffiti_32a": "graffiti_" + nr if nr == "32a" else "szczyt_" + nr, "tabliczka_32a": "tabliczka"}
+    nowe = {}
+    for (g, m), c in S.dane().items():
+        k = (g, zmiana.get(m, m))
+        if k in nowe:
+            b = len(nowe[k]["v"])
+            for f in ("v", "n", "t", "uv", "uv1"): nowe[k][f] += c[f]
+            nowe[k]["i"] += [b + x for x in c["i"]]
+        else: nowe[k] = c
+    S.cz = nowe
+    return S, okno_nr[0]
 
 
 if __name__ == "__main__":

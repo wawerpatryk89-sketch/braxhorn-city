@@ -13,25 +13,26 @@ const Q=new URLSearchParams(location.search), W=+(Q.get('w')||1600), H=+(Q.get('
 const num=k=>Q.get(k).split(',').map(Number)
 const r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true}); r.setPixelRatio(1); r.setSize(W,H)
 r.outputColorSpace=THREE.SRGBColorSpace; r.toneMapping=THREE.ACESFilmicToneMapping; r.toneMappingExposure=+(Q.get('ekspo')||1.12)
-r.shadowMap.enabled=true; r.shadowMap.type=THREE.PCFSoftShadowMap; document.body.appendChild(r.domElement)
+r.shadowMap.enabled=Q.get('cienie')!=='0'; r.shadowMap.type=THREE.PCFSoftShadowMap; document.body.appendChild(r.domElement)
 const sc=new THREE.Scene(); const TL=new THREE.TextureLoader(); const CZEKAJ=[]
 const ld=u=>{const t=TL.load(u); CZEKAJ.push(new Promise(res=>{const i=setInterval(()=>{if(t.image&&t.image.complete!==false&&t.image.width){clearInterval(i);res()}},50)})); return t}
 const sky=await TL.loadAsync('niebo.jpg'); sky.mapping=THREE.EquirectangularReflectionMapping; sky.colorSpace=THREE.SRGBColorSpace
 sc.background=sky; sc.environment=sky; sc.environmentIntensity=+(Q.get('niebo')||1.35); sc.backgroundIntensity=1.0
 // słońce: azymut/wysokość (stopnie, azymut od północy na wschód, w układzie mapy; w podglądzie północ = -z)
+const SC=+(Q.get('cien')||45)
 const az=+(Q.get('az')||215)*Math.PI/180, el=+(Q.get('el')||22)*Math.PI/180
 const sun=new THREE.DirectionalLight(0xfff1e0,+(Q.get('slonce')||2.6)); const dir=new THREE.Vector3(Math.sin(az)*Math.cos(el),Math.sin(el),-Math.cos(az)*Math.cos(el))
-sun.position.copy(dir.clone().multiplyScalar(80)).add(new THREE.Vector3(9,0,-20)); sun.target.position.set(9,0,-20); sc.add(sun,sun.target)
-sun.castShadow=true; sun.shadow.mapSize.set(4096,4096); Object.assign(sun.shadow.camera,{left:-45,right:45,top:45,bottom:-45,near:1,far:220}); sun.shadow.bias=-.0004; sun.shadow.normalBias=.02
+const CC=(Q.get('cc')||'9,0,-20').split(',').map(Number); sun.position.copy(dir.clone().multiplyScalar(SC*2.5)).add(new THREE.Vector3(...CC)); sun.target.position.set(...CC); sc.add(sun,sun.target)
+sun.castShadow=true; sun.shadow.mapSize.set(4096,4096); Object.assign(sun.shadow.camera,{left:-SC,right:SC,top:SC,bottom:-SC,near:1,far:SC*6}); sun.shadow.bias=-.0004; sun.shadow.normalBias=.02
 const lin=c=>c.map(v=>Math.pow(v/255,2.2))
-function tex(slug,rep,kind){const t=ld('tex/'+slug+'_'+kind+'.jpg'); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1/rep,1/rep); t.anisotropy=8; if(kind==='diff')t.colorSpace=THREE.SRGBColorSpace; return t}
-const AVG={white_stucco_02:[.683,.679,.666],brushed_concrete_04:[.409,.368,.327],concrete_pavers:[.409,.372,.328],clean_asphalt:[.27,.274,.276]}
+const TCACHE={}; function tex(slug,rep,kind){const k=slug+'_'+kind; if(!TCACHE[k]){const b=ld('tex/'+k+'.jpg'); b.wrapS=b.wrapT=THREE.RepeatWrapping; b.anisotropy=8; if(kind==='diff')b.colorSpace=THREE.SRGBColorSpace; TCACHE[k]=b} const t=TCACHE[k].clone(); t.repeat.set(1/rep,1/rep); return t}
+const AVG={white_stucco_02:[.683,.679,.666],brushed_concrete_04:[.409,.368,.327],concrete_pavers:[.409,.372,.328],clean_asphalt:[.27,.274,.276],weathered_brown_planks:[.380,.300,.232]}
 function pbr(slug,rep,target,rough=1,ext={}){
   const a=AVG[slug].map(v=>Math.pow(v,2.2)), t=lin(target)
   const m=new THREE.MeshStandardMaterial({map:tex(slug,rep,'diff'),normalMap:tex(slug,rep,'nor'),roughnessMap:tex(slug,rep,'rough'),roughness:rough,metalness:0})
   m.color.setRGB(t[0]/a[0],t[1]/a[1],t[2]/a[2],THREE.LinearSRGBColorSpace); m.normalScale.set(1,1)
   if(ext.brud||ext.naklejka){
-    const br=ext.brud?ld('out/'+ext.brud):null, nk=ext.naklejka?ld('out/'+ext.naklejka):null
+    const br=ext.brud?(TCACHE[ext.brud]||(TCACHE[ext.brud]=ld('out/'+ext.brud))):null, nk=ext.naklejka?(TCACHE[ext.naklejka]||(TCACHE[ext.naklejka]=ld('out/'+ext.naklejka))):null
     if(nk) nk.colorSpace=THREE.SRGBColorSpace
     m.customProgramCacheKey=()=>'brud'+(br?1:0)+'nak'+(nk?1:0)
     m.onBeforeCompile=s=>{
@@ -76,35 +77,31 @@ function okno(cellW,mebli){return new THREE.ShaderMaterial({uniforms:{tPok:{valu
    #include <tonemapping_fragment>
    #include <colorspace_fragment>
   }`})}
-const M={
- tynk:pbr('white_stucco_02',2,[208,168,104],1,{brud:'brud_32a_wejscie.png',sila:1}),
- tynk_brudny:pbr('white_stucco_02',2,[200,182,136],1,{brud:'brud_32a_slepa.png',sila:1}),
- tynk_zolty:pbr('white_stucco_02',2,[214,184,104]),
- graffiti_32a:pbr('white_stucco_02',2,[214,184,104],1,{naklejka:'graffiti_32a.png'}),
- napis_32a:pbr('white_stucco_02',2,[200,182,136],1,{naklejka:'napis_32a.png'}),
- opaska:pbr('white_stucco_02',2,[198,194,184]),
- cokol:pbr('brushed_concrete_04',1.5,[118,123,130]),
- plycina:flat([158,160,158],.55), listwa_braz:flat([92,62,46],.6),
- pcv:flat([236,236,232],.35), parapet:flat([150,152,154],.4,.5), obrobka:flat([140,142,144],.45,.5),
- drzwi_czerwone:flat([168,28,30],.45), szyba_drzwi:flat([40,46,50],.08,.2), szyba_piwnica:flat([30,32,34],.2),
- beton_daszek:pbr('brushed_concrete_04',1.5,[170,168,160]), beton_schody:pbr('brushed_concrete_04',1.5,[150,148,142]),
- stal:flat([60,62,64],.45,.7), kratka:flat([25,25,25],.8), skrzynka_gaz:flat([212,172,40],.5), rura_gaz:flat([212,172,40],.5),
- papa:flat([60,60,62],.9), lampa:flat([240,240,236],.4), tabliczka_32a:flat([235,235,235],.4), domofon:flat([120,122,124],.4,.4),
- zwir:flat([128,124,118],.95), kostka:pbr('concrete_pavers',1.0,[150,146,140]), kraweznik:pbr('brushed_concrete_04',1.5,[160,158,152]),
- asfalt:pbr('clean_asphalt',4,[92,92,94]), trawa_podglad:flat([88,112,62],.95),
- beton_balkon:pbr('brushed_concrete_04',1.5,[168,164,154]), stal_balustrada:flat([62,64,66],.45,.6),
- balustrada_prety:(()=>{const t=ld('out/balustrada_prety.png'); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; return new THREE.MeshStandardMaterial({map:t,alphaTest:.5,roughness:.45,metalness:.6,side:THREE.FrontSide})})(),
- balustrada_blacha_zielona:flat([52,128,74],.5,.2), balustrada_blacha_ciemna:flat([38,38,40],.5,.2),
- balustrada_blacha_biala:flat([222,220,212],.5,.1), balustrada_blacha_braz:flat([118,62,46],.5,.2),
- okno:okno(2.6,1.), okno_klatka:okno(1.8,0.)}
+// materiały z paleta.json (ta sama paleta trafia do gry)
+const PAL=await (await fetch('out/paleta.json')).json(); const M={}
+for(const [k,v] of Object.entries(PAL)){
+  if(v.alfa){const t=ld('out/'+v.alfa); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; M[k]=new THREE.MeshStandardMaterial({map:t,alphaTest:.5,roughness:v.szorst,metalness:v.metal||0}); continue}
+  if(v.tex) M[k]=pbr(v.tex,v.m,v.kol,v.szorst,{brud:v.brud,naklejka:v.nakl,sila:1})
+  else M[k]=flat(v.kol,v.szorst,v.metal||0)
+}
+M.okno=okno(2.6,1.); M.okno_klatka=okno(1.8,0.)
+if(Q.get('proste')==='1'){M.okno=flat([70,84,96],.1,.3); M.okno_klatka=M.okno}
 const g=await new GLTFLoader().loadAsync('out/'+(Q.get('plik')||'blok_32a.glb'))
 g.scene.traverse(o=>{ if(!o.isMesh) return; const mat=o.name.split('|')[1]||(o.parent&&o.parent.name.split('|')[1]); const m=M[mat]
   if(!m) console.log('BRAK',o.name); o.material=m||flat([255,0,255],.5); o.castShadow=!/okno|teren/.test(mat||''); o.receiveShadow=true })
 sc.add(g.scene)
-const big=new THREE.Mesh(new THREE.PlaneGeometry(400,400),M.trawa_podglad); big.rotation.x=-Math.PI/2; big.position.y=-.05; big.receiveShadow=true; sc.add(big)
-const cam=new THREE.PerspectiveCamera(+(Q.get('fov')||56.9),W/H,.1,900); cam.position.set(...num('oko')); cam.lookAt(...num('cel'))
+// drzewa z biblioteki właściciela (te same modele co w grze), punkty z osiedle_punkty.json
+if(Q.get('drzewa')==='1'){
+  const PT=await (await fetch('out/osiedle_punkty.json')).json(); const GL=new GLTFLoader()
+  const wz={}; for(const [k,f,h] of [['duze','drzewo_verdant.glb',13],['srednie','drzewo_verdant.glb',9],['mlode','drzewo_verdant.glb',5.5],['iglaste','las_sosna_a.glb',14]]){
+    const m=(await GL.loadAsync('lib/'+f)).scene; const bb=new THREE.Box3().setFromObject(m); const s=h/(bb.max.y-bb.min.y); wz[k]={m,s,y:-bb.min.y*s}
+    m.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true; if(o.material){o.material.alphaTest=.5}}})}
+  let i=0; for(const [x,z,t] of PT.drzewa){const w=wz[t]||wz.duze; const c=w.m.clone(); c.scale.setScalar(w.s*(.85+.3*((i*0.618)%1))); c.position.set(x,w.y+.08,-z); c.rotation.y=i*2.4; sc.add(c); i++}
+}
+const big=new THREE.Mesh(new THREE.PlaneGeometry(1200,1200),M.trawa_podglad); big.rotation.x=-Math.PI/2; big.position.y=-.05; big.receiveShadow=true; sc.add(big)
+const cam=new THREE.PerspectiveCamera(+(Q.get('fov')||56.9),W/H,.1,2500); cam.position.set(...num('oko')); cam.lookAt(...num('cel'))
 const comp=new EffectComposer(r); comp.addPass(new RenderPass(sc,cam))
 if(Q.get('ao')!=='0'){const ao=new GTAOPass(sc,cam,W,H); ao.updateGtaoMaterial({radius:.8,distanceExponent:1,thickness:1,scale:1}); comp.addPass(ao)}
 comp.addPass(new OutputPass())
-await Promise.all(CZEKAJ); await new Promise(res=>setTimeout(res,800)); comp.render(); window.GOTOWE=true
+await Promise.all(CZEKAJ); await new Promise(res=>setTimeout(res,800)); comp.render(); window.R=r; window.INFO={lost:r.getContext().isContextLost(), err:r.getContext().getError(), calls:r.info.render.calls, tris:r.info.render.triangles, prog:r.info.programs.length, geo:r.info.memory.geometries, tex:r.info.memory.textures}; window.GOTOWE=true
 </script></body></html>

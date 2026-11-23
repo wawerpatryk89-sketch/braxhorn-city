@@ -70,7 +70,7 @@ def graffiti(out, W_m=9.3, H_m=1.45, v0=0.65, px_m=220):
     Image.fromarray(rgba, "RGBA").save(out)
 
 
-def napis(out, W_m=5.6, H_m=3.0, px_m=200):
+def napis(out, W_m=5.6, H_m=3.0, px_m=200, nr="32a"):
     W, H = int(W_m * px_m), int(H_m * px_m)
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(img)
     # jaśniejsze pole (stara farba), lekko nierówne brzegi
@@ -80,7 +80,7 @@ def napis(out, W_m=5.6, H_m=3.0, px_m=200):
     rgba = np.zeros((H, W, 4), np.uint8); rgba[..., :3] = (226, 216, 190); rgba[..., 3] = np.array(pole)
     img = Image.fromarray(rgba, "RGBA"); d = ImageDraw.Draw(img)
     f1 = ImageFont.truetype(FONT_B, int(1.15 * px_m)); f2 = ImageFont.truetype(FONT_B, int(.46 * px_m))
-    t1 = "32a"; w1 = d.textlength(t1, font=f1)
+    t1 = nr; w1 = d.textlength(t1, font=f1)
     d.text((W - int(.35 * px_m) - w1, int(.15 * px_m)), t1, font=f1, fill=(28, 28, 30, 245))
     t2 = "M. SKŁODOWSKIEJ-CURIE"; w2 = d.textlength(t2, font=f2)
     d.text(((W - w2) / 2, int(1.85 * px_m)), t2, font=f2, fill=(28, 28, 30, 245))
@@ -115,6 +115,39 @@ def brud(out, W_m, H_m, sila, pas_srodek=None, seed=1, px_m=24):
     Image.fromarray((m * 255).astype(np.uint8), "L").save(out)
 
 
+def napis_blok(out, nr, W_m=5.2, H_m=2.1, px_m=200):
+    """Napis na szczycie bloku czterokondygnacyjnego (IMG_1611: „M. SKŁODOWSKIEJ / -CURIE 30” czarną farbą, bez pola)."""
+    W, H = int(W_m * px_m), int(H_m * px_m)
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(img)
+    f = ImageFont.truetype(FONT_B, int(.62 * px_m))
+    for i, txt in enumerate(("M. SKŁODOWSKIEJ", "-CURIE " + nr)):
+        w = d.textlength(txt, font=f)
+        lay = Image.new("RGBA", (int(w) + 10, int(.8 * px_m)), (0, 0, 0, 0)); ImageDraw.Draw(lay).text((0, 0), txt, font=f, fill=(30, 30, 32, 240))
+        lay = lay.resize((min(W - 20, int(w * .82)), lay.height))
+        img.alpha_composite(lay, (W - lay.width - 10, int((.15 + i * .9) * px_m)))
+    img.save(out)
+
+
+def mural_zawisza(out, plik, W_m=13.1, H_m=3.35, udzial=.64, px_m=150):
+    """Mural Zawiszy na ścianie baru (plik od właściciela, mural jego kolegi; zgoda 23.11, 08:01 i 15:28). Ściana W_m x H_m,
+    mural od frontu przez `udzial` długości, na całą wysokość od 0,1 do 3,25 m. Rozciągnięcie w poziomie wynika z pomiaru
+    na zdjęciu IMG_1631 (plik jest węższy niż malunek na ścianie); reszta ściany przezroczysta = gładki tynk."""
+    W, H = int(W_m * px_m), int(H_m * px_m)
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    m = Image.open(plik).convert("RGB")
+    mw, mh = int(udzial * W_m * px_m), int((3.25 - .10) * px_m)
+    m = m.resize((mw, mh), Image.LANCZOS)
+    a = Image.new("L", (mw, mh), 255)
+    img.paste(m, (0, H - int(3.25 * px_m)), a)
+    img.save(out)
+
+
+def tablica_bar(out, px=400):
+    img = Image.new("RGBA", (px * 2, int(px * .48)), (0, 0, 0, 0)); d = ImageDraw.Draw(img)
+    f = ImageFont.truetype(FONT_B, int(px * .2)); txt = "BAR MLECZNY"; w = d.textlength(txt, font=f)
+    d.text(((img.width - w) / 2, int(px * .12)), txt, font=f, fill=(236, 236, 230, 255)); img.save(out)
+
+
 def balustrada_prety(out, px=256):
     a = np.zeros((px, px), np.uint8)
     for k in range(9):
@@ -126,8 +159,12 @@ def balustrada_prety(out, px=256):
 if __name__ == "__main__":
     out = Path(sys.argv[1] if len(sys.argv) > 1 else "."); out.mkdir(parents=True, exist_ok=True)
     graffiti(out / "graffiti_32a.png")
-    napis(out / "napis_32a.png")
+    for nr in ("28a", "30a", "32a", "34a"):
+        napis(out / ("napis_%s.png" % nr), nr=nr)
     brud(out / "brud_32a_slepa.png", 9.3, 31.25, 1.0, pas_srodek=(31.25 - 4.8, .9), seed=3)
     brud(out / "brud_32a_wejscie.png", 9.3, 31.25, .45, seed=4)
     balustrada_prety(out / "balustrada_prety.png")
+    tablica_bar(out / "tablica_bar.png")
+    for nr in ("28", "30", "32", "34", "36", "38"):
+        napis_blok(out / ("napis_blok_%s.png" % nr), nr)
     print("ok")

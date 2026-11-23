@@ -57,5 +57,43 @@ class Blok32a(unittest.TestCase):
         self.assertIn("sciana_S_NIEWYKONCZONA", grupy)   # południe czeka na zdjęcia — nie zgadujemy
 
 
+MA_SHAPELY = importlib.util.find_spec("shapely") is not None
+
+
+@unittest.skipUnless(MA_NUMPY and MA_SHAPELY, "brak numpy / shapely")
+class Osiedle(unittest.TestCase):
+    """Całe osiedle z mapy: 4 wieżowce, 6 bloków, garaże, bar z muralem, pawilony, teren; budżet sceny ZASADY 10.2."""
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, str(BDG))
+        import osiedle as OS
+        from kit import Siatka, trojkaty
+        import teren
+        cls.OS = OS; d = OS.wczytaj(); D = Siatka(); OS.MODELE.clear()
+        cls.opis = {"wiezowce": OS.wiezowce(D), "bloki": OS.bloki(d, D), "male": OS.male(d, D)}
+        for b in d["budynki"]:
+            if b.get("nr") in OS.WIEZOWCE: OS.MODELE.append(b["poly"])
+        T, cls.pola, G = teren.zbuduj(d, OS.MODELE); cls.tri = trojkaty(D) + trojkaty(T)
+        cls.drzewa, cls.latarnie = teren.punkty(d, G)
+
+    def test_budynki(self):
+        self.assertEqual(set(self.opis["wiezowce"]), {"28a", "30a", "32a", "34a"})
+        self.assertEqual(set(self.opis["bloki"]), {"28", "30", "32", "34", "36", "38"})
+        self.assertIn("bar_34b", self.opis["male"])
+        self.assertGreaterEqual(sum(k.startswith("garaze") for k in self.opis["male"]), 7)
+
+    def test_strona_wejsc(self):
+        self.assertEqual(self.opis["bloki"]["28"]["front"], "występy klatek w OSM")
+        self.assertEqual(self.opis["bloki"]["30"]["front"], "występy klatek w OSM")
+
+    def test_budzet_sceny(self):
+        self.assertLess(self.tri, 1500000)          # ZASADY 10.2: scena-obszar <= 1,5 mln
+
+    def test_teren(self):
+        for k in ("jezdnie", "parkingi", "chodniki", "trawa", "krawezniki"):
+            self.assertGreater(self.pola[k], 100, k)
+        self.assertGreater(len(self.latarnie), 30)
+
+
 if __name__ == "__main__":
     unittest.main()

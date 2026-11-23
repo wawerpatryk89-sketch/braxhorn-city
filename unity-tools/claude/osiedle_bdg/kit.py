@@ -39,16 +39,16 @@ class Siatka:
         return self.cz[k]
 
     # ---------------- podstawy ----------------
-    def tri_list(self, g, m, pts, n, t, uv, uv1, idx):
+    def tri_list(self, g, m, pts, n, t, uv, uv1, idx, w=-1.0):
         c = self._c(g, m); b = len(c["v"])
         c["v"] += [tuple(map(float, p)) for p in pts]
         c["n"] += [tuple(map(float, n))] * len(pts) if np.ndim(n) == 1 else [tuple(map(float, x)) for x in n]
-        c["t"] += [tuple(map(float, t)) + (-1.0,)] * len(pts) if np.ndim(t) == 1 else [tuple(map(float, x)) + (-1.0,) for x in t]
+        c["t"] += [tuple(map(float, t)) + (w,)] * len(pts) if np.ndim(t) == 1 else [tuple(map(float, x)) + (w,) for x in t]
         c["uv"] += [tuple(map(float, x)) for x in uv]
         c["uv1"] += [tuple(map(float, x)) for x in uv1] if uv1 is not None else [(0.0, 0.0)] * len(pts)
         c["i"] += [b + k for k in idx]
 
-    def quad(self, g, m, a, b, c, d, uv_o=None, uv1=None, t=None, kier=None):
+    def quad(self, g, m, a, b, c, d, uv_o=None, uv1=None, t=None, kier=None, obrot=False):
         """Czworokąt a-b-c-d (dookoła). kier = kierunek, w który ma patrzeć strona przednia (gdy podany, kolejność jest
         poprawiana sama). Bez kier: iloczyn (b-a)x(d-a) na zewnątrz. UV w metrach rzutem na styczną i binormalną."""
         a, b, c, d = (np.asarray(p, float) for p in (a, b, c, d))
@@ -63,6 +63,11 @@ class Siatka:
         if abs(n[1]) < .7: bt = UP.copy() if np.dot(np.cross(t, n), UP) >= 0 else -UP
         o = a if uv_o is None else np.asarray(uv_o, float)
         uv = [(np.dot(p - o, t), np.dot(p - o, bt)) for p in (a, b, c, d)]
+        if obrot:       # deski pionowo: u wzdłuż binormalnej; styczna = kierunek u, znak w z konwencji Unity (B = N x T * w)
+            uv = [(y, x) for (x, y) in uv]; t, bt = bt, t
+            w = 1.0 if np.dot(np.cross(n, t), bt) > 0 else -1.0
+            self.tri_list(g, m, [a, b, c, d], n, t, uv, uv1, [0, 1, 2, 0, 2, 3], w=w)
+            return n
         self.tri_list(g, m, [a, b, c, d], n, t, uv, uv1, [0, 1, 2, 0, 2, 3])
         return n
 
@@ -148,6 +153,19 @@ def zapisz_bin(siatka, materialy, sciezka, kotwica, opis):
         out += a.tobytes() + np.array(c["i"], "<u4").tobytes()
     with gzip.open(sciezka, "wb", compresslevel=9) as f:
         f.write(bytes(out))
+
+
+def scal_wg_materialu(siatka):
+    """Jedna siatka na materiał (podgląd całego osiedla: mniej wywołań rysowania)."""
+    out = Siatka(); licz = {}
+    for (g, m), c in siatka.dane().items():
+        k = licz.get(m, 0)
+        if len(out._c("razem%d" % k, m)["v"]) + len(c["v"]) > 60000:
+            k += 1; licz[m] = k
+        d = out._c("razem%d" % k, m); b = len(d["v"])
+        for f in ("v", "n", "t", "uv", "uv1"): d[f] += c[f]
+        d["i"] += [b + i for i in c["i"]]
+    return out
 
 
 def zapisz_glb(siatka, sciezka):
