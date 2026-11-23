@@ -1,0 +1,923 @@
+{
+ "zrodlo": "Poly Haven (CC0)",
+ "data": "2026-11-23",
+ "zasada": "ZASADY.md 5.8-5.10",
+ "pozycje": [
+  {
+   "id": "plastered_wall_05",
+   "nazwa": "Plastered Wall 05",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "elewacja",
+    "ściana w środku",
+    "sufit"
+   ],
+   "adres": "https://polyhaven.com/a/plastered_wall_05",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "white_stucco_02",
+   "nazwa": "White Stucco 02",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "elewacja",
+    "ściana w środku",
+    "sufit"
+   ],
+   "adres": "https://polyhaven.com/a/white_stucco_02",
+   "kafel_m": 1.8
+  },
+  {
+   "id": "brushed_concrete_04",
+   "nazwa": "Brushed Concrete 04",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "elewacja",
+    "ściana w środku",
+    "sufit",
+    "garaż, klatka schodowa"
+   ],
+   "adres": "https://polyhaven.com/a/brushed_concrete_04",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "whitewashed_brick",
+   "nazwa": "Whitewashed Brick",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "elewacja",
+    "ściana w środku (cegła bielona)"
+   ],
+   "adres": "https://polyhaven.com/a/whitewashed_brick",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "brick_wall_02",
+   "nazwa": "Brick Wall 02",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "elewacja",
+    "ściana w środku"
+   ],
+   "adres": "https://polyhaven.com/a/brick_wall_02",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "brick_wall_006",
+   "nazwa": "Brick Wall 006",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "elewacja",
+    "mur"
+   ],
+   "adres": "https://polyhaven.com/a/brick_wall_006",
+   "kafel_m": 3.0
+  },
+  {
+   "id": "medieval_red_brick",
+   "nazwa": "Medieval Red Brick",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "elewacja",
+    "mur",
+    "stara kamienica"
+   ],
+   "adres": "https://polyhaven.com/a/medieval_red_brick",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "stacked_brick_wall",
+   "nazwa": "Stacked Brick Wall",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "elewacja",
+    "ogrodzenie"
+   ],
+   "adres": "https://polyhaven.com/a/stacked_brick_wall",
+   "kafel_m": 1.73
+  },
+  {
+   "id": "exterior_wall_cladding_02",
+   "nazwa": "Exterior Wall Cladding 02",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "elewacja (okładzina)"
+   ],
+   "adres": "https://polyhaven.com/a/exterior_wall_cladding_02",
+   "kafel_m": 1.99
+  },
+  {
+   "id": "weathered_plank_siding",
+   "nazwa": "Weathered Plank Siding",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "elewacja drewniana",
+    "szopa, zaplecze"
+   ],
+   "adres": "https://polyhaven.com/a/weathered_plank_siding",
+   "kafel_m": 1.57
+  },
+  {
+   "id": "weathered_peeling_timber",
+   "nazwa": "Weathered Peeling Timber",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "elewacja drewniana",
+    "stare drzwi, płot"
+   ],
+   "adres": "https://polyhaven.com/a/weathered_peeling_timber",
+   "kafel_m": 1.1
+  },
+  {
+   "id": "rock_wall_04",
+   "nazwa": "Rock Wall 04",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "mur kamienny",
+    "cokół",
+    "ogrodzenie"
+   ],
+   "adres": "https://polyhaven.com/a/rock_wall_04",
+   "kafel_m": 2.27
+  },
+  {
+   "id": "rock_wall_07",
+   "nazwa": "Rock Wall 07",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "mur kamienny",
+    "cokół"
+   ],
+   "adres": "https://polyhaven.com/a/rock_wall_07",
+   "kafel_m": 1.8
+  },
+  {
+   "id": "rock_wall_13",
+   "nazwa": "Rock Wall 13",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "mur kamienny",
+    "cokół",
+    "ogrodzenie"
+   ],
+   "adres": "https://polyhaven.com/a/rock_wall_13",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "rock_wall_15",
+   "nazwa": "Rock Wall 15",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "mur kamienny",
+    "cokół",
+    "ogrodzenie"
+   ],
+   "adres": "https://polyhaven.com/a/rock_wall_15",
+   "kafel_m": 1.85
+  },
+  {
+   "id": "rock_wall_16",
+   "nazwa": "Rock Wall 16",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "mur z ciosanego kamienia",
+    "cokół"
+   ],
+   "adres": "https://polyhaven.com/a/rock_wall_16",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "rock_wall_17",
+   "nazwa": "Rock Wall 17",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "mur kamienny",
+    "cokół"
+   ],
+   "adres": "https://polyhaven.com/a/rock_wall_17",
+   "kafel_m": 1.8
+  },
+  {
+   "id": "stone_wall_04",
+   "nazwa": "Stone Wall 04",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "mur kamienny",
+    "murek oporowy"
+   ],
+   "adres": "https://polyhaven.com/a/stone_wall_04",
+   "kafel_m": 1.7
+  },
+  {
+   "id": "rustic_stone_wall",
+   "nazwa": "Rustic Stone Wall",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "mur kamienny",
+    "ściana w środku (kamień)"
+   ],
+   "adres": "https://polyhaven.com/a/rustic_stone_wall",
+   "kafel_m": 1.52
+  },
+  {
+   "id": "castle_wall_varriation",
+   "nazwa": "Castle Wall Variation",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "mur z dużych bloków",
+    "cokół"
+   ],
+   "adres": "https://polyhaven.com/a/castle_wall_varriation",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "box_profile_metal_sheet",
+   "nazwa": "Box Profile Metal Sheet",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "blacha trapezowa: hala, garaż, dach, ogrodzenie"
+   ],
+   "adres": "https://polyhaven.com/a/box_profile_metal_sheet",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "rusty_metal_grid",
+   "nazwa": "Rusty Metal Grid",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "krata stalowa",
+    "zaplecze, port, warsztat"
+   ],
+   "adres": "https://polyhaven.com/a/rusty_metal_grid",
+   "kafel_m": 1.8
+  },
+  {
+   "id": "rusty_metal_05",
+   "nazwa": "Rusty Metal 05",
+   "typ": "tekstura",
+   "grupa": "elewacje",
+   "gdzie": [
+    "stara blacha",
+    "kontener, brama, zaplecze"
+   ],
+   "adres": "https://polyhaven.com/a/rusty_metal_05",
+   "kafel_m": 1.25
+  },
+  {
+   "id": "wooden_floor_01",
+   "nazwa": "Wooden Floor 01",
+   "typ": "tekstura",
+   "grupa": "podlogi",
+   "gdzie": [
+    "podłoga"
+   ],
+   "adres": "https://polyhaven.com/a/wooden_floor_01",
+   "kafel_m": 1.99
+  },
+  {
+   "id": "wooden_floor_02",
+   "nazwa": "Wooden Floor 02",
+   "typ": "tekstura",
+   "grupa": "podlogi",
+   "gdzie": [
+    "podłoga"
+   ],
+   "adres": "https://polyhaven.com/a/wooden_floor_02",
+   "kafel_m": 1.94
+  },
+  {
+   "id": "raw_wooden_floor_01",
+   "nazwa": "Raw Wooden Floor 01",
+   "typ": "tekstura",
+   "grupa": "podlogi",
+   "gdzie": [
+    "podłoga (surowe deski)"
+   ],
+   "adres": "https://polyhaven.com/a/raw_wooden_floor_01",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "old_wooden_floor_03",
+   "nazwa": "Old Wooden Floor 03",
+   "typ": "tekstura",
+   "grupa": "podlogi",
+   "gdzie": [
+    "podłoga (stare deski)"
+   ],
+   "adres": "https://polyhaven.com/a/old_wooden_floor_03",
+   "kafel_m": 1.2
+  },
+  {
+   "id": "worn_planks",
+   "nazwa": "Worn Planks",
+   "typ": "tekstura",
+   "grupa": "podlogi",
+   "gdzie": [
+    "podłoga",
+    "ściana z desek"
+   ],
+   "adres": "https://polyhaven.com/a/worn_planks",
+   "kafel_m": 1.4
+  },
+  {
+   "id": "weathered_brown_planks",
+   "nazwa": "Weathered Brown Planks",
+   "typ": "tekstura",
+   "grupa": "podlogi",
+   "gdzie": [
+    "podłoga",
+    "taras",
+    "ściana z desek"
+   ],
+   "adres": "https://polyhaven.com/a/weathered_brown_planks",
+   "kafel_m": 1.8
+  },
+  {
+   "id": "wood_cabinet_worn_long",
+   "nazwa": "Wood Cabinet Worn Long",
+   "typ": "tekstura",
+   "grupa": "podlogi",
+   "gdzie": [
+    "podłoga",
+    "okładzina ściany",
+    "fronty mebli"
+   ],
+   "adres": "https://polyhaven.com/a/wood_cabinet_worn_long",
+   "kafel_m": 1.0
+  },
+  {
+   "id": "square_tiles_03",
+   "nazwa": "Square Tiles 03",
+   "typ": "tekstura",
+   "grupa": "podlogi",
+   "gdzie": [
+    "płytki: łazienka, kuchnia, hol, taras"
+   ],
+   "adres": "https://polyhaven.com/a/square_tiles_03",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "dark_paneled_wood",
+   "nazwa": "Dark Paneled Wood",
+   "typ": "tekstura",
+   "grupa": "drewno",
+   "gdzie": [
+    "panele ścienne",
+    "sufit drewniany",
+    "drzwi"
+   ],
+   "adres": "https://polyhaven.com/a/dark_paneled_wood",
+   "kafel_m": 1.4
+  },
+  {
+   "id": "coated_pine",
+   "nazwa": "Coated Pine",
+   "typ": "tekstura",
+   "grupa": "drewno",
+   "gdzie": [
+    "boazeria",
+    "sufit drewniany",
+    "meble"
+   ],
+   "adres": "https://polyhaven.com/a/coated_pine",
+   "kafel_m": 0.74
+  },
+  {
+   "id": "lacquered_cherry_wood",
+   "nazwa": "Lacquered Cherry Wood",
+   "typ": "tekstura",
+   "grupa": "drewno",
+   "gdzie": [
+    "meble, blaty, lady, drzwi"
+   ],
+   "adres": "https://polyhaven.com/a/lacquered_cherry_wood",
+   "kafel_m": 1.0
+  },
+  {
+   "id": "wood_table",
+   "nazwa": "Wood Table",
+   "typ": "tekstura",
+   "grupa": "drewno",
+   "gdzie": [
+    "blaty, stoły, lady"
+   ],
+   "adres": "https://polyhaven.com/a/wood_table",
+   "kafel_m": 1.0
+  },
+  {
+   "id": "wood_shutter",
+   "nazwa": "Wood Shutter",
+   "typ": "tekstura",
+   "grupa": "drewno",
+   "gdzie": [
+    "okiennice, drzwi, żaluzje"
+   ],
+   "adres": "https://polyhaven.com/a/wood_shutter",
+   "kafel_m": 1.0
+  },
+  {
+   "id": "wooden_barrel",
+   "nazwa": "Wooden Barrel",
+   "typ": "tekstura",
+   "grupa": "drewno",
+   "gdzie": [
+    "beczki, skrzynie, drewno z obręczami"
+   ],
+   "adres": "https://polyhaven.com/a/wooden_barrel",
+   "kafel_m": 1.29
+  },
+  {
+   "id": "pavement_02",
+   "nazwa": "Pavement 02",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "chodnik (płyty betonowe)"
+   ],
+   "adres": "https://polyhaven.com/a/pavement_02",
+   "kafel_m": 2.12
+  },
+  {
+   "id": "concrete_pavers",
+   "nazwa": "Concrete Pavers",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "chodnik, plac (kostka betonowa)"
+   ],
+   "adres": "https://polyhaven.com/a/concrete_pavers",
+   "kafel_m": 1.92
+  },
+  {
+   "id": "herringbone_concrete_tile_03",
+   "nazwa": "Herringbone Concrete Tile 03",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "chodnik, podjazd (jodełka)"
+   ],
+   "adres": "https://polyhaven.com/a/herringbone_concrete_tile_03",
+   "kafel_m": 2.14
+  },
+  {
+   "id": "brick_pavement_02",
+   "nazwa": "Brick Pavement 02",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "chodnik, plac (cegła)"
+   ],
+   "adres": "https://polyhaven.com/a/brick_pavement_02",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "patterned_cobblestone_02",
+   "nazwa": "Patterned Cobblestone 02",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "plac, deptak (kostka we wzór)"
+   ],
+   "adres": "https://polyhaven.com/a/patterned_cobblestone_02",
+   "kafel_m": 2.1
+  },
+  {
+   "id": "cobblestone_large_01",
+   "nazwa": "Cobblestone Large 01",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "ulica, plac (duża kostka)"
+   ],
+   "adres": "https://polyhaven.com/a/cobblestone_large_01",
+   "kafel_m": 4.0
+  },
+  {
+   "id": "cobblestone_floor_04",
+   "nazwa": "Cobblestone Floor 04",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "ulica, podwórze (kostka)"
+   ],
+   "adres": "https://polyhaven.com/a/cobblestone_floor_04",
+   "kafel_m": 1.5
+  },
+  {
+   "id": "floor_pattern_01",
+   "nazwa": "Floor Pattern 01",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "plac, deptak (kostka we wzór)"
+   ],
+   "adres": "https://polyhaven.com/a/floor_pattern_01",
+   "kafel_m": 1.2
+  },
+  {
+   "id": "mossy_cobblestone",
+   "nazwa": "Mossy Cobblestone",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "stara alejka, podwórze (kostka z mchem)"
+   ],
+   "adres": "https://polyhaven.com/a/mossy_cobblestone",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "stone_tiles_03",
+   "nazwa": "Stone Tiles 03",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "alejka, podwórze (kostka granitowa)"
+   ],
+   "adres": "https://polyhaven.com/a/stone_tiles_03",
+   "kafel_m": 1.92
+  },
+  {
+   "id": "stone_pathway_02",
+   "nazwa": "Stone Pathway 02",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "alejka w parku, ścieżka"
+   ],
+   "adres": "https://polyhaven.com/a/stone_pathway_02",
+   "kafel_m": 1.95
+  },
+  {
+   "id": "rock_tile_floor",
+   "nazwa": "Rock Tile Floor",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "taras, alejka (płyty kamienne)"
+   ],
+   "adres": "https://polyhaven.com/a/rock_tile_floor",
+   "kafel_m": 1.96
+  },
+  {
+   "id": "slate_driveway",
+   "nazwa": "Slate Driveway",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "podjazd, taras (łupek)"
+   ],
+   "adres": "https://polyhaven.com/a/slate_driveway",
+   "kafel_m": 2.09
+  },
+  {
+   "id": "multicolored_pebble_floor",
+   "nazwa": "Multicolored Pebble Floor",
+   "typ": "tekstura",
+   "grupa": "kostki",
+   "gdzie": [
+    "alejka, ogród (otoczaki w betonie)"
+   ],
+   "adres": "https://polyhaven.com/a/multicolored_pebble_floor",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "roof_tiles",
+   "nazwa": "Roof Tiles",
+   "typ": "tekstura",
+   "grupa": "dachy",
+   "gdzie": [
+    "dach (dachówka)"
+   ],
+   "adres": "https://polyhaven.com/a/roof_tiles",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "ceramic_roof_01",
+   "nazwa": "Ceramic Roof 01",
+   "typ": "tekstura",
+   "grupa": "dachy",
+   "gdzie": [
+    "dach (dachówka ceramiczna)"
+   ],
+   "adres": "https://polyhaven.com/a/ceramic_roof_01",
+   "kafel_m": 3.5
+  },
+  {
+   "id": "clay_roof_tiles_02",
+   "nazwa": "Clay Roof Tiles 02",
+   "typ": "tekstura",
+   "grupa": "dachy",
+   "gdzie": [
+    "dach (dachówka gliniana)"
+   ],
+   "adres": "https://polyhaven.com/a/clay_roof_tiles_02",
+   "kafel_m": 2.5
+  },
+  {
+   "id": "clay_roof_tiles_03",
+   "nazwa": "Clay Roof Tiles 03",
+   "typ": "tekstura",
+   "grupa": "dachy",
+   "gdzie": [
+    "dach (dachówka gliniana)"
+   ],
+   "adres": "https://polyhaven.com/a/clay_roof_tiles_03",
+   "kafel_m": 2.6
+  },
+  {
+   "id": "grey_roof_01",
+   "nazwa": "Grey Roof 01",
+   "typ": "tekstura",
+   "grupa": "dachy",
+   "gdzie": [
+    "dach (szary, duży format)"
+   ],
+   "adres": "https://polyhaven.com/a/grey_roof_01",
+   "kafel_m": 8.0
+  },
+  {
+   "id": "scuba_suede",
+   "nazwa": "Scuba Suede",
+   "typ": "tekstura",
+   "grupa": "tkaniny",
+   "gdzie": [
+    "tapicerka (zamsz)"
+   ],
+   "adres": "https://polyhaven.com/a/scuba_suede",
+   "kafel_m": 0.29
+  },
+  {
+   "id": "wool_boucle",
+   "nazwa": "Wool Boucle",
+   "typ": "tekstura",
+   "grupa": "tkaniny",
+   "gdzie": [
+    "tapicerka, koc (wełna boucle)"
+   ],
+   "adres": "https://polyhaven.com/a/wool_boucle",
+   "kafel_m": 0.31
+  },
+  {
+   "id": "leather_red_02",
+   "nazwa": "Leather Red 02",
+   "typ": "tekstura",
+   "grupa": "tkaniny",
+   "gdzie": [
+    "tapicerka (skóra czerwona)"
+   ],
+   "adres": "https://polyhaven.com/a/leather_red_02",
+   "kafel_m": 0.6,
+   "mapy_koloru": [
+    "coll1",
+    "coll2"
+   ]
+  },
+  {
+   "id": "waffle_pique_cotton",
+   "nazwa": "Waffle Pique Cotton",
+   "typ": "tekstura",
+   "grupa": "tkaniny",
+   "gdzie": [
+    "ręczniki, pościel, szlafroki"
+   ],
+   "adres": "https://polyhaven.com/a/waffle_pique_cotton",
+   "kafel_m": 0.28
+  },
+  {
+   "id": "curly_teddy_natural",
+   "nazwa": "Curly Teddy Natural",
+   "typ": "tekstura",
+   "grupa": "tkaniny",
+   "gdzie": [
+    "fotel, dywanik, poduszki (baranek)"
+   ],
+   "adres": "https://polyhaven.com/a/curly_teddy_natural",
+   "kafel_m": 0.34
+  },
+  {
+   "id": "curly_teddy_checkered",
+   "nazwa": "Curly Teddy Checkered",
+   "typ": "tekstura",
+   "grupa": "tkaniny",
+   "gdzie": [
+    "fotel, dywanik, poduszki (baranek w kratę)"
+   ],
+   "adres": "https://polyhaven.com/a/curly_teddy_checkered",
+   "kafel_m": 0.56
+  },
+  {
+   "id": "fabric_pattern_07",
+   "nazwa": "Fabric Pattern 07",
+   "typ": "tekstura",
+   "grupa": "tkaniny",
+   "gdzie": [
+    "tapicerka, zasłony (tkanina we wzór)"
+   ],
+   "adres": "https://polyhaven.com/a/fabric_pattern_07",
+   "kafel_m": 0.4,
+   "mapy_koloru": [
+    "col_03",
+    "col_1",
+    "col_2"
+   ]
+  },
+  {
+   "id": "crepe_satin",
+   "nazwa": "Crepe Satin",
+   "typ": "tekstura",
+   "grupa": "tkaniny",
+   "gdzie": [
+    "zasłony, pościel (satyna)"
+   ],
+   "adres": "https://polyhaven.com/a/crepe_satin",
+   "kafel_m": 0.26
+  },
+  {
+   "id": "rough_linen",
+   "nazwa": "Rough Linen",
+   "typ": "tekstura",
+   "grupa": "tkaniny",
+   "gdzie": [
+    "zasłony, obrusy, tapicerka (len)"
+   ],
+   "adres": "https://polyhaven.com/a/rough_linen",
+   "kafel_m": 0.27
+  },
+  {
+   "id": "rock_face_03",
+   "nazwa": "Rock Face 03",
+   "typ": "tekstura",
+   "grupa": "skaly",
+   "gdzie": [
+    "skała, skarpa"
+   ],
+   "adres": "https://polyhaven.com/a/rock_face_03",
+   "kafel_m": 2.7
+  },
+  {
+   "id": "cliff_side",
+   "nazwa": "Cliff Side",
+   "typ": "tekstura",
+   "grupa": "skaly",
+   "gdzie": [
+    "klif, skarpa"
+   ],
+   "adres": "https://polyhaven.com/a/cliff_side",
+   "kafel_m": 1.83
+  },
+  {
+   "id": "dark_rock",
+   "nazwa": "Dark Rock",
+   "typ": "tekstura",
+   "grupa": "skaly",
+   "gdzie": [
+    "ciemna skała, falochron"
+   ],
+   "adres": "https://polyhaven.com/a/dark_rock",
+   "kafel_m": 2.42
+  },
+  {
+   "id": "marble_rock_03",
+   "nazwa": "Marble Rock 03",
+   "typ": "tekstura",
+   "grupa": "skaly",
+   "gdzie": [
+    "skała marmurowa"
+   ],
+   "adres": "https://polyhaven.com/a/marble_rock_03",
+   "kafel_m": 1.8
+  },
+  {
+   "id": "marble_cliff_05",
+   "nazwa": "Marble Cliff 05",
+   "typ": "tekstura",
+   "grupa": "skaly",
+   "gdzie": [
+    "duży klif z daleka (kafel 20 m — nie na ścianę budynku)"
+   ],
+   "adres": "https://polyhaven.com/a/marble_cliff_05",
+   "kafel_m": 20.0
+  },
+  {
+   "id": "dry_river_pebbles",
+   "nazwa": "Dry River Pebbles",
+   "typ": "tekstura",
+   "grupa": "skaly",
+   "gdzie": [
+    "brzeg, koryto, żwir ozdobny"
+   ],
+   "adres": "https://polyhaven.com/a/dry_river_pebbles",
+   "kafel_m": 2.0
+  },
+  {
+   "id": "ganges_river_pebbles",
+   "nazwa": "Ganges River Pebbles",
+   "typ": "tekstura",
+   "grupa": "skaly",
+   "gdzie": [
+    "brzeg, plaża kamienista, żwir"
+   ],
+   "adres": "https://polyhaven.com/a/ganges_river_pebbles",
+   "kafel_m": 2.16
+  },
+  {
+   "id": "grass_medium_01",
+   "nazwa": "Grass Medium 01",
+   "typ": "model",
+   "grupa": "zielen",
+   "gdzie": [
+    "trawa: parki, trawniki, pobocza"
+   ],
+   "adres": "https://polyhaven.com/a/grass_medium_01",
+   "trojkaty_w_skanie": 1606633
+  },
+  {
+   "id": "grass_bermuda_01",
+   "nazwa": "Grass Bermuda 01",
+   "typ": "model",
+   "grupa": "zielen",
+   "gdzie": [
+    "trawa niska: trawniki, boiska"
+   ],
+   "adres": "https://polyhaven.com/a/grass_bermuda_01",
+   "trojkaty_w_skanie": 223596
+  },
+  {
+   "id": "moss_01",
+   "nazwa": "Moss 01",
+   "typ": "model",
+   "grupa": "zielen",
+   "gdzie": [
+    "mech: mury, kamienie, cień"
+   ],
+   "adres": "https://polyhaven.com/a/moss_01",
+   "trojkaty_w_skanie": 246170
+  },
+  {
+   "id": "celandine_01",
+   "nazwa": "Celandine 01",
+   "typ": "model",
+   "grupa": "zielen",
+   "gdzie": [
+    "kwiaty: rabaty, łąka"
+   ],
+   "adres": "https://polyhaven.com/a/celandine_01",
+   "trojkaty_w_skanie": 1746764
+  },
+  {
+   "id": "othonna_cerarioides",
+   "nazwa": "Othonna Cerarioides",
+   "typ": "model",
+   "grupa": "zielen",
+   "gdzie": [
+    "krzew: skalniaki, wybrzeże"
+   ],
+   "adres": "https://polyhaven.com/a/othonna_cerarioides",
+   "trojkaty_w_skanie": 651641
+  },
+  {
+   "id": "fir_tree_01",
+   "nazwa": "Fir Tree 01",
+   "typ": "model",
+   "grupa": "zielen",
+   "gdzie": [
+    "jodła: park, las, obrzeża"
+   ],
+   "adres": "https://polyhaven.com/a/fir_tree_01",
+   "trojkaty_w_skanie": 7853731
+  },
+  {
+   "id": "fancy_picture_frame_02",
+   "nazwa": "Fancy Picture Frame 02",
+   "typ": "model",
+   "grupa": "dekoracje",
+   "gdzie": [
+    "rama obrazu na ścianę"
+   ],
+   "adres": "https://polyhaven.com/a/fancy_picture_frame_02",
+   "trojkaty_w_skanie": 35102
+  }
+ ]
+}

@@ -19,8 +19,14 @@ minimum"; 01:27: „kamera w każdym kolejnym buildzie już ma być bliżej post
 Doszły reguły F1, K1, W0, W1, W2, G1, Z1. Zasada ta sama co wyżej: tylko to, co da się
 stwierdzić z kodu bez zgadywania. Liczby klatek i trójkątów tego skryptu nie obchodzą —
 mierzy je licznik w grze (BraxPlynnosc) i `statystyki.txt` przy zdjęciach z bolidu.
+23.11 — MATERIAŁY (ZASADY 5.8–5.10). Właściciel, 01:57: „wybrane tekstury (…) z których
+przede wszystkim trzeba korzystać. Wy macie wykańczać budynki, nie wykańczacie"; 02:03:
+„zawsze pobieramy tekstury w 4K". Doszły reguły M0, M1, M2, M3. M2 i M3 czytają NAZWY
+i napisy w kodzie, więc są UWAGAMI, nie błędami: nazwa „sufit panele aluminiowe" to metal
+(wolno, 5.3), a nie tynk. Wypisują, co obejrzeć — nie wyrokują.
 """
 import hashlib
+import json
 import re
 import sys
 from pathlib import Path
@@ -50,6 +56,19 @@ GRAFIKA_WSPOLNA = None
 
 # Najniższy dozwolony limit klatek (ZASADY 10.1).
 KLATKI_MIN = 30
+
+# Lista materiałów właściciela (ZASADY 5.8). Dwa pliki o tych samych pozycjach.
+LISTA_MD = "MATERIALY-WLASCICIELA.md"
+LISTA_JSON = "unity-tools/claude/materialy_wlasciciela.json"
+
+# Materiał z samego koloru (ZASADY 5.2, 5.10): pomocnicy, którymi rejony robią gładki kolor,
+# i słowa, które w nazwie materiału znaczą coś, co ma fotoskan.
+GLADKI_KOLOR = r"\b(?:Plain|Solid|Flat|Kolor)\(\s*\"([^\"]*)\""
+SLOWA_FOTOSKANU = re.compile(
+    r"drewn|drewi|desk|dęb|sosn|parkiet|boazer|ceg[lł]|beton|kamie|granit|marmur|piaskow|"
+    r"tynk|bruk|kostk|dachów|łupk|tkanin|skór|dywan|wykładzin|"
+    r"wood|plank|brick|concrete|stone|granite|marble|plaster|stucco|cobble|fabric|leather|carpet",
+    re.IGNORECASE)
 
 
 def zrodla(repo):
@@ -229,6 +248,57 @@ def main(repo):
             dodaj(UWAGA, "unity-city/Assets", 1,
                   "nie znaleziono przebiegu zdjęć piszącego statystyki.txt",
                   "Z1 brak zdjęć z liczbami kadru przy bolidzie")
+
+    # M0. Lista właściciela jest na gałęzi i oba jej pliki mają te same pozycje (ZASADY 5.8).
+    lista_ids = []
+    p_md, p_json = korzen / LISTA_MD, korzen / LISTA_JSON
+    if not p_md.exists() or not p_json.exists():
+        dodaj(BLAD, LISTA_MD if not p_md.exists() else LISTA_JSON, 1,
+              "brak listy materiałów właściciela — wziąć z main", "M0 brak listy właściciela")
+    else:
+        try:
+            lista_ids = [w["id"] for w in json.loads(p_json.read_text(encoding="utf-8"))["pozycje"]]
+        except (ValueError, KeyError, TypeError) as blad:
+            dodaj(BLAD, LISTA_JSON, 1, "nie da się odczytać: %s" % blad, "M0 lista właściciela uszkodzona")
+        w_md = set(re.findall(r"\| `([a-z0-9_]+)` \|", p_md.read_text(encoding="utf-8", errors="replace")))
+        for i in sorted(set(lista_ids) ^ w_md):
+            dodaj(BLAD, LISTA_MD, 1, "`%s` jest tylko w jednym z dwóch plików listy" % i,
+                  "M0 lista właściciela rozjechana")
+    if not lista_ids:
+        # Gałąź sprzed 23.11: liczymy z listy leżącej obok tego skryptu, żeby M1 nie milczał.
+        try:
+            obok = Path(__file__).resolve().parent / "materialy_wlasciciela.json"
+            lista_ids = [w["id"] for w in json.loads(obok.read_text(encoding="utf-8"))["pozycje"]]
+        except (OSError, ValueError, KeyError, TypeError):
+            lista_ids = []
+
+    # M1. Ile pozycji z listy właściciela w ogóle pada w kodzie i skryptach gałęzi (5.8).
+    # M2. Materiał z samego koloru nazwany jak coś, co ma fotoskan (5.2, 5.10).
+    # M3. Skrypt pobierania bierze 2K albo 1K zamiast źródła 4K (5.9).
+    if (korzen / "unity-city/Assets/BraxGymPlayer.cs").exists():
+        teksty = []
+        for p in zrodla(repo):
+            teksty.append((str(p.relative_to(repo)), linie(p)))
+        for p in sorted(korzen.rglob("*.py")):
+            if p.name == "sprawdz_zasady.py" or "/Library/" in str(p) or "/node_modules/" in str(p):
+                continue
+            teksty.append((str(p.relative_to(repo)), linie(p)))
+        if lista_ids:
+            calosc = "\n".join("\n".join(l) for _, l in teksty)
+            sa = [i for i in lista_ids if re.search(r"(?<![a-z0-9_])%s(?![a-z0-9_])" % re.escape(i), calosc)]
+            dodaj(UWAGA, LISTA_MD, 1,
+                  "z listy właściciela pada w kodzie %d z %d" % (len(sa), len(lista_ids)),
+                  "M1 użycie listy właściciela")
+        for wzgl, ll in teksty:
+            pobieranie = wzgl.endswith(".py") and any("polyhaven.com" in l for l in ll)
+            for nr, l in enumerate(ll, 1):
+                if wzgl.endswith(".cs"):
+                    for m in re.finditer(GLADKI_KOLOR, l.split("//")[0]):
+                        if SLOWA_FOTOSKANU.search(m.group(1)):
+                            dodaj(UWAGA, wzgl, nr, "sam kolor: „%s”" % m.group(1),
+                                  "M2 materiał z samego koloru nazwany jak fotoskan (5.2, 5.10)")
+                elif pobieranie and re.search(r"pick\([^)]*\"[12]k\"", l):
+                    dodaj(UWAGA, wzgl, nr, l, "M3 pobieranie w 2K/1K zamiast źródła 4K (5.9)")
 
     # G1. Jeden plik trybów jakości (ZASADY 10.3). Wersja i liczby każdego rejonu na wierzch,
     #     żeby rozjazd było widać w raporcie, a nie trzeba go było szukać po gałęziach.

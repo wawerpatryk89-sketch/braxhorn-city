@@ -238,6 +238,54 @@ Minimum: kilka warstw przewijanych z różną prędkością, jaśniejsze krawęd
 pierścień piany w miejscu uderzenia, garść kropel. Przewijanie tekstury to jedna linijka
 w shaderze i na telefonie jest praktycznie darmowe.
 
+**5.8. LISTA WŁAŚCICIELA — Z NIEJ BIERZE SIĘ NAJPIERW.**
+Właściciel 23.11, 01:57: *„wybrane tekstury, które mi się podobają z Poly Haven, z których
+przede wszystkim trzeba korzystać"*. Lista: `MATERIALY-WLASCICIELA.md` w korzeniu `main`
+(79 pozycji: 72 tekstury, 7 modeli; elewacje i mury, podłogi, drewno, kostki i chodniki,
+dachy, tkaniny, skały, zieleń), wersja dla narzędzi: `unity-tools/claude/materialy_wlasciciela.json`.
+
+- Wykańczając powierzchnię, wykonawca **najpierw** szuka na liście.
+- Spoza listy bierze dopiero wtedy, gdy lista nie ma nic na daną powierzchnię — i pisze
+  w opisie bolidu, czego zabrakło i co wziął. Listę rozszerza właściciel, nie wykonawca.
+- Lista nie zwalnia z niczego: klasa i rozmiar z rozdziału 3, rzutowanie z 5.4, a modele
+  zieleni wchodzą do gry dopiero odchudzone do budżetu 10.2 i z LOD (10.5).
+
+**5.9. ŹRÓDŁO ZAWSZE 4K. TELEFON DOSTAJE POMNIEJSZONE I SKOMPRESOWANE.**
+Właściciel 23.11, 02:03: *„Zawsze pobieramy tekstury w 4K (…) żebyśmy potem mogli grę
+podkręcić na komputer"*.
+
+- **Pobiera się 4K i to jest jedyny komplet plików.** Nie ma osobnych plików „na telefon"
+  (3.5: zakaz drugiego kompletu tych samych map).
+- **Rozmiar na telefon ustawia import, nie pobieranie:** nadpisanie dla Androida według
+  rozdziału 3 — 2048 w zasięgu ręki, **1024 elewacje, grunt, drogi**, 512 z daleka,
+  ASTC 6×6. Telefon to więc nie „wszędzie 2K": 2K jest sufitem (3.1), a elewacja i chodnik
+  idą w 1024. Przy kaflu 2 m to 512 pikseli na metr — tyle samo, co 2K na ścianie 4 m.
+- **Komputer weźmie pełne źródło** z tych samych plików — bez pobierania i bez przerabiania
+  materiałów drugi raz. Wersji na komputer jeszcze nie ma, więc dziś limit importu to 2048
+  wszędzie i sprawdzacz (T1) tego pilnuje; przy wersji na komputer podnosi się jedną nastawę
+  importu dla komputera, Android zostaje bez zmian.
+- APK od tego nie rośnie: do paczki trafia rozmiar po imporcie, nie źródło.
+- **Stan 23.11:** `fetch_polyhaven.py` na gałęziach pobiera tekstury w 2K, a modele z 1K.
+  To jest do zmiany w rejonach. Koszt zmierzony na listach plików Poly Haven: 72 tekstury
+  z listy to ok. 2,6 GB w 4K wobec ok. 0,7 GB w 2K. **Niezmierzone:** czas pierwszego buildu
+  i miejsce w pamięci podręcznej CI po tej zmianie.
+
+**5.10. BUDYNEK SIĘ WYKAŃCZA. ROBOTY NIE ZOSTAWIA SIĘ W POŁOWIE.**
+Właściciel 23.11, 01:57: *„Wy macie wykańczać budynki, nie wykańczacie"*; 02:00: *„mamy dużo
+rzeczy niepowykańczanych, jest zostawione w połowie roboty"*.
+
+- Budynek albo wnętrze jest **wykończone**, gdy każda powierzchnia, którą gracz może
+  zobaczyć, ma materiał według 5.1: elewacja z każdej widocznej strony, cokół, dach,
+  ściany w środku, sufit, podłoga, schody, kostka albo chodnik przy wejściu.
+- Powierzchnia w samym kolorze tam, gdzie istnieje fotoskan, to **niewykończone** (5.2),
+  nie „uproszczone".
+- Czego wykonawca nie skończył, wypisuje w opisie bolidu jako **listę niewykończonych**
+  z miejscem — obok listy braków z 5.5. Niewykończone przemilczane = bolid nieodebrany.
+- Sprawdzacz wypisuje materiały z samego koloru nazwane jak drewno, kamień, beton, cegła,
+  tynk, tkanina (reguła M2), a skrypty pobierające 2K i 1K — reguła M3. To są uwagi, nie
+  błędy: sprawdzacz czyta nazwy, więc pokazuje, co obejrzeć, i nie wyrokuje.
+  Stan 23.11: Osiedle 45, Miasto R1 50, Miasto Mistrzów 56, pokój prób 44.
+
 ---
 
 ## 6. POSTACIE
