@@ -1,33 +1,33 @@
-kulturysta_rk BRAX_RECE KIdle0           przenikanie przed: L 2.0 cm, P 2.0 cm | odwiedzenie ramienia max: L 2°, P 3°
-kulturysta_rk BRAX_RECE KIdle1           przenikanie przed: L 2.8 cm, P 3.9 cm | odwiedzenie ramienia max: L 3°, P 6°
-kulturysta_rk BRAX_RECE KIdle2           przenikanie przed: L 1.7 cm, P 0.8 cm | odwiedzenie ramienia max: L 2°, P 0°
-kulturysta_rk BRAX_RECE KWalk0           przenikanie przed: L 2.0 cm, P 3.1 cm | odwiedzenie ramienia max: L 2°, P 7°
-kulturysta_rk BRAX_RECE KWalk1           przenikanie przed: L 3.9 cm, P 1.9 cm | odwiedzenie ramienia max: L 7°, P 2°
-kulturysta_rk BRAX_RECE KWalk2           przenikanie przed: L 3.5 cm, P 3.5 cm | odwiedzenie ramienia max: L 4°, P 7°
-kulturysta_rk BRAX_RECE KKopniecieOkrezne przenikanie przed: L 4.4 cm, P 2.7 cm | odwiedzenie ramienia max: L 17°, P 10°
-kulturysta_rk BRAX_RECE KKopniecieProste przenikanie przed: L 0.0 cm, P 0.0 cm | odwiedzenie ramienia max: L 0°, P 0°
-kulturysta_rk BRAX_RECE KWalka1          przenikanie przed: L 1.4 cm, P 4.3 cm | odwiedzenie ramienia max: L 2°, P 32°
-kulturysta_rk BRAX_RECE KWalka2          przenikanie przed: L 5.9 cm, P 4.0 cm | odwiedzenie ramienia max: L 11°, P 6°
-kulturysta_rk BRAX_RECE KRzutKarny       przenikanie przed: L 1.9 cm, P 2.3 cm | odwiedzenie ramienia max: L 2°, P 3°
-kulturysta_rk BRAX_RECE KRzutPilki       przenikanie przed: L 1.6 cm, P 2.6 cm | odwiedzenie ramienia max: L 1°, P 8°
-kulturysta_rk BRAX_RECE KNarzut          przenikanie przed: L 2.3 cm, P 3.7 cm | odwiedzenie ramienia max: L 7°, P 35°
+kulturysta_rk BRAX_RECE KIdle0           przenikanie przed: L 3.0 cm, P 3.1 cm | odwiedzenie ramienia max: L 4°, P 5°
+kulturysta_rk BRAX_RECE KIdle1           przenikanie przed: L 4.0 cm, P 5.2 cm | odwiedzenie ramienia max: L 7°, P 9°
+kulturysta_rk BRAX_RECE KIdle2           przenikanie przed: L 1.9 cm, P 3.8 cm | odwiedzenie ramienia max: L 2°, P 6°
+kulturysta_rk BRAX_RECE KWalk0           przenikanie przed: L 1.8 cm, P 2.5 cm | odwiedzenie ramienia max: L 3°, P 4°
+kulturysta_rk BRAX_RECE KWalk1           przenikanie przed: L 3.8 cm, P 1.8 cm | odwiedzenie ramienia max: L 8°, P 2°
+kulturysta_rk BRAX_RECE KWalk2           przenikanie przed: L 2.4 cm, P 3.0 cm | odwiedzenie ramienia max: L 3°, P 4°
+kulturysta_rk BRAX_RECE KKopniecieOkrezne przenikanie przed: L 5.3 cm, P 3.2 cm | odwiedzenie ramienia max: L 25°, P 8°
+kulturysta_rk BRAX_RECE KKopniecieProste przenikanie przed: L 0.4 cm, P 0.0 cm | odwiedzenie ramienia max: L 0°, P 0°
+kulturysta_rk BRAX_RECE KWalka1          przenikanie przed: L 2.1 cm, P 4.5 cm | odwiedzenie ramienia max: L 2°, P 35°
+kulturysta_rk BRAX_RECE KWalka2          przenikanie przed: L 5.7 cm, P 4.5 cm | odwiedzenie ramienia max: L 13°, P 8°
+kulturysta_rk BRAX_RECE KRzutKarny       przenikanie przed: L 2.2 cm, P 2.9 cm | odwiedzenie ramienia max: L 3°, P 4°
+kulturysta_rk BRAX_RECE KRzutPilki       przenikanie przed: L 2.4 cm, P 5.2 cm | odwiedzenie ramienia max: L 3°, P 10°
+kulturysta_rk BRAX_RECE KNarzut          przenikanie przed: L 2.6 cm, P 3.4 cm | odwiedzenie ramienia max: L 35°, P 15°
 kulturysta_rk KIdle0                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.45  rozciag. x2.08
-kulturysta_rk KIdle1                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.50  rozciag. x2.01
-kulturysta_rk KIdle2                 DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.44  rozciag. x2.07
-kulturysta_rk KKopniecieOkrezne      DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.43  rozciag. x2.07
+kulturysta_rk KIdle1                 DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.50  rozciag. x2.01
+kulturysta_rk KIdle2                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.44  rozciag. x2.07
+kulturysta_rk KKopniecieOkrezne      DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.44  rozciag. x2.07
 kulturysta_rk KKopniecieProste       DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.48  rozciag. x2.05
-kulturysta_rk KNarzut                DOBRE  przenika max 1.9 cm (1.9%)  palec min x0.44  rozciag. x2.08
+kulturysta_rk KNarzut                ODPADA  przenika max 3.7 cm (3.8%)  palec min x0.44  rozciag. x2.08
 kulturysta_rk KRzutKarny             DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.47  rozciag. x2.06
 kulturysta_rk KRzutPilki             DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.49  rozciag. x2.05
-kulturysta_rk KWalk0                 DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.51  rozciag. x1.40
+kulturysta_rk KWalk0                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.51  rozciag. x1.40
 kulturysta_rk KWalk1                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.57  rozciag. x1.36
-kulturysta_rk KWalk2                 DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.53  rozciag. x1.39
-kulturysta_rk KWalka1                ODPADA  przenika max 2.3 cm (2.4%)  palec min x0.51  rozciag. x1.99
-kulturysta_rk KWalka2                DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.44  rozciag. x2.05
-kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  Idle                 przenika  14.5% klatek, max  1.3 cm | dlon zdeform.  22.6% (x1.42 / x0.50) | skret  38°
-kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  RkKopniecieOkrezne   przenika   3.8% klatek, max  1.2 cm | dlon zdeform. 100.0% (x2.12 / x0.43) | skret  87°
-kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  RkKopniecieProste    przenika   0.0% klatek, max  0.0 cm | dlon zdeform. 100.0% (x2.11 / x0.47) | skret  70°
-kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  RkRzutKarny          przenika   0.0% klatek, max  0.0 cm | dlon zdeform. 100.0% (x2.11 / x0.47) | skret  26°
-kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  RkWalka2             przenika   3.8% klatek, max  1.3 cm | dlon zdeform. 100.0% (x2.10 / x0.36) | skret  65°
-kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  Walk                 przenika   9.5% klatek, max  1.3 cm | dlon zdeform.  47.6% (x1.41 / x0.51) | skret   7°
+kulturysta_rk KWalk2                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.53  rozciag. x1.39
+kulturysta_rk KWalka1                ODPADA  przenika max 2.4 cm (2.5%)  palec min x0.51  rozciag. x1.99
+kulturysta_rk KWalka2                DOBRE  przenika max 1.4 cm (1.4%)  palec min x0.44  rozciag. x2.05
+kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  Idle                 przenika   0.0% klatek, max  0.0 cm | dlon zdeform.  22.6% (x1.42 / x0.50) | skret  42°
+kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  RkKopniecieOkrezne   przenika   1.2% klatek, max  1.4 cm | dlon zdeform. 100.0% (x2.12 / x0.44) | skret  80°
+kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  RkKopniecieProste    przenika   0.0% klatek, max  0.0 cm | dlon zdeform. 100.0% (x2.11 / x0.48) | skret  73°
+kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  RkRzutKarny          przenika   0.0% klatek, max  0.0 cm | dlon zdeform. 100.0% (x2.11 / x0.47) | skret  28°
+kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  RkWalka2             przenika   5.0% klatek, max  1.4 cm | dlon zdeform. 100.0% (x2.10 / x0.41) | skret  61°
+kulturysta_rk KONIEC BRAX_MIARA kulturysta_rk  Walk                 przenika   0.0% klatek, max  0.0 cm | dlon zdeform.  47.6% (x1.41 / x0.51) | skret  11°
 kulturysta_rk WYBRANE: ['Idle<-Light_mixamo.fbx', 'Walk<-12-WalkCycle_Pacing_MIXAMO_769.fbx', 'RkKopniecieOkrezne<-RoundHouseKick_mixamo.fbx', 'RkKopniecieProste<-BigFrontKick_mixamo.fbx', 'RkWalka2<-Fight_02_mixamo.fbx', 'RkRzutKarny<-Soccer_PenaltyKick_mixamo.fbx']

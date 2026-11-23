@@ -5,7 +5,7 @@
   "Walk",
   "RkObserwacja",
   "RkStukanieStopa",
-  "RkZdziwienieDwaRazy",
+  "RkWzruszenieRamion",
   "RkDlonNaTwarz"
  ],
  "zrodlo": "tripo_convert_00802d59-c5a1-4ed3-9c15-84c258a33304.fbx",
@@ -31,8 +31,8 @@
    "klatek": 240
   },
   {
-   "stan": "RkZdziwienieDwaRazy",
-   "zrodlo": "DoubleTakes_mixamo.fbx",
+   "stan": "RkWzruszenieRamion",
+   "zrodlo": "Shrugging_mixamo.fbx",
    "klatek": 240
   },
   {

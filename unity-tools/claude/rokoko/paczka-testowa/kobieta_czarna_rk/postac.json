@@ -5,8 +5,8 @@
   "Walk",
   "RkProwadzacy",
   "RkMonolog",
-  "RkBrawa",
-  "RkDwojeProwadzacych"
+  "RkSmiech",
+  "RkBrawa"
  ],
  "zrodlo": "tripo_convert_b4333206-8995-4fea-9cfa-88b848f75737.fbx",
  "ruchy_przeniesione": [
@@ -31,13 +31,13 @@
    "klatek": 240
   },
   {
-   "stan": "RkBrawa",
-   "zrodlo": "Clap_SlowClap_mixamo.fbx",
+   "stan": "RkSmiech",
+   "zrodlo": "Laughs_mixamo.fbx",
    "klatek": 240
   },
   {
-   "stan": "RkDwojeProwadzacych",
-   "zrodlo": "HomeShopping_TwoHosts_mixamo.fbx",
+   "stan": "RkBrawa",
+   "zrodlo": "Clap_SlowClap_mixamo.fbx",
    "klatek": 240
   }
  ],

@@ -58,7 +58,13 @@ Co zmienione w `rk_przenies.py`:
    weszła — co drugą klatkę, wygładzone.
 4. Pomiar przenikania potwierdza „w środku” promieniem (dalej w głąb musi być druga ścianka
    trafiona od środka). Bez tego dziury przy pachach dawały fałszywe 5–14 cm.
-5. Spoczynek sprawdzany PO zwykłej drodze — ona go przebudowuje (dogięcie przedramion), a garda
+5. Obrót ramienia wokół własnej osi (właściciel 23.11, 15:14: „dłonie strasznie powykręcane
+   w spoczynku”). Po samym wyrównaniu kierunku wnętrze dłoni stało obrócone o 83–93° względem
+   aktora (poza A z Tripo vs poza T nagrania) — w każdym ruchu dłoń wnętrzem do przodu zamiast
+   do uda. Ramię i przedramię dostają ten sam obrót wokół swojej osi, tak że wnętrze dłoni
+   w spoczynku patrzy tam, gdzie u aktora. Sprawdzenie: `rk_skret_dloni.py`, zbliżenia
+   `rk_dlonie.py` → `pomiary/dlonie/` (górny rząd spoczynek, dolny ruch).
+6. Spoczynek sprawdzany PO zwykłej drodze — ona go przebudowuje (dogięcie przedramion), a garda
    boksera wchodziła wtedy w klatkę na 7 cm. Taki spoczynek odpada, bierze się następny.
 
 ## Zasada

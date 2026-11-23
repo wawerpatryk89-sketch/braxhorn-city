@@ -1,33 +1,33 @@
-kobieta_bojowki_rk BRAX_RECE KIdle0           przenikanie przed: L 4.3 cm, P 5.1 cm | odwiedzenie ramienia max: L 7°, P 10°
-kobieta_bojowki_rk BRAX_RECE KIdle1           przenikanie przed: L 4.5 cm, P 3.3 cm | odwiedzenie ramienia max: L 7°, P 10°
-kobieta_bojowki_rk BRAX_RECE KIdle2           przenikanie przed: L 4.0 cm, P 4.1 cm | odwiedzenie ramienia max: L 6°, P 8°
-kobieta_bojowki_rk BRAX_RECE KWalk0           przenikanie przed: L 3.7 cm, P 5.3 cm | odwiedzenie ramienia max: L 8°, P 11°
-kobieta_bojowki_rk BRAX_RECE KWalk1           przenikanie przed: L 3.1 cm, P 3.2 cm | odwiedzenie ramienia max: L 11°, P 5°
-kobieta_bojowki_rk BRAX_RECE KWalk2           przenikanie przed: L 4.8 cm, P 5.1 cm | odwiedzenie ramienia max: L 9°, P 11°
-kobieta_bojowki_rk BRAX_RECE KTaniec          przenikanie przed: L 0.2 cm, P 2.3 cm | odwiedzenie ramienia max: L 0°, P 7°
-kobieta_bojowki_rk BRAX_RECE KImpreza         przenikanie przed: L 3.9 cm, P 5.0 cm | odwiedzenie ramienia max: L 6°, P 14°
-kobieta_bojowki_rk BRAX_RECE KKolysanie       przenikanie przed: L 4.6 cm, P 4.6 cm | odwiedzenie ramienia max: L 13°, P 12°
-kobieta_bojowki_rk BRAX_RECE KRadosc          przenikanie przed: L 4.8 cm, P 5.9 cm | odwiedzenie ramienia max: L 16°, P 16°
-kobieta_bojowki_rk BRAX_RECE KTwist           przenikanie przed: L 4.6 cm, P 2.6 cm | odwiedzenie ramienia max: L 8°, P 12°
-kobieta_bojowki_rk BRAX_RECE KRobot           przenikanie przed: L 3.7 cm, P 3.6 cm | odwiedzenie ramienia max: L 6°, P 6°
-kobieta_bojowki_rk BRAX_RECE KRamiona         przenikanie przed: L 6.2 cm, P 6.1 cm | odwiedzenie ramienia max: L 33°, P 35°
+kobieta_bojowki_rk BRAX_RECE KIdle0           przenikanie przed: L 4.9 cm, P 4.9 cm | odwiedzenie ramienia max: L 11°, P 11°
+kobieta_bojowki_rk BRAX_RECE KIdle1           przenikanie przed: L 5.2 cm, P 2.1 cm | odwiedzenie ramienia max: L 12°, P 4°
+kobieta_bojowki_rk BRAX_RECE KIdle2           przenikanie przed: L 5.0 cm, P 5.0 cm | odwiedzenie ramienia max: L 10°, P 10°
+kobieta_bojowki_rk BRAX_RECE KWalk0           przenikanie przed: L 4.0 cm, P 4.8 cm | odwiedzenie ramienia max: L 6°, P 9°
+kobieta_bojowki_rk BRAX_RECE KWalk1           przenikanie przed: L 3.1 cm, P 2.6 cm | odwiedzenie ramienia max: L 8°, P 4°
+kobieta_bojowki_rk BRAX_RECE KWalk2           przenikanie przed: L 5.5 cm, P 5.2 cm | odwiedzenie ramienia max: L 17°, P 10°
+kobieta_bojowki_rk BRAX_RECE KTaniec          przenikanie przed: L 0.0 cm, P 1.5 cm | odwiedzenie ramienia max: L 0°, P 2°
+kobieta_bojowki_rk BRAX_RECE KImpreza         przenikanie przed: L 5.3 cm, P 4.8 cm | odwiedzenie ramienia max: L 10°, P 12°
+kobieta_bojowki_rk BRAX_RECE KKolysanie       przenikanie przed: L 5.1 cm, P 4.5 cm | odwiedzenie ramienia max: L 13°, P 9°
+kobieta_bojowki_rk BRAX_RECE KRadosc          przenikanie przed: L 5.6 cm, P 5.8 cm | odwiedzenie ramienia max: L 19°, P 15°
+kobieta_bojowki_rk BRAX_RECE KTwist           przenikanie przed: L 5.5 cm, P 5.4 cm | odwiedzenie ramienia max: L 13°, P 9°
+kobieta_bojowki_rk BRAX_RECE KRobot           przenikanie przed: L 4.8 cm, P 4.9 cm | odwiedzenie ramienia max: L 10°, P 8°
+kobieta_bojowki_rk BRAX_RECE KRamiona         przenikanie przed: L 6.5 cm, P 6.1 cm | odwiedzenie ramienia max: L 30°, P 34°
 kobieta_bojowki_rk KIdle0                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.24  rozciag. x1.94
 kobieta_bojowki_rk KIdle1                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.26  rozciag. x2.06
 kobieta_bojowki_rk KIdle2                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.27  rozciag. x2.05
 kobieta_bojowki_rk KImpreza               DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.24  rozciag. x1.98
-kobieta_bojowki_rk KKolysanie             DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.24  rozciag. x1.87
+kobieta_bojowki_rk KKolysanie             DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.24  rozciag. x1.87
 kobieta_bojowki_rk KRadosc                DOBRE  przenika max 1.6 cm (1.6%)  palec min x0.24  rozciag. x2.07
-kobieta_bojowki_rk KRamiona               ODPADA  przenika max 2.0 cm (2.0%)  palec min x0.24  rozciag. x2.04
-kobieta_bojowki_rk KRobot                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.42  rozciag. x1.79
-kobieta_bojowki_rk KTaniec                DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.24  rozciag. x2.00
-kobieta_bojowki_rk KTwist                 DOBRE  przenika max 1.4 cm (1.4%)  palec min x0.24  rozciag. x1.93
-kobieta_bojowki_rk KWalk0                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.50  rozciag. x1.73
-kobieta_bojowki_rk KWalk1                 DOBRE  przenika max 1.4 cm (1.4%)  palec min x0.37  rozciag. x1.66
-kobieta_bojowki_rk KWalk2                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.53  rozciag. x1.33
-kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk Idle                 przenika  48.1% klatek, max  1.7 cm | dlon zdeform.  16.7% (x1.60 / x0.51) | skret  19°
-kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk RkImpreza            przenika   2.5% klatek, max  1.2 cm | dlon zdeform. 100.0% (x2.13 / x0.24) | skret  40°
-kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk RkKolysanie          przenika   5.0% klatek, max  1.2 cm | dlon zdeform. 100.0% (x2.00 / x0.24) | skret  14°
-kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk RkRadosc             przenika  12.5% klatek, max  1.6 cm | dlon zdeform. 100.0% (x2.22 / x0.24) | skret  76°
-kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk RkTaniec             przenika   1.2% klatek, max  1.2 cm | dlon zdeform. 100.0% (x2.16 / x0.24) | skret  90°
-kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk Walk                 przenika   0.0% klatek, max  0.0 cm | dlon zdeform. 100.0% (x1.73 / x0.36) | skret  30°
+kobieta_bojowki_rk KRamiona               DOBRE  przenika max 1.6 cm (1.6%)  palec min x0.24  rozciag. x2.04
+kobieta_bojowki_rk KRobot                 DOBRE  przenika max 1.4 cm (1.4%)  palec min x0.42  rozciag. x1.79
+kobieta_bojowki_rk KTaniec                DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.20  rozciag. x2.00
+kobieta_bojowki_rk KTwist                 ODPADA  przenika max 2.7 cm (2.8%)  palec min x0.24  rozciag. x1.93
+kobieta_bojowki_rk KWalk0                 DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.34  rozciag. x1.46
+kobieta_bojowki_rk KWalk1                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.33  rozciag. x1.84
+kobieta_bojowki_rk KWalk2                 DOBRE  przenika max 1.4 cm (1.4%)  palec min x0.53  rozciag. x1.33
+kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk Idle                 przenika  18.5% klatek, max  1.5 cm | dlon zdeform.  16.7% (x1.60 / x0.50) | skret  24°
+kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk RkImpreza            przenika   1.2% klatek, max  1.2 cm | dlon zdeform. 100.0% (x2.13 / x0.24) | skret  36°
+kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk RkKolysanie          przenika   3.8% klatek, max  1.2 cm | dlon zdeform. 100.0% (x2.00 / x0.24) | skret  14°
+kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk RkRadosc             przenika   2.5% klatek, max  1.6 cm | dlon zdeform. 100.0% (x2.22 / x0.24) | skret  87°
+kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk RkTaniec             przenika   0.0% klatek, max  0.0 cm | dlon zdeform. 100.0% (x2.16 / x0.17) | skret  88°
+kobieta_bojowki_rk KONIEC BRAX_MIARA kobieta_bojowki_rk Walk                 przenika  12.5% klatek, max  1.2 cm | dlon zdeform. 100.0% (x1.54 / x0.34) | skret  46°
 kobieta_bojowki_rk WYBRANE: ['Idle<-Regular_Light_mixamo.fbx', 'Walk<-11-WalkCycle_Cool_MIXAMO_WHS_segment.fbx', 'RkTaniec<-DancingMedium_mixamo.fbx', 'RkImpreza<-NPC_DancingParty_mixamo.fbx', 'RkKolysanie<-GentleSwayingDancing_mixamo.fbx', 'RkRadosc<-HappyDance_mixamo.fbx']

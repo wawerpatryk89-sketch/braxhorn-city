@@ -1,35 +1,35 @@
-kobieta_czarna_rk BRAX_RECE KIdle0           przenikanie przed: L 3.0 cm, P 3.2 cm | odwiedzenie ramienia max: L 4°, P 5°
-kobieta_czarna_rk BRAX_RECE KIdle1           przenikanie przed: L 2.0 cm, P 2.5 cm | odwiedzenie ramienia max: L 2°, P 3°
-kobieta_czarna_rk BRAX_RECE KIdle2           przenikanie przed: L 2.7 cm, P 1.4 cm | odwiedzenie ramienia max: L 3°, P 1°
-kobieta_czarna_rk BRAX_RECE KWalk0           przenikanie przed: L 1.8 cm, P 0.0 cm | odwiedzenie ramienia max: L 2°, P 0°
-kobieta_czarna_rk BRAX_RECE KWalk1           przenikanie przed: L 1.3 cm, P 1.7 cm | odwiedzenie ramienia max: L 0°, P 2°
-kobieta_czarna_rk BRAX_RECE KWalk2           przenikanie przed: L 4.2 cm, P 1.8 cm | odwiedzenie ramienia max: L 8°, P 2°
-kobieta_czarna_rk BRAX_RECE KProwadzacy      przenikanie przed: L 1.3 cm, P 2.7 cm | odwiedzenie ramienia max: L 0°, P 6°
-kobieta_czarna_rk BRAX_RECE KMonolog         przenikanie przed: L 3.6 cm, P 0.6 cm | odwiedzenie ramienia max: L 6°, P 0°
-kobieta_czarna_rk BRAX_RECE KSmiech          przenikanie przed: L 2.3 cm, P 5.4 cm | odwiedzenie ramienia max: L 3°, P 12°
-kobieta_czarna_rk BRAX_RECE KBrawa           przenikanie przed: L 1.9 cm, P 2.7 cm | odwiedzenie ramienia max: L 2°, P 6°
-kobieta_czarna_rk BRAX_RECE KDwojeProwadzacych przenikanie przed: L 1.6 cm, P 3.2 cm | odwiedzenie ramienia max: L 2°, P 9°
-kobieta_czarna_rk BRAX_RECE KSedzia          przenikanie przed: L 0.0 cm, P 2.0 cm | odwiedzenie ramienia max: L 0°, P 4°
-kobieta_czarna_rk BRAX_RECE KAdwokat         przenikanie przed: L 2.0 cm, P 1.6 cm | odwiedzenie ramienia max: L 2°, P 2°
-kobieta_czarna_rk BRAX_RECE KUczestnik       przenikanie przed: L 0.5 cm, P 1.5 cm | odwiedzenie ramienia max: L 0°, P 1°
+kobieta_czarna_rk BRAX_RECE KIdle0           przenikanie przed: L 5.2 cm, P 5.6 cm | odwiedzenie ramienia max: L 10°, P 12°
+kobieta_czarna_rk BRAX_RECE KIdle1           przenikanie przed: L 5.0 cm, P 5.2 cm | odwiedzenie ramienia max: L 8°, P 8°
+kobieta_czarna_rk BRAX_RECE KIdle2           przenikanie przed: L 5.0 cm, P 3.0 cm | odwiedzenie ramienia max: L 9°, P 4°
+kobieta_czarna_rk BRAX_RECE KWalk0           przenikanie przed: L 4.3 cm, P 0.0 cm | odwiedzenie ramienia max: L 6°, P 0°
+kobieta_czarna_rk BRAX_RECE KWalk1           przenikanie przed: L 2.8 cm, P 1.5 cm | odwiedzenie ramienia max: L 3°, P 2°
+kobieta_czarna_rk BRAX_RECE KWalk2           przenikanie przed: L 5.5 cm, P 3.5 cm | odwiedzenie ramienia max: L 13°, P 5°
+kobieta_czarna_rk BRAX_RECE KProwadzacy      przenikanie przed: L 2.9 cm, P 2.5 cm | odwiedzenie ramienia max: L 6°, P 6°
+kobieta_czarna_rk BRAX_RECE KMonolog         przenikanie przed: L 5.3 cm, P 2.1 cm | odwiedzenie ramienia max: L 11°, P 6°
+kobieta_czarna_rk BRAX_RECE KSmiech          przenikanie przed: L 4.9 cm, P 5.4 cm | odwiedzenie ramienia max: L 13°, P 32°
+kobieta_czarna_rk BRAX_RECE KBrawa           przenikanie przed: L 4.1 cm, P 3.9 cm | odwiedzenie ramienia max: L 6°, P 5°
+kobieta_czarna_rk BRAX_RECE KDwojeProwadzacych przenikanie przed: L 0.9 cm, P 3.0 cm | odwiedzenie ramienia max: L 0°, P 10°
+kobieta_czarna_rk BRAX_RECE KSedzia          przenikanie przed: L 0.0 cm, P 1.0 cm | odwiedzenie ramienia max: L 0°, P 0°
+kobieta_czarna_rk BRAX_RECE KAdwokat         przenikanie przed: L 4.7 cm, P 3.0 cm | odwiedzenie ramienia max: L 9°, P 3°
+kobieta_czarna_rk BRAX_RECE KUczestnik       przenikanie przed: L 0.0 cm, P 1.1 cm | odwiedzenie ramienia max: L 0°, P 0°
 kobieta_czarna_rk KAdwokat               DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.34  rozciag. x2.20
-kobieta_czarna_rk KBrawa                 DOBRE  przenika max 1.4 cm (1.4%)  palec min x0.35  rozciag. x2.22
-kobieta_czarna_rk KDwojeProwadzacych     DOBRE  przenika max 1.4 cm (1.4%)  palec min x0.21  rozciag. x2.28
+kobieta_czarna_rk KBrawa                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.36  rozciag. x2.22
+kobieta_czarna_rk KDwojeProwadzacych     DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.21  rozciag. x2.28
 kobieta_czarna_rk KIdle0                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.39  rozciag. x2.16
-kobieta_czarna_rk KIdle1                 DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.21  rozciag. x2.29
-kobieta_czarna_rk KIdle2                 DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.35  rozciag. x2.44
-kobieta_czarna_rk KMonolog               DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.27  rozciag. x2.40
+kobieta_czarna_rk KIdle1                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.21  rozciag. x2.29
+kobieta_czarna_rk KIdle2                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.35  rozciag. x2.44
+kobieta_czarna_rk KMonolog               DOBRE  przenika max 1.6 cm (1.6%)  palec min x0.27  rozciag. x2.40
 kobieta_czarna_rk KProwadzacy            DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.21  rozciag. x2.28
 kobieta_czarna_rk KSedzia                DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.21  rozciag. x2.28
-kobieta_czarna_rk KSmiech                ODPADA  przenika max 2.5 cm (2.6%)  palec min x0.23  rozciag. x2.34
-kobieta_czarna_rk KUczestnik             DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.39  rozciag. x2.40
-kobieta_czarna_rk KWalk0                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.53  rozciag. x1.43
-kobieta_czarna_rk KWalk1                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.55  rozciag. x1.50
+kobieta_czarna_rk KSmiech                DOBRE  przenika max 1.2 cm (1.2%)  palec min x0.23  rozciag. x2.34
+kobieta_czarna_rk KUczestnik             DOBRE  przenika max 1.3 cm (1.3%)  palec min x0.39  rozciag. x2.40
+kobieta_czarna_rk KWalk0                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.53  rozciag. x1.40
+kobieta_czarna_rk KWalk1                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.58  rozciag. x1.37
 kobieta_czarna_rk KWalk2                 DOBRE  przenika max 0.0 cm (0.0%)  palec min x0.60  rozciag. x1.38
-kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk Idle                 przenika  16.9% klatek, max  1.6 cm | dlon zdeform.   1.4% (x1.55 / x0.53) | skret  22°
-kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk RkBrawa              przenika  16.2% klatek, max  1.5 cm | dlon zdeform. 100.0% (x2.34 / x0.35) | skret  74°
-kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk RkDwojeProwadzacych  przenika   5.0% klatek, max  1.4 cm | dlon zdeform. 100.0% (x2.42 / x0.21) | skret  60°
-kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk RkMonolog            przenika   0.0% klatek, max  0.0 cm | dlon zdeform. 100.0% (x2.53 / x0.27) | skret  72°
-kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk RkProwadzacy         przenika   6.2% klatek, max  1.2 cm | dlon zdeform. 100.0% (x2.42 / x0.21) | skret  57°
-kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk Walk                 przenika   0.0% klatek, max  0.0 cm | dlon zdeform. 100.0% (x1.54 / x0.45) | skret  72°
-kobieta_czarna_rk WYBRANE: ['Idle<-Regular_Medium_mixamo.fbx', 'Walk<-08-Loop_HappyWalk_MIXAMO_769_segment.fbx', 'RkProwadzacy<-Host_mixamo.fbx', 'RkMonolog<-StandUpComedian_mixamo.fbx', 'RkBrawa<-Clap_SlowClap_mixamo.fbx', 'RkDwojeProwadzacych<-HomeShopping_TwoHosts_mixamo.fbx']
+kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk Idle                 przenika   0.0% klatek, max  0.0 cm | dlon zdeform.   1.4% (x1.55 / x0.53) | skret  24°
+kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk RkBrawa              przenika   0.0% klatek, max  0.0 cm | dlon zdeform. 100.0% (x2.34 / x0.33) | skret  86°
+kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk RkMonolog            przenika   2.5% klatek, max  1.6 cm | dlon zdeform. 100.0% (x2.53 / x0.27) | skret  65°
+kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk RkProwadzacy         przenika   2.5% klatek, max  1.2 cm | dlon zdeform. 100.0% (x2.42 / x0.21) | skret  52°
+kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk RkSmiech             przenika   2.5% klatek, max  1.2 cm | dlon zdeform. 100.0% (x2.48 / x0.23) | skret  67°
+kobieta_czarna_rk KONIEC BRAX_MIARA kobieta_czarna_rk Walk                 przenika   0.0% klatek, max  0.0 cm | dlon zdeform. 100.0% (x1.47 / x0.44) | skret  48°
+kobieta_czarna_rk WYBRANE: ['Idle<-Regular_Medium_mixamo.fbx', 'Walk<-08-Loop_HappyWalk_MIXAMO_769_segment.fbx', 'RkProwadzacy<-Host_mixamo.fbx', 'RkMonolog<-StandUpComedian_mixamo.fbx', 'RkSmiech<-Laughs_mixamo.fbx', 'RkBrawa<-Clap_SlowClap_mixamo.fbx']

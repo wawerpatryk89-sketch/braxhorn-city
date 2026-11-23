@@ -260,6 +260,27 @@ def przenies(cel, szk_c, plik, stan, opcje):
         kc = (szk_c.glowy[d] - szk_c.glowy[k]).normalized()
         kz = C @ (szk_z.glowy[d] - szk_z.glowy[k]).normalized()
         A[k] = kc.rotation_difference(kz)
+    # OBROT RAMIENIA WOKOL WLASNEJ OSI. Wlasciciel 23.11, 15:14: „dlonie strasznie powykrecane
+    # w spoczynku”. Zmierzone: po samym wyrownaniu kierunku wnetrze dloni naszej postaci jest
+    # obrocone o 83–93° wzgledem aktora (poza A z Tripo vs poza T nagrania) — w kazdym ruchu
+    # dlon stoi wnetrzem do przodu zamiast do uda. Ramie i przedramie dostaja dodatkowy obrot
+    # wokol swojej osi tak, zeby wnetrze dloni w spoczynku patrzylo tam, gdzie u aktora.
+    # Ten sam obrot na obu koscach — lokiec i nadgarstek nie skrecaja sie wzgledem siebie.
+    for st in ("Left", "Right"):
+        dz, dc = dlon_spoczynek(szk_z, st), dlon_spoczynek(szk_c, st)
+        if not dz or not dc:
+            continue
+        for k in (st + "Arm", st + "ForeArm"):
+            os_k = C @ (szk_z.glowy[DZIECKO[k]] - szk_z.glowy[k]).normalized()
+            nc, nz = A[k] @ dc[0], C @ dz[0]
+            a, b = nc - os_k * nc.dot(os_k), nz - os_k * nz.dot(os_k)
+            if a.length < 1e-6 or b.length < 1e-6:
+                continue
+            a.normalize(); b.normalize()
+            kat = math.atan2(a.cross(b).dot(os_k), a.dot(b))
+            A[k] = Quaternion(os_k, kat) @ A[k]
+            if k.endswith("ForeArm"):
+                print("BRAX_DLON %s %s: wnetrze dloni obrocone o %.0f°" % (stan, st, math.degrees(kat)), flush=True)
     # Postac o masywnych udach (minotaur) nie moze isc krokiem szczuplego aktora — kolana
     # wchodzilyby w siebie. Zostawiam jej czesc WLASNEGO rozstawu nog z pozy spoczynkowej.
     rozstaw = float(opcje.get("rozstaw_nog", 0.0))
