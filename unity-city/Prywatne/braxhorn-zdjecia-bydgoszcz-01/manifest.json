@@ -1,6 +1,6 @@
 {
  "opis": "zdjęcia wzorcowe właściciela (Bydgoszcz) — do odwzorowania, nie do gry",
- "tar_sha256": "04b458590666649d1025c110df869495b75de661ef1e6f9274052b2564aadb27",
+ "tar_sha256": "c968f54346fe7e75a35ae254f9c4320c9beb5d5b2c906d6061de880ba1c401e5",
  "pliki": {
   "zdjecia/osiedle/o01.jpg": "c02850b235d4e6f83597af6d7243d1768589428a09c7d6c0b4f9093bbd80da6c",
   "zdjecia/osiedle/o02.jpg": "eb4c6cc2ca46ca85aad1008a04fd1b9608dc03715acdc821abda2c527a7e67e4",
@@ -77,6 +77,11 @@
   "zdjecia/osiedle/o75_glowna.jpg": "6aecc2d801a274c816769fafec2954a51017e2e359ae6bfce1bd9b08fa256a3b",
   "zdjecia/osiedle/o76_glowna.jpg": "b36f97aa79dd45f56aff51bab5f05c8c9e08f78912865793ebca90ec1a2b7e25",
   "zdjecia/osiedle/o77_glowna.jpg": "4091f001c33a849deb5a5eb5e678667beecde3008212c5de9f86e36a75915629",
+  "zdjecia/osiedle/o80_lotnicze_glowna.jpg": "e81c47b7625287be5290cb1cac750cd33e7c4e3256a95399c2ca348a8940ef7f",
+  "zdjecia/osiedle/o81_lotnicze_glowna.jpg": "53780d8f7d2c480a635e31fffe0dd406f3df6b335cf751f2eb024c5f09efb07f",
+  "zdjecia/osiedle/o82_lotnicze_glowna.jpg": "6fab630ba68c6ae88f252e97c0cc6b5418d8e119dd9897ed4b8a59980dbeaa76",
+  "zdjecia/osiedle/o83_lotnicze_glowna.jpg": "eb6fbe5d19048a4227bd0f2b13d2ac7102d26b392e1ce16ce224d649e953bc2a",
+  "zdjecia/osiedle/o84_lotnicze_glowna.jpg": "852b8e4d8aeeb450b728c5dab694b384365809f29d2cc2d0eb452eba16984d06",
   "zdjecia/spis.json": "d2a5ce4e16d7d8b044698108dced5b4791d7f682e6155e266bf0cfdf2f722476",
   "zdjecia/stare_miasto/01.jpg": "14b38a47a7d5f66cce130baa69eb8c3702422d90690bca02e803e69bc5889612",
   "zdjecia/stare_miasto/02.jpg": "247424049096777cbce55156527759ab0b93d7c6e89eb0eb02d2cb5827e2be81",
@@ -95,8 +100,8 @@
  "czesci": [
   {
    "name": "part-000.cms",
-   "bytes": 49244741,
-   "sha256": "b1590fc72dbf95823f8890b2e552ed643c752d47a5fff13efff9013e41eddc4c"
+   "bytes": 52767301,
+   "sha256": "3d47359c1248b61cc25e07f6970e74a99ba7911a6d39e6c2a2acb460a94d34f5"
   }
  ]
 }
