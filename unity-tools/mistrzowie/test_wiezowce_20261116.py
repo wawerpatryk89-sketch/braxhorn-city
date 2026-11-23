@@ -157,7 +157,7 @@ class Interiors(unittest.TestCase):
                      "HotelSobczak/coffee_table_round_01/coffee_table_round_01_2k.gltf", "ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf",
                      "HotelSobczak/modern_ceiling_lamp_01/modern_ceiling_lamp_01_1k.gltf"):
             self.assertIn(path, SRC)
-        self.assertIn("if(working<0)W.MM(walnut,core.xMin,core.xMax,y0,ceil,core.yMin,core.yMax,true);", SRC)
+        self.assertIn("if(working<0)W.MM(coreStone,core.xMin,core.xMax,y0,ceil,core.yMin,core.yMax,true);", SRC)   # 23.11: light stone, not walnut
         self.assertEqual(SRC.count("LightLines("), 6)            # definition + T08, T09, T10, T12, T13
         self.assertIn("LightLinesAt(F0,new[]{-15.3f,-11.0f,-8.6f},null,15f-.6f);", SRC)
 

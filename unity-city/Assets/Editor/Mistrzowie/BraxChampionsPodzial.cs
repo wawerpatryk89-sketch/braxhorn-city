@@ -321,9 +321,23 @@ public static class BraxChampionsPodzial
         var w = new Vector3[nv]; for (int i = 0; i < nv; i++) w[i] = l2w.MultiplyPoint3x4(d.v[i]);
         if (z.dokladne)
         {
-            var k = new Kawalek { wynik = float.MaxValue, zrodlo = zi };
-            for (int s = 0; s < d.sub.Length; s++) for (int j = 0; j + 2 < d.sub[s].Length; j += 3) { k.sub.Add(s); k.tri.Add(j); }
-            if (k.tri.Count > 0) wynik.Add(k);
+            // 23.11 (owner: the gallery "znika, się źle pojawia"): these whole objects scored float.MaxValue and went in
+            // before every wall - in G1 the last LOD levels of its shelves, goods and furniture filled the 80 000 triangles
+            // (175 of 7658 pieces, log "smaller than 2.6e38 m left out"), so its copy from far was the shop fittings inside
+            // and the building came out of the air at 150 m. Same for the four apartment blocks. Now they compete by
+            // their real size like every other piece: walls, roofs and façades first.
+            var k = new Kawalek { zrodlo = zi };
+            Vector3 lo = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue), hi = -lo;
+            for (int s = 0; s < d.sub.Length; s++) for (int j = 0; j + 2 < d.sub[s].Length; j += 3)
+            {
+                k.sub.Add(s); k.tri.Add(j);
+                for (int q = 0; q < 3; q++) { var p = w[d.sub[s][j + q]]; lo = Vector3.Min(lo, p); hi = Vector3.Max(hi, p); }
+            }
+            if (k.tri.Count == 0) return;
+            var sz = hi - lo;
+            float e1 = Mathf.Max(sz.x, sz.y, sz.z), e3 = Mathf.Min(sz.x, sz.y, sz.z), e2 = sz.x + sz.y + sz.z - e1 - e3;
+            k.wynik = Mathf.Min(e1, Smuklosc * e2);
+            if (k.wynik >= MinKawalek * BraxClaudeOsiedle.K) wynik.Add(k);
             return;
         }
         var r = new int[nv]; var spaw = new Dictionary<(int, int, int), int>(nv);

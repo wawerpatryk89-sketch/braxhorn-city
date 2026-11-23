@@ -83,8 +83,16 @@ public static class Program
                 int xi = int.Parse(parts[0].Substring(1)), zi = int.Parse(parts[1].Substring(1));
                 if (xi < 1 || xi > 2 || zi < 3 || zi > 4) continue;
                 var mat = Fnd(m.role); if (mat == null) continue;
-                var pts = new List<string>(); for (int i = 0; i < m.positions.Length; i++) pts.Add(F(m.positions[i] / K));
-                fm.Add("[\"FOUNDATION " + m.id + "\",\"" + mat + "\",[" + string.Join(",", pts) + "],[" + string.Join(",", m.triangles) + "]]");
+                var pos = m.positions; var tri = m.triangles;
+                if (m.role == "grass")   // the game's own cut: the towers' forecourts out of the lawn (BraxChampionsLawnCut)
+                {
+                    var v = new Vector3[pos.Length / 3]; var uv = new Vector2[v.Length];
+                    for (int i = 0; i < v.Length; i++) v[i] = new Vector3(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]);
+                    if (BraxChampionsLawnCut.Cut(ref v, ref uv, ref tri, BraxChampionsWiezowce.Forecourts(), K))
+                    { pos = new float[v.Length * 3]; for (int i = 0; i < v.Length; i++) { pos[i * 3] = v[i].x; pos[i * 3 + 1] = v[i].y; pos[i * 3 + 2] = v[i].z; } Console.WriteLine("LAWN_CUT " + m.id + " tris=" + tri.Length / 3); }
+                }
+                var pts = new List<string>(); for (int i = 0; i < pos.Length; i++) pts.Add(F(pos[i] / K));
+                fm.Add("[\"FOUNDATION " + m.id + "\",\"" + mat + "\",[" + string.Join(",", pts) + "],[" + string.Join(",", tri) + "]]");
             }
             sb.Append(",\"foundation\":[" + string.Join(",", fm) + "]");
         }

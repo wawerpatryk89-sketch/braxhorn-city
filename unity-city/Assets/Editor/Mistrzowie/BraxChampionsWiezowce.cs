@@ -52,7 +52,7 @@ public static class BraxChampionsWiezowce
 
     // ---------------- materials ----------------
     static Material gLobby,gClear,bandWhite,bandGraphite,steel,black,granite,plaza,marble,walnut,ceilingWhite,
-        ceilingBlack,ledWhite,ledGreen,teak,grass,deck,paintWhite,lantern;
+        ceilingBlack,ledWhite,ledGreen,teak,grass,deck,paintWhite,lantern,coreStone,podium;
     static string outFolder;
     static Material Surface(string id,Color c,float rough,float metal,Color? emission=null)
     {
@@ -144,6 +144,10 @@ public static class BraxChampionsWiezowce
         try{marble=BraxChampionsFoundation.LibraryMarbleWhite("tower_lobby_marble",Color.white,2.4f);marble.SetFloat("_Roughness",.25f);}
         catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI TOWER_WHITE_MARBLE "+e.Message);marble=plaza;}
         walnut=Src("walnut","smoked_walnut_veneer",1.2f,new Color(.55f,.46f,.40f),.45f);
+        // 23.11 (owner: the lobby "wygląda jakby to było doklejone"): the lift cores in light stone, as in real premium
+        // lobbies (Varso, One World Trade), not a brown block behind the glass
+        try{coreStone=BraxChampionsFoundation.LibraryTravertine("tower_core_travertine",new Color(1.02f,1.0f,.97f),2.4f);coreStone.SetFloat("_Roughness",.35f);}
+        catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI TOWER_CORE_TRAVERTINE "+e.Message);coreStone=marble;}
         ceilingWhite=Src("ceiling_white",BraxChampionsFoundation.InteriorPaintSlug,2.0f,BraxChampionsFoundation.PaintTint(new Color(1.24f,1.24f,1.23f)),.85f);
         ceilingBlack=Src("ceiling_black","brushed_concrete",2.5f,new Color(.10f,.10f,.11f),.9f);
         teak=Src("terrace_teak","teak_veneer",1.0f,new Color(.91f,1.20f,1.72f),.6f);
@@ -354,7 +358,7 @@ public static class BraxChampionsWiezowce
 
     // ---------------- per tower state ----------------
     static Transform outside,details,inside;
-    static int doors,seats,models,betScreens,glassUnits;
+    static int doors,seats,models,betScreens,glassUnits,podiumColumns;
     static string towerId;
     static BraxChampionsMeshBatch letters,kat;
     static List<Light> lights;
@@ -365,7 +369,7 @@ public static class BraxChampionsWiezowce
         Tower t=default;bool found=false;
         foreach(var x in Towers)if(x.id==id){t=x;found=true;}
         if(!found)throw new ArgumentException("Unknown tower plot "+id);
-        outFolder=folder;towerId=id;doors=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;roulettes=0;obsluga=0;ownerMissing=0;heliY=float.NaN;helis=0;betEkrany.Clear();lototo=null;hung.Clear();Materials(ext);
+        outFolder=folder;towerId=id;doors=0;podiumColumns=0;fountains=0;forecourtPlanters=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;roulettes=0;obsluga=0;ownerMissing=0;heliY=float.NaN;helis=0;betEkrany.Clear();lototo=null;hung.Clear();Materials(ext);
         Physics.SyncTransforms();
         float datum=0f;
         if(Physics.Raycast(new Vector3(t.x,80f,t.z)*K,Vector3.down,out var hit,200f*K,~0,QueryTriggerInteraction.Ignore))
@@ -381,7 +385,12 @@ public static class BraxChampionsWiezowce
         W.Wyczysc();W.Start(outside);W.Wnetrze=false;W.Komorka=40f;
         letters=new BraxChampionsMeshBatch();kat=new BraxChampionsMeshBatch();lights=new List<Light>();
         glassSkin=new BraxChampionsMeshBatch();frames=new List<(float,float,BraxChampionsMeshBatch)>();
+        // the base speaks the tower's language: white aluminium under the white-banded towers, stainless under the rest
+        podium=t.shape==Shape.Ellipse||t.shape==Shape.Stacked?bandWhite:steel;
+        podiumEvery=t.shape==Shape.Setback?2:3;podiumW=t.shape==Shape.Setback?.30f:.45f;podiumD=t.shape==Shape.Setback?.45f:.55f;
+        palmSpots.Clear();
         Site();
+        Forecourt(t);
         float roof;
         switch(t.shape)
         {
@@ -421,7 +430,7 @@ public static class BraxChampionsWiezowce
         int palms=Palms(root);
         if(doors<1)BraxBuildQuality.Warn("DO POPRAWKI TOWER_"+id+"_ENTRANCE_DOOR_MISSING");
         Debug.Log("CHAMPIONS_TOWER "+id+" "+t.name+" shape="+t.shape+" floors="+t.floors+" height="+(roof).ToString("F1")+"m nominal ("+
-            (roof*K).ToString("F1")+" world) meshes="+saved+" curtainWall=units:"+glassUnits+",frameChunks:"+chunks+" doors="+doors+" seats="+seats+" models="+models+" palms="+palms+" lights="+lights.Count+
+            (roof*K).ToString("F1")+" world) meshes="+saved+" curtainWall=units:"+glassUnits+",frameChunks:"+chunks+" podium=columns:"+podiumColumns+" forecourt=planters:"+forecourtPlanters+",fountains:"+fountains+" doors="+doors+" seats="+seats+" models="+models+" palms="+palms+" lights="+lights.Count+
             (betScreens>0?" BRAXHORN_BET screens="+betScreens+" films=0 (street premises) lototo="+(lototo?"studio+kolektura":"none"):""));
     }
 
@@ -437,8 +446,92 @@ public static class BraxChampionsWiezowce
             var bed=Box4(3f,3f,cx,cz);
             Prism(granite,null,grass,bed,SiteY,SiteY+.45f);
             W.KolizjaMM(cx-3f,cx+3f,SiteY,SiteY+.45f,cz-3f,cz+3f);
+            palmSpots.Add(new Vector3(cx,SiteY+.45f,cz));
         }
     }
+    static readonly List<Vector3> palmSpots=new List<Vector3>();
+
+    // ---------------- the forecourt (23.11, owner: the towers "stoją na trawniku"; plan: "plac przed każdą wieżą") ----------------
+    // The same granite from the plot to the street the tower faces: north row to the sidewalk of road Z650 (its lawn ends at
+    // z 633.022), south row to the sidewalk of road Z330 (lawn from z 347.012). The foundation cuts these rectangles out of its
+    // lawn (BraxChampionsFoundation, ForecourtLawnCut), so the granite never lies on grass. On it: an avenue of the owner's
+    // palms in granite planters with lawn (on both sides of the entrances, never in front of a door), granite benches
+    // between them; before BRAXHORN TOWER a fountain with running water (BraxChampionsFontanna).
+    public const float SidewalkNorthZ=633.022f,SidewalkSouthZ=347.012f;
+    /// <summary>The forecourts in world nominal metres (x0, x1, z0, z1): the plot's width, from the plot to the sidewalk.</summary>
+    public static List<Vector4> Forecourts()
+    {
+        var r=new List<Vector4>();
+        foreach(var t in Towers)
+            r.Add(t.yaw==180f?new Vector4(t.x-PlotHalf,t.x+PlotHalf,t.z+PlotHalf,SidewalkNorthZ):new Vector4(t.x-PlotHalf,t.x+PlotHalf,SidewalkSouthZ,t.z-PlotHalf));
+        return r;
+    }
+    static Material fountainWater,fountainJet;
+    static int forecourtPlanters;
+    static void Forecourt(Tower t)
+    {
+        float depth=t.yaw==180f?SidewalkNorthZ-(t.z+PlotHalf):(t.z-PlotHalf)-SidewalkSouthZ;
+        if(depth<2f)return;
+        W.Grupa=outside;W.Wnetrze=false;
+        float z0=-PlotHalf-depth,z1=-PlotHalf;                                // local: the front is -z
+        W.MM(plaza,-PlotHalf,PlotHalf,PlotBaseY,SiteY,z0,z1,true);
+        // the avenue: planters 2.4 x 2.4 m (granite sides, lawn top 45 cm) at x +-18, every 11 m from 5 m off the plot
+        forecourtPlanters=0;
+        for(float d=5f;d<=depth-3f;d+=11f)
+            foreach(float sx in new[]{-1f,1f})
+            {
+                float cx=sx*18f,cz=z1-d;
+                Prism(granite,null,grass,Box4(1.2f,1.2f,cx,cz),SiteY,SiteY+.45f);
+                W.KolizjaMM(cx-1.2f,cx+1.2f,SiteY,SiteY+.45f,cz-1.2f,cz+1.2f);
+                palmSpots.Add(new Vector3(cx,SiteY+.45f,cz));forecourtPlanters++;
+                // a granite bench facing the avenue's axis, half-way to the next planter
+                if(d+5.5f<=depth-3f)
+                {
+                    float bz=cz-5.5f;
+                    W.MM(granite,cx-.25f,cx+.25f,SiteY,SiteY+.45f,bz-1.2f,bz+1.2f,true);
+                    for(int i=-1;i<=1;i++){W.Grupa=outside;W.Siedzisko(new Vector3(cx,SiteY+.45f,bz+i*.75f),new Vector3(-sx,0,0),"ŁAWKA NA PLACU");seats++;}
+                }
+            }
+        if(t.shape==Shape.Setback)Fountain(new Vector3(0f,SiteY,z1-Mathf.Min(22f,depth*.6f)));
+    }
+    // a round granite basin R 6 (coping 45 cm, 60 cm wide), a dark floor, the water, a rose of jets and an inner ring
+    // (BraxChampionsFontanna runs the water every frame; the same build as the D2 forecourt fountain)
+    static List<Vector2> Circle(float r,float cx,float cz,int n=48){var p=new List<Vector2>(n);for(int i=0;i<n;i++){float a=2f*Mathf.PI*i/n;p.Add(new Vector2(cx+Mathf.Cos(a)*r,cz+Mathf.Sin(a)*r));}return p;}
+    static void Fountain(Vector3 c)
+    {
+        if(!fountainWater)
+        {
+            fountainWater=BraxChampionsHarbour.Surface("tower_fountain_water",new Color(.22f,.40f,.46f,.62f),.03f,.1f,null,true);
+            fountainJet=BraxChampionsHarbour.Surface("tower_fountain_jet",new Color(.88f,.94f,.97f,.24f),.05f,0f,new Color(.22f,.24f,.26f),true);
+        }
+        const float R=6f,Wd=.6f,Hc=.45f;
+        var inner=Circle(R,c.x,c.z);var outer=Circle(R+Wd,c.x,c.z);var cc=new Vector2(c.x,c.z);
+        float y0=c.y,y1=c.y+Hc;
+        Sides(granite,outer,y0,y1);
+        for(int i=0;i<inner.Count;i++)
+        {
+            int j=(i+1)%inner.Count;
+            Q(granite,V3(inner[i],y1),V3(outer[i],y1),V3(outer[j],y1),V3(inner[j],y1),Vector3.up);                 // the coping
+            var mid=(inner[i]+inner[j])*.5f;var nin=(cc-mid).normalized;
+            Q(granite,V3(inner[i],y0+.06f),V3(inner[j],y0+.06f),V3(inner[j],y1),V3(inner[i],y1),new Vector3(nin.x,0,nin.y));   // its inner face
+        }
+        Cap(granite,inner,y0+.06f,true);                                                                            // the floor, 6 cm over the plaza
+        Cap(fountainWater,inner,y0+.30f,true);
+        W.KolizjaMM(c.x-R-Wd,c.x+R+Wd,y0,y1,c.z-R-Wd,c.z+R+Wd);
+        var A=new List<Vector3>();var B=new List<Vector3>();var H=new List<float>();var Wv=new List<float>();var N=new List<int>();var P=new List<bool>();
+        void J(Vector3 a,Vector3 b,float h,float w,int k){A.Add(a);B.Add(b);H.Add(h);Wv.Add(w);N.Add(k);P.Add(true);}
+        for(int i=0;i<6;i++){float a=2*Mathf.PI*i/6f;J(new Vector3(0,.38f,0),new Vector3(Mathf.Cos(a)*.55f,.30f,Mathf.Sin(a)*.55f),2.4f,.075f,18);}
+        for(int i=0;i<12;i++)
+        {
+            float a=2*Mathf.PI*(i+.5f)/12f;var d=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));
+            J(d*(R-.5f)+Vector3.up*.45f,d*2.6f+Vector3.up*.30f,1.4f,.045f,16);
+        }
+        W.OBox(steel,c+Vector3.up*.33f,new Vector3(.20f,.10f,.20f),Quaternion.identity);                          // the central rose
+        BraxChampionsMeshBatch.FountainWater(outside,"BRAXHORN TOWER | fontanna na placu — płynąca woda (BraxChampionsFontanna)",c,1f,
+            A.ToArray(),B.ToArray(),H.ToArray(),Wv.ToArray(),N.ToArray(),P.ToArray(),new[]{Vector3.up*.30f},new[]{R},fountainJet);
+        fountains++;
+    }
+    static int fountains;
 
     // ---------------- the lobby (the ground floor of every tower) ----------------
     // F: the ground-floor outline (convex, even corner count); front: its flat front edge at z=front (local -Z);
@@ -475,17 +568,21 @@ public static class BraxChampionsWiezowce
                 if(s1-s0<.05f)return;
                 var pa=a+e*s0;var pb=a+e*s1;
                 // the pane (24 mm) on the edge line; black mullions at both ends, a transom at 4.0 m
-                W.OBox(gLobby,V3((pa+pb)*.5f,(ya+yb)*.5f),new Vector3(s1-s0,yb-ya,.024f),Quaternion.LookRotation(o,Vector3.up));
+                W.OBox(gClear,V3((pa+pb)*.5f,(ya+yb)*.5f),new Vector3(s1-s0,yb-ya,.024f),Quaternion.LookRotation(o,Vector3.up));
             }
             void Panes(float s0,float s1)
             {
                 if(s1-s0<.05f)return;
-                int n2=Mathf.Max(1,Mathf.CeilToInt((s1-s0)/3.0f-.01f));float w=(s1-s0)/n2;
-                for(int k=0;k<n2;k++){Glass(s0+k*w+.06f,s0+(k+1)*w-.06f,y0,y0+4.0f-.06f);Glass(s0+k*w+.06f,s0+(k+1)*w-.06f,y0+4.0f+.06f,y1-.02f);}
+                // 23.11: the lobby glass in the tower's own 1.5 m module, one pane from the floor to the band (structural
+                // glass, as real premium lobbies), slim black fins at the joints - the tower's lines run down to the plaza
+                int n2=Mathf.Max(1,Mathf.RoundToInt((s1-s0)/1.5f));float w=(s1-s0)/n2;
+                for(int k=0;k<n2;k++)Glass(s0+k*w+.03f,s0+(k+1)*w-.03f,y0,y1-.02f);
                 W.Grupa=details;
-                // mullions stand on the plaza (their feet 2 cm under the panes' - never in the panes' plane)
-                for(int k=0;k<=n2;k++){var pm=a+e*(s0+k*w);W.OBox(black,V3(pm,(SiteY+y1)*.5f)+o*.03f,new Vector3(.12f,y1-SiteY,.18f),Quaternion.LookRotation(o,Vector3.up));}
-                {var pa=a+e*s0;var pb=a+e*s1;W.OBox(black,V3((pa+pb)*.5f,y0+4.0f)+o*.03f,new Vector3(s1-s0,.12f,.18f),Quaternion.LookRotation(o,Vector3.up));}
+                // the fins stand on the plaza (their feet 2 cm under the panes' - never in the panes' plane), 4 cm out of the
+                // glass and 10 cm in (never into a column, which stands 5 cm off), and end 2 cm inside the podium band
+                // (their tops never in one plane with its ledge or a column's top)
+                float fy1=y1-PodiumBand+.02f;
+                for(int k=0;k<=n2;k++){var pm=a+e*(s0+k*w);W.OBox(mullion,V3(pm,(SiteY+fy1)*.5f)-o*.03f,new Vector3(.05f,fy1-SiteY,.14f),Quaternion.LookRotation(o,Vector3.up));}
                 W.Grupa=outside;
                 var ca=a+e*s0;var cb=a+e*s1;W.Kolizja(V3((ca+cb)*.5f,(y0+y1)*.5f),new Vector3(s1-s0,y1-y0,.3f),Quaternion.LookRotation(o,Vector3.up));
             }
@@ -499,6 +596,61 @@ public static class BraxChampionsWiezowce
                 u0=c1;
             }
             Panes(u0,len);
+        }
+        Podium(F,front,doorsX);
+    }
+    // 23.11 (owner 15:54: "te budynki z dołu mają lepiej wyglądać, bardziej premium, bo wygląda jakby to było doklejone, ten dół
+    // do góry"; 15:59 "szkło na dół ... wymyśl coś"): glass to the ground, tied to the tower as real towers do it -
+    //  - a band of the tower's metal round the whole base at the lobby's top (90 cm, 60 cm proud) with a lit white soffit:
+    //    the line where the tower starts, the same all round;
+    //  - columns of the same metal in front of the glass from the plaza to that band, on the tower's 1.5 m module (BRAXHORN
+    //    TOWER: on its blades' lines, 30 x 45 cm like the blades, so the blades run down to the ground), never in front of
+    //    a door or its canopy.
+    static int podiumEvery=3;static float podiumW=.45f,podiumD=.55f;
+    const float PodiumProud=.60f,PodiumBand=.90f;
+    static void Podium(List<Vector2> F,float front,float[] doorsX)
+    {
+        float yb=Shaft-PodiumBand;
+        W.Grupa=outside;W.Wnetrze=false;
+        var O=Offset(F,PodiumProud);var c=Centre(F);
+        Sides(podium,O,yb,Shaft);
+        for(int i=0;i<F.Count;i++)
+        {
+            int j=(i+1)%F.Count;
+            Q(podium,V3(F[i],Shaft),V3(O[i],Shaft),V3(O[j],Shaft),V3(F[j],Shaft),Vector3.up);       // the ledge (under the tower's first storey)
+            Q(lantern,V3(F[i],yb),V3(O[i],yb),V3(O[j],yb),V3(F[j],yb),Vector3.down);                // the lit soffit
+            var eo=EdgeOut(F,i,c);var ni=new Vector2(-eo.x,-eo.y);                                     // its back, seen from the lobby
+            Q(podium,V3(F[i],yb),V3(F[j],yb),V3(F[j],Shaft),V3(F[i],Shaft),new Vector3(ni.x,0,ni.y));
+        }
+        bool NearDoor(Vector2 p,Vector2 n)
+        {
+            if(doorsX==null||n.y>-.7f||Mathf.Abs(p.y-front)>.6f)return false;                        // only on the front edge
+            foreach(float dx in doorsX)if(Mathf.Abs(p.x-dx)<3.25f)return true;                         // the canopy is 6 m wide
+            return false;
+        }
+        void Column(Vector2 p,Vector2 n)
+        {
+            if(NearDoor(p,n))return;
+            var o=new Vector3(n.x,0,n.y);float h=yb+.01f-SiteY;                                         // its top 1 cm inside the band
+            W.OBox(podium,V3(p,SiteY+h*.5f)+o*(podiumD*.5f+.05f),new Vector3(podiumW,h,podiumD),Quaternion.LookRotation(o,Vector3.up),true,true);
+            podiumColumns++;
+        }
+        float avg=0f;for(int i=0;i<F.Count;i++)avg+=(F[(i+1)%F.Count]-F[i]).magnitude;avg/=F.Count;
+        if(avg>=3f)
+            for(int i=0;i<F.Count;i++)
+            {
+                var a=F[i];var b=F[(i+1)%F.Count];float len=(b-a).magnitude;int m=Mathf.Max(1,Mathf.RoundToInt(len/1.5f));
+                var n=EdgeOut(F,i,c);
+                for(int k=podiumEvery;k<m;k+=podiumEvery)Column(Vector2.Lerp(a,b,(float)k/m),n);
+            }
+        else
+        {
+            // a curved outline (the ellipse): at every n-th corner, n from the spacing
+            int every=Mathf.Max(1,Mathf.RoundToInt(podiumEvery*1.5f/avg));
+            for(int i=0;i<F.Count;i+=every)
+            {
+                var n1=EdgeOut(F,(i-1+F.Count)%F.Count,c);var n2=EdgeOut(F,i,c);Column(F[i],(n1+n2).normalized);
+            }
         }
     }
     static List<Vector2> ClipX(List<Vector2> p,float x,bool keepLess)
@@ -561,9 +713,9 @@ public static class BraxChampionsWiezowce
     {
         float y0=Fl,ceil=Shaft-Ceiling;
         W.Grupa=inside;W.Wnetrze=true;
-        // the lift core clad in walnut, its front at z=core.yMin, the lift doors in brushed stainless; a working lift (the
+        // the lift core clad in light travertine (23.11; walnut until then), its front at z=core.yMin, the lift doors in brushed stainless; a working lift (the
         // SKY KASYNO express) has its shaft open in the core
-        if(working<0)W.MM(walnut,core.xMin,core.xMax,y0,ceil,core.yMin,core.yMax,true);
+        if(working<0)W.MM(coreStone,core.xMin,core.xMax,y0,ceil,core.yMin,core.yMax,true);
         else LiftCore(core,LiftCentre(core,lifts,working),y0,ceil);
         float lw=1.2f;
         for(int i=0;i<lifts;i++)
@@ -1233,17 +1385,17 @@ public static class BraxChampionsWiezowce
         }
         catch(Exception e){BraxBuildQuality.Warn("DO POPRAWKI TOWER_OWNER_BACKBAR "+e.Message);ownerMissing++;return 0;}
     }
-    // a lift core in walnut round one working lift's shaft (x = the shaft's centre): the walls beside and over the doors,
+    // a lift core in light travertine (23.11) round one working lift's shaft (x = the shaft's centre): the walls beside and over the doors,
     // a brushed stainless portal 3 cm proud, the call panel
     static void LiftCore(Core core,float x,float y0,float y1)
     {
         float s0=x-LiftHalf,s1=x+LiftHalf,d0=x-LiftLeaf,d1=x+LiftLeaf,front=core.yMin,wall=front+.20f;
         W.Grupa=inside;W.Wnetrze=true;
-        W.MM(walnut,core.xMin,s0,y0,y1,core.yMin,core.yMax,true);
-        W.MM(walnut,s1,core.xMax,y0,y1,core.yMin,core.yMax,true);
-        W.MM(walnut,s0,s1,y0,y1,front+(LiftZ1-LiftZ0),core.yMax,true);
-        W.MM(walnut,s0,d0,y0,y1,front,wall,true);W.MM(walnut,d1,s1,y0,y1,front,wall,true);
-        W.MM(walnut,d0,d1,y0+2.25f,y1,front,wall,true);
+        W.MM(coreStone,core.xMin,s0,y0,y1,core.yMin,core.yMax,true);
+        W.MM(coreStone,s1,core.xMax,y0,y1,core.yMin,core.yMax,true);
+        W.MM(coreStone,s0,s1,y0,y1,front+(LiftZ1-LiftZ0),core.yMax,true);
+        W.MM(coreStone,s0,d0,y0,y1,front,wall,true);W.MM(coreStone,d1,s1,y0,y1,front,wall,true);
+        W.MM(coreStone,d0,d1,y0+2.25f,y1,front,wall,true);
         W.MM(steel,d0-.08f,d0,y0,y0+2.25f,front-.03f,front);W.MM(steel,d1,d1+.08f,y0,y0+2.25f,front-.03f,front);
         W.MM(steel,d0-.08f,d1+.08f,y0+2.25f,y0+2.33f,front-.03f,front);
         W.MM(steel,d1+.20f,d1+.32f,y0+1.0f,y0+1.25f,front-.03f,front);
@@ -1563,10 +1715,10 @@ public static class BraxChampionsWiezowce
         var palm=BraxMiastoAssety.Model("miasto_palmy","palma");
         if(!palm){BraxBuildQuality.Warn("DO POPRAWKI TOWER_PALMS_MISSING: miasto_palmy/palma");return 0;}
         int placed=0;
-        foreach(float sx in new[]{-1f,1f})foreach(float sz in new[]{-1f,1f})
+        foreach(var spot in palmSpots)
         {
-            var world=root.TransformPoint(new Vector3(sx*(PlotHalf-4f),SiteY+.45f,sz*(PlotHalf-4f)));
-            var o=BraxChampionsModel.Postaw(outside,palm,"tower plaza palm",world,(sx*31f+sz*7f+360f)%360f,1f,false,true);
+            var world=root.TransformPoint(spot);
+            var o=BraxChampionsModel.Postaw(outside,palm,"tower plaza palm",world,(spot.x*31f+spot.z*7f+3600f)%360f,1f,false,true);
             if(!o)continue;
             o.transform.localScale=Vector3.one;
             BraxMiastoAssety.LodyZWezlow(o,new[]{.25f,.08f,.012f});

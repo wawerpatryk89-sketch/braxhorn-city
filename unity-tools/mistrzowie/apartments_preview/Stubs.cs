@@ -273,7 +273,7 @@ namespace UnityEngine
     // Stand-in for an imported glTF model: its path and the real bounds read from the glTF accessors (x mirrored like glTFast).
     public class PreviewModel : Component { public string path; public Vector3 min, max; }
     public class MeshRenderer : Renderer { }
-    public class Mesh : Object { public void MarkDynamic() { } public void Clear() { vertices = new Vector3[0]; triangles = new int[0]; uv = null; } public Vector3[] vertices = new Vector3[0]; public Vector3[] normals; public Vector2[] uv; public int[] triangles = new int[0]; public Bounds bounds; public Vector4[] tangents; public Color[] colors;
+    public class Mesh : Object { public int subMeshCount = 1; public void MarkDynamic() { } public void Clear() { vertices = new Vector3[0]; triangles = new int[0]; uv = null; } public Vector3[] vertices = new Vector3[0]; public Vector3[] normals; public Vector2[] uv; public int[] triangles = new int[0]; public Bounds bounds; public Vector4[] tangents; public Color[] colors;
         public Rendering.IndexFormat indexFormat;
         public void SetVertices(List<Vector3> v) => vertices = v.ToArray(); public void SetNormals(List<Vector3> n) { }
         public void SetUVs(int ch, List<Vector2> u) { if (ch == 0) uv = u.ToArray(); } public void SetTriangles(List<int> t, int sub) => triangles = t.ToArray();

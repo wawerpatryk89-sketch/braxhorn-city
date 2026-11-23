@@ -227,6 +227,12 @@ Shader "Braxhorn/ChampionsPBR"
                 // afar it blends into the glass instead of shimmering; the frame is satin, the glass mirror-smooth
                 half glassMask = baseSample.a;
                 roughness = lerp(.45, roughness, glassMask);
+                // 23.11 (owner's photo: white dots sparkling on the tower glass): every unit is tilted a fraction of a degree,
+                // so with a mirror-sharp sun (roughness .085) single far units flash the sun at the camera and go out again
+                // as it moves. Real glass seen from far averages many units in one pixel: the highlight broadens with the
+                // distance (from 30 to 280 units), and so does the sky's mip in it - no on/off pixels, no sparkle.
+                float glassDist = length(_WorldSpaceCameraPos.xyz - i.worldPos);
+                roughness = max(roughness, lerp(.085, .32, saturate((glassDist - 30) / 250)));
                 #endif
                 half aoMap = tex2D(_OcclusionMap, MapUV(i.uv,_OcclusionMap_ST,
                                       _OcclusionMap_Rotation.xy,_OcclusionMap_texCoord)).r;

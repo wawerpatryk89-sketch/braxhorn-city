@@ -71,10 +71,11 @@ public static class BraxChampionsFoundation
         public string status = "GENERATED_REQUIRES_VISUAL_AND_PHONE_REVIEW";
         public string sourceCommit;
         public float scaleK;
-        public int meshes, triangles, palms, trees, berths;
+        public int meshes, triangles, palms, trees, berths, lawnCutMeshes;
         public bool interiorsBuilt=false, yachtsPlaced=false, trafficEnabled=false, visualAccepted=false, phoneTested=false;
     }
     sealed class MapSet { public string color,normal,arm; public float tile; }
+
 
     static Foundation Read()
     {
@@ -293,7 +294,11 @@ public static class BraxChampionsFoundation
                 var mesh=new Mesh{name=m.id,indexFormat=m.positions.Length/3>65535?IndexFormat.UInt32:IndexFormat.UInt16};
                 var v=new Vector3[m.positions.Length/3];var uv=new Vector2[v.Length];
                 for(int i=0;i<v.Length;i++){v[i]=new Vector3(m.positions[i*3],m.positions[i*3+1],m.positions[i*3+2]);uv[i]=new Vector2(m.uv[i*2],m.uv[i*2+1]);}
-                mesh.vertices=v;mesh.uv=uv;mesh.triangles=m.triangles;mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
+                var tri=m.triangles;
+                // 23.11: the towers' granite forecourts (BraxChampionsWiezowce.Forecourts) are cut out of the lawn exactly, so
+                // the granite never lies on grass in one plane (ZASADY 4.7)
+                if(m.role=="grass"&&BraxChampionsLawnCut.Cut(ref v,ref uv,ref tri,BraxChampionsWiezowce.Forecourts(),K))report.lawnCutMeshes++;
+                mesh.vertices=v;mesh.uv=uv;mesh.triangles=tri;mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
                 if(m.role=="sea"||m.role=="foam"){var b=mesh.bounds;b.Expand(new Vector3(0,.5f,0));mesh.bounds=b;}
                 mesh=Save(mesh,Output+"/Meshes/"+m.id+".asset");
                 var o=new GameObject(m.id);o.transform.SetParent(root,false);o.AddComponent<MeshFilter>().sharedMesh=mesh;
@@ -301,7 +306,7 @@ public static class BraxChampionsFoundation
                 if(m.role!="sea"&&m.role!="foam")o.AddComponent<MeshCollider>().sharedMesh=mesh;
                 else {r.shadowCastingMode=ShadowCastingMode.Off;r.receiveShadows=false;}
                 GameObjectUtility.SetStaticEditorFlags(o,StaticEditorFlags.OccludeeStatic);
-                report.meshes++;report.triangles+=m.triangles.Length/3;
+                report.meshes++;report.triangles+=tri.Length/3;
             }
             BraxChampionsGrass.AddClumps(root,materials["grass"]);
             var vegetation=new GameObject("Zielen - ziemia i trawniki poza chodnikami").transform;vegetation.SetParent(root,false);
