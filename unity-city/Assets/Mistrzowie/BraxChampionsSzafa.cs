@@ -42,6 +42,8 @@ public sealed class BraxChampionsSzafa : MonoBehaviour, IBraxInterakcja
         return true;
     }
     public bool Otwarta => otwarta;
+    /// <summary>Opens or closes it without AKCJA (23.11 the villas' garage doors: the car's remote, BraxChampionsBramaPilot).</summary>
+    public void Ustaw(bool otworz) { if (!zawias || otwarta == otworz) return; otwarta = otworz; cel = otwarta ? katOtwarcia : 0f; }
     void Update()
     {
         if (!zawias || Mathf.Approximately(kat, cel)) return;

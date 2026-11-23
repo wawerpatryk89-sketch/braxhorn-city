@@ -126,7 +126,7 @@ public static partial class BraxChampionsWille
         try
         {
             pietro = FFL1;
-            if (nr == 1) PlanKlif();                                        // owner 17.11: each villa its own (his photo: BraxChampionsWillaKlif)
+            if (nr == 1) PlanWzgorze();                                     // 23.11 owner: rebuilt modern ("nowoczesna jak wyspa"; BraxChampionsWillaWzgorze, -Nowa)
             else if (nr == 2) PlanWyspa();                                  // his Miami photo, the court, the jetty (BraxChampionsWillaWyspa)
             else if (nr == 3) PlanNabrzeze();                               // his beige Mediterranean photo (BraxChampionsWillaNabrzeze)
             else { Teren(); Basen(); Jacuzzi_(); Bryla(nr); Garaz(); Wnetrze(nr); Wyposazenie(nr); Ogrod(nr); Palmy_(); }
@@ -183,15 +183,47 @@ public static partial class BraxChampionsWille
         if (a1 - a0 < .01f || y1 - y0 < .01f) return;
         if (alongX) MM(renderIn, a0, a1, y0, y1, plane - t, plane + t); else MM(renderIn, plane - t, plane + t, y0, y1, a0, a1);
     }
-    static void Drzwi(string id, bool alongX, float plane, float a0, float a1, float y0, float h = 2.25f)
+    static void Drzwi(string id, bool alongX, float plane, float a0, float a1, float y0, float h = 2.25f, float proudMinus = .018f, float proudPlus = .018f, float grub = .06f)
     {
         Out_(false);
         BraxChampionsInteriorDoor.Single(id, id, alongX, plane, a0, a1, y0, h, oak, chrome);
+        Futryna(alongX, plane, a0, a1, y0, h, proudMinus, proudPlus, grub);
     }
-    // glazing between x0..x1 on the plane z (or x), frameless panes with slim black mullions every ~3.4 m; skip = open parts
+    const float NaOkl = .065f;           // an architrave over a 4 cm lining and its 5.5 cm rail
+    /// <summary>23.11 (owner: "nigdzie nie ma futryn w ogóle" - the leaves stood in bare holes): the door's frame in its wall
+    /// (faces at plane +-t: a partition .06, an outside wall .15) - the jambs and the head lining the reveal (12 mm, in the
+    /// leaf's 15 mm margin) and the architraves 70 mm wide on both faces, proud by proudMinus / proudPlus (over a face's 4 cm
+    /// lining and its rail: NaOkl).</summary>
+    static void Futryna(bool alongX, float plane, float a0, float a1, float y0, float h, float proudMinus, float proudPlus, float t = .06f)
+    {
+        Out_(false);
+        float lo = Mathf.Min(a0, a1), hi = Mathf.Max(a0, a1), top = y0 + h;
+        const float j = .012f, aw = .07f;
+        // a box in the door's frame: u along the wall, y up, n across (from plane)
+        void F(float u0, float u1, float yy0, float yy1, float n0, float n1)
+        {
+            if (alongX) MM(walnut, u0, u1, yy0, yy1, plane + n0, plane + n1, false);          // walnut round the oak leaf: it reads
+            else MM(walnut, plane + n0, plane + n1, yy0, yy1, u0, u1, false);
+        }
+        // the lining of the reveal: two jambs and the head, the wall's full depth
+        F(lo, lo + j, y0, top, -t, t); F(hi - j, hi, y0, top, -t, t); F(lo, hi, top - j, top, -t, t);
+        // the architraves: two legs and the head on each face (mitred look: the head over the legs' full width)
+        foreach (var (s, pr) in new[] { (-1f, proudMinus), (1f, proudPlus) })
+        {
+            float n0 = s * (t - .01f), n1 = s * (t + pr);
+            float a = Mathf.Min(n0, n1), bb = Mathf.Max(n0, n1);
+            F(lo - aw, lo + .005f, y0, top + aw, a, bb); F(hi - .005f, hi + aw, y0, top + aw, a, bb);   // 5 mm over the jambs
+            F(lo + .005f, hi - .005f, top - .005f, top + aw, a, bb);
+        }
+    }
+    // glazing between x0..x1 on the plane z (or x), frameless panes with slim black mullions every ~3.4 m; skip = open parts.
+    // 23.11 the hill villa (owner: "okna są chujowe, nie ma futryn, nie ma nic"): real frames - 90 mm black profiles, 140 mm
+    // deep, round every pane and between them (villa 2's slim frameless look stays: the owner accepted it)
     static void Szyba(bool alongX, float plane, float a0, float a1, float y0, float y1, params Vector2[] otwarte)
     {
         Out_(true);
+        bool rama = nrWilli == 1;
+        float fw = rama ? .045f : .03f, fd = rama ? .07f : .05f, fh = rama ? .09f : .05f;
         int n = Mathf.Max(1, Mathf.RoundToInt((a1 - a0) / 3.4f)); float w = (a1 - a0) / n;
         for (int i = 0; i < n; i++)
         {
@@ -199,15 +231,15 @@ public static partial class BraxChampionsWille
             foreach (var o in otwarte) if (p0 < o.y - .01f && p1 > o.x + .01f) open = true;
             if (!open)
             {
-                if (alongX) MM(glass, p0 + .03f, p1 - .03f, y0 + .05f, y1 - .05f, plane - .012f, plane + .012f);
-                else MM(glass, plane - .012f, plane + .012f, y0 + .05f, y1 - .05f, p0 + .03f, p1 - .03f);
+                if (alongX) MM(glass, p0 + fw, p1 - fw, y0 + fh, y1 - fh, plane - .012f, plane + .012f);
+                else MM(glass, plane - .012f, plane + .012f, y0 + fh, y1 - fh, p0 + fw, p1 - fw);
             }
-            // the mullion and the frame (black aluminium, 60 mm)
-            if (alongX) { MM(alu, p0 - .03f, p0 + .03f, y0, y1, plane - .05f, plane + .05f, false); }
-            else MM(alu, plane - .05f, plane + .05f, y0, y1, p0 - .03f, p0 + .03f, false);
+            // the mullion and the frame (black aluminium)
+            if (alongX) { MM(alu, p0 - fw, p0 + fw, y0, y1, plane - fd, plane + fd, false); }
+            else MM(alu, plane - fd, plane + fd, y0, y1, p0 - fw, p0 + fw, false);
         }
-        if (alongX) { MM(alu, a1 - .03f, a1 + .03f, y0, y1, plane - .05f, plane + .05f, false); MM(alu, a0, a1, y0, y0 + .05f, plane - .05f, plane + .05f, false); MM(alu, a0, a1, y1 - .05f, y1, plane - .05f, plane + .05f, false); }
-        else { MM(alu, plane - .05f, plane + .05f, y0, y1, a1 - .03f, a1 + .03f, false); MM(alu, plane - .05f, plane + .05f, y0, y0 + .05f, a0, a1, false); MM(alu, plane - .05f, plane + .05f, y1 - .05f, y1, a0, a1, false); }
+        if (alongX) { MM(alu, a1 - fw, a1 + fw, y0, y1, plane - fd, plane + fd, false); MM(alu, a0, a1, y0, y0 + fh, plane - fd, plane + fd, false); MM(alu, a0, a1, y1 - fh, y1, plane - fd, plane + fd, false); }
+        else { MM(alu, plane - fd, plane + fd, y0, y1, a1 - fw, a1 + fw, false); MM(alu, plane - fd, plane + fd, y0, y0 + fh, a0, a1, false); MM(alu, plane - fd, plane + fd, y1 - fh, y1, a0, a1, false); }
     }
     static void Balustrada(bool alongX, float plane, float a0, float a1, float y)
     {
@@ -429,7 +461,12 @@ public static partial class BraxChampionsWille
             else MM(marbleIn, Mathf.Min(a, b2), Mathf.Max(a, b2), y + .01f, y + h, z0, z1);
         }
         SideX(x0, 1f);
-        MM(marbleIn, x1 - o - t, x1 - o, y + .01f, y + h, z0, z1);
+        if (door.x == 2f)                                  // 23.11 a door on the x1 wall (the hill villa's bath 1 from its walk-in)
+        {
+            MM(marbleIn, x1 - o - t, x1 - o, y + .01f, y + h, z0, door.y); MM(marbleIn, x1 - o - t, x1 - o, y + .01f, y + h, door.z, z1);
+            MM(marbleIn, x1 - o - t, x1 - o, y + 2.25f, y + h, door.y, door.z);
+        }
+        else MM(marbleIn, x1 - o - t, x1 - o, y + .01f, y + h, z0, z1);
         float za = z0 + o, zb = z0 + o + t;
         if (door.x == 1f) { MM(marbleIn, x0 + o + t, door.y, y + .01f, y + h, za, zb); MM(marbleIn, door.z, x1 - o - t, y + .01f, y + h, za, zb); MM(marbleIn, door.y, door.z, y + 2.25f, y + h, za, zb); }
         else MM(marbleIn, x0 + o + t, x1 - o - t, y + .01f, y + h, za, zb);
@@ -504,9 +541,9 @@ public static partial class BraxChampionsWille
         Przegroda(false, -3f, 5.06f, GZ1 - T, 0f, H0);
         Przegroda(true, 5f, 9f, GX1 - T, 0f, H0, new Vector2(10.6f, 11.45f));
         Przegroda(false, 9f, 5.06f, GZ1 - T, 0f, H0);
-        Drzwi("WC", true, 5f, -4.95f, -4.1f, 0f); Drzwi("spiżarnia", true, 5f, 10.6f, 11.45f, 0f);
+        Drzwi("WC", true, 5f, -4.95f, -4.1f, 0f, 2.25f, NaOkl); Drzwi("spiżarnia", true, 5f, 10.6f, 11.45f, 0f, 2.25f, NaOkl);
         Out_(false); MM(renderIn, GX1 - T - .01f, GX1 + .01f, 2.25f, H0, 6.5f, 7.45f, false);   // the lintel to the garage
-        Drzwi("do garażu", false, GX1 - T * .5f, 6.5f, 7.45f, 0f);
+        Drzwi("do garażu", false, GX1 - T * .5f, 6.5f, 7.45f, 0f, 2.25f, .018f, .018f, T * .5f);
         // ---- the floating stair (stone treads from the back wall) and its glass balustrade
         for (int i = 0; i < 22; i++)
         {
@@ -608,10 +645,10 @@ public static partial class BraxChampionsWille
         Przegroda(true, 1f, 9f, UX1 - T, y, top);                                                          // master bath | bedroom
         Przegroda(true, 3f, UX0 + T, -13.4f, y, top, new Vector2(-15.2f, -14.4f));                        // bath 2
         Przegroda(false, -13.4f, 3f, UZ1 - T, y, top);
-        Drzwi("sypialnia 2", true, 1f, -9.0f, -8.1f, y); Drzwi("sypialnia 3", true, 1f, -1.5f, -.6f, y);
-        Drzwi("apartament", false, 2f, 1.55f, 2.45f, y); Drzwi("łazienka 3", true, 3f, -1.5f, -.6f, y);
-        Drzwi("garderoba", true, 3f, 4.0f, 4.9f, y); Drzwi("łazienka główna", false, 9f, 1.4f, 2.3f, y);
-        Drzwi("łazienka 2", true, 3f, -15.2f, -14.4f, y);
+        Drzwi("sypialnia 2", true, 1f, -9.0f, -8.1f, y, 2.25f, NaOkl, NaOkl); Drzwi("sypialnia 3", true, 1f, -1.5f, -.6f, y, 2.25f, NaOkl, NaOkl);
+        Drzwi("apartament", false, 2f, 1.55f, 2.45f, y); Drzwi("łazienka 3", true, 3f, -1.5f, -.6f, y, 2.25f, NaOkl);
+        Drzwi("garderoba", true, 3f, 4.0f, 4.9f, y, 2.25f, NaOkl); Drzwi("łazienka główna", false, 9f, 1.4f, 2.3f, y);
+        Drzwi("łazienka 2", true, 3f, -15.2f, -14.4f, y, 2.25f, NaOkl);
         // bedrooms: the beds face the view (their foot to the glass). 23.11 21:12 (owner: "te łóżka w sypialni widziałeś, jak
         // były wstawione?"): the third bedroom's bed stood with its bedside table in front of its door (the table to x -1.0,
         // the door -1.5..-.6) - it moves 1.7 m west, 1.2 m clear of the door

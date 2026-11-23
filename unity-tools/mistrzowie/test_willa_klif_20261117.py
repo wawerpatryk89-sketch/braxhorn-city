@@ -20,7 +20,10 @@ PREP = (ROOT / "unity-tools/mistrzowie/prepare_assets.py").read_text(encoding="u
 
 class WillaKlif(unittest.TestCase):
     def test_built_on_the_hill(self):
-        self.assertIn("if (nr == 1) PlanKlif();", VILLA)
+        # 23.11 the hill villa rebuilt modern (owner: "nowoczesna jak wyspa"): this plan's shell stays the seafront's
+        # (BraxChampionsWillaNabrzeze builds on KDom), the hill builds BraxChampionsWillaWzgorze
+        self.assertIn("if (nr == 1) PlanWzgorze();", VILLA)
+        self.assertIn("KDom(", (ED / "BraxChampionsWillaNabrzeze.cs").read_text(encoding="utf-8"))
         for f in ("BraxChampionsWilleKitSrodziemne.cs.meta", "BraxChampionsWillaKlif.cs.meta"):
             self.assertTrue((ED / f).exists(), f)
         proj = (ROOT / "unity-tools/mistrzowie/wille_preview/wille_preview.csproj").read_text()

@@ -35,7 +35,11 @@ public static partial class BraxChampionsWille
                 if (!hole) ScianaE(zew, alongX, plane, xs[i], xs[i + 1], ys[j], ys[j + 1], outward, ext);
             }
         }
-        if (szklo) foreach (var o in okna) Szyba(alongX, plane - outward * T * .5f, o.x + .031f, o.y - .031f, o.z, o.w);
+        if (szklo) foreach (var o in okna)
+            {
+                Szyba(alongX, plane - outward * T * .5f, o.x + .031f, o.y - .031f, o.z, o.w);
+                if (nrWilli == 1 && o.z > y0 + .2f) Parapety(alongX, plane, outward, o.x, o.y, o.z);      // 23.11 the hill villa's sills
+            }
     }
     /// <summary>BraxChampionsWille.Sciana with the outer skin clipped to ext.x..ext.y and the inner to ext.z..ext.w.</summary>
     static void ScianaE(Material zew, bool alongX, float plane, float a0, float a1, float y0, float y1, float outward, Vector4 ext)
@@ -190,6 +194,8 @@ public static partial class BraxChampionsWille
         var drzwi = holder.gameObject.AddComponent<BraxChampionsSzafa>();
         drzwi.zawias = hinge; drzwi.os = Vector3.right; drzwi.katOtwarcia = 90f; drzwi.napis = "BRAMA GARAŻU"; drzwi.komunikat = ""; drzwi.zasieg = 2.2f;
         drzwi.punkty = new[] { Punkt("garaż | " + id + " | AKCJA przed bramą", new Vector3(xm, 0f, z + 1.4f)), Punkt("garaż | " + id + " | AKCJA w garażu", new Vector3(xm, 0f, z - 3.2f)) };
+        // 23.11 (owner: "z pilota nawet w samochodzie, jak jadę"): it opens for a driven car by itself
+        var pilot = holder.gameObject.AddComponent<BraxChampionsBramaPilot>(); pilot.brama = drzwi; pilot.przed = drzwi.punkty[0]; pilot.wGarazu = drzwi.punkty[1];
     }
 
     // ---------------------------------------------------------------- the infinity pool, its front over the pad's edge
@@ -201,12 +207,14 @@ public static partial class BraxChampionsWille
         Out_(true);
         const float sk = .3f, tl = .02f;
         float pf = PoolFloor, bot = pf - .45f;
-        // the structure: the slab under the floor and the trough, the side walls' and the trough lip's outer skins (render)
-        MM(elewacja, x0 - sk - .024f, x1 + sk + .024f, bot, pf - tl - .004f, z0 - .9f, z1 + sk);
+        // the structure: the slab under the floor and the trough, the side walls' and the trough lip's outer skins (render;
+        // 23.11 the hill villa's in its drystone, hanging over the rock face)
+        var skin = nrWilli == 1 ? stone : elewacja;
+        MM(skin, x0 - sk - .024f, x1 + sk + .024f, bot, pf - tl - .004f, z0 - .9f, z1 + sk);
         foreach (float s in new[] { -1f, 1f })
         {
             float xo0 = s < 0f ? x0 - sk - .024f : x1 + tl + .004f, xo1 = s < 0f ? x0 - tl - .004f : x1 + sk + .024f;
-            MM(elewacja, xo0, xo1, pf - tl, -.3f, z0 - .9f, z1 + sk);
+            MM(skin, xo0, xo1, pf - tl, -.3f, z0 - .9f, z1 + sk);
         }
         // the tiled shell: floor, side and back walls up to the coping, the front (infinity) wall 15 mm under the water
         MM(poolTile, x0, x1, pf - tl, pf, z0, z1);
@@ -215,7 +223,7 @@ public static partial class BraxChampionsWille
         MM(poolTile, x0, x1, pf, Water - .015f, z0 - sk, z0);
         // the catch trough outside the front: its floor 45 cm under the water, the outer lip 30 cm under it (the pool meets the sky)
         MM(poolTile, x0, x1, pf - tl, -.5f, z0 - .6f, z0 - sk);
-        MM(elewacja, x0, x1, pf - tl, -.33f, z0 - .9f, z0 - .6f);
+        MM(skin, x0, x1, pf - tl, -.33f, z0 - .9f, z0 - .6f);
         MM(poolTile, x0, x1, -.33f, -.30f, z0 - .9f, z0 - .6f, false);
         Plane(bw, waterMat, new Vector3(x0, -.45f, z0 - .6f), new Vector3(x1 - x0, 0, 0), new Vector3(0, 0, .3f));
         // the steps in at the x1 end (four treads along the back wall)

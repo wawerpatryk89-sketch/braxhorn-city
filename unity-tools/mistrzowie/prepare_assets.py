@@ -45,6 +45,12 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  # grey Rock Wall 16 facade and Stone Wall 04 retaining walls gone, both now the warm Rustic Stone Wall)
                  'plastered_wall_05','whitewashed_brick','rustic_stone_wall','dark_paneled_wood','wooden_floor_01','wooden_floor_02',
                  'square_tiles_03','rock_tile_floor','rough_linen',
+                 # 23.11 21:24-21:59 owner (the hill villa: "kompletnie przebudowę ... okna ... elewacja do zmiany, w środku tak
+                 # samo", "nowoczesna jak wyspa"; his Poly Haven library: "ile jest zajebistych tekstur, na mury, na kostki, na
+                 # podłogi"): the hill villa's own finish from his list - drystone, flagstones, herringbone, the garden path,
+                 # pine cladding, two plank floors, brick, lacquered cherry panels
+                 'rock_wall_04','pavement_02','herringbone_concrete_tile_03','stone_pathway_02','coated_pine','old_wooden_floor_03',
+                 'wood_table','brick_wall_02','lacquered_cherry_wood',
                  # the island villa's tennis court: a smooth painted concrete (an acrylic hard court is paint on a slab), tinted
                  'painted_concrete_02')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))

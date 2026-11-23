@@ -69,11 +69,11 @@ public static partial class BraxChampionsWille
 
     /// <summary>A rock face on plane (outward: the open side) over a0..a1, from the terrace's underside (-.3) down to
     /// foot(a): a grid of ~0.9 m cells pushed out up to 1.5 m by the rock's relief (fractal bulges and the strata's
-    /// ledges), flush at the top so the terrace's edge sits on it; UVs in metres (the map's 1.83 m); colliders behind.</summary>
-    static void KlifSciana(bool alongX, float plane, float a0, float a1, float outward, System.Func<float, float> foot, int seed)
+    /// ledges), flush at the top so the terrace's edge sits on it; UVs in metres (the map's 1.83 m); colliders behind. top: the
+    /// face's top edge (23.11 the hill villa's pool hangs over it: there it starts under the pool's slab).</summary>
+    static void KlifSciana(bool alongX, float plane, float a0, float a1, float outward, System.Func<float, float> foot, int seed, float top = -.3f)
     {
         Out_(true);
-        const float top = -.3f;
         int nu = Mathf.Max(1, Mathf.CeilToInt((a1 - a0) / .9f));
         float low = top; for (int i = 0; i <= nu; i++) low = Mathf.Min(low, foot(a0 + (a1 - a0) * i / nu));
         int nv = Mathf.Max(2, Mathf.CeilToInt((top - low) / .85f));

@@ -3,7 +3,7 @@ wykończone?"): WILLA 1 on the hill rebuilt after a real house - 1471 Forest Kno
 three parallel white volumes under gabled dark metal roofs, the double-height central hall panelled in wood, glazed gable
 ends in big steel frames, the stairs in lower links between them, a garage with a bedroom over it, a cantilevered
 infinity pool. The facades in the scanned exterior stucco."""
-import math
+import math  # noqa: F401
 import pathlib
 import unittest
 
@@ -18,10 +18,11 @@ SITES = (ED / "BraxChampionsWilleDzialki.cs").read_text(encoding="utf-8")
 class WillaWzgorze(unittest.TestCase):
     def test_the_hill_villa_is_its_own_plan(self):
         self.assertIn("public static partial class BraxChampionsWille", VILLA)
-        # owner 17.11 14:55 on this plan: "tak jakieś baraki wygląda" - the hill builds his photo's villa (BraxChampionsWillaKlif);
-        # this plan stays in the code, not built, until he says what to delete
-        self.assertIn("if (nr == 1) PlanKlif();", VILLA)
-        self.assertNotIn("PlanWzgorze();", VILLA)
+        # owner 17.11 14:55 on this plan: "tak jakieś baraki wygląda" - the hill built his photo's villa (BraxChampionsWillaKlif);
+        # 23.11 21:24-21:59 ("kompletnie trzeba przebudowę zrobić", "nowoczesna jak wyspa") this plan is the hill's again,
+        # rebuilt modern: flat roofs, drystone, pine, real window frames (BraxChampionsWillaWzgorzeNowa)
+        self.assertIn("if (nr == 1) PlanWzgorze();", VILLA)
+        self.assertIn("W1Materialy();", PLAN)
         self.assertIn("1471 Forest Knoll, Los Angeles (Standard Architecture", PLAN)
         for f in ("BraxChampionsWilleKit.cs.meta", "BraxChampionsWillaWzgorze.cs.meta"):
             self.assertTrue((ED / f).exists(), f)
@@ -29,20 +30,18 @@ class WillaWzgorze(unittest.TestCase):
         self.assertIn("BraxChampionsWilleKit.cs", proj)
         self.assertIn("BraxChampionsWillaWzgorze.cs", proj)
 
-    def test_three_gabled_volumes_and_the_garage(self):
-        self.assertIn("const float AE = 6.6f, AF1 = 3.6f, APitch = 30f;", PLAN)
-        for roof in ("Dach2(-16f, -8f, -8f, 14f, AE, APitch);", "Dach2(-5f, 5f, -10f, 14f, AE, APitch, soffit);",
-                     "Dach2(8f, 16f, -8f, 14f, AE, APitch);", "Dach2(16f, 26f, 4f, 14f, AE, APitch);"):
+    def test_three_flat_roofed_volumes_and_the_garage(self):
+        # 23.11 modern: flat roofs with white edges over all four volumes, no gable anywhere
+        self.assertIn("const float AE = 6.6f, AF1 = 3.6f;", PLAN)
+        for roof in ("DachPlaski(-16f, -8f, -8f, 14f, AE, .5f, .5f, 1.0f, .5f);", "DachPlaski(-5f, 5f, -10f, 14f, AE, .5f, .5f, 2.5f, .5f, soffit);",
+                     "DachPlaski(8f, 16f, -8f, 14f, AE, .5f, 0f, 1.0f, .5f);", "DachPlaski(16f, 26f, 4f, 14f, AE, 0f, .5f, .5f, .5f);"):
             self.assertIn(roof, PLAN)
-        # the central hall ~9.5 m to the ridge (Forest Knoll: 30 ft); the side volumes lower
-        self.assertAlmostEqual(6.6 + 5 * math.tan(math.radians(30)), 9.49, delta=.01)
-        self.assertLess(6.6 + 4 * math.tan(math.radians(30)), 9.0)
-        self.assertIn("SzczytSzyba(-5f, 5f, AE, rC, -9.85f);", PLAN)
-        self.assertEqual(PLAN.count("RamaSzczytu("), 2)          # C's own and the one in AFront (W and E)
+        for gable in ("Dach2(", "Szczyt(", "SzczytSzyba(", "RamaSzczytu(", "APitch"):
+            self.assertNotIn(gable, PLAN)
+        self.assertEqual(PLAN.count("RamaProsta("), 2)           # C's own and the one in AFront (W and E)
         self.assertEqual(PLAN.count('BramaGarazu("brama'), 3)
-        self.assertIn("standing-seam", KIT)
-        # the links' flat roofs stay under the eaves' overhang (6.6 - .35 tan 30 = 6.40)
-        self.assertLess(6.32, 6.6 - .35 * math.tan(math.radians(30)))
+        # the links' flat roofs (6.0-6.32) stay under the volumes' slabs (from 6.6)
+        self.assertLess(6.32, 6.6)
 
     def test_finished_walls(self):
         # owner 17.11 "Te ściany są wykończone?": the scanned exterior stucco, no painted inner skin in the facade
@@ -63,10 +62,11 @@ class WillaWzgorze(unittest.TestCase):
         self.assertIn("sw.basinId = id;", KIT)
         # the site keeps the ground under each villa's own pool
         self.assertIn("var pool = BraxChampionsWille.StrefaBasenu(d.nr);", SITES)
-        # 17.11 15:20: the hill builds the cliff villa - its free-form pool's bounds (this plan's pool stays for its code)
-        self.assertIn("foreach (var p in KBasen) { x0 = Mathf.Min(x0, p.x); x1 = Mathf.Max(x1, p.x); z1 = Mathf.Max(z1, p.y); }", PLAN)
-        # the retaining wall's foot under the site's under-pad ground (-4.2)
-        self.assertIn("MM(stone, PadX0, APoolX0 - .33f, -4.5f, -s, PadZ0, PadZ0 + .3f);", PLAN)
+        # 23.11 the hill builds this plan again: its cantilevered pool's bounds; the pad on the hill's rock face, the face
+        # under the pool starting under its slab
+        self.assertIn("if (nr == 1) return new Vector3(APoolX0 - .7f, APoolX1 + .7f, APoolZ1 + .3f);", PLAN)
+        self.assertIn("W1Klif();", PLAN)
+        self.assertNotIn("-4.5f, -s, PadZ0, PadZ0 + .3f", PLAN)
 
     def test_every_room(self):
         for room in ('tag + " kuchnia"', 'tag + " kino"', 'tag + " salon TV"', '"sypialnia główna"', '"apartament gościnny"',

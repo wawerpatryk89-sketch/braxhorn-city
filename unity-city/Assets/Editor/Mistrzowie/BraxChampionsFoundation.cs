@@ -496,7 +496,11 @@ public static class BraxChampionsFoundation
         {"plastered_wall_05",new Vector3(79,82,86)},{"whitewashed_brick",new Vector3(193,182,163)},{"rustic_stone_wall",new Vector3(159,144,116)},
         {"dark_paneled_wood",new Vector3(73,41,31)},{"wooden_floor_01",new Vector3(228,178,115)},{"wooden_floor_02",new Vector3(231,193,149)},
         {"square_tiles_03",new Vector3(138,124,111)},
-        {"rock_tile_floor",new Vector3(214,209,199)},{"rough_linen",new Vector3(167,192,225)}};
+        {"rock_tile_floor",new Vector3(214,209,199)},{"rough_linen",new Vector3(167,192,225)},
+        // 23.11 the hill villa's finish (BraxChampionsWillaWzgorzeNowa), from his list
+        {"rock_wall_04",new Vector3(145,126,102)},{"pavement_02",new Vector3(199,177,160)},{"herringbone_concrete_tile_03",new Vector3(145,137,125)},
+        {"stone_pathway_02",new Vector3(113,95,68)},{"coated_pine",new Vector3(134,81,26)},{"old_wooden_floor_03",new Vector3(164,106,49)},
+        {"wood_table",new Vector3(154,114,77)},{"brick_wall_02",new Vector3(218,209,182)},{"lacquered_cherry_wood",new Vector3(59,40,23)}};
     static Color Srednia(Vector3 srgb,Color tint)=>new Color(
         Mathf.LinearToGammaSpace(Mathf.GammaToLinearSpace(srgb.x/255f)*Mathf.GammaToLinearSpace(tint.r)),
         Mathf.LinearToGammaSpace(Mathf.GammaToLinearSpace(srgb.y/255f)*Mathf.GammaToLinearSpace(tint.g)),

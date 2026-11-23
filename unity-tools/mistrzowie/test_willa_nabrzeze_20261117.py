@@ -24,7 +24,7 @@ class WillaNabrzeze(unittest.TestCase):
         self.assertIn("BraxChampionsWillaNabrzeze.cs", (ROOT / "unity-tools/mistrzowie/wille_preview/wille_preview.csproj").read_text())
         self.assertIn("if (nr == 3) return new Vector3(NPX0 - .5f, NPX1 + .5f, NPZ1 + .5f);", HILL)
         # each villa its own plan now: the hill's, the island's, the seafront's
-        for plan in ("if (nr == 1) PlanKlif();", "else if (nr == 2) PlanWyspa();", "else if (nr == 3) PlanNabrzeze();"):
+        for plan in ("if (nr == 1) PlanWzgorze();", "else if (nr == 2) PlanWyspa();", "else if (nr == 3) PlanNabrzeze();"):
             self.assertIn(plan, VILLA)
 
     def test_his_beige_and_the_shared_shell(self):

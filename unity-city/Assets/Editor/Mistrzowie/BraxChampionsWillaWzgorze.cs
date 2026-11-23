@@ -16,11 +16,16 @@ using W = BraxWnetrzaKit;
 //  - the terrace: travertine, the 20 x 6 m infinity pool hanging 3 m past the pad's edge, the jacuzzi, six loungers, the
 //    outdoor lounge; the forecourt and the sale board at the back.
 // Walls in the scanned exterior stucco, the roofs standing-seam graphite metal (30 deg), the gable frames black steel.
+// 23.11 the owner (21:24 "ta na wzgórzu, za areną ... kompletnie trzeba przebudowę zrobić ... okna są chujowe, nie ma futryn ...
+// elewacja do zmiany, w środku tak samo"; his choice: "nowoczesna jak wyspa") - his 17.11 Mediterranean villa (BraxChampionsWillaKlif)
+// gives way to this plan, rebuilt modern: the three volumes white boxes under flat roofs with white edges (no gables), the
+// glazed fronts in rectangular black steel frames, the hall's roof running 2.5 m on over the terrace on an oak soffit; the
+// finish from his own Poly Haven list (BraxChampionsWillaWzgorzeNowa): drystone on the ground floors' ends, pine cladding on
+// the hall's entrance front, flagstones, herringbone, plank floors; the cantilevered pool hangs over the hill's rock face.
 public static partial class BraxChampionsWille
 {
-    const float AE = 6.6f, AF1 = 3.6f, APitch = 30f;
+    const float AE = 6.6f, AF1 = 3.6f;
     public const float APoolX0 = -10f, APoolX1 = 10f, APoolZ0 = -25.6f, APoolZ1 = -19.6f;
-    static readonly float AR4 = 4f * Mathf.Tan(APitch * Mathf.Deg2Rad), AR5 = 5f * Mathf.Tan(APitch * Mathf.Deg2Rad);
 
     /// <summary>Where the ground under a villa's pad must stay under its pool (BraxChampionsWilleDzialki.Grunt): x0, x1 and
     /// the pool's back edge (the pool reaches the pad's front).</summary>
@@ -28,10 +33,8 @@ public static partial class BraxChampionsWille
     {
         if (nr == 2) return new Vector3(PoolX0, SX1 + .2f, PoolZ1);                         // the island's pool and its raised spa
         if (nr == 3) return new Vector3(NPX0 - .5f, NPX1 + .5f, NPZ1 + .5f);                 // the seafront's formal pool, its border
-        if (nr != 1) return new Vector3(PoolX0, PoolX1, PoolZ1);
-        float x0 = float.MaxValue, x1 = float.MinValue, z1 = float.MinValue;                // the cliff villa's free-form pool (17.11)
-        foreach (var p in KBasen) { x0 = Mathf.Min(x0, p.x); x1 = Mathf.Max(x1, p.x); z1 = Mathf.Max(z1, p.y); }
-        return new Vector3(x0, x1, z1);
+        if (nr == 1) return new Vector3(APoolX0 - .7f, APoolX1 + .7f, APoolZ1 + .3f);     // 23.11 the hill's cantilevered pool (its slab)
+        return new Vector3(PoolX0, PoolX1, PoolZ1);
     }
     /// <summary>A villa's pad (x0, x1, z0, z1) in its frame and the local x of its jetty's root (the sites,
     /// BraxChampionsWilleDzialki): each plan may have its own.</summary>
@@ -43,7 +46,8 @@ public static partial class BraxChampionsWille
         pietro = AF1;
         var c = new BraxKatalog.Ctx { m = kat, root = g, cols = g, unit = 1f, water = null, inst = g, seat = (p, f, l) => { W.Siedzisko(p, f, l); Siedziska++; } };
         string tag = Nazwy[0];
-        ATeren(); AWille(); AWnetrze(c, tag); AOgrod(tag);
+        W1Materialy();                                                                   // 23.11 his list (BraxChampionsWillaWzgorzeNowa)
+        ATeren(); AWille(); AWnetrze(c, tag); W1Wnetrze(c, tag); AOgrod(tag); W1Ogrod();
     }
 
     // ================================================================ the pad: terrace, pool, lawns, forecourt
@@ -52,23 +56,23 @@ public static partial class BraxChampionsWille
         Out_(true);
         const float s = .3f;
         // travertine terrace before the houses; its strips beside the pool are the pool's coping (also over the cantilever)
-        MM(deck, PadX0, PadX1, -s, 0f, APoolZ1, -10f);
-        MM(deck, PadX0, APoolX0, -s, 0f, PadZ0, APoolZ1); MM(deck, APoolX1, PadX1, -s, 0f, PadZ0, APoolZ1);
+        MM(deck, -19.5f, 23.5f, -s, 0f, APoolZ1, -10f);
+        MM(deck, -19.5f, APoolX0, -s, 0f, PadZ0, APoolZ1); MM(deck, APoolX1, 23.5f, -s, 0f, PadZ0, APoolZ1);
+        MM(lawn, PadX0, -19.5f, -s, 0f, PadZ0, -8f); MM(lawn, 23.5f, PadX1, -s, 0f, PadZ0, 4f);             // 23.11 the palms' lawns
         MM(deck, APoolX0 - .38f, APoolX0, -s, 0f, APoolZ0 - .9f, PadZ0); MM(deck, APoolX1, APoolX1 + .38f, -s, 0f, APoolZ0 - .9f, PadZ0);
-        MM(deck, PadX0, -5f, -s, 0f, -10f, -8f); MM(deck, 5f, PadX1, -s, 0f, -10f, -8f);
+        MM(deck, -19.5f, -5f, -s, 0f, -10f, -8f); MM(deck, 5f, 23.5f, -s, 0f, -10f, -8f);
         MM(deck, -8f, -5f, -s, 0f, -8f, -3f); MM(deck, 5f, 8f, -s, 0f, -8f, -3f);
-        MM(deck, 16f, PadX1, -s, 0f, -8f, 4f);
+        MM(deck, 16f, 23.5f, -s, 0f, -8f, 4f);
         MM(deck, -.9f, .9f, -.25f, 0f, 13.7f, 14f);                                  // under the front door
         // lawns: west of the houses, the strip east of the garage, the forecourt's west part
-        MM(lawn, PadX0, -16f, -s, 0f, -8f, 14f); MM(lawn, 26f, PadX1, -s, 0f, 4f, 14f);
+        MM(lawn, PadX0, -19.2f, -s, 0f, -8f, 14f); MM(lawn, -17.8f, -16f, -s, 0f, -8f, 14f); MM(lawn, 26f, PadX1, -s, 0f, 4f, 14f);   // the path between (W1Ogrod)
         MM(lawn, PadX0, -8f, -s, 0f, 18f, PadZ1);
         // the forecourt (the drive from the gate at the pad's back, x 9) and the links' back notches
         MM(paving, PadX0, PadX1, -s, 0f, 14f, 18f); MM(paving, -8f, PadX1, -s, 0f, 18f, PadZ1);
         MM(paving, -8f, -5f, -s, 0f, 12f, 14f); MM(paving, 5f, 8f, -s, 0f, 12f, 14f);
-        // the retaining wall under the pad's front (under the pool up to its slab); its foot at -4.5: the site's ground on the
-        // pad's edge line is the under-pad ground (-4.2) - with the foot at -4 the preview showed a 20 cm gap under it
-        MM(stone, PadX0, APoolX0 - .33f, -4.5f, -s, PadZ0, PadZ0 + .3f); MM(stone, APoolX1 + .33f, PadX1, -4.5f, -s, PadZ0, PadZ0 + .3f);
-        MM(stone, APoolX0 - .33f, APoolX1 + .33f, -4.5f, PoolFloor - .454f, PadZ0, PadZ0 + .3f);
+        // 23.11 the pad stands on the hill's 9 m rock face (BraxChampionsWilleDzialki.PrzodKlif, BraxChampionsWillaKlif's), the
+        // pool's cantilever hanging over it: under the pool the face starts under its slab
+        W1Klif();
         // glass on the pad's edge beside the pool and along the cantilever's sides
         Balustrada(true, PadZ0 + .15f, PadX0 + .2f, APoolX0 - .6f, 0f); Balustrada(true, PadZ0 + .15f, APoolX1 + .6f, PadX1 - .2f, 0f);
         Balustrada(false, APoolX0 - .35f, APoolZ0 - .85f, PadZ0 + .1f, 0f); Balustrada(false, APoolX1 + .35f, APoolZ0 - .85f, PadZ0 + .1f, 0f);
@@ -79,7 +83,6 @@ public static partial class BraxChampionsWille
     // ================================================================ the volumes
     static void AWille()
     {
-        float rW = AR4, rC = AR5, rG = AR5;
         // ---- floors (stone in W, C, E and the links, concrete in the garage)
         Out_(false);
         MM(floorGf, -15.7f, -8.3f, -.25f, 0f, -8f, 13.7f); MM(floorGf, -4.7f, 4.7f, -.25f, 0f, -10f, 13.7f); MM(floorGf, 8.3f, 15.7f, -.25f, 0f, -8f, 13.7f);
@@ -88,35 +91,34 @@ public static partial class BraxChampionsWille
         Out_(true); MM(concrete, 16.6f, 25.4f, -.25f, 0f, 13.7f, 14f);
 
         // ---- W: the side walls (ground and upper parts), the glass front, the back
-        ScianaOE(elewacja, false, -16f, -8f, 14f, 0f, AF1, -1f, true, RogZ(-8f, 14f, true), new Vector4(-5f, -1.5f, .5f, 2.9f));
+        ScianaOE(stone, false, -16f, -8f, 14f, 0f, AF1, -1f, true, RogZ(-8f, 14f, true), new Vector4(-5f, -1.5f, .5f, 2.9f));          // 23.11 drystone
         ScianaOE(elewacja, false, -16f, -8f, 14f, AF1, AE, -1f, true, RogZ(-8f, 14f, true), new Vector4(-6.2f, -2.2f, AF1 + .6f, AE - .5f), new Vector4(7.6f, 9.2f, AF1 + .9f, AE - .5f));
         ScianaOE(elewacja, false, -8f, -8f, 14f, 0f, AF1, 1f, false, RogZ(-8f, 14f, true), new Vector4(-2.4f, -1.4f, 0f, 2.4f));
         ScianaOE(elewacja, false, -8f, -8f, 14f, AF1, AE, 1f, false, RogZ(-8f, 14f, true), new Vector4(7.6f, 8.5f, AF1, AF1 + 2.3f));
-        AFront(-16f, -8f, -8f, rW);
-        ScianaOE(elewacja, true, 14f, -16f, -8f, 0f, AF1, 1f, true, RogX(-16f, -8f));
+        AFront(-16f, -8f, -8f);
+        ScianaOE(stone, true, 14f, -16f, -8f, 0f, AF1, 1f, true, RogX(-16f, -8f));
         ScianaOE(elewacja, true, 14f, -16f, -8f, AF1, AE, 1f, true, RogX(-16f, -8f), new Vector4(-15f, -13f, AF1 + 1.5f, AE - .5f), new Vector4(-12f, -10.6f, AF1 + .3f, AE - .5f));
-        Szczyt(elewacja, renderIn, -16f, -8f, AE, rW, 14f, 1f);
         APietro(-15.7f, -8.3f, -7.95f, 13.7f);
-        Dach2(-16f, -8f, -8f, 14f, AE, APitch);
+        DachPlaski(-16f, -8f, -8f, 14f, AE, .5f, .5f, 1.0f, .5f);
 
         // ---- C: the double-height hall - the glass gable (lower panes, one open to the terrace; upper panes; the glass
         // triangle), its steel frame, the side walls with the openings to the links, the back with the entrance
         Szyba(true, -9.85f, -4.7f, 4.7f, 0f, AF1, new Vector2(-1.5f, 1.5f));
         Out_(true); MM(alu, -4.7f, 4.7f, AF1 - .03f, AF1 + .03f, -9.9f, -9.8f, false);
         Szyba(true, -9.85f, -4.7f, 4.7f, AF1, AE);
-        SzczytSzyba(-5f, 5f, AE, rC, -9.85f);
-        RamaSzczytu(-5f, 5f, AE, rC, -10f, -1f);
+        RamaProsta(-5f, 5f, AE, -10f, -1f);
         ScianaOE(elewacja, false, -5f, -10f, 14f, 0f, AE, -1f, false, RogZ(-10f, 14f, true), new Vector4(5.6f, 8.6f, 0f, 3.0f));
         ScianaOE(elewacja, false, 5f, -10f, 14f, 0f, AE, 1f, false, RogZ(-10f, 14f, true), new Vector4(7.5f, 10.5f, 0f, 3.0f));
-        ScianaOE(elewacja, true, 14f, -5f, 5f, 0f, AE, 1f, false, RogX(-5f, 5f), new Vector4(-3.6f, -2.8f, .4f, AE - .6f), new Vector4(-.9f, .9f, 0f, 3.0f), new Vector4(2.8f, 3.6f, .4f, AE - .6f));
+        // 23.11 the entrance front in pine boards
+        ScianaOE(soffit, true, 14f, -5f, 5f, 0f, AE, 1f, false, RogX(-5f, 5f), new Vector4(-3.6f, -2.8f, .4f, AE - .6f), new Vector4(-.9f, .9f, 0f, 3.0f), new Vector4(2.8f, 3.6f, .4f, AE - .6f));
         Szyba(true, 13.85f, -3.569f, -2.831f, .4f, AE - .6f); Szyba(true, 13.85f, 2.831f, 3.569f, .4f, AE - .6f);
         Out_(false); BraxChampionsInteriorDoor.Single("drzwi wejściowe", "WILLA | drzwi wejściowe (dąb, obrotowe)", true, 13.85f, -.9f, .9f, 0f, 3.0f, oak, steel, .07f);
-        Szczyt(elewacja, renderIn, -5f, 5f, AE, rC, 14f, 1f);
-        Dach2(-5f, 5f, -10f, 14f, AE, APitch, soffit);
-        // the glulam ridge beam under the vault, two ties across it
+        // the flat roof running 2.5 m on over the terrace, oak (pine) under it inside and out; three glulam beams across the hall
+        DachPlaski(-5f, 5f, -10f, 14f, AE, .5f, .5f, 2.5f, .5f, soffit);
         Out_(false);
-        b.Box(walnut, new Vector3(0f, AE + rC - .32f, 2f), new Vector3(.32f, .5f, 23.4f), Quaternion.identity);
-        foreach (float z in new[] { -3f, 6f }) b.Box(walnut, new Vector3(0f, AE + .15f, z), new Vector3(9.4f, .3f, .24f), Quaternion.identity);
+        foreach (float z in new[] { -6f, 0f, 6f }) b.Box(walnut, new Vector3(0f, AE - .2f, z), new Vector3(9.4f, .3f, .24f), Quaternion.identity);
+        Out_(true);
+        foreach (float x in new[] { -3.6f, -1.2f, 1.2f, 3.6f }) b.Cylinder(downlight, new Vector3(x, AE - .027f, -11.3f), .065f, .003f, 16, Quaternion.identity, false, true);
         // the entrance canopy: black steel, an oak soffit, two wall lights
         Out_(true);
         MM(stalCzarna, -2.6f, 2.6f, 3.3f, 3.5f, 14f, 16.6f); MM(soffit, -2.55f, 2.55f, 3.28f, 3.3f, 14.02f, 16.55f, false);
@@ -141,31 +143,29 @@ public static partial class BraxChampionsWille
         // ---- E: as W mirrored
         ScianaOE(elewacja, false, 8f, -8f, 14f, 0f, AF1, -1f, false, RogZ(-8f, 14f, true), new Vector4(-2.4f, -1.4f, 0f, 2.4f), new Vector4(9.4f, 10.4f, 0f, 2.4f));
         ScianaOE(elewacja, false, 8f, -8f, 14f, AF1, AE, -1f, false, RogZ(-8f, 14f, true), new Vector4(7.6f, 8.5f, AF1, AF1 + 2.3f));
-        ScianaOE(elewacja, false, 16f, -8f, 14f, 0f, AF1, 1f, false, RogZ(-8f, 14f, true), new Vector4(-6f, -1f, .5f, 2.9f), new Vector4(11.6f, 12.5f, 0f, 2.25f));
+        ScianaOE(stone, false, 16f, -8f, 14f, 0f, AF1, 1f, false, RogZ(-8f, 14f, true), new Vector4(-6f, -1f, .5f, 2.9f), new Vector4(11.6f, 12.5f, 0f, 2.25f));
         Szyba(false, 15.85f, -5.969f, -1.031f, .5f, 2.9f);
         ScianaOE(elewacja, false, 16f, -8f, 14f, AF1, AE, 1f, false, RogZ(-8f, 14f, true), new Vector4(-6f, -2.5f, AF1 + .6f, AE - .5f), new Vector4(11.6f, 12.5f, AF1, AF1 + 2.25f));
         Szyba(false, 15.85f, -5.969f, -2.531f, AF1 + .6f, AE - .5f);
-        AFront(8f, 16f, -8f, rW);
-        ScianaOE(elewacja, true, 14f, 8f, 16f, 0f, AF1, 1f, true, RogX(8f, 16f), new Vector4(13f, 15f, 1.2f, 2.5f));
+        AFront(8f, 16f, -8f);
+        ScianaOE(stone, true, 14f, 8f, 16f, 0f, AF1, 1f, true, RogX(8f, 16f), new Vector4(13f, 15f, 1.2f, 2.5f));
         ScianaOE(elewacja, true, 14f, 8f, 16f, AF1, AE, 1f, true, RogX(8f, 16f), new Vector4(11f, 15f, AF1 + .9f, AE - .5f));
-        Szczyt(elewacja, renderIn, 8f, 16f, AE, rW, 14f, 1f);
         APietro(8.3f, 15.7f, -7.95f, 13.7f);
-        Dach2(8f, 16f, -8f, 14f, AE, APitch);
+        DachPlaski(8f, 16f, -8f, 14f, AE, .5f, 0f, 1.0f, .5f);                         // east: the garage's roof abuts
         Out_(false);
-        Drzwi("do garażu", false, 15.85f, 11.6f, 12.5f, 0f); Drzwi("apartament gościnny", false, 15.85f, 11.6f, 12.5f, AF1);
+        Drzwi("do garażu", false, 15.85f, 11.6f, 12.5f, 0f, 2.25f, .018f, .018f, T * .5f); Drzwi("apartament gościnny", false, 15.85f, 11.6f, 12.5f, AF1, 2.25f, .018f, .018f, T * .5f);
 
         // ---- G: the garage (three doors to the forecourt) and the guest suite over it
         ScianaOE(elewacja, true, 4f, 16f, 26f, 0f, AF1, -1f, true, new Vector4(16f, 25.85f, 16f, 25.7f), new Vector4(19f, 23f, 1.6f, 2.6f));
         ScianaOE(elewacja, true, 4f, 16f, 26f, AF1, AE, -1f, true, new Vector4(16f, 25.85f, 16f, 25.7f), new Vector4(18f, 24f, AF1 + .6f, AE - .5f));
-        ScianaOE(elewacja, false, 26f, 4f, 14f, 0f, AF1, 1f, true, RogZ(4f, 14f, false));
+        ScianaOE(stone, false, 26f, 4f, 14f, 0f, AF1, 1f, true, RogZ(4f, 14f, false));
         ScianaOE(elewacja, false, 26f, 4f, 14f, AF1, AE, 1f, true, RogZ(4f, 14f, false), new Vector4(5.5f, 9f, AF1 + .8f, AE - .6f));
         ScianaOE(elewacja, true, 14f, 16f, 26f, 0f, AF1, 1f, false, new Vector4(16f, 25.85f, 16f, 25.7f), new Vector4(16.6f, 19.2f, 0f, 2.5f), new Vector4(19.7f, 22.3f, 0f, 2.5f), new Vector4(22.8f, 25.4f, 0f, 2.5f));
         ScianaOE(elewacja, true, 14f, 16f, 26f, AF1, AE, 1f, true, new Vector4(16f, 25.85f, 16f, 25.7f), new Vector4(17f, 20f, AF1 + .9f, AE - .5f), new Vector4(22f, 24f, AF1 + 1.5f, AE - .5f));
-        Szczyt(elewacja, renderIn, 16f, 26f, AE, rG, 4f, -1f); Szczyt(elewacja, renderIn, 16f, 26f, AE, rG, 14f, 1f);
         Out_(false);
         MM(ceiling, 16f, 25.7f, AF1 - .3f, AF1 - .04f, 4.3f, 13.7f); MM(floorUf, 16f, 25.7f, AF1 - .04f, AF1, 4.3f, 13.7f);
         MM(ceiling, 16f, 25.7f, AE - .2f, AE, 4.3f, 13.7f, false);
-        Dach2(16f, 26f, 4f, 14f, AE, APitch);
+        DachPlaski(16f, 26f, 4f, 14f, AE, 0f, .5f, .5f, .5f);
         BramaGarazu("brama 1", 16.6f, 19.2f, 14f, 2.5f); BramaGarazu("brama 2", 19.7f, 22.3f, 14f, 2.5f); BramaGarazu("brama 3", 22.8f, 25.4f, 14f, 2.5f);
 
         // ---- the links: glass to the terrace, the stairs, the landings, flat roofs under the eaves
@@ -176,7 +176,7 @@ public static partial class BraxChampionsWille
             Sciana(elewacja, true, 12f, xa, xb, 0f, AF1, 1f); Szyba(true, 11.85f, xa, xb, AF1, 6.0f);
             Out_(true); MM(elewacja, xa + .004f, xb - .004f, 6.0f, 6.3f, -3f, 12f); MM(gravel, xa + .1f, xb - .1f, 6.3f, 6.32f, -2.9f, 11.9f, false);
             Out_(false);
-            MM(ceiling, xa + .004f, xb - .004f, AF1 - .3f, AF1 - .04f, 5.2f, 11.7f); MM(floorUf, xa + .004f, xb - .004f, AF1 - .04f, AF1, 5.2f, 11.7f);
+            MM(ceiling, xa + .004f, xb - .004f, AF1 - .3f, AF1 - .04f, 5.2f, 11.7f); MM(floorUf, xa + .004f, xb - .004f, AF1 - .04f, AF1, 5.22f, 11.7f);   // the top tread to 5.22
             float t0 = s < 0f ? -7.95f : 6.75f, t1 = s < 0f ? -6.75f : 7.95f, open = s < 0f ? -6.75f : 6.75f;
             Schody(floorGf, t0, t1, -.5f, 0f, AF1, 20, .285f, open);
             if (s < 0f) Balustrada(true, 5.23f, -6.75f, -5.05f, AF1); else Balustrada(true, 5.23f, 5.05f, 6.75f, AF1);
@@ -187,8 +187,8 @@ public static partial class BraxChampionsWille
         Lazienka(-8f, -5f, 9.06f, 11.7f, 0f, new Vector3(1f, -6.4f, -5.6f), 0f, 0f);
     }
     // the glazed front of a two-storey volume x0..x1 at z: lower glass (one panel open), the black steel band at the
-    // floor, upper glass, the stucco band under the gable; the gable and its steel frame
-    static void AFront(float x0, float x1, float z, float r)
+    // floor, upper glass, the render band under the roof; the black steel frame round it all (23.11: no gable)
+    static void AFront(float x0, float x1, float z)
     {
         float i0 = x0 + T, i1 = x1 - T, m = (x0 + x1) * .5f;
         Szyba(true, z + .15f, i0, i1, 0f, AF1 - .3f, new Vector2(m - 1.2f, m + 1.2f));
@@ -196,8 +196,7 @@ public static partial class BraxChampionsWille
         MM(stalCzarna, i0, i1, AF1 - .3f, AF1, z - .03f, z + .05f);
         Szyba(true, z + .15f, i0, i1, AF1, AE - .2f);
         MM(elewacja, i0, i1, AE - .2f, AE, z, z + T, false);
-        Szczyt(elewacja, renderIn, x0, x1, AE, r, z, -1f);
-        RamaSzczytu(x0, x1, AE, r, z, -1f);
+        RamaProsta(x0, x1, AE, z, -1f);
     }
     // the slab between the floors (the ground floor's ceiling, the upper oak floor) and the upper floor's flat ceiling
     static void APietro(float x0, float x1, float z0, float z1)
@@ -220,7 +219,7 @@ public static partial class BraxChampionsWille
         W.Lampa(tag + " | kominek", new Vector3(-3.9f, .7f, -6.4f), .7f, 5f * K, new Color(1f, .55f, .22f));
         BraxKatalog.Tv(c, new Vector3(-4.58f, 2.2f, -6.4f), Vector3.right, 85f, 1, false, tag + " salon TV");
         for (int i = 0; i < 2; i++) { W.Siedzisko(new Vector3(-4.3f, .40f, -8.1f + i * 3.4f), Vector3.right, "ŁAWA PRZY KOMINKU"); Siedziska++; }
-        BraxKatalog.Rug(c, new Vector3(-2.6f, 0f, -6.4f), Vector3.forward, 4.4f, 3.8f, false);
+        BraxKatalog.Rug(c, new Vector3(-2.6f, 0f, -6.4f), Vector3.forward, 4.0f, 3.8f, false);
         BraxKatalog.Sofa(c, new Vector3(-.9f, .012f, -6.4f), Vector3.left, 3.2f, 1, "sofa");
         Model("HotelSobczak/coffee_table_round_01/coffee_table_round_01_2k.gltf", "stolik kawowy", new Vector3(-2.6f, .012f, -6.4f), 0f);
         W.Kolizja(new Vector3(-2.6f, .2f, -6.4f), new Vector3(1.0f, .4f, 1.0f), Quaternion.identity);
@@ -271,7 +270,7 @@ public static partial class BraxChampionsWille
         BraxKatalog.CoffeeTable(c, new Vector3(-12.0f, .012f, -4.6f), Vector3.back, 1.2f, .6f);
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel", new Vector3(-14.5f, .012f, -5.6f), 60f), new Vector3(-14.5f, .45f, -5.6f), new Vector3(.87f, 0f, .5f), "FOTEL");
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel", new Vector3(-9.5f, .012f, -5.6f), -60f), new Vector3(-9.5f, .45f, -5.6f), new Vector3(-.87f, 0f, .5f), "FOTEL");
-        BraxKatalog.Dresser(c, new Vector3(-15.68f, 0f, .2f), Vector3.right, 2.4f, 2, 3, walnut);
+        BraxKatalog.Dresser(c, new Vector3(-15.7f + .47f, 0f, .2f), Vector3.right, 2.4f, 2, 3, walnut);           // p: its front (23.11: it stood in the wall)
         Obrazek(3, new Vector3(-15.69f, 2.1f, .2f), Vector3.right, 2.0f, 1.0f);
         BraxKatalog.FloorLamp(c, new Vector3(-14.6f, 0f, -2.6f));
         Model("ArenaLobby/potted_plant_01/potted_plant_01_1k.gltf", "roślina", new Vector3(-15.1f, 0f, -7.3f), 70f);
@@ -286,7 +285,7 @@ public static partial class BraxChampionsWille
         Oczka(-14.6f, -9.8f, 4.2f, 12.6f, AF1 - .3f);
 
         // ---- E ground: the study (front), the gym, the utility room by the garage door
-        Scianka(true, 2.5f, 8.3f, 15.7f, 0f, AF1 - .3f, new Vector2(9.0f, 9.9f)); Drzwi("gabinet", true, 2.5f, 9.0f, 9.9f, 0f);
+        Scianka(true, 2.5f, 8.3f, 15.7f, 0f, AF1 - .3f, new Vector2(9.0f, 9.9f)); Drzwi("gabinet", true, 2.5f, 9.0f, 9.9f, 0f, 2.25f, NaOkl);
         Scianka(true, 9f, 8.3f, 15.7f, 0f, AF1 - .3f, new Vector2(13f, 13.9f)); Drzwi("siłownia", true, 9f, 13f, 13.9f, 0f);
         Out_(false);
         b.RoundedBox(walnut, new Vector3(12.0f, .74f, -4.4f), new Vector3(2.0f, .04f, .9f), .008f, Quaternion.identity, 2);
@@ -296,7 +295,7 @@ public static partial class BraxChampionsWille
         Siedz(Model("HotelSobczak/dining_chair_02/dining_chair_02_2k.gltf", "krzesło przy biurku", new Vector3(12.0f, 0f, -3.5f), 180f), new Vector3(12.0f, .47f, -3.5f), Vector3.back, "KRZESŁO");
         Model("HotelSobczak/desk_lamp_arm_01/desk_lamp_arm_01_1k.gltf", "lampka", new Vector3(11.2f, .76f, -4.7f), 0f);
         BraxKatalog.Sofa(c, new Vector3(15.1f, .012f, .4f), Vector3.left, 2.4f, 0, "sofa");
-        BraxKatalog.Dresser(c, new Vector3(8.32f, 0f, -.6f), Vector3.right, 2.4f, 2, 3, walnut);
+        BraxKatalog.Dresser(c, new Vector3(8.3f + .47f, 0f, -.6f), Vector3.right, 2.4f, 2, 3, walnut);
         Obrazek(4, new Vector3(8.31f, 2.1f, -.6f), Vector3.right, 1.8f, 1.0f);
         Model("HotelSobczak/potted_plant_04/potted_plant_04_1k.gltf", "roślina", new Vector3(15.1f, 0f, -7.3f), 0f);
         Oczka(9.4f, 14.2f, -6.8f, 1.6f, AF1 - .3f);
@@ -317,26 +316,28 @@ public static partial class BraxChampionsWille
         W.Lampa(tag + " | pralnia", new Vector3(12f, AF1 - .5f, 11.4f), .6f, 5f * K);
 
         // ---- W upper: bedroom 1 at the glass (its bathroom, its dressing room), bedroom 2 (its bathroom), the corridor
-        Scianka(true, -.5f, -15.7f, -8.3f, y, top, new Vector2(-14.5f, -13.7f), new Vector2(-11.85f, -11.05f), new Vector2(-9.8f, -8.9f));
-        Scianka(false, -12.4f, -.5f, 2.8f, y, top);
+        // 23.11: bedroom 1's bed stood across this wall (the bed's p is its foot, not its middle) between three doors - the bath
+        // is now reached through the walk-in (its door on the walk-in's west wall), the walk-in's door by the corridor's
+        Scianka(true, -.5f, -15.7f, -8.3f, y, top, new Vector2(-11.4f, -10.6f), new Vector2(-9.8f, -8.9f));
+        Scianka(false, -12.4f, -.5f, 2.8f, y, top, new Vector2(1.3f, 2.1f));
         Scianka(false, -10.4f, -.5f, 9.6f, y, top, new Vector2(3.4f, 4.3f));
         Scianka(true, 2.8f, -15.7f, -10.4f, y, top);
         Scianka(true, 9.6f, -15.7f, -10.4f, y, top, new Vector2(-14.5f, -13.7f));
         Scianka(false, -12.4f, 9.6f, 13.7f, y, top);
-        Drzwi("łazienka 1", true, -.5f, -14.5f, -13.7f, y); Drzwi("garderoba 1", true, -.5f, -11.85f, -11.05f, y); Drzwi("sypialnia 1", true, -.5f, -9.8f, -8.9f, y);
+        Drzwi("łazienka 1", false, -12.4f, 1.3f, 2.1f, y); Drzwi("garderoba 1", true, -.5f, -11.4f, -10.6f, y, 2.25f, NaOkl); Drzwi("sypialnia 1", true, -.5f, -9.8f, -8.9f, y);
         Drzwi("sypialnia 2", false, -10.4f, 3.4f, 4.3f, y); Drzwi("łazienka 2", true, 9.6f, -14.5f, -13.7f, y);
-        BraxKatalog.Rug(c, new Vector3(-12.0f, y, -2.6f), Vector3.forward, 3.2f, 2.8f, false);
-        BraxKatalog.Bed(c, new Vector3(-12.0f, y + .012f, -1.8f), Vector3.back, 1.8f, "łóżko");
+        BraxKatalog.Rug(c, new Vector3(-13.6f, y, -2.6f), Vector3.forward, 3.4f, 2.8f, false);
+        BraxKatalog.Bed(c, new Vector3(-13.6f, y + .012f, -2.80f), Vector3.back, 1.8f, "łóżko");          // the head 3 cm off the brick (-.60)
         BraxKatalog.Tv(c, new Vector3(-8.32f, y + 1.35f, -4.6f), Vector3.left, 65f, 3, false, tag + " sypialnia 1 TV");
         Siedz(Model("HotelSobczak/mid_century_lounge_chair/mid_century_lounge_chair_2k.gltf", "fotel w sypialni", new Vector3(-9.4f, y, -6.8f), 200f), new Vector3(-9.4f, y + .42f, -6.8f), new Vector3(-.34f, 0f, -.94f), "FOTEL");
         Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf", "roślina", new Vector3(-15.1f, y, -7.3f), 0f);
-        Lazienka(-15.7f, -12.46f, -.44f, 2.74f, y, new Vector3(1f, -14.5f, -13.7f), 0f, 0f);
-        Prysznic(new Vector3(-13.25f, y, 1.95f));
+        Lazienka(-15.7f, -12.46f, -.44f, 2.74f, y, new Vector3(2f, 1.3f, 2.1f), 0f, 0f);
+        Prysznic(new Vector3(-13.25f, y, .35f));
         BraxKatalog.Place(c, "umywalka 0.8 orzech", cc => BraxKatalog.Vanity(cc, Vector3.zero, Vector3.forward, .8f, walnut, "umywalka"), new Vector3(-15.684f, y, .6f), Vector3.right, null);
         BraxKatalog.WcPan(c, new Vector3(-15.0f, y, 2.724f), Vector3.back);
         BraxKatalog.Wardrobe(c, new Vector3(-11.4f, y, 2.14f), Vector3.back, 1.8f, oak, BraxKatalog.Walnut, 2.4f, "garderoba");
-        BraxKatalog.Rug(c, new Vector3(-13.0f, y, 5.0f), Vector3.forward, 2.8f, 2.6f, true);
-        BraxKatalog.Bed(c, new Vector3(-13.0f, y + .012f, 4.1f), Vector3.forward, 1.6f, "łóżko");
+        BraxKatalog.Rug(c, new Vector3(-13.0f, y, 4.6f), Vector3.forward, 2.8f, 2.6f, true);
+        BraxKatalog.Bed(c, new Vector3(-13.0f, y + .012f, 5.06f), Vector3.forward, 1.6f, "łóżko");
         BraxKatalog.Wardrobe(c, new Vector3(-11.06f, y, 7.6f), Vector3.left, 2.4f, oak, BraxKatalog.Walnut, 2.4f, "szafa");
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel w sypialni", new Vector3(-15.0f, y, 8.6f), 120f), new Vector3(-15.0f, y + .45f, 8.6f), new Vector3(.87f, 0f, -.5f), "FOTEL");
         Lazienka(-15.7f, -12.46f, 9.66f, 13.7f, y, new Vector3(1f, -14.5f, -13.7f), -15.0f, -13.0f);
@@ -345,20 +346,23 @@ public static partial class BraxChampionsWille
         BraxKatalog.WcPan(c, new Vector3(-15.684f, y, 10.6f), Vector3.right);
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel w czytelni", new Vector3(-11.4f, y, 12.6f), 180f), new Vector3(-11.4f, y + .45f, 12.6f), Vector3.back, "FOTEL");
         BraxKatalog.FloorLamp(c, new Vector3(-12.0f, y, 13.3f));
-        Obrazek(5, new Vector3(-10.46f, y + 1.6f, 6.4f), Vector3.right, 1.6f, .9f);
+        // 23.11 the prints over the beds (clear over the headboards, 1.48 m), the linings' faces; a TV in every bedroom
+        Obrazek(5, new Vector3(-13.0f, y + 2.05f, 2.8f + .06f), Vector3.forward, 1.6f, .8f);
+        Obrazek(8, new Vector3(-13.6f, y + 2.05f, -.5f - .06f - .04f), Vector3.back, 2.0f, .9f);
+        BraxKatalog.Tv(c, new Vector3(-12.5f, y + 1.35f, 9.6f - .06f), Vector3.back, 55f, 1, false, tag + " sypialnia 2 TV");
         Oczka(-14.6f, -9.8f, -6.8f, -1.6f, top); Oczka(-14.4f, -12.0f, 3.8f, 8.6f, top); Oczka(-9.4f, -9.4f, .4f, 12.4f, top);
         foreach (var lp in new[] { new Vector3(-12f, top - .3f, -3.5f), new Vector3(-13f, top - .3f, 6f), new Vector3(-9.4f, top - .3f, 6f), new Vector3(-14f, top - .3f, 1f), new Vector3(-14f, top - .3f, 11.6f) })
             W.Lampa(tag + " | piętro W światło", lp, .9f, 8f * K, new Color(1f, .93f, .82f));
 
         // ---- E upper: the master suite - the bedroom at the glass, the dressing room, the bathroom; the corridor and the
         // passage to the guest suite over the garage
-        Scianka(true, .4f, 8.3f, 15.7f, y, top, new Vector2(8.8f, 9.7f), new Vector2(12.6f, 13.5f));
+        Scianka(true, .4f, 8.3f, 15.7f, y, top, new Vector2(8.8f, 9.7f), new Vector2(14.7f, 15.6f));       // 23.11 the walk-in's door off the bed's wall
         Scianka(false, 10.2f, .4f, 10.0f, y, top);
         Scianka(true, 4.6f, 10.2f, 15.7f, y, top, new Vector2(13.6f, 14.5f));
         Scianka(true, 10.0f, 10.2f, 15.7f, y, top);
-        Drzwi("sypialnia główna", true, .4f, 8.8f, 9.7f, y); Drzwi("garderoba", true, .4f, 12.6f, 13.5f, y); Drzwi("łazienka główna", true, 4.6f, 13.6f, 14.5f, y);
-        BraxKatalog.Rug(c, new Vector3(12.0f, y, -1.8f), Vector3.forward, 3.6f, 3.0f, true);
-        BraxKatalog.Bed(c, new Vector3(12.0f, y + .012f, -.9f), Vector3.back, 1.8f, "łóżko");
+        Drzwi("sypialnia główna", true, .4f, 8.8f, 9.7f, y, 2.25f, NaOkl); Drzwi("garderoba", true, .4f, 14.7f, 15.6f, y, 2.25f, NaOkl); Drzwi("łazienka główna", true, 4.6f, 13.6f, 14.5f, y);
+        BraxKatalog.Rug(c, new Vector3(12.2f, y, -2.4f), Vector3.forward, 3.6f, 3.0f, true);
+        BraxKatalog.Bed(c, new Vector3(12.2f, y + .012f, -1.90f), Vector3.back, 1.8f, "łóżko");             // the head 3 cm off the cherry (.30)
         BraxKatalog.Tv(c, new Vector3(8.32f, y + 1.35f, -3.6f), Vector3.right, 75f, 0, false, tag + " sypialnia główna TV");
         BraxKatalog.Rug(c, new Vector3(12.0f, y, -6.4f), Vector3.forward, 3.0f, 2.2f, false);
         BraxKatalog.Sofa(c, new Vector3(12.0f, y + .012f, -6.0f), Vector3.back, 2.4f, 1, "sofa");
@@ -373,6 +377,7 @@ public static partial class BraxChampionsWille
         Prysznic(new Vector3(15.0f, y, 5.5f));
         BraxKatalog.WcPan(c, new Vector3(15.684f, y, 8.4f), Vector3.left);
         Obrazek(6, new Vector3(10.14f, y + 1.6f, 6.0f), Vector3.left, 1.4f, .9f);
+        Obrazek(9, new Vector3(12.2f, y + 2.05f, .4f - .06f - .04f), Vector3.back, 2.0f, .9f);
         Model("HotelSobczak/potted_plant_04/potted_plant_04_1k.gltf", "roślina", new Vector3(15.2f, y, 13.2f), 0f);
         Oczka(9.4f, 14.2f, -6.8f, -.8f, top); Oczka(9.25f, 9.25f, 1.4f, 12.6f, top); Oczka(11.4f, 14.8f, 11.0f, 13.0f, top);
         foreach (var lp in new[] { new Vector3(12f, top - .3f, -3.5f), new Vector3(13f, top - .3f, 2.5f), new Vector3(13f, top - .3f, 7.3f), new Vector3(9.25f, top - .3f, 6f), new Vector3(13f, top - .3f, 11.8f) })
@@ -381,16 +386,17 @@ public static partial class BraxChampionsWille
         // ---- the guest suite over the garage
         Scianka(true, 10.2f, 16f, 25.7f, y, top, new Vector2(17.4f, 18.3f));
         Scianka(false, 21.2f, 10.2f, 13.7f, y, top, new Vector2(10.8f, 11.6f));
-        Drzwi("sypialnia gościnna", true, 10.2f, 17.4f, 18.3f, y); Drzwi("łazienka gościnna", false, 21.2f, 10.8f, 11.6f, y);
-        BraxKatalog.Rug(c, new Vector3(21.0f, y, 7.8f), Vector3.forward, 3.0f, 2.6f, true);
-        BraxKatalog.Bed(c, new Vector3(21.0f, y + .012f, 8.9f), Vector3.back, 1.6f, "łóżko");
+        Drzwi("sypialnia gościnna", true, 10.2f, 17.4f, 18.3f, y, 2.25f, NaOkl); Drzwi("łazienka gościnna", false, 21.2f, 10.8f, 11.6f, y);
+        BraxKatalog.Rug(c, new Vector3(21.0f, y, 7.4f), Vector3.forward, 3.0f, 2.6f, true);
+        BraxKatalog.Bed(c, new Vector3(21.0f, y + .012f, 7.90f), Vector3.back, 1.6f, "łóżko");              // the head 3 cm off the cherry (10.10)
         BraxKatalog.Wardrobe(c, new Vector3(25.1f, y, 6.6f), Vector3.left, 2.4f, oak, BraxKatalog.Walnut, 2.4f, "szafa");
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel w sypialni", new Vector3(17.2f, y, 5.2f), 210f), new Vector3(17.2f, y + .45f, 5.2f), new Vector3(-.5f, 0f, -.87f), "FOTEL");
         Lazienka(21.26f, 25.7f, 10.26f, 13.7f, y, new Vector3(0f, 10.8f, 11.6f), 22f, 24f);
         Prysznic(new Vector3(24.9f, y, 11.1f));
         BraxKatalog.Place(c, "umywalka 0.8 orzech", cc => BraxKatalog.Vanity(cc, Vector3.zero, Vector3.forward, .8f, walnut, "umywalka"), new Vector3(22.6f, y, 10.276f), Vector3.forward, null);
         BraxKatalog.WcPan(c, new Vector3(21.276f, y, 12.9f), Vector3.right);
-        Obrazek(7, new Vector3(18.6f, y + 1.6f, 10.14f), Vector3.back, 1.6f, 1.0f);
+        Obrazek(7, new Vector3(21.0f, y + 2.05f, 10.2f - .06f - .04f), Vector3.back, 1.6f, .8f);
+        BraxKatalog.Tv(c, new Vector3(16.02f, y + 1.35f, 6.5f), Vector3.right, 55f, 2, false, tag + " sypialnia gościnna TV");
         Oczka(17.2f, 24.4f, 5.4f, 8.8f, top); Oczka(17.4f, 19.8f, 11.0f, 13.0f, top);
         foreach (var lp in new[] { new Vector3(21f, top - .3f, 6.5f), new Vector3(18.5f, top - .3f, 12f), new Vector3(23.5f, top - .3f, 12f) })
             W.Lampa(tag + " | apartament gościnny", lp, .8f, 7f * K, new Color(1f, .93f, .82f));
@@ -407,7 +413,7 @@ public static partial class BraxChampionsWille
     // a pendant on a long cord from the vault over (x, z), its shade's bottom at p.y
     static void Wisiorek(Vector3 p)
     {
-        float vault = AE + (5f - Mathf.Abs(p.x)) * Mathf.Tan(APitch * Mathf.Deg2Rad) - .01f;
+        float vault = AE - .035f;                                                     // the hall's flat oak ceiling (23.11)
         b.Tube(black, p + Vector3.up * .2f, new Vector3(p.x, vault, p.z), .004f, 4);
         b.Cylinder(BraxKatalog.BlackMatt, p, .16f, .22f, 20, Quaternion.identity, true, false, .05f);
     }
@@ -428,8 +434,7 @@ public static partial class BraxChampionsWille
         foreach (float x in new[] { -20f, -12f, 6f, 20f }) { b.Cylinder(black, new Vector3(x, 0f, -12.4f), .07f, .6f, 12, Quaternion.identity, true); W.Lampa(tag + " | taras", new Vector3(x, .7f, -12.2f), .5f, 6f * K, new Color(1f, .86f, .64f)); }
         foreach (var p in new[] { new Vector3(-6.4f, 0f, -9.2f), new Vector3(6.4f, 0f, -9.2f), new Vector3(17.0f, 0f, -7.2f) })
             Model("ArenaLobby/potted_plant_02/potted_plant_02_1k.gltf", "roślina na tarasie", p, p.x * 7f);
-        foreach (var p in new[] { new Vector2(-21.5f, -6f), new Vector2(-21.5f, 2f), new Vector2(-21.5f, 10f), new Vector2(-19f, 22f), new Vector2(-11f, 22.5f) }) Palma(p.x, p.y);
         TablicaSprzedazy(1, new Vector3(2.0f, 0f, 23.6f), Vector3.forward,
-            "MONIKA: Willa na wzgórzu nad areną: trzy bryły pod dachami z blachy, salon na 9 metrów pod dębowym sklepieniem, basen infinity wysunięty nad zbocze, jacuzzi, kino, siłownia, garaż na trzy auta, cztery sypialnie z łazienkami. Zapraszam do WAWER NIERUCHOMOŚCI w T12!");
+            "MONIKA: Willa na wzgórzu nad areną: trzy białe bryły pod płaskimi dachami, kamień i drewno, salon na dwie kondygnacje pod dębowym stropem, basen infinity wiszący nad skałą, jacuzzi, kino, siłownia, garaż na trzy auta, cztery sypialnie z łazienkami. Zapraszam do WAWER NIERUCHOMOŚCI w T12!");
     }
 }
