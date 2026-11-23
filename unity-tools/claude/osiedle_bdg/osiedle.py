@@ -23,7 +23,7 @@ import ogolny  # noqa: E402
 # Budynki z obrysu OSM (ogolny.py). Klucz: fragment nazwy z OSM albo (nr, ulica). zr = źródło liczby kondygnacji i koloru:
 # OSM (building:levels), ZDJ (zdjęcie właściciela), ZAL (założenie — lista do potwierdzenia zdjęciem).
 SPEC = [
-    ("E.Leclerc", dict(kond=2, h_kond=3.6, parter=4.6, tynk="market_elewacja", witryny=True, okna_kier=(0, 1), okna=(3.4, 2.6, 1.5, .9), market=True,
+    ("E.Leclerc", dict(kond=2, h_kond=3.6, parter=4.6, tynk="market_elewacja", witryny=True, okna_kier=(0, 1), okna=(3.6, 3.0, 1.7, .9), market=True,
                        attyka=1.0, pas_gorny=("market_niebieski", 1.1),
                        zr="ZDJ IMG_1577 (front od Skłodowskiej: witryny pasażu w parterze, pas okien piętra) i IMG_1730 (tył: biała hala, niebieski pas); bez nazwy i logo (decyzja 16:49)")),
     ("Pawilon Łóżkowy", dict(kond=5, h_kond=3.4, parter=3.8, tynk="szpital_krem", cokol="szpital_cegla", h_cokol=3.0, okna=(3.0, 1.6, 1.5, .9), zr="OSM 5 p., lotnicze IMG_1751 (kremowy, parter ceglasty)")),

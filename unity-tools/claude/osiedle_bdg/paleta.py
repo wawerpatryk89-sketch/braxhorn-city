@@ -135,7 +135,7 @@ SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, 
            "bitumen": [.230, .214, .206], "gravel_floor_02": [.672, .656, .613], "painted_metal_shutter": [.502, .516, .527],
            "exterior_wall_cladding_03": [.678, .654, .607], "corrugated_iron_02": [.348, .345, .319], "red_bricks_04": [.386, .243, .145],
            "grass004": [.384, .431, .197], "herringbone_pavement_03": [.264, .232, .195], "red_brick_pavers": [.455, .250, .198],
-           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287], "plyty_szare": [.75, .75, .75]}
+           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287], "plyty_szare": [.80, .80, .80]}
 
 
 def tint(v):

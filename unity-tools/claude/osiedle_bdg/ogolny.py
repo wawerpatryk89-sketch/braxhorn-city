@@ -77,7 +77,7 @@ def zbuduj(poly, sp, nazwa="budynek"):
                     u += w
                 blok4.sciana_pola(nazwa, a + UP * cok, t, L, Hh, gora, pola, uv1=(L, Hh))
             else:
-                sciana(nazwa, sp["tynk"], a + UP * cok, t, n, L, H + att - cok, gora, (L, H + att))
+                sciana(nazwa, sp["tynk"], a + UP * cok, t, n, L, H + att - cok, gora, (L, H + att), "szklo" if sp.get("market") else None)
             if sp.get("pas_gorny") and not czy_front:   # pas blachy pod dachem 5 cm przed licem (market: niebieski, IMG_1730)
                 pm, ph = sp["pas_gorny"]
                 S.box(nazwa, pm, a + UP * (H + att - ph) - t * .05, t, UP, n, L + .1, ph + .05, .06)
@@ -96,7 +96,9 @@ def zbuduj(poly, sp, nazwa="budynek"):
                 for f in ("n", "t", "uv", "uv1"): dd[f] += cz[f]
                 dd["i"] += [b0 + q for q in cz["i"]]
         if sp.get("market") and fronty:
-            market_front(S, nazwa, max(fronty, key=lambda f: f[4]), H, att)
+            gl = max(fronty, key=lambda f: f[4])
+            for k_, f_ in enumerate(sorted(fronty, key=lambda f: -f[4])):
+                if f_[4] >= 8.0: market_front(S, nazwa, f_, H, att, f_ is gl, k_)
         if sp.get("ladowisko"):                    # SOR: cofnięta kondygnacja, płyta lądowiska z siatką (IMG_1744–1753)
             Qd = sor_dach(S, nazwa, P, y, sp.get("front_kier", (0, -1)))
         if sp.get("sor") and fronty:
@@ -110,9 +112,27 @@ def zbuduj(poly, sp, nazwa="budynek"):
     return S
 
 
-def sciana(g, mat, o, t, n, L, H, okna, uv1):
-    """Ściana z oknami (te same elementy co blok 32a)."""
+def sciana(g, mat, o, t, n, L, H, okna, uv1, styl=None):
+    """Ściana z oknami (te same elementy co blok 32a). styl="szklo": market — witryny i okna jako szkło w białej
+    ramie aluminiowej ze szprosami, ościeża 12 cm, bez firanek (zdjęcia nocne 18:47)."""
     S = B.S
+    if styl == "szklo":
+        S.sciana(g, mat, o, t, L, H, [(u0, u1, v0, v1) for (u0, u1, v0, v1, r, p) in okna], uv1_skala=uv1)
+        P = lambda u, v, d=0.0: o + t * u + UP * v - n * d
+        for (u0, u1, v0, v1, r, pp) in okna:
+            g_ = .12
+            for q, kk in (((P(u0, v0), P(u0, v1), P(u0, v1, g_), P(u0, v0, g_)), t), ((P(u1, v0), P(u1, v1), P(u1, v1, g_), P(u1, v0, g_)), -t),
+                          ((P(u0, v1), P(u1, v1), P(u1, v1, g_), P(u0, v1, g_)), -UP), ((P(u0, v0), P(u1, v0), P(u1, v0, g_), P(u0, v0, g_)), UP)):
+                S.quad(g, mat, *q, kier=kk)
+            S.quad(g, "market_szklo", P(u0, v0, g_), P(u1, v0, g_), P(u1, v1, g_), P(u0, v1, g_), t=t, kier=n)
+            fr = "market_rama"; d0 = g_ - .02
+            for (a_, b_) in (((u0, v0), (u1, v0)), ((u0, v1), (u1, v1))):
+                S.box(g, fr, P(a_[0], a_[1] - .03, d0) + n * 0, t, UP, n, b_[0] - a_[0], .06, .06)
+            for u in [u0, u1] + list(np.arange(u0, u1, 1.25 if r == "witryna" else 1.5))[1:]:
+                if u1 - u < .3 and u != u1: continue
+                S.box(g, fr, P(u - .03, v0, d0), t, UP, n, .06, v1 - v0, .06)
+            if r == "witryna": S.box(g, fr, P(u0, v0 + 2.35, d0), t, UP, n, u1 - u0, .06, .06)          # nadświetle
+        return
     dz = [(u0 - B.OPASKA, u1 + B.OPASKA, v0, v1 + B.OPASKA) for (u0, u1, v0, v1, r, p) in okna if r != "witryna"] + \
          [(u0, u1, v0, v1) for (u0, u1, v0, v1, r, p) in okna if r == "witryna"]
     S.sciana(g, mat, o, t, L, H, dz, uv1_skala=uv1)
@@ -285,19 +305,33 @@ def sor_front(S, g, f, H, sp_drogi=None):
     S.wyciecia = getattr(S, "wyciecia", []) + [shapely.geometry.Polygon([(q[0], q[2]) for q in [P_(R1 + .25, f_) for f_ in kat] + [c]]).buffer(0)]
 
 
-def market_front(S, g, f, H, att):
+def market_front(S, g, f, H, att, glowny=True, k_=0):
     """Front marketu (IMG_1577, IMG_1738–1742): podcień 3 m z białymi słupami co 6 m i stropem na +4,2, rama-pergola
     na dachu wzdłuż frontu (słupki co 5 m, belka), biała wieża w narożniku (pole na logo puste — nazwa decyzją
     właściciela), przeszklona klatka schodowa obok wieży, biały walec przy drugim końcu."""
     a, b, t, n, L = f
-    yk = 4.2
+    yk = 4.2 + .03 * k_                                   # kolejne fronty minimalnie wyżej — bez wspólnych płaszczyzn na narożach
     S.box(g, "market_elewacja", a + UP * yk, t, UP, n, L, .35, 3.0, bez=("-z",))
+    S.box(g, "market_rama", a + UP * (yk - .02) + n * 2.95, t, UP, n, L, .4, .08)          # obróbka krawędzi podcienia
     for u in np.arange(3.0, L - 1.0, 6.0):
-        S.rura(g, "pcv", a + t * u + n * 2.7, a + t * u + n * 2.7 + UP * yk, .22, seg=10)
+        S.rura(g, "pcv", a + t * u + n * 2.7, a + t * u + n * 2.7 + UP * yk, .22, seg=16)
     yp = H + att
-    for u in np.arange(1.0, L - 6.0, 5.0):
-        S.box(g, "market_rama", a + t * u - n * .9 + UP * yp, t, UP, n, .35, 2.1, .35)
-    S.box(g, "market_rama", a + t * 1.0 - n * .9 + UP * (yp + 1.7), t, UP, n, L - 7.0, .45, .4)
+    # pergola z lameli na dachu wzdłuż frontu (zdjęcia 18:47): wsporniki co 2,5 m za attyką, belka, 5 lameli
+    # równoległych do elewacji, pochylonych 30°, cofniętych od lica (nic nie wystaje w powietrze przed elewację)
+    for u in np.arange(1.0, L - .9, 2.5):
+        S.box(g, "market_rama", a + t * u - n * 1.6 + UP * yp, t, UP, n, .18, 1.5, 1.4)
+    S.box(g, "market_rama", a + t * 1.0 - n * 1.62 + UP * (yp + 1.5), t, UP, n, L - 2.0, .14, 1.44)
+    nach = nrm(-n * math.cos(math.radians(30)) + UP * math.sin(math.radians(30)))
+    for j in range(5):
+        S.box(g, "lamele", a + t * 1.0 - n * (.3 + j * .28) + UP * (yp + 1.66), t, nrm(np.cross(nach, t)) if np.dot(np.cross(nach, t), UP) > 0 else -nrm(np.cross(nach, t)), nach, L - 2.0, .03, .3)
+    for kk, u in enumerate(np.arange(4.0 if glowny else 2.5, L - (22.0 if glowny else 4.0), 6.8)):   # banery na każdym froncie
+        p0 = a + t * u + n * .06 + UP * 4.62; w = 3.4
+        S.quad(g, "baner_%d" % ((kk + k_) % 4 + 1), p0, p0 + t * w, p0 + t * w + UP * .8, p0 + UP * .8, uv1=[(0, 0), (1, 0), (1, 1), (0, 1)], kier=n)
+        S.box(g, "market_rama", p0 - t * .04 - n * .04 - UP * .04, t, UP, n, w + .08, .04, .08)
+    if not glowny:
+        for u in np.arange(2.0, L - 2.0, 1.6):
+            S.rura(g, "slupek_zolty", a + t * u + n * 3.45, a + t * u + n * 3.45 + UP * .9, .08, seg=8)
+        return
     # wieża w narożniku (koniec b), przeszklona klatka obok, walec na drugim końcu
     S.box(g, "market_elewacja", b - t * 6.0 - n * 4.5, t, UP, n, 6.0, H + att + 6.5, 4.6)
     S.box(g, "market_niebieski", b - t * 5.8 + n * .1 + UP * 1.5, t, UP, n, 5.6, H + att + 4.5, .12)     # rama pylonu
@@ -313,11 +347,6 @@ def market_front(S, g, f, H, att):
             S.rura(g, "market_rama", c + d * 3.07 + UP * y0, c + d * 3.07 + UP * y1, .045, seg=6)
         S.luk(g, "market_rama", c, t, n, 3.08, 15, 205, y1, y1 + .12, seg=20)
     S.luk(g, "pas_zielony", c, t, n, 3.07, 40, 180, 4.2, 5.0, seg=16)       # pas szyldu (pusty, bez nazwy)
-    # banery nad podcieniem między oknami piętra (jak na zdjęciach; reklamy BRAXHORN, bez prawdziwych marek)
-    for k, u in enumerate(np.arange(8.0, L - 22.0, 6.8)):
-        p0 = a + t * u + n * .06 + UP * 4.5; w = 3.4
-        S.quad(g, "baner_%d" % (k % 4 + 1), p0, p0 + t * w, p0 + t * w + UP * .95, p0 + UP * .95, uv1=[(0, 0), (1, 0), (1, 1), (0, 1)], kier=n)
-        S.box(g, "market_rama", p0 - t * .04 - n * .04 - UP * .04, t, UP, n, w + .08, .04, .08)
     for u in np.arange(4.5, L - 17.0, 1.6):                  # żółte słupki przed podcieniem (zdjęcia 17:25, IMG_1761–1762)
         S.rura(g, "slupek_zolty", a + t * u + n * 3.45, a + t * u + n * 3.45 + UP * .9, .08, seg=8)
 

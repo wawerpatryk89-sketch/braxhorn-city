@@ -80,7 +80,7 @@ def kepy_bermuda(report: dict) -> None:
     report["textures"]["kepy_bermuda"] = f"grass_bermuda_01 (Poly Haven CC0): {len(kom)} kart"
 
 
-def odbarwiona(report: dict, zrodlo: str, cel: str, srednia: float = .75, kontrast: float = 1.0) -> None:
+def odbarwiona(report: dict, zrodlo: str, cel: str, srednia: float = .75, kontrast: float = 1.0, bez_plam: float = 0.0) -> None:
     """Osiedle bydgoskie (23.11, „dosłownie wszystko ma mieć tekstury premium”): skan bez barwy — luminancja źródła
     (średnia sRGB `srednia`), normalne i ARM bez zmian; barwę daje _Color z palety (osiedle_bdg/paleta.py). Dzięki temu
     odcień palety nie wzmacnia plam barwnych skanu (zgłoszenie 19:18 „co to na ścianach?”). Ta sama operacja w podglądzie."""
@@ -90,7 +90,13 @@ def odbarwiona(report: dict, zrodlo: str, cel: str, srednia: float = .75, kontra
     import numpy as np
     from PIL import Image
     d = np.asarray(Image.open(src / "diffuse.jpg").convert("RGB"), float) / 255
-    L = (d ** 2.2) @ np.array([.2126, .7152, .0722]); L = L / L.mean(); L = (1 + (L - 1) * kontrast) * (srednia ** 2.2)
+    L = (d ** 2.2) @ np.array([.2126, .7152, .0722])
+    if bez_plam > 0:                      # filtr górnoprzepustowy: zostają fugi i drobna faktura, znikają zacieki i plamy
+        from PIL import ImageFilter
+        im = Image.fromarray((L / L.max() * 65535).astype(np.uint16).astype(np.int32), "I")
+        tlo = np.asarray(Image.fromarray((L / L.max() * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(bez_plam)), float) / 255 * L.max()
+        L = L / np.maximum(tlo, 1e-4)
+    L = L / L.mean(); L = (1 + (L - 1) * kontrast) * (srednia ** 2.2)
     g = (np.clip(L, 0, 1) ** (1 / 2.2) * 255).astype(np.uint8)
     dst.mkdir(parents=True, exist_ok=True)
     Image.fromarray(np.dstack([g] * 3)).save(dst / "diffuse.jpg", quality=92)
@@ -100,7 +106,7 @@ def odbarwiona(report: dict, zrodlo: str, cel: str, srednia: float = .75, kontra
 
 def lakier_blacha(report: dict) -> None:
     odbarwiona(report, "blue_metal_plate", "lakier_blacha", kontrast=.35)   # 19:18: plamy lakieru na dużych płaszczyznach za mocne
-    odbarwiona(report, "grey_tiles", "plyty_szare")
+    odbarwiona(report, "grey_tiles", "plyty_szare", srednia=.8, bez_plam=48)   # 19:38 „elewacja straszna”: bez zacieków
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
 # W 1K (telefon): 38 zestawów w 2K to ok. 0,5 GB tekstur w pamięci naraz — ściany dostają kolor + normalną 1024, drobne
