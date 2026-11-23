@@ -1,0 +1,12 @@
+{
+ "lat_a": 53.124321661702126,
+ "lon_a": 18.002974621276596,
+ "gra_a": [
+  -508.1,
+  1384.3
+ ],
+ "K": 1.294,
+ "MLAT": 111320.0,
+ "MLON": 66800.98470835455,
+ "opis": "kotwica = \u015brodek ko\u015bcio\u0142a Wniebowzi\u0119cia NMP (Gda\u0144ska 2, OSM w89654070); gra = kotwica + (lon\u2212lon_a)\u00b7MLON\u00b7K, (lat\u2212lat_a)\u00b7MLAT\u00b7K; uk\u0142ad kolegi przesuni\u0119ty o (+42; +763) j. wg planu po\u0142\u0105cze\u0144"
+}
