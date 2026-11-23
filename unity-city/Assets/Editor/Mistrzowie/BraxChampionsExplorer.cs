@@ -85,6 +85,7 @@ public static class BraxChampionsExplorer
             new Vector3(885,22,815)*K,new Vector3(plant.x,.16f,plant.z)*K,
             new Vector3(plant.x,.16f,plant.z)*K};
         SeatsOnTheirSurfaces(scene);
+        BraxChampionsRuchome.Odblokuj(scene);                // 23.11: moving parts never static-batched (the money wheel stood still)
         DoorwaysClear(scene);
         SunShadows(scene);
         SmallThingsLayers(scene);

@@ -346,6 +346,179 @@ static class Program
         L.gra = 0;
     }
     static string Liczby(int[] w) => string.Join(",", w);
+    // ---- 23.11: the tables played from the chair / the rail (BraxChampionsStanowisko): the shoe set card by card, the game's
+    // own private steps called as the buttons call them, the money checked to the credit
+    static void Stoly()
+    {
+        const BindingFlags F = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public;
+        Time.time = 1000f; Time.deltaTime = 1f / 60f;
+        int C(int kolor, int ranga) => kolor * 13 + ranga;                       // ranga 0 = the two .. 12 = the ace
+        object Stan(object gra, int i) => ((Array)gra.GetType().GetField("stan", F).GetValue(gra)).GetValue(i);
+        T0 Pole<T0>(object o, string n) => (T0)o.GetType().GetField(n, F).GetValue(o);
+        void Ustaw(object o, string n, object v) => o.GetType().GetField(n, F).SetValue(o, v);
+        object Wolaj(object gra, string m, params object[] a) => gra.GetType().GetMethod(m, F).Invoke(gra, a);
+        void Klatki(object gra, Func<bool> az, int max = 3000) { var u = gra.GetType().GetMethod("Update", F); int f = 0; while (!az() && f++ < max) { Time.time += Time.deltaTime; u.Invoke(gra, null); } Check(f < max, gra.GetType().Name + " reaches its state"); }
+        Transform[] Zetony(Transform st, int n) { var z = new Transform[n]; for (int k = 0; k < n; k++) { z[k] = new GameObject("zeton").transform; z[k].SetParent(st, false); } return z; }
+
+        // ---------------- BLACKJACK: split + double, blackjack 3:2, a bust, split aces (21 is not a blackjack)
+        PlayerPrefs.DeleteAll();
+        var bjo = new GameObject("blackjack"); var bj = bjo.AddComponent<BraxChampionsBlackjack>(); bj.stawka = 10; bj.karty = new Material { name = "karty" };
+        var bst = new GameObject("stol").transform; var miejsca = new Vector3[5];
+        for (int k = 0; k < 5; k++) { float t = (28f + k * 31f) * Mathf.Deg2Rad; miejsca[k] = new Vector3(.77f * Mathf.Cos(t), .8f, .665f * Mathf.Sin(t)); }
+        bj.stoly = new[] { new BraxChampionsBlackjack.Stol { stol = bst, but = new Vector3(-.78f, .82f, .24f), miejsca = miejsca, krupier = new Vector3(-.12f, .8f, .215f), zetony = Zetony(bst, 5) } };
+        Wolaj(bj, "Start");
+        var bs = Stan(bj, 0); var bt = bj.stoly[0];
+        void But(params int[] karty) { var b = new int[312]; for (int k = 0; k < 312; k++) b[k] = k < karty.Length ? karty[k] : C(k % 4, k % 13); Ustaw(bs, "but", b); Ustaw(bs, "wBucie", 0); }
+        int Faza() => Pole<int>(bs, "faza");
+        int Reka(int n) { int kr = BraxChampionsKasyno.Kredyt; return kr; }
+        // A: 8 8 against 6 (16 down): split, 3 to the first (11), double: a ten (21); the second takes 9 (17), stands; the dealer draws a ten: 26
+        {
+            int kr = BraxChampionsKasyno.Kredyt;
+            But(C(0, 6), C(1, 4), C(1, 6), C(2, 11), C(3, 1), C(0, 7), C(1, 8), C(2, 8));
+            Wolaj(bj, "Rozdaj", bt, bs, 2, 10, true); Check(BraxChampionsKasyno.Kredyt == kr - 10, "blackjack bet taken");
+            Klatki(bj, () => Faza() == 2);
+            Check((bool)Wolaj(bj, "MozeRozdzielic", bs), "a pair of eights may be split");
+            Wolaj(bj, "Rozdziel", bt, bs); Check(BraxChampionsKasyno.Kredyt == kr - 20, "the split takes a second bet");
+            Check(Pole<List<int>>(bs, "gracz").Count == 2 && Pole<List<int>>(bs, "gracz2").Count == 2, "two hands of two cards");
+            Check((bool)Wolaj(bj, "MozePodwoic", bs), "double after split");
+            Wolaj(bj, "Podwoj", bt, bs); Check(BraxChampionsKasyno.Kredyt == kr - 30 && Pole<int[]>(bs, "zaklad")[0] == 20, "the double doubles the first hand's bet");
+            Check(Pole<int>(bs, "reka") == 1 && Faza() == 2, "the second hand plays next");
+            Wolaj(bj, "Stoj", bt, bs);
+            Klatki(bj, () => Faza() == 4);
+            Check(BraxChampionsBlackjack.Suma(Pole<List<int>>(bs, "krupier"), out _) == 26, "the dealer drew to 26");
+            Check(BraxChampionsKasyno.Kredyt == kr - 30 + 40 + 20, "blackjack split+double pays 40 + 20 (" + (BraxChampionsKasyno.Kredyt - kr) + ")");
+        }
+        // B: A K against 9: blackjack 3:2 at once
+        {
+            int kr = BraxChampionsKasyno.Kredyt;
+            But(C(0, 12), C(1, 7), C(1, 11), C(2, 5));
+            Wolaj(bj, "Rozdaj", bt, bs, 2, 10, true);
+            Klatki(bj, () => Faza() == 4);
+            Check(BraxChampionsKasyno.Kredyt == kr - 10 + 25, "blackjack pays 3:2");
+        }
+        // C: 10 6 against 7 (10 down): hit a ten, 26: lost at once
+        {
+            int kr = BraxChampionsKasyno.Kredyt;
+            But(C(0, 8), C(1, 5), C(1, 4), C(2, 8), C(3, 8));
+            Wolaj(bj, "Rozdaj", bt, bs, 2, 20, true);
+            Klatki(bj, () => Faza() == 2);
+            Check(!(bool)Wolaj(bj, "MozeRozdzielic", bs), "10 and 6 are no pair");
+            Wolaj(bj, "Dobierz", bt, bs);
+            Check(Faza() == 4 && BraxChampionsKasyno.Kredyt == kr - 20, "a bust loses at once");
+        }
+        // D: A A against 6 (10 down): split aces take one card each (K: 21, 5: 16) and stand; the dealer 16 draws a two (18)
+        {
+            int kr = BraxChampionsKasyno.Kredyt;
+            But(C(0, 12), C(1, 4), C(1, 12), C(2, 8), C(3, 11), C(0, 3), C(1, 0));
+            Wolaj(bj, "Rozdaj", bt, bs, 2, 10, true);
+            Klatki(bj, () => Faza() == 2);
+            Wolaj(bj, "Rozdziel", bt, bs);
+            Klatki(bj, () => Faza() == 4);
+            Check(BraxChampionsKasyno.Kredyt == kr - 20 + 20, "split aces: 21 pays even money, not 3:2 (" + (BraxChampionsKasyno.Kredyt - kr) + ")");
+        }
+        Console.WriteLine("BLACKJACK at the chair: split + double, 3:2, bust, split aces: OK");
+
+        // ---------------- CASINO HOLD'EM: the ante at the chair, CALL, the pay by the rules
+        {
+            var ho = new GameObject("holdem"); var hp = ho.AddComponent<BraxChampionsHoldem>(); hp.stawka = 10; hp.karty = new Material { name = "karty" };
+            var hst = new GameObject("stol").transform;
+            hp.stoly = new[] { new BraxChampionsHoldem.Stol { stol = hst, but = new Vector3(-.9f, .82f, .24f), miejsca = miejsca, call = miejsca, krupier = new Vector3(-.035f, .8f, .14f), plansza = new Vector3(0f, .8f, .31f),
+                ante = Zetony(hst, 5), calle = Zetony(hst, 5) } };
+            Wolaj(hp, "Start"); var hs = Stan(hp, 0); var ht = hp.stoly[0];
+            long st = 0, pd = 0;
+            for (int g = 0; g < 400; g++)
+            {
+                if (BraxChampionsKasyno.Kredyt < 200) BraxChampionsKasyno.Wplac(1000);
+                int kr = BraxChampionsKasyno.Kredyt;
+                Wolaj(hp, "Rozdaj", ht, hs, 1, 20, true); Check(BraxChampionsKasyno.Kredyt == kr - 20, "hold'em ante");
+                Klatki(hp, () => Pole<int>(hs, "faza") == 2);
+                Wolaj(hp, "Call", ht, hs); Check(BraxChampionsKasyno.Kredyt == kr - 60, "hold'em call = twice the ante");
+                Klatki(hp, () => Pole<int>(hs, "faza") == 4);
+                var gr = new List<int>(Pole<List<int>>(hs, "gracz")); gr.AddRange(Pole<List<int>>(hs, "plansza"));
+                var kp = new List<int>(Pole<List<int>>(hs, "krupier")); kp.AddRange(Pole<List<int>>(hs, "plansza"));
+                int w = BraxChampionsHoldem.Wyplata(20, BraxChampionsHoldem.Ocena(gr), BraxChampionsHoldem.Ocena(kp));
+                Check(BraxChampionsKasyno.Kredyt == kr - 60 + w, "hold'em pays " + w);
+                st += 60; pd += w;
+            }
+            // PAS: the ante stays
+            int k0 = BraxChampionsKasyno.Kredyt; Wolaj(hp, "Rozdaj", ht, hs, 1, 10, true); Klatki(hp, () => Pole<int>(hs, "faza") == 2);
+            Wolaj(hp, "Pas", ht, hs); Check(BraxChampionsKasyno.Kredyt == k0 - 10, "PAS loses the ante only");
+            Console.WriteLine("CASINO HOLD'EM at the chair, always calling: staked {0}, paid {1} (RTP {2:F3})", st, pd, (double)pd / st);
+        }
+
+        // ---------------- BAKARAT: chips on GRACZ and REMIS together, each box paid by its rule
+        {
+            var bo = new GameObject("bakarat"); var bk = bo.AddComponent<BraxChampionsBakarat>(); bk.stawka = 20; bk.karty = new Material { name = "karty" };
+            var kst = new GameObject("stol").transform;
+            bk.stoly = new[] { new BraxChampionsBakarat.Stol { stol = kst, but = new Vector3(-.9f, .82f, .24f), pola = new[] { miejsca[0], miejsca[2], miejsca[4] },
+                gracz = new Vector3(-.16f, .8f, .30f), bankier = new Vector3(.16f, .8f, .30f), zetony = Zetony(kst, 3) } };
+            Wolaj(bk, "Start"); var ks = Stan(bk, 0); var kt = bk.stoly[0];
+            long st = 0, pd = 0;
+            for (int g = 0; g < 400; g++)
+            {
+                if (BraxChampionsKasyno.Kredyt < 200) BraxChampionsKasyno.Wplac(1000);
+                int kr = BraxChampionsKasyno.Kredyt;
+                Wolaj(bk, "Postaw", kt, ks, BraxChampionsBakarat.Gracz, 40); Wolaj(bk, "Postaw", kt, ks, BraxChampionsBakarat.Remis, 20);
+                Check(BraxChampionsKasyno.Kredyt == kr - 60, "baccarat chips taken");
+                Wolaj(bk, "Rozdaj", kt, ks);
+                Klatki(bk, () => Pole<int>(ks, "faza") == 2);
+                int gs = BraxChampionsBakarat.Suma(Pole<List<int>>(ks, "gracz")), bs2 = BraxChampionsBakarat.Suma(Pole<List<int>>(ks, "bankier")), z = BraxChampionsBakarat.Zwyciezca(gs, bs2);
+                int w = BraxChampionsBakarat.Wyplata(BraxChampionsBakarat.Gracz, z, 40) + BraxChampionsBakarat.Wyplata(BraxChampionsBakarat.Remis, z, 20);
+                Check(BraxChampionsKasyno.Kredyt == kr - 60 + w, "baccarat pays " + w + " (" + gs + ":" + bs2 + ")");
+                st += 60; pd += w;
+            }
+            Console.WriteLine("BAKARAT at the chair, GRACZ 40 + REMIS 20 a coup: staked {0}, paid {1} (RTP {2:F3})", st, pd, (double)pd / st);
+        }
+
+        // ---------------- SIC BO: chips on all three boxes, the dice decide each
+        {
+            var so = new GameObject("sicbo"); var sb = so.AddComponent<BraxChampionsSicBo>(); sb.stawka = 10;
+            var sst = new GameObject("stol").transform; sb.stol = sst; sb.pola = new[] { new Vector3(.75f, .8f, .76f), new Vector3(0f, .8f, .76f), new Vector3(-.75f, .8f, .76f) };
+            sb.zetony = Zetony(sst, 3); var dno = new GameObject("dno").transform; dno.SetParent(sst, false);
+            sb.kostki = Zetony(dno, 3); sb.spoczynek = new Vector3[3];
+            Wolaj(sb, "Start");
+            long st = 0, pd = 0;
+            for (int g = 0; g < 400; g++)
+            {
+                if (BraxChampionsKasyno.Kredyt < 200) BraxChampionsKasyno.Wplac(1000);
+                int kr = BraxChampionsKasyno.Kredyt;
+                Check(sb.Postaw(0, 20) && sb.Postaw(1, 10) && sb.Postaw(2, 20) && BraxChampionsKasyno.Kredyt == kr - 50, "sic bo chips");
+                Check(sb.Rzuc(), "sic bo throw"); Check(!sb.Postaw(0, 10), "no chips while the dice jump");
+                Klatki(sb, () => !Pole<bool>(sb, "gra"));
+                var wy = Pole<int[]>(sb, "wynik");
+                int w = BraxChampionsSicBo.Wyplata(0, wy[0], wy[1], wy[2], 20) + BraxChampionsSicBo.Wyplata(1, wy[0], wy[1], wy[2], 10) + BraxChampionsSicBo.Wyplata(2, wy[0], wy[1], wy[2], 20);
+                Check(BraxChampionsKasyno.Kredyt == kr - 50 + w, "sic bo pays " + w);
+                st += 50; pd += w;
+            }
+            Console.WriteLine("SIC BO at the table, MAŁE 20 + TRÓJKA 10 + DUŻE 20 a throw: staked {0}, paid {1} (RTP {2:F3})", st, pd, (double)pd / st);
+        }
+
+        // ---------------- KOŁO FORTUNY: chips on every box, the segment under the clapper pays its own
+        {
+            var ko = new GameObject("kolo"); var kf = ko.AddComponent<BraxChampionsKoloFortuny>(); kf.stawka = 10;
+            var kst = new GameObject("stol").transform; kf.stol = kst; kf.pola = new Vector3[7]; for (int k = 0; k < 7; k++) kf.pola[k] = new Vector3(1.38f - k * .46f, .9f, .12f);
+            kf.zetony = Zetony(kst, 7); kf.kolo = new GameObject("kolo").transform; kf.klapka = new GameObject("klapka").transform;
+            Wolaj(kf, "Start");
+            var uk = BraxChampionsKoloFortuny.Uklad(); long st = 0, pd = 0;
+            for (int g = 0; g < 200; g++)
+            {
+                if (BraxChampionsKasyno.Kredyt < 200) BraxChampionsKasyno.Wplac(1000);
+                int kr = BraxChampionsKasyno.Kredyt;
+                for (int k = 0; k < 7; k++) Check(kf.Postaw(k, 10), "wheel chip " + k);
+                Check(BraxChampionsKasyno.Kredyt == kr - 70 && kf.Zakrec(), "wheel spins over 70");
+                Klatki(kf, () => !Pole<bool>(kf, "kreci"));
+                int seg = Pole<int>(kf, "wynik"), w = 0;
+                for (int k = 0; k < 7; k++) w += BraxChampionsKoloFortuny.Wyplata(BraxChampionsKoloFortuny.Symbole[k], uk[seg], 10);
+                Check(BraxChampionsKasyno.Kredyt == kr - 70 + w, "wheel pays " + w + " on segment " + seg);
+                // the wheel stopped with that segment under the clapper (the top)
+                float kat = Pole<float>(kf, "katTeraz"); float d = Mathf.DeltaAngle(kat, -seg * 360f / BraxChampionsKoloFortuny.Segmenty);
+                Check(Math.Abs(d) <= 360f / BraxChampionsKoloFortuny.Segmenty * .5f, "the segment drawn under the clapper (" + d + ")");
+                st += 70; pd += w;
+            }
+            Console.WriteLine("KOŁO FORTUNY at the table, 10 on every box: staked {0}, paid {1} (RTP {2:F3})", st, pd, (double)pd / st);
+        }
+    }
+
     static void Check(bool ok, string what) { if (!ok) { fails++; if (fails < 20) Console.WriteLine("FAIL " + what); } }
 
     static int Main(string[] args)
@@ -441,7 +614,8 @@ static class Program
                     }
                     Check(m.dzwignia.localRotation.w > .9999f, "lever back up");
                 }
-                if (jp) { Check(w == j0, "jackpot paid " + w + " of " + j0); Console.WriteLine("  JACKPOT " + w + (ekran ? " (screen)" : " (mechanical)")); }
+                // the jackpot paid carries this spin's own 2 % too (0.20 of 10: it can just cross into the next whole credit)
+                if (jp) { Check(w == j0 || w == j0 + 1, "jackpot paid " + w + " of " + j0); Console.WriteLine("  JACKPOT " + w + (ekran ? " (screen)" : " (mechanical)")); }
                 else Check(w == expect, "win " + w + " = pay table " + expect);
                 Check(BraxChampionsKasyno.Kredyt == kredyt - 10 + w, "win credited");
                 paid += w;
@@ -475,7 +649,8 @@ static class Program
             Check(ob.Kontekst(new Vector3(105f, 0, 0)) == "", "nothing between the counters");
             Console.WriteLine("OBSLUGA reception (welcome once) / cloakroom (tag " + n + ") / cashier: OK");
         }
-        // ---- 3. the roulette: every outside bet, the ball ends in the drawn number's pocket, even money pays 1:1, zero takes it
+        // ---- 3. the roulette at the rail (23.11): chips on a box, a number, a dozen and a column every spin; the ball ends in
+        // the drawn number's pocket; each bet paid by its odds (with its stake: 2 / 36 / 3 / 3), the zero takes the rest
         PlayerPrefs.DeleteAll();
         var rh = new GameObject("ruletka"); var rul = rh.AddComponent<BraxChampionsRuletka>(); rul.stawka = 10;
         var rst = new GameObject("stol").transform; var rot = new GameObject("rotor").transform; rot.SetParent(rst, false);
@@ -488,17 +663,22 @@ static class Program
         var RT = typeof(BraxChampionsRuletka); RT.GetMethod("Start", F).Invoke(rul, null);
         var rUpd = RT.GetMethod("Update", F); var rStan = RT.GetField("stan", F);
         int spinsR = Math.Max(200, spins / 10); long rStake = 0, rPaid = 0; var seen = new int[37];
+        const int Zw = BraxChampionsRuletka.Zasady.Zewn, Tz = BraxChampionsRuletka.Zasady.Tuziny, Ko = BraxChampionsRuletka.Zasady.Kolumny;
         for (int sp = 0; sp < spinsR; sp++)
         {
-            int e = sp % 6; gracz.transform.localPosition = rst.TransformPoint(new Vector3(polaX[e], 0, 1.0f));
-            if (BraxChampionsKasyno.Kredyt < 10) BraxChampionsKasyno.Wplac(1000);
+            int e = sp % 6, num = sp % 37, doz = sp % 3, col = sp / 3 % 3; gracz.transform.localPosition = rst.TransformPoint(new Vector3(polaX[e], 0, 1.0f));
+            if (BraxChampionsKasyno.Kredyt < 200) BraxChampionsKasyno.Wplac(1000);
             int kr = BraxChampionsKasyno.Kredyt;
             string ctx = rul.Kontekst(gracz.transform.position);
-            Check(ctx == "POSTAW 10 · " + BraxChampionsRuletka.Zasady.Pola[e], "roulette context '" + ctx + "' for box " + e);
-            Check(rul.Wykonaj(gracz.transform.position), "roulette bet");
+            Check(ctx == "GRAJ · RULETKA", "roulette context '" + ctx + "'");
+            Check(rul.Wykonaj(gracz.transform.position) && BraxChampionsStanowisko.Ostatnia == (IBraxStanowisko)rul, "AKCJA opens the table");
+            Check(rul.Postaw(0, Zw + e, 10) && rul.Postaw(0, num, 5) && rul.Postaw(0, Tz + doz, 10) && rul.Postaw(0, Ko + col, 10), "roulette chips");
+            Check(BraxChampionsKasyno.Kredyt == kr - 35 && rul.Postawione(0) == 35, "the chips leave the credit");
+            Check(zet[e].gameObject.activeSelf, "the chip lies on the box");
+            Check(rul.Zakrec(0), "roulette spin");
+            Check(!rul.Postaw(0, 1, 5), "no chips while the ball runs");
             var so = ((Array)rStan.GetValue(rul)).GetValue(0); var sT = so.GetType();
             int wynik = (int)sT.GetField("wynik").GetValue(so); seen[wynik]++;
-            Check(zet[e].gameObject.activeSelf, "the chip lies on the box");
             int fr = 0; while ((bool)sT.GetField("kreci").GetValue(so) && fr < 2000) { Time.time += Time.deltaTime; rUpd.Invoke(rul, null); fr++; }
             Check(fr > 400 && fr < 560, "roulette spin length " + fr / 60f);
             // the ball in the pocket of the number drawn: its angle on the rotor = the pocket's angle
@@ -510,14 +690,36 @@ static class Program
             // the rotor turned counter-clockwise by rotorKat
             var q = rot.localRotation; float rk = (float)(-2 * Math.Atan2(q.y, q.w) * 180 / Math.PI);
             Check(Math.Abs(Mathf.DeltaAngle(rk, rotorKat)) < .01f, "rotor at its angle");
-            int expect = BraxChampionsRuletka.Zasady.Wygrywa(e, wynik) ? 20 : 0;
-            Check(BraxChampionsKasyno.Kredyt == kr - 10 + expect, "roulette pays " + expect + " on " + wynik + " " + BraxChampionsRuletka.Zasady.Pola[e]);
-            Check(!zet[e].gameObject.activeSelf, "the chip taken / paid");
+            // the pays worked out here, independently of the game's table
+            int expect = (BraxChampionsRuletka.Zasady.Wygrywa(e, wynik) ? 20 : 0) + (wynik == num ? 180 : 0)
+                       + (wynik > 0 && (wynik - 1) / 12 == doz ? 30 : 0) + (wynik > 0 && (wynik - 1) % 3 == col ? 30 : 0);
+            Check(BraxChampionsKasyno.Kredyt == kr - 35 + expect, "roulette pays " + expect + " on " + wynik);
+            Check(!zet[e].gameObject.activeSelf && rul.Postawione(0) == 0, "the chips taken / paid");
             // the display: the big disc shows the number drawn (its atlas cell)
             BraxChampionsRuletka.Wyswietlacz.KrazekPx(wynik, out int ax, out int ay);
             var duv = wys.sharedMesh.uv[0]; Check(Math.Abs(duv.x - (ax + .5f) / 1024f) < 1e-4 && Math.Abs(duv.y - (ay + .5f) / 1024f) < 1e-4, "display shows " + wynik);
             Check(wys.sharedMesh.vertices.Length >= 4 * (1 + 12 + 8), "display layer complete");
-            rStake += 10; rPaid += expect;
+            rStake += 35; rPaid += expect;
+        }
+        {
+            int kr = BraxChampionsKasyno.Kredyt;
+            Check(rul.Powtorz(0) && BraxChampionsKasyno.Kredyt == kr - 35 && rul.Postawione(0) == 35, "POWTÓRZ puts the last spin's chips");
+            rul.Zdejmij(0); Check(BraxChampionsKasyno.Kredyt == kr && rul.Postawione(0) == 0, "ZDEJMIJ gives them back");
+            Check(!rul.Zakrec(0), "no spin without chips");
+            // the layout's places: the six boxes where the generator lays their chips, every bet inside the felt
+            for (int b = 0; b < BraxChampionsRuletka.Zasady.Zaklady; b++)
+            {
+                var c = BraxChampionsRuletka.Zasady.Srodek(b);
+                Check(c.x <= .39f && c.x >= .39f - 1.65f && c.z <= .435f && c.z >= .435f - .85f, "bet " + b + " on the layout");
+            }
+            for (int b = 0; b < 37; b++) Check(BraxChampionsRuletka.Zasady.Mnoznik(b) == 36, "a number pays 35:1");
+            int[] ile = new int[49];
+            for (int n = 0; n < 37; n++) for (int b = 0; b < 49; b++) if (BraxChampionsRuletka.Zasady.WygrywaZaklad(b, n)) ile[b]++;
+            for (int b = 0; b < 49; b++)
+            {
+                double rtp = ile[b] * BraxChampionsRuletka.Zasady.Mnoznik(b) / 37.0;
+                Check(Math.Abs(rtp - 36.0 / 37.0) < 1e-9, "bet " + BraxChampionsRuletka.Zasady.Nazwa(b) + " returns 36/37 (" + rtp + ")");
+            }
         }
         int zeros = seen[0], reds = 0; for (int n = 1; n <= 36; n++) if (BraxChampionsRuletka.Zasady.Czerwony(n)) reds += seen[n];
         Console.WriteLine("ROULETTE played {0} spins: staked {1}, paid {2} (RTP {3:F3}; exact 36/37 = 0.973), zeros {4}, reds {5}", spinsR, rStake, rPaid, (double)rPaid / rStake, zeros, reds);
@@ -529,6 +731,7 @@ static class Program
         Check(BraxChampionsKasyno.WezJackpot() == BraxChampionsKasyno.JackpotStart + 10 && BraxChampionsKasyno.Jackpot == BraxChampionsKasyno.JackpotStart, "jackpot pays and restarts");
         Lot();
         Lototo();
+        Stoly();
         Console.WriteLine(fails == 0 ? "AUTOMATY_SIM OK" : "AUTOMATY_SIM FAILED " + fails);
         return fails == 0 ? 0 : 1;
     }

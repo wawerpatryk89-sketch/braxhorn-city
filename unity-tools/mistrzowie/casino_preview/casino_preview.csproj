@@ -29,6 +29,7 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsMeshBatch.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsLetters3D.cs" />
     <Compile Include="../wiezowce_preview/AutomatyStubs.cs" />
+    <Compile Include="../wiezowce_preview/StanowiskoStub.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsAutomatyZasady.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsAutomatyGry.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsKasynoObsluga.cs" />

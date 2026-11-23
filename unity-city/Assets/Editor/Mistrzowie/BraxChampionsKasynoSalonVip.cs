@@ -22,6 +22,8 @@ public static partial class BraxChampionsKasynoSprzet
 
     /// <summary>The salon's furniture and tables in its inside x0..x1, z0..z1 (the hall's frame, nominal metres) on its floor y;
     /// its door in the east wall (x1) between drzwiZ0 and drzwiZ1; fl the hall's floor outside (the ropes, the hostess).</summary>
+    // the high-limit tables' chairs say so: "USIĄDŹ · BLACKJACK VIP"
+    static void Etykiety(BraxSeat[] s, string nazwa) { if (s != null) foreach (var x in s) if (x) x.label = nazwa; }
     public static void SalonVip(Kasyno k, Transform g, float x0, float x1, float z0, float z1, float y, float drzwiZ0, float drzwiZ1, float fl, float scianaX)
     {
         Przygotuj(); BlackjackMaterialy();
@@ -38,8 +40,8 @@ public static partial class BraxChampionsKasynoSprzet
         int bj = k.blackjack.Count, bk = k.bakarat.Count;
         Blackjack(k, new Vector3(x0 + 1.2f, y, 21.3f), 90f);
         Bakarat(k, new Vector3(x0 + 1.2f, y, 17.4f), 90f);
-        if (k.blackjack.Count == bj + 1) { k.blackjack[bj].stawka = VipBlackjack; k.blackjack[bj].nazwa = "BLACKJACK VIP"; }
-        if (k.bakarat.Count == bk + 1) { k.bakarat[bk].stawka = VipBakarat; k.bakarat[bk].nazwa = "BAKARAT VIP"; }
+        if (k.blackjack.Count == bj + 1) { k.blackjack[bj].stawka = VipBlackjack; k.blackjack[bj].nazwa = "BLACKJACK VIP"; Etykiety(k.blackjack[bj].siedziska, "BLACKJACK VIP"); }
+        if (k.bakarat.Count == bk + 1) { k.bakarat[bk].stawka = VipBakarat; k.bakarat[bk].nazwa = "BAKARAT VIP"; Etykiety(k.bakarat[bk].siedziska, "BAKARAT VIP"); }
 
         // ---- the bar on the rear wall
         float bx = -30.0f, bz = z1;                                                     // the back bar's back on the wall

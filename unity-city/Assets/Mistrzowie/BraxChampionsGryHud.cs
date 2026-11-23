@@ -9,6 +9,7 @@ public sealed class BraxChampionsGryHud : MonoBehaviour
 
     void OnGUI()
     {
+        if (BraxChampionsStanowisko.Aktywne) return;                     // at a casino game its own screen shows all of it
         bool panel = Time.unscaledTime < BraxChampionsGry.PanelDo && !string.IsNullOrEmpty(BraxChampionsGry.Panel);
         bool blysk = Time.unscaledTime < BraxChampionsGry.BlyskDo && !string.IsNullOrEmpty(BraxChampionsGry.Blysk);
         if (!panel && !blysk) return;

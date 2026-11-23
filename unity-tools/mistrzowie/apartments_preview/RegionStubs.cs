@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class BraxClaudeOsiedle { public const float K = 2.33f / 1.80f; }
 public static class BraxBuildQuality { public static void Warn(string m) => Console.WriteLine("WARN " + m); public static void Issue(Exception e) => Console.WriteLine("WARN ISSUE " + e.Message); }
-public sealed class BraxSeat : MonoBehaviour { public float surfaceY; public string label; public bool lie; }
+public sealed class BraxSeat : MonoBehaviour { public float surfaceY; public string label; public bool lie; public void Leave() { } }
 public sealed class BraxWidocznoscWnetrza : MonoBehaviour { public Bounds[] strefy = new Bounds[0]; public string nazwa = ""; }
 public static partial class BraxChampionsFoundation
 {
@@ -171,7 +171,12 @@ public static class BraxWnetrzaKit
             Quad(m, S(a0, b0), S(a1, b0), S(a1, b1), S(a0, b1));
         }
     }
-    public static void Siedzisko(Vector3 at, Vector3 forward, string label, bool lezy = false) => Rec.Cols.Add("seat");
+    public static BraxSeat Siedzisko(Vector3 at, Vector3 forward, string label, bool lezy = false)
+    {
+        Rec.Cols.Add("seat");
+        var g = new GameObject("Siedzisko: " + label); g.transform.SetParent(Grupa, false); g.transform.position = at;
+        var s = g.AddComponent<BraxSeat>(); s.label = label; s.lie = lezy; s.surfaceY = at.y; return s;
+    }
     public static int Bryly, Trojkaty, Kolizje;
     public static void Kolizja(Vector3 c, Vector3 size, Quaternion q) => Rec.Cols.Add("box");
     public static void KolizjaMM(float x0, float x1, float y0, float y1, float z0, float z1) => Rec.Cols.Add("mm");

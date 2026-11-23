@@ -83,6 +83,7 @@ public static partial class BraxChampionsKasynoSprzet
         k.ekran++;
         W.Kolizja(at + q * new Vector3(0f, 1.03f, .10f), new Vector3(.72f, 2.06f, .84f), q);
         W.Kolizja(at + q * new Vector3(0f, .37f, Taboret), new Vector3(.40f, .74f, .40f), q);
+        Siedzisko(m, at, q);
     }
 
     // ---------------- KOŁO MISTRZÓW: the wheel on the stepper
@@ -502,7 +503,7 @@ public static partial class BraxChampionsKasynoSprzet
             Tekst(px, w, h, A.Kwota((long)P.Wyplata[u] * Stawka), 790f, y, 26f, 300f, 0f, col);
             if (row < 8) BraxChampionsPiksele.Prost(px, w, h, 60, (int)(y - 22f), w - 60, (int)(y - 21f), new Color32(60, 66, 90, 255));
         }
-        Tekst(px, w, h, "AUTO HOLD: AUTOMAT ZOSTAWIA KARTY · AKCJA: WYMIANA", w * .5f, 32f, 14f, 900f, 0f, Szary);
+        Tekst(px, w, h, "DOTKNIJ KARTY: TRZYMAJ · WYMIEŃ: NOWE KARTY", w * .5f, 32f, 14f, 900f, 0f, Szary);
         return px;
     }
     static Color32[] TabelaKeno()
@@ -517,7 +518,7 @@ public static partial class BraxChampionsKasynoSprzet
             Tekst(px, w, h, t + " Z 6", 300f, y, 40f, 300f, 0f, col);
             Tekst(px, w, h, A.Kwota((long)K.Wyplata[t] * Stawka), 760f, y, 40f, 400f, 0f, col);
         }
-        Tekst(px, w, h, "AUTOMAT TYPUJE 6 LICZB · LOSUJE 20 KUL Z 80", w * .5f, 32f, 15f, 900f, 0f, Szary);
+        Tekst(px, w, h, "SKREŚL 6 LICZB NA EKRANIE · LOSUJE 20 KUL Z 80", w * .5f, 32f, 15f, 900f, 0f, Szary);
         return px;
     }
     // the wheel machine's pay glass: the stepper's table with its own SEVENS and the wheel's row

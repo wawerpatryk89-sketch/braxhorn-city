@@ -297,6 +297,27 @@ public static partial class BraxChampionsKasynoSprzet
         }
     }
 
+    /// <summary>A hanging sign whose name the owner's sheet has not (SIC BO, 23.11 17:54 "kości nawet tej gry nie widziałem"):
+    /// the same black box with its gold rims and cables as SzyldWiszacy, the name in solid gold 3D letters of the region's
+    /// typeface on each of its four faces (BraxChampionsLetters3D, 2 mm proud; never a printed or bitmap text).</summary>
+    public static void SzyldLitery(Kasyno k, Vector3 c, string nazwa, float w, float h, float hangTo)
+    {
+        var b = k.body; float hw = w * .5f + .02f;
+        b.RoundedBox(czern, c, new Vector3(2f * hw, h + .08f, 2f * hw), .02f, Quaternion.identity, 1);
+        foreach (float s in new[] { -1f, 1f })
+            b.BoxMinMax(zlotoKola, c.x - hw - .02f, c.x + hw + .02f, c.y + s * (h * .5f + .04f) - .025f, c.y + s * (h * .5f + .04f) + .025f, c.z - hw - .02f, c.z + hw + .02f);
+        for (int f = 0; f < 4; f++)
+        {
+            var q = Quaternion.Euler(0f, 90f * f, 0f); var n = q * Vector3.forward;
+            BraxChampionsLetters3D.Text(b, zlotoKola, czern, nazwa, c + n * (hw + .002f) + Vector3.down * (h * .28f), 90f * f, h * .56f, .02f, .14f, w * .86f);
+        }
+        foreach (var o in new[] { new Vector3(-1, 0, -1), new Vector3(1, 0, -1), new Vector3(-1, 0, 1), new Vector3(1, 0, 1) })
+        {
+            var a = c + new Vector3(o.x * (hw - .1f), h * .5f + .065f, o.z * (hw - .1f));
+            if (hangTo > a.y + .05f) b.Tube(stal, a, new Vector3(a.x, hangTo, a.z), .004f, 6);
+        }
+    }
+
     static void Punkt(Kasyno k, int rodzaj, Vector3 at, Transform kurtka)
     {
         var t = new GameObject("obsługa | " + (rodzaj == O.Recepcja ? "recepcja" : rodzaj == O.Szatnia ? "szatnia" : "kasa") + " (miejsce gościa)").transform;

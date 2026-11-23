@@ -71,6 +71,7 @@ namespace UnityEngine
         }
         public static Quaternion AngleAxis(float deg, Vector3 axis) => Axis(axis.normalized, deg);
         public static Quaternion Inverse(Quaternion q) => new Quaternion(-q.x, -q.y, -q.z, q.w);
+        public static float Angle(Quaternion a, Quaternion b) { float d = Math.Abs(a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w); return d >= 1f ? 0f : (float)(2 * Math.Acos(d) * 180 / Math.PI); }
         public static Quaternion Slerp(Quaternion a, Quaternion b, float t)
         {
             t = Mathf.Clamp(t, 0, 1); float d = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
@@ -125,6 +126,8 @@ namespace UnityEngine
         public static implicit operator bool(Object o) => o != null && !o.destroyed;
         internal bool destroyed;
         public int GetInstanceID() => GetHashCode();
+        public static T FindAnyObjectByType<T>() where T : Object => null;
+        public static void DontDestroyOnLoad(Object o) { }
         public static T Instantiate<T>(T original) where T : Object
         {
             if (original is Mesh m) return new Mesh { name = m.name, vertices = (Vector3[])m.vertices.Clone(), normals = (Vector3[])m.normals?.Clone(), uv = (Vector2[])m.uv?.Clone(), triangles = (int[])m.triangles.Clone() } as T;
@@ -150,7 +153,7 @@ namespace UnityEngine
             if (o is GameObject g) { g.transform.SetParent(null, false); GameObject.Registry.Remove(g); }
             if (o != null) o.destroyed = true;
         } }
-    public class Texture : Object { } public class Texture2D : Texture { public int width = 2048, height = 512; public bool real;
+    public class Texture : Object { } public class Texture2D : Texture { public static Texture2D whiteTexture => new Texture2D(); public int width = 2048, height = 512; public bool real;
         // painted textures (E1 balls, screens): the pixels are kept and written as a PNG when the generator saves the asset
         public Color32[] pixels; public TextureWrapMode wrapMode; public FilterMode filterMode;
         public Texture2D() { } public Texture2D(int w, int h, TextureFormat f, bool mips) { width = w; height = h; }
@@ -185,7 +188,8 @@ namespace UnityEngine
         public void SetVector(string n, Vector4 v) { if (n == "_GlassF0") glassF0 = new Color(v.x, v.y, v.z, v.w); }
         public void SetOverrideTag(string t, string v) { } public bool HasProperty(string n) => true;
         public string[] GetTexturePropertyNames() => textured ? new[] { "_MainTex" } : new string[0]; public Texture GetTexture(string n) => textured ? new Texture() : null; }
-    public class Component : Object { public GameObject gameObject; public Transform transform => gameObject.transform;
+    public enum SendMessageOptions { RequireReceiver, DontRequireReceiver }
+    public class Component : Object { public GameObject gameObject; public Transform transform => gameObject.transform; public void SendMessage(string m, object v, SendMessageOptions o) { }
         public override string name { get => gameObject.name; set => gameObject.name = value; }
         public T GetComponent<T>() where T : Component => gameObject.GetComponent<T>();
         public T[] GetComponentsInChildren<T>(bool inactive) where T : Component => gameObject.All<T>();
@@ -202,6 +206,8 @@ namespace UnityEngine
         public void SetPositionAndRotation(Vector3 p, Quaternion q) { position = p; rotation = q; }
         public void Rotate(Vector3 axis, float angle, Space space) { localRotation = localRotation * Quaternion.AngleAxis(angle, axis); }
         public void RotateAround(Vector3 point, Vector3 axis, float angle) { var q = Quaternion.AngleAxis(angle, axis); var p = position; position = point + q * (p - point); rotation = q * rotation; }
+        public bool IsChildOf(Transform t) { for (var x = this; x != null; x = x.parent) if (x == t) return true; return false; }
+        public Vector3 TransformDirection(Vector3 d) { var l = localRotation * d; return parent == null ? l : parent.TransformDirection(l); }
         public Vector3 TransformPoint(Vector3 v) { var l = localPosition + localRotation * Vector3.Scale(localScale, v); return parent == null ? l : parent.TransformPoint(l); }
         public Vector3 TransformVector(Vector3 v) { var l = localRotation * Vector3.Scale(localScale, v); return parent == null ? l : parent.TransformVector(l); }
         public Vector3 InverseTransformPoint(Vector3 w)

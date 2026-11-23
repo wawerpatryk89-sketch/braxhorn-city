@@ -140,8 +140,8 @@ class Holdem(unittest.TestCase):
     def test_one_deck_every_hand_and_the_decision(self):
         self.assertIn("Sprzatnij(s); Tasuj(s);", GAME)
         self.assertIn("public float filcY = .80f, decyzja = 5f;", GAME)
-        self.assertIn("case Decyzja: if (Time.time >= s.czas) Pas(t, s); break;", GAME)
-        self.assertIn("if (!BraxChampionsKasyno.Wydaj(2 * stawka))", GAME)
+        self.assertIn("case Decyzja: if (!s.siedzi && Time.time >= s.czas) Pas(t, s); break;", GAME)   # no clock at the chair (23.11)
+        self.assertIn("if (!BraxChampionsKasyno.Wydaj(2 * s.ante))", GAME)                              # the call: twice the hand's ante
 
     def test_the_tables_and_their_place(self):
         self.assertIn("BraxChampionsKasynoSprzet.Holdem(kas,new Vector3(px,HallFloor+.016f,15.5f),180f);", HALL)

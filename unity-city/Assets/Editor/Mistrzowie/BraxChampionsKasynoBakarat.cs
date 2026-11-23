@@ -25,7 +25,7 @@ public static partial class BraxChampionsKasynoSprzet
         if (!filcBk) { filcBk = BraxChampionsHarbour.Surface("kasyno_bakarat_sukno", Color.white, .92f, 0f); filcBk.SetTexture("_MainTex", Png("kasyno_bakarat_sukno", 2048, 1024, FilcBakarat(), true)); Wnetrze(filcBk); }
         var q = Quaternion.Euler(0f, yaw, 0f); int idx = k.bakarat.Count;
         var pola = new Vector3[3]; for (int i = 0; i < 3; i++) pola[i] = BkPole(i);
-        StolKarciany(k, at, yaw, BkA, BkB, filcBk, pola);
+        var siedziska = StolKarciany(k, at, yaw, BkA, BkB, filcBk, pola, "BAKARAT");
         var stol = new GameObject("bakarat " + (idx + 1) + " | " + k.nazwa).transform;
         stol.SetParent(k.root, false); stol.localPosition = at; stol.localRotation = q;
         var zet = new Transform[3];
@@ -35,7 +35,7 @@ public static partial class BraxChampionsKasynoSprzet
             z.localPosition = pola[i] + new Vector3(0f, .0008f, -.07f); Wstaw(czZeton, z, "żeton"); z.gameObject.SetActive(false); zet[i] = z;
         }
         k.bakarat.Add(new BraxChampionsBakarat.Stol { stol = stol, but = new Vector3(-(BkA - .32f), BjTop + .02f, .24f), pola = pola,
-            gracz = new Vector3(-.16f, BjTop, .30f), bankier = new Vector3(.16f, BjTop, .30f), zetony = zet });
+            gracz = new Vector3(-.16f, BjTop, .30f), bankier = new Vector3(.16f, BjTop, .30f), zetony = zet, siedziska = siedziska });
         W.Obsada("krupier bakarata", at + q * new Vector3(0f, 0f, -.62f), yaw);
     }
 

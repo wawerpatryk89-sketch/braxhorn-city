@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using U = BraxChampionsStanowisko.Ui;
 
 // MIASTO MISTRZÓW - the casinos' roulette tables, working (owner 16.11 19:13: "ruletki porobić prawdziwe, wszystko porób",
 // in both casinos). A European single-zero wheel as the real ones: the rotor turns slowly all the time; AKCJA at the table
@@ -8,7 +9,11 @@ using UnityEngine;
 // bowl's track, slows, drops down the cone past the deflectors into the pocket ring, hops over a few frets and stays in the
 // pocket of the number drawn; the screen on its column by the wheel shows it with the 12 before it, red / zero / black of the last 100 and the hot and cold numbers; even money pays 1:1, zero takes the
 // bets. The money is the casino credit (BraxChampionsKasyno, the slot machines' too).
-public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
+// AT THE RAIL (owner 23.11 17:35 "wszystko ma być tak jak normalnie", BraxChampionsStanowisko): AKCJA at the table shows the
+// layout from the player's side; a touch on the felt puts a chip of the chosen value where it lands - a number (35:1), a
+// dozen or a column (2:1), one of the six outside boxes (1:1) - as many as he likes; ZAKRĘĆ launches the ball (the camera
+// goes to the wheel, then back to the layout with the number framed in gold); POWTÓRZ puts the last spin's chips again.
+public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja, IBraxStanowisko
 {
     [Serializable] public sealed class Stol
     {
@@ -28,7 +33,9 @@ public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
 
     sealed class Stan
     {
-        public bool kreci; public float start, rotorKat, wynikKat, skala = 1f; public int wynik = -1, zaklad = -1, pole = -1;
+        public bool kreci; public float start, rotorKat, wynikKat, skala = 1f, koniec = -99f; public int wynik = -1, wygrana = -1, krok2;
+        public readonly int[] zaklady = new int[Zasady.Zaklady], ostatnie = new int[Zasady.Zaklady];   // the chips on every bet
+        public Transform[] zetony;                                          // the chip lying on each bet (made when first needed)
         public int[] historia = new int[13]; public int ile;
         public int[] sto = new int[100]; public int stoN, stoI;           // the last 100 numbers (the display's statistics)
         public Mesh siatka;
@@ -81,17 +88,52 @@ public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
     public string Kontekst(Vector3 gracz)
     {
         int i = Najblizszy(gracz, out int pole); if (i < 0 || stan == null) return "";
-        if (stan[i].kreci) return "RULETKA · KULKA W GRZE";
-        return BraxChampionsKasyno.Kredyt >= stawka ? "POSTAW " + stawka + " · " + Zasady.Pola[pole] : "BRAK KREDYTU";
+        if (BraxChampionsStanowisko.Aktywne) return "";
+        return stan[i].kreci ? "RULETKA · KULKA W GRZE" : "GRAJ · RULETKA";
     }
     public bool Wykonaj(Vector3 gracz)
     {
-        int i = Najblizszy(gracz, out int pole); if (i < 0 || stan == null) return false;
+        int i = Najblizszy(gracz, out _); if (i < 0 || stan == null) return false;
+        BraxChampionsStanowisko.Wejdz(this, i);
+        return true;
+    }
+
+    // ---------------- the bets: chips on the felt, then the spin
+    public int Postawione(int i) { int n = 0; foreach (var b in stan[i].zaklady) n += b; return n; }
+    /// <summary>A chip of `kwota` on bet `id` (Zasady: 0-36, the six boxes, the dozens, the columns).</summary>
+    public bool Postaw(int i, int id, int kwota)
+    {
+        if (stan == null || i < 0 || i >= stoly.Length || id < 0 || id >= Zasady.Zaklady) return false;
+        var s = stan[i]; if (s.kreci) return false;
+        if (!BraxChampionsKasyno.Wydaj(kwota)) { BraxChampionsGry.Pokaz("BRAK KREDYTU · KASA", 1.6f); return false; }
+        s.zaklady[id] += kwota; Zeton(i, id, true);
+        return true;
+    }
+    /// <summary>The chips not yet played back to the credit.</summary>
+    public void Zdejmij(int i)
+    {
+        var s = stan[i]; if (s.kreci) return; int suma = 0;
+        for (int id = 0; id < Zasady.Zaklady; id++) { suma += s.zaklady[id]; s.zaklady[id] = 0; Zeton(i, id, false); }
+        if (suma > 0) BraxChampionsKasyno.Wplac(suma);
+    }
+    /// <summary>The last spin's chips again (only when the credit covers them all).</summary>
+    public bool Powtorz(int i)
+    {
+        var s = stan[i]; if (s.kreci) return false; int suma = 0; foreach (var b in s.ostatnie) suma += b;
+        if (suma <= 0) return false;
+        if (BraxChampionsKasyno.Kredyt < suma) { BraxChampionsGry.Pokaz("BRAK KREDYTU NA " + suma, 1.6f); return false; }
+        for (int id = 0; id < Zasady.Zaklady; id++) if (s.ostatnie[id] > 0) Postaw(i, id, s.ostatnie[id]);
+        return true;
+    }
+    /// <summary>ZAKRĘĆ: the croupier launches the ball over the chips on the felt.</summary>
+    public bool Zakrec(int i)
+    {
+        if (stan == null || i < 0 || i >= stoly.Length) return false;
         var s = stan[i]; var t = stoly[i];
-        if (s.kreci) return true;
-        if (!BraxChampionsKasyno.Wydaj(stawka)) { BraxChampionsGry.Pokaz("BRAK KREDYTU", 1.6f); return true; }
-        s.kreci = true; s.start = Time.time; s.zaklad = stawka; s.pole = pole; s.wynik = los.Next(37);
-        if (pole < t.zetony.Length && t.zetony[pole]) t.zetony[pole].gameObject.SetActive(true);
+        if (s.kreci) return false;
+        if (Postawione(i) <= 0) { BraxChampionsGry.Pokaz("POŁÓŻ ŻETONY NA STOLE", 1.6f); return false; }
+        Array.Copy(s.zaklady, s.ostatnie, Zasady.Zaklady);
+        s.kreci = true; s.start = Time.time; s.wynik = los.Next(37); s.wygrana = -1;
         // where the ball has to stop: the drawn pocket, a pocket or two of chance either way as the ball settles
         float rotorEnd = s.rotorKat + Obrot * T3;
         s.wynikKat = Zasady.KatKieszeni(s.wynik);
@@ -102,6 +144,27 @@ public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
         s.skala = 1f - d / Mathf.Max(1f, Mathf.Abs(bez));
         BraxChampionsGry.Pokaz("RIEN NE VA PLUS", 1.4f);
         return true;
+    }
+    // the chip lying on a bet: the six boxes have the generator's own, the others are copies of the first, put on their place
+    void Zeton(int i, int id, bool widac)
+    {
+        var t = stoly[i]; var s = stan[i];
+        if (s.zetony == null) s.zetony = new Transform[Zasady.Zaklady];
+        var z = s.zetony[id];
+        if (!z)
+        {
+            if (!widac) return;
+            int e = id - Zasady.Zewn;
+            if (e >= 0 && e < 6 && e < t.zetony.Length && t.zetony[e]) z = t.zetony[e];
+            else
+            {
+                var wzor = t.zetony.Length > 0 ? t.zetony[0] : null; if (!wzor) return;
+                z = Instantiate(wzor.gameObject, t.stol, false).transform; z.name = "żeton " + Zasady.Nazwa(id);
+                var c = Zasady.Srodek(id); z.localPosition = new Vector3(c.x, wzor.localPosition.y, c.z); z.localRotation = wzor.localRotation;
+            }
+            s.zetony[id] = z;
+        }
+        z.gameObject.SetActive(widac);
     }
 
     // the ball's travelled angle (deg, clockwise) at t: an exponential slowing, held from T2 on (it rides in the rotor)
@@ -121,11 +184,11 @@ public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
             if (s.kreci)
             {
                 float el = Time.time - s.start; Kulka(t, s, el);
-                if (el >= T3) Koniec(t, s);
+                if (el >= T3) Koniec(i);
             }
             else Kulka(t, s, -1f);
         }
-        int pole; int st = g ? Najblizszy(gp, out pole) : -1;
+        int pole; int st = g && !BraxChampionsStanowisko.Aktywne ? Najblizszy(gp, out pole) : -1;
         if (st >= 0) BraxChampionsGry.Ustaw(nazwa + " · KREDYT " + BraxChampionsKasyno.Kredyt + " · OSTATNI " + Zasady.Opis(stan[st].historia[0]));
     }
 
@@ -165,17 +228,24 @@ public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
         t.kulka.localPosition = t.kolo + new Vector3(r * Mathf.Cos(a), y + kulkaR, r * Mathf.Sin(a));
     }
 
-    void Koniec(Stol t, Stan s)
+    void Koniec(int i)
     {
+        var t = stoly[i]; var s = stan[i];
         s.kreci = false;
         for (int k = s.historia.Length - 1; k > 0; k--) s.historia[k] = s.historia[k - 1];
         s.historia[0] = s.wynik; if (s.ile < s.historia.Length) s.ile++;
         s.sto[s.stoI] = s.wynik; s.stoI = (s.stoI + 1) % s.sto.Length; if (s.stoN < s.sto.Length) s.stoN++;
-        int wyg = Zasady.Wygrywa(s.pole, s.wynik) ? s.zaklad * 2 : 0;
+        // every chip on the felt: a winning bet is paid by its odds (its stake with it), the rest the croupier takes
+        int wyg = 0;
+        for (int id = 0; id < Zasady.Zaklady; id++)
+        {
+            int b = s.zaklady[id]; if (b <= 0) continue;
+            if (Zasady.WygrywaZaklad(id, s.wynik)) wyg += b * Zasady.Mnoznik(id);
+            s.zaklady[id] = 0; Zeton(i, id, false);
+        }
         if (wyg > 0) BraxChampionsKasyno.Wplac(wyg);
-        BraxChampionsGry.Pokaz(Zasady.Opis(s.wynik) + (wyg > 0 ? " · WYGRANA " + wyg : " · " + Zasady.Pola[s.pole] + " PRZEGRYWA"), 3f);
-        if (s.pole >= 0 && s.pole < t.zetony.Length && t.zetony[s.pole]) t.zetony[s.pole].gameObject.SetActive(false);
-        s.zaklad = 0; s.pole = -1;
+        s.wygrana = wyg; s.koniec = Time.time;
+        BraxChampionsGry.Pokaz(Zasady.Opis(s.wynik) + (wyg > 0 ? " · WYGRANA " + wyg : " · KASYNO ZBIERA"), 3f);
         if (s.siatka) Wyswietlacz.Zbuduj(s.siatka, s.historia, s.sto, s.stoN);
     }
 
@@ -275,5 +345,95 @@ public sealed class BraxChampionsRuletka : MonoBehaviour, IBraxInterakcja
         // the pocket's angle on the rotor (deg counter-clockwise from the zero's pocket: the order runs clockwise)
         public static float KatKieszeni(int n) => -Array.IndexOf(Kolo, n) * 360f / 37f;
         public static string Opis(int n) => n < 0 ? "-" : n + (n == 0 ? " ZERO" : Czerwony(n) ? " CZERWONE" : " CZARNE");
+
+        // ---- every bet of the layout printed on the felt (BraxChampionsKasynoSprzet.Uklad: 2048 x 1024 px over 1.65 x .85 m;
+        // u to the players' right = the table's -x, v away from them = -z): 0-36 the numbers, then the six outside boxes, the
+        // three dozens, the three columns (the 2:1 boxes at the rows' ends)
+        public const int Zaklady = 49, Zewn = 37, Tuziny = 43, Kolumny = 46;
+        public const float UkladXW = .39f, UkladL = 1.65f, UkladZN = .435f, UkladD = .85f, UkladY = .775f;
+        const float UkW = 2048f, UkH = 1024f;
+        static readonly string[] TuzinyN = { "1-12", "13-24", "25-36" };
+        static Vector2 Px(int id, out Vector2 rozmiar)
+        {
+            if (id == 0) { rozmiar = new Vector2(140f, 600f); return new Vector2(110f, 620f); }
+            if (id <= 36) { int c = (id - 1) / 3, r = (id - 1) % 3; rozmiar = new Vector2(140f, 200f); return new Vector2(180 + c * 140 + 70, 320 + r * 200 + 100); }
+            if (id < Tuziny) { int e = id - Zewn; rozmiar = new Vector2(280f, 140f); return new Vector2(180 + e * 280 + 140, 110f); }
+            if (id < Kolumny) { int d = id - Tuziny; rozmiar = new Vector2(560f, 140f); return new Vector2(180 + d * 560 + 280, 250f); }
+            int k = id - Kolumny; rozmiar = new Vector2(148f, 200f); return new Vector2(1934f, 320 + k * 200 + 100);
+        }
+        /// <summary>The bet's middle on the felt (the table's frame).</summary>
+        public static Vector3 Srodek(int id) { var p = Px(id, out _); return new Vector3(UkladXW - p.x / UkW * UkladL, UkladY, UkladZN - p.y / UkH * UkladD); }
+        /// <summary>The bet's box on the felt: along the table (x), across it (z), metres.</summary>
+        public static Vector2 Rozmiar(int id) { Px(id, out var r); return new Vector2(r.x / UkW * UkladL, r.y / UkH * UkladD); }
+        /// <summary>What a winning chip brings back (its stake with it): a number 36, a dozen or a column 3, an outside box 2.</summary>
+        public static int Mnoznik(int id) => id <= 36 ? 36 : id < Tuziny ? 2 : 3;
+        public static bool WygrywaZaklad(int id, int n)
+        {
+            if (id <= 36) return n == id;
+            if (id < Tuziny) return Wygrywa(id - Zewn, n);
+            if (n <= 0) return false;                                             // the zero takes the dozens and the columns too
+            if (id < Kolumny) return (n - 1) / 12 == id - Tuziny;
+            return (n - 1) % 3 == id - Kolumny;
+        }
+        public static string Nazwa(int id) => id <= 36 ? id.ToString() : id < Tuziny ? Pola[id - Zewn] : id < Kolumny ? TuzinyN[id - Tuziny] : "KOLUMNA " + (id - Kolumny + 1);
     }
+
+    // ================================================================ at the rail (BraxChampionsStanowisko)
+    public string Tytul(int i) => nazwa + " · EUROPEJSKA · MIN. " + stawka;
+    public void Kadr(int i, Camera cam, out Vector3 oko, out Quaternion obrot)
+    {
+        var t = stoly[i]; var s = stan[i];
+        if (s.kreci || Time.time - s.koniec < 2.4f)
+            BraxChampionsStanowisko.KadrBlatu(cam, t.stol, t.kolo + Vector3.up * .03f, .92f, .92f, 36f, out oko, out obrot);     // the wheel and the ball
+        else
+            BraxChampionsStanowisko.KadrBlatu(cam, t.stol, new Vector3(Zasady.UkladXW - Zasady.UkladL * .5f, Zasady.UkladY, Zasady.UkladZN - Zasady.UkladD * .5f),
+                Zasady.UkladL + .12f, Zasady.UkladD + .06f, 46f, out oko, out obrot);                                                 // the layout
+    }
+    void Rog(Transform st, int id, float wx, float wz, out Vector3 a, out Vector3 b, out Vector3 c, out Vector3 d)
+    {
+        var m = Zasady.Srodek(id); var r = Zasady.Rozmiar(id); float x = r.x * .5f * wx, z = r.y * .5f * wz;
+        a = st.TransformPoint(m + new Vector3(-x, 0f, -z)); b = st.TransformPoint(m + new Vector3(x, 0f, -z));
+        c = st.TransformPoint(m + new Vector3(x, 0f, z)); d = st.TransformPoint(m + new Vector3(-x, 0f, z));
+    }
+    public void Panel(int i, U ui)
+    {
+        var t = stoly[i]; var s = stan[i]; var r = ui.dol; float p = ui.m, h = r.height - 2f * p, y = r.y + p;
+        var kroki = BraxChampionsStanowisko.Stawki(stawka);
+        var stR = new Rect(r.x + p, y, r.width * .24f, h);
+        s.krok2 = ui.Stawka(stR, kroki, s.krok2, !s.kreci, "ŻETON");
+        int zeton = kroki[Mathf.Clamp(s.krok2, 0, kroki.Length - 1)], suma = Postawione(i), ost = 0;
+        foreach (var b in s.ostatnie) ost += b;
+        var glR = new Rect(r.xMax - p - r.width * .20f, y, r.width * .20f, h);
+        var bR = new Rect(glR.x - p - r.width * .16f, y, r.width * .16f, h);
+        var info = new Rect(stR.xMax + p, y, bR.x - stR.xMax - 2f * p, h);
+        string podpis = s.kreci ? "RIEN NE VA PLUS · NA STOLE" : s.wygrana >= 0 && suma == 0 ? "OSTATNI · " + Zasady.Opis(s.historia[0]) : "NA STOLE";
+        string wart = s.kreci ? Kwota(suma > 0 ? suma : Suma(s.ostatnie)) : s.wygrana >= 0 && suma == 0 ? (s.wygrana > 0 ? "WYGRANA " + Kwota(s.wygrana) : "KASYNO ZBIERA") : suma > 0 ? Kwota(suma) : "DOTKNIJ POLA";
+        ui.Pole(info, podpis, wart, s.wygrana > 0 && suma == 0 ? U.Zloto : U.Krem);
+        var b1 = new Rect(bR.x, y, bR.width, (h - p * .5f) * .5f); var b2 = new Rect(bR.x, b1.yMax + p * .5f, bR.width, b1.height);
+        if (ui.Przycisk(b1, "POWTÓRZ", U.Granat, U.Krem, !s.kreci && suma == 0 && ost > 0, false, U.Zloto)) Powtorz(i);
+        if (ui.Przycisk(b2, "ZDEJMIJ", U.Szary, U.Krem, !s.kreci && suma > 0)) Zdejmij(i);
+        if (ui.Przycisk(glR, s.kreci ? "KULKA W GRZE" : "ZAKRĘĆ", U.Czerwien, U.Krem, !s.kreci && suma > 0, true)) Zakrec(i);
+        var st = t.stol;
+        // the felt: a touch puts a chip where it lands (the numbers first, then the boxes round them)
+        if (!s.kreci && Event.current.type == EventType.MouseUp)
+            for (int id = 0; id < Zasady.Zaklady; id++)
+            {
+                Rog(st, id, .96f, .96f, out var a, out var b, out var c, out var d);
+                if (ui.Dotyk(a, b, c, d)) { Postaw(i, id, zeton); break; }
+            }
+        // the chips' amounts by them
+        for (int id = 0; id < Zasady.Zaklady; id++)
+            if (s.zaklady[id] > 0) ui.Etykieta(st.TransformPoint(Zasady.Srodek(id) + new Vector3(0f, .01f, .02f)), Kwota(s.zaklady[id]), new Color(0f, 0f, 0f, .72f), U.Zloto, .021f);
+        // the number that came, framed in gold on the layout for a while
+        if (!s.kreci && s.wygrana >= 0 && Time.time - s.koniec < 8f && s.historia[0] >= 0)
+        {
+            Rog(st, s.historia[0], 1f, 1f, out var a, out var b, out var c, out var d);
+            float puls = .6f + .4f * Mathf.Abs(Mathf.Sin(Time.time * 4f));
+            ui.Obrys(a, b, c, d, new Color(U.Zloto.r, U.Zloto.g, U.Zloto.b, puls), ui.s * .007f);
+        }
+    }
+    static int Suma(int[] z) { int n = 0; foreach (var b in z) n += b; return n; }
+    static string Kwota(int v) => BraxChampionsAutomaty.Kwota(v);
+    // walking away: the chips not yet played come back (a spin in the air pays as usual)
+    public void Wstal(int i) { if (!stan[i].kreci) Zdejmij(i); }
 }

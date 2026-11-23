@@ -274,6 +274,8 @@ public static partial class BraxChampionsCasinoT11
                 BraxChampionsKasynoSprzet.KoloFortuny(kas,new Vector3(0f,HallFloor+.016f,23.5f),180f);
                 // and the SIC BO table between the roulette pit and the wheel (BraxChampionsKasynoSicBo), its players to the pit
                 BraxChampionsKasynoSprzet.SicBo(kas,new Vector3(0f,HallFloor+.016f,13.5f),180f);
+                // owner 23.11 17:54 ("kości nawet tej gry nie widziałem"): its sign over it like every table's, in gold 3D letters
+                BraxChampionsKasynoSprzet.SzyldLitery(kas,new Vector3(0f,4.6f,12.95f),"SIC BO",1.5f,.50f,HallCeiling);
                 // two CASINO HOLD'EM tables north of the baccarat ones, clear of the gold columns at x 14.1, his POKER sign over each
                 foreach(float px in new[]{-11.0f,11.0f})
                 {

@@ -1,13 +1,16 @@
 using System;
 using UnityEngine;
+using U = BraxChampionsStanowisko.Ui;
 
 // MIASTO MISTRZÓW - the BIG SIX "KOŁO FORTUNY" of KASYNO WAWER (owner 16.11, the casinos' tables: Big Six "Koło Fortuny").
 // The money wheel of the casinos: 54 segments - 1 x24, 2 x15, 5 x7, 10 x4, 20 x2 and the two specials, the owner's BRAXHORN
 // logo and his coin (his art 1:1) - between chrome pins, a leather clapper at the top. AKCJA at a box of the betting table
 // (the box in front of the player, as at the roulette) bets 10 on its symbol and the croupier spins: the wheel runs fast,
-// the clapper ticks over the pins, it slows and stops; the segment under the clapper wins. A symbol pays its number to one
+// the clapper ticks over the pins, it slows and stops; the segment under the clapper wins.
+// AT THE TABLE (owner 23.11 17:35/17:48, BraxChampionsStanowisko): AKCJA shows the betting table; chips of the chosen value
+// on any of the seven boxes (a touch on the box or its button), ZAKRĘĆ: the camera turns to the 2 m wheel while it runs. A symbol pays its number to one
 // (1:1 .. 20:1), the logo and the coin 40:1. Every segment is equally likely, as on the real wheel (the house edge 11-24 %).
-public sealed class BraxChampionsKoloFortuny : MonoBehaviour, IBraxInterakcja
+public sealed class BraxChampionsKoloFortuny : MonoBehaviour, IBraxInterakcja, IBraxStanowisko
 {
     public const int Segmenty = 54, Logo = 50, Moneta = 51;            // the specials' values (40:1)
     public static readonly int[] Symbole = { 1, 2, 5, 10, 20, Logo, Moneta };
@@ -46,7 +49,8 @@ public sealed class BraxChampionsKoloFortuny : MonoBehaviour, IBraxInterakcja
         return symbol >= Logo ? b * 41 : b * (symbol + 1);
     }
 
-    int[] uklad; System.Random los; bool kreci; float start, katStart, katCel, katTeraz; int zaklad = -1, wynik;
+    int[] uklad; System.Random los; bool kreci; float start, katStart, katCel, katTeraz, koniecOd = -99f; int zaklad = -1, wynik, wygrana = -1, krok2;
+    readonly int[] zaklady = new int[7];                     // the chips on the seven boxes (Symbole's order)
     void OnEnable() { BraxInterakcje.Dodaj(this); }
     void OnDisable() { BraxInterakcje.Usun(this); }
     void Start()
@@ -65,16 +69,35 @@ public sealed class BraxChampionsKoloFortuny : MonoBehaviour, IBraxInterakcja
     }
     public string Kontekst(Vector3 g)
     {
-        int k = Pole(g); if (k < 0) return "";
-        if (kreci) return nazwa + " · KOŁO SIĘ KRĘCI";
-        return BraxChampionsKasyno.Kredyt >= stawka ? "POSTAW " + stawka + " · " + Nazwy[k] : "BRAK KREDYTU";
+        int k = Pole(g); if (k < 0 || BraxChampionsStanowisko.Aktywne) return "";
+        return kreci ? nazwa + " · KOŁO SIĘ KRĘCI" : "GRAJ · " + nazwa;
     }
     public bool Wykonaj(Vector3 g)
     {
         int k = Pole(g); if (k < 0) return false;
-        if (kreci) return true;
-        if (!BraxChampionsKasyno.Wydaj(stawka)) { BraxChampionsGry.Pokaz("BRAK KREDYTU · KASA", 1.6f); return true; }
-        zaklad = k; if (zetony[k]) zetony[k].gameObject.SetActive(true);
+        BraxChampionsStanowisko.Wejdz(this, 0);
+        return true;
+    }
+    public int Postawione { get { int n = 0; foreach (var b in zaklady) n += b; return n; } }
+    public bool Postaw(int k, int kwota)
+    {
+        if (kreci || k < 0 || k >= zaklady.Length) return false;
+        if (!BraxChampionsKasyno.Wydaj(kwota)) { BraxChampionsGry.Pokaz("BRAK KREDYTU · KASA", 1.6f); return false; }
+        zaklady[k] += kwota; zaklad = k; if (k < zetony.Length && zetony[k]) zetony[k].gameObject.SetActive(true);
+        return true;
+    }
+    public void Zdejmij()
+    {
+        if (kreci) return; int suma = Postawione;
+        for (int k = 0; k < zaklady.Length; k++) { zaklady[k] = 0; if (k < zetony.Length && zetony[k]) zetony[k].gameObject.SetActive(false); }
+        if (suma > 0) BraxChampionsKasyno.Wplac(suma);
+    }
+    /// <summary>ZAKRĘĆ: the croupier spins the wheel over the chips on the table.</summary>
+    public bool Zakrec()
+    {
+        if (kreci) return false;
+        if (Postawione <= 0) { BraxChampionsGry.Pokaz("POŁÓŻ ŻETONY NA POLACH", 1.6f); return false; }
+        wygrana = -1;
         // the segment the wheel stops on (each equally likely), then a spin that brings it under the clapper after 4-5 turns
         wynik = los.Next(Segmenty); float cel = -wynik * 360f / Segmenty + (float)(los.NextDouble() - .5) * (360f / Segmenty) * .7f;
         float obroty = 4 + los.Next(2);
@@ -89,13 +112,15 @@ public sealed class BraxChampionsKoloFortuny : MonoBehaviour, IBraxInterakcja
         float u = Mathf.Clamp01((Time.time - start) / czasObrotu), e = 1f - Mathf.Pow(1f - u, 3f);
         float poprz = katTeraz; katTeraz = Mathf.Lerp(katStart, katCel, e); Ustaw(katTeraz);
         Klapka(katTeraz, katTeraz - poprz);
-        if (u < 1f) { if (Blisko()) BraxChampionsGry.Ustaw(nazwa + " · " + Nazwy[zaklad] + " " + stawka + " · KREDYT " + BraxChampionsKasyno.Kredyt); return; }
+        if (u < 1f) return;
         kreci = false;
-        int symbol = Symbole[zaklad], wyg = Wyplata(symbol, uklad[wynik], stawka);
+        int wyg = 0;
+        for (int k = 0; k < zaklady.Length; k++) if (zaklady[k] > 0) wyg += Wyplata(Symbole[k], uklad[wynik], zaklady[k]);
         if (wyg > 0) BraxChampionsKasyno.Wplac(wyg);
+        wygrana = wyg; koniecOd = Time.time;
         string jest = uklad[wynik] == Logo ? "LOGO BRAXHORN" : uklad[wynik] == Moneta ? "MONETA BRAXHORN" : uklad[wynik].ToString();
         BraxChampionsGry.Pokaz("KOŁO FORTUNY · " + jest + (wyg > 0 ? " · WYGRANA " + wyg : ""), 3.2f);
-        if (zetony[zaklad]) zetony[zaklad].gameObject.SetActive(false);
+        for (int k = 0; k < zaklady.Length; k++) { zaklady[k] = 0; if (k < zetony.Length && zetony[k]) zetony[k].gameObject.SetActive(false); }
     }
     void Ustaw(float kat) { if (kolo) kolo.localRotation = Quaternion.AngleAxis(kat, Vector3.forward); }
     // the clapper rides up on a pin and drops after it (the pins every 360/54 degrees, the flap's tip over the rim)
@@ -111,4 +136,48 @@ public sealed class BraxChampionsKoloFortuny : MonoBehaviour, IBraxInterakcja
         var g = BraxChampionsGry.Gracz; if (!g || !stol) return false;
         var l = stol.InverseTransformPoint(g.transform.position); return l.z > -1f && l.z < 4f && Mathf.Abs(l.x) < 3.5f;
     }
+
+    // ================================================================ at the table (BraxChampionsStanowisko)
+    public string Tytul(int i) => nazwa + " · MIN. " + stawka;
+    public void Kadr(int i, Camera cam, out Vector3 oko, out Quaternion obrot)
+    {
+        if (kolo && (kreci || Time.time - koniecOd < 2.8f))
+        {
+            // the 2 m wheel face-on (its face to the players: the wheel's -z), set a little lower than the band's middle: the
+            // clapper at its top stays clear of the flash under the top bar (KOŁO FORTUNY · KRĘCI!, the result)
+            float k = Mathf.Abs(kolo.lossyScale.x);
+            BraxChampionsStanowisko.Kadruj(cam, kolo.position + Vector3.up * (.225f * k), -kolo.forward, Vector3.up, 2.85f * k, 2.85f * k, out oko, out obrot);
+            return;
+        }
+        BraxChampionsStanowisko.KadrBlatu(cam, stol, new Vector3(0f, pola.Length > 0 ? pola[0].y : .9f, 0f), 3.35f, .92f, 52f, out oko, out obrot);
+    }
+    static readonly string[] Krotkie = { "1", "2", "5", "10", "20", "LOGO", "MONETA" }, Kursy = { "1 : 1", "2 : 1", "5 : 1", "10 : 1", "20 : 1", "40 : 1", "40 : 1" };
+    public void Panel(int i, U ui)
+    {
+        var r = ui.dol; float p = ui.m, h = r.height - 2f * p, y = r.y + p;
+        var kroki = BraxChampionsStanowisko.Stawki(stawka);
+        var stR = new Rect(r.x + p, y, r.width * .21f, h);
+        krok2 = ui.Stawka(stR, kroki, krok2, !kreci, "ŻETON");
+        int zeton = kroki[Mathf.Clamp(krok2, 0, kroki.Length - 1)], suma = Postawione;
+        var glR = new Rect(r.xMax - p - r.width * .16f, y, r.width * .16f, h);
+        var srR = new Rect(stR.xMax + p, y, glR.x - stR.xMax - 2f * p, h);
+        float bw = (srR.width - 6f * p * .5f) / 7f;
+        for (int k = 0; k < 7; k++)
+        {
+            var b = new Rect(srR.x + k * (bw + p * .5f), y, bw, h);
+            string txt = Krotkie[k] + "\n" + (zaklady[k] > 0 ? BraxChampionsAutomaty.Kwota(zaklady[k]) : Kursy[k]);
+            if (ui.Przycisk(b, txt, k >= 5 ? new Color(.30f, .20f, .04f) : new Color(.08f, .10f, .16f), U.Krem, !kreci && BraxChampionsKasyno.Kredyt >= zeton, false, U.Zloto)) Postaw(k, zeton);
+        }
+        for (int k = 0; k < 7 && k < pola.Length; k++)
+        {
+            var c = pola[k];
+            if (!kreci && ui.Dotyk(stol.TransformPoint(c + new Vector3(-.21f, 0f, -.30f)), stol.TransformPoint(c + new Vector3(.21f, 0f, -.30f)),
+                                   stol.TransformPoint(c + new Vector3(.21f, 0f, .30f)), stol.TransformPoint(c + new Vector3(-.21f, 0f, .30f)))) Postaw(k, zeton);
+            if (zaklady[k] > 0) ui.Etykieta(stol.TransformPoint(c + new Vector3(0f, .01f, -.1f)), BraxChampionsAutomaty.Kwota(zaklady[k]), new Color(0f, 0f, 0f, .72f), U.Zloto);
+        }
+        var g1 = new Rect(glR.x, y, glR.width, h * .62f - p * .25f); var g2 = new Rect(glR.x, g1.yMax + p * .5f, glR.width, h - g1.height - p * .5f);
+        if (ui.Przycisk(g1, kreci ? "KRĘCI SIĘ" : "ZAKRĘĆ", U.Czerwien, U.Krem, !kreci && suma > 0, true)) Zakrec();
+        if (ui.Przycisk(g2, "ZDEJMIJ", U.Szary, U.Krem, !kreci && suma > 0)) Zdejmij();
+    }
+    public void Wstal(int i) { if (!kreci) Zdejmij(); }
 }

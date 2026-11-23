@@ -25,13 +25,13 @@ public static partial class BraxChampionsKasynoSprzet
         var q = Quaternion.Euler(0f, yaw, 0f); int idx = k.holdem.Count;
         var ante = new Vector3[5]; var call = new Vector3[5];
         for (int m = 0; m < 5; m++) { ante[m] = HpMiejsce(m, HpAnte); call[m] = HpMiejsce(m, HpCall); }
-        StolKarciany(k, at, yaw, HpA, HpB, filcHp, ante);
+        var siedziska = StolKarciany(k, at, yaw, HpA, HpB, filcHp, ante, "CASINO HOLD'EM");
         var stol = new GameObject("casino hold'em " + (idx + 1) + " | " + k.nazwa).transform;
         stol.SetParent(k.root, false); stol.localPosition = at; stol.localRotation = q;
         var za = new Transform[5]; var zc = new Transform[5];
         for (int m = 0; m < 5; m++) { za[m] = HpStos(stol, "żeton ANTE " + (m + 1), ante[m]); zc[m] = HpStos(stol, "żetony CALL " + (m + 1), call[m]); }
         k.holdem.Add(new BraxChampionsHoldem.Stol { stol = stol, but = new Vector3(-(HpA - .32f), BjTop + .02f, .24f), miejsca = ante, call = call,
-            krupier = new Vector3(-.035f, BjTop, .14f), plansza = new Vector3(0f, BjTop, .31f), ante = za, calle = zc });
+            krupier = new Vector3(-.035f, BjTop, .14f), plansza = new Vector3(0f, BjTop, .31f), ante = za, calle = zc, siedziska = siedziska });
         W.Obsada("krupier casino hold'em", at + q * new Vector3(0f, 0f, -.62f), yaw);
     }
     static Transform HpStos(Transform stol, string n, Vector3 p)

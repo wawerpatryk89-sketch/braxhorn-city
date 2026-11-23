@@ -50,8 +50,11 @@ class Rules(unittest.TestCase):
         self.assertIn("if (Time.time >= s.czas) { s.faza = Krupier;", GAME)                            # still = stand
         self.assertIn('" · AKCJA = DOBIERZ · STÓJ ZA "', GAME)
         self.assertIn("BraxInterakcje.Dodaj(this);", GAME)
-        # a seat at the table would take the AKCJA button (BraxCityWorld: seats first): the chairs are no seats
-        self.assertNotIn("W.Siedzisko", KIT)
+        # 23.11 (owner "siadasz przy pokerze ... widać tylko stół, karty"): the chairs ARE seats now - sitting down opens the
+        # table's game at that spot (BraxChampionsStanowisko); the one-button play stays for a table without them
+        self.assertIn("siedziska[nr++] = W.Siedzisko(cp + Vector3.up * KrzesloSiedzisko, cq * Vector3.forward, gra);", KIT)
+        self.assertIn('if (MaSiedziska(t)) return "";', GAME)
+        self.assertIn("case Decyzja:\n                    if (s.siedzi) break;", GAME)                 # no clock at the chair
 
     def test_his_cards_chips_sign_and_felt(self):
         self.assertIn("BraxChampionsAutomatyGry.PokerGra.KartaPx(c, out int px, out int py);", KARTY)

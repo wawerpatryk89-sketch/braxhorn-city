@@ -136,7 +136,7 @@ public static partial class BraxChampionsKasynoSprzet
         var gry = new System.Text.StringBuilder(); for (int g = 0; g < G.Ile; g++) gry.Append((g > 0 ? "/" : "") + G.Nazwy[g].Replace(' ', '_') + "=" + k.gry[g]);
         Debug.Log("KASYNO_AUTOMATY " + k.nazwa + " machines=" + k.maszyny.Count + " mechanical=" + k.mech + " screen=" + k.ekran + " banks=" + k.banki +
             " carousels=" + k.karuzele + " games=" + gry + " toppers=" + (TopperyWlasciciela ? "owner" : "drawn") + " cards=" + (KartyWlasciciela ? "owner" : "drawn") +
-            " stake=" + Stawka + " themes=" + Motywy.Length + " strips=" + (SymboleWlasciciela ? "owner" : "placeholder(missing " + Brakujace + ")") + " game=BraxChampionsAutomaty");
+            " stake=" + Stawka + " stools=" + k.maszyny.FindAll(x => x.siedzisko != null).Count + "_seats(sit=play) themes=" + Motywy.Length + " strips=" + (SymboleWlasciciela ? "owner" : "placeholder(missing " + Brakujace + ")") + " game=BraxChampionsAutomaty");
         return c;
     }
 
@@ -215,10 +215,18 @@ public static partial class BraxChampionsKasynoSprzet
             k.ekran++;
             W.Kolizja(at + q * new Vector3(0f, 1.03f, .10f), new Vector3(.72f, 2.06f, .84f), q);
         }
-        // the stool: the player stands behind it (BraxChampionsAutomaty: 1.0 m in front of the cabinet)
+        // the stool: its collider and its seat (sitting down opens the game, BraxChampionsStanowisko)
         W.Kolizja(at + q * new Vector3(0f, .37f, Taboret), new Vector3(.40f, .74f, .40f), q);
+        Siedzisko(m, at, q);
         k.maszyny.Add(m);
         return m;
+    }
+    /// <summary>The stool's seat (owner 23.11 17:35 "siadasz na krzesło i od razu pokazuje Ci się sama maszyna"): its leather
+    /// top (.705 m), the player facing the machine; AKCJA "USIĄDŹ · (the game)".</summary>
+    public const float TaboretSiedzisko = .705f;
+    static void Siedzisko(A.Maszyna m, Vector3 at, Quaternion q)
+    {
+        m.siedzisko = W.Siedzisko(at + q * new Vector3(0f, TaboretSiedzisko, Taboret), q * Vector3.back, G.Nazwy[m.gra]);
     }
 
     // the jackpot board over a bank: a black frame with an LED face to each row, on two steel cables

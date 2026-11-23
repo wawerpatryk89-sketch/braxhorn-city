@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using U = BraxChampionsStanowisko.Ui;
 
 // MIASTO MISTRZÓW - the casinos' blackjack tables, playable (owner 16.11: "blackjack grywalny w obu kasynach"; the cards are
 // his - the king, the queen, the jack and the back of his card art in the card atlas, BraxChampionsAutomatyGry.PokerGra). The
@@ -10,7 +11,11 @@ using UnityEngine;
 // for five seconds is STÓJ (the panel counts it down) - the one button of the phone; 21 stands by itself. A ten or an ace
 // up: the dealer peeks, his blackjack ends the hand at once. Then he turns his card and draws to 17. The cards fly from the
 // shoe and turn over as a dealer's do. The money is the casino credit (BraxChampionsKasyno, the slots' and roulette's).
-public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
+// FROM THE CHAIR (owner 23.11 17:35, BraxChampionsStanowisko): sitting down at a spot shows the felt from above the chair
+// (his cards, the dealer's) and the table's buttons: the bet (the table's minimum, 2x, 5x, 10x), ROZDAJ, then DOBIERZ, STÓJ,
+// PODWÓJ (two cards: the bet doubled, one card, done) and ROZDZIEL (two cards of one value: a second hand with the same bet;
+// split aces take one card each; 21 after a split is 21, not blackjack) - no clock while he sits, as at a real table.
+public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja, IBraxStanowisko
 {
     [Serializable] public sealed class Stol
     {
@@ -21,6 +26,7 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
         public Transform[] zetony = new Transform[0];            // a chip stack on each circle (shown while bet)
         public int stawka;                                       // this table's stake (0: the component's; the SALON VIP's high limit)
         public string nazwa;                                     // this table's name (null: the component's)
+        public BraxSeat[] siedziska = new BraxSeat[0];           // the chair behind each spot: sitting down plays it
     }
     public Stol[] stoly = new Stol[0];
     public Material karty;                                       // the card atlas (his J / Q / K, his back), lit as card stock
@@ -32,13 +38,16 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
     public const float KartaSz = BraxChampionsKarty.Szer, KartaDl = BraxChampionsKarty.Dl;   // a casino card: 63 x 88 mm
 
     const int Wolny = 0, Rozdanie = 1, Decyzja = 2, Krupier = 3, Wynik = 4;
-    sealed class Karta { public Transform t; public int c; public Vector3 z, cel; public Quaternion rz, rcel; public float start, lot = .35f, yaw; public bool zakryta; }
+    sealed class Karta { public Transform t; public int c, reka, n; public bool gracza; public Vector3 z, cel; public Quaternion rz, rcel; public float start, lot = .35f, yaw; public bool zakryta; }
     sealed class Stan
     {
-        public int faza, miejsce = -1; public float czas, krok;
-        public readonly List<int> gracz = new List<int>(), krupier = new List<int>();
+        public int faza, miejsce = -1, reka, wygrana; public float czas, krok; public bool siedzi, rozdzielone; public string wynik = "";
+        public readonly List<int> gracz = new List<int>(), gracz2 = new List<int>(), krupier = new List<int>();
+        public readonly int[] zaklad = new int[2];               // the bet of each hand (the second only after a split)
         public readonly List<Karta> karty = new List<Karta>();
         public int[] but; public int wBucie;
+        public int krok2 = -1;                                   // the bet the seated player chose (index of the table's stakes)
+        public List<int> Reka(int r) => r == 0 ? gracz : gracz2;
     }
     Stan[] stan; System.Random los; Mesh[] siatki; readonly Stack<Transform> wolne = new Stack<Transform>();
 
@@ -53,6 +62,7 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
         {
             stan[i] = new Stan(); Tasuj(stan[i]);
             foreach (var z in stoly[i].zetony) if (z) z.gameObject.SetActive(false);
+            if (stoly[i].siedziska != null) for (int k = 0; k < stoly[i].siedziska.Length; k++) BraxChampionsStanowisko.Rejestruj(this, stoly[i].siedziska[k], i * 8 + k);
         }
         Siatki();
     }
@@ -76,10 +86,12 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
     }
     public static bool Blackjack(List<int> reka) => reka.Count == 2 && Suma(reka, out _) == 21;
     // what the hand pays back for a bet b: 0 lost, b push, 2b won, 2.5b blackjack
-    public static int Wyplata(List<int> gracz, List<int> krupier, int b)
+    public static int Wyplata(List<int> gracz, List<int> krupier, int b) => Wyplata(gracz, krupier, b, false);
+    // after a split two cards of 21 are 21, not a blackjack
+    public static int Wyplata(List<int> gracz, List<int> krupier, int b, bool poRozdzieleniu)
     {
         int g = Suma(gracz, out _), k = Suma(krupier, out _);
-        bool gbj = Blackjack(gracz), kbj = Blackjack(krupier);
+        bool gbj = !poRozdzieleniu && Blackjack(gracz), kbj = Blackjack(krupier);
         if (gbj && kbj) return b;
         if (gbj) return b * 5 / 2;
         if (kbj || g > 21) return 0;
@@ -87,8 +99,9 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
         return g == k ? b : 0;
     }
     public static bool KrupierDobiera(List<int> krupier) => Suma(krupier, out _) < 17;        // stands on every 17 (soft too)
+    public static bool Para(List<int> reka) => reka.Count == 2 && Wartosc(reka[0]) == Wartosc(reka[1]);
 
-    // ---------------- the player's spot
+    // ---------------- the player's spot (standing behind a chair that has no seat)
     int Najblizszy(Vector3 p, out int miejsce)
     {
         miejsce = -1; int best = -1; float bd = float.MaxValue;
@@ -106,47 +119,58 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
         if (best >= 0 && stan != null && stan[best].faza != Wolny) miejsce = stan[best].miejsce;   // the hand stays at its spot
         return best;
     }
+    static bool MaSiedziska(Stol t) { if (t.siedziska != null) foreach (var x in t.siedziska) if (x) return true; return false; }
     public string Kontekst(Vector3 gracz)
     {
         int i = Najblizszy(gracz, out _); if (i < 0 || stan == null) return "";
         var s = stan[i];
         var t = stoly[i];
+        if (MaSiedziska(t)) return "";                              // played from its chairs (USIĄDŹ, BraxChampionsStanowisko)
         if (s.faza == Wolny) return BraxChampionsKasyno.Kredyt >= St(t) ? Nz(t) + " · POSTAW " + St(t) : "BRAK KREDYTU";
         if (s.faza == Decyzja) return "DOBIERZ · " + Suma(s.gracz, out _);
         return Nz(t) + " · ROZDANIE";
     }
     public bool Wykonaj(Vector3 gracz)
     {
-        int i = Najblizszy(gracz, out int miejsce); if (i < 0 || stan == null) return false;
+        int i = Najblizszy(gracz, out int miejsce); if (i < 0 || stan == null || MaSiedziska(stoly[i])) return false;
         var s = stan[i]; var t = stoly[i];
-        if (s.faza == Decyzja) { Daj(t, s, true, s.gracz.Count, true); s.czas = Time.time + decyzja; Po(t, s); return true; }
+        if (s.faza == Decyzja) { Dobierz(t, s); s.czas = Time.time + decyzja; return true; }
         if (s.faza != Wolny) return true;
-        if (!BraxChampionsKasyno.Wydaj(St(t))) { BraxChampionsGry.Pokaz("BRAK KREDYTU · KASA", 1.6f); return true; }
+        return Rozdaj(t, s, miejsce, St(t), false);
+    }
+
+    // ---------------- a hand: the bet on the circle, the deal as at the table (player, dealer up, player, dealer down)
+    bool Rozdaj(Stol t, Stan s, int miejsce, int bet, bool siedzi)
+    {
+        if (s.faza == Wynik) { Sprzatnij(s); s.faza = Wolny; }
+        if (s.faza != Wolny) return true;
+        if (!BraxChampionsKasyno.Wydaj(bet)) { BraxChampionsGry.Pokaz("BRAK KREDYTU · KASA", 1.6f); return true; }
         if (s.wBucie > 234) Tasuj(s);                               // the cut card came out: a new shoe
-        Sprzatnij(s); s.gracz.Clear(); s.krupier.Clear();
+        Sprzatnij(s); s.gracz.Clear(); s.gracz2.Clear(); s.krupier.Clear();
         s.miejsce = Mathf.Clamp(miejsce, 0, t.miejsca.Length - 1); s.faza = Rozdanie; s.krok = Time.time; s.czas = 0f;
+        s.siedzi = siedzi; s.reka = 0; s.rozdzielone = false; s.zaklad[0] = bet; s.zaklad[1] = 0; s.wygrana = 0; s.wynik = "";
         if (s.miejsce < t.zetony.Length && t.zetony[s.miejsce]) t.zetony[s.miejsce].gameObject.SetActive(true);
-        // the deal as at the table: player, dealer (up), player, dealer (down)
         Daj(t, s, true, 0, true, 0f); Daj(t, s, false, 0, true, .45f); Daj(t, s, true, 1, true, .9f); Daj(t, s, false, 1, false, 1.35f);
         s.czas = Time.time + 1.9f;
         return true;
     }
-
-    // a card from the shoe to the player's (gracz) or the dealer's row, up or down, after a delay
-    void Daj(Stol t, Stan s, bool gracz, int n, bool odkryta, float opoznienie = 0f)
+    // where a player's card lies: fanned at his circle, each over the last; after a split the two hands side by side
+    Vector3 Cel(Stol t, Stan s, int reka, int n)
     {
-        int c = Ciagnij(s); (gracz ? s.gracz : s.krupier).Add(c);
-        var k = new Karta { c = c, t = Wez(c), start = Time.time + opoznienie };
+        var m = t.miejsca[s.miejsce]; var doKrupiera = new Vector3(-m.x, 0f, -m.z).normalized;
+        var bok = Vector3.Cross(Vector3.up, doKrupiera);
+        float r = s.rozdzielone ? (reka == 0 ? -.075f : .075f) : 0f;
+        var c = m + doKrupiera * .11f + bok * (r + n * .018f) - doKrupiera * (n * .012f);
+        return new Vector3(c.x, filcY + .0006f + n * .0004f, c.z);
+    }
+    // a card from the shoe to the player's hand (reka) or the dealer's row, up or down, after a delay
+    void Daj(Stol t, Stan s, bool gracz, int n, bool odkryta, float opoznienie = 0f, int reka = 0)
+    {
+        int c = Ciagnij(s); (gracz ? s.Reka(reka) : s.krupier).Add(c);
+        var k = new Karta { c = c, t = Wez(c), start = Time.time + opoznienie, gracza = gracz, reka = reka, n = n };
         k.z = t.but + Vector3.up * .01f; k.rz = Quaternion.Euler(0f, 0f, 180f);                       // out of the shoe face down
-        Vector3 cel;
-        if (gracz)
-        {
-            var m = t.miejsca[s.miejsce]; var doKrupiera = new Vector3(-m.x, 0f, -m.z).normalized;
-            var bok = Vector3.Cross(Vector3.up, doKrupiera);
-            cel = m + doKrupiera * .11f + bok * (n * .022f) - doKrupiera * (n * .012f);              // fanned, each over the last
-        }
-        else cel = t.krupier + Vector3.right * (n * .075f);
-        k.cel = new Vector3(cel.x, filcY + .0006f + n * .0004f, cel.z);
+        if (gracz) k.cel = Cel(t, s, reka, n);
+        else { var cel = t.krupier + Vector3.right * (n * .075f); k.cel = new Vector3(cel.x, filcY + .0006f + n * .0004f, cel.z); }
         // the card's top (the atlas' up, its local +z) to the dealer on the player's cards: upright for the player; on the
         // dealer's row to the dealer too (yaw 180): upright for the players across the felt
         k.yaw = gracz ? Mathf.Atan2(-t.miejsca[s.miejsce].x, -t.miejsca[s.miejsce].z) * Mathf.Rad2Deg : 180f;
@@ -154,12 +178,49 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
         k.t.SetParent(t.stol, false); k.t.localPosition = k.z; k.t.localRotation = k.rz; k.t.gameObject.SetActive(opoznienie <= 0f);
         s.karty.Add(k);
     }
-    // after a hit: 21 stands, over 21 is the end
-    void Po(Stol t, Stan s)
+
+    // ---------------- the player's decisions
+    void Dobierz(Stol t, Stan s)
     {
-        int g = Suma(s.gracz, out _);
-        if (g > 21) { Koniec(t, s, "PRZEBICIE · " + g); return; }
-        if (g == 21) { s.faza = Krupier; s.krok = Time.time + .6f; }
+        var r = s.Reka(s.reka); Daj(t, s, true, r.Count, true, 0f, s.reka);
+        if (Suma(r, out _) >= 21) Dalej(t, s);                    // 21 stands by itself, over 21 the hand is lost
+    }
+    void Stoj(Stol t, Stan s) => Dalej(t, s);
+    bool MozePodwoic(Stan s) => s.faza == Decyzja && s.Reka(s.reka).Count == 2 && BraxChampionsKasyno.Kredyt >= s.zaklad[s.reka];
+    void Podwoj(Stol t, Stan s)
+    {
+        if (!MozePodwoic(s) || !BraxChampionsKasyno.Wydaj(s.zaklad[s.reka])) return;
+        s.zaklad[s.reka] *= 2;
+        var r = s.Reka(s.reka); Daj(t, s, true, r.Count, true, 0f, s.reka);
+        BraxChampionsGry.Pokaz("PODWOJENIE · " + s.zaklad[s.reka], 1.2f);
+        Dalej(t, s);
+    }
+    bool MozeRozdzielic(Stan s) => s.faza == Decyzja && !s.rozdzielone && Para(s.gracz) && BraxChampionsKasyno.Kredyt >= s.zaklad[0];
+    void Rozdziel(Stol t, Stan s)
+    {
+        if (!MozeRozdzielic(s) || !BraxChampionsKasyno.Wydaj(s.zaklad[0])) return;
+        s.rozdzielone = true; s.zaklad[1] = s.zaklad[0]; s.reka = 0;
+        int c = s.gracz[1]; s.gracz.RemoveAt(1); s.gracz2.Add(c);
+        // the second card slides to the new hand, the first one a little aside: two hands at the circle
+        foreach (var k in s.karty)
+        {
+            if (!k.gracza || !k.t) continue;
+            if (k.reka == 0 && k.n == 1) { k.reka = 1; k.n = 0; }
+            k.z = k.t.localPosition; k.rz = k.t.localRotation; k.cel = Cel(t, s, k.reka, k.n); k.start = Time.time; k.lot = .3f;
+        }
+        bool asy = Wartosc(c) == 11;
+        Daj(t, s, true, 1, true, .35f, 0); Daj(t, s, true, 1, true, .8f, 1);
+        BraxChampionsGry.Pokaz(asy ? "ROZDZIELONE ASY · PO JEDNEJ KARCIE" : "ROZDZIELONE · DWIE RĘCE", 1.6f);
+        if (asy) { s.reka = 1; s.faza = Krupier; s.krok = Time.time + 1.5f; return; }
+        if (Suma(s.gracz, out _) == 21) Dalej(t, s);
+    }
+    // the next hand of a split, or the dealer (all hands over 21: the hand ends at once)
+    void Dalej(Stol t, Stan s)
+    {
+        if (s.rozdzielone && s.reka == 0) { s.reka = 1; if (Suma(s.gracz2, out _) >= 21) Dalej(t, s); return; }
+        bool zywa = Suma(s.gracz, out _) <= 21 || (s.rozdzielone && Suma(s.gracz2, out _) <= 21);
+        if (!zywa) { Koniec(t, s, "PRZEBICIE · " + Suma(s.Reka(s.reka), out _)); return; }
+        s.faza = Krupier; s.krok = Time.time + .6f;
     }
 
     void Update()
@@ -177,6 +238,7 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
                     if (Blackjack(s.krupier) || Blackjack(s.gracz)) { Odkryj(s); Koniec(t, s, null); break; }
                     s.faza = Decyzja; s.czas = Time.time + decyzja; break;
                 case Decyzja:
+                    if (s.siedzi) break;                                // at the chair the dealer waits for the player
                     if (Time.time >= s.czas) { s.faza = Krupier; s.krok = Time.time + .4f; }
                     break;
                 case Krupier:
@@ -185,10 +247,10 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
                     if (KrupierDobiera(s.krupier)) { Daj(t, s, false, s.krupier.Count, true); s.krok = Time.time + .8f; break; }
                     Koniec(t, s, null); break;
                 case Wynik:
-                    if (Time.time >= s.czas) { Sprzatnij(s); s.faza = Wolny; }
+                    if (!s.siedzi && Time.time >= s.czas) { Sprzatnij(s); s.faza = Wolny; }
                     break;
             }
-            if (s.faza != Wolny && Gracz(t)) Panel(t, s);
+            if (s.faza != Wolny && !s.siedzi && Gracz(t)) PanelGorny(t, s);
         }
     }
     bool Gracz(Stol t)
@@ -196,10 +258,11 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
         var g = BraxChampionsGry.Gracz; if (!g) return false;
         var l = t.stol.InverseTransformPoint(g.transform.position); return l.z > -.5f && l.z < 2.4f && Mathf.Abs(l.x) < 2.4f;
     }
-    void Panel(Stol t, Stan s)
+    static string Opis(List<int> r) { int g = Suma(r, out bool m); return m && g < 21 ? (g - 10) + "/" + g : g.ToString(); }
+    void PanelGorny(Stol t, Stan s)
     {
-        int g = Suma(s.gracz, out bool gm), widac = s.faza >= Krupier ? Suma(s.krupier, out _) : (s.krupier.Count > 0 ? Wartosc(s.krupier[0]) : 0);
-        string txt = Nz(t) + " · TY " + (gm && g < 21 ? (g - 10) + "/" + g : g.ToString()) + " · KRUPIER " + widac;
+        int widac = s.faza >= Krupier ? Suma(s.krupier, out _) : (s.krupier.Count > 0 ? Wartosc(s.krupier[0]) : 0);
+        string txt = Nz(t) + " · TY " + Opis(s.gracz) + " · KRUPIER " + widac;
         if (s.faza == Decyzja) txt += " · AKCJA = DOBIERZ · STÓJ ZA " + Mathf.CeilToInt(Mathf.Max(0f, s.czas - Time.time));
         BraxChampionsGry.Ustaw(txt + " · KREDYT " + BraxChampionsKasyno.Kredyt);
     }
@@ -212,16 +275,82 @@ public sealed class BraxChampionsBlackjack : MonoBehaviour, IBraxInterakcja
     }
     void Koniec(Stol t, Stan s, string przebicie)
     {
-        int st = St(t), wyplata = przebicie != null ? 0 : Wyplata(s.gracz, s.krupier, st);
-        if (wyplata > 0) BraxChampionsKasyno.Wplac(wyplata);
-        int g = Suma(s.gracz, out _), k = Suma(s.krupier, out _);
-        string w = przebicie ?? (wyplata == st * 5 / 2 ? "BLACKJACK! · WYGRANA " + wyplata
-                 : wyplata == st * 2 ? "WYGRANA " + wyplata + " · " + g + " NA " + k
-                 : wyplata == st ? "REMIS · " + g
-                 : Blackjack(s.krupier) ? "BLACKJACK KRUPIERA" : "KRUPIER WYGRYWA · " + k + " NA " + g);
-        BraxChampionsGry.Pokaz(w, 3f);
+        int rak = s.rozdzielone ? 2 : 1, suma = 0, kr = Suma(s.krupier, out _); var opis = new System.Text.StringBuilder();
+        for (int r = 0; r < rak; r++)
+        {
+            var reka = s.Reka(r); int b = s.zaklad[r], g = Suma(reka, out _);
+            int w = przebicie != null || g > 21 ? 0 : Wyplata(reka, s.krupier, b, s.rozdzielone);
+            suma += w;
+            string jak = g > 21 ? "PRZEBICIE " + g : w == b * 5 / 2 && !s.rozdzielone && Blackjack(reka) ? "BLACKJACK!" : w == b * 2 ? "WYGRANA " + w + " · " + g + " NA " + kr
+                       : w == b ? "REMIS · " + g : Blackjack(s.krupier) ? "BLACKJACK KRUPIERA" : "KRUPIER WYGRYWA · " + kr + " NA " + g;
+            if (rak > 1) opis.Append(r == 0 ? "RĘKA 1: " : " · RĘKA 2: ");
+            opis.Append(jak);
+        }
+        if (suma > 0) BraxChampionsKasyno.Wplac(suma);
+        if (rak > 1 && suma > 0) opis.Append(" · RAZEM " + suma);
+        else if (rak == 1 && suma == s.zaklad[0] * 5 / 2 && Blackjack(s.gracz)) opis.Append(" · WYGRANA " + suma);
+        s.wygrana = suma; s.wynik = opis.ToString();
+        BraxChampionsGry.Pokaz(s.wynik, 3f);
         s.faza = Wynik; s.czas = Time.time + 3.2f;
         if (s.miejsce >= 0 && s.miejsce < t.zetony.Length && t.zetony[s.miejsce]) t.zetony[s.miejsce].gameObject.SetActive(false);
+    }
+
+    // ================================================================ from the chair (BraxChampionsStanowisko): index = table x 8 + spot
+    public string Tytul(int i) => Nz(stoly[i / 8]) + " · MIEJSCE " + (i % 8 + 1) + " · MIN. " + St(stoly[i / 8]);
+    public void Kadr(int i, Camera cam, out Vector3 oko, out Quaternion obrot)
+    {
+        var t = stoly[i / 8]; int m = Mathf.Clamp(i % 8, 0, t.miejsca.Length - 1);
+        BraxChampionsStanowisko.KadrStolu(cam, t.stol, t.miejsca[m], t.krupier + Vector3.right * .07f, 1.05f, .74f, out oko, out obrot);
+    }
+    public void Panel(int i, U ui)
+    {
+        var t = stoly[i / 8]; var s = stan[i / 8]; int m = Mathf.Clamp(i % 8, 0, t.miejsca.Length - 1);
+        var r = ui.dol; float p = ui.m, h = r.height - 2f * p, y = r.y + p;
+        var kroki = BraxChampionsStanowisko.Stawki(St(t)); if (s.krok2 < 0) s.krok2 = 0;
+        bool wolny = s.faza == Wolny || s.faza == Wynik;
+        var stR = new Rect(r.x + p, y, r.width * .27f, h);
+        s.krok2 = ui.Stawka(stR, kroki, s.krok2, wolny, "ZAKŁAD");
+        int bet = kroki[s.krok2];
+        var info = new Rect(stR.xMax + p, y, r.width * .20f, h);
+        var akcje = new Rect(info.xMax + p, y, r.xMax - p - info.xMax - p, h);
+        bool mojaReka = s.miejsce == m && s.faza != Wolny;
+        if (mojaReka)
+        {
+            int widac = s.faza >= Krupier ? Suma(s.krupier, out _) : (s.krupier.Count > 0 ? Wartosc(s.krupier[0]) : 0);
+            string ty = s.rozdzielone ? Opis(s.gracz) + " | " + Opis(s.gracz2) : Opis(s.gracz);
+            ui.Pole(info, "TY · KRUPIER " + widac, ty, U.Zloto);
+            // the totals on the felt, by the cards
+            var st = t.stol;
+            for (int k = 0; k < (s.rozdzielone ? 2 : 1); k++)
+                if (s.Reka(k).Count > 0) ui.Etykieta(st.TransformPoint(Cel(t, s, k, 0) - new Vector3(t.miejsca[m].x, 0f, t.miejsca[m].z).normalized * .07f),
+                    Opis(s.Reka(k)), new Color(0f, 0f, 0f, .7f), s.reka == k && s.faza == Decyzja ? U.Zloto : U.Krem);
+            if (s.krupier.Count > 0) ui.Etykieta(st.TransformPoint(t.krupier + new Vector3(.04f, 0f, -.08f)), "KRUPIER " + widac, new Color(0f, 0f, 0f, .7f), U.Krem);
+        }
+        else ui.Pole(info, "BLACKJACK", "3 : 2", U.Zloto);
+        if (s.faza == Decyzja && s.miejsce == m)
+        {
+            float bw = (akcje.width - 3f * p) / 4f;
+            Rect B(int k) => new Rect(akcje.x + k * (bw + p), y, bw, h);
+            if (ui.Przycisk(B(0), "DOBIERZ", U.Zielen, U.Krem, true, true)) Dobierz(t, s);
+            else if (ui.Przycisk(B(1), "STÓJ", U.Czerwien, U.Krem, true, true)) Stoj(t, s);
+            else if (ui.Przycisk(B(2), "PODWÓJ", U.Granat, U.Krem, MozePodwoic(s), false, U.Zloto)) Podwoj(t, s);
+            else if (ui.Przycisk(B(3), "ROZDZIEL", U.Granat, U.Krem, MozeRozdzielic(s), false, U.Zloto)) Rozdziel(t, s);
+            return;
+        }
+        string g = s.faza == Rozdanie ? "ROZDANIE" : s.faza == Krupier ? "KRUPIER DOBIERA" : BraxChampionsKasyno.Kredyt >= bet ? "ROZDAJ · " + bet : "BRAK KREDYTU";
+        bool mozna = wolny && BraxChampionsKasyno.Kredyt >= bet;
+        var wynik = new Rect(akcje.x, y, akcje.width * .52f - p * .5f, h);
+        var gl = new Rect(wynik.xMax + p, y, akcje.xMax - wynik.xMax - p, h);
+        if (s.faza == Wynik && s.miejsce == m) ui.Pole(wynik, "WYNIK", s.wygrana > 0 ? "+" + s.wygrana : "—", s.wygrana > 0 ? U.Zloto : U.Krem);
+        else ui.Pole(wynik, "KRUPIER STOI NA 17", "MIN. " + St(t), U.Krem);
+        if (ui.Przycisk(gl, g, U.Czerwien, U.Krem, mozna, true)) Rozdaj(t, s, m, bet, true);
+    }
+    // standing up: a hand in play goes on as if he stood (his cards stay and are paid), the next one waits for a player
+    public void Wstal(int i)
+    {
+        var t = stoly[i / 8]; var s = stan[i / 8];
+        s.siedzi = false;
+        if (s.faza == Decyzja) { s.reka = s.rozdzielone ? 1 : 0; Dalej(t, s); }
     }
 
     // ---------------- the cards: two-sided quads cut from the atlas (face up = his art, face down = his back)

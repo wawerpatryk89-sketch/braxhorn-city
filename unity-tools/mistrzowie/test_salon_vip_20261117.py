@@ -27,9 +27,13 @@ class SalonVip(unittest.TestCase):
         self.assertIn('k.bakarat[bk].stawka = VipBakarat; k.bakarat[bk].nazwa = "BAKARAT VIP";', KIT)
         for src in (BJ, BK):
             self.assertIn("int St(Stol t) => t != null && t.stawka > 0 ? t.stawka : stawka;", src)
-            self.assertIn("BraxChampionsKasyno.Wydaj(St(t))", src)
-        self.assertIn("Wyplata(s.gracz, s.krupier, st)", BJ)
-        self.assertIn("wyplata = Wyplata(s.pole, w, st)", BK)
+        self.assertIn("return Rozdaj(t, s, miejsce, St(t), false);", BJ)                 # standing: the table's own stake
+        self.assertIn("var kroki = BraxChampionsStanowisko.Stawki(St(t));", BJ)          # at the chair: its minimum and up
+        self.assertIn("BraxChampionsKasyno.Wydaj(St(t))", BK)
+        self.assertIn("var kroki = BraxChampionsStanowisko.Stawki(St(t));", BK)
+        self.assertIn("int w = przebicie != null || g > 21 ? 0 : Wyplata(reka, s.krupier, b, s.rozdzielone);", BJ)
+        self.assertIn("if (s.zaklad[k] > 0) wyplata += Wyplata(k, w, s.zaklad[k]);", BK)
+        self.assertIn('Etykiety(k.blackjack[bj].siedziska, "BLACKJACK VIP");', KIT)     # its chairs say USIĄDŹ · BLACKJACK VIP
 
     def test_his_things(self):
         self.assertIn("Obraz(b, szyldyArk[ArkVip]", KIT)                           # his SALON VIP sign, 1:1

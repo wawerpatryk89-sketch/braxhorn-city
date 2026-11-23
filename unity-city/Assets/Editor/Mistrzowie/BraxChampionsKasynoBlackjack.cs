@@ -39,7 +39,7 @@ public static partial class BraxChampionsKasynoSprzet
         BlackjackMaterialy();
         var q = Quaternion.Euler(0f, yaw, 0f); int idx = k.blackjack.Count;
         var miejsca = new Vector3[5]; for (int m = 0; m < 5; m++) miejsca[m] = BjMiejsce(m);
-        StolKarciany(k, at, yaw, BjA, BjB, filcBj, miejsca);
+        var siedziska = StolKarciany(k, at, yaw, BjA, BjB, filcBj, miejsca, "BLACKJACK");
         // the stand: the table, its circles, the chip stack on each (shown while bet), the dealer's spot
         var stol = new GameObject("blackjack " + (idx + 1) + " | " + k.nazwa).transform;
         stol.SetParent(k.root, false); stol.localPosition = at; stol.localRotation = q;
@@ -49,16 +49,19 @@ public static partial class BraxChampionsKasynoSprzet
             var z = new GameObject("żeton gracza " + (m + 1)).transform; z.SetParent(stol, false);
             z.localPosition = miejsca[m] + new Vector3(0f, .0008f, 0f); Wstaw(czZeton, z, "żeton"); z.gameObject.SetActive(false); zet[m] = z;
         }
-        k.blackjack.Add(new BraxChampionsBlackjack.Stol { stol = stol, but = new Vector3(-(BjA - .32f), BjTop + .02f, .24f), miejsca = miejsca, krupier = new Vector3(-.12f, BjTop, .215f), zetony = zet });
+        k.blackjack.Add(new BraxChampionsBlackjack.Stol { stol = stol, but = new Vector3(-(BjA - .32f), BjTop + .02f, .24f), miejsca = miejsca, krupier = new Vector3(-.12f, BjTop, .215f), zetony = zet, siedziska = siedziska });
         W.Obsada("krupier blackjacka", at + q * new Vector3(0f, 0f, -.62f), yaw);
     }
 
     /// <summary>The card table both games use (blackjack, bakarat): a half-oval A x B (its players' arc to local +z, the
     /// dealer's straight edge at z 0), the felt `filc` mapped over x -A..A, z -.1..A - .1 (a 2:1 picture), the leather
     /// armrest, the walnut apron and dealer's edge with the steel chip tray full of his chips, the shoe (dealer's left) and
-    /// the discard holder (his right), two pedestals, a chair behind each player's spot (no seat: AKCJA plays).</summary>
-    static void StolKarciany(Kasyno k, Vector3 at, float yaw, float A, float B, Material filc, Vector3[] miejsca)
+    /// the discard holder (his right), two pedestals, a chair behind each player's spot. Its seat (owner 23.11 17:35 "siadasz
+    /// przy pokerze ... widać tylko stół, karty") opens the table's game at that spot (BraxChampionsStanowisko): returned in the
+    /// spots' order, labelled with the game's name.</summary>
+    static BraxSeat[] StolKarciany(Kasyno k, Vector3 at, float yaw, float A, float B, Material filc, Vector3[] miejsca, string gra)
     {
+        var siedziska = new BraxSeat[miejsca.Length]; int nr = 0;
         var q = Quaternion.Euler(0f, yaw, 0f); var b = k.body;
         Vector3 L(float x, float y, float z) => at + q * new Vector3(x, y, z);
         Vector2 Arc(float t, float s) => new Vector2(A * s * Mathf.Cos(t), B * s * Mathf.Sin(t));
@@ -91,8 +94,8 @@ public static partial class BraxChampionsKasynoSprzet
         b.RoundedBox(czern, shoe + q * new Vector3(0f, .055f, -.03f), new Vector3(.14f, .11f, .22f), .012f, q, 2);
         b.Box(czern, shoe + q * new Vector3(0f, .03f, .10f), new Vector3(.14f, .06f, .05f), q * Quaternion.Euler(25f, 0f, 0f));
         b.Box(akryl, L(A - .32f, BjTop + .05f, .10f), new Vector3(.12f, .10f, .16f), q);
-        // the players' chairs: chrome pedestal, black leather seat and low back, behind each spot beyond the rail (the player
-        // plays standing behind his chair: a seat there would take the AKCJA button)
+        // the players' chairs: chrome pedestal, black leather seat and low back, behind each spot beyond the rail; their seats
+        // (the leather top at .73 m, facing the dealer) open the game
         foreach (var c in miejsca)
         {
             var o = new Vector2(c.x / A, c.z / B).normalized; var rim = Arc(Mathf.Atan2(c.z / B, c.x / A), 1f);
@@ -104,9 +107,12 @@ public static partial class BraxChampionsKasynoSprzet
             b.RoundedBox(skora, cp + cq * new Vector3(0f, .92f, -.20f), new Vector3(.40f, .30f, .06f), .025f, cq, 2);
             b.Tube(chrom, cp + cq * new Vector3(0f, .70f, -.17f), cp + cq * new Vector3(0f, .80f, -.20f), .012f, 8);
             W.Kolizja(cp + Vector3.up * .45f, new Vector3(.36f, .9f, .36f), Quaternion.identity);
+            siedziska[nr++] = W.Siedzisko(cp + Vector3.up * KrzesloSiedzisko, cq * Vector3.forward, gra);
         }
         W.Kolizja(L(0f, BjTop * .5f, B * .45f), new Vector3(2f * A, BjTop, B + .16f), q);
+        return siedziska;
     }
+    public const float KrzesloSiedzisko = .73f;
 
     // ---- the felt's print, composed as the player sees it (the dealer at the top) and turned over to the table's uv
     static Color32[] Filc()

@@ -130,7 +130,8 @@ class Game(unittest.TestCase):
     def test_plays_and_pays(self):
         self.assertIn("public sealed class BraxChampionsAutomaty : MonoBehaviour, IBraxInterakcja", GAME)
         self.assertIn("void OnEnable() { BraxInterakcje.Dodaj(this); }", GAME)
-        self.assertIn("if (!BraxChampionsKasyno.Wydaj(stawka))", GAME)
+        self.assertIn("if (!BraxChampionsKasyno.Wydaj(st))", GAME)                    # the stake of the game (23.11: chosen on the stool)
+        self.assertIn("return Graj(i, stawka);", GAME)                                 # standing: the machine's own
         self.assertIn("BraxChampionsKasyno.Wplac(wygrana);", GAME)
         self.assertIn("if (jackpot) wygrana = BraxChampionsKasyno.WezJackpot();", GAME)
         self.assertIn("m.dzwignia.localRotation = Quaternion.AngleAxis(k * 62f, Vector3.right);", GAME)
@@ -254,7 +255,8 @@ class Roulette(unittest.TestCase):
     def test_bets_and_pay(self):
         self.assertIn('Pola = { "1-18", "PARZYSTE", "CZERWONE", "CZARNE", "NIEPARZYSTE", "19-36" }', ROUL)
         self.assertIn("if (n <= 0) return false;                                             // the zero takes the outside bets", ROUL)
-        self.assertIn("int wyg = Zasady.Wygrywa(s.pole, s.wynik) ? s.zaklad * 2 : 0;", ROUL)              # even money 1:1
+        self.assertIn("if (Zasady.WygrywaZaklad(id, s.wynik)) wyg += b * Zasady.Mnoznik(id);", ROUL)     # 23.11: every chip by its odds
+        self.assertIn("public static int Mnoznik(int id) => id <= 36 ? 36 : id < Tuziny ? 2 : 3;", ROUL)    # 35:1, 1:1, 2:1
         # the ball is aimed: its speed is scaled so it reaches the pockets over the drawn number, then settles in it
         self.assertIn("s.skala = 1f - d / Mathf.Max(1f, Mathf.Abs(bez));", ROUL)
         self.assertIn("float rel = Mathf.LerpAngle(a0, s.wynikKat, 1f - Mathf.Pow(1f - u, 3f));", ROUL)
@@ -344,7 +346,7 @@ class NewGames(unittest.TestCase):
             line_pay += sevens if m < 0 else m
         rtp = line_pay / 8000 + strip3.count(7) / 20 * (sum(seg) / len(seg) / 10)
         self.assertTrue(.93 < rtp < .97, rtp)                                       # 95.5 %, as real wheel slots
-        self.assertIn("if (m.gra != G.Kolo) BraxChampionsKasyno.Dorzuc(stawka);", GAME)   # not on the linked jackpot
+        self.assertIn("if (m.gra != G.Kolo) BraxChampionsKasyno.Dorzuc(st);", GAME)       # not on the linked jackpot
         self.assertIn("s.koloCel = s.koloKat + 3f * 360f + Mathf.Repeat(KG.KatSegmentu(s.koloSeg) - s.koloKat, 360f);", GAME)
 
     def test_owner_art_1_to_1(self):

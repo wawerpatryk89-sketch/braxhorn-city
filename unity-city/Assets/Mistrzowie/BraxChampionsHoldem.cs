@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using U = BraxChampionsStanowisko.Ui;
 
 // MIASTO MISTRZÓW - CASINO HOLD'EM, the casinos' poker against the house (owner 16.11, the casinos' tables: "poker Casino
 // Hold'em"; his POKER sign over the tables, his cards and chips). The game as the casinos deal it (the rules of play of the
@@ -11,7 +12,10 @@ using UnityEngine;
 // the better best-five of the seven cards wins - the ante by its table and the call 1:1; a tie returns both. The ante's
 // table: royal flush 100:1, straight flush 20:1, four of a kind 10:1, full house 3:1, flush 2:1, a straight or less 1:1
 // (the house edge 2.16 %). The money is the casino credit (BraxChampionsKasyno).
-public sealed class BraxChampionsHoldem : MonoBehaviour, IBraxInterakcja
+// FROM THE CHAIR (owner 23.11 17:35 "siadasz przy pokerze, widać tylko stół, karty", BraxChampionsStanowisko): the felt from
+// above the chair - his two cards, the board, the dealer's two - the ANTE chosen (the table's, 2x, 5x, 10x), ROZDAJ, then
+// CALL or PAS; no clock while he sits. Standing up in the middle of a hand folds it (the ante stays, as at a real table).
+public sealed class BraxChampionsHoldem : MonoBehaviour, IBraxInterakcja, IBraxStanowisko
 {
     [Serializable] public sealed class Stol
     {
@@ -21,6 +25,7 @@ public sealed class BraxChampionsHoldem : MonoBehaviour, IBraxInterakcja
         public Vector3[] call = new Vector3[5];                  // its CALL box
         public Vector3 krupier, plansza;                         // the dealer's first card; the board's middle card
         public Transform[] ante = new Transform[5], calle = new Transform[5];   // the chip stacks (shown while bet)
+        public BraxSeat[] siedziska = new BraxSeat[0];           // the chair behind each spot: sitting down plays it
     }
     public Stol[] stoly = new Stol[0];
     public Material karty;
@@ -95,7 +100,7 @@ public sealed class BraxChampionsHoldem : MonoBehaviour, IBraxInterakcja
     sealed class Karta { public Transform t; public int c; public Vector3 z, cel; public Quaternion rz, rcel; public float start, lot = .35f, yaw; public bool zakryta; }
     sealed class Stan
     {
-        public int faza, miejsce = -1; public float czas, krok; public bool call;
+        public int faza, miejsce = -1, ante, wygrana, krok2; public float czas, krok; public bool call, siedzi; public string wynik = "";
         public readonly List<int> gracz = new List<int>(), krupier = new List<int>(), plansza = new List<int>();
         public readonly List<Karta> karty = new List<Karta>();
         public readonly int[] talia = new int[52]; public int wTalii;
@@ -113,6 +118,7 @@ public sealed class BraxChampionsHoldem : MonoBehaviour, IBraxInterakcja
             stan[i] = new Stan();
             foreach (var z in stoly[i].ante) if (z) z.gameObject.SetActive(false);
             foreach (var z in stoly[i].calle) if (z) z.gameObject.SetActive(false);
+            if (stoly[i].siedziska != null) for (int k = 0; k < stoly[i].siedziska.Length; k++) BraxChampionsStanowisko.Rejestruj(this, stoly[i].siedziska[k], i * 8 + k);
         }
         siatki = BraxChampionsKarty.Siatki();
     }
@@ -144,26 +150,37 @@ public sealed class BraxChampionsHoldem : MonoBehaviour, IBraxInterakcja
     {
         int i = Najblizszy(g, out _); if (i < 0 || stan == null) return "";
         var s = stan[i];
+        if (MaSiedziska(stoly[i])) return "";                     // played from its chairs (USIĄDŹ, BraxChampionsStanowisko)
         if (s.faza == Wolny) return BraxChampionsKasyno.Kredyt >= stawka ? nazwa + " · ANTE " + stawka : "BRAK KREDYTU";
-        if (s.faza == Decyzja) return "CALL " + 2 * stawka + " · " + Nazwa(Widac(s));
+        if (s.faza == Decyzja) return "CALL " + 2 * s.ante + " · " + Nazwa(Widac(s));
         return nazwa + " · ROZDANIE";
     }
     public bool Wykonaj(Vector3 g)
     {
-        int i = Najblizszy(g, out int miejsce); if (i < 0 || stan == null) return false;
+        int i = Najblizszy(g, out int miejsce); if (i < 0 || stan == null || MaSiedziska(stoly[i])) return false;
         var s = stan[i]; var t = stoly[i];
-        if (s.faza == Decyzja)
-        {
-            if (!BraxChampionsKasyno.Wydaj(2 * stawka)) { BraxChampionsGry.Pokaz("BRAK KREDYTU NA CALL · PAS", 1.6f); Pas(t, s); return true; }
-            s.call = true; Zeton(t.calle, s.miejsce, true);
-            // the turn and the river, then the dealer turns his two over
-            Daj(t, s, 2, 3, true, 0f); Daj(t, s, 2, 4, true, .5f);
-            s.faza = Dokladanie; s.krok = Time.time + 1.3f;
-            return true;
-        }
+        if (s.faza == Decyzja) { Call(t, s); return true; }
         if (s.faza != Wolny) return true;
-        if (!BraxChampionsKasyno.Wydaj(stawka)) { BraxChampionsGry.Pokaz("BRAK KREDYTU · KASA", 1.6f); return true; }
+        return Rozdaj(t, s, miejsce, stawka, false);
+    }
+    static bool MaSiedziska(Stol t) { if (t.siedziska != null) foreach (var x in t.siedziska) if (x) return true; return false; }
+    // the decision: CALL puts twice the ante; the turn and the river, then the dealer turns his two over
+    void Call(Stol t, Stan s)
+    {
+        if (s.faza != Decyzja) return;
+        if (!BraxChampionsKasyno.Wydaj(2 * s.ante)) { BraxChampionsGry.Pokaz("BRAK KREDYTU NA CALL · PAS", 1.6f); Pas(t, s); return; }
+        s.call = true; Zeton(t.calle, s.miejsce, true);
+        Daj(t, s, 2, 3, true, 0f); Daj(t, s, 2, 4, true, .5f);
+        s.faza = Dokladanie; s.krok = Time.time + 1.3f;
+    }
+    // a hand: the ante on the circle, two cards each (the dealer's down), the flop
+    bool Rozdaj(Stol t, Stan s, int miejsce, int ante, bool siedzi)
+    {
+        if (s.faza == Wynik) { Sprzatnij(s); s.faza = Wolny; }
+        if (s.faza != Wolny) return true;
+        if (!BraxChampionsKasyno.Wydaj(ante)) { BraxChampionsGry.Pokaz("BRAK KREDYTU · KASA", 1.6f); return true; }
         Sprzatnij(s); Tasuj(s); s.gracz.Clear(); s.krupier.Clear(); s.plansza.Clear(); s.call = false;
+        s.ante = ante; s.siedzi = siedzi; s.wygrana = 0; s.wynik = "";
         s.miejsce = Mathf.Clamp(miejsce, 0, t.miejsca.Length - 1);
         Zeton(t.ante, s.miejsce, true);
         // the deal: player, dealer (down), player, dealer (down), the flop
@@ -207,14 +224,14 @@ public sealed class BraxChampionsHoldem : MonoBehaviour, IBraxInterakcja
             switch (s.faza)
             {
                 case Rozdanie: if (Time.time >= s.czas) { s.faza = Decyzja; s.czas = Time.time + decyzja; } break;
-                case Decyzja: if (Time.time >= s.czas) Pas(t, s); break;
+                case Decyzja: if (!s.siedzi && Time.time >= s.czas) Pas(t, s); break;      // at the chair the dealer waits
                 case Dokladanie:
                     if (Time.time < s.krok) break;
                     if (Odkryj(s)) { s.krok = Time.time + .55f; break; }
                     Koniec(t, s); break;
-                case Wynik: if (Time.time >= s.czas) { Sprzatnij(s); s.faza = Wolny; } break;
+                case Wynik: if (!s.siedzi && Time.time >= s.czas) { Sprzatnij(s); s.faza = Wolny; } break;
             }
-            if (s.faza != Wolny && s.faza != Wynik && Blisko(t)) Panel(s);
+            if (s.faza != Wolny && s.faza != Wynik && !s.siedzi && Blisko(t)) PanelGorny(s);
         }
     }
     // the player's best hand of the cards already on the felt (his two and the board)
@@ -223,27 +240,29 @@ public sealed class BraxChampionsHoldem : MonoBehaviour, IBraxInterakcja
         var v = new List<int>(); foreach (var k in s.karty) if (!k.zakryta && Time.time >= k.start + k.lot && !s.krupier.Contains(k.c)) v.Add(k.c);
         return v.Count > 0 ? Ocena(v) : 0;
     }
-    void Panel(Stan s)
+    void PanelGorny(Stan s)
     {
-        int w = Widac(s); string txt = nazwa + " · ANTE " + stawka + (s.call ? " · CALL " + 2 * stawka : "") + (w > 0 ? " · MASZ " + Nazwa(w) : "");
-        if (s.faza == Decyzja) txt += " · AKCJA = CALL " + 2 * stawka + " · PAS ZA " + Mathf.CeilToInt(Mathf.Max(0f, s.czas - Time.time));
+        int w = Widac(s); string txt = nazwa + " · ANTE " + s.ante + (s.call ? " · CALL " + 2 * s.ante : "") + (w > 0 ? " · MASZ " + Nazwa(w) : "");
+        if (s.faza == Decyzja) txt += " · AKCJA = CALL " + 2 * s.ante + " · PAS ZA " + Mathf.CeilToInt(Mathf.Max(0f, s.czas - Time.time));
         BraxChampionsGry.Ustaw(txt + " · KREDYT " + BraxChampionsKasyno.Kredyt);
     }
     void Pas(Stol t, Stan s)
     {
-        BraxChampionsGry.Pokaz("PAS · ANTE " + stawka + " DLA KASYNA", 2.4f);
+        s.wynik = "PAS · ANTE " + s.ante + " DLA KASYNA"; s.wygrana = 0;
+        BraxChampionsGry.Pokaz(s.wynik, 2.4f);
         Zeton(t.ante, s.miejsce, false); Zeton(t.calle, s.miejsce, false);
         s.faza = Wynik; s.czas = Time.time + 1.6f;
     }
     void Koniec(Stol t, Stan s)
     {
         var g = new List<int>(s.gracz); g.AddRange(s.plansza); var k = new List<int>(s.krupier); k.AddRange(s.plansza);
-        int og = Ocena(g), ok = Ocena(k), wyplata = Wyplata(stawka, og, ok);
+        int og = Ocena(g), ok = Ocena(k), wyplata = Wyplata(s.ante, og, ok);
         if (wyplata > 0) BraxChampionsKasyno.Wplac(wyplata);
         string w = !Kwalifikuje(ok) ? "KRUPIER NIE GRA (" + Nazwa(ok) + ") · ANTE " + Mnoznik(Uklad(og)) + ":1 · WYGRANA " + wyplata
                  : og > ok ? "TY " + Nazwa(og) + " · KRUPIER " + Nazwa(ok) + " · WYGRANA " + wyplata
                  : og == ok ? "REMIS · " + Nazwa(og) + " · ZWROT " + wyplata
                  : "KRUPIER " + Nazwa(ok) + " · TY " + Nazwa(og);
+        s.wynik = w; s.wygrana = wyplata;
         BraxChampionsGry.Pokaz(w, 3.6f);
         Zeton(t.ante, s.miejsce, false); Zeton(t.calle, s.miejsce, false);
         s.faza = Wynik; s.czas = Time.time + 4f;
@@ -263,6 +282,47 @@ public sealed class BraxChampionsHoldem : MonoBehaviour, IBraxInterakcja
     }
 
     // ---------------- the cards: his atlas, two-sided (BraxChampionsKarty)
+    // ================================================================ from the chair (BraxChampionsStanowisko): index = table x 8 + spot
+    public string Tytul(int i) => nazwa + " · MIEJSCE " + (i % 8 + 1);
+    public void Kadr(int i, Camera cam, out Vector3 oko, out Quaternion obrot)
+    {
+        var t = stoly[i / 8]; int m = Mathf.Clamp(i % 8, 0, t.miejsca.Length - 1);
+        BraxChampionsStanowisko.KadrStolu(cam, t.stol, t.miejsca[m], t.plansza, 1.15f, .80f, out oko, out obrot, 50f, .5f);
+    }
+    public void Panel(int i, U ui)
+    {
+        var t = stoly[i / 8]; var s = stan[i / 8]; int m = Mathf.Clamp(i % 8, 0, t.miejsca.Length - 1);
+        var r = ui.dol; float p = ui.m, h = r.height - 2f * p, y = r.y + p;
+        var kroki = BraxChampionsStanowisko.Stawki(stawka);
+        bool wolny = s.faza == Wolny || s.faza == Wynik, moja = s.miejsce == m && s.faza != Wolny;
+        var stR = new Rect(r.x + p, y, r.width * .27f, h);
+        s.krok2 = ui.Stawka(stR, kroki, s.krok2, wolny, "ANTE");
+        int ante = kroki[Mathf.Clamp(s.krok2, 0, kroki.Length - 1)];
+        var info = new Rect(stR.xMax + p, y, r.width * .26f, h);
+        var akcje = new Rect(info.xMax + p, y, r.xMax - p - info.xMax - p, h);
+        int w = moja ? Widac(s) : 0;
+        if (moja && s.faza == Wynik) ui.Pole(info, s.wygrana > 0 ? "WYGRANA " + s.wygrana : "WYNIK", s.wynik.Length > 0 ? Krotko(s.wynik) : "—", s.wygrana > 0 ? U.Zloto : U.Krem);
+        else if (moja) ui.Pole(info, "MASZ · ANTE " + s.ante + (s.call ? " · CALL " + 2 * s.ante : ""), w > 0 ? Nazwa(w) : "—", U.Zloto);
+        else ui.Pole(info, "KRUPIER GRA OD", "PARY CZWÓREK", U.Krem);
+        if (moja && s.faza == Decyzja)
+        {
+            float bw = (akcje.width - p) * .5f;
+            bool stac = BraxChampionsKasyno.Kredyt >= 2 * s.ante;
+            if (ui.Przycisk(new Rect(akcje.x, y, bw, h), stac ? "CALL · " + 2 * s.ante : "BRAK KREDYTU", U.Zielen, U.Krem, stac, true)) Call(t, s);
+            else if (ui.Przycisk(new Rect(akcje.x + bw + p, y, bw, h), "PAS", U.Czerwien, U.Krem, true, true)) Pas(t, s);
+            return;
+        }
+        string g = s.faza == Rozdanie ? "ROZDANIE" : s.faza == Dokladanie ? "TURN · RIVER" : BraxChampionsKasyno.Kredyt >= ante ? "ROZDAJ · ANTE " + ante : "BRAK KREDYTU";
+        if (ui.Przycisk(akcje, g, U.Czerwien, U.Krem, wolny && BraxChampionsKasyno.Kredyt >= ante, true)) Rozdaj(t, s, m, ante, true);
+    }
+    static string Krotko(string w) { int k = w.IndexOf(" · "); return k > 0 ? w.Substring(0, k) : w; }
+    public void Wstal(int i)
+    {
+        var t = stoly[i / 8]; var s = stan[i / 8];
+        if (s.faza == Decyzja) Pas(t, s);                         // leaving the table folds the hand
+        s.siedzi = false;
+    }
+
     void Lec(Karta k)
     {
         if (!k.t) return;

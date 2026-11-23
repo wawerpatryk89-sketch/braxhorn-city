@@ -53,7 +53,10 @@ public static partial class BraxChampionsKasynoSprzet
         {
             pola[i] = new Vector3(SbPoleX(i), top, .76f);
             var z = new GameObject("żeton " + BraxChampionsSicBo.Pola[i]).transform; z.SetParent(stol, false);
-            z.localPosition = pola[i] + new Vector3(0f, .002f, -.12f);                      // z .64, between the box's name and its range Wstaw(czZeton, z, "żeton"); z.gameObject.SetActive(false); zet[i] = z;
+            // z .64, between the box's name and its range (23.11: this line's chip, hiding and keeping had slipped into the
+            // comment - the chips were never made and the game never showed a bet)
+            z.localPosition = pola[i] + new Vector3(0f, .002f, -.12f);
+            Wstaw(czZeton, z, "żeton"); z.gameObject.SetActive(false); zet[i] = z;
         }
         var gra = k.root.gameObject.AddComponent<BraxChampionsSicBo>();
         gra.stol = stol; gra.pola = pola; gra.zetony = zet; gra.kostki = kostki; gra.spoczynek = spo; gra.kostkaBok = SbKostka; gra.kopulaR = SbKopula; gra.stawka = Stawka;
