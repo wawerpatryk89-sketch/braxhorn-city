@@ -129,3 +129,40 @@ def zapiekanki(S, o, t, n, g="budki"):
     d0 = o - n * D / 2 - t * (L / 2) + UP * .45
     S.rura(g, "stal", d0, d0 - t * 1.3, .05, seg=6); S.rura(g, "stal", d0 - t * 1.2, d0 - t * 1.2 - UP * .45, .04, seg=6)
     stolik(S, g, o + n * 2.3 - t * 1.2); stolik(S, g, o + n * 2.6 + t * .9)
+
+
+def bosna_otwarta(S, P, c, s, g="budki"):
+    """Otwarty bus z bosną (właściciel 24.11, 00:03–00:04, zdjęcie food trucka): klapa okienka podniesiona jako daszek
+    (blacha, 12° nad poziom, na dwóch rozpórkach), lada ze stali pod okienkiem, ciemne wnętrze z blatem, tablica z menu
+    i dwie doniczki z ziołami na ladzie. Model busa jest z paczki właściciela; to tylko dodatki w miejscu okienka.
+    P — punkt busa na ziemi, c — kierunek kabiny, s — bok z okienkiem (bok +z modelu). Okienko w układzie modelu:
+    x 0,72…2,40 (tył), y 0,95…1,91, lico burty z = 0,975 (pomiar rzutu bocznego busa)."""
+    c, s = nrm(c), nrm(s)
+    Wp = lambda xm, y, zm: P - c * xm + s * zm + UP * y
+    ex = -c; zs = .975; xa, xb, ya, yb = .72, 2.40, .95, 1.91
+    # wnętrze: ciemny panel 1 cm przed burtą, blat ze stali i zaplecze (jaśniejszy pas), rama okienka
+    S.quad(g, "kiosk_wnetrze", Wp(xa, ya, zs + .01), Wp(xb, ya, zs + .01), Wp(xb, yb, zs + .01), Wp(xa, yb, zs + .01), kier=s)
+    S.quad(g, "kiosk_blat", Wp(xa + .05, ya + .3, zs + .012), Wp(xb - .05, ya + .3, zs + .012), Wp(xb - .05, ya + .38, zs + .012), Wp(xa + .05, ya + .38, zs + .012), kier=s)
+    for (x0_, y0_, x1_, y1_) in ((xa - .04, ya - .04, xb + .04, ya), (xa - .04, yb, xb + .04, yb + .04), (xa - .04, ya, xa, yb), (xb, ya, xb + .04, yb)):
+        S.box(g, "stal_ocynk", Wp(x0_, y0_, zs), ex, UP, s, x1_ - x0_, y1_ - y0_, .03)
+    # lada 0,32 m na zewnątrz, wsporniki
+    S.box(g, "kiosk_blat", Wp(xa - .02, ya - .05, zs), ex, UP, s, xb - xa + .04, .04, .34)
+    for xm in (xa + .15, xb - .15):
+        S.rura(g, "stal_ocynk", Wp(xm, ya - .4, zs + .01), Wp(xm, ya - .05, zs + .3), .012, seg=4)
+    # klapa-daszek: zawias na górnej krawędzi, 1,0 m, 12° w górę
+    a = math.radians(12); ez = s * math.cos(a) + UP * math.sin(a); ey = nrm(np.cross(ez, ex))
+    if ey[1] < 0: ey = -ey
+    o = Wp(xa - .05, yb + .04, zs)
+    S.box(g, "stal_ocynk", o, ex, ey, ez, xb - xa + .1, .03, 1.0)
+    for xm in (xa + .03, xb - .03):                                   # rozpórki
+        S.rura(g, "stal_ocynk", Wp(xm, ya + .45, zs + .01), Wp(xm, yb + .04, zs) + ez * .95, .011, seg=4)
+    # tablica z menu (stoi na ladzie przy przedniej krawędzi okienka, jak na zdjęciu) i doniczki z ziołami
+    m0 = Wp(xa + .08, ya - .01, zs + .14); m1 = Wp(xa + .46, ya - .01, zs + .14)
+    S.quad(g, "menu_bosna", m0, m1, m1 + UP * .82, m0 + UP * .82, uv1=UV1, kier=s)
+    S.box(g, "latarnia_czarna", m0 - UP * .0 - ex * .02 + s * -.015, ex, UP, s, .42, .86, .012)
+    for xm in (1.55, 1.85, 2.15):
+        q = Wp(xm, ya - .01, zs + .18)
+        S.box(g, "donica", q - ex * .07 - s * .07, ex, UP, s, .14, .14, .14)
+        for k in range(2):
+            w_ = nrm(ex + s) if k == 0 else nrm(ex - s); cc = q + UP * .14
+            S.quad(g, "zywoplot_galazki", cc - w_ * .14, cc + w_ * .14, cc + w_ * .14 + UP * .26, cc - w_ * .14 + UP * .26, uv_o=cc - w_ * .14)

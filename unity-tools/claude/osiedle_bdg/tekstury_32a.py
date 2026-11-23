@@ -163,6 +163,21 @@ def szyldy(out):
         img.save(out / plik)
 
 
+def menu_bosna(out):
+    """Tablica z menu busa z bosną (zdjęcie food trucka 00:04): czarna tablica, białe i żółte napisy kredą — ogólne potrawy."""
+    W, H = 512, 1024
+    img = Image.new("RGBA", (W, H), (26, 28, 28, 255)); d = ImageDraw.Draw(img)
+    f1 = ImageFont.truetype(FONT_B, 92); f2 = ImageFont.truetype(FONT_B, 40); f3 = ImageFont.truetype(FONT_B, 34)
+    d.text((W / 2 - d.textlength("MENU", font=f1) / 2, 40), "MENU", font=f1, fill=(250, 214, 60, 255))
+    y = 190
+    for nazwa, cena in (("BOSNA KLASYCZNA", "16 zł"), ("BOSNA OSTRA", "17 zł"), ("BOSNA Z SEREM", "18 zł"), ("BOSNA XXL", "22 zł"),
+                        ("HOT-DOG", "10 zł"), ("FRYTKI", "9 zł"), ("NAPOJE", "6 zł")):
+        d.text((36, y), nazwa, font=f2, fill=(240, 240, 236, 255)); d.text((W - 36 - d.textlength(cena, font=f3), y + 4), cena, font=f3, fill=(250, 214, 60, 255))
+        y += 104
+    d.rectangle([20, 20, W - 20, H - 20], outline=(220, 220, 214, 255), width=6)
+    img.save(out / "menu_bosna.png")
+
+
 def banery(out):
     """Banery nad podcieniem marketu: reklamy BRAXHORN MARKET (bez prawdziwych marek, ZASADY 7.4)."""
     teksty = [("ŚWIEŻE CODZIENNIE", "pieczywo · warzywa · mięso"), ("NISKIE CENY", "każdego dnia"),
@@ -309,6 +324,7 @@ if __name__ == "__main__":
     if len(_s.argv) > 2: zywoplot(_s.argv[2], out / "zywoplot_lisc.png", out / "zywoplot_brzeg.png")
     zywoplot_galazki(out / "zywoplot_galazki.png")
     szyldy(out)
+    menu_bosna(out)
     banery(out)
     for nr in ("28", "30", "32", "34", "36", "38"):
         napis_blok(out / ("napis_blok_%s.png" % nr), nr)

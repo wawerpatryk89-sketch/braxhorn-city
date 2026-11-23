@@ -165,10 +165,13 @@ def budki_market(d, dst):
         budki.burger_kontener(S, a + t * (L * .82) + n * 15.0 + UP * Y_KOSTKI, t, n)  # przy słupie z szyldem, od ulicy
         budki.lodziarnia(S, a + t * (L * .30) + n * 17.0 + UP * Y_KOSTKI, t, n)
         przenies(S, dst, "budki", 0.0, 0.0, 0.0)
-        # 22:44 właściciel: bus z bosną (jego model Tripo, paczka szyfrowana bydgoszcz_bosna) na parkingu przy zapiekankach;
-        # kabina w stronę t, okienko sprzedaży (bok +z modelu) w stronę parkingu (n)
-        p_ = a + t * (L - 30.5) + n * 4.9
-        MODELE_WL.append(["bydgoszcz_bosna", "bosna_van", round(float(p_[0]), 2), round(float(p_[2]), 2), round(float(t[0]), 4), round(float(t[2]), 4)])
+        # 22:44 właściciel: bus z bosną (jego model Tripo, paczka szyfrowana bydgoszcz_bosna); 24.11 00:02 „postaw go na
+        # parkingu” — pole E4 siatki parkingu (32 m przed frontem marketu), wzdłuż frontu, okienko (bok +z modelu) w stronę
+        # wejścia do marketu (−n): kabina w stronę −t
+        p_ = a + t * 11.6 + n * 31.75
+        MODELE_WL.append(["bydgoszcz_bosna", "bosna_van", round(float(p_[0]), 2), round(float(p_[2]), 2), round(float(-t[0]), 4), round(float(-t[2]), 4)])
+        S2 = Siatka(); budki.bosna_otwarta(S2, p_ + UP * Y_KOSTKI, -t, -n)     # otwarte okienko z daszkiem (00:03–00:04)
+        przenies(S2, dst, "budki_bosna", 0.0, 0.0, 0.0)
         return 4
     return 0
 
