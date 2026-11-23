@@ -1,0 +1,114 @@
+{
+ "klipy": "<katalog z nagraniami Rokoko>",
+ "potok": "..",
+ "postacie": {
+  "brax": [
+   {
+    "stan": "Idle",
+    "plik": "FightingIdle_mixamo.fbx",
+    "ile": 300,
+    "na_miejscu": true,
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "Walk",
+    "plik": "10-WalkCycle_01_MIXAMO_769.fbx",
+    "ile": 400,
+    "chod": true,
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "RkBoks",
+    "plik": "Boxing_mixamo.fbx",
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "RkKopniecie",
+    "plik": "RoundHouseKick_mixamo.fbx",
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "RkWalkaZCieniem",
+    "plik": "ShadowBoxing_mixamo.fbx",
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "RkZwyciezca",
+    "plik": "KnockOut_Winner_mixamo.fbx",
+    "rozstaw_nog": 0.5
+   }
+  ],
+  "nyxa": [
+   {
+    "stan": "Idle",
+    "plik": "Regular_Light_mixamo.fbx",
+    "ile": 300,
+    "na_miejscu": true,
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "Walk",
+    "plik": "11-WalkCycle_Cool_MIXAMO_WHS_segment.fbx",
+    "ile": 400,
+    "chod": true,
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "RkTaniec",
+    "plik": "DancingMedium_mixamo.fbx",
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "RkImpreza",
+    "plik": "NPC_DancingParty_mixamo.fbx",
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "RkKolysanie",
+    "plik": "GentleSwayingDancing_mixamo.fbx",
+    "rozstaw_nog": 0.5
+   },
+   {
+    "stan": "RkRadosc",
+    "plik": "HappyDance_mixamo.fbx",
+    "rozstaw_nog": 0.5
+   }
+  ],
+  "kamil": [
+   {
+    "stan": "RkProwadzacy",
+    "plik": "Host_mixamo.fbx"
+   },
+   {
+    "stan": "RkMonolog",
+    "plik": "StandUpComedian_mixamo.fbx"
+   },
+   {
+    "stan": "RkSmiech",
+    "plik": "Laughs_mixamo.fbx"
+   },
+   {
+    "stan": "RkBrawa",
+    "plik": "Clap_SlowClap_mixamo.fbx"
+   }
+  ],
+  "monika": [
+   {
+    "stan": "RkFlirt",
+    "plik": "Flirty_mixamo.fbx"
+   },
+   {
+    "stan": "RkTaniecZDrinkiem",
+    "plik": "DancingwithDrink_mixamo.fbx"
+   },
+   {
+    "stan": "RkTelefon",
+    "plik": "OnCellPhone_mixamo.fbx"
+   },
+   {
+    "stan": "RkWzruszenie",
+    "plik": "Shrugging_mixamo.fbx"
+   }
+  ]
+ }
+}

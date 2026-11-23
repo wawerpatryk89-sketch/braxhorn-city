@@ -42,6 +42,35 @@ public sealed class BraxPokazPostaci : MonoBehaviour
         ("Talk", "ROZMOWA"),
     };
 
+    // RUCHY PRZENIESIONE Z ROKOKO. Właściciel 23.11, 01:54–01:55: „dodasz każdej postaci po parę
+    // ruchów z Rokoko i wpuścisz na pokój”, „nie dawaj każdej postaci tych samych ruchów”.
+    // Ujęcia przeniesione narzędziem unity-tools/claude/rokoko/rk_przenies.py mają w nazwie
+    // przedrostek „Rk”. Postać, która je ma, pokazuje: spoczynek, chód i po kolei WSZYSTKIE
+    // swoje ujęcia Rokoko — każde RAZ, od początku do końca, z prawdziwym przemieszczeniem
+    // (kamera idzie za biodrami), żeby było widać stopy na podłodze, a nie pętlę w miejscu.
+    public const string PrzedrostekRokoko = "Rk";
+
+    static System.Collections.Generic.List<(string klip, string opis)> EtapyDla(Animation a)
+    {
+        var rk = new System.Collections.Generic.List<string>();
+        foreach (AnimationState st in a)
+            if (st.clip && st.name.StartsWith(PrzedrostekRokoko, System.StringComparison.Ordinal))
+                rk.Add(st.name);
+        if (rk.Count == 0)
+            return new System.Collections.Generic.List<(string klip, string opis)>(Etapy);
+        rk.Sort(System.StringComparer.Ordinal);
+        var lista = new System.Collections.Generic.List<(string klip, string opis)>
+        {
+            ("Idle", "SPOCZYNEK"), ("Walk", "CHÓD"),
+        };
+        foreach (string n in rk)
+            lista.Add((n, "ROKOKO — " + n.Substring(PrzedrostekRokoko.Length)));
+        return lista;
+    }
+
+    bool sledz;            // kamera idzie za biodrami (ujęcia z prawdziwym przemieszczeniem)
+    Vector3 sledzony;
+
     // Etapy, których brak NIE jest błędem — postać po prostu ich nie ma w paczce.
     static readonly string[] Nieobowiazkowe = { "DrunkWalk", "DrunkIdle", "DrunkTurn" };
 
@@ -166,19 +195,31 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                 korzen.localRotation = Quaternion.Euler(0, 180f, 0);
 
                 ZbierzPozy(a);
+                a.Stop();   // ujęcie Rokoko kończy się w innym miejscu niż środek — zaczynamy czysto
                 // W próbie mrugnięcie ma być widać kilka razy, a nie raz na ujęcie.
                 foreach (var m in a.GetComponentsInChildren<BraxMimikaOsiedla>(true))
                     m.odstepMrugania = .4f;
                 int nrEtapu = -1;
-                foreach (var (klip, opis) in Etapy)
+                foreach (var (klip, opis) in EtapyDla(a))
                 {
                     nrEtapu++;
                     etap = opis;
+                    bool rokoko = klip.StartsWith(PrzedrostekRokoko, System.StringComparison.Ordinal);
+                    sledz = rokoko;
                     bool obrot = opis.StartsWith("OBRÓT");
                     bool rozmowa = opis == "ROZMOWA";
                     string doGrania = klip;
                     if (klip == "Idle" && pozy.Length > 0) doGrania = pozy[Mathf.Clamp(poza, 0, pozy.Length - 1)];
-                    if (a.GetClip(doGrania)) { a[doGrania].wrapMode = WrapMode.Loop; a.CrossFade(doGrania, .2f); }
+                    if (a.GetClip(doGrania) && rokoko)
+                    {
+                        // Cięcie, nie przenikanie: poprzednie ujęcie skończyło się gdzie indziej,
+                        // a przenikanie przesunęłoby postać ślizgiem po podłodze.
+                        a.Stop();
+                        a[doGrania].wrapMode = WrapMode.ClampForever;
+                        a[doGrania].time = 0f;
+                        a.Play(doGrania);
+                    }
+                    else if (a.GetClip(doGrania)) { a[doGrania].wrapMode = WrapMode.Loop; a.CrossFade(doGrania, .2f); }
                     else if (System.Array.IndexOf(Nieobowiazkowe, doGrania) >= 0)
                         continue;                 // ta postać tego nie ma — etap pomijamy
                     else
@@ -281,6 +322,7 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                     // żeby dało się patrzeć na samą postawę, a nie gonić ją wzrokiem.
                     bool spoczynek = opis == "SPOCZYNEK";
                     float dlugosc = obrot ? ObrotSekund : (spoczynek ? SpoczynekSekund : naEtap);
+                    if (rokoko && a.GetClip(doGrania)) dlugosc = Mathf.Clamp(a[doGrania].length, 2f, 12f);
                     float start = Time.time, do_ = start + dlugosc;
                     while (Time.time < do_)
                     {
@@ -294,6 +336,8 @@ public sealed class BraxPokazPostaci : MonoBehaviour
                     }
                     if (obrot || spoczynek) korzen.localRotation = Quaternion.Euler(0, 180f, 0);
                 }
+                sledz = false;
+                a.Stop();
                 korzen.localPosition = staraPoz;
                 korzen.localRotation = staryObrot;
             }
@@ -324,6 +368,17 @@ public sealed class BraxPokazPostaci : MonoBehaviour
             kamera.transform.LookAt(celGlowy);
             return;
         }
+        if (sledz)
+        {
+            var biodra = postacie[kto].transform.Find("mixamorig:Hips");
+            if (biodra)
+            {
+                var pod = new Vector3(biodra.position.x, stopy.y, biodra.position.z);
+                sledzony = Vector3.Lerp(sledzony, pod, 1f - Mathf.Exp(-5f * Time.deltaTime));
+                stopy = sledzony;
+            }
+        }
+        else sledzony = stopy;
         var cel = stopy + Vector3.up * (1.15f * SKALA);
         kamera.transform.position = stopy + new Vector3(0f, 1.35f * SKALA, -3.1f * SKALA);
         kamera.transform.LookAt(cel);

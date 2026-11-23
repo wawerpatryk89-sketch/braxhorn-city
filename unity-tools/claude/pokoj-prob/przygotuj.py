@@ -129,10 +129,34 @@ def rownolegle(zadania, blender, workers):
     return bledy
 
 
+# POSTACIE TESTOWE Z RUCHAMI ROKOKO (wlasciciel 23.11, 01:54: „dodasz kazdej postaci po pare
+# ruchow z Rokoko i wpuscisz na pokoj. I zobaczymy, co z tego wyjdzie.”).
+# Leza gotowe w repozytorium: ruch przeniesiony narzedziem rokoko/rk_przenies.py, potem zwykla
+# droga osiedle_ruch (mimika, petla spoczynku) — i OBEJRZANE na zdjeciach przed wyslaniem.
+# Maja wlasne identyfikatory z koncowka _rk, wiec nie nadpisuja zatwierdzonych postaci
+# ani ich pamieci podrecznej. Wystarczy podac je w polu „postacie”.
+PACZKA_TESTOWA = Path(__file__).resolve().parents[1] / "rokoko" / "paczka-testowa"
+
+
+def postacie_testowe(ids, cel):
+    import shutil
+
+    for i in ids:
+        zrodlo = PACZKA_TESTOWA / i
+        if not zrodlo.is_dir():
+            continue
+        docelowy = cel / i
+        if docelowy.exists():
+            shutil.rmtree(docelowy)
+        shutil.copytree(zrodlo, docelowy)
+        print("BRAX_POKOJ postac testowa Rokoko:", i, flush=True)
+
+
 def main():
     ids = wybrane()
     cel = obsada.ROOT / "unity-city/Assets/Source/ObsadaOsiedla"
     cel.mkdir(parents=True, exist_ok=True)
+    postacie_testowe(ids, cel)
 
     z_pamieci = [i for i in ids if gotowa(cel / i, i)]
     ids = [i for i in ids if i not in z_pamieci]

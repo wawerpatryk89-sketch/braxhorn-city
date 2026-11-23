@@ -1,0 +1,63 @@
+{
+ "id": "kamil_rk",
+ "states": [
+  "Block",
+  "CombatIdle",
+  "Cross",
+  "DanceHipHop",
+  "DanceHouse",
+  "Dodge",
+  "Drink",
+  "DrunkIdle",
+  "DrunkTurn",
+  "DrunkWalk",
+  "GymBicepCurl",
+  "GymBurpee",
+  "GymPistolSquat",
+  "HitBody",
+  "HitHead",
+  "Hook",
+  "Idle",
+  "Jab",
+  "Jump",
+  "Knee",
+  "Point",
+  "Run",
+  "SeatedIdle",
+  "SideKick",
+  "SitDown",
+  "StandUp",
+  "Talk",
+  "Walk",
+  "Wave",
+  "RkProwadzacy",
+  "RkMonolog",
+  "RkSmiech",
+  "RkBrawa"
+ ],
+ "zrodlo": "kamil.fbx",
+ "ruchy_przeniesione": [
+  {
+   "stan": "RkProwadzacy",
+   "zrodlo": "Host_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkMonolog",
+   "zrodlo": "StandUpComedian_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkSmiech",
+   "zrodlo": "Laughs_mixamo.fbx",
+   "klatek": 240
+  },
+  {
+   "stan": "RkBrawa",
+   "zrodlo": "Clap_SlowClap_mixamo.fbx",
+   "klatek": 240
+  }
+ ],
+ "uwaga": "ruchy Rokoko przeniesione obrotem swiata z wyrownaniem pozy spoczynkowej (rk_przenies.py)",
+ "wzor": "kamil"
+}
