@@ -99,10 +99,24 @@ class Siatka:
             d0 = p * math.cos(f0) + q * math.sin(f0); d1 = p * math.cos(f1) + q * math.sin(f1)
             pts = [a + d0 * r, a + d1 * r, b + d1 * r, b + d0 * r]
             ns = [d0, d1, d1, d0]
+            t0 = -p * math.sin(f0) + q * math.cos(f0); t1 = -p * math.sin(f1) + q * math.cos(f1)   # styczna = kierunek u (po obwodzie)
             uv = [(k / seg * 2 * math.pi * r, 0), ((k + 1) / seg * 2 * math.pi * r, 0), ((k + 1) / seg * 2 * math.pi * r, L), (k / seg * 2 * math.pi * r, L)]
             # (b-a)x(d-a) dla a=a+d0r, b=a+d1r, d=b+d0r: (d1-d0)r x ax  — na zewnątrz przy tej kolejności osi
             idx = [0, 3, 2, 0, 2, 1] if np.dot(np.cross((d1 - d0), ax), d0 + d1) < 0 else [0, 1, 2, 0, 2, 3]
-            self.tri_list(g, m, pts, ns, ax, uv, None, idx)
+            self.tri_list(g, m, pts, ns, [t0, t1, t1, t0], uv, None, idx)
+
+    def luk(self, g, m, c, p, q, r, f0, f1, y0, y1, seg=16):
+        """Wycinek walca (oś pionowa przez c, kierunek kąta 0 = p, 90° = q) od kąta f0 do f1 (stopnie), wysokość y0..y1.
+        Gładkie normalne, UV ciągłe po łuku (metry)."""
+        fs = np.radians(np.linspace(f0, f1, seg + 1)); pts, ns, ts, uv, idx = [], [], [], [], []
+        for k, f in enumerate(fs):
+            d = p * math.cos(f) + q * math.sin(f); tt = -p * math.sin(f) + q * math.cos(f)
+            for y in (y0, y1):
+                pts.append(np.asarray(c, float) + d * r + UP * y); ns.append(d); ts.append(tt); uv.append((r * (f - fs[0]), y))
+        for k in range(seg):
+            i0, i1, i2, i3 = 2 * k, 2 * k + 2, 2 * k + 3, 2 * k + 1
+            idx += [i0, i1, i2, i0, i2, i3] if np.dot(np.cross(pts[i1] - pts[i0], pts[i3] - pts[i0]), ns[i0]) > 0 else [i0, i2, i1, i0, i3, i2]
+        self.tri_list(g, m, pts, ns, ts, uv, None, idx)
 
     # ---------------- ściana z otworami ----------------
     def sciana(self, g, m, o, t, L, H, otwory=(), uv0=(0, 0), uv1_skala=None, uv1_o=(0, 0)):

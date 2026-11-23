@@ -135,7 +135,7 @@ SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, 
            "bitumen": [.230, .214, .206], "gravel_floor_02": [.672, .656, .613], "painted_metal_shutter": [.502, .516, .527],
            "exterior_wall_cladding_03": [.678, .654, .607], "corrugated_iron_02": [.348, .345, .319], "red_bricks_04": [.386, .243, .145],
            "grass004": [.384, .431, .197], "herringbone_pavement_03": [.264, .232, .195], "red_brick_pavers": [.455, .250, .198],
-           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287]}
+           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287], "plyty_szare": [.75, .75, .75]}
 
 
 def tint(v):
@@ -170,7 +170,10 @@ P["szyld_zapiekanki"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [196, 40, 34],
 P["szyld_lody"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [44, 44, 46], "szorst": .6, "nakl": "szyld_lody.png"}
 P["deska"] = {"tex": "weathered_brown_planks", "m": 2.0, "kol": [120, 96, 72], "szorst": 1.0}
 P["trawa_ozdobna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [200, 184, 140], "szorst": 1.0}
-P["market_elewacja"] = {"tex": "grey_tiles", "m": 2.2, "kol": [206, 202, 194], "szorst": 1.0}   # kwadratowe płyty (zdjęcia 18:47)
+P["market_elewacja"] = {"tex": "plyty_szare", "m": 4.4, "kol": [210, 208, 202], "szorst": 1.0}   # kwadratowe płyty ~1,1 m (zdjęcia 18:47)
+P["pas_zielony"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [40, 120, 70], "szorst": .6}
+for _k in range(1, 5):
+    P["baner_%d" % _k] = {"tex": "lakier_blacha", "m": 2.5, "kol": [30, 70, 150], "szorst": .7, "nakl": "baner_%d.png" % _k}
 P["kostka_jezdnia"] = {"tex": "herringbone_pavement_03", "m": 2.4, "kol": [124, 122, 118], "szorst": 1.0}   # IMG_1758–1765
 P["kostka_parking"] = {"tex": "red_brick_pavers", "m": 1.8, "kol": [128, 82, 70], "szorst": 1.0}            # zatoki IMG_1760–1761
 P["plac_zabaw"] = {"tex": "playground_sand", "m": 2.07, "kol": [196, 170, 128], "szorst": 1.0}

@@ -304,7 +304,20 @@ def market_front(S, g, f, H, att):
     S.box(g, "pole_logo", b - t * 5.3 + n * .22 + UP * 2.0, t, UP, n, 4.6, H + att + 3.5, .06)          # puste pole na logo
     S.box(g, "market_szklo", b - t * 15.0 - n * 2.0, t, UP, n, 9.0, H + att + 1.5, 2.6)
     c = a + t * 3.0 - n * 1.0
-    S.rura(g, "market_elewacja", c, c + UP * (H + att + .4), 3.0, seg=20)
+    S.rura(g, "market_elewacja", c, c + UP * (H + att + .4), 3.0, seg=32)
+    # zaokrąglony narożnik (zdjęcia nocne 18:47): pas okien na piętrze i przeszklony parter od frontu i od końca budynku
+    for (y0, y1) in ((.35, 3.7), (5.3, 7.3)):
+        S.luk(g, "market_szklo", c, t, n, 3.04, 15, 205, y0, y1, seg=20)
+        for f in np.linspace(15, 205, 9):
+            d = t * math.cos(math.radians(f)) + n * math.sin(math.radians(f))
+            S.rura(g, "market_rama", c + d * 3.07 + UP * y0, c + d * 3.07 + UP * y1, .045, seg=6)
+        S.luk(g, "market_rama", c, t, n, 3.08, 15, 205, y1, y1 + .12, seg=20)
+    S.luk(g, "pas_zielony", c, t, n, 3.07, 40, 180, 4.2, 5.0, seg=16)       # pas szyldu (pusty, bez nazwy)
+    # banery nad podcieniem między oknami piętra (jak na zdjęciach; reklamy BRAXHORN, bez prawdziwych marek)
+    for k, u in enumerate(np.arange(8.0, L - 22.0, 6.8)):
+        p0 = a + t * u + n * .06 + UP * 4.5; w = 3.4
+        S.quad(g, "baner_%d" % (k % 4 + 1), p0, p0 + t * w, p0 + t * w + UP * .95, p0 + UP * .95, uv1=[(0, 0), (1, 0), (1, 1), (0, 1)], kier=n)
+        S.box(g, "market_rama", p0 - t * .04 - n * .04 - UP * .04, t, UP, n, w + .08, .04, .08)
     for u in np.arange(4.5, L - 17.0, 1.6):                  # żółte słupki przed podcieniem (zdjęcia 17:25, IMG_1761–1762)
         S.rura(g, "slupek_zolty", a + t * u + n * 3.45, a + t * u + n * 3.45 + UP * .9, .08, seg=8)
 

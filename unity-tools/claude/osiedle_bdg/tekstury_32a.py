@@ -162,6 +162,19 @@ def szyldy(out):
         img.save(out / plik)
 
 
+def banery(out):
+    """Banery nad podcieniem marketu: reklamy BRAXHORN MARKET (bez prawdziwych marek, ZASADY 7.4)."""
+    teksty = [("ŚWIEŻE CODZIENNIE", "pieczywo · warzywa · mięso"), ("NISKIE CENY", "każdego dnia"),
+              ("ZAKUPY Z DOSTAWĄ", "zamów online — dowieziemy"), ("PARKING DLA KLIENTÓW", "pierwsze 2 h gratis")]
+    f1 = ImageFont.truetype(FONT_B, 92); f2 = ImageFont.truetype(FONT_B, 40); f3 = ImageFont.truetype(FONT_B, 34)
+    for k, (a, b) in enumerate(teksty):
+        img = Image.new("RGBA", (1024, 286), (24, 64, 150, 255)); d = ImageDraw.Draw(img)
+        d.rectangle((0, 226, 1024, 286), fill=(236, 236, 232, 255))
+        d.text((40, 30), a, font=f1, fill=(255, 255, 255, 255)); d.text((44, 140), b, font=f2, fill=(255, 168, 40, 255))
+        d.text((40, 236), "BRAXHORN MARKET", font=f3, fill=(24, 64, 150, 255))
+        img.save(out / ("baner_%d.png" % (k + 1)))
+
+
 def plot_prety(out, px=256):
     """Płot panelowy z prętów (szpital, IMG_1673): pręty pionowe 2 cm co 12 cm, kafel 1 x 1 m, przezroczyste tło."""
     a = np.zeros((px, px), np.uint8)
@@ -257,6 +270,7 @@ if __name__ == "__main__":
     if len(_s.argv) > 2: zywoplot(_s.argv[2], out / "zywoplot_lisc.png", out / "zywoplot_brzeg.png")
     zywoplot_galazki(out / "zywoplot_galazki.png")
     szyldy(out)
+    banery(out)
     for nr in ("28", "30", "32", "34", "36", "38"):
         napis_blok(out / ("napis_blok_%s.png" % nr), nr)
     print("ok")
