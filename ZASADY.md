@@ -238,6 +238,27 @@ Minimum: kilka warstw przewijanych z różną prędkością, jaśniejsze krawęd
 pierścień piany w miejscu uderzenia, garść kropel. Przewijanie tekstury to jedna linijka
 w shaderze i na telefonie jest praktycznie darmowe.
 
+**5.7a. WODA JEST WODĄ, NIE KRESKĄ — MORZE MA PRZYBÓJ, RZEKA MA PRĄD.**
+Właściciel 23.11, 02:31: *„woda jest wodą, a nie kreską. Tamte morze na R1 już dobrze wygląda, ale brakuje fal
+takich jak tutaj na zdjęciu (…) w rzece ma być woda, taka prawdziwa (…) która płynie z prądem do morza”*.
+
+- **Morze przy plaży:** fale dochodzą do brzegu i łamią się — biała piana przyboju, która wchodzi na piasek
+  i cofa się, mokry pas piasku za nią, płycizna jaśniejsza i zielonkawa, głębia ciemniejsza. Wzór właściciela:
+  dwa zdjęcia plaży z 23.11 (tylko jako wzór wyglądu, nie tekstura).
+- **Rzeka:** woda płynie w jedną stronę, **do morza**, na całej długości tak samo; przy filarach mostów
+  i przy brzegu widać opływanie. Rzeka stojąca albo płynąca pod prąd to błąd.
+- Morze Miasta R1 (fale z 18.11) zostaje jako baza — dochodzi przybój, nic się nie cofa.
+
+**5.11. PIASEK PLAŻY — JEDEN, NA KAŻDEJ PLAŻY.**
+Właściciel 23.11, 02:31: *„Na każdej plaży ma być taki piasek. Nie chcę innego.”* Wzór: te same dwa zdjęcia —
+piasek jasny, drobny, suchy, ze śladami stóp; przy wodzie ciemniejszy, mokry i gładki.
+
+- Każda plaża w każdym rejonie ma ten sam komplet: piasek suchy + pas mokry przy wodzie. Żadnych innych piasków.
+- **Która tekstura — wybiera właściciel.** Kandydaci z Poly Haven do obejrzenia: `sand_03`, `sand_02` (suchy),
+  `damp_beach_sand_02`, `damp_beach_sand` (mokry pas), `aerial_beach_03` (z daleka, ze śladami).
+  Dziś plaża Miasta R1 używa `coast_sand_02` — ciemniejszy i z kamieniami, inny niż wzór.
+- Do czasu wyboru nikt nie zmienia piasku na własną rękę.
+
 **5.8. LISTA WŁAŚCICIELA — Z NIEJ BIERZE SIĘ NAJPIERW.**
 Właściciel 23.11, 01:57: *„wybrane tekstury, które mi się podobają z Poly Haven, z których
 przede wszystkim trzeba korzystać"*. Lista: `MATERIALY-WLASCICIELA.md` w korzeniu `main`
