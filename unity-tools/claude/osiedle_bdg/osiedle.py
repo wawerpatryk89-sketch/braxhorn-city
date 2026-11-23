@@ -165,11 +165,16 @@ def budki_market(d, dst):
         budki.burger_kontener(S, a + t * (L * .82) + n * 15.0 + UP * Y_KOSTKI, t, n)  # przy słupie z szyldem, od ulicy
         budki.lodziarnia(S, a + t * (L * .30) + n * 17.0 + UP * Y_KOSTKI, t, n)
         przenies(S, dst, "budki", 0.0, 0.0, 0.0)
-        return 3
+        # 22:44 właściciel: bus z bosną (jego model Tripo, paczka szyfrowana bydgoszcz_bosna) na parkingu przy zapiekankach;
+        # kabina w stronę t, okienko sprzedaży (bok +z modelu) w stronę parkingu (n)
+        p_ = a + t * (L - 30.5) + n * 4.9
+        MODELE_WL.append(["bydgoszcz_bosna", "bosna_van", round(float(p_[0]), 2), round(float(p_[2]), 2), round(float(t[0]), 4), round(float(t[2]), 4)])
+        return 4
     return 0
 
 
 Y_KOSTKI = 0.0
+MODELE_WL = []          # modele właściciela z paczek szyfrowanych: [paczka, plik, x, z, kier_x, kier_z] (metry; kier = oś kabiny)
 
 
 def zapisz_maske_trawy(trawa, drzewa, plik, krok=.32):
@@ -379,7 +384,7 @@ if __name__ == "__main__":
     opis["teren"] = pola; opis["drzew"] = len(drzewa); opis["latarni"] = len(latarnie)
     Wy, opis["wyposazenie"] = wyposazenie.zbuduj(d, G, teren.SZER, teren.OKNO, drzewa, latarnie)
     przenies(Wy, D, "wyposazenie", 0.0, 0.0, 0.0)
-    (out / "osiedle_punkty.json").write_text(json.dumps({"drzewa": drzewa, "latarnie": latarnie}, ensure_ascii=False), encoding="utf-8")
+    (out / "osiedle_punkty.json").write_text(json.dumps({"drzewa": drzewa, "latarnie": latarnie, "modele": MODELE_WL}, ensure_ascii=False), encoding="utf-8")
     from kit import scal_wg_materialu, scal_wg_budynku
     zapisz_glb(scal_wg_materialu(D), out / "osiedle.glb")
     import paleta

@@ -199,10 +199,11 @@ public static class BraxBydgoszcz
             }
         }
         int drzew = Drzewa(root, Swiat);
+        int modeli = ModeleWlasciciela(root, Swiat);
         TrawaMaska(root);
         int lodow = Zasiegi(root);
         Debug.Log("BRAXHORN_BYDGOSZCZ_OSIEDLE siatek=" + siatek + " trojkatow=" + trojkatow + " kolizji=" + kolizji + " materialow=" + maty.Count +
-                  " drzew=" + drzew + " lod=" + lodow + " punkt_zerowy=(" + PunktZerowy.x + "; " + PunktZerowy.y + ")");
+                  " drzew=" + drzew + " modeli_wlasciciela=" + modeli + " lod=" + lodow + " punkt_zerowy=(" + PunktZerowy.x + "; " + PunktZerowy.y + ")");
     }
 
     /// <summary>Budżet kadru na telefonie (ZASADY 10.2, 800 tys./kadr): każda grupa osiedla (budynek, wyposażenie, budki) dostaje
@@ -266,6 +267,49 @@ public static class BraxBydgoszcz
             }
         }
         return wynik;
+    }
+
+    /// <summary>Modele właściciela z paczek szyfrowanych (osiedle_punkty.json → "modele": [paczka, plik, x, z, kier_x, kier_z],
+    /// metry osiedla). 23.11, 22:44: bus z bosną (jego model Tripo, bez logo firm) na parkingu przed marketem przy zapiekankach.
+    /// Model w metrach (BraxMiastoAssety.Postaw skaluje × K); glTFast odbija x, więc kabina (−x w glTF) jest lokalnie +x:
+    /// yaw = atan2(−kier_z, kier_x) ustawia kabinę wzdłuż kier, a bok z okienkiem (+z) w stronę parkingu. Bez paczki — pomija.</summary>
+    static int ModeleWlasciciela(Transform root, Func<float, float, float, Vector3> swiat)
+    {
+        string p = Path.Combine(Path.GetDirectoryName(Sciezka() ?? Plik) ?? "", "osiedle_punkty.json");
+        if (!File.Exists(p)) return 0;
+        string json = File.ReadAllText(p);
+        int a = json.IndexOf("\"modele\"", StringComparison.Ordinal);
+        if (a < 0) return 0;
+        var ci = System.Globalization.CultureInfo.InvariantCulture; var fs = System.Globalization.NumberStyles.Float;
+        int licz = 0;
+        foreach (var wpis in json.Substring(a).Split(new[] { "[" }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var pola = wpis.Split(',');
+            if (pola.Length < 6) continue;
+            string paczka = pola[0].Trim().Trim('"', ' '), plik = pola[1].Trim().Trim('"', ' ');
+            if (!float.TryParse(pola[2], fs, ci, out float x) || !float.TryParse(pola[3], fs, ci, out float z) ||
+                !float.TryParse(pola[4], fs, ci, out float kx) || !float.TryParse(pola[5].Trim().TrimEnd(']', '}', ' '), fs, ci, out float kz)) continue;
+            var m = BraxMiastoAssety.Jest(paczka) ? BraxMiastoAssety.Model(paczka, plik) : null;
+            if (!m) { BraxRegion.Note("Bydgoszcz: brak paczki " + paczka + "/" + plik + " — miejsce bez modelu"); continue; }
+            float yaw = Mathf.Atan2(-kz, kx) * Mathf.Rad2Deg;
+            var o = BraxMiastoAssety.Postaw(root, m, "Bydgoszcz: model właściciela · " + plik, swiat(x, 0f, z), yaw, 1f, true, true);
+            if (!o) continue;
+            // kolizja: prostopadłościan z granic siatek w układzie modelu (nie z AABB świata — model jest obrócony)
+            bool jest = false; var lb = new Bounds();
+            foreach (var mf in o.GetComponentsInChildren<MeshFilter>())
+            {
+                if (!mf.sharedMesh) continue; var mb = mf.sharedMesh.bounds;
+                for (int k = 0; k < 8; k++)
+                {
+                    var c = mb.center + Vector3.Scale(mb.extents, new Vector3((k & 1) == 0 ? -1 : 1, (k & 2) == 0 ? -1 : 1, (k & 4) == 0 ? -1 : 1));
+                    var lp = o.transform.InverseTransformPoint(mf.transform.TransformPoint(c));
+                    if (!jest) { lb = new Bounds(lp, Vector3.zero); jest = true; } else lb.Encapsulate(lp);
+                }
+            }
+            if (jest) { var kol = o.AddComponent<BoxCollider>(); kol.center = lb.center; kol.size = lb.size; }
+            licz++;
+        }
+        return licz;
     }
 
     /// <summary>Drzewa z osiedle_punkty.json — modele z biblioteki właściciela (drzewo_verdant, las_sosna_a).</summary>

@@ -294,25 +294,32 @@ def witryna_kamienica(g, P, t, n, u0, u1, v0, v1, pietro):
 
 
 def mur_pruski(S, g, a, t, n, L, okna, p0, hk, kond, Hs, rozst, off, k, mat="belka_ciemna"):
-    """Spichrze nad Brdą (zdjęcia m22–m26, m33–m35): czarna konstrukcja ryglowa na jasnym albo ceglanym wypełnieniu —
-    słupy 18 cm co oś i na narożnikach, rygle na wysokości stropów, parapetów i nadproży, zastrzały w skrajnych polach.
+    """Spichrze nad Brdą (zdjęcia m22–m26, m33–m35): ciemna konstrukcja ryglowa — słupy 16 cm co ok. 0,85 m (przerwane przy
+    oknach), rygle na wysokości stropów, parapetów i nadproży, zastrzały w skrajnych polach każdej kondygnacji.
     Belki 3 cm przed licem (bez wspólnej płaszczyzny z wypełnieniem)."""
     P = lambda u, v, d=0.0: a + t * u + UP * v - n * d
-    w = .18; e = .03
-    slupy = sorted({.0, L - w} | {min(max(off + i * rozst - w / 2, 0), L - w) for i in range(0, k + 1)})
-    for u in slupy:
-        S.box(g, mat, P(u, .3, 0), t, UP, n, w, Hs - .3, e, bez=("-z",))
+    w = .16; e = .03
+    pietra = [(.3, p0)] + [(p0 + f * hk, min(p0 + (f + 1) * hk, Hs)) for f in range(kond - 1)]
+    m = max(1, int(round(L / .85)))
+    slupy = [min(max(i * L / m - w / 2, 0), L - w) for i in range(m + 1)]
+    for (y0, y1) in pietra:
+        okn = [(u0, u1) for (u0, u1, v0, v1, r, pp) in okna if v0 >= y0 - .05 and v1 <= y1 + .05]
+        for u in slupy:
+            if any(u0 - w < u < u1 for (u0, u1) in okn): continue
+            S.box(g, mat, P(u, y0, 0), t, UP, n, w, y1 - y0, e, bez=("-z",))
+        for (u0, u1) in okn:                                       # słupki przy oknach
+            for u in (u0 - w, u1):
+                if 0 <= u <= L - w: S.box(g, mat, P(u, y0, -.002), t, UP, n, w, y1 - y0, e + .002, bez=("-z",))
     poz = [.3] + [p0 + f * hk for f in range(kond - 1)] + [Hs - w]
     for (u0, u1, v0, v1, r, pp) in okna:
         poz += [v0 - w, v1]
     for v in sorted(set(round(x, 2) for x in poz)):
         if v < .2 or v > Hs - w + .01: continue
         S.box(g, mat, P(0, v, -.005), t, UP, n, L, w, e + .005, bez=("-z",))
-    for f in range(kond):                                         # zastrzały w skrajnych polach każdej kondygnacji
-        y0 = .3 + w if f == 0 else p0 + (f - 1) * hk + w; y1 = (p0 + f * hk if f < kond - 1 else Hs - w)
-        for (ua, ub) in ((slupy[0] + w, slupy[1] if len(slupy) > 1 else L), (slupy[-2] + w if len(slupy) > 1 else 0, slupy[-1])):
-            if ub - ua < .5 or y1 - y0 < .8: continue
-            A = P(ua, y0, -.01); Bq = P(ub, y1, -.01); dl = float(np.linalg.norm(Bq - A)); tt = (Bq - A) / dl
+    for (y0, y1) in pietra:                                         # zastrzały w skrajnych polach
+        for (ua, ub) in ((slupy[0] + w, slupy[1]), (slupy[-2] + w, slupy[-1])):
+            if ub - ua < .4 or y1 - y0 < .8: continue
+            A = P(ua, y0 + w, -.01); Bq = P(ub, y1 - w, -.01); dl = float(np.linalg.norm(Bq - A)); tt = (Bq - A) / dl
             nn = nrm(np.cross(tt, n)); S.box(g, mat, A - nn * w / 2, tt, nn, n, dl, w, e + .01, bez=("-z",))
 
 
@@ -517,14 +524,14 @@ def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5, ulica=None
                 S.quad(g, szczyt or tynk, p1, p0, q0, q1, kier=np.array([nin[0], 0., nin[1]]))      # od strony strychu/sąsiada (niższy sąsiad)
                 if belki:                                                  # szczyt spichrza: słupy co 1,1 m do połaci, rygle co 2,6 m
                     nz = np.array([-nin[0], 0., -nin[1]]); dl = float(np.hypot(x1 - x0, z1 - z0)); tz = (p1 - p0) / max(dl, 1e-6)
-                    for u in np.arange(.0, dl, 1.1):
+                    for u in np.arange(.0, dl, .85):
                         hu = h0 + (h1 - h0) * u / max(dl, 1e-6) - .05
                         if hu - y < .3: continue
-                        S.box(g, belki, p0 + tz * u + UP * .05 + nz * .0, tz, UP, nz, .18, hu - y, .03, bez=("-z",))
-                    for v in np.arange(y + 2.6, max(h0, h1), 2.6):
+                        S.box(g, belki, p0 + tz * u + UP * .05 + nz * .0, tz, UP, nz, .16, hu - y, .03, bez=("-z",))
+                    for v in np.arange(y + 1.3, max(h0, h1), 1.3):
                         us_ = [u for u in np.linspace(0, dl, 60) if h0 + (h1 - h0) * u / max(dl, 1e-6) > v + .2]
                         if len(us_) < 2: continue
-                        S.box(g, belki, p0 + tz * us_[0] + UP * (v - y - .05) - nz * .0, tz, UP, nz, us_[-1] - us_[0], .18, .035, bez=("-z",))
+                        S.box(g, belki, p0 + tz * us_[0] + UP * (v - y - .05) - nz * .0, tz, UP, nz, us_[-1] - us_[0], .16, .035, bez=("-z",))
 
 
 def _zewn(Q, a, b):

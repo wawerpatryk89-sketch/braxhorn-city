@@ -128,3 +128,19 @@ def test_sklep_w_markecie_i_maska_trawy():
     raw = gzip.open(root / "unity-tools/claude/osiedle_bdg/gen/osiedle_trawa_maska.bin").read()
     assert raw[:4] == b"BTM1"; x0, z0, krok, y, w, h = struct.unpack("<4f2i", raw[4:28])
     assert len(raw) - 28 == w * h // 8 and krok < .4 and x0 < -500 and z0 < 170 and z0 + h * krok > 880
+
+
+def test_bus_z_bosna_wlasciciela_na_parkingu_marketu():
+    """22:44: model właściciela (bus z bosną) na parkingu przed marketem — punkt w osiedle_punkty.json, paczka szyfrowana
+    z celem bydgoszcz_bosna (oryginał tylko w CMS), loader w BraxBydgoszcz.ModeleWlasciciela."""
+    import json
+    from pathlib import Path
+    R = Path(__file__).resolve().parents[2]
+    pk = json.loads((R / "unity-tools/claude/osiedle_bdg/gen/osiedle_punkty.json").read_text(encoding="utf-8"))
+    m = [w for w in pk.get("modele", []) if w[0] == "bydgoszcz_bosna" and w[1] == "bosna_van"]
+    assert len(m) == 1 and abs(m[0][4] ** 2 + m[0][5] ** 2 - 1) < 1e-3
+    man = json.loads((R / "unity-city/Prywatne/braxhorn-sklep-bydgoszcz-bosna-01/manifest.json").read_text(encoding="utf-8"))
+    assert man["target"] == "bydgoszcz_bosna" and "bydgoszcz_bosna/bosna_van.glb" in man["files"]
+    assert not list((R / "unity-city/Prywatne/braxhorn-sklep-bydgoszcz-bosna-01").glob("*.glb"))      # nic jawnego
+    cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
+    assert "ModeleWlasciciela(root, Swiat)" in cs and "Mathf.Atan2(-kz, kx)" in cs

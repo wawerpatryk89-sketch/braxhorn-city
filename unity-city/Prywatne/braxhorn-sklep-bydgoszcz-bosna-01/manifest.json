@@ -1,0 +1,21 @@
+{
+ "source": "wlasciciel 23.11.2026 22:44: bus z bosna na parking przed marketem osiedla (model Tripo, bez logo firm)",
+ "target": "bydgoszcz_bosna",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/bydgoszcz_bosna (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "35368241585ca2288bc3abb463ca33df0c09279e58f79845233dc13a8659d738",
+ "cmsSha256": "137ce7edcf2aa8dfb7ccfcbb4eca79d14d2bffb9df7b2a8d70c007a18a7ae49f",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 10138176,
+   "sha256": "137ce7edcf2aa8dfb7ccfcbb4eca79d14d2bffb9df7b2a8d70c007a18a7ae49f"
+  }
+ ],
+ "files": {
+  "bydgoszcz_bosna/bosna_van.glb": "10e97288e732d1a339b3fbbfa2864bdc18482b001f4ff8a095ea27afb99c2667",
+  "oryginal/budka_tripo.glb": "8c7c20a3f0a7cf40ac59ce56cf6b1a2a4d699af1a1bee72b7b97763f11d606a5",
+  "oryginal/spec.json": "3fe5fc9e21ba7f7bf07d41119f02c48f39e404f81e6b377bf858784fcb6fe368"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

@@ -137,8 +137,8 @@ def spec(b, R_):
               wykusz=R_.random() < .22, balkon=R_.random() < .35)
     nz = nazwa.lower()
     if "spichlerz" in nz:                                             # spichrze nad Brdą: mur pruski, dach dwuspadowy 58°
-        return dict(kond=4, h_kond=2.7, parter=3.0, tynk="c_ceglasta" if "holender" in nz else "k_bialy", cokol="cokol4", h_cokol=.4,
-                    okna=(1.5, .7, .95, .9), witryny=False, gzymsy=False, dach="kamienica", dach_mat="dachowka_03", spadek=58,
+        return dict(kond=4, h_kond=2.6, parter=2.9, tynk="k_bialy", cokol="cokol4", h_cokol=.4,
+                    okna=(1.7, .62, .82, 1.0), witryny=False, gzymsy=False, dach="kamienica", dach_mat="dachowka_03", spadek=58,
                     attyka=.15, kalenica_max=40.0, zr="ZAŁ spichlerz wg zdjęć m22–m26, m33–m35", ozdoby=None, parter_mat=None,
                     lukarny=True, kominy=False, mur_pruski=True, dwuspad=True, szczyt_mat=None)
     if "katedra" in nz or "kościół" in nz:
@@ -201,8 +201,11 @@ def teren(d, bud, W):
         o_ = np.array([c_.x, c_.y]) + np.array([1, -1]) / math.sqrt(2) * k * 9.0; d_ = np.array([1, 1]) / math.sqrt(2) * 400
         pasy.append(LineString([tuple(o_ - d_), tuple(o_ + d_)]).buffer(.45, cap_style=2))
     PAS = PLAC.intersection(unary_union(pasy)); PLAC = PLAC.difference(PAS)
-    BRUK = unary_union([LineString(u["linia"]).buffer(szer[u["klasa"]] / 2 + .2, cap_style=2, join_style=1) for u in d["ulice"]
-                        if len(u["linia"]) > 1 and u["klasa"] in ("residential", "living_street", "service", "unclassified", "pedestrian") and not u.get("obszar")]).intersection(JEZ)
+    GLOWNE = unary_union([LineString(u["linia"]).buffer(szer[u["klasa"]] / 2 + .3, cap_style=2, join_style=1) for u in d["ulice"]
+                          if len(u["linia"]) > 1 and u["klasa"] in ("primary", "secondary", "tertiary")])
+    BRUK = unary_union([LineString(u["linia"]).buffer(szer[u["klasa"]] / 2, cap_style=1, join_style=1) for u in d["ulice"]
+                        if len(u["linia"]) > 1 and u["klasa"] in ("residential", "living_street", "unclassified", "pedestrian") and not u.get("obszar")
+                        and (u.get("nazwa") or "")]).intersection(JEZ).difference(GLOWNE)     # bez bruku na głównych (22:44)
     ZEB = []
     J = Point(*SKRZYZOWANIE)
     for u in d["ulice"]:
@@ -551,12 +554,12 @@ def main(out):
             for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]
             dd["i"] += [b0 + q for q in c["i"]]
         opis["k%d" % i] = {"nazwa": b.get("nazwa") or ("%s %s" % (b.get("ulica") or "", b.get("nr") or "")).strip(), "kond": sp["kond"], "zrodlo": sp["zr"]}
-    Z = zabytki.zbuduj(wlasne, PUBL0)                                  # skrzyżowanie Focha × Gdańska × Jagiellońska, kościół
+    Z = zabytki.zbuduj(wlasne, PUBL0, POZIOM_WODY)                                  # skrzyżowanie Focha × Gdańska × Jagiellońska, kościół
     for (g, m), c in Z.dane().items():
         dd = D._c(g, m); b0 = len(dd["v"])
         for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]
         dd["i"] += [b0 + q for q in c["i"]]
-    bud = unary_union([b["poly"] for b in budynki] + list(wlasne.values()))
+    bud = unary_union([b["poly"] for b in budynki] + [q for k, q in wlasne.items() if k != zabytki.OSM_BARKA])
     T, pola, mosty, (PLAC_, CHOD_, NABRZ_) = teren(d, bud, W)
     Dt, pola_d, punkty = detale(d, budynki, PLAC_, CHOD_, NABRZ_, W, random.Random(5))
     pola.update(pola_d)

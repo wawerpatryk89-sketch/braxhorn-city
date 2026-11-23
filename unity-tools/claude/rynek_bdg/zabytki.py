@@ -19,6 +19,7 @@ import math
 
 import numpy as np
 import shapely
+import shapely.affinity
 from shapely.geometry import Polygon, Point, LineString, box
 from shapely.ops import unary_union
 
@@ -29,14 +30,17 @@ from kit import UP, nrm
 OSM_SAVOY = "w139275357"
 OSM_ZWEININGER = "w139749967"
 OSM_KOSCIOL = "w89654070"
-WLASNE = (OSM_SAVOY, OSM_ZWEININGER, OSM_KOSCIOL)
+OSM_BARKA = "w375204687"               # Barka Lemara — barka-muzeum zacumowana przy Starym Porcie (houseboat, na wodzie)
+OSM_SPICHRZ_LUK = "w1332613698"        # spichlerz z łukowym (ostrołukowym) szczytem, Grodzka 7 (IMG_2010–2012)
+OSM_SPICHRZ_CEGLA = "w681311761"       # spichlerz ceglany ze schodkowym szczytem, Grodzka 9 (IMG_2011–2012)
+WLASNE = (OSM_SAVOY, OSM_ZWEININGER, OSM_KOSCIOL, OSM_BARKA, OSM_SPICHRZ_LUK, OSM_SPICHRZ_CEGLA)
 
 
 # ---------------------------------------------------------------- narzędzia: ściana z dowolnymi otworami
-def fasada(S, g, mat, o, t, n, L, H, otwory, gl=0.0, mat_osc=None, tyl=False):
+def fasada(S, g, mat, o, t, n, L, H, otwory, gl=0.0, mat_osc=None, tyl=False, obrys=None):
     """Płaska ściana (u wzdłuż t, v w górę) z otworami o dowolnym kształcie (shapely w (u, v)): lico triangulowane,
     ościeża głębokości gl po obwodzie każdego otworu. tyl=True: dodatkowo lico od środka (podcienia: filar widać z obu stron)."""
-    W = box(0, 0, L, H)
+    W = box(0, 0, L, H) if obrys is None else obrys
     for q in otwory: W = W.difference(q)
     P = lambda u, v, d=0.0: o + t * u + UP * v - n * d
     for part in getattr(W, "geoms", [W]):
@@ -370,13 +374,212 @@ def kosciol(S, g, P):
     return c
 
 
+def barka(S, g, P, woda_y):
+    """Barka na Brdzie (OSM houseboat, zdjęcia m21–m25): stalowy kadłub (czarny z czerwonym pasem) 1,3 m nad wodą,
+    pokład z desek, nadbudówka z oknami na 60% długości, sterówka, reling. Nie budynek."""
+    R = P.minimum_rotated_rectangle; r = list(R.exterior.coords)[:4]
+    e1 = np.subtract(r[1], r[0]); e2 = np.subtract(r[2], r[1])
+    if np.linalg.norm(e1) < np.linalg.norm(e2): r = r[1:] + r[:1]; e1, e2 = e2, e1
+    L, Wd = float(np.linalg.norm(e1)), float(np.linalg.norm(e2)); ax = np.array([e1[0], 0, e1[1]]) / L; bx = np.array([e2[0], 0, e2[1]]) / Wd
+    o = np.array([r[0][0], 0, r[0][1]])
+    y0, y1 = woda_y - .6, woda_y + 1.3
+    # kadłub: obrys z zaokrąglonym dziobem (dziób = 3 m), ściany pionowe
+    pts = []
+    for k in range(9):                                                # dziób (półokrąg spłaszczony)
+        a = math.pi / 2 - k / 8 * math.pi
+        pts.append((L - 3.0 + 3.0 * math.cos(a), Wd / 2 + Wd / 2 * math.sin(a)))
+    pts = [(.0, .0)] + pts[::-1] + [(.0, Wd)]
+    pts = [(0.0, 0.0), (L - 3.0, 0.0)] + [(L - 3.0 + 3.0 * math.cos(a), Wd / 2 + Wd / 2 * math.sin(a)) for a in np.linspace(-math.pi / 2, math.pi / 2, 9)][1:-1] + [(L - 3.0, Wd), (0.0, Wd)]
+    Q = lambda u, v, y: o + ax * u + bx * v + UP * y
+    for (u0, v0), (u1, v1) in zip(pts, pts[1:] + pts[:1]):
+        a3, b3 = Q(u0, v0, 0), Q(u1, v1, 0); t3 = b3 - a3
+        if np.linalg.norm(t3) < 1e-4: continue
+        n3 = nrm(np.cross(UP, t3)); c3 = (a3 + b3) / 2
+        if Polygon(pts).contains(Point(*((np.array([np.dot(c3 + n3 * .2 - o, ax), np.dot(c3 + n3 * .2 - o, bx)])))) ): n3 = -n3
+        S.quad(g, "kadlub", a3 + UP * y0, b3 + UP * y0, b3 + UP * (y1 - .35), a3 + UP * (y1 - .35), kier=n3)
+        S.quad(g, "kadlub_pas", a3 + UP * (y1 - .35), b3 + UP * (y1 - .35), b3 + UP * y1, a3 + UP * y1, kier=n3)
+    poly = Polygon([tuple(np.array([u, v])) for u, v in pts])
+    for tri in shapely.constrained_delaunay_triangles(poly).geoms:     # pokład
+        c = [Q(u, v, y1) for u, v in list(tri.exterior.coords)[:3]]
+        if np.cross(c[1] - c[0], c[2] - c[0])[1] < 0: c[1], c[2] = c[2], c[1]
+        S.tri_list(g, "deska", c, (0., 1., 0.), tuple(ax), [(float(np.dot(p_ - o, ax)), float(np.dot(p_ - o, bx))) for p_ in c], None, [0, 1, 2])
+    # nadbudówka (salon) i sterówka
+    u0, u1 = L * .12, L * .72; v0, v1 = .6, Wd - .6; h = 2.3
+    for (pa, pb, kk) in ((Q(u0, v0, y1), Q(u1, v0, y1), -bx), (Q(u1, v1, y1), Q(u0, v1, y1), bx), (Q(u1, v0, y1), Q(u1, v1, y1), ax), (Q(u0, v1, y1), Q(u0, v0, y1), -ax)):
+        Ls = float(np.linalg.norm(pb - pa)); ts = (pb - pa) / Ls
+        m = max(1, int(Ls // 1.6)); otw = [box((k + .5) * Ls / m - .5, .8, (k + .5) * Ls / m + .5, 1.8) for k in range(m)] if Ls > 2 else []
+        fasada(S, g, "kabina_biala", pa, ts, kk, Ls, h, otw, gl=.08, mat_osc="kabina_biala")
+        for q in otw: szyba(S, g, pa, ts, kk, q, .06, 0, mat="witraz")
+    S.box(g, "kadlub", Q(u0 - .1, v0 - .1, y1 + h), ax, UP, bx, u1 - u0 + .2, .12, v1 - v0 + .2)
+    s0 = L * .74
+    S.box(g, "kabina_biala", Q(s0, Wd / 2 - 1.2, y1), ax, UP, bx, 2.2, 2.6, 2.4)
+    S.box(g, "kadlub", Q(s0 - .1, Wd / 2 - 1.3, y1 + 2.6), ax, UP, bx, 2.4, .12, 2.6)
+    for (pa, pb) in ((Q(.2, .15, y1), Q(L - 3.2, .15, y1)), (Q(L - 3.2, Wd - .15, y1), Q(.2, Wd - .15, y1))):
+        tt = nrm(pb - pa); Lr = float(np.linalg.norm(pb - pa))
+        S.box(g, "latarnia_czarna", pa + UP * .9, tt, UP, nrm(np.cross(UP, tt)), Lr, .04, .04)
+        for k in np.arange(0, Lr, 1.5): S.rura(g, "latarnia_czarna", pa + tt * k, pa + tt * k + UP * .9, .02, seg=4)
+
+
+def _prostokat(P):
+    """Prostokąt opisany: narożnik o, oś długa ax (L), krótka bx (W)."""
+    r = list(P.minimum_rotated_rectangle.exterior.coords)[:4]
+    e1 = np.subtract(r[1], r[0]); e2 = np.subtract(r[2], r[1])
+    if np.linalg.norm(e1) < np.linalg.norm(e2): r = r[1:] + r[:1]; e1, e2 = e2, e1
+    L, Wd = float(np.linalg.norm(e1)), float(np.linalg.norm(e2))
+    return np.array([r[0][0], 0, r[0][1]]), np.array([e1[0], 0, e1[1]]) / L, np.array([e2[0], 0, e2[1]]) / Wd, L, Wd
+
+
+def okiennica(S, g, o, t, n, u0, u1, v0, v1):
+    """Drewniana okiennica z deskami i zastrzałem „Z” (IMG_2010), 4 cm przed licem."""
+    P = lambda u, v, d: o + t * u + UP * v - n * d
+    S.box(g, "deska_ciemna", P(u0, v0, -.02), t, UP, n, u1 - u0, v1 - v0, .04, bez=("-z",))
+    for v in (v0 + .12, v1 - .22):
+        S.box(g, "deska_ciemna", P(u0 + .04, v, -.06), t, UP, n, u1 - u0 - .08, .1, .03, bez=("-z",))
+    A = P(u0 + .08, v0 + .2, -.06); Bq = P(u1 - .08, v1 - .3, -.06); dl = float(np.linalg.norm(Bq - A)); tt = (Bq - A) / dl
+    S.box(g, "deska_ciemna", A - nrm(np.cross(tt, n)) * .05, tt, nrm(np.cross(tt, n)), n, dl, .1, .03)
+
+
+def okno_lukowe(S, g, o, t, n, uc, v0, w, h, k_nr, gl=.25):
+    """Małe okno z łukiem odcinkowym (spichrze): otwór, szyba, rama z krzyżem."""
+    q = Polygon([(uc - w / 2, v0), (uc + w / 2, v0), (uc + w / 2, v0 + h - .12)] + [(uc + w / 2 * math.cos(a), v0 + h - .12 + .12 * math.sin(a) / max(math.sin(math.pi / 2), 1e-6)) for a in np.linspace(0, math.pi, 7)[1:-1]] + [(uc - w / 2, v0 + h - .12)])
+    return q
+
+
+def spichrz_lukowy(S, g, P, k0=0):
+    """Spichlerz z łukowym szczytem (Grodzka 7, IMG_2009–2012): ściany boczne 3,2 m (mur pruski: czarne belki, białe
+    wypełnienie), dach o przekroju ostrołuku do ok. 14 m z dachówki z rzędami małych lukarn, szczyty otynkowane (beż,
+    zabrudzony dół), ciemna deska wiatrowa po łuku, małe okna z łukiem odcinkowym, okiennice „Z”, drewniane wrota."""
+    o, ax, bx, L, Wd = _prostokat(P)
+    a = Wd / 2; y0 = 3.2; H = min(11.5, Wd * 1.15); R = (H * H + a * a) / (2 * a)
+    xs = np.linspace(a, 0, 13)
+    prawa = [(x, y0 + math.sqrt(max(R * R - (x - (a - R)) ** 2, 0))) for x in xs]
+    profil = [(-x, y) for x, y in prawa[::-1][:-1]][::-1] if False else [(-x, y) for x, y in prawa] [::-1][:-1] + prawa[::-1]
+    profil = [(-x, y) for (x, y) in prawa] + [(x, y) for (x, y) in prawa[::-1][1:]]   # od lewego okapu przez szczyt do prawego
+    profil = sorted(set(profil), key=lambda p: p[0])
+    c0 = o + bx * a                                                      # oś podłużna (środek szerokości)
+    Q = lambda s, x, y: c0 + ax * s + bx * x + UP * y
+    # szczyty (oba końce): ściana o obrysie ostrołuku z oknami
+    for (s, kier) in ((0.0, -ax), (L, ax)):
+        t_ = bx if kier is ax else -bx
+        sx = 1 if kier is ax else -1
+        orig = Q(s, -a * sx, 0)
+        obrys = Polygon([(0, 0), (Wd, 0)] + [((a + x * sx), y) for (x, y) in profil[::-1 if sx > 0 else 1]] if False else
+                        [(0, 0), (Wd, 0)] + [(a + x, y) for (x, y) in sorted(profil, key=lambda p: -p[0])]).buffer(0)
+        if sx < 0: obrys = shapely.affinity.scale(obrys, -1, 1, origin=(a, 0))
+        otw = [box(a - 1.0, 0, a + 1.0, 3.0), okno_lukowe(S, g, orig, t_, kier, a - 2.6, .6, .9, 1.2, 0), okno_lukowe(S, g, orig, t_, kier, a + 2.6, .6, .9, 1.2, 0),
+               okno_lukowe(S, g, orig, t_, kier, a - 2.3, 3.9, .9, 1.25, 0), okno_lukowe(S, g, orig, t_, kier, a + 2.3, 3.9, .9, 1.25, 0),
+               box(a - .7, 3.9, a + .7, 5.2), okno_lukowe(S, g, orig, t_, kier, a - 1.0, 7.0, .8, 1.1, 0), okno_lukowe(S, g, orig, t_, kier, a + 1.0, 7.0, .8, 1.1, 0),
+               okno_lukowe(S, g, orig, t_, kier, a, 10.0, .8, 1.0, 0)]
+        otw = [q for q in otw if obrys.buffer(-.4).contains(q)]
+        fasada(S, g, "k_szarobez", orig, t_, kier, Wd, y0 + H, otw, gl=.25, mat_osc="k_szarobez", obrys=obrys)
+        for k, q in enumerate(otw):
+            u0, v0, u1, v1 = q.bounds
+            if v0 < .1:                                                       # wrota dwuskrzydłowe
+                S.box(g, "deska_ciemna", orig + t_ * u0 + UP * .0 - kier * .2, t_, UP, kier, u1 - u0, v1 - v0, .05)
+                continue
+            szyba(S, g, orig, t_, kier, q, .22, k0 + k, mat="witraz")
+            rama(S, g, orig, t_, kier, q, .2, w=.06, mat="deska_ciemna", slupki=[(u0 + u1) / 2], rygle=[(v0 + v1) / 2 + .1])
+            if 3.5 < v0 < 5 and (u1 - u0) < 1.0:                              # okiennice przy oknach I piętra
+                okiennica(S, g, orig, t_, kier, u1 + .05, u1 + .75, v0, v1); okiennica(S, g, orig, t_, kier, u0 - .75, u0 - .05, v0, v1)
+        # deska wiatrowa po łuku (ciemna, 0,35 m, 6 cm przed szczytem)
+        for (x0_, y0_), (x1_, y1_) in zip(profil, profil[1:]):
+            A = Q(s, x0_, y0_) + kier * .06; Bq = Q(s, x1_, y1_) + kier * .06
+            tt = nrm(Bq - A); nn = nrm(np.cross(kier, tt))
+            if nn[1] < 0: nn = -nn
+            S.quad(g, "belka_ciemna", A - nn * .35, Bq - nn * .35, Bq + nn * .05, A + nn * .05, kier=kier)
+    # dach: wyciągnięty ostrołuk (okap 0,3 m na szczytach)
+    for (x0_, y0_), (x1_, y1_) in zip(profil, profil[1:]):
+        p = [Q(-.3, x0_, y0_ + .02), Q(-.3, x1_, y1_ + .02), Q(L + .3, x1_, y1_ + .02), Q(L + .3, x0_, y0_ + .02)]
+        nn = nrm(bx * (x0_ + x1_) / 2 + UP * ((y0_ + y1_) / 2 - y0 + .5))
+        S.quad(g, "dachowka", *p, kier=nn)
+    # ściany boczne 3,2 m z murem pruskim i małymi oknami
+    for (sx) in (-1, 1):
+        a3 = Q(0 if sx > 0 else L, sx * a, 0); t_ = ax if sx > 0 else -ax; n_ = bx * sx
+        okn = [(u - .35, u + .35, .9, 1.9, "okno_t", 0) for u in np.arange(1.6, L - 1.0, 2.6)]
+        fasada(S, g, "k_bialy", a3, t_, n_, L, y0 + .2, [box(u0, v0, u1, v1) for (u0, u1, v0, v1, r, pp) in okn], gl=.15, mat_osc="k_bialy")
+        for k, (u0, u1, v0, v1, r, pp) in enumerate(okn):
+            szyba(S, g, a3, t_, n_, box(u0, v0, u1, v1), .14, k0 + 20 + k, mat="witraz")
+        B.S = S
+        ogolny.mur_pruski(S, g, a3, t_, n_, L, okn, y0, 3.0, 1, y0, 2.6, 0.0, int(L // 2.6))
+        # lukarny w rzędach na połaci (IMG_2009: 4 rzędy)
+        for j, yy in enumerate((y0 + 2.0, y0 + 4.4, y0 + 6.6, y0 + 8.6)):
+            if yy > y0 + H - 1.2: break
+            xx = next((x for x, y in prawa if y >= yy), a * .3)
+            for s in np.arange(1.4 + (j % 2) * 1.1, L - 1.0, 2.2):
+                F = Q(s, sx * (xx + .02), yy); tt = ax; nn = bx * sx
+                w, h = .9, .8
+                S.quad(g, "deska_ciemna", F - tt * w / 2, F + tt * w / 2, F + tt * w / 2 + UP * h, F - tt * w / 2 + UP * h, kier=nn)
+                S.quad(g, "witraz", F - tt * .28 + nn * .01 + UP * .15, F + tt * .28 + nn * .01 + UP * .15, F + tt * .28 + nn * .01 + UP * .62, F - tt * .28 + nn * .01 + UP * .62, kier=nn)
+                T = F + UP * (h + .35) - nn * .3
+                for (p0, p1) in ((F - tt * (w / 2 + .12) + UP * (h - .05) + nn * .15, T), (T, F + tt * (w / 2 + .12) + UP * (h - .05) + nn * .15)):
+                    pass
+                L0 = F - tt * (w / 2 + .12) + UP * (h - .05) + nn * .15; R0 = F + tt * (w / 2 + .12) + UP * (h - .05) + nn * .15
+                L1 = L0 - nn * 1.3 + UP * .1; R1 = R0 - nn * 1.3 + UP * .1; T0 = F + UP * (h + .32) + nn * .15; T1 = T0 - nn * 1.3
+                S.quad(g, "dachowka", L0, T0, T1, L1, kier=nrm(UP - tt * .6)); S.quad(g, "dachowka", T0, R0, R1, T1, kier=nrm(UP + tt * .6))
+                S.tri_list(g, "deska_ciemna", [F - tt * w / 2 + UP * h, F + tt * w / 2 + UP * h, F + UP * (h + .3) + nn * .01], nn, tt, [(0, 0), (1, 0), (.5, .3)], None, [0, 1, 2])
+
+
+def spichrz_ceglany(S, g, P, k0=0):
+    """Spichlerz ceglany ze schodkowym szczytem (Grodzka 9, IMG_2011–2012): dwie dolne kondygnacje w beżowym tynku
+    z drewnianymi wrotami-okiennicami, wyżej czerwona cegła z małymi oknami z łukiem odcinkowym, gzyms, szczyt schodkowy
+    z kotwami „X”, dach 58° z dachówki."""
+    o, ax, bx, L, Wd = _prostokat(P)
+    a = Wd / 2; Hw = 10.8; tg = math.tan(math.radians(58)); Hs = a * tg
+    c0 = o + bx * a
+    Q = lambda s, x, y: c0 + ax * s + bx * x + UP * y
+    # ściany boczne (przy sąsiadach — gładka cegła, bez okien)
+    for sx in (-1, 1):
+        a3 = Q(0 if sx > 0 else L, sx * a, 0); t_ = ax if sx > 0 else -ax
+        fasada(S, g, "c_czerwona", a3, t_, bx * sx, L, Hw, [])
+    for (s, kier) in ((0.0, -ax), (L, ax)):
+        t_ = bx if kier is ax else -bx; sx = 1 if kier is ax else -1
+        orig = Q(s, -a * sx, 0)
+        # schodkowy obrys szczytu: stopnie co 1,4 m wysokości
+        pts = [(0, 0), (Wd, 0), (Wd, Hw)]
+        stopnie = int(Hs // 1.4)
+        for k in range(1, stopnie + 1):
+            y = Hw + k * 1.4; x_in = (y - Hw) / tg
+            pts += [(Wd - x_in + .25, y - 1.4 + .0), (Wd - x_in + .25, y)] if False else [(Wd - max(x_in - .35, 0), Hw + (k - 1) * 1.4 + .0), (Wd - max(x_in - .35, 0), y)]
+        szczyt = Hw + Hs + .4
+        pts += [(a + .45, szczyt), (a - .45, szczyt)]
+        lewa = [(Wd - x, y) for (x, y) in pts[3:-2]][::-1]
+        pts += lewa + [(0, Hw)]
+        obrys = Polygon(pts).buffer(0)
+        dol = box(0, 0, Wd, 5.6)
+        otw = [box(.6, 0, 2.2, 3.2), box(Wd - 2.2, 0, Wd - .6, 3.2), luk_pol(a - .7, a + .7, 0, 2.6, 8)]
+        for v, n_ in ((3.9, 4), (6.6, 4), (9.0, 4), (11.8, 4), (14.2, 3), (16.4, 1)):
+            for k in range(n_):
+                uc = a + (k - (n_ - 1) / 2) * (Wd / 5.2)
+                q = okno_lukowe(S, g, orig, t_, kier, uc, v, .85, 1.25, 0)
+                if obrys.buffer(-.5).contains(q): otw.append(q)
+        gora = obrys.difference(dol)
+        fasada(S, g, "c_czerwona", orig, t_, kier, Wd, szczyt, [q for q in otw if q.bounds[1] >= 5.6], gl=.25, mat_osc="c_czerwona", obrys=gora)
+        fasada(S, g, "k_szarobez", orig, t_, kier, Wd, 5.6, [q for q in otw if q.bounds[1] < 5.6], gl=.25, mat_osc="k_szarobez", obrys=dol)
+        S.box(g, "c_czerwona", orig + t_ * -.05 + UP * (Hw - .05), t_, UP, -kier, Wd + .1, .25, .15, bez=("-z",))   # gzyms
+        for k, q in enumerate(otw):
+            u0, v0, u1, v1 = q.bounds
+            if v0 < .1:
+                S.box(g, "deska_ciemna", orig + t_ * u0 - kier * .2, t_, UP, kier, u1 - u0, v1 - v0, .05); continue
+            szyba(S, g, orig, t_, kier, q, .22, k0 + k, mat="witraz")
+            rama(S, g, orig, t_, kier, q, .2, w=.06, mat="kiosk_bialy", slupki=[(u0 + u1) / 2])
+        for (u, v) in ((a - 2.6, Hw + 1.2), (a + 2.6, Hw + 1.2), (a, Hw + 3.6), (.9, 9.8), (Wd - .9, 9.8), (a - 1.2, 7.9), (a + 1.2, 7.9)):
+            p_ = orig + t_ * u + UP * v - kier * -.03                           # kotwy „X”
+            for sgn in (1, -1):
+                A = p_ - t_ * .25 - UP * .25 * sgn; Bq = p_ + t_ * .25 + UP * .25 * sgn; tt = nrm(Bq - A)
+                S.box(g, "latarnia_czarna", A - nrm(np.cross(tt, kier)) * .025 * 0, tt, nrm(np.cross(kier, tt)), -kier, .72, .05, .03)
+    # dach dwuspadowy
+    for sx in (-1, 1):
+        p = [Q(-.05, sx * (a + .3), Hw - .3 * tg), Q(L + .05, sx * (a + .3), Hw - .3 * tg), Q(L + .05, 0, Hw + Hs), Q(-.05, 0, Hw + Hs)]
+        S.quad(g, "dachowka", *p, kier=nrm(bx * sx + UP))
+
+
 SAVOY = dict(kond=6, p0=5.4, hk=3.5, krok=3.9, tynk="k_bialy", kamien="s_jasny", h_kamien=9.2, h_luk=4.9, kolumny=True,
              tralki=(3, 4), attyka_tralki=True, dach_mat="dachowka", spadek=60, kal_max=3.2, lukarny=True)
 ZWEININGER = dict(kond=4, p0=5.0, hk=3.8, krok=4.2, tynk="k_piaskowy", kamien="kb_piaskowy", h_kamien=5.0, h_luk=4.4, kolumny=False,
                   wykusze=True, miedz_attyka=True, dach_mat="dachowka", spadek=50, kal_max=3.5, lukarny=False, szyld="szyld_klub")
 
 
-def zbuduj(budynki_osm, publ):
+def zbuduj(budynki_osm, publ, woda_y=-2.4):
     """Siatka trzech budynków skrzyżowania. budynki_osm: słownik osm → shapely (metry od kotwicy)."""
     from kit import Siatka
     S = Siatka(); B.S, stare = S, B.S
@@ -389,6 +592,9 @@ def zbuduj(budynki_osm, publ):
             cc = np.array([c[0], 0., c[1]]); kier = nrm(np.array([Q.centroid.x - c[0], 0., Q.centroid.y - c[1]]))
             wiezyczka(S, "zweininger", cc + kier * 2.6, 2.2, H + .65, 4.2)
         if OSM_KOSCIOL in budynki_osm: kosciol(S, "kosciol", budynki_osm[OSM_KOSCIOL])
+        if OSM_BARKA in budynki_osm: barka(S, "barka", budynki_osm[OSM_BARKA], woda_y)
+        if OSM_SPICHRZ_LUK in budynki_osm: spichrz_lukowy(S, "spichrz7", budynki_osm[OSM_SPICHRZ_LUK])
+        if OSM_SPICHRZ_CEGLA in budynki_osm: spichrz_ceglany(S, "spichrz9", budynki_osm[OSM_SPICHRZ_CEGLA])
     finally:
         B.S = stare
     return S
