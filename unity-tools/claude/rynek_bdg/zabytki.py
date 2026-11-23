@@ -282,7 +282,7 @@ def kosciol(S, g, P):
                 c = (k + .5) * L / m
                 otw.append(ostrolukowy(c - .75, c + .75, 2.6, 7.4))
                 if k < m - 1: otw.append(Point((k + 1) * L / m, 8.9).buffer(.42, 8))          # okulus
-        fasada(S, g, "c_sredniowieczna", a, t, n, L, Hm, otw, gl=.45, mat_osc="opaska")
+        fasada(S, g, "c_ceglasta", a, t, n, L, Hm, otw, gl=.45, mat_osc="opaska")
         for k, q in enumerate(otw):
             if q.area < 1.0:
                 szyba(S, g, a, t, n, q, .4, k, mat="witraz"); continue
@@ -299,18 +299,18 @@ def kosciol(S, g, P):
             m = int(L // 4.4)
             for k in range(1, m):
                 u = k * L / m
-                S.box(g, "c_sredniowieczna", a + t * (u - .45), t, UP, n, .9, Hm - 2.4, .9, bez=("-z",))
+                S.box(g, "c_ceglasta", a + t * (u - .45), t, UP, n, .9, Hm - 2.4, .9, bez=("-z",))
                 A0 = a + t * (u - .45) + UP * (Hm - 2.4) + n * .9; A1 = a + t * (u + .45) + UP * (Hm - 2.4) + n * .9
                 S.quad(g, "dachowka", A0, A1, A1 - n * .9 + UP * 1.2, A0 - n * .9 + UP * 1.2, kier=nrm(n + UP))   # daszek przypory
                 for (p_, q_) in ((A0, A0 - n * .9 + UP * 1.2), (A1, A1 - n * .9 + UP * 1.2)):
                     tri = [p_, q_, p_ - n * .9]
                     kk = -t if p_ is A0 else t
-                    S.tri_list(g, "c_sredniowieczna", tri if np.dot(np.cross(tri[1] - tri[0], tri[2] - tri[0]), kk) > 0 else tri[::-1], kk, n, [(0, 0), (1, 1), (1, 0)], None, [0, 1, 2])
+                    S.tri_list(g, "c_ceglasta", tri if np.dot(np.cross(tri[1] - tri[0], tri[2] - tri[0]), kk) > 0 else tri[::-1], kk, n, [(0, 0), (1, 1), (1, 0)], None, [0, 1, 2])
     # dach dwuspadowy nad prostokątem opisanym (nawa), szczyty na krótkich bokach z pinaklami
     R = shapely.geometry.polygon.orient(P.minimum_rotated_rectangle.buffer(-.3, join_style=2), 1.0); er = list(R.exterior.coords)
     dl = [math.hypot(xb - xa, zb - za) for (xa, za), (xb, zb) in zip(er, er[1:])]
     spadek = 58; tg = math.tan(math.radians(spadek))
-    ogolny.dach_kamienica(S, g, R, [d_ > .7 * max(dl) for d_ in dl], Hm, "dachowka", spadek, "c_sredniowieczna", 30.0, None, 4.0, False)
+    ogolny.dach_kamienica(S, g, R, [d_ > .7 * max(dl) for d_ in dl], Hm, "dachowka", spadek, "c_ceglasta", 30.0, None, 4.0, False)
     for ((xa, za), (xb, zb)), d_ in zip(zip(er, er[1:]), dl):
         if d_ > .7 * max(dl): continue
         a3 = np.array([xa, 0., za]); b3 = np.array([xb, 0., zb]); tt = (b3 - a3) / d_; nn = nrm(np.cross(UP, tt))
@@ -318,7 +318,7 @@ def kosciol(S, g, P):
         for f in (0, .2, .4, .5, .6, .8, 1.0):
             h = Hm + tg * (min(f, 1 - f) * d_) - .2
             p0 = a3 + tt * (f * d_) - tt * .28 + nn * .05 + UP * h
-            S.box(g, "c_sredniowieczna", p0, tt, UP, nn, .56, 1.5 if f not in (0, 1.0) else 1.0, .56)
+            S.box(g, "c_ceglasta", p0, tt, UP, nn, .56, 1.5 if f not in (0, 1.0) else 1.0, .56)
             top = p0 + tt * .28 + nn * .28 + UP * (2.4 if f not in (0, 1.0) else 1.8)
             base = p0 + UP * (1.5 if f not in (0, 1.0) else 1.0)
             rog = [base, base + tt * .56, base + tt * .56 + nn * .56, base + nn * .56]
@@ -339,8 +339,8 @@ def kosciol(S, g, P):
                 S.tri_list(g, mat, [p[0], p[1], p[2]] if np.dot(np.cross(p[1] - p[0], p[2] - p[0]), kk) > 0 else [p[0], p[2], p[1]], kk, nrm(p[1] - p[0]), [(0, 0), (1, 0), (.5, 1)], None, [0, 1, 2])
             else:
                 S.quad(g, mat, *p, kier=kk)
-    walec(r + 1.25, r, 0, 6.0, "c_sredniowieczna")                  # pochyły cokół (zdjęcie: skośna „spódnica” do ok. 6 m)
-    walec(r, r, 6.0, 31.0, "c_sredniowieczna")
+    walec(r + 1.25, r, 0, 6.0, "c_ceglasta")                  # pochyły cokół (zdjęcie: skośna „spódnica” do ok. 6 m)
+    walec(r, r, 6.0, 31.0, "c_ceglasta")
     walec(r + .2, r + .2, 30.7, 31.2, "opaska")                       # gzyms
     for k in range(4):                                              # zegary, pary okienek
         an = k * math.pi / 2 + .3; kk = np.array([math.cos(an), 0, math.sin(an)]); tt = np.array([-kk[2], 0, kk[0]])
