@@ -135,7 +135,7 @@ SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, 
            "bitumen": [.230, .214, .206], "gravel_floor_02": [.672, .656, .613], "painted_metal_shutter": [.502, .516, .527],
            "exterior_wall_cladding_03": [.678, .654, .607], "corrugated_iron_02": [.348, .345, .319], "red_bricks_04": [.386, .243, .145],
            "grass004": [.384, .431, .197], "herringbone_pavement_03": [.264, .232, .195], "red_brick_pavers": [.455, .250, .198],
-           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287], "plyty_szare": [.80, .80, .80]}
+           "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287], "plyty_szare": [.80, .80, .80], "granite_tile": [.306, .307, .308]}
 
 
 def tint(v):
@@ -171,7 +171,7 @@ P["szyld_lody"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [44, 44, 46], "szors
 P["deska"] = {"tex": "weathered_brown_planks", "m": 2.0, "kol": [120, 96, 72], "szorst": 1.0}
 P["trawa_ozdobna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [200, 184, 140], "szorst": 1.0}
 P["market_elewacja"] = {"tex": "plyty_szare", "m": 4.4, "kol": [204, 198, 186], "szorst": 1.0}   # kwadratowe płyty ~1,1 m (zdjęcia 18:47)
-P["slup_grafit"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [58, 62, 68], "szorst": .55}   # 20:25: słupy podcienia marketu
+P["slup_grafit"] = {"tex": "granite_tile", "m": 2.3, "kol": [72, 74, 76], "szorst": .35}   # 20:34: słupy podcienia — polerowany ciemny granit (płyty z fugami)
 P["posadzka"] = {"tex": BET, "m": 2.0, "kol": [168, 166, 160], "szorst": .8}
 P["pas_zielony"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [40, 120, 70], "szorst": .6}
 for _k in range(1, 5):
