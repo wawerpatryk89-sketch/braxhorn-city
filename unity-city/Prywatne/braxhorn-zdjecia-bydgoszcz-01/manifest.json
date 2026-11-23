@@ -1,6 +1,6 @@
 {
  "opis": "zdjęcia wzorcowe właściciela (Bydgoszcz) — do odwzorowania, nie do gry",
- "tar_sha256": "bb26711e2a069648a5c92786bafcd46670fe9a16bb52039adf8f2770efcf4ff5",
+ "tar_sha256": "3a25b07e0d674f25fc2382de459b366f37bcc80351861135458e11d24ddee654",
  "pliki": {
   "zdjecia/osiedle/o01.jpg": "c02850b235d4e6f83597af6d7243d1768589428a09c7d6c0b4f9093bbd80da6c",
   "zdjecia/osiedle/o02.jpg": "eb4c6cc2ca46ca85aad1008a04fd1b9608dc03715acdc821abda2c527a7e67e4",
@@ -23,6 +23,14 @@
   "zdjecia/osiedle/o108_market.jpg": "1452350e3e7295911668cad027c9422d20dd5c5da4a1e1c10ad05fce90ca1dd7",
   "zdjecia/osiedle/o109_market.jpg": "dda6b9a752a8f3207e26e1429b0c60490ff5c11ab46857dd9155c415677f1271",
   "zdjecia/osiedle/o11.jpg": "752202249ade54c02b11cb51fec5a0c76e9a17f036166b960c12bd4b6ee5c9d5",
+  "zdjecia/osiedle/o110_internet_market_szpital.jpg": "6570f6b74c8188490e960c32e87fa4ea699636f4e5b555382d367074adbd9700",
+  "zdjecia/osiedle/o111_internet_market_szpital.jpg": "ce52712dee0031390f05aeccbb7de62d6d34683e4f4b15d748c2677f56a186d6",
+  "zdjecia/osiedle/o112_internet_market_szpital.jpg": "69e692c32793d6e4f65e46964a8d36d45875dc9c200d7918acbb3174c69525c9",
+  "zdjecia/osiedle/o113_internet_market_szpital.jpg": "0522c842b3f792def139dd1543235b1e12954aa30355f382d3c9b2b7e96fb093",
+  "zdjecia/osiedle/o114_internet_market_szpital.jpg": "168e28260cae9f0133fb0bb1764e566d82815b3d1fcecbf883baff8f780e2493",
+  "zdjecia/osiedle/o115_internet_market_szpital.jpg": "e45dee60516d550f98143ecb7b5e837a33bcb214723c19edf58f4d5b7870a51d",
+  "zdjecia/osiedle/o116_szpital_lotnicze.jpg": "40f2a5a3b0d1a820d8431832d6d98c8d09de3c56e9877da49d23b34550d0ef4f",
+  "zdjecia/osiedle/o117_szpital.jpg": "28cf31b9172a0e13ba8dd50b98d2a80f7caf0ca796d0ce5c0d286130499dc4a4",
   "zdjecia/osiedle/o12.jpg": "fb419a95b12bfb844ad685c00b9adb1a20faae8059a27e41ef2e4b39cdb92a69",
   "zdjecia/osiedle/o13.jpg": "79e92cc4d6c9d8dfb849fd879716dd64b3ef7d1af8fadf8ce6230ffbff1e6080",
   "zdjecia/osiedle/o14.jpg": "20d9e7d802a980a3c8cf51d4560713bdbc221226ad4738333bb60c247edcd302",
@@ -157,12 +165,12 @@
   {
    "name": "part-000.cms",
    "bytes": 47185920,
-   "sha256": "594a1758f83cd85e90021fad419a0565b266cd8a72a351c39e125913fd27a40a"
+   "sha256": "d4b2f630ee76d76ffce796edb745d5ad6e914d65f9cab240d93c614984f6535c"
   },
   {
    "name": "part-001.cms",
-   "bytes": 37612101,
-   "sha256": "f27a9efafb29852bab2de4f8d476d3a6098b9e4ca3af53a6ddc75bee9de658b8"
+   "bytes": 41482821,
+   "sha256": "89bda328eea132954057b001a7912b97e5046bcc6c9622b615385416ce78d71d"
   }
  ]
 }

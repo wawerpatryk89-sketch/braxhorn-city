@@ -93,7 +93,7 @@ P = {
     "oprawa": {"tex": None, "kol": [90, 94, 98], "szorst": .4, "metal": .5},
     # budynki z obrysu (ogolny.py) — kolory: zdjęcia właściciela IMG_1669–1677, lotnicze IMG_1664–1668; reszta ZAŁOŻENIE
     "szpital_bialy": tynk([226, 228, 226], "brud_32a_wejscie.png"), "szpital_szary": tynk([196, 198, 200], "brud_32a_wejscie.png"),
-    "market_elewacja": {"tex": None, "kol": [214, 216, 218], "szorst": .55, "metal": .3},
+    "market_elewacja": {"tex": None, "kol": [210, 206, 198], "szorst": .55, "metal": .2},
     "tynk_szary": tynk([196, 194, 186], "brud_32a_wejscie.png"), "tynk_kremowy": tynk([222, 210, 180], "brud_32a_wejscie.png"),
     "tynk_bialy": tynk([232, 230, 224], "brud_32a_wejscie.png"), "tynk_attyka": tynk([180, 178, 172]),
     # bloki przy Wyszyńskiego (IMG_1722–1726, 23.11): pola kolorów — żółty, łososiowy, szaroliliowy, jasnozielony; nadbudówki beż
@@ -105,6 +105,10 @@ P = {
     # SOR biały z lądowiskiem (IMG_1727), przedszkole kremowe (IMG_1736–1737)
     "szkola_ziel": tynk([166, 192, 146], "brud_32a_wejscie.png"), "market_niebieski": {"tex": None, "kol": [30, 70, 150], "szorst": .45, "metal": .3},
     "market_rama": {"tex": None, "kol": [190, 192, 194], "szorst": .5, "metal": .2}, "market_szklo": {"tex": None, "kol": [70, 92, 110], "szorst": .06, "metal": .5},
+    "lamele": {"tex": None, "kol": [150, 155, 160], "szorst": .45, "metal": .6}, "szpital_panel": {"tex": None, "kol": [120, 124, 132], "szorst": .45, "metal": .4},
+    "szpital_krem": tynk([226, 216, 196], "brud_32a_wejscie.png"), "szpital_cegla": {"tex": None, "kol": [176, 92, 62], "szorst": .9},
+    "ladowisko_krzyz_tlo": {"tex": None, "kol": [190, 40, 36], "szorst": .8}, "ladowisko_krzyz": {"tex": None, "kol": [236, 236, 232], "szorst": .8},
+    "pole_logo": {"tex": None, "kol": [236, 238, 240], "szorst": .4},
     "ladowisko": {"tex": BET, "m": 2.0, "kol": [120, 124, 128], "szorst": 1.0}, "przedszkole": tynk([218, 204, 176], "brud_32a_wejscie.png"),
     "dachowka": {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [168, 70, 44], "szorst": .8},
     "palik": {"tex": "weathered_brown_planks", "m": 1.2, "kol": [150, 118, 84], "szorst": .9},

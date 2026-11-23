@@ -23,6 +23,7 @@ class ZdjeciaWlasciciela(unittest.TestCase):
 
     def test_zadnych_jawnych_zdjec(self):
         for p in BDG.rglob("*"):
+            if p.parent.name == "plan": continue          # nasze rysunki planu (nie zdjęcia właściciela)
             self.assertNotIn(p.suffix.lower(), (".png", ".jpg", ".jpeg", ".webp"), p)
 
 
