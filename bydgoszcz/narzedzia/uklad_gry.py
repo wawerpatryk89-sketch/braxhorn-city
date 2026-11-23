@@ -24,7 +24,7 @@ A = wytnij(os_, -200, 190, -200, 190)          # osiedle: 390 x 390 m
 B = wytnij(ry, -70, 215, -75, 470)             # stare miasto: 285 x 545 m
 # kotwice w grze (propozycja po słowach właściciela 02:18: cała północna strona WZDŁUŻ mapy, aż po nowe wieżowce,
 # bez wydłużania mapy): osiedle za lasem przy sklepie, stare miasto na zachód od niego, przy nowych dzielnicach.
-KA = (round(100.0 - 190 * K, 1), round(190.0 + 200 * K, 1))      # (0,0) = blok 32a; wycinek x -405..100, z 190..695
+KA = (round(100.0 - 190 * K, 1), round(250.0 + 200 * K, 1))      # (0,0) = blok 32a; wycinek x -405..100, z 250..755 (60 j. na rzekę od południa)
 KB = (round(-872.0 + 70 * K, 1), round(190.0 + 75 * K, 1))       # (0,0) = środek Starego Rynku; wycinek x -872..-503, z 190..895
 def gra(p, k): return [(round(k[0] + x * K, 2), round(k[1] + y * K, 2)) for x, y in p]
 def zapis(w, k, nazwa, opis):
@@ -68,15 +68,21 @@ rB = ax.add_patch(Rectangle((KB[0] - 70 * K, KB[1] - 75 * K), 285 * K, 545 * K, 
 rysuj(B, KB, "#c9a27a", rB)
 ax.text(KB[0] - 70 * K + 6, KB[1] + 470 * K - 26, "STARE MIASTO — Rynek, Mostowa,\nmost, Focha, Gdańska\n285 × 545 m = 369 × 705 j.", fontsize=9, color="#8a3f8f", zorder=8, bbox=dict(fc="#ffffffd0", ec="none"), va="top")
 ax.plot(*KB, "*", ms=11, color="#8a3f8f", zorder=9); ax.annotate("Stary Rynek", xy=KB, xytext=(KB[0] + 60, KB[1] - 70), fontsize=8, color="#8a3f8f", zorder=9)
-# laczniki (propozycja)
-ax.plot([-126, -126], [162, 190], color="#d1495b", lw=2.4, zorder=6); ax.annotate("wjazd obok sklepu", xy=(-126, 178), xytext=(-60, 215), fontsize=7, color="#d1495b", arrowprops=dict(arrowstyle="-", color="#d1495b"), zorder=9)
+# rzeka i laczniki (propozycja; wlasciciel 02:26: dwa laczniki albo wiadukt, rzeka zaokraglona, zeby tamtedy plynela)
+RZEKA = [(-503.2, 403.6), (-478, 362), (-452, 318), (-425, 272), (-392, 238), (-345, 220), (-250, 214), (-120, 214), (20, 216), (120, 222), (175, 232)]
+ax.add_patch(Polygon(pas(RZEKA, 22), closed=True, fc="#c5dbe9", ec="#8fb3cc", lw=.6, zorder=5))
+ax.text(-300, 208, "rzeka — z biegiem do morza", fontsize=7, color="#356184", zorder=9)
+def most(x0, z0, x1, z1, opis, tx, tz):
+    ax.plot([x0, x1], [z0, z1], color="#d1495b", lw=3.2, zorder=8, solid_capstyle="butt")
+    ax.annotate(opis, xy=((x0 + x1) / 2, (z0 + z1) / 2), xytext=(tx, tz), fontsize=7, color="#d1495b", arrowprops=dict(arrowstyle="-", color="#d1495b"), zorder=9, bbox=dict(fc="#ffffffd8", ec="none"))
+most(-126, 162, -126, 250, "MOST 1: wjazd z miasta obok sklepu", -40, 108)
 zj = KB[1] + 212 * K; zs = KA[1] + 57 * K
-ax.plot([-503, -405], [zj, zs], color="#d1495b", lw=2.4, zorder=6)
-ax.annotate("łącznik: Jagiellońska → Skłodowskiej-Curie\n(w grze ok. 100 j.; naprawdę 2,2 km)", xy=(-455, (zj + zs) / 2), xytext=(-480, 760), fontsize=7, color="#d1495b", arrowprops=dict(arrowstyle="-", color="#d1495b"), zorder=9, bbox=dict(fc="#ffffffd0", ec="none"))
-ax.plot([-700, -700], [180, 190], color="#d1495b", lw=2.4, zorder=6); ax.annotate("wjazd z nowych dzielnic", xy=(-700, 185), xytext=(-860, 150), fontsize=7, color="#d1495b", arrowprops=dict(arrowstyle="-", color="#d1495b"), zorder=9)
+most(-503, zj, -405, zs, "ŁĄCZNIK A (północny brzeg): Jagiellońska → Skłodowskiej-Curie\nna wiadukcie nad doliną; w grze ok. 100 j., naprawdę 2,2 km", -480, 800)
+most(-503, 345, -405, 300, "ŁĄCZNIK B: bulwar od Grodzkiej i MOST 2 przez rzekę\nna południe osiedla (Pestalozziego)", -610, 92)
+ax.plot([-700, -700], [180, 190], color="#d1495b", lw=3.2, zorder=8); ax.annotate("wjazd z nowych dzielnic (bez mostu — ten sam brzeg)", xy=(-700, 185), xytext=(-865, 140), fontsize=7, color="#d1495b", arrowprops=dict(arrowstyle="-", color="#d1495b"), zorder=9)
 ax.text(-860, -60, "nowe dzielnice (wieżowce)", fontsize=8, color="#444", zorder=6)
 ax.set_xlim(-900, 330); ax.set_ylim(-500, KB[1] + 470 * K + 40); ax.set_aspect("equal")
 ax.set_xlabel("x gry (jednostki; 1 j. = 0,773 m)", fontsize=8); ax.set_ylabel("z gry — północ w górę", fontsize=8); ax.tick_params(labelsize=7); ax.grid(color="#0000000f", lw=.5)
-ax.set_title("Propozycja: cała północna strona mapy — osiedle przy sklepie, stare miasto przy nowych wieżowcach", fontsize=12, loc="left")
+ax.set_title("Propozycja 2: północna strona mapy — rzeka między miastem a osiedlem, dwa łączniki", fontsize=12, loc="left")
 fig.text(.01, .006, "Miasto R1 z granic w kodzie (BraxMiastoGranice). Położenie siłowni przybliżone. Układ Bydgoszczy: © autorzy OpenStreetMap (ODbL).", fontsize=6.5, color="#555")
 fig.savefig(sys.argv[2], bbox_inches="tight", facecolor="white"); print("zapisano", sys.argv[2], "KA", KA, "KB", KB)

@@ -25,6 +25,23 @@
 
 Rysunek: `plany/propozycja-miejsca-miasto-r1.png`.
 
+### Rzeka i łączniki (właściciel 02:26)
+
+*„Łącznik Jagiellońska–Skłodowska to mogą być dwa, nie jeden, albo jeden przez wiadukt, który trzeba przejechać
+(…) tam też rzeka może płynąć, tę rzekę może jakoś zaokrąglić, że tam przepływa”.*
+
+Propozycja 2 na rysunku:
+
+- **Rzeka** wypływa ze starego miasta spod mostu przy Mostowej, zakręca łukiem na południowy wschód i płynie
+  między lasem Miasta R1 a osiedlem do morza (korytarz z 190…240). Osiedle odsunięte o 60 j. na północ:
+  blok 32a = (−145,9; **508,8**), wycinek z 250…755.
+- **Most 1** — wjazd z miasta obok sklepu, przez rzekę.
+- **Łącznik A** (północny brzeg) — Jagiellońska → Skłodowskiej-Curie, na wiadukcie nad doliną.
+- **Łącznik B** — bulwar od Grodzkiej i **most 2** przez rzekę na południe osiedla (ul. Pestalozziego).
+- Wjazd z nowych dzielnic na Stary Rynek bez mostu: ten sam brzeg.
+
+Przebieg rzeki poza starym miastem jest wymyślony (w Bydgoszczy Brda płynie inaczej) — to decyzja właściciela.
+
 ## Co jest w tym folderze
 
 | Plik | Co to |
@@ -40,7 +57,7 @@ Rysunek: `plany/propozycja-miejsca-miasto-r1.png`.
 
 **Dane.** Źródło: OpenStreetMap, pobrane 23.11.2026 (`api.openstreetmap.org`). Każdy budynek ma obrys
 (`obrys_xz`), adres, rodzaj, liczbę pięter (jeśli jest w mapie), długość, szerokość i kąt. Jednostka gry =
-metr × 1,294; x na wschód, z na północ. Punkt zerowy osiedla (blok 32a) = (−145,9; 448,8), Starego Rynku =
+metr × 1,294; x na wschód, z na północ. Punkt zerowy osiedla (blok 32a) = (−145,9; 508,8), Starego Rynku =
 (−781,4; 287,1) — to jedna para liczb w `narzedzia/uklad_gry.py`, gdyby miejsce miało być inne.
 
 **Licencja mapy:** ODbL. Gra, która korzysta z tego układu, potrzebuje w napisach wpisu
