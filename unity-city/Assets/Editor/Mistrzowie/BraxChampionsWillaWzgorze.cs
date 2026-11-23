@@ -182,8 +182,15 @@ public static partial class BraxChampionsWille
             float t0 = s < 0f ? -7.95f : 6.75f, t1 = s < 0f ? -6.75f : 7.95f, open = s < 0f ? -6.75f : 6.75f;
             Schody(floorGf, t0, t1, -.5f, 0f, AF1, 20, .285f, open);
             if (s < 0f) Balustrada(true, 5.23f, -6.75f, -5.05f, AF1); else Balustrada(true, 5.23f, 5.05f, 6.75f, AF1);
-            Oczka(xa + 1.5f, xa + 1.5f, -1.8f, 10.2f, 6.0f, 2.4f);
+            Oczka(xa + 1.5f, xa + 1.5f, -1.8f, 10.2f, 5.98f, 2.4f);                       // under the links' plaster ceiling (W1Wnetrze)
         }
+        // 23.11 23:10 the links' doorways into the wings framed and hung like every other door (they were bare holes, their
+        // reveals the render): the frame the outside wall's full depth
+        Drzwi("łącznik W", false, -8f - T * .5f, -2.4f, -1.4f, 0f, 2.4f, .018f, .018f, T * .5f);
+        Drzwi("łącznik W piętro", false, -8f - T * .5f, 7.6f, 8.5f, AF1, 2.3f, .018f, .018f, T * .5f);
+        Drzwi("łącznik E", false, 8f + T * .5f, -2.4f, -1.4f, 0f, 2.4f, .018f, .018f, T * .5f);
+        Drzwi("łącznik E pralnia", false, 8f + T * .5f, 9.4f, 10.4f, 0f, 2.4f, .018f, .018f, T * .5f);
+        Drzwi("łącznik E piętro", false, 8f + T * .5f, 7.6f, 8.5f, AF1, 2.3f, .018f, .018f, T * .5f);
         // the powder room under the west landing
         Scianka(true, 9f, -8f, -5f, 0f, AF1 - .3f, new Vector2(-6.4f, -5.6f)); Drzwi("WC", true, 9f, -6.4f, -5.6f, 0f);
         Lazienka(-8f, -5f, 9.06f, 11.7f, 0f, new Vector3(1f, -6.4f, -5.6f), 0f, 0f);

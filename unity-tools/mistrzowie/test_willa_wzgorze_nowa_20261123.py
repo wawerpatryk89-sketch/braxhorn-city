@@ -66,6 +66,9 @@ class Materialy(unittest.TestCase):
 
     def test_the_facade(self):
         self.assertIn('elewacja = Tynk("willa1_elewacja_biel"', NOWA)
+        # 23:10 "nie ma szarych ścian": the walls inside the island villa's cream (its Tynk, the same target)
+        self.assertIn('renderIn = Inside(Tynk("willa1_sciany_krem", new Color(.93f, .88f, .79f), 2f), .80f);', NOWA)
+        self.assertIn('Tynk("willa2_sciany_krem", new Color(.93f, .88f, .79f), 2f)', (ED / "BraxChampionsWillaWyspaPremium.cs").read_text(encoding="utf-8"))
         self.assertIn('stone = F("willa1_kamien_mur", "rock_wall_04"', NOWA)
         self.assertIn('soffit = F("willa1_drewno_sosna", "coated_pine"', NOWA)
         self.assertGreaterEqual(PLAN.count("ScianaOE(stone,"), 5)                    # the ground floors' ends, the garage's side
@@ -77,6 +80,9 @@ class Materialy(unittest.TestCase):
         body = NOWA[NOWA.index("static void W1Wnetrze"):]
         self.assertGreaterEqual(body.count("MM(wPanel,"), 4)
         self.assertGreaterEqual(body.count("MM(wCegla,"), 4)
+        # the guest suite's west wall (the E wing's outside render) plastered cream indoors, clear of its door
+        self.assertIn("foreach (var (z0, z1) in new[] { (4.28f, 10.16f), (10.24f, 11.54f), (12.56f, 13.72f) })", body)
+        self.assertIn("MM(renderIn, 15.98f, 16.01f, y - .02f, top + .02f, z0, z1, false);", body)
 
 
 class OknaIDrzwi(unittest.TestCase):
@@ -96,7 +102,10 @@ class OknaIDrzwi(unittest.TestCase):
         self.assertGreater(.065, .04 + .015)
         # an outside wall's doors: the frame the wall's full depth
         self.assertIn('Drzwi("do garażu", false, GX1 - T * .5f, 6.5f, 7.45f, 0f, 2.25f, .018f, .018f, T * .5f);', VILLA)
-        self.assertEqual(PLAN.count(".018f, .018f, T * .5f);"), 2)
+        self.assertEqual(PLAN.count(".018f, .018f, T * .5f);"), 7)                               # + the links' five doorways (23:10)
+        for d in ('"łącznik W", false, -8f - T * .5f, -2.4f, -1.4f, 0f, 2.4f', '"łącznik E pralnia", false, 8f + T * .5f, 9.4f, 10.4f, 0f, 2.4f',
+                  '"łącznik E piętro", false, 8f + T * .5f, 7.6f, 8.5f, AF1, 2.3f'):
+            self.assertIn(d, PLAN)
         for d in ('"sypialnia 2", true, 1f, -9.0f, -8.1f, y, 2.25f, NaOkl, NaOkl', '"garderoba 1", true, -.5f, -11.4f, -10.6f, y, 2.25f, NaOkl'):
             self.assertIn(d, VILLA + PLAN)
 
@@ -128,6 +137,28 @@ class Sypialnie(unittest.TestCase):
     def test_a_tv_in_every_bedroom(self):
         for tv in ('" sypialnia 1 TV"', '" sypialnia 2 TV"', '" sypialnia główna TV"', '" sypialnia gościnna TV"'):
             self.assertIn(tv, PLAN)
+
+
+class BezSzarychScian(unittest.TestCase):
+    """23:10 "Pamiętaj, nie ma szarych ścian": every wall seen indoors in the cream plaster - the links' and the guest
+    suite's walls were the wings' outside render (grey indoors)."""
+
+    def test_the_links_plastered(self):
+        self.assertIn("static void Tynkuj(float px, float s, float z0, float z1, float y0, float y1, params Vector4[] holes)", NOWA)
+        self.assertIn("float a = px + s * .001f, c = px + s * .012f;", NOWA)                   # 1 mm off the face, 1.1 cm thick
+        self.assertEqual(NOWA.count("Tynkuj(wing, inW,"), 3)
+        self.assertEqual(NOWA.count("Tynkuj(hall, inH,"), 2)
+        self.assertIn("MM(ceiling, xa + .004f, xb - .004f, 5.98f, 6.0f, -2.80f, 11.80f, false);", NOWA)
+        self.assertIn("Oczka(xa + 1.5f, xa + 1.5f, -1.8f, 10.2f, 5.98f, 2.4f);", PLAN)
+        # the holes the walls' own openings (ScianaOE), the hall's 3 m openings' reveals lined
+        self.assertIn("new Vector4(5.6f, 8.6f, 0f, 3.0f)", NOWA)
+        self.assertIn("new Vector4(7.5f, 10.5f, 0f, 3.0f)", NOWA)
+        self.assertIn("ScianaOE(elewacja, false, -5f, -10f, 14f, 0f, AE, -1f, false, RogZ(-10f, 14f, true), new Vector4(5.6f, 8.6f, 0f, 3.0f));", PLAN)
+        self.assertIn("ScianaOE(elewacja, false, 5f, -10f, 14f, 0f, AE, 1f, false, RogZ(-10f, 14f, true), new Vector4(7.5f, 10.5f, 0f, 3.0f));", PLAN)
+        self.assertIn("MM(renderIn, r0, r1, oh - .012f, oh - .001f, o0 + .001f, o1 - .001f, false);", NOWA)
+
+    def test_the_guest_suites_west_wall_plastered(self):
+        self.assertIn("MM(renderIn, 15.98f, 16.01f, y + 2.30f, top + .01f, 11.50f, 12.60f, false);", NOWA)
 
 
 class Wspornik(unittest.TestCase):

@@ -37,7 +37,8 @@ public static partial class BraxChampionsWille
         // the render: smooth warm white, inside and out (the scanned stucco read as raw concrete; the old paint had no grain)
         elewacja = Tynk("willa1_elewacja_biel", new Color(.96f, .95f, .92f), 2f); BraxChampionsInteriorLight.Facade(elewacja);
         render = elewacja;
-        renderIn = Inside(Tynk("willa1_sciany_biel", new Color(.94f, .91f, .85f), 2f), .80f);
+        // the walls inside the island villa's cream (owner 23.11 23:10 "Pamiętaj, nie ma szarych ścian")
+        renderIn = Inside(Tynk("willa1_sciany_krem", new Color(.93f, .88f, .79f), 2f), .80f);
         ceiling = Inside(Tynk("willa1_sufit", new Color(.97f, .96f, .92f), 2f), .95f);
         // the drystone (Rock Wall 04, 2.27 m), warm; the same stone at the fire
         stone = F("willa1_kamien_mur", "rock_wall_04", 2.27f, new Color(.60f, .52f, .42f), MeanRockWall04); BraxChampionsInteriorLight.Facade(stone);
@@ -152,6 +153,37 @@ public static partial class BraxChampionsWille
         MM(wCegla, -15.72f, -11.45f, y - .02f, top, zs(-.5f), ze(-.5f), false);
         MM(wPanel, 9.75f, 14.65f, y - .02f, top, zs(.4f), ze(.4f), false);
         MM(wPanel, 18.35f, 25.72f, y - .02f, top, zs(10.2f), ze(10.2f), false);
+        // 23.11 23:10 "nie ma szarych ścian": the guest suite's west wall is the E wing's outside (its white render, read grey
+        // indoors) - the cream plaster over it, 1 cm proud, its ends in the walls, floor and ceiling; clear of the door to
+        // the E wing (11.6..12.5, its architraves 8 cm on either side cover the ends)
+        foreach (var (z0, z1) in new[] { (4.28f, 10.16f), (10.24f, 11.54f), (12.56f, 13.72f) })
+            MM(renderIn, 15.98f, 16.01f, y - .02f, top + .02f, z0, z1, false);
+        MM(renderIn, 15.98f, 16.01f, y + 2.30f, top + .01f, 11.50f, 12.60f, false);       // over the door (its head's architrave)
+        // the glass links (x -8..-5, 5..8, the stairs and landings): their side walls are the wings' and the hall's outsides
+        // (the white render, grey indoors) - the cream plaster over them clear of the glass fronts (z -2.85, 11.85), round
+        // the openings; under their roofs the ceiling (W1Wnetrze's links: Tynkuj; the downlights under it at 5.98)
+        foreach (float sd in new[] { -1f, 1f })
+        {
+            float wing = sd * 8f, hall = sd * 5f, inW = -sd, inH = sd;        // the link lies between: off the wing toward the hall
+            float gEnd = sd < 0f ? 8.96f : 11.72f;                             // the W link's powder room (z 9.06..11.7) has its own
+            var drzwi = new Vector4(-2.4f, -1.4f, 0f, 2.4f);
+            // 1 mm over the floors (no face on theirs), the two storeys meeting 5 cm under the landing's floor (in its slab),
+            // the landing's door's opening down into the slab (no ledge on the floor's face)
+            const float u = .001f, mid = AF1 - .05f;
+            if (sd < 0f) Tynkuj(wing, inW, -2.80f, gEnd, u, mid, drzwi);
+            else Tynkuj(wing, inW, -2.80f, gEnd, u, mid, drzwi, new Vector4(9.4f, 10.4f, 0f, 2.4f));
+            Tynkuj(wing, inW, -2.80f, 11.80f, mid, 5.99f, new Vector4(7.6f, 8.5f, mid, AF1 + 2.3f));
+            Tynkuj(hall, inH, -2.80f, gEnd, u, mid, sd < 0f ? new Vector4(5.6f, 8.6f, 0f, 3.0f) : new Vector4(7.5f, 10.5f, 0f, 3.0f));
+            Tynkuj(hall, inH, -2.80f, 11.80f, mid, 5.99f);
+            float xa = Mathf.Min(wing, hall), xb = Mathf.Max(wing, hall);
+            MM(ceiling, xa + .004f, xb - .004f, 5.98f, 6.0f, -2.80f, 11.80f, false);
+            // the hall's 3 m openings to the links (no doors): their reveals (the outer half of the wall the render) lined in
+            // the plaster, 1 mm off the reveals, flush with the link's plaster, out 1.1 cm past the hall's face
+            float o0 = sd < 0f ? 5.6f : 7.5f, o1 = sd < 0f ? 8.6f : 10.5f, oh = 3.0f;
+            float r0 = Mathf.Min(hall + inH * .012f, hall - inH * (T + .011f)), r1 = Mathf.Max(hall + inH * .012f, hall - inH * (T + .011f));
+            MM(renderIn, r0, r1, u, oh - .012f, o0 + .001f, o0 + .012f, false); MM(renderIn, r0, r1, u, oh - .012f, o1 - .012f, o1 - .001f, false);
+            MM(renderIn, r0, r1, oh - .012f, oh - .001f, o0 + .001f, o1 - .001f, false);
+        }
     }
 
     // ---------------------------------------------------------------- 22:32 "zobacz na internecie jak to robią"
@@ -189,6 +221,28 @@ public static partial class BraxChampionsWille
         Lawka(new Vector3((px0 + px1) * .5f, y + .04f, pz0 + 1.3f), Vector3.forward, 2.4f);
         Lezaki(new Vector3(18.0f, y + .04f, 12.3f), 3, 2.2f, Vector3.back);
         W.Lampa("dach garażu | pergola", new Vector3((px0 + px1) * .5f, ph - .2f, (pz0 + pz1) * .5f), .5f, 6f * K, new Color(1f, .86f, .64f));
+    }
+    /// <summary>The cream plaster (renderIn) over a wall's face on the plane x = px toward the room (s: the room's side), z
+    /// z0..z1, y y0..y1, round the openings (x..y along z, z..w up): 1.1 cm thick, 1 mm off the face (no face on the wall's
+    /// own, none on its reveals'), split on the openings' edges.</summary>
+    static void Tynkuj(float px, float s, float z0, float z1, float y0, float y1, params Vector4[] holes)
+    {
+        Out_(false);
+        var zs = new System.Collections.Generic.List<float> { z0, z1 }; var ys = new System.Collections.Generic.List<float> { y0, y1 };
+        foreach (var o in holes) { zs.Add(Mathf.Clamp(o.x, z0, z1)); zs.Add(Mathf.Clamp(o.y, z0, z1)); ys.Add(Mathf.Clamp(o.z, y0, y1)); ys.Add(Mathf.Clamp(o.w, y0, y1)); }
+        zs.Sort(); ys.Sort();
+        float a = px + s * .001f, c = px + s * .012f;
+        for (int i = 0; i + 1 < zs.Count; i++)
+        {
+            if (zs[i + 1] - zs[i] < .01f) continue;
+            for (int j = 0; j + 1 < ys.Count; j++)
+            {
+                if (ys[j + 1] - ys[j] < .01f) continue;
+                float cz = (zs[i] + zs[i + 1]) * .5f, cy = (ys[j] + ys[j + 1]) * .5f; bool hole = false;
+                foreach (var o in holes) if (cz > o.x && cz < o.y && cy > o.z && cy < o.w) { hole = true; break; }
+                if (!hole) MM(renderIn, Mathf.Min(a, c), Mathf.Max(a, c), ys[j], ys[j + 1], zs[i], zs[i + 1], false);
+            }
+        }
     }
     /// <summary>Vertical pine fins on the upper floor of a wall on the plane x = px (its outer face; s = outward), along z
     /// z0..z1, every 16 cm, skipping the gaps (the windows).</summary>
