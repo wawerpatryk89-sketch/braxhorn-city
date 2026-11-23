@@ -86,8 +86,8 @@ class CurtainWall(unittest.TestCase):
 
     def test_units_off_true_as_real_insulating_units(self):
         u = SRC[SRC.index("static void Unit("):SRC.index("static void Bar(")]
-        self.assertIn("(Rand(seed)-.5f)*1.2f*Mathf.Deg2Rad", u)      # +-.6 degrees about the vertical
-        self.assertIn("*.8f*Mathf.Deg2Rad", u)                         # +-.4 about the horizontal
+        self.assertIn("(Rand(seed)-.5f)*1.2f*unitTilt*Mathf.Deg2Rad", u)      # +-.6 degrees about the vertical
+        self.assertIn("*.8f*unitTilt*Mathf.Deg2Rad", u)                 # +-.4 about the horizontal (a third on the twisting T08, 23.11)
         # the largest tilt (.75 m x tan .6 + 1.45 m x tan .4 = 1.8 cm) stays behind the 3 cm the frame reaches back
         self.assertLess(.75 * math.tan(math.radians(.6)) + 1.45 * math.tan(math.radians(.4)), .03)
 

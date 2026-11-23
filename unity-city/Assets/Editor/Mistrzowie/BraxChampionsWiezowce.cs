@@ -270,9 +270,12 @@ public static class BraxChampionsWiezowce
         else glassSkin.QuadUV(m,a,b,c,d,new Vector2(0,0),new Vector2(1,0),new Vector2(1,1),new Vector2(0,1));
     }
     // one insulating unit: up to .6 degrees off true about its vertical axis and .4 about its horizontal one
+    // 23.11 (plan, owner's photos): on the twisting T08 the glass already turns plate by plate, and the units' own tilt on
+    // top of it read as random dark stripes across the facade - there the tilt is a third (unitTilt)
+    static float unitTilt=1f;
     static void Unit(Material m,Vector3 a,Vector3 b,Vector3 c,Vector3 d,Vector3 n,uint seed)
     {
-        float yawT=Mathf.Tan((Rand(seed)-.5f)*1.2f*Mathf.Deg2Rad),pitT=Mathf.Tan((Rand(seed*7919u+13u)-.5f)*.8f*Mathf.Deg2Rad);
+        float yawT=Mathf.Tan((Rand(seed)-.5f)*1.2f*unitTilt*Mathf.Deg2Rad),pitT=Mathf.Tan((Rand(seed*7919u+13u)-.5f)*.8f*unitTilt*Mathf.Deg2Rad);
         var ctr=(a+b+c+d)*.25f;var e=(b-a).normalized;var up=(d-a).normalized;
         Vector3 T(Vector3 p){var r=p-ctr;return p+n*(Vector3.Dot(r,e)*yawT+Vector3.Dot(r,up)*pitT);}
         UnitQuad(m,T(a),T(b),T(c),T(d),n);glassUnits++;
@@ -356,6 +359,19 @@ public static class BraxChampionsWiezowce
         }
     }
 
+    // a lit crown on a roof (23.11): a white lantern from y, h high, on the outline p, and a stainless lid 40 cm over it,
+    // 20 cm wider; its sides stand on the roof (no bottom), the lid's underside covers the lantern's top (opposite faces).
+    // Returns the top of the lid.
+    static float CrownLantern(List<Vector2> p,float y,float h)
+    {
+        W.Grupa=outside;
+        Prism(lantern,null,null,p,y,y+h);
+        Prism(steel,steel,steel,Offset(p,.20f),y+h,y+h+.40f);
+        crowns++;
+        return y+h+.40f;
+    }
+    static int crowns;
+
     // ---------------- per tower state ----------------
     static Transform outside,details,inside;
     static int doors,seats,models,betScreens,glassUnits,podiumColumns;
@@ -369,7 +385,7 @@ public static class BraxChampionsWiezowce
         Tower t=default;bool found=false;
         foreach(var x in Towers)if(x.id==id){t=x;found=true;}
         if(!found)throw new ArgumentException("Unknown tower plot "+id);
-        outFolder=folder;towerId=id;doors=0;podiumColumns=0;fountains=0;forecourtPlanters=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;roulettes=0;obsluga=0;ownerMissing=0;heliY=float.NaN;helis=0;betEkrany.Clear();lototo=null;hung.Clear();Materials(ext);
+        outFolder=folder;towerId=id;unitTilt=1f;crowns=0;doors=0;podiumColumns=0;fountains=0;forecourtPlanters=0;seats=0;models=0;betScreens=0;glassUnits=0;cab=null;cabL=cabR=null;landL=landR=null;slots=0;tables=0;roulettes=0;obsluga=0;ownerMissing=0;heliY=float.NaN;helis=0;betEkrany.Clear();lototo=null;hung.Clear();Materials(ext);
         Physics.SyncTransforms();
         float datum=0f;
         if(Physics.Raycast(new Vector3(t.x,80f,t.z)*K,Vector3.down,out var hit,200f*K,~0,QueryTriggerInteraction.Ignore))
@@ -430,7 +446,7 @@ public static class BraxChampionsWiezowce
         int palms=Palms(root);
         if(doors<1)BraxBuildQuality.Warn("DO POPRAWKI TOWER_"+id+"_ENTRANCE_DOOR_MISSING");
         Debug.Log("CHAMPIONS_TOWER "+id+" "+t.name+" shape="+t.shape+" floors="+t.floors+" height="+(roof).ToString("F1")+"m nominal ("+
-            (roof*K).ToString("F1")+" world) meshes="+saved+" curtainWall=units:"+glassUnits+",frameChunks:"+chunks+" podium=columns:"+podiumColumns+" forecourt=planters:"+forecourtPlanters+",fountains:"+fountains+" doors="+doors+" seats="+seats+" models="+models+" palms="+palms+" lights="+lights.Count+
+            (roof*K).ToString("F1")+" world) meshes="+saved+" curtainWall=units:"+glassUnits+",frameChunks:"+chunks+" crowns="+crowns+" podium=columns:"+podiumColumns+" forecourt=planters:"+forecourtPlanters+",fountains:"+fountains+" doors="+doors+" seats="+seats+" models="+models+" palms="+palms+" lights="+lights.Count+
             (betScreens>0?" BRAXHORN_BET screens="+betScreens+" films=0 (street premises) lototo="+(lototo?"studio+kolektura":"none"):""));
     }
 
@@ -813,14 +829,19 @@ public static class BraxChampionsWiezowce
         // as the Evolution Tower (Moscow): every plate turned 3 degrees on the one below, the glass between two plates a ruled
         // surface (the units twist with it), reflective blue-silver coated glass with glass spandrels
         var skin=GlassSkin(new Color(.22f,.28f,.33f),.10f);
+        unitTilt=.33f;
         for(int f=0;f<t.floors;f++,y+=Storey)CurtainStorey(Rot(F,Turn*f),Rot(F,Turn*(f+1)),y,skin,f,f==t.floors-1?deck:null);
+        unitTilt=1f;
         // the roof: a parapet of the same glass units' black frame (anodised), 1.4 m, round the last plate; a white light
         // band 25 cm high 2 cm off its face
         var last=Rot(F,Turn*t.floors);
         Prism(mullion,mullion,deck,Offset(last,.16f),y,y+1.4f);
-        W.Grupa=details;Sides(ledWhite,Offset(last,.18f),y+.95f,y+1.20f);W.Grupa=outside;
+        // 23.11 (owner: "góra wygląda dobrze, ale mogłaby jeszcze lepiej"): a lit crown on the last plate, turned with it - a
+        // white lantern 3.6 m high, 2 m in from the edge, under a stainless lid (it replaces the 25 cm light line round the
+        // parapet: a line that thin shimmered from afar)
+        float c0=CrownLantern(Offset(last,-2.0f),y+1.4f,3.6f);
         W.KolizjaMM(-H,H,Shaft,y,-H,H);
-        return y+1.4f;
+        return c0;
     }
 
     // ---------------- T09: BRAXHORN TOWER (setbacks, blades, crown, heliport) + BRAXHORN BET ----------------
@@ -1582,10 +1603,11 @@ public static class BraxChampionsWiezowce
             for(int f=0;f<per;f++,y+=Storey)CurtainStorey(g,g,y,skin,b*per+f,f==per-1?(b==2?deck:teak):null);
             if(b<2)Terraces(g,b==1?A:B,y);
         }
-        // the top: a graphite parapet
+        // the top: a graphite parapet and the lit crown (23.11)
         Prism(bandGraphite,bandGraphite,bandGraphite,Offset(A,Proud),y,y+1.2f);
+        float c2=CrownLantern(Offset(A,-2.5f),y+1.2f,3.2f);
         W.KolizjaMM(-18f,18f,Shaft,y,-18f,18f);
-        return y+1.2f;
+        return c2;
     }
     // WAWER NIERUCHOMOŚCI, the real estate office of Patryk and Monika (owner 16.11 23:12 with her poster "Poznaj Monikę ...
     // Prowadzę biuro nieruchomości w Mieście Mistrzów"): the T12's ground floor west of the partition at x -6 (walnut on its
@@ -1683,8 +1705,9 @@ public static class BraxChampionsWiezowce
         W.Grupa=outside;
         // the parapet 10 cm proud of the diagrid's top ring beam (its outer face at h1+.70)
         Prism(bandGraphite,bandGraphite,bandGraphite,Box4(h1+.80f,h1+.80f),top,top+1.4f);
+        float c3=CrownLantern(Box4(h1-2f,h1-2f),top+1.4f,3.6f);                // the lit crown (23.11)
         W.KolizjaMM(-h0,h0,Shaft,top,-h0,h0);
-        return top+1.4f;
+        return c3;
     }
 
     // ---------------- models (Poly Haven, real size) ----------------

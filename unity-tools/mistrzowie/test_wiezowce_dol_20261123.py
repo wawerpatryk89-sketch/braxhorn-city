@@ -110,6 +110,17 @@ class Szklo(unittest.TestCase):
         self.assertNotIn("roughness = max(roughness, lerp(", SH)
 
 
+class Gora(unittest.TestCase):
+    def test_lit_crowns_and_calm_twist(self):
+        self.assertIn("static float CrownLantern(List<Vector2> p,float y,float h)", W)
+        self.assertEqual(W.count("CrownLantern(Offset(last,-2.0f),y+1.4f,3.6f)"), 1)        # T08
+        self.assertEqual(W.count("CrownLantern(Offset(A,-2.5f),y+1.2f,3.2f)"), 1)           # T12
+        self.assertEqual(W.count("CrownLantern(Box4(h1-2f,h1-2f),top+1.4f,3.6f)"), 1)       # T13
+        self.assertNotIn("Sides(ledWhite,Offset(last,.18f),y+.95f,y+1.20f)", W)            # the thin light line is gone
+        self.assertIn("unitTilt=.33f;", W)
+        self.assertIn("*1.2f*unitTilt*Mathf.Deg2Rad", W)
+
+
 class GaleriaZDaleka(unittest.TestCase):
     def test_whole_objects_compete_by_size(self):
         k = cialo(P, "static void Kawalki(")
