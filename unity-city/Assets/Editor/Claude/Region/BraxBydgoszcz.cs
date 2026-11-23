@@ -42,7 +42,8 @@ public static class BraxBydgoszcz
         string n = "Bydgoszcz: " + nazwa;
         switch (rodzaj)
         {
-            case "tynk": return BraxRegionMeble.Tex(n, 2.0f, c, .92f, "plastered_wall_05", "white_stucco_02", "white_stucco", "plastered_wall");
+            // tynk: jasny skan white_stucco_02 (średnia sRGB 0,68); barwa z pliku to tint liczony do jego średniej (osiedle_gen.tint)
+            case "tynk": return BraxRegionMeble.Tex(n, 2.0f, c, .92f, "white_stucco_02", "white_stucco", "plastered_wall");
             case "beton": return BraxRegionMeble.Tex(n, 2.0f, c, .9f, "brushed_concrete_04", "concrete_wall_008", "concrete_floor_02");
             case "cegla": return BraxRegionMeble.Tex(n, 1.0f, Color.white, .9f, "brick_wall_02", "red_brick_03", "brick_wall_001");
             case "blacha": return BraxRegionMeble.Tex(n, 2.0f, c, .5f, "box_profile_metal_sheet", "corrugated_iron", "metal_plate");

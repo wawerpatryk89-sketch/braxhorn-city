@@ -36,13 +36,25 @@ MATS = {
     "tynk_bialy": ((.94, .94, .92), "tynk"), "tynk_zoltozielony": ((.80, .80, .46), "tynk"), "tynk_pomarancz": ((.86, .60, .42), "tynk"),
     "tynk_niebieski": ((.30, .45, .72), "tynk"), "cokol_czerwony": ((.52, .27, .24), "beton"), "cokol_szary": ((.45, .46, .47), "beton"),
     "cegla": ((.60, .30, .22), "cegla"), "dach": ((.26, .26, .27), "beton"), "beton": ((.70, .69, .66), "beton"),
-    "attyka_niebieska": ((.22, .30, .55), "blacha"), "attyka_pomarancz": ((.86, .42, .22), "blacha"), "brama_drewno": ((.50, .30, .20), "drewno"),
+    "attyka_niebieska": ((.22, .30, .55), "gladki"), "attyka_pomarancz": ((.86, .42, .22), "gladki"), "brama_drewno": ((.50, .30, .20), "drewno"),
     "drzwi": ((.34, .22, .16), "drewno"), "szyba": ((.16, .21, .27), "szklo"), "rama": ((.95, .95, .95), "gladki"), "rama_ciemna": ((.20, .21, .22), "gladki"),
     "balkon_a": ((.42, .60, .44), "gladki"), "balkon_b": ((.72, .72, .70), "gladki"), "balkon_c": ((.62, .30, .24), "gladki"),
     "asfalt": ((.27, .27, .28), "asfalt"), "asfalt_stary": ((.36, .35, .34), "asfalt_stary"), "chodnik": ((.62, .60, .57), "chodnik"),
     "mural_bar_mleczny": ((.42, .12, .12), "obraz"),   # właściciel 23.11, 08:01: mural kolegi — „możesz go normalnie wstawić”
     "kraweznik": ((.66, .65, .62), "beton"), "trawa": ((.36, .52, .24), "trawa"), "ziemia": ((.30, .24, .17), "ziemia"),
 }
+
+
+# Średnia liniowa albedo PIERWSZEGO zestawu z BraxBydgoszcz.Mat (zmierzona na plikach 1K Poly Haven 23.11):
+# gra mnoży teksturę przez _Color, więc tint = barwa_docelowa / średnia_tekstury (znormalizowany do ≤ 1), żeby ściana miała barwę ze zdjęcia.
+SREDNIA_TEKSTURY = {"tynk": (.433, .428, .409), "beton": (.141, .112, .087), "drewno": (.121, .072, .041)}
+
+def lin(c): return np.power(np.asarray(c, float), 2.2)
+
+def tint(barwa, rodzaj):
+    if rodzaj not in SREDNIA_TEKSTURY: return tuple(barwa)
+    t = lin(barwa) / np.asarray(SREDNIA_TEKSTURY[rodzaj]); t = t / max(1.0, t.max())
+    return tuple(np.power(t, 1 / 2.2))
 
 
 class Siatki:
@@ -311,7 +323,7 @@ def zapisz(S, sciezka):
     nazwy = sorted({m for _, m in S.m}); out = bytearray(b"BYD1")
     def txt(t): b = t.encode("utf-8"); return struct.pack("<i", len(b)) + b
     out += struct.pack("<i", len(nazwy))
-    for n in nazwy: out += txt(n) + txt(MATS[n][1]) + struct.pack("<3f", *MATS[n][0])
+    for n in nazwy: out += txt(n) + txt(MATS[n][1]) + struct.pack("<3f", *tint(*MATS[n]))
     out += struct.pack("<i", len(S.m))
     for (g, m), (v, i) in sorted(S.m.items()):
         a = np.asarray(v, "<f4"); flagi = (1 if g.startswith("grunt_") and m != "kraweznik" and m != "ziemia" else 0) | (2 if m == "trawa" else 0) | (4 if MATS[m][1] == "obraz" else 0)
@@ -371,18 +383,18 @@ def main():
             "zbudowane": zbudowane, "braki_bez_zdjecia": braki, "napisy": [n[0] for n in S.napisy]}
     (TU / "osiedle_opis.json").write_text(json.dumps(opis, ensure_ascii=False, indent=1), encoding="utf-8")
     print({k: v for k, v in opis.items() if k not in ("zbudowane", "braki_bez_zdjecia")}); print("braki:", len(braki))
+    from shapely.geometry import Point
+    zajete = unary_union([Polygon(q["obrys"]).buffer(4) for q in D["budynki"]])
+    def stan(cx, cz, r0, r1, warunek=lambda x, z: True):       # punkt na uliczce osiedlowej, poza budynkami, r0…r1 m od celu
+        kand = [q for u in D["ulice"] if u["klasa"] == "service" for q in u["linia"]
+                if r0 < math.hypot(q[0] - cx, q[1] - cz) < r1 and warunek(*q) and not zajete.contains(Point(q))]
+        return min(kand, key=lambda q: math.hypot(q[0] - cx, q[1] - cz))
+    k2 = stan(0, 0, 38, 70, lambda x, z: x < -8); k3 = stan(-54, 18, 16, 40, lambda x, z: z < 16)
+    opis["kamery_podgladu"] = {"2": k2, "3": k3}
     if "--bez-podgladu" not in sys.argv:
         podglad(S, TU / "podglad_1_z_gory.png", (-95, 150, -175), (5, 0, 30), kat=58)
-        from shapely.geometry import Point
-        zajete = unary_union([Polygon(q["obrys"]).buffer(4) for q in D["budynki"]])
-        def stan(cx, cz, r0, r1, warunek=lambda x, z: True):       # punkt na uliczce osiedlowej, poza budynkami, r0…r1 m od celu
-            kand = [q for u in D["ulice"] if u["klasa"] == "service" for q in u["linia"]
-                    if r0 < math.hypot(q[0] - cx, q[1] - cz) < r1 and warunek(*q) and not zajete.contains(Point(q))]
-            return min(kand, key=lambda q: math.hypot(q[0] - cx, q[1] - cz))
-        k2 = stan(0, 0, 38, 70, lambda x, z: x < -8); k3 = stan(-54, 18, 16, 40, lambda x, z: z < 16)
         podglad(S, TU / "podglad_2_ulica_32a.png", (k2[0], 1.9, k2[1]), (0, 13, 0), kat=74)
         podglad(S, TU / "podglad_3_blok_i_garaze.png", (k3[0], 1.9, k3[1]), (-54, 4, 30), kat=74)
-        opis["kamery_podgladu"] = {"2": k2, "3": k3}
     return S, opis
 
 

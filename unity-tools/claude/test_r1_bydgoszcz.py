@@ -72,7 +72,7 @@ class Bydgoszcz(unittest.TestCase):
 
     def test_tekstury_z_listy_wlasciciela_sa_pobierane(self):
         fetch = (REPO / "unity-tools/claude/fetch_region.py").read_text(encoding="utf-8")
-        for slug in ("plastered_wall_05", "brushed_concrete_04", "brick_wall_02", "concrete_pavers", "box_profile_metal_sheet"):
+        for slug in ("white_stucco_02", "brushed_concrete_04", "brick_wall_02", "concrete_pavers", "box_profile_metal_sheet"):
             self.assertIn('"%s"' % slug, fetch); self.assertIn('"%s"' % slug, CS)
 
 
