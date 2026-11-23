@@ -292,7 +292,11 @@ public static partial class BraxChampionsKasynoSprzet
         b.Box(stal, D(0f, .55f, 0f), new Vector3(.12f, 1.06f, .12f), pq);
         var tq = pq * Quaternion.Euler(15f, 0f, 0f);
         b.RoundedBox(ciemnyOrzech, D(0f, 1.10f, 0f), new Vector3(1.0f, .04f, .55f), .01f, tq, 2);
-        for (int i = 0; i < 3; i++) b.Box(lotKupon, D(-.32f + i * .32f, 1.10f, 0f) + tq * new Vector3(0f, .022f, .02f), new Vector3(.12f, .002f, .24f), tq);
+        // the slips 5 mm over the top (23.11: 1 mm fought over depth from the hall)
+        for (int i = 0; i < 3; i++) b.Box(lotKupon, D(-.32f + i * .32f, 1.10f, 0f) + tq * new Vector3(0f, .026f, .02f), new Vector3(.12f, .002f, .24f), tq);
+        // AKCJA here: the coupon on the whole screen (BraxChampionsLototoKupon, owner 23.11)
+        var pp = new GameObject("pulpit z kuponami (AKCJA: wypełnij kupon na całym ekranie)").transform; pp.SetParent(g, false);
+        pp.localPosition = D(0f, 0f, -.45f); lot.pulpit = pp;
         foreach (float sx in new[] { -.42f, .42f }) b.Tube(czern, D(sx, 1.12f, .14f), D(sx + .05f, 1.13f, .02f), .004f, 6);
         W.Kolizja(D(0f, .58f, 0f), new Vector3(1.0f, 1.16f, .55f), pq);
         // his poster on a black stand, both sides

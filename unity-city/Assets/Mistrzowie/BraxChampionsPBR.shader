@@ -227,12 +227,16 @@ Shader "Braxhorn/ChampionsPBR"
                 // afar it blends into the glass instead of shimmering; the frame is satin, the glass mirror-smooth
                 half glassMask = baseSample.a;
                 roughness = lerp(.45, roughness, glassMask);
+                #endif
                 // 23.11 (owner's photo: white dots sparkling on the tower glass): every unit is tilted a fraction of a degree,
                 // so with a mirror-sharp sun (roughness .085) single far units flash the sun at the camera and go out again
-                // as it moves. Real glass seen from far averages many units in one pixel: the highlight broadens with the
-                // distance (from 30 to 280 units), and so does the sky's mip in it - no on/off pixels, no sparkle.
+                // as it moves. Real glass seen from far averages many units in one pixel: the SUN's highlight broadens with
+                // the distance (from 30 to 280 units) - no on/off pixels, no sparkle. The sky in the glass is untouched
+                // (owner 17:22: the towers must not get darker).
+                half sunRoughness = roughness;
+                #ifdef _SKY_GLASS
                 float glassDist = length(_WorldSpaceCameraPos.xyz - i.worldPos);
-                roughness = max(roughness, lerp(.085, .32, saturate((glassDist - 30) / 250)));
+                sunRoughness = max(roughness, lerp(.085, .32, saturate((glassDist - 30) / 250)));
                 #endif
                 half aoMap = tex2D(_OcclusionMap, MapUV(i.uv,_OcclusionMap_ST,
                                       _OcclusionMap_Rotation.xy,_OcclusionMap_texCoord)).r;
@@ -248,10 +252,10 @@ Shader "Braxhorn/ChampionsPBR"
                 f0 = lerp(half3(.035,.035,.04), _GlassF0.rgb, glassMask);   // the coating's reflectance; albedo = the room behind
                 #endif
                 half3 fresnel = f0 + (1-f0) * Pow5(1-vh);
-                float a = roughness*roughness, a2 = a*a;
+                float a = sunRoughness*sunRoughness, a2 = a*a;
                 float denom = nh*nh*(a2-1)+1;
                 float distribution = a2 / max(UNITY_PI*denom*denom, 1e-6);
-                half k = (roughness+1)*(roughness+1)*.125;
+                half k = (sunRoughness+1)*(sunRoughness+1)*.125;
                 float geometry = (nv/(nv*(1-k)+k)) * (nl/(nl*(1-k)+k));
                 half3 specular = fresnel * (distribution*geometry/max(4*nv*nl,.001));
                 half3 diffuse = (1-fresnel)*(1-metallic)*albedo/UNITY_PI;

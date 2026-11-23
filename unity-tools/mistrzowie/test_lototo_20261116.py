@@ -45,7 +45,7 @@ class Rules(unittest.TestCase):
         for c in ("lototo: the next draw Wednesday 18.11 20:00", "lototo: every number as often", "lototo: 75 394 027 566 coupons of ten of 60",
                   "lototo: all ten 1 in 408 074", "lototo: 50-60 % back without the kumulacja", "lototo: one coupon in five wins",
                   "lototo: five hits on 13.5 % of coupons", "lototo: the balls stay inside the drum", "lototo: the twenty in their cups in the order drawn",
-                  "lototo: a coupon of ten bought for the next draw", "lototo: the same draw on every phone",
+                  "lototo: ten for 3 zł and five for 2 zł, both for the next draw", "lototo: the same draw on every phone",   # 23.11: the full-screen coupon
                   "brax szóstka: six different numbers of 1-40 every draw, not the BET's", "brax szóstka: 3 838 380 coupons of six of 40",
                   "brax szóstka: its counter"):
             self.assertIn(c, sim)

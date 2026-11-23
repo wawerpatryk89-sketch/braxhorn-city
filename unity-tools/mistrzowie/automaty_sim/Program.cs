@@ -316,15 +316,33 @@ static class Program
             for (int i = 0; i < m.uv.Length; i++) sb.Append((i > 0 ? "," : "") + "[" + m.uv[i].x.ToString(System.Globalization.CultureInfo.InvariantCulture) + "," + m.uv[i].y.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]");
             System.IO.File.WriteAllText(dump, sb.Append("]}").ToString());
         }
-        // the counter: a coupon of ten numbers for the next draw for 3 zł
+        // 23.11 the coupon on the whole screen (BraxChampionsLototoKupon): DUŻY LOTEK ten of 60 for 3 zł, MAŁY LOTEK five of 60
+        // for 2 zł on the same draw; filled at the desk it goes to the till, the till takes the money and keeps the coupon
         PlayerPrefs.DeleteAll(); int kr = BraxChampionsKasyno.Kredyt; var at = L.lada.position + new Vector3(.3f, 0, 0);
-        Check(L.Kontekst(at).StartsWith("LOTOTO BRAX CASH · KUPON 3 ZŁ · 10 LICZB"), "lototo: the counter offers a coupon (" + L.Kontekst(at) + ")");
-        L.Wykonaj(at);
+        L.pulpit = T("pulpit", new Vector3(14, 0, 0)); var atP = L.pulpit.position + new Vector3(.3f, 0, 0);
+        Check(L.Kontekst(at).StartsWith("LOTOTO BRAX CASH · KUPON"), "lototo: the counter offers a coupon (" + L.Kontekst(at) + ")");
+        Check(L.Kontekst(atP) == "LOTOTO BRAX CASH · WYPEŁNIJ KUPON", "lototo: the desk offers the coupon (" + L.Kontekst(atP) + ")");
+        Check(L.Kup(new[] { 3, 7, 12, 18, 25, 31, 40, 44, 52, 60 }, out _), "lototo: DUŻY LOTEK bought");
+        Check(L.Kup(new[] { 5, 9, 33, 41, 58 }, out _), "lototo: MAŁY LOTEK bought");
+        Check(!L.Kup(new[] { 5, 9, 33 }, out string niepelny) && niepelny.Length > 0, "lototo: an unfinished coupon is not sold");
         var kupony = G.Czytaj(PlayerPrefs.GetString("braxhorn_lototo_kupony", ""));
-        Check(BraxChampionsKasyno.Kredyt == kr - 3 && kupony.Count == 1 && kupony[0].Item2.Length == 10 && kupony[0].Item1 == BraxChampionsLototo.Zasady.Id(G.Nastepne(DateTime.Now)), "lototo: a coupon of ten bought for the next draw");
+        int idN = BraxChampionsLototo.Zasady.Id(G.Nastepne(DateTime.Now));
+        Check(BraxChampionsKasyno.Kredyt == kr - 5 && kupony.Count == 2 && kupony[0].Item2.Length == 10 && kupony[1].Item2.Length == 5 && kupony[0].Item1 == idN,
+            "lototo: ten for 3 zł and five for 2 zł, both for the next draw");
+        L.DoKasy = new[] { 2, 4, 6, 8, 10 };
+        Check(L.Kontekst(at) == "LOTOTO BRAX CASH · ZAPŁAĆ KUPON · 2 ZŁ", "lototo: the filled coupon is paid at the till (" + L.Kontekst(at) + ")");
+        L.Wykonaj(at);
+        Check(L.DoKasy == null && G.Czytaj(PlayerPrefs.GetString("braxhorn_lototo_kupony", "")).Count == 3 && BraxChampionsKasyno.Kredyt == kr - 7, "lototo: paid at the till, kept");
+        var termin = G.Nastepne(DateTime.Now);
+        Check(G.Wygrana(new[] { 1, 2, 3, 4, 5 }, 5, termin) == 200 && G.Wygrana(new[] { 1, 2, 3, 4, 5 }, 3, termin) == 2 && G.Wygrana(new int[10], 5, termin) == 3,
+            "lototo: MAŁY LOTEK prizes by its own table, DUŻY by the big one");
+        double all5 = Cn(60, 5), ret5 = 0; for (int k = 0; k <= 5; k++) ret5 += Cn(20, k) * Cn(40, 5 - k) / all5 * G.malyWygrane[k];
+        Check(ret5 / G.malyCena > .55 && ret5 / G.malyCena < .70, "lototo: MAŁY LOTEK 55-70 % back (" + (ret5 / G.malyCena).ToString("F3") + ")");
+        Check(G.Czytaj("20261118:1,1,2,3,4;").Count == 0, "lototo: a coupon with a number twice is refused");
         Check(L.Kontekst(L.szyba.position).StartsWith("LOTOTO BRAX CASH · POWTÓRKA") || G.Ostatnie(DateTime.Now) == DateTime.MinValue, "lototo: the replay at the glass");
         L.gra = 1;
-        Check(L.Kontekst(at).StartsWith("BRAX SZÓSTKA · KUPON 3 ZŁ · 6 LICZB"), "brax szóstka: its counter (" + L.Kontekst(at) + ")");
+        Check(L.Kontekst(at).StartsWith("BRAX SZÓSTKA · KUPON"), "brax szóstka: its counter (" + L.Kontekst(at) + ")");
+        Check(S6.malyTypy == 0 && S6.Czytaj("20261118:1,2,3,4,5;").Count == 0, "brax szóstka: no small game, five numbers refused");
         L.gra = 0;
     }
     static string Liczby(int[] w) => string.Join(",", w);

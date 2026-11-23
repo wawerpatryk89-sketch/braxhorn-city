@@ -28,5 +28,7 @@ namespace UnityEngine
         public static void SetString(string k, string v) { d[k] = v; }
         public static void Save() { }
         public static void DeleteAll() { d.Clear(); }
+        public static void DeleteKey(string k) { d.Remove(k); }
     }
 }
+

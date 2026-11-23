@@ -29,6 +29,9 @@ public sealed class BraxChampionsLototo : MonoBehaviour, IBraxInterakcja
     {
         public string nazwa, klucz; public int pula, losowane, typy, cena, maxKuponow = 10, godzina = 20, marka;
         public int[] wygrane;                                   // by hits (0 .. typy - 1); all typy = the kumulacja
+        // MAŁY LOTEK (owner 23.11 16:59 "wybierasz mały lotek czy duży lotek"): fewer numbers on the same draw, cheaper,
+        // smaller prizes, no kumulacja; 0 = the game has none
+        public int malyTypy, malyCena; public int[] malyWygrane = new int[0];
         public int kumulacjaStart, kumulacjaWzrost, kumulacjaMax, krajCo;   // someone in the country hits it on one draw in krajCo
         public DayOfWeek[] dni; public DateTime pierwsze;
         // the show: the intro, the mixing, a ball every odstep s (out of the drum, then down the chute), the board
@@ -43,6 +46,9 @@ public sealed class BraxChampionsLototo : MonoBehaviour, IBraxInterakcja
             // 3 zł a coupon of ten numbers: 5 hits give the stake back, 6 hits 6 zł, 7 hits 25 zł, 8 hits 200 zł, 9 hits 5 000 zł,
             // all ten the KUMULACJA from 10 000 000 zł (his poster) - one coupon in five wins something, 55 % back without it
             wygrane = new[] { 0, 0, 0, 0, 0, 3, 6, 25, 200, 5000 },
+            // MAŁY LOTEK: five of 60 on the same twenty, 2 zł; 3 hits the stake back (1 in 6), 4 hits 10 zł (1 in 28), all five
+            // 200 zł (1 in 352): 62 % back, as real lotteries
+            malyTypy = 5, malyCena = 2, malyWygrane = new[] { 0, 0, 0, 2, 10, 200 },
             kumulacjaStart = 10000000, kumulacjaWzrost = 2500000, kumulacjaMax = 200000000, krajCo = 9,
             dni = new[] { DayOfWeek.Wednesday, DayOfWeek.Saturday }, pierwsze = new DateTime(2026, 11, 18, 20, 0, 0),
             odstep = 5f, wyjscie = 1.5f, toczenie = 2.5f,
@@ -98,6 +104,12 @@ public sealed class BraxChampionsLototo : MonoBehaviour, IBraxInterakcja
             return (int)k;
         }
         public int Wygrana(int trafienia, DateTime termin) => trafienia >= typy ? Kumulacja(termin) : trafienia >= 0 ? wygrane[Math.Min(trafienia, wygrane.Length - 1)] : 0;
+        /// <summary>A coupon's prize: ten numbers by the big table and the kumulacja, five by the MAŁY LOTEK table.</summary>
+        public int Wygrana(int[] kupon, int trafienia, DateTime termin)
+            => Maly(kupon) ? (trafienia >= 0 && malyWygrane.Length > 0 ? malyWygrane[Math.Min(trafienia, malyWygrane.Length - 1)] : 0) : Wygrana(trafienia, termin);
+        public bool Maly(int[] kupon) => malyTypy > 0 && kupon != null && kupon.Length == malyTypy;
+        public int Cena(bool maly) => maly && malyTypy > 0 ? malyCena : cena;
+        public int Typy(bool maly) => maly && malyTypy > 0 ? malyTypy : typy;
         static readonly string[] DniNazwy = { "NIEDZIELA", "PONIEDZIAŁEK", "WTOREK", "ŚRODA", "CZWARTEK", "PIĄTEK", "SOBOTA" };
         public static string Nazwa(DateTime d) => DniNazwy[(int)d.DayOfWeek];
         public static string Liczby(int[] w) => string.Join(" ", Array.ConvertAll(w, x => x.ToString()));
@@ -108,10 +120,10 @@ public sealed class BraxChampionsLototo : MonoBehaviour, IBraxInterakcja
             foreach (var e in (s ?? "").Split(';'))
             {
                 var p = e.Split(':'); if (p.Length != 2 || !int.TryParse(p[0], out int id)) continue;
-                var n = p[1].Split(','); if (n.Length != typy) continue;
-                var w = new int[typy]; bool ok = true;
-                for (int i = 0; i < typy; i++) ok &= int.TryParse(n[i], out w[i]) && w[i] >= 1 && w[i] <= pula;
-                if (ok) l.Add((id, w));
+                var n = p[1].Split(','); if (n.Length != typy && (malyTypy <= 0 || n.Length != malyTypy)) continue;
+                var w = new int[n.Length]; bool ok = true;
+                for (int i = 0; i < n.Length; i++) ok &= int.TryParse(n[i], out w[i]) && w[i] >= 1 && w[i] <= pula;
+                if (ok && new HashSet<int>(w).Count == w.Length) l.Add((id, w));
             }
             return l;
         }
@@ -146,6 +158,7 @@ public sealed class BraxChampionsLototo : MonoBehaviour, IBraxInterakcja
     public int gra;                                           // 0 = LOTOTO BRAX CASH (the BET), 1 = BRAX SZÓSTKA (R1)
     public Zasady Z => Zasady.Gra(gra);
     public Transform lada, szyba, prowadzacy;                 // the counter, the studio's glass (replay), the host
+    public Transform pulpit;                                  // the coupon desk (AKCJA: the coupon on the whole screen, 23.11)
     public Camera kamera; public Transform ujecieBeben, ujecieTablica;
     public Material ekran;                                    // every screen showing the studio (the camera's picture)
     public MeshFilter tablica; public float tablicaW = 2.4f, tablicaH = 1.35f;
@@ -413,15 +426,61 @@ public sealed class BraxChampionsLototo : MonoBehaviour, IBraxInterakcja
     {
         int n = 0; foreach (var c in l) if (Z.Data(c.id).AddSeconds(Z.Program) <= now) n++; return n;
     }
+    // a coupon filled at the desk and not paid yet (BraxChampionsLototoKupon "DO KASY"): its numbers, ascending
+    string KluczDoKasy => Z.klucz + "_do_kasy";
+    public int[] DoKasy
+    {
+        get
+        {
+            var l = Z.Czytaj("0:" + PlayerPrefs.GetString(KluczDoKasy, "") + ";");
+            return l.Count == 1 ? l[0].liczby : null;
+        }
+        set
+        {
+            if (value == null) PlayerPrefs.DeleteKey(KluczDoKasy);
+            else PlayerPrefs.SetString(KluczDoKasy, string.Join(",", Array.ConvertAll(value, x => x.ToString())));
+            PlayerPrefs.Save();
+        }
+    }
+    /// <summary>Pays a coupon (ten numbers: DUŻY LOTEK, five: MAŁY LOTEK) for the next draw; the till prints its receipt.</summary>
+    public bool Kup(int[] liczby, out string blad)
+    {
+        blad = "";
+        var now = DateTime.Now; var l = Kupony; var nast = Z.Nastepne(now); int id = Zasady.Id(nast), naTo = 0;
+        bool maly = Z.Maly(liczby);
+        if (liczby == null || liczby.Length != Z.Typy(maly)) { blad = "KUPON NIEPEŁNY"; return false; }
+        foreach (var c in l) if (c.id == id) naTo++;
+        if (naTo >= Z.maxKuponow) { blad = "NA TO LOSOWANIE MASZ JUŻ " + naTo + " KUPONÓW"; return false; }
+        int cena = Z.Cena(maly);
+        if (!BraxChampionsKasyno.Wydaj(cena)) { blad = "ZA MAŁO ŚRODKÓW · KREDYT " + BraxChampionsKasyno.Kredyt + " ZŁ"; return false; }
+        var w = (int[])liczby.Clone(); Array.Sort(w); l.Add((id, w));
+        PlayerPrefs.SetString(Z.klucz, Zasady.Zapisz(l)); PlayerPrefs.Save();
+        int numer = PlayerPrefs.GetInt(Z.klucz + "_numer", 0) + 1; PlayerPrefs.SetInt(Z.klucz + "_numer", numer); PlayerPrefs.Save();
+        BraxChampionsLototoKupon.Paragon(new[]
+        {
+            Z.nazwa, "KOLEKTURA BRAXHORN BET",
+            (maly ? "MAŁY LOTEK · " : "DUŻY LOTEK · ") + w.Length + " Z " + Z.pula,
+            "LOSOWANIE " + Zasady.Nazwa(nast) + " " + nast.ToString("dd.MM.yyyy") + " " + Z.godzina + ":00",
+            string.Join("  ", Array.ConvertAll(w, x => x.ToString("00"))),
+            "CENA " + cena + ",00 ZŁ · KUPON NR " + nast.ToString("MMdd") + "-" + numer.ToString("0000"),
+            "POWODZENIA!",
+        });
+        BraxChampionsGry.Pokaz("KUPON KUPIONY · " + Zasady.Nazwa(nast) + " " + Z.godzina + ":00 · POWODZENIA!", 3f);
+        Debug.Log("LOTOTO_KUPON kupiony gra=" + (maly ? "MALY" : "DUZY") + " liczby=" + Zasady.Liczby(w) + " losowanie=" + id + " cena=" + cena);
+        return true;
+    }
     public string Kontekst(Vector3 g)
     {
         var now = DateTime.Now;
+        if (BraxChampionsLototoKupon.Otwarty) return "";
+        if (Odl(pulpit, g) < 1.3f) return Z.nazwa + " · WYPEŁNIJ KUPON";
         if (Odl(lada, g) < 1.3f)
         {
             var l = Kupony; int n = DoSprawdzenia(l, now);
             if (n > 0) return Z.nazwa + " · SPRAWDŹ KUPONY (" + n + ")";
-            var nast = Z.Nastepne(now);
-            return Z.nazwa + " · KUPON " + Z.cena + " ZŁ · " + Z.typy + " LICZB · " + Zasady.Nazwa(nast) + " " + Z.godzina + ":00";
+            var czeka = DoKasy;
+            if (czeka != null) return Z.nazwa + " · ZAPŁAĆ KUPON · " + Z.Cena(Z.Maly(czeka)) + " ZŁ";
+            return Z.nazwa + " · KUPON · " + Zasady.Nazwa(Z.Nastepne(now)) + " " + Z.godzina + ":00";
         }
         if (Odl(szyba, g) < 1.6f && !pokaz && Z.Ostatnie(now) != DateTime.MinValue) return Z.nazwa + " · POWTÓRKA LOSOWANIA (" + Zasady.Nazwa(Z.Ostatnie(now)) + ")";
         return "";
@@ -429,31 +488,35 @@ public sealed class BraxChampionsLototo : MonoBehaviour, IBraxInterakcja
     public bool Wykonaj(Vector3 g)
     {
         var now = DateTime.Now;
+        if (BraxChampionsLototoKupon.Otwarty) return true;
+        if (Odl(pulpit, g) < 1.3f) { BraxChampionsLototoKupon.Otworz(this, false); return true; }
         if (Odl(lada, g) < 1.3f)
         {
             var l = Kupony; int n = DoSprawdzenia(l, now);
             if (n > 0)
             {
-                long suma = 0; int best = 0; var zostaja = new List<(int, int[])>();
+                long suma = 0; int best = 0; bool kumulacja = false; var zostaja = new List<(int, int[])>();
                 foreach (var c in l)
                 {
                     var termin = Z.Data(c.id);
                     if (termin.AddSeconds(Z.Program) > now) { zostaja.Add(c); continue; }
-                    int h = Zasady.Trafienia(c.liczby, Z.Losuj(c.id)); best = Mathf.Max(best, h); suma += Z.Wygrana(h, termin);
+                    int h = Zasady.Trafienia(c.liczby, Z.Losuj(c.id)); best = Mathf.Max(best, h); suma += Z.Wygrana(c.liczby, h, termin);
+                    kumulacja |= !Z.Maly(c.liczby) && h >= Z.typy;
                 }
                 PlayerPrefs.SetString(Z.klucz, Zasady.Zapisz(zostaja)); PlayerPrefs.Save();
                 if (suma > 0) BraxChampionsKasyno.Wplac((int)Math.Min(int.MaxValue, suma));
-                BraxChampionsGry.Pokaz(suma > 0 ? (best >= Z.typy ? "KUMULACJA! " + best + " TRAFIEŃ · " : "WYGRANA · " + best + " TRAFIEŃ · ") + suma + " ZŁ" : Z.nazwa + " · " + n + " KUPON(Y) BEZ WYGRANEJ · NAJWIĘCEJ TRAFIEŃ: " + best, 3.5f);
+                BraxChampionsGry.Pokaz(suma > 0 ? (kumulacja ? "KUMULACJA! " + best + " TRAFIEŃ · " : "WYGRANA · " + best + " TRAFIEŃ · ") + suma + " ZŁ" : Z.nazwa + " · " + n + " KUPON(Y) BEZ WYGRANEJ · NAJWIĘCEJ TRAFIEŃ: " + best, 3.5f);
                 Debug.Log("LOTOTO_SPRAWDZENIE kupony=" + n + " trafienia_max=" + best + " wygrana=" + suma);
                 return true;
             }
-            var nast = Z.Nastepne(now); int id = Zasady.Id(nast), naTo = 0;
-            foreach (var c in l) if (c.id == id) naTo++;
-            if (naTo >= Z.maxKuponow) { BraxChampionsGry.Pokaz(Z.nazwa + " · NA TO LOSOWANIE MASZ JUŻ " + naTo + " KUPONÓW", 2.6f); return true; }
-            if (!BraxChampionsKasyno.Wydaj(Z.cena)) { BraxChampionsGry.Pokaz(Z.nazwa + " · ZA MAŁO ŚRODKÓW · KREDYT " + BraxChampionsKasyno.Kredyt, 2.6f); return true; }
-            var w = Z.ChybilTrafil(los); l.Add((id, w));
-            PlayerPrefs.SetString(Z.klucz, Zasady.Zapisz(l)); PlayerPrefs.Save();
-            BraxChampionsGry.Pokaz("KUPON " + Zasady.Nazwa(nast) + " " + Z.godzina + ":00 · " + Zasady.Liczby(w) + " · POWODZENIA!", 3.5f);
+            var czeka = DoKasy;
+            if (czeka != null)
+            {
+                if (Kup(czeka, out string blad)) DoKasy = null;
+                else BraxChampionsGry.Pokaz(Z.nazwa + " · " + blad, 2.6f);
+                return true;
+            }
+            BraxChampionsLototoKupon.Otworz(this, true);             // at the till: filled and paid on the spot
             return true;
         }
         if (Odl(szyba, g) < 1.6f && !pokaz)

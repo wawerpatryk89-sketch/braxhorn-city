@@ -103,9 +103,11 @@ class Plac(unittest.TestCase):
 
 class Szklo(unittest.TestCase):
     def test_no_sparkle_far(self):
-        self.assertIn("roughness = max(roughness, lerp(.085, .32, saturate((glassDist - 30) / 250)));", SH)
-        i = SH.index("#ifdef _SKY_GLASS\n                // the unit's frame lives")
-        self.assertLess(i, SH.index("roughness = max(roughness, lerp(.085, .32"))
+        self.assertIn("sunRoughness = max(roughness, lerp(.085, .32, saturate((glassDist - 30) / 250)));", SH)
+        self.assertIn("float a = sunRoughness*sunRoughness, a2 = a*a;", SH)
+        # the sky reflection keeps the glass's own roughness: the towers are not darker (owner 23.11 17:22)
+        self.assertIn("colour += environment*viewFresnel*(1-.65*roughness)*_ReflectionStrength*ambientAO;", SH)
+        self.assertNotIn("roughness = max(roughness, lerp(", SH)
 
 
 class GaleriaZDaleka(unittest.TestCase):

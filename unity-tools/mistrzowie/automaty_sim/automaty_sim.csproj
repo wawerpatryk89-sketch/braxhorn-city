@@ -22,5 +22,6 @@
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsRuletka.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsLot.cs" />
     <Compile Include="../../../unity-city/Assets/Mistrzowie/BraxChampionsLototo.cs" />
+    <Compile Include="../wiezowce_preview/LototoKuponStub.cs" />
   </ItemGroup>
 </Project>
