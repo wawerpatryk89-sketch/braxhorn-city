@@ -144,6 +144,12 @@ class Sypialnie(unittest.TestCase):
         self.assertIn("LawkaLozka(c, new Vector3(x, y, -1.30f - .08f - .22f)", VILLA)
         self.assertEqual(VILLA.count('BraxKatalog.Dresser(c, new Vector3(-7f'), 2)
 
+    def test_one_tv_in_each_room_no_more(self):
+        # 21:23 "wszędzie telewizory, żeby nie było też za dużo telewizorów": the living room, the master, bedrooms 2 and 3
+        tvs = re.findall(r'BraxKatalog\.Tv\(c, .*?tag \+ " ([^"]+)"\);', VILLA)
+        self.assertEqual(sorted(tvs), sorted(["salon TV", "sypialnia TV", "sypialnia 2 TV", "sypialnia 3 TV"]))
+        self.assertNotIn("Obrazek(nr + 5", VILLA)                                         # the TV over the chest, not a print
+
 
 class Wykonczenie(unittest.TestCase):
     def test_curtains_wall_lights_and_the_beach(self):

@@ -626,6 +626,10 @@ public static partial class BraxChampionsWille
         // 23.11 a chest of drawers on the second and third bedrooms' side walls (the partition x -7: its faces -7.06 / -6.94)
         BraxKatalog.Dresser(c, new Vector3(-7f - .06f - .47f, y, -3.2f), Vector3.left, 1.6f, 3, 2, walnut, null, true, .82f, true, "komoda");
         BraxKatalog.Dresser(c, new Vector3(-7f + .06f + .47f, y, -3.2f), Vector3.right, 1.6f, 3, 2, walnut, null, true, .82f, true, "komoda");
+        // 21:23 (owner: "wszędzie telewizory, żeby nie było też za dużo telewizorów"): one TV in each room - the living room's, the
+        // master's, and in the second and third bedrooms one on the wall over the chest of drawers (55")
+        BraxKatalog.Tv(c, new Vector3(-7f - .06f, y + 1.45f, -3.2f), Vector3.left, 55f, (nr + 2) % 4, false, tag + " sypialnia 2 TV");
+        BraxKatalog.Tv(c, new Vector3(-7f + .06f, y + 1.45f, -3.2f), Vector3.right, 55f, (nr + 3) % 4, false, tag + " sypialnia 3 TV");
         BraxKatalog.Tv(c, new Vector3(UX1 - T, y + 1.35f, -2.2f), Vector3.left, 75f, (nr + 1) % 4, false, tag + " sypialnia TV");
         // the master's sitting corner at the glass (a sofa to the view, a table, a rug) and a desk on the partition
         BraxKatalog.Rug(c, new Vector3(4.8f, y, -4.7f), Vector3.forward, 3.0f, 2.4f, false);
@@ -736,9 +740,6 @@ public static partial class BraxChampionsWille
         Obrazek(nr + 2, new Vector3(12.0f, y + 2.05f, 1f - .06f - .045f), Vector3.back, 2.0f, .9f);
         Obrazek(nr + 3, new Vector3(-11.4f, y + 2.05f, 1f - .06f - .045f), Vector3.back, 1.6f, .8f);
         Obrazek(nr + 4, new Vector3(Lozko3X, y + 2.05f, 1f - .06f - .045f), Vector3.back, 1.6f, .8f);
-        // the bedrooms were a bed in an empty room: a print over each chest of drawers (Wnetrze: the chests and the benches)
-        Obrazek(nr + 5, new Vector3(-7f - .06f, y + 1.62f, -3.2f), Vector3.left, 1.2f, .8f);
-        Obrazek(nr + 6, new Vector3(-7f + .06f, y + 1.62f, -3.2f), Vector3.right, 1.2f, .8f);
         Obrazek(nr + 1, new Vector3(-12.0f, y + 1.6f, 1f + .06f), Vector3.forward, 1.6f, .9f);                 // the corridor
         Model("HotelSobczak/potted_plant_04/potted_plant_04_1k.gltf", "roślina", new Vector3(15.1f, y, 7.1f), 0f);
     }
