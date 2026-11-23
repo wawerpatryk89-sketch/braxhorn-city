@@ -17,6 +17,7 @@ import blok_32a  # noqa: E402
 import blok4  # noqa: E402
 import maly  # noqa: E402
 import teren  # noqa: E402
+import wyposazenie  # noqa: E402
 from shapely.geometry import Polygon, LineString, Point  # noqa: E402
 
 K = 1.294
@@ -189,10 +190,13 @@ if __name__ == "__main__":
     opis = {"wiezowce": wiezowce(D), "bloki": bloki(d, D), "male": male(d, D)}
     for b in d["budynki"]:
         if b.get("nr") in WIEZOWCE and (b.get("ulica") or "").startswith("Marii"): MODELE.append(b["poly"])
-    T, pola, G = teren.zbuduj(d, MODELE, PRZEDPOLA, boiska_asfalt(d))
+    pkt_osm, _ = wyposazenie.osm()
+    T, pola, G = teren.zbuduj(d, MODELE, PRZEDPOLA, boiska_asfalt(d), wyposazenie.zebry(pkt_osm, d["ulice"], teren.SZER))
     przenies(T, D, "teren", 0.0, 0.0, 0.0)
     drzewa, latarnie = teren.punkty(d, G)
     opis["teren"] = pola; opis["drzew"] = len(drzewa); opis["latarni"] = len(latarnie)
+    Wy, opis["wyposazenie"] = wyposazenie.zbuduj(d, G, teren.SZER, teren.OKNO, drzewa, latarnie)
+    przenies(Wy, D, "wyposazenie", 0.0, 0.0, 0.0)
     (out / "osiedle_punkty.json").write_text(json.dumps({"drzewa": drzewa, "latarnie": latarnie}, ensure_ascii=False), encoding="utf-8")
     from kit import scal_wg_materialu, scal_wg_budynku
     zapisz_glb(scal_wg_materialu(D), out / "osiedle.glb")

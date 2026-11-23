@@ -19,7 +19,8 @@ from shapely.ops import unary_union
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from kit import Siatka, UP  # noqa: E402
 
-SZER = {"primary": 7.4, "secondary": 7.0, "tertiary": 6.5, "tertiary_link": 5.0, "residential": 5.5, "service": 4.6,
+GLOWNE = ("primary", "secondary", "tertiary")   # Skłodowskiej-Curie w OSM = tertiary, a to główna ulica (właściciel 15:55)
+SZER = {"primary": 7.4, "secondary": 7.0, "tertiary": 7.0, "tertiary_link": 5.0, "residential": 5.5, "service": 4.6,
         "unclassified": 5.0}
 SZER_PIESZE = {"footway": 2.0, "path": 1.6, "pedestrian": 3.0, "steps": 2.0, "cycleway": 2.0}
 OKNO = box(-195, -195, 190, 190)          # wycinek osiedla w metrach (jak plan)
@@ -69,7 +70,7 @@ def linie_glownej(d, jezdnie_glowne):
     """Podwójna ciągła na osi Skłodowskiej-Curie (IMG_1598, IMG_1609) i przejścia „zebra” przy skrzyżowaniach."""
     znaki = []
     for u in d["ulice"]:
-        if u["klasa"] != "primary" or len(u["linia"]) < 2: continue
+        if u["klasa"] not in GLOWNE or len(u["linia"]) < 2: continue
         L = LineString(u["linia"]).intersection(OKNO)
         if L.is_empty: continue
         for off in (-.12, .12):
@@ -124,7 +125,7 @@ def bramka(S, A, B, wstecz, y0):
         S.rura("boisko", "stal_ocynk", p0, p1, .04 if np.linalg.norm(p1 - p0) > 1.2 else .03, seg=8)
 
 
-def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=()):
+def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=()):
     S = Siatka()
     jezdnie, glowne, piesze, parkingi, boiska, place = [], [], [], [], [], []
     for u in d["ulice"]:
@@ -133,7 +134,7 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=()):
         if u["klasa"] in SZER:
             g = ln.buffer(SZER[u["klasa"]] / 2, cap_style=2, join_style=1)
             jezdnie.append(g)
-            if u["klasa"] == "primary": glowne.append(g)
+            if u["klasa"] in GLOWNE: glowne.append(g)
         elif u["klasa"] in SZER_PIESZE:
             piesze.append(ln.buffer(SZER_PIESZE[u["klasa"]] / 2, cap_style=1, join_style=1))
     for t in d["tereny"]:
@@ -170,6 +171,7 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=()):
     KRAW = POZIOM0.buffer(.15, join_style=2).difference(POZIOM0).difference(bud).intersection(OKNO)
     CHOD = CHOD.difference(KRAW); TRAWA = TRAWA.difference(KRAW)
     LIN = linie_glownej(d, GLOW)
+    if zebry: LIN = unary_union([LIN, unary_union(zebry).intersection(JEZ)])   # przejścia z OSM, wycięte z asfaltu
     ASF = JEZ.difference(LIN)
     plaski(S, "teren", "asfalt", ASF.simplify(.05), Y_JEZDNIA)
     plaski(S, "teren", "linia_biala", LIN.simplify(.01), Y_JEZDNIA)
@@ -207,9 +209,9 @@ def punkty(d, G, seed=5):
         if len(u["linia"]) < 2: continue
         ln = LineString(u["linia"]).intersection(OKNO)
         if ln.is_empty or ln.geom_type != "LineString": continue
-        if u["klasa"] == "primary":
+        if u["klasa"] in GLOWNE:
             for strona in ("left", "right"):
-                try: lo = ln.parallel_offset(SZER["primary"] / 2 + 3.2, strona)
+                try: lo = ln.parallel_offset(SZER[u["klasa"]] / 2 + 3.2, strona)
                 except Exception: continue
                 if lo.geom_type != "LineString": continue
                 s = 4.0
@@ -239,15 +241,17 @@ def punkty(d, G, seed=5):
                 if trawa.contains(p): drzewa.append((p.x, p.y, "duze"))
                 s += 7.0
     # drzewa w trawnikach: siatka z rozrzutem, gęstość ~1 na 180 m² w pasie 6–25 m od bloków (jak na zdjęciach)
-    pas = bud.buffer(25).difference(bud.buffer(5)).intersection(trawa.buffer(-2.5))
-    minx, minz, maxx, maxz = pas.bounds; krok = 13.5
+    # gęsto jak na zdjęciach z lotu ptaka (IMG_1664–1668): pas 4,5–35 m od bloków, siatka 9 m, odstęp min. 6 m
+    wszystkie = unary_union([b["poly"] for b in d["budynki"] if "poly" in b] + [bud])   # też budynki jeszcze nie postawione
+    pas = wszystkie.buffer(30).difference(wszystkie.buffer(4.5)).intersection(trawa.buffer(-2.0))
+    minx, minz, maxx, maxz = pas.bounds; krok = 9.0
     x = minx
     while x < maxx:
         z = minz
         while z < maxz:
             px, pz = x + R.uniform(-4, 4), z + R.uniform(-4, 4)
             p = shapely.geometry.Point(px, pz)
-            if pas.contains(p) and all((px - a) ** 2 + (pz - b) ** 2 > 36 for a, b, _ in drzewa[-200:]):
+            if pas.contains(p) and all((px - a) ** 2 + (pz - b) ** 2 > 36 for a, b, _ in drzewa):
                 drzewa.append((px, pz, R.choice(["duze", "duze", "srednie", "iglaste"])))
             z += krok
         x += krok

@@ -1,6 +1,6 @@
 {
  "opis": "zdjęcia wzorcowe właściciela (Bydgoszcz) — do odwzorowania, nie do gry",
- "tar_sha256": "b464f6265706a1e813b1944504e03f09e8c184b76e9585a432ce767357487abc",
+ "tar_sha256": "a800692c52ef3591eabeed391d1af860bf91508821ced73137334bd0db46b5ba",
  "pliki": {
   "zdjecia/osiedle/o01.jpg": "c02850b235d4e6f83597af6d7243d1768589428a09c7d6c0b4f9093bbd80da6c",
   "zdjecia/osiedle/o02.jpg": "eb4c6cc2ca46ca85aad1008a04fd1b9608dc03715acdc821abda2c527a7e67e4",
@@ -115,13 +115,34 @@
   "zdjecia/stare_miasto/m30_mostowa_brda.jpg": "3772eb11783cfc48b50abb48d2f7e55095a793ddd8ff0c151cddf3d6ccdb5d90",
   "zdjecia/stare_miasto/m31_mostowa_brda.jpg": "d9ab6ea4ab29f4fdac535f0ee9bfc82a1d8ece4ff38ecbd77a3673b07ba69452",
   "zdjecia/stare_miasto/m32_mostowa_brda.jpg": "84e5428f02f92aa97f15402db99bd73b96ccf56582e32c531af8699312d4bc87",
-  "zdjecia/stare_miasto/m33_mostowa_brda.jpg": "41bd88aa2de810e7534e8e22dcadbdbce38425383746715a7056e309b3cbf6f6"
+  "zdjecia/stare_miasto/m33_mostowa_brda.jpg": "41bd88aa2de810e7534e8e22dcadbdbce38425383746715a7056e309b3cbf6f6",
+  "zdjecia/stare_miasto/m34_most.jpg": "41bd88aa2de810e7534e8e22dcadbdbce38425383746715a7056e309b3cbf6f6",
+  "zdjecia/stare_miasto/m35_most.jpg": "34fa9c5df4af30b9505b34eadde7df99289c140e194a6f65a674d59bdc77041f",
+  "zdjecia/stare_miasto/m36_most.jpg": "53b66505d55c07e01842986af9b5ccfa39e58d473e49b31abe1d8e0fbd2a16c3",
+  "zdjecia/stare_miasto/m37_most.jpg": "fa20c1906cec96db0aac4fcba4b73a5f72bcf56d1c55643dc1840ab7fcac545a",
+  "zdjecia/stare_miasto/m38_most.jpg": "e904f682a24178110f0863698d1770abaee5f08463fae12246e8b3d59512fe54",
+  "zdjecia/stare_miasto/m39_opera_focha_mapa.jpg": "5bf563f635c4b9d4cf824abbcc78242c061010c2a9bef31276df7303b116b1ae",
+  "zdjecia/stare_miasto/m40_opera_focha_mapa.jpg": "806d873a546c24c0ee399993110d85863f1b31580fc096dc6896cfe5bf3757b4",
+  "zdjecia/stare_miasto/m41_opera_focha_mapa.jpg": "142934323c682b9c17120c1eae7a4d53c2f96a0563abf6797bcbfdc6d6be3fc0",
+  "zdjecia/stare_miasto/m42_opera_focha_mapa.jpg": "578edcf2d1342b755622484f5563ba58c1ba7cf81ca2875c52d15e5e1ce9d8e8",
+  "zdjecia/stare_miasto/m43_opera_focha_mapa.jpg": "95b749f6d03b61357d7f49bf610d5ac3dde240433943bffe1ab164d95366a0bd",
+  "zdjecia/stare_miasto/m44_opera_focha_mapa.jpg": "51ff29691a553fec6a53fdfa8de8b5b6de6cbc19c13b955013878a5ce7ed3dc1",
+  "zdjecia/stare_miasto/m45_opera_focha_mapa.jpg": "4e6a66a41ccc5a9badd3c0dc0526c076901e41502de6e74a3189c30e9f05e83d",
+  "zdjecia/stare_miasto/m46_opera_focha_mapa.jpg": "fe8d4c69b1b2f953267ed50cdeeb45d176a81cb197ba5389d12da7f48412e115",
+  "zdjecia/stare_miasto/m47_opera_focha_mapa.jpg": "58320371d2d419765cec9de6262c7032c3cb2ede7fb4f157474cf6022e6c380a",
+  "zdjecia/stare_miasto/m48_linoskoczek.jpg": "3c57e49c62b158efa12a2e889c6a8e2d37101a9f226a8ab88de8615d5e30a772",
+  "zdjecia/stare_miasto/m49_linoskoczek.jpg": "71b8b392b6b594a9e03caa8de1900f860e31080525b6d066cdb719c943687198"
  },
  "czesci": [
   {
    "name": "part-000.cms",
-   "bytes": 63990341,
-   "sha256": "e759ed34b43b7ba5186f3918676f05fc6761dac75d490a62701914a19df53793"
+   "bytes": 47185920,
+   "sha256": "c7f268d36e9be4e4a3f2d800bd091f9b9a552f0887aff818d89afa42e68b64f6"
+  },
+  {
+   "name": "part-001.cms",
+   "bytes": 26839621,
+   "sha256": "177ee70a3a24ba4a5e57b5594b45c28ed71ee5517887436fc49ca2346b8f91d4"
   }
  ]
 }

@@ -80,7 +80,8 @@ function okno(cellW,mebli){return new THREE.ShaderMaterial({uniforms:{tPok:{valu
 // materiały z paleta.json (ta sama paleta trafia do gry)
 const PAL=await (await fetch('out/paleta.json')).json(); const M={}
 for(const [k,v] of Object.entries(PAL)){
-  if(v.alfa){const t=ld('out/'+v.alfa); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; M[k]=new THREE.MeshStandardMaterial({map:t,alphaTest:.5,roughness:v.szorst,metalness:v.metal||0}); continue}
+  if(v.alfa){const t=ld('out/'+v.alfa); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; M[k]=new THREE.MeshStandardMaterial({map:t,alphaTest:.5,roughness:v.szorst,metalness:v.metal||0,side:THREE.DoubleSide}); const c=lin(v.kol); M[k].color.setRGB(c[0],c[1],c[2],THREE.LinearSRGBColorSpace); continue}
+  if(v.wlasna){const t=ld('out/'+v.wlasna); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; t.repeat.set(1/v.m,1/v.m); M[k]=new THREE.MeshStandardMaterial({map:t,roughness:v.szorst}); continue}
   if(v.tex) M[k]=pbr(v.tex,v.m,v.kol,v.szorst,{brud:v.brud,naklejka:v.nakl,sila:1})
   else M[k]=flat(v.kol,v.szorst,v.metal||0)
 }
@@ -95,7 +96,7 @@ if(Q.get('drzewa')==='1'){
   const PT=await (await fetch('out/osiedle_punkty.json')).json(); const GL=new GLTFLoader()
   const wz={}; for(const [k,f,h] of [['duze','drzewo_verdant.glb',13],['srednie','drzewo_verdant.glb',9],['mlode','drzewo_verdant.glb',5.5],['iglaste','las_sosna_a.glb',14]]){
     const m=(await GL.loadAsync('lib/'+f)).scene; const bb=new THREE.Box3().setFromObject(m); const s=h/(bb.max.y-bb.min.y); wz[k]={m,s,y:-bb.min.y*s}
-    m.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true; if(o.material){o.material.alphaTest=.5; o.material.side=THREE.DoubleSide}}})}
+    m.traverse(o=>{if(/liscie_[12]/.test(o.name)||(o.parent&&/liscie_[12]/.test(o.parent.name)))o.visible=false; if(o.isMesh){o.castShadow=true;o.receiveShadow=true; if(o.material){o.material.alphaTest=.5; o.material.side=THREE.DoubleSide}}})}
   let i=0; for(const [x,z,t] of PT.drzewa){const w=wz[t]||wz.duze; const c=w.m.clone(); c.scale.setScalar(w.s*(.85+.3*((i*0.618)%1))); c.position.set(x,w.y+.08,-z); c.rotation.y=i*2.4; sc.add(c); i++}
 }
 const big=new THREE.Mesh(new THREE.PlaneGeometry(1200,1200),M.trawa_podglad); big.rotation.x=-Math.PI/2; big.position.y=-.05; big.receiveShadow=true; sc.add(big)

@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 PRYW = ROOT / "unity-city/Prywatne"
 WZOR = PRYW / "braxhorn-sklep-walka-01"
-CZESC = 90 * 1024 * 1024
+CZESC = 45 * 1024 * 1024        # GitHub ostrzega powyżej 50 MB
 
 
 def sha(p):

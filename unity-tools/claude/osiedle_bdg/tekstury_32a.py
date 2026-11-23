@@ -148,6 +148,50 @@ def tablica_bar(out, px=400):
     d.text(((img.width - w) / 2, int(px * .12)), txt, font=f, fill=(236, 236, 230, 255)); img.save(out)
 
 
+def plot_prety(out, px=256):
+    """Płot panelowy z prętów (szpital, IMG_1673): pręty pionowe 2 cm co 12 cm, kafel 1 x 1 m, przezroczyste tło."""
+    a = np.zeros((px, px), np.uint8)
+    for k in range(8):
+        x = int((k * .125 + .05) * px); a[:, x:x + max(2, int(.02 * px))] = 255
+    rgba = np.zeros((px, px, 4), np.uint8); rgba[..., :3] = (255, 255, 255); rgba[..., 3] = a
+    Image.fromarray(rgba, "RGBA").save(out)
+
+
+def zywoplot(liscie_rgba, out_lisc, out_brzeg, px=1024, seed=7):
+    """Liście żywopłotu złożone z prawdziwego skanu liści (Poly Haven shrub_02, CC0 — atlas z park_shrub.glb biblioteki
+    właściciela): ok. 2600 listków 4–7 cm, losowy obrót, trzy warstwy z cieniowaniem w głąb. Kafel 1 x 1 m.
+    out_lisc — nieprzezroczysty (rdzeń), out_brzeg — wycinany (zewnętrzna warstwa, nierówna sylwetka)."""
+    R = random.Random(seed)
+    atl = Image.open(liscie_rgba).convert("RGBA")
+    W = atl.width
+    # pojedyncze liście z atlasu: spójne obszary alfy w prawej części (lewa to kora)
+    import cv2
+    al = np.array(atl)[..., 3]; al[:, :int(W * .2)] = 0
+    n, lab, st, _ = cv2.connectedComponentsWithStats((al > 128).astype(np.uint8))
+    liscie = []
+    for i in range(1, n):
+        x, y, w, h, area = st[i]
+        if area < 2000: continue
+        liscie.append(atl.crop((x, y, x + w, y + h)))
+    def warstwa(gestosc, jasn, rozm):
+        im = Image.new("RGBA", (px, px), (0, 0, 0, 0))
+        for _ in range(gestosc):
+            l = R.choice(liscie); dl = int(px * R.uniform(*rozm))
+            l = l.resize((max(2, int(dl * l.width / l.height * 2.3)), dl), Image.LANCZOS).rotate(R.uniform(0, 360), expand=True, resample=Image.BICUBIC)   # owalne jak ligustr
+            arr = np.array(l).astype(np.float32); arr[..., :3] *= jasn * R.uniform(.85, 1.1); arr[..., 0] *= .82; arr[..., 1] *= 1.22; arr[..., 2] *= .7
+            l = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGBA")
+            x, y = R.randrange(px), R.randrange(px)
+            for dx in (0, -px):        # zawijanie kafla
+                for dy in (0, -px):
+                    im.alpha_composite(l, (x + dx, y + dy)) if 0 <= x + dx < px and 0 <= y + dy < px else im.paste(l, (x + dx, y + dy), l)
+        return im
+    tlo = Image.new("RGBA", (px, px), (28, 40, 20, 255))
+    for g, j in ((1400, .45, ), (1100, .7), (900, 1.0)) if False else ((1400, .45), (1100, .7), (900, 1.0)):
+        tlo.alpha_composite(warstwa(g, j, (.04, .07)))
+    tlo.convert("RGB").save(out_lisc)
+    warstwa(1300, 1.0, (.05, .08)).save(out_brzeg)
+
+
 def balustrada_prety(out, px=256):
     a = np.zeros((px, px), np.uint8)
     for k in range(9):
@@ -169,7 +213,8 @@ def wypiecz(src, dst_gra, dst_prywatne):
         tlo.alpha_composite(nk)
         (dst_prywatne if nazwa == "mural_zawisza" else dst_gra).joinpath(nazwa + ".png").parent.mkdir(parents=True, exist_ok=True)
         tlo.convert("RGB").save((dst_prywatne if nazwa == "mural_zawisza" else dst_gra) / (nazwa + ".png"))
-    Image.open(src / "balustrada_prety.png").save(dst_gra / "balustrada_prety.png")
+    for f in ("balustrada_prety.png", "plot_prety.png", "zywoplot_lisc.png", "zywoplot_brzeg.png"):
+        Image.open(src / f).save(dst_gra / f)
 
 
 if __name__ == "__main__":
@@ -181,6 +226,9 @@ if __name__ == "__main__":
     brud(out / "brud_32a_wejscie.png", 9.3, 31.25, .45, seed=4)
     balustrada_prety(out / "balustrada_prety.png")
     tablica_bar(out / "tablica_bar.png")
+    plot_prety(out / "plot_prety.png")
+    import sys as _s
+    if len(_s.argv) > 2: zywoplot(_s.argv[2], out / "zywoplot_lisc.png", out / "zywoplot_brzeg.png")
     for nr in ("28", "30", "32", "34", "36", "38"):
         napis_blok(out / ("napis_blok_%s.png" % nr), nr)
     print("ok")
